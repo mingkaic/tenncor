@@ -1,0 +1,73 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Avoid intermediate representation files
+*.ll
+
+# System Files
+.*
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+Desktop.ini
+
+# Any databases
+*.db
+
+# Any generated data files
+*.svg
+*.info
+
+# Compiled Python files
+*.pyc
+
+# Application specific files
+venv
+node_modules
+*.log
+
+# Application specific folder structure
+bin/
+docs/
+build/
+cmake-build-*/
+shareds/
+bazel-*
+
+**/*.csv
+**/*.pbx
+
+opgraph*
+CMakeFiles
+
+# whitelist
+!.gitignore
+!.travis.yml
+!.dockerignore
+!app/prebuilt_models/*.pbx
+!.gitmodules
