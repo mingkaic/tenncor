@@ -1,6 +1,6 @@
 cc_test(
     name = "tenncor_test",
-    size = "enormous",
+    size = "moderate",
     srcs = glob(["include/**/*.h"]) + glob(["src/**/*.cpp"]),
     deps = [
         "@googletest//:gtest_main",

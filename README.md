@@ -18,18 +18,9 @@ so the resulting graph follows built-in C++ precedence and associativity rules.
 
 ## Building
 
-Tenncor uses cmake (minimum 2.8). 
+Tenncor uses bazel 0.9+. 
 
-Download cmake: https://cmake.org/download/
-
-Compiling in a separate directory is advised.
-
-	mkdir build
-	cd build
-	cmake <path/to/tenncor>
-	make
-
-Libraries should be found in the /bin directory
+Download bazel: https://docs.bazel.build/versions/master/install.html
 
 ## Testing
 

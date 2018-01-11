@@ -6,7 +6,6 @@ git_repository(
 	commit = "df84f25c2d6f5ab2e2c36253841176dfe29c187b",
 	remote = "https://github.com/nelhage/rules_boost",
 )
-
 load("@com_github_nelhage_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
 
