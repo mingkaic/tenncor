@@ -1,6 +1,8 @@
 language: generic
 sudo: required
 dist: xenial
+services:
+  - docker
 
 jobs:
   include:
