@@ -32,4 +32,4 @@ struct mocker
 	}
 };
 
-#endif //TENNCOR_MOCKERINO_H
+#endif /* TENNCOR_MOCKERINO_H */

@@ -18,6 +18,9 @@
 #ifndef DISABLE_MATMUL_TEST
 
 
+class MATMUL : public FUZZ::fuzz_test {};
+
+
 using namespace nnet;
 
 
@@ -57,7 +60,7 @@ TWODV create2D (std::vector<signed> juanD, tensorshape mats, bool transpose = fa
 }
 
 
-bool freivald (TWODV a, TWODV b, TWODV c)
+bool freivald (FUZZ::fuzz_test* fuzzer, TWODV a, TWODV b, TWODV c)
 {
 	assert(!b.empty());
 	size_t rlen = b[0].size();
@@ -67,7 +70,7 @@ bool freivald (TWODV a, TWODV b, TWODV c)
 	for (size_t i = 0; i < m; i++)
 	{
 		// generate r of len b[0].size() or c[0].size()
-		std::vector<size_t> r = FUZZ::getInt(rlen, nnutils::formatter() << "freivald_vec" << i, {0, 1});
+		std::vector<size_t> r = fuzzer->get_int(rlen, nnutils::formatter() << "freivald_vec" << i, {0, 1});
 
 		// p = a @ (b @ r) - c @ r
 		std::vector<signed> br;
@@ -116,9 +119,8 @@ bool freivald (TWODV a, TWODV b, TWODV c)
 }
 
 
-TEST(MATMUL, NullptrRet_C000)
+TEST_F(MATMUL, NullptrRet_C000)
 {
-	FUZZ::reset_logger();
 	variable<double>* zero = new variable<double>(0);
 	EXPECT_EQ(nullptr, matmul<double>(nullptr, nullptr));
 	EXPECT_EQ(nullptr, matmul<double>(zero, nullptr));
@@ -127,11 +129,10 @@ TEST(MATMUL, NullptrRet_C000)
 }
 
 
-TEST(MATMUL, Matmul_C001)
+TEST_F(MATMUL, Matmul_C001)
 {
-	FUZZ::reset_logger();
 	// we get at most 49 elements per matrix
-	std::vector<size_t> dims = FUZZ::getInt(3, "dimensions<m,n,k>", {3, 7});
+	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {3, 7});
 	rand_uniform<signed> rinit(-12, 12);
 
 	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
@@ -177,10 +178,10 @@ TEST(MATMUL, Matmul_C001)
 	TWODV matresT = create2D(expose<signed>(resT), resTshape);
 
 	// Freivald's algorithm
-	EXPECT_TRUE(freivald(matA, matB, matres));
-	EXPECT_TRUE(freivald(mattA, matB, matrestA));
-	EXPECT_TRUE(freivald(matA, mattB, matrestB));
-	EXPECT_TRUE(freivald(mattA, mattB, matresT));
+	EXPECT_TRUE(freivald(this, matA, matB, matres));
+	EXPECT_TRUE(freivald(this, mattA, matB, matrestA));
+	EXPECT_TRUE(freivald(this, matA, mattB, matrestB));
+	EXPECT_TRUE(freivald(this, mattA, mattB, matresT));
 
 	// we delete top nodes, because this case is not testing for observer self-destruction
 	delete res;
@@ -192,17 +193,15 @@ TEST(MATMUL, Matmul_C001)
 
 // tests matrix multiplication but for n dimensions, matrix sizes reduced to 2-5, (we get at most 5x25 matmuls)
 // todo: test
-TEST(MATMUL, DISABLED_NDim_Matmul_C001)
+TEST_F(MATMUL, DISABLED_NDim_Matmul_C001)
 {
-	FUZZ::reset_logger();
 }
 
 
-TEST(MATMUL, Incompatible_C002)
+TEST_F(MATMUL, Incompatible_C002)
 {
-	FUZZ::reset_logger();
 	// we get at most 49 elements per matrix
-	std::vector<size_t> dims = FUZZ::getInt(3, "dimensions<m,n,k>", {3, 7});
+	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {3, 7});
 	rand_uniform<signed> rinit(-12, 12);
 
 	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
@@ -219,11 +218,10 @@ TEST(MATMUL, Incompatible_C002)
 }
 
 
-TEST(MATMUL, Jacobian_C003)
+TEST_F(MATMUL, Jacobian_C003)
 {
-	FUZZ::reset_logger();
 	// we get at most 49 elements per matrix
-	std::vector<size_t> dims = FUZZ::getInt(3, "dimensions<m,n,k>", {3, 7});
+	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {3, 7});
 	rand_uniform<double> rinit(0, 1);
 
 	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
@@ -347,11 +345,10 @@ TEST(MATMUL, Jacobian_C003)
 
 
 // tests large matrices sizes (100-112), 2D only
-TEST(MATMUL, Strassen_C004)
+TEST_F(MATMUL, Strassen_C004)
 {
-	FUZZ::reset_logger();
 	// we get at most 12996 elements per matrix
-	std::vector<size_t> dims = FUZZ::getInt(3, "dimensions<m,n,k>", {STRASSEN_THRESHOLD, STRASSEN_THRESHOLD+12});
+	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {STRASSEN_THRESHOLD, STRASSEN_THRESHOLD+12});
 	rand_uniform<signed> rinit(-12, 12);
 
 	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
@@ -412,10 +409,10 @@ TEST(MATMUL, Strassen_C004)
 	TWODV matresT = create2D(expose<signed>(resT), resTshape);
 	// Freivald's algorithm
 
-	EXPECT_TRUE(freivald(matA, matB, matres));
-	EXPECT_TRUE(freivald(mattA, matB, matrestA));
-	EXPECT_TRUE(freivald(matA, mattB, matrestB));
-	EXPECT_TRUE(freivald(mattA, mattB, matresT));
+	EXPECT_TRUE(freivald(this, matA, matB, matres));
+	EXPECT_TRUE(freivald(this, mattA, matB, matrestA));
+	EXPECT_TRUE(freivald(this, matA, mattB, matrestB));
+	EXPECT_TRUE(freivald(this, mattA, mattB, matresT));
 
 	// we delete top nodes, because this case is not testing for observer self-destruction
 	delete res;

@@ -18,11 +18,13 @@
 #ifndef DISABLE_GENERATOR_TEST
 
 
-TEST(GENERATOR, Copy_J000)
+class GENERATOR : public FUZZ::fuzz_test {};
+
+
+TEST_F(GENERATOR, Copy_J000)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c", {1, 17})[0];
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c", {1, 17})[0];
 
 	std::vector<double> cdata(shape.n_elems(), 0);
 	constant<double>* con = constant<double>::get(cdata, shape);
@@ -52,11 +54,10 @@ TEST(GENERATOR, Copy_J000)
 }
 
 
-TEST(GENERATOR, Move_J000)
+TEST_F(GENERATOR, Move_J000)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c", {1, 17})[0];
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c", {1, 17})[0];
 
 	std::vector<double> cdata(shape.n_elems(), 0);
 	constant<double>* con = constant<double>::get(cdata, shape);
@@ -86,11 +87,10 @@ TEST(GENERATOR, Move_J000)
 }
 
 
-TEST(GENERATOR, ShapeDep_J001)
+TEST_F(GENERATOR, ShapeDep_J001)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c", {1, 17})[0];
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c", {1, 17})[0];
 	std::vector<double> cdata(shape.n_elems(), 0);
 	constant<double>* con = constant<double>::get(cdata, shape);
 	const_init<double> cinit(c);
@@ -102,11 +102,10 @@ TEST(GENERATOR, ShapeDep_J001)
 }
 
 
-TEST(GENERATOR, Derive_J002)
+TEST_F(GENERATOR, Derive_J002)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c", {1, 17})[0];
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c", {1, 17})[0];
 	std::vector<double> cdata(shape.n_elems(), 0);
 	constant<double>* con = constant<double>::get(cdata, shape);
 	const_init<double> cinit(c);

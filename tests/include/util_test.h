@@ -8,6 +8,8 @@
 #include "include/tensor/tensorshape.hpp"
 #include "include/tensor/tensor_handler.hpp"
 
+#include "tests/include/fuzz.h"
+
 
 #ifndef UTIL_TEST_H
 #define UTIL_TEST_H
@@ -29,7 +31,7 @@ bool tensorshape_equal (
 void print (std::vector<double> raw);
 
 
-tensorshape make_partial (std::vector<size_t> shapelist);
+tensorshape make_partial (FUZZ::fuzz_test* fuzzer, std::vector<size_t> shapelist);
 
 
 tensorshape make_incompatible (std::vector<size_t> shapelist);
@@ -45,10 +47,10 @@ tensorshape padd(std::vector<size_t> shapelist, size_t nfront, size_t nback);
 std::vector<std::vector<double> > doubleDArr(std::vector<double> v, std::vector<size_t> dimensions);
 
 
-tensorshape random_shape (void);
+tensorshape random_shape (FUZZ::fuzz_test* fuzzer);
 
 
-tensorshape random_def_shape (int lowerrank = 2, int upperrank = 11, size_t minn = 17, size_t maxn = 7341);
+tensorshape random_def_shape (FUZZ::fuzz_test* fuzzer, int lowerrank = 2, int upperrank = 11, size_t minn = 17, size_t maxn = 7341);
 
 
 void adder (double* dest, std::vector<const double*> src, nnet::shape_io shape);

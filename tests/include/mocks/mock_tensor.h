@@ -15,7 +15,7 @@ class mock_tensor : public tensor<double>
 {
 public:
 	mock_tensor (void) : tensor<double>() {}
-	mock_tensor (tensorshape shape, std::vector<double> initdata = {}) :
+	mock_tensor (FUZZ::fuzz_test* fuzzer, tensorshape shape, std::vector<double> initdata = {}) :
 		tensor<double>(shape)
 	{
 		if (is_alloc())
@@ -23,7 +23,7 @@ public:
 			size_t n = alloc_shape_.n_elems();
 			if (initdata.empty())
 			{
-				initdata = FUZZ::getDouble(n, "initdata", {-123, 139.2});
+				initdata = fuzzer->get_double(n, "initdata", {-123, 139.2});
 			}
 			std::memcpy(raw_data_, &initdata[0], n * sizeof(double));
 		}

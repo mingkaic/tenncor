@@ -16,27 +16,30 @@
 #ifndef DISABLE_SHAPE_TEST
 
 
-static void generate_shapes (std::vector<size_t>& pcom, std::vector<size_t>& com)
+class TENSORSHAPE : public FUZZ::fuzz_test {};
+
+
+static void generate_shapes (FUZZ::fuzz_test* fuzzer, std::vector<size_t>& pcom, std::vector<size_t>& com)
 {
 	// get an array of size greater than 1 and do not contain 0
-	std::vector<size_t> ds = FUZZ::getInt(FUZZ::getInt(1, "ds.size", {2, 17})[0], "ds", {1, 6});
+	std::vector<size_t> ds = fuzzer->get_int(fuzzer->get_int(1, "ds.size", {2, 17})[0], "ds", {1, 6});
 	com = ds;
 	// inject a 0 into ds
-	size_t idx = FUZZ::getInt(1, "idx", {0, ds.size()-1})[0];
+	size_t idx = fuzzer->get_int(1, "idx", {0, ds.size()-1})[0];
 	ds.insert(ds.begin() + idx, 0);
 	pcom = ds;
 }
 
 
-static void generate_moreshapes (std::vector<size_t>& pcom, std::vector<size_t>& com)
+static void generate_moreshapes (FUZZ::fuzz_test* fuzzer, std::vector<size_t>& pcom, std::vector<size_t>& com)
 {
 	// pcom can have more than 1 zero
-	pcom = FUZZ::getInt(FUZZ::getInt(1, "pcom.size", {12, 61})[0], "pcom", {0, 1});
-	size_t idx = FUZZ::getInt(1, "idx", {0, pcom.size()-1})[0];
+	pcom = fuzzer->get_int(fuzzer->get_int(1, "pcom.size", {12, 61})[0], "pcom", {0, 1});
+	size_t idx = fuzzer->get_int(1, "idx", {0, pcom.size()-1})[0];
 	pcom.insert(pcom.begin() + idx, 0);
 
 	// com is not similar to pcom
-	com = FUZZ::getInt(FUZZ::getInt(1, "com.size", {12, 31})[0], "com", {2, 3});
+	com = fuzzer->get_int(fuzzer->get_int(1, "com.size", {12, 31})[0], "com", {2, 3});
 }
 
 
@@ -44,9 +47,8 @@ static void generate_moreshapes (std::vector<size_t>& pcom, std::vector<size_t>&
 // default and vector constructor
 // copy constructor and assignment,
 // and vector assignment
-TEST(TENSORSHAPE, Copy_A000)
+TEST_F(TENSORSHAPE, Copy_A000)
 {
-	FUZZ::reset_logger();
 	tensorshape incom_assign;
 	tensorshape pcom_assign;
 	tensorshape com_assign;
@@ -57,7 +59,7 @@ TEST(TENSORSHAPE, Copy_A000)
 
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
-	generate_shapes(pds, cds);
+	generate_shapes(this, pds, cds);
 	// define shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -97,15 +99,14 @@ TEST(TENSORSHAPE, Copy_A000)
 // cover tensorshape
 // default and vector constructor
 // move constructor and assignment
-TEST(TENSORSHAPE, Move_A000)
+TEST_F(TENSORSHAPE, Move_A000)
 {
-	FUZZ::reset_logger();
 	tensorshape pcom_assign;
 	tensorshape com_assign;
 	std::vector<size_t> empty;
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
-	generate_shapes(pds, cds);
+	generate_shapes(this, pds, cds);
 	// define shapes
 	tensorshape pcom_ts(pds);
 	tensorshape com_ts(cds);
@@ -129,12 +130,11 @@ TEST(TENSORSHAPE, Move_A000)
 
 
 // covers tensorshape as_list
-TEST(TENSORSHAPE, AsList_A001)
+TEST_F(TENSORSHAPE, AsList_A001)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
-	generate_shapes(pds, cds);
+	generate_shapes(this, pds, cds);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -150,14 +150,13 @@ TEST(TENSORSHAPE, AsList_A001)
 
 
 // covers tensorshape n_elems
-TEST(TENSORSHAPE, N_A002)
+TEST_F(TENSORSHAPE, N_A002)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	// this generation is better for rank testing,
 	// since pds and cds ranks are independent
-	generate_moreshapes(pds, cds);
+	generate_moreshapes(this, pds, cds);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -189,14 +188,13 @@ TEST(TENSORSHAPE, N_A002)
 
 
 // covers tensorshape rank
-TEST(TENSORSHAPE, Rank_A003)
+TEST_F(TENSORSHAPE, Rank_A003)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	// this generation is better for rank testing,
 	// since pds and cds ranks are independent
-	generate_moreshapes(pds, cds);
+	generate_moreshapes(this, pds, cds);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -210,15 +208,14 @@ TEST(TENSORSHAPE, Rank_A003)
 
 // behavior A000
 // covers is_compatible_with
-TEST(TENSORSHAPE, Compatible_A004)
+TEST_F(TENSORSHAPE, Compatible_A004)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	std::vector<size_t> pds2;
 	std::vector<size_t> cds2;
-	generate_shapes(pds, cds);
-	generate_moreshapes(pds2, cds2);
+	generate_shapes(this, pds, cds);
+	generate_moreshapes(this, pds2, cds2);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -238,8 +235,8 @@ TEST(TENSORSHAPE, Compatible_A004)
 	std::vector<size_t> cds2_cpy2 = cds2;
 	std::vector<size_t> brank = cds2;
 	brank.push_back(cds2_cpy.back()+1);
-	size_t idx1 = FUZZ::getInt(1, "idx1", {0, cds_cpy.size()-1})[0];
-	size_t idx2 = FUZZ::getInt(1, "idx2", {0, cds2_cpy.size()-1})[0];
+	size_t idx1 = get_int(1, "idx1", {0, cds_cpy.size()-1})[0];
+	size_t idx2 = get_int(1, "idx2", {0, cds2_cpy.size()-1})[0];
 	cds_cpy[idx1] = 0;
 	cds2_cpy[idx2] = 0;
 	// ensure cpy2 increments are not made to indices where cpy set to 0
@@ -269,15 +266,14 @@ TEST(TENSORSHAPE, Compatible_A004)
 
 
 // covers is_part_defined
-TEST(TENSORSHAPE, PartDef_A005)
+TEST_F(TENSORSHAPE, PartDef_A005)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	std::vector<size_t> pds2;
 	std::vector<size_t> cds2;
-	generate_shapes(pds, cds);
-	generate_moreshapes(pds2, cds2);
+	generate_shapes(this, pds, cds);
+	generate_moreshapes(this, pds2, cds2);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -294,15 +290,14 @@ TEST(TENSORSHAPE, PartDef_A005)
 
 
 // covers is_fully_defined and assert_is_fully defined
-TEST(TENSORSHAPE, FullDef_A006)
+TEST_F(TENSORSHAPE, FullDef_A006)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	std::vector<size_t> pds2;
 	std::vector<size_t> cds2;
-	generate_shapes(pds, cds);
-	generate_moreshapes(pds2, cds2);
+	generate_shapes(this, pds, cds);
+	generate_moreshapes(this, pds2, cds2);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -325,12 +320,11 @@ TEST(TENSORSHAPE, FullDef_A006)
 
 
 // covers assert_has_rank and assert_same_rank
-TEST(TENSORSHAPE, RankAssert_A007)
+TEST_F(TENSORSHAPE, RankAssert_A007)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
-	generate_shapes(pds, cds);
+	generate_shapes(this, pds, cds);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -341,7 +335,7 @@ TEST(TENSORSHAPE, RankAssert_A007)
 
 	com_ts.assert_has_rank(cds.size());
 	pcom_ts.assert_has_rank(pds.size());
-	incom_ts.assert_has_rank(FUZZ::getInt(1, "assert random rank")[0]);
+	incom_ts.assert_has_rank(get_int(1, "assert random rank")[0]);
 	// EXPECT_DEATH(com_ts.assert_has_rank(cds.size()+1), ".*");
 	// EXPECT_DEATH(pcom_ts.assert_has_rank(pds.size()+1), ".*");
 
@@ -358,12 +352,11 @@ TEST(TENSORSHAPE, RankAssert_A007)
 
 
 // covers undefine, dependent on is_part_defined
-TEST(TENSORSHAPE, Undefine_A008)
+TEST_F(TENSORSHAPE, Undefine_A008)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
-	generate_shapes(pds, cds);
+	generate_shapes(this, pds, cds);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -384,15 +377,14 @@ TEST(TENSORSHAPE, Undefine_A008)
 
 
 // covers merge_with
-TEST(TENSORSHAPE, Merge_A009)
+TEST_F(TENSORSHAPE, Merge_A009)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	std::vector<size_t> pds2;
 	std::vector<size_t> cds2;
-	generate_shapes(pds, cds);
-	generate_moreshapes(pds2, cds2);
+	generate_shapes(this, pds, cds);
+	generate_moreshapes(this, pds2, cds2);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -415,8 +407,8 @@ TEST(TENSORSHAPE, Merge_A009)
 	std::vector<size_t> cds2_cpy = cds2;
 	std::vector<size_t> cds_cpy2 = cds;
 	std::vector<size_t> cds2_cpy2 = cds2;
-	size_t idx1 = FUZZ::getInt(1, "idx1", {0, cds_cpy.size()-1})[0];
-	size_t idx2 = FUZZ::getInt(1, "idx2", {0, cds2_cpy.size()-1})[0];
+	size_t idx1 = get_int(1, "idx1", {0, cds_cpy.size()-1})[0];
+	size_t idx2 = get_int(1, "idx2", {0, cds2_cpy.size()-1})[0];
 	cds_cpy[idx1] = 0;
 	cds2_cpy[idx2] = 0;
 	// ensure cpy2 increments are not made to indices where cpy set to 0
@@ -442,17 +434,16 @@ TEST(TENSORSHAPE, Merge_A009)
 
 
 // covers trim, dependent on rank
-TEST(TENSORSHAPE, Trim_A010)
+TEST_F(TENSORSHAPE, Trim_A010)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> ids;
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	// this generation is better for rank testing,
 	// since pds and cds ranks are independent
-	generate_moreshapes(pds, cds);
+	generate_moreshapes(this, pds, cds);
 	// padd a bunch of ones to pds and cds
-	std::vector<size_t> npads = FUZZ::getInt(5, "npads", {3, 12});
+	std::vector<size_t> npads = get_int(5, "npads", {3, 12});
 	ids.insert(ids.begin(), npads[0], 1);
 	std::vector<size_t> fakepds(npads[1], 1);
 	std::vector<size_t> fakecds(npads[2], 1);
@@ -480,12 +471,11 @@ TEST(TENSORSHAPE, Trim_A010)
 
 
 // covers concatenate
-TEST(TENSORSHAPE, Concat_A011)
+TEST_F(TENSORSHAPE, Concat_A011)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
-	generate_moreshapes(pds, cds);
+	generate_moreshapes(this, pds, cds);
 	// define partial and complete shapes
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
@@ -518,15 +508,14 @@ TEST(TENSORSHAPE, Concat_A011)
 
 
 // covers with_rank, with_rank_at_least, with_rank_at_most, depends on rank
-TEST(TENSORSHAPE, WithRank_A012)
+TEST_F(TENSORSHAPE, WithRank_A012)
 {
-	FUZZ::reset_logger();
 	std::vector<size_t> ids;
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	// this generation is better for rank testing,
 	// since pds and cds ranks are independent
-	generate_moreshapes(pds, cds);
+	generate_moreshapes(this, pds, cds);
 	tensorshape incom_ts;
 	tensorshape pcom_ts(pds);
 	tensorshape com_ts(cds);
@@ -534,7 +523,7 @@ TEST(TENSORSHAPE, WithRank_A012)
 	// expand rank
 	size_t peak = std::max(pds.size(), cds.size());
 	size_t trough = std::min(pds.size(), cds.size());
-	std::vector<size_t> bounds = FUZZ::getInt(2, "bounds", {3, trough});
+	std::vector<size_t> bounds = get_int(2, "bounds", {3, trough});
 	size_t upperbound = peak + bounds[0];
 	size_t lowerbound = trough - bounds[1];
 	// expansion

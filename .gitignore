@@ -53,7 +53,6 @@ node_modules
 
 # Application specific folder structure
 bin/
-docs/
 build/
 cmake-build-*/
 shareds/

@@ -16,22 +16,24 @@
 #ifndef DISABLE_CONNECTOR_TEST
 
 
+class CONNECTOR : public FUZZ::fuzz_test {};
+
+
 // covers iconnector
 // copy constructor and assignment
-TEST(CONNECTOR, Copy_H000)
+TEST_F(CONNECTOR, Copy_H000)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_connector* assign = new mock_connector(std::vector<inode<double>*>{}, "");
 	mock_connector* assign2 = new mock_connector(std::vector<inode<double>*>{}, "");
 	mock_connector* assign3 = new mock_connector(std::vector<inode<double>*>{}, "");
 	mock_connector* assign4 = new mock_connector(std::vector<inode<double>*>{}, "");
 
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string bossname = FUZZ::getString(FUZZ::getInt(1, "bossname.size", {14, 29})[0], "bossname");
-	std::string bossname2 = FUZZ::getString(FUZZ::getInt(1, "bossname2.size", {14, 29})[0], "bossname2");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string bossname = get_string(get_int(1, "bossname.size", {14, 29})[0], "bossname");
+	std::string bossname2 = get_string(get_int(1, "bossname2.size", {14, 29})[0], "bossname2");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node* n1 = new mock_node(label1);
 
 	mock_connector* conn = new mock_connector(std::vector<inode<double> *>{n1}, conname);
@@ -119,20 +121,19 @@ TEST(CONNECTOR, Copy_H000)
 
 // covers iconnector
 // move constructor and assignment
-TEST(CONNECTOR, Move_H000)
+TEST_F(CONNECTOR, Move_H000)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_connector* assign = new mock_connector(std::vector<inode<double>*>{}, "");
 	mock_connector* assign2 = new mock_connector(std::vector<inode<double>*>{}, "");
 	mock_connector* assign3 = new mock_connector(std::vector<inode<double>*>{}, "");
 	mock_connector* assign4 = new mock_connector(std::vector<inode<double>*>{}, "");
 
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string bossname = FUZZ::getString(FUZZ::getInt(1, "bossname.size", {14, 29})[0], "bossname");
-	std::string bossname2 = FUZZ::getString(FUZZ::getInt(1,"bossname2.size",  {14, 29})[0], "bossname2");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string bossname = get_string(get_int(1, "bossname.size", {14, 29})[0], "bossname");
+	std::string bossname2 = get_string(get_int(1,"bossname2.size",  {14, 29})[0], "bossname2");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node* n1 = new mock_node(label1);
 
 	mock_connector* conn = new mock_connector(std::vector<inode<double> *>{n1}, conname);
@@ -220,22 +221,21 @@ TEST(CONNECTOR, Move_H000)
 
 // covers iconnector
 // get_name
-TEST(CONNECTOR, Name_H001)
+TEST_F(CONNECTOR, Name_H001)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
-	size_t nargs = FUZZ::getInt(1, "nargs", {2, 7})[0];
+	size_t nargs = get_int(1, "nargs", {2, 7})[0];
 	std::vector<inode<double>*> ns;
-	std::vector<size_t> nlens = FUZZ::getInt(nargs, "nlens", {14, 29});
+	std::vector<size_t> nlens = get_int(nargs, "nlens", {14, 29});
 	std::string argname = "";
 	for (size_t i = 0; i < nargs; i++)
 	{
-		std::string label = FUZZ::getString(nlens[0], "label");
+		std::string label = get_string(nlens[0], "label");
 		argname += label + ",";
 		ns.push_back(new mock_node(label));
 	};
 	argname.pop_back(); // remove last comma
-	std::string bossname = FUZZ::getString(FUZZ::getInt(1, "bossname.size", {14, 29})[0], "bossname");
+	std::string bossname = get_string(get_int(1, "bossname.size", {14, 29})[0], "bossname");
 	mock_connector* conn1 = new mock_connector(ns, bossname);
 	std::string expectname = "<" + bossname + ":" + boost::uuids::to_string(conn1->get_uid()) + ">(" + argname + ")";
 	EXPECT_EQ(expectname, conn1->get_name());
@@ -252,15 +252,14 @@ TEST(CONNECTOR, Name_H001)
 
 // covers iconnector
 // update_graph, is_same_graph
-TEST(CONNECTOR, Graph_H002)
+TEST_F(CONNECTOR, Graph_H002)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string bossname = FUZZ::getString(FUZZ::getInt(1, "bossname.size", {14, 29})[0], "bossname");
-	std::string bossname2 = FUZZ::getString(FUZZ::getInt(1, "bossname2.size", {14, 29})[0], "bossname2");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string bossname = get_string(get_int(1, "bossname.size", {14, 29})[0], "bossname");
+	std::string bossname2 = get_string(get_int(1, "bossname2.size", {14, 29})[0], "bossname2");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node* n1 = new mock_node(label1);
 	mock_connector* conn = new mock_connector(std::vector<inode<double> *>{n1}, conname);
 	mock_connector* conn2 = new mock_connector(std::vector<inode<double> *>{n1, n1}, conname2);
@@ -295,17 +294,16 @@ TEST(CONNECTOR, Graph_H002)
 
 // covers iconnector
 // potential_descendent
-TEST(CONNECTOR, Descendent_H003)
+TEST_F(CONNECTOR, Descendent_H003)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string bossname = FUZZ::getString(FUZZ::getInt(1, "bossname.size", {14, 29})[0], "bossname");
-	std::string bossname2 = FUZZ::getString(FUZZ::getInt(1, "bossname2.size", {14, 29})[0], "bossname2");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	std::string label2 = FUZZ::getString(FUZZ::getInt(1, "label2.size", {14, 29})[0], "label2");
-	std::string label3 = FUZZ::getString(FUZZ::getInt(1, "label3.size", {14, 29})[0], "label3");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string bossname = get_string(get_int(1, "bossname.size", {14, 29})[0], "bossname");
+	std::string bossname2 = get_string(get_int(1, "bossname2.size", {14, 29})[0], "bossname2");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	std::string label2 = get_string(get_int(1, "label2.size", {14, 29})[0], "label2");
+	std::string label3 = get_string(get_int(1, "label3.size", {14, 29})[0], "label3");
 	mock_node* n1 = new mock_node(label1);
 	mock_node* n2 = new mock_node(label2);
 	mock_node* n3 = new mock_node(label3);

@@ -12,23 +12,25 @@
 #ifndef DISABLE_LEAF_TEST
 
 
+class LEAF : public FUZZ::fuzz_test {};
+
+
 // covers ileaf
 // copy constructor and assignment
-TEST(LEAF, Copy_C000)
+TEST_F(LEAF, Copy_C000)
 {
-	FUZZ::reset_logger();
-	mock_leaf assign("");
-	mock_leaf assign2("");
-	mock_leaf assign3("");
+	mock_leaf assign(this, "");
+	mock_leaf assign2(this, "");
+	mock_leaf assign3(this, "");
 	
-	const_init<double> cinit(FUZZ::getInt(1, "cinit.scalar")[0]);
+	const_init<double> cinit(get_int(1, "cinit.scalar")[0]);
 
-	std::vector<size_t> strlens = FUZZ::getInt(3, "strlens", {14, 29});
-	std::string label1 = FUZZ::getString(strlens[0], "label1");
-	std::string label2 = FUZZ::getString(strlens[1], "label2");
-	std::string label3 = FUZZ::getString(strlens[2], "label3");
-	tensorshape comp = random_def_shape();
-	tensorshape part = make_partial(comp.as_list());
+	std::vector<size_t> strlens = get_int(3, "strlens", {14, 29});
+	std::string label1 = get_string(strlens[0], "label1");
+	std::string label2 = get_string(strlens[1], "label2");
+	std::string label3 = get_string(strlens[2], "label3");
+	tensorshape comp = random_def_shape(this);
+	tensorshape part = make_partial(this, comp.as_list());
 	mock_leaf res(comp, label1);
 	mock_leaf res2(part, label2);
 	mock_leaf uninit(comp, label3);
@@ -105,21 +107,20 @@ TEST(LEAF, Copy_C000)
 
 // covers ileaf
 // move constructor and assignment
-TEST(LEAF, Move_C000)
+TEST_F(LEAF, Move_C000)
 {
-	FUZZ::reset_logger();
-	mock_leaf assign("");
-	mock_leaf assign2("");
-	mock_leaf assign3("");
+	mock_leaf assign(this, "");
+	mock_leaf assign2(this, "");
+	mock_leaf assign3(this, "");
 	
-	const_init<double> cinit(FUZZ::getInt(1, "cinit.scalar")[0]);
+	const_init<double> cinit(get_int(1, "cinit.scalar")[0]);
 
-	std::vector<size_t> strlens = FUZZ::getInt(3, "strlens", {14, 29});
-	std::string label1 = FUZZ::getString(strlens[0], "label1");
-	std::string label2 = FUZZ::getString(strlens[1], "label2");
-	std::string label3 = FUZZ::getString(strlens[2], "label3");
-	tensorshape comp = random_def_shape();
-	tensorshape part = make_partial(comp.as_list());
+	std::vector<size_t> strlens = get_int(3, "strlens", {14, 29});
+	std::string label1 = get_string(strlens[0], "label1");
+	std::string label2 = get_string(strlens[1], "label2");
+	std::string label3 = get_string(strlens[2], "label3");
+	tensorshape comp = random_def_shape(this);
+	tensorshape part = make_partial(this, comp.as_list());
 	mock_leaf res(comp, label1);
 	mock_leaf res2(part, label2);
 	mock_leaf uninit(comp, label3);
@@ -194,13 +195,12 @@ TEST(LEAF, Move_C000)
 
 
 // covers ileaf get_shape
-TEST(LEAF, GetShape_C001)
+TEST_F(LEAF, GetShape_C001)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	std::string label2 = FUZZ::getString(FUZZ::getInt(1, "label2.size", {14, 29})[0], "label2");
-	tensorshape shape1 = random_shape();
-	tensorshape shape2 = random_shape();
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	std::string label2 = get_string(get_int(1, "label2.size", {14, 29})[0], "label2");
+	tensorshape shape1 = random_shape(this);
+	tensorshape shape2 = random_shape(this);
 	mock_leaf res(shape1, label1);
 	mock_leaf res2(shape2, label2);
 
@@ -217,13 +217,12 @@ TEST(LEAF, GetShape_C001)
 
 
 // covers ileaf eval
-TEST(LEAF, GetEval_C002)
+TEST_F(LEAF, GetEval_C002)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	std::string label2 = FUZZ::getString(FUZZ::getInt(1, "label2.size", {14, 29})[0], "label2");
-	tensorshape comp = random_def_shape();
-	tensorshape part = make_partial(comp.as_list());
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	std::string label2 = get_string(get_int(1, "label2.size", {14, 29})[0], "label2");
+	tensorshape comp = random_def_shape(this);
+	tensorshape part = make_partial(this, comp.as_list());
 	mock_leaf res(comp, label1);
 	mock_leaf res2(part, label2);
 	// pretend they're both good (initialized)
@@ -243,13 +242,12 @@ TEST(LEAF, GetEval_C002)
 
 
 // covers ileaf good_status
-TEST(LEAF, GoodStatus_C003)
+TEST_F(LEAF, GoodStatus_C003)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0]);
-	std::string label2 = FUZZ::getString(FUZZ::getInt(1, "label2.size", {14, 29})[0]);
-	tensorshape comp = random_def_shape();
-	tensorshape part = make_partial(comp.as_list());
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0]);
+	std::string label2 = get_string(get_int(1, "label2.size", {14, 29})[0]);
+	tensorshape comp = random_def_shape(this);
+	tensorshape part = make_partial(this, comp.as_list());
 	mock_leaf res(comp, label1);
 	mock_leaf res2(part, label2);
 	res.set_good();
@@ -263,11 +261,10 @@ TEST(LEAF, GoodStatus_C003)
 //C004 - reading a valid tensor_proto should initialize the leaf
 
 
-TEST(LEAF, GetLeaves_G005)
+TEST_F(LEAF, GetLeaves_G005)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	tensorshape shape = random_def_shape();
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	tensorshape shape = random_def_shape(this);
 
 	mock_leaf res(shape, label1);
 

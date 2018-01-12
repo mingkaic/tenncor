@@ -22,6 +22,9 @@ using namespace nnet;
 #ifndef DISABLE_HANDLER_TEST
 
 
+class HANDLER : public FUZZ::fuzz_test {};
+
+
 // todo: remove this bad practice, maybe deterministically mark shapes and data if necessary
 static double SUPERMARK = 1;
 
@@ -48,14 +51,13 @@ static tensorshape shaper (std::vector<tensorshape> args)
 
 // cover transfer_function
 // operator ()
-TEST(HANDLER, Transfer_C000)
+TEST_F(HANDLER, Transfer_C000)
 {
-	FUZZ::reset_logger();
-	tensorshape c1 = random_def_shape();
-	tensorshape c2 = random_def_shape();
+	tensorshape c1 = random_def_shape(this);
+	tensorshape c2 = random_def_shape(this);
 	tensorshape resshape = shaper({c1, c2});
-	mock_tensor arg1(c1);
-	mock_tensor arg2(c2);
+	mock_tensor arg1(this, c1);
+	mock_tensor arg2(this, c2);
 	tensor<double> good(resshape);
 	std::vector<const tensor<double>*> args = { &arg1, &arg2 };
 
@@ -76,10 +78,9 @@ TEST(HANDLER, Transfer_C000)
 
 // cover shape_extracter
 // operator ()
-TEST(HANDLER, ShapeExtractor_C001)
+TEST_F(HANDLER, ShapeExtractor_C001)
 {
-	FUZZ::reset_logger();
-	tensorshape c1 = random_def_shape();
+	tensorshape c1 = random_def_shape(this);
 	tensorshape resshape = std::vector<size_t>{ c1.rank() };
 	tensor<double> good(resshape);
 	std::vector<tensorshape> args = { c1 };
@@ -98,12 +99,11 @@ TEST(HANDLER, ShapeExtractor_C001)
 
 // cover const_init
 // operator ()
-TEST(HANDLER, Constant_C002)
+TEST_F(HANDLER, Constant_C002)
 {
-	FUZZ::reset_logger();
-	double scalar = FUZZ::getDouble(1, "scalar")[0];
+	double scalar = get_double(1, "scalar")[0];
 	const_init<double> ci(scalar);
-	tensorshape shape = random_def_shape();
+	tensorshape shape = random_def_shape(this);
 	tensor<double> block(shape);
 	ci(block);
 
@@ -118,18 +118,17 @@ TEST(HANDLER, Constant_C002)
 
 // cover rand_uniform, rand_normal
 // operator ()
-TEST(HANDLER, Random_C003)
+TEST_F(HANDLER, Random_C003)
 {
-	FUZZ::reset_logger();
-	double lo = FUZZ::getDouble(1, "lo", {127182, 12921231412323})[0];
+	double lo = get_double(1, "lo", {127182, 12921231412323})[0];
 	double hi = lo+1;
-	double high = FUZZ::getDouble(1, "high", {lo*2, lo*3+50})[0];
-	double mean = FUZZ::getDouble(1, "mean", {-13, 23})[0];
-	double variance = FUZZ::getDouble(1, "variance", {1, 32})[0];
+	double high = get_double(1, "high", {lo*2, lo*3+50})[0];
+	double mean = get_double(1, "mean", {-13, 23})[0];
+	double variance = get_double(1, "variance", {1, 32})[0];
 	rand_uniform<double> ri1(lo, hi);
 	rand_uniform<double> ri2(lo, high);
 	rand_normal<double> rn(mean, variance);
-	tensorshape shape = random_def_shape();
+	tensorshape shape = random_def_shape(this);
 	tensor<double> block1(shape);
 	tensor<double> block2(shape);
 	tensor<double> block3(shape);
@@ -161,21 +160,20 @@ TEST(HANDLER, Random_C003)
 
 // cover transfer_func, const_init, rand_uniform
 // copy constructor and assignment
-TEST(HANDLER, Copy_C004)
+TEST_F(HANDLER, Copy_C004)
 {
-	FUZZ::reset_logger();
 	SUPERMARK = 0;
 	transfer_func<double> tfassign(marked_forward);
 	const_init<double> ciassign(0);
 	rand_uniform<double> riassign(0, 1);
 	rand_normal<double> niassign;
 
-	SUPERMARK = FUZZ::getDouble(1, "SUPERMARK", {15, 117})[0];
-	double scalar = FUZZ::getDouble(1, "scalar")[0];
-	double low = FUZZ::getDouble(1, "low", {23, 127})[0];
-	double high = FUZZ::getDouble(1, "high", {low*2, low*3+50})[0];
-	double mean = FUZZ::getDouble(1, "mean", {-13, 23})[0];
-	double variance = FUZZ::getDouble(1, "variance", {1, 32})[0];
+	SUPERMARK = get_double(1, "SUPERMARK", {15, 117})[0];
+	double scalar = get_double(1, "scalar")[0];
+	double low = get_double(1, "low", {23, 127})[0];
+	double high = get_double(1, "high", {low*2, low*3+50})[0];
+	double mean = get_double(1, "mean", {-13, 23})[0];
+	double variance = get_double(1, "variance", {1, 32})[0];
 	transfer_func<double> tf(marked_forward);
 	const_init<double> ci(scalar);
 	rand_uniform<double> ri(low, high);
@@ -191,7 +189,7 @@ TEST(HANDLER, Copy_C004)
 	riassign = ri;
 	niassign = ni;
 
-	tensorshape shape = random_def_shape();
+	tensorshape shape = random_def_shape(this);
 	tensor<double> tscalar(0);
 	tensor<double> tblock(shape);
 	tensor<double> tblock_norm(shape);
@@ -273,21 +271,20 @@ TEST(HANDLER, Copy_C004)
 
 // cover transfer_func, const_init, rand_uniform
 // move constructor and assignment
-TEST(HANDLER, Move_C004)
+TEST_F(HANDLER, Move_C004)
 {
-	FUZZ::reset_logger();
 	SUPERMARK = 0;
 	transfer_func<double> tfassign(marked_forward);
 	const_init<double> ciassign(0);
 	rand_uniform<double> riassign(0, 1);
 	rand_normal<double> niassign;
 
-	SUPERMARK = FUZZ::getDouble(1, "SUPERMARK", {119, 221})[0];
-	double scalar = FUZZ::getDouble(1, "scalar")[0];
-	double low = FUZZ::getDouble(1, "low", {23, 127})[0];
-	double high = FUZZ::getDouble(1, "high", {low*2, low*3+50})[0];
-	double mean = FUZZ::getDouble(1, "mean", {-13, 23})[0];
-	double variance = FUZZ::getDouble(1, "variance", {1, 32})[0];
+	SUPERMARK = get_double(1, "SUPERMARK", {119, 221})[0];
+	double scalar = get_double(1, "scalar")[0];
+	double low = get_double(1, "low", {23, 127})[0];
+	double high = get_double(1, "high", {low*2, low*3+50})[0];
+	double mean = get_double(1, "mean", {-13, 23})[0];
+	double variance = get_double(1, "variance", {1, 32})[0];
 	transfer_func<double> tf(marked_forward);
 	const_init<double> ci(scalar);
 	rand_uniform<double> ri(low, high);
@@ -298,7 +295,7 @@ TEST(HANDLER, Move_C004)
 	rand_uniform<double>* rimv = ri.move();
 	rand_normal<double>* nimv = ni.move();
 
-	tensorshape shape = random_def_shape();
+	tensorshape shape = random_def_shape(this);
 	tensor<double> tscalar(0);
 	tensor<double> tblock(shape);
 	tensor<double> tblock_norm(shape);

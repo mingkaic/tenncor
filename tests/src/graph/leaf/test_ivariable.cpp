@@ -17,12 +17,14 @@
 #ifndef DISABLE_IVARIABLE_TEST
 
 
-TEST(IVARIABLE, Copy_E000)
+class IVARIABLE : public FUZZ::fuzz_test {};
+
+
+TEST_F(IVARIABLE, Copy_E000)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
 	const_init<double>* cinit = new const_init<double>(c);
 
@@ -57,12 +59,11 @@ TEST(IVARIABLE, Copy_E000)
 }
 
 
-TEST(IVARIABLE, Move_E000)
+TEST_F(IVARIABLE, Move_E000)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
 	const_init<double>* cinit = new const_init<double>(c);
 
@@ -107,12 +108,11 @@ TEST(IVARIABLE, Move_E000)
 }
 
 
-TEST(IVARIABLE, Initialize_E001)
+TEST_F(IVARIABLE, Initialize_E001)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 	const_init<double>* cinit = new const_init<double>(c);
 
 	mock_ivariable noinit(shape, nullptr, label1);
@@ -123,12 +123,11 @@ TEST(IVARIABLE, Initialize_E001)
 }
 
 
-TEST(IVARIABLE, GetGradient_E002)
+TEST_F(IVARIABLE, GetGradient_E002)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 	const_init<double>* cinit = new const_init<double>(c);
 
 	mock_ivariable noinit(shape, nullptr, label1);

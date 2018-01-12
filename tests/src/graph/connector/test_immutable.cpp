@@ -18,6 +18,9 @@
 #ifndef DISABLE_IMMUTABLE_TEST
 
 
+class IMMUTABLE : public FUZZ::fuzz_test {};
+
+
 #ifdef SLOW_GRAPH
 static std::pair<size_t,size_t> nnodes_range = {131, 297};
 #elif defined(THOROUGH_GRAPH) 
@@ -50,11 +53,10 @@ static bool bottom_up (std::vector<iconnector<double>*> ordering)
 }
 
 
-TEST(IMMUTABLE, Copy_I000)
+TEST_F(IMMUTABLE, Copy_I000)
 {
-	FUZZ::reset_logger();
-	immutable<double>* assign  = new mock_immutable(std::vector<inode<double>*>{}, "");
-	immutable<double>* central = new mock_immutable(std::vector<inode<double>*>{}, "");
+	immutable<double>* assign  = new mock_immutable(std::vector<inode<double>*>{}, "", get_testshaper(this));
+	immutable<double>* central = new mock_immutable(std::vector<inode<double>*>{}, "", get_testshaper(this));
 	const tensor<double>* res = central->eval();
 
 	immutable<double>* cpy = central->clone();
@@ -79,11 +81,10 @@ TEST(IMMUTABLE, Copy_I000)
 }
 
 
-TEST(IMMUTABLE, Move_I000)
+TEST_F(IMMUTABLE, Move_I000)
 {
-	FUZZ::reset_logger();
-	immutable<double>* assign  = new mock_immutable(std::vector<inode<double>*>{}, "");
-	immutable<double>* central = new mock_immutable(std::vector<inode<double>*>{}, "");
+	immutable<double>* assign  = new mock_immutable(std::vector<inode<double>*>{}, "", get_testshaper(this));
+	immutable<double>* central = new mock_immutable(std::vector<inode<double>*>{}, "", get_testshaper(this));
 	const tensor<double>* res = central->eval();
 	std::vector<double> data = expose(central);
 	tensorshape rs = res->get_shape();
@@ -115,25 +116,24 @@ TEST(IMMUTABLE, Move_I000)
 }
 
 
-TEST(IMMUTABLE, Descendent_I001)
+TEST_F(IMMUTABLE, Descendent_I001)
 {
-	FUZZ::reset_logger();
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string bossname = FUZZ::getString(FUZZ::getInt(1, "bossname.size", {14, 29})[0], "bossname");
-	std::string bossname2 = FUZZ::getString(FUZZ::getInt(1, "bossname2.size", {14, 29})[0], "bossname2");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	std::string label2 = FUZZ::getString(FUZZ::getInt(1, "label2.size", {14, 29})[0], "label2");
-	std::string label3 = FUZZ::getString(FUZZ::getInt(1, "label3.size", {14, 29})[0], "label3");
-	std::vector<double> leafvalue = FUZZ::getDouble(3, "leafvalue");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string bossname = get_string(get_int(1, "bossname.size", {14, 29})[0], "bossname");
+	std::string bossname2 = get_string(get_int(1, "bossname2.size", {14, 29})[0], "bossname2");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	std::string label2 = get_string(get_int(1, "label2.size", {14, 29})[0], "label2");
+	std::string label3 = get_string(get_int(1, "label3.size", {14, 29})[0], "label3");
+	std::vector<double> leafvalue = get_double(3, "leafvalue");
 	variable<double>* n1 = new variable<double>(leafvalue[0], label1);
 	variable<double>* n2 = new variable<double>(leafvalue[1], label2);
 	variable<double>* n3 = new variable<double>(leafvalue[2], label3);
 
-	immutable<double>* conn = new mock_immutable(std::vector<inode<double> *>{n1}, conname);
-	immutable<double>* conn2 = new mock_immutable(std::vector<inode<double> *>{n1, n1}, conname2);
-	immutable<double>* separate = new mock_immutable(std::vector<inode<double>*>{n3, n2}, conname2);
-	immutable<double>* boss = new mock_immutable(std::vector<inode<double> *>{n1, n2}, conname2);
+	immutable<double>* conn = new mock_immutable(std::vector<inode<double> *>{n1}, conname, get_testshaper(this));
+	immutable<double>* conn2 = new mock_immutable(std::vector<inode<double> *>{n1, n1}, conname2, get_testshaper(this));
+	immutable<double>* separate = new mock_immutable(std::vector<inode<double>*>{n3, n2}, conname2, get_testshaper(this));
+	immutable<double>* boss = new mock_immutable(std::vector<inode<double> *>{n1, n2}, conname2, get_testshaper(this));
 
 	EXPECT_TRUE(conn->potential_descendent(conn));
 	EXPECT_TRUE(conn->potential_descendent(conn2));
@@ -159,37 +159,36 @@ TEST(IMMUTABLE, Descendent_I001)
 }
 
 
-TEST(IMMUTABLE, Status_I002)
+TEST_F(IMMUTABLE, Status_I002)
 {
-	FUZZ::reset_logger();
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string conname3 = FUZZ::getString(FUZZ::getInt(1, "conname3.size", {14, 29})[0], "conname3");
-	std::string conname4 = FUZZ::getString(FUZZ::getInt(1, "conname4.size", {14, 29})[0], "conname4");
-	std::string conname5 = FUZZ::getString(FUZZ::getInt(1, "conname5.size", {14, 29})[0], "conname5");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	std::string label2 = FUZZ::getString(FUZZ::getInt(1, "label2.size", {14, 29})[0], "label2");
-	std::string label3 = FUZZ::getString(FUZZ::getInt(1, "label3.size", {14, 29})[0], "label3");
-	std::string label4 = FUZZ::getString(FUZZ::getInt(1, "label4.size", {14, 29})[0], "label4");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string conname3 = get_string(get_int(1, "conname3.size", {14, 29})[0], "conname3");
+	std::string conname4 = get_string(get_int(1, "conname4.size", {14, 29})[0], "conname4");
+	std::string conname5 = get_string(get_int(1, "conname5.size", {14, 29})[0], "conname5");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	std::string label2 = get_string(get_int(1, "label2.size", {14, 29})[0], "label2");
+	std::string label3 = get_string(get_int(1, "label3.size", {14, 29})[0], "label3");
+	std::string label4 = get_string(get_int(1, "label4.size", {14, 29})[0], "label4");
 
 	mock_node* n1 = new mock_node(label1);
 	mock_node* n2 = new mock_node(label2);
 	mock_node* n3 = new mock_node(label3);
 	mock_node* n4 = new mock_node(label4);
 
-	tensorshape n1s = random_def_shape();
-	tensorshape n2s = random_def_shape();
-	tensorshape n3s = random_def_shape();
-	n1->data_ = new mock_tensor(n1s);
-	n2->data_ = new mock_tensor(n2s);
-	n3->data_ = new mock_tensor(n3s);
+	tensorshape n1s = random_def_shape(this);
+	tensorshape n2s = random_def_shape(this);
+	tensorshape n3s = random_def_shape(this);
+	n1->data_ = new mock_tensor(this, n1s);
+	n2->data_ = new mock_tensor(this, n2s);
+	n3->data_ = new mock_tensor(this, n3s);
 
-	immutable<double>* conn = new mock_immutable({n1}, conname);
-	immutable<double>* conn2 = new mock_immutable({n2, n3}, conname2);
+	immutable<double>* conn = new mock_immutable({n1}, conname, get_testshaper(this));
+	immutable<double>* conn2 = new mock_immutable({n2, n3}, conname2, get_testshaper(this));
 	// bad statuses
-	immutable<double>* conn3 = new mock_immutable({n4, n3}, conname3);
-	immutable<double>* conn4 = new mock_immutable({n1, n4}, conname4);
-	immutable<double>* conn5 = new mock_immutable({n2, n4}, conname5);
+	immutable<double>* conn3 = new mock_immutable({n4, n3}, conname3, get_testshaper(this));
+	immutable<double>* conn4 = new mock_immutable({n1, n4}, conname4, get_testshaper(this));
+	immutable<double>* conn5 = new mock_immutable({n2, n4}, conname5, get_testshaper(this));
 
 	EXPECT_TRUE(conn->good_status());
 	EXPECT_FALSE(conn2->good_status());
@@ -211,18 +210,17 @@ TEST(IMMUTABLE, Status_I002)
 }
 
 
-TEST(IMMUTABLE, Shape_I003)
+TEST_F(IMMUTABLE, Shape_I003)
 {
-	FUZZ::reset_logger();
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string conname3 = FUZZ::getString(FUZZ::getInt(1, "conname3.size", {14, 29})[0], "conname3");
-	std::string conname4 = FUZZ::getString(FUZZ::getInt(1, "conname4.size", {14, 29})[0], "conname4");
-	std::string conname5 = FUZZ::getString(FUZZ::getInt(1, "conname5.size", {14, 29})[0], "conname5");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	std::string label2 = FUZZ::getString(FUZZ::getInt(1, "label2.size", {14, 29})[0], "label2");
-	std::string label3 = FUZZ::getString(FUZZ::getInt(1, "label3.size", {14, 29})[0], "label3");
-	std::string label4 = FUZZ::getString(FUZZ::getInt(1, "label4.size", {14, 29})[0], "label4");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string conname3 = get_string(get_int(1, "conname3.size", {14, 29})[0], "conname3");
+	std::string conname4 = get_string(get_int(1, "conname4.size", {14, 29})[0], "conname4");
+	std::string conname5 = get_string(get_int(1, "conname5.size", {14, 29})[0], "conname5");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	std::string label2 = get_string(get_int(1, "label2.size", {14, 29})[0], "label2");
+	std::string label3 = get_string(get_int(1, "label3.size", {14, 29})[0], "label3");
+	std::string label4 = get_string(get_int(1, "label4.size", {14, 29})[0], "label4");
 
 	mock_node* n1 = new mock_node(label1);
 	mock_node* n2 = new mock_node(label2);
@@ -230,12 +228,12 @@ TEST(IMMUTABLE, Shape_I003)
 	mock_node* n4 = new mock_node(label4); // status is bad
 
 	// mock tensors initialize with random data...
-	tensorshape n1s = random_def_shape(2, 10, 17, 4372);
-	tensorshape n2s = random_def_shape(2, 10, 17, 4372);
-	tensorshape n3s = random_def_shape(2, 10, 17, 4372);
-	n1->data_ = new mock_tensor(n1s);
-	n2->data_ = new mock_tensor(n2s);
-	n3->data_ = new mock_tensor(n3s);
+	tensorshape n1s = random_def_shape(this, 2, 10, 17, 4372);
+	tensorshape n2s = random_def_shape(this, 2, 10, 17, 4372);
+	tensorshape n3s = random_def_shape(this, 2, 10, 17, 4372);
+	n1->data_ = new mock_tensor(this, n1s);
+	n2->data_ = new mock_tensor(this, n2s);
+	n3->data_ = new mock_tensor(this, n3s);
 
 	// for this test, we only care about shape
 	auto fittershaper = [](std::vector<tensorshape> ts) -> tensorshape
@@ -291,30 +289,29 @@ TEST(IMMUTABLE, Shape_I003)
 }
 
 
-TEST(IMMUTABLE, Tensor_I004)
+TEST_F(IMMUTABLE, Tensor_I004)
 {
-	FUZZ::reset_logger();
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string conname3 = FUZZ::getString(FUZZ::getInt(1, "conname3.size", {14, 29})[0], "conname3");
-	std::string conname4 = FUZZ::getString(FUZZ::getInt(1, "conname4.size", {14, 29})[0], "conname4");
-	std::string conname5 = FUZZ::getString(FUZZ::getInt(1, "conname5.size", {14, 29})[0], "conname5");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
-	std::string label2 = FUZZ::getString(FUZZ::getInt(1, "label2.size", {14, 29})[0], "label2");
-	std::string label3 = FUZZ::getString(FUZZ::getInt(1, "label3.size", {14, 29})[0], "label3");
-	std::string label4 = FUZZ::getString(FUZZ::getInt(1, "label4.size", {14, 29})[0], "label4");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string conname3 = get_string(get_int(1, "conname3.size", {14, 29})[0], "conname3");
+	std::string conname4 = get_string(get_int(1, "conname4.size", {14, 29})[0], "conname4");
+	std::string conname5 = get_string(get_int(1, "conname5.size", {14, 29})[0], "conname5");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
+	std::string label2 = get_string(get_int(1, "label2.size", {14, 29})[0], "label2");
+	std::string label3 = get_string(get_int(1, "label3.size", {14, 29})[0], "label3");
+	std::string label4 = get_string(get_int(1, "label4.size", {14, 29})[0], "label4");
 
 	mock_node* n1 = new mock_node(label1);
 	mock_node* n2 = new mock_node(label2);
 	mock_node* n3 = new mock_node(label3);
 	mock_node* n4 = new mock_node(label4); // status is bad
 
-	tensorshape n1s = random_def_shape();
-	tensorshape n2s = random_def_shape();
-	tensorshape n3s = random_def_shape();
-	n1->data_ = new mock_tensor(n1s);
-	n2->data_ = new mock_tensor(n2s);
-	n3->data_ = new mock_tensor(n3s);
+	tensorshape n1s = random_def_shape(this);
+	tensorshape n2s = random_def_shape(this);
+	tensorshape n3s = random_def_shape(this);
+	n1->data_ = new mock_tensor(this, n1s);
+	n2->data_ = new mock_tensor(this, n2s);
+	n3->data_ = new mock_tensor(this, n3s);
 
 	// for this test, we care about data, grab the largest shape, and sum all data that fit in said array
 	auto minshaper = [](std::vector<tensorshape> ts)
@@ -405,27 +402,26 @@ TEST(IMMUTABLE, Tensor_I004)
 }
 
 
-TEST(IMMUTABLE, ImmutableDeath_I005)
+TEST_F(IMMUTABLE, ImmutableDeath_I005)
 {
-	FUZZ::reset_logger();
-	size_t nnodes = FUZZ::getInt(1, "nnodes", nnodes_range)[0];
+	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 	std::unordered_set<immutable<double>*> leaves;
 	std::unordered_set<immutable<double>*> collector;
 
 	// build a tree out of mock immutables
-	FUZZ::buildNTree<immutable<double> >(2, nnodes,
-	[&leaves](void)
+	build_ntree<immutable<double> >(2, nnodes,
+	[this, &leaves](void)
 	{
-		std::string llabel = FUZZ::getString(FUZZ::getInt(1, "llabel.size", {14, 29})[0], "llabel");
-		immutable<double>* im = new mock_immutable(std::vector<inode<double>*>{}, llabel);
+		std::string llabel = get_string(get_int(1, "llabel.size", {14, 29})[0], "llabel");
+		immutable<double>* im = new mock_immutable(std::vector<inode<double>*>{}, llabel, get_testshaper(this));
 		leaves.emplace(im);
 		return im;
 	},
-	[&collector](std::vector<immutable<double>*> args)
+	[this, &collector](std::vector<immutable<double>*> args)
 	{
-		std::string nlabel = FUZZ::getString(FUZZ::getInt(1, "nlabel.size", {14, 29})[0], "nlabel");
+		std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
 		mock_immutable* im = new mock_immutable(
-			std::vector<inode<double>*>(args.begin(), args.end()), nlabel);
+			std::vector<inode<double>*>(args.begin(), args.end()), nlabel, get_testshaper(this));
 		im->triggerOnDeath =
 		[&collector](mock_immutable* ded)
 		{
@@ -449,16 +445,15 @@ TEST(IMMUTABLE, ImmutableDeath_I005)
 }
 
 
-TEST(IMMUTABLE, TemporaryEval_I006)
+TEST_F(IMMUTABLE, TemporaryEval_I006)
 {
-	FUZZ::reset_logger();
-	size_t nnodes = FUZZ::getInt(1, "nnodes", nnodes_range)[0];
+	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 
 	std::unordered_set<inode<double>*> leaves;
 	std::unordered_set<immutable<double>*> collector;
 
-	tensorshape shape = random_def_shape();
-	double single_rando = FUZZ::getDouble(1, "single_rando", {1.1, 2.2})[0];
+	tensorshape shape = random_def_shape(this);
+	double single_rando = get_double(1, "single_rando", {1.1, 2.2})[0];
 
 	auto unifiedshaper =
 	[&shape](std::vector<tensorshape>)
@@ -468,18 +463,18 @@ TEST(IMMUTABLE, TemporaryEval_I006)
 
 	const_init<double> cinit(single_rando);
 
-	inode<double>* root = FUZZ::buildNTree<inode<double> >(2, nnodes,
-	[&leaves, &shape, &cinit]() -> inode<double>*
+	inode<double>* root = build_ntree<inode<double> >(2, nnodes,
+	[this, &leaves, &shape, &cinit]() -> inode<double>*
 	{
-		std::string llabel = FUZZ::getString(FUZZ::getInt(1, "llabel.size", {14, 29})[0], "llabel");
+		std::string llabel = get_string(get_int(1, "llabel.size", {14, 29})[0], "llabel");
 		variable<double>* im = new variable<double>(shape, cinit, llabel);
 		im->initialize();
 		leaves.emplace(im);
 		return im;
 	},
-	[&collector, &unifiedshaper](std::vector<inode<double>*> args)
+	[this, &collector, &unifiedshaper](std::vector<inode<double>*> args)
 	{
-		std::string nlabel = FUZZ::getString(FUZZ::getInt(1, "nlabel.size", {14, 29})[0], "nlabel");
+		std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
 		mock_immutable* im = new mock_immutable(args, nlabel, unifiedshaper, adder);
 		im->triggerOnDeath =
 		[&collector](mock_immutable* ded)
@@ -524,28 +519,27 @@ TEST(IMMUTABLE, TemporaryEval_I006)
 }
 
 
-TEST(IMMUTABLE, GetLeaves_I007)
+TEST_F(IMMUTABLE, GetLeaves_I007)
 {
-	FUZZ::reset_logger();
-	size_t nnodes = FUZZ::getInt(1, "nnodes", nnodes_range)[0];
+	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 
 	std::unordered_set<variable<double>*> leaves;
 	std::unordered_set<immutable<double>*> collector;
 
-	inode<double>* root = FUZZ::buildNTree<inode<double> >(2, nnodes,
-		[&leaves]() -> inode<double>*
+	inode<double>* root = build_ntree<inode<double> >(2, nnodes,
+		[this, &leaves]() -> inode<double>*
 		{
-			std::string llabel = FUZZ::getString(FUZZ::getInt(1, "llabel.size", {14, 29})[0], "llabel");
-			double leafvalue = FUZZ::getDouble(1, "leafvalue")[0];
+			std::string llabel = get_string(get_int(1, "llabel.size", {14, 29})[0], "llabel");
+			double leafvalue = get_double(1, "leafvalue")[0];
 			variable<double>* im = new variable<double>(leafvalue, llabel);
 			leaves.emplace(im);
 			return im;
 		},
-		[&collector](std::vector<inode<double>*> args) -> inode<double>*
+		[this, &collector](std::vector<inode<double>*> args) -> inode<double>*
 		{
-			std::string nlabel = FUZZ::getString(FUZZ::getInt(1, "nlabel.size", {14, 29})[0], "nlabel");
+			std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
 			mock_immutable* im = new mock_immutable(
-				std::vector<inode<double>*>(args.begin(), args.end()), nlabel);
+				std::vector<inode<double>*>(args.begin(), args.end()), nlabel, get_testshaper(this));
 			im->triggerOnDeath =
 				[&collector](mock_immutable* ded) {
 					collector.erase(ded);
@@ -585,9 +579,8 @@ TEST(IMMUTABLE, GetLeaves_I007)
 }
 
 
-TEST(IMMUTABLE, GetLeaf_I008)
+TEST_F(IMMUTABLE, GetLeaf_I008)
 {
-	FUZZ::reset_logger();
 	std::vector<iconnector<double>*> ordering;
 	mock_node exposer;
 
@@ -611,25 +604,25 @@ TEST(IMMUTABLE, GetLeaf_I008)
 		return leef;
 	};
 
-	size_t nnodes = FUZZ::getInt(1, "nnodes", nnodes_range)[0];
+	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 
 	std::unordered_set<variable<double>*> leaves;
 	std::unordered_set<immutable<double>*> collector;
 
-	inode<double>* root = FUZZ::buildNTree<inode<double> >(2, nnodes,
-		[&leaves]() -> inode<double>*
+	inode<double>* root = build_ntree<inode<double> >(2, nnodes,
+		[this, &leaves]() -> inode<double>*
 		{
-			std::string llabel = FUZZ::getString(FUZZ::getInt(1, "llabel.size", {14, 29})[0], "llabel");
-			double leafvalue = FUZZ::getDouble(1, "leafvalue")[0];
+			std::string llabel = get_string(get_int(1, "llabel.size", {14, 29})[0], "llabel");
+			double leafvalue = get_double(1, "leafvalue")[0];
 			variable<double>* im = new variable<double>(leafvalue, llabel);
 			leaves.emplace(im);
 			return im;
 		},
-		[&collector, &backer](std::vector<inode<double>*> args) -> inode<double>*
+		[this, &collector, &backer](std::vector<inode<double>*> args) -> inode<double>*
 		{
-			std::string nlabel = FUZZ::getString(FUZZ::getInt(1, "nlabel.size", {14, 29})[0], "nlabel");
+			std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
 			mock_immutable* im = new mock_immutable(args, nlabel,
-				get_testshaper(), testtrans, backer);
+				get_testshaper(this), testtrans, backer);
 			im->triggerOnDeath =
 				[&collector](mock_immutable* ded) {
 					collector.erase(ded);
@@ -642,7 +635,7 @@ TEST(IMMUTABLE, GetLeaf_I008)
 	for (size_t i = 0; i < nnodes/3; i++)
 	{
 		ordering.clear();
-		variable<double>* l = *(FUZZ::rand_select<std::unordered_set<variable<double>*> >(leaves));
+		variable<double>* l = *(rand_select<std::unordered_set<variable<double>*> >(leaves));
 		varptr<double> wun = exposer.expose_leaf(root, l);
 		EXPECT_TRUE(bottom_up(ordering));
 		ordering.clear();
@@ -667,11 +660,10 @@ TEST(IMMUTABLE, GetLeaf_I008)
 }
 
 
-TEST(IMMUTABLE, GetGradient_I009)
+TEST_F(IMMUTABLE, GetGradient_I009)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double single_rando = FUZZ::getDouble(1, "single_rando", {1.1, 2.2})[0];
+	tensorshape shape = random_def_shape(this);
+	double single_rando = get_double(1, "single_rando", {1.1, 2.2})[0];
 
 	auto unifiedshaper =
 	[&shape](std::vector<tensorshape>)
@@ -702,23 +694,23 @@ TEST(IMMUTABLE, GetGradient_I009)
 		return leef;
 	};
 
-	size_t nnodes = FUZZ::getInt(1, "nnodes", nnodes_range)[0];
+	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 
 	std::unordered_set<variable<double>*> leaves;
 	std::unordered_set<immutable<double>*> collector;
 
-	inode<double>* root = FUZZ::buildNTree<inode<double> >(2, nnodes,
-	[&leaves, &shape, &cinit]() -> inode<double>*
+	inode<double>* root = build_ntree<inode<double> >(2, nnodes,
+	[this, &leaves, &shape, &cinit]() -> inode<double>*
 	{
-		std::string llabel = FUZZ::getString(FUZZ::getInt(1, "llabel.size", {14, 29})[0], "llabel");
+		std::string llabel = get_string(get_int(1, "llabel.size", {14, 29})[0], "llabel");
 		variable<double>* im = new variable<double>(shape, cinit, llabel);
 		im->initialize();
 		leaves.emplace(im);
 		return im;
 	},
-	[&collector, &unifiedshaper, &backer](std::vector<inode<double>*> args) -> inode<double>*
+	[this, &collector, &unifiedshaper, &backer](std::vector<inode<double>*> args) -> inode<double>*
 	{
-		std::string nlabel = FUZZ::getString(FUZZ::getInt(1, "nlabel.size", {14, 29})[0], "nlabel");
+		std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
 		mock_immutable* im = new mock_immutable(args, nlabel,
 			unifiedshaper, adder, backer);
 		im->triggerOnDeath =
@@ -734,7 +726,7 @@ TEST(IMMUTABLE, GetGradient_I009)
 	for (size_t i = 0; i < nnodes/3; i++)
 	{
 		ordering.clear();
-		variable<double>* rselected = *(FUZZ::rand_select<std::unordered_set<variable<double>*> >(leaves));
+		variable<double>* rselected = *(rand_select<std::unordered_set<variable<double>*> >(leaves));
 		const tensor<double>* wun = root->derive(rselected)->eval();
 		EXPECT_TRUE(bottom_up(ordering));
 		ordering.clear();
@@ -748,7 +740,7 @@ TEST(IMMUTABLE, GetGradient_I009)
 		EXPECT_EQ(0, zaro->expose()[0]);
 
 		// SAME AS TEMPORARY EVAL
-		immutable<double>* coll = *(FUZZ::rand_select<std::unordered_set<immutable<double>*> >(collector));
+		immutable<double>* coll = *(rand_select<std::unordered_set<immutable<double>*> >(collector));
 		if (coll == root) continue;
 		const tensor<double>* grad_too = root->derive(coll)->eval();
 		EXPECT_TRUE(bottom_up(ordering));
@@ -777,15 +769,14 @@ TEST(IMMUTABLE, GetGradient_I009)
 }
 
 
-TEST(IMMUTABLE, Update_I010)
+TEST_F(IMMUTABLE, Update_I010)
 {
-	FUZZ::reset_logger();
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 
 	mock_node* n1 = new mock_node(label1);
-	tensorshape n1s = random_def_shape();
-	n1->data_ = new mock_tensor(n1s);
+	tensorshape n1s = random_def_shape(this);
+	n1->data_ = new mock_tensor(this, n1s);
 
 	// for this test, we care about data, grab the largest shape, and sum all data that fit in said array
 	auto grabs = [](std::vector<tensorshape> ts)
@@ -822,19 +813,18 @@ TEST(IMMUTABLE, Update_I010)
 }
 
 
-TEST(IMMUTABLE, ShapeIncompatible_I011)
+TEST_F(IMMUTABLE, ShapeIncompatible_I011)
 {
-	FUZZ::reset_logger();
-	std::string conname = FUZZ::getString(FUZZ::getInt(1, "conname.size", {14, 29})[0], "conname");
-	std::string conname2 = FUZZ::getString(FUZZ::getInt(1, "conname2.size", {14, 29})[0], "conname2");
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
+	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
+	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 
 	mock_node* n1 = new mock_node(label1);
-	tensorshape n1s = random_def_shape();
+	tensorshape n1s = random_def_shape(this);
 	std::vector<size_t> temp = n1s.as_list();
 	temp.push_back(3);
 	tensorshape n2s = temp;
-	n1->data_ = new mock_tensor(n1s);
+	n1->data_ = new mock_tensor(this, n1s);
 
 	bool change = false;
 	auto shiftyshaper =

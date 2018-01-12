@@ -13,9 +13,9 @@
 using namespace nnet;
 
 
-SHAPER get_testshaper (void)
+SHAPER get_testshaper (FUZZ::fuzz_test* fuzzer)
 {
-	tensorshape shape = random_def_shape();
+	tensorshape shape = random_def_shape(fuzzer);
 	return [shape](std::vector<tensorshape>) { return shape; };
 }
 
@@ -44,8 +44,8 @@ inode<double>* testback (std::vector<std::pair<inode<double>*,inode<double>*> >)
 class mock_immutable : public immutable<double>
 {
 public:
-	mock_immutable (std::vector<inode<double>*> args, std::string label,
-		SHAPER shapes = get_testshaper(),
+	mock_immutable (std::vector<inode<double>*> args, 
+		std::string label, SHAPER shapes,
 		TRANSFER_FUNC<double> tfunc = testtrans,
 		BACK_MAP<double> back = testback) :
 	immutable<double>(args, shapes,

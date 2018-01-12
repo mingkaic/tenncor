@@ -15,7 +15,10 @@
 #ifndef DISABLE_MUTABLE_TEST
 
 
-TEST(MUTABLE, connector)
+class MUTABLE : public FUZZ::fuzz_test {};
+
+
+TEST_F(MUTABLE, connector)
 {
 	// mutables avoid killing constants by killing dependencies
 	// instead of safely destroying its permanent connector node
@@ -49,7 +52,7 @@ TEST(MUTABLE, connector)
 }
 
 
-TEST(MUTABLE, deletion)
+TEST_F(MUTABLE, deletion)
 {
 	nnet::mutable_connector<double>* temp =
 		nnet::mutable_connector<double>::build(

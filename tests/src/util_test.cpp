@@ -39,19 +39,19 @@ void print (std::vector<double> raw)
 	std::cout << "\n";
 }
 
-tensorshape make_partial (std::vector<size_t> shapelist)
+tensorshape make_partial (FUZZ::fuzz_test* fuzzer, std::vector<size_t> shapelist)
 {
 	size_t nzeros = 1;
 	if (shapelist.size() > 2)
 	{
-		nzeros = FUZZ::getInt(1, "nzeros", {1, shapelist.size()-1})[0];
+		nzeros = fuzzer->get_int(1, "nzeros", {1, shapelist.size()-1})[0];
 	}
 	else if (shapelist.size() == 1)
 	{
 		shapelist.push_back(0);
 		return shapelist;
 	}
-	std::vector<size_t> zeros = FUZZ::getInt(nzeros, "zeros", {0, shapelist.size()-1});
+	std::vector<size_t> zeros = fuzzer->get_int(nzeros, "zeros", {0, shapelist.size()-1});
 	for (size_t zidx : zeros)
 	{
 		shapelist[zidx] = 0;
@@ -105,24 +105,24 @@ std::vector<std::vector<double> > doubleDArr(std::vector<double> v, std::vector<
 	return mat;
 }
 
-tensorshape random_shape (void)
+tensorshape random_shape (FUZZ::fuzz_test* fuzzer)
 {
-	size_t scalar = FUZZ::getInt(1, "scalar", {2, 10})[0];
-	std::vector<size_t> shape = FUZZ::getInt(scalar, "shape", {0, 21});
+	size_t scalar = fuzzer->get_int(1, "scalar", {2, 10})[0];
+	std::vector<size_t> shape = fuzzer->get_int(scalar, "shape", {0, 21});
 	return tensorshape(shape);
 }
 
-tensorshape random_def_shape (int lowerrank, int upperrank, size_t minn, size_t maxn)
+tensorshape random_def_shape (FUZZ::fuzz_test* fuzzer, int lowerrank, int upperrank, size_t minn, size_t maxn)
 {
 	size_t rank = lowerrank;
 	if (lowerrank != upperrank)
 	{
-		rank = FUZZ::getInt(1, "rank", {lowerrank, upperrank})[0];
+		rank = fuzzer->get_int(1, "rank", {lowerrank, upperrank})[0];
 	}
 	assert(rank > 0);
 	if (rank < 2)
 	{
-		return FUZZ::getInt(1, "shape", {minn, maxn});
+		return fuzzer->get_int(1, "shape", {minn, maxn});
 	}
 	// invariant: rank > 1
 	size_t maxvalue = 0;
@@ -167,7 +167,7 @@ tensorshape random_def_shape (int lowerrank, int upperrank, size_t minn, size_t 
 			size_t shapei = maxvalue;
 			if (minvalue != maxvalue)
 			{
-				shapei = FUZZ::getInt(1, ss.str(), {minvalue, maxvalue})[0];
+				shapei = fuzzer->get_int(1, ss.str(), {minvalue, maxvalue})[0];
 			}
 			shape.push_back(shapei);
 			maxn /= shapei;
@@ -182,11 +182,11 @@ tensorshape random_def_shape (int lowerrank, int upperrank, size_t minn, size_t 
 		std::vector<size_t> shape2;
 		if (rank-ncorrection)
 		{
-			shape = FUZZ::getInt(rank-ncorrection, "shapepart1", {minvalue, maxvalue});
+			shape = fuzzer->get_int(rank-ncorrection, "shapepart1", {minvalue, maxvalue});
 		}
 		if (ncorrection)
 		{
-			shape2 = FUZZ::getInt(ncorrection, "shapepart2", {minvalue, maxvalue-1});
+			shape2 = fuzzer->get_int(ncorrection, "shapepart2", {minvalue, maxvalue-1});
 		}
 		shape.insert(shape.end(), shape2.begin(), shape2.end());
 	}

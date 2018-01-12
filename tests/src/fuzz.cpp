@@ -9,14 +9,19 @@
 namespace FUZZ
 {
 
-void reset_logger (void)
+void fuzz_test::SetUp (void) {}
+
+void fuzz_test::TearDown (void)
 {
-	fuzzLogger.close();
-	remove(FUZZ_FILE);
-	fuzzLogger.open(FUZZ_FILE);
+	if (::testing::Test::HasFailure())
+	{
+		std::cout << "FUZZ OUTPUT:" << std::endl << ss_.str() << std::endl;
+	}
+	ss_.str("");
+	ss_.clear();
 }
 
-std::vector<double> getDouble (size_t len,
+std::vector<double> fuzz_test::get_double (size_t len,
 	std::string purpose,
 	std::pair<double,double> range)
 {
@@ -36,19 +41,19 @@ std::vector<double> getDouble (size_t len,
 	std::uniform_real_distribution<double> dis(min, max);
 	std::default_random_engine& generator = nnutils::get_generator();
 
-	fuzzLogger << purpose << ": double<";
+	ss_ << purpose << ": double<";
 	for (size_t i = 0; i < len; i++)
 	{
 		double val = dis(generator);
-		fuzzLogger << val<< ",";
+		ss_ << val<< ",";
 		vec.push_back(val);
 	}
-	fuzzLogger << ">" << std::endl;
+	ss_ << ">" << std::endl;
 
 	return vec;
 }
 
-std::vector<size_t> getInt (size_t len,
+std::vector<size_t> fuzz_test::get_int (size_t len,
 	std::string purpose,
 	std::pair<size_t,size_t> range)
 {
@@ -68,30 +73,30 @@ std::vector<size_t> getInt (size_t len,
 	std::uniform_int_distribution<size_t> dis(min, max);
 	std::default_random_engine& generator = nnutils::get_generator();
 	
-	fuzzLogger << purpose << ": int<";
+	ss_ << purpose << ": int<";
 	for (size_t i = 0; i < len; i++)
 	{
 		size_t val = dis(generator);
-		fuzzLogger << val << ",";
+		ss_ << val << ",";
 		vec.push_back(val);
 	}
-	fuzzLogger << ">" << std::endl;
+	ss_ << ">" << std::endl;
 
 	return vec;
 }
 
-std::string getString (size_t len,
+std::string fuzz_test::get_string (size_t len,
 	std::string purpose,
 	std::string alphanum)
 {
-	std::vector<size_t> indices = FUZZ::getInt(len, "indices", {0, alphanum.size()-1});
+	std::vector<size_t> indices = get_int(len, "indices", {0, alphanum.size()-1});
 	std::string s(len, ' ');
 	std::transform(indices.begin(), indices.end(), s.begin(),
 	[&alphanum](size_t index)
 	{
 		return alphanum[index];
 	});
-	fuzzLogger << purpose << ": string<" << s << ">" << std::endl;
+	ss_ << purpose << ": string<" << s << ">" << std::endl;
 
 	return s;
 }

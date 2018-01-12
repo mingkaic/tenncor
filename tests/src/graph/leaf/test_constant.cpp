@@ -22,9 +22,12 @@ using namespace nnet;
 #ifndef DISABLE_CONSTANT_TEST
 
 
+class CONSTANT : public FUZZ::fuzz_test {};
+
+
 // covers constant
 // scalar constructor, vector constructor
-TEST(CONSTANT, Constructor_D000)
+TEST_F(CONSTANT, Constructor_D000)
 {
 	tensorshape shape;
 	tensorshape part;
@@ -33,23 +36,23 @@ TEST(CONSTANT, Constructor_D000)
 	// re-roll until we get partial with n_known > 1
 	while (pn <= 1)
 	{
-		FUZZ::reset_logger(); // keep resetting FUZZ logger
-		shape = random_def_shape(2, 5); // constraint rank to force relatively non-one shapes
-		part = make_partial(shape.as_list());
+	 // keep resetting FUZZ logger
+		shape = random_def_shape(this, 2, 5); // constraint rank to force relatively non-one shapes
+		part = make_partial(this, shape.as_list());
 		n = shape.n_elems();
 		pn = part.n_known();
 	}
-	double c = FUZZ::getDouble(1, "c")[0];
+	double c = get_double(1, "c")[0];
 
 	// defined shape
-	std::vector<double> v = FUZZ::getDouble(n, "v");
-	std::vector<double> v2 = FUZZ::getDouble(n / 2, "v2");
-	std::vector<double> v3 = FUZZ::getDouble(n * 1.5, "v3");
+	std::vector<double> v = get_double(n, "v");
+	std::vector<double> v2 = get_double(n / 2, "v2");
+	std::vector<double> v3 = get_double(n * 1.5, "v3");
 
 	// partially defined shape
-	std::vector<double> pv = FUZZ::getDouble(pn, "pv");
-	std::vector<double> pv2 = FUZZ::getDouble(pn * 0.6, "pv2");
-	std::vector<double> pv3 = FUZZ::getDouble(pn * 1.5, "pv3");
+	std::vector<double> pv = get_double(pn, "pv");
+	std::vector<double> pv2 = get_double(pn * 0.6, "pv2");
+	std::vector<double> pv3 = get_double(pn * 1.5, "pv3");
 
 	constant<double>* res = constant<double>::get(c);
 	constant<double>* res2 = constant<double>::get(v, shape);
@@ -134,19 +137,18 @@ TEST(CONSTANT, Constructor_D000)
 
 // covers constant
 // clone and move
-TEST(CONSTANT, CopyNMove_D001)
+TEST_F(CONSTANT, CopyNMove_D001)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
-	tensorshape shape = random_def_shape();
-	tensorshape part = make_partial(shape.as_list());
+	double c = get_double(1, "c")[0];
+	tensorshape shape = random_def_shape(this);
+	tensorshape part = make_partial(this, shape.as_list());
 
 	size_t n = shape.n_elems();
 	size_t pn = part.n_known();
 	// defined shape
-	std::vector<double> v = FUZZ::getDouble(FUZZ::getInt(1, "v.size", {0.5*n, 1.5*n})[0], "v");
+	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 	// partially defined shape
-	std::vector<double> pv = FUZZ::getDouble(FUZZ::getInt(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
+	std::vector<double> pv = get_double(get_int(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
 
 	constant<double>* res = constant<double>::get(c);
 	constant<double>* res2 = constant<double>::get(v, shape);
@@ -166,10 +168,9 @@ TEST(CONSTANT, CopyNMove_D001)
 
 
 // covers constant derive
-TEST(CONSTANT, GetGradient_D002)
+TEST_F(CONSTANT, GetGradient_D002)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
+	double c = get_double(1, "c")[0];
 	constant<double>* res = constant<double>::get(c);
 	constant<double>* res2 = constant<double>::get(c+1);
 
@@ -195,10 +196,9 @@ TEST(CONSTANT, GetGradient_D002)
 
 
 // covers constant get_gradient
-TEST(CONSTANT, GetLeaf_D003)
+TEST_F(CONSTANT, GetLeaf_D003)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
+	double c = get_double(1, "c")[0];
 	constant<double>* res = constant<double>::get(c);
 	mock_node exposer;
 
@@ -210,10 +210,9 @@ TEST(CONSTANT, GetLeaf_D003)
 
 
 // covers constant death_on_noparent
-TEST(CONSTANT, SelfDestruct_D004)
+TEST_F(CONSTANT, SelfDestruct_D004)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
+	double c = get_double(1, "c")[0];
 	constant<double>* res = constant<double>::get(c); // managed
 	constant<double>* res2 = constant<double>::get(c); // unmanaged
 	res->be_managed();
@@ -227,20 +226,19 @@ TEST(CONSTANT, SelfDestruct_D004)
 
 
 // verifies data status
-TEST(CONSTANT, Allocated_D005)
+TEST_F(CONSTANT, Allocated_D005)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
-	tensorshape shape = random_def_shape();
-	tensorshape part = make_partial(shape.as_list());
+	double c = get_double(1, "c")[0];
+	tensorshape shape = random_def_shape(this);
+	tensorshape part = make_partial(this, shape.as_list());
 
 	size_t n = shape.n_elems();
 	size_t pn = part.n_known();
 	// defined shape
-	std::vector<double> v = FUZZ::getDouble(FUZZ::getInt(1, "v.size", {0.5*n, 1.5*n})[0], "v");
+	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 	// partially defined shape
 	if (1 == pn) pn = 2;
-	std::vector<double> pv = FUZZ::getDouble(FUZZ::getInt(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
+	std::vector<double> pv = get_double(get_int(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
 
 	constant<double>* res = constant<double>::get(c);
 	constant<double>* res2 = constant<double>::get(v, shape);

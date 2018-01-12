@@ -22,18 +22,20 @@ using namespace nnet;
 #ifndef DISABLE_VARIABLE_TEST
 
 
+class VARIABLE : public FUZZ::fuzz_test {};
+
+
 // covers variable
 // scalar, no init, and init constructors
-TEST(VARIABLE, Constructor_F000)
+TEST_F(VARIABLE, Constructor_F000)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label4");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label4");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
@@ -61,16 +63,15 @@ TEST(VARIABLE, Constructor_F000)
 
 
 // covers clone function
-TEST(VARIABLE, Copy_F001)
+TEST_F(VARIABLE, Copy_F001)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label4");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label4");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
@@ -127,16 +128,15 @@ TEST(VARIABLE, Copy_F001)
 
 
 // covers move function
-TEST(VARIABLE, Move_F001)
+TEST_F(VARIABLE, Move_F001)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label4");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label4");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
@@ -216,16 +216,15 @@ TEST(VARIABLE, Move_F001)
 
 // covers variable
 // set_initializer, initialize
-TEST(VARIABLE, SetInit_F002)
+TEST_F(VARIABLE, SetInit_F002)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label4");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label4");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
@@ -273,16 +272,15 @@ TEST(VARIABLE, SetInit_F002)
 
 // covers variable
 // get_gradient
-TEST(VARIABLE, GetLeaf_F003)
+TEST_F(VARIABLE, GetLeaf_F003)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label3");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label3");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 	mock_node exposer;
 
 	const_init<double> cinit(c);
@@ -337,20 +335,19 @@ TEST(VARIABLE, GetLeaf_F003)
 
 // covers variable
 // initialize
-TEST(VARIABLE, Initialize_F004)
+TEST_F(VARIABLE, Initialize_F004)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(5, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0]);
-	std::string label2 = FUZZ::getString(strns[1]);
-	std::string label3 = FUZZ::getString(strns[2]);
-	std::string label4 = FUZZ::getString(strns[3]);
-	std::string label5 = FUZZ::getString(strns[4]);
-	tensorshape shape = random_def_shape();
-	tensorshape shape2 = random_def_shape();
-	tensorshape part = make_partial(shape2.as_list());
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(5, "strns", {14, 29});
+	std::string label1 = get_string(strns[0]);
+	std::string label2 = get_string(strns[1]);
+	std::string label3 = get_string(strns[2]);
+	std::string label4 = get_string(strns[3]);
+	std::string label5 = get_string(strns[4]);
+	tensorshape shape = random_def_shape(this);
+	tensorshape shape2 = random_def_shape(this);
+	tensorshape part = make_partial(this, shape2.as_list());
+	double c = get_double(1, "c")[0];
 
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
