@@ -7,6 +7,7 @@ cc_library(
 		"//proto:tenncor_monitor_cc_proto",
 		"//proto:tenncor_serial_cc_proto",
 	],
+	linkstatic = 1,
 	copts = ["-std=c++14"],
 	visibility = ["//visibility:public"],
 )
