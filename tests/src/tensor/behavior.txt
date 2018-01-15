@@ -38,7 +38,7 @@ B001 - default tensor construction creates an undefined tensor
 		otherwise tensor is not allocated
 		unallocated tensors have 0 bytes, allocated tensors have bytes of n_elems * sizeof(type)
 B002 - copy and move creates/moves a tensor of equivalent shape and raw data
-		cloning from itensor on tensor instance will return tensor instance (not tested)
+		cloning from tensor on tensor instance will return tensor instance (not tested)
 B003 - tensor can access through a shallow copy of the shape, or through shape info
 B004 - two tensors are the same size if their allowed shapes are compatible or
 		they are both allocated and their trimmed shapes are compatible

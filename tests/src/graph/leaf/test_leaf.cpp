@@ -43,9 +43,9 @@ TEST_F(LEAF, Copy_C000)
 	const tensor<double>* init_data = res.eval();
 	const tensor<double>* init_data2 = res2.eval(); // res2 is not good
 
-	ileaf<double>* cpy = res.clone();
-	ileaf<double>* cpy2 = res2.clone();
-	ileaf<double>* cpy3 = uninit.clone();
+	ileaf* cpy = res.clone();
+	ileaf* cpy2 = res2.clone();
+	ileaf* cpy3 = uninit.clone();
 	assign = res;
 	assign2 = res2;
 	assign3 = uninit;
@@ -134,9 +134,9 @@ TEST_F(LEAF, Move_C000)
 	const tensor<double>* init_data2 = res2.eval();
 	const tensor<double>* init_data3 = uninit.eval();
 
-	ileaf<double>* mv = res.move();
-	ileaf<double>* mv2 = res2.move();
-	ileaf<double>* mv3 = uninit.move();
+	ileaf* mv = res.move();
+	ileaf* mv2 = res2.move();
+	ileaf* mv3 = uninit.move();
 
 	bool mvstatus = mv->good_status();
 	bool mvstatus2 = mv2->good_status();
@@ -268,7 +268,7 @@ TEST_F(LEAF, GetLeaves_G005)
 
 	mock_leaf res(shape, label1);
 
-	std::unordered_set<ileaf<double>*> leafset = res.get_leaves();
+	std::unordered_set<ileaf*> leafset = res.get_leaves();
 	EXPECT_TRUE(leafset.end() != leafset.find(&res));
 }
 

@@ -4,7 +4,6 @@ cc_library(
 	srcs = glob(["src/**/*.cpp"]),
 	deps = [
 		"@boost//:uuid",
-		"//proto:tenncor_monitor_cc_proto",
 		"//proto:tenncor_serial_cc_proto",
 	],
 	linkstatic = 1,

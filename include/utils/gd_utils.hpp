@@ -2,7 +2,6 @@
 // Created by Mingkai Chen on 2017-04-27.
 //
 
-#include "include/graph/varptr.hpp"
 #include "include/graph/leaf/variable.hpp"
 #include "include/graph/operations/operations.hpp"
 
@@ -14,9 +13,9 @@
 namespace nnet
 {
 
-using updates_t = std::vector<variable_updater<double> >;
+using updates_t = std::vector<variable_updater >;
 
-using grad_process = std::function<varptr<double>(varptr<double>,variable<double>*)>;
+using grad_process = std::function<varptr(varptr,variable*)>;
 
 //! gradient descent algorithm abstraction
 class gd_updater
@@ -30,10 +29,10 @@ public:
 
 	gd_updater* move (void);
 
-	virtual updates_t calculate (inode<double>* root, grad_process intermediate_process = 
-		[](varptr<double> grad, variable<double>*) { return grad; });
+	virtual updates_t calculate (inode* root, grad_process intermediate_process = 
+		[](varptr grad, variable*) { return grad; });
 
-	void ignore_subtree (inode<double>* subroot);
+	void ignore_subtree (inode* subroot);
 
 	void clear_ignore (void);
 	
@@ -44,13 +43,13 @@ protected:
 
 	virtual gd_updater* move_impl (void) = 0;
 
-	virtual variable_updater<double> process_update (varptr<double>& gres,
-		variable<double>* leaf, grad_process intermediate_process) = 0;
+	virtual variable_updater process_update (varptr& gres,
+		variable* leaf, grad_process intermediate_process) = 0;
 
 	double learning_rate_;
 	
 private:
-	std::unordered_set<variable<double>*> ignored_;
+	std::unordered_set<variable*> ignored_;
 };
 
 //! vanilla gradient descent algorithm
@@ -68,8 +67,8 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater<double> process_update (varptr<double>& gres,
-		variable<double>* leaf, grad_process intermediate_process);
+	virtual variable_updater process_update (varptr& gres,
+		variable* leaf, grad_process intermediate_process);
 };
 
 //! momentum based gradient descent
@@ -98,14 +97,14 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater<double> process_update (varptr<double>& gres,
-		variable<double>* leaf, grad_process intermediate_process);
+	virtual variable_updater process_update (varptr& gres,
+		variable* leaf, grad_process intermediate_process);
 };
 
 // Separate adaptive learning rates
 // introduce leaf local_gain linked to weight/bias variables
 // delta(var) = -epsilon * local_gain[v] * J'[v]
-// if J'[v]_t * J'[v]_(t-1) > 0:
+// if J'[v]_t * J'[v]_(t-1)> 0:
 // then local_gain[v] += 0.05
 // else local_gain[v] *= 0.95
 class adadelta_updater : public gd_updater
@@ -126,8 +125,8 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater<double> process_update (varptr<double>& gres,
-		variable<double>* leaf, grad_process intermediate_process);
+	virtual variable_updater process_update (varptr& gres,
+		variable* leaf, grad_process intermediate_process);
 };
 
 // adaptive gradient
@@ -147,8 +146,8 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater<double> process_update (varptr<double>& gres,
-		variable<double>* leaf, grad_process intermediate_process);
+	virtual variable_updater process_update (varptr& gres,
+		variable* leaf, grad_process intermediate_process);
 };
 
 
@@ -184,13 +183,13 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater<double> process_update (varptr<double>& gres,
-		variable<double>* leaf, grad_process intermediate_process);
+	virtual variable_updater process_update (varptr& gres,
+		variable* leaf, grad_process intermediate_process);
 		
 private:
 	double discount_factor_;
 
-	std::vector<variable<double>*> momentums_;
+	std::vector<variable*> momentums_;
 
 	const double epsilon_ = std::numeric_limits<double>::epsilon();
 };

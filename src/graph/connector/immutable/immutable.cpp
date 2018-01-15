@@ -1,18 +1,19 @@
 //
-//  immutable.ipp
+//  immutable.cpp
 //  cnnet
 //
 //  Created by Mingkai Chen on 2017-02-28.
 //  Copyright © 2016 Mingkai Chen. All rights reserved.
 //
 
+#include "include/graph/connector/immutable/immutable.hpp"
+
 #ifdef TENNCOR_IMMUTABLE_HPP
 
 namespace nnet
 {
 
-template <typename T>
-immutable<T>::~immutable (void)
+immutable::~immutable (void)
 {
 	if (Nf_)
 	{
@@ -20,20 +21,19 @@ immutable<T>::~immutable (void)
 	}
 }
 
-template <typename T>
-immutable<T>* immutable<T>::get (std::vector<inode<T>*> args,
-	SHAPER shaper, transfer_func<T>* Nf,
-	BACK_MAP<T> ginit, std::string name,
-	inode<T>* ignore_jacobian)
+immutable* immutable::get (std::vector<inode*> args,
+	SHAPER shaper, transfer_func<double>* Nf,
+	BACK_MAP ginit, std::string name,
+	inode* ignore_jacobian)
 {
 	assert(false == args.empty());
-	immutable<T>* imm = new immutable<T>(args, shaper, Nf, ginit, name);
+	immutable* imm = new immutable(args, shaper, Nf, ginit, name);
 	if (nullptr != ignore_jacobian)
 	{
-		std::unordered_set<ileaf<T>*> leaves = ignore_jacobian->get_leaves();
-		for (ileaf<T>* leaf : leaves)
+		std::unordered_set<ileaf*> leaves = ignore_jacobian->get_leaves();
+		for (ileaf* leaf : leaves)
 		{
-			if (variable<T>* var = dynamic_cast<variable<T>*>(leaf))
+			if (variable* var = dynamic_cast<variable*>(leaf))
 			{
 				imm->jacobians_.erase(var);
 			}
@@ -42,96 +42,85 @@ immutable<T>* immutable<T>::get (std::vector<inode<T>*> args,
 	return imm;
 }
 
-template <typename T>
-immutable<T>* immutable<T>::clone (void) const
+immutable* immutable::clone (void) const
 {
-	return static_cast<immutable<T>*>(this->clone_impl());
+	return static_cast<immutable*>(this->clone_impl());
 }
 
-template <typename T>
-immutable<T>* immutable<T>::move (void)
+immutable* immutable::move (void)
 {
-	return static_cast<immutable<T>*>(this->move_impl());
+	return static_cast<immutable*>(this->move_impl());
 }
 
-template <typename T>
-immutable<T>& immutable<T>::operator = (const immutable<T>& other)
+immutable& immutable::operator = (const immutable& other)
 {
 	if (this != &other)
 	{
-		base_immutable<T>::operator = (other);
+		base_immutable::operator = (other);
 		copy_helper(other);
 	}
 	return *this;
 }
 
-template <typename T>
-immutable<T>& immutable<T>::operator = (immutable<T>&& other)
+immutable& immutable::operator = (immutable&& other)
 {
 	if (this != &other)
 	{
-		base_immutable<T>::operator = (std::move(other));
+		base_immutable::operator = (std::move(other));
 		move_helper(std::move(other));
 	}
 	return *this;
 }
 
-template <typename T>
-immutable<T>::immutable (
-	std::vector<inode<T>*> args,
+immutable::immutable (
+	std::vector<inode*> args,
 	SHAPER shaper,
-	transfer_func<T>* Nf,
-	BACK_MAP<T> ginit, std::string label) :
-base_immutable<T>(args, label),
+	transfer_func<double>* Nf,
+	BACK_MAP ginit, std::string label) :
+base_immutable(args, label),
 shaper_(shaper), Nf_(Nf),
 ginit_(ginit) { this->update(std::unordered_set<size_t>{}); }
 
-template <typename T>
-immutable<T>::immutable (const immutable<T>& other) :
-	base_immutable<T>(other)
+immutable::immutable (const immutable& other) :
+	base_immutable(other)
 {
 	copy_helper(other);
 }
 
-template <typename T>
-immutable<T>::immutable (immutable<T>&& other) :
-	base_immutable<T>(std::move(other))
+immutable::immutable (immutable&& other) :
+	base_immutable(std::move(other))
 {
 	move_helper(std::move(other));
 }
 
-template <typename T>
-inode<T>* immutable<T>::clone_impl (void) const
+inode* immutable::clone_impl (void) const
 {
-	return new immutable<T>(*this);
+	return new immutable(*this);
 }
 
-template <typename T>
-inode<T>* immutable<T>::move_impl (void)
+inode* immutable::move_impl (void)
 {
-	return new immutable<T>(std::move(*this));
+	return new immutable(std::move(*this));
 }
 
-template <typename T>
-base_immutable<T>* immutable<T>::arg_clone (std::vector<inode<T>*> args) const
+base_immutable* immutable::arg_clone (std::vector<inode*> args) const
 {
 	if (nullptr == Nf_)
 	{
 		throw std::exception(); // todo: better exception
 	}
-	return new immutable<T>(args, shaper_, Nf_->clone(), ginit_, this->get_label());
+	return new immutable(args, shaper_, Nf_->clone(), ginit_, this->get_label());
 }
 
-template <typename T>
-void immutable<T>::forward_pass (void)
+void immutable::forward_pass (void)
 {
 	// shape and tensor extraction
 	std::vector<tensorshape> ts;
-	std::vector<const tensor<T>*> tens;
+	std::vector<const tensor<double>*> tens;
 	// todo: determine whether or not to move this tensor extraction up to base_immutable::update
 	for (subject* sub : this->dependencies_)
 	{
-		const tensor<T>* arg = this->take_eval(static_cast<inode<T>*>(sub));
+		const tensor<double>* arg = this->take_eval(static_cast<inode*>(sub));
 		if (nullptr == arg)
 		{
 			throw std::exception(); // todo: better exception
@@ -145,7 +134,7 @@ void immutable<T>::forward_pass (void)
 	if (nullptr == this->data_)
 	{
 		s.assert_is_fully_defined();
-		this->data_ = new tensor<T>(s);
+		this->data_ = new tensor<double>(s);
 	}
 	else if (s.is_fully_defined())
 	{
@@ -172,14 +161,13 @@ void immutable<T>::forward_pass (void)
 	(*Nf_)(*(this->data_), tens);
 }
 
-template <typename T>
-void immutable<T>::backward_pass (variable<T>* leaf)
+void immutable::backward_pass (variable* leaf)
 {
-	std::vector<std::pair<inode<T>*,inode<T>*> > deps;
+	std::vector<std::pair<inode*,inode*>> deps;
 	for (subject* s : this->dependencies_)
 	{
-		inode<T>* fn = static_cast<inode<T>*>(s);
-		inode<T>* bn;
+		inode* fn = static_cast<inode*>(s);
+		inode* bn;
 		if (this->jacobians_[leaf].terminal_)
 		{
 			bn = fn->derive(leaf); // take jacobian
@@ -193,8 +181,7 @@ void immutable<T>::backward_pass (variable<T>* leaf)
 	this->gcache_[leaf] = ginit_(deps);
 }
 
-template <typename T>
-void immutable<T>::copy_helper (const immutable& other)
+void immutable::copy_helper (const immutable& other)
 {
 	if (Nf_) delete Nf_;
 
@@ -203,8 +190,7 @@ void immutable<T>::copy_helper (const immutable& other)
 	shaper_ = other.shaper_;
 }
 
-template <typename T>
-void immutable<T>::move_helper (immutable&& other)
+void immutable::move_helper (immutable&& other)
 {
 	if (Nf_) delete Nf_;
 

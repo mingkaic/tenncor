@@ -35,20 +35,20 @@ void testtrans (double* dest, std::vector<const double*> src, nnet::shape_io sha
 }
 
 
-inode<double>* testback (std::vector<std::pair<inode<double>*,inode<double>*> >)
+inode* testback (std::vector<std::pair<inode*,inode*>>)
 {
 	return nullptr;
 }
 
 
-class mock_immutable : public immutable<double>
+class mock_immutable : public immutable
 {
 public:
-	mock_immutable (std::vector<inode<double>*> args, 
+	mock_immutable (std::vector<inode*> args, 
 		std::string label, SHAPER shapes,
 		TRANSFER_FUNC<double> tfunc = testtrans,
-		BACK_MAP<double> back = testback) :
-	immutable<double>(args, shapes,
+		BACK_MAP back = testback) :
+	immutable(args, shapes,
 	new transfer_func<double>(tfunc), back, label) {}
 
 	std::function<void(mock_immutable*)> triggerOnDeath;
@@ -59,7 +59,7 @@ public:
 		{
 			triggerOnDeath(this);
 		}
-		immutable<double>::death_on_broken();
+		immutable::death_on_broken();
 	}
 };
 

@@ -88,7 +88,7 @@ public:
 				leaves.erase(p);
 
 				// update the potential connectors list
-				if (++nargs[p] >= n)
+				if (++nargs[p]>= n)
 				{
 					concount.erase(it);
 				}
@@ -102,7 +102,7 @@ public:
 			}
 			ss_ << ">" << std::endl;
 		}
-		std::unordered_map<size_t,std::vector<N*> > deps;
+		std::unordered_map<size_t,std::vector<N*>> deps;
 		std::queue<size_t> pq;
 		for (size_t l : leaves)
 		{

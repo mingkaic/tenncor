@@ -11,26 +11,25 @@
 #include "tests/include/fuzz.h"
 
 #include "include/graph/leaf/ileaf.hpp"
-#include "include/graph/varptr.hpp"
 
 using namespace nnet;
 
 
-class mock_leaf : public ileaf<double>
+class mock_leaf : public ileaf
 {
 public:
-	mock_leaf (FUZZ::fuzz_test* fuzzer, std::string name) : ileaf<double>(random_def_shape(fuzzer), name) {}
-	mock_leaf (const tensorshape& shape, std::string name) : ileaf<double>(shape, name) {}
+	mock_leaf (FUZZ::fuzz_test* fuzzer, std::string name) : ileaf(random_def_shape(fuzzer), name) {}
+	mock_leaf (const tensorshape& shape, std::string name) : ileaf(shape, name) {}
 
-	virtual varptr<double> derive (inode<double>*) { return nullptr; }
+	virtual varptr derive (inode*) { return nullptr; }
 
 	void set_good (void) { this->is_init_ = true; }
 	void mock_init_data (initializer<double>& initer) { initer(*this->data_); }
 
 protected:
-	virtual inode<double>* clone_impl (void) const { return new mock_leaf(*this); }
-	virtual inode<double>* move_impl (void) { return new mock_leaf(std::move(*this)); }
-	virtual inode<double>* get_gradient (variable<double>*) { return nullptr; }
+	virtual inode* clone_impl (void) const { return new mock_leaf(*this); }
+	virtual inode* move_impl (void) { return new mock_leaf(std::move(*this)); }
+	virtual inode* get_gradient (variable*) { return nullptr; }
 };
 
 

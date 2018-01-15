@@ -22,62 +22,61 @@
 namespace nnet
 {
 
-template <typename T>
-class immutable : public base_immutable<T>
+class immutable : public base_immutable
 {
 public:
 	virtual ~immutable (void);
 
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for immutables, grabs ownership of Nf
-	static immutable<T>* get (std::vector<inode<T>*> args,
-		SHAPER shaper, transfer_func<T>* Nf,
-		BACK_MAP<T> ginit, std::string name,
-		inode<T>* ignore_jacobian = nullptr);
+	static immutable* get (std::vector<inode*> args,
+		SHAPER shaper, transfer_func<double>* Nf,
+		BACK_MAP ginit, std::string name,
+		inode* ignore_jacobian = nullptr);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
-	immutable<T>* clone (void) const;
+	immutable* clone (void) const;
 
 	//! move function
-	immutable<T>* move (void);
+	immutable* move (void);
 
 	//! declare copy assignment to copy over transfer functions
-	virtual immutable<T>& operator = (const immutable<T>& other);
+	virtual immutable& operator = (const immutable& other);
 
 	//! declare move assignment to move over transfer functions
-	virtual immutable<T>& operator = (immutable<T>&& other);
+	virtual immutable& operator = (immutable&& other);
 
 protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! immutable constructing an aggregate transfer function
-	immutable (std::vector<inode<T>*> args,
-		SHAPER shaper, transfer_func<T>* Nf,
-		BACK_MAP<T> ginit, std::string label);
+	immutable (std::vector<inode*> args,
+		SHAPER shaper, transfer_func<double>* Nf,
+		BACK_MAP ginit, std::string label);
 
 	//! declare copy constructor to copy over transfer functions
-	immutable (const immutable<T>& other);
+	immutable (const immutable& other);
 
 	//! declare move constructor to move over transfer functions
-	immutable (immutable<T>&& other);
+	immutable (immutable&& other);
 
 	// >>>> POLYMORPHIC CLONERS <<<<
 	//! implement clone function
-	virtual inode<T>* clone_impl (void) const;
+	virtual inode* clone_impl (void) const;
 
 	//! move implementation
-	virtual inode<T>* move_impl (void);
+	virtual inode* move_impl (void);
 
 	// >>>> PROTECTED CLONER <<<<
 	//! create a deep copy of this with args
-	virtual base_immutable<T>* arg_clone (std::vector<inode<T>*> args) const;
+	virtual base_immutable* arg_clone (std::vector<inode*> args) const;
 
 	// >>>> FORWARD & BACKWARD <<<<
 	//! forward pass step: populate data_
 	virtual void forward_pass (void);
 
 	//! backward pass step: populate gcache_[leaf]
-	virtual void backward_pass (variable<T>* leaf);
+	virtual void backward_pass (variable* leaf);
 
 private:
 	//! copy helper
@@ -91,15 +90,13 @@ private:
 
 	//! forward transfer function
 	//! calculates forward passing data
-	transfer_func<T>* Nf_ = nullptr;
+	transfer_func<double>* Nf_ = nullptr;
 
 	//! backward transfer function to
 	//! lazy instantiate gradient cache values
-	BACK_MAP<T> ginit_;
+	BACK_MAP ginit_;
 };
 
 }
-
-#include "src/graph/connector/immutable/immutable.ipp"
 
 #endif /* TENNCOR_IMMUTABLE_HPP */

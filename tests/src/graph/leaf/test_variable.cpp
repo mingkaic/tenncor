@@ -40,10 +40,10 @@ TEST_F(VARIABLE, Constructor_F000)
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, label2);
+	variable cinitv(shape, cinit, label3);
+	variable rinitv(shape, rinit, label4);
 
 	EXPECT_TRUE(scalar.can_init());
 	EXPECT_TRUE(scalar.good_status());
@@ -76,20 +76,20 @@ TEST_F(VARIABLE, Copy_F001)
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
 
-	variable<double> assign1(0);
-	variable<double> assign2(0);
-	variable<double> assign3(0);
-	variable<double> assign4(0);
+	variable assign1(0);
+	variable assign2(0);
+	variable assign3(0);
+	variable assign4(0);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, label2);
+	variable cinitv(shape, cinit, label3);
+	variable rinitv(shape, rinit, label4);
 
-	variable<double>* sv = scalar.clone();
-	variable<double>* nv = noinitv.clone();
-	variable<double>* civ = cinitv.clone();
-	variable<double>* rv = rinitv.clone();
+	variable* sv = scalar.clone();
+	variable* nv = noinitv.clone();
+	variable* civ = cinitv.clone();
+	variable* rv = rinitv.clone();
 
 	assign1 = scalar;
 	assign2 = noinitv;
@@ -141,20 +141,20 @@ TEST_F(VARIABLE, Move_F001)
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
 
-	variable<double> assign1(0);
-	variable<double> assign2(0);
-	variable<double> assign3(0);
-	variable<double> assign4(0);
+	variable assign1(0);
+	variable assign2(0);
+	variable assign3(0);
+	variable assign4(0);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, label2);
+	variable cinitv(shape, cinit, label3);
+	variable rinitv(shape, rinit, label4);
 
-	variable<double>* sv = scalar.move();
-	variable<double>* nv = noinitv.move();
-	variable<double>* civ = cinitv.move();
-	variable<double>* rv = rinitv.move();
+	variable* sv = scalar.move();
+	variable* nv = noinitv.move();
+	variable* civ = cinitv.move();
+	variable* rv = rinitv.move();
 
 	EXPECT_FALSE(scalar.can_init());
 	EXPECT_TRUE(scalar.good_status());
@@ -229,10 +229,10 @@ TEST_F(VARIABLE, SetInit_F002)
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, label2);
+	variable cinitv(shape, cinit, label3);
+	variable rinitv(shape, rinit, label4);
 
 	scalar.set_initializer(rinit);
 	noinitv.set_initializer(cinit);
@@ -244,10 +244,10 @@ TEST_F(VARIABLE, SetInit_F002)
 	cinitv.initialize();
 	rinitv.initialize();
 
-	std::vector<double> rv = expose(&scalar);
-	std::vector<double> cv = expose(&noinitv);
-	std::vector<double> rv2 = expose(&cinitv);
-	std::vector<double> cv2 = expose(&rinitv);
+	std::vector<double> rv = expose<double>(&scalar);
+	std::vector<double> cv = expose<double>(&noinitv);
+	std::vector<double> rv2 = expose<double>(&cinitv);
+	std::vector<double> cv2 = expose<double>(&rinitv);
 
 	EXPECT_EQ((size_t) 1, rv.size());
 	EXPECT_TRUE(tensorshape_equal(shape, noinitv.get_shape()));
@@ -286,24 +286,24 @@ TEST_F(VARIABLE, GetLeaf_F003)
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, label2);
+	variable cinitv(shape, cinit, label3);
+	variable rinitv(shape, rinit, label4);
 
-	varptr<double> wun = exposer.expose_leaf(&scalar, &scalar);
-	varptr<double> wun2 = exposer.expose_leaf(&noinitv, &noinitv);
-	varptr<double> wun3 = exposer.expose_leaf(&cinitv, &cinitv);
-	varptr<double> wun4 = exposer.expose_leaf(&rinitv, &rinitv);
+	varptr wun = exposer.expose_leaf(&scalar, &scalar);
+	varptr wun2 = exposer.expose_leaf(&noinitv, &noinitv);
+	varptr wun3 = exposer.expose_leaf(&cinitv, &cinitv);
+	varptr wun4 = exposer.expose_leaf(&rinitv, &rinitv);
 
-	varptr<double> zaro = exposer.expose_leaf(&scalar, nullptr);
-	varptr<double> zaro2 = exposer.expose_leaf(&scalar, &noinitv);
-	varptr<double> zaro3 = exposer.expose_leaf(&noinitv, nullptr);
-	varptr<double> zaro4 = exposer.expose_leaf(&noinitv, &cinitv);
-	varptr<double> zaro5 = exposer.expose_leaf(&cinitv, nullptr);
-	varptr<double> zaro6 = exposer.expose_leaf(&cinitv, &rinitv);
-	varptr<double> zaro7 = exposer.expose_leaf(&rinitv, nullptr);
-	varptr<double> zaro8 = exposer.expose_leaf(&rinitv, &scalar);
+	varptr zaro = exposer.expose_leaf(&scalar, nullptr);
+	varptr zaro2 = exposer.expose_leaf(&scalar, &noinitv);
+	varptr zaro3 = exposer.expose_leaf(&noinitv, nullptr);
+	varptr zaro4 = exposer.expose_leaf(&noinitv, &cinitv);
+	varptr zaro5 = exposer.expose_leaf(&cinitv, nullptr);
+	varptr zaro6 = exposer.expose_leaf(&cinitv, &rinitv);
+	varptr zaro7 = exposer.expose_leaf(&rinitv, nullptr);
+	varptr zaro8 = exposer.expose_leaf(&rinitv, &scalar);
 
 	double wunvalue = expose<double>(wun)[0];
 	double wunvalue2 = expose<double>(wun2)[0];
@@ -352,10 +352,10 @@ TEST_F(VARIABLE, Initialize_F004)
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(0, 1);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(part, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, label2);
+	variable cinitv(part, cinit, label3);
+	variable rinitv(shape, rinit, label4);
 
 	mock_connector conn({&scalar, &noinitv, &cinitv, &rinitv}, label5);
 	conn.inst_ = "conn";
@@ -372,10 +372,10 @@ TEST_F(VARIABLE, Initialize_F004)
 	rinitv.initialize();
 	EXPECT_TRUE(mocker::EXPECT_CALL("conn::update1", 4));
 
-	std::vector<double> sv = expose(&scalar);
-	std::vector<double> nv = expose(&noinitv);
-	std::vector<double> cv = expose(&cinitv);
-	std::vector<double> rv = expose(&rinitv);
+	std::vector<double> sv = expose<double>(&scalar);
+	std::vector<double> nv = expose<double>(&noinitv);
+	std::vector<double> cv = expose<double>(&cinitv);
+	std::vector<double> rv = expose<double>(&rinitv);
 
 	EXPECT_EQ((size_t) 1, sv.size());
 	EXPECT_TRUE(tensorshape_equal(shape, noinitv.get_shape()));

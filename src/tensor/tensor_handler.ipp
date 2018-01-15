@@ -175,13 +175,13 @@ void transfer_func<T>::operator () (tensor<T>& out, std::vector<const tensor<T>*
 template <typename T>
 itensor_handler<T>* transfer_func<T>::clone_impl (void) const
 {
-	return new transfer_func(*this);
+	return new transfer_func<double>(*this);
 }
 
 template <typename T>
 itensor_handler<T>* transfer_func<T>::move_impl (void)
 {
-	return new transfer_func(std::move(*this));
+	return new transfer_func<double>(std::move(*this));
 }
 
 template <typename T>
@@ -220,13 +220,13 @@ const_init<T>* const_init<T>::move (void)
 template <typename T>
 itensor_handler<T>* const_init<T>::clone_impl (void) const
 {
-	return new const_init(*this);
+	return new const_init<double>(*this);
 }
 
 template <typename T>
 itensor_handler<T>* const_init<T>::move_impl (void)
 {
-	return new const_init(std::move(*this));
+	return new const_init<double>(std::move(*this));
 }
 
 template <typename T>

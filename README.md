@@ -52,29 +52,20 @@ Working in Progress (Using doxygen)
 	
 		// initializes a 5 by 5 matrix with uniformly distributed
 		// doubles between -1 and 1
-		varptr<double> A = new variable<double>(common, rinit, "a");
-		placeptr<double> B = new placeholder<double>(common, "b");
-		varptr<double> C = matmul<double>::build(A, B);
-		varptr<double> D = sigmoid<double>(C);
+		varptr A = new variable(common, rinit, "a");
+		placeptr B = new placeholder(common, "b");
+		varptr C = matmul::build(A, B);
+		varptr D = sigmoid<double>(C);
 		
 		sess.initialize_all<double>();
 		B = std::vector<double>{...};
 		
-		gradient<double> grad(D);
-		// prevent changes to B from cascading to gradient value
-		grad.freeze();
-		grad.execute();
+		varptr grad = D->derive(A);
 		
 		// forward accumulation
 		tensor<double>* result = D->get_eval();
 		// reverse accumulation
-		tensor<double>* grad_result;
-		grad.collect_grad(
-		[&grad_result](inode<double>* key, 
-					   placeholder<double>* value)
-		{
-			grad_result = value->get_eval();
-		});
+		tensor<double>* grad_result = grad->eval();
 		
 		delete A;
 		delete B;

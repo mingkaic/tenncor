@@ -10,7 +10,6 @@
 
 #include "include/graph/leaf/variable.hpp"
 #include "include/graph/operations/operations.hpp"
-#include "include/graph/varptr.hpp"
 
 #include "tests/include/util_test.h"
 #include "tests/include/fuzz.h"
@@ -26,11 +25,11 @@ using namespace nnet;
 
 
 using UNARY_SCALAR = std::function<double(double)>;
-using UNARY_VAR = std::function<varptr<double>(varptr<double>)>;
+using UNARY_VAR = std::function<varptr(varptr)>;
 using BINARY_SCALARS = std::function<double(double, double)>;
-using BINARY_VARS = std::function<varptr<double>(varptr<double>, varptr<double>)>;
-using BINARY_VAR1 = std::function<varptr<double>(varptr<double>, double)>;
-using BINARY_VAR2 = std::function<varptr<double>(double, varptr<double>)>;
+using BINARY_VARS = std::function<varptr(varptr, varptr)>;
+using BINARY_VAR1 = std::function<varptr(varptr, double)>;
+using BINARY_VAR2 = std::function<varptr(double, varptr)>;
 using QUANARY_SCALARS = std::function<double(double, double, double, double)>;
 
 
@@ -45,11 +44,11 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	size_t inn = shape.n_elems();
 	rand_uniform<double> rinit(2, 12);
 
-	variable<double> var(shape, rinit, "unar_var");
-	varptr<double> res = func(varptr<double>(&var));
+	variable var(shape, rinit, "unar_var");
+	varptr res = func(varptr(&var));
 
 	// Behavior A000
-	EXPECT_EQ(nullptr, func(varptr<double>(nullptr)));
+	EXPECT_EQ(nullptr, func(varptr(nullptr)));
 
 	// initialize
 	var.initialize();
@@ -95,12 +94,12 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	// behavior A001
 	// avoid negatives to prevent bad ops
 	std::vector<double> constant_values = fuzzer->get_double(shape.n_elems(), "constant_values", {0, 17});
-	nnet::constant<double>* c = nnet::constant<double>::get(constant_values, shape);
-	nnet::varptr<double> cres = func(c);
-	nnet::constant<double>* cres_c = dynamic_cast<nnet::constant<double>*>(cres.get());
+	nnet::constant* c = nnet::constant::get(constant_values, shape);
+	nnet::varptr cres = func(c);
+	nnet::constant* cres_c = dynamic_cast<nnet::constant*>(cres.get());
 	ASSERT_NE(nullptr, cres_c);
 	EXPECT_TRUE(tensorshape_equal(shape, cres_c->get_shape()));
-	std::vector<double> result = nnet::expose(cres_c);
+	std::vector<double> result = nnet::expose<double>(cres_c);
 	assert(result.size() == constant_values.size()); // logical assertion
 	for (size_t i = 0; i < constant_values.size(); i++)
 	{
@@ -124,18 +123,18 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 
 	// matching pair
 	std::vector<double> scalars = fuzzer->get_double(2, "scalars", {3, 50});
-	variable<double> var(shape, rinit, "var");
-	variable<double> var2(shape, rinit, "var2");
+	variable var(shape, rinit, "var");
+	variable var2(shape, rinit, "var2");
 
 	// Behavior A000
-	EXPECT_EQ(nullptr, func(varptr<double>(nullptr), varptr<double>(nullptr)));
-	EXPECT_EQ(nullptr, func(varptr<double>(&var), varptr<double>(nullptr)));
-	EXPECT_EQ(nullptr, func(varptr<double>(nullptr), varptr<double>(&var2)));
+	EXPECT_EQ(nullptr, func(varptr(nullptr), varptr(nullptr)));
+	EXPECT_EQ(nullptr, func(varptr(&var), varptr(nullptr)));
+	EXPECT_EQ(nullptr, func(varptr(nullptr), varptr(&var2)));
 
-	variable<double> var3(shape2, rinit, "unmatching_in");
-	varptr<double> res = func(varptr<double>(&var), varptr<double>(&var2));
-	varptr<double> res1 = func1(varptr<double>(&var), scalars[1]);
-	varptr<double> res2 = func2(scalars[0], varptr<double>(&var2));
+	variable var3(shape2, rinit, "unmatching_in");
+	varptr res = func(varptr(&var), varptr(&var2));
+	varptr res1 = func1(varptr(&var), scalars[1]);
+	varptr res2 = func2(scalars[0], varptr(&var2));
 
 	// initialize
 	var.initialize();
@@ -222,18 +221,18 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 	}
 
 	// Behavior A003
-	varptr<double> bad1 = func(varptr<double>(&var), varptr<double>(&var3));
-	varptr<double> bad2 = func(varptr<double>(&var3), varptr<double>(&var2));
+	varptr bad1 = func(varptr(&var), varptr(&var3));
+	varptr bad2 = func(varptr(&var3), varptr(&var2));
 
 	EXPECT_THROW(bad1->eval(), std::exception);
 	EXPECT_THROW(bad2->eval(), std::exception);
 
 	// Behavior A012
-	variable<double> vs(fuzzer->get_double(1, "vs_value")[0]);
+	variable vs(fuzzer->get_double(1, "vs_value")[0]);
 
-	varptr<double> same = func(varptr<double>(&var), varptr<double>(&vs));
-	varptr<double> same2 = func(varptr<double>(&var2), varptr<double>(&vs));
-	varptr<double> same3 = func(varptr<double>(&var3), varptr<double>(&vs));
+	varptr same = func(varptr(&var), varptr(&vs));
+	varptr same2 = func(varptr(&var2), varptr(&vs));
+	varptr same3 = func(varptr(&var3), varptr(&vs));
 
 	EXPECT_TRUE(tensorshape_equal(same->get_shape(), var.get_shape()));
 	EXPECT_TRUE(tensorshape_equal(same2->get_shape(), var2.get_shape()));
@@ -244,7 +243,7 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 TEST_F(ELEMENTARY, Abs_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return +in; },
+	[](varptr in) { return +in; },
 	[](double var) { return +var; },
 	[](double, double gvar) { return +gvar; });
 }
@@ -253,7 +252,7 @@ TEST_F(ELEMENTARY, Abs_A000ToA003)
 TEST_F(ELEMENTARY, Neg_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return -in; },
+	[](varptr in) { return -in; },
 	[](double var) { return -var; },
 	[](double, double gvar) { return -gvar; });
 }
@@ -262,7 +261,7 @@ TEST_F(ELEMENTARY, Neg_A000ToA003)
 TEST_F(ELEMENTARY, Sin_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return sin(in); },
+	[](varptr in) { return sin(in); },
 	[](double var) { return sin(var); },
 	[](double var, double gvar) { return gvar * cos(var); });
 }
@@ -271,7 +270,7 @@ TEST_F(ELEMENTARY, Sin_A000ToA003)
 TEST_F(ELEMENTARY, Cos_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return cos(in); },
+	[](varptr in) { return cos(in); },
 	[](double var) { return cos(var); },
 	[](double var, double gvar) { return -gvar * sin(var); });
 
@@ -281,7 +280,7 @@ TEST_F(ELEMENTARY, Cos_A000ToA003)
 TEST_F(ELEMENTARY, Tan_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return tan(in); },
+	[](varptr in) { return tan(in); },
 	[](double var) { return tan(var); },
 	[](double var, double gvar)
 	{
@@ -294,7 +293,7 @@ TEST_F(ELEMENTARY, Tan_A000ToA003)
 TEST_F(ELEMENTARY, Csc_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return csc(in); },
+	[](varptr in) { return csc(in); },
 	[](double var) { return 1/sin(var); },
 	[](double var, double gvar)
 	{
@@ -306,7 +305,7 @@ TEST_F(ELEMENTARY, Csc_A000ToA003)
 TEST_F(ELEMENTARY, Sec_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return sec(in); },
+	[](varptr in) { return sec(in); },
 	[](double var) { return 1/cos(var); },
 	[](double var, double gvar) { return gvar * tan(var) / cos(var); });
 }
@@ -315,7 +314,7 @@ TEST_F(ELEMENTARY, Sec_A000ToA003)
 TEST_F(ELEMENTARY, Cot_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return cot(in); },
+	[](varptr in) { return cot(in); },
 	[](double var) { return cos(var) / sin(var); },
 	[](double var, double gvar)
 	{
@@ -328,7 +327,7 @@ TEST_F(ELEMENTARY, Cot_A000ToA003)
 TEST_F(ELEMENTARY, Exp_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return exp(in); },
+	[](varptr in) { return exp(in); },
 	[](double var) { return exp(var); },
 	[](double var, double gvar) { return gvar * exp(var); });
 }
@@ -337,7 +336,7 @@ TEST_F(ELEMENTARY, Exp_A000ToA003)
 TEST_F(ELEMENTARY, Root_A000ToA003)
 {
  	unaryElemTest(this,
- 	[](varptr<double> in) { return sqrt(in); },
+ 	[](varptr in) { return sqrt(in); },
  	[](double var) { return std::sqrt(var); },
 	[](double var, double gvar) { return gvar / (2.0 * std::sqrt(var)); });
 }
@@ -346,7 +345,7 @@ TEST_F(ELEMENTARY, Root_A000ToA003)
 TEST_F(ELEMENTARY, Round_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return round(in); },
+	[](varptr in) { return round(in); },
 	[](double var) { return std::round(var); },
 	[](double, double gvar) { return std::round(gvar); });
 }
@@ -355,7 +354,7 @@ TEST_F(ELEMENTARY, Round_A000ToA003)
 TEST_F(ELEMENTARY, Log_A000ToA003)
 {
 	unaryElemTest(this,
-	[](varptr<double> in) { return log(in); },
+	[](varptr in) { return log(in); },
 	[](double var) { return std::log(var); },
 	[](double var, double) { return 1 / var; });
 }
@@ -365,7 +364,7 @@ TEST_F(ELEMENTARY, Pow_A000ToA003)
 {
 	double scalar = get_double(1, "scalar", {-21, 13})[0];
  	unaryElemTest(this,
- 	[scalar](varptr<double> in) { return pow(in, scalar); },
+ 	[scalar](varptr in) { return pow(in, scalar); },
  	[scalar](double var) { return std::pow(var, scalar); },
 	[scalar](double var, double gvar) { return scalar * gvar * pow(var, scalar-1); });
 }
@@ -374,19 +373,19 @@ TEST_F(ELEMENTARY, Pow_A000ToA003)
 TEST_F(ELEMENTARY, ClipVal_A000ToA003)
 {
 	std::vector<double> limits = get_double(2, "limits", {-100, 200});
-	double min = limits[0] > limits[1] ? limits[1] : limits[0];
-	double max = limits[0] > limits[1] ? limits[0] : limits[1];
+	double min = limits[0]> limits[1] ? limits[1] : limits[0];
+	double max = limits[0]> limits[1] ? limits[0] : limits[1];
 	unaryElemTest(this,
-	[max, min](varptr<double> in) { return clip_val(in, min, max); },
+	[max, min](varptr in) { return clip_val(in, min, max); },
 	[max, min](double var)
 	{
-		if (var > max) var = max;
+		if (var> max) var = max;
 		else if (var < min) var = min;
 		return var;
 	},
 	[max, min](double var, double gvar)
 	{
-		if (var > max) var = max;
+		if (var> max) var = max;
 		else if (var < min) var = min;
 		return gvar * var;
 	});
@@ -395,27 +394,27 @@ TEST_F(ELEMENTARY, ClipVal_A000ToA003)
 
 TEST_F(ELEMENTARY, Condition_A000ToA003_A012)
 {
-	static std::vector<std::function<bool(double,double)> > conds = {
+	static std::vector<std::function<bool(double,double)>> conds = {
 		[](double a, double b) { return a < b; },
-		[](double a, double b) { return a > b; },
-		[](double a, double b) { return a >= b; },
+		[](double a, double b) { return a> b; },
+		[](double a, double b) { return a>= b; },
 		[](double a, double b) { return a <= b; },
 		[](double a, double b) { return a == b; },
 		[](double a, double b) { return a != b; },
 	};
 	std::function<bool(double,double)> cond = conds[get_int(1, "condIdx", {0, conds.size() - 1})[0]];
 	binaryElemTest(this,
-	[cond](varptr<double> a, varptr<double> b)
+	[cond](varptr a, varptr b)
 	{
-		return conditional<double>(a, b, cond, "cond");
+		return conditional(a, b, cond, "cond");
 	},
-	[cond](varptr<double> a, double b)
+	[cond](varptr a, double b)
 	{
-		return conditional<double>(a, b, cond, "cond");
+		return conditional(a, b, cond, "cond");
 	},
-	[cond](double a, varptr<double> b)
+	[cond](double a, varptr b)
 	{
-		return conditional<double>(a, b, cond, "lessthan");
+		return conditional(a, b, cond, "lessthan");
 	},
 	[cond](double a, double b) { return (double) cond(a, b); },
 	[cond](double, double, double ga, double gb) { return (double) cond(ga, gb); });
@@ -425,38 +424,38 @@ TEST_F(ELEMENTARY, Condition_A000ToA003_A012)
 TEST_F(ELEMENTARY, Add_A000ToA004_A012)
 {
 	binaryElemTest(this,
-	[](varptr<double> a, varptr<double> b) { return a+b; },
-	[](varptr<double> a, double b) { return a+b; },
-	[](double a, varptr<double> b) { return a+b; },
+	[](varptr a, varptr b) { return a+b; },
+	[](varptr a, double b) { return a+b; },
+	[](double a, varptr b) { return a+b; },
 	[](double a, double b) { return a+b; },
 	[](double, double, double ga, double gb) { return ga+gb; });
 
 	tensorshape shape = random_def_shape(this);
 	rand_uniform<double> rinit(2, 12);
-	varptr<double> zero = constant<double>::get(0.0);
-	varptr<double> one = constant<double>::get(1.0);
-	variable<double> var(shape, rinit, "var");
-	variable<double> var2(shape, rinit, "var2");
+	varptr zero = constant::get(0.0);
+	varptr one = constant::get(1.0);
+	variable var(shape, rinit, "var");
+	variable var2(shape, rinit, "var2");
 
 	// Behavior A004
-	varptr<double> samev1 = varptr<double>(&var) +  0.0;
-	varptr<double> samev2 = 0.0 + varptr<double>(&var2);
-	varptr<double> samev12 = varptr<double>(&var) + varptr<double>(zero);
-	varptr<double> samev22 = varptr<double>(zero) + varptr<double>(&var2);
+	varptr samev1 = varptr(&var) +  0.0;
+	varptr samev2 = 0.0 + varptr(&var2);
+	varptr samev12 = varptr(&var) + varptr(zero);
+	varptr samev22 = varptr(zero) + varptr(&var2);
 
 	EXPECT_EQ(&var, samev1.get());
 	EXPECT_EQ(&var2, samev2.get());
 	EXPECT_EQ(&var, samev12.get());
 	EXPECT_EQ(&var2, samev22.get());
 
-	varptr<double> wn = varptr<double>(zero) + 1.0;
-	varptr<double> wn2 = 1.0 + varptr<double>(zero);
-	varptr<double> to = varptr<double>(one) + 1.0;
-	varptr<double> to2 = 1.0 + varptr<double>(one);
-	constant<double>* wunres = dynamic_cast<constant<double>*>(wn.get());
-	constant<double>* wunres2 = dynamic_cast<constant<double>*>(wn2.get());
-	constant<double>* toores = dynamic_cast<constant<double>*>(to.get());
-	constant<double>* toores2 = dynamic_cast<constant<double>*>(to2.get());
+	varptr wn = varptr(zero) + 1.0;
+	varptr wn2 = 1.0 + varptr(zero);
+	varptr to = varptr(one) + 1.0;
+	varptr to2 = 1.0 + varptr(one);
+	constant* wunres = dynamic_cast<constant*>(wn.get());
+	constant* wunres2 = dynamic_cast<constant*>(wn2.get());
+	constant* toores = dynamic_cast<constant*>(to.get());
+	constant* toores2 = dynamic_cast<constant*>(to2.get());
 
 	ASSERT_NE(nullptr, wunres);
 	ASSERT_NE(nullptr, wunres2);
@@ -476,25 +475,25 @@ TEST_F(ELEMENTARY, Add_A000ToA004_A012)
 TEST_F(ELEMENTARY, Sub_A000ToA003_A012_A005)
 {
 	binaryElemTest(this,
-	[](varptr<double> a, varptr<double> b) { return a-b; },
-	[](varptr<double> a, double b) { return a-b; },
-	[](double a, varptr<double> b) { return a-b; },
+	[](varptr a, varptr b) { return a-b; },
+	[](varptr a, double b) { return a-b; },
+	[](double a, varptr b) { return a-b; },
 	[](double a, double b) { return a-b; },
 	[](double, double, double ga, double gb) { return ga-gb; });
 
 	tensorshape shape = random_def_shape(this);
 	size_t inn = shape.n_elems();
 	rand_uniform<double> rinit(2, 12);
-	varptr<double> zero = constant<double>::get(0.0);
-	varptr<double> one = constant<double>::get(1.0);
-	variable<double> var(shape, rinit, "var");
-	variable<double> var2(shape, rinit, "var2");
+	varptr zero = constant::get(0.0);
+	varptr one = constant::get(1.0);
+	variable var(shape, rinit, "var");
+	variable var2(shape, rinit, "var2");
 
 	// Behavior A005
-	varptr<double> samev1 = varptr<double>(&var) -  0.0;
-	varptr<double> samenv2 = 0.0 - varptr<double>(&var2);
-	varptr<double> samev12 = varptr<double>(&var) - varptr<double>(zero);
-	varptr<double> samenv22 = varptr<double>(zero) - varptr<double>(&var2);
+	varptr samev1 = varptr(&var) -  0.0;
+	varptr samenv2 = 0.0 - varptr(&var2);
+	varptr samev12 = varptr(&var) - varptr(zero);
+	varptr samenv22 = varptr(zero) - varptr(&var2);
 
 	EXPECT_EQ(&var, samev1.get());
 	EXPECT_EQ(&var, samev12.get());
@@ -517,14 +516,14 @@ TEST_F(ELEMENTARY, Sub_A000ToA003_A012_A005)
 		EXPECT_EQ(-indata2[i], rawf2[i]);
 	}
 
-	varptr<double> ng = varptr<double>(zero) - 1.0;
-	varptr<double> wn = 1.0 - varptr<double>(zero);
-	varptr<double> zro = varptr<double>(one) - 1.0;
-	varptr<double> zro2 = 1.0 - varptr<double>(one);
-	constant<double>* negres = dynamic_cast<constant<double>*>(ng.get());
-	constant<double>* wunres = dynamic_cast<constant<double>*>(wn.get());
-	constant<double>* zerores = dynamic_cast<constant<double>*>(zro.get());
-	constant<double>* zerores2 = dynamic_cast<constant<double>*>(zro2.get());
+	varptr ng = varptr(zero) - 1.0;
+	varptr wn = 1.0 - varptr(zero);
+	varptr zro = varptr(one) - 1.0;
+	varptr zro2 = 1.0 - varptr(one);
+	constant* negres = dynamic_cast<constant*>(ng.get());
+	constant* wunres = dynamic_cast<constant*>(wn.get());
+	constant* zerores = dynamic_cast<constant*>(zro.get());
+	constant* zerores2 = dynamic_cast<constant*>(zro2.get());
 
 	ASSERT_NE(nullptr, negres);
 	ASSERT_NE(nullptr, wunres);
@@ -544,25 +543,25 @@ TEST_F(ELEMENTARY, Sub_A000ToA003_A012_A005)
 TEST_F(ELEMENTARY, Mul_A000ToA003_A012_A006ToA007)
 {
 	binaryElemTest(this,
-	[](varptr<double> a, varptr<double> b) { return a * b; },
-	[](varptr<double> a, double b) { return a * b; },
-	[](double a, varptr<double> b) { return a * b; },
+	[](varptr a, varptr b) { return a * b; },
+	[](varptr a, double b) { return a * b; },
+	[](double a, varptr b) { return a * b; },
 	[](double a, double b) { return a * b; },
 	[](double a, double b, double ga, double gb) { return ga*b+gb*a; });
 
 	tensorshape shape = random_def_shape(this);
 	rand_uniform<double> rinit(2, 12);
-	varptr<double> zero = constant<double>::get(0.0);
-	varptr<double> one = constant<double>::get(1.0);
-	varptr<double> two = constant<double>::get(2.0);
-	variable<double> var(shape, rinit, "var");
-	variable<double> var2(shape, rinit, "var2");
+	varptr zero = constant::get(0.0);
+	varptr one = constant::get(1.0);
+	varptr two = constant::get(2.0);
+	variable var(shape, rinit, "var");
+	variable var2(shape, rinit, "var2");
 
 	// Behavior A006
-	varptr<double> zaro = varptr<double>(&var) *  0.0;
-	varptr<double> zaro2 = 0.0 * varptr<double>(&var2);
-	varptr<double> zaro3 = varptr<double>(&var) * varptr<double>(zero);
-	varptr<double> zaro4 = varptr<double>(zero) * varptr<double>(&var2);
+	varptr zaro = varptr(&var) *  0.0;
+	varptr zaro2 = 0.0 * varptr(&var2);
+	varptr zaro3 = varptr(&var) * varptr(zero);
+	varptr zaro4 = varptr(zero) * varptr(&var2);
 	std::vector<double> exp01 = expose<double>(zaro);
 	std::vector<double> exp02 = expose<double>(zaro2);
 	std::vector<double> exp03 = expose<double>(zaro3);
@@ -577,28 +576,28 @@ TEST_F(ELEMENTARY, Mul_A000ToA003_A012_A006ToA007)
 	EXPECT_EQ(0, exp04.at(0));
 
 	// Behavior A007
-	varptr<double> samev1 = varptr<double>(&var) * 1.0;
-	varptr<double> samev2 = 1.0 * varptr<double>(&var2);
-	varptr<double> samev12 = varptr<double>(&var) * varptr<double>(one);
-	varptr<double> samev22 = varptr<double>(one) * varptr<double>(&var2);
+	varptr samev1 = varptr(&var) * 1.0;
+	varptr samev2 = 1.0 * varptr(&var2);
+	varptr samev12 = varptr(&var) * varptr(one);
+	varptr samev22 = varptr(one) * varptr(&var2);
 
 	EXPECT_EQ(&var, samev1.get());
 	EXPECT_EQ(&var2, samev2.get());
 	EXPECT_EQ(&var, samev12.get());
 	EXPECT_EQ(&var2, samev22.get());
 
-	varptr<double> zro = varptr<double>(zero) * 1.0;
-	varptr<double> zro2 = 1.0 * varptr<double>(zero);
-	varptr<double> wn = varptr<double>(one) * 1.0;
-	varptr<double> wn2 = 1.0 * varptr<double>(one);
-	varptr<double> to = varptr<double>(two) * 1.0;
-	varptr<double> to2 = 1.0 * varptr<double>(two);
-	constant<double>* zerores = dynamic_cast<constant<double>*>(zro.get());
-	constant<double>* zerores2 = dynamic_cast<constant<double>*>(zro2.get());
-	constant<double>* wunres = dynamic_cast<constant<double>*>(wn.get());
-	constant<double>* wunres2 = dynamic_cast<constant<double>*>(wn2.get());
-	constant<double>* toores = dynamic_cast<constant<double>*>(to.get());
-	constant<double>* toores2 = dynamic_cast<constant<double>*>(to2.get());
+	varptr zro = varptr(zero) * 1.0;
+	varptr zro2 = 1.0 * varptr(zero);
+	varptr wn = varptr(one) * 1.0;
+	varptr wn2 = 1.0 * varptr(one);
+	varptr to = varptr(two) * 1.0;
+	varptr to2 = 1.0 * varptr(two);
+	constant* zerores = dynamic_cast<constant*>(zro.get());
+	constant* zerores2 = dynamic_cast<constant*>(zro2.get());
+	constant* wunres = dynamic_cast<constant*>(wn.get());
+	constant* wunres2 = dynamic_cast<constant*>(wn2.get());
+	constant* toores = dynamic_cast<constant*>(to.get());
+	constant* toores2 = dynamic_cast<constant*>(to2.get());
 
 	ASSERT_NE(nullptr, zerores);
 	ASSERT_NE(nullptr, zerores2);
@@ -623,26 +622,26 @@ TEST_F(ELEMENTARY, Mul_A000ToA003_A012_A006ToA007)
 TEST_F(ELEMENTARY, Div_A000ToA003_A012_A008ToA009)
 {
 	binaryElemTest(this,
-	[](varptr<double> a, varptr<double> b) { return a/b; },
-	[](varptr<double> a, double b) { return a/b; },
-	[](double a, varptr<double> b) { return a/b; },
+	[](varptr a, varptr b) { return a/b; },
+	[](varptr a, double b) { return a/b; },
+	[](double a, varptr b) { return a/b; },
 	[](double a, double b) { return a/b; },
 	[](double a, double b, double ga, double gb) { return (ga*b-gb*a)/(b*b); });
 
 	tensorshape shape = random_def_shape(this);
 	rand_uniform<double> rinit(2, 12);
-	varptr<double> zero = constant<double>::get(0.0);
-	varptr<double> one = constant<double>::get(1.0);
-	varptr<double> two = constant<double>::get(2.0);
-	variable<double> var(shape, rinit, "var");
-	variable<double> var2(shape, rinit, "var2");
+	varptr zero = constant::get(0.0);
+	varptr one = constant::get(1.0);
+	varptr two = constant::get(2.0);
+	variable var(shape, rinit, "var");
+	variable var2(shape, rinit, "var2");
 
 	// Behavior A006
-	varptr<double> zaro = 0.0 / varptr<double>(&var2);
-	varptr<double> zaro2 = varptr<double>(zero) * varptr<double>(&var2);
-	EXPECT_THROW(varptr<double>(&var) /  0.0, std::logic_error);
-	EXPECT_THROW(1.0 / varptr<double>(zero), std::logic_error);
-	EXPECT_THROW(varptr<double>(&var) / varptr<double>(zero), std::logic_error);
+	varptr zaro = 0.0 / varptr(&var2);
+	varptr zaro2 = varptr(zero) * varptr(&var2);
+	EXPECT_THROW(varptr(&var) /  0.0, std::logic_error);
+	EXPECT_THROW(1.0 / varptr(zero), std::logic_error);
+	EXPECT_THROW(varptr(&var) / varptr(zero), std::logic_error);
 
 	std::vector<double> exp01 = expose<double>(zaro);
 	std::vector<double> exp02 = expose<double>(zaro2);
@@ -652,20 +651,20 @@ TEST_F(ELEMENTARY, Div_A000ToA003_A012_A008ToA009)
 	EXPECT_EQ(0, exp02.at(0));
 
 	// Behavior A007
-	varptr<double> samev1 = varptr<double>(&var) / 1.0;
-	varptr<double> samev12 = varptr<double>(&var) / varptr<double>(one);
+	varptr samev1 = varptr(&var) / 1.0;
+	varptr samev12 = varptr(&var) / varptr(one);
 
 	EXPECT_EQ(&var, samev1.get());
 	EXPECT_EQ(&var, samev12.get());
 
-	varptr<double> zro = varptr<double>(zero) / 1.0;
-	varptr<double> wn = varptr<double>(one) / 1.0;
-	varptr<double> wn2 = 1.0 / varptr<double>(one);
-	varptr<double> hf = 1.0 / varptr<double>(two);
-	constant<double>* zerores = dynamic_cast<constant<double>*>(zro.get());
-	constant<double>* wunres = dynamic_cast<constant<double>*>(wn.get());
-	constant<double>* wunres2 = dynamic_cast<constant<double>*>(wn2.get());
-	constant<double>* halfres = dynamic_cast<constant<double>*>(hf.get());
+	varptr zro = varptr(zero) / 1.0;
+	varptr wn = varptr(one) / 1.0;
+	varptr wn2 = 1.0 / varptr(one);
+	varptr hf = 1.0 / varptr(two);
+	constant* zerores = dynamic_cast<constant*>(zro.get());
+	constant* wunres = dynamic_cast<constant*>(wn.get());
+	constant* wunres2 = dynamic_cast<constant*>(wn2.get());
+	constant* halfres = dynamic_cast<constant*>(hf.get());
 
 	ASSERT_NE(nullptr, zerores);
 	ASSERT_NE(nullptr, wunres);

@@ -4,9 +4,8 @@
  *  cnnet
  *
  *  Purpose:
- *  tensor interface for dealing with different shape types
- *  main tensor object mostly deals with aligned shapes using a single array
- *  raw data representation should be altered accordingly
+ *  encapsulate tensor data type information
+ *  and provide type-generic interface
  *
  *  Created by Mingkai Chen on 2017-03-10.
  *  Copyright © 2016 Mingkai Chen. All rights reserved.
@@ -23,12 +22,11 @@
 namespace nnet
 {
 
-template <typename T>
 class itensor
 {
 public:
 	//! clone function
-	itensor<T>* clone (void) const { return clone_impl(); }
+	itensor* clone (void) const { return clone_impl(); }
 
 	// >>>> FUNDAMENTAL SHAPE INFO <<<<
 	//! get the amount of T elements allocated
@@ -60,16 +58,17 @@ public:
 	virtual bool deallocate (void) = 0;
 
 	// >>>> SERIALIZATION HELPERS <<<<
+	// void serialize (tenncor::tensor_proto* proto) const;
 	// bool from_proto (const tensorproto& other);
 	// bool from_proto (iallocator* a, const tensorproto& other);
 
 protected:
 	// >>>> ABSTRACT CLONE <<<<
 	//! clone implementation
-	virtual itensor<T>* clone_impl (bool shapeonly) const = 0;
+	virtual itensor* clone_impl (bool shapeonly) const = 0;
 	
 	//! move implementation
-	virtual itensor<T>* move_impl (void) = 0;
+	virtual itensor* move_impl (void) = 0;
 };
 
 }

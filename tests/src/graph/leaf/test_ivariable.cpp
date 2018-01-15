@@ -11,8 +11,6 @@
 #include "tests/include/mocks/mock_ivariable.h"
 #include "tests/include/fuzz.h"
 
-#include "include/graph/varptr.hpp"
-
 
 #ifndef DISABLE_IVARIABLE_TEST
 

@@ -27,7 +27,7 @@ TEST_F(PLACEHOLDER, Constructor_G000)
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0]);
 	tensorshape shape = random_def_shape(this);
 
-	placeholder<double> place(shape, label1);
+	placeholder place(shape, label1);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 
 	EXPECT_FALSE(place.good_status());
@@ -41,15 +41,15 @@ TEST_F(PLACEHOLDER, Copy_G001)
 	std::string label2 = get_string(strns[1]);
 	tensorshape shape = random_def_shape(this);
 
-	placeholder<double> assign(std::vector<size_t>{1});
-	placeholder<double> place(shape, label1);
+	placeholder assign(std::vector<size_t>{1});
+	placeholder place(shape, label1);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 	place = raw;
-	placeholder<double>* pcpy = place.clone();
+	placeholder* pcpy = place.clone();
 	assign = place;
 
-	std::vector<double> cpyout = expose(pcpy);
-	std::vector<double> assout = expose(&assign);
+	std::vector<double> cpyout = expose<double>(pcpy);
+	std::vector<double> assout = expose<double>(&assign);
 
 	size_t n = raw.size();
 	ASSERT_EQ(cpyout.size(), n);
@@ -62,9 +62,9 @@ TEST_F(PLACEHOLDER, Copy_G001)
 
 	// check re-assignment after cloning
 	std::vector<double> raw2 = get_double(n, "raw2");
-	placeholder<double> assign2(std::vector<size_t>{1});
-	placeholder<double> uninit(shape, label2);
-	placeholder<double>* uninitcpy = uninit.clone();
+	placeholder assign2(std::vector<size_t>{1});
+	placeholder uninit(shape, label2);
+	placeholder* uninitcpy = uninit.clone();
 	assign2 = uninit;
 
 	// copy of uninitialized placeholders should still be able to initialize
@@ -74,10 +74,10 @@ TEST_F(PLACEHOLDER, Copy_G001)
 	*uninitcpy = raw2;
 	assign2 = raw2;
 
-	cpyout = expose(pcpy);
-	assout = expose(&assign);
-	std::vector<double> cpy2out = expose(uninitcpy);
-	std::vector<double> ass2out = expose(&assign2);
+	cpyout = expose<double>(pcpy);
+	assout = expose<double>(&assign);
+	std::vector<double> cpy2out = expose<double>(uninitcpy);
+	std::vector<double> ass2out = expose<double>(&assign2);
 
 	ASSERT_EQ(cpyout.size(), n);
 	ASSERT_EQ(assout.size(), n);
@@ -98,21 +98,21 @@ TEST_F(PLACEHOLDER, Copy_G001)
 
 TEST_F(PLACEHOLDER, Move_G001)
 {
-	placeholder<double> assign(std::vector<size_t>{1});
+	placeholder assign(std::vector<size_t>{1});
 
 	std::vector<size_t> strns = get_int(2, "strns", {14, 29});
 	std::string label1 = get_string(strns[0]);
 	std::string label2 = get_string(strns[1]);
 	tensorshape shape = random_def_shape(this);
 
-	placeholder<double> place(shape, label1);
+	placeholder place(shape, label1);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 
 	size_t n = raw.size();
 	place = raw;
-	placeholder<double>* pmv = place.move();
+	placeholder* pmv = place.move();
 
-	std::vector<double> mvout = expose(pmv);
+	std::vector<double> mvout = expose<double>(pmv);
 	ASSERT_EQ(mvout.size(), n);
 
 	for (size_t i = 0; i < n; i++)
@@ -124,7 +124,7 @@ TEST_F(PLACEHOLDER, Move_G001)
 
 	assign = std::move(*pmv);
 
-	std::vector<double> assout = expose(&assign);
+	std::vector<double> assout = expose<double>(&assign);
 	ASSERT_EQ(assout.size(), n);
 
 	EXPECT_EQ(nullptr, pmv->eval());
@@ -148,8 +148,8 @@ TEST_F(PLACEHOLDER, AssignRaw_G002)
 	tensorshape shape = random_def_shape(this);
 	tensorshape part = make_partial(this, shape.as_list());
 
-	placeholder<double> place(shape, label1);
-	placeholder<double> place2(part, label2);
+	placeholder place(shape, label1);
+	placeholder place2(part, label2);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 
 	mock_connector conn({&place}, label3);
@@ -191,7 +191,7 @@ TEST_F(PLACEHOLDER, AssignTensor_G003)
 	std::string label2 = get_string(strns[1]);
 	tensorshape shape = random_def_shape(this);
 
-	placeholder<double> place(shape, label1);
+	placeholder place(shape, label1);
 
 	double c = get_double(1, "c")[0];
 	const_init<double> cinit(c);
@@ -225,9 +225,9 @@ TEST_F(PLACEHOLDER, GetLeaf_G004)
 	tensorshape shape = random_def_shape(this);
 	mock_node exposer;
 
-	placeholder<double> place(shape, label1);
+	placeholder place(shape, label1);
 
-	varptr<double> zaro = exposer.expose_leaf(&place, nullptr);
+	varptr zaro = exposer.expose_leaf(&place, nullptr);
 	EXPECT_TRUE(expose<double>(zaro)[0] == 0.0);
 }
 

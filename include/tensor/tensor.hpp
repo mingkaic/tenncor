@@ -13,7 +13,6 @@
 
 #include "proto/serial/tenncor.pb.h"
 
-#include "include/tensor/itensor.hpp"
 #include "include/tensor/tensorshape.hpp"
 #include "include/memory/default_alloc.hpp"
 
@@ -39,7 +38,7 @@ template <typename T>
 class itensor_handler;
 
 template <typename T>
-class tensor : public itensor<T>
+class tensor // todo: make final, and make mock_tensor compose tensor instance
 {
 public:
 	//! create a rank 0 tensor and specific allocator
@@ -57,27 +56,17 @@ public:
 	virtual ~tensor (void);
 
 	// >>>> COPY && MOVE <<<<
-	//! default copy constructor
-	tensor (const tensor<T>& other) : tensor<T>(other, false) {}
-
 	//! copy constructor
-	tensor (const tensor<T>& other, bool shapeonly);
+	tensor (const tensor<T>& other, bool shapeonly = false);
 
 	//! move constructor
 	tensor (tensor<T>&& other);
 
-	// >>>> POLYMORPHIC CLONE && MOVES <<<<
-	//! clone function
-	tensor<T>* clone (bool shapeonly = false) const;
-	
-	//! move function
-	tensor<T>* move (void);
-
 	//! copy assignment
-	virtual tensor<T>& operator = (const tensor<T>& other);
+	tensor<T>& operator = (const tensor<T>& other);
 
 	//! move assignment
-	virtual tensor<T>& operator = (tensor<T>&& other);
+	tensor<T>& operator = (tensor<T>&& other);
 
 	// >>>> ACCESSORS <<<<
 	// >>> SHAPE INFORMATION <<<
@@ -87,10 +76,10 @@ public:
 	// >> SHAPE UTILITY <<
 	//! get the amount of T elements allocated
 	//! if uninitialized, return 0
-	virtual size_t n_elems (void) const;
+	size_t n_elems (void) const;
 
 	//! get the tensor rank, number of dimensions
-	virtual size_t rank (void) const;
+	size_t rank (void) const;
 
 	//! get vector dimension values
 	std::vector<size_t> dims (void) const;
@@ -124,26 +113,32 @@ public:
 
 	//! checks if tensorshape is aligned
 	//! same number of column for each row
-	virtual bool is_aligned (void) const;
+	bool is_aligned (void) const;
 
 	// >>> DATA INFORMATION <<<
 	//! checks if memory is allocated
-	virtual bool is_alloc (void) const;
+	bool is_alloc (void) const;
 
 	//! get bytes allocated
-	virtual size_t total_bytes (void) const;
+	size_t total_bytes (void) const;
 
 	//! get data at coordinate specified
 	//! getting out of bound will throw out_of_range error
 	//! coordinate values not specified are implied as 0
-	virtual T get (std::vector<size_t> coord) const;
+	T get (std::vector<size_t> coord) const;
 
 	//! exposing unallocated shape will cause assertion death
 	//! otherwise return data array copy
 	std::vector<T> expose (void) const;
 
 	//! serialize protobuf tensor
-	void serialize (tenncor::tensor_proto* proto) const;
+	void serialize (tenncor::tensor_proto* proto) const; // TODO: move out of tensor... to itensor
+
+	//! read data and shape from other, take allocator as is
+	bool from_proto (const tenncor::tensor_proto& other); // TODO: move out of tensor... to itensor
+
+	//! read data and shape from other, reassign allocator
+	bool from_proto (const tenncor::tensor_proto& other, size_t alloc_id); // TODO: move out of tensor... to itensor
 
 	// >>>> MUTATOR <<<<
 	//! get allocator from factory and set it as alloc_
@@ -159,28 +154,22 @@ public:
 
 	//! allocate raw data using allowed (innate) shape
 	//! return true if successful
-	virtual bool allocate (void);
+	bool allocate (void);
 
 	//! forcefully deallocate raw_data,
 	//! invalidates allocated (external) shape
 	//! could be useful when we want to preserve allowed shape
 	//! since get_shape when allocated gives allocated shape
-	virtual bool deallocate (void);
+	bool deallocate (void);
 
 	//! allocate raw data using input shape
 	//! if shape is compatible with allowed
 	//! else return false
-	virtual bool allocate (const tensorshape shape);
+	bool allocate (const tensorshape shape);
 
 	//! copy raw_data from other expanded/compressed to input shape
 	//! allowed shape will be adjusted similar to set_shape
 	bool copy_from (const tensor& other, const tensorshape shape);
-
-	//! read data and shape from other, take allocator as is
-	bool from_proto (const tenncor::tensor_proto& other);
-
-	//! read data and shape from other, reassign allocator
-	bool from_proto (const tenncor::tensor_proto& other, size_t alloc_id);
 
 	// slice along the first dimension
 	tensor<T> slice (size_t dim_start, size_t limit);
@@ -189,12 +178,6 @@ public:
 	// size_t buffer_hash (void) const;
 
 protected:
-	//! clone implementation
-	virtual itensor<T>* clone_impl (bool shapeonly) const;
-	
-	//! move implementation
-	virtual itensor<T>* move_impl (void);
-
 	// >>>> PROTECTED MEMBERS <<<<
 	T* raw_data_ = nullptr; //! raw data is available to tensor manipulators
 

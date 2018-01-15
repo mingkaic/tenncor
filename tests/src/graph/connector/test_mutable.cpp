@@ -24,13 +24,13 @@ TEST_F(MUTABLE, connector)
 	// instead of safely destroying its permanent connector node
 	nnet::mutable_connector<double>* temp =
 		nnet::mutable_connector<double>::build(
-		[](std::vector<nnet::varptr<double> >& args) -> nnet::inode<double>*
+		[](std::vector<nnet::varptr >& args) -> nnet::inode*
 		{
 			return args[0] + args[1];
 		}, 2);
 
-	nnet::constant<double>* s1 = nnet::constant<double>::build(10);
-	nnet::constant<double>* s2 = nnet::constant<double>::build(20);
+	nnet::constant* s1 = nnet::constant::build(10);
+	nnet::constant* s2 = nnet::constant::build(20);
 	temp->add_arg(s1, 1);
 	temp->add_arg(s1, 0);
 	// temp is now 20
@@ -56,13 +56,13 @@ TEST_F(MUTABLE, deletion)
 {
 	nnet::mutable_connector<double>* temp =
 		nnet::mutable_connector<double>::build(
-		[](std::vector<nnet::varptr<double> >& args) -> nnet::inode<double>*
+		[](std::vector<nnet::varptr >& args) -> nnet::inode*
 		{
 			return args[0] + args[1];
 		}, 2);
 
-	nnet::variable<double>* s1 = new nnet::variable<double>(10);
-	nnet::variable<double>* s2 = new nnet::variable<double>(20);
+	nnet::variable* s1 = new nnet::variable(10);
+	nnet::variable* s2 = new nnet::variable(20);
 	temp->add_arg(s1, 1);
 	temp->add_arg(s1, 0);
 

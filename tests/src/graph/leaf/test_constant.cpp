@@ -33,7 +33,7 @@ TEST_F(CONSTANT, Constructor_D000)
 	tensorshape part;
 	size_t n;
 	size_t pn = 1;
-	// re-roll until we get partial with n_known > 1
+	// re-roll until we get partial with n_known> 1
 	while (pn <= 1)
 	{
 	 // keep resetting FUZZ logger
@@ -54,19 +54,19 @@ TEST_F(CONSTANT, Constructor_D000)
 	std::vector<double> pv2 = get_double(pn * 0.6, "pv2");
 	std::vector<double> pv3 = get_double(pn * 1.5, "pv3");
 
-	constant<double>* res = constant<double>::get(c);
-	constant<double>* res2 = constant<double>::get(v, shape);
-	constant<double>* res3 = constant<double>::get(v2, shape);
-	constant<double>* res4 = constant<double>::get(v3, shape);
-	constant<double>* res5 = constant<double>::get(pv, part);
-	constant<double>* res6 = constant<double>::get(pv2, part);
-	constant<double>* res7 = constant<double>::get(pv3, part);
+	constant* res = constant::get(c);
+	constant* res2 = constant::get(v, shape);
+	constant* res3 = constant::get(v2, shape);
+	constant* res4 = constant::get(v3, shape);
+	constant* res5 = constant::get(pv, part);
+	constant* res6 = constant::get(pv2, part);
+	constant* res7 = constant::get(pv3, part);
 
 	EXPECT_TRUE(res->good_status()); // scalars are initialized
 
-	std::vector<double> r2 = expose(res2);
-	std::vector<double> r3 = expose(res3);
-	std::vector<double> r4 = expose(res4);
+	std::vector<double> r2 = expose<double>(res2);
+	std::vector<double> r3 = expose<double>(res3);
+	std::vector<double> r4 = expose<double>(res4);
 	EXPECT_EQ(n, r2.size());
 	EXPECT_EQ(n, r3.size());
 	EXPECT_EQ(n, r4.size());
@@ -87,9 +87,9 @@ TEST_F(CONSTANT, Constructor_D000)
 	EXPECT_TRUE(tensorshape_equal(shape, res3->get_shape()));
 	EXPECT_TRUE(tensorshape_equal(shape, res4->get_shape()));
 
-	std::vector<double> r5 = expose(res5);
-	std::vector<double> r6 = expose(res6);
-	std::vector<double> r7 = expose(res7);
+	std::vector<double> r5 = expose<double>(res5);
+	std::vector<double> r6 = expose<double>(res6);
+	std::vector<double> r7 = expose<double>(res7);
 
 	EXPECT_EQ(pn, r5.size());
 	EXPECT_EQ(pn, r6.size());
@@ -150,9 +150,9 @@ TEST_F(CONSTANT, CopyNMove_D001)
 	// partially defined shape
 	std::vector<double> pv = get_double(get_int(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
 
-	constant<double>* res = constant<double>::get(c);
-	constant<double>* res2 = constant<double>::get(v, shape);
-	constant<double>* res3 = constant<double>::get(pv, part);
+	constant* res = constant::get(c);
+	constant* res2 = constant::get(v, shape);
+	constant* res3 = constant::get(pv, part);
 
 	EXPECT_EQ(nullptr, res->clone());
 	EXPECT_EQ(nullptr, res2->clone());
@@ -171,8 +171,8 @@ TEST_F(CONSTANT, CopyNMove_D001)
 TEST_F(CONSTANT, GetGradient_D002)
 {
 	double c = get_double(1, "c")[0];
-	constant<double>* res = constant<double>::get(c);
-	constant<double>* res2 = constant<double>::get(c+1);
+	constant* res = constant::get(c);
+	constant* res2 = constant::get(c+1);
 
 	const tensor<double>* g1 = res->derive(nullptr)->eval();
 	const tensor<double>* g2 = res->derive(res)->eval();
@@ -199,10 +199,10 @@ TEST_F(CONSTANT, GetGradient_D002)
 TEST_F(CONSTANT, GetLeaf_D003)
 {
 	double c = get_double(1, "c")[0];
-	constant<double>* res = constant<double>::get(c);
+	constant* res = constant::get(c);
 	mock_node exposer;
 
-	varptr<double> zaro = exposer.expose_leaf(res, nullptr);
+	varptr zaro = exposer.expose_leaf(res, nullptr);
 	EXPECT_TRUE(expose<double>(zaro)[0] == 0.0);
 
 	delete res;
@@ -213,8 +213,8 @@ TEST_F(CONSTANT, GetLeaf_D003)
 TEST_F(CONSTANT, SelfDestruct_D004)
 {
 	double c = get_double(1, "c")[0];
-	constant<double>* res = constant<double>::get(c); // managed
-	constant<double>* res2 = constant<double>::get(c); // unmanaged
+	constant* res = constant::get(c); // managed
+	constant* res2 = constant::get(c); // unmanaged
 	res->be_managed();
 
 	mock_connector* mconn = new mock_connector({res, res2}, "");
@@ -240,9 +240,9 @@ TEST_F(CONSTANT, Allocated_D005)
 	if (1 == pn) pn = 2;
 	std::vector<double> pv = get_double(get_int(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
 
-	constant<double>* res = constant<double>::get(c);
-	constant<double>* res2 = constant<double>::get(v, shape);
-	constant<double>* res3 = constant<double>::get(pv, part);
+	constant* res = constant::get(c);
+	constant* res2 = constant::get(v, shape);
+	constant* res3 = constant::get(pv, part);
 
 	const tensor<double>* t1 = res->eval();
 	const tensor<double>* t2 = res2->eval();

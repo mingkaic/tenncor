@@ -24,8 +24,7 @@
 namespace nnet
 {
 
-template <typename T>
-class placeholder final : public ivariable<T>
+class placeholder final : public ivariable
 {
 public:
 	// >>>> CONSTRUCTORS <<<<
@@ -33,23 +32,23 @@ public:
 	placeholder (const tensorshape& shape, std::string name = "");
 
 	//! explicitly declare copy constructor since assignments are declared
-	placeholder (const placeholder<T>& other);
+	placeholder (const placeholder& other);
 
 	//! explicitly declare move constructor since assignments are declared
-	placeholder (placeholder<T>&& other);
+	placeholder (placeholder&& other);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
-	placeholder<T>* clone (void) const;
+	placeholder* clone (void) const;
 
 	//! move function
-	placeholder<T>* move (void);
+	placeholder* move (void);
 
 	//! declare copy assignment to avoid implicit deletion
-	virtual placeholder<T>& operator = (const placeholder<T>& other);
+	virtual placeholder& operator = (const placeholder& other);
 
 	//! declare move assignment to avoid implicit deletion
-	virtual placeholder<T>& operator = (placeholder<T>&& other);
+	virtual placeholder& operator = (placeholder&& other);
 
 	// >>>> DATA ASSIGNMENT OPERATORS <<<<
 	//! assign raw data according to a
@@ -58,26 +57,56 @@ public:
 	//! 	coordinate <c_0, c_1, ..., c_i>:
 	//! index mapping function is
 	//! sum_j=0:i(product_k=0:j(d_k-1) * c_j) where for k < 0 d_k = 1
-	virtual placeholder<T>& operator = (std::vector<T> data);
+	virtual placeholder& operator = (std::vector<double>data);
 
 	//! assign tensor to inner tensor
-	virtual placeholder<T>& operator = (tensor<T>& data);
+	virtual placeholder& operator = (tensor<double>& data);
 
 protected:
 	// >>>> POLYMORPHIC CLONERS <<<<
 	//! clone implementation
-	virtual inode<T>* clone_impl (void) const;
+	virtual inode* clone_impl (void) const;
 
 	//! move implementation
-	virtual inode<T>* move_impl (void);
+	virtual inode* move_impl (void);
 
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! grab operational gradient node, used by other nodes
-	virtual inode<T>* get_gradient (variable<T>* );
+	virtual inode* get_gradient (variable* );
+};
+
+class placeptr : public varptr
+{
+public:
+	//! nullptr construction
+	placeptr (void) {}
+
+	//! wrap placeholder pointer
+	placeptr (placeholder* ptr);
+
+	//! assign a pointer
+	placeptr& operator = (placeholder* other);
+
+	// >>>> EXTENDING PLACEHOLDER <<<<
+	//! assign a raw data
+	placeptr& operator = (std::vector<double>vec);
+
+	//! assign a tensor
+	placeptr& operator = (tensor<double>& ten);
+
+	//! implicit pointer conversion
+	operator placeholder* () const;
+
+	//! dereference overload
+	placeholder& operator * (void);
+
+	//! pointer accessor overload
+	placeholder* operator -> (void);
+
+	//! get inner pointer as placeholder pointer
+	placeholder* get (void) const;
 };
 
 }
-
-#include "src/graph/leaf/placeholder.ipp"
 
 #endif /* TENNCOR_PLACEHOLDER_HPP */

@@ -27,15 +27,15 @@ TEST_F(GENERATOR, Copy_J000)
 	double c = get_double(1, "c", {1, 17})[0];
 
 	std::vector<double> cdata(shape.n_elems(), 0);
-	constant<double>* con = constant<double>::get(cdata, shape);
+	constant* con = constant::get(cdata, shape);
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(-12, -2);
 
-	generator<double>* gen_assign = generator<double>::get(con, rinit);
+	generator* gen_assign = generator::get(con, rinit);
 
-	generator<double>* gen = generator<double>::get(con, cinit);
+	generator* gen = generator::get(con, cinit);
 
-	generator<double>* gen_cpy = gen->clone();
+	generator* gen_cpy = gen->clone();
 
 	*gen_assign = *gen;
 
@@ -60,18 +60,18 @@ TEST_F(GENERATOR, Move_J000)
 	double c = get_double(1, "c", {1, 17})[0];
 
 	std::vector<double> cdata(shape.n_elems(), 0);
-	constant<double>* con = constant<double>::get(cdata, shape);
+	constant* con = constant::get(cdata, shape);
 	const_init<double> cinit(c);
 	rand_uniform<double> rinit(-12, -2);
 
-	generator<double>* gen_assign = generator<double>::get(con, rinit);
+	generator* gen_assign = generator::get(con, rinit);
 
-	generator<double>* gen = generator<double>::get(con, cinit);
+	generator* gen = generator::get(con, cinit);
 	EXPECT_TRUE(tensorshape_equal(gen->get_shape(), shape));
 	std::vector<double> gvec = nnet::expose<double>(gen);
 	std::all_of(gvec.begin(), gvec.end(), [c](double e) { return e == c; });
 
-	generator<double>* gen_mv = gen->move();
+	generator* gen_mv = gen->move();
 	EXPECT_TRUE(tensorshape_equal(gen_mv->get_shape(), shape));
 	std::vector<double> gvec_mv = nnet::expose<double>(gen_mv);
 	std::all_of(gvec_mv.begin(), gvec_mv.end(), [c](double e) { return e == c; });
@@ -92,10 +92,10 @@ TEST_F(GENERATOR, ShapeDep_J001)
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c", {1, 17})[0];
 	std::vector<double> cdata(shape.n_elems(), 0);
-	constant<double>* con = constant<double>::get(cdata, shape);
+	constant* con = constant::get(cdata, shape);
 	const_init<double> cinit(c);
 
-	generator<double>* gen = generator<double>::get(con, cinit);
+	generator* gen = generator::get(con, cinit);
 	EXPECT_TRUE(tensorshape_equal(gen->get_shape(), shape));
 
 	delete con;
@@ -107,23 +107,23 @@ TEST_F(GENERATOR, Derive_J002)
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c", {1, 17})[0];
 	std::vector<double> cdata(shape.n_elems(), 0);
-	constant<double>* con = constant<double>::get(cdata, shape);
+	constant* con = constant::get(cdata, shape);
 	const_init<double> cinit(c);
 
-	generator<double>* gen = generator<double>::get(con, cinit);
+	generator* gen = generator::get(con, cinit);
 
-	inode<double>* wan = nullptr;
+	inode* wan = nullptr;
 	gen->temporary_eval(gen, wan);
-	constant<double>* wanc = dynamic_cast<constant<double>*>(wan);
+	constant* wanc = dynamic_cast<constant*>(wan);
 	ASSERT_NE(nullptr, wanc);
 	EXPECT_TRUE(*wanc == 1.0);
 
-	varptr<double> zaro = gen->derive(con);
-	varptr<double> wan2 = gen->derive(gen);
-	constant<double>* zaroc = dynamic_cast<constant<double>*>(zaro.get());
+	varptr zaro = gen->derive(con);
+	varptr wan2 = gen->derive(gen);
+	constant* zaroc = dynamic_cast<constant*>(zaro.get());
 	ASSERT_NE(nullptr, zaroc);
 	EXPECT_TRUE(*zaroc == 0.0);
-	constant<double>* wanc2 = dynamic_cast<constant<double>*>(wan2.get());
+	constant* wanc2 = dynamic_cast<constant*>(wan2.get());
 	ASSERT_NE(nullptr, wanc2);
 	EXPECT_TRUE(*wanc2 == 1.0);
 

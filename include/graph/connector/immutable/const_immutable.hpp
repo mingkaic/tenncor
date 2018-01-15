@@ -21,18 +21,15 @@
 namespace nnet
 {
 
-template <typename T>
-class const_immutable : public immutable<T>
+class const_immutable : public immutable
 {
 public:
-	static const_immutable<T>* get (inode<T>* x);
+	static const_immutable* get (inode* x);
 
 private:
-	const_immutable (inode<T>* x);
+	const_immutable (inode* x);
 };
 
 }
-
-#include "src/graph/connector/immutable/const_immutable.ipp"
 
 #endif /* CONST_IMMUTABLE_HPP */

@@ -24,10 +24,10 @@ class CONNECTOR : public FUZZ::fuzz_test {};
 TEST_F(CONNECTOR, Copy_H000)
 {
 	mocker::usage_.clear();
-	mock_connector* assign = new mock_connector(std::vector<inode<double>*>{}, "");
-	mock_connector* assign2 = new mock_connector(std::vector<inode<double>*>{}, "");
-	mock_connector* assign3 = new mock_connector(std::vector<inode<double>*>{}, "");
-	mock_connector* assign4 = new mock_connector(std::vector<inode<double>*>{}, "");
+	mock_connector* assign = new mock_connector(std::vector<inode*>{}, "");
+	mock_connector* assign2 = new mock_connector(std::vector<inode*>{}, "");
+	mock_connector* assign3 = new mock_connector(std::vector<inode*>{}, "");
+	mock_connector* assign4 = new mock_connector(std::vector<inode*>{}, "");
 
 	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
 	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
@@ -36,8 +36,8 @@ TEST_F(CONNECTOR, Copy_H000)
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node* n1 = new mock_node(label1);
 
-	mock_connector* conn = new mock_connector(std::vector<inode<double> *>{n1}, conname);
-	mock_connector* conn2 = new mock_connector(std::vector<inode<double> *>{n1, n1}, conname2);
+	mock_connector* conn = new mock_connector(std::vector<inode *>{n1}, conname);
+	mock_connector* conn2 = new mock_connector(std::vector<inode *>{n1, n1}, conname2);
 	void* ogid1 = conn->get_gid();
 	void* ogid2 = conn2->get_gid();
 
@@ -59,8 +59,8 @@ TEST_F(CONNECTOR, Copy_H000)
 	// to prevent optimizations from deleting gids thereby allowing duplicate gid addresses.
 	// (without allocator randomization)
 
-	mock_connector* boss = new mock_connector(std::vector<inode<double> *>{conn, n1}, bossname);
-	mock_connector* boss2 = new mock_connector(std::vector<inode<double> *>{conn, conn2}, bossname2);
+	mock_connector* boss = new mock_connector(std::vector<inode *>{conn, n1}, bossname);
+	mock_connector* boss2 = new mock_connector(std::vector<inode *>{conn, conn2}, bossname2);
 	void* ogid3 = boss->get_gid();
 	void* ogid4 = boss2->get_gid();
 
@@ -124,10 +124,10 @@ TEST_F(CONNECTOR, Copy_H000)
 TEST_F(CONNECTOR, Move_H000)
 {
 	mocker::usage_.clear();
-	mock_connector* assign = new mock_connector(std::vector<inode<double>*>{}, "");
-	mock_connector* assign2 = new mock_connector(std::vector<inode<double>*>{}, "");
-	mock_connector* assign3 = new mock_connector(std::vector<inode<double>*>{}, "");
-	mock_connector* assign4 = new mock_connector(std::vector<inode<double>*>{}, "");
+	mock_connector* assign = new mock_connector(std::vector<inode*>{}, "");
+	mock_connector* assign2 = new mock_connector(std::vector<inode*>{}, "");
+	mock_connector* assign3 = new mock_connector(std::vector<inode*>{}, "");
+	mock_connector* assign4 = new mock_connector(std::vector<inode*>{}, "");
 
 	std::string conname = get_string(get_int(1, "conname.size", {14, 29})[0], "conname");
 	std::string conname2 = get_string(get_int(1, "conname2.size", {14, 29})[0], "conname2");
@@ -136,8 +136,8 @@ TEST_F(CONNECTOR, Move_H000)
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node* n1 = new mock_node(label1);
 
-	mock_connector* conn = new mock_connector(std::vector<inode<double> *>{n1}, conname);
-	mock_connector* conn2 = new mock_connector(std::vector<inode<double> *>{n1, n1}, conname2);
+	mock_connector* conn = new mock_connector(std::vector<inode *>{n1}, conname);
+	mock_connector* conn2 = new mock_connector(std::vector<inode *>{n1, n1}, conname2);
 	void* ogid1 = conn->get_gid();
 	void* ogid2 = conn2->get_gid();
 
@@ -159,8 +159,8 @@ TEST_F(CONNECTOR, Move_H000)
 	// to prevent optimizations from deleting gids thereby allowing duplicate gid addresses.
 	// (without allocator randomization)
 
-	mock_connector* boss = new mock_connector(std::vector<inode<double> *>{assign, n1}, bossname);
-	mock_connector* boss2 = new mock_connector(std::vector<inode<double> *>{assign, assign2}, bossname2);
+	mock_connector* boss = new mock_connector(std::vector<inode *>{assign, n1}, bossname);
+	mock_connector* boss2 = new mock_connector(std::vector<inode *>{assign, assign2}, bossname2);
 	void* ogid3 = boss->get_gid();
 	void* ogid4 = boss2->get_gid();
 
@@ -225,7 +225,7 @@ TEST_F(CONNECTOR, Name_H001)
 {
 	mocker::usage_.clear();
 	size_t nargs = get_int(1, "nargs", {2, 7})[0];
-	std::vector<inode<double>*> ns;
+	std::vector<inode*> ns;
 	std::vector<size_t> nlens = get_int(nargs, "nlens", {14, 29});
 	std::string argname = "";
 	for (size_t i = 0; i < nargs; i++)
@@ -241,7 +241,7 @@ TEST_F(CONNECTOR, Name_H001)
 	EXPECT_EQ(expectname, conn1->get_name());
 
 	conn1->inst_ = "conn1";
-	for (inode<double>* n : ns)
+	for (inode* n : ns)
 	{
 		delete n;
 	}
@@ -261,13 +261,13 @@ TEST_F(CONNECTOR, Graph_H002)
 	std::string bossname2 = get_string(get_int(1, "bossname2.size", {14, 29})[0], "bossname2");
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node* n1 = new mock_node(label1);
-	mock_connector* conn = new mock_connector(std::vector<inode<double> *>{n1}, conname);
-	mock_connector* conn2 = new mock_connector(std::vector<inode<double> *>{n1, n1}, conname2);
+	mock_connector* conn = new mock_connector(std::vector<inode *>{n1}, conname);
+	mock_connector* conn2 = new mock_connector(std::vector<inode *>{n1, n1}, conname2);
 
 	EXPECT_FALSE(conn->is_same_graph(conn2));
-	mock_connector* boss = new mock_connector(std::vector<inode<double> *>{conn, n1}, bossname);
+	mock_connector* boss = new mock_connector(std::vector<inode *>{conn, n1}, bossname);
 	EXPECT_FALSE(conn2->is_same_graph(boss));
-	mock_connector* boss2 = new mock_connector(std::vector<inode<double> *>{conn, conn2}, bossname2);
+	mock_connector* boss2 = new mock_connector(std::vector<inode *>{conn, conn2}, bossname2);
 
 	// boss2 connects conn and conn2
 	EXPECT_TRUE(conn->is_same_graph(conn2));
@@ -307,10 +307,10 @@ TEST_F(CONNECTOR, Descendent_H003)
 	mock_node* n1 = new mock_node(label1);
 	mock_node* n2 = new mock_node(label2);
 	mock_node* n3 = new mock_node(label3);
-	mock_connector* conn = new mock_connector(std::vector<inode<double> *>{n1}, conname);
-	mock_connector* conn2 = new mock_connector(std::vector<inode<double> *>{n1, n1}, conname2);
-	mock_connector* separate = new mock_connector(std::vector<inode<double>*>{n3, n2}, conname2);
-	mock_connector* boss = new mock_connector(std::vector<inode<double> *>{n1, n2}, conname2);
+	mock_connector* conn = new mock_connector(std::vector<inode *>{n1}, conname);
+	mock_connector* conn2 = new mock_connector(std::vector<inode *>{n1, n1}, conname2);
+	mock_connector* separate = new mock_connector(std::vector<inode*>{n3, n2}, conname2);
+	mock_connector* boss = new mock_connector(std::vector<inode *>{n1, n2}, conname2);
 
 	conn->inst_ = "conn";
 	conn2->inst_ = "conn2";

@@ -12,7 +12,8 @@
  *
  */
 
-#include "include/graph/varptr.hpp"
+#include <queue>
+
 #include "include/graph/leaf/constant.hpp"
 
 #pragma once
@@ -23,54 +24,50 @@ namespace nnet
 {
 
 //! backward transfer function, get gradient nodes; F: Nf -> Nb
-template <typename T>
-using BACK_MAP = std::function<varptr<T>(std::vector<std::pair<inode<T>*,inode<T>*> >)>;
+using BACK_MAP = std::function<varptr(std::vector<std::pair<inode*,inode*>>)>;
 
-template <typename T>
-using NODE_MAN = std::function<inode<T>*(inode<T>*)>;
+using NODE_MAN = std::function<inode*(inode*)>;
 
 //! jacobian transfer function
-template <typename T>
-using JTRANSFER = std::function<inode<T>*(inode<T>*,std::vector<inode<T>*>,std::vector<inode<T>*>)>;
+using JTRANSFER = std::function<inode*(inode*,std::vector<inode*>,std::vector<inode*>)>;
 
 //! calculate output shape from argument shapes
 using SHAPER = std::function<tensorshape(std::vector<tensorshape>)>;
 
-template <typename T>
-class iconnector : public inode<T>, public iobserver
+class iconnector : public inode, public iobserver
 {
 public:
 	//! iconnector summary
 	struct conn_summary
 	{
 		conn_summary (std::string id, SHAPER shaper,
-			TRANSFER_FUNC<T> forward, BACK_MAP<T> back) :
+			TRANSFER_FUNC<double> forward, BACK_MAP back) :
 				id_(id), shaper_(shaper), Nf_(forward), ginit_(back) {}
 
 		std::string id_;
 		SHAPER shaper_;
-		TRANSFER_FUNC<T> Nf_;
-		BACK_MAP<T> ginit_;
+		TRANSFER_FUNC<double> Nf_;
+		BACK_MAP ginit_;
 
 		std::vector<std::string> arg_ids_;
 	};
 
-	using summary_series = std::vector<typename iconnector<T>::conn_summary>;
+	using summary_series = std::vector<typename iconnector::conn_summary>;
 
 	virtual ~iconnector (void);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
-	iconnector<T>* clone (void) const;
+	iconnector* clone (void) const;
 
 	//! move function
-	iconnector<T>* move (void);
+	iconnector* move (void);
 
 	//! declare copy assignment to enforce proper g_man_ copy over
-	virtual iconnector<T>& operator = (const iconnector<T>& other);
+	virtual iconnector& operator = (const iconnector& other);
 
 	//! declare move assignment to enforce proper g_man_ copy over
-	virtual iconnector<T>& operator = (iconnector<T>&& other);
+	virtual iconnector& operator = (iconnector&& other);
 
 	// >>>> IDENTIFICATION <<<<
 	//! get unique label with arguments
@@ -81,32 +78,32 @@ public:
 
 	// >>>> OBSERVER & OBSERVABLE INFO <<<<
 	//! get all observerables
-	virtual std::vector<inode<T>*> get_arguments (void) const;
+	virtual std::vector<inode*> get_arguments (void) const;
 
 	//! get the number of observables
 	virtual size_t n_arguments (void) const;
 
 	// >>>> FORWARD & BACKWARD DATA <<<<
 	//! grab a temporary value traversing top-down
-	virtual void temporary_eval (const iconnector<T>* target, inode<T>*& out) const = 0;
+	virtual void temporary_eval (const iconnector* target, inode*& out) const = 0;
 
 	//! get forward passing value, (pull data if necessary)
-	virtual const tensor<T>* eval (void);
+	virtual const tensor<double>* eval (void);
 
 	// >>>> GRAPH STATUS <<<<
 	//! check if other connector is in the same graph as this
-	bool is_same_graph (const iconnector<T>* other) const;
+	bool is_same_graph (const iconnector* other) const;
 
 	//! check if connector n is a potential descendent of this node
 	//! will return false negatives if nodes are in a pipeline of a non-variable leaf
-	virtual bool potential_descendent (const iconnector<T>* n) const;
+	virtual bool potential_descendent (const iconnector* n) const;
 
 	// >>>> NODE STATUS <<<<
 	//! add jacobian to the front of the list mapped by leaves
-	void set_jacobian_front (JTRANSFER<T> jac, std::vector<variable<T>*> leaves);
+	void set_jacobian_front (JTRANSFER jac, std::vector<variable*> leaves);
 
 	//! add jacobian to the back of the list mapped by leaves
-	void set_jacobian_back (JTRANSFER<T> jac, std::vector<variable<T>*> leaves);
+	void set_jacobian_back (JTRANSFER jac, std::vector<variable*> leaves);
 
 	//! freeze or unfreeze the current node
 	//! freeze prevents this from updating temporarily instead update is queued to g_man_
@@ -116,47 +113,134 @@ protected:
 	//! list of jacobian transfer function
 	//! to be executed on resulting root node
 	//! execution order: top-down
-	struct JList;
+	struct jlist
+	{
+		boost::uuids::uuid uid_ = nnutils::uuid();
+		std::list<std::pair<JTRANSFER, inode*>> list_;
+		bool terminal_ = false;
+	};
 
 	//! graph info shareable between connectors
-	struct graph_manager;
+	struct graph_manager
+	{
+		static graph_manager* get (iconnector* source, iconnector* user = nullptr)
+		{
+			assert(source);
+			graph_manager*& gn = source->g_man_;
+			if (nullptr == gn) gn = new graph_manager();
+			if (nullptr == user) user = source;
+			gn->users_.emplace(user);
+			return gn;
+		}
+
+		graph_manager (const graph_manager&) = delete;
+
+		graph_manager (graph_manager&&) = delete;
+
+		void suicide (iconnector* user)
+		{
+			users_.erase(user);
+			if (users_.empty()) delete this;
+		}
+
+		void consume (graph_manager* other)
+		{
+			if (this == other) return;
+			while (false == other->updates_.empty())
+			{
+				updates_.push(other->updates_.top());
+				other->updates_.pop();
+			}
+			update_map_.insert(other->update_map_.begin(), other->update_map_.end());
+			std::unordered_set<iconnector*> otherusers = other->users_;
+			for (iconnector* ouser : otherusers)
+			{
+				other->suicide(ouser);
+				ouser->g_man_ = this;
+			}
+			users_.insert(otherusers.begin(), otherusers.end());
+		}
+
+		void add_update (iconnector* dependent, std::function<void(void)> update)
+		{
+			// assert dependent is in users_
+			if (update_map_.end() == update_map_.find(dependent))
+			{
+				updates_.push(dependent);
+				update_map_[dependent] = update;
+			}
+		}
+
+		void update (void)
+		{
+			// todo: add multithreading
+			while (false == updates_.empty())
+			{
+				iconnector* iconn = updates_.top();
+				auto updater = update_map_[iconn];
+				updates_.pop();
+				updater();
+				iconn->notify(UPDATE);
+			}
+			update_map_.clear();
+		}
+
+		bool freeze_ = false;
+
+	private:
+		struct small_leafset
+		{
+			bool operator() (const iconnector* c1, const iconnector* c2) const
+			{
+				return c1->get_depth()> c2->get_depth();
+			}
+		};
+
+		std::priority_queue<iconnector*,std::vector<iconnector*>,small_leafset> updates_;
+
+		std::unordered_map<iconnector*,std::function<void(void)>> update_map_;
+
+		std::unordered_set<iconnector*> users_;
+		
+		graph_manager (void) {}
+		
+		~graph_manager (void) {}
+	};
 
 	// >>>> CONSTRUCTORS <<<<
 	//! Set dependencies
-	iconnector (std::vector<inode<T>*> dependencies, std::string label);
+	iconnector (std::vector<inode*> dependencies, std::string label);
 
 	//! Declare copy constructor to enforce proper g_man_ copy over
-	iconnector (const iconnector<T>& other);
+	iconnector (const iconnector& other);
 
 	//! Declare move constructor to enforce proper g_man_ copy over
-	iconnector (iconnector<T>&& other);
+	iconnector (iconnector&& other);
 
 	// >>>> MANAGE GRAPH INFO <<<<
 	//! Update g_man_ by updating all argument variables
-	virtual void update_graph (std::vector<iconnector<T>*> args);
+	virtual void update_graph (std::vector<iconnector*> args);
 
-	varptr<T> jacobian_call (varptr<T> out, variable<T>* leaf) const;
+	varptr jacobian_call (varptr out, variable* leaf) const;
 
 	//! specialized operator: jacobian operators for each variable,
 	//! executed in derive
-	std::unordered_map<variable<T>*,JList> jacobians_;
+	std::unordered_map<variable*,jlist> jacobians_;
 
 	//! graph meta_data/manager
 	graph_manager* g_man_ = nullptr;
 
 private:
-	void copy_helper (const iconnector<T>& other);
+	void copy_helper (const iconnector& other);
 
-	void move_helper (iconnector<T>&& other);
+	void move_helper (iconnector&& other);
 
-	void jacobian_correction (const inode<T>* other);
+	void jacobian_correction (const inode* other);
 
 	//! the distance between this node and the furthest dependent leaf (maximum spanning tree height)
 	size_t depth_ = 0;
 };
 
 }
-
-#include "src/graph/connector/iconnector.ipp"
 
 #endif /* TENNCOR_ICONNECTOR_HPP */

@@ -10,7 +10,6 @@
 
 #include "include/graph/leaf/variable.hpp"
 #include "include/graph/operations/operations.hpp"
-#include "include/graph/varptr.hpp"
 
 #include "tests/include/util_test.h"
 #include "tests/include/fuzz.h"
@@ -31,7 +30,7 @@ using DATA_CHANGE = std::function<std::vector<double>(std::vector<double>,tensor
 template <typename T>
 using PARAM_EVAL = std::function<T(tensorshape)>;
 template <typename T>
-using UNARY_VAR = std::function<varptr<double>(varptr<double>,T)>;
+using UNARY_VAR = std::function<varptr(varptr,T)>;
 
 
 template <typename T>
@@ -56,14 +55,14 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 {
 	tensorshape shape = random_def_shape(fuzzer, ranklimit.first, ranklimit.second);
 	rand_uniform<double> rinit(2, 12);
-	variable<double> var(shape, rinit, "unar_var");
+	variable var(shape, rinit, "unar_var");
 	var.initialize();
 	{
 		const nnet::tensor<double>* vartens = var.eval();
 		ASSERT_NE(nullptr, vartens);
 		ASSERT_TRUE(vartens->is_alloc());
 	}
-	varptr<double> res = func(varptr<double>(&var), paramer(shape));
+	varptr res = func(varptr(&var), paramer(shape));
 	{
 		const nnet::tensor<double>* restens = res->eval();
 		ASSERT_NE(nullptr, restens);
@@ -71,9 +70,9 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 	}
 
 	tensorshape expectoshape = expect_shape(shape);
-	std::vector<double> varout = expose(&var);
+	std::vector<double> varout = expose<double>(&var);
 	std::vector<double> expectout = expect_transfer(varout, shape, expectoshape);
-	nnet::inode<double>* vgrad = var.derive(&var);
+	nnet::inode* vgrad = var.derive(&var);
 	{
 		const nnet::tensor<double>* vgradtens = vgrad->eval();
 		ASSERT_NE(nullptr, vgradtens);
@@ -94,7 +93,7 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 	if ((bool) grad_transfer && (bool) grad_shape)
 	{
 		tensorshape gradoshape = (*grad_shape)(var.derive(&var)->get_shape());
-		std::vector<double> gradout = (*grad_transfer)(expose(vgrad), vgrad->get_shape(), gradoshape);
+		std::vector<double> gradout = (*grad_transfer)(expose<double>(vgrad), vgrad->get_shape(), gradoshape);
 		const tensor<double>* backt = res->derive(&var)->eval();
 		tensorshape outgshape = backt->get_shape();
 		std::vector<double> rgout = backt->expose();
@@ -111,7 +110,7 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 	}
 
 	// Behavior B000
-	EXPECT_EQ(nullptr, func(varptr<double>(nullptr), paramer(shape)));
+	EXPECT_EQ(nullptr, func(varptr(nullptr), paramer(shape)));
 }
 
 
@@ -146,7 +145,7 @@ TEST_F(TRANSFORM, Transpose_B001)
 		return std::vector<size_t>{slist[1], slist[0]};
 	};
 	unaryTransTest<double>(this, {1, 2},
-	[](varptr<double> in,double) { return nnet::transpose(in); },
+	[](varptr in,double) { return nnet::transpose(in); },
 	transfer, shape, transfer, shape);
 }
 
@@ -155,13 +154,13 @@ TEST_F(TRANSFORM, Fit_B002)
 {
 	tensorshape realshape = random_def_shape(this);
 	rand_uniform<double> rinit(2, 12);
-	variable<double> shapeholder(realshape, rinit, "shapeholder");
+	variable shapeholder(realshape, rinit, "shapeholder");
 	shapeholder.initialize();
 
-	PARAM_EVAL<const varptr<double> > fitparam =
-	[&shapeholder](tensorshape) -> const varptr<double>
+	PARAM_EVAL<const varptr > fitparam =
+	[&shapeholder](tensorshape) -> const varptr
 	{
-		return varptr<double>(&shapeholder);
+		return varptr(&shapeholder);
 	};
 	DATA_CHANGE transfer =
 	[](std::vector<double> in, tensorshape inshape, tensorshape outshape) -> std::vector<double>
@@ -197,8 +196,8 @@ TEST_F(TRANSFORM, Fit_B002)
 	optional<DATA_CHANGE> gradtransfer = (DATA_CHANGE) onescalar;
 	optional<SHAPE_CHANGE> gradshape = (SHAPE_CHANGE) as_is;
 
-	unaryTransTest<const varptr<double> >(this, {2, 13},
-	[](varptr<double> in, varptr<double> watch) { return nnet::fit(in, watch); },
+	unaryTransTest<const varptr>(this, {2, 13},
+	[](varptr in, varptr watch) { return nnet::fit(in, watch); },
 	transfer, shape, gradtransfer, gradshape, fitparam);
 }
 
@@ -250,7 +249,7 @@ TEST_F(TRANSFORM, Extend_B003To004)
 	optional<SHAPE_CHANGE> gradshape = (SHAPE_CHANGE) as_is;
 
 	unaryTransTest<std::pair<size_t,size_t> >(this, {2, 13},
-	[](varptr<double> in, std::pair<size_t,size_t> idxnmult)
+	[](varptr in, std::pair<size_t,size_t> idxnmult)
 	{
 		size_t index = idxnmult.first;
 		size_t multiplier = idxnmult.second;
@@ -260,14 +259,14 @@ TEST_F(TRANSFORM, Extend_B003To004)
 	// B005
 	tensorshape rshape = random_def_shape(this, 2, 13);
 	rand_uniform<double> rinit(2, 12);
-	variable<double> var(rshape, rinit, "unar_var");
-	varptr<double> zaro = extend(varptr<double>(&var), extend_index, 0);
+	variable var(rshape, rinit, "unar_var");
+	varptr zaro = extend(varptr(&var), extend_index, 0);
 	const tensor<double>* ztens = zaro->eval();
 	EXPECT_EQ((size_t) 1, ztens->get_shape().n_elems());
 	std::vector<double> zvec = ztens->expose();
 	ASSERT_EQ((size_t) 1, zvec.size());
 	EXPECT_EQ(0.0, zvec[0]);
-	varptr<double> same = extend(varptr<double>(&var), extend_index, 1);
+	varptr same = extend(varptr(&var), extend_index, 1);
 	EXPECT_EQ(&var, same.get());
 }
 
@@ -275,7 +274,7 @@ TEST_F(TRANSFORM, Extend_B003To004)
 TEST_F(TRANSFORM, Compress_B005)
 {
 	size_t compress_index;
-	AGGREGATE<double> compression =
+	AGGREGATE compression =
 	[](double a, double b) -> double
 	{
 		return a + b;
@@ -338,7 +337,7 @@ TEST_F(TRANSFORM, Compress_B005)
 	optional<SHAPE_CHANGE> gradshape = (SHAPE_CHANGE) as_is;
 
 	unaryTransTest<size_t>(this, {2, 13},
-	[&compression](varptr<double> in, size_t compidx) { return compress(in, compression, compidx); },
+	[&compression](varptr in, size_t compidx) { return compress(in, compression, compidx); },
 	transfer, shape, gradtransfer, gradshape, compressparam);
 }
 
@@ -347,10 +346,10 @@ TEST_F(TRANSFORM, CompressScalar_B006)
 {
 	tensorshape shape = random_def_shape(this, 2, 13);
 	rand_uniform<double> rinit(2, 12);
-	variable<double> var(shape, rinit, "unar_var");
+	variable var(shape, rinit, "unar_var");
 	var.initialize();
 
-	std::vector<AGGREGATE<double> > comps = {
+	std::vector<AGGREGATE> comps = {
 		[](double a, double b)
 		{
 			return a + b;
@@ -364,9 +363,9 @@ TEST_F(TRANSFORM, CompressScalar_B006)
 			return std::min(a, b);
 		}
 	};
-	AGGREGATE<double> comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
+	AGGREGATE comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
 
-	varptr<double> scal = compress(varptr<double>(&var), comp, optional<size_t>());
+	varptr scal = compress(varptr(&var), comp, optional<size_t>());
 
 	std::vector<double> raw = expose<double>(&var);
 	double real_val = std::accumulate(raw.begin() + 1, raw.end(), raw[0], comp);
@@ -377,7 +376,7 @@ TEST_F(TRANSFORM, CompressScalar_B006)
 TEST_F(TRANSFORM, ArgCompress_B008To009)
 {
 	size_t arg_index;
-	REDUCE<double> search =
+	REDUCE search =
 	[](std::vector<double> data) -> double
 	{
 		return std::distance(data.begin(), std::max_element(data.begin(), data.end()));
@@ -446,7 +445,7 @@ TEST_F(TRANSFORM, ArgCompress_B008To009)
 	optional<SHAPE_CHANGE> gradshape;
 
 	unaryTransTest<size_t>(this, {3, 13},
-	[&search](varptr<double> in, size_t arg_index) { return arg_compress(in, search, arg_index); },
+	[&search](varptr in, size_t arg_index) { return arg_compress(in, search, arg_index); },
 	transfer, shape, gradtransfer, gradshape, argcompressparam);
 }
 
@@ -455,10 +454,10 @@ TEST_F(TRANSFORM, ArgCompressScalar_B010)
 {
 	tensorshape shape = random_def_shape(this, 2, 13);
 	rand_uniform<double> rinit(2, 12);
-	variable<double> var(shape, rinit, "unar_var");
+	variable var(shape, rinit, "unar_var");
 	var.initialize();
 
-	std::vector<REDUCE<double> > comps = {
+	std::vector<REDUCE> comps = {
 		[](std::vector<double> data)
 		{
 			double accum = 0;
@@ -488,9 +487,9 @@ TEST_F(TRANSFORM, ArgCompressScalar_B010)
 			return (double) idx;
 		}
 	};
-	REDUCE<double> comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
+	REDUCE comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
 
-	varptr<double> scal = arg_compress(varptr<double>(&var), comp, optional<size_t>());
+	varptr scal = arg_compress(varptr(&var), comp, optional<size_t>());
 
 	std::vector<double> raw = expose<double>(&var);
 	double real_idx = comp(raw);
@@ -507,11 +506,11 @@ TEST_F(TRANSFORM, Flip_B012)
 
 	size_t flipdim = get_int(1, "flipdim", {0, shape.rank() - 1})[0];
 
-	variable<double> var(shape, rinit, "unar_var");
-	varptr<double> res = flip(varptr<double>(&var), std::vector<size_t>{ flipdim });
+	variable var(shape, rinit, "unar_var");
+	varptr res = flip(varptr(&var), std::vector<size_t>{ flipdim });
 
 	// Behavior A000
-	EXPECT_EQ(nullptr, flip<double>(nullptr, std::vector<size_t>{0}));
+	EXPECT_EQ(nullptr, flip(nullptr, std::vector<size_t>{0}));
 
 	// initialize
 	var.initialize();

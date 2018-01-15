@@ -20,9 +20,9 @@ TEST(SERIALIZATION, Registration_C000)
 {
 //	nnet::session& sess = nnet::session::get_instance();
 //
-//	nnet::variable<double> var1(1);
-//	nnet::placeholder<double> var2(std::vector<size_t>{1});
-//	nnet::constant<double>* var3 = nnet::constant<double>::build(1);
+//	nnet::variable var1(1);
+//	nnet::placeholder var2(std::vector<size_t>{1});
+//	nnet::constant* var3 = nnet::constant::build(1);
 //
 //	EXPECT_TRUE(sess.ptr_registered(&var1));
 //	EXPECT_TRUE(sess.ptr_registered(&var2));
@@ -36,13 +36,13 @@ TEST(SERIALIZATION, Registration_C000)
 TEST(SERIALIZATION, Unregistration_C001)
 {
 //	nnet::session& sess = nnet::session::get_instance();
-//	nnet::variable<double>* var1 = nullptr;
-//	nnet::placeholder<double>* var2 = nullptr;
-//	nnet::constant<double>* var3 = nullptr;
+//	nnet::variable* var1 = nullptr;
+//	nnet::placeholder* var2 = nullptr;
+//	nnet::constant* var3 = nullptr;
 //
-//	var1 = new nnet::variable<double>(1);
-//	var2 = new nnet::placeholder<double>(std::vector<size_t>{1});
-//	var3 = nnet::constant<double>::build(1);
+//	var1 = new nnet::variable(1);
+//	var2 = new nnet::placeholder(std::vector<size_t>{1});
+//	var3 = nnet::constant::build(1);
 //
 //	delete var1;
 //	delete var2;
@@ -72,7 +72,7 @@ TEST(SERIALIZATION, Initialize_C003)
 //	nnet::const_init<double> dinit(-3.2);
 //	nnet::const_init<float> finit(3.2);
 //	nnet::const_init<size_t> cinit(3);
-//	nnet::variable<double> dvar(std::vector<size_t>{2, 3}, dinit);
+//	nnet::variable dvar(std::vector<size_t>{2, 3}, dinit);
 //	nnet::variable<float> fvar(std::vector<size_t>{2, 3}, finit);
 //	nnet::variable<size_t> cvar(std::vector<size_t>{2, 3}, cinit);
 //

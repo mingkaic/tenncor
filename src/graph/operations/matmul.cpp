@@ -1,10 +1,12 @@
 //
-//  matmul.ipp
+//  matmul.cpp
 //  cnnet
 //
 //  Created by Mingkai Chen on 2016-10-08.
 //  Copyright © 2016 Mingkai Chen. All rights reserved.
 //
+
+#include "include/graph/operations/operations.hpp"
 
 #ifdef TENNCOR_MATMUL_HPP
 
@@ -16,7 +18,7 @@ namespace nnet
 static inline size_t min_pad (size_t insize)
 {
 	size_t counter = 0;
-	while (insize > STRASSEN_THRESHOLD)
+	while (insize> STRASSEN_THRESHOLD)
 	{
 		insize++;
 		insize >>= 1;
@@ -25,8 +27,7 @@ static inline size_t min_pad (size_t insize)
 	return insize << counter;
 }
 
-template <typename T>
-static void cubic_mul (T* c, const T* a, const T* b, size_t dimX, size_t dimY, size_t dimZ, size_t coord_map[4])
+static void cubic_mul (double* c, const double* a, const double* b, size_t dimX, size_t dimY, size_t dimZ, size_t coord_map[4])
 {
 	for (size_t y = 0; y < dimY; y++)
 	{
@@ -43,9 +44,8 @@ static void cubic_mul (T* c, const T* a, const T* b, size_t dimX, size_t dimY, s
 	}
 }
 
-template <typename T>
 // strassen coordinates follow matrix convention (row, col)
-static void strassen (T* c, T* a, T* b, size_t dimPad)
+static void strassen (double* c, double* a, double* b, size_t dimPad)
 {
 	if (dimPad <= STRASSEN_THRESHOLD)
 	{
@@ -56,10 +56,10 @@ static void strassen (T* c, T* a, T* b, size_t dimPad)
 	size_t quadSize = quadRC*quadRC;
 
 	// we are given 12 quadrants + 3 for 15 quadrant (14 required + 1 for recursion)
-	T* temp = new T[quadSize];
-	T* temp2 = new T[quadSize];
+	double* temp = new double[quadSize];
+	double* temp2 = new double[quadSize];
 	// third buffer for recursive strassen call
-	T* temp3 = new T[quadSize];
+	double* temp3 = new double[quadSize];
 
 	// processed during first iteration
 	// M3L = A11		(c0)
@@ -136,13 +136,13 @@ static void strassen (T* c, T* a, T* b, size_t dimPad)
 	// M3 = A11 @ (B12 - B22) = M3L @ M3R			(b1) = (c0) @ (a1)
 	// M4 = A22 @ (B21 - B11) = M4L @ M4R			(b2) = (c2) @ (a2)
 	// M5 = (A11 + A12) @ B22 = M5L @ M5R			(b3) = (c3) @ (a3)
-	strassen<T>(temp3, temp, b + 2 * quadSize, quadRC);
-	strassen<T>(temp, temp2, b + 3 * quadSize, quadRC);
-	strassen<T>(temp2, b, b + quadSize, quadRC);
-	strassen<T>(b, c + quadSize, a, quadRC);
-	strassen<T>(b + quadSize, c, a + quadSize, quadRC);
-	strassen<T>(b + 2 * quadSize, c + 2 * quadSize, a + 2 * quadSize, quadRC);
-	strassen<T>(b + 3 * quadSize, c + 3 * quadSize, a + 3 * quadSize, quadRC);
+	strassen(temp3, temp, b + 2 * quadSize, quadRC);
+	strassen(temp, temp2, b + 3 * quadSize, quadRC);
+	strassen(temp2, b, b + quadSize, quadRC);
+	strassen(b, c + quadSize, a, quadRC);
+	strassen(b + quadSize, c, a + quadSize, quadRC);
+	strassen(b + 2 * quadSize, c + 2 * quadSize, a + 2 * quadSize, quadRC);
+	strassen(b + 3 * quadSize, c + 3 * quadSize, a + 3 * quadSize, quadRC);
 
 	// C11 = M1 + M4 - M5 + M7	(temp2) + (b2) - (b3) + (temp)
 	// C12 = M3 + M5			(b1) + (b3)
@@ -181,14 +181,14 @@ static inline tensorshape matmul_shaper (std::vector<tensorshape> shapes)
 
 	// account for vectors
 	size_t ax = rank1 ? al[0] : 0;
-	size_t ay = rank1 > 1 ? al[1] : 1;
+	size_t ay = rank1> 1 ? al[1] : 1;
 	size_t bx = rank2 ? bl[0] : 0;
-	size_t by = rank2 > 1 ? bl[1] : 1;
+	size_t by = rank2> 1 ? bl[1] : 1;
 
 	// ensure the dimensions beyond 2d are equal
 	size_t minend = std::min(rank1, rank2);
 	std::vector<size_t> beyond2d;
-	if (minend > 2)
+	if (minend> 2)
 	{
 		auto ait = al.begin()+2;
 		auto aet = al.begin()+minend;
@@ -207,8 +207,8 @@ static inline tensorshape matmul_shaper (std::vector<tensorshape> shapes)
 		}
 		// check that remaining shape values are ones,
 		// otherwise one shape is larger than the other
-		auto it = rank1 > rank2 ? al.begin() : bl.begin();
-		auto et = rank1 > rank2 ? al.end() : bl.end();
+		auto it = rank1> rank2 ? al.begin() : bl.begin();
+		auto et = rank1> rank2 ? al.end() : bl.end();
 		if (!std::all_of(it + minend, et, [](size_t e) { return e == 1; }))
 		{
 			std::stringstream ss;
@@ -240,16 +240,15 @@ static inline tensorshape matmul_shaper (std::vector<tensorshape> shapes)
 	return res_shape;
 }
 
-template <typename T>
-varptr<T> matmul (const varptr<T> a, const varptr<T> b, bool transposeA, bool transposeB)
+varptr matmul (const varptr a, const varptr b, bool transposeA, bool transposeB)
 {
 	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
 
-	inode<T>* adata = a.get();
-	inode<T>* bdata = b.get();
+	inode* adata = a.get();
+	inode* bdata = b.get();
 	if (transposeA)
 	{
-		if (inode<T>* parent = unary_parent_search(adata, "transpose_0_1"))
+		if (inode* parent = unary_parent_search(adata, "transpose_0_1"))
 		{
 			adata = parent;
 		}
@@ -260,7 +259,7 @@ varptr<T> matmul (const varptr<T> a, const varptr<T> b, bool transposeA, bool tr
 	}
 	if (transposeB)
 	{
-		if (inode<T>* parent = unary_parent_search(bdata, "transpose_0_1"))
+		if (inode* parent = unary_parent_search(bdata, "transpose_0_1"))
 		{
 			bdata = parent;
 		}
@@ -271,15 +270,15 @@ varptr<T> matmul (const varptr<T> a, const varptr<T> b, bool transposeA, bool tr
 	}
 
 	std::string opname = "matmul";
-	if (inode<T>* parent = ordered_binary_parent_search(adata, bdata, opname))
+	if (inode* parent = ordered_binary_parent_search(adata, bdata, opname))
 	{
 		return parent;
 	}
 
-	immutable<T>* mmul = immutable<T>::get(std::vector<inode<T>*>{adata, bdata},
+	immutable* mmul = immutable::get(std::vector<inode*>{adata, bdata},
 	matmul_shaper,
-	new transfer_func<T>(
-	[](T* dest, std::vector<const T*> srcs, shape_io shapes)
+	new transfer_func<double>(
+	[](double* dest, std::vector<const double*> srcs, shape_io shapes)
 	{
 		assert(2 == srcs.size());
 		std::vector<size_t> alist = shapes.ins_[0].as_list();
@@ -301,20 +300,20 @@ varptr<T> matmul (const varptr<T> a, const varptr<T> b, bool transposeA, bool tr
 
 #ifdef ENABLE_STRASSEN // strassen is very cumbersome in a lot of cases
 		size_t dim_pad = min_pad(std::max(std::max(dim_x, dim_y), dim_z));
-		if (dim_pad > STRASSEN_THRESHOLD)
+		if (dim_pad> STRASSEN_THRESHOLD)
 		{
 			for (size_t i = 0; i < beyond2d; i++)
 			{
-				const T* rawa = srcs[0] + i * (dim_z * dim_y);
-				const T* rawb = srcs[1] + i * (dim_x * dim_z);
-				T* rawc = dest + i * (dim_x * dim_y);
+				const double* rawa = srcs[0] + i * (dim_z * dim_y);
+				const double* rawb = srcs[1] + i * (dim_x * dim_z);
+				double* rawc = dest + i * (dim_x * dim_y);
 
 				size_t n_mat = dim_pad * dim_pad;
-				T* out = new T[n_mat];
-				T* a = new T[n_mat];
-				T* b = new T[n_mat];
-				std::memset(a, 0, n_mat * sizeof(T));
-				std::memset(b, 0, n_mat * sizeof(T));
+				double* out = new double[n_mat];
+				double* a = new double[n_mat];
+				double* b = new double[n_mat];
+				std::memset(a, 0, n_mat * sizeof(double));
+				std::memset(b, 0, n_mat * sizeof(double));
 				for (size_t y = 0; y < dim_y; y++)
 				{
 					for (size_t z = 0; z < dim_z; z++)
@@ -334,7 +333,7 @@ varptr<T> matmul (const varptr<T> a, const varptr<T> b, bool transposeA, bool tr
 				strassen(out, a, b, dim_pad);
 				for (size_t y = 0; y < dim_y; y++)
 				{
-					std::memcpy(rawc + y * dim_x, out + y * dim_pad, sizeof(T) * dim_x);
+					std::memcpy(rawc + y * dim_x, out + y * dim_pad, sizeof(double) * dim_x);
 				}
 
 				delete [] out;
@@ -346,57 +345,57 @@ varptr<T> matmul (const varptr<T> a, const varptr<T> b, bool transposeA, bool tr
 #endif /* ENABLE_STRASSEN */
 		for (size_t i = 0; i < beyond2d; i++)
 		{
-			const T* rawa = srcs[0] + i * (dim_z * dim_y);
-			const T* rawb = srcs[1] + i * (dim_x * dim_z);
-			T* rawc = dest + i * (dim_x * dim_y);
+			const double* rawa = srcs[0] + i * (dim_z * dim_y);
+			const double* rawb = srcs[1] + i * (dim_x * dim_z);
+			double* rawc = dest + i * (dim_x * dim_y);
 
 			size_t coord_map[4] = {dim_z, 1, 1, dim_x};
-			cubic_mul<T>(rawc, rawa, rawb, dim_x, dim_y, dim_z, coord_map);
+			cubic_mul(rawc, rawa, rawb, dim_x, dim_y, dim_z, coord_map);
 		}
 	}),
-	[](std::vector<std::pair<inode<T>*,inode<T>*> > args)
+	[](std::vector<std::pair<inode*,inode*>> args)
 	{
 		// todo: create alternative operation to eq (since eq prevents higher order derivatives)
 		// desired behavior, create a matrix of 1 output in the same shape as the tforward operation
 		// tforward shape may not be defined at this point,
-		// so the shape instantiation must be performed during base_immutable<T>::update
-		nnet::varptr<T> tforward = nnet::matmul<T>(args[0].first, args[1].first);
+		// so the shape instantiation must be performed during base_immutable::update
+		nnet::varptr tforward = nnet::matmul(args[0].first, args[1].first);
 		return nnet::eq(tforward, tforward);
 	}, opname);
 
-	std::unordered_set<ileaf<T>*> temp = mmul->get_leaves();
-	std::vector<variable<T>*> leef;
-	for (ileaf<T>* ilef : temp)
+	std::unordered_set<ileaf*> temp = mmul->get_leaves();
+	std::vector<variable*> leef;
+	for (ileaf* ilef : temp)
 	{
-		if (variable<T>* var = dynamic_cast<variable<T>*>(ilef))
+		if (variable* var = dynamic_cast<variable*>(ilef))
 		{
 			leef.push_back(var);
 		}
 	}
 
 	mmul->set_jacobian_back(
-	[transposeA, transposeB](inode<T>* root, std::vector<inode<T>*> args, std::vector<inode<T>*> grads) -> inode<T>*
+	[transposeA, transposeB](inode* root, std::vector<inode*> args, std::vector<inode*> grads) -> inode*
 	{
-		varptr<T> arga = args[0];
-		varptr<T> argb = args[1];
-		varptr<T> grada = grads[0];
-		varptr<T> gradb = grads[1];
+		varptr arga = args[0];
+		varptr argb = args[1];
+		varptr grada = grads[0];
+		varptr gradb = grads[1];
 
-		constant<T>* aconst = dynamic_cast<constant<T>*>(grada.get());
-		constant<T>* bconst = dynamic_cast<constant<T>*>(gradb.get());
-		if (aconst && *aconst == (T)0 && bconst && *bconst == (T)0)
+		constant* aconst = dynamic_cast<constant*>(grada.get());
+		constant* bconst = dynamic_cast<constant*>(gradb.get());
+		if (aconst && *aconst == 0 && bconst && *bconst == 0)
 		{
 			return root;
 		}
-		varptr<T> mA = matmul<T>(root, argb, false, true);
-		varptr<T> mB = matmul<T>(arga, root, true);
+		varptr mA = matmul(root, argb, false, true);
+		varptr mB = matmul(arga, root, true);
 		if (transposeA)
 		{
-			mA = transpose<T>(mA);
+			mA = transpose(mA);
 		}
 		if (transposeB)
 		{
-			mB = transpose<T>(mB);
+			mB = transpose(mB);
 		}
 		return mA * grada + mB * gradb;
 	}, leef);

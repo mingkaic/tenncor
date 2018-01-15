@@ -108,18 +108,6 @@ tensor<T>::tensor (tensor<T>&& other)
 }
 
 template <typename T>
-tensor<T>* tensor<T>::clone (bool shapeonly) const
-{
-	return static_cast<tensor<T>*>(clone_impl(shapeonly));
-}
-
-template <typename T>
-tensor<T>* tensor<T>::move (void)
-{
-	return static_cast<tensor<T>*>(move_impl());
-}
-
-template <typename T>
 tensor<T>& tensor<T>::operator = (const tensor<T>& other)
 {
 	if (this != &other)
@@ -255,7 +243,7 @@ optional<tensorshape> tensor<T>::guess_shape (const std::vector<T>& data) const
 		{
 			if (0 == my_shape[i])
 			{
-				if (first_undef > i)
+				if (first_undef> i)
 				{
 					first_undef = i;
 				}
@@ -266,7 +254,7 @@ optional<tensorshape> tensor<T>::guess_shape (const std::vector<T>& data) const
 				known *= my_shape[i];
 			}
 		}
-		assert(known > 0);
+		assert(known> 0);
 		if (0 == ndata % known)
 		{
 			my_shape[first_undef] = ndata / known;
@@ -288,7 +276,7 @@ optional<tensorshape> tensor<T>::loosely_guess_shape(const std::vector<T>& data)
 	if (allowed_shape_.is_fully_defined())
 	{
 		optional<tensorshape> bestshape;
-		if (allowed_shape_.n_elems() >= ndata)
+		if (allowed_shape_.n_elems()>= ndata)
 		{
 			bestshape = allowed_shape_;
 		}
@@ -301,7 +289,7 @@ optional<tensorshape> tensor<T>::loosely_guess_shape(const std::vector<T>& data)
 	{
 		if (0 == my_shape[i])
 		{
-			if (first_undef > i)
+			if (first_undef> i)
 			{
 				first_undef = i;
 			}
@@ -342,7 +330,7 @@ template <typename T>
 T tensor<T>::get (std::vector<size_t> coord) const
 {
 	size_t raw_idx = alloc_shape_.flat_idx(coord);
-	if (raw_idx >= alloc_shape_.n_elems())
+	if (raw_idx>= alloc_shape_.n_elems())
 	{
 		throw std::out_of_range(nnutils::formatter() <<
 		"out of bound coordinate: " << coord);
@@ -554,18 +542,6 @@ tensor<T> tensor<T>::slice (size_t /*dim_start*/, size_t /*limit*/)
 // size_t tensor<T>::buffer_hash (void) const {
 //	 return 0;
 // }
-
-template <typename T>
-itensor<T>* tensor<T>::clone_impl (bool shapeonly) const
-{
-	return new tensor<T>(*this, shapeonly);
-}
-
-template <typename T>	
-itensor<T>* tensor<T>::move_impl (void)
-{
-	return new tensor<T>(std::move(*this));
-}
 
 template <typename T>
 void tensor<T>::copy_helper (const tensor<T>& other, bool shapeonly)
