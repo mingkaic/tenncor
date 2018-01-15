@@ -1,14 +1,5 @@
 workspace(name = "com_github_mingkaic_tenncor")
 
-# boost dependency
-git_repository(
-	name = "com_github_nelhage_boost",
-	commit = "df84f25c2d6f5ab2e2c36253841176dfe29c187b",
-	remote = "https://github.com/nelhage/rules_boost",
-)
-load("@com_github_nelhage_boost//:boost/boost.bzl", "boost_deps")
-boost_deps()
-
 # protobuf dependency
 http_archive(
 	name = "com_google_protobuf",

@@ -25,7 +25,6 @@
 #include <ctime>
 #include <chrono>
 #include <random>
-#include <boost/uuid/uuid_generators.hpp>
 
 namespace nnutils
 {
@@ -90,15 +89,13 @@ private:
 	std::stringstream stream_; // internal stream
 };
 
-//! generates a "unique" string based on input address and current time
-//! uses cstdlib rand, so use srand to seed
-boost::uuids::uuid uuid (void);
-
 std::default_random_engine& get_generator (void);
 
-boost::mt19937& get_boost_generator (void);
-
 void seed_generator (size_t val);
+
+//! generates a "unique" string based on input address and current time
+//! uses cstdlib rand, so use srand to seed
+std::string uuid (const void* addr);
 
 }
 

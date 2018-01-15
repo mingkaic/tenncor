@@ -45,7 +45,7 @@ inode& inode::operator = (inode&& other)
 	return *this;
 }
 
-boost::uuids::uuid inode::get_uid (void) const
+std::string inode::get_uid (void) const
 {
 	return id_;
 }
@@ -57,7 +57,7 @@ std::string inode::get_label (void) const
 
 std::string inode::get_name (void) const
 {
-	return "<" + label_ + ":" + boost::uuids::to_string(this->get_uid()) + ">";
+	return "<" + label_ + ":" + this->get_uid() + ">";
 }
 
 std::string inode::get_summaryid (void) const
@@ -168,6 +168,11 @@ inode* varptr::get (void) const
 void varptr::update (std::unordered_set<size_t>) {}
 
 void varptr::clear (void) { this->remove_dependency(0); }
+
+std::string varptr::get_label (void) const
+{
+	return get()->get_label();
+}
 
 void varptr::death_on_broken (void)
 {

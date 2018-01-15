@@ -26,28 +26,32 @@ std::string formatter::operator >> (convert_to_string)
 	return stream_.str();
 }
 
-boost::uuids::uuid uuid (void)
-{
-	static boost::uuids::random_generator uuid_gen(get_boost_generator());
-	return uuid_gen();
-}
-
 std::default_random_engine& get_generator (void)
 {
 	static std::default_random_engine common_gen(std::time(nullptr));
 	return common_gen;
 }
 
-boost::mt19937& get_boost_generator (void)
-{
-	static boost::mt19937 boost_gen(std::time(nullptr));
-	return boost_gen;
-}
-
 void seed_generator (size_t val)
 {
 	get_generator().seed(val);
-	get_boost_generator().seed(val);
+}
+
+std::string uuid (const void* addr)
+{
+	static std::uniform_int_distribution<size_t> tok_dist(0, 15);
+	auto now = std::chrono::system_clock::now();
+	std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+
+	std::stringstream ss;
+	ss << std::hex << now_c << (size_t) addr;
+
+	for (size_t i = 0; i < 16; i++)
+	{
+		size_t token = tok_dist(get_generator());
+		ss << std::hex << token;
+	}
+	return ss.str();
 }
 
 }

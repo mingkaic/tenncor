@@ -115,7 +115,7 @@ protected:
 	//! execution order: top-down
 	struct jlist
 	{
-		boost::uuids::uuid uid_ = nnutils::uuid();
+		std::string uid_ = nnutils::uuid(this);
 		std::list<std::pair<JTRANSFER, inode*>> list_;
 		bool terminal_ = false;
 	};

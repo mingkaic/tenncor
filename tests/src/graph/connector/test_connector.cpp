@@ -237,7 +237,7 @@ TEST_F(CONNECTOR, Name_H001)
 	argname.pop_back(); // remove last comma
 	std::string bossname = get_string(get_int(1, "bossname.size", {14, 29})[0], "bossname");
 	mock_connector* conn1 = new mock_connector(ns, bossname);
-	std::string expectname = "<" + bossname + ":" + boost::uuids::to_string(conn1->get_uid()) + ">(" + argname + ")";
+	std::string expectname = "<" + bossname + ":" + conn1->get_uid() + ">(" + argname + ")";
 	EXPECT_EQ(expectname, conn1->get_name());
 
 	conn1->inst_ = "conn1";

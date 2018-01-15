@@ -11,9 +11,6 @@
  *
  */
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
 #include "include/tensor/tensor_handler.hpp"
 #include "include/tensor/tensor.hpp"
 #include "include/graph/react/subject.hpp"
@@ -52,7 +49,7 @@ public:
 
 	// >>>> IDENTIFICATION <<<<
 	//! get the unique hash value
-	boost::uuids::uuid get_uid (void) const;
+	std::string get_uid (void) const;
 
 	//! get the non-unique label set by user, denoting node purpose
 	virtual std::string get_label (void) const;
@@ -145,7 +142,7 @@ protected:
 
 private:
 	//! uniquely identifier for this node
-	boost::uuids::uuid id_ = nnutils::uuid();
+	std::string id_ = nnutils::uuid(this);
 
 	//! describes this node's purpose
 	std::string label_;
@@ -186,10 +183,7 @@ public:
 
 	void clear (void);
 
-	virtual std::string get_label (void) const
-	{
-		return get()->get_label();
-	}
+	virtual std::string get_label (void) const;
 	
 protected:
 	virtual void death_on_broken (void);

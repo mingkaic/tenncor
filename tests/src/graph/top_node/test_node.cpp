@@ -48,19 +48,19 @@ TEST_F(NODE, Move_B000)
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node n1(label1);
 
-	std::string ouid = boost::uuids::to_string(n1.get_uid());
+	std::string ouid = n1.get_uid();
 	EXPECT_EQ(label1, n1.get_label());
 
 	mock_node mv(std::move(n1));
 
-	std::string ouid2 = boost::uuids::to_string(mv.get_uid());
+	std::string ouid2 = mv.get_uid();
 	EXPECT_TRUE(n1.get_label().empty());
 	EXPECT_EQ(label1, mv.get_label());
 	EXPECT_NE(ouid, ouid2);
 
 	assign = std::move(mv);
 
-	std::string ouid3 = boost::uuids::to_string(assign.get_uid());
+	std::string ouid3 = assign.get_uid();
 	EXPECT_TRUE(mv.get_label().empty());
 	EXPECT_EQ(label1, assign.get_label());
 	EXPECT_NE(ouid, ouid3);
@@ -77,7 +77,7 @@ TEST_F(NODE, UID_B001)
 	for (size_t i = 0; i < ns; i++)
 	{
 		mock_node mn;
-		std::string uid = boost::uuids::to_string(mn.get_uid());
+		std::string uid = mn.get_uid();
 		EXPECT_TRUE(us.end() == us.find(uid));
 		us.emplace(uid);
 	}
@@ -91,7 +91,7 @@ TEST_F(NODE, Label_B002)
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node n1(label1);
 
-	std::string uid = boost::uuids::to_string(n1.get_uid());
+	std::string uid = n1.get_uid();
 	EXPECT_EQ(n1.get_name(), "<"+label1+":"+uid+">");
 	EXPECT_EQ(label1, n1.get_label());
 }
