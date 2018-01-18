@@ -12,7 +12,8 @@
  */
 
 #include "include/tensor/tensor_handler.hpp"
-#include "include/tensor/tensor.hpp"
+#include "include/tensor/tensor_double.hpp"
+#include "include/tensor/tensor_signed.hpp"
 #include "include/graph/react/subject.hpp"
 #include "include/graph/react/iobserver.hpp"
 
@@ -79,7 +80,7 @@ public:
 
 	// >>>> FORWARD & BACKWARD DATA <<<<
 	//! get forward passing value, (pull data if necessary)
-	virtual const tensor<double>* eval (void) = 0;
+	virtual const itensor* eval (void) = 0;
 
 	//! get top-level gradient value, used by root nodes
 	virtual varptr derive (inode* wrt) = 0;
@@ -108,6 +109,11 @@ public:
 	//! check for special-case numerical data
 	optional<size_t> get_metadata (std::string key) const;
 
+	tenncor::tensor_proto::tensor_t get_type (void) const
+	{
+		return get_eval()->get_type();
+	}
+
 protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! default constructor
@@ -128,14 +134,14 @@ protected:
 
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! get forward passing value
-	virtual const tensor<double>* get_eval (void) const = 0;
+	virtual const itensor* get_eval (void) const = 0;
 
 	//! grab operational gradient node, used by other nodes
 	//! adds to internal caches if need be
 	virtual inode* get_gradient (variable* leaf) = 0;
 
 	//! obtain tensor data from source
-	const tensor<double>* take_eval (inode* source) const;
+	const itensor* take_eval (inode* source) const;
 
 	//! allow inheritants to access source's get_gradient with parameter leaf
 	inode* take_gradient (inode* source, variable* leaf) const;
@@ -194,12 +200,19 @@ template <typename T>
 std::vector<T> expose (inode* var)
 {
 	if (nullptr == var) return std::vector<T>{};
-	const tensor<double>* ten = var->eval();
-	std::vector<double> res;
-	if (nullptr != ten) {
-		res = ten->expose();
+	const itensor* ten = var->eval();
+	std::vector<T> result;
+	if (const tensor_double* t = dynamic_cast<const tensor_double*>(ten))
+	{
+		std::vector<double> res = t->expose();
+		result = std::vector<T>(res.begin(), res.end());
 	}
-	return std::vector<T>(res.begin(), res.end());
+	else if (const tensor_signed* t = dynamic_cast<const tensor_signed*>(ten))
+	{
+		std::vector<signed> res = t->expose();
+		result = std::vector<T>(res.begin(), res.end());
+	}
+	return result;
 }
 
 }

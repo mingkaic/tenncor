@@ -13,19 +13,51 @@
 namespace nnet
 {
 
+static inline void v_assign_add (void* dest, const void* src, tenncor::tensor_proto::tensor_t type)
+{
+	switch (type)
+	{
+		case tenncor::tensor_proto::DOUBLE_T:
+			*((double*) dest) += *((const double*) src);
+		break;
+		case tenncor::tensor_proto::SIGNED_T:
+			*((signed*) dest) += *((const signed*) src);
+		break;
+		default:
+		break;
+	}
+}
+
+static inline void v_assign_sub (void* dest, const void* src, tenncor::tensor_proto::tensor_t type)
+{
+	switch (type)
+	{
+		case tenncor::tensor_proto::DOUBLE_T:
+			*((double*) dest) -= *((const double*) src);
+		break;
+		case tenncor::tensor_proto::SIGNED_T:
+			*((signed*) dest) -= *((const signed*) src);
+		break;
+		default:
+		break;
+	}
+}
+
 variable::variable (double scalar, std::string name) :
-	ivariable(std::vector<size_t>{1},
-		new const_init<double>(scalar), name)
+	ivariable(std::vector<size_t>{1}, 
+		tenncor::tensor_proto::DOUBLE_T,
+		new const_init(scalar), name)
 {
 	initialize();
 }
 
-variable::variable (const tensorshape& shape, std::string name) :
-	ivariable(shape, nullptr, name) {}
+variable::variable (const tensorshape& shape, 
+	tenncor::tensor_proto::tensor_t type, std::string name) :
+	ivariable(shape, type, nullptr, name) {}
 
-variable::variable (const tensorshape& shape,
-	const initializer<double>& init, std::string name) :
-ivariable(shape, init.clone(), name) {}
+variable::variable (const tensorshape& shape, const initializer& init, 
+	tenncor::tensor_proto::tensor_t type, std::string name) :
+ivariable(shape, type, init.clone(), name) {}
 
 variable* variable::clone (void) const
 {
@@ -37,7 +69,7 @@ variable* variable::move (void)
 	return static_cast<variable*>(move_impl());
 }
 
-void variable::set_initializer (const initializer<double>& init)
+void variable::set_initializer (const initializer& init)
 {
 	if (this->init_)
 	{
@@ -46,7 +78,7 @@ void variable::set_initializer (const initializer<double>& init)
 	this->init_ = init.clone();
 }
 
-tensor<double>& variable::initialize (void)
+itensor& variable::initialize (void)
 {
 	assert(nullptr != this->init_);
 	// if not alloc, attempt to allocate, throw if fail
@@ -55,14 +87,14 @@ tensor<double>& variable::initialize (void)
 	{
 		throw std::runtime_error(this->get_label() + " data is not allocated");
 	}
-	initializer<double>* init = static_cast<initializer<double>*>(this->init_);
+	initializer* init = static_cast<initializer*>(this->init_);
 	(*init)(*(this->data_));
 	this->is_init_ = true;
 	this->notify(UPDATE);
 	return *this->data_;
 }
 
-tensor<double>& variable::initialize (tensorshape shape)
+itensor& variable::initialize (tensorshape shape)
 {
 	assert(this->init_ != nullptr);
 	if (false == this->data_->allocate(shape))
@@ -73,7 +105,7 @@ tensor<double>& variable::initialize (tensorshape shape)
 		ss << " failed to allocate " << this->get_label();
 		throw std::runtime_error(ss.str());
 	}
-	initializer<double>* init = static_cast<initializer<double>*>(this->init_);
+	initializer* init = static_cast<initializer*>(this->init_);
 	(*init)(*(this->data_));
 	this->is_init_ = true;
 	this->notify(UPDATE);
@@ -85,11 +117,10 @@ variable_updater variable::assign (inode* input) const
 	assert(input);
 	if (constant* con = dynamic_cast<constant*>(input))
 	{
-		std::vector<double>data = expose<double>(con);
+		const itensor* data = con->eval();
 		return [this, data](bool notify)
 		{
-			tensor<double>* out_tens = this->data_;
-			this->assigner_(*out_tens, data);
+			this->assigner_(*(this->data_), *data);
 			if (notify)
 			{
 				this->notify(notification::UPDATE);
@@ -99,8 +130,8 @@ variable_updater variable::assign (inode* input) const
 
 	return [this, input](bool notify)
 	{
-		tensor<double>* out_tens = this->data_;
-		const tensor<double>* in_tens = input->eval();
+		itensor* out_tens = this->data_;
+		const itensor* in_tens = input->eval();
 		assert(in_tens);
 		this->assigner_(*out_tens, *in_tens);
 		if (notify)
@@ -119,12 +150,11 @@ variable_updater variable::assign_add (inode* input) const
 		{
 			return [](bool) {};
 		}
-		std::vector<double>data = expose<double>(con);
+		const itensor* data = con->eval();
 		return [this, data](bool notify)
 		{
-			tensor<double>* out_tens = this->data_;
-			this->assigner_(*out_tens, data,
-			[](const double& e1, const double& e2) { return e1 + e2; });
+			itensor* out_tens = this->data_;
+			this->assigner_(*out_tens, *data, v_assign_add);
 			if (notify)
 			{
 				this->notify(notification::UPDATE);
@@ -134,11 +164,10 @@ variable_updater variable::assign_add (inode* input) const
 
 	return [this, input](bool notify)
 	{
-		tensor<double>* out_tens = this->data_;
-		const tensor<double>* in_tens = input->eval();
+		itensor* out_tens = this->data_;
+		const itensor* in_tens = input->eval();
 		assert(in_tens);
-		this->assigner_(*out_tens, *in_tens,
-		[](const double& e1, const double& e2) { return e1 + e2; });
+		this->assigner_(*out_tens, *in_tens, v_assign_add);
 		if (notify)
 		{
 			this->notify(notification::UPDATE);
@@ -155,12 +184,11 @@ variable_updater variable::assign_sub (inode* input) const
 		{
 			return [](bool) {};
 		}
-		std::vector<double>data = expose<double>(con);
+		const itensor* data = con->eval();
 		return [this, data](bool notify)
 		{
-			tensor<double>* out_tens = this->data_;
-			this->assigner_(*out_tens, data,
-			[](const double& e1, const double& e2) { return e1 - e2; });
+			itensor* out_tens = this->data_;
+			this->assigner_(*out_tens, *data, v_assign_sub);
 			if (notify)
 			{
 				this->notify(notification::UPDATE);
@@ -170,11 +198,10 @@ variable_updater variable::assign_sub (inode* input) const
 
 	return [this, input](bool notify)
 	{
-		tensor<double>* out_tens = this->data_;
-		const tensor<double>* in_tens = input->eval();
+		itensor* out_tens = this->data_;
+		const itensor* in_tens = input->eval();
 		assert(in_tens);
-		this->assigner_(*out_tens, *in_tens,
-		[](const double& e1, const double& e2) { return e1 - e2; });
+		this->assigner_(*out_tens, *in_tens, v_assign_sub);
 		if (notify)
 		{
 			this->notify(notification::UPDATE);

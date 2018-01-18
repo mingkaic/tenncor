@@ -29,7 +29,9 @@ class placeholder final : public ivariable
 public:
 	// >>>> CONSTRUCTORS <<<<
 	//! shape constructor
-	placeholder (const tensorshape& shape, std::string name = "");
+	placeholder (const tensorshape& shape, 
+		tenncor::tensor_proto::tensor_t type = tenncor::tensor_proto::DOUBLE_T, 
+		std::string name = "");
 
 	//! explicitly declare copy constructor since assignments are declared
 	placeholder (const placeholder& other);
@@ -57,10 +59,40 @@ public:
 	//! 	coordinate <c_0, c_1, ..., c_i>:
 	//! index mapping function is
 	//! sum_j=0:i(product_k=0:j(d_k-1) * c_j) where for k < 0 d_k = 1
-	virtual placeholder& operator = (std::vector<double>data);
+	template <typename T>
+	placeholder& operator = (std::vector<T> data)
+	{
+		tenncor::tensor_proto::tensor_t type = this->data_->get_type();
+		tenncor::tensor_proto::tensor_t ttype = get_prototype<T>();
+		if (type != ttype)
+		{
+			throw std::exception(); // incompatible types
+		}
+		// note: if this is allocated,
+		// compatibility is compared to allocated shape instead of allowed
+		assert(this->data_->is_compatible_with(data.size()));
+
+		if (false == this->data_->is_alloc())
+		{
+			if (optional<tensorshape> cand_shape = this->data_->guess_shape(data.size()))
+			{
+				this->data_->allocate(*cand_shape);
+			}
+			// we would reach here if data is empty... (todo: test. currently never reached)
+			else
+			{
+				throw std::logic_error("attempting to assign no data to an unallocated tensor");
+			}
+		}
+		this->assigner_(*(this->data_), &data[0], type);
+
+		this->is_init_ = true;
+		this->notify(UPDATE);
+		return *this;
+	}
 
 	//! assign tensor to inner tensor
-	virtual placeholder& operator = (tensor<double>& data);
+	virtual placeholder& operator = (itensor& data);
 
 protected:
 	// >>>> POLYMORPHIC CLONERS <<<<
@@ -89,10 +121,15 @@ public:
 
 	// >>>> EXTENDING PLACEHOLDER <<<<
 	//! assign a raw data
-	placeptr& operator = (std::vector<double>vec);
+	template <typename T>
+	placeptr& operator = (std::vector<T> vec)
+	{
+		get() = vec;
+		return *this;
+	}
 
 	//! assign a tensor
-	placeptr& operator = (tensor<double>& ten);
+	placeptr& operator = (itensor& ten);
 
 	//! implicit pointer conversion
 	operator placeholder* () const;

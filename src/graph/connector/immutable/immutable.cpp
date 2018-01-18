@@ -22,7 +22,7 @@ immutable::~immutable (void)
 }
 
 immutable* immutable::get (std::vector<inode*> args,
-	SHAPER shaper, transfer_func<double>* Nf,
+	SHAPER shaper, actor_func* Nf,
 	BACK_MAP ginit, std::string name,
 	inode* ignore_jacobian)
 {
@@ -75,7 +75,7 @@ immutable& immutable::operator = (immutable&& other)
 immutable::immutable (
 	std::vector<inode*> args,
 	SHAPER shaper,
-	transfer_func<double>* Nf,
+	actor_func* Nf,
 	BACK_MAP ginit, std::string label) :
 base_immutable(args, label),
 shaper_(shaper), Nf_(Nf),
@@ -114,51 +114,69 @@ base_immutable* immutable::arg_clone (std::vector<inode*> args) const
 
 void immutable::forward_pass (void)
 {
-	// shape and tensor extraction
-	std::vector<tensorshape> ts;
-	std::vector<const tensor<double>*> tens;
-	// todo: determine whether or not to move this tensor extraction up to base_immutable::update
-	for (subject* sub : this->dependencies_)
+	if (nullptr == actor_)
 	{
-		const tensor<double>* arg = this->take_eval(static_cast<inode*>(sub));
-		if (nullptr == arg)
+		// shape and tensor extraction
+		std::vector<const itensor*> tens;
+		std::vector<tensorshape> ts;
+		std::vector<tenncor::tensor_proto::tensor_t> types;
+		// todo: determine whether or not to move this tensor extraction up to base_immutable::update
+		for (subject* sub : this->dependencies_)
 		{
-			throw std::exception(); // todo: better exception
-		}
-		assert(arg->is_alloc());
-		ts.push_back(arg->get_shape());
-		tens.push_back(arg);
-	}
-	// shape check and tensor initialization
-	tensorshape s = shaper_(ts);
-	if (nullptr == this->data_)
-	{
-		s.assert_is_fully_defined();
-		this->data_ = new tensor<double>(s);
-	}
-	else if (s.is_fully_defined())
-	{
-		// if data_ is allocated, verify shape with data_
-		if (this->data_->is_alloc())
-		{
-			tensorshape oshape = this->data_->get_shape();
-			if (false == s.is_compatible_with(oshape))
+			const itensor* arg = this->take_eval(static_cast<inode*>(sub));
+			if (nullptr == arg)
 			{
-				std::stringstream ss;
-				print_shape(s, ss);
-				ss << " is incompatible with output shape ";
-				print_shape(oshape, ss);
-				throw std::runtime_error(ss.str());
+				throw std::exception(); // todo: better exception
+			}
+			assert(arg->is_alloc());
+			types.push_back(arg->get_type());
+			ts.push_back(arg->get_shape());
+			tens.push_back(arg);
+		}
+		// resolve type (todo: implement)
+		tenncor::tensor_proto::tensor_t type = types[0];
+		// shape check and tensor initialization
+		tensorshape s = shaper_(ts);
+		if (nullptr == this->data_)
+		{
+			s.assert_is_fully_defined();
+			switch (type)
+			{
+				case tenncor::tensor_proto::DOUBLE_T:
+					this->data_ = new tensor_double(s);
+				break;
+				case tenncor::tensor_proto::SIGNED_T:
+					this->data_ = new tensor_signed(s);
+				break;
+				default:
+					throw std::exception(); // unsupported type
 			}
 		}
-		// otherwise allocate data_
-		else
+		else if (s.is_fully_defined())
 		{
-			this->data_->allocate(s);
+			// if data_ is allocated, verify shape with data_
+			if (this->data_->is_alloc())
+			{
+				tensorshape oshape = this->data_->get_shape();
+				if (false == s.is_compatible_with(oshape))
+				{
+					std::stringstream ss;
+					print_shape(s, ss);
+					ss << " is incompatible with output shape ";
+					print_shape(oshape, ss);
+					throw std::runtime_error(ss.str());
+				}
+			}
+			// otherwise allocate data_
+			else
+			{
+				this->data_->allocate(s);
+			}
 		}
+		// assert none of tens is null
+		actor_ = (*Nf_)(*(this->data_), tens);
 	}
-	// assert none of tens is null
-	(*Nf_)(*(this->data_), tens);
+	actor_->action();
 }
 
 void immutable::backward_pass (variable* leaf)

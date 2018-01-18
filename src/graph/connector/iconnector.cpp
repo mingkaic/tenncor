@@ -109,7 +109,7 @@ size_t iconnector::n_arguments (void) const
 	return this->dependencies_.size();
 }
 
-const tensor<double>* iconnector::eval (void)
+const itensor* iconnector::eval (void)
 {
 	if (this->g_man_ && false == this->g_man_->freeze_)
 	{

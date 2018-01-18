@@ -97,6 +97,15 @@ void seed_generator (size_t val);
 //! uses cstdlib rand, so use srand to seed
 std::string uuid (const void* addr);
 
+template <typename T>
+std::string stringify (T* data, size_t n)
+{
+	size_t nbytes = n * sizeof(data);
+	std::string result(nbytes, '\0');
+	memcpy(&result[0], data, nbytes);
+	return result;
+}
+
 }
 
 #endif /* TENNCOR_UTILS_HPP */

@@ -97,7 +97,7 @@ protected:
 
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! Forward passing value
-	virtual const tensor<double>* get_eval (void) const;
+	virtual const itensor* get_eval (void) const;
 
 	//! grab operational gradient node, used by other nodes
 	//! delay instantiate gcache elements if target leaf was never instantiated
@@ -116,9 +116,9 @@ protected:
 	//! - record leaf set
 	typename base_immutable::GRAD_CACHE gcache_;
 
-// todo: have an option to disable data_ caching for performance boost
+	// todo: have an option to disable data_ caching for performance boost
 	//! inner tensor to cache forward evaluated values
-	tensor<double>* data_ = nullptr;
+	itensor* data_ = nullptr;
 
 private:
 	//! copy helper

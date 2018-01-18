@@ -68,9 +68,9 @@ bool ivariable::can_init (void) const
 }
 
 ivariable::ivariable (const tensorshape& shape,
-	initializer<double>* init,
-	std::string name) :
-ileaf(shape, name), init_(init) {}
+	tenncor::tensor_proto::tensor_t type,
+	initializer* init, std::string name) :
+ileaf(shape, type, name), init_(init) {}
 
 ivariable::ivariable (const ivariable& other) :
 	ileaf(other)

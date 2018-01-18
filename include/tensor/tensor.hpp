@@ -11,11 +11,6 @@
  *
  */
 
-#include "proto/serial/tenncor.pb.h"
-
-#include "include/tensor/tensorshape.hpp"
-#include "include/memory/default_alloc.hpp"
-
 #pragma once
 #ifndef TENNCOR_TENSOR_HPP
 #define TENNCOR_TENSOR_HPP
@@ -25,6 +20,9 @@
 #include <type_traits>
 #include <cstring>
 
+#include "include/memory/default_alloc.hpp"
+#include "include/tensor/tensorshape.hpp"
+
 namespace nnet
 {
 
@@ -33,9 +31,6 @@ namespace nnet
 //! data not covered in source are padded with zero
 template <typename T>
 void fit_toshape (T* dest, const tensorshape& outshape, const T* src, const tensorshape& inshape);
-
-template <typename T>
-class itensor_handler;
 
 template <typename T>
 class tensor // todo: make final, and make mock_tensor compose tensor instance
@@ -73,47 +68,9 @@ public:
 	//! get tensor shape (allocated if so, allowed shape otherwise)
 	tensorshape get_shape (void) const;
 
-	// >> SHAPE UTILITY <<
 	//! get the amount of T elements allocated
 	//! if uninitialized, return 0
 	size_t n_elems (void) const;
-
-	//! get the tensor rank, number of dimensions
-	size_t rank (void) const;
-
-	//! get vector dimension values
-	std::vector<size_t> dims (void) const;
-
-	// >> SHAPE COMPATIBILITY <<
-	//! checks if input tensor has a compatible allowed tensorshape
-	//! or if both this and other are allocated and the trimmed shapes are compatible
-	bool is_same_size (const tensor<T>& other) const;
-
-	//! check if other tensor's data is compatible with this shape
-	bool is_compatible_with (const tensor<T>& other) const;
-
-	//! check if input is compatible with tensor shape
-	//! data is compatible if data.size() == (innate or external) shape size
-	bool is_compatible_with (std::vector<T> data) const;
-
-	//! data is loosely compatible if data.size() < (innate or external) shape size
-	bool is_loosely_compatible_with (std::vector<T> data) const;
-
-	//! return compatible shape with n_elems == data.size()
-	//! or undefined if compatibility is impossible
-	// implementation detail:
-	// this algorithm attempts to cover up the first unknown with data.size() / n_known
-	// iff data.size() % n_known == 0
-	// todo: attempt to add lambda function as parameter to distribute data.size() / n_known among unknowns (same for loosely guess)
-	optional<tensorshape> guess_shape (const std::vector<T>& data) const;
-
-	//! return loosely compatible shape with n_elems <= data.size()
-	//! or undefined if compatibility is impossible
-	optional<tensorshape> loosely_guess_shape (const std::vector<T>& data) const;
-
-	//! checks if tensorshape is aligned
-	//! same number of column for each row
-	bool is_aligned (void) const;
 
 	// >>> DATA INFORMATION <<<
 	//! checks if memory is allocated
@@ -130,15 +87,6 @@ public:
 	//! exposing unallocated shape will cause assertion death
 	//! otherwise return data array copy
 	std::vector<T> expose (void) const;
-
-	//! serialize protobuf tensor
-	void serialize (tenncor::tensor_proto* proto) const; // TODO: move out of tensor... to itensor
-
-	//! read data and shape from other, take allocator as is
-	bool from_proto (const tenncor::tensor_proto& other); // TODO: move out of tensor... to itensor
-
-	//! read data and shape from other, reassign allocator
-	bool from_proto (const tenncor::tensor_proto& other, size_t alloc_id); // TODO: move out of tensor... to itensor
 
 	// >>>> MUTATOR <<<<
 	//! get allocator from factory and set it as alloc_
@@ -172,18 +120,23 @@ public:
 	bool copy_from (const tensor& other, const tensorshape shape);
 
 	// slice along the first dimension
-	tensor<T> slice (size_t dim_start, size_t limit);
+	void slice (size_t dim_start, size_t limit);
 
 	// bool shares_buffer_with (const tensor& other) const;
 	// size_t buffer_hash (void) const;
 
 protected:
 	// >>>> PROTECTED MEMBERS <<<<
-	T* raw_data_ = nullptr; //! raw data is available to tensor manipulators
+	//! raw data is available to tensor manipulators
+	T* raw_data_ = nullptr;
 
-	tensorshape alloc_shape_; //! allocated shape (must be defined)
+	//! not necessarily defined shape
+	tensorshape allowed_shape_;
 
-	friend class itensor_handler<T>;
+	//! allocated shape (must be defined)
+	tensorshape alloced_shape_;
+
+	friend class itensor;
 
 private:
 	//! copy utility helper
@@ -195,9 +148,6 @@ private:
 	// >>>> PRIVATE MEMBERS <<<<
 	//! allocator
 	iallocator* alloc_;
-
-	//! not necessarily defined shape
-	tensorshape allowed_shape_;
 };
 
 }

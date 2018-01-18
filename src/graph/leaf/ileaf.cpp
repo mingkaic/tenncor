@@ -65,7 +65,7 @@ size_t ileaf::n_arguments (void) const
 	return 0;
 }
 
-const tensor<double>* ileaf::eval (void)
+const itensor* ileaf::eval (void)
 {
 	return get_eval();
 }
@@ -100,12 +100,13 @@ bool ileaf::read_proto (const tenncor::tensor_proto& proto)
 	return success;
 }
 
-ileaf::ileaf (const tensorshape& shape, std::string name) :
-	inode(name),
-	data_(new tensor<double>(shape)) {}
+ileaf::ileaf (std::string name) : inode(name) {}
 
-ileaf::ileaf (const ileaf& other) :
-	inode(other)
+ileaf::ileaf (const tensorshape& shape, 
+	tenncor::tensor_proto::tensor_t type, std::string name) :
+inode(name), data_(init(shape, type)) {}
+
+ileaf::ileaf (const ileaf& other) : inode(other)
 {
 	copy_helper(other);
 }
@@ -116,7 +117,24 @@ ileaf::ileaf (ileaf&& other) :
 	move_helper(std::move(other));
 }
 
-const tensor<double>* ileaf::get_eval (void) const
+itensor* ileaf::init (const tensorshape& shape, 
+	tenncor::tensor_proto::tensor_t type)
+{
+	switch (type)
+	{
+		case tenncor::tensor_proto::DOUBLE_T:
+			data_ = new tensor_double(shape);
+		break;
+		case tenncor::tensor_proto::SIGNED_T:
+			data_ = new tensor_signed(shape);
+		break;
+		default:
+		break;
+	}
+	return data_;
+}
+
+const itensor* ileaf::get_eval (void) const
 {
 	if (false == good_status())
 	{
@@ -136,7 +154,7 @@ void ileaf::copy_helper (const ileaf& other)
 	// copy over data if other has good_status (we want to ignore uninitialized data)
 	if (other.data_)
 	{
-		data_ = new tensor<double>(*other.data_, !other.good_status());
+		data_ = other.data_->clone(!other.good_status());
 	}
 }
 
@@ -147,7 +165,7 @@ void ileaf::move_helper (ileaf&& other)
 		delete data_;
 	}
 	is_init_ = std::move(other.is_init_);
-	data_ = std::move(other.data_);
+	data_ = other.data_;
 	other.data_ = nullptr;
 }
 

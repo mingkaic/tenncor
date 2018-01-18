@@ -130,7 +130,7 @@ inode::inode (inode&& other) :
 	subject(std::move(other)),
 	label_(std::move(other.label_)) {}
 
-const tensor<double>* inode::take_eval (inode* source) const
+const itensor* inode::take_eval (inode* source) const
 {
 	return source->get_eval();
 }

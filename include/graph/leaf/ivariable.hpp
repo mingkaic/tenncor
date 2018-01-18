@@ -50,8 +50,8 @@ protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! construct to init zero and one
 	ivariable (const tensorshape& shape,
-		initializer<double>* init,
-		std::string name);
+		tenncor::tensor_proto::tensor_t type,
+		initializer* init, std::string name);
 
 	//! copy construct to init zero and one
 	ivariable (const ivariable& other);
@@ -60,7 +60,7 @@ protected:
 	ivariable (ivariable&& other);
 
 	//! initialization handler, owns this
-	initializer<double>* init_ = nullptr;
+	initializer* init_ = nullptr;
 
 private:
 	//! copy helper

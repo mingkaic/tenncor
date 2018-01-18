@@ -19,7 +19,7 @@ generator::~generator (void)
 }
 
 generator* generator::get (inode* shape_dep,
-	const initializer<double>& init, std::string name)
+	const initializer& init, std::string name)
 {
 	return new generator(shape_dep, init, name);
 }
@@ -102,6 +102,7 @@ void generator::update (std::unordered_set<size_t>)
 		this->notify(UNSUBSCRIBE);
 	}
 	tensorshape depshape = dep->get_shape();
+	tenncor::tensor_proto::tensor_t deptype = dep->get_type();
 	if (false == dep->good_status() || false == depshape.is_fully_defined())
 	{
 		return;
@@ -109,7 +110,17 @@ void generator::update (std::unordered_set<size_t>)
 	if (nullptr == data_)
 	{
 		// init
-		data_ = new tensor<double>(depshape);
+		switch (deptype)
+		{
+			case tenncor::tensor_proto::DOUBLE_T:
+				data_ = new tensor_double(depshape);
+				return;
+			case tenncor::tensor_proto::SIGNED_T:
+				data_ = new tensor_signed(depshape);
+				return;
+			default:
+				throw std::exception(); // unsupported type
+		}
 		(*init_)(*data_);
 		this->notify(UPDATE);
 	}
@@ -126,7 +137,7 @@ void generator::update (std::unordered_set<size_t>)
 	}
 }
 
-generator::generator (inode* shape_dep, const initializer<double>& init, std::string name) :
+generator::generator (inode* shape_dep, const initializer& init, std::string name) :
 	iconnector({shape_dep}, name)
 {
 	this->init_ = init.clone();
@@ -155,7 +166,7 @@ inode* generator::move_impl (void)
 	return new generator(std::move(*this));
 }
 
-const tensor<double>* generator::get_eval (void) const
+const itensor* generator::get_eval (void) const
 {
 	return data_;
 }
@@ -192,7 +203,7 @@ void generator::copy_helper (const generator& other)
 	}
 	if (other.data_)
 	{
-		data_ = new tensor<double>(*other.data_);
+		data_ = other.data_->clone();
 	}
 }
 

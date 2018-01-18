@@ -197,7 +197,7 @@ void base_immutable::death_on_broken (void)
 	delete this;
 }
 
-const tensor<double>* base_immutable::get_eval (void) const
+const itensor* base_immutable::get_eval (void) const
 {
 	return data_;
 }
@@ -225,7 +225,7 @@ void base_immutable::copy_helper (const base_immutable& other)
 	}
 	if (other.data_)
 	{
-		data_ = new tensor<double>(*other.data_);
+		data_ = other.data_->clone();
 	}
 	gcache_ = other.gcache_;
 }

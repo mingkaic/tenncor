@@ -1,6 +1,3 @@
-//
-//
-//
 /*!
  *
  *  shape_dep.hpp
@@ -27,6 +24,8 @@
 namespace nnet
 {
 
+using SHAPE_EXTRACT = std::function<std::vector<size_t>(tensorshape&)>;
+
 // todo: make tensor unaligned
 class shape_dep : public base_immutable
 {
@@ -35,8 +34,8 @@ public:
 
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for immutables, grabs ownership of Nf
-	static shape_dep* get (std::vector<inode*> args,
-		SHAPE_EXTRACT forward, tensorshape shape, std::string name);
+	static shape_dep* get (inode* arg, SHAPE_EXTRACT forward, 
+		tensorshape shape, std::string name);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
@@ -54,7 +53,7 @@ public:
 protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! immutable constructing an aggregate transfer function
-	shape_dep (std::vector<inode*> args, SHAPE_EXTRACT forward,
+	shape_dep (inode* arg, SHAPE_EXTRACT forward,
 		tensorshape shape, std::string label);
 
 	//! declare copy constructor to copy over transfer functions
@@ -83,7 +82,9 @@ protected:
 
 private:
 	//! extract shape dimensions to data_
-	shape_extracter<double>* shape_info = nullptr;
+	assign_func assigner_;
+
+	SHAPE_EXTRACT extracter_;
 
 	tensorshape shape_;
 };

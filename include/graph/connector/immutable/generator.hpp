@@ -28,7 +28,7 @@ public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for generator, clones init
 	static generator* get (inode* shape_dep,
-		const initializer<double>& init, std::string name = "generator");
+		const initializer& init, std::string name = "generator");
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
@@ -74,7 +74,7 @@ public:
 protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! default constructor
-	generator (inode* shape_dep, const initializer<double>& init, std::string name);
+	generator (inode* shape_dep, const initializer& init, std::string name);
 
 	//! declare copy constructor to copy over init and data
 	generator (const generator& other);
@@ -91,7 +91,7 @@ protected:
 
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! get forward passing value
-	virtual const tensor<double>* get_eval (void) const;
+	virtual const itensor* get_eval (void) const;
 
 	//! grab operational gradient node, used by other nodes
 	//! adds to internal caches if need be
@@ -112,10 +112,10 @@ private:
 	void clean_up (void);
 
 	//! initialization handler, owns this
-	initializer<double>* init_ = nullptr;
+	initializer* init_ = nullptr;
 
 	//! tensor data
-	tensor<double>* data_ = nullptr;
+	itensor* data_ = nullptr;
 };
 
 }

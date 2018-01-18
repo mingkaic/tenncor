@@ -52,7 +52,7 @@ public:
 
 	// >>>> FORWARD DATA <<<<
 	//! get forward passing value, (pull data if necessary)
-	virtual const tensor<double>* eval (void);
+	virtual const itensor* eval (void);
 
 	//! utility function: get data shape
 	virtual tensorshape get_shape (void) const;
@@ -71,8 +71,11 @@ public:
 
 protected:
 	// >>>> CONSTRUCTORS <<<<
+	ileaf (std::string name);
+
 	//! assign initializer
-	ileaf (const tensorshape& shape, std::string name);
+	ileaf (const tensorshape& shape, 
+		tenncor::tensor_proto::tensor_t type, std::string name);
 
 	//! declare copy constructor to deep copy over data
 	ileaf (const ileaf& other);
@@ -80,21 +83,24 @@ protected:
 	//! declare move constructor to move over data
 	ileaf (ileaf&& other);
 
+	itensor* init (const tensorshape& shape, 
+		tenncor::tensor_proto::tensor_t type);
+
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! get forward passing value
 	//! return nullptr if leaf is not init
-	virtual const tensor<double>* get_eval (void) const;
+	virtual const itensor* get_eval (void) const;
 
-	//! tensor<double> data
-	tensor<double>* data_ = nullptr;
+	//! raw data
+	itensor* data_ = nullptr;
 
-	//! is the tensor<double> initialized?
+	//! is the itensor initialized?
 	//! TRUE = initialized/good,
 	//! FALSE = uninitialized/bad
 	bool is_init_ = false;
 
-	//! common assignment tensor<double> handler
-	assign_func<double> assigner_;
+	//! common assignment itensor handler
+	assign_func assigner_;
 
 private:
 	//! copy helper

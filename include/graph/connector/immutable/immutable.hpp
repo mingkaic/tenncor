@@ -30,7 +30,7 @@ public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for immutables, grabs ownership of Nf
 	static immutable* get (std::vector<inode*> args,
-		SHAPER shaper, transfer_func<double>* Nf,
+		SHAPER shaper, actor_func* Nf,
 		BACK_MAP ginit, std::string name,
 		inode* ignore_jacobian = nullptr);
 
@@ -51,7 +51,7 @@ protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! immutable constructing an aggregate transfer function
 	immutable (std::vector<inode*> args,
-		SHAPER shaper, transfer_func<double>* Nf,
+		SHAPER shaper, actor_func* Nf,
 		BACK_MAP ginit, std::string label);
 
 	//! declare copy constructor to copy over transfer functions
@@ -90,7 +90,9 @@ private:
 
 	//! forward transfer function
 	//! calculates forward passing data
-	transfer_func<double>* Nf_ = nullptr;
+	actor_func* Nf_ = nullptr;
+
+	itens_actor* actor_ = nullptr;
 
 	//! backward transfer function to
 	//! lazy instantiate gradient cache values

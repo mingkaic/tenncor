@@ -152,10 +152,10 @@ void iobserver::update (std::unordered_set<size_t> dep_indices, notification msg
 			{
 				remove_dependency(dep_idx);
 			}
-			break;
+		break;
 		case UPDATE:
 			update(dep_indices); // value update
-			break;
+		break;
 	}
 	if (UNSUBSCRIBE == msg)
 	{

@@ -35,11 +35,14 @@ public:
 	variable (double scalar, std::string name = "scalar");
 
 	//! shape constructor, initializer is null
-	variable (const tensorshape& shape, std::string name = "");
+	variable (const tensorshape& shape, 
+		tenncor::tensor_proto::tensor_t type = tenncor::tensor_proto::DOUBLE_T, 
+		std::string name = "");
 
 	//! shape constructor with initializer
-	variable (const tensorshape& shape,
-		const initializer<double>& init, std::string name = "");
+	variable (const tensorshape& shape, const initializer& init, 
+		tenncor::tensor_proto::tensor_t type = tenncor::tensor_proto::DOUBLE_T,
+		std::string name = "");
 
 	// >>>> CLONER <<<<
 	//! clone function
@@ -50,15 +53,15 @@ public:
 
 	// >>>> VARIABLE SPECIAL <<<<
 	//! copy over initializer, replace current initializer
-	void set_initializer (const initializer<double>& init);
+	void set_initializer (const initializer& init);
 
 	//! initialize data and returns if possible,
 	//! throws error otherwise
-	tensor<double>& initialize (void);
+	itensor& initialize (void);
 
 	//! initialize data using shape and
 	//! returns if possible, throws error otherwise
-	tensor<double>& initialize (tensorshape shape);
+	itensor& initialize (tensorshape shape);
 
 	//! return update data function (directly assign input node data to this)
 	variable_updater assign (inode* input) const;

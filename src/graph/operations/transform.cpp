@@ -8,11 +8,56 @@
 
 #include "include/graph/operations/operations.hpp"
 #include "include/graph/connector/immutable/shape_dep.hpp"
+#include "include/tensor/actors/tens_transform.hpp"
 
 #ifdef TENNCOR_TRANSFORM_HPP
 
 namespace nnet
 {
+
+varptr l2norm (const varptr a)
+{
+	if (nullptr == a.get()) return nullptr;
+	if (constant* aconst = dynamic_cast<constant*>(a.get()))
+	{
+		double l2norm = 0;
+		std::vector<double> acvec = expose<double>(aconst);
+		for (double acv : acvec)
+		{
+			l2norm += acv * acv;
+		}
+		return constant::get(l2norm);
+	}
+	std::string opname = "l2norm";
+	if (inode* parent = unary_parent_search(a.get(), opname))
+	{
+		return parent;
+	}
+	varptr out = immutable::get(std::vector<inode*>{a},
+	[](std::vector<tensorshape>) { return std::vector<size_t>{1}; },
+	new actor_func(
+	CONN_ACTOR([](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
+	{
+		switch (type)
+		{
+			case tenncor::tensor_proto::DOUBLE_T:
+				return new tens_l2norm<double>(dest, srcs);
+			case tenncor::tensor_proto::SIGNED_T:
+				return new tens_l2norm<signed>(dest, srcs);
+			default:
+			break;
+		}
+		return nullptr;
+	})),
+	[](std::vector<std::pair<inode*,inode*>> args)
+	{
+		varptr grad = args.front().second;
+		return l2norm(grad);
+	}, opname);
+	out->extract_metadata(a.get());
+	return out;
+}
 
 varptr transpose (const varptr a, std::pair<size_t,size_t> axis_swap)
 {
@@ -52,33 +97,21 @@ varptr transpose (const varptr a, std::pair<size_t,size_t> axis_swap)
 		}
 		return tensorshape();
 	},
-	new transfer_func<double>(
-	[axis_swap](double* dest, std::vector<const double*> src, shape_io shape)
+	new actor_func(
+	CONN_ACTOR([axis_swap](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 	{
-		assert(1 == src.size());
-		size_t n_elems = shape.outs_.n_elems();
-		size_t rank = shape.ins_[0].rank();
-		if (axis_swap.first>= rank)
+		switch (type)
 		{
-			return;
+			case tenncor::tensor_proto::DOUBLE_T:
+				return new tens_transpose<double>(dest, srcs, axis_swap);
+			case tenncor::tensor_proto::SIGNED_T:
+				return new tens_transpose<signed>(dest, srcs, axis_swap);
+			default:
+			break;
 		}
-		std::vector<size_t> coords;
-		if (axis_swap.second>= rank)
-		{
-			// we're transposing with a previously non-existent dimension,
-			// so there is a 1-1 correspondence between src and dest
-			std::memcpy(dest, src[0], n_elems * sizeof(double));
-		}
-		else
-		{
-			for (size_t i = 0; i < n_elems; i++)
-			{
-				coords = shape.outs_.coordinate_from_idx(i);
-				std::swap(coords[axis_swap.first], coords[axis_swap.second]);
-				dest[i] = src[0][shape.ins_[0].flat_idx(coords)];
-			}
-		}
-	}),
+		return nullptr;
+	})),
 	[axis_swap](std::vector<std::pair<inode*,inode*>> args)
 	{
 		varptr grad = args.front().second;
@@ -103,28 +136,21 @@ varptr fit (const varptr a, const varptr watch)
 	{
 		return shapes[1]; // watch is always argument 2
 	},
-	new transfer_func<double>([](double* dest, std::vector<const double*> src, shape_io shape)
+	new actor_func(
+	CONN_ACTOR([](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 	{
-		assert(2 == src.size());
-		std::vector<size_t> src_list = shape.ins_[0].as_list();
-		size_t minrank = std::min(src_list.size(), shape.ins_[1].rank());
-		size_t n_elems = shape.outs_.n_elems();
-		std::vector<size_t> coords;
-		for (size_t i = 0; i < n_elems; i++)
+		switch (type)
 		{
-			coords = shape.outs_.coordinate_from_idx(i);
-			bool inbound = true;
-			for (size_t j = 0; inbound && j < minrank; j++)
-			{
-				inbound = coords[j] < src_list[j];
-			}
-			for (size_t j = minrank, rank = coords.size(); inbound && j < rank; j++)
-			{
-				inbound = coords[j] == 0;
-			}
-			dest[i] = inbound ? src[0][shape.ins_[0].flat_idx(coords)] : 0;
+			case tenncor::tensor_proto::DOUBLE_T:
+				return new tens_fit<double>(dest, srcs);
+			case tenncor::tensor_proto::SIGNED_T:
+				return new tens_fit<signed>(dest, srcs);
+			default:
+			break;
 		}
-	}),
+		return nullptr;
+	})),
 	[](std::vector<std::pair<inode*,inode*>> args)
 	{
 		varptr grad = args.front().second;
@@ -166,20 +192,21 @@ varptr extend (const varptr a, size_t index, size_t multiplier)
 		}
 		return tv;
 	},
-	new transfer_func<double>([index, multiplier](double* dest, std::vector<const double*> src, shape_io shape)
+	new actor_func(
+	CONN_ACTOR([index, multiplier](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 	{
-		assert(1 == src.size());
-		size_t n_elems = shape.outs_.n_elems();
-		size_t dim = shape.ins_[0].as_list()[index];
-		std::vector<size_t> coords;
-		for (size_t i = 0; i < n_elems; i++)
+		switch (type)
 		{
-			std::vector<size_t> coords = shape.outs_.coordinate_from_idx(i);
-			coords[index] = coords[index] % dim;
-
-			dest[i] = src[0][shape.ins_[0].flat_idx(coords)];
+			case tenncor::tensor_proto::DOUBLE_T:
+				return new tens_extend<double>(dest, srcs, index, multiplier);
+			case tenncor::tensor_proto::SIGNED_T:
+				return new tens_extend<signed>(dest, srcs, index, multiplier);
+			default:
+			break;
 		}
-	}),
+		return nullptr;
+	})),
 	[index, multiplier](std::vector<std::pair<inode*,inode*>> args)
 	{
 		varptr grad = args.front().second;
@@ -187,7 +214,7 @@ varptr extend (const varptr a, size_t index, size_t multiplier)
 	}, opname);
 }
 
-varptr compress (const varptr a, AGGREGATE collector,
+varptr compress (const varptr a, BI_TRANS<double> collector,
 	optional<size_t> index, std::string name)
 {
 	if (nullptr == a.get()) return nullptr;
@@ -197,7 +224,7 @@ varptr compress (const varptr a, AGGREGATE collector,
 		return parent;
 	}
 	SHAPER shaper;
-	transfer_func<double>* forward;
+	actor_func* forward;
 	if ((bool) index)
 	{
 		shaper = [index](std::vector<tensorshape> shapes) -> tensorshape
@@ -232,61 +259,41 @@ varptr compress (const varptr a, AGGREGATE collector,
 			return tensorshape(tv);
 		};
 
-		forward = new transfer_func<double>(
-		[index, collector](double* dest, std::vector<const double*> src, shape_io shape)
+		forward = new actor_func(
+		CONN_ACTOR([index, collector](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+			tenncor::tensor_proto::tensor_t type) -> itens_actor*
 		{
-			assert(1 == src.size());
-			size_t n_elems = shape.outs_.n_elems();
-			if (shape.ins_[0].rank() <= *index)
+			switch (type)
 			{
-				std::memcpy(dest, src[0], sizeof(double) * n_elems);
+				case tenncor::tensor_proto::DOUBLE_T:
+					return new tens_compress<double>(dest, srcs, *index, collector);
+				case tenncor::tensor_proto::SIGNED_T:
+					return new tens_compress<signed>(dest, srcs, *index, collector);
+				default:
+				break;
 			}
-			else
-			{
-				size_t adim = shape.ins_[0].as_list()[*index];
-				std::vector<size_t> coords;
-				for (size_t i = 0; i < n_elems; i++)
-				{
-					coords = shape.outs_.coordinate_from_idx(i);
-					if (*index == coords.size())
-					{
-						coords.push_back(0);
-					}
-					else if (*index == 0)
-					{
-						std::vector<size_t> temp = coords;
-						coords = {0};
-						coords.insert(coords.end(), temp.begin(), temp.end());
-					}
-					else
-					{
-						coords[*index] = 0;
-					}
-					size_t src_idx = shape.ins_[0].flat_idx(coords);
-					dest[i] = src[0][src_idx];
-					for (size_t j = 1; j < adim; j++)
-					{
-						coords[*index] = j;
-						src_idx = shape.ins_[0].flat_idx(coords);
-						dest[i] = collector(dest[i], src[0][src_idx]);
-					}
-				}
-			}
-		});
+			return nullptr;
+		}));
 	}
 	else
 	{
 		shaper = [](std::vector<tensorshape>) -> tensorshape { return std::vector<size_t>{1}; };
 		// scalar shape
-		forward = new transfer_func<double>(
-		[collector](double* dest, std::vector<const double*> src, shape_io shape)
+		forward = new actor_func(
+		CONN_ACTOR([collector](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 		{
-			assert(1 == src.size());
-			if (size_t n_ins = shape.ins_[0].n_elems())
+			switch (type)
 			{
-				dest[0] = std::accumulate(src[0] + 1, src[0] + n_ins, *src[0], collector);
+				case tenncor::tensor_proto::DOUBLE_T:
+					return new tens_compress<double>(dest, srcs, collector);
+				case tenncor::tensor_proto::SIGNED_T:
+					return new tens_compress<signed>(dest, srcs, collector);
+				default:
+				break;
 			}
-		});
+			return nullptr;
+		}));
 	}
 	return immutable::get(std::vector<inode*>{a}, shaper, forward,
 	[index](std::vector<std::pair<inode*,inode*>> args)
@@ -327,7 +334,7 @@ varptr reduce_mean (const varptr a, optional<size_t> dimension)
 	varptr denom;
 	if (dimension)
 	{
-		denom = shape_dep::get({ a },
+		denom = shape_dep::get(a,
 		[dimension](tensorshape& s) -> std::vector<size_t>
 		{
 			return { s.as_list()[*dimension] };
@@ -336,7 +343,7 @@ varptr reduce_mean (const varptr a, optional<size_t> dimension)
 	}
 	else
 	{
-		denom = shape_dep::get({ a },
+		denom = shape_dep::get(a,
 		[](tensorshape& s) -> std::vector<size_t>
 		{
 			return { s.n_elems() };
@@ -345,7 +352,7 @@ varptr reduce_mean (const varptr a, optional<size_t> dimension)
 	return reduce_sum(a, dimension) / denom;
 }
 
-varptr arg_compress (const varptr a, REDUCE search,
+varptr arg_compress (const varptr a, REDUCE<double> search,
 	optional<size_t> dimension, std::string name)
 {
 	if (nullptr == a.get()) return nullptr;
@@ -355,7 +362,7 @@ varptr arg_compress (const varptr a, REDUCE search,
 		return parent;
 	}
 	SHAPER shaper;
-	transfer_func<double>* forward;
+	actor_func* forward;
 	if (dimension)
 	{
 		shaper = [dimension](std::vector<tensorshape> shapes) -> tensorshape
@@ -385,34 +392,21 @@ varptr arg_compress (const varptr a, REDUCE search,
 			}
 			return tv;
 		};
-		forward = new transfer_func<double>(
-		[dimension, search](double* dest, std::vector<const double*> src, shape_io shape)
+		forward = new actor_func(
+		CONN_ACTOR([dimension, search](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 		{
-			assert(1 == src.size());
-			size_t n_elems = shape.outs_.n_elems();
-			std::vector<size_t> coords;
-			for (size_t i = 0; i < n_elems; i++)
+			switch (type)
 			{
-				coords = shape.outs_.coordinate_from_idx(i);
-				if (*dimension == coords.size())
-				{
-					coords.push_back(0);
-				}
-				else if (*dimension == 0)
-				{
-					std::vector<size_t> temp = coords;
-					coords = {0};
-					coords.insert(coords.end(), temp.begin(), temp.end());
-				}
-				std::vector<double> search_vec;
-				for (size_t j = 0, adim = shape.ins_[0].as_list()[*dimension]; j < adim; j++)
-				{
-					coords[*dimension] = j;
-					search_vec.push_back(src[0][shape.ins_[0].flat_idx(coords)]);
-				}
-				dest[i] = search(search_vec);
+				case tenncor::tensor_proto::DOUBLE_T:
+					return new tens_argcompress<double>(dest, srcs, *dimension, search);
+				case tenncor::tensor_proto::SIGNED_T:
+					return new tens_argcompress<signed>(dest, srcs, *dimension, search);
+				default:
+				break;
 			}
-		});
+			return nullptr;
+		}));
 	}
 	else
 	{
@@ -421,14 +415,21 @@ varptr arg_compress (const varptr a, REDUCE search,
 			return std::vector<size_t>{inshapes[0].rank()};
 		};
 		// scalar shape
-		forward = new transfer_func<double>(
-		[search](double* dest, std::vector<const double*> src, shape_io shape)
+		forward = new actor_func(
+		CONN_ACTOR([search](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 		{
-			assert(1 == src.size());
-			size_t n_ins = shape.ins_[0].n_elems();
-			std::vector<double> search_vec(src[0], src[0] + n_ins);
-			dest[0] = search(search_vec);
-		});
+			switch (type)
+			{
+				case tenncor::tensor_proto::DOUBLE_T:
+					return new tens_argcompress<double>(dest, srcs, search);
+				case tenncor::tensor_proto::SIGNED_T:
+					return new tens_argcompress<signed>(dest, srcs, search);
+				default:
+				break;
+			}
+			return nullptr;
+		}));
 	}
 	return immutable::get(std::vector<inode*>{a}, shaper, forward,
 	[](std::vector<std::pair<inode*,inode*>>)
@@ -470,22 +471,21 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 	{
 		return shapes[0];
 	},
-	new transfer_func<double>(
-	[dims](double* dest, std::vector<const double*> src, shape_io shape)
+	new actor_func(
+	CONN_ACTOR([dims](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 	{
-		assert(1 == src.size());
-		size_t n_elems = shape.outs_.n_elems();
-		std::vector<size_t> outlist = shape.outs_.as_list();
-		for (size_t i = 0; i < n_elems; i++)
+		switch (type)
 		{
-			std::vector<size_t> coord = shape.outs_.coordinate_from_idx(i);
-			for (size_t d : dims)
-			{
-				coord[d] = outlist[d] - coord[d] - 1;
-			}
-			dest[i] = src[0][shape.ins_[0].flat_idx(coord)];
+			case tenncor::tensor_proto::DOUBLE_T:
+				return new tens_flip<double>(dest, srcs, dims);
+			case tenncor::tensor_proto::SIGNED_T:
+				return new tens_flip<signed>(dest, srcs, dims);
+			default:
+			break;
 		}
-	}),
+		return nullptr;
+	})),
 	[dims](std::vector<std::pair<inode*,inode*>> args)
 	{
 		return flip(args.front().second, dims);
@@ -513,32 +513,21 @@ varptr cross_corr2d (const varptr a, const varptr filter,
 		outshape[dims.second] -= filtshape[dims.second] + 1;
 		return outshape;
 	},
-	new transfer_func<double>(
-	[dims](double* dest, std::vector<const double*> src, shape_io shape)
+	new actor_func(
+	CONN_ACTOR([dims](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 	{
-		assert(2 == src.size());
-		size_t n_elems = shape.outs_.n_elems();
-		std::vector<size_t> outlist = shape.outs_.as_list();
-		std::vector<size_t> inlist = shape.ins_[0].as_list();
-		size_t firstn = inlist[dims.first] - outlist[dims.first];
-		size_t secondn = inlist[dims.second] - outlist[dims.second];
-		std::vector<size_t> coord;
-		for (size_t i = 0; i < n_elems; i++)
+		switch (type)
 		{
-			dest[i] = 0;
-			coord = shape.outs_.coordinate_from_idx(i);
-			for (size_t j = 0; j < firstn; j++)
-			{
-				for (size_t k = 0; k < secondn; k++)
-				{
-					dest[i] += src[0][shape.ins_[0].flat_idx(coord)] * src[0][k * firstn + j];
-
-					coord[dims.second]++;
-				}
-				coord[dims.first]++;
-			}
+			case tenncor::tensor_proto::DOUBLE_T:
+				return new tens_cross_corr2d<double>(dest, srcs, dims);
+			case tenncor::tensor_proto::SIGNED_T:
+				return new tens_cross_corr2d<signed>(dest, srcs, dims);
+			default:
+			break;
 		}
-	}),
+		return nullptr;
+	})),
 	[](std::vector<std::pair<inode*,inode*>>)
 	{
 		throw std::bad_function_call(); // NOT IMPLEMENTED

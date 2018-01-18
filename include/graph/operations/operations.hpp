@@ -23,15 +23,11 @@
 
 #pragma once
 
-using AGGREGATE = std::function<double(double, double)>;
-
-using REDUCE = std::function<double(std::vector<double>)>;
-
 namespace nnet
 {
 
-#ifndef TENNCOR_ELEMENTARY_HPP
-#define TENNCOR_ELEMENTARY_HPP
+#ifndef TENNCOR_ELEM_UNI_HPP
+#define TENNCOR_ELEM_UNI_HPP
 
 //! wraps an empty node, usually to avoid overlapping references
 varptr identity (varptr x);
@@ -78,7 +74,7 @@ varptr log (const varptr a);
 varptr pow (const varptr a, double scalar);
 
 //! clip values in range [min, max]
-varptr clip_val (const varptr a, double min, double max);
+varptr clip (const varptr a, double min, double max);
 
 //! normalize clip values with capacity cap
 varptr clip_norm (const varptr a, double cap);
@@ -100,40 +96,45 @@ varptr binomial_sample (double n, const varptr p);
 
 varptr binomial_sample (const varptr n, double p);
 
-varptr binomial_sample (const varptr n, const varptr p);
+//! add a and scalar b
+varptr operator + (const varptr a, double b);
 
 //! add scalar a and b
 varptr operator + (double a, const varptr b);
 
-//! add a and scalar b
-varptr operator + (const varptr a, double b);
-
-//! add a and b
-varptr operator + (const varptr a, const varptr b);
+//! subtract a and scalar b
+varptr operator - (const varptr a, double b);
 
 //! subtract scalar a and b
 varptr operator - (double a, const varptr b);
 
-//! subtract a and scalar b
-varptr operator - (const varptr a, double b);
-
-//! subtract a and b
-varptr operator - (const varptr a, const varptr b);
+//! multiply a and scalar b
+varptr operator * (const varptr a, double b);
 
 //! multiply scalar a and b
 varptr operator * (double a, const varptr b);
 
-//! multiply a and scalar b
-varptr operator * (const varptr a, double b);
-
-//! multiply a and b
-varptr operator * (const varptr a, const varptr b);
+//! divide a and scalar b
+varptr operator / (const varptr a, double b);
 
 //! divide scalar a and b
 varptr operator / (double a, const varptr b);
 
-//! divide a and scalar b
-varptr operator / (const varptr a, double b);
+#endif /* TENNCOR_ELEM_UNI_HPP */
+
+#ifndef TENNCOR_ELEM_BI_HPP
+#define TENNCOR_ELEM_BI_HPP
+
+varptr binomial_sample (const varptr n, const varptr p);
+
+//! add a and b
+varptr operator + (const varptr a, const varptr b);
+
+//! subtract a and b
+varptr operator - (const varptr a, const varptr b);
+
+//! multiply a and b
+varptr operator * (const varptr a, const varptr b);
 
 //! divide a and b
 varptr operator / (const varptr a, const varptr b);
@@ -158,10 +159,12 @@ varptr div_axial_a (const varptr a, const varptr b, size_t axis_a);
 
 varptr div_axial_b (const varptr a, const varptr b, size_t axis_b);
 
-#endif /* TENNCOR_ELEMENTARY_HPP */
+#endif /* TENNCOR_ELEM_BI_HPP */
 
 #ifndef TENNCOR_TRANSFORM_HPP
 #define TENNCOR_TRANSFORM_HPP
+
+varptr l2norm (const varptr a);
 
 //! transpose a along first 2 dimension
 // todo: check if axis_swap are the same dimensions, if so, return a as is (invalid transpose) + leave warning
@@ -177,7 +180,7 @@ varptr extend (const varptr a, size_t index, size_t multiplier);
 
 //! compresses data along dimensions specified by index
 //! unspecified index compresses all elements in the tensor (output is a scalar)
-varptr compress (const varptr a, AGGREGATE collector,
+varptr compress (const varptr a, BI_TRANS<double> collector,
 	optional<size_t> index, std::string name = "compress");
 
 // Dimensionality Reduction Functions (Wrappers for compress)
@@ -197,7 +200,7 @@ varptr reduce_mean (const varptr a, optional<size_t> dimension = optional<size_t
 //! by taking the index using the compare function
 //! unspecified dimension compresses all elements in the tensor (output is a scalar)
 //! takes left argument of compare if compare evaluates to true
-varptr arg_compress (const varptr a, REDUCE search,
+varptr arg_compress (const varptr a, REDUCE<double> search,
 	optional<size_t> dimension, std::string name = "argcompress");
 
 //! obtains the indices of the maximum value across specified dimension
@@ -235,4 +238,3 @@ varptr matmul (const varptr a, const varptr b,
 #endif /* TENNCOR_MATMUL_HPP */
 
 }
-

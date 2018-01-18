@@ -13,8 +13,9 @@
 namespace nnet
 {
 
-placeholder::placeholder (const tensorshape& shape, std::string name) :
-	ivariable(shape, nullptr, name) {}
+placeholder::placeholder (const tensorshape& shape, 
+	tenncor::tensor_proto::tensor_t type, std::string name) :
+ivariable(shape, type, nullptr, name) {}
 
 placeholder::placeholder (const placeholder& other) : ivariable(other) {}
 
@@ -48,34 +49,8 @@ placeholder& placeholder::operator = (placeholder&& other)
 	return *this;
 }
 
-// maintains shape
-placeholder& placeholder::operator = (std::vector<double>data)
-{
-	// note: if this is allocated,
-	// compatibility is compared to allocated shape instead of allowed
-	assert(this->data_->is_compatible_with(data));
-
-	if (false == this->data_->is_alloc())
-	{
-		if (optional<tensorshape> cand_shape = this->data_->guess_shape(data))
-		{
-			this->data_->allocate(*cand_shape);
-		}
-		// we would reach here if data is empty... (todo: test. currently never reached)
-		else
-		{
-			throw std::logic_error("attempting to assign no data to an unallocated tensor");
-		}
-	}
-	this->assigner_(*(this->data_), data);
-
-	this->is_init_ = true;
-	this->notify(UPDATE);
-	return *this;
-}
-
 // changes shape
-placeholder& placeholder::operator = (tensor<double>& data)
+placeholder& placeholder::operator = (itensor& data)
 {
 	*this->data_ = std::move(data);
 	this->is_init_ = true;
@@ -106,13 +81,7 @@ placeptr& placeptr::operator = (placeholder* other)
 	return *this;
 }
 
-placeptr& placeptr::operator = (std::vector<double>vec)
-{
-	*get() = vec;
-	return *this;
-}
-
-placeptr& placeptr::operator = (tensor<double>& ten)
+placeptr& placeptr::operator = (itensor& ten)
 {
 	*get() = ten;
 	return *this;

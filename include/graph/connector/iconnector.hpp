@@ -41,12 +41,12 @@ public:
 	struct conn_summary
 	{
 		conn_summary (std::string id, SHAPER shaper,
-			TRANSFER_FUNC<double> forward, BACK_MAP back) :
+			CONN_ACTOR forward, BACK_MAP back) :
 				id_(id), shaper_(shaper), Nf_(forward), ginit_(back) {}
 
 		std::string id_;
 		SHAPER shaper_;
-		TRANSFER_FUNC<double> Nf_;
+		CONN_ACTOR Nf_;
 		BACK_MAP ginit_;
 
 		std::vector<std::string> arg_ids_;
@@ -88,7 +88,7 @@ public:
 	virtual void temporary_eval (const iconnector* target, inode*& out) const = 0;
 
 	//! get forward passing value, (pull data if necessary)
-	virtual const tensor<double>* eval (void);
+	virtual const itensor* eval (void);
 
 	// >>>> GRAPH STATUS <<<<
 	//! check if other connector is in the same graph as this
