@@ -10,7 +10,7 @@
 
 #include "tests/include/mocks/mock_subject.h"
 #include "tests/include/mocks/mock_observer.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_REACT_TEST

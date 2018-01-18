@@ -785,7 +785,7 @@ TEST_F(IMMUTABLE, Update_I010)
 	};
 
 	bool mutate = false;
-	TRANSFER_FUNC<double> asis = [&mutate](double* dest, std::vector<const double*> src, nnet::shape_io shape)
+	CONN_ACTOR<double> asis = [&mutate](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type)
 	{
 		adder(dest, src, shape);
 		if (mutate)

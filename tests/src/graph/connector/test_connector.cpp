@@ -10,7 +10,7 @@
 
 #include "tests/include/mocks/mock_node.h"
 #include "tests/include/mocks/mock_connector.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_CONNECTOR_TEST

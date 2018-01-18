@@ -7,8 +7,8 @@
 
 #include "gtest/gtest.h"
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 #include "include/graph/leaf/ileaf.hpp"
 
@@ -24,7 +24,7 @@ public:
 	virtual varptr derive (inode*) { return nullptr; }
 
 	void set_good (void) { this->is_init_ = true; }
-	void mock_init_data (initializer<double>& initer) { initer(*this->data_); }
+	void mock_init_data (initializer& initer) { initer(*this->data_); }
 
 protected:
 	virtual inode* clone_impl (void) const { return new mock_leaf(*this); }

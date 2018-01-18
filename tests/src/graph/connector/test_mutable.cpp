@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #define DISABLE_MUTABLE_TEST

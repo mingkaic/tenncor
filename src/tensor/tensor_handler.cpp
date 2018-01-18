@@ -15,6 +15,12 @@
 namespace nnet
 {
 
+void default_assign (void* dest, const void* src, 
+	tenncor::tensor_proto::tensor_t type)
+{
+	memcpy(dest, src, type_size(type));
+}
+
 // INTERFACE
 
 itensor_handler* itensor_handler::clone (void) const
@@ -195,10 +201,16 @@ itensor_handler* const_init::move_impl (void)
 }
 
 void const_init::calc_data (void* dest, 
-	tenncor::tensor_proto::tensor_t type, tensorshape)
+	tenncor::tensor_proto::tensor_t type, tensorshape outshape)
 {
 	assert(type == type_);
-	memcpy(dest, &value_[0], value_.size());
+	size_t n = outshape.n_elems();
+	size_t nbyte = value_.size();
+	char* cdest = (char*) dest;
+	for (size_t i = 0; i < n; ++i)
+	{
+		memcpy(cdest + i * nbyte, &value_[0], nbyte);
+	}
 }
 
 // RANDOM INITIALIZERS

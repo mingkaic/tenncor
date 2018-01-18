@@ -11,8 +11,8 @@
 #include "include/graph/operations/operations.hpp"
 #include "include/utils/futils.hpp"
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_MATMUL_TEST

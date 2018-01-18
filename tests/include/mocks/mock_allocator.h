@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-#include "tests/include/util_test.h"
+#include "tests/include/utils/util_test.h"
 
 #include "include/memory/iallocator.hpp"
 #include "include/memory/default_alloc.hpp"

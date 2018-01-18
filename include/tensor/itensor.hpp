@@ -65,7 +65,9 @@ public:
 	//! data is compatible if data.size() == (innate or external) shape size
 	bool is_compatible_with (size_t ndata) const;
 
-	//! data is loosely compatible if data.size() < (innate or external) shape size
+	//! check if an array that is the size of vector 
+	//! specified in input is compatible with tensorshape
+	//! data is loosely compatible if ndata < (innate or external) shape size
 	bool is_loosely_compatible_with (size_t ndata) const;
 
 	//! return compatible shape with n_elems == data.size()
@@ -207,16 +209,10 @@ tenncor::tensor_proto::tensor_t get_prototype (void)
 }
 
 template <>
-tenncor::tensor_proto::tensor_t get_prototype<double> (void)
-{
-	return tenncor::tensor_proto::DOUBLE_T;
-}
+tenncor::tensor_proto::tensor_t get_prototype<double> (void);
 
 template <>
-tenncor::tensor_proto::tensor_t get_prototype<signed> (void)
-{
-	return tenncor::tensor_proto::SIGNED_T;
-}
+tenncor::tensor_proto::tensor_t get_prototype<signed> (void);
 
 }
 

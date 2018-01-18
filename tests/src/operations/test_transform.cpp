@@ -11,8 +11,8 @@
 #include "include/graph/leaf/variable.hpp"
 #include "include/graph/operations/operations.hpp"
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_TRANSFORM_TEST
@@ -274,7 +274,7 @@ TEST_F(TRANSFORM, Extend_B003To004)
 TEST_F(TRANSFORM, Compress_B005)
 {
 	size_t compress_index;
-	AGGREGATE compression =
+	BI_TRANS compression =
 	[](double a, double b) -> double
 	{
 		return a + b;
@@ -349,7 +349,7 @@ TEST_F(TRANSFORM, CompressScalar_B006)
 	variable var(shape, rinit, "unar_var");
 	var.initialize();
 
-	std::vector<AGGREGATE> comps = {
+	std::vector<BI_TRANS> comps = {
 		[](double a, double b)
 		{
 			return a + b;
@@ -363,7 +363,7 @@ TEST_F(TRANSFORM, CompressScalar_B006)
 			return std::min(a, b);
 		}
 	};
-	AGGREGATE comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
+	BI_TRANS comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
 
 	varptr scal = compress(varptr(&var), comp, optional<size_t>());
 

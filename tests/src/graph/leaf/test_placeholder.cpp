@@ -10,8 +10,8 @@
 
 #include "tests/include/mocks/mock_node.h"
 #include "tests/include/mocks/mock_connector.h"
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 #include "include/graph/leaf/placeholder.hpp"
 

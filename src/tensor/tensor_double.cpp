@@ -31,6 +31,24 @@ tensor_double* tensor_double::move (void)
 	return static_cast<tensor_double*>(move_impl());
 }
 
+tensor_double& tensor_double::operator = (const tensor_double& other)
+{
+	if (&other != this)
+	{
+		content_ = other.content_;
+	}
+	return *this;
+}
+
+tensor_double& tensor_double::operator = (tensor_double&& other)
+{
+	if (&other != this)
+	{
+		content_ = std::move(other.content_);
+	}
+	return *this;
+}
+
 tenncor::tensor_proto::tensor_t tensor_double::get_type (void) const
 {
 	return tenncor::tensor_proto::DOUBLE_T;
@@ -107,6 +125,9 @@ void tensor_double::slice (size_t dim_start, size_t limit)
 
 tensor_double::tensor_double (const tensor_double& other, bool shapeonly) :
 	content_(other.content_, shapeonly) {}
+
+tensor_double::tensor_double (tensor_double&& other) :
+	content_(std::move(other.content_)) {}
 
 itensor* tensor_double::clone_impl (bool shapeonly) const
 {

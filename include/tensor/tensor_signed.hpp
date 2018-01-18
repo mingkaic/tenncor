@@ -38,10 +38,16 @@ public:
 	tensor_signed (tensorshape shape, size_t alloc_id = default_alloc::alloc_id);
 
 	//! clone function
-	tensor_signed* clone (bool shapeonly) const;
+	tensor_signed* clone (bool shapeonly = false) const;
 
 	//! clone function
 	tensor_signed* move (void);
+
+	//! copy assignment
+	tensor_signed& operator = (const tensor_signed& other);
+
+	//! move assignment
+	tensor_signed& operator = (tensor_signed&& other);
 
 	virtual tenncor::tensor_proto::tensor_t get_type (void) const;
 
@@ -98,9 +104,12 @@ public:
 	virtual void slice (size_t dim_start, size_t limit);
 
 protected:
-	// >>>> COPY <<<<
+	// >>>> COPY && MOVE <<<<
 	//! copy constructor
 	tensor_signed (const tensor_signed& other, bool shapeonly = false);
+
+	//! move constructor
+	tensor_signed (tensor_signed&& other);
 
 	// >>>> ABSTRACT CLONE <<<<
 	//! clone implementation

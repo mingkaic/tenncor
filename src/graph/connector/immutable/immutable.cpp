@@ -19,6 +19,11 @@ immutable::~immutable (void)
 	{
 		delete Nf_;
 	}
+
+	if (actor_)
+	{
+		delete actor_;
+	}
 }
 
 immutable* immutable::get (std::vector<inode*> args,

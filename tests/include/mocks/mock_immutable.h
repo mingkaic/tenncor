@@ -5,8 +5,8 @@
 #ifndef TENNCOR_MOCK_IMMUTABLE_H
 #define TENNCOR_MOCK_IMMUTABLE_H
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 #include "include/graph/connector/immutable/immutable.hpp"
 
@@ -20,7 +20,7 @@ SHAPER get_testshaper (FUZZ::fuzz_test* fuzzer)
 }
 
 
-void testtrans (double* dest, std::vector<const double*> src, nnet::shape_io shape)
+void testtrans (out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type)
 {
 	size_t n_elems = shape.outs_.n_elems();
 	std::uniform_real_distribution<double> dist(0, 13);
@@ -46,10 +46,10 @@ class mock_immutable : public immutable
 public:
 	mock_immutable (std::vector<inode*> args, 
 		std::string label, SHAPER shapes,
-		TRANSFER_FUNC<double> tfunc = testtrans,
+		CONN_ACTOR tfunc = testtrans,
 		BACK_MAP back = testback) :
 	immutable(args, shapes,
-	new transfer_func<double>(tfunc), back, label) {}
+	new actor_func(tfunc), back, label) {}
 
 	std::function<void(mock_immutable*)> triggerOnDeath;
 

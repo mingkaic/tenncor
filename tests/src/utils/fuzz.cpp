@@ -2,7 +2,7 @@
 // Created by Mingkai Chen on 2017-04-18.
 //
 
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 #ifdef TENNCOR_FUZZ_H
 

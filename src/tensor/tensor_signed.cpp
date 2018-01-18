@@ -31,6 +31,24 @@ tensor_signed* tensor_signed::move (void)
 	return static_cast<tensor_signed*>(move_impl());
 }
 
+tensor_signed& tensor_signed::operator = (const tensor_signed& other)
+{
+	if (&other != this)
+	{
+		content_ = other.content_;
+	}
+	return *this;
+}
+
+tensor_signed& tensor_signed::operator = (tensor_signed&& other)
+{
+	if (&other != this)
+	{
+		content_ = std::move(other.content_);
+	}
+	return *this;
+}
+
 tenncor::tensor_proto::tensor_t tensor_signed::get_type (void) const
 {
 	return tenncor::tensor_proto::SIGNED_T;
@@ -107,6 +125,9 @@ void tensor_signed::slice (size_t dim_start, size_t limit)
 
 tensor_signed::tensor_signed (const tensor_signed& other, bool shapeonly) :
 	content_(other.content_, shapeonly) {}
+
+tensor_signed::tensor_signed (tensor_signed&& other) :
+	content_(std::move(other.content_)) {}
 
 itensor* tensor_signed::clone_impl (bool shapeonly) const
 {

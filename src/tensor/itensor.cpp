@@ -248,6 +248,18 @@ size_t type_size (tenncor::tensor_proto::tensor_t type)
 	return 0;
 }
 
+template <>
+tenncor::tensor_proto::tensor_t get_prototype<double> (void)
+{
+	return tenncor::tensor_proto::DOUBLE_T;
+}
+
+template <>
+tenncor::tensor_proto::tensor_t get_prototype<signed> (void)
+{
+	return tenncor::tensor_proto::SIGNED_T;
+}
+
 }
 
 #endif

@@ -2,8 +2,8 @@
 // Created by Mingkai Chen on 2017-03-10.
 //
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifdef UTIL_TEST_H
@@ -199,21 +199,19 @@ tensorshape random_def_shape (FUZZ::fuzz_test* fuzzer, int lowerrank, int upperr
 }
 
 
-void adder (double* dest, std::vector<const double*> src, nnet::shape_io shape)
+itens_actor* adder (out_wrapper<void>& dest, 
+	std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type)
 {
-	size_t n_elems = shape.outs_.n_elems();
-	for (size_t i = 0; i < src.size(); i++)
+	switch (type)
 	{
-		n_elems = std::min(n_elems, shape.ins_[i].n_elems());
+		case tenncor::tensor_proto::DOUBLE_T:
+			return new mock_actor<double>(dest, srcs);
+		case tenncor::tensor_proto::SIGNED_T:
+			return new mock_actor<signed>(dest, srcs);
+		default:
+		break;
 	}
-	for (size_t j = 0; j < n_elems; j++)
-	{
-		dest[j] = 0;
-		for (size_t i = 0; i < src.size(); i++)
-		{
-			dest[j] += src[i][j];
-		}
-	}
+	return nullptr;
 }
 
 

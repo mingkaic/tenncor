@@ -5,7 +5,7 @@
 #ifndef TENNCOR_MOCK_TENSOR_H
 #define TENNCOR_MOCK_TENSOR_H
 
-#include "tests/include/util_test.h"
+#include "tests/include/utils/util_test.h"
 
 #include "include/tensor/tensor.hpp"
 
@@ -15,12 +15,13 @@ class mock_tensor : public tensor<double>
 {
 public:
 	mock_tensor (void) : tensor<double>() {}
+
 	mock_tensor (FUZZ::fuzz_test* fuzzer, tensorshape shape, std::vector<double> initdata = {}) :
 		tensor<double>(shape)
 	{
 		if (is_alloc())
 		{
-			size_t n = alloc_shape_.n_elems();
+			size_t n = alloced_shape_.n_elems();
 			if (initdata.empty())
 			{
 				initdata = fuzzer->get_double(n, "initdata", {-123, 139.2});
@@ -28,15 +29,27 @@ public:
 			std::memcpy(raw_data_, &initdata[0], n * sizeof(double));
 		}
 	}
+
 	mock_tensor (double scalar) :
 		tensor<double>(scalar) {}
-	mock_tensor* clone (void) const { return new mock_tensor(*this); }
+
 	mock_tensor (const mock_tensor& other, bool shapeonly = false) :
 		tensor<double>(other, shapeonly) {}
+
 	mock_tensor (mock_tensor&& other) :
 		tensor<double>(std::move(other)) {}
-	mock_tensor& operator = (const mock_tensor& other) { tensor<double>::operator=(other); return *this; }
-	mock_tensor& operator = (mock_tensor&& other) { tensor<double>::operator=(std::move(other)); return *this; }
+
+	mock_tensor& operator = (const mock_tensor& other)
+	{
+		tensor<double>::operator = (other);
+		return *this;
+	}
+
+	mock_tensor& operator = (mock_tensor&& other)
+	{
+		tensor<double>::operator = (std::move(other));
+		return *this;
+	}
 
 	// checks if two tensors are equal without exposing
 	bool equal (const mock_tensor& other) const
@@ -47,30 +60,33 @@ public:
 		{
 			return tensorshape_equal(get_shape(), other.get_shape());
 		}
-		if (false == alloc_shape_.is_compatible_with(other.alloc_shape_))
+		if (false == alloced_shape_.is_compatible_with(other.alloced_shape_))
 		{
 			return false;
 		}
 
 		// check
-		size_t n = alloc_shape_.n_elems();
+		size_t n = alloced_shape_.n_elems();
 		// crashes if we have shape, data inconsistency,
 		// assuming address sanitation works properly
 		return std::equal(raw_data_, raw_data_ + n, other.raw_data_);
 	}
 
-	// checks if alloc_shape_ is undefined when not allocated
+	// checks if alloced_shape_ is undefined when not allocated
 	bool clean (void) const
 	{
 		// checks by ensuring data is null and alloc is undefined when unallocated
 		return is_alloc() || (
 			nullptr == raw_data_ &&
-			false == alloc_shape_.is_part_defined());
+			false == alloced_shape_.is_part_defined());
 	}
 
-	double* rawptr (void) const { return raw_data_; }
+	const double* rawptr (void) const { return raw_data_; }
 
-	bool allocshape_is (const tensorshape& shape) { return tensorshape_equal(alloc_shape_, shape); }
+	bool allocshape_is (const tensorshape& shape)
+	{
+		return tensorshape_equal(alloced_shape_, shape);
+	}
 };
 
 

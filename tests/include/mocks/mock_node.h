@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-#include "tests/include/util_test.h"
+#include "tests/include/utils/util_test.h"
 
 #include "include/graph/inode.hpp"
 

@@ -9,8 +9,8 @@
 
 #include "gtest/gtest.h"
 
-#include "tests/include/fuzz.h"
-#include "tests/include/util_test.h"
+#include "tests/include/utils/fuzz.h"
+#include "tests/include/utils/util_test.h"
 
 
 #ifndef DISABLE_SHAPE_TEST
@@ -43,7 +43,7 @@ static void generate_moreshapes (FUZZ::fuzz_test* fuzzer, std::vector<size_t>& p
 }
 
 
-// cover tensorshape
+// cover tensorshape:
 // default and vector constructor
 // copy constructor and assignment,
 // and vector assignment
@@ -96,7 +96,7 @@ TEST_F(TENSORSHAPE, Copy_A000)
 }
 
 
-// cover tensorshape
+// cover tensorshape:
 // default and vector constructor
 // move constructor and assignment
 TEST_F(TENSORSHAPE, Move_A000)
@@ -129,7 +129,7 @@ TEST_F(TENSORSHAPE, Move_A000)
 }
 
 
-// covers tensorshape as_list
+// covers tensorshape: as_list
 TEST_F(TENSORSHAPE, AsList_A001)
 {
 	std::vector<size_t> pds;
@@ -149,7 +149,7 @@ TEST_F(TENSORSHAPE, AsList_A001)
 }
 
 
-// covers tensorshape n_elems
+// covers tensorshape: n_elems
 TEST_F(TENSORSHAPE, N_A002)
 {
 	std::vector<size_t> pds;
@@ -187,7 +187,7 @@ TEST_F(TENSORSHAPE, N_A002)
 }
 
 
-// covers tensorshape rank
+// covers tensorshape: rank
 TEST_F(TENSORSHAPE, Rank_A003)
 {
 	std::vector<size_t> pds;
@@ -207,7 +207,7 @@ TEST_F(TENSORSHAPE, Rank_A003)
 
 
 // behavior A000
-// covers is_compatible_with
+// covers tensorshape: is_compatible_with
 TEST_F(TENSORSHAPE, Compatible_A004)
 {
 	std::vector<size_t> pds;
@@ -265,7 +265,7 @@ TEST_F(TENSORSHAPE, Compatible_A004)
 }
 
 
-// covers is_part_defined
+// covers tensorshape: is_part_defined
 TEST_F(TENSORSHAPE, PartDef_A005)
 {
 	std::vector<size_t> pds;
@@ -289,7 +289,8 @@ TEST_F(TENSORSHAPE, PartDef_A005)
 }
 
 
-// covers is_fully_defined and assert_is_fully defined
+// covers tensorshape: 
+// is_fully_defined and assert_is_fully_defined
 TEST_F(TENSORSHAPE, FullDef_A006)
 {
 	std::vector<size_t> pds;
@@ -319,7 +320,8 @@ TEST_F(TENSORSHAPE, FullDef_A006)
 }
 
 
-// covers assert_has_rank and assert_same_rank
+// covers tensorshape: 
+// assert_has_rank and assert_same_rank
 TEST_F(TENSORSHAPE, RankAssert_A007)
 {
 	std::vector<size_t> pds;
@@ -351,7 +353,8 @@ TEST_F(TENSORSHAPE, RankAssert_A007)
 }
 
 
-// covers undefine, dependent on is_part_defined
+// covers tensorshape: 
+// undefine, dependent on is_part_defined
 TEST_F(TENSORSHAPE, Undefine_A008)
 {
 	std::vector<size_t> pds;
@@ -376,7 +379,7 @@ TEST_F(TENSORSHAPE, Undefine_A008)
 }
 
 
-// covers merge_with
+// covers tensorshape: merge_with
 TEST_F(TENSORSHAPE, Merge_A009)
 {
 	std::vector<size_t> pds;
@@ -433,7 +436,8 @@ TEST_F(TENSORSHAPE, Merge_A009)
 }
 
 
-// covers trim, dependent on rank
+// covers tensorshape: 
+// trim, dependent on rank
 TEST_F(TENSORSHAPE, Trim_A010)
 {
 	std::vector<size_t> ids;
@@ -470,7 +474,7 @@ TEST_F(TENSORSHAPE, Trim_A010)
 }
 
 
-// covers concatenate
+// covers tensorshape: concatenate
 TEST_F(TENSORSHAPE, Concat_A011)
 {
 	std::vector<size_t> pds;
@@ -507,7 +511,8 @@ TEST_F(TENSORSHAPE, Concat_A011)
 }
 
 
-// covers with_rank, with_rank_at_least, with_rank_at_most, depends on rank
+// covers tensorshape: 
+// with_rank, with_rank_at_least, with_rank_at_most, depends on rank
 TEST_F(TENSORSHAPE, WithRank_A012)
 {
 	std::vector<size_t> ids;

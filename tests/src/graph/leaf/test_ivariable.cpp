@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 
 #include "tests/include/mocks/mock_ivariable.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_IVARIABLE_TEST
@@ -36,15 +36,15 @@ TEST_F(IVARIABLE, Copy_E000)
 	assign = noinit;
 	assign2 = inited;
 
-	initializer<double>* noi = noinit.get_initializer();
+	initializer* noi = noinit.get_initializer();
 	EXPECT_EQ(noi, cpy->get_initializer());
 	EXPECT_EQ(noi, assign.get_initializer());
 	EXPECT_EQ(nullptr, noi);
 
 	tensor<double> ct(std::vector<size_t>{1});
 	tensor<double> ct2(std::vector<size_t>{1});
-	initializer<double>* ci = cpy2->get_initializer();
-	initializer<double>* ai = assign2.get_initializer();
+	initializer* ci = cpy2->get_initializer();
+	initializer* ai = assign2.get_initializer();
 	tensor<double>* ctptr = &ct;
 	tensor<double>* ct2ptr = &ct2;
 	(*ci)(*ctptr);
@@ -70,8 +70,8 @@ TEST_F(IVARIABLE, Move_E000)
 	mock_ivariable noinit(shape, nullptr, label1);
 	mock_ivariable inited(shape, cinit, label1);
 
-	initializer<double>* noi = noinit.get_initializer();
-	initializer<double>* ii = inited.get_initializer();
+	initializer* noi = noinit.get_initializer();
+	initializer* ii = inited.get_initializer();
 
 	EXPECT_EQ(nullptr, noi);
 
@@ -80,7 +80,7 @@ TEST_F(IVARIABLE, Move_E000)
 
 	EXPECT_EQ(noi, mv->get_initializer());
 	tensor<double> ct(std::vector<size_t>{1});
-	initializer<double>* mi = mv2->get_initializer();
+	initializer* mi = mv2->get_initializer();
 	tensor<double>* ctptr = &ct;
 	(*mi)(*ctptr);
 	EXPECT_EQ(c, ct.expose()[0]);
@@ -93,7 +93,7 @@ TEST_F(IVARIABLE, Move_E000)
 
 	EXPECT_EQ(noi, assign.get_initializer());
 	tensor<double> ct2(std::vector<size_t>{1});
-	initializer<double>* ai = assign2.get_initializer();
+	initializer* ai = assign2.get_initializer();
 	tensor<double>* ct2ptr = &ct2;
 	(*ai)(*ct2ptr);
 	EXPECT_EQ(c, ct2.expose()[0]);

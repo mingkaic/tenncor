@@ -29,6 +29,9 @@ using CONN_ACTOR = std::function<itens_actor*(out_wrapper<void>&,
 using ASSIGN_FUNC = std::function<void(void*,const void*, 
 	tenncor::tensor_proto::tensor_t)>;
 
+void default_assign (void* dest, const void* src, 
+	tenncor::tensor_proto::tensor_t type);
+
 //! Generic Tensor Handler
 class itensor_handler
 {
@@ -82,12 +85,6 @@ protected:
 private:
 	CONN_ACTOR make_actor_;
 };
-
-void default_assign (void* dest, const void* src, 
-	tenncor::tensor_proto::tensor_t type)
-{
-	memcpy(dest, src, type_size(type));
-}
 
 // todo: test
 //! Assignment Function

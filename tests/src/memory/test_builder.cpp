@@ -9,7 +9,7 @@
 
 #include "gtest/gtest.h"
 
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 #include "tests/include/mocks/mock_allocator.h"
 
 #include "include/memory/default_alloc.hpp"

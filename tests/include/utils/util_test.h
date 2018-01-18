@@ -8,7 +8,8 @@
 #include "include/tensor/tensorshape.hpp"
 #include "include/tensor/tensor_handler.hpp"
 
-#include "tests/include/fuzz.h"
+#include "tests/include/mocks/mock_actor.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef UTIL_TEST_H
@@ -53,7 +54,7 @@ tensorshape random_shape (FUZZ::fuzz_test* fuzzer);
 tensorshape random_def_shape (FUZZ::fuzz_test* fuzzer, int lowerrank = 2, int upperrank = 11, size_t minn = 17, size_t maxn = 7341);
 
 
-void adder (double* dest, std::vector<const double*> src, nnet::shape_io shape);
+itens_actor* adder (out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type);
 
 
 #endif /* UTIL_TEST_H */

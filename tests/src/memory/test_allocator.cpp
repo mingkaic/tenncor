@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "tests/include/mocks/mock_allocator.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_ALLOCATOR_TEST

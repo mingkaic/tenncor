@@ -8,8 +8,8 @@
 
 #include "gtest/gtest.h"
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 #include "include/graph/leaf/constant.hpp"
 #include "include/graph/connector/immutable/generator.hpp"

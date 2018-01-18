@@ -38,10 +38,16 @@ public:
 	tensor_double (tensorshape shape, size_t alloc_id = default_alloc::alloc_id);
 
 	//! clone function
-	tensor_double* clone (bool shapeonly) const;
+	tensor_double* clone (bool shapeonly = false) const;
 
 	//! clone function
 	tensor_double* move (void);
+
+	//! copy assignment
+	tensor_double& operator = (const tensor_double& other);
+
+	//! move assignment
+	tensor_double& operator = (tensor_double&& other);
 
 	virtual tenncor::tensor_proto::tensor_t get_type (void) const;
 
@@ -98,8 +104,12 @@ public:
 	virtual void slice (size_t dim_start, size_t limit);
 
 protected:
+	// >>>> COPY && MOVE <<<<
 	//! copy constructor
 	tensor_double (const tensor_double& other, bool shapeonly = false);
+
+	//! move constructor
+	tensor_double (tensor_double&& other);
 
 	// >>>> ABSTRACT CLONE <<<<
 	//! clone implementation

@@ -11,8 +11,8 @@
 #include "include/graph/leaf/variable.hpp"
 #include "include/graph/operations/operations.hpp"
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_ELEMENTARY_TEST
@@ -376,7 +376,7 @@ TEST_F(ELEMENTARY, ClipVal_A000ToA003)
 	double min = limits[0]> limits[1] ? limits[1] : limits[0];
 	double max = limits[0]> limits[1] ? limits[0] : limits[1];
 	unaryElemTest(this,
-	[max, min](varptr in) { return clip_val(in, min, max); },
+	[max, min](varptr in) { return clip(in, min, max); },
 	[max, min](double var)
 	{
 		if (var> max) var = max;
