@@ -108,3 +108,15 @@ cc_test(
 	linkstatic = 1,
 	copts = ["-std=c++14"],
 )
+
+cc_test(
+	name = "tenncor_all",
+	size = "enormous",
+	srcs = glob(["src/**/*.cpp"]) + glob(["include/**/*.h"]),
+	deps = [
+		"@googletest//:gtest_main",
+		"//:tenncor",
+	],
+	linkstatic = 1,
+	copts = ["-std=c++14"],
+)
