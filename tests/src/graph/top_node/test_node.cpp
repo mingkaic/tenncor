@@ -9,20 +9,22 @@
 #include "gtest/gtest.h"
 
 #include "tests/include/mocks/mock_node.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_NODE_TEST
 
 
+class NODE : public FUZZ::fuzz_test {};
+
+
 // covers inode
 // copy assignment and constructor
-TEST(NODE, Copy_B000)
+TEST_F(NODE, Copy_B000)
 {
-	FUZZ::reset_logger();
 	mock_node assign;
 
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node n1(label1);
 
 	mock_node cpy(n1);
@@ -39,27 +41,26 @@ TEST(NODE, Copy_B000)
 
 // covers inode
 // move assignment and constructor
-TEST(NODE, Move_B000)
+TEST_F(NODE, Move_B000)
 {
-	FUZZ::reset_logger();
 	mock_node assign;
 
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node n1(label1);
 
-	std::string ouid = boost::uuids::to_string(n1.get_uid());
+	std::string ouid = n1.get_uid();
 	EXPECT_EQ(label1, n1.get_label());
 
 	mock_node mv(std::move(n1));
 
-	std::string ouid2 = boost::uuids::to_string(mv.get_uid());
+	std::string ouid2 = mv.get_uid();
 	EXPECT_TRUE(n1.get_label().empty());
 	EXPECT_EQ(label1, mv.get_label());
 	EXPECT_NE(ouid, ouid2);
 
 	assign = std::move(mv);
 
-	std::string ouid3 = boost::uuids::to_string(assign.get_uid());
+	std::string ouid3 = assign.get_uid();
 	EXPECT_TRUE(mv.get_label().empty());
 	EXPECT_EQ(label1, assign.get_label());
 	EXPECT_NE(ouid, ouid3);
@@ -69,15 +70,14 @@ TEST(NODE, Move_B000)
 
 // covers inode
 // get_uid
-TEST(NODE, UID_B001)
+TEST_F(NODE, UID_B001)
 {
-	FUZZ::reset_logger();
 	std::unordered_set<std::string> us;
-	size_t ns = FUZZ::getInt(1, "ns", {1412, 2922})[0];
+	size_t ns = get_int(1, "ns", {1412, 2922})[0];
 	for (size_t i = 0; i < ns; i++)
 	{
 		mock_node mn;
-		std::string uid = boost::uuids::to_string(mn.get_uid());
+		std::string uid = mn.get_uid();
 		EXPECT_TRUE(us.end() == us.find(uid));
 		us.emplace(uid);
 	}
@@ -86,13 +86,12 @@ TEST(NODE, UID_B001)
 
 // covers inode
 // get_label, get_name
-TEST(NODE, Label_B002)
+TEST_F(NODE, Label_B002)
 {
-	FUZZ::reset_logger();
-	std::string label1 = FUZZ::getString(FUZZ::getInt(1, "label1.size", {14, 29})[0], "label1");
+	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node n1(label1);
 
-	std::string uid = boost::uuids::to_string(n1.get_uid());
+	std::string uid = n1.get_uid();
 	EXPECT_EQ(n1.get_name(), "<"+label1+":"+uid+">");
 	EXPECT_EQ(label1, n1.get_label());
 }

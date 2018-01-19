@@ -11,7 +11,10 @@
  *
  */
 
-#include "include/tensor/tensor.hpp"
+#include <typeinfo>
+
+#include "include/tensor/itensor.hpp"
+#include "include/tensor/tensor_actor.hpp"
 
 #pragma once
 #ifndef TENNCOR_TENSOR_HANDLER_HPP
@@ -20,19 +23,16 @@
 namespace nnet
 {
 
-using SHAPE_EXTRACT = std::function<std::vector<size_t>(tensorshape&)>;
+using CONN_ACTOR = std::function<itens_actor*(out_wrapper<void>&,
+	std::vector<in_wrapper<void> >&,tenncor::tensor_proto::tensor_t)>;
 
-struct shape_io
-{
-	tensorshape outs_;
-	std::vector<tensorshape> ins_;
-};
+using ASSIGN_FUNC = std::function<void(void*,const void*, 
+	tenncor::tensor_proto::tensor_t)>;
 
-template <typename T>
-using TRANSFER_FUNC = std::function<void(T*, std::vector<const T*>, shape_io)>;
+void default_assign (void* dest, const void* src, 
+	tenncor::tensor_proto::tensor_t type);
 
 //! Generic Tensor Handler
-template <typename T>
 class itensor_handler
 {
 public:
@@ -41,227 +41,221 @@ public:
 
 	// >>>> CLONE, MOVE && COPY ASSIGNMENT <<<<
 	//! clone function for copying from itensor_handler
-	itensor_handler<T>* clone (void) const;
+	itensor_handler* clone (void) const;
 
 	//! clone function for copying from itensor_handler
-	itensor_handler<T>* move (void);
+	itensor_handler* move (void);
 
 protected:
 	//! clone implementation for copying from itensor_handler
-	virtual itensor_handler<T>* clone_impl (void) const = 0;
+	virtual itensor_handler* clone_impl (void) const = 0;
 
 	//! move implementation for moving from itensor_handler
-	virtual itensor_handler<T>* move_impl (void) = 0;
+	virtual itensor_handler* move_impl (void) = 0;
 
-	T* get_raw (tensor<T>& ten) const;
+	void* get_raw (itensor& ten) const;
 
-	const T* get_raw (const tensor<T>& ten) const;
-};
-
-template <typename T>
-class shape_extracter : public itensor_handler<T>
-{
-public:
-	shape_extracter (SHAPE_EXTRACT extract);
-
-	// >>>> CLONE, MOVE && COPY ASSIGNMENT <<<<
-	//! clone function for copying from itensor_handler
-	shape_extracter<T>* clone (void) const;
-
-	//! clone function for copying from itensor_handler
-	shape_extracter<T>* move (void);
-
-	//! extract tensor information and store in out
-	void operator () (tensor<T>& out, std::vector<tensorshape>& ts) const;
-
-	SHAPE_EXTRACT get_shaper (void) const;
-
-protected:
-	//! clone implementation for copying from itensor_handler
-	virtual itensor_handler<T>* clone_impl (void) const;
-
-	//! move implementation for moving from itensor_handler
-	virtual itensor_handler<T>* move_impl (void);
-
-private:
-	//! extract shape dimensions to data_
-	SHAPE_EXTRACT shaper_;
-};
-
-template <typename T>
-T default_assign (const T&, const T& src) { return src; }
-
-// todo: test
-//! assigns one tensor to another
-template <typename T>
-class assign_func : public itensor_handler<T>
-{
-public:
-	// >>>> CLONE, MOVE && COPY ASSIGNMENT <<<<
-	//! clone function for copying from itensor_handler
-	assign_func<T>* clone (void) const;
-
-	//! clone function for copying from itensor_handler
-	assign_func<T>* move (void);
-
-	//! performs tensor transfer function given an input tensor
-	void operator () (tensor<T>& out, const tensor<T>& arg,
-		std::function<T(const T&,const T&)> f = default_assign<T>) const;
-
-	//! performs tensor transfer function given an input array
-	void operator () (tensor<T>& out, std::vector<T> indata,
-		std::function<T(const T&,const T&)> f = default_assign<T>) const;
-
-protected:
-	//! clone implementation for copying from itensor_handler
-	virtual itensor_handler<T>* clone_impl (void) const;
-
-	//! move implementation for moving from itensor_handler
-	virtual itensor_handler<T>* move_impl (void);
+	const void* get_raw (const itensor& ten) const;
 };
 
 //! Transfer Function
-template <typename T>
-class transfer_func : public itensor_handler<T>
+class actor_func : public itensor_handler
 {
 public:
 	//! tensor handler accepts a shape manipulator and a forward transfer function
-	transfer_func (TRANSFER_FUNC<T> transfer);
+	actor_func (CONN_ACTOR make_actor);
 
 	// >>>> CLONE, MOVE && COPY ASSIGNMENT <<<<
 	//! clone function for copying from itensor_handler
-	transfer_func<T>* clone (void) const;
+	actor_func* clone (void) const;
 
 	//! clone function for copying from itensor_handler
-	transfer_func<T>* move (void);
+	actor_func* move (void);
 
 	//! performs tensor transfer function given an input tensors
-	void operator () (tensor<T>& out, std::vector<const tensor<T>*>& args);
-
-	TRANSFER_FUNC<T> get_transfer (void) const { return transfer_; }
+	itens_actor* operator () (itensor& out, std::vector<const itensor*>& args);
 
 protected:
 	//! clone implementation for copying from itensor_handler
-	virtual itensor_handler<T>* clone_impl (void) const;
+	virtual itensor_handler* clone_impl (void) const;
 
 	//! move implementation for moving from itensor_handler
-	virtual itensor_handler<T>* move_impl (void);
+	virtual itensor_handler* move_impl (void);
 
 private:
-	TRANSFER_FUNC<T> transfer_;
+	CONN_ACTOR make_actor_;
+};
+
+// todo: test
+//! Assignment Function
+class assign_func : public itensor_handler
+{
+public:
+	// >>>> CLONE, MOVE && COPY ASSIGNMENT <<<<
+	//! clone function for copying from itensor_handler
+	assign_func* clone (void) const;
+
+	//! clone function for copying from itensor_handler
+	assign_func* move (void);
+
+	//! performs tensor transfer function given an input tensor
+	void operator () (itensor& out, const itensor& arg,
+		ASSIGN_FUNC f = default_assign) const;
+
+	//! performs tensor transfer function given an input array
+	// asserts that size of indata allocated chunk <= out.n_elems()
+	void operator () (itensor& out, const void* indata, 
+		tenncor::tensor_proto::tensor_t type,
+		ASSIGN_FUNC f = default_assign) const;
+
+protected:
+	//! clone implementation for copying from itensor_handler
+	virtual itensor_handler* clone_impl (void) const;
+
+	//! move implementation for moving from itensor_handler
+	virtual itensor_handler* move_impl (void);
 };
 
 //! Initializer Handler
-template <typename T>
-class initializer : public itensor_handler<T>
+class initializer : public itensor_handler
 {
 public:
 	// >>>> CLONE, MOVE && COPY ASSIGNMENT <<<<
 	//! clone function for copying from initializer
-	initializer<T>* clone (void) const;
+	initializer* clone (void) const;
 
 	//! clone function for copying from initializer
-	initializer<T>* move (void);
+	initializer* move (void);
 
 	//! perform initialization
-	void operator () (tensor<T>& out);
+	void operator () (itensor& out);
 
 protected:
-	virtual void calc_data (T* dest, tensorshape outshape) = 0;
+	virtual void calc_data (void* dest, 
+		tenncor::tensor_proto::tensor_t type, tensorshape outshape) = 0;
 };
 
 //! Constant Initializer
-template <typename T>
-class const_init : public initializer<T>
+class const_init : public initializer
 {
 public:
-	//! initialize tensors with a constant scalar value
-	const_init (T value);
+	const_init (void);
+
+	const_init (double data);
+
+	template <typename T>
+	void set (T value)
+	{
+		type_ = get_prototype<T>();
+		value_ = nnutils::stringify(&value, 1);
+	}
 
 	//! clone function for copying from parents
-	const_init<T>* clone (void) const;
+	const_init* clone (void) const;
 
 	//! clone function for copying from parents
-	const_init<T>* move (void);
+	const_init* move (void);
 
 protected:
 	//! clone implementation for copying from parents
-	virtual itensor_handler<T>* clone_impl (void) const;
+	virtual itensor_handler* clone_impl (void) const;
 
 	//! move implementation for moving from parents
-	virtual itensor_handler<T>* move_impl (void);
+	virtual itensor_handler* move_impl (void);
 	
 	//! initialize data as constant
-	virtual void calc_data (T* dest, tensorshape outshape);
+	virtual void calc_data (void* dest, 
+		tenncor::tensor_proto::tensor_t type, tensorshape outshape);
 		
 private:
-	T value_;
+	std::string value_;
+
+	tenncor::tensor_proto::tensor_t type_;
 };
 
-template <typename T>
-using general_uniform = std::conditional_t<
-	std::is_integral<T>::value, std::uniform_int_distribution<T>,
-	std::conditional_t<std::is_floating_point<T>::value,
-		std::uniform_real_distribution<T>, void> >;
-
 //! Uniformly Random Initializer
-template <typename T>
-class rand_uniform : public initializer<T>
+class rand_uniform : public initializer
 {
 public:
 	//! initialize tensors with a random value between min and max
-	rand_uniform (T min, T max);
+	rand_uniform (double min, double max);
 
 	//! clone function for copying from parents
-	rand_uniform<T>* clone (void) const;
+	rand_uniform* clone (void) const;
 
 	//! clone function for copying from parents
-	rand_uniform<T>* move (void);
+	rand_uniform* move (void);
 
 protected:
 	//! clone implementation for copying from parents
-	virtual itensor_handler<T>* clone_impl (void) const;
+	virtual itensor_handler* clone_impl (void) const;
 
 	//! clone function for copying from parents
-	virtual itensor_handler<T>* move_impl (void);
+	virtual itensor_handler* move_impl (void);
 	
 	//! initialize data as constant
-	virtual void calc_data (T* dest, tensorshape outshape);
+	virtual void calc_data (void* dest, 
+		tenncor::tensor_proto::tensor_t type, tensorshape outshape);
 
 private:
-	general_uniform<T>  distribution_;
+	std::uniform_real_distribution<double>  distribution_;
+};
+
+class rand_uniform_int : public initializer
+{
+public:
+	//! initialize tensors with a random value between min and max
+	rand_uniform_int (signed min, signed max);
+
+	//! clone function for copying from parents
+	rand_uniform_int* clone (void) const;
+
+	//! clone function for copying from parents
+	rand_uniform_int* move (void);
+
+protected:
+	//! clone implementation for copying from parents
+	virtual itensor_handler* clone_impl (void) const;
+
+	//! clone function for copying from parents
+	virtual itensor_handler* move_impl (void);
+	
+	//! initialize data as constant
+	virtual void calc_data (void* dest, 
+		tenncor::tensor_proto::tensor_t type, tensorshape outshape);
+
+private:
+	std::uniform_int_distribution<signed>  distribution_;
 };
 
 //! Normal Random Initializer
-template <typename T>
-class rand_normal : public initializer<T>
+class rand_normal : public initializer
 {
 public:
 	//! initialize tensors with a random value between min and max
-	rand_normal (T mean = 0, T stdev = 1);
+	rand_normal (double mean = 0, double stdev = 1);
 
 	//! clone function for copying from parents
-	rand_normal<T>* clone (void) const;
+	rand_normal* clone (void) const;
 
 	//! clone function for copying from parents
-	rand_normal<T>* move (void);
+	rand_normal* move (void);
 
 protected:
 	//! clone implementation for copying from parents
-	virtual itensor_handler<T>* clone_impl (void) const;
+	virtual itensor_handler* clone_impl (void) const;
 
 	//! clone function for copying from parents
-	virtual itensor_handler<T>* move_impl (void);
+	virtual itensor_handler* move_impl (void);
 
 	//! initialize data as constant
-	virtual void calc_data (T* dest, tensorshape outshape);
+	virtual void calc_data (void* dest, 
+		tenncor::tensor_proto::tensor_t type, tensorshape outshape);
 
 private:
-	std::normal_distribution<T> distribution_;
+	std::normal_distribution<double> distribution_;
 };
 
 }
-
-#include "src/tensor/tensor_handler.ipp"
 
 #endif /* TENNCOR_TENSOR_HANDLER_HPP */

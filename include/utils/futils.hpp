@@ -13,7 +13,6 @@
  */
 
 #include "include/graph/operations/operations.hpp"
-#include "include/graph/varptr.hpp"
 
 #ifndef TENNCOR_FUTILS_HPP
 #define TENNCOR_FUTILS_HPP
@@ -22,19 +21,14 @@ namespace nnet
 {
 
 //! sigmoid function: f(x) = 1/(1+e^-x)
-template <typename T>
-varptr<T> sigmoid (varptr<T> x);
+varptr sigmoid (varptr x);
 
 //! tanh function: f(x) = (e^(2*x)+1)/(e^(2*x)-1)
-template <typename T>
-varptr<T> tanh (varptr<T> x);
+varptr tanh (varptr x);
 
 //! softmax function: f(x) = e^x / sum(e^x)
-template <typename T>
-varptr<T> softmax (varptr<T> x);
+varptr softmax (varptr x);
 
 }
-
-#include "src/utils/futils.ipp"
 
 #endif /* TENNCOR_FUTILS_HPP */

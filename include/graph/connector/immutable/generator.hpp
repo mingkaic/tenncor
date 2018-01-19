@@ -20,45 +20,44 @@
 namespace nnet
 {
 
-template <typename T>
-class generator : public iconnector<T>
+class generator : public iconnector
 {
 public:
 	virtual ~generator (void);
 
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for generator, clones init
-	static generator<T>* get (inode<T>* shape_dep,
-		const initializer<T>& init, std::string name = "generator");
+	static generator* get (inode* shape_dep,
+		const initializer& init, std::string name = "generator");
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
-	generator<T>* clone (void) const;
+	generator* clone (void) const;
 
 	//! move function
-	generator<T>* move (void);
+	generator* move (void);
 
 	//! declare copy assignment to copy over data and init
-	virtual generator<T>& operator = (const generator<T>& other);
+	virtual generator& operator = (const generator& other);
 
 	//! declare move assignment to move over data and init
-	virtual generator<T>& operator = (generator<T>&& other);
+	virtual generator& operator = (generator&& other);
 
 	// >>>> FORWARD & BACKWARD DATA <<<<
 	//! grab a temporary value traversing top-down
 	//! allocates out tensor. caller owns out
-	virtual void temporary_eval (const iconnector<T>* target, inode<T>*& out) const;
+	virtual void temporary_eval (const iconnector* target, inode*& out) const;
 
 	//! get gradient wrt some node, applies jacobians before evaluting resulting tensor
 	//! may call get_gradient
-	virtual varptr<T> derive (inode<T>* wrt);
+	virtual varptr derive (inode* wrt);
 
 	//! Utility function: get data shape
 	virtual tensorshape get_shape (void) const;
 
 	// >>>> GRAPH STATUS <<<<
 	//! get gradient leaves
-	virtual std::unordered_set<ileaf<T>*> get_leaves (void) const;
+	virtual std::unordered_set<ileaf*> get_leaves (void) const;
 
 	// >>>> NODE STATUS <<<<
 	//! check if the arguments are good; data is available
@@ -75,28 +74,28 @@ public:
 protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! default constructor
-	generator (inode<T>* shape_dep, const initializer<T>& init, std::string name);
+	generator (inode* shape_dep, const initializer& init, std::string name);
 
 	//! declare copy constructor to copy over init and data
-	generator (const generator<T>& other);
+	generator (const generator& other);
 
 	//! declare copy constructor to copy over init and data
-	generator (generator<T>&& other);
+	generator (generator&& other);
 
 	// >>>> POLYMORPHIC CLONERS <<<<
 	//! clone abstraction function
-	virtual inode<T>* clone_impl (void) const;
+	virtual inode* clone_impl (void) const;
 
 	//! move abstraction function
-	virtual inode<T>* move_impl (void);
+	virtual inode* move_impl (void);
 
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! get forward passing value
-	virtual const tensor<T>* get_eval (void) const;
+	virtual const itensor* get_eval (void) const;
 
 	//! grab operational gradient node, used by other nodes
 	//! adds to internal caches if need be
-	virtual inode<T>* get_gradient (variable<T>* leaf);
+	virtual inode* get_gradient (variable* leaf);
 
 	// >>>> KILL CONDITION <<<<
 	//! suicides when all observers die
@@ -106,21 +105,19 @@ protected:
 	virtual void death_on_noparent (void);
 
 private:
-	void copy_helper (const generator<T>& other);
+	void copy_helper (const generator& other);
 
-	void move_helper (generator<T>&& other);
+	void move_helper (generator&& other);
 
 	void clean_up (void);
 
 	//! initialization handler, owns this
-	initializer<T>* init_ = nullptr;
+	initializer* init_ = nullptr;
 
 	//! tensor data
-	tensor<T>* data_ = nullptr;
+	itensor* data_ = nullptr;
 };
 
 }
-
-#include "src/graph/connector/immutable/generator.ipp"
 
 #endif /* ROCNNET_GENERATOR_HPP */

@@ -20,28 +20,27 @@
 namespace nnet
 {
 
-template <typename T>
-class ivariable : public ileaf<T>
+class ivariable : public ileaf
 {
 public:
 	virtual ~ivariable (void);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
-	ivariable<T>* clone (void) const;
+	ivariable* clone (void) const;
 
 	//! move function
-	ivariable<T>* move (void);
+	ivariable* move (void);
 
 	//! declare copy assignment to copy over initializer
-	virtual ivariable<T>& operator = (const ivariable<T>& other);
+	virtual ivariable& operator = (const ivariable& other);
 
 	//! declare move assignment to move over initializer
-	virtual ivariable<T>& operator = (ivariable<T>&& other);
+	virtual ivariable& operator = (ivariable&& other);
 
 	// >>>> BACKWARD DATA <<<<
 	//! get gradient wrt some node
-	virtual varptr<T> derive (inode<T>* wrt);
+	virtual varptr derive (inode* wrt);
 
 	// >>>> IVARIABLE SPECIAL <<<<
 	//! determine whether leaf node can be initiated
@@ -51,28 +50,26 @@ protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! construct to init zero and one
 	ivariable (const tensorshape& shape,
-		initializer<T>* init,
-		std::string name);
+		tenncor::tensor_proto::tensor_t type,
+		initializer* init, std::string name);
 
 	//! copy construct to init zero and one
-	ivariable (const ivariable<T>& other);
+	ivariable (const ivariable& other);
 
 	//! move construct to init zero and one
-	ivariable (ivariable<T>&& other);
+	ivariable (ivariable&& other);
 
 	//! initialization handler, owns this
-	initializer<T>* init_ = nullptr;
+	initializer* init_ = nullptr;
 
 private:
 	//! copy helper
-	void copy_helper (const ivariable<T>& other);
+	void copy_helper (const ivariable& other);
 
 	//! move helper
-	void move_helper (ivariable<T>&& other);
+	void move_helper (ivariable&& other);
 };
 
 }
-
-#include "src/graph/leaf/ivariable.ipp"
 
 #endif /* TENNCOR_IVARIABLE_HPP */

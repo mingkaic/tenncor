@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-FUZZLOG=fuzz.out;
-TIMEOUT=720; # 12 minute limit
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
+TIMEOUT=900; # 15 minute limit
+COV_OUT_FILE=bazel-out/k8-fastbuild/testlogs/tests/tenncor_all/coverage.dat
 
 lcov --base-directory . --directory . --zerocounters
 
@@ -11,7 +12,6 @@ assert_cmd() {
 	eval timeout -s SIGKILL $TIMEOUT $*
 	if [ $? -ne 0 ]; then
 		echo "Command $* failed"
-		cat $FUZZLOG
 		exit 1;
 	fi
 	return $!
@@ -19,32 +19,26 @@ assert_cmd() {
 
 # ===== Run Gtest =====
 
-# valgrind check (15 times)
-for _ in {1..3}
-do
-    assert_cmd "bazel test --run_under=valgrind --test_output=all //..."
-done
+bazel build //...
+
+# valgrind check (5 times)
+assert_cmd "bazel test --run_under=valgrind --test_output=all //tests:tenncor_all";
 
 # regular checks (45 times)
 for _ in {1..9}
 do
-    assert_cmd "bazel test --collect_code_coverage --test_output=all //..."
+	assert_cmd "bazel coverage --instrumentation_filter= --test_output=all //tests:tenncor_all";
 done
-
-cat fuzz.out
 
 # ===== Coverage Analysis ======
 lcov --version
 gcov --version
-lcov --base-directory . --directory . --gcov-tool gcov-6 --capture --output-file coverage.info # capture coverage info
-# filter out system and test code
-lcov --remove coverage.info '**/gtest*' '**/tests/*' '/usr/*' --output-file coverage.info
-lcov --list coverage.info # debug < see coverage here
+lcov --list $COV_OUT_FILE # debug < see coverage here
 
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	git rev-parse --abbrev-ref HEAD;
-	coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info # uploads to coveralls
+	coveralls-lcov --repo-token $COVERALLS_TOKEN $COV_OUT_FILE # uploads to coveralls
 fi
 
 echo "";

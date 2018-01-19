@@ -70,38 +70,38 @@ bool tensorshape::is_compatible_with (const tensorshape& other) const
 		size_t othern = other.dimensions_.size();
 		size_t beginthis = 0;
 		size_t beginother = 0;
-		// invariant thisn and othern >= 1 (since dimensions are not empty)
+		// invariant thisn and othern>= 1 (since dimensions are not empty)
 		size_t endthis = thisn-1;
 		size_t endother = othern-1;
 
 		if (thisn != othern)
 		{
 			while (beginthis < thisn-1 && 1 == dimensions_[beginthis]) { beginthis++; }
-			while (endthis > beginthis && 1 == dimensions_[endthis]) { endthis--; }
+			while (endthis> beginthis && 1 == dimensions_[endthis]) { endthis--; }
 			while (beginother < othern-1 && 1 == other.dimensions_[beginother]) { beginother++; }
-			while (endother > beginother && 1 == other.dimensions_[endother]) { endother--; }
+			while (endother> beginother && 1 == other.dimensions_[endother]) { endother--; }
 			size_t lenthis = endthis - beginthis;
 			size_t lenother = endother - beginother;
-			if (lenthis > lenother)
+			if (lenthis> lenother)
 			{
 				// todo: improve this matching algorithm to account for cases where
 				// decrementing endthis before incrementing beginthis matches while the opposite order doesn't
 
 				// try to match this to other by searching for padding zeros to convert to 1 padding in this
-				while (endthis - beginthis > lenother && beginthis < endthis && 0 == dimensions_[beginthis]) { beginthis++; }
-				while (endthis - beginthis > lenother && endthis > beginthis && 0 == dimensions_[endthis]) { endthis--; }
+				while (endthis - beginthis> lenother && beginthis < endthis && 0 == dimensions_[beginthis]) { beginthis++; }
+				while (endthis - beginthis> lenother && endthis> beginthis && 0 == dimensions_[endthis]) { endthis--; }
 
-				if (endthis - beginthis > lenother)
+				if (endthis - beginthis> lenother)
 					// match unsuccessful, they are incompatible
 					return false;
 			}
-			else if (lenother > lenthis)
+			else if (lenother> lenthis)
 			{
 				// try to match other to this by searching for padding zeros to convert to 1 padding in other
-				while (endother - beginother > lenthis && beginother < endother && 0 == other.dimensions_[beginother]) { beginother++; }
-				while (endother - beginother > lenthis && endother > beginother && 0 == other.dimensions_[endother]) { endother--; }
+				while (endother - beginother> lenthis && beginother < endother && 0 == other.dimensions_[beginother]) { beginother++; }
+				while (endother - beginother> lenthis && endother> beginother && 0 == other.dimensions_[endother]) { endother--; }
 
-				if (endother - beginother > lenthis)
+				if (endother - beginother> lenthis)
 					// match unsuccessful, they are incompatible
 					return false;
 			}
@@ -235,7 +235,7 @@ tensorshape tensorshape::with_rank (size_t rank) const
 		auto it = dimensions_.begin();
 		ds.insert(ds.end(), it, it+rank);
 	}
-	else if (rank > ndim)
+	else if (rank> ndim)
 	{
 		// pad to fit rank
 		ds = dimensions_;
@@ -253,7 +253,7 @@ tensorshape tensorshape::with_rank_at_least (size_t rank) const
 {
 	size_t ndim = dimensions_.size();
 	std::vector<size_t> ds = dimensions_;
-	if (rank > ndim)
+	if (rank> ndim)
 	{
 		// pad to fit rank
 		size_t diff = rank - ndim;

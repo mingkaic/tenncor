@@ -7,8 +7,8 @@
 
 #include <algorithm>
 
-#include "tests/include/util_test.h"
-#include "tests/include/mockerino.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/mockerino.h"
 
 #include "include/graph/react/iobserver.hpp"
 

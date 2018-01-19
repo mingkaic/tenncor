@@ -2,12 +2,22 @@ syntax = "proto3";
 
 package tenncor;
 
-message tensor_proto {
+message tensor_proto
+{
+	enum tensor_t
+	{
+		BAD_T = 0;
+		DOUBLE_T = 1;
+		SIGNED_T = 2;
+	}
+
 	bytes data = 1;
-	repeated uint64 allow_shape = 2;
-	repeated uint64 alloc_shape = 3;
+	tensor_t type = 2;
+	repeated uint64 allowed_shape = 3;
+	repeated uint64 alloced_shape = 4;
 }
 
-message repository {
+message repository
+{
 	map<string, tensor_proto> node_map = 1;
 }

@@ -26,43 +26,42 @@
 namespace nnet
 {
 
-template <typename T>
-class base_immutable : public iconnector<T>
+class base_immutable : public iconnector
 {
 public:
 	//! type for mapping leaf nodes to derivative with respect to leaf
-	using GRAD_CACHE = std::unordered_map<ileaf<T>*,varptr<T> >;
+	using GRAD_CACHE = std::unordered_map<ileaf*,varptr>;
 
 	virtual ~base_immutable (void);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
-	base_immutable<T>* clone (void) const;
+	base_immutable* clone (void) const;
 
 	//! move function
-	base_immutable<T>* move (void);
+	base_immutable* move (void);
 
 	//! declare copy assignment to copy over transfer functions
-	virtual base_immutable<T>& operator = (const base_immutable<T>& other);
+	virtual base_immutable& operator = (const base_immutable& other);
 
 	//! declare move assignment to move over transfer functions
-	virtual base_immutable<T>& operator = (base_immutable<T>&& other);
+	virtual base_immutable& operator = (base_immutable&& other);
 
 	// >>>> FORWARD & BACKWARD DATA <<<<
 	//! grab a temporary value traversing top-down
 	//! allocates out tensor. caller owns out
-	virtual void temporary_eval (const iconnector<T>* target, inode<T>*& out) const;
+	virtual void temporary_eval (const iconnector* target, inode*& out) const;
 
 	//! get gradient wrt some node, applies jacobians before evaluting resulting tensor
 	//! may call get_gradient
-	virtual varptr<T> derive (inode<T>* wrt);
+	virtual varptr derive (inode* wrt);
 
 	//! Utility function: get data shape
 	virtual tensorshape get_shape (void) const;
 
 	// >>>> GRAPH STATUS <<<<
 	//! get gradient leaves
-	virtual std::unordered_set<ileaf<T>*> get_leaves (void) const;
+	virtual std::unordered_set<ileaf*> get_leaves (void) const;
 
 	// >>>> NODE STATUS <<<<
 	//! check if the arguments are good; data is available
@@ -79,18 +78,18 @@ public:
 protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! base_immutable constructing an aggregate transfer function
-	base_immutable (std::vector<inode<T>*> args, std::string label);
+	base_immutable (std::vector<inode*> args, std::string label);
 
 	// >>>> COPY && MOVE CONSTRUCTORS <<<<
 	//! declare copy constructor to copy over transfer functions
-	base_immutable (const base_immutable<T>& other);
+	base_immutable (const base_immutable& other);
 
 	//! declare move constructor to move over transfer functions
-	base_immutable (base_immutable<T>&& other);
+	base_immutable (base_immutable&& other);
 
 	// >>>> PROTECTED CLONER <<<<
 	//! create a deep copy of this with args
-	virtual base_immutable<T>* arg_clone (std::vector<inode<T>*> args) const = 0;
+	virtual base_immutable* arg_clone (std::vector<inode*> args) const = 0;
 
 	// >>>> KILL CONDITION <<<<
 	//! suicides when all observers die
@@ -98,28 +97,28 @@ protected:
 
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! Forward passing value
-	virtual const tensor<T>* get_eval (void) const;
+	virtual const itensor* get_eval (void) const;
 
 	//! grab operational gradient node, used by other nodes
 	//! delay instantiate gcache elements if target leaf was never instantiated
-	virtual inode<T>* get_gradient (variable<T>* leaf);
+	virtual inode* get_gradient (variable* leaf);
 
 	// >>>> FORWARD & BACKWARD <<<<
 	//! forward pass step: populate data_
 	virtual void forward_pass (void) = 0;
 
 	//! backward pass step: populate gcache_[leaf]
-	virtual void backward_pass (variable<T>* leaf) = 0;
+	virtual void backward_pass (variable* leaf) = 0;
 
 	//! maps leaf to gradient node
 	//! lazy instantiates gradient nodes
 	//! - stores the gradient value wrt each leaf
 	//! - record leaf set
-	typename base_immutable<T>::GRAD_CACHE gcache_;
+	typename base_immutable::GRAD_CACHE gcache_;
 
-// todo: have an option to disable data_ caching for performance boost
+	// todo: have an option to disable data_ caching for performance boost
 	//! inner tensor to cache forward evaluated values
-	tensor<T>* data_ = nullptr;
+	itensor* data_ = nullptr;
 
 private:
 	//! copy helper
@@ -129,11 +128,9 @@ private:
 	void move_helper (base_immutable&& other);
 
 	//! temporary_eval helper
-	inode<T>* temp_eval_helper (const iconnector<T>* target, constant<T>*& out) const;
+	inode* temp_eval_helper (const iconnector* target, constant*& out) const;
 };
 
 }
-
-#include "src/graph/connector/immutable/base_immutable.ipp"
 
 #endif /* TENNCOR_BASE_IMMUTABLE_HPP */

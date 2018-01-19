@@ -10,18 +10,20 @@
 
 #include "tests/include/mocks/mock_subject.h"
 #include "tests/include/mocks/mock_observer.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_REACT_TEST
 
 
+class REACT : public FUZZ::fuzz_test {};
+
+
 // covers subject
 // copy constructor and assignment,
 // no audience, attach, detach
-TEST(REACT, CopySub_A000)
+TEST_F(REACT, CopySub_A000)
 {
-	FUZZ::reset_logger();
 	mock_subject sassign1;
 	mock_subject sassign2;
 
@@ -59,10 +61,9 @@ TEST(REACT, CopySub_A000)
 
 // covers subject
 // move constructor and assignment
-TEST(REACT, MoveSub_A000)
+TEST_F(REACT, MoveSub_A000)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_subject sassign1;
 	mock_subject sassign2;
 
@@ -112,10 +113,9 @@ TEST(REACT, MoveSub_A000)
 
 // covers subject, iobserver
 // notify
-TEST(REACT, Notify_A001)
+TEST_F(REACT, Notify_A001)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_subject s1;
 	mock_subject s2;
 	mock_observer o1(&s1, &s2);
@@ -154,10 +154,9 @@ TEST(REACT, Notify_A001)
 
 // covers subject
 // destructor
-TEST(REACT, SUBDEATH_A002)
+TEST_F(REACT, SUBDEATH_A002)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_subject* s1 = new mock_subject;
 	mock_subject* s2 = new mock_subject;
 	mock_observer o1(s1, s2);
@@ -184,9 +183,8 @@ TEST(REACT, SUBDEATH_A002)
 
 // covers subject
 // attach
-TEST(REACT, Attach_A003)
+TEST_F(REACT, Attach_A003)
 {
-	FUZZ::reset_logger();
 	mock_observer o1;
 	mock_observer o2;
 	mock_subject s1;
@@ -195,7 +193,7 @@ TEST(REACT, Attach_A003)
 	EXPECT_TRUE(s1.no_audience());
 	EXPECT_TRUE(s2.no_audience());
 
-	size_t i = FUZZ::getInt(1, "i", {0, 102})[0];
+	size_t i = get_int(1, "i", {0, 102})[0];
 	s1.mock_attach(&o1, i);
 	s2.mock_attach(&o2, i);
 	s2.mock_attach(&o1, i + 1);
@@ -218,9 +216,8 @@ TEST(REACT, Attach_A003)
 
 // covers subject
 // detach without index and with index
-TEST(REACT, Detach_A004)
+TEST_F(REACT, Detach_A004)
 {
-	FUZZ::reset_logger();
 	mock_subject s1;
 	mock_subject s2;
 	mock_subject s3;
@@ -252,10 +249,9 @@ TEST(REACT, Detach_A004)
 
 // covers iobserver
 // default and dependency constructors
-TEST(REACT, ObsConstruct_A005)
+TEST_F(REACT, ObsConstruct_A005)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_subject* s1 = new mock_subject;
 	mock_subject* s2 = new mock_subject;
 	mock_observer2* o1 = new mock_observer2(s2);
@@ -287,10 +283,9 @@ TEST(REACT, ObsConstruct_A005)
 
 // covers iobserver
 // copy constructor and assignment
-TEST(REACT, CopyObs_A006)
+TEST_F(REACT, CopyObs_A006)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_observer2* sassign1 = new mock_observer2;
 	mock_observer2* sassign2 = new mock_observer2;
 
@@ -347,10 +342,9 @@ TEST(REACT, CopyObs_A006)
 
 // covers iobserver
 // move constructor and assignment
-TEST(REACT, MoveObs_A006)
+TEST_F(REACT, MoveObs_A006)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_observer2* sassign1 = new mock_observer2;
 	mock_observer2* sassign2 = new mock_observer2;
 
@@ -413,10 +407,9 @@ TEST(REACT, MoveObs_A006)
 
 // covers iobserver
 // add_dependency
-TEST(REACT, AddDep_A007)
+TEST_F(REACT, AddDep_A007)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_subject* s1 = new mock_subject;
 	mock_subject* s2 = new mock_subject;
 	mock_observer2* o1 = new mock_observer2;
@@ -457,9 +450,8 @@ TEST(REACT, AddDep_A007)
 
 // covers iobserver
 // remove_dependency
-TEST(REACT, RemDep_A008)
+TEST_F(REACT, RemDep_A008)
 {
-	FUZZ::reset_logger();
 	mock_subject2* s1 = new mock_subject2;
 	mock_subject2* s2 = new mock_subject2;
 	mock_observer2* o1 = new mock_observer2(s2);
@@ -489,10 +481,9 @@ TEST(REACT, RemDep_A008)
 
 // covers iobserver
 // replace_dependency
-TEST(REACT, RepDep_A009)
+TEST_F(REACT, RepDep_A009)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_subject2* s1 = new mock_subject2;
 	mock_subject2* s2 = new mock_subject2;
 	mock_observer2* o1 = new mock_observer2(s1);
@@ -521,10 +512,9 @@ TEST(REACT, RepDep_A009)
 
 // covers iobserver
 // destruction, depends on subject detach
-TEST(REACT, ObsDeath_A010)
+TEST_F(REACT, ObsDeath_A010)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
 	mock_subject s1;
 	mock_subject2 s2;
 

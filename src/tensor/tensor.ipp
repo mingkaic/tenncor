@@ -83,16 +83,16 @@ tensor<T>::tensor (tensorshape shape, size_t alloc_id) :
 	set_allocator(alloc_id);
 	if (allowed_shape_.is_fully_defined())
 	{
-		alloc_shape_ = shape;
+		alloced_shape_ = shape;
 		this->raw_data_ = alloc_->template allocate<T>(
-			this->alloc_shape_.n_elems());
+			this->alloced_shape_.n_elems());
 	}
 }
 
 template <typename T>
 tensor<T>::~tensor (void)
 {
-	alloc_->dealloc(raw_data_, this->alloc_shape_.n_elems());
+	alloc_->dealloc(raw_data_, this->alloced_shape_.n_elems());
 }
 
 template <typename T>
@@ -105,18 +105,6 @@ template <typename T>
 tensor<T>::tensor (tensor<T>&& other)
 {
 	move_helper(std::move(other));
-}
-
-template <typename T>
-tensor<T>* tensor<T>::clone (bool shapeonly) const
-{
-	return static_cast<tensor<T>*>(clone_impl(shapeonly));
-}
-
-template <typename T>
-tensor<T>* tensor<T>::move (void)
-{
-	return static_cast<tensor<T>*>(move_impl());
 }
 
 template <typename T>
@@ -144,7 +132,7 @@ tensorshape tensor<T>::get_shape (void) const
 {
 	if (is_alloc())
 	{
-		return alloc_shape_;
+		return alloced_shape_;
 	}
 	return allowed_shape_;
 }
@@ -156,179 +144,13 @@ size_t tensor<T>::n_elems (void) const
 	{
 		return 0;
 	}
-	return this->alloc_shape_.n_elems();
+	return this->alloced_shape_.n_elems();
 }
-
-template <typename T>
-size_t tensor<T>::rank (void) const
-{
-	return get_shape().rank();
-}
-
-template <typename T>
-std::vector<size_t> tensor<T>::dims (void) const
-{
-	return get_shape().as_list();
-}
-
-template <typename T>
-bool tensor<T>::is_same_size (const tensor<T>& other) const
-{
-	if (is_alloc() && other.is_alloc())
-	{
-		tensorshape simp_shape = alloc_shape_.trim();
-		tensorshape other_simp = other.alloc_shape_.trim();
-		return simp_shape.is_compatible_with(other_simp);
-	}
-
-	return allowed_shape_.is_compatible_with(other.allowed_shape_);
-}
-
-template <typename T>
-bool tensor<T>::is_compatible_with (const tensor<T>& other) const
-{
-	return get_shape().is_compatible_with(other.get_shape());
-}
-
-template <typename T>
-bool tensor<T>::is_compatible_with (std::vector<T> data) const
-{
-	size_t ndata = data.size();
-	const tensorshape& my_shape = is_alloc() ? alloc_shape_ : allowed_shape_;
-
-	bool compatible = true;
-	// perfect fit
-	if (my_shape.is_fully_defined())
-	{
-		compatible = ndata == my_shape.n_elems();
-	}
-	else
-	{
-		size_t known = my_shape.n_known();
-		if (0 < known)
-		{
-			compatible = 0 == ndata % known;
-		}
-	}
-
-	return compatible;
-}
-
-template <typename T>
-bool tensor<T>::is_loosely_compatible_with (std::vector<T> data) const
-{
-	size_t ndata = data.size();
-	const tensorshape& my_shape = is_alloc() ? alloc_shape_ : allowed_shape_;
-
-	bool compatible = true;
-	if (my_shape.is_fully_defined())
-	{
-		compatible = ndata <= my_shape.n_elems();
-	}
-	// partially defined shapes are always compatible,
-	// since unknown dimension can expand infinitely to fit data
-	return compatible;
-}
-
-template <typename T>
-optional<tensorshape> tensor<T>::guess_shape (const std::vector<T>& data) const
-{
-	size_t ndata = data.size();
-	optional<tensorshape> bestshape;
-	// if allowed is fully defined
-	if (allowed_shape_.is_fully_defined())
-	{
-		if (allowed_shape_.n_elems() == ndata)
-		{
-			bestshape = allowed_shape_;
-		}
-		return bestshape;
-	}
-	// if allowed is partially defined
-	else if (allowed_shape_.is_part_defined())
-	{
-		std::vector<size_t> my_shape = allowed_shape_.as_list();
-		size_t rank = my_shape.size();
-		size_t first_undef = my_shape.size();
-		size_t known = 1;
-		for (size_t i = 0; i < rank; i++)
-		{
-			if (0 == my_shape[i])
-			{
-				if (first_undef > i)
-				{
-					first_undef = i;
-				}
-				my_shape[i] = 1;
-			}
-			else
-			{
-				known *= my_shape[i];
-			}
-		}
-		assert(known > 0);
-		if (0 == ndata % known)
-		{
-			my_shape[first_undef] = ndata / known;
-			bestshape = tensorshape(my_shape);
-		}
-	}
-	// if allowed is undefined
-	else
-	{
-		bestshape = tensorshape({ndata});
-	}
-	return bestshape;
-}
-
-template <typename T>
-optional<tensorshape> tensor<T>::loosely_guess_shape(const std::vector<T>& data) const
-{
-	size_t ndata = data.size();
-	if (allowed_shape_.is_fully_defined())
-	{
-		optional<tensorshape> bestshape;
-		if (allowed_shape_.n_elems() >= ndata)
-		{
-			bestshape = allowed_shape_;
-		}
-		return bestshape;
-	}
-	std::vector<size_t> my_shape = allowed_shape_.as_list();
-	size_t first_undef = my_shape.size();
-	size_t known = 1;
-	for (size_t i = 0; i < my_shape.size(); i++)
-	{
-		if (0 == my_shape[i])
-		{
-			if (first_undef > i)
-			{
-				first_undef = i;
-			}
-			my_shape[i] = 1;
-		}
-		else
-		{
-			known *= my_shape[i];
-		}
-	}
-	my_shape[first_undef] = ndata / known;
-	if (0 != ndata % known)
-	{
-		// int division above will floor
-		// (if we cast to double, we may lose precision)
-		my_shape[first_undef]++;
-	}
-	return tensorshape(my_shape);
-}
-
-template <typename T>
-bool tensor<T>::is_aligned (void) const { return true; }
 
 template <typename T>
 bool tensor<T>::is_alloc (void) const
 {
-	return alloc_shape_.is_fully_defined() && raw_data_ != nullptr;
+	return alloced_shape_.is_fully_defined() && nullptr != raw_data_;
 }
 
 template <typename T>
@@ -341,8 +163,8 @@ size_t tensor<T>::total_bytes (void) const
 template <typename T>
 T tensor<T>::get (std::vector<size_t> coord) const
 {
-	size_t raw_idx = alloc_shape_.flat_idx(coord);
-	if (raw_idx >= alloc_shape_.n_elems())
+	size_t raw_idx = alloced_shape_.flat_idx(coord);
+	if (raw_idx>= alloced_shape_.n_elems())
 	{
 		throw std::out_of_range(nnutils::formatter() <<
 		"out of bound coordinate: " << coord);
@@ -355,23 +177,6 @@ std::vector<T> tensor<T>::expose (void) const
 {
 	assert(is_alloc());
 	return std::vector<T>(raw_data_, raw_data_ + n_elems());
-}
-
-template <typename T>
-void tensor<T>::serialize (tenncor::tensor_proto* proto) const
-{
-	if (false == is_alloc()) return;
-	// copy bytes
-	size_t nb = total_bytes();
-	proto->set_data(raw_data_, nb);
-
-	std::vector<size_t> allow = allowed_shape_.as_list();
-	std::vector<size_t> alloc = alloc_shape_.as_list();
-	google::protobuf::RepeatedField<uint64_t> allow_field(allow.begin(), allow.end());
-	google::protobuf::RepeatedField<uint64_t> alloc_field(alloc.begin(), alloc.end());
-
-	proto->mutable_allow_shape()->Swap(&allow_field);
-	proto->mutable_alloc_shape()->Swap(&alloc_field);
 }
 
 template <typename T>
@@ -399,18 +204,18 @@ void tensor<T>::set_shape (tensorshape shape)
 
 	// if shape is compatible with alloc then we don't need to change raw data
 	// otherwise we need to modify raw data to match new shape
-	if (is_alloc() && false == shape.is_compatible_with(alloc_shape_))
+	if (is_alloc() && false == shape.is_compatible_with(alloced_shape_))
 	{
 		// if shape isn't defined, we need to make it defined
 		// by merging with existing allocated shape
 		if (false == shape.is_fully_defined())
 		{
 			// make alloc_shape compatible with shape
-			shape = shape.with_rank(alloc_shape_.rank());
-			shape = shape.merge_with(alloc_shape_);
+			shape = shape.with_rank(alloced_shape_.rank());
+			shape = shape.merge_with(alloced_shape_);
 			shape = shape.with_rank(allowed_shape_.rank());
 		}
-		// shape now represent the desired alloc_shape_
+		// shape now represent the desired alloced_shape_
 		// reshape by allocate
 		allocate(shape);
 	}
@@ -422,10 +227,10 @@ bool tensor<T>::allocate (void)
 	bool successful = false;
 	if (false == is_alloc())
 	{
-		// alloc_shape_ can be undefined
-		if (alloc_shape_.is_fully_defined())
+		// alloced_shape_ can be undefined
+		if (alloced_shape_.is_fully_defined())
 		{
-			successful = allocate(alloc_shape_);
+			successful = allocate(alloced_shape_);
 		}
 		else
 		{
@@ -441,9 +246,9 @@ bool tensor<T>::deallocate (void)
 	bool success = is_alloc();
 	if (success)
 	{
-		alloc_->dealloc(raw_data_, alloc_shape_.n_elems());
+		alloc_->dealloc(raw_data_, alloced_shape_.n_elems());
 		raw_data_ = nullptr;
-		alloc_shape_.undefine();
+		alloced_shape_.undefine();
 	}
 	return success;
 }
@@ -452,7 +257,7 @@ template <typename T>
 bool tensor<T>::allocate (const tensorshape shape)
 {
 	bool success = false;
-	if (is_alloc() && shape.is_compatible_with(alloc_shape_))
+	if (is_alloc() && shape.is_compatible_with(alloced_shape_))
 	{
 		return success;
 	}
@@ -466,15 +271,15 @@ bool tensor<T>::allocate (const tensorshape shape)
 			T* temp = alloc_->template allocate<T>(shape.n_elems());
 			// move raw_data to temp matching new shape
 			// we want to only copy over the minimum data to lower cost
-			fit_toshape(temp, shape, raw_data_, alloc_shape_);
-			alloc_->dealloc(raw_data_, alloc_shape_.n_elems());
+			fit_toshape(temp, shape, raw_data_, alloced_shape_);
+			alloc_->dealloc(raw_data_, alloced_shape_.n_elems());
 			raw_data_ = temp;
 		}
 		else
 		{
 			raw_data_ = alloc_->template allocate<T>(shape.n_elems());
 		}
-		alloc_shape_ = shape;
+		alloced_shape_ = shape;
 	}
 	return success;
 }
@@ -499,52 +304,19 @@ bool tensor<T>::copy_from (const tensor<T>& other, const tensorshape shape)
 		
 		if (is_alloc())
 		{
-			alloc_->dealloc(raw_data_, alloc_shape_.n_elems());
+			alloc_->dealloc(raw_data_, alloced_shape_.n_elems());
 		}
 		raw_data_ = temp;
-		alloc_shape_ = shape;
+		alloced_shape_ = shape;
 	}
 	return success;
 }
 
-template <typename T>
-bool tensor<T>::from_proto (const tenncor::tensor_proto& other)
-{
-	std::string protostr = other.data();
-	const char* protoraw = protostr.c_str();
-	// shapes must have same dimensionality... (otherwise, input data is definitely corrupt)
-	assert(other.alloc_shape_size() == other.allow_shape_size());
-	std::vector<size_t> allow(other.allow_shape().begin(), other.allow_shape().end());
-	std::vector<size_t> alloc(other.alloc_shape().begin(), other.alloc_shape().end());
-	allowed_shape_ = tensorshape(allow);
-	tensorshape temp_alloc_shape(alloc);
-	// another sanity check, be less stringent, since this may represent some less evident issue
-	if (false == temp_alloc_shape.is_compatible_with(allowed_shape_) ||
-		false == temp_alloc_shape.is_fully_defined()) return false;
-
-	deallocate();
-	alloc_shape_ = temp_alloc_shape;
-	assert(allocate());
-
-	// copy data over from protoraw
-	std::memcpy(raw_data_, protoraw, protostr.size());
-
-	return true;
-}
-
-template <typename T>
-bool tensor<T>::from_proto (const tenncor::tensor_proto& other, size_t alloc_id)
-{
-	set_allocator(alloc_id);
-	return from_proto(other);
-}
-
 // slice along the first dimension
 template <typename T>
-tensor<T> tensor<T>::slice (size_t /*dim_start*/, size_t /*limit*/)
+void tensor<T>::slice (size_t /*dim_start*/, size_t /*limit*/)
 {
 	throw std::bad_function_call(); // NOT IMPLEMENTED
-	return tensor<T>();
 }
 
 //template <typename T>
@@ -556,31 +328,19 @@ tensor<T> tensor<T>::slice (size_t /*dim_start*/, size_t /*limit*/)
 // }
 
 template <typename T>
-itensor<T>* tensor<T>::clone_impl (bool shapeonly) const
-{
-	return new tensor<T>(*this, shapeonly);
-}
-
-template <typename T>	
-itensor<T>* tensor<T>::move_impl (void)
-{
-	return new tensor<T>(std::move(*this));
-}
-
-template <typename T>
 void tensor<T>::copy_helper (const tensor<T>& other, bool shapeonly)
 {
 	if (raw_data_)
 	{
-		alloc_->dealloc(raw_data_, alloc_shape_.n_elems());
+		alloc_->dealloc(raw_data_, alloced_shape_.n_elems());
 		raw_data_ = nullptr;
 	}
 	alloc_ = other.alloc_;
-	alloc_shape_ = other.alloc_shape_;
+	alloced_shape_ = other.alloced_shape_;
 	allowed_shape_ = other.allowed_shape_;
 	if (other.is_alloc())
 	{
-		size_t ns = alloc_shape_.n_elems();
+		size_t ns = alloced_shape_.n_elems();
 		raw_data_ = alloc_->template allocate<T>(ns);
 		if (false == shapeonly)
 		{
@@ -594,14 +354,14 @@ void tensor<T>::move_helper (tensor<T>&& other)
 {
 	if (raw_data_)
 	{
-		alloc_->dealloc(raw_data_, alloc_shape_.n_elems());
+		alloc_->dealloc(raw_data_, alloced_shape_.n_elems());
 	}
 	// transfer ownership to here.
 	raw_data_ = std::move(other.raw_data_);
 	// other loses ownership
 	other.raw_data_ = nullptr;
 	alloc_ = std::move(other.alloc_);
-	alloc_shape_ = std::move(other.alloc_shape_);
+	alloced_shape_ = std::move(other.alloced_shape_);
 	allowed_shape_ = std::move(other.allowed_shape_);
 }
 

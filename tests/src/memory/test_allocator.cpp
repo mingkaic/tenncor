@@ -7,17 +7,19 @@
 #include "gtest/gtest.h"
 
 #include "tests/include/mocks/mock_allocator.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 
 
 #ifndef DISABLE_ALLOCATOR_TEST
 
 
+class ALLOCATOR : public FUZZ::fuzz_test {};
+
+
 // covers allocator
 // clone
-TEST(ALLOCATOR, Clone_A000)
+TEST_F(ALLOCATOR, Clone_A000)
 {
-	FUZZ::reset_logger();
 	
 	// test default allocator
 	default_alloc assign;
@@ -38,9 +40,8 @@ TEST(ALLOCATOR, Clone_A000)
 
  // covers allocator
  // move
- TEST(ALLOCATOR, Move_A000)
+ TEST_F(ALLOCATOR, Move_A000)
  {
- 	FUZZ::reset_logger();
 	
  	// test default allocator
  	default_alloc assign;
@@ -61,12 +62,11 @@ TEST(ALLOCATOR, Clone_A000)
 
 // covers allocator
 // allocate
-TEST(ALLOCATOR, Default_Allocate_A001)
+TEST_F(ALLOCATOR, Default_Allocate_A001)
 {
-	FUZZ::reset_logger();
 	mock_default_allocator a;
 
-	size_t numa = FUZZ::getInt(1, "numa", {1, 127})[0];
+	size_t numa = get_int(1, "numa", {1, 127})[0];
 	void* ca = a.template allocate<double>(numa);
 	size_t abytes = a.tracker[ca].num_bytes;
 	EXPECT_EQ(numa * sizeof(double), abytes);
@@ -91,7 +91,7 @@ TEST(ALLOCATOR, Default_Allocate_A001)
 
 // allocate an absurdly large amount of memory to cause error
 // (line 58, /tenncor/include/memory/iallocator.hpp)
-//TEST(ALLOCATOR, Default_LargeAllocate_A001)
+//TEST_F(ALLOCATOR, Default_LargeAllocate_A001)
 //{
 //
 //}
@@ -99,12 +99,11 @@ TEST(ALLOCATOR, Default_Allocate_A001)
 
 // covers allocator
 // dealloc, dependent on allocate
-TEST(ALLOCATOR, Default_Deallocate_A002)
+TEST_F(ALLOCATOR, Default_Deallocate_A002)
 {
-	FUZZ::reset_logger();
 	mock_default_allocator a;
-	size_t numa = FUZZ::getInt(1, "numa", {1, 127})[0];
-	size_t numb = FUZZ::getInt(1, "numb", {0, 127})[0];
+	size_t numa = get_int(1, "numa", {1, 127})[0];
+	size_t numb = get_int(1, "numb", {0, 127})[0];
 	void* ca = a.template allocate<uint64_t>(numa);
 
 	// b is not tracked, so 0 should still deallocate
@@ -116,12 +115,11 @@ TEST(ALLOCATOR, Default_Deallocate_A002)
 
 // covers allocator
 // tracks_size, request_size
-TEST(ALLOCATOR, Default_Track_A003)
+TEST_F(ALLOCATOR, Default_Track_A003)
 {
-	FUZZ::reset_logger();
 	mock_default_allocator a;
 	EXPECT_FALSE(a.tracks_size());
-	size_t numa = FUZZ::getInt(1, "numa", {1, 127})[0];
+	size_t numa = get_int(1, "numa", {1, 127})[0];
 	char* ca = (char*)a.template allocate<uint64_t>(numa);
 	EXPECT_THROW(a.requested_size(ca), std::bad_function_call);
 	a.template dealloc<uint64_t>((uint64_t*) ca, numa);

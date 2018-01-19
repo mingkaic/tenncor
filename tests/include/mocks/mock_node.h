@@ -7,30 +7,29 @@
 
 #include <algorithm>
 
-#include "tests/include/util_test.h"
+#include "tests/include/utils/util_test.h"
 
 #include "include/graph/inode.hpp"
-#include "include/graph/varptr.hpp"
 
 using namespace nnet;
 
 
 // not a substitute for leaves...
 // WARNING: deletes data
-class mock_node : public inode<double>
+class mock_node : public inode
 {
 public:
-	mock_node (std::string name = "") : inode<double>(name) {}
-	mock_node (const mock_node& other) : inode<double>(other) {}
-	mock_node (mock_node&& other) : inode<double>(std::move(other)) {}
+	mock_node (std::string name = "") : inode(name) {}
+	mock_node (const mock_node& other) : inode(other) {}
+	mock_node (mock_node&& other) : inode(std::move(other)) {}
 	mock_node& operator = (const mock_node& other)
 	{
-		inode<double>::operator = (other);
+		inode::operator = (other);
 		return *this;
 	}
 	mock_node& operator = (mock_node&& other)
 	{
-		inode<double>::operator = (std::move(other));
+		inode::operator = (std::move(other));
 		return *this;
 	}
 
@@ -39,18 +38,18 @@ public:
 		if (data_) delete data_;
 	}
 
-	tensor<double>* data_ = nullptr;
+	itensor* data_ = nullptr;
 
-	virtual std::vector<inode<double>*> get_arguments (void) const { return std::vector<inode<double>*>{}; }
+	virtual std::vector<inode*> get_arguments (void) const { return std::vector<inode*>{}; }
 	virtual size_t n_arguments (void) const { return 0; }
-	virtual const tensor<double>* eval (void) { return data_; }
+	virtual const itensor* eval (void) { return data_; }
 	virtual tensorshape get_shape (void) const { return data_->get_shape(); }
 	virtual bool good_status (void) const { return nullptr != data_; }
-	virtual std::unordered_set<ileaf<double>*> get_leaves (void) const { return std::unordered_set<ileaf<double>*>{}; }
-	virtual varptr<double> derive (inode<double>* wrt) { return wrt == this ? varptr<double>(this) : varptr<double>(); }
+	virtual std::unordered_set<ileaf*> get_leaves (void) const { return std::unordered_set<ileaf*>{}; }
+	virtual varptr derive (inode* wrt) { return wrt == this ? varptr(this) : varptr(); }
 	virtual bool read_proto (const tenncor::tensor_proto&) { return false; }
 
-	inode<double>* expose_leaf (inode<double>* source, variable<double>* leaf) const
+	inode* expose_leaf (inode* source, variable* leaf) const
 	{
 		return this->take_gradient(source, leaf);
 	}
@@ -61,10 +60,10 @@ public:
 	}
 
 protected:
-	virtual inode<double>* clone_impl (void) const { return new mock_node(*this); }
-	virtual inode<double>* move_impl (void) { return new mock_node(std::move(*this)); }
-	virtual const tensor<double>* get_eval (void) const { return data_; }
-	virtual inode<double>* get_gradient (variable<double>*) { return nullptr; }
+	virtual inode* clone_impl (void) const { return new mock_node(*this); }
+	virtual inode* move_impl (void) { return new mock_node(std::move(*this)); }
+	virtual const itensor* get_eval (void) const { return data_; }
+	virtual inode* get_gradient (variable*) { return nullptr; }
 };
 
 

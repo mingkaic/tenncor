@@ -17,14 +17,14 @@ gd_updater* gd_updater::clone (void) const { return clone_impl(); }
 
 gd_updater* gd_updater::move (void) { return move_impl(); }
 
-updates_t gd_updater::calculate (inode<double>* root, grad_process intermediate_process)
+updates_t gd_updater::calculate (inode* root, grad_process intermediate_process)
 {
-	std::vector<variable_updater<double> > updates;
-	std::unordered_set<ileaf<double>*> leafset = root->get_leaves();
-	std::vector<std::pair<inode<double>*,variable<double>*> > gress;
-	for (ileaf<double>* l : leafset)
+	std::vector<variable_updater > updates;
+	std::unordered_set<ileaf*> leafset = root->get_leaves();
+	std::vector<std::pair<inode*,variable*>> gress;
+	for (ileaf* l : leafset)
 	{
-		variable<double>* Wb = dynamic_cast<variable<double>*>(l);
+		variable* Wb = dynamic_cast<variable*>(l);
 		if (Wb && ignored_.end() == ignored_.find(Wb))
 		{
 			gress.push_back({root->derive(Wb), Wb});
@@ -33,18 +33,18 @@ updates_t gd_updater::calculate (inode<double>* root, grad_process intermediate_
 
 	for (auto& gpair : gress)
 	{
-		varptr<double> gres = gpair.first;
+		varptr gres = gpair.first;
 		updates.push_back(process_update(gres, gpair.second, intermediate_process));
 	}
 	return updates;
 }
 
-void gd_updater::ignore_subtree (inode<double>* subroot)
+void gd_updater::ignore_subtree (inode* subroot)
 {
-	std::unordered_set<ileaf<double>*> leafset = subroot->get_leaves();
-	for (ileaf<double>* l : leafset)
+	std::unordered_set<ileaf*> leafset = subroot->get_leaves();
+	for (ileaf* l : leafset)
 	{
-		if (variable<double>* Wb = dynamic_cast<variable<double>*>(l))
+		if (variable* Wb = dynamic_cast<variable*>(l))
 		{
 			ignored_.emplace(Wb);
 		}
@@ -78,8 +78,8 @@ gd_updater* vgb_updater::move_impl (void)
 	return new vgb_updater(std::move(*this));
 }
 
-variable_updater<double> vgb_updater::process_update (varptr<double>& gres,
-	variable<double>* leaf, grad_process intermediate_process)
+variable_updater vgb_updater::process_update (varptr& gres,
+	variable* leaf, grad_process intermediate_process)
 {
 	// leaf = leaf - learning_rate * gres
 	return leaf->assign_sub(intermediate_process(gres, leaf) * learning_rate_);
@@ -100,8 +100,8 @@ gd_updater* momentum_updater::move_impl (void)
 	return new momentum_updater(std::move(*this));
 }
 
-variable_updater<double> momentum_updater::process_update (varptr<double>& /*gres*/,
-	variable<double>* /*leaf*/, grad_process /*intermediate_process*/)
+variable_updater momentum_updater::process_update (varptr& /*gres*/,
+	variable* /*leaf*/, grad_process /*intermediate_process*/)
 {
 	throw std::bad_function_call();
 	return [](bool) {};
@@ -122,8 +122,8 @@ gd_updater* adadelta_updater::move_impl (void)
 	return new adadelta_updater(std::move(*this));
 }
 
-variable_updater<double> adadelta_updater::process_update (varptr<double>& /*gres*/,
-	variable<double>* /*leaf*/, grad_process /*intermediate_process*/)
+variable_updater adadelta_updater::process_update (varptr& /*gres*/,
+	variable* /*leaf*/, grad_process /*intermediate_process*/)
 {
 	throw std::bad_function_call();
 	return [](bool) {};
@@ -144,8 +144,8 @@ gd_updater* adagradupdater::move_impl (void)
 	return new adagradupdater(std::move(*this));
 }
 
-variable_updater<double> adagradupdater::process_update (varptr<double>& /*gres*/,
-	variable<double>* /*leaf*/, grad_process /*intermediate_process*/)
+variable_updater adagradupdater::process_update (varptr& /*gres*/,
+	variable* /*leaf*/, grad_process /*intermediate_process*/)
 {
 	throw std::bad_function_call();
 	return [](bool) {};
@@ -158,7 +158,7 @@ rmspropupdater::rmspropupdater (double learning_rate, double discount_factor) :
 
 rmspropupdater::~rmspropupdater (void)
 {
-	for (variable<double>* momentum : momentums_)
+	for (variable* momentum : momentums_)
 	{
 		delete momentum;
 	}
@@ -211,19 +211,19 @@ rmspropupdater::rmspropupdater (rmspropupdater&& other) :
 	gd_updater(std::move(other)),
 	discount_factor_(std::move(other.discount_factor_)) {}
 	
-variable_updater<double> rmspropupdater::process_update (varptr<double>& gres,
-	variable<double>* leaf, grad_process intermediate_process)
+variable_updater rmspropupdater::process_update (varptr& gres,
+	variable* leaf, grad_process intermediate_process)
 {
-	const_init<double> wuninit(1);
-	variable<double>* momentum = new variable<double>(leaf->get_shape(), wuninit, "momentum");
+	const_init wuninit((double) 1);
+	variable* momentum = new variable(leaf->get_shape(), wuninit, tenncor::tensor_proto::DOUBLE_T, "momentum");
 	momentum->initialize();
 	momentums_.push_back(momentum); // updater manages momentum variable
 
 	// momentum = discount_factor_ * momentum + (1 - discount_factor_) * gres^2
 	// leaf = leaf - learning_rate * gres / (sqrt(momentum) + epsilon)
-	varptr<double> dres = intermediate_process(gres, leaf);
-	varptr<double> momentum_step = discount_factor_ * varptr<double>(momentum) + (1-discount_factor_) * pow(dres, 2);
-	varptr<double> leaf_step = dres * learning_rate_ / (sqrt<double>(momentum_step) + epsilon_);
+	varptr dres = intermediate_process(gres, leaf);
+	varptr momentum_step = discount_factor_ * varptr(momentum) + (1-discount_factor_) * pow(dres, 2);
+	varptr leaf_step = dres * learning_rate_ / (sqrt(momentum_step) + epsilon_);
 	auto momentum_update = momentum->assign(momentum_step);
 	auto leaf_update = leaf->assign_sub(leaf_step);
 	return [momentum_update, leaf_update, momentum, dres, leaf_step](bool notify)

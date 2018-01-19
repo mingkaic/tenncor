@@ -22,19 +22,14 @@ namespace nnet
 {
 
 //! return null if no such parent named opname is found, otherwise return parent
-template <typename T>
-inode<T>* unary_parent_search (inode<T>* operand, std::string opname);
+inode* unary_parent_search (inode* operand, std::string opname);
 
 //! return null if no such parent satisfies both operands is found, otherwise return parent
-template <typename T>
-inode<T>* ordered_binary_parent_search (inode<T>* a, inode<T>* b, std::string opname);
+inode* ordered_binary_parent_search (inode* a, inode* b, std::string opname);
 
 //! return null if no such parent satisfies both operands is found, otherwise return parent
-template <typename T>
-inode<T>* unordered_binary_parent_search (inode<T>* a, inode<T>* b, std::string opname);
+inode* unordered_binary_parent_search (inode* a, inode* b, std::string opname);
 
 }
-
-#include "src/graph/operations/operation_utils.ipp"
 
 #endif /* TENNCOR_OPERATION_UTILS_HPP */
