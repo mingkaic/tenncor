@@ -28,7 +28,7 @@ struct tens_bin_sample : public tens_elems_bi<T>
 	tens_elems_bi<T>(dest, srcs, [](T n, T p)
 	{
 		assert(p>= 0 && p <= 1);
-		std::binomial_distribution<T> dist(n, p);
+		std::binomial_distribution<int> dist(n, p);
 		return dist(nnutils::get_generator());
 	}) {}
 };

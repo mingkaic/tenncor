@@ -100,7 +100,7 @@ std::string uuid (const void* addr);
 template <typename T>
 std::string stringify (T* data, size_t n)
 {
-	size_t nbytes = n * sizeof(data);
+	size_t nbytes = n * sizeof(T);
 	std::string result(nbytes, '\0');
 	memcpy(&result[0], data, nbytes);
 	return result;

@@ -125,10 +125,10 @@ void generator::update (std::unordered_set<size_t>)
 		{
 			case tenncor::tensor_proto::DOUBLE_T:
 				data_ = new tensor_double(depshape);
-				return;
+			break;
 			case tenncor::tensor_proto::SIGNED_T:
 				data_ = new tensor_signed(depshape);
-				return;
+			break;
 			default:
 				throw std::exception(); // unsupported type
 		}

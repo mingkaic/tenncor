@@ -76,7 +76,7 @@ cc_test(
 
 cc_test(
 	name = "tenncor_operation",
-	size = "small",
+	size = "medium",
 	srcs = glob(["src/utils/*.cpp"]) +
 		glob(["include/utils/*.h"]) + 
 		glob(["src/operations/*.cpp"]) + [

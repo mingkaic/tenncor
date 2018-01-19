@@ -139,12 +139,14 @@ void tens_conditional<T>::action (void)
 	assert(2 == this->srcs_.size());
 	size_t n_out = this->dest_.second.n_elems();
 	// assert everything shape is ok
-	const T* src0 = this->srcs_[0].first;
-	const T* src1 = this->srcs_[1].first;
+	bool left_mul = this->srcs_[0].second.n_elems() > 1;
+	bool right_mul = this->srcs_[1].second.n_elems() > 1;
 
 	for (size_t i = 0; i < n_out; ++i)
 	{
-		this->dest_.first[i] = comp_(src0[i], src1[i]);
+		this->dest_.first[i] = comp_(
+			this->srcs_[0].first[i * left_mul], 
+			this->srcs_[1].first[i * right_mul]);
 	}
 }
 

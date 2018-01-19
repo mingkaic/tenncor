@@ -172,7 +172,7 @@ struct tens_bin_sample_uni : public tens_elem_uni<T>
 	tens_elem_uni<T>(dest, srcs, [n](T data)
 	{
 		assert(data>= 0 && data <= 1);
-		std::binomial_distribution<signed> dist(n, data);
+		std::binomial_distribution<int> dist(n, data);
 		return dist(nnutils::get_generator());
 	}) {}
 
@@ -182,7 +182,7 @@ struct tens_bin_sample_uni : public tens_elem_uni<T>
 	tens_elem_uni<T>(dest, srcs, [p](T data)
 	{
 		assert(p>= 0 && p <= 1);
-		std::binomial_distribution<T> dist(data, p);
+		std::binomial_distribution<int> dist(data, p);
 		return dist(nnutils::get_generator());
 	}) {}
 };
