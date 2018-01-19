@@ -26,22 +26,22 @@ public:
 			{
 				initdata = fuzzer->get_double(n, "initdata", {-123, 139.2});
 			}
-            set_data(&initdata[0], n * sizeof(double));
+			set_data(&initdata[0], n * sizeof(double));
 		}
 	}
 
 	mock_itensor (double scalar) :
 		tensor_double(scalar) {}
 
-    mock_itensor* clone (bool shapeonly = false) const
-    {
-        return static_cast<mock_itensor*>(clone_impl(shapeonly));
-    }
+	mock_itensor* clone (bool shapeonly = false) const
+	{
+		return static_cast<mock_itensor*>(clone_impl(shapeonly));
+	}
 
-    mock_itensor* move (void)
-    {
-        return static_cast<mock_itensor*>(move_impl());
-    }
+	mock_itensor* move (void)
+	{
+		return static_cast<mock_itensor*>(move_impl());
+	}
 
 	mock_itensor& operator = (const mock_itensor& other)
 	{
@@ -73,8 +73,8 @@ public:
 		size_t n = this->n_elems();
 		// crashes if we have shape, data inconsistency,
 		// assuming address sanitation works properly
-        const double* data = (const double*) get_data();
-        const double* other_data = (const double*) other.get_data();
+		const double* data = (const double*) get_data();
+		const double* other_data = (const double*) other.get_data();
 		return std::equal(data, data + n, other_data);
 	}
 
@@ -101,15 +101,15 @@ protected:
 	mock_itensor (mock_itensor&& other) :
 		tensor_double(std::move(other)) {}
 
-    virtual itensor* clone_impl (bool shapeonly) const
-    {
-        return new mock_itensor(*this, shapeonly);
-    }
+	virtual itensor* clone_impl (bool shapeonly) const
+	{
+		return new mock_itensor(*this, shapeonly);
+	}
 
-    virtual itensor* move_impl (void)
-    {
-        return new mock_itensor(std::move(*this));
-    }
+	virtual itensor* move_impl (void)
+	{
+		return new mock_itensor(std::move(*this));
+	}
 };
 
 

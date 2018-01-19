@@ -7,7 +7,6 @@
 //
 
 #include "include/graph/operations/operations.hpp"
-#include "include/tensor/actors/tens_matmul.hpp"
 
 #ifdef TENNCOR_MATMUL_HPP
 

@@ -44,7 +44,7 @@ public:
 	virtual void temporary_eval (const iconnector*,inode*&) const {}
 	virtual tensorshape get_shape (void) const { return tensorshape(); }
 	virtual bool good_status (void) const { return false; }
-	virtual const tensor<double>* get_eval (void) const { return nullptr; }
+	virtual const itensor* get_eval (void) const { return nullptr; }
 	virtual varptr derive (inode*) { return nullptr; }
 	virtual bool read_proto (const tenncor::tensor_proto&) { return false; }
 

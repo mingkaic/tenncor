@@ -78,6 +78,8 @@ protected:
 	//! backward pass step: populate gcache_[leaf]
 	virtual void backward_pass (variable* leaf);
 
+	itens_actor* actor_ = nullptr;
+
 private:
 	//! copy helper
 	void copy_helper (const immutable& other);
@@ -91,8 +93,6 @@ private:
 	//! forward transfer function
 	//! calculates forward passing data
 	actor_func* Nf_ = nullptr;
-
-	itens_actor* actor_ = nullptr;
 
 	//! backward transfer function to
 	//! lazy instantiate gradient cache values

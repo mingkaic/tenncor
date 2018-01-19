@@ -138,13 +138,14 @@ void immutable::forward_pass (void)
 			ts.push_back(arg->get_shape());
 			tens.push_back(arg);
 		}
-		// resolve type (todo: implement)
-		tenncor::tensor_proto::tensor_t type = types[0];
 		// shape check and tensor initialization
 		tensorshape s = shaper_(ts);
 		if (nullptr == this->data_)
 		{
 			s.assert_is_fully_defined();
+			// resolve type (todo: implement)
+			tenncor::tensor_proto::tensor_t type = types.size() ? 
+				types[0] : tenncor::tensor_proto::DOUBLE_T;
 			switch (type)
 			{
 				case tenncor::tensor_proto::DOUBLE_T:

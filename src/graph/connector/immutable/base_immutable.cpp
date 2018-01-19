@@ -236,7 +236,7 @@ void base_immutable::move_helper (base_immutable&& other)
 	{
 		delete data_;
 	}
-	data_ = std::move(other.data_);
+	data_ = other.data_->move();
 	other.data_ = nullptr;
 	gcache_ = std::move(other.gcache_);
 }
@@ -249,7 +249,20 @@ inode* base_immutable::temp_eval_helper (const iconnector* target, constant*& ba
 		// return 1
 		if (!base)
 		{
-			base = constant::get(1);
+			// todo: get rid of switch once type conversion is implemented
+			switch (target->get_type())
+			{
+				case tenncor::tensor_proto::BAD_T: 
+				// todo: resolve by type forward lookup
+				case tenncor::tensor_proto::DOUBLE_T:
+					base = constant::get((double) 1);
+				break;
+				case tenncor::tensor_proto::SIGNED_T:
+					base = constant::get((signed) 1);
+				break;
+				default:
+					throw std::exception(); // unsupported type
+			}
 		}
 		return base;
 	}

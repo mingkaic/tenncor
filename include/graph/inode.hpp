@@ -111,7 +111,11 @@ public:
 
 	tenncor::tensor_proto::tensor_t get_type (void) const
 	{
-		return get_eval()->get_type();
+		if (const itensor* result = get_eval())
+		{
+			return result->get_type();
+		}
+		return tenncor::tensor_proto::BAD_T;
 	}
 
 protected:

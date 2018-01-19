@@ -863,64 +863,6 @@ varptr conditional (const varptr a, double b, COMPARE<double> compare, std::stri
 	return out;
 }
 
-varptr conditional (const varptr a, const varptr b, COMPARE<double> compare, std::string name)
-{
-	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
-	constant* aconst = dynamic_cast<constant*>(a.get());
-	constant* bconst = dynamic_cast<constant*>(b.get());
-	if (aconst && 1 == aconst->get_shape().n_elems())
-	{
-		std::vector<double> outconst = expose<double>(aconst);
-		return conditional(outconst[0], b, compare, name);
-	}
-	else if (bconst && 1 == bconst->get_shape().n_elems())
-	{
-		std::vector<double> outconst = expose<double>(bconst);
-		return conditional(a, outconst[0], compare, name);
-	}
-	std::string opname = "conditional_" + name;
-	if (inode* parent = ordered_binary_parent_search(a.get(), b.get(), opname))
-	{
-		return parent;
-	}
-	varptr out = immutable::get(std::vector<inode*>{a, b}, unary_shaper,
-	new actor_func(
-	CONN_ACTOR([compare](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
-		tenncor::tensor_proto::tensor_t type) -> itens_actor*
-	{
-		switch (type)
-		{
-			case tenncor::tensor_proto::DOUBLE_T:
-				return new tens_conditional<double>(dest, srcs, compare);
-			case tenncor::tensor_proto::SIGNED_T:
-				return new tens_conditional<signed>(dest, srcs, compare);
-			default:
-			break;
-		}
-		return nullptr;
-	})),
-	[compare, name](std::vector<std::pair<inode*,inode*>> args)
-	{
-		assert(args.size() == 2);
-		varptr grada = args[0].second;
-		varptr gradb = args[1].second;
-		// todo: consider correctness
-		return conditional(grada, gradb, compare, name);
-	}, opname);
-	out->extract_metadata(a.get());
-	return out;
-}
-
-varptr eq (const varptr a, const varptr b)
-{
-	return conditional(a, b, [](double left, double right) { return left == right; }, "eq");
-}
-
-varptr neq (const varptr a, const varptr b)
-{
-	return conditional(a, b, [](double left, double right) { return left != right; }, "neq");
-}
-
 varptr binomial_sample (signed n, const varptr p)
 {
 	if (nullptr == p.get()) return nullptr;

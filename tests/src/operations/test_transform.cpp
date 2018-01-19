@@ -54,17 +54,17 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 	PARAM_EVAL<T> paramer = no_param<T>)
 {
 	tensorshape shape = random_def_shape(fuzzer, ranklimit.first, ranklimit.second);
-	rand_uniform<double> rinit(2, 12);
-	variable var(shape, rinit, "unar_var");
+	rand_uniform rinit(2, 12);
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "unar_var");
 	var.initialize();
 	{
-		const nnet::tensor<double>* vartens = var.eval();
+		const itensor* vartens = var.eval();
 		ASSERT_NE(nullptr, vartens);
 		ASSERT_TRUE(vartens->is_alloc());
 	}
 	varptr res = func(varptr(&var), paramer(shape));
 	{
-		const nnet::tensor<double>* restens = res->eval();
+		const itensor* restens = res->eval();
 		ASSERT_NE(nullptr, restens);
 		ASSERT_TRUE(restens->is_alloc());
 	}
@@ -74,7 +74,7 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 	std::vector<double> expectout = expect_transfer(varout, shape, expectoshape);
 	nnet::inode* vgrad = var.derive(&var);
 	{
-		const nnet::tensor<double>* vgradtens = vgrad->eval();
+		const itensor* vgradtens = vgrad->eval();
 		ASSERT_NE(nullptr, vgradtens);
 		ASSERT_TRUE(vgradtens->is_alloc());
 	}
@@ -93,8 +93,10 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 	if ((bool) grad_transfer && (bool) grad_shape)
 	{
 		tensorshape gradoshape = (*grad_shape)(var.derive(&var)->get_shape());
-		std::vector<double> gradout = (*grad_transfer)(expose<double>(vgrad), vgrad->get_shape(), gradoshape);
-		const tensor<double>* backt = res->derive(&var)->eval();
+		std::vector<double> gradout = 
+			(*grad_transfer)(expose<double>(vgrad), vgrad->get_shape(), gradoshape);
+		const tensor_double* backt = 
+			dynamic_cast<const tensor_double*>(res->derive(&var)->eval());
 		tensorshape outgshape = backt->get_shape();
 		std::vector<double> rgout = backt->expose();
 		EXPECT_TRUE(tensorshape_equal(gradoshape, outgshape));
@@ -153,8 +155,8 @@ TEST_F(TRANSFORM, Transpose_B001)
 TEST_F(TRANSFORM, Fit_B002)
 {
 	tensorshape realshape = random_def_shape(this);
-	rand_uniform<double> rinit(2, 12);
-	variable shapeholder(realshape, rinit, "shapeholder");
+	rand_uniform rinit(2, 12);
+	variable shapeholder(realshape, rinit, tenncor::tensor_proto::DOUBLE_T, "shapeholder");
 	shapeholder.initialize();
 
 	PARAM_EVAL<const varptr > fitparam =
@@ -253,15 +255,16 @@ TEST_F(TRANSFORM, Extend_B003To004)
 	{
 		size_t index = idxnmult.first;
 		size_t multiplier = idxnmult.second;
-		return nnet::extend(in, index, multiplier);
+		return extend(in, index, multiplier);
 	},
 	transfer, shape, gradtransfer, gradshape, extendparam);
 	// B005
 	tensorshape rshape = random_def_shape(this, 2, 13);
-	rand_uniform<double> rinit(2, 12);
-	variable var(rshape, rinit, "unar_var");
+	rand_uniform rinit(2, 12);
+	variable var(rshape, rinit, tenncor::tensor_proto::DOUBLE_T, "unar_var");
 	varptr zaro = extend(varptr(&var), extend_index, 0);
-	const tensor<double>* ztens = zaro->eval();
+	var.initialize();
+	const tensor_double* ztens = dynamic_cast<const tensor_double*>(zaro->eval());
 	EXPECT_EQ((size_t) 1, ztens->get_shape().n_elems());
 	std::vector<double> zvec = ztens->expose();
 	ASSERT_EQ((size_t) 1, zvec.size());
@@ -274,7 +277,7 @@ TEST_F(TRANSFORM, Extend_B003To004)
 TEST_F(TRANSFORM, Compress_B005)
 {
 	size_t compress_index;
-	BI_TRANS compression =
+	BI_TRANS<double> compression =
 	[](double a, double b) -> double
 	{
 		return a + b;
@@ -345,11 +348,11 @@ TEST_F(TRANSFORM, Compress_B005)
 TEST_F(TRANSFORM, CompressScalar_B006)
 {
 	tensorshape shape = random_def_shape(this, 2, 13);
-	rand_uniform<double> rinit(2, 12);
-	variable var(shape, rinit, "unar_var");
+	rand_uniform rinit(2, 12);
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "unar_var");
 	var.initialize();
 
-	std::vector<BI_TRANS> comps = {
+	std::vector<BI_TRANS<double>> comps = {
 		[](double a, double b)
 		{
 			return a + b;
@@ -363,7 +366,7 @@ TEST_F(TRANSFORM, CompressScalar_B006)
 			return std::min(a, b);
 		}
 	};
-	BI_TRANS comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
+	BI_TRANS<double> comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
 
 	varptr scal = compress(varptr(&var), comp, optional<size_t>());
 
@@ -376,7 +379,7 @@ TEST_F(TRANSFORM, CompressScalar_B006)
 TEST_F(TRANSFORM, ArgCompress_B008To009)
 {
 	size_t arg_index;
-	REDUCE search =
+	REDUCE<double> search =
 	[](std::vector<double> data) -> double
 	{
 		return std::distance(data.begin(), std::max_element(data.begin(), data.end()));
@@ -453,11 +456,11 @@ TEST_F(TRANSFORM, ArgCompress_B008To009)
 TEST_F(TRANSFORM, ArgCompressScalar_B010)
 {
 	tensorshape shape = random_def_shape(this, 2, 13);
-	rand_uniform<double> rinit(2, 12);
-	variable var(shape, rinit, "unar_var");
+	rand_uniform rinit(2, 12);
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "unar_var");
 	var.initialize();
 
-	std::vector<REDUCE> comps = {
+	std::vector<REDUCE<double>> comps = {
 		[](std::vector<double> data)
 		{
 			double accum = 0;
@@ -487,7 +490,7 @@ TEST_F(TRANSFORM, ArgCompressScalar_B010)
 			return (double) idx;
 		}
 	};
-	REDUCE comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
+	REDUCE<double> comp = comps[get_int(1, "compIdx", {0, comps.size() - 1})[0]];
 
 	varptr scal = arg_compress(varptr(&var), comp, optional<size_t>());
 
@@ -502,11 +505,11 @@ TEST_F(TRANSFORM, Flip_B012)
 	tensorshape shape = random_def_shape(this);
 	std::vector<size_t> shapelist = shape.as_list();
 	size_t inn = shape.n_elems();
-	rand_uniform<double> rinit(2, 12);
+	rand_uniform rinit(2, 12);
 
 	size_t flipdim = get_int(1, "flipdim", {0, shape.rank() - 1})[0];
 
-	variable var(shape, rinit, "unar_var");
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "unar_var");
 	varptr res = flip(varptr(&var), std::vector<size_t>{ flipdim });
 
 	// Behavior A000
@@ -517,7 +520,7 @@ TEST_F(TRANSFORM, Flip_B012)
 	std::vector<double> indata = expose<double>(&var);
 
 	// compare data, shape must be equivalent, since we're testing elementary operations (Behavior A001)
-	const tensor<double>* rawtens = res->eval();
+	const tensor_double* rawtens = dynamic_cast<const tensor_double*>(res->eval());
 	std::vector<double> rawf = rawtens->expose();
 	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape()));
 	ASSERT_EQ(rawf.size(), inn);

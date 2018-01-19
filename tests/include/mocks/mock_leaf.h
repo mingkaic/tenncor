@@ -18,8 +18,10 @@ using namespace nnet;
 class mock_leaf : public ileaf
 {
 public:
-	mock_leaf (FUZZ::fuzz_test* fuzzer, std::string name) : ileaf(random_def_shape(fuzzer), name) {}
-	mock_leaf (const tensorshape& shape, std::string name) : ileaf(shape, name) {}
+	mock_leaf (FUZZ::fuzz_test* fuzzer, std::string name) : 
+		ileaf(random_def_shape(fuzzer), tenncor::tensor_proto::DOUBLE_T, name) {}
+	mock_leaf (const tensorshape& shape, std::string name) : 
+		ileaf(shape, tenncor::tensor_proto::DOUBLE_T, name) {}
 
 	virtual varptr derive (inode*) { return nullptr; }
 

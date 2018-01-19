@@ -20,6 +20,7 @@
 #include "include/graph/connector/immutable/immutable.hpp"
 #include "include/graph/leaf/constant.hpp"
 #include "include/graph/operations/operation_utils.hpp"
+#include "include/tensor/actors/tens_matmul.hpp"
 
 #pragma once
 
@@ -84,15 +85,9 @@ varptr conditional (double a, const varptr b, std::function<bool(double,double)>
 
 varptr conditional (const varptr a, double b, std::function<bool(double,double)> compare, std::string name);
 
-varptr conditional (const varptr a, const varptr b, std::function<bool(double,double)> compare, std::string name);
-
-varptr eq (const varptr a, const varptr b);
-
-varptr neq (const varptr a, const varptr b);
-
 //! sample using binominal distribution given tensors (or scalars) n and p
 // todo: after implementing type, restrict n to integers
-varptr binomial_sample (double n, const varptr p);
+varptr binomial_sample (signed n, const varptr p);
 
 varptr binomial_sample (const varptr n, double p);
 
@@ -126,6 +121,12 @@ varptr operator / (double a, const varptr b);
 #define TENNCOR_ELEM_BI_HPP
 
 varptr binomial_sample (const varptr n, const varptr p);
+
+varptr conditional (const varptr a, const varptr b, std::function<bool(double,double)> compare, std::string name);
+
+varptr eq (const varptr a, const varptr b);
+
+varptr neq (const varptr a, const varptr b);
 
 //! add a and b
 varptr operator + (const varptr a, const varptr b);

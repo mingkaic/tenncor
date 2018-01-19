@@ -60,7 +60,18 @@ generator& generator::operator = (generator&& other)
 
 void generator::temporary_eval (const iconnector*, inode*& out) const
 {
-	out = constant::get(1);
+	// todo: get rid of switching once type conversion is implemented
+	switch (get_type())
+	{
+		case tenncor::tensor_proto::DOUBLE_T:
+			out = constant::get((double) 1);
+		break;
+		case tenncor::tensor_proto::SIGNED_T:
+			out = constant::get((signed) 1);
+		break;
+		default:
+		break;
+	}
 }
 
 varptr generator::derive (inode* wrt)

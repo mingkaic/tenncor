@@ -4,8 +4,11 @@ cc_test(
 	srcs = glob(["src/utils/*.cpp"]) +
 		glob(["include/utils/*.h"]) + 
 		glob(["src/graph/connector/*.cpp"]) + [
-
 		"include/mocks/mock_actor.h",
+		"include/mocks/mock_connector.h",
+		"include/mocks/mock_immutable.h",
+		"include/mocks/mock_itensor.h",
+		"include/mocks/mock_node.h",
 	],
 	deps = [
 		"@googletest//:gtest_main",
@@ -21,8 +24,11 @@ cc_test(
 	srcs = glob(["src/utils/*.cpp"]) +
 		glob(["include/utils/*.h"]) + 
 		glob(["src/graph/leaf/*.cpp"]) + [
-
 		"include/mocks/mock_actor.h",
+		"include/mocks/mock_connector.h",
+		"include/mocks/mock_ivariable.h",
+		"include/mocks/mock_leaf.h",
+		"include/mocks/mock_node.h",
 	],
 	deps = [
 		"@googletest//:gtest_main",
@@ -38,10 +44,10 @@ cc_test(
 	srcs = glob(["src/utils/*.cpp"]) +
 		glob(["include/utils/*.h"]) + 
 		glob(["src/graph/top_node/*.cpp"]) + [
-		"include/mocks/mock_subject.h",
-		"include/mocks/mock_observer.h",
-		"include/mocks/mock_node.h",
 		"include/mocks/mock_actor.h",
+		"include/mocks/mock_node.h",
+		"include/mocks/mock_observer.h",
+		"include/mocks/mock_subject.h",
 	],
 	deps = [
 		"@googletest//:gtest_main",
@@ -57,8 +63,8 @@ cc_test(
 	srcs = glob(["src/utils/*.cpp"]) +
 		glob(["include/utils/*.h"]) + 
 		glob(["src/memory/*.cpp"]) + [
-		"include/mocks/mock_allocator.h",
 		"include/mocks/mock_actor.h",
+		"include/mocks/mock_allocator.h",
 	],
 	deps = [
 		"@googletest//:gtest_main",
@@ -74,8 +80,8 @@ cc_test(
 	srcs = glob(["src/utils/*.cpp"]) +
 		glob(["include/utils/*.h"]) + 
 		glob(["src/operations/*.cpp"]) + [
-
 		"include/mocks/mock_actor.h",
+		
 	],
 	deps = [
 		"@googletest//:gtest_main",
@@ -91,9 +97,9 @@ cc_test(
 	srcs = glob(["src/utils/*.cpp"]) +
 		glob(["include/utils/*.h"]) + 
 		glob(["src/tensor/*.cpp"]) + [
+		"include/mocks/mock_actor.h",
 		"include/mocks/mock_itensor.h",
 		"include/mocks/mock_tensor.h",
-		"include/mocks/mock_actor.h",
 	],
 	deps = [
 		"@googletest//:gtest_main",

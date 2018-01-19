@@ -42,9 +42,9 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 {
 	tensorshape shape = random_def_shape(fuzzer);
 	size_t inn = shape.n_elems();
-	rand_uniform<double> rinit(2, 12);
+	rand_uniform rinit(2, 12);
 
-	variable var(shape, rinit, "unar_var");
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "unar_var");
 	varptr res = func(varptr(&var));
 
 	// Behavior A000
@@ -55,7 +55,7 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	std::vector<double> indata = expose<double>(&var);
 
 	// compare data, shape must be equivalent, since we're testing elementary operations (Behavior A002)
-	const tensor<double>* rawtens = res->eval();
+	const tensor_double* rawtens = dynamic_cast<const tensor_double*>(res->eval());
 	std::vector<double> rawf = rawtens->expose();
 	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape()));
 	ASSERT_EQ(rawf.size(), inn);
@@ -68,7 +68,7 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 		EXPECT_GE(epi, errf);
 	}
 
-	const tensor<double>* backtens = res->derive(&var)->eval();
+	const tensor_double* backtens = dynamic_cast<const tensor_double*>(res->derive(&var)->eval());
 	std::vector<double> rawb = backtens->expose();
 	ASSERT_TRUE(tensorshape_equal(shape, backtens->get_shape()) || rawb.size() == 1);
 	if (rawb.size() == 1)
@@ -114,7 +114,7 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 {
 	tensorshape shape = random_def_shape(fuzzer);
 	size_t inn = shape.n_elems();
-	rand_uniform<double> rinit(2, 12);
+	rand_uniform rinit(2, 12);
 
 	std::vector<size_t> shapelist = shape.as_list();
 	size_t mutate_idx = fuzzer->get_int(1, "mutate_idx", {0, shapelist.size()-1})[0];
@@ -123,15 +123,15 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 
 	// matching pair
 	std::vector<double> scalars = fuzzer->get_double(2, "scalars", {3, 50});
-	variable var(shape, rinit, "var");
-	variable var2(shape, rinit, "var2");
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
+	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
 
 	// Behavior A000
 	EXPECT_EQ(nullptr, func(varptr(nullptr), varptr(nullptr)));
 	EXPECT_EQ(nullptr, func(varptr(&var), varptr(nullptr)));
 	EXPECT_EQ(nullptr, func(varptr(nullptr), varptr(&var2)));
 
-	variable var3(shape2, rinit, "unmatching_in");
+	variable var3(shape2, rinit, tenncor::tensor_proto::DOUBLE_T, "unmatching_in");
 	varptr res = func(varptr(&var), varptr(&var2));
 	varptr res1 = func1(varptr(&var), scalars[1]);
 	varptr res2 = func2(scalars[0], varptr(&var2));
@@ -144,9 +144,9 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 	std::vector<double> indata2 = expose<double>(&var2);
 
 	// compare data, shape must be equivalent, since we're testing elementary operations (A002)
-	const tensor<double>* tenn = res->eval();
-	const tensor<double>* tenn1 = res1->eval();
-	const tensor<double>* tenn2 = res2->eval();
+	const tensor_double* tenn = dynamic_cast<const tensor_double*>(res->eval());
+	const tensor_double* tenn1 = dynamic_cast<const tensor_double*>(res1->eval());
+	const tensor_double* tenn2 = dynamic_cast<const tensor_double*>(res2->eval());
 	std::vector<double> raw = tenn->expose();
 	std::vector<double> raw1 = tenn1->expose();
 	std::vector<double> raw2 = tenn2->expose();
@@ -175,10 +175,10 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 		EXPECT_GE(epi, errf2);
 	}
 
-	const tensor<double>* backtens1 = res->derive(&var)->eval();
-	const tensor<double>* backtens2 = res->derive(&var2)->eval();
-	const tensor<double>* back1tens = res1->derive(&var)->eval();
-	const tensor<double>* back2tens = res2->derive(&var2)->eval();
+	const tensor_double* backtens1 = dynamic_cast<const tensor_double*>(res->derive(&var)->eval());
+	const tensor_double* backtens2 = dynamic_cast<const tensor_double*>(res->derive(&var2)->eval());
+	const tensor_double* back1tens = dynamic_cast<const tensor_double*>(res1->derive(&var)->eval());
+	const tensor_double* back2tens = dynamic_cast<const tensor_double*>(res2->derive(&var2)->eval());
 	std::vector<double> raw3 = backtens1->expose();
 	std::vector<double> raw4 = backtens2->expose();
 	std::vector<double> raw5 = back1tens->expose();
@@ -431,11 +431,11 @@ TEST_F(ELEMENTARY, Add_A000ToA004_A012)
 	[](double, double, double ga, double gb) { return ga+gb; });
 
 	tensorshape shape = random_def_shape(this);
-	rand_uniform<double> rinit(2, 12);
+	rand_uniform rinit(2, 12);
 	varptr zero = constant::get(0.0);
 	varptr one = constant::get(1.0);
-	variable var(shape, rinit, "var");
-	variable var2(shape, rinit, "var2");
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
+	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
 
 	// Behavior A004
 	varptr samev1 = varptr(&var) +  0.0;
@@ -483,11 +483,11 @@ TEST_F(ELEMENTARY, Sub_A000ToA003_A012_A005)
 
 	tensorshape shape = random_def_shape(this);
 	size_t inn = shape.n_elems();
-	rand_uniform<double> rinit(2, 12);
+	rand_uniform rinit(2, 12);
 	varptr zero = constant::get(0.0);
 	varptr one = constant::get(1.0);
-	variable var(shape, rinit, "var");
-	variable var2(shape, rinit, "var2");
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
+	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
 
 	// Behavior A005
 	varptr samev1 = varptr(&var) -  0.0;
@@ -502,8 +502,8 @@ TEST_F(ELEMENTARY, Sub_A000ToA003_A012_A005)
 	var2.initialize();
 	std::vector<double> indata2 = expose<double>(&var2);
 
-	const tensor<double>* rawtens = samenv2->eval();
-	const tensor<double>* rawtens2 = samenv22->eval();
+	const tensor_double* rawtens = dynamic_cast<const tensor_double*>(samenv2->eval());
+	const tensor_double* rawtens2 = dynamic_cast<const tensor_double*>(samenv22->eval());
 	std::vector<double> rawf = rawtens->expose();
 	std::vector<double> rawf2 = rawtens2->expose();
 	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape()));
@@ -550,12 +550,12 @@ TEST_F(ELEMENTARY, Mul_A000ToA003_A012_A006ToA007)
 	[](double a, double b, double ga, double gb) { return ga*b+gb*a; });
 
 	tensorshape shape = random_def_shape(this);
-	rand_uniform<double> rinit(2, 12);
+	rand_uniform rinit(2, 12);
 	varptr zero = constant::get(0.0);
 	varptr one = constant::get(1.0);
 	varptr two = constant::get(2.0);
-	variable var(shape, rinit, "var");
-	variable var2(shape, rinit, "var2");
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
+	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
 
 	// Behavior A006
 	varptr zaro = varptr(&var) *  0.0;
@@ -629,12 +629,12 @@ TEST_F(ELEMENTARY, Div_A000ToA003_A012_A008ToA009)
 	[](double a, double b, double ga, double gb) { return (ga*b-gb*a)/(b*b); });
 
 	tensorshape shape = random_def_shape(this);
-	rand_uniform<double> rinit(2, 12);
+	rand_uniform rinit(2, 12);
 	varptr zero = constant::get(0.0);
 	varptr one = constant::get(1.0);
 	varptr two = constant::get(2.0);
-	variable var(shape, rinit, "var");
-	variable var2(shape, rinit, "var2");
+	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
+	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
 
 	// Behavior A006
 	varptr zaro = 0.0 / varptr(&var2);

@@ -52,7 +52,11 @@ placeholder& placeholder::operator = (placeholder&& other)
 // changes shape
 placeholder& placeholder::operator = (itensor& data)
 {
-	*this->data_ = std::move(data);
+	if (this->data_)
+	{
+		delete this->data_;
+	}
+	this->data_ = data.move();
 	this->is_init_ = true;
 	this->notify(UPDATE);
 	return *this;

@@ -161,7 +161,20 @@ varptr fit (const varptr a, const varptr watch)
 varptr extend (const varptr a, size_t index, size_t multiplier)
 {
 	if (nullptr == a.get()) return nullptr;
-	if (multiplier == 0) return constant::get(0);
+	if (multiplier == 0)
+	{
+		// todo: remove switch once type conversion is implemented
+		switch (a->get_type())
+		{
+			case tenncor::tensor_proto::BAD_T:
+			case tenncor::tensor_proto::DOUBLE_T:
+				return constant::get((double) 0);
+			case tenncor::tensor_proto::SIGNED_T:
+				return constant::get((signed) 0);
+			default:
+				throw std::exception(); // unsupported type
+		}
+	}
 	if (multiplier == 1) return a;
 	std::string opname = nnutils::formatter() << "extend_" << index << "_" << multiplier;
 	if (inode* parent = unary_parent_search(a.get(), opname))

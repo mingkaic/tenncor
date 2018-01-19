@@ -10,7 +10,7 @@
 
 #include "tests/include/mocks/mock_immutable.h"
 #include "tests/include/mocks/mock_node.h"
-#include "tests/include/mocks/mock_tensor.h"
+#include "tests/include/mocks/mock_itensor.h"
 
 #include "include/graph/leaf/variable.hpp"
 
@@ -30,6 +30,38 @@ static std::pair<size_t,size_t> nnodes_range = {31, 67};
 #else // FASTEST_GRAPH
 static std::pair<size_t,size_t> nnodes_range = {17, 31};
 #endif
+
+
+struct cond_actor : public tens_template<double>
+{
+	cond_actor (out_wrapper<void> dest, 
+		std::vector<in_wrapper<void> > srcs, bool& mutate) : 
+	tens_template<double>(dest, srcs), mutate_(&mutate) {}
+
+	virtual void action (void)
+	{
+		size_t n_elems = this->dest_.second.n_elems();
+		for (size_t i = 0; i < this->srcs_.size(); i++)
+		{
+			n_elems = std::min(n_elems, this->srcs_[i].second.n_elems());
+		}
+		for (size_t j = 0; j < n_elems; j++)
+		{
+			this->dest_.first[j] = 0;
+			if (*mutate_)
+			{
+				this->dest_.first[j] = this->srcs_.size();
+			}
+			for (size_t i = 0; i < this->srcs_.size(); i++)
+			{
+				this->dest_.first[j] += this->srcs_[i].first[j];
+			}
+		}
+	}
+
+private:
+	bool* mutate_;
+};
 
 
 static bool bottom_up (std::vector<iconnector*> ordering)
@@ -57,14 +89,14 @@ TEST_F(IMMUTABLE, Copy_I000)
 {
 	immutable* assign  = new mock_immutable(std::vector<inode*>{}, "", get_testshaper(this));
 	immutable* central = new mock_immutable(std::vector<inode*>{}, "", get_testshaper(this));
-	const tensor<double>* res = central->eval();
+	const itensor* res = central->eval();
 
 	immutable* cpy = central->clone();
 	*assign = *central;
 	ASSERT_NE(nullptr, cpy);
 
-	const tensor<double>* cres = cpy->eval();
-	const tensor<double>* ares = assign->eval();
+	const tensor_double* cres = dynamic_cast<const tensor_double*>(cpy->eval());
+	const tensor_double* ares = dynamic_cast<const tensor_double*>(assign->eval());
 
 	std::vector<double> data = expose<double>(central);
 	std::vector<double> cdata = expose<double>(cpy);
@@ -85,21 +117,21 @@ TEST_F(IMMUTABLE, Move_I000)
 {
 	immutable* assign  = new mock_immutable(std::vector<inode*>{}, "", get_testshaper(this));
 	immutable* central = new mock_immutable(std::vector<inode*>{}, "", get_testshaper(this));
-	const tensor<double>* res = central->eval();
+	const tensor_double* res = dynamic_cast<const tensor_double*>(central->eval());
 	std::vector<double> data = expose<double>(central);
 	tensorshape rs = res->get_shape();
 
 	immutable* mv = central->move();
 	EXPECT_NE(nullptr, mv);
 
-	const tensor<double>* mres = mv->eval();
+	const tensor_double* mres = dynamic_cast<const tensor_double*>(mv->eval());
 	std::vector<double> mdata = expose<double>(mv);
 	tensorshape ms = mres->get_shape();
 
 	EXPECT_EQ(nullptr, central->eval());
 
 	*assign = std::move(*mv);
-	const tensor<double>* ares = assign->eval();
+	const tensor_double* ares = dynamic_cast<const tensor_double*>(assign->eval());
 	std::vector<double> adata = expose<double>(assign);
 	tensorshape as = ares->get_shape();
 
@@ -179,9 +211,9 @@ TEST_F(IMMUTABLE, Status_I002)
 	tensorshape n1s = random_def_shape(this);
 	tensorshape n2s = random_def_shape(this);
 	tensorshape n3s = random_def_shape(this);
-	n1->data_ = new mock_tensor(this, n1s);
-	n2->data_ = new mock_tensor(this, n2s);
-	n3->data_ = new mock_tensor(this, n3s);
+	n1->data_ = new mock_itensor(this, n1s);
+	n2->data_ = new mock_itensor(this, n2s);
+	n3->data_ = new mock_itensor(this, n3s);
 
 	immutable* conn = new mock_immutable({n1}, conname, get_testshaper(this));
 	immutable* conn2 = new mock_immutable({n2, n3}, conname2, get_testshaper(this));
@@ -231,9 +263,9 @@ TEST_F(IMMUTABLE, Shape_I003)
 	tensorshape n1s = random_def_shape(this, 2, 10, 17, 4372);
 	tensorshape n2s = random_def_shape(this, 2, 10, 17, 4372);
 	tensorshape n3s = random_def_shape(this, 2, 10, 17, 4372);
-	n1->data_ = new mock_tensor(this, n1s);
-	n2->data_ = new mock_tensor(this, n2s);
-	n3->data_ = new mock_tensor(this, n3s);
+	n1->data_ = new mock_itensor(this, n1s);
+	n2->data_ = new mock_itensor(this, n2s);
+	n3->data_ = new mock_itensor(this, n3s);
 
 	// for this test, we only care about shape
 	auto fittershaper = [](std::vector<tensorshape> ts) -> tensorshape
@@ -309,9 +341,9 @@ TEST_F(IMMUTABLE, Tensor_I004)
 	tensorshape n1s = random_def_shape(this);
 	tensorshape n2s = random_def_shape(this);
 	tensorshape n3s = random_def_shape(this);
-	n1->data_ = new mock_tensor(this, n1s);
-	n2->data_ = new mock_tensor(this, n2s);
-	n3->data_ = new mock_tensor(this, n3s);
+	n1->data_ = new mock_itensor(this, n1s);
+	n2->data_ = new mock_itensor(this, n2s);
+	n3->data_ = new mock_itensor(this, n3s);
 
 	// for this test, we care about data, grab the largest shape, and sum all data that fit in said array
 	auto minshaper = [](std::vector<tensorshape> ts)
@@ -370,12 +402,18 @@ TEST_F(IMMUTABLE, Tensor_I004)
 
 		std::vector<double> v2 = expose<double>(n2);
 		std::vector<double> v3 = expose<double>(n3);
-		std::vector<const double*> vsinput = {&v2[0], &v3[0]};
-		adder(expectc2, vsinput, shape_io{minshaper({n2s, n3s}), {n2s, n3s} });
+		std::vector<in_wrapper<void> > vsinput = {
+			in_wrapper<void>{&v2[0], n2s}, 
+			in_wrapper<void>{&v3[0], n3s},
+		};
+		out_wrapper<void> dest{expectc2, minshaper({n2s, n3s})};
+		itens_actor* actor = adder(dest, vsinput, tenncor::tensor_proto::DOUBLE_T);
+		actor->action();
+		delete actor;
 	}
 
-	const tensor<double>* c1tensor = conn->eval();
-	const tensor<double>* c2tensor = conn2->eval();
+	const tensor_double* c1tensor = dynamic_cast<const tensor_double*>(conn->eval());
+	const tensor_double* c2tensor = dynamic_cast<const tensor_double*>(conn2->eval());
 	ASSERT_NE(nullptr, c1tensor);
 	ASSERT_NE(nullptr, c2tensor);
 
@@ -461,13 +499,13 @@ TEST_F(IMMUTABLE, TemporaryEval_I006)
 		return shape;
 	};
 
-	const_init<double> cinit(single_rando);
+	const_init cinit(single_rando);
 
 	inode* root = build_ntree<inode >(2, nnodes,
 	[this, &leaves, &shape, &cinit]() -> inode*
 	{
 		std::string llabel = get_string(get_int(1, "llabel.size", {14, 29})[0], "llabel");
-		variable* im = new variable(shape, cinit, llabel);
+		variable* im = new variable(shape, cinit, tenncor::tensor_proto::DOUBLE_T, llabel);
 		im->initialize();
 		leaves.emplace(im);
 		return im;
@@ -493,7 +531,7 @@ TEST_F(IMMUTABLE, TemporaryEval_I006)
 		lcache.clear();
 		static_cast<immutable*>(root)->temporary_eval(coll, out);
 		ASSERT_NE(nullptr, out);
-		const tensor<double>* outt = out->eval();
+		const tensor_double* outt = dynamic_cast<const tensor_double*>(out->eval());
 		ASSERT_NE(nullptr, outt);
 		ASSERT_TRUE(tensorshape_equal(shape, outt->get_shape()));
 		// out data should be 1 + M * single_rando where M is the
@@ -622,7 +660,7 @@ TEST_F(IMMUTABLE, GetLeaf_I008)
 		{
 			std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
 			mock_immutable* im = new mock_immutable(args, nlabel,
-				get_testshaper(this), testtrans, backer);
+				get_testshaper(this), test_abuilder, backer);
 			im->triggerOnDeath =
 				[&collector](mock_immutable* ded) {
 					collector.erase(ded);
@@ -671,7 +709,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 		return shape;
 	};
 
-	const_init<double> cinit(single_rando);
+	const_init cinit(single_rando);
 
 	std::vector<iconnector*> ordering;
 	BACK_MAP backer =
@@ -703,7 +741,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 	[this, &leaves, &shape, &cinit]() -> inode*
 	{
 		std::string llabel = get_string(get_int(1, "llabel.size", {14, 29})[0], "llabel");
-		variable* im = new variable(shape, cinit, llabel);
+		variable* im = new variable(shape, cinit, tenncor::tensor_proto::DOUBLE_T, llabel);
 		im->initialize();
 		leaves.emplace(im);
 		return im;
@@ -727,10 +765,12 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 	{
 		ordering.clear();
 		variable* rselected = *(rand_select<std::unordered_set<variable*>>(leaves));
-		const tensor<double>* wun = root->derive(rselected)->eval();
+		const tensor_double* wun = 
+			dynamic_cast<const tensor_double*>(root->derive(rselected)->eval());
 		EXPECT_TRUE(bottom_up(ordering));
 		ordering.clear();
-		const tensor<double>* zaro = root->derive(notleaf)->eval();
+		const tensor_double* zaro = 
+			dynamic_cast<const tensor_double*>(root->derive(notleaf)->eval());
 		EXPECT_TRUE(bottom_up(ordering));
 		ordering.clear();
 
@@ -742,7 +782,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 		// SAME AS TEMPORARY EVAL
 		immutable* coll = *(rand_select<std::unordered_set<immutable*>>(collector));
 		if (coll == root) continue;
-		const tensor<double>* grad_too = root->derive(coll)->eval();
+		const tensor_double* grad_too = dynamic_cast<const tensor_double*>(root->derive(coll)->eval());
 		EXPECT_TRUE(bottom_up(ordering));
 		ASSERT_NE(nullptr, grad_too);
 		ASSERT_TRUE(tensorshape_equal(shape, grad_too->get_shape()));
@@ -776,7 +816,7 @@ TEST_F(IMMUTABLE, Update_I010)
 
 	mock_node* n1 = new mock_node(label1);
 	tensorshape n1s = random_def_shape(this);
-	n1->data_ = new mock_tensor(this, n1s);
+	n1->data_ = new mock_itensor(this, n1s);
 
 	// for this test, we care about data, grab the largest shape, and sum all data that fit in said array
 	auto grabs = [](std::vector<tensorshape> ts)
@@ -785,16 +825,11 @@ TEST_F(IMMUTABLE, Update_I010)
 	};
 
 	bool mutate = false;
-	CONN_ACTOR<double> asis = [&mutate](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type)
+	CONN_ACTOR asis = [&mutate](out_wrapper<void>& dest, 
+		std::vector<in_wrapper<void> >& srcs, 
+		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 	{
-		adder(dest, src, shape);
-		if (mutate)
-		{
-			for (size_t i = 0; i < shape.outs_.n_elems(); i++)
-			{
-				dest[i] += src.size();
-			}
-		}
+		return new cond_actor(dest, srcs, mutate);
 	};
 
 	immutable* conn = new mock_immutable({n1}, conname, grabs, asis);
@@ -824,7 +859,7 @@ TEST_F(IMMUTABLE, ShapeIncompatible_I011)
 	std::vector<size_t> temp = n1s.as_list();
 	temp.push_back(3);
 	tensorshape n2s = temp;
-	n1->data_ = new mock_tensor(this, n1s);
+	n1->data_ = new mock_itensor(this, n1s);
 
 	bool change = false;
 	auto shiftyshaper =
@@ -836,6 +871,9 @@ TEST_F(IMMUTABLE, ShapeIncompatible_I011)
 
 	mock_immutable* initialgood = new mock_immutable({n1}, conname2, shiftyshaper);
 	change = true;
+	itens_actor*& actor = initialgood->get_actor();
+	delete actor;
+	actor = nullptr;
 	EXPECT_THROW(n1->notify(nnet::notification::UPDATE), std::exception);
 
 	delete initialgood;

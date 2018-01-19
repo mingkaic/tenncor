@@ -37,17 +37,17 @@ TEST_F(VARIABLE, Constructor_F000)
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, label2);
-	variable cinitv(shape, cinit, label3);
-	variable rinitv(shape, rinit, label4);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	EXPECT_TRUE(scalar.can_init());
 	EXPECT_TRUE(scalar.good_status());
-	const tensor<double>* scalart = scalar.eval();
+	const tensor_double* scalart = dynamic_cast<const tensor_double*>(scalar.eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 
@@ -73,8 +73,8 @@ TEST_F(VARIABLE, Copy_F001)
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
 	variable assign1(0);
 	variable assign2(0);
@@ -82,9 +82,9 @@ TEST_F(VARIABLE, Copy_F001)
 	variable assign4(0);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, label2);
-	variable cinitv(shape, cinit, label3);
-	variable rinitv(shape, rinit, label4);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	variable* sv = scalar.clone();
 	variable* nv = noinitv.clone();
@@ -98,7 +98,7 @@ TEST_F(VARIABLE, Copy_F001)
 
 	EXPECT_TRUE(sv->can_init());
 	EXPECT_TRUE(sv->good_status());
-	const tensor<double>* scalart = sv->eval();
+	const tensor_double* scalart = dynamic_cast<const tensor_double*>(sv->eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 	EXPECT_FALSE(nv->can_init());
@@ -110,7 +110,7 @@ TEST_F(VARIABLE, Copy_F001)
 
 	EXPECT_TRUE(assign1.can_init());
 	EXPECT_TRUE(assign1.good_status());
-	scalart = assign1.eval();
+	scalart = dynamic_cast<const tensor_double*>(assign1.eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 	EXPECT_FALSE(assign2.can_init());
@@ -138,8 +138,8 @@ TEST_F(VARIABLE, Move_F001)
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
 	variable assign1(0);
 	variable assign2(0);
@@ -147,9 +147,9 @@ TEST_F(VARIABLE, Move_F001)
 	variable assign4(0);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, label2);
-	variable cinitv(shape, cinit, label3);
-	variable rinitv(shape, rinit, label4);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	variable* sv = scalar.move();
 	variable* nv = noinitv.move();
@@ -167,7 +167,7 @@ TEST_F(VARIABLE, Move_F001)
 
 	EXPECT_TRUE(sv->can_init());
 	EXPECT_TRUE(sv->good_status());
-	const tensor<double>* scalart = sv->eval();
+	const tensor_double* scalart = dynamic_cast<const tensor_double*>(sv->eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 	EXPECT_FALSE(nv->can_init());
@@ -195,7 +195,7 @@ TEST_F(VARIABLE, Move_F001)
 
 	EXPECT_TRUE(assign1.can_init());
 	EXPECT_TRUE(assign1.good_status());
-	scalart = assign1.eval();
+	scalart = dynamic_cast<const tensor_double*>(assign1.eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 	EXPECT_FALSE(assign2.can_init());
@@ -226,13 +226,13 @@ TEST_F(VARIABLE, SetInit_F002)
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, label2);
-	variable cinitv(shape, cinit, label3);
-	variable rinitv(shape, rinit, label4);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	scalar.set_initializer(rinit);
 	noinitv.set_initializer(cinit);
@@ -283,13 +283,13 @@ TEST_F(VARIABLE, GetLeaf_F003)
 	double c = get_double(1, "c")[0];
 	mock_node exposer;
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, label2);
-	variable cinitv(shape, cinit, label3);
-	variable rinitv(shape, rinit, label4);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	varptr wun = exposer.expose_leaf(&scalar, &scalar);
 	varptr wun2 = exposer.expose_leaf(&noinitv, &noinitv);
@@ -349,13 +349,13 @@ TEST_F(VARIABLE, Initialize_F004)
 	tensorshape part = make_partial(this, shape2.as_list());
 	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, label2);
-	variable cinitv(part, cinit, label3);
-	variable rinitv(shape, rinit, label4);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(part, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	mock_connector conn({&scalar, &noinitv, &cinitv, &rinitv}, label5);
 	conn.inst_ = "conn";

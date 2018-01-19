@@ -38,11 +38,11 @@ public:
 		if (data_) delete data_;
 	}
 
-	tensor<double>* data_ = nullptr;
+	itensor* data_ = nullptr;
 
 	virtual std::vector<inode*> get_arguments (void) const { return std::vector<inode*>{}; }
 	virtual size_t n_arguments (void) const { return 0; }
-	virtual const tensor<double>* eval (void) { return data_; }
+	virtual const itensor* eval (void) { return data_; }
 	virtual tensorshape get_shape (void) const { return data_->get_shape(); }
 	virtual bool good_status (void) const { return nullptr != data_; }
 	virtual std::unordered_set<ileaf*> get_leaves (void) const { return std::unordered_set<ileaf*>{}; }
@@ -62,7 +62,7 @@ public:
 protected:
 	virtual inode* clone_impl (void) const { return new mock_node(*this); }
 	virtual inode* move_impl (void) { return new mock_node(std::move(*this)); }
-	virtual const tensor<double>* get_eval (void) const { return data_; }
+	virtual const itensor* get_eval (void) const { return data_; }
 	virtual inode* get_gradient (variable*) { return nullptr; }
 };
 

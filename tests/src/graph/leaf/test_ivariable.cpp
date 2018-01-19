@@ -24,7 +24,7 @@ TEST_F(IVARIABLE, Copy_E000)
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 
-	const_init<double>* cinit = new const_init<double>(c);
+	const_init* cinit = new const_init(c);
 
 	mock_ivariable assign(shape, nullptr, "");
 	mock_ivariable assign2(shape, nullptr, "");
@@ -41,12 +41,12 @@ TEST_F(IVARIABLE, Copy_E000)
 	EXPECT_EQ(noi, assign.get_initializer());
 	EXPECT_EQ(nullptr, noi);
 
-	tensor<double> ct(std::vector<size_t>{1});
-	tensor<double> ct2(std::vector<size_t>{1});
+	tensor_double ct(std::vector<size_t>{1});
+	tensor_double ct2(std::vector<size_t>{1});
 	initializer* ci = cpy2->get_initializer();
 	initializer* ai = assign2.get_initializer();
-	tensor<double>* ctptr = &ct;
-	tensor<double>* ct2ptr = &ct2;
+	tensor_double* ctptr = &ct;
+	tensor_double* ct2ptr = &ct2;
 	(*ci)(*ctptr);
 	(*ai)(*ct2ptr);
 	EXPECT_EQ(c, ct.expose()[0]);
@@ -63,7 +63,7 @@ TEST_F(IVARIABLE, Move_E000)
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 
-	const_init<double>* cinit = new const_init<double>(c);
+	const_init* cinit = new const_init(c);
 
 	mock_ivariable assign(shape, nullptr, "");
 	mock_ivariable assign2(shape, nullptr, "");
@@ -79,9 +79,9 @@ TEST_F(IVARIABLE, Move_E000)
 	mock_ivariable* mv2 = static_cast<mock_ivariable*>(inited.move());
 
 	EXPECT_EQ(noi, mv->get_initializer());
-	tensor<double> ct(std::vector<size_t>{1});
+	tensor_double ct(std::vector<size_t>{1});
 	initializer* mi = mv2->get_initializer();
-	tensor<double>* ctptr = &ct;
+	tensor_double* ctptr = &ct;
 	(*mi)(*ctptr);
 	EXPECT_EQ(c, ct.expose()[0]);
 	EXPECT_EQ(ii, mi);
@@ -92,9 +92,9 @@ TEST_F(IVARIABLE, Move_E000)
 	assign2 = std::move(*mv2);
 
 	EXPECT_EQ(noi, assign.get_initializer());
-	tensor<double> ct2(std::vector<size_t>{1});
+	tensor_double ct2(std::vector<size_t>{1});
 	initializer* ai = assign2.get_initializer();
-	tensor<double>* ct2ptr = &ct2;
+	tensor_double* ct2ptr = &ct2;
 	(*ai)(*ct2ptr);
 	EXPECT_EQ(c, ct2.expose()[0]);
 	EXPECT_EQ(ii, ai);
@@ -111,7 +111,7 @@ TEST_F(IVARIABLE, Initialize_E001)
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
-	const_init<double>* cinit = new const_init<double>(c);
+	const_init* cinit = new const_init(c);
 
 	mock_ivariable noinit(shape, nullptr, label1);
 	mock_ivariable inited(shape, cinit, label1);
@@ -126,15 +126,15 @@ TEST_F(IVARIABLE, GetGradient_E002)
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	tensorshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
-	const_init<double>* cinit = new const_init<double>(c);
+	const_init* cinit = new const_init(c);
 
 	mock_ivariable noinit(shape, nullptr, label1);
 	mock_ivariable inited(shape, cinit, label1);
 
-	const tensor<double>* wun = noinit.derive(&noinit)->eval();
-	const tensor<double>* wuntoo = inited.derive(&inited)->eval();
-	const tensor<double>* zaro = noinit.derive(&inited)->eval();
-	const tensor<double>* zarotoo = inited.derive(&noinit)->eval();
+	const tensor_double* wun = dynamic_cast<const tensor_double*>(noinit.derive(&noinit)->eval());
+	const tensor_double* wuntoo = dynamic_cast<const tensor_double*>(inited.derive(&inited)->eval());
+	const tensor_double* zaro = dynamic_cast<const tensor_double*>(noinit.derive(&inited)->eval());
+	const tensor_double* zarotoo = dynamic_cast<const tensor_double*>(inited.derive(&noinit)->eval());
 
 	EXPECT_EQ((size_t) 1, wun->n_elems());
 	EXPECT_EQ((size_t) 1, wuntoo->n_elems());

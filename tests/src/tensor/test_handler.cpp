@@ -90,7 +90,7 @@ TEST_F(HANDLER, Transfer_D000)
 	size_t l = resshape.n_elems();
 	for (size_t i = 0, k = std::min(std::min(n, m), l); i < k; i++)
 	{
-		ASSERT_EQ(res[i], d1[i] + d2[i]);
+		EXPECT_EQ(res[i], d1[i] + d2[i]);
 	}
 
 	delete actor;
@@ -111,7 +111,7 @@ TEST_F(HANDLER, Constant_D001)
 
 	for (size_t i = 0, n = shape.n_elems(); i < n; i++)
 	{
-		ASSERT_EQ(scalar, v[i]);
+		EXPECT_EQ(scalar, v[i]);
 	}
 }
 

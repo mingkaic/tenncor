@@ -28,8 +28,8 @@ TEST_F(GENERATOR, Copy_J000)
 
 	std::vector<double> cdata(shape.n_elems(), 0);
 	constant* con = constant::get(cdata, shape);
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(-12, -2);
+	const_init cinit(c);
+	rand_uniform rinit(-12, -2);
 
 	generator* gen_assign = generator::get(con, rinit);
 
@@ -61,8 +61,8 @@ TEST_F(GENERATOR, Move_J000)
 
 	std::vector<double> cdata(shape.n_elems(), 0);
 	constant* con = constant::get(cdata, shape);
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(-12, -2);
+	const_init cinit(c);
+	rand_uniform rinit(-12, -2);
 
 	generator* gen_assign = generator::get(con, rinit);
 
@@ -93,7 +93,7 @@ TEST_F(GENERATOR, ShapeDep_J001)
 	double c = get_double(1, "c", {1, 17})[0];
 	std::vector<double> cdata(shape.n_elems(), 0);
 	constant* con = constant::get(cdata, shape);
-	const_init<double> cinit(c);
+	const_init cinit(c);
 
 	generator* gen = generator::get(con, cinit);
 	EXPECT_TRUE(tensorshape_equal(gen->get_shape(), shape));
@@ -108,7 +108,7 @@ TEST_F(GENERATOR, Derive_J002)
 	double c = get_double(1, "c", {1, 17})[0];
 	std::vector<double> cdata(shape.n_elems(), 0);
 	constant* con = constant::get(cdata, shape);
-	const_init<double> cinit(c);
+	const_init cinit(c);
 
 	generator* gen = generator::get(con, cinit);
 

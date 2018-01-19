@@ -174,9 +174,9 @@ TEST_F(CONSTANT, GetGradient_D002)
 	constant* res = constant::get(c);
 	constant* res2 = constant::get(c+1);
 
-	const tensor<double>* g1 = res->derive(nullptr)->eval();
-	const tensor<double>* g2 = res->derive(res)->eval();
-	const tensor<double>* g3 = res->derive(res2)->eval();
+	const tensor_double* g1 = dynamic_cast<const tensor_double*>(res->derive(nullptr)->eval());
+	const tensor_double* g2 = dynamic_cast<const tensor_double*>(res->derive(res)->eval());
+	const tensor_double* g3 = dynamic_cast<const tensor_double*>(res->derive(res2)->eval());
 
 	std::vector<double> gres = g1->expose();
 	std::vector<double> gres1 = g2->expose();
@@ -244,9 +244,9 @@ TEST_F(CONSTANT, Allocated_D005)
 	constant* res2 = constant::get(v, shape);
 	constant* res3 = constant::get(pv, part);
 
-	const tensor<double>* t1 = res->eval();
-	const tensor<double>* t2 = res2->eval();
-	const tensor<double>* t3 = res3->eval();
+	const itensor* t1 = res->eval();
+	const itensor* t2 = res2->eval();
+	const itensor* t3 = res3->eval();
 
 	EXPECT_TRUE(t1->is_alloc());
 	EXPECT_TRUE(t2->is_alloc());

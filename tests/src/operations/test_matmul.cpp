@@ -129,65 +129,65 @@ TEST_F(MATMUL, NullptrRet_C000)
 }
 
 
-TEST_F(MATMUL, DISABLED_Matmul_C001)
+TEST_F(MATMUL, Matmul_C001)
 {
 	// we get at most 49 elements per matrix
-	// std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {3, 7});
-	// rand_uniform<signed> rinit(-12, 12);
+	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {3, 7});
+	rand_uniform_int rinit(-12, 12);
 
-	// tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
-	// tensorshape shapeB = std::vector<size_t>{dims[2], dims[0]};
-	// tensorshape shapetA = std::vector<size_t>{dims[1], dims[0]}; // transpose A
-	// tensorshape shapetB = std::vector<size_t>{dims[0], dims[2]}; // transpose B
+	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
+	tensorshape shapeB = std::vector<size_t>{dims[2], dims[0]};
+	tensorshape shapetA = std::vector<size_t>{dims[1], dims[0]}; // transpose A
+	tensorshape shapetB = std::vector<size_t>{dims[0], dims[2]}; // transpose B
 
-	// variable<signed> A(shapeA, rinit, "A"); // shape <m, n>
-	// variable<signed> B(shapeB, rinit, "B"); // shape <k, m>
-	// variable<signed> tA(shapetA, rinit, "tA");
-	// variable<signed> tB(shapetB, rinit, "tB");
+	variable A(shapeA, rinit, tenncor::tensor_proto::SIGNED_T, "A"); // shape <m, n>
+	variable B(shapeB, rinit, tenncor::tensor_proto::SIGNED_T, "B"); // shape <k, m>
+	variable tA(shapetA, rinit, tenncor::tensor_proto::SIGNED_T, "tA");
+	variable tB(shapetB, rinit, tenncor::tensor_proto::SIGNED_T, "tB");
 
-	// // shapes of <k, n>
-	// varptr<signed> res = matmul<signed>(varptr<signed>(&A), varptr<signed>(&B));
-	// varptr<signed> restA = matmul<signed>(varptr<signed>(&tA), varptr<signed>(&B), true);
-	// varptr<signed> restB = matmul<signed>(varptr<signed>(&A), varptr<signed>(&tB), false, true);
-	// varptr<signed> resT = matmul<signed>(varptr<signed>(&tA), varptr<signed>(&tB), true, true);
+	// shapes of <k, n>
+	varptr res = matmul(varptr(&A), varptr(&B));
+	varptr restA = matmul(varptr(&tA), varptr(&B), true);
+	varptr restB = matmul(varptr(&A), varptr(&tB), false, true);
+	varptr resT = matmul(varptr(&tA), varptr(&tB), true, true);
 
-	// A.initialize();
-	// B.initialize();
-	// tA.initialize();
-	// tB.initialize();
+	A.initialize();
+	B.initialize();
+	tA.initialize();
+	tB.initialize();
 
-	// tensorshape expectshape = std::vector<size_t>{dims[2], dims[1]};
-	// tensorshape resshape = res->get_shape();
-	// tensorshape restAshape = restA->get_shape();
-	// tensorshape restBshape = restB->get_shape();
-	// tensorshape resTshape = resT->get_shape();
+	tensorshape expectshape = std::vector<size_t>{dims[2], dims[1]};
+	tensorshape resshape = res->get_shape();
+	tensorshape restAshape = restA->get_shape();
+	tensorshape restBshape = restB->get_shape();
+	tensorshape resTshape = resT->get_shape();
 
-	// ASSERT_TRUE(tensorshape_equal(expectshape, resshape));
-	// ASSERT_TRUE(tensorshape_equal(expectshape, restAshape));
-	// ASSERT_TRUE(tensorshape_equal(expectshape, restBshape));
-	// ASSERT_TRUE(tensorshape_equal(expectshape, resTshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, resshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, restAshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, restBshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, resTshape));
 
-	// TWODV matA = create2D(expose<signed>(&A), A.get_shape());
-	// TWODV matB = create2D(expose<signed>(&B), B.get_shape());
-	// TWODV mattA = create2D(expose<signed>(&tA), tA.get_shape(), true);
-	// TWODV mattB = create2D(expose<signed>(&tB), tB.get_shape(), true);
+	TWODV matA = create2D(expose<signed>(&A), A.get_shape());
+	TWODV matB = create2D(expose<signed>(&B), B.get_shape());
+	TWODV mattA = create2D(expose<signed>(&tA), tA.get_shape(), true);
+	TWODV mattB = create2D(expose<signed>(&tB), tB.get_shape(), true);
 
-	// TWODV matres = create2D(expose<signed>(res), resshape);
-	// TWODV matrestA = create2D(expose<signed>(restA), restAshape);
-	// TWODV matrestB = create2D(expose<signed>(restB), restBshape);
-	// TWODV matresT = create2D(expose<signed>(resT), resTshape);
+	TWODV matres = create2D(expose<signed>(res), resshape);
+	TWODV matrestA = create2D(expose<signed>(restA), restAshape);
+	TWODV matrestB = create2D(expose<signed>(restB), restBshape);
+	TWODV matresT = create2D(expose<signed>(resT), resTshape);
 
-	// // Freivald's algorithm
-	// EXPECT_TRUE(freivald(this, matA, matB, matres));
-	// EXPECT_TRUE(freivald(this, mattA, matB, matrestA));
-	// EXPECT_TRUE(freivald(this, matA, mattB, matrestB));
-	// EXPECT_TRUE(freivald(this, mattA, mattB, matresT));
+	// Freivald's algorithm
+	EXPECT_TRUE(freivald(this, matA, matB, matres));
+	EXPECT_TRUE(freivald(this, mattA, matB, matrestA));
+	EXPECT_TRUE(freivald(this, matA, mattB, matrestB));
+	EXPECT_TRUE(freivald(this, mattA, mattB, matresT));
 
-	// // we delete top nodes, because this case is not testing for observer self-destruction
-	// delete res;
-	// delete restA;
-	// delete restB;
-	// delete resT;
+	// we delete top nodes, because this case is not testing for observer self-destruction
+	delete res;
+	delete restA;
+	delete restB;
+	delete resT;
 }
 
 
@@ -202,13 +202,13 @@ TEST_F(MATMUL, Incompatible_C002)
 {
 	// we get at most 49 elements per matrix
 	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {3, 7});
-	rand_uniform<double> rinit(-12, 12);
+	rand_uniform rinit(-12, 12);
 
 	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
 	tensorshape shapeB = std::vector<size_t>{dims[2], dims[0]+1};
 
-	variable A(shapeA, rinit, "A"); // shape <m, n>
-	variable B(shapeB, rinit, "B"); // shape <k, m+1>
+	variable A(shapeA, rinit, tenncor::tensor_proto::DOUBLE_T, "A"); // shape <m, n>
+	variable B(shapeB, rinit, tenncor::tensor_proto::DOUBLE_T, "B"); // shape <k, m+1>
 
 	A.initialize();
 	B.initialize();
@@ -222,17 +222,17 @@ TEST_F(MATMUL, Jacobian_C003)
 {
 	// we get at most 49 elements per matrix
 	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {3, 7});
-	rand_uniform<double> rinit(0, 1);
+	rand_uniform rinit(0, 1);
 
 	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
 	tensorshape shapeB = std::vector<size_t>{dims[2], dims[0]};
 	tensorshape shapetA = std::vector<size_t>{dims[1], dims[0]}; // transpose A
 	tensorshape shapetB = std::vector<size_t>{dims[0], dims[2]}; // transpose B
 
-	variable A(shapeA, rinit, "A"); // shape <m, n>
-	variable B(shapeB, rinit, "B"); // shape <k, m>
-	variable tA(shapetA, rinit, "tA");
-	variable tB(shapetB, rinit, "tB");
+	variable A(shapeA, rinit, tenncor::tensor_proto::DOUBLE_T, "A"); // shape <m, n>
+	variable B(shapeB, rinit, tenncor::tensor_proto::DOUBLE_T, "B"); // shape <k, m>
+	variable tA(shapetA, rinit, tenncor::tensor_proto::DOUBLE_T, "tA");
+	variable tB(shapetB, rinit, tenncor::tensor_proto::DOUBLE_T, "tB");
 
 	// shapes of <k, n>
 	varptr res = sigmoid(varptr(matmul(varptr(&A), varptr(&B))));
@@ -345,80 +345,80 @@ TEST_F(MATMUL, Jacobian_C003)
 
 
 // tests large matrices sizes (100-112), 2D only
-TEST_F(MATMUL, DISABLED_Strassen_C004)
+TEST_F(MATMUL, Strassen_C004)
 {
-// 	// we get at most 12996 elements per matrix
-// 	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {STRASSEN_THRESHOLD, STRASSEN_THRESHOLD+12});
-// 	rand_uniform<signed> rinit(-12, 12);
+	// we get at most 12996 elements per matrix
+	std::vector<size_t> dims = get_int(3, "dimensions<m,n,k>", {STRASSEN_THRESHOLD, STRASSEN_THRESHOLD+12});
+	rand_uniform_int rinit(-12, 12);
 
-// 	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
-// 	tensorshape shapeB = std::vector<size_t>{dims[2], dims[0]};
-// 	tensorshape shapetA = std::vector<size_t>{dims[1], dims[0]}; // transpose A
-// 	tensorshape shapetB = std::vector<size_t>{dims[0], dims[2]}; // transpose B
+	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
+	tensorshape shapeB = std::vector<size_t>{dims[2], dims[0]};
+	tensorshape shapetA = std::vector<size_t>{dims[1], dims[0]}; // transpose A
+	tensorshape shapetB = std::vector<size_t>{dims[0], dims[2]}; // transpose B
 
-// 	variable<signed> A(shapeA, rinit, "A"); // shape <m, n>
-// 	variable<signed> B(shapeB, rinit, "B"); // shape <k, m>
-// 	variable<signed> tA(shapetA, rinit, "tA");
-// 	variable<signed> tB(shapetB, rinit, "tB");
+	variable A(shapeA, rinit, tenncor::tensor_proto::SIGNED_T, "A"); // shape <m, n>
+	variable B(shapeB, rinit, tenncor::tensor_proto::SIGNED_T, "B"); // shape <k, m>
+	variable tA(shapetA, rinit, tenncor::tensor_proto::SIGNED_T, "tA");
+	variable tB(shapetB, rinit, tenncor::tensor_proto::SIGNED_T, "tB");
 
-// 	A.initialize();
-// 	B.initialize();
-// 	tA.initialize();
-// 	tB.initialize();
+	A.initialize();
+	B.initialize();
+	tA.initialize();
+	tB.initialize();
 
-// 	// shapes of <k, n>
-// //	clock_t t = clock();
-// 	varptr<signed> res = matmul<signed>(varptr<signed>(&A), varptr<signed>(&B));
-// //	const double work_time1 = (clock() - t) / double(CLOCKS_PER_SEC);
+	// shapes of <k, n>
+//	clock_t t = clock();
+	varptr res = matmul(varptr(&A), varptr(&B));
+//	const double work_time1 = (clock() - t) / double(CLOCKS_PER_SEC);
 
-// //	t = clock();
-// 	varptr<signed> restA = matmul<signed>(varptr<signed>(&tA), varptr<signed>(&B), true);
-// //	const double work_time2 = (clock() - t) / double(CLOCKS_PER_SEC);
+//	t = clock();
+	varptr restA = matmul(varptr(&tA), varptr(&B), true);
+//	const double work_time2 = (clock() - t) / double(CLOCKS_PER_SEC);
 
-// //	t = clock();
-// 	varptr<signed> restB = matmul<signed>(varptr<signed>(&A), varptr<signed>(&tB), false, true);
-// //	const double work_time3 = (clock() - t) / double(CLOCKS_PER_SEC);
+//	t = clock();
+	varptr restB = matmul(varptr(&A), varptr(&tB), false, true);
+//	const double work_time3 = (clock() - t) / double(CLOCKS_PER_SEC);
 
-// //	t = clock();
-// 	varptr<signed> resT = matmul<signed>(varptr<signed>(&tA), varptr<signed>(&tB), true, true);
-// //	const double work_time4 = (clock() - t) / double(CLOCKS_PER_SEC);
-// //	ASSERT_GT(0.3, work_time1);
-// //	ASSERT_GT(0.3, work_time2);
-// //	ASSERT_GT(0.3, work_time3);
-// //	ASSERT_GT(0.3, work_time4);
+//	t = clock();
+	varptr resT = matmul(varptr(&tA), varptr(&tB), true, true);
+//	const double work_time4 = (clock() - t) / double(CLOCKS_PER_SEC);
+//	ASSERT_GT(0.3, work_time1);
+//	ASSERT_GT(0.3, work_time2);
+//	ASSERT_GT(0.3, work_time3);
+//	ASSERT_GT(0.3, work_time4);
 
-// 	tensorshape expectshape = std::vector<size_t>{dims[2], dims[1]};
-// 	tensorshape resshape = res->get_shape();
-// 	tensorshape restAshape = restA->get_shape();
-// 	tensorshape restBshape = restB->get_shape();
-// 	tensorshape resTshape = resT->get_shape();
+	tensorshape expectshape = std::vector<size_t>{dims[2], dims[1]};
+	tensorshape resshape = res->get_shape();
+	tensorshape restAshape = restA->get_shape();
+	tensorshape restBshape = restB->get_shape();
+	tensorshape resTshape = resT->get_shape();
 
-// 	ASSERT_TRUE(tensorshape_equal(expectshape, resshape));
-// 	ASSERT_TRUE(tensorshape_equal(expectshape, restAshape));
-// 	ASSERT_TRUE(tensorshape_equal(expectshape, restBshape));
-// 	ASSERT_TRUE(tensorshape_equal(expectshape, resTshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, resshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, restAshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, restBshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, resTshape));
 
-// 	TWODV matA = create2D(expose<signed>(&A), A.get_shape());
-// 	TWODV matB = create2D(expose<signed>(&B), B.get_shape());
-// 	TWODV mattA = create2D(expose<signed>(&tA), tA.get_shape(), true);
-// 	TWODV mattB = create2D(expose<signed>(&tB), tB.get_shape(), true);
+	TWODV matA = create2D(expose<signed>(&A), A.get_shape());
+	TWODV matB = create2D(expose<signed>(&B), B.get_shape());
+	TWODV mattA = create2D(expose<signed>(&tA), tA.get_shape(), true);
+	TWODV mattB = create2D(expose<signed>(&tB), tB.get_shape(), true);
 
-// 	TWODV matres = create2D(expose<signed>(res), resshape);
-// 	TWODV matrestA = create2D(expose<signed>(restA), restAshape);
-// 	TWODV matrestB = create2D(expose<signed>(restB), restBshape);
-// 	TWODV matresT = create2D(expose<signed>(resT), resTshape);
-// 	// Freivald's algorithm
+	TWODV matres = create2D(expose<signed>(res), resshape);
+	TWODV matrestA = create2D(expose<signed>(restA), restAshape);
+	TWODV matrestB = create2D(expose<signed>(restB), restBshape);
+	TWODV matresT = create2D(expose<signed>(resT), resTshape);
+	// Freivald's algorithm
 
-// 	EXPECT_TRUE(freivald(this, matA, matB, matres));
-// 	EXPECT_TRUE(freivald(this, mattA, matB, matrestA));
-// 	EXPECT_TRUE(freivald(this, matA, mattB, matrestB));
-// 	EXPECT_TRUE(freivald(this, mattA, mattB, matresT));
+	EXPECT_TRUE(freivald(this, matA, matB, matres));
+	EXPECT_TRUE(freivald(this, mattA, matB, matrestA));
+	EXPECT_TRUE(freivald(this, matA, mattB, matrestB));
+	EXPECT_TRUE(freivald(this, mattA, mattB, matresT));
 
-// 	// we delete top nodes, because this case is not testing for observer self-destruction
-// 	delete res;
-// 	delete restA;
-// 	delete restB;
-// 	delete resT;
+	// we delete top nodes, because this case is not testing for observer self-destruction
+	delete res;
+	delete restA;
+	delete restB;
+	delete resT;
 }
 
 
