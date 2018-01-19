@@ -28,9 +28,15 @@ Download bazel: https://docs.bazel.build/versions/master/install.html
 
 ## Testing
 
-Set RunTest option to ON during cmake generation should generate a default `libtenncor-inst.a` in the `bin` directory
+> bazel test //tests:tenncor_all
 
-	cmake -DTENNCOR_TEST=ON <path/to/tenncor>
+other tests:
+- //tests:tenncor_connector
+- //tests:tenncor_leaf
+- //tests:tenncor_nodes
+- //tests:tenncor_memory
+- //tests:tenncor_operation
+- //tests:tenncor_tensor
 
 ## API Reference
 
@@ -47,25 +53,27 @@ Working in Progress (Using doxygen)
 	
 	int main () {
 		tensorshape common = std::vector<size_t>{5, 5};
-		random_uniform<double> rinit(-1, 1);
-		session& sess = session::get_instance();
+		random_uniform rinit(-1, 1);
 	
 		// initializes a 5 by 5 matrix with uniformly distributed
 		// doubles between -1 and 1
-		varptr A = new variable(common, rinit, "a");
-		placeptr B = new placeholder(common, "b");
-		varptr C = matmul::build(A, B);
-		varptr D = sigmoid<double>(C);
+		variable* A = new variable(common, rinit, tenncor::tensor_proto::DOUBLE_T, "a");
+		placeptr B = new placeholder(common, tenncor::tensor_proto::DOUBLE_T, "b");
+		varptr C = matmul(varptr(A), B);
+		varptr D = sigmoid(C);
 		
-		sess.initialize_all<double>();
+		A->initialize();
 		B = std::vector<double>{...};
 		
 		varptr grad = D->derive(A);
 		
 		// forward accumulation
-		tensor<double>* result = D->get_eval();
+		itensor* result = D->get_eval();
 		// reverse accumulation
-		tensor<double>* grad_result = grad->eval();
+		itensor* grad_result = grad->eval();
+
+		std::vector<double> raw_data = expose<double>(D);
+		std::vector<double> raw_grad = expose<double>(grad);
 		
 		delete A;
 		delete B;

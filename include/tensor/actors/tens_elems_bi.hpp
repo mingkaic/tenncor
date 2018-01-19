@@ -24,49 +24,35 @@ template <typename T>
 struct tens_bin_sample : public tens_elems_bi<T>
 {
 	tens_bin_sample (out_wrapper<void> dest, 
-		std::vector<in_wrapper<void> > srcs) :
-	tens_elems_bi<T>(dest, srcs, [](T n, T p)
-	{
-		assert(p>= 0 && p <= 1);
-		std::binomial_distribution<int> dist(n, p);
-		return dist(nnutils::get_generator());
-	}) {}
+		std::vector<in_wrapper<void> > srcs);
 };
 
 template <typename T>
 struct tens_add : public tens_elems_bi<T>
 {
 	tens_add (out_wrapper<void> dest, 
-		std::vector<in_wrapper<void> > srcs) :
-	tens_elems_bi<T>(dest, srcs, [](T a, T b)
-	{ return a + b; }) {}
+		std::vector<in_wrapper<void> > srcs);
 };
 
 template <typename T>
 struct tens_sub : public tens_elems_bi<T>
 {
 	tens_sub (out_wrapper<void> dest, 
-		std::vector<in_wrapper<void> > srcs) :
-	tens_elems_bi<T>(dest, srcs, [](T a, T b)
-	{ return a - b; }) {}
+		std::vector<in_wrapper<void> > srcs);
 };
 
 template <typename T>
 struct tens_mul : public tens_elems_bi<T>
 {
 	tens_mul (out_wrapper<void> dest, 
-		std::vector<in_wrapper<void> > srcs) :
-	tens_elems_bi<T>(dest, srcs, 
-	[](T a, T b) { return a * b; }) {}
+		std::vector<in_wrapper<void> > srcs);
 };
 
 template <typename T>
 struct tens_div : public tens_elems_bi<T>
 {
 	tens_div (out_wrapper<void> dest, 
-		std::vector<in_wrapper<void> > srcs) :
-	tens_elems_bi<T>(dest, srcs, 
-	[](T a, T b) { return a / b; }) {}
+		std::vector<in_wrapper<void> > srcs);
 };
 
 template <typename T>
@@ -74,9 +60,7 @@ struct tens_axial_add : public tens_axial_elems<T>
 {
 	tens_axial_add (out_wrapper<void> dest, 
 		std::vector<in_wrapper<void> > srcs, 
-		size_t axis) :
-	tens_axial_elems<T>(dest, srcs, axis, true, 
-	[](T a, T b) { return a + b; }) {}
+		size_t axis);
 };
 
 template <typename T>
@@ -84,9 +68,7 @@ struct tens_axial_sub : public tens_axial_elems<T>
 {
 	tens_axial_sub (out_wrapper<void> dest, 
 		std::vector<in_wrapper<void> > srcs, 
-		size_t axis, bool left) :
-	tens_axial_elems<T>(dest, srcs, axis, left, 
-	[](T a, T b) { return a - b; }) {}
+		size_t axis, bool left);
 };
 
 template <typename T>
@@ -94,9 +76,7 @@ struct tens_axial_mul : public tens_axial_elems<T>
 {
 	tens_axial_mul (out_wrapper<void> dest, 
 		std::vector<in_wrapper<void> > srcs, 
-		size_t axis) :
-	tens_axial_elems<T>(dest, srcs, axis, true, 
-	[](T a, T b) { return a * b; }) {}
+		size_t axis);
 };
 
 template <typename T>
@@ -104,11 +84,11 @@ struct tens_axial_div : public tens_axial_elems<T>
 {
 	tens_axial_div (out_wrapper<void> dest, 
 		std::vector<in_wrapper<void> > srcs, 
-		size_t axis, bool left) :
-	tens_axial_elems<T>(dest, srcs, axis, left, 
-	[](T a, T b) { return a / b; }) {}
+		size_t axis, bool left);
 };
 
 }
+
+#include "src/tensor/actors/tens_elems_bi.ipp"
 
 #endif /* TENNCOR_TENS_ELEMS_BI_HPP */
