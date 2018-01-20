@@ -21,46 +21,45 @@
 namespace nnet
 {
 
-template <typename T>
-class ileaf : public inode<T>
+class ileaf : public inode
 {
 public:
 	virtual ~ileaf (void);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
-	ileaf<T>* clone (void) const;
+	ileaf* clone (void) const;
 
 	//! move function
-	ileaf<T>* move (void);
+	ileaf* move (void);
 
 	//! declare copy assignment to deep copy over data
-	virtual ileaf<T>& operator = (const ileaf<T>& other);
+	virtual ileaf& operator = (const ileaf& other);
 
 	//! declare move assignment to move over data
-	virtual ileaf<T>& operator = (ileaf<T>&& other);
+	virtual ileaf& operator = (ileaf&& other);
 
 	// >>>> IDENTIFICATION <<<<
 	//! get the distance between this node and the furthest dependent leaf (maximum spanning tree height)
 	virtual size_t get_depth (void) const;
 
-	//>>>> OBSERVER & OBSERVABLE INFO <<<<
+	// >>>> OBSERVER & OBSERVABLE INFO <<<<
 	//! get all observerables: no observables
-	virtual std::vector<inode<T>*> get_arguments (void) const;
+	virtual std::vector<inode*> get_arguments (void) const;
 
 	//! get the number of observables: 0
 	virtual size_t n_arguments (void) const;
 
 	// >>>> FORWARD DATA <<<<
 	//! get forward passing value, (pull data if necessary)
-	virtual const tensor<T>* eval (void);
+	virtual const itensor* eval (void);
 
 	//! utility function: get data shape
 	virtual tensorshape get_shape (void) const;
 
 	// >>>> GRAPH STATUS <<<<
 	//! merge/update the gradient/leaf info
-	virtual std::unordered_set<ileaf<T>*> get_leaves (void) const;
+	virtual std::unordered_set<ileaf*> get_leaves (void) const;
 
 	// >>>> NODE STATUS <<<<
 	//! check if data is available
@@ -72,41 +71,45 @@ public:
 
 protected:
 	// >>>> CONSTRUCTORS <<<<
+	ileaf (std::string name);
+
 	//! assign initializer
-	ileaf (const tensorshape& shape, std::string name);
+	ileaf (const tensorshape& shape, 
+		tenncor::tensor_proto::tensor_t type, std::string name);
 
 	//! declare copy constructor to deep copy over data
-	ileaf (const ileaf<T>& other);
+	ileaf (const ileaf& other);
 
 	//! declare move constructor to move over data
-	ileaf (ileaf<T>&& other);
+	ileaf (ileaf&& other);
+
+	itensor* init (const tensorshape& shape, 
+		tenncor::tensor_proto::tensor_t type);
 
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! get forward passing value
 	//! return nullptr if leaf is not init
-	virtual const tensor<T>* get_eval (void) const;
+	virtual const itensor* get_eval (void) const;
 
-	//! tensor data
-	tensor<T>* data_ = nullptr;
+	//! raw data
+	itensor* data_ = nullptr;
 
-	//! is the tensor initialized?
+	//! is the itensor initialized?
 	//! TRUE = initialized/good,
 	//! FALSE = uninitialized/bad
 	bool is_init_ = false;
 
-	//! common assignment tensor handler
-	assign_func<T> assigner_;
+	//! common assignment itensor handler
+	assign_func assigner_;
 
 private:
 	//! copy helper
-	void copy_helper (const ileaf<T>& other);
+	void copy_helper (const ileaf& other);
 
 	//! move helper
-	void move_helper (ileaf<T>&& other);
+	void move_helper (ileaf&& other);
 };
 
 }
-
-#include "src/graph/leaf/ileaf.ipp"
 
 #endif /* TENNCOR_ILEAF_HPP */

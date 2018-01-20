@@ -1,7 +1,7 @@
 cc_proto_library(
 	name = "tenncor_monitor_cc_proto",
 	deps = [":tenncor_monitor"],
-	visibility = ["//:__pkg__"],
+	visibility = ["//visibility:public"],
 )
 
 cc_proto_library(

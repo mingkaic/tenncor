@@ -40,7 +40,7 @@ rpc_record::~rpc_record (void)
 
 void rpc_record::node_release (const nnet::subject* sub)
 {
-	std::string sid = boost::uuids::to_string(sub->get_uid());
+	std::string sid = sub->get_uid();
 	visor::NodeMessage message;
 	message.set_id(sid);
 	message.set_status(
@@ -51,7 +51,7 @@ void rpc_record::node_release (const nnet::subject* sub)
 
 void rpc_record::data_update (const nnet::subject* sub)
 {
-	std::string sid = boost::uuids::to_string(sub->get_uid());
+	std::string sid = sub->get_uid();
 	visor::NodeMessage message;
 	message.set_id(sid);
 	message.set_status(
@@ -63,8 +63,8 @@ void rpc_record::data_update (const nnet::subject* sub)
 void rpc_record::edge_capture (const nnet::iobserver* obs,
 	const nnet::subject* sub, size_t obs_idx)
 {
-	std::string oid = boost::uuids::to_string(obs->get_uid());
-	std::string sid = boost::uuids::to_string(sub->get_uid());
+	std::string oid = obs->get_uid();
+	std::string sid = sub->get_uid();
 	visor::EdgeMessage message;
 	message.set_obsid(oid);
 	message.set_subid(sid);
@@ -78,8 +78,8 @@ void rpc_record::edge_capture (const nnet::iobserver* obs,
 void rpc_record::edge_release (const nnet::iobserver* obs,
 	const nnet::subject* sub, size_t obs_idx)
 {
-	std::string oid = boost::uuids::to_string(obs->get_uid());
-	std::string sid = boost::uuids::to_string(sub->get_uid());
+	std::string oid = obs->get_uid();
+	std::string sid = sub->get_uid();
 	visor::EdgeMessage message;
 	message.set_obsid(oid);
 	message.set_subid(sid);

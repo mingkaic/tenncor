@@ -56,7 +56,7 @@ public:
 	{
 		static_assert(is_allowed<T>::value, "T is not an allowed type.");
 
-		if (num_elements > (std::numeric_limits<size_t>::max() / sizeof(T)))
+		if (num_elements> (std::numeric_limits<size_t>::max() / sizeof(T)))
 		{
 			return nullptr;
 		}

@@ -8,8 +8,8 @@
 
 #include "gtest/gtest.h"
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 #include "include/graph/leaf/constant.hpp"
 #include "include/graph/connector/immutable/generator.hpp"
@@ -18,22 +18,24 @@
 #ifndef DISABLE_GENERATOR_TEST
 
 
-TEST(GENERATOR, Copy_J000)
+class GENERATOR : public FUZZ::fuzz_test {};
+
+
+TEST_F(GENERATOR, Copy_J000)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c", {1, 17})[0];
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c", {1, 17})[0];
 
 	std::vector<double> cdata(shape.n_elems(), 0);
-	constant<double>* con = constant<double>::get(cdata, shape);
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(-12, -2);
+	constant* con = constant::get(cdata, shape);
+	const_init cinit(c);
+	rand_uniform rinit(-12, -2);
 
-	generator<double>* gen_assign = generator<double>::get(con, rinit);
+	generator* gen_assign = generator::get(con, rinit);
 
-	generator<double>* gen = generator<double>::get(con, cinit);
+	generator* gen = generator::get(con, cinit);
 
-	generator<double>* gen_cpy = gen->clone();
+	generator* gen_cpy = gen->clone();
 
 	*gen_assign = *gen;
 
@@ -52,25 +54,24 @@ TEST(GENERATOR, Copy_J000)
 }
 
 
-TEST(GENERATOR, Move_J000)
+TEST_F(GENERATOR, Move_J000)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c", {1, 17})[0];
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c", {1, 17})[0];
 
 	std::vector<double> cdata(shape.n_elems(), 0);
-	constant<double>* con = constant<double>::get(cdata, shape);
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(-12, -2);
+	constant* con = constant::get(cdata, shape);
+	const_init cinit(c);
+	rand_uniform rinit(-12, -2);
 
-	generator<double>* gen_assign = generator<double>::get(con, rinit);
+	generator* gen_assign = generator::get(con, rinit);
 
-	generator<double>* gen = generator<double>::get(con, cinit);
+	generator* gen = generator::get(con, cinit);
 	EXPECT_TRUE(tensorshape_equal(gen->get_shape(), shape));
 	std::vector<double> gvec = nnet::expose<double>(gen);
 	std::all_of(gvec.begin(), gvec.end(), [c](double e) { return e == c; });
 
-	generator<double>* gen_mv = gen->move();
+	generator* gen_mv = gen->move();
 	EXPECT_TRUE(tensorshape_equal(gen_mv->get_shape(), shape));
 	std::vector<double> gvec_mv = nnet::expose<double>(gen_mv);
 	std::all_of(gvec_mv.begin(), gvec_mv.end(), [c](double e) { return e == c; });
@@ -86,45 +87,43 @@ TEST(GENERATOR, Move_J000)
 }
 
 
-TEST(GENERATOR, ShapeDep_J001)
+TEST_F(GENERATOR, ShapeDep_J001)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c", {1, 17})[0];
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c", {1, 17})[0];
 	std::vector<double> cdata(shape.n_elems(), 0);
-	constant<double>* con = constant<double>::get(cdata, shape);
-	const_init<double> cinit(c);
+	constant* con = constant::get(cdata, shape);
+	const_init cinit(c);
 
-	generator<double>* gen = generator<double>::get(con, cinit);
+	generator* gen = generator::get(con, cinit);
 	EXPECT_TRUE(tensorshape_equal(gen->get_shape(), shape));
 
 	delete con;
 }
 
 
-TEST(GENERATOR, Derive_J002)
+TEST_F(GENERATOR, Derive_J002)
 {
-	FUZZ::reset_logger();
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c", {1, 17})[0];
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c", {1, 17})[0];
 	std::vector<double> cdata(shape.n_elems(), 0);
-	constant<double>* con = constant<double>::get(cdata, shape);
-	const_init<double> cinit(c);
+	constant* con = constant::get(cdata, shape);
+	const_init cinit(c);
 
-	generator<double>* gen = generator<double>::get(con, cinit);
+	generator* gen = generator::get(con, cinit);
 
-	inode<double>* wan = nullptr;
+	inode* wan = nullptr;
 	gen->temporary_eval(gen, wan);
-	constant<double>* wanc = dynamic_cast<constant<double>*>(wan);
+	constant* wanc = dynamic_cast<constant*>(wan);
 	ASSERT_NE(nullptr, wanc);
 	EXPECT_TRUE(*wanc == 1.0);
 
-	varptr<double> zaro = gen->derive(con);
-	varptr<double> wan2 = gen->derive(gen);
-	constant<double>* zaroc = dynamic_cast<constant<double>*>(zaro.get());
+	varptr zaro = gen->derive(con);
+	varptr wan2 = gen->derive(gen);
+	constant* zaroc = dynamic_cast<constant*>(zaro.get());
 	ASSERT_NE(nullptr, zaroc);
 	EXPECT_TRUE(*zaroc == 0.0);
-	constant<double>* wanc2 = dynamic_cast<constant<double>*>(wan2.get());
+	constant* wanc2 = dynamic_cast<constant*>(wan2.get());
 	ASSERT_NE(nullptr, wanc2);
 	EXPECT_TRUE(*wanc2 == 1.0);
 

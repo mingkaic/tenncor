@@ -10,8 +10,8 @@
 
 #include "tests/include/mocks/mock_node.h"
 #include "tests/include/mocks/mock_connector.h"
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 #include "include/graph/leaf/variable.hpp"
 
@@ -22,30 +22,32 @@ using namespace nnet;
 #ifndef DISABLE_VARIABLE_TEST
 
 
+class VARIABLE : public FUZZ::fuzz_test {};
+
+
 // covers variable
 // scalar, no init, and init constructors
-TEST(VARIABLE, Constructor_F000)
+TEST_F(VARIABLE, Constructor_F000)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label4");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label4");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	EXPECT_TRUE(scalar.can_init());
 	EXPECT_TRUE(scalar.good_status());
-	const tensor<double>* scalart = scalar.eval();
+	const tensor_double* scalart = dynamic_cast<const tensor_double*>(scalar.eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 
@@ -61,34 +63,33 @@ TEST(VARIABLE, Constructor_F000)
 
 
 // covers clone function
-TEST(VARIABLE, Copy_F001)
+TEST_F(VARIABLE, Copy_F001)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label4");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label4");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
-	variable<double> assign1(0);
-	variable<double> assign2(0);
-	variable<double> assign3(0);
-	variable<double> assign4(0);
+	variable assign1(0);
+	variable assign2(0);
+	variable assign3(0);
+	variable assign4(0);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
-	variable<double>* sv = scalar.clone();
-	variable<double>* nv = noinitv.clone();
-	variable<double>* civ = cinitv.clone();
-	variable<double>* rv = rinitv.clone();
+	variable* sv = scalar.clone();
+	variable* nv = noinitv.clone();
+	variable* civ = cinitv.clone();
+	variable* rv = rinitv.clone();
 
 	assign1 = scalar;
 	assign2 = noinitv;
@@ -97,7 +98,7 @@ TEST(VARIABLE, Copy_F001)
 
 	EXPECT_TRUE(sv->can_init());
 	EXPECT_TRUE(sv->good_status());
-	const tensor<double>* scalart = sv->eval();
+	const tensor_double* scalart = dynamic_cast<const tensor_double*>(sv->eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 	EXPECT_FALSE(nv->can_init());
@@ -109,7 +110,7 @@ TEST(VARIABLE, Copy_F001)
 
 	EXPECT_TRUE(assign1.can_init());
 	EXPECT_TRUE(assign1.good_status());
-	scalart = assign1.eval();
+	scalart = dynamic_cast<const tensor_double*>(assign1.eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 	EXPECT_FALSE(assign2.can_init());
@@ -127,34 +128,33 @@ TEST(VARIABLE, Copy_F001)
 
 
 // covers move function
-TEST(VARIABLE, Move_F001)
+TEST_F(VARIABLE, Move_F001)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label4");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label4");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
-	variable<double> assign1(0);
-	variable<double> assign2(0);
-	variable<double> assign3(0);
-	variable<double> assign4(0);
+	variable assign1(0);
+	variable assign2(0);
+	variable assign3(0);
+	variable assign4(0);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
-	variable<double>* sv = scalar.move();
-	variable<double>* nv = noinitv.move();
-	variable<double>* civ = cinitv.move();
-	variable<double>* rv = rinitv.move();
+	variable* sv = scalar.move();
+	variable* nv = noinitv.move();
+	variable* civ = cinitv.move();
+	variable* rv = rinitv.move();
 
 	EXPECT_FALSE(scalar.can_init());
 	EXPECT_TRUE(scalar.good_status());
@@ -167,7 +167,7 @@ TEST(VARIABLE, Move_F001)
 
 	EXPECT_TRUE(sv->can_init());
 	EXPECT_TRUE(sv->good_status());
-	const tensor<double>* scalart = sv->eval();
+	const tensor_double* scalart = dynamic_cast<const tensor_double*>(sv->eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 	EXPECT_FALSE(nv->can_init());
@@ -195,7 +195,7 @@ TEST(VARIABLE, Move_F001)
 
 	EXPECT_TRUE(assign1.can_init());
 	EXPECT_TRUE(assign1.good_status());
-	scalart = assign1.eval();
+	scalart = dynamic_cast<const tensor_double*>(assign1.eval());
 	EXPECT_TRUE(scalart->is_alloc());
 	EXPECT_EQ(c, scalart->expose()[0]);
 	EXPECT_FALSE(assign2.can_init());
@@ -216,24 +216,23 @@ TEST(VARIABLE, Move_F001)
 
 // covers variable
 // set_initializer, initialize
-TEST(VARIABLE, SetInit_F002)
+TEST_F(VARIABLE, SetInit_F002)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label4");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label4");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	scalar.set_initializer(rinit);
 	noinitv.set_initializer(cinit);
@@ -245,10 +244,10 @@ TEST(VARIABLE, SetInit_F002)
 	cinitv.initialize();
 	rinitv.initialize();
 
-	std::vector<double> rv = expose(&scalar);
-	std::vector<double> cv = expose(&noinitv);
-	std::vector<double> rv2 = expose(&cinitv);
-	std::vector<double> cv2 = expose(&rinitv);
+	std::vector<double> rv = expose<double>(&scalar);
+	std::vector<double> cv = expose<double>(&noinitv);
+	std::vector<double> rv2 = expose<double>(&cinitv);
+	std::vector<double> cv2 = expose<double>(&rinitv);
 
 	EXPECT_EQ((size_t) 1, rv.size());
 	EXPECT_TRUE(tensorshape_equal(shape, noinitv.get_shape()));
@@ -273,39 +272,38 @@ TEST(VARIABLE, SetInit_F002)
 
 // covers variable
 // get_gradient
-TEST(VARIABLE, GetLeaf_F003)
+TEST_F(VARIABLE, GetLeaf_F003)
 {
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(4, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0], "label1");
-	std::string label2 = FUZZ::getString(strns[1], "label2");
-	std::string label3 = FUZZ::getString(strns[2], "label3");
-	std::string label4 = FUZZ::getString(strns[3], "label3");
-	tensorshape shape = random_def_shape();
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(4, "strns", {14, 29});
+	std::string label1 = get_string(strns[0], "label1");
+	std::string label2 = get_string(strns[1], "label2");
+	std::string label3 = get_string(strns[2], "label3");
+	std::string label4 = get_string(strns[3], "label3");
+	tensorshape shape = random_def_shape(this);
+	double c = get_double(1, "c")[0];
 	mock_node exposer;
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(shape, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
-	varptr<double> wun = exposer.expose_leaf(&scalar, &scalar);
-	varptr<double> wun2 = exposer.expose_leaf(&noinitv, &noinitv);
-	varptr<double> wun3 = exposer.expose_leaf(&cinitv, &cinitv);
-	varptr<double> wun4 = exposer.expose_leaf(&rinitv, &rinitv);
+	varptr wun = exposer.expose_leaf(&scalar, &scalar);
+	varptr wun2 = exposer.expose_leaf(&noinitv, &noinitv);
+	varptr wun3 = exposer.expose_leaf(&cinitv, &cinitv);
+	varptr wun4 = exposer.expose_leaf(&rinitv, &rinitv);
 
-	varptr<double> zaro = exposer.expose_leaf(&scalar, nullptr);
-	varptr<double> zaro2 = exposer.expose_leaf(&scalar, &noinitv);
-	varptr<double> zaro3 = exposer.expose_leaf(&noinitv, nullptr);
-	varptr<double> zaro4 = exposer.expose_leaf(&noinitv, &cinitv);
-	varptr<double> zaro5 = exposer.expose_leaf(&cinitv, nullptr);
-	varptr<double> zaro6 = exposer.expose_leaf(&cinitv, &rinitv);
-	varptr<double> zaro7 = exposer.expose_leaf(&rinitv, nullptr);
-	varptr<double> zaro8 = exposer.expose_leaf(&rinitv, &scalar);
+	varptr zaro = exposer.expose_leaf(&scalar, nullptr);
+	varptr zaro2 = exposer.expose_leaf(&scalar, &noinitv);
+	varptr zaro3 = exposer.expose_leaf(&noinitv, nullptr);
+	varptr zaro4 = exposer.expose_leaf(&noinitv, &cinitv);
+	varptr zaro5 = exposer.expose_leaf(&cinitv, nullptr);
+	varptr zaro6 = exposer.expose_leaf(&cinitv, &rinitv);
+	varptr zaro7 = exposer.expose_leaf(&rinitv, nullptr);
+	varptr zaro8 = exposer.expose_leaf(&rinitv, &scalar);
 
 	double wunvalue = expose<double>(wun)[0];
 	double wunvalue2 = expose<double>(wun2)[0];
@@ -337,28 +335,27 @@ TEST(VARIABLE, GetLeaf_F003)
 
 // covers variable
 // initialize
-TEST(VARIABLE, Initialize_F004)
+TEST_F(VARIABLE, Initialize_F004)
 {
 	mocker::usage_.clear();
-	FUZZ::reset_logger();
-	std::vector<size_t> strns = FUZZ::getInt(5, "strns", {14, 29});
-	std::string label1 = FUZZ::getString(strns[0]);
-	std::string label2 = FUZZ::getString(strns[1]);
-	std::string label3 = FUZZ::getString(strns[2]);
-	std::string label4 = FUZZ::getString(strns[3]);
-	std::string label5 = FUZZ::getString(strns[4]);
-	tensorshape shape = random_def_shape();
-	tensorshape shape2 = random_def_shape();
-	tensorshape part = make_partial(shape2.as_list());
-	double c = FUZZ::getDouble(1, "c")[0];
+	std::vector<size_t> strns = get_int(5, "strns", {14, 29});
+	std::string label1 = get_string(strns[0]);
+	std::string label2 = get_string(strns[1]);
+	std::string label3 = get_string(strns[2]);
+	std::string label4 = get_string(strns[3]);
+	std::string label5 = get_string(strns[4]);
+	tensorshape shape = random_def_shape(this);
+	tensorshape shape2 = random_def_shape(this);
+	tensorshape part = make_partial(this, shape2.as_list());
+	double c = get_double(1, "c")[0];
 
-	const_init<double> cinit(c);
-	rand_uniform<double> rinit(0, 1);
+	const_init cinit(c);
+	rand_uniform rinit(0, 1);
 
-	variable<double> scalar(c, label1);
-	variable<double> noinitv(shape, label2);
-	variable<double> cinitv(part, cinit, label3);
-	variable<double> rinitv(shape, rinit, label4);
+	variable scalar(c, label1);
+	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	variable cinitv(part, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
+	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
 
 	mock_connector conn({&scalar, &noinitv, &cinitv, &rinitv}, label5);
 	conn.inst_ = "conn";
@@ -375,10 +372,10 @@ TEST(VARIABLE, Initialize_F004)
 	rinitv.initialize();
 	EXPECT_TRUE(mocker::EXPECT_CALL("conn::update1", 4));
 
-	std::vector<double> sv = expose(&scalar);
-	std::vector<double> nv = expose(&noinitv);
-	std::vector<double> cv = expose(&cinitv);
-	std::vector<double> rv = expose(&rinitv);
+	std::vector<double> sv = expose<double>(&scalar);
+	std::vector<double> nv = expose<double>(&noinitv);
+	std::vector<double> cv = expose<double>(&cinitv);
+	std::vector<double> rv = expose<double>(&rinitv);
 
 	EXPECT_EQ((size_t) 1, sv.size());
 	EXPECT_TRUE(tensorshape_equal(shape, noinitv.get_shape()));

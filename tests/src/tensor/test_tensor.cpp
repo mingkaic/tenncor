@@ -8,31 +8,33 @@
 
 #include "gtest/gtest.h"
 
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/fuzz.h"
 #include "tests/include/mocks/mock_tensor.h"
 
 
 #ifndef DISABLE_TENSOR_TEST
 
 
-static tensorshape random_partialshape (void)
+class TENSOR : public FUZZ::fuzz_test {};
+
+
+static tensorshape random_partialshape (FUZZ::fuzz_test* fuzzer)
 {
-	std::vector<size_t> rlist = random_def_shape().as_list();
-	size_t nzeros = FUZZ::getInt(1, "nzeros", {1, 5})[0];
+	std::vector<size_t> rlist = random_def_shape(fuzzer).as_list();
+	size_t nzeros = fuzzer->get_int(1, "nzeros", {1, 5})[0];
 	for (size_t i = 0; i < nzeros; i++)
 	{
-		size_t zidx = FUZZ::getInt(1, "zidx", {0, rlist.size()})[0];
+		size_t zidx = fuzzer->get_int(1, "zidx", {0, rlist.size()})[0];
 		rlist.insert(rlist.begin()+zidx, 0);
 	}
 	return tensorshape(rlist);
 }
 
 
-// cover scalar tensor constructor
-TEST(TENSOR, ScalarConstructor_B000)
+// cover tensor: scalar constructor
+TEST_F(TENSOR, ScalarConstructor_B000)
 {
-	FUZZ::reset_logger();
-	std::vector<double> vals = FUZZ::getDouble(3, "vals");
+	std::vector<double> vals = get_double(3, "vals");
 	double value = vals[0];
 	mock_tensor scalar(value);
 	EXPECT_TRUE(scalar.clean());
@@ -56,18 +58,17 @@ TEST(TENSOR, ScalarConstructor_B000)
 }
 
 
-// cover tensor
+// cover tensor:
 // default, shape constructors,
 // is_alloc, total_bytes
-TEST(TENSOR, Construct_B001)
+TEST_F(TENSOR, Construct_B001)
 {
-	FUZZ::reset_logger();
-	tensorshape pshape = random_partialshape();
-	tensorshape cshape = random_def_shape();
+	tensorshape pshape = random_partialshape(this);
+	tensorshape cshape = random_def_shape(this);
 
 	mock_tensor undef;
-	mock_tensor incom(pshape);
-	mock_tensor comp(cshape);
+	mock_tensor incom(this, pshape);
+	mock_tensor comp(this, cshape);
 
 	EXPECT_TRUE(undef.clean());
 	EXPECT_TRUE(incom.clean());
@@ -84,73 +85,66 @@ TEST(TENSOR, Construct_B001)
 }
 
 
-// cover tensor
+// cover tensor:
 // clone and assignment
-TEST(TENSOR, Copy_B002)
+TEST_F(TENSOR, Copy_B002)
 {
-	FUZZ::reset_logger();
 	mock_tensor undefassign;
 	mock_tensor scalarassign;
 	mock_tensor incomassign;
 	mock_tensor compassign;
 
-	tensorshape pshape = random_partialshape();
-	tensorshape cshape = random_def_shape();
+	tensorshape pshape = random_partialshape(this);
+	tensorshape cshape = random_def_shape(this);
 
 	mock_tensor undef;
-	mock_tensor scalar(FUZZ::getDouble(1, "scalar.data")[0]);
-	mock_tensor incom(pshape);
-	mock_tensor comp(cshape);
+	mock_tensor scalar(get_double(1, "scalar.data")[0]);
+	mock_tensor incom(this, pshape);
+	mock_tensor comp(this, cshape);
 
-	mock_tensor* undefcpy = undef.clone();
-	mock_tensor* scalarcpy = scalar.clone();
-	mock_tensor* incomcpy = incom.clone();
-	mock_tensor* compcpy = comp.clone();
+	mock_tensor undefcpy(undef);
+	mock_tensor scalarcpy(scalar);
+	mock_tensor incomcpy(incom);
+	mock_tensor compcpy(comp);
 	undefassign = undef;
 	scalarassign = scalar;
 	incomassign = incom;
 	compassign = comp;
 
-	EXPECT_FALSE(undefcpy->is_alloc());
-	EXPECT_TRUE(scalarcpy->is_alloc());
-	EXPECT_FALSE(incomcpy->is_alloc());
-	EXPECT_TRUE(compcpy->is_alloc());
+	EXPECT_FALSE(undefcpy.is_alloc());
+	EXPECT_TRUE(scalarcpy.is_alloc());
+	EXPECT_FALSE(incomcpy.is_alloc());
+	EXPECT_TRUE(compcpy.is_alloc());
 	EXPECT_FALSE(undefassign.is_alloc());
 	EXPECT_TRUE(scalarassign.is_alloc());
 	EXPECT_FALSE(incomassign.is_alloc());
 	EXPECT_TRUE(compassign.is_alloc());
 
-	EXPECT_TRUE(undefcpy->equal(undef));
-	EXPECT_TRUE(scalarcpy->equal(scalar));
-	EXPECT_TRUE(incomcpy->equal(incom));
-	EXPECT_TRUE(compcpy->equal(comp));
+	EXPECT_TRUE(undefcpy.equal(undef));
+	EXPECT_TRUE(scalarcpy.equal(scalar));
+	EXPECT_TRUE(incomcpy.equal(incom));
+	EXPECT_TRUE(compcpy.equal(comp));
 	EXPECT_TRUE(undefassign.equal(undef));
 	EXPECT_TRUE(scalarassign.equal(scalar));
 	EXPECT_TRUE(incomassign.equal(incom));
 	EXPECT_TRUE(compassign.equal(comp));
-
-	delete undefcpy;
-	delete scalarcpy;
-	delete incomcpy;
-	delete compcpy;
 }
 
 
-// cover tensor
+// cover tensor:
 // move constructor and assignment
-TEST(TENSOR, Move_B002)
+TEST_F(TENSOR, Move_B002)
 {
-	FUZZ::reset_logger();
 	mock_tensor scalarassign;
 	mock_tensor compassign;
 
 	tensorshape sshape(std::vector<size_t>{1});
-	tensorshape cshape = random_def_shape();
-	mock_tensor scalar(FUZZ::getDouble(1, "scalar.data")[0]);
-	mock_tensor comp(cshape);
+	tensorshape cshape = random_def_shape(this);
+	mock_tensor scalar(get_double(1, "scalar.data")[0]);
+	mock_tensor comp(this, cshape);
 
-	double* scalarptr = scalar.rawptr();
-	double* compptr = comp.rawptr();
+	const double* scalarptr = scalar.rawptr();
+	const double* compptr = comp.rawptr();
 
 	mock_tensor scalarmv(std::move(scalar));
 	mock_tensor compmv(std::move(comp));
@@ -184,19 +178,18 @@ TEST(TENSOR, Move_B002)
 }
 
 
-// cover tensor
-// get_shape, n_elems, rank. dims
-TEST(TENSOR, Shape_B003)
+// cover tensor:
+// get_shape, n_elems
+TEST_F(TENSOR, Shape_B003)
 {
-	FUZZ::reset_logger();
 	tensorshape singular(std::vector<size_t>{1});
-	tensorshape pshape = random_partialshape();
-	tensorshape cshape = random_def_shape();
+	tensorshape pshape = random_partialshape(this);
+	tensorshape cshape = random_def_shape(this);
 
 	mock_tensor undef;
-	mock_tensor scalar(FUZZ::getDouble(1, "scalar.data")[0]);
-	mock_tensor incom(pshape);
-	mock_tensor comp(cshape);
+	mock_tensor scalar(get_double(1, "scalar.data")[0]);
+	mock_tensor incom(this, pshape);
+	mock_tensor comp(this, cshape);
 
 	EXPECT_TRUE(tensorshape_equal(undef.get_shape(), {}));
 	EXPECT_TRUE(tensorshape_equal(singular, scalar.get_shape()));
@@ -207,305 +200,21 @@ TEST(TENSOR, Shape_B003)
 	EXPECT_EQ((size_t) 1, scalar.n_elems());
 	EXPECT_EQ((size_t) 0, incom.n_elems());
 	EXPECT_EQ(cshape.n_elems(), comp.n_elems());
-
-	EXPECT_EQ((size_t) 0, undef.rank());
-	EXPECT_EQ((size_t) 1, scalar.rank());
-	EXPECT_EQ(pshape.rank(), incom.rank());
-	EXPECT_EQ(cshape.rank(), comp.rank());
-
-	EXPECT_TRUE(undef.dims().empty());
-	std::vector<size_t> sv = scalar.dims();
-	ASSERT_EQ((size_t) 1, sv.size());
-	EXPECT_EQ((size_t) 1, sv[0]);
-
-	std::vector<size_t> expects = pshape.as_list();
-	std::vector<size_t> expectc = cshape.as_list();
-	EXPECT_TRUE(std::equal(expects.begin(), expects.end(), incom.dims().begin()));
-	EXPECT_TRUE(std::equal(expectc.begin(), expectc.end(), comp.dims().begin()));
 }
 
 
-// cover tensor
-// is_same_size
-TEST(TENSOR, IsSameSize_B004)
-{
-	FUZZ::reset_logger();
-	tensorshape cshape = random_def_shape();
-	std::vector<size_t> cv = cshape.as_list();
-	tensorshape ishape = make_incompatible(cv); // not same as cshape
-	mock_tensor bad(ishape);
-	mock_tensor undef;
-	mock_tensor scalar(FUZZ::getDouble(1, "scalar.data")[0]);
-	mock_tensor comp(cshape);
-
-	{
-		tensorshape pshape = make_partial(cv); // same as cshape
-		mock_tensor pcom(pshape);
-		// allowed compatible
-		// pcom, undef are both unallocated
-		EXPECT_FALSE(undef.is_alloc());
-		EXPECT_FALSE(pcom.is_alloc());
-		// undef is same as anything
-		EXPECT_TRUE(undef.is_same_size(bad));
-		EXPECT_TRUE(undef.is_same_size(comp));
-		EXPECT_TRUE(undef.is_same_size(scalar));
-		EXPECT_TRUE(undef.is_same_size(pcom));
-		// pcom is same as comp, but not bad or scalar
-		EXPECT_TRUE(pcom.is_same_size(comp));
-		EXPECT_FALSE(pcom.is_same_size(bad));
-		EXPECT_FALSE(pcom.is_same_size(scalar));
-	}
-
-	// trimmed compatible
-	{
-		// padd cv
-		std::vector<size_t> npads = FUZZ::getInt(4, "npads", {3, 17});
-		tensorshape p1 = padd(cv, npads[0], npads[1]); // same
-		tensorshape p2 = padd(cv, npads[2], npads[3]); // same
-		cv.push_back(2);
-		tensorshape p3 = padd(cv, npads[2], npads[3]); // not same
-		mock_tensor comp2(p1);
-		mock_tensor comp3(p2);
-		mock_tensor bad2(p3);
-
-		EXPECT_TRUE(comp2.is_alloc());
-		EXPECT_TRUE(comp3.is_alloc());
-		EXPECT_TRUE(bad.is_alloc());
-
-		EXPECT_TRUE(comp.is_same_size(comp2));
-		EXPECT_TRUE(comp2.is_same_size(comp3));
-		EXPECT_TRUE(comp.is_same_size(comp3));
-
-		EXPECT_FALSE(comp.is_same_size(bad));
-		EXPECT_FALSE(comp2.is_same_size(bad));
-		EXPECT_FALSE(comp3.is_same_size(bad));
-
-		EXPECT_FALSE(comp.is_same_size(bad2));
-		EXPECT_FALSE(comp2.is_same_size(bad2));
-		EXPECT_FALSE(comp3.is_same_size(bad2));
-	}
-
-}
-
-
-// cover tensor
-// is_compatible_with tensor
-TEST(TENSOR, IsCompatibleWithTensor_B005)
-{
-	FUZZ::reset_logger();
-	tensorshape cshape = random_def_shape();
-	std::vector<size_t> cv = cshape.as_list();
-	tensorshape ishape = make_incompatible(cv); // not same as cshape
-	tensorshape pshape = make_partial(cv); // same as cshape
-	mock_tensor undef;
-	mock_tensor scalar(FUZZ::getDouble(1, "scalar.data")[0]);
-	mock_tensor comp(cshape);
-	mock_tensor pcom(pshape);
-	mock_tensor bad(ishape);
-
-	// undefined tensor is compatible with anything
-	EXPECT_TRUE(undef.is_compatible_with(undef));
-	EXPECT_TRUE(undef.is_compatible_with(scalar));
-	EXPECT_TRUE(undef.is_compatible_with(comp));
-	EXPECT_TRUE(undef.is_compatible_with(pcom));
-	EXPECT_TRUE(undef.is_compatible_with(bad));
-
-	EXPECT_TRUE(pcom.is_compatible_with(comp));
-	EXPECT_TRUE(pcom.is_compatible_with(pcom));
-	EXPECT_FALSE(pcom.is_compatible_with(bad));
-
-	EXPECT_FALSE(bad.is_compatible_with(comp));
-}
-
-
-// cover tensor
-// is_compatible_with vector
-TEST(TENSOR, IsCompatibleWithVector_B006)
-{
-	FUZZ::reset_logger();
-	tensorshape pshape = random_partialshape();
-	tensorshape cshape = random_def_shape();
-
-	mock_tensor undef;
-	mock_tensor comp(cshape);
-	mock_tensor pcom(pshape);
-
-	std::vector<double> zerodata;
-	size_t cp = cshape.n_elems();
-	std::vector<double> lowerdata;
-	if (cp < 3)
-	{
-		lowerdata = FUZZ::getDouble(1, "lowerdata if cp < 3");
-	}
-	else
-	{
-		lowerdata = FUZZ::getDouble(cp-FUZZ::getInt(1, "cp-this", {1, cp-1})[0], "lowerdata if cp >= 3");
-	}
-	std::vector<double> exactdata = FUZZ::getDouble(cp, "exact data");
-	std::vector<double> upperdata = FUZZ::getDouble(cp+FUZZ::getInt(1, "cp+this", {1, cp-1})[0], "upperdata");
-
-	EXPECT_TRUE(comp.is_compatible_with(exactdata));
-	EXPECT_FALSE(comp.is_compatible_with(lowerdata));
-	EXPECT_FALSE(comp.is_compatible_with(upperdata));
-
-	EXPECT_TRUE(comp.is_loosely_compatible_with(exactdata));
-	EXPECT_TRUE(comp.is_loosely_compatible_with(lowerdata));
-	EXPECT_FALSE(comp.is_loosely_compatible_with(upperdata));
-
-	size_t np = pshape.n_known();
-	std::vector<double> lowerdata2;
-	if (np < 3)
-	{
-		lowerdata2 = FUZZ::getDouble(1, "lowerdata2 if np < 3");
-	}
-	else
-	{
-		lowerdata2 = FUZZ::getDouble(np-FUZZ::getInt(1, "np-this", {1, np-1})[0], "lowerdata2 if np >= 3");
-	}
-	std::vector<double> exactdata2 = FUZZ::getDouble(np, "exactdata2");
-	size_t mod = np*FUZZ::getInt(1, "mod=np*this", {2, 15})[0];
-	std::vector<double> moddata = FUZZ::getDouble(mod, "moddata");
-	std::vector<double> upperdata2 = FUZZ::getDouble(mod+1, "upperdata2");
-
-	EXPECT_TRUE(pcom.is_compatible_with(exactdata2));
-	EXPECT_TRUE(pcom.is_compatible_with(moddata));
-	EXPECT_FALSE(pcom.is_compatible_with(lowerdata2));
-	EXPECT_FALSE(pcom.is_compatible_with(upperdata2));
-
-	EXPECT_TRUE(pcom.is_loosely_compatible_with(exactdata2));
-	EXPECT_TRUE(pcom.is_loosely_compatible_with(moddata));
-	EXPECT_TRUE(pcom.is_loosely_compatible_with(lowerdata2));
-	EXPECT_TRUE(pcom.is_loosely_compatible_with(upperdata2));
-
-	// undef is compatible with everything
-	EXPECT_TRUE(undef.is_compatible_with(exactdata));
-	EXPECT_TRUE(undef.is_compatible_with(exactdata2));
-	EXPECT_TRUE(undef.is_compatible_with(lowerdata));
-	EXPECT_TRUE(undef.is_compatible_with(lowerdata2));
-	EXPECT_TRUE(undef.is_compatible_with(upperdata));
-	EXPECT_TRUE(undef.is_compatible_with(upperdata2));
-	EXPECT_TRUE(undef.is_compatible_with(moddata));
-
-	EXPECT_TRUE(undef.is_loosely_compatible_with(exactdata));
-	EXPECT_TRUE(undef.is_loosely_compatible_with(exactdata2));
-	EXPECT_TRUE(undef.is_loosely_compatible_with(lowerdata));
-	EXPECT_TRUE(undef.is_loosely_compatible_with(lowerdata2));
-	EXPECT_TRUE(undef.is_loosely_compatible_with(upperdata));
-	EXPECT_TRUE(undef.is_loosely_compatible_with(upperdata2));
-	EXPECT_TRUE(undef.is_loosely_compatible_with(moddata));
-}
-
-
-// covers tensor
-// guess_shape
-TEST(TENSOR, GuessShape_B007)
-{
-	FUZZ::reset_logger();
-	tensorshape pshape = random_partialshape();
-	tensorshape cshape = random_def_shape();
-	mock_tensor undef;
-	mock_tensor comp(cshape);
-	mock_tensor pcom(pshape);
-
-	std::vector<double> zerodata;
-	size_t cp = cshape.n_elems();
-	std::vector<double> lowerdata;
-	if (cp < 3)
-	{
-		lowerdata = FUZZ::getDouble(1, "lowerdata if cp < 3");
-	}
-	else
-	{
-		lowerdata = FUZZ::getDouble(cp-FUZZ::getInt(1, "cp-this", {1, cp-1})[0], "lowerdata if cp >= 3");
-	}
-	std::vector<double> exactdata = FUZZ::getDouble(cp, "exactdata");
-	std::vector<double> upperdata = FUZZ::getDouble(cp+FUZZ::getInt(1, "cp+this", {1, cp-1})[0], "upperdata");
-
-	// allowed are fully defined
-	optional<tensorshape> cres = comp.guess_shape(exactdata);
-	ASSERT_TRUE((bool)cres);
-	EXPECT_TRUE(tensorshape_equal(cshape, *cres));
-	EXPECT_FALSE((bool)comp.guess_shape(lowerdata));
-	EXPECT_FALSE((bool)comp.guess_shape(upperdata));
-
-	size_t np = pshape.n_known();
-	std::vector<double> lowerdata2;
-	if (np < 3)
-	{
-		lowerdata2 = FUZZ::getDouble(1, "lowerdata2 if np < 3");
-	}
-	else
-	{
-		lowerdata2 = FUZZ::getDouble(np-FUZZ::getInt(1, "np-this", {1, np-1})[0], "lowerdata2 if np >= 3");
-	}
-	std::vector<double> exactdata2 = FUZZ::getDouble(np, "exactdata2");
-	size_t mod = np*FUZZ::getInt(1, "mod=np*this", {2, 15})[0];
-	std::vector<double> moddata = FUZZ::getDouble(mod, "moddata");
-	std::vector<double> upperdata2 = FUZZ::getDouble(mod+1, "upperdata2");
-
-	std::vector<size_t> pv = pshape.as_list();
-	size_t unknown = pv.size();
-	for (size_t i = 0; i < pv.size(); i++)
-	{
-		if (0 == pv[i])
-		{
-			if (unknown > i)
-			{
-				unknown = i;
-			}
-			pv[i] = 1;
-		}
-	}
-	std::vector<size_t> pv2 = pv;
-	pv2[unknown] = ceil((double) moddata.size() / (double) np);
-	// allowed are partially defined
-	optional<tensorshape> pres = pcom.guess_shape(exactdata2);
-	optional<tensorshape> pres2 = pcom.guess_shape(moddata);
-	ASSERT_TRUE((bool)pres);
-	ASSERT_TRUE((bool)pres2);
-	EXPECT_TRUE(tensorshape_equal(*pres, pv));
-	EXPECT_TRUE(tensorshape_equal(*pres2, pv2));
-	EXPECT_FALSE((bool)pcom.guess_shape(lowerdata2));
-	EXPECT_FALSE((bool)pcom.guess_shape(upperdata2));
-
-	// allowed are undefined
-	optional<tensorshape> ures = undef.guess_shape(exactdata);
-	optional<tensorshape> ures2 = undef.guess_shape(exactdata2);
-	optional<tensorshape> ures3 = undef.guess_shape(lowerdata);
-	optional<tensorshape> ures4 = undef.guess_shape(lowerdata2);
-	optional<tensorshape> ures5 = undef.guess_shape(upperdata);
-	optional<tensorshape> ures6 = undef.guess_shape(upperdata2);
-	optional<tensorshape> ures7 = undef.guess_shape(moddata);
-	ASSERT_TRUE((bool)ures);
-	ASSERT_TRUE((bool)ures2);
-	ASSERT_TRUE((bool)ures3);
-	ASSERT_TRUE((bool)ures4);
-	ASSERT_TRUE((bool)ures5);
-	ASSERT_TRUE((bool)ures6);
-	ASSERT_TRUE((bool)ures7);
-	EXPECT_TRUE(tensorshape_equal(*ures, std::vector<size_t>({exactdata.size()})));
-	EXPECT_TRUE(tensorshape_equal(*ures2, std::vector<size_t>({exactdata2.size()})));
-	EXPECT_TRUE(tensorshape_equal(*ures3, std::vector<size_t>({lowerdata.size()})));
-	EXPECT_TRUE(tensorshape_equal(*ures4, std::vector<size_t>({lowerdata2.size()})));
-	EXPECT_TRUE(tensorshape_equal(*ures5, std::vector<size_t>({upperdata.size()})));
-	EXPECT_TRUE(tensorshape_equal(*ures6, std::vector<size_t>({upperdata2.size()})));
-	EXPECT_TRUE(tensorshape_equal(*ures7, std::vector<size_t>({moddata.size()})));
-}
-
-
-// cover tensor
+// cover tensor:
 // get, expose
-TEST(TENSOR, Get_B008)
+TEST_F(TENSOR, Get_B004)
 {
-	FUZZ::reset_logger();
-	tensorshape pshape = random_partialshape();
-	tensorshape cshape = random_def_shape();
+	tensorshape pshape = random_partialshape(this);
+	tensorshape cshape = random_def_shape(this);
 	size_t crank = cshape.rank();
 	size_t celem = cshape.n_elems();
 
 	mock_tensor undef;
-	mock_tensor pcom(pshape);
-	mock_tensor comp(cshape);
+	mock_tensor pcom(this, pshape);
+	mock_tensor comp(this, cshape);
 
 	std::vector<double> cv = comp.expose(); // shouldn't die or throw
 	// EXPECT_DEATH(undef.expose(), ".*");
@@ -514,16 +223,16 @@ TEST(TENSOR, Get_B008)
 	size_t pncoord = 1;
 	if (crank > 2)
 	{
-		pncoord = FUZZ::getInt(1, "pncoord if crank > 3", {crank/2, crank-1})[0];
+		pncoord = get_int(1, "pncoord if crank > 3", {crank/2, crank-1})[0];
 	}
 	size_t cncoord = crank;
-	size_t rncoord = FUZZ::getInt(1, "rncoord", {15, 127})[0];
+	size_t rncoord = get_int(1, "rncoord", {15, 127})[0];
 	// c coordinates have rank exactly fitting cshape
 	// p coordinates have rank less than rank of cshape
 	// r coordinates are random coordinates
-	std::vector<size_t> ccoord = FUZZ::getInt(cncoord, "ccoord");
-	std::vector<size_t> pcoord = FUZZ::getInt(pncoord, "pcoord");
-	std::vector<size_t> rcoord = FUZZ::getInt(rncoord, "rcoord");
+	std::vector<size_t> ccoord = get_int(cncoord, "ccoord");
+	std::vector<size_t> pcoord = get_int(pncoord, "pcoord");
+	std::vector<size_t> rcoord = get_int(rncoord, "rcoord");
 	EXPECT_THROW(undef.get(pcoord), std::out_of_range);
 	EXPECT_THROW(pcom.get(pcoord), std::out_of_range);
 	EXPECT_THROW(undef.get(ccoord), std::out_of_range);
@@ -578,26 +287,31 @@ TEST(TENSOR, Get_B008)
 }
 
 
-// cover tensor
-// set_shape, allocate shape
-TEST(TENSOR, Reshape_B009)
+// cover tensor: set_allocator
+TEST_F(TENSOR, SetAlloc_B005)
 {
-	FUZZ::reset_logger();
-	tensorshape pshape = random_partialshape();
+
+}
+
+
+// cover tensor: set_shape
+TEST_F(TENSOR, Reshape_B006)
+{
+	tensorshape pshape = random_partialshape(this);
 	// make cshape a 2d shape to make testing easy
 	// todo: improve to test higher dimensionality
-	tensorshape cshape = FUZZ::getInt(2, "cshape", {11, 127});
+	tensorshape cshape = get_int(2, "cshape", {11, 127});
 	std::vector<size_t> cv = cshape.as_list();
 	size_t cols = cv[0];
 	size_t rows = cv[1];
 
 	mock_tensor undef;
 	mock_tensor undef2;
-	mock_tensor pcom(pshape);
-	mock_tensor comp(cshape);
-	mock_tensor comp2(cshape);
-	mock_tensor comp3(cshape);
-	mock_tensor comp4(cshape);
+	mock_tensor pcom(this, pshape);
+	mock_tensor comp(this, cshape);
+	mock_tensor comp2(this, cshape);
+	mock_tensor comp3(this, cshape);
+	mock_tensor comp4(this, cshape);
 
 	// undefined/part defined shape change
 	undef.set_shape(pshape);
@@ -689,8 +403,8 @@ TEST(TENSOR, Reshape_B009)
 		EXPECT_EQ((size_t) 0, resc4[rows][i]);
 	}
 
-	double* p = comp.rawptr();
-	double* p2 = comp2.rawptr();
+	const double* p = comp.rawptr();
+	const double* p2 = comp2.rawptr();
 	tensorshape incmpshape = make_incompatible(comp.get_shape().as_list());
 	comp.set_shape(incmpshape);
 	comp2.set_shape(std::vector<size_t>{});
@@ -699,21 +413,20 @@ TEST(TENSOR, Reshape_B009)
 }
 
 
-// cover tensor
-// default allocate, dependent on set shape
-TEST(TENSOR, Allocate_B010)
+// cover tensor:
+// default allocate => bool allocate (void)
+TEST_F(TENSOR, Allocate_B007)
 {
-	FUZZ::reset_logger();
-	tensorshape cshape = random_def_shape();
-	tensorshape pshape = random_partialshape();
+	tensorshape cshape = random_def_shape(this);
+	tensorshape pshape = random_partialshape(this);
 
 	mock_tensor undef;
-	mock_tensor pcom(pshape);
-	mock_tensor comp(cshape);
+	mock_tensor pcom(this, pshape);
+	mock_tensor comp(this, cshape);
 	ASSERT_TRUE(comp.is_alloc());
 	ASSERT_FALSE(pcom.is_alloc());
 	ASSERT_FALSE(undef.is_alloc());
-	double* orig = comp.rawptr(); // check to see if comp.rawptr changes later
+	const double* orig = comp.rawptr(); // check to see if comp.rawptr changes later
 	EXPECT_FALSE(undef.allocate());
 	EXPECT_FALSE(pcom.allocate());
 	EXPECT_FALSE(comp.allocate());
@@ -726,17 +439,15 @@ TEST(TENSOR, Allocate_B010)
 }
 
 
-// cover tensor
-// deallocate
-TEST(TENSOR, Dealloc_B011)
+// cover tensor: deallocate
+TEST_F(TENSOR, Dealloc_B008)
 {
-	FUZZ::reset_logger();
-	tensorshape pshape = random_partialshape();
-	tensorshape cshape = random_def_shape();
+	tensorshape pshape = random_partialshape(this);
+	tensorshape cshape = random_def_shape(this);
 
 	mock_tensor undef;
-	mock_tensor pcom(pshape);
-	mock_tensor comp(cshape);
+	mock_tensor pcom(this, pshape);
+	mock_tensor comp(this, cshape);
 
 	EXPECT_FALSE(undef.is_alloc());
 	EXPECT_FALSE(pcom.is_alloc());
@@ -748,21 +459,20 @@ TEST(TENSOR, Dealloc_B011)
 }
 
 
-// cover tensor
-// allocate shape
-TEST(TENSOR, AllocateShape_B012)
+// cover tensor:
+// allocate shape => bool allocate (const tensorshape shape)
+TEST_F(TENSOR, AllocateShape_B009)
 {
-	FUZZ::reset_logger();
-	tensorshape cshape = random_def_shape();
+	tensorshape cshape = random_def_shape(this);
 	std::vector<size_t> cv = cshape.as_list();
 	tensorshape cshape2 = make_incompatible(cv);
-	tensorshape pshape = make_partial(cv);
+	tensorshape pshape = make_partial(this, cv);
 	tensorshape pshape2 = make_full_incomp(pshape.as_list(), cv);
 
 	mock_tensor undef;
-	mock_tensor pcom(pshape);
-	mock_tensor comp(cshape);
-	double* orig = comp.rawptr();
+	mock_tensor pcom(this, pshape);
+	mock_tensor comp(this, cshape);
+	const double* orig = comp.rawptr();
 
 	EXPECT_FALSE(undef.allocate(pshape));
 	EXPECT_TRUE(undef.allocate(cshape));
@@ -787,26 +497,24 @@ TEST(TENSOR, AllocateShape_B012)
 }
 
 
-// cover tensor
-// copy_from
-TEST(TENSOR, CopyWithShape_B013)
+// cover tensor: copy_from
+TEST_F(TENSOR, CopyWithShape_B010)
 {
-	FUZZ::reset_logger();
-	tensorshape pshape = random_partialshape();
-	tensorshape cshape = random_def_shape();
-	tensorshape cshape2 = random_def_shape();
-	tensorshape cshape3 = random_def_shape();
+	tensorshape pshape = random_partialshape(this);
+	tensorshape cshape = random_def_shape(this);
+	tensorshape cshape2 = random_def_shape(this);
+	tensorshape cshape3 = random_def_shape(this);
 
 	size_t n1 = cshape.n_elems();
-	std::vector<double> rawdata1 = FUZZ::getDouble(n1, "rawdata1");
+	std::vector<double> rawdata1 = get_double(n1, "rawdata1");
 	size_t n2 = cshape2.n_elems();
-	std::vector<double> rawdata2 = FUZZ::getDouble(n2, "rawdata2");
+	std::vector<double> rawdata2 = get_double(n2, "rawdata2");
 	mock_tensor undef;
-	mock_tensor pcom(pshape);
-	mock_tensor comp(cshape, rawdata1);
-	mock_tensor comp2(cshape2, rawdata2);
-	double* orig = comp.rawptr();
-	double* orig2 = comp2.rawptr();
+	mock_tensor pcom(this, pshape);
+	mock_tensor comp(this, cshape, rawdata1);
+	mock_tensor comp2(this, cshape2, rawdata2);
+	const double* orig = comp.rawptr();
+	const double* orig2 = comp2.rawptr();
 	std::vector<double> compdata = comp.expose();
 	std::vector<double> compdata2 = comp2.expose();
 
@@ -882,15 +590,6 @@ TEST(TENSOR, CopyWithShape_B013)
 			EXPECT_EQ(compdata2[i], pdefdata[outidx]);
 		}
 	}
-}
-
-
-// cover tensor
-// from_proto
-TEST(TENSOR, DISABLED_FromProto_B014)
-{
-	// should allocate the tensor
-	// data and shape are identical to ad hoc values
 }
 
 

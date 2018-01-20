@@ -22,6 +22,3 @@ B002 - getting an allocator that doesn't exist will return nullptr,
 		otherwise return that alloc's registry instance
 B003 - checking for a type of allocator with a particular identifier will fail if the instance
 		at identifier isn't of that type or no instance is found at identifier. otherwise succeed
-
-// SERIALIZER
-? todo: define

@@ -107,7 +107,7 @@ void iobserver::add_dependency (subject* dep)
 void iobserver::remove_dependency (size_t idx)
 {
 	size_t depsize = dependencies_.size();
-	if (idx >= depsize)
+	if (idx>= depsize)
 	{
 		throw std::logic_error(nnutils::formatter() << "attempting to remove argument index "
 			<< idx << " from observer with " << depsize << " arguments");
@@ -132,7 +132,7 @@ void iobserver::replace_dependency (subject* dep, size_t idx)
 	{
 		dep->attach(this, idx);
 	}
-	if (idx >= ndeps)
+	if (idx>= ndeps)
 	{
 		dependencies_.insert(dependencies_.end(), idx - ndeps + 1, nullptr);
 	}
@@ -152,10 +152,10 @@ void iobserver::update (std::unordered_set<size_t> dep_indices, notification msg
 			{
 				remove_dependency(dep_idx);
 			}
-			break;
+		break;
 		case UPDATE:
 			update(dep_indices); // value update
-			break;
+		break;
 	}
 	if (UNSUBSCRIBE == msg)
 	{

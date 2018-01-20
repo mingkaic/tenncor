@@ -10,8 +10,8 @@
 
 #include "tests/include/mocks/mock_node.h"
 #include "tests/include/mocks/mock_connector.h"
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 #include "include/graph/leaf/constant.hpp"
 
@@ -22,48 +22,51 @@ using namespace nnet;
 #ifndef DISABLE_CONSTANT_TEST
 
 
+class CONSTANT : public FUZZ::fuzz_test {};
+
+
 // covers constant
 // scalar constructor, vector constructor
-TEST(CONSTANT, Constructor_D000)
+TEST_F(CONSTANT, Constructor_D000)
 {
 	tensorshape shape;
 	tensorshape part;
 	size_t n;
 	size_t pn = 1;
-	// re-roll until we get partial with n_known > 1
+	// re-roll until we get partial with n_known> 1
 	while (pn <= 1)
 	{
-		FUZZ::reset_logger(); // keep resetting FUZZ logger
-		shape = random_def_shape(2, 5); // constraint rank to force relatively non-one shapes
-		part = make_partial(shape.as_list());
+	 // keep resetting FUZZ logger
+		shape = random_def_shape(this, 2, 5); // constraint rank to force relatively non-one shapes
+		part = make_partial(this, shape.as_list());
 		n = shape.n_elems();
 		pn = part.n_known();
 	}
-	double c = FUZZ::getDouble(1, "c")[0];
+	double c = get_double(1, "c")[0];
 
 	// defined shape
-	std::vector<double> v = FUZZ::getDouble(n, "v");
-	std::vector<double> v2 = FUZZ::getDouble(n / 2, "v2");
-	std::vector<double> v3 = FUZZ::getDouble(n * 1.5, "v3");
+	std::vector<double> v = get_double(n, "v");
+	std::vector<double> v2 = get_double(n / 2, "v2");
+	std::vector<double> v3 = get_double(n * 1.5, "v3");
 
 	// partially defined shape
-	std::vector<double> pv = FUZZ::getDouble(pn, "pv");
-	std::vector<double> pv2 = FUZZ::getDouble(pn * 0.6, "pv2");
-	std::vector<double> pv3 = FUZZ::getDouble(pn * 1.5, "pv3");
+	std::vector<double> pv = get_double(pn, "pv");
+	std::vector<double> pv2 = get_double(pn * 0.6, "pv2");
+	std::vector<double> pv3 = get_double(pn * 1.5, "pv3");
 
-	constant<double>* res = constant<double>::get(c);
-	constant<double>* res2 = constant<double>::get(v, shape);
-	constant<double>* res3 = constant<double>::get(v2, shape);
-	constant<double>* res4 = constant<double>::get(v3, shape);
-	constant<double>* res5 = constant<double>::get(pv, part);
-	constant<double>* res6 = constant<double>::get(pv2, part);
-	constant<double>* res7 = constant<double>::get(pv3, part);
+	constant* res = constant::get(c);
+	constant* res2 = constant::get(v, shape);
+	constant* res3 = constant::get(v2, shape);
+	constant* res4 = constant::get(v3, shape);
+	constant* res5 = constant::get(pv, part);
+	constant* res6 = constant::get(pv2, part);
+	constant* res7 = constant::get(pv3, part);
 
 	EXPECT_TRUE(res->good_status()); // scalars are initialized
 
-	std::vector<double> r2 = expose(res2);
-	std::vector<double> r3 = expose(res3);
-	std::vector<double> r4 = expose(res4);
+	std::vector<double> r2 = expose<double>(res2);
+	std::vector<double> r3 = expose<double>(res3);
+	std::vector<double> r4 = expose<double>(res4);
 	EXPECT_EQ(n, r2.size());
 	EXPECT_EQ(n, r3.size());
 	EXPECT_EQ(n, r4.size());
@@ -84,9 +87,9 @@ TEST(CONSTANT, Constructor_D000)
 	EXPECT_TRUE(tensorshape_equal(shape, res3->get_shape()));
 	EXPECT_TRUE(tensorshape_equal(shape, res4->get_shape()));
 
-	std::vector<double> r5 = expose(res5);
-	std::vector<double> r6 = expose(res6);
-	std::vector<double> r7 = expose(res7);
+	std::vector<double> r5 = expose<double>(res5);
+	std::vector<double> r6 = expose<double>(res6);
+	std::vector<double> r7 = expose<double>(res7);
 
 	EXPECT_EQ(pn, r5.size());
 	EXPECT_EQ(pn, r6.size());
@@ -134,23 +137,22 @@ TEST(CONSTANT, Constructor_D000)
 
 // covers constant
 // clone and move
-TEST(CONSTANT, CopyNMove_D001)
+TEST_F(CONSTANT, CopyNMove_D001)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
-	tensorshape shape = random_def_shape();
-	tensorshape part = make_partial(shape.as_list());
+	double c = get_double(1, "c")[0];
+	tensorshape shape = random_def_shape(this);
+	tensorshape part = make_partial(this, shape.as_list());
 
 	size_t n = shape.n_elems();
 	size_t pn = part.n_known();
 	// defined shape
-	std::vector<double> v = FUZZ::getDouble(FUZZ::getInt(1, "v.size", {0.5*n, 1.5*n})[0], "v");
+	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 	// partially defined shape
-	std::vector<double> pv = FUZZ::getDouble(FUZZ::getInt(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
+	std::vector<double> pv = get_double(get_int(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
 
-	constant<double>* res = constant<double>::get(c);
-	constant<double>* res2 = constant<double>::get(v, shape);
-	constant<double>* res3 = constant<double>::get(pv, part);
+	constant* res = constant::get(c);
+	constant* res2 = constant::get(v, shape);
+	constant* res3 = constant::get(pv, part);
 
 	EXPECT_EQ(nullptr, res->clone());
 	EXPECT_EQ(nullptr, res2->clone());
@@ -166,16 +168,15 @@ TEST(CONSTANT, CopyNMove_D001)
 
 
 // covers constant derive
-TEST(CONSTANT, GetGradient_D002)
+TEST_F(CONSTANT, GetGradient_D002)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
-	constant<double>* res = constant<double>::get(c);
-	constant<double>* res2 = constant<double>::get(c+1);
+	double c = get_double(1, "c")[0];
+	constant* res = constant::get(c);
+	constant* res2 = constant::get(c+1);
 
-	const tensor<double>* g1 = res->derive(nullptr)->eval();
-	const tensor<double>* g2 = res->derive(res)->eval();
-	const tensor<double>* g3 = res->derive(res2)->eval();
+	const tensor_double* g1 = dynamic_cast<const tensor_double*>(res->derive(nullptr)->eval());
+	const tensor_double* g2 = dynamic_cast<const tensor_double*>(res->derive(res)->eval());
+	const tensor_double* g3 = dynamic_cast<const tensor_double*>(res->derive(res2)->eval());
 
 	std::vector<double> gres = g1->expose();
 	std::vector<double> gres1 = g2->expose();
@@ -195,14 +196,13 @@ TEST(CONSTANT, GetGradient_D002)
 
 
 // covers constant get_gradient
-TEST(CONSTANT, GetLeaf_D003)
+TEST_F(CONSTANT, GetLeaf_D003)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
-	constant<double>* res = constant<double>::get(c);
+	double c = get_double(1, "c")[0];
+	constant* res = constant::get(c);
 	mock_node exposer;
 
-	varptr<double> zaro = exposer.expose_leaf(res, nullptr);
+	varptr zaro = exposer.expose_leaf(res, nullptr);
 	EXPECT_TRUE(expose<double>(zaro)[0] == 0.0);
 
 	delete res;
@@ -210,12 +210,11 @@ TEST(CONSTANT, GetLeaf_D003)
 
 
 // covers constant death_on_noparent
-TEST(CONSTANT, SelfDestruct_D004)
+TEST_F(CONSTANT, SelfDestruct_D004)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
-	constant<double>* res = constant<double>::get(c); // managed
-	constant<double>* res2 = constant<double>::get(c); // unmanaged
+	double c = get_double(1, "c")[0];
+	constant* res = constant::get(c); // managed
+	constant* res2 = constant::get(c); // unmanaged
 	res->be_managed();
 
 	mock_connector* mconn = new mock_connector({res, res2}, "");
@@ -227,28 +226,27 @@ TEST(CONSTANT, SelfDestruct_D004)
 
 
 // verifies data status
-TEST(CONSTANT, Allocated_D005)
+TEST_F(CONSTANT, Allocated_D005)
 {
-	FUZZ::reset_logger();
-	double c = FUZZ::getDouble(1, "c")[0];
-	tensorshape shape = random_def_shape();
-	tensorshape part = make_partial(shape.as_list());
+	double c = get_double(1, "c")[0];
+	tensorshape shape = random_def_shape(this);
+	tensorshape part = make_partial(this, shape.as_list());
 
 	size_t n = shape.n_elems();
 	size_t pn = part.n_known();
 	// defined shape
-	std::vector<double> v = FUZZ::getDouble(FUZZ::getInt(1, "v.size", {0.5*n, 1.5*n})[0], "v");
+	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 	// partially defined shape
 	if (1 == pn) pn = 2;
-	std::vector<double> pv = FUZZ::getDouble(FUZZ::getInt(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
+	std::vector<double> pv = get_double(get_int(1, "pv.size", {0.5*pn, 1.5*pn})[0], "pv");
 
-	constant<double>* res = constant<double>::get(c);
-	constant<double>* res2 = constant<double>::get(v, shape);
-	constant<double>* res3 = constant<double>::get(pv, part);
+	constant* res = constant::get(c);
+	constant* res2 = constant::get(v, shape);
+	constant* res3 = constant::get(pv, part);
 
-	const tensor<double>* t1 = res->eval();
-	const tensor<double>* t2 = res2->eval();
-	const tensor<double>* t3 = res3->eval();
+	const itensor* t1 = res->eval();
+	const itensor* t2 = res2->eval();
+	const itensor* t3 = res3->eval();
 
 	EXPECT_TRUE(t1->is_alloc());
 	EXPECT_TRUE(t2->is_alloc());

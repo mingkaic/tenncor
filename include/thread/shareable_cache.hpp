@@ -66,7 +66,7 @@ private:
 
 	std::function<K(const T&)> hasher_;
 
-	std::unordered_map<K,std::shared_ptr<cache_node<T> > > umap_;
+	std::unordered_map<K,std::shared_ptr<cache_node<T> >> umap_;
 
 	cache_list content_;
 

@@ -11,7 +11,6 @@
  *
  */
 
-#include "include/graph/react/identifiable.hpp"
 #include "include/utils/utils.hpp"
 
 #pragma once
@@ -38,7 +37,7 @@ enum notification
 
 //! subject retains control over all its observers,
 //! once destroyed, all observers are flagged for deletion
-class subject : public virtual identifiable
+class subject
 {
 public:
 	virtual ~subject (void);

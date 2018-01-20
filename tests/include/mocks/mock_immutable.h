@@ -5,53 +5,68 @@
 #ifndef TENNCOR_MOCK_IMMUTABLE_H
 #define TENNCOR_MOCK_IMMUTABLE_H
 
-#include "tests/include/util_test.h"
-#include "tests/include/fuzz.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/fuzz.h"
 
 #include "include/graph/connector/immutable/immutable.hpp"
 
 using namespace nnet;
 
 
-SHAPER get_testshaper (void)
+SHAPER get_testshaper (FUZZ::fuzz_test* fuzzer)
 {
-	tensorshape shape = random_def_shape();
+	tensorshape shape = random_def_shape(fuzzer);
 	return [shape](std::vector<tensorshape>) { return shape; };
 }
 
 
-void testtrans (double* dest, std::vector<const double*> src, nnet::shape_io shape)
+struct test_actor : public tens_template<double>
 {
-	size_t n_elems = shape.outs_.n_elems();
-	std::uniform_real_distribution<double> dist(0, 13);
+	test_actor (out_wrapper<void> dest, 
+		std::vector<in_wrapper<void> > srcs) :
+	tens_template(dest, srcs) {}
 
-	auto gen = std::bind(dist, nnutils::get_generator());
-	std::generate(dest, dest + n_elems, gen); // initialize to avoid errors
-	if (src.size())
+	virtual void action (void)
 	{
-		n_elems = std::min(n_elems, shape.ins_[0].n_elems());
-		std::memcpy(dest, src[0], n_elems * sizeof(double));
+		size_t n_elems = this->dest_.second.n_elems();
+		std::uniform_real_distribution<double> dist(0, 13);
+
+		auto gen = std::bind(dist, nnutils::get_generator());
+		std::generate(this->dest_.first, this->dest_.first + n_elems, gen); // initialize to avoid errors
+		if (this->srcs_.size())
+		{
+			n_elems = std::min(n_elems, this->srcs_[0].second.n_elems());
+			std::memcpy(this->dest_.first, this->srcs_[0].first, n_elems * sizeof(double));
+		}
 	}
+};
+
+
+itens_actor* test_abuilder (out_wrapper<void>& dest, 
+	std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type)
+{
+	return new test_actor(dest, srcs);
 }
 
 
-inode<double>* testback (std::vector<std::pair<inode<double>*,inode<double>*> >)
+inode* testback (std::vector<std::pair<inode*,inode*>>)
 {
 	return nullptr;
 }
 
 
-class mock_immutable : public immutable<double>
+class mock_immutable : public immutable
 {
 public:
-	mock_immutable (std::vector<inode<double>*> args, std::string label,
-		SHAPER shapes = get_testshaper(),
-		TRANSFER_FUNC<double> tfunc = testtrans,
-		BACK_MAP<double> back = testback) :
-	immutable<double>(args, shapes,
-	new transfer_func<double>(tfunc), back, label) {}
+	mock_immutable (std::vector<inode*> args, 
+		std::string label, SHAPER shapes,
+		CONN_ACTOR tfunc = test_abuilder,
+		BACK_MAP back = testback) :
+	immutable(args, shapes, new actor_func(tfunc), back, label) {}
 
 	std::function<void(mock_immutable*)> triggerOnDeath;
+
+	itens_actor*& get_actor (void) { return actor_; }
 
 	virtual void death_on_broken (void)
 	{
@@ -59,7 +74,7 @@ public:
 		{
 			triggerOnDeath(this);
 		}
-		immutable<double>::death_on_broken();
+		immutable::death_on_broken();
 	}
 };
 

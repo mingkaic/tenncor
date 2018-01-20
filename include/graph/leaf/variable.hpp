@@ -24,68 +24,67 @@
 namespace nnet
 {
 
-template <typename T>
 using variable_updater = std::function<void(bool)>;
 
-template <typename T>
-class variable final : public ivariable<T>
+class variable final : public ivariable
 {
 public:
 	// >>>> CONSTRUCTORS <<<<
 	//! scalar constructor.
 	//! all the benefits of constant, but reassignable
-	variable (T scalar, std::string name = "scalar");
+	variable (double scalar, std::string name = "scalar");
 
 	//! shape constructor, initializer is null
-	variable (const tensorshape& shape, std::string name = "");
+	variable (const tensorshape& shape, 
+		tenncor::tensor_proto::tensor_t type = tenncor::tensor_proto::DOUBLE_T, 
+		std::string name = "");
 
 	//! shape constructor with initializer
-	variable (const tensorshape& shape,
-		const initializer<T>& init, std::string name = "");
+	variable (const tensorshape& shape, const initializer& init, 
+		tenncor::tensor_proto::tensor_t type = tenncor::tensor_proto::DOUBLE_T,
+		std::string name = "");
 
 	// >>>> CLONER <<<<
 	//! clone function
-	variable<T>* clone (void) const;
+	variable* clone (void) const;
 
 	//! move function
-	variable<T>* move (void);
+	variable* move (void);
 
 	// >>>> VARIABLE SPECIAL <<<<
 	//! copy over initializer, replace current initializer
-	void set_initializer (const initializer<T>& init);
+	void set_initializer (const initializer& init);
 
 	//! initialize data and returns if possible,
 	//! throws error otherwise
-	tensor<T>& initialize (void);
+	itensor& initialize (void);
 
 	//! initialize data using shape and
 	//! returns if possible, throws error otherwise
-	tensor<T>& initialize (tensorshape shape);
+	itensor& initialize (tensorshape shape);
 
 	//! return update data function (directly assign input node data to this)
-	variable_updater<T> assign (inode<T>* input) const;
+	variable_updater assign (inode* input) const;
 
 	//! return update data function (add input node data to this)
-	variable_updater<T> assign_add (inode<T>* input) const;
+	variable_updater assign_add (inode* input) const;
 
 	//! return update data function (subtract input node data to this)
-	variable_updater<T> assign_sub (inode<T>* input) const;
+	variable_updater assign_sub (inode* input) const;
 
 protected:
 	// >>>> POLYMORPHIC CLONERS <<<<
 	//! clone implementation
-	virtual inode<T>* clone_impl (void) const;
+	virtual inode* clone_impl (void) const;
 
 	//! move implementation
-	virtual inode<T>* move_impl (void);
+	virtual inode* move_impl (void);
 
 	// >>>> INTERNAL DATA TRANSFERS <<<<
 	//! grab operational gradient node, used by other nodes
-	virtual inode<T>* get_gradient (variable<T>* leaf);
+	virtual inode* get_gradient (variable* leaf);
 };
 
 }
-
-#include "src/graph/leaf/variable.ipp"
 
 #endif /* TENNCOR_VARIABLE_HPP */

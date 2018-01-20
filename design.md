@@ -125,5 +125,3 @@ Tensor Layer
 Memory Layer
 
 	- iallocator allows custom allocators for security or analysis purposes
-	
-	- session marks which nodes, tensors, and raw data to serialize

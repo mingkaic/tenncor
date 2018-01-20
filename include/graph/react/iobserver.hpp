@@ -25,7 +25,7 @@
 namespace nnet
 {
 
-class iobserver : public virtual identifiable
+class iobserver
 {
 public:
 	virtual ~iobserver (void);

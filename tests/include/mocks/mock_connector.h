@@ -7,45 +7,45 @@
 
 #include <algorithm>
 
-#include "tests/include/util_test.h"
-#include "tests/include/mockerino.h"
+#include "tests/include/utils/util_test.h"
+#include "tests/include/utils/mockerino.h"
 
 #include "include/graph/connector/iconnector.hpp"
 
 using namespace nnet;
 
 
-class mock_connector : public iconnector<double>, public mocker
+class mock_connector : public iconnector, public mocker
 {
 public:
-	mock_connector (std::vector<inode<double>*> dependencies, std::string label) :
-		iconnector<double>(dependencies, label) {}
+	mock_connector (std::vector<inode*> dependencies, std::string label) :
+		iconnector(dependencies, label) {}
 
 	mock_connector (const mock_connector& other) :
-		iconnector<double>(other) {}
+		iconnector(other) {}
 
 	mock_connector (mock_connector&& other) :
-		iconnector<double>(std::move(other)) {}
+		iconnector(std::move(other)) {}
 
 	mock_connector& operator = (const mock_connector& other)
 	{
-		iconnector<double>::operator = (other);
+		iconnector::operator = (other);
 		return *this;
 	}
 
 	mock_connector& operator = (mock_connector&& other)
 	{
-		iconnector<double>::operator = (std::move(other));
+		iconnector::operator = (std::move(other));
 		return *this;
 	}
 
 	void* get_gid (void) { return this->g_man_; }
 
-	virtual void temporary_eval (const iconnector<double>*,inode<double>*&) const {}
+	virtual void temporary_eval (const iconnector*,inode*&) const {}
 	virtual tensorshape get_shape (void) const { return tensorshape(); }
 	virtual bool good_status (void) const { return false; }
-	virtual const tensor<double>* get_eval (void) const { return nullptr; }
-	virtual varptr<double> derive (inode<double>*) { return nullptr; }
+	virtual const itensor* get_eval (void) const { return nullptr; }
+	virtual varptr derive (inode*) { return nullptr; }
 	virtual bool read_proto (const tenncor::tensor_proto&) { return false; }
 
 	virtual void update (std::unordered_set<size_t>)
@@ -57,22 +57,22 @@ public:
 	{
 		label_incr("death_on_broken");
 	}
-	virtual std::unordered_set<ileaf<double>*> get_leaves (void) const
+	virtual std::unordered_set<ileaf*> get_leaves (void) const
 	{
 		label_incr("get_leaves1");
-		return std::unordered_set<ileaf<double>*>{};
+		return std::unordered_set<ileaf*>{};
 	}
 
 protected:
-	virtual inode<double>* clone_impl (void) const
+	virtual inode* clone_impl (void) const
 	{
 		return new mock_connector(*this);
 	}
-	virtual inode<double>* move_impl (void)
+	virtual inode* move_impl (void)
 	{
 		return new mock_connector(std::move(*this));
 	}
-	virtual inode<double>* get_gradient (variable<double>*) { return nullptr; }
+	virtual inode* get_gradient (variable*) { return nullptr; }
 };
 
 

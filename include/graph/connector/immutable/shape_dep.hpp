@@ -1,6 +1,3 @@
-//
-//
-//
 /*!
  *
  *  shape_dep.hpp
@@ -27,70 +24,71 @@
 namespace nnet
 {
 
+using SHAPE_EXTRACT = std::function<std::vector<size_t>(tensorshape&)>;
+
 // todo: make tensor unaligned
-template <typename T>
-class shape_dep : public base_immutable<T>
+class shape_dep : public base_immutable
 {
 public:
 	virtual ~shape_dep (void);
 
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for immutables, grabs ownership of Nf
-	static shape_dep<T>* get (std::vector<inode<T>*> args,
-		SHAPE_EXTRACT forward, tensorshape shape, std::string name);
+	static shape_dep* get (inode* arg, SHAPE_EXTRACT forward, 
+		tensorshape shape, std::string name);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
-	shape_dep<T>* clone (void) const;
+	shape_dep* clone (void) const;
 
 	//! move function
-	shape_dep<T>* move (void);
+	shape_dep* move (void);
 
 	//! declare copy assignment to copy over transfer functions
-	virtual shape_dep<T>& operator = (const shape_dep<T>& other);
+	virtual shape_dep& operator = (const shape_dep& other);
 
 	//! declare move assignment to move over transfer functions
-	virtual shape_dep<T>& operator = (shape_dep<T>&& other);
+	virtual shape_dep& operator = (shape_dep&& other);
 
 protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! immutable constructing an aggregate transfer function
-	shape_dep (std::vector<inode<T>*> args, SHAPE_EXTRACT forward,
+	shape_dep (inode* arg, SHAPE_EXTRACT forward,
 		tensorshape shape, std::string label);
 
 	//! declare copy constructor to copy over transfer functions
-	shape_dep (const shape_dep<T>& other);
+	shape_dep (const shape_dep& other);
 
 	//! declare move constructor to move over transfer functions
-	shape_dep (shape_dep<T>&& other);
+	shape_dep (shape_dep&& other);
 
 	// >>>> POLYMORPHIC CLONERS <<<<
 	//! implement clone function
-	virtual inode<T>* clone_impl (void) const;
+	virtual inode* clone_impl (void) const;
 
 	//! move implementation
-	virtual inode<T>* move_impl (void);
+	virtual inode* move_impl (void);
 
 	// >>>> PROTECTED CLONER <<<<
 	//! create a deep copy of this with args
-	virtual base_immutable<T>* arg_clone (std::vector<inode<T>*> args) const;
+	virtual base_immutable* arg_clone (std::vector<inode*> args) const;
 
 	// >>>> FORWARD & BACKWARD <<<<
 	//! forward pass step: populate data_
 	virtual void forward_pass (void);
 
 	//! backward pass step: populate gcache_[leaf]
-	virtual void backward_pass (variable<T>* leaf);
+	virtual void backward_pass (variable* leaf);
 
 private:
 	//! extract shape dimensions to data_
-	shape_extracter<T>* shape_info = nullptr;
+	assign_func assigner_;
+
+	SHAPE_EXTRACT extracter_;
 
 	tensorshape shape_;
 };
 
 }
-
-#include "src/graph/connector/immutable/shape_dep.ipp"
 
 #endif /* TENNCOR_SHAPE_DEP_HPP */
