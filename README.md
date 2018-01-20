@@ -4,21 +4,11 @@
 
 ## Synopsis
 
-Tenncor library abstracts away tensor functions. 
-A tensor is an N-dimensional geometric object. 
+The Tenncor library facilitates developers in coding mathematical tensor functions in C++.
+Through Tenncor, developers can obtain the tensor function's nth derivative via automatic differentiation. A tensor is an N-dimensional numerical value container that organizes its content by some shape. A M by N matrix for instance, is a 2-dimensional tensor with a shape of <N, M> (in Tenncor).
 
-These objects are often used in machine learning models.
-Quite often, the such system will need some derivative of the function. 
-
-Tenncor simplifies the process by applying automatic differentiation, 
-which takes advantage of chain rule to efficiently compute the desired derivative 
-at any junction in the function graph. 
-
-Tenncor builds the graphs such that data propogates reactively, 
-meaning updates on individual leaves will trigger updates to corresponding ancestors.
-
-Tensor operators are overloaded for custom nodes, 
-so the resulting graph follows built-in C++ precedence and associativity rules.
+Tensor abstractions are often useful in machine learning models because features (represented as a tensor) are almost always transformed in an ordered fashion. Since transforming arrays with respect to shape and type information is often tedious, cython frameworks are currently the best tools for ML.
+Tenncor aims to provide cython's elegant interface in C++ with minimal dependenices.
 
 ## Building
 
@@ -27,6 +17,8 @@ Tenncor uses bazel 0.9+.
 Download bazel: https://docs.bazel.build/versions/master/install.html
 
 ## Testing
+
+Run
 
 > bazel test //tests:tenncor_all
 
@@ -38,11 +30,7 @@ other tests:
 - //tests:tenncor_operation
 - //tests:tenncor_tensor
 
-## API Reference
-
-Working in Progress (Using doxygen)
-
-## Examples
+## Example
 
 	#include "executor/gradient.hpp"
 	#include "graph/varptr.hpp"
@@ -81,12 +69,12 @@ Working in Progress (Using doxygen)
 		return 0;
 	} 
 
-## Interesting Quirks
+## Todos and Quirks
 
-For the first 3 dimensions, shape values follow cartesian coordinates (x, y, z). 
-This convention means that for matrices, rows are the second dimension, and columns are the first dimension, 
-contrary to row and column major order. 
+For the first 3 dimensions, shape values follow cartesian coordinates (x, y, z). This convention means that for matrices, rows are the second dimension, and columns are the first dimension, contrary to row and column major order. 
 
-This will play a major role in matrix operations. An ongoing effort is made towards parameterizing shape conventions.
+An ongoing effort is made towards parameterizing shape conventions.
 
 No special structured tensors are supported. (Example: symmetric, Toeplitz, positive definite)
+
+Tensor operation optimizations (minimizing intermediate values and instigating multithreading) are in progress.
