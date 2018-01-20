@@ -40,7 +40,7 @@ lcov --list coverage.info;
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	git rev-parse --abbrev-ref HEAD;
-	coveralls-lcov --repo-token $COVERALLS_TOKEN overage.info; # uploads to coveralls
+	coveralls-lcov --repo-token $COVERALLS_TOKEN coverage.info; # uploads to coveralls
 fi
 
 echo "";
