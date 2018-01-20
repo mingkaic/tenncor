@@ -34,6 +34,9 @@ done
 
 echo "===== STARTING COVERAGE ANALYSIS =====";
 # ===== Coverage Analysis ======
+ls bazel-out/k8-fastbuild/testlogs/tests/tenncor_all
+lcov --version
+gcov --version
 lcov --list $COV_OUT_FILE; # debug < see coverage here
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
