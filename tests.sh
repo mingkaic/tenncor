@@ -4,6 +4,7 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
 TIMEOUT=900; # 15 minute limit
 TEST_OUT_FILE=bazel-out/k8-fastbuild/testlogs/tests/tenncor_all/test.log;
 COV_OUT_DIR=bazel-tenncor/_coverage/tests/tenncor_all/test/bazel-out/k8-fastbuild/bin/_objs;
+COV_FILE=coverage.info;
 
 lcov --base-directory . --directory . --zerocounters;
 
@@ -34,13 +35,14 @@ done
 
 echo "===== STARTING COVERAGE ANALYSIS =====";
 # ===== Coverage Analysis ======
-lcov --directory $COV_OUT_DIR --gcov-tool gcov-6 --capture --output-file coverage.info;
-lcov --remove coverage.info '*/bazel-tenncor/external/*' '*/bazel-tenncor/bazel-out/*' '/usr/include/*' -o coverage.info;
-lcov --list coverage.info;
+lcov --directory $COV_OUT_DIR --gcov-tool gcov-6 --capture --output-file $COV_FILE;
+lcov --remove $COV_FILE '*/bazel-tenncor/external/*' '*/bazel-tenncor/bazel-out/*' '/usr/include/*' -o $COV_FILE;
+lcov --list $COV_FILE;
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
+	sed -i 's:bazel-tenncor/::g' $COV_FILE;
 	git rev-parse --abbrev-ref HEAD;
-	coveralls-lcov --repo-token $COVERALLS_TOKEN coverage.info; # uploads to coveralls
+	coveralls-lcov --repo-token $COVERALLS_TOKEN $COV_FILE; # uploads to coveralls
 fi
 
 echo "";

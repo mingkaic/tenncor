@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['data_5f',['data_',['../classnnet_1_1base__immutable.html#af4152157186f17cf4f71aed77eda3f5e',1,'nnet::base_immutable::data_()'],['../classnnet_1_1generator.html#a557a96f293b4fe6e9e70fc3cd864f84b',1,'nnet::generator::data_()'],['../classnnet_1_1ileaf.html#a222cfe2a05cf5609bb238cbec922b8ba',1,'nnet::ileaf::data_()'],['../structnnet_1_1cache__node.html#ab0d6ca148fa60acbc64eb2710571c2ba',1,'nnet::cache_node::data_()']]],
+  ['dealloc',['dealloc',['../classnnet_1_1iallocator.html#a51e6fb72865404ee2f3445301a79a57f',1,'nnet::iallocator']]],
+  ['deallocate',['deallocate',['../classnnet_1_1itensor.html#a507650beec466410b030e787cd3b2312',1,'nnet::itensor::deallocate()'],['../classnnet_1_1tensor.html#a07c0b230b896ddaa2bcaed4b9e56703c',1,'nnet::tensor::deallocate()'],['../classnnet_1_1tensor__double.html#adf85d9ba73a0ef196f3c869f46912806',1,'nnet::tensor_double::deallocate()'],['../classnnet_1_1tensor__signed.html#afdcee8812af175cc6cfa175297dd92a7',1,'nnet::tensor_signed::deallocate()']]],
+  ['death_5fon_5fbroken',['death_on_broken',['../classnnet_1_1base__immutable.html#a3617013dc360766441fa581de4d2df20',1,'nnet::base_immutable::death_on_broken()'],['../classnnet_1_1generator.html#a42cbf160ceddb21939b7aa669d111b4d',1,'nnet::generator::death_on_broken()'],['../classnnet_1_1varptr.html#aaf240d890c8f0872d62c132610cee552',1,'nnet::varptr::death_on_broken()'],['../classnnet_1_1iobserver.html#a2e81e4c57d66bd677fd48733a1871a0b',1,'nnet::iobserver::death_on_broken()']]],
+  ['death_5fon_5fnoparent',['death_on_noparent',['../classnnet_1_1generator.html#ab9f1e3e5b42ee2caf593ef9fe078fefb',1,'nnet::generator::death_on_noparent()'],['../classnnet_1_1constant.html#ae5cd0d8f2d8d699cc7fcc5771e4102bc',1,'nnet::constant::death_on_noparent()'],['../classnnet_1_1subject.html#ad0bae031b69cc4bc86a315788eb96e68',1,'nnet::subject::death_on_noparent()']]],
+  ['default_5falloc',['default_alloc',['../classnnet_1_1default__alloc.html',1,'nnet']]],
+  ['default_5falloc_2ecpp',['default_alloc.cpp',['../default__alloc_8cpp.html',1,'']]],
+  ['default_5falloc_2ehpp',['default_alloc.hpp',['../default__alloc_8hpp.html',1,'']]],
+  ['default_5fassign',['default_assign',['../namespacennet.html#ac2feac6f6f0307e416eed9e12b9098a2',1,'nnet']]],
+  ['del_5fraw',['del_raw',['../classnnet_1_1default__alloc.html#abd37996549e59ea967ebbb0596df76de',1,'nnet::default_alloc::del_raw()'],['../classnnet_1_1iallocator.html#ad177289561f0eb6372412d4b52c55126',1,'nnet::iallocator::del_raw()']]],
+  ['dependencies_5f',['dependencies_',['../classnnet_1_1iobserver.html#ab5a9e4051969ad37f70077a5a7833e8b',1,'nnet::iobserver']]],
+  ['depth_5f',['depth_',['../classnnet_1_1iconnector.html#a074ffc65b5a317c17cb575a6810a7638',1,'nnet::iconnector']]],
+  ['derive',['derive',['../classnnet_1_1base__immutable.html#a959ab86f7f6e6c2e4bbf6b40d0ae605a',1,'nnet::base_immutable::derive()'],['../classnnet_1_1generator.html#ac36ac06dab514dc17f7ef154de074440',1,'nnet::generator::derive()'],['../classnnet_1_1inode.html#acacdc20d110a10630f0148efae6b28cc',1,'nnet::inode::derive()'],['../classnnet_1_1constant.html#a1d6f808921dfc8c9b1e91a9bfb287e93',1,'nnet::constant::derive()'],['../classnnet_1_1ivariable.html#a97a6b0dfe7976c0452e901c7b998677d',1,'nnet::ivariable::derive()']]],
+  ['dest_5f',['dest_',['../classnnet_1_1tens__template.html#a22b44a7bb718248bae7661f3d492fed0',1,'nnet::tens_template']]],
+  ['detach',['detach',['../classnnet_1_1subject.html#aead537a081bb2fff9ef517308a344d86',1,'nnet::subject::detach(iobserver *viewer)'],['../classnnet_1_1subject.html#ad54e6047b0401c4053e9219153ced533',1,'nnet::subject::detach(iobserver *viewer, size_t idx)'],['../classnnet_1_1stoppable__thread.html#a89ddbbb1aa40d5700ebd34f24e45777b',1,'nnet::stoppable_thread::detach()']]],
+  ['detach_5fkiller',['detach_killer',['../classnnet_1_1subject.html#a747774b64103066a14fb25d7bcbbbaae',1,'nnet::subject']]],
+  ['dimensions_5f',['dimensions_',['../classnnet_1_1tensorshape.html#ab37ccf9c55730227b19b06e7db587556',1,'nnet::tensorshape']]],
+  ['dims',['dims',['../classnnet_1_1itensor.html#ac189953d2fffe32403604ba540785274',1,'nnet::itensor']]],
+  ['discount_5ffactor_5f',['discount_factor_',['../classnnet_1_1rmspropupdater.html#a9b72854675ef6873eeda17accb0be784',1,'nnet::rmspropupdater']]],
+  ['distribution_5f',['distribution_',['../classnnet_1_1rand__uniform.html#aa3f4636c9d945ff05546e1468bdb637a',1,'nnet::rand_uniform::distribution_()'],['../classnnet_1_1rand__uniform__int.html#ab6a23fcb658b062c5d068501ebc953e7',1,'nnet::rand_uniform_int::distribution_()'],['../classnnet_1_1rand__normal.html#ab5d1cab1b5cde36f51169c3c9192f98c',1,'nnet::rand_normal::distribution_()']]],
+  ['div_5faxial_5fa',['div_axial_a',['../namespacennet.html#ab935efcbca42a57bdbd5772ba6aea059',1,'nnet']]],
+  ['div_5faxial_5fb',['div_axial_b',['../namespacennet.html#a5faaa61fc59158c472179238fa41bcf8',1,'nnet']]]
+];

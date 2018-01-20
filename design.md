@@ -1,4 +1,4 @@
-# Tenncor
+# Design
 ### Summary
 Tenncor differentiates values using Automatic Differentiation (AD) which maps each individual forward operation (addition, subtraction, multiplication, etc.) 
 to some backward operation representing the forward's first derivative. An equation represented in this fashion can correspond to its gradient
