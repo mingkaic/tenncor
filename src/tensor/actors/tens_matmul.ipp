@@ -169,82 +169,82 @@ static void strassen (T* c, T* a, T* b, size_t dimPad)
 
 template <typename T>
 tens_matmul<T>::tens_matmul (out_wrapper<void> dest,
-    std::vector<in_wrapper<void> > srcs) :
+	std::vector<in_wrapper<void> > srcs) :
 tens_general<T>(dest, srcs,
 [](out_wrapper<T> dest, std::vector<in_wrapper<T> > srcs)
 {
-    assert(2 == srcs.size());
-    std::vector<size_t> alist = srcs[0].second.as_list();
-    std::vector<size_t> blist = srcs[1].second.as_list();
-    size_t dim_z = alist[0];
-    size_t dim_y;
-    if (alist.size() < 2)
-    {
-        dim_y = 1;
-    }
-    else
-    {
-        dim_y = alist[1];
-    }
-    size_t dim_x = blist[0];
+	assert(2 == srcs.size());
+	std::vector<size_t> alist = srcs[0].second.as_list();
+	std::vector<size_t> blist = srcs[1].second.as_list();
+	size_t dim_z = alist[0];
+	size_t dim_y;
+	if (alist.size() < 2)
+	{
+		dim_y = 1;
+	}
+	else
+	{
+		dim_y = alist[1];
+	}
+	size_t dim_x = blist[0];
 
-    // assert that beyond2d is same for A, B, and output C
-    size_t beyond2d = srcs[0].second.n_elems() / (dim_z * dim_y);
+	// assert that beyond2d is same for A, B, and output C
+	size_t beyond2d = srcs[0].second.n_elems() / (dim_z * dim_y);
 
 #ifdef ENABLE_STRASSEN // strassen is very cumbersome in a lot of cases
-    size_t dim_pad = min_pad(std::max(std::max(dim_x, dim_y), dim_z));
-    if (dim_pad> STRASSEN_THRESHOLD)
-    {
-        for (size_t i = 0; i < beyond2d; i++)
-        {
-            const T* rawa = srcs[0].first + i * (dim_z * dim_y);
-            const T* rawb = srcs[1].first + i * (dim_x * dim_z);
-            T* rawc = dest.first + i * (dim_x * dim_y);
+	size_t dim_pad = min_pad(std::max(std::max(dim_x, dim_y), dim_z));
+	if (dim_pad> STRASSEN_THRESHOLD)
+	{
+		for (size_t i = 0; i < beyond2d; i++)
+		{
+			const T* rawa = srcs[0].first + i * (dim_z * dim_y);
+			const T* rawb = srcs[1].first + i * (dim_x * dim_z);
+			T* rawc = dest.first + i * (dim_x * dim_y);
 
-            size_t n_mat = dim_pad * dim_pad;
-            T* out = new T[n_mat];
-            T* a = new T[n_mat];
-            T* b = new T[n_mat];
-            std::memset(a, 0, n_mat * sizeof(T));
-            std::memset(b, 0, n_mat * sizeof(T));
-            for (size_t y = 0; y < dim_y; y++)
-            {
-                for (size_t z = 0; z < dim_z; z++)
-                {
-                    size_t aidx = dim_z * y + z;
-                    a[z + dim_pad * y] = rawa[aidx];
-                }
-            }
-            for (size_t z = 0; z < dim_z; z++)
-            {
-                for (size_t x = 0; x < dim_x; x++)
-                {
-                    size_t bidx = x + dim_x * z;
-                    b[x + dim_pad * z] = rawb[bidx];
-                }
-            }
-            strassen(out, a, b, dim_pad);
-            for (size_t y = 0; y < dim_y; y++)
-            {
-                std::memcpy(rawc + y * dim_x, out + y * dim_pad, sizeof(T) * dim_x);
-            }
+			size_t n_mat = dim_pad * dim_pad;
+			T* out = new T[n_mat];
+			T* a = new T[n_mat];
+			T* b = new T[n_mat];
+			std::memset(a, 0, n_mat * sizeof(T));
+			std::memset(b, 0, n_mat * sizeof(T));
+			for (size_t y = 0; y < dim_y; y++)
+			{
+				for (size_t z = 0; z < dim_z; z++)
+				{
+					size_t aidx = dim_z * y + z;
+					a[z + dim_pad * y] = rawa[aidx];
+				}
+			}
+			for (size_t z = 0; z < dim_z; z++)
+			{
+				for (size_t x = 0; x < dim_x; x++)
+				{
+					size_t bidx = x + dim_x * z;
+					b[x + dim_pad * z] = rawb[bidx];
+				}
+			}
+			strassen(out, a, b, dim_pad);
+			for (size_t y = 0; y < dim_y; y++)
+			{
+				std::memcpy(rawc + y * dim_x, out + y * dim_pad, sizeof(T) * dim_x);
+			}
 
-            delete [] out;
-            delete [] a;
-            delete [] b;
-        }
-        return;
-    }
+			delete [] out;
+			delete [] a;
+			delete [] b;
+		}
+		return;
+	}
 #endif /* ENABLE_STRASSEN */
-    for (size_t i = 0; i < beyond2d; i++)
-    {
-        const T* rawa = srcs[0].first + i * (dim_z * dim_y);
-        const T* rawb = srcs[1].first + i * (dim_x * dim_z);
-        T* rawc = dest.first + i * (dim_x * dim_y);
+	for (size_t i = 0; i < beyond2d; i++)
+	{
+		const T* rawa = srcs[0].first + i * (dim_z * dim_y);
+		const T* rawb = srcs[1].first + i * (dim_x * dim_z);
+		T* rawc = dest.first + i * (dim_x * dim_y);
 
-        size_t coord_map[4] = {dim_z, 1, 1, dim_x};
-        cubic_mul(rawc, rawa, rawb, dim_x, dim_y, dim_z, coord_map);
-    }
+		size_t coord_map[4] = {dim_z, 1, 1, dim_x};
+		cubic_mul(rawc, rawa, rawb, dim_x, dim_y, dim_z, coord_map);
+	}
 }) {}
 
 }

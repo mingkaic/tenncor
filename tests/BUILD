@@ -118,5 +118,6 @@ cc_test(
 		"//:tenncor",
 	],
 	linkstatic = 1,
+	local = 1,
 	copts = ["-std=c++14"],
 )
