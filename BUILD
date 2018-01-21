@@ -1,9 +1,82 @@
+package(
+	default_visibility = [ "//visibility:public" ],
+)
+
+# used by grpc_proto_library in proto
+alias(
+	name = "grpc_cpp_plugin",
+	actual = "@com_github_grpc_grpc//:grpc_cpp_plugin",
+)
+
+alias(
+	name = "grpc++_codegen_proto",
+	actual = "@com_github_grpc_grpc//:grpc++_codegen_proto",
+)
+
+
+TCR_PUBLIC_HDRS = glob([
+	"include/graph/**/*.hpp",
+	"include/memory/**/*.hpp",
+	"include/tensor/**/*.hpp",
+	"include/utils/**/*.hpp",
+	"src/graph/**/*.ipp",
+	"src/memory/**/*.ipp",
+	"src/tensor/**/*.ipp",
+	"src/utils/**/*.ipp",
+])
+
+TCR_SRC = glob([
+	"src/graph/**/*.cpp",
+	"src/memory/**/*.cpp",
+	"src/tensor/**/*.cpp",
+	"src/utils/**/*.cpp",
+])
+
 cc_library(
 	name = "tenncor",
-	hdrs = glob([ "include/**/*.hpp" ]) + glob([ "src/**/*.ipp" ]),
-	srcs = glob([ "src/**/*.cpp" ]),
+	hdrs = TCR_PUBLIC_HDRS,
+	srcs = TCR_SRC,
 	deps = [ "//proto:tenncor_serial_cc_proto" ],
-	linkstatic = 1,
 	copts = [ "-std=c++14" ],
-	visibility = [ "//visibility:public" ],
+)
+
+cc_library(
+	name = "tenncor_csv",
+	hdrs = TCR_PUBLIC_HDRS + 
+	glob([
+		"include/edgeinfo/*.hpp",
+		"include/edgeinfo/csv_record/*.hpp", 
+	]),
+	srcs = TCR_SRC + 
+	glob([
+		"src/edgeinfo/*.cpp",
+		"src/edgeinfo/csv_record/*.cpp", 
+	]),
+	deps = [ "//proto:tenncor_serial_cc_proto" ],
+	defines = [ "CSV_RCD" ],
+	copts = [ "-std=c++14" ],
+)
+
+cc_library(
+	name = "tenncor_rpc",
+	hdrs = TCR_PUBLIC_HDRS + 
+	glob([
+		"include/edgeinfo/*.hpp",
+		"include/edgeinfo/rpc_record/*.hpp", 
+		"include/thread/*.hpp",
+		"src/thread/*.ipp",
+	]),
+	srcs = TCR_SRC + 
+	glob([
+		"src/edgeinfo/*.cpp",
+		"src/edgeinfo/rpc_record/*.cpp", 
+		"src/thread/*.hpp",
+	]),
+	deps = [ 
+		"@com_github_grpc_grpc//:grpc++",
+		"//proto:tenncor_serial_cc_proto",
+		"//proto:tenncor_monitor_grpc_proto",
+	],
+	defines = [ "RPC_RCD" ],
+	copts = [ "-std=c++14" ],
 )

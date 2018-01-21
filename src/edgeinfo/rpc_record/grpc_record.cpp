@@ -2,20 +2,16 @@
 // Created by Ming Kai Chen on 2017-11-07.
 //
 
-#include "include/edgeinfo/grpc_vis_record.hpp"
+#include "include/edgeinfo/rpc_record/grpc_record.hpp"
 
-#ifdef GRPC_VIS_RECORD_HPP
+#if defined(RPC_RCD) && defined(grpc_record_HPP)
 
 namespace rocnnet_record
 {
 
-#ifdef RPC_RCD
-
 std::unique_ptr<igraph_record> record_status::rec =
 	std::make_unique<rpc_record>("localhost", 50981);
 bool record_status::rec_good = true;
-
-#endif /* RPC_RCD */
 
 rpc_record::rpc_record (std::string host, size_t port) :
 	node_cache_([](const visor::NodeMessage& msg) -> std::string
@@ -40,7 +36,7 @@ rpc_record::~rpc_record (void)
 
 void rpc_record::node_release (const nnet::subject* sub)
 {
-	std::string sid = sub->get_uid();
+	std::string sid = static_cast<const nnet::inode*>(sub)->get_uid();
 	visor::NodeMessage message;
 	message.set_id(sid);
 	message.set_status(
@@ -51,7 +47,7 @@ void rpc_record::node_release (const nnet::subject* sub)
 
 void rpc_record::data_update (const nnet::subject* sub)
 {
-	std::string sid = sub->get_uid();
+	std::string sid = static_cast<const nnet::inode*>(sub)->get_uid();
 	visor::NodeMessage message;
 	message.set_id(sid);
 	message.set_status(
@@ -63,8 +59,8 @@ void rpc_record::data_update (const nnet::subject* sub)
 void rpc_record::edge_capture (const nnet::iobserver* obs,
 	const nnet::subject* sub, size_t obs_idx)
 {
-	std::string oid = obs->get_uid();
-	std::string sid = sub->get_uid();
+	std::string oid = static_cast<const nnet::iconnector*>(obs)->get_uid();
+	std::string sid = static_cast<const nnet::inode*>(sub)->get_uid();
 	visor::EdgeMessage message;
 	message.set_obsid(oid);
 	message.set_subid(sid);
@@ -78,8 +74,8 @@ void rpc_record::edge_capture (const nnet::iobserver* obs,
 void rpc_record::edge_release (const nnet::iobserver* obs,
 	const nnet::subject* sub, size_t obs_idx)
 {
-	std::string oid = obs->get_uid();
-	std::string sid = sub->get_uid();
+	std::string oid = static_cast<const nnet::iconnector*>(obs)->get_uid();
+	std::string sid = static_cast<const nnet::inode*>(sub)->get_uid();
 	visor::EdgeMessage message;
 	message.set_obsid(oid);
 	message.set_subid(sid);

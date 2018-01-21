@@ -4,10 +4,10 @@
 
 #include <thread>
 
+#include "include/edgeinfo/rpc_record/gui_notifier.hpp"
 #include "include/thread/stop_flag.hpp"
-#include "include/edgeinfo/grpc_vis/gui_notifier.hpp"
 
-#ifdef gui_notifier_hpp
+#if defined(RPC_RCD) && defined(GUI_NOTIFIER_HPP)
 
 namespace rocnnet_record
 {
