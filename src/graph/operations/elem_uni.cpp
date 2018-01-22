@@ -618,7 +618,7 @@ varptr pow (const varptr a, double scalar)
 	if (nullptr == a.get()) return nullptr;
 	if (scalar == 0)
 	{
-		return constant::get(1);
+		return constant::get((double) 1);
 	}
 	else if (scalar == 1)
 	{
@@ -659,7 +659,7 @@ varptr pow (const varptr a, double scalar)
 		// sqrt'(f(x)) = f'(x) * (scalar*f(x)^(scalar-1))
 		varptr a = args.front().first;
 		varptr grad = args.front().second;
-		return scalar * grad * pow(a, scalar-1);
+		return scalar * grad * pow(a, scalar - 1.0);
 	}, opname);
 	out->extract_metadata(a.get());
 	return out;

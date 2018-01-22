@@ -183,6 +183,12 @@ TEST_F(ITENSOR, Move_C002)
 }
 
 
+TEST_F(ITENSOR, DISABLED_WrapperFunc_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
 // cover itensor:
 // rank. dims
 TEST_F(ITENSOR, Shape_C003)

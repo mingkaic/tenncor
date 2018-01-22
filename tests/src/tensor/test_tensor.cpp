@@ -178,6 +178,12 @@ TEST_F(TENSOR, Move_B002)
 }
 
 
+TEST_F(TENSOR, DISABLED_FitToShape_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
 // cover tensor:
 // get_shape, n_elems
 TEST_F(TENSOR, Shape_B003)
@@ -288,9 +294,9 @@ TEST_F(TENSOR, Get_B004)
 
 
 // cover tensor: set_allocator
-TEST_F(TENSOR, SetAlloc_B005)
+TEST_F(TENSOR, DISABLED_SetAlloc_B005)
 {
-
+	// todo: implement + add to behavior.txt
 }
 
 

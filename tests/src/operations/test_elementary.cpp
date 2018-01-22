@@ -68,7 +68,8 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 		EXPECT_GE(epi, errf);
 	}
 
-	const tensor_double* backtens = dynamic_cast<const tensor_double*>(res->derive(&var)->eval());
+	varptr grad = res->derive(&var);
+	const tensor_double* backtens = dynamic_cast<const tensor_double*>(grad->eval());
 	std::vector<double> rawb = backtens->expose();
 	ASSERT_TRUE(tensorshape_equal(shape, backtens->get_shape()) || rawb.size() == 1);
 	if (rawb.size() == 1)
@@ -370,7 +371,7 @@ TEST_F(ELEMENTARY, Pow_A000ToA003)
 }
 
 
-TEST_F(ELEMENTARY, ClipVal_A000ToA003)
+TEST_F(ELEMENTARY, Clip_A000ToA003)
 {
 	std::vector<double> limits = get_double(2, "limits", {-100, 200});
 	double min = limits[0]> limits[1] ? limits[1] : limits[0];
@@ -389,6 +390,12 @@ TEST_F(ELEMENTARY, ClipVal_A000ToA003)
 		else if (var < min) var = min;
 		return gvar * var;
 	});
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_ClipNorm_)
+{
+	// todo: implement + add to behavior.txt
 }
 
 
@@ -418,6 +425,24 @@ TEST_F(ELEMENTARY, Condition_A000ToA003_A012)
 	},
 	[cond](double a, double b) { return (double) cond(a, b); },
 	[cond](double, double, double ga, double gb) { return (double) cond(ga, gb); });
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_BinomSample_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_Eq_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_Neq_)
+{
+	// todo: implement + add to behavior.txt
 }
 
 
@@ -679,6 +704,30 @@ TEST_F(ELEMENTARY, Div_A000ToA003_A012_A008ToA009)
 	delete zero;
 	delete one;
 	delete two;
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_AddAxial_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_SubAxial_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_MulAxial_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_DivAxial_)
+{
+	// todo: implement + add to behavior.txt
 }
 
 
