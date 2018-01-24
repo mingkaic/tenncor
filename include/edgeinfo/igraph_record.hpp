@@ -6,12 +6,12 @@
 //  Copyright © 2017 Mingkai Chen. All rights reserved.
 //
 
+#if defined(CSV_RCD) || defined(RPC_RCD)
+
 #include "include/graph/inode.hpp"
 #include "include/utils/utils.hpp"
 
 #pragma once
-#ifdef EDGE_RCD
-
 #ifndef IGRAPH_RECORD_HPP
 #define IGRAPH_RECORD_HPP
 
@@ -43,4 +43,4 @@ struct record_status
 
 #endif /* IGRAPH_RECORD_HPP */
 
-#endif /* EDGE_RCD */
+#endif /* CSV_RCD || RPC_RCD */

@@ -23,7 +23,7 @@ class IMMUTABLE : public FUZZ::fuzz_test {};
 
 #ifdef SLOW_GRAPH
 static std::pair<size_t,size_t> nnodes_range = {131, 297};
-#elif defined(THOROUGH_GRAPH) 
+#elif defined(THOROUGH_GRAPH)
 static std::pair<size_t,size_t> nnodes_range = {67, 131};
 #elif defined(FAST_GRAPH)
 static std::pair<size_t,size_t> nnodes_range = {31, 67};
@@ -87,7 +87,7 @@ static bool bottom_up (std::vector<iconnector*> ordering)
 
 TEST_F(IMMUTABLE, Copy_I000)
 {
-	immutable* assign  = new mock_immutable(std::vector<inode*>{}, "", get_testshaper(this));
+	immutable* assign = new mock_immutable(std::vector<inode*>{}, "", get_testshaper(this));
 	immutable* central = new mock_immutable(std::vector<inode*>{}, "", get_testshaper(this));
 	const itensor* res = central->eval();
 

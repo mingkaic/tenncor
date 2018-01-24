@@ -20,7 +20,7 @@ tens_general<T>(dest, srcs,
 	assert(1 == srcs.size());
 	// l2norm = sqrt(sum_i=0:n(sqr(xi)))
 	dest.first[0] = std::sqrt(std::accumulate(srcs[0].first, 
-		srcs[0].first + dest.second.n_elems(), 0,
+		srcs[0].first + srcs[0].second.n_elems(), (T) 0,
 		[](T left, T right) { return left + right * right; }));
 }) {}
 

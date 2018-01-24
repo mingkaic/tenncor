@@ -85,6 +85,14 @@ varptr conditional (double a, const varptr b, std::function<bool(double,double)>
 
 varptr conditional (const varptr a, double b, std::function<bool(double,double)> compare, std::string name);
 
+varptr eq (double a, const varptr b);
+
+varptr eq (const varptr a, double b);
+
+varptr neq (double a, const varptr b);
+
+varptr neq (const varptr a, double b);
+
 //! sample using binominal distribution given tensors (or scalars) n and p
 // todo: after implementing type, restrict n to integers
 varptr binomial_sample (signed n, const varptr p);
@@ -140,6 +148,7 @@ varptr operator * (const varptr a, const varptr b);
 //! divide a and b
 varptr operator / (const varptr a, const varptr b);
 
+// START DEPRECATE
 //! add a and b along a specific axis, dimension values outside of axis must match
 varptr add_axial_a (const varptr a, const varptr b, size_t axis_a);
 
@@ -159,6 +168,7 @@ varptr mul_axial_b (const varptr a, const varptr b, size_t axis_b);
 varptr div_axial_a (const varptr a, const varptr b, size_t axis_a);
 
 varptr div_axial_b (const varptr a, const varptr b, size_t axis_b);
+// END DEPRECATE
 
 #endif /* TENNCOR_ELEM_BI_HPP */
 

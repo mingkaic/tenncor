@@ -10,11 +10,13 @@
 
 #ifdef TENNCOR_SUBJECT_HPP
 
-#ifdef EDGE_RCD
+#if defined(CSV_RCD) || defined(RPC_RCD)
+#include "include/edgeinfo/igraph_record.hpp"
+#endif /* CSV_RCD || RPC_RCD */
 
-#include "include/edgeinfo/grpc_vis_record.hpp"
-
-#endif /* EDGE_RCD */
+#ifdef RPC_RCD
+#include "include/edgeinfo/rpc_record/grpc_record.hpp"
+#endif /* RPC_RCD */
 
 namespace nnet
 {
@@ -29,7 +31,7 @@ subject::~subject (void)
 
 	notify(UNSUBSCRIBE); // unsubscribe all audiences
 
-#ifdef EDGE_RCD
+#if defined(CSV_RCD) || defined(RPC_RCD)
 
 // record subject-object edge
 if (rocnnet_record::record_status::rec_good)
@@ -37,7 +39,7 @@ if (rocnnet_record::record_status::rec_good)
 	rocnnet_record::record_status::rec->node_release(this);
 }
 
-#endif /* EDGE_RCD */
+#endif /* CSV_RCD || RPC_RCD */
 }
 
 subject& subject::operator = (const subject&) { return *this; }
@@ -149,7 +151,7 @@ subject::subject (subject&& other)
 
 void subject::attach (iobserver* viewer, size_t idx)
 {
-#ifdef EDGE_RCD
+#if defined(CSV_RCD) || defined(RPC_RCD)
 
 // record subject-object edge
 if (rocnnet_record::record_status::rec_good)
@@ -157,14 +159,14 @@ if (rocnnet_record::record_status::rec_good)
 	rocnnet_record::record_status::rec->edge_capture(viewer, this, idx);
 }
 
-#endif /* EDGE_RCD */
+#endif /* CSV_RCD || RPC_RCD */
 
 	audience_[viewer].emplace(idx);
 }
 
 void subject::detach (iobserver* viewer)
 {
-#ifdef EDGE_RCD
+#if defined(CSV_RCD) || defined(RPC_RCD)
 
 if (rocnnet_record::record_status::rec_good)
 {
@@ -175,7 +177,7 @@ if (rocnnet_record::record_status::rec_good)
 	}
 }
 
-#endif /* EDGE_RCD */
+#endif /* CSV_RCD || RPC_RCD */
 
 	audience_.erase(viewer);
 	if (audience_.empty())
@@ -186,7 +188,7 @@ if (rocnnet_record::record_status::rec_good)
 
 void subject::detach (iobserver* viewer, size_t idx)
 {
-#ifdef EDGE_RCD
+#if defined(CSV_RCD) || defined(RPC_RCD)
 
 // record subject-object edge
 if (rocnnet_record::record_status::rec_good)
@@ -194,7 +196,7 @@ if (rocnnet_record::record_status::rec_good)
 	rocnnet_record::record_status::rec->edge_release(viewer, this, idx);
 }
 
-#endif /* EDGE_RCD */
+#endif /* CSV_RCD || RPC_RCD */
 
 	auto it = audience_.find(viewer);
 	if (audience_.end() != it)

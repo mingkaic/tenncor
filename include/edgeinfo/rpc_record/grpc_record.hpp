@@ -1,13 +1,12 @@
 //
-//  grpc_vis_record.hpp
+//  grpc_record.hpp
 //  cnnet
 //
 //  Created by Ming Kai Chen on 2017-11-07.
 //  Copyright © 2017 Mingkai Chen. All rights reserved.
 //
 
-#pragma once
-#ifdef EDGE_RCD
+#ifdef RPC_RCD
 
 #include <grpc++/grpc++.h>
 #include <grpc/support/log.h>
@@ -15,11 +14,13 @@
 #include "proto/monitor/grpc_gui.grpc.pb.h"
 
 #include "include/edgeinfo/igraph_record.hpp"
-#include "include/edgeinfo/grpc_vis/gui_notifier.hpp"
+#include "include/edgeinfo/rpc_record/gui_notifier.hpp"
 #include "include/thread/stoppable_thread.hpp"
+#include "include/graph/connector/iconnector.hpp"
 
-#ifndef GRPC_VIS_RECORD_HPP
-#define GRPC_VIS_RECORD_HPP
+#pragma once
+#ifndef grpc_record_HPP
+#define grpc_record_HPP
 
 namespace rocnnet_record
 {
@@ -51,6 +52,6 @@ private:
 
 }
 
-#endif /* GRPC_VIS_RECORD_HPP */
+#endif /* grpc_record_HPP */ 
 
-#endif /* EDGE_RCD */
+#endif /* RPC_RCD */

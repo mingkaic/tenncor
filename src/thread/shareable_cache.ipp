@@ -100,7 +100,8 @@ optional<T> shareable_cache<K, T>::get_latest (std::shared_ptr<cache_node<T> >& 
 	if (nullptr == iter)
 	{
 		// check head of content_
-		if (iter = content_.begin())
+		iter = content_.begin();
+		if (iter)
 		{
 			value = iter->data_;
 		}

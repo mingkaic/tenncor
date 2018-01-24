@@ -30,6 +30,13 @@ other tests:
 - //tests:tenncor_operation
 - //tests:tenncor_tensor
 
+## Monitoring
+
+use libraries
+
+- //:tenncor_csv
+- //:tenncor_rpc
+
 ## Example
 
 	#include "executor/gradient.hpp"
