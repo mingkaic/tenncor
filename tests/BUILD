@@ -4,6 +4,8 @@ COMMON_SRC = glob([
 	"src/utils/*.cpp",
 ])
 
+
+######### FUZZ TESTS #########
 cc_test(
 	name = "tenncor_connector",
 	size = "small",

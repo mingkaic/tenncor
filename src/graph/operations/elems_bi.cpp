@@ -608,6 +608,7 @@ varptr operator / (const varptr a, const varptr b)
 	});
 }
 
+// START DEPRECATE
 varptr add_axial_a (const varptr a, const varptr b, size_t axis_a)
 {
 	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
@@ -794,6 +795,7 @@ varptr div_axial_b (const varptr a, const varptr b, size_t axis_b)
 		return (mul_axial_b(ag, b, axis_b) - mul_axial_a(bg, a, axis_b)) / pow(b, 2);
 	}, std::pair<bool, size_t>{ false, axis_b });
 }
+// END DEPRECATE
 
 }
 
