@@ -30,7 +30,7 @@ assert_cmd "bazel test --run_under=valgrind //tests:tenncor_all";
 # regular checks (45 times)
 for _ in {1..9}
 do
-	assert_cmd "bazel coverage --instrumentation_filter= //tests:tenncor_all";
+	assert_cmd "bazel coverage --spawn_strategy=standalone --instrumentation_filter= //tests:tenncor_all";
 done
 
 echo "===== STARTING COVERAGE ANALYSIS =====";

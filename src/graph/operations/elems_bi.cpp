@@ -163,7 +163,15 @@ static varptr sub_helper (const varptr& a, const varptr& b,
 	constant* bconst = dynamic_cast<constant*>(b.get());
 	if (a.get() == b.get())
 	{
-		return constant::get(0);
+		switch (a->get_type())
+		{
+			case tenncor::tensor_proto::DOUBLE_T:
+				return constant::get((double) 0);
+			case tenncor::tensor_proto::SIGNED_T:
+				return constant::get((signed) 0);
+			default:
+				throw std::exception(); // unsupported type
+		}
 	}
 	else if (aconst && *aconst == 0)
 	{
@@ -214,18 +222,34 @@ static varptr mul_helper (const varptr& a, const varptr& b,
 	{
 		return pow(a, 2);
 	}
-	else if (aconst && *aconst == 0)
+	else if (aconst && *aconst == (double) 0)
 	{
-		return constant::get(0);
+		switch (a->get_type())
+		{
+			case tenncor::tensor_proto::DOUBLE_T:
+				return constant::get((double) 0);
+			case tenncor::tensor_proto::SIGNED_T:
+				return constant::get((signed) 0);
+			default:
+				throw std::exception(); // unsupported type
+		}
 	}
 	else if (aconst && 1 == aconst->get_shape().n_elems())
 	{
 		std::vector<double> outconst = expose<double>(aconst);
 		return outconst[0] * b;
 	}
-	else if (bconst && *bconst == 0)
+	else if (bconst && *bconst == (double) 0)
 	{
-		return constant::get(0);
+		switch (b->get_type())
+		{
+			case tenncor::tensor_proto::DOUBLE_T:
+				return constant::get((double) 0);
+			case tenncor::tensor_proto::SIGNED_T:
+				return constant::get((signed) 0);
+			default:
+				throw std::exception(); // unsupported type
+		}
 	}
 	else if (bconst && 1 == bconst->get_shape().n_elems())
 	{
@@ -261,11 +285,27 @@ static varptr div_helper (const varptr& a, const varptr& b,
 	constant* bconst = dynamic_cast<constant*>(b.get());
 	if (a.get() == b.get())
 	{
-		return constant::get(1);
+		switch (a->get_type())
+		{
+			case tenncor::tensor_proto::DOUBLE_T:
+				return constant::get((double) 1);
+			case tenncor::tensor_proto::SIGNED_T:
+				return constant::get((signed) 1);
+			default:
+				throw std::exception(); // unsupported type
+		}
 	}
 	else if (aconst && *aconst == 0)
 	{
-		return constant::get(0);
+		switch (a->get_type())
+		{
+			case tenncor::tensor_proto::DOUBLE_T:
+				return constant::get((double) 0);
+			case tenncor::tensor_proto::SIGNED_T:
+				return constant::get((signed) 0);
+			default:
+				throw std::exception(); // unsupported type
+		}
 	}
 	else if (aconst && 1 == aconst->get_shape().n_elems())
 	{
@@ -568,6 +608,7 @@ varptr operator / (const varptr a, const varptr b)
 	});
 }
 
+// START DEPRECATE
 varptr add_axial_a (const varptr a, const varptr b, size_t axis_a)
 {
 	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
@@ -754,6 +795,7 @@ varptr div_axial_b (const varptr a, const varptr b, size_t axis_b)
 		return (mul_axial_b(ag, b, axis_b) - mul_axial_a(bg, a, axis_b)) / pow(b, 2);
 	}, std::pair<bool, size_t>{ false, axis_b });
 }
+// END DEPRECATE
 
 }
 

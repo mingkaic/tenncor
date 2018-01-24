@@ -99,7 +99,7 @@ tens_clip_norm<T>::tens_clip_norm (out_wrapper<void> dest,
 tens_elem_uni<T>(dest, srcs, [l2norm, cap](T data) -> T
 {
 	T l2 = *((const T*) l2norm);
-	if (l2 > cap)
+	if (data <= l2)
 	{
 		return data * cap / l2;
 	}

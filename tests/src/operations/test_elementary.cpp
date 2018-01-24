@@ -38,7 +38,9 @@ static const double epi = std::numeric_limits<double>::epsilon();
 
 // commonly used testing format
 static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
-	UNARY_SCALAR expect_forward, BINARY_SCALARS expect_back)
+	UNARY_SCALAR expect_forward, BINARY_SCALARS expect_back, 
+	std::function<void(std::vector<double>&)> primer = 
+	[](std::vector<double>&) {})
 {
 	tensorshape shape = random_def_shape(fuzzer);
 	size_t inn = shape.n_elems();
@@ -59,6 +61,7 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	std::vector<double> rawf = rawtens->expose();
 	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape()));
 	ASSERT_EQ(rawf.size(), inn);
+	primer(indata);
 	for (size_t i = 0; i < inn; i++)
 	{
 		double rawd = rawf[i];
@@ -68,9 +71,11 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 		EXPECT_GE(epi, errf);
 	}
 
-	const tensor_double* backtens = dynamic_cast<const tensor_double*>(res->derive(&var)->eval());
+	varptr grad = res->derive(&var);
+	const tensor_double* backtens = dynamic_cast<const tensor_double*>(grad->eval());
 	std::vector<double> rawb = backtens->expose();
 	ASSERT_TRUE(tensorshape_equal(shape, backtens->get_shape()) || rawb.size() == 1);
+	primer(indata);
 	if (rawb.size() == 1)
 	{
 		double rawdb = rawb[0];
@@ -101,6 +106,7 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	EXPECT_TRUE(tensorshape_equal(shape, cres_c->get_shape()));
 	std::vector<double> result = nnet::expose<double>(cres_c);
 	assert(result.size() == constant_values.size()); // logical assertion
+	primer(constant_values);
 	for (size_t i = 0; i < constant_values.size(); i++)
 	{
 		double expectation = expect_forward(constant_values[i]);
@@ -370,7 +376,7 @@ TEST_F(ELEMENTARY, Pow_A000ToA003)
 }
 
 
-TEST_F(ELEMENTARY, ClipVal_A000ToA003)
+TEST_F(ELEMENTARY, Clip_A000ToA003)
 {
 	std::vector<double> limits = get_double(2, "limits", {-100, 200});
 	double min = limits[0]> limits[1] ? limits[1] : limits[0];
@@ -389,6 +395,47 @@ TEST_F(ELEMENTARY, ClipVal_A000ToA003)
 		else if (var < min) var = min;
 		return gvar * var;
 	});
+}
+
+
+TEST_F(ELEMENTARY, ClipNorm_)
+{
+	// todo: add to behavior.txt
+	double l2norm = 0;
+	double cap = get_double(1, "cap", {0.1, 200})[0];
+	unaryElemTest(this,
+	[cap](varptr in) { return clip_norm(in, cap); },
+	[cap, &l2norm](double var)
+	{
+		if (var <= l2norm)
+		{
+			var = var * cap / l2norm;
+		}
+		return var;
+	},
+	[cap, &l2norm](double var, double gvar)
+	{
+		if (var <= l2norm)
+		{
+			var = var * cap / l2norm;
+		}
+		return gvar * var;
+	}, 
+	[cap, &l2norm](std::vector<double>& vec)
+	{
+		l2norm = 0;
+		for (double d : vec)
+		{
+			l2norm += d * d;
+		}
+		l2norm = std::sqrt(l2norm);
+	});
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_BinomSample_)
+{
+	// todo: implement + add to behavior.txt
 }
 
 
@@ -414,7 +461,51 @@ TEST_F(ELEMENTARY, Condition_A000ToA003_A012)
 	},
 	[cond](double a, varptr b)
 	{
-		return conditional(a, b, cond, "lessthan");
+		return conditional(a, b, cond, "cond");
+	},
+	[cond](double a, double b) { return (double) cond(a, b); },
+	[cond](double, double, double ga, double gb) { return (double) cond(ga, gb); });
+}
+
+
+TEST_F(ELEMENTARY, Eq_)
+{
+	// todo: add to behavior.txt
+	std::function<bool(double,double)> cond = [](double a, double b) { return a == b; };
+	binaryElemTest(this,
+	[](varptr a, varptr b)
+	{
+		return eq(a, b);
+	},
+	[](varptr a, double b)
+	{
+		return eq(a, b);
+	},
+	[](double a, varptr b)
+	{
+		return eq(a, b);
+	},
+	[cond](double a, double b) { return (double) cond(a, b); },
+	[cond](double, double, double ga, double gb) { return (double) cond(ga, gb); });
+}
+
+
+TEST_F(ELEMENTARY, Neq_)
+{
+	// todo: add to behavior.txt
+	std::function<bool(double,double)> cond = [](double a, double b) { return a != b; };
+	binaryElemTest(this,
+	[](varptr a, varptr b)
+	{
+		return neq(a, b);
+	},
+	[](varptr a, double b)
+	{
+		return neq(a, b);
+	},
+	[](double a, varptr b)
+	{
+		return neq(a, b);
 	},
 	[cond](double a, double b) { return (double) cond(a, b); },
 	[cond](double, double, double ga, double gb) { return (double) cond(ga, gb); });
@@ -679,6 +770,26 @@ TEST_F(ELEMENTARY, Div_A000ToA003_A012_A008ToA009)
 	delete zero;
 	delete one;
 	delete two;
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_AddAxial_)
+{
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_SubAxial_)
+{
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_MulAxial_)
+{
+}
+
+
+TEST_F(ELEMENTARY, DISABLED_DivAxial_)
+{
 }
 
 

@@ -618,7 +618,7 @@ varptr pow (const varptr a, double scalar)
 	if (nullptr == a.get()) return nullptr;
 	if (scalar == 0)
 	{
-		return constant::get(1);
+		return constant::get((double) 1);
 	}
 	else if (scalar == 1)
 	{
@@ -659,7 +659,7 @@ varptr pow (const varptr a, double scalar)
 		// sqrt'(f(x)) = f'(x) * (scalar*f(x)^(scalar-1))
 		varptr a = args.front().first;
 		varptr grad = args.front().second;
-		return scalar * grad * pow(a, scalar-1);
+		return scalar * grad * pow(a, scalar - 1.0);
 	}, opname);
 	out->extract_metadata(a.get());
 	return out;
@@ -715,7 +715,7 @@ varptr clip (const varptr a, double min, double max)
 
 varptr clip_norm (const varptr a, double cap)
 {
-	assert(cap> 0); // todo: maybe throw to indicate usage error
+	assert(cap > 0); // todo: maybe throw to indicate usage error
 	if (nullptr == a.get()) return nullptr;
 	if (constant* aconst = dynamic_cast<constant*>(a.get()))
 	{
@@ -725,9 +725,10 @@ varptr clip_norm (const varptr a, double cap)
 		{
 			l2norm += acv * acv;
 		}
+		l2norm = std::sqrt(l2norm);
 		for (double& acv : acvec)
 		{
-			if (l2norm > cap)
+			if (acv <= l2norm)
 			{
 				// normalize
 				acv = acv * cap / l2norm;
@@ -740,20 +741,20 @@ varptr clip_norm (const varptr a, double cap)
 	{
 		return parent;
 	}
-	varptr out = immutable::get(std::vector<inode*>{l2norm(a), a}, unary_shaper,
+	varptr out = immutable::get(std::vector<inode*>{a, l2norm(a)}, unary_shaper,
 	new actor_func(
 	CONN_ACTOR([cap](out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs,
 		tenncor::tensor_proto::tensor_t type) -> itens_actor*
 	{
 		assert(2 == srcs.size());
-		const void* l2norm = srcs[0].first;
+		const void* l2norm = srcs[1].first;
 
 		switch (type)
 		{
 			case tenncor::tensor_proto::DOUBLE_T:
-				return new tens_clip_norm<double>(dest, {srcs[1]}, l2norm, cap);
+				return new tens_clip_norm<double>(dest, {srcs[0]}, l2norm, cap);
 			case tenncor::tensor_proto::SIGNED_T:
-				return new tens_clip_norm<signed>(dest, {srcs[1]}, l2norm, cap);
+				return new tens_clip_norm<signed>(dest, {srcs[0]}, l2norm, cap);
 			default:
 			break;
 		}
@@ -861,6 +862,30 @@ varptr conditional (const varptr a, double b, COMPARE<double> compare, std::stri
 	}, opname);
 	out->extract_metadata(a.get());
 	return out;
+}
+
+varptr eq (double a, const varptr b)
+{
+	return conditional(a, b, [](double left, double right) { return left == right; }, 
+		nnutils::formatter() << "eq_" << a);
+}
+
+varptr eq (const varptr a, double b)
+{
+	return conditional(a, b, [](double left, double right) { return left == right; }, 
+		nnutils::formatter() << "eq_" << b);
+}
+
+varptr neq (double a, const varptr b)
+{
+	return conditional(a, b, [](double left, double right) { return left != right; }, 
+		nnutils::formatter() << "neq_" << a);
+}
+
+varptr neq (const varptr a, double b)
+{
+	return conditional(a, b, [](double left, double right) { return left != right; }, 
+		nnutils::formatter() << "neq_" << b);
 }
 
 varptr binomial_sample (signed n, const varptr p)

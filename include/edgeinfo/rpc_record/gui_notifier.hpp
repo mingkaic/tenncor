@@ -6,8 +6,7 @@
 //  Copyright © 2017 Mingkai Chen. All rights reserved.
 //
 
-#pragma once
-#ifdef EDGE_RCD
+#ifdef RPC_RCD
 
 #include <experimental/optional>
 
@@ -18,11 +17,11 @@
 
 #include "include/thread/shareable_cache.hpp"
 
-using namespace std::experimental;
-
 #pragma once
-#ifndef gui_notifier_hpp
-#define gui_notifier_hpp
+#ifndef GUI_NOTIFIER_HPP
+#define GUI_NOTIFIER_HPP
+
+using namespace std::experimental;
 
 namespace rocnnet_record
 {
@@ -67,6 +66,6 @@ void spawn_server (std::string addr, nodecache_t& node_src, edgecache_t& edge_sr
 
 }
 
-#endif /* gui_notifier_hpp */
+#endif /* GUI_NOTIFIER_HPP */
 
-#endif /* EDGE_RCD */
+#endif /* RPC_RCD */

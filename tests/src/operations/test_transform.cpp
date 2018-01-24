@@ -116,6 +116,32 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 }
 
 
+TEST_F(TRANSFORM, L2norm_)
+{
+	// todo: add to behavior.txt
+	DATA_CHANGE transfer =
+	[](std::vector<double> in, tensorshape inshape,
+		tensorshape outshape) -> std::vector<double>
+	{
+		size_t n = inshape.n_elems();
+		double out = 0;
+		for (size_t i = 0; i < n; i++)
+		{
+			out += in[i] * in[i];
+		}
+		return std::vector<double>{std::sqrt(out)};
+	};
+	SHAPE_CHANGE shape =
+	[](tensorshape in) -> tensorshape
+	{
+		return std::vector<size_t>{1};
+	};
+	unaryTransTest<double>(this, {1, 2},
+	[](varptr in,double) { return nnet::l2norm(in); },
+	transfer, shape, transfer, shape);
+}
+
+
 TEST_F(TRANSFORM, Transpose_B001)
 {
 	DATA_CHANGE transfer =
@@ -274,24 +300,23 @@ TEST_F(TRANSFORM, Extend_B003To004)
 }
 
 
-TEST_F(TRANSFORM, Compress_B005)
+void compressTestCommon (FUZZ::fuzz_test* fuzzer, 
+	UNARY_VAR<size_t> trans, BI_TRANS<double> setCompression,
+	std::function<void(size_t,std::vector<double>&)> additionalWork =
+	[](size_t,std::vector<double>&) {}, 
+	DATA_CHANGE gradtransfer = onescalar)
 {
 	size_t compress_index;
-	BI_TRANS<double> compression =
-	[](double a, double b) -> double
-	{
-		return a + b;
-	};
-
 	PARAM_EVAL<size_t> compressparam =
-	[this, &compress_index](tensorshape shape) -> size_t
+	[fuzzer, &compress_index](tensorshape shape) -> size_t
 	{
 		size_t srank = shape.rank();
-		compress_index = get_int(1, "compress_index", {0, srank-1})[0];
+		compress_index = fuzzer->get_int(1, "compress_index", {0, srank-1})[0];
 		return compress_index;
 	};
 	DATA_CHANGE transfer =
-	[&compress_index](std::vector<double> in, tensorshape inshape, tensorshape outshape) -> std::vector<double>
+	[&compress_index, setCompression, additionalWork](std::vector<double> in, 
+		tensorshape inshape, tensorshape outshape) -> std::vector<double>
 	{
 		if (compress_index >= inshape.rank()) return in;
 		std::vector<double> out(outshape.n_elems(), 0);
@@ -312,8 +337,9 @@ TEST_F(TRANSFORM, Compress_B005)
 			}
 
 			size_t outidx = outshape.flat_idx(incoord);
-			out[outidx] += in[i];
+			out[outidx] = setCompression(out[outidx], in[i]);
 		}
+		additionalWork(inshape.as_list()[compress_index], out);
 		return out;
 	};
 	SHAPE_CHANGE shape =
@@ -336,12 +362,23 @@ TEST_F(TRANSFORM, Compress_B005)
 		return out;
 	};
 
-	optional<DATA_CHANGE> gradtransfer = (DATA_CHANGE) onescalar;
-	optional<SHAPE_CHANGE> gradshape = (SHAPE_CHANGE) as_is;
+	unaryTransTest<size_t>(fuzzer, {2, 13}, trans,
+	transfer, shape, gradtransfer, (SHAPE_CHANGE) as_is, compressparam);
+}
 
-	unaryTransTest<size_t>(this, {2, 13},
-	[&compression](varptr in, size_t compidx) { return compress(in, compression, compidx); },
-	transfer, shape, gradtransfer, gradshape, compressparam);
+
+TEST_F(TRANSFORM, Compress_B005)
+{
+	BI_TRANS<double> compression =
+	[](double a, double b) -> double
+	{
+		return a + b;
+	};
+
+	compressTestCommon(this, [&compression](varptr in, size_t compidx)
+	{
+		return compress(in, compression, compidx);
+	}, compression);
 }
 
 
@@ -376,7 +413,62 @@ TEST_F(TRANSFORM, CompressScalar_B006)
 }
 
 
-TEST_F(TRANSFORM, ArgCompress_B008To009)
+TEST_F(TRANSFORM, ReduceMax_)
+{
+	// todo: add to behavior.txt
+	BI_TRANS<double> compression =
+	[](double a, double b) -> double
+	{
+		return std::max(a, b);
+	};
+
+	compressTestCommon(this, [](varptr in, size_t compidx)
+	{ return reduce_max(in, compidx); }, compression);
+}
+
+
+TEST_F(TRANSFORM, ReduceSum_)
+{
+	// todo: add to behavior.txt
+	BI_TRANS<double> compression =
+	[](double a, double b) -> double
+	{
+		return a + b;
+	};
+
+	compressTestCommon(this, [](varptr in, size_t compidx)
+	{ return reduce_sum(in, compidx); }, compression);
+}
+
+
+TEST_F(TRANSFORM, ReduceMean_)
+{
+	// todo: add to behavior.txt
+	BI_TRANS<double> compression =
+	[](double a, double b) -> double
+	{
+		return a + b;
+	};
+	size_t nchange;
+
+	compressTestCommon(this, [](varptr in, size_t compidx)
+	{ return reduce_mean(in, compidx); }, compression,
+	[&nchange](size_t compn, std::vector<double>& out)
+	{
+		for (double& o : out)
+		{
+			o /= compn;
+		}
+		nchange = compn;
+	}, [&nchange](std::vector<double> data, tensorshape, tensorshape) -> std::vector<double>
+	{
+		return std::vector<double>(1, 1.0 / nchange);
+	});
+}
+
+
+void argcompTestCommon (FUZZ::fuzz_test* fuzzer, 
+	UNARY_VAR<size_t> trans, REDUCE<double> setArgcomp)
 {
 	size_t arg_index;
 	REDUCE<double> search =
@@ -386,14 +478,15 @@ TEST_F(TRANSFORM, ArgCompress_B008To009)
 	};
 
 	PARAM_EVAL<size_t> argcompressparam =
-	[this, &arg_index, &search](tensorshape shape) -> size_t
+	[fuzzer, &arg_index](tensorshape shape) -> size_t
 	{
 		size_t srank = shape.rank();
-		arg_index = get_int(1, "arg_index", {0, srank-1})[0];
+		arg_index = fuzzer->get_int(1, "arg_index", {0, srank-1})[0];
 		return arg_index;
 	};
 	DATA_CHANGE transfer =
-	[&arg_index, &search](std::vector<double> in, tensorshape inshape, tensorshape outshape) -> std::vector<double>
+	[&arg_index, setArgcomp](std::vector<double> in, tensorshape inshape, 
+		tensorshape outshape) -> std::vector<double>
 	{
 		assert(arg_index < inshape.rank());
 		std::vector<double> out(outshape.n_elems(), 0);
@@ -418,9 +511,9 @@ TEST_F(TRANSFORM, ArgCompress_B008To009)
 			out_searches[outidx].push_back(in[i]);
 		}
 		std::transform(out_searches.begin(), out_searches.end(), out.begin(),
-		[search](std::vector<double>& vec)
+		[setArgcomp](std::vector<double>& vec)
 		{
-			return search(vec);
+			return setArgcomp(vec);
 		});
 		return out;
 	};
@@ -447,9 +540,20 @@ TEST_F(TRANSFORM, ArgCompress_B008To009)
 	optional<DATA_CHANGE> gradtransfer;
 	optional<SHAPE_CHANGE> gradshape;
 
-	unaryTransTest<size_t>(this, {3, 13},
-	[&search](varptr in, size_t arg_index) { return arg_compress(in, search, arg_index); },
+	unaryTransTest<size_t>(fuzzer, {3, 13}, trans,
 	transfer, shape, gradtransfer, gradshape, argcompressparam);
+}
+
+
+TEST_F(TRANSFORM, ArgCompress_B008To009)
+{
+	REDUCE<double> search =
+	[](std::vector<double> data) -> double
+	{
+		return std::distance(data.begin(), std::min_element(data.begin(), data.end()));
+	};
+	argcompTestCommon(this, [&search](varptr in, size_t arg_index) 
+	{ return arg_compress(in, search, arg_index); }, search);
 }
 
 
@@ -500,6 +604,19 @@ TEST_F(TRANSFORM, ArgCompressScalar_B010)
 }
 
 
+TEST_F(TRANSFORM, ArgMax_)
+{
+	// todo: add to behavior.txt
+	REDUCE<double> search =
+	[](std::vector<double> data) -> double
+	{
+		return std::distance(data.begin(), std::max_element(data.begin(), data.end()));
+	};
+	argcompTestCommon(this, [](varptr in, size_t arg_index) 
+	{ return arg_max(in, arg_index); }, search);
+}
+
+
 TEST_F(TRANSFORM, Flip_B012)
 {
 	tensorshape shape = random_def_shape(this);
@@ -534,6 +651,18 @@ TEST_F(TRANSFORM, Flip_B012)
 	}
 
 	// todo: (test) flip back prop
+}
+
+
+TEST_F(TRANSFORM, DISABLED_CrossCorr2d_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
+TEST_F(TRANSFORM, DISABLED_Conv2d_)
+{
+	// todo: implement + add to behavior.txt
 }
 
 

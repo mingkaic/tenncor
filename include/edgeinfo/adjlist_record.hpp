@@ -1,16 +1,16 @@
 //
-//  grpc_vis_record.hpp
+//  grpc_record.hpp
 //  cnnet
 //
 //  Created by Ming Kai Chen on 2017-11-07.
 //  Copyright © 2017 Mingkai Chen. All rights reserved.
 //
 
+#if defined(CSV_RCD) || defined(RPC_RCD)
+
 #include "include/edgeinfo/igraph_record.hpp"
 
 #pragma once
-#ifdef EDGE_RCD
-
 #ifndef ADJLIST_RECORD_HPP
 #define ADJLIST_RECORD_HPP
 
@@ -58,4 +58,4 @@ bool operator == (const adjlist_record::obs_info& lhs, const adjlist_record::obs
 
 #endif /* ADJLIST_RECORD_HPP */
 
-#endif /* EDGE_RCD */
+#endif /* CSV_RCD || RPC_RCD */

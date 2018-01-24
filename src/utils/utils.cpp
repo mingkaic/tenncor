@@ -7,6 +7,15 @@
 namespace nnutils
 {
 
+static size_t get_seed (void)
+{
+	size_t seed = std::time(nullptr);
+#ifdef CALLOUT_SEED
+	std::cout << "initiating generator with seed " << seed << std::endl;
+#endif /* CALLOUT_SEED */
+	return seed;
+}
+
 formatter::formatter (void) {}
 
 formatter::~formatter (void) {}
@@ -28,7 +37,7 @@ std::string formatter::operator >> (convert_to_string)
 
 std::default_random_engine& get_generator (void)
 {
-	static std::default_random_engine common_gen(std::time(nullptr));
+	static std::default_random_engine common_gen(get_seed());
 	return common_gen;
 }
 

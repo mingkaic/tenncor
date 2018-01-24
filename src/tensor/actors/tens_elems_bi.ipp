@@ -45,6 +45,7 @@ tens_div<T>::tens_div (out_wrapper<void> dest,
 tens_elems_bi<T>(dest, srcs, 
 [](T a, T b) { return a / b; }) {}
 
+// START DEPRECATE
 template <typename T>
 tens_axial_add<T>::tens_axial_add (out_wrapper<void> dest, 
 	std::vector<in_wrapper<void> > srcs, 
@@ -72,6 +73,7 @@ tens_axial_div<T>::tens_axial_div (out_wrapper<void> dest,
 	size_t axis, bool left) :
 tens_axial_elems<T>(dest, srcs, axis, left, 
 [](T a, T b) { return a / b; }) {}
+// START DEPRECATE
 
 }
 

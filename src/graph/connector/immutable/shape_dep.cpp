@@ -124,12 +124,28 @@ void shape_dep::forward_pass (void)
 				this->data_ = new tensor_signed(shape_);
 			break;
 			default:
-			break;
+				throw std::exception(); // unsupported type
 		}
 	}
 	tensorshape shape = this->take_eval(node)->get_shape();
 	std::vector<size_t> tsvec = extracter_(shape);
-	assigner_(*(this->data_), &tsvec[0], type);
+	switch (type)
+	{
+		case tenncor::tensor_proto::DOUBLE_T:
+		{
+			assigner_(*(this->data_), 
+				&std::vector<double>(tsvec.begin(), tsvec.end())[0], type);
+		}
+		break;
+		case tenncor::tensor_proto::SIGNED_T:
+		{
+			assigner_(*(this->data_), 
+				&std::vector<signed>(tsvec.begin(), tsvec.end())[0], type);
+		}
+		break;
+		default:
+		break;
+	}
 }
 
 void shape_dep::backward_pass (variable* leaf)

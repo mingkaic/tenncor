@@ -97,6 +97,12 @@ TEST_F(HANDLER, Transfer_D000)
 }
 
 
+TEST_F(HANDLER, DISABLED_Assign_)
+{
+	// todo: implement + add to behavior.txt
+}
+
+
 // cover const_init
 // operator ()
 TEST_F(HANDLER, Constant_D001)

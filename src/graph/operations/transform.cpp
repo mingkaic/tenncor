@@ -344,6 +344,7 @@ varptr reduce_sum (const varptr a, optional<size_t> dimension)
 
 varptr reduce_mean (const varptr a, optional<size_t> dimension)
 {
+	if (nullptr == a.get()) return nullptr;
 	varptr denom;
 	if (dimension)
 	{
