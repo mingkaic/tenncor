@@ -6,12 +6,27 @@ def tncr_deps():
 
     native.bind(
         name = "gtest",
-        actual = "@com_github_google_googletest//:gtest_main",
+        actual = "@com_github_google_googletest//:gtest",
+    )
+
+    native.bind(
+        name = "gtest_main",
+        actual = "@com_google_googletest//:gtest_main",
     )
 
     native.bind(
         name = "protobuf",
         actual = "@com_google_protobuf//:protobuf",
+    )
+
+    native.bind(
+        name = "protobuf_clib",
+        actual = "@com_google_protobuf//:protoc_lib",
+    )
+
+    native.bind(
+        name = "protobuf_headers",
+        actual = "@com_google_protobuf//:protobuf_headers",
     )
 
     native.bind(
@@ -41,9 +56,9 @@ def tncr_deps():
         )
 
     # gtest dependency
-    if "com_github_google_googletest" not in native.existing_rules():
+    if "com_google_googletest" not in native.existing_rules():
         native.new_http_archive(
-            name = "com_github_google_googletest",
+            name = "com_google_googletest",
             build_file = "@com_github_mingkaic_tenncor//third_party:gtest.BUILD",
             strip_prefix = "googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
             url = "https://github.com/google/googletest/archive/ec44c6c1675c25b9827aacd08c02433cccde7780.tar.gz",
