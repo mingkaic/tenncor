@@ -2,12 +2,12 @@ package(
 	default_visibility = [ "//visibility:public" ],
 )
 
-load("@com_github_grpc_grpc//bazel:grpc_build_system.bzl", "grpc_proto_library")
+load("//bazel:grpc_proto.bzl", "grpc_proto_library")
 
 # grpc monitoring library
 grpc_proto_library(
 	name = "tenncor_monitor_grpc_proto",
-	srcs = [ "monitor/grpc_gui.proto" ],
+	src = "monitor/grpc_gui.proto",
 )
 
 # serialization library

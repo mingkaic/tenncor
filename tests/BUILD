@@ -4,7 +4,6 @@ COMMON_SRC = glob([
 	"src/utils/*.cpp",
 ])
 
-
 ######### FUZZ TESTS #########
 cc_test(
 	name = "tenncor_connector",
@@ -17,8 +16,8 @@ cc_test(
 		"src/graph/connector/*.cpp",
 	]),
 	deps = [
-		"@googletest//:gtest_main",
-		"//:tenncor",
+		"//:tenncor", 
+		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
 	copts = [ "-std=c++14" ],
@@ -35,8 +34,8 @@ cc_test(
 		"src/graph/leaf/*.cpp",
 	]),
 	deps = [
-		"@googletest//:gtest_main",
 		"//:tenncor",
+		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
 	copts = [ "-std=c++14" ],
@@ -52,8 +51,8 @@ cc_test(
 		"src/graph/top_node/*.cpp"
 	]),
 	deps = [
-		"@googletest//:gtest_main",
 		"//:tenncor",
+		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
 	copts = [ "-std=c++14" ],
@@ -67,8 +66,8 @@ cc_test(
 		"src/memory/*.cpp",
 	]),
 	deps = [
-		"@googletest//:gtest_main",
 		"//:tenncor",
+		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
 	copts = [ "-std=c++14" ],
@@ -81,8 +80,8 @@ cc_test(
 		"src/operations/*.cpp",
 	]),
 	deps = [
-		"@googletest//:gtest_main",
 		"//:tenncor",
+		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
 	copts = [ "-std=c++14" ],
@@ -97,8 +96,8 @@ cc_test(
 		"src/tensor/*.cpp", 
 	]),
 	deps = [
-		"@googletest//:gtest_main",
 		"//:tenncor",
+		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
 	copts = [ "-std=c++14" ],
@@ -109,8 +108,8 @@ cc_test(
 	size = "enormous",
 	srcs = glob([ "include/**/*.h", "src/**/*.cpp" ]),
 	deps = [
-		"@googletest//:gtest_main",
 		"//:tenncor",
+		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
 	copts = [ "-std=c++14" ],
