@@ -20,7 +20,7 @@ assert_cmd() {
 	return $!
 }
 
-bazel build //...
+bazel build //:tenncor
 
 # ===== Run Gtest =====
 echo "===== STARTING TESTS =====";
