@@ -2,19 +2,6 @@ package(
 	default_visibility = [ "//visibility:public" ],
 )
 
-# used by grpc_proto_library in proto
-alias(
-	name = "grpc_cpp_plugin",
-	actual = "@com_github_grpc_grpc//:grpc_cpp_plugin",
-)
-
-alias(
-	name = "grpc++_codegen_proto",
-	actual = "@com_github_grpc_grpc//:grpc++_codegen_proto",
-)
-
-
-######### TENNCOR #########
 TCR_PUBLIC_HDRS = glob([
 	"include/graph/**/*.hpp",
 	"include/memory/**/*.hpp",
@@ -33,6 +20,8 @@ TCR_SRC = glob([
 	"src/utils/**/*.cpp",
 ])
 
+######### Main Library #########
+
 cc_library(
 	name = "tenncor",
 	hdrs = TCR_PUBLIC_HDRS,
@@ -40,6 +29,8 @@ cc_library(
 	deps = [ "//proto:tenncor_serial_cc_proto" ],
 	copts = [ "-std=c++14" ],
 )
+
+######### Monitor Library #########
 
 cc_library(
 	name = "tenncor_csv",
@@ -73,10 +64,10 @@ cc_library(
 		"src/edgeinfo/rpc_record/*.cpp", 
 		"src/thread/*.hpp",
 	]),
-	deps = [ 
-		"@com_github_grpc_grpc//:grpc++",
+	deps = [
 		"//proto:tenncor_serial_cc_proto",
 		"//proto:tenncor_monitor_grpc_proto",
+		"@com_github_grpc_grpc//:grpc++",
 	],
 	defines = [ "RPC_RCD" ],
 	copts = [ "-std=c++14" ],
