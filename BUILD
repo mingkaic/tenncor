@@ -2,6 +2,8 @@ package(
 	default_visibility = [ "//visibility:public" ],
 )
 
+licenses(["notice"])
+
 TCR_PUBLIC_HDRS = glob([
 	"include/graph/**/*.hpp",
 	"include/memory/**/*.hpp",

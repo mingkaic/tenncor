@@ -180,6 +180,10 @@ const_init::const_init (double data) :
 	value_(nnutils::stringify(&data, 1)),
 	type_(tenncor::tensor_proto::DOUBLE_T) {}
 
+const_init::const_init (std::vector<double> data) : 
+	value_(nnutils::stringify(&data[0], data.size())),
+	type_(tenncor::tensor_proto::DOUBLE_T) {}
+
 const_init* const_init::clone (void) const
 {
 	return static_cast<const_init*>(clone_impl());
@@ -204,12 +208,12 @@ void const_init::calc_data (void* dest,
 	tenncor::tensor_proto::tensor_t type, tensorshape outshape)
 {
 	assert(type == type_);
-	size_t n = outshape.n_elems();
-	size_t nbyte = value_.size();
+	size_t nbytes = outshape.n_elems() * type_size(type);
+	size_t stored_nbytes = value_.size();
 	char* cdest = (char*) dest;
-	for (size_t i = 0; i < n; ++i)
+	for (size_t i = 0; i < nbytes; i += stored_nbytes)
 	{
-		memcpy(cdest + i * nbyte, &value_[0], nbyte);
+		memcpy(cdest + i, &value_[0], std::min(stored_nbytes, nbytes - i));
 	}
 }
 

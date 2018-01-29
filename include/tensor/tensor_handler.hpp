@@ -143,11 +143,20 @@ public:
 
 	const_init (double data);
 
+	const_init (std::vector<double> data);
+
 	template <typename T>
 	void set (T value)
 	{
 		type_ = get_prototype<T>();
 		value_ = nnutils::stringify(&value, 1);
+	}
+
+	template <typename T>
+	void set_vec (std::vector<T> value)
+	{
+		type_ = get_prototype<T>();
+		value_ = nnutils::stringify(&value[0], value.size());
 	}
 
 	//! clone function for copying from parents

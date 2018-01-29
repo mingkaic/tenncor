@@ -2,6 +2,8 @@ package(
 	default_visibility = [ "//visibility:public" ],
 )
 
+licenses(["notice"])
+
 load("//bazel:grpc_proto.bzl", "grpc_proto_library")
 
 # grpc monitoring library
