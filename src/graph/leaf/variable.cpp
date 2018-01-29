@@ -112,7 +112,7 @@ itensor& variable::initialize (tensorshape shape)
 	return *this->data_;
 }
 
-variable_updater variable::assign (inode* input) const
+variable_updater variable::assign (inode* input)
 {
 	assert(input);
 	if (constant* con = dynamic_cast<constant*>(input))
@@ -134,6 +134,7 @@ variable_updater variable::assign (inode* input) const
 		const itensor* in_tens = input->eval();
 		assert(in_tens);
 		this->assigner_(*out_tens, *in_tens);
+		this->is_init_ = true;
 		if (notify)
 		{
 			this->notify(notification::UPDATE);
@@ -141,7 +142,7 @@ variable_updater variable::assign (inode* input) const
 	};
 }
 
-variable_updater variable::assign_add (inode* input) const
+variable_updater variable::assign_add (inode* input)
 {
 	assert(input);
 	if (constant* con = dynamic_cast<constant*>(input))
@@ -153,6 +154,7 @@ variable_updater variable::assign_add (inode* input) const
 		const itensor* data = con->eval();
 		return [this, data](bool notify)
 		{
+			assert(this->is_init_);
 			itensor* out_tens = this->data_;
 			this->assigner_(*out_tens, *data, v_assign_add);
 			if (notify)
@@ -175,7 +177,7 @@ variable_updater variable::assign_add (inode* input) const
 	};
 }
 
-variable_updater variable::assign_sub (inode* input) const
+variable_updater variable::assign_sub (inode* input)
 {
 	assert(input);
 	if (constant* con = dynamic_cast<constant*>(input))
@@ -187,6 +189,7 @@ variable_updater variable::assign_sub (inode* input) const
 		const itensor* data = con->eval();
 		return [this, data](bool notify)
 		{
+			assert(this->is_init_);
 			itensor* out_tens = this->data_;
 			this->assigner_(*out_tens, *data, v_assign_sub);
 			if (notify)

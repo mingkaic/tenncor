@@ -18,7 +18,7 @@ cc_test(
 		"src/graph/connector/*.cpp",
 	]),
 	deps = [
-		"//:tenncor", 
+		"//:tenncor",
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,

@@ -64,13 +64,13 @@ public:
 	itensor& initialize (tensorshape shape);
 
 	//! return update data function (directly assign input node data to this)
-	variable_updater assign (inode* input) const;
+	variable_updater assign (inode* input);
 
 	//! return update data function (add input node data to this)
-	variable_updater assign_add (inode* input) const;
+	variable_updater assign_add (inode* input);
 
 	//! return update data function (subtract input node data to this)
-	variable_updater assign_sub (inode* input) const;
+	variable_updater assign_sub (inode* input);
 
 protected:
 	// >>>> POLYMORPHIC CLONERS <<<<
