@@ -4,10 +4,10 @@
  *  cnnet
  *
  *  Purpose:
- *  tensor object manages shape and raw data
+ *  tensor object manages shape information and store data
  *
  *  Created by Mingkai Chen on 2016-08-29.
- *  Copyright © 2016 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 
@@ -22,49 +22,72 @@
 
 #include "include/memory/default_alloc.hpp"
 #include "include/tensor/tensorshape.hpp"
+#include "include/tensor/type.hpp"
 
 namespace nnet
 {
 
-//! extremely common function fitting source data represented by inshape to
-//! destination data represented by outshape
-//! data not covered in source are padded with zero
-template <typename T>
-void fit_toshape (T* dest, const tensorshape& outshape, const T* src, const tensorshape& inshape);
+struct varr_deleter
+{
+	void operator () (void* p)
+	{
+		free(p);
+	}
+};
 
-template <typename T>
+struct idata_source
+{
+	virtual idata_source* clone (void) = 0;
+
+	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape) = 0;
+};
+
+struct idata_dest
+{
+	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx) = 0;
+};
+
+std::shared_ptr<void> shared_varr (size_t nbytes);
+
 class tensor // todo: make final, and make mock_tensor compose tensor instance
 {
 public:
-	//! create a rank 0 tensor and specific allocator
-	tensor (void);
-
-	//! Create a scalar tensor and specific allocator
-	tensor (T scalar, size_t alloc_id = default_alloc::alloc_id);
-
 	//! create a tensor of a specified shape and allocator
 	//! if the shape is fully defined, then raw data is allocated
 	//! otherwise, tensor will wait for a defined shape
-	tensor (tensorshape shape, size_t alloc_id = default_alloc::alloc_id);
+	tensor (tensorshape shape, std::shared_ptr<idata_source> source); // todo: pass source in as shared
 
 	//! deallocate tensor
-	virtual ~tensor (void);
+	virtual ~tensor (void) {} // remove once final
 
-	// >>>> COPY && MOVE <<<<
 	//! copy constructor
-	tensor (const tensor<T>& other, bool shapeonly = false);
+	tensor (const tensor& other, bool shapeonly = false);
 
 	//! move constructor
-	tensor (tensor<T>&& other);
+	tensor (tensor&& other);
 
 	//! copy assignment
-	tensor<T>& operator = (const tensor<T>& other);
+	tensor& operator = (const tensor& other);
 
 	//! move assignment
-	tensor<T>& operator = (tensor<T>&& other);
+	tensor& operator = (tensor&& other);
 
-	// >>>> ACCESSORS <<<<
-	// >>> SHAPE INFORMATION <<<
+
+
+	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<
+
+	//! serialize protobuf tensor
+	void serialize (tenncor::tensor_proto* proto_dest) const;
+
+	//! read data and shape from other, take allocator as is
+	bool from_proto (const tenncor::tensor_proto& proto_src);
+
+
+
+	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	// >>>>>> SHAPE INFORMATION <<<<<<
+
 	//! get tensor shape (allocated if so, allowed shape otherwise)
 	tensorshape get_shape (void) const;
 
@@ -72,25 +95,63 @@ public:
 	//! if uninitialized, return 0
 	size_t n_elems (void) const;
 
-	// >>> DATA INFORMATION <<<
+	//! get the tensor rank, number of dimensions
+	size_t rank (void) const;
+
+	//! get vector dimension values
+	std::vector<size_t> dims (void) const;
+
+	//! checks if input tensor has a compatible allowed tensorshape
+	//! or if both this and other are allocated and the trimmed shapes are compatible
+	bool is_same_size (const tensor& other) const;
+
+	//! check if other tensor's data is compatible with this shape
+	bool is_compatible_with (const tensor& other) const;
+
+	//! check if input is compatible with tensor shape
+	//! data is compatible if data.size() == (innate or external) shape size
+	bool is_compatible_with (size_t ndata) const;
+
+	//! check if an array that is the size of vector
+	//! specified in input is compatible with tensorshape
+	//! data is loosely compatible if ndata < (innate or external) shape size
+	bool is_loosely_compatible_with (size_t ndata) const;
+
+	//! return compatible shape with n_elems == data.size()
+	//! or undefined if compatibility is impossible
+	// implementation detail:
+	// this algorithm attempts to cover up the first unknown with data.size() / n_known
+	// iff data.size() % n_known == 0
+	// todo: attempt to add lambda function as parameter to distribute data.size() / n_known among unknowns (same for loosely guess)
+	optional<tensorshape> guess_shape (size_t ndata) const;
+
+	//! return loosely compatible shape with n_elems <= data.size()
+	//! or undefined if compatibility is impossible
+	optional<tensorshape> loosely_guess_shape (size_t ndata) const;
+
+	//! checks if tensorshape is aligned
+	//! same number of column for each row
+	virtual bool is_aligned (void) const;
+
+	// >>>>>> DATA INFORMATION <<<<<<
+
+	void write_to (idata_dest& dest, size_t i = 0) const;
+
 	//! checks if memory is allocated
-	bool is_alloc (void) const;
+	bool has_data (void) const;
 
 	//! get bytes allocated
 	size_t total_bytes (void) const;
 
-	//! get data at coordinate specified
-	//! getting out of bound will throw out_of_range error
-	//! coordinate values not specified are implied as 0
-	T get (std::vector<size_t> coord) const;
+	// >>>>>> DATA EXPOSURE <<<<<<
 
-	//! exposing unallocated shape will cause assertion death
-	//! otherwise return data array copy
-	std::vector<T> expose (void) const;
+	std::weak_ptr<idata_source> get_source (void);
 
-	// >>>> MUTATOR <<<<
-	//! get allocator from factory and set it as alloc_
-	void set_allocator (size_t alloc_id);
+
+
+	// >>>>>>>>>>>> MUTATOR <<<<<<<<<<<<
+
+	// >>>>>> SHAPE MUTATION <<<<<<
 
 	//! set a new allowed shape
 	//! chop raw data outside of new shape
@@ -100,20 +161,33 @@ public:
 	//! result is shape is compatible with allowed shape
 	void set_shape (tensorshape shape);
 
-	//! allocate raw data using allowed (innate) shape
+	// >>>>>> DATA MUTATION <<<<<<
+
+	//! read raw data from source using allowed (innate) shape
 	//! return true if successful
-	bool allocate (void);
+	bool read (void);
+
+	//! read raw data from source using input shape
+	//! if shape is compatible with allowed
+	//! else return false
+	bool read (const tensorshape shape);
+
+	//! copy raw data from source using allowed (innate) shape
+	//! return true if successful
+	//! does not take ownership of array
+	bool copy (void);
+
+	//! copy raw data from source using input shape
+	//! if shape is compatible with allowed
+	//! else return false
+	//! does not take ownership of array
+	bool copy (const tensorshape shape);
 
 	//! forcefully deallocate raw_data,
 	//! invalidates allocated (external) shape
 	//! could be useful when we want to preserve allowed shape
 	//! since get_shape when allocated gives allocated shape
-	bool deallocate (void);
-
-	//! allocate raw data using input shape
-	//! if shape is compatible with allowed
-	//! else return false
-	bool allocate (const tensorshape shape);
+	bool clear (void);
 
 	//! copy raw_data from other expanded/compressed to input shape
 	//! allowed shape will be adjusted similar to set_shape
@@ -122,13 +196,14 @@ public:
 	// slice along the first dimension
 	void slice (size_t dim_start, size_t limit);
 
-	// bool shares_buffer_with (const tensor& other) const;
-	// size_t buffer_hash (void) const;
+private:
+	//! copy utility helper
+	void copy_helper (const tensor& other, bool shapeonly);
 
-protected:
-	// >>>> PROTECTED MEMBERS <<<<
-	//! raw data is available to tensor manipulators
-	T* raw_data_ = nullptr;
+	//! move utility helper
+	void move_helper (tensor&& other);
+
+	// >>>>>> SHAPE MEMBERS <<<<<<
 
 	//! not necessarily defined shape
 	tensorshape allowed_shape_;
@@ -136,22 +211,15 @@ protected:
 	//! allocated shape (must be defined)
 	tensorshape alloced_shape_;
 
-	friend class itensor;
+	// >>>>>> DATA MEMBERS <<<<<<
+	std::shared_ptr<idata_source> source_;
 
-private:
-	//! copy utility helper
-	void copy_helper (const tensor<T>& other, bool shapeonly);
+	//! raw data is available to tensor manipulators
+	std::shared_ptr<void> raw_data_ = nullptr;
 
-	//! move utility helper
-	void move_helper (tensor<T>&& other);
-
-	// >>>> PRIVATE MEMBERS <<<<
-	//! allocator
-	iallocator* alloc_;
+	TENS_TYPE dtype_ = BAD_T;
 };
 
 }
-
-#include "src/tensor/tensor.ipp"
 
 #endif /* TENNCOR_TENSOR_HPP */

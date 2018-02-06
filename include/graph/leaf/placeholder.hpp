@@ -7,7 +7,7 @@
  *  placeholder implementation
  *
  *  Created by Mingkai Chen on 2016-08-29.
- *  Copyright © 2016 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 
@@ -24,14 +24,12 @@
 namespace nnet
 {
 
-class placeholder final : public ivariable
+class placeholder final : public ileaf
 {
 public:
 	// >>>> CONSTRUCTORS <<<<
 	//! shape constructor
-	placeholder (const tensorshape& shape, 
-		tenncor::tensor_proto::tensor_t type = tenncor::tensor_proto::DOUBLE_T, 
-		std::string name = "");
+	placeholder (const tensorshape& shape, std::string name = "");
 
 	//! explicitly declare copy constructor since assignments are declared
 	placeholder (const placeholder& other);
@@ -39,7 +37,6 @@ public:
 	//! explicitly declare move constructor since assignments are declared
 	placeholder (placeholder&& other);
 
-	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
 	placeholder* clone (void) const;
 
@@ -52,7 +49,10 @@ public:
 	//! declare move assignment to avoid implicit deletion
 	virtual placeholder& operator = (placeholder&& other);
 
-	// >>>> DATA ASSIGNMENT OPERATORS <<<<
+
+
+	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<<<<<
+
 	//! assign raw data according to a
 	//! vector representation of inner tensor
 	//! for a shape of <d_0, d_1, ..., d_i> and
@@ -62,21 +62,20 @@ public:
 	template <typename T>
 	placeholder& operator = (std::vector<T> data)
 	{
-		tenncor::tensor_proto::tensor_t type = this->data_->get_type();
-		tenncor::tensor_proto::tensor_t ttype = get_prototype<T>();
-		if (type != ttype)
+		std::shared_ptr<void> ptr = &data[0];
+		TENS_TYPE type = data_->get_type();
+		if (false == data_->has_data())
 		{
-			throw std::exception(); // incompatible types
-		}
-		// note: if this is allocated,
-		// compatibility is compared to allocated shape instead of allowed
-		assert(this->data_->is_compatible_with(data.size()));
 
-		if (false == this->data_->is_alloc())
+			asgn_->set_data(ptr, type, data_.get_shape());
+			data_->copy();
+		}
+		else
 		{
-			if (optional<tensorshape> cand_shape = this->data_->guess_shape(data.size()))
+			if (optional<tensorshape> shape = data_->guess_shape(data.size()))
 			{
-				this->data_->allocate(*cand_shape);
+				asgn_->set_data(ptr, type, *shape);
+				data_->copy(*shape);
 			}
 			// we would reach here if data is empty... (todo: test. currently never reached)
 			else
@@ -84,15 +83,12 @@ public:
 				throw std::logic_error("attempting to assign no data to an unallocated tensor");
 			}
 		}
-		this->assigner_(*(this->data_), &data[0], type);
-
-		this->is_init_ = true;
 		this->notify(UPDATE);
 		return *this;
 	}
 
 	//! assign tensor to inner tensor
-	virtual placeholder& operator = (itensor& data);
+	virtual placeholder& operator = (tensor& data);
 
 protected:
 	// >>>> POLYMORPHIC CLONERS <<<<
@@ -102,9 +98,15 @@ protected:
 	//! move implementation
 	virtual inode* move_impl (void);
 
-	// >>>> INTERNAL DATA TRANSFERS <<<<
-	//! grab operational gradient node, used by other nodes
-	virtual inode* get_gradient (variable* );
+	void copy_helper (const placeholder& other);
+
+	void move_helper (placeholder&& other);
+
+private:
+	std::shared_ptr<assign_io> asgn_ = std::make_shared<assign_io>();
+
+	//! raw data
+	std::unique_ptr<tensor> data_ = nullptr;
 };
 
 class placeptr : public varptr
@@ -129,7 +131,7 @@ public:
 	}
 
 	//! assign a tensor
-	placeptr& operator = (itensor& ten);
+	placeptr& operator = (tensor& ten);
 
 	//! implicit pointer conversion
 	operator placeholder* () const;

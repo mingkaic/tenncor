@@ -199,14 +199,14 @@ tensorshape random_def_shape (FUZZ::fuzz_test* fuzzer, int lowerrank, int upperr
 }
 
 
-itens_actor* adder (out_wrapper<void>& dest, 
-	std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type)
+itens_actor* adder (out_wrapper<void>& dest,
+	std::vector<in_wrapper<void> >& srcs, nnet::TENS_TYPE type)
 {
 	switch (type)
 	{
-		case tenncor::tensor_proto::DOUBLE_T:
+		case nnet::DOUBLE:
 			return new mock_actor<double>(dest, srcs);
-		case tenncor::tensor_proto::SIGNED_T:
+		case nnet::INT:
 			return new mock_actor<signed>(dest, srcs);
 		default:
 		break;

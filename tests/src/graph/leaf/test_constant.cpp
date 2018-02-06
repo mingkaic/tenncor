@@ -244,9 +244,9 @@ TEST_F(CONSTANT, Allocated_D005)
 	constant* res2 = constant::get(v, shape);
 	constant* res3 = constant::get(pv, part);
 
-	const itensor* t1 = res->eval();
-	const itensor* t2 = res2->eval();
-	const itensor* t3 = res3->eval();
+	const tensor* t1 = res->eval();
+	const tensor* t2 = res2->eval();
+	const tensor* t3 = res3->eval();
 
 	EXPECT_TRUE(t1->is_alloc());
 	EXPECT_TRUE(t2->is_alloc());

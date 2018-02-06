@@ -7,16 +7,17 @@
  *  handler is a delegate for manipulating raw datas in tensors
  *
  *  Created by Mingkai Chen on 2017-02-05.
- *  Copyright © 2017 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 
 #include <typeinfo>
 
-#include "include/tensor/itensor.hpp"
+// #include "include/tensor/tensor.hpp"
 #include "include/tensor/tensor_actor.hpp"
 
 #pragma once
+#define TENNCOR_TENSOR_HANDLER_HPP
 #ifndef TENNCOR_TENSOR_HANDLER_HPP
 #define TENNCOR_TENSOR_HANDLER_HPP
 
@@ -24,13 +25,13 @@ namespace nnet
 {
 
 using CONN_ACTOR = std::function<itens_actor*(out_wrapper<void>&,
-	std::vector<in_wrapper<void> >&,tenncor::tensor_proto::tensor_t)>;
+	std::vector<in_wrapper<void> >&,TENS_TYPE)>;
 
 using ASSIGN_FUNC = std::function<void(void*,const void*, 
-	tenncor::tensor_proto::tensor_t)>;
+	TENS_TYPE)>;
 
 void default_assign (void* dest, const void* src, 
-	tenncor::tensor_proto::tensor_t type);
+	TENS_TYPE type);
 
 //! Generic Tensor Handler
 class itensor_handler
@@ -53,9 +54,9 @@ protected:
 	//! move implementation for moving from itensor_handler
 	virtual itensor_handler* move_impl (void) = 0;
 
-	void* get_raw (itensor& ten) const;
+	void* get_raw (tensor& ten) const;
 
-	const void* get_raw (const itensor& ten) const;
+	const void* get_raw (const tensor& ten) const;
 };
 
 //! Transfer Function
@@ -73,7 +74,7 @@ public:
 	actor_func* move (void);
 
 	//! performs tensor transfer function given an input tensors
-	itens_actor* operator () (itensor& out, std::vector<const itensor*>& args);
+	itens_actor* operator () (tensor& out, std::vector<const tensor*>& args);
 
 protected:
 	//! clone implementation for copying from itensor_handler
@@ -99,13 +100,13 @@ public:
 	assign_func* move (void);
 
 	//! performs tensor transfer function given an input tensor
-	void operator () (itensor& out, const itensor& arg,
+	void operator () (tensor& out, const tensor& arg,
 		ASSIGN_FUNC f = default_assign) const;
 
 	//! performs tensor transfer function given an input array
 	// asserts that size of indata allocated chunk <= out.n_elems()
-	void operator () (itensor& out, const void* indata, 
-		tenncor::tensor_proto::tensor_t type,
+	void operator () (tensor& out, const void* indata, 
+		TENS_TYPE type,
 		ASSIGN_FUNC f = default_assign) const;
 
 protected:
@@ -128,11 +129,11 @@ public:
 	initializer* move (void);
 
 	//! perform initialization
-	void operator () (itensor& out);
+	void operator () (tensor& out);
 
 protected:
 	virtual void calc_data (void* dest, 
-		tenncor::tensor_proto::tensor_t type, tensorshape outshape) = 0;
+		TENS_TYPE type, tensorshape outshape) = 0;
 };
 
 //! Constant Initializer
@@ -174,12 +175,12 @@ protected:
 	
 	//! initialize data as constant
 	virtual void calc_data (void* dest, 
-		tenncor::tensor_proto::tensor_t type, tensorshape outshape);
+		TENS_TYPE type, tensorshape outshape);
 		
 private:
 	std::string value_;
 
-	tenncor::tensor_proto::tensor_t type_;
+	TENS_TYPE type_;
 };
 
 //! Uniformly Random Initializer
@@ -204,7 +205,7 @@ protected:
 	
 	//! initialize data as constant
 	virtual void calc_data (void* dest, 
-		tenncor::tensor_proto::tensor_t type, tensorshape outshape);
+		TENS_TYPE type, tensorshape outshape);
 
 private:
 	std::uniform_real_distribution<double>  distribution_;
@@ -231,7 +232,7 @@ protected:
 	
 	//! initialize data as constant
 	virtual void calc_data (void* dest, 
-		tenncor::tensor_proto::tensor_t type, tensorshape outshape);
+		TENS_TYPE type, tensorshape outshape);
 
 private:
 	std::uniform_int_distribution<signed>  distribution_;
@@ -259,7 +260,7 @@ protected:
 
 	//! initialize data as constant
 	virtual void calc_data (void* dest, 
-		tenncor::tensor_proto::tensor_t type, tensorshape outshape);
+		TENS_TYPE type, tensorshape outshape);
 
 private:
 	std::normal_distribution<double> distribution_;

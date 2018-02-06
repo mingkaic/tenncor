@@ -41,9 +41,9 @@ TEST_F(VARIABLE, Constructor_F000)
 	rand_uniform rinit(0, 1);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
-	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
-	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
+	variable noinitv(shape, nnet::DOUBLE, label2);
+	variable cinitv(shape, cinit, nnet::DOUBLE, label3);
+	variable rinitv(shape, rinit, nnet::DOUBLE, label4);
 
 	EXPECT_TRUE(scalar.can_init());
 	EXPECT_TRUE(scalar.good_status());
@@ -82,9 +82,9 @@ TEST_F(VARIABLE, Copy_F001)
 	variable assign4(0);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
-	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
-	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
+	variable noinitv(shape, nnet::DOUBLE, label2);
+	variable cinitv(shape, cinit, nnet::DOUBLE, label3);
+	variable rinitv(shape, rinit, nnet::DOUBLE, label4);
 
 	variable* sv = scalar.clone();
 	variable* nv = noinitv.clone();
@@ -147,9 +147,9 @@ TEST_F(VARIABLE, Move_F001)
 	variable assign4(0);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
-	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
-	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
+	variable noinitv(shape, nnet::DOUBLE, label2);
+	variable cinitv(shape, cinit, nnet::DOUBLE, label3);
+	variable rinitv(shape, rinit, nnet::DOUBLE, label4);
 
 	variable* sv = scalar.move();
 	variable* nv = noinitv.move();
@@ -230,9 +230,9 @@ TEST_F(VARIABLE, SetInit_F002)
 	rand_uniform rinit(0, 1);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
-	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
-	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
+	variable noinitv(shape, nnet::DOUBLE, label2);
+	variable cinitv(shape, cinit, nnet::DOUBLE, label3);
+	variable rinitv(shape, rinit, nnet::DOUBLE, label4);
 
 	scalar.set_initializer(rinit);
 	noinitv.set_initializer(cinit);
@@ -287,9 +287,9 @@ TEST_F(VARIABLE, GetLeaf_F003)
 	rand_uniform rinit(0, 1);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
-	variable cinitv(shape, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
-	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
+	variable noinitv(shape, nnet::DOUBLE, label2);
+	variable cinitv(shape, cinit, nnet::DOUBLE, label3);
+	variable rinitv(shape, rinit, nnet::DOUBLE, label4);
 
 	varptr wun = exposer.expose_leaf(&scalar, &scalar);
 	varptr wun2 = exposer.expose_leaf(&noinitv, &noinitv);
@@ -353,9 +353,9 @@ TEST_F(VARIABLE, Initialize_F004)
 	rand_uniform rinit(0, 1);
 
 	variable scalar(c, label1);
-	variable noinitv(shape, tenncor::tensor_proto::DOUBLE_T, label2);
-	variable cinitv(part, cinit, tenncor::tensor_proto::DOUBLE_T, label3);
-	variable rinitv(shape, rinit, tenncor::tensor_proto::DOUBLE_T, label4);
+	variable noinitv(shape, nnet::DOUBLE, label2);
+	variable cinitv(part, cinit, nnet::DOUBLE, label3);
+	variable rinitv(shape, rinit, nnet::DOUBLE, label4);
 
 	mock_connector conn({&scalar, &noinitv, &cinitv, &rinitv}, label5);
 	conn.inst_ = "conn";

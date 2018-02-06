@@ -12,7 +12,7 @@ Tenncor aims to provide cython's elegant interface in C++ with minimal dependeni
 
 ## Building
 
-Tenncor uses bazel 0.9+. 
+Tenncor uses bazel 0.9+.
 
 Download bazel: https://docs.bazel.build/versions/master/install.html
 
@@ -52,8 +52,8 @@ use libraries
 	
 		// initializes a 5 by 5 matrix with uniformly distributed
 		// doubles between -1 and 1
-		variable* A = new variable(common, rinit, tenncor::tensor_proto::DOUBLE_T, "a");
-		placeptr B = new placeholder(common, tenncor::tensor_proto::DOUBLE_T, "b");
+		variable* A = new variable(common, rinit, nnet::DOUBLE, "a");
+		placeptr B = new placeholder(common, nnet::DOUBLE, "b");
 		varptr C = matmul(varptr(A), B);
 		varptr D = sigmoid(C);
 		
@@ -63,9 +63,9 @@ use libraries
 		varptr grad = D->derive(A);
 		
 		// forward accumulation
-		itensor* result = D->get_eval();
+		tensor* result = D->get_eval();
 		// reverse accumulation
-		itensor* grad_result = grad->eval();
+		tensor* grad_result = grad->eval();
 
 		std::vector<double> raw_data = expose<double>(D);
 		std::vector<double> raw_grad = expose<double>(grad);
@@ -74,11 +74,11 @@ use libraries
 		delete B;
 		
 		return 0;
-	} 
+	}
 
 ## Todos and Quirks
 
-For the first 3 dimensions, shape values follow cartesian coordinates (x, y, z). This convention means that for matrices, rows are the second dimension, and columns are the first dimension, contrary to row and column major order. 
+For the first 3 dimensions, shape values follow cartesian coordinates (x, y, z). This convention means that for matrices, rows are the second dimension, and columns are the first dimension, contrary to row and column major order.
 
 An ongoing effort is made towards parameterizing shape conventions.
 

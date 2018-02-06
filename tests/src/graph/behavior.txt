@@ -93,18 +93,18 @@ H002 - connector is the same graph as another connector if they share a common c
 		along its dependency graph.
 H003 - connector potential descendent calls both this and other connnector get_leaves to get leaf set
 
-// IMMUTABLE BEHAVIOR
-I000 - cloning and moving immutable copies and moves over data, Nf_, (UNTESTED) ginit_, and gcache
-I001 - immutable A is a potential descendent of connector B if A's leaf set is a subset of B's leaf set
-I002 - immutable has good status if all its children are good, otherwise it's bad
-I003 - immutable tensor shape is the result of the shaper function.
+// LINEAR BEHAVIOR
+I000 - cloning and moving linear copies and moves over data, Nf_, (UNTESTED) ginit_, and gcache
+I001 - linear A is a potential descendent of connector B if A's leaf set is a subset of B's leaf set
+I002 - linear has good status if all its children are good, otherwise it's bad
+I003 - linear tensor shape is the result of the shaper function.
 		bad status returns an undefined tensorshape
-I004 - immutable tensor initializes its tensor from the forward transfer functions if all its arguments are good
+I004 - linear tensor initializes its tensor from the forward transfer functions if all its arguments are good
 		otherwise good status is false, bad status returns nullptr on get_eval
-I005 - immutable dies when any of its dependencies dies
+I005 - linear dies when any of its dependencies dies
 I006 - temporary_eval grabs the resulting node from target node up to calling node.
 		the target node's value is taken as scalar 1.
-I007 - immutable get_leaves return a map from leaf to nullptr
+I007 - linear get_leaves return a map from leaf to nullptr
 I008 - given an input of leaf A, get_gradient returns the node mapped by A in
 		back_map (provided during construction). leaf A is back_map's second argument.
 I009 - derive calculates gradient node from any node and applies jacobian transformation appropriately
@@ -113,7 +113,7 @@ I009 - derive calculates gradient node from any node and applies jacobian transf
 		else if wrt is not a leaf and isn't a potential descendent, return scalar 0 node
 		otherwise the base result is the non-null node mapped from gcache
 I010 - update explicitly runs its forward transfer function with current depdendency states as its argument
-I011 - immutable will throw error if existing output shape is incompatible with shaper result
+I011 - linear will throw error if existing output shape is incompatible with shaper result
 
 // GENERATOR BEHAVIORS
 J000 - cloning and moving generators copies and moves initialization and existing data

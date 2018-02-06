@@ -8,7 +8,7 @@
  *  manages graph information
  *
  *  Created by Mingkai Chen on 2016-12-01.
- *  Copyright © 2016 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 
@@ -37,26 +37,8 @@ using SHAPER = std::function<tensorshape(std::vector<tensorshape>)>;
 class iconnector : public inode, public iobserver
 {
 public:
-	//! iconnector summary
-	struct conn_summary
-	{
-		conn_summary (std::string id, SHAPER shaper,
-			CONN_ACTOR forward, BACK_MAP back) :
-				id_(id), shaper_(shaper), Nf_(forward), ginit_(back) {}
-
-		std::string id_;
-		SHAPER shaper_;
-		CONN_ACTOR Nf_;
-		BACK_MAP ginit_;
-
-		std::vector<std::string> arg_ids_;
-	};
-
-	using summary_series = std::vector<typename iconnector::conn_summary>;
-
 	virtual ~iconnector (void);
 
-	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
 	iconnector* clone (void) const;
 
@@ -69,28 +51,20 @@ public:
 	//! declare move assignment to enforce proper g_man_ copy over
 	virtual iconnector& operator = (iconnector&& other);
 
-	// >>>> IDENTIFICATION <<<<
+
+
+	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	// >>>>>> IDENTIFICATION <<<<<<
+
 	//! get unique label with arguments
 	virtual std::string get_name (void) const;
 
 	//! get the distance between this node and the furthest dependent leaf (maximum spanning tree height)
 	virtual size_t get_depth (void) const;
 
-	// >>>> OBSERVER & OBSERVABLE INFO <<<<
-	//! get all observerables
-	virtual std::vector<inode*> get_arguments (void) const;
+	// >>>>>> ICONNECTOR SPECIAL <<<<<<
 
-	//! get the number of observables
-	virtual size_t n_arguments (void) const;
-
-	// >>>> FORWARD & BACKWARD DATA <<<<
-	//! grab a temporary value traversing top-down
-	virtual void temporary_eval (const iconnector* target, inode*& out) const = 0;
-
-	//! get forward passing value, (pull data if necessary)
-	virtual const itensor* eval (void);
-
-	// >>>> GRAPH STATUS <<<<
 	//! check if other connector is in the same graph as this
 	bool is_same_graph (const iconnector* other) const;
 
@@ -98,27 +72,33 @@ public:
 	//! will return false negatives if nodes are in a pipeline of a non-variable leaf
 	virtual bool potential_descendent (const iconnector* n) const;
 
-	// >>>> NODE STATUS <<<<
-	//! add jacobian to the front of the list mapped by leaves
-	void set_jacobian_front (JTRANSFER jac, std::vector<variable*> leaves);
+	//! get all observerables
+	std::vector<inode*> get_arguments (void) const;
 
-	//! add jacobian to the back of the list mapped by leaves
-	void set_jacobian_back (JTRANSFER jac, std::vector<variable*> leaves);
+
+
+	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
+
+	// >>>>>> FORWARD & BACKWARD DATA <<<<<<
+
+	//! get tensor data
+	virtual tensor* get_tensor (void);
+
+	// >>>>>> ICONNECTOR SPECIAL <<<<<<
 
 	//! freeze or unfreeze the current node
 	//! freeze prevents this from updating temporarily instead update is queued to g_man_
 	void freeze_status (bool freeze);
 
 protected:
-	//! list of jacobian transfer function
-	//! to be executed on resulting root node
-	//! execution order: top-down
-	struct jlist
-	{
-		std::string uid_ = nnutils::uuid(this);
-		std::list<std::pair<JTRANSFER, inode*>> list_;
-		bool terminal_ = false;
-	};
+	//! Set dependencies
+	iconnector (std::vector<inode*> dependencies, std::string label);
+
+	//! Declare copy constructor to enforce proper g_man_ copy over
+	iconnector (const iconnector& other);
+
+	//! Declare move constructor to enforce proper g_man_ copy over
+	iconnector (iconnector&& other);
 
 	//! graph info shareable between connectors
 	struct graph_manager
@@ -207,25 +187,10 @@ protected:
 		~graph_manager (void) {}
 	};
 
-	// >>>> CONSTRUCTORS <<<<
-	//! Set dependencies
-	iconnector (std::vector<inode*> dependencies, std::string label);
+	// >>>>>> MANAGE GRAPH INFO <<<<<<
 
-	//! Declare copy constructor to enforce proper g_man_ copy over
-	iconnector (const iconnector& other);
-
-	//! Declare move constructor to enforce proper g_man_ copy over
-	iconnector (iconnector&& other);
-
-	// >>>> MANAGE GRAPH INFO <<<<
 	//! Update g_man_ by updating all argument variables
 	virtual void update_graph (std::vector<iconnector*> args);
-
-	varptr jacobian_call (varptr out, variable* leaf) const;
-
-	//! specialized operator: jacobian operators for each variable,
-	//! executed in derive
-	std::unordered_map<variable*,jlist> jacobians_;
 
 	//! graph meta_data/manager
 	graph_manager* g_man_ = nullptr;
@@ -234,8 +199,6 @@ private:
 	void copy_helper (const iconnector& other);
 
 	void move_helper (iconnector&& other);
-
-	void jacobian_correction (const inode* other);
 
 	//! the distance between this node and the furthest dependent leaf (maximum spanning tree height)
 	size_t depth_ = 0;

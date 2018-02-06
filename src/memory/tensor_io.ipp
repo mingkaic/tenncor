@@ -3,7 +3,7 @@
 //  cnnet
 //
 //  Created by Mingkai Chen on 2017-04-25.
-//  Copyright © 2017 Mingkai Chen. All rights reserved.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #ifdef TENNCOR_WRITER_HPP
@@ -35,7 +35,7 @@ bool write_inorder (std::vector<inode<T>*>& serialvec, std::string label, std::s
 	{
 		std::string node_label = label + ":" + std::to_string(i);
 		nnet::inode<T>* serialelem = serialvec[i];
-		tenncor::tensor_proto proto;
+		TENS_TYPE proto;
 		const nnet::tensor<T>* serialtens = serialelem->eval();
 		if (nullptr == serialtens) continue; // we can't serialize something not initialized
 		serialtens->serialize(&proto);
@@ -55,7 +55,7 @@ bool write_inorder (std::vector<inode<T>*>& serialvec, std::string label, std::s
 	return true;
 }
 
-using node_map_t = google::protobuf::Map<std::string,tenncor::tensor_proto>;
+using node_map_t = google::protobuf::Map<std::string,TENS_TYPE>;
 
 template<typename T>
 bool read_inorder (std::vector<inode<T>*>& deserialvec, std::string label, std::string fname)

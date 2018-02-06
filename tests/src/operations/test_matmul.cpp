@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 
-#include "include/graph/operations/operations.hpp"
+#include "include/operations/operations.hpp"
 #include "include/utils/futils.hpp"
 
 #include "tests/include/utils/util_test.h"
@@ -140,10 +140,10 @@ TEST_F(MATMUL, Matmul_C001)
 	tensorshape shapetA = std::vector<size_t>{dims[1], dims[0]}; // transpose A
 	tensorshape shapetB = std::vector<size_t>{dims[0], dims[2]}; // transpose B
 
-	variable A(shapeA, rinit, tenncor::tensor_proto::SIGNED_T, "A"); // shape <m, n>
-	variable B(shapeB, rinit, tenncor::tensor_proto::SIGNED_T, "B"); // shape <k, m>
-	variable tA(shapetA, rinit, tenncor::tensor_proto::SIGNED_T, "tA");
-	variable tB(shapetB, rinit, tenncor::tensor_proto::SIGNED_T, "tB");
+	variable A(shapeA, rinit, nnet::INT, "A"); // shape <m, n>
+	variable B(shapeB, rinit, nnet::INT, "B"); // shape <k, m>
+	variable tA(shapetA, rinit, nnet::INT, "tA");
+	variable tB(shapetB, rinit, nnet::INT, "tB");
 
 	// shapes of <k, n>
 	varptr res = matmul(varptr(&A), varptr(&B));
@@ -207,8 +207,8 @@ TEST_F(MATMUL, Incompatible_C002)
 	tensorshape shapeA = std::vector<size_t>{dims[0], dims[1]};
 	tensorshape shapeB = std::vector<size_t>{dims[2], dims[0]+1};
 
-	variable A(shapeA, rinit, tenncor::tensor_proto::DOUBLE_T, "A"); // shape <m, n>
-	variable B(shapeB, rinit, tenncor::tensor_proto::DOUBLE_T, "B"); // shape <k, m+1>
+	variable A(shapeA, rinit, nnet::DOUBLE, "A"); // shape <m, n>
+	variable B(shapeB, rinit, nnet::DOUBLE, "B"); // shape <k, m+1>
 
 	A.initialize();
 	B.initialize();
@@ -229,10 +229,10 @@ TEST_F(MATMUL, Jacobian_C003)
 	tensorshape shapetA = std::vector<size_t>{dims[1], dims[0]}; // transpose A
 	tensorshape shapetB = std::vector<size_t>{dims[0], dims[2]}; // transpose B
 
-	variable A(shapeA, rinit, tenncor::tensor_proto::DOUBLE_T, "A"); // shape <m, n>
-	variable B(shapeB, rinit, tenncor::tensor_proto::DOUBLE_T, "B"); // shape <k, m>
-	variable tA(shapetA, rinit, tenncor::tensor_proto::DOUBLE_T, "tA");
-	variable tB(shapetB, rinit, tenncor::tensor_proto::DOUBLE_T, "tB");
+	variable A(shapeA, rinit, nnet::DOUBLE, "A"); // shape <m, n>
+	variable B(shapeB, rinit, nnet::DOUBLE, "B"); // shape <k, m>
+	variable tA(shapetA, rinit, nnet::DOUBLE, "tA");
+	variable tB(shapetB, rinit, nnet::DOUBLE, "tB");
 
 	// shapes of <k, n>
 	varptr res = sigmoid(varptr(matmul(varptr(&A), varptr(&B))));
@@ -356,10 +356,10 @@ TEST_F(MATMUL, Strassen_C004)
 	tensorshape shapetA = std::vector<size_t>{dims[1], dims[0]}; // transpose A
 	tensorshape shapetB = std::vector<size_t>{dims[0], dims[2]}; // transpose B
 
-	variable A(shapeA, rinit, tenncor::tensor_proto::SIGNED_T, "A"); // shape <m, n>
-	variable B(shapeB, rinit, tenncor::tensor_proto::SIGNED_T, "B"); // shape <k, m>
-	variable tA(shapetA, rinit, tenncor::tensor_proto::SIGNED_T, "tA");
-	variable tB(shapetB, rinit, tenncor::tensor_proto::SIGNED_T, "tB");
+	variable A(shapeA, rinit, nnet::INT, "A"); // shape <m, n>
+	variable B(shapeB, rinit, nnet::INT, "B"); // shape <k, m>
+	variable tA(shapetA, rinit, nnet::INT, "tA");
+	variable tB(shapetB, rinit, nnet::INT, "tB");
 
 	A.initialize();
 	B.initialize();

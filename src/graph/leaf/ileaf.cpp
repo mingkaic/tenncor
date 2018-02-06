@@ -3,7 +3,7 @@
 //  cnnet
 //
 //  Created by Mingkai Chen on 2016-08-29.
-//  Copyright © 2016 Mingkai Chen. All rights reserved.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #include "include/graph/leaf/ileaf.hpp"
@@ -13,10 +13,7 @@
 namespace nnet
 {
 
-ileaf::~ileaf (void)
-{
-	delete data_;
-}
+ileaf::~ileaf (void) {}
 
 ileaf* ileaf::clone (void) const
 {
@@ -33,7 +30,6 @@ ileaf& ileaf::operator = (const ileaf& other)
 	if (this != &other)
 	{
 		inode::operator = (other);
-		copy_helper(other);
 		this->notify(UPDATE); // content changed
 	}
 	return *this;
@@ -44,39 +40,15 @@ ileaf& ileaf::operator = (ileaf&& other)
 	if (this != &other)
 	{
 		inode::operator = (other);
-		move_helper(std::move(other));
 		this->notify(UPDATE); // content changed
 	}
 	return *this;
 }
 
+
 size_t ileaf::get_depth (void) const
 {
 	return 0; // leaves are 0 distance from the furthest dependent leaf
-}
-
-std::vector<inode*> ileaf::get_arguments (void) const
-{
-	return {};
-}
-
-size_t ileaf::n_arguments (void) const
-{
-	return 0;
-}
-
-const itensor* ileaf::eval (void)
-{
-	return get_eval();
-}
-
-tensorshape ileaf::get_shape (void) const
-{
-	if (nullptr != data_)
-	{
-		return data_->get_shape();
-	}
-	return std::vector<size_t>{};
 }
 
 std::unordered_set<ileaf*> ileaf::get_leaves (void) const
@@ -86,88 +58,17 @@ std::unordered_set<ileaf*> ileaf::get_leaves (void) const
 
 bool ileaf::good_status (void) const
 {
-	return is_init_;
+	return get_tensor()->has_data();
 }
 
-bool ileaf::read_proto (const tenncor::tensor_proto& proto)
-{
-	bool success = data_->from_proto(proto);
-	if (success)
-	{
-		is_init_ = true;
-		this->notify(UPDATE);
-	}
-	return success;
-}
 
 ileaf::ileaf (std::string name) : inode(name) {}
 
-ileaf::ileaf (const tensorshape& shape, 
-	tenncor::tensor_proto::tensor_t type, std::string name) :
-inode(name), data_(init(shape, type)) {}
+ileaf::ileaf (const ileaf& other) : inode(other) {}
 
-ileaf::ileaf (const ileaf& other) : inode(other)
-{
-	copy_helper(other);
-}
+ileaf::ileaf (ileaf&& other) : inode(std::move(other)) {}
 
-ileaf::ileaf (ileaf&& other) :
-	inode(std::move(other))
-{
-	move_helper(std::move(other));
-}
 
-itensor* ileaf::init (const tensorshape& shape, 
-	tenncor::tensor_proto::tensor_t type)
-{
-	switch (type)
-	{
-		case tenncor::tensor_proto::DOUBLE_T:
-			data_ = new tensor_double(shape);
-		break;
-		case tenncor::tensor_proto::SIGNED_T:
-			data_ = new tensor_signed(shape);
-		break;
-		default:
-		break;
-	}
-	return data_;
-}
-
-const itensor* ileaf::get_eval (void) const
-{
-	if (false == good_status())
-	{
-		return nullptr;
-	}
-	return data_;
-}
-
-void ileaf::copy_helper (const ileaf& other)
-{
-	if (data_)
-	{
-		delete data_;
-		data_ = nullptr;
-	}
-	is_init_ = other.is_init_;
-	// copy over data if other has good_status (we want to ignore uninitialized data)
-	if (other.data_)
-	{
-		data_ = other.data_->clone(!other.good_status());
-	}
-}
-
-void ileaf::move_helper (ileaf&& other)
-{
-	if (data_)
-	{
-		delete data_;
-	}
-	is_init_ = std::move(other.is_init_);
-	data_ = other.data_;
-	other.data_ = nullptr;
-}
 
 }
 

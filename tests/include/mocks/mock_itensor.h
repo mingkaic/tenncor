@@ -101,12 +101,12 @@ protected:
 	mock_itensor (mock_itensor&& other) :
 		tensor_double(std::move(other)) {}
 
-	virtual itensor* clone_impl (bool shapeonly) const
+	virtual tensor* clone_impl (bool shapeonly) const
 	{
 		return new mock_itensor(*this, shapeonly);
 	}
 
-	virtual itensor* move_impl (void)
+	virtual tensor* move_impl (void)
 	{
 		return new mock_itensor(std::move(*this));
 	}

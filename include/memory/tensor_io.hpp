@@ -7,7 +7,7 @@
  *  serialize tensor
  *
  *  Created by Mingkai Chen on 2017-04-25.
- *  Copyright © 2017 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 

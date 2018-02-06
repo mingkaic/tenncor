@@ -3,7 +3,7 @@
 //  cnnet
 //
 //  Created by Mingkai Chen on 2016-12-01.
-//  Copyright © 2016 Mingkai Chen. All rights reserved.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #include <queue>
@@ -104,18 +104,13 @@ std::vector<inode*> iconnector::get_arguments (void) const
 	return node_args;
 }
 
-size_t iconnector::n_arguments (void) const
-{
-	return this->dependencies_.size();
-}
-
-const itensor* iconnector::eval (void)
+bool iconnector::eval (idata_dest& dest)
 {
 	if (this->g_man_ && false == this->g_man_->freeze_)
 	{
 		this->g_man_->update();
 	}
-	return this->get_eval();
+	this->get_eval()->write_to(dest);
 }
 
 bool iconnector::is_same_graph (const iconnector* other) const

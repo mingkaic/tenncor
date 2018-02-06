@@ -8,11 +8,11 @@
  *  and useful graph operations
  *
  *  Created by Mingkai Chen on 2016-09-30.
- *  Copyright © 2016 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 
-#include "include/graph/operations/operations.hpp"
+#include "include/operations/operations.hpp"
 
 #ifndef TENNCOR_FUTILS_HPP
 #define TENNCOR_FUTILS_HPP

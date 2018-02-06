@@ -54,7 +54,7 @@ tensorshape random_shape (FUZZ::fuzz_test* fuzzer);
 tensorshape random_def_shape (FUZZ::fuzz_test* fuzzer, int lowerrank = 2, int upperrank = 11, size_t minn = 17, size_t maxn = 7341);
 
 
-itens_actor* adder (out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type);
+itens_actor* adder (out_wrapper<void>& dest, std::vector<in_wrapper<void> >& srcs, nnet::TENS_TYPE type);
 
 
 #endif /* UTIL_TEST_H */

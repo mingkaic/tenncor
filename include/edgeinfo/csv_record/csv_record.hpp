@@ -3,7 +3,7 @@
 //  cnnet
 //
 //  Created by Mingkai Chen on 2017-01-30.
-//  Copyright © 2017 Mingkai Chen. All rights reserved.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #ifdef CSV_RCD

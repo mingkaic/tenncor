@@ -3,7 +3,7 @@
 //  cnnet
 //
 //  Created by Mingkai Chen on 2016-08-29.
-//  Copyright © 2016 Mingkai Chen. All rights reserved.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #include "include/graph/inode.hpp"
@@ -86,36 +86,23 @@ bool inode::find_audience (std::string label, std::unordered_set<inode*>& audien
 	return false == audience.empty();
 }
 
-void inode::set_metadata (std::string key, size_t value)
+bool inode::read_proto (const tenncor::tensor_proto& proto)
 {
-	metadata_[key] = value;
+	const tensor* result = get_eval();
+	if (result)
+	{
+		result->from_proto(proto);
+	}
+	return nullptr != result;
 }
 
-void inode::extract_metadata (inode* n)
+TENS_TYPE inode::get_type (void) const
 {
-	for (auto npair : n->metadata_)
+	if (const tensor* result = get_eval())
 	{
-		auto metait = metadata_.find(npair.first);
-		if (metadata_.end() == metait)
-		{
-			metadata_[npair.first] = npair.second;
-		}
-		else if (npair.second != metait->second)
-		{
-			// warn
-		}
+		return result->get_type();
 	}
-}
-
-optional<size_t> inode::get_metadata (std::string key) const
-{
-	optional<size_t> out;
-	auto it = metadata_.find(key);
-	if (metadata_.end() != it)
-	{
-		out = it->second;
-	}
-	return out;
+	return BAD;
 }
 
 inode::inode (std::string label) :
@@ -129,16 +116,6 @@ inode::inode (const inode& other) :
 inode::inode (inode&& other) :
 	subject(std::move(other)),
 	label_(std::move(other.label_)) {}
-
-const itensor* inode::take_eval (inode* source) const
-{
-	return source->get_eval();
-}
-
-inode* inode::take_gradient (inode* source, variable* leaf) const
-{
-	return source->get_gradient(leaf);
-}
 
 varptr::varptr (void) : iobserver(false) {}
 
@@ -168,11 +145,6 @@ inode* varptr::get (void) const
 void varptr::update (std::unordered_set<size_t>) {}
 
 void varptr::clear (void) { this->remove_dependency(0); }
-
-std::string varptr::get_label (void) const
-{
-	return get()->get_label();
-}
 
 void varptr::death_on_broken (void)
 {

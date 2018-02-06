@@ -27,7 +27,7 @@ TEST_F(PLACEHOLDER, Constructor_G000)
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0]);
 	tensorshape shape = random_def_shape(this);
 
-	placeholder place(shape, tenncor::tensor_proto::DOUBLE_T, label1);
+	placeholder place(shape, nnet::DOUBLE, label1);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 
 	EXPECT_FALSE(place.good_status());
@@ -42,7 +42,7 @@ TEST_F(PLACEHOLDER, Copy_G001)
 	tensorshape shape = random_def_shape(this);
 
 	placeholder assign(std::vector<size_t>{1});
-	placeholder place(shape, tenncor::tensor_proto::DOUBLE_T, label1);
+	placeholder place(shape, nnet::DOUBLE, label1);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 	place = raw;
 	placeholder* pcpy = place.clone();
@@ -63,7 +63,7 @@ TEST_F(PLACEHOLDER, Copy_G001)
 	// check re-assignment after cloning
 	std::vector<double> raw2 = get_double(n, "raw2");
 	placeholder assign2(std::vector<size_t>{1});
-	placeholder uninit(shape, tenncor::tensor_proto::DOUBLE_T, label2);
+	placeholder uninit(shape, nnet::DOUBLE, label2);
 	placeholder* uninitcpy = uninit.clone();
 	assign2 = uninit;
 
@@ -105,7 +105,7 @@ TEST_F(PLACEHOLDER, Move_G001)
 	std::string label2 = get_string(strns[1]);
 	tensorshape shape = random_def_shape(this);
 
-	placeholder place(shape, tenncor::tensor_proto::DOUBLE_T, label1);
+	placeholder place(shape, nnet::DOUBLE, label1);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 
 	size_t n = raw.size();
@@ -148,8 +148,8 @@ TEST_F(PLACEHOLDER, AssignRaw_G002)
 	tensorshape shape = random_def_shape(this);
 	tensorshape part = make_partial(this, shape.as_list());
 
-	placeholder place(shape, tenncor::tensor_proto::DOUBLE_T, label1);
-	placeholder place2(part, tenncor::tensor_proto::DOUBLE_T, label2);
+	placeholder place(shape, nnet::DOUBLE, label1);
+	placeholder place2(part, nnet::DOUBLE, label2);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 
 	mock_connector conn({&place}, label3);
@@ -191,7 +191,7 @@ TEST_F(PLACEHOLDER, AssignTensor_G003)
 	std::string label2 = get_string(strns[1]);
 	tensorshape shape = random_def_shape(this);
 
-	placeholder place(shape, tenncor::tensor_proto::DOUBLE_T, label1);
+	placeholder place(shape, nnet::DOUBLE, label1);
 
 	double c = get_double(1, "c")[0];
 	const_init cinit(c);
@@ -225,7 +225,7 @@ TEST_F(PLACEHOLDER, GetLeaf_G004)
 	tensorshape shape = random_def_shape(this);
 	mock_node exposer;
 
-	placeholder place(shape, tenncor::tensor_proto::DOUBLE_T, label1);
+	placeholder place(shape, nnet::DOUBLE, label1);
 
 	varptr zaro = exposer.expose_leaf(&place, nullptr);
 	EXPECT_TRUE(expose<double>(zaro)[0] == 0.0);

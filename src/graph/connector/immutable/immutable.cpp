@@ -2,50 +2,19 @@
 //  immutable.cpp
 //  cnnet
 //
-//  Created by Mingkai Chen on 2017-02-28.
-//  Copyright © 2016 Mingkai Chen. All rights reserved.
+//  Created by Mingkai Chen on 2017-06-26.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #include "include/graph/connector/immutable/immutable.hpp"
+// #include "include/graph/connector/immutable/linear.hpp"
 
 #ifdef TENNCOR_IMMUTABLE_HPP
 
 namespace nnet
 {
 
-immutable::~immutable (void)
-{
-	if (Nf_)
-	{
-		delete Nf_;
-	}
-
-	if (actor_)
-	{
-		delete actor_;
-	}
-}
-
-immutable* immutable::get (std::vector<inode*> args,
-	SHAPER shaper, actor_func* Nf,
-	BACK_MAP ginit, std::string name,
-	inode* ignore_jacobian)
-{
-	assert(false == args.empty());
-	immutable* imm = new immutable(args, shaper, Nf, ginit, name);
-	if (nullptr != ignore_jacobian)
-	{
-		std::unordered_set<ileaf*> leaves = ignore_jacobian->get_leaves();
-		for (ileaf* leaf : leaves)
-		{
-			if (variable* var = dynamic_cast<variable*>(leaf))
-			{
-				imm->jacobians_.erase(var);
-			}
-		}
-	}
-	return imm;
-}
+immutable::~immutable (void) { if (data_) delete data_; }
 
 immutable* immutable::clone (void) const
 {
@@ -61,7 +30,7 @@ immutable& immutable::operator = (const immutable& other)
 {
 	if (this != &other)
 	{
-		base_immutable::operator = (other);
+		iconnector::operator = (other);
 		copy_helper(other);
 	}
 	return *this;
@@ -71,156 +40,252 @@ immutable& immutable::operator = (immutable&& other)
 {
 	if (this != &other)
 	{
-		base_immutable::operator = (std::move(other));
+		iconnector::operator = (std::move(other));
 		move_helper(std::move(other));
 	}
 	return *this;
 }
 
-immutable::immutable (
-	std::vector<inode*> args,
-	SHAPER shaper,
-	actor_func* Nf,
-	BACK_MAP ginit, std::string label) :
-base_immutable(args, label),
-shaper_(shaper), Nf_(Nf),
-ginit_(ginit) { this->update(std::unordered_set<size_t>{}); }
+varptr immutable::derive (inode* wrt)
+{
+	varptr out;
+	iconnector* conn = dynamic_cast<iconnector*>(wrt);
+	// check self
+	if (wrt == this)
+	{
+		out = constant::get_shared_one();
+	}
+	// check cache
+	else if (variable* leaf = dynamic_cast<variable*>(wrt))
+	{
+		out = this->get_gradient(leaf);
+		// modify res with jacobians
+		out = this->jacobian_call(out, leaf);
+	}
+	// check graph
+	else if (conn && this->is_same_graph(conn))
+	{
+// todo: deprecate this series of backpropagation once nlinear is implemented
+		// WARNING: this is one of the more expensive operations
+		inode* temp_out = nullptr;
+		this->temporary_eval(conn, temp_out);
+		out = temp_out;
+		// todo: apply jacobian (and test)
+
+	}
+	// is zero
+	else
+	{
+		out = constant::get_shared_zero();
+	}
+	return out;
+}
+
+void immutable::temporary_eval (const iconnector* target, inode*& out) const
+{
+	constant* base = nullptr;
+	out = temp_eval_helper(target, base);
+	if (iconnector* outcon = dynamic_cast<iconnector*>(out))
+	{
+		outcon->update(std::unordered_set<size_t>{});
+	}
+}
+
+tensorshape immutable::get_shape (void) const
+{
+	if (this->g_man_) this->g_man_->update();
+	if (nullptr == data_)
+	{
+		return tensorshape();
+	}
+	return get_eval()->get_shape();
+}
+
+std::unordered_set<ileaf*> immutable::get_leaves (void) const
+{
+	std::unordered_set<ileaf*> leaves;
+	for (auto leaf : gcache_)
+	{
+		leaves.emplace(leaf.first);
+	}
+	return leaves;
+}
+
+bool immutable::good_status (void) const
+{
+	return data_ != nullptr && data_->is_alloc();
+}
+
+bool immutable::read_proto (const tenncor::tensor_proto&)
+{
+	// it doesn't really make sense to deserialize data_ here, since data serves as a cache...
+	return false;
+}
+
+void immutable::update (std::unordered_set<size_t>)
+{
+	bool allgood = true;
+	bool damaged = false;
+	for (size_t i = 0, n_subs = this->dependencies_.size();
+		i < n_subs && allgood && !damaged; i++)
+	{
+		if (inode* a = dynamic_cast<inode*>(this->dependencies_[i]))
+		{
+			allgood = a->good_status() && allgood;
+		}
+		else
+		{
+			damaged = true;
+		}
+	}
+
+	if (damaged)
+	{
+		// self destroy
+		this->notify(UNSUBSCRIBE);
+	}
+	else if (allgood)
+	{
+		assert(this->g_man_);
+		if (this->g_man_->freeze_ || 1 < this->dependencies_.size())
+		// n-aries are pull update
+		{
+			this->g_man_->add_update(this,
+			[this]
+			{
+				forward_pass();
+			});
+		}
+		else
+		// unaries are push update
+		{
+			// forward pass
+			forward_pass();
+			this->notify(UPDATE);
+		}
+	}
+}
+
+immutable::immutable (std::vector<inode*> args, std::string label) :
+	iconnector(args, label)
+{
+	std::unordered_set<ileaf*> leafset;
+	for (subject* sub : this->dependencies_)
+	{
+		std::unordered_set<ileaf*> leef = static_cast<inode*>(sub)->get_leaves();
+		leafset.insert(leef.begin(), leef.end());
+	}
+	for (ileaf* l : leafset)
+	{
+		gcache_[l] = nullptr;
+	}
+}
 
 immutable::immutable (const immutable& other) :
-	base_immutable(other)
+	iconnector(other)
 {
 	copy_helper(other);
 }
 
 immutable::immutable (immutable&& other) :
-	base_immutable(std::move(other))
+	iconnector(std::move(other))
 {
 	move_helper(std::move(other));
 }
 
-inode* immutable::clone_impl (void) const
+void immutable::death_on_broken (void)
 {
-	return new immutable(*this);
+	delete this;
 }
 
-inode* immutable::move_impl (void)
+const tensor* immutable::get_eval (void) const
 {
-	return new immutable(std::move(*this));
+	return data_;
 }
 
-base_immutable* immutable::arg_clone (std::vector<inode*> args) const
+inode* immutable::get_gradient (variable* leaf)
 {
-	if (nullptr == Nf_)
+	auto it = gcache_.find(leaf);
+	if (gcache_.end() == it)
 	{
-		throw std::exception(); // todo: better exception
+		return constant::get_shared_zero();
 	}
-	return new immutable(args, shaper_, Nf_->clone(), ginit_, this->get_label());
+	if (nullptr == it->second)
+	{
+		backward_pass(leaf);
+	}
+	return gcache_[leaf];
 }
 
-void immutable::forward_pass (void)
+void immutable::copy_helper (const immutable& other)
 {
-	if (nullptr == actor_)
+	if (data_)
 	{
-		// shape and tensor extraction
-		std::vector<const itensor*> tens;
-		std::vector<tensorshape> ts;
-		std::vector<tenncor::tensor_proto::tensor_t> types;
-		// todo: determine whether or not to move this tensor extraction up to base_immutable::update
-		for (subject* sub : this->dependencies_)
+		delete data_;
+		data_ = nullptr;
+	}
+	if (other.data_)
+	{
+		data_ = other.data_->clone();
+	}
+	gcache_ = other.gcache_;
+}
+
+void immutable::move_helper (immutable&& other)
+{
+	if (data_)
+	{
+		delete data_;
+	}
+	data_ = other.data_->move();
+	other.data_ = nullptr;
+	gcache_ = std::move(other.gcache_);
+}
+
+inode* immutable::temp_eval_helper (const iconnector* target, constant*& base) const
+{
+	// base case
+	if (this == target)
+	{
+		// return 1
+		if (!base)
 		{
-			const itensor* arg = this->take_eval(static_cast<inode*>(sub));
-			if (nullptr == arg)
+			// todo: get rid of switch once type conversion is implemented
+			switch (target->get_type())
 			{
-				throw std::exception(); // todo: better exception
-			}
-			assert(arg->is_alloc());
-			types.push_back(arg->get_type());
-			ts.push_back(arg->get_shape());
-			tens.push_back(arg);
-		}
-		// shape check and tensor initialization
-		tensorshape s = shaper_(ts);
-		if (nullptr == this->data_)
-		{
-			s.assert_is_fully_defined();
-			// resolve type (todo: implement)
-			tenncor::tensor_proto::tensor_t type = types.size() ? 
-				types[0] : tenncor::tensor_proto::DOUBLE_T;
-			switch (type)
-			{
-				case tenncor::tensor_proto::DOUBLE_T:
-					this->data_ = new tensor_double(s);
+				case BAD:
+				// todo: resolve by type forward lookup
+				case DOUBLE:
+					base = constant::get((double) 1);
 				break;
-				case tenncor::tensor_proto::SIGNED_T:
-					this->data_ = new tensor_signed(s);
+				case INT:
+					base = constant::get((signed) 1);
 				break;
 				default:
 					throw std::exception(); // unsupported type
 			}
 		}
-		else if (s.is_fully_defined())
-		{
-			// if data_ is allocated, verify shape with data_
-			if (this->data_->is_alloc())
-			{
-				tensorshape oshape = this->data_->get_shape();
-				if (false == s.is_compatible_with(oshape))
-				{
-					std::stringstream ss;
-					print_shape(s, ss);
-					ss << " is incompatible with output shape ";
-					print_shape(oshape, ss);
-					throw std::runtime_error(ss.str());
-				}
-			}
-			// otherwise allocate data_
-			else
-			{
-				this->data_->allocate(s);
-			}
-		}
-		// assert none of tens is null
-		actor_ = (*Nf_)(*(this->data_), tens);
+		return base;
 	}
-	actor_->action();
-}
-
-void immutable::backward_pass (variable* leaf)
-{
-	std::vector<std::pair<inode*,inode*>> deps;
-	for (subject* s : this->dependencies_)
+	// traverse towards target by comparing leaf sets
+	std::vector<inode*> args;
+	for (subject* sub : this->dependencies_)
 	{
-		inode* fn = static_cast<inode*>(s);
-		inode* bn;
-		if (this->jacobians_[leaf].terminal_)
+		inode* arg = static_cast<inode*>(sub);
+		immutable* con = dynamic_cast<immutable*>(arg);
+		if (nullptr != con && con->potential_descendent(target))
 		{
-			bn = fn->derive(leaf); // take jacobian
+			args.push_back(con->temp_eval_helper(target, base));
 		}
 		else
 		{
-			bn = this->take_gradient(fn, leaf);
+			args.push_back(arg);
 		}
-		deps.push_back({fn, bn});
 	}
-	this->gcache_[leaf] = ginit_(deps);
-}
-
-void immutable::copy_helper (const immutable& other)
-{
-	if (Nf_) delete Nf_;
-
-	ginit_ = other.ginit_;
-	Nf_ = other.Nf_->clone();
-	shaper_ = other.shaper_;
-}
-
-void immutable::move_helper (immutable&& other)
-{
-	if (Nf_) delete Nf_;
-
-	ginit_ = std::move(other.ginit_);
-	Nf_ = other.Nf_->move();
-	shaper_ = std::move(other.shaper_);
+	// create a new copy of this with out sharing base's life cycle
+	immutable* base_imm = this->arg_clone(args);
+	base_imm->add_ondeath_dependent(base);
+	return base_imm;
 }
 
 }

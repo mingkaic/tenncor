@@ -6,9 +6,17 @@ message tensor_proto
 {
 	enum tensor_t
 	{
-		BAD_T = 0;
-		DOUBLE_T = 1;
-		SIGNED_T = 2;
+		BAD = 0;
+		DOUBLE = 1;
+		FLOAT = 2;
+		INT8 = 3;
+		INT16 = 4;
+		INT32 = 5;
+		INT64 = 6;
+		UINT8 = 7;
+		UINT16 = 8;
+		UINT32 = 9;
+		UINT64 = 10;
 	}
 
 	bytes data = 1;

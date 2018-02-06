@@ -4,16 +4,20 @@
  *  cnnet
  *
  *  Purpose:
- *  graph immutable connector that manages a
- *  single operator's forward and backward pass
+ *  graph immutable connector interface
+ *  manages tensor data and defines abstract
+ *  forward computation and backward computation methods
  *
- *  Created by Mingkai Chen on 2017-02-28.
- *  Copyright © 2017 Mingkai Chen. All rights reserved.
+ *  also defines mergable immutable for a
+ *  series of forward and backward passes
+ *
+ *  Created by Mingkai Chen on 2017-06-26.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 
-#include "include/graph/connector/immutable/base_immutable.hpp"
-#include <memory>
+#include "include/graph/connector/iconnector.hpp"
+#include "include/graph/leaf/variable.hpp"
 
 #pragma once
 #ifndef TENNCOR_IMMUTABLE_HPP
@@ -22,17 +26,13 @@
 namespace nnet
 {
 
-class immutable : public base_immutable
+class immutable : public iconnector
 {
 public:
-	virtual ~immutable (void);
+	//! type for mapping leaf nodes to derivative with respect to leaf
+	using GRAD_CACHE = std::unordered_map<ileaf*,varptr>;
 
-	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
-	//! builder for immutables, grabs ownership of Nf
-	static immutable* get (std::vector<inode*> args,
-		SHAPER shaper, actor_func* Nf,
-		BACK_MAP ginit, std::string name,
-		inode* ignore_jacobian = nullptr);
+	virtual ~immutable (void);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
@@ -47,38 +47,78 @@ public:
 	//! declare move assignment to move over transfer functions
 	virtual immutable& operator = (immutable&& other);
 
+	// >>>> FORWARD & BACKWARD DATA <<<<
+	//! grab a temporary value traversing top-down
+	//! allocates out tensor. caller owns out
+	virtual void temporary_eval (const iconnector* target, inode*& out) const;
+
+	//! get gradient wrt some node, applies jacobians before evaluting resulting tensor
+	//! may call get_gradient
+	virtual varptr derive (inode* wrt);
+
+	//! Utility function: get data shape
+	virtual tensorshape get_shape (void) const;
+
+	// >>>> GRAPH STATUS <<<<
+	//! get gradient leaves
+	virtual std::unordered_set<ileaf*> get_leaves (void) const;
+
+	// >>>> NODE STATUS <<<<
+	//! check if the arguments are good; data is available
+	virtual bool good_status (void) const;
+
+	//! Inherited from inode: data_ takes data from proto
+	virtual bool read_proto (const tenncor::tensor_proto&);
+
+	// >>>> CALLED BY OBSERVER TO UPDATE <<<<
+	//! Inherited from iobserver: update data
+	//! Updates gcache_ and data_
+	virtual void update (std::unordered_set<size_t> argidx);
+
 protected:
 	// >>>> CONSTRUCTORS <<<<
 	//! immutable constructing an aggregate transfer function
-	immutable (std::vector<inode*> args,
-		SHAPER shaper, actor_func* Nf,
-		BACK_MAP ginit, std::string label);
+	immutable (std::vector<inode*> args, std::string label);
 
+	// >>>> COPY && MOVE CONSTRUCTORS <<<<
 	//! declare copy constructor to copy over transfer functions
 	immutable (const immutable& other);
 
 	//! declare move constructor to move over transfer functions
 	immutable (immutable&& other);
 
-	// >>>> POLYMORPHIC CLONERS <<<<
-	//! implement clone function
-	virtual inode* clone_impl (void) const;
-
-	//! move implementation
-	virtual inode* move_impl (void);
-
 	// >>>> PROTECTED CLONER <<<<
 	//! create a deep copy of this with args
-	virtual base_immutable* arg_clone (std::vector<inode*> args) const;
+	virtual immutable* arg_clone (std::vector<inode*> args) const = 0;
+
+	// >>>> KILL CONDITION <<<<
+	//! suicides when all observers die
+	void death_on_broken (void);
+
+	// >>>> INTERNAL DATA TRANSFERS <<<<
+	//! Forward passing value
+	virtual const tensor* get_eval (void) const;
+
+	//! grab operational gradient node, used by other nodes
+	//! delay instantiate gcache elements if target leaf was never instantiated
+	virtual inode* get_gradient (variable* leaf);
 
 	// >>>> FORWARD & BACKWARD <<<<
 	//! forward pass step: populate data_
-	virtual void forward_pass (void);
+	virtual void forward_pass (void) = 0;
 
 	//! backward pass step: populate gcache_[leaf]
-	virtual void backward_pass (variable* leaf);
+	virtual void backward_pass (variable* leaf) = 0;
 
-	itens_actor* actor_ = nullptr;
+	//! maps leaf to gradient node
+	//! lazy instantiates gradient nodes
+	//! - stores the gradient value wrt each leaf
+	//! - record leaf set
+	typename immutable::GRAD_CACHE gcache_;
+
+	// todo: have an option to disable data_ caching for performance boost
+	//! inner tensor to cache forward evaluated values
+	tensor* data_ = nullptr;
 
 private:
 	//! copy helper
@@ -87,16 +127,8 @@ private:
 	//! move helper
 	void move_helper (immutable&& other);
 
-	//! calculates shape of this node
-	SHAPER shaper_;
-
-	//! forward transfer function
-	//! calculates forward passing data
-	actor_func* Nf_ = nullptr;
-
-	//! backward transfer function to
-	//! lazy instantiate gradient cache values
-	BACK_MAP ginit_;
+	//! temporary_eval helper
+	inode* temp_eval_helper (const iconnector* target, constant*& out) const;
 };
 
 }

@@ -3,7 +3,7 @@
 //  cnnet
 //
 //  Created by Mingkai Chen on 2017-02-05.
-//  Copyright © 2016 Mingkai Chen. All rights reserved.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #include "include/tensor/tensor_handler.hpp"
@@ -16,7 +16,7 @@ namespace nnet
 {
 
 void default_assign (void* dest, const void* src, 
-	tenncor::tensor_proto::tensor_t type)
+	TENS_TYPE type)
 {
 	memcpy(dest, src, type_size(type));
 }
@@ -33,13 +33,13 @@ itensor_handler* itensor_handler::move (void)
 	return move_impl();
 }
 
-void* itensor_handler::get_raw (itensor& ten) const
+void* itensor_handler::get_raw (tensor& ten) const
 {
 	assert(ten.is_alloc());
 	return ten.get_data();
 }
 
-const void* itensor_handler::get_raw (const itensor& ten) const
+const void* itensor_handler::get_raw (const tensor& ten) const
 {
 	assert(ten.is_alloc());
 	return ten.get_data();
@@ -59,9 +59,9 @@ actor_func* actor_func::move (void)
 	return static_cast<actor_func*>(move_impl());
 }
 
-itens_actor* actor_func::operator () (itensor& out, std::vector<const itensor*>& args)
+itens_actor* actor_func::operator () (tensor& out, std::vector<const tensor*>& args)
 {
-	tenncor::tensor_proto::tensor_t type = out.get_type();
+	TENS_TYPE type = out.get_type();
 	size_t n_arg = args.size();
 	out_wrapper<void> dest
 	{
@@ -71,7 +71,7 @@ itens_actor* actor_func::operator () (itensor& out, std::vector<const itensor*>&
 	
 	std::vector<in_wrapper<void> > sources(n_arg);
 	std::transform(args.begin(), args.end(), sources.begin(),
-	[this, type](const itensor* arg)
+	[this, type](const tensor* arg)
 	{
 		if (type != arg->get_type())
 		{
@@ -108,10 +108,10 @@ assign_func* assign_func::move (void)
 	return static_cast<assign_func*>(move_impl());
 }
 
-void assign_func::operator () (itensor& out, const itensor& arg, ASSIGN_FUNC f) const
+void assign_func::operator () (tensor& out, const tensor& arg, ASSIGN_FUNC f) const
 {
 	tensorshape outshape = out.get_shape();
-	tenncor::tensor_proto::tensor_t type = out.get_type();
+	TENS_TYPE type = out.get_type();
 	if (type != arg.get_type())
 	{
 		throw std::exception();
@@ -127,8 +127,8 @@ void assign_func::operator () (itensor& out, const itensor& arg, ASSIGN_FUNC f) 
 	}
 }
 
-void assign_func::operator () (itensor& out, const void* indata, 
-	tenncor::tensor_proto::tensor_t type, ASSIGN_FUNC f) const
+void assign_func::operator () (tensor& out, const void* indata, 
+	TENS_TYPE type, ASSIGN_FUNC f) const
 {
 	tensorshape outshape = out.get_shape();
 	if (type != out.get_type())
@@ -167,7 +167,7 @@ initializer* initializer::move (void)
 	return static_cast<initializer*>(this->move_impl());
 }
 
-void initializer::operator () (itensor& out)
+void initializer::operator () (tensor& out)
 {
 	this->calc_data(this->get_raw(out), out.get_type(), out.get_shape());
 }
@@ -178,11 +178,11 @@ const_init::const_init (void) {}
 
 const_init::const_init (double data) : 
 	value_(nnutils::stringify(&data, 1)),
-	type_(tenncor::tensor_proto::DOUBLE_T) {}
+	type_(DOUBLE) {}
 
 const_init::const_init (std::vector<double> data) : 
 	value_(nnutils::stringify(&data[0], data.size())),
-	type_(tenncor::tensor_proto::DOUBLE_T) {}
+	type_(DOUBLE) {}
 
 const_init* const_init::clone (void) const
 {
@@ -205,7 +205,7 @@ itensor_handler* const_init::move_impl (void)
 }
 
 void const_init::calc_data (void* dest, 
-	tenncor::tensor_proto::tensor_t type, tensorshape outshape)
+	TENS_TYPE type, tensorshape outshape)
 {
 	assert(type == type_);
 	size_t nbytes = outshape.n_elems() * type_size(type);
@@ -243,9 +243,9 @@ itensor_handler* rand_uniform::move_impl (void)
 }
 
 void rand_uniform::calc_data (void* dest, 
-	tenncor::tensor_proto::tensor_t type, tensorshape outshape)
+	TENS_TYPE type, tensorshape outshape)
 {
-	assert(type == tenncor::tensor_proto::DOUBLE_T);
+	assert(type == DOUBLE);
 	size_t len = outshape.n_elems();
 	double* dest_d = (double*) dest;
 	auto gen = std::bind(distribution_, nnutils::get_generator());
@@ -276,9 +276,9 @@ itensor_handler* rand_uniform_int::move_impl (void)
 }
 
 void rand_uniform_int::calc_data (void* dest, 
-	tenncor::tensor_proto::tensor_t type, tensorshape outshape)
+	TENS_TYPE type, tensorshape outshape)
 {
-	assert(type == tenncor::tensor_proto::SIGNED_T);
+	assert(type == INT);
 	signed* dest_i = (signed*) dest;
 	size_t len = outshape.n_elems();
 	auto gen = std::bind(distribution_, nnutils::get_generator());
@@ -309,19 +309,19 @@ itensor_handler* rand_normal::move_impl (void)
 }
 
 void rand_normal::calc_data (void* dest, 
-	tenncor::tensor_proto::tensor_t type, tensorshape outshape)
+	TENS_TYPE type, tensorshape outshape)
 {
 	size_t len = outshape.n_elems();
 	auto gen = std::bind(distribution_, nnutils::get_generator());
 	switch (type)
 	{
-		case tenncor::tensor_proto::DOUBLE_T:
+		case DOUBLE:
 		{
 			double* dest_d = (double*) dest;
 			std::generate(dest_d, dest_d + len, gen);
 		}
 		break;
-		case tenncor::tensor_proto::SIGNED_T:
+		case INT:
 		{
 			signed* dest_i = (signed*) dest;
 			std::generate(dest_i, dest_i + len, gen);

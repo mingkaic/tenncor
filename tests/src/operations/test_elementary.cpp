@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 
 #include "include/graph/leaf/variable.hpp"
-#include "include/graph/operations/operations.hpp"
+#include "include/operations/operations.hpp"
 
 #include "tests/include/utils/util_test.h"
 #include "tests/include/utils/fuzz.h"
@@ -38,15 +38,15 @@ static const double epi = std::numeric_limits<double>::epsilon();
 
 // commonly used testing format
 static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
-	UNARY_SCALAR expect_forward, BINARY_SCALARS expect_back, 
-	std::function<void(std::vector<double>&)> primer = 
+	UNARY_SCALAR expect_forward, BINARY_SCALARS expect_back,
+	std::function<void(std::vector<double>&)> primer =
 	[](std::vector<double>&) {})
 {
 	tensorshape shape = random_def_shape(fuzzer);
 	size_t inn = shape.n_elems();
 	rand_uniform rinit(2, 12);
 
-	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "unar_var");
+	variable var(shape, rinit, nnet::DOUBLE, "unar_var");
 	varptr res = func(varptr(&var));
 
 	// Behavior A000
@@ -114,8 +114,8 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	}
 }
 
-static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func, 
-	BINARY_VAR1 func1, BINARY_VAR2 func2, BINARY_SCALARS expect_forward, 
+static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
+	BINARY_VAR1 func1, BINARY_VAR2 func2, BINARY_SCALARS expect_forward,
 	QUANARY_SCALARS expect_back)
 {
 	tensorshape shape = random_def_shape(fuzzer);
@@ -129,15 +129,15 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 
 	// matching pair
 	std::vector<double> scalars = fuzzer->get_double(2, "scalars", {3, 50});
-	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
-	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
+	variable var(shape, rinit, nnet::DOUBLE, "var");
+	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 
 	// Behavior A000
 	EXPECT_EQ(nullptr, func(varptr(nullptr), varptr(nullptr)));
 	EXPECT_EQ(nullptr, func(varptr(&var), varptr(nullptr)));
 	EXPECT_EQ(nullptr, func(varptr(nullptr), varptr(&var2)));
 
-	variable var3(shape2, rinit, tenncor::tensor_proto::DOUBLE_T, "unmatching_in");
+	variable var3(shape2, rinit, nnet::DOUBLE, "unmatching_in");
 	varptr res = func(varptr(&var), varptr(&var2));
 	varptr res1 = func1(varptr(&var), scalars[1]);
 	varptr res2 = func2(scalars[0], varptr(&var2));
@@ -420,7 +420,7 @@ TEST_F(ELEMENTARY, ClipNorm_)
 			var = var * cap / l2norm;
 		}
 		return gvar * var;
-	}, 
+	},
 	[cap, &l2norm](std::vector<double>& vec)
 	{
 		l2norm = 0;
@@ -525,8 +525,8 @@ TEST_F(ELEMENTARY, Add_A000ToA004_A012)
 	rand_uniform rinit(2, 12);
 	varptr zero = constant::get(0.0);
 	varptr one = constant::get(1.0);
-	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
-	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
+	variable var(shape, rinit, nnet::DOUBLE, "var");
+	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 
 	// Behavior A004
 	varptr samev1 = varptr(&var) +  0.0;
@@ -577,8 +577,8 @@ TEST_F(ELEMENTARY, Sub_A000ToA003_A012_A005)
 	rand_uniform rinit(2, 12);
 	varptr zero = constant::get(0.0);
 	varptr one = constant::get(1.0);
-	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
-	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
+	variable var(shape, rinit, nnet::DOUBLE, "var");
+	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 
 	// Behavior A005
 	varptr samev1 = varptr(&var) -  0.0;
@@ -645,8 +645,8 @@ TEST_F(ELEMENTARY, Mul_A000ToA003_A012_A006ToA007)
 	varptr zero = constant::get(0.0);
 	varptr one = constant::get(1.0);
 	varptr two = constant::get(2.0);
-	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
-	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
+	variable var(shape, rinit, nnet::DOUBLE, "var");
+	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 
 	// Behavior A006
 	varptr zaro = varptr(&var) *  0.0;
@@ -724,8 +724,8 @@ TEST_F(ELEMENTARY, Div_A000ToA003_A012_A008ToA009)
 	varptr zero = constant::get(0.0);
 	varptr one = constant::get(1.0);
 	varptr two = constant::get(2.0);
-	variable var(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var");
-	variable var2(shape, rinit, tenncor::tensor_proto::DOUBLE_T, "var2");
+	variable var(shape, rinit, nnet::DOUBLE, "var");
+	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 
 	// Behavior A006
 	varptr zaro = 0.0 / varptr(&var2);

@@ -3,7 +3,7 @@
 //
 
 #include "include/graph/leaf/variable.hpp"
-#include "include/graph/operations/operations.hpp"
+#include "include/operations/operations.hpp"
 
 #pragma once
 #ifndef ROCNNET_GD_UTILS_HPP

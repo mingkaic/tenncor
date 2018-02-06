@@ -12,7 +12,7 @@
 #ifndef DISABLE_ITENSOR_TEST
 
 
-class ITENSOR : public FUZZ::fuzz_test {};
+class tensor : public FUZZ::fuzz_test {};
 
 
 static tensorshape random_partialshape (FUZZ::fuzz_test* fuzzer)
@@ -28,8 +28,8 @@ static tensorshape random_partialshape (FUZZ::fuzz_test* fuzzer)
 }
 
 
-// cover itensor: scalar constructor
-TEST_F(ITENSOR, ScalarConstructor_C000)
+// cover tensor: scalar constructor
+TEST_F(tensor, ScalarConstructor_C000)
 {
 	std::vector<double> vals = get_double(3, "vals");
 	double value = vals[0];
@@ -55,10 +55,10 @@ TEST_F(ITENSOR, ScalarConstructor_C000)
 }
 
 
-// cover itensor:
+// cover tensor:
 // default, shape constructors,
 // is_alloc, total_bytes
-TEST_F(ITENSOR, Construct_C001)
+TEST_F(tensor, Construct_C001)
 {
 	tensorshape pshape = random_partialshape(this);
 	tensorshape cshape = random_def_shape(this);
@@ -82,9 +82,9 @@ TEST_F(ITENSOR, Construct_C001)
 }
 
 
-// cover itensor:
+// cover tensor:
 // clone and assignment
-TEST_F(ITENSOR, Copy_C002)
+TEST_F(tensor, Copy_C002)
 {
 	mock_itensor undefassign;
 	mock_itensor scalarassign;
@@ -133,9 +133,9 @@ TEST_F(ITENSOR, Copy_C002)
 }
 
 
-// cover itensor:
+// cover tensor:
 // move constructor and assignment
-TEST_F(ITENSOR, Move_C002)
+TEST_F(tensor, Move_C002)
 {
 	mock_itensor scalarassign;
 	mock_itensor compassign;
@@ -183,15 +183,15 @@ TEST_F(ITENSOR, Move_C002)
 }
 
 
-TEST_F(ITENSOR, DISABLED_WrapperFunc_)
+TEST_F(tensor, DISABLED_WrapperFunc_)
 {
 	// todo: implement + add to behavior.txt
 }
 
 
-// cover itensor:
+// cover tensor:
 // rank. dims
-TEST_F(ITENSOR, Shape_C003)
+TEST_F(tensor, Shape_C003)
 {
 	tensorshape singular(std::vector<size_t>{1});
 	tensorshape pshape = random_partialshape(this);
@@ -219,8 +219,8 @@ TEST_F(ITENSOR, Shape_C003)
 }
 
 
-// cover itensor: is_same_size
-TEST_F(ITENSOR, IsSameSize_C004)
+// cover tensor: is_same_size
+TEST_F(tensor, IsSameSize_C004)
 {
 	tensorshape cshape = random_def_shape(this);
 	std::vector<size_t> cv = cshape.as_list();
@@ -279,9 +279,9 @@ TEST_F(ITENSOR, IsSameSize_C004)
 }
 
 
-// cover itensor: 
-// is_compatible_with tensor => bool is_compatible_with (const itensor& other) const
-TEST_F(ITENSOR, IsCompatibleWithTensor_C005)
+// cover tensor:
+// is_compatible_with tensor => bool is_compatible_with (const tensor& other) const
+TEST_F(tensor, IsCompatibleWithTensor_C005)
 {
 	tensorshape cshape = random_def_shape(this);
 	std::vector<size_t> cv = cshape.as_list();
@@ -308,10 +308,10 @@ TEST_F(ITENSOR, IsCompatibleWithTensor_C005)
 }
 
 
-// cover itensor:
+// cover tensor:
 // is_compatible_with vector => bool is_compatible_with (size_t ndata) const,
 // is_loosely_compatible_with
-TEST_F(ITENSOR, IsCompatibleWithVector_C006)
+TEST_F(tensor, IsCompatibleWithVector_C006)
 {
 	tensorshape pshape = random_partialshape(this);
 	tensorshape cshape = random_def_shape(this);
@@ -324,10 +324,10 @@ TEST_F(ITENSOR, IsCompatibleWithVector_C006)
 	size_t lowerdata = 1;
 	if (exactdata >= 3)
 	{
-		lowerdata = exactdata - get_int(1, 
+		lowerdata = exactdata - get_int(1,
 			"exactdata - lowerdata", {1, exactdata-1})[0];
 	}
-	size_t upperdata = exactdata + get_int(1, 
+	size_t upperdata = exactdata + get_int(1,
 		"upperdata - exactdata", {1, exactdata-1})[0];
 
 	EXPECT_TRUE(comp.is_compatible_with(exactdata));
@@ -342,10 +342,10 @@ TEST_F(ITENSOR, IsCompatibleWithVector_C006)
 	size_t lowerdata2 = 1;
 	if (exactdata2 >= 3)
 	{
-		lowerdata2 = exactdata2 - get_int(1, 
+		lowerdata2 = exactdata2 - get_int(1,
 			"exactdata2 - lowerdata2", {1, exactdata2-1})[0];
 	}
-	size_t moddata = exactdata2 * get_int(1, 
+	size_t moddata = exactdata2 * get_int(1,
 		"moddata / exactdata2", {2, 15})[0];
 	size_t upperdata2 = moddata + 1;
 
@@ -380,7 +380,7 @@ TEST_F(ITENSOR, IsCompatibleWithVector_C006)
 
 // covers tensor
 // guess_shape, loosely_guess_shape
-TEST_F(ITENSOR, GuessShape_C007)
+TEST_F(tensor, GuessShape_C007)
 {
 	tensorshape pshape = random_partialshape(this);
 	tensorshape cshape = random_def_shape(this);
@@ -392,10 +392,10 @@ TEST_F(ITENSOR, GuessShape_C007)
 	size_t lowerdata = 1;
 	if (exactdata >= 3)
 	{
-		lowerdata = exactdata - get_int(1, 
+		lowerdata = exactdata - get_int(1,
 			"exactdata - lowerdata", {1, exactdata-1})[0];
 	}
-	size_t upperdata = exactdata + get_int(1, 
+	size_t upperdata = exactdata + get_int(1,
 		"upperdata - exactdata", {1, exactdata-1})[0];
 
 	// allowed are fully defined
@@ -409,7 +409,7 @@ TEST_F(ITENSOR, GuessShape_C007)
 	size_t lowerdata2 = 1;
 	if (exactdata2 >= 3)
 	{
-		lowerdata2 = exactdata2 - get_int(1, 
+		lowerdata2 = exactdata2 - get_int(1,
 			"exactdata2 - lowerdata2", {1, exactdata2-1})[0];
 	}
 	size_t moddata = exactdata2 * get_int(1, "moddata / exactdata2", {2, 15})[0];
@@ -465,10 +465,10 @@ TEST_F(ITENSOR, GuessShape_C007)
 }
 
 
-// covers itensor: 
+// covers tensor:
 // serialize,
-// from_proto without alloc reassign => bool from_proto (const tenncor::tensor_proto& other)
-TEST_F(ITENSOR, Serialize_C008)
+// from_proto without alloc reassign => bool from_proto (const nnet::TENS_TYPE& other)
+TEST_F(tensor, Serialize_C008)
 {
 	
 }

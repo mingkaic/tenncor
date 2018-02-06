@@ -12,7 +12,7 @@ cc_test(
 	size = "small",
 	srcs = COMMON_SRC + glob([
 		"include/mocks/mock_connector.h",
-		"include/mocks/mock_immutable.h",
+		"include/mocks/mock_linear.h",
 		"include/mocks/mock_itensor.h",
 		"include/mocks/mock_node.h",
 		"src/graph/connector/*.cpp",
@@ -95,7 +95,7 @@ cc_test(
 	srcs = COMMON_SRC + glob([
 		"include/mocks/mock_itensor.h",
 		"include/mocks/mock_tensor.h",
-		"src/tensor/*.cpp", 
+		"src/tensor/*.cpp",
 	]),
 	deps = [
 		"//:tenncor",

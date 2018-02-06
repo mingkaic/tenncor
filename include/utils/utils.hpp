@@ -7,7 +7,7 @@
  *  utils contain commonly used stream formatter, and uuid generator
  *
  *  Created by Mingkai Chen on 2016-08-29.
- *  Copyright © 2016 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 

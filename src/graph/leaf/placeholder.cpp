@@ -3,7 +3,7 @@
 //  cnnet
 //
 //  Created by Mingkai Chen on 2016-08-29.
-//  Copyright © 2016 Mingkai Chen. All rights reserved.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #include "include/graph/leaf/placeholder.hpp"
@@ -13,13 +13,14 @@
 namespace nnet
 {
 
-placeholder::placeholder (const tensorshape& shape, 
-	tenncor::tensor_proto::tensor_t type, std::string name) :
-ivariable(shape, type, nullptr, name) {}
+placeholder::placeholder (const tensorshape& shape, std::string name) :
+	ileaf(name), dsrc_(asgn_) {}
 
-placeholder::placeholder (const placeholder& other) : ivariable(other) {}
+placeholder::placeholder (const placeholder& other) : 
+	ileaf(other) {}
 
-placeholder::placeholder (placeholder&& other) : ivariable(std::move(other)) {}
+placeholder::placeholder (placeholder&& other) : 
+	ileaf(std::move(other)) {}
 
 placeholder* placeholder::clone (void) const
 {
@@ -35,7 +36,9 @@ placeholder& placeholder::operator = (const placeholder& other)
 {
 	if (this != &other)
 	{
-		ivariable::operator = (other);
+		ileaf::operator = (other);
+		copy_helper(other);
+		this->notify(UPDATE);
 	}
 	return *this;
 }
@@ -44,23 +47,26 @@ placeholder& placeholder::operator = (placeholder&& other)
 {
 	if (this != &other)
 	{
-		ivariable::operator = (std::move(other));
+		ileaf::operator = (std::move(other));
+		move_helper(std::move(other));
+		this->notify(UPDATE);
 	}
 	return *this;
 }
 
+
 // changes shape
-placeholder& placeholder::operator = (itensor& data)
+placeholder& placeholder::operator = (tensor& data)
 {
-	if (this->data_)
+	if (&data != data_.get())
 	{
-		delete this->data_;
+		data_->write_to(*asgn_);
+		data_->copy();
+		this->notify(UPDATE);
 	}
-	this->data_ = data.move();
-	this->is_init_ = true;
-	this->notify(UPDATE);
 	return *this;
 }
+
 
 inode* placeholder::clone_impl (void) const
 {
@@ -72,9 +78,25 @@ inode* placeholder::move_impl (void)
 	return new placeholder(std::move(*this));
 }
 
-inode* placeholder::get_gradient (variable*)
+void placeholder::copy_helper (const placeholder& other)
 {
-	return constant::get_shared_zero();
+	// copy over data if other has good_status (we want to ignore uninitialized data)
+	if (nullptr != other.data_)
+	{
+		data_ = other.data_->clone(!other.good_status());
+		asgn_ = data_->get_source();
+	}
+	else
+	{
+		data_ = nullptr;
+		asgn_ = nullptr;
+	}
+}
+
+void placeholder::move_helper (placeholder&& other)
+{
+	data_ = std::move(other.data_);
+	asgn_ = std::move(other.asgn_);
 }
 
 placeptr::placeptr (placeholder* ptr) : varptr(ptr) {}
@@ -85,7 +107,7 @@ placeptr& placeptr::operator = (placeholder* other)
 	return *this;
 }
 
-placeptr& placeptr::operator = (itensor& ten)
+placeptr& placeptr::operator = (tensor& ten)
 {
 	*get() = ten;
 	return *this;

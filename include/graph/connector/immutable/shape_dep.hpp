@@ -11,11 +11,11 @@
  *  Tensor data_ is guaranteed to be 2-D
  *
  *  Created by Mingkai Chen on 2017-07-03.
- *  Copyright © 2017 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 
-#include "include/graph/connector/immutable/base_immutable.hpp"
+#include "include/graph/connector/immutable/immutable.hpp"
 
 #pragma once
 #ifndef TENNCOR_SHAPE_DEP_HPP
@@ -27,14 +27,14 @@ namespace nnet
 using SHAPE_EXTRACT = std::function<std::vector<size_t>(tensorshape&)>;
 
 // todo: make tensor unaligned
-class shape_dep : public base_immutable
+class shape_dep : public immutable
 {
 public:
 	virtual ~shape_dep (void);
 
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for immutables, grabs ownership of Nf
-	static shape_dep* get (inode* arg, SHAPE_EXTRACT forward, 
+	static shape_dep* get (inode* arg, SHAPE_EXTRACT forward,
 		tensorshape shape, std::string name);
 
 	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
@@ -71,7 +71,7 @@ protected:
 
 	// >>>> PROTECTED CLONER <<<<
 	//! create a deep copy of this with args
-	virtual base_immutable* arg_clone (std::vector<inode*> args) const;
+	virtual immutable* arg_clone (std::vector<inode*> args) const;
 
 	// >>>> FORWARD & BACKWARD <<<<
 	//! forward pass step: populate data_

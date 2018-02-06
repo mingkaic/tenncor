@@ -17,8 +17,8 @@ class mock_ivariable : public ivariable
 {
 public:
 	mock_ivariable (const tensorshape& shape,
-		initializer* init, std::string name) : 
-	ivariable(shape, tenncor::tensor_proto::DOUBLE_T, init, name) {}
+		initializer* init, std::string name) :
+	ivariable(shape, nnet::DOUBLE, init, name) {}
 	virtual std::unordered_set<ileaf*> get_leaves (void) const
 	{
 		return std::unordered_set<ileaf*>{};

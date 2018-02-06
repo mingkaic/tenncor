@@ -3,7 +3,7 @@
 //  cnnet
 //
 //  Created by Ming Kai Chen on 2017-11-07.
-//  Copyright © 2017 Mingkai Chen. All rights reserved.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #ifdef RPC_RCD
@@ -52,6 +52,6 @@ private:
 
 }
 
-#endif /* grpc_record_HPP */ 
+#endif /* grpc_record_HPP */
 
 #endif /* RPC_RCD */

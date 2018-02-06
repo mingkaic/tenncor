@@ -215,7 +215,7 @@ variable_updater rmspropupdater::process_update (varptr& gres,
 	variable* leaf, grad_process intermediate_process)
 {
 	const_init wuninit((double) 1);
-	variable* momentum = new variable(leaf->get_shape(), wuninit, tenncor::tensor_proto::DOUBLE_T, "momentum");
+	variable* momentum = new variable(leaf->get_shape(), wuninit, DOUBLE, "momentum");
 	momentum->initialize();
 	momentums_.push_back(momentum); // updater manages momentum variable
 

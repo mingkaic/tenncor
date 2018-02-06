@@ -1,9 +1,9 @@
 //
-//  leaf.cpp
+//  variable.cpp
 //  cnnet
 //
-//  Created by Mingkai Chen on 2016-08-29.
-//  Copyright © 2016 Mingkai Chen. All rights reserved.
+//  Created by Mingkai Chen on 2017-02-27.
+//  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #include "include/graph/leaf/variable.hpp"
@@ -13,204 +13,173 @@
 namespace nnet
 {
 
-static inline void v_assign_add (void* dest, const void* src, tenncor::tensor_proto::tensor_t type)
-{
-	switch (type)
-	{
-		case tenncor::tensor_proto::DOUBLE_T:
-			*((double*) dest) += *((const double*) src);
-		break;
-		case tenncor::tensor_proto::SIGNED_T:
-			*((signed*) dest) += *((const signed*) src);
-		break;
-		default:
-		break;
-	}
-}
-
-static inline void v_assign_sub (void* dest, const void* src, tenncor::tensor_proto::tensor_t type)
-{
-	switch (type)
-	{
-		case tenncor::tensor_proto::DOUBLE_T:
-			*((double*) dest) -= *((const double*) src);
-		break;
-		case tenncor::tensor_proto::SIGNED_T:
-			*((signed*) dest) -= *((const signed*) src);
-		break;
-		default:
-		break;
-	}
-}
-
-variable::variable (double scalar, std::string name) :
-	ivariable(std::vector<size_t>{1}, 
-		tenncor::tensor_proto::DOUBLE_T,
-		new const_init(scalar), name)
-{
-	initialize();
-}
-
 variable::variable (const tensorshape& shape, 
-	tenncor::tensor_proto::tensor_t type, std::string name) :
-	ivariable(shape, type, nullptr, name) {}
+	std::shared_ptr<idata_source> source, std::string name) :
+ileaf(name), dsrc_(new open_source(source))
+{
+	data_ = new tensor(shape, dsrc_);
+}
 
-variable::variable (const tensorshape& shape, const initializer& init, 
-	tenncor::tensor_proto::tensor_t type, std::string name) :
-ivariable(shape, type, init.clone(), name) {}
+variable::variable (const variable& other) :
+	ileaf(other)
+{
+	copy_helper(other);
+}
+
+variable::variable (variable&& other) :
+	ileaf(std::move(other))
+{
+	move_helper(std::move(other));
+}
+
+variable::~variable (void)
+{
+	if (nullptr != init_)
+	{
+		delete init_;
+	}
+}
 
 variable* variable::clone (void) const
 {
-	return static_cast<variable*>(clone_impl());
+	return static_cast<variable*>(this->clone_impl());
 }
 
 variable* variable::move (void)
 {
-	return static_cast<variable*>(move_impl());
+	return static_cast<variable*>(this->move_impl());
 }
 
-void variable::set_initializer (const initializer& init)
+variable& variable::operator = (const variable& other)
 {
-	if (this->init_)
+	if (this != &other)
 	{
-		delete this->init_;
+		ileaf::operator = (other);
+		copy_helper(other);
+		this->notify(UPDATE);
 	}
-	this->init_ = init.clone();
+	return *this;
 }
 
-itensor& variable::initialize (void)
+variable& variable::operator = (variable&& other)
 {
-	assert(nullptr != this->init_);
-	// if not alloc, attempt to allocate, throw if fail
-	if (false == this->data_->is_alloc() &&
-		false == this->data_->allocate())
+	if (this != &other)
 	{
-		throw std::runtime_error(this->get_label() + " data is not allocated");
+		ileaf::operator = (std::move(other));
+		move_helper(std::move(other));
+		this->notify(UPDATE);
 	}
-	initializer* init = static_cast<initializer*>(this->init_);
-	(*init)(*(this->data_));
-	this->is_init_ = true;
-	this->notify(UPDATE);
-	return *this->data_;
+	return *this;
 }
 
-itensor& variable::initialize (tensorshape shape)
+
+tensor* constant::get_tensor (void)
 {
-	assert(this->init_ != nullptr);
-	if (false == this->data_->allocate(shape))
+	return data_.get();
+}
+
+varptr variable::derive (inode* wrt)
+{
+	tensorshape shape = data_->get_shape();
+	std::vector<double> data(shape.n_elems(), 
+		(double) this == wrt);
+	return constant::get(data, shape);
+}
+
+bool variable::initialize (void)
+{
+	bool success = data_->has_data();
+	if (success)
 	{
-		std::stringstream ss;
-		ss << "shape ";
-		print_shape(shape, ss);
-		ss << " failed to allocate " << this->get_label();
-		throw std::runtime_error(ss.str());
+		data_->get_shape().assert_is_fully_defined();
+		success = data_->read();
 	}
-	initializer* init = static_cast<initializer*>(this->init_);
-	(*init)(*(this->data_));
-	this->is_init_ = true;
-	this->notify(UPDATE);
-	return *this->data_;
+	return success;
 }
 
-variable_updater variable::assign (inode* input)
+bool variable::initialize (tensorshape shape)
 {
-	assert(input);
-	if (constant* con = dynamic_cast<constant*>(input))
+	bool success = data_->has_data();
+	if (success)
 	{
-		const itensor* data = con->eval();
-		return [this, data](bool notify)
+		shape.assert_is_fully_defined();
+		success = data_->read(shape);
+	}
+	return success;
+}
+
+bool variable::assign (inode* input, bool notify)
+{
+	bool successful = input != nullptr;
+	if (successful)
+	{
+		dsrc_->source_ = asgn_;
+		tensor* itens = input->get_tensor();
+		successful = itens->has_data();
+		if (successful)
 		{
-			this->assigner_(*(this->data_), *data);
+			itens->write_to(*asgn_);
+			data_->copy();
 			if (notify)
 			{
-				this->notify(notification::UPDATE);
+				this->notify(UPDATE);
 			}
-		};
-	}
-
-	return [this, input](bool notify)
-	{
-		itensor* out_tens = this->data_;
-		const itensor* in_tens = input->eval();
-		assert(in_tens);
-		this->assigner_(*out_tens, *in_tens);
-		this->is_init_ = true;
-		if (notify)
-		{
-			this->notify(notification::UPDATE);
+			asgn_->clear();
 		}
-	};
+	}
+	return successful;
 }
 
-variable_updater variable::assign_add (inode* input)
+bool variable::assign_add (inode* input, bool notify)
 {
-	assert(input);
-	if (constant* con = dynamic_cast<constant*>(input))
+	bool successful = input != nullptr && data_->has_data();
+	if (successful)
 	{
-		if (*con == 0)
+		dsrc_->source_ = asgn_;
+		tensor* itens = input->get_tensor();
+		successful = itens->has_data();
+		if (successful)
 		{
-			return [](bool) {};
-		}
-		const itensor* data = con->eval();
-		return [this, data](bool notify)
-		{
-			assert(this->is_init_);
-			itensor* out_tens = this->data_;
-			this->assigner_(*out_tens, *data, v_assign_add);
+			asgn_->opname_ = "add";
+			asgn_->dest_ = data_;
+			data_->write_to(*asgn_, 0);
+			itens->write_to(*asgn_, 1);
+			data_->copy();
 			if (notify)
 			{
-				this->notify(notification::UPDATE);
+				this->notify(UPDATE);
 			}
-		};
-	}
-
-	return [this, input](bool notify)
-	{
-		itensor* out_tens = this->data_;
-		const itensor* in_tens = input->eval();
-		assert(in_tens);
-		this->assigner_(*out_tens, *in_tens, v_assign_add);
-		if (notify)
-		{
-			this->notify(notification::UPDATE);
+			asgn_->clear();
 		}
-	};
+	}
+	return successful;
 }
 
-variable_updater variable::assign_sub (inode* input)
+bool variable::assign_sub (inode* input, bool notify)
 {
-	assert(input);
-	if (constant* con = dynamic_cast<constant*>(input))
+	bool successful = input != nullptr && data_->has_data();
+	if (successful)
 	{
-		if (*con == (double)0)
+		dsrc_->source_ = asgn_;
+		tensor* itens = input->get_tensor();
+		successful = itens->has_data();
+		if (successful)
 		{
-			return [](bool) {};
-		}
-		const itensor* data = con->eval();
-		return [this, data](bool notify)
-		{
-			assert(this->is_init_);
-			itensor* out_tens = this->data_;
-			this->assigner_(*out_tens, *data, v_assign_sub);
+			asgn_->opname_ = "sub";
+			asgn_->dest_ = data_;
+			data_->write_to(*asgn_, 0);
+			itens->write_to(*asgn_, 1);
+			data_->copy();
 			if (notify)
 			{
-				this->notify(notification::UPDATE);
+				this->notify(UPDATE);
 			}
-		};
-	}
-
-	return [this, input](bool notify)
-	{
-		itensor* out_tens = this->data_;
-		const itensor* in_tens = input->eval();
-		assert(in_tens);
-		this->assigner_(*out_tens, *in_tens, v_assign_sub);
-		if (notify)
-		{
-			this->notify(notification::UPDATE);
+			asgn_->clear();
 		}
-	};
+	}
+	return successful;
 }
+
 
 inode* variable::clone_impl (void) const
 {
@@ -222,13 +191,25 @@ inode* variable::move_impl (void)
 	return new variable(std::move(*this));
 }
 
-inode* variable::get_gradient (variable* leaf)
+void variable::copy_helper (const variable& other)
 {
-	if (this == leaf)
+	// copy over data if other has good_status (we want to ignore uninitialized data)
+	if (nullptr != other.data_)
 	{
-		return constant::get_shared_one();
+		data_ = other.data_->clone(!other.good_status());
+		dsrc_ = data_->get_source();
 	}
-	return constant::get_shared_zero();
+	else
+	{
+		data_ = nullptr;
+		dsrc_ = nullptr;
+	}
+}
+
+void variable::move_helper (variable&& other)
+{
+	data_ = std::move(other.data_);
+	dsrc_ = std::move(other.dsrc_);
 }
 
 }

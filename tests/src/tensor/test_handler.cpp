@@ -32,7 +32,7 @@ static double SUPERMARK = 1;
 
 struct forward_mark : public tens_template<double>
 {
-	forward_mark (out_wrapper<void> dest, 
+	forward_mark (out_wrapper<void> dest,
 		std::vector<in_wrapper<void> > srcs) :
 	tens_template(dest, srcs) {}
 
@@ -47,8 +47,8 @@ struct forward_mark : public tens_template<double>
 };
 
 
-static itens_actor* marked_forward (out_wrapper<void>& dest, 
-	std::vector<in_wrapper<void> >& srcs, tenncor::tensor_proto::tensor_t type)
+static itens_actor* marked_forward (out_wrapper<void>& dest,
+	std::vector<in_wrapper<void> >& srcs, nnet::TENS_TYPE type)
 {
 	return new forward_mark(dest, srcs);
 }
@@ -77,7 +77,7 @@ TEST_F(HANDLER, Transfer_D000)
 	mock_itensor arg1(this, c1);
 	mock_itensor arg2(this, c2);
 	tensor_double good(resshape);
-	std::vector<const itensor*> args = { &arg1, &arg2 };
+	std::vector<const tensor*> args = { &arg1, &arg2 };
 
 	actor_func tf(adder);
 	itens_actor* actor = tf(good, args);
@@ -200,7 +200,7 @@ TEST_F(HANDLER, Copy_D003)
 	tensor_double tblock(shape);
 	tensor_double tblock_norm(shape);
 	tensor_double ttransf(std::vector<size_t>{(size_t) SUPERMARK});
-	std::vector<const itensor*> empty_args;
+	std::vector<const tensor*> empty_args;
 	itens_actor* actor = (*tfcpy)(ttransf, empty_args);
 	actor->action();
 	std::vector<double> transfv = ttransf.expose();
@@ -311,7 +311,7 @@ TEST_F(HANDLER, Move_D003)
 	tensor_double tblock(shape);
 	tensor_double tblock_norm(shape);
 	tensor_double ttransf(std::vector<size_t>{(size_t) SUPERMARK});
-	std::vector<const itensor*> empty_args;
+	std::vector<const tensor*> empty_args;
 	itens_actor* actor = (*tfmv)(ttransf, empty_args);
 	actor->action();
 	std::vector<double> transfv = ttransf.expose();

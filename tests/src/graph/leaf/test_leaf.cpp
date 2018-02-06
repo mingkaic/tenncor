@@ -41,7 +41,7 @@ TEST_F(LEAF, Copy_C000)
 	bool initstatus2 = res2.good_status();
 	bool initstatus3 = uninit.good_status();
 	const tensor_double* init_data = dynamic_cast<const tensor_double*>(res.eval());
-	const itensor* init_data2 = res2.eval(); // res2 is not good
+	const tensor* init_data2 = res2.eval(); // res2 is not good
 
 	ileaf* cpy = res.clone();
 	ileaf* cpy2 = res2.clone();
@@ -54,13 +54,13 @@ TEST_F(LEAF, Copy_C000)
 	bool cpystatus2 = cpy2->good_status();
 	bool cpystatus3 = cpy3->good_status();
 	const tensor_double* cpy_data = dynamic_cast<const tensor_double*>(cpy->eval());
-	const itensor* cpy_data2 = cpy2->eval();
+	const tensor* cpy_data2 = cpy2->eval();
 
 	bool assignstatus = assign.good_status();
 	bool assignstatus2 = assign2.good_status();
 	bool assignstatus3 = assign3.good_status();
 	const tensor_double* assign_data = dynamic_cast<const tensor_double*>(assign.eval());
-	const itensor* assign_data2 = assign2.eval();
+	const tensor* assign_data2 = assign2.eval();
 
 	EXPECT_EQ(initstatus, cpystatus);
 	EXPECT_EQ(initstatus, assignstatus);
@@ -130,9 +130,9 @@ TEST_F(LEAF, Move_C000)
 	bool initstatus = res.good_status();
 	bool initstatus2 = res2.good_status();
 	bool initstatus3 = uninit.good_status();
-	const itensor* init_data = res.eval();
-	const itensor* init_data2 = res2.eval();
-	const itensor* init_data3 = uninit.eval();
+	const tensor* init_data = res.eval();
+	const tensor* init_data2 = res2.eval();
+	const tensor* init_data3 = uninit.eval();
 
 	ileaf* mv = res.move();
 	ileaf* mv2 = res2.move();
@@ -142,9 +142,9 @@ TEST_F(LEAF, Move_C000)
 	bool mvstatus2 = mv2->good_status();
 	bool mvstatus3 = mv3->good_status();
 	// ensure shallow copy
-	const itensor* mv_data = mv->eval();
-	const itensor* mv_data2 = mv2->eval();
-	const itensor* mv_data3 = mv3->eval();
+	const tensor* mv_data = mv->eval();
+	const tensor* mv_data2 = mv2->eval();
+	const tensor* mv_data3 = mv3->eval();
 	EXPECT_EQ(init_data, mv_data);
 	EXPECT_EQ(init_data2, mv_data2);
 	EXPECT_EQ(init_data3, mv_data3);
@@ -165,9 +165,9 @@ TEST_F(LEAF, Move_C000)
 	bool assignstatus2 = assign2.good_status();
 	bool assignstatus3 = assign3.good_status();
 	// ensure shallow copy
-	const itensor* assign_data = assign.eval();
-	const itensor* assign_data2 = assign2.eval();
-	const itensor* assign_data3 = assign3.eval();
+	const tensor* assign_data = assign.eval();
+	const tensor* assign_data2 = assign2.eval();
+	const tensor* assign_data3 = assign3.eval();
 	EXPECT_EQ(mv_data, assign_data);
 	EXPECT_EQ(mv_data2, assign_data2);
 	EXPECT_EQ(mv_data3, assign_data3);
@@ -229,8 +229,8 @@ TEST_F(LEAF, GetEval_C002)
 	res.set_good();
 	res2.set_good();
 
-	const itensor* rout = res.eval();
-	const itensor* r2out = res2.eval();
+	const tensor* rout = res.eval();
+	const tensor* r2out = res2.eval();
 
 	ASSERT_NE(nullptr, rout);
 	ASSERT_NE(nullptr, r2out);

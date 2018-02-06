@@ -8,7 +8,7 @@
  *  all pure subject nodes in the graph
  *
  *  Created by Mingkai Chen on 2016-08-29.
- *  Copyright © 2016 Mingkai Chen. All rights reserved.
+ *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
 
@@ -26,7 +26,6 @@ class ileaf : public inode
 public:
 	virtual ~ileaf (void);
 
-	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
 	ileaf* clone (void) const;
 
@@ -39,68 +38,44 @@ public:
 	//! declare move assignment to move over data
 	virtual ileaf& operator = (ileaf&& other);
 
-	// >>>> IDENTIFICATION <<<<
+
+
+	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	// >>>>>> IDENTIFICATION <<<<<<
+
 	//! get the distance between this node and the furthest dependent leaf (maximum spanning tree height)
 	virtual size_t get_depth (void) const;
 
-	// >>>> OBSERVER & OBSERVABLE INFO <<<<
-	//! get all observerables: no observables
-	virtual std::vector<inode*> get_arguments (void) const;
+	// >>>>>> CONNECTION QUERY <<<<<<
 
-	//! get the number of observables: 0
-	virtual size_t n_arguments (void) const;
-
-	// >>>> FORWARD DATA <<<<
-	//! get forward passing value, (pull data if necessary)
-	virtual const itensor* eval (void);
-
-	//! utility function: get data shape
-	virtual tensorshape get_shape (void) const;
-
-	// >>>> GRAPH STATUS <<<<
 	//! merge/update the gradient/leaf info
 	virtual std::unordered_set<ileaf*> get_leaves (void) const;
 
-	// >>>> NODE STATUS <<<<
+	// >>>>>> NODE CONTENT <<<<<<
+
 	//! check if data is available
 	//! (if the node is initialized)
 	virtual bool good_status (void) const;
 
-	//! Inherited from inode: data_ takes data from proto
-	virtual bool read_proto (const tenncor::tensor_proto& proto);
+
+
+	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
+
+	//! get tensor data
+	virtual tensor* get_tensor (void);
 
 protected:
-	// >>>> CONSTRUCTORS <<<<
-	ileaf (std::string name);
+	ileaf (std::string name); // todo: evaluate usefulness
 
 	//! assign initializer
-	ileaf (const tensorshape& shape, 
-		tenncor::tensor_proto::tensor_t type, std::string name);
+	ileaf (const tensorshape& shape, idata_source* source, std::string name);
 
 	//! declare copy constructor to deep copy over data
 	ileaf (const ileaf& other);
 
 	//! declare move constructor to move over data
 	ileaf (ileaf&& other);
-
-	itensor* init (const tensorshape& shape, 
-		tenncor::tensor_proto::tensor_t type);
-
-	// >>>> INTERNAL DATA TRANSFERS <<<<
-	//! get forward passing value
-	//! return nullptr if leaf is not init
-	virtual const itensor* get_eval (void) const;
-
-	//! raw data
-	itensor* data_ = nullptr;
-
-	//! is the itensor initialized?
-	//! TRUE = initialized/good,
-	//! FALSE = uninitialized/bad
-	bool is_init_ = false;
-
-	//! common assignment itensor handler
-	assign_func assigner_;
 
 private:
 	//! copy helper
