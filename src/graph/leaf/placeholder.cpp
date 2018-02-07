@@ -14,12 +14,12 @@ namespace nnet
 {
 
 placeholder::placeholder (const tensorshape& shape, std::string name) :
-	ileaf(name), dsrc_(asgn_) {}
+	ileaf(name), data_(new tensor(shape, asgn_)) {}
 
-placeholder::placeholder (const placeholder& other) : 
+placeholder::placeholder (const placeholder& other) :
 	ileaf(other) {}
 
-placeholder::placeholder (placeholder&& other) : 
+placeholder::placeholder (placeholder&& other) :
 	ileaf(std::move(other)) {}
 
 placeholder* placeholder::clone (void) const
@@ -55,6 +55,18 @@ placeholder& placeholder::operator = (placeholder&& other)
 }
 
 
+tensor* placeholder::get_tensor (void)
+{
+	return data_.get();
+}
+
+varptr placeholder::derive (inode* wrt)
+{
+	tensorshape shape = data_->get_shape();
+	std::vector<double> zeroes(shape.n_elems(), 0);
+	return constant::get(zeroes, shape);
+}
+
 // changes shape
 placeholder& placeholder::operator = (tensor& data)
 {
@@ -80,11 +92,10 @@ inode* placeholder::move_impl (void)
 
 void placeholder::copy_helper (const placeholder& other)
 {
-	// copy over data if other has good_status (we want to ignore uninitialized data)
 	if (nullptr != other.data_)
 	{
-		data_ = other.data_->clone(!other.good_status());
-		asgn_ = data_->get_source();
+		data_ = std::make_unique<tensor>(*other.data_);
+		asgn_ = std::dynamic_pointer_cast<assign_io>(data_->get_source().lock());
 	}
 	else
 	{

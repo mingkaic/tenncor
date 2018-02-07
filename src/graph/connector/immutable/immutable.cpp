@@ -111,11 +111,6 @@ std::unordered_set<ileaf*> immutable::get_leaves (void) const
 	return leaves;
 }
 
-bool immutable::good_status (void) const
-{
-	return data_ != nullptr && data_->is_alloc();
-}
-
 bool immutable::read_proto (const tenncor::tensor_proto&)
 {
 	// it doesn't really make sense to deserialize data_ here, since data serves as a cache...

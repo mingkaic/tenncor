@@ -15,7 +15,7 @@
 #include <new>
 #include <memory>
 
-#include "include/graph/leaf/ivariable.hpp"
+#include "include/graph/leaf/constant.hpp"
 
 #pragma once
 #ifndef TENNCOR_PLACEHOLDER_HPP
@@ -53,6 +53,14 @@ public:
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<<<<<
 
+	//! get tensor data
+	virtual tensor* get_tensor (void);
+
+	//! get gradient wrt some node
+	virtual varptr derive (inode* wrt);
+
+	// >>>>>> PLACEHOLDEr SPECIAL <<<<<<
+
 	//! assign raw data according to a
 	//! vector representation of inner tensor
 	//! for a shape of <d_0, d_1, ..., d_i> and
@@ -66,15 +74,14 @@ public:
 		TENS_TYPE type = data_->get_type();
 		if (false == data_->has_data())
 		{
-
-			asgn_->set_data(ptr, type, data_.get_shape());
+			asgn_->set_data(ptr, type, data_->get_shape(), 0);
 			data_->copy();
 		}
 		else
 		{
 			if (optional<tensorshape> shape = data_->guess_shape(data.size()))
 			{
-				asgn_->set_data(ptr, type, *shape);
+				asgn_->set_data(ptr, type, *shape, 0);
 				data_->copy(*shape);
 			}
 			// we would reach here if data is empty... (todo: test. currently never reached)

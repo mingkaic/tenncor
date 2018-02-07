@@ -6,14 +6,17 @@
 #include "include/operations/operations.hpp"
 
 #pragma once
-#ifndef ROCNNET_GD_UTILS_HPP
-#define ROCNNET_GD_UTILS_HPP
+#define TENNCOR_GD_UTILS_HPP
+#ifndef TENNCOR_GD_UTILS_HPP
+#define TENNCOR_GD_UTILS_HPP
 
 
 namespace nnet
 {
 
-using updates_t = std::vector<variable_updater >;
+using updater_t = std::function<void(bool)>;
+
+using updates_t = std::vector<updater_t>;
 
 using grad_process = std::function<varptr(varptr,variable*)>;
 
@@ -29,7 +32,7 @@ public:
 
 	gd_updater* move (void);
 
-	virtual updates_t calculate (inode* root, grad_process intermediate_process = 
+	virtual updates_t calculate (inode* root, grad_process intermediate_process =
 		[](varptr grad, variable*) { return grad; });
 
 	void ignore_subtree (inode* subroot);
@@ -43,7 +46,7 @@ protected:
 
 	virtual gd_updater* move_impl (void) = 0;
 
-	virtual variable_updater process_update (varptr& gres,
+	virtual updater_t process_update (varptr& gres,
 		variable* leaf, grad_process intermediate_process) = 0;
 
 	double learning_rate_;
@@ -67,7 +70,7 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater process_update (varptr& gres,
+	virtual updater_t process_update (varptr& gres,
 		variable* leaf, grad_process intermediate_process);
 };
 
@@ -97,7 +100,7 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater process_update (varptr& gres,
+	virtual updater_t process_update (varptr& gres,
 		variable* leaf, grad_process intermediate_process);
 };
 
@@ -125,7 +128,7 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater process_update (varptr& gres,
+	virtual updater_t process_update (varptr& gres,
 		variable* leaf, grad_process intermediate_process);
 };
 
@@ -146,7 +149,7 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater process_update (varptr& gres,
+	virtual updater_t process_update (varptr& gres,
 		variable* leaf, grad_process intermediate_process);
 };
 
@@ -183,7 +186,7 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual variable_updater process_update (varptr& gres,
+	virtual updater_t process_update (varptr& gres,
 		variable* leaf, grad_process intermediate_process);
 		
 private:
@@ -197,4 +200,5 @@ private:
 }
 
 
-#endif /* ROCNNET_GD_UTILS_HPP */
+#endif /* TENNCOR_GD_UTILS_HPP */
+#undef TENNCOR_GD_UTILS_HPP

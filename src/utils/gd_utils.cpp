@@ -4,7 +4,7 @@
 
 #include "include/utils/gd_utils.hpp"
 
-#ifdef ROCNNET_GD_UTILS_HPP
+#ifdef TENNCOR_GD_UTILS_HPP
 
 namespace nnet
 {
@@ -19,7 +19,7 @@ gd_updater* gd_updater::move (void) { return move_impl(); }
 
 updates_t gd_updater::calculate (inode* root, grad_process intermediate_process)
 {
-	std::vector<variable_updater > updates;
+	std::vector<updater_t > updates;
 	std::unordered_set<ileaf*> leafset = root->get_leaves();
 	std::vector<std::pair<inode*,variable*>> gress;
 	for (ileaf* l : leafset)
@@ -78,11 +78,15 @@ gd_updater* vgb_updater::move_impl (void)
 	return new vgb_updater(std::move(*this));
 }
 
-variable_updater vgb_updater::process_update (varptr& gres,
+updater_t vgb_updater::process_update (varptr& gres,
 	variable* leaf, grad_process intermediate_process)
 {
 	// leaf = leaf - learning_rate * gres
-	return leaf->assign_sub(intermediate_process(gres, leaf) * learning_rate_);
+	varptr leaf_step = intermediate_process(gres, leaf) * learning_rate_;
+	return [leaf, leaf_step](bool notify)
+	{
+		leaf->assign_sub(, notify);
+	}
 }
 
 
@@ -100,7 +104,7 @@ gd_updater* momentum_updater::move_impl (void)
 	return new momentum_updater(std::move(*this));
 }
 
-variable_updater momentum_updater::process_update (varptr& /*gres*/,
+updater_t momentum_updater::process_update (varptr& /*gres*/,
 	variable* /*leaf*/, grad_process /*intermediate_process*/)
 {
 	throw std::bad_function_call();
@@ -122,7 +126,7 @@ gd_updater* adadelta_updater::move_impl (void)
 	return new adadelta_updater(std::move(*this));
 }
 
-variable_updater adadelta_updater::process_update (varptr& /*gres*/,
+updater_t adadelta_updater::process_update (varptr& /*gres*/,
 	variable* /*leaf*/, grad_process /*intermediate_process*/)
 {
 	throw std::bad_function_call();
@@ -144,7 +148,7 @@ gd_updater* adagradupdater::move_impl (void)
 	return new adagradupdater(std::move(*this));
 }
 
-variable_updater adagradupdater::process_update (varptr& /*gres*/,
+updater_t adagradupdater::process_update (varptr& /*gres*/,
 	variable* /*leaf*/, grad_process /*intermediate_process*/)
 {
 	throw std::bad_function_call();
@@ -211,7 +215,7 @@ rmspropupdater::rmspropupdater (rmspropupdater&& other) :
 	gd_updater(std::move(other)),
 	discount_factor_(std::move(other.discount_factor_)) {}
 	
-variable_updater rmspropupdater::process_update (varptr& gres,
+updater_t rmspropupdater::process_update (varptr& gres,
 	variable* leaf, grad_process intermediate_process)
 {
 	const_init wuninit((double) 1);
@@ -224,12 +228,10 @@ variable_updater rmspropupdater::process_update (varptr& gres,
 	varptr dres = intermediate_process(gres, leaf);
 	varptr momentum_step = discount_factor_ * varptr(momentum) + (1-discount_factor_) * pow(dres, 2);
 	varptr leaf_step = dres * learning_rate_ / (sqrt(momentum_step) + epsilon_);
-	auto momentum_update = momentum->assign(momentum_step);
-	auto leaf_update = leaf->assign_sub(leaf_step);
-	return [momentum_update, leaf_update, momentum, dres, leaf_step](bool notify)
+	return [momentum, momentum_step, leaf, leaf_step](bool notify)
 	{
-		momentum_update(false);
-		leaf_update(notify);
+		momentum->assign(momentum_step, false);
+		leaf->assign_sub(leaf_step, notify);
 	};
 }
 

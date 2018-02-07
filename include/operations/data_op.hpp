@@ -24,7 +24,7 @@ using ARGS = std::vector<size_t>;
 
 using VFUNC = std::function<void(VARR,std::vector<VARR>,ARGS)>;
 
-void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> src, ARGS args);
+void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> src, ARGS args = {});
 
 #ifndef TENNCOR_D_UNARY_HPP
 #define TENNCOR_D_UNARY_HPP
@@ -71,13 +71,25 @@ void round (VARR dest, std::vector<VARR> srcs, ARGS);
 #define TENNCOR_D_NNARY_HPP
 
 template <typename T>
+void rand_binom (VARR dest, std::vector<VARR> srcs, ARGS);
+
+template <typename T>
+void rand_uniform (VARR dest, std::vector<VARR> srcs, ARGS);
+
+template <>
+void rand_uniform<float> (VARR dest, std::vector<VARR> srcs, ARGS);
+
+template <>
+void rand_uniform<double> (VARR dest, std::vector<VARR> srcs, ARGS);
+
+template <typename T>
+void rand_normal (VARR dest, std::vector<VARR> srcs, ARGS);
+
+template <typename T>
 void clip (VARR dest, std::vector<VARR> srcs, ARGS);
 
 template <typename T>
 void clip_norm (VARR dest, std::vector<VARR> srcs, ARGS);
-
-template <typename T>
-void binom (VARR dest, std::vector<VARR> srcs, ARGS);
 
 template <typename T>
 void pow (VARR dest, std::vector<VARR> srcs, ARGS);
@@ -124,6 +136,10 @@ void crosscorr2d (VARR dest, std::vector<VARR> srcs, ARGS args);
 
 #include "src/operations/d_unary.ipp"
 
+#include "src/operations/d_nnary.ipp"
+
 #include "src/operations/d_matmul.ipp"
+
+#include "src/operations/d_shaped.ipp"
 
 #endif /* TENNCOR_DATA_OP_HPP */

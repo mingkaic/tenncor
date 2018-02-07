@@ -14,8 +14,9 @@
 #include "include/graph/connector/iconnector.hpp"
 
 #pragma once
-#ifndef ROCNNET_GENERATOR_HPP
-#define ROCNNET_GENERATOR_HPP
+#define TENNCOR_GENERATOR_HPP
+#ifndef TENNCOR_GENERATOR_HPP
+#define TENNCOR_GENERATOR_HPP
 
 namespace nnet
 {
@@ -60,8 +61,6 @@ public:
 	virtual std::unordered_set<ileaf*> get_leaves (void) const;
 
 	// >>>> NODE STATUS <<<<
-	//! check if the arguments are good; data is available
-	virtual bool good_status (void) const;
 
 	//! Inherited from inode: data_ takes data from proto
 	virtual bool read_proto (const tenncor::tensor_proto&);
@@ -120,4 +119,5 @@ private:
 
 }
 
-#endif /* ROCNNET_GENERATOR_HPP */
+#endif /* TENNCOR_GENERATOR_HPP */
+#undef TENNCOR_GENERATOR_HPP

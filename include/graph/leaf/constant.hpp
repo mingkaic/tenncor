@@ -24,47 +24,6 @@
 namespace nnet
 {
 
-struct const_init : public idata_source
-{
-	template <typename T>
-	void set (T value)
-	{
-		type_ = get_type<T>();
-		value_ = nnutils::stringify(&value, 1);
-	}
-
-	template <typename T>
-	void set_vec (std::vector<T> value)
-	{
-		type_ = get_type<T>();
-		value_ = nnutils::stringify(&value[0], value.size());
-	}
-
-	virtual idata_source* clone (void)
-	{
-		return new const_init(*this);
-	}
-
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape)
-	{
-		assert(type == type_);
-		size_t nbytes = shape.n_elems() * type_size(type);
-		size_t vbytes = value_.size();
-		std::shared_ptr<void> out = shared_varr(nbytes);
-		char* dest = (char*) out.get();
-		for (size_t i = 0; i < nbytes; i += vbytes)
-		{
-			memcpy(dest + i, &value_[0], std::min(vbytes, nbytes - i));
-		}
-		return out;
-	}
-
-private:
-	std::string value_;
-
-	TENS_TYPE type_;
-};
-
 class constant final : public ileaf
 {
 public:
@@ -75,7 +34,7 @@ public:
 	{
 		tensorshape shape = std::vector<size_t>{1};
 		std::shared_ptr<const_init> ci = std::make_shared<const_init>();
-		ci->set<T>(scalar);
+		ci->set(scalar);
 		return new constant(shape, ci, nnutils::formatter() << scalar);
 	}
 
@@ -93,22 +52,22 @@ public:
 			name = nnutils::formatter() << raw.front() << ".." << raw.back();
 		}
 		std::shared_ptr<const_init> ci = std::make_shared<const_init>();
-		ci->set<T>(raw);
+		ci->set(raw);
 		return new constant(shape, ci, name);
 	}
 
 	// >>>> CAN'T COPY OR MOVE (GOES AGAINST SHARING) <<<<
 	//! deleted copy constructor
-	constant (const constant& other) = delete;
+	constant (const constant&) = delete;
 
 	//! deleted move constructor
-	constant (constant&& other) = delete;
+	constant (constant&&) = delete;
 
 	//! copy assignment deleted
-	constant& operator = (const constant& other) = delete;
+	constant& operator = (const constant&) = delete;
 
 	//! move assignment deleted
-	constant& operator = (constant&& other) = delete;
+	constant& operator = (constant&&) = delete;
 
 
 
@@ -122,7 +81,7 @@ public:
 
 protected:
 	//! name constructor, data_ is nullptr
-	constant (const tensorshape& shape, 
+	constant (const tensorshape& shape,
 		std::shared_ptr<idata_source> source, std::string name);
 
 	// >>>> KILL CONDITION <<<<

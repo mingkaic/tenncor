@@ -61,17 +61,12 @@ static void fit_toshape (size_t bytesize, char* dest, const tensorshape& outshap
 	}
 }
 
-std::shared_ptr<void> shared_varr (size_t nbytes)
-{
-	return std::shared_ptr<void>(malloc(nbytes), varr_deleter());
-}
-
 tensor::tensor (tensorshape shape, std::shared_ptr<idata_source> source) :
 	allowed_shape_(shape), source_(source) {}
 
-tensor::tensor (const tensor& other, bool shapeonly)
+tensor::tensor (const tensor& other)
 {
-	copy_helper(other, shapeonly);
+	copy_helper(other);
 }
 
 tensor::tensor (tensor&& other)
@@ -83,7 +78,7 @@ tensor& tensor::operator = (const tensor& other)
 {
 	if (this != &other)
 	{
-		copy_helper(other, false);
+		copy_helper(other);
 	}
 	return *this;
 }
@@ -333,10 +328,10 @@ size_t tensor::total_bytes (void) const
 {
 	return n_elems() * type_size(dtype_);
 }
-
-std::weak_ptr<idata_source> tensor::get_source (void)
+	
+TENS_TYPE tensor::get_type (void) const
 {
-	return source_;
+	return dtype_;
 }
 
 
@@ -474,8 +469,13 @@ void tensor::slice (size_t /*dim_start*/, size_t /*limit*/)
 	throw std::bad_function_call(); // NOT IMPLEMENTED
 }
 
+std::weak_ptr<idata_source> tensor::get_source (void)
+{
+	return source_;
+}
 
-void tensor::copy_helper (const tensor& other, bool shapeonly)
+
+void tensor::copy_helper (const tensor& other)
 {
 	raw_data_ = nullptr;
 	source_ = other.source_;

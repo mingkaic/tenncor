@@ -20,13 +20,13 @@
 #include "include/graph/connector/immutable/linear.hpp"
 #include "include/graph/leaf/constant.hpp"
 #include "include/operations/operation_utils.hpp"
-#include "include/tensor/actors/tens_matmul.hpp"
 
 #pragma once
 
 namespace nnet
 {
 
+#define TENNCOR_ELEM_UNI_HPP
 #ifndef TENNCOR_ELEM_UNI_HPP
 #define TENNCOR_ELEM_UNI_HPP
 
@@ -129,6 +129,7 @@ varptr operator / (double a, const varptr b);
 
 #endif /* TENNCOR_ELEM_UNI_HPP */
 
+#define TENNCOR_ELEM_BI_HPP
 #ifndef TENNCOR_ELEM_BI_HPP
 #define TENNCOR_ELEM_BI_HPP
 
@@ -179,6 +180,7 @@ varptr div_axial_b (const varptr a, const varptr b, size_t axis_b);
 
 #endif /* TENNCOR_ELEM_BI_HPP */
 
+#define TENNCOR_TRANSFORM_HPP
 #ifndef TENNCOR_TRANSFORM_HPP
 #define TENNCOR_TRANSFORM_HPP
 
@@ -246,6 +248,7 @@ varptr inverse (const varptr a);
 
 #endif /* TENNCOR_TRANSFORM_HPP */
 
+#define TENNCOR_MATMUL_HPP
 #ifndef TENNCOR_MATMUL_HPP
 #define TENNCOR_MATMUL_HPP
 

@@ -15,6 +15,7 @@
 #include "include/graph/connector/immutable/linear.hpp"
 
 #pragma once
+#define TENNCOR_CONST_CON_HPP
 #ifndef TENNCOR_CONST_CON_HPP
 #define TENNCOR_CONST_CON_HPP
 
@@ -33,3 +34,4 @@ private:
 }
 
 #endif /* TENNCOR_CONST_CON_HPP */
+#undef TENNCOR_CONST_CON_HPP

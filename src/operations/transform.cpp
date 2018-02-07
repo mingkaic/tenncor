@@ -9,7 +9,6 @@
 #include "include/operations/operations.hpp"
 #include "include/graph/connector/immutable/shape_dep.hpp"
 #include "include/graph/connector/immutable/nlinear.hpp"
-#include "include/tensor/actors/tens_transform.hpp"
 
 #ifdef TENNCOR_TRANSFORM_HPP
 

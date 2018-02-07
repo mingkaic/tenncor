@@ -42,7 +42,6 @@ public:
 
 	virtual bool eval (idata_dest& dest) { return data_; }
 	virtual tensorshape get_shape (void) const { return data_->get_shape(); }
-	virtual bool good_status (void) const { return nullptr != data_; }
 	virtual std::unordered_set<ileaf*> get_leaves (void) const { return std::unordered_set<ileaf*>{}; }
 	virtual varptr derive (inode* wrt) { return wrt == this ? varptr(this) : varptr(); }
 	virtual bool read_proto (const tenncor::tensor_proto&) { return false; }

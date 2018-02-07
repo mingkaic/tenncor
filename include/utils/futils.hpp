@@ -14,6 +14,7 @@
 
 #include "include/operations/operations.hpp"
 
+#define TENNCOR_FUTILS_HPP
 #ifndef TENNCOR_FUTILS_HPP
 #define TENNCOR_FUTILS_HPP
 
@@ -32,3 +33,4 @@ varptr softmax (varptr x);
 }
 
 #endif /* TENNCOR_FUTILS_HPP */
+#undef TENNCOR_FUTILS_HPP

@@ -61,21 +61,6 @@ cc_test(
 )
 
 cc_test(
-	name = "tenncor_memory",
-	size = "small",
-	srcs = COMMON_SRC + glob([
-		"include/mocks/mock_allocator.h",
-		"src/memory/*.cpp",
-	]),
-	deps = [
-		"//:tenncor",
-		"@com_google_googletest//:gtest_main",
-	],
-	linkstatic = 1,
-	copts = [ "-std=c++14" ],
-)
-
-cc_test(
 	name = "tenncor_operation",
 	size = "medium",
 	srcs = COMMON_SRC + glob([

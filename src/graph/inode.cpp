@@ -70,7 +70,7 @@ void inode::set_label (std::string label)
 	label_ = label;
 }
 
-bool inode::find_audience (std::string label, std::unordered_set<inode*>& audience) const
+bool inode::find_audience (std::string label, std::unordered_set<iobserver*>& audience) const
 {
 	for (auto audpair : audience_)
 	{
@@ -79,30 +79,11 @@ bool inode::find_audience (std::string label, std::unordered_set<inode*>& audien
 		{
 			if (0 == anode->label_.compare(label))
 			{
-				audience.insert(anode);
+				audience.insert(aud);
 			}
 		}
 	}
 	return false == audience.empty();
-}
-
-bool inode::read_proto (const tenncor::tensor_proto& proto)
-{
-	const tensor* result = get_eval();
-	if (result)
-	{
-		result->from_proto(proto);
-	}
-	return nullptr != result;
-}
-
-TENS_TYPE inode::get_type (void) const
-{
-	if (const tensor* result = get_eval())
-	{
-		return result->get_type();
-	}
-	return BAD;
 }
 
 inode::inode (std::string label) :

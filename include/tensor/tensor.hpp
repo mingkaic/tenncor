@@ -20,34 +20,11 @@
 #include <type_traits>
 #include <cstring>
 
-#include "include/memory/default_alloc.hpp"
-#include "include/tensor/tensorshape.hpp"
 #include "include/tensor/type.hpp"
+#include "include/tensor/data_io.hpp"
 
 namespace nnet
 {
-
-struct varr_deleter
-{
-	void operator () (void* p)
-	{
-		free(p);
-	}
-};
-
-struct idata_source
-{
-	virtual idata_source* clone (void) = 0;
-
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape) = 0;
-};
-
-struct idata_dest
-{
-	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx) = 0;
-};
-
-std::shared_ptr<void> shared_varr (size_t nbytes);
 
 class tensor // todo: make final, and make mock_tensor compose tensor instance
 {
@@ -61,7 +38,7 @@ public:
 	virtual ~tensor (void) {} // remove once final
 
 	//! copy constructor
-	tensor (const tensor& other, bool shapeonly = false);
+	tensor (const tensor& other);
 
 	//! move constructor
 	tensor (tensor&& other);
@@ -142,10 +119,8 @@ public:
 
 	//! get bytes allocated
 	size_t total_bytes (void) const;
-
-	// >>>>>> DATA EXPOSURE <<<<<<
-
-	std::weak_ptr<idata_source> get_source (void);
+	
+	TENS_TYPE get_type (void) const;
 
 
 
@@ -196,9 +171,13 @@ public:
 	// slice along the first dimension
 	void slice (size_t dim_start, size_t limit);
 
+	// >>>>>> DATA EXPOSURE <<<<<<
+
+	std::weak_ptr<idata_source> get_source (void);
+
 private:
 	//! copy utility helper
-	void copy_helper (const tensor& other, bool shapeonly);
+	void copy_helper (const tensor& other);
 
 	//! move utility helper
 	void move_helper (tensor&& other);

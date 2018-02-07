@@ -56,11 +56,6 @@ std::unordered_set<ileaf*> ileaf::get_leaves (void) const
 	return {const_cast<ileaf*>(this)};
 }
 
-bool ileaf::good_status (void) const
-{
-	return get_tensor()->has_data();
-}
-
 
 ileaf::ileaf (std::string name) : inode(name) {}
 

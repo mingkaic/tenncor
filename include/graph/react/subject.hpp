@@ -26,6 +26,8 @@ using namespace std::experimental;
 namespace nnet
 {
 
+using AUD_MAP = std::unordered_map<iobserver*,std::vector<size_t> >;
+
 class iobserver;
 
 //! notification messages
@@ -54,10 +56,16 @@ public:
 	void notify (notification msg) const;
 
 	// >>>> OBSERVER INFO <<<<
-	//! determine whether the subject has an audience
-	bool no_audience (void) const;
 
-	size_t n_audience (void) const;
+	AUD_MAP get_audience (void) const
+	{
+		return audience_;
+	}
+
+	//! determine whether the subject has an audience
+	bool no_audience (void) const; // DEPRECATED
+
+	size_t n_audience (void) const; // DEPRECATED
 
 	//! replace other with this instance for all parents of other
 	void steal_observers (subject* other);
@@ -94,11 +102,10 @@ protected:
 
 	friend class iobserver;
 
-	// >>>> OBSERVERS DATA SHARED WITH INHERITORS <<<
-	//! observers -> { subject index in observer referencing this }
-	std::unordered_map<iobserver*, std::unordered_set<size_t> > audience_;
-
 private:
+	//! observers -> { subject index in observer referencing this }
+	std::unordered_map<iobserver*,std::unordered_set<size_t> > audience_;
+
 	//! observers that kills this on death
 	std::unordered_set<iobserver*> killers_;
 };

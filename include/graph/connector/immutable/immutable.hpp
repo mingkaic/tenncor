@@ -20,6 +20,7 @@
 #include "include/graph/leaf/variable.hpp"
 
 #pragma once
+#define TENNCOR_IMMUTABLE_HPP
 #ifndef TENNCOR_IMMUTABLE_HPP
 #define TENNCOR_IMMUTABLE_HPP
 
@@ -64,8 +65,6 @@ public:
 	virtual std::unordered_set<ileaf*> get_leaves (void) const;
 
 	// >>>> NODE STATUS <<<<
-	//! check if the arguments are good; data is available
-	virtual bool good_status (void) const;
 
 	//! Inherited from inode: data_ takes data from proto
 	virtual bool read_proto (const tenncor::tensor_proto&);
@@ -134,3 +133,4 @@ private:
 }
 
 #endif /* TENNCOR_IMMUTABLE_HPP */
+#undef TENNCOR_IMMUTABLE_HPP

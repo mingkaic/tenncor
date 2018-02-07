@@ -41,6 +41,48 @@ void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> s
 	}
 }
 
+template <>
+void rand_uniform<float> (VARR dest, std::vector<VARR> srcs, ARGS)
+{
+	// assert(srcs.size() == 2);
+	tensorshape& destshape = dest.second;
+	tensorshape& srcshape_min = srcs.front().second;
+	tensorshape& srcshape_max = srcs.back().second;
+	float* d = dest.first;
+	float* s_min = srcs.front().first;
+	float* s_max = srcs.front().first;
+	bool min_mul = srcshape_min.n_elems() > 1;
+	bool max_mul = srcshape_max.n_elems() > 1;
+	size_t n = destshape.n_elems();
+
+	for (size_t i = 0; i < n_out; ++i)
+	{
+		std::uniform_distribution<float> dist(s_min[i * min_mul], s_max[i * max_mul])
+		d[i] = dist(nnutils::get_generator());
+	}
+}
+
+template <>
+void rand_uniform<double> (VARR dest, std::vector<VARR> srcs, ARGS)
+{
+	// assert(srcs.size() == 2);
+	tensorshape& destshape = dest.second;
+	tensorshape& srcshape_min = srcs.front().second;
+	tensorshape& srcshape_max = srcs.back().second;
+	double* d = dest.first;
+	double* s_min = srcs.front().first;
+	double* s_max = srcs.front().first;
+	bool min_mul = srcshape_min.n_elems() > 1;
+	bool max_mul = srcshape_max.n_elems() > 1;
+	size_t n = destshape.n_elems();
+
+	for (size_t i = 0; i < n_out; ++i)
+	{
+		std::uniform_distribution<double> dist(s_min[i * min_mul], s_max[i * max_mul])
+		d[i] = dist(nnutils::get_generator());
+	}
+}
+
 REGISTER_FUNC(abs)
 REGISTER_FUNC(neg)
 REGISTER_FUNC(sin)
@@ -53,15 +95,20 @@ REGISTER_FUNC(exp)
 REGISTER_FUNC(ln)
 REGISTER_FUNC(sqrt)
 REGISTER_FUNC(round)
+
+REGISTER_FUNC(rand_binom)
+REGISTER_FUNC(rand_uniform)
+REGISTER_FUNC(rand_normal)
 REGISTER_FUNC(clip_mm)
 REGISTER_FUNC(clip_norm)
-REGISTER_FUNC(binom)
 REGISTER_FUNC(pow)
 REGISTER_FUNC(add)
 REGISTER_FUNC(sub)
 REGISTER_FUNC(mul)
 REGISTER_FUNC(div)
+
 REGISTER_FUNC(matmul)
+
 REGISTER_FUNC(expand)
 REGISTER_FUNC(flip)
 REGISTER_FUNC(crosscorr2d)

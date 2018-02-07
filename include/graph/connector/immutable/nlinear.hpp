@@ -17,6 +17,7 @@
 #include <memory>
 
 #pragma once
+#define TENNCOR_NLINEAR_HPP
 #ifndef TENNCOR_NLINEAR_HPP
 #define TENNCOR_NLINEAR_HPP
 
@@ -263,3 +264,4 @@ private:
 }
 
 #endif /* TENNCOR_NLINEAR_HPP */
+#undef TENNCOR_NLINEAR_HPP

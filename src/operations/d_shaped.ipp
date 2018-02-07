@@ -18,7 +18,6 @@ void extend (VARR dest, std::vector<VARR> srcs, ARGS args)
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape = srcs.front().second;
 	size_t index = args.front();
-	size_t multiplier = args.last();
 	T* d = dest.first;
 	T* s = srcs.front().first;
 	size_t dim = srcshape.as_list()[index];
@@ -42,16 +41,16 @@ void flip (VARR dest, std::vector<VARR> srcs, ARGS args)
 	T* s = srcs.front().first;
 
 	size_t n = destshape.n_elems();
-	std::vector<size_t> coord;
+	std::vector<size_t> coords;
 	std::vector<size_t> outlist = destshape.as_list();
 	for (size_t i = 0; i < n; i++)
 	{
-		coord = destshape.coordinate_from_idx(i);
+		coords = destshape.coordinate_from_idx(i);
 		for (size_t d : args)
 		{
-			coord[d] = outlist[d] - coord[d] - 1;
+			coords[d] = outlist[d] - coords[d] - 1;
 		}
-		d[i] = s[srcs.front().second.flat_idx(coord)];
+		d[i] = s[srcs.front().second.flat_idx(coords)];
 	}
 }
 
@@ -72,18 +71,20 @@ void crosscorr2d (VARR dest, std::vector<VARR> srcs, ARGS args)
 	size_t firstn = inlist[dim0] - outlist[dim0];
 	size_t secondn = inlist[dim1] - outlist[dim1];
 	// assert(windshape.as_list[dim0] == firstn && windshape.as_list[dim1] == secondn);
-	std::vector<size_t> coord;
+	std::vector<size_t> coords;
 	size_t n = destshape.n_elems();
 	for (size_t i = 0; i < n; i++)
 	{
 		d[i] = 0;
-		coord = destshape.coordinate_from_idx(i);
-		for (size_t j = 0, coord[dim0] = 0; j < firstn; j++, coord[dim0])
+		coords = destshape.coordinate_from_idx(i);
+		for (size_t j = 0; j < firstn; j++)
 		{
-			for (size_t k = 0, coord[dim1] = 0; k < secondn; k++, coord[dim1]++)
+			for (size_t k = 0; k < secondn; k++)
 			{
-				d[i] += main_s[srcshape.flat_idx(coord)] * wind_s[k * firstn + j];
+				d[i] += main_s[srcshape.flat_idx(coords)] * wind_s[k * firstn + j];
+				coords[dim1]++;
 			}
+			coords[dim0]++;
 		}
 	}
 }

@@ -8,7 +8,6 @@
 
 #include "include/graph/connector/immutable/const_con.hpp"
 #include "include/graph/leaf/constant.hpp"
-#include "include/tensor/actors/tens_elem_uni.hpp"
 
 #ifdef TENNCOR_CONST_CON_HPP
 

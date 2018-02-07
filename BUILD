@@ -6,19 +6,17 @@ licenses(["notice"])
 
 TCR_PUBLIC_HDRS = glob([
 	"include/graph/**/*.hpp",
-	"include/memory/**/*.hpp",
 	"include/operations/**/*.hpp",
 	"include/tensor/**/*.hpp",
 	"include/utils/**/*.hpp",
 	"src/graph/**/*.ipp",
-	"src/memory/**/*.ipp",
+	"src/operations/**/*.ipp",
 	"src/tensor/**/*.ipp",
 	"src/utils/**/*.ipp",
 ])
 
 TCR_SRC = glob([
 	"src/graph/**/*.cpp",
-	"src/memory/**/*.cpp",
 	"src/operations/**/*.hpp",
 	"src/tensor/**/*.cpp",
 	"src/utils/**/*.cpp",

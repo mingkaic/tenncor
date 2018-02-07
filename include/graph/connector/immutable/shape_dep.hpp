@@ -18,6 +18,7 @@
 #include "include/graph/connector/immutable/immutable.hpp"
 
 #pragma once
+#define TENNCOR_SHAPE_DEP_HPP
 #ifndef TENNCOR_SHAPE_DEP_HPP
 #define TENNCOR_SHAPE_DEP_HPP
 
@@ -92,3 +93,4 @@ private:
 }
 
 #endif /* TENNCOR_SHAPE_DEP_HPP */
+#undef TENNCOR_SHAPE_DEP_HPP

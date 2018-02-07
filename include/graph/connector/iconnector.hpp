@@ -17,6 +17,7 @@
 #include "include/graph/leaf/constant.hpp"
 
 #pragma once
+#define TENNCOR_ICONNECTOR_HPP
 #ifndef TENNCOR_ICONNECTOR_HPP
 #define TENNCOR_ICONNECTOR_HPP
 
@@ -27,9 +28,6 @@ namespace nnet
 using BACK_MAP = std::function<varptr(std::vector<std::pair<inode*,inode*>>)>;
 
 using NODE_MAN = std::function<inode*(inode*)>;
-
-//! jacobian transfer function
-using JTRANSFER = std::function<inode*(inode*,std::vector<inode*>,std::vector<inode*>)>;
 
 //! calculate output shape from argument shapes
 using SHAPER = std::function<tensorshape(std::vector<tensorshape>)>;
@@ -207,3 +205,4 @@ private:
 }
 
 #endif /* TENNCOR_ICONNECTOR_HPP */
+#undef TENNCOR_ICONNECTOR_HPP

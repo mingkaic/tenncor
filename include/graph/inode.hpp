@@ -70,15 +70,10 @@ public:
 
 	//! get all possible observers with specified label
 	//! return true if such observer is found
-	bool find_audience (std::string label, std::unordered_set<iobserver*>& audience) const;
+	bool find_audience (std::string label, std::unordered_set<iobserver*>& audience) const; // DEPRECATED
 
 	//! merge/update the gradient/leaf info
 	virtual std::unordered_set<ileaf*> get_leaves (void) const = 0;
-
-	// >>>>>> NODE CONTENT <<<<<<
-	
-	//! check if data is available
-	virtual bool good_status (void) const = 0;
 
 
 

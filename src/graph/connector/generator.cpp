@@ -8,7 +8,7 @@
 
 #include "include/graph/connector/generator.hpp"
 
-#ifdef ROCNNET_GENERATOR_HPP
+#ifdef TENNCOR_GENERATOR_HPP
 
 namespace nnet
 {
@@ -95,11 +95,6 @@ tensorshape generator::get_shape (void) const
 std::unordered_set<ileaf*> generator::get_leaves (void) const
 {
 	return std::unordered_set<ileaf*>{};
-}
-
-bool generator::good_status (void) const
-{
-	return nullptr != data_;
 }
 
 bool generator::read_proto (const tenncor::tensor_proto&) { return false; }

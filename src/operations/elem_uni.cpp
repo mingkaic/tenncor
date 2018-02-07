@@ -9,7 +9,6 @@
 #include "include/operations/operations.hpp"
 #include "include/graph/connector/immutable/const_con.hpp"
 #include "include/graph/connector/immutable/nlinear.hpp"
-#include "include/tensor/actors/tens_elem_uni.hpp"
 
 #ifdef TENNCOR_ELEM_UNI_HPP
 

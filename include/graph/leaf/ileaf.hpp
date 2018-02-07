@@ -52,12 +52,6 @@ public:
 	//! merge/update the gradient/leaf info
 	virtual std::unordered_set<ileaf*> get_leaves (void) const;
 
-	// >>>>>> NODE CONTENT <<<<<<
-
-	//! check if data is available
-	//! (if the node is initialized)
-	virtual bool good_status (void) const;
-
 
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<

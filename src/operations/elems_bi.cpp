@@ -7,7 +7,6 @@
 //
 
 #include "include/operations/operations.hpp"
-#include "include/tensor/actors/tens_elems_bi.hpp"
 
 #ifdef TENNCOR_ELEM_BI_HPP
 

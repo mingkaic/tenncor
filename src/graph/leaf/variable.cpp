@@ -13,11 +13,12 @@
 namespace nnet
 {
 
-variable::variable (const tensorshape& shape, 
-	std::shared_ptr<idata_source> source, std::string name) :
+variable::variable (const tensorshape& shape,
+	std::shared_ptr<idata_source> source,
+	std::string name) :
 ileaf(name), dsrc_(new open_source(source))
 {
-	data_ = new tensor(shape, dsrc_);
+	data_ = std::make_unique<tensor>(shape, dsrc_);
 }
 
 variable::variable (const variable& other) :
@@ -30,14 +31,6 @@ variable::variable (variable&& other) :
 	ileaf(std::move(other))
 {
 	move_helper(std::move(other));
-}
-
-variable::~variable (void)
-{
-	if (nullptr != init_)
-	{
-		delete init_;
-	}
 }
 
 variable* variable::clone (void) const
@@ -73,7 +66,7 @@ variable& variable::operator = (variable&& other)
 }
 
 
-tensor* constant::get_tensor (void)
+tensor* variable::get_tensor (void)
 {
 	return data_.get();
 }
@@ -81,8 +74,8 @@ tensor* constant::get_tensor (void)
 varptr variable::derive (inode* wrt)
 {
 	tensorshape shape = data_->get_shape();
-	std::vector<double> data(shape.n_elems(), 
-		(double) this == wrt);
+	std::vector<double> data(shape.n_elems(),
+		(double) (this == wrt));
 	return constant::get(data, shape);
 }
 
@@ -141,7 +134,6 @@ bool variable::assign_add (inode* input, bool notify)
 		if (successful)
 		{
 			asgn_->opname_ = "add";
-			asgn_->dest_ = data_;
 			data_->write_to(*asgn_, 0);
 			itens->write_to(*asgn_, 1);
 			data_->copy();
@@ -166,7 +158,6 @@ bool variable::assign_sub (inode* input, bool notify)
 		if (successful)
 		{
 			asgn_->opname_ = "sub";
-			asgn_->dest_ = data_;
 			data_->write_to(*asgn_, 0);
 			itens->write_to(*asgn_, 1);
 			data_->copy();
@@ -193,11 +184,10 @@ inode* variable::move_impl (void)
 
 void variable::copy_helper (const variable& other)
 {
-	// copy over data if other has good_status (we want to ignore uninitialized data)
 	if (nullptr != other.data_)
 	{
-		data_ = other.data_->clone(!other.good_status());
-		dsrc_ = data_->get_source();
+		data_ = std::make_unique<tensor>(*other.data_);
+		dsrc_ = std::dynamic_pointer_cast<open_source>(data_->get_source().lock());
 	}
 	else
 	{
