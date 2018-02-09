@@ -23,7 +23,6 @@ namespace nnet
 class variable final : public ileaf
 {
 public:
-	// >>>> CONSTRUCTORS <<<<
 	//! construct to init zero and one
 	variable (const tensorshape& shape,
 		std::shared_ptr<idata_source> source,
@@ -76,7 +75,8 @@ public:
 	bool assign_sub (inode* input, bool notify = true);
 
 protected:
-	// >>>> POLYMORPHIC CLONERS <<<<
+	// >>>>>> POLYMORPHIC CLONERS <<<<<<
+
 	//! clone implementation
 	virtual inode* clone_impl (void) const;
 

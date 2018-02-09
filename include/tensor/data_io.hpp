@@ -35,7 +35,7 @@ std::shared_ptr<void> shared_varr (size_t nbytes);
 
 struct idata_source
 {
-    virtual ~idata_source (void) {}
+	virtual ~idata_source (void) {}
 
 	virtual idata_source* clone (void) const = 0;
 
@@ -44,7 +44,7 @@ struct idata_source
 
 struct idata_dest
 {
-    virtual ~idata_dest (void) {}
+	virtual ~idata_dest (void) {}
 
 	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx) = 0;
 };
@@ -92,7 +92,7 @@ struct rand_uniform final : public idata_source
 
 private:
 	std::string min_;
-    std::string max_;
+	std::string max_;
 
 	TENS_TYPE type_;
 };
@@ -114,7 +114,7 @@ struct rand_normal final : public idata_source
 
 private:
 	std::string mean_;
-    std::string stdev_;
+	std::string stdev_;
 
 	TENS_TYPE type_;
 };
@@ -130,14 +130,14 @@ struct open_source final : public idata_source
 	std::shared_ptr<idata_source> source_;
 
 private:
-    open_source (const open_source& other);
+	open_source (const open_source& other);
 };
 
 struct assign_io final : virtual idata_source, virtual idata_dest
 {
 	assign_io (void) {}
-    assign_io (const assign_io&) = delete;
-    assign_io (assign_io&&) = delete;
+	assign_io (const assign_io&) = delete;
+	assign_io (assign_io&&) = delete;
 	assign_io& operator = (const assign_io&) = delete;
 	assign_io& operator = (assign_io&&) = delete;
 

@@ -11,6 +11,7 @@
  *
  */
 
+#include "include/graph/graph.hpp"
 #include "include/tensor/tensor.hpp"
 #include "include/graph/react/subject.hpp"
 #include "include/graph/react/iobserver.hpp"
@@ -114,7 +115,7 @@ protected:
 
 private:
 	//! uniquely identifier for this node
-	std::string id_ = nnutils::uuid(this);
+	std::string id_ = graph::get().register_node(this);
 
 	//! describes this node's purpose
 	std::string label_;
@@ -154,7 +155,7 @@ public:
 	void clear (void);
 
 // not used
-	virtual void update (std::unordered_set<size_t>); // todo: split iobserver
+	virtual void update (void); // todo: split iobserver
 	
 protected:
 	virtual void death_on_broken (void);

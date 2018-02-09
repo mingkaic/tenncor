@@ -103,7 +103,7 @@ protected:
 	nlinear (std::vector<inode*> args,
 		SHAPER shaper, actor_func* Nf, BACK_MAP ginit, std::string label) :
 	immutable(args, label), shaper_(shaper), Nf_(Nf),
-	ginit_(ginit) { this->update(std::unordered_set<size_t>{}); }
+	ginit_(ginit) { this->update(); }
 
 	//! declare copy constructor to copy over transfer functions
 	nlinear (const nlinear& other) :
@@ -119,7 +119,7 @@ protected:
 		move_helper(std::move(other));
 	}
 
-	// >>>> POLYMORPHIC CLONERS <<<<
+	// >>>>>> POLYMORPHIC CLONERS <<<<<<
 	//! implement clone function
 	virtual inode* clone_impl (void) const
 	{

@@ -27,7 +27,6 @@ namespace nnet
 class placeholder final : public ileaf
 {
 public:
-	// >>>> CONSTRUCTORS <<<<
 	//! shape constructor
 	placeholder (const tensorshape& shape, std::string name = "");
 
@@ -98,7 +97,8 @@ public:
 	virtual placeholder& operator = (tensor& data);
 
 protected:
-	// >>>> POLYMORPHIC CLONERS <<<<
+	// >>>>>> POLYMORPHIC CLONERS <<<<<<
+
 	//! clone implementation
 	virtual inode* clone_impl (void) const;
 

@@ -13,7 +13,10 @@
 namespace nnet
 {
 
-inode::~inode (void) {}
+inode::~inode (void)
+{
+	graph::get().unregister_node(this);
+}
 
 inode* inode::clone (void) const
 {
@@ -70,22 +73,6 @@ void inode::set_label (std::string label)
 	label_ = label;
 }
 
-bool inode::find_audience (std::string label, std::unordered_set<iobserver*>& audience) const
-{
-	for (auto audpair : audience_)
-	{
-		iobserver* aud = audpair.first;
-		if (inode* anode = dynamic_cast<inode*>(aud))
-		{
-			if (0 == anode->label_.compare(label))
-			{
-				audience.insert(aud);
-			}
-		}
-	}
-	return false == audience.empty();
-}
-
 inode::inode (std::string label) :
 	subject(),
 	label_(label) {}
@@ -123,7 +110,7 @@ inode* varptr::get (void) const
 	return static_cast<inode*>(this->dependencies_.at(0));
 }
 
-void varptr::update (std::unordered_set<size_t>) {}
+void varptr::update (void) {}
 
 void varptr::clear (void) { this->remove_dependency(0); }
 

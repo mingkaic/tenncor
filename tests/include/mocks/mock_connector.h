@@ -47,7 +47,7 @@ public:
 	virtual varptr derive (inode*) { return nullptr; }
 	virtual bool read_proto (const tenncor::tensor_proto&) { return false; }
 
-	virtual void update (std::unordered_set<size_t>)
+	virtual void update (void)
 	{
 		label_incr("update1");
 	}

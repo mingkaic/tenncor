@@ -30,26 +30,30 @@ class iobserver
 public:
 	virtual ~iobserver (void);
 
-	// >>>> ASSIGNMENT OPERATORS <<<<
 	//! declare copy assignment to copy over dependencies
 	virtual iobserver& operator = (const iobserver& other);
 
 	//! declare move assignment to move over dependencies
 	virtual iobserver& operator = (iobserver&& other);
 
-	// >>>> OBSERVER INFO <<<<
+
+
+	// >>>>>>>>>>>> ACCESSOR <<<<<<<<<<<<
+
 	//! determine whether this observes sub
 	bool has_subject (subject* sub) const;
 
-	// >>>> CALLED BY OBSERVER TO UPDATE <<<<
-	//! update observer value according to subject
-	//! publicly available to allow explicit updates
-	virtual void update (std::unordered_set<size_t> argidx) = 0;
-
 	bool is_recordable (void) const;
 
+
+
+	// >>>>>>>>>>>> MUTATOR <<<<<<<<<<<<
+
+	//! update observer value according to subject
+	//! publicly available to allow explicit updates
+	virtual void update (void) = 0;
+
 protected:
-	// >>>> CONSTRUCTORS <<<<
 	//! default constructor
 	iobserver (bool recordable = true);
 
@@ -62,7 +66,8 @@ protected:
 	//! move over dependencies
 	iobserver (iobserver&& other);
 
-	// >>>> KILL CONDITION <<<<
+	// >>>>>> KILL CONDITION <<<<<<
+
 	//! smart destruction: call when any observer is broken
 	virtual void death_on_broken (void) = 0;
 
@@ -70,7 +75,8 @@ protected:
 
 	void remove_ondeath_dependent (subject* dep);
 
-	// >>>> DEPENDENCY MUTATORS <<<<
+	// >>>>>> DEPENDENCY MUTATORS <<<<<<
+
 	//! subscribe: add dependency
 	void add_dependency (subject* dep);
 
@@ -85,7 +91,8 @@ protected:
 	std::vector<subject*> dependencies_;
 
 private:
-	// >>>> NOTIFICATION MESSAGE MANAGER <<<
+	// >>>>>> NOTIFICATION MESSAGE MANAGER <<<<<<
+
 	//! update observer value with notification
 	virtual void update (std::unordered_set<size_t> dep_indices, notification msg);
 

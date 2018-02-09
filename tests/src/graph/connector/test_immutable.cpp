@@ -835,7 +835,7 @@ TEST_F(IMMUTABLE, Update_I010)
 	linear* conn = new mock_linear({n1}, conname, grabs, asis);
 	std::vector<double> init = expose<double>(conn);
 	mutate = true;
-	conn->update(std::unordered_set<size_t>{});
+	conn->update();
 	std::vector<double> next = expose<double>(conn);
 	ASSERT_EQ(init.size(), next.size());
 	for (size_t i = 0, n = init.size(); i < n; i++)

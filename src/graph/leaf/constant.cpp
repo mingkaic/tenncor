@@ -36,7 +36,7 @@ ileaf(name), data_(new tensor(shape, source))
 
 void constant::death_on_noparent (void)
 {
-	if (this->no_audience())
+	if (this->get_audience().size())
 	{
 		delete this;
 	}

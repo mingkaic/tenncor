@@ -61,7 +61,7 @@ protected:
 	//! declare move constructor to move over transfer functions
 	linear (linear&& other);
 
-	// >>>> POLYMORPHIC CLONERS <<<<
+	// >>>>>> POLYMORPHIC CLONERS <<<<<<
 	//! implement clone function
 	virtual inode* clone_impl (void) const;
 

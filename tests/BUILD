@@ -22,7 +22,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++14" ],
+	copts = [ "-std=c++17" ],
 )
 
 cc_test(
@@ -40,7 +40,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++14" ],
+	copts = [ "-std=c++17" ],
 )
 
 cc_test(
@@ -57,7 +57,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++14" ],
+	copts = [ "-std=c++17" ],
 )
 
 cc_test(
@@ -71,7 +71,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++14" ],
+	copts = [ "-std=c++17" ],
 )
 
 cc_test(
@@ -87,7 +87,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++14" ],
+	copts = [ "-std=c++17" ],
 )
 
 cc_test(
@@ -99,5 +99,5 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++14" ],
+	copts = [ "-std=c++17" ],
 )

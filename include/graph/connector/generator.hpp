@@ -14,24 +14,21 @@
 #include "include/graph/connector/iconnector.hpp"
 
 #pragma once
-#define TENNCOR_GENERATOR_HPP
 #ifndef TENNCOR_GENERATOR_HPP
 #define TENNCOR_GENERATOR_HPP
 
 namespace nnet
 {
 
-class generator : public iconnector
+class generator final : public iconnector
 {
 public:
-	virtual ~generator (void);
-
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for generator, clones init
 	static generator* get (inode* shape_dep,
-		const initializer& init, std::string name = "generator");
+		std::shared_ptr<idata_source> source,
+		std::string name = "");
 
-	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
 	generator* clone (void) const;
 
@@ -44,36 +41,35 @@ public:
 	//! declare move assignment to move over data and init
 	virtual generator& operator = (generator&& other);
 
-	// >>>> FORWARD & BACKWARD DATA <<<<
-	//! grab a temporary value traversing top-down
-	//! allocates out tensor. caller owns out
-	virtual void temporary_eval (const iconnector* target, inode*& out) const;
+
+
+	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	//! get gradient leaves
+	virtual std::unordered_set<ileaf*> get_leaves (void) const;
+
+
+
+	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
+
+	//! get tensor data
+	virtual tensor* get_tensor (void);
 
 	//! get gradient wrt some node, applies jacobians before evaluting resulting tensor
 	//! may call get_gradient
 	virtual varptr derive (inode* wrt);
 
-	//! Utility function: get data shape
-	virtual tensorshape get_shape (void) const;
+	// >>>>>> CALLED BY OBSERVER TO UPDATE <<<<<<
 
-	// >>>> GRAPH STATUS <<<<
-	//! get gradient leaves
-	virtual std::unordered_set<ileaf*> get_leaves (void) const;
-
-	// >>>> NODE STATUS <<<<
-
-	//! Inherited from inode: data_ takes data from proto
-	virtual bool read_proto (const tenncor::tensor_proto&);
-
-	// >>>> CALLED BY OBSERVER TO UPDATE <<<<
 	//! Inherited from iobserver: update data
 	//! Updates gcache_ and data_
-	virtual void update (std::unordered_set<size_t> argidx);
+	virtual void update (void);
 
 protected:
-	// >>>> CONSTRUCTORS <<<<
 	//! default constructor
-	generator (inode* shape_dep, const initializer& init, std::string name);
+	generator (inode* shape_dep, 
+		std::shared_ptr<idata_source> source,
+		std::string name);
 
 	//! declare copy constructor to copy over init and data
 	generator (const generator& other);
@@ -81,22 +77,18 @@ protected:
 	//! declare copy constructor to copy over init and data
 	generator (generator&& other);
 
-	// >>>> POLYMORPHIC CLONERS <<<<
+	// >>>>>> POLYMORPHIC CLONERS <<<<<<
+
 	//! clone abstraction function
 	virtual inode* clone_impl (void) const;
 
 	//! move abstraction function
 	virtual inode* move_impl (void);
 
-	// >>>> INTERNAL DATA TRANSFERS <<<<
-	//! get forward passing value
-	virtual const tensor* get_eval (void) const;
 
-	//! grab operational gradient node, used by other nodes
-	//! adds to internal caches if need be
-	virtual inode* get_gradient (variable* leaf);
 
-	// >>>> KILL CONDITION <<<<
+	// >>>>>>>>>>>> KILL CONDITION <<<<<<<<<<<<
+
 	//! suicides when all observers die
 	virtual void death_on_broken (void);
 
@@ -108,16 +100,12 @@ private:
 
 	void move_helper (generator&& other);
 
-	void clean_up (void);
+	//! raw data
+	std::unique_ptr<tensor> data_ = nullptr;
 
-	//! initialization handler, owns this
-	initializer* init_ = nullptr;
-
-	//! tensor data
-	tensor* data_ = nullptr;
+	std::shared_ptr<idata_source> source_;
 };
 
 }
 
 #endif /* TENNCOR_GENERATOR_HPP */
-#undef TENNCOR_GENERATOR_HPP

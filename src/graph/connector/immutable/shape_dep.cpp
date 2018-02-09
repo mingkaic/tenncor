@@ -75,7 +75,7 @@ shape_(shape)
 {
 	shape_.assert_is_fully_defined();
 	this->jacobians_.clear();
-	this->update(std::unordered_set<size_t>{});
+	this->update();
 }
 
 shape_dep::shape_dep (const shape_dep& other) :

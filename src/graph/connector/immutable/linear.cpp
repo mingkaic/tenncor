@@ -83,7 +83,7 @@ linear::linear (
 	actor_func* Nf,
 	BACK_MAP ginit, std::string label) :
 immutable(args, label), shaper_(shaper), Nf_(Nf),
-ginit_(ginit) { this->update(std::unordered_set<size_t>{}); }
+ginit_(ginit) { this->update(); }
 
 linear::linear (const linear& other) :
 	immutable(other)

@@ -62,6 +62,7 @@ subject& subject::operator = (subject&& other)
 	return *this;
 }
 
+
 void subject::notify (notification msg) const
 {
 #ifdef RPC_RCD
@@ -91,12 +92,11 @@ if (rocnnet_record::record_status::rec_good && UPDATE == msg)
 	}
 }
 
-bool subject::no_audience (void) const
+AUD_MAP subject::get_audience (void) const
 {
-	return audience_.empty();
+	return audience_;
 }
 
-size_t subject::n_audience (void) const { return audience_.size(); }
 
 void subject::steal_observers (subject* other)
 {

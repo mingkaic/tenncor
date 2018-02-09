@@ -26,9 +26,9 @@ using namespace std::experimental;
 namespace nnet
 {
 
-using AUD_MAP = std::unordered_map<iobserver*,std::vector<size_t> >;
-
 class iobserver;
+
+using AUD_MAP = std::unordered_map<iobserver*,std::unordered_set<size_t> >;
 
 //! notification messages
 enum notification
@@ -44,28 +44,24 @@ class subject
 public:
 	virtual ~subject (void);
 
-	// >>>> ASSIGNMENT OPERATORS <<<<
 	//! declare copy assignment to prevent audience_ copy over
 	virtual subject& operator = (const subject& other);
 
 	//! declare move assignment since copy is declared
 	virtual subject& operator = (subject&& other);
 
-	// >>>> CALL OBSERVERS <<<<
+
+
+	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
 	//! notify audience of subject update
 	void notify (notification msg) const;
 
-	// >>>> OBSERVER INFO <<<<
+	AUD_MAP get_audience (void) const;
 
-	AUD_MAP get_audience (void) const
-	{
-		return audience_;
-	}
 
-	//! determine whether the subject has an audience
-	bool no_audience (void) const; // DEPRECATED
 
-	size_t n_audience (void) const; // DEPRECATED
+	// >>>>>>>>>>>> MUTATOR <<<<<<<<<<<<
 
 	//! replace other with this instance for all parents of other
 	void steal_observers (subject* other);
@@ -104,7 +100,7 @@ protected:
 
 private:
 	//! observers -> { subject index in observer referencing this }
-	std::unordered_map<iobserver*,std::unordered_set<size_t> > audience_;
+	AUD_MAP audience_;
 
 	//! observers that kills this on death
 	std::unordered_set<iobserver*> killers_;
