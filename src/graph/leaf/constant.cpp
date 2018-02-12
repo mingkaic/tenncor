@@ -21,18 +21,10 @@ tensor* constant::get_tensor (void)
 varptr constant::derive (inode*)
 {
 	tensorshape shape = data_->get_shape();
-	std::vector<double> zeroes(shape.n_elems(), 0);
+	std::vector<double> zeroes(shape.n_elems(), 0); // todo: convert to data type
 	return constant::get(zeroes, shape);
 }
 
-
-constant::constant (const tensorshape& shape, 
-	std::shared_ptr<idata_source> source, std::string name) :
-ileaf(name), data_(new tensor(shape, source))
-{
-	shape.assert_is_fully_defined();
-	data_->read();
-}
 
 void constant::death_on_noparent (void)
 {
@@ -50,6 +42,14 @@ inode* constant::clone_impl (void) const
 inode* constant::move_impl (void)
 {
 	return nullptr;
+}
+
+constant::constant (const tensorshape& shape, 
+	std::shared_ptr<idata_source> source, std::string name) :
+ileaf(name), data_(new tensor(shape, source))
+{
+	shape.assert_is_fully_defined();
+	data_->read();
 }
 
 }

@@ -1,48 +1,91 @@
 //
-//  tensor.ipp
+//  data_op.cpp
 //  cnnet
 //
 //  Created by Mingkai Chen on 2018-01-14.
 //  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
-#incldue "include/operations/data_op.hpp"
+#include "include/operations/data_op.hpp"
 
 #ifdef TENNCOR_DATA_OP_HPP
 
 namespace nnet
 {
 
-static std::vector<std::unordered_map<std::string,VFUNC> > op_registry;
+using VFUNC_MAP = std::unordered_map<TENS_TYPE, VFUNC>;
+
+using FUNC_REG = std::unordered_map<std::string,VFUNC_MAP>;
 
 #define REGISTER_FUNC(FUNC) \
-op_registry[DOUBLE][#FUNC]=nnet::FUNC<double>; \
-op_registry[FLOAT][#FUNC]=nnet::FUNC<float>; \
-op_registry[INT8][#FUNC]=nnet::FUNC<int8_t>; \
-op_registry[UINT8][#FUNC]=nnet::FUNC<uint8_t>; \
-op_registry[INT16][#FUNC]=nnet::FUNC<int16_t>; \
-op_registry[UINT16][#FUNC]=nnet::FUNC<uint16_t>; \
-op_registry[INT32][#FUNC]=nnet::FUNC<int32_t>; \
-op_registry[UINT32][#FUNC]=nnet::FUNC<uint32_t>; \
-op_registry[INT64][#FUNC]=nnet::FUNC<int64_t>; \
-op_registry[UINT64][#FUNC]=nnet::FUNC<uint64_t>;
+{#FUNC, VFUNC_MAP{ \
+	{DOUBLE, nnet::FUNC<double>}, \
+	{FLOAT, nnet::FUNC<float>,} \
+	{INT8, nnet::FUNC<int8_t>}, \
+	{UINT8, nnet::FUNC<uint8_t>}, \
+	{INT16, nnet::FUNC<int16_t>}, \
+	{UINT16, nnet::FUNC<uint16_t>}, \
+	{INT32, nnet::FUNC<int32_t>}, \
+	{UINT32, nnet::FUNC<uint32_t>}, \
+	{INT64, nnet::FUNC<int64_t>}, \
+	{UINT64, nnet::FUNC<uint64_t>}}},
 
-void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> src, ARGS args)
+static const FUNC_REG op_registry = {
+	REGISTER_FUNC(abs)
+	REGISTER_FUNC(neg)
+	REGISTER_FUNC(sin)
+	REGISTER_FUNC(cos)
+	REGISTER_FUNC(tan)
+	REGISTER_FUNC(csc)
+	REGISTER_FUNC(sec)
+	REGISTER_FUNC(cot)
+	REGISTER_FUNC(exp)
+	REGISTER_FUNC(ln)
+	REGISTER_FUNC(sqrt)
+	REGISTER_FUNC(round)
+
+	REGISTER_FUNC(pow)
+	REGISTER_FUNC(add)
+	REGISTER_FUNC(sub)
+	REGISTER_FUNC(mul)
+	REGISTER_FUNC(div)
+	REGISTER_FUNC(eq)
+	REGISTER_FUNC(neq)
+	REGISTER_FUNC(lt)
+	REGISTER_FUNC(gt)
+	REGISTER_FUNC(rand_binom)
+	REGISTER_FUNC(rand_uniform)
+	REGISTER_FUNC(rand_normal)
+};
+
+std::unordered_set<std::string> all_ops (void)
 {
-	auto& type_op = op_registry[type];
-	auto it = type_op.find(opname);
-	if (type_op.end() != it)
+	std::unordered_set<std::string> opset;
+	for (auto& op_pair : op_registry)
 	{
-		(*it)[opname](dest, src, args);
+		opset.empalce(op_pair.first);
 	}
-	else
+	return opset;
+}
+
+void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> src)
+{
+	auto& type_it = reg.find(opname);
+	if (reg.end() != type_it)
 	{
-		throw std::bad_function_call();
+		auto& type_map = *(type_it);
+		auto& it = type_map.find(type);
+		if (type_map.end() != it)
+		{
+			(*it)(dest, src);
+			return;
+		}
 	}
+	throw std::bad_function_call();
 }
 
 template <>
-void rand_uniform<float> (VARR dest, std::vector<VARR> srcs, ARGS)
+void rand_uniform<float> (VARR dest, std::vector<VARR> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
@@ -63,7 +106,7 @@ void rand_uniform<float> (VARR dest, std::vector<VARR> srcs, ARGS)
 }
 
 template <>
-void rand_uniform<double> (VARR dest, std::vector<VARR> srcs, ARGS)
+void rand_uniform<double> (VARR dest, std::vector<VARR> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
@@ -82,40 +125,6 @@ void rand_uniform<double> (VARR dest, std::vector<VARR> srcs, ARGS)
 		d[i] = dist(nnutils::get_generator());
 	}
 }
-
-REGISTER_FUNC(abs)
-REGISTER_FUNC(neg)
-REGISTER_FUNC(sin)
-REGISTER_FUNC(cos)
-REGISTER_FUNC(tan)
-REGISTER_FUNC(csc)
-REGISTER_FUNC(sec)
-REGISTER_FUNC(cot)
-REGISTER_FUNC(exp)
-REGISTER_FUNC(ln)
-REGISTER_FUNC(sqrt)
-REGISTER_FUNC(round)
-
-REGISTER_FUNC(rand_binom)
-REGISTER_FUNC(rand_uniform)
-REGISTER_FUNC(rand_normal)
-REGISTER_FUNC(clip_mm)
-REGISTER_FUNC(clip_norm)
-REGISTER_FUNC(pow)
-REGISTER_FUNC(add)
-REGISTER_FUNC(sub)
-REGISTER_FUNC(mul)
-REGISTER_FUNC(div)
-
-REGISTER_FUNC(matmul)
-
-REGISTER_FUNC(expand)
-REGISTER_FUNC(flip)
-REGISTER_FUNC(crosscorr2d)
-
-
-// REGISTER_FUNC(compress)
-// REGISTER_FUNC(argcomp)
 
 }
 

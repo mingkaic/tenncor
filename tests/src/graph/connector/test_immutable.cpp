@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 
-#include "tests/include/mocks/mock_linear.h"
+#include "tests/include/mocks/mock_elem_op.h"
 #include "tests/include/mocks/mock_node.h"
 #include "tests/include/mocks/mock_itensor.h"
 
@@ -87,11 +87,11 @@ static bool bottom_up (std::vector<iconnector*> ordering)
 
 TEST_F(IMMUTABLE, Copy_I000)
 {
-	linear* assign = new mock_linear(std::vector<inode*>{}, "", get_testshaper(this));
-	linear* central = new mock_linear(std::vector<inode*>{}, "", get_testshaper(this));
+	elem_op* assign = new mock_elem_op(std::vector<inode*>{}, "", get_testshaper(this));
+	elem_op* central = new mock_elem_op(std::vector<inode*>{}, "", get_testshaper(this));
 	const tensor* res = central->eval();
 
-	linear* cpy = central->clone();
+	elem_op* cpy = central->clone();
 	*assign = *central;
 	ASSERT_NE(nullptr, cpy);
 
@@ -115,13 +115,13 @@ TEST_F(IMMUTABLE, Copy_I000)
 
 TEST_F(IMMUTABLE, Move_I000)
 {
-	linear* assign  = new mock_linear(std::vector<inode*>{}, "", get_testshaper(this));
-	linear* central = new mock_linear(std::vector<inode*>{}, "", get_testshaper(this));
+	elem_op* assign  = new mock_elem_op(std::vector<inode*>{}, "", get_testshaper(this));
+	elem_op* central = new mock_elem_op(std::vector<inode*>{}, "", get_testshaper(this));
 	const tensor_double* res = dynamic_cast<const tensor_double*>(central->eval());
 	std::vector<double> data = expose<double>(central);
 	tensorshape rs = res->get_shape();
 
-	linear* mv = central->move();
+	elem_op* mv = central->move();
 	EXPECT_NE(nullptr, mv);
 
 	const tensor_double* mres = dynamic_cast<const tensor_double*>(mv->eval());
@@ -162,10 +162,10 @@ TEST_F(IMMUTABLE, Descendent_I001)
 	variable* n2 = new variable(leafvalue[1], label2);
 	variable* n3 = new variable(leafvalue[2], label3);
 
-	linear* conn = new mock_linear(std::vector<inode *>{n1}, conname, get_testshaper(this));
-	linear* conn2 = new mock_linear(std::vector<inode *>{n1, n1}, conname2, get_testshaper(this));
-	linear* separate = new mock_linear(std::vector<inode*>{n3, n2}, conname2, get_testshaper(this));
-	linear* boss = new mock_linear(std::vector<inode *>{n1, n2}, conname2, get_testshaper(this));
+	elem_op* conn = new mock_elem_op(std::vector<inode *>{n1}, conname, get_testshaper(this));
+	elem_op* conn2 = new mock_elem_op(std::vector<inode *>{n1, n1}, conname2, get_testshaper(this));
+	elem_op* separate = new mock_elem_op(std::vector<inode*>{n3, n2}, conname2, get_testshaper(this));
+	elem_op* boss = new mock_elem_op(std::vector<inode *>{n1, n2}, conname2, get_testshaper(this));
 
 	EXPECT_TRUE(conn->potential_descendent(conn));
 	EXPECT_TRUE(conn->potential_descendent(conn2));
@@ -215,12 +215,12 @@ TEST_F(IMMUTABLE, Status_I002)
 	n2->data_ = new mock_itensor(this, n2s);
 	n3->data_ = new mock_itensor(this, n3s);
 
-	linear* conn = new mock_linear({n1}, conname, get_testshaper(this));
-	linear* conn2 = new mock_linear({n2, n3}, conname2, get_testshaper(this));
+	elem_op* conn = new mock_elem_op({n1}, conname, get_testshaper(this));
+	elem_op* conn2 = new mock_elem_op({n2, n3}, conname2, get_testshaper(this));
 	// bad statuses
-	linear* conn3 = new mock_linear({n4, n3}, conname3, get_testshaper(this));
-	linear* conn4 = new mock_linear({n1, n4}, conname4, get_testshaper(this));
-	linear* conn5 = new mock_linear({n2, n4}, conname5, get_testshaper(this));
+	elem_op* conn3 = new mock_elem_op({n4, n3}, conname3, get_testshaper(this));
+	elem_op* conn4 = new mock_elem_op({n1, n4}, conname4, get_testshaper(this));
+	elem_op* conn5 = new mock_elem_op({n2, n4}, conname5, get_testshaper(this));
 
 	EXPECT_TRUE(conn->good_status());
 	EXPECT_FALSE(conn2->good_status());
@@ -290,12 +290,12 @@ TEST_F(IMMUTABLE, Shape_I003)
 		return res;
 	};
 
-	linear* conn = new mock_linear({n1}, conname, fittershaper);
-	linear* conn2 = new mock_linear({n2, n3}, conname2, fittershaper);
+	elem_op* conn = new mock_elem_op({n1}, conname, fittershaper);
+	elem_op* conn2 = new mock_elem_op({n2, n3}, conname2, fittershaper);
 	// bad statuses
-	linear* conn3 = new mock_linear({n4, n3}, conname3, fittershaper);
-	linear* conn4 = new mock_linear({n1, n4}, conname4, fittershaper);
-	linear* conn5 = new mock_linear({n2, n4}, conname5, fittershaper);
+	elem_op* conn3 = new mock_elem_op({n4, n3}, conname3, fittershaper);
+	elem_op* conn4 = new mock_elem_op({n1, n4}, conname4, fittershaper);
+	elem_op* conn5 = new mock_elem_op({n2, n4}, conname5, fittershaper);
 
 	// sample expectations
 	tensorshape c2shape = fittershaper({n2s, n3s});
@@ -359,16 +359,16 @@ TEST_F(IMMUTABLE, Tensor_I004)
 		return res;
 	};
 
-	linear* conn = new mock_linear(
+	elem_op* conn = new mock_elem_op(
 		{n1}, conname, minshaper, adder);
-	linear* conn2 = new mock_linear(
+	elem_op* conn2 = new mock_elem_op(
 		{n2, n3}, conname, minshaper, adder);
 	// bad statuses
-	linear* conn3 = new mock_linear(
+	elem_op* conn3 = new mock_elem_op(
 		{n4, n3}, conname3, minshaper, adder);
-	linear* conn4 = new mock_linear(
+	elem_op* conn4 = new mock_elem_op(
 		{n1, n4}, conname4, minshaper, adder);
-	linear* conn5 = new mock_linear(
+	elem_op* conn5 = new mock_elem_op(
 		{n2, n4}, conname5, minshaper, adder);
 
 	tensorshape t2 = n2->get_shape();
@@ -443,25 +443,25 @@ TEST_F(IMMUTABLE, Tensor_I004)
 TEST_F(IMMUTABLE, ImmutableDeath_I005)
 {
 	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
-	std::unordered_set<linear*> leaves;
-	std::unordered_set<linear*> collector;
+	std::unordered_set<elem_op*> leaves;
+	std::unordered_set<elem_op*> collector;
 
 	// build a tree out of mock immutables
-	build_ntree<linear >(2, nnodes,
+	build_ntree<elem_op >(2, nnodes,
 	[this, &leaves](void)
 	{
 		std::string llabel = get_string(get_int(1, "llabel.size", {14, 29})[0], "llabel");
-		linear* im = new mock_linear(std::vector<inode*>{}, llabel, get_testshaper(this));
+		elem_op* im = new mock_elem_op(std::vector<inode*>{}, llabel, get_testshaper(this));
 		leaves.emplace(im);
 		return im;
 	},
-	[this, &collector](std::vector<linear*> args)
+	[this, &collector](std::vector<elem_op*> args)
 	{
 		std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
-		mock_linear* im = new mock_linear(
+		mock_elem_op* im = new mock_elem_op(
 			std::vector<inode*>(args.begin(), args.end()), nlabel, get_testshaper(this));
 		im->triggerOnDeath =
-		[&collector](mock_linear* ded)
+		[&collector](mock_elem_op* ded)
 		{
 			collector.erase(ded);
 		};
@@ -470,13 +470,13 @@ TEST_F(IMMUTABLE, ImmutableDeath_I005)
 	});
 
 	// check if collectors are all dead
-	for (linear* l : leaves)
+	for (elem_op* l : leaves)
 	{
 		delete l;
 	}
 
 	EXPECT_TRUE(collector.empty());
-	for (linear* im : collector)
+	for (elem_op* im : collector)
 	{
 		delete im;
 	}
@@ -488,7 +488,7 @@ TEST_F(IMMUTABLE, TemporaryEval_I006)
 	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 
 	std::unordered_set<inode*> leaves;
-	std::unordered_set<linear*> collector;
+	std::unordered_set<elem_op*> collector;
 
 	tensorshape shape = random_def_shape(this);
 	double single_rando = get_double(1, "single_rando", {1.1, 2.2})[0];
@@ -513,9 +513,9 @@ TEST_F(IMMUTABLE, TemporaryEval_I006)
 	[this, &collector, &unifiedshaper](std::vector<inode*> args)
 	{
 		std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
-		mock_linear* im = new mock_linear(args, nlabel, unifiedshaper, adder);
+		mock_elem_op* im = new mock_elem_op(args, nlabel, unifiedshaper, adder);
 		im->triggerOnDeath =
-		[&collector](mock_linear* ded)
+		[&collector](mock_elem_op* ded)
 		{
 			collector.erase(ded);
 		};
@@ -525,11 +525,11 @@ TEST_F(IMMUTABLE, TemporaryEval_I006)
 
 	inode* out = nullptr;
 	std::unordered_set<ileaf*> lcache;
-	for (linear* coll : collector)
+	for (elem_op* coll : collector)
 	{
 		if (coll == root) continue;
 		lcache.clear();
-		static_cast<linear*>(root)->temporary_eval(coll, out);
+		static_cast<elem_op*>(root)->temporary_eval(coll, out);
 		ASSERT_NE(nullptr, out);
 		const tensor_double* outt = dynamic_cast<const tensor_double*>(out->eval());
 		ASSERT_NE(nullptr, outt);
@@ -550,7 +550,7 @@ TEST_F(IMMUTABLE, TemporaryEval_I006)
 	{
 		delete l;
 	}
-	for (linear* im : collector)
+	for (elem_op* im : collector)
 	{
 		delete im;
 	}
@@ -562,7 +562,7 @@ TEST_F(IMMUTABLE, GetLeaves_I007)
 	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 
 	std::unordered_set<variable*> leaves;
-	std::unordered_set<linear*> collector;
+	std::unordered_set<elem_op*> collector;
 
 	inode* root = build_ntree<inode >(2, nnodes,
 		[this, &leaves]() -> inode*
@@ -576,10 +576,10 @@ TEST_F(IMMUTABLE, GetLeaves_I007)
 		[this, &collector](std::vector<inode*> args) -> inode*
 		{
 			std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
-			mock_linear* im = new mock_linear(
+			mock_elem_op* im = new mock_elem_op(
 				std::vector<inode*>(args.begin(), args.end()), nlabel, get_testshaper(this));
 			im->triggerOnDeath =
-				[&collector](mock_linear* ded) {
+				[&collector](mock_elem_op* ded) {
 					collector.erase(ded);
 				};
 			collector.insert(im);
@@ -593,7 +593,7 @@ TEST_F(IMMUTABLE, GetLeaves_I007)
 		EXPECT_TRUE(lcache.end() != lcache.find(l));
 	}
 	// any collector's leaf is found in leaves (ensures lcache doesn't collect trash nodes)
-	for (linear* coll : collector)
+	for (elem_op* coll : collector)
 	{
 		lcache.clear();
 		lcache = coll->get_leaves();
@@ -610,7 +610,7 @@ TEST_F(IMMUTABLE, GetLeaves_I007)
 	{
 		delete l;
 	}
-	for (linear* im : collector)
+	for (elem_op* im : collector)
 	{
 		delete im;
 	}
@@ -645,7 +645,7 @@ TEST_F(IMMUTABLE, GetLeaf_I008)
 	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 
 	std::unordered_set<variable*> leaves;
-	std::unordered_set<linear*> collector;
+	std::unordered_set<elem_op*> collector;
 
 	inode* root = build_ntree<inode >(2, nnodes,
 		[this, &leaves]() -> inode*
@@ -659,10 +659,10 @@ TEST_F(IMMUTABLE, GetLeaf_I008)
 		[this, &collector, &backer](std::vector<inode*> args) -> inode*
 		{
 			std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
-			mock_linear* im = new mock_linear(args, nlabel,
+			mock_elem_op* im = new mock_elem_op(args, nlabel,
 				get_testshaper(this), test_abuilder, backer);
 			im->triggerOnDeath =
-				[&collector](mock_linear* ded) {
+				[&collector](mock_elem_op* ded) {
 					collector.erase(ded);
 				};
 			collector.insert(im);
@@ -691,7 +691,7 @@ TEST_F(IMMUTABLE, GetLeaf_I008)
 	{
 		delete l;
 	}
-	for (linear* im : collector)
+	for (elem_op* im : collector)
 	{
 		delete im;
 	}
@@ -735,7 +735,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 	size_t nnodes = get_int(1, "nnodes", nnodes_range)[0];
 
 	std::unordered_set<variable*> leaves;
-	std::unordered_set<linear*> collector;
+	std::unordered_set<elem_op*> collector;
 
 	inode* root = build_ntree<inode >(2, nnodes,
 	[this, &leaves, &shape, &cinit]() -> inode*
@@ -749,10 +749,10 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 	[this, &collector, &unifiedshaper, &backer](std::vector<inode*> args) -> inode*
 	{
 		std::string nlabel = get_string(get_int(1, "nlabel.size", {14, 29})[0], "nlabel");
-		mock_linear* im = new mock_linear(args, nlabel,
+		mock_elem_op* im = new mock_elem_op(args, nlabel,
 			unifiedshaper, adder, backer);
 		im->triggerOnDeath =
-			[&collector](mock_linear* ded) {
+			[&collector](mock_elem_op* ded) {
 				collector.erase(ded);
 			};
 		collector.insert(im);
@@ -780,7 +780,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 		EXPECT_EQ(0, zaro->expose()[0]);
 
 		// SAME AS TEMPORARY EVAL
-		linear* coll = *(rand_select<std::unordered_set<linear*>>(collector));
+		elem_op* coll = *(rand_select<std::unordered_set<elem_op*>>(collector));
 		if (coll == root) continue;
 		const tensor_double* grad_too = dynamic_cast<const tensor_double*>(root->derive(coll)->eval());
 		EXPECT_TRUE(bottom_up(ordering));
@@ -802,7 +802,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 	{
 		delete l;
 	}
-	for (linear* im : collector)
+	for (elem_op* im : collector)
 	{
 		delete im;
 	}
@@ -832,7 +832,7 @@ TEST_F(IMMUTABLE, Update_I010)
 		return new cond_actor(dest, srcs, mutate);
 	};
 
-	linear* conn = new mock_linear({n1}, conname, grabs, asis);
+	elem_op* conn = new mock_elem_op({n1}, conname, grabs, asis);
 	std::vector<double> init = expose<double>(conn);
 	mutate = true;
 	conn->update();
@@ -869,7 +869,7 @@ TEST_F(IMMUTABLE, ShapeIncompatible_I011)
 		return ts[0];
 	};
 
-	mock_linear* initialgood = new mock_linear({n1}, conname2, shiftyshaper);
+	mock_elem_op* initialgood = new mock_elem_op({n1}, conname2, shiftyshaper);
 	change = true;
 	itens_actor*& actor = initialgood->get_actor();
 	delete actor;

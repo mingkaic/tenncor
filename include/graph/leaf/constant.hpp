@@ -29,7 +29,7 @@ class constant final : public ileaf
 public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for scalar
-	template <typename T>
+	template <typename T> // todo: optimize by looking for pre-existing constants
 	static constant* get (T scalar)
 	{
 		tensorshape shape = std::vector<size_t>{1};
@@ -57,6 +57,7 @@ public:
 	}
 
 	// >>>> CAN'T COPY OR MOVE (GOES AGAINST SHARING) <<<<
+
 	//! deleted copy constructor
 	constant (const constant&) = delete;
 
@@ -80,10 +81,6 @@ public:
 	virtual varptr derive (inode* wrt);
 
 protected:
-	//! name constructor, data_ is nullptr
-	constant (const tensorshape& shape,
-		std::shared_ptr<idata_source> source, std::string name);
-
 	// >>>> KILL CONDITION <<<<
 	//! suicides when this loses all observers (unless this is_managed)
 	virtual void death_on_noparent (void);
@@ -96,6 +93,10 @@ protected:
 	virtual inode* move_impl (void);
 
 private:
+	//! name constructor, data_ is nullptr
+	constant (const tensorshape& shape,
+		std::shared_ptr<idata_source> source, std::string name);
+
 	//! raw data
 	std::unique_ptr<tensor> data_ = nullptr;
 };

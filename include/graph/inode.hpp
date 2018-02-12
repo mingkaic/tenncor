@@ -61,17 +61,10 @@ public:
 	//! get beautified summary of name and uid, structure varies for inheritors
 	virtual std::string get_name (void) const;
 
-	//! get name described in summary, defaults to name, may differ for special nodes
-	virtual std::string get_summaryid (void) const;
-
 	//! get the distance between this node and the furthest dependent leaf (maximum spanning tree height)
 	virtual size_t get_depth (void) const = 0;
 
 	// >>>>>> CONNECTION QUERY <<<<<<
-
-	//! get all possible observers with specified label
-	//! return true if such observer is found
-	bool find_audience (std::string label, std::unordered_set<iobserver*>& audience) const; // DEPRECATED
 
 	//! merge/update the gradient/leaf info
 	virtual std::unordered_set<ileaf*> get_leaves (void) const = 0;
@@ -158,7 +151,8 @@ public:
 	virtual void update (void); // todo: split iobserver
 	
 protected:
-	virtual void death_on_broken (void);
+	// prevent death on broken to avoid double deletion on stack
+	virtual void death_on_broken (void) {}
 };
 
 struct portal_dest : public idata_dest

@@ -29,7 +29,7 @@ cc_library(
 	hdrs = TCR_PUBLIC_HDRS,
 	srcs = TCR_SRC,
 	deps = [ "//proto:tenncor_serial_cc_proto" ],
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )
 
 ######### Monitor Library #########
@@ -48,7 +48,7 @@ cc_library(
 	]),
 	deps = [ "//proto:tenncor_serial_cc_proto" ],
 	defines = [ "CSV_RCD" ],
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )
 
 cc_library(
@@ -72,5 +72,5 @@ cc_library(
 		"@com_github_grpc_grpc//:grpc++",
 	],
 	defines = [ "RPC_RCD" ],
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )

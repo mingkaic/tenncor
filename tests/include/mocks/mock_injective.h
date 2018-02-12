@@ -8,7 +8,7 @@
 #include "tests/include/utils/util_test.h"
 #include "tests/include/utils/fuzz.h"
 
-#include "include/graph/connector/immutable/linear.hpp"
+#include "include/graph/connector/immutable/elem_op.hpp"
 
 using namespace nnet;
 
@@ -55,16 +55,16 @@ inode* testback (std::vector<std::pair<inode*,inode*>>)
 }
 
 
-class mock_linear : public linear
+class mock_elem_op : public elem_op
 {
 public:
-	mock_linear (std::vector<inode*> args,
+	mock_elem_op (std::vector<inode*> args,
 		std::string label, SHAPER shapes,
 		CONN_ACTOR tfunc = test_abuilder,
 		BACK_MAP back = testback) :
-	linear(args, shapes, new actor_func(tfunc), back, label) {}
+	elem_op(args, shapes, new actor_func(tfunc), back, label) {}
 
-	std::function<void(mock_linear*)> triggerOnDeath;
+	std::function<void(mock_elem_op*)> triggerOnDeath;
 
 	itens_actor*& get_actor (void) { return actor_; }
 
@@ -74,7 +74,7 @@ public:
 		{
 			triggerOnDeath(this);
 		}
-		linear::death_on_broken();
+		elem_op::death_on_broken();
 	}
 };
 

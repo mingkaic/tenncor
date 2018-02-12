@@ -60,23 +60,17 @@ bool iobserver::is_recordable (void) const
 }
 
 
-void iobserver::update (std::unordered_set<size_t> dep_indices, notification msg)
+void iobserver::update (notification msg)
 {
 	switch (msg)
 	{
 		case UNSUBSCRIBE:
-			for (size_t dep_idx : dep_indices)
-			{
-				remove_dependency(dep_idx);
-			}
+			this->dependencies_.clear();
+			death_on_broken();
 		break;
 		case UPDATE:
 			update(); // value update
 		break;
-	}
-	if (UNSUBSCRIBE == msg)
-	{
-		death_on_broken();
 	}
 }
 
@@ -153,22 +147,16 @@ void iobserver::remove_dependency (size_t idx)
 	}
 }
 
-void iobserver::replace_dependency (subject* dep, size_t idx)
+void iobserver::replace_dependency (subject* dep, subject* old)
 {
-	size_t ndeps = dependencies_.size();
-	if (dep)
+	for (size_t i = 0; i < dependencies_.size(); ++i)
 	{
-		dep->attach(this, idx);
+		if (dependencies_[i] == old)
+		{
+			old->detach(this, i);
+			dep->attach(this, i);
+		}
 	}
-	if (idx>= ndeps)
-	{
-		dependencies_.insert(dependencies_.end(), idx - ndeps + 1, nullptr);
-	}
-	else if (subject* lastsub = dependencies_[idx])
-	{
-		if (lastsub != dep) lastsub->detach(this, idx);
-	}
-	dependencies_[idx] = dep;
 }
 
 void iobserver::copy_helper (const iobserver& other)

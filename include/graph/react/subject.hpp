@@ -28,7 +28,7 @@ namespace nnet
 
 class iobserver;
 
-using AUD_MAP = std::unordered_map<iobserver*,std::unordered_set<size_t> >;
+using AUD_SET = std::unordered_set<iobserver*>;
 
 //! notification messages
 enum notification
@@ -57,14 +57,7 @@ public:
 	//! notify audience of subject update
 	void notify (notification msg) const;
 
-	AUD_MAP get_audience (void) const;
-
-
-
-	// >>>>>>>>>>>> MUTATOR <<<<<<<<<<<<
-
-	//! replace other with this instance for all parents of other
-	void steal_observers (subject* other);
+	AUD_SET get_audience (void) const;
 
 protected:
 	//! explicit default constructor to allow copy and move constructors
@@ -99,8 +92,10 @@ protected:
 	friend class iobserver;
 
 private:
-	//! observers -> { subject index in observer referencing this }
-	AUD_MAP audience_;
+	void move_helper (subject&& other);
+
+	//! observers
+	AUD_SET audience_;
 
 	//! observers that kills this on death
 	std::unordered_set<iobserver*> killers_;

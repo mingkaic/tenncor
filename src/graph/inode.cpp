@@ -63,11 +63,6 @@ std::string inode::get_name (void) const
 	return "<" + label_ + ":" + this->get_uid() + ">";
 }
 
-std::string inode::get_summaryid (void) const
-{
-	return get_name();
-}
-
 void inode::set_label (std::string label)
 {
 	label_ = label;
@@ -93,8 +88,14 @@ varptr::~varptr (void) {}
 
 varptr& varptr::operator = (inode* other)
 {
-	if (this->dependencies_.empty()) this->add_dependency(other);
-	else this->replace_dependency(other, 0);
+	if (this->dependencies_.empty())
+	{
+		this->add_dependency(other);
+	}
+	else
+	{
+		this->replace_dependency(other, this->dependencies_[0]);
+	}
 	return *this;
 }
 
@@ -113,12 +114,6 @@ inode* varptr::get (void) const
 void varptr::update (void) {}
 
 void varptr::clear (void) { this->remove_dependency(0); }
-
-void varptr::death_on_broken (void)
-{
-	if (false == this->dependencies_.empty())
-		this->remove_dependency(0);
-}
 
 }
 

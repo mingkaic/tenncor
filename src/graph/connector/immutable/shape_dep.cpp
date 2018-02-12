@@ -9,28 +9,10 @@
 namespace nnet
 {
 
-shape_dep::~shape_dep (void){}
-
-shape_dep* shape_dep::get (inode* arg, SHAPE_EXTRACT forward,
+shape_dep* shape_dep::get (inode* arg, SHAPE2IDX extracter,
 	tensorshape shape, std::string name)
 {
-	std::unordered_set<inode*> audience;
-	if (arg->find_audience(name, audience))
-	{
-		// share nodes when possible
-		for (inode* aud : audience)
-		{
-			if (shape_dep* saud = dynamic_cast<shape_dep*>(aud))
-			{
-				std::vector<inode*> aud_args = aud->get_arguments();
-				if (1 == aud_args.size() && arg == aud_args[0])
-				{
-					return saud;
-				}
-			}
-		}
-	}
-	return new shape_dep(arg, forward, shape, name);
+	return new shape_dep(arg, extracter, shape, name);
 }
 
 shape_dep* shape_dep::clone (void) const
@@ -48,9 +30,7 @@ shape_dep& shape_dep::operator = (const shape_dep& other)
 	if (this != &other)
 	{
 		immutable::operator = (other);
-		shape_ = other.shape_;
-		assigner_ = other.assigner_;
-		extracter_ = other.extracter_;
+		copy_helper(other);
 	}
 	return *this;
 }
@@ -60,38 +40,31 @@ shape_dep& shape_dep::operator = (shape_dep&& other)
 	if (this != &other)
 	{
 		immutable::operator = (std::move(other));
-		shape_ = std::move(other.shape_);
-		assigner_ = std::move(other.assigner_);
-		extracter_ = std::move(other.extracter_);
+		move_helper(std::move(other));
 	}
 	return *this;
 }
 
-shape_dep::shape_dep (inode* arg, SHAPE_EXTRACT forward,
+
+shape_dep::shape_dep (inode* arg, SHAPE2IDX extracter,
 	tensorshape shape, std::string label) :
-immutable({arg}, label),
-extracter_(forward),
-shape_(shape)
+immutable({arg}, label), extracter_(extracter)
 {
-	shape_.assert_is_fully_defined();
-	this->jacobians_.clear();
+	shape.assert_is_fully_defined();
+	this->data_ = std::make_unique<tensor>(shape, asgn_);
 	this->update();
 }
 
 shape_dep::shape_dep (const shape_dep& other) :
 	immutable(other)
 {
-	shape_ = other.shape_;
-	assigner_ = other.assigner_;
-	extracter_ = other.extracter_;
+	copy_helper(other);
 }
 
 shape_dep::shape_dep (shape_dep&& other) :
 	immutable(std::move(other))
 {
-	shape_ = std::move(other.shape_);
-	assigner_ = std::move(other.assigner_);
-	extracter_ = std::move(other.extracter_);
+	move_helper(std::move(other));
 }
 
 inode* shape_dep::clone_impl (void) const
@@ -104,54 +77,39 @@ inode* shape_dep::move_impl (void)
 	return new shape_dep(std::move(*this));
 }
 
-immutable* shape_dep::arg_clone (std::vector<inode*> args) const
+void shape_dep::forward_pass (std::vector<inode*>& args)
 {
-	return new shape_dep(args[0], extracter_, shape_, this->get_label());
-}
-
-void shape_dep::forward_pass (void)
-{
-	inode* node = static_cast<inode*>(this->dependencies_[0]);
-	TENS_TYPE type = node->get_type();
-	if (nullptr == this->data_)
+	tensor* tens = args[0]->get_tensor();
+	if (tens)
 	{
-		switch (type)
-		{
-			case DOUBLE:
-				this->data_ = new tensor_double(shape_);
-			break;
-			case INT:
-				this->data_ = new tensor_signed(shape_);
-			break;
-			default:
-				throw std::exception(); // unsupported type
-		}
-	}
-	tensorshape shape = this->take_eval(node)->get_shape();
-	std::vector<size_t> tsvec = extracter_(shape);
-	switch (type)
-	{
-		case DOUBLE:
-		{
-			assigner_(*(this->data_),
-				&std::vector<double>(tsvec.begin(), tsvec.end())[0], type);
-		}
-		break;
-		case INT:
-		{
-			assigner_(*(this->data_),
-				&std::vector<signed>(tsvec.begin(), tsvec.end())[0], type);
-		}
-		break;
-		default:
-		break;
+		tensorshape shape = tens->get_shape();
+		std::vector<size_t> sdata = extracter_(shape);
+		std::vector<double> doub_d(sdata.begin(), sdata.end());
+		std::shared_ptr<void> ptr = std::shared_ptr<void>(&doub_d[0]);
+		asgn_->set_data(ptr, DOUBLE, data_->get_shape(), 0); // todo: make tens's type
+		data_->copy();
 	}
 }
 
-void shape_dep::backward_pass (variable* leaf)
+varptr shape_dep::backward_pass (inode* wrt)
 {
-	// shape_dep looks at shape, never data, so treat as constant
-	this->gcache_[leaf] = nnet::constant::get_shared_zero();
+	tensorshape shape = this->get_tensor()->get_shape();
+	std::vector<double> data(shape.n_elems(),
+		(double) (this == wrt));
+	return constant::get(data, shape);
+}
+
+
+void shape_dep::copy_helper (const shape_dep& other)
+{
+	asgn_ = other.asgn_;
+	extracter_ = other.extracter_;
+}
+
+void shape_dep::move_helper (shape_dep&& other)
+{
+	asgn_ = std::move(other.asgn_);
+	extracter_ = std::move(other.extracter_);
 }
 
 }

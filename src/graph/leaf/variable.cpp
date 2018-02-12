@@ -74,7 +74,7 @@ tensor* variable::get_tensor (void)
 varptr variable::derive (inode* wrt)
 {
 	tensorshape shape = data_->get_shape();
-	std::vector<double> data(shape.n_elems(),
+	std::vector<double> data(shape.n_elems(),  // todo: convert to data type
 		(double) (this == wrt));
 	return constant::get(data, shape);
 }
@@ -133,7 +133,7 @@ bool variable::assign_add (inode* input, bool notify)
 		successful = itens->has_data();
 		if (successful)
 		{
-			asgn_->opname_ = "add";
+			asgn_->set_op("add");
 			data_->write_to(*asgn_, 0);
 			itens->write_to(*asgn_, 1);
 			data_->copy();
@@ -157,7 +157,7 @@ bool variable::assign_sub (inode* input, bool notify)
 		successful = itens->has_data();
 		if (successful)
 		{
-			asgn_->opname_ = "sub";
+			asgn_->set_op("sub");
 			data_->write_to(*asgn_, 0);
 			itens->write_to(*asgn_, 1);
 			data_->copy();
@@ -187,7 +187,7 @@ void variable::copy_helper (const variable& other)
 	if (nullptr != other.data_)
 	{
 		data_ = std::make_unique<tensor>(*other.data_);
-		dsrc_ = std::dynamic_pointer_cast<open_source>(data_->get_source().lock());
+		dsrc_ = std::static_pointer_cast<open_source>(data_->get_source().lock());
 	}
 	else
 	{

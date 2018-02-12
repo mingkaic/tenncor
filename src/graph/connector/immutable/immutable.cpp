@@ -7,7 +7,6 @@
 //
 
 #include "include/graph/connector/immutable/immutable.hpp"
-// #include "include/graph/connector/immutable/linear.hpp"
 
 #ifdef TENNCOR_IMMUTABLE_HPP
 
@@ -50,10 +49,12 @@ immutable& immutable::operator = (immutable&& other)
 std::unordered_set<ileaf*> immutable::get_leaves (void) const
 {
 	std::unordered_set<ileaf*> leaves;
+	std::unordered_set<ileaf*> subleaves;
 	std::vector<inode*> args = this->get_arguments();
 	for (inode* arg : args)
 	{
-		leaves.merge(arg->get_leaves());
+		subleaves = arg->get_leaves();
+		leaves.insert(subleaves.begin(), subleaves.end());
 	}
 	return leaves;
 }
@@ -85,7 +86,7 @@ void immutable::update (void)
 	});
 	if (has_data)
 	{
-		forward_pass();
+		forward_pass(args);
 		this->notify(UPDATE);
 	}
 }
@@ -104,11 +105,6 @@ immutable::immutable (immutable&& other) :
 	iconnector(std::move(other))
 {
 	move_helper(std::move(other));
-}
-
-void immutable::death_on_broken (void)
-{
-	delete this;
 }
 
 void immutable::copy_helper (const immutable& other)

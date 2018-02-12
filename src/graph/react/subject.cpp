@@ -48,16 +48,7 @@ subject& subject::operator = (subject&& other)
 {
 	if (this != &other)
 	{
-		std::unordered_map<iobserver*, std::unordered_set<size_t> > temp = other.audience_;
-		for (auto& audpair : temp)
-		{
-			iobserver* aud = audpair.first;
-			for (size_t idx : audpair.second)
-			{
-				aud->replace_dependency(this, idx);
-			}
-		}
-		other.audience_.clear();
+		move_helper(std::move(other));
 	}
 	return *this;
 }
@@ -76,40 +67,17 @@ if (rocnnet_record::record_status::rec_good && UPDATE == msg)
 	}
 }
 #endif /* RPC_RCD */
-	std::vector<iobserver*> obs;
-	for (auto it = audience_.begin(), et = audience_.end(); it != et; it++)
+	for (iobserver* viewer : audience_)
 	{
-		obs.push_back(it->first);
-	}
-
-	for (iobserver* viewer : obs)
-	{
-		auto it = audience_.find(viewer);
-		if (it != audience_.end())
-		{
-			viewer->update(it->second, msg);
-		}
+		viewer->update(msg);
 	}
 }
 
-AUD_MAP subject::get_audience (void) const
+AUD_SET subject::get_audience (void) const
 {
 	return audience_;
 }
 
-
-void subject::steal_observers (subject* other)
-{
-	std::unordered_map<iobserver*, std::unordered_set<size_t> > aud_cpy = other->audience_;
-	for (auto aud_pair : aud_cpy)
-	{
-		iobserver* aud = aud_pair.first;
-		for (size_t i : aud_pair.second)
-		{
-			aud->replace_dependency(this, i);
-		}
-	}
-}
 
 subject::subject (void) {}
 
@@ -137,16 +105,7 @@ subject::subject (const subject&) {}
 
 subject::subject (subject&& other)
 {
-	std::unordered_map<iobserver*, std::unordered_set<size_t> > temp = other.audience_;
-	for (auto& audpair : temp)
-	{
-		iobserver* aud = audpair.first;
-		for (size_t idx : audpair.second)
-		{
-			aud->replace_dependency(this, idx);
-		}
-	}
-	other.audience_.clear();
+	move_helper(std::move(other));
 }
 
 void subject::attach (iobserver* viewer, size_t idx)
@@ -161,7 +120,7 @@ if (rocnnet_record::record_status::rec_good)
 
 #endif /* CSV_RCD || RPC_RCD */
 
-	audience_[viewer].emplace(idx);
+	audience_.emplace(viewer);
 }
 
 void subject::detach (iobserver* viewer)
@@ -198,18 +157,19 @@ if (rocnnet_record::record_status::rec_good)
 
 #endif /* CSV_RCD || RPC_RCD */
 
-	auto it = audience_.find(viewer);
-	if (audience_.end() != it)
-	{
-		it->second.erase(idx);
-		if (it->second.empty())
-		{
-			audience_.erase(viewer);
-		}
-	}
+	audience_.erase(viewer);
 	if (audience_.empty())
 	{
 		death_on_noparent();
+	}
+}
+
+void subject::move_helper (subject&& other)
+{
+	audience_ = std::move(other.audience_);
+	for (iobserver* aud : audience_)
+	{
+		aud->replace_dependency(this, &other);
 	}
 }
 

@@ -63,7 +63,7 @@ tensor* placeholder::get_tensor (void)
 varptr placeholder::derive (inode* wrt)
 {
 	tensorshape shape = data_->get_shape();
-	std::vector<double> zeroes(shape.n_elems(), 0);
+	std::vector<double> zeroes(shape.n_elems(), 0); // todo: convert to data type
 	return constant::get(zeroes, shape);
 }
 

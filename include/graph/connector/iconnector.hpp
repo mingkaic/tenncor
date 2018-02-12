@@ -24,9 +24,7 @@ namespace nnet
 {
 
 //! backward transfer function, get gradient nodes; F: Nf -> Nb
-using BACK_MAP = std::function<varptr(std::vector<std::pair<inode*,inode*>>)>;
-
-using NODE_MAN = std::function<inode*(inode*)>;
+using BACK_MAP = std::function<varptr(std::vector<std::pair<inode*,inode*> >)>;
 
 //! calculate output shape from argument shapes
 using SHAPER = std::function<tensorshape(std::vector<tensorshape>)>;
@@ -74,6 +72,16 @@ protected:
 
 	//! Declare move constructor to enforce proper g_man_ copy over
 	iconnector (iconnector&& other);
+
+
+
+	// >>>>>>>>>>>> KILL CONDITION <<<<<<<<<<<<
+
+	//! suicides when any dependency dies
+	virtual void death_on_broken (void)
+	{
+		delete this;
+	}
 
 private:
 	void copy_helper (const iconnector& other);

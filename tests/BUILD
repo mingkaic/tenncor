@@ -12,7 +12,7 @@ cc_test(
 	size = "small",
 	srcs = COMMON_SRC + glob([
 		"include/mocks/mock_connector.h",
-		"include/mocks/mock_linear.h",
+		"include/mocks/mock_elem_op.h",
 		"include/mocks/mock_itensor.h",
 		"include/mocks/mock_node.h",
 		"src/graph/connector/*.cpp",
@@ -22,7 +22,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )
 
 cc_test(
@@ -40,7 +40,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )
 
 cc_test(
@@ -57,7 +57,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )
 
 cc_test(
@@ -71,7 +71,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )
 
 cc_test(
@@ -87,7 +87,7 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )
 
 cc_test(
@@ -99,5 +99,5 @@ cc_test(
 		"@com_google_googletest//:gtest_main",
 	],
 	linkstatic = 1,
-	copts = [ "-std=c++17" ],
+	copts = [ "-std=c++14" ],
 )

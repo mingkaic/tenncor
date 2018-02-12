@@ -17,26 +17,22 @@
  *
  */
 
-#include "include/graph/connector/immutable/linear.hpp"
-#include "include/graph/leaf/constant.hpp"
-#include "include/operations/operation_utils.hpp"
+#include "include/graph/connector/immutable/elem_op.hpp"
+#include "include/graph/connector/muxer.hpp"
 
 #pragma once
 
 namespace nnet
 {
 
-#define TENNCOR_ELEM_UNI_HPP
-#ifndef TENNCOR_ELEM_UNI_HPP
-#define TENNCOR_ELEM_UNI_HPP
+// standard operations, using a single connector
+#ifndef TENNCOR_OP_STD_HPP
+#define TENNCOR_OP_STD_HPP
 
-//! wraps an empty node, usually to avoid overlapping references
-varptr identity (varptr x);
-
-varptr as_constant (varptr x);
+// >>>>>>>>>>>> UNARY STANDARD OPS <<<<<<<<<<<<
 
 //! absolute value of a
-varptr operator + (const varptr a);
+varptr abs (const varptr a);
 
 //! negative value of a
 varptr operator - (const varptr a);
@@ -62,87 +58,20 @@ varptr cot (const varptr a);
 //! e of power a
 varptr exp (const varptr a);
 
+//! natural ln a
+varptr ln (const varptr a);
+
 //! square root of a
 varptr sqrt (const varptr a);
 
 //! round a
 varptr round (const varptr a);
 
-//! natural log a
-varptr log (const varptr a);
 
-//! power
-varptr pow (const varptr base, double xponent);
+// >>>>>>>>>>>> BINARY STANDARD OPS <<<<<<<<<<<<
 
-varptr pow (double base, const varptr xponent);
-
-//! clip values in range [min, max]
-varptr clip (const varptr a, double min, double max);
-
-//! normalize clip values with capacity cap
-varptr clip_norm (const varptr a, double cap);
-
-//! output value 0 if false == compare(a, b) else 1 for each element
-varptr conditional (const varptr a, UNI_COMP<double> compare, std::string name);
-
-varptr conditional (double a, const varptr b, COMPARE<double> compare, std::string name);
-
-varptr conditional (const varptr a, double b, COMPARE<double> compare, std::string name);
-
-varptr eq (double a, const varptr b);
-
-varptr eq (const varptr a, double b);
-
-varptr neq (double a, const varptr b);
-
-varptr neq (const varptr a, double b);
-
-//! sample using binominal distribution given tensors (or scalars) n and p
-// todo: after implementing type, restrict n to integers
-varptr binomial_sample (signed n, const varptr p);
-
-varptr binomial_sample (const varptr n, double p);
-
-//! add a and scalar b
-varptr operator + (const varptr a, double b);
-
-//! add scalar a and b
-varptr operator + (double a, const varptr b);
-
-//! subtract a and scalar b
-varptr operator - (const varptr a, double b);
-
-//! subtract scalar a and b
-varptr operator - (double a, const varptr b);
-
-//! multiply a and scalar b
-varptr operator * (const varptr a, double b);
-
-//! multiply scalar a and b
-varptr operator * (double a, const varptr b);
-
-//! divide a and scalar b
-varptr operator / (const varptr a, double b);
-
-//! divide scalar a and b
-varptr operator / (double a, const varptr b);
-
-#endif /* TENNCOR_ELEM_UNI_HPP */
-
-#define TENNCOR_ELEM_BI_HPP
-#ifndef TENNCOR_ELEM_BI_HPP
-#define TENNCOR_ELEM_BI_HPP
-
-varptr binomial_sample (const varptr n, const varptr p);
-
-varptr conditional (const varptr a, const varptr b, COMPARE<double> compare, std::string name);
-
-//! binary power
-varptr pow (const varptr base, const varptr xponent);
-
-varptr eq (const varptr a, const varptr b);
-
-varptr neq (const varptr a, const varptr b);
+//! b to the power of x
+varptr pow (const varptr b, const varptr x);
 
 //! add a and b
 varptr operator + (const varptr a, const varptr b);
@@ -156,106 +85,171 @@ varptr operator * (const varptr a, const varptr b);
 //! divide a and b
 varptr operator / (const varptr a, const varptr b);
 
-// START DEPRECATE
-//! add a and b along a specific axis, dimension values outside of axis must match
-varptr add_axial_a (const varptr a, const varptr b, size_t axis_a);
+varptr operator == (const varptr a, const varptr b);
 
-varptr add_axial_b (const varptr a, const varptr b, size_t axis_b);
+varptr operator != (const varptr a, const varptr b);
 
-//! subtract a and b along a specific axis, dimension values outside of axis must match
-varptr sub_axial_a (const varptr a, const varptr b, size_t axis_a);
+varptr operator < (const varptr a, const varptr b);
 
-varptr sub_axial_b (const varptr a, const varptr b, size_t axis_b);
+varptr operator > (const varptr a, const varptr b);
 
-//! multiply a and b along a specific axis, dimension values outside of axis must match
-varptr mul_axial_a (const varptr a, const varptr b, size_t axis_a);
+varptr binomial_sample (const varptr n, const varptr p);
 
-varptr mul_axial_b (const varptr a, const varptr b, size_t axis_b);
+varptr uniform_sample (const varptr min, const varptr max);
 
-//! divide a and b along a specific axis, dimension values outside of axis must match
-varptr div_axial_a (const varptr a, const varptr b, size_t axis_a);
+varptr normal_sample (const varptr mean, const varptr stdev);
 
-varptr div_axial_b (const varptr a, const varptr b, size_t axis_b);
-// END DEPRECATE
+template <typename T>
+varptr pow (const varptr b, T x) { return pow(b, varptr(constant::get(x))); }
 
-#endif /* TENNCOR_ELEM_BI_HPP */
+template <typename T>
+varptr pow (T b, const varptr x) { return pow(varptr(constant::get(b)), x); }
 
-#define TENNCOR_TRANSFORM_HPP
-#ifndef TENNCOR_TRANSFORM_HPP
-#define TENNCOR_TRANSFORM_HPP
+template <typename T>
+varptr operator + (const varptr a, T b) { return a + varptr(constant::get(b)); }
 
-//! transpose a along first 2 dimension
-// todo: check if axis_swap are the same dimensions, if so, return a as is (invalid transpose) + leave warning
-varptr transpose (const varptr a, std::pair<size_t,size_t> axis_swap = {0, 1});
+template <typename T>
+varptr operator + (T a, const varptr b) { return varptr(constant::get(a)) + b; }
 
-//! fit data in a to watch's shape, ignores all jacobian (todo: change to selectively ignore watch's jacobian)
-//! watch needs to be a dependency of the resulting node,
-//! because shape changes to watch should trigger shape update for output node
-varptr fit (const varptr a, const varptr watch);
+template <typename T>
+varptr operator - (const varptr a, T b) { return a - varptr(constant::get(b)); }
 
-//! extend data in a to along index dimension multiplier times
-varptr extend (const varptr a, size_t index, size_t multiplier);
+template <typename T>
+varptr operator - (T a, const varptr b) { return varptr(constant::get(a)) - b; }
 
-//! compresses data along dimensions specified by index
-//! unspecified index compresses all elements in the tensor (output is a scalar)
-varptr compress (const varptr a, BI_TRANS<double> collector,
-	optional<size_t> index, std::string name = "compress");
+template <typename T>
+varptr operator * (const varptr a, T b) { return a * varptr(constant::get(b)); }
+
+template <typename T>
+varptr operator * (T a, const varptr b) { return varptr(constant::get(a)) * b; }
+
+template <typename T>
+varptr operator / (const varptr a, T b) { return a / varptr(constant::get(b)); }
+
+template <typename T>
+varptr operator / (T a, const varptr b) { return varptr(constant::get(a)) / b; }
+
+template <typename T>
+varptr operator == (const varptr a, T b) { return a == varptr(constant::get(b)); }
+
+template <typename T>
+varptr operator == (T a, const varptr b) { return varptr(constant::get(a)) == b; }
+
+template <typename T>
+varptr operator != (const varptr a, T b) { return a != varptr(constant::get(b)); }
+
+template <typename T>
+varptr operator != (T a, const varptr b) { return varptr(constant::get(a)) != b; }
+
+template <typename T>
+varptr binomial_sample (const varptr n, T p)
+{ return binomial_sample(n, varptr(constant::get(p))); }
+
+template <typename T>
+varptr binomial_sample (T n, const varptr p)
+{ return binomial_sample(varptr(constant::get(n)), p); }
+
+template <typename T>
+varptr uniform_sample (const varptr min, T max)
+{ return uniform_sample(min, varptr(constant::get(max))); }
+
+template <typename T>
+varptr uniform_sample (T min, const varptr max)
+{ return uniform_sample(varptr(constant::get(min)), max); }
+
+template <typename T>
+varptr normal_sample (const varptr mean, T stdev)
+{ return normal_sample(mean, varptr(constant::get(stdev))); }
+
+template <typename T>
+varptr normal_sample (T mean, const varptr stdev)
+{ return normal_sample(varptr(constant::get(mean)), stdev); }
+
+
+// >>>>>>>>>>>> COORDINATE MAPPERS <<<<<<<<<<<<
+
+//! transpose, default perm is same as behavior n-1 ... 0
+varptr transpose (const varptr a, std::vector<size_t> perm = {});
+
+//! flip a in specified dimensions
+varptr flip (const varptr a, std::vector<size_t> dims);
+
+// >>>>>>>>>>>> AGGREGATES <<<<<<<<<<<<
+
+varptr arg_max (const varptr a);
+
+varptr reduce_max (const varptr a);
+
+varptr reduce_sum (const varptr a);
+
+#endif /* TENNCOR_OP_STD_HPP */
+
+
+// composite operations, using multiple connectors
+#ifndef TENNCOR_OP_COM_HPP
+#define TENNCOR_OP_COM_HPP
+
+// >>>>>>>>>>>> CLIPPING <<<<<<<<<<<<
+
+//! clip values in range [min, max]
+varptr clip (const varptr a, const varptr min, const varptr max);
+
+//! normalize clip values with capacity cap
+varptr clip_norm (const varptr a, const varptr cap);
+
+//! clip values in range [min, max]
+template <typename T>
+varptr clip (const varptr a, T min, T max)
+{ return clip(a, varptr(constant::get(min)), varptr(constant::get(max))); }
+
+//! normalize clip values with capacity cap
+template <typename T>
+varptr clip_norm (const varptr a, T cap)
+{ return clip_norm(a, varptr(constant::get(cap))); }
+
+
+// >>>>>>>>>>>> AGGREGATE <<<<<<<<<<<<
+
+varptr reduce_mean (const varptr a);
+
+varptr reduce_l2norm (const varptr a);
+
+
+// >>>>>>>>>>>> MULTIPLEXED <<<<<<<<<<<<
 
 // Dimensionality Reduction Functions (Wrappers for compress)
 //! compress tensor by taking maximum value across specified dimension
 //! unspecified dimension obtains maximum value in the entire tensor
-varptr reduce_max (const varptr a, optional<size_t> dimension = optional<size_t>());
+varptr reduce_max (const varptr a, size_t dimension);
 
 //! compress tensor by taking the sum of values across specified dimension(s)
 //! unspecified dimension obtains the sum of all values in the entire tensor
-varptr reduce_sum (const varptr a, optional<size_t> dimension = optional<size_t>());
+varptr reduce_sum (const varptr a, size_t dimension);
 
 //! compress tensor by taking the mean of values across specified dimension(s)
 //! unspecified dimension obtains the mean of values in the entire tensor
-varptr reduce_mean (const varptr a, optional<size_t> dimension = optional<size_t>());
+varptr reduce_mean (const varptr a, size_t dimension);
 
-varptr reduce_l2norm (const varptr a, optional<size_t> dimension = optional<size_t>());
-
-//! compresses data along dimensions specified by dimension
-//! by taking the index using the compare function
-//! unspecified dimension compresses all elements in the tensor (output is a scalar)
-//! takes left argument of compare if compare evaluates to true
-varptr arg_compress (const varptr a, REDUCE<double> search,
-	optional<size_t> dimension, std::string name = "argcompress");
+varptr reduce_l2norm (const varptr a, size_t dimension);
 
 //! obtains the indices of the maximum value across specified dimension
 //! -1 index looks returns a vector coordinate specifying max value in tensor a
-varptr arg_max (const varptr a, optional<size_t> dimension = optional<size_t>());
+varptr arg_max (const varptr a, size_t dimension);
 
-//! flip a in specified dimensions
-varptr flip (const varptr a, std::vector<size_t> dims);
+
+// unimplemented
+//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
+varptr matmul (const varptr a, const varptr b,
+	bool transposeA = false, bool transposeB = false);
 
 //! for example: window {0, 1} gives output f[i, j, :] = sum(a[i:i+filtshape[0], j:j+filtshape[1], :] * filter)
 //! whereas window {0,2} gives output f[i, :, j] = sum(a[i:i+filtshape[0], :, j:j+filtshape[1]] * filter)
 //! if pad == true, then pad output with zero to fit a's shape, otherwise leave as is after cross_corr
 varptr cross_corr2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
-	
+
 //! convolve a with filter, conv(a, filter, dims) = cross_conv(a, flip(filter), dims)
 varptr conv2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
 
-// todo: implement
-// [grad(trace(f(x)), x) = transpose(scalar_grad(f(x), x))]
-//! trace of a
-varptr trace (const varptr a);
-
-//! inverse of matrix a
-varptr inverse (const varptr a);
-
-#endif /* TENNCOR_TRANSFORM_HPP */
-
-#define TENNCOR_MATMUL_HPP
-#ifndef TENNCOR_MATMUL_HPP
-#define TENNCOR_MATMUL_HPP
-
-//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
-varptr matmul (const varptr a, const varptr b,
-	bool transposeA = false, bool transposeB = false);
-
-#endif /* TENNCOR_MATMUL_HPP */
+#endif /* TENNCOR_OP_COM_HPP */
 
 }

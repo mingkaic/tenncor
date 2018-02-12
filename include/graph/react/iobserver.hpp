@@ -84,7 +84,7 @@ protected:
 	void remove_dependency (size_t idx);
 
 	//! replace dependency
-	void replace_dependency (subject* dep, size_t idx);
+	void replace_dependency (subject* dep, subject* old);
 
 	//! order of subject matters;
 	//! observer-subject relation is non-unique
@@ -94,7 +94,7 @@ private:
 	// >>>>>> NOTIFICATION MESSAGE MANAGER <<<<<<
 
 	//! update observer value with notification
-	virtual void update (std::unordered_set<size_t> dep_indices, notification msg);
+	virtual void update (notification msg);
 
 	//! copy helper function
 	void copy_helper (const iobserver& other);

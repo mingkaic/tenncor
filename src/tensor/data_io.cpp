@@ -96,24 +96,12 @@ open_source::open_source (const open_source& other)
 	source_ = std::shared_ptr<idata_source>(other.source_->clone());
 }
 
-idata_source* assign_io::clone (void) const
+idata_source* operate_io::clone (void) const
 {
-	return new assign_io();
+	return new operate_io(*this);
 }
 
-void assign_io::set_data (std::shared_ptr<void> data, 
-	TENS_TYPE type, tensorshape shape, size_t i)
-{
-	assert(type_ == BAD_T || type_ == type);
-	size_t nargs = args_.size();
-	if (i < nargs)
-	{
-		args_.insert(args_.end(), args_.size() - i, SHARED_VARR{});
-	}
-	args_[i] = SHARED_VARR{data, shape};
-}
-
-std::shared_ptr<void> assign_io::get_data (TENS_TYPE& type, tensorshape shape)
+std::shared_ptr<void> operate_io::get_data (TENS_TYPE& type, tensorshape shape)
 {
 	type = type_;
 	assert(type != BAD_T && !args_.empty());
@@ -130,6 +118,16 @@ std::shared_ptr<void> assign_io::get_data (TENS_TYPE& type, tensorshape shape)
 		operate(opname_, type_, VARR{dest.get(), destshape}, args);
 	}
 	return dest;
+}
+
+idata_source* assign_io::clone (void) const
+{
+	return new assign_io();
+}
+
+void assign_io::set_op (std::string opname)
+{
+	opname_ = opname;
 }
 
 void assign_io::clear (void)

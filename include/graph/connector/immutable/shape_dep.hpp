@@ -18,27 +18,21 @@
 #include "include/graph/connector/immutable/immutable.hpp"
 
 #pragma once
-#define TENNCOR_SHAPE_DEP_HPP
 #ifndef TENNCOR_SHAPE_DEP_HPP
 #define TENNCOR_SHAPE_DEP_HPP
 
 namespace nnet
 {
 
-using SHAPE_EXTRACT = std::function<std::vector<size_t>(tensorshape&)>;
-
 // todo: make tensor unaligned
-class shape_dep : public immutable
+class shape_dep final : public immutable
 {
 public:
-	virtual ~shape_dep (void);
-
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for immutables, grabs ownership of Nf
-	static shape_dep* get (inode* arg, SHAPE_EXTRACT forward,
+	static shape_dep* get (inode* arg, SHAPE2IDX extracter,
 		tensorshape shape, std::string name);
 
-	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
 	shape_dep* clone (void) const;
 
@@ -51,10 +45,9 @@ public:
 	//! declare move assignment to move over transfer functions
 	virtual shape_dep& operator = (shape_dep&& other);
 
-protected:
-	// >>>> CONSTRUCTORS <<<<
+private:
 	//! immutable constructing an aggregate transfer function
-	shape_dep (inode* arg, SHAPE_EXTRACT forward,
+	shape_dep (inode* arg, SHAPE2IDX extracter,
 		tensorshape shape, std::string label);
 
 	//! declare copy constructor to copy over transfer functions
@@ -64,33 +57,32 @@ protected:
 	shape_dep (shape_dep&& other);
 
 	// >>>>>> POLYMORPHIC CLONERS <<<<<<
+
 	//! implement clone function
 	virtual inode* clone_impl (void) const;
 
 	//! move implementation
 	virtual inode* move_impl (void);
 
-	// >>>> PROTECTED CLONER <<<<
-	//! create a deep copy of this with args
-	virtual immutable* arg_clone (std::vector<inode*> args) const;
+	// >>>>>> FORWARD & BACKWARD <<<<<<
 
-	// >>>> FORWARD & BACKWARD <<<<
 	//! forward pass step: populate data_
-	virtual void forward_pass (void);
+	virtual void forward_pass (std::vector<inode*>& args);
 
-	//! backward pass step: populate gcache_[leaf]
-	virtual void backward_pass (variable* leaf);
+	//! backward pass step
+	virtual varptr backward_pass (inode* wrt);
 
-private:
+
+	void copy_helper (const shape_dep& other);
+
+	void move_helper (shape_dep&& other);
+
+	std::shared_ptr<assign_io> asgn_ = std::make_shared<assign_io>();
+
 	//! extract shape dimensions to data_
-	assign_func assigner_;
-
-	SHAPE_EXTRACT extracter_;
-
-	tensorshape shape_;
+	SHAPE2IDX extracter_;
 };
 
 }
 
 #endif /* TENNCOR_SHAPE_DEP_HPP */
-#undef TENNCOR_SHAPE_DEP_HPP

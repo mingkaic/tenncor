@@ -26,15 +26,13 @@
 namespace nnet
 {
 
+using SHAPE2IDX = std::function<std::vector<size_t>(tensorshape&)>;
+
 class immutable : public iconnector
 {
 public:
-	//! type for mapping leaf nodes to derivative with respect to leaf
-	using GRAD_CACHE = std::unordered_map<ileaf*,varptr>;
-
 	virtual ~immutable (void);
 
-	// >>>> CLONER & ASSIGNMENT OPERATORS <<<<
 	//! clone function
 	immutable* clone (void) const;
 
@@ -68,14 +66,12 @@ public:
 	// >>>>>> CALLED BY OBSERVER TO UPDATE <<<<<<
 
 	//! Inherited from iobserver: update data
-	//! Updates gcache_ and data_
 	virtual void update (void);
 
 protected:
 	//! immutable constructing an aggregate transfer function
 	immutable (std::vector<inode*> args, std::string label);
 
-	// >>>> COPY && MOVE CONSTRUCTORS <<<<
 	//! declare copy constructor to copy over transfer functions
 	immutable (const immutable& other);
 
@@ -84,16 +80,10 @@ protected:
 
 
 
-	// >>>>>>>>>>>> KILL CONDITION <<<<<<<<<<<<
+	// >>>>>>>>>>>> FORWARD & BACKWARD <<<<<<<<<<<<
 
-	//! suicides when all observers die
-	virtual void death_on_broken (void);
-
-
-
-	// >>>> FORWARD & BACKWARD <<<<
 	//! forward pass step: populate data_
-	virtual void forward_pass (void) = 0;
+	virtual void forward_pass (std::vector<inode*>& args) = 0;
 
 	virtual varptr backward_pass (inode* wrt) = 0;
 
