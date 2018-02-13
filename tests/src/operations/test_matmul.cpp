@@ -425,4 +425,6 @@ TEST_F(MATMUL, Strassen_C004)
 #endif /* DISABLE_MATMUL_TEST */
 
 
+
 #endif /* DISABLE_OPERATION_MODULE_TESTS */
+

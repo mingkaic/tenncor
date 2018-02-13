@@ -102,3 +102,4 @@ private:
 }
 
 #endif /* TENNCOR_IMMUTABLE_HPP */
+

@@ -13,6 +13,7 @@ static size_t get_seed (void)
 #ifdef CALLOUT_SEED
 	std::cout << "initiating generator with seed " << seed << std::endl;
 #endif /* CALLOUT_SEED */
+
 	return seed;
 }
 

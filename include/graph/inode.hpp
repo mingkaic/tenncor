@@ -173,3 +173,4 @@ std::vector<T> expose (inode* var)
 }
 
 #endif /* TENNCOR_INODE_HPP */
+

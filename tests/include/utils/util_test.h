@@ -58,3 +58,4 @@ itens_actor* adder (out_wrapper<void>& dest, std::vector<in_wrapper<void> >& src
 
 
 #endif /* UTIL_TEST_H */
+

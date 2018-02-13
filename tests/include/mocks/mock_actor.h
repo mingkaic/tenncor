@@ -36,3 +36,4 @@ struct mock_actor : public tens_template<T>
 };
 
 #endif //TENNCOR_MOCK_ACTOR_H
+

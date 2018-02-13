@@ -92,3 +92,4 @@ private:
 }
 
 #endif /* TENNCOR_GENERATOR_HPP */
+

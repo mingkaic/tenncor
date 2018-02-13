@@ -22,6 +22,8 @@
 #include "include/graph/connector/immutable/shape_dep.hpp"
 
 #pragma once
+#ifndef TENNCOR_OPERATIONS_HPP
+#define TENNCOR_OPERATIONS_HPP
 
 namespace nnet
 {
@@ -186,6 +188,7 @@ varptr reduce_sum (const varptr a);
 #endif /* TENNCOR_OP_STD_HPP */
 
 
+
 // composite operations, using multiple connectors
 #ifndef TENNCOR_OP_COM_HPP
 #define TENNCOR_OP_COM_HPP
@@ -254,3 +257,5 @@ varptr conv2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dim
 #endif /* TENNCOR_OP_COM_HPP */
 
 }
+
+#endif /* TENNCOR_OPERATIONS_HPP */

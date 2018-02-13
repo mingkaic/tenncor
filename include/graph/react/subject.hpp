@@ -104,3 +104,4 @@ private:
 }
 
 #endif /* TENNCOR_SUBJECT_HPP */
+

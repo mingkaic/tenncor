@@ -81,22 +81,22 @@ varptr variable::derive (inode* wrt)
 
 bool variable::initialize (void)
 {
-	bool success = data_->has_data();
+	data_->get_shape().assert_is_fully_defined();
+	bool success = data_->read();
 	if (success)
 	{
-		data_->get_shape().assert_is_fully_defined();
-		success = data_->read();
+		this->notify(UPDATE);
 	}
 	return success;
 }
 
 bool variable::initialize (tensorshape shape)
 {
-	bool success = data_->has_data();
+	shape.assert_is_fully_defined();
+	bool success = data_->read(shape);
 	if (success)
 	{
-		shape.assert_is_fully_defined();
-		success = data_->read(shape);
+		this->notify(UPDATE);
 	}
 	return success;
 }

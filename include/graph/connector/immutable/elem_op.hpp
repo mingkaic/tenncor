@@ -95,3 +95,4 @@ private:
 }
 
 #endif /* TENNCOR_ELEM_OP_HPP */
+

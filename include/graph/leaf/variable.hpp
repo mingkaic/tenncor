@@ -99,3 +99,4 @@ private:
 }
 
 #endif /* TENNCOR_VARIABLE_HPP */
+

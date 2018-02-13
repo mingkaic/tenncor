@@ -80,3 +80,4 @@ private:
 #include "src/thread/shareable_cache.ipp"
 
 #endif /* SHAREABLE_HPP */
+

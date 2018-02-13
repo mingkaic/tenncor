@@ -75,3 +75,4 @@ TENS_TYPE get_type<uint64_t> (void);
 }
 
 #endif /* TENNCOR_TENS_TYPE_HPP */
+

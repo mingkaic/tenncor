@@ -86,3 +86,4 @@ private:
 }
 
 #endif /* TENNCOR_SHAPE_DEP_HPP */
+

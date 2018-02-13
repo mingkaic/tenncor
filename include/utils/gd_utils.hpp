@@ -201,4 +201,5 @@ private:
 
 
 #endif /* TENNCOR_GD_UTILS_HPP */
+
 #undef TENNCOR_GD_UTILS_HPP

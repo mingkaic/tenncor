@@ -32,3 +32,4 @@ protected:
 };
 
 #endif //TENNCOR_MOCK_IVARIABLE_H
+

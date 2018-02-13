@@ -137,3 +137,4 @@ void generator::move_helper (generator&& other)
 }
 
 #endif
+

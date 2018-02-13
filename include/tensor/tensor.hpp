@@ -213,3 +213,4 @@ std::vector<T> expose (const tensor* tens)
 }
 
 #endif /* TENNCOR_TENSOR_HPP */
+

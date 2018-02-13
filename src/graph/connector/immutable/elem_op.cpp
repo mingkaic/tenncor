@@ -37,16 +37,18 @@ static inline tensorshape elementary_shaper (std::vector<tensorshape> shapes)
 	return lastshape;
 }
 
-static const std::unordered_set<std::string> opset = all_ops();
+static std::unordered_set<std::string> opset;
 
 elem_op* elem_op::get (std::vector<inode*> args, std::string opname, BACK_MAP bwd)
 {
+	if (opset.empty()) opset = all_ops();
 	assert(false == args.empty() && opset.end() != opset.find(opname));
 	return new elem_op(args, opname, bwd);
 }
 
 elem_op* elem_op::get (std::vector<inode*> args, tensorshape shape, std::string opname, BACK_MAP bwd)
 {
+	if (opset.empty()) opset = all_ops();
 	assert(false == args.empty() && opset.end() != opset.find(opname));
 	return new elem_op(args, shape, opname, bwd);
 }

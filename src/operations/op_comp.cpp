@@ -185,3 +185,4 @@ varptr arg_max (const varptr a, size_t dimension)
 }
 
 #endif
+

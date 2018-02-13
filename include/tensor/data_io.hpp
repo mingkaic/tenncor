@@ -65,7 +65,7 @@ struct idata_io : virtual idata_source, virtual idata_dest
 	virtual void set_varr (SHARED_VARR input, size_t idx) = 0;
 
 protected:
-	TENS_TYPE type_;
+	TENS_TYPE type_ = BAD_T;
 };
 
 struct const_init final : public idata_source
@@ -91,7 +91,7 @@ struct const_init final : public idata_source
 private:
 	std::string value_;
 
-	TENS_TYPE type_;
+	TENS_TYPE type_ = BAD_T;
 };
 
 //! Uniformly Random Initialization
@@ -113,7 +113,7 @@ private:
 	std::string min_;
 	std::string max_;
 
-	TENS_TYPE type_;
+	TENS_TYPE type_ = BAD_T;
 };
 
 //! Normal Random Initialization
@@ -135,7 +135,7 @@ private:
 	std::string mean_;
 	std::string stdev_;
 
-	TENS_TYPE type_;
+	TENS_TYPE type_ = BAD_T;
 };
 
 
@@ -157,7 +157,7 @@ struct portal_dest : public idata_dest
 	}
 
 	std::shared_ptr<void> data_;
-	TENS_TYPE type_;
+	TENS_TYPE type_ = BAD_T;
 	tensorshape shape_;
 };
 
@@ -184,9 +184,9 @@ struct iholdnrun_io : public idata_io
 	virtual void set_varr (SHARED_VARR input, size_t idx)
 	{
 		size_t nargs = args_.size();
-		if (idx < nargs)
+		if (idx >= nargs)
 		{
-			args_.insert(args_.end(), args_.size() - idx, SHARED_VARR{});
+			args_.insert(args_.end(), idx - args_.size() + 1, SHARED_VARR{});
 		}
 		args_[idx] = input;
 	}
@@ -257,7 +257,10 @@ struct sindex_io final : public idata_io
 {
 	sindex_io (std::vector<size_t> index) : index_(index) {}
 
-	virtual idata_source* clone (void) const;
+	virtual idata_source* clone (void) const
+	{
+		return new sindex_io(*this);
+	}
 
 	virtual void set_varr (SHARED_VARR input, size_t)
 	{
@@ -295,3 +298,4 @@ private:
 }
 
 #endif /* TENNCOR_DATA_IO_HPP */
+

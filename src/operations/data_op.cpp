@@ -37,6 +37,9 @@ static const FUNC_REG op_registry = {
 	REGISTER_FUNC(ln)
 	REGISTER_FUNC(sqrt)
 	REGISTER_FUNC(round)
+	REGISTER_FUNC(argmax)
+	REGISTER_FUNC(max)
+	REGISTER_FUNC(sum)
 
 	REGISTER_FUNC(pow)
 	REGISTER_FUNC(add)

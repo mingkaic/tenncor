@@ -52,13 +52,6 @@ public:
 	//! merge/update the gradient/leaf info
 	virtual std::unordered_set<ileaf*> get_leaves (void) const;
 
-
-
-	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
-
-	//! get tensor data
-	virtual tensor* get_tensor (void);
-
 protected:
 	ileaf (std::string name); // todo: evaluate usefulness
 
@@ -82,3 +75,4 @@ private:
 }
 
 #endif /* TENNCOR_ILEAF_HPP */
+

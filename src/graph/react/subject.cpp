@@ -14,9 +14,11 @@
 #include "include/edgeinfo/igraph_record.hpp"
 #endif /* CSV_RCD || RPC_RCD */
 
+
 #ifdef RPC_RCD
 #include "include/edgeinfo/rpc_record/grpc_record.hpp"
 #endif /* RPC_RCD */
+
 
 namespace nnet
 {
@@ -67,6 +69,7 @@ if (rocnnet_record::record_status::rec_good && UPDATE == msg)
 	}
 }
 #endif /* RPC_RCD */
+
 	for (iobserver* viewer : audience_)
 	{
 		viewer->update(msg);

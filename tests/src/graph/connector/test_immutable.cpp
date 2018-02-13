@@ -32,6 +32,7 @@ static std::pair<size_t,size_t> nnodes_range = {17, 31};
 #endif
 
 
+
 struct cond_actor : public tens_template<double>
 {
 	cond_actor (out_wrapper<void> dest,
@@ -884,4 +885,6 @@ TEST_F(IMMUTABLE, ShapeIncompatible_I011)
 #endif /* DISABLE_IMMUTABLE_TEST */
 
 
+
 #endif /* DISABLE_CONNECTOR_MODULE_TESTS */
+

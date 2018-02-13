@@ -134,3 +134,4 @@ void print_shape (tensorshape ts, std::ostream& os = std::cout);
 }
 
 #endif /* TENNCOR_TENSORSHAPE_HPP */
+

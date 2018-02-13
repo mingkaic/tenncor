@@ -33,3 +33,4 @@ struct mocker
 };
 
 #endif /* TENNCOR_MOCKERINO_H */
+
