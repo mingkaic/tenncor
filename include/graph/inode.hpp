@@ -155,27 +155,6 @@ protected:
 	virtual void death_on_broken (void) {}
 };
 
-struct portal_dest : public idata_dest
-{
-	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
-	{
-		data_ = data;
-		type_ = type;
-		shape_ = shape;
-	}
-
-	void clear (void)
-	{
-		data_ = nullptr;
-		type_ = BAD_T;
-		shape_.undefine();
-	}
-
-	std::shared_ptr<void> data_;
-	TENS_TYPE type_;
-	tensorshape shape_;
-};
-
 //! helper function for exposing node's data
 template <typename T>
 std::vector<T> expose (inode* var)
@@ -183,22 +162,12 @@ std::vector<T> expose (inode* var)
 	std::vector<T> out;
 	if (nullptr != var)
 	{
-		portal_dest dest;
-		var->get_tensor()->write_to(dest);
-
-		size_t n = dest.shape_.n_elems();
-		if (get_type<T>() != dest.type_)
+		if (tensor* tens = var->get_tensor())
 		{
-			// todo: implement convert
-			throw std::exception();
-		}
-		else
-		{
-			T* tdata = (T*) dest.data_.get();
-			out = std::vector<T>(tdata, tdata + n);
+			return expose<T>(tens);
 		}
 	}
-	return out;
+	throw std::exception(); // todo: null var or tensor
 }
 
 }

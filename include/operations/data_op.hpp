@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <functional> // for std::bad_function_call();
 
 #include "include/tensor/type.hpp"
 #include "include/tensor/tensorshape.hpp"
@@ -38,8 +39,32 @@ void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> s
 template <typename T>
 void abs (VARR dest, std::vector<VARR> srcs);
 
+template <>
+void abs<uint8_t> (VARR dest, std::vector<VARR> srcs);
+
+template <>
+void abs<uint16_t> (VARR dest, std::vector<VARR> srcs);
+
+template <>
+void abs<uint32_t> (VARR dest, std::vector<VARR> srcs);
+
+template <>
+void abs<uint64_t> (VARR dest, std::vector<VARR> srcs);
+
 template <typename T>
 void neg (VARR dest, std::vector<VARR> srcs);
+
+template <>
+void neg<uint8_t> (VARR, std::vector<VARR>);
+
+template <>
+void neg<uint16_t> (VARR, std::vector<VARR>);
+
+template <>
+void neg<uint32_t> (VARR, std::vector<VARR>);
+
+template <>
+void neg<uint64_t> (VARR, std::vector<VARR>);
 
 template <typename T>
 void sin (VARR dest, std::vector<VARR> srcs);

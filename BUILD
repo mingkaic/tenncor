@@ -17,7 +17,7 @@ TCR_PUBLIC_HDRS = glob([
 
 TCR_SRC = glob([
 	"src/graph/**/*.cpp",
-	"src/operations/**/*.hpp",
+	"src/operations/**/*.cpp",
 	"src/tensor/**/*.cpp",
 	"src/utils/**/*.cpp",
 ])

@@ -21,7 +21,7 @@ updates_t gd_updater::calculate (inode* root, grad_process intermediate_process)
 {
 	std::vector<updater_t > updates;
 	std::unordered_set<ileaf*> leafset = root->get_leaves();
-	std::vector<std::pair<inode*,variable*>> gress;
+	std::vector<std::pair<inode*,variable*> > gress;
 	for (ileaf* l : leafset)
 	{
 		variable* Wb = dynamic_cast<variable*>(l);

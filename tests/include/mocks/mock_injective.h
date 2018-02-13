@@ -49,7 +49,7 @@ itens_actor* test_abuilder (out_wrapper<void>& dest,
 }
 
 
-inode* testback (std::vector<std::pair<inode*,inode*>>)
+inode* testback (std::vector<std::pair<inode*,inode*> >)
 {
 	return nullptr;
 }

@@ -17,8 +17,9 @@
  *
  */
 
-#include "include/graph/connector/immutable/elem_op.hpp"
 #include "include/graph/connector/muxer.hpp"
+#include "include/graph/connector/immutable/elem_op.hpp"
+#include "include/graph/connector/immutable/shape_dep.hpp"
 
 #pragma once
 

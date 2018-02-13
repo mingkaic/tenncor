@@ -14,9 +14,9 @@
 namespace nnet
 {
 
-static inline reduce (const varptr a, size_t dimension, std::string op, SLICE_OP slice)
+static inline varptr reduce (const varptr a, size_t dimension, std::string op, SLICE_OP slice)
 {
-    if (nullptr == a) return nullptr;
+    if (nullptr == a.get()) return nullptr;
 	std::string dmx_label = nnutils::formatter() << "reduce_" << op << "_" << dimension;
 	std::string mux_label = "reduce_muxer";
 	if (inode* parent = single_parent(a, dmx_label))
@@ -68,7 +68,7 @@ static inline reduce (const varptr a, size_t dimension, std::string op, SLICE_OP
     [dimension](std::vector<tensorshape> shapes)
     {
         std::vector<size_t> slist = shapes[0].as_list();
-        if (1 == srank)
+        if (1 == slist.size())
         {
             slist[0] = 1;
         }
@@ -99,7 +99,7 @@ static inline reduce (const varptr a, size_t dimension, std::string op, SLICE_OP
 
 varptr clip (const varptr a, const varptr min, const varptr max)
 {
-	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
+	if (nullptr == a.get() || nullptr == min.get() || nullptr == max.get()) return nullptr;
     varptr lt_min = a < min;
     varptr gt_max = a > max;
     return (!lt_min & !gt_max) * a + lt_min * min + gt_max * max;
@@ -108,7 +108,7 @@ varptr clip (const varptr a, const varptr min, const varptr max)
 //! normalize clip values with capacity cap
 varptr clip_norm (const varptr a, const varptr cap)
 {
-	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
+	if (nullptr == a.get() || nullptr == cap.get()) return nullptr;
     varptr l2 = reduce_l2norm(a);
     varptr is_clip = l2 > cap;
     return is_clip * a * cap / l2 + !is_clip * a;
@@ -117,19 +117,21 @@ varptr clip_norm (const varptr a, const varptr cap)
 
 varptr reduce_mean (const varptr a)
 {
-    if (nullptr == a) return nullptr;
+    if (nullptr == a.get()) return nullptr;
     varptr n = single_parent(a, "n_elems");
-	if (nullptr == n)
+	if (nullptr == n.get())
 	{
-        n = shape_dep::get(slice, [](tensorshape& outshape)
-        { return outshape.n_elems(); }, tensorshape{1}, "n_elems");
+        n = shape_dep::get(a, [](tensorshape& outshape)
+        {
+            return std::vector<size_t>{outshape.n_elems()};
+        }, std::vector<size_t>{1}, "n_elems");
 	}
-    return reduce_sum(slice) / n;
+    return reduce_sum(a) / n;
 }
 
 varptr reduce_l2norm (const varptr a)
 {
-    if (nullptr == a) return nullptr;
+    if (nullptr == a.get()) return nullptr;
     return sqrt(reduce_sum(pow(a, 2)));
 }
 
@@ -145,7 +147,7 @@ varptr reduce_max (const varptr a, size_t dimension)
 
 varptr reduce_sum (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "sum", [](std::vector<varptr> slice)
+	return reduce(a, dimension, "sum", [](std::vector<varptr> slices)
     {
         // assert(slices.size() == 1);
         return reduce_sum(slices[0]);
@@ -154,7 +156,7 @@ varptr reduce_sum (const varptr a, size_t dimension)
 
 varptr reduce_mean (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "mean", [](std::vector<varptr> slice)
+	return reduce(a, dimension, "mean", [](std::vector<varptr> slices)
     {
         // assert(slices.size() == 1);
         return reduce_mean(slices[0]);
@@ -163,7 +165,7 @@ varptr reduce_mean (const varptr a, size_t dimension)
 
 varptr reduce_l2norm (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "l2norm", [](std::vector<varptr> slice)
+	return reduce(a, dimension, "l2norm", [](std::vector<varptr> slices)
     {
         // assert(slices.size() == 1);
         return reduce_l2norm(slices[0]);
@@ -173,7 +175,7 @@ varptr reduce_l2norm (const varptr a, size_t dimension)
 
 varptr arg_max (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "arg_max", [](std::vector<varptr> slice)
+	return reduce(a, dimension, "arg_max", [](std::vector<varptr> slices)
     {
         // assert(slices.size() == 1);
         return arg_max(slices[0]);

@@ -162,7 +162,7 @@ void elem_op::forward_pass (std::vector<inode*>& args)
 varptr elem_op::backward_pass (inode* wrt)
 {
 	std::vector<inode*> args = this->get_arguments();
-	std::vector<std::pair<inode*,inode*>> deps;
+	std::vector<std::pair<inode*,inode*> > deps;
 	for (inode* arg : args)
 	{
 		deps.push_back({arg, arg->derive(wrt)});

@@ -138,6 +138,31 @@ private:
 	TENS_TYPE type_;
 };
 
+
+
+struct portal_dest : public idata_dest
+{
+	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
+	{
+		data_ = data;
+		type_ = type;
+		shape_ = shape;
+	}
+
+	void clear (void)
+	{
+		data_ = nullptr;
+		type_ = BAD_T;
+		shape_.undefine();
+	}
+
+	std::shared_ptr<void> data_;
+	TENS_TYPE type_;
+	tensorshape shape_;
+};
+
+
+
 struct open_source final : public idata_source
 {
 	open_source (std::shared_ptr<idata_source> defsrc);
@@ -186,10 +211,7 @@ protected:
 
 struct glue_io final : public iholdnrun_io
 {
-	glue_io (GLUE glue) : glue_(glue)
-	{
-		
-	}
+	glue_io (GLUE glue) : glue_(glue) {}
 
 	virtual idata_source* clone (void) const
 	{

@@ -32,6 +32,8 @@ public:
 	template <typename T> // todo: optimize by looking for pre-existing constants
 	static constant* get (T scalar)
 	{
+		static_assert(std::is_arithmetic<T>::value, 
+			"constant must be arithmetic value");
 		tensorshape shape = std::vector<size_t>{1};
 		std::shared_ptr<const_init> ci = std::make_shared<const_init>();
 		ci->set(scalar);
@@ -42,6 +44,8 @@ public:
 	template <typename T>
 	static constant* get (std::vector<T> raw, tensorshape shape)
 	{
+		static_assert(std::is_arithmetic<T>::value, 
+			"constant must be arithmetic value");
 		std::string name;
 		if (raw.empty())
 		{

@@ -13,6 +13,31 @@
 namespace nnet
 {
 
+static inline AUD_SET aud_intersects (const std::vector<inode*>& srcs)
+{
+    AUD_SET auds = srcs[0]->get_audience();
+    // get intersection of all source audiences
+    for (size_t i = 1; i < srcs.size(); i++)
+    {
+        AUD_SET inner = srcs[i]->get_audience();
+        auto it = auds.begin();
+        while (it != auds.end())
+        {
+            if (inner.end() == inner.find(*it))
+            {
+                auto er = it;
+                ++it;
+                auds.erase(er);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+    return auds;
+}
+
 inode* single_parent (inode* src, std::string opname)
 {
 	AUD_SET auds = src->get_audience();
@@ -20,26 +45,18 @@ inode* single_parent (inode* src, std::string opname)
     {
         iconnector* aud = static_cast<iconnector*>(o);
         std::vector<inode*> args = aud->get_arguments();
-        if (args.size() == 1 && opname == args->get_label())
+        if (args.size() == 1 && opname == args[0]->get_label())
         {
             return aud;
         }
     }
+    return nullptr;
 }
 
 inode* ordered_parent (std::vector<inode*> srcs, std::string opname)
 {
     // assert srcs.size() > 0
-    AUD_SET auds = srcs[0]->get_audience();
-    // get intersection of all source audiences
-    for (size_t i = 1; i < srcs.size(); i++)
-    {
-        AUD_SET inner = srcs[i]->get_audience();
-        std::remove_if(auds.begin(), auds.end(), [&inner](iobserver* o)
-        {
-            return inner.end() == inner.find(o);
-        });
-    }
+    AUD_SET auds = aud_intersects(srcs);
     for (iobserver* o : auds)
     {
         iconnector* aud = static_cast<iconnector*>(o);
@@ -56,27 +73,19 @@ inode* ordered_parent (std::vector<inode*> srcs, std::string opname)
 inode* unordered_parent (std::vector<inode*> srcs, std::string opname)
 {
     // assert srcs.size() > 0
-    AUD_SET auds = srcs[0]->get_audience();
-    std::vector<inode*> diff(srcs.size() * 2);
-    auto it = diff.begin();
-    // get intersection of all source audiences
-    for (size_t i = 1; i < srcs.size(); i++)
-    {
-        AUD_SET inner = srcs[i]->get_audience();
-        std::remove_if(auds.begin(), auds.end(), [&inner](iobserver* o)
-        {
-            return inner.end() == inner.find(o);
-        });
-    }
+    AUD_SET auds = aud_intersects(srcs);
     for (iobserver* o : auds)
     {
         iconnector* aud = static_cast<iconnector*>(o);
         std::vector<inode*> args = aud->get_arguments();
+        std::vector<inode*> diff;
+        std::set_difference(
+            args.begin(), args.end(),
+            srcs.begin(), srcs.end(), 
+            std::inserter(diff, diff.begin()));
         if (opname == aud->get_label() && 
-			args.size() == srcs.size() &&
-            it == std::set_difference(
-                args.begin(), args.end(), 
-                srcs.begin(), srcs.end(), it))
+			args.size() == srcs.size() && 
+            0 == diff.size())
         {
             return aud;
         }

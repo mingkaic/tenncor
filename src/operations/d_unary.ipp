@@ -16,8 +16,8 @@ void abs (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -31,8 +31,8 @@ void neg (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -46,8 +46,8 @@ void sin (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -61,8 +61,8 @@ void cos (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -76,8 +76,8 @@ void tan (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -91,8 +91,8 @@ void csc (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -106,8 +106,8 @@ void sec (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -121,8 +121,8 @@ void cot (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -136,8 +136,8 @@ void exp (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -151,8 +151,8 @@ void ln (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -166,8 +166,8 @@ void sqrt (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -181,8 +181,8 @@ void round (VARR dest, std::vector<VARR> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	T* s = (T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)

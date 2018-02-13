@@ -7,7 +7,6 @@
 //
 
 #include <cstring>
-#include <functional> // for std::bad_function_call();
 
 #include "include/tensor/tensor.hpp"
 

@@ -14,9 +14,9 @@
 namespace nnet
 {
 
-static inline varptr lin_unar (inode* input, std::string opname, BACK_MAP bwd)
+static inline varptr lin_unar (std::string opname, inode* input, BACK_MAP bwd)
 {
-	if (nullptr == input.get()) return nullptr;
+	if (nullptr == input) return nullptr;
     // always check if the same operation on input exists
     if (inode* parent = single_parent(input, opname))
 	{
@@ -25,9 +25,9 @@ static inline varptr lin_unar (inode* input, std::string opname, BACK_MAP bwd)
     return elem_op::get(std::vector<inode*>{input}, opname, bwd);
 }
 
-static inline varptr sample (std::string opname, const varptr a, const varptr b)
+static inline varptr sample (std::string opname, inode* a, inode* b)
 {
-	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
+	if (nullptr == a || nullptr == b) return nullptr;
     std::vector<inode*> deps = {a, b};
     if (inode* parent = ordered_parent(deps, opname))
     {
@@ -36,22 +36,22 @@ static inline varptr sample (std::string opname, const varptr a, const varptr b)
 	return elem_op::get(deps, opname, 
     [](std::vector<std::pair<inode*,inode*> > args)
     {
-        tensorshape shape = args.front()->get_tensor()->get_shape();
+        tensorshape shape = args.front().first->get_tensor()->get_shape();
         std::vector<double> zeroes(shape.n_elems(), 0); // todo: convert to data type
         return constant::get(zeroes, shape);
-    }, opname);
+    });
 }
 
-static inline varptr comparator (std::string opname, const varptr a, const varptr b)
+static inline varptr comparator (std::string opname, inode* a, inode* b)
 {
-	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
+	if (nullptr == a || nullptr == b) return nullptr;
     std::vector<inode*> deps = {a, b};
     if (inode* parent = unordered_parent(deps, opname))
     {
         return parent;
     }
 	return elem_op::get(deps, opname,
-    [opname](std::vector<std::pair<inode*,inode*>> args)
+    [opname](std::vector<std::pair<inode*,inode*> > args)
 	{
 		varptr a = args.at(0).first;
 		varptr b = args.at(1).first;
@@ -59,10 +59,22 @@ static inline varptr comparator (std::string opname, const varptr a, const varpt
 	});
 }
 
+static inline varptr aggregate (std::string opname, inode* a, BACK_MAP bwd)
+{
+	if (nullptr == a) return nullptr;
+    // always check if the same operation on input exists
+    if (inode* parent = single_parent(a, opname))
+	{
+		return parent;
+	}
+	return elem_op::get(std::vector<inode*>{a}, 
+	std::vector<size_t>{1}, opname, bwd);
+}
+
 varptr abs (const varptr a)
 {
-    return lin_unar(a, "abs",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("abs", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		return abs(args.front().second);
 	});
@@ -70,17 +82,18 @@ varptr abs (const varptr a)
 
 varptr operator - (const varptr a)
 {
-    return lin_unar(a, "neg",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("neg", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
-		return -args.front().second;
+		varptr ag = args.front().second;
+		return -ag;
 	});
 }
 
 varptr sin (const varptr a)
 {
-    return lin_unar(a, "sin",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("sin", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// sin'(f(x)) = f'(x)*cos(f(x))
 		varptr a = args.front().first;
@@ -91,8 +104,8 @@ varptr sin (const varptr a)
 
 varptr cos (const varptr a)
 {
-    return lin_unar(a, "cos",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("cos", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// cos'(f(x)) = -f'(x)*sin(f(x))
 		varptr a = args.front().first;
@@ -103,8 +116,8 @@ varptr cos (const varptr a)
 
 varptr tan (const varptr a)
 {
-    return lin_unar(a, "tan",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("tan", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// sec'(f(x)) = f'(x)*sec^2(f(x))
 		// better with = f'(x)/cos^2(f(x))
@@ -117,8 +130,8 @@ varptr tan (const varptr a)
 
 varptr csc (const varptr a)
 {
-    return lin_unar(a, "csc",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("csc", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// csc'(f(x)) = -f'(x)*csc(f(x))*cot(f(x))
 		// better with -f'(x)/(sin(f(x)*tan(f(x))))
@@ -130,8 +143,8 @@ varptr csc (const varptr a)
 
 varptr sec (const varptr a)
 {
-    return lin_unar(a, "sec",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("sec", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// sec'(f(x)) = f'(x)*tan(f(x))*sec(f(x))
 		// better with f'(x)*tan(f(x))/cos(f(x))
@@ -143,8 +156,8 @@ varptr sec (const varptr a)
 
 varptr cot (const varptr a)
 {
-    return lin_unar(a, "cot",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("cot", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// cot'(f(x)) = -f'(x)*csc^2(f(x))
 		varptr a = args.front().first;
@@ -156,8 +169,8 @@ varptr cot (const varptr a)
 
 varptr exp (const varptr a)
 {
-    return lin_unar(a, "exp",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("exp", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// exp'(f(x)) = f'(x)*exp(f(x))
 		varptr a = args.front().first;
@@ -168,8 +181,8 @@ varptr exp (const varptr a)
 
 varptr ln (const varptr a)
 {
-    return lin_unar(a, "ln",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("ln", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// ln'(f(x)) = f'(x) / f(x)
 		varptr a = args.front().first;
@@ -180,8 +193,8 @@ varptr ln (const varptr a)
 
 varptr sqrt (const varptr a)
 {
-    return lin_unar(a, "sqrt",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("sqrt", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// sqrt'(f(x)) = f'(x)/(2*sqrt(f(x)))
 		varptr a = args.front().first;
@@ -192,8 +205,8 @@ varptr sqrt (const varptr a)
 
 varptr round (const varptr a)
 {
-    return lin_unar(a, "round",
-	[](std::vector<std::pair<inode*,inode*>> args)
+    return lin_unar("round", a,
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// round'(f(x)) = round(f'(x))
 		return nnet::round(args.front().second);
@@ -212,7 +225,7 @@ varptr pow (const varptr b, const varptr x)
         return parent;
     }
 	return elem_op::get(deps, opname,
-	[](std::vector<std::pair<inode*,inode*>> args)
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// pow'(f(x), g(x)) = \
         //      f'(x) * g(x) * pow(f(x), g(x) - 1) +
@@ -221,7 +234,7 @@ varptr pow (const varptr b, const varptr x)
 		varptr bg = args.at(0).second;
 		varptr x = args.at(1).first;
 		varptr xg = args.at(1).second;
-		return bg * x * pow(b, x - 1) + xg * pow(b, x) * log(b);
+		return bg * x * pow(b, x - 1) + xg * pow(b, x) * ln(b);
 	});
 }
 
@@ -235,7 +248,7 @@ varptr operator + (const varptr a, const varptr b)
         return parent;
     }
 	return elem_op::get(deps, opname,
-	[](std::vector<std::pair<inode*,inode*>> args)
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) + g'(x)
 		varptr ag = args.at(0).second;
@@ -254,7 +267,7 @@ varptr operator - (const varptr a, const varptr b)
         return parent;
     }
 	return elem_op::get(deps, opname,
-	[](std::vector<std::pair<inode*,inode*>> args)
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) - g'(x)
 		varptr ag = args.at(0).second;
@@ -273,7 +286,7 @@ varptr operator * (const varptr a, const varptr b)
         return parent;
     }
 	return elem_op::get(deps, opname,
-	[](std::vector<std::pair<inode*,inode*>> args)
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x)*g(x) + f(x)*g'(x)
 		varptr a = args.at(0).first;
@@ -294,7 +307,7 @@ varptr operator / (const varptr a, const varptr b)
         return parent;
     }
 	return elem_op::get(deps, opname,
-	[](std::vector<std::pair<inode*,inode*>> args)
+	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = (f'(x)*g(x) - f(x)*g'(x))/g^2(x)
 		varptr a = args.at(0).first;
@@ -344,7 +357,7 @@ varptr normal_sample (const varptr mean, const varptr stdev)
 
 varptr transpose (const varptr a, std::vector<size_t> perm)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a.get()) return nullptr;
 	std::string label = "transpose";
 	SHAPE2IDX smap;
 	size_t psize = perm.size();
@@ -393,7 +406,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 
 			outshape = outlist;
 			return index;
-		}
+		};
 	}
 	else
 	{
@@ -416,7 +429,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 
 			outshape = outlist;
 			return index;
-		}
+		};
 	}
 	if (inode* parent = single_parent(a, label))
 	{
@@ -427,7 +440,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 
 varptr flip (const varptr a, std::vector<size_t> dims)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a.get()) return nullptr;
 	std::string label = nnutils::formatter() << "flip_" << dims;
 	if (inode* parent = single_parent(a, label))
 	{
@@ -458,16 +471,8 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 
 varptr arg_max (const varptr a)
 {
-	if (nullptr == input.get()) return nullptr;
-	std::string opname = "argmax";
-    // always check if the same operation on input exists
-    if (inode* parent = single_parent(a, opname))
-	{
-		return parent;
-	}
-	return elem_op::get(std::vector<inode*>{a}, 
-	tensorshape{1}, opname, 
-	[](std::vector<std::pair<inode*,inode*>>)
+	return aggregate("argmax", a,
+	[](std::vector<std::pair<inode*,inode*> >) -> varptr
 	{
 		throw std::exception();
 	});
@@ -475,19 +480,11 @@ varptr arg_max (const varptr a)
 
 varptr reduce_max (const varptr a)
 {
-	if (nullptr == input.get()) return nullptr;
-	std::string opname = "max";
-    // always check if the same operation on input exists
-    if (inode* parent = single_parent(a, opname))
+	return aggregate("max", a,
+	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
-		return parent;
-	}
-	return elem_op::get(std::vector<inode*>{a}, 
-	tensorshape{1}, opname, 
-	[](std::vector<std::pair<inode*,inode*>> args)
-	{
-        varptr a = args.first
-        varptr ag = args.second;
+        varptr a = args.front().first;
+        varptr ag = args.front().second;
         varptr me = reduce_max(a);
         return (me == a) * ag;
 	});
@@ -495,16 +492,8 @@ varptr reduce_max (const varptr a)
 
 varptr reduce_sum (const varptr a)
 {
-	if (nullptr == input.get()) return nullptr;
-	std::string opname = "sum";
-    // always check if the same operation on input exists
-    if (inode* parent = single_parent(a, opname))
-	{
-		return parent;
-	}
-    return elem_op::get(std::vector<inode*>{a}, 
-	tensorshape{1}, opname, 
-	[](std::vector<std::pair<inode*,inode*>> args)
+	return aggregate("sum", a,
+	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
 		return reduce_sum(args.front().second);
 	});

@@ -623,7 +623,7 @@ TEST_F(IMMUTABLE, GetLeaf_I008)
 	mock_node exposer;
 
 	BACK_MAP backer =
-	[&ordering](std::vector<std::pair<inode*,inode*>> args) -> inode*
+	[&ordering](std::vector<std::pair<inode*,inode*> > args) -> inode*
 	{
 		inode* leef = args[0].second;
 		double lvalue = expose<double>(leef)[0];
@@ -673,7 +673,7 @@ TEST_F(IMMUTABLE, GetLeaf_I008)
 	for (size_t i = 0; i < nnodes/3; i++)
 	{
 		ordering.clear();
-		variable* l = *(rand_select<std::unordered_set<variable*>>(leaves));
+		variable* l = *(rand_select<std::unordered_set<variable*> >(leaves));
 		varptr wun = exposer.expose_leaf(root, l);
 		EXPECT_TRUE(bottom_up(ordering));
 		ordering.clear();
@@ -713,7 +713,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 
 	std::vector<iconnector*> ordering;
 	BACK_MAP backer =
-	[&ordering](std::vector<std::pair<inode*,inode*>> args) -> inode*
+	[&ordering](std::vector<std::pair<inode*,inode*> > args) -> inode*
 	{
 		varptr leef = args[0].second;
 		double d = expose<double>(leef.get())[0];
@@ -764,7 +764,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 	for (size_t i = 0; i < nnodes/3; i++)
 	{
 		ordering.clear();
-		variable* rselected = *(rand_select<std::unordered_set<variable*>>(leaves));
+		variable* rselected = *(rand_select<std::unordered_set<variable*> >(leaves));
 		const tensor_double* wun =
 			dynamic_cast<const tensor_double*>(root->derive(rselected)->eval());
 		EXPECT_TRUE(bottom_up(ordering));
@@ -780,7 +780,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 		EXPECT_EQ(0, zaro->expose()[0]);
 
 		// SAME AS TEMPORARY EVAL
-		elem_op* coll = *(rand_select<std::unordered_set<elem_op*>>(collector));
+		elem_op* coll = *(rand_select<std::unordered_set<elem_op*> >(collector));
 		if (coll == root) continue;
 		const tensor_double* grad_too = dynamic_cast<const tensor_double*>(root->derive(coll)->eval());
 		EXPECT_TRUE(bottom_up(ordering));

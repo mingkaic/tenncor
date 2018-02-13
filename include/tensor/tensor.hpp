@@ -199,6 +199,17 @@ private:
 	TENS_TYPE dtype_ = BAD_T;
 };
 
+template <typename T>
+std::vector<T> expose (const tensor* tens)
+{
+	portal_dest port;
+	tens->write_to(port);
+	assert(get_type<T>() == port.type_);
+	size_t n = port.shape_.n_elems();
+	T* ptr = (T*) port.data_.get();
+	return std::vector<T>(ptr, ptr + n);
+}
+
 }
 
 #endif /* TENNCOR_TENSOR_HPP */
