@@ -9,7 +9,7 @@
 namespace nnet
 {
 
-shape_dep* shape_dep::get (inode* arg, SHAPE2IDX extracter,
+shape_dep* shape_dep::get (inode* arg, SHAPE2ARR_F extracter,
 	tensorshape shape, std::string name)
 {
 	return new shape_dep(arg, extracter, shape, name);
@@ -46,12 +46,12 @@ shape_dep& shape_dep::operator = (shape_dep&& other)
 }
 
 
-shape_dep::shape_dep (inode* arg, SHAPE2IDX extracter,
+shape_dep::shape_dep (inode* arg, SHAPE2ARR_F extracter,
 	tensorshape shape, std::string label) :
 immutable({arg}, label), extracter_(extracter)
 {
 	shape.assert_is_fully_defined();
-	this->data_ = std::make_unique<tensor>(shape, asgn_);
+	this->data_ = std::make_unique<tensor>(shape);
 	this->update();
 }
 
@@ -86,8 +86,8 @@ void shape_dep::forward_pass (std::vector<inode*>& args)
 		std::vector<size_t> sdata = extracter_(shape);
 		std::vector<double> doub_d(sdata.begin(), sdata.end());
 		std::shared_ptr<void> ptr = std::shared_ptr<void>(&doub_d[0]);
-		asgn_->set_data(ptr, DOUBLE, data_->get_shape(), 0); // todo: make tens's type
-		data_->copy();
+		asgn_.set_data(ptr, DOUBLE, data_->get_shape(), 0); // todo: make tens's type
+		data_->read_from(asgn_);
 	}
 }
 
@@ -102,13 +102,11 @@ varptr shape_dep::backward_pass (inode* wrt)
 
 void shape_dep::copy_helper (const shape_dep& other)
 {
-	asgn_ = other.asgn_;
 	extracter_ = other.extracter_;
 }
 
 void shape_dep::move_helper (shape_dep&& other)
 {
-	asgn_ = std::move(other.asgn_);
 	extracter_ = std::move(other.extracter_);
 }
 

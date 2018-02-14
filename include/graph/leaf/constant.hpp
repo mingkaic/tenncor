@@ -99,7 +99,7 @@ protected:
 private:
 	//! name constructor, data_ is nullptr
 	constant (const tensorshape& shape,
-		std::shared_ptr<idata_source> source, std::string name);
+		std::shared_ptr<idata_src> source, std::string name);
 
 	//! raw data
 	std::unique_ptr<tensor> data_ = nullptr;

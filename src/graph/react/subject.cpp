@@ -76,7 +76,7 @@ if (rocnnet_record::record_status::rec_good && UPDATE == msg)
 	}
 }
 
-AUD_SET subject::get_audience (void) const
+AUDSET_T subject::get_audience (void) const
 {
 	return audience_;
 }

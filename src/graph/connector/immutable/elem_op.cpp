@@ -39,14 +39,14 @@ static inline tensorshape elementary_shaper (std::vector<tensorshape> shapes)
 
 static std::unordered_set<std::string> opset;
 
-elem_op* elem_op::get (std::vector<inode*> args, std::string opname, BACK_MAP bwd)
+elem_op* elem_op::get (std::vector<inode*> args, std::string opname, BACKMAP_F bwd)
 {
 	if (opset.empty()) opset = all_ops();
 	assert(false == args.empty() && opset.end() != opset.find(opname));
 	return new elem_op(args, opname, bwd);
 }
 
-elem_op* elem_op::get (std::vector<inode*> args, tensorshape shape, std::string opname, BACK_MAP bwd)
+elem_op* elem_op::get (std::vector<inode*> args, tensorshape shape, std::string opname, BACKMAP_F bwd)
 {
 	if (opset.empty()) opset = all_ops();
 	assert(false == args.empty() && opset.end() != opset.find(opname));
@@ -85,38 +85,16 @@ elem_op& elem_op::operator = (elem_op&& other)
 
 
 elem_op::elem_op (std::vector<inode*> args, 
-	std::string opname, BACK_MAP bwd) :
-immutable(args, opname), fwd_(
-[opname](std::vector<const tensor*> srcs) -> tensor*
-{
-	std::vector<tensorshape> srcshapes(srcs.size());
-	std::transform(srcs.begin(), srcs.end(), srcshapes.begin(), 
-	[](const tensor* src) { return src->get_shape(); });
-	// type convert source
-	std::shared_ptr<operate_io> io = std::make_shared<operate_io>(opname);
-	for (size_t i = 0; i < srcs.size(); ++i)
-	{
-		srcs[i]->write_to(*io, i);
-	}
-	return new tensor(elementary_shaper(srcshapes), io);
-}), bwd_(bwd) { this->update(); }
+	std::string opname, BACKMAP_F bwd) :
+immutable(args, opname), op_io_(new operate_io(opname)), bwd_(bwd) { this->update(); }
 
 elem_op::elem_op (std::vector<inode*> args, 
-	tensorshape shape, std::string opname, BACK_MAP bwd) :
-immutable(args, opname), fwd_(
-[opname, shape](std::vector<const tensor*> srcs) -> tensor*
+	tensorshape shape, std::string opname, BACKMAP_F bwd) :
+elem_op(args, opname, bwd)
 {
-	std::vector<tensorshape> srcshapes(srcs.size());
-	std::transform(srcs.begin(), srcs.end(), srcshapes.begin(), 
-	[](const tensor* src) { return src->get_shape(); });
-	// type convert source
-	std::shared_ptr<operate_io> io = std::make_shared<operate_io>(opname);
-	for (size_t i = 0; i < srcs.size(); ++i)
-	{
-		srcs[i]->write_to(*io, i);
-	}
-	return new tensor(shape, io);
-}), bwd_(bwd) { this->update(); }
+	shape_ = shape;
+	this->update();
+}
 
 elem_op::elem_op (const elem_op& other) :
 	immutable(other)
@@ -144,21 +122,30 @@ void elem_op::forward_pass (std::vector<inode*>& args)
 {
 	if (nullptr == data_)
 	{
-		std::vector<const tensor*> tens(args.size());
-		std::transform(args.begin(), args.end(), tens.begin(),
-		[](inode* arg)
+		std::vector<const tensor*> tens;
+		std::vector<tensorshape> srcshapes;
+		for (inode* arg : args)
 		{
 			tensor* ten = arg->get_tensor();
 			if (nullptr == ten)
 			{
 				throw std::exception(); // todo: better exception
 			}
-			return ten;
-		});
-		// assert none of tens is null
-		data_ = std::unique_ptr<tensor>(fwd_(tens));
+			tens.push_back(ten);
+			srcshapes.push_back(ten->get_shape());
+		}
+		for (size_t i = 0; i < tens.size(); ++i)
+		{
+			tens[i]->write_to(*op_io_, i);
+		}
+		if (false == shape_.is_fully_defined())
+		{
+			shape_ = elementary_shaper(srcshapes);
+		}
+		// invariant: none of tens is null
+		data_ = std::make_unique<tensor>(shape_);
 	}
-	data_->copy();
+	data_->read_from(*op_io_);
 }
 
 varptr elem_op::backward_pass (inode* wrt)
@@ -175,15 +162,22 @@ varptr elem_op::backward_pass (inode* wrt)
 
 void elem_op::copy_helper (const elem_op& other)
 {
-	shaper_ = other.shaper_;
-	fwd_ = other.fwd_;
+	if (nullptr == other.op_io_)
+	{
+		op_io_ = nullptr;
+	}
+	else
+	{
+		op_io_ = std::unique_ptr<operate_io>(other.op_io_->clone());
+	}
+	shape_ = other.shape_;
 	bwd_ = other.bwd_;
 }
 
 void elem_op::move_helper (elem_op&& other)
 {
-	shaper_ = std::move(other.shaper_);
-	fwd_ = std::move(other.fwd_);
+	op_io_ = std::move(other.op_io_);
+	shape_ = std::move(other.shape_);
 	bwd_ = std::move(other.bwd_);
 }
 

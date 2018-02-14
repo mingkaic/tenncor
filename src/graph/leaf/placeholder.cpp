@@ -14,7 +14,7 @@ namespace nnet
 {
 
 placeholder::placeholder (const tensorshape& shape, std::string name) :
-	ileaf(name), data_(new tensor(shape, asgn_)) {}
+	ileaf(name), data_(new tensor(shape)) {}
 
 placeholder::placeholder (const placeholder& other) :
 	ileaf(other) {}
@@ -72,8 +72,8 @@ placeholder& placeholder::operator = (tensor& data)
 {
 	if (&data != data_.get())
 	{
-		data_->write_to(*asgn_);
-		data_->copy();
+		data_->write_to(asgn_);
+		data_->read_from(asgn_);
 		this->notify(UPDATE);
 	}
 	return *this;
@@ -95,19 +95,16 @@ void placeholder::copy_helper (const placeholder& other)
 	if (nullptr != other.data_)
 	{
 		data_ = std::make_unique<tensor>(*other.data_);
-		asgn_ = std::dynamic_pointer_cast<assign_io>(data_->get_source().lock());
 	}
 	else
 	{
 		data_ = nullptr;
-		asgn_ = nullptr;
 	}
 }
 
 void placeholder::move_helper (placeholder&& other)
 {
 	data_ = std::move(other.data_);
-	asgn_ = std::move(other.asgn_);
 }
 
 placeptr::placeptr (placeholder* ptr) : varptr(ptr) {}

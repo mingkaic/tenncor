@@ -15,9 +15,9 @@ namespace nnet
 {
 
 demuxer* demuxer::get (inode* arg, 
-    SLICE_SHAPER slice_shaper, 
-    SLICER slicer, std::string label)
-{ return new demuxer(arg, slice_shaper, slicer, label); }
+    SLICESHAPER_F sliceshaper, 
+    SLICER_F slicer, std::string label)
+{ return new demuxer(arg, sliceshaper, slicer, label); }
 
 demuxer* demuxer::clone (void) const
 {
@@ -77,7 +77,7 @@ std::vector<inode*> demuxer::get_slices (void)
     if (tensor* ten = arg->get_tensor())
     {
         tensorshape shape = ten->get_shape();
-        size_t nslices = slice_shaper_(shape);
+        size_t nslices = sliceshaper_(shape);
         for (size_t i = 0; i < nslices; ++i)
         {
             out.push_back(coord_mapper::get(arg, 
@@ -97,10 +97,10 @@ std::vector<inode*> demuxer::get_slices (void)
 }
 
 
-demuxer::demuxer (inode* arg, SLICE_SHAPER slice_shaper, 
-    SLICER slicer, std::string label) :
+demuxer::demuxer (inode* arg, SLICESHAPER_F sliceshaper, 
+    SLICER_F slicer, std::string label) :
 iconnector(std::vector<inode*>{arg}, label),
-slice_shaper_(slice_shaper), slicer_(slicer)
+sliceshaper_(sliceshaper), slicer_(slicer)
 { this->update(); }
 
 demuxer::demuxer (const demuxer& other) : 
@@ -129,19 +129,19 @@ inode* demuxer::move_impl (void)
 
 void demuxer::copy_helper (const demuxer& other)
 {
-    slice_shaper_ = other.slice_shaper_;
+    sliceshaper_ = other.sliceshaper_;
     slicer_ = other.slicer_;
 }
 
 void demuxer::move_helper (demuxer&& other)
 {
-    slice_shaper_ = std::move(other.slice_shaper_);
+    sliceshaper_ = std::move(other.sliceshaper_);
     slicer_ = std::move(other.slicer_);
 }
 
 
 
-muxer* muxer::get (std::vector<demuxer*> args, SHAPER shaper, SLICE_OP op, GLUE gluer, std::string label)
+muxer* muxer::get (std::vector<demuxer*> args, SHAPER_F shaper, VAROP_F op, GLUE_F gluer, std::string label)
 {
     return new muxer(args, shaper, op, gluer, label);
 }
@@ -209,7 +209,7 @@ varptr muxer::derive (inode* wrt)
     {
         return static_cast<demuxer*>(node);
     });
-    return new muxer(muxargs, gslices, shaper_, op_, gluer_, glabel);
+    return new muxer(muxargs, gslices, shaper_, op_, gio_, glabel);
 }
 
 void muxer::update (void)
@@ -254,28 +254,27 @@ void muxer::update (void)
             {
                 return node->get_tensor()->get_shape();
             });
-            std::shared_ptr<glue_io> gio = std::make_shared<glue_io>(gluer_);
             for (size_t i = 0; i < slices_.size(); ++i)
             {
-                slices_[i]->get_tensor()->write_to(*gio, i);
+                slices_[i]->get_tensor()->write_to(*gio_, i);
             }
-            data_ = std::make_unique<tensor>(shaper_(shapes), gio);
+            data_ = std::make_unique<tensor>(shaper_(shapes));
         }
-        data_->copy();
+        data_->read_from(*gio_);
         this->notify(UPDATE);
     }
 }
 
 
-muxer::muxer (std::vector<demuxer*> args, SHAPER shaper, 
-    SLICE_OP op, GLUE gluer, std::string label) : 
-iconnector(std::vector<inode*>(args.begin(), args.end()), label), 
-shaper_(shaper), op_(op), gluer_(gluer) { update(); }
+muxer::muxer (std::vector<demuxer*> args, SHAPER_F shaper, 
+    VAROP_F op, GLUE_F gluer, std::string label) : 
+muxer(args, std::vector<varptr>{}, shaper, op, 
+    std::make_shared<glue_io>(gluer), label) {}
 
 muxer::muxer (std::vector<demuxer*> args, std::vector<varptr> slices, 
-    SHAPER shaper, SLICE_OP op, GLUE gluer, std::string label) :
+    SHAPER_F shaper, VAROP_F op, std::shared_ptr<glue_io> gio, std::string label) :
 iconnector(std::vector<inode*>(args.begin(), args.end()), label), 
-slices_(slices), shaper_(shaper), op_(op), gluer_(gluer) { update(); }
+gio_(gio), slices_(slices), shaper_(shaper), op_(op) { update(); }
 
 muxer::muxer (const muxer& other) : 
     iconnector(other)
@@ -302,14 +301,24 @@ inode* muxer::move_impl (void)
 
 void muxer::copy_helper (const muxer& other)
 {
-    if (nullptr != other.data_)
-    {
-        data_ = std::make_unique<tensor>(*other.data_);
-    }
-    else
+    if (nullptr == other.data_)
     {
         data_ = nullptr;
     }
+    else
+    {
+        data_ = std::make_unique<tensor>(*other.data_);
+    }
+
+    if (nullptr == other.gio_)
+    {
+        gio_ = nullptr;
+    }
+    else
+    {
+        gio_ = std::shared_ptr<glue_io>(other.gio_->clone());
+    }
+
     slices_ = other.slices_;
     op_ = other.op_;
 }
@@ -317,6 +326,7 @@ void muxer::copy_helper (const muxer& other)
 void muxer::move_helper (muxer&& other)
 {
     data_ = std::move(other.data_);
+    gio_ = std::move(other.gio_);
     slices_ = std::move(other.slices_);
     op_ = std::move(other.op_);
 }

@@ -26,8 +26,6 @@
 namespace nnet
 {
 
-using SHAPE2IDX = std::function<std::vector<size_t>(tensorshape&)>;
-
 class immutable : public iconnector
 {
 public:
@@ -102,4 +100,3 @@ private:
 }
 
 #endif /* TENNCOR_IMMUTABLE_HPP */
-

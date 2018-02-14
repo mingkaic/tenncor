@@ -58,4 +58,3 @@ private:
 }
 
 #endif /* TENNCOR_GRAPH_HPP */
-

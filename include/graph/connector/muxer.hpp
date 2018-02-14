@@ -21,20 +21,18 @@
 namespace nnet
 {
 
-using SHAPER = std::function<tensorshape(std::vector<tensorshape>)>;
+using SLICESHAPER_F = std::function<size_t(tensorshape&)>;
 
-using SLICE_SHAPER = std::function<size_t(tensorshape&)>;
+using SLICER_F = std::function<std::vector<size_t>(tensorshape,size_t)>;
 
-using SLICER = std::function<std::vector<size_t>(tensorshape,size_t)>;
-
-using SLICE_OP = std::function<varptr(std::vector<varptr>)>;
+using VAROP_F = std::function<varptr(std::vector<varptr>)>;
 
 class demuxer final : public iconnector
 {
 public:
 	static demuxer* get (inode* arg, 
-		SLICE_SHAPER slice_shaper, 
-		SLICER slicer, std::string label);
+		SLICESHAPER_F slicershaper, 
+		SLICER_F slicer, std::string label);
 	
 	//! clone function
 	demuxer* clone (void) const;
@@ -74,8 +72,8 @@ public:
 	std::vector<inode*> get_slices (void);
 
 private:
-	demuxer (inode* arg, SLICE_SHAPER slice_shaper, 
-		SLICER slicer, std::string label);
+	demuxer (inode* arg, SLICESHAPER_F sliceshaper, 
+		SLICER_F slicer, std::string label);
 
 	demuxer (const demuxer& other);
 
@@ -96,9 +94,9 @@ private:
 	//! move helper
 	void move_helper (demuxer&& other);
 
-	SLICE_SHAPER slice_shaper_;
+	SLICESHAPER_F sliceshaper_;
 
-	SLICER slicer_;
+	SLICER_F slicer_;
 };
 
 // consumes the volatile consumers of demuxer's slices without suiciding
@@ -106,7 +104,7 @@ class muxer final : public iconnector
 {
 public:
 	static muxer* get (std::vector<demuxer*> args, 
-		SHAPER shaper, SLICE_OP op, GLUE gluer, std::string label);
+		SHAPER_F shaper, VAROP_F op, GLUE_F gluer, std::string label);
 	
 	//! clone function
 	muxer* clone (void) const;
@@ -144,11 +142,11 @@ public:
 	virtual void update (void);
 
 private:
-	muxer (std::vector<demuxer*> args, SHAPER shaper, 
-		SLICE_OP op, GLUE gluer, std::string label);
+	muxer (std::vector<demuxer*> args, SHAPER_F shaper, 
+		VAROP_F op, GLUE_F gluer, std::string label);
 
 	muxer (std::vector<demuxer*> args, std::vector<varptr> slices, 
-		SHAPER shaper, SLICE_OP op, GLUE gluer, std::string label);
+		SHAPER_F shaper, VAROP_F op, std::shared_ptr<glue_io> gio, std::string label);
 
 	muxer (const muxer& other);
 
@@ -171,16 +169,15 @@ private:
 
 	std::unique_ptr<tensor> data_ = nullptr;
 
+	std::shared_ptr<glue_io> gio_;
+
 	std::vector<varptr> slices_;
 
-	SHAPER shaper_;
+	SHAPER_F shaper_;
 
-	SLICE_OP op_;
-
-	GLUE gluer_;
+	VAROP_F op_;
 };
 
 }
 
 #endif /* TENNCOR_MUXER_HPP */
-

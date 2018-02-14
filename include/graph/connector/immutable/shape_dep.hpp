@@ -30,7 +30,7 @@ class shape_dep final : public immutable
 public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for immutables, grabs ownership of Nf
-	static shape_dep* get (inode* arg, SHAPE2IDX extracter,
+	static shape_dep* get (inode* arg, SHAPE2ARR_F extracter,
 		tensorshape shape, std::string name);
 
 	//! clone function
@@ -47,7 +47,7 @@ public:
 
 private:
 	//! immutable constructing an aggregate transfer function
-	shape_dep (inode* arg, SHAPE2IDX extracter,
+	shape_dep (inode* arg, SHAPE2ARR_F extracter,
 		tensorshape shape, std::string label);
 
 	//! declare copy constructor to copy over transfer functions
@@ -77,13 +77,12 @@ private:
 
 	void move_helper (shape_dep&& other);
 
-	std::shared_ptr<assign_io> asgn_ = std::make_shared<assign_io>();
+	assign_io asgn_;
 
 	//! extract shape dimensions to data_
-	SHAPE2IDX extracter_;
+	SHAPE2ARR_F extracter_;
 };
 
 }
 
 #endif /* TENNCOR_SHAPE_DEP_HPP */
-

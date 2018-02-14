@@ -21,18 +21,16 @@
 namespace nnet
 {
 
-using FWD_MAP = std::function<tensor*(std::vector<const tensor*>)>;
-
 class elem_op final : public immutable
 {
 public:
 	// >>>>>>>>>>>> BUILDER TO FORCE HEAP ALLOCATION <<<<<<<<<<<<
 
 	//! builder for elem_op, grabs ownership of Nf
-	static elem_op* get (std::vector<inode*> args, std::string opname, BACK_MAP bwd);
+	static elem_op* get (std::vector<inode*> args, std::string opname, BACKMAP_F bwd);
 
 	//! build with a definitive outshape
-	static elem_op* get (std::vector<inode*> args, tensorshape shape, std::string opname, BACK_MAP bwd);
+	static elem_op* get (std::vector<inode*> args, tensorshape shape, std::string opname, BACKMAP_F bwd);
 
 	//! clone function
 	elem_op* clone (void) const;
@@ -48,10 +46,10 @@ public:
 
 private:
 	//! elem_op constructing an aggregate transfer function
-	elem_op (std::vector<inode*> args, std::string opname, BACK_MAP bwd);
+	elem_op (std::vector<inode*> args, std::string opname, BACKMAP_F bwd);
 
 	//! create elem_op with definiteive outshape
-	elem_op (std::vector<inode*> args, tensorshape shape, std::string opname, BACK_MAP bwd);
+	elem_op (std::vector<inode*> args, tensorshape shape, std::string opname, BACKMAP_F bwd);
 
 	//! declare copy constructor to copy over transfer functions
 	elem_op (const elem_op& other);
@@ -81,18 +79,16 @@ private:
 
 	//! move helper
 	void move_helper (elem_op&& other);
-
-	//! calculates shape of this node
-	SHAPER shaper_;
 	
-	FWD_MAP fwd_;
+	tensorshape shape_; // if undefined, use elementary shape from argument
+
+	std::unique_ptr<operate_io> op_io_;
 
 	//! backward transfer function to
 	//! lazy instantiate gradient cache values
-	BACK_MAP bwd_;
+	BACKMAP_F bwd_;
 };
 
 }
 
 #endif /* TENNCOR_ELEM_OP_HPP */
-

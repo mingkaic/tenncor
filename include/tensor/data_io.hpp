@@ -24,24 +24,27 @@
 namespace nnet
 {
 
-using SHARED_VARR = std::pair<std::shared_ptr<void>,tensorshape>;
+using SVARR_T = std::pair<std::shared_ptr<void>,tensorshape>;
 
-using GLUE = std::function<void(SHARED_VARR,const SHARED_VARR,signed short,size_t)>;
+using GLUE_F = std::function<void(VARR_T,CVAR_T,unsigned short,size_t)>;
 
-struct varr_deleter
-{
-	void operator () (void* p);
-};
+using SHAPE2ARR_F = std::function<std::vector<size_t>(tensorshape&)>;
 
 std::shared_ptr<void> shared_varr (size_t nbytes);
 
-struct idata_source
+struct idata_src
 {
-	virtual ~idata_source (void) {}
+	virtual ~idata_src (void) {}
 
-	virtual idata_source* clone (void) const = 0;
+	idata_src* clone (void) const
+	{
+		return this->clone_impl();
+	}
 
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape) = 0;
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const = 0;
+
+protected:
+	virtual idata_src* clone_impl (void) const = 0;
 };
 
 struct idata_dest
@@ -51,24 +54,29 @@ struct idata_dest
 	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx) = 0;
 };
 
-struct idata_io : virtual idata_source, virtual idata_dest
+struct idata_io : virtual idata_src, virtual idata_dest
 {
 	virtual ~idata_io (void) {}
+
+	idata_io* clone (void) const
+	{
+		return dynamic_cast<idata_io*>(this->clone_impl());
+	}
 
 	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx)
 	{
 		assert(type_ == BAD_T || type_ == type); // todo: convert on failure
 		type_ = type;
-		set_varr(SHARED_VARR{data, shape}, idx);
+		set_varr(SVARR_T{data, shape}, idx);
 	}
 
-	virtual void set_varr (SHARED_VARR input, size_t idx) = 0;
+	virtual void set_varr (SVARR_T input, size_t idx) = 0;
 
 protected:
 	TENS_TYPE type_ = BAD_T;
 };
 
-struct const_init final : public idata_source
+struct const_init final : public idata_src
 {
 	template <typename T>
 	void set (T value)
@@ -84,18 +92,23 @@ struct const_init final : public idata_source
 		value_ = nnutils::stringify(&value[0], value.size());
 	}
 
-	virtual idata_source* clone (void) const;
+	const_init* clone (void) const
+	{
+		return static_cast<const_init*>(clone_impl());
+	}
 
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape);
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
 
 private:
+	virtual idata_src* clone_impl (void) const;
+
 	std::string value_;
 
 	TENS_TYPE type_ = BAD_T;
 };
 
 //! Uniformly Random Initialization
-struct rand_uniform final : public idata_source
+struct rand_uniform final : public idata_src
 {
 	template <typename T>
 	void set (T min, T max)
@@ -105,11 +118,16 @@ struct rand_uniform final : public idata_source
 		max_ = nnutils::stringify(&max, 1);
 	}
 
-	virtual idata_source* clone (void) const;
+	rand_uniform* clone (void) const
+	{
+		return static_cast<rand_uniform*>(clone_impl());
+	}
 
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape);
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
 
 private:
+	virtual idata_src* clone_impl (void) const;
+
 	std::string min_;
 	std::string max_;
 
@@ -117,7 +135,7 @@ private:
 };
 
 //! Normal Random Initialization
-struct rand_normal final : public idata_source
+struct rand_normal final : public idata_src
 {
 	template <typename T>
 	void set (T mean, T stdev)
@@ -127,18 +145,21 @@ struct rand_normal final : public idata_source
 		stdev_ = nnutils::stringify(&stdev, 1);
 	}
 
-	virtual idata_source* clone (void) const;
+	rand_normal* clone (void) const
+	{
+		return static_cast<rand_normal*>(clone_impl());
+	}
 
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape);
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
 
 private:
+	virtual idata_src* clone_impl (void) const;
+
 	std::string mean_;
 	std::string stdev_;
 
 	TENS_TYPE type_ = BAD_T;
 };
-
-
 
 struct portal_dest : public idata_dest
 {
@@ -161,80 +182,66 @@ struct portal_dest : public idata_dest
 	tensorshape shape_;
 };
 
-
-
-struct open_source final : public idata_source
+struct imultiarg_io : public idata_io
 {
-	open_source (std::shared_ptr<idata_source> defsrc);
+	virtual ~imultiarg_io (void) {}
 
-	virtual idata_source* clone (void) const;
+	imultiarg_io* clone (void) const
+	{
+		return dynamic_cast<imultiarg_io*>(this->clone_impl());
+	}
 
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape);
-
-	std::shared_ptr<idata_source> source_;
-
-private:
-	open_source (const open_source& other);
-};
-
-struct iholdnrun_io : public idata_io
-{
-	virtual ~iholdnrun_io (void) {}
-
-	virtual void set_varr (SHARED_VARR input, size_t idx)
+	virtual void set_varr (SVARR_T input, size_t idx)
 	{
 		size_t nargs = args_.size();
 		if (idx >= nargs)
 		{
-			args_.insert(args_.end(), idx - args_.size() + 1, SHARED_VARR{});
+			args_.insert(args_.end(), idx - args_.size() + 1, SVARR_T{});
 		}
 		args_[idx] = input;
 	}
 
 protected:
-	std::vector<SHARED_VARR> args_;
+	std::vector<SVARR_T> args_;
 };
 
-struct operate_io : public iholdnrun_io
+struct operate_io : public imultiarg_io
 {
 	operate_io (std::string opname) : opname_(opname) {}
 
 	virtual ~operate_io (void) {}
 
-	virtual idata_source* clone (void) const;
+	operate_io* clone (void) const
+	{
+		return dynamic_cast<operate_io*>(clone_impl());
+	}
 
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape);
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
 
 protected:
+	virtual idata_src* clone_impl (void) const;
+
 	std::string opname_;
 };
 
-struct glue_io final : public iholdnrun_io
+struct glue_io final : public imultiarg_io
 {
-	glue_io (GLUE glue) : glue_(glue) {}
+	glue_io (GLUE_F glue) : glue_(glue) {}
 
-	virtual idata_source* clone (void) const
+	glue_io* clone (void) const
+	{
+		return dynamic_cast<glue_io*>(clone_impl());
+	}
+
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+
+private:
+	virtual idata_src* clone_impl (void) const
 	{
 		return new glue_io(*this);
 	}
 
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape)
-	{
-		type = type_;
-		unsigned short bytesize = type_size(type);
-		dest_.first = shared_varr(shape.n_elems() * bytesize);
-		dest_.second = shape;
-		for (size_t i = 0; i < args_.size(); ++i)
-		{
-			glue_(dest_, args_[i], bytesize, i);
-		}
-		return dest_.first;
-	}
-
-private:
-	SHARED_VARR dest_;
-
-	GLUE glue_;
+	GLUE_F glue_;
 };
 
 struct assign_io final : public operate_io
@@ -246,56 +253,48 @@ struct assign_io final : public operate_io
 	assign_io& operator = (const assign_io&) = delete;
 	assign_io& operator = (assign_io&&) = delete;
 
-	virtual idata_source* clone (void) const;
+	assign_io* clone (void) const
+	{
+		return dynamic_cast<assign_io*>(clone_impl());
+	}
 	
 	void set_op (std::string opname);
 
 	void clear (void);
+
+private:
+	virtual idata_src* clone_impl (void) const;
 };
 
 struct sindex_io final : public idata_io
 {
-	sindex_io (std::vector<size_t> index) : index_(index) {}
+	sindex_io (SHAPE2ARR_F smap) : smap_(smap) {}
 
-	virtual idata_source* clone (void) const
+	sindex_io* clone (void) const
+	{
+		return dynamic_cast<sindex_io*>(clone_impl());
+	}
+
+	virtual void set_varr (SVARR_T input, size_t)
+	{
+		input_ = input.first;
+		index_ = smap_(input.second);
+	}
+
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+
+private:
+	virtual idata_src* clone_impl (void) const
 	{
 		return new sindex_io(*this);
 	}
 
-	virtual void set_varr (SHARED_VARR input, size_t)
-	{
-		unsigned short bytes = type_size(type_);
-		size_t n_elems = input.second.n_elems();
-		size_t total_bytes = n_elems * bytes;
-		if (nullptr == dest_.first || 
-			dest_.second.n_elems() < n_elems)
-		{
-			dest_.first = shared_varr(total_bytes);
-		}
-		char* dest = (char*) dest_.first.get();
-		char* src = (char*) input.first.get();
-		size_t src_idx;
-		for (size_t i = 0; i < bytes * index_.size(); ++i)
-		{
-			src_idx = i / bytes;
-			dest[index_[src_idx]] = src[src_idx];
-		}
-		dest_.second = input.second;
-	}
+	SHAPE2ARR_F smap_;
 
-	virtual std::shared_ptr<void> get_data (TENS_TYPE& type, tensorshape shape)
-	{
-		assert(type == type_ && shape.is_compatible_with(dest_.second));
-		return dest_.first;
-	}
-
-private:
-	SHARED_VARR dest_;
-
+	std::shared_ptr<void> input_;
 	std::vector<size_t> index_;
 };
 
 }
 
 #endif /* TENNCOR_DATA_IO_HPP */
-

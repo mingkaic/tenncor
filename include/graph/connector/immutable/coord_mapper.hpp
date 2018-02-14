@@ -26,7 +26,7 @@ public:
 	// >>>>>>>>>>>> BUILDER TO FORCE HEAP ALLOCATION <<<<<<<<<<<<
 
     // input smap must transform shape to desired output shape
-	static coord_mapper* get (inode* arg, SHAPE2IDX smap, std::string name)
+	static coord_mapper* get (inode* arg, SHAPE2ARR_F smap, std::string name)
 	{
 		return new coord_mapper(arg, smap, name);
 	}
@@ -66,8 +66,12 @@ public:
 	}
 
 private:
-	coord_mapper (inode* arg, SHAPE2IDX smap, std::string label) :
-		immutable(std::vector<inode*>{arg}, label), smap_(smap)
+	coord_mapper (inode* arg, SHAPE2ARR_F smap, std::string label) :
+		immutable(std::vector<inode*>{arg}, label), sio_(new sindex_io(smap))
+	{ this->update(); }
+
+	coord_mapper (inode* arg, std::shared_ptr<sindex_io> sio, std::string label) :
+		immutable(std::vector<inode*>{arg}, label), sio_(sio)
 	{ this->update(); }
 
 	coord_mapper (const coord_mapper& other) : immutable(other)
@@ -106,34 +110,40 @@ private:
 			{
 				throw std::exception(); // todo: better exception
 			}
-            tensorshape shape = ten->get_shape();
-            std::shared_ptr<sindex_io> io = std::make_shared<sindex_io>(smap_(shape));
-			// assert none of tens is null
-			data_ = std::make_unique<tensor>(shape, io);
+			// assert that shape only change once
+			ten->write_to(*sio_);
+			data_ = std::make_unique<tensor>(ten->get_shape());
 		}
-		data_->read();
+		data_->read_from(*sio_);
 	}
 
 	//! backward pass step
 	virtual varptr backward_pass (inode* wrt)
 	{
-		return new coord_mapper(this->get_arguments()[0]->derive(wrt), smap_, this->get_label());
+		return new coord_mapper(this->get_arguments()[0]->derive(wrt), sio_, this->get_label());
 	}
 
 
 	//! copy helper
 	void copy_helper (const coord_mapper& other)
 	{
-		smap_ = other.smap_;
+		if (nullptr == other.sio_)
+		{
+			sio_ = nullptr;
+		}
+		else
+		{
+			sio_ = std::shared_ptr<sindex_io>(other.sio_->clone());
+		}
 	}
 
 	//! move helper
 	void move_helper (coord_mapper&& other)
 	{
-		smap_ = std::move(other.smap_);
+		sio_ = std::move(other.sio_);
 	}
 
-	SHAPE2IDX smap_;
+	std::shared_ptr<sindex_io> sio_;
 };
 
 }

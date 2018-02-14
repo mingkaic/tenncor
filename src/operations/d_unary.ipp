@@ -12,12 +12,12 @@ namespace nnet
 {
 
 template <typename T>
-void abs (VARR dest, std::vector<VARR> srcs)
+void abs (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -27,12 +27,12 @@ void abs (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void neg (VARR dest, std::vector<VARR> srcs)
+void neg (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -42,12 +42,12 @@ void neg (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void sin (VARR dest, std::vector<VARR> srcs)
+void sin (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -57,12 +57,12 @@ void sin (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void cos (VARR dest, std::vector<VARR> srcs)
+void cos (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -72,12 +72,12 @@ void cos (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void tan (VARR dest, std::vector<VARR> srcs)
+void tan (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -87,12 +87,12 @@ void tan (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void csc (VARR dest, std::vector<VARR> srcs)
+void csc (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -102,12 +102,12 @@ void csc (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void sec (VARR dest, std::vector<VARR> srcs)
+void sec (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -117,12 +117,12 @@ void sec (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void cot (VARR dest, std::vector<VARR> srcs)
+void cot (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -132,12 +132,12 @@ void cot (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void exp (VARR dest, std::vector<VARR> srcs)
+void exp (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -147,12 +147,12 @@ void exp (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void ln (VARR dest, std::vector<VARR> srcs)
+void ln (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -162,12 +162,12 @@ void ln (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void sqrt (VARR dest, std::vector<VARR> srcs)
+void sqrt (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -177,12 +177,12 @@ void sqrt (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void round (VARR dest, std::vector<VARR> srcs)
+void round (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
-	T* s = (T*) srcs.front().first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = dest.second.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)

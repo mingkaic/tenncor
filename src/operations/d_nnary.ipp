@@ -12,7 +12,7 @@ namespace nnet
 {
 
 template <typename T>
-void pow (VARR dest, std::vector<VARR> srcs)
+void pow (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
@@ -32,15 +32,15 @@ void pow (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void add (VARR dest, std::vector<VARR> srcs)
+void add (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sa = (T*) srcs.front().first;
-	T* sb = (T*) srcs.back().first;
+	const T* sa = (const T*) srcs.front().first;
+	const T* sb = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -52,15 +52,15 @@ void add (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void sub (VARR dest, std::vector<VARR> srcs)
+void sub (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sa = (T*) srcs.front().first;
-	T* sb = (T*) srcs.back().first;
+	const T* sa = (const T*) srcs.front().first;
+	const T* sb = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -72,15 +72,15 @@ void sub (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void mul (VARR dest, std::vector<VARR> srcs)
+void mul (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sa = (T*) srcs.front().first;
-	T* sb = (T*) srcs.back().first;
+	const T* sa = (const T*) srcs.front().first;
+	const T* sb = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -92,15 +92,15 @@ void mul (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void div (VARR dest, std::vector<VARR> srcs)
+void div (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sa = (T*) srcs.front().first;
-	T* sb = (T*) srcs.back().first;
+	const T* sa = (const T*) srcs.front().first;
+	const T* sb = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -112,15 +112,15 @@ void div (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void eq (VARR dest, std::vector<VARR> srcs)
+void eq (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sa = (T*) srcs.front().first;
-	T* sb = (T*) srcs.back().first;
+	const T* sa = (const T*) srcs.front().first;
+	const T* sb = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -132,15 +132,15 @@ void eq (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void neq (VARR dest, std::vector<VARR> srcs)
+void neq (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sa = (T*) srcs.front().first;
-	T* sb = (T*) srcs.back().first;
+	const T* sa = (const T*) srcs.front().first;
+	const T* sb = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -152,15 +152,15 @@ void neq (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void lt (VARR dest, std::vector<VARR> srcs)
+void lt (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sa = (T*) srcs.front().first;
-	T* sb = (T*) srcs.back().first;
+	const T* sa = (const T*) srcs.front().first;
+	const T* sb = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -172,15 +172,15 @@ void lt (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void gt (VARR dest, std::vector<VARR> srcs)
+void gt (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sa = (T*) srcs.front().first;
-	T* sb = (T*) srcs.back().first;
+	const T* sa = (const T*) srcs.front().first;
+	const T* sb = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -192,15 +192,15 @@ void gt (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void rand_binom (VARR dest, std::vector<VARR> srcs)
+void rand_binom (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* sn = (T*) srcs.front().first;
-	T* sp = (T*) srcs.front().first;
+	const T* sn = (const T*) srcs.front().first;
+	const T* sp = (const T*) srcs.front().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -213,15 +213,15 @@ void rand_binom (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void rand_uniform (VARR dest, std::vector<VARR> srcs)
+void rand_uniform (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape_min = srcs.front().second;
 	tensorshape& srcshape_max = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* s_min = (T*) srcs.front().first;
-	T* s_max = (T*) srcs.front().first;
+	const T* s_min = (const T*) srcs.front().first;
+	const T* s_max = (const T*) srcs.front().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -234,15 +234,15 @@ void rand_uniform (VARR dest, std::vector<VARR> srcs)
 }
 
 template <typename T>
-void rand_normal (VARR dest, std::vector<VARR> srcs)
+void rand_normal (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape_min = srcs.front().second;
 	tensorshape& srcshape_max = srcs.back().second;
 	T* d = (T*) dest.first;
-	T* s_min = (T*) srcs.front().first;
-	T* s_max = (T*) srcs.front().first;
+	const T* s_min = (const T*) srcs.front().first;
+	const T* s_max = (const T*) srcs.front().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();

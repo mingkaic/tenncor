@@ -14,11 +14,11 @@
 namespace nnet
 {
 
-using updater_t = std::function<void(bool)>;
+using UPDATE_F = std::function<void(bool)>;
 
-using updates_t = std::vector<updater_t>;
+using UPDATES_T = std::vector<UPDATE_F>;
 
-using grad_process = std::function<varptr(varptr,variable*)>;
+using GINTERM_F = std::function<varptr(varptr,variable*)>;
 
 //! gradient descent algorithm abstraction
 class gd_updater
@@ -32,7 +32,7 @@ public:
 
 	gd_updater* move (void);
 
-	virtual updates_t calculate (inode* root, grad_process intermediate_process =
+	virtual UPDATES_T calculate (inode* root, GINTERM_F intermediate_process =
 		[](varptr grad, variable*) { return grad; });
 
 	void ignore_subtree (inode* subroot);
@@ -46,8 +46,8 @@ protected:
 
 	virtual gd_updater* move_impl (void) = 0;
 
-	virtual updater_t process_update (varptr& gres,
-		variable* leaf, grad_process intermediate_process) = 0;
+	virtual UPDATE_F process_update (varptr& gres,
+		variable* leaf, GINTERM_F intermediate_process) = 0;
 
 	double learning_rate_;
 	
@@ -70,8 +70,8 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual updater_t process_update (varptr& gres,
-		variable* leaf, grad_process intermediate_process);
+	virtual UPDATE_F process_update (varptr& gres,
+		variable* leaf, GINTERM_F intermediate_process);
 };
 
 //! momentum based gradient descent
@@ -100,8 +100,8 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual updater_t process_update (varptr& gres,
-		variable* leaf, grad_process intermediate_process);
+	virtual UPDATE_F process_update (varptr& gres,
+		variable* leaf, GINTERM_F intermediate_process);
 };
 
 // Separate adaptive learning rates
@@ -128,8 +128,8 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual updater_t process_update (varptr& gres,
-		variable* leaf, grad_process intermediate_process);
+	virtual UPDATE_F process_update (varptr& gres,
+		variable* leaf, GINTERM_F intermediate_process);
 };
 
 // adaptive gradient
@@ -149,8 +149,8 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual updater_t process_update (varptr& gres,
-		variable* leaf, grad_process intermediate_process);
+	virtual UPDATE_F process_update (varptr& gres,
+		variable* leaf, GINTERM_F intermediate_process);
 };
 
 
@@ -186,8 +186,8 @@ protected:
 
 	virtual gd_updater* move_impl (void);
 
-	virtual updater_t process_update (varptr& gres,
-		variable* leaf, grad_process intermediate_process);
+	virtual UPDATE_F process_update (varptr& gres,
+		variable* leaf, GINTERM_F intermediate_process);
 		
 private:
 	double discount_factor_;

@@ -56,7 +56,7 @@ protected:
 	ileaf (std::string name); // todo: evaluate usefulness
 
 	//! assign initializer
-	ileaf (const tensorshape& shape, idata_source* source, std::string name);
+	ileaf (const tensorshape& shape, idata_src* source, std::string name);
 
 	//! declare copy constructor to deep copy over data
 	ileaf (const ileaf& other);
@@ -75,4 +75,3 @@ private:
 }
 
 #endif /* TENNCOR_ILEAF_HPP */
-

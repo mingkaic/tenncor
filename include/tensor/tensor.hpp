@@ -32,7 +32,7 @@ public:
 	//! create a tensor of a specified shape and allocator
 	//! if the shape is fully defined, then raw data is allocated
 	//! otherwise, tensor will wait for a defined shape
-	tensor (tensorshape shape, std::shared_ptr<idata_source> source); // todo: pass source in as shared
+	tensor (tensorshape shape); // todo: pass source in as shared
 
 	//! deallocate tensor
 	virtual ~tensor (void) {} // remove once final
@@ -119,7 +119,7 @@ public:
 
 	//! get bytes allocated
 	size_t total_bytes (void) const;
-	
+
 	TENS_TYPE get_type (void) const;
 
 
@@ -129,34 +129,20 @@ public:
 	// >>>>>> SHAPE MUTATION <<<<<<
 
 	//! set a new allowed shape
-	//! chop raw data outside of new shape
-	//! worst case runtime: O(min(N, M))
-	//! where N is the original shape size
-	//! and M is the resulting shape size
-	//! result is shape is compatible with allowed shape
-	void set_shape (tensorshape shape);
+	//! WARNING: clears existing content 
+	//! if allocedshape is not compatible with input shape
+	void set_shape (tensorshape shape); 
 
 	// >>>>>> DATA MUTATION <<<<<<
 
 	//! read raw data from source using allowed (innate) shape
 	//! return true if successful
-	bool read (void);
+	bool read_from (const idata_src& src);
 
 	//! read raw data from source using input shape
 	//! if shape is compatible with allowed
 	//! else return false
-	bool read (const tensorshape shape);
-
-	//! copy raw data from source using allowed (innate) shape
-	//! return true if successful
-	//! does not take ownership of array
-	bool copy (void);
-
-	//! copy raw data from source using input shape
-	//! if shape is compatible with allowed
-	//! else return false
-	//! does not take ownership of array
-	bool copy (const tensorshape shape);
+	bool read_from (const idata_src& src, const tensorshape shape);
 
 	//! forcefully deallocate raw_data,
 	//! invalidates allocated (external) shape
@@ -170,10 +156,6 @@ public:
 
 	// slice along the first dimension
 	void slice (size_t dim_start, size_t limit);
-
-	// >>>>>> DATA EXPOSURE <<<<<<
-
-	std::weak_ptr<idata_source> get_source (void);
 
 private:
 	//! copy utility helper
@@ -190,11 +172,8 @@ private:
 	//! allocated shape (must be defined)
 	tensorshape alloced_shape_;
 
-	// >>>>>> DATA MEMBERS <<<<<<
-	std::shared_ptr<idata_source> source_;
-
 	//! raw data is available to tensor manipulators
-	std::shared_ptr<void> raw_data_ = nullptr;
+	std::shared_ptr<void> raw_data_ = nullptr; // make shared to communicate with idata_dest
 
 	TENS_TYPE dtype_ = BAD_T;
 };
@@ -213,4 +192,3 @@ std::vector<T> expose (const tensor* tens)
 }
 
 #endif /* TENNCOR_TENSOR_HPP */
-

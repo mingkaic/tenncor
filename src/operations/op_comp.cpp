@@ -14,7 +14,7 @@
 namespace nnet
 {
 
-static inline varptr reduce (const varptr a, size_t dimension, std::string op, SLICE_OP slice)
+static inline varptr reduce (const varptr a, size_t dimension, std::string op, VAROP_F slice)
 {
     if (nullptr == a.get()) return nullptr;
 	std::string dmx_label = nnutils::formatter() << "reduce_" << op << "_" << dimension;
@@ -87,12 +87,11 @@ static inline varptr reduce (const varptr a, size_t dimension, std::string op, S
         }
         return tensorshape(slist);
     }, slice,
-    [](SHARED_VARR dest, const SHARED_VARR src, 
-        signed short bytesize, size_t i)
+    [](VARR_T dest, CVAR_T src, unsigned short bytesize, size_t i)
     {
         assert(src.second.n_elems() == 1 && dest.second.n_elems() > i);
-        char* cdest = (char*) dest.first.get();
-        char* csrc = (char*) src.first.get();
+        char* cdest = (char*) dest.first;
+        const char* csrc = (const char*) src.first;
         std::memcpy(cdest + i * bytesize, csrc, bytesize);
     }, dmx_label);
 }
@@ -185,4 +184,3 @@ varptr arg_max (const varptr a, size_t dimension)
 }
 
 #endif
-

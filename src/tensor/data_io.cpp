@@ -13,114 +13,124 @@
 namespace nnet
 {
 
-void varr_deleter::operator () (void* p)
+static inline void check_ptr (std::shared_ptr<void>& ptr, size_t nbytes)
 {
-	free(p);
+	if (nullptr == ptr)
+	{
+		ptr = shared_varr(nbytes);
+	}
 }
+
+struct varr_deleter
+{
+	void operator () (void* p)
+	{
+		free(p);
+	}
+};
 
 std::shared_ptr<void> shared_varr (size_t nbytes)
 {
 	return std::shared_ptr<void>(malloc(nbytes), varr_deleter());
 }
 
-idata_source* const_init::clone (void) const
+
+idata_src* const_init::clone_impl (void) const
 {
 	return new const_init(*this);
 }
 
-std::shared_ptr<void> const_init::get_data (TENS_TYPE& type, tensorshape shape)
+void const_init::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
 	type = type_;
 	size_t nbytes = shape.n_elems() * type_size(type);
 	size_t vbytes = value_.size();
-	std::shared_ptr<void> out = shared_varr(nbytes);
-	char* dest = (char*) out.get();
+	check_ptr(outptr, nbytes);
+	char* dest = (char*) outptr.get();
 	for (size_t i = 0; i < nbytes; i += vbytes)
 	{
 		memcpy(dest + i, &value_[0], std::min(vbytes, nbytes - i));
 	}
-	return out;
 }
 
-idata_source* rand_uniform::clone (void) const
+
+idata_src* rand_uniform::clone_impl (void) const
 {
 	return new rand_uniform(*this);
 }
 
-std::shared_ptr<void> rand_uniform::get_data (TENS_TYPE& type, tensorshape shape)
+void rand_uniform::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
 	type = type_;
 	size_t nbytes = shape.n_elems() * type_size(type);
-	std::shared_ptr<void> out = shared_varr(nbytes);
+	check_ptr(outptr, nbytes);
 	tensorshape one(std::vector<size_t>{1});
-	operate("rand_uniform", type, VARR{out.get(), shape}, {
-		VARR{&min_[0], one},
-		VARR{&max_[0], one},
+	operate("rand_uniform", type, VARR_T{outptr.get(), shape}, {
+		CVAR_T{&min_[0], one},
+		CVAR_T{&max_[0], one},
 	});
-	return out;
 }
 
-idata_source* rand_normal::clone (void) const
+
+idata_src* rand_normal::clone_impl (void) const
 {
 	return new rand_normal(*this);
 }
 
-std::shared_ptr<void> rand_normal::get_data (TENS_TYPE& type, tensorshape shape)
+void rand_normal::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
 	type = type_;
 	size_t nbytes = shape.n_elems() * type_size(type);
-	std::shared_ptr<void> out = shared_varr(nbytes);
+	check_ptr(outptr, nbytes);
 	tensorshape one(std::vector<size_t>{1});
-	operate("rand_normal", type, VARR{out.get(), shape}, {
-		VARR{&mean_[0], one},
-		VARR{&stdev_[0], one},
+	operate("rand_normal", type, VARR_T{outptr.get(), shape}, {
+		CVAR_T{&mean_[0], one},
+		CVAR_T{&stdev_[0], one},
 	});
-	return out;
 }
 
-open_source::open_source (std::shared_ptr<idata_source> defsrc) : source_(defsrc) {}
 
-idata_source* open_source::clone (void) const
-{
-	return new open_source(*this);
-}
-
-std::shared_ptr<void> open_source::get_data (TENS_TYPE& type, tensorshape shape)
-{
-	assert(nullptr != source_);
-	return source_->get_data(type, shape);
-}
-
-open_source::open_source (const open_source& other)
-{
-	source_ = std::shared_ptr<idata_source>(other.source_->clone());
-}
-
-idata_source* operate_io::clone (void) const
+idata_src* operate_io::clone_impl (void) const
 {
 	return new operate_io(*this);
 }
 
-std::shared_ptr<void> operate_io::get_data (TENS_TYPE& type, tensorshape shape)
+void operate_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
 	type = type_;
 	assert(type != BAD_T && !args_.empty());
-	std::shared_ptr<void>& dest = args_[0].first;
-	tensorshape& destshape = args_[0].second;
+	size_t nbytes = shape.n_elems() * type_size(type);
+	check_ptr(outptr, nbytes);
 	// todo: check for shapes
 	if (!opname_.empty())
 	{
-		std::vector<VARR> args(args_.size());
-		std::transform(args_.begin(), args_.end(), args.begin(), [](SHARED_VARR& sv)
+		std::vector<CVAR_T> args(args_.size());
+		std::transform(args_.begin(), args_.end(), args.begin(), [](const SVARR_T& sv)
 		{
-			return VARR{sv.first.get(), sv.second};
+			return CVAR_T{sv.first.get(), sv.second};
 		});
-		operate(opname_, type_, VARR{dest.get(), destshape}, args);
+		operate(opname_, type_, VARR_T{outptr.get(), shape}, args);
 	}
-	return dest;
+	else // identity operation (copy over)
+	{
+		memcpy(outptr.get(), args_[0].first.get(), nbytes);
+	}
 }
 
-idata_source* assign_io::clone (void) const
+
+void glue_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+{
+	type = type_;
+	unsigned short bytesize = type_size(type);
+	check_ptr(outptr, shape.n_elems() * bytesize);
+	for (size_t i = 0; i < args_.size(); ++i)
+	{
+		glue_(VARR_T{outptr.get(), shape}, CVAR_T{args_[i].first.get(), args_[i].second}, bytesize, i);
+	}
+}
+
+
+idata_src* assign_io::clone_impl (void) const
 {
 	return new assign_io();
 }
@@ -135,6 +145,24 @@ void assign_io::clear (void)
 	opname_.clear();
 	args_.clear();
 	type_ = BAD_T;
+}
+
+
+void sindex_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+{
+	type = this->type_;
+	// implicity assert(shape.n_elems() <= *std::max_element(index_.begin(), index_.end()))
+	unsigned short bytes = type_size(type);
+	size_t n_elems = shape.n_elems();
+	check_ptr(outptr, n_elems * bytes);
+	char* dest = (char*) outptr.get();
+	char* src = (char*) input_.get();
+	size_t src_idx;
+	for (size_t i = 0; i < bytes * index_.size(); ++i)
+	{
+		src_idx = i / bytes;
+		dest[index_[src_idx]] = src[src_idx];
+	}
 }
 
 }

@@ -24,10 +24,10 @@ namespace nnet
 {
 
 //! backward transfer function, get gradient nodes; F: Nf -> Nb
-using BACK_MAP = std::function<varptr(std::vector<std::pair<inode*,inode*> >)>;
+using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,inode*> >)>;
 
 //! calculate output shape from argument shapes
-using SHAPER = std::function<tensorshape(std::vector<tensorshape>)>;
+using SHAPER_F = std::function<tensorshape(std::vector<tensorshape>)>;
 
 class iconnector : public inode, public iobserver
 {

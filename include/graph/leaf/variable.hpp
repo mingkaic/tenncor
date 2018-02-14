@@ -25,7 +25,7 @@ class variable final : public ileaf
 public:
 	//! construct to init zero and one
 	variable (const tensorshape& shape,
-		std::shared_ptr<idata_source> source,
+		std::shared_ptr<idata_src> source,
 		std::string name);
 
 	//! copy construct to init zero and one
@@ -88,9 +88,9 @@ protected:
 	void move_helper (variable&& other);
 
 private:
-	std::shared_ptr<assign_io> asgn_ = std::make_shared<assign_io>();
+	assign_io asgn_;
 
-	std::shared_ptr<open_source> dsrc_;
+	std::shared_ptr<idata_src> src_; // todo: consider this temporary variable
 
 	//! raw data
 	std::unique_ptr<tensor> data_ = nullptr;
@@ -99,4 +99,3 @@ private:
 }
 
 #endif /* TENNCOR_VARIABLE_HPP */
-

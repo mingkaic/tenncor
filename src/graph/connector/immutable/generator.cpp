@@ -14,7 +14,7 @@ namespace nnet
 {
 
 generator* generator::get (inode* shape_dep,
-	std::shared_ptr<idata_source> source, std::string name)
+	std::shared_ptr<idata_src> source, std::string name)
 {
 	return new generator(shape_dep, source, "generator_" + name);
 }
@@ -59,7 +59,7 @@ std::unordered_set<ileaf*> generator::get_leaves (void) const
 
 
 generator::generator (inode* shape_dep, 
-	std::shared_ptr<idata_source> source,
+	std::shared_ptr<idata_src> source,
 	std::string name) :
 immutable({shape_dep}, name), source_(source)
 {
@@ -96,17 +96,10 @@ void generator::forward_pass (std::vector<inode*>& args)
 		tensorshape depshape = dep->get_shape();
 		if (nullptr == data_)
 		{
-			data_ = std::make_unique<tensor>(depshape, source_);
+			data_ = std::make_unique<tensor>(depshape);
 		}
-		
-		if (data_->has_data())
-		{
-			data_->copy();
-		}
-		else
-		{
-			data_->read();
-		}
+
+		data_->read_from(*source_);
 	}
 }
 
@@ -126,7 +119,14 @@ void generator::death_on_noparent (void)
 
 void generator::copy_helper (const generator& other)
 {
-	source_ = std::shared_ptr<idata_source>(other.source_->clone());
+	if (nullptr == other.source_)
+	{
+		source_ = nullptr;
+	}
+	else
+	{
+		source_ = std::shared_ptr<idata_src>(other.source_->clone());
+	}
 }
 
 void generator::move_helper (generator&& other)
@@ -137,4 +137,3 @@ void generator::move_helper (generator&& other)
 }
 
 #endif
-

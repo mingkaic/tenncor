@@ -73,15 +73,15 @@ public:
 		TENS_TYPE type = data_->get_type();
 		if (false == data_->has_data())
 		{
-			asgn_->set_data(ptr, type, data_->get_shape(), 0);
-			data_->copy();
+			asgn_.set_data(ptr, type, data_->get_shape(), 0);
+			data_->read_from(asgn_);
 		}
 		else
 		{
 			if (optional<tensorshape> shape = data_->guess_shape(data.size()))
 			{
-				asgn_->set_data(ptr, type, *shape, 0);
-				data_->copy(*shape);
+				asgn_.set_data(ptr, type, *shape, 0);
+				data_->read_from(asgn_, *shape);
 			}
 			// we would reach here if data is empty... (todo: test. currently never reached)
 			else
@@ -110,7 +110,7 @@ protected:
 	void move_helper (placeholder&& other);
 
 private:
-	std::shared_ptr<assign_io> asgn_ = std::make_shared<assign_io>();
+	assign_io asgn_;
 
 	//! raw data
 	std::unique_ptr<tensor> data_ = nullptr;
@@ -156,4 +156,3 @@ public:
 }
 
 #endif /* TENNCOR_PLACEHOLDER_HPP */
-

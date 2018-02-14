@@ -28,7 +28,7 @@ namespace nnet
 
 class iobserver;
 
-using AUD_SET = std::unordered_set<iobserver*>;
+using AUDSET_T = std::unordered_set<iobserver*>;
 
 //! notification messages
 enum notification
@@ -57,7 +57,7 @@ public:
 	//! notify audience of subject update
 	void notify (notification msg) const;
 
-	AUD_SET get_audience (void) const;
+	AUDSET_T get_audience (void) const;
 
 protected:
 	//! explicit default constructor to allow copy and move constructors
@@ -95,7 +95,7 @@ private:
 	void move_helper (subject&& other);
 
 	//! observers
-	AUD_SET audience_;
+	AUDSET_T audience_;
 
 	//! observers that kills this on death
 	std::unordered_set<iobserver*> killers_;
@@ -104,4 +104,3 @@ private:
 }
 
 #endif /* TENNCOR_SUBJECT_HPP */
-

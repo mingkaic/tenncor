@@ -25,109 +25,111 @@
 namespace nnet
 {
 
-using VARR = std::pair<void*,tensorshape>;
+using VARR_T = std::pair<void*,tensorshape>;
 
-using VFUNC = std::function<void(VARR,std::vector<VARR>)>;
+using CVAR_T = std::pair<const void*,tensorshape>;
+
+using VFUNC_F = std::function<void(VARR_T,std::vector<CVAR_T>)>;
 
 std::unordered_set<std::string> all_ops (void);
 
-void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> src);
+void operate (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src);
 
 #ifndef TENNCOR_D_UNARY_HPP
 #define TENNCOR_D_UNARY_HPP
 
 template <typename T>
-void abs (VARR dest, std::vector<VARR> srcs);
+void abs (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <>
-void abs<uint8_t> (VARR dest, std::vector<VARR> srcs);
+void abs<uint8_t> (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <>
-void abs<uint16_t> (VARR dest, std::vector<VARR> srcs);
+void abs<uint16_t> (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <>
-void abs<uint32_t> (VARR dest, std::vector<VARR> srcs);
+void abs<uint32_t> (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <>
-void abs<uint64_t> (VARR dest, std::vector<VARR> srcs);
+void abs<uint64_t> (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void neg (VARR dest, std::vector<VARR> srcs);
+void neg (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <>
-void neg<uint8_t> (VARR, std::vector<VARR>);
+void neg<uint8_t> (VARR_T, std::vector<CVAR_T>);
 
 template <>
-void neg<uint16_t> (VARR, std::vector<VARR>);
+void neg<uint16_t> (VARR_T, std::vector<CVAR_T>);
 
 template <>
-void neg<uint32_t> (VARR, std::vector<VARR>);
+void neg<uint32_t> (VARR_T, std::vector<CVAR_T>);
 
 template <>
-void neg<uint64_t> (VARR, std::vector<VARR>);
+void neg<uint64_t> (VARR_T, std::vector<CVAR_T>);
 
 template <typename T>
-void sin (VARR dest, std::vector<VARR> srcs);
+void sin (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void cos (VARR dest, std::vector<VARR> srcs);
+void cos (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void tan (VARR dest, std::vector<VARR> srcs);
+void tan (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void csc (VARR dest, std::vector<VARR> srcs);
+void csc (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void sec (VARR dest, std::vector<VARR> srcs);
+void sec (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void cot (VARR dest, std::vector<VARR> srcs);
+void cot (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void exp (VARR dest, std::vector<VARR> srcs);
+void exp (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void ln (VARR dest, std::vector<VARR> srcs);
+void ln (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void sqrt (VARR dest, std::vector<VARR> srcs);
+void sqrt (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void round (VARR dest, std::vector<VARR> srcs);
+void round (VARR_T dest, std::vector<CVAR_T> srcs);
 
 // aggregation
 
 template <typename T>
-void argmax (VARR dest, std::vector<VARR> srcs)
+void argmax (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.n_elems() == 1);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = srcshape.n_elems();
     auto it = std::max_element(s, s + n);
     d[0] = std::distance(s, it);
 }
 
 template <typename T>
-void max (VARR dest, std::vector<VARR> srcs)
+void max (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.n_elems() == 1);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = srcshape.n_elems();
     d[0] = *(std::max_element(s, s + n));
 }
 
 template <typename T>
-void sum (VARR dest, std::vector<VARR> srcs)
+void sum (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.n_elems() == 1);
-	T* d = dest.first;
-	T* s = srcs.front().first;
+	T* d = (T*) dest.first;
+	const T* s = (const T*) srcs.front().first;
 	size_t n = srcshape.n_elems();
     d[0] = std::accumulate(s, s + n, 0);
 }
@@ -138,46 +140,46 @@ void sum (VARR dest, std::vector<VARR> srcs)
 #define TENNCOR_D_NNARY_HPP
 
 template <typename T>
-void pow (VARR dest, std::vector<VARR> srcs);
+void pow (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void add (VARR dest, std::vector<VARR> srcs);
+void add (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void sub (VARR dest, std::vector<VARR> srcs);
+void sub (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void mul (VARR dest, std::vector<VARR> srcs);
+void mul (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void div (VARR dest, std::vector<VARR> srcs);
+void div (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void eq (VARR dest, std::vector<VARR> srcs);
+void eq (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void neq (VARR dest, std::vector<VARR> srcs);
+void neq (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void lt (VARR dest, std::vector<VARR> srcs);
+void lt (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void gt (VARR dest, std::vector<VARR> srcs);
+void gt (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void rand_binom (VARR dest, std::vector<VARR> srcs);
+void rand_binom (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void rand_uniform (VARR dest, std::vector<VARR> srcs);
+void rand_uniform (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <>
-void rand_uniform<float> (VARR dest, std::vector<VARR> srcs);
+void rand_uniform<float> (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <>
-void rand_uniform<double> (VARR dest, std::vector<VARR> srcs);
+void rand_uniform<double> (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void rand_normal (VARR dest, std::vector<VARR> srcs);
+void rand_normal (VARR_T dest, std::vector<CVAR_T> srcs);
 
 #endif /* TENNCOR_D_NNARY_HPP */
 

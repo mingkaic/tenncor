@@ -45,11 +45,11 @@ inode* constant::move_impl (void)
 }
 
 constant::constant (const tensorshape& shape, 
-	std::shared_ptr<idata_source> source, std::string name) :
-ileaf(name), data_(new tensor(shape, source))
+	std::shared_ptr<idata_src> source, std::string name) :
+ileaf(name), data_(new tensor(shape))
 {
 	shape.assert_is_fully_defined();
-	data_->read();
+	data_->read_from(*source);
 }
 
 }

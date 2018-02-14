@@ -60,8 +60,8 @@ static void fit_toshape (size_t bytesize, char* dest, const tensorshape& outshap
 	}
 }
 
-tensor::tensor (tensorshape shape, std::shared_ptr<idata_source> source) :
-	allowed_shape_(shape), source_(source) {}
+tensor::tensor (tensorshape shape) :
+	allowed_shape_(shape) {}
 
 tensor::tensor (const tensor& other)
 {
@@ -344,31 +344,21 @@ void tensor::set_shape (tensorshape shape)
 
 	// if shape is compatible with alloc then we don't need to change raw data
 	// otherwise we need to modify raw data to match new shape
-	if (has_data() && false == shape.is_compatible_with(alloced_shape_))
+	if (has_data() && false == alloced_shape_.is_compatible_with(shape))
 	{
-		// if shape isn't defined, we need to make it defined
-		// by merging with existing allocated shape
-		if (false == shape.is_fully_defined())
-		{
-			// make alloced_shape compatible with shape
-			shape = shape.with_rank(alloced_shape_.rank());
-			shape = shape.merge_with(alloced_shape_);
-			shape = shape.with_rank(allowed_shape_.rank());
-		}
 		// shape now represent the desired alloced_shape_
 		// reshape by allocate
 		clear();
-		read(shape);
 	}
 }
 
 
-bool tensor::read (void)
+bool tensor::read_from (const idata_src& src)
 {
 	// assert that alloced_shape is undefined if not allocated
 	if (nullptr == raw_data_ && allowed_shape_.is_fully_defined())
 	{
-		raw_data_ = source_->get_data(dtype_, allowed_shape_);
+		src.get_data(raw_data_, dtype_, allowed_shape_);
 		if (raw_data_ != nullptr)
 		{
 			alloced_shape_ = allowed_shape_;
@@ -377,53 +367,17 @@ bool tensor::read (void)
 	return has_data();
 }
 
-bool tensor::read (const tensorshape shape)
+bool tensor::read_from (const idata_src& src, const tensorshape shape)
 {
 	if (nullptr == raw_data_ &&
 		shape.is_compatible_with(allowed_shape_)&&
 		shape.is_fully_defined())
 	{
-		raw_data_ = source_->get_data(dtype_, shape);
+		src.get_data(raw_data_, dtype_, shape);
 		if (raw_data_ != nullptr)
 		{
 			alloced_shape_ = shape;
 		}
-	}
-	return has_data();
-}
-
-bool tensor::copy (void)
-{
-	// assert that alloced_shape is undefined if not allocated
-	if (allowed_shape_.is_fully_defined())
-	{
-		size_t nbytes = total_bytes();
-		if (false == has_data())
-		{
-			raw_data_ = shared_varr(nbytes);
-		}
-		std::memcpy(raw_data_.get(), 
-			source_->get_data(dtype_, allowed_shape_).get(), 
-			nbytes);
-		alloced_shape_ = allowed_shape_;
-	}
-	return has_data();
-}
-
-bool tensor::copy (const tensorshape shape)
-{
-	if (shape.is_compatible_with(allowed_shape_)&&
-		shape.is_fully_defined())
-	{
-		size_t nbytes = total_bytes();
-		if (false == has_data())
-		{
-			raw_data_ = shared_varr(nbytes);
-		}
-		std::memcpy(raw_data_.get(), 
-			source_->get_data(dtype_, shape).get(), 
-			shape.n_elems() * type_size(dtype_));
-		alloced_shape_ = shape;
 	}
 	return has_data();
 }
@@ -468,16 +422,10 @@ void tensor::slice (size_t /*dim_start*/, size_t /*limit*/)
 	throw std::bad_function_call(); // NOT IMPLEMENTED
 }
 
-std::weak_ptr<idata_source> tensor::get_source (void)
-{
-	return source_;
-}
-
 
 void tensor::copy_helper (const tensor& other)
 {
 	raw_data_ = nullptr;
-	source_ = other.source_;
 	if (other.has_data())
 	{
 		size_t ns = alloced_shape_.n_elems();
@@ -491,7 +439,6 @@ void tensor::copy_helper (const tensor& other)
 
 void tensor::move_helper (tensor&& other)
 {
-	source_ = std::move(other.source_);
 	raw_data_ = std::move(other.raw_data_);
 
 	// other loses ownership

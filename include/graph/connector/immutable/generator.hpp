@@ -26,7 +26,7 @@ public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for generator, clones init
 	static generator* get (inode* shape_dep,
-		std::shared_ptr<idata_source> source,
+		std::shared_ptr<idata_src> source,
 		std::string name = "");
 
 	//! clone function
@@ -51,7 +51,7 @@ public:
 private:
 	//! default constructor
 	generator (inode* shape_dep, 
-		std::shared_ptr<idata_source> source,
+		std::shared_ptr<idata_src> source,
 		std::string name);
 
 	//! declare copy constructor to copy over init and data
@@ -86,10 +86,9 @@ private:
 
 	void move_helper (generator&& other);
 
-	std::shared_ptr<idata_source> source_;
+	std::shared_ptr<idata_src> source_;
 };
 
 }
 
 #endif /* TENNCOR_GENERATOR_HPP */
-

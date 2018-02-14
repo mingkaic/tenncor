@@ -6,6 +6,7 @@
  */
 
 #include "include/tensor/type.hpp"
+#include "include/utils/error.hpp"
 
 #ifdef TENNCOR_TENS_TYPE_HPP
 
@@ -21,7 +22,7 @@ unsigned short type_size (TENS_TYPE type)
 		case FLOAT:
 			return sizeof(float);
 		// asserts that signed and unsigned 
-		// always has the same bit width
+		// always has the same size
 		case INT8:
 		case UINT8:
 			return sizeof(int8_t);
@@ -35,7 +36,7 @@ unsigned short type_size (TENS_TYPE type)
 		case UINT64:
 			return sizeof(int64_t);
 		default:
-			throw std::exception(); // todo: add type error
+			throw nnutils::type_error(type);
 	}
 }
 
@@ -102,4 +103,3 @@ TENS_TYPE get_type<uint64_t> (void)
 }
 
 #endif
-

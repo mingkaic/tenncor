@@ -13,7 +13,7 @@
 using namespace nnet;
 
 
-SHAPER get_testshaper (FUZZ::fuzz_test* fuzzer)
+SHAPER_F get_testshaper (FUZZ::fuzz_test* fuzzer)
 {
 	tensorshape shape = random_def_shape(fuzzer);
 	return [shape](std::vector<tensorshape>) { return shape; };
@@ -59,9 +59,9 @@ class mock_elem_op : public elem_op
 {
 public:
 	mock_elem_op (std::vector<inode*> args,
-		std::string label, SHAPER shapes,
+		std::string label, SHAPER_F shapes,
 		CONN_ACTOR tfunc = test_abuilder,
-		BACK_MAP back = testback) :
+		BACKMAP_F back = testback) :
 	elem_op(args, shapes, new actor_func(tfunc), back, label) {}
 
 	std::function<void(mock_elem_op*)> triggerOnDeath;

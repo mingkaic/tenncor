@@ -13,13 +13,13 @@
 namespace nnet
 {
 
-static inline AUD_SET aud_intersects (const std::vector<inode*>& srcs)
+static inline AUDSET_T aud_intersects (const std::vector<inode*>& srcs)
 {
-    AUD_SET auds = srcs[0]->get_audience();
+    AUDSET_T auds = srcs[0]->get_audience();
     // get intersection of all source audiences
     for (size_t i = 1; i < srcs.size(); i++)
     {
-        AUD_SET inner = srcs[i]->get_audience();
+        AUDSET_T inner = srcs[i]->get_audience();
         auto it = auds.begin();
         while (it != auds.end())
         {
@@ -40,7 +40,7 @@ static inline AUD_SET aud_intersects (const std::vector<inode*>& srcs)
 
 inode* single_parent (inode* src, std::string opname)
 {
-	AUD_SET auds = src->get_audience();
+	AUDSET_T auds = src->get_audience();
     for (iobserver* o : auds)
     {
         iconnector* aud = static_cast<iconnector*>(o);
@@ -56,7 +56,7 @@ inode* single_parent (inode* src, std::string opname)
 inode* ordered_parent (std::vector<inode*> srcs, std::string opname)
 {
     // assert srcs.size() > 0
-    AUD_SET auds = aud_intersects(srcs);
+    AUDSET_T auds = aud_intersects(srcs);
     for (iobserver* o : auds)
     {
         iconnector* aud = static_cast<iconnector*>(o);
@@ -73,7 +73,7 @@ inode* ordered_parent (std::vector<inode*> srcs, std::string opname)
 inode* unordered_parent (std::vector<inode*> srcs, std::string opname)
 {
     // assert srcs.size() > 0
-    AUD_SET auds = aud_intersects(srcs);
+    AUDSET_T auds = aud_intersects(srcs);
     for (iobserver* o : auds)
     {
         iconnector* aud = static_cast<iconnector*>(o);

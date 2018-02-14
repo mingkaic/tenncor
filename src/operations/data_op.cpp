@@ -13,18 +13,16 @@
 namespace nnet
 {
 
-using VFUNC_MAP = std::unordered_map<TENS_TYPE,VFUNC>;
+using VFUNCMAP_T = std::unordered_map<TENS_TYPE,VFUNC_F>;
 
-using FUNC_REG = std::unordered_map<std::string,VFUNC_MAP>;
-
-#define REGISTER_FUNC(FUNC) {#FUNC, VFUNC_MAP{\
+#define REGISTER_FUNC(FUNC) {#FUNC, VFUNCMAP_T{\
 {DOUBLE, nnet::FUNC<double>},{FLOAT, nnet::FUNC<float>},\
 {INT8, nnet::FUNC<int8_t>},{UINT8, nnet::FUNC<uint8_t>},\
 {INT16, nnet::FUNC<int16_t>},{UINT16, nnet::FUNC<uint16_t>},\
 {INT32, nnet::FUNC<int32_t>},{UINT32, nnet::FUNC<uint32_t>},\
 {INT64, nnet::FUNC<int64_t>},{UINT64, nnet::FUNC<uint64_t>}}},
 
-static const FUNC_REG op_registry = {
+static const std::unordered_map<std::string,VFUNCMAP_T> op_registry = {
 	REGISTER_FUNC(abs)
 	REGISTER_FUNC(neg)
 	REGISTER_FUNC(sin)
@@ -65,7 +63,7 @@ std::unordered_set<std::string> all_ops (void)
 	return opset;
 }
 
-void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> src)
+void operate (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src)
 {
 	auto type_it = op_registry.find(opname);
 	if (op_registry.end() != type_it)
@@ -82,7 +80,7 @@ void operate (std::string opname, TENS_TYPE type, VARR dest, std::vector<VARR> s
 }
 
 template <>
-void abs<uint8_t> (VARR dest, std::vector<VARR> srcs)
+void abs<uint8_t> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	size_t n = dest.second.n_elems();
@@ -90,7 +88,7 @@ void abs<uint8_t> (VARR dest, std::vector<VARR> srcs)
 }
 
 template <>
-void abs<uint16_t> (VARR dest, std::vector<VARR> srcs)
+void abs<uint16_t> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	size_t n = dest.second.n_elems();
@@ -98,7 +96,7 @@ void abs<uint16_t> (VARR dest, std::vector<VARR> srcs)
 }
 
 template <>
-void abs<uint32_t> (VARR dest, std::vector<VARR> srcs)
+void abs<uint32_t> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	size_t n = dest.second.n_elems();
@@ -106,7 +104,7 @@ void abs<uint32_t> (VARR dest, std::vector<VARR> srcs)
 }
 
 template <>
-void abs<uint64_t> (VARR dest, std::vector<VARR> srcs)
+void abs<uint64_t> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	size_t n = dest.second.n_elems();
@@ -114,27 +112,27 @@ void abs<uint64_t> (VARR dest, std::vector<VARR> srcs)
 }
 
 template <>
-void neg<uint8_t> (VARR, std::vector<VARR>) { throw std::bad_function_call(); }
+void neg<uint8_t> (VARR_T, std::vector<CVAR_T>) { throw std::bad_function_call(); }
 
 template <>
-void neg<uint16_t> (VARR, std::vector<VARR>) { throw std::bad_function_call(); }
+void neg<uint16_t> (VARR_T, std::vector<CVAR_T>) { throw std::bad_function_call(); }
 
 template <>
-void neg<uint32_t> (VARR, std::vector<VARR>) { throw std::bad_function_call(); }
+void neg<uint32_t> (VARR_T, std::vector<CVAR_T>) { throw std::bad_function_call(); }
 
 template <>
-void neg<uint64_t> (VARR, std::vector<VARR>) { throw std::bad_function_call(); }
+void neg<uint64_t> (VARR_T, std::vector<CVAR_T>) { throw std::bad_function_call(); }
 
 template <>
-void rand_uniform<float> (VARR dest, std::vector<VARR> srcs)
+void rand_uniform<float> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape_min = srcs.front().second;
 	tensorshape& srcshape_max = srcs.back().second;
 	float* d = (float*) dest.first;
-	float* s_min = (float*) srcs.front().first;
-	float* s_max = (float*) srcs.front().first;
+	const float* s_min = (const float*) srcs.front().first;
+	const float* s_max = (const float*) srcs.front().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -147,15 +145,15 @@ void rand_uniform<float> (VARR dest, std::vector<VARR> srcs)
 }
 
 template <>
-void rand_uniform<double> (VARR dest, std::vector<VARR> srcs)
+void rand_uniform<double> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape_min = srcs.front().second;
 	tensorshape& srcshape_max = srcs.back().second;
 	double* d = (double*) dest.first;
-	double* s_min = (double*) srcs.front().first;
-	double* s_max = (double*) srcs.front().first;
+	const double* s_min = (const double*) srcs.front().first;
+	const double* s_max = (const double*) srcs.front().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();

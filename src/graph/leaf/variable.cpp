@@ -14,12 +14,9 @@ namespace nnet
 {
 
 variable::variable (const tensorshape& shape,
-	std::shared_ptr<idata_source> source,
+	std::shared_ptr<idata_src> source,
 	std::string name) :
-ileaf(name), dsrc_(new open_source(source))
-{
-	data_ = std::make_unique<tensor>(shape, dsrc_);
-}
+ileaf(name), src_(source), data_(new tensor(shape)) {}
 
 variable::variable (const variable& other) :
 	ileaf(other)
@@ -82,7 +79,7 @@ varptr variable::derive (inode* wrt)
 bool variable::initialize (void)
 {
 	data_->get_shape().assert_is_fully_defined();
-	bool success = data_->read();
+	bool success = data_->read_from(*src_);
 	if (success)
 	{
 		this->notify(UPDATE);
@@ -93,7 +90,7 @@ bool variable::initialize (void)
 bool variable::initialize (tensorshape shape)
 {
 	shape.assert_is_fully_defined();
-	bool success = data_->read(shape);
+	bool success = data_->read_from(*src_, shape);
 	if (success)
 	{
 		this->notify(UPDATE);
@@ -106,18 +103,17 @@ bool variable::assign (inode* input, bool notify)
 	bool successful = input != nullptr;
 	if (successful)
 	{
-		dsrc_->source_ = asgn_;
 		tensor* itens = input->get_tensor();
 		successful = itens->has_data();
 		if (successful)
 		{
-			itens->write_to(*asgn_);
-			data_->copy();
+			itens->write_to(asgn_);
+			data_->read_from(asgn_);
 			if (notify)
 			{
 				this->notify(UPDATE);
 			}
-			asgn_->clear();
+			asgn_.clear();
 		}
 	}
 	return successful;
@@ -128,20 +124,19 @@ bool variable::assign_add (inode* input, bool notify)
 	bool successful = input != nullptr && data_->has_data();
 	if (successful)
 	{
-		dsrc_->source_ = asgn_;
 		tensor* itens = input->get_tensor();
 		successful = itens->has_data();
 		if (successful)
 		{
-			asgn_->set_op("add");
-			data_->write_to(*asgn_, 0);
-			itens->write_to(*asgn_, 1);
-			data_->copy();
+			asgn_.set_op("add");
+			data_->write_to(asgn_, 0);
+			itens->write_to(asgn_, 1);
+			data_->read_from(asgn_);
 			if (notify)
 			{
 				this->notify(UPDATE);
 			}
-			asgn_->clear();
+			asgn_.clear();
 		}
 	}
 	return successful;
@@ -152,20 +147,19 @@ bool variable::assign_sub (inode* input, bool notify)
 	bool successful = input != nullptr && data_->has_data();
 	if (successful)
 	{
-		dsrc_->source_ = asgn_;
 		tensor* itens = input->get_tensor();
 		successful = itens->has_data();
 		if (successful)
 		{
-			asgn_->set_op("sub");
-			data_->write_to(*asgn_, 0);
-			itens->write_to(*asgn_, 1);
-			data_->copy();
+			asgn_.set_op("sub");
+			data_->write_to(asgn_, 0);
+			itens->write_to(asgn_, 1);
+			data_->read_from(asgn_);
 			if (notify)
 			{
 				this->notify(UPDATE);
 			}
-			asgn_->clear();
+			asgn_.clear();
 		}
 	}
 	return successful;
@@ -184,22 +178,29 @@ inode* variable::move_impl (void)
 
 void variable::copy_helper (const variable& other)
 {
-	if (nullptr != other.data_)
+	if (nullptr == other.data_)
 	{
-		data_ = std::make_unique<tensor>(*other.data_);
-		dsrc_ = std::static_pointer_cast<open_source>(data_->get_source().lock());
+		data_ = nullptr;
 	}
 	else
 	{
-		data_ = nullptr;
-		dsrc_ = nullptr;
+		data_ = std::make_unique<tensor>(*other.data_);
+	}
+
+	if (nullptr == other.src_)
+	{
+		src_ = nullptr;
+	}
+	else
+	{
+		src_ = std::shared_ptr<idata_src>(other.src_->clone());
 	}
 }
 
 void variable::move_helper (variable&& other)
 {
 	data_ = std::move(other.data_);
-	dsrc_ = std::move(other.dsrc_);
+	src_ = std::move(other.src_);
 }
 
 }

@@ -14,7 +14,7 @@
 namespace nnet
 {
 
-static inline varptr lin_unar (std::string opname, inode* input, BACK_MAP bwd)
+static inline varptr lin_unar (std::string opname, inode* input, BACKMAP_F bwd)
 {
 	if (nullptr == input) return nullptr;
     // always check if the same operation on input exists
@@ -59,7 +59,7 @@ static inline varptr comparator (std::string opname, inode* a, inode* b)
 	});
 }
 
-static inline varptr aggregate (std::string opname, inode* a, BACK_MAP bwd)
+static inline varptr aggregate (std::string opname, inode* a, BACKMAP_F bwd)
 {
 	if (nullptr == a) return nullptr;
     // always check if the same operation on input exists
@@ -359,7 +359,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 {
 	if (nullptr == a.get()) return nullptr;
 	std::string label = "transpose";
-	SHAPE2IDX smap;
+	SHAPE2ARR_F smap;
 	size_t psize = perm.size();
 	if (psize > 0)
 	{
