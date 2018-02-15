@@ -69,6 +69,21 @@ template <>
 void neg<uint64_t> (VARR_T, std::vector<CVAR_T>);
 
 template <typename T>
+void logic_not (VARR_T dest, std::vector<CVAR_T> srcs)
+{
+	tensorshape& srcshape = srcs.front().second;
+	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape));
+	T* d = (T*) dest.first;
+	const T* s = (const T*) srcs.front().first;
+	size_t n = srcshape.n_elems();
+	bool src_mul = srcshape.n_elems() > 1;
+	for (size_t i = 0; i < n; ++i)
+	{
+		d[i] = (T) !s[src_mul * i];
+	}
+}
+
+template <typename T>
 void sin (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
@@ -108,8 +123,8 @@ void argmax (VARR_T dest, std::vector<CVAR_T> srcs)
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
 	size_t n = srcshape.n_elems();
-    auto it = std::max_element(s, s + n);
-    d[0] = std::distance(s, it);
+	auto it = std::max_element(s, s + n);
+	d[0] = std::distance(s, it);
 }
 
 template <typename T>
@@ -120,7 +135,7 @@ void max (VARR_T dest, std::vector<CVAR_T> srcs)
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
 	size_t n = srcshape.n_elems();
-    d[0] = *(std::max_element(s, s + n));
+	d[0] = *(std::max_element(s, s + n));
 }
 
 template <typename T>
@@ -131,7 +146,7 @@ void sum (VARR_T dest, std::vector<CVAR_T> srcs)
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
 	size_t n = srcshape.n_elems();
-    d[0] = std::accumulate(s, s + n, 0);
+	d[0] = std::accumulate(s, s + n, 0);
 }
 
 #endif /* TENNCOR_D_UNARY_HPP */

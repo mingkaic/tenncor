@@ -31,8 +31,6 @@ subject::~subject (void)
 		killer->remove_ondeath_dependent(this);
 	}
 
-	notify(UNSUBSCRIBE); // unsubscribe all audiences
-
 #if defined(CSV_RCD) || defined(RPC_RCD)
 
 // record subject-object edge
@@ -42,6 +40,8 @@ if (rocnnet_record::record_status::rec_good)
 }
 
 #endif /* CSV_RCD || RPC_RCD */
+
+	notify(UNSUBSCRIBE); // unsubscribe all audiences
 }
 
 subject& subject::operator = (const subject&) { return *this; }
@@ -70,9 +70,15 @@ if (rocnnet_record::record_status::rec_good && UPDATE == msg)
 }
 #endif /* RPC_RCD */
 
+	std::vector<iobserver*> auds;
 	for (auto audpair : audience_)
 	{
-		audpair.first->update(msg);
+		auds.push_back(audpair.first);
+	}
+
+	for (iobserver* aud : auds)
+	{
+		aud->update(msg);
 	}
 }
 

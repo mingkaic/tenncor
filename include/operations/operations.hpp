@@ -40,6 +40,8 @@ varptr abs (const varptr a);
 //! negative value of a
 varptr operator - (const varptr a);
 
+varptr operator ! (const varptr a);
+
 //! sin of a
 varptr sin (const varptr a);
 

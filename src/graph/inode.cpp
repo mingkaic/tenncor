@@ -108,7 +108,7 @@ inode* varptr::operator -> (void) const { return get(); }
 inode* varptr::get (void) const
 {
 	if (this->dependencies_.empty()) return nullptr;
-	return static_cast<inode*>(this->dependencies_.at(0));
+	return static_cast<inode*>(this->dependencies_.front());
 }
 
 void varptr::update (void) {}

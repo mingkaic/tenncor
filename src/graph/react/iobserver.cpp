@@ -65,7 +65,6 @@ void iobserver::update (notification msg)
 	switch (msg)
 	{
 		case UNSUBSCRIBE:
-			this->dependencies_.clear();
 			death_on_broken();
 		break;
 		case UPDATE:

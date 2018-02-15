@@ -19,7 +19,8 @@ static inline std::list<iobserver*> aud_intersects (
 	std::list<iobserver*> auds;
 	for (auto audpair : srcs[0]->get_audience())
 	{
-		if (opname == static_cast<iconnector*>(audpair.first)->get_label())
+		iconnector* icon = dynamic_cast<iconnector*>(audpair.first);
+		if (icon && opname == icon->get_label())
 		{
 			auds.push_back(audpair.first);
 		}
@@ -51,11 +52,13 @@ inode* single_parent (inode* src, std::string opname)
 	AUDMAP_T auds = src->get_audience();
 	for (auto audpair : auds)
 	{
-		iconnector* aud = static_cast<iconnector*>(audpair.first);
-		std::vector<inode*> args = aud->get_arguments();
-		if (args.size() == 1 && opname == args[0]->get_label())
+		if (iconnector* aud = dynamic_cast<iconnector*>(audpair.first))
 		{
-			return aud;
+			std::vector<inode*> args = aud->get_arguments();
+			if (args.size() == 1 && opname == args[0]->get_label())
+			{
+				return aud;
+			}
 		}
 	}
 	return nullptr;
@@ -67,8 +70,8 @@ inode* ordered_parent (std::vector<inode*> srcs, std::string opname)
 	auto auds = aud_intersects(srcs, opname);
 	for (iobserver* o : auds)
 	{
-		iconnector* aud = static_cast<iconnector*>(o);
-		if (std::equal(srcs.begin(), srcs.end(), 
+		iconnector* aud = dynamic_cast<iconnector*>(o);
+		if (aud && std::equal(srcs.begin(), srcs.end(), 
 			aud->get_arguments().begin()))
 		{
 			return aud;
@@ -81,9 +84,12 @@ inode* unordered_parent (std::vector<inode*> srcs, std::string opname)
 {
 	// assert srcs.size() > 0
 	auto auds = aud_intersects(srcs, opname);
-	if (!auds.empty())
+	for (iobserver* o : auds)
 	{
-		return static_cast<iconnector*>(auds.front());
+		if (iconnector* aud = dynamic_cast<iconnector*>(o))
+		{
+			return aud;
+		}
 	}
 	return nullptr;
 }

@@ -33,7 +33,7 @@ void pow (VARR_T dest, std::vector<CVAR_T> srcs)
 
 template <typename T>
 void add (VARR_T dest, std::vector<CVAR_T> srcs)
-{
+{ // todo: mitigation strategies to prevent error propagation for overflows
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
@@ -53,7 +53,7 @@ void add (VARR_T dest, std::vector<CVAR_T> srcs)
 
 template <typename T>
 void sub (VARR_T dest, std::vector<CVAR_T> srcs)
-{
+{ // todo: mitigation strategies to prevent error propagation for underflows
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;
@@ -93,7 +93,7 @@ void mul (VARR_T dest, std::vector<CVAR_T> srcs)
 
 template <typename T>
 void div (VARR_T dest, std::vector<CVAR_T> srcs)
-{
+{ // todo: mitigation strategies to prevent error propagation for large/small numerator/denoms
 	// assert(srcs.size() == 2);
 	tensorshape& destshape = dest.second;
 	tensorshape& srcshape0 = srcs.front().second;

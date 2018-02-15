@@ -25,7 +25,7 @@ class coord_mapper final : public immutable
 public:
 	// >>>>>>>>>>>> BUILDER TO FORCE HEAP ALLOCATION <<<<<<<<<<<<
 
-    // input smap must transform shape to desired output shape
+	// input smap must transform shape to desired output shape
 	static coord_mapper* get (inode* arg, SHAPE2ARR_F smap, std::string name)
 	{
 		return new coord_mapper(arg, smap, name);

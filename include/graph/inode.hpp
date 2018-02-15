@@ -152,7 +152,10 @@ public:
 	
 protected:
 	// prevent death on broken to avoid double deletion on stack
-	virtual void death_on_broken (void) {}
+	virtual void death_on_broken (void)
+	{
+		this->remove_dependency(0);
+	}
 };
 
 //! helper function for exposing node's data

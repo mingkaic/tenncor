@@ -25,6 +25,7 @@ using VFUNCMAP_T = std::unordered_map<TENS_TYPE,VFUNC_F>;
 static const std::unordered_map<std::string,VFUNCMAP_T> op_registry = {
 	REGISTER_FUNC(abs)
 	REGISTER_FUNC(neg)
+	REGISTER_FUNC(logic_not)
 	REGISTER_FUNC(sin)
 	REGISTER_FUNC(cos)
 	REGISTER_FUNC(tan)
