@@ -84,7 +84,7 @@ protected:
 	void remove_dependency (size_t idx);
 
 	//! replace dependency
-	void replace_dependency (subject* dep, subject* old);
+	void replace_dependency (subject* dep, size_t i);
 
 	//! order of subject matters;
 	//! observer-subject relation is non-unique

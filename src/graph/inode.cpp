@@ -94,7 +94,7 @@ varptr& varptr::operator = (inode* other)
 	}
 	else
 	{
-		this->replace_dependency(other, this->dependencies_[0]);
+		this->replace_dependency(other, 0);
 	}
 	return *this;
 }

@@ -86,7 +86,7 @@ struct const_init final : public idata_src
 	}
 
 	template <typename T>
-	void set_vec (std::vector<T> value)
+	void set (std::vector<T> value)
 	{
 		type_ = get_type<T>();
 		value_ = nnutils::stringify(&value[0], value.size());

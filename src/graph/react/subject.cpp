@@ -70,13 +70,13 @@ if (rocnnet_record::record_status::rec_good && UPDATE == msg)
 }
 #endif /* RPC_RCD */
 
-	for (iobserver* viewer : audience_)
+	for (auto audpair : audience_)
 	{
-		viewer->update(msg);
+		audpair.first->update(msg);
 	}
 }
 
-AUDSET_T subject::get_audience (void) const
+AUDMAP_T subject::get_audience (void) const
 {
 	return audience_;
 }
@@ -123,7 +123,7 @@ if (rocnnet_record::record_status::rec_good)
 
 #endif /* CSV_RCD || RPC_RCD */
 
-	audience_.emplace(viewer);
+	audience_[viewer].emplace(idx);
 }
 
 void subject::detach (iobserver* viewer)
@@ -160,7 +160,15 @@ if (rocnnet_record::record_status::rec_good)
 
 #endif /* CSV_RCD || RPC_RCD */
 
-	audience_.erase(viewer);
+	auto it = audience_.find(viewer);
+	if (audience_.end() != it)
+	{
+		it->second.erase(idx);
+		if (it->second.empty())
+		{
+			audience_.erase(viewer);
+		}
+	}
 	if (audience_.empty())
 	{
 		death_on_noparent();
@@ -170,9 +178,12 @@ if (rocnnet_record::record_status::rec_good)
 void subject::move_helper (subject&& other)
 {
 	audience_ = std::move(other.audience_);
-	for (iobserver* aud : audience_)
+	for (auto audpair : audience_)
 	{
-		aud->replace_dependency(this, &other);
+		for (size_t i : audpair.second)
+		{
+			audpair.first->replace_dependency(this, i);
+		}
 	}
 }
 

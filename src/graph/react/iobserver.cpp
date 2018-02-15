@@ -147,15 +147,12 @@ void iobserver::remove_dependency (size_t idx)
 	}
 }
 
-void iobserver::replace_dependency (subject* dep, subject* old)
+void iobserver::replace_dependency (subject* dep, size_t i)
 {
-	for (size_t i = 0; i < dependencies_.size(); ++i)
+	if (i < dependencies_.size())
 	{
-		if (dependencies_[i] == old)
-		{
-			old->detach(this, i);
-			dep->attach(this, i);
-		}
+		dependencies_[i]->detach(this, i);
+		dep->attach(this, i);
 	}
 }
 
