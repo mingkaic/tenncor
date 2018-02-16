@@ -150,18 +150,16 @@ void assign_io::clear (void)
 
 void sindex_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
+	std::vector<size_t> index = smap_(shape, input_.second);
 	type = this->type_;
 	// implicity assert(shape.n_elems() <= *std::max_element(index_.begin(), index_.end()))
 	unsigned short bytes = type_size(type);
-	size_t n_elems = shape.n_elems();
-	check_ptr(outptr, n_elems * bytes);
+	check_ptr(outptr, index.size() * bytes);
 	char* dest = (char*) outptr.get();
-	char* src = (char*) input_.get();
-	size_t src_idx;
-	for (size_t i = 0; i < bytes * index_.size(); ++i)
+	const char* src = (const char*) input_.first.get();
+	for (size_t i = 0; i < index.size(); ++i)
 	{
-		src_idx = i / bytes;
-		dest[index_[src_idx]] = src[src_idx];
+		std::memcpy(dest + i * bytes, src + index[i] * bytes, bytes);
 	}
 }
 

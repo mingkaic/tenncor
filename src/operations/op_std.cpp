@@ -371,7 +371,8 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 {
 	if (nullptr == a.get()) return nullptr;
 	std::string label = "transpose";
-	SHAPE2ARR_F smap;
+	SIDX_F smap;
+	USHAPE_F shaper;
 	size_t psize = perm.size();
 	if (psize > 0)
 	{
@@ -386,20 +387,10 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 		}
 
 		label = nnutils::formatter() << "transpose_" << perm;
-		smap = [perm](tensorshape& outshape)
+		smap = [perm](tensorshape outshape, const tensorshape inshape)
 		{
-			std::vector<size_t> inlist = outshape.as_list();
-			// rearrange inlist to outlist
-			std::vector<size_t> outlist = inlist;
-			for (size_t i = 0; i < perm.size(); ++i)
-			{
-				if (i != perm[i])
-				{
-					outlist[i] = inlist[perm[i]];
-				}
-			}
 			// populate index
-			size_t n = outshape.n_elems();
+			size_t n = outshape.n_elems(); // inshape size if same as output
 			std::vector<size_t> index(n);
 			std::vector<size_t> tmp_coord;
 			std::vector<size_t> coord;
@@ -413,21 +404,30 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 						coord[i] = tmp_coord[perm[i]];
 					}
 				}
-				index[i] = outshape.flat_idx(coord);
+				index[i] = inshape.flat_idx(coord);
 			}
-
-			outshape = outlist;
 			return index;
+		};
+
+		shaper = [perm](tensorshape inshape)
+		{
+			// rearrange inlist to outlist
+			std::vector<size_t> inlist = inshape.as_list();
+			std::vector<size_t> outlist = inlist;
+			for (size_t i = 0; i < perm.size(); ++i)
+			{
+				if (i != perm[i])
+				{
+					outlist[i] = inlist[perm[i]];
+				}
+			}
+			return tensorshape(outlist);
 		};
 	}
 	else
 	{
-		smap = [](tensorshape& outshape)
+		smap = [](tensorshape outshape, const tensorshape inshape)
 		{
-			std::vector<size_t> inlist = outshape.as_list();
-			// rearrange inlist to outlist
-			std::vector<size_t> outlist = inlist;
-			std::reverse(outlist.begin(), outlist.end());
 			// populate index
 			size_t n = outshape.n_elems();
 			std::vector<size_t> index(n);
@@ -436,18 +436,25 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 			{
 				coord = outshape.coordinate_from_idx(i);
 				std::reverse(coord.begin(), coord.end());
-				index[i] = outshape.flat_idx(coord);
+				index[i] = inshape.flat_idx(coord);
 			}
-
-			outshape = outlist;
 			return index;
 		};
+
+		shaper = [](tensorshape inshape)
+		{
+			// rearrange inlist to outlist
+			std::vector<size_t> slist = inshape.as_list();
+			std::reverse(slist.begin(), slist.end());
+			return tensorshape(slist);
+		};
 	}
+
 	if (inode* parent = single_parent(a, label))
 	{
 		return parent;
 	}
-	return coord_mapper::get(a, smap, label);
+	return coord_mapper::get(a, smap, shaper, label);
 }
 
 varptr flip (const varptr a, std::vector<size_t> dims)
@@ -459,10 +466,10 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 		return parent;
 	}
 	return coord_mapper::get(a, 
-	[dims](tensorshape& outshape)
+	[dims](tensorshape outshape, const tensorshape)
 	{
+		// assert inshape.is_compatible_with(outshape)
 		std::vector<size_t> slist = outshape.as_list();
-		// no change to shape
 		// populate index
 		size_t n = outshape.n_elems();
 		std::vector<size_t> index(n);
@@ -477,7 +484,7 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 			index[i] = outshape.flat_idx(coord);
 		}
 		return index;
-	}, label);
+	}, [](tensorshape inshape) { return inshape; }, label);
 }
 
 

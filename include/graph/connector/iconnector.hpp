@@ -29,6 +29,8 @@ using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,inode*> >)>;
 //! calculate output shape from argument shapes
 using SHAPER_F = std::function<tensorshape(std::vector<tensorshape>)>;
 
+using USHAPE_F = std::function<tensorshape(tensorshape)>;
+
 class iconnector : public inode, public iobserver
 {
 public:

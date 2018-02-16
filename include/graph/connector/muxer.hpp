@@ -21,9 +21,9 @@
 namespace nnet
 {
 
-using SLICESHAPER_F = std::function<size_t(tensorshape&)>;
+using NSLICE_F = std::function<size_t(tensorshape)>;
 
-using SLICER_F = std::function<std::vector<size_t>(tensorshape,size_t)>;
+using IDXS2ARR_F = std::function<std::vector<size_t>(tensorshape,const tensorshape,size_t)>;
 
 using VAROP_F = std::function<varptr(std::vector<varptr>)>;
 
@@ -31,8 +31,9 @@ class demuxer final : public iconnector
 {
 public:
 	static demuxer* get (inode* arg, 
-		SLICESHAPER_F slicershaper, 
-		SLICER_F slicer, std::string label);
+		NSLICE_F nslice, IDXS2ARR_F sliceidxer, 
+		USHAPE_F sliceshaper,
+		std::string label);
 	
 	//! clone function
 	demuxer* clone (void) const;
@@ -72,8 +73,9 @@ public:
 	std::vector<inode*> get_slices (void);
 
 private:
-	demuxer (inode* arg, SLICESHAPER_F sliceshaper, 
-		SLICER_F slicer, std::string label);
+	demuxer (inode* arg, NSLICE_F nslice, 
+		IDXS2ARR_F slicer, USHAPE_F sliceshaper,
+		std::string label);
 
 	demuxer (const demuxer& other);
 
@@ -94,9 +96,11 @@ private:
 	//! move helper
 	void move_helper (demuxer&& other);
 
-	SLICESHAPER_F sliceshaper_;
+	NSLICE_F nslice_;
 
-	SLICER_F slicer_;
+	IDXS2ARR_F sliceidxer_;
+
+	USHAPE_F sliceshaper_;
 };
 
 // consumes the volatile consumers of demuxer's slices without suiciding

@@ -26,43 +26,37 @@ static inline varptr reduce (const varptr a, size_t dimension, std::string op, V
 		return true_parent;
 	}
 	demuxer* dm = demuxer::get(a, 
-	[dimension](tensorshape& outshape)
+	[dimension](tensorshape shape)
 	{
-		size_t rank = outshape.rank();
+		size_t rank = shape.rank();
 		size_t nslices = 0;
-		std::vector<size_t> slist = outshape.as_list();
+		std::vector<size_t> slist = shape.as_list();
 		if (rank > dimension)
 		{
-			outshape = {slist[dimension]};
 			slist[dimension] = 1;
 			nslices = std::accumulate(slist.begin(), slist.end(), 
-			(size_t) 1, std::multiplies<size_t>());
+				(size_t) 1, std::multiplies<size_t>());
 		}
 		return nslices;
 	},
-	[dimension](tensorshape inshape, size_t idx)
+	[dimension](tensorshape outshape, const tensorshape inshape, size_t idx)
 	{
 		assert(inshape.rank() > dimension);
-		size_t slimit = inshape.as_list()[dimension];
+		size_t n = outshape.n_elems();
 		std::vector<size_t> coords = inshape.coordinate_from_idx(idx);
-		if (dimension == coords.size())
-		{
-			coords.push_back(0);
-		}
-		else if (dimension == 0)
-		{
-			std::vector<size_t> temp = coords;
-			coords = {0};
-			coords.insert(coords.end(), temp.begin(), temp.end());
-		}
-
-		std::vector<size_t> out(slimit);
-		for (size_t j = 0; j < slimit; ++j)
+		std::vector<size_t> out(n);
+		for (size_t j = 0; j < n; ++j)
 		{
 			coords[dimension] = j;
 			out[j] = inshape.flat_idx(coords);
 		}
 		return out;
+	}, 
+	[dimension](tensorshape shape)
+	{
+		assert(shape.rank() > dimension);
+		size_t slimit = shape.as_list()[dimension];
+		return tensorshape(std::vector<size_t>{slimit});
 	}, dmx_label);
 	return muxer::get({dm}, 
 	[dimension](std::vector<tensorshape> shapes)
@@ -120,10 +114,15 @@ varptr reduce_mean (const varptr a)
 	varptr n = single_parent(a, "n_elems");
 	if (nullptr == n.get())
 	{
-		n = shape_dep::get(a, [](tensorshape& outshape)
+		n = shape_dep::get(a,
+		[](tensorshape inshape)
 		{
-			return std::vector<size_t>{outshape.n_elems()};
-		}, std::vector<size_t>{1}, "n_elems");
+			return std::vector<size_t>{inshape.n_elems()};
+		},
+		[](tensorshape)
+		{
+			return tensorshape(std::vector<size_t>{1});
+		}, "n_elems");
 	}
 	return reduce_sum(a) / n;
 }

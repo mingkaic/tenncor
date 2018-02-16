@@ -26,9 +26,10 @@ public:
 	// >>>>>>>>>>>> BUILDER TO FORCE HEAP ALLOCATION <<<<<<<<<<<<
 
 	// input smap must transform shape to desired output shape
-	static coord_mapper* get (inode* arg, SHAPE2ARR_F smap, std::string name)
+	// smap returns vector of size dest, containing index value pointing to input
+	static coord_mapper* get (inode* arg, SIDX_F smap, USHAPE_F shaper, std::string name)
 	{
-		return new coord_mapper(arg, smap, name);
+		return new coord_mapper(arg, smap, shaper, name);
 	}
 
 	//! clone function
@@ -66,12 +67,11 @@ public:
 	}
 
 private:
-	coord_mapper (inode* arg, SHAPE2ARR_F smap, std::string label) :
-		immutable(std::vector<inode*>{arg}, label), sio_(new sindex_io(smap))
-	{ this->update(); }
+	coord_mapper (inode* arg, SIDX_F smap, USHAPE_F shaper, std::string label) :
+		coord_mapper(arg, std::make_shared<sindex_io>(smap), shaper, label) {}
 
-	coord_mapper (inode* arg, std::shared_ptr<sindex_io> sio, std::string label) :
-		immutable(std::vector<inode*>{arg}, label), sio_(sio)
+	coord_mapper (inode* arg, std::shared_ptr<sindex_io> sio, USHAPE_F shaper, std::string label) :
+		immutable(std::vector<inode*>{arg}, label), sio_(sio), shaper_(shaper)
 	{ this->update(); }
 
 	coord_mapper (const coord_mapper& other) : immutable(other)
@@ -112,7 +112,7 @@ private:
 			}
 			// assert that shape only change once
 			ten->write_to(*sio_);
-			data_ = std::make_unique<tensor>(ten->get_shape());
+			data_ = std::make_unique<tensor>(shaper_(ten->get_shape()));
 		}
 		data_->read_from(*sio_);
 	}
@@ -120,7 +120,7 @@ private:
 	//! backward pass step
 	virtual varptr backward_pass (inode* wrt)
 	{
-		return new coord_mapper(this->get_arguments()[0]->derive(wrt), sio_, this->get_label());
+		return new coord_mapper(this->get_arguments()[0]->derive(wrt), sio_, shaper_, this->get_label());
 	}
 
 
@@ -135,15 +135,19 @@ private:
 		{
 			sio_ = std::shared_ptr<sindex_io>(other.sio_->clone());
 		}
+		shaper_ = other.shaper_;
 	}
 
 	//! move helper
 	void move_helper (coord_mapper&& other)
 	{
 		sio_ = std::move(other.sio_);
+		shaper_ = std::move(other.shaper_);
 	}
 
 	std::shared_ptr<sindex_io> sio_;
+
+	USHAPE_F shaper_;
 };
 
 }

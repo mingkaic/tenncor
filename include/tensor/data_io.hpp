@@ -28,7 +28,7 @@ using SVARR_T = std::pair<std::shared_ptr<void>,tensorshape>;
 
 using GLUE_F = std::function<void(VARR_T,CVAR_T,unsigned short,size_t)>;
 
-using SHAPE2ARR_F = std::function<std::vector<size_t>(tensorshape&)>;
+using SIDX_F = std::function<std::vector<size_t>(tensorshape,const tensorshape)>;
 
 std::shared_ptr<void> shared_varr (size_t nbytes);
 
@@ -268,7 +268,7 @@ private:
 
 struct sindex_io final : public idata_io
 {
-	sindex_io (SHAPE2ARR_F smap) : smap_(smap) {}
+	sindex_io (SIDX_F smap) : smap_(smap) {}
 
 	sindex_io* clone (void) const
 	{
@@ -277,8 +277,7 @@ struct sindex_io final : public idata_io
 
 	virtual void set_varr (SVARR_T input, size_t)
 	{
-		input_ = input.first;
-		index_ = smap_(input.second);
+		input_ = input;
 	}
 
 	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
@@ -289,10 +288,10 @@ private:
 		return new sindex_io(*this);
 	}
 
-	SHAPE2ARR_F smap_;
+	SIDX_F smap_;
 
-	std::shared_ptr<void> input_;
-	std::vector<size_t> index_;
+	SVARR_T input_;
+	// std::vector<size_t> index_;
 };
 
 }

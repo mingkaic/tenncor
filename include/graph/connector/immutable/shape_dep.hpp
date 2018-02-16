@@ -24,14 +24,15 @@
 namespace nnet
 {
 
+using USIDX_F = std::function<std::vector<size_t>(tensorshape)>;
+
 // todo: make tensor unaligned
 class shape_dep final : public immutable
 {
 public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for immutables, grabs ownership of Nf
-	static shape_dep* get (inode* arg, SHAPE2ARR_F extracter,
-		tensorshape shape, std::string name);
+	static shape_dep* get (inode* arg, USIDX_F extracter, USHAPE_F shaper, std::string name);
 
 	//! clone function
 	shape_dep* clone (void) const;
@@ -47,8 +48,8 @@ public:
 
 private:
 	//! immutable constructing an aggregate transfer function
-	shape_dep (inode* arg, SHAPE2ARR_F extracter,
-		tensorshape shape, std::string label);
+	shape_dep (inode* arg, USIDX_F extracter,
+		USHAPE_F shaper, std::string label);
 
 	//! declare copy constructor to copy over transfer functions
 	shape_dep (const shape_dep& other);
@@ -80,7 +81,9 @@ private:
 	assign_io asgn_;
 
 	//! extract shape dimensions to data_
-	SHAPE2ARR_F extracter_;
+	USIDX_F extracter_;
+
+	USHAPE_F shaper_;
 };
 
 }

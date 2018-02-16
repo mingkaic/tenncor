@@ -15,9 +15,9 @@ namespace nnet
 {
 
 demuxer* demuxer::get (inode* arg, 
-	SLICESHAPER_F sliceshaper, 
-	SLICER_F slicer, std::string label)
-{ return new demuxer(arg, sliceshaper, slicer, label); }
+	NSLICE_F nslice, IDXS2ARR_F sliceidxer, 
+	USHAPE_F sliceshaper, std::string label)
+{ return new demuxer(arg, nslice, sliceidxer, sliceshaper, label); }
 
 demuxer* demuxer::clone (void) const
 {
@@ -67,7 +67,7 @@ varptr demuxer::derive (inode* wrt)
 
 void demuxer::update (void)
 {
-	this->notify(UPDATE);
+	this->notify(UPDATE); // todo: wait for slices to update
 }
 
 std::vector<inode*> demuxer::get_slices (void)
@@ -77,16 +77,15 @@ std::vector<inode*> demuxer::get_slices (void)
 	if (tensor* ten = arg->get_tensor())
 	{
 		tensorshape shape = ten->get_shape();
-		size_t nslices = sliceshaper_(shape);
+		size_t nslices = nslice_(shape);
+		IDXS2ARR_F idxer = sliceidxer_;
 		for (size_t i = 0; i < nslices; ++i)
 		{
 			out.push_back(coord_mapper::get(arg, 
-			[this, shape, i](tensorshape& outshape)
+			[idxer, i](tensorshape outshape, const tensorshape inshape)
 			{
-				std::vector<size_t> indices = slicer_(outshape, i);
-				outshape = shape;
-				return indices;
-			}, nnutils::formatter() << this->get_label() << "_slice" << i));
+				return idxer(outshape, inshape, i);
+			}, sliceshaper_, nnutils::formatter() << this->get_label() << "_slice" << i));
 		}
 		if (0 == nslices)
 		{
@@ -97,10 +96,10 @@ std::vector<inode*> demuxer::get_slices (void)
 }
 
 
-demuxer::demuxer (inode* arg, SLICESHAPER_F sliceshaper, 
-	SLICER_F slicer, std::string label) :
+demuxer::demuxer (inode* arg, NSLICE_F nslice, IDXS2ARR_F sliceidxer, 
+	USHAPE_F sliceshaper, std::string label) :
 iconnector(std::vector<inode*>{arg}, label),
-sliceshaper_(sliceshaper), slicer_(slicer)
+nslice_(nslice), sliceidxer_(sliceidxer), sliceshaper_(sliceshaper)
 { this->update(); }
 
 demuxer::demuxer (const demuxer& other) : 
@@ -129,14 +128,16 @@ inode* demuxer::move_impl (void)
 
 void demuxer::copy_helper (const demuxer& other)
 {
+	nslice_ = other.nslice_;
+	sliceidxer_ = other.sliceidxer_;
 	sliceshaper_ = other.sliceshaper_;
-	slicer_ = other.slicer_;
 }
 
 void demuxer::move_helper (demuxer&& other)
 {
+	nslice_ = std::move(other.nslice_);
+	sliceidxer_ = std::move(other.sliceidxer_);
 	sliceshaper_ = std::move(other.sliceshaper_);
-	slicer_ = std::move(other.slicer_);
 }
 
 
@@ -320,6 +321,7 @@ void muxer::copy_helper (const muxer& other)
 	}
 
 	slices_ = other.slices_;
+	shaper_ = other.shaper_;
 	op_ = other.op_;
 }
 
@@ -328,6 +330,7 @@ void muxer::move_helper (muxer&& other)
 	data_ = std::move(other.data_);
 	gio_ = std::move(other.gio_);
 	slices_ = std::move(other.slices_);
+	shaper_ = std::move(other.shaper_);
 	op_ = std::move(other.op_);
 }
 
