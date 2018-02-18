@@ -82,19 +82,23 @@ inode::inode (inode&& other) :
 
 varptr::varptr (void) : iobserver(false) {}
 
-varptr::varptr (inode* ptr) : iobserver({ptr}, false) {}
+varptr::varptr (inode* ptr) : iobserver(nullptr == ptr ? 
+	std::vector<subject*>{} : std::vector<subject*>{ptr}, false) {}
 
 varptr::~varptr (void) {}
 
 varptr& varptr::operator = (inode* other)
 {
-	if (this->dependencies_.empty())
+	if (nullptr != other)
 	{
-		this->add_dependency(other);
-	}
-	else
-	{
-		this->replace_dependency(other, 0);
+		if (this->dependencies_.empty())
+		{
+			this->add_dependency(other);
+		}
+		else
+		{
+			this->replace_dependency(other, 0);
+		}
 	}
 	return *this;
 }

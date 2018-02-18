@@ -146,7 +146,7 @@ void sum (VARR_T dest, std::vector<CVAR_T> srcs)
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
 	size_t n = srcshape.n_elems();
-	d[0] = std::accumulate(s, s + n, 0);
+	d[0] = std::accumulate(s, s + n, (T) 0);
 }
 
 #endif /* TENNCOR_D_UNARY_HPP */

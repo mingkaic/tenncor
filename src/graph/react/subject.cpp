@@ -78,7 +78,10 @@ if (rocnnet_record::record_status::rec_good && UPDATE == msg)
 
 	for (iobserver* aud : auds)
 	{
-		aud->update(msg);
+		if (audience_.end() != audience_.find(aud))
+		{
+			aud->update(msg);
+		}
 	}
 }
 

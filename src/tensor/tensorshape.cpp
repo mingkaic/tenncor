@@ -293,12 +293,12 @@ size_t tensorshape::flat_idx (std::vector<size_t> coord) const
 std::vector<size_t> tensorshape::coordinate_from_idx (size_t idx) const
 {
 	std::vector<size_t> coord;
-	size_t i = idx;
+	size_t xd;
 	for (size_t d : dimensions_)
 	{
-		size_t xd = i % d;
+		xd = idx % d;
 		coord.push_back(xd);
-		i = (i - xd) / d;
+		idx = (idx - xd) / d;
 	}
 	return coord;
 }

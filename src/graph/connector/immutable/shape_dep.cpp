@@ -77,8 +77,7 @@ inode* shape_dep::move_impl (void)
 
 void shape_dep::forward_pass (std::vector<inode*>& args)
 {
-	tensor* tens = args[0]->get_tensor();
-	if (tens)
+	if (tensor* tens = args[0]->get_tensor())
 	{
 		tensorshape shape = tens->get_shape();
 		if (nullptr == data_)
@@ -87,8 +86,10 @@ void shape_dep::forward_pass (std::vector<inode*>& args)
 		}
 
 		std::vector<size_t> sdata = extracter_(shape);
+		size_t ns = sdata.size();
 		std::vector<double> doub_d(sdata.begin(), sdata.end());
-		std::shared_ptr<void> ptr = std::shared_ptr<void>(&doub_d[0]);
+		std::shared_ptr<void> ptr = shared_varr(ns);
+		std::memcpy(ptr.get(), &doub_d[0], sizeof(double) * ns);
 		asgn_.set_data(ptr, DOUBLE, data_->get_shape(), 0); // todo: make tens's type
 		data_->read_from(asgn_);
 	}
@@ -96,7 +97,9 @@ void shape_dep::forward_pass (std::vector<inode*>& args)
 
 varptr shape_dep::backward_pass (inode* wrt)
 {
-	tensorshape shape = this->get_tensor()->get_shape();
+	tensor* ten = get_tensor();
+	assert(ten && ten->has_data());
+	tensorshape shape = ten->get_shape();
 	std::vector<double> data(shape.n_elems(),
 		(double) (this == wrt));
 	return constant::get(data, shape);

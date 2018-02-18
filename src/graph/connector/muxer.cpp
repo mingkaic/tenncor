@@ -210,7 +210,13 @@ varptr muxer::derive (inode* wrt)
 	{
 		return static_cast<demuxer*>(node);
 	});
-	return new muxer(muxargs, gslices, shaper_, op_, gio_, glabel);
+	tensor* ten = wrt->get_tensor();
+	assert(ten && ten->has_data());
+	tensorshape shape = ten->get_shape();
+	return new muxer(muxargs, gslices, [shape](std::vector<tensorshape>)
+	{
+		return shape;
+	}, op_, gio_, glabel);
 }
 
 void muxer::update (void)

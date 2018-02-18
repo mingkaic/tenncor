@@ -86,15 +86,12 @@ elem_op& elem_op::operator = (elem_op&& other)
 
 elem_op::elem_op (std::vector<inode*> args, 
 	std::string opname, BACKMAP_F bwd) :
-immutable(args, opname), op_io_(new operate_io(opname)), bwd_(bwd) { this->update(); }
+elem_op(args, tensorshape{}, opname, bwd) {}
 
 elem_op::elem_op (std::vector<inode*> args, 
 	tensorshape shape, std::string opname, BACKMAP_F bwd) :
-elem_op(args, opname, bwd)
-{
-	shape_ = shape;
-	this->update();
-}
+immutable(args, opname), shape_(shape), op_io_(new operate_io(opname)), bwd_(bwd)
+{ this->update(); }
 
 elem_op::elem_op (const elem_op& other) :
 	immutable(other)

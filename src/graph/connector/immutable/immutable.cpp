@@ -68,8 +68,10 @@ varptr immutable::derive (inode* wrt)
 {
 	if (wrt == this)
 	{
-		tensorshape shape = data_->get_shape();
-		std::vector<double> data(shape.n_elems(), 1);
+		tensor* ten = wrt->get_tensor();
+		assert(ten && ten->has_data());
+		tensorshape shape = ten->get_shape();
+		std::vector<double> data(shape.n_elems(), 1); // change to match wrt type
 		return constant::get(data, shape);
 	}
 	return this->backward_pass(wrt);

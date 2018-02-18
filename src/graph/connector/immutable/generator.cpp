@@ -105,7 +105,9 @@ void generator::forward_pass (std::vector<inode*>& args)
 
 varptr generator::backward_pass (inode* wrt)
 {
-	tensorshape shape = this->get_tensor()->get_shape();
+	tensor* ten = wrt->get_tensor();
+	assert(ten && ten->has_data());
+	tensorshape shape = ten->get_shape();
 	std::vector<double> data(shape.n_elems(),
 		(double) (this == wrt));
 	return constant::get(data, shape);

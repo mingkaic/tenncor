@@ -454,7 +454,11 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 	{
 		return parent;
 	}
-	return coord_mapper::get(a, smap, shaper, label);
+	return coord_mapper::get(a, smap, shaper,
+	[](std::vector<std::pair<inode*,inode*> > args)
+	{
+		return args.front().second;
+	}, label);
 }
 
 varptr flip (const varptr a, std::vector<size_t> dims)
@@ -484,7 +488,12 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 			index[i] = outshape.flat_idx(coord);
 		}
 		return index;
-	}, [](tensorshape inshape) { return inshape; }, label);
+	},
+	[](tensorshape inshape) { return inshape; },
+	[](std::vector<std::pair<inode*,inode*> > args)
+	{
+		return args.front().second;
+	}, label);
 }
 
 
@@ -514,7 +523,7 @@ varptr reduce_sum (const varptr a)
 	return aggregate("sum", a,
 	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
-		return reduce_sum(args.front().second);
+		return args.front().second; // reduce_sum(args.front().second);
 	});
 }
 

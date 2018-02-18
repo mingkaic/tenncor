@@ -58,8 +58,8 @@ tensor* const_con::get_tensor (void)
 
 varptr const_con::derive (inode* wrt)
 {
-	tensor* data = get_tensor();
-	if (data)
+	tensor* data = wrt->get_tensor();
+	if (data && data->has_data())
 	{
 		tensorshape shape = data->get_shape();
 		std::vector<double> zeroes(shape.n_elems(), 0); // todo: convert to data type

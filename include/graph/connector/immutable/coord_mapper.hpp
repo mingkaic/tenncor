@@ -32,6 +32,11 @@ public:
 		return new coord_mapper(arg, smap, shaper, name);
 	}
 
+	static coord_mapper* get (inode* arg, SIDX_F smap, USHAPE_F shaper, BACKMAP_F bwd, std::string name)
+	{
+		return new coord_mapper(arg, smap, shaper, bwd, name);
+	}
+
 	//! clone function
 	coord_mapper* clone (void) const
 	{
@@ -68,10 +73,14 @@ public:
 
 private:
 	coord_mapper (inode* arg, SIDX_F smap, USHAPE_F shaper, std::string label) :
-		coord_mapper(arg, std::make_shared<sindex_io>(smap), shaper, label) {}
+		coord_mapper(arg, smap, shaper,
+		[smap, shaper, label](std::vector<std::pair<inode*,inode*> > args) -> varptr
+		{
+			return new coord_mapper(args.front().second, smap, shaper, "d_" + label);
+		}, label) {}
 
-	coord_mapper (inode* arg, std::shared_ptr<sindex_io> sio, USHAPE_F shaper, std::string label) :
-		immutable(std::vector<inode*>{arg}, label), sio_(sio), shaper_(shaper)
+	coord_mapper (inode* arg, SIDX_F smap, USHAPE_F shaper, BACKMAP_F bwd, std::string label) :
+	immutable(std::vector<inode*>{arg}, label), sio_(new sindex_io(smap)), shaper_(shaper), bwd_(bwd)
 	{ this->update(); }
 
 	coord_mapper (const coord_mapper& other) : immutable(other)
@@ -120,7 +129,9 @@ private:
 	//! backward pass step
 	virtual varptr backward_pass (inode* wrt)
 	{
-		return new coord_mapper(this->get_arguments()[0]->derive(wrt), sio_, shaper_, this->get_label());
+		inode* arg = this->get_arguments()[0];
+		std::pair<inode*,inode*> params{arg, arg->derive(wrt)};
+		return bwd_({params});
 	}
 
 
@@ -136,6 +147,7 @@ private:
 			sio_ = std::shared_ptr<sindex_io>(other.sio_->clone());
 		}
 		shaper_ = other.shaper_;
+		bwd_ = other.bwd_;
 	}
 
 	//! move helper
@@ -143,11 +155,14 @@ private:
 	{
 		sio_ = std::move(other.sio_);
 		shaper_ = std::move(other.shaper_);
+		bwd_ = std::move(other.bwd_);
 	}
 
 	std::shared_ptr<sindex_io> sio_;
 
 	USHAPE_F shaper_;
+
+	BACKMAP_F bwd_;
 };
 
 }

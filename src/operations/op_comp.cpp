@@ -14,7 +14,7 @@
 namespace nnet
 {
 
-static inline varptr reduce (const varptr a, size_t dimension, std::string op, VAROP_F slice)
+static inline varptr reduce (const varptr a, size_t dimension, std::string op, VAROP_F reduce_op)
 {
 	if (nullptr == a.get()) return nullptr;
 	std::string dmx_label = nnutils::formatter() << "reduce_" << op << "_" << dimension;
@@ -41,9 +41,12 @@ static inline varptr reduce (const varptr a, size_t dimension, std::string op, V
 	},
 	[dimension](tensorshape outshape, const tensorshape inshape, size_t idx)
 	{
-		assert(inshape.rank() > dimension);
 		size_t n = outshape.n_elems();
-		std::vector<size_t> coords = inshape.coordinate_from_idx(idx);
+		size_t rank = inshape.rank();
+		assert(rank > dimension);
+		std::vector<size_t> slist = inshape.as_list();
+		slist[dimension] = 1;
+		std::vector<size_t> coords = tensorshape(slist).coordinate_from_idx(idx);
 		std::vector<size_t> out(n);
 		for (size_t j = 0; j < n; ++j)
 		{
@@ -66,27 +69,18 @@ static inline varptr reduce (const varptr a, size_t dimension, std::string op, V
 		{
 			slist[0] = 1;
 		}
-		else if (0 == dimension)
-		// pop front
-		{
-			slist = std::vector<size_t>(slist.begin() + 1, slist.end());
-		}
-		else if (slist.size() - 1 == dimension)
-		{
-			slist.pop_back();
-		}
 		else
 		{
-			slist[dimension] = 1;
+			slist.erase(slist.begin() + dimension);
 		}
 		return tensorshape(slist);
-	}, slice,
+	}, reduce_op,
 	[](VARR_T dest, CVAR_T src, unsigned short bytesize, size_t i)
 	{
-		assert(src.second.n_elems() == 1 && dest.second.n_elems() > i);
+		size_t srcn = src.second.n_elems();
 		char* cdest = (char*) dest.first;
 		const char* csrc = (const char*) src.first;
-		std::memcpy(cdest + i * bytesize, csrc, bytesize);
+		std::memcpy(cdest + i * srcn * bytesize, csrc, srcn * bytesize);
 	}, dmx_label);
 }
 
