@@ -54,7 +54,7 @@ static inline varptr reduce (const varptr a, size_t dimension, std::string op, V
 			out[j] = inshape.flat_idx(coords);
 		}
 		return out;
-	}, 
+	},
 	[dimension](tensorshape shape)
 	{
 		assert(shape.rank() > dimension);
@@ -75,12 +75,28 @@ static inline varptr reduce (const varptr a, size_t dimension, std::string op, V
 		}
 		return tensorshape(slist);
 	}, reduce_op,
-	[](VARR_T dest, CVAR_T src, unsigned short bytesize, size_t i)
+	[dimension](VARR_T dest, CVAR_T src, unsigned short bytesize, size_t i)
 	{
-		size_t srcn = src.second.n_elems();
 		char* cdest = (char*) dest.first;
 		const char* csrc = (const char*) src.first;
-		std::memcpy(cdest + i * srcn * bytesize, csrc, srcn * bytesize);
+		size_t srcn = src.second.n_elems();
+		if (dest.second.rank() > 1)
+		{
+			std::vector<size_t> slist = dest.second.as_list();
+			slist[dimension] = 1;
+			std::vector<size_t> coords = tensorshape(slist).coordinate_from_idx(i);
+			size_t desti = 0;
+			for (size_t srci = 0; srci < srcn; ++srci)
+			{
+				coords[dimension] = srci;
+				desti = dest.second.flat_idx(coords);
+				memcpy(cdest + desti * bytesize, csrc + srci * bytesize, bytesize);
+			}
+		}
+		else
+		{
+			memcpy(cdest + i * srcn * bytesize, csrc, srcn * bytesize);
+		}
 	}, dmx_label);
 }
 
@@ -124,7 +140,7 @@ varptr reduce_mean (const varptr a)
 varptr reduce_l2norm (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
-	return sqrt(reduce_sum(pow(a, 2)));
+	return sqrt(reduce_sum(a * a)); 
 }
 
 

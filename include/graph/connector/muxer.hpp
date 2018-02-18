@@ -103,6 +103,7 @@ private:
 	USHAPE_F sliceshaper_;
 };
 
+// todo: forgo gluer, extract args' sliceidxer
 // consumes the volatile consumers of demuxer's slices without suiciding
 class muxer final : public iconnector
 {

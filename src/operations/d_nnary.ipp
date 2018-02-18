@@ -20,7 +20,7 @@ void pow (VARR_T dest, std::vector<CVAR_T> srcs)
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	T* bn = (T*) srcs.front().first;
-	T* xp = (T*) srcs.front().first;
+	T* xp = (T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();

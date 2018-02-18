@@ -79,13 +79,20 @@ std::vector<inode*> demuxer::get_slices (void)
 		tensorshape shape = ten->get_shape();
 		size_t nslices = nslice_(shape);
 		IDXS2ARR_F idxer = sliceidxer_;
+		std::string label;
 		for (size_t i = 0; i < nslices; ++i)
 		{
-			out.push_back(coord_mapper::get(arg, 
-			[idxer, i](tensorshape outshape, const tensorshape inshape)
+			label = nnutils::formatter() << this->get_label() << "_slice" << i;
+			inode* slice = single_parent(arg, label);
+			if (nullptr == slice)
 			{
-				return idxer(outshape, inshape, i);
-			}, sliceshaper_, nnutils::formatter() << this->get_label() << "_slice" << i));
+				slice = coord_mapper::get(arg,
+				[idxer, i](tensorshape outshape, const tensorshape inshape)
+				{
+					return idxer(outshape, inshape, i);
+				}, sliceshaper_, label);
+			}
+			out.push_back(slice);
 		}
 		if (0 == nslices)
 		{
@@ -213,7 +220,8 @@ varptr muxer::derive (inode* wrt)
 	tensor* ten = wrt->get_tensor();
 	assert(ten && ten->has_data());
 	tensorshape shape = ten->get_shape();
-	return new muxer(muxargs, gslices, [shape](std::vector<tensorshape>)
+	return new muxer(muxargs, gslices, 
+	[shape](std::vector<tensorshape>)
 	{
 		return shape;
 	}, op_, gio_, glabel);
