@@ -149,7 +149,7 @@ void demuxer::move_helper (demuxer&& other)
 
 
 
-muxer* muxer::get (std::vector<demuxer*> args, SHAPER_F shaper, VAROP_F op, GLUE_F gluer, std::string label)
+muxer* muxer::get (std::vector<demuxer*> args, SHAPER_F shaper, MUXOP_F op, GLUE_F gluer, std::string label)
 {
 	return new muxer(args, shaper, op, gluer, label);
 }
@@ -241,24 +241,10 @@ void muxer::update (void)
 		// build slices
 		if (0 == slices_.size())
 		{
-			std::vector<std::vector<varptr> > vargs;
-			for (inode* arg : args)
-			{
-				demuxer* dmx = static_cast<demuxer*>(arg);
-				std::vector<inode*> slices = dmx->get_slices();
-				if (vargs.empty())
-				{
-					vargs = std::vector<std::vector<varptr> >(slices.size());
-				}
-				for (size_t i = 0; i < slices.size(); ++i)
-				{
-					vargs[i].push_back(slices[i]);
-				}
-			}
-			for (std::vector<varptr>& varg : vargs)
-			{
-				slices_.push_back(op_(varg));
-			}
+			std::vector<std::vector<inode*> > vargs(args.size());
+			std::transform(args.begin(), args.end(), vargs.begin(),
+			[](inode* arg) -> std::vector<inode*> { return static_cast<demuxer*>(arg)->get_slices(); });
+			slices_ = op_(vargs);
 		}
 		// piece together slices
 		if (nullptr == data_)
@@ -282,12 +268,12 @@ void muxer::update (void)
 
 
 muxer::muxer (std::vector<demuxer*> args, SHAPER_F shaper, 
-	VAROP_F op, GLUE_F gluer, std::string label) : 
+	MUXOP_F op, GLUE_F gluer, std::string label) : 
 muxer(args, std::vector<varptr>{}, shaper, op, 
 	std::make_shared<glue_io>(gluer), label) {}
 
 muxer::muxer (std::vector<demuxer*> args, std::vector<varptr> slices, 
-	SHAPER_F shaper, VAROP_F op, std::shared_ptr<glue_io> gio, std::string label) :
+	SHAPER_F shaper, MUXOP_F op, std::shared_ptr<glue_io> gio, std::string label) :
 iconnector(std::vector<inode*>(args.begin(), args.end()), label), 
 gio_(gio), slices_(slices), shaper_(shaper), op_(op) { update(); }
 

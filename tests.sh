@@ -5,6 +5,7 @@ TIMEOUT=900; # 15 minute limit
 TEST_OUT_FILE=bazel-out/k8-fastbuild/testlogs/tests/tenncor_all/test.log;
 COV_OUT_DIR=bazel-tenncor/_coverage/tests/tenncor_all/test/bazel-out/k8-fastbuild/bin/_objs;
 COV_FILE=coverage.info;
+DOCS=$THIS_DIR/docs
 
 lcov --base-directory . --directory . --zerocounters;
 
@@ -20,7 +21,15 @@ assert_cmd() {
 	return $!
 }
 
-bazel build //:tenncor
+# ===== Check Docs Directory =====
+echo "===== CHECK DOCUMENT EXISTENCE =====";
+if [ -d "$DOCS" ]; then
+	exit 1;
+fi
+
+# ===== Prebuilt =====
+echo "===== BUILD EVERYTHING =====";
+bazel build //:...
 
 # ===== Run Gtest =====
 echo "===== STARTING TESTS =====";

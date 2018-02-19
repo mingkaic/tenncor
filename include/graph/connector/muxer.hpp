@@ -25,7 +25,7 @@ using NSLICE_F = std::function<size_t(tensorshape)>;
 
 using IDXS2ARR_F = std::function<std::vector<size_t>(tensorshape,const tensorshape,size_t)>;
 
-using VAROP_F = std::function<varptr(std::vector<varptr>)>;
+using MUXOP_F = std::function<std::vector<varptr>(std::vector<std::vector<inode*> >)>;
 
 class demuxer final : public iconnector
 {
@@ -109,7 +109,7 @@ class muxer final : public iconnector
 {
 public:
 	static muxer* get (std::vector<demuxer*> args, 
-		SHAPER_F shaper, VAROP_F op, GLUE_F gluer, std::string label);
+		SHAPER_F shaper, MUXOP_F op, GLUE_F gluer, std::string label);
 	
 	//! clone function
 	muxer* clone (void) const;
@@ -148,10 +148,10 @@ public:
 
 private:
 	muxer (std::vector<demuxer*> args, SHAPER_F shaper, 
-		VAROP_F op, GLUE_F gluer, std::string label);
+		MUXOP_F op, GLUE_F gluer, std::string label);
 
 	muxer (std::vector<demuxer*> args, std::vector<varptr> slices, 
-		SHAPER_F shaper, VAROP_F op, std::shared_ptr<glue_io> gio, std::string label);
+		SHAPER_F shaper, MUXOP_F op, std::shared_ptr<glue_io> gio, std::string label);
 
 	muxer (const muxer& other);
 
@@ -180,7 +180,7 @@ private:
 
 	SHAPER_F shaper_;
 
-	VAROP_F op_;
+	MUXOP_F op_;
 };
 
 }

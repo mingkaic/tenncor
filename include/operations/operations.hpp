@@ -242,11 +242,10 @@ varptr reduce_l2norm (const varptr a, size_t dimension);
 //! -1 index looks returns a vector coordinate specifying max value in tensor a
 varptr arg_max (const varptr a, size_t dimension);
 
+//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
+varptr matmul (const varptr a, const varptr b);
 
 // unimplemented
-//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
-varptr matmul (const varptr a, const varptr b,
-	bool transposeA = false, bool transposeB = false);
 
 //! for example: window {0, 1} gives output f[i, j, :] = sum(a[i:i+filtshape[0], j:j+filtshape[1], :] * filter)
 //! whereas window {0,2} gives output f[i, :, j] = sum(a[i:i+filtshape[0], :, j:j+filtshape[1]] * filter)
