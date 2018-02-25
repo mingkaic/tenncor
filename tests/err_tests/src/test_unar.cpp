@@ -93,7 +93,7 @@ TEST_F(UNAR, Exp)
 TEST_F(UNAR, Log) // Precision problem
 {
 	check_unar(parse_line("log"), [](nnet::varptr in) {
-		return nnet::ln(in);
+		return nnet::log(in);
 	});
 }
 

@@ -20,6 +20,8 @@
 namespace nnet
 {
 
+class varptr;
+
 #define TENS_TYPE tenncor::tensor_proto::tensor_t
 
 #define BAD_T tenncor::tensor_proto::BAD

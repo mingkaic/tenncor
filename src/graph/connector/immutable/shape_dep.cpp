@@ -97,12 +97,16 @@ void shape_dep::forward_pass (std::vector<inode*>& args)
 
 varptr shape_dep::backward_pass (inode* wrt)
 {
-	tensor* ten = get_tensor();
-	assert(ten && ten->has_data());
-	tensorshape shape = ten->get_shape();
-	std::vector<double> data(shape.n_elems(),
-		(double) (this == wrt));
-	return constant::get(data, shape);
+	varptr out;
+	if (this == wrt)
+	{
+		tensor* ten = get_tensor();
+		assert(ten && ten->has_data());
+		tensorshape shape = ten->get_shape();
+		std::vector<double> data(shape.n_elems(), 1);
+		out = constant::get(data, shape);
+	}
+	return out;
 }
 
 

@@ -23,8 +23,6 @@
 namespace nnet
 {
 
-class varptr;
-
 class ileaf;
 
 class variable;
@@ -60,9 +58,6 @@ public:
 
 	//! get beautified summary of name and uid, structure varies for inheritors
 	virtual std::string get_name (void) const;
-
-	//! get the distance between this node and the furthest dependent leaf (maximum spanning tree height)
-	virtual size_t get_depth (void) const = 0;
 
 	// >>>>>> CONNECTION QUERY <<<<<<
 

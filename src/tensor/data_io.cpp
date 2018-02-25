@@ -90,6 +90,17 @@ void rand_normal::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tens
 }
 
 
+void imultiarg_io::set_varr (SVARR_T input, size_t idx)
+{
+	size_t nargs = args_.size();
+	if (idx >= nargs)
+	{
+		args_.insert(args_.end(), idx - args_.size() + 1, SVARR_T{});
+	}
+	args_[idx] = input;
+}
+
+
 idata_src* operate_io::clone_impl (void) const
 {
 	return new operate_io(*this);
@@ -122,10 +133,13 @@ void glue_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorsh
 {
 	type = type_;
 	unsigned short bytesize = type_size(type);
-	check_ptr(outptr, shape.n_elems() * bytesize);
+	size_t nbytes = shape.n_elems() * bytesize;
+	check_ptr(outptr, nbytes);
+	void* dest = outptr.get();
+	std::memset(dest, 0, nbytes);
 	for (size_t i = 0; i < args_.size(); ++i)
 	{
-		glue_(VARR_T{outptr.get(), shape}, CVAR_T{args_[i].first.get(), args_[i].second}, bytesize, i);
+		glue_(VARR_T{dest, shape}, CVAR_T{args_[i].first.get(), args_[i].second}, bytesize, i);
 	}
 }
 

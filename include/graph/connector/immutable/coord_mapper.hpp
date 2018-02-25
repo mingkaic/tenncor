@@ -27,15 +27,30 @@ public:
 
 	// input smap must transform shape to desired output shape
 	// smap returns vector of size dest, containing index value pointing to input
-	static coord_mapper* get (inode* arg, SIDX_F smap, USHAPE_F shaper, std::string name)
+	static coord_mapper* get (inode* arg, SIDX_F smap, USHAPE_F shaper, std::string name, bool same_fb = false)
 	{
-		return new coord_mapper(arg, smap, shaper, name);
-	}
-
-	static coord_mapper* get (inode* arg, SIDX_F smap, USHAPE_F shaper, BACKMAP_F bwd, std::string name)
-	{
+		BACKMAP_F bwd;
+		if (same_fb)
+		{
+			bwd = [smap, shaper, name](std::vector<std::pair<inode*,inode*> > args) -> varptr
+			{
+				return coord_mapper::get(args.front().second, smap, shaper, "d_" + name, true);
+			};
+		}
+		else
+		{
+			bwd = [](std::vector<std::pair<inode*,inode*> > args) -> varptr
+			{
+				return args.front().second;
+			};
+		}
 		return new coord_mapper(arg, smap, shaper, bwd, name);
 	}
+
+	// static coord_mapper* get (inode* arg, MATRIX trans_coord, std::string label)
+	// {
+	// 	return nullptr;
+	// }
 
 	//! clone function
 	coord_mapper* clone (void) const
@@ -72,15 +87,8 @@ public:
 	}
 
 private:
-	coord_mapper (inode* arg, SIDX_F smap, USHAPE_F shaper, std::string label) :
-		coord_mapper(arg, smap, shaper,
-		[smap, shaper, label](std::vector<std::pair<inode*,inode*> > args) -> varptr
-		{
-			return new coord_mapper(args.front().second, smap, shaper, "d_" + label);
-		}, label) {}
-
 	coord_mapper (inode* arg, SIDX_F smap, USHAPE_F shaper, BACKMAP_F bwd, std::string label) :
-	immutable(std::vector<inode*>{arg}, label), sio_(new sindex_io(smap)), shaper_(shaper), bwd_(bwd)
+	immutable({arg}, label), sio_(new sindex_io(smap)), shaper_(shaper), bwd_(bwd)
 	{ this->update(); }
 
 	coord_mapper (const coord_mapper& other) : immutable(other)
@@ -112,26 +120,24 @@ private:
 	//! forward pass step: populate data_
 	virtual void forward_pass (std::vector<inode*>& args)
 	{
-		if (nullptr == data_)
+		if (tensor* ten = args[0]->get_tensor())
 		{
-			tensor* ten = args[0]->get_tensor();
-			if (nullptr == ten)
+			if (nullptr == data_)
 			{
-				throw std::exception(); // todo: better exception
+				// assert that shape only change once
+				ten->write_to(*sio_);
+				data_ = std::make_unique<tensor>(shaper_(ten->get_shape()));
 			}
-			// assert that shape only change once
-			ten->write_to(*sio_);
-			data_ = std::make_unique<tensor>(shaper_(ten->get_shape()));
+			data_->read_from(*sio_);
 		}
-		data_->read_from(*sio_);
 	}
 
 	//! backward pass step
 	virtual varptr backward_pass (inode* wrt)
 	{
 		inode* arg = this->get_arguments()[0];
-		std::pair<inode*,inode*> params{arg, arg->derive(wrt)};
-		return bwd_({params});
+		// assert(nullptr != arg)
+		return bwd_({{arg, arg->derive(wrt)}});
 	}
 
 

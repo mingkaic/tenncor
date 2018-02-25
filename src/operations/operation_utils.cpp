@@ -7,6 +7,7 @@
 //
 
 #include "include/operations/operation_utils.hpp"
+#include "include/graph/connector/iconnector.hpp"
 
 #ifdef TENNCOR_OPERATION_UTILS_HPP
 

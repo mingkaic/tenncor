@@ -1,6 +1,6 @@
 cc_test(
 	name = "tenncor_verify",
-	size = "small",
+	size = "enormous",
 	srcs = glob([ "include/**/*.hpp", "src/**/*.cpp" ]),
 	data = glob([ "samples/**" ]),
 	deps = [

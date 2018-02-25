@@ -33,7 +33,7 @@ static const std::unordered_map<std::string,VFUNCMAP_T> op_registry = {
 	REGISTER_FUNC(sec)
 	REGISTER_FUNC(cot)
 	REGISTER_FUNC(exp)
-	REGISTER_FUNC(ln)
+	REGISTER_FUNC(log)
 	REGISTER_FUNC(sqrt)
 	REGISTER_FUNC(round)
 	REGISTER_FUNC(argmax)
@@ -52,6 +52,8 @@ static const std::unordered_map<std::string,VFUNCMAP_T> op_registry = {
 	REGISTER_FUNC(rand_binom)
 	REGISTER_FUNC(rand_uniform)
 	REGISTER_FUNC(rand_normal)
+
+	REGISTER_FUNC(matmul)
 };
 
 std::unordered_set<std::string> all_ops (void)

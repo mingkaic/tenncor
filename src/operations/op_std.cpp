@@ -9,6 +9,10 @@
 #include "include/operations/operations.hpp"
 #include "include/operations/operation_utils.hpp"
 
+#include "include/graph/connector/immutable/elem_op.hpp"
+#include "include/graph/connector/immutable/shape_dep.hpp"
+#include "include/graph/connector/immutable/coord_mapper.hpp"
+
 #ifdef TENNCOR_OP_STD_HPP
 
 namespace nnet
@@ -44,19 +48,31 @@ static inline varptr sample (std::string opname, inode* a, inode* b)
 
 static inline varptr comparator (std::string opname, inode* a, inode* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	varptr out;
+	if (nullptr == a && nullptr == b)
+	{
+		out = constant::get((double) 1);
+	}
+	else if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	std::vector<inode*> deps = {a, b};
 	if (inode* parent = unordered_parent(deps, opname))
 	{
 		return parent;
 	}
-	return elem_op::get(deps, opname,
-	[opname](std::vector<std::pair<inode*,inode*> > args)
+	else
 	{
-		varptr a = args.front().first;
-		varptr b = args.back().first;
-		return comparator(opname, a, b);
-	});
+		out = elem_op::get(deps, opname,
+		[opname](std::vector<std::pair<inode*,inode*> > args)
+		{
+			varptr a = args.front().first;
+			varptr b = args.back().first;
+			return comparator(opname, a, b);
+		});
+	}
+	return out;
 }
 
 static inline varptr aggregate (std::string opname, inode* a, BACKMAP_F bwd)
@@ -189,12 +205,12 @@ varptr exp (const varptr a)
 	});
 }
 
-varptr ln (const varptr a)
+varptr log (const varptr a)
 {
-	return lin_unar("ln", a,
+	return lin_unar("log", a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
-		// ln'(f(x)) = f'(x) / f(x)
+		// log'(f(x)) = f'(x) / f(x)
 		varptr a = args.front().first;
 		varptr grad = args.front().second;
 		return grad / a;
@@ -244,13 +260,14 @@ varptr pow (const varptr b, const varptr x)
 		varptr bg = args.front().second;
 		varptr x = args.back().first;
 		varptr xg = args.back().second;
-		return bg * x * pow(b, x - 1) + xg * pow(b, x) * ln(b);
+		return bg * x * pow(b, x - 1) + xg * pow(b, x) * log(b);
 	});
 }
 
 varptr operator + (const varptr a, const varptr b)
 {
-	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
+	if (nullptr == a.get()) return b;
+	if (nullptr == b.get()) return a;
 	std::string opname = "add";
 	std::vector<inode*> deps = {a, b};
 	if (inode* parent = unordered_parent(deps, opname))
@@ -269,7 +286,8 @@ varptr operator + (const varptr a, const varptr b)
 
 varptr operator - (const varptr a, const varptr b)
 {
-	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
+	if (nullptr == a.get()) return -b;
+	if (nullptr == b.get()) return a;
 	std::string opname = "sub";
 	std::vector<inode*> deps = {a, b};
 	if (inode* parent = ordered_parent(deps, opname))
@@ -309,7 +327,8 @@ varptr operator * (const varptr a, const varptr b)
 
 varptr operator / (const varptr a, const varptr b)
 {
-	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
+	if (nullptr == a.get()) return nullptr;
+	if (nullptr == b.get()) throw std::exception(); // todo: divide by zero error
 	std::string opname = "div";
 	std::vector<inode*> deps = {a, b};
 	if (inode* parent = ordered_parent(deps, opname))
@@ -454,11 +473,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 	{
 		return parent;
 	}
-	return coord_mapper::get(a, smap, shaper,
-	[](std::vector<std::pair<inode*,inode*> > args)
-	{
-		return args.front().second;
-	}, label);
+	return coord_mapper::get(a, smap, shaper, label);
 }
 
 varptr flip (const varptr a, std::vector<size_t> dims)
@@ -489,11 +504,7 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 		}
 		return index;
 	},
-	[](tensorshape inshape) { return inshape; },
-	[](std::vector<std::pair<inode*,inode*> > args)
-	{
-		return args.front().second;
-	}, label);
+	[](tensorshape inshape) { return inshape; }, label);
 }
 
 
@@ -525,6 +536,25 @@ varptr reduce_sum (const varptr a)
 	{
 		return args.front().second; // reduce_sum(args.front().second);
 	});
+}
+
+varptr n_elems (const varptr a)
+{
+	if (nullptr == a.get()) return nullptr;
+	std::string opname = "n_elems";
+	if (inode* parent = single_parent(a, opname))
+	{
+		return parent;
+	}
+	return shape_dep::get(a,
+	[](tensorshape inshape)
+	{
+		return std::vector<size_t>{inshape.n_elems()};
+	},
+	[](tensorshape)
+	{
+		return tensorshape(std::vector<size_t>{1});
+	}, "n_elems");
 }
 
 }

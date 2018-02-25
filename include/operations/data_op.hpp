@@ -105,7 +105,7 @@ template <typename T>
 void exp (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void ln (VARR_T dest, std::vector<CVAR_T> srcs);
+void log (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
 void sqrt (VARR_T dest, std::vector<CVAR_T> srcs);
@@ -198,10 +198,20 @@ void rand_normal (VARR_T dest, std::vector<CVAR_T> srcs);
 
 #endif /* TENNCOR_D_NNARY_HPP */
 
+#ifndef TENNCOR_D_MATMUL_HPP
+#define TENNCOR_D_MATMUL_HPP
+
+template <typename T>
+void matmul (VARR_T dest, std::vector<CVAR_T> srcs);
+
+#endif /* TENNCOR_D_MATMUL_HPP */
+
 }
 
 #include "src/operations/d_unary.ipp"
 
 #include "src/operations/d_nnary.ipp"
+
+#include "src/operations/d_matmul.ipp"
 
 #endif /* TENNCOR_DATA_OP_HPP */

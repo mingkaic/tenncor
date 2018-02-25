@@ -46,7 +46,6 @@ iconnector& iconnector::operator = (const iconnector& other)
 	{
 		iobserver::operator = (other);
 		inode::operator = (other);
-		copy_helper(other);
 	}
 	return *this;
 }
@@ -57,7 +56,6 @@ iconnector& iconnector::operator = (iconnector&& other)
 	{
 		iobserver::operator = (std::move(other));
 		inode::operator = (std::move(other));
-		move_helper(std::move(other));
 	}
 	return *this;
 }
@@ -65,7 +63,7 @@ iconnector& iconnector::operator = (iconnector&& other)
 
 std::string iconnector::get_name (void) const
 {
-	std::string args = "";
+	std::string args;
 	auto it = this->dependencies_.begin();
 	auto et = this->dependencies_.end();
 	const inode * arg = dynamic_cast<const inode*>(*it);
@@ -89,11 +87,6 @@ std::string iconnector::get_name (void) const
 	return inode::get_name() + "(" + args + ")";
 }
 
-size_t iconnector::get_depth (void) const
-{
-	return depth_;
-}
-
 std::vector<inode*> iconnector::get_arguments (void) const
 {
 	std::vector<inode*> node_args(this->dependencies_.size());
@@ -104,43 +97,13 @@ std::vector<inode*> iconnector::get_arguments (void) const
 
 
 iconnector::iconnector (std::vector<inode*> dependencies, std::string label) :
-	inode(label), iobserver(std::vector<subject*>(dependencies.begin(), dependencies.end()))
-{
-	size_t ndeps = dependencies.size();
-	if (ndeps > 0)
-	{
-		std::vector<size_t> depths(ndeps, 0);
-		std::transform(dependencies.begin(), dependencies.end(), depths.begin(),
-		[](inode* node)
-		{
-			return node->get_depth();
-		});
-		depth_ = *(std::max_element(depths.begin(), depths.end())) + 1;
-	}
-}
+	inode(label), iobserver(std::vector<subject*>(dependencies.begin(), dependencies.end())) {}
 
 iconnector::iconnector (const iconnector& other) :
-	inode(other), iobserver(other)
-{
-	copy_helper(other);
-}
+	inode(other), iobserver(other) {}
 
 iconnector::iconnector (iconnector&& other) :
-	inode(std::move(other)), iobserver(std::move(other))
-{
-	move_helper(std::move(other));
-}
-
-
-void iconnector::copy_helper (const iconnector& other)
-{
-	depth_ = other.depth_;
-}
-
-void iconnector::move_helper (iconnector&& other)
-{
-	depth_ = std::move(other.depth_);
-}
+	inode(std::move(other)), iobserver(std::move(other)) {}
 
 }
 

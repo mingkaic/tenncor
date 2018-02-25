@@ -20,9 +20,7 @@ tensor* constant::get_tensor (void)
 
 varptr constant::derive (inode*)
 {
-	tensorshape shape = data_->get_shape();
-	std::vector<double> zeroes(shape.n_elems(), 0); // todo: convert to data type
-	return constant::get(zeroes, shape);
+	return nullptr;
 }
 
 

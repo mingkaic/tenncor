@@ -42,11 +42,6 @@ public:
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
-	// >>>>>> IDENTIFICATION <<<<<<
-
-	//! get the distance between this node and the furthest dependent leaf (maximum spanning tree height)
-	virtual size_t get_depth (void) const;
-
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info

@@ -191,15 +191,7 @@ struct imultiarg_io : public idata_io
 		return dynamic_cast<imultiarg_io*>(this->clone_impl());
 	}
 
-	virtual void set_varr (SVARR_T input, size_t idx)
-	{
-		size_t nargs = args_.size();
-		if (idx >= nargs)
-		{
-			args_.insert(args_.end(), idx - args_.size() + 1, SVARR_T{});
-		}
-		args_[idx] = input;
-	}
+	virtual void set_varr (SVARR_T input, size_t idx);
 
 protected:
 	std::vector<SVARR_T> args_;

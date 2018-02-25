@@ -12,7 +12,7 @@
  *
  */
 
-#include "include/operations/operations.hpp"
+#include "include/graph/inode.hpp"
 
 #ifndef TENNCOR_OPERATION_UTILS_HPP
 #define TENNCOR_OPERATION_UTILS_HPP

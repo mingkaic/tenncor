@@ -57,9 +57,6 @@ public:
 	//! get unique label with arguments
 	virtual std::string get_name (void) const;
 
-	//! get the distance between this node and the furthest dependent leaf (maximum spanning tree height)
-	virtual size_t get_depth (void) const;
-
 	// >>>>>> ICONNECTOR SPECIAL <<<<<<
 
 	//! get all observerables
@@ -89,9 +86,6 @@ private:
 	void copy_helper (const iconnector& other);
 
 	void move_helper (iconnector&& other);
-
-	//! the distance between this node and the furthest dependent leaf (maximum spanning tree height)
-	size_t depth_ = 0;
 };
 
 }

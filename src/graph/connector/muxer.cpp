@@ -14,6 +14,17 @@
 namespace nnet
 {
 
+static inline std::vector<inode*> to_args (std::vector<MUXPAIR>& muxargs)
+{
+	std::vector<inode*> args(muxargs.size());
+	std::transform(muxargs.begin(), muxargs.end(), args.begin(),
+	[](MUXPAIR mpair) -> inode*
+	{
+		return mpair.first;
+	});
+	return args;
+}
+
 demuxer* demuxer::get (inode* arg, 
 	NSLICE_F nslice, IDXS2ARR_F sliceidxer, 
 	USHAPE_F sliceshaper, std::string label)
@@ -86,11 +97,10 @@ std::vector<inode*> demuxer::get_slices (void)
 			inode* slice = single_parent(arg, label);
 			if (nullptr == slice)
 			{
-				slice = coord_mapper::get(arg,
-				[idxer, i](tensorshape outshape, const tensorshape inshape)
+				slice = coord_mapper::get(arg, [idxer, i](tensorshape outshape, const tensorshape inshape)
 				{
 					return idxer(outshape, inshape, i);
-				}, sliceshaper_, label);
+				}, sliceshaper_, label, true);
 			}
 			out.push_back(slice);
 		}
@@ -149,7 +159,7 @@ void demuxer::move_helper (demuxer&& other)
 
 
 
-muxer* muxer::get (std::vector<demuxer*> args, SHAPER_F shaper, MUXOP_F op, GLUE_F gluer, std::string label)
+muxer* muxer::get (std::vector<MUXPAIR> args, SHAPER_F shaper, MUXOP_F op, GLUE_F gluer, std::string label)
 {
 	return new muxer(args, shaper, op, gluer, label);
 }
@@ -197,6 +207,34 @@ tensor* muxer::get_tensor (void)
 
 varptr muxer::derive (inode* wrt)
 {
+	// find a suitable gluer
+	GLUE_F gluer;
+	auto wleaves = wrt->get_leaves();
+	std::vector<ileaf*> temp;
+	for (auto it = ggluer_.begin(), et = ggluer_.end();
+		it != et && !gluer; it++)
+	{
+		auto mleaves = (*it).first->get_leaves();
+		std::set_intersection(mleaves.begin(), mleaves.end(), 
+			wleaves.begin(), wleaves.end(), std::back_inserter(temp));
+		if (temp.size() > 0)
+		{
+			gluer = (*it).second;
+		}
+		temp.clear();
+	}
+	if (this == wrt || !gluer)
+	{
+		tensor* data = wrt->get_tensor();
+		if (data && data->has_data())
+		{
+			tensorshape shape = data->get_shape();
+			std::vector<double> zeroes(shape.n_elems(), (double) (this == wrt)); // todo: convert to data type
+			return constant::get(zeroes, shape);
+		}
+		return nullptr;
+	}
+
 	std::vector<inode*> args = this->get_arguments();
 	std::string glabel = "grad_" + this->get_label();
 	if (inode* parent = ordered_parent(args, glabel))
@@ -211,20 +249,14 @@ varptr muxer::derive (inode* wrt)
 		return slice->derive(wrt);
 	});
 	// clone a version of this using gslices
-	std::vector<demuxer*> muxargs(args.size());
-	std::transform(args.begin(), args.end(), muxargs.begin(),
-	[](inode* node)
-	{
-		return static_cast<demuxer*>(node);
-	});
 	tensor* ten = wrt->get_tensor();
 	assert(ten && ten->has_data());
 	tensorshape shape = ten->get_shape();
-	return new muxer(muxargs, gslices, 
+	return new muxer(ggluer_, gslices, 
 	[shape](std::vector<tensorshape>)
 	{
 		return shape;
-	}, op_, gio_, glabel);
+	}, op_, gluer, glabel);
 }
 
 void muxer::update (void)
@@ -266,16 +298,17 @@ void muxer::update (void)
 	}
 }
 
+muxer::muxer (std::vector<MUXPAIR> args, SHAPER_F shaper, 
+	MUXOP_F op, GLUE_F gluer, std::string label) :
+muxer(args, std::vector<varptr>{}, shaper, op, gluer, label) {}
 
-muxer::muxer (std::vector<demuxer*> args, SHAPER_F shaper, 
+muxer::muxer (std::vector<MUXPAIR> args, 
+	std::vector<varptr> slices, SHAPER_F shaper, 
 	MUXOP_F op, GLUE_F gluer, std::string label) : 
-muxer(args, std::vector<varptr>{}, shaper, op, 
-	std::make_shared<glue_io>(gluer), label) {}
-
-muxer::muxer (std::vector<demuxer*> args, std::vector<varptr> slices, 
-	SHAPER_F shaper, MUXOP_F op, std::shared_ptr<glue_io> gio, std::string label) :
-iconnector(std::vector<inode*>(args.begin(), args.end()), label), 
-gio_(gio), slices_(slices), shaper_(shaper), op_(op) { update(); }
+iconnector(to_args(args), label), 
+gio_(new glue_io(gluer)), slices_(slices), 
+ggluer_(args), shaper_(shaper), op_(op)
+{ update(); }
 
 muxer::muxer (const muxer& other) : 
 	iconnector(other)
@@ -321,6 +354,7 @@ void muxer::copy_helper (const muxer& other)
 	}
 
 	slices_ = other.slices_;
+	ggluer_ = other.ggluer_;
 	shaper_ = other.shaper_;
 	op_ = other.op_;
 }
@@ -330,6 +364,7 @@ void muxer::move_helper (muxer&& other)
 	data_ = std::move(other.data_);
 	gio_ = std::move(other.gio_);
 	slices_ = std::move(other.slices_);
+	ggluer_ = std::move(other.ggluer_);
 	shaper_ = std::move(other.shaper_);
 	op_ = std::move(other.op_);
 }

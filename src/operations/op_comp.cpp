@@ -9,6 +9,9 @@
 #include "include/operations/operations.hpp"
 #include "include/operations/operation_utils.hpp"
 
+#include "include/graph/connector/muxer.hpp"
+#include "include/graph/connector/functor.hpp"
+
 #ifdef TENNCOR_OP_COM_HPP
 
 namespace nnet
@@ -46,12 +49,39 @@ static inline demuxer* dim_demuxer (const varptr a, size_t dimension, std::strin
 		}
 		return out;
 	},
-	[dimension](tensorshape shape)
+	[dimension](tensorshape inshape)
 	{
-		assert(shape.rank() > dimension);
-		size_t slimit = shape.as_list()[dimension];
+		assert(inshape.rank() > dimension);
+		size_t slimit = inshape.as_list()[dimension];
 		return tensorshape(std::vector<size_t>{slimit});
 	}, label);
+}
+
+static inline GLUE_F get_reduce_gluer (size_t dimension)
+{
+	return [dimension](VARR_T dest, CVAR_T src, unsigned short bytesize, size_t i)
+	{
+		char* cdest = (char*) dest.first;
+		const char* csrc = (const char*) src.first;
+		size_t srcn = src.second.n_elems();
+		if (dest.second.rank() > 1)
+		{
+			std::vector<size_t> slist = dest.second.as_list();
+			slist[dimension] = 1;
+			std::vector<size_t> coords = tensorshape(slist).coordinate_from_idx(i);
+			size_t desti = 0;
+			for (size_t srci = 0; srci < srcn; ++srci)
+			{
+				coords[dimension] = srci;
+				desti = dest.second.flat_idx(coords);
+				memcpy(cdest + desti * bytesize, csrc + srci * bytesize, bytesize);
+			}
+		}
+		else
+		{
+			memcpy(cdest + i * srcn * bytesize, csrc, srcn * bytesize);
+		}
+	};
 }
 
 static inline varptr reduce (const varptr a, size_t dimension, 
@@ -66,7 +96,11 @@ static inline varptr reduce (const varptr a, size_t dimension,
 		assert(nullptr != true_parent);
 		return true_parent;
 	}
-	return muxer::get({dim_demuxer(a, dimension, dmx_label)}, 
+	GLUE_F gluef = get_reduce_gluer(dimension);
+	return muxer::get({MUXPAIR{
+		dim_demuxer(a, dimension, dmx_label), 
+		gluef
+	}},
 	[dimension](std::vector<tensorshape> shapes)
 	{
 		std::vector<size_t> slist = shapes[0].as_list();
@@ -90,30 +124,7 @@ static inline varptr reduce (const varptr a, size_t dimension,
 			slices.push_back(reduce_op(varg));
 		}
 		return slices;
-	},
-	[dimension](VARR_T dest, CVAR_T src, unsigned short bytesize, size_t i)
-	{
-		char* cdest = (char*) dest.first;
-		const char* csrc = (const char*) src.first;
-		size_t srcn = src.second.n_elems();
-		if (dest.second.rank() > 1)
-		{
-			std::vector<size_t> slist = dest.second.as_list();
-			slist[dimension] = 1;
-			std::vector<size_t> coords = tensorshape(slist).coordinate_from_idx(i);
-			size_t desti = 0;
-			for (size_t srci = 0; srci < srcn; ++srci)
-			{
-				coords[dimension] = srci;
-				desti = dest.second.flat_idx(coords);
-				memcpy(cdest + desti * bytesize, csrc + srci * bytesize, bytesize);
-			}
-		}
-		else
-		{
-			memcpy(cdest + i * srcn * bytesize, csrc, srcn * bytesize);
-		}
-	}, mux_label);
+	}, gluef, mux_label);
 }
 
 static inline tensorshape matmul_shaper (std::vector<tensorshape> shapes)
@@ -207,26 +218,11 @@ varptr clip_norm (const varptr a, const varptr cap)
 
 varptr reduce_mean (const varptr a)
 {
-	if (nullptr == a.get()) return nullptr;
-	varptr n = single_parent(a, "n_elems");
-	if (nullptr == n.get())
-	{
-		n = shape_dep::get(a,
-		[](tensorshape inshape)
-		{
-			return std::vector<size_t>{inshape.n_elems()};
-		},
-		[](tensorshape)
-		{
-			return tensorshape(std::vector<size_t>{1});
-		}, "n_elems");
-	}
-	return reduce_sum(a) / n;
+	return reduce_sum(a) / n_elems(a);
 }
 
 varptr reduce_l2norm (const varptr a)
 {
-	if (nullptr == a.get()) return nullptr;
 	return sqrt(reduce_sum(a * a)); 
 }
 
@@ -272,68 +268,160 @@ varptr arg_max (const varptr a, size_t dimension)
 	});
 }
 
+static inline varptr flatten_mat (varptr a)
+{
+	size_t nelem_a = a->get_tensor()->get_shape().n_elems();
+	varptr expand = coord_mapper::get(a,
+	[](tensorshape, const tensorshape inshape)
+	{
+		size_t nelems = inshape.n_elems();
+		std::vector<size_t> row(nelems);
+		std::iota(row.begin(), row.end(), 0);
+		std::vector<size_t> indices=row;
+		for (size_t i = 1; i < nelems; ++i)
+		{
+			indices.insert(indices.end(), row.begin(), row.end());
+		}
+		return indices;
+	},
+	[](tensorshape inshape) -> tensorshape
+	{
+		size_t nelems = inshape.n_elems();
+		return std::vector<size_t>{nelems, nelems};
+	}, "expand");
+	std::vector<double> data(nelem_a * nelem_a, 0);
+	for (size_t i = 0; i < nelem_a; ++i)
+	{
+		data[i * nelem_a + i] = 1;
+	}
+	varptr identity = constant::get(data, std::vector<size_t>{nelem_a, nelem_a});
+	return expand * identity;
+}
 
-varptr matmul (const varptr a, const varptr b)
+static inline varptr select (tensorshape shape, size_t index)
+{
+	std::vector<double> data(shape.n_elems(), 0);
+	data[index] = 1;
+	return constant::get(data, shape);
+}
+
+varptr matmul (varptr a, varptr b)
 {
 	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
-	std::string dlabel = "demux_matmul";
-	std::string mlabel = "mux_matmul";
-	inode* parenta = single_parent(a, dlabel);
-	inode* parentb = single_parent(b, dlabel);
-	if (parenta && parentb)
+	return functor::get({a, b}, 
+	[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
 	{
-		if (inode* true_parent = ordered_parent({parenta, parentb}, mlabel))
-		{
-			return true_parent;
-		}
-	}
-	// demux a by rows and b by cols
-	demuxer* dma;
-	demuxer* dmb;
-	if (parenta)
-	{
-		dma = static_cast<demuxer*>(parenta);
-	}
-	else
-	{
-		dma = dim_demuxer(a, 0, dlabel);
-	}
-	if (parentb)
-	{
-		dmb = static_cast<demuxer*>(parentb);
-	}
-	else
-	{
-		dmb = dim_demuxer(b, 1, dlabel);
-	}
-	return muxer::get({dma, dmb}, matmul_shaper, 
-	[](std::vector<std::vector<inode*> > sliceargs)
-	{
-		// assert sliceargs.size() == 2
-		std::vector<inode*>& aslices = sliceargs.front();
-		std::vector<inode*>& bslices = sliceargs.back();
-		size_t nrows = aslices.size();
-		size_t ncols = bslices.size();
-		std::vector<varptr> slices(nrows * ncols);
-		// i = y * ncols + x
-		// slices[i] = reduce_sum(aslices[y] * bslices[x])
-		for (size_t y = 0; y < nrows; ++y)
-		{
-			for (size_t x = 0; x < ncols; ++x)
-			{
-				slices[y * ncols + x] = reduce_sum(varptr(aslices[y]) * varptr(bslices[x]));
-			}
-		}
-		return slices;
+		idata_io* io = new operate_io("matmul");
+		src = std::unique_ptr<idata_src>(io);
+		const tensor* a = args.front()->get_tensor();
+		const tensor* b = args.back()->get_tensor();
+		a->write_to(*io, 0);
+		b->write_to(*io, 1);
+		tensorshape dshape = matmul_shaper({a->get_shape(), b->get_shape()});
+		return new tensor(dshape);
 	},
-	[](VARR_T dest, CVAR_T src, unsigned short bytesize, size_t i)
+	[](inode* x, std::vector<inode*> args, inode* c) -> varptr
 	{
-		// glue everything together
-		// asssert src.second.n_elems() == 1;
-		char* cdest = (char*) dest.first;
-		const char* csrc = (const char*) src.first;
-		memcpy(cdest + i * bytesize, csrc, bytesize);
-	}, mlabel);
+		inode* a = args.front();
+		inode* b = args.back();
+		inode* adx = a->derive(x);
+		inode* bdx = b->derive(x);
+		// process both arguments as jacobians
+		varptr da, db;
+		tensorshape bases = x->get_tensor()->get_shape();
+		if (adx)
+		{
+			adx = flatten_mat(adx);
+			// todo: check for parent ja
+			varptr ja = functor::get({a, b, c},
+			[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
+			{
+				inode* a = args[0];
+				inode* b = args[1];
+				inode* c = args[2];
+				idata_io* io = new glue_io( // move data_io out of forward
+				[](VARR_T dest, CVAR_T src, unsigned short nbyte, size_t index)
+				{
+					char* cdest = (char*) dest.first;
+					const char* csrc = (const char*) src.first;
+					size_t ncol = dest.second.as_list()[0];
+					size_t nrow = src.second.n_elems();
+					for (size_t i = 0; i < nrow; ++i)
+					{
+						std::memcpy(cdest + (i * ncol + index) * nbyte, csrc + i * nbyte, nbyte);
+					}
+				});
+				src = std::unique_ptr<idata_src>(io);
+				tensorshape outershape = a->get_tensor()->get_shape();
+				size_t nouter = outershape.n_elems();
+				size_t ninner = c->get_tensor()->get_shape().n_elems();
+				for (size_t i = 0; i < nouter; ++i)
+				{
+					varptr ivar = matmul(select(outershape, i), varptr(b));
+					tensor* iten = ivar->get_tensor();
+					iten->write_to(*io, i);
+				}
+				return new tensor(tensorshape({nouter, ninner}));
+			},
+			[](inode*, std::vector<inode*>, inode*) -> varptr
+			{
+				//todo: make the same as matmul gradient
+				throw std::bad_function_call(); // unimplemented
+			}, "jacobian_a");
+			da = matmul(ja, adx);
+		}
+		if (bdx)
+		{
+			bdx = flatten_mat(bdx);
+			varptr jb = functor::get({a, b, c},
+			[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
+			{
+				inode* a = args[0];
+				inode* b = args[1];
+				inode* c = args[2];
+				idata_io* io = new glue_io( // move data_io out of forward
+				[](VARR_T dest, CVAR_T src, unsigned short nbyte, size_t index)
+				{
+					char* cdest = (char*) dest.first;
+					const char* csrc = (const char*) src.first;
+					size_t ncol = dest.second.as_list()[0];
+					size_t nrow = src.second.n_elems();
+					for (size_t i = 0; i < nrow; ++i)
+					{
+						std::memcpy(cdest + (i * ncol + index) * nbyte, csrc + i * nbyte, nbyte);
+					}
+				});
+				src = std::unique_ptr<idata_src>(io);
+				tensorshape outershape = b->get_tensor()->get_shape();
+				size_t nouter = outershape.n_elems();
+				size_t ninner = c->get_tensor()->get_shape().n_elems();
+				for (size_t i = 0; i < nouter; ++i)
+				{
+					varptr ivar = matmul(varptr(a), select(outershape, i));
+					tensor* iten = ivar->get_tensor();
+					iten->write_to(*io, i);
+				}
+				return new tensor(tensorshape({nouter, ninner}));
+			},
+			[](inode*, std::vector<inode*>, inode*) -> varptr
+			{
+				throw std::bad_function_call(); // unimplemented
+			}, "jacobian_b");
+			db = matmul(jb, bdx);
+		}
+		varptr out = reduce_sum(da + db, 1);
+		return coord_mapper::get(out,
+		[](tensorshape outshape, const tensorshape inshape)
+		{
+			std::vector<size_t> indices(inshape.n_elems());
+			std::iota(indices.begin(), indices.end(), 0);
+			return indices;
+		},
+		[bases](tensorshape)
+		{
+			return bases;
+		}, "jacobian_expand");
+	}, "matmul");
 }
 
 }

@@ -70,10 +70,14 @@ tensor* variable::get_tensor (void)
 
 varptr variable::derive (inode* wrt)
 {
-	tensorshape shape = data_->get_shape();
-	std::vector<double> data(shape.n_elems(),  // todo: convert to data type
-		(double) (this == wrt));
-	return constant::get(data, shape);
+	constant* out = nullptr;
+	if (this == wrt)
+	{
+		tensorshape shape = data_->get_shape();
+		std::vector<double> data(shape.n_elems(), 1); // change to match wrt type
+		out = constant::get(data, shape);
+	}
+	return out;
 }
 
 bool variable::initialize (void)

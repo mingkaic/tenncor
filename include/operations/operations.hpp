@@ -17,9 +17,7 @@
  *
  */
 
-#include "include/graph/connector/muxer.hpp"
-#include "include/graph/connector/immutable/elem_op.hpp"
-#include "include/graph/connector/immutable/shape_dep.hpp"
+#include "include/graph/leaf/constant.hpp"
 
 #pragma once
 #ifndef TENNCOR_OPERATIONS_HPP
@@ -63,8 +61,8 @@ varptr cot (const varptr a);
 //! e of power a
 varptr exp (const varptr a);
 
-//! natural ln a
-varptr ln (const varptr a);
+//! natural log a
+varptr log (const varptr a);
 
 //! square root of a
 varptr sqrt (const varptr a);
@@ -179,6 +177,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm = {});
 //! flip a in specified dimensions
 varptr flip (const varptr a, std::vector<size_t> dims);
 
+
 // >>>>>>>>>>>> AGGREGATES <<<<<<<<<<<<
 
 varptr arg_max (const varptr a);
@@ -186,6 +185,11 @@ varptr arg_max (const varptr a);
 varptr reduce_max (const varptr a);
 
 varptr reduce_sum (const varptr a);
+
+
+// >>>>>>>>>>>> SHAPE_DEP <<<<<<<<<<<<
+
+varptr n_elems (const varptr a);
 
 #endif /* TENNCOR_OP_STD_HPP */
 

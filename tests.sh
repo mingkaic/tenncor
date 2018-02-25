@@ -50,7 +50,7 @@ lcov --list $COV_FILE;
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	sed -i 's:bazel-tenncor/::g' $COV_FILE;
-	git rev-parse --abbrev-ref HEAD;
+	git rev-parse --abbrev-inode* HEAD;
 	coveralls-lcov --repo-token $COVERALLS_TOKEN $COV_FILE; # uploads to coveralls
 fi
 

@@ -46,11 +46,6 @@ ileaf& ileaf::operator = (ileaf&& other)
 }
 
 
-size_t ileaf::get_depth (void) const
-{
-	return 0; // leaves are 0 distance from the furthest dependent leaf
-}
-
 std::unordered_set<ileaf*> ileaf::get_leaves (void) const
 {
 	return {const_cast<ileaf*>(this)};

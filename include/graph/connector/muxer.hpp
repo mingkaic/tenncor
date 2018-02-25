@@ -103,12 +103,14 @@ private:
 	USHAPE_F sliceshaper_;
 };
 
+using MUXPAIR = std::pair<demuxer*,GLUE_F>;
+
 // todo: forgo gluer, extract args' sliceidxer
 // consumes the volatile consumers of demuxer's slices without suiciding
 class muxer final : public iconnector
 {
 public:
-	static muxer* get (std::vector<demuxer*> args, 
+	static muxer* get (std::vector<MUXPAIR> args, 
 		SHAPER_F shaper, MUXOP_F op, GLUE_F gluer, std::string label);
 	
 	//! clone function
@@ -147,11 +149,12 @@ public:
 	virtual void update (void);
 
 private:
-	muxer (std::vector<demuxer*> args, SHAPER_F shaper, 
+	muxer (std::vector<MUXPAIR> args, SHAPER_F shaper, 
 		MUXOP_F op, GLUE_F gluer, std::string label);
-
-	muxer (std::vector<demuxer*> args, std::vector<varptr> slices, 
-		SHAPER_F shaper, MUXOP_F op, std::shared_ptr<glue_io> gio, std::string label);
+	
+	muxer (std::vector<MUXPAIR> args,
+		std::vector<varptr> slices, SHAPER_F shaper,
+		MUXOP_F op, GLUE_F gluer, std::string label);
 
 	muxer (const muxer& other);
 
@@ -177,6 +180,8 @@ private:
 	std::shared_ptr<glue_io> gio_;
 
 	std::vector<varptr> slices_;
+
+	std::vector<MUXPAIR> ggluer_;
 
 	SHAPER_F shaper_;
 

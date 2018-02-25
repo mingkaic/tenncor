@@ -147,7 +147,7 @@ void exp (VARR_T dest, std::vector<CVAR_T> srcs)
 }
 
 template <typename T>
-void ln (VARR_T dest, std::vector<CVAR_T> srcs)
+void log (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
