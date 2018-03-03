@@ -26,7 +26,7 @@
 namespace nnet
 {
 
-class tensor // todo: make final, and make mock_tensor compose tensor instance
+class tensor final
 {
 public:
 	//! create a tensor of a specified shape and allocator

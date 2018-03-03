@@ -246,9 +246,6 @@ varptr reduce_l2norm (const varptr a, size_t dimension);
 //! -1 index looks returns a vector coordinate specifying max value in tensor a
 varptr arg_max (const varptr a, size_t dimension);
 
-//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
-varptr matmul (const varptr a, const varptr b);
-
 // unimplemented
 
 //! for example: window {0, 1} gives output f[i, j, :] = sum(a[i:i+filtshape[0], j:j+filtshape[1], :] * filter)
@@ -260,6 +257,14 @@ varptr cross_corr2d (const varptr a, const varptr filter, std::pair<size_t,size_
 varptr conv2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
 
 #endif /* TENNCOR_OP_COM_HPP */
+
+#ifndef TENNCOR_OP_MATMUL_HPP
+#define TENNCOR_OP_MATMUL_HPP
+
+//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
+varptr matmul (const varptr a, const varptr b);
+
+#endif /* TENNCOR_OP_MATMUL_HPP */
 
 }
 

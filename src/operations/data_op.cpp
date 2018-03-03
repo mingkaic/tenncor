@@ -170,4 +170,4 @@ void rand_uniform<double> (VARR_T dest, std::vector<CVAR_T> srcs)
 
 }
 
-#endif /* TENNCOR_DATA_OP_HPP */
+#endif

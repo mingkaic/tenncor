@@ -17,6 +17,7 @@ message tensor_proto
 		UINT16 = 8;
 		UINT32 = 9;
 		UINT64 = 10;
+		NUM_TYPES = 11;
 	}
 
 	bytes data = 1;

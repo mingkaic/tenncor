@@ -28,6 +28,7 @@ cc_library(
 	name = "tenncor",
 	hdrs = TCR_PUBLIC_HDRS,
 	srcs = TCR_SRC,
+	includes = [ "include" ],
 	deps = [ "//proto:tenncor_serial_cc_proto" ],
 	copts = [ "-std=c++14" ],
 )
@@ -46,6 +47,7 @@ cc_library(
 		"src/edgeinfo/*.cpp",
 		"src/edgeinfo/csv_record/*.cpp", 
 	]),
+	includes = [ "include" ],
 	deps = [ "//proto:tenncor_serial_cc_proto" ],
 	defines = [ "CSV_RCD" ],
 	copts = [ "-std=c++14" ],
@@ -66,6 +68,7 @@ cc_library(
 		"src/edgeinfo/rpc_record/*.cpp", 
 		"src/thread/*.hpp",
 	]),
+	includes = [ "include" ],
 	deps = [
 		"//proto:tenncor_serial_cc_proto",
 		"//proto:tenncor_monitor_grpc_proto",

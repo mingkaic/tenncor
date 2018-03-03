@@ -24,13 +24,15 @@
 namespace nnutils
 {
 
-struct type_error : public std::exception
+struct unsupported_type_error : public std::exception
 {
-	type_error (TENS_TYPE type) : type_(type) {}
+	unsupported_type_error (TENS_TYPE type) : type_(type) {}
 
 	virtual const char* what (void) const throw()
 	{
-		return ((std::string)(nnutils::formatter() << "unsupported type code " << type_)).c_str();
+		std::stringstream msg;
+		msg << "unsupported type code " << type_;
+		return msg.str().c_str();
 	}
 
 private:

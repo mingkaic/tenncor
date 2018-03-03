@@ -18,44 +18,42 @@ namespace nnet
 static void fit_toshape (size_t bytesize, char* dest, const tensorshape& outshape, const char* src, const tensorshape& inshape)
 {
 	assert(outshape.is_fully_defined() && inshape.is_fully_defined());
-	std::vector<size_t> outlist = outshape.as_list();
-	std::vector<size_t> inlist = inshape.as_list();
 	size_t numout = outshape.n_elems();
 
-	size_t minrank = std::min(outlist.size(), inlist.size());
+	size_t minrank = std::min(outshape.rank(), inshape.rank());
 	tensorshape clippedshape = inshape.with_rank(minrank);
 	size_t numin = clippedshape.n_elems();
 
 	memset(dest, 0, bytesize * numout);
-	size_t basewidth = std::min(outlist[0], inlist[0]);
+	size_t basewidth = std::min(outshape[0], inshape[0]);
 	size_t srcidx = 0;
 	while (srcidx < numin)
 	{
-		// check source index to ensure it is within inlist bounds
-		std::vector<size_t> srccoord = clippedshape.coordinate_from_idx(srcidx);
+		// check source index to ensure it is within inshape bounds
+		std::vector<size_t> srccoord = clippedshape.coord_from_idx(srcidx);
 		bool srcinbound = true;
 		size_t src_jump = 1;
 		for (size_t i = 1, m = minrank; srcinbound && i < m; i++)
 		{
-			srcinbound = srccoord[i] < outlist[i];
+			srcinbound = srccoord[i] < outshape[i];
 			if (false == srcinbound)
 			{
-				src_jump *= (inlist[i] - srccoord[i]);
+				src_jump *= (inshape[i] - srccoord[i]);
 			}
 			else
 			{
-				src_jump *= inlist[i];
+				src_jump *= inshape[i];
 			}
 		}
 		if (false == srcinbound)
 		{
-			srcidx += (src_jump * inlist[0]);
+			srcidx += (src_jump * inshape[0]);
 		}
 		else
 		{
 			size_t destidx = outshape.flat_idx(srccoord);
 			memcpy(dest + destidx, src + srcidx, bytesize * basewidth);
-			srcidx += inlist[0];
+			srcidx += inshape[0];
 		}
 	}
 }
@@ -128,7 +126,7 @@ bool tensor::from_proto (const tenncor::tensor_proto& proto_src)
 	std::string protostr = proto_src.data();
 
 	// copy data over from tensor_proto
-	raw_data_ = shared_varr(protostr.size());
+	raw_data_ = nnutils::make_svoid(protostr.size());
 	memcpy(raw_data_.get(), (void*) protostr.c_str(), protostr.size());
 
 	dtype_ = proto_src.type();
@@ -279,32 +277,32 @@ optional<tensorshape> tensor::loosely_guess_shape (size_t ndata) const
 		}
 		return bestshape;
 	}
-	std::vector<size_t> my_shape = allowed_shape_.as_list();
-	size_t first_undef = my_shape.size();
+	std::vector<size_t> slist = allowed_shape_.as_list();
+	size_t first_undef = allowed_shape_.rank();
 	size_t known = 1;
-	for (size_t i = 0; i < my_shape.size(); i++)
+	for (size_t i = 0; i < allowed_shape_.rank(); i++)
 	{
-		if (0 == my_shape[i])
+		if (0 == allowed_shape_[i])
 		{
 			if (first_undef> i)
 			{
 				first_undef = i;
 			}
-			my_shape[i] = 1;
+			slist[i] = 1;
 		}
 		else
 		{
-			known *= my_shape[i];
+			known *= allowed_shape_[i];
 		}
 	}
-	my_shape[first_undef] = ndata / known;
+	slist[first_undef] = ndata / known;
 	if (0 != ndata % known)
 	{
 		// int division above will floor
 		// (if we cast to double, we may lose precision)
-		my_shape[first_undef]++;
+		slist[first_undef]++;
 	}
-	return tensorshape(my_shape);
+	return tensorshape(slist);
 }
 
 bool tensor::is_aligned (void) const
@@ -315,6 +313,10 @@ bool tensor::is_aligned (void) const
 
 void tensor::write_to (idata_dest& dest, size_t idx) const
 {
+	if (false == has_data())
+	{
+		throw std::exception();
+	}
 	dest.set_data(raw_data_, dtype_, get_shape(), idx);
 }
 
@@ -408,7 +410,7 @@ bool tensor::copy_from (const tensor& other, const tensorshape shape)
 		dtype_ = other.dtype_;
 		size_t bsize = type_size(dtype_);
 
-		raw_data_ = shared_varr(bsize * shape.n_elems());
+		raw_data_ = nnutils::make_svoid(bsize * shape.n_elems());
 		fit_toshape(bsize, (char*) raw_data_.get(), shape, (char*) other.raw_data_.get(), olds);
 
 		alloced_shape_ = shape;
@@ -425,25 +427,28 @@ void tensor::slice (size_t /*dim_start*/, size_t /*limit*/)
 
 void tensor::copy_helper (const tensor& other)
 {
+	alloced_shape_ = other.alloced_shape_;
+	allowed_shape_ = other.allowed_shape_;
+	dtype_ = other.dtype_;
+
 	raw_data_ = nullptr;
 	if (other.has_data())
 	{
-		size_t ns = alloced_shape_.n_elems();
-		raw_data_ = shared_varr(ns);
+		size_t ns = alloced_shape_.n_elems() * type_size(dtype_);
+		raw_data_ = nnutils::make_svoid(ns);
 		memcpy(raw_data_.get(), other.raw_data_.get(), ns);
 	}
-
-	alloced_shape_ = other.alloced_shape_;
-	allowed_shape_ = other.allowed_shape_;
 }
 
 void tensor::move_helper (tensor&& other)
 {
-	raw_data_ = std::move(other.raw_data_);
-
 	// other loses ownership
 	alloced_shape_ = std::move(other.alloced_shape_);
 	allowed_shape_ = std::move(other.allowed_shape_);
+	dtype_ = std::move(other.dtype_);
+
+	raw_data_ = std::move(other.raw_data_);
+	other.dtype_ = BAD_T;
 }
 
 }

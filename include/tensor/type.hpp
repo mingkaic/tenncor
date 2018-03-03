@@ -20,9 +20,8 @@
 namespace nnet
 {
 
-class varptr;
-
 #define TENS_TYPE tenncor::tensor_proto::tensor_t
+#define N_TYPE (size_t) tenncor::tensor_proto::NUM_TYPES
 
 #define BAD_T tenncor::tensor_proto::BAD
 #define DOUBLE tenncor::tensor_proto::DOUBLE
@@ -41,7 +40,7 @@ unsigned short type_size (TENS_TYPE type);
 template <typename T>
 TENS_TYPE get_type (void)
 {
-	throw std::exception(); // todo: make type error
+	return BAD_T;
 }
 
 template <>

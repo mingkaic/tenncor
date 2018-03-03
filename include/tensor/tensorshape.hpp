@@ -12,6 +12,7 @@
  */
 
 #include <functional>
+
 #include "include/utils/utils.hpp"
 
 #pragma once
@@ -43,6 +44,9 @@ public:
 	tensorshape& operator = (const std::vector<size_t>& dims);
 
 	// >>>> ACCESSORS <<<<
+	//! access value at index dim, throws std::out_of_range if dim >= rank
+	size_t operator [] (size_t dim) const;
+
 	//! get a copy of the shape as a list
 	//! accounts for grouping
 	std::vector<size_t> as_list (void) const;
@@ -117,7 +121,7 @@ public:
 	size_t flat_idx (std::vector<size_t> coord) const;
 
 	//! obtain cartesian coordinates given a flat vector index
-	std::vector<size_t> coordinate_from_idx (size_t idx) const;
+	std::vector<size_t> coord_from_idx (size_t idx) const;
 
 	//! iterate with cartesian and flat coordinates of every valid element in shape
 	void iterate (std::function<void(std::vector<size_t>, size_t)> coord_call) const;

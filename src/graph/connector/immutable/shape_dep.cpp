@@ -88,7 +88,7 @@ void shape_dep::forward_pass (std::vector<inode*>& args)
 		std::vector<size_t> sdata = extracter_(shape);
 		size_t ns = sdata.size();
 		std::vector<double> doub_d(sdata.begin(), sdata.end());
-		std::shared_ptr<void> ptr = shared_varr(ns);
+		std::shared_ptr<void> ptr = nnutils::make_svoid(ns);
 		std::memcpy(ptr.get(), &doub_d[0], sizeof(double) * ns);
 		asgn_.set_data(ptr, DOUBLE, data_->get_shape(), 0); // todo: make tens's type
 		data_->read_from(asgn_);

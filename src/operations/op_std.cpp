@@ -415,7 +415,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 			std::vector<size_t> coord;
 			for (size_t i = 0; i < n; ++i)
 			{
-				coord = tmp_coord = outshape.coordinate_from_idx(i);
+				coord = tmp_coord = outshape.coord_from_idx(i);
 				for (size_t i = 0; i < perm.size(); ++i)
 				{
 					if (i != perm[i])
@@ -453,7 +453,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 			std::vector<size_t> coord;
 			for (size_t i = 0; i < n; ++i)
 			{
-				coord = outshape.coordinate_from_idx(i);
+				coord = outshape.coord_from_idx(i);
 				std::reverse(coord.begin(), coord.end());
 				index[i] = inshape.flat_idx(coord);
 			}
@@ -495,7 +495,7 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 		std::vector<size_t> coord;
 		for (size_t i = 0; i < n; ++i)
 		{
-			coord = outshape.coordinate_from_idx(i);
+			coord = outshape.coord_from_idx(i);
 			for (size_t d : dims)
 			{
 				coord[d] = slist[d] - coord[d] - 1;

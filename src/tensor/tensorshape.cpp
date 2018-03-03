@@ -22,6 +22,11 @@ tensorshape& tensorshape::operator = (const std::vector<size_t>& dims)
 	return *this;
 }
 
+size_t tensorshape::operator [] (size_t dim) const
+{
+	return dimensions_.at(dim);
+}
+
 std::vector<size_t> tensorshape::as_list (void) const
 {
 	return dimensions_;
@@ -290,7 +295,7 @@ size_t tensorshape::flat_idx (std::vector<size_t> coord) const
 	return index + coord[0];
 }
 
-std::vector<size_t> tensorshape::coordinate_from_idx (size_t idx) const
+std::vector<size_t> tensorshape::coord_from_idx (size_t idx) const
 {
 	std::vector<size_t> coord;
 	size_t xd;
@@ -308,7 +313,7 @@ void tensorshape::iterate (std::function<void(std::vector<size_t>, size_t)> coor
 	size_t n_elems = this->n_elems();
 	for (size_t i = 0; i < n_elems; i++)
 	{
-		coord_call(coordinate_from_idx(i), i);
+		coord_call(coord_from_idx(i), i);
 	}
 }
 

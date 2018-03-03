@@ -11,8 +11,8 @@
  *
  */
 
-#include "include/graph/graph.hpp"
 #include "include/tensor/tensor.hpp"
+#include "include/graph/graph.hpp"
 #include "include/graph/react/subject.hpp"
 #include "include/graph/react/iobserver.hpp"
 
@@ -22,6 +22,8 @@
 
 namespace nnet
 {
+
+class varptr;
 
 class ileaf;
 

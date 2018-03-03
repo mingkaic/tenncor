@@ -1,0 +1,73 @@
+// TENSORSHAPE
+A000 - copy and move creates/moves a data equivalent shape
+A001 - index accessor returns value at input dimension. 
+		accessing dimension greater or equal to rank throws std::out_of_range
+A002 - as_list returns a shallow copy of the dimension values provided during construction
+A003 - n_elems returns the product of all dimension value. non-fully defined shapes have n_elems of 0
+		n_known obtains the product of all known dimensions
+A004 - rank returns the length of the dimension vector
+A005 - tensorshape is compatible if one of the shapes are undefined,
+		or the tensors are of the same rank and dimension values equal for defined dimensions (> 0)
+A006 - a tensorshapes is partially defined if it has a rank > 0
+A007 - a tensorshapes is fully defined if it is at least partially defined
+		and all its dimensional values are defined (> 0)
+A008 - a tensorshape assert its rank wrt to another value or shape.
+		undefined shapes can have any rank
+A009 - a tensorshape can be undefined explicitly
+A010 - tensorshape merge return the most defined most defined shape
+		(that is dimension values > 0 are preferred)
+		merging incompatible tensorshapes results in a logic error
+A011 - a tensorshape can have its leading and trailing 1s removed
+A012 - two tensorshapes can concatenate to form a tensorshape depending on the order of
+		concatenation assuming both tensors are at least partially defined
+A013 - a tensorshape's rank can be manipulated by padding with ones or clipping
+A014 - coord_from_idx converts coordinates C to sequential index I on a tensorshape S takes form:
+		I = SIGMA_i=0:n(C[i]*PI_j=0:i-1(S[i])) where n is rank of S, and S[-1] is 1
+		flat_idx remap coordinate C on a tensorshape equals the initial index converted to C (reverse of A015)
+
+// TYPE
+B000 - type_size returns the number of bytes taken by specified type throws unsupported_type_error 
+		when requesting unsupported type
+B001 - get_type returns type mapped by the template argument to the protobuf enum specified in 
+		proto/serial/tenncor.proto returns BAD_T for unsupported type
+
+// TENSOR
+C000 - shape specified in tensor constructor is allowed_shape,
+		uninitialized tensor has type BAD_T
+C001 - read_from consumes data compatible with allowed_shape,
+		read_from also accepts an input shape compatible with allowed_shape,
+		allocated shape is recorded in member variable, read_from also sets type data
+		return true if data is successfully read from source.
+		read fails when:
+		- allowed_shape is not fully defined and no input shape is specified
+		- input shape is not compatible with allowed_shape
+		- tensor already has data
+		write_to enters data, type, and shape information (and input index) to data_dest
+		throws exception when tensor doesn't have data
+C002 - copy and move creates/moves (allocated and allowed) shape and raw data
+C003 - tensor can access shape information through rank, get_shape, dims, and n_elems
+		get_shape returns allocated shape if allocated, allowed_shape otherwise
+		n_elems returns 0 if no data is allocated, rank takes the rank of get_shape,
+		dims take the as_list of get_shape
+C004 - two tensors are the same size if their allowed shapes are compatible or
+		they are both allocated and their trimmed shapes are compatible
+C005 - two tensors are compatible if their alloc_shape if allocated (or allowed_shape) are compatible
+C006 - a tensor is compatible with a data vector if data is compatible
+		if data.size() == alloc_shape if allocated (or allowed_shape) size
+		loosely compatible if data.size() < alloc_shape if allocated (or allowed_shape) size
+		unmet condition returns undefined optional
+C007 - guess shape return a shape if the shape has n_elems == data.size() and is compatible
+		with allowed_shape otherwise return undefined optional
+		loosely guess return a shape if n_elems < data.size() and is compatible
+		with allowed_shape shape otherwise return undefined optional
+C008 - expose directly expresses the tensor's data. see flat_idx in A014
+C009 - has_data checks if the tensor has data
+C010 - total_bytes checks the allocated memory size in bytes
+C011 - clear removes data reference and allocated shape, returns true if tensor has data, false otherwise
+		allowed shape is not removed
+C012 - set_shape resets allowed shape, clears data if new allowed shape is not compatible with existing allocated shape
+C013 - copy_from another tensor will return true if other tensor is allocated
+		and shape is fully defined. resulting tensor will have the same value as
+		other within specified shape dimensions, data not specified by other is 0
+C014 - serialization fails to store if tensor has no data, otherwise save to file
+C015 - from_proto clears existing data, takes data, type, and shapes specified in save

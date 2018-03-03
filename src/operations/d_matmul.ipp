@@ -177,19 +177,19 @@ void matmul (VARR_T dest, std::vector<CVAR_T> srcs)
 	T* tdest = (T*) dest.first;
 	T* src0 = (T*) srcs[0].first;
 	T* src1 = (T*) srcs[1].first;
-	std::vector<size_t> alist = srcs[0].second.as_list();
-	std::vector<size_t> blist = srcs[1].second.as_list();
-	size_t dim_z = alist[0];
+	tensorshape& ashape = srcs[0].second;
+	tensorshape& bshape = srcs[1].second;
+	size_t dim_z = ashape[0];
 	size_t dim_y;
-	if (alist.size() < 2)
+	if (ashape.rank() < 2)
 	{
 		dim_y = 1;
 	}
 	else
 	{
-		dim_y = alist[1];
+		dim_y = ashape[1];
 	}
-	size_t dim_x = blist[0];
+	size_t dim_x = bshape[0];
 
 	// assert that beyond2d is same for A, B, and output C
 	size_t beyond2d = srcs[0].second.n_elems() / (dim_z * dim_y);

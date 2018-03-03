@@ -36,7 +36,7 @@ unsigned short type_size (TENS_TYPE type)
 		case UINT64:
 			return sizeof(int64_t);
 		default:
-			throw nnutils::type_error(type);
+			throw nnutils::unsupported_type_error(type);
 	}
 }
 

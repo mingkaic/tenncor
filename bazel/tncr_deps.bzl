@@ -63,3 +63,11 @@ def tncr_deps():
             strip_prefix = "googletest-ec44c6c1675c25b9827aacd08c02433cccde7780",
             url = "https://github.com/google/googletest/archive/ec44c6c1675c25b9827aacd08c02433cccde7780.tar.gz",
         )
+
+    if "com_github_mingkaic_testify" not in native.existing_rules():
+        native.new_http_archive(
+            name = "com_github_mingkaic_testify",
+            build_file = "@com_github_mingkaic_tenncor//third_party:testify.BUILD",
+            strip_prefix = "testify-0.2-alpha",
+            url = "https://github.com/raggledodo/testify/archive/v0.2-alpha.tar.gz",
+        )

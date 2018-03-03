@@ -11,11 +11,7 @@
  *
  */
 
-#include <memory>
-
-#include "include/tensor/tensorshape.hpp"
-#include "include/tensor/type.hpp"
-#include "include/operations/data_op.hpp"
+#include "include/tensor/data_src.hpp"
 
 #pragma once
 #ifndef TENNCOR_DATA_IO_HPP
@@ -30,28 +26,32 @@ using GLUE_F = std::function<void(VARR_T,CVAR_T,unsigned short,size_t)>;
 
 using SIDX_F = std::function<std::vector<size_t>(tensorshape,const tensorshape)>;
 
-std::shared_ptr<void> shared_varr (size_t nbytes);
-
-struct idata_src
-{
-	virtual ~idata_src (void) {}
-
-	idata_src* clone (void) const
-	{
-		return this->clone_impl();
-	}
-
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const = 0;
-
-protected:
-	virtual idata_src* clone_impl (void) const = 0;
-};
-
 struct idata_dest
 {
 	virtual ~idata_dest (void) {}
 
 	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx) = 0;
+};
+
+struct portal_dest : public idata_dest
+{
+	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
+	{
+		data_ = data;
+		type_ = type;
+		shape_ = shape;
+	}
+
+	void clear (void)
+	{
+		data_ = nullptr;
+		type_ = BAD_T;
+		shape_.undefine();
+	}
+
+	std::shared_ptr<void> data_;
+	TENS_TYPE type_ = BAD_T;
+	tensorshape shape_;
 };
 
 struct idata_io : virtual idata_src, virtual idata_dest
@@ -74,112 +74,6 @@ struct idata_io : virtual idata_src, virtual idata_dest
 
 protected:
 	TENS_TYPE type_ = BAD_T;
-};
-
-struct const_init final : public idata_src
-{
-	template <typename T>
-	void set (T value)
-	{
-		type_ = get_type<T>();
-		value_ = nnutils::stringify(&value, 1);
-	}
-
-	template <typename T>
-	void set (std::vector<T> value)
-	{
-		type_ = get_type<T>();
-		value_ = nnutils::stringify(&value[0], value.size());
-	}
-
-	const_init* clone (void) const
-	{
-		return static_cast<const_init*>(clone_impl());
-	}
-
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
-
-private:
-	virtual idata_src* clone_impl (void) const;
-
-	std::string value_;
-
-	TENS_TYPE type_ = BAD_T;
-};
-
-//! Uniformly Random Initialization
-struct rand_uniform final : public idata_src
-{
-	template <typename T>
-	void set (T min, T max)
-	{
-		type_ = get_type<T>();
-		min_ = nnutils::stringify(&min, 1);
-		max_ = nnutils::stringify(&max, 1);
-	}
-
-	rand_uniform* clone (void) const
-	{
-		return static_cast<rand_uniform*>(clone_impl());
-	}
-
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
-
-private:
-	virtual idata_src* clone_impl (void) const;
-
-	std::string min_;
-	std::string max_;
-
-	TENS_TYPE type_ = BAD_T;
-};
-
-//! Normal Random Initialization
-struct rand_normal final : public idata_src
-{
-	template <typename T>
-	void set (T mean, T stdev)
-	{
-		type_ = get_type<T>();
-		mean_ = nnutils::stringify(&mean, 1);
-		stdev_ = nnutils::stringify(&stdev, 1);
-	}
-
-	rand_normal* clone (void) const
-	{
-		return static_cast<rand_normal*>(clone_impl());
-	}
-
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
-
-private:
-	virtual idata_src* clone_impl (void) const;
-
-	std::string mean_;
-	std::string stdev_;
-
-	TENS_TYPE type_ = BAD_T;
-};
-
-struct portal_dest : public idata_dest
-{
-	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
-	{
-		data_ = data;
-		type_ = type;
-		shape_ = shape;
-	}
-
-	void clear (void)
-	{
-		data_ = nullptr;
-		type_ = BAD_T;
-		shape_.undefine();
-	}
-
-	std::shared_ptr<void> data_;
-	TENS_TYPE type_ = BAD_T;
-	tensorshape shape_;
 };
 
 struct imultiarg_io : public idata_io
