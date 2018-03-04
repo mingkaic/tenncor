@@ -4,7 +4,7 @@ cc_test(
 	srcs = glob([ "include/**/*.hpp", "src/**/*.cpp" ]),
 	data = glob([ "samples/**" ]),
 	deps = [
-		"@com_google_googletest//:gtest_main",
+		"@com_google_googletest//:gtest",
 		"//:tenncor",
 	],
 	linkstatic = 1,

@@ -51,8 +51,8 @@ def tncr_deps():
     if "com_google_protobuf" not in native.existing_rules():
         native.http_archive(
             name = "com_google_protobuf",
-            strip_prefix = "protobuf-2761122b810fe8861004ae785cc3ab39f384d342",
-            url = "https://github.com/google/protobuf/archive/2761122b810fe8861004ae785cc3ab39f384d342.tar.gz",
+            strip_prefix = "protobuf-106ffc04be1abf3ff3399f54ccf149815b287dd9",
+            url = "https://github.com/google/protobuf/archive/106ffc04be1abf3ff3399f54ccf149815b287dd9.tar.gz",
         )
 
     # gtest dependency

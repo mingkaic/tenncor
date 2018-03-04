@@ -17,13 +17,13 @@ idata_src::~idata_src (void) {}
 
 idata_src* idata_src::clone (void) const
 {
-    return this->clone_impl();
+	return this->clone_impl();
 }
 
 
 struct const_init* const_init::clone (void) const
 {
-    return static_cast<const_init*>(clone_impl());
+	return static_cast<const_init*>(clone_impl());
 }
 
 void const_init::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
@@ -47,7 +47,7 @@ idata_src* const_init::clone_impl (void) const
 
 struct rand_uniform* rand_uniform::clone (void) const
 {
-    return static_cast<rand_uniform*>(clone_impl());
+	return static_cast<rand_uniform*>(clone_impl());
 }
 
 void rand_uniform::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
@@ -70,7 +70,7 @@ idata_src* rand_uniform::clone_impl (void) const
 
 struct rand_normal* rand_normal::clone (void) const
 {
-    return static_cast<rand_normal*>(clone_impl());
+	return static_cast<rand_normal*>(clone_impl());
 }
 
 void rand_normal::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const

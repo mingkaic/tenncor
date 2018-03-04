@@ -27,6 +27,9 @@ struct range
 
 std::vector<size_t> make_partial (testify::fuzz_test* fuzzer, std::vector<size_t> shape);
 
+void make_incom_partials (testify::fuzz_test* fuzzer, std::vector<size_t> cshape,
+	std::vector<size_t>& partial, std::vector<size_t>& incomp);
+
 std::vector<size_t> make_incompatible (std::vector<size_t> shape);
 
 std::vector<size_t> random_shape (testify::fuzz_test* fuzzer, range<size_t> ranks = {0, 12});

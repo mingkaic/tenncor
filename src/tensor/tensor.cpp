@@ -15,49 +15,6 @@
 namespace nnet
 {
 
-static void fit_toshape (size_t bytesize, char* dest, const tensorshape& outshape, const char* src, const tensorshape& inshape)
-{
-	assert(outshape.is_fully_defined() && inshape.is_fully_defined());
-	size_t numout = outshape.n_elems();
-
-	size_t minrank = std::min(outshape.rank(), inshape.rank());
-	tensorshape clippedshape = inshape.with_rank(minrank);
-	size_t numin = clippedshape.n_elems();
-
-	memset(dest, 0, bytesize * numout);
-	size_t basewidth = std::min(outshape[0], inshape[0]);
-	size_t srcidx = 0;
-	while (srcidx < numin)
-	{
-		// check source index to ensure it is within inshape bounds
-		std::vector<size_t> srccoord = clippedshape.coord_from_idx(srcidx);
-		bool srcinbound = true;
-		size_t src_jump = 1;
-		for (size_t i = 1, m = minrank; srcinbound && i < m; i++)
-		{
-			srcinbound = srccoord[i] < outshape[i];
-			if (false == srcinbound)
-			{
-				src_jump *= (inshape[i] - srccoord[i]);
-			}
-			else
-			{
-				src_jump *= inshape[i];
-			}
-		}
-		if (false == srcinbound)
-		{
-			srcidx += (src_jump * inshape[0]);
-		}
-		else
-		{
-			size_t destidx = outshape.flat_idx(srccoord);
-			memcpy(dest + destidx, src + srcidx, bytesize * basewidth);
-			srcidx += inshape[0];
-		}
-	}
-}
-
 tensor::tensor (tensorshape shape) :
 	allowed_shape_(shape) {}
 
@@ -91,9 +48,9 @@ tensor& tensor::operator = (tensor&& other)
 
 
 
-void tensor::serialize (tenncor::tensor_proto* proto_dest) const
+bool tensor::serialize (tenncor::tensor_proto* proto_dest) const
 {
-	if (false == has_data()) return;
+	if (false == has_data()) return false;
 	proto_dest->set_type(dtype_);
 
 	// copy bytes
@@ -107,9 +64,10 @@ void tensor::serialize (tenncor::tensor_proto* proto_dest) const
 
 	proto_dest->mutable_allowed_shape()->Swap(&allowed_field);
 	proto_dest->mutable_alloced_shape()->Swap(&alloced_field);
+	return true;
 }
 
-bool tensor::from_proto (const tenncor::tensor_proto& proto_src)
+void tensor::from_proto (const tenncor::tensor_proto& proto_src)
 {
 	// shapes must have same dimensionality... (otherwise, input data is definitely corrupt)
 	assert(proto_src.alloced_shape_size() == proto_src.allowed_shape_size());
@@ -118,8 +76,7 @@ bool tensor::from_proto (const tenncor::tensor_proto& proto_src)
 	allowed_shape_ = tensorshape(allowed);
 	tensorshape temp_shape(alloced);
 	// another sanity check, be less stringent, since this may represent some less evident issue
-	if (false == temp_shape.is_compatible_with(allowed_shape_) ||
-		false == temp_shape.is_fully_defined()) return false;
+	assert(temp_shape.is_compatible_with(allowed_shape_) && temp_shape.is_fully_defined());
 
 	clear();
 	alloced_shape_ = temp_shape;
@@ -130,7 +87,6 @@ bool tensor::from_proto (const tenncor::tensor_proto& proto_src)
 	memcpy(raw_data_.get(), (void*) protostr.c_str(), protostr.size());
 
 	dtype_ = proto_src.type();
-	return true;
 }
 
 
@@ -327,7 +283,11 @@ bool tensor::has_data (void) const
 
 size_t tensor::total_bytes (void) const
 {
-	return n_elems() * type_size(dtype_);
+	if (has_data())
+	{
+		return n_elems() * type_size(dtype_);
+	}
+	return 0;
 }
 	
 TENS_TYPE tensor::get_type (void) const
@@ -339,10 +299,7 @@ TENS_TYPE tensor::get_type (void) const
 void tensor::set_shape (tensorshape shape)
 {
 	// allowed shape update
-	if (false == allowed_shape_.is_compatible_with(shape) || nullptr == raw_data_)
-	{
-		allowed_shape_ = shape;
-	}
+	allowed_shape_ = shape;
 
 	// if shape is compatible with alloc then we don't need to change raw data
 	// otherwise we need to modify raw data to match new shape
@@ -391,29 +348,7 @@ bool tensor::clear (void)
 	{
 		raw_data_ = nullptr;
 		alloced_shape_.undefine();
-	}
-	return success;
-}
-
-bool tensor::copy_from (const tensor& other, const tensorshape shape)
-{
-	bool success = other.has_data() && shape.is_fully_defined();
-	if (success)
-	{
-		// allowed shape update
-		if (!allowed_shape_.is_compatible_with(shape))
-		{
-			allowed_shape_ = shape;
-		}
-
-		tensorshape olds = other.get_shape();
-		dtype_ = other.dtype_;
-		size_t bsize = type_size(dtype_);
-
-		raw_data_ = nnutils::make_svoid(bsize * shape.n_elems());
-		fit_toshape(bsize, (char*) raw_data_.get(), shape, (char*) other.raw_data_.get(), olds);
-
-		alloced_shape_ = shape;
+		dtype_ = BAD_T;
 	}
 	return success;
 }

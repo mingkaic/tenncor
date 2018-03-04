@@ -44,6 +44,7 @@ C001 - read_from consumes data compatible with allowed_shape,
 		- tensor already has data
 		write_to enters data, type, and shape information (and input index) to data_dest
 		throws exception when tensor doesn't have data
+		has_data checks if the tensor has data
 C002 - copy and move creates/moves (allocated and allowed) shape and raw data
 C003 - tensor can access shape information through rank, get_shape, dims, and n_elems
 		get_shape returns allocated shape if allocated, allowed_shape otherwise
@@ -61,13 +62,9 @@ C007 - guess shape return a shape if the shape has n_elems == data.size() and is
 		loosely guess return a shape if n_elems < data.size() and is compatible
 		with allowed_shape shape otherwise return undefined optional
 C008 - expose directly expresses the tensor's data. see flat_idx in A014
-C009 - has_data checks if the tensor has data
-C010 - total_bytes checks the allocated memory size in bytes
-C011 - clear removes data reference and allocated shape, returns true if tensor has data, false otherwise
+C009 - total_bytes checks the allocated memory size in bytes, return 0 if not allocated
+C010 - clear removes data reference and allocated shape, returns true if tensor has data, false otherwise
 		allowed shape is not removed
-C012 - set_shape resets allowed shape, clears data if new allowed shape is not compatible with existing allocated shape
-C013 - copy_from another tensor will return true if other tensor is allocated
-		and shape is fully defined. resulting tensor will have the same value as
-		other within specified shape dimensions, data not specified by other is 0
-C014 - serialization fails to store if tensor has no data, otherwise save to file
-C015 - from_proto clears existing data, takes data, type, and shapes specified in save
+C011 - set_shape resets allowed shape, clears data if new allowed shape is not compatible with existing allocated shape
+C012 - serialization fails to store if tensor has no data, otherwise save to file
+		from_proto clears existing data, takes data, type, and shapes specified in save

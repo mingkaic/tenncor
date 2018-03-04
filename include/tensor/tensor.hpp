@@ -54,10 +54,10 @@ public:
 	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<
 
 	//! serialize protobuf tensor
-	void serialize (tenncor::tensor_proto* proto_dest) const;
+	bool serialize (tenncor::tensor_proto* proto_dest) const;
 
 	//! read data and shape from other, take allocator as is
-	bool from_proto (const tenncor::tensor_proto& proto_src);
+	void from_proto (const tenncor::tensor_proto& proto_src);
 
 
 
@@ -149,10 +149,6 @@ public:
 	//! could be useful when we want to preserve allowed shape
 	//! since get_shape when allocated gives allocated shape
 	bool clear (void);
-
-	//! copy raw_data from other expanded/compressed to input shape
-	//! allowed shape will be adjusted similar to set_shape
-	bool copy_from (const tensor& other, const tensorshape shape);
 
 	// slice along the first dimension
 	void slice (size_t dim_start, size_t limit);

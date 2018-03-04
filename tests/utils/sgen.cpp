@@ -18,22 +18,36 @@ namespace testutils
 
 std::vector<size_t> make_partial (testify::fuzz_test* fuzzer, std::vector<size_t> shape)
 {
+	size_t rank = shape.size();
 	size_t nzeros = 1;
-	if (shape.size() > 2)
+	if (rank > 2)
 	{
-		nzeros = fuzzer->get_int(1, "nzeros", {1, shape.size()-1})[0];
+		nzeros = fuzzer->get_int(1, "nzeros", {1, rank - 1})[0];
 	}
-	else if (shape.size() == 1)
+	else if (rank == 1)
 	{
 		shape.push_back(0);
 		return shape;
 	}
-	std::vector<size_t> zeros = fuzzer->get_int(nzeros, "zeros", {0, shape.size()-1});
+	std::vector<size_t> zeros = fuzzer->get_int(nzeros, "zeros", {0, rank-1});
 	for (size_t zidx : zeros)
 	{
 		shape[zidx] = 0;
 	}
 	return shape;
+}
+
+void make_incom_partials (testify::fuzz_test* fuzzer, std::vector<size_t> cshape,
+	std::vector<size_t>& partial, std::vector<size_t>& incomp)
+{
+	incomp = partial = make_partial(fuzzer, cshape);
+	for (size_t i = 0; i < partial.size(); ++i)
+	{
+		if (partial[i] != 0)
+		{
+			incomp[i]++;
+		}
+	}
 }
 
 std::vector<size_t> make_incompatible (std::vector<size_t> shape)
