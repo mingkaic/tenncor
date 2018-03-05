@@ -16,6 +16,7 @@
 
 #include "tensor/tensor.hpp"
 
+
 #ifndef DISABLE_TENSOR_TEST
 
 
@@ -128,7 +129,7 @@ TEST_F(TENSOR, ReadFrom_C001)
 	EXPECT_TRUE(testify::mocker::EXPECT_VALUE(&src, "get_data", ss.str())) <<
 		testutils::sprintf("expecting src::get_data to be called with shape %p", &cshape);
 
-	size_t idx =	get_int(1, "idx")[0];
+	size_t idx = get_int(1, "idx")[0];
 	std::stringstream ss2;
 	ss2 << idx;
 	mock_data_dest dest;

@@ -241,15 +241,15 @@ void rand_normal (VARR_T dest, std::vector<CVAR_T> srcs)
 	tensorshape& srcshape_min = srcs.front().second;
 	tensorshape& srcshape_max = srcs.back().second;
 	T* d = (T*) dest.first;
-	const T* s_min = (const T*) srcs.front().first;
-	const T* s_max = (const T*) srcs.front().first;
+	const T* s_mean = (const T*) srcs.front().first;
+	const T* s_stdev = (const T*) srcs.front().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();
 
 	for (size_t i = 0; i < n; ++i)
 	{
-		std::normal_distribution<T> dist(s_min[i * min_mul], s_max[i * max_mul]);
+		std::normal_distribution<T> dist(s_mean[i * min_mul], s_stdev[i * max_mul]);
 		d[i] = dist(nnutils::get_generator());
 	}
 }

@@ -45,12 +45,12 @@ idata_src* const_init::clone_impl (void) const
 }
 
 
-struct rand_uniform* rand_uniform::clone (void) const
+struct r_uniform_init* r_uniform_init::clone (void) const
 {
-	return static_cast<rand_uniform*>(clone_impl());
+	return static_cast<r_uniform_init*>(clone_impl());
 }
 
-void rand_uniform::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+void r_uniform_init::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
 	type = type_;
 	size_t nbytes = shape.n_elems() * type_size(type);
@@ -62,18 +62,18 @@ void rand_uniform::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, ten
 	});
 }
 
-idata_src* rand_uniform::clone_impl (void) const
+idata_src* r_uniform_init::clone_impl (void) const
 {
-	return new rand_uniform(*this);
+	return new r_uniform_init(*this);
 }
 
 
-struct rand_normal* rand_normal::clone (void) const
+struct r_normal_init* r_normal_init::clone (void) const
 {
-	return static_cast<rand_normal*>(clone_impl());
+	return static_cast<r_normal_init*>(clone_impl());
 }
 
-void rand_normal::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+void r_normal_init::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
 	type = type_;
 	size_t nbytes = shape.n_elems() * type_size(type);
@@ -85,9 +85,9 @@ void rand_normal::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tens
 	});
 }
 
-idata_src* rand_normal::clone_impl (void) const
+idata_src* r_normal_init::clone_impl (void) const
 {
-	return new rand_normal(*this);
+	return new r_normal_init(*this);
 }
 
 }

@@ -12,6 +12,7 @@
 
 #ifndef DISABLE_TYPE_TEST
 
+
 TEST(TYPE, TypeSize_B000)
 {
     EXPECT_EQ(sizeof(double), nnet::type_size(DOUBLE));
@@ -26,6 +27,7 @@ TEST(TYPE, TypeSize_B000)
     EXPECT_EQ(8, nnet::type_size(UINT64));
     EXPECT_THROW(nnet::type_size(BAD_T), nnutils::unsupported_type_error);
 }
+
 
 TEST(TYPE, GetType_B001)
 {
@@ -42,6 +44,8 @@ TEST(TYPE, GetType_B001)
     EXPECT_EQ(BAD_T, nnet::get_type<std::string>());
 }
 
+
 #endif /* DISABLE_TYPE_TEST */
+
 
 #endif /* DISABLE_TENSOR_MODULE_TESTS */

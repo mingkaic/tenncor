@@ -43,8 +43,8 @@ def tncr_deps():
     if "com_github_grpc_grpc" not in native.existing_rules():
         native.http_archive(
             name = "com_github_grpc_grpc",
-            strip_prefix = "grpc-123547c9625c56fdf5cb4ddd1df55ae0c785fa60",
-            url = "https://github.com/grpc/grpc/archive/123547c9625c56fdf5cb4ddd1df55ae0c785fa60.tar.gz",
+            strip_prefix = "grpc-474c5950686e3962bd339c93d27e369bf64f568f",
+            url = "https://github.com/grpc/grpc/archive/474c5950686e3962bd339c93d27e369bf64f568f.tar.gz",
         )
 
     # protobuf dependency for serialization and monitoring

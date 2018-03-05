@@ -68,3 +68,17 @@ C010 - clear removes data reference and allocated shape, returns true if tensor 
 C011 - set_shape resets allowed shape, clears data if new allowed shape is not compatible with existing allocated shape
 C012 - serialization fails to store if tensor has no data, otherwise save to file
 		from_proto clears existing data, takes data, type, and shapes specified in save
+
+// DATA SOURCE
+D000 - clone/move a source returns the caller's type
+D001 - constant setting invalid type throws error
+		reading from constant init repeatedly set stored value to output
+		unset init has type BAD_T
+D002 - random uniform setting invalid type throws error
+		reading from random_uniform sets data between min and max values set
+		unset init has type BAD_T
+D003 - random normal setting invalid type throws error
+		reading from random_normal sets data of mean and stdev values set
+		unset init has type BAD_T
+
+// DATA IO
