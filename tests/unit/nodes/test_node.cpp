@@ -4,25 +4,28 @@
 
 #ifndef DISABLE_TOP_NODE_MODULE_TESTS
 
-#include <algorithm>
-
 #include "gtest/gtest.h"
 
-#include "tests/unit/include/mocks/mock_node.h"
-#include "tests/unit/include/utils/fuzz.h"
+#include "fuzz/fuzz.hpp"
+
+#include "check.hpp"
+
+#include "mock_node.hpp"
 
 
 #ifndef DISABLE_NODE_TEST
 
 
-class NODE : public FUZZ::fuzz_test {};
+class NODE : public testify::fuzz_test {};
 
 
-// covers inode
-// copy assignment and constructor
+using namespace testutils;
+
+
+// covers inode: clone
 TEST_F(NODE, Copy_B000)
 {
-	mock_node assign;
+	mock_node assign("");
 
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node n1(label1);
@@ -39,11 +42,10 @@ TEST_F(NODE, Copy_B000)
 }
 
 
-// covers inode
-// move assignment and constructor
+// covers inode: move
 TEST_F(NODE, Move_B000)
 {
-	mock_node assign;
+	mock_node assign("");
 
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
 	mock_node n1(label1);
@@ -53,39 +55,42 @@ TEST_F(NODE, Move_B000)
 
 	mock_node mv(std::move(n1));
 
+	std::string n1str = n1.get_label();
 	std::string ouid2 = mv.get_uid();
-	EXPECT_TRUE(n1.get_label().empty());
+	EXPECT_TRUE(n1str.empty()) <<
+		sprintf("empty n1 node got label %s", n1str.c_str());
 	EXPECT_EQ(label1, mv.get_label());
 	EXPECT_NE(ouid, ouid2);
 
 	assign = std::move(mv);
 
+	std::string mvstr = mv.get_label();
 	std::string ouid3 = assign.get_uid();
-	EXPECT_TRUE(mv.get_label().empty());
+	EXPECT_TRUE(mvstr.empty()) <<
+		sprintf("empty mv node got label %s", mvstr.c_str());
 	EXPECT_EQ(label1, assign.get_label());
 	EXPECT_NE(ouid, ouid3);
 	EXPECT_NE(ouid2, ouid3);
 }
 
 
-// covers inode
-// get_uid
+// covers inode: get_uid
 TEST_F(NODE, UID_B001)
 {
 	std::unordered_set<std::string> us;
 	size_t ns = get_int(1, "ns", {1412, 2922})[0];
 	for (size_t i = 0; i < ns; i++)
 	{
-		mock_node mn;
+		mock_node mn("");
 		std::string uid = mn.get_uid();
-		EXPECT_TRUE(us.end() == us.find(uid));
+		EXPECT_TRUE(us.end() == us.find(uid)) <<
+			sprintf("found duplicate uid %s", uid.c_str());
 		us.emplace(uid);
 	}
 }
 
 
-// covers inode
-// get_label, get_name
+// covers inode: get_label, get_name
 TEST_F(NODE, Label_B002)
 {
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
@@ -100,6 +105,4 @@ TEST_F(NODE, Label_B002)
 #endif /* DISABLE_NODE_TEST */
 
 
-
 #endif /* DISABLE_TOP_NODE_MODULE_TESTS */
-

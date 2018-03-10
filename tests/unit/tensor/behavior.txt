@@ -34,14 +34,14 @@ B001 - get_type returns type mapped by the template argument to the protobuf enu
 // TENSOR
 C000 - shape specified in tensor constructor is allowed_shape,
 		uninitialized tensor has type BAD_T
-C001 - read_from consumes data compatible with allowed_shape,
+C001 - read_from creates data compatible with allowed_shape or read directly to allocated data,
 		read_from also accepts an input shape compatible with allowed_shape,
 		allocated shape is recorded in member variable, read_from also sets type data
 		return true if data is successfully read from source.
 		read fails when:
-		- allowed_shape is not fully defined and no input shape is specified
-		- input shape is not compatible with allowed_shape
-		- tensor already has data
+		- raw_data is null and allowed_shape is not fully defined and no input shape is specified
+		- input shape is not compatible with allowed_shape when raw_data is null or 
+			alloced_shape when raw_data is not null
 		write_to enters data, type, and shape information (and input index) to data_dest
 		throws exception when tensor doesn't have data
 		has_data checks if the tensor has data
@@ -54,12 +54,12 @@ C004 - two tensors are the same size if their allowed shapes are compatible or
 		they are both allocated and their trimmed shapes are compatible
 C005 - two tensors are compatible if their alloc_shape if allocated (or allowed_shape) are compatible
 C006 - a tensor is compatible with a data vector if data is compatible
-		if data.size() == alloc_shape if allocated (or allowed_shape) size
-		loosely compatible if data.size() < alloc_shape if allocated (or allowed_shape) size
+		if ndata == alloc_shape if allocated (or allowed_shape) size
+		loosely compatible if ndata < alloc_shape if allocated (or allowed_shape) size
 		unmet condition returns undefined optional
-C007 - guess shape return a shape if the shape has n_elems == data.size() and is compatible
+C007 - guess shape return a shape if the shape has n_elems == ndata and is compatible
 		with allowed_shape otherwise return undefined optional
-		loosely guess return a shape if n_elems < data.size() and is compatible
+		loosely guess return a shape if n_elems < ndata and is compatible
 		with allowed_shape shape otherwise return undefined optional
 C008 - expose directly expresses the tensor's data. see flat_idx in A014
 C009 - total_bytes checks the allocated memory size in bytes, return 0 if not allocated

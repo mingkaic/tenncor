@@ -200,7 +200,7 @@ void rand_binom (VARR_T dest, std::vector<CVAR_T> srcs)
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sn = (const T*) srcs.front().first;
-	const T* sp = (const T*) srcs.front().first;
+	const T* sp = (const T*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -221,7 +221,7 @@ void rand_uniform (VARR_T dest, std::vector<CVAR_T> srcs)
 	tensorshape& srcshape_max = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* s_min = (const T*) srcs.front().first;
-	const T* s_max = (const T*) srcs.front().first;
+	const T* s_max = (const T*) srcs.back().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -242,7 +242,7 @@ void rand_normal (VARR_T dest, std::vector<CVAR_T> srcs)
 	tensorshape& srcshape_max = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* s_mean = (const T*) srcs.front().first;
-	const T* s_stdev = (const T*) srcs.front().first;
+	const T* s_stdev = (const T*) srcs.back().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();

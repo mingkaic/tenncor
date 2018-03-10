@@ -86,16 +86,16 @@ protected:
 	//! replace dependency
 	void replace_dependency (subject* dep, size_t i);
 
+	// >>>>>> NOTIFICATION MESSAGE MANAGER <<<<<<
+
+	//! update observer value with notification
+	virtual void update (notification msg, std::unordered_set<size_t> indices);
+
 	//! order of subject matters;
 	//! observer-subject relation is non-unique
 	std::vector<subject*> dependencies_;
 
 private:
-	// >>>>>> NOTIFICATION MESSAGE MANAGER <<<<<<
-
-	//! update observer value with notification
-	virtual void update (notification msg);
-
 	//! copy helper function
 	void copy_helper (const iobserver& other);
 

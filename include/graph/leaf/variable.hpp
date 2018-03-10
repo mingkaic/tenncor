@@ -20,7 +20,7 @@
 namespace nnet
 {
 
-class variable final : public ileaf
+class variable final : public inode
 {
 public:
 	//! construct to init zero and one
@@ -48,6 +48,23 @@ public:
 
 
 
+	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	// >>>>>> CONNECTION QUERY <<<<<<
+
+	//! merge/update the gradient/leaf info
+	virtual std::unordered_set<inode*> get_leaves (void) const
+	{
+		return {const_cast<variable*>(this)};
+	}
+
+	std::shared_ptr<idata_src> get_source (void) const
+	{
+		return src_;
+	}
+
+
+
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
 
 	//! get tensor data
@@ -68,12 +85,6 @@ public:
 	//! assign contents of input to this, return true if successful
 	bool assign (inode* input, bool notify = true);
 
-	//! return update data function (add input node data to this)
-	bool assign_add (inode* input, bool notify = true);
-
-	//! return update data function (subtract input node data to this)
-	bool assign_sub (inode* input, bool notify = true);
-
 protected:
 	// >>>>>> POLYMORPHIC CLONERS <<<<<<
 
@@ -88,8 +99,6 @@ protected:
 	void move_helper (variable&& other);
 
 private:
-	assign_io asgn_;
-
 	std::shared_ptr<idata_src> src_; // todo: consider this temporary variable
 
 	//! raw data

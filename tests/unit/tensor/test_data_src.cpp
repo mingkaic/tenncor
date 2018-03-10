@@ -4,14 +4,10 @@
 
 #ifndef DISABLE_TENSOR_MODULE_TESTS
 
-#include <algorithm>
-#include <numeric>
-#include <limits>
-
 #include "gtest/gtest.h"
 
-#include "tests/utils/sgen.hpp"
-#include "tests/utils/check.hpp"
+#include "sgen.hpp"
+#include "check.hpp"
 
 #include "tensor/data_src.hpp"
 #include "tensor/tensor.hpp"
@@ -52,6 +48,20 @@ std::vector<TYPE> vec = nnet::expose<TYPE>(&ten); \
 everything = std::string(vec.size() * sizeof(TYPE), ' '); \
 std::memcpy(&everything[0], &vec[0], vec.size() * sizeof(TYPE));
 
+#define GET_STDEV(TYPE) \
+	TYPE* val = (TYPE*) c; \
+	TYPE* mean = (TYPE*) &meanstr[0]; \
+	TYPE* stdev = (TYPE*) &stdevstr[0]; \
+	TYPE absdiff = *mean > *val ? *mean - *val : *val - *mean; \
+	size_t idx = absdiff / *stdev; \
+	if (stdev_count.size() <= idx) \
+	{ \
+		stdev_count.insert(stdev_count.end(), \
+			idx - stdev_count.size() + 1, 0); \
+	} \
+	stdev_count[idx]++;
+
+#define ERR_THRESH 0.03 // 5% error
 
 TENS_TYPE fuzz_const (testify::fuzz_test* fuzzer, 
 	nnet::const_init& ci, std::string& expect)
@@ -560,6 +570,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 
 	ten.read_from(ri);
 
+	// mindist is the average relative distance between value and min (with respect to max)
+	double mindist = 0;
 	iterate(ten, 
 	[&](size_t, const char* c)
 	{
@@ -572,6 +584,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				double* max = (double*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "double type";
 				EXPECT_GE(*max, *val) << "double type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case FLOAT:
@@ -581,6 +594,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				float* max = (float*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "float type";
 				EXPECT_GE(*max, *val) << "float type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case INT8:
@@ -590,6 +604,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int8_t* max = (int8_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int8 type";
 				EXPECT_GE(*max, *val) << "int8 type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case UINT8:
@@ -599,6 +614,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				uint8_t* max = (uint8_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "uint8 type";
 				EXPECT_GE(*max, *val) << "uint8 type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case INT16:
@@ -608,6 +624,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int16_t* max = (int16_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int16 type";
 				EXPECT_GE(*max, *val) << "int16 type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case UINT16:
@@ -617,6 +634,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				uint16_t* max = (uint16_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "uint16 type";
 				EXPECT_GE(*max, *val) << "uint16 type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case INT32:
@@ -626,6 +644,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int32_t* max = (int32_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int32 type";
 				EXPECT_GE(*max, *val) << "int32 type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case UINT32:
@@ -635,6 +654,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				uint32_t* max = (uint32_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "uint32 type";
 				EXPECT_GE(*max, *val) << "uint32 type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case INT64:
@@ -644,6 +664,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int64_t* max = (int64_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int64 type";
 				EXPECT_GE(*max, *val) << "int64 type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			case UINT64:
@@ -653,19 +674,112 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				uint64_t* max = (uint64_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "uint64 type";
 				EXPECT_GE(*max, *val) << "uint64 type";
+				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
 			}
 			break;
 			default:
 			break;
 		}
 	});
+	mindist /= shape.n_elems();
+	// min dist is between 10% and 90%
+	EXPECT_LE(0.01, mindist);
+	EXPECT_GE(0.99, mindist);
 }
 
 
-// TEST_F(DATA_SRC, RandNorm_D003)
-// {
+// todo: fix huge overhead by switching to a faster generator
+TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
+{
+	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tensor ten(shape);
 
-// }
+	nnet::r_normal_init ri;
+	nnet::r_normal_init badi;
+
+	EXPECT_EQ(BAD_T, ri.get_mean().second);
+	EXPECT_THROW(badi.set<std::string>("mean", "stdev"), std::exception);
+
+	std::string meanstr, stdevstr;
+	TENS_TYPE utype = fuzz_normal(this, ri, meanstr, stdevstr);
+
+	ten.read_from(ri);
+
+	// mindist is the average relative distance between value and min (with respect to max)
+	std::vector<size_t> stdev_count(3, 0);
+	iterate(ten, 
+	[&](size_t, const char* c)
+	{
+		switch (utype)
+		{
+			case DOUBLE:
+			{
+				GET_STDEV(double)
+			}
+			break;
+			case FLOAT:
+			{
+				GET_STDEV(float)
+			}
+			break;
+			case INT8:
+			{
+				GET_STDEV(int8_t)
+			}
+			break;
+			case UINT8:
+			{
+				GET_STDEV(uint8_t)
+			}
+			break;
+			case INT16:
+			{
+				GET_STDEV(int16_t)
+			}
+			break;
+			case UINT16:
+			{
+				GET_STDEV(uint16_t)
+			}
+			break;
+			case INT32:
+			{
+				GET_STDEV(int32_t)
+			}
+			break;
+			case UINT32:
+			{
+				GET_STDEV(uint32_t)
+			}
+			break;
+			case INT64:
+			{
+				GET_STDEV(int64_t)
+			}
+			break;
+			case UINT64:
+			{
+				GET_STDEV(uint64_t)
+			}
+			break;
+			default:
+			break;
+		}
+	});
+	float n = shape.n_elems();
+	// check the first 3 stdev
+	float expect68 = stdev_count[0] / n; // expect ~68%
+	float expect95 = stdev_count[1] / n; // expect ~95%
+	float expect99 = stdev_count[2] / n; // expect ~99.7%
+
+	float err1 = std::abs(0.68 - expect68);
+	float err2 = std::abs(0.95 - expect95);
+	float err3 = std::abs(0.997 - expect99);
+
+	EXPECT_LT(ERR_THRESH, err1);
+	EXPECT_LT(ERR_THRESH, err2);
+	EXPECT_LT(ERR_THRESH, err3);
+}
 
 
 #endif /* DISABLE_DSRC_TEST */

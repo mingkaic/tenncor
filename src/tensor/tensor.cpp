@@ -314,31 +314,39 @@ void tensor::set_shape (tensorshape shape)
 
 bool tensor::read_from (const idata_src& src)
 {
-	// assert that alloced_shape is undefined if not allocated
-	if (nullptr == raw_data_ && allowed_shape_.is_fully_defined())
+	bool successful = nullptr != raw_data_;
+	if (successful)
+	{
+		src.get_data(raw_data_, dtype_, alloced_shape_);
+	}
+	else if (allowed_shape_.is_fully_defined())
 	{
 		src.get_data(raw_data_, dtype_, allowed_shape_);
 		if (raw_data_ != nullptr)
 		{
 			alloced_shape_ = allowed_shape_;
 		}
+		successful = has_data();
 	}
-	return has_data();
+	return successful;
 }
 
 bool tensor::read_from (const idata_src& src, const tensorshape shape)
 {
-	if (nullptr == raw_data_ &&
-		shape.is_compatible_with(allowed_shape_)&&
-		shape.is_fully_defined())
+	bool successful = shape.is_fully_defined() && 
+		((nullptr != raw_data_ && 
+		shape.is_compatible_with(alloced_shape_)) ||
+		shape.is_compatible_with(allowed_shape_));
+	if (successful)
 	{
 		src.get_data(raw_data_, dtype_, shape);
 		if (raw_data_ != nullptr)
 		{
 			alloced_shape_ = shape;
 		}
+		successful = has_data();
 	}
-	return has_data();
+	return successful;
 }
 
 bool tensor::clear (void)

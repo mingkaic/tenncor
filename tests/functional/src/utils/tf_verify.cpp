@@ -111,8 +111,10 @@ void tensor_check (const nnet::tensor* expect,
 	std::vector<size_t> gots = portgo.shape_.as_list();
 	size_t exn = portex.shape_.n_elems();
 	size_t gon = portgo.shape_.n_elems();
-	double* exptr = (double*) portex.data_.get();
-	double* goptr = (double*) portgo.data_.get();
+	assert(!portex.data_.expired());
+	assert(!portgo.data_.expired());
+	double* exptr = (double*) portex.data_.lock().get();
+	double* goptr = (double*) portgo.data_.lock().get();
 	std::vector<double> expectv(exptr, exptr + exn);
 	std::vector<double> gotv(goptr, goptr + gon);
 

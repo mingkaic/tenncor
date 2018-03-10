@@ -97,14 +97,10 @@ nnet::variable* tensify (std::string str)
 		}
 		// assert max_level == rank
 	}
+	std::shared_ptr<nnet::const_init> init = std::make_shared<nnet::const_init>();
+	init->set<double>(data);
 
-	size_t totalbytes = data.size() * sizeof(double);
-	std::shared_ptr<void> sdata = nnutils::make_svoid(totalbytes);
-	std::memcpy(sdata.get(), &data[0], totalbytes);
-	std::shared_ptr<nnet::assign_io> asgn = std::make_shared<nnet::assign_io>();
-	asgn->set_data(sdata, DOUBLE, nnet::tensorshape(shaplist), 0);
-
-	return new nnet::variable(nnet::tensorshape(shaplist), asgn, "");
+	return new nnet::variable(nnet::tensorshape(shaplist), init, "");
 }
 
 #endif

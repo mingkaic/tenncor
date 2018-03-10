@@ -25,8 +25,6 @@ namespace nnet
 
 class varptr;
 
-class ileaf;
-
 class variable;
 
 class inode : public subject
@@ -64,7 +62,7 @@ public:
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info
-	virtual std::unordered_set<ileaf*> get_leaves (void) const = 0;
+	virtual std::unordered_set<inode*> get_leaves (void) const = 0;
 
 
 
@@ -109,9 +107,6 @@ private:
 
 	//! describes this node's purpose
 	std::string label_;
-
-	//! record special-case numerical data
-	std::unordered_map<std::string, size_t> metadata_;
 };
 
 class varptr : public iobserver

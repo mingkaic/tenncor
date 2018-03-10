@@ -56,14 +56,13 @@ public:
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 	
 	//! get gradient leaves
-	virtual std::unordered_set<ileaf*> get_leaves (void) const
+	virtual std::unordered_set<inode*> get_leaves (void) const
 	{
-		std::unordered_set<ileaf*> leaves;
-		std::unordered_set<ileaf*> subleaves;
+		std::unordered_set<inode*> leaves;
 		std::vector<inode*> args = this->get_arguments();
 		for (inode* arg : args)
 		{
-			subleaves = arg->get_leaves();
+			std::unordered_set<inode*> subleaves = arg->get_leaves();
 			leaves.insert(subleaves.begin(), subleaves.end());
 		}
 		return leaves;

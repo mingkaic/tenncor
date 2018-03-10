@@ -56,10 +56,10 @@ public:
 	{
 		label_incr("death_on_broken");
 	}
-	virtual std::unordered_set<ileaf*> get_leaves (void) const
+	virtual std::unordered_set<inode*> get_leaves (void) const
 	{
 		label_incr("get_leaves1");
-		return std::unordered_set<ileaf*>{};
+		return std::unordered_set<inode*>{};
 	}
 
 protected:

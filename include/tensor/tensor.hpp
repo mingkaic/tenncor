@@ -181,7 +181,11 @@ std::vector<T> expose (const tensor* tens)
 	tens->write_to(port);
 	assert(get_type<T>() == port.type_);
 	size_t n = port.shape_.n_elems();
-	T* ptr = (T*) port.data_.get();
+	if (port.data_.expired())
+	{
+		throw std::exception(); // tensor write failed
+	}
+	T* ptr = (T*) port.data_.lock().get();
 	return std::vector<T>(ptr, ptr + n);
 }
 

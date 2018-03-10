@@ -60,11 +60,15 @@ bool iobserver::is_recordable (void) const
 }
 
 
-void iobserver::update (notification msg)
+void iobserver::update (notification msg, std::unordered_set<size_t> indices)
 {
 	switch (msg)
 	{
 		case UNSUBSCRIBE:
+			for (size_t idx : indices)
+			{
+				remove_dependency(idx);
+			}
 			death_on_broken();
 		break;
 		case UPDATE:
@@ -121,19 +125,18 @@ void iobserver::add_dependency (subject* dep)
 	if (dep)
 	{
 		dep->attach(this, dependencies_.size());
+		dependencies_.push_back(dep);
 	}
-	dependencies_.push_back(dep);
 }
 
 void iobserver::remove_dependency (size_t idx)
 {
-	size_t depsize = dependencies_.size();
-	if (idx>= depsize)
+	subject* sub = nullptr;
+	if (idx < dependencies_.size())
 	{
-		throw std::logic_error(nnutils::formatter() << "attempting to remove argument index "
-			<< idx << " from observer with " << depsize << " arguments");
+		sub = dependencies_[idx];
 	}
-	if (subject* sub = dependencies_[idx])
+	if (nullptr != sub)
 	{
 		sub->detach(this, idx);
 		// update dependencies
@@ -151,6 +154,7 @@ void iobserver::replace_dependency (subject* dep, size_t i)
 	if (i < dependencies_.size())
 	{
 		dependencies_[i]->detach(this, i);
+		dependencies_[i] = dep;
 		dep->attach(this, i);
 	}
 }

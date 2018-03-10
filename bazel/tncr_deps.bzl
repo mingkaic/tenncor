@@ -68,6 +68,6 @@ def tncr_deps():
         native.new_http_archive(
             name = "com_github_mingkaic_testify",
             build_file = "@com_github_mingkaic_tenncor//third_party:testify.BUILD",
-            strip_prefix = "testify-0.2-alpha",
-            url = "https://github.com/raggledodo/testify/archive/v0.2-alpha.tar.gz",
+            strip_prefix = "testify-0.2.2-alpha",
+            url = "https://github.com/raggledodo/testify/archive/v0.2.2-alpha.tar.gz",
         )

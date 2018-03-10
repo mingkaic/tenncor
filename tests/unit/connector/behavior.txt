@@ -1,0 +1,36 @@
+// CONNECTOR BEHAVIOR
+H000 - copying connector copies over graph id, connector dependency (conform to definition of same graph),
+		moving moves over graph id regardless, moving g_man_ will nullptr the original g_man_ pointer,
+		(UNTESTED) connector copies over jacobians
+H001 - connector name is the name of the connecting node in <> braces and
+		its dependencies' labels separated by commas in () brackets
+H002 - connector is the same graph as another connector if they share a common connector
+		along its dependency graph.
+H003 - connector potential descendent calls both this and other connnector get_leaves to get leaf set
+
+// elem_op BEHAVIOR
+I000 - cloning and moving elem_op copies and moves over data, Nf_, (UNTESTED) ginit_, and gcache
+I001 - elem_op A is a potential descendent of connector B if A's leaf set is a subset of B's leaf set
+I002 - elem_op has good status if all its children are good, otherwise it's bad
+I003 - elem_op tensor shape is the result of the shaper function.
+		bad status returns an undefined tensorshape
+I004 - elem_op tensor initializes its tensor from the forward transfer functions if all its arguments are good
+		otherwise good status is false, bad status returns nullptr on get_eval
+I005 - elem_op dies when any of its dependencies dies
+I006 - temporary_eval grabs the resulting node from target node up to calling node.
+		the target node's value is taken as scalar 1.
+I007 - elem_op get_leaves return a map from leaf to nullptr
+I008 - given an input of leaf A, get_gradient returns the node mapped by A in
+		back_map (provided during construction). leaf A is back_map's second argument.
+I009 - derive calculates gradient node from any node and applies jacobian transformation appropriately
+		if wrt is this, return (without jacobian) is scalar 1 node,
+		else if wrt is not a leaf but is a potential descendent, return temporary_eval from wrt to this
+		else if wrt is not a leaf and isn't a potential descendent, return scalar 0 node
+		otherwise the base result is the non-null node mapped from gcache
+I010 - update explicitly runs its forward transfer function with current depdendency states as its argument
+I011 - elem_op will throw error if existing output shape is incompatible with shaper result
+
+// GENERATOR BEHAVIORS
+J000 - cloning and moving generators copies and moves initialization and existing data
+J001 - generated shape has same shape as shape_dependent node
+J002 - temporary_eval always returns 1, and derive is treated as constant (0 if leaf not this, 1 otherwise)

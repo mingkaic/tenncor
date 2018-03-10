@@ -135,7 +135,7 @@ void rand_uniform<float> (VARR_T dest, std::vector<CVAR_T> srcs)
 	tensorshape& srcshape_max = srcs.back().second;
 	float* d = (float*) dest.first;
 	const float* s_min = (const float*) srcs.front().first;
-	const float* s_max = (const float*) srcs.front().first;
+	const float* s_max = (const float*) srcs.back().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -156,7 +156,7 @@ void rand_uniform<double> (VARR_T dest, std::vector<CVAR_T> srcs)
 	tensorshape& srcshape_max = srcs.back().second;
 	double* d = (double*) dest.first;
 	const double* s_min = (const double*) srcs.front().first;
-	const double* s_max = (const double*) srcs.front().first;
+	const double* s_max = (const double*) srcs.back().first;
 	bool min_mul = srcshape_min.n_elems() > 1;
 	bool max_mul = srcshape_max.n_elems() > 1;
 	size_t n = destshape.n_elems();

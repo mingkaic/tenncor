@@ -14,13 +14,19 @@ namespace nnet
 {
 
 placeholder::placeholder (const tensorshape& shape, std::string name) :
-	ileaf(name), data_(new tensor(shape)) {}
+	inode(name), data_(new tensor(shape)) {}
 
 placeholder::placeholder (const placeholder& other) :
-	ileaf(other) {}
+	inode(other)
+{
+	copy_helper(other);
+}
 
 placeholder::placeholder (placeholder&& other) :
-	ileaf(std::move(other)) {}
+	inode(std::move(other))
+{
+	move_helper(std::move(other));
+}
 
 placeholder* placeholder::clone (void) const
 {
@@ -36,7 +42,7 @@ placeholder& placeholder::operator = (const placeholder& other)
 {
 	if (this != &other)
 	{
-		ileaf::operator = (other);
+		inode::operator = (other);
 		copy_helper(other);
 		this->notify(UPDATE);
 	}
@@ -47,7 +53,7 @@ placeholder& placeholder::operator = (placeholder&& other)
 {
 	if (this != &other)
 	{
-		ileaf::operator = (std::move(other));
+		inode::operator = (std::move(other));
 		move_helper(std::move(other));
 		this->notify(UPDATE);
 	}
@@ -65,14 +71,16 @@ varptr placeholder::derive (inode*)
 	return nullptr;
 }
 
-// changes shape
-placeholder& placeholder::operator = (tensor& data)
+placeholder& placeholder::operator = (tensor& input)
 {
-	if (&data != data_.get())
+	if (&input != data_.get())
 	{
-		data_->write_to(asgn_);
-		data_->read_from(asgn_);
-		this->notify(UPDATE);
+		input.write_to(asgn_);
+		if (data_->is_compatible_with(input) &&
+			data_->read_from(asgn_, input.get_shape()))
+		{
+			this->notify(UPDATE);
+		}
 	}
 	return *this;
 }

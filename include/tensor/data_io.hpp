@@ -20,7 +20,7 @@
 namespace nnet
 {
 
-using SVARR_T = std::pair<std::shared_ptr<void>,tensorshape>;
+using SVARR_T = std::pair<std::weak_ptr<void>,tensorshape>;
 
 using GLUE_F = std::function<void(VARR_T,CVAR_T,unsigned short,size_t)>;
 
@@ -30,12 +30,12 @@ struct idata_dest
 {
 	virtual ~idata_dest (void) {}
 
-	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx) = 0;
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx) = 0;
 };
 
 struct portal_dest : public idata_dest
 {
-	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
 	{
 		data_ = data;
 		type_ = type;
@@ -44,12 +44,12 @@ struct portal_dest : public idata_dest
 
 	void clear (void)
 	{
-		data_ = nullptr;
+		data_.reset();
 		type_ = BAD_T;
 		shape_.undefine();
 	}
 
-	std::shared_ptr<void> data_;
+	std::weak_ptr<void> data_;
 	TENS_TYPE type_ = BAD_T;
 	tensorshape shape_;
 };
@@ -63,7 +63,7 @@ struct idata_io : virtual idata_src, virtual idata_dest
 		return dynamic_cast<idata_io*>(this->clone_impl());
 	}
 
-	virtual void set_data (std::shared_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx)
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx)
 	{
 		assert(type_ == BAD_T || type_ == type); // todo: convert on failure
 		type_ = type;
@@ -74,6 +74,26 @@ struct idata_io : virtual idata_src, virtual idata_dest
 
 protected:
 	TENS_TYPE type_ = BAD_T;
+};
+
+struct assign_io final : public idata_io
+{
+	assign_io (void) {}
+	assign_io (const assign_io&) = delete;
+	assign_io (assign_io&&) = delete;
+	assign_io& operator = (const assign_io&) = delete;
+	assign_io& operator = (assign_io&&) = delete;
+
+	assign_io* clone (void) const;
+
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+
+	virtual void set_varr (SVARR_T input, size_t);
+
+private:
+	virtual idata_src* clone_impl (void) const;
+
+	SVARR_T input_;
 };
 
 struct imultiarg_io : public idata_io
@@ -128,28 +148,6 @@ private:
 	}
 
 	GLUE_F glue_;
-};
-
-struct assign_io final : public operate_io
-{
-	assign_io (void) : operate_io("") {}
-
-	assign_io (const assign_io&) = delete;
-	assign_io (assign_io&&) = delete;
-	assign_io& operator = (const assign_io&) = delete;
-	assign_io& operator = (assign_io&&) = delete;
-
-	assign_io* clone (void) const
-	{
-		return dynamic_cast<assign_io*>(clone_impl());
-	}
-	
-	void set_op (std::string opname);
-
-	void clear (void);
-
-private:
-	virtual idata_src* clone_impl (void) const;
 };
 
 struct sindex_io final : public idata_io

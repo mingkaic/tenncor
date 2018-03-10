@@ -66,7 +66,7 @@ cc_library(
 	glob([
 		"src/edgeinfo/*.cpp",
 		"src/edgeinfo/rpc_record/*.cpp", 
-		"src/thread/*.hpp",
+		"src/thread/*.cpp",
 	]),
 	includes = [ "include" ],
 	deps = [

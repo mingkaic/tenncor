@@ -16,16 +16,16 @@ namespace nnet
 variable::variable (const tensorshape& shape,
 	std::shared_ptr<idata_src> source,
 	std::string name) :
-ileaf(name), src_(source), data_(new tensor(shape)) {}
+inode(name), src_(source), data_(new tensor(shape)) {}
 
 variable::variable (const variable& other) :
-	ileaf(other)
+	inode(other)
 {
 	copy_helper(other);
 }
 
 variable::variable (variable&& other) :
-	ileaf(std::move(other))
+	inode(std::move(other))
 {
 	move_helper(std::move(other));
 }
@@ -44,7 +44,7 @@ variable& variable::operator = (const variable& other)
 {
 	if (this != &other)
 	{
-		ileaf::operator = (other);
+		inode::operator = (other);
 		copy_helper(other);
 		this->notify(UPDATE);
 	}
@@ -55,7 +55,7 @@ variable& variable::operator = (variable&& other)
 {
 	if (this != &other)
 	{
-		ileaf::operator = (std::move(other));
+		inode::operator = (std::move(other));
 		move_helper(std::move(other));
 		this->notify(UPDATE);
 	}
@@ -82,7 +82,6 @@ varptr variable::derive (inode* wrt)
 
 bool variable::initialize (void)
 {
-	data_->get_shape().assert_is_fully_defined();
 	bool success = data_->read_from(*src_);
 	if (success)
 	{
@@ -93,7 +92,6 @@ bool variable::initialize (void)
 
 bool variable::initialize (tensorshape shape)
 {
-	shape.assert_is_fully_defined();
 	bool success = data_->read_from(*src_, shape);
 	if (success)
 	{
@@ -104,71 +102,24 @@ bool variable::initialize (tensorshape shape)
 
 bool variable::assign (inode* input, bool notify)
 {
-	bool successful = input != nullptr;
+	bool successful = input != this && input != nullptr;
 	if (successful)
 	{
 		tensor* itens = input->get_tensor();
-		successful = itens->has_data();
+		successful = itens->has_data() && itens->is_compatible_with(*data_);
 		if (successful)
 		{
-			itens->write_to(asgn_);
-			data_->read_from(asgn_);
+			assign_io asgn;
+			itens->write_to(asgn);
+			data_->read_from(asgn);
 			if (notify)
 			{
 				this->notify(UPDATE);
 			}
-			asgn_.clear();
 		}
 	}
 	return successful;
 }
-
-bool variable::assign_add (inode* input, bool notify)
-{
-	bool successful = input != nullptr && data_->has_data();
-	if (successful)
-	{
-		tensor* itens = input->get_tensor();
-		successful = itens->has_data();
-		if (successful)
-		{
-			asgn_.set_op("add");
-			data_->write_to(asgn_, 0);
-			itens->write_to(asgn_, 1);
-			data_->read_from(asgn_);
-			if (notify)
-			{
-				this->notify(UPDATE);
-			}
-			asgn_.clear();
-		}
-	}
-	return successful;
-}
-
-bool variable::assign_sub (inode* input, bool notify)
-{
-	bool successful = input != nullptr && data_->has_data();
-	if (successful)
-	{
-		tensor* itens = input->get_tensor();
-		successful = itens->has_data();
-		if (successful)
-		{
-			asgn_.set_op("sub");
-			data_->write_to(asgn_, 0);
-			itens->write_to(asgn_, 1);
-			data_->read_from(asgn_);
-			if (notify)
-			{
-				this->notify(UPDATE);
-			}
-			asgn_.clear();
-		}
-	}
-	return successful;
-}
-
 
 inode* variable::clone_impl (void) const
 {

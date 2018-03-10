@@ -20,11 +20,11 @@ gd_updater* gd_updater::move (void) { return move_impl(); }
 UPDATES_T gd_updater::calculate (inode* root, GINTERM_F intermediate_process)
 {
 	std::vector<UPDATE_F> updates;
-	std::unordered_set<ileaf*> leafset = root->get_leaves();
+	std::unordered_set<inode*> leafset = root->get_leaves();
 	std::vector<std::pair<inode*,variable*> > gress;
-	for (ileaf* l : leafset)
+	for (ileaf* leaf : leafset)
 	{
-		variable* Wb = dynamic_cast<variable*>(l);
+		variable* Wb = dynamic_cast<variable*>(leaf);
 		if (Wb && ignored_.end() == ignored_.find(Wb))
 		{
 			gress.push_back({root->derive(Wb), Wb});
@@ -41,10 +41,10 @@ UPDATES_T gd_updater::calculate (inode* root, GINTERM_F intermediate_process)
 
 void gd_updater::ignore_subtree (inode* subroot)
 {
-	std::unordered_set<ileaf*> leafset = subroot->get_leaves();
-	for (ileaf* l : leafset)
+	std::unordered_set<inode*> leafset = subroot->get_leaves();
+	for (ileaf* leaf : leafset)
 	{
-		if (variable* Wb = dynamic_cast<variable*>(l))
+		if (variable* Wb = dynamic_cast<variable*>(leaf))
 		{
 			ignored_.emplace(Wb);
 		}

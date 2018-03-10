@@ -52,7 +52,7 @@ public:
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 	
 	//! get gradient leaves
-	virtual std::unordered_set<ileaf*> get_leaves (void) const;
+	virtual std::unordered_set<inode*> get_leaves (void) const;
 
 
 
@@ -130,7 +130,7 @@ public:
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 	
 	//! get gradient leaves
-	virtual std::unordered_set<ileaf*> get_leaves (void) const;
+	virtual std::unordered_set<inode*> get_leaves (void) const;
 
 
 

@@ -61,7 +61,7 @@ demuxer& demuxer::operator = (demuxer&& other)
 }
 
 
-std::unordered_set<ileaf*> demuxer::get_leaves (void) const
+std::unordered_set<inode*> demuxer::get_leaves (void) const
 {
 	return this->get_arguments()[0]->get_leaves();
 }
@@ -195,7 +195,7 @@ muxer& muxer::operator = (muxer&& other)
 }
 
 
-std::unordered_set<ileaf*> muxer::get_leaves (void) const
+std::unordered_set<inode*> muxer::get_leaves (void) const
 {
 	return this->get_arguments()[0]->get_leaves();
 }
@@ -210,7 +210,7 @@ varptr muxer::derive (inode* wrt)
 	// find a suitable gluer
 	GLUE_F gluer;
 	auto wleaves = wrt->get_leaves();
-	std::vector<ileaf*> temp;
+	std::vector<inode*> temp;
 	for (auto it = ggluer_.begin(), et = ggluer_.end();
 		it != et && !gluer; it++)
 	{

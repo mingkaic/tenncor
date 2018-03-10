@@ -82,7 +82,8 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 	// test forward
 	tensorshape outshape = res->get_shape();
 	std::vector<double> rout = expose<double>(res);
-	EXPECT_TRUE(tensorshape_equal(expectoshape, outshape));
+	EXPECT_TRUE(tensorshape_equal(expectoshape, outshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	ASSERT_EQ(expectout.size(), rout.size());
 	for (size_t i = 0, n = rout.size(); i < n; i++)
 	{
@@ -99,7 +100,8 @@ static void unaryTransTest (FUZZ::fuzz_test* fuzzer,
 			dynamic_cast<const tensor_double*>(res->derive(&var)->eval());
 		tensorshape outgshape = backt->get_shape();
 		std::vector<double> rgout = backt->expose();
-		EXPECT_TRUE(tensorshape_equal(gradoshape, outgshape));
+		EXPECT_TRUE(tensorshape_equal(gradoshape, outgshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 		ASSERT_EQ(gradout.size(), rgout.size());
 		for (size_t i = 0, n = rgout.size(); i < n; i++)
 		{
@@ -639,7 +641,8 @@ TEST_F(TRANSFORM, Flip_B012)
 	// compare data, shape must be equivalent, since we're testing elementary operations (Behavior A001)
 	const tensor_double* rawtens = dynamic_cast<const tensor_double*>(res->eval());
 	std::vector<double> rawf = rawtens->expose();
-	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape()));
+	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	ASSERT_EQ(rawf.size(), inn);
 	for (size_t i = 0; i < inn; i++)
 	{

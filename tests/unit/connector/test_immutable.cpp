@@ -103,8 +103,10 @@ TEST_F(IMMUTABLE, Copy_I000)
 	std::vector<double> cdata = expose<double>(cpy);
 	std::vector<double> adata = expose<double>(assign);
 
-	EXPECT_TRUE(tensorshape_equal(res->get_shape(), cres->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(res->get_shape(), ares->get_shape()));
+	EXPECT_TRUE(tensorshape_equal(res->get_shape(), cres->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(res->get_shape(), ares->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	EXPECT_TRUE(std::equal(data.begin(), data.end(), cdata.begin()));
 	EXPECT_TRUE(std::equal(data.begin(), data.end(), adata.begin()));
 
@@ -138,8 +140,10 @@ TEST_F(IMMUTABLE, Move_I000)
 
 	EXPECT_EQ(nullptr, mv->eval());
 
-	EXPECT_TRUE(tensorshape_equal(rs, ms));
-	EXPECT_TRUE(tensorshape_equal(rs, as));
+	EXPECT_TRUE(tensorshape_equal(rs, ms)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(rs, as)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	EXPECT_TRUE(std::equal(data.begin(), data.end(), mdata.begin()));
 	EXPECT_TRUE(std::equal(data.begin(), data.end(), adata.begin()));
 
@@ -301,8 +305,10 @@ TEST_F(IMMUTABLE, Shape_I003)
 	// sample expectations
 	tensorshape c2shape = fittershaper({n2s, n3s});
 
-	EXPECT_TRUE(tensorshape_equal(n1s, conn->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(c2shape, conn2->get_shape()));
+	EXPECT_TRUE(tensorshape_equal(n1s, conn->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(c2shape, conn2->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 
 	// bad status returns undefined shapes
 	EXPECT_FALSE(conn3->get_shape().is_part_defined()); // not part defined is undefined
@@ -525,7 +531,7 @@ TEST_F(IMMUTABLE, TemporaryEval_I006)
 	});
 
 	inode* out = nullptr;
-	std::unordered_set<ileaf*> lcache;
+	std::unordered_set<inode*> lcache;
 	for (elem_op* coll : collector)
 	{
 		if (coll == root) continue;
@@ -534,7 +540,8 @@ TEST_F(IMMUTABLE, TemporaryEval_I006)
 		ASSERT_NE(nullptr, out);
 		const tensor_double* outt = dynamic_cast<const tensor_double*>(out->eval());
 		ASSERT_NE(nullptr, outt);
-		ASSERT_TRUE(tensorshape_equal(shape, outt->get_shape()));
+		ASSERT_TRUE(tensorshape_equal(shape, outt->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 		// out data should be 1 + M * single_rando where M is the
 		// number of root's leaves that are not in coll's leaves
 		lcache = coll->get_leaves();
@@ -588,7 +595,7 @@ TEST_F(IMMUTABLE, GetLeaves_I007)
 		});
 
 	// the root has all leaves
-	std::unordered_set<ileaf*> lcache = root->get_leaves();
+	std::unordered_set<inode*> lcache = root->get_leaves();
 	for (variable* l : leaves)
 	{
 		EXPECT_TRUE(lcache.end() != lcache.find(l));
@@ -761,7 +768,7 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 	});
 
 	variable* notleaf = new variable(0);
-	std::unordered_set<ileaf*> lcache;
+	std::unordered_set<inode*> lcache;
 	for (size_t i = 0; i < nnodes/3; i++)
 	{
 		ordering.clear();
@@ -786,7 +793,8 @@ TEST_F(IMMUTABLE, GetGradient_I009)
 		const tensor_double* grad_too = dynamic_cast<const tensor_double*>(root->derive(coll)->eval());
 		EXPECT_TRUE(bottom_up(ordering));
 		ASSERT_NE(nullptr, grad_too);
-		ASSERT_TRUE(tensorshape_equal(shape, grad_too->get_shape()));
+		ASSERT_TRUE(tensorshape_equal(shape, grad_too->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 		// out data should be 1 + M * single_rando where M is the
 		// number of root's leaves that are not in coll's leaves
 		lcache.clear();

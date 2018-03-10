@@ -4,14 +4,10 @@
 
 #ifndef DISABLE_TENSOR_MODULE_TESTS
 
-#include <algorithm>
-#include <numeric>
-#include <limits>
-
 #include "gtest/gtest.h"
 
-#include "tests/utils/sgen.hpp"
-#include "tests/utils/check.hpp"
+#include "sgen.hpp"
+#include "check.hpp"
 
 
 #ifndef DISABLE_SHAPE_TEST
@@ -25,8 +21,7 @@ using namespace testutils;
 
 // cover tensorshape:
 // default and vector constructor
-// copy constructor and assignment,
-// and vector assignment
+// clone, and vector assignment
 TEST_F(TENSORSHAPE, Copy_A000)
 {
 	nnet::tensorshape incom_assign;
@@ -58,42 +53,41 @@ TEST_F(TENSORSHAPE, Copy_A000)
 	com_assign = com_ts;
 
 	EXPECT_TRUE(tensorshape_equal(incom_cpy, incom_ts)) <<
-		testutils::sprintf("expecting shape %p, got shape %p", &incom_cpy, &incom_ts);
+		sprintf("expecting shape %p, got shape %p", &incom_cpy, &incom_ts);
 	EXPECT_TRUE(tensorshape_equal(pcom_cpy, pcom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_cpy, &pcom_ts);
+		sprintf("expecting shape %p, got shape %p", &pcom_cpy, &pcom_ts);
 	EXPECT_TRUE(tensorshape_equal(com_cpy, com_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_cpy, &com_ts);
+		sprintf("expecting shape %p, got shape %p", &pcom_cpy, &com_ts);
 	EXPECT_TRUE(tensorshape_equal(incom_assign, incom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &incom_assign, &incom_ts);
+		sprintf("expecting shape %p, got shape %p", &incom_assign, &incom_ts);
 	EXPECT_TRUE(tensorshape_equal(pcom_assign, pcom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_assign, &pcom_ts);
+		sprintf("expecting shape %p, got shape %p", &pcom_assign, &pcom_ts);
 	EXPECT_TRUE(tensorshape_equal(com_assign, com_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_assign, &com_ts);
+		sprintf("expecting shape %p, got shape %p", &com_assign, &com_ts);
 	EXPECT_TRUE(tensorshape_equal(incom_vassign, incom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &incom_vassign, &incom_ts);
+		sprintf("expecting shape %p, got shape %p", &incom_vassign, &incom_ts);
 	EXPECT_TRUE(tensorshape_equal(pcom_vassign, pcom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_vassign, &pcom_ts);
+		sprintf("expecting shape %p, got shape %p", &pcom_vassign, &pcom_ts);
 	EXPECT_TRUE(tensorshape_equal(com_vassign, com_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_vassign, &com_ts);
+		sprintf("expecting shape %p, got shape %p", &com_vassign, &com_ts);
 
 	EXPECT_TRUE(tensorshape_equal(pcom_cpy, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_cpy, &pds);
+		sprintf("expecting shape %p, got shape %p", &pcom_cpy, &pds);
 	EXPECT_TRUE(tensorshape_equal(com_cpy, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_cpy, &cds);
+		sprintf("expecting shape %p, got shape %p", &com_cpy, &cds);
 	EXPECT_TRUE(tensorshape_equal(pcom_assign, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_assign, &pds);
+		sprintf("expecting shape %p, got shape %p", &pcom_assign, &pds);
 	EXPECT_TRUE(tensorshape_equal(com_assign, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_assign, &cds);
+		sprintf("expecting shape %p, got shape %p", &com_assign, &cds);
 	EXPECT_TRUE(tensorshape_equal(pcom_vassign, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_vassign, &pds);
+		sprintf("expecting shape %p, got shape %p", &pcom_vassign, &pds);
 	ASSERT_TRUE(tensorshape_equal(com_vassign, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_vassign, &cds);
+		sprintf("expecting shape %p, got shape %p", &com_vassign, &cds);
 }
 
 
 // cover tensorshape:
-// default and vector constructor
-// move constructor and assignment
+// default and vector constructor, and move
 TEST_F(TENSORSHAPE, Move_A000)
 {
 	nnet::tensorshape pcom_assign;
@@ -110,25 +104,25 @@ TEST_F(TENSORSHAPE, Move_A000)
 	nnet::tensorshape com_mv(std::move(com_ts));
 
 	EXPECT_TRUE(tensorshape_equal(pcom_mv, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_mv, &pds);
+		sprintf("expecting shape %p, got shape %p", &pcom_mv, &pds);
 	EXPECT_TRUE(tensorshape_equal(com_mv, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_mv, &cds);
+		sprintf("expecting shape %p, got shape %p", &com_mv, &cds);
 	EXPECT_TRUE(tensorshape_equal(pcom_ts, empty)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_ts, &empty);
+		sprintf("expecting shape %p, got shape %p", &pcom_ts, &empty);
 	EXPECT_TRUE(tensorshape_equal(com_ts, empty)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_ts, &empty);
+		sprintf("expecting shape %p, got shape %p", &com_ts, &empty);
 
 	pcom_assign = std::move(pcom_mv);
 	com_assign = std::move(com_mv);
 
 	EXPECT_TRUE(tensorshape_equal(pcom_assign, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_assign, &pds);
+		sprintf("expecting shape %p, got shape %p", &pcom_assign, &pds);
 	EXPECT_TRUE(tensorshape_equal(com_assign, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_assign, &cds);
+		sprintf("expecting shape %p, got shape %p", &com_assign, &cds);
 	EXPECT_TRUE(tensorshape_equal(pcom_mv, empty)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_mv, &empty);
+		sprintf("expecting shape %p, got shape %p", &pcom_mv, &empty);
 	ASSERT_TRUE(tensorshape_equal(com_mv, empty)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_mv, &empty);
+		sprintf("expecting shape %p, got shape %p", &com_mv, &empty);
 }
 
 
@@ -159,11 +153,11 @@ TEST_F(TENSORSHAPE, AsList_A002)
 	std::vector<size_t> cres = com_ts.as_list();
 
 	ASSERT_TRUE(ires.empty()) << 
-		testutils::sprintf("expecting empty, got %vd", &ires);
+		sprintf("expecting empty, got %vd", &ires);
 	ASSERT_TRUE(std::equal(pds.begin(), pds.end(), pres.begin())) << 
-		testutils::sprintf("expecting %vd, got %vd", &pds, &pres);
+		sprintf("expecting %vd, got %vd", &pds, &pres);
 	ASSERT_TRUE(std::equal(cds.begin(), cds.end(), cres.begin())) << 
-		testutils::sprintf("expecting %vd, got %vd", &cds, &cres);
+		sprintf("expecting %vd, got %vd", &cds, &cres);
 }
 
 
@@ -245,7 +239,7 @@ TEST_F(TENSORSHAPE, Compatible_A005)
 	for (nnet::tensorshape* shape : {&incom_ts, &pcom_ts, &com_ts, &pcom2_ts, &com2_ts})
 	{
 		EXPECT_TRUE(incom_ts.is_compatible_with(*shape)) << 
-			testutils::sprintf("expecting %p compatible with empty", &shape);
+			sprintf("expecting %p compatible with empty", &shape);
 	}
 
 	// partially defined are compatible with itself and any value in its zeros
@@ -271,27 +265,27 @@ TEST_F(TENSORSHAPE, Compatible_A005)
 
 	// guarantees
 	EXPECT_TRUE(fake_ps.is_compatible_with(fake_ps)) << 
-		testutils::sprintf("expecting %p compatible with %p", &fake_ps, &fake_ps);
+		sprintf("expecting %p compatible with %p", &fake_ps, &fake_ps);
 	EXPECT_TRUE(fake_ps2.is_compatible_with(fake_ps2)) << 
-		testutils::sprintf("expecting %p compatible with %p", &fake_ps2, &fake_ps2);
+		sprintf("expecting %p compatible with %p", &fake_ps2, &fake_ps2);
 	EXPECT_TRUE(fake_ps.is_compatible_with(com_ts)) <<
-		testutils::sprintf("expecting %p compatible with %p", &com_ts, &fake_ps);
+		sprintf("expecting %p compatible with %p", &com_ts, &fake_ps);
 	EXPECT_TRUE(fake_ps2.is_compatible_with(com2_ts)) << 
-		testutils::sprintf("expecting %p compatible with %p", &com2_ts, &fake_ps2);
+		sprintf("expecting %p compatible with %p", &com2_ts, &fake_ps2);
 	EXPECT_FALSE(fake_ps.is_compatible_with(bad_ps)) << 
-		testutils::sprintf("expecting %p incompatible with %p", &bad_ps, &fake_ps);
+		sprintf("expecting %p incompatible with %p", &bad_ps, &fake_ps);
 	EXPECT_FALSE(fake_ps2.is_compatible_with(bad_ps2)) << 
-		testutils::sprintf("expecting %p incompatible with %p", &bad_ps2, &fake_ps2);
+		sprintf("expecting %p incompatible with %p", &bad_ps2, &fake_ps2);
 	EXPECT_FALSE(fake_ps2.is_compatible_with(bad_ps3)) << 
-		testutils::sprintf("expecting %p incompatible with %p", &bad_ps3, &fake_ps2);
+		sprintf("expecting %p incompatible with %p", &bad_ps3, &fake_ps2);
 
 	// fully defined are not expected to be compatible with bad
 	EXPECT_TRUE(com_ts.is_compatible_with(com_ts)) << 
-		testutils::sprintf("expecting %p compatible with %p", &com_ts, &com_ts);
+		sprintf("expecting %p compatible with %p", &com_ts, &com_ts);
 	EXPECT_FALSE(com_ts.is_compatible_with(bad_ps)) << 
-		testutils::sprintf("expecting %p incompatible with %p", &bad_ps, &com_ts);
+		sprintf("expecting %p incompatible with %p", &bad_ps, &com_ts);
 	ASSERT_FALSE(com_ts.is_compatible_with(bad_ps2)) << 
-		testutils::sprintf("expecting %p incompatible with %p", &bad_ps2, &com_ts);
+		sprintf("expecting %p incompatible with %p", &bad_ps2, &com_ts);
 }
 
 
@@ -312,15 +306,15 @@ TEST_F(TENSORSHAPE, PartDef_A006)
 	nnet::tensorshape com2_ts(cds2);
 
 	ASSERT_FALSE(incom_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be undefined", &incom_ts);
+		sprintf("expecting %p to be undefined", &incom_ts);
 	ASSERT_TRUE(pcom_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be partially defined", &pcom_ts);
+		sprintf("expecting %p to be partially defined", &pcom_ts);
 	ASSERT_TRUE(pcom2_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be partially defined", &pcom2_ts);
+		sprintf("expecting %p to be partially defined", &pcom2_ts);
 	ASSERT_TRUE(com_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be partially defined", &com_ts);
+		sprintf("expecting %p to be partially defined", &com_ts);
 	ASSERT_TRUE(com2_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be partially defined", &com2_ts);
+		sprintf("expecting %p to be partially defined", &com2_ts);
 }
 
 
@@ -342,15 +336,15 @@ TEST_F(TENSORSHAPE, FullDef_A007)
 	nnet::tensorshape com2_ts(cds2);
 
 	EXPECT_FALSE(incom_ts.is_fully_defined()) << 
-		testutils::sprintf("expecting %p to not be fully defined", &incom_ts);
+		sprintf("expecting %p to not be fully defined", &incom_ts);
 	EXPECT_FALSE(pcom_ts.is_fully_defined()) << 
-		testutils::sprintf("expecting %p to not be fully defined", &pcom_ts);
+		sprintf("expecting %p to not be fully defined", &pcom_ts);
 	EXPECT_FALSE(pcom2_ts.is_fully_defined()) << 
-		testutils::sprintf("expecting %p to not be fully defined", &pcom2_ts);
+		sprintf("expecting %p to not be fully defined", &pcom2_ts);
 	EXPECT_TRUE(com_ts.is_fully_defined()) << 
-		testutils::sprintf("expecting %p to be fully defined", &com_ts);
+		sprintf("expecting %p to be fully defined", &com_ts);
 	EXPECT_TRUE(com2_ts.is_fully_defined()) << 
-		testutils::sprintf("expecting %p to be fully defined", &com2_ts);
+		sprintf("expecting %p to be fully defined", &com2_ts);
 
 	com_ts.assert_is_fully_defined();
 	com2_ts.assert_is_fully_defined();
@@ -393,22 +387,22 @@ TEST_F(TENSORSHAPE, Undefine_A009)
 	nnet::tensorshape com_ts(cds);
 
 	EXPECT_FALSE(incom_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be undefined", &incom_ts);
+		sprintf("expecting %p to be undefined", &incom_ts);
 	EXPECT_TRUE(pcom_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be partially defined", &pcom_ts);
+		sprintf("expecting %p to be partially defined", &pcom_ts);
 	EXPECT_TRUE(com_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be partially defined", &com_ts);
+		sprintf("expecting %p to be partially defined", &com_ts);
 
 	incom_ts.undefine();
 	pcom_ts.undefine();
 	com_ts.undefine();
 
 	EXPECT_FALSE(incom_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be undefined", &incom_ts);
+		sprintf("expecting %p to be undefined", &incom_ts);
 	EXPECT_FALSE(pcom_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be undefined", &pcom_ts);
+		sprintf("expecting %p to be undefined", &pcom_ts);
 	ASSERT_FALSE(com_ts.is_part_defined()) << 
-		testutils::sprintf("expecting %p to be undefined", &com_ts);
+		sprintf("expecting %p to be undefined", &com_ts);
 }
 
 
@@ -435,7 +429,7 @@ TEST_F(TENSORSHAPE, Merge_A010)
 		nnet::tensorshape merged = incom_ts.merge_with(*shape);
 		// we're expecting merged shape to be the same as input shape
 		EXPECT_TRUE(tensorshape_equal(merged, *shape)) << 
-			testutils::sprintf("expecting %p, got %p", &merged, shape);
+			sprintf("expecting %p, got %p", &merged, shape);
 	}
 
 	// partially defined merging with
@@ -461,9 +455,9 @@ TEST_F(TENSORSHAPE, Merge_A010)
 	nnet::tensorshape merged = fake_ps.merge_with(com_ts);
 	nnet::tensorshape merged2 = fake_ps2.merge_with(com2_ts);
 	EXPECT_TRUE(tensorshape_equal(merged, com_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &merged, &com_ts);
+		sprintf("expecting %p, got %p", &merged, &com_ts);
 	EXPECT_TRUE(tensorshape_equal(merged2, com2_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &merged2, &com2_ts);
+		sprintf("expecting %p, got %p", &merged2, &com2_ts);
 	EXPECT_TRUE(tensorshape_equal(
 		incompatible.merge_with(com_ts), incompatible));
 	EXPECT_TRUE(tensorshape_equal(
@@ -530,13 +524,13 @@ TEST_F(TENSORSHAPE, Concat_A012)
 	nnet::tensorshape none3 = incom_ts.concatenate(pcom_ts);
 	nnet::tensorshape none4 = pcom_ts.concatenate(incom_ts);
 	EXPECT_TRUE(tensorshape_equal(none1, com_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &none1, &com_ts);
+		sprintf("expecting %p, got %p", &none1, &com_ts);
 	EXPECT_TRUE(tensorshape_equal(none2, com_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &none2, &com_ts);
+		sprintf("expecting %p, got %p", &none2, &com_ts);
 	EXPECT_TRUE(tensorshape_equal(none3, pcom_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &none3, &pcom_ts);
+		sprintf("expecting %p, got %p", &none3, &pcom_ts);
 	EXPECT_TRUE(tensorshape_equal(none4, pcom_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &none4, &pcom_ts);
+		sprintf("expecting %p, got %p", &none4, &pcom_ts);
 
 	std::vector<size_t> straight = com_ts.concatenate(pcom_ts).as_list();
 	std::vector<size_t> backcat = pcom_ts.concatenate(com_ts).as_list();

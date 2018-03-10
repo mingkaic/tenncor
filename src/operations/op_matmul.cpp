@@ -130,81 +130,81 @@ static inline void jacobian_glue (VARR_T dest, CVAR_T src, unsigned short nbyte,
 
 static varptr matmul_gradient (inode* x, std::vector<inode*> args, inode* c)
 {
-    inode* a = args.front();
-    inode* b = args.back();
-    inode* adx = a->derive(x);
-    inode* bdx = b->derive(x);
-    // process both arguments as jacobians
-    varptr da, db;
-    tensorshape bases = x->get_tensor()->get_shape();
-    if (adx)
-    {
-        adx = flatten_mat(adx);
-        // todo: check for parent ja
-        varptr ja = functor::get({a, b, c},
-        [](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
-        {
-            inode* a = args[0];
-            inode* b = args[1];
-            inode* c = args[2];
-            idata_io* io = new glue_io(jacobian_glue);
-            src = std::unique_ptr<idata_src>(io);
-            tensorshape outershape = a->get_tensor()->get_shape();
-            size_t nouter = outershape.n_elems();
-            size_t ninner = c->get_tensor()->get_shape().n_elems();
-            for (size_t i = 0; i < nouter; ++i)
-            {
-                varptr ivar = matmul(select(outershape, i), varptr(b));
-                tensor* iten = ivar->get_tensor();
-                iten->write_to(*io, i);
-            }
-            return new tensor(tensorshape({nouter, ninner}));
-        }, 
-        [](inode*, std::vector<inode*>, inode*) -> varptr
-        {
-            throw std::bad_function_call(); // unimplemented
-        }, "jacobian_a");
-        da = matmul(ja, adx);
-    }
-    if (bdx)
-    {
-        bdx = flatten_mat(bdx);
-        varptr jb = functor::get({a, b, c},
-        [](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
-        {
-            inode* a = args[0];
-            inode* b = args[1];
-            inode* c = args[2];
-            idata_io* io = new glue_io(jacobian_glue);
-            src = std::unique_ptr<idata_src>(io);
-            tensorshape outershape = b->get_tensor()->get_shape();
-            size_t nouter = outershape.n_elems();
-            size_t ninner = c->get_tensor()->get_shape().n_elems();
-            for (size_t i = 0; i < nouter; ++i)
-            {
-                varptr ivar = matmul(varptr(a), select(outershape, i));
-                tensor* iten = ivar->get_tensor();
-                iten->write_to(*io, i);
-            }
-            return new tensor(tensorshape({nouter, ninner}));
-        },
-        [](inode*, std::vector<inode*>, inode*) -> varptr
-        {
-            throw std::bad_function_call(); // unimplemented
-        }, "jacobian_b");
-        db = matmul(jb, bdx);
-    }
-    return coord_mapper::get(reduce_sum(da + db, 1),
-    [](tensorshape outshape, const tensorshape inshape)
-    {
-        std::vector<size_t> indices(inshape.n_elems());
-        std::iota(indices.begin(), indices.end(), 0);
-        return indices;
-    },
-    [bases](tensorshape)
-    {
-        return bases;
-    }, "jacobian_expand");
+	inode* a = args.front();
+	inode* b = args.back();
+	inode* adx = a->derive(x);
+	inode* bdx = b->derive(x);
+	// process both arguments as jacobians
+	varptr da, db;
+	tensorshape bases = x->get_tensor()->get_shape();
+	if (adx)
+	{
+		adx = flatten_mat(adx);
+		// todo: check for parent ja
+		varptr ja = functor::get({a, b, c},
+		[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
+		{
+			inode* a = args[0];
+			inode* b = args[1];
+			inode* c = args[2];
+			idata_io* io = new glue_io(jacobian_glue);
+			src = std::unique_ptr<idata_src>(io);
+			tensorshape outershape = a->get_tensor()->get_shape();
+			size_t nouter = outershape.n_elems();
+			size_t ninner = c->get_tensor()->get_shape().n_elems();
+			for (size_t i = 0; i < nouter; ++i)
+			{
+				varptr ivar = matmul(select(outershape, i), varptr(b));
+				tensor* iten = ivar->get_tensor();
+				iten->write_to(*io, i);
+			}
+			return new tensor(tensorshape({nouter, ninner}));
+		}, 
+		[](inode*, std::vector<inode*>, inode*) -> varptr
+		{
+			throw std::bad_function_call(); // unimplemented
+		}, "jacobian_a");
+		da = matmul(ja, adx);
+	}
+	if (bdx)
+	{
+		bdx = flatten_mat(bdx);
+		varptr jb = functor::get({a, b, c},
+		[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
+		{
+			inode* a = args[0];
+			inode* b = args[1];
+			inode* c = args[2];
+			idata_io* io = new glue_io(jacobian_glue);
+			src = std::unique_ptr<idata_src>(io);
+			tensorshape outershape = b->get_tensor()->get_shape();
+			size_t nouter = outershape.n_elems();
+			size_t ninner = c->get_tensor()->get_shape().n_elems();
+			for (size_t i = 0; i < nouter; ++i)
+			{
+				varptr ivar = matmul(varptr(a), select(outershape, i));
+				tensor* iten = ivar->get_tensor();
+				iten->write_to(*io, i);
+			}
+			return new tensor(tensorshape({nouter, ninner}));
+		},
+		[](inode*, std::vector<inode*>, inode*) -> varptr
+		{
+			throw std::bad_function_call(); // unimplemented
+		}, "jacobian_b");
+		db = matmul(jb, bdx);
+	}
+	return coord_mapper::get(reduce_sum(da + db, 1),
+	[](tensorshape outshape, const tensorshape inshape)
+	{
+		std::vector<size_t> indices(inshape.n_elems());
+		std::iota(indices.begin(), indices.end(), 0);
+		return indices;
+	},
+	[bases](tensorshape)
+	{
+		return bases;
+	}, "jacobian_expand");
 }
 
 varptr matmul (varptr a, varptr b)

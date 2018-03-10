@@ -11,7 +11,7 @@
  *
  */
 
-#include "include/graph/leaf/ileaf.hpp"
+#include "include/graph/inode.hpp"
 
 #pragma once
 #ifndef TENNCOR_CONSTANT_HPP
@@ -24,7 +24,7 @@
 namespace nnet
 {
 
-class constant final : public ileaf
+class constant final : public inode
 {
 public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
@@ -76,6 +76,18 @@ public:
 
 
 
+	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	// >>>>>> CONNECTION QUERY <<<<<<
+
+	//! merge/update the gradient/leaf info
+	virtual std::unordered_set<inode*> get_leaves (void) const
+	{
+		return {const_cast<constant*>(this)};
+	}
+
+
+
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
 
 	//! get tensor data
@@ -119,23 +131,6 @@ bool operator != (constant& c, T scalar)
 {
 	std::vector<T> res = expose<T>(&c);
 	return 1 == res.size() && scalar != res[0];
-}
-
-//! create a constant with zeros everywhere except for all elements with index
-//! at a specified dimension where these elements are filled with scalar
-//! const_axis(2, I, S, {...}) => constant[:, I, :, ...] = S
-template <typename T>
-constant* const_axis (size_t dimension, size_t index, T scalar, tensorshape shape)
-{
-	std::vector<double>data(shape.n_elems(), 0);
-	shape.iterate([&data, dimension, index, scalar](std::vector<size_t> coord, size_t idx)
-	{
-		if (coord[dimension] == index)
-		{
-			data[idx] = scalar;
-		}
-	});
-	return constant::get(data, shape);
 }
 
 }

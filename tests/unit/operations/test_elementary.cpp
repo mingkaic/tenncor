@@ -59,7 +59,8 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	// compare data, shape must be equivalent, since we're testing elementary operations (Behavior A002)
 	const tensor_double* rawtens = dynamic_cast<const tensor_double*>(res->eval());
 	std::vector<double> rawf = rawtens->expose();
-	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape()));
+	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	ASSERT_EQ(rawf.size(), inn);
 	primer(indata);
 	for (size_t i = 0; i < inn; i++)
@@ -74,7 +75,8 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	varptr grad = res->derive(&var);
 	const tensor_double* backtens = dynamic_cast<const tensor_double*>(grad->eval());
 	std::vector<double> rawb = backtens->expose();
-	ASSERT_TRUE(tensorshape_equal(shape, backtens->get_shape()) || rawb.size() == 1);
+	ASSERT_TRUE(tensorshape_equal(shape, backtens->get_shape()) || rawb.size() == 1) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	primer(indata);
 	if (rawb.size() == 1)
 	{
@@ -103,7 +105,8 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	nnet::varptr cres = func(c);
 	nnet::constant* cres_c = dynamic_cast<nnet::constant*>(cres.get());
 	ASSERT_NE(nullptr, cres_c);
-	EXPECT_TRUE(tensorshape_equal(shape, cres_c->get_shape()));
+	EXPECT_TRUE(tensorshape_equal(shape, cres_c->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	std::vector<double> result = nnet::expose<double>(cres_c);
 	assert(result.size() == constant_values.size()); // logical assertion
 	primer(constant_values);
@@ -156,9 +159,12 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 	std::vector<double> raw = tenn->expose();
 	std::vector<double> raw1 = tenn1->expose();
 	std::vector<double> raw2 = tenn2->expose();
-	ASSERT_TRUE(tensorshape_equal(shape, tenn->get_shape()));
-	ASSERT_TRUE(tensorshape_equal(shape, tenn1->get_shape()));
-	ASSERT_TRUE(tensorshape_equal(shape, tenn2->get_shape()));
+	ASSERT_TRUE(tensorshape_equal(shape, tenn->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(shape, tenn1->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(shape, tenn2->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	ASSERT_EQ(raw.size(), inn);
 	ASSERT_EQ(raw1.size(), inn);
 	ASSERT_EQ(raw2.size(), inn);
@@ -189,10 +195,14 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 	std::vector<double> raw4 = backtens2->expose();
 	std::vector<double> raw5 = back1tens->expose();
 	std::vector<double> raw6 = back2tens->expose();
-	ASSERT_TRUE(tensorshape_equal(shape, backtens1->get_shape()) || raw3.size() == 1);
-	ASSERT_TRUE(tensorshape_equal(shape, backtens2->get_shape()) || raw4.size() == 1);
-	ASSERT_TRUE(tensorshape_equal(shape, back1tens->get_shape()) || raw5.size() == 1);
-	ASSERT_TRUE(tensorshape_equal(shape, back2tens->get_shape()) || raw6.size() == 1);
+	ASSERT_TRUE(tensorshape_equal(shape, backtens1->get_shape()) || raw3.size() == 1) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(shape, backtens2->get_shape()) || raw4.size() == 1) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(shape, back1tens->get_shape()) || raw5.size() == 1) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(shape, back2tens->get_shape()) || raw6.size() == 1) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	if (raw3.size() == 1)
 	{
 		double rawd = raw3[0];
@@ -240,9 +250,12 @@ static void binaryElemTest (FUZZ::fuzz_test* fuzzer, BINARY_VARS func,
 	varptr same2 = func(varptr(&var2), varptr(&vs));
 	varptr same3 = func(varptr(&var3), varptr(&vs));
 
-	EXPECT_TRUE(tensorshape_equal(same->get_shape(), var.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(same2->get_shape(), var2.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(same3->get_shape(), var3.get_shape()));
+	EXPECT_TRUE(tensorshape_equal(same->get_shape(), var.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(same2->get_shape(), var2.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(same3->get_shape(), var3.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 }
 
 
@@ -597,8 +610,10 @@ TEST_F(ELEMENTARY, Sub_A000ToA003_A012_A005)
 	const tensor_double* rawtens2 = dynamic_cast<const tensor_double*>(samenv22->eval());
 	std::vector<double> rawf = rawtens->expose();
 	std::vector<double> rawf2 = rawtens2->expose();
-	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape()));
-	ASSERT_TRUE(tensorshape_equal(shape, rawtens2->get_shape()));
+	ASSERT_TRUE(tensorshape_equal(shape, rawtens->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(shape, rawtens2->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 	ASSERT_EQ(rawf.size(), inn);
 	ASSERT_EQ(rawf2.size(), inn);
 	for (size_t i = 0; i < inn; i++)

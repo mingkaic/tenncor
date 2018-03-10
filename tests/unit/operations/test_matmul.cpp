@@ -162,10 +162,14 @@ TEST_F(MATMUL, Matmul_C001)
 	tensorshape restBshape = restB->get_shape();
 	tensorshape resTshape = resT->get_shape();
 
-	ASSERT_TRUE(tensorshape_equal(expectshape, resshape));
-	ASSERT_TRUE(tensorshape_equal(expectshape, restAshape));
-	ASSERT_TRUE(tensorshape_equal(expectshape, restBshape));
-	ASSERT_TRUE(tensorshape_equal(expectshape, resTshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, resshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(expectshape, restAshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(expectshape, restBshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(expectshape, resTshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 
 	TWODV matA = create2D(expose<signed>(&A), A.get_shape());
 	TWODV matB = create2D(expose<signed>(&B), B.get_shape());
@@ -281,23 +285,39 @@ TEST_F(MATMUL, Jacobian_C003)
 	inode* fake_dresTA = transpose(matmul(dsig_resT, &tB));
 	inode* fake_dresTB = transpose(matmul(&tA, dsig_resT));
 
-	EXPECT_TRUE(tensorshape_equal(dresA->get_shape(), A.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(dresB->get_shape(), B.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(drestAA->get_shape(), tA.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(drestAB->get_shape(), B.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(drestBA->get_shape(), A.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(drestBB->get_shape(), tB.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(dresTA->get_shape(), tA.get_shape()));
-	EXPECT_TRUE(tensorshape_equal(dresTB->get_shape(), tB.get_shape()));
+	EXPECT_TRUE(tensorshape_equal(dresA->get_shape(), A.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(dresB->get_shape(), B.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(drestAA->get_shape(), tA.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(drestAB->get_shape(), B.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(drestBA->get_shape(), A.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(drestBB->get_shape(), tB.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(dresTA->get_shape(), tA.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(dresTB->get_shape(), tB.get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 
-	EXPECT_TRUE(tensorshape_equal(dresA->get_shape(), fake_dresA->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(dresB->get_shape(), fake_dresB->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(drestAA->get_shape(), fake_drestAA->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(drestAB->get_shape(), fake_drestAB->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(drestBA->get_shape(), fake_drestBA->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(drestBB->get_shape(), fake_drestBB->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(dresTA->get_shape(), fake_dresTA->get_shape()));
-	EXPECT_TRUE(tensorshape_equal(dresTB->get_shape(), fake_dresTB->get_shape()));
+	EXPECT_TRUE(tensorshape_equal(dresA->get_shape(), fake_dresA->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(dresB->get_shape(), fake_dresB->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(drestAA->get_shape(), fake_drestAA->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(drestAB->get_shape(), fake_drestAB->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(drestBA->get_shape(), fake_drestBA->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(drestBB->get_shape(), fake_drestBB->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(dresTA->get_shape(), fake_dresTA->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	EXPECT_TRUE(tensorshape_equal(dresTB->get_shape(), fake_dresTB->get_shape())) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 
 	std::vector<double> dresA_data = expose<double>(dresA);
 	std::vector<double> dresB_data = expose<double>(dresB);
@@ -393,10 +413,14 @@ TEST_F(MATMUL, Strassen_C004)
 	tensorshape restBshape = restB->get_shape();
 	tensorshape resTshape = resT->get_shape();
 
-	ASSERT_TRUE(tensorshape_equal(expectshape, resshape));
-	ASSERT_TRUE(tensorshape_equal(expectshape, restAshape));
-	ASSERT_TRUE(tensorshape_equal(expectshape, restBshape));
-	ASSERT_TRUE(tensorshape_equal(expectshape, resTshape));
+	ASSERT_TRUE(tensorshape_equal(expectshape, resshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(expectshape, restAshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(expectshape, restBshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
+	ASSERT_TRUE(tensorshape_equal(expectshape, resTshape)) <<
+		sprintf("expecting shape %p, got %p", &shape, );
 
 	TWODV matA = create2D(expose<signed>(&A), A.get_shape());
 	TWODV matB = create2D(expose<signed>(&B), B.get_shape());

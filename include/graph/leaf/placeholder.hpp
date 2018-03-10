@@ -24,7 +24,7 @@
 namespace nnet
 {
 
-class placeholder final : public ileaf
+class placeholder final : public inode
 {
 public:
 	//! shape constructor
@@ -50,6 +50,18 @@ public:
 
 
 
+	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	// >>>>>> CONNECTION QUERY <<<<<<
+
+	//! merge/update the gradient/leaf info
+	virtual std::unordered_set<inode*> get_leaves (void) const
+	{
+		return {const_cast<placeholder*>(this)};
+	}
+
+
+
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<<<<<
 
 	//! get tensor data
@@ -69,26 +81,39 @@ public:
 	template <typename T>
 	placeholder& operator = (std::vector<T> data)
 	{
-		std::shared_ptr<void> ptr = &data[0];
-		TENS_TYPE type = data_->get_type();
-		if (false == data_->has_data())
+		size_t n = data.size();
+		nnet::tensorshape inshape;
+		if (data_->has_data())
 		{
-			asgn_.set_data(ptr, type, data_->get_shape(), 0);
-			data_->read_from(asgn_);
+			if (data_->is_compatible_with(n))
+			{
+				inshape = data_->get_shape();
+			}
+			else
+			{
+				throw std::logic_error(nnutils::formatter() << "data with " 
+					<< n << " elements cannot be assigned to allcoated tensor with " 
+					<< data_->get_shape().n_elems() << " elements");
+			}
 		}
 		else
 		{
-			if (optional<tensorshape> shape = data_->guess_shape(data.size()))
+			if (optional<tensorshape> shape = data_->guess_shape(n))
 			{
-				asgn_.set_data(ptr, type, *shape, 0);
-				data_->read_from(asgn_, *shape);
+				inshape = *shape;
 			}
-			// we would reach here if data is empty... (todo: test. currently never reached)
 			else
 			{
-				throw std::logic_error("attempting to assign no data to an unallocated tensor");
+				throw std::logic_error("attempting to assign badly shaped data to an unallocated tensor");
 			}
 		}
+		size_t nbytes = n * sizeof(T);
+		TENS_TYPE type = get_type<T>();
+		std::shared_ptr<void> ptr = nnutils::make_svoid(nbytes);
+		std::memcpy(ptr.get(), &data[0], nbytes);
+		asgn_.set_data(ptr, type, inshape, 0);
+		data_->read_from(asgn_, inshape);
+	
 		this->notify(UPDATE);
 		return *this;
 	}
