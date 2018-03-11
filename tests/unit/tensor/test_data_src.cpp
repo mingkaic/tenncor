@@ -584,7 +584,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				double* max = (double*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "double type";
 				EXPECT_GE(*max, *val) << "double type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				double diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case FLOAT:
@@ -594,7 +595,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				float* max = (float*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "float type";
 				EXPECT_GE(*max, *val) << "float type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				float diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case INT8:
@@ -604,7 +606,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int8_t* max = (int8_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int8 type";
 				EXPECT_GE(*max, *val) << "int8 type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				int8_t diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case UINT8:
@@ -614,7 +617,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				uint8_t* max = (uint8_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "uint8 type";
 				EXPECT_GE(*max, *val) << "uint8 type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				uint8_t diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case INT16:
@@ -624,7 +628,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int16_t* max = (int16_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int16 type";
 				EXPECT_GE(*max, *val) << "int16 type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				int16_t diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case UINT16:
@@ -634,7 +639,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				uint16_t* max = (uint16_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "uint16 type";
 				EXPECT_GE(*max, *val) << "uint16 type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				uint16_t diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case INT32:
@@ -644,7 +650,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int32_t* max = (int32_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int32 type";
 				EXPECT_GE(*max, *val) << "int32 type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				int32_t diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case UINT32:
@@ -654,7 +661,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				uint32_t* max = (uint32_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "uint32 type";
 				EXPECT_GE(*max, *val) << "uint32 type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				uint32_t diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case INT64:
@@ -664,7 +672,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int64_t* max = (int64_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int64 type";
 				EXPECT_GE(*max, *val) << "int64 type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				int64_t diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			case UINT64:
@@ -674,7 +683,8 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				uint64_t* max = (uint64_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "uint64 type";
 				EXPECT_GE(*max, *val) << "uint64 type";
-				mindist += ((double) (*val - *min)) / ((double) (*max - *min));
+				uint64_t diff = *val - *min;
+				mindist += diff / ((double) (*max - *min));
 			}
 			break;
 			default:

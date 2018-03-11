@@ -52,7 +52,8 @@ TRANS = {
 	"reduce_mean_i": (lambda t: tf.reduce_mean(t, sam.register(random.randint(0, t.get_shape().ndims-1)))),
 }
 
-dir = "samples"
+dirname = os.path.dirname(__file__)
+dir = os.path.join(dirname, "..", "samples")
 def run(outfile, opname):
 	genOp = sam.unar_op
 	with open(os.path.join(dir, outfile + ".csv"), 'a') as f:

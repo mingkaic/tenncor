@@ -12,7 +12,7 @@
  *
  */
 
-#include "include/graph/connector/immutable/coord_mapper.hpp"
+#include "include/graph/connector/coord_mapper.hpp"
 
 #pragma once
 #ifndef TENNCOR_MUXER_HPP
@@ -103,15 +103,13 @@ private:
 	USHAPE_F sliceshaper_;
 };
 
-using MUXPAIR = std::pair<demuxer*,GLUE_F>;
-
 // todo: forgo gluer, extract args' sliceidxer
 // consumes the volatile consumers of demuxer's slices without suiciding
 class muxer final : public iconnector
 {
 public:
-	static muxer* get (std::vector<MUXPAIR> args, 
-		SHAPER_F shaper, MUXOP_F op, GLUE_F gluer, std::string label);
+	static muxer* get (demuxer* arg, GLUE_F glarg,
+		size_t dimension, MUXOP_F op, GLUE_F gluer, std::string label);
 	
 	//! clone function
 	muxer* clone (void) const;
@@ -149,11 +147,11 @@ public:
 	virtual void update (void);
 
 private:
-	muxer (std::vector<MUXPAIR> args, SHAPER_F shaper, 
+	muxer (demuxer* arg, GLUE_F glarg, size_t dimension, 
 		MUXOP_F op, GLUE_F gluer, std::string label);
 	
-	muxer (std::vector<MUXPAIR> args,
-		std::vector<varptr> slices, SHAPER_F shaper,
+	muxer (demuxer* arg, GLUE_F glarg, size_t dimension, tensorshape shape,
+		std::vector<varptr> slices,
 		MUXOP_F op, GLUE_F gluer, std::string label);
 
 	muxer (const muxer& other);
@@ -181,11 +179,13 @@ private:
 
 	std::vector<varptr> slices_;
 
-	std::vector<MUXPAIR> ggluer_;
-
-	SHAPER_F shaper_;
+	GLUE_F ggluer_;
 
 	MUXOP_F op_;
+
+	size_t dimension_;
+
+	tensorshape shape_;
 };
 
 }

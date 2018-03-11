@@ -22,9 +22,9 @@ cc_test(
 )
 
 cc_test(
-	name = "tenncor_nodes",
+	name = "tenncor_bases",
 	size = "small",
-	srcs = glob([ "nodes/*.cpp", "main.cpp" ]),
+	srcs = glob([ "bases/*.cpp", "main.cpp" ]),
 	deps = [
 		"//:tenncor",
 		"//tests/utils:tenncor_testify",
@@ -34,21 +34,9 @@ cc_test(
 )
 
 cc_test(
-	name = "tenncor_leaves",
+	name = "tenncor_funcs",
 	size = "small",
-	srcs = glob(["leaves/*.cpp", "main.cpp" ]),
-	deps = [
-		"//:tenncor",
-		"//tests/utils:tenncor_testify",
-	],
-	linkstatic = 1,
-	copts = [ "-std=c++14" ],
-)
-
-cc_test(
-	name = "tenncor_connector",
-	size = "small",
-	srcs = glob([ "connector/*.cpp", "main.cpp" ]),
+	srcs = glob([ "funcs/*.cpp", "main.cpp" ]),
 	deps = [
 		"//:tenncor",
 		"//tests/utils:tenncor_testify",

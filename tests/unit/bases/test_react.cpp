@@ -7,7 +7,6 @@
 #include "gtest/gtest.h"
 
 #include "fuzz/fuzz.hpp"
-
 #include "mock_subject.hpp"
 #include "mock_observer.hpp"
 

@@ -1,14 +1,13 @@
 // CONNECTOR BEHAVIOR
-H000 - copying connector copies over graph id, connector dependency (conform to definition of same graph),
+A000 - copying connector copies over graph id, connector dependency (conform to definition of same graph),
 		moving moves over graph id regardless, moving g_man_ will nullptr the original g_man_ pointer,
-		(UNTESTED) connector copies over jacobians
-H001 - connector name is the name of the connecting node in <> braces and
+A001 - connector name is the name of the connecting node in <> braces and
 		its dependencies' labels separated by commas in () brackets
-H002 - connector is the same graph as another connector if they share a common connector
+A002 - connector is the same graph as another connector if they share a common connector
 		along its dependency graph.
-H003 - connector potential descendent calls both this and other connnector get_leaves to get leaf set
+A003 - connector potential descendent calls both this and other connnector get_leaves to get leaf set
 
-// elem_op BEHAVIOR
+// ELEM_OP BEHAVIOR
 I000 - cloning and moving elem_op copies and moves over data, Nf_, (UNTESTED) ginit_, and gcache
 I001 - elem_op A is a potential descendent of connector B if A's leaf set is a subset of B's leaf set
 I002 - elem_op has good status if all its children are good, otherwise it's bad

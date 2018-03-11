@@ -27,10 +27,11 @@ A009 - replace_dependency at index detaches the last subject at index, attaches 
 A010 - destroying an observer will detach the observer from its subjects via a detach call
 
 // NODE BEHAVIOR
-B000 - cloning inode creates another node of the same label, but different uid,
+B000 - on creation, a node is registered in the graph
+B001 - cloning inode creates another node of the same label, but different uid,
 		moving prevents coping over uid
-B001 - a uid is unique for every instance of node
-B002 - label is a non-unique string assigned during construction,
+B002 - a uid is unique for every instance of node
+B003 - label is a non-unique string assigned during construction,
 		name is the concatenation of uid and label
 
 // CONSTANT BEHAVIOR

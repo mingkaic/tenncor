@@ -17,114 +17,29 @@
 namespace nnet
 {
 
-static inline demuxer* dim_demuxer (const varptr a, size_t dimension, std::string label)
-{
-	return demuxer::get(a, 
-	[dimension](tensorshape shape)
-	{
-		size_t rank = shape.rank();
-		size_t nslices = 0;
-		std::vector<size_t> slist = shape.as_list();
-		if (rank > dimension)
-		{
-			slist[dimension] = 1;
-			nslices = std::accumulate(slist.begin(), slist.end(), 
-				(size_t) 1, std::multiplies<size_t>());
-		}
-		return nslices;
-	},
-	[dimension](tensorshape outshape, const tensorshape inshape, size_t idx)
-	{
-		size_t n = outshape.n_elems();
-		size_t rank = inshape.rank();
-		assert(rank > dimension);
-		std::vector<size_t> slist = inshape.as_list();
-		slist[dimension] = 1;
-		std::vector<size_t> coords = tensorshape(slist).coord_from_idx(idx);
-		std::vector<size_t> out(n);
-		for (size_t j = 0; j < n; ++j)
-		{
-			coords[dimension] = j;
-			out[j] = inshape.flat_idx(coords);
-		}
-		return out;
-	},
-	[dimension](tensorshape inshape)
-	{
-		assert(inshape.rank() > dimension);
-		size_t slimit = inshape.as_list()[dimension];
-		return tensorshape(std::vector<size_t>{slimit});
-	}, label);
-}
-
-static inline GLUE_F get_reduce_gluer (size_t dimension)
-{
-	return [dimension](VARR_T dest, CVAR_T src, unsigned short bytesize, size_t i)
-	{
-		char* cdest = (char*) dest.first;
-		const char* csrc = (const char*) src.first;
-		size_t srcn = src.second.n_elems();
-		if (dest.second.rank() > 1)
-		{
-			std::vector<size_t> slist = dest.second.as_list();
-			slist[dimension] = 1;
-			std::vector<size_t> coords = tensorshape(slist).coord_from_idx(i);
-			size_t desti = 0;
-			for (size_t srci = 0; srci < srcn; ++srci)
-			{
-				coords[dimension] = srci;
-				desti = dest.second.flat_idx(coords);
-				memcpy(cdest + desti * bytesize, csrc + srci * bytesize, bytesize);
-			}
-		}
-		else
-		{
-			memcpy(cdest + i * srcn * bytesize, csrc, srcn * bytesize);
-		}
-	};
-}
-
 static inline varptr reduce (const varptr a, size_t dimension, 
 	std::string op, std::function<varptr(varptr)> reduce_op)
 {
 	if (nullptr == a.get()) return nullptr;
 	std::string dmx_label = nnutils::formatter() << "reduce_" << op << "_" << dimension;
-	std::string mux_label = "reduce_muxer";
 	if (inode* parent = single_parent(a, dmx_label))
 	{
-		inode* true_parent = single_parent(parent, mux_label);
-		assert(nullptr != true_parent);
-		return true_parent;
+		return parent;
 	}
-	GLUE_F gluef = get_reduce_gluer(dimension);
-	return muxer::get({MUXPAIR{
-		dim_demuxer(a, dimension, dmx_label), 
-		gluef
-	}},
-	[dimension](std::vector<tensorshape> shapes)
-	{
-		std::vector<size_t> slist = shapes[0].as_list();
-		if (1 == slist.size())
-		{
-			slist[0] = 1;
-		}
-		else
-		{
-			slist.erase(slist.begin() + dimension);
-		}
-		return tensorshape(slist);
-	},
-	[reduce_op](std::vector<std::vector<inode*> > sliceargs)
-	{
-		// assert sliceargs.size() == 1
-		std::vector<inode*>& sarg = sliceargs.front();
-		std::vector<varptr> slices;
-		for (inode* varg : sarg)
-		{
-			slices.push_back(reduce_op(varg));
-		}
-		return slices;
-	}, gluef, mux_label);
+	// return functor::get({a},
+	// [](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	// {
+	// 	inode* arg = args[0];
+	// },
+	// [](inode* wrt, std::vector<inode*> args)
+	// {
+	// 	inode* arg = args[0];
+	// 	arg->derive(wrt);
+	// }, dmx_label);
+
+
+
+	return muxer::get(a, dimension, reduce_op, dmx_label);
 }
 
 varptr clip (const varptr a, const varptr min, const varptr max)

@@ -42,7 +42,7 @@ use libraries
 	#include "executor/gradient.hpp"
 	#include "graph/varptr.hpp"
 	#include "graph/leaf/variable.hpp"
-	#include "graph/connector/immutable/matmul.hpp"
+	#include "operations/operations.hpp"
 	
 	using namespace nnet;
 	

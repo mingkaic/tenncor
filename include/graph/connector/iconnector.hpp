@@ -72,8 +72,7 @@ protected:
 	//! Declare move constructor to enforce proper g_man_ copy over
 	iconnector (iconnector&& other);
 
-
-
+private:
 	// >>>>>>>>>>>> KILL CONDITION <<<<<<<<<<<<
 
 	//! suicides when any dependency dies
@@ -81,11 +80,6 @@ protected:
 	{
 		delete this;
 	}
-
-private:
-	void copy_helper (const iconnector& other);
-
-	void move_helper (iconnector&& other);
 };
 
 }

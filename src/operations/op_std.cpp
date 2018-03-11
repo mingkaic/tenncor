@@ -9,9 +9,9 @@
 #include "include/operations/operations.hpp"
 #include "include/operations/operation_utils.hpp"
 
-#include "include/graph/connector/immutable/elem_op.hpp"
-#include "include/graph/connector/immutable/shape_dep.hpp"
-#include "include/graph/connector/immutable/coord_mapper.hpp"
+#include "include/graph/connector/elem_op.hpp"
+#include "include/graph/connector/shape_dep.hpp"
+#include "include/graph/connector/coord_mapper.hpp"
 
 #ifdef TENNCOR_OP_STD_HPP
 
@@ -26,7 +26,7 @@ static inline varptr lin_unar (std::string opname, inode* input, BACKMAP_F bwd)
 	{
 		return parent;
 	}
-	return elem_op::get(std::vector<inode*>{input}, opname, bwd);
+	return reg_func(std::vector<inode*>{input}, opname, bwd);
 }
 
 static inline varptr sample (std::string opname, inode* a, inode* b)
@@ -37,7 +37,7 @@ static inline varptr sample (std::string opname, inode* a, inode* b)
 	{
 		return parent;
 	}
-	return elem_op::get(deps, opname, 
+	return reg_func(deps, opname, 
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		tensorshape shape = args.front().first->get_tensor()->get_shape();
@@ -64,7 +64,7 @@ static inline varptr comparator (std::string opname, inode* a, inode* b)
 	}
 	else
 	{
-		out = elem_op::get(deps, opname,
+		out = reg_func(deps, opname,
 		[opname](std::vector<std::pair<inode*,inode*> > args)
 		{
 			varptr a = args.front().first;
@@ -83,8 +83,9 @@ static inline varptr aggregate (std::string opname, inode* a, BACKMAP_F bwd)
 	{
 		return parent;
 	}
-	return elem_op::get(std::vector<inode*>{a}, 
-	std::vector<size_t>{1}, opname, bwd);
+	return reg_func(std::vector<inode*>{a}, opname, bwd, 
+		[](std::vector<tensorshape>) -> tensorshape
+		{ return std::vector<size_t>{1}; });
 }
 
 varptr abs (const varptr a)
@@ -250,7 +251,7 @@ varptr pow (const varptr b, const varptr x)
 	{
 		return parent;
 	}
-	return elem_op::get(deps, opname,
+	return reg_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// pow'(f(x), g(x)) = \
@@ -274,7 +275,7 @@ varptr operator + (const varptr a, const varptr b)
 	{
 		return parent;
 	}
-	return elem_op::get(deps, opname,
+	return reg_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) + g'(x)
@@ -294,7 +295,7 @@ varptr operator - (const varptr a, const varptr b)
 	{
 		return parent;
 	}
-	return elem_op::get(deps, opname,
+	return reg_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) - g'(x)
@@ -313,7 +314,7 @@ varptr operator * (const varptr a, const varptr b)
 	{
 		return parent;
 	}
-	return elem_op::get(deps, opname,
+	return reg_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x)*g(x) + f(x)*g'(x)
@@ -335,7 +336,7 @@ varptr operator / (const varptr a, const varptr b)
 	{
 		return parent;
 	}
-	return elem_op::get(deps, opname,
+	return reg_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = (f'(x) * g(x) - f(x) * g'(x)) / g^2(x)
@@ -473,7 +474,7 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 	{
 		return parent;
 	}
-	return coord_mapper::get(a, smap, shaper, label);
+	return coord_func(a, smap, shaper, label);
 }
 
 varptr flip (const varptr a, std::vector<size_t> dims)
@@ -484,7 +485,7 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 	{
 		return parent;
 	}
-	return coord_mapper::get(a, 
+	return coord_func(a, 
 	[dims](tensorshape outshape, const tensorshape)
 	{
 		// assert inshape.is_compatible_with(outshape)
@@ -546,7 +547,7 @@ varptr n_elems (const varptr a)
 	{
 		return parent;
 	}
-	return shape_dep::get(a,
+	return shape_func(a,
 	[](tensorshape inshape)
 	{
 		return std::vector<size_t>{inshape.n_elems()};

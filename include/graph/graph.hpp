@@ -38,13 +38,18 @@ public:
 	graph& operator = (const graph&) = delete;
 	graph& operator = (graph&&) = delete;
 
-	std::string register_node (inode* node);
-
-	void unregister_node (inode* node);
+	bool has_node (inode* node) const;
 
 	// serialize
 
 	// read from proto
+
+protected:
+	std::string register_node (inode* node);
+
+	void unregister_node (inode* node);
+
+	friend class inode;
 
 private:
 	graph (void) {}

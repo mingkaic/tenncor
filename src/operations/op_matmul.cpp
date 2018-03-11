@@ -1,7 +1,7 @@
 #include "include/operations/operations.hpp"
 
 #include "include/graph/connector/functor.hpp"
-#include "include/graph/connector/immutable/coord_mapper.hpp"
+#include "include/graph/connector/coord_mapper.hpp"
 
 #ifdef TENNCOR_OP_MATMUL_HPP
 
@@ -82,7 +82,7 @@ static tensorshape matmul_shaper (std::vector<tensorshape> shapes)
 static varptr flatten_mat (varptr a)
 {
 	size_t nelem_a = a->get_tensor()->get_shape().n_elems();
-	varptr expand = coord_mapper::get(a,
+	varptr expand = coord_func(a,
 	[](tensorshape, const tensorshape inshape)
 	{
 		size_t nelems = inshape.n_elems();
@@ -128,12 +128,13 @@ static inline void jacobian_glue (VARR_T dest, CVAR_T src, unsigned short nbyte,
 	}
 }
 
-static varptr matmul_gradient (inode* x, std::vector<inode*> args, inode* c)
+static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 {
 	inode* a = args.front();
 	inode* b = args.back();
 	inode* adx = a->derive(x);
 	inode* bdx = b->derive(x);
+	inode* c = matmul(varptr(a), varptr(b));
 	// process both arguments as jacobians
 	varptr da, db;
 	tensorshape bases = x->get_tensor()->get_shape();
@@ -160,7 +161,7 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args, inode* c)
 			}
 			return new tensor(tensorshape({nouter, ninner}));
 		}, 
-		[](inode*, std::vector<inode*>, inode*) -> varptr
+		[](inode*, std::vector<inode*>) -> varptr
 		{
 			throw std::bad_function_call(); // unimplemented
 		}, "jacobian_a");
@@ -188,13 +189,13 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args, inode* c)
 			}
 			return new tensor(tensorshape({nouter, ninner}));
 		},
-		[](inode*, std::vector<inode*>, inode*) -> varptr
+		[](inode*, std::vector<inode*>) -> varptr
 		{
 			throw std::bad_function_call(); // unimplemented
 		}, "jacobian_b");
 		db = matmul(jb, bdx);
 	}
-	return coord_mapper::get(reduce_sum(da + db, 1),
+	return coord_func(reduce_sum(da + db, 1),
 	[](tensorshape outshape, const tensorshape inshape)
 	{
 		std::vector<size_t> indices(inshape.n_elems());

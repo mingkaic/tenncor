@@ -1,17 +1,21 @@
 #include "include/graph/connector/iconnector.hpp"
 
+#ifndef TENNCOR_FUNCTOR_HPP
+#define TENNCOR_FUNCTOR_HPP
+
 namespace nnet
 {
 
 using TENSOP_F = std::function<tensor*(std::unique_ptr<idata_src>&,std::vector<inode*>)>;
 
-using DERIVE_F = std::function<varptr(inode*,std::vector<inode*>,inode*)>;
+using DERIVE_F = std::function<varptr(inode*,std::vector<inode*>)>;
 
-class functor final : public iconnector
+class functor final : public inode, public iobserver
 {
 public:
 	static functor* get (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, std::string label)
 	{
+		assert(false == args.empty());
 		return new functor(args, tensop, derive, label);
 	}
 
@@ -34,7 +38,8 @@ public:
 	{
 		if (this != &other)
 		{
-			iconnector::operator = (other);
+			iobserver::operator = (other);
+			inode::operator = (other);
 			copy_helper(other);
 		}
 		return *this;
@@ -45,7 +50,8 @@ public:
 	{
 		if (this != &other)
 		{
-			iconnector::operator = (std::move(other));
+			iobserver::operator = (std::move(other));
+			inode::operator = (std::move(other));
 			move_helper(std::move(other));
 		}
 		return *this;
@@ -54,6 +60,37 @@ public:
 
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	// >>>>>> IDENTIFICATION <<<<<<
+
+	//! get unique label with arguments
+	virtual std::string get_name (void) const
+	{
+		std::string args;
+		auto it = this->dependencies_.begin();
+		auto et = this->dependencies_.end();
+		const inode * arg = dynamic_cast<const inode*>(*it);
+		while (args.empty() && nullptr == arg)
+		{
+			arg = dynamic_cast<const inode*>(*++it);
+		}
+		if (arg)
+		{
+			args = arg->get_label();
+			++it;
+		}
+		while (it != et)
+		{
+			if (nullptr != (arg = dynamic_cast<const inode*>(*it)))
+			{
+				args += "," + arg->get_label();
+			}
+			it++;
+		}
+		return inode::get_name() + "(" + args + ")";
+	}
+
+	// >>>>>> CONNECTION QUERY <<<<<<
 	
 	//! get gradient leaves
 	virtual std::unordered_set<inode*> get_leaves (void) const
@@ -66,6 +103,17 @@ public:
 			leaves.insert(subleaves.begin(), subleaves.end());
 		}
 		return leaves;
+	}
+
+	// >>>>>> ICONNECTOR SPECIAL <<<<<<
+
+	//! get all observerables
+	std::vector<inode*> get_arguments (void) const
+	{
+		std::vector<inode*> node_args(this->dependencies_.size());
+		std::transform(this->dependencies_.begin(), this->dependencies_.end(), node_args.begin(),
+			[](subject* s) { return static_cast<inode*>(s); });
+		return node_args;
 	}
 
 
@@ -94,7 +142,7 @@ public:
 		{
 			throw std::exception(); // uninitialized variables
 		}
-		return derive_(wrt, get_arguments(), this);
+		return derive_(wrt, get_arguments());
 	}
 
 	// >>>>>> CALLED BY OBSERVER TO UPDATE <<<<<<
@@ -122,15 +170,19 @@ public:
 
 private:
 	functor (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, std::string label) :
-		iconnector(args, label), tensop_(tensop), derive_(derive) { this->update(); }
+		inode(label), iobserver(std::vector<subject*>(args.begin(), args.end())),
+		tensop_(tensop), derive_(derive)
+	{ this->update(); }
 
 	//! declare copy constructor to copy over transfer functions
 	functor (const functor& other) : 
-		iconnector(other) { copy_helper(other); }
+		inode(other), iobserver(other)
+	{ copy_helper(other); }
 
 	//! declare move constructor to move over transfer functions
 	functor (functor&& other) : 
-		iconnector(std::move(other)) { move_helper(std::move(other)); }
+		inode(std::move(other)), iobserver(std::move(other))
+	{ move_helper(std::move(other)); }
 
 	inode* clone_impl (void) const
 	{
@@ -166,6 +218,14 @@ private:
 		data_ = std::move(other.data_);
 	}
 
+	// >>>>>>>>>>>> KILL CONDITION <<<<<<<<<<<<
+
+	//! suicides when any dependency dies
+	virtual void death_on_broken (void)
+	{
+		delete this;
+	}
+
 
 	TENSOP_F tensop_;
 	
@@ -179,3 +239,5 @@ private:
 };
 
 }
+
+#endif /* TENNCOR_FUNCTOR_HPP */

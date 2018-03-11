@@ -7,9 +7,9 @@
 #include "gtest/gtest.h"
 
 #include "fuzz/fuzz.hpp"
-
 #include "check.hpp"
 
+#include "graph/graph.hpp"
 #include "mock_node.hpp"
 
 
@@ -22,18 +22,27 @@ class NODE : public testify::fuzz_test {};
 using namespace testutils;
 
 
+// covers inode: graph
+TEST_F(NODE, OnGraph_B000)
+{
+	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
+	mock_node node(label);
+	EXPECT_TRUE(nnet::graph::get().has_node(&node));
+}
+
+
 // covers inode: clone
-TEST_F(NODE, Copy_B000)
+TEST_F(NODE, Copy_B001)
 {
 	mock_node assign("");
 
-	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
-	mock_node n1(label1);
+	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
+	mock_node n1(label);
 
 	mock_node cpy(n1);
 	assign = n1;
 
-	EXPECT_EQ(label1, n1.get_label());
+	EXPECT_EQ(label, n1.get_label());
 	EXPECT_EQ(n1.get_label(), cpy.get_label());
 	EXPECT_EQ(n1.get_label(), assign.get_label());
 
@@ -43,15 +52,15 @@ TEST_F(NODE, Copy_B000)
 
 
 // covers inode: move
-TEST_F(NODE, Move_B000)
+TEST_F(NODE, Move_B001)
 {
 	mock_node assign("");
 
-	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
-	mock_node n1(label1);
+	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
+	mock_node n1(label);
 
 	std::string ouid = n1.get_uid();
-	EXPECT_EQ(label1, n1.get_label());
+	EXPECT_EQ(label, n1.get_label());
 
 	mock_node mv(std::move(n1));
 
@@ -59,7 +68,7 @@ TEST_F(NODE, Move_B000)
 	std::string ouid2 = mv.get_uid();
 	EXPECT_TRUE(n1str.empty()) <<
 		sprintf("empty n1 node got label %s", n1str.c_str());
-	EXPECT_EQ(label1, mv.get_label());
+	EXPECT_EQ(label, mv.get_label());
 	EXPECT_NE(ouid, ouid2);
 
 	assign = std::move(mv);
@@ -68,14 +77,14 @@ TEST_F(NODE, Move_B000)
 	std::string ouid3 = assign.get_uid();
 	EXPECT_TRUE(mvstr.empty()) <<
 		sprintf("empty mv node got label %s", mvstr.c_str());
-	EXPECT_EQ(label1, assign.get_label());
+	EXPECT_EQ(label, assign.get_label());
 	EXPECT_NE(ouid, ouid3);
 	EXPECT_NE(ouid2, ouid3);
 }
 
 
 // covers inode: get_uid
-TEST_F(NODE, UID_B001)
+TEST_F(NODE, UID_B002)
 {
 	std::unordered_set<std::string> us;
 	size_t ns = get_int(1, "ns", {1412, 2922})[0];
@@ -91,14 +100,14 @@ TEST_F(NODE, UID_B001)
 
 
 // covers inode: get_label, get_name
-TEST_F(NODE, Label_B002)
+TEST_F(NODE, Label_B003)
 {
-	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
-	mock_node n1(label1);
+	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
+	mock_node n1(label);
 
 	std::string uid = n1.get_uid();
-	EXPECT_EQ(n1.get_name(), "<"+label1+":"+uid+">");
-	EXPECT_EQ(label1, n1.get_label());
+	EXPECT_EQ(n1.get_name(), "<"+label+":"+uid+">");
+	EXPECT_EQ(label, n1.get_label());
 }
 
 

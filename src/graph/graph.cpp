@@ -6,12 +6,17 @@
 //  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
-#include "include/graph/connector/iconnector.hpp"
+#include "include/graph/inode.hpp"
 
 #ifdef TENNCOR_GRAPH_HPP
 
 namespace nnet
 {
+
+bool graph::has_node (inode* node) const
+{
+	return adjlist_.end() != adjlist_.find(node->get_uid());
+}
 
 std::string graph::register_node (inode* node)
 {
