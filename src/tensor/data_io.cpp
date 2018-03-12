@@ -1,9 +1,9 @@
 //
-//  data_io.cpp
-//  cnnet
+//	data_io.cpp
+//	cnnet
 //
-//  Created by Mingkai Chen on 2018-01-12.
-//  Copyright © 2018 Mingkai Chen. All rights reserved.
+//	Created by Mingkai Chen on 2018-01-12.
+//	Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #include "include/tensor/data_io.hpp"
@@ -37,6 +37,23 @@ void assign_io::set_varr (SVARR_T input, size_t)
 idata_src* assign_io::clone_impl (void) const
 {
 	return new assign_io();
+}
+
+
+void sindex_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+{
+	std::vector<size_t> index = smap_(shape, input_.second);
+	type = this->type_;
+	// implicity assert(shape.n_elems() <= *std::max_element(index_.begin(), index_.end()))
+	unsigned short bytes = type_size(type);
+	nnutils::check_ptr(outptr, index.size() * bytes);
+	char* dest = (char*) outptr.get();
+	assert(!input_.first.expired());
+	const char* src = (const char*) input_.first.lock().get();
+	for (size_t i = 0; i < index.size(); ++i)
+	{
+		std::memcpy(dest + i * bytes, src + index[i] * bytes, bytes);
+	}
 }
 
 
@@ -74,36 +91,19 @@ idata_src* operate_io::clone_impl (void) const
 }
 
 
-void glue_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
-{
-	type = type_;
-	unsigned short bytesize = type_size(type);
-	size_t nbytes = shape.n_elems() * bytesize;
-	nnutils::check_ptr(outptr, nbytes);
-	void* dest = outptr.get();
-	std::memset(dest, 0, nbytes);
-	for (size_t i = 0; i < args_.size(); ++i)
-	{
-		assert(!args_[i].first.expired());
-		glue_(VARR_T{dest, shape}, CVAR_T{args_[i].first.lock().get(), args_[i].second}, bytesize, i);
-	}
-}
-
-
-void sindex_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
-{
-	std::vector<size_t> index = smap_(shape, input_.second);
-	type = this->type_;
-	// implicity assert(shape.n_elems() <= *std::max_element(index_.begin(), index_.end()))
-	unsigned short bytes = type_size(type);
-	nnutils::check_ptr(outptr, index.size() * bytes);
-	char* dest = (char*) outptr.get();
-	assert(!input_.first.expired());
-	const char* src = (const char*) input_.first.lock().get();
-	for (size_t i = 0; i < index.size(); ++i)
-	{
-		std::memcpy(dest + i * bytes, src + index[i] * bytes, bytes);
-	}
+void glue_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const 
+{ 
+	type = type_; 
+	unsigned short bytesize = type_size(type); 
+	size_t nbytes = shape.n_elems() * bytesize; 
+	nnutils::check_ptr(outptr, nbytes); 
+	void* dest = outptr.get(); 
+	std::memset(dest, 0, nbytes); 
+	for (size_t i = 0; i < args_.size(); ++i) 
+	{ 
+		assert(!args_[i].first.expired()); 
+		glue_(VARR_T{dest, shape}, CVAR_T{args_[i].first.lock().get(), args_[i].second}, bytesize, i); 
+	} 
 }
 
 }

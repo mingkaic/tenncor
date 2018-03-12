@@ -46,8 +46,30 @@ varptr reduce_l2norm (const varptr a)
 }
 
 
+varptr arg_max (const varptr a, size_t dimension)
+{
+	if (nullptr == a.get()) return nullptr;
+	// always check if the same operation on input exists
+	if (inode* parent = single_parent(a, nnutils::formatter() << "argmax_" << dimension))
+	{
+		return parent;
+	}
+	return agg_func(a, "argmax", dimension,
+	[](std::vector<std::pair<inode*, inode*> >) -> varptr
+	{
+		throw std::exception();
+	});
+}
+
+
 varptr reduce_max (const varptr a, size_t dimension)
 {
+	if (nullptr == a.get()) return nullptr;
+	// always check if the same operation on input exists
+	if (inode* parent = single_parent(a, nnutils::formatter() << "max_" << dimension))
+	{
+		return parent;
+	}
 	return agg_func(a, "max", dimension,
 	[dimension](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
@@ -61,6 +83,12 @@ varptr reduce_max (const varptr a, size_t dimension)
 
 varptr reduce_sum (const varptr a, size_t dimension)
 {
+	if (nullptr == a.get()) return nullptr;
+	// always check if the same operation on input exists
+	if (inode* parent = single_parent(a, nnutils::formatter() << "sum_" << dimension))
+	{
+		return parent;
+	}
 	return agg_func(a, "sum", dimension,
 	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
@@ -76,16 +104,6 @@ varptr reduce_mean (const varptr a, size_t dimension)
 varptr reduce_l2norm (const varptr a, size_t dimension)
 {
 	return sqrt(reduce_sum(a * a, dimension));
-}
-
-
-varptr arg_max (const varptr a, size_t dimension)
-{
-	return agg_func(a, "arg_max", dimension,
-	[](std::vector<std::pair<inode*, inode*> >) -> varptr
-	{
-		throw std::exception();
-	});
 }
 
 }

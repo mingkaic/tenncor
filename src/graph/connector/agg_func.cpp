@@ -15,6 +15,35 @@
 namespace nnet
 {
 
+functor* agg_func (inode* arg, std::string opname, BACKMAP_F bwd)
+{
+	return functor::get({arg},
+	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	{
+		assert(args.size() == 1);
+		idata_io* io = new aggreg_io(opname, 
+		[](tensorshape,const tensorshape inshape)
+		{
+			return std::vector<size_t>(inshape.n_elems(), 0);
+		});
+		src = std::unique_ptr<idata_src>(io);
+		const tensor* tens = args[0]->get_tensor();
+		assert(tens && tens->has_data());
+		tens->write_to(*io);
+		// invariant: none of tens is null
+		return new tensor(std::vector<size_t>{1});
+	},
+	[bwd](inode* wrt, std::vector<inode*> args)
+	{
+		std::vector<std::pair<inode*,inode*> > deps;
+		for (inode* arg : args)
+		{
+			deps.push_back({arg, arg->derive(wrt)});
+		}
+		return bwd(deps);
+	}, opname);
+}
+
 functor* agg_func (inode* arg, std::string opname, size_t dimension, BACKMAP_F bwd)
 {
 	return functor::get({arg},

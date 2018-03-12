@@ -12,6 +12,7 @@
 #include "include/graph/connector/elem_func.hpp"
 #include "include/graph/connector/shape_func.hpp"
 #include "include/graph/connector/coord_func.hpp"
+#include "include/graph/connector/agg_func.hpp"
 
 #ifdef TENNCOR_OP_STD_HPP
 
@@ -75,15 +76,15 @@ static inline varptr comparator (std::string opname, inode* a, inode* b)
 	return out;
 }
 
-static inline varptr aggregate (std::string opname, inode* a, BACKMAP_F bwd)
+static inline varptr aggregate (inode* arg, std::string opname, BACKMAP_F bwd)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == arg) return nullptr;
 	// always check if the same operation on input exists
-	if (inode* parent = single_parent(a, opname))
+	if (inode* parent = single_parent(arg, opname))
 	{
 		return parent;
 	}
-	return functor::get({a},
+	return functor::get({arg},
 	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		assert(args.size() == 1);
@@ -533,7 +534,13 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 
 varptr arg_max (const varptr a)
 {
-	return aggregate("argmax", a,
+	if (nullptr == a.get()) return nullptr;
+	// always check if the same operation on input exists
+	if (inode* parent = single_parent(a, "argmax"))
+	{
+		return parent;
+	}
+	return agg_func(a, "argmax",
 	[](std::vector<std::pair<inode*,inode*> >) -> varptr
 	{
 		throw std::exception();
@@ -542,7 +549,13 @@ varptr arg_max (const varptr a)
 
 varptr reduce_max (const varptr a)
 {
-	return aggregate("max", a,
+	if (nullptr == a.get()) return nullptr;
+	// always check if the same operation on input exists
+	if (inode* parent = single_parent(a, "max"))
+	{
+		return parent;
+	}
+	return agg_func(a, "max",
 	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
 		varptr a = args.front().first;
@@ -554,7 +567,13 @@ varptr reduce_max (const varptr a)
 
 varptr reduce_sum (const varptr a)
 {
-	return aggregate("sum", a,
+	if (nullptr == a.get()) return nullptr;
+	// always check if the same operation on input exists
+	if (inode* parent = single_parent(a, "sum"))
+	{
+		return parent;
+	}
+	return agg_func(a, "sum",
 	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
 		return args.front().second;

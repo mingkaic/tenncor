@@ -22,7 +22,7 @@ namespace nnet
 {
 
 functor* elem_func (std::vector<inode*> args, std::string opname, 
-    BACKMAP_F bwd);
+	BACKMAP_F bwd);
 
 }
 

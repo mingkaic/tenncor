@@ -143,11 +143,38 @@ protected:
 		return new aggreg_io(*this);
 	}
 
-	SVARR_T input_;
+	std::string opname_;
 
 	SIDX_F inmap_;
 
-	std::string opname_;
+	SVARR_T input_;
+};
+
+struct sindex_io final : public idata_io
+{
+	sindex_io (SIDX_F smap) : smap_(smap) {}
+
+	sindex_io* clone (void) const
+	{
+		return dynamic_cast<sindex_io*>(clone_impl());
+	}
+
+	virtual void set_varr (SVARR_T input, size_t)
+	{
+		input_ = input;
+	}
+
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+
+private:
+	virtual idata_src* clone_impl (void) const
+	{
+		return new sindex_io(*this);
+	}
+
+	SIDX_F smap_;
+
+	SVARR_T input_;
 };
 
 struct imultiarg_io : public idata_io
@@ -184,53 +211,24 @@ protected:
 	std::string opname_;
 };
 
-
-
-struct glue_io final : public imultiarg_io
-{
-	glue_io (GLUE_F glue) : glue_(glue) {}
-
-	glue_io* clone (void) const
-	{
-		return dynamic_cast<glue_io*>(clone_impl());
-	}
-
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
-
-private:
-	virtual idata_src* clone_impl (void) const
-	{
-		return new glue_io(*this);
-	}
-
-	GLUE_F glue_;
-};
-
-struct sindex_io final : public idata_io
-{
-	sindex_io (SIDX_F smap) : smap_(smap) {}
-
-	sindex_io* clone (void) const
-	{
-		return dynamic_cast<sindex_io*>(clone_impl());
-	}
-
-	virtual void set_varr (SVARR_T input, size_t)
-	{
-		input_ = input;
-	}
-
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
-
-private:
-	virtual idata_src* clone_impl (void) const
-	{
-		return new sindex_io(*this);
-	}
-
-	SIDX_F smap_;
-
-	SVARR_T input_;
+struct glue_io final : public imultiarg_io 
+{ 
+	glue_io (GLUE_F glue) : glue_(glue) {} 
+ 
+	glue_io* clone (void) const 
+	{ 
+		return dynamic_cast<glue_io*>(clone_impl()); 
+	} 
+ 
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const; 
+ 
+private: 
+	virtual idata_src* clone_impl (void) const 
+	{ 
+		return new glue_io(*this); 
+	} 
+ 
+	GLUE_F glue_; 
 };
 
 }
