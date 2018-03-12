@@ -2,7 +2,7 @@
 // Created by Mingkai Chen on 2017-07-03.
 //
 
-#include "include/graph/connector/shape_dep.hpp"
+#include "include/graph/connector/shape_func.hpp"
 
 #ifdef TENNCOR_SHAPE_DEP_HPP
 

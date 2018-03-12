@@ -7,7 +7,7 @@
 //
 
 #include "include/operations/operation_utils.hpp"
-#include "include/graph/connector/iconnector.hpp"
+#include "include/graph/connector/functor.hpp"
 
 #ifdef TENNCOR_OPERATION_UTILS_HPP
 
@@ -20,7 +20,7 @@ static inline std::list<iobserver*> aud_intersects (
 	std::list<iobserver*> auds;
 	for (auto audpair : srcs[0]->get_audience())
 	{
-		iconnector* icon = dynamic_cast<iconnector*>(audpair.first);
+		functor* icon = dynamic_cast<functor*>(audpair.first);
 		if (icon && opname == icon->get_label())
 		{
 			auds.push_back(audpair.first);
@@ -53,7 +53,7 @@ inode* single_parent (inode* src, std::string opname)
 	AUDMAP_T auds = src->get_audience();
 	for (auto audpair : auds)
 	{
-		if (iconnector* aud = dynamic_cast<iconnector*>(audpair.first))
+		if (functor* aud = dynamic_cast<functor*>(audpair.first))
 		{
 			std::vector<inode*> args = aud->get_arguments();
 			if (args.size() == 1 && opname == args[0]->get_label())
@@ -71,7 +71,7 @@ inode* ordered_parent (std::vector<inode*> srcs, std::string opname)
 	auto auds = aud_intersects(srcs, opname);
 	for (iobserver* o : auds)
 	{
-		iconnector* aud = dynamic_cast<iconnector*>(o);
+		functor* aud = dynamic_cast<functor*>(o);
 		if (aud && std::equal(srcs.begin(), srcs.end(), 
 			aud->get_arguments().begin()))
 		{
@@ -87,7 +87,7 @@ inode* unordered_parent (std::vector<inode*> srcs, std::string opname)
 	auto auds = aud_intersects(srcs, opname);
 	for (iobserver* o : auds)
 	{
-		if (iconnector* aud = dynamic_cast<iconnector*>(o))
+		if (functor* aud = dynamic_cast<functor*>(o))
 		{
 			return aud;
 		}

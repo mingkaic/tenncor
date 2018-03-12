@@ -20,8 +20,9 @@ assign_io* assign_io::clone (void) const
 
 void assign_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
+	assert(type_ != BAD_T && !input_.first.expired() &&
+		shape.is_compatible_with(input_.second));
 	type = type_;
-	assert(type != BAD_T && !input_.first.expired());
 	// assert shape.is_compatible_with(input_.second);
 	size_t nbytes = shape.n_elems() * type_size(type);
 	nnutils::check_ptr(outptr, nbytes);
@@ -38,6 +39,7 @@ idata_src* assign_io::clone_impl (void) const
 	return new assign_io();
 }
 
+
 void imultiarg_io::set_varr (SVARR_T input, size_t idx)
 {
 	size_t nargs = args_.size();
@@ -48,11 +50,6 @@ void imultiarg_io::set_varr (SVARR_T input, size_t idx)
 	args_[idx] = input;
 }
 
-
-idata_src* operate_io::clone_impl (void) const
-{
-	return new operate_io(*this);
-}
 
 void operate_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
@@ -68,7 +65,12 @@ void operate_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tenso
 		assert(!sv.first.expired());
 		return CVAR_T{sv.first.lock().get(), sv.second};
 	});
-	operate(opname_, type_, VARR_T{outptr.get(), shape}, args);
+	regop(opname_, type_, VARR_T{outptr.get(), shape}, args);
+}
+
+idata_src* operate_io::clone_impl (void) const
+{
+	return new operate_io(*this);
 }
 
 

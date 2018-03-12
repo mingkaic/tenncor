@@ -9,38 +9,13 @@
 #include "include/operations/operations.hpp"
 #include "include/operations/operation_utils.hpp"
 
-#include "include/graph/connector/muxer.hpp"
+#include "include/graph/connector/agg_func.hpp"
 #include "include/graph/connector/functor.hpp"
 
 #ifdef TENNCOR_OP_COM_HPP
 
 namespace nnet
 {
-
-static inline varptr reduce (const varptr a, size_t dimension, 
-	std::string op, std::function<varptr(varptr)> reduce_op)
-{
-	if (nullptr == a.get()) return nullptr;
-	std::string dmx_label = nnutils::formatter() << "reduce_" << op << "_" << dimension;
-	if (inode* parent = single_parent(a, dmx_label))
-	{
-		return parent;
-	}
-	// return functor::get({a},
-	// [](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
-	// {
-	// 	inode* arg = args[0];
-	// },
-	// [](inode* wrt, std::vector<inode*> args)
-	// {
-	// 	inode* arg = args[0];
-	// 	arg->derive(wrt);
-	// }, dmx_label);
-
-
-
-	return muxer::get(a, dimension, reduce_op, dmx_label);
-}
 
 varptr clip (const varptr a, const varptr min, const varptr max)
 {
@@ -73,42 +48,43 @@ varptr reduce_l2norm (const varptr a)
 
 varptr reduce_max (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "max", [](varptr slice)
+	return agg_func(a, "max", dimension,
+	[dimension](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
-		return reduce_max(slice);
+		varptr a = args.front().first;
+		varptr ag = args.front().second;
+		varptr me = reduce_max(a, dimension);
+		varptr bitmap = expand(me, n_dimension(a, dimension), dimension);
+		return (bitmap == a) * ag;
 	});
 }
 
 varptr reduce_sum (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "sum", [](varptr slice)
+	return agg_func(a, "sum", dimension,
+	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
-		return reduce_sum(slice);
+		return args.front().second;
 	});
 }
 
 varptr reduce_mean (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "mean", [](varptr slice)
-	{
-		return reduce_mean(slice);
-	});
+	return reduce_sum(a, dimension) / n_dimension(a, dimension);
 }
 
 varptr reduce_l2norm (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "l2norm", [](varptr slice)
-	{
-		return reduce_l2norm(slice);
-	});
+	return sqrt(reduce_sum(a * a, dimension));
 }
 
 
 varptr arg_max (const varptr a, size_t dimension)
 {
-	return reduce(a, dimension, "arg_max", [](varptr slice)
+	return agg_func(a, "arg_max", dimension,
+	[](std::vector<std::pair<inode*, inode*> >) -> varptr
 	{
-		return arg_max(slice);
+		throw std::exception();
 	});
 }
 

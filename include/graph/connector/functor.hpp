@@ -1,10 +1,20 @@
-#include "include/graph/connector/iconnector.hpp"
+#include "include/graph/inode.hpp"
+#include "include/graph/react/iobserver.hpp"
+#include "include/graph/leaf/constant.hpp" 
 
 #ifndef TENNCOR_FUNCTOR_HPP
 #define TENNCOR_FUNCTOR_HPP
 
 namespace nnet
 {
+
+//! backward transfer function, get gradient nodes; F: Nf -> Nb 
+using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,inode*> >)>; 
+
+//! calculate output shape from argument shapes 
+using SHAPER_F = std::function<tensorshape(std::vector<tensorshape>)>; 
+ 
+using USHAPE_F = std::function<tensorshape(tensorshape)>; 
 
 using TENSOP_F = std::function<tensor*(std::unique_ptr<idata_src>&,std::vector<inode*>)>;
 

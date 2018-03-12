@@ -31,9 +31,11 @@ using CVAR_T = std::pair<const void*,tensorshape>;
 
 using VFUNC_F = std::function<void(VARR_T,std::vector<CVAR_T>)>;
 
-std::unordered_set<std::string> all_ops (void);
+using AFUNC_F = std::function<void(size_t,void*,void*)>;
 
-void operate (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src);
+void regop (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src);
+
+void aggop (std::string opname, TENS_TYPE type, size_t i, void* accum, void* arr);
 
 #ifndef TENNCOR_D_UNARY_HPP
 #define TENNCOR_D_UNARY_HPP
@@ -113,42 +115,6 @@ void sqrt (VARR_T dest, std::vector<CVAR_T> srcs);
 template <typename T>
 void round (VARR_T dest, std::vector<CVAR_T> srcs);
 
-// aggregation
-
-template <typename T>
-void argmax (VARR_T dest, std::vector<CVAR_T> srcs)
-{
-	tensorshape& srcshape = srcs.front().second;
-	// assert(srcs.size() == 1 && dest.second.n_elems() == 1);
-	T* d = (T*) dest.first;
-	const T* s = (const T*) srcs.front().first;
-	size_t n = srcshape.n_elems();
-	auto it = std::max_element(s, s + n);
-	d[0] = std::distance(s, it);
-}
-
-template <typename T>
-void max (VARR_T dest, std::vector<CVAR_T> srcs)
-{
-	tensorshape& srcshape = srcs.front().second;
-	// assert(srcs.size() == 1 && dest.second.n_elems() == 1);
-	T* d = (T*) dest.first;
-	const T* s = (const T*) srcs.front().first;
-	size_t n = srcshape.n_elems();
-	d[0] = *(std::max_element(s, s + n));
-}
-
-template <typename T>
-void sum (VARR_T dest, std::vector<CVAR_T> srcs)
-{
-	tensorshape& srcshape = srcs.front().second;
-	// assert(srcs.size() == 1 && dest.second.n_elems() == 1);
-	T* d = (T*) dest.first;
-	const T* s = (const T*) srcs.front().first;
-	size_t n = srcshape.n_elems();
-	d[0] = std::accumulate(s, s + n, (T) 0);
-}
-
 #endif /* TENNCOR_D_UNARY_HPP */
 
 #ifndef TENNCOR_D_NNARY_HPP
@@ -205,6 +171,39 @@ template <typename T>
 void matmul (VARR_T dest, std::vector<CVAR_T> srcs);
 
 #endif /* TENNCOR_D_MATMUL_HPP */
+
+// aggregation
+
+template <typename T>
+void argmax (size_t i, void* accum, void* arr)
+{
+	T* tarr = (T*) arr;
+	T* data = (T*) accum;
+	size_t prev = *data;
+	if (tarr[prev] < tarr[i])
+	{
+		*data = i;
+	}
+}
+
+template <typename T>
+void max (size_t i, void* accum, void* arr)
+{
+	T* tarr = (T*) arr;
+	T* data = (T*) accum;
+	if (*data < tarr[i])
+	{
+		*data = tarr[i];
+	}
+}
+
+template <typename T>
+void sum (size_t i, void* accum, void* arr)
+{
+	T* tarr = (T*) arr;
+	T* data = (T*) accum;
+	*data += tarr[i];
+}
 
 }
 

@@ -13,60 +13,58 @@
 namespace nnet
 {
 
-using VFUNCMAP_T = std::unordered_map<TENS_TYPE,VFUNC_F>;
+template <typename VALUE_F>
+using TYPEMAP_T = std::unordered_map<TENS_TYPE,VALUE_F>;
 
-#define REGISTER_FUNC(FUNC) {#FUNC, VFUNCMAP_T{\
+#define REGISTER_FUNC(FUNC, FUNCTYPE) {#FUNC, TYPEMAP_T<FUNCTYPE>{\
 {DOUBLE, nnet::FUNC<double>},{FLOAT, nnet::FUNC<float>},\
 {INT8, nnet::FUNC<int8_t>},{UINT8, nnet::FUNC<uint8_t>},\
 {INT16, nnet::FUNC<int16_t>},{UINT16, nnet::FUNC<uint16_t>},\
 {INT32, nnet::FUNC<int32_t>},{UINT32, nnet::FUNC<uint32_t>},\
 {INT64, nnet::FUNC<int64_t>},{UINT64, nnet::FUNC<uint64_t>}}},
 
-static const std::unordered_map<std::string,VFUNCMAP_T> op_registry = {
-	REGISTER_FUNC(abs)
-	REGISTER_FUNC(neg)
-	REGISTER_FUNC(logic_not)
-	REGISTER_FUNC(sin)
-	REGISTER_FUNC(cos)
-	REGISTER_FUNC(tan)
-	REGISTER_FUNC(csc)
-	REGISTER_FUNC(sec)
-	REGISTER_FUNC(cot)
-	REGISTER_FUNC(exp)
-	REGISTER_FUNC(log)
-	REGISTER_FUNC(sqrt)
-	REGISTER_FUNC(round)
-	REGISTER_FUNC(argmax)
-	REGISTER_FUNC(max)
-	REGISTER_FUNC(sum)
+#define REG_OPFUNC(FUNC) REGISTER_FUNC(FUNC, VFUNC_F)
 
-	REGISTER_FUNC(pow)
-	REGISTER_FUNC(add)
-	REGISTER_FUNC(sub)
-	REGISTER_FUNC(mul)
-	REGISTER_FUNC(div)
-	REGISTER_FUNC(eq)
-	REGISTER_FUNC(neq)
-	REGISTER_FUNC(lt)
-	REGISTER_FUNC(gt)
-	REGISTER_FUNC(rand_binom)
-	REGISTER_FUNC(rand_uniform)
-	REGISTER_FUNC(rand_normal)
+#define REG_AGFUNC(FUNC) REGISTER_FUNC(FUNC, AFUNC_F)
 
-	REGISTER_FUNC(matmul)
+static const std::unordered_map<std::string,TYPEMAP_T<VFUNC_F> > op_registry = {
+	REG_OPFUNC(abs)
+	REG_OPFUNC(neg)
+	REG_OPFUNC(logic_not)
+	REG_OPFUNC(sin)
+	REG_OPFUNC(cos)
+	REG_OPFUNC(tan)
+	REG_OPFUNC(csc)
+	REG_OPFUNC(sec)
+	REG_OPFUNC(cot)
+	REG_OPFUNC(exp)
+	REG_OPFUNC(log)
+	REG_OPFUNC(sqrt)
+	REG_OPFUNC(round)
+
+	REG_OPFUNC(pow)
+	REG_OPFUNC(add)
+	REG_OPFUNC(sub)
+	REG_OPFUNC(mul)
+	REG_OPFUNC(div)
+	REG_OPFUNC(eq)
+	REG_OPFUNC(neq)
+	REG_OPFUNC(lt)
+	REG_OPFUNC(gt)
+	REG_OPFUNC(rand_binom)
+	REG_OPFUNC(rand_uniform)
+	REG_OPFUNC(rand_normal)
+
+	REG_OPFUNC(matmul)
 };
 
-std::unordered_set<std::string> all_ops (void)
-{
-	std::unordered_set<std::string> opset;
-	for (auto& op_pair : op_registry)
-	{
-		opset.emplace(op_pair.first);
-	}
-	return opset;
-}
+static const std::unordered_map<std::string,TYPEMAP_T<AFUNC_F> > ag_registry = {
+	REG_AGFUNC(argmax)
+	REG_AGFUNC(max)
+	REG_AGFUNC(sum)
+};
 
-void operate (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src)
+void regop (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src)
 {
 	auto type_it = op_registry.find(opname);
 	if (op_registry.end() != type_it)
@@ -76,6 +74,22 @@ void operate (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_
 		if (type_map.end() != it)
 		{
 			(it->second)(dest, src);
+			return;
+		}
+	}
+	throw std::bad_function_call();
+}
+
+void aggop (std::string opname, TENS_TYPE type, size_t i, void* accum, void* arr)
+{
+	auto type_it = ag_registry.find(opname);
+	if (ag_registry.end() != type_it)
+	{
+		auto& type_map = type_it->second;
+		auto it = type_map.find(type);
+		if (type_map.end() != it)
+		{
+			(it->second)(i, accum, arr);
 			return;
 		}
 	}

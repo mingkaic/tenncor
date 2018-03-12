@@ -1,6 +1,6 @@
 /*!
  *
- *  shape_dep.hpp
+ *  shape_func.hpp
  *  cnnet
  *
  *  Purpose:

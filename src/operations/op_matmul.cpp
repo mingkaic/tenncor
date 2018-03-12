@@ -1,7 +1,7 @@
 #include "include/operations/operations.hpp"
 
 #include "include/graph/connector/functor.hpp"
-#include "include/graph/connector/coord_mapper.hpp"
+#include "include/graph/connector/coord_func.hpp"
 
 #ifdef TENNCOR_OP_MATMUL_HPP
 

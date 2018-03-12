@@ -1,6 +1,6 @@
 /*!
  *
- *  elem_op.hpp
+ *  elem_func.hpp
  *  cnnet
  *
  *  Purpose:
@@ -15,17 +15,15 @@
 #include "include/graph/connector/functor.hpp"
 
 #pragma once
-#ifndef TENNCOR_ELEM_OP_HPP
-#define TENNCOR_ELEM_OP_HPP
+#ifndef TENNCOR_ELEM_FUNC_HPP
+#define TENNCOR_ELEM_FUNC_HPP
 
 namespace nnet
 {
 
-tensorshape elementary_shaper (std::vector<tensorshape> shapes);
-
-functor* reg_func (std::vector<inode*> args, std::string opname, 
-    BACKMAP_F bwd, SHAPER_F shaper = elementary_shaper);
+functor* elem_func (std::vector<inode*> args, std::string opname, 
+    BACKMAP_F bwd);
 
 }
 
-#endif /* TENNCOR_ELEM_OP_HPP */
+#endif /* TENNCOR_ELEM_FUNC_HPP */

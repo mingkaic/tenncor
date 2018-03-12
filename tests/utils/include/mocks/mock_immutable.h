@@ -8,7 +8,7 @@
 #include "tests/unit/include/utils/util_test.hpp"
 #include "tests/unit/include/utils/fuzz.h"
 
-#include "include/graph/connector/immutable/elem_op.hpp"
+#include "include/graph/connector/immutable/elem_func.hpp"
 
 using namespace nnet;
 

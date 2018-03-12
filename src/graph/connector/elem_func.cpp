@@ -6,16 +6,14 @@
 //  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
-#include "include/graph/connector/elem_op.hpp"
+#include "include/graph/connector/elem_func.hpp"
 
-#ifdef TENNCOR_ELEM_OP_HPP
+#ifdef TENNCOR_ELEM_FUNC_HPP
 
 namespace nnet
 {
 
-static std::unordered_set<std::string> opset;
-
-tensorshape elementary_shaper (std::vector<tensorshape> shapes)
+static inline tensorshape elementary_shaper (std::vector<tensorshape> shapes)
 {
 	tensorshape lastshape;
 	for (size_t i = 0, nshapes = shapes.size(); i < nshapes; ++i)
@@ -39,12 +37,10 @@ tensorshape elementary_shaper (std::vector<tensorshape> shapes)
 	return lastshape;
 }
 
-functor* reg_func (std::vector<inode*> args, std::string opname, BACKMAP_F bwd, SHAPER_F shaper)
+functor* elem_func (std::vector<inode*> args, std::string opname, BACKMAP_F bwd)
 {
-	if (opset.empty()) opset = all_ops();
-	assert(opset.end() != opset.find(opname));
 	return functor::get(args,
-	[opname, shaper](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		idata_io* io = new operate_io(opname);
 		src = std::unique_ptr<idata_src>(io);
@@ -65,7 +61,7 @@ functor* reg_func (std::vector<inode*> args, std::string opname, BACKMAP_F bwd, 
 			tens[i]->write_to(*io, i);
 		}
 		// invariant: none of tens is null
-		return new tensor(shaper(srcshapes));
+		return new tensor(elementary_shaper(srcshapes));
 	},
 	[bwd](inode* wrt, std::vector<inode*> args)
 	{

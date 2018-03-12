@@ -187,9 +187,19 @@ varptr reduce_max (const varptr a);
 varptr reduce_sum (const varptr a);
 
 
+// >>>>>>>>>>>> EXPANSION <<<<<<<<<<<<
+
+//! repeat a n times along inserted dimension dim
+varptr expand (varptr a, varptr n, size_t dim);
+
+varptr expand (varptr a, size_t n, size_t dim);
+
+
 // >>>>>>>>>>>> SHAPE_DEP <<<<<<<<<<<<
 
 varptr n_elems (const varptr a);
+
+varptr n_dimension (const varptr a, size_t dimension);
 
 #endif /* TENNCOR_OP_STD_HPP */
 

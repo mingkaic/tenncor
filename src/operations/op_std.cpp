@@ -9,9 +9,9 @@
 #include "include/operations/operations.hpp"
 #include "include/operations/operation_utils.hpp"
 
-#include "include/graph/connector/elem_op.hpp"
-#include "include/graph/connector/shape_dep.hpp"
-#include "include/graph/connector/coord_mapper.hpp"
+#include "include/graph/connector/elem_func.hpp"
+#include "include/graph/connector/shape_func.hpp"
+#include "include/graph/connector/coord_func.hpp"
 
 #ifdef TENNCOR_OP_STD_HPP
 
@@ -26,7 +26,7 @@ static inline varptr lin_unar (std::string opname, inode* input, BACKMAP_F bwd)
 	{
 		return parent;
 	}
-	return reg_func(std::vector<inode*>{input}, opname, bwd);
+	return elem_func(std::vector<inode*>{input}, opname, bwd);
 }
 
 static inline varptr sample (std::string opname, inode* a, inode* b)
@@ -37,7 +37,7 @@ static inline varptr sample (std::string opname, inode* a, inode* b)
 	{
 		return parent;
 	}
-	return reg_func(deps, opname, 
+	return elem_func(deps, opname, 
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		tensorshape shape = args.front().first->get_tensor()->get_shape();
@@ -64,7 +64,7 @@ static inline varptr comparator (std::string opname, inode* a, inode* b)
 	}
 	else
 	{
-		out = reg_func(deps, opname,
+		out = elem_func(deps, opname,
 		[opname](std::vector<std::pair<inode*,inode*> > args)
 		{
 			varptr a = args.front().first;
@@ -83,9 +83,31 @@ static inline varptr aggregate (std::string opname, inode* a, BACKMAP_F bwd)
 	{
 		return parent;
 	}
-	return reg_func(std::vector<inode*>{a}, opname, bwd, 
-		[](std::vector<tensorshape>) -> tensorshape
-		{ return std::vector<size_t>{1}; });
+	return functor::get({a},
+	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	{
+		assert(args.size() == 1);
+		idata_io* io = new aggreg_io(opname, 
+		[](tensorshape,const tensorshape inshape)
+		{
+			return std::vector<size_t>(inshape.n_elems(), 0);
+		});
+		src = std::unique_ptr<idata_src>(io);
+		const tensor* tens = args[0]->get_tensor();
+		assert(tens && tens->has_data());
+		tens->write_to(*io);
+		// invariant: none of tens is null
+		return new tensor(std::vector<size_t>{1});
+	},
+	[bwd](inode* wrt, std::vector<inode*> args)
+	{
+		std::vector<std::pair<inode*,inode*> > deps;
+		for (inode* arg : args)
+		{
+			deps.push_back({arg, arg->derive(wrt)});
+		}
+		return bwd(deps);
+	}, opname);
 }
 
 varptr abs (const varptr a)
@@ -251,7 +273,7 @@ varptr pow (const varptr b, const varptr x)
 	{
 		return parent;
 	}
-	return reg_func(deps, opname,
+	return elem_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// pow'(f(x), g(x)) = \
@@ -275,7 +297,7 @@ varptr operator + (const varptr a, const varptr b)
 	{
 		return parent;
 	}
-	return reg_func(deps, opname,
+	return elem_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) + g'(x)
@@ -295,7 +317,7 @@ varptr operator - (const varptr a, const varptr b)
 	{
 		return parent;
 	}
-	return reg_func(deps, opname,
+	return elem_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) - g'(x)
@@ -314,7 +336,7 @@ varptr operator * (const varptr a, const varptr b)
 	{
 		return parent;
 	}
-	return reg_func(deps, opname,
+	return elem_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x)*g(x) + f(x)*g'(x)
@@ -336,7 +358,7 @@ varptr operator / (const varptr a, const varptr b)
 	{
 		return parent;
 	}
-	return reg_func(deps, opname,
+	return elem_func(deps, opname,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = (f'(x) * g(x) - f(x) * g'(x)) / g^2(x)
@@ -535,9 +557,67 @@ varptr reduce_sum (const varptr a)
 	return aggregate("sum", a,
 	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
-		return args.front().second; // reduce_sum(args.front().second);
+		return args.front().second;
 	});
 }
+
+
+varptr expand (varptr a, varptr n, size_t dim)
+{
+	if (nullptr == a.get()) return nullptr;
+	std::string opname = nnutils::formatter() << "expand_" << dim;
+	std::vector<inode*> deps = {a, n};
+	if (inode* parent = ordered_parent(deps, opname))
+	{
+		return parent;
+	}
+	return functor::get(deps,
+	[dim](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	{
+		tensor* tens = args[0]->get_tensor();
+		assert(nullptr != tens);
+		size_t n = expose<double>(args[1])[0]; // todo: make this size_t once shape_func uses size_t
+		tensorshape shape = tens->get_shape();
+		std::vector<size_t> slist = shape.as_list();
+		assert(slist.size() >= dim);
+		slist.insert(slist.begin() + dim, n);
+
+		sindex_io* sio = new sindex_io(
+		[dim, n](tensorshape outshape, const tensorshape inshape)
+		{
+			size_t nelems = outshape.n_elems();
+			std::vector<size_t> indices(nelems);
+			std::vector<size_t> slist = inshape.as_list();
+			auto it = slist.begin();
+			size_t outern = inshape.n_elems();
+			size_t innern = std::accumulate(it, it + dim, 1, std::multiplies<size_t>());
+			size_t repeats = outern / innern;
+			size_t nexpansion = innern * n;
+			auto iit = indices.begin();
+			for (size_t j = 0; j < repeats; ++j)
+			{
+				for (size_t i = 0; i < n; ++i)
+				{
+					std::iota(iit + i * innern, iit + (i + 1) * innern, j * innern);
+				}
+				iit = iit + nexpansion;
+			}
+			return indices;
+		});
+		src = std::unique_ptr<idata_src>(sio);
+		tens->write_to(*sio);
+		
+		return new tensor(tensorshape(slist));
+	},
+	[](inode* wrt, std::vector<inode*> args)
+	{
+		return args[0]->derive(wrt);
+	}, opname);
+}
+
+varptr expand (varptr a, size_t n, size_t dim)
+{ return expand(a, varptr(constant::get(n)), dim); }
+
 
 varptr n_elems (const varptr a)
 {
@@ -555,7 +635,28 @@ varptr n_elems (const varptr a)
 	[](tensorshape)
 	{
 		return tensorshape(std::vector<size_t>{1});
-	}, "n_elems");
+	}, opname);
+}
+
+varptr n_dimension (const varptr a, size_t dimension)
+{
+	if (nullptr == a.get()) return nullptr;
+	std::string opname = nnutils::formatter() << "n_dimension_" << dimension;
+	if (inode* parent = single_parent(a, opname))
+	{
+		return parent;
+	}
+	return shape_func(a,
+	[dimension](tensorshape inshape)
+	{
+		std::vector<size_t> vec = inshape.as_list();
+		assert(vec.size() > dimension);
+		return std::vector<size_t>{vec[dimension]};
+	},
+	[](tensorshape)
+	{
+		return tensorshape(std::vector<size_t>{1});
+	}, opname);
 }
 
 }

@@ -96,6 +96,60 @@ private:
 	SVARR_T input_;
 };
 
+struct aggreg_io final : public idata_io
+{
+	aggreg_io (std::string opname, SIDX_F inmap) : opname_(opname), inmap_(inmap) {}
+
+	virtual ~aggreg_io (void) {}
+
+	aggreg_io* clone (void) const
+	{
+		return dynamic_cast<aggreg_io*>(clone_impl());
+	}
+
+	virtual void set_varr (SVARR_T input, size_t)
+	{
+		input_ = input;
+	}
+
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+	{
+		assert(type_ != BAD_T && !opname_.empty() && !input_.first.expired());
+		type = type_;
+		size_t per = type_size(type);
+		size_t nbytes = shape.n_elems() * per;
+		nnutils::check_ptr(outptr, nbytes);
+		std::vector<size_t> index = inmap_(shape, input_.second);
+		char* out = (char*) outptr.get();
+		char* in = (char*) input_.first.lock().get();
+		std::unordered_set<size_t> outmap;
+		for (size_t i = 0; i < index.size(); ++i)
+		{
+			if (outmap.end() == outmap.find(index[i]))
+			{
+				memcpy(out + index[i] * per, in + i * per, per);
+				outmap.insert(index[i]);
+			}
+			else
+			{
+				aggop(opname_, type_, i, out + index[i] * per, in);
+			}
+		}
+	}
+
+protected:
+	virtual idata_src* clone_impl (void) const
+	{
+		return new aggreg_io(*this);
+	}
+
+	SVARR_T input_;
+
+	SIDX_F inmap_;
+
+	std::string opname_;
+};
+
 struct imultiarg_io : public idata_io
 {
 	virtual ~imultiarg_io (void) {}
@@ -129,6 +183,8 @@ protected:
 
 	std::string opname_;
 };
+
+
 
 struct glue_io final : public imultiarg_io
 {
@@ -175,7 +231,6 @@ private:
 	SIDX_F smap_;
 
 	SVARR_T input_;
-	// std::vector<size_t> index_;
 };
 
 }

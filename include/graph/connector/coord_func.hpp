@@ -1,6 +1,6 @@
 /*!
  *
- *  coord_mapper.hpp
+ *  coord_func.hpp
  *  cnnet
  *
  *  Purpose:
@@ -14,14 +14,14 @@
 #include "include/graph/connector/functor.hpp"
 
 #pragma once
-#ifndef TENNCOR_COORD_MAPPER_HPP
-#define TENNCOR_COORD_MAPPER_HPP
+#ifndef TENNCOR_COORD_FUNC_HPP
+#define TENNCOR_COORD_FUNC_HPP
 
 namespace nnet
 {
 
-functor* coord_func (inode* arg, SIDX_F smap, USHAPE_F shaper, std::string name, bool same_fb = false);
+functor* coord_func (inode* arg, SIDX_F smap, USHAPE_F shaper, std::string name);
 
 }
 
-#endif /* TENNCOR_COORD_MAPPER_HPP */
+#endif /* TENNCOR_COORD_FUNC_HPP */
