@@ -16,7 +16,7 @@
 #include "include/edgeinfo/igraph_record.hpp"
 #include "include/edgeinfo/rpc_record/gui_notifier.hpp"
 #include "include/thread/stoppable_thread.hpp"
-#include "include/graph/connector/iconnector.hpp"
+#include "include/graph/func/iconnector.hpp"
 
 #pragma once
 #ifndef grpc_record_HPP

@@ -82,7 +82,7 @@ void operate_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tenso
 		assert(!sv.first.expired());
 		return CVAR_T{sv.first.lock().get(), sv.second};
 	});
-	regop(opname_, type_, VARR_T{outptr.get(), shape}, args);
+	ele_op(opname_, type_, VARR_T{outptr.get(), shape}, args);
 }
 
 idata_src* operate_io::clone_impl (void) const

@@ -45,14 +45,6 @@ public:
 
 	bool is_recordable (void) const;
 
-
-
-	// >>>>>>>>>>>> MUTATOR <<<<<<<<<<<<
-
-	//! update observer value according to subject
-	//! publicly available to allow explicit updates
-	virtual void update (void) = 0;
-
 protected:
 	//! default constructor
 	iobserver (bool recordable = true);
@@ -65,6 +57,14 @@ protected:
 
 	//! move over dependencies
 	iobserver (iobserver&& other);
+
+
+
+	// >>>>>>>>>>>> MUTATOR <<<<<<<<<<<<
+
+	//! update observer value according to subject
+	//! publicly available to allow explicit updates
+	virtual void update (void) = 0;
 
 	// >>>>>> KILL CONDITION <<<<<<
 

@@ -27,7 +27,7 @@ class inode;
 class graph
 {
 public:
-	static graph& get (void)
+	static graph& get_global (void)
 	{
 		static graph g;
 		return g;
@@ -41,8 +41,16 @@ public:
 	bool has_node (inode* node) const;
 
 	// serialize
+	bool serialize (tenncor::graph_proto* proto_dest) const
+	{
+		return false;
+	}
 
 	// read from proto
+	void read_from (const tenncor::graph_proto& proto_src)
+	{
+		
+	}
 
 protected:
 	std::string register_node (inode* node);

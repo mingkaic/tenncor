@@ -23,12 +23,9 @@ Run
 > bazel test //tests:tenncor_all
 
 other tests:
-- //tests:tenncor_connector
-- //tests:tenncor_leaf
-- //tests:tenncor_nodes
-- //tests:tenncor_memory
-- //tests:tenncor_operation
 - //tests:tenncor_tensor
+- //tests:tenncor_graph
+- //tests:tenncor_operate
 
 ## Monitoring
 
@@ -42,7 +39,7 @@ use libraries
 	#include "executor/gradient.hpp"
 	#include "graph/varptr.hpp"
 	#include "graph/leaf/variable.hpp"
-	#include "operations/operations.hpp"
+	#include "operate/operations.hpp"
 	
 	using namespace nnet;
 	

@@ -62,7 +62,7 @@ public:
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info
-	virtual std::unordered_set<inode*> get_leaves (void) const = 0;
+	virtual std::unordered_set<const inode*> get_leaves (void) const = 0;
 
 
 
@@ -138,16 +138,13 @@ public:
 	inode* get (void) const;
 
 	void clear (void);
-
-// not used
-	virtual void update (void); // todo: split iobserver
 	
 protected:
+	// not used
+	virtual void update (void); // todo: split iobserver
+
 	// prevent death on broken to avoid double deletion on stack
-	virtual void death_on_broken (void)
-	{
-		this->remove_dependency(0);
-	}
+	virtual void death_on_broken (void);
 };
 
 //! helper function for exposing node's data

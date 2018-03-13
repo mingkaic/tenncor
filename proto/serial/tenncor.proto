@@ -26,7 +26,14 @@ message tensor_proto
 	repeated uint64 alloced_shape = 4;
 }
 
-message repository
+message node_proto
 {
-	map<string, tensor_proto> node_map = 1;
+	repeated string args = 1;
+	tensor_proto data = 2;
+	string label = 3;
+}
+
+message graph_proto
+{
+	map<string, node_proto> node_map = 1;
 }

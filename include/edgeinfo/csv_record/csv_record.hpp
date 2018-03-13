@@ -13,7 +13,7 @@
 #include <memory>
 
 #include "include/edgeinfo/adjlist_record.hpp"
-#include "include/graph/connector/iconnector.hpp"
+#include "include/graph/func/iconnector.hpp"
 
 #pragma once
 #ifndef CSV_RECORD_HPP

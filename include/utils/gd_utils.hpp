@@ -3,7 +3,7 @@
 //
 
 #include "include/graph/leaf/variable.hpp"
-#include "include/operations/operations.hpp"
+#include "include/operate/operations.hpp"
 
 #pragma once
 #define TENNCOR_GD_UTILS_HPP

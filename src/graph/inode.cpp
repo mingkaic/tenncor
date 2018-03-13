@@ -15,7 +15,7 @@ namespace nnet
 
 inode::~inode (void)
 {
-	graph::get().unregister_node(this);
+	graph::get_global().unregister_node(this);
 }
 
 inode* inode::clone (void) const
@@ -115,9 +115,14 @@ inode* varptr::get (void) const
 	return static_cast<inode*>(this->dependencies_.front());
 }
 
+void varptr::clear (void) { this->remove_dependency(0); }
+
 void varptr::update (void) {}
 
-void varptr::clear (void) { this->remove_dependency(0); }
+void varptr::death_on_broken (void)
+{
+	this->remove_dependency(0);
+}
 
 }
 

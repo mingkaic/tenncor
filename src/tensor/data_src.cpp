@@ -56,7 +56,7 @@ void r_uniform_init::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, t
 	size_t nbytes = shape.n_elems() * type_size(type);
 	nnutils::check_ptr(outptr, nbytes);
 	tensorshape one(std::vector<size_t>{1});
-	regop("rand_uniform", type, VARR_T{outptr.get(), shape}, {
+	ele_op("rand_uniform", type, VARR_T{outptr.get(), shape}, {
 		CVAR_T{&min_[0], one},
 		CVAR_T{&max_[0], one},
 	});
@@ -79,7 +79,7 @@ void r_normal_init::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, te
 	size_t nbytes = shape.n_elems() * type_size(type);
 	nnutils::check_ptr(outptr, nbytes);
 	tensorshape one(std::vector<size_t>{1});
-	regop("rand_normal", type, VARR_T{outptr.get(), shape}, {
+	ele_op("rand_normal", type, VARR_T{outptr.get(), shape}, {
 		CVAR_T{&mean_[0], one},
 		CVAR_T{&stdev_[0], one},
 	});

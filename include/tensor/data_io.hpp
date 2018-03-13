@@ -132,7 +132,7 @@ struct aggreg_io final : public idata_io
 			}
 			else
 			{
-				aggop(opname_, type_, i, out + index[i] * per, in);
+				agg_op(opname_, type_, i, out + index[i] * per, in);
 			}
 		}
 	}

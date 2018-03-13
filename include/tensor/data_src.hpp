@@ -16,7 +16,7 @@
 #include "include/utils/shared_ptr.hpp"
 #include "include/tensor/tensorshape.hpp"
 #include "include/tensor/type.hpp"
-#include "include/operations/data_op.hpp"
+#include "include/operate/data_op.hpp"
 #include "include/utils/error.hpp"
 
 #pragma once

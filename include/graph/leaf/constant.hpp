@@ -81,9 +81,9 @@ public:
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info
-	virtual std::unordered_set<inode*> get_leaves (void) const
+	virtual std::unordered_set<const inode*> get_leaves (void) const
 	{
-		return {const_cast<constant*>(this)};
+		return {this};
 	}
 
 

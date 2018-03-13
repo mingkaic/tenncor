@@ -12,7 +12,7 @@
  *
  */
 
-#include "include/operations/operations.hpp"
+#include "include/operate/operations.hpp"
 
 #define TENNCOR_FUTILS_HPP
 #ifndef TENNCOR_FUTILS_HPP

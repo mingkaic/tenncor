@@ -3,7 +3,7 @@
 #include "tests/functional/include/tf_verify.hpp"
 
 #include "graph/leaf/variable.hpp"
-#include "operations/operations.hpp"
+#include "operate/operations.hpp"
 
 
 class UNAR : public TF_VERIFY

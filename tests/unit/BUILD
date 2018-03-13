@@ -22,9 +22,9 @@ cc_test(
 )
 
 cc_test(
-	name = "tenncor_bases",
+	name = "tenncor_graph",
 	size = "small",
-	srcs = glob([ "bases/*.cpp", "main.cpp" ]),
+	srcs = glob([ "graph/*.cpp", "main.cpp" ]),
 	deps = [
 		"//:tenncor",
 		"//tests/utils:tenncor_testify",
@@ -34,21 +34,9 @@ cc_test(
 )
 
 cc_test(
-	name = "tenncor_funcs",
-	size = "small",
-	srcs = glob([ "funcs/*.cpp", "main.cpp" ]),
-	deps = [
-		"//:tenncor",
-		"//tests/utils:tenncor_testify",
-	],
-	linkstatic = 1,
-	copts = [ "-std=c++14" ],
-)
-
-cc_test(
-	name = "tenncor_operation",
+	name = "tenncor_operate",
 	size = "medium",
-	srcs = glob([ "operations/*.cpp", "main.cpp" ]),
+	srcs = glob([ "operate/*.cpp", "main.cpp" ]),
 	deps = [
 		"//:tenncor",
 		"//tests/utils:tenncor_testify",

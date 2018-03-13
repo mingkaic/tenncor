@@ -6,8 +6,8 @@
 
 #include "graph/inode.hpp"
 
-#ifndef TENNCOR_MOCK_NODE_H
-#define TENNCOR_MOCK_NODE_H
+#ifndef TENNCOR_MOCK_NODE_HPP
+#define TENNCOR_MOCK_NODE_HPP
 
 namespace testutils
 {
@@ -17,22 +17,20 @@ namespace testutils
 class mock_node final : public nnet::inode
 {
 public:
-	mock_node (std::string label) : nnet::inode(label) {}
+	mock_node (std::string label);
 
-	virtual std::unordered_set<nnet::inode*> get_leaves (void) const { return {}; }
+	virtual std::unordered_set<const nnet::inode*> get_leaves (void) const;
 
-	virtual nnet::tensor* get_tensor (void) { return nullptr; }
+	virtual nnet::tensor* get_tensor (void);
 
-	virtual nnet::varptr derive (nnet::inode* wrt) { return nullptr; }
+	virtual nnet::varptr derive (nnet::inode* wrt);
 
 protected:
-	virtual nnet::inode* clone_impl (void) const
-	{ return new mock_node(*this); }
+	virtual nnet::inode* clone_impl (void) const;
 
-	virtual nnet::inode* move_impl (void)
-	{ return new mock_node(std::move(*this)); }
+	virtual nnet::inode* move_impl (void);
 };
 
 }
 
-#endif //TENNCOR_MOCK_NODE_H
+#endif /* TENNCOR_MOCK_NODE_HPP */
