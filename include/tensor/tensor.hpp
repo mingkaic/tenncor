@@ -54,7 +54,7 @@ public:
 	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<
 
 	//! serialize protobuf tensor
-	bool serialize (tenncor::tensor_proto* proto_dest) const;
+	bool serialize (tenncor::tensor_proto& proto_dest) const;
 
 	//! read data and shape from other, take allocator as is
 	void from_proto (const tenncor::tensor_proto& proto_src);
@@ -67,6 +67,11 @@ public:
 
 	//! get tensor shape (allocated if so, allowed shape otherwise)
 	tensorshape get_shape (void) const;
+
+	tensorshape get_allowed (void) const
+	{
+		return allowed_shape_;
+	}
 
 	//! get the amount of T elements allocated
 	//! if uninitialized, return 0

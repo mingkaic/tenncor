@@ -52,6 +52,13 @@ public:
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
+	// >>>>>> SERIALIZTAION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const
+	{
+		return PLACEHOLDER_T;
+	}
+
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info

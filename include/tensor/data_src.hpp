@@ -26,6 +26,11 @@
 namespace nnet
 {
 
+#define SOURCE_TYPE tenncor::source_proto::source_t
+#define CSRC tenncor::source_proto::CONSTANT
+#define USRC tenncor::source_proto::UNIFORM
+#define NSRC tenncor::source_proto::NORMAL
+
 using GENERIC = std::pair<std::string, TENS_TYPE>;
 
 struct idata_src
@@ -40,7 +45,17 @@ protected:
 	virtual idata_src* clone_impl (void) const = 0;
 };
 
-struct const_init final : public idata_src
+struct data_src : public idata_src
+{
+	data_src* clone (void) const
+	{
+		return static_cast<data_src*>(this->clone_impl());
+	}
+
+	virtual void serialize (tenncor::source_proto& source_dst) const = 0;
+};
+
+struct const_init final : public data_src
 {
 	template <typename T>
 	void set (T value)
@@ -73,6 +88,13 @@ struct const_init final : public idata_src
 		return {value_, type_};
 	}
 
+	virtual void serialize (tenncor::source_proto& source_dst) const
+	{
+		source_dst.set_src(CSRC);
+		source_dst.set_dtype(type_);
+		source_dst.add_settings(&value_[0], value_.size());
+	}
+
 private:
 	virtual idata_src* clone_impl (void) const;
 
@@ -82,7 +104,7 @@ private:
 };
 
 //! Uniformly Random Initialization
-struct r_uniform_init final : public idata_src
+struct r_uniform_init final : public data_src
 {
 	template <typename T>
 	void set (T min, T max)
@@ -110,6 +132,14 @@ struct r_uniform_init final : public idata_src
 		return {max_, type_};
 	}
 
+	virtual void serialize (tenncor::source_proto& source_dst) const
+	{
+		source_dst.set_src(USRC);
+		source_dst.set_dtype(type_);
+		source_dst.add_settings(&min_[0], min_.size());
+		source_dst.add_settings(&max_[0], max_.size());
+	}
+
 private:
 	virtual idata_src* clone_impl (void) const;
 
@@ -121,7 +151,7 @@ private:
 };
 
 //! Normal Random Initialization
-struct r_normal_init final : public idata_src
+struct r_normal_init final : public data_src
 {
 	template <typename T>
 	void set (T mean, T stdev)
@@ -147,6 +177,14 @@ struct r_normal_init final : public idata_src
 	GENERIC get_stdev (void) const
 	{
 		return {stdev_, type_};
+	}
+
+	virtual void serialize (tenncor::source_proto& source_dst) const
+	{
+		source_dst.set_src(NSRC);
+		source_dst.set_dtype(type_);
+		source_dst.add_settings(&mean_[0], mean_.size());
+		source_dst.add_settings(&stdev_[0], stdev_.size());
 	}
 
 private:

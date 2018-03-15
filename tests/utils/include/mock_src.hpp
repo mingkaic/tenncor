@@ -9,11 +9,13 @@
 namespace testutils
 {
 
-struct mock_data_src final : public nnet::idata_src, public testify::mocker
+struct mock_data_src final : public nnet::data_src, public testify::mocker
 {
 	mock_data_src (testify::fuzz_test* fuzzer);
 
 	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, nnet::tensorshape shape) const;
+
+	virtual void serialize (tenncor::source_proto& source_dst) const {}
 
 	TENS_TYPE type_;
 

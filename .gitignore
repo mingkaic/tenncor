@@ -56,7 +56,6 @@ bin/
 build/
 cmake-build-*/
 shareds/
-tmp/
 bazel-*
 doxout
 

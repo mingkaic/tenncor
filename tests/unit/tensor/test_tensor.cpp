@@ -1024,18 +1024,18 @@ TEST_F(TENSOR, Proto_C012)
 	nnet::tensor ten(shape);
 
 	// expects failure
-	EXPECT_FALSE(comp.serialize(&proto)) <<
+	EXPECT_FALSE(comp.serialize(proto)) <<
 		sprintf("successfully serialized uninit tensor with shape %p", &cshape);
-	EXPECT_FALSE(comp2.serialize(&proto)) <<
+	EXPECT_FALSE(comp2.serialize(proto)) <<
 		sprintf("successfully serialized uninit tensor with shape %p", &cshape2);
-	EXPECT_FALSE(ten.serialize(&proto)) <<
+	EXPECT_FALSE(ten.serialize(proto)) <<
 		sprintf("successfully serialized uninit tensor with shape %p", &shape);
 
 	comp.read_from(src);
 	comp2.read_from(src2);
 
 	// expects success
-	EXPECT_TRUE(comp.serialize(&proto)) <<
+	EXPECT_TRUE(comp.serialize(proto)) <<
 		sprintf("failed to serialized tensor with shape %p", &cshape);;
 
 	mock_data_dest dest;
@@ -1063,6 +1063,9 @@ TEST_F(TENSOR, Proto_C012)
 		sprintf("expect shape %p, got %p", &cshape, &goten);
 	EXPECT_TRUE(tensorshape_equal(cshape, gotc)) <<
 		sprintf("expect shape %p, got %p", &cshape, &gotc);
+
+	// rewrite data
+	
 }
 
 

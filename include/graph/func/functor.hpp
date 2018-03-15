@@ -60,6 +60,13 @@ public:
 	//! get unique label with arguments
 	virtual std::string get_name (void) const;
 
+	// >>>>>> SERIALIZTAION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const
+	{
+		return FUNCTOR_T;
+	}
+
 	// >>>>>> CONNECTION QUERY <<<<<<
 	
 	//! get gradient leaves

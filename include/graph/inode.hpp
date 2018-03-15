@@ -59,6 +59,10 @@ public:
 	//! get beautified summary of name and uid, structure varies for inheritors
 	virtual std::string get_name (void) const;
 
+	// >>>>>> SERIALIZTAION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const = 0;
+
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info
@@ -103,7 +107,7 @@ protected:
 
 private:
 	//! uniquely identifier for this node
-	std::string id_ = graph::get().register_node(this);
+	std::string id_ = graph::get_global().register_node(this);
 
 	//! describes this node's purpose
 	std::string label_;

@@ -48,22 +48,22 @@ tensor& tensor::operator = (tensor&& other)
 
 
 
-bool tensor::serialize (tenncor::tensor_proto* proto_dest) const
+bool tensor::serialize (tenncor::tensor_proto& proto_dest) const
 {
 	if (false == has_data()) return false;
-	proto_dest->set_type(dtype_);
+	proto_dest.set_type(dtype_);
 
 	// copy bytes
 	size_t nb = total_bytes();
-	proto_dest->set_data(raw_data_.get(), nb);
+	proto_dest.set_data(raw_data_.get(), nb);
 
 	std::vector<size_t> allowed = allowed_shape_.as_list();
 	std::vector<size_t> alloced = alloced_shape_.as_list();
 	google::protobuf::RepeatedField<uint64_t> allowed_field(allowed.begin(), allowed.end());
 	google::protobuf::RepeatedField<uint64_t> alloced_field(alloced.begin(), alloced.end());
 
-	proto_dest->mutable_allowed_shape()->Swap(&allowed_field);
-	proto_dest->mutable_alloced_shape()->Swap(&alloced_field);
+	proto_dest.mutable_allowed_shape()->Swap(&allowed_field);
+	proto_dest.mutable_alloced_shape()->Swap(&alloced_field);
 	return true;
 }
 

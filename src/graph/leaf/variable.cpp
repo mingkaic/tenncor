@@ -14,7 +14,7 @@ namespace nnet
 {
 
 variable::variable (const tensorshape& shape,
-	std::shared_ptr<idata_src> source,
+	std::shared_ptr<data_src> source,
 	std::string name) :
 inode(name), src_(source), data_(new tensor(shape)) {}
 
@@ -148,7 +148,7 @@ void variable::copy_helper (const variable& other)
 	}
 	else
 	{
-		src_ = std::shared_ptr<idata_src>(other.src_->clone());
+		src_ = std::shared_ptr<data_src>(other.src_->clone());
 	}
 }
 

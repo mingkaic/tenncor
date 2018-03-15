@@ -11,9 +11,12 @@
  *
  */
 
+#include <list>
 #include <unordered_map>
 
 #include "include/utils/utils.hpp"
+
+#include "proto/serial/tenncor.pb.h"
 
 #pragma once
 #ifndef TENNCOR_GRAPH_HPP
@@ -23,6 +26,18 @@ namespace nnet
 {
 
 class inode;
+
+class varptr;
+
+using LEAF_SET = std::unordered_set<std::shared_ptr<inode*> >;
+
+using ROOT_SET = std::unordered_set<varptr>;
+
+#define NODE_TYPE tenncor::node_proto::node_t
+#define PLACEHOLDER_T tenncor::node_proto::PLACEHOLDER
+#define CONSTANT_T tenncor::node_proto::CONSTANT
+#define VARIABLE_T tenncor::node_proto::VARIABLE
+#define FUNCTOR_T tenncor::node_proto::FUNCTOR
 
 class graph
 {
@@ -40,17 +55,17 @@ public:
 
 	bool has_node (inode* node) const;
 
-	// serialize
-	bool serialize (tenncor::graph_proto* proto_dest) const
-	{
-		return false;
-	}
 
-	// read from proto
-	void read_from (const tenncor::graph_proto& proto_src)
-	{
-		
-	}
+
+	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<
+
+	// serialize entire graph
+	void serialize (tenncor::graph_proto& proto_dest) const;
+
+	// generate graph from proto
+	// set leaves and root in respective out sets
+	void register_proto (LEAF_SET& leafset, ROOT_SET& rootset,
+		const tenncor::graph_proto& proto_src);
 
 protected:
 	std::string register_node (inode* node);
@@ -62,10 +77,14 @@ protected:
 private:
 	graph (void) {}
 
-	//! uniquely identifier for this node
-	std::string gid_ = nnutils::uuid(this);
+	// std::string gid_ = nnutils::uuid(this); // uncomment when supporting multiple graphs
 
-	std::unordered_map<std::string,nnet::inode*> adjlist_;
+	using adjiter = std::pair<inode*,std::list<std::string>::iterator>;
+
+	// creation order implies dependency order. independents are created first
+	std::list<std::string> order_;
+
+	std::unordered_map<std::string,adjiter> adjlist_;
 };
 
 }

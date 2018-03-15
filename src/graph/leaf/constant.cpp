@@ -42,13 +42,8 @@ inode* constant::move_impl (void)
 	return nullptr;
 }
 
-constant::constant (const tensorshape& shape, 
-	std::shared_ptr<idata_src> source, std::string name) :
-inode(name), data_(new tensor(shape))
-{
-	shape.assert_is_fully_defined();
-	data_->read_from(*source);
-}
+constant::constant (tensor* data, std::string name) :
+	inode(name), data_(std::unique_ptr<tensor>(data)) {}
 
 }
 

@@ -35,9 +35,11 @@ public:
 		static_assert(std::is_arithmetic<T>::value, 
 			"constant must be arithmetic value");
 		tensorshape shape = std::vector<size_t>{1};
-		std::shared_ptr<const_init> ci = std::make_shared<const_init>();
-		ci->set(scalar);
-		return new constant(shape, ci, nnutils::formatter() << scalar);
+		const_init ci;
+		ci.set(scalar);
+		tensor* data = new tensor(shape);
+		data->read_from(ci);
+		return new constant(data, nnutils::formatter() << scalar);
 	}
 
 	//! builder for data and shape
@@ -46,6 +48,7 @@ public:
 	{
 		static_assert(std::is_arithmetic<T>::value, 
 			"constant must be arithmetic value");
+		shape.assert_is_fully_defined();
 		std::string name;
 		if (raw.empty())
 		{
@@ -55,9 +58,11 @@ public:
 		{
 			name = nnutils::formatter() << raw.front() << ".." << raw.back();
 		}
-		std::shared_ptr<const_init> ci = std::make_shared<const_init>();
-		ci->set(raw);
-		return new constant(shape, ci, name);
+		const_init ci;
+		ci.set(raw);
+		tensor* data = new tensor(shape);
+		data->read_from(ci);
+		return new constant(data, name);
 	}
 
 	// >>>> CAN'T COPY OR MOVE (GOES AGAINST SHARING) <<<<
@@ -77,6 +82,13 @@ public:
 
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
+
+	// >>>>>> SERIALIZTAION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const
+	{
+		return CONSTANT_T;
+	}
 
 	// >>>>>> CONNECTION QUERY <<<<<<
 
@@ -110,8 +122,7 @@ protected:
 
 private:
 	//! name constructor, data_ is nullptr
-	constant (const tensorshape& shape,
-		std::shared_ptr<idata_src> source, std::string name);
+	constant (tensor* data, std::string name);
 
 	//! raw data
 	std::unique_ptr<tensor> data_ = nullptr;

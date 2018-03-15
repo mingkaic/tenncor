@@ -25,7 +25,7 @@ class variable final : public inode
 public:
 	//! construct to init zero and one
 	variable (const tensorshape& shape,
-		std::shared_ptr<idata_src> source,
+		std::shared_ptr<data_src> source,
 		std::string name);
 
 	//! copy construct to init zero and one
@@ -50,6 +50,13 @@ public:
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
+	// >>>>>> SERIALIZTAION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const
+	{
+		return VARIABLE_T;
+	}
+
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info
@@ -58,7 +65,7 @@ public:
 		return {this};
 	}
 
-	std::shared_ptr<idata_src> get_source (void) const
+	std::shared_ptr<data_src> get_source (void) const
 	{
 		return src_;
 	}
@@ -99,7 +106,7 @@ protected:
 	void move_helper (variable&& other);
 
 private:
-	std::shared_ptr<idata_src> src_; // todo: consider this temporary variable
+	std::shared_ptr<data_src> src_; // todo: consider this temporary variable
 
 	//! raw data
 	std::unique_ptr<tensor> data_ = nullptr;

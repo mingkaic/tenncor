@@ -20,20 +20,20 @@
 namespace nnet
 {
 
-#define TENS_TYPE tenncor::tensor_proto::tensor_t
-#define N_TYPE (size_t) tenncor::tensor_proto::NUM_TYPES
+#define TENS_TYPE tenncor::tensor_t
+#define N_TYPE (size_t) tenncor::NUM_TYPES
 
-#define BAD_T tenncor::tensor_proto::BAD
-#define DOUBLE tenncor::tensor_proto::DOUBLE
-#define FLOAT tenncor::tensor_proto::FLOAT
-#define INT8 tenncor::tensor_proto::INT8
-#define UINT8 tenncor::tensor_proto::UINT8
-#define INT16 tenncor::tensor_proto::INT16
-#define UINT16 tenncor::tensor_proto::UINT16
-#define INT32 tenncor::tensor_proto::INT32
-#define UINT32 tenncor::tensor_proto::UINT32
-#define INT64 tenncor::tensor_proto::INT64
-#define UINT64 tenncor::tensor_proto::UINT64
+#define BAD_T tenncor::BAD
+#define DOUBLE tenncor::DOUBLE
+#define FLOAT tenncor::FLOAT
+#define INT8 tenncor::INT8
+#define UINT8 tenncor::UINT8
+#define INT16 tenncor::INT16
+#define UINT16 tenncor::UINT16
+#define INT32 tenncor::INT32
+#define UINT32 tenncor::UINT32
+#define INT64 tenncor::INT64
+#define UINT64 tenncor::UINT64
 
 unsigned short type_size (TENS_TYPE type);
 
