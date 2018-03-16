@@ -26,6 +26,47 @@
 namespace nnet
 {
 
+enum OPCODE
+{
+	ABS = 0
+	NEG
+	NOT
+	SIN
+	COS
+	TAN
+	CSC
+	SEC
+	COT
+	EXP
+	LOG
+	SQRT
+	ROUND
+	POW
+	ADD
+	SUB
+	MUL
+	DIV
+	EQ
+	NE
+	GT
+	LT
+	BINO
+	UNIF
+	NORM
+	TRANSPOSE
+	FLIP
+	ARG_MAX
+	REDUCE_MAX
+	REDUCE_SUM
+	EXPAND
+	N_ELEMS
+	N_DIMS
+	MATMUL
+};
+
+// make a single functor through opcode
+functor* run_opcode (std::vector<inode*> args, OPCODE code, std::vector<size_t> idx_param = {});
+
 // standard operations, using a single connector
 #ifndef TENNCOR_OP_STD_HPP
 #define TENNCOR_OP_STD_HPP

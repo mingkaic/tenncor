@@ -19,6 +19,93 @@
 namespace nnet
 {
 
+functor* run_opcode (std::vector<inode*> args, OPCODE code, std::vector<size_t> idx_param)
+{
+	switch (code)
+	{
+		case ABS:
+			return abs(varptr(args[0]));
+		case NEG:
+			return -(varptr(args[0]));
+		case NOT:
+			return !(varptr(args[0]));
+		case SIN:
+			return sin(varptr(args[0]));
+		case COS:
+			return cos(varptr(args[0]));
+		case TAN:
+			return tan(varptr(args[0]));
+		case CSC:
+			return csc(varptr(args[0]));
+		case SEC:
+			return sec(varptr(args[0]));
+		case COT:
+			return cot(varptr(args[0]));
+		case EXP:
+			return exp(varptr(args[0]));
+		case LOG:
+			return log(varptr(args[0]));
+		case SQRT:
+			return sqrt(varptr(args[0]));
+		case ROUND:
+			return round(varptr(args[0]));
+		case POW:
+			return pow(varptr(args[0]), varptr(args[1]));
+		case ADD:
+			return varptr(args[0]) + varptr(args[1]);
+		case SUB:
+			return varptr(args[0]) - varptr(args[1]);
+		case MUL:
+			return varptr(args[0]) * varptr(args[1]);
+		case DIV:
+			return varptr(args[0]) / varptr(args[1]);
+		case EQ:
+			return varptr(args[0]) == varptr(args[1]);
+		case NE:
+			return varptr(args[0]) != varptr(args[1]);
+		case GT:
+			return varptr(args[0]) < varptr(args[1]);
+		case LT:
+			return varptr(args[0]) > varptr(args[1]);
+		case BINO:
+			return binomial_sample(varptr(args[0]), varptr(args[1]));
+		case UNIF:
+			return uniform_sample(varptr(args[0]), varptr(args[1]));
+		case NORM:
+			return normal_sample(varptr(args[0]), varptr(args[1]));
+		case TRANSPOSE:
+			return transpose(varptr(args[0]), idx_param);
+		case FLIP:
+			return flip(varptr(args[0]), idx_param);
+		case ARG_MAX:
+			if (idx_param.size())
+			{
+				return arg_max(varptr(args[0]), idx_param);
+			}
+			return arg_max(varptr(args[0]));
+		case REDUCE_MAX:
+			if (idx_param.size())
+			{
+				return reduce_max(varptr(args[0]), idx_param[0]);
+			}
+			return reduce_max(varptr(args[0]));
+		case REDUCE_SUM:
+			if (idx_param.size())
+			{
+				return reduce_sum(varptr(args[0]), idx_param[0]);
+			}
+			return reduce_sum(varptr(args[0]));
+		case EXPAND:
+			return expand(varptr(args[0]), varptr(args[1]), idx_param[0]);
+		case N_ELEMS:
+			return n_elems(varptr(args[0]));
+		case N_DIMS:
+			return n_dimension(varptr(args[0]), idx_param[0]);
+		case MATMUL:
+			return matmul(varptr(args[0]), varptr(args[1]));
+	}
+}
+
 static inline varptr lin_unar (std::string opname, inode* input, BACKMAP_F bwd)
 {
 	if (nullptr == input) return nullptr;
