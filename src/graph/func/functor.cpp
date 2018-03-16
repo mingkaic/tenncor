@@ -123,6 +123,31 @@ varptr functor::derive (inode* wrt)
 	return derive_(wrt, get_arguments());
 }
 
+
+functor::functor (tenncor::functor_proto& proto_src,
+	std::string label, std::string uid) :
+inode(label, uid)
+{
+	throw std::bad_function_call();
+}
+
+NODE_TYPE functor::node_type (void) const
+{
+	return FUNCTOR_T;
+}
+
+void functor::serialize_detail (google::protobuf::Any* proto_dest)
+{
+	tenncor::functor_proto func_dest;
+	std::vector<inode*> args = get_arguments();
+	for (inode* arg : args)
+	{
+		func_dest.add_args(arg->get_uid()); 
+	}
+	proto_dest->PackFrom(func_dest);
+}
+
+
 functor::functor (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, std::string label) :
 	inode(label), iobserver(std::vector<subject*>(args.begin(), args.end())),
 	tensop_(tensop), derive_(derive)

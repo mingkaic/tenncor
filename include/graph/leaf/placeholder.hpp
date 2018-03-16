@@ -52,13 +52,6 @@ public:
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
-	// >>>>>> SERIALIZTAION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const
-	{
-		return PLACEHOLDER_T;
-	}
-
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info
@@ -129,6 +122,22 @@ public:
 	virtual placeholder& operator = (tensor& data);
 
 protected:
+	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
+
+	placeholder (tenncor::shape_proto& proto_src,
+		std::string label, std::string uid);
+
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest);
+	
+	friend class graph;
+
+private:
 	// >>>>>> POLYMORPHIC CLONERS <<<<<<
 
 	//! clone implementation
@@ -141,7 +150,7 @@ protected:
 
 	void move_helper (placeholder&& other);
 
-private:
+
 	assign_io asgn_;
 
 	//! raw data

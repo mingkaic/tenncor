@@ -19,10 +19,7 @@ class mock_node final : public nnet::inode
 public:
 	mock_node (std::string label);
 
-	virtual NODE_TYPE node_type (void) const
-	{
-		return VARIABLE_T;
-	}
+	mock_node (std::string label, std::string uid);
 
 	virtual std::unordered_set<const nnet::inode*> get_leaves (void) const;
 
@@ -31,6 +28,14 @@ public:
 	virtual nnet::varptr derive (nnet::inode* wrt);
 
 protected:
+	virtual NODE_TYPE node_type (void) const
+	{
+		return VARIABLE_T;
+	}
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest) {}
+
+private:
 	virtual nnet::inode* clone_impl (void) const;
 
 	virtual nnet::inode* move_impl (void);

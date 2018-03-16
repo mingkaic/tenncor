@@ -29,10 +29,10 @@ namespace nnet
 class tensor final
 {
 public:
-	//! create a tensor of a specified shape and allocator
-	//! if the shape is fully defined, then raw data is allocated
-	//! otherwise, tensor will wait for a defined shape
-	tensor (tensorshape shape); // todo: pass source in as shared
+	//! create a tensor of a specified shape
+	tensor (tensorshape shape);
+
+	tensor (const tenncor::tensor_proto& proto_src);
 
 	//! deallocate tensor
 	virtual ~tensor (void) {} // remove once final

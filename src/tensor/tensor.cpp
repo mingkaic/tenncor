@@ -18,6 +18,11 @@ namespace nnet
 tensor::tensor (tensorshape shape) :
 	allowed_shape_(shape) {}
 
+tensor::tensor (const tenncor::tensor_proto& proto_src)
+{
+	from_proto(proto_src);
+}
+
 tensor::tensor (const tensor& other)
 {
 	copy_helper(other);

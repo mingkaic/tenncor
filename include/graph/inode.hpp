@@ -59,10 +59,6 @@ public:
 	//! get beautified summary of name and uid, structure varies for inheritors
 	virtual std::string get_name (void) const;
 
-	// >>>>>> SERIALIZTAION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const = 0;
-
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info
@@ -87,13 +83,28 @@ public:
 
 protected:
 	//! default constructor
-	inode (std::string name);
+	inode (std::string label);
+
+	//! create with uid without registering to the graph
+	inode (std::string label, std::string uid);
 
 	//! declare copy constructor to prevent id_ copy over
 	inode (const inode& other);
 
 	//! declare move constructor to prevent id_ copy over
 	inode (inode&& other);
+
+
+
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const = 0;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest) = 0;
+
+	friend class graph;
 
 
 
@@ -107,7 +118,7 @@ protected:
 
 private:
 	//! uniquely identifier for this node
-	std::string id_ = graph::get_global().register_node(this);
+	std::string id_;
 
 	//! describes this node's purpose
 	std::string label_;

@@ -83,13 +83,6 @@ public:
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
-	// >>>>>> SERIALIZTAION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const
-	{
-		return CONSTANT_T;
-	}
-
 	// >>>>>> CONNECTION QUERY <<<<<<
 
 	//! merge/update the gradient/leaf info
@@ -109,20 +102,38 @@ public:
 	virtual varptr derive (inode* wrt);
 
 protected:
-	// >>>> KILL CONDITION <<<<
-	//! suicides when this loses all observers (unless this is_managed)
-	virtual void death_on_noparent (void);
+	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
+
+	constant (tenncor::tensor_proto& proto_src,
+		std::string label, std::string uid);
+
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest);
+	
+	friend class graph;
+
+private:
+	//! name constructor, data_ is nullptr
+	constant (tensor* data, std::string name);
 
 	// >>>> POLYMORPHIC CLONERS (RETURN NULLS) <<<<
+
 	//! clone implementation
 	virtual inode* clone_impl (void) const;
 
 	//! move implementation
 	virtual inode* move_impl (void);
 
-private:
-	//! name constructor, data_ is nullptr
-	constant (tensor* data, std::string name);
+
+	// >>>> KILL CONDITION <<<<
+	//! suicides when this loses all observers (unless this is_managed)
+	virtual void death_on_noparent (void);
+
 
 	//! raw data
 	std::unique_ptr<tensor> data_ = nullptr;

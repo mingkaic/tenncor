@@ -60,13 +60,6 @@ public:
 	//! get unique label with arguments
 	virtual std::string get_name (void) const;
 
-	// >>>>>> SERIALIZTAION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const
-	{
-		return FUNCTOR_T;
-	}
-
 	// >>>>>> CONNECTION QUERY <<<<<<
 	
 	//! get gradient leaves
@@ -87,6 +80,22 @@ public:
 	//! get gradient wrt some node, applies jacobians before evaluting resulting tensor
 	//! may call get_gradient
 	virtual varptr derive (inode* wrt);
+
+protected:
+	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
+
+	functor (tenncor::functor_proto& proto_src,
+		std::string label, std::string uid);
+
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest);
+	
+	friend class graph;
 
 private:
 	functor (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, std::string label);

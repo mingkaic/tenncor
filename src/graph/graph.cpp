@@ -8,6 +8,7 @@
 
 #include "include/graph/func/functor.hpp"
 #include "include/graph/leaf/variable.hpp"
+#include "include/graph/leaf/placeholder.hpp"
 
 #ifdef TENNCOR_GRAPH_HPP
 
@@ -16,7 +17,17 @@ namespace nnet
 
 bool graph::has_node (inode* node) const
 {
-	return adjlist_.end() != adjlist_.find(node->get_uid());
+	return adjmap_.end() != adjmap_.find(node->get_uid());
+}
+
+inode* graph::get_inst (std::string uid) const
+{
+	auto it = adjmap_.find(uid);
+	if (adjmap_.end() == it)
+	{
+		return nullptr;
+	}
+	return it->second.first;
 }
 
 void graph::serialize (tenncor::graph_proto& proto_dest) const
@@ -25,7 +36,7 @@ void graph::serialize (tenncor::graph_proto& proto_dest) const
 	proto_dest.clear_create_order();
 	// set graph_proto node_map (1)
 	google::protobuf::Map<std::string,tenncor::node_proto>& nmap = *(proto_dest.mutable_node_map());
-	for (auto it = adjlist_.begin(), et = adjlist_.end(); it != et; it++)
+	for (auto it = adjmap_.begin(), et = adjmap_.end(); it != et; it++)
 	{
 		std::string uid = it->first;
 		adjiter adjpair = it->second;
@@ -38,60 +49,7 @@ void graph::serialize (tenncor::graph_proto& proto_dest) const
 		// set node_proto label (2)
 		node_dest.set_label(node_src->get_label());
 		// set node_proto detail (3)
-		switch (nodetype)
-		{
-			case FUNCTOR_T:
-			{
-				tenncor::functor_proto func_dest;
-				std::vector<inode*> args = static_cast<functor*>(node_src)->get_arguments();
-				for (inode* arg : args)
-				{
-					func_dest.add_args(arg->get_uid()); 
-				}
-				node_dest.mutable_detail()->PackFrom(func_dest);
-			}
-			break;
-			case CONSTANT_T:
-			{
-				tenncor::tensor_proto tens;
-				tensor* data = node_src->get_tensor();
-				assert(nullptr != data && data->serialize(tens));
-				node_dest.mutable_detail()->PackFrom(tens);
-			}
-			break;
-			case VARIABLE_T:
-			case PLACEHOLDER_T:
-			tenncor::shape_proto shape;
-			{
-				tensor* data = node_src->get_tensor();
-				std::vector<size_t> allowed = data->get_allowed().as_list();
-				google::protobuf::RepeatedField<uint64_t> allowed_field(allowed.begin(), allowed.end());
-				shape.mutable_allowed()->Swap(&allowed_field);
-				if (data->has_data())
-				{
-					std::vector<size_t> alloced = data->get_shape().as_list();
-					google::protobuf::RepeatedField<uint64_t> alloced_field(alloced.begin(), alloced.end());
-					shape.mutable_alloced()->Swap(&alloced_field);
-				}
-			}
-			if (PLACEHOLDER_T == nodetype)
-			{
-				node_dest.mutable_detail()->PackFrom(shape);
-				break;
-			}
-			{
-				variable* var_src = static_cast<variable*>(node_src);
-				tenncor::variable_proto var;
-				var.mutable_shape()->Swap(&shape);
-				
-				tenncor::source_proto src_dest;
-				var_src->get_source()->serialize(src_dest);
-				var.mutable_source()->Swap(&src_dest);
-
-				node_dest.mutable_detail()->PackFrom(var);
-			}
-			break;
-		}
+		node_src->serialize_detail(node_dest.mutable_detail());
 	}
 	// set graph_proto create_order (2)
 	for (const std::string& ord : order_)
@@ -100,34 +58,71 @@ void graph::serialize (tenncor::graph_proto& proto_dest) const
 	}
 }
 
-void graph::register_proto (LEAF_SET& leafset, ROOT_SET& rootset,
+void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 	const tenncor::graph_proto& proto_src)
 {
+	// clear everything
+	adjmap_.clear();
+	order_.clear();
 	const google::protobuf::Map<std::string,tenncor::node_proto>& nmap = proto_src.node_map();
 	const google::protobuf::RepeatedPtrField<std::string>& order = proto_src.create_order();
-	
 	for (auto it = order.begin(), et = order.end(); it != et; it++)
 	{
-		const tenncor::node_proto& node_src = nmap.at(*it);
-		// switch (node_src.type())
-		// {
-		// 	case tenncor::node_proto_node_t::node_proto_node_t_VARIABLE:
-		// 	{
-		// 	}
-		// 	break;
-		// 	case tenncor::node_proto_node_t::node_proto_node_t_PLACEHOLDER:
-		// 	{
-		// 	}
-		// 	break;
-		// 	case tenncor::node_proto_node_t::node_proto_node_t_CONSTANT:
-		// 	{
-		// 	}
-		// 	break;
-		// 	case tenncor::node_proto_node_t::node_proto_node_t_FUNCTOR:
-		// 	{
-		// 	}
-		// 	break;
-		// }
+		std::string uid = *it;
+		const tenncor::node_proto& node_src = nmap.at(uid);
+		inode* node_dest;
+		NODE_TYPE nodetype = node_src.type();
+		std::string label = node_src.label();
+		switch (nodetype)
+		{
+			case VARIABLE_T:
+			{
+				tenncor::variable_proto var_src;
+				node_src.detail().UnpackTo(&var_src);
+				node_dest = new variable(var_src, label, uid);
+			}
+			break;
+			case PLACEHOLDER_T:
+			{
+				tenncor::shape_proto shape_src;
+				node_src.detail().UnpackTo(&shape_src);
+				node_dest = new placeholder(shape_src, label, uid);
+			}
+			break;
+			case CONSTANT_T:
+			{
+				tenncor::tensor_proto tens_src;
+				node_src.detail().UnpackTo(&tens_src);
+				node_dest = new constant(tens_src, label, uid);
+			}
+			break;
+			case FUNCTOR_T:
+			{
+				tenncor::functor_proto functor_src;
+				node_src.detail().UnpackTo(&functor_src);
+				node_dest = new functor(functor_src, label, uid);
+
+				auto strs = functor_src.args();
+				// remove args from rootstrs
+				for (std::string astr : strs)
+				{
+					rootstrs.erase(astr);
+				}
+			}
+			break;
+			default:
+				throw std::exception(); // unsupported node implementation
+		}
+		// register node
+		auto oit = order_.insert(order_.end(), uid);
+		adjmap_[uid] = {node_dest, oit};
+		// add to leaf set
+		if (nodetype != FUNCTOR_T)
+		{
+			leafset.emplace(std::shared_ptr<inode>(node_dest));
+		}
+		// add to rootstrs
+		rootstrs.emplace(uid);
 	}
 }
 
@@ -135,17 +130,17 @@ std::string graph::register_node (inode* node)
 {
 	std::string uid = nnutils::uuid(node);
 	auto it = order_.insert(order_.end(), uid);
-	adjlist_[uid] = {node, it};
+	adjmap_[uid] = {node, it};
 	return uid;
 }
 
 void graph::unregister_node (inode* node)
 {
-	auto it = adjlist_.find(node->get_uid());
-	if (adjlist_.end() != it)
+	auto it = adjmap_.find(node->get_uid());
+	if (adjmap_.end() != it)
 	{
 		order_.erase(it->second.second);
-		adjlist_.erase(it);
+		adjmap_.erase(it);
 	}
 }
 

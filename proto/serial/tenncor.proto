@@ -24,8 +24,7 @@ enum tensor_t
 
 message shape_proto
 {
-	repeated uint64 allowed = 1;
-	repeated uint64 alloced = 2;
+	repeated uint64 shape = 1;
 }
 
 message tensor_proto

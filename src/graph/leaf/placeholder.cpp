@@ -86,6 +86,29 @@ placeholder& placeholder::operator = (tensor& input)
 }
 
 
+placeholder::placeholder (tenncor::shape_proto& proto_src,
+	std::string label, std::string uid) :
+inode(label, uid)
+{
+	std::vector<size_t> shape(proto_src.shape().begin(), proto_src.shape().end());
+	data_ = std::make_unique<tensor>(shape);
+}
+
+NODE_TYPE placeholder::node_type (void) const
+{
+	return PLACEHOLDER_T;
+}
+
+void placeholder::serialize_detail (google::protobuf::Any* proto_dest)
+{
+	tenncor::shape_proto shape;
+	std::vector<size_t> slist = data_->get_allowed().as_list();
+	google::protobuf::RepeatedField<uint64_t> shape_field(slist.begin(), slist.end());
+	shape.mutable_shape()->Swap(&shape_field);
+	proto_dest->PackFrom(shape);
+}
+
+
 inode* placeholder::clone_impl (void) const
 {
 	return new placeholder(*this);

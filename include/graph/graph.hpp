@@ -29,9 +29,9 @@ class inode;
 
 class varptr;
 
-using LEAF_SET = std::unordered_set<std::shared_ptr<inode*> >;
+using LEAF_SET = std::unordered_set<std::shared_ptr<inode> >;
 
-using ROOT_SET = std::unordered_set<varptr>;
+using ROOT_STR = std::unordered_set<std::string>;
 
 #define NODE_TYPE tenncor::node_proto::node_t
 #define PLACEHOLDER_T tenncor::node_proto::PLACEHOLDER
@@ -55,6 +55,7 @@ public:
 
 	bool has_node (inode* node) const;
 
+	inode* get_inst (std::string uid) const;
 
 
 	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<
@@ -64,7 +65,7 @@ public:
 
 	// generate graph from proto
 	// set leaves and root in respective out sets
-	void register_proto (LEAF_SET& leafset, ROOT_SET& rootset,
+	void register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 		const tenncor::graph_proto& proto_src);
 
 protected:
@@ -81,10 +82,10 @@ private:
 
 	using adjiter = std::pair<inode*,std::list<std::string>::iterator>;
 
+	std::unordered_map<std::string,adjiter> adjmap_;
+
 	// creation order implies dependency order. independents are created first
 	std::list<std::string> order_;
-
-	std::unordered_map<std::string,adjiter> adjlist_;
 };
 
 }

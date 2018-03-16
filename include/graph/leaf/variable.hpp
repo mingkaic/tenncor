@@ -26,7 +26,7 @@ public:
 	//! construct to init zero and one
 	variable (const tensorshape& shape,
 		std::shared_ptr<data_src> source,
-		std::string name);
+		std::string label);
 
 	//! copy construct to init zero and one
 	variable (const variable& other);
@@ -49,13 +49,6 @@ public:
 
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
-
-	// >>>>>> SERIALIZTAION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const
-	{
-		return VARIABLE_T;
-	}
 
 	// >>>>>> CONNECTION QUERY <<<<<<
 
@@ -93,6 +86,22 @@ public:
 	bool assign (inode* input, bool notify = true);
 
 protected:
+	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
+
+	variable (tenncor::variable_proto& proto_src,
+		std::string label, std::string uid);
+
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest);
+	
+	friend class graph;
+
+private:
 	// >>>>>> POLYMORPHIC CLONERS <<<<<<
 
 	//! clone implementation
@@ -105,7 +114,7 @@ protected:
 
 	void move_helper (variable&& other);
 
-private:
+
 	std::shared_ptr<data_src> src_; // todo: consider this temporary variable
 
 	//! raw data

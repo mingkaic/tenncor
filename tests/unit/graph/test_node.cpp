@@ -22,12 +22,18 @@ class NODE : public testify::fuzz_test {};
 using namespace testutils;
 
 
-// covers inode: graph
+// covers inode: constructors and graph
 TEST_F(NODE, OnGraph_B000)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
 	mock_node node(label);
-	EXPECT_TRUE(nnet::graph::get_global().has_node(&node));
+	EXPECT_TRUE(nnet::graph::get_global().has_node(&node)) <<
+		sprintf("node %s is not registered in graph", node.get_uid().c_str());
+
+	std::string fakeuid = get_string(get_int(1, "fakeuid.size", {14, 29})[0], "fakeuid");
+	mock_node node2(label, fakeuid);
+	EXPECT_FALSE(nnet::graph::get_global().has_node(&node2)) <<
+		sprintf("node with fake uid %s is registered in graph", node2.get_uid().c_str());
 }
 
 
@@ -40,6 +46,8 @@ TEST_F(NODE, Copy_B001)
 	mock_node n1(label);
 
 	mock_node cpy(n1);
+	EXPECT_TRUE(nnet::graph::get_global().has_node(&cpy)) <<
+		sprintf("copied node %s is not registered in graph", cpy.get_uid().c_str());
 	assign = n1;
 
 	EXPECT_EQ(label, n1.get_label());
@@ -63,6 +71,10 @@ TEST_F(NODE, Move_B001)
 	EXPECT_EQ(label, n1.get_label());
 
 	mock_node mv(std::move(n1));
+	EXPECT_TRUE(nnet::graph::get_global().has_node(&mv)) <<
+		sprintf("moved node %s is not registered in graph", mv.get_uid().c_str());
+	EXPECT_TRUE(nnet::graph::get_global().has_node(&n1)) <<
+		sprintf("original node %s is not registered in graph", n1.get_uid().c_str());
 
 	std::string n1str = n1.get_label();
 	std::string ouid2 = mv.get_uid();
@@ -93,7 +105,7 @@ TEST_F(NODE, UID_B002)
 		mock_node mn("");
 		std::string uid = mn.get_uid();
 		EXPECT_TRUE(us.end() == us.find(uid)) <<
-			sprintf("found duplicate uid %s", uid.c_str());
+			sprintf("found duplicate uid \"%s\"", uid.c_str());
 		us.emplace(uid);
 	}
 }
