@@ -101,7 +101,7 @@ static void unaryElemTest (FUZZ::fuzz_test* fuzzer, UNARY_VAR func,
 	// behavior A001
 	// avoid negatives to prevent bad ops
 	std::vector<double> constant_values = fuzzer->get_double(shape.n_elems(), "constant_values", {0, 17});
-	nnet::constant* c = nnet::constant::get(constant_values, shape);
+	nnet::constant* c = nnet::constant::get<double>(constant_values, shape);
 	nnet::varptr cres = func(c);
 	nnet::constant* cres_c = dynamic_cast<nnet::constant*>(cres.get());
 	ASSERT_NE(nullptr, cres_c);
@@ -536,8 +536,8 @@ TEST_F(ELEMENTARY, Add_A000ToA004_A012)
 
 	tensorshape shape = random_def_shape(this);
 	rand_uniform rinit(2, 12);
-	varptr zero = constant::get(0.0);
-	varptr one = constant::get(1.0);
+	varptr zero = constant::get<double>(0.0);
+	varptr one = constant::get<double>(1.0);
 	variable var(shape, rinit, nnet::DOUBLE, "var");
 	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 
@@ -588,8 +588,8 @@ TEST_F(ELEMENTARY, Sub_A000ToA003_A012_A005)
 	tensorshape shape = random_def_shape(this);
 	size_t inn = shape.n_elems();
 	rand_uniform rinit(2, 12);
-	varptr zero = constant::get(0.0);
-	varptr one = constant::get(1.0);
+	varptr zero = constant::get<double>(0.0);
+	varptr one = constant::get<double>(1.0);
 	variable var(shape, rinit, nnet::DOUBLE, "var");
 	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 
@@ -657,9 +657,9 @@ TEST_F(ELEMENTARY, Mul_A000ToA003_A012_A006ToA007)
 
 	tensorshape shape = random_def_shape(this);
 	rand_uniform rinit(2, 12);
-	varptr zero = constant::get(0.0);
-	varptr one = constant::get(1.0);
-	varptr two = constant::get(2.0);
+	varptr zero = constant::get<double>(0.0);
+	varptr one = constant::get<double>(1.0);
+	varptr two = constant::get<double>(2.0);
 	variable var(shape, rinit, nnet::DOUBLE, "var");
 	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 
@@ -736,9 +736,9 @@ TEST_F(ELEMENTARY, Div_A000ToA003_A012_A008ToA009)
 
 	tensorshape shape = random_def_shape(this);
 	rand_uniform rinit(2, 12);
-	varptr zero = constant::get(0.0);
-	varptr one = constant::get(1.0);
-	varptr two = constant::get(2.0);
+	varptr zero = constant::get<double>(0.0);
+	varptr one = constant::get<double>(1.0);
+	varptr two = constant::get<double>(2.0);
 	variable var(shape, rinit, nnet::DOUBLE, "var");
 	variable var2(shape, rinit, nnet::DOUBLE, "var2");
 

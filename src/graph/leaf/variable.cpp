@@ -75,7 +75,7 @@ varptr variable::derive (inode* wrt)
 	{
 		tensorshape shape = data_->get_shape();
 		std::vector<double> data(shape.n_elems(), 1); // change to match wrt type
-		out = constant::get(data, shape);
+		out = constant::get<double>(data, shape);
 	}
 	return out;
 }

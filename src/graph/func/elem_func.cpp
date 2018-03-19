@@ -37,7 +37,7 @@ static inline tensorshape elementary_shaper (std::vector<tensorshape> shapes)
 	return lastshape;
 }
 
-functor* elem_func (std::vector<inode*> args, std::string opname, BACKMAP_F bwd)
+functor* elem_func (std::vector<inode*> args, std::string opname, OPCODE op, BACKMAP_F bwd)
 {
 	assert(has_ele(opname));
 	return functor::get(args,
@@ -72,7 +72,7 @@ functor* elem_func (std::vector<inode*> args, std::string opname, BACKMAP_F bwd)
 			deps.push_back({arg, arg->derive(wrt)});
 		}
 		return bwd(deps);
-	}, opname);
+	}, op);
 }
 
 }

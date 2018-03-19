@@ -26,16 +26,62 @@ using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,inode*> >)>;
 //! calculate output shape from argument shapes 
 using SHAPER_F = std::function<tensorshape(std::vector<tensorshape>)>; 
  
-using USHAPE_F = std::function<tensorshape(tensorshape)>; 
+using USHAPE_F = std::function<tensorshape(tensorshape, std::vector<uint64_t>)>; 
 
 using TENSOP_F = std::function<tensor*(std::unique_ptr<idata_src>&,std::vector<inode*>)>;
 
 using DERIVE_F = std::function<varptr(inode*,std::vector<inode*>)>;
 
+enum OPCODE
+{
+	ABS = 0,
+	NEG,
+	NOT,
+	SIN,
+	COS,
+	TAN,
+	CSC,
+	SEC,
+	COT,
+	EXP,
+	LOG,
+	SQRT,
+	ROUND,
+	POW,
+	ADD,
+	SUB,
+	MUL,
+	DIV,
+	EQ,
+	NE,
+	GT,
+	LT,
+	BINO,
+	UNIF,
+	NORM,
+	TRANSPOSE,
+	FLIP,
+	ARGMAX,
+	MAX,
+	SUM,
+	EXPAND,
+	N_ELEMS,
+	N_DIMS,
+	MATMUL,
+	// gradient nodes (todo: remove this)
+	INJACOBIAN,
+	OUTJACOBIAN,
+	JACOBIANLEFT,
+	JACOBIANRIGHT,
+	// sentinal
+	_END_SENTINEL,
+};
+
 class functor final : public inode, public iobserver
 {
 public:
-	static functor* get (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, std::string label);
+	static functor* get (std::vector<inode*> args, TENSOP_F tensop, 
+		DERIVE_F derive, OPCODE code);
 
 	virtual ~functor (void);
 
@@ -98,7 +144,7 @@ protected:
 	friend class graph;
 
 private:
-	functor (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, std::string label);
+	functor (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, OPCODE code);
 
 	//! declare copy constructor to copy over transfer functions
 	functor (const functor& other);
@@ -138,6 +184,8 @@ private:
 	// todo: have an option to disable data_ caching for performance boost
 	//! inner tensor to cache forward evaluated values
 	std::unique_ptr<tensor> data_ = nullptr;
+
+	OPCODE opcode_ = _END_SENTINEL;
 };
 
 }

@@ -42,7 +42,7 @@ idata_src* assign_io::clone_impl (void) const
 
 void sindex_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
-	std::vector<size_t> index = smap_(shape, input_.second);
+	std::vector<size_t> index = smap_(shape, input_.second, sinfo_);
 	type = this->type_;
 	// implicity assert(shape.n_elems() <= *std::max_element(index_.begin(), index_.end()))
 	unsigned short bytes = type_size(type);
@@ -89,23 +89,6 @@ idata_src* operate_io::clone_impl (void) const
 {
 	return new operate_io(*this);
 }
-
-
-void glue_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const 
-{ 
-	type = type_; 
-	unsigned short bytesize = type_size(type); 
-	size_t nbytes = shape.n_elems() * bytesize; 
-	nnutils::check_ptr(outptr, nbytes); 
-	void* dest = outptr.get(); 
-	std::memset(dest, 0, nbytes); 
-	for (size_t i = 0; i < args_.size(); ++i) 
-	{ 
-		assert(!args_[i].first.expired()); 
-		glue_(VARR_T{dest, shape}, CVAR_T{args_[i].first.lock().get(), args_[i].second}, bytesize, i); 
-	} 
-}
-
 }
 
 #endif

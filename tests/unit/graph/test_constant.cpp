@@ -34,10 +34,10 @@ TEST_F(CONSTANT, Constructor_C000)
 	std::vector<double> v2 = get_double(n / 2, "v2");
 	std::vector<double> v3 = get_double(n * 1.5, "v3");
 
-	nnet::constant* res = nnet::constant::get(c);
-	nnet::constant* res2 = nnet::constant::get(v, shape);
-	nnet::constant* res3 = nnet::constant::get(v2, shape);
-	nnet::constant* res4 = nnet::constant::get(v3, shape);
+	nnet::constant* res = nnet::constant::get<double>(c);
+	nnet::constant* res2 = nnet::constant::get<double>(v, shape);
+	nnet::constant* res3 = nnet::constant::get<double>(v2, shape);
+	nnet::constant* res4 = nnet::constant::get<double>(v3, shape);
 
 	std::vector<double> r1 = nnet::expose<double>(res);
 	std::vector<double> r2 = nnet::expose<double>(res2);
@@ -82,8 +82,8 @@ TEST_F(CONSTANT, CopyNMove_C001)
 	size_t n = shape.n_elems();
 	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 
-	nnet::constant* res = nnet::constant::get(c);
-	nnet::constant* res2 = nnet::constant::get(v, shape);
+	nnet::constant* res = nnet::constant::get<double>(c);
+	nnet::constant* res2 = nnet::constant::get<double>(v, shape);
 
 	EXPECT_EQ(nullptr, res->clone());
 	EXPECT_EQ(nullptr, res2->clone());
@@ -99,7 +99,7 @@ TEST_F(CONSTANT, CopyNMove_C001)
 TEST_F(CONSTANT, GetLeaves_C002)
 {
 	double c = get_double(1, "c")[0];
-	nnet::constant* res = nnet::constant::get(c);
+	nnet::constant* res = nnet::constant::get<double>(c);
 
 	std::unordered_set<const nnet::inode*> leafset = res->get_leaves();
 	ASSERT_EQ(1, leafset.size());
@@ -118,8 +118,8 @@ TEST_F(CONSTANT, GetTensor_C003)
 	size_t n = shape.n_elems();
 	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 
-	nnet::constant* res = nnet::constant::get(c);
-	nnet::constant* res2 = nnet::constant::get(v, shape);
+	nnet::constant* res = nnet::constant::get<double>(c);
+	nnet::constant* res2 = nnet::constant::get<double>(v, shape);
 
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensor* ten2 = res2->get_tensor();
@@ -154,8 +154,8 @@ TEST_F(CONSTANT, GetTensor_C003)
 TEST_F(CONSTANT, Derive_C004)
 {
 	double c = get_double(1, "c")[0];
-	nnet::constant* res = nnet::constant::get(c);
-	nnet::constant* res2 = nnet::constant::get(c+1);
+	nnet::constant* res = nnet::constant::get<double>(c);
+	nnet::constant* res2 = nnet::constant::get<double>(c+1);
 
 	nnet::varptr g1 = res->derive(nullptr);
 	nnet::varptr g2 = res->derive(res);
@@ -174,7 +174,7 @@ TEST_F(CONSTANT, Derive_C004)
 TEST_F(CONSTANT, SelfDestruct_C005)
 {
 	double c = get_double(1, "c")[0];
-	nnet::constant* res = nnet::constant::get(c);
+	nnet::constant* res = nnet::constant::get<double>(c);
 	mock_observer* mconn = new mock_observer({res});
 	delete mconn;
 	// memory leak if res is not destroyed
@@ -190,8 +190,8 @@ TEST_F(CONSTANT, ScalarEqual_C006)
 	size_t n = shape.n_elems();
 	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 
-	nnet::constant* res = nnet::constant::get(c);
-	nnet::constant* res2 = nnet::constant::get(v, shape);
+	nnet::constant* res = nnet::constant::get<double>(c);
+	nnet::constant* res2 = nnet::constant::get<double>(v, shape);
 
 	EXPECT_TRUE(*res == c) <<
 		sprintf("scalar constant %f does not equal %f", c, c);

@@ -24,7 +24,9 @@ using SVARR_T = std::pair<std::weak_ptr<void>,tensorshape>;
 
 using GLUE_F = std::function<void(VARR_T,CVAR_T,unsigned short,size_t)>;
 
-using SIDX_F = std::function<std::vector<size_t>(tensorshape,const tensorshape)>;
+using SIDX_F = std::function<std::vector<size_t>(tensorshape,const tensorshape,std::vector<uint64_t>)>;
+
+using OMAP_F = std::function<std::vector<signed>(tensorshape,const tensorshape,std::vector<uint64_t>)>;
 
 struct idata_dest
 {
@@ -96,6 +98,63 @@ private:
 	SVARR_T input_;
 };
 
+struct coord_io final : public idata_io
+{
+	coord_io (OMAP_F inmap) : inmap_(inmap) {}
+
+	virtual ~coord_io (void) {}
+
+	coord_io* clone (void) const
+	{
+		return dynamic_cast<coord_io*>(clone_impl());
+	}
+
+	virtual void set_varr (SVARR_T input, size_t)
+	{
+		input_ = input;
+	}
+
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+	{
+		assert(type_ != BAD_T && !input_.first.expired());
+		type = type_;
+		size_t per = type_size(type);
+		size_t nbytes = shape.n_elems() * per;
+		nnutils::check_ptr(outptr, nbytes);
+		std::vector<signed> index = inmap_(shape, input_.second, sinfo_);
+		char* out = (char*) outptr.get();
+		char* in = (char*) input_.first.lock().get();
+		for (size_t i = 0; i < index.size(); ++i)
+		{
+			if (index[i] < 0)
+			{
+				memset(out + i * per, 0, per);
+			}
+			else
+			{
+				memcpy(out + i * per, in + index[i] * per, per);
+			}
+		}
+	}
+
+	virtual void shape_info (std::vector<uint64_t> sinfo)
+	{
+		sinfo_ = sinfo;
+	}
+
+protected:
+	virtual idata_src* clone_impl (void) const
+	{
+		return new coord_io(*this);
+	}
+
+	OMAP_F inmap_;
+
+	SVARR_T input_;
+
+	std::vector<uint64_t> sinfo_;
+};
+
 struct aggreg_io final : public idata_io
 {
 	aggreg_io (std::string opname, SIDX_F inmap) : opname_(opname), inmap_(inmap) {}
@@ -119,7 +178,7 @@ struct aggreg_io final : public idata_io
 		size_t per = type_size(type);
 		size_t nbytes = shape.n_elems() * per;
 		nnutils::check_ptr(outptr, nbytes);
-		std::vector<size_t> index = inmap_(shape, input_.second);
+		std::vector<size_t> index = inmap_(shape, input_.second, sinfo_);
 		char* out = (char*) outptr.get();
 		char* in = (char*) input_.first.lock().get();
 		std::unordered_set<size_t> outmap;
@@ -137,6 +196,11 @@ struct aggreg_io final : public idata_io
 		}
 	}
 
+	virtual void shape_info (uint64_t dim)
+	{
+		sinfo_ = {dim};
+	}
+
 protected:
 	virtual idata_src* clone_impl (void) const
 	{
@@ -148,6 +212,8 @@ protected:
 	SIDX_F inmap_;
 
 	SVARR_T input_;
+
+	std::vector<uint64_t> sinfo_;
 };
 
 struct sindex_io final : public idata_io
@@ -164,6 +230,11 @@ struct sindex_io final : public idata_io
 		input_ = input;
 	}
 
+	virtual void shape_info (std::vector<uint64_t> info)
+	{
+		sinfo_ = info;
+	}
+
 	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
 
 private:
@@ -175,6 +246,8 @@ private:
 	SIDX_F smap_;
 
 	SVARR_T input_;
+
+	std::vector<uint64_t> sinfo_;
 };
 
 struct imultiarg_io : public idata_io
@@ -209,26 +282,6 @@ protected:
 	virtual idata_src* clone_impl (void) const;
 
 	std::string opname_;
-};
-
-struct glue_io final : public imultiarg_io 
-{ 
-	glue_io (GLUE_F glue) : glue_(glue) {} 
- 
-	glue_io* clone (void) const 
-	{ 
-		return dynamic_cast<glue_io*>(clone_impl()); 
-	} 
- 
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const; 
- 
-private: 
-	virtual idata_src* clone_impl (void) const 
-	{ 
-		return new glue_io(*this); 
-	} 
- 
-	GLUE_F glue_; 
 };
 
 }

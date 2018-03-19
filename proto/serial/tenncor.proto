@@ -53,7 +53,8 @@ message node_proto
 
 message functor_proto
 {
-	repeated string args = 1;
+	uint32 opcode = 1;
+	repeated string args = 2;
 }
 
 message source_proto

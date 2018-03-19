@@ -24,9 +24,9 @@
 namespace nnet
 {
 
-using USIDX_F = std::function<std::vector<size_t>(tensorshape)>;
+using USIDX_F = std::function<std::vector<size_t>(tensorshape, std::vector<uint64_t>)>;
 
-functor* shape_func (inode* arg, USIDX_F extracter, USHAPE_F shaper, std::string label);
+functor* shape_func (std::vector<inode*> args, USIDX_F extracter, USHAPE_F shaper, std::string label, OPCODE op);
 
 }
 

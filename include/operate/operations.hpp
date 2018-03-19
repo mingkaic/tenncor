@@ -18,6 +18,7 @@
  */
 
 #include "include/graph/leaf/constant.hpp"
+#include "include/graph/func/functor.hpp"
 
 #pragma once
 #ifndef TENNCOR_OPERATIONS_HPP
@@ -26,46 +27,8 @@
 namespace nnet
 {
 
-enum OPCODE
-{
-	ABS = 0
-	NEG
-	NOT
-	SIN
-	COS
-	TAN
-	CSC
-	SEC
-	COT
-	EXP
-	LOG
-	SQRT
-	ROUND
-	POW
-	ADD
-	SUB
-	MUL
-	DIV
-	EQ
-	NE
-	GT
-	LT
-	BINO
-	UNIF
-	NORM
-	TRANSPOSE
-	FLIP
-	ARG_MAX
-	REDUCE_MAX
-	REDUCE_SUM
-	EXPAND
-	N_ELEMS
-	N_DIMS
-	MATMUL
-};
-
 // make a single functor through opcode
-functor* run_opcode (std::vector<inode*> args, OPCODE code, std::vector<size_t> idx_param = {});
+inode* run_opcode (std::vector<inode*> args, OPCODE code, std::vector<size_t> idx_param = {});
 
 // standard operations, using a single connector
 #ifndef TENNCOR_OP_STD_HPP
@@ -144,70 +107,70 @@ varptr uniform_sample (const varptr min, const varptr max);
 varptr normal_sample (const varptr mean, const varptr stdev);
 
 template <typename T>
-varptr pow (const varptr b, T x) { return pow(b, varptr(constant::get(x))); }
+varptr pow (const varptr b, T x) { return pow(b, varptr(constant::get<T>(x))); }
 
 template <typename T>
-varptr pow (T b, const varptr x) { return pow(varptr(constant::get(b)), x); }
+varptr pow (T b, const varptr x) { return pow(varptr(constant::get<T>(b)), x); }
 
 template <typename T>
-varptr operator + (const varptr a, T b) { return a + varptr(constant::get(b)); }
+varptr operator + (const varptr a, T b) { return a + varptr(constant::get<T>(b)); }
 
 template <typename T>
-varptr operator + (T a, const varptr b) { return varptr(constant::get(a)) + b; }
+varptr operator + (T a, const varptr b) { return varptr(constant::get<T>(a)) + b; }
 
 template <typename T>
-varptr operator - (const varptr a, T b) { return a - varptr(constant::get(b)); }
+varptr operator - (const varptr a, T b) { return a - varptr(constant::get<T>(b)); }
 
 template <typename T>
-varptr operator - (T a, const varptr b) { return varptr(constant::get(a)) - b; }
+varptr operator - (T a, const varptr b) { return varptr(constant::get<T>(a)) - b; }
 
 template <typename T>
-varptr operator * (const varptr a, T b) { return a * varptr(constant::get(b)); }
+varptr operator * (const varptr a, T b) { return a * varptr(constant::get<T>(b)); }
 
 template <typename T>
-varptr operator * (T a, const varptr b) { return varptr(constant::get(a)) * b; }
+varptr operator * (T a, const varptr b) { return varptr(constant::get<T>(a)) * b; }
 
 template <typename T>
-varptr operator / (const varptr a, T b) { return a / varptr(constant::get(b)); }
+varptr operator / (const varptr a, T b) { return a / varptr(constant::get<T>(b)); }
 
 template <typename T>
-varptr operator / (T a, const varptr b) { return varptr(constant::get(a)) / b; }
+varptr operator / (T a, const varptr b) { return varptr(constant::get<T>(a)) / b; }
 
 template <typename T>
-varptr operator == (const varptr a, T b) { return a == varptr(constant::get(b)); }
+varptr operator == (const varptr a, T b) { return a == varptr(constant::get<T>(b)); }
 
 template <typename T>
-varptr operator == (T a, const varptr b) { return varptr(constant::get(a)) == b; }
+varptr operator == (T a, const varptr b) { return varptr(constant::get<T>(a)) == b; }
 
 template <typename T>
-varptr operator != (const varptr a, T b) { return a != varptr(constant::get(b)); }
+varptr operator != (const varptr a, T b) { return a != varptr(constant::get<T>(b)); }
 
 template <typename T>
-varptr operator != (T a, const varptr b) { return varptr(constant::get(a)) != b; }
+varptr operator != (T a, const varptr b) { return varptr(constant::get<T>(a)) != b; }
 
 template <typename T>
 varptr binomial_sample (const varptr n, T p)
-{ return binomial_sample(n, varptr(constant::get(p))); }
+{ return binomial_sample(n, varptr(constant::get<T>(p))); }
 
 template <typename T>
 varptr binomial_sample (T n, const varptr p)
-{ return binomial_sample(varptr(constant::get(n)), p); }
+{ return binomial_sample(varptr(constant::get<T>(n)), p); }
 
 template <typename T>
 varptr uniform_sample (const varptr min, T max)
-{ return uniform_sample(min, varptr(constant::get(max))); }
+{ return uniform_sample(min, varptr(constant::get<T>(max))); }
 
 template <typename T>
 varptr uniform_sample (T min, const varptr max)
-{ return uniform_sample(varptr(constant::get(min)), max); }
+{ return uniform_sample(varptr(constant::get<T>(min)), max); }
 
 template <typename T>
 varptr normal_sample (const varptr mean, T stdev)
-{ return normal_sample(mean, varptr(constant::get(stdev))); }
+{ return normal_sample(mean, varptr(constant::get<T>(stdev))); }
 
 template <typename T>
 varptr normal_sample (T mean, const varptr stdev)
-{ return normal_sample(varptr(constant::get(mean)), stdev); }
+{ return normal_sample(varptr(constant::get<T>(mean)), stdev); }
 
 
 // >>>>>>>>>>>> COORDINATE MAPPERS <<<<<<<<<<<<
@@ -228,19 +191,19 @@ varptr reduce_max (const varptr a);
 varptr reduce_sum (const varptr a);
 
 
-// >>>>>>>>>>>> EXPANSION <<<<<<<<<<<<
-
-//! repeat a n times along inserted dimension dim
-varptr expand (varptr a, varptr n, size_t dim);
-
-varptr expand (varptr a, size_t n, size_t dim);
-
-
 // >>>>>>>>>>>> SHAPE_DEP <<<<<<<<<<<<
 
 varptr n_elems (const varptr a);
 
 varptr n_dimension (const varptr a, size_t dimension);
+
+
+// >>>>>>>>>>>> SHAPE CHANGE <<<<<<<<<<<<
+
+//! repeat a n times along inserted dimension dim
+varptr expand (varptr a, varptr n, size_t dim);
+
+varptr expand (varptr a, size_t n, size_t dim);
 
 #endif /* TENNCOR_OP_STD_HPP */
 
@@ -261,12 +224,12 @@ varptr clip_norm (const varptr a, const varptr cap);
 //! clip values in range [min, max]
 template <typename T>
 varptr clip (const varptr a, T min, T max)
-{ return clip(a, varptr(constant::get(min)), varptr(constant::get(max))); }
+{ return clip(a, varptr(constant::get<T>(min)), varptr(constant::get<T>(max))); }
 
 //! normalize clip values with capacity cap
 template <typename T>
 varptr clip_norm (const varptr a, T cap)
-{ return clip_norm(a, varptr(constant::get(cap))); }
+{ return clip_norm(a, varptr(constant::get<T>(cap))); }
 
 
 // >>>>>>>>>>>> AGGREGATE <<<<<<<<<<<<

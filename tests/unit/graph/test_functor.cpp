@@ -40,14 +40,14 @@ nnet::varptr trash_bwd (nnet::inode*, std::vector<nnet::inode*>)
 TEST_F(FUNCTOR, Copy_F000)
 {
 	mock_node badleaf("badleef");
-	nnet::functor* assign = nnet::functor::get({&badleaf}, trash_fwd, trash_bwd, "assign");
-	nnet::functor* assign2 = nnet::functor::get({&badleaf}, trash_fwd, trash_bwd, "assign2");
+	nnet::functor* assign = nnet::functor::get({&badleaf}, trash_fwd, trash_bwd, (nnet::OPCODE) 0);
+	nnet::functor* assign2 = nnet::functor::get({&badleaf}, trash_fwd, trash_bwd, (nnet::OPCODE) 0);
 	mock_observer* obs = new mock_observer({assign});
 
 	mock_node goodleaf("gooflead");
 	double c = get_double(1, "c")[0];
 	double c2 = get_double(1, "c2")[0];
-	nnet::constant* arg = nnet::constant::get(c);
+	nnet::constant* arg = nnet::constant::get<double>(c);
 	nnet::functor* func = nnet::functor::get({arg}, 
 		[c2](std::unique_ptr<nnet::idata_src>& src, std::vector<nnet::inode*>)
 		{
@@ -59,7 +59,7 @@ TEST_F(FUNCTOR, Copy_F000)
 		[&goodleaf](nnet::inode*, std::vector<nnet::inode*>)
 		{
 			return &goodleaf;
-		}, "func");
+		}, (nnet::OPCODE) 0);
 	
 	size_t counter = 0;
 	std::shared_ptr<nnet::const_init> ci = std::make_shared<nnet::const_init>();
@@ -73,7 +73,7 @@ TEST_F(FUNCTOR, Copy_F000)
 			ci->set<double>(c2);
 			src = std::unique_ptr<nnet::idata_src>(ci);
 			return new nnet::tensor(std::vector<size_t>{1});
-		}, trash_bwd, "func2");
+		}, trash_bwd, (nnet::OPCODE) 0);
 
 	nnet::tensor* ten = func->get_tensor(); // this belongs to func
 	ASSERT_EQ(&goodleaf, func->derive(&badleaf).get());
@@ -125,14 +125,14 @@ TEST_F(FUNCTOR, Copy_F000)
 TEST_F(FUNCTOR, Move_F000)
 {
 	mock_node badleaf("badleef");
-	nnet::functor* assign = nnet::functor::get({&badleaf}, trash_fwd, trash_bwd, "assign");
-	nnet::functor* assign2 = nnet::functor::get({&badleaf}, trash_fwd, trash_bwd, "assign2");
+	nnet::functor* assign = nnet::functor::get({&badleaf}, trash_fwd, trash_bwd, (nnet::OPCODE) 0);
+	nnet::functor* assign2 = nnet::functor::get({&badleaf}, trash_fwd, trash_bwd, (nnet::OPCODE) 0);
 	mock_observer* obs = new mock_observer({assign});
 
 	mock_node goodleaf("gooflead");
 	double c = get_double(1, "c")[0];
 	double c2 = get_double(1, "c2")[0];
-	nnet::constant* arg = nnet::constant::get(c);
+	nnet::constant* arg = nnet::constant::get<double>(c);
 	nnet::functor* func = nnet::functor::get({arg}, 
 		[c2](std::unique_ptr<nnet::idata_src>& src, std::vector<nnet::inode*>)
 		{
@@ -144,7 +144,7 @@ TEST_F(FUNCTOR, Move_F000)
 		[&goodleaf](nnet::inode*, std::vector<nnet::inode*>)
 		{
 			return &goodleaf;
-		}, "func");
+		}, (nnet::OPCODE) 0);
 	
 	size_t counter = 0;
 	std::shared_ptr<nnet::const_init> ci = std::make_shared<nnet::const_init>();
@@ -158,7 +158,7 @@ TEST_F(FUNCTOR, Move_F000)
 			ci->set<double>(c2);
 			src = std::unique_ptr<nnet::idata_src>(ci);
 			return new nnet::tensor(std::vector<size_t>{1});
-		}, trash_bwd, "func2");
+		}, trash_bwd, (nnet::OPCODE) 0);
 
 	nnet::tensor* ten = func->get_tensor(); // this belongs to func
 	ASSERT_EQ(&goodleaf, func->derive(&badleaf).get());
@@ -206,11 +206,10 @@ TEST_F(FUNCTOR, Move_F000)
 TEST_F(FUNCTOR, Name_F001)
 {
 	std::string leaflabel = get_string(get_int(1, "leaflabel.size", {14, 29})[0], "leaflabel");
-	std::string funclabel = get_string(get_int(1, "funclabel.size", {14, 29})[0], "funclabel");
 	mock_node leaf(leaflabel);
-	nnet::functor* func = nnet::functor::get({&leaf}, trash_fwd, trash_bwd, funclabel);
+	nnet::functor* func = nnet::functor::get({&leaf}, trash_fwd, trash_bwd, (nnet::OPCODE) 0);
 
-	std::string expectname = "<" + funclabel + ":" + func->get_uid() + ">(" + leaflabel + ")";
+	std::string expectname = "<ABS:" + func->get_uid() + ">(" + leaflabel + ")";
 	EXPECT_STREQ(expectname.c_str(), func->get_name().c_str());
 }
 
@@ -220,12 +219,10 @@ TEST_F(FUNCTOR, GetLeaves_F002)
 {
 	std::string leaflabel = get_string(get_int(1, "leaflabel.size", {14, 29})[0], "leaflabel");
 	std::string leaflabel2 = get_string(get_int(1, "leaflabel.size", {14, 29})[0], "leaflabel2");
-	std::string funclabel = get_string(get_int(1, "funclabel.size", {14, 29})[0], "funclabel");
-	std::string funclabel2 = get_string(get_int(1, "funclabel.size", {14, 29})[0], "funclabel2");
 	mock_node leaf(leaflabel);
 	mock_node leaf2(leaflabel2);
-	nnet::functor* func = nnet::functor::get({&leaf}, trash_fwd, trash_bwd, funclabel);
-	nnet::functor* func2 = nnet::functor::get({func, &leaf2}, trash_fwd, trash_bwd, funclabel2);
+	nnet::functor* func = nnet::functor::get({&leaf}, trash_fwd, trash_bwd, (nnet::OPCODE) 0);
+	nnet::functor* func2 = nnet::functor::get({func, &leaf2}, trash_fwd, trash_bwd, (nnet::OPCODE) 0);
 
 	std::unordered_set<const nnet::inode*> leafset = func->get_leaves();
 	std::unordered_set<const nnet::inode*> leafset2 = func2->get_leaves();
@@ -243,7 +240,6 @@ TEST_F(FUNCTOR, GetLeaves_F002)
 TEST_F(FUNCTOR, GetTensor_F003)
 {
 	std::string varlabel = get_string(get_int(1, "varlabel.size", {14, 29})[0], "varlabel");
-	std::string funclabel = get_string(get_int(1, "funclabel.size", {14, 29})[0], "funclabel");
 	nnet::tensorshape shape = random_def_shape(this);
 	nnet::tensorshape shape2 = random_def_shape(this);
 	double c = get_double(1, "c")[0];
@@ -258,7 +254,7 @@ TEST_F(FUNCTOR, GetTensor_F003)
 			ci->set<double>(c2);
 			src = std::unique_ptr<nnet::idata_src>(ci);
 			return new nnet::tensor(shape2);
-		}, trash_bwd, funclabel);
+		}, trash_bwd, (nnet::OPCODE) 0);
 
 	EXPECT_EQ(nullptr, func->get_tensor());
 	res.initialize();
@@ -281,14 +277,13 @@ TEST_F(FUNCTOR, GetTensor_F003)
 TEST_F(FUNCTOR, Derive_F004)
 {
 	std::string varlabel = get_string(get_int(1, "varlabel.size", {14, 29})[0], "varlabel");
-	std::string funclabel = get_string(get_int(1, "funclabel.size", {14, 29})[0], "funclabel");
 	nnet::tensorshape shape = random_def_shape(this);
 	nnet::tensorshape shape2 = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 	double c2 = get_double(1, "c2")[0];
 	mock_node goodleaf("gooflead");
 
-	nnet::constant* arg = nnet::constant::get(c);
+	nnet::constant* arg = nnet::constant::get<double>(c);
 	nnet::functor* func = nnet::functor::get({arg}, 
 		[shape2, c2](std::unique_ptr<nnet::idata_src>& src, std::vector<nnet::inode*>)
 		{
@@ -300,7 +295,7 @@ TEST_F(FUNCTOR, Derive_F004)
 		[&goodleaf](nnet::inode*, std::vector<nnet::inode*>)
 		{
 			return &goodleaf;
-		}, funclabel);
+		}, (nnet::OPCODE) 0);
 
 	nnet::varptr eleaf = func->derive(nullptr);
 	nnet::varptr ewun = func->derive(func);

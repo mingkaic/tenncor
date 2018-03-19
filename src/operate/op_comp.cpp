@@ -54,7 +54,7 @@ varptr arg_max (const varptr a, size_t dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, "argmax", dimension,
+	return agg_func(a, "argmax", ARGMAX, dimension,
 	[](std::vector<std::pair<inode*, inode*> >) -> varptr
 	{
 		throw std::exception();
@@ -70,11 +70,13 @@ varptr reduce_max (const varptr a, size_t dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, "max", dimension,
-	[dimension](std::vector<std::pair<inode*, inode*> > args) -> varptr
+	return agg_func(a, "max", MAX, dimension,
+	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
 		varptr a = args.front().first;
 		varptr ag = args.front().second;
+		inode* c = args.back().first;
+		uint64_t dimension = expose<uint64_t>(c)[0];
 		varptr me = reduce_max(a, dimension);
 		varptr bitmap = expand(me, n_dimension(a, dimension), dimension);
 		return (bitmap == a) * ag;
@@ -89,7 +91,7 @@ varptr reduce_sum (const varptr a, size_t dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, "sum", dimension,
+	return agg_func(a, "sum", SUM, dimension,
 	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
 		return args.front().second;

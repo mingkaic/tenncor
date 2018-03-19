@@ -21,9 +21,9 @@
 namespace nnet
 {
 
-functor* agg_func (inode* arg, std::string opname, BACKMAP_F bwd);
+functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd);
 
-functor* agg_func (inode* arg, std::string opname, size_t dimension, BACKMAP_F bwd);
+functor* agg_func (inode* arg, std::string opname, OPCODE op, size_t dimension, BACKMAP_F bwd);
 
 }
 

@@ -82,8 +82,8 @@ static tensorshape matmul_shaper (std::vector<tensorshape> shapes)
 static varptr flatten_mat (varptr a)
 {
 	size_t nelem_a = a->get_tensor()->get_shape().n_elems();
-	varptr expand = coord_func(a,
-	[](tensorshape, const tensorshape inshape)
+	varptr expand = coord_func({a},
+	[](tensorshape, const tensorshape inshape, std::vector<uint64_t>)
 	{
 		size_t nelems = inshape.n_elems();
 		std::vector<size_t> row(nelems);
@@ -95,37 +95,18 @@ static varptr flatten_mat (varptr a)
 		}
 		return indices;
 	},
-	[](tensorshape inshape) -> tensorshape
+	[](tensorshape inshape, std::vector<uint64_t>) -> tensorshape
 	{
 		size_t nelems = inshape.n_elems();
 		return std::vector<size_t>{nelems, nelems};
-	}, "expand");
+	}, INJACOBIAN);
 	std::vector<double> data(nelem_a * nelem_a, 0);
 	for (size_t i = 0; i < nelem_a; ++i)
 	{
 		data[i * nelem_a + i] = 1;
 	}
-	varptr identity = constant::get(data, std::vector<size_t>{nelem_a, nelem_a});
+	varptr identity = constant::get<double>(data, std::vector<size_t>{nelem_a, nelem_a});
 	return expand * identity;
-}
-
-static inline varptr select (tensorshape shape, size_t index)
-{
-	std::vector<double> data(shape.n_elems(), 0);
-	data[index] = 1;
-	return constant::get(data, shape);
-}
-
-static inline void jacobian_glue (VARR_T dest, CVAR_T src, unsigned short nbyte, size_t index)
-{
-	char* cdest = (char*) dest.first;
-	const char* csrc = (const char*) src.first;
-	size_t ncol = dest.second.as_list()[0];
-	size_t nrow = src.second.n_elems();
-	for (size_t i = 0; i < nrow; ++i)
-	{
-		std::memcpy(cdest + (i * ncol + index) * nbyte, csrc + i * nbyte, nbyte);
-	}
 }
 
 static varptr matmul_gradient (inode* x, std::vector<inode*> args)
@@ -140,32 +121,48 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 	tensorshape bases = x->get_tensor()->get_shape();
 	if (adx)
 	{
-		adx = flatten_mat(adx);
+		adx = flatten_mat(adx); // todo: ensure adx keeps jacobian shape <xshape, cshape>
 		// todo: check for parent ja
-		varptr ja = functor::get({a, b, c},
+		varptr ja = functor::get({b, a, c},
 		[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
 		{
-			inode* a = args[0];
-			inode* b = args[1];
+			inode* b = args[0];
+			inode* a = args[1];
 			inode* c = args[2];
-			idata_io* io = new glue_io(jacobian_glue);
-			src = std::unique_ptr<idata_src>(io);
-			tensorshape outershape = a->get_tensor()->get_shape();
-			size_t nouter = outershape.n_elems();
-			size_t ninner = c->get_tensor()->get_shape().n_elems();
-			for (size_t i = 0; i < nouter; ++i)
+			coord_io* osrc = new coord_io(
+			[](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t>)
 			{
-				varptr ivar = matmul(select(outershape, i), varptr(b));
-				tensor* iten = ivar->get_tensor();
-				iten->write_to(*io, i);
-			}
-			return new tensor(tensorshape({nouter, ninner}));
-		}, 
+				size_t xlimit = inshape[0];
+				size_t ylimit = inshape[1];
+				std::vector<signed> index(outshape.n_elems(), -1);
+				size_t ns = inshape.n_elems();
+				size_t nparts = outshape[0] / xlimit;
+				for (size_t i = 0; i < ns; ++i)
+				{
+					std::vector<size_t> coord = inshape.coord_from_idx(i);
+					size_t x = coord[0];
+					size_t y = coord[1];
+					for (size_t j = 0; j < nparts; ++j)
+					{
+						coord[0] = x + j * xlimit;
+						coord[1] = y + j * ylimit;
+						index[outshape.flat_idx(coord)] = i;
+					}
+				}
+				return index;
+			});
+			src = std::unique_ptr<idata_src>(osrc);
+			size_t nouter = a->get_tensor()->get_shape().n_elems();
+			size_t ninner = c->get_tensor()->get_shape().n_elems();
+			tensorshape outshape({ninner, nouter});
+			b->get_tensor()->write_to(*osrc);
+			return new tensor(outshape);
+		},
 		[](inode*, std::vector<inode*>) -> varptr
 		{
 			throw std::bad_function_call(); // unimplemented
-		}, "jacobian_a");
-		da = matmul(ja, adx);
+		}, JACOBIANLEFT); // ja has shape <ashape, cshape>
+		da = matmul(adx, ja); // da should have shape <xshape, ashape>
 	}
 	if (bdx)
 	{
@@ -176,36 +173,55 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 			inode* a = args[0];
 			inode* b = args[1];
 			inode* c = args[2];
-			idata_io* io = new glue_io(jacobian_glue);
-			src = std::unique_ptr<idata_src>(io);
-			tensorshape outershape = b->get_tensor()->get_shape();
-			size_t nouter = outershape.n_elems();
-			size_t ninner = c->get_tensor()->get_shape().n_elems();
-			for (size_t i = 0; i < nouter; ++i)
+			coord_io* osrc = new coord_io(
+			[](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t> blist)
 			{
-				varptr ivar = matmul(varptr(a), select(outershape, i));
-				tensor* iten = ivar->get_tensor();
-				iten->write_to(*io, i);
-			}
-			return new tensor(tensorshape({nouter, ninner}));
+				size_t ylimit = inshape[0];
+				size_t xlimit = blist[0];
+				std::vector<signed> index(outshape.n_elems(), -1);
+				size_t ns = inshape.n_elems();
+				for (size_t i = 0; i < ns; ++i)
+				{
+					std::vector<size_t> coord = inshape.coord_from_idx(i);
+					size_t x = coord[1] * ylimit;
+					size_t y = coord[0] * xlimit;
+					for (size_t j = 0; j < xlimit; ++j)
+					{
+						coord[0] = x + j;
+						coord[1] = y + j;
+						index[outshape.flat_idx(coord)] = i;
+					}
+				}
+				return index;
+			});
+			src = std::unique_ptr<idata_src>(osrc);
+			tensorshape bshape = b->get_tensor()->get_shape();
+			size_t nouter = bshape.n_elems();
+			size_t ninner = c->get_tensor()->get_shape().n_elems();
+			tensorshape outshape({ninner, nouter});
+			a->get_tensor()->write_to(*osrc);
+			std::vector<size_t> blist = bshape.as_list();
+			osrc->shape_info(std::vector<uint64_t>(blist.begin(), blist.end()));
+			return new tensor(outshape);
 		},
 		[](inode*, std::vector<inode*>) -> varptr
 		{
 			throw std::bad_function_call(); // unimplemented
-		}, "jacobian_b");
-		db = matmul(jb, bdx);
+		}, JACOBIANRIGHT);
+		db = matmul(bdx, jb);
 	}
-	return coord_func(reduce_sum(da + db, 1),
-	[](tensorshape outshape, const tensorshape inshape)
+	// todo: ensure non-terminating matmul keep jacobian shape
+	return coord_func({reduce_sum(da + db, 0)},
+	[](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t>)
 	{
 		std::vector<size_t> indices(inshape.n_elems());
 		std::iota(indices.begin(), indices.end(), 0);
 		return indices;
 	},
-	[bases](tensorshape)
+	[bases](tensorshape, std::vector<uint64_t>)
 	{
 		return bases;
-	}, "jacobian_expand");
+	}, OUTJACOBIAN);
 }
 
 varptr matmul (varptr a, varptr b)
@@ -222,7 +238,7 @@ varptr matmul (varptr a, varptr b)
 		b->write_to(*io, 1);
 		tensorshape dshape = matmul_shaper({a->get_shape(), b->get_shape()});
 		return new tensor(dshape);
-	}, matmul_gradient, "matmul");
+	}, matmul_gradient, MATMUL);
 }
 
 }

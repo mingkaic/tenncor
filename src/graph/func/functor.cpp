@@ -13,10 +13,66 @@
 namespace nnet
 {
 
-functor* functor::get (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, std::string label)
+#define STR2CODE(CODE) std::pair<std::string,OPCODE>{#CODE, CODE},
+
+static std::unordered_map<std::string,OPCODE> code_map =
+{
+	STR2CODE(ABS)
+	STR2CODE(NEG)
+	STR2CODE(NOT)
+	STR2CODE(SIN)
+	STR2CODE(COS)
+	STR2CODE(TAN)
+	STR2CODE(CSC)
+	STR2CODE(SEC)
+	STR2CODE(COT)
+	STR2CODE(EXP)
+	STR2CODE(LOG)
+	STR2CODE(SQRT)
+	STR2CODE(ROUND)
+	STR2CODE(POW)
+	STR2CODE(ADD)
+	STR2CODE(SUB)
+	STR2CODE(MUL)
+	STR2CODE(DIV)
+	STR2CODE(EQ)
+	STR2CODE(NE)
+	STR2CODE(GT)
+	STR2CODE(LT)
+	STR2CODE(BINO)
+	STR2CODE(UNIF)
+	STR2CODE(NORM)
+	STR2CODE(TRANSPOSE)
+	STR2CODE(FLIP)
+	STR2CODE(ARGMAX)
+	STR2CODE(MAX)
+	STR2CODE(SUM)
+	STR2CODE(EXPAND)
+	STR2CODE(N_ELEMS)
+	STR2CODE(N_DIMS)
+	STR2CODE(MATMUL)
+	STR2CODE(INJACOBIAN)
+	STR2CODE(OUTJACOBIAN)
+	STR2CODE(JACOBIANLEFT)
+	STR2CODE(JACOBIANRIGHT)
+};
+
+static std::vector<std::string> code_vec = ([](void)
+{
+	assert(code_map.size() == _END_SENTINEL);
+	std::vector<std::string> out(_END_SENTINEL);
+	for (auto& code_pair : code_map)
+	{
+		out[code_pair.second] = code_pair.first;
+	}
+	return out;
+})();
+
+functor* functor::get (std::vector<inode*> args, TENSOP_F tensop, 
+	DERIVE_F derive, OPCODE code)
 {
 	assert(false == args.empty());
-	return new functor(args, tensop, derive, label);
+	return new functor(args, tensop, derive, code);
 }
 
 functor::~functor (void) {}
@@ -114,7 +170,7 @@ varptr functor::derive (inode* wrt)
 		assert(ten && ten->has_data());
 		tensorshape shape = ten->get_shape();
 		std::vector<double> data(shape.n_elems(), 1); // change to match wrt type
-		return constant::get(data, shape);
+		return constant::get<double>(data, shape);
 	}
 	if (nullptr == data_)
 	{
@@ -139,6 +195,7 @@ NODE_TYPE functor::node_type (void) const
 void functor::serialize_detail (google::protobuf::Any* proto_dest)
 {
 	tenncor::functor_proto func_dest;
+	func_dest.set_opcode(opcode_);
 	std::vector<inode*> args = get_arguments();
 	for (inode* arg : args)
 	{
@@ -148,9 +205,9 @@ void functor::serialize_detail (google::protobuf::Any* proto_dest)
 }
 
 
-functor::functor (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, std::string label) :
-	inode(label), iobserver(std::vector<subject*>(args.begin(), args.end())),
-	tensop_(tensop), derive_(derive)
+functor::functor (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, OPCODE code) :
+	inode(code_vec[code]), iobserver(std::vector<subject*>(args.begin(), args.end())),
+	tensop_(tensop), derive_(derive), opcode_(code)
 { this->update(); }
 
 functor::functor (const functor& other) : 

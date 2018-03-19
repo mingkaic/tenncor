@@ -15,7 +15,7 @@
 namespace nnet
 {
 
-functor* agg_func (inode* arg, std::string opname, BACKMAP_F bwd)
+functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 {
 	assert(has_agg(opname));
 	return functor::get({arg},
@@ -23,7 +23,7 @@ functor* agg_func (inode* arg, std::string opname, BACKMAP_F bwd)
 	{
 		assert(args.size() == 1);
 		idata_io* io = new aggreg_io(opname, 
-		[](tensorshape,const tensorshape inshape)
+		[](tensorshape,const tensorshape inshape, std::vector<uint64_t>)
 		{
 			return std::vector<size_t>(inshape.n_elems(), 0);
 		});
@@ -42,20 +42,21 @@ functor* agg_func (inode* arg, std::string opname, BACKMAP_F bwd)
 			deps.push_back({arg, arg->derive(wrt)});
 		}
 		return bwd(deps);
-	}, opname);
+	}, op);
 }
 
-functor* agg_func (inode* arg, std::string opname, size_t dimension, BACKMAP_F bwd)
+functor* agg_func (inode* arg, std::string opname, OPCODE op, size_t dimension, BACKMAP_F bwd)
 {
 	assert(has_agg(opname));
-	return functor::get({arg},
-	[opname, dimension](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	return functor::get({arg, constant::get<uint64_t>(dimension)},
+	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		aggreg_io* op = new aggreg_io(opname, 
-		[dimension](tensorshape outshape, const tensorshape inshape)
+		[](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t> dimension)
 		{
+			assert(dimension.size() > 0);
 			size_t rank = inshape.rank();
-			assert(rank > dimension);
+			assert(rank > dimension[0]);
 			size_t nin = inshape.n_elems();
 			if (rank == 1)
 			{
@@ -66,7 +67,7 @@ functor* agg_func (inode* arg, std::string opname, size_t dimension, BACKMAP_F b
 			for (size_t i = 0; i < nin; ++i)
 			{
 				coord = inshape.coord_from_idx(i);
-				coord.erase(coord.begin() + dimension);
+				coord.erase(coord.begin() + dimension[0]);
 				index[i] = outshape.flat_idx(coord);
 			}
 			return index;
@@ -76,9 +77,11 @@ functor* agg_func (inode* arg, std::string opname, size_t dimension, BACKMAP_F b
 		inode* arg = args[0];
 		tensor* tens = arg->get_tensor();
 		tensorshape shape = tens->get_shape();
-		assert(tens && shape.rank() > dimension);
+		uint64_t dim = expose<uint64_t>(args[1])[0];
+		assert(tens && shape.rank() > dim);
 		// assert that shape only change once
 		tens->write_to(*op);
+		op->shape_info(dim);
 		std::vector<size_t> slist = shape.as_list();
 		if (1 == slist.size())
 		{
@@ -86,15 +89,16 @@ functor* agg_func (inode* arg, std::string opname, size_t dimension, BACKMAP_F b
 		}
 		else
 		{
-			slist.erase(slist.begin() + dimension);
+			slist.erase(slist.begin() + dim);
 		}
 		return new tensor(tensorshape(slist));
 	},
 	[bwd](inode* wrt, std::vector<inode*> args)
 	{
 		inode* arg = args[0];
-		return bwd({{arg, arg->derive(wrt)}});
-	}, nnutils::formatter() << opname << "_" << dimension);
+		inode* shapeinfo = args[1];
+		return bwd({{arg, arg->derive(wrt)}, {shapeinfo, nullptr}});
+	}, op);
 }
 
 }
