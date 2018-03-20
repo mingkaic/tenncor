@@ -70,20 +70,14 @@ void inode::set_label (std::string label)
 
 inode::inode (std::string label) :
 	subject(),
-	id_(graph::get_global().register_node(this)),
 	label_(label) {}
-
-inode::inode (std::string label, std::string uid) :
-	subject(), id_(uid), label_(label) {}
 
 inode::inode (const inode& other) :
 	subject(other),
-	id_(graph::get_global().register_node(this)),
 	label_(other.label_) {}
 
 inode::inode (inode&& other) :
 	subject(std::move(other)),
-	id_(graph::get_global().register_node(this)),
 	label_(std::move(other.label_)) {}
 
 varptr::varptr (void) : iobserver(false) {}

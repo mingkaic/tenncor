@@ -6,7 +6,7 @@
 //  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
-#include "include/graph/func/functor.hpp"
+#include "include/operate/operations.hpp"
 #include "include/graph/leaf/variable.hpp"
 #include "include/graph/leaf/placeholder.hpp"
 
@@ -58,6 +58,42 @@ void graph::serialize (tenncor::graph_proto& proto_dest) const
 	}
 }
 
+static inline variable* make_variable (tenncor::variable_proto var_src, std::string label)
+{
+	const tenncor::source_proto& source_src = var_src.source();
+	tenncor::source_proto::source_t src_type = source_src.src();
+	std::shared_ptr<data_src> src;
+	switch (src_type)
+	{
+		case CSRC:
+			src = std::make_shared<const_init>(
+				source_src.settings(0), source_src.dtype());
+		break;
+		case USRC:
+			src = std::make_shared<r_uniform_init>(
+				source_src.settings(0), source_src.settings(1),
+				source_src.dtype());
+		break;
+		case NSRC:
+			src = std::make_shared<r_normal_init>(
+				source_src.settings(0), source_src.settings(1),
+				source_src.dtype());
+		break;
+		default:
+			throw std::exception(); // unsupported data source
+	}
+
+	const tenncor::shape_proto& shape_src = var_src.shape();
+	std::vector<size_t> shape(shape_src.shape().begin(), shape_src.shape().end());
+	return new variable(shape, src, label);
+}
+
+static inline placeholder* make_placeholder (tenncor::shape_proto& shape_src, std::string label)
+{
+	std::vector<size_t> shape(shape_src.shape().begin(), shape_src.shape().end());
+	return new placeholder(shape, label);
+}
+
 void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 	const tenncor::graph_proto& proto_src)
 {
@@ -66,6 +102,7 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 	order_.clear();
 	const google::protobuf::Map<std::string,tenncor::node_proto>& nmap = proto_src.node_map();
 	const google::protobuf::RepeatedPtrField<std::string>& order = proto_src.create_order();
+	std::unordered_map<std::string, std::string> uid_map;
 	for (auto it = order.begin(), et = order.end(); it != et; it++)
 	{
 		std::string uid = *it;
@@ -79,40 +116,46 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 			{
 				tenncor::variable_proto var_src;
 				node_src.detail().UnpackTo(&var_src);
-				node_dest = new variable(var_src, label, uid);
+				node_dest = make_variable(var_src, label);
 			}
 			break;
 			case PLACEHOLDER_T:
 			{
 				tenncor::shape_proto shape_src;
 				node_src.detail().UnpackTo(&shape_src);
-				node_dest = new placeholder(shape_src, label, uid);
+				node_dest = make_placeholder(shape_src, label);
 			}
 			break;
 			case CONSTANT_T:
 			{
 				tenncor::tensor_proto tens_src;
 				node_src.detail().UnpackTo(&tens_src);
-				node_dest = new constant(tens_src, label, uid);
+				node_dest = new constant(tens_src, label);
 			}
 			break;
 			case FUNCTOR_T:
 			{
 				tenncor::functor_proto functor_src;
 				node_src.detail().UnpackTo(&functor_src);
-				node_dest = new functor(functor_src, label, uid);
-
 				auto strs = functor_src.args();
-				// remove args from rootstrs
-				for (std::string astr : strs)
+				std::vector<inode*> args(strs.size());
+				std::transform(strs.begin(), strs.end(), args.begin(),
+				[&](std::string src) -> inode*
 				{
-					rootstrs.erase(astr);
-				}
+					std::string stored_uid = uid_map[src];
+					rootstrs.erase(stored_uid);
+					return this->get_inst(stored_uid);
+				});
+				node_dest = run_opcode(args, (OPCODE) functor_src.opcode());
+				node_dest->set_label(label);
 			}
 			break;
 			default:
 				throw std::exception(); // unsupported node implementation
 		}
+		// uid map
+		std::string resuid = node_dest->get_uid();
+		uid_map[uid] = resuid;
 		// register node
 		auto oit = order_.insert(order_.end(), uid);
 		adjmap_[uid] = {node_dest, oit};
@@ -122,7 +165,7 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 			leafset.emplace(std::shared_ptr<inode>(node_dest));
 		}
 		// add to rootstrs
-		rootstrs.emplace(uid);
+		rootstrs.emplace(resuid);
 	}
 }
 

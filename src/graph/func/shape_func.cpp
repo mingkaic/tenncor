@@ -9,7 +9,7 @@
 namespace nnet
 {
 
-functor* shape_func (std::vector<inode*> args, USIDX_F extracter, USHAPE_F shaper, std::string label, OPCODE op)
+functor* shape_func (std::vector<inode*> args, USIDX_F extracter, USHAPE_F shaper, OPCODE op)
 {
 	return functor::get(args,
 	[extracter, shaper](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*

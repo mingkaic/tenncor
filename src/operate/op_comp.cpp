@@ -35,6 +35,7 @@ varptr clip_norm (const varptr a, const varptr cap)
 }
 
 
+
 varptr reduce_mean (const varptr a)
 {
 	return reduce_sum(a) / n_elems(a);
@@ -46,7 +47,13 @@ varptr reduce_l2norm (const varptr a)
 }
 
 
+
 varptr arg_max (const varptr a, size_t dimension)
+{
+	return arg_max(a, constant::get<uint64_t>(dimension));
+}
+
+varptr arg_max (const varptr a, const varptr dimension)
 {
 	if (nullptr == a.get()) return nullptr;
 	// always check if the same operation on input exists
@@ -54,15 +61,19 @@ varptr arg_max (const varptr a, size_t dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, "argmax", ARGMAX, dimension,
+	return agg_func(a, dimension, "argmax", ARGMAX,
 	[](std::vector<std::pair<inode*, inode*> >) -> varptr
 	{
 		throw std::exception();
 	});
 }
 
-
 varptr reduce_max (const varptr a, size_t dimension)
+{
+	return reduce_max(a, constant::get<uint64_t>(dimension));
+}
+
+varptr reduce_max (const varptr a, const varptr dimension)
 {
 	if (nullptr == a.get()) return nullptr;
 	// always check if the same operation on input exists
@@ -70,7 +81,7 @@ varptr reduce_max (const varptr a, size_t dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, "max", MAX, dimension,
+	return agg_func(a, dimension, "max", MAX,
 	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
 		varptr a = args.front().first;
@@ -85,13 +96,18 @@ varptr reduce_max (const varptr a, size_t dimension)
 
 varptr reduce_sum (const varptr a, size_t dimension)
 {
+	return reduce_sum(a, constant::get<uint64_t>(dimension));
+}
+
+varptr reduce_sum (const varptr a, const varptr dimension)
+{
 	if (nullptr == a.get()) return nullptr;
 	// always check if the same operation on input exists
 	if (inode* parent = single_parent(a, nnutils::formatter() << "sum_" << dimension))
 	{
 		return parent;
 	}
-	return agg_func(a, "sum", SUM, dimension,
+	return agg_func(a, dimension, "sum", SUM,
 	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
 		return args.front().second;
@@ -103,7 +119,17 @@ varptr reduce_mean (const varptr a, size_t dimension)
 	return reduce_sum(a, dimension) / n_dimension(a, dimension);
 }
 
+varptr reduce_mean (const varptr a, const varptr dimension)
+{
+	return reduce_sum(a, dimension) / n_dimension(a, dimension);
+}
+
 varptr reduce_l2norm (const varptr a, size_t dimension)
+{
+	return sqrt(reduce_sum(a * a, dimension));
+}
+
+varptr reduce_l2norm (const varptr a, const varptr dimension)
 {
 	return sqrt(reduce_sum(a * a, dimension));
 }

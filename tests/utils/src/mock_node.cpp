@@ -7,8 +7,6 @@ namespace testutils
 
 mock_node::mock_node (std::string label) : nnet::inode(label) {}
 
-mock_node::mock_node (std::string label, std::string uid) : nnet::inode(label, uid) {}
-
 std::unordered_set<const nnet::inode*> mock_node::get_leaves (void) const { return {this}; }
 
 nnet::tensor* mock_node::get_tensor (void) { return nullptr; }

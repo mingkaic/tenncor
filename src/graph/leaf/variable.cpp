@@ -122,37 +122,6 @@ bool variable::assign (inode* input, bool notify)
 }
 
 
-variable::variable (tenncor::variable_proto& proto_src,
-	std::string label, std::string uid) :
-inode(label, uid)
-{
-	const tenncor::source_proto& source_src = proto_src.source();
-	tenncor::source_proto::source_t src_type = source_src.src();
-	switch (src_type)
-	{
-		case CSRC:
-			src_ = std::make_shared<const_init>(
-				source_src.settings(0), source_src.dtype());
-		break;
-		case USRC:
-			src_ = std::make_shared<r_uniform_init>(
-				source_src.settings(0), source_src.settings(1),
-				source_src.dtype());
-		break;
-		case NSRC:
-			src_ = std::make_shared<r_normal_init>(
-				source_src.settings(0), source_src.settings(1),
-				source_src.dtype());
-		break;
-		default:
-			throw std::exception(); // unsupported data source
-	}
-
-	const tenncor::shape_proto& shape_src = proto_src.shape();
-	std::vector<size_t> shape(shape_src.shape().begin(), shape_src.shape().end());
-	data_ = std::make_unique<tensor>(shape);
-}
-
 NODE_TYPE variable::node_type (void) const
 {
 	return VARIABLE_T;

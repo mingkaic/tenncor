@@ -86,11 +86,6 @@ public:
 	bool assign (inode* input, bool notify = true);
 
 protected:
-	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
-
-	variable (tenncor::variable_proto& proto_src,
-		std::string label, std::string uid);
-
 	// >>>>>> SERIALIZATION DATA <<<<<<
 
 	virtual NODE_TYPE node_type (void) const;

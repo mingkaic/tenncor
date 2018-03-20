@@ -28,7 +28,7 @@ namespace nnet
 {
 
 // make a single functor through opcode
-inode* run_opcode (std::vector<inode*> args, OPCODE code, std::vector<size_t> idx_param = {});
+inode* run_opcode (std::vector<inode*> args, OPCODE code);
 
 // standard operations, using a single connector
 #ifndef TENNCOR_OP_STD_HPP
@@ -178,8 +178,12 @@ varptr normal_sample (T mean, const varptr stdev)
 //! transpose, default perm is same as behavior n-1 ... 0
 varptr transpose (const varptr a, std::vector<size_t> perm = {});
 
+varptr transpose (const varptr a, const varptr perm);
+
 //! flip a in specified dimensions
 varptr flip (const varptr a, std::vector<size_t> dims);
+
+varptr flip (const varptr a, const varptr dims);
 
 
 // >>>>>>>>>>>> AGGREGATES <<<<<<<<<<<<
@@ -197,13 +201,17 @@ varptr n_elems (const varptr a);
 
 varptr n_dimension (const varptr a, size_t dimension);
 
+varptr n_dimension (const varptr a, const varptr dimension);
+
 
 // >>>>>>>>>>>> SHAPE CHANGE <<<<<<<<<<<<
 
 //! repeat a n times along inserted dimension dim
-varptr expand (varptr a, varptr n, size_t dim);
+varptr expand (const varptr a, size_t n, size_t dim);
 
-varptr expand (varptr a, size_t n, size_t dim);
+varptr expand (const varptr a, const varptr n, size_t dim);
+
+varptr expand (const varptr a, const varptr n, const varptr dim);
 
 #endif /* TENNCOR_OP_STD_HPP */
 
@@ -241,24 +249,34 @@ varptr reduce_l2norm (const varptr a);
 
 // >>>>>>>>>>>> MULTIPLEXED <<<<<<<<<<<<
 
+//! obtains the indices of the maximum value across specified dimension
+//! -1 index looks returns a vector coordinate specifying max value in tensor a
+varptr arg_max (const varptr a, size_t dimension);
+
+varptr arg_max (const varptr a, const varptr dimension);
+
 // Dimensionality Reduction Functions (Wrappers for compress)
 //! compress tensor by taking maximum value across specified dimension
 //! unspecified dimension obtains maximum value in the entire tensor
 varptr reduce_max (const varptr a, size_t dimension);
 
+varptr reduce_max (const varptr a, const varptr dimension);
+
 //! compress tensor by taking the sum of values across specified dimension(s)
 //! unspecified dimension obtains the sum of all values in the entire tensor
 varptr reduce_sum (const varptr a, size_t dimension);
+
+varptr reduce_sum (const varptr a, const varptr dimension);
 
 //! compress tensor by taking the mean of values across specified dimension(s)
 //! unspecified dimension obtains the mean of values in the entire tensor
 varptr reduce_mean (const varptr a, size_t dimension);
 
+varptr reduce_mean (const varptr a, const varptr dimension);
+
 varptr reduce_l2norm (const varptr a, size_t dimension);
 
-//! obtains the indices of the maximum value across specified dimension
-//! -1 index looks returns a vector coordinate specifying max value in tensor a
-varptr arg_max (const varptr a, size_t dimension);
+varptr reduce_l2norm (const varptr a, const varptr dimension);
 
 // unimplemented
 

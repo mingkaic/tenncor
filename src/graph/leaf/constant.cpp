@@ -25,8 +25,8 @@ varptr constant::derive (inode*)
 
 
 constant::constant (tenncor::tensor_proto& proto_src,
-	std::string label, std::string uid) :
-inode(label, uid), data_(std::make_unique<tensor>(proto_src)) {}
+	std::string label) :
+inode(label), data_(std::make_unique<tensor>(proto_src)) {}
 
 NODE_TYPE constant::node_type (void) const
 {

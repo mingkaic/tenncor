@@ -29,11 +29,6 @@ TEST_F(NODE, OnGraph_B000)
 	mock_node node(label);
 	EXPECT_TRUE(nnet::graph::get_global().has_node(&node)) <<
 		sprintf("node %s is not registered in graph", node.get_uid().c_str());
-
-	std::string fakeuid = get_string(get_int(1, "fakeuid.size", {14, 29})[0], "fakeuid");
-	mock_node node2(label, fakeuid);
-	EXPECT_FALSE(nnet::graph::get_global().has_node(&node2)) <<
-		sprintf("node with fake uid %s is registered in graph", node2.get_uid().c_str());
 }
 
 

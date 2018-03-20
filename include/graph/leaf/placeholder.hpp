@@ -122,11 +122,6 @@ public:
 	virtual placeholder& operator = (tensor& data);
 
 protected:
-	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
-
-	placeholder (tenncor::shape_proto& proto_src,
-		std::string label, std::string uid);
-
 	// >>>>>> SERIALIZATION DATA <<<<<<
 
 	virtual NODE_TYPE node_type (void) const;

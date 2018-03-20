@@ -86,14 +86,6 @@ placeholder& placeholder::operator = (tensor& input)
 }
 
 
-placeholder::placeholder (tenncor::shape_proto& proto_src,
-	std::string label, std::string uid) :
-inode(label, uid)
-{
-	std::vector<size_t> shape(proto_src.shape().begin(), proto_src.shape().end());
-	data_ = std::make_unique<tensor>(shape);
-}
-
 NODE_TYPE placeholder::node_type (void) const
 {
 	return PLACEHOLDER_T;

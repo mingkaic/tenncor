@@ -180,13 +180,6 @@ varptr functor::derive (inode* wrt)
 }
 
 
-functor::functor (tenncor::functor_proto& proto_src,
-	std::string label, std::string uid) :
-inode(label, uid)
-{
-	throw std::bad_function_call();
-}
-
 NODE_TYPE functor::node_type (void) const
 {
 	return FUNCTOR_T;

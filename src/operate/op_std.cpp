@@ -19,7 +19,7 @@
 namespace nnet
 {
 
-inode* run_opcode (std::vector<inode*> args, OPCODE code, std::vector<size_t> idx_param)
+inode* run_opcode (std::vector<inode*> args, OPCODE code)
 {
 	switch (code)
 	{
@@ -74,33 +74,33 @@ inode* run_opcode (std::vector<inode*> args, OPCODE code, std::vector<size_t> id
 		case NORM:
 			return normal_sample(varptr(args[0]), varptr(args[1]));
 		case TRANSPOSE:
-			return transpose(varptr(args[0]), idx_param);
+			return transpose(varptr(args[0]), varptr(args[1]));
 		case FLIP:
-			return flip(varptr(args[0]), idx_param);
+			return flip(varptr(args[0]), varptr(args[1]));
 		case ARGMAX:
-			if (idx_param.size())
+			if (args.size() > 1)
 			{
-				return arg_max(varptr(args[0]), idx_param[0]);
+				return arg_max(varptr(args[0]), varptr(args[1]));
 			}
 			return arg_max(varptr(args[0]));
 		case MAX:
-			if (idx_param.size())
+			if (args.size() > 1)
 			{
-				return reduce_max(varptr(args[0]), idx_param[0]);
+				return reduce_max(varptr(args[0]), varptr(args[1]));
 			}
 			return reduce_max(varptr(args[0]));
 		case SUM:
-			if (idx_param.size())
+			if (args.size() > 1)
 			{
-				return reduce_sum(varptr(args[0]), idx_param[0]);
+				return reduce_sum(varptr(args[0]), varptr(args[1]));
 			}
 			return reduce_sum(varptr(args[0]));
 		case EXPAND:
-			return expand(varptr(args[0]), varptr(args[1]), idx_param[0]);
+			return expand(varptr(args[0]), varptr(args[1]), varptr(args[2]));
 		case N_ELEMS:
 			return n_elems(varptr(args[0]));
 		case N_DIMS:
-			return n_dimension(varptr(args[0]), idx_param[0]);
+			return n_dimension(varptr(args[0]), varptr(args[1]));
 		case MATMUL:
 			return matmul(varptr(args[0]), varptr(args[1]));
 		default:
@@ -467,17 +467,10 @@ varptr normal_sample (const varptr mean, const varptr stdev)
 
 varptr transpose (const varptr a, std::vector<size_t> perm)
 {
-	if (nullptr == a.get()) return nullptr;
-	std::string label = "transpose";
-	SIDX_F smap;
-	USHAPE_F shaper;
-	std::vector<inode*> args = {a};
+	varptr pvar;
 	size_t psize = perm.size();
 	if (psize > 0)
 	{
-		args.push_back(constant::get<uint64_t>(std::vector<uint64_t>(perm.begin(), perm.end()), 
-			tensorshape(std::vector<size_t>{psize})));
-
 		// perform sanity check on perm, perm must contain unique numbers in [0, psize)
 		std::unordered_set<size_t> pset(perm.begin(), perm.end());
 		if (pset.size() != perm.size() || std::any_of(perm.begin(), perm.end(), 
@@ -486,7 +479,46 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 			throw std::exception(); // todo: add message "bad perm" or something
 		}
 
-		label = nnutils::formatter() << "transpose_" << perm;
+		pvar = constant::get<uint64_t>(std::vector<uint64_t>(perm.begin(), perm.end()), 
+			tensorshape(std::vector<size_t>{psize}));
+	}
+	return transpose(a, pvar);
+}
+
+varptr transpose (const varptr a, const varptr perm)
+{
+	if (nullptr == a.get()) return nullptr;
+	SIDX_F smap;
+	USHAPE_F shaper;
+	std::vector<inode*> args = {a};
+	if (nullptr == perm.get())
+	{
+		smap = [](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t>)
+		{
+			// populate index
+			size_t n = outshape.n_elems();
+			std::vector<size_t> index(n);
+			std::vector<size_t> coord;
+			for (size_t i = 0; i < n; ++i)
+			{
+				coord = outshape.coord_from_idx(i);
+				std::reverse(coord.begin(), coord.end());
+				index[i] = inshape.flat_idx(coord);
+			}
+			return index;
+		};
+
+		shaper = [](tensorshape inshape, std::vector<uint64_t>)
+		{
+			// rearrange inlist to outlist
+			std::vector<size_t> slist = inshape.as_list();
+			std::reverse(slist.begin(), slist.end());
+			return tensorshape(slist);
+		};
+	}
+	else
+	{
+		args.push_back(perm);
 		smap = [](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t> perm)
 		{
 			// populate index
@@ -524,31 +556,6 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 			return tensorshape(outlist);
 		};
 	}
-	else
-	{
-		smap = [](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t>)
-		{
-			// populate index
-			size_t n = outshape.n_elems();
-			std::vector<size_t> index(n);
-			std::vector<size_t> coord;
-			for (size_t i = 0; i < n; ++i)
-			{
-				coord = outshape.coord_from_idx(i);
-				std::reverse(coord.begin(), coord.end());
-				index[i] = inshape.flat_idx(coord);
-			}
-			return index;
-		};
-
-		shaper = [](tensorshape inshape, std::vector<uint64_t>)
-		{
-			// rearrange inlist to outlist
-			std::vector<size_t> slist = inshape.as_list();
-			std::reverse(slist.begin(), slist.end());
-			return tensorshape(slist);
-		};
-	}
 	// if (inode* parent = single_parent(a, label))
 	// {
 	// 	return parent;
@@ -558,14 +565,19 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 
 varptr flip (const varptr a, std::vector<size_t> dims)
 {
-	if (nullptr == a.get()) return nullptr;
+	return flip(a, constant::get<uint64_t>(std::vector<uint64_t>(dims.begin(), dims.end()), 
+		tensorshape(std::vector<size_t>{dims.size()})));
+}
+
+varptr flip (const varptr a, const varptr dims)
+{
+	if (nullptr == a.get() || nullptr == dims.get()) return nullptr;
 	std::string label = nnutils::formatter() << "flip_" << dims;
 	// if (inode* parent = single_parent(a, label))
 	// {
 	// 	return parent;
 	// }
-	return coord_func({a, constant::get<uint64_t>(std::vector<uint64_t>(dims.begin(), dims.end()), 
-		tensorshape(std::vector<size_t>{1}))}, 
+	return coord_func({a, dims}, 
 	[](tensorshape outshape, const tensorshape, std::vector<uint64_t> dims)
 	{
 		// assert inshape.is_compatible_with(outshape)
@@ -587,6 +599,7 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 	},
 	[](tensorshape inshape, std::vector<uint64_t>) { return inshape; }, FLIP);
 }
+
 
 
 varptr arg_max (const varptr a)
@@ -654,18 +667,23 @@ varptr n_elems (const varptr a)
 	[](tensorshape, std::vector<uint64_t>)
 	{
 		return tensorshape(std::vector<size_t>{1});
-	}, opname, N_ELEMS);
+	}, N_ELEMS);
 }
 
 varptr n_dimension (const varptr a, size_t dimension)
 {
-	if (nullptr == a.get()) return nullptr;
-	std::string opname = nnutils::formatter() << "n_dimension_" << dimension;
-	if (inode* parent = single_parent(a, opname))
-	{
-		return parent;
-	}
-	return shape_func({a, constant::get<uint64_t>(dimension)},
+	return n_dimension(a, constant::get<uint64_t>(dimension));
+}
+
+varptr n_dimension (const varptr a, const varptr dimension)
+{
+	if (nullptr == a.get() || nullptr == dimension.get()) return nullptr;
+	// std::string opname = nnutils::formatter() << "n_dimension_" << dimension;
+	// if (inode* parent = single_parent(a, opname))
+	// {
+	// 	return parent;
+	// }
+	return shape_func({a, dimension},
 	[](tensorshape inshape, std::vector<uint64_t> dimension)
 	{
 		assert(dimension.size() > 0);
@@ -676,25 +694,37 @@ varptr n_dimension (const varptr a, size_t dimension)
 	[](tensorshape, std::vector<uint64_t>)
 	{
 		return tensorshape(std::vector<size_t>{1});
-	}, opname, N_DIMS);
+	}, N_DIMS);
 }
 
 
+
+varptr expand (varptr a, size_t n, size_t dim)
+{
+	return expand(a, varptr(constant::get<uint64_t>(n)), constant::get<uint64_t>(dim));
+}
+
 varptr expand (varptr a, varptr n, size_t dim)
 {
+	return expand(a, n, constant::get<uint64_t>(dim));
+}
+
+varptr expand (const varptr a, const varptr n, const varptr dim)
+{
 	if (nullptr == a.get()) return nullptr;
-	std::string opname = nnutils::formatter() << "expand_" << dim;
-	std::vector<inode*> deps = {a, n, constant::get<uint64_t>(dim)};
+	std::vector<inode*> deps = {a, n, dim};
+	// std::string opname = nnutils::formatter() << "expand_" << dim;
 	// if (inode* parent = ordered_parent(deps, opname))
 	// {
 	// 	return parent;
 	// }
 	return functor::get(deps,
-	[dim](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	[](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		tensor* tens = args[0]->get_tensor();
 		assert(nullptr != tens);
 		size_t n = expose<double>(args[1])[0]; // todo: make this size_t once shape_func uses size_t
+		uint64_t dim = expose<uint64_t>(args[2])[0];
 		tensorshape shape = tens->get_shape();
 		std::vector<size_t> slist = shape.as_list();
 		assert(slist.size() >= dim);
@@ -734,9 +764,6 @@ varptr expand (varptr a, varptr n, size_t dim)
 		return args[0]->derive(wrt);
 	}, EXPAND);
 }
-
-varptr expand (varptr a, size_t n, size_t dim)
-{ return expand(a, varptr(constant::get<uint64_t>(n)), dim); }
 
 }
 

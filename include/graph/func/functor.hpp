@@ -128,11 +128,6 @@ public:
 	virtual varptr derive (inode* wrt);
 
 protected:
-	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
-
-	functor (tenncor::functor_proto& proto_src,
-		std::string label, std::string uid);
-
 	// >>>>>> SERIALIZATION DATA <<<<<<
 
 	virtual NODE_TYPE node_type (void) const;

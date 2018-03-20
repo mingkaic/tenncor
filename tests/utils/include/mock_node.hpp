@@ -19,8 +19,6 @@ class mock_node final : public nnet::inode
 public:
 	mock_node (std::string label);
 
-	mock_node (std::string label, std::string uid);
-
 	virtual std::unordered_set<const nnet::inode*> get_leaves (void) const;
 
 	virtual nnet::tensor* get_tensor (void);

@@ -45,10 +45,10 @@ functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 	}, op);
 }
 
-functor* agg_func (inode* arg, std::string opname, OPCODE op, size_t dimension, BACKMAP_F bwd)
+functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, BACKMAP_F bwd)
 {
 	assert(has_agg(opname));
-	return functor::get({arg, constant::get<uint64_t>(dimension)},
+	return functor::get({arg, dimension},
 	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		aggreg_io* op = new aggreg_io(opname, 

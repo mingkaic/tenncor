@@ -85,9 +85,6 @@ protected:
 	//! default constructor
 	inode (std::string label);
 
-	//! create with uid without registering to the graph
-	inode (std::string label, std::string uid);
-
 	//! declare copy constructor to prevent id_ copy over
 	inode (const inode& other);
 
@@ -118,7 +115,7 @@ protected:
 
 private:
 	//! uniquely identifier for this node
-	std::string id_;
+	std::string id_ = graph::get_global().register_node(this);
 
 	//! describes this node's purpose
 	std::string label_;

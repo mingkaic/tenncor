@@ -104,8 +104,7 @@ public:
 protected:
 	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
 
-	constant (tenncor::tensor_proto& proto_src,
-		std::string label, std::string uid);
+	constant (tenncor::tensor_proto& proto_src, std::string label);
 
 	// >>>>>> SERIALIZATION DATA <<<<<<
 
