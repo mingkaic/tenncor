@@ -87,51 +87,6 @@ void tan (VARR_T dest, std::vector<CVAR_T> srcs)
 }
 
 template <typename T>
-void csc (VARR_T dest, std::vector<CVAR_T> srcs)
-{
-	tensorshape& srcshape = srcs.front().second;
-	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = (T*) dest.first;
-	const T* s = (const T*) srcs.front().first;
-	size_t n = dest.second.n_elems();
-	bool src_mul = srcshape.n_elems() > 1;
-	for (size_t i = 0; i < n; ++i)
-	{
-		d[i] = 1 / std::sin(s[src_mul * i]);
-	}
-}
-
-template <typename T>
-void sec (VARR_T dest, std::vector<CVAR_T> srcs)
-{
-	tensorshape& srcshape = srcs.front().second;
-	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = (T*) dest.first;
-	const T* s = (const T*) srcs.front().first;
-	size_t n = dest.second.n_elems();
-	bool src_mul = srcshape.n_elems() > 1;
-	for (size_t i = 0; i < n; ++i)
-	{
-		d[i] = 1 / std::cos(s[src_mul * i]);
-	}
-}
-
-template <typename T>
-void cot (VARR_T dest, std::vector<CVAR_T> srcs)
-{
-	tensorshape& srcshape = srcs.front().second;
-	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
-	T* d = (T*) dest.first;
-	const T* s = (const T*) srcs.front().first;
-	size_t n = dest.second.n_elems();
-	bool src_mul = srcshape.n_elems() > 1;
-	for (size_t i = 0; i < n; ++i)
-	{
-		d[i] = std::cos(s[src_mul * i]) / std::sin(s[src_mul * i]);
-	}
-}
-
-template <typename T>
 void exp (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	tensorshape& srcshape = srcs.front().second;

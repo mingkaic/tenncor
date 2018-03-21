@@ -99,15 +99,6 @@ template <typename T>
 void tan (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>
-void csc (VARR_T dest, std::vector<CVAR_T> srcs);
-
-template <typename T>
-void sec (VARR_T dest, std::vector<CVAR_T> srcs);
-
-template <typename T>
-void cot (VARR_T dest, std::vector<CVAR_T> srcs);
-
-template <typename T>
 void exp (VARR_T dest, std::vector<CVAR_T> srcs);
 
 template <typename T>

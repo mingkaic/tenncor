@@ -53,15 +53,6 @@ varptr cos (const varptr a);
 //! tan of a
 varptr tan (const varptr a);
 
-//! cosecant of a
-varptr csc (const varptr a);
-
-//! secant of a
-varptr sec (const varptr a);
-
-//! cotangent of a
-varptr cot (const varptr a);
-
 //! e of power a
 varptr exp (const varptr a);
 

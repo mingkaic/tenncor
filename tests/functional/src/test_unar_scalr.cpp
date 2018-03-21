@@ -5,10 +5,10 @@
 #include "graph/leaf/variable.hpp"
 #include "operate/operations.hpp"
 
-class UNAR_SCALR : public TF_VERIFY
+class UNAR_SCALR_TESTS : public TF_VERIFY
 {
 public:
-	UNAR_SCALR (void)
+	UNAR_SCALR_TESTS (void)
 	{
 		TF_VERIFY::to_mem("UNAR_SCALR");
 	}
@@ -41,7 +41,7 @@ void check_unar_scalr (op_args args, std::function<nnet::varptr(nnet::varptr,std
 }
 
 
-TEST_F(UNAR_SCALR, Clip)
+TEST_F(UNAR_SCALR_TESTS, Clip)
 {
 	check_unar_scalr(parse_line("clip"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -50,7 +50,7 @@ TEST_F(UNAR_SCALR, Clip)
 }
 
 
-TEST_F(UNAR_SCALR, ClipNorm)
+TEST_F(UNAR_SCALR_TESTS, ClipNorm)
 {
 	check_unar_scalr(parse_line("clip_norm"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -59,7 +59,7 @@ TEST_F(UNAR_SCALR, ClipNorm)
 }
 
 
-TEST_F(UNAR_SCALR, Pow)
+TEST_F(UNAR_SCALR_TESTS, Pow)
 {
 	check_unar_scalr(parse_line("pow"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -68,7 +68,7 @@ TEST_F(UNAR_SCALR, Pow)
 }
 
 
-TEST_F(UNAR_SCALR, AddC)
+TEST_F(UNAR_SCALR_TESTS, AddC)
 {
 	check_unar_scalr(parse_line("add_c"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -77,7 +77,7 @@ TEST_F(UNAR_SCALR, AddC)
 }
 
 
-TEST_F(UNAR_SCALR, SubC)
+TEST_F(UNAR_SCALR_TESTS, SubC)
 {
 	check_unar_scalr(parse_line("sub_c"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -86,7 +86,7 @@ TEST_F(UNAR_SCALR, SubC)
 }
 
 
-TEST_F(UNAR_SCALR, CSub)
+TEST_F(UNAR_SCALR_TESTS, CSub)
 {
 	check_unar_scalr(parse_line("c_sub"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -95,7 +95,7 @@ TEST_F(UNAR_SCALR, CSub)
 }
 
 
-TEST_F(UNAR_SCALR, MulC)
+TEST_F(UNAR_SCALR_TESTS, MulC)
 {
 	check_unar_scalr(parse_line("mul_c"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -104,7 +104,7 @@ TEST_F(UNAR_SCALR, MulC)
 }
 
 
-TEST_F(UNAR_SCALR, DivC)
+TEST_F(UNAR_SCALR_TESTS, DivC)
 {
 	check_unar_scalr(parse_line("div_c"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -113,7 +113,7 @@ TEST_F(UNAR_SCALR, DivC)
 }
 
 
-TEST_F(UNAR_SCALR, CDiv) // Precision problem
+TEST_F(UNAR_SCALR_TESTS, CDiv) // Precision problem
 {
 	check_unar_scalr(parse_line("c_div"), [](nnet::varptr in, std::vector<double> params)
 	{

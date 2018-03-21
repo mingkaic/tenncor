@@ -21,7 +21,7 @@ namespace nnet
 {
 
 #define TENS_TYPE tenncor::tensor_t
-#define N_TYPE (size_t) tenncor::NUM_TYPES
+#define _TYPE_SENTINEL tenncor::_TYPE_SENTINEL
 
 #define BAD_T tenncor::BAD
 #define DOUBLE tenncor::DOUBLE

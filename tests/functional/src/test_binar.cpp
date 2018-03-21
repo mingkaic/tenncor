@@ -6,10 +6,10 @@
 #include "operate/operations.hpp"
 
 
-class BINAR : public TF_VERIFY
+class BINAR_TESTS : public TF_VERIFY
 {
 public:
-	BINAR (void)
+	BINAR_TESTS (void)
 	{
 		TF_VERIFY::to_mem("BINAR");
 	}
@@ -54,7 +54,7 @@ void check_binar (op_args args, std::function<nnet::varptr(nnet::varptr,nnet::va
 }
 
 
-TEST_F(BINAR, Add)
+TEST_F(BINAR_TESTS, Add)
 {
 	check_binar(parse_line("add"), [](nnet::varptr a, nnet::varptr b)
 	{
@@ -63,7 +63,7 @@ TEST_F(BINAR, Add)
 }
 
 
-TEST_F(BINAR, Sub)
+TEST_F(BINAR_TESTS, Sub)
 {
 	check_binar(parse_line("sub"), [](nnet::varptr a, nnet::varptr b)
 	{
@@ -72,7 +72,7 @@ TEST_F(BINAR, Sub)
 }
 
 
-TEST_F(BINAR, Mul)
+TEST_F(BINAR_TESTS, Mul)
 {
 	check_binar(parse_line("mul"), [](nnet::varptr a, nnet::varptr b)
 	{
@@ -81,7 +81,7 @@ TEST_F(BINAR, Mul)
 }
 
 
-TEST_F(BINAR, Div)
+TEST_F(BINAR_TESTS, Div)
 {
 	check_binar(parse_line("div"), [](nnet::varptr a, nnet::varptr b)
 	{

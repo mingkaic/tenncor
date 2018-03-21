@@ -22,7 +22,7 @@ class DATA_SRC : public testify::fuzz_test {};
 using namespace testutils;
 
 
-#define RAND_TYPE (TENS_TYPE) fuzzer->get_int(1, "type", {1, N_TYPE - 1})[0]
+#define RAND_TYPE (TENS_TYPE) fuzzer->get_int(1, "type", {1, _TYPE_SENTINEL - 1})[0]
 
 #define WITHIN_LIMITS(TYPE) {std::numeric_limits<TYPE>::min(), std::numeric_limits<TYPE>::max()}
 

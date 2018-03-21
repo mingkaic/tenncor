@@ -6,10 +6,10 @@
 #include "operate/operations.hpp"
 
 
-class TRANS : public TF_VERIFY
+class TRANS_TESTS : public TF_VERIFY
 {
 public:
-	TRANS (void)
+	TRANS_TESTS (void)
 	{
 		TF_VERIFY::to_mem("TRANS");
 	}
@@ -42,7 +42,7 @@ void check_trans (op_args args, std::function<nnet::varptr(nnet::varptr,std::vec
 }
 
 
-TEST_F(TRANS, Transpose)
+TEST_F(TRANS_TESTS, Transpose)
 {
 	check_trans(parse_line("transpose"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -51,7 +51,7 @@ TEST_F(TRANS, Transpose)
 }
 
 
-TEST_F(TRANS, ReduceMax)
+TEST_F(TRANS_TESTS, ReduceMax)
 {
 	check_trans(parse_line("reduce_max_i"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -61,7 +61,7 @@ TEST_F(TRANS, ReduceMax)
 }
 
 
-// TEST_F(TRANS, ReduceMin)
+// TEST_F(TRANS_TESTS, ReduceMin)
 // {
 // 	check_trans(parse_line("reduce_min_i"), [](nnet::varptr in, std::vector<double> params)
 // 	{
@@ -71,7 +71,7 @@ TEST_F(TRANS, ReduceMax)
 // }
 
 
-TEST_F(TRANS, ReduceSum)
+TEST_F(TRANS_TESTS, ReduceSum)
 {
 	check_trans(parse_line("reduce_sum_i"), [](nnet::varptr in, std::vector<double> params)
 	{
@@ -81,7 +81,7 @@ TEST_F(TRANS, ReduceSum)
 }
 
 
-TEST_F(TRANS, ReduceMean)
+TEST_F(TRANS_TESTS, ReduceMean)
 {
 	check_trans(parse_line("reduce_mean_i"), [](nnet::varptr in, std::vector<double> params)
 	{

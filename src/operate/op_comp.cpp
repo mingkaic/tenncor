@@ -81,7 +81,7 @@ varptr reduce_max (const varptr a, const varptr dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, dimension, "max", MAX,
+	return agg_func(a, dimension, "max", RMAX,
 	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
 		varptr a = args.front().first;
@@ -107,7 +107,7 @@ varptr reduce_sum (const varptr a, const varptr dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, dimension, "sum", SUM,
+	return agg_func(a, dimension, "sum", RSUM,
 	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
 		return args.front().second;

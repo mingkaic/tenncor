@@ -35,12 +35,6 @@ inode* run_opcode (std::vector<inode*> args, OPCODE code)
 			return cos(varptr(args[0]));
 		case TAN:
 			return tan(varptr(args[0]));
-		case CSC:
-			return csc(varptr(args[0]));
-		case SEC:
-			return sec(varptr(args[0]));
-		case COT:
-			return cot(varptr(args[0]));
 		case EXP:
 			return exp(varptr(args[0]));
 		case LOG:
@@ -83,13 +77,13 @@ inode* run_opcode (std::vector<inode*> args, OPCODE code)
 				return arg_max(varptr(args[0]), varptr(args[1]));
 			}
 			return arg_max(varptr(args[0]));
-		case MAX:
+		case RMAX:
 			if (args.size() > 1)
 			{
 				return reduce_max(varptr(args[0]), varptr(args[1]));
 			}
 			return reduce_max(varptr(args[0]));
-		case SUM:
+		case RSUM:
 			if (args.size() > 1)
 			{
 				return reduce_sum(varptr(args[0]), varptr(args[1]));
@@ -235,41 +229,17 @@ varptr tan (const varptr a)
 
 varptr csc (const varptr a)
 {
-	return lin_unar("csc", CSC, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
-	{
-		// csc'(f(x)) = -f'(x)*csc(f(x))*cot(f(x))
-		// better with -f'(x)/(sin(f(x)*tan(f(x))))
-		varptr a = args.front().first;
-		varptr grad = args.front().second;
-		return -grad / (sin(a) * tan(a));
-	});
+	return (double) 1.0 / sin(a);
 }
 
 varptr sec (const varptr a)
 {
-	return lin_unar("sec", SEC, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
-	{
-		// sec'(f(x)) = f'(x)*tan(f(x))*sec(f(x))
-		// better with f'(x)*tan(f(x))/cos(f(x))
-		varptr a = args.front().first;
-		varptr grad = args.front().second;
-		return grad * tan(a) / cos(a);
-	});
+	return (double) 1.0 / cos(a);
 }
 
 varptr cot (const varptr a)
 {
-	return lin_unar("cot", COT, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
-	{
-		// cot'(f(x)) = -f'(x)*csc^2(f(x))
-		varptr a = args.front().first;
-		varptr grad = args.front().second;
-		varptr b = csc(a);
-		return -grad * b * b;
-	});
+	return (double) 1.0 / tan(a);
 }
 
 varptr exp (const varptr a)
@@ -625,7 +595,7 @@ varptr reduce_max (const varptr a)
 	{
 		return parent;
 	}
-	return agg_func(a, "max", MAX,
+	return agg_func(a, "max", RMAX,
 	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
 		varptr a = args.front().first;
@@ -643,7 +613,7 @@ varptr reduce_sum (const varptr a)
 	{
 		return parent;
 	}
-	return agg_func(a, "sum", SUM,
+	return agg_func(a, "sum", RSUM,
 	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
 		return args.front().second;

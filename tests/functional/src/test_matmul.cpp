@@ -6,17 +6,17 @@
 #include "operate/operations.hpp"
 
 
-class MATMUL : public TF_VERIFY
+class MATMUL_TESTS : public TF_VERIFY
 {
 public:
-	MATMUL (void)
+	MATMUL_TESTS (void)
 	{
 		TF_VERIFY::to_mem("MATMUL");
 	}
 };
 
 
-TEST_F(MATMUL, Matmul)
+TEST_F(MATMUL_TESTS, MATMUL_TESTS)
 {
 	char opname[24];
 	for (int i = 0; i < 10; ++i)

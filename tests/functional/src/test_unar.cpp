@@ -6,10 +6,10 @@
 #include "operate/operations.hpp"
 
 
-class UNAR : public TF_VERIFY
+class UNAR_TESTS : public TF_VERIFY
 {
 public:
-	UNAR (void)
+	UNAR_TESTS (void)
 	{
 		TF_VERIFY::to_mem("UNAR");
 	}
@@ -42,7 +42,7 @@ void check_unar (op_args args, std::function<nnet::varptr(nnet::varptr)> op)
 }
 
 
-TEST_F(UNAR, Abs)
+TEST_F(UNAR_TESTS, Abs)
 {
 	check_unar(parse_line("abs"), [](nnet::varptr in) {
 		return nnet::abs(in);
@@ -50,7 +50,7 @@ TEST_F(UNAR, Abs)
 }
 
 
-TEST_F(UNAR, Neg)
+TEST_F(UNAR_TESTS, Neg)
 {
 	check_unar(parse_line("neg"), [](nnet::varptr in) {
 		return -in;
@@ -58,7 +58,7 @@ TEST_F(UNAR, Neg)
 }
 
 
-TEST_F(UNAR, Sin)
+TEST_F(UNAR_TESTS, Sin)
 {
 	check_unar(parse_line("sin"), [](nnet::varptr in) {
 		return nnet::sin(in);
@@ -66,7 +66,7 @@ TEST_F(UNAR, Sin)
 }
 
 
-TEST_F(UNAR, Cos)
+TEST_F(UNAR_TESTS, Cos)
 {
 	check_unar(parse_line("cos"), [](nnet::varptr in) {
 		return nnet::cos(in);
@@ -74,7 +74,7 @@ TEST_F(UNAR, Cos)
 }
 
 
-TEST_F(UNAR, Tan)
+TEST_F(UNAR_TESTS, Tan)
 {
 	check_unar(parse_line("tan"), [](nnet::varptr in) {
 		return nnet::tan(in);
@@ -82,7 +82,7 @@ TEST_F(UNAR, Tan)
 }
 
 
-TEST_F(UNAR, Exp)
+TEST_F(UNAR_TESTS, Exp)
 {
 	check_unar(parse_line("exp"), [](nnet::varptr in) {
 		return nnet::exp(in);
@@ -90,7 +90,7 @@ TEST_F(UNAR, Exp)
 }
 
 
-TEST_F(UNAR, Log) // Precision problem
+TEST_F(UNAR_TESTS, Log) // Precision problem
 {
 	check_unar(parse_line("log"), [](nnet::varptr in) {
 		return nnet::log(in);
@@ -98,7 +98,7 @@ TEST_F(UNAR, Log) // Precision problem
 }
 
 
-TEST_F(UNAR, Sqrt)
+TEST_F(UNAR_TESTS, Sqrt)
 {
 	check_unar(parse_line("sqrt"), [](nnet::varptr in) {
 		return nnet::sqrt(in);

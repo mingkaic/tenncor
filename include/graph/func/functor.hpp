@@ -20,6 +20,46 @@
 namespace nnet
 {
 
+#define OPCODE tenncor::opcode_t
+#define _OP_SENTINEL tenncor::_OP_SENTINEL
+
+#define ABS tenncor::ABS
+#define NEG tenncor::NEG
+#define NOT tenncor::NOT
+#define SIN tenncor::SIN
+#define COS tenncor::COS
+#define TAN tenncor::TAN
+#define EXP tenncor::EXP
+#define LOG tenncor::LOG
+#define SQRT tenncor::SQRT
+#define ROUND tenncor::ROUND
+#define POW tenncor::POW
+#define ADD tenncor::ADD
+#define SUB tenncor::SUB
+#define MUL tenncor::MUL
+#define DIV tenncor::DIV
+#define EQ tenncor::EQ
+#define NE tenncor::NE
+#define GT tenncor::GT
+#define LT tenncor::LT
+#define BINO tenncor::BINO
+#define UNIF tenncor::UNIF
+#define NORM tenncor::NORM
+#define TRANSPOSE tenncor::TRANSPOSE
+#define FLIP tenncor::FLIP
+#define ARGMAX tenncor::ARGMAX
+#define RMAX tenncor::RMAX
+#define RSUM tenncor::RSUM
+#define EXPAND tenncor::EXPAND
+#define N_ELEMS tenncor::N_ELEMS
+#define N_DIMS tenncor::N_DIMS
+#define MATMUL tenncor::MATMUL
+
+#define INJACOBIAN tenncor::INJACOBIAN
+#define OUTJACOBIAN tenncor::OUTJACOBIAN
+#define JACOBIANLEFT tenncor::JACOBIANLEFT
+#define JACOBIANRIGHT tenncor::JACOBIANRIGHT
+
 //! backward transfer function, get gradient nodes; F: Nf -> Nb 
 using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,inode*> >)>; 
 
@@ -31,51 +71,6 @@ using USHAPE_F = std::function<tensorshape(tensorshape, std::vector<uint64_t>)>;
 using TENSOP_F = std::function<tensor*(std::unique_ptr<idata_src>&,std::vector<inode*>)>;
 
 using DERIVE_F = std::function<varptr(inode*,std::vector<inode*>)>;
-
-enum OPCODE
-{
-	ABS = 0,
-	NEG,
-	NOT,
-	SIN,
-	COS,
-	TAN,
-	CSC,
-	SEC,
-	COT,
-	EXP,
-	LOG,
-	SQRT,
-	ROUND,
-	POW,
-	ADD,
-	SUB,
-	MUL,
-	DIV,
-	EQ,
-	NE,
-	GT,
-	LT,
-	BINO,
-	UNIF,
-	NORM,
-	TRANSPOSE,
-	FLIP,
-	ARGMAX,
-	MAX,
-	SUM,
-	EXPAND,
-	N_ELEMS,
-	N_DIMS,
-	MATMUL,
-	// gradient nodes (todo: remove this)
-	INJACOBIAN,
-	OUTJACOBIAN,
-	JACOBIANLEFT,
-	JACOBIANRIGHT,
-	// sentinal
-	_END_SENTINEL,
-};
 
 class functor final : public inode, public iobserver
 {
@@ -180,7 +175,7 @@ private:
 	//! inner tensor to cache forward evaluated values
 	std::unique_ptr<tensor> data_ = nullptr;
 
-	OPCODE opcode_ = _END_SENTINEL;
+	OPCODE opcode_ = _OP_SENTINEL;
 };
 
 }

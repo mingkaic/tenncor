@@ -19,7 +19,50 @@ enum tensor_t
 	UINT16 = 8;
 	UINT32 = 9;
 	UINT64 = 10;
-	NUM_TYPES = 11;
+	// sentinel
+	_TYPE_SENTINEL = 11;
+}
+
+enum opcode_t
+{
+	ABS = 0;
+	NEG = 1;
+	NOT = 2;
+	SIN = 3;
+	COS = 4;
+	TAN = 5;
+	EXP = 6;
+	LOG = 7;
+	SQRT = 8;
+	ROUND = 9;
+	POW = 10;
+	ADD = 11;
+	SUB = 12;
+	MUL = 13;
+	DIV = 14;
+	EQ = 15;
+	NE = 16;
+	GT = 17;
+	LT = 18;
+	BINO = 19;
+	UNIF = 20;
+	NORM = 21;
+	TRANSPOSE = 22;
+	FLIP = 23;
+	ARGMAX = 24;
+	RMAX = 25;
+	RSUM = 26;
+	EXPAND = 27;
+	N_ELEMS = 28;
+	N_DIMS = 29;
+	MATMUL = 30;
+	// gradient nodes (todo: remove this)
+	INJACOBIAN = 31;
+	OUTJACOBIAN = 32;
+	JACOBIANLEFT = 33;
+	JACOBIANRIGHT = 34;
+	// sentinel
+	_OP_SENTINEL = 35;
 }
 
 message shape_proto

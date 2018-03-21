@@ -23,9 +23,6 @@ static std::unordered_map<std::string,OPCODE> code_map =
 	STR2CODE(SIN)
 	STR2CODE(COS)
 	STR2CODE(TAN)
-	STR2CODE(CSC)
-	STR2CODE(SEC)
-	STR2CODE(COT)
 	STR2CODE(EXP)
 	STR2CODE(LOG)
 	STR2CODE(SQRT)
@@ -45,8 +42,8 @@ static std::unordered_map<std::string,OPCODE> code_map =
 	STR2CODE(TRANSPOSE)
 	STR2CODE(FLIP)
 	STR2CODE(ARGMAX)
-	STR2CODE(MAX)
-	STR2CODE(SUM)
+	STR2CODE(RMAX)
+	STR2CODE(RSUM)
 	STR2CODE(EXPAND)
 	STR2CODE(N_ELEMS)
 	STR2CODE(N_DIMS)
@@ -59,8 +56,8 @@ static std::unordered_map<std::string,OPCODE> code_map =
 
 static std::vector<std::string> code_vec = ([](void)
 {
-	assert(code_map.size() == _END_SENTINEL);
-	std::vector<std::string> out(_END_SENTINEL);
+	assert(code_map.size() == _OP_SENTINEL);
+	std::vector<std::string> out(_OP_SENTINEL);
 	for (auto& code_pair : code_map)
 	{
 		out[code_pair.second] = code_pair.first;
