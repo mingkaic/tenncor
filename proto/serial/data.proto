@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package tenncor;
+
+enum tensor_t
+{
+	BAD = 0;
+	DOUBLE = 1;
+	FLOAT = 2;
+	INT8 = 3;
+	INT16 = 4;
+	INT32 = 5;
+	INT64 = 6;
+	UINT8 = 7;
+	UINT16 = 8;
+	UINT32 = 9;
+	UINT64 = 10;
+	// sentinel
+	_TYPE_SENTINEL = 11;
+}
+
+message tensor_proto
+{
+	bytes data = 1;
+	tensor_t type = 2;
+	repeated uint64 allowed_shape = 3;
+	repeated uint64 alloced_shape = 4;
+}
+
+message repository_proto
+{
+	map<string, tensor_proto> data_map = 1;
+}

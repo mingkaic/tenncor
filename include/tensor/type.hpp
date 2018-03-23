@@ -11,7 +11,7 @@
  *
  */
 
-#include "proto/serial/tenncor.pb.h"
+#include "proto/serial/data.pb.h"
 
 #pragma once
 #ifndef TENNCOR_TENS_TYPE_HPP

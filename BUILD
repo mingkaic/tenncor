@@ -22,6 +22,21 @@ TCR_SRC = glob([
 	"src/utils/**/*.cpp",
 ])
 
+filegroup(
+    name = "srcs",
+    srcs = glob([
+		"include/*.hpp", 
+		"src/*.ipp", 
+		"src/*.cpp",
+	]) + [
+		"BUILD",
+        "//proto:srcs",
+        "//tests/rgraph:srcs",
+        "//tests/unit:srcs",
+        "//tests/utils:srcs",
+	],
+)
+
 ######### Main Library #########
 
 cc_library(

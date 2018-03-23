@@ -3,25 +3,7 @@ syntax = "proto3";
 package tenncor;
 
 import "google/protobuf/any.proto";
-
-// data
-
-enum tensor_t
-{
-	BAD = 0;
-	DOUBLE = 1;
-	FLOAT = 2;
-	INT8 = 3;
-	INT16 = 4;
-	INT32 = 5;
-	INT64 = 6;
-	UINT8 = 7;
-	UINT16 = 8;
-	UINT32 = 9;
-	UINT64 = 10;
-	// sentinel
-	_TYPE_SENTINEL = 11;
-}
+import "proto/serial/data.proto";
 
 enum opcode_t
 {
@@ -65,21 +47,6 @@ enum opcode_t
 	_OP_SENTINEL = 35;
 }
 
-message shape_proto
-{
-	repeated uint64 shape = 1;
-}
-
-message tensor_proto
-{
-	bytes data = 1;
-	tensor_t type = 2;
-	repeated uint64 allowed_shape = 3;
-	repeated uint64 alloced_shape = 4;
-}
-
-// structure
-
 message node_proto
 {
 	enum node_t
@@ -92,12 +59,6 @@ message node_proto
 	node_t type = 1;
 	string label = 2;
 	google.protobuf.Any detail = 3;
-}
-
-message functor_proto
-{
-	uint32 opcode = 1;
-	repeated string args = 2;
 }
 
 message source_proto
@@ -113,14 +74,26 @@ message source_proto
 	repeated bytes settings = 3;
 }
 
+message functor_proto
+{
+	uint32 opcode = 1;
+	repeated string args = 2;
+}
+
+message place_proto
+{
+	repeated uint64 allowed_shape = 1;
+}
+
 message variable_proto
 {
-	shape_proto shape = 1;
+	string locpos = 1;
 	source_proto source = 2;
+	repeated uint64 allowed_shape = 3;
 }
 
 message graph_proto
 {
-	map<string, node_proto> node_map = 1;
-	repeated string create_order = 2;
+	repeated string create_order = 1;
+	map<string, node_proto> node_map = 2;
 }

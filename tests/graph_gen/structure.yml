@@ -1,0 +1,42 @@
+- class: UNARY
+  shapeclass: ELEM
+  args: tensor
+  names:
+  - abs
+  - neg
+  - sin
+  - cos
+  - tan
+  - csc
+  - sec
+  - cot
+  - log
+  - exp
+  - sqrt
+- class: BINARY
+  shapeclass: ELEM
+  args: 
+    - tensor, scalar(double)
+    - scalar(double), tensor
+    - tensor, tensor
+  names:
+  - pow
+  - add
+  - sub
+  - mul
+  - div
+- class: REDUCE
+  shapeclass: REDUCE
+  args:
+    - tensor 
+    - tensor, scalar(int)
+  names:
+  - reduce_max
+  - reduce_sum
+  - reduce_mean
+  - reduce_l2norm
+- class: MATMUL
+  shapeclass: MATMUL
+  args: tensor, tensor
+  names:
+  - matmul

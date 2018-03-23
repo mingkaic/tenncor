@@ -27,7 +27,7 @@ inode* graph::get_inst (std::string uid) const
 	{
 		return nullptr;
 	}
-	return it->second.first;
+	return *(it->second);
 }
 
 void graph::serialize (tenncor::graph_proto& proto_dest) const
@@ -39,8 +39,8 @@ void graph::serialize (tenncor::graph_proto& proto_dest) const
 	for (auto it = adjmap_.begin(), et = adjmap_.end(); it != et; it++)
 	{
 		std::string uid = it->first;
-		adjiter adjpair = it->second;
-		inode* node_src = adjpair.first;
+		iter adj = it->second;
+		inode* node_src = *adj;
 		NODE_TYPE nodetype = node_src->node_type();
 		tenncor::node_proto& node_dest = nmap[uid];
 
@@ -52,9 +52,9 @@ void graph::serialize (tenncor::graph_proto& proto_dest) const
 		node_src->serialize_detail(node_dest.mutable_detail());
 	}
 	// set graph_proto create_order (2)
-	for (const std::string& ord : order_)
+	for (inode* const& ord : order_)
 	{
-		proto_dest.add_create_order(ord);
+		proto_dest.add_create_order(ord->get_uid());
 	}
 }
 
@@ -83,14 +83,15 @@ static inline variable* make_variable (tenncor::variable_proto var_src, std::str
 			throw std::exception(); // unsupported data source
 	}
 
-	const tenncor::shape_proto& shape_src = var_src.shape();
-	std::vector<size_t> shape(shape_src.shape().begin(), shape_src.shape().end());
+	const google::protobuf::RepeatedField<uint64_t>& shape_src = var_src.allowed_shape();
+	std::vector<size_t> shape(shape_src.begin(), shape_src.end());
 	return new variable(shape, src, label);
 }
 
-static inline placeholder* make_placeholder (tenncor::shape_proto& shape_src, std::string label)
+static inline placeholder* make_placeholder (tenncor::place_proto& place_src, std::string label)
 {
-	std::vector<size_t> shape(shape_src.shape().begin(), shape_src.shape().end());
+	const google::protobuf::RepeatedField<uint64_t>& shape_src = place_src.allowed_shape();
+	std::vector<size_t> shape(shape_src.begin(), shape_src.end());
 	return new placeholder(shape, label);
 }
 
@@ -116,14 +117,18 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 			{
 				tenncor::variable_proto var_src;
 				node_src.detail().UnpackTo(&var_src);
-				node_dest = make_variable(var_src, label);
+				variable* var = make_variable(var_src, label);
+				var->data_ep_ = var_src.locpos();
+				data_eps_.erase(var->get_uid());
+				data_eps_[var->data_ep_] = var;
+				node_dest = var;
 			}
 			break;
 			case PLACEHOLDER_T:
 			{
-				tenncor::shape_proto shape_src;
-				node_src.detail().UnpackTo(&shape_src);
-				node_dest = make_placeholder(shape_src, label);
+				tenncor::place_proto place_src;
+				node_src.detail().UnpackTo(&place_src);
+				node_dest = make_placeholder(place_src, label);
 			}
 			break;
 			case CONSTANT_T:
@@ -157,8 +162,8 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 		std::string resuid = node_dest->get_uid();
 		uid_map[uid] = resuid;
 		// register node
-		auto oit = order_.insert(order_.end(), uid);
-		adjmap_[uid] = {node_dest, oit};
+		auto oit = order_.insert(order_.end(), node_dest);
+		adjmap_[uid] = oit;
 		// add to leaf set
 		if (nodetype != FUNCTOR_T)
 		{
@@ -169,11 +174,45 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 	}
 }
 
+bool graph::save_data (tenncor::repository_proto& proto_dest) const
+{
+	auto dmap = proto_dest.mutable_data_map();
+	for (auto eps : data_eps_)
+	{
+		tenncor::tensor_proto tens_dest;
+		if (false == eps.second->get_tensor()->serialize(tens_dest))
+		{
+			return false;
+		}
+		dmap->insert({eps.first, tens_dest});
+	}
+	return true;
+}
+
+void graph::load_data (const tenncor::repository_proto& proto_src)
+{
+	auto dmap = proto_src.data_map();
+	for (auto dpair : dmap)
+	{
+		std::string pos = dpair.first;
+		auto it = data_eps_.find(pos);
+		if (data_eps_.end() != it)
+		{
+			tensor* tens = it->second->get_tensor();
+			tens->from_proto(dpair.second);
+		}
+	}
+}
+
 std::string graph::register_node (inode* node)
 {
 	std::string uid = nnutils::uuid(node);
-	auto it = order_.insert(order_.end(), uid);
-	adjmap_[uid] = {node, it};
+	auto it = order_.insert(order_.end(), node);
+	adjmap_[uid] = it;
+	if (variable* var = dynamic_cast<variable*>(node))
+	{
+		data_eps_[var->get_uid()] = var;
+	}
 	return uid;
 }
 
@@ -182,8 +221,12 @@ void graph::unregister_node (inode* node)
 	auto it = adjmap_.find(node->get_uid());
 	if (adjmap_.end() != it)
 	{
-		order_.erase(it->second.second);
+		order_.erase(it->second);
 		adjmap_.erase(it);
+		if (variable* var = dynamic_cast<variable*>(node))
+		{
+			data_eps_.erase(var->data_ep_);
+		}
 	}
 }
 

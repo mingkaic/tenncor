@@ -16,7 +16,7 @@
 
 #include "include/utils/utils.hpp"
 
-#include "proto/serial/tenncor.pb.h"
+#include "proto/serial/graph.pb.h"
 
 #pragma once
 #ifndef TENNCOR_GRAPH_HPP
@@ -28,6 +28,8 @@ namespace nnet
 class inode;
 
 class varptr;
+
+class variable;
 
 using LEAF_SET = std::unordered_set<std::shared_ptr<inode> >;
 
@@ -60,13 +62,19 @@ public:
 
 	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<
 
-	// serialize entire graph
+	// serialize entire graph structure
 	void serialize (tenncor::graph_proto& proto_dest) const;
 
 	// generate graph from proto
 	// set leaves and root in respective out sets
 	void register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 		const tenncor::graph_proto& proto_src);
+
+	// serialize data to proto_dest based on current graph position
+	bool save_data (tenncor::repository_proto& proto_dest) const;
+
+	// load data from proto_src to current graph structure
+	void load_data (const tenncor::repository_proto& proto_src);
 
 protected:
 	std::string register_node (inode* node);
@@ -80,12 +88,14 @@ private:
 
 	// std::string gid_ = nnutils::uuid(this); // uncomment when supporting multiple graphs
 
-	using adjiter = std::pair<inode*,std::list<std::string>::iterator>;
+	std::unordered_map<std::string,variable*> data_eps_;
 
-	std::unordered_map<std::string,adjiter> adjmap_;
+	using iter = std::list<inode*>::iterator;
+
+	std::unordered_map<std::string,iter> adjmap_;
 
 	// creation order implies dependency order. independents are created first
-	std::list<std::string> order_;
+	std::list<inode*> order_;
 };
 
 }

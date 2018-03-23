@@ -93,6 +93,8 @@ protected:
 	// >>>>>> SERIALIZATION ACTOR <<<<<<
 
 	virtual void serialize_detail (google::protobuf::Any* proto_dest);
+
+	std::string data_ep_ = this->get_uid();
 	
 	friend class graph;
 

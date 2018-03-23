@@ -1,3 +1,17 @@
+// GRAPH SERIALIZATION
+- graph serialization creates the same graph structure (without constraints on node id)
+- serialized nodes saves the labels
+- serialized constant saves the data
+- serialized placeholder saves the allowed shape
+- serialized variable saves the data_ep_, the data source, and the allowed shape
+- serialized functor saves the opcode, deserialization constructs the same type of operation
+
+- data serialization and deserialization persists the data in variables
+
+// OPERATION OPTIMIZATION
+- multiple constant containing the same values will use the same instance
+- multiple operations on the same array of arguments will use the same instance 
+
 // ELEMENTARY BEHAVIORS
 A000 - any operation accepting nullptr as any operand returns nullptr
 A001 - any operation on constants applies operation at build-time and return the resulting constant

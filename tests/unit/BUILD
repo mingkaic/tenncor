@@ -1,11 +1,10 @@
-COMMON_SRC = glob([
-	"include/utils/*.h",
-	"include/utils/*.hpp",
-	"include/mocks/mock_actor.h",
-	"src/utils/*.cpp",
-])
-
 licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = glob([ "**/*.cpp" ]) + [ "BUILD" ],
+	visibility = ["//visibility:public"],
+)
 
 ######### FUZZ TESTS #########
 
