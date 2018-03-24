@@ -1,11 +1,14 @@
 licenses(["notice"])
 
+package(
+	default_visibility = [ "//visibility:public" ],
+)
+
 filegroup(
     name = "srcs",
     srcs = glob([ "include/*.hpp", "src/*.cpp" ]) + [
         "BUILD",
     ],
-	visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -17,6 +20,5 @@ cc_library(
         "@com_github_mingkaic_testify//:testify",
     ],
 	includes = [ "include" ],
-	visibility = [ "//visibility:public" ],
 	copts = [ "-std=c++14" ],
 )

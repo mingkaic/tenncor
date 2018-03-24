@@ -302,7 +302,7 @@ varptr pow (const varptr b, const varptr x)
 	return elem_func(deps, opname, POW,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
-		// pow'(f(x), g(x)) = \
+		// pow'(f(x), g(x)) =
 		//		f'(x) * g(x) * pow(f(x), g(x) - 1) +
 		//		g'(x) * pow(f(x), g(x)) * log((f(x))
 		varptr b = args.front().first;

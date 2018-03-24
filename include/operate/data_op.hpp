@@ -154,8 +154,20 @@ void rand_uniform<float> (VARR_T dest, std::vector<CVAR_T> srcs);
 template <>
 void rand_uniform<double> (VARR_T dest, std::vector<CVAR_T> srcs);
 
+template <>
+void rand_binom<float> (VARR_T dest, std::vector<CVAR_T> srcs);
+
+template <>
+void rand_binom<double> (VARR_T dest, std::vector<CVAR_T> srcs);
+
 template <typename T>
 void rand_normal (VARR_T dest, std::vector<CVAR_T> srcs);
+
+template <>
+void rand_normal<float> (VARR_T dest, std::vector<CVAR_T> srcs);
+
+template <>
+void rand_normal<double> (VARR_T dest, std::vector<CVAR_T> srcs);
 
 #endif /* TENNCOR_D_NNARY_HPP */
 

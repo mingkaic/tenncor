@@ -236,22 +236,7 @@ void rand_uniform (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void rand_normal (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape_min = srcs.front().second;
-	tensorshape& srcshape_max = srcs.back().second;
-	T* d = (T*) dest.first;
-	const T* s_mean = (const T*) srcs.front().first;
-	const T* s_stdev = (const T*) srcs.back().first;
-	bool min_mul = srcshape_min.n_elems() > 1;
-	bool max_mul = srcshape_max.n_elems() > 1;
-	size_t n = destshape.n_elems();
-
-	for (size_t i = 0; i < n; ++i)
-	{
-		std::normal_distribution<T> dist(s_mean[i * min_mul], s_stdev[i * max_mul]);
-		d[i] = dist(nnutils::get_generator());
-	}
+	throw std::bad_function_call(); // normal distribution with integer types is not acceptable
 }
 
 }

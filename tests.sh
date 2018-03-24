@@ -34,20 +34,22 @@ bazel build //:...
 # ===== Run Gtest =====
 echo "===== STARTING TESTS =====";
 
-export GTEST_REPEAT=5
 export GTEST_BREAK_ON_FAILURE=1
 export GTEST_SHUFFLE=1
 
 # valgrind check (5 times)
-assert_cmd "bazel test --run_under=valgrind //tests/unit:tenncor_all";
-
-export GTEST_REPEAT=50
+export GTEST_REPEAT=5
+assert_cmd "bazel test --run_under=valgrind //tests/unit:test_all";
 
 # run coverage for all the tests
+export GTEST_REPEAT=50
 assert_cmd "bazel coverage --spawn_strategy=standalone \
-	--instrumentation_filter= //tests/functional:tenncor_verify";
+	--instrumentation_filter= //tests/unit:test_all";
+
+# regression test
+export GTEST_REPEAT=1
 assert_cmd "bazel coverage --spawn_strategy=standalone \
-	--instrumentation_filter= //tests/unit:tenncor_all";
+	--instrumentation_filter= //tests/regression:test";
 
 echo "===== STARTING COVERAGE ANALYSIS =====";
 # ===== Coverage Analysis ======

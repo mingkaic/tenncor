@@ -2,8 +2,8 @@
 #include <vector>
 #include <string>
 
-#include "tests/functional/include/tf_verify.hpp"
-#include "tests/functional/include/tf_reader.hpp"
+#include "tests/regression/include/tf_verify.hpp"
+#include "tests/regression/include/tf_reader.hpp"
 
 #ifdef TF_VERIFY_HPP
 
@@ -51,7 +51,7 @@ void TF_VERIFY::to_mem (std::string file)
 	read_files_.insert(file);
 	std::ifstream samplefile;
 	char path[256];
-	std::sprintf(path, "tests/functional/samples/%s.csv", file.c_str());
+	std::sprintf(path, "tests/regression/samples/%s.csv", file.c_str());
 	samplefile.open(path);
 	std::string line;
 	if (samplefile.is_open())

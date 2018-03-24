@@ -15,6 +15,7 @@
 #ifndef TENNCOR_UTILS_HPP
 #define TENNCOR_UTILS_HPP
 
+#include <cstring>
 #include <string>
 #include <sstream>
 #include <unordered_set>

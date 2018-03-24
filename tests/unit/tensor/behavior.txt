@@ -83,3 +83,4 @@ D003 - random normal setting invalid type throws error
 		unset init has type BAD_T
 
 // DATA IO
+E000 - portal_dest 

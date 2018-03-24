@@ -1,6 +1,6 @@
 #ifndef DISABLE_TF_UNAR_SCALR_TESTS
 
-#include "tests/functional/include/tf_verify.hpp"
+#include "tests/regression/include/tf_verify.hpp"
 
 #include "graph/leaf/variable.hpp"
 #include "operate/operations.hpp"

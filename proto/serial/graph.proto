@@ -94,6 +94,7 @@ message variable_proto
 
 message graph_proto
 {
-	repeated string create_order = 1;
-	map<string, node_proto> node_map = 2;
+	string gid = 1;
+	repeated string create_order = 2;
+	map<string, node_proto> node_map = 3;
 }

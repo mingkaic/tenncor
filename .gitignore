@@ -44,6 +44,7 @@ Desktop.ini
 *.info
 
 # Compiled Python files
+**/__pycache__
 *.pyc
 
 # Application specific files

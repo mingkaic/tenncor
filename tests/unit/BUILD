@@ -9,7 +9,7 @@ filegroup(
 ######### FUZZ TESTS #########
 
 cc_test(
-	name = "tenncor_tensor",
+	name = "test_tensor",
 	size = "small",
 	srcs = glob([ "tensor/*.cpp", "main.cpp" ]),
 	deps = [
@@ -21,7 +21,7 @@ cc_test(
 )
 
 cc_test(
-	name = "tenncor_graph",
+	name = "test_graph",
 	size = "small",
 	srcs = glob([ "graph/*.cpp", "main.cpp" ]),
 	deps = [
@@ -33,7 +33,7 @@ cc_test(
 )
 
 cc_test(
-	name = "tenncor_operate",
+	name = "test_operate",
 	size = "medium",
 	srcs = glob([ "operate/*.cpp", "main.cpp" ]),
 	deps = [
@@ -45,7 +45,7 @@ cc_test(
 )
 
 cc_test(
-	name = "tenncor_all",
+	name = "test_all",
 	size = "enormous",
 	srcs = glob([ "**/*.cpp" ]),
 	deps = [

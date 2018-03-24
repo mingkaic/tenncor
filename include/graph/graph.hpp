@@ -55,9 +55,14 @@ public:
 	graph& operator = (const graph&) = delete;
 	graph& operator = (graph&&) = delete;
 
+
+
+	// >>>>>>>>>>>> GRAPH INFO <<<<<<<<<<<<
+
 	bool has_node (inode* node) const;
 
 	inode* get_inst (std::string uid) const;
+
 
 
 	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<

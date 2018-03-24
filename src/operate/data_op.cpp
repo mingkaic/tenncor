@@ -189,6 +189,60 @@ void rand_uniform<double> (VARR_T dest, std::vector<CVAR_T> srcs)
 	}
 }
 
+template <>
+void rand_binom<float> (VARR_T dest, std::vector<CVAR_T> srcs)
+{
+	throw std::bad_function_call(); // binomial distribution with float type is not acceptable
+}
+
+template <>
+void rand_binom<double> (VARR_T dest, std::vector<CVAR_T> srcs)
+{
+	throw std::bad_function_call(); // binomial distribution with double type is not acceptable
+}
+
+template <>
+void rand_normal<float> (VARR_T dest, std::vector<CVAR_T> srcs)
+{
+	// assert(srcs.size() == 2);
+	tensorshape& destshape = dest.second;
+	tensorshape& srcshape_min = srcs.front().second;
+	tensorshape& srcshape_max = srcs.back().second;
+	float* d = (float*) dest.first;
+	const float* s_mean = (const float*) srcs.front().first;
+	const float* s_stdev = (const float*) srcs.back().first;
+	bool min_mul = srcshape_min.n_elems() > 1;
+	bool max_mul = srcshape_max.n_elems() > 1;
+	size_t n = destshape.n_elems();
+
+	for (size_t i = 0; i < n; ++i)
+	{
+		std::normal_distribution<float> dist(s_mean[i * min_mul], s_stdev[i * max_mul]);
+		d[i] = dist(nnutils::get_generator());
+	}
+}
+
+template <>
+void rand_normal<double> (VARR_T dest, std::vector<CVAR_T> srcs)
+{
+	// assert(srcs.size() == 2);
+	tensorshape& destshape = dest.second;
+	tensorshape& srcshape_min = srcs.front().second;
+	tensorshape& srcshape_max = srcs.back().second;
+	double* d = (double*) dest.first;
+	const double* s_mean = (const double*) srcs.front().first;
+	const double* s_stdev = (const double*) srcs.back().first;
+	bool min_mul = srcshape_min.n_elems() > 1;
+	bool max_mul = srcshape_max.n_elems() > 1;
+	size_t n = destshape.n_elems();
+
+	for (size_t i = 0; i < n; ++i)
+	{
+		std::normal_distribution<double> dist(s_mean[i * min_mul], s_stdev[i * max_mul]);
+		d[i] = dist(nnutils::get_generator());
+	}
+}
+
 }
 
 #endif
