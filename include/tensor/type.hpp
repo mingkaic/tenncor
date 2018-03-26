@@ -11,7 +11,7 @@
  *
  */
 
-#include "proto/serial/data.pb.h"
+#include "include/utils/error.hpp"
 
 #pragma once
 #ifndef TENNCOR_TENS_TYPE_HPP
@@ -20,7 +20,6 @@
 namespace nnet
 {
 
-#define TENS_TYPE tenncor::tensor_t
 #define _TYPE_SENTINEL tenncor::_TYPE_SENTINEL
 
 #define BAD_T tenncor::BAD
@@ -72,6 +71,79 @@ TENS_TYPE get_type<int64_t> (void);
 
 template <>
 TENS_TYPE get_type<uint64_t> (void);
+
+#define CONVERT(out, in, otype, itype) \
+itype* inptr = (itype*) in; \
+out = std::vector<otype>(inptr, inptr + n);
+
+template <typename OT>
+std::vector<OT> type_convert(void* ptr, size_t n, TENS_TYPE itype)
+{
+	TENS_TYPE otype = get_type<OT>();
+	assert(otype != BAD_T);
+	if (otype == itype)
+	{
+		OT* optr = (OT*) ptr;
+		return std::vector<OT>(optr, optr + n);
+	}
+	std::vector<OT> out;
+	switch (itype)
+	{
+		case DOUBLE:
+		{
+			CONVERT(out, ptr, OT, double)
+		}
+		break;
+		case FLOAT:
+		{
+			CONVERT(out, ptr, OT, float)
+		}
+		break;
+		case INT8:
+		{
+			CONVERT(out, ptr, OT, int8_t)
+		}
+		break;
+		case UINT8:
+		{
+			CONVERT(out, ptr, OT, uint8_t)
+		}
+		break;
+		case INT16:
+		{
+			CONVERT(out, ptr, OT, int16_t)
+		}
+		break;
+		case UINT16:
+		{
+			CONVERT(out, ptr, OT, uint16_t)
+		}
+		break;
+		case INT32:
+		{
+			CONVERT(out, ptr, OT, int32_t)
+		}
+		break;
+		case UINT32:
+		{
+			CONVERT(out, ptr, OT, uint32_t)
+		}
+		break;
+		case INT64:
+		{
+			CONVERT(out, ptr, OT, int64_t)
+		}
+		break;
+		case UINT64:
+		{
+			CONVERT(out, ptr, OT, uint64_t)
+		}
+		break;
+		default:
+			throw nnutils::unsupported_type_error(itype);
+	}
+	return out;
+}
 
 }
 

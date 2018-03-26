@@ -1,4 +1,4 @@
-#include "tests/regression/include/tf_reader.hpp"
+#include "tests/accept/include/tf_reader.hpp"
 
 #ifdef TF_READER_HPP
 

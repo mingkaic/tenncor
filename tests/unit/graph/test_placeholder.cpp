@@ -16,7 +16,17 @@
 #ifndef DISABLE_PLACEHOLDER_TEST
 
 
-class PLACEHOLDER : public testify::fuzz_test {};
+class PLACEHOLDER : public testify::fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testify::fuzz_test::TearDown();
+		testify::mocker::clear();
+	}
+};
 
 
 using namespace testutils;

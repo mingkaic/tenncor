@@ -18,7 +18,17 @@
 #ifndef DISABLE_FUNCTOR_TEST
 
 
-class FUNCTOR : public testify::fuzz_test {};
+class FUNCTOR : public testify::fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testify::fuzz_test::TearDown();
+		testify::mocker::clear();
+	}
+};
 
 
 using namespace testutils;

@@ -458,24 +458,27 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 varptr transpose (const varptr a, const varptr perm)
 {
 	if (nullptr == a.get()) return nullptr;
-	SIDX_F smap;
+	VTFUNC_F smap;
 	USHAPE_F shaper;
 	std::vector<inode*> args = {a};
 	if (nullptr == perm.get())
 	{
-		smap = [](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t>)
+		smap = [](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 		{
-			// populate index
+			assert(srcs.size() == 1);
+			size_t per = type_size(type);
+			char* out = (char*) dest.first;
+			const char* in = (const char*) srcs[0].first;
+			tensorshape outshape = dest.second;
+			tensorshape inshape = srcs[0].second;
 			size_t n = outshape.n_elems();
-			std::vector<size_t> index(n);
 			std::vector<size_t> coord;
 			for (size_t i = 0; i < n; ++i)
 			{
 				coord = outshape.coord_from_idx(i);
 				std::reverse(coord.begin(), coord.end());
-				index[i] = inshape.flat_idx(coord);
+				std::memcpy(out + i * per, in + inshape.flat_idx(coord) * per, per);
 			}
-			return index;
 		};
 
 		shaper = [](tensorshape inshape, std::vector<uint64_t>)
@@ -489,26 +492,31 @@ varptr transpose (const varptr a, const varptr perm)
 	else
 	{
 		args.push_back(perm);
-		smap = [](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t> perm)
+		smap = [](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 		{
-			// populate index
-			size_t n = outshape.n_elems(); // inshape size if same as output
-			std::vector<size_t> index(n);
+			assert(srcs.size() == 2);
+			size_t per = type_size(type);
+			char* out = (char*) dest.first;
+			const char* in = (const char*) srcs[0].first;
+			size_t* perm = (size_t*) srcs[1].first;
+			tensorshape outshape = dest.second;
+			tensorshape inshape = srcs[0].second;
+			size_t permsize = srcs[1].second.n_elems();
+			size_t n = outshape.n_elems();
 			std::vector<size_t> tmp_coord;
 			std::vector<size_t> coord;
 			for (size_t i = 0; i < n; ++i)
 			{
 				coord = tmp_coord = outshape.coord_from_idx(i);
-				for (size_t i = 0; i < perm.size(); ++i)
+				for (size_t i = 0; i < permsize; ++i)
 				{
 					if (i != perm[i])
 					{
 						coord[i] = tmp_coord[perm[i]];
 					}
 				}
-				index[i] = inshape.flat_idx(coord);
+				std::memcpy(out + i * per, in + inshape.flat_idx(coord) * per, per);
 			}
-			return index;
 		};
 
 		shaper = [](tensorshape inshape, std::vector<uint64_t> perm)
@@ -548,24 +556,28 @@ varptr flip (const varptr a, const varptr dims)
 	// 	return parent;
 	// }
 	return coord_func({a, dims}, 
-	[](tensorshape outshape, const tensorshape, std::vector<uint64_t> dims)
+	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
-		// assert inshape.is_compatible_with(outshape)
-		std::vector<size_t> slist = outshape.as_list();
-		// populate index
+		assert(srcs.size() == 2);
+		size_t per = type_size(type);
+		char* out = (char*) dest.first;
+		const char* in = (const char*) srcs[0].first;
+		size_t* dims = (size_t*) srcs[1].first;
+		tensorshape outshape = dest.second;
+		tensorshape inshape = srcs[0].second;
+		size_t ndims = srcs[1].second.n_elems();
 		size_t n = outshape.n_elems();
-		std::vector<size_t> index(n);
+		std::vector<size_t> slist = outshape.as_list();
 		std::vector<size_t> coord;
 		for (size_t i = 0; i < n; ++i)
 		{
 			coord = outshape.coord_from_idx(i);
-			for (size_t d : dims)
+			for (size_t j = 0; j < ndims; ++j)
 			{
-				coord[d] = slist[d] - coord[d] - 1;
+				coord[dims[j]] = slist[dims[j]] - coord[dims[j]] - 1;
 			}
-			index[i] = outshape.flat_idx(coord);
+			memcpy(out + i * per, in + outshape.flat_idx(coord) * per, per);
 		}
-		return index;
 	},
 	[](tensorshape inshape, std::vector<uint64_t>) { return inshape; }, FLIP);
 }
@@ -681,57 +693,51 @@ varptr expand (varptr a, varptr n, size_t dim)
 
 varptr expand (const varptr a, const varptr n, const varptr dim)
 {
-	if (nullptr == a.get()) return nullptr;
-	std::vector<inode*> deps = {a, n, dim};
+	if (nullptr == a.get() || nullptr == n.get() || nullptr == dim.get()) return nullptr;
 	// std::string opname = nnutils::formatter() << "expand_" << dim;
 	// if (inode* parent = ordered_parent(deps, opname))
 	// {
 	// 	return parent;
 	// }
-	return functor::get(deps,
-	[](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	return coord_func({a, n, dim}, 
+	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
-		tensor* tens = args[0]->get_tensor();
-		assert(nullptr != tens);
-		size_t n = expose<double>(args[1])[0]; // todo: make this size_t once shape_func uses size_t
-		uint64_t dim = expose<uint64_t>(args[2])[0];
-		tensorshape shape = tens->get_shape();
-		std::vector<size_t> slist = shape.as_list();
+		assert(srcs.size() == 3 &&
+			srcs[1].second.n_elems() == 1 && 
+			srcs[2].second.n_elems() == 1);
+		size_t per = type_size(type);
+		char* out = (char*) dest.first;
+		const char* in = (const char*) srcs[0].first;
+		uint64_t n = *((double*) srcs[1].first); // todo: make this size_t once shape_func uses size_t
+		uint64_t dim = *((uint64_t*) srcs[2].first);
+		tensorshape outshape = dest.second;
+		tensorshape inshape = srcs[0].second;
+		
+		std::vector<size_t> slist = inshape.as_list();
+		auto it = slist.begin();
+		size_t outern = inshape.n_elems();
+		size_t innern = std::accumulate(it, it + dim, 1, std::multiplies<size_t>());
+		size_t repeats = outern / innern;
+		size_t nexpansion = innern * n;
+		for (size_t j = 0; j < repeats; ++j)
+		{
+			for (size_t i = 0; i < n; ++i)
+			{
+				size_t outidx = (j * nexpansion + i * innern) * per;
+				size_t inidx = j * innern * per;
+				std::memcpy(out + outidx, in + inidx, innern * per);
+			}
+		}
+	}, 
+	[](tensorshape inshape, std::vector<uint64_t> sinfo)
+	{
+		assert(sinfo.size() == 2);
+		uint64_t n = sinfo[0];
+		uint64_t dim = sinfo[1];
+		std::vector<size_t> slist = inshape.as_list();
 		assert(slist.size() >= dim);
 		slist.insert(slist.begin() + dim, n);
-
-		sindex_io* sio = new sindex_io(
-		[n](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t> dim)
-		{
-			assert(dim.size() > 0);
-			size_t nelems = outshape.n_elems();
-			std::vector<size_t> indices(nelems);
-			std::vector<size_t> slist = inshape.as_list();
-			auto it = slist.begin();
-			size_t outern = inshape.n_elems();
-			size_t innern = std::accumulate(it, it + dim[0], 1, std::multiplies<size_t>());
-			size_t repeats = outern / innern;
-			size_t nexpansion = innern * n;
-			auto iit = indices.begin();
-			for (size_t j = 0; j < repeats; ++j)
-			{
-				for (size_t i = 0; i < n; ++i)
-				{
-					std::iota(iit + i * innern, iit + (i + 1) * innern, j * innern);
-				}
-				iit = iit + nexpansion;
-			}
-			return indices;
-		});
-		src = std::unique_ptr<idata_src>(sio);
-		tens->write_to(*sio);
-		sio->shape_info(expose<uint64_t>(args[2]));
-		
-		return new tensor(tensorshape(slist));
-	},
-	[](inode* wrt, std::vector<inode*> args)
-	{
-		return args[0]->derive(wrt);
+		return tensorshape(slist);
 	}, EXPAND);
 }
 

@@ -83,7 +83,7 @@ public:
 	bool initialize (tensorshape shape);
 
 	//! assign contents of input to this, return true if successful
-	bool assign (inode* input, bool notify = true);
+	bool assign (inode* input, bool notify = true); // todo: make assign notify a reference function<> of notifier, let caller call update
 
 protected:
 	// >>>>>> SERIALIZATION DATA <<<<<<

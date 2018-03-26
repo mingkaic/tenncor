@@ -1,24 +1,20 @@
 licenses(["notice"])
 
-package(
-	default_visibility = [ "//visibility:public" ],
-)
-
 filegroup(
     name = "srcs",
-    srcs = glob([ "include/*.hpp", "src/*.cpp" ]) + [
-        "BUILD",
-    ],
+    srcs = glob([ "include/*.hpp", "src/*.cpp" ]) + [ "BUILD" ],
+    visibility = [ "//visibility:public" ],
 )
 
 cc_library(
     name = "tenncor_testify",
-	hdrs = glob(["include/*.hpp"]),
-	srcs = glob(["src/*.cpp"]),
+    hdrs = glob(["include/*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
     deps = [ 
-		"//:tenncor",
+        "//:tenncor",
         "@com_github_mingkaic_testify//:testify",
     ],
-	includes = [ "include" ],
-	copts = [ "-std=c++14" ],
+    includes = [ "include" ],
+    copts = [ "-std=c++14" ],
+    visibility = [ "//tests/unit:__pkg__" ],
 )

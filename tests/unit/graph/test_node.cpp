@@ -16,7 +16,17 @@
 #ifndef DISABLE_NODE_TEST
 
 
-class NODE : public testify::fuzz_test {};
+class NODE : public testify::fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testify::fuzz_test::TearDown();
+		testify::mocker::clear();
+	}
+};
 
 
 using namespace testutils;

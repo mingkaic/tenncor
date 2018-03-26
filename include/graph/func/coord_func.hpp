@@ -20,7 +20,7 @@
 namespace nnet
 {
 
-functor* coord_func (std::vector<inode*> args, SIDX_F smap, USHAPE_F shaper, OPCODE op);
+functor* coord_func (std::vector<inode*> args, VTFUNC_F cf, USHAPE_F shaper, OPCODE op);
 
 }
 

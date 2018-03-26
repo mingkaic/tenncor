@@ -13,6 +13,10 @@
 namespace nnet
 {
 
+static VTFUNC_F runiform = ebind_name("rand_uniform");
+
+static VTFUNC_F rnormal = ebind_name("rand_normal");
+
 idata_src::~idata_src (void) {}
 
 idata_src* idata_src::clone (void) const
@@ -56,7 +60,7 @@ void r_uniform_init::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, t
 	size_t nbytes = shape.n_elems() * type_size(type);
 	nnutils::check_ptr(outptr, nbytes);
 	tensorshape one(std::vector<size_t>{1});
-	ele_op("rand_uniform", type, VARR_T{outptr.get(), shape}, {
+	runiform(type, VARR_T{outptr.get(), shape}, {
 		CVAR_T{&min_[0], one},
 		CVAR_T{&max_[0], one},
 	});
@@ -79,7 +83,7 @@ void r_normal_init::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, te
 	size_t nbytes = shape.n_elems() * type_size(type);
 	nnutils::check_ptr(outptr, nbytes);
 	tensorshape one(std::vector<size_t>{1});
-	ele_op("rand_normal", type, VARR_T{outptr.get(), shape}, {
+	rnormal(type, VARR_T{outptr.get(), shape}, {
 		CVAR_T{&mean_[0], one},
 		CVAR_T{&stdev_[0], one},
 	});

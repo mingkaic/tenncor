@@ -43,23 +43,18 @@ functor* elem_func (std::vector<inode*> args, std::string opname, OPCODE op, BAC
 	return functor::get(args,
 	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
-		idata_io* io = new operate_io(opname);
+		operate_io* io = new operate_io(ebind_name(opname));
 		src = std::unique_ptr<idata_src>(io);
-		std::vector<const tensor*> tens;
 		std::vector<tensorshape> srcshapes;
-		for (inode* arg : args)
+		for (size_t i = 0; i < args.size(); ++i)
 		{
-			tensor* ten = arg->get_tensor();
-			if (nullptr == ten)
+			tensor* tens = args[i]->get_tensor();
+			if (nullptr == tens)
 			{
 				throw std::exception(); // todo: better exception
 			}
-			tens.push_back(ten);
-			srcshapes.push_back(ten->get_shape());
-		}
-		for (size_t i = 0; i < tens.size(); ++i)
-		{
-			tens[i]->write_to(*io, i);
+			srcshapes.push_back(tens->get_shape());
+			tens->write_to(*io, i);
 		}
 		// invariant: none of tens is null
 		return new tensor(elementary_shaper(srcshapes));

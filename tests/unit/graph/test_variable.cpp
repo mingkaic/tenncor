@@ -17,7 +17,17 @@
 #ifndef DISABLE_VARIABLE_TEST
 
 
-class VARIABLE : public testify::fuzz_test {};
+class VARIABLE : public testify::fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testify::fuzz_test::TearDown();
+		testify::mocker::clear();
+	}
+};
 
 
 using namespace testutils;

@@ -8,4 +8,6 @@ def getOpts(yConf):
 	conf_path = os.path.join(dir_path, yConf)
 
 	stryaml = open(conf_path, "r")
-	return yaml.load(stryaml)
+	res = yaml.load(stryaml)
+	stryaml.close()
+	return res

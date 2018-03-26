@@ -18,11 +18,14 @@
 #include <iostream>
 #include <exception>
 
-#include "include/tensor/type.hpp"
+#include "proto/serial/data.pb.h"
+
 #include "include/utils/utils.hpp"
 
 namespace nnutils
 {
+
+#define TENS_TYPE tenncor::tensor_t
 
 struct unsupported_type_error : public std::exception
 {

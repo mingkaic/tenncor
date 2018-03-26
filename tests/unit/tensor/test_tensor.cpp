@@ -1016,11 +1016,16 @@ TEST_F(TENSOR, Proto_C012)
 
 	mock_data_src src(this);
 	mock_data_src src2(this);
+	mock_data_src src3(this);
 	nnet::tensorshape cshape = random_def_shape(this);
 	nnet::tensorshape cshape2 = random_def_shape(this);
+	std::vector<size_t> clist = random_def_shape(this);
+	nnet::tensorshape cshape3(clist);
+	nnet::tensorshape pshape3 = make_partial(this, clist);
 	nnet::tensorshape shape = random_shape(this);
 	nnet::tensor comp(cshape);
 	nnet::tensor comp2(cshape2);
+	nnet::tensor comp3(pshape3);
 	nnet::tensor ten(shape);
 
 	// expects failure
@@ -1033,10 +1038,11 @@ TEST_F(TENSOR, Proto_C012)
 
 	comp.read_from(src);
 	comp2.read_from(src2);
+	comp3.read_from(src3, cshape3);
 
 	// expects success
 	EXPECT_TRUE(comp.serialize(proto)) <<
-		sprintf("failed to serialized tensor with shape %p", &cshape);;
+		sprintf("failed to serialized tensor with shape %p", &cshape);
 
 	mock_data_dest dest;
 	comp2.write_to(dest);
@@ -1065,7 +1071,24 @@ TEST_F(TENSOR, Proto_C012)
 		sprintf("expect shape %p, got %p", &cshape, &gotc);
 
 	// rewrite data
-	
+	ASSERT_TRUE(comp3.serialize(proto)) <<
+		sprintf("failed to re-serialized tensor with shape %p", &cshape3);;
+	std::string c3str = proto.data();
+	TENS_TYPE c3type = proto.type();
+	nnet::tensorshape c3allow(std::vector<size_t>(
+		proto.allowed_shape().begin(),
+		proto.allowed_shape().end()));
+	nnet::tensorshape c3alloc(std::vector<size_t>(
+		proto.alloced_shape().begin(),
+		proto.alloced_shape().end()));
+
+
+	EXPECT_STREQ(src3.uuid_.c_str(), c3str.substr(0, src3.uuid_.size()).c_str());
+	EXPECT_EQ(src3.type_, c3type);
+	EXPECT_TRUE(tensorshape_equal(pshape3, c3allow)) <<
+		sprintf("expect shape %p, got %p", &pshape3, &c3allow);
+	EXPECT_TRUE(tensorshape_equal(cshape3, c3alloc)) <<
+		sprintf("expect shape %p, got %p", &cshape3, &c3alloc);
 }
 
 

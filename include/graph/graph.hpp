@@ -91,7 +91,7 @@ protected:
 private:
 	graph (void) {}
 
-	// std::string gid_ = nnutils::uuid(this); // uncomment when supporting multiple graphs
+	std::string gid_ = nnutils::uuid(this);
 
 	std::unordered_map<std::string,variable*> data_eps_;
 

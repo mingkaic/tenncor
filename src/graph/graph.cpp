@@ -32,6 +32,7 @@ inode* graph::get_inst (std::string uid) const
 
 void graph::serialize (tenncor::graph_proto& proto_dest) const
 {
+	proto_dest.set_gid(gid_);
 	proto_dest.clear_node_map();
 	proto_dest.clear_create_order();
 	// set graph_proto node_map (1)
@@ -98,6 +99,8 @@ static inline placeholder* make_placeholder (tenncor::place_proto& place_src, st
 void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 	const tenncor::graph_proto& proto_src)
 {
+	// todo: support multiple graphs (return new graph)
+	gid_ = proto_src.gid();
 	// clear everything
 	adjmap_.clear();
 	order_.clear();

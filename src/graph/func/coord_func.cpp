@@ -13,24 +13,40 @@
 namespace nnet
 {
 
-functor* coord_func (std::vector<inode*> args, SIDX_F smap, USHAPE_F shaper, OPCODE op)
+functor* coord_func (std::vector<inode*> args, VTFUNC_F cf, USHAPE_F shaper, OPCODE op)
 {
 	return functor::get(args,
-	[smap, shaper](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	[cf, shaper](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
-		sindex_io* sio = new sindex_io(smap);
-		src = std::unique_ptr<idata_src>(sio);
-		tensor* tens = args.front()->get_tensor();
-		assert(nullptr != tens);
-		// assert that shape only change once
-		tens->write_to(*sio);
-		std::vector<uint64_t> sinfo;
-		if (args.size() > 1)
+		operate_io* csrc = new operate_io(cf,
+		[](std::vector<TENS_TYPE> types)
 		{
-			sinfo = expose<uint64_t>(args[1]);
-			sio->shape_info(sinfo);
+			// if (types.size() > 1)
+			// {
+			// 	assert(std::all_of(types.begin() + 1, types.end(),
+			// 	[](TENS_TYPE type)
+			// 	{
+			// 		return DOUBLE != type && FLOAT != type;
+			// 	}));
+			// }
+			return types[0];
+		});
+		src = std::unique_ptr<idata_src>(csrc);
+		// assert that shape only change once
+		assert(args.size() > 0);
+		for (size_t i = 0; i < args.size(); ++i)
+		{
+			tensor* tens = args[i]->get_tensor();
+			assert(nullptr != tens);
+			tens->write_to(*csrc, i);
 		}
-		return new tensor(shaper(tens->get_shape(), sinfo));
+		std::vector<uint64_t> sinfo;
+		for (size_t i = 1; i < args.size(); ++i)
+		{
+			auto vec = expose<uint64_t>(args[i]);
+			sinfo.insert(sinfo.end(), vec.begin(), vec.end());
+		}
+		return new tensor(shaper(args[0]->get_tensor()->get_shape(), sinfo));
 	},
 	[](inode* wrt, std::vector<inode*> args)
 	{

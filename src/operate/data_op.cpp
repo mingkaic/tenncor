@@ -71,36 +71,41 @@ bool has_agg (std::string opname)
 	return agg_registry.end() != agg_registry.find(opname);
 }
 
-void ele_op (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src)
+VTFUNC_F ebind_name (std::string opname)
 {
 	auto type_it = ele_registry.find(opname);
-	if (ele_registry.end() != type_it)
+	return [type_it](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src)
 	{
-		auto& type_map = type_it->second;
-		auto it = type_map.find(type);
-		if (type_map.end() != it)
+		if (ele_registry.end() != type_it)
 		{
-			(it->second)(dest, src);
-			return;
+			auto& type_map = type_it->second;
+			auto it = type_map.find(type);
+			if (type_map.end() != it)
+			{
+				(it->second)(dest, src);
+				return;
+			}
 		}
-	}
-	throw std::bad_function_call();
+		throw std::bad_function_call();
+	};
 }
 
-void agg_op (std::string opname, TENS_TYPE type, size_t i, void* accum, void* arr)
+ATFUNC_F abind_name (std::string opname)
 {
 	auto type_it = agg_registry.find(opname);
-	if (agg_registry.end() != type_it)
+	return [type_it](TENS_TYPE type)
 	{
-		auto& type_map = type_it->second;
-		auto it = type_map.find(type);
-		if (type_map.end() != it)
+		if (agg_registry.end() != type_it)
 		{
-			(it->second)(i, accum, arr);
-			return;
+			auto& type_map = type_it->second;
+			auto it = type_map.find(type);
+			if (type_map.end() != it)
+			{
+				return it->second;
+			}
 		}
-	}
-	throw std::bad_function_call();
+		throw std::bad_function_call();
+	};
 }
 
 template <>

@@ -33,13 +33,17 @@ using VFUNC_F = std::function<void(VARR_T,std::vector<CVAR_T>)>;
 
 using AFUNC_F = std::function<void(size_t,void*,void*)>;
 
+using VTFUNC_F = std::function<void(TENS_TYPE,VARR_T,std::vector<CVAR_T>)>;
+
+using ATFUNC_F = std::function<AFUNC_F(TENS_TYPE)>;
+
 bool has_ele (std::string opname);
 
 bool has_agg (std::string opname);
 
-void ele_op (std::string opname, TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src);
+VTFUNC_F ebind_name (std::string opname);
 
-void agg_op (std::string opname, TENS_TYPE type, size_t i, void* accum, void* arr);
+ATFUNC_F abind_name (std::string opname);
 
 #ifndef TENNCOR_D_UNARY_HPP
 #define TENNCOR_D_UNARY_HPP

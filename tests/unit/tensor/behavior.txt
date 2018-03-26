@@ -30,6 +30,8 @@ B000 - type_size returns the number of bytes taken by specified type throws unsu
 		when requesting unsupported type
 B001 - get_type returns type mapped by the template argument to the protobuf enum specified in 
 		proto/serial/tenncor.proto returns BAD_T for unsupported type
+B002 - type_convert throws unsupported type error on bad input type
+		output vector has size of n input
 
 // TENSOR
 C000 - shape specified in tensor constructor is allowed_shape,
@@ -71,7 +73,8 @@ C012 - serialization fails to store if tensor has no data, otherwise save to fil
 		serializing an existing tensor_proto should copy over data, shape, and type
 
 // DATA SOURCE
-D000 - clone/move a source returns the caller's type
+D000 - clone/move a source returns a copy of the original's data setting,
+		move invalidates the original's settings
 D001 - constant setting invalid type throws error
 		reading from constant init repeatedly set stored value to output
 		unset init has type BAD_T
@@ -81,6 +84,13 @@ D002 - random uniform setting invalid type throws error
 D003 - random normal setting invalid type throws error
 		reading from random_normal sets data of mean and stdev values set
 		unset init has type BAD_T
+D004 - serialization stores the source type, data type, and settings
 
-// DATA IO
-E000 - portal_dest 
+// DATA DEST
+E000 - clone/move a dest returns a copy of the original's function and settings
+		move invalidates the original's function and settings
+E001 - portal_dest reveals input data, shape, and type
+E002 - assign_io copies data from one (input) dataset to an output dataset
+		throw exception if no input data is set prior to output tensor evaluation,
+		the type is bad, or the shapes of input and output are not equal
+E003 - operate_io set tensor order is irrelevant of result

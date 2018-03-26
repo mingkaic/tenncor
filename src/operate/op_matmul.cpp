@@ -81,32 +81,27 @@ static tensorshape matmul_shaper (std::vector<tensorshape> shapes)
 
 static varptr flatten_mat (varptr a)
 {
-	size_t nelem_a = a->get_tensor()->get_shape().n_elems();
-	varptr expand = coord_func({a},
-	[](tensorshape, const tensorshape inshape, std::vector<uint64_t>)
+	return coord_func({a},
+	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
+		assert(srcs.size() == 1);
+		size_t per = type_size(type);
+		char* out = (char*) dest.first;
+		const char* in = (const char*) srcs[0].first;
+		tensorshape inshape = srcs[0].second;
 		size_t nelems = inshape.n_elems();
-		std::vector<size_t> row(nelems);
-		std::iota(row.begin(), row.end(), 0);
-		std::vector<size_t> indices=row;
-		for (size_t i = 1; i < nelems; ++i)
+		std::memset(out, 0, per * nelems * nelems);
+		for (size_t i = 0; i < nelems; i++)
 		{
-			indices.insert(indices.end(), row.begin(), row.end());
+			size_t outidx = i * nelems + i; // populate the trace
+			std::memcpy(out + outidx * per, in + i * per, per);
 		}
-		return indices;
 	},
 	[](tensorshape inshape, std::vector<uint64_t>) -> tensorshape
 	{
 		size_t nelems = inshape.n_elems();
 		return std::vector<size_t>{nelems, nelems};
 	}, INJACOBIAN);
-	std::vector<double> data(nelem_a * nelem_a, 0);
-	for (size_t i = 0; i < nelem_a; ++i)
-	{
-		data[i * nelem_a + i] = 1;
-	}
-	varptr identity = constant::get<double>(data, std::vector<size_t>{nelem_a, nelem_a});
-	return expand * identity;
 }
 
 static varptr matmul_gradient (inode* x, std::vector<inode*> args)
@@ -129,14 +124,20 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 			inode* b = args[0];
 			inode* a = args[1];
 			inode* c = args[2];
-			coord_io* osrc = new coord_io(
-			[](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t>)
+			operate_io* csrc = new operate_io(
+			[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 			{
+				assert(srcs.size() == 1);
+				size_t per = type_size(type);
+				char* out = (char*) dest.first;
+				const char* in = (const char*) srcs[0].first;
+				tensorshape outshape = dest.second;
+				tensorshape inshape = srcs[0].second;
 				size_t xlimit = inshape[0];
 				size_t ylimit = inshape[1];
-				std::vector<signed> index(outshape.n_elems(), -1);
 				size_t ns = inshape.n_elems();
 				size_t nparts = outshape[0] / xlimit;
+				std::memset(out, 0, outshape.n_elems() * per);
 				for (size_t i = 0; i < ns; ++i)
 				{
 					std::vector<size_t> coord = inshape.coord_from_idx(i);
@@ -146,16 +147,15 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 					{
 						coord[0] = x + j * xlimit;
 						coord[1] = y + j * ylimit;
-						index[outshape.flat_idx(coord)] = i;
+						std::memcpy(out + outshape.flat_idx(coord) * per, in + i * per, per);
 					}
 				}
-				return index;
 			});
-			src = std::unique_ptr<idata_src>(osrc);
+			src = std::unique_ptr<idata_src>(csrc);
 			size_t nouter = a->get_tensor()->get_shape().n_elems();
 			size_t ninner = c->get_tensor()->get_shape().n_elems();
 			tensorshape outshape({ninner, nouter});
-			b->get_tensor()->write_to(*osrc);
+			b->get_tensor()->write_to(*csrc);
 			return new tensor(outshape);
 		},
 		[](inode*, std::vector<inode*>) -> varptr
@@ -173,13 +173,20 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 			inode* a = args[0];
 			inode* b = args[1];
 			inode* c = args[2];
-			coord_io* osrc = new coord_io(
-			[](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t> blist)
+			operate_io* csrc = new operate_io(
+			[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 			{
+				assert(srcs.size() == 2);
+				size_t per = type_size(type);
+				char* out = (char*) dest.first;
+				const char* in = (const char*) srcs[0].first;
+				tensorshape outshape = dest.second;
+				tensorshape inshape = srcs[0].second;
+				std::vector<size_t> blist = srcs[1].second.as_list();
 				size_t ylimit = inshape[0];
 				size_t xlimit = blist[0];
-				std::vector<signed> index(outshape.n_elems(), -1);
 				size_t ns = inshape.n_elems();
+				std::memset(out, 0, outshape.n_elems() * per);
 				for (size_t i = 0; i < ns; ++i)
 				{
 					std::vector<size_t> coord = inshape.coord_from_idx(i);
@@ -189,19 +196,17 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 					{
 						coord[0] = x + j;
 						coord[1] = y + j;
-						index[outshape.flat_idx(coord)] = i;
+						std::memcpy(out + outshape.flat_idx(coord) * per, in + i * per, per);
 					}
 				}
-				return index;
 			});
-			src = std::unique_ptr<idata_src>(osrc);
+			src = std::unique_ptr<idata_src>(csrc);
 			tensorshape bshape = b->get_tensor()->get_shape();
 			size_t nouter = bshape.n_elems();
 			size_t ninner = c->get_tensor()->get_shape().n_elems();
 			tensorshape outshape({ninner, nouter});
-			a->get_tensor()->write_to(*osrc);
-			std::vector<size_t> blist = bshape.as_list();
-			osrc->shape_info(std::vector<uint64_t>(blist.begin(), blist.end()));
+			a->get_tensor()->write_to(*csrc, 0);
+			b->get_tensor()->write_to(*csrc, 1);
 			return new tensor(outshape);
 		},
 		[](inode*, std::vector<inode*>) -> varptr
@@ -212,11 +217,15 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 	}
 	// todo: ensure non-terminating matmul keep jacobian shape
 	return coord_func({reduce_sum(da + db, 0)},
-	[](tensorshape outshape, const tensorshape inshape, std::vector<uint64_t>)
+	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
-		std::vector<size_t> indices(inshape.n_elems());
-		std::iota(indices.begin(), indices.end(), 0);
-		return indices;
+		assert(srcs.size() == 1);
+		size_t per = type_size(type);
+		char* out = (char*) dest.first;
+		const char* in = (const char*) srcs[0].first;
+		tensorshape outshape = dest.second;
+		size_t n = outshape.n_elems();
+		std::memcpy(out, in, n * per);
 	},
 	[bases](tensorshape, std::vector<uint64_t>)
 	{
@@ -230,7 +239,7 @@ varptr matmul (varptr a, varptr b)
 	return functor::get({a, b}, 
 	[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
 	{
-		idata_io* io = new operate_io("matmul");
+		operate_io* io = new operate_io(ebind_name("matmul"));
 		src = std::unique_ptr<idata_src>(io);
 		const tensor* a = args.front()->get_tensor();
 		const tensor* b = args.back()->get_tensor();

@@ -2,8 +2,8 @@
 #include <vector>
 #include <string>
 
-#include "tests/regression/include/tf_verify.hpp"
-#include "tests/regression/include/tf_reader.hpp"
+#include "tests/accept/include/tf_verify.hpp"
+#include "tests/accept/include/tf_reader.hpp"
 
 #ifdef TF_VERIFY_HPP
 
@@ -51,7 +51,7 @@ void TF_VERIFY::to_mem (std::string file)
 	read_files_.insert(file);
 	std::ifstream samplefile;
 	char path[256];
-	std::sprintf(path, "tests/regression/samples/%s.csv", file.c_str());
+	std::sprintf(path, "tests/accept/samples/%s.csv", file.c_str());
 	samplefile.open(path);
 	std::string line;
 	if (samplefile.is_open())
@@ -106,15 +106,15 @@ void tensor_check (const nnet::tensor* expect,
 	nnet::portal_dest portgo;
 	expect->write_to(portex);
 	result->write_to(portgo);
-	assert(portex.type_ == DOUBLE && portgo.type_ == DOUBLE);
-	std::vector<size_t> expects = portex.shape_.as_list();
-	std::vector<size_t> gots = portgo.shape_.as_list();
-	size_t exn = portex.shape_.n_elems();
-	size_t gon = portgo.shape_.n_elems();
-	assert(!portex.data_.expired());
-	assert(!portgo.data_.expired());
-	double* exptr = (double*) portex.data_.lock().get();
-	double* goptr = (double*) portgo.data_.lock().get();
+	assert(portex.input_.type_ == DOUBLE && portgo.input_.type_ == DOUBLE);
+	std::vector<size_t> expects = portex.input_.shape_.as_list();
+	std::vector<size_t> gots = portgo.input_.shape_.as_list();
+	size_t exn = portex.input_.shape_.n_elems();
+	size_t gon = portgo.input_.shape_.n_elems();
+	assert(!portex.input_.data_.expired());
+	assert(!portgo.input_.data_.expired());
+	double* exptr = (double*) portex.input_.data_.lock().get();
+	double* goptr = (double*) portgo.input_.data_.lock().get();
 	std::vector<double> expectv(exptr, exptr + exn);
 	std::vector<double> gotv(goptr, goptr + gon);
 

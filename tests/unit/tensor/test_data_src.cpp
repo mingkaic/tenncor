@@ -63,6 +63,7 @@ std::memcpy(&everything[0], &vec[0], vec.size() * sizeof(TYPE));
 
 #define ERR_THRESH 0.03 // 5% error
 
+
 TENS_TYPE fuzz_const (testify::fuzz_test* fuzzer, 
 	nnet::const_init& ci, std::string& expect)
 {
@@ -711,7 +712,7 @@ TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 	EXPECT_THROW(badi.set<std::string>("mean", "stdev"), std::exception);
 
 	std::string meanstr, stdevstr;
-	TENS_TYPE utype = fuzz_normal(this, ri, meanstr, stdevstr);
+	TENS_TYPE ntype = fuzz_normal(this, ri, meanstr, stdevstr);
 
 	ten.read_from(ri);
 
@@ -720,7 +721,7 @@ TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 	iterate(ten, 
 	[&](size_t, const char* c)
 	{
-		switch (utype)
+		switch (ntype)
 		{
 			case DOUBLE:
 			{
@@ -789,6 +790,74 @@ TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 	EXPECT_LT(ERR_THRESH, err1);
 	EXPECT_LT(ERR_THRESH, err2);
 	EXPECT_LT(ERR_THRESH, err3);
+}
+
+
+TEST_F(DATA_SRC, Proto_D004)
+{
+	tenncor::source_proto c_src;
+	tenncor::source_proto v_src;
+	tenncor::source_proto u_src;
+	tenncor::source_proto n_src;
+
+	nnet::tensorshape shape = random_def_shape(this);
+	nnet::const_init ci;
+	nnet::const_init vi;
+	nnet::r_uniform_init ui;
+	nnet::r_normal_init ni;
+
+	std::string expect_const;
+	std::string expect_vec;
+	std::string minstr, maxstr;
+	std::string meanstr, stdevstr;
+	TENS_TYPE ctype = fuzz_const(this, ci, expect_const);
+	TENS_TYPE vtype = fuzz_vec(this, vi, expect_vec, shape.n_elems());
+	TENS_TYPE utype = fuzz_uniform(this, ui, minstr, maxstr);
+	TENS_TYPE ntype = fuzz_normal(this, ni, meanstr, stdevstr);
+
+	std::string csetting = ci.get_const().first;
+	std::string vsetting = vi.get_const().first;
+
+	ci.serialize(c_src);
+	vi.serialize(v_src);
+	ui.serialize(u_src);
+	ni.serialize(n_src);
+
+	EXPECT_EQ(CSRC, c_src.src());
+	EXPECT_EQ(CSRC, v_src.src());
+	EXPECT_EQ(USRC, u_src.src());
+	EXPECT_EQ(NSRC, n_src.src());
+	EXPECT_EQ(ctype, c_src.dtype());
+	EXPECT_EQ(vtype, v_src.dtype());
+	EXPECT_EQ(utype, u_src.dtype());
+	EXPECT_EQ(ntype, n_src.dtype());
+	EXPECT_STREQ(csetting.c_str(), c_src.settings(0).c_str());
+	EXPECT_STREQ(vsetting.c_str(), v_src.settings(0).c_str());
+	EXPECT_STREQ(minstr.c_str(), u_src.settings(0).c_str());
+	EXPECT_STREQ(maxstr.c_str(), u_src.settings(1).c_str());
+	EXPECT_STREQ(meanstr.c_str(), n_src.settings(0).c_str());
+	EXPECT_STREQ(stdevstr.c_str(), n_src.settings(1).c_str());
+
+	// rewrite data
+	ci.serialize(v_src);
+	vi.serialize(u_src);
+	ui.serialize(n_src);
+	ni.serialize(c_src);
+
+	EXPECT_EQ(CSRC, v_src.src());
+	EXPECT_EQ(CSRC, u_src.src());
+	EXPECT_EQ(USRC, n_src.src());
+	EXPECT_EQ(NSRC, c_src.src());
+	EXPECT_EQ(ctype, v_src.dtype());
+	EXPECT_EQ(vtype, u_src.dtype());
+	EXPECT_EQ(utype, n_src.dtype());
+	EXPECT_EQ(ntype, c_src.dtype());
+	EXPECT_STREQ(csetting.c_str(), v_src.settings(0).c_str());
+	EXPECT_STREQ(vsetting.c_str(), u_src.settings(0).c_str());
+	EXPECT_STREQ(minstr.c_str(), n_src.settings(0).c_str());
+	EXPECT_STREQ(maxstr.c_str(), n_src.settings(1).c_str());
+	EXPECT_STREQ(meanstr.c_str(), c_src.settings(0).c_str());
+	EXPECT_STREQ(stdevstr.c_str(), c_src.settings(1).c_str());
 }
 
 

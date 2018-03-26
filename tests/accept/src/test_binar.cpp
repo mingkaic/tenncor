@@ -1,6 +1,6 @@
 #ifndef DISABLE_TF_BINAR_TESTS
 
-#include "tests/regression/include/tf_verify.hpp"
+#include "tests/accept/include/tf_verify.hpp"
 
 #include "graph/leaf/variable.hpp"
 #include "operate/operations.hpp"

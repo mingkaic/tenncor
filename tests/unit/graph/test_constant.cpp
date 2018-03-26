@@ -16,7 +16,17 @@
 #ifndef DISABLE_CONSTANT_TEST
 
 
-class CONSTANT : public testify::fuzz_test {};
+class CONSTANT : public testify::fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testify::fuzz_test::TearDown();
+		testify::mocker::clear();
+	}
+};
 
 
 using namespace testutils;

@@ -184,14 +184,13 @@ std::vector<T> expose (const tensor* tens)
 {
 	portal_dest port;
 	tens->write_to(port);
-	assert(get_type<T>() == port.type_);
-	size_t n = port.shape_.n_elems();
-	if (port.data_.expired())
+	size_t n = port.input_.shape_.n_elems();
+	if (port.input_.data_.expired())
 	{
 		throw std::exception(); // tensor write failed
 	}
-	T* ptr = (T*) port.data_.lock().get();
-	return std::vector<T>(ptr, ptr + n);
+	void* vptr = port.input_.data_.lock().get();
+	return type_convert<T>(vptr, n, port.input_.type_);
 }
 
 }
