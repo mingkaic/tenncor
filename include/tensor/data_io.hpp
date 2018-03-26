@@ -44,17 +44,9 @@ struct idata_dest
 
 struct portal_dest : public idata_dest
 {
-	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
-	{
-		input_ = {data, shape, type};
-	}
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t);
 
-	void clear (void)
-	{
-		input_.data_.reset();
-		input_.type_ = BAD_T;
-		input_.shape_.undefine();
-	}
+	void clear (void);
 
 	tens_state input_;
 };
@@ -62,6 +54,9 @@ struct portal_dest : public idata_dest
 struct assign_io final : virtual idata_src, virtual idata_dest
 {
 	assign_io (void) {}
+
+	virtual ~assign_io (void) {}
+
 	assign_io (const assign_io&) = delete;
 	assign_io (assign_io&&) = delete;
 	assign_io& operator = (const assign_io&) = delete;
@@ -92,20 +87,9 @@ struct operate_io final : virtual idata_src, virtual idata_dest
 
 	virtual ~operate_io (void) {}
 
-	operate_io* clone (void) const
-	{
-		return dynamic_cast<operate_io*>(clone_impl());
-	}
+	operate_io* clone (void) const;
 
-	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx)
-	{
-		size_t nargs = args_.size();
-		if (idx >= nargs)
-		{
-			args_.insert(args_.end(), idx - args_.size() + 1, tens_state{});
-		}
-		args_[idx] = tens_state{data, shape, type};
-	}
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx);
 
 	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
 

@@ -94,3 +94,5 @@ E002 - assign_io copies data from one (input) dataset to an output dataset
 		throw exception if no input data is set prior to output tensor evaluation,
 		the type is bad, or the shapes of input and output are not equal
 E003 - operate_io set tensor order is irrelevant of result
+		operate processes and sets output data according to 
+		operation and type process on construction

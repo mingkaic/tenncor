@@ -13,6 +13,20 @@
 namespace nnet
 {
 
+void portal_dest::set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
+{
+	input_ = {data, shape, type};
+}
+
+void portal_dest::clear (void)
+{
+	input_.data_.reset();
+	input_.type_ = BAD_T;
+	input_.shape_.undefine();
+}
+
+
+
 assign_io* assign_io::clone (void) const
 {
 	return dynamic_cast<assign_io*>(clone_impl());
@@ -39,6 +53,22 @@ idata_src* assign_io::clone_impl (void) const
 	return new assign_io();
 }
 
+
+
+operate_io* operate_io::clone (void) const
+{
+	return dynamic_cast<operate_io*>(clone_impl());
+}
+
+void operate_io::set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx)
+{
+	size_t nargs = args_.size();
+	if (idx >= nargs)
+	{
+		args_.insert(args_.end(), idx - args_.size() + 1, tens_state{});
+	}
+	args_[idx] = tens_state{data, shape, type};
+}
 
 void operate_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
