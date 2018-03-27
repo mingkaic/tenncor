@@ -2,7 +2,7 @@
 // Created by Mingkai Chen on 2017-04-27.
 //
 
-#include "include/graph/leaf/variable.hpp"
+#include "include/graph/variable.hpp"
 #include "include/operate/operations.hpp"
 
 #pragma once

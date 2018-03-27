@@ -9,10 +9,7 @@
 #include "include/operate/operations.hpp"
 #include "include/operate/operation_utils.hpp"
 
-#include "include/graph/func/elem_func.hpp"
-#include "include/graph/func/shape_func.hpp"
-#include "include/graph/func/coord_func.hpp"
-#include "include/graph/func/agg_func.hpp"
+#include "include/operate/common.hpp"
 
 #ifdef TENNCOR_OP_STD_HPP
 

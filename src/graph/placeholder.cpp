@@ -6,7 +6,7 @@
 //  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
-#include "include/graph/leaf/placeholder.hpp"
+#include "include/graph/placeholder.hpp"
 
 #ifdef TENNCOR_PLACEHOLDER_HPP
 

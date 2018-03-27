@@ -6,7 +6,7 @@
 //  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
-#include "include/graph/leaf/constant.hpp"
+#include "include/graph/constant.hpp"
 
 #ifdef TENNCOR_CONSTANT_HPP
 

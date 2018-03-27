@@ -9,8 +9,7 @@
 #include "include/operate/operations.hpp"
 #include "include/operate/operation_utils.hpp"
 
-#include "include/graph/func/agg_func.hpp"
-#include "include/graph/func/functor.hpp"
+#include "include/operate/common.hpp"
 
 #ifdef TENNCOR_OP_COM_HPP
 

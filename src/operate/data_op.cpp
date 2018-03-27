@@ -13,6 +13,8 @@
 namespace nnet
 {
 
+using VFUNC_F = std::function<void(VARR_T,std::vector<CVAR_T>)>;
+
 template <typename VALUE_F>
 using TYPEMAP_T = std::unordered_map<TENS_TYPE,VALUE_F>;
 
@@ -71,7 +73,7 @@ bool has_agg (std::string opname)
 	return agg_registry.end() != agg_registry.find(opname);
 }
 
-VTFUNC_F ebind_name (std::string opname)
+VTFUNC_F ebind (std::string opname)
 {
 	auto type_it = ele_registry.find(opname);
 	return [type_it](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> src)

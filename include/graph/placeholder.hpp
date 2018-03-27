@@ -15,7 +15,7 @@
 #include <new>
 #include <memory>
 
-#include "include/graph/leaf/constant.hpp"
+#include "include/graph/constant.hpp"
 
 #pragma once
 #ifndef TENNCOR_PLACEHOLDER_HPP

@@ -1,7 +1,7 @@
 #include <vector>
 #include <string>
 
-#include "include/graph/leaf/variable.hpp"
+#include "include/graph/variable.hpp"
 
 #pragma once
 #ifndef TF_READER_HPP

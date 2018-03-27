@@ -6,7 +6,7 @@
 //  Copyright © 2018 Mingkai Chen. All rights reserved. 
 //
 
-#include "include/graph/func/functor.hpp"
+#include "include/graph/functor.hpp"
 
 #ifdef TENNCOR_FUNCTOR_HPP
 

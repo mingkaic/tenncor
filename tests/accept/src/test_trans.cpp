@@ -2,7 +2,7 @@
 
 #include "tests/accept/include/tf_verify.hpp"
 
-#include "graph/leaf/variable.hpp"
+#include "graph/variable.hpp"
 #include "operate/operations.hpp"
 
 

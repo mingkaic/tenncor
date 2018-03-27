@@ -11,8 +11,8 @@
 #include "mock_node.hpp"
 #include "mock_observer.hpp"
 
-#include "graph/func/functor.hpp"
-#include "graph/leaf/variable.hpp"
+#include "graph/functor.hpp"
+#include "graph/variable.hpp"
 
 
 #ifndef DISABLE_FUNCTOR_TEST

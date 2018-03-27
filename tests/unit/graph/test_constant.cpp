@@ -10,7 +10,7 @@
 #include "check.hpp"
 #include "mock_observer.hpp"
 
-#include "graph/leaf/constant.hpp"
+#include "graph/constant.hpp"
 
 
 #ifndef DISABLE_CONSTANT_TEST

@@ -1,7 +1,6 @@
 #include "include/operate/operations.hpp"
 
-#include "include/graph/func/functor.hpp"
-#include "include/graph/func/coord_func.hpp"
+#include "include/operate/common.hpp"
 
 #ifdef TENNCOR_OP_MATMUL_HPP
 
@@ -239,7 +238,7 @@ varptr matmul (varptr a, varptr b)
 	return functor::get({a, b}, 
 	[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
 	{
-		operate_io* io = new operate_io(ebind_name("matmul"));
+		operate_io* io = new operate_io(ebind("matmul"));
 		src = std::unique_ptr<idata_src>(io);
 		const tensor* a = args.front()->get_tensor();
 		const tensor* b = args.back()->get_tensor();

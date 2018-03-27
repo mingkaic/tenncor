@@ -38,7 +38,7 @@ use libraries
 
 	#include "executor/gradient.hpp"
 	#include "graph/varptr.hpp"
-	#include "graph/leaf/variable.hpp"
+	#include "graph/variable.hpp"
 	#include "operate/operations.hpp"
 	
 	using namespace nnet;

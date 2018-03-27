@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "graph/leaf/variable.hpp"
+#include "graph/variable.hpp"
 
 #ifndef TF_VERIFY_HPP
 #define TF_VERIFY_HPP

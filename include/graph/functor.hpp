@@ -12,7 +12,7 @@
  */
 
 #include "include/graph/react/iobserver.hpp"
-#include "include/graph/leaf/constant.hpp" 
+#include "include/graph/constant.hpp" 
 
 #ifndef TENNCOR_FUNCTOR_HPP
 #define TENNCOR_FUNCTOR_HPP

@@ -6,7 +6,7 @@
 //  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
-#include "include/graph/leaf/variable.hpp"
+#include "include/graph/variable.hpp"
 
 #ifdef TENNCOR_VARIABLE_HPP
 

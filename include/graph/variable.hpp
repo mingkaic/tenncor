@@ -11,7 +11,7 @@
  *
  */
 
-#include "include/graph/leaf/constant.hpp"
+#include "include/graph/constant.hpp"
 
 #pragma once
 #ifndef TENNCOR_VARIABLE_HPP

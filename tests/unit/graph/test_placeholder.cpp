@@ -10,7 +10,7 @@
 #include "check.hpp"
 #include "mock_observer.hpp"
 
-#include "graph/leaf/placeholder.hpp"
+#include "graph/placeholder.hpp"
 
 
 #ifndef DISABLE_PLACEHOLDER_TEST

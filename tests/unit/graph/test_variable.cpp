@@ -11,7 +11,7 @@
 #include "mock_src.hpp"
 #include "mock_observer.hpp"
 
-#include "graph/leaf/variable.hpp"
+#include "graph/variable.hpp"
 
 
 #ifndef DISABLE_VARIABLE_TEST

@@ -17,8 +17,8 @@
  *
  */
 
-#include "include/graph/leaf/constant.hpp"
-#include "include/graph/func/functor.hpp"
+#include "include/graph/constant.hpp"
+#include "include/graph/functor.hpp"
 
 #pragma once
 #ifndef TENNCOR_OPERATIONS_HPP

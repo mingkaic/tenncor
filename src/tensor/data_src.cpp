@@ -13,9 +13,9 @@
 namespace nnet
 {
 
-static VTFUNC_F runiform = ebind_name("rand_uniform");
+static VTFUNC_F runiform = ebind("rand_uniform");
 
-static VTFUNC_F rnormal = ebind_name("rand_normal");
+static VTFUNC_F rnormal = ebind("rand_normal");
 
 idata_src::~idata_src (void) {}
 

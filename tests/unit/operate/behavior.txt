@@ -1,16 +1,54 @@
-// GRAPH SERIALIZATION
-- graph serialization creates the same graph structure (without constraints on node id)
-- serialized nodes saves the labels
-- serialized constant saves the data
-- serialized placeholder saves the allowed shape
-- serialized variable saves the data_ep_, the data source, and the allowed shape
-- serialized functor saves the opcode, deserialization constructs the same type of operation
+// FUNCTIONAL BIND
+A000 - abs ebinds to "abs". it returns the absolute value of input
+A001 - neg ebinds to "neg". it returns the negative value of input
+A002 - logical not ebinds to "logic_not". it applies the ! operator to input
+A003 - sin ebinds to "sin". it applies the std::sin operator to input
+A004 - cos ebinds to "cos". it applies the std::cos operator to input
+A005 - tan ebinds to "tan". it applies the std::tan operator to input
+A006 - exp ebinds to "exp". it applies the std::exp operator to input
+A007 - log ebinds to "log". it applies the std::log operator to input
+A008 - sqrt ebinds to "sqrt". it applies the std::sqrt operator to input
+A009 - round ebinds to "round". it applies the std::round operator to input
 
-- data serialization and deserialization persists the data in variables
+A010 - pow ebinds to "pow". it takes 2 inputs returns input1 to the power of input2
+A011 - add ebinds to "add". it takes 2 inputs returns the sum
+A012 - sub ebinds to "sub". it takes 2 inputs returns the difference
+A013 - mul ebinds to "mul". it takes 2 inputs returns the product
+A014 - div ebinds to "div". it takes 2 inputs returns the quotient
+A015 - eq ebinds to "eq". it takes 2 inputs and applies the == operator to inputs
+A016 - neq ebinds to "neq". it takes 2 inputs and applies the != operator to inputs
+A017 - lt ebinds to "lt". it takes 2 inputs and applies the < operator to inputs
+A018 - gt ebinds to "gt". it takes 2 inputs and applies the > operator to inputs
+A019 - rand_uniform ebinds to "rand_uniform". 
+		it takes 2 inputs and returns the uniform_..._distribution(input1, input2)
+A020 - rand_binom ebinds to "rand_binom". 
+		it takes 2 inputs and returns the binomial_distribution(input1, input2)
+		throws bad_function_call if type is double or float
+A021 - rand_normal ebinds to "rand_normal". 
+		it takes 2 inputs and returns the normal_distribution(input1, input2)
+		throws bad_function_call if type is integer
+A022 - matmul ebinds to "matmul". it takes 2 inputs and 
+		returns matrix multiplication of the first 2 dimensions of inputs
+
+A023 - argmax abinds to "argmax". it returns the index of the max value
+A024 - max abinds to "max". it returns the max value
+A025 - sum abinds to "sum". it returns the sum of the inputs
 
 // OPERATION OPTIMIZATION
-- multiple constant containing the same values will use the same instance
-- multiple operations on the same array of arguments will use the same instance 
+B000 - multiple constant containing the same values will use the same instance
+B001 - multiple operations on the same array of arguments will use the same instance
+
+// GRAPH SERIALIZATION
+C000 - graph serialization creates the same graph structure (without constraints on node id)
+C001 - serialized nodes saves the labels
+C002 - serialized constant saves the data
+C003 - serialized placeholder saves the allowed shape
+C004 - serialized variable saves the data_ep_, the data source, and the allowed shape
+C005 - serialized functor saves the opcode, deserialization constructs the same type of operation
+C006 - data serialization and deserialization persists the data in variables
+
+
+
 
 // ELEMENTARY BEHAVIORS
 A000 - any operation accepting nullptr as any operand returns nullptr

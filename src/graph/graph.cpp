@@ -7,8 +7,8 @@
 //
 
 #include "include/operate/operations.hpp"
-#include "include/graph/leaf/variable.hpp"
-#include "include/graph/leaf/placeholder.hpp"
+#include "include/graph/variable.hpp"
+#include "include/graph/placeholder.hpp"
 
 #ifdef TENNCOR_GRAPH_HPP
 

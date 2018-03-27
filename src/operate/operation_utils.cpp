@@ -7,7 +7,7 @@
 //
 
 #include "include/operate/operation_utils.hpp"
-#include "include/graph/func/functor.hpp"
+#include "include/graph/functor.hpp"
 
 #ifdef TENNCOR_OPERATION_UTILS_HPP
 

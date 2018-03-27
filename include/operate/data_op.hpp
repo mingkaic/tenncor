@@ -29,8 +29,6 @@ using VARR_T = std::pair<void*,tensorshape>;
 
 using CVAR_T = std::pair<const void*,tensorshape>;
 
-using VFUNC_F = std::function<void(VARR_T,std::vector<CVAR_T>)>;
-
 using AFUNC_F = std::function<void(size_t,void*,void*)>;
 
 using VTFUNC_F = std::function<void(TENS_TYPE,VARR_T,std::vector<CVAR_T>)>;
@@ -41,7 +39,7 @@ bool has_ele (std::string opname);
 
 bool has_agg (std::string opname);
 
-VTFUNC_F ebind_name (std::string opname);
+VTFUNC_F ebind (std::string opname);
 
 ATFUNC_F abind_name (std::string opname);
 
