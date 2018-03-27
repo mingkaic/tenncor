@@ -20,7 +20,7 @@
 namespace nnet
 {
 
-using SVARR_T = std::pair<std::weak_ptr<void>,tensorshape>;
+using TYPE_F = std::function<TENS_TYPE(std::vector<TENS_TYPE>)>;
 
 using GLUE_F = std::function<void(VARR_T,CVAR_T,unsigned short,size_t)>;
 
@@ -30,6 +30,45 @@ using OMAP_F = std::function<std::vector<signed>(tensorshape,const tensorshape,s
 
 struct tens_state final
 {
+	tens_state (void) : type_(BAD_T) {}
+
+	tens_state (std::weak_ptr<void> data,
+		tensorshape shape, TENS_TYPE type) : 
+		data_(data), shape_(shape), type_(type) {}
+
+	tens_state (const tens_state& other) :
+		data_(other.data_),
+		shape_(other.shape_),
+		type_(other.type_) {}
+	
+	tens_state (tens_state&& other) :
+		data_(std::move(other.data_)),
+		shape_(std::move(other.shape_)),
+		type_(other.type_) { other.type_ = BAD_T; }
+
+	tens_state& operator = (const tens_state& other)
+	{
+		if (this != &other)
+		{
+			data_ = other.data_;
+			shape_ = other.shape_;
+			type_ = other.type_; 
+		}
+		return *this;
+	}
+
+	tens_state& operator = (tens_state&& other)
+	{
+		if (this != &other)
+		{
+			data_ = std::move(other.data_);
+			shape_ = std::move(other.shape_);
+			type_ = other.type_;
+			other.type_ = BAD_T;
+		}
+		return *this;
+	}
+
 	std::weak_ptr<void> data_;
 	tensorshape shape_;
 	TENS_TYPE type_;
@@ -57,18 +96,39 @@ struct assign_io final : virtual idata_src, virtual idata_dest
 
 	virtual ~assign_io (void) {}
 
-	assign_io (const assign_io&) = delete;
-	assign_io (assign_io&&) = delete;
-	assign_io& operator = (const assign_io&) = delete;
-	assign_io& operator = (assign_io&&) = delete;
-
 	assign_io* clone (void) const;
+
+	assign_io (assign_io&& other) :
+		idata_src(std::move(other)), idata_dest(std::move(other)),
+		input_(std::move(other.input_)) {}
+	
+	assign_io& operator = (const assign_io& other)
+	{
+		if (this != &other)
+		{
+			input_ = other.input_;
+		}
+		return *this;
+	}
+
+	assign_io& operator = (assign_io&& other)
+	{
+		if (this != &other)
+		{
+			input_ = std::move(other.input_);
+		}
+		return *this;
+	}
 	
 	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx);
 
 	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
 
 private:
+	assign_io (const assign_io& other) : 
+		idata_src(other), idata_dest(other),
+		input_(other.input_) {}
+
 	virtual idata_src* clone_impl (void) const;
 
 	tens_state input_;
@@ -77,7 +137,7 @@ private:
 struct operate_io final : virtual idata_src, virtual idata_dest
 {
 	// default to homogeneous type
-	operate_io (VTFUNC_F op, std::function<TENS_TYPE(std::vector<TENS_TYPE>)> tprocess = 
+	operate_io (VTFUNC_F op, TYPE_F tprocess = 
 	[](std::vector<TENS_TYPE> types)
 	{
 		assert(types.size() > 0 && std::adjacent_find(types.begin(), types.end(), 
@@ -89,11 +149,43 @@ struct operate_io final : virtual idata_src, virtual idata_dest
 
 	operate_io* clone (void) const;
 
+	operate_io (operate_io&& other) :
+		idata_src(std::move(other)), idata_dest(std::move(other)),
+		tprocess_(std::move(other.tprocess_)),
+		args_(std::move(other.args_)), op_(std::move(other.op_)) {}
+	
+	operate_io& operator = (const operate_io& other)
+	{
+		if (this != &other)
+		{
+			tprocess_ = other.tprocess_;
+			args_ = other.args_;
+			op_ = other.op_;
+		}
+		return *this;
+	}
+
+	operate_io& operator = (operate_io&& other)
+	{
+		if (this != &other)
+		{
+			tprocess_ = std::move(other.tprocess_);
+			args_ = std::move(other.args_);
+			op_ = std::move(other.op_);
+		}
+		return *this;
+	}
+
 	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx);
 
 	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
 
 private:
+	operate_io (const operate_io& other) :
+		idata_src(other), idata_dest(other),
+		tprocess_(other.tprocess_),
+		args_(other.args_), op_(other.op_) {}
+
 	virtual idata_src* clone_impl (void) const;
 
 	std::function<TENS_TYPE(std::vector<TENS_TYPE>)> tprocess_;

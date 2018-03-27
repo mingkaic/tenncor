@@ -36,9 +36,15 @@ using namespace testutils;
 TEST_F(NODE, OnGraph_B000)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
-	mock_node node(label);
-	EXPECT_TRUE(nnet::graph::get_global().has_node(&node)) <<
-		sprintf("node %s is not registered in graph", node.get_uid().c_str());
+	mock_node* ptr;
+	{
+		mock_node node(label);
+		ptr = &node;
+		EXPECT_TRUE(nnet::graph::get_global().has_node(&node)) <<
+			sprintf("node %s is not registered in graph", node.get_uid().c_str());
+	}
+	EXPECT_FALSE(nnet::graph::get_global().has_node(ptr)) <<
+		sprintf("deleted node with ptr %d is not removed from graph", ptr);
 }
 
 

@@ -96,3 +96,4 @@ E002 - assign_io copies data from one (input) dataset to an output dataset
 E003 - operate_io set tensor order is irrelevant of result
 		operate processes and sets output data according to 
 		operation and type process on construction
+		throws if no arguments or bad destination type

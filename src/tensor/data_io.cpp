@@ -39,8 +39,11 @@ void assign_io::set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape 
 
 void assign_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
 {
-	assert(input_.type_ != BAD_T && !input_.data_.expired() &&
-		shape.is_compatible_with(input_.shape_));
+	if (input_.type_ == BAD_T || input_.data_.expired() ||
+		false == shape.is_compatible_with(input_.shape_))
+	{
+		throw std::exception();
+	}
 	type = input_.type_;
 	// assert shape.is_compatible_with(input_.second);
 	size_t nbytes = shape.n_elems() * type_size(type);
@@ -50,7 +53,7 @@ void assign_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensor
 
 idata_src* assign_io::clone_impl (void) const
 {
-	return new assign_io();
+	return new assign_io(*this);
 }
 
 
@@ -79,7 +82,10 @@ void operate_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tenso
 		return state.type_;
 	});
 	TENS_TYPE outtype = tprocess_(argtypes);
-	assert(op_ && outtype != BAD_T && !args_.empty());
+	if (!op_ || outtype == BAD_T || args_.empty())
+	{
+		throw std::exception();
+	}
 	type = outtype;
 	size_t nbytes = shape.n_elems() * type_size(type);
 	nnutils::check_ptr(outptr, nbytes);
