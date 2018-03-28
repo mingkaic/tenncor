@@ -41,7 +41,7 @@ bool has_agg (std::string opname);
 
 VTFUNC_F ebind (std::string opname);
 
-ATFUNC_F abind_name (std::string opname);
+ATFUNC_F abind (std::string opname);
 
 #ifndef TENNCOR_D_UNARY_HPP
 #define TENNCOR_D_UNARY_HPP

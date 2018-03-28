@@ -157,6 +157,11 @@ static inline varptr comparator (std::string opname, OPCODE op, inode* a, inode*
 	return out;
 }
 
+void type_assert(const varptr a, TENS_TYPE type)
+{
+	// todo: implement
+}
+
 varptr abs (const varptr a)
 {
 	return lin_unar("abs", ABS, a,
@@ -417,6 +422,7 @@ varptr operator > (const varptr a, const varptr b)
 
 varptr binomial_sample (const varptr n, const varptr p)
 {
+	type_assert(p, DOUBLE);
 	return sample("rand_binom", BINO, n, p);
 }
 
@@ -427,7 +433,7 @@ varptr uniform_sample (const varptr min, const varptr max)
 
 varptr normal_sample (const varptr mean, const varptr stdev)
 {
-	return sample("rand_normal", NORM, mean, stdev);
+	return sample("rand_normal", NORM, mean, abs(stdev));
 }
 
 

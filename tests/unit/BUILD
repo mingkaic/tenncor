@@ -34,7 +34,7 @@ cc_test(
 
 cc_test(
     name = "test_operate",
-    size = "medium",
+    size = "small",
     srcs = glob([ "operate/*.cpp", "main.cpp" ]),
     deps = [
         "//:tenncor",

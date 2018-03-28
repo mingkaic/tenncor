@@ -61,7 +61,7 @@ std::memcpy(&everything[0], &vec[0], vec.size() * sizeof(TYPE));
 	} \
 	stdev_count[idx]++;
 
-#define ERR_THRESH 0.03 // 5% error
+#define ERR_THRESH 0.03 // 3% error
 
 
 TENS_TYPE fuzz_const (testify::fuzz_test* fuzzer, 
@@ -780,8 +780,8 @@ TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 	float n = shape.n_elems();
 	// check the first 3 stdev
 	float expect68 = stdev_count[0] / n; // expect ~68%
-	float expect95 = stdev_count[1] / n; // expect ~95%
-	float expect99 = stdev_count[2] / n; // expect ~99.7%
+	float expect95 = (stdev_count[0] + stdev_count[1]) / n; // expect ~95%
+	float expect99 = (stdev_count[0] + stdev_count[1] + stdev_count[2]) / n; // expect ~99.7%
 
 	float err1 = std::abs(0.68 - expect68);
 	float err2 = std::abs(0.95 - expect95);

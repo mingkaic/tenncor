@@ -8,6 +8,7 @@
 
 #include "sgen.hpp"
 #include "check.hpp"
+#include "print.hpp"
 #include "mock_observer.hpp"
 
 #include "graph/placeholder.hpp"

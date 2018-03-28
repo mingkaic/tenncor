@@ -34,6 +34,8 @@ inode* run_opcode (std::vector<inode*> args, OPCODE code);
 #ifndef TENNCOR_OP_STD_HPP
 #define TENNCOR_OP_STD_HPP
 
+void type_assert (const varptr a, TENS_TYPE type);
+
 // >>>>>>>>>>>> UNARY STANDARD OPS <<<<<<<<<<<<
 
 //! absolute value of a

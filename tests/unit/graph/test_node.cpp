@@ -8,6 +8,7 @@
 
 #include "fuzz/fuzz.hpp"
 #include "check.hpp"
+#include "print.hpp"
 
 #include "graph/graph.hpp"
 #include "mock_node.hpp"

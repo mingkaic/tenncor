@@ -8,6 +8,7 @@
 
 #include "sgen.hpp"
 #include "check.hpp"
+#include "print.hpp"
 
 
 #ifndef DISABLE_SHAPE_TEST

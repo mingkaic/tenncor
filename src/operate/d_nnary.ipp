@@ -1,9 +1,9 @@
 //
-//  d_nnary.ipp
-//  cnnet
+// d_nnary.ipp
+// cnnet
 //
-//  Created by Mingkai Chen on 2018-01-19.
-//  Copyright © 2018 Mingkai Chen. All rights reserved.
+// Created by Mingkai Chen on 2018-01-19.
+// Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
 #ifdef TENNCOR_D_NNARY_HPP
@@ -147,7 +147,7 @@ void neq (VARR_T dest, std::vector<CVAR_T> srcs)
 
 	for (size_t i = 0; i < n; ++i)
 	{
-		d[i] = (T)  sa[i * left_mul] != sb[i * right_mul];
+		d[i] = (T) sa[i * left_mul] != sb[i * right_mul];
 	}
 }
 
@@ -167,7 +167,7 @@ void lt (VARR_T dest, std::vector<CVAR_T> srcs)
 
 	for (size_t i = 0; i < n; ++i)
 	{
-		d[i] = (T)  sa[i * left_mul] < sb[i * right_mul];
+		d[i] = (T) sa[i * left_mul] < sb[i * right_mul];
 	}
 }
 
@@ -187,7 +187,7 @@ void gt (VARR_T dest, std::vector<CVAR_T> srcs)
 
 	for (size_t i = 0; i < n; ++i)
 	{
-		d[i] = (T)  sa[i * left_mul] > sb[i * right_mul];
+		d[i] = (T) sa[i * left_mul] > sb[i * right_mul];
 	}
 }
 
@@ -200,7 +200,7 @@ void rand_binom (VARR_T dest, std::vector<CVAR_T> srcs)
 	tensorshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sn = (const T*) srcs.front().first;
-	const T* sp = (const T*) srcs.back().first;
+	const double* sp = (const double*) srcs.back().first;
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -228,6 +228,7 @@ void rand_uniform (VARR_T dest, std::vector<CVAR_T> srcs)
 
 	for (size_t i = 0; i < n; ++i)
 	{
+		// assert(s_min[i * min_mul] < s_max[i * max_mul]);
 		std::uniform_int_distribution<T> dist(s_min[i * min_mul], s_max[i * max_mul]);
 		d[i] = dist(nnutils::get_generator());
 	}

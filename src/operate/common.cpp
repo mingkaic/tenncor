@@ -130,7 +130,7 @@ functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 		
 			std::unordered_set<size_t> outmap;
 			size_t per = type_size(type);
-			AFUNC_F agg = abind_name(opname)(type);
+			AFUNC_F agg = abind(opname)(type);
 			for (size_t i = 0; i < index.size(); ++i)
 			{
 				if (outmap.end() == outmap.find(index[i]))
@@ -196,7 +196,7 @@ functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 
 			std::unordered_set<size_t> outmap;
 			size_t per = type_size(type);
-			AFUNC_F agg = abind_name(opname)(type);
+			AFUNC_F agg = abind(opname)(type);
 			for (size_t i = 0; i < index.size(); ++i)
 			{
 				if (outmap.end() == outmap.find(index[i]))

@@ -92,7 +92,7 @@ VTFUNC_F ebind (std::string opname)
 	};
 }
 
-ATFUNC_F abind_name (std::string opname)
+ATFUNC_F abind (std::string opname)
 {
 	auto type_it = agg_registry.find(opname);
 	return [type_it](TENS_TYPE type)
