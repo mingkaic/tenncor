@@ -122,27 +122,18 @@ functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 		[opname](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 		{
 			assert(srcs.size() == 1);
-			char* out = (char*) dest.first;
+			AFUNC_F agg = abind(opname)(type);
 			const char* in = (const char*) srcs[0].first;
 			tensorshape outshape = dest.second;
 			tensorshape inshape = srcs[0].second;
-			std::vector<size_t> index(inshape.n_elems(), 0);
-		
-			std::unordered_set<size_t> outmap;
 			size_t per = type_size(type);
-			AFUNC_F agg = abind(opname)(type);
-			for (size_t i = 0; i < index.size(); ++i)
+			size_t n = inshape.n_elems();
+			std::vector<const void*> args(n);
+			for (size_t i = 0; i < n; ++i)
 			{
-				if (outmap.end() == outmap.find(index[i]))
-				{
-					memcpy(out + index[i] * per, in + i * per, per);
-					outmap.insert(index[i]);
-				}
-				else
-				{
-					agg(i, out + index[i] * per, (void*) in);
-				}
+				args[i] = (const void*) (in + i * per);
 			}
+			agg(dest.first, args);
 		});
 		src = std::unique_ptr<idata_src>(asrc);
 		const tensor* tens = args[0]->get_tensor();
@@ -173,16 +164,19 @@ functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 		[opname](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 		{
 			assert(srcs.size() == 2);
+			AFUNC_F agg = abind(opname)(type);
 			char* out = (char*) dest.first;
 			const char* in = (const char*) srcs[0].first;
 			uint64_t dim = *((uint64_t*) srcs[1].first);
 			tensorshape outshape = dest.second;
 			tensorshape inshape = srcs[0].second;
+			size_t per = type_size(type);
 
 			size_t rank = inshape.rank();
 			assert(rank > dim);
+			size_t nout = outshape.n_elems();
 			size_t nin = inshape.n_elems();
-			std::vector<size_t> index(nin, 0);
+			std::vector<std::vector<const void*> > args(nout);
 			if (rank > 1)
 			{
 				std::vector<size_t> coord;
@@ -190,24 +184,20 @@ functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 				{
 					coord = inshape.coord_from_idx(i);
 					coord.erase(coord.begin() + dim);
-					index[i] = outshape.flat_idx(coord);
+					args[outshape.flat_idx(coord)].push_back((const void*) (in + i * per));
 				}
 			}
-
-			std::unordered_set<size_t> outmap;
-			size_t per = type_size(type);
-			AFUNC_F agg = abind(opname)(type);
-			for (size_t i = 0; i < index.size(); ++i)
+			else
 			{
-				if (outmap.end() == outmap.find(index[i]))
+				assert(nout == 1);
+				for (size_t i = 0; i < nin; ++i)
 				{
-					memcpy(out + index[i] * per, in + i * per, per);
-					outmap.insert(index[i]);
+					args[0].push_back((const void*) (in + i * per));
 				}
-				else
-				{
-					agg(i, out + index[i] * per, (void*) in);
-				}
+			}
+			for (size_t i = 0; i < nout; ++i)
+			{
+				agg(out + i * per, args[i]);
 			}
 		},
 		[](std::vector<TENS_TYPE> types)

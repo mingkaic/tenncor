@@ -72,10 +72,9 @@ static void unaryAggTest (testify::fuzz_test* fuzzer, std::string op,
 
 	double expect = agg(argument);
 	double result = init;
-	for (size_t i = 0; i < n; ++i)
-	{
-		afunc(i, &result, &argument[i]);
-	}
+	std::vector<const void*> args(argument.size());
+	std::transform(argument.begin(), argument.end(), args.begin(), [](double& a) { return &a; });
+	afunc((void*) &result, args);
 	EXPECT_EQ(expect, result);
 }
 
@@ -560,35 +559,35 @@ TEST_F(BIND, Matmul_A022)
 }
 
 
-// TEST_F(BIND, Argmax_A023)
-// {
-// 	unaryAggTest(this, "argmax", 0,
-// 	[](std::vector<double> vec) -> double
-// 	{
-// 		auto it = std::max_element(vec.begin(), vec.end());
-// 		return (double) std::distance(vec.begin(), it);
-// 	});
-// }
+TEST_F(BIND, Argmax_A023)
+{
+	unaryAggTest(this, "argmax", 0,
+	[](std::vector<double> vec) -> double
+	{
+		auto it = std::max_element(vec.begin(), vec.end());
+		return (double) std::distance(vec.begin(), it);
+	});
+}
 
 
-// TEST_F(BIND, Max_A024)
-// {
-// 	unaryAggTest(this, "max", std::numeric_limits<double>::min(),
-// 	[](std::vector<double> vec) -> double
-// 	{
-// 		return *std::max_element(vec.begin(), vec.end());
-// 	});
-// }
+TEST_F(BIND, Max_A024)
+{
+	unaryAggTest(this, "max", std::numeric_limits<double>::min(),
+	[](std::vector<double> vec) -> double
+	{
+		return *std::max_element(vec.begin(), vec.end());
+	});
+}
 
 
-// TEST_F(BIND, Sum_A025)
-// {
-// 	unaryAggTest(this, "sum", 0,
-// 	[](std::vector<double> vec) -> double
-// 	{
-// 		return std::accumulate(vec.begin(), vec.end(), (double) 0);
-// 	});
-// }
+TEST_F(BIND, Sum_A025)
+{
+	unaryAggTest(this, "sum", 0,
+	[](std::vector<double> vec) -> double
+	{
+		return std::accumulate(vec.begin(), vec.end(), (double) 0);
+	});
+}
 
 
 #endif /* DISABLE_BIND_TEST */
