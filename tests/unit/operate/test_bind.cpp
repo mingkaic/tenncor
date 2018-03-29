@@ -47,7 +47,8 @@ static void unaryElemTest (testify::fuzz_test* fuzzer, std::string op,
 	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
 	std::vector<double> output(n);
 
-	ASSERT_TRUE(nnet::has_ele(op));
+	ASSERT_TRUE(nnet::has_ele(op)) <<
+		testutils::sprintf("unary %s not found", op.c_str());
 	nnet::VTFUNC_F unfunc = nnet::ebind(op);
 
 	unfunc(DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {nnet::CVAR_T{(const void*) &argument[0], shape}});
@@ -67,7 +68,8 @@ static void unaryAggTest (testify::fuzz_test* fuzzer, std::string op,
 	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
 	std::vector<double> output(n);
 
-	ASSERT_TRUE(nnet::has_agg(op));
+	ASSERT_TRUE(nnet::has_agg(op)) <<
+		testutils::sprintf("aggregate %s not found", op.c_str());
 	nnet::AFUNC_F afunc = nnet::abind(op)(DOUBLE);
 
 	double expect = agg(argument);
@@ -88,7 +90,8 @@ static void binaryElemTest (testify::fuzz_test* fuzzer, std::string op,
 	std::vector<double> argument1 = fuzzer->get_double(n, "argument1", limits);
 	std::vector<double> output(n);
 
-	ASSERT_TRUE(nnet::has_ele(op));
+	ASSERT_TRUE(nnet::has_ele(op)) <<
+		testutils::sprintf("binary %s not found", op.c_str());
 	nnet::VTFUNC_F bifunc = nnet::ebind(op);
 
 	bifunc(DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
@@ -115,7 +118,8 @@ static void binaryElemTestInt (testify::fuzz_test* fuzzer, std::string op,
 	std::vector<uint64_t> argument1(temp1.begin(), temp1.end());
 	std::vector<uint64_t> output(n);
 
-	ASSERT_TRUE(nnet::has_ele(op));
+	ASSERT_TRUE(nnet::has_ele(op)) <<
+		testutils::sprintf("binary %s not found", op.c_str());
 	nnet::VTFUNC_F bifunc = nnet::ebind(op);
 
 	bifunc(UINT64, nnet::VARR_T{(void*) &output[0], shape}, {
@@ -372,7 +376,7 @@ TEST_F(BIND, Uniform_A019)
 
 TEST_F(BIND, Binom_A020)
 {
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();
 	auto temp0 = get_int(n, "argument0", {2, 19});
 	std::vector<uint64_t> argument0(temp0.begin(), temp0.end());
@@ -430,7 +434,7 @@ TEST_F(BIND, Binom_A020)
 
 TEST_F(BIND, Norm_A021)
 {
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();
 	std::vector<double> argument0 = get_double(n, "argument0", {-21, 154});
 	std::vector<double> argument1 = get_double(n, "argument1", {1, 123});
@@ -554,7 +558,7 @@ TEST_F(BIND, Matmul_A022)
 		std::vector<int64_t> chunkb(it1 + i * nchunk1, it1 + (i + 1) * nchunk1);
 		std::vector<int64_t> chunkr(itr + i * nchunkr, itr + (i + 1) * nchunkr);
 		EXPECT_TRUE(freivald(this, create2D(chunka, m, n), create2D(chunkb, k, m), create2D(chunkr, k, n))) <<
-			sprintf("matrix multiplication failed at level %i", i);
+			testutils::sprintf("matrix multiplication failed at level %i", i);
 	}
 }
 

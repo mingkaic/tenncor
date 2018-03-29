@@ -104,7 +104,7 @@ static inline varptr lin_unar (std::string opname, OPCODE op, inode* input, BACK
 {
 	if (nullptr == input) return nullptr;
 	// always check if the same operation on input exists
-	if (inode* parent = single_parent(input, opname))
+	if (inode* parent = single_parent(input, op))
 	{
 		return parent;
 	}
@@ -115,7 +115,7 @@ static inline varptr sample (std::string opname, OPCODE op, inode* a, inode* b)
 {
 	if (nullptr == a || nullptr == b) return nullptr;
 	std::vector<inode*> deps = {a, b};
-	if (inode* parent = ordered_parent(deps, opname))
+	if (inode* parent = ordered_parent(deps, op))
 	{
 		return parent;
 	}
@@ -133,14 +133,14 @@ static inline varptr comparator (std::string opname, OPCODE op, inode* a, inode*
 	varptr out;
 	if (nullptr == a && nullptr == b)
 	{
-		out = constant::get<double>((double) 1);
+		out = constant::get<double>(1);
 	}
 	else if (nullptr == a || nullptr == b)
 	{
 		return nullptr;
 	}
 	std::vector<inode*> deps = {a, b};
-	if (inode* parent = unordered_parent(deps, opname))
+	if (inode* parent = unordered_parent(deps, op))
 	{
 		return parent;
 	}
@@ -294,14 +294,16 @@ varptr round (const varptr a)
 
 varptr pow (const varptr b, const varptr x)
 {
-	if (nullptr == b.get() || nullptr == x.get()) return nullptr;
+	if (nullptr == b.get()) return nullptr;
+	if (nullptr == x.get()) return constant::get<double>(1);
 	std::string opname = "pow";
+	OPCODE op = POW;
 	std::vector<inode*> deps = {b, x};
-	if (inode* parent = ordered_parent(deps, opname))
+	if (inode* parent = ordered_parent(deps, op))
 	{
 		return parent;
 	}
-	return elem_func(deps, opname, POW,
+	return elem_func(deps, opname, op,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// pow'(f(x), g(x)) =
@@ -320,12 +322,13 @@ varptr operator + (const varptr a, const varptr b)
 	if (nullptr == a.get()) return b;
 	if (nullptr == b.get()) return a;
 	std::string opname = "add";
+	OPCODE op = ADD;
 	std::vector<inode*> deps = {a, b};
-	if (inode* parent = unordered_parent(deps, opname))
+	if (inode* parent = unordered_parent(deps, op))
 	{
 		return parent;
 	}
-	return elem_func(deps, opname, ADD,
+	return elem_func(deps, opname, op,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) + g'(x)
@@ -340,12 +343,13 @@ varptr operator - (const varptr a, const varptr b)
 	if (nullptr == a.get()) return -b;
 	if (nullptr == b.get()) return a;
 	std::string opname = "sub";
+	OPCODE op = SUB;
 	std::vector<inode*> deps = {a, b};
-	if (inode* parent = ordered_parent(deps, opname))
+	if (inode* parent = ordered_parent(deps, op))
 	{
 		return parent;
 	}
-	return elem_func(deps, opname, SUB,
+	return elem_func(deps, opname, op,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) - g'(x)
@@ -359,12 +363,13 @@ varptr operator * (const varptr a, const varptr b)
 {
 	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
 	std::string opname = "mul";
+	OPCODE op = MUL;
 	std::vector<inode*> deps = {a, b};
-	if (inode* parent = unordered_parent(deps, opname))
+	if (inode* parent = unordered_parent(deps, op))
 	{
 		return parent;
 	}
-	return elem_func(deps, opname, MUL,
+	return elem_func(deps, opname, op,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = f'(x)*g(x) + f(x)*g'(x)
@@ -381,12 +386,13 @@ varptr operator / (const varptr a, const varptr b)
 	if (nullptr == a.get()) return nullptr;
 	if (nullptr == b.get()) throw std::exception(); // todo: divide by zero error
 	std::string opname = "div";
+	OPCODE op = DIV;
 	std::vector<inode*> deps = {a, b};
-	if (inode* parent = ordered_parent(deps, opname))
+	if (inode* parent = ordered_parent(deps, op))
 	{
 		return parent;
 	}
-	return elem_func(deps, opname, DIV,
+	return elem_func(deps, opname, op,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
 		// h'(f(x), g(x)) = (f'(x) * g(x) - f(x) * g'(x)) / g^2(x)
@@ -461,6 +467,11 @@ varptr transpose (const varptr a, std::vector<size_t> perm)
 varptr transpose (const varptr a, const varptr perm)
 {
 	if (nullptr == a.get()) return nullptr;
+	OPCODE op = TRANSPOSE;
+	// if (inode* parent = ordered_parent({a, perm}, op))
+	// {
+	// 	return parent;
+	// }
 	VTFUNC_F smap;
 	USHAPE_F shaper;
 	std::vector<inode*> args = {a};
@@ -537,11 +548,7 @@ varptr transpose (const varptr a, const varptr perm)
 			return tensorshape(outlist);
 		};
 	}
-	// if (inode* parent = single_parent(a, label))
-	// {
-	// 	return parent;
-	// }
-	return coord_func(args, smap, shaper, TRANSPOSE);
+	return coord_func(args, smap, shaper, op);
 }
 
 varptr flip (const varptr a, std::vector<size_t> dims)
@@ -553,11 +560,11 @@ varptr flip (const varptr a, std::vector<size_t> dims)
 varptr flip (const varptr a, const varptr dims)
 {
 	if (nullptr == a.get() || nullptr == dims.get()) return nullptr;
-	std::string label = nnutils::formatter() << "flip_" << dims;
-	// if (inode* parent = single_parent(a, label))
-	// {
-	// 	return parent;
-	// }
+	OPCODE op = FLIP;
+	if (inode* parent = ordered_parent({a, dims}, op))
+	{
+		return parent;
+	}
 	return coord_func({a, dims}, 
 	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
@@ -582,7 +589,7 @@ varptr flip (const varptr a, const varptr dims)
 			memcpy(out + i * per, in + outshape.flat_idx(coord) * per, per);
 		}
 	},
-	[](tensorshape inshape, std::vector<uint64_t>) { return inshape; }, FLIP);
+	[](tensorshape inshape, std::vector<uint64_t>) { return inshape; }, op);
 }
 
 
@@ -590,12 +597,13 @@ varptr flip (const varptr a, const varptr dims)
 varptr arg_max (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
+	OPCODE op = ARGMAX;
 	// always check if the same operation on input exists
-	if (inode* parent = single_parent(a, "argmax"))
+	if (inode* parent = single_parent(a, op))
 	{
 		return parent;
 	}
-	return agg_func(a, "argmax", ARGMAX,
+	return agg_func(a, "argmax", op,
 	[](std::vector<std::pair<inode*,inode*> >) -> varptr
 	{
 		throw std::exception();
@@ -605,12 +613,13 @@ varptr arg_max (const varptr a)
 varptr reduce_max (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
+	OPCODE op = RMAX;
 	// always check if the same operation on input exists
-	if (inode* parent = single_parent(a, "max"))
+	if (inode* parent = single_parent(a, op))
 	{
 		return parent;
 	}
-	return agg_func(a, "max", RMAX,
+	return agg_func(a, "max", op,
 	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
 		varptr a = args.front().first;
@@ -623,12 +632,13 @@ varptr reduce_max (const varptr a)
 varptr reduce_sum (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
+	OPCODE op = RSUM;
 	// always check if the same operation on input exists
-	if (inode* parent = single_parent(a, "sum"))
+	if (inode* parent = single_parent(a, op))
 	{
 		return parent;
 	}
-	return agg_func(a, "sum", RSUM,
+	return agg_func(a, "sum", op,
 	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
 	{
 		return args.front().second;
@@ -640,7 +650,8 @@ varptr n_elems (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
 	std::string opname = "n_elems";
-	if (inode* parent = single_parent(a, opname))
+	OPCODE op = N_ELEMS;
+	if (inode* parent = single_parent(a, op))
 	{
 		return parent;
 	}
@@ -652,7 +663,7 @@ varptr n_elems (const varptr a)
 	[](tensorshape, std::vector<uint64_t>)
 	{
 		return tensorshape(std::vector<size_t>{1});
-	}, N_ELEMS);
+	}, op);
 }
 
 varptr n_dimension (const varptr a, size_t dimension)
@@ -663,11 +674,11 @@ varptr n_dimension (const varptr a, size_t dimension)
 varptr n_dimension (const varptr a, const varptr dimension)
 {
 	if (nullptr == a.get() || nullptr == dimension.get()) return nullptr;
-	// std::string opname = nnutils::formatter() << "n_dimension_" << dimension;
-	// if (inode* parent = single_parent(a, opname))
-	// {
-	// 	return parent;
-	// }
+	OPCODE op = N_DIMS;
+	if (inode* parent = ordered_parent({a, dimension}, op))
+	{
+		return parent;
+	}
 	return shape_func({a, dimension},
 	[](tensorshape inshape, std::vector<uint64_t> dimension)
 	{
@@ -679,7 +690,7 @@ varptr n_dimension (const varptr a, const varptr dimension)
 	[](tensorshape, std::vector<uint64_t>)
 	{
 		return tensorshape(std::vector<size_t>{1});
-	}, N_DIMS);
+	}, op);
 }
 
 
@@ -697,12 +708,13 @@ varptr expand (varptr a, varptr n, size_t dim)
 varptr expand (const varptr a, const varptr n, const varptr dim)
 {
 	if (nullptr == a.get() || nullptr == n.get() || nullptr == dim.get()) return nullptr;
-	// std::string opname = nnutils::formatter() << "expand_" << dim;
-	// if (inode* parent = ordered_parent(deps, opname))
-	// {
-	// 	return parent;
-	// }
-	return coord_func({a, n, dim}, 
+	OPCODE op = EXPAND;
+	std::vector<inode*> deps = {a, n, dim};
+	if (inode* parent = ordered_parent(deps, op))
+	{
+		return parent;
+	}
+	return coord_func(deps, 
 	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
 		assert(srcs.size() == 3 &&
@@ -741,7 +753,7 @@ varptr expand (const varptr a, const varptr n, const varptr dim)
 		assert(slist.size() >= dim);
 		slist.insert(slist.begin() + dim, n);
 		return tensorshape(slist);
-	}, EXPAND);
+	}, op);
 }
 
 }

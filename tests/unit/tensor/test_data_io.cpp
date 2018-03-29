@@ -8,6 +8,7 @@
 
 #include "sgen.hpp"
 #include "check.hpp"
+#include "print.hpp"
 #include "mock_src.hpp"
 
 #include "tensor/data_io.hpp"
@@ -88,7 +89,8 @@ TEST_F(DATA_IO, Copy_E000)
 	std::string uuid((char*) picpy.input_.data_.lock().get(), src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src1.type_, picpy.input_.type_);
-	EXPECT_TRUE(tensorshape_equal(shape1, picpy.input_.shape_));
+	EXPECT_TRUE(tensorshape_equal(shape1, picpy.input_.shape_)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &picpy.input_.shape_);
 
 	std::shared_ptr<void> ptr = nullptr;
 	TENS_TYPE type = BAD_T;
@@ -101,14 +103,17 @@ TEST_F(DATA_IO, Copy_E000)
 	otype = BAD_T;
 	oicpy->get_data(ptr, otype, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
-	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second));
+	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
+		testutils::sprintf("expected %p, got %p", &outshape, &outdata.second);
 	ASSERT_EQ(2, indata.size());
 	uuid = std::string((char*) indata[0].first, src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second));
+	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &indata[0].second);
 	uuid = std::string((char*) indata[1].first, src2.uuid_.size());
 	EXPECT_STREQ(src2.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second));
+	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape2, &indata[1].second);
 	EXPECT_EQ(src1.type_, otype);
 	EXPECT_EQ(2, otypes.size());
 	EXPECT_EQ(src1.type_, otypes[0]);
@@ -127,7 +132,8 @@ TEST_F(DATA_IO, Copy_E000)
 	uuid = std::string((char*) passign.input_.data_.lock().get(), src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src1.type_, passign.input_.type_);
-	EXPECT_TRUE(tensorshape_equal(shape1, passign.input_.shape_));
+	EXPECT_TRUE(tensorshape_equal(shape1, passign.input_.shape_)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &passign.input_.shape_);
 
 	ptr = nullptr;
 	type = BAD_T;
@@ -140,14 +146,17 @@ TEST_F(DATA_IO, Copy_E000)
 	type = BAD_T;
 	oassign.get_data(ptr, type, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
-	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second));
+	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
+		testutils::sprintf("expected %p, got %p", &outdata, &outdata.second);
 	ASSERT_EQ(2, indata.size());
 	uuid = std::string((char*) indata[0].first, src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second));
+	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &indata[0].second);
 	uuid = std::string((char*) indata[1].first, src2.uuid_.size());
 	EXPECT_STREQ(src2.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second));
+	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape2, &indata[1].second);
 	EXPECT_EQ(src1.type_, type);
 	EXPECT_EQ(src1.type_, otype);
 	EXPECT_EQ(2, otypes.size());
@@ -212,7 +221,8 @@ TEST_F(DATA_IO, Move_E000)
 	std::string uuid((char*) pimv.input_.data_.lock().get(), src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src1.type_, pimv.input_.type_);
-	EXPECT_TRUE(tensorshape_equal(shape1, pimv.input_.shape_));
+	EXPECT_TRUE(tensorshape_equal(shape1, pimv.input_.shape_)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &pimv.input_.shape_);
 
 	std::shared_ptr<void> ptr = nullptr;
 	TENS_TYPE type = BAD_T;
@@ -225,14 +235,17 @@ TEST_F(DATA_IO, Move_E000)
 	type = BAD_T;
 	oimv.get_data(ptr, type, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
-	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second));
+	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
+		testutils::sprintf("expected %p, got %p", &outshape, &outdata.second);
 	ASSERT_EQ(2, indata.size());
 	uuid = std::string((char*) indata[0].first, src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second));
+	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &indata[0].second);
 	uuid = std::string((char*) indata[1].first, src2.uuid_.size());
 	EXPECT_STREQ(src2.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second));
+	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape2, &indata[1].second);
 	EXPECT_EQ(src1.type_, type);
 	EXPECT_EQ(src1.type_, otype);
 	EXPECT_EQ(2, otypes.size());
@@ -263,7 +276,8 @@ TEST_F(DATA_IO, Move_E000)
 	uuid = std::string((char*) passign.input_.data_.lock().get(), src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src1.type_, passign.input_.type_);
-	EXPECT_TRUE(tensorshape_equal(shape1, passign.input_.shape_));
+	EXPECT_TRUE(tensorshape_equal(shape1, passign.input_.shape_)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &passign.input_.shape_);
 
 	ptr = nullptr;
 	type = BAD_T;
@@ -276,14 +290,17 @@ TEST_F(DATA_IO, Move_E000)
 	otype = BAD_T;
 	oassign.get_data(ptr, otype, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
-	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second));
+	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
+		testutils::sprintf("expected %p, got %p", &outshape, &outdata.second);
 	ASSERT_EQ(2, indata.size());
 	uuid = std::string((char*) indata[0].first, src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second));
+	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &indata[0].second);
 	uuid = std::string((char*) indata[1].first, src2.uuid_.size());
 	EXPECT_STREQ(src2.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second));
+	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape2, &indata[1].second);
 	EXPECT_EQ(src1.type_, otype);
 	EXPECT_EQ(2, otypes.size());
 	EXPECT_EQ(src1.type_, otypes[0]);
@@ -318,7 +335,8 @@ TEST_F(DATA_IO, Portal_E001)
 	std::string uuid((char*) portal.input_.data_.lock().get(), src.uuid_.size());
 	EXPECT_STREQ(src.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src.type_, portal.input_.type_);
-	EXPECT_TRUE(tensorshape_equal(shape, portal.input_.shape_));
+	EXPECT_TRUE(tensorshape_equal(shape, portal.input_.shape_)) <<
+		testutils::sprintf("expected %p, got %p", &shape, &portal.input_.shape_);
 }
 
 
@@ -402,14 +420,17 @@ TEST_F(DATA_IO, Operate_E003)
 
 	op.get_data(ptr, type, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
-	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second));
+	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
+		testutils::sprintf("expected %p, got %p", &outshape, &outdata.second);
 	ASSERT_EQ(2, indata.size());
 	std::string uuid((char*) indata[0].first, src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second));
+	EXPECT_TRUE(tensorshape_equal(shape1, indata[0].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape1, &indata[0].second);
 	uuid = std::string((char*) indata[1].first, src2.uuid_.size());
 	EXPECT_STREQ(src2.uuid_.c_str(), uuid.c_str());
-	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second));
+	EXPECT_TRUE(tensorshape_equal(shape2, indata[1].second)) <<
+		testutils::sprintf("expected %p, got %p", &shape2, &indata[1].second);
 	EXPECT_EQ(src1.type_, type);
 	EXPECT_EQ(src1.type_, otype);
 	EXPECT_EQ(2, otypes.size());

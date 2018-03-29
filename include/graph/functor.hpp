@@ -111,6 +111,11 @@ public:
 	//! get all observerables
 	std::vector<inode*> get_arguments (void) const;
 
+	OPCODE get_opcode (void) const
+	{
+		return opcode_;
+	}
+
 
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<

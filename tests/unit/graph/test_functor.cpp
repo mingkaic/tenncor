@@ -58,7 +58,7 @@ TEST_F(FUNCTOR, Copy_F000)
 	mock_node goodleaf("gooflead");
 	double c = get_double(1, "c")[0];
 	double c2 = get_double(1, "c2")[0];
-	nnet::constant* arg = nnet::constant::get<double>(c);
+	nnet::varptr arg = nnet::constant::get<double>(c);
 	nnet::functor* func = nnet::functor::get({arg}, 
 		[c2](std::unique_ptr<nnet::idata_src>& src, std::vector<nnet::inode*>)
 		{
@@ -127,8 +127,6 @@ TEST_F(FUNCTOR, Copy_F000)
 	// test forward copy over
 	var.initialize(); // increment both assign and cp
 	ASSERT_EQ(3, counter);
-	
-	delete arg;
 }
 
 
@@ -143,7 +141,7 @@ TEST_F(FUNCTOR, Move_F000)
 	mock_node goodleaf("gooflead");
 	double c = get_double(1, "c")[0];
 	double c2 = get_double(1, "c2")[0];
-	nnet::constant* arg = nnet::constant::get<double>(c);
+	nnet::varptr arg = nnet::constant::get<double>(c);
 	nnet::functor* func = nnet::functor::get({arg}, 
 		[c2](std::unique_ptr<nnet::idata_src>& src, std::vector<nnet::inode*>)
 		{
@@ -208,8 +206,6 @@ TEST_F(FUNCTOR, Move_F000)
 	// test forward move over
 	var.initialize(); // increment both assign and mv
 	ASSERT_EQ(1, counter);
-
-	delete arg;
 }
 
 
@@ -274,7 +270,7 @@ TEST_F(FUNCTOR, GetTensor_F003)
 		"functor tensor does not have data";
 	nnet::tensorshape gotshape = ten->get_shape();
 	ASSERT_TRUE(tensorshape_equal(shape2, gotshape)) <<
-		sprintf("expecting shape %p, got %p", &shape2, &gotshape);
+		testutils::sprintf("expecting shape %p, got %p", &shape2, &gotshape);
 	std::vector<double> dvec = nnet::expose<double>(func);
 	EXPECT_EQ(gotshape.n_elems(), dvec.size());
 	for (double d : dvec)
@@ -294,7 +290,7 @@ TEST_F(FUNCTOR, Derive_F004)
 	double c2 = get_double(1, "c2")[0];
 	mock_node goodleaf("gooflead");
 
-	nnet::constant* arg = nnet::constant::get<double>(c);
+	nnet::varptr arg = nnet::constant::get<double>(c);
 	nnet::functor* func = nnet::functor::get({arg}, 
 		[shape2, c2](std::unique_ptr<nnet::idata_src>& src, std::vector<nnet::inode*>)
 		{
@@ -316,15 +312,13 @@ TEST_F(FUNCTOR, Derive_F004)
 	ASSERT_NE(nullptr, wten);
 	nnet::tensorshape gotshape = wten->get_shape();
 	ASSERT_TRUE(tensorshape_equal(shape2, gotshape)) <<
-		sprintf("expecting shape %p, got %p", &shape2, &gotshape);
+		testutils::sprintf("expecting shape %p, got %p", &shape2, &gotshape);
 	std::vector<double> wunvec = nnet::expose<double>(ewun);
 	size_t n = shape2.n_elems();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(1, wunvec[i]);
 	}
-
-	delete arg;
 }
 
 

@@ -37,15 +37,15 @@ using namespace testutils;
 TEST_F(NODE, OnGraph_B000)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
-	mock_node* ptr;
+	std::string uid;
 	{
 		mock_node node(label);
-		ptr = &node;
+		uid = node.get_uid();
 		EXPECT_TRUE(nnet::graph::get_global().has_node(&node)) <<
-			sprintf("node %s is not registered in graph", node.get_uid().c_str());
+			testutils::sprintf("node %s is not registered in graph", node.get_uid().c_str());
 	}
-	EXPECT_FALSE(nnet::graph::get_global().has_node(ptr)) <<
-		sprintf("deleted node with ptr %d is not removed from graph", ptr);
+	EXPECT_FALSE(nnet::graph::get_global().has_node(uid)) <<
+		testutils::sprintf("deleted node with uid %s is not removed from graph", uid.c_str());
 }
 
 
@@ -59,7 +59,7 @@ TEST_F(NODE, Copy_B001)
 
 	mock_node cpy(n1);
 	EXPECT_TRUE(nnet::graph::get_global().has_node(&cpy)) <<
-		sprintf("copied node %s is not registered in graph", cpy.get_uid().c_str());
+		testutils::sprintf("copied node %s is not registered in graph", cpy.get_uid().c_str());
 	assign = n1;
 
 	EXPECT_EQ(label, n1.get_label());
@@ -84,14 +84,14 @@ TEST_F(NODE, Move_B001)
 
 	mock_node mv(std::move(n1));
 	EXPECT_TRUE(nnet::graph::get_global().has_node(&mv)) <<
-		sprintf("moved node %s is not registered in graph", mv.get_uid().c_str());
+		testutils::sprintf("moved node %s is not registered in graph", mv.get_uid().c_str());
 	EXPECT_TRUE(nnet::graph::get_global().has_node(&n1)) <<
-		sprintf("original node %s is not registered in graph", n1.get_uid().c_str());
+		testutils::sprintf("original node %s is not registered in graph", n1.get_uid().c_str());
 
 	std::string n1str = n1.get_label();
 	std::string ouid2 = mv.get_uid();
 	EXPECT_TRUE(n1str.empty()) <<
-		sprintf("empty n1 node got label %s", n1str.c_str());
+		testutils::sprintf("empty n1 node got label %s", n1str.c_str());
 	EXPECT_EQ(label, mv.get_label());
 	EXPECT_NE(ouid, ouid2);
 
@@ -100,7 +100,7 @@ TEST_F(NODE, Move_B001)
 	std::string mvstr = mv.get_label();
 	std::string ouid3 = assign.get_uid();
 	EXPECT_TRUE(mvstr.empty()) <<
-		sprintf("empty mv node got label %s", mvstr.c_str());
+		testutils::sprintf("empty mv node got label %s", mvstr.c_str());
 	EXPECT_EQ(label, assign.get_label());
 	EXPECT_NE(ouid, ouid3);
 	EXPECT_NE(ouid2, ouid3);
@@ -117,7 +117,7 @@ TEST_F(NODE, UID_B002)
 		mock_node mn("");
 		std::string uid = mn.get_uid();
 		EXPECT_TRUE(us.end() == us.find(uid)) <<
-			sprintf("found duplicate uid \"%s\"", uid.c_str());
+			testutils::sprintf("found duplicate uid \"%s\"", uid.c_str());
 		us.emplace(uid);
 	}
 }

@@ -7,7 +7,6 @@
 //
 
 #include "include/operate/operation_utils.hpp"
-#include "include/graph/functor.hpp"
 
 #ifdef TENNCOR_OPERATION_UTILS_HPP
 
@@ -15,13 +14,13 @@ namespace nnet
 {
 
 static inline std::list<iobserver*> aud_intersects (
-	const std::vector<inode*>& srcs, std::string opname)
+	const std::vector<inode*>& srcs, OPCODE opcode)
 {
 	std::list<iobserver*> auds;
 	for (auto audpair : srcs[0]->get_audience())
 	{
 		functor* icon = dynamic_cast<functor*>(audpair.first);
-		if (icon && opname == icon->get_label())
+		if (icon && opcode == icon->get_opcode())
 		{
 			auds.push_back(audpair.first);
 		}
@@ -48,7 +47,7 @@ static inline std::list<iobserver*> aud_intersects (
 	return auds;
 }
 
-inode* single_parent (inode* src, std::string opname)
+inode* single_parent (inode* src, OPCODE opcode)
 {
 	AUDMAP_T auds = src->get_audience();
 	for (auto audpair : auds)
@@ -56,7 +55,7 @@ inode* single_parent (inode* src, std::string opname)
 		if (functor* aud = dynamic_cast<functor*>(audpair.first))
 		{
 			std::vector<inode*> args = aud->get_arguments();
-			if (args.size() == 1 && opname == args[0]->get_label())
+			if (args.size() == 1 && opcode == aud->get_opcode())
 			{
 				return aud;
 			}
@@ -65,10 +64,10 @@ inode* single_parent (inode* src, std::string opname)
 	return nullptr;
 }
 
-inode* ordered_parent (std::vector<inode*> srcs, std::string opname)
+inode* ordered_parent (std::vector<inode*> srcs, OPCODE opcode)
 {
 	// assert srcs.size() > 0
-	auto auds = aud_intersects(srcs, opname);
+	auto auds = aud_intersects(srcs, opcode);
 	for (iobserver* o : auds)
 	{
 		functor* aud = dynamic_cast<functor*>(o);
@@ -81,10 +80,10 @@ inode* ordered_parent (std::vector<inode*> srcs, std::string opname)
 	return nullptr;
 }
 
-inode* unordered_parent (std::vector<inode*> srcs, std::string opname)
+inode* unordered_parent (std::vector<inode*> srcs, OPCODE opcode)
 {
 	// assert srcs.size() > 0
-	auto auds = aud_intersects(srcs, opname);
+	auto auds = aud_intersects(srcs, opcode);
 	for (iobserver* o : auds)
 	{
 		if (functor* aud = dynamic_cast<functor*>(o))

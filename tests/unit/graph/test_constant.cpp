@@ -45,10 +45,13 @@ TEST_F(CONSTANT, Constructor_C000)
 	std::vector<double> v2 = get_double(n / 2, "v2");
 	std::vector<double> v3 = get_double(n * 1.5, "v3");
 
-	nnet::constant* res = nnet::constant::get<double>(c);
-	nnet::constant* res2 = nnet::constant::get<double>(v, shape);
-	nnet::constant* res3 = nnet::constant::get<double>(v2, shape);
-	nnet::constant* res4 = nnet::constant::get<double>(v3, shape);
+	nnet::varptr res = nnet::constant::get<double>(c);
+	nnet::varptr same = nnet::constant::get<double>(c);
+	EXPECT_EQ(res.get(), same.get());
+
+	nnet::varptr res2 = nnet::constant::get<double>(v, shape);
+	nnet::varptr res3 = nnet::constant::get<double>(v2, shape);
+	nnet::varptr res4 = nnet::constant::get<double>(v3, shape);
 
 	std::vector<double> r1 = nnet::expose<double>(res);
 	std::vector<double> r2 = nnet::expose<double>(res2);
@@ -71,16 +74,11 @@ TEST_F(CONSTANT, Constructor_C000)
 	nnet::tensorshape cshape2 = res3->get_tensor()->get_shape();
 	nnet::tensorshape cshape3 = res4->get_tensor()->get_shape();
 	EXPECT_TRUE(tensorshape_equal(shape, cshape)) <<
-		sprintf("expecting shape %p, got %p", &shape, &cshape);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &cshape);
 	EXPECT_TRUE(tensorshape_equal(shape, cshape2)) <<
-		sprintf("expecting shape %p, got %p", &shape, &cshape2);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &cshape2);
 	EXPECT_TRUE(tensorshape_equal(shape, cshape3)) <<
-		sprintf("expecting shape %p, got %p", &shape, &cshape3);
-
-	delete res;
-	delete res2;
-	delete res3;
-	delete res4;
+		testutils::sprintf("expecting shape %p, got %p", &shape, &cshape3);
 }
 
 
@@ -93,16 +91,13 @@ TEST_F(CONSTANT, CopyNMove_C001)
 	size_t n = shape.n_elems();
 	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 
-	nnet::constant* res = nnet::constant::get<double>(c);
-	nnet::constant* res2 = nnet::constant::get<double>(v, shape);
+	nnet::varptr res = nnet::constant::get<double>(c);
+	nnet::varptr res2 = nnet::constant::get<double>(v, shape);
 
 	EXPECT_EQ(nullptr, res->clone());
 	EXPECT_EQ(nullptr, res2->clone());
 	EXPECT_EQ(nullptr, res->move());
 	EXPECT_EQ(nullptr, res2->move());
-
-	delete res;
-	delete res2;
 }
 
 
@@ -110,13 +105,11 @@ TEST_F(CONSTANT, CopyNMove_C001)
 TEST_F(CONSTANT, GetLeaves_C002)
 {
 	double c = get_double(1, "c")[0];
-	nnet::constant* res = nnet::constant::get<double>(c);
+	nnet::varptr res = nnet::constant::get<double>(c);
 
 	std::unordered_set<const nnet::inode*> leafset = res->get_leaves();
 	ASSERT_EQ(1, leafset.size());
 	EXPECT_EQ(res, *(leafset.begin())) << "res constant not found in leafset";
-
-	delete res;
 }
 
 
@@ -129,15 +122,15 @@ TEST_F(CONSTANT, GetTensor_C003)
 	size_t n = shape.n_elems();
 	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
 
-	nnet::constant* res = nnet::constant::get<double>(c);
-	nnet::constant* res2 = nnet::constant::get<double>(v, shape);
+	nnet::varptr res = nnet::constant::get<double>(c);
+	nnet::varptr res2 = nnet::constant::get<double>(v, shape);
 
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensor* ten2 = res2->get_tensor();
 	ASSERT_TRUE(ten->has_data()) <<
-		sprintf("scalar constant %f failed to initialize with data", c);
+		testutils::sprintf("scalar constant %f failed to initialize with data", c);
 	ASSERT_TRUE(ten2->has_data()) <<
-		sprintf("scalar constant %vf failed to initialize with data", &v);
+		testutils::sprintf("scalar constant %vf failed to initialize with data", &v);
 	std::vector<double> vec = nnet::expose<double>(ten);
 	std::vector<double> vec2 = nnet::expose<double>(ten2);
 	std::vector<double> vec3 = nnet::expose<double>(res);
@@ -155,9 +148,6 @@ TEST_F(CONSTANT, GetTensor_C003)
 		EXPECT_EQ(v[i % v.size()], vec2[i]);
 		EXPECT_EQ(v[i % v.size()], vec4[i]);
 	}
-	
-	delete res;
-	delete res2;
 }
 
 
@@ -165,8 +155,8 @@ TEST_F(CONSTANT, GetTensor_C003)
 TEST_F(CONSTANT, Derive_C004)
 {
 	double c = get_double(1, "c")[0];
-	nnet::constant* res = nnet::constant::get<double>(c);
-	nnet::constant* res2 = nnet::constant::get<double>(c+1);
+	nnet::varptr res = nnet::constant::get<double>(c);
+	nnet::varptr res2 = nnet::constant::get<double>(c+1);
 
 	nnet::varptr g1 = res->derive(nullptr);
 	nnet::varptr g2 = res->derive(res);
@@ -175,9 +165,6 @@ TEST_F(CONSTANT, Derive_C004)
 	EXPECT_EQ(nullptr, g1.get());
 	EXPECT_EQ(nullptr, g2.get());
 	EXPECT_EQ(nullptr, g3.get());
-
-	delete res;
-	delete res2;
 }
 
 
@@ -185,45 +172,13 @@ TEST_F(CONSTANT, Derive_C004)
 TEST_F(CONSTANT, SelfDestruct_C005)
 {
 	double c = get_double(1, "c")[0];
-	nnet::constant* res = nnet::constant::get<double>(c);
-	mock_observer* mconn = new mock_observer({res});
-	delete mconn;
-	// memory leak if res is not destroyed
-}
-
-
-// covers constant: operator ==, operator !=
-TEST_F(CONSTANT, ScalarEqual_C006)
-{
-	double c = get_double(1, "c", {-91234, 92342})[0];
-	nnet::tensorshape shape = random_def_shape(this);
-
-	size_t n = shape.n_elems();
-	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
-
-	nnet::constant* res = nnet::constant::get<double>(c);
-	nnet::constant* res2 = nnet::constant::get<double>(v, shape);
-
-	EXPECT_TRUE(*res == c) <<
-		sprintf("scalar constant %f does not equal %f", c, c);
-	EXPECT_FALSE(*res == (c + 1)) <<
-		sprintf("scalar constant %f equals %f", c, c + 1);
-	EXPECT_FALSE(*res != c) <<
-		sprintf("scalar constant %f does not equal %f", c, c);
-	EXPECT_TRUE(*res != (c + 1)) <<
-		sprintf("scalar constant %f equals %f", c, c + 1);
-
-	EXPECT_FALSE(*res2 == c) <<
-		sprintf("non-scalar constant %vf successfully == compares with %f", &v, c);
-	EXPECT_FALSE(*res2 == (c + 1)) <<
-		sprintf("non-scalar constant %vf successfully == compares with %f", &v, c + 1);
-	EXPECT_FALSE(*res2 != c) <<
-		sprintf("non-scalar constant %vf successfully != compares with %f", &v, c);
-	EXPECT_FALSE(*res2 != (c + 1)) <<
-		sprintf("non-scalar constant %vf successfully != compares with %f", &v, c + 1);
-
-	delete res;
-	delete res2;
+	nnet::constant* ptr;
+	{
+		nnet::varptr res = nnet::constant::get<double>(c);
+		ptr = static_cast<nnet::constant*>(res.get());
+	}
+	EXPECT_FALSE(nnet::dangling(ptr)) << 
+		testutils::sprintf("dangling ptr %e", (void*) ptr);
 }
 
 

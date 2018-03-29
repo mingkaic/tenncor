@@ -42,7 +42,7 @@ TEST_F(TENSOR, Constructor_C000)
 	nnet::tensorshape gotshape = ten.get_shape();
 
 	EXPECT_TRUE(tensorshape_equal(exshape, gotshape)) <<
-		sprintf("expecting %p, got %p", &exshape, &gotshape);
+		testutils::sprintf("expecting %p, got %p", &exshape, &gotshape);
 	EXPECT_EQ(BAD_T, ten.get_type());
 }
 
@@ -59,20 +59,20 @@ TEST_F(TENSOR, ReadFrom_C001)
 
 	mock_data_src src(this);
 	EXPECT_FALSE(incom.read_from(src)) <<
-		sprintf("tensor with shape %p successfully read from src", &pshape);
+		testutils::sprintf("tensor with shape %p successfully read from src", &pshape);
 	EXPECT_EQ(BAD_T, incom.get_type());
 	EXPECT_FALSE(incom.has_data()) <<
-		sprintf("tensor with shape %p has data", &pshape);
+		testutils::sprintf("tensor with shape %p has data", &pshape);
 	size_t sgetdata = testify::mocker::get_usage(&src, "get_data");
 	EXPECT_EQ(0, sgetdata);
 
 	EXPECT_TRUE(comp.read_from(src)) <<
-		sprintf("tensor with shape %p failed to read from src", &cshape);
+		testutils::sprintf("tensor with shape %p failed to read from src", &cshape);
 	EXPECT_TRUE(comp.read_from(src)) <<
-		sprintf("second read on tensor with shape %p failed", &cshape);
+		testutils::sprintf("second read on tensor with shape %p failed", &cshape);
 	EXPECT_EQ(src.type_, comp.get_type());
 	EXPECT_TRUE(comp.has_data()) <<
-		sprintf("tensor with shape %p doesn't has data", &cshape);
+		testutils::sprintf("tensor with shape %p doesn't has data", &cshape);
 
 	sgetdata = testify::mocker::get_usage(&src, "get_data");
 	optional<std::string> sgetval = testify::mocker::get_value(&src, "get_data");
@@ -94,7 +94,7 @@ TEST_F(TENSOR, ReadFrom_C001)
 	EXPECT_STREQ(src.uuid_.c_str(), dest.result_.c_str());
 	EXPECT_EQ(src.type_, dest.type_);
 	EXPECT_TRUE(tensorshape_equal(cshape, dest.shape_)) <<
-		sprintf("expect shape %p, got %p", &cshape, &dest.shape_);
+		testutils::sprintf("expect shape %p, got %p", &cshape, &dest.shape_);
 
 	dsetdata = testify::mocker::get_usage(&dest, "set_data");
 	optional<std::string> dsetval = testify::mocker::get_value(&dest, "set_data");
@@ -131,12 +131,12 @@ TEST_F(TENSOR, ReadFromShape_C001)
 	mock_data_src src(this);
 	// complete shape input for partial allowed
 	EXPECT_TRUE(incom.read_from(src, good_shape)) <<
-		sprintf("tensor failed to read using shape %p", &good_shape);
+		testutils::sprintf("tensor failed to read using shape %p", &good_shape);
 	EXPECT_TRUE(incom.read_from(src, good_shape)) <<
-		sprintf("second read on tensor failed using shape %p", &good_shape);
+		testutils::sprintf("second read on tensor failed using shape %p", &good_shape);
 	EXPECT_EQ(src.type_, incom.get_type());
 	EXPECT_TRUE(incom.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &good_shape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &good_shape);
 
 	size_t sgetdata = testify::mocker::get_usage(&src, "get_data");
 	optional<std::string> sgetval = testify::mocker::get_value(&src, "get_data");
@@ -147,12 +147,12 @@ TEST_F(TENSOR, ReadFromShape_C001)
 
 	// complete shape input for complete allowed
 	EXPECT_TRUE(comp.read_from(src, cshape)) <<
-		sprintf("tensor failed to read using shape %p", &cshape);
+		testutils::sprintf("tensor failed to read using shape %p", &cshape);
 	EXPECT_TRUE(comp.read_from(src, cshape)) <<
-		sprintf("second read on tensor failed using shape %p", &cshape);
+		testutils::sprintf("second read on tensor failed using shape %p", &cshape);
 	EXPECT_EQ(src.type_, comp.get_type());
 	EXPECT_TRUE(comp.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 
 	sgetdata = testify::mocker::get_usage(&src, "get_data");
 	sgetval = testify::mocker::get_value(&src, "get_data");
@@ -163,20 +163,20 @@ TEST_F(TENSOR, ReadFromShape_C001)
 
 	// partial shape input
 	EXPECT_FALSE(incom2.read_from(src, pshape)) <<
-		sprintf("tensor successfully read using shape %p", &pshape);
+		testutils::sprintf("tensor successfully read using shape %p", &pshape);
 	EXPECT_EQ(BAD_T, incom2.get_type());
 	EXPECT_FALSE(incom2.has_data()) <<
-		sprintf("tensor read using shape %p have data", &pshape);
+		testutils::sprintf("tensor read using shape %p have data", &pshape);
 
 	sgetdata = testify::mocker::get_usage(&src, "get_data");
 	EXPECT_EQ(4, sgetdata);
 
 	// incompatible shape input
 	EXPECT_FALSE(comp2.read_from(src, bad_shape)) <<
-		sprintf("tensor successfully read using shape %p", &bad_shape);
+		testutils::sprintf("tensor successfully read using shape %p", &bad_shape);
 	EXPECT_EQ(BAD_T, comp2.get_type());
 	EXPECT_FALSE(comp2.has_data()) <<
-		sprintf("tensor read using shape %p have data", &bad_shape);
+		testutils::sprintf("tensor read using shape %p have data", &bad_shape);
 
 	sgetdata = testify::mocker::get_usage(&src, "get_data");
 	EXPECT_EQ(4, sgetdata);
@@ -202,9 +202,9 @@ TEST_F(TENSOR, Copy_C002)
 	// initialize
 	mock_data_src src(this);
 	ASSERT_TRUE(undef.read_from(src, cshape)) <<
-		sprintf("tensor failed to read from src with shape %p", &cshape);
+		testutils::sprintf("tensor failed to read from src with shape %p", &cshape);
 	ASSERT_TRUE(comp.read_from(src, cshape)) <<
-		sprintf("tensor failed to read from src with shape %p", &cshape);
+		testutils::sprintf("tensor failed to read from src with shape %p", &cshape);
 
 	nnet::tensor undefcpy(undef);
 	nnet::tensor incomcpy(incom);
@@ -212,13 +212,13 @@ TEST_F(TENSOR, Copy_C002)
 
 	nnet::tensorshape expectc = undefcpy.get_shape();
 	ASSERT_TRUE(tensorshape_equal(cshape, expectc)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &expectc);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc);
 	nnet::tensorshape expectp = incomcpy.get_shape();
 	ASSERT_TRUE(tensorshape_equal(pshape, expectp)) <<
-		sprintf("expecting shape %p, got %p", &pshape, &expectp);
+		testutils::sprintf("expecting shape %p, got %p", &pshape, &expectp);
 	nnet::tensorshape expectc2 = compcpy.get_shape();
 	EXPECT_TRUE(tensorshape_equal(cshape, expectc2)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &expectc2);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc2);
 
 	mock_data_dest undefcpy_dest;
 	mock_data_dest compcpy_dest;
@@ -227,7 +227,7 @@ TEST_F(TENSOR, Copy_C002)
 
 	EXPECT_EQ(src.type_, undefcpy.get_type());
 	ASSERT_TRUE(undefcpy.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), undefcpy_dest.result_.c_str());
 
 	EXPECT_EQ(BAD_T, incomcpy.get_type());
@@ -236,7 +236,7 @@ TEST_F(TENSOR, Copy_C002)
 
 	EXPECT_EQ(src.type_, compcpy.get_type());
 	ASSERT_TRUE(compcpy.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), compcpy_dest.result_.c_str());
 
 	undefassign = undef;
@@ -245,13 +245,13 @@ TEST_F(TENSOR, Copy_C002)
 
 	nnet::tensorshape expectc3 = undefassign.get_shape();
 	ASSERT_TRUE(tensorshape_equal(cshape, expectc3)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &expectc3);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc3);
 	nnet::tensorshape expectp2 = incomassign.get_shape();
 	ASSERT_TRUE(tensorshape_equal(pshape, expectp2)) <<
-		sprintf("expecting shape %p, got %p", &pshape, &expectp2);
+		testutils::sprintf("expecting shape %p, got %p", &pshape, &expectp2);
 	nnet::tensorshape expectc4 = compassign.get_shape();
 	ASSERT_TRUE(tensorshape_equal(cshape, expectc4)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &expectc4);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc4);
 
 	mock_data_dest undefassign_dest;
 	mock_data_dest compassign_dest;
@@ -260,7 +260,7 @@ TEST_F(TENSOR, Copy_C002)
 
 	EXPECT_EQ(src.type_, undefassign.get_type());
 	ASSERT_TRUE(undefassign.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), undefassign_dest.result_.c_str());
 
 	EXPECT_EQ(BAD_T, incomassign.get_type());
@@ -269,7 +269,7 @@ TEST_F(TENSOR, Copy_C002)
 
 	EXPECT_EQ(src.type_, compassign.get_type());
 	ASSERT_TRUE(compassign.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), compassign_dest.result_.c_str());
 }
 
@@ -293,9 +293,9 @@ TEST_F(TENSOR, Move_C002)
 	// initialize
 	mock_data_src src(this);
 	ASSERT_TRUE(undef.read_from(src, cshape)) <<
-		sprintf("tensor failed to read from src with shape %p", &cshape);
+		testutils::sprintf("tensor failed to read from src with shape %p", &cshape);
 	ASSERT_TRUE(comp.read_from(src, cshape)) <<
-		sprintf("tensor failed to read from src with shape %p", &cshape);
+		testutils::sprintf("tensor failed to read from src with shape %p", &cshape);
 
 	nnet::tensor undefmv(std::move(undef));
 	nnet::tensor incommv(std::move(incom));
@@ -314,21 +314,21 @@ TEST_F(TENSOR, Move_C002)
 	nnet::tensorshape s1 = incom.get_shape();
 	nnet::tensorshape s2 = comp.get_shape();
 	EXPECT_FALSE(s0.is_part_defined()) <<
-		sprintf("moved undef has defined shape %p", &s0);
+		testutils::sprintf("moved undef has defined shape %p", &s0);
 	EXPECT_FALSE(s1.is_part_defined()) <<
-		sprintf("moved incom has defined shape %p", &s1);
+		testutils::sprintf("moved incom has defined shape %p", &s1);
 	EXPECT_FALSE(s2.is_part_defined()) <<
-		sprintf("moved comp has defined shape %p", &s2);
+		testutils::sprintf("moved comp has defined shape %p", &s2);
 
 	nnet::tensorshape expectc = undefmv.get_shape();
 	ASSERT_TRUE(tensorshape_equal(cshape, expectc)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &expectc);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc);
 	nnet::tensorshape expectp = incommv.get_shape();
 	ASSERT_TRUE(tensorshape_equal(pshape, expectp)) <<
-		sprintf("expecting shape %p, got %p", &pshape, &expectp);
+		testutils::sprintf("expecting shape %p, got %p", &pshape, &expectp);
 	nnet::tensorshape expectc2 = compmv.get_shape();
 	EXPECT_TRUE(tensorshape_equal(cshape, expectc2)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &expectc2);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc2);
 
 	mock_data_dest undefmv_dest;
 	mock_data_dest compmv_dest;
@@ -337,7 +337,7 @@ TEST_F(TENSOR, Move_C002)
 
 	EXPECT_EQ(src.type_, undefmv.get_type());
 	ASSERT_TRUE(undefmv.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), undefmv_dest.result_.c_str());
 
 	EXPECT_EQ(BAD_T, incommv.get_type());
@@ -346,7 +346,7 @@ TEST_F(TENSOR, Move_C002)
 
 	EXPECT_EQ(src.type_, compmv.get_type());
 	ASSERT_TRUE(compmv.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), compmv_dest.result_.c_str());
 
 	undefassign = std::move(undefmv);
@@ -366,21 +366,21 @@ TEST_F(TENSOR, Move_C002)
 	nnet::tensorshape s4 = incommv.get_shape();
 	nnet::tensorshape s5 = compmv.get_shape();
 	EXPECT_FALSE(s3.is_part_defined()) <<
-		sprintf("moved undefmv has defined shape %p", &s3);
+		testutils::sprintf("moved undefmv has defined shape %p", &s3);
 	EXPECT_FALSE(s4.is_part_defined()) <<
-		sprintf("moved incommv has defined shape %p", &s4);
+		testutils::sprintf("moved incommv has defined shape %p", &s4);
 	EXPECT_FALSE(s5.is_part_defined()) <<
-		sprintf("moved compmv has defined shape %p", &s5);
+		testutils::sprintf("moved compmv has defined shape %p", &s5);
 
 	nnet::tensorshape expectc3 = undefassign.get_shape();
 	ASSERT_TRUE(tensorshape_equal(cshape, expectc3)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &expectc3);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc3);
 	nnet::tensorshape expectp2 = incomassign.get_shape();
 	ASSERT_TRUE(tensorshape_equal(pshape, expectp2)) <<
-		sprintf("expecting shape %p, got %p", &pshape, &expectp2);
+		testutils::sprintf("expecting shape %p, got %p", &pshape, &expectp2);
 	nnet::tensorshape expectc4 = compassign.get_shape();
 	ASSERT_TRUE(tensorshape_equal(cshape, expectc4)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &expectc4);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc4);
 
 	mock_data_dest undefassign_dest;
 	mock_data_dest compassign_dest;
@@ -389,7 +389,7 @@ TEST_F(TENSOR, Move_C002)
 
 	EXPECT_EQ(src.type_, undefassign.get_type());
 	ASSERT_TRUE(undefassign.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), undefassign_dest.result_.c_str());
 
 	EXPECT_EQ(BAD_T, incomassign.get_type());
@@ -398,7 +398,7 @@ TEST_F(TENSOR, Move_C002)
 
 	EXPECT_EQ(src.type_, compassign.get_type());
 	ASSERT_TRUE(compassign.has_data()) <<
-		sprintf("tensor read using shape %p doesn't have data", &cshape);
+		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), compassign_dest.result_.c_str());
 }
 
@@ -421,26 +421,26 @@ TEST_F(TENSOR, ShapeAccessor_C003)
 	size_t prank = ten.rank();
 	std::vector<size_t> plist = ten.dims();
 	EXPECT_TRUE(tensorshape_equal(pshape, expshape)) <<
-		sprintf("expect shape %p, got %p", &pshape, &expshape);
+		testutils::sprintf("expect shape %p, got %p", &pshape, &expshape);
 	EXPECT_EQ(0, exzero);
 	EXPECT_EQ(pshape.rank(), prank);
 	EXPECT_TRUE(std::equal(pds.begin(), pds.end(), plist.begin())) <<
-		sprintf("expect %vd, got %vd", &pds, &plist);
+		testutils::sprintf("expect %vd, got %vd", &pds, &plist);
 
 	mock_data_src src(this);
 	ASSERT_TRUE(ten.read_from(src, cshape)) <<
-		sprintf("tensor failed to read from src with shape %p", &pshape);
+		testutils::sprintf("tensor failed to read from src with shape %p", &pshape);
 
 	nnet::tensorshape excshape = ten.get_shape();
 	size_t celems = ten.n_elems();
 	size_t crank = ten.rank();
 	std::vector<size_t> clist = ten.dims();
 	EXPECT_TRUE(tensorshape_equal(cshape, excshape)) <<
-		sprintf("expect shape %p, got %p", &cshape, &excshape);
+		testutils::sprintf("expect shape %p, got %p", &cshape, &excshape);
 	EXPECT_EQ(cshape.n_elems(), celems);
 	EXPECT_EQ(cshape.rank(), crank);
 	EXPECT_TRUE(std::equal(cds.begin(), cds.end(), clist.begin())) <<
-		sprintf("expect %vd, got %vd", &cds, &clist);
+		testutils::sprintf("expect %vd, got %vd", &cds, &clist);
 }
 
 
@@ -468,20 +468,20 @@ TEST_F(TENSOR, IsSameSize_C004)
 	ASSERT_FALSE(undef.has_data()) << 
 		"tensor with empty shape has data";
 	ASSERT_FALSE(pcom.has_data()) <<
-		sprintf("tensor with shape %p has data", &pshape);
+		testutils::sprintf("tensor with shape %p has data", &pshape);
 
 	// undef is same as anything
 	EXPECT_TRUE(undef.is_same_size(bad)) <<
-		sprintf("undef not compatible with shape %p", &badshape);
+		testutils::sprintf("undef not compatible with shape %p", &badshape);
 	EXPECT_TRUE(undef.is_same_size(comp)) <<
-		sprintf("undef not compatible with shape %p", &cshape);
+		testutils::sprintf("undef not compatible with shape %p", &cshape);
 	EXPECT_TRUE(undef.is_same_size(pcom)) <<
-		sprintf("undef not compatible with shape %p", &pshape);
+		testutils::sprintf("undef not compatible with shape %p", &pshape);
 	// pcom is same as comp, but not bad or scalar
 	EXPECT_TRUE(pcom.is_same_size(comp)) <<
-		sprintf("partial with shape %p not compatible with shape %p", &pshape, &cshape);
+		testutils::sprintf("partial with shape %p not compatible with shape %p", &pshape, &cshape);
 	EXPECT_FALSE(pcom.is_same_size(bad)) <<
-		sprintf("partial with shape %p is compatible with bad shape %p", &pshape, &badshape);
+		testutils::sprintf("partial with shape %p is compatible with bad shape %p", &pshape, &badshape);
 
 	// trimmed compatible
 	// padd clist
@@ -496,45 +496,45 @@ TEST_F(TENSOR, IsSameSize_C004)
 
 	mock_data_src src(this);
 	ASSERT_TRUE(comp2.read_from(src)) <<
-		sprintf("tensor with shape %p successfully read from src", &p1);
+		testutils::sprintf("tensor with shape %p successfully read from src", &p1);
 	ASSERT_TRUE(comp3.read_from(src)) <<
-		sprintf("tensor with shape %p successfully read from src", &p2);
+		testutils::sprintf("tensor with shape %p successfully read from src", &p2);
 	ASSERT_TRUE(pcom.read_from(src, cshape)) <<
-		sprintf("tensor with shape %p successfully read from src", &cshape);
+		testutils::sprintf("tensor with shape %p successfully read from src", &cshape);
 	ASSERT_TRUE(bad.read_from(src)) <<
-		sprintf("tensor with shape %p successfully read from src", &p3);
+		testutils::sprintf("tensor with shape %p successfully read from src", &p3);
 
 	ASSERT_TRUE(comp2.has_data()) <<
-		sprintf("tensor with shape %p doesn't have data", &p1);
+		testutils::sprintf("tensor with shape %p doesn't have data", &p1);
 	ASSERT_TRUE(comp3.has_data()) <<
-		sprintf("tensor with shape %p doesn't have data", &p2);
+		testutils::sprintf("tensor with shape %p doesn't have data", &p2);
 	ASSERT_TRUE(pcom.has_data()) <<
-		sprintf("tensor with shape %p doesn't have data", &pshape);
+		testutils::sprintf("tensor with shape %p doesn't have data", &pshape);
 	ASSERT_TRUE(bad.has_data()) <<
-		sprintf("tensor with shape %p doesn't have data", &badshape);
+		testutils::sprintf("tensor with shape %p doesn't have data", &badshape);
 
 	EXPECT_TRUE(comp.is_same_size(comp2)) << 
-		sprintf("uninit with shape %p is same size as init with shape %p", &cshape, &p1);
+		testutils::sprintf("uninit with shape %p is same size as init with shape %p", &cshape, &p1);
 	EXPECT_TRUE(comp.is_same_size(comp3)) << 
-		sprintf("uninit with shape %p is same size as init with shape %p", &cshape, &p2);
+		testutils::sprintf("uninit with shape %p is same size as init with shape %p", &cshape, &p2);
 	EXPECT_TRUE(comp2.is_same_size(comp3)) <<
-		sprintf("init with shapes %p and %p are not the same size", &p1, &p2);
+		testutils::sprintf("init with shapes %p and %p are not the same size", &p1, &p2);
 	EXPECT_FALSE(badp.is_same_size(pcom)) << 
-		sprintf("uninit with shape %p is same size as init with allowed shape %p", &badpshape, &pshape);
+		testutils::sprintf("uninit with shape %p is same size as init with allowed shape %p", &badpshape, &pshape);
 
 	EXPECT_FALSE(comp.is_same_size(bad)) << 
-		sprintf("uninit with shape %p is same size as bad with shape %p", &cshape, &badshape);
+		testutils::sprintf("uninit with shape %p is same size as bad with shape %p", &cshape, &badshape);
 	EXPECT_FALSE(comp2.is_same_size(bad)) << 
-		sprintf("init with shape %p is same size as bad init with shape %p", &p1, &badshape);
+		testutils::sprintf("init with shape %p is same size as bad init with shape %p", &p1, &badshape);
 	EXPECT_FALSE(comp3.is_same_size(bad)) << 
-		sprintf("init with shape %p is same size as bad init with shape %p", &p2, &badshape);
+		testutils::sprintf("init with shape %p is same size as bad init with shape %p", &p2, &badshape);
 
 	EXPECT_FALSE(comp.is_same_size(bad2)) << 
-		sprintf("uninit with shape %p is same size as bad init with shape %p", &cshape, &p3);
+		testutils::sprintf("uninit with shape %p is same size as bad init with shape %p", &cshape, &p3);
 	EXPECT_FALSE(comp2.is_same_size(bad2)) << 
-		sprintf("init with shape %p is same size as bad init with shape %p", &p1, &p3);
+		testutils::sprintf("init with shape %p is same size as bad init with shape %p", &p1, &p3);
 	EXPECT_FALSE(comp3.is_same_size(bad2)) << 
-		sprintf("init with shape %p is same size as bad init with shape %p", &p2, &p3);
+		testutils::sprintf("init with shape %p is same size as bad init with shape %p", &p2, &p3);
 }
 
 
@@ -558,21 +558,21 @@ TEST_F(TENSOR, IsCompatibleWithTensor_C005)
 	EXPECT_TRUE(undef.is_compatible_with(undef)) << 
 		"empty shape is incompatible with empty shape";
 	EXPECT_TRUE(undef.is_compatible_with(comp)) <<
-		sprintf("empty shape is incompatible with shape %p", &cshape);
+		testutils::sprintf("empty shape is incompatible with shape %p", &cshape);
 	EXPECT_TRUE(undef.is_compatible_with(pcom)) <<
-		sprintf("empty shape is incompatible with shape %p", &pshape);
+		testutils::sprintf("empty shape is incompatible with shape %p", &pshape);
 	EXPECT_TRUE(undef.is_compatible_with(bad)) <<
-		sprintf("empty shape is incompatible with shape %p", &badshape);
+		testutils::sprintf("empty shape is incompatible with shape %p", &badshape);
 
 	EXPECT_TRUE(pcom.is_compatible_with(comp)) <<
-		sprintf("shape %p is compatible with shape %p", &pshape, &cshape);
+		testutils::sprintf("shape %p is compatible with shape %p", &pshape, &cshape);
 	EXPECT_TRUE(pcom.is_compatible_with(pcom)) <<
-		sprintf("shape %p is incompatible with itself", &pshape);
+		testutils::sprintf("shape %p is incompatible with itself", &pshape);
 	EXPECT_FALSE(pcom.is_compatible_with(bad)) <<
-		sprintf("bad shape %p is compatible with shape %p", &badshape, &pshape);
+		testutils::sprintf("bad shape %p is compatible with shape %p", &badshape, &pshape);
 
 	EXPECT_FALSE(bad.is_compatible_with(comp)) <<
-		sprintf("bad shape %p is compatible with shape %p", &badshape, &cshape);
+		testutils::sprintf("bad shape %p is compatible with shape %p", &badshape, &cshape);
 }
 
 
@@ -602,18 +602,18 @@ TEST_F(TENSOR, IsCompatibleWithNData_C006)
 		"upperdata - exactdata", {1, exactdata-1})[0];
 
 	EXPECT_TRUE(comp.is_compatible_with(exactdata)) <<
-		sprintf("shape %p is incompatible with nelem=%d", &cshape, exactdata);
+		testutils::sprintf("shape %p is incompatible with nelem=%d", &cshape, exactdata);
 	EXPECT_FALSE(comp.is_compatible_with(lowerdata)) <<
-		sprintf("shape %p is compatible with nelem=%d", &cshape, lowerdata);
+		testutils::sprintf("shape %p is compatible with nelem=%d", &cshape, lowerdata);
 	EXPECT_FALSE(comp.is_compatible_with(upperdata)) <<
-		sprintf("shape %p is compatible with nelem=%d", &cshape, upperdata);
+		testutils::sprintf("shape %p is compatible with nelem=%d", &cshape, upperdata);
 
 	EXPECT_TRUE(comp.is_loosely_compatible_with(exactdata)) <<
-		sprintf("shape %p is loosely incompatible with nelem=%d", &cshape, exactdata);
+		testutils::sprintf("shape %p is loosely incompatible with nelem=%d", &cshape, exactdata);
 	EXPECT_TRUE(comp.is_loosely_compatible_with(lowerdata)) <<
-		sprintf("shape %p is loosely incompatible with nelem=%d", &cshape, lowerdata);
+		testutils::sprintf("shape %p is loosely incompatible with nelem=%d", &cshape, lowerdata);
 	EXPECT_FALSE(comp.is_loosely_compatible_with(upperdata)) <<
-		sprintf("shape %p is loosely compatible with nelem=%d", &cshape, upperdata);
+		testutils::sprintf("shape %p is loosely compatible with nelem=%d", &cshape, upperdata);
 
 	size_t exactdata2 = pshape.n_known();
 	size_t lowerdata2 = 1;
@@ -627,53 +627,53 @@ TEST_F(TENSOR, IsCompatibleWithNData_C006)
 	size_t upperdata2 = moddata + 1;
 
 	EXPECT_TRUE(pcom.is_compatible_with(exactdata2)) <<
-		sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, exactdata2);
+		testutils::sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, exactdata2);
 	EXPECT_TRUE(pcom.is_compatible_with(moddata)) <<
-		sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, moddata);
+		testutils::sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, moddata);
 	EXPECT_FALSE(pcom.is_compatible_with(lowerdata2)) <<
-		sprintf("shape %p is loosely compatible with nelem=%d", &pshape, lowerdata2);
+		testutils::sprintf("shape %p is loosely compatible with nelem=%d", &pshape, lowerdata2);
 	EXPECT_FALSE(pcom.is_compatible_with(upperdata2)) <<
-		sprintf("shape %p is loosely compatible with nelem=%d", &pshape, upperdata2);
+		testutils::sprintf("shape %p is loosely compatible with nelem=%d", &pshape, upperdata2);
 
 	EXPECT_TRUE(pcom.is_loosely_compatible_with(exactdata2)) <<
-		sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, exactdata2);
+		testutils::sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, exactdata2);
 	EXPECT_TRUE(pcom.is_loosely_compatible_with(moddata)) <<
-		sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, moddata);
+		testutils::sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, moddata);
 	EXPECT_TRUE(pcom.is_loosely_compatible_with(lowerdata2)) <<
-		sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, lowerdata2);
+		testutils::sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, lowerdata2);
 	EXPECT_TRUE(pcom.is_loosely_compatible_with(upperdata2)) <<
-		sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, upperdata2);
+		testutils::sprintf("shape %p is loosely incompatible with nelem=%d", &pshape, upperdata2);
 
 	// undef is compatible with everything
 	EXPECT_TRUE(undef.is_compatible_with(exactdata)) <<
-		sprintf("undef shape is incompatible with nelem=%d", exactdata);
+		testutils::sprintf("undef shape is incompatible with nelem=%d", exactdata);
 	EXPECT_TRUE(undef.is_compatible_with(exactdata2)) <<
-		sprintf("undef shape is incompatible with nelem=%d", exactdata2);
+		testutils::sprintf("undef shape is incompatible with nelem=%d", exactdata2);
 	EXPECT_TRUE(undef.is_compatible_with(lowerdata)) <<
-		sprintf("undef shape is incompatible with nelem=%d", lowerdata);
+		testutils::sprintf("undef shape is incompatible with nelem=%d", lowerdata);
 	EXPECT_TRUE(undef.is_compatible_with(lowerdata2)) <<
-		sprintf("undef shape is incompatible with nelem=%d", lowerdata2);
+		testutils::sprintf("undef shape is incompatible with nelem=%d", lowerdata2);
 	EXPECT_TRUE(undef.is_compatible_with(upperdata)) <<
-		sprintf("undef shape is incompatible with nelem=%d", upperdata);
+		testutils::sprintf("undef shape is incompatible with nelem=%d", upperdata);
 	EXPECT_TRUE(undef.is_compatible_with(upperdata2)) <<
-		sprintf("undef shape is incompatible with nelem=%d", upperdata2);
+		testutils::sprintf("undef shape is incompatible with nelem=%d", upperdata2);
 	EXPECT_TRUE(undef.is_compatible_with(moddata)) <<
-		sprintf("undef shape is incompatible with nelem=%d", moddata);
+		testutils::sprintf("undef shape is incompatible with nelem=%d", moddata);
 
 	EXPECT_TRUE(undef.is_loosely_compatible_with(exactdata)) <<
-		sprintf("undef shape is loosely incompatible with nelem=%d", exactdata);
+		testutils::sprintf("undef shape is loosely incompatible with nelem=%d", exactdata);
 	EXPECT_TRUE(undef.is_loosely_compatible_with(exactdata2)) <<
-		sprintf("undef shape is loosely incompatible with nelem=%d", exactdata2);
+		testutils::sprintf("undef shape is loosely incompatible with nelem=%d", exactdata2);
 	EXPECT_TRUE(undef.is_loosely_compatible_with(lowerdata)) <<
-		sprintf("undef shape is loosely incompatible with nelem=%d", lowerdata);
+		testutils::sprintf("undef shape is loosely incompatible with nelem=%d", lowerdata);
 	EXPECT_TRUE(undef.is_loosely_compatible_with(lowerdata2)) <<
-		sprintf("undef shape is loosely incompatible with nelem=%d", lowerdata2);
+		testutils::sprintf("undef shape is loosely incompatible with nelem=%d", lowerdata2);
 	EXPECT_TRUE(undef.is_loosely_compatible_with(upperdata)) <<
-		sprintf("undef shape is loosely incompatible with nelem=%d", upperdata);
+		testutils::sprintf("undef shape is loosely incompatible with nelem=%d", upperdata);
 	EXPECT_TRUE(undef.is_loosely_compatible_with(upperdata2)) <<
-		sprintf("undef shape is loosely incompatible with nelem=%d", upperdata2);
+		testutils::sprintf("undef shape is loosely incompatible with nelem=%d", upperdata2);
 	EXPECT_TRUE(undef.is_loosely_compatible_with(moddata)) <<
-		sprintf("undef shape is loosely incompatible with nelem=%d", moddata);
+		testutils::sprintf("undef shape is loosely incompatible with nelem=%d", moddata);
 }
 
 
@@ -704,13 +704,13 @@ TEST_F(TENSOR, GuessShape_C007)
 	// allowed are fully defined
 	optional<nnet::tensorshape> cres = comp.guess_shape(exactdata);
 	ASSERT_TRUE((bool)cres) <<
-		sprintf("shape %p failed to guess nelems=%d", &cshape, exactdata);
+		testutils::sprintf("shape %p failed to guess nelems=%d", &cshape, exactdata);
 	EXPECT_TRUE(tensorshape_equal(cshape, *cres)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &*cres);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &*cres);
 	EXPECT_FALSE((bool)comp.guess_shape(lowerdata)) <<
-		sprintf("shape %p guessed nelems=%d", &cshape, lowerdata);
+		testutils::sprintf("shape %p guessed nelems=%d", &cshape, lowerdata);
 	EXPECT_FALSE((bool)comp.guess_shape(upperdata)) <<
-		sprintf("shape %p guessed nelems=%d", &cshape, upperdata);
+		testutils::sprintf("shape %p guessed nelems=%d", &cshape, upperdata);
 
 	size_t exactdata2 = pshape.n_known();
 	size_t lowerdata2 = 1;
@@ -742,17 +742,17 @@ TEST_F(TENSOR, GuessShape_C007)
 	optional<nnet::tensorshape> pres = pcom.guess_shape(exactdata2);
 	optional<nnet::tensorshape> pres2 = pcom.guess_shape(moddata);
 	ASSERT_TRUE((bool)pres) <<
-		sprintf("shape %p failed to guess nelems=%d", &pshape, exactdata2);
+		testutils::sprintf("shape %p failed to guess nelems=%d", &pshape, exactdata2);
 	ASSERT_TRUE((bool)pres2) <<
-		sprintf("shape %p failed to guess nelems=%d", &pshape, moddata);
+		testutils::sprintf("shape %p failed to guess nelems=%d", &pshape, moddata);
 	EXPECT_TRUE(tensorshape_equal(pmod, *pres)) <<
-		sprintf("expecting shape %p, got %p", &pmod, &*pres);
+		testutils::sprintf("expecting shape %p, got %p", &pmod, &*pres);
 	EXPECT_TRUE(tensorshape_equal(pshape2, *pres2)) <<
-		sprintf("expecting shape %p, got %p", &pshape2, &*pres2);
+		testutils::sprintf("expecting shape %p, got %p", &pshape2, &*pres2);
 	EXPECT_FALSE((bool)pcom.guess_shape(lowerdata2)) <<
-		sprintf("shape %p guessed nelems=%d", &pshape, lowerdata2);
+		testutils::sprintf("shape %p guessed nelems=%d", &pshape, lowerdata2);
 	EXPECT_FALSE((bool)pcom.guess_shape(upperdata2)) <<
-		sprintf("shape %p guessed nelems=%d", &pshape, upperdata2);
+		testutils::sprintf("shape %p guessed nelems=%d", &pshape, upperdata2);
 
 	// allowed are undefined
 	optional<nnet::tensorshape> ures = undef.guess_shape(exactdata);
@@ -763,33 +763,33 @@ TEST_F(TENSOR, GuessShape_C007)
 	optional<nnet::tensorshape> ures6 = undef.guess_shape(upperdata2);
 	optional<nnet::tensorshape> ures7 = undef.guess_shape(moddata);
 	ASSERT_TRUE((bool)ures) <<
-		sprintf("undef shape failed to guess nelems=%d", exactdata);
+		testutils::sprintf("undef shape failed to guess nelems=%d", exactdata);
 	ASSERT_TRUE((bool)ures2) <<
-		sprintf("undef shape failed to guess nelems=%d", exactdata2);
+		testutils::sprintf("undef shape failed to guess nelems=%d", exactdata2);
 	ASSERT_TRUE((bool)ures3) <<
-		sprintf("undef shape failed to guess nelems=%d", lowerdata);
+		testutils::sprintf("undef shape failed to guess nelems=%d", lowerdata);
 	ASSERT_TRUE((bool)ures4) <<
-		sprintf("undef shape failed to guess nelems=%d", lowerdata2);
+		testutils::sprintf("undef shape failed to guess nelems=%d", lowerdata2);
 	ASSERT_TRUE((bool)ures5) <<
-		sprintf("undef shape failed to guess nelems=%d", upperdata);
+		testutils::sprintf("undef shape failed to guess nelems=%d", upperdata);
 	ASSERT_TRUE((bool)ures6) <<
-		sprintf("undef shape failed to guess nelems=%d", upperdata2);
+		testutils::sprintf("undef shape failed to guess nelems=%d", upperdata2);
 	ASSERT_TRUE((bool)ures7) <<
-		sprintf("undef shape failed to guess nelems=%d", moddata);
+		testutils::sprintf("undef shape failed to guess nelems=%d", moddata);
 	EXPECT_TRUE(tensorshape_equal(*ures, std::vector<size_t>({exactdata}))) <<
-		sprintf("expected shape %d, got %p", exactdata, &*ures);
+		testutils::sprintf("expected shape %d, got %p", exactdata, &*ures);
 	EXPECT_TRUE(tensorshape_equal(*ures2, std::vector<size_t>({exactdata2}))) <<
-		sprintf("expected shape %d, got %p", exactdata2, &*ures2);
+		testutils::sprintf("expected shape %d, got %p", exactdata2, &*ures2);
 	EXPECT_TRUE(tensorshape_equal(*ures3, std::vector<size_t>({lowerdata}))) <<
-		sprintf("expected shape %d, got %p", lowerdata, &*ures3);
+		testutils::sprintf("expected shape %d, got %p", lowerdata, &*ures3);
 	EXPECT_TRUE(tensorshape_equal(*ures4, std::vector<size_t>({lowerdata2}))) <<
-		sprintf("expected shape %d, got %p", lowerdata2, &*ures4);
+		testutils::sprintf("expected shape %d, got %p", lowerdata2, &*ures4);
 	EXPECT_TRUE(tensorshape_equal(*ures5, std::vector<size_t>({upperdata}))) <<
-		sprintf("expected shape %d, got %p", upperdata, &*ures5);
+		testutils::sprintf("expected shape %d, got %p", upperdata, &*ures5);
 	EXPECT_TRUE(tensorshape_equal(*ures6, std::vector<size_t>({upperdata2}))) <<
-		sprintf("expected shape %d, got %p", upperdata2, &*ures6);
+		testutils::sprintf("expected shape %d, got %p", upperdata2, &*ures6);
 	EXPECT_TRUE(tensorshape_equal(*ures7, std::vector<size_t>({moddata}))) <<
-		sprintf("expected shape %d, got %p", moddata, &*ures7);
+		testutils::sprintf("expected shape %d, got %p", moddata, &*ures7);
 }
 
 
@@ -881,12 +881,12 @@ TEST_F(TENSOR, TotalBytes_C009)
 	nnet::tensorshape shape = clist;
 	nnet::tensor ten(shape);
 	ASSERT_FALSE(ten.has_data()) << 
-		sprintf("ten w/ shape %p initialized with data", &shape);
+		testutils::sprintf("ten w/ shape %p initialized with data", &shape);
 	EXPECT_EQ(0, ten.total_bytes());
 
 	ten.read_from(src);
 	ASSERT_TRUE(ten.has_data()) << 
-		sprintf("ten w/ shape %p failed to read src", &shape);
+		testutils::sprintf("ten w/ shape %p failed to read src", &shape);
 	EXPECT_EQ(shape.n_elems() * nnet::type_size(src.type_), ten.total_bytes());
 }
 
@@ -901,26 +901,26 @@ TEST_F(TENSOR, Clear_C010)
 	nnet::tensorshape pshape = plist;
 	nnet::tensor ten(pshape);
 	ASSERT_FALSE(ten.has_data()) <<
-		sprintf("ten w/ shape %p initialized with data", &pshape);
+		testutils::sprintf("ten w/ shape %p initialized with data", &pshape);
 	nnet::tensorshape tshape = ten.get_shape();
 	EXPECT_TRUE(tensorshape_equal(pshape, tshape)) <<
-		sprintf("expecting shape %p, got %p", &pshape, &tshape);
+		testutils::sprintf("expecting shape %p, got %p", &pshape, &tshape);
 	EXPECT_EQ(BAD_T, ten.get_type());
 
 	ten.read_from(src, cshape);
 	ASSERT_TRUE(ten.has_data()) <<
-		sprintf("ten read with shape %p has no data", &cshape);
+		testutils::sprintf("ten read with shape %p has no data", &cshape);
 	tshape = ten.get_shape();
 	EXPECT_TRUE(tensorshape_equal(cshape, tshape)) <<
-		sprintf("expecting shape %p, got %p", &cshape, &tshape);
+		testutils::sprintf("expecting shape %p, got %p", &cshape, &tshape);
 	EXPECT_EQ(src.type_, ten.get_type());
 
 	ten.clear();
 	ASSERT_FALSE(ten.has_data()) << 
-		sprintf("cleared ten w/ allowed shape %p has data", &pshape);
+		testutils::sprintf("cleared ten w/ allowed shape %p has data", &pshape);
 	tshape = ten.get_shape();
 	EXPECT_TRUE(tensorshape_equal(pshape, tshape)) <<
-		sprintf("expecting shape %p, got %p", &pshape, &tshape);
+		testutils::sprintf("expecting shape %p, got %p", &pshape, &tshape);
 	EXPECT_EQ(BAD_T, ten.get_type());
 }
 
@@ -952,11 +952,11 @@ TEST_F(TENSOR, SetShape_C011)
 	pcom2.read_from(src, cshape);
 
 	ASSERT_TRUE(undef.has_data()) <<
-		sprintf("undef read with shape %p has no data", &cshape);
+		testutils::sprintf("undef read with shape %p has no data", &cshape);
 	ASSERT_TRUE(comp.has_data()) <<
-		sprintf("comp read with shape %p has no data", &cshape);
+		testutils::sprintf("comp read with shape %p has no data", &cshape);
 	ASSERT_TRUE(pcom.has_data()) <<
-		sprintf("pcom read with shape %p has no data", &cshape);
+		testutils::sprintf("pcom read with shape %p has no data", &cshape);
 
 	// don't clear data on set_shape
 	undef.set_shape(pshape);
@@ -964,11 +964,11 @@ TEST_F(TENSOR, SetShape_C011)
 	pcom.set_shape(cshape);
 
 	EXPECT_TRUE(undef.has_data()) <<
-		sprintf("undef set with shape %p has no data", &pshape);
+		testutils::sprintf("undef set with shape %p has no data", &pshape);
 	EXPECT_TRUE(comp.has_data()) <<
-		sprintf("original %p set with empty shape has no data", &cshape);
+		testutils::sprintf("original %p set with empty shape has no data", &cshape);
 	EXPECT_TRUE(pcom.has_data()) <<
-		sprintf("original %p set with shape %p has no data", &pshape, &cshape);
+		testutils::sprintf("original %p set with shape %p has no data", &pshape, &cshape);
 
 	// clear and inspect allowed shape
 	undef.clear();
@@ -979,11 +979,11 @@ TEST_F(TENSOR, SetShape_C011)
 	nnet::tensorshape res_pshape = pcom.get_shape();
 
 	EXPECT_TRUE(tensorshape_equal(pshape, res_ushape)) <<
-		sprintf("expect shape %p, got %p", &pshape, &res_ushape);
+		testutils::sprintf("expect shape %p, got %p", &pshape, &res_ushape);
 	EXPECT_TRUE(tensorshape_equal(eshape, res_cshape)) <<
-		sprintf("expect shape %p, got %p", &cshape, &res_cshape);
+		testutils::sprintf("expect shape %p, got %p", &cshape, &res_cshape);
 	EXPECT_TRUE(tensorshape_equal(cshape, res_pshape)) <<
-		sprintf("expect shape %p, got %p", &eshape, &res_pshape);
+		testutils::sprintf("expect shape %p, got %p", &eshape, &res_pshape);
 
 	// clear data on set_shape
 	undef2.set_shape(ishape);
@@ -991,21 +991,21 @@ TEST_F(TENSOR, SetShape_C011)
 	pcom2.set_shape(ishape);
 
 	EXPECT_FALSE(undef2.has_data()) <<
-		sprintf("undef set with bad shape %p has data", &ishape);
+		testutils::sprintf("undef set with bad shape %p has data", &ishape);
 	EXPECT_FALSE(comp2.has_data()) <<
-		sprintf("original %p set with bad shape %p has data", &cshape, &ishape);
+		testutils::sprintf("original %p set with bad shape %p has data", &cshape, &ishape);
 	EXPECT_FALSE(pcom2.has_data()) <<
-		sprintf("original %p set with bad shape %p has data", &pshape, &ishape);
+		testutils::sprintf("original %p set with bad shape %p has data", &pshape, &ishape);
 
 	nnet::tensorshape res_ushape2 = undef2.get_shape();
 	nnet::tensorshape res_cshape2 = comp2.get_shape();
 	nnet::tensorshape res_pshape2 = pcom2.get_shape();
 	EXPECT_TRUE(tensorshape_equal(ishape, res_ushape2)) <<
-		sprintf("expect shape %p, got %p", &ishape, &res_ushape2);
+		testutils::sprintf("expect shape %p, got %p", &ishape, &res_ushape2);
 	EXPECT_TRUE(tensorshape_equal(ishape, res_cshape2)) <<
-		sprintf("expect shape %p, got %p", &ishape, &res_cshape2);
+		testutils::sprintf("expect shape %p, got %p", &ishape, &res_cshape2);
 	EXPECT_TRUE(tensorshape_equal(ishape, res_pshape2)) <<
-		sprintf("expect shape %p, got %p", &ishape, &res_pshape2);
+		testutils::sprintf("expect shape %p, got %p", &ishape, &res_pshape2);
 }
 
 
@@ -1031,11 +1031,11 @@ TEST_F(TENSOR, Proto_C012)
 
 	// expects failure
 	EXPECT_FALSE(comp.serialize(proto)) <<
-		sprintf("successfully serialized uninit tensor with shape %p", &cshape);
+		testutils::sprintf("successfully serialized uninit tensor with shape %p", &cshape);
 	EXPECT_FALSE(comp2.serialize(proto)) <<
-		sprintf("successfully serialized uninit tensor with shape %p", &cshape2);
+		testutils::sprintf("successfully serialized uninit tensor with shape %p", &cshape2);
 	EXPECT_FALSE(ten.serialize(proto)) <<
-		sprintf("successfully serialized uninit tensor with shape %p", &shape);
+		testutils::sprintf("successfully serialized uninit tensor with shape %p", &shape);
 
 	comp.read_from(src);
 	comp2.read_from(src2);
@@ -1043,7 +1043,7 @@ TEST_F(TENSOR, Proto_C012)
 
 	// expects success
 	EXPECT_TRUE(comp.serialize(proto)) <<
-		sprintf("failed to serialized tensor with shape %p", &cshape);
+		testutils::sprintf("failed to serialized tensor with shape %p", &cshape);
 
 	mock_data_dest dest;
 	comp2.write_to(dest);
@@ -1067,13 +1067,13 @@ TEST_F(TENSOR, Proto_C012)
 	nnet::tensorshape goten = ten.get_shape();
 	nnet::tensorshape gotc = comp2.get_shape();
 	EXPECT_TRUE(tensorshape_equal(cshape, goten)) <<
-		sprintf("expect shape %p, got %p", &cshape, &goten);
+		testutils::sprintf("expect shape %p, got %p", &cshape, &goten);
 	EXPECT_TRUE(tensorshape_equal(cshape, gotc)) <<
-		sprintf("expect shape %p, got %p", &cshape, &gotc);
+		testutils::sprintf("expect shape %p, got %p", &cshape, &gotc);
 
 	// rewrite data
 	ASSERT_TRUE(comp3.serialize(proto)) <<
-		sprintf("failed to re-serialized tensor with shape %p", &cshape3);;
+		testutils::sprintf("failed to re-serialized tensor with shape %p", &cshape3);;
 	std::string c3str = proto.data();
 	TENS_TYPE c3type = proto.type();
 	nnet::tensorshape c3allow(std::vector<size_t>(
@@ -1087,9 +1087,9 @@ TEST_F(TENSOR, Proto_C012)
 	EXPECT_STREQ(src3.uuid_.c_str(), c3str.substr(0, src3.uuid_.size()).c_str());
 	EXPECT_EQ(src3.type_, c3type);
 	EXPECT_TRUE(tensorshape_equal(pshape3, c3allow)) <<
-		sprintf("expect shape %p, got %p", &pshape3, &c3allow);
+		testutils::sprintf("expect shape %p, got %p", &pshape3, &c3allow);
 	EXPECT_TRUE(tensorshape_equal(cshape3, c3alloc)) <<
-		sprintf("expect shape %p, got %p", &cshape3, &c3alloc);
+		testutils::sprintf("expect shape %p, got %p", &cshape3, &c3alloc);
 }
 
 

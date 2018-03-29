@@ -12,7 +12,7 @@
  *
  */
 
-#include "include/graph/inode.hpp"
+#include "include/graph/functor.hpp"
 
 #ifndef TENNCOR_OPERATION_UTILS_HPP
 #define TENNCOR_OPERATION_UTILS_HPP
@@ -20,11 +20,11 @@
 namespace nnet
 {
 
-inode* single_parent (inode* src, std::string opname);
+inode* single_parent (inode* src, OPCODE opcode);
 
-inode* ordered_parent (std::vector<inode*> srcs, std::string opname);
+inode* ordered_parent (std::vector<inode*> srcs, OPCODE opcode);
 
-inode* unordered_parent (std::vector<inode*> srcs, std::string opname);
+inode* unordered_parent (std::vector<inode*> srcs, OPCODE opcode);
 
 }
 

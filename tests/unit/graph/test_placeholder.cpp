@@ -49,7 +49,7 @@ TEST_F(PLACEHOLDER, Constructor_E000)
 		"tensor ten has data";
 	nnet::tensorshape gotshape = ten->get_shape();
 	EXPECT_TRUE(tensorshape_equal(shape, gotshape)) <<
-		sprintf("expecting shape %p, got %p", &shape, &gotshape);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
 
 	place = raw;
 	EXPECT_TRUE(ten->has_data()) <<
@@ -57,7 +57,7 @@ TEST_F(PLACEHOLDER, Constructor_E000)
 
 	std::vector<double> data = nnet::expose<double>(&place);
 	EXPECT_TRUE(std::equal(raw.begin(), raw.end(), data.begin())) <<
-		sprintf("expecting %vf, got %vf", &raw, &data);
+		testutils::sprintf("expecting %vf, got %vf", &raw, &data);
 }
 
 
@@ -100,7 +100,7 @@ TEST_F(PLACEHOLDER, Copy_E001)
 
 	std::vector<double> cpyout = nnet::expose<double>(pcpy);
 	EXPECT_TRUE(std::equal(raw.begin(), raw.end(), cpyout.begin())) <<
-		sprintf("expecting %vf, got %vf", &raw, &cpyout);
+		testutils::sprintf("expecting %vf, got %vf", &raw, &cpyout);
 
 	// assign
 	assign = place;
@@ -113,7 +113,7 @@ TEST_F(PLACEHOLDER, Copy_E001)
 
 	std::vector<double> assout = nnet::expose<double>(&assign);
 	EXPECT_TRUE(std::equal(raw.begin(), raw.end(), assout.begin())) <<
-		sprintf("expecting %vf, got %vf", &raw, &assout);
+		testutils::sprintf("expecting %vf, got %vf", &raw, &assout);
 
 	size_t n_updates = testify::mocker::get_usage(&mconn, "update2");
 	optional<std::string> updateval = testify::mocker::get_value(&mconn, "update2");
@@ -165,7 +165,7 @@ TEST_F(PLACEHOLDER, Move_E001)
 
 	std::vector<double> mvout = nnet::expose<double>(pmv);
 	EXPECT_TRUE(std::equal(raw.begin(), raw.end(), mvout.begin())) <<
-		sprintf("expecting %vf, got %vf", &raw, &mvout);
+		testutils::sprintf("expecting %vf, got %vf", &raw, &mvout);
 	EXPECT_EQ(nullptr, place.get_tensor());
 
 	// assign
@@ -179,7 +179,7 @@ TEST_F(PLACEHOLDER, Move_E001)
 
 	std::vector<double> assout = nnet::expose<double>(&assign);
 	EXPECT_TRUE(std::equal(raw.begin(), raw.end(), assout.begin())) <<
-		sprintf("expecting %vf, got %vf", &raw, &assout);
+		testutils::sprintf("expecting %vf, got %vf", &raw, &assout);
 	EXPECT_EQ(nullptr, pmv->get_tensor());
 
 	size_t n_updates = testify::mocker::get_usage(&mconn, "update2");
@@ -277,7 +277,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 		"tensor ten has data";
 	nnet::tensorshape gotshape = ten->get_shape();
 	EXPECT_TRUE(tensorshape_equal(part, gotshape)) <<
-		sprintf("expecting shape %p, got %p", &shape, &gotshape);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
 	place = raw;
 	EXPECT_TRUE(ten->has_data()) <<
 		"tensor ten does not have data";
@@ -286,7 +286,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 
 	std::vector<double> data1 = nnet::expose<double>(&place);
 	EXPECT_TRUE(std::equal(raw.begin(), raw.end(), data1.begin())) <<
-		sprintf("expecting %vf, got %vf", &raw, &data1);
+		testutils::sprintf("expecting %vf, got %vf", &raw, &data1);
 
 	size_t n_updates = testify::mocker::get_usage(&mconn, "update2");
 	optional<std::string> updateval = testify::mocker::get_value(&mconn, "update2");
@@ -303,7 +303,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 		"tensor ten2 does not have data";
 	gotshape = ten2->get_shape();
 	EXPECT_TRUE(tensorshape_equal(shape, gotshape)) <<
-		sprintf("expecting shape %p, got %p", &shape, &gotshape);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
 
 	size_t n_updates2 = testify::mocker::get_usage(&mconn2, "update2");
 	optional<std::string> updateval2 = testify::mocker::get_value(&mconn2, "update2");
@@ -314,7 +314,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 
 	std::vector<double> data2 = nnet::expose<double>(&place2);
 	EXPECT_TRUE(std::equal(raw.begin(), raw.end(), data2.begin())) <<
-		sprintf("expecting %vf, got %vf", &raw, &data2);
+		testutils::sprintf("expecting %vf, got %vf", &raw, &data2);
 
 	// bad assignment (failure to guess shape)
 	EXPECT_THROW((place3 = badraw), std::logic_error);
@@ -325,7 +325,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 
 	std::vector<double> data3 = nnet::expose<double>(&place);
 	EXPECT_TRUE(std::equal(raw2.begin(), raw2.end(), data3.begin())) <<
-		sprintf("expecting %vf, got %vf", &raw2, &data3);
+		testutils::sprintf("expecting %vf, got %vf", &raw2, &data3);
 
 	EXPECT_EQ(2, testify::mocker::get_usage(&mconn, "update2"));
 
@@ -382,9 +382,9 @@ TEST_F(PLACEHOLDER, AssignTensor_E006)
 	EXPECT_EQ(0, n_updates2);
 
 	ASSERT_TRUE(good.read_from(ci)) <<
-		sprintf("failed to read constant %f", c);
+		testutils::sprintf("failed to read constant %f", c);
 	ASSERT_TRUE(bad.read_from(ci)) <<
-		sprintf("failed to read constant %f", c);
+		testutils::sprintf("failed to read constant %f", c);
 
 	ASSERT_TRUE(good.has_data()) <<
 		"good doesn't have data";

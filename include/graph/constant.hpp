@@ -30,40 +30,11 @@ public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for scalar
 	template <typename T> // todo: optimize by looking for pre-existing constants
-	static constant* get (T scalar)
-	{
-		static_assert(std::is_arithmetic<T>::value, 
-			"constant must be arithmetic value");
-		tensorshape shape = std::vector<size_t>{1};
-		const_init ci;
-		ci.set(scalar);
-		tensor* data = new tensor(shape);
-		data->read_from(ci);
-		return new constant(data, nnutils::formatter() << scalar);
-	}
+	static varptr get (T scalar);
 
 	//! builder for data and shape
 	template <typename T>
-	static constant* get (std::vector<T> raw, tensorshape shape)
-	{
-		static_assert(std::is_arithmetic<T>::value, 
-			"constant must be arithmetic value");
-		shape.assert_is_fully_defined();
-		std::string name;
-		if (raw.empty())
-		{
-			name = "<empty>";
-		}
-		else
-		{
-			name = nnutils::formatter() << raw.front() << ".." << raw.back();
-		}
-		const_init ci;
-		ci.set(raw);
-		tensor* data = new tensor(shape);
-		data->read_from(ci);
-		return new constant(data, name);
-	}
+	static varptr get (std::vector<T> raw, tensorshape shape);
 
 	// >>>> CAN'T COPY OR MOVE (GOES AGAINST SHARING) <<<<
 
@@ -102,6 +73,10 @@ public:
 	virtual varptr derive (inode* wrt);
 
 protected:
+	virtual ~constant (void);
+
+
+
 	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
 
 	constant (tenncor::tensor_proto& proto_src, std::string label);
@@ -137,6 +112,54 @@ private:
 	//! raw data
 	std::unique_ptr<tensor> data_ = nullptr;
 };
+
+constant* find_const (size_t key);
+
+bool dangling (constant* key);
+
+void register_const (size_t key, constant* cons);
+
+template <typename T> // todo: optimize by looking for pre-existing constants
+varptr constant::get (T scalar)
+{
+	static_assert(std::is_arithmetic<T>::value, 
+		"constant must be arithmetic value");
+	size_t key = scalar_hash(scalar);;
+	constant* cons = find_const(key);
+	if (nullptr == cons)
+	{
+		tensorshape shape = std::vector<size_t>{1};
+		const_init ci;
+		ci.set(scalar);
+		tensor* data = new tensor(shape);
+		data->read_from(ci);
+		cons = new constant(data, nnutils::formatter() << scalar);
+		register_const(key, cons);
+	}
+	return cons;
+}
+
+template <typename T>
+varptr constant::get (std::vector<T> raw, tensorshape shape)
+{
+	static_assert(std::is_arithmetic<T>::value, 
+		"constant must be arithmetic value");
+	shape.assert_is_fully_defined();
+	std::string name;
+	if (raw.empty())
+	{
+		name = "<empty>";
+	}
+	else
+	{
+		name = nnutils::formatter() << raw.front() << ".." << raw.back();
+	}
+	const_init ci;
+	ci.set(raw);
+	tensor* data = new tensor(shape);
+	data->read_from(ci);
+	return new constant(data, name);
+}
 
 //! equality check for node against scalars
 template <typename T>

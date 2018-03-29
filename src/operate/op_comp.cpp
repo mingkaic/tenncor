@@ -56,11 +56,12 @@ varptr arg_max (const varptr a, const varptr dimension)
 {
 	if (nullptr == a.get()) return nullptr;
 	// always check if the same operation on input exists
-	if (inode* parent = single_parent(a, nnutils::formatter() << "argmax_" << dimension))
+	OPCODE op = ARGMAX;
+	if (inode* parent = ordered_parent({a, dimension}, op))
 	{
 		return parent;
 	}
-	return agg_func(a, dimension, "argmax", ARGMAX,
+	return agg_func(a, dimension, "argmax", op,
 	[](std::vector<std::pair<inode*, inode*> >) -> varptr
 	{
 		throw std::exception();
@@ -76,11 +77,12 @@ varptr reduce_max (const varptr a, const varptr dimension)
 {
 	if (nullptr == a.get()) return nullptr;
 	// always check if the same operation on input exists
-	if (inode* parent = single_parent(a, nnutils::formatter() << "max_" << dimension))
+	OPCODE op = RMAX;
+	if (inode* parent = ordered_parent({a, dimension}, op))
 	{
 		return parent;
 	}
-	return agg_func(a, dimension, "max", RMAX,
+	return agg_func(a, dimension, "max", op,
 	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
 		varptr a = args.front().first;
@@ -101,12 +103,13 @@ varptr reduce_sum (const varptr a, size_t dimension)
 varptr reduce_sum (const varptr a, const varptr dimension)
 {
 	if (nullptr == a.get()) return nullptr;
+	OPCODE op = RSUM;
 	// always check if the same operation on input exists
-	if (inode* parent = single_parent(a, nnutils::formatter() << "sum_" << dimension))
+	if (inode* parent = ordered_parent({a, dimension}, op))
 	{
 		return parent;
 	}
-	return agg_func(a, dimension, "sum", RSUM,
+	return agg_func(a, dimension, "sum", op,
 	[](std::vector<std::pair<inode*, inode*> > args) -> varptr
 	{
 		return args.front().second;

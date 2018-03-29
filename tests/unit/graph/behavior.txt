@@ -39,14 +39,13 @@ B003 - label is a non-unique string assigned during construction,
 C000 - scalar constructor initializes data as a scalar of the same value
 		vector initializes tensor in vector form according to input data 
 		with specified input shape. vector initialization clipped or repeated to fit shape
+		multiple scalar constant containing the same value will use the same instance
 C001 - clone and move are deleted, clone and move return nullptr
 C002 - get_leaves adds returns a set containing itself
 C003 - get tensors exposes to scalar/vector specified at construction
 		exposing constant is the same as exposed tensor
 C004 - derive returns nullptr
 C005 - self destructs when it loses all its subscribers
-C006 - constant is equal to a scalar if the constant has value == scalar,
-		same applies to not equal. If the shape has n_elems() > 1, both equality checks return false 
 
 // VARIABLE BEHAVIOR
 D000 - tensor has no data on construction, but it has specified input shape

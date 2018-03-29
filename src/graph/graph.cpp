@@ -20,6 +20,11 @@ bool graph::has_node (inode* node) const
 	return adjmap_.end() != adjmap_.find(node->get_uid());
 }
 
+bool graph::has_node (std::string uid) const
+{
+	return adjmap_.end() != adjmap_.find(uid);
+}
+
 inode* graph::get_inst (std::string uid) const
 {
 	auto it = adjmap_.find(uid);

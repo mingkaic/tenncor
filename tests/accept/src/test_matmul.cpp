@@ -21,7 +21,7 @@ TEST_F(MATMUL_TESTS, MATMUL_TESTS)
 	char opname[24];
 	for (int i = 0; i < 10; ++i)
 	{
-		sprintf(opname, "matmul%d", i);
+		std::sprintf(opname, "matmul%d", i);
 		op_args args = parse_line(opname);
 		nnet::variable* input1 = args.vars_[0];
 		nnet::variable* input2 = args.vars_[1];

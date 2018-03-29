@@ -39,6 +39,9 @@ std::string sprintf (const char* fmt...)
 				case 's':
 					ss << va_arg(args, const char*);
 				break;
+				case 'e': // pointer
+					ss << va_arg(args, void*);
+				break;
 				case 'p': // shape
 				{
 					nnet::tensorshape* shape = va_arg(args, nnet::tensorshape*);

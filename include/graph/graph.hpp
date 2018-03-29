@@ -61,6 +61,8 @@ public:
 
 	bool has_node (inode* node) const;
 
+	bool has_node (std::string uid) const;
+
 	inode* get_inst (std::string uid) const;
 
 

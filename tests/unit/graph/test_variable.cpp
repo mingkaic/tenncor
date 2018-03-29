@@ -65,10 +65,10 @@ TEST_F(VARIABLE, Constructor_D000)
 		"tensor rten has data";
 	nnet::tensorshape gotshape = cten->get_shape();
 	EXPECT_TRUE(tensorshape_equal(shape, gotshape)) <<
-		sprintf("expecting shape %p, got %p", &shape, &gotshape);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
 	nnet::tensorshape gotshape2 = rten->get_shape();
 	EXPECT_TRUE(tensorshape_equal(shape, gotshape2)) <<
-		sprintf("expecting shape %p, got %p", &shape, &gotshape2);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape2);
 
 	cinitv.initialize();
 	rinitv.initialize();
@@ -260,9 +260,9 @@ TEST_F(VARIABLE, Derive_D004)
 	nnet::tensorshape gotshape = wten->get_shape();
 	nnet::tensorshape gotshape2 = wten2->get_shape();
 	ASSERT_TRUE(tensorshape_equal(shape, gotshape)) <<
-		sprintf("expecting shape %p, got %p", &shape, &gotshape);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
 	ASSERT_TRUE(tensorshape_equal(shape, gotshape2)) <<
-		sprintf("expecting shape %p, got %p", &shape, &gotshape2);
+		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape2);
 	std::vector<double> wunvec = nnet::expose<double>(ewun);
 	std::vector<double> wunvec2 = nnet::expose<double>(ewun2);
 	size_t n = shape.n_elems();
@@ -326,13 +326,13 @@ TEST_F(VARIABLE, Initialize_D005)
 		"tensor rften has data";
 
 	EXPECT_FALSE(cpart.initialize()) <<
-		sprintf("partial variable shape %p initialized", &part);
+		testutils::sprintf("partial variable shape %p initialized", &part);
 	EXPECT_TRUE(cfull.initialize()) <<
-		sprintf("variable shape %p failed to initialize", &shape);
+		testutils::sprintf("variable shape %p failed to initialize", &shape);
 	EXPECT_FALSE(rpart.initialize()) <<
-		sprintf("partial variable shape %p initialized", &part);
+		testutils::sprintf("partial variable shape %p initialized", &part);
 	EXPECT_TRUE(rfull.initialize()) <<
-		sprintf("variable shape %p failed to initialize", &shape);
+		testutils::sprintf("variable shape %p failed to initialize", &shape);
 
 	EXPECT_FALSE(cpten->has_data()) <<
 		"tensor cpten has data";
@@ -362,13 +362,13 @@ TEST_F(VARIABLE, Initialize_D005)
 	EXPECT_STREQ("UPDATE", rf_updateval->c_str());
 
 	EXPECT_TRUE(cpart.initialize(shape)) <<
-		sprintf("cpart with shape %p failed to re-initialize with shape %p", &part, &shape);
+		testutils::sprintf("cpart with shape %p failed to re-initialize with shape %p", &part, &shape);
 	EXPECT_TRUE(cfull.initialize(shape)) <<
-		sprintf("cfull failed to re-initialize with shape %p", &shape);
+		testutils::sprintf("cfull failed to re-initialize with shape %p", &shape);
 	EXPECT_TRUE(rpart.initialize(shape)) <<
-		sprintf("rpart with shape %p failed to re-initialize with shape %p", &part, &shape);
+		testutils::sprintf("rpart with shape %p failed to re-initialize with shape %p", &part, &shape);
 	EXPECT_TRUE(rfull.initialize(shape)) <<
-		sprintf("rfull failed to re-initialize with shape %p", &shape);
+		testutils::sprintf("rfull failed to re-initialize with shape %p", &shape);
 
 	EXPECT_TRUE(cpten->has_data()) <<
 		"tensor cpten does not have data";
@@ -416,13 +416,13 @@ TEST_F(VARIABLE, Initialize_D005)
 	}
 
 	EXPECT_FALSE(cpart.initialize(badshape)) <<
-		sprintf("partial shape %p initialized with badshape", &part, &badshape);
+		testutils::sprintf("partial shape %p initialized with badshape", &part, &badshape);
 	EXPECT_FALSE(cfull.initialize(badshape)) <<
-		sprintf("full shape %p initialized with badshape", &shape, &badshape);
+		testutils::sprintf("full shape %p initialized with badshape", &shape, &badshape);
 	EXPECT_FALSE(rpart.initialize(badshape)) <<
-		sprintf("partial shape %p initialized with badshape", &part, &badshape);
+		testutils::sprintf("partial shape %p initialized with badshape", &part, &badshape);
 	EXPECT_FALSE(rfull.initialize(badshape)) <<
-		sprintf("full shape %p initialized with badshape", &shape, &badshape);
+		testutils::sprintf("full shape %p initialized with badshape", &shape, &badshape);
 }
 
 
@@ -484,20 +484,20 @@ TEST_F(VARIABLE, Assign_D006)
 	bad.initialize();
 
 	EXPECT_FALSE(full.assign(&bad)) <<
-		sprintf("successfully var %p assigned bad variable %p", &shape, &badshape);
+		testutils::sprintf("successfully var %p assigned bad variable %p", &shape, &badshape);
 	EXPECT_FALSE(part.assign(&bad)) <<
-		sprintf("successfully var %p assigned bad variable %p", &parts, &badshape);
+		testutils::sprintf("successfully var %p assigned bad variable %p", &parts, &badshape);
 	EXPECT_FALSE(ften->has_data()) <<
 		"tensor ften has data";
 	EXPECT_FALSE(pten->has_data()) <<
 		"tensor pten has data";
 
 	EXPECT_TRUE(full.assign(&other, true)) <<
-		sprintf("failed to assigned variable %p with notification", &shape);
+		testutils::sprintf("failed to assigned variable %p with notification", &shape);
 	EXPECT_TRUE(full2.assign(&other, false)) <<
-		sprintf("failed to assigned variable %p without notification", &shape);
+		testutils::sprintf("failed to assigned variable %p without notification", &shape);
 	EXPECT_TRUE(part.assign(&other)) <<
-		sprintf("failed to assigned partial %p", &parts);
+		testutils::sprintf("failed to assigned partial %p", &parts);
 	EXPECT_TRUE(ften->has_data()) <<
 		"tensor ften does not have data";
 	EXPECT_TRUE(pten->has_data()) <<

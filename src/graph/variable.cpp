@@ -70,7 +70,7 @@ tensor* variable::get_tensor (void)
 
 varptr variable::derive (inode* wrt)
 {
-	constant* out = nullptr;
+	varptr out = nullptr;
 	if (this == wrt)
 	{
 		tensorshape shape = data_->get_shape();
