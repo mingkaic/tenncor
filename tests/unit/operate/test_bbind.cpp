@@ -14,22 +14,16 @@
 #include "operate/data_op.hpp"
 
 
-#ifndef DISABLE_BIND_TEST
+#ifndef DISABLE_BBIND_TEST
 
 
 #define ERR_THRESH 0.05 // 5% error
 
 
-class BIND : public testify::fuzz_test {};
+class BBIND : public testify::fuzz_test {};
 
 
 using namespace testutils;
-
-
-using SCALAR = std::function<double(double)>;
-
-
-using AGGS = std::function<double(std::vector<double>)>;
 
 
 template <typename T>
@@ -37,48 +31,6 @@ using SCALARS = std::function<T(T, T)>;
 
 
 using TWODV = std::vector<std::vector<int64_t> >;
-
-
-static void unaryElemTest (testify::fuzz_test* fuzzer, std::string op, 
-	SCALAR expect, std::pair<double,double> limits = {-1, 1})
-{
-	nnet::tensorshape shape = random_def_shape(fuzzer);
-	size_t n = shape.n_elems();
-	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
-	std::vector<double> output(n);
-
-	ASSERT_TRUE(nnet::has_ele(op)) <<
-		testutils::sprintf("unary %s not found", op.c_str());
-	nnet::VTFUNC_F unfunc = nnet::ebind(op);
-
-	unfunc(DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {nnet::CVAR_T{(const void*) &argument[0], shape}});
-
-	for (size_t i = 0; i < n; ++i)
-	{
-		EXPECT_EQ(expect(argument[i]), output[i]);
-	}
-}
-
-
-static void unaryAggTest (testify::fuzz_test* fuzzer, std::string op, 
-	double init, AGGS agg, std::pair<double,double> limits = {-1, 1})
-{
-	nnet::tensorshape shape = random_def_shape(fuzzer);
-	size_t n = shape.n_elems();
-	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
-	std::vector<double> output(n);
-
-	ASSERT_TRUE(nnet::has_agg(op)) <<
-		testutils::sprintf("aggregate %s not found", op.c_str());
-	nnet::AFUNC_F afunc = nnet::abind(op)(DOUBLE);
-
-	double expect = agg(argument);
-	double result = init;
-	std::vector<const void*> args(argument.size());
-	std::transform(argument.begin(), argument.end(), args.begin(), [](double& a) { return &a; });
-	afunc((void*) &result, args);
-	EXPECT_EQ(expect, result);
-}
 
 
 static void binaryElemTest (testify::fuzz_test* fuzzer, std::string op, 
@@ -216,140 +168,70 @@ static inline bool freivald (testify::fuzz_test* fuzzer, TWODV a, TWODV b, TWODV
 }
 
 
-TEST_F(BIND, Abs_A000)
-{
-	unaryElemTest(this, "abs",
-	[](double var) { return std::abs(var); });
-}
-
-
-TEST_F(BIND, Neg_A001)
-{
-	unaryElemTest(this, "neg",
-	[](double var) { return -var; });
-}
-
-
-TEST_F(BIND, Not_A002)
-{
-	unaryElemTest(this, "logic_not",
-	[](double var) { return !var; });
-}
-
-
-TEST_F(BIND, Sin_A003)
-{
-	unaryElemTest(this, "sin",
-	[](double var) { return std::sin(var); });
-}
-
-
-TEST_F(BIND, Cos_A004)
-{
-	unaryElemTest(this, "cos",
-	[](double var) { return std::cos(var); });
-}
-
-
-TEST_F(BIND, Tan_A005)
-{
-	unaryElemTest(this, "tan",
-	[](double var) { return std::tan(var); });
-}
-
-
-TEST_F(BIND, Exp_A006)
-{
-	unaryElemTest(this, "exp",
-	[](double var) { return std::exp(var); });
-}
-
-
-TEST_F(BIND, Log_A007)
-{
-	unaryElemTest(this, "log",
-	[](double var) { return std::log(var); }, {0.5, 7});
-}
-
-
-TEST_F(BIND, Sqrt_A008)
-{
-	unaryElemTest(this, "sqrt",
-	[](double var) { return std::sqrt(var); }, {0, 7});
-}
-
-
-TEST_F(BIND, Round_A009)
-{
-	unaryElemTest(this, "round",
-	[](double var) { return std::round(var); });
-}
-
-
-TEST_F(BIND, Pow_A010)
+TEST_F(BBIND, Pow_A020)
 {
 	binaryElemTest(this, "pow",
 	[](double a, double b) { return std::pow(a, b); }, {0, 7});
 }
 
 
-TEST_F(BIND, Add_A011)
+TEST_F(BBIND, Add_A021)
 {
 	binaryElemTest(this, "add",
 	[](double a, double b) { return a + b; });
 }
 
 
-TEST_F(BIND, Sub_A012)
+TEST_F(BBIND, Sub_A022)
 {
 	binaryElemTest(this, "sub",
 	[](double a, double b) { return a - b; });
 }
 
 
-TEST_F(BIND, Mul_A013)
+TEST_F(BBIND, Mul_A023)
 {
 	binaryElemTest(this, "mul",
 	[](double a, double b) { return a * b; });
 }
 
 
-TEST_F(BIND, Div_A014)
+TEST_F(BBIND, Div_A024)
 {
 	binaryElemTest(this, "div",
 	[](double a, double b) { return a / b; });
 }
 
 
-TEST_F(BIND, Eq_A015)
+TEST_F(BBIND, Eq_A025)
 {
 	binaryElemTestInt(this, "eq",
 	[](uint64_t a, uint64_t b) -> uint64_t { return a == b; });
 }
 
 
-TEST_F(BIND, Neq_A016)
+TEST_F(BBIND, Neq_A026)
 {
 	binaryElemTestInt(this, "neq",
 	[](uint64_t a, uint64_t b) -> uint64_t { return a != b; });
 }
 
 
-TEST_F(BIND, Lt_A017)
+TEST_F(BBIND, Lt_A027)
 {
 	binaryElemTestInt(this, "lt",
 	[](uint64_t a, uint64_t b) -> uint64_t { return a < b; });
 }
 
 
-TEST_F(BIND, Gt_A018)
+TEST_F(BBIND, Gt_A028)
 {
 	binaryElemTestInt(this, "gt",
 	[](uint64_t a, uint64_t b) -> uint64_t { return a > b; });
 }
 
 
-TEST_F(BIND, Uniform_A019)
+TEST_F(BBIND, Uniform_A029)
 {
 	nnet::tensorshape shape = random_def_shape(this);
 	size_t n = shape.n_elems();
@@ -374,7 +256,7 @@ TEST_F(BIND, Uniform_A019)
 }
 
 
-TEST_F(BIND, Binom_A020)
+TEST_F(BBIND, Binom_A030)
 {
 	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();
@@ -432,7 +314,7 @@ TEST_F(BIND, Binom_A020)
 }
 
 
-TEST_F(BIND, Norm_A021)
+TEST_F(BBIND, Norm_A031)
 {
 	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();
@@ -515,7 +397,7 @@ TEST_F(BIND, Norm_A021)
 }
 
 
-TEST_F(BIND, Matmul_A022)
+TEST_F(BBIND, Matmul_A032)
 {
 	std::vector<size_t> clist = random_def_shape(this); // <m, n, ...>
 	size_t k = get_int(1, "k", {1, 8})[0];
@@ -563,38 +445,7 @@ TEST_F(BIND, Matmul_A022)
 }
 
 
-TEST_F(BIND, Argmax_A023)
-{
-	unaryAggTest(this, "argmax", 0,
-	[](std::vector<double> vec) -> double
-	{
-		auto it = std::max_element(vec.begin(), vec.end());
-		return (double) std::distance(vec.begin(), it);
-	});
-}
-
-
-TEST_F(BIND, Max_A024)
-{
-	unaryAggTest(this, "max", std::numeric_limits<double>::min(),
-	[](std::vector<double> vec) -> double
-	{
-		return *std::max_element(vec.begin(), vec.end());
-	});
-}
-
-
-TEST_F(BIND, Sum_A025)
-{
-	unaryAggTest(this, "sum", 0,
-	[](std::vector<double> vec) -> double
-	{
-		return std::accumulate(vec.begin(), vec.end(), (double) 0);
-	});
-}
-
-
-#endif /* DISABLE_BIND_TEST */
+#endif /* DISABLE_BBIND_TEST */
 
 
 #endif /* DISABLE_OPERATE_MODULE_TESTS */

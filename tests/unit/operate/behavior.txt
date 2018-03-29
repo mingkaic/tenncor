@@ -2,78 +2,82 @@
 A000 - abs ebinds to "abs". it returns the absolute value of input
 A001 - neg ebinds to "neg". it returns the negative value of input
 A002 - logical not ebinds to "logic_not". it applies the ! operator to input
-A003 - sin ebinds to "sin". it applies the std::sin operator to input
-A004 - cos ebinds to "cos". it applies the std::cos operator to input
-A005 - tan ebinds to "tan". it applies the std::tan operator to input
-A006 - exp ebinds to "exp". it applies the std::exp operator to input
-A007 - log ebinds to "log". it applies the std::log operator to input
-A008 - sqrt ebinds to "sqrt". it applies the std::sqrt operator to input
-A009 - round ebinds to "round". it applies the std::round operator to input
+A003 - sin ebinds to "sin". it applies the std::sin function to input
+A004 - cos ebinds to "cos". it applies the std::cos function to input
+A005 - tan ebinds to "tan". it applies the std::tan function to input
+A006 - exp ebinds to "exp". it applies the std::exp function to input
+A007 - log ebinds to "log". it applies the std::log function to input
+A008 - sqrt ebinds to "sqrt". it applies the std::sqrt function to input
+A009 - round ebinds to "round". it applies the std::round function to input
 
-A010 - pow ebinds to "pow". it takes 2 inputs returns input1 to the power of input2
-A011 - add ebinds to "add". it takes 2 inputs returns the sum
-A012 - sub ebinds to "sub". it takes 2 inputs returns the difference
-A013 - mul ebinds to "mul". it takes 2 inputs returns the product
-A014 - div ebinds to "div". it takes 2 inputs returns the quotient
-A015 - eq ebinds to "eq". it takes 2 inputs and applies the == operator to inputs
-A016 - neq ebinds to "neq". it takes 2 inputs and applies the != operator to inputs
-A017 - lt ebinds to "lt". it takes 2 inputs and applies the < operator to inputs
-A018 - gt ebinds to "gt". it takes 2 inputs and applies the > operator to inputs
-A019 - rand_uniform ebinds to "rand_uniform". 
+A010 - argmax abinds to "argmax". it returns the index of the max value
+A011 - max abinds to "max". it returns the max value
+A012 - sum abinds to "sum". it returns the sum of the inputs
+
+A020 - pow ebinds to "pow". it takes 2 inputs returns input1 to the power of input2
+A021 - add ebinds to "add". it takes 2 inputs returns the sum
+A022 - sub ebinds to "sub". it takes 2 inputs returns the difference
+A023 - mul ebinds to "mul". it takes 2 inputs returns the product
+A024 - div ebinds to "div". it takes 2 inputs returns the quotient
+A025 - eq ebinds to "eq". it takes 2 inputs and applies the == operator to inputs
+A026 - neq ebinds to "neq". it takes 2 inputs and applies the != operator to inputs
+A027 - lt ebinds to "lt". it takes 2 inputs and applies the < operator to inputs
+A028 - gt ebinds to "gt". it takes 2 inputs and applies the > operator to inputs
+A029 - rand_uniform ebinds to "rand_uniform". 
 		it takes 2 inputs and returns the uniform_..._distribution(input1, input2)
-A020 - rand_binom ebinds to "rand_binom". 
+A030 - rand_binom ebinds to "rand_binom". 
 		it takes 2 inputs and returns the binomial_distribution(input1, input2)
 		throws bad_function_call if type is double or float
-A021 - rand_normal ebinds to "rand_normal". 
+A031 - rand_normal ebinds to "rand_normal". 
 		it takes 2 inputs and returns the normal_distribution(input1, input2)
 		throws bad_function_call if type is integer
-A022 - matmul ebinds to "matmul". it takes 2 inputs and 
+A032 - matmul ebinds to "matmul". it takes 2 inputs and 
 		returns matrix multiplication of the first 2 dimensions of inputs
-
-A023 - argmax abinds to "argmax". it returns the index of the max value
-A024 - max abinds to "max". it returns the max value
-A025 - sum abinds to "sum". it returns the sum of the inputs
 
 // NODE-LEVEL FUNCTIONS
 B000 - multiple operations on the same array of arguments will use the same instance
-B001 - any unary operation taking a nullptr returns a nullptr
-B002 - any binary operation taking a nullptr treats the argument as zero
+B001 - any operations taking a nullptr treats the argument as zero
+
+B100 - abs returns the absolute value of input, expect null out on null in, run_opcode with ABS
+B101 - neg returns the negative value of input, expect null out on null in, run_opcode with NEG
+B102 - not applies ! operator to input, expect 1 out on null in, run_opcode with NOT
+B103 - sin applies std::sin function to input, expect null out on null in, run_opcode with SIN
+B104 - cos applies std::cos function to input, expect 1 out on null in, run_opcode with COS
+B105 - tan applies std::tan function to input, expect null out on null in, run_opcode with TAN
+B106 - exp applies std::exp function to input, expect 1 out on null in, run_opcode with EXP
+B107 - log applies std::log function to input, expect throw on null in, run_opcode with LOG
+B108 - sqrt applies std::sqrt function to input, expect null out on null in, run_opcode with SQRT
+B109 - round applies std::round function to input, expect null out on null in, run_opcode with ROUND
+
+B110 - arg_max
+B111 - reduce_max
+B112 - reduce_sum
+
+B140 - transpose
+B141 - flip
+B142 - expand
+B143 - n_elems
+B144 - n_dimension
+
+- clip
+- clip_norm
+
+B120 - pow
+B121 - add
+B122 - sub 
+B123 - mul
+B124 - div
+B125 - eq
+B126 - neq
+B127 - gt
+B128 - lt
+B129 - rand_binomial
+B130 - rand_uniform
+B131 - rand_norm
+B132 - matmul
 
 - type_assert
-- abs
-- neg
-- not
-- sin
-- cos
-- tan
-- exp
-- log
-- sqrt
-- round
-
-- pow
-- add
-- sub 
-- mul
-- div
-- eq
-- neq
-- gt
-- lt
-- rand_binomial
-- rand_uniform
-- rand_norm
-
-- transpose
-- flip
-- arg_max
-- reduce_max
-- reduce_sum
-- expand
-- n_elems
-- n_dimension
-
-- matmul
+- shape_assert
 
 // GRAPH SERIALIZATION
 C000 - graph serialization creates the same graph structure (without constraints on node id)

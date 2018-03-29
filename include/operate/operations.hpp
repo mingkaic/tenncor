@@ -271,16 +271,6 @@ varptr reduce_l2norm (const varptr a, size_t dimension);
 
 varptr reduce_l2norm (const varptr a, const varptr dimension);
 
-// unimplemented
-
-//! for example: window {0, 1} gives output f[i, j, :] = sum(a[i:i+filtshape[0], j:j+filtshape[1], :] * filter)
-//! whereas window {0,2} gives output f[i, :, j] = sum(a[i:i+filtshape[0], :, j:j+filtshape[1]] * filter)
-//! if pad == true, then pad output with zero to fit a's shape, otherwise leave as is after cross_corr
-varptr cross_corr2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
-
-//! convolve a with filter, conv(a, filter, dims) = cross_conv(a, flip(filter), dims)
-varptr conv2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
-
 #endif /* TENNCOR_OP_COM_HPP */
 
 #ifndef TENNCOR_OP_MATMUL_HPP
@@ -290,6 +280,16 @@ varptr conv2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dim
 varptr matmul (const varptr a, const varptr b);
 
 #endif /* TENNCOR_OP_MATMUL_HPP */
+
+// unimplemented
+
+//! for example: window {0, 1} gives output f[i, j, :] = sum(a[i:i+filtshape[0], j:j+filtshape[1], :] * filter)
+//! whereas window {0,2} gives output f[i, :, j] = sum(a[i:i+filtshape[0], :, j:j+filtshape[1]] * filter)
+//! if pad == true, then pad output with zero to fit a's shape, otherwise leave as is after cross_corr
+varptr cross_corr2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
+
+//! convolve a with filter, conv(a, filter, dims) = cross_conv(a, flip(filter), dims)
+varptr conv2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
 
 }
 

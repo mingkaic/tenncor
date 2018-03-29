@@ -102,7 +102,6 @@ inode* run_opcode (std::vector<inode*> args, OPCODE code)
 
 static inline varptr lin_unar (std::string opname, OPCODE op, inode* input, BACKMAP_F bwd)
 {
-	if (nullptr == input) return nullptr;
 	// always check if the same operation on input exists
 	if (inode* parent = single_parent(input, op))
 	{
@@ -164,6 +163,7 @@ void type_assert(const varptr a, TENS_TYPE type)
 
 varptr abs (const varptr a)
 {
+	if (nullptr == a.get()) return nullptr;
 	return lin_unar("abs", ABS, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -173,6 +173,7 @@ varptr abs (const varptr a)
 
 varptr operator - (const varptr a)
 {
+	if (nullptr == a.get()) return nullptr;
 	return lin_unar("neg", NEG, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -183,6 +184,7 @@ varptr operator - (const varptr a)
 
 varptr operator ! (const varptr a)
 {
+	if (nullptr == a.get()) return constant::get<double>(1);
 	return lin_unar("logic_not", NOT, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -193,6 +195,7 @@ varptr operator ! (const varptr a)
 
 varptr sin (const varptr a)
 {
+	if (nullptr == a.get()) return nullptr;
 	return lin_unar("sin", SIN, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -205,6 +208,7 @@ varptr sin (const varptr a)
 
 varptr cos (const varptr a)
 {
+	if (nullptr == a.get()) return constant::get<double>(1);
 	return lin_unar("cos", COS, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -217,6 +221,7 @@ varptr cos (const varptr a)
 
 varptr tan (const varptr a)
 {
+	if (nullptr == a.get()) return nullptr;
 	return lin_unar("tan", TAN, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -246,6 +251,7 @@ varptr cot (const varptr a)
 
 varptr exp (const varptr a)
 {
+	if (nullptr == a.get()) return constant::get<double>(1);
 	return lin_unar("exp", EXP, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -258,6 +264,7 @@ varptr exp (const varptr a)
 
 varptr log (const varptr a)
 {
+	if (nullptr == a.get()) throw std::logic_error("log of zero is undefined");
 	return lin_unar("log", LOG, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -270,6 +277,7 @@ varptr log (const varptr a)
 
 varptr sqrt (const varptr a)
 {
+	if (nullptr == a.get()) return nullptr;
 	return lin_unar("sqrt", SQRT, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
@@ -282,6 +290,7 @@ varptr sqrt (const varptr a)
 
 varptr round (const varptr a)
 {
+	if (nullptr == a.get()) return nullptr;
 	return lin_unar("round", ROUND, a,
 	[](std::vector<std::pair<inode*,inode*> > args)
 	{
