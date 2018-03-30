@@ -107,8 +107,8 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 {
 	inode* a = args.front();
 	inode* b = args.back();
-	inode* adx = a->derive(x);
-	inode* bdx = b->derive(x);
+	varptr adx = a->derive(x);
+	varptr bdx = b->derive(x);
 	inode* c = matmul(varptr(a), varptr(b));
 	// process both arguments as jacobians
 	varptr da, db;

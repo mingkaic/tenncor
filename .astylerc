@@ -1,0 +1,38 @@
+# For full docs:
+# http://astyle.sourceforge.net/astyle.html
+#
+
+# int Foo(bool isBar)
+# {
+#    if (isBar)
+#    {
+#        bar();
+#        return 1;
+#    }
+#    else
+#        return 0;
+# }
+--style=allman
+
+# 1 tab saves 8 spaces
+# also don't rely on align, so use tabs
+--indent=force-tab=4
+
+# avoid aligning unclosed ( and =. it looks ugly.
+--indent-after-parens
+--indent-switches
+--indent-col1-comments
+
+# use all the spaces you save from tabs on formatting
+--pad-oper
+--pad-comma
+
+# C++ only: type over expression
+--align-pointer=type
+--align-reference=type
+
+# readability
+--break-one-line-headers
+--add-braces
+
+--max-code-length=80

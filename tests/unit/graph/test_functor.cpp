@@ -121,12 +121,20 @@ TEST_F(FUNCTOR, Copy_F000)
 	optional<std::string> updateval = testify::mocker::get_value(obs, "update2");
 	EXPECT_EQ(1, n_updates);
 	ASSERT_TRUE((bool) updateval) <<
-		"obs update2 value is not found";;
+		"obs update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval->c_str());
 
 	// test forward copy over
 	var.initialize(); // increment both assign and cp
 	ASSERT_EQ(3, counter);
+
+	delete func;
+	delete cp;
+	delete assign;
+	// delete func2;
+	// delete cp2;
+	// delete assign2;
+	delete obs;
 }
 
 
@@ -200,12 +208,20 @@ TEST_F(FUNCTOR, Move_F000)
 	optional<std::string> updateval = testify::mocker::get_value(obs, "update2");
 	EXPECT_EQ(1, n_updates);
 	ASSERT_TRUE((bool) updateval) <<
-		"obs update2 value is not found";;
+		"obs update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval->c_str());
 
 	// test forward move over
 	var.initialize(); // increment both assign and mv
 	ASSERT_EQ(1, counter);
+
+	delete func;
+	delete mv;
+	delete assign;
+	delete func2;
+	delete mv2;
+	// delete assign2;
+	delete obs;
 }
 
 
@@ -319,6 +335,8 @@ TEST_F(FUNCTOR, Derive_F004)
 	{
 		EXPECT_EQ(1, wunvec[i]);
 	}
+
+	delete func;
 }
 
 

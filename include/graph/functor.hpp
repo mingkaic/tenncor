@@ -61,7 +61,7 @@ namespace nnet
 #define JACOBIANRIGHT tenncor::JACOBIANRIGHT
 
 //! backward transfer function, get gradient nodes; F: Nf -> Nb 
-using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,inode*> >)>; 
+using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,varptr> >)>; 
 
 //! calculate output shape from argument shapes 
 using SHAPER_F = std::function<tensorshape(std::vector<tensorshape>)>; 

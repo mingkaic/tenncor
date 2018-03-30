@@ -29,7 +29,7 @@ constant* find_const (size_t key)
 
 bool dangling (constant* key)
 {
-	return cbwds.end() == cbwds.find(key);
+	return cbwds.end() != cbwds.find(key);
 }
 
 void register_const (size_t key, constant* cons)
@@ -82,7 +82,7 @@ constant::constant (tensor* data, std::string name) :
 
 void constant::death_on_noparent (void)
 {
-	if (this->get_audience().size())
+	if (this->get_audience().empty())
 	{
 		delete this;
 	}

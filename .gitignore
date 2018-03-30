@@ -71,3 +71,4 @@ CMakeFiles
 !.travis.yml
 !.dockerignore
 !.gitmodules
+!.astylerc

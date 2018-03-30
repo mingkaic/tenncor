@@ -29,7 +29,7 @@ class constant final : public inode
 public:
 	// >>>> BUILDER TO FORCE HEAP ALLOCATION <<<<
 	//! builder for scalar
-	template <typename T> // todo: optimize by looking for pre-existing constants
+	template <typename T> // todo: fix memory lost due to sole constant-functor relationship
 	static varptr get (T scalar);
 
 	//! builder for data and shape
@@ -124,7 +124,7 @@ varptr constant::get (T scalar)
 {
 	static_assert(std::is_arithmetic<T>::value, 
 		"constant must be arithmetic value");
-	size_t key = scalar_hash(scalar);;
+	size_t key = scalar_hash(scalar);
 	constant* cons = find_const(key);
 	if (nullptr == cons)
 	{
@@ -159,22 +159,6 @@ varptr constant::get (std::vector<T> raw, tensorshape shape)
 	tensor* data = new tensor(shape);
 	data->read_from(ci);
 	return new constant(data, name);
-}
-
-//! equality check for node against scalars
-template <typename T>
-bool operator == (constant& c, T scalar)
-{
-	std::vector<T> res = expose<T>(&c);
-	return 1 == res.size() && scalar == res[0];
-}
-
-//! inequality check for node against scalars
-template <typename T>
-bool operator != (constant& c, T scalar)
-{
-	std::vector<T> res = expose<T>(&c);
-	return 1 == res.size() && scalar != res[0];
 }
 
 }

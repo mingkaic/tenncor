@@ -61,7 +61,7 @@ functor* elem_func (std::vector<inode*> args, std::string opname, OPCODE op, BAC
 	},
 	[bwd](inode* wrt, std::vector<inode*> args)
 	{
-		std::vector<std::pair<inode*,inode*> > deps;
+		std::vector<std::pair<inode*,varptr> > deps;
 		for (inode* arg : args)
 		{
 			deps.push_back({arg, arg->derive(wrt)});
@@ -144,7 +144,7 @@ functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 	},
 	[bwd](inode* wrt, std::vector<inode*> args)
 	{
-		std::vector<std::pair<inode*,inode*> > deps;
+		std::vector<std::pair<inode*,varptr> > deps;
 		for (inode* arg : args)
 		{
 			deps.push_back({arg, arg->derive(wrt)});

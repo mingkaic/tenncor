@@ -4,8 +4,15 @@
 
 #include "fuzz/irng.hpp"
 
-int main(int argc, char **argv) {
+#include "proto/serial/data.pb.h"
+
+int main(int argc, char **argv)
+{
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
 	testify::set_generator(nnutils::get_generator);
 	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+	int ret = RUN_ALL_TESTS();
+	// delete all global objects allocated by libprotobuf
+	google::protobuf::ShutdownProtobufLibrary();
+	return ret;
 }

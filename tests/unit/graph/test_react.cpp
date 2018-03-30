@@ -224,6 +224,9 @@ TEST_F(REACT, SUBDEATH_A002)
 	ASSERT_EQ(1, o2update);
 	EXPECT_STREQ("UNSUBSCRIBE", o1updateval->c_str());
 	EXPECT_STREQ("UNSUBSCRIBE", o2updateval->c_str());
+
+	delete o1;
+	delete o2;
 }
 
 

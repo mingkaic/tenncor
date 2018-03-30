@@ -11,7 +11,9 @@ mock_data_src::mock_data_src (testify::fuzz_test* fuzzer) :
 
 void mock_data_src::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, nnet::tensorshape shape) const
 {
-	outptr = nnutils::make_svoid(uuid_.size());
+	size_t ns = shape.n_elems() * nnet::type_size(type_);
+	outptr = nnutils::make_svoid(ns);
+	std::memset(outptr.get(), 0, ns);
 	std::memcpy(outptr.get(), &uuid_[0], uuid_.size());
 	type = type_;
 

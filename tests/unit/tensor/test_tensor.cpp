@@ -802,7 +802,7 @@ TEST_F(TENSOR, Expose_C008)
 	ten.read_from(src);
 	std::string result;
 
-	 // shouldn't die or throw
+	// shouldn't die or throw
 	switch (src.type_)
 	{
 		case DOUBLE:
@@ -1012,7 +1012,6 @@ TEST_F(TENSOR, SetShape_C011)
 // cover tensor: serialize, from_proto
 TEST_F(TENSOR, Proto_C012)
 {
-	GOOGLE_PROTOBUF_VERIFY_VERSION;
 	tenncor::tensor_proto proto;
 
 	mock_data_src src(this);
@@ -1073,7 +1072,7 @@ TEST_F(TENSOR, Proto_C012)
 
 	// rewrite data
 	ASSERT_TRUE(comp3.serialize(proto)) <<
-		testutils::sprintf("failed to re-serialized tensor with shape %p", &cshape3);;
+		testutils::sprintf("failed to re-serialized tensor with shape %p", &cshape3);
 	std::string c3str = proto.data();
 	TENS_TYPE c3type = proto.type();
 	nnet::tensorshape c3allow(std::vector<size_t>(

@@ -119,7 +119,7 @@ TEST_F(PLACEHOLDER, Copy_E001)
 	optional<std::string> updateval = testify::mocker::get_value(&mconn, "update2");
 	EXPECT_EQ(1, n_updates);
 	ASSERT_TRUE((bool) updateval) <<
-		"mconn update2 value is not found";;
+		"mconn update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval->c_str());
 
 	delete pcpy;
@@ -186,7 +186,7 @@ TEST_F(PLACEHOLDER, Move_E001)
 	optional<std::string> updateval = testify::mocker::get_value(&mconn, "update2");
 	EXPECT_EQ(1, n_updates);
 	ASSERT_TRUE((bool) updateval) <<
-		"mconn update2 value is not found";;
+		"mconn update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval->c_str());
 
 	delete pmv;
@@ -292,7 +292,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 	optional<std::string> updateval = testify::mocker::get_value(&mconn, "update2");
 	EXPECT_EQ(1, n_updates);
 	ASSERT_TRUE((bool) updateval) <<
-		"mconn update2 value is not found";;
+		"mconn update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval->c_str());
 
 	// regular assign
@@ -309,7 +309,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 	optional<std::string> updateval2 = testify::mocker::get_value(&mconn2, "update2");
 	EXPECT_EQ(1, n_updates2);
 	ASSERT_TRUE((bool) updateval2) <<
-		"mconn2 update2 value is not found";;
+		"mconn2 update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval2->c_str());
 
 	std::vector<double> data2 = nnet::expose<double>(&place2);
@@ -443,9 +443,9 @@ TEST_F(PLACEHOLDER, AssignTensor_E006)
 	EXPECT_EQ(1, n_updates);
 	EXPECT_EQ(1, n_updates2);
 	ASSERT_TRUE((bool) updateval) <<
-		"mconn update2 value is not found";;
+		"mconn update2 value is not found";
 	ASSERT_TRUE((bool) updateval2) <<
-		"mconn2 update2 value is not found";;
+		"mconn2 update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval->c_str());
 	EXPECT_STREQ("UPDATE", updateval2->c_str());
 }

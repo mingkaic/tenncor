@@ -119,7 +119,7 @@ static inline varptr sample (std::string opname, OPCODE op, inode* a, inode* b)
 		return parent;
 	}
 	return elem_func(deps, opname, op,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		tensorshape shape = args.front().first->get_tensor()->get_shape();
 		std::vector<double> zeroes(shape.n_elems(), 0); // todo: convert to data type
@@ -146,7 +146,7 @@ static inline varptr comparator (std::string opname, OPCODE op, inode* a, inode*
 	else
 	{
 		out = elem_func(deps, opname, op,
-		[opname, op](std::vector<std::pair<inode*,inode*> > args)
+		[opname, op](std::vector<std::pair<inode*,varptr> > args)
 		{
 			varptr a = args.front().first;
 			varptr b = args.back().first;
@@ -165,7 +165,7 @@ varptr abs (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
 	return lin_unar("abs", ABS, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		return abs(args.front().second);
 	});
@@ -175,7 +175,7 @@ varptr operator - (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
 	return lin_unar("neg", NEG, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		varptr ag = args.front().second;
 		return -ag;
@@ -186,7 +186,7 @@ varptr operator ! (const varptr a)
 {
 	if (nullptr == a.get()) return constant::get<double>(1);
 	return lin_unar("logic_not", NOT, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		varptr a = args.front().first;
 		return !a;
@@ -197,7 +197,7 @@ varptr sin (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
 	return lin_unar("sin", SIN, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// sin'(f(x)) = f'(x)*cos(f(x))
 		varptr a = args.front().first;
@@ -210,7 +210,7 @@ varptr cos (const varptr a)
 {
 	if (nullptr == a.get()) return constant::get<double>(1);
 	return lin_unar("cos", COS, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// cos'(f(x)) = -f'(x)*sin(f(x))
 		varptr a = args.front().first;
@@ -223,7 +223,7 @@ varptr tan (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
 	return lin_unar("tan", TAN, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// sec'(f(x)) = f'(x)*sec^2(f(x))
 		// better with = f'(x)/cos^2(f(x))
@@ -253,7 +253,7 @@ varptr exp (const varptr a)
 {
 	if (nullptr == a.get()) return constant::get<double>(1);
 	return lin_unar("exp", EXP, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// exp'(f(x)) = f'(x)*exp(f(x))
 		varptr a = args.front().first;
@@ -266,7 +266,7 @@ varptr log (const varptr a)
 {
 	if (nullptr == a.get()) throw std::logic_error("log of zero is undefined");
 	return lin_unar("log", LOG, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// log'(f(x)) = f'(x) / f(x)
 		varptr a = args.front().first;
@@ -279,7 +279,7 @@ varptr sqrt (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
 	return lin_unar("sqrt", SQRT, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// sqrt'(f(x)) = f'(x)/(2*sqrt(f(x)))
 		varptr a = args.front().first;
@@ -292,7 +292,7 @@ varptr round (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
 	return lin_unar("round", ROUND, a,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// round'(f(x)) = round(f'(x))
 		return nnet::round(args.front().second);
@@ -313,7 +313,7 @@ varptr pow (const varptr b, const varptr x)
 		return parent;
 	}
 	return elem_func(deps, opname, op,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// pow'(f(x), g(x)) =
 		//		f'(x) * g(x) * pow(f(x), g(x) - 1) +
@@ -338,7 +338,7 @@ varptr operator + (const varptr a, const varptr b)
 		return parent;
 	}
 	return elem_func(deps, opname, op,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) + g'(x)
 		varptr ag = args.front().second;
@@ -359,7 +359,7 @@ varptr operator - (const varptr a, const varptr b)
 		return parent;
 	}
 	return elem_func(deps, opname, op,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// h'(f(x), g(x)) = f'(x) - g'(x)
 		varptr ag = args.front().second;
@@ -379,7 +379,7 @@ varptr operator * (const varptr a, const varptr b)
 		return parent;
 	}
 	return elem_func(deps, opname, op,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// h'(f(x), g(x)) = f'(x)*g(x) + f(x)*g'(x)
 		varptr a = args.front().first;
@@ -402,7 +402,7 @@ varptr operator / (const varptr a, const varptr b)
 		return parent;
 	}
 	return elem_func(deps, opname, op,
-	[](std::vector<std::pair<inode*,inode*> > args)
+	[](std::vector<std::pair<inode*,varptr> > args)
 	{
 		// h'(f(x), g(x)) = (f'(x) * g(x) - f(x) * g'(x)) / g^2(x)
 		//		= f'(x) / g(x) - (f(x) * g'(x)) / g(x)) / g(x)
@@ -613,7 +613,7 @@ varptr arg_max (const varptr a)
 		return parent;
 	}
 	return agg_func(a, "argmax", op,
-	[](std::vector<std::pair<inode*,inode*> >) -> varptr
+	[](std::vector<std::pair<inode*,varptr> >) -> varptr
 	{
 		throw std::exception();
 	});
@@ -629,7 +629,7 @@ varptr reduce_max (const varptr a)
 		return parent;
 	}
 	return agg_func(a, "max", op,
-	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
+	[](std::vector<std::pair<inode*,varptr> > args) -> varptr
 	{
 		varptr a = args.front().first;
 		varptr ag = args.front().second;
@@ -648,7 +648,7 @@ varptr reduce_sum (const varptr a)
 		return parent;
 	}
 	return agg_func(a, "sum", op,
-	[](std::vector<std::pair<inode*,inode*> > args) -> varptr
+	[](std::vector<std::pair<inode*,varptr> > args) -> varptr
 	{
 		return args.front().second;
 	});

@@ -195,7 +195,7 @@ TEST_F(VARIABLE, Move_D001)
 	optional<std::string> updateval = testify::mocker::get_value(&mconn, "update2");
 	EXPECT_EQ(1, n_updates);
 	ASSERT_TRUE((bool) updateval) <<
-		"mconn update2 value is not found";;
+		"mconn update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval->c_str());
 
 	delete mv;
@@ -355,9 +355,9 @@ TEST_F(VARIABLE, Initialize_D005)
 	EXPECT_EQ(0, rp_updates);
 	EXPECT_EQ(1, rf_updates);
 	ASSERT_TRUE((bool) cf_updateval) <<
-		"cfullobs update2 value is not found";;
+		"cfullobs update2 value is not found";
 	ASSERT_TRUE((bool) rf_updateval) <<
-		"rfullobs update2 value is not found";;
+		"rfullobs update2 value is not found";
 	EXPECT_STREQ("UPDATE", cf_updateval->c_str());
 	EXPECT_STREQ("UPDATE", rf_updateval->c_str());
 
@@ -386,9 +386,9 @@ TEST_F(VARIABLE, Initialize_D005)
 	EXPECT_EQ(1, rp_updates);
 	EXPECT_EQ(2, rf_updates);
 	ASSERT_TRUE((bool) cp_updateval) <<
-		"cpartobs update2 value is not found";;
+		"cpartobs update2 value is not found";
 	ASSERT_TRUE((bool) rp_updateval) <<
-		"rpartobs update2 value is not found";;
+		"rpartobs update2 value is not found";
 	EXPECT_STREQ("UPDATE", cp_updateval->c_str());
 	EXPECT_STREQ("UPDATE", rp_updateval->c_str());
 
@@ -509,7 +509,7 @@ TEST_F(VARIABLE, Assign_D006)
 	EXPECT_EQ(1, updates);
 	EXPECT_EQ(0, updates2);
 	ASSERT_TRUE((bool) updateval) <<
-		"parent update2 value is not found";;
+		"parent update2 value is not found";
 	EXPECT_STREQ("UPDATE", updateval->c_str());
 
 	EXPECT_FALSE(full.assign(&full)) <<
