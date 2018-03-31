@@ -47,7 +47,7 @@ void graph::serialize (tenncor::graph_proto& proto_dest) const
 		std::string uid = it->first;
 		iter adj = it->second;
 		inode* node_src = *adj;
-		NODE_TYPE nodetype = node_src->node_type();
+		nnet::NODE_TYPE nodetype = node_src->node_type();
 		tenncor::node_proto& node_dest = nmap[uid];
 
 		// set node_proto type (1)
@@ -67,20 +67,20 @@ void graph::serialize (tenncor::graph_proto& proto_dest) const
 static inline variable* make_variable (tenncor::variable_proto var_src, std::string label)
 {
 	const tenncor::source_proto& source_src = var_src.source();
-	tenncor::source_proto::source_t src_type = source_src.src();
+	nnet::SOURCE_TYPE src_type = source_src.src();
 	std::shared_ptr<data_src> src;
 	switch (src_type)
 	{
-		case CSRC:
+		case tenncor::source_proto::CONSTANT:
 			src = std::make_shared<const_init>(
 				source_src.settings(0), source_src.dtype());
 		break;
-		case USRC:
+		case tenncor::source_proto::UNIFORM:
 			src = std::make_shared<r_uniform_init>(
 				source_src.settings(0), source_src.settings(1),
 				source_src.dtype());
 		break;
-		case NSRC:
+		case tenncor::source_proto::NORMAL:
 			src = std::make_shared<r_normal_init>(
 				source_src.settings(0), source_src.settings(1),
 				source_src.dtype());
@@ -117,11 +117,11 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 		std::string uid = *it;
 		const tenncor::node_proto& node_src = nmap.at(uid);
 		inode* node_dest;
-		NODE_TYPE nodetype = node_src.type();
+		nnet::NODE_TYPE nodetype = node_src.type();
 		std::string label = node_src.label();
 		switch (nodetype)
 		{
-			case VARIABLE_T:
+			case tenncor::node_proto::VARIABLE:
 			{
 				tenncor::variable_proto var_src;
 				node_src.detail().UnpackTo(&var_src);
@@ -132,21 +132,21 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 				node_dest = var;
 			}
 			break;
-			case PLACEHOLDER_T:
+			case tenncor::node_proto::PLACEHOLDER:
 			{
 				tenncor::place_proto place_src;
 				node_src.detail().UnpackTo(&place_src);
 				node_dest = make_placeholder(place_src, label);
 			}
 			break;
-			case CONSTANT_T:
+			case tenncor::node_proto::CONSTANT:
 			{
 				tenncor::tensor_proto tens_src;
 				node_src.detail().UnpackTo(&tens_src);
 				node_dest = new constant(tens_src, label);
 			}
 			break;
-			case FUNCTOR_T:
+			case tenncor::node_proto::FUNCTOR:
 			{
 				tenncor::functor_proto functor_src;
 				node_src.detail().UnpackTo(&functor_src);
@@ -173,7 +173,7 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 		auto oit = order_.insert(order_.end(), node_dest);
 		adjmap_[uid] = oit;
 		// add to leaf set
-		if (nodetype != FUNCTOR_T)
+		if (nodetype != tenncor::node_proto::FUNCTOR)
 		{
 			leafset.emplace(std::shared_ptr<inode>(node_dest));
 		}

@@ -18,7 +18,7 @@
 #ifndef DISABLE_BBIND_TEST
 
 
-#define ERR_THRESH 0.08 // 8% error
+static const double ERR_THRESH = 0.08; // 8% error
 
 
 class BBIND : public testutils::fuzz_test {};

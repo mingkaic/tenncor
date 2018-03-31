@@ -16,7 +16,7 @@
 #include "operate/operations.hpp"
 
 
-#ifndef DISABLE_UNOFUNCS_TEST
+#ifndef DISABLE_UNOFUNCS_TEST // unary node functions
 
 
 class UNOFUNCS : public testutils::fuzz_test {};

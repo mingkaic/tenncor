@@ -60,7 +60,8 @@ std::memcpy(&everything[0], &vec[0], vec.size() * sizeof(TYPE));
 		stdev_count[idx]++; \
 	}
 
-#define ERR_THRESH 0.03 // 3% error
+
+static const double ERR_THRESH = 0.03; // 3% error
 
 
 TENS_TYPE fuzz_const (testutils::fuzz_test* fuzzer, 
@@ -835,10 +836,10 @@ TEST_F(DATA_SRC, Proto_D004)
 	ui.serialize(u_src);
 	ni.serialize(n_src);
 
-	EXPECT_EQ(CSRC, c_src.src());
-	EXPECT_EQ(CSRC, v_src.src());
-	EXPECT_EQ(USRC, u_src.src());
-	EXPECT_EQ(NSRC, n_src.src());
+	EXPECT_EQ(tenncor::source_proto::CONSTANT, c_src.src());
+	EXPECT_EQ(tenncor::source_proto::CONSTANT, v_src.src());
+	EXPECT_EQ(tenncor::source_proto::UNIFORM, u_src.src());
+	EXPECT_EQ(tenncor::source_proto::NORMAL, n_src.src());
 	EXPECT_EQ(ctype, c_src.dtype());
 	EXPECT_EQ(vtype, v_src.dtype());
 	EXPECT_EQ(utype, u_src.dtype());
@@ -856,10 +857,10 @@ TEST_F(DATA_SRC, Proto_D004)
 	ui.serialize(n_src);
 	ni.serialize(c_src);
 
-	EXPECT_EQ(CSRC, v_src.src());
-	EXPECT_EQ(CSRC, u_src.src());
-	EXPECT_EQ(USRC, n_src.src());
-	EXPECT_EQ(NSRC, c_src.src());
+	EXPECT_EQ(tenncor::source_proto::CONSTANT, v_src.src());
+	EXPECT_EQ(tenncor::source_proto::CONSTANT, u_src.src());
+	EXPECT_EQ(tenncor::source_proto::UNIFORM, n_src.src());
+	EXPECT_EQ(tenncor::source_proto::NORMAL, c_src.src());
 	EXPECT_EQ(ctype, v_src.dtype());
 	EXPECT_EQ(vtype, u_src.dtype());
 	EXPECT_EQ(utype, n_src.dtype());

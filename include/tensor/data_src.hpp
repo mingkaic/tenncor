@@ -28,10 +28,7 @@
 namespace nnet
 {
 
-#define SOURCE_TYPE tenncor::source_proto::source_t
-#define CSRC tenncor::source_proto::CONSTANT
-#define USRC tenncor::source_proto::UNIFORM
-#define NSRC tenncor::source_proto::NORMAL
+using SOURCE_TYPE = tenncor::source_proto::source_t;
 
 using GENERIC = std::pair<std::string, TENS_TYPE>;
 
@@ -98,7 +95,7 @@ struct const_init final : public data_src
 	virtual void serialize (tenncor::source_proto& source_dst) const
 	{
 		source_dst.clear_settings();
-		source_dst.set_src(CSRC);
+		source_dst.set_src(tenncor::source_proto::CONSTANT);
 		source_dst.set_dtype(type_);
 		source_dst.add_settings(&value_[0], value_.size());
 	}
@@ -148,7 +145,7 @@ struct r_uniform_init final : public data_src
 	virtual void serialize (tenncor::source_proto& source_dst) const
 	{
 		source_dst.clear_settings();
-		source_dst.set_src(USRC);
+		source_dst.set_src(tenncor::source_proto::UNIFORM);
 		source_dst.set_dtype(type_);
 		source_dst.add_settings(&min_[0], min_.size());
 		source_dst.add_settings(&max_[0], max_.size());
@@ -201,7 +198,7 @@ struct r_normal_init final : public data_src
 	virtual void serialize (tenncor::source_proto& source_dst) const
 	{
 		source_dst.clear_settings();
-		source_dst.set_src(NSRC);
+		source_dst.set_src(tenncor::source_proto::NORMAL);
 		source_dst.set_dtype(type_);
 		source_dst.add_settings(&mean_[0], mean_.size());
 		source_dst.add_settings(&stdev_[0], stdev_.size());

@@ -87,6 +87,7 @@ B147 - n_dimension
 B148 - clip
 B149 - clip_norm
 
+// unimplemented
 - type_assert
 - shape_assert
 

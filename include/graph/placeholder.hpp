@@ -124,7 +124,7 @@ public:
 protected:
 	// >>>>>> SERIALIZATION DATA <<<<<<
 
-	virtual NODE_TYPE node_type (void) const;
+	virtual nnet::NODE_TYPE node_type (void) const;
 
 	// >>>>>> SERIALIZATION ACTOR <<<<<<
 

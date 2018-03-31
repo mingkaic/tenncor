@@ -86,9 +86,9 @@ placeholder& placeholder::operator = (tensor& input)
 }
 
 
-NODE_TYPE placeholder::node_type (void) const
+nnet::NODE_TYPE placeholder::node_type (void) const
 {
-	return PLACEHOLDER_T;
+	return tenncor::node_proto::PLACEHOLDER;
 }
 
 void placeholder::serialize_detail (google::protobuf::Any* proto_dest)

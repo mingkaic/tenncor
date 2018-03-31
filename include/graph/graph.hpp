@@ -35,11 +35,7 @@ using LEAF_SET = std::unordered_set<std::shared_ptr<inode> >;
 
 using ROOT_STR = std::unordered_set<std::string>;
 
-#define NODE_TYPE tenncor::node_proto::node_t
-#define PLACEHOLDER_T tenncor::node_proto::PLACEHOLDER
-#define CONSTANT_T tenncor::node_proto::CONSTANT
-#define VARIABLE_T tenncor::node_proto::VARIABLE
-#define FUNCTOR_T tenncor::node_proto::FUNCTOR
+using NODE_TYPE = tenncor::node_proto::node_t;
 
 class graph
 {

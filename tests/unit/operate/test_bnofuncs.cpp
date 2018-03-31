@@ -16,10 +16,10 @@
 #include "operate/operations.hpp"
 
 
-#ifndef DISABLE_BNOFUNCS_TEST
+#ifndef DISABLE_BNOFUNCS_TEST // binary node functions
 
 
-#define ERR_THRESH 0.08 // 8% error
+static const double ERR_THRESH = 0.08; // 8% error
 
 
 struct BNOFUNCS : public testutils::fuzz_test {};

@@ -8,10 +8,10 @@
 
 #ifdef TENNCOR_D_MATMUL_HPP
 
-#define STRASSEN_THRESHOLD 256
-
 namespace nnet
 {
+
+static const uint16_t STRASSEN_THRESHOLD = 256;
 
 static inline size_t min_pad (size_t insize)
 {

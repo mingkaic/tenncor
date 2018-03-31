@@ -7,8 +7,8 @@
 
 #ifdef TF_VERIFY_HPP
 
-// #define EPSILON std::numeric_limits<double>::epsilon() // uncomment after protobuf check
-#define EPSILON 0.00005 // relative error threshold
+// static const double EPSILON = std::numeric_limits<double>::epsilon(); // uncomment after protobuf check
+static const double EPSILON = 0.00005; // relative error threshold
 
 std::unordered_set<std::string> TF_VERIFY::read_files_;
 

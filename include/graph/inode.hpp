@@ -95,7 +95,7 @@ protected:
 
 	// >>>>>> SERIALIZATION DATA <<<<<<
 
-	virtual NODE_TYPE node_type (void) const = 0;
+	virtual nnet::NODE_TYPE node_type (void) const = 0;
 
 	// >>>>>> SERIALIZATION ACTOR <<<<<<
 

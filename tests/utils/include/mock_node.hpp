@@ -26,9 +26,9 @@ public:
 	virtual nnet::varptr derive (nnet::inode* wrt);
 
 protected:
-	virtual NODE_TYPE node_type (void) const
+	virtual nnet::NODE_TYPE node_type (void) const
 	{
-		return VARIABLE_T;
+		return tenncor::node_proto::VARIABLE;
 	}
 
 	virtual void serialize_detail (google::protobuf::Any* proto_dest) {}
