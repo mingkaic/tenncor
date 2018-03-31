@@ -49,7 +49,7 @@ assert_cmd "bazel coverage --spawn_strategy=standalone \
 # accept test
 export GTEST_REPEAT=1
 assert_cmd "bazel coverage --spawn_strategy=standalone \
-	--instrumentation_filter= //tests/accept:test";
+	--instrumentation_filter= //tests/regress:test";
 
 echo "===== STARTING COVERAGE ANALYSIS =====";
 # ===== Coverage Analysis ======

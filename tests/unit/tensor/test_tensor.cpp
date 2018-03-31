@@ -6,6 +6,7 @@
 
 #include "gtest/gtest.h"
 
+#include "fuzz.hpp"
 #include "sgen.hpp"
 #include "check.hpp"
 #include "print.hpp"
@@ -18,14 +19,14 @@
 #ifndef DISABLE_TENSOR_TEST
 
 
-class TENSOR : public testify::fuzz_test
+class TENSOR : public testutils::fuzz_test
 {
 protected:
 	virtual void SetUp (void) {}
 
 	virtual void TearDown (void)
 	{
-		testify::fuzz_test::TearDown();
+		testutils::fuzz_test::TearDown();
 		testify::mocker::clear();
 	}
 };

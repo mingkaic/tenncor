@@ -145,12 +145,6 @@ std::vector<OT> type_convert(void* ptr, size_t n, TENS_TYPE itype)
 	return out;
 }
 
-template <typename T>
-size_t scalar_hash (T scalar)
-{
-	return ((size_t) get_type<T>()) ^ std::hash<T>()(scalar);
-}
-
 }
 
 #endif /* TENNCOR_TENS_TYPE_HPP */

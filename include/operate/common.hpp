@@ -25,6 +25,9 @@ using USIDX_F = std::function<std::vector<size_t>(tensorshape, std::vector<uint6
 functor* elem_func (std::vector<inode*> args, std::string opname, 
 	OPCODE op, BACKMAP_F bwd);
 
+functor* elem_func (std::vector<inode*> args, std::string opname, 
+	OPCODE op, BACKMAP_F bwd, TYPE_F tprocess);
+
 functor* coord_func (std::vector<inode*> args, VTFUNC_F cf, USHAPE_F shaper, OPCODE op);
 
 functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd);

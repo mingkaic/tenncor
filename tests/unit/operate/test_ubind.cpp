@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 
+#include "fuzz.hpp"
 #include "sgen.hpp"
 #include "print.hpp"
 
@@ -20,7 +21,7 @@
 #define ERR_THRESH 0.05 // 5% error
 
 
-class UBIND : public testify::fuzz_test {};
+class UBIND : public testutils::fuzz_test {};
 
 
 using namespace testutils;
@@ -32,7 +33,7 @@ using SCALAR = std::function<double(double)>;
 using AGGS = std::function<double(std::vector<double>)>;
 
 
-static void unaryElemTest (testify::fuzz_test* fuzzer, std::string op, 
+static void unaryElemTest (testutils::fuzz_test* fuzzer, std::string op, 
 	SCALAR expect, std::pair<double,double> limits = {-1, 1})
 {
 	nnet::tensorshape shape = random_def_shape(fuzzer);
@@ -53,7 +54,7 @@ static void unaryElemTest (testify::fuzz_test* fuzzer, std::string op,
 }
 
 
-static void unaryAggTest (testify::fuzz_test* fuzzer, std::string op, 
+static void unaryAggTest (testutils::fuzz_test* fuzzer, std::string op, 
 	double init, AGGS agg, std::pair<double,double> limits = {-1, 1})
 {
 	nnet::tensorshape shape = random_def_shape(fuzzer);

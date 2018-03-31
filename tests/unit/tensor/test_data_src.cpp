@@ -6,6 +6,7 @@
 
 #include "gtest/gtest.h"
 
+#include "fuzz.hpp"
 #include "sgen.hpp"
 #include "check.hpp"
 
@@ -16,7 +17,7 @@
 #ifndef DISABLE_DSRC_TEST
 
 
-class DATA_SRC : public testify::fuzz_test {};
+class DATA_SRC : public testutils::fuzz_test {};
 
 
 using namespace testutils;
@@ -64,7 +65,7 @@ std::memcpy(&everything[0], &vec[0], vec.size() * sizeof(TYPE));
 #define ERR_THRESH 0.03 // 3% error
 
 
-TENS_TYPE fuzz_const (testify::fuzz_test* fuzzer, 
+TENS_TYPE fuzz_const (testutils::fuzz_test* fuzzer, 
 	nnet::const_init& ci, std::string& expect)
 {
 	TENS_TYPE out = RAND_TYPE;
@@ -138,7 +139,7 @@ TENS_TYPE fuzz_const (testify::fuzz_test* fuzzer,
 }
 
 
-TENS_TYPE fuzz_vec (testify::fuzz_test* fuzzer, 
+TENS_TYPE fuzz_vec (testutils::fuzz_test* fuzzer, 
 	nnet::const_init& ci, std::string& expect, size_t nelems)
 {
 	TENS_TYPE out = RAND_TYPE;
@@ -217,7 +218,7 @@ TENS_TYPE fuzz_vec (testify::fuzz_test* fuzzer,
 }
 
 
-TENS_TYPE fuzz_uniform (testify::fuzz_test* fuzzer, 
+TENS_TYPE fuzz_uniform (testutils::fuzz_test* fuzzer, 
 	nnet::r_uniform_init& ui, std::string& minstr, std::string& maxstr)
 {
 	TENS_TYPE out = RAND_TYPE;
@@ -291,7 +292,7 @@ TENS_TYPE fuzz_uniform (testify::fuzz_test* fuzzer,
 }
 
 
-TENS_TYPE fuzz_normal (testify::fuzz_test* fuzzer, 
+TENS_TYPE fuzz_normal (testutils::fuzz_test* fuzzer, 
 	nnet::r_normal_init& ni, std::string& meanstr, std::string& stdevstr)
 {
 	TENS_TYPE out = RAND_TYPE;
@@ -607,8 +608,12 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int8_t* max = (int8_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int8 type";
 				EXPECT_GE(*max, *val) << "int8 type";
-				int8_t diff = *val - *min;
-				mindist += diff / ((double) (*max - *min));
+				// avoid overflow to negative value (making mindist negative)
+				double dmin = (double) *min / 2;
+				double dmax = (double) *max / 2;
+				double dval = (double) *val / 2;
+				double diff = dval - dmin;
+				mindist += diff / (dmax - dmin);
 			}
 			break;
 			case UINT8:
@@ -629,8 +634,11 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int16_t* max = (int16_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int16 type";
 				EXPECT_GE(*max, *val) << "int16 type";
-				int16_t diff = *val - *min;
-				mindist += diff / ((double) (*max - *min));
+				double dmin = (double) *min / 2;
+				double dmax = (double) *max / 2;
+				double dval = (double) *val / 2;
+				double diff = dval - dmin;
+				mindist += diff / (dmax - dmin);
 			}
 			break;
 			case UINT16:
@@ -651,8 +659,11 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int32_t* max = (int32_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int32 type";
 				EXPECT_GE(*max, *val) << "int32 type";
-				int32_t diff = *val - *min;
-				mindist += diff / ((double) (*max - *min));
+				double dmin = (double) *min / 2;
+				double dmax = (double) *max / 2;
+				double dval = (double) *val / 2;
+				double diff = dval - dmin;
+				mindist += diff / (dmax - dmin);
 			}
 			break;
 			case UINT32:
@@ -673,8 +684,11 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				int64_t* max = (int64_t*) &maxstr[0];
 				EXPECT_LE(*min, *val) << "int64 type";
 				EXPECT_GE(*max, *val) << "int64 type";
-				int64_t diff = *val - *min;
-				mindist += diff / ((double) (*max - *min));
+				double dmin = (double) *min / 2;
+				double dmax = (double) *max / 2;
+				double dval = (double) *val / 2;
+				double diff = dval - dmin;
+				mindist += diff / (dmax - dmin);
 			}
 			break;
 			case UINT64:

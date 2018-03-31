@@ -110,9 +110,9 @@ static inline varptr lin_unar (std::string opname, OPCODE op, inode* input, BACK
 	return elem_func(std::vector<inode*>{input}, opname, op, bwd);
 }
 
-static inline varptr sample (std::string opname, OPCODE op, inode* a, inode* b)
+static inline varptr sample (std::string opname, OPCODE op, const varptr& a, const varptr& b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
 	std::vector<inode*> deps = {a, b};
 	if (inode* parent = ordered_parent(deps, op))
 	{
@@ -124,19 +124,19 @@ static inline varptr sample (std::string opname, OPCODE op, inode* a, inode* b)
 		tensorshape shape = args.front().first->get_tensor()->get_shape();
 		std::vector<double> zeroes(shape.n_elems(), 0); // todo: convert to data type
 		return constant::get<double>(zeroes, shape);
+	},
+	[](std::vector<TENS_TYPE> types) -> TENS_TYPE
+	{
+		return types[0];
 	});
 }
 
 static inline varptr comparator (std::string opname, OPCODE op, inode* a, inode* b)
 {
 	varptr out;
-	if (nullptr == a && nullptr == b)
+	if (nullptr == a || nullptr == b)
 	{
-		out = constant::get<double>(1);
-	}
-	else if (nullptr == a || nullptr == b)
-	{
-		return nullptr;
+		throw std::exception();
 	}
 	std::vector<inode*> deps = {a, b};
 	if (inode* parent = unordered_parent(deps, op))
@@ -393,7 +393,7 @@ varptr operator * (const varptr a, const varptr b)
 varptr operator / (const varptr a, const varptr b)
 {
 	if (nullptr == a.get()) return nullptr;
-	if (nullptr == b.get()) throw std::exception(); // todo: divide by zero error
+	if (nullptr == b.get()) throw std::logic_error("divide by zero"); // todo: divide by zero error
 	std::string opname = "div";
 	OPCODE op = DIV;
 	std::vector<inode*> deps = {a, b};
@@ -441,6 +441,11 @@ varptr binomial_sample (const varptr n, const varptr p)
 	return sample("rand_binom", BINO, n, p);
 }
 
+varptr binomial_sample (const varptr n, double p)
+{
+	return binomial_sample(n, varptr(constant::get<double>(p)));
+}
+
 varptr uniform_sample (const varptr min, const varptr max)
 {
 	return sample("rand_uniform", UNIF, min, max);
@@ -450,7 +455,6 @@ varptr normal_sample (const varptr mean, const varptr stdev)
 {
 	return sample("rand_normal", NORM, mean, abs(stdev));
 }
-
 
 
 varptr transpose (const varptr a, std::vector<size_t> perm)

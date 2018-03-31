@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "fuzz/fuzz.hpp"
+#include "fuzz.hpp"
 #include "check.hpp"
 #include "print.hpp"
 
@@ -17,14 +17,14 @@
 #ifndef DISABLE_NODE_TEST
 
 
-class NODE : public testify::fuzz_test
+class NODE : public testutils::fuzz_test
 {
 protected:
 	virtual void SetUp (void) {}
 
 	virtual void TearDown (void)
 	{
-		testify::fuzz_test::TearDown();
+		testutils::fuzz_test::TearDown();
 		testify::mocker::clear();
 	}
 };

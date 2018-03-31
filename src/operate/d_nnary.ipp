@@ -207,6 +207,7 @@ void rand_binom (VARR_T dest, std::vector<CVAR_T> srcs)
 
 	for (size_t i = 0; i < n; ++i)
 	{
+		// assert(0 <= sp[i * right_mul] && sp[i * right_mul] <= 1);
 		std::binomial_distribution<T> dist(sn[i * left_mul], sp[i * right_mul]);
 		d[i] = dist(nnutils::get_generator());
 	}

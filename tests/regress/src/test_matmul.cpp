@@ -1,6 +1,6 @@
 #ifndef DISABLE_TF_MATMUL_TESTS
 
-#include "tests/accept/include/tf_verify.hpp"
+#include "tests/regress/include/tf_verify.hpp"
 
 #include "graph/variable.hpp"
 #include "operate/operations.hpp"

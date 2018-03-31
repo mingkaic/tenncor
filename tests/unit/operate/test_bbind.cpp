@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 
+#include "fuzz.hpp"
 #include "sgen.hpp"
 #include "print.hpp"
 
@@ -17,10 +18,10 @@
 #ifndef DISABLE_BBIND_TEST
 
 
-#define ERR_THRESH 0.05 // 5% error
+#define ERR_THRESH 0.08 // 8% error
 
 
-class BBIND : public testify::fuzz_test {};
+class BBIND : public testutils::fuzz_test {};
 
 
 using namespace testutils;
@@ -33,7 +34,7 @@ using SCALARS = std::function<T(T, T)>;
 using TWODV = std::vector<std::vector<int64_t> >;
 
 
-static void binaryElemTest (testify::fuzz_test* fuzzer, std::string op, 
+static void binaryElemTest (testutils::fuzz_test* fuzzer, std::string op, 
 	SCALARS<double> expect, std::pair<double,double> limits = {-1, 1})
 {
 	nnet::tensorshape shape = random_def_shape(fuzzer);
@@ -59,7 +60,7 @@ static void binaryElemTest (testify::fuzz_test* fuzzer, std::string op,
 }
 
 
-static void binaryElemTestInt (testify::fuzz_test* fuzzer, std::string op, 
+static void binaryElemTestInt (testutils::fuzz_test* fuzzer, std::string op, 
 	SCALARS<uint64_t> expect, std::pair<uint64_t,uint64_t> limits = {0, 2})
 {
 	nnet::tensorshape shape = random_def_shape(fuzzer);
@@ -107,7 +108,7 @@ static inline TWODV create2D (std::vector<int64_t> juanD, size_t C, size_t R)
 }
 
 
-static inline bool freivald (testify::fuzz_test* fuzzer, TWODV a, TWODV b, TWODV c)
+static inline bool freivald (testutils::fuzz_test* fuzzer, TWODV a, TWODV b, TWODV c)
 {
 	assert(!b.empty());
 	size_t rlen = b[0].size();

@@ -70,6 +70,39 @@ functor* elem_func (std::vector<inode*> args, std::string opname, OPCODE op, BAC
 	}, op);
 }
 
+functor* elem_func (std::vector<inode*> args, std::string opname, OPCODE op, BACKMAP_F bwd, TYPE_F tprocess)
+{
+	assert(has_ele(opname));
+	return functor::get(args,
+	[opname, tprocess](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	{
+		operate_io* io = new operate_io(ebind(opname), tprocess);
+		src = std::unique_ptr<idata_src>(io);
+		std::vector<tensorshape> srcshapes;
+		for (size_t i = 0; i < args.size(); ++i)
+		{
+			tensor* tens = args[i]->get_tensor();
+			if (nullptr == tens)
+			{
+				throw std::exception(); // todo: better exception
+			}
+			srcshapes.push_back(tens->get_shape());
+			tens->write_to(*io, i);
+		}
+		// invariant: none of tens is null
+		return new tensor(elementary_shaper(srcshapes));
+	},
+	[bwd](inode* wrt, std::vector<inode*> args)
+	{
+		std::vector<std::pair<inode*,varptr> > deps;
+		for (inode* arg : args)
+		{
+			deps.push_back({arg, arg->derive(wrt)});
+		}
+		return bwd(deps);
+	}, op);
+}
+
 functor* coord_func (std::vector<inode*> args, VTFUNC_F cf, USHAPE_F shaper, OPCODE op)
 {
 	return functor::get(args,

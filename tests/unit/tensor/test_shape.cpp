@@ -6,6 +6,7 @@
 
 #include "gtest/gtest.h"
 
+#include "fuzz.hpp"
 #include "sgen.hpp"
 #include "check.hpp"
 #include "print.hpp"
@@ -14,7 +15,7 @@
 #ifndef DISABLE_SHAPE_TEST
 
 
-class TENSORSHAPE : public testify::fuzz_test {};
+class TENSORSHAPE : public testutils::fuzz_test {};
 
 
 using namespace testutils;

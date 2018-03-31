@@ -1,4 +1,4 @@
-TEST := bazel test --test_output=all
+TEST := bazel test --test_output=all --cache_test_results=no
 
 all: unittest accepttest
 
@@ -14,13 +14,13 @@ operatetest:
 	$(TEST) //tests/unit:test_operate
 
 accepttest:
-	$(TEST) //tests/accept:test
+	$(TEST) //tests/regress:test
 
 acceptdata: cleandata
-	python tests/accept/tf_generate/tf_generate.py
+	python tests/regress/tf_generate/tf_generate.py
 
 fmt:
 	astyle --project --recursive --suffix=none *.hpp,*.ipp,*.cpp
 
 cleandata:
-	rm -f tests/accept/samples/*
+	rm -f tests/regress/samples/*

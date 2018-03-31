@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "fuzz/fuzz.hpp"
+#include "fuzz.hpp"
 #include "mock_subject.hpp"
 #include "mock_observer.hpp"
 
@@ -14,14 +14,14 @@
 #ifndef DISABLE_REACT_TEST
 
 
-class REACT : public testify::fuzz_test
+class REACT : public testutils::fuzz_test
 {
 protected:
 	virtual void SetUp (void) {}
 
 	virtual void TearDown (void)
 	{
-		testify::fuzz_test::TearDown();
+		testutils::fuzz_test::TearDown();
 		testify::mocker::clear();
 	}
 };

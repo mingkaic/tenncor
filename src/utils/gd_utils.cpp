@@ -64,11 +64,11 @@ void gd_updater::set_learning_rate (double learning_rate)
 
 vgb_updater::vgb_updater (double learning_rate) : gd_updater(learning_rate) {}
 		
-vgb_updater*  vgb_updater::clone (void) { return static_cast<vgb_updater*>(clone_impl()); }
+vgb_updater* vgb_updater::clone (void) { return static_cast<vgb_updater*>(clone_impl()); }
 
-vgb_updater*  vgb_updater::move (void) { return static_cast<vgb_updater*>(move_impl()); }
+vgb_updater* vgb_updater::move (void) { return static_cast<vgb_updater*>(move_impl()); }
 
-gd_updater*  vgb_updater::clone_impl (void) const
+gd_updater* vgb_updater::clone_impl (void) const
 {
 	return new vgb_updater(*this);
 }

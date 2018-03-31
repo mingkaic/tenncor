@@ -36,6 +36,8 @@ public:
 	template <typename T>
 	static varptr get (std::vector<T> raw, tensorshape shape);
 
+	// static varptr get_generic (std::string data, TENS_TYPE type);
+
 	// >>>> CAN'T COPY OR MOVE (GOES AGAINST SHARING) <<<<
 
 	//! deleted copy constructor
@@ -124,7 +126,7 @@ varptr constant::get (T scalar)
 {
 	static_assert(std::is_arithmetic<T>::value, 
 		"constant must be arithmetic value");
-	size_t key = scalar_hash(scalar);
+	size_t key = ((size_t) get_type<T>()) ^ std::hash<T>()(scalar);
 	constant* cons = find_const(key);
 	if (nullptr == cons)
 	{
@@ -160,6 +162,24 @@ varptr constant::get (std::vector<T> raw, tensorshape shape)
 	data->read_from(ci);
 	return new constant(data, name);
 }
+
+// varptr constant::get_generic (std::string data, TENS_TYPE type)
+// {
+// 	// make sure data isn't huge before attempting hash
+// 	assert(data.size() == type_size(type));
+// 	size_t key = ((size_t) type) ^ std::hash<std::string>(data);
+// 	constant* cons = find_const(key);
+// 	if (nullptr == cons)
+// 	{
+// 		tensorshape shape = std::vector<size_t>{1};
+// 		const_init ci(data, type);
+// 		tensor* data = new tensor(shape);
+// 		data->read_from(ci);
+// 		cons = new constant(data, nnutils::formatter() << scalar);
+// 		register_const(key, cons);
+// 	}
+// 	return cons;
+// }
 
 }
 

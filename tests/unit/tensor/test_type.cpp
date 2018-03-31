@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "fuzz/fuzz.hpp"
+#include "fuzz.hpp"
 
 #include "tensor/type.hpp"
 #include "utils/error.hpp"
@@ -15,7 +15,7 @@
 #ifndef DISABLE_TYPE_TEST
 
 
-class TYPE : public testify::fuzz_test {};
+class TYPE : public testutils::fuzz_test {};
 
 
 TEST_F(TYPE, TypeSize_B000)

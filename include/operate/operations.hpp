@@ -95,6 +95,8 @@ varptr operator > (const varptr a, const varptr b);
 
 varptr binomial_sample (const varptr n, const varptr p);
 
+varptr binomial_sample (const varptr n, double p);
+
 varptr uniform_sample (const varptr min, const varptr max);
 
 varptr normal_sample (const varptr mean, const varptr stdev);
@@ -142,8 +144,16 @@ template <typename T>
 varptr operator != (T a, const varptr b) { return varptr(constant::get<T>(a)) != b; }
 
 template <typename T>
-varptr binomial_sample (const varptr n, T p)
-{ return binomial_sample(n, varptr(constant::get<T>(p))); }
+varptr operator < (const varptr a, T b) { return a < varptr(constant::get<T>(b)); }
+
+template <typename T>
+varptr operator < (T a, const varptr b) { return varptr(constant::get<T>(a)) < b; }
+
+template <typename T>
+varptr operator > (const varptr a, T b) { return a > varptr(constant::get<T>(b)); }
+
+template <typename T>
+varptr operator > (T a, const varptr b) { return varptr(constant::get<T>(a)) > b; }
 
 template <typename T>
 varptr binomial_sample (T n, const varptr p)
@@ -285,7 +295,6 @@ varptr matmul (const varptr a, const varptr b);
 
 //! for example: window {0, 1} gives output f[i, j, :] = sum(a[i:i+filtshape[0], j:j+filtshape[1], :] * filter)
 //! whereas window {0,2} gives output f[i, :, j] = sum(a[i:i+filtshape[0], :, j:j+filtshape[1]] * filter)
-//! if pad == true, then pad output with zero to fit a's shape, otherwise leave as is after cross_corr
 varptr cross_corr2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
 
 //! convolve a with filter, conv(a, filter, dims) = cross_conv(a, flip(filter), dims)

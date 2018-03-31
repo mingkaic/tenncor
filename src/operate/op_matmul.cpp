@@ -89,6 +89,7 @@ static varptr flatten_mat (varptr a)
 		const char* in = (const char*) srcs[0].first;
 		tensorshape inshape = srcs[0].second;
 		size_t nelems = inshape.n_elems();
+		// zero out non-trace
 		std::memset(out, 0, per * nelems * nelems);
 		for (size_t i = 0; i < nelems; i++)
 		{
@@ -113,7 +114,7 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 	// process both arguments as jacobians
 	varptr da, db;
 	tensorshape bases = x->get_tensor()->get_shape();
-	if (adx)
+	if (nullptr != adx.get())
 	{
 		adx = flatten_mat(adx); // todo: ensure adx keeps jacobian shape <xshape, cshape>
 		// todo: check for parent ja
@@ -136,6 +137,7 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 				size_t ylimit = inshape[1];
 				size_t ns = inshape.n_elems();
 				size_t nparts = outshape[0] / xlimit;
+				// zero out background
 				std::memset(out, 0, outshape.n_elems() * per);
 				for (size_t i = 0; i < ns; ++i)
 				{
@@ -163,7 +165,7 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 		}, JACOBIANLEFT); // ja has shape <ashape, cshape>
 		da = matmul(adx, ja); // da should have shape <xshape, ashape>
 	}
-	if (bdx)
+	if (nullptr != bdx.get())
 	{
 		bdx = flatten_mat(bdx);
 		varptr jb = functor::get({a, b, c},
@@ -185,6 +187,7 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 				size_t ylimit = inshape[0];
 				size_t xlimit = blist[0];
 				size_t ns = inshape.n_elems();
+				// zero out background
 				std::memset(out, 0, outshape.n_elems() * per);
 				for (size_t i = 0; i < ns; ++i)
 				{

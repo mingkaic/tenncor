@@ -5,7 +5,7 @@ filegroup(
     srcs = [
         "BUILD",
         "//tests/graph_gen:srcs",
-        "//tests/accept:srcs",
+        "//tests/regress:srcs",
         "//tests/unit:srcs",
         "//tests/utils:srcs",
     ],

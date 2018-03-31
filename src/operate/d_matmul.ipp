@@ -208,8 +208,6 @@ void matmul (VARR_T dest, std::vector<CVAR_T> srcs)
 			T* out = new T[n_mat];
 			T* a = new T[n_mat];
 			T* b = new T[n_mat];
-			std::memset(a, 0, n_mat * sizeof(T));
-			std::memset(b, 0, n_mat * sizeof(T));
 			for (size_t y = 0; y < dim_y; y++)
 			{
 				for (size_t z = 0; z < dim_z; z++)

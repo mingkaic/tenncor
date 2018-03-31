@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 
+#include "fuzz.hpp"
 #include "sgen.hpp"
 #include "check.hpp"
 #include "print.hpp"
@@ -18,7 +19,7 @@
 #ifndef DISABLE_UNOFUNCS_TEST
 
 
-class UNOFUNCS : public testify::fuzz_test {};
+class UNOFUNCS : public testutils::fuzz_test {};
 
 
 using namespace testutils;
@@ -31,10 +32,6 @@ using SCALAR = std::function<double(double)>;
 
 
 using AGGS = std::function<double(std::vector<double>)>;
-
-
-template <typename T>
-using SCALARS = std::function<T(T, T)>;
 
 
 using ZCHECK = std::function<void(VARFUNC)>;
@@ -63,7 +60,7 @@ static void expect_throw (VARFUNC op)
 }
 
 
-static void unarNodeTest (testify::fuzz_test* fuzzer, OPCODE opcode, VARFUNC op, 
+static void unarNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC op, 
 	SCALAR expect, ZCHECK exz, std::pair<double,double> limits = {-1, 1})
 {
 	nnet::tensorshape shape = random_def_shape(fuzzer);
