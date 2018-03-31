@@ -1,4 +1,5 @@
 #include "include/operate/operations.hpp"
+#include "include/operate/operation_utils.hpp"
 
 #include "include/operate/common.hpp"
 
@@ -238,7 +239,13 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 varptr matmul (varptr a, varptr b)
 {
 	if (nullptr == a.get() || nullptr == b.get()) return nullptr;
-	return functor::get({a, b}, 
+	OPCODE op = MATMUL;
+	std::vector<inode*> deps = {a, b};
+	if (inode* parent = ordered_parent(deps, op))
+	{
+		return parent;
+	}
+	return functor::get(deps, 
 	[](std::unique_ptr<idata_src>& src, std::vector<inode*> args)
 	{
 		operate_io* io = new operate_io(ebind("matmul"));
@@ -249,7 +256,7 @@ varptr matmul (varptr a, varptr b)
 		b->write_to(*io, 1);
 		tensorshape dshape = matmul_shaper({a->get_shape(), b->get_shape()});
 		return new tensor(dshape);
-	}, matmul_gradient, MATMUL);
+	}, matmul_gradient, op);
 }
 
 }

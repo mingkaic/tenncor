@@ -303,8 +303,8 @@ varptr round (const varptr a)
 
 varptr pow (const varptr b, const varptr x)
 {
-	if (nullptr == b.get()) return nullptr;
 	if (nullptr == x.get()) return constant::get<double>(1);
+	if (nullptr == b.get()) return nullptr;
 	std::string opname = "pow";
 	OPCODE op = POW;
 	std::vector<inode*> deps = {b, x};
@@ -392,8 +392,8 @@ varptr operator * (const varptr a, const varptr b)
 
 varptr operator / (const varptr a, const varptr b)
 {
-	if (nullptr == a.get()) return nullptr;
 	if (nullptr == b.get()) throw std::logic_error("divide by zero"); // todo: divide by zero error
+	if (nullptr == a.get()) return nullptr;
 	std::string opname = "div";
 	OPCODE op = DIV;
 	std::vector<inode*> deps = {a, b};

@@ -292,12 +292,10 @@ TEST_F(BBIND, Binom_A030)
 		double mean = argument0[i] * argument1[i];
 		double stdev = mean * (1 - argument1[i]);
 		size_t index = std::abs(mean - output[i]) / stdev;
-		if (index >= stdev_count.size())
+		if (index < stdev_count.size())
 		{
-			stdev_count.insert(stdev_count.end(),
-				index - stdev_count.size() + 1, 0);
+			stdev_count[index]++;
 		}
-		stdev_count[index]++;
 	}
 	// check the first 3 stdev
 	double expect68 = stdev_count[0] / n; // expect ~68%
@@ -376,12 +374,10 @@ TEST_F(BBIND, Norm_A031)
 	for (size_t i = 0; i < n; ++i)
 	{
 		size_t index = std::abs(argument0[i] - output[i]) / argument1[i];
-		if (index >= stdev_count.size())
+		if (index < stdev_count.size())
 		{
-			stdev_count.insert(stdev_count.end(),
-				index - stdev_count.size() + 1, 0);
+			stdev_count[index]++;
 		}
-		stdev_count[index]++;
 	}
 	// check the first 3 stdev
 	double expect68 = stdev_count[0] / n; // expect ~68%

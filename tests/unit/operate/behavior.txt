@@ -26,9 +26,9 @@ A028 - gt ebinds to "gt". it takes 2 inputs and applies the > operator to inputs
 A029 - rand_uniform ebinds to "rand_uniform". 
 		it takes 2 inputs and returns the uniform_..._distribution(input1, input2)
 A030 - rand_binom ebinds to "rand_binom". 
-		it takes 2 inputs and returns the binomial_distribution(input1, input2)
+		it takes 2 inputs and applies the std::binomial_distribution(input1, input2)
 		throws bad_function_call if type is double or float
-A031 - rand_normal ebinds to "rand_normal". 
+A031 - rand_normal ebinds to "rand_normal".
 		it takes 2 inputs and returns the normal_distribution(input1, input2)
 		throws bad_function_call if type is integer
 A032 - matmul ebinds to "matmul". it takes 2 inputs and 
@@ -49,33 +49,43 @@ B107 - log applies std::log function to input, expect throw on null in, run_opco
 B108 - sqrt applies std::sqrt function to input, expect null out on null in, run_opcode with SQRT
 B109 - round applies std::round function to input, expect null out on null in, run_opcode with ROUND
 
-B110 - arg_max
-B111 - reduce_max
-B112 - reduce_sum
+B120 - pow returns the pow(input1, input2), run_opcode POW generates pow,
+	expect null if input1 is null, 1 if input2 is null or both are null
+B121 - add returns input1 + input2, run_opcode ADD generates +,
+	expect input2 if input1 is null, input1 if input2 is null
+B122 - sub returns input1 - input2, run_opcode SUB generates -,
+	expect -input2 if input1 is null, input1 if input2 is null
+B123 - mul returns input1 * input2, run_opcode MUL generates *,
+	expect null if input1 or input2 is null
+B124 - div returns input1 / input2, run_opcode DIV generates /,
+	expect null if input1 is null, throws if input2 is null
+B125 - eq returns input1 == input2, run_opcode EQ generates ==,
+	throws input1 or input2 is null
+B126 - neq returns input1 != input2, run_opcode EQ generates !=,
+	throws input1 or input2 is null
+B127 - gt returns input1 > input2, run_opcode EQ generates >,
+	throws input1 or input2 is null
+B128 - lt returns input1 < input2, run_opcode EQ generates <,
+	throws input1 or input2 is null
+B129 - rand_binomial applies std::binomial_distribution, run_opcode BINO gets result,
+	throws null if input1 or input2 is null
+B130 - rand_uniform applies std::uniform_..._distribution, run_opcode UNIF gets result,
+	throws null if input1 or input2 is null
+B131 - rand_norm applies std::normal_distribution, run_opcode NORM gets result,
+	throws null if input1 or input2 is null
+B132 - matmul matrix multiplies input1 and input2, run_opcode MATMUL gets result,
+	throws null if input1 or input2 is null
 
-B140 - transpose
-B141 - flip
-B142 - expand
-B143 - n_elems
-B144 - n_dimension
-
-- clip
-- clip_norm
-
-B120 - pow
-B121 - add
-B122 - sub 
-B123 - mul
-B124 - div
-B125 - eq
-B126 - neq
-B127 - gt
-B128 - lt
-B129 - rand_binomial
-B130 - rand_uniform
-B131 - rand_norm
-
-B132 - matmul
+B140 - arg_max
+B141 - reduce_max
+B142 - reduce_sum
+B143 - transpose
+B144 - flip
+B145 - expand
+B146 - n_elems
+B147 - n_dimension
+B148 - clip
+B149 - clip_norm
 
 - type_assert
 - shape_assert

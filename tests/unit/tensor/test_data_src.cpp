@@ -55,12 +55,10 @@ std::memcpy(&everything[0], &vec[0], vec.size() * sizeof(TYPE));
 	TYPE* stdev = (TYPE*) &stdevstr[0]; \
 	TYPE absdiff = *mean > *val ? *mean - *val : *val - *mean; \
 	size_t idx = absdiff / *stdev; \
-	if (stdev_count.size() <= idx) \
+	if (stdev_count.size() < idx) \
 	{ \
-		stdev_count.insert(stdev_count.end(), \
-			idx - stdev_count.size() + 1, 0); \
-	} \
-	stdev_count[idx]++;
+		stdev_count[idx]++; \
+	}
 
 #define ERR_THRESH 0.03 // 3% error
 
