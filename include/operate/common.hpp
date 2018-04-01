@@ -30,9 +30,9 @@ functor* elem_func (std::vector<inode*> args, std::string opname,
 
 functor* coord_func (std::vector<inode*> args, VTFUNC_F cf, USHAPE_F shaper, OPCODE op);
 
-functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd);
+functor* agg_func (inode* arg, std::string opname, OPCODE op, TYPE2VAL init, BACKMAP_F bwd);
 
-functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, BACKMAP_F bwd);
+functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, TYPE2VAL init, BACKMAP_F bwd);
 
 functor* shape_func (std::vector<inode*> args, USIDX_F extracter, USHAPE_F shaper, OPCODE op);
 

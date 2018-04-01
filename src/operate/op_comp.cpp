@@ -61,7 +61,7 @@ varptr arg_max (const varptr a, const varptr dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, dimension, "argmax", op,
+	return agg_func(a, dimension, "argmax", op, type::zeroval,
 	[](std::vector<std::pair<inode*,varptr> >) -> varptr
 	{
 		throw std::exception();
@@ -82,7 +82,7 @@ varptr reduce_max (const varptr a, const varptr dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, dimension, "max", op,
+	return agg_func(a, dimension, "max", op, type::minval,
 	[](std::vector<std::pair<inode*,varptr> > args) -> varptr
 	{
 		varptr a = args.front().first;
@@ -109,7 +109,7 @@ varptr reduce_sum (const varptr a, const varptr dimension)
 	{
 		return parent;
 	}
-	return agg_func(a, dimension, "sum", op,
+	return agg_func(a, dimension, "sum", op, type::zeroval,
 	[](std::vector<std::pair<inode*,varptr> > args) -> varptr
 	{
 		return args.front().second;

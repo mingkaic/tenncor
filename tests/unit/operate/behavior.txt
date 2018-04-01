@@ -76,16 +76,20 @@ B131 - rand_norm applies std::normal_distribution, run_opcode NORM gets result,
 B132 - matmul matrix multiplies input1 and input2, run_opcode MATMUL gets result,
 	throws null if input1 or input2 is null
 
-B140 - arg_max
-B141 - reduce_max
-B142 - reduce_sum
-B143 - transpose
-B144 - flip
-B145 - expand
+B140 - arg_max gets the index of the max value along specified dimensions, 
+		if no dimension is specify, get the index of the max everything
+B141 - reduce_max gets max value along specified dimensions, if no dimension is specify, get max of everything
+B142 - reduce_sum sums value along specified dimensions, if no dimension is specify, sum everything
+B143 - transpose accepts tensors of 1-D and 2-D, output tensor is always 2-D,
+		with 1-D shapes interpreted as shape <dim1, 1>
+B144 - flip mirrors the values along the specified dimension, the shape is not changed
+B145 - expand duplicates data across a dimension (index) a number of times specified by input multiplier
 B146 - n_elems
 B147 - n_dimension
 B148 - clip
 B149 - clip_norm
+B150 - reduce_mean
+B151 - reduce_l2norm
 
 // unimplemented
 - type_assert

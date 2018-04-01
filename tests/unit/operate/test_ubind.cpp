@@ -68,9 +68,11 @@ static void unaryAggTest (testutils::fuzz_test* fuzzer, std::string op,
 
 	double expect = agg(argument);
 	double result = init;
-	std::vector<const void*> args(argument.size());
-	std::transform(argument.begin(), argument.end(), args.begin(), [](double& a) { return &a; });
-	afunc((void*) &result, args);
+	const void* array = (const void*) &argument[0];
+	for (size_t i = 0; i < argument.size(); i++)
+	{
+		afunc(i, (void*) &result, array);
+	}
 	EXPECT_EQ(expect, result);
 }
 

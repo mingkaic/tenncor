@@ -29,7 +29,7 @@ using VARR_T = std::pair<void*,tensorshape>;
 
 using CVAR_T = std::pair<const void*,tensorshape>;
 
-using AFUNC_F = std::function<void(void*,std::vector<const void*>)>;
+using AFUNC_F = std::function<void(size_t,void*,const void*)>;
 
 using VTFUNC_F = std::function<void(TENS_TYPE,VARR_T,std::vector<CVAR_T>)>;
 
@@ -184,42 +184,34 @@ void matmul (VARR_T dest, std::vector<CVAR_T> srcs);
 // aggregation
 
 template <typename T>
-void argmax (void* out, std::vector<const void*> arr)
+void argmax (size_t i, void* accum, const void* arr)
 {
-	size_t index = 0;
-	for (size_t i = 1, n = arr.size(); i < n; ++i)
+	T* tarr = (T*) arr;
+	T* data = (T*) accum;
+	size_t prev = *data;
+	if (tarr[prev] < tarr[i])
 	{
-		if (*((const T*) arr[index]) < *((const T*) arr[i]))
-		{
-			index = i;
-		}
-	}
-	*((T*) out) = index;
-}
-
-template <typename T>
-void max (void* out, std::vector<const void*> arr)
-{
-	T* outt = (T*) out;
-	*outt = *((const T*) arr[0]);
-	for (size_t i = 1, n = arr.size(); i < n; ++i)
-	{
-		if (*outt < *((const T*) arr[i]))
-		{
-			*outt = *((const T*) arr[i]);
-		}
+		*data = i;
 	}
 }
 
 template <typename T>
-void sum (void* out, std::vector<const void*> arr)
+void max (size_t i, void* accum, const void* arr)
 {
-	T* outt = (T*) out;
-	*outt = *((const T*) arr[0]);
-	for (size_t i = 1, n = arr.size(); i < n; ++i)
+	T* tarr = (T*) arr;
+	T* data = (T*) accum;
+	if (*data < tarr[i])
 	{
-		*outt += *((const T*) arr[i]);
+		*data = tarr[i];
 	}
+}
+
+template <typename T>
+void sum (size_t i, void* accum, const void* arr)
+{
+	T* tarr = (T*) arr;
+	T* data = (T*) accum;
+	*data += tarr[i];
 }
 
 }

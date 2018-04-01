@@ -20,6 +20,8 @@
 namespace nnet
 {
 
+using TYPE2VAL = std::function<std::string(TENS_TYPE)>;
+
 #define _TYPE_SENTINEL tenncor::_TYPE_SENTINEL
 
 #define BAD_T tenncor::BAD
@@ -143,6 +145,17 @@ std::vector<OT> type_convert(void* ptr, size_t n, TENS_TYPE itype)
 			throw nnutils::unsupported_type_error(itype);
 	}
 	return out;
+}
+
+namespace type
+{
+
+std::string maxval (TENS_TYPE type);
+
+std::string minval (TENS_TYPE type);
+
+std::string zeroval (TENS_TYPE type);
+
 }
 
 }

@@ -144,29 +144,29 @@ functor* coord_func (std::vector<inode*> args, VTFUNC_F cf, USHAPE_F shaper, OPC
 	}, op);
 }
 
-functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
+functor* agg_func (inode* arg, std::string opname, OPCODE op, TYPE2VAL init, BACKMAP_F bwd)
 {
 	assert(has_agg(opname));
 	return functor::get({arg},
-	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	[opname, init](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		assert(args.size() == 1);
 		operate_io* asrc = new operate_io(
-		[opname](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
+		[opname, init](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 		{
 			assert(srcs.size() == 1);
 			AFUNC_F agg = abind(opname)(type);
-			const char* in = (const char*) srcs[0].first;
 			tensorshape outshape = dest.second;
+			// assert(outshape.n_elems() == 1);
 			tensorshape inshape = srcs[0].second;
 			size_t per = type_size(type);
 			size_t n = inshape.n_elems();
-			std::vector<const void*> args(n);
+			std::string initstr = init(type);
+			std::memcpy(dest.first, &initstr[0], per);
 			for (size_t i = 0; i < n; ++i)
 			{
-				args[i] = (const void*) (in + i * per);
+				agg(i, dest.first, srcs[0].first);
 			}
-			agg(dest.first, args);
 		});
 		src = std::unique_ptr<idata_src>(asrc);
 		const tensor* tens = args[0]->get_tensor();
@@ -186,20 +186,19 @@ functor* agg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 	}, op);
 }
 
-functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, BACKMAP_F bwd)
+functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, TYPE2VAL init, BACKMAP_F bwd)
 {
 	assert(has_agg(opname));
 	return functor::get({arg, dimension},
-	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	[opname, init](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		assert(args.size() == 2);
 		operate_io* asrc = new operate_io(
-		[opname](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
+		[opname, init](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 		{
 			assert(srcs.size() == 2);
 			AFUNC_F agg = abind(opname)(type);
 			char* out = (char*) dest.first;
-			const char* in = (const char*) srcs[0].first;
 			uint64_t dim = *((uint64_t*) srcs[1].first);
 			tensorshape outshape = dest.second;
 			tensorshape inshape = srcs[0].second;
@@ -209,7 +208,11 @@ functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 			assert(rank > dim);
 			size_t nout = outshape.n_elems();
 			size_t nin = inshape.n_elems();
-			std::vector<std::vector<const void*> > args(nout);
+			std::string initstr = init(type);
+			for (size_t i = 0; i < nout; ++i)
+			{
+				std::memcpy(out + i * per, &initstr[0], per);
+			}
 			if (rank > 1)
 			{
 				std::vector<size_t> coord;
@@ -217,20 +220,16 @@ functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 				{
 					coord = inshape.coord_from_idx(i);
 					coord.erase(coord.begin() + dim);
-					args[outshape.flat_idx(coord)].push_back((const void*) (in + i * per));
+					size_t cidx = outshape.flat_idx(coord);
+					agg(i, out + cidx * per, srcs[0].first);
 				}
 			}
 			else
 			{
-				assert(nout == 1);
 				for (size_t i = 0; i < nin; ++i)
 				{
-					args[0].push_back((const void*) (in + i * per));
+					agg(i, dest.first, srcs[0].first);
 				}
-			}
-			for (size_t i = 0; i < nout; ++i)
-			{
-				agg(out + i * per, args[i]);
 			}
 		},
 		[](std::vector<TENS_TYPE> types)
