@@ -156,7 +156,12 @@ static inline varptr comparator (std::string opname, OPCODE op, inode* a, inode*
 	return out;
 }
 
-void type_assert(const varptr a, TENS_TYPE type)
+void assert_type(const varptr a, TENS_TYPE type)
+{
+	// todo: implement
+}
+
+void assert_shape(const varptr a, tensorshape shape)
 {
 	// todo: implement
 }
@@ -437,7 +442,7 @@ varptr operator > (const varptr a, const varptr b)
 
 varptr binomial_sample (const varptr n, const varptr p)
 {
-	type_assert(p, DOUBLE);
+	assert_type(p, DOUBLE);
 	return sample("rand_binom", BINO, n, p);
 }
 
@@ -457,21 +462,21 @@ varptr normal_sample (const varptr mean, const varptr stdev)
 }
 
 
-varptr transpose (const varptr a, std::vector<size_t> perm)
+varptr transpose (const varptr a, std::vector<uint64_t> perm)
 {
 	varptr pvar;
 	size_t psize = perm.size();
 	if (psize > 0)
 	{
 		// perform sanity check on perm, perm must contain unique numbers in [0, psize)
-		std::unordered_set<size_t> pset(perm.begin(), perm.end());
-		if (pset.size() != perm.size() || std::any_of(perm.begin(), perm.end(), 
+		std::unordered_set<uint64_t> pset(perm.begin(), perm.end());
+		if (pset.size() != psize || std::any_of(perm.begin(), perm.end(), 
 			[psize](size_t p) { return p >= psize; }))
 		{
 			throw std::exception(); // todo: add message "bad perm" or something
 		}
 
-		pvar = constant::get<uint64_t>(std::vector<uint64_t>(perm.begin(), perm.end()), 
+		pvar = constant::get<uint64_t>(perm, 
 			tensorshape(std::vector<size_t>{psize}));
 	}
 	return transpose(a, pvar);
@@ -564,15 +569,16 @@ varptr transpose (const varptr a, const varptr perm)
 	return coord_func(args, smap, shaper, op);
 }
 
-varptr flip (const varptr a, std::vector<size_t> dims)
+varptr flip (const varptr a, std::vector<uint64_t> dims)
 {
-	return flip(a, constant::get<uint64_t>(std::vector<uint64_t>(dims.begin(), dims.end()), 
+	return flip(a, constant::get<uint64_t>(dims, 
 		tensorshape(std::vector<size_t>{dims.size()})));
 }
 
 varptr flip (const varptr a, const varptr dims)
 {
 	if (nullptr == a.get() || nullptr == dims.get()) return nullptr;
+	assert_type(dims, UINT64);
 	OPCODE op = FLIP;
 	if (inode* parent = ordered_parent({a, dims}, op))
 	{
@@ -616,7 +622,7 @@ varptr arg_max (const varptr a)
 	{
 		return parent;
 	}
-	return agg_func(a, "argmax", op, type::zeroval,
+	return arg_func(a, "argmax", op,
 	[](std::vector<std::pair<inode*,varptr> >) -> varptr
 	{
 		throw std::exception();
@@ -632,7 +638,7 @@ varptr reduce_max (const varptr a)
 	{
 		return parent;
 	}
-	return agg_func(a, "max", op, type::minval,
+	return reduce_func(a, "max", op,
 	[](std::vector<std::pair<inode*,varptr> > args) -> varptr
 	{
 		varptr a = args.front().first;
@@ -651,7 +657,7 @@ varptr reduce_sum (const varptr a)
 	{
 		return parent;
 	}
-	return agg_func(a, "sum", op, type::zeroval,
+	return reduce_func(a, "sum", op,
 	[](std::vector<std::pair<inode*,varptr> > args) -> varptr
 	{
 		return args.front().second;
@@ -679,14 +685,20 @@ varptr n_elems (const varptr a)
 	}, op);
 }
 
-varptr n_dimension (const varptr a, size_t dimension)
+varptr n_dimension (const varptr a, uint64_t dimension)
 {
 	return n_dimension(a, constant::get<uint64_t>(dimension));
 }
 
-varptr n_dimension (const varptr a, const varptr dimension)
+varptr n_dimension (const varptr a, varptr dimension)
 {
-	if (nullptr == a.get() || nullptr == dimension.get()) return nullptr;
+	if (nullptr == a.get()) return nullptr;
+	if (nullptr == dimension.get())
+	{
+		dimension = constant::get<uint64_t>(0);
+	}
+	assert_shape(a, std::vector<size_t>{1});
+	assert_type(a, nnet::UINT64);
 	OPCODE op = N_DIMS;
 	if (inode* parent = ordered_parent({a, dimension}, op))
 	{
@@ -708,12 +720,12 @@ varptr n_dimension (const varptr a, const varptr dimension)
 
 
 
-varptr expand (varptr a, size_t n, size_t dim)
+varptr expand (varptr a, uint64_t n, uint64_t dim)
 {
 	return expand(a, varptr(constant::get<uint64_t>(n)), constant::get<uint64_t>(dim));
 }
 
-varptr expand (varptr a, varptr n, size_t dim)
+varptr expand (varptr a, varptr n, uint64_t dim)
 {
 	return expand(a, n, constant::get<uint64_t>(dim));
 }
@@ -721,6 +733,10 @@ varptr expand (varptr a, varptr n, size_t dim)
 varptr expand (const varptr a, const varptr n, const varptr dim)
 {
 	if (nullptr == a.get() || nullptr == n.get() || nullptr == dim.get()) return nullptr;
+	assert_shape(n, std::vector<size_t>{1});
+	assert_shape(dim, std::vector<size_t>{1});
+	assert_type(n, nnet::UINT64);
+	assert_type(dim, nnet::UINT64);
 	OPCODE op = EXPAND;
 	std::vector<inode*> deps = {a, n, dim};
 	if (inode* parent = ordered_parent(deps, op))

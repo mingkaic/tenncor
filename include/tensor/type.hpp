@@ -78,7 +78,7 @@ itype* inptr = (itype*) in; \
 out = std::vector<otype>(inptr, inptr + n);
 
 template <typename OT>
-std::vector<OT> type_convert(void* ptr, size_t n, TENS_TYPE itype)
+std::vector<OT> type_convert (void* ptr, size_t n, TENS_TYPE itype)
 {
 	TENS_TYPE otype = get_type<OT>();
 	assert(otype != BAD_T);
@@ -146,16 +146,7 @@ std::vector<OT> type_convert(void* ptr, size_t n, TENS_TYPE itype)
 	return out;
 }
 
-namespace type
-{
-
-std::string maxval (TENS_TYPE type);
-
-std::string minval (TENS_TYPE type);
-
-std::string zeroval (TENS_TYPE type);
-
-}
+std::string type_convert (void* ptr, size_t n, TENS_TYPE otype, TENS_TYPE itype);
 
 }
 

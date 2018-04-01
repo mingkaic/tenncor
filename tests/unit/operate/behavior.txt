@@ -76,24 +76,42 @@ B131 - rand_norm applies std::normal_distribution, run_opcode NORM gets result,
 B132 - matmul matrix multiplies input1 and input2, run_opcode MATMUL gets result,
 	throws null if input1 or input2 is null
 
-B140 - arg_max gets the index of the max value along specified dimensions, 
-		if no dimension is specify, get the index of the max everything
-B141 - reduce_max gets max value along specified dimensions, if no dimension is specify, get max of everything
-B142 - reduce_sum sums value along specified dimensions, if no dimension is specify, sum everything
-B143 - transpose accepts tensors of 1-D and 2-D, output tensor is always 2-D,
-		with 1-D shapes interpreted as shape <dim1, 1>
-B144 - flip mirrors the values along the specified dimension, the shape is not changed
-B145 - expand duplicates data across a dimension (index) a number of times specified by input multiplier
-B146 - n_elems
-B147 - n_dimension
-B148 - clip
-B149 - clip_norm
-B150 - reduce_mean
-B151 - reduce_l2norm
+B140 - arg_max gets the index of the max value along specified dimensions,
+		if no dimension is specify, get the index of the max everything,
+		run_opcode with ARGMAX gets result
+		null input1 returns null, null input2 treats input2 as dimension 0
+B141 - reduce_max gets max value along specified dimensions, 
+		if no dimension is specify, get max of everything,
+		run_opcode with RMAX gets result
+		null input1 returns null, null input2 treats input2 as dimension 0
+B142 - reduce_sum sums value along specified dimensions, 
+		if no dimension is specify, sum everything,
+		run_opcode with RSUM gets result
+		null input1 returns null, null input2 treats input2 as dimension 0
+B143 - transpose performs transposition for given input permutation (input2),
+		run_opcode with TRANSPOSE gets result
+B144 - flip mirrors the values along the specified dimension,
+		run_opcode with FLIP gets result
+B145 - expand duplicates data across a dimension (index) a number of times specified by input multiplier,
+		run_opcode with EXPAND gets result
+B146 - n_elems returns a single value on the nelems of the input's shape,
+		run_opcode with N_ELEMS gets result
+B147 - n_dimension returns a single value on input shape's value at input dimension,
+		run_opcode with N_DIMS gets result
+		null input1 returns null, null input2 treats input2 as dimension 0
+B148 - clip limits the input0 value between input1 and input2
+B149 - clip_norm outputs input0 * intput1 / l2norm(input0) if l2norm > input1,
+		input1 is a scalar
+B150 - reduce_mean gets the mean of values along specified dimensions,
+		if no dimension is specified, get mean of everything
+		null input1 returns null, null input2 treats input2 as dimension 0
+B151 - reduce_l2norm get the l2 norm of values along specified dimensions,
+		if no dimension is specified, get l2 norm of everything
+		null input1 returns null, null input2 treats input2 as dimension 0
 
 // unimplemented
-- type_assert
-- shape_assert
+- assert_type
+- assert_shape
 
 // GRAPH SERIALIZATION
 C000 - graph serialization creates the same graph structure (without constraints on node id)

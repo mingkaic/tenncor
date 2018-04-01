@@ -100,156 +100,39 @@ TENS_TYPE get_type<uint64_t> (void)
 	return UINT64;
 }
 
-namespace type
+std::string type_convert (void* ptr, size_t n, TENS_TYPE otype, TENS_TYPE itype)
 {
-
-std::string maxval (TENS_TYPE type)
-{
-	std::string output;
-	switch (type)
+	assert(otype != BAD_T && itype != BAD_T);
+	size_t outbytes = n * type_size(otype);
+	if (otype == itype)
+	{
+		return std::string((char*) ptr, outbytes);
+	}
+	switch (otype)
 	{
 		case DOUBLE:
-		{
-			double data = std::numeric_limits<double>::max();
-			output = std::string((char*) &data, sizeof(double));
-		}
-		break;
+			return std::string((char*) &type_convert<double>(ptr, n, itype)[0], outbytes);
 		case FLOAT:
-		{
-			float data = std::numeric_limits<float>::max();
-			output = std::string((char*) &data, sizeof(float));
-		}
-		break;
+			return std::string((char*) &type_convert<float>(ptr, n, itype)[0], outbytes);
 		case INT8:
-		{
-			int8_t data = std::numeric_limits<int8_t>::max();
-			output = std::string((char*) &data, sizeof(int8_t));
-		}
-		break;
+			return std::string((char*) &type_convert<int8_t>(ptr, n, itype)[0], outbytes);
 		case UINT8:
-		{
-			uint8_t data = std::numeric_limits<uint8_t>::max();
-			output = std::string((char*) &data, sizeof(uint8_t));
-		}
-		break;
+			return std::string((char*) &type_convert<uint8_t>(ptr, n, itype)[0], outbytes);
 		case INT16:
-		{
-			int16_t data = std::numeric_limits<int16_t>::max();
-			output = std::string((char*) &data, sizeof(int16_t));
-		}
-		break;
+			return std::string((char*) &type_convert<int16_t>(ptr, n, itype)[0], outbytes);
 		case UINT16:
-		{
-			uint16_t data = std::numeric_limits<uint16_t>::max();
-			output = std::string((char*) &data, sizeof(uint16_t));
-		}
-		break;
+			return std::string((char*) &type_convert<uint16_t>(ptr, n, itype)[0], outbytes);
 		case INT32:
-		{
-			int32_t data = std::numeric_limits<int32_t>::max();
-			output = std::string((char*) &data, sizeof(int32_t));
-		}
-		break;
+			return std::string((char*) &type_convert<int32_t>(ptr, n, itype)[0], outbytes);
 		case UINT32:
-		{
-			uint32_t data = std::numeric_limits<uint32_t>::max();
-			output = std::string((char*) &data, sizeof(uint32_t));
-		}
-		break;
+			return std::string((char*) &type_convert<uint32_t>(ptr, n, itype)[0], outbytes);
 		case INT64:
-		{
-			int64_t data = std::numeric_limits<int64_t>::max();
-			output = std::string((char*) &data, sizeof(int64_t));
-		}
-		break;
+			return std::string((char*) &type_convert<int64_t>(ptr, n, itype)[0], outbytes);
 		case UINT64:
-		{
-			uint64_t data = std::numeric_limits<uint64_t>::max();
-			output = std::string((char*) &data, sizeof(uint64_t));
-		}
-		break;
+			return std::string((char*) &type_convert<uint64_t>(ptr, n, itype)[0], outbytes);
 		default:
-			throw nnutils::unsupported_type_error(type);
+			throw nnutils::unsupported_type_error(itype);
 	}
-	return output;
-}
-
-std::string minval (TENS_TYPE type)
-{
-	std::string output;
-	switch (type)
-	{
-		case DOUBLE:
-		{
-			double data = std::numeric_limits<double>::min();
-			output = std::string((char*) &data, sizeof(double));
-		}
-		break;
-		case FLOAT:
-		{
-			float data = std::numeric_limits<float>::min();
-			output = std::string((char*) &data, sizeof(float));
-		}
-		break;
-		case INT8:
-		{
-			int8_t data = std::numeric_limits<int8_t>::min();
-			output = std::string((char*) &data, sizeof(int8_t));
-		}
-		break;
-		case UINT8:
-		{
-			uint8_t data = std::numeric_limits<uint8_t>::min();
-			output = std::string((char*) &data, sizeof(uint8_t));
-		}
-		break;
-		case INT16:
-		{
-			int16_t data = std::numeric_limits<int16_t>::min();
-			output = std::string((char*) &data, sizeof(int16_t));
-		}
-		break;
-		case UINT16:
-		{
-			uint16_t data = std::numeric_limits<uint16_t>::min();
-			output = std::string((char*) &data, sizeof(uint16_t));
-		}
-		break;
-		case INT32:
-		{
-			int32_t data = std::numeric_limits<int32_t>::min();
-			output = std::string((char*) &data, sizeof(int32_t));
-		}
-		break;
-		case UINT32:
-		{
-			uint32_t data = std::numeric_limits<uint32_t>::min();
-			output = std::string((char*) &data, sizeof(uint32_t));
-		}
-		break;
-		case INT64:
-		{
-			int64_t data = std::numeric_limits<int64_t>::min();
-			output = std::string((char*) &data, sizeof(int64_t));
-		}
-		break;
-		case UINT64:
-		{
-			uint64_t data = std::numeric_limits<uint64_t>::min();
-			output = std::string((char*) &data, sizeof(uint64_t));
-		}
-		break;
-		default:
-			throw nnutils::unsupported_type_error(type);
-	}
-	return output;
-}
-
-std::string zeroval (TENS_TYPE type)
-{
-	return std::string(type_size(type), 0);
-}
-
 }
 
 }

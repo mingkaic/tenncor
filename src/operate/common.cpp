@@ -144,15 +144,15 @@ functor* coord_func (std::vector<inode*> args, VTFUNC_F cf, USHAPE_F shaper, OPC
 	}, op);
 }
 
-functor* agg_func (inode* arg, std::string opname, OPCODE op, TYPE2VAL init, BACKMAP_F bwd)
+functor* arg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 {
 	assert(has_agg(opname));
 	return functor::get({arg},
-	[opname, init](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		assert(args.size() == 1);
 		operate_io* asrc = new operate_io(
-		[opname, init](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
+		[opname](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 		{
 			assert(srcs.size() == 1);
 			AFUNC_F agg = abind(opname)(type);
@@ -161,9 +161,9 @@ functor* agg_func (inode* arg, std::string opname, OPCODE op, TYPE2VAL init, BAC
 			tensorshape inshape = srcs[0].second;
 			size_t per = type_size(type);
 			size_t n = inshape.n_elems();
-			std::string initstr = init(type);
-			std::memcpy(dest.first, &initstr[0], per);
-			for (size_t i = 0; i < n; ++i)
+			std::string init(per, 0);
+			std::memcpy(dest.first, &init[0], per);
+			for (size_t i = 1; i < n; ++i)
 			{
 				agg(i, dest.first, srcs[0].first);
 			}
@@ -186,15 +186,15 @@ functor* agg_func (inode* arg, std::string opname, OPCODE op, TYPE2VAL init, BAC
 	}, op);
 }
 
-functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, TYPE2VAL init, BACKMAP_F bwd)
+functor* arg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, BACKMAP_F bwd)
 {
 	assert(has_agg(opname));
 	return functor::get({arg, dimension},
-	[opname, init](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
 	{
 		assert(args.size() == 2);
 		operate_io* asrc = new operate_io(
-		[opname, init](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
+		[opname](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 		{
 			assert(srcs.size() == 2);
 			AFUNC_F agg = abind(opname)(type);
@@ -208,25 +208,161 @@ functor* agg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 			assert(rank > dim);
 			size_t nout = outshape.n_elems();
 			size_t nin = inshape.n_elems();
-			std::string initstr = init(type);
-			for (size_t i = 0; i < nout; ++i)
-			{
-				std::memcpy(out + i * per, &initstr[0], per);
-			}
 			if (rank > 1)
 			{
+				std::vector<bool> visited(nout, false);
+				std::vector<size_t> coord;
+				for (uint64_t i = 0; i < nin; ++i)
+				{
+					coord = inshape.coord_from_idx(i);
+					coord.erase(coord.begin() + dim);
+					size_t cidx = outshape.flat_idx(coord);
+					if (visited[cidx])
+					{
+						agg(i, out + cidx * per, srcs[0].first);
+					}
+					else
+					{
+						std::string init((char*) &type_convert(&i, 1, type, UINT64)[0], per);
+						std::memcpy(out + cidx * per, &init[0], per);
+						visited[cidx] = true;
+					}
+				}
+			}
+			else
+			{
+				std::string init(per, 0);
+				std::memcpy(dest.first, &init[0], per);
+				for (size_t i = 1; i < nin; ++i)
+				{
+					agg(i, dest.first, srcs[0].first);
+				}
+			}
+		},
+		[](std::vector<TENS_TYPE> types)
+		{
+			assert(types.size() == 2 &&
+				DOUBLE != types[1] && FLOAT != types[1]);
+			return types[0];
+		});
+		src = std::unique_ptr<idata_src>(asrc);
+		inode* arg = args[0];
+		inode* darg = args[1];
+		tensor* tens = arg->get_tensor();
+		tensor* dtens = darg->get_tensor();
+		tensorshape shape = tens->get_shape();
+		uint64_t dim = expose<uint64_t>(args[1])[0];
+		assert(tens && dtens && shape.rank() > dim);
+		// assert that shape only change once
+		tens->write_to(*asrc, 0);
+		dtens->write_to(*asrc, 1);
+		std::vector<size_t> slist = shape.as_list();
+		if (1 == slist.size())
+		{
+			slist[0] = 1;
+		}
+		else
+		{
+			slist.erase(slist.begin() + dim);
+		}
+		return new tensor(tensorshape(slist));
+	},
+	[bwd](inode* wrt, std::vector<inode*> args)
+	{
+		inode* arg = args[0];
+		inode* shapeinfo = args[1];
+		return bwd({{arg, arg->derive(wrt)}, {shapeinfo, nullptr}});
+	}, op);
+}
+
+functor* reduce_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
+{
+	assert(has_agg(opname));
+	return functor::get({arg},
+	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	{
+		assert(args.size() == 1);
+		operate_io* asrc = new operate_io(
+		[opname](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
+		{
+			assert(srcs.size() == 1);
+			AFUNC_F agg = abind(opname)(type);
+			tensorshape outshape = dest.second;
+			// assert(outshape.n_elems() == 1);
+			tensorshape inshape = srcs[0].second;
+			size_t per = type_size(type);
+			size_t n = inshape.n_elems();
+			std::memcpy(dest.first, srcs[0].first, per);
+			for (size_t i = 1; i < n; ++i)
+			{
+				agg(i, dest.first, srcs[0].first);
+			}
+		});
+		src = std::unique_ptr<idata_src>(asrc);
+		const tensor* tens = args[0]->get_tensor();
+		assert(tens && tens->has_data());
+		tens->write_to(*asrc);
+		// invariant: none of tens is null
+		return new tensor(std::vector<size_t>{1});
+	},
+	[bwd](inode* wrt, std::vector<inode*> args)
+	{
+		std::vector<std::pair<inode*,varptr> > deps;
+		for (inode* arg : args)
+		{
+			deps.push_back({arg, arg->derive(wrt)});
+		}
+		return bwd(deps);
+	}, op);
+}
+
+functor* reduce_func (inode* arg, inode* dimension, std::string opname, OPCODE op, BACKMAP_F bwd)
+{
+	assert(has_agg(opname));
+	return functor::get({arg, dimension},
+	[opname](std::unique_ptr<idata_src>& src, std::vector<inode*> args) -> tensor*
+	{
+		assert(args.size() == 2);
+		operate_io* asrc = new operate_io(
+		[opname](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
+		{
+			assert(srcs.size() == 2);
+			AFUNC_F agg = abind(opname)(type);
+			char* out = (char*) dest.first;
+			char* in = (char*) srcs[0].first;
+			uint64_t dim = *((uint64_t*) srcs[1].first);
+			tensorshape outshape = dest.second;
+			tensorshape inshape = srcs[0].second;
+			size_t per = type_size(type);
+
+			size_t rank = inshape.rank();
+			assert(rank > dim);
+			size_t nout = outshape.n_elems();
+			size_t nin = inshape.n_elems();
+			if (rank > 1)
+			{
+				std::vector<bool> visited(nout, false);
 				std::vector<size_t> coord;
 				for (size_t i = 0; i < nin; ++i)
 				{
 					coord = inshape.coord_from_idx(i);
 					coord.erase(coord.begin() + dim);
 					size_t cidx = outshape.flat_idx(coord);
-					agg(i, out + cidx * per, srcs[0].first);
+					if (visited[cidx])
+					{
+						agg(i, out + cidx * per, srcs[0].first);
+					}
+					else
+					{
+						std::memcpy(out + cidx * per, in + i * per, per);
+						visited[cidx] = true;
+					}
 				}
 			}
 			else
 			{
-				for (size_t i = 0; i < nin; ++i)
+				std::memcpy(dest.first, srcs[0].first, per);
+				for (size_t i = 1; i < nin; ++i)
 				{
 					agg(i, dest.first, srcs[0].first);
 				}

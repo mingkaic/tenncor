@@ -21,12 +21,6 @@ assert_cmd() {
 	return $!
 }
 
-# ===== Check Docs Directory =====
-echo "===== CHECK DOCUMENT EXISTENCE =====";
-if [ -d "$DOCS" ]; then
-	exit 1;
-fi
-
 # ===== Prebuilt =====
 echo "===== BUILD EVERYTHING =====";
 bazel build //:...
@@ -34,22 +28,23 @@ bazel build //:...
 # ===== Run Gtest =====
 echo "===== STARTING TESTS =====";
 
-export GTEST_BREAK_ON_FAILURE=1
-export GTEST_SHUFFLE=1
-
 # valgrind check (5 times)
 export GTEST_REPEAT=5
-assert_cmd "bazel test --run_under=valgrind //tests/unit:test_all";
+assert_cmd "make memcheck";
 
 # run coverage for all the tests
 export GTEST_REPEAT=50
-assert_cmd "bazel coverage --spawn_strategy=standalone \
-	--instrumentation_filter= //tests/unit:test_all";
+assert_cmd "make coverage";
 
 # accept test
 export GTEST_REPEAT=1
-assert_cmd "bazel coverage --spawn_strategy=standalone \
-	--instrumentation_filter= //tests/regress:test";
+assert_cmd "make accepttest";
+
+# ===== Check Docs Directory =====
+echo "===== CHECK DOCUMENT EXISTENCE =====";
+if [ -d "$DOCS" ]; then
+	exit 1;
+fi
 
 echo "===== STARTING COVERAGE ANALYSIS =====";
 # ===== Coverage Analysis ======

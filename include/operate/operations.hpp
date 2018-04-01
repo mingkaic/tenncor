@@ -34,7 +34,9 @@ inode* run_opcode (std::vector<inode*> args, OPCODE code);
 #ifndef TENNCOR_OP_STD_HPP
 #define TENNCOR_OP_STD_HPP
 
-void type_assert (const varptr a, TENS_TYPE type);
+void assert_type (const varptr a, TENS_TYPE type);
+
+void assert_shape (const varptr a, tensorshape shape);
 
 // >>>>>>>>>>>> UNARY STANDARD OPS <<<<<<<<<<<<
 
@@ -179,12 +181,12 @@ varptr normal_sample (T mean, const varptr stdev)
 // >>>>>>>>>>>> COORDINATE MAPPERS <<<<<<<<<<<<
 
 //! transpose, default perm is same as behavior n-1 ... 0
-varptr transpose (const varptr a, std::vector<size_t> perm = {});
+varptr transpose (const varptr a, std::vector<uint64_t> perm = {});
 
 varptr transpose (const varptr a, const varptr perm);
 
 //! flip a in specified dimensions
-varptr flip (const varptr a, std::vector<size_t> dims);
+varptr flip (const varptr a, std::vector<uint64_t> dims);
 
 varptr flip (const varptr a, const varptr dims);
 
@@ -202,7 +204,7 @@ varptr reduce_sum (const varptr a);
 
 varptr n_elems (const varptr a);
 
-varptr n_dimension (const varptr a, size_t dimension);
+varptr n_dimension (const varptr a, uint64_t dimension);
 
 varptr n_dimension (const varptr a, const varptr dimension);
 
@@ -210,9 +212,9 @@ varptr n_dimension (const varptr a, const varptr dimension);
 // >>>>>>>>>>>> SHAPE CHANGE <<<<<<<<<<<<
 
 //! repeat a n times along inserted dimension dim
-varptr expand (const varptr a, size_t n, size_t dim);
+varptr expand (const varptr a, uint64_t n, uint64_t dim);
 
-varptr expand (const varptr a, const varptr n, size_t dim);
+varptr expand (const varptr a, const varptr n, uint64_t dim);
 
 varptr expand (const varptr a, const varptr n, const varptr dim);
 
@@ -254,30 +256,30 @@ varptr reduce_l2norm (const varptr a);
 
 //! obtains the indices of the maximum value across specified dimension
 //! -1 index looks returns a vector coordinate specifying max value in tensor a
-varptr arg_max (const varptr a, size_t dimension);
+varptr arg_max (const varptr a, uint64_t dimension);
 
-varptr arg_max (const varptr a, const varptr dimension);
+varptr arg_max (const varptr a, varptr dimension);
 
 // Dimensionality Reduction Functions (Wrappers for compress)
 //! compress tensor by taking maximum value across specified dimension
 //! unspecified dimension obtains maximum value in the entire tensor
-varptr reduce_max (const varptr a, size_t dimension);
+varptr reduce_max (const varptr a, uint64_t dimension);
 
-varptr reduce_max (const varptr a, const varptr dimension);
+varptr reduce_max (const varptr a, varptr dimension);
 
 //! compress tensor by taking the sum of values across specified dimension(s)
 //! unspecified dimension obtains the sum of all values in the entire tensor
-varptr reduce_sum (const varptr a, size_t dimension);
+varptr reduce_sum (const varptr a, uint64_t dimension);
 
-varptr reduce_sum (const varptr a, const varptr dimension);
+varptr reduce_sum (const varptr a, varptr dimension);
 
 //! compress tensor by taking the mean of values across specified dimension(s)
 //! unspecified dimension obtains the mean of values in the entire tensor
-varptr reduce_mean (const varptr a, size_t dimension);
+varptr reduce_mean (const varptr a, uint64_t dimension);
 
 varptr reduce_mean (const varptr a, const varptr dimension);
 
-varptr reduce_l2norm (const varptr a, size_t dimension);
+varptr reduce_l2norm (const varptr a, uint64_t dimension);
 
 varptr reduce_l2norm (const varptr a, const varptr dimension);
 
@@ -295,10 +297,10 @@ varptr matmul (const varptr a, const varptr b);
 
 //! for example: window {0, 1} gives output f[i, j, :] = sum(a[i:i+filtshape[0], j:j+filtshape[1], :] * filter)
 //! whereas window {0,2} gives output f[i, :, j] = sum(a[i:i+filtshape[0], :, j:j+filtshape[1]] * filter)
-varptr cross_corr2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
+varptr cross_corr2d (const varptr a, const varptr filter, std::pair<uint64_t,uint64_t> dims = {0, 1});
 
 //! convolve a with filter, conv(a, filter, dims) = cross_conv(a, flip(filter), dims)
-varptr conv2d (const varptr a, const varptr filter, std::pair<size_t,size_t> dims = {0, 1});
+varptr conv2d (const varptr a, const varptr filter, std::pair<uint64_t,uint64_t> dims = {0, 1});
 
 }
 
