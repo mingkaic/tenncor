@@ -64,9 +64,9 @@ constant::constant (tenncor::tensor_proto& proto_src,
 	std::string label) :
 inode(label), data_(std::make_unique<tensor>(proto_src)) {}
 
-nnet::NODE_TYPE constant::node_type (void) const
+NODE_TYPE constant::node_type (void) const
 {
-	return tenncor::node_proto::CONSTANT;
+	return CONSTANT_T;
 }
 
 void constant::serialize_detail (google::protobuf::Any* proto_dest)

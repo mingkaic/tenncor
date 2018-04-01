@@ -22,19 +22,18 @@ namespace nnet
 
 using TYPE2VAL = std::function<std::string(TENS_TYPE)>;
 
-#define _TYPE_SENTINEL tenncor::_TYPE_SENTINEL
-
-#define BAD_T tenncor::BAD
-#define DOUBLE tenncor::DOUBLE
-#define FLOAT tenncor::FLOAT
-#define INT8 tenncor::INT8
-#define UINT8 tenncor::UINT8
-#define INT16 tenncor::INT16
-#define UINT16 tenncor::UINT16
-#define INT32 tenncor::INT32
-#define UINT32 tenncor::UINT32
-#define INT64 tenncor::INT64
-#define UINT64 tenncor::UINT64
+static const TENS_TYPE _TYPE_SENTINEL = tenncor::_TYPE_SENTINEL;
+static const TENS_TYPE BAD_T = tenncor::BAD;
+static const TENS_TYPE DOUBLE = tenncor::DOUBLE;
+static const TENS_TYPE FLOAT = tenncor::FLOAT;
+static const TENS_TYPE INT8 = tenncor::INT8;
+static const TENS_TYPE UINT8 = tenncor::UINT8;
+static const TENS_TYPE INT16 = tenncor::INT16;
+static const TENS_TYPE UINT16 = tenncor::UINT16;
+static const TENS_TYPE INT32 = tenncor::INT32;
+static const TENS_TYPE UINT32 = tenncor::UINT32;
+static const TENS_TYPE INT64 = tenncor::INT64;
+static const TENS_TYPE UINT64 = tenncor::UINT64;
 
 unsigned short type_size (TENS_TYPE type);
 

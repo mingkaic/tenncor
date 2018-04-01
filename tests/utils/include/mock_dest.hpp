@@ -15,7 +15,7 @@ struct mock_data_dest final : public nnet::idata_dest, public testify::mocker
 	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, nnet::tensorshape shape, size_t idx);
 
 	std::string result_;
-	TENS_TYPE type_ = BAD_T;
+	TENS_TYPE type_ = nnet::BAD_T;
 	nnet::tensorshape shape_;
 };
 

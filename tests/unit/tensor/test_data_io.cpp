@@ -49,7 +49,7 @@ TEST_F(DATA_IO, Copy_E000)
 
 	nnet::portal_dest pi;
 	nnet::assign_io ai;
-	TENS_TYPE otype = BAD_T;
+	TENS_TYPE otype = nnet::BAD_T;
 	std::vector<TENS_TYPE> otypes;
 	nnet::VARR_T outdata;
 	std::vector<nnet::CVAR_T> indata;
@@ -94,14 +94,14 @@ TEST_F(DATA_IO, Copy_E000)
 		testutils::sprintf("expected %p, got %p", &shape1, &picpy.input_.shape_);
 
 	std::shared_ptr<void> ptr = nullptr;
-	TENS_TYPE type = BAD_T;
+	TENS_TYPE type = nnet::BAD_T;
 	aicpy->get_data(ptr, type, shape1);
 	uuid = std::string((char*) ptr.get(), src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src1.type_, type);
 
 	ptr = nullptr;
-	otype = BAD_T;
+	otype = nnet::BAD_T;
 	oicpy->get_data(ptr, otype, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
 	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
@@ -121,7 +121,7 @@ TEST_F(DATA_IO, Copy_E000)
 	EXPECT_EQ(src2.type_, otypes[1]);
 
 	// clear
-	otype = BAD_T;
+	otype = nnet::BAD_T;
 	outdata = nnet::VARR_T{};
 	indata.clear();
 	otypes.clear();
@@ -137,14 +137,14 @@ TEST_F(DATA_IO, Copy_E000)
 		testutils::sprintf("expected %p, got %p", &shape1, &passign.input_.shape_);
 
 	ptr = nullptr;
-	type = BAD_T;
+	type = nnet::BAD_T;
 	aassign.get_data(ptr, type, shape1);
 	uuid = std::string((char*) ptr.get(), src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src1.type_, type);
 	
 	ptr = nullptr;
-	type = BAD_T;
+	type = nnet::BAD_T;
 	oassign.get_data(ptr, type, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
 	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
@@ -180,7 +180,7 @@ TEST_F(DATA_IO, Move_E000)
 
 	nnet::portal_dest pi;
 	nnet::assign_io ai;
-	TENS_TYPE otype = BAD_T;
+	TENS_TYPE otype = nnet::BAD_T;
 	std::vector<TENS_TYPE> otypes;
 	nnet::VARR_T outdata;
 	std::vector<nnet::CVAR_T> indata;
@@ -193,7 +193,7 @@ TEST_F(DATA_IO, Move_E000)
 	},
 	[&otypes](std::vector<TENS_TYPE> types)
 	{
-		if (types.empty()) return BAD_T;
+		if (types.empty()) return nnet::BAD_T;
 		otypes = types;
 		return types[0];
 	});
@@ -226,14 +226,14 @@ TEST_F(DATA_IO, Move_E000)
 		testutils::sprintf("expected %p, got %p", &shape1, &pimv.input_.shape_);
 
 	std::shared_ptr<void> ptr = nullptr;
-	TENS_TYPE type = BAD_T;
+	TENS_TYPE type = nnet::BAD_T;
 	aimv.get_data(ptr, type, shape1);
 	uuid = std::string((char*) ptr.get(), src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src1.type_, type);
 
 	ptr = nullptr;
-	type = BAD_T;
+	type = nnet::BAD_T;
 	oimv.get_data(ptr, type, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
 	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
@@ -256,7 +256,7 @@ TEST_F(DATA_IO, Move_E000)
 	// original clear validation
 	EXPECT_TRUE(pi.input_.data_.expired()) << 
 		"moving portal weak pointer did not expire original pointer";
-	EXPECT_EQ(BAD_T, pi.input_.type_);
+	EXPECT_EQ(nnet::BAD_T, pi.input_.type_);
 	EXPECT_FALSE(pi.input_.shape_.is_part_defined()) <<
 		"moved portal shape did not make original shape undefined";
 
@@ -265,7 +265,7 @@ TEST_F(DATA_IO, Move_E000)
 	EXPECT_THROW(oi.get_data(ptr, type, outshape), std::exception);
 
 	// clear
-	otype = BAD_T;
+	otype = nnet::BAD_T;
 	outdata = nnet::VARR_T{};
 	indata.clear();
 	otypes.clear();
@@ -281,14 +281,14 @@ TEST_F(DATA_IO, Move_E000)
 		testutils::sprintf("expected %p, got %p", &shape1, &passign.input_.shape_);
 
 	ptr = nullptr;
-	type = BAD_T;
+	type = nnet::BAD_T;
 	aassign.get_data(ptr, type, shape1);
 	uuid = std::string((char*) ptr.get(), src1.uuid_.size());
 	EXPECT_STREQ(src1.uuid_.c_str(), uuid.c_str());
 	EXPECT_EQ(src1.type_, type);
 	
 	ptr = nullptr;
-	otype = BAD_T;
+	otype = nnet::BAD_T;
 	oassign.get_data(ptr, otype, outshape);
 	EXPECT_EQ(outdata.first, ptr.get());
 	EXPECT_TRUE(tensorshape_equal(outshape, outdata.second)) <<
@@ -310,7 +310,7 @@ TEST_F(DATA_IO, Move_E000)
 	// original clear validation
 	EXPECT_TRUE(pimv.input_.data_.expired()) <<
 		"moving portal weak pointer did not expire original pointer";
-	EXPECT_EQ(BAD_T, pimv.input_.type_);
+	EXPECT_EQ(nnet::BAD_T, pimv.input_.type_);
 	EXPECT_FALSE(pimv.input_.shape_.is_part_defined()) <<
 		"moved portal shape did not make original shape undefined";
 
@@ -357,12 +357,12 @@ TEST_F(DATA_IO, Assign_E002)
 			"arg failed to read from src";
 
 		std::shared_ptr<void> ptr = nullptr;
-		TENS_TYPE type = BAD_T;
+		TENS_TYPE type = nnet::BAD_T;
 		EXPECT_THROW(assign.get_data(ptr, type, shape), std::exception);
 
 		arg.write_to(assign);
 		ptr = nullptr;
-		type = BAD_T;
+		type = nnet::BAD_T;
 		assign.get_data(ptr, type, shape);
 		std::string uuid((char*) ptr.get(), src.uuid_.size());
 		EXPECT_STREQ(src.uuid_.c_str(), uuid.c_str());
@@ -370,7 +370,7 @@ TEST_F(DATA_IO, Assign_E002)
 		EXPECT_THROW(assign.get_data(ptr, type, bad), std::exception);
 	}
 	std::shared_ptr<void> ptr = nullptr;
-	TENS_TYPE type = BAD_T;
+	TENS_TYPE type = nnet::BAD_T;
 	EXPECT_THROW(assign.get_data(ptr, type, shape), std::exception);
 }
 
@@ -381,7 +381,7 @@ TEST_F(DATA_IO, Operate_E003)
 	nnet::tensorshape shape2(random_def_shape(this));
 	nnet::tensorshape outshape(random_def_shape(this));
 
-	TENS_TYPE otype = BAD_T;
+	TENS_TYPE otype = nnet::BAD_T;
 	std::vector<TENS_TYPE> otypes;
 	nnet::VARR_T outdata;
 	std::vector<nnet::CVAR_T> indata;
@@ -394,7 +394,7 @@ TEST_F(DATA_IO, Operate_E003)
 	},
 	[&otypes](std::vector<TENS_TYPE> types)
 	{
-		if (types.empty()) return BAD_T;
+		if (types.empty()) return nnet::BAD_T;
 		otypes = types;
 		return types[0];
 	});
@@ -413,7 +413,7 @@ TEST_F(DATA_IO, Operate_E003)
 		"arg2 failed to read from src2";
 
 	std::shared_ptr<void> ptr = nullptr;
-	TENS_TYPE type = BAD_T;
+	TENS_TYPE type = nnet::BAD_T;
 	EXPECT_THROW(op.get_data(ptr, type, shape1), std::exception);
 
 	arg2.write_to(op, 1);

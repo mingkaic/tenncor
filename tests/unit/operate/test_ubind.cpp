@@ -45,7 +45,7 @@ static void unaryElemTest (testutils::fuzz_test* fuzzer, std::string op,
 		testutils::sprintf("unary %s not found", op.c_str());
 	nnet::VTFUNC_F unfunc = nnet::ebind(op);
 
-	unfunc(DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {nnet::CVAR_T{(const void*) &argument[0], shape}});
+	unfunc(nnet::DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {nnet::CVAR_T{(const void*) &argument[0], shape}});
 
 	for (size_t i = 0; i < n; ++i)
 	{
@@ -64,7 +64,7 @@ static void unaryAggTest (testutils::fuzz_test* fuzzer, std::string op,
 
 	ASSERT_TRUE(nnet::has_agg(op)) <<
 		testutils::sprintf("aggregate %s not found", op.c_str());
-	nnet::AFUNC_F afunc = nnet::abind(op)(DOUBLE);
+	nnet::AFUNC_F afunc = nnet::abind(op)(nnet::DOUBLE);
 
 	double expect = agg(argument);
 	double result = init;

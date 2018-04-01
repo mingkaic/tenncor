@@ -106,7 +106,7 @@ void tensor_check (const nnet::tensor* expect,
 	nnet::portal_dest portgo;
 	expect->write_to(portex);
 	result->write_to(portgo);
-	assert(portex.input_.type_ == DOUBLE && portgo.input_.type_ == DOUBLE);
+	assert(portex.input_.type_ == nnet::DOUBLE && portgo.input_.type_ == nnet::DOUBLE);
 	std::vector<size_t> expects = portex.input_.shape_.as_list();
 	std::vector<size_t> gots = portgo.input_.shape_.as_list();
 	size_t exn = portex.input_.shape_.n_elems();

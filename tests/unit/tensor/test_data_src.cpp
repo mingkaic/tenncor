@@ -23,7 +23,7 @@ class DATA_SRC : public testutils::fuzz_test {};
 using namespace testutils;
 
 
-#define RAND_TYPE (TENS_TYPE) fuzzer->get_int(1, "type", {1, _TYPE_SENTINEL - 1})[0]
+#define RAND_TYPE (TENS_TYPE) fuzzer->get_int(1, "type", {1, nnet::_TYPE_SENTINEL - 1})[0]
 
 #define WITHIN_LIMITS(TYPE) {std::numeric_limits<TYPE>::min(), std::numeric_limits<TYPE>::max()}
 
@@ -70,61 +70,61 @@ TENS_TYPE fuzz_const (testutils::fuzz_test* fuzzer,
 	TENS_TYPE out = RAND_TYPE;
 	switch (out)
 	{
-		case DOUBLE:
+		case nnet::DOUBLE:
 		{
 			RSCALAR(double, scalar, expect, fuzzer->get_double)
 			ci.set<double>(scalar);
 		}
 		break;
-		case FLOAT:
+		case nnet::FLOAT:
 		{
 			RSCALAR(float, scalar, expect, fuzzer->get_double)
 			ci.set<float>(scalar);
 		}
 		break;
-		case INT8:
+		case nnet::INT8:
 		{
 			RSCALAR(int8_t, scalar, expect, fuzzer->get_int)
 			ci.set<int8_t>(scalar);
 		}
 		break;
-		case UINT8:
+		case nnet::UINT8:
 		{
 			RSCALAR(uint8_t, scalar, expect, fuzzer->get_int)
 			ci.set<uint8_t>(scalar);
 		}
 		break;
-		case INT16:
+		case nnet::INT16:
 		{
 			RSCALAR(int16_t, scalar, expect, fuzzer->get_int)
 			ci.set<int16_t>(scalar);
 		}
 		break;
-		case UINT16:
+		case nnet::UINT16:
 		{
 			RSCALAR(uint16_t, scalar, expect, fuzzer->get_int)
 			ci.set<uint16_t>(scalar);
 		}
 		break;
-		case INT32:
+		case nnet::INT32:
 		{
 			RSCALAR(int32_t, scalar, expect, fuzzer->get_int)
 			ci.set<int32_t>(scalar);
 		}
 		break;
-		case UINT32:
+		case nnet::UINT32:
 		{
 			RSCALAR(uint32_t, scalar, expect, fuzzer->get_int)
 			ci.set<uint32_t>(scalar);
 		}
 		break;
-		case INT64:
+		case nnet::INT64:
 		{
 			RSCALAR(int64_t, scalar, expect, fuzzer->get_int)
 			ci.set<int64_t>(scalar);
 		}
 		break;
-		case UINT64:
+		case nnet::UINT64:
 		{
 			RSCALAR(uint64_t, scalar, expect, fuzzer->get_int)
 			ci.set<uint64_t>(scalar);
@@ -149,61 +149,61 @@ TENS_TYPE fuzz_vec (testutils::fuzz_test* fuzzer,
 	}
 	switch (out)
 	{
-		case DOUBLE:
+		case nnet::DOUBLE:
 		{
 			RVEC(double, fuzzer->get_double)
 			ci.set<double>(vec);
 		}
 		break;
-		case FLOAT:
+		case nnet::FLOAT:
 		{
 			RVEC(float, fuzzer->get_double)
 			ci.set<float>(vec);
 		}
 		break;
-		case INT8:
+		case nnet::INT8:
 		{
 			RVEC(int8_t, fuzzer->get_int)
 			ci.set<int8_t>(vec);
 		}
 		break;
-		case UINT8:
+		case nnet::UINT8:
 		{
 			RVEC(uint8_t, fuzzer->get_int)
 			ci.set<uint8_t>(vec);
 		}
 		break;
-		case INT16:
+		case nnet::INT16:
 		{
 			RVEC(int16_t, fuzzer->get_int)
 			ci.set<int16_t>(vec);
 		}
 		break;
-		case UINT16:
+		case nnet::UINT16:
 		{
 			RVEC(uint16_t, fuzzer->get_int)
 			ci.set<uint16_t>(vec);
 		}
 		break;
-		case INT32:
+		case nnet::INT32:
 		{
 			RVEC(int32_t, fuzzer->get_int)
 			ci.set<int32_t>(vec);
 		}
 		break;
-		case UINT32:
+		case nnet::UINT32:
 		{
 			RVEC(uint32_t, fuzzer->get_int)
 			ci.set<uint32_t>(vec);
 		}
 		break;
-		case INT64:
+		case nnet::INT64:
 		{
 			RVEC(int64_t, fuzzer->get_int)
 			ci.set<int64_t>(vec);
 		}
 		break;
-		case UINT64:
+		case nnet::UINT64:
 		{
 			RVEC(uint64_t, fuzzer->get_int)
 			ci.set<uint64_t>(vec);
@@ -223,61 +223,61 @@ TENS_TYPE fuzz_uniform (testutils::fuzz_test* fuzzer,
 	TENS_TYPE out = RAND_TYPE;
 	switch (out)
 	{
-		case DOUBLE:
+		case nnet::DOUBLE:
 		{
 			RMINMAX(double, fuzzer->get_double)
 			ui.set<double>(min, max);
 		}
 		break;
-		case FLOAT:
+		case nnet::FLOAT:
 		{
 			RMINMAX(float, fuzzer->get_double)
 			ui.set<float>(min, max);
 		}
 		break;
-		case INT8:
+		case nnet::INT8:
 		{
 			RMINMAX(int8_t, fuzzer->get_int)
 			ui.set<int8_t>(min, max);
 		}
 		break;
-		case UINT8:
+		case nnet::UINT8:
 		{
 			RMINMAX(uint8_t, fuzzer->get_int)
 			ui.set<uint8_t>(min, max);
 		}
 		break;
-		case INT16:
+		case nnet::INT16:
 		{
 			RMINMAX(int16_t, fuzzer->get_int)
 			ui.set<int16_t>(min, max);
 		}
 		break;
-		case UINT16:
+		case nnet::UINT16:
 		{
 			RMINMAX(uint16_t, fuzzer->get_int)
 			ui.set<uint16_t>(min, max);
 		}
 		break;
-		case INT32:
+		case nnet::INT32:
 		{
 			RMINMAX(int32_t, fuzzer->get_int)
 			ui.set<int32_t>(min, max);
 		}
 		break;
-		case UINT32:
+		case nnet::UINT32:
 		{
 			RMINMAX(uint32_t, fuzzer->get_int)
 			ui.set<uint32_t>(min, max);
 		}
 		break;
-		case INT64:
+		case nnet::INT64:
 		{
 			RMINMAX(int64_t, fuzzer->get_int)
 			ui.set<int64_t>(min, max);
 		}
 		break;
-		case UINT64:
+		case nnet::UINT64:
 		{
 			RMINMAX(uint64_t, fuzzer->get_int)
 			ui.set<uint64_t>(min, max);
@@ -297,70 +297,70 @@ TENS_TYPE fuzz_normal (testutils::fuzz_test* fuzzer,
 	TENS_TYPE out = RAND_TYPE;
 	switch (out)
 	{
-		case DOUBLE:
+		case nnet::DOUBLE:
 		{
 			RSCALAR(double, mean, meanstr, fuzzer->get_double)
 			RSCALAR(double, stdev, stdevstr, fuzzer->get_double)
 			ni.set<double>(mean, stdev);
 		}
 		break;
-		case FLOAT:
+		case nnet::FLOAT:
 		{
 			RSCALAR(float, mean, meanstr, fuzzer->get_double)
 			RSCALAR(float, stdev, stdevstr, fuzzer->get_double)
 			ni.set<float>(mean, stdev);
 		}
 		break;
-		case INT8:
+		case nnet::INT8:
 		{
 			RSCALAR(int8_t, mean, meanstr, fuzzer->get_int)
 			RSCALAR(int8_t, stdev, stdevstr, fuzzer->get_int)
 			ni.set<int8_t>(mean, stdev);
 		}
 		break;
-		case UINT8:
+		case nnet::UINT8:
 		{
 			RSCALAR(uint8_t, mean, meanstr, fuzzer->get_int)
 			RSCALAR(uint8_t, stdev, stdevstr, fuzzer->get_int)
 			ni.set<uint8_t>(mean, stdev);
 		}
 		break;
-		case INT16:
+		case nnet::INT16:
 		{
 			RSCALAR(int16_t, mean, meanstr, fuzzer->get_int)
 			RSCALAR(int16_t, stdev, stdevstr, fuzzer->get_int)
 			ni.set<int16_t>(mean, stdev);
 		}
 		break;
-		case UINT16:
+		case nnet::UINT16:
 		{
 			RSCALAR(uint16_t, mean, meanstr, fuzzer->get_int)
 			RSCALAR(uint16_t, stdev, stdevstr, fuzzer->get_int)
 			ni.set<uint16_t>(mean, stdev);
 		}
 		break;
-		case INT32:
+		case nnet::INT32:
 		{
 			RSCALAR(int32_t, mean, meanstr, fuzzer->get_int)
 			RSCALAR(int32_t, stdev, stdevstr, fuzzer->get_int)
 			ni.set<int32_t>(mean, stdev);
 		}
 		break;
-		case UINT32:
+		case nnet::UINT32:
 		{
 			RSCALAR(uint32_t, mean, meanstr, fuzzer->get_int)
 			RSCALAR(uint32_t, stdev, stdevstr, fuzzer->get_int)
 			ni.set<uint32_t>(mean, stdev);
 		}
 		break;
-		case INT64:
+		case nnet::INT64:
 		{
 			RSCALAR(int64_t, mean, meanstr, fuzzer->get_int)
 			RSCALAR(int64_t, stdev, stdevstr, fuzzer->get_int)
 			ni.set<int64_t>(mean, stdev);
 		}
 		break;
-		case UINT64:
+		case nnet::UINT64:
 		{
 			RSCALAR(uint64_t, mean, meanstr, fuzzer->get_int)
 			RSCALAR(uint64_t, stdev, stdevstr, fuzzer->get_int)
@@ -381,52 +381,52 @@ void iterate (nnet::tensor& ten, std::function<void(size_t,const char*)> iter)
 	TENS_TYPE type = ten.get_type();
 	switch (type)
 	{
-		case DOUBLE:
+		case nnet::DOUBLE:
 		{
 			STRINGIFY(double)
 		}
 		break;
-		case FLOAT:
+		case nnet::FLOAT:
 		{
 			STRINGIFY(float)
 		}
 		break;
-		case INT8:
+		case nnet::INT8:
 		{
 			STRINGIFY(int8_t)
 		}
 		break;
-		case UINT8:
+		case nnet::UINT8:
 		{
 			STRINGIFY(uint8_t)
 		}
 		break;
-		case INT16:
+		case nnet::INT16:
 		{
 			STRINGIFY(int16_t)
 		}
 		break;
-		case UINT16:
+		case nnet::UINT16:
 		{
 			STRINGIFY(uint16_t)
 		}
 		break;
-		case INT32:
+		case nnet::INT32:
 		{
 			STRINGIFY(int32_t)
 		}
 		break;
-		case UINT32:
+		case nnet::UINT32:
 		{
 			STRINGIFY(uint32_t)
 		}
 		break;
-		case INT64:
+		case nnet::INT64:
 		{
 			STRINGIFY(int64_t)
 		}
 		break;
-		case UINT64:
+		case nnet::UINT64:
 		{
 			STRINGIFY(uint64_t)
 		}
@@ -520,8 +520,8 @@ TEST_F(DATA_SRC, ConstInit_D001)
 	nnet::const_init vi; // vector set
 	nnet::const_init badci;
 
-	EXPECT_EQ(BAD_T, ci.get_const().second);
-	EXPECT_EQ(BAD_T, vi.get_const().second);
+	EXPECT_EQ(nnet::BAD_T, ci.get_const().second);
+	EXPECT_EQ(nnet::BAD_T, vi.get_const().second);
 
 	EXPECT_THROW(badci.set<std::string>("expect failure"), std::exception);
 	EXPECT_THROW(badci.set<std::string>(std::vector<std::string>{"expect failure"}), std::exception);
@@ -563,7 +563,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 	nnet::r_uniform_init ri;
 	nnet::r_uniform_init badi;
 
-	EXPECT_EQ(BAD_T, ri.get_min().second);
+	EXPECT_EQ(nnet::BAD_T, ri.get_min().second);
 	EXPECT_THROW(badi.set<std::string>("min", "max"), std::exception);
 
 	std::string minstr, maxstr;
@@ -578,7 +578,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 	{
 		switch (utype)
 		{
-			case DOUBLE:
+			case nnet::DOUBLE:
 			{
 				double* val = (double*) c;
 				double* min = (double*) &minstr[0];
@@ -589,7 +589,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / ((double) (*max - *min));
 			}
 			break;
-			case FLOAT:
+			case nnet::FLOAT:
 			{
 				float* val = (float*) c;
 				float* min = (float*) &minstr[0];
@@ -600,7 +600,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / ((double) (*max - *min));
 			}
 			break;
-			case INT8:
+			case nnet::INT8:
 			{
 				int8_t* val = (int8_t*) c;
 				int8_t* min = (int8_t*) &minstr[0];
@@ -615,7 +615,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / (dmax - dmin);
 			}
 			break;
-			case UINT8:
+			case nnet::UINT8:
 			{
 				uint8_t* val = (uint8_t*) c;
 				uint8_t* min = (uint8_t*) &minstr[0];
@@ -626,7 +626,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / ((double) (*max - *min));
 			}
 			break;
-			case INT16:
+			case nnet::INT16:
 			{
 				int16_t* val = (int16_t*) c;
 				int16_t* min = (int16_t*) &minstr[0];
@@ -640,7 +640,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / (dmax - dmin);
 			}
 			break;
-			case UINT16:
+			case nnet::UINT16:
 			{
 				uint16_t* val = (uint16_t*) c;
 				uint16_t* min = (uint16_t*) &minstr[0];
@@ -651,7 +651,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / ((double) (*max - *min));
 			}
 			break;
-			case INT32:
+			case nnet::INT32:
 			{
 				int32_t* val = (int32_t*) c;
 				int32_t* min = (int32_t*) &minstr[0];
@@ -665,7 +665,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / (dmax - dmin);
 			}
 			break;
-			case UINT32:
+			case nnet::UINT32:
 			{
 				uint32_t* val = (uint32_t*) c;
 				uint32_t* min = (uint32_t*) &minstr[0];
@@ -676,7 +676,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / ((double) (*max - *min));
 			}
 			break;
-			case INT64:
+			case nnet::INT64:
 			{
 				int64_t* val = (int64_t*) c;
 				int64_t* min = (int64_t*) &minstr[0];
@@ -690,7 +690,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 				mindist += diff / (dmax - dmin);
 			}
 			break;
-			case UINT64:
+			case nnet::UINT64:
 			{
 				uint64_t* val = (uint64_t*) c;
 				uint64_t* min = (uint64_t*) &minstr[0];
@@ -721,7 +721,7 @@ TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 	nnet::r_normal_init ri;
 	nnet::r_normal_init badi;
 
-	EXPECT_EQ(BAD_T, ri.get_mean().second);
+	EXPECT_EQ(nnet::BAD_T, ri.get_mean().second);
 	EXPECT_THROW(badi.set<std::string>("mean", "stdev"), std::exception);
 
 	std::string meanstr, stdevstr;
@@ -736,52 +736,52 @@ TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 	{
 		switch (ntype)
 		{
-			case DOUBLE:
+			case nnet::DOUBLE:
 			{
 				GET_STDEV(double)
 			}
 			break;
-			case FLOAT:
+			case nnet::FLOAT:
 			{
 				GET_STDEV(float)
 			}
 			break;
-			case INT8:
+			case nnet::INT8:
 			{
 				GET_STDEV(int8_t)
 			}
 			break;
-			case UINT8:
+			case nnet::UINT8:
 			{
 				GET_STDEV(uint8_t)
 			}
 			break;
-			case INT16:
+			case nnet::INT16:
 			{
 				GET_STDEV(int16_t)
 			}
 			break;
-			case UINT16:
+			case nnet::UINT16:
 			{
 				GET_STDEV(uint16_t)
 			}
 			break;
-			case INT32:
+			case nnet::INT32:
 			{
 				GET_STDEV(int32_t)
 			}
 			break;
-			case UINT32:
+			case nnet::UINT32:
 			{
 				GET_STDEV(uint32_t)
 			}
 			break;
-			case INT64:
+			case nnet::INT64:
 			{
 				GET_STDEV(int64_t)
 			}
 			break;
-			case UINT64:
+			case nnet::UINT64:
 			{
 				GET_STDEV(uint64_t)
 			}
@@ -836,10 +836,10 @@ TEST_F(DATA_SRC, Proto_D004)
 	ui.serialize(u_src);
 	ni.serialize(n_src);
 
-	EXPECT_EQ(tenncor::source_proto::CONSTANT, c_src.src());
-	EXPECT_EQ(tenncor::source_proto::CONSTANT, v_src.src());
-	EXPECT_EQ(tenncor::source_proto::UNIFORM, u_src.src());
-	EXPECT_EQ(tenncor::source_proto::NORMAL, n_src.src());
+	EXPECT_EQ(nnet::CSRC_T, c_src.src());
+	EXPECT_EQ(nnet::CSRC_T, v_src.src());
+	EXPECT_EQ(nnet::USRC_T, u_src.src());
+	EXPECT_EQ(nnet::NSRC_T, n_src.src());
 	EXPECT_EQ(ctype, c_src.dtype());
 	EXPECT_EQ(vtype, v_src.dtype());
 	EXPECT_EQ(utype, u_src.dtype());
@@ -857,10 +857,10 @@ TEST_F(DATA_SRC, Proto_D004)
 	ui.serialize(n_src);
 	ni.serialize(c_src);
 
-	EXPECT_EQ(tenncor::source_proto::CONSTANT, v_src.src());
-	EXPECT_EQ(tenncor::source_proto::CONSTANT, u_src.src());
-	EXPECT_EQ(tenncor::source_proto::UNIFORM, n_src.src());
-	EXPECT_EQ(tenncor::source_proto::NORMAL, c_src.src());
+	EXPECT_EQ(nnet::CSRC_T, v_src.src());
+	EXPECT_EQ(nnet::CSRC_T, u_src.src());
+	EXPECT_EQ(nnet::USRC_T, n_src.src());
+	EXPECT_EQ(nnet::NSRC_T, c_src.src());
 	EXPECT_EQ(ctype, v_src.dtype());
 	EXPECT_EQ(vtype, u_src.dtype());
 	EXPECT_EQ(utype, n_src.dtype());

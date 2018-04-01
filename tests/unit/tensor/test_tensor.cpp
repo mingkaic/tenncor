@@ -44,7 +44,7 @@ TEST_F(TENSOR, Constructor_C000)
 
 	EXPECT_TRUE(tensorshape_equal(exshape, gotshape)) <<
 		testutils::sprintf("expecting %p, got %p", &exshape, &gotshape);
-	EXPECT_EQ(BAD_T, ten.get_type());
+	EXPECT_EQ(nnet::BAD_T, ten.get_type());
 }
 
 
@@ -61,7 +61,7 @@ TEST_F(TENSOR, ReadFrom_C001)
 	mock_data_src src(this);
 	EXPECT_FALSE(incom.read_from(src)) <<
 		testutils::sprintf("tensor with shape %p successfully read from src", &pshape);
-	EXPECT_EQ(BAD_T, incom.get_type());
+	EXPECT_EQ(nnet::BAD_T, incom.get_type());
 	EXPECT_FALSE(incom.has_data()) <<
 		testutils::sprintf("tensor with shape %p has data", &pshape);
 	size_t sgetdata = testify::mocker::get_usage(&src, "get_data");
@@ -165,7 +165,7 @@ TEST_F(TENSOR, ReadFromShape_C001)
 	// partial shape input
 	EXPECT_FALSE(incom2.read_from(src, pshape)) <<
 		testutils::sprintf("tensor successfully read using shape %p", &pshape);
-	EXPECT_EQ(BAD_T, incom2.get_type());
+	EXPECT_EQ(nnet::BAD_T, incom2.get_type());
 	EXPECT_FALSE(incom2.has_data()) <<
 		testutils::sprintf("tensor read using shape %p have data", &pshape);
 
@@ -175,7 +175,7 @@ TEST_F(TENSOR, ReadFromShape_C001)
 	// incompatible shape input
 	EXPECT_FALSE(comp2.read_from(src, bad_shape)) <<
 		testutils::sprintf("tensor successfully read using shape %p", &bad_shape);
-	EXPECT_EQ(BAD_T, comp2.get_type());
+	EXPECT_EQ(nnet::BAD_T, comp2.get_type());
 	EXPECT_FALSE(comp2.has_data()) <<
 		testutils::sprintf("tensor read using shape %p have data", &bad_shape);
 
@@ -231,7 +231,7 @@ TEST_F(TENSOR, Copy_C002)
 		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), undefcpy_dest.result_.c_str());
 
-	EXPECT_EQ(BAD_T, incomcpy.get_type());
+	EXPECT_EQ(nnet::BAD_T, incomcpy.get_type());
 	EXPECT_FALSE(incomcpy.has_data()) <<
 		"incompcpy has data, expecting no data";
 
@@ -264,7 +264,7 @@ TEST_F(TENSOR, Copy_C002)
 		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), undefassign_dest.result_.c_str());
 
-	EXPECT_EQ(BAD_T, incomassign.get_type());
+	EXPECT_EQ(nnet::BAD_T, incomassign.get_type());
 	EXPECT_FALSE(incomassign.has_data()) <<
 		"incomassign has data, expecting no data";
 
@@ -308,9 +308,9 @@ TEST_F(TENSOR, Move_C002)
 		"moved incom has data";
 	EXPECT_FALSE(comp.has_data()) <<
 		"moved comp has data";
-	EXPECT_EQ(BAD_T, undef.get_type());
-	EXPECT_EQ(BAD_T, incom.get_type());
-	EXPECT_EQ(BAD_T, comp.get_type());
+	EXPECT_EQ(nnet::BAD_T, undef.get_type());
+	EXPECT_EQ(nnet::BAD_T, incom.get_type());
+	EXPECT_EQ(nnet::BAD_T, comp.get_type());
 	nnet::tensorshape s0 = undef.get_shape();
 	nnet::tensorshape s1 = incom.get_shape();
 	nnet::tensorshape s2 = comp.get_shape();
@@ -341,7 +341,7 @@ TEST_F(TENSOR, Move_C002)
 		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), undefmv_dest.result_.c_str());
 
-	EXPECT_EQ(BAD_T, incommv.get_type());
+	EXPECT_EQ(nnet::BAD_T, incommv.get_type());
 	EXPECT_FALSE(incommv.has_data()) <<
 		"incompmv has data, expecting no data";
 
@@ -360,9 +360,9 @@ TEST_F(TENSOR, Move_C002)
 		"moved incom has data";
 	EXPECT_FALSE(compmv.has_data()) <<
 		"moved comp has data";
-	EXPECT_EQ(BAD_T, undefmv.get_type());
-	EXPECT_EQ(BAD_T, incommv.get_type());
-	EXPECT_EQ(BAD_T, compmv.get_type());
+	EXPECT_EQ(nnet::BAD_T, undefmv.get_type());
+	EXPECT_EQ(nnet::BAD_T, incommv.get_type());
+	EXPECT_EQ(nnet::BAD_T, compmv.get_type());
 	nnet::tensorshape s3 = undefmv.get_shape();
 	nnet::tensorshape s4 = incommv.get_shape();
 	nnet::tensorshape s5 = compmv.get_shape();
@@ -393,7 +393,7 @@ TEST_F(TENSOR, Move_C002)
 		testutils::sprintf("tensor read using shape %p doesn't have data", &cshape);
 	EXPECT_STREQ(src.uuid_.c_str(), undefassign_dest.result_.c_str());
 
-	EXPECT_EQ(BAD_T, incomassign.get_type());
+	EXPECT_EQ(nnet::BAD_T, incomassign.get_type());
 	EXPECT_FALSE(incomassign.has_data()) <<
 		"incomassign has data, expecting no data";
 
@@ -806,61 +806,61 @@ TEST_F(TENSOR, Expose_C008)
 	// shouldn't die or throw
 	switch (src.type_)
 	{
-		case DOUBLE:
+		case nnet::DOUBLE:
 		{
 			std::vector<double> v = nnet::expose<double>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case FLOAT:
+		case nnet::FLOAT:
 		{
 			std::vector<float> v = nnet::expose<float>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case INT8:
+		case nnet::INT8:
 		{
 			std::vector<int8_t> v = nnet::expose<int8_t>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case UINT8:
+		case nnet::UINT8:
 		{
 			std::vector<uint8_t> v = nnet::expose<uint8_t>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case INT16:
+		case nnet::INT16:
 		{
 			std::vector<int16_t> v = nnet::expose<int16_t>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case UINT16:
+		case nnet::UINT16:
 		{
 			std::vector<uint16_t> v = nnet::expose<uint16_t>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case INT32:
+		case nnet::INT32:
 		{
 			std::vector<int32_t> v = nnet::expose<int32_t>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case UINT32:
+		case nnet::UINT32:
 		{
 			std::vector<uint32_t> v = nnet::expose<uint32_t>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case INT64:
+		case nnet::INT64:
 		{
 			std::vector<int64_t> v = nnet::expose<int64_t>(&ten);
 			result = std::string((char*) &v[0], 16);
 		}
 		break;
-		case UINT64:
+		case nnet::UINT64:
 		{
 			std::vector<uint64_t> v = nnet::expose<uint64_t>(&ten);
 			result = std::string((char*) &v[0], 16);
@@ -906,7 +906,7 @@ TEST_F(TENSOR, Clear_C010)
 	nnet::tensorshape tshape = ten.get_shape();
 	EXPECT_TRUE(tensorshape_equal(pshape, tshape)) <<
 		testutils::sprintf("expecting shape %p, got %p", &pshape, &tshape);
-	EXPECT_EQ(BAD_T, ten.get_type());
+	EXPECT_EQ(nnet::BAD_T, ten.get_type());
 
 	ten.read_from(src, cshape);
 	ASSERT_TRUE(ten.has_data()) <<
@@ -922,7 +922,7 @@ TEST_F(TENSOR, Clear_C010)
 	tshape = ten.get_shape();
 	EXPECT_TRUE(tensorshape_equal(pshape, tshape)) <<
 		testutils::sprintf("expecting shape %p, got %p", &pshape, &tshape);
-	EXPECT_EQ(BAD_T, ten.get_type());
+	EXPECT_EQ(nnet::BAD_T, ten.get_type());
 }
 
 

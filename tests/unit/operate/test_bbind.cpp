@@ -47,7 +47,7 @@ static void binaryElemTest (testutils::fuzz_test* fuzzer, std::string op,
 		testutils::sprintf("binary %s not found", op.c_str());
 	nnet::VTFUNC_F bifunc = nnet::ebind(op);
 
-	bifunc(DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
+	bifunc(nnet::DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	});
@@ -75,7 +75,7 @@ static void binaryElemTestInt (testutils::fuzz_test* fuzzer, std::string op,
 		testutils::sprintf("binary %s not found", op.c_str());
 	nnet::VTFUNC_F bifunc = nnet::ebind(op);
 
-	bifunc(UINT64, nnet::VARR_T{(void*) &output[0], shape}, {
+	bifunc(nnet::UINT64, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	});
@@ -244,7 +244,7 @@ TEST_F(BBIND, Uniform_A029)
 	ASSERT_TRUE(nnet::has_ele(opname));
 	nnet::VTFUNC_F bifunc = nnet::ebind(opname);
 
-	bifunc(DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
+	bifunc(nnet::DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	});
@@ -270,17 +270,17 @@ TEST_F(BBIND, Binom_A030)
 	ASSERT_TRUE(nnet::has_ele(opname));
 	nnet::VTFUNC_F bifunc = nnet::ebind(opname);
 
-	EXPECT_THROW(bifunc(DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	EXPECT_THROW(bifunc(FLOAT, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::FLOAT, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	bifunc(UINT64, nnet::VARR_T{(void*) &output[0], shape}, {
+	bifunc(nnet::UINT64, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	});
@@ -325,47 +325,47 @@ TEST_F(BBIND, Norm_A031)
 	ASSERT_TRUE(nnet::has_ele(opname));
 	nnet::VTFUNC_F bifunc = nnet::ebind(opname);
 
-	EXPECT_THROW(bifunc(INT8, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::INT8, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	EXPECT_THROW(bifunc(UINT8, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::UINT8, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	EXPECT_THROW(bifunc(INT16, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::INT16, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	EXPECT_THROW(bifunc(UINT16, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::UINT16, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	EXPECT_THROW(bifunc(INT32, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::INT32, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	EXPECT_THROW(bifunc(UINT32, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::UINT32, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	EXPECT_THROW(bifunc(INT64, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::INT64, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	EXPECT_THROW(bifunc(UINT64, nnet::VARR_T{(void*) &output[0], shape}, {
+	EXPECT_THROW(bifunc(nnet::UINT64, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	}), std::bad_function_call);
 
-	bifunc(DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
+	bifunc(nnet::DOUBLE, nnet::VARR_T{(void*) &output[0], shape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape},
 		nnet::CVAR_T{(const void*) &argument1[0], shape},
 	});
@@ -419,7 +419,7 @@ TEST_F(BBIND, Matmul_A032)
 	ASSERT_TRUE(nnet::has_ele(opname));
 	nnet::VTFUNC_F bifunc = nnet::ebind(opname);
 
-	bifunc(INT64, nnet::VARR_T{(void*) &output[0], outshape}, {
+	bifunc(nnet::INT64, nnet::VARR_T{(void*) &output[0], outshape}, {
 		nnet::CVAR_T{(const void*) &argument0[0], shape0},
 		nnet::CVAR_T{(const void*) &argument1[0], shape1},
 	});

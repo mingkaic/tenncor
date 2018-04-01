@@ -78,8 +78,8 @@ TEST_F(VARIABLE, Constructor_D000)
 		"tensor cten does not have data";
 	EXPECT_TRUE(rten->has_data()) <<
 		"tensor rten does not have data";
-	EXPECT_EQ(DOUBLE, cten->get_type());
-	EXPECT_EQ(DOUBLE, rten->get_type());
+	EXPECT_EQ(nnet::DOUBLE, cten->get_type());
+	EXPECT_EQ(nnet::DOUBLE, rten->get_type());
 	std::vector<double> cdata = nnet::expose<double>(cten);
 	std::vector<double> rdata = nnet::expose<double>(rten);
 	for (double gotc : cdata)

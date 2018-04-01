@@ -177,9 +177,9 @@ varptr functor::derive (inode* wrt)
 }
 
 
-nnet::NODE_TYPE functor::node_type (void) const
+NODE_TYPE functor::node_type (void) const
 {
-	return tenncor::node_proto::FUNCTOR;
+	return FUNCTOR_T;
 }
 
 void functor::serialize_detail (google::protobuf::Any* proto_dest)

@@ -15,6 +15,7 @@
 #include <unordered_map>
 
 #include "include/utils/utils.hpp"
+#include "include/tensor/data_src.hpp"
 
 #include "proto/serial/graph.pb.h"
 
@@ -36,6 +37,11 @@ using LEAF_SET = std::unordered_set<std::shared_ptr<inode> >;
 using ROOT_STR = std::unordered_set<std::string>;
 
 using NODE_TYPE = tenncor::node_proto::node_t;
+
+static const NODE_TYPE PLACEHOLDER_T = tenncor::node_proto::PLACEHOLDER;
+static const NODE_TYPE CONSTANT_T = tenncor::node_proto::CONSTANT;
+static const NODE_TYPE VARIABLE_T = tenncor::node_proto::VARIABLE;
+static const NODE_TYPE FUNCTOR_T = tenncor::node_proto::FUNCTOR;
 
 class graph
 {

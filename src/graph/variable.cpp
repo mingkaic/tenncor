@@ -122,9 +122,9 @@ bool variable::assign (inode* input, bool notify)
 }
 
 
-nnet::NODE_TYPE variable::node_type (void) const
+NODE_TYPE variable::node_type (void) const
 {
-	return tenncor::node_proto::VARIABLE;
+	return VARIABLE_T;
 }
 
 void variable::serialize_detail (google::protobuf::Any* proto_dest)

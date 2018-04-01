@@ -28,7 +28,7 @@ public:
 protected:
 	virtual nnet::NODE_TYPE node_type (void) const
 	{
-		return tenncor::node_proto::VARIABLE;
+		return nnet::VARIABLE_T;
 	}
 
 	virtual void serialize_detail (google::protobuf::Any* proto_dest) {}
