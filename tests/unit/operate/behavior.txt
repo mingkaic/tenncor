@@ -90,18 +90,24 @@ B142 - reduce_sum sums value along specified dimensions,
 		null input1 returns null, null input2 treats input2 as dimension 0
 B143 - transpose performs transposition for given input permutation (input2),
 		run_opcode with TRANSPOSE gets result
+		null input1 returns null, null input2 uses unary transpose
 B144 - flip mirrors the values along the specified dimension,
 		run_opcode with FLIP gets result
+		null inputs return null
 B145 - expand duplicates data across a dimension (index) a number of times specified by input multiplier,
 		run_opcode with EXPAND gets result
+		null inputs return null
 B146 - n_elems returns a single value on the nelems of the input's shape,
 		run_opcode with N_ELEMS gets result
+		null input returns null
 B147 - n_dimension returns a single value on input shape's value at input dimension,
 		run_opcode with N_DIMS gets result
 		null input1 returns null, null input2 treats input2 as dimension 0
 B148 - clip limits the input0 value between input1 and input2
+		null inputs returns null
 B149 - clip_norm outputs input0 * intput1 / l2norm(input0) if l2norm > input1,
 		input1 is a scalar
+		null inputs returns null
 B150 - reduce_mean gets the mean of values along specified dimensions,
 		if no dimension is specified, get mean of everything
 		null input1 returns null, null input2 treats input2 as dimension 0

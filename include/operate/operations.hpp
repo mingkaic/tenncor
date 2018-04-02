@@ -180,8 +180,10 @@ varptr normal_sample (T mean, const varptr stdev)
 
 // >>>>>>>>>>>> COORDINATE MAPPERS <<<<<<<<<<<<
 
+varptr transpose (const varptr a);
+
 //! transpose, default perm is same as behavior n-1 ... 0
-varptr transpose (const varptr a, std::vector<uint64_t> perm = {});
+varptr transpose (const varptr a, std::vector<uint64_t> perm);
 
 varptr transpose (const varptr a, const varptr perm);
 
@@ -206,7 +208,7 @@ varptr n_elems (const varptr a);
 
 varptr n_dimension (const varptr a, uint64_t dimension);
 
-varptr n_dimension (const varptr a, const varptr dimension);
+varptr n_dimension (const varptr a, varptr dimension);
 
 
 // >>>>>>>>>>>> SHAPE CHANGE <<<<<<<<<<<<
@@ -216,7 +218,7 @@ varptr expand (const varptr a, uint64_t n, uint64_t dim);
 
 varptr expand (const varptr a, const varptr n, uint64_t dim);
 
-varptr expand (const varptr a, const varptr n, const varptr dim);
+varptr expand (const varptr a, const varptr n, varptr dim);
 
 #endif /* TENNCOR_OP_STD_HPP */
 
@@ -277,11 +279,11 @@ varptr reduce_sum (const varptr a, varptr dimension);
 //! unspecified dimension obtains the mean of values in the entire tensor
 varptr reduce_mean (const varptr a, uint64_t dimension);
 
-varptr reduce_mean (const varptr a, const varptr dimension);
+varptr reduce_mean (const varptr a, varptr dimension);
 
 varptr reduce_l2norm (const varptr a, uint64_t dimension);
 
-varptr reduce_l2norm (const varptr a, const varptr dimension);
+varptr reduce_l2norm (const varptr a, varptr dimension);
 
 #endif /* TENNCOR_OP_COM_HPP */
 
