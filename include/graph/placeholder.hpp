@@ -60,6 +60,14 @@ public:
 		return {this};
 	}
 
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest) const;
+
 
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<<<<<
@@ -121,17 +129,6 @@ public:
 	//! assign tensor to inner tensor
 	virtual placeholder& operator = (tensor& data);
 
-protected:
-	// >>>>>> SERIALIZATION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const;
-
-	// >>>>>> SERIALIZATION ACTOR <<<<<<
-
-	virtual void serialize_detail (google::protobuf::Any* proto_dest);
-	
-	friend class graph;
-
 private:
 	// >>>>>> POLYMORPHIC CLONERS <<<<<<
 
@@ -156,7 +153,7 @@ class placeptr : public varptr
 {
 public:
 	//! nullptr construction
-	placeptr (void) {}
+	placeptr (void) = default;
 
 	//! wrap placeholder pointer
 	placeptr (placeholder* ptr);

@@ -78,8 +78,6 @@ public:
 	static functor* get (std::vector<inode*> args, TENSOP_F tensop, 
 		DERIVE_F derive, OPCODE code);
 
-	virtual ~functor (void);
-
 	//! clone function
 	functor* clone (void) const;
 
@@ -116,6 +114,14 @@ public:
 		return opcode_;
 	}
 
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest) const;
+
 
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
@@ -126,17 +132,6 @@ public:
 	//! get gradient wrt some node, applies jacobians before evaluting resulting tensor
 	//! may call get_gradient
 	virtual varptr derive (inode* wrt);
-
-protected:
-	// >>>>>> SERIALIZATION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const;
-
-	// >>>>>> SERIALIZATION ACTOR <<<<<<
-
-	virtual void serialize_detail (google::protobuf::Any* proto_dest);
-	
-	friend class graph;
 
 private:
 	functor (std::vector<inode*> args, TENSOP_F tensop, DERIVE_F derive, OPCODE code);

@@ -93,7 +93,7 @@ protected:
 	friend class inode;
 
 private:
-	graph (void) {}
+	graph (void) = default;
 
 	std::string gid_ = nnutils::uuid(this);
 

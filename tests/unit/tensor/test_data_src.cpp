@@ -806,7 +806,7 @@ TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 }
 
 
-TEST_F(DATA_SRC, Proto_D004)
+TEST_F(DATA_SRC, Serial_D004)
 {
 	tenncor::source_proto c_src;
 	tenncor::source_proto v_src;

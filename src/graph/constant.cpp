@@ -38,6 +38,60 @@ void register_const (size_t key, constant* cons)
 	cbwds[cons] = key;
 }
 
+
+// varptr constant::get_generic (std::string data, TENS_TYPE type)
+// {
+// 	// make sure data isn't huge before attempting hash
+// 	assert(data.size() == type_size(type));
+// 	size_t key = ((size_t) type) ^ std::hash<std::string>(data);
+// 	constant* cons = find_const(key);
+// 	if (nullptr == cons)
+// 	{
+// 		tensorshape shape = std::vector<size_t>{1};
+// 		const_init ci(data, type);
+// 		tensor* data = new tensor(shape);
+// 		data->read_from(ci);
+// 		cons = new constant(data, nnutils::formatter() << scalar);
+// 		register_const(key, cons);
+// 	}
+// 	return cons;
+// }
+
+varptr constant::get (tenncor::tensor_proto& proto_src, std::string label)
+{
+	// look in cache if scalar
+	constant* cons;
+	if (proto_src.alloced_shape_size() == 1 && proto_src.alloced_shape(0) == 1)
+	{
+		std::string data = proto_src.data();
+		size_t key = ((size_t) proto_src.type()) ^ std::hash<std::string>()(data);
+		cons = find_const(key);
+		if (nullptr == cons)
+		{
+			cons = new constant(new tensor(proto_src), label);
+			register_const(key, cons);
+		}
+	}
+	else
+	{
+		cons = new constant(new tensor(proto_src), label);
+	}
+	return cons;
+}
+
+NODE_TYPE constant::node_type (void) const
+{
+	return CONSTANT_T;
+}
+
+void constant::serialize_detail (google::protobuf::Any* proto_dest) const
+{
+	tenncor::tensor_proto tens;
+	assert(nullptr != data_ && data_->serialize(tens));
+	proto_dest->PackFrom(tens);
+}
+
+
 tensor* constant::get_tensor (void)
 {
 	return data_.get();
@@ -49,6 +103,9 @@ varptr constant::derive (inode*)
 }
 
 
+constant::constant (tensor* data, std::string name) :
+	inode(name), data_(std::unique_ptr<tensor>(data)) {}
+
 constant::~constant (void)
 {
 	auto it = cbwds.find(this);
@@ -58,27 +115,6 @@ constant::~constant (void)
 		cbwds.erase(it);
 	}
 }
-
-
-constant::constant (tenncor::tensor_proto& proto_src,
-	std::string label) :
-inode(label), data_(std::make_unique<tensor>(proto_src)) {}
-
-NODE_TYPE constant::node_type (void) const
-{
-	return CONSTANT_T;
-}
-
-void constant::serialize_detail (google::protobuf::Any* proto_dest)
-{
-	tenncor::tensor_proto tens;
-	assert(nullptr != data_ && data_->serialize(tens));
-	proto_dest->PackFrom(tens);
-}
-
-
-constant::constant (tensor* data, std::string name) :
-	inode(name), data_(std::unique_ptr<tensor>(data)) {}
 
 void constant::death_on_noparent (void)
 {

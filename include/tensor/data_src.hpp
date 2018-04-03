@@ -38,7 +38,7 @@ static const SOURCE_TYPE NSRC_T = tenncor::source_proto::NORMAL;
 
 struct idata_src
 {
-	virtual ~idata_src (void);
+	virtual ~idata_src (void) = default;
 
 	idata_src* clone (void) const;
 
@@ -60,7 +60,7 @@ struct data_src : public idata_src
 
 struct const_init final : public data_src
 {
-	const_init (void) {}
+	const_init (void) = default;
 
 	const_init (std::string data, TENS_TYPE type) : 
 		value_(data), type_(type) {}
@@ -115,7 +115,7 @@ private:
 //! Uniformly Random Initialization
 struct r_uniform_init final : public data_src
 {
-	r_uniform_init (void) {}
+	r_uniform_init (void) = default;
 
 	r_uniform_init (std::string min, std::string max,
 		TENS_TYPE type) : min_(min), max_(max), type_(type) {}
@@ -168,7 +168,7 @@ private:
 //! Normal Random Initialization
 struct r_normal_init final : public data_src
 {
-	r_normal_init (void) {}
+	r_normal_init (void) = default;
 
 	r_normal_init (std::string mean, std::string stdev,
 		TENS_TYPE type) : mean_(mean), stdev_(stdev), type_(type) {}

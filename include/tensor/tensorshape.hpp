@@ -35,7 +35,7 @@ class tensorshape final
 {
 public:
 	//! by default create a rankless shape
-	tensorshape (void) {}
+	tensorshape (void) = default;
 
 	//! create a shape with the desired dimensions
 	tensorshape (const std::vector<size_t>& dims);

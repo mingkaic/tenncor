@@ -143,7 +143,7 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 			{
 				tenncor::tensor_proto tens_src;
 				node_src.detail().UnpackTo(&tens_src);
-				node_dest = new constant(tens_src, label);
+				node_dest = constant::get(tens_src, label);
 			}
 			break;
 			case FUNCTOR_T:

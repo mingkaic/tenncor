@@ -63,6 +63,14 @@ public:
 		return src_;
 	}
 
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest) const;
+
 
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
@@ -86,16 +94,8 @@ public:
 	bool assign (inode* input, bool notify = true); // todo: make assign notify a reference function<> of notifier, let caller call update
 
 protected:
-	// >>>>>> SERIALIZATION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const;
-
-	// >>>>>> SERIALIZATION ACTOR <<<<<<
-
-	virtual void serialize_detail (google::protobuf::Any* proto_dest);
-
 	std::string data_ep_ = this->get_uid();
-	
+
 	friend class graph;
 
 private:

@@ -38,6 +38,8 @@ public:
 
 	// static varptr get_generic (std::string data, TENS_TYPE type);
 
+	static varptr get (tenncor::tensor_proto& proto_src, std::string label);
+
 	// >>>> CAN'T COPY OR MOVE (GOES AGAINST SHARING) <<<<
 
 	//! deleted copy constructor
@@ -64,6 +66,14 @@ public:
 		return {this};
 	}
 
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest) const;
+
 
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
@@ -74,28 +84,11 @@ public:
 	//! get gradient wrt some node
 	virtual varptr derive (inode* wrt);
 
-protected:
-	virtual ~constant (void);
-
-
-
-	// >>>>>> SERIALIZATION CONSTRUCTION <<<<<<
-
-	constant (tenncor::tensor_proto& proto_src, std::string label);
-
-	// >>>>>> SERIALIZATION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const;
-
-	// >>>>>> SERIALIZATION ACTOR <<<<<<
-
-	virtual void serialize_detail (google::protobuf::Any* proto_dest);
-	
-	friend class graph;
-
 private:
 	//! name constructor, data_ is nullptr
 	constant (tensor* data, std::string name);
+
+	virtual ~constant (void);
 
 	// >>>> POLYMORPHIC CLONERS (RETURN NULLS) <<<<
 
@@ -124,9 +117,9 @@ void register_const (size_t key, constant* cons);
 template <typename T> // todo: optimize by looking for pre-existing constants
 varptr constant::get (T scalar)
 {
-	static_assert(std::is_arithmetic<T>::value, 
+	static_assert(std::is_arithmetic<T>::value,
 		"constant must be arithmetic value");
-	size_t key = ((size_t) get_type<T>()) ^ std::hash<T>()(scalar);
+	size_t key = ((size_t) get_type<T>()) ^ std::hash<std::string>()((char*) &scalar);
 	constant* cons = find_const(key);
 	if (nullptr == cons)
 	{
@@ -162,24 +155,6 @@ varptr constant::get (std::vector<T> raw, tensorshape shape)
 	data->read_from(ci);
 	return new constant(data, name);
 }
-
-// varptr constant::get_generic (std::string data, TENS_TYPE type)
-// {
-// 	// make sure data isn't huge before attempting hash
-// 	assert(data.size() == type_size(type));
-// 	size_t key = ((size_t) type) ^ std::hash<std::string>(data);
-// 	constant* cons = find_const(key);
-// 	if (nullptr == cons)
-// 	{
-// 		tensorshape shape = std::vector<size_t>{1};
-// 		const_init ci(data, type);
-// 		tensor* data = new tensor(shape);
-// 		data->read_from(ci);
-// 		cons = new constant(data, nnutils::formatter() << scalar);
-// 		register_const(key, cons);
-// 	}
-// 	return cons;
-// }
 
 }
 

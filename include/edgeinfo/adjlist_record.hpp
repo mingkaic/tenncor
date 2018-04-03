@@ -37,7 +37,7 @@ public:
 		}
 	};
 
-	virtual ~adjlist_record (void);
+	virtual ~adjlist_record (void) = default;
 
 	// all nodes are subjects
 	virtual void node_release (const nnet::subject* sub);

@@ -85,8 +85,6 @@ varptr::varptr (void) : iobserver(false) {}
 varptr::varptr (inode* ptr) : iobserver(nullptr == ptr ? 
 	std::vector<subject*>{} : std::vector<subject*>{ptr}, false) {}
 
-varptr::~varptr (void) {}
-
 varptr& varptr::operator = (inode* other)
 {
 	if (nullptr != other)

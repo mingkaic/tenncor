@@ -92,8 +92,6 @@ AUDMAP_T subject::get_audience (void) const
 }
 
 
-subject::subject (void) {}
-
 void subject::death_on_noparent (void) {}
 
 void subject::attach_killer (iobserver* killer)
@@ -113,8 +111,6 @@ void subject::detach_killer (iobserver* killer)
 		killer->remove_ondeath_dependent(this);
 	}
 }
-
-subject::subject (const subject&) {}
 
 subject::subject (subject&& other)
 {

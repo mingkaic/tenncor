@@ -9,8 +9,6 @@
 namespace rocnnet_record
 {
 
-adjlist_record::~adjlist_record (void) {}
-
 void adjlist_record::node_release (const nnet::subject* sub)
 {
 	subj_nodes.erase(sub);

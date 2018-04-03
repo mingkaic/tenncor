@@ -21,17 +21,17 @@ public:
 
 	virtual std::unordered_set<const nnet::inode*> get_leaves (void) const;
 
-	virtual nnet::tensor* get_tensor (void);
-
-	virtual nnet::varptr derive (nnet::inode* wrt);
-
-protected:
 	virtual nnet::NODE_TYPE node_type (void) const
 	{
 		return nnet::VARIABLE_T;
 	}
 
-	virtual void serialize_detail (google::protobuf::Any* proto_dest) {}
+	virtual void serialize_detail (google::protobuf::Any* proto_dest) const {}
+
+	virtual nnet::tensor* get_tensor (void);
+
+	virtual nnet::varptr derive (nnet::inode* wrt);
+
 
 private:
 	virtual nnet::inode* clone_impl (void) const;

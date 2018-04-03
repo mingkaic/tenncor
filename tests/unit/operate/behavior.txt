@@ -118,12 +118,3 @@ B151 - reduce_l2norm get the l2 norm of values along specified dimensions,
 // unimplemented
 - assert_type
 - assert_shape
-
-// GRAPH SERIALIZATION
-C000 - graph serialization creates the same graph structure (without constraints on node id)
-C001 - serialized nodes saves the labels
-C002 - serialized constant saves the data
-C003 - serialized placeholder saves the allowed shape
-C004 - serialized variable saves the data_ep_, the data source, and the allowed shape
-C005 - serialized functor saves the opcode, deserialization constructs the same type of operation
-C006 - data serialization and deserialization persists the data in variables

@@ -91,7 +91,7 @@ NODE_TYPE placeholder::node_type (void) const
 	return PLACEHOLDER_T;
 }
 
-void placeholder::serialize_detail (google::protobuf::Any* proto_dest)
+void placeholder::serialize_detail (google::protobuf::Any* proto_dest) const
 {
 	tenncor::place_proto place;
 	std::vector<size_t> slist = data_->get_allowed().as_list();

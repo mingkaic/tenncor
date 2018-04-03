@@ -63,6 +63,28 @@ variable& variable::operator = (variable&& other)
 }
 
 
+NODE_TYPE variable::node_type (void) const
+{
+	return VARIABLE_T;
+}
+
+void variable::serialize_detail (google::protobuf::Any* proto_dest) const
+{
+	tenncor::variable_proto var;
+	std::vector<size_t> slist = data_->get_allowed().as_list();
+	google::protobuf::RepeatedField<uint64_t> shape_field(slist.begin(), slist.end());
+	var.mutable_allowed_shape()->Swap(&shape_field);
+
+	tenncor::source_proto src_dest;
+	src_->serialize(src_dest);
+	var.mutable_source()->Swap(&src_dest);
+
+	var.set_locpos(data_ep_);
+
+	proto_dest->PackFrom(var);
+}
+
+
 tensor* variable::get_tensor (void)
 {
 	return data_.get();
@@ -119,28 +141,6 @@ bool variable::assign (inode* input, bool notify)
 		}
 	}
 	return successful;
-}
-
-
-NODE_TYPE variable::node_type (void) const
-{
-	return VARIABLE_T;
-}
-
-void variable::serialize_detail (google::protobuf::Any* proto_dest)
-{
-	tenncor::variable_proto var;
-	std::vector<size_t> slist = data_->get_allowed().as_list();
-	google::protobuf::RepeatedField<uint64_t> shape_field(slist.begin(), slist.end());
-	var.mutable_allowed_shape()->Swap(&shape_field);
-
-	tenncor::source_proto src_dest;
-	src_->serialize(src_dest);
-	var.mutable_source()->Swap(&src_dest);
-
-	var.set_locpos(data_ep_);
-
-	proto_dest->PackFrom(var);
 }
 
 

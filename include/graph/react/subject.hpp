@@ -61,11 +61,11 @@ public:
 
 protected:
 	//! explicit default constructor to allow copy and move constructors
-	subject (void);
+	subject (void) = default;
 
 	// >>>> COPY && MOVE CONSTRUCTORS <<<<
 	//! Declare copy constructor to prevent audience from being copied over
-	subject (const subject& other);
+	subject (const subject& other) {}
 
 	//! Declare move constructor since copy is declared
 	subject (subject&& other);

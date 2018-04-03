@@ -72,8 +72,6 @@ functor* functor::get (std::vector<inode*> args, TENSOP_F tensop,
 	return new functor(args, tensop, derive, code);
 }
 
-functor::~functor (void) {}
-
 functor* functor::clone (void) const
 {
 	return static_cast<functor*>(this->clone_impl());
@@ -154,6 +152,24 @@ std::vector<inode*> functor::get_arguments (void) const
 	return node_args;
 }
 
+NODE_TYPE functor::node_type (void) const
+{
+	return FUNCTOR_T;
+}
+
+void functor::serialize_detail (google::protobuf::Any* proto_dest) const
+{
+	tenncor::functor_proto func_dest;
+	func_dest.set_opcode(opcode_);
+	std::vector<inode*> args = get_arguments();
+	for (inode* arg : args)
+	{
+		func_dest.add_args(arg->get_uid()); 
+	}
+	proto_dest->PackFrom(func_dest);
+}
+
+
 tensor* functor::get_tensor (void)
 {
 	return data_.get();
@@ -174,24 +190,6 @@ varptr functor::derive (inode* wrt)
 		throw std::exception(); // uninitialized variables
 	}
 	return derive_(wrt, get_arguments());
-}
-
-
-NODE_TYPE functor::node_type (void) const
-{
-	return FUNCTOR_T;
-}
-
-void functor::serialize_detail (google::protobuf::Any* proto_dest)
-{
-	tenncor::functor_proto func_dest;
-	func_dest.set_opcode(opcode_);
-	std::vector<inode*> args = get_arguments();
-	for (inode* arg : args)
-	{
-		func_dest.add_args(arg->get_uid()); 
-	}
-	proto_dest->PackFrom(func_dest);
 }
 
 

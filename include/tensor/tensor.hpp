@@ -34,9 +34,6 @@ public:
 
 	tensor (const tenncor::tensor_proto& proto_src);
 
-	//! deallocate tensor
-	virtual ~tensor (void) {} // remove once final
-
 	//! copy constructor
 	tensor (const tensor& other);
 

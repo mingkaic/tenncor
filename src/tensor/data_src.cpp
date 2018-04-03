@@ -13,8 +13,6 @@
 namespace nnet
 {
 
-idata_src::~idata_src (void) {}
-
 idata_src* idata_src::clone (void) const
 {
 	return this->clone_impl();

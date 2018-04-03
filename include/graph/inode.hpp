@@ -64,6 +64,14 @@ public:
 	//! merge/update the gradient/leaf info
 	virtual std::unordered_set<const inode*> get_leaves (void) const = 0;
 
+	// >>>>>> SERIALIZATION DATA <<<<<<
+
+	virtual NODE_TYPE node_type (void) const = 0;
+
+	// >>>>>> SERIALIZATION ACTOR <<<<<<
+
+	virtual void serialize_detail (google::protobuf::Any* proto_dest) const = 0;
+
 
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
@@ -90,18 +98,6 @@ protected:
 
 	//! declare move constructor to prevent id_ copy over
 	inode (inode&& other);
-
-
-
-	// >>>>>> SERIALIZATION DATA <<<<<<
-
-	virtual NODE_TYPE node_type (void) const = 0;
-
-	// >>>>>> SERIALIZATION ACTOR <<<<<<
-
-	virtual void serialize_detail (google::protobuf::Any* proto_dest) = 0;
-
-	friend class graph;
 
 
 
@@ -132,7 +128,7 @@ public:
 	//! wrap ptr construction
 	varptr (inode* ptr);
 
-	virtual ~varptr (void);
+	virtual ~varptr (void) = default;
 
 	//! assign ptr
 	varptr& operator = (inode* other);
