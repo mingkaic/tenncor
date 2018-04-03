@@ -13,85 +13,54 @@
 namespace nnet
 {
 
-static inline std::list<iobserver*> aud_intersects (
-	const std::vector<inode*>& srcs, OPCODE opcode)
+static inline inode* find_audience (inode* node, OPCODE opcode, 
+	std::function<bool(functor*)> is_target)
 {
-	std::list<iobserver*> auds;
-	for (auto audpair : srcs[0]->get_audience())
+	AUDMAP_T audmap = node->get_audience();
+	for (auto audpair : audmap)
 	{
-		functor* icon = dynamic_cast<functor*>(audpair.first);
-		if (icon && opcode == icon->get_opcode())
+		functor* aud = dynamic_cast<functor*>(audpair.first);
+		if (aud && opcode == aud->get_opcode() && is_target(aud))
 		{
-			auds.push_back(audpair.first);
+			return aud;
 		}
 	}
-	// get intersection of all source audiences
-	for (size_t i = 1; i < srcs.size(); i++)
-	{
-		AUDMAP_T inner = srcs[i]->get_audience();
-		auto it = auds.begin();
-		while (it != auds.end())
-		{
-			if (inner.end() == inner.find(*it))
-			{
-				auto er = it;
-				++it;
-				auds.erase(er);
-			}
-			else
-			{
-				++it;
-			}
-		}
-	}
-	return auds;
+	return nullptr;
 }
 
 inode* single_parent (inode* src, OPCODE opcode)
 {
-	AUDMAP_T auds = src->get_audience();
-	for (auto audpair : auds)
+	return find_audience(src, opcode, 
+	[](functor* arg)
 	{
-		if (functor* aud = dynamic_cast<functor*>(audpair.first))
-		{
-			std::vector<inode*> args = aud->get_arguments();
-			if (args.size() == 1 && opcode == aud->get_opcode())
-			{
-				return aud;
-			}
-		}
-	}
-	return nullptr;
+		return 1 == arg->get_arguments().size();
+	});
 }
 
 inode* ordered_parent (std::vector<inode*> srcs, OPCODE opcode)
 {
-	// assert srcs.size() > 0
-	auto auds = aud_intersects(srcs, opcode);
-	for (iobserver* o : auds)
+	// assert(srcs.size() > 0);
+	return find_audience(srcs[0], opcode, 
+	[&](functor* arg)
 	{
-		functor* aud = dynamic_cast<functor*>(o);
-		if (aud && std::equal(srcs.begin(), srcs.end(), 
-			aud->get_arguments().begin()))
-		{
-			return aud;
-		}
-	}
-	return nullptr;
+		std::vector<inode*> args = arg->get_arguments();
+		return std::equal(srcs.begin(), srcs.end(), 
+			args.begin(), args.end());
+	});
 }
 
 inode* unordered_parent (std::vector<inode*> srcs, OPCODE opcode)
 {
-	// assert srcs.size() > 0
-	auto auds = aud_intersects(srcs, opcode);
-	for (iobserver* o : auds)
+	// assert(srcs.size() > 1);
+	std::unordered_set<inode*> srcset(srcs.begin(), srcs.end());
+	return find_audience(srcs[0], opcode, 
+	[&](functor* arg)
 	{
-		if (functor* aud = dynamic_cast<functor*>(o))
-		{
-			return aud;
-		}
-	}
-	return nullptr;
+		std::vector<inode*> args = arg->get_arguments();
+		std::unordered_set<inode*> argset(args.begin(), args.end());
+		return std::equal(srcset.begin(), srcset.end(), 
+			argset.begin(), argset.end());
+	});
 }
 
 }

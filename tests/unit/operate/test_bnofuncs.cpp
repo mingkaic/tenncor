@@ -65,6 +65,11 @@ static void binarNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC 
 	nnet::varptr res2 = op({leaf0, leaf1});
 	EXPECT_EQ(res.get(), res2.get());
 
+	nnet::varptr samo = op({leaf0, leaf0});
+	nnet::varptr samo2 = op({leaf0, leaf0});
+	EXPECT_EQ(samo.get(), samo2.get());
+	EXPECT_NE(res.get(), samo2.get());
+
 	// test behavior B001
 	exz({leaf0, leaf1});
 
