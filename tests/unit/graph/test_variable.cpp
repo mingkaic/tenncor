@@ -65,11 +65,9 @@ TEST_F(VARIABLE, Constructor_D000)
 	EXPECT_FALSE(rten->has_data()) <<
 		"tensor rten has data";
 	nnet::tensorshape gotshape = cten->get_shape();
-	EXPECT_TRUE(tensorshape_equal(shape, gotshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
+	EXPECT_SHAPEQ(shape,  gotshape);
 	nnet::tensorshape gotshape2 = rten->get_shape();
-	EXPECT_TRUE(tensorshape_equal(shape, gotshape2)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape2);
+	EXPECT_SHAPEQ(shape,  gotshape2);
 
 	cinitv.initialize();
 	rinitv.initialize();
@@ -260,10 +258,8 @@ TEST_F(VARIABLE, Derive_D004)
 	ASSERT_NE(nullptr, wten2);
 	nnet::tensorshape gotshape = wten->get_shape();
 	nnet::tensorshape gotshape2 = wten2->get_shape();
-	ASSERT_TRUE(tensorshape_equal(shape, gotshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
-	ASSERT_TRUE(tensorshape_equal(shape, gotshape2)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape2);
+	ASSERT_SHAPEQ(shape, gotshape);
+	ASSERT_SHAPEQ(shape, gotshape2);
 	std::vector<double> wunvec = nnet::expose<double>(ewun);
 	std::vector<double> wunvec2 = nnet::expose<double>(ewun2);
 	size_t n = shape.n_elems();

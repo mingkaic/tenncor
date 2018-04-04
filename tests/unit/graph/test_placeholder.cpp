@@ -49,8 +49,7 @@ TEST_F(PLACEHOLDER, Constructor_E000)
 	EXPECT_FALSE(ten->has_data()) <<
 		"tensor ten has data";
 	nnet::tensorshape gotshape = ten->get_shape();
-	EXPECT_TRUE(tensorshape_equal(shape, gotshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
+	EXPECT_SHAPEQ(shape,  gotshape);
 
 	place = raw;
 	EXPECT_TRUE(ten->has_data()) <<
@@ -277,8 +276,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 	EXPECT_FALSE(ten->has_data()) <<
 		"tensor ten has data";
 	nnet::tensorshape gotshape = ten->get_shape();
-	EXPECT_TRUE(tensorshape_equal(part, gotshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
+	EXPECT_SHAPEQ(part,  gotshape);
 	place = raw;
 	EXPECT_TRUE(ten->has_data()) <<
 		"tensor ten does not have data";
@@ -303,8 +301,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 	EXPECT_TRUE(ten2->has_data()) <<
 		"tensor ten2 does not have data";
 	gotshape = ten2->get_shape();
-	EXPECT_TRUE(tensorshape_equal(shape, gotshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &gotshape);
+	EXPECT_SHAPEQ(shape,  gotshape);
 
 	size_t n_updates2 = testify::mocker::get_usage(&mconn2, "update2");
 	optional<std::string> updateval2 = testify::mocker::get_value(&mconn2, "update2");

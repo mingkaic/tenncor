@@ -126,9 +126,9 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 				tenncor::variable_proto var_src;
 				node_src.detail().UnpackTo(&var_src);
 				variable* var = make_variable(var_src, label);
-				var->data_ep_ = var_src.locpos();
+				var->varpos_ = var_src.varpos();
 				data_eps_.erase(var->get_uid());
-				data_eps_[var->data_ep_] = var;
+				data_eps_[var->varpos_] = var;
 				node_dest = var;
 			}
 			break;
@@ -233,7 +233,7 @@ void graph::unregister_node (inode* node)
 		adjmap_.erase(it);
 		if (variable* var = dynamic_cast<variable*>(node))
 		{
-			data_eps_.erase(var->data_ep_);
+			data_eps_.erase(var->varpos_);
 		}
 	}
 }

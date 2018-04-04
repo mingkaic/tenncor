@@ -79,7 +79,7 @@ void variable::serialize_detail (google::protobuf::Any* proto_dest) const
 	src_->serialize(src_dest);
 	var.mutable_source()->Swap(&src_dest);
 
-	var.set_locpos(data_ep_);
+	var.set_varpos(varpos_);
 
 	proto_dest->PackFrom(var);
 }

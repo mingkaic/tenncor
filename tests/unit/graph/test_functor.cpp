@@ -286,8 +286,7 @@ TEST_F(FUNCTOR, GetTensor_F003)
 	EXPECT_TRUE(ten->has_data()) <<
 		"functor tensor does not have data";
 	nnet::tensorshape gotshape = ten->get_shape();
-	ASSERT_TRUE(tensorshape_equal(shape2, gotshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape2, &gotshape);
+	ASSERT_SHAPEQ(shape2, gotshape);
 	std::vector<double> dvec = nnet::expose<double>(func);
 	EXPECT_EQ(gotshape.n_elems(), dvec.size());
 	for (double d : dvec)
@@ -328,8 +327,7 @@ TEST_F(FUNCTOR, Derive_F004)
 	nnet::tensor* wten = ewun->get_tensor();
 	ASSERT_NE(nullptr, wten);
 	nnet::tensorshape gotshape = wten->get_shape();
-	ASSERT_TRUE(tensorshape_equal(shape2, gotshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape2, &gotshape);
+	ASSERT_SHAPEQ(shape2, gotshape);
 	std::vector<double> wunvec = nnet::expose<double>(ewun);
 	size_t n = shape2.n_elems();
 	for (size_t i = 0; i < n; ++i)

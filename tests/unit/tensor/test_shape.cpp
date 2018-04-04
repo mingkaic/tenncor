@@ -54,37 +54,22 @@ TEST_F(TENSORSHAPE, Copy_A000)
 	pcom_assign = pcom_ts;
 	com_assign = com_ts;
 
-	EXPECT_TRUE(tensorshape_equal(incom_cpy, incom_ts)) <<
-		testutils::sprintf("expecting shape %p, got shape %p", &incom_cpy, &incom_ts);
-	EXPECT_TRUE(tensorshape_equal(pcom_cpy, pcom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_cpy, &pcom_ts);
-	EXPECT_TRUE(tensorshape_equal(com_cpy, com_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_cpy, &com_ts);
-	EXPECT_TRUE(tensorshape_equal(incom_assign, incom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &incom_assign, &incom_ts);
-	EXPECT_TRUE(tensorshape_equal(pcom_assign, pcom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_assign, &pcom_ts);
-	EXPECT_TRUE(tensorshape_equal(com_assign, com_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_assign, &com_ts);
-	EXPECT_TRUE(tensorshape_equal(incom_vassign, incom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &incom_vassign, &incom_ts);
-	EXPECT_TRUE(tensorshape_equal(pcom_vassign, pcom_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_vassign, &pcom_ts);
-	EXPECT_TRUE(tensorshape_equal(com_vassign, com_ts)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_vassign, &com_ts);
+	EXPECT_SHAPEQ(incom_cpy,  incom_ts);
+	EXPECT_SHAPEQ(pcom_cpy,  pcom_ts);
+	EXPECT_SHAPEQ(com_cpy,  com_ts);
+	EXPECT_SHAPEQ(incom_assign,  incom_ts);
+	EXPECT_SHAPEQ(pcom_assign,  pcom_ts);
+	EXPECT_SHAPEQ(com_assign,  com_ts);
+	EXPECT_SHAPEQ(incom_vassign,  incom_ts);
+	EXPECT_SHAPEQ(pcom_vassign,  pcom_ts);
+	EXPECT_SHAPEQ(com_vassign,  com_ts);
 
-	EXPECT_TRUE(tensorshape_equal(pcom_cpy, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_cpy, &pds);
-	EXPECT_TRUE(tensorshape_equal(com_cpy, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_cpy, &cds);
-	EXPECT_TRUE(tensorshape_equal(pcom_assign, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_assign, &pds);
-	EXPECT_TRUE(tensorshape_equal(com_assign, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_assign, &cds);
-	EXPECT_TRUE(tensorshape_equal(pcom_vassign, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_vassign, &pds);
-	ASSERT_TRUE(tensorshape_equal(com_vassign, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_vassign, &cds);
+	EXPECT_SHAPEQ(pcom_cpy,  pds);
+	EXPECT_SHAPEQ(com_cpy,  cds);
+	EXPECT_SHAPEQ(pcom_assign,  pds);
+	EXPECT_SHAPEQ(com_assign,  cds);
+	EXPECT_SHAPEQ(pcom_vassign,  pds);
+	ASSERT_SHAPEQ(com_vassign, cds);
 }
 
 
@@ -105,26 +90,18 @@ TEST_F(TENSORSHAPE, Move_A000)
 	nnet::tensorshape pcom_mv(std::move(pcom_ts));
 	nnet::tensorshape com_mv(std::move(com_ts));
 
-	EXPECT_TRUE(tensorshape_equal(pcom_mv, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_mv, &pds);
-	EXPECT_TRUE(tensorshape_equal(com_mv, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_mv, &cds);
-	EXPECT_TRUE(tensorshape_equal(pcom_ts, empty)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_ts, &empty);
-	EXPECT_TRUE(tensorshape_equal(com_ts, empty)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_ts, &empty);
+	EXPECT_SHAPEQ(pcom_mv,  pds);
+	EXPECT_SHAPEQ(com_mv,  cds);
+	EXPECT_SHAPEQ(pcom_ts,  empty);
+	EXPECT_SHAPEQ(com_ts,  empty);
 
 	pcom_assign = std::move(pcom_mv);
 	com_assign = std::move(com_mv);
 
-	EXPECT_TRUE(tensorshape_equal(pcom_assign, pds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_assign, &pds);
-	EXPECT_TRUE(tensorshape_equal(com_assign, cds)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_assign, &cds);
-	EXPECT_TRUE(tensorshape_equal(pcom_mv, empty)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &pcom_mv, &empty);
-	ASSERT_TRUE(tensorshape_equal(com_mv, empty)) << 
-		testutils::sprintf("expecting shape %p, got shape %p", &com_mv, &empty);
+	EXPECT_SHAPEQ(pcom_assign,  pds);
+	EXPECT_SHAPEQ(com_assign,  cds);
+	EXPECT_SHAPEQ(pcom_mv,  empty);
+	ASSERT_SHAPEQ(com_mv, empty);
 }
 
 
@@ -430,8 +407,7 @@ TEST_F(TENSORSHAPE, Merge_A010)
 	{
 		nnet::tensorshape merged = incom_ts.merge_with(*shape);
 		// we're expecting merged shape to be the same as input shape
-		EXPECT_TRUE(tensorshape_equal(merged, *shape)) << 
-			testutils::sprintf("expecting %p, got %p", &merged, shape);
+		EXPECT_SHAPEQ(merged,  *shape); 
 	}
 
 	// partially defined merging with
@@ -456,10 +432,8 @@ TEST_F(TENSORSHAPE, Merge_A010)
 
 	nnet::tensorshape merged = fake_ps.merge_with(com_ts);
 	nnet::tensorshape merged2 = fake_ps2.merge_with(com2_ts);
-	EXPECT_TRUE(tensorshape_equal(merged, com_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &merged, &com_ts);
-	EXPECT_TRUE(tensorshape_equal(merged2, com2_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &merged2, &com2_ts);
+	EXPECT_SHAPEQ(merged,  com_ts);
+	EXPECT_SHAPEQ(merged2,  com2_ts);
 	EXPECT_TRUE(tensorshape_equal(
 		incompatible.merge_with(com_ts), incompatible));
 	EXPECT_TRUE(tensorshape_equal(
@@ -525,14 +499,10 @@ TEST_F(TENSORSHAPE, Concat_A012)
 	nnet::tensorshape none2 = com_ts.concatenate(incom_ts);
 	nnet::tensorshape none3 = incom_ts.concatenate(pcom_ts);
 	nnet::tensorshape none4 = pcom_ts.concatenate(incom_ts);
-	EXPECT_TRUE(tensorshape_equal(none1, com_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &none1, &com_ts);
-	EXPECT_TRUE(tensorshape_equal(none2, com_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &none2, &com_ts);
-	EXPECT_TRUE(tensorshape_equal(none3, pcom_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &none3, &pcom_ts);
-	EXPECT_TRUE(tensorshape_equal(none4, pcom_ts)) << 
-		testutils::sprintf("expecting %p, got %p", &none4, &pcom_ts);
+	EXPECT_SHAPEQ(none1,  com_ts);
+	EXPECT_SHAPEQ(none2,  com_ts);
+	EXPECT_SHAPEQ(none3,  pcom_ts);
+	EXPECT_SHAPEQ(none4,  pcom_ts);
 
 	std::vector<size_t> straight = com_ts.concatenate(pcom_ts).as_list();
 	std::vector<size_t> backcat = pcom_ts.concatenate(com_ts).as_list();

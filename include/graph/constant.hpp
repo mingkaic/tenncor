@@ -119,7 +119,8 @@ varptr constant::get (T scalar)
 {
 	static_assert(std::is_arithmetic<T>::value,
 		"constant must be arithmetic value");
-	size_t key = ((size_t) get_type<T>()) ^ std::hash<std::string>()((char*) &scalar);
+	std::string generic((char*) &scalar, sizeof(T));
+	size_t key = ((size_t) get_type<T>()) ^ std::hash<std::string>()(generic);
 	constant* cons = find_const(key);
 	if (nullptr == cons)
 	{

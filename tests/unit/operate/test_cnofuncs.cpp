@@ -63,10 +63,8 @@ static void unaryAggTest (testutils::fuzz_test* fuzzer,
 
 	nnet::tensorshape ress = ten->get_shape();
 	nnet::tensorshape resscs = tenscalar->get_shape();
-	EXPECT_TRUE(tensorshape_equal(scalshape, ress)) <<
-		sprintf("expect %p, got %p", &scalshape, &ress);
-	EXPECT_TRUE(tensorshape_equal(outshape, resscs)) <<
-		sprintf("expect %p, got %p", &outshape, &resscs);
+	EXPECT_SHAPEQ(scalshape,  ress);
+	EXPECT_SHAPEQ(outshape,  resscs);
 
 	std::vector<double> data = nnet::expose<double>(res);
 	std::vector<double> datascalar = nnet::expose<double>(resscalar);
@@ -213,10 +211,8 @@ TEST_F(CNOFUNCS, Transpose_B0xxAndB143)
 
 	nnet::tensorshape ress = ten->get_shape();
 	nnet::tensorshape resperms = tenperm->get_shape();
-	EXPECT_TRUE(tensorshape_equal(outshape, ress)) <<
-		sprintf("expect %p, got %p", &outshape, &ress);
-	EXPECT_TRUE(tensorshape_equal(permshape, resperms)) <<
-		sprintf("expect %p, got %p", &permshape, &resperms);
+	EXPECT_SHAPEQ(outshape,  ress);
+	EXPECT_SHAPEQ(permshape,  resperms);
 
 	std::vector<double> data = nnet::expose<double>(res);
 	std::vector<double> dataperm = nnet::expose<double>(tenperm);
@@ -271,8 +267,7 @@ TEST_F(CNOFUNCS, Flip_B0xxAndB144)
 	nnet::varptr res = nnet::flip(leaf, dimleaf);
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensorshape ress = ten->get_shape();
-	EXPECT_TRUE(tensorshape_equal(shape, ress)) <<
-		sprintf("expect %p, got %p", &shape, &ress);
+	EXPECT_SHAPEQ(shape,  ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
 
@@ -321,8 +316,7 @@ TEST_F(CNOFUNCS, ExpandB0xxAndB145)
 	nnet::varptr res = nnet::expand(leaf, multleaf, dimleaf);
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensorshape ress = ten->get_shape();
-	EXPECT_TRUE(tensorshape_equal(outshape, ress)) <<
-		sprintf("expect %p, got %p", &outshape, &ress);
+	EXPECT_SHAPEQ(outshape,  ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
 
@@ -371,8 +365,7 @@ TEST_F(CNOFUNCS, Nelems_B0xxAndB146)
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensorshape ress = ten->get_shape();
 	nnet::tensorshape outshape(std::vector<size_t>{1});
-	EXPECT_TRUE(tensorshape_equal(outshape, ress)) <<
-		sprintf("expect %p, got %p", &outshape, &ress);
+	EXPECT_SHAPEQ(outshape,  ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
 
@@ -404,8 +397,7 @@ TEST_F(CNOFUNCS, Ndims_B0xxAndB147)
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensorshape ress = ten->get_shape();
 	nnet::tensorshape outshape(std::vector<size_t>{1});
-	EXPECT_TRUE(tensorshape_equal(outshape, ress)) <<
-		sprintf("expect %p, got %p", &outshape, &ress);
+	EXPECT_SHAPEQ(outshape,  ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
 
@@ -440,8 +432,7 @@ TEST_F(CNOFUNCS, Clip_B0xxAndB148)
 	nnet::varptr res = nnet::clip(leaf, mi, ma);
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensorshape ress = ten->get_shape();
-	EXPECT_TRUE(tensorshape_equal(shape, ress)) <<
-		sprintf("expect %p, got %p", &shape, &ress);
+	EXPECT_SHAPEQ(shape,  ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
 
@@ -494,8 +485,7 @@ TEST_F(CNOFUNCS, ClipNorm_B0xxAndB149)
 	nnet::varptr res = nnet::clip_norm(leaf, cap);
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensorshape ress = ten->get_shape();
-	EXPECT_TRUE(tensorshape_equal(shape, ress)) <<
-		sprintf("expect %p, got %p", &shape, &ress);
+	EXPECT_SHAPEQ(shape,  ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
 

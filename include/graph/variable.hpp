@@ -71,6 +71,11 @@ public:
 
 	virtual void serialize_detail (google::protobuf::Any* proto_dest) const;
 
+	std::string get_varpos (void) const
+	{
+		return varpos_;
+	}
+
 
 
 	// >>>>>>>>>>>> MUTATORS <<<<<<<<<<<<
@@ -94,7 +99,7 @@ public:
 	bool assign (inode* input, bool notify = true); // todo: make assign notify a reference function<> of notifier, let caller call update
 
 protected:
-	std::string data_ep_ = this->get_uid();
+	std::string varpos_ = this->get_uid();
 
 	friend class graph;
 

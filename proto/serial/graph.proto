@@ -87,7 +87,7 @@ message place_proto
 
 message variable_proto
 {
-	string locpos = 1;
+	string varpos = 1;
 	source_proto source = 2;
 	repeated uint64 allowed_shape = 3;
 }

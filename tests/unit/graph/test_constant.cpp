@@ -74,12 +74,9 @@ TEST_F(CONSTANT, Constructor_C000)
 	nnet::tensorshape cshape = res2->get_tensor()->get_shape();
 	nnet::tensorshape cshape2 = res3->get_tensor()->get_shape();
 	nnet::tensorshape cshape3 = res4->get_tensor()->get_shape();
-	EXPECT_TRUE(tensorshape_equal(shape, cshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &cshape);
-	EXPECT_TRUE(tensorshape_equal(shape, cshape2)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &cshape2);
-	EXPECT_TRUE(tensorshape_equal(shape, cshape3)) <<
-		testutils::sprintf("expecting shape %p, got %p", &shape, &cshape3);
+	EXPECT_SHAPEQ(shape, cshape);
+	EXPECT_SHAPEQ(shape,  cshape2);
+	EXPECT_SHAPEQ(shape,  cshape3);
 }
 
 

@@ -42,8 +42,7 @@ TEST_F(TENSOR, Constructor_C000)
 	nnet::tensor ten(exshape);
 	nnet::tensorshape gotshape = ten.get_shape();
 
-	EXPECT_TRUE(tensorshape_equal(exshape, gotshape)) <<
-		testutils::sprintf("expecting %p, got %p", &exshape, &gotshape);
+	EXPECT_SHAPEQ(exshape,  gotshape);
 	EXPECT_EQ(nnet::BAD_T, ten.get_type());
 }
 
@@ -94,8 +93,7 @@ TEST_F(TENSOR, ReadFrom_C001)
 	comp.write_to(dest, idx);
 	EXPECT_STREQ(src.uuid_.c_str(), dest.result_.c_str());
 	EXPECT_EQ(src.type_, dest.type_);
-	EXPECT_TRUE(tensorshape_equal(cshape, dest.shape_)) <<
-		testutils::sprintf("expect shape %p, got %p", &cshape, &dest.shape_);
+	EXPECT_SHAPEQ(cshape,  dest.shape_);
 
 	dsetdata = testify::mocker::get_usage(&dest, "set_data");
 	optional<std::string> dsetval = testify::mocker::get_value(&dest, "set_data");
@@ -218,8 +216,7 @@ TEST_F(TENSOR, Copy_C002)
 	ASSERT_TRUE(tensorshape_equal(pshape, expectp)) <<
 		testutils::sprintf("expecting shape %p, got %p", &pshape, &expectp);
 	nnet::tensorshape expectc2 = compcpy.get_shape();
-	EXPECT_TRUE(tensorshape_equal(cshape, expectc2)) <<
-		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc2);
+	EXPECT_SHAPEQ(cshape,  expectc2);
 
 	mock_data_dest undefcpy_dest;
 	mock_data_dest compcpy_dest;
@@ -328,8 +325,8 @@ TEST_F(TENSOR, Move_C002)
 	ASSERT_TRUE(tensorshape_equal(pshape, expectp)) <<
 		testutils::sprintf("expecting shape %p, got %p", &pshape, &expectp);
 	nnet::tensorshape expectc2 = compmv.get_shape();
-	EXPECT_TRUE(tensorshape_equal(cshape, expectc2)) <<
-		testutils::sprintf("expecting shape %p, got %p", &cshape, &expectc2);
+	EXPECT_SHAPEQ(cshape,  expectc2);
+	
 
 	mock_data_dest undefmv_dest;
 	mock_data_dest compmv_dest;
@@ -421,8 +418,7 @@ TEST_F(TENSOR, ShapeAccessor_C003)
 	size_t exzero = ten.n_elems();
 	size_t prank = ten.rank();
 	std::vector<size_t> plist = ten.dims();
-	EXPECT_TRUE(tensorshape_equal(pshape, expshape)) <<
-		testutils::sprintf("expect shape %p, got %p", &pshape, &expshape);
+	EXPECT_SHAPEQ(pshape,  expshape);
 	EXPECT_EQ(0, exzero);
 	EXPECT_EQ(pshape.rank(), prank);
 	EXPECT_TRUE(std::equal(pds.begin(), pds.end(), plist.begin())) <<
@@ -436,8 +432,7 @@ TEST_F(TENSOR, ShapeAccessor_C003)
 	size_t celems = ten.n_elems();
 	size_t crank = ten.rank();
 	std::vector<size_t> clist = ten.dims();
-	EXPECT_TRUE(tensorshape_equal(cshape, excshape)) <<
-		testutils::sprintf("expect shape %p, got %p", &cshape, &excshape);
+	EXPECT_SHAPEQ(cshape,  excshape);
 	EXPECT_EQ(cshape.n_elems(), celems);
 	EXPECT_EQ(cshape.rank(), crank);
 	EXPECT_TRUE(std::equal(cds.begin(), cds.end(), clist.begin())) <<
@@ -706,8 +701,7 @@ TEST_F(TENSOR, GuessShape_C007)
 	optional<nnet::tensorshape> cres = comp.guess_shape(exactdata);
 	ASSERT_TRUE((bool)cres) <<
 		testutils::sprintf("shape %p failed to guess nelems=%d", &cshape, exactdata);
-	EXPECT_TRUE(tensorshape_equal(cshape, *cres)) <<
-		testutils::sprintf("expecting shape %p, got %p", &cshape, &*cres);
+	EXPECT_SHAPEQ(cshape,  *cres);
 	EXPECT_FALSE((bool)comp.guess_shape(lowerdata)) <<
 		testutils::sprintf("shape %p guessed nelems=%d", &cshape, lowerdata);
 	EXPECT_FALSE((bool)comp.guess_shape(upperdata)) <<
@@ -746,10 +740,8 @@ TEST_F(TENSOR, GuessShape_C007)
 		testutils::sprintf("shape %p failed to guess nelems=%d", &pshape, exactdata2);
 	ASSERT_TRUE((bool)pres2) <<
 		testutils::sprintf("shape %p failed to guess nelems=%d", &pshape, moddata);
-	EXPECT_TRUE(tensorshape_equal(pmod, *pres)) <<
-		testutils::sprintf("expecting shape %p, got %p", &pmod, &*pres);
-	EXPECT_TRUE(tensorshape_equal(pshape2, *pres2)) <<
-		testutils::sprintf("expecting shape %p, got %p", &pshape2, &*pres2);
+	EXPECT_SHAPEQ(pmod,  *pres);
+	EXPECT_SHAPEQ(pshape2,  *pres2);
 	EXPECT_FALSE((bool)pcom.guess_shape(lowerdata2)) <<
 		testutils::sprintf("shape %p guessed nelems=%d", &pshape, lowerdata2);
 	EXPECT_FALSE((bool)pcom.guess_shape(upperdata2)) <<
@@ -904,24 +896,21 @@ TEST_F(TENSOR, Clear_C010)
 	ASSERT_FALSE(ten.has_data()) <<
 		testutils::sprintf("ten w/ shape %p initialized with data", &pshape);
 	nnet::tensorshape tshape = ten.get_shape();
-	EXPECT_TRUE(tensorshape_equal(pshape, tshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &pshape, &tshape);
+	EXPECT_SHAPEQ(pshape,  tshape);
 	EXPECT_EQ(nnet::BAD_T, ten.get_type());
 
 	ten.read_from(src, cshape);
 	ASSERT_TRUE(ten.has_data()) <<
 		testutils::sprintf("ten read with shape %p has no data", &cshape);
 	tshape = ten.get_shape();
-	EXPECT_TRUE(tensorshape_equal(cshape, tshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &cshape, &tshape);
+	EXPECT_SHAPEQ(cshape,  tshape);
 	EXPECT_EQ(src.type_, ten.get_type());
 
 	ten.clear();
 	ASSERT_FALSE(ten.has_data()) << 
 		testutils::sprintf("cleared ten w/ allowed shape %p has data", &pshape);
 	tshape = ten.get_shape();
-	EXPECT_TRUE(tensorshape_equal(pshape, tshape)) <<
-		testutils::sprintf("expecting shape %p, got %p", &pshape, &tshape);
+	EXPECT_SHAPEQ(pshape,  tshape);
 	EXPECT_EQ(nnet::BAD_T, ten.get_type());
 }
 
@@ -979,12 +968,9 @@ TEST_F(TENSOR, SetShape_C011)
 	nnet::tensorshape res_cshape = comp.get_shape();
 	nnet::tensorshape res_pshape = pcom.get_shape();
 
-	EXPECT_TRUE(tensorshape_equal(pshape, res_ushape)) <<
-		testutils::sprintf("expect shape %p, got %p", &pshape, &res_ushape);
-	EXPECT_TRUE(tensorshape_equal(eshape, res_cshape)) <<
-		testutils::sprintf("expect shape %p, got %p", &cshape, &res_cshape);
-	EXPECT_TRUE(tensorshape_equal(cshape, res_pshape)) <<
-		testutils::sprintf("expect shape %p, got %p", &eshape, &res_pshape);
+	EXPECT_SHAPEQ(pshape,  res_ushape);
+	EXPECT_SHAPEQ(eshape,  res_cshape);
+	EXPECT_SHAPEQ(cshape,  res_pshape);
 
 	// clear data on set_shape
 	undef2.set_shape(ishape);
@@ -1001,12 +987,9 @@ TEST_F(TENSOR, SetShape_C011)
 	nnet::tensorshape res_ushape2 = undef2.get_shape();
 	nnet::tensorshape res_cshape2 = comp2.get_shape();
 	nnet::tensorshape res_pshape2 = pcom2.get_shape();
-	EXPECT_TRUE(tensorshape_equal(ishape, res_ushape2)) <<
-		testutils::sprintf("expect shape %p, got %p", &ishape, &res_ushape2);
-	EXPECT_TRUE(tensorshape_equal(ishape, res_cshape2)) <<
-		testutils::sprintf("expect shape %p, got %p", &ishape, &res_cshape2);
-	EXPECT_TRUE(tensorshape_equal(ishape, res_pshape2)) <<
-		testutils::sprintf("expect shape %p, got %p", &ishape, &res_pshape2);
+	EXPECT_SHAPEQ(ishape,  res_ushape2);
+	EXPECT_SHAPEQ(ishape,  res_cshape2);
+	EXPECT_SHAPEQ(ishape,  res_pshape2);
 }
 
 
@@ -1066,10 +1049,8 @@ TEST_F(TENSOR, Proto_C012)
 
 	nnet::tensorshape goten = ten.get_shape();
 	nnet::tensorshape gotc = comp2.get_shape();
-	EXPECT_TRUE(tensorshape_equal(cshape, goten)) <<
-		testutils::sprintf("expect shape %p, got %p", &cshape, &goten);
-	EXPECT_TRUE(tensorshape_equal(cshape, gotc)) <<
-		testutils::sprintf("expect shape %p, got %p", &cshape, &gotc);
+	EXPECT_SHAPEQ(cshape,  goten);
+	EXPECT_SHAPEQ(cshape,  gotc);
 
 	// rewrite data
 	ASSERT_TRUE(comp3.serialize(proto)) <<
@@ -1086,10 +1067,8 @@ TEST_F(TENSOR, Proto_C012)
 
 	EXPECT_STREQ(src3.uuid_.c_str(), c3str.substr(0, src3.uuid_.size()).c_str());
 	EXPECT_EQ(src3.type_, c3type);
-	EXPECT_TRUE(tensorshape_equal(pshape3, c3allow)) <<
-		testutils::sprintf("expect shape %p, got %p", &pshape3, &c3allow);
-	EXPECT_TRUE(tensorshape_equal(cshape3, c3alloc)) <<
-		testutils::sprintf("expect shape %p, got %p", &cshape3, &c3alloc);
+	EXPECT_SHAPEQ(pshape3,  c3allow);
+	EXPECT_SHAPEQ(cshape3,  c3alloc);
 }
 
 
