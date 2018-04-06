@@ -100,7 +100,8 @@ struct const_init final : public data_src
 		source_dst.clear_settings();
 		source_dst.set_src(CSRC_T);
 		source_dst.set_dtype(type_);
-		source_dst.add_settings(&value_[0], value_.size());
+		serialize_data(source_dst.mutable_settings(), 
+			(void*) value_.c_str(), type_, 1);
 	}
 
 private:
@@ -150,8 +151,9 @@ struct r_uniform_init final : public data_src
 		source_dst.clear_settings();
 		source_dst.set_src(USRC_T);
 		source_dst.set_dtype(type_);
-		source_dst.add_settings(&min_[0], min_.size());
-		source_dst.add_settings(&max_[0], max_.size());
+		std::string settings = min_ + max_;
+		serialize_data(source_dst.mutable_settings(), 
+			(void*) settings.c_str(), type_, 2);
 	}
 
 private:
@@ -203,8 +205,9 @@ struct r_normal_init final : public data_src
 		source_dst.clear_settings();
 		source_dst.set_src(NSRC_T);
 		source_dst.set_dtype(type_);
-		source_dst.add_settings(&mean_[0], mean_.size());
-		source_dst.add_settings(&stdev_[0], stdev_.size());
+		std::string settings = mean_ + stdev_;
+		serialize_data(source_dst.mutable_settings(), 
+			(void*) settings.c_str(), type_, 2);
 	}
 
 private:

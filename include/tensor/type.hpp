@@ -153,7 +153,7 @@ void serialize_data (google::protobuf::Any* dest,
 	void* ptr, TENS_TYPE type, size_t n);
 
 std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
-	TENS_TYPE type);
+	TENS_TYPE type, size_t* n = nullptr);
 
 }
 
