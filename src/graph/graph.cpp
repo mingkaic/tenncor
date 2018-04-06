@@ -68,22 +68,25 @@ static inline variable* make_variable (tenncor::variable_proto var_src, std::str
 {
 	const tenncor::source_proto& source_src = var_src.source();
 	nnet::SOURCE_TYPE src_type = source_src.src();
+	TENS_TYPE dtype = source_src.dtype();
 	std::shared_ptr<data_src> src;
+	std::shared_ptr<void> settings = deserialize_data(source_src.settings(), dtype);
+	unsigned short bsize = type_size(dtype);
 	switch (src_type)
 	{
 		case CSRC_T:
 			src = std::make_shared<const_init>(
-				source_src.settings(0), source_src.dtype());
+				std::string((char*) settings.get(), bsize), dtype);
 		break;
 		case USRC_T:
 			src = std::make_shared<r_uniform_init>(
-				source_src.settings(0), source_src.settings(1),
-				source_src.dtype());
+				std::string((char*) settings.get(), bsize), 
+				std::string((char*) settings.get() + bsize, bsize), dtype);
 		break;
 		case NSRC_T:
-			src = std::make_shared<r_normal_init>(
-				source_src.settings(0), source_src.settings(1),
-				source_src.dtype());
+			src = std::make_shared<r_uniform_init>(
+				std::string((char*) settings.get(), bsize), 
+				std::string((char*) settings.get() + bsize, bsize), dtype);
 		break;
 		default:
 			throw std::exception(); // unsupported data source

@@ -12,6 +12,7 @@
  */
 
 #include "include/utils/error.hpp"
+#include "include/utils/shared_ptr.hpp"
 
 #pragma once
 #ifndef TENNCOR_TENS_TYPE_HPP
@@ -147,6 +148,12 @@ std::vector<OT> type_convert (void* ptr, size_t n, TENS_TYPE itype)
 }
 
 std::string type_convert (void* ptr, size_t n, TENS_TYPE otype, TENS_TYPE itype);
+
+void serialize_data (google::protobuf::Any* dest, 
+	void* ptr, TENS_TYPE type, size_t n);
+
+std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
+	TENS_TYPE type);
 
 }
 

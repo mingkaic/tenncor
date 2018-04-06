@@ -1,9 +1,13 @@
+GTEST_REPEAT := 50
+
 COMMON_BZL_FLAGS := --test_output=all --cache_test_results=no \
 	--action_env="GTEST_SHUFFLE=1" --action_env="GTEST_BREAK_ON_FAILURE=1"
 
+REP_BZL_FLAG := --action_env="GTEST_REPEAT=$(GTEST_REPEAT)"
+
 MEMCHECK_BZL_FLAG := --run_under="valgrind"
 
-COVERAGE_BZL_FLAG := --instrumentation_filter=  --spawn_strategy=standalone
+COVERAGE_BZL_FLAG := --instrumentation_filter= --spawn_strategy=standalone
 
 TEST := bazel test $(COMMON_BZL_FLAGS)
 
@@ -42,13 +46,13 @@ operatememcheck:
 unittest: tensortest graphtest operatetest
 
 tensortest:
-	$(TEST) //tests/unit:test_tensor
+	$(TEST) $(REP_BZL_FLAG) //tests/unit:test_tensor
 
 graphtest:
-	$(TEST) //tests/unit:test_graph
+	$(TEST) $(REP_BZL_FLAG) //tests/unit:test_graph
 
 operatetest:
-	$(TEST) //tests/unit:test_operate
+	$(TEST) $(REP_BZL_FLAG) //tests/unit:test_operate
 
 
 

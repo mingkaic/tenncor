@@ -79,8 +79,15 @@ TEST_F(GRAPH, SerialConst_G001)
 	}
 
 	// overwrite check
-	EXPECT_EQ(proto_src2.type(), proto_src3.type());
-	EXPECT_STREQ(proto_src2.data().c_str(), proto_src3.data().c_str());
+	TENS_TYPE p2type = proto_src2.type();
+	TENS_TYPE p3type = proto_src3.type();
+	EXPECT_EQ(p2type, p3type);
+	std::shared_ptr<void> c2data = nnet::deserialize_data(proto_src2.data(), p2type);
+	std::shared_ptr<void> c3data = nnet::deserialize_data(proto_src3.data(), p3type);
+	size_t nb = n * sizeof(double);
+	std::string c2str((char*) c2data.get(), nb);
+	std::string c3str((char*) c3data.get(), nb);
+	EXPECT_STREQ(c2str.c_str(), c3str.c_str());
 
 	auto low2 = proto_src2.allowed_shape();
 	auto loc2 = proto_src2.alloced_shape();
@@ -188,21 +195,23 @@ TEST_F(GRAPH, SerialVar_G003)
 	tenncor::source_proto csrc = var_src.source();
 	tenncor::source_proto rsrc = var_src2.source();
 
-	std::string csetting = csrc.settings(0);
-	double* gotc = (double*) &csetting[0];
+	TENS_TYPE rctype = csrc.dtype();
+	std::shared_ptr<void> csptr = nnet::deserialize_data(csrc.settings(), rctype);
+	double* gotc = (double*) csptr.get();
 	EXPECT_EQ(c, *gotc);
 	EXPECT_EQ(nnet::CSRC_T, csrc.src());
-	EXPECT_EQ(nnet::DOUBLE, csrc.dtype());
+	EXPECT_EQ(nnet::DOUBLE, rctype);
 
-	ASSERT_EQ(2, rsrc.settings_size());
-	std::string minsetting = rsrc.settings(0);
-	std::string maxsetting = rsrc.settings(1);
-	double* gotmin = (double*) &minsetting[0];
-	double* gotmax = (double*) &maxsetting[0];
+	size_t nsettings;
+	TENS_TYPE rrtype = rsrc.dtype();
+	std::shared_ptr<void> rsptr = nnet::deserialize_data(rsrc.settings(), rrtype, &nsettings);
+	ASSERT_EQ(2, nsettings);
+	double* gotmin = (double*) rsptr.get();
+	double* gotmax = (double*) ((char*) rsptr.get() + nnet::type_size(rctype));
 	EXPECT_EQ(min, *gotmin);
 	EXPECT_EQ(max, *gotmax);
 	EXPECT_EQ(nnet::USRC_T, rsrc.src());
-	EXPECT_EQ(nnet::DOUBLE, rsrc.dtype());
+	EXPECT_EQ(nnet::DOUBLE, rrtype);
 
 	auto vec = var_src.allowed_shape();
 	auto vec2 = var_src.allowed_shape();
@@ -225,9 +234,10 @@ TEST_F(GRAPH, SerialVar_G003)
 
 	tenncor::source_proto vsrc = var_src3.source();
 
-	std::string csetting2 = csrc.settings(0);
-	double* gotc2 = (double*) &csetting2[0];
-	EXPECT_EQ(c, *gotc2);
+	TENS_TYPE rvtype = vsrc.dtype();
+	std::shared_ptr<void> vsptr = nnet::deserialize_data(vsrc.settings(), rvtype);
+	double* gotv = (double*) vsptr.get();
+	EXPECT_EQ(c, *gotv);
 	EXPECT_EQ(nnet::CSRC_T, vsrc.src());
 	EXPECT_EQ(nnet::DOUBLE, vsrc.dtype());
 

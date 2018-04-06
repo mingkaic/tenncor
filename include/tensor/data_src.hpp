@@ -15,7 +15,6 @@
 
 #include "proto/serial/graph.pb.h"
 
-#include "include/utils/shared_ptr.hpp"
 #include "include/tensor/tensorshape.hpp"
 #include "include/tensor/type.hpp"
 #include "include/operate/data_op.hpp"

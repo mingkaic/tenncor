@@ -58,6 +58,11 @@ message node_proto
 	}
 	node_t type = 1;
 	string label = 2;
+	// takes messages:
+	// variable_proto for type == VARIABLE
+	// place_proto for type == PLACEHOLDER
+	// tensor_proto for type == CONSTANT
+	// functor_proto for type == FUNCTOR
 	google.protobuf.Any detail = 3;
 }
 
@@ -71,7 +76,9 @@ message source_proto
 	}
 	source_t src = 1;
 	tensor_t dtype = 2;
-	repeated bytes settings = 3;
+	// takes messages double_arr, ..., 
+	// uint64_arr depending on dtype
+	google.protobuf.Any settings = 3;
 }
 
 message functor_proto

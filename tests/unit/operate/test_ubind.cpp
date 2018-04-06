@@ -18,9 +18,6 @@
 #ifndef DISABLE_UBIND_TEST
 
 
-static const double ERR_THRESH = 0.05; // 5% error
-
-
 class UBIND : public testutils::fuzz_test {};
 
 

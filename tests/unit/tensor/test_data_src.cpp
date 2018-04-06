@@ -39,8 +39,11 @@ expect = std::string(n_snippet * sizeof(TYPE), ' '); \
 std::memcpy(&expect[0], &vec[0], n_snippet * sizeof(TYPE));
 
 #define RMINMAX(TYPE, FUZZ_F) \
-RSCALAR(TYPE, min, minstr, FUZZ_F) \
-TYPE max = FUZZ_F(1, "ci_max_" + std::string(#TYPE), {min + 1, std::numeric_limits<TYPE>::max()})[0]; \
+TYPE min = FUZZ_F(1, "ui_min_" + std::string(#TYPE), \
+	{std::numeric_limits<TYPE>::min(), std::numeric_limits<TYPE>::max() / 2})[0]; \
+minstr = std::string(sizeof(TYPE), ' '); \
+std::memcpy(&minstr[0], &min, sizeof(TYPE)); \
+TYPE max = FUZZ_F(1, "ui_max_" + std::string(#TYPE), {min + 1, std::numeric_limits<TYPE>::max()})[0]; \
 maxstr = std::string(sizeof(TYPE), ' '); \
 std::memcpy(&maxstr[0], &max, sizeof(TYPE));
 
@@ -840,16 +843,33 @@ TEST_F(DATA_SRC, Serial_D004)
 	EXPECT_EQ(nnet::CSRC_T, v_src.src());
 	EXPECT_EQ(nnet::USRC_T, u_src.src());
 	EXPECT_EQ(nnet::NSRC_T, n_src.src());
-	EXPECT_EQ(ctype, c_src.dtype());
-	EXPECT_EQ(vtype, v_src.dtype());
-	EXPECT_EQ(utype, u_src.dtype());
-	EXPECT_EQ(ntype, n_src.dtype());
-	EXPECT_STREQ(csetting.c_str(), c_src.settings(0).c_str());
-	EXPECT_STREQ(vsetting.c_str(), v_src.settings(0).c_str());
-	EXPECT_STREQ(minstr.c_str(), u_src.settings(0).c_str());
-	EXPECT_STREQ(maxstr.c_str(), u_src.settings(1).c_str());
-	EXPECT_STREQ(meanstr.c_str(), n_src.settings(0).c_str());
-	EXPECT_STREQ(stdevstr.c_str(), n_src.settings(1).c_str());
+	TENS_TYPE rctype = c_src.dtype();
+	TENS_TYPE rvtype = v_src.dtype();
+	TENS_TYPE rutype = u_src.dtype();
+	TENS_TYPE rntype = n_src.dtype();
+	EXPECT_EQ(ctype, rctype);
+	EXPECT_EQ(vtype, rvtype);
+	EXPECT_EQ(utype, rutype);
+	EXPECT_EQ(ntype, rntype);
+
+	unsigned short cbsize = nnet::type_size(rctype);
+	unsigned short vbsize = nnet::type_size(rvtype);
+	unsigned short ubsize = nnet::type_size(rutype);
+	unsigned short nbsize = nnet::type_size(rntype);
+	std::shared_ptr<void> csptr = nnet::deserialize_data(
+		c_src.settings(), rctype);
+	std::shared_ptr<void> vsptr = nnet::deserialize_data(
+		v_src.settings(), rvtype);
+	std::shared_ptr<void> usptr = nnet::deserialize_data(
+		u_src.settings(), rutype);
+	std::shared_ptr<void> nsptr = nnet::deserialize_data(
+		n_src.settings(), rntype);
+	EXPECT_STREQ(csetting.c_str(), std::string((char*) csptr.get(), cbsize).c_str());
+	EXPECT_STREQ(vsetting.c_str(), std::string((char*) vsptr.get(), vbsize).c_str());
+	EXPECT_STREQ(minstr.c_str(), std::string((char*) usptr.get(), ubsize).c_str());
+	EXPECT_STREQ(maxstr.c_str(), std::string((char*) usptr.get() + ubsize, ubsize).c_str());
+	EXPECT_STREQ(meanstr.c_str(), std::string((char*) nsptr.get(), nbsize).c_str());
+	EXPECT_STREQ(stdevstr.c_str(), std::string((char*) nsptr.get() + nbsize, nbsize).c_str());
 
 	// rewrite data
 	ci.serialize(v_src);
@@ -861,16 +881,29 @@ TEST_F(DATA_SRC, Serial_D004)
 	EXPECT_EQ(nnet::CSRC_T, u_src.src());
 	EXPECT_EQ(nnet::USRC_T, n_src.src());
 	EXPECT_EQ(nnet::NSRC_T, c_src.src());
-	EXPECT_EQ(ctype, v_src.dtype());
-	EXPECT_EQ(vtype, u_src.dtype());
-	EXPECT_EQ(utype, n_src.dtype());
-	EXPECT_EQ(ntype, c_src.dtype());
-	EXPECT_STREQ(csetting.c_str(), v_src.settings(0).c_str());
-	EXPECT_STREQ(vsetting.c_str(), u_src.settings(0).c_str());
-	EXPECT_STREQ(minstr.c_str(), n_src.settings(0).c_str());
-	EXPECT_STREQ(maxstr.c_str(), n_src.settings(1).c_str());
-	EXPECT_STREQ(meanstr.c_str(), c_src.settings(0).c_str());
-	EXPECT_STREQ(stdevstr.c_str(), c_src.settings(1).c_str());
+	rvtype = v_src.dtype();
+	rutype = u_src.dtype();
+	rntype = n_src.dtype();
+	rctype = c_src.dtype();
+	EXPECT_EQ(ctype, rvtype);
+	EXPECT_EQ(vtype, rutype);
+	EXPECT_EQ(utype, rntype);
+	EXPECT_EQ(ntype, rctype);
+
+	vbsize = nnet::type_size(rvtype);
+	ubsize = nnet::type_size(rutype);
+	nbsize = nnet::type_size(rntype);
+	cbsize = nnet::type_size(rctype);
+	vsptr = nnet::deserialize_data(v_src.settings(), rvtype);
+	usptr = nnet::deserialize_data(u_src.settings(), rutype);
+	nsptr = nnet::deserialize_data(n_src.settings(), rntype);
+	csptr = nnet::deserialize_data(c_src.settings(), rctype);
+	EXPECT_STREQ(csetting.c_str(), std::string((char*) vsptr.get(), vbsize).c_str());
+	EXPECT_STREQ(vsetting.c_str(), std::string((char*) usptr.get(), ubsize).c_str());
+	EXPECT_STREQ(minstr.c_str(), std::string((char*) nsptr.get(), nbsize).c_str());
+	EXPECT_STREQ(maxstr.c_str(), std::string((char*) nsptr.get() + nbsize, nbsize).c_str());
+	EXPECT_STREQ(meanstr.c_str(), std::string((char*) csptr.get(), cbsize).c_str());
+	EXPECT_STREQ(stdevstr.c_str(), std::string((char*) csptr.get() + cbsize, cbsize).c_str());
 }
 
 

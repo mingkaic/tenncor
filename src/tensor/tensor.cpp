@@ -55,12 +55,12 @@ tensor& tensor::operator = (tensor&& other)
 
 bool tensor::serialize (tenncor::tensor_proto& proto_dest) const
 {
-	if (false == has_data()) return false;
+	if (false == has_data() && BAD_T == dtype_) return false;
 	proto_dest.set_type(dtype_);
 
-	// copy bytes
-	size_t nb = total_bytes();
-	proto_dest.set_data(raw_data_.get(), nb);
+	// copy data
+	serialize_data(proto_dest.mutable_data(), 
+		raw_data_.get(), dtype_, n_elems());
 
 	std::vector<size_t> allowed = allowed_shape_.as_list();
 	std::vector<size_t> alloced = alloced_shape_.as_list();
@@ -85,13 +85,8 @@ void tensor::from_proto (const tenncor::tensor_proto& proto_src)
 
 	clear();
 	alloced_shape_ = temp_shape;
-	std::string protostr = proto_src.data();
-
-	// copy data over from tensor_proto
-	raw_data_ = nnutils::make_svoid(protostr.size());
-	memcpy(raw_data_.get(), (void*) protostr.c_str(), protostr.size());
-
 	dtype_ = proto_src.type();
+	raw_data_ = deserialize_data(proto_src.data(), dtype_);
 }
 
 

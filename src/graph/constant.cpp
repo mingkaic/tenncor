@@ -63,8 +63,10 @@ varptr constant::get (tenncor::tensor_proto& proto_src, std::string label)
 	constant* cons;
 	if (proto_src.alloced_shape_size() == 1 && proto_src.alloced_shape(0) == 1)
 	{
-		std::string data = proto_src.data();
-		size_t key = ((size_t) proto_src.type()) ^ std::hash<std::string>()(data);
+		TENS_TYPE type = proto_src.type();
+		std::shared_ptr<void> data = deserialize_data(proto_src.data(), type);
+		size_t key = ((size_t) type) ^ std::hash<std::string>()(
+			std::string((char*) data.get(), type_size(type)));
 		cons = find_const(key);
 		if (nullptr == cons)
 		{

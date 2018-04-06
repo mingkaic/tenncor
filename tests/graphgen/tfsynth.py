@@ -3,13 +3,15 @@
 import random
 import string
 
-import nodes
+import graphast.nodes as nodes
 
+# file 'savedata.py' defined at runtime
 tfScript = '''import tensorflow as tf
-import serialsynth
+from savedata import profile
 
-{0}
+prof = profile("{0}")
 {1}
+{2}
 
 init = tf.global_variables_initializer()
 
@@ -17,46 +19,46 @@ with tf.Session() as sess:
 	sess.run(init)
 
 	# scalar results
-	for label, scalar in {2}:
-		serialsynth.save("scalar", label, scalar)
+	for label, scalar in {3}:
+		prof.save("scalar", label, scalar)
 
 	# variable results
-	for label, input in {3}:
+	for label, input in {4}:
 		res = sess.run(input)
 		# save to protobuf
-		serialsynth.save("variable", label, res)
+		prof.save("variable", label, res)
 
 	# gradient results
-	for label, gradres in {4}:
+	for label, gradres in {5}:
 		res = sess.run(gradres)
-		serialsynth.save("gradient", label, res)
+		prof.save("gradient", label, res)
 
 	# output result
-	serialsynth.save("output", "{5}", sess.run({5}))
+	prof.save("output", "{6}", sess.run({6}))
 '''
 
-def randVariable(n):
+def _randVariable(n):
 	postfix = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n-1))
 	return random.choice(string.ascii_uppercase + string.ascii_lowercase) + postfix
 
 # bottom up traverse tree
-def traverse(root, declare):
+def _traverse(root, declare):
 	lines = []
 	deps = []
 	if isinstance(root, nodes.node):
 		for arg in root.args:
-			depid, sublines = traverse(arg, declare)
+			depid, sublines = _traverse(arg, declare)
 			lines.extend(sublines)
 			deps.append(depid)
 	id, decl = declare(root, deps)
 	lines.append(decl)
 	return id, lines
 
-def synth(root):
+def tfsynth(root):
 	leaves = []
 	scalars = []
 	def declare(node, deps):
-		id = randVariable(16)
+		id = _randVariable(16)
 		if isinstance(node, nodes.node):
 			decl = "tf.%s(%s)" % (node.name, ', '.join(deps))
 		elif isinstance(node, nodes.leaf):
@@ -69,7 +71,7 @@ def synth(root):
 			raise Exception("supportede node type")
 		return id, "%s = %s" % (id, decl)
 
-	id, lines = traverse(root, declare)
+	id, lines = _traverse(root, declare)
 	grads = ["grad_" + leaf for leaf in leaves]
 	tfGrad = "%s = tf.gradients(%s, [%s])" % \
 		(', '.join(grads), id, ', '.join(leaves))
@@ -78,7 +80,9 @@ def synth(root):
 	leafMap = ', '.join([ '"{0}": {0}'.format(leaf) for leaf in leaves])
 	gradMap = ', '.join([ '"{0}": {0}'.format(grad) for grad in grads])
 
+	graphid = _randVariable(32)
 	script = tfScript.format(
+		graphid,
 		'\n'.join(lines),
 		tfGrad,  
 		"{" + scalarMap + "}",

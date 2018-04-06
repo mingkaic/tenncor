@@ -18,8 +18,8 @@ filegroup(
         "//:monitor_csv_cpp",
         "//:monitor_rpc_hpp",
         "//:monitor_rpc_cpp",
-        "////proto:srcs",
-        "////tests:srcs",
+        "//proto:srcs",
+        "//tests:srcs",
     ],
 )
 
