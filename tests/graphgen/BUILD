@@ -5,8 +5,13 @@ package(
 licenses(["notice"])
 
 py_library(
-    name = "protogen",
-    srcs = [ "protogen.py" ],
+    name = "tenncorgen",
+    srcs = [
+        "save_ast.py",
+        "save_data.py", 
+        "tfgen.py",
+        "utils.py",
+    ],
     imports = [ "." ],
     deps = [
         "//proto:tenncor_serial_py_proto",
@@ -16,22 +21,15 @@ py_library(
 
 py_test(
     name = "test",
-    srcs = [ "protogen_test.py", "test.py" ],
-    deps = [ ":protogen" ]
+    srcs = [
+        "save_ast_test.py", 
+        "test.py",
+    ],
+    deps = [ ":tenncorgen" ]
 )
 
 py_binary(
-    name = "rsynth",
-    srcs = [ "rsynth.py", "tfsynth.py" ],
-    deps = [
-        "@com_github_mingkaic_testify//py:graphast",
-    ],
-)
-
-py_binary(
-    name = "dsynth",
-    srcs = [ "dsynth.py", "tfsynth.py" ],
-    deps = [
-        "@com_github_mingkaic_testify//py:graphast",
-    ],
+    name = "protogen",
+    srcs = [ "protogen.py" ],
+    deps = [ ":tenncorgen" ],
 )

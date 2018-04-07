@@ -83,7 +83,7 @@ message source_proto
 
 message functor_proto
 {
-	uint32 opcode = 1;
+	opcode_t opcode = 1;
 	repeated string args = 2;
 }
 

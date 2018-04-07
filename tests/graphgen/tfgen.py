@@ -4,10 +4,11 @@ import random
 import string
 
 import graphast.nodes as nodes
+from tenncorgen.utils import traverse, randVariable
 
 # file 'savedata.py' defined at runtime
 tfScript = '''import tensorflow as tf
-from savedata import profile
+from tenncorgen.save_data import profile
 
 prof = profile("{0}")
 {1}
@@ -37,30 +38,20 @@ with tf.Session() as sess:
 	prof.save("output", "{6}", sess.run({6}))
 '''
 
-def _randVariable(n):
-	postfix = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n-1))
-	return random.choice(string.ascii_uppercase + string.ascii_lowercase) + postfix
-
-# bottom up traverse tree
-def _traverse(root, declare):
-	lines = []
-	deps = []
-	if isinstance(root, nodes.node):
-		for arg in root.args:
-			depid, sublines = _traverse(arg, declare)
-			lines.extend(sublines)
-			deps.append(depid)
-	id, decl = declare(root, deps)
-	lines.append(decl)
-	return id, lines
-
-def tfsynth(root):
+def tf_gen(root, graphid, createOrder):
 	leaves = []
 	scalars = []
+	i = 0
 	def declare(node, deps):
-		id = _randVariable(16)
+		id = createOrder[i]
+		i = i + 1
 		if isinstance(node, nodes.node):
-			decl = "tf.%s(%s)" % (node.name, ', '.join(deps))
+			funcname = tolower(node.name)
+			if "rmax" == funcname:
+				funcname = "reduce_max"
+			elif "rsum" == funcname:
+				funcname = "reduce_sum"
+			decl = "tf.%s(%s)" % (funcname, ', '.join(deps))
 		elif isinstance(node, nodes.leaf):
 			decl = "tf.Variable(tf.random_uniform(%s))" % str(node.shape)
 			leaves.append(id)
@@ -68,10 +59,10 @@ def tfsynth(root):
 			decl = node.value
 			scalars.append(id)
 		else:
-			raise Exception("supportede node type")
+			raise Exception("unsupported node type")
 		return id, "%s = %s" % (id, decl)
 
-	id, lines = _traverse(root, declare)
+	id, lines = traverse(root, declare)
 	grads = ["grad_" + leaf for leaf in leaves]
 	tfGrad = "%s = tf.gradients(%s, [%s])" % \
 		(', '.join(grads), id, ', '.join(leaves))
@@ -80,7 +71,6 @@ def tfsynth(root):
 	leafMap = ', '.join([ '"{0}": {0}'.format(leaf) for leaf in leaves])
 	gradMap = ', '.join([ '"{0}": {0}'.format(grad) for grad in grads])
 
-	graphid = _randVariable(32)
 	script = tfScript.format(
 		graphid,
 		'\n'.join(lines),

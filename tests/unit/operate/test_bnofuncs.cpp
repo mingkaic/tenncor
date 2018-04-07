@@ -46,8 +46,8 @@ using ZCHECK = std::function<void(std::vector<nnet::varptr>)>;
 
 
 static void binarNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC op,
-    SVARFUNC<double> op_s1, SVARFUNC<double> op_s2, SCALARS<double> expect, ZCHECK exz, 
-    std::pair<double,double> limits = {-1, 1})
+	SVARFUNC<double> op_s1, SVARFUNC<double> op_s2, SCALARS<double> expect, ZCHECK exz, 
+	std::pair<double,double> limits = {-1, 1})
 {
 	nnet::tensorshape shape = random_def_shape(fuzzer);
 	size_t n = shape.n_elems();
@@ -94,7 +94,7 @@ static void binarNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC 
 
 static void binarIntNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC op,
 	SVARFUNC<uint64_t> op_s1, SVARFUNC<uint64_t> op_s2, SCALARS<uint64_t> expect, ZCHECK exz, 
-    std::pair<uint64_t,uint64_t> limits = {0, 12})
+	std::pair<uint64_t,uint64_t> limits = {0, 12})
 {
 	nnet::tensorshape shape = random_def_shape(fuzzer);
 	size_t n = shape.n_elems();
@@ -234,13 +234,13 @@ TEST_F(BNOFUNCS, Pow_B0xxAndB120)
 		return nnet::pow(a, b);
 	},
 	[](double a, double b) { return std::pow(a, b); },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
-        EXPECT_EQ(nnet::constant::get<double>(1).get(), nnet::pow(args[0], nul).get());
-        EXPECT_EQ(nullptr, nnet::pow(nul, args[1]).get());
-        EXPECT_EQ(nnet::constant::get<double>(1).get(), nnet::pow(nul, nul).get());
-    }, {0, 7});
+		EXPECT_EQ(nnet::constant::get<double>(1).get(), nnet::pow(args[0], nul).get());
+		EXPECT_EQ(nullptr, nnet::pow(nul, args[1]).get());
+		EXPECT_EQ(nnet::constant::get<double>(1).get(), nnet::pow(nul, nul).get());
+	}, {0, 7});
 }
 
 
@@ -253,20 +253,20 @@ TEST_F(BNOFUNCS, Add_B0xxAndB121)
 	},
 	[](nnet::varptr b, double a)
 	{
-        return a + b;
+		return a + b;
 	},
 	[](nnet::varptr a, double b)
 	{
-        return a + b;
+		return a + b;
 	},
 	[](double a, double b) { return a + b; },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
-        EXPECT_EQ(args[0].get(), (args[0] + nul).get());
-        EXPECT_EQ(args[1].get(), (nul + args[1]).get());
-        EXPECT_EQ(nullptr, (nul + nul).get());
-    });
+		EXPECT_EQ(args[0].get(), (args[0] + nul).get());
+		EXPECT_EQ(args[1].get(), (nul + args[1]).get());
+		EXPECT_EQ(nullptr, (nul + nul).get());
+	});
 }
 
 
@@ -279,20 +279,20 @@ TEST_F(BNOFUNCS, Sub_B0xxAndB122)
 	},
 	[](nnet::varptr b, double a)
 	{
-        return a - b;
+		return a - b;
 	},
 	[](nnet::varptr a, double b)
 	{
-        return a - b;
+		return a - b;
 	},
 	[](double a, double b) { return a - b; },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
-        EXPECT_EQ(args[0].get(), (args[0] - nul).get());
-        EXPECT_EQ((-args[1]).get(), (nul - args[1]).get());
-        EXPECT_EQ(nullptr, (nul - nul).get());
-    });
+		EXPECT_EQ(args[0].get(), (args[0] - nul).get());
+		EXPECT_EQ((-args[1]).get(), (nul - args[1]).get());
+		EXPECT_EQ(nullptr, (nul - nul).get());
+	});
 }
 
 
@@ -305,20 +305,20 @@ TEST_F(BNOFUNCS, Mul_B0xxAndB123)
 	},
 	[](nnet::varptr b, double a)
 	{
-        return a * b;
+		return a * b;
 	},
 	[](nnet::varptr a, double b)
 	{
-        return a * b;
+		return a * b;
 	},
 	[](double a, double b) { return a * b; },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
-        EXPECT_EQ(nullptr, (args[0] * nul).get());
-        EXPECT_EQ(nullptr, (nul * args[1]).get());
-        EXPECT_EQ(nullptr, (nul * nul).get());
-    });
+		EXPECT_EQ(nullptr, (args[0] * nul).get());
+		EXPECT_EQ(nullptr, (nul * args[1]).get());
+		EXPECT_EQ(nullptr, (nul * nul).get());
+	});
 }
 
 
@@ -331,20 +331,20 @@ TEST_F(BNOFUNCS, Div_B0xxAndB124)
 	},
 	[](nnet::varptr b, double a)
 	{
-        return a / b;
+		return a / b;
 	},
 	[](nnet::varptr a, double b)
 	{
-        return a / b;
+		return a / b;
 	},
 	[](double a, double b) { return a / b; },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
-        EXPECT_THROW(args[0] / nul, std::logic_error);
-        EXPECT_EQ(nullptr, (nul / args[1]).get());
-        EXPECT_THROW(nul / nul, std::logic_error);
-    });
+		EXPECT_THROW(args[0] / nul, std::logic_error);
+		EXPECT_EQ(nullptr, (nul / args[1]).get());
+		EXPECT_THROW(nul / nul, std::logic_error);
+	});
 }
 
 
@@ -357,20 +357,20 @@ TEST_F(BNOFUNCS, Eq_B0xxAndB125)
 	},
 	[](nnet::varptr b, uint64_t a)
 	{
-        return a == b;
+		return a == b;
 	},
 	[](nnet::varptr a, uint64_t b)
 	{
-        return a == b;
+		return a == b;
 	},
 	[](uint64_t a, uint64_t b) { return a == b; },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
 		EXPECT_THROW(operator == (args[0], nul), std::exception);
 		EXPECT_THROW(operator == (nul, args[1]), std::exception);
-        EXPECT_THROW(operator == (nul, nul), std::exception);
-    });
+		EXPECT_THROW(operator == (nul, nul), std::exception);
+	});
 }
 
 
@@ -383,20 +383,20 @@ TEST_F(BNOFUNCS, Neq_B0xxAndB126)
 	},
 	[](nnet::varptr b, uint64_t a)
 	{
-        return a != b;
+		return a != b;
 	},
 	[](nnet::varptr a, uint64_t b)
 	{
-        return a != b;
+		return a != b;
 	},
 	[](uint64_t a, uint64_t b) { return a != b; },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
 		EXPECT_THROW(operator != (args[0], nul), std::exception);
 		EXPECT_THROW(operator != (nul, args[1]), std::exception);
-        EXPECT_THROW(operator != (nul, nul), std::exception);
-    });
+		EXPECT_THROW(operator != (nul, nul), std::exception);
+	});
 }
 
 
@@ -409,20 +409,20 @@ TEST_F(BNOFUNCS, Gt_B0xxAndB127)
 	},
 	[](nnet::varptr b, uint64_t a)
 	{
-        return a > b;
+		return a > b;
 	},
 	[](nnet::varptr a, uint64_t b)
 	{
-        return a > b;
+		return a > b;
 	},
 	[](uint64_t a, uint64_t b) { return a > b; },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
 		EXPECT_THROW(operator > (args[0], nul), std::exception);
 		EXPECT_THROW(operator > (nul, args[1]), std::exception);
-        EXPECT_THROW(operator > (nul, nul), std::exception);
-    });
+		EXPECT_THROW(operator > (nul, nul), std::exception);
+	});
 }
 
 
@@ -442,13 +442,13 @@ TEST_F(BNOFUNCS, Lt_B0xxAndB128)
 		return a < b;
 	},
 	[](uint64_t a, uint64_t b) { return a < b; },
-    [](std::vector<nnet::varptr> args)
-    {
+	[](std::vector<nnet::varptr> args)
+	{
 		nnet::varptr nul;
 		EXPECT_THROW(operator < (args[0], nul), std::exception);
 		EXPECT_THROW(operator < (nul, args[1]), std::exception);
-        EXPECT_THROW(operator < (nul, nul), std::exception);
-    });
+		EXPECT_THROW(operator < (nul, nul), std::exception);
+	});
 }
 
 

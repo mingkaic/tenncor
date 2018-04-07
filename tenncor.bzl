@@ -6,7 +6,7 @@ def dependencies():
         git_repository(
             name = "com_github_mingkaic_testify",
             remote = "https://github.com/raggledodo/testify",
-            commit = "4f72f76775b0fa5e8305097f555b6fec6599022c",
+            commit = "f6a659fb8326450360637754f71a0806c4b31257",
         )
 
     # protobuf dependency

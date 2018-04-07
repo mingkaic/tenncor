@@ -1,7 +1,8 @@
 GTEST_REPEAT := 50
 
-COMMON_BZL_FLAGS := --test_output=all --cache_test_results=no \
-	--action_env="GTEST_SHUFFLE=1" --action_env="GTEST_BREAK_ON_FAILURE=1"
+COMMON_BZL_FLAGS := --test_output=all --cache_test_results=no
+
+GTEST_FLAGS := --action_env="GTEST_SHUFFLE=1" --action_env="GTEST_BREAK_ON_FAILURE=1"
 
 REP_BZL_FLAG := --action_env="GTEST_REPEAT=$(GTEST_REPEAT)"
 
@@ -10,6 +11,8 @@ MEMCHECK_BZL_FLAG := --run_under="valgrind"
 COVERAGE_BZL_FLAG := --instrumentation_filter= --spawn_strategy=standalone
 
 TEST := bazel test $(COMMON_BZL_FLAGS)
+
+GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(COVERAGE_BZL_FLAG)
 
@@ -33,31 +36,36 @@ operatecover:
 memcheck: tensortest graphtest operatetest
 
 tensormemcheck:
-	$(TEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_tensor
+	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_tensor
 
 graphmemcheck:
-	$(TEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_graph
+	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_graph
 
 operatememcheck:
-	$(TEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_operate
+	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_operate
 
 
 
 unittest: tensortest graphtest operatetest
 
 tensortest:
-	$(TEST) $(REP_BZL_FLAG) //tests/unit:test_tensor
+	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_tensor
 
 graphtest:
-	$(TEST) $(REP_BZL_FLAG) //tests/unit:test_graph
+	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_graph
 
 operatetest:
-	$(TEST) $(REP_BZL_FLAG) //tests/unit:test_operate
+	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_operate
+
+
+
+pytest:
+	$(TEST) //tests/graphgen:test
 
 
 
 accepttest:
-	$(TEST) //tests/regress:test
+	$(GTEST) //tests/regress:test
 
 acceptdata: cleandata
 	python tests/regress/tf_generate/tf_generate.py
