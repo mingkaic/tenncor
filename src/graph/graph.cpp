@@ -15,6 +15,11 @@
 namespace nnet
 {
 
+size_t vphash::operator() (const varptr& vp) const
+{
+	return (size_t) vp.get();
+}
+
 bool graph::has_node (inode* node) const
 {
 	return adjmap_.end() != adjmap_.find(node->get_uid());
@@ -119,7 +124,7 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 	{
 		std::string uid = *it;
 		const tenncor::node_proto& node_src = nmap.at(uid);
-		inode* node_dest;
+		varptr node_dest = nullptr;
 		NODE_TYPE nodetype = node_src.type();
 		std::string label = node_src.label();
 		switch (nodetype)
@@ -156,13 +161,15 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 				auto strs = functor_src.args();
 				std::vector<inode*> args(strs.size());
 				std::transform(strs.begin(), strs.end(), args.begin(),
-				[&](std::string src) -> inode*
+				[&](std::string argid) -> inode*
 				{
-					std::string stored_uid = uid_map[src];
+					std::string stored_uid = uid_map[argid];
 					rootstrs.erase(stored_uid);
-					return this->get_inst(stored_uid);
+					inode* arg = this->get_inst(stored_uid);
+					assert(nullptr != arg);
+					return arg;
 				});
-				node_dest = run_opcode(args, (OPCODE) functor_src.opcode());
+				node_dest = run_opcode(args, functor_src.opcode());
 				node_dest->set_label(label);
 			}
 			break;
@@ -174,18 +181,18 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 		uid_map[uid] = resuid;
 		// register node
 		auto oit = order_.insert(order_.end(), node_dest);
-		adjmap_[uid] = oit;
+		adjmap_[resuid] = oit;
 		// add to leaf set
 		if (nodetype != FUNCTOR_T)
 		{
-			leafset.emplace(std::shared_ptr<inode>(node_dest));
+			leafset.emplace(node_dest);
 		}
 		// add to rootstrs
 		rootstrs.emplace(resuid);
 	}
 }
 
-bool graph::save_data (tenncor::repository_proto& proto_dest) const
+bool graph::save_data (tenncor::data_repo_proto& proto_dest) const
 {
 	auto dmap = proto_dest.mutable_data_map();
 	for (auto eps : data_eps_)
@@ -200,7 +207,7 @@ bool graph::save_data (tenncor::repository_proto& proto_dest) const
 	return true;
 }
 
-void graph::load_data (const tenncor::repository_proto& proto_src)
+void graph::load_data (const tenncor::data_repo_proto& proto_src)
 {
 	auto dmap = proto_src.data_map();
 	for (auto dpair : dmap)

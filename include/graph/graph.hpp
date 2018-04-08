@@ -32,7 +32,12 @@ class varptr;
 
 class variable;
 
-using LEAF_SET = std::unordered_set<std::shared_ptr<inode> >;
+struct vphash
+{
+	size_t operator() (const varptr& vp) const;
+};
+
+using LEAF_SET = std::unordered_set<varptr, vphash>;
 
 using ROOT_STR = std::unordered_set<std::string>;
 
@@ -52,10 +57,19 @@ public:
 		return g;
 	}
 
+	static std::unique_ptr<graph> get_temp (void)
+	{
+		return std::unique_ptr<graph>(new graph());
+	}
+
+	static void replace_global (std::unique_ptr<graph> temp)
+	{
+		get_global() = std::move(*temp);
+	}
+
 	graph (const graph&) = delete;
 	graph (graph&&) = delete;
 	graph& operator = (const graph&) = delete;
-	graph& operator = (graph&&) = delete;
 
 
 
@@ -67,6 +81,11 @@ public:
 
 	inode* get_inst (std::string uid) const;
 
+	std::string get_gid (void) const
+	{
+		return gid_;
+	}
+
 
 
 	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<
@@ -76,14 +95,15 @@ public:
 
 	// generate graph from proto
 	// set leaves and root in respective out sets
+	// overwrites existing graph
 	void register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 		const tenncor::graph_proto& proto_src);
 
 	// serialize data to proto_dest based on current graph position
-	bool save_data (tenncor::repository_proto& proto_dest) const;
+	bool save_data (tenncor::data_repo_proto& proto_dest) const;
 
 	// load data from proto_src to current graph structure
-	void load_data (const tenncor::repository_proto& proto_src);
+	void load_data (const tenncor::data_repo_proto& proto_src);
 
 protected:
 	std::string register_node (inode* node);
@@ -94,6 +114,8 @@ protected:
 
 private:
 	graph (void) = default;
+
+	graph& operator = (graph&&) = default;
 
 	std::string gid_ = nnutils::uuid(this);
 

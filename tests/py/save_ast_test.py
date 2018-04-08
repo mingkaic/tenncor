@@ -1,4 +1,4 @@
-''' Test graphast save '''
+''' Test graphast save_ast utility '''
 
 import unittest
 
@@ -8,7 +8,7 @@ from graphast.nodes import leaf
 from graphast.gen import allOps
 from save_ast import save_ast
 
-class TestProtogen(unittest.TestCase):
+class TestSaveAst(unittest.TestCase):
 	def test_save_ast(self):
 		ops = allOps("structure.yml")
 		for opname in ops:

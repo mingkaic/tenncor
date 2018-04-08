@@ -45,13 +45,14 @@ cc_test(
 )
 
 cc_test(
-    name = "test_all",
-    size = "enormous",
-    srcs = glob([ "**/*.cpp" ]),
+    name = "test_serialize",
+    size = "small",
+    srcs = glob([ "serialize/*.cpp", "main.cpp" ]),
     deps = [
         "//:tenncor",
         "//tests/utils:tenncor_testify",
     ],
+    data = glob([ "samples/**" ]),
     linkstatic = 1,
     copts = [ "-std=c++14" ],
 )

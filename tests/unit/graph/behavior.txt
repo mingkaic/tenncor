@@ -92,11 +92,3 @@ F003 - get_tensor returns owned tensor, before update, get_data() returns nullpt
 		gets tensor once all arguments have data
 F004 - derive returns 1 scalar node if wrt is this,
 		otherwise applies input derivative function
-
-// GRAPH SERIALIZATION
-G000 - graph serialization saves the graph structure and node labels
-G001 - serialized constant saves the data
-G002 - serialized placeholder saves the allowed shape
-G003 - serialized variable saves the varpos_, the data source, and the allowed shape
-G004 - serialized functor saves the opcode, deserialization constructs the same type of operation
-G005 - data serialization and deserialization persists the data in variables

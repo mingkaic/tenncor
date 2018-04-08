@@ -39,7 +39,7 @@ message tensor_proto
 	repeated uint64 alloced_shape = 4;
 }
 
-message repository_proto
+message data_repo_proto
 {
 	map<string, tensor_proto> data_map = 1;
 }

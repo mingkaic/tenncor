@@ -6,11 +6,11 @@ import string
 import graphast.nodes as nodes
 from tenncorgen.utils import traverse, randVariable
 
-# file 'savedata.py' defined at runtime
+# file 'save_data.py' defined at runtime
 tfScript = '''import tensorflow as tf
 from tenncorgen.save_data import profile
 
-prof = profile("{0}")
+prof = profile()
 {1}
 {2}
 
@@ -36,6 +36,8 @@ with tf.Session() as sess:
 
 	# output result
 	prof.save("output", "{6}", sess.run({6}))
+
+prof.serialize("{0}")
 '''
 
 def tf_gen(root, graphid, createOrder):
@@ -46,7 +48,7 @@ def tf_gen(root, graphid, createOrder):
 		id = createOrder[i]
 		i = i + 1
 		if isinstance(node, nodes.node):
-			funcname = tolower(node.name)
+			funcname = node.name.lower()
 			if "rmax" == funcname:
 				funcname = "reduce_max"
 			elif "rsum" == funcname:

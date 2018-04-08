@@ -5,6 +5,7 @@
 #ifndef DISABLE_OPERATE_MODULE_TESTS
 
 #include <algorithm>
+#include <fstream>
 
 #include "gtest/gtest.h"
 
@@ -17,6 +18,7 @@
 #include "graph/constant.hpp"
 #include "graph/variable.hpp"
 #include "graph/placeholder.hpp"
+#include "graph/functor.hpp"
 
 
 #ifndef DISABLE_GRAPH_TEST // compound node functions
@@ -28,12 +30,196 @@ struct GRAPH : public testutils::fuzz_test {};
 using namespace testutils;
 
 
-TEST_F(GRAPH, GraphSerialize_G000)
+const std::string SAMPLE_DIR = "tests/unit/samples";
+
+
+TEST_F(GRAPH, GraphSerialize_A000)
 {
+	std::fstream rgraph(SAMPLE_DIR + "/random.graph",
+		std::ios::in | std::ios::binary);
+	ASSERT_TRUE((bool) rgraph);
+
+	tenncor::graph_proto src;
+	ASSERT_TRUE(src.ParseFromIstream(&rgraph));
+	std::unique_ptr<nnet::graph> temp = nnet::graph::get_temp();
+	nnet::LEAF_SET leaves;
+	nnet::ROOT_STR roots;
+	temp->register_proto(leaves, roots, src);
+	EXPECT_EQ(src.gid(), temp->get_gid());
+
+	EXPECT_EQ(1, roots.size());
+	// check leave set and create order
+
+	tenncor::graph_proto dest;
+	temp->serialize(dest);
+	// expect src and dest are the same
+	EXPECT_EQ(src.gid(), dest.gid());
+	// map old to id to new id
+	std::unordered_map<std::string, std::string> idmap;
+	size_t nnodes = src.create_order_size();
+	std::string srcid, destid;
+	tenncor::node_proto srcnode, destnode;
+	nnet::inode* tempnode;
+	auto srcmap = src.node_map();
+	auto destmap = dest.node_map();
+	ASSERT_EQ(nnodes, dest.create_order_size());
+	for (size_t i = 0; i < nnodes; ++i)
+	{
+		srcid = src.create_order(i);
+		destid = dest.create_order(i);
+		idmap[srcid] = destid;
+		srcnode = srcmap[srcid];
+		destnode = destmap[destid];
+		tempnode = temp->get_inst(destid);
+		ASSERT_NE(nullptr, tempnode);
+
+		// type equal
+		nnet::NODE_TYPE ntype = srcnode.type();
+		ASSERT_EQ(ntype, destnode.type());
+		ASSERT_EQ(ntype, tempnode->node_type());
+
+		// label equal
+		EXPECT_EQ(srcnode.label(), destnode.label());
+		EXPECT_EQ(srcnode.label(), tempnode->get_label());
+
+		auto srcany = srcnode.detail();
+		auto destany = destnode.detail();
+		switch (ntype)
+		{
+			case nnet::PLACEHOLDER_T:
+			{
+				tenncor::place_proto srcplace;
+				tenncor::place_proto destplace;
+				srcany.UnpackTo(&srcplace);
+				destany.UnpackTo(&destplace);
+				nnet::placeholder* tempplace = 
+					dynamic_cast<nnet::placeholder*>(tempnode);
+				ASSERT_NE(nullptr, tempplace);
+				size_t nshape = srcplace.allowed_shape_size();
+				nnet::tensorshape tempshape = tempplace->get_tensor()->get_allowed();
+				ASSERT_EQ(nshape, destplace.allowed_shape_size());
+				ASSERT_EQ(nshape, tempshape.rank());
+				for (size_t j = 0; j < nshape; j++)
+				{
+					EXPECT_EQ(srcplace.allowed_shape(j), destplace.allowed_shape(j));
+					EXPECT_EQ(srcplace.allowed_shape(j), tempshape[j]);
+				}
+			}
+			break;
+			case nnet::CONSTANT_T:
+			{
+				tenncor::tensor_proto srcconst;
+				tenncor::tensor_proto destconst;
+				srcany.UnpackTo(&srcconst);
+				destany.UnpackTo(&destconst);
+				nnet::constant* tempconst = 
+					dynamic_cast<nnet::constant*>(tempnode);
+				ASSERT_NE(nullptr, tempconst);
+				nnet::tensor* tempten = tempconst->get_tensor();
+				nnet::tensorshape tempshape = tempten->get_allowed();
+				nnet::tensorshape tempshape2 = tempten->get_shape();
+		
+				size_t nshape = srcconst.allowed_shape_size();
+				ASSERT_EQ(nshape, destconst.allowed_shape_size());
+				ASSERT_EQ(nshape, tempshape.rank());
+				for (size_t j = 0; j < nshape; j++)
+				{
+					EXPECT_EQ(srcconst.allowed_shape(j), destconst.allowed_shape(j));
+					EXPECT_EQ(srcconst.allowed_shape(j), tempshape[j]);
+				}
+				
+				size_t nshape2 = srcconst.alloced_shape_size();
+				ASSERT_EQ(nshape2, destconst.alloced_shape_size());
+				ASSERT_EQ(nshape2, tempshape2.rank());
+				for (size_t j = 0; j < nshape2; j++)
+				{
+					EXPECT_EQ(srcconst.alloced_shape(j), destconst.alloced_shape(j));
+					EXPECT_EQ(srcconst.alloced_shape(j), tempshape2[j]);
+				}
+
+				TENS_TYPE srctype = srcconst.type();
+				EXPECT_EQ(srctype, destconst.type());
+				EXPECT_EQ(srctype, tempten->get_type());
+				EXPECT_EQ(nnet::INT32, srctype);
+
+				tenncor::int32_arr srcarr;
+				tenncor::int32_arr destarr;
+				srcconst.data().UnpackTo(&srcarr);
+				destconst.data().UnpackTo(&destarr);
+				auto srcfields = srcarr.data();
+				auto destfields = destarr.data();
+				std::vector<int32_t> tempdata = nnet::expose<int32_t>(tempten);
+				size_t nsrcfields = srcfields.size();
+				ASSERT_EQ(nsrcfields, destfields.size());
+				ASSERT_EQ(nsrcfields, tempdata.size());
+				for (size_t j = 0; j < nsrcfields; ++j)
+				{
+					EXPECT_EQ(srcfields[j], destfields[j]);
+					EXPECT_EQ(srcfields[j], tempdata[j]);
+				}
+			}
+			break;
+			case nnet::VARIABLE_T:
+			{
+				tenncor::variable_proto srcvar;
+				tenncor::variable_proto destvar;
+				srcany.UnpackTo(&srcvar);
+				destany.UnpackTo(&destvar);
+				nnet::variable* tempvar = 
+					dynamic_cast<nnet::variable*>(tempnode);
+				ASSERT_NE(nullptr, tempvar);
+
+				EXPECT_EQ(srcvar.varpos(), destvar.varpos());
+				EXPECT_EQ(srcvar.varpos(), tempvar->get_varpos());
+
+				nnet::tensorshape tempshape = tempvar->get_tensor()->get_allowed();
+				size_t nshape = srcvar.allowed_shape_size();
+				ASSERT_EQ(nshape, destvar.allowed_shape_size());
+				ASSERT_EQ(nshape, tempshape.rank());
+				for (size_t j = 0; j < nshape; j++)
+				{
+					EXPECT_EQ(srcvar.allowed_shape(j), destvar.allowed_shape(j));
+					EXPECT_EQ(srcvar.allowed_shape(j), tempshape[j]);
+				}
+
+				EXPECT_EQ(srcvar.source().src(), destvar.source().src());
+			}
+			break;
+			case nnet::FUNCTOR_T:
+			{
+				tenncor::functor_proto srcfunc;
+				tenncor::functor_proto destfunc;
+				srcany.UnpackTo(&srcfunc);
+				destany.UnpackTo(&destfunc);
+				nnet::functor* tempfunc = 
+					dynamic_cast<nnet::functor*>(tempnode);
+				ASSERT_NE(nullptr, tempfunc);
+
+				EXPECT_EQ(srcfunc.opcode(), destfunc.opcode());
+			
+				auto srcargs = srcfunc.args();
+				auto destargs = destfunc.args();
+				auto tempargs = tempfunc->get_arguments();
+
+				size_t nsrcs = srcargs.size();
+				EXPECT_EQ(nsrcs, destargs.size());
+				EXPECT_EQ(nsrcs, tempargs.size());
+				for (size_t j = 0; j < nsrcs; ++j)
+				{
+					std::string mappedid = idmap[srcfunc.args(j)];
+					EXPECT_EQ(mappedid, destfunc.args(j));
+					EXPECT_EQ(mappedid, tempargs[j]->get_uid());
+				}
+			}
+			break;
+			default:
+				ASSERT_FALSE(true) << "unrecognized type " << ntype;
+		}
+	}
 }
 
 
-TEST_F(GRAPH, SerialConst_G001)
+TEST_F(GRAPH, SerialConst_A001)
 {
 	double c = get_double(1, "c")[0];
 
@@ -103,7 +289,7 @@ TEST_F(GRAPH, SerialConst_G001)
 }
 
 
-TEST_F(GRAPH, SerialPlace_G002)
+TEST_F(GRAPH, SerialPlace_A002)
 {
 	std::vector<size_t> strns = get_int(2, "strns", {14, 29});
 	std::string label1 = get_string(strns[0], "label1");
@@ -149,7 +335,7 @@ TEST_F(GRAPH, SerialPlace_G002)
 }
 
 
-TEST_F(GRAPH, SerialVar_G003)
+TEST_F(GRAPH, SerialVar_A003)
 {
 	std::vector<size_t> strns = get_int(3, "strns", {14, 29});
 	std::string label1 = get_string(strns[0], "label1");
@@ -247,12 +433,12 @@ TEST_F(GRAPH, SerialVar_G003)
 }
 
 
-TEST_F(GRAPH, SerialFunc_G004)
+TEST_F(GRAPH, SerialFunc_A004)
 {
 }
 
 
-TEST_F(GRAPH, SerialData_G005)
+TEST_F(GRAPH, SerialData_A005)
 {
 }
 

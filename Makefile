@@ -10,17 +10,19 @@ MEMCHECK_BZL_FLAG := --run_under="valgrind"
 
 COVERAGE_BZL_FLAG := --instrumentation_filter= --spawn_strategy=standalone
 
+RUN := bazel run
+
 TEST := bazel test $(COMMON_BZL_FLAGS)
 
 GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(COVERAGE_BZL_FLAG)
 
-all: unittest accepttest
+all: pytest unittest accepttest
 
 
 
-coverage: tensorcover graphcover operatecover
+coverage: tensorcover graphcover operatecover serializecover
 
 tensorcover:
 	$(COVER) //tests/unit:test_tensor
@@ -31,9 +33,12 @@ graphcover:
 operatecover:
 	$(COVER) //tests/unit:test_operate
 
+serializecover:
+	$(COVER) //tests/unit:test_serialize
 
 
-memcheck: tensortest graphtest operatetest
+
+memcheck: tensortest graphtest operatetest serializememcheck
 
 tensormemcheck:
 	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_tensor
@@ -44,9 +49,12 @@ graphmemcheck:
 operatememcheck:
 	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_operate
 
+serializememcheck:
+	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_serialize
 
 
-unittest: tensortest graphtest operatetest
+
+unittest: tensortest graphtest operatetest serializetest
 
 tensortest:
 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_tensor
@@ -57,10 +65,16 @@ graphtest:
 operatetest:
 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_operate
 
+serializetest:
+	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_serialize
 
+
+
+protodata:
+	$(RUN) //tests/py:protogen -- $(shell pwd)/tests/unit/samples
 
 pytest:
-	$(TEST) //tests/graphgen:test
+	$(TEST) //tests/py:test
 
 
 
@@ -77,3 +91,4 @@ fmt:
 
 cleandata:
 	rm -f tests/regress/samples/*
+	rm -f tests/samples/*

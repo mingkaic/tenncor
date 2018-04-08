@@ -1,0 +1,7 @@
+// GRAPH SERIALIZATION
+A000 - graph serialization saves the graph structure and node labels
+A001 - serialized constant saves the data
+A002 - serialized placeholder saves the allowed shape
+A003 - serialized variable saves the varpos_, the data source, and the allowed shape
+A004 - serialized functor saves the opcode, deserialization constructs the same type of operation
+A005 - data serialization and deserialization persists the data in variables
