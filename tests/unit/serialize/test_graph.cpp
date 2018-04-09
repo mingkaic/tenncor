@@ -27,15 +27,58 @@
 struct GRAPH : public testutils::fuzz_test {};
 
 
+#define OP2STR(OP) vec[OP] = #OP;
+
+
+std::vector<std::string> opcodename = []()
+{
+	std::vector<std::string> vec(_OP_SENTINEL);
+	OP2STR(ABS)
+	OP2STR(NEG)
+	OP2STR(NOT)
+	OP2STR(SIN)
+	OP2STR(COS)
+	OP2STR(TAN)
+	OP2STR(EXP)
+	OP2STR(LOG)
+	OP2STR(SQRT)
+	OP2STR(ROUND)
+	OP2STR(POW)
+	OP2STR(ADD)
+	OP2STR(SUB)
+	OP2STR(MUL)
+	OP2STR(DIV)
+	OP2STR(EQ)
+	OP2STR(NE)
+	OP2STR(GT)
+	OP2STR(LT)
+	OP2STR(BINO)
+	OP2STR(UNIF)
+	OP2STR(NORM)
+	OP2STR(TRANSPOSE)
+	OP2STR(FLIP)
+	OP2STR(ARGMAX)
+	OP2STR(RMAX)
+	OP2STR(RSUM)
+	OP2STR(EXPAND)
+	OP2STR(N_ELEMS)
+	OP2STR(N_DIMS)
+	OP2STR(MATMUL)
+	return vec;
+}();
+
+
 using namespace testutils;
 
 
-const std::string SAMPLE_DIR = "tests/unit/samples";
+const std::string SAMPLE_DIR = "tests/unit/samples/";
+
+const std::string RANDOM_PROTO = "RANDOM.graph";
 
 
 TEST_F(GRAPH, GraphSerialize_A000)
 {
-	std::fstream rgraph(SAMPLE_DIR + "/random.graph",
+	std::fstream rgraph(SAMPLE_DIR + RANDOM_PROTO,
 		std::ios::in | std::ios::binary);
 	ASSERT_TRUE((bool) rgraph);
 
@@ -196,6 +239,7 @@ TEST_F(GRAPH, GraphSerialize_A000)
 				ASSERT_NE(nullptr, tempfunc);
 
 				EXPECT_EQ(srcfunc.opcode(), destfunc.opcode());
+				EXPECT_EQ(srcfunc.opcode(), tempfunc->get_opcode());
 			
 				auto srcargs = srcfunc.args();
 				auto destargs = destfunc.args();
@@ -435,6 +479,44 @@ TEST_F(GRAPH, SerialVar_A003)
 
 TEST_F(GRAPH, SerialFunc_A004)
 {
+	std::string line;
+	std::vector<std::string> ops;
+	std::ifstream registry(SAMPLE_DIR + "registry.txt");
+	if (registry.is_open())
+	{
+		while (!registry.eof())
+		{
+			std::getline(registry, line);
+			if (line.size() > 0 &&
+				0 != line.compare(RANDOM_PROTO))
+			{
+				ops.push_back(line);
+			}
+		}
+		registry.close();
+	}
+	std::uniform_int_distribution<int> selector(0, ops.size() - 1);
+	std::string opfile = ops[selector(nnutils::get_generator())];
+
+	std::fstream rgraph(SAMPLE_DIR + opfile,
+		std::ios::in | std::ios::binary);
+	ASSERT_TRUE((bool) rgraph);
+
+	tenncor::graph_proto src;
+	ASSERT_TRUE(src.ParseFromIstream(&rgraph));
+	std::unique_ptr<nnet::graph> temp = nnet::graph::get_temp();
+	nnet::LEAF_SET leaves;
+	nnet::ROOT_STR roots;
+	temp->register_proto(leaves, roots, src);
+
+	ASSERT_EQ(1, roots.size());
+	nnet::inode* root = temp->get_inst(*(roots.begin()));
+
+	nnet::functor* rfunc = dynamic_cast<nnet::functor*>(root);
+	ASSERT_NE(nullptr, rfunc);
+
+	std::string opstr = opcodename[rfunc->get_opcode()];
+	EXPECT_EQ(0, opfile.find(opstr)) << "expecting " << opstr << " to match " << opfile;
 }
 
 

@@ -76,7 +76,7 @@ def save_ast(root):
 				nodepb.label = 'scalar'
 				_place_process(nodepb)
 		else:
-			raise Exception("supportede node type")
+			raise Exception("supported node type")
 		return id, None
 
 	traverse(root, declare)

@@ -20,7 +20,7 @@ def main():
 	ops = allOps("structure.yml")
 	rgen = generator("structure.yml", MINDEPTH, MAXDEPTH) 
 	root = rgen.generate()
-	ops["random"] = [root]
+	ops["RANDOM"] = [root]
 
 	if not os.path.isdir(outpath):
 		os.makedirs(outpath)
@@ -29,15 +29,15 @@ def main():
 		for opname in ops: 
 			tops = ops[opname]
 			for i in range(len(tops)):
-				fname = opname.lower()
+				fname = opname
 				if i > 0:
 					fname = fname + str(i)
 				fname = fname + GRAPH_EXT
+				root = tops[i]
 				with open(os.path.join(outpath, fname), 'wb') as f:
 					graphpb = save_ast(root)
 					f.write(graphpb.SerializeToString())
 				reg.write(fname + '\n')
 		
-
 if __name__ == "__main__":
 	main()
