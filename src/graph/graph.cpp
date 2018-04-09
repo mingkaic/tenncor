@@ -135,8 +135,6 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 				node_src.detail().UnpackTo(&var_src);
 				variable* var = make_variable(var_src, label);
 				var->varpos_ = var_src.varpos();
-				data_eps_.erase(var->get_uid());
-				data_eps_[var->varpos_] = var;
 				node_dest = var;
 			}
 			break;
@@ -195,14 +193,18 @@ void graph::register_proto (LEAF_SET& leafset, ROOT_STR& rootstrs,
 bool graph::save_data (tenncor::data_repo_proto& proto_dest) const
 {
 	auto dmap = proto_dest.mutable_data_map();
-	for (auto eps : data_eps_)
+	for (inode* node : order_)
 	{
-		tenncor::tensor_proto tens_dest;
-		if (false == eps.second->get_tensor()->serialize(tens_dest))
+		if (variable* var = dynamic_cast<variable*>(node))
 		{
-			return false;
+			tenncor::tensor_proto tens_dest;
+			nnet::tensor* ten = var->get_tensor();
+			if (nullptr == ten || false == ten->serialize(tens_dest))
+			{
+				return false;
+			}
+			dmap->insert({var->get_varpos(), tens_dest});
 		}
-		dmap->insert({eps.first, tens_dest});
 	}
 	return true;
 }
@@ -210,14 +212,16 @@ bool graph::save_data (tenncor::data_repo_proto& proto_dest) const
 void graph::load_data (const tenncor::data_repo_proto& proto_src)
 {
 	auto dmap = proto_src.data_map();
-	for (auto dpair : dmap)
+	for (inode* node : order_)
 	{
-		std::string pos = dpair.first;
-		auto it = data_eps_.find(pos);
-		if (data_eps_.end() != it)
+		if (variable* var = dynamic_cast<variable*>(node))
 		{
-			tensor* tens = it->second->get_tensor();
-			tens->from_proto(dpair.second);
+			auto dpair = dmap.find(var->get_varpos());
+			if (dmap.end() != dpair)
+			{
+				tensor* tens = var->get_tensor();
+				tens->from_proto(dpair->second);
+			}
 		}
 	}
 }
@@ -227,10 +231,6 @@ std::string graph::register_node (inode* node)
 	std::string uid = nnutils::uuid(node);
 	auto it = order_.insert(order_.end(), node);
 	adjmap_[uid] = it;
-	if (variable* var = dynamic_cast<variable*>(node))
-	{
-		data_eps_[var->get_uid()] = var;
-	}
 	return uid;
 }
 
@@ -241,10 +241,6 @@ void graph::unregister_node (inode* node)
 	{
 		order_.erase(it->second);
 		adjmap_.erase(it);
-		if (variable* var = dynamic_cast<variable*>(node))
-		{
-			data_eps_.erase(var->varpos_);
-		}
 	}
 }
 

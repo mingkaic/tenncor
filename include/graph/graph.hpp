@@ -62,7 +62,7 @@ public:
 		return std::unique_ptr<graph>(new graph());
 	}
 
-	static void replace_global (std::unique_ptr<graph> temp)
+	static void replace_global (std::unique_ptr<graph>&& temp)
 	{
 		get_global() = std::move(*temp);
 	}
@@ -118,8 +118,6 @@ private:
 	graph& operator = (graph&&) = default;
 
 	std::string gid_ = nnutils::uuid(this);
-
-	std::unordered_map<std::string,variable*> data_eps_;
 
 	using iter = std::list<inode*>::iterator;
 

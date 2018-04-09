@@ -76,7 +76,7 @@ def tf_gen(root, graphid, createOrder):
 	script = tfScript.format(
 		graphid,
 		'\n'.join(lines),
-		tfGrad,  
+		tfGrad, 
 		"{" + scalarMap + "}",
 		"{" + leafMap + "}",
 		"{" + gradMap + "}",

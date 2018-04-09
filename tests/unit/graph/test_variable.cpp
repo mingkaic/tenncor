@@ -65,9 +65,9 @@ TEST_F(VARIABLE, Constructor_D000)
 	EXPECT_FALSE(rten->has_data()) <<
 		"tensor rten has data";
 	nnet::tensorshape gotshape = cten->get_shape();
-	EXPECT_SHAPEQ(shape,  gotshape);
+	EXPECT_SHAPEQ(shape, gotshape);
 	nnet::tensorshape gotshape2 = rten->get_shape();
-	EXPECT_SHAPEQ(shape,  gotshape2);
+	EXPECT_SHAPEQ(shape, gotshape2);
 
 	cinitv.initialize();
 	rinitv.initialize();

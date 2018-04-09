@@ -734,7 +734,7 @@ TEST_F(BNOFUNCS, Matmul_B0xxAndB132)
 	std::vector<int64_t> output = nnet::expose<int64_t>(res);
 	ASSERT_EQ(nout, output.size());
 	nnet::tensorshape shape = ten->get_shape();
-	EXPECT_SHAPEQ(outshape,  shape);
+	EXPECT_SHAPEQ(outshape, shape);
 
 	// test behavior B000
 	nnet::varptr res2 = nnet::matmul(leaf0, leaf1);

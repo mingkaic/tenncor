@@ -1066,7 +1066,6 @@ TEST_F(TENSOR, Proto_C012)
 		proto.alloced_shape().begin(),
 		proto.alloced_shape().end()));
 
-
 	EXPECT_STREQ(src3.uuid_.c_str(), c3str.c_str());
 	EXPECT_EQ(src3.type_, c3type);
 	EXPECT_SHAPEQ(pshape3,  c3allow);

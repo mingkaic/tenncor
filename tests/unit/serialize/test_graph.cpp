@@ -522,6 +522,61 @@ TEST_F(GRAPH, SerialFunc_A004)
 
 TEST_F(GRAPH, SerialData_A005)
 {
+	{
+		tenncor::data_repo_proto emptypb;
+		std::unique_ptr<nnet::graph> temp = nnet::graph::get_temp();
+		EXPECT_TRUE(temp->save_data(emptypb));
+		EXPECT_EQ(0, emptypb.data_map_size());
+		nnet::graph::replace_global(std::move(temp));
+	}
+	nnet::graph& grf = nnet::graph::get_global();
+	// test save_data
+	{
+		std::vector<size_t> strns = get_int(2, "strns", {14, 29});
+		std::string varlabel = get_string(strns[0], "varlabel");
+		std::vector<size_t> clist = random_def_shape(this);
+		nnet::tensorshape cshape(clist);
+		size_t n = cshape.n_elems();
+		nnet::tensorshape varshape = make_partial(this, clist);
+		double c = get_double(1, "c")[0];
+		tenncor::data_repo_proto uninitvar;
+		tenncor::data_repo_proto initvar;
+		nnet::const_init* csrc = new nnet::const_init();
+		std::shared_ptr<nnet::data_src> src = 
+			std::shared_ptr<nnet::data_src>(csrc);
+		csrc->set<double>(c);
+		nnet::variable* var = new nnet::variable(varshape, src, varlabel);
+		ASSERT_TRUE(grf.has_node(var));
+		EXPECT_FALSE(grf.save_data(uninitvar));
+		EXPECT_EQ(0, uninitvar.data_map_size());
+		ASSERT_TRUE(var->initialize(cshape));
+		EXPECT_TRUE(grf.save_data(initvar));
+		EXPECT_EQ(1, initvar.data_map_size());
+		// verify initvar
+		auto varmap = initvar.data_map();
+		auto it = varmap.find(var->get_varpos());
+		ASSERT_TRUE(varmap.end() != it);
+		tenncor::tensor_proto tp = it->second;
+		nnet::tensorshape allow(std::vector<size_t>(
+			tp.allowed_shape().begin(),
+			tp.allowed_shape().end()));
+		nnet::tensorshape alloc(std::vector<size_t>(
+			tp.alloced_shape().begin(),
+			tp.alloced_shape().end()));
+		EXPECT_SHAPEQ(varshape, allow);
+		EXPECT_SHAPEQ(cshape, alloc);
+		ASSERT_EQ(nnet::DOUBLE, tp.type());
+		tenncor::double_arr dbarr;
+		tp.data().UnpackTo(&dbarr);
+		ASSERT_EQ(n, dbarr.data_size());
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_EQ(c, dbarr.data(i));
+		}
+		delete var;
+		ASSERT_FALSE(grf.has_node(var));
+	}
+	// todo: test load_data
 }
 
 

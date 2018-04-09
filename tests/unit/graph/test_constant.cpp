@@ -75,8 +75,8 @@ TEST_F(CONSTANT, Constructor_C000)
 	nnet::tensorshape cshape2 = res3->get_tensor()->get_shape();
 	nnet::tensorshape cshape3 = res4->get_tensor()->get_shape();
 	EXPECT_SHAPEQ(shape, cshape);
-	EXPECT_SHAPEQ(shape,  cshape2);
-	EXPECT_SHAPEQ(shape,  cshape3);
+	EXPECT_SHAPEQ(shape, cshape2);
+	EXPECT_SHAPEQ(shape, cshape3);
 }
 
 
