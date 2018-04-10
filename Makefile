@@ -18,7 +18,7 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(COVERAGE_BZL_FLAG)
 
-all: pytest unittest accepttest
+all: pytest protodata unittest accepttest
 
 
 

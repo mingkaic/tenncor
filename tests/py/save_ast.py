@@ -53,7 +53,7 @@ def save_ast(root):
 	gid = _randVariable(16)
 	graphpb = graph_pb.graph_proto()
 	graphpb.gid = gid
-	def declare(node, deps):
+	def proc_node(node, deps):
 		id = _randVariable(16)
 		graphpb.create_order.append(id)
 		nodepb = graphpb.node_map[id]
@@ -79,5 +79,5 @@ def save_ast(root):
 			raise Exception("supported node type")
 		return id, None
 
-	traverse(root, declare)
+	traverse(root, proc_node)
 	return graphpb

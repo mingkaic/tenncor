@@ -76,6 +76,8 @@ const std::string SAMPLE_DIR = "tests/unit/samples/";
 const std::string RANDOM_PROTO = "RANDOM.graph";
 
 
+// covers graph get_temp, serialize, register_proto
+// assumes test/unit/sample/*.graph are correct
 TEST_F(GRAPH, GraphSerialize_A000)
 {
 	std::fstream rgraph(SAMPLE_DIR + RANDOM_PROTO,
@@ -263,6 +265,7 @@ TEST_F(GRAPH, GraphSerialize_A000)
 }
 
 
+// covers constant::get(tenncor::tensor_proto&,std::string), serialize_detail, node_type
 TEST_F(GRAPH, SerialConst_A001)
 {
 	double c = get_double(1, "c")[0];
@@ -333,6 +336,7 @@ TEST_F(GRAPH, SerialConst_A001)
 }
 
 
+// covers placeholder serialize_detail, node_type
 TEST_F(GRAPH, SerialPlace_A002)
 {
 	std::vector<size_t> strns = get_int(2, "strns", {14, 29});
@@ -379,6 +383,7 @@ TEST_F(GRAPH, SerialPlace_A002)
 }
 
 
+// covers variable serialize_detail, node_type
 TEST_F(GRAPH, SerialVar_A003)
 {
 	std::vector<size_t> strns = get_int(3, "strns", {14, 29});
@@ -477,6 +482,8 @@ TEST_F(GRAPH, SerialVar_A003)
 }
 
 
+// covers functor serialize_detail, node_type
+// assumes test/unit/sample/*.graph are correct
 TEST_F(GRAPH, SerialFunc_A004)
 {
 	std::string line;
@@ -520,6 +527,8 @@ TEST_F(GRAPH, SerialFunc_A004)
 }
 
 
+// covers graph get_temp, replace_global, get_global, save_data, load_data
+// assumes test/unit/sample/*.graph, test/unit/sample/*.data are correct
 TEST_F(GRAPH, SerialData_A005)
 {
 	{
@@ -575,8 +584,44 @@ TEST_F(GRAPH, SerialData_A005)
 		}
 		delete var;
 		ASSERT_FALSE(grf.has_node(var));
+	
+		std::unique_ptr<nnet::graph> temp = nnet::graph::get_temp();
+		nnet::graph::replace_global(std::move(temp));
 	}
-	// todo: test load_data
+	// test load_data
+	{
+		std::fstream rgraph(SAMPLE_DIR + RANDOM_PROTO,
+			std::ios::in | std::ios::binary);
+		ASSERT_TRUE((bool) rgraph);
+
+		tenncor::graph_proto src;
+		ASSERT_TRUE(src.ParseFromIstream(&rgraph));
+		nnet::LEAF_SET leaves;
+		nnet::ROOT_STR roots;
+		grf.register_proto(leaves, roots, src);
+		std::vector<nnet::tensor*> vartens;
+		for (nnet::varptr v : leaves)
+		{
+			if (nnet::variable* var = dynamic_cast<nnet::variable*>(v.get()))
+			{
+				nnet::tensor* ten = var->get_tensor();
+				ASSERT_NE(nullptr, ten);
+				EXPECT_FALSE(ten->has_data());
+				vartens.push_back(ten);
+			}
+		}
+		
+		std::fstream rdata(SAMPLE_DIR + "RANDOM.data",
+			std::ios::in | std::ios::binary);
+		ASSERT_TRUE((bool) rdata);
+		tenncor::data_repo_proto srcdata;
+		ASSERT_TRUE(srcdata.ParseFromIstream(&rdata));
+		grf.load_data(srcdata);
+		for (nnet::tensor* ten : vartens)
+		{
+			EXPECT_TRUE(ten->has_data());
+		}
+	}
 }
 
 
