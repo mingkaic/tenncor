@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+import "proto/serial/data.proto";
+
+package expectation;
+
+message expectation_proto
+{
+	tenncor.data_repo_proto vars = 1;
+	map<string, tenncor.float_arr> places = 2;
+	tenncor.data_repo_proto grads = 3; // map wrt variable to gradient result
+	tenncor.tensor_proto result = 4;
+}

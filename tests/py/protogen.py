@@ -9,6 +9,7 @@ import numpy as np
 import graphast.nodes as nodes
 from graphast.gen import generator, allOps
 from save_ast import save_ast
+from save_data import add_data_repo
 from utils import traverse
 
 from proto.serial import data_pb2 as data_pb
@@ -30,13 +31,7 @@ def save_data(graphpb, outpath):
 			assert(len(shape))
 			nelems = reduce(lambda x, y: x * y, shape)
 			data = np.random.rand(nelems)
-			tens = pb.data_map[id]
-			tens.type = data_pb.FLOAT
-			tens.allowed_shape[:] = shape
-			tens.alloced_shape[:] = shape
-			arr = data_pb.float_arr()
-			arr.data[:] = data
-			tens.data.Pack(arr)
+			add_data_repo(pb.data_map[id], data, shape)
 	with open(os.path.join(outpath, "RANDOM.data"), 'wb') as f:
 		f.write(pb.SerializeToString())
 

@@ -313,7 +313,7 @@ TEST_F(BBIND, Binom_A030)
 }
 
 
-TEST_F(BBIND, Norm_A031)
+TEST_F(BBIND, DISABLED_Norm_A031)
 {
 	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();

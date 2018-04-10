@@ -1,21 +1,39 @@
 ''' Serialize data from generated tensorflow script '''
 
+import numpy as np
+
+import expect_pb2 as expect_pb
 from proto.serial import data_pb2 as data_pb
+
+def add_data_repo(tens, data, shape):
+	tens.type = data_pb.FLOAT
+	tens.allowed_shape[:] = shape
+	tens.alloced_shape[:] = shape
+	arr = data_pb.float_arr()
+	arr.data[:] = data
+	tens.data.Pack(arr)
 
 class profile:
 	def __init__(self):
-		self.pb = data_pb.data_repo_proto()
+		self.pb = expect_pb.expectation_proto()
 
 	def save(ntype, id, result):
+		assert(isinstance(result, np.ndarray))
+		data = result.flatten()
+		shape = list(result.shape)[::-1]
 		if ntype == "variable":
-			# self.pb[id] = 
-			pass
-		elif ntype == "scalar":
-			pass
+			add_data_repo(self.pb.vars.data_map[id], data, shape)
+		elif ntype == "place":
+			self.pb.places[id].data[:] = data
 		elif ntype == "gradient":
-			pass
+			add_data_repo(self.pb.grads.data_map[id], data, shape)
 		elif ntype == "output":
-			pass
+			self.pb.result.type = data_pb.FLOAT
+			self.pb.result.allowed_shape[:] = shape
+			self.pb.result.alloced_shape[:] = shape
+			arr = data_pb.float_arr()
+			arr.data[:] = data
+			self.pb.result.data.Pack(arr)
 		else:
 			raise Exception("Unsupported pb message " + ntype)
 

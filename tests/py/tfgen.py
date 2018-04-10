@@ -4,7 +4,7 @@ import random
 import string
 
 import graphast.nodes as nodes
-from tenncorgen.utils import traverse, randVariable
+from utils import traverse
 
 # file 'save_data.py' defined at runtime
 tfScript = '''import tensorflow as tf
@@ -20,8 +20,8 @@ with tf.Session() as sess:
 	sess.run(init)
 
 	# scalar results
-	for label, scalar in {3}:
-		prof.save("scalar", label, scalar)
+	for label, place in {3}:
+		prof.save("place", label, place)
 
 	# variable results
 	for label, input in {4}:
@@ -40,13 +40,20 @@ with tf.Session() as sess:
 prof.serialize("{0}")
 '''
 
-def tf_gen(root, graphid, createOrder):
-	leaves = []
-	scalars = []
-	i = 0
-	def declare(node, deps):
-		id = createOrder[i]
-		i = i + 1
+class declarable:
+	def __init__(self, createOrder):
+		self.createOrder = createOrder
+		self.leaves = []
+		self.placescalars = []
+		self.i = 0
+
+	def nextId(self):
+		id = self.createOrder[self.i]
+		self.i = self.i + 1
+		return id
+
+	def declare(self, node, deps):
+		id = self.nextId()
 		if isinstance(node, nodes.node):
 			funcname = node.name.lower()
 			if "rmax" == funcname:
@@ -56,28 +63,33 @@ def tf_gen(root, graphid, createOrder):
 			decl = "tf.%s(%s)" % (funcname, ', '.join(deps))
 		elif isinstance(node, nodes.leaf):
 			decl = "tf.Variable(tf.random_uniform(%s))" % str(node.shape)
-			leaves.append(id)
+			self.leaves.append(id)
 		elif isinstance(node, nodes.scalar):
 			decl = node.value
-			scalars.append(id)
+			try:
+				int(node.value)
+			except ValueError:
+				self.placescalars.append(id)
 		else:
 			raise Exception("unsupported node type")
 		return id, "%s = %s" % (id, decl)
 
-	id, lines = traverse(root, declare)
-	grads = ["grad_" + leaf for leaf in leaves]
+def tf_gen(root, graphid, createOrder):
+	decl = declarable(createOrder)
+	id, lines = traverse(root, decl.declare)
+	grads = ["grad_" + leaf for leaf in decl.leaves]
 	tfGrad = "%s = tf.gradients(%s, [%s])" % \
-		(', '.join(grads), id, ', '.join(leaves))
+		(', '.join(grads), id, ', '.join(decl.leaves))
 
-	scalarMap = ', '.join([ '"{0}": {0}'.format(scalar) for scalar in scalars])
-	leafMap = ', '.join([ '"{0}": {0}'.format(leaf) for leaf in leaves])
-	gradMap = ', '.join([ '"{0}": {0}'.format(grad) for grad in grads])
+	placeMap = ', '.join([ '"{0}": {0}'.format(place) for place in decl.placescalars])
+	leafMap = ', '.join([ '"{0}": {0}'.format(leaf) for leaf in decl.leaves])
+	gradMap = ', '.join([ '"{0}": grad_{0}'.format(leaf) for leaf in decl.leaves])
 
 	script = tfScript.format(
 		graphid,
 		'\n'.join(lines),
 		tfGrad, 
-		"{" + scalarMap + "}",
+		"{" + placeMap + "}",
 		"{" + leafMap + "}",
 		"{" + gradMap + "}",
 		id)

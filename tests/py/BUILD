@@ -4,6 +4,22 @@ package(
 
 licenses(["notice"])
 
+load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
+
+py_proto_library(
+    name = "expect_pb",
+    protos = [ "expect.proto" ],
+    imports = [
+        "external/com_google_protobuf/src",
+        "//proto:tenncor_serial_py_proto",
+    ],
+    inputs = [
+        "@com_google_protobuf//:well_known_protos",
+        "//proto:serial",
+    ],
+    with_grpc = False,
+)
+
 py_library(
     name = "tenncorgen",
     srcs = [
@@ -14,6 +30,7 @@ py_library(
     ],
     imports = [ "." ],
     deps = [
+        ":expect_pb",
         "//proto:tenncor_serial_py_proto",
         "@com_github_mingkaic_testify//py:graphast",
     ],

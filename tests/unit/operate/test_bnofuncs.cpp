@@ -604,7 +604,7 @@ TEST_F(BNOFUNCS, Unif_B0xxAndB130)
 }
 
 
-TEST_F(BNOFUNCS, Norm_B0xxAndB131)
+TEST_F(BNOFUNCS, DISABLED_Norm_B0xxAndB131)
 {
 	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();
