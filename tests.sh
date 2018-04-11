@@ -38,7 +38,7 @@ assert_cmd "make coverage";
 
 # accept test
 export GTEST_REPEAT=1
-assert_cmd "make accepttest";
+assert_cmd "make test_regress";
 
 # ===== Check Docs Directory =====
 echo "===== CHECK DOCUMENT EXISTENCE =====";

@@ -18,77 +18,80 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(COVERAGE_BZL_FLAG)
 
-all: pytest protodata unittest accepttest
+all: test_py proto_build unit_test test_regress
 
 
-
-coverage: tensorcover graphcover operatecover serializecover
-
-tensorcover:
-	$(COVER) //tests/unit:test_tensor
-
-graphcover:
-	$(COVER) //tests/unit:test_graph
-
-operatecover:
-	$(COVER) //tests/unit:test_operate
-
-serializecover:
-	$(COVER) //tests/unit:test_serialize
-
-
-
-memcheck: tensortest graphtest operatetest serializememcheck
-
-tensormemcheck:
-	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_tensor
-
-graphmemcheck:
-	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_graph
-
-operatememcheck:
-	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_operate
-
-serializememcheck:
-	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_serialize
-
-
-
-unittest: tensortest graphtest operatetest serializetest
-
-tensortest:
-	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_tensor
-
-graphtest:
-	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_graph
-
-operatetest:
-	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_operate
-
-serializetest:
-	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_serialize
-
-
-
-protodata:
+# python data build and test
+proto_build:
 	$(RUN) //tests/py:protogen -- $(shell pwd)/tests/unit/samples
 
-pytest:
+test_py:
 	$(TEST) //tests/py:test
 
 
+# unit test
+unit_test: test_tensor test_graph test_operate test_serialize
 
-accepttest:
+test_tensor:
+	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_tensor
+
+test_graph:
+	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_graph
+
+test_operate:
+	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_operate
+
+test_serialize:
+	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_serialize
+
+
+# conducts coverage on unit tests
+coverage: cover_tensor cover_graph cover_operate cover_serialize
+
+cover_tensor:
+	$(COVER) //tests/unit:test_tensor
+
+cover_graph:
+	$(COVER) //tests/unit:test_graph
+
+cover_operate:
+	$(COVER) //tests/unit:test_operate
+
+cover_serialize:
+	$(COVER) //tests/unit:test_serialize
+
+
+# runs unit tests with valgrind memory leak, require valgrind to be installed
+memcheck: memcheck_tensor memcheck_graph memcheck_operate memcheck_serialize
+
+memcheck_tensor:
+	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_tensor
+
+memcheck_graph:
+	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_graph
+
+memcheck_operate:
+	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_operate
+
+memcheck_serialize:
+	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_serialize
+
+
+# regression test
+test_regress:
 	$(GTEST) //tests/regress:test
 
+# todo: deprecate
 acceptdata: cleandata
 	python tests/regress/tf_generate/tf_generate.py
 
+
+# clean C++ format with astyle, requires astyle to be installed
 fmt:
 	astyle --project --recursive --suffix=none *.hpp,*.ipp,*.cpp
 
 
-
-cleandata:
+# remove all test data
+clean_data:
 	rm -f tests/regress/samples/*
-	rm -f tests/samples/*
+	rm -f tests/unit/samples/*

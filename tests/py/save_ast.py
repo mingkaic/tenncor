@@ -27,8 +27,8 @@ def _var_process(nodepb, varpos, var):
 	varpb = graph_pb.variable_proto()
 	varpb.varpos = varpos
 	varpb.source.src = graph_pb.source_proto.UNIFORM
-	varpb.source.dtype = data_pb.FLOAT
-	arr = data_pb.float_arr()
+	varpb.source.dtype = data_pb.DOUBLE
+	arr = data_pb.double_arr()
 	arr.data[:] = [-1.0, 1.0]
 	varpb.source.settings.Pack(arr)
 	varpb.allowed_shape[:] = var.shape
