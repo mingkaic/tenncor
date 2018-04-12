@@ -4,7 +4,7 @@ package tenncor;
 
 import "google/protobuf/any.proto";
 
-enum tensor_t
+enum TensorT
 {
 	BAD = 0;
 	DOUBLE = 1;
@@ -21,25 +21,25 @@ enum tensor_t
 	_TYPE_SENTINEL = 11;
 }
 
-message double_arr { repeated double data = 1; }
-message float_arr { repeated float data = 1; }
-message byte_arr { bytes data = 1; }
-message int32_arr { repeated int32 data = 1; }
-message int64_arr { repeated int64 data = 1; }
-message uint32_arr { repeated uint32 data = 1; }
-message uint64_arr { repeated uint64 data = 1; }
+message DoubleArr { repeated double data = 1; }
+message FloatArr { repeated float data = 1; }
+message ByteArr { bytes data = 1; }
+message Int32Arr { repeated int32 data = 1; }
+message Int64Arr { repeated int64 data = 1; }
+message Uint32Arr { repeated uint32 data = 1; }
+message Uint64Arr { repeated uint64 data = 1; }
 
-message tensor_proto
+message TensorPb
 {
-	// takes messages double_arr, ..., 
-	// uint64_arr depending on dtype
+	// takes messages DoubleArr, ..., 
+	// Uint64Arr depending on dtype
 	google.protobuf.Any data = 1;
-	tensor_t type = 2;
+	TensorT type = 2;
 	repeated uint64 allowed_shape = 3;
 	repeated uint64 alloced_shape = 4;
 }
 
-message data_repo_proto
+message DataRepoPb
 {
-	map<string, tensor_proto> data_map = 1;
+	map<string, TensorPb> data_map = 1;
 }

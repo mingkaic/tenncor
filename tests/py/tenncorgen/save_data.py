@@ -2,20 +2,20 @@
 
 import numpy as np
 
-import expect_pb2 as expect_pb
+import tests.graphmgr.graphgen_pb2 as graphgen_pb
 from proto.serial import data_pb2 as data_pb
 
 def add_data_repo(tens, data, shape):
 	tens.type = data_pb.DOUBLE
 	tens.allowed_shape[:] = shape
 	tens.alloced_shape[:] = shape
-	arr = data_pb.double_arr()
+	arr = data_pb.DoubleArr()
 	arr.data[:] = data
 	tens.data.Pack(arr)
 
 class profile:
 	def __init__(self):
-		self.pb = expect_pb.expectation_proto()
+		self.pb = graphgen_pb.TestData()
 
 	def save(self, ntype, id, result):
 		assert(isinstance(result, np.ndarray))
@@ -32,7 +32,7 @@ class profile:
 			self.pb.result.type = data_pb.DOUBLE
 			self.pb.result.allowed_shape[:] = shape
 			self.pb.result.alloced_shape[:] = shape
-			arr = data_pb.double_arr()
+			arr = data_pb.DoubleArr()
 			arr.data[:] = data
 			self.pb.result.data.Pack(arr)
 		else:

@@ -70,12 +70,12 @@ NODE_TYPE variable::node_type (void) const
 
 void variable::serialize_detail (google::protobuf::Any* proto_dest) const
 {
-	tenncor::variable_proto var;
+	tenncor::VariablePb var;
 	std::vector<size_t> slist = data_->get_allowed().as_list();
 	google::protobuf::RepeatedField<uint64_t> shape_field(slist.begin(), slist.end());
 	var.mutable_allowed_shape()->Swap(&shape_field);
 
-	tenncor::source_proto src_dest;
+	tenncor::SourcePb src_dest;
 	src_->serialize(src_dest);
 	var.mutable_source()->Swap(&src_dest);
 

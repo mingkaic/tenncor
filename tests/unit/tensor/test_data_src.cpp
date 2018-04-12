@@ -811,10 +811,10 @@ TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 
 TEST_F(DATA_SRC, Serial_D004)
 {
-	tenncor::source_proto c_src;
-	tenncor::source_proto v_src;
-	tenncor::source_proto u_src;
-	tenncor::source_proto n_src;
+	tenncor::SourcePb c_src;
+	tenncor::SourcePb v_src;
+	tenncor::SourcePb u_src;
+	tenncor::SourcePb n_src;
 
 	nnet::tensorshape shape = random_def_shape(this);
 	nnet::const_init ci;

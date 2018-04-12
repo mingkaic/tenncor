@@ -93,7 +93,7 @@ NODE_TYPE placeholder::node_type (void) const
 
 void placeholder::serialize_detail (google::protobuf::Any* proto_dest) const
 {
-	tenncor::place_proto place;
+	tenncor::PlacePb place;
 	std::vector<size_t> slist = data_->get_allowed().as_list();
 	google::protobuf::RepeatedField<uint64_t> shape_field(slist.begin(), slist.end());
 	place.mutable_allowed_shape()->Swap(&shape_field);

@@ -996,7 +996,7 @@ TEST_F(TENSOR, SetShape_C011)
 // cover tensor: serialize, from_proto
 TEST_F(TENSOR, Proto_C012)
 {
-	tenncor::tensor_proto proto;
+	tenncor::TensorPb proto;
 
 	mock_data_src src(this);
 	mock_data_src src2(this);

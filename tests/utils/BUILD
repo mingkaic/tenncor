@@ -1,11 +1,20 @@
 licenses(["notice"])
 
+#######################################
+#         TEST UTILITY FILES          #
+#######################################
+
 filegroup(
     name = "srcs",
     srcs = glob([ "include/*.hpp", "src/*.cpp" ]) + [ "BUILD" ],
     visibility = [ "//visibility:public" ],
 )
 
+#######################################
+#           UTILITY LIBRARY           #
+#######################################
+
+# wrapper utility functions for testify
 cc_library(
     name = "tenncor_testify",
     hdrs = glob(["include/*.hpp"]),

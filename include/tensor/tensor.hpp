@@ -32,7 +32,7 @@ public:
 	//! create a tensor of a specified shape
 	tensor (tensorshape shape);
 
-	tensor (const tenncor::tensor_proto& proto_src);
+	tensor (const tenncor::TensorPb& proto_src);
 
 	//! copy constructor
 	tensor (const tensor& other);
@@ -51,10 +51,10 @@ public:
 	// >>>>>>>>>>>> SERIALIZATION <<<<<<<<<<<<
 
 	//! serialize protobuf tensor
-	bool serialize (tenncor::tensor_proto& proto_dest) const;
+	bool serialize (tenncor::TensorPb& proto_dest) const;
 
 	//! read data and shape from other, take allocator as is
-	void from_proto (const tenncor::tensor_proto& proto_src);
+	void from_proto (const tenncor::TensorPb& proto_src);
 
 
 

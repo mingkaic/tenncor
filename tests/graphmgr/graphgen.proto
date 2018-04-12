@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+import "proto/serial/data.proto";
+import "proto/serial/graph.proto";
+
+package graphmgr;
+
+service Graphmgr {
+	// python generator client
+	rpc PostGraph(GraphCreated) returns (Nothing) {}
+
+	// real client
+	rpc GetGraphList(GraphListReq) returns (GraphList) {}
+	rpc GetGraphPb(GraphReq) returns (tenncor.GraphPb) {}
+
+	rpc GetData(DataReq) returns (stream tenncor.DataRepoPb) {}
+	rpc GetTestData(DataReq) returns (stream TestData) {}
+}
+
+message GraphCreated {
+    string gid = 1;
+}
+
+message Nothing {}
+
+// real client messages
+
+message GraphListReq {
+	enum Category {
+		TEST = 0;
+		LIVE = 1;
+	}
+	Category category = 1;
+}
+
+message GraphList {
+	repeated string gids = 1;
+}
+
+message GraphReq {
+	string gid = 1;
+}
+
+message DataReq {
+	string gid = 1;
+}
+
+message TestData
+{
+	tenncor.DataRepoPb vars = 1;
+	map<string, tenncor.FloatArr> places = 2;
+	tenncor.DataRepoPb grads = 3; // map wrt variable to gradient result
+	tenncor.TensorPb result = 4;
+}

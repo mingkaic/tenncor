@@ -8,9 +8,9 @@ import numpy as np
 
 import graphast.nodes as nodes
 from graphast.gen import generator, allOps
-from save_ast import save_ast
-from save_data import add_data_repo
-from utils import traverse
+from tenncorgen.save_ast import save_ast
+from tenncorgen.save_data import add_data_repo
+from tenncorgen.utils import traverse
 
 from proto.serial import data_pb2 as data_pb
 from proto.serial import graph_pb2 as graph_pb
@@ -21,11 +21,11 @@ GRAPH_EXT = ".graph"
 REGISTRY = "registry.txt"
 
 def save_data(graphpb, outpath):
-	pb = data_pb.data_repo_proto()
+	pb = data_pb.DataRepoPb()
 	for id in graphpb.node_map:
 		nodepb = graphpb.node_map[id]
-		if nodepb.type == graph_pb.node_proto.VARIABLE:
-			varpb = graph_pb.variable_proto()
+		if nodepb.type == graph_pb.NodePb.VARIABLE:
+			varpb = graph_pb.VariablePb()
 			nodepb.detail.Unpack(varpb)
 			shape = varpb.allowed_shape
 			assert(len(shape))

@@ -57,7 +57,7 @@ void register_const (size_t key, constant* cons)
 // 	return cons;
 // }
 
-varptr constant::get (tenncor::tensor_proto& proto_src, std::string label)
+varptr constant::get (tenncor::TensorPb& proto_src, std::string label)
 {
 	// look in cache if scalar
 	constant* cons;
@@ -88,7 +88,7 @@ NODE_TYPE constant::node_type (void) const
 
 void constant::serialize_detail (google::protobuf::Any* proto_dest) const
 {
-	tenncor::tensor_proto tens;
+	tenncor::TensorPb tens;
 	assert(nullptr != data_ && data_->serialize(tens));
 	proto_dest->PackFrom(tens);
 }

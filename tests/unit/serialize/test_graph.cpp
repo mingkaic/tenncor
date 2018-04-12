@@ -84,7 +84,7 @@ TEST_F(GRAPH, GraphSerialize_A000)
 		std::ios::in | std::ios::binary);
 	ASSERT_TRUE((bool) rgraph);
 
-	tenncor::graph_proto src;
+	tenncor::GraphPb src;
 	ASSERT_TRUE(src.ParseFromIstream(&rgraph));
 	std::unique_ptr<nnet::graph> temp = nnet::graph::get_temp();
 	nnet::LEAF_SET leaves;
@@ -95,7 +95,7 @@ TEST_F(GRAPH, GraphSerialize_A000)
 	EXPECT_EQ(1, roots.size());
 	// check leave set and create order
 
-	tenncor::graph_proto dest;
+	tenncor::GraphPb dest;
 	temp->serialize(dest);
 	// expect src and dest are the same
 	EXPECT_EQ(src.gid(), dest.gid());
@@ -103,7 +103,7 @@ TEST_F(GRAPH, GraphSerialize_A000)
 	std::unordered_map<std::string, std::string> idmap;
 	size_t nnodes = src.create_order_size();
 	std::string srcid, destid;
-	tenncor::node_proto srcnode, destnode;
+	tenncor::NodePb srcnode, destnode;
 	nnet::inode* tempnode;
 	auto srcmap = src.node_map();
 	auto destmap = dest.node_map();
@@ -133,8 +133,8 @@ TEST_F(GRAPH, GraphSerialize_A000)
 		{
 			case nnet::PLACEHOLDER_T:
 			{
-				tenncor::place_proto srcplace;
-				tenncor::place_proto destplace;
+				tenncor::PlacePb srcplace;
+				tenncor::PlacePb destplace;
 				srcany.UnpackTo(&srcplace);
 				destany.UnpackTo(&destplace);
 				nnet::placeholder* tempplace = 
@@ -153,8 +153,8 @@ TEST_F(GRAPH, GraphSerialize_A000)
 			break;
 			case nnet::CONSTANT_T:
 			{
-				tenncor::tensor_proto srcconst;
-				tenncor::tensor_proto destconst;
+				tenncor::TensorPb srcconst;
+				tenncor::TensorPb destconst;
 				srcany.UnpackTo(&srcconst);
 				destany.UnpackTo(&destconst);
 				nnet::constant* tempconst = 
@@ -187,8 +187,8 @@ TEST_F(GRAPH, GraphSerialize_A000)
 				EXPECT_EQ(srctype, tempten->get_type());
 				EXPECT_EQ(nnet::INT32, srctype);
 
-				tenncor::int32_arr srcarr;
-				tenncor::int32_arr destarr;
+				tenncor::Int32Arr srcarr;
+				tenncor::Int32Arr destarr;
 				srcconst.data().UnpackTo(&srcarr);
 				destconst.data().UnpackTo(&destarr);
 				auto srcfields = srcarr.data();
@@ -206,8 +206,8 @@ TEST_F(GRAPH, GraphSerialize_A000)
 			break;
 			case nnet::VARIABLE_T:
 			{
-				tenncor::variable_proto srcvar;
-				tenncor::variable_proto destvar;
+				tenncor::VariablePb srcvar;
+				tenncor::VariablePb destvar;
 				srcany.UnpackTo(&srcvar);
 				destany.UnpackTo(&destvar);
 				nnet::variable* tempvar = 
@@ -232,8 +232,8 @@ TEST_F(GRAPH, GraphSerialize_A000)
 			break;
 			case nnet::FUNCTOR_T:
 			{
-				tenncor::functor_proto srcfunc;
-				tenncor::functor_proto destfunc;
+				tenncor::FunctorPb srcfunc;
+				tenncor::FunctorPb destfunc;
 				srcany.UnpackTo(&srcfunc);
 				destany.UnpackTo(&destfunc);
 				nnet::functor* tempfunc = 
@@ -265,7 +265,7 @@ TEST_F(GRAPH, GraphSerialize_A000)
 }
 
 
-// covers constant::get(tenncor::tensor_proto&,std::string), serialize_detail, node_type
+// covers constant::get(tenncor::TensorPb&,std::string), serialize_detail, node_type
 TEST_F(GRAPH, SerialConst_A001)
 {
 	double c = get_double(1, "c")[0];
@@ -286,12 +286,12 @@ TEST_F(GRAPH, SerialConst_A001)
 	res2->serialize_detail(&proto_dest2);
 	res2->serialize_detail(&proto_dest3);
 
-	tenncor::tensor_proto proto_src;
-	tenncor::tensor_proto proto_src2;
+	tenncor::TensorPb proto_src;
+	tenncor::TensorPb proto_src2;
 	proto_dest.UnpackTo(&proto_src);
 	proto_dest2.UnpackTo(&proto_src2);
 
-	tenncor::tensor_proto proto_src3;
+	tenncor::TensorPb proto_src3;
 	proto_dest3.UnpackTo(&proto_src3); // expect eq to proto_dest2
 
 	// with optimization
@@ -358,8 +358,8 @@ TEST_F(GRAPH, SerialPlace_A002)
 	place.serialize_detail(&proto_dest2);
 	place.serialize_detail(&proto_dest3);
 
-	tenncor::place_proto place_src;
-	tenncor::place_proto place_src2;
+	tenncor::PlacePb place_src;
+	tenncor::PlacePb place_src2;
 	proto_dest.UnpackTo(&place_src);
 	proto_dest2.UnpackTo(&place_src2);
 
@@ -375,7 +375,7 @@ TEST_F(GRAPH, SerialPlace_A002)
 	nnet::tensorshape shape2 = random_def_shape(this);
 	nnet::placeholder place2(shape2, label2);
 	place2.serialize_detail(&proto_dest3);
-	tenncor::place_proto place_src3;
+	tenncor::PlacePb place_src3;
 	proto_dest3.UnpackTo(&place_src3);
 	auto vec3 = place_src3.allowed_shape();
 	nnet::tensorshape outshape3(std::vector<size_t>(vec3.begin(), vec3.end()));
@@ -414,8 +414,8 @@ TEST_F(GRAPH, SerialVar_A003)
 	rinitv.serialize_detail(&proto_dest2);
 	rinitv.serialize_detail(&proto_dest3);
 
-	tenncor::variable_proto var_src;
-	tenncor::variable_proto var_src2;
+	tenncor::VariablePb var_src;
+	tenncor::VariablePb var_src2;
 	proto_dest.UnpackTo(&var_src);
 	proto_dest2.UnpackTo(&var_src2);
 	
@@ -427,8 +427,8 @@ TEST_F(GRAPH, SerialVar_A003)
 	EXPECT_STREQ(data_ep.c_str(), cep.c_str());
 	EXPECT_STREQ(data_ep2.c_str(), rep.c_str());
 
-	tenncor::source_proto csrc = var_src.source();
-	tenncor::source_proto rsrc = var_src2.source();
+	tenncor::SourcePb csrc = var_src.source();
+	tenncor::SourcePb rsrc = var_src2.source();
 
 	TENS_TYPE rctype = csrc.dtype();
 	std::shared_ptr<void> csptr = nnet::deserialize_data(csrc.settings(), rctype);
@@ -460,14 +460,14 @@ TEST_F(GRAPH, SerialVar_A003)
 	nnet::tensorshape shape2 = random_def_shape(this);
 	nnet::variable var(shape2, cinit, label2);
 	var.serialize_detail(&proto_dest3);
-	tenncor::variable_proto var_src3;
+	tenncor::VariablePb var_src3;
 	proto_dest3.UnpackTo(&var_src3);
 
 	std::string data_ep3 = var_src3.varpos();
 	std::string vep = var.get_varpos();
 	EXPECT_STREQ(data_ep3.c_str(), vep.c_str());
 
-	tenncor::source_proto vsrc = var_src3.source();
+	tenncor::SourcePb vsrc = var_src3.source();
 
 	TENS_TYPE rvtype = vsrc.dtype();
 	std::shared_ptr<void> vsptr = nnet::deserialize_data(vsrc.settings(), rvtype);
@@ -509,7 +509,7 @@ TEST_F(GRAPH, SerialFunc_A004)
 		std::ios::in | std::ios::binary);
 	ASSERT_TRUE((bool) rgraph);
 
-	tenncor::graph_proto src;
+	tenncor::GraphPb src;
 	ASSERT_TRUE(src.ParseFromIstream(&rgraph));
 	std::unique_ptr<nnet::graph> temp = nnet::graph::get_temp();
 	nnet::LEAF_SET leaves;
@@ -532,7 +532,7 @@ TEST_F(GRAPH, SerialFunc_A004)
 TEST_F(GRAPH, SerialData_A005)
 {
 	{
-		tenncor::data_repo_proto emptypb;
+		tenncor::DataRepoPb emptypb;
 		std::unique_ptr<nnet::graph> temp = nnet::graph::get_temp();
 		EXPECT_TRUE(temp->save_data(emptypb));
 		EXPECT_EQ(0, emptypb.data_map_size());
@@ -548,8 +548,8 @@ TEST_F(GRAPH, SerialData_A005)
 		size_t n = cshape.n_elems();
 		nnet::tensorshape varshape = make_partial(this, clist);
 		double c = get_double(1, "c")[0];
-		tenncor::data_repo_proto uninitvar;
-		tenncor::data_repo_proto initvar;
+		tenncor::DataRepoPb uninitvar;
+		tenncor::DataRepoPb initvar;
 		nnet::const_init* csrc = new nnet::const_init();
 		std::shared_ptr<nnet::data_src> src = 
 			std::shared_ptr<nnet::data_src>(csrc);
@@ -565,7 +565,7 @@ TEST_F(GRAPH, SerialData_A005)
 		auto varmap = initvar.data_map();
 		auto it = varmap.find(var->get_varpos());
 		ASSERT_TRUE(varmap.end() != it);
-		tenncor::tensor_proto tp = it->second;
+		tenncor::TensorPb tp = it->second;
 		nnet::tensorshape allow(std::vector<size_t>(
 			tp.allowed_shape().begin(),
 			tp.allowed_shape().end()));
@@ -575,7 +575,7 @@ TEST_F(GRAPH, SerialData_A005)
 		EXPECT_SHAPEQ(varshape, allow);
 		EXPECT_SHAPEQ(cshape, alloc);
 		ASSERT_EQ(nnet::DOUBLE, tp.type());
-		tenncor::double_arr dbarr;
+		tenncor::DoubleArr dbarr;
 		tp.data().UnpackTo(&dbarr);
 		ASSERT_EQ(n, dbarr.data_size());
 		for (size_t i = 0; i < n; ++i)
@@ -594,7 +594,7 @@ TEST_F(GRAPH, SerialData_A005)
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE((bool) rgraph);
 
-		tenncor::graph_proto src;
+		tenncor::GraphPb src;
 		ASSERT_TRUE(src.ParseFromIstream(&rgraph));
 		nnet::LEAF_SET leaves;
 		nnet::ROOT_STR roots;
@@ -614,7 +614,7 @@ TEST_F(GRAPH, SerialData_A005)
 		std::fstream rdata(SAMPLE_DIR + "RANDOM.data",
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE((bool) rdata);
-		tenncor::data_repo_proto srcdata;
+		tenncor::DataRepoPb srcdata;
 		ASSERT_TRUE(srcdata.ParseFromIstream(&rdata));
 		grf.load_data(srcdata);
 		for (nnet::tensor* ten : vartens)

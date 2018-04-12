@@ -1,10 +1,16 @@
 licenses(["notice"])
 
+#######################################
+#        REGRESSION TEST FILES        #
+#######################################
+
 filegroup(
     name = "srcs",
     srcs = glob([ "**/*.hpp", "**/*.cpp", "**/*.py" ]) + [ "BUILD" ],
     visibility = [ "//visibility:public" ],
 )
+
+######### REGRESSION TEST #########
 
 cc_test(
     name = "test",

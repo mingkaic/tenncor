@@ -4,7 +4,7 @@ import random
 import string
 
 import graphast.nodes as nodes
-from utils import traverse
+from tenncorgen.utils import traverse
 
 # file 'save_data.py' defined at runtime
 tfScript = '''import tensorflow as tf

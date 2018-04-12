@@ -142,7 +142,7 @@ void serialize_data (google::protobuf::Any* dest,
 	{
 		case DOUBLE:
 		{
-			tenncor::double_arr arr;
+			tenncor::DoubleArr arr;
 			double* dptr = (double*) ptr;
 			std::vector<double> data(dptr, dptr + n);
 			google::protobuf::RepeatedField<double> field(data.begin(), data.end());
@@ -152,7 +152,7 @@ void serialize_data (google::protobuf::Any* dest,
 		break;
 		case FLOAT:
 		{
-			tenncor::float_arr arr;
+			tenncor::FloatArr arr;
 			float* dptr = (float*) ptr;
 			std::vector<float> data(dptr, dptr + n);
 			google::protobuf::RepeatedField<float> field(data.begin(), data.end());
@@ -163,14 +163,14 @@ void serialize_data (google::protobuf::Any* dest,
 		case INT8:
 		case UINT8:
 		{
-			tenncor::byte_arr arr;
+			tenncor::ByteArr arr;
 			arr.set_data(ptr, n);
 			dest->PackFrom(arr);
 		}
 		break;
 		case INT16:
 		{
-			tenncor::int32_arr arr;
+			tenncor::Int32Arr arr;
 			int16_t* dptr = (int16_t*) ptr;
 			std::vector<int16_t> data(dptr, dptr + n);
 			google::protobuf::RepeatedField<int32_t> field(data.begin(), data.end());
@@ -180,7 +180,7 @@ void serialize_data (google::protobuf::Any* dest,
 		break;
 		case UINT16:
 		{
-			tenncor::uint32_arr arr;
+			tenncor::Uint32Arr arr;
 			uint16_t* dptr = (uint16_t*) ptr;
 			std::vector<uint16_t> data(dptr, dptr + n);
 			google::protobuf::RepeatedField<uint32_t> field(data.begin(), data.end());
@@ -190,7 +190,7 @@ void serialize_data (google::protobuf::Any* dest,
 		break;
 		case INT32:
 		{
-			tenncor::int32_arr arr;
+			tenncor::Int32Arr arr;
 			int32_t* dptr = (int32_t*) ptr;
 			std::vector<int32_t> data(dptr, dptr + n);
 			google::protobuf::RepeatedField<int32_t> field(data.begin(), data.end());
@@ -200,7 +200,7 @@ void serialize_data (google::protobuf::Any* dest,
 		break;
 		case UINT32:
 		{
-			tenncor::uint32_arr arr;
+			tenncor::Uint32Arr arr;
 			uint32_t* dptr = (uint32_t*) ptr;
 			std::vector<uint32_t> data(dptr, dptr + n);
 			google::protobuf::RepeatedField<uint32_t> field(data.begin(), data.end());
@@ -210,7 +210,7 @@ void serialize_data (google::protobuf::Any* dest,
 		break;
 		case INT64:
 		{
-			tenncor::int64_arr arr;
+			tenncor::Int64Arr arr;
 			int64_t* dptr = (int64_t*) ptr;
 			std::vector<int64_t> data(dptr, dptr + n);
 			google::protobuf::RepeatedField<int64_t> field(data.begin(), data.end());
@@ -220,7 +220,7 @@ void serialize_data (google::protobuf::Any* dest,
 		break;
 		case UINT64:
 		{
-			tenncor::uint64_arr arr;
+			tenncor::Uint64Arr arr;
 			uint64_t* dptr = (uint64_t*) ptr;
 			std::vector<uint64_t> data(dptr, dptr + n);
 			google::protobuf::RepeatedField<uint64_t> field(data.begin(), data.end());
@@ -242,7 +242,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 	{
 		case DOUBLE:
 		{
-			tenncor::double_arr arr;
+			tenncor::DoubleArr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<double>& data = arr.data();
 			nout = data.size();
@@ -253,7 +253,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 		break;
 		case FLOAT:
 		{
-			tenncor::float_arr arr;
+			tenncor::FloatArr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<float>& data = arr.data();
 			nout = data.size();
@@ -265,7 +265,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 		case INT8:
 		case UINT8:
 		{
-			tenncor::byte_arr arr;
+			tenncor::ByteArr arr;
 			src.UnpackTo(&arr);
 			std::string data = arr.data();
 			nout = data.size();
@@ -275,7 +275,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 		break;
 		case INT16:
 		{
-			tenncor::int32_arr arr;
+			tenncor::Int32Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<int32_t>& data = arr.data();
 			std::vector<int16_t> conv(data.begin(), data.end());
@@ -287,7 +287,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 		break;
 		case UINT16:
 		{
-			tenncor::uint32_arr arr;
+			tenncor::Uint32Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<uint32_t>& data = arr.data();
 			std::vector<uint16_t> conv(data.begin(), data.end());
@@ -299,7 +299,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 		break;
 		case INT32:
 		{
-			tenncor::int32_arr arr;
+			tenncor::Int32Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<int32_t>& data = arr.data();
 			nout = data.size();
@@ -310,7 +310,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 		break;
 		case UINT32:
 		{
-			tenncor::uint32_arr arr;
+			tenncor::Uint32Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<uint32_t>& data = arr.data();
 			nout = data.size();
@@ -321,7 +321,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 		break;
 		case INT64:
 		{
-			tenncor::int64_arr arr;
+			tenncor::Int64Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<int64_t>& data = arr.data();
 			nout = data.size();
@@ -332,7 +332,7 @@ std::shared_ptr<void> deserialize_data (const google::protobuf::Any& src,
 		break;
 		case UINT64:
 		{
-			tenncor::uint64_arr arr;
+			tenncor::Uint64Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<uint64_t>& data = arr.data();
 			nout = data.size();

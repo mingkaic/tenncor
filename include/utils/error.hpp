@@ -25,7 +25,7 @@
 namespace nnutils
 {
 
-#define TENS_TYPE tenncor::tensor_t
+#define TENS_TYPE tenncor::TensorT
 
 struct unsupported_type_error : public std::exception
 {

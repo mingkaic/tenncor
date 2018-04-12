@@ -5,9 +5,9 @@ import random
 import unittest
 
 from graphast.gen import allOps
-import tfgen
-import utils
-import save_ast
+import tenncorgen.tfgen as tfgen
+import tenncorgen.utils as utils
+import tenncorgen.save_ast as save_ast
 
 def treesize(root):
 	def count(_, deps):

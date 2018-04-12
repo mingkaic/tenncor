@@ -26,7 +26,7 @@ proto_build:
 	$(RUN) //tests/py:protogen -- $(shell pwd)/tests/unit/samples
 
 test_py:
-	$(TEST) //tests/py:test
+	$(TEST) //tests/py/test:test
 
 
 # unit test

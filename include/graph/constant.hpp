@@ -38,7 +38,7 @@ public:
 
 	// static varptr get_generic (std::string data, TENS_TYPE type);
 
-	static varptr get (tenncor::tensor_proto& proto_src, std::string label);
+	static varptr get (tenncor::TensorPb& proto_src, std::string label);
 
 	// >>>> CAN'T COPY OR MOVE (GOES AGAINST SHARING) <<<<
 

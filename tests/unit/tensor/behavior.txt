@@ -70,7 +70,7 @@ C010 - clear removes data reference and allocated shape, returns true if tensor 
 C011 - set_shape resets allowed shape, clears data if new allowed shape is not compatible with existing allocated shape
 C012 - serialization fails to store if tensor has no data, otherwise save to file
 		from_proto clears existing data, takes data, type, and shapes specified in save
-		serializing an existing tensor_proto should copy over data, shape, and type
+		serializing an existing TensorPb should copy over data, shape, and type
 
 // DATA SOURCE
 D000 - clone/move a source returns a copy of the original's data setting,

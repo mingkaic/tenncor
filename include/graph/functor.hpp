@@ -20,7 +20,7 @@
 namespace nnet
 {
 
-#define OPCODE tenncor::opcode_t
+#define OPCODE tenncor::OpcodeT
 #define _OP_SENTINEL tenncor::_OP_SENTINEL
 
 #define ABS tenncor::ABS

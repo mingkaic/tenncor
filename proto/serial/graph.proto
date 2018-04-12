@@ -5,7 +5,7 @@ package tenncor;
 import "google/protobuf/any.proto";
 import "proto/serial/data.proto";
 
-enum opcode_t
+enum OpcodeT
 {
 	ABS = 0;
 	NEG = 1;
@@ -47,61 +47,61 @@ enum opcode_t
 	_OP_SENTINEL = 35;
 }
 
-message node_proto
+message NodePb
 {
-	enum node_t
+	enum NodeT
 	{
 		VARIABLE = 0;
 		PLACEHOLDER = 1;
 		CONSTANT = 2;
 		FUNCTOR = 3;
 	}
-	node_t type = 1;
+	NodeT type = 1;
 	string label = 2;
 	// takes messages:
-	// variable_proto for type == VARIABLE
-	// place_proto for type == PLACEHOLDER
-	// tensor_proto for type == CONSTANT
-	// functor_proto for type == FUNCTOR
+	// VariablePb for type == VARIABLE
+	// PlacePb for type == PLACEHOLDER
+	// TensorPb for type == CONSTANT
+	// FunctorPb for type == FUNCTOR
 	google.protobuf.Any detail = 3;
 }
 
-message source_proto
+message SourcePb
 {
-	enum source_t
+	enum SourceT
 	{
 		CONSTANT = 0;
 		UNIFORM = 1;
 		NORMAL = 2;
 	}
-	source_t src = 1;
-	tensor_t dtype = 2;
-	// takes messages double_arr, ..., 
-	// uint64_arr depending on dtype
+	SourceT src = 1;
+	TensorT dtype = 2;
+	// takes messages DoubleArr, ..., 
+	// Uint64Arr depending on dtype
 	google.protobuf.Any settings = 3;
 }
 
-message functor_proto
+message FunctorPb
 {
-	opcode_t opcode = 1;
+	OpcodeT opcode = 1;
 	repeated string args = 2;
 }
 
-message place_proto
+message PlacePb
 {
 	repeated uint64 allowed_shape = 1;
 }
 
-message variable_proto
+message VariablePb
 {
 	string varpos = 1;
-	source_proto source = 2;
+	SourcePb source = 2;
 	repeated uint64 allowed_shape = 3;
 }
 
-message graph_proto
+message GraphPb
 {
 	string gid = 1;
 	repeated string create_order = 2;
-	map<string, node_proto> node_map = 3;
+	map<string, NodePb> node_map = 3;
 }

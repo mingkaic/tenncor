@@ -3,7 +3,7 @@
 import numpy as np
 import unittest
 
-from save_data import profile
+from tenncorgen.save_data import profile
 
 from proto.serial import data_pb2 as data_pb
 
@@ -36,9 +36,9 @@ class TestSaveAst(unittest.TestCase):
 		self.assertEqual(data_pb.DOUBLE, gpb.type)
 		self.assertEqual(data_pb.DOUBLE, rpb.type)
 
-		varr = data_pb.double_arr()
-		garr = data_pb.double_arr()
-		rarr = data_pb.double_arr()
+		varr = data_pb.DoubleArr()
+		garr = data_pb.DoubleArr()
+		rarr = data_pb.DoubleArr()
 		vpb.data.Unpack(varr)
 		gpb.data.Unpack(garr)
 		rpb.data.Unpack(rarr)

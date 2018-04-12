@@ -1,0 +1,41 @@
+package(
+    default_visibility = [ "//visibility:public" ],
+)
+
+licenses(["notice"])
+
+load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cc_proto_library")
+load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
+
+filegroup(
+    name = "srcs",
+    srcs = glob([ "**/*.proto" ]) + [ "BUILD" ],
+)
+
+cc_proto_library(
+    name = "graphmgr_cc_grpc",
+    protos = glob([ "**/*.proto" ]),
+    imports = [
+        "external/com_google_protobuf/src",
+        "//proto:tenncor_serial_cc_proto",
+    ],
+    inputs = [
+        "@com_google_protobuf//:well_known_protos",
+        "//proto:serial",
+    ],
+    with_grpc = True,
+)
+
+py_proto_library(
+    name = "graphmgr_py_grpc",
+    protos = glob([ "**/*.proto" ]),
+    imports = [
+        "external/com_google_protobuf/src",
+        "//proto:tenncor_serial_py_proto",
+    ],
+    inputs = [
+        "@com_google_protobuf//:well_known_protos",
+        "//proto:serial",
+    ],
+    with_grpc = True,
+)

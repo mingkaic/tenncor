@@ -18,7 +18,7 @@ namespace nnet
 tensor::tensor (tensorshape shape) :
 	allowed_shape_(shape) {}
 
-tensor::tensor (const tenncor::tensor_proto& proto_src)
+tensor::tensor (const tenncor::TensorPb& proto_src)
 {
 	from_proto(proto_src);
 }
@@ -53,7 +53,7 @@ tensor& tensor::operator = (tensor&& other)
 
 
 
-bool tensor::serialize (tenncor::tensor_proto& proto_dest) const
+bool tensor::serialize (tenncor::TensorPb& proto_dest) const
 {
 	if (false == has_data() && BAD_T == dtype_) return false;
 	proto_dest.set_type(dtype_);
@@ -72,7 +72,7 @@ bool tensor::serialize (tenncor::tensor_proto& proto_dest) const
 	return true;
 }
 
-void tensor::from_proto (const tenncor::tensor_proto& proto_src)
+void tensor::from_proto (const tenncor::TensorPb& proto_src)
 {
 	// shapes must have same dimensionality... (otherwise, input data is definitely corrupt)
 	assert(proto_src.alloced_shape_size() == proto_src.allowed_shape_size());

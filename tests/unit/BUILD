@@ -1,5 +1,9 @@
 licenses(["notice"])
 
+#######################################
+#           UNIT TEST FILES           #
+#######################################
+
 filegroup(
     name = "srcs",
     srcs = glob([ "**/*.cpp" ]) + [ "BUILD" ],

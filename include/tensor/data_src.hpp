@@ -27,13 +27,13 @@
 namespace nnet
 {
 
-using SOURCE_TYPE = tenncor::source_proto::source_t;
+using SOURCE_TYPE = tenncor::SourcePb::SourceT;
 
 using GENERIC = std::pair<std::string, TENS_TYPE>;
 
-static const SOURCE_TYPE CSRC_T = tenncor::source_proto::CONSTANT;
-static const SOURCE_TYPE USRC_T = tenncor::source_proto::UNIFORM;
-static const SOURCE_TYPE NSRC_T = tenncor::source_proto::NORMAL;
+static const SOURCE_TYPE CSRC_T = tenncor::SourcePb::CONSTANT;
+static const SOURCE_TYPE USRC_T = tenncor::SourcePb::UNIFORM;
+static const SOURCE_TYPE NSRC_T = tenncor::SourcePb::NORMAL;
 
 struct idata_src
 {
@@ -54,7 +54,7 @@ struct data_src : public idata_src
 		return static_cast<data_src*>(this->clone_impl());
 	}
 
-	virtual void serialize (tenncor::source_proto& source_dst) const = 0;
+	virtual void serialize (tenncor::SourcePb& source_dst) const = 0;
 };
 
 struct const_init final : public data_src
@@ -95,7 +95,7 @@ struct const_init final : public data_src
 		return {value_, type_};
 	}
 
-	virtual void serialize (tenncor::source_proto& source_dst) const
+	virtual void serialize (tenncor::SourcePb& source_dst) const
 	{
 		source_dst.clear_settings();
 		source_dst.set_src(CSRC_T);
@@ -146,7 +146,7 @@ struct r_uniform_init final : public data_src
 		return {max_, type_};
 	}
 
-	virtual void serialize (tenncor::source_proto& source_dst) const
+	virtual void serialize (tenncor::SourcePb& source_dst) const
 	{
 		source_dst.clear_settings();
 		source_dst.set_src(USRC_T);
@@ -200,7 +200,7 @@ struct r_normal_init final : public data_src
 		return {stdev_, type_};
 	}
 
-	virtual void serialize (tenncor::source_proto& source_dst) const
+	virtual void serialize (tenncor::SourcePb& source_dst) const
 	{
 		source_dst.clear_settings();
 		source_dst.set_src(NSRC_T);

@@ -159,7 +159,7 @@ NODE_TYPE functor::node_type (void) const
 
 void functor::serialize_detail (google::protobuf::Any* proto_dest) const
 {
-	tenncor::functor_proto func_dest;
+	tenncor::FunctorPb func_dest;
 	func_dest.set_opcode(opcode_);
 	std::vector<inode*> args = get_arguments();
 	for (inode* arg : args)
