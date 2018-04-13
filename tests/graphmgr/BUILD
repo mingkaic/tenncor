@@ -31,6 +31,21 @@ cc_proto_library(
     with_grpc = True,
 )
 
+go_proto_library(
+    name = "graphmgr_go_grpc",
+    protos = [ "//tests/graphmgr:graphmgr" ],
+    imports = [ 
+        "external/com_google_protobuf/src",
+        "//proto:tenncor_serial_go_proto",
+    ],
+    inputs = [ 
+        "@com_google_protobuf//:well_known_protos",
+        "//proto:serial",
+    ],
+    importpath = "github.com/mingkaic/tenncor/tests/graphmgr",
+    with_grpc = True,
+)
+
 py_proto_library(
     name = "graphmgr_py_grpc",
     protos = glob([ "**/*.proto" ]),

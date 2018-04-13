@@ -5,6 +5,7 @@ package(
 licenses(["notice"])
 
 load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cc_proto_library")
+load("@org_pubref_rules_protobuf//go:rules.bzl", "go_proto_library")
 load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
 
 #######################################
@@ -47,6 +48,15 @@ cc_proto_library(
     protos = [ "//proto:serial" ],
     imports = [ "external/com_google_protobuf/src" ],
     inputs = [ "@com_google_protobuf//:well_known_protos" ],
+    with_grpc = False,
+)
+
+go_proto_library(
+    name = "tenncor_serial_go_proto",
+    protos = [ "//proto:serial" ],
+    imports = [ "external/com_google_protobuf/src" ],
+    inputs = [ "@com_google_protobuf//:well_known_protos" ],
+    importpath = "github.com/mingkaic/tenncor/proto/serial",
     with_grpc = False,
 )
 
