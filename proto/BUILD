@@ -56,7 +56,7 @@ go_proto_library(
     protos = [ "//proto:serial" ],
     imports = [ "external/com_google_protobuf/src" ],
     inputs = [ "@com_google_protobuf//:well_known_protos" ],
-    importpath = "github.com/mingkaic/tenncor/proto/serial",
+    deps = [ "@com_github_golang_protobuf//ptypes/any:go_default_library" ],
     with_grpc = False,
 )
 

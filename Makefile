@@ -10,6 +10,8 @@ MEMCHECK_BZL_FLAG := --run_under="valgrind"
 
 COVERAGE_BZL_FLAG := --instrumentation_filter= --spawn_strategy=standalone
 
+BUILD := bazel build
+
 RUN := bazel run
 
 TEST := bazel test $(COMMON_BZL_FLAGS)
@@ -18,7 +20,24 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(COVERAGE_BZL_FLAG)
 
-all: test_py proto_build unit_test test_regress
+SERIALS := serial_cc serial_go serial_py
+
+GRAPHMGRS := graphmgr_cc graphmgr_go graphmgr_py
+
+all: proto test_py proto_build unit_test test_regress
+
+
+# build protobuf files
+proto: monitor $(SERIALS) $(GRAPHMGRS)
+
+monitor:
+	$(BUILD) //proto:tenncor_monitor_grpc
+
+$(SERIALS):
+	$(BUILD) //proto:tenncor_$@_proto
+
+$(GRAPHMGRS):
+	$(BUILD) //tests/graphmgr:$@_grpc
 
 
 # python data build and test

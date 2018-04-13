@@ -8,6 +8,10 @@ test_dependencies()
 load("@com_github_mingkaic_testify//:testify.bzl", "dependencies")
 dependencies()
 
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+go_rules_dependencies()
+go_register_toolchains()
+
 load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cpp_proto_repositories")
 cpp_proto_repositories()
 

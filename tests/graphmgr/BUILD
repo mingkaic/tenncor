@@ -21,10 +21,8 @@ filegroup(
 cc_proto_library(
     name = "graphmgr_cc_grpc",
     protos = glob([ "**/*.proto" ]),
-    imports = [
-        "external/com_google_protobuf/src",
-        "//proto:tenncor_serial_cc_proto",
-    ],
+    imports = [ "external/com_google_protobuf/src" ],
+    proto_deps = [ "//proto:tenncor_serial_cc_proto" ],
     inputs = [
         "@com_google_protobuf//:well_known_protos",
         "//proto:serial",
@@ -35,25 +33,18 @@ cc_proto_library(
 go_proto_library(
     name = "graphmgr_go_grpc",
     protos = [ "//tests/graphmgr:graphmgr" ],
-    imports = [
-        "external/com_google_protobuf/src",
-        "//proto:tenncor_serial_go_proto",
-    ],
-    inputs = [
-        "@com_google_protobuf//:well_known_protos",
-        "//proto:serial",
-    ],
-    importpath = "github.com/mingkaic/tenncor/tests/graphmgr",
+    imports = [ "external/com_google_protobuf/src" ],
+    proto_deps = [ "//proto:tenncor_serial_go_proto" ],
+    inputs = [ "//proto:serial" ],
+    deps = [ "//proto:tenncor_serial_go_proto" ],
     with_grpc = True,
 )
 
 py_proto_library(
     name = "graphmgr_py_grpc",
     protos = glob([ "**/*.proto" ]),
-    imports = [
-        "external/com_google_protobuf/src",
-        "//proto:tenncor_serial_py_proto",
-    ],
+    imports = [ "external/com_google_protobuf/src" ],
+    proto_deps = [ "//proto:tenncor_serial_py_proto" ],
     inputs = [
         "@com_google_protobuf//:well_known_protos",
         "//proto:serial",
