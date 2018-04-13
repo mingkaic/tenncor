@@ -5,6 +5,7 @@ package(
 licenses(["notice"])
 
 load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cc_proto_library")
+load("@org_pubref_rules_protobuf//go:rules.bzl", "go_proto_library")
 load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
 
 filegroup(
@@ -34,11 +35,11 @@ cc_proto_library(
 go_proto_library(
     name = "graphmgr_go_grpc",
     protos = [ "//tests/graphmgr:graphmgr" ],
-    imports = [ 
+    imports = [
         "external/com_google_protobuf/src",
         "//proto:tenncor_serial_go_proto",
     ],
-    inputs = [ 
+    inputs = [
         "@com_google_protobuf//:well_known_protos",
         "//proto:serial",
     ],
