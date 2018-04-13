@@ -26,4 +26,5 @@ cc_library(
     includes = [ "include" ],
     copts = [ "-std=c++14" ],
     visibility = [ "//tests/unit:__pkg__" ],
+    testonly = True,
 )

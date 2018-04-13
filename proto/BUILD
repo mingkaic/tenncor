@@ -36,7 +36,7 @@ filegroup(
 
 # grpc monitoring library
 cc_proto_library(
-    name = "tenncor_monitor_grpc_proto",
+    name = "tenncor_monitor_grpc",
     protos = [ "//proto:monitor" ],
     with_grpc = True,
 )

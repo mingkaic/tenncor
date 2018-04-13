@@ -9,7 +9,12 @@ load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
 
 filegroup(
     name = "srcs",
-    srcs = glob([ "**/*.proto" ]) + [ "BUILD" ],
+    srcs = [ ":graphmgr", "BUILD" ],
+)
+
+filegroup(
+    name = "graphmgr",
+    srcs = glob([ "**/*.proto" ])
 )
 
 cc_proto_library(

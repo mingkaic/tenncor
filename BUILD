@@ -132,7 +132,7 @@ cc_library(
     includes = [ "include" ],
     deps = [
         "//proto:tenncor_serial_cc_proto",
-        "//proto:tenncor_monitor_grpc_proto",
+        "//proto:tenncor_monitor_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ],
     defines = [ "RPC_RCD" ],

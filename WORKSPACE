@@ -1,7 +1,8 @@
 workspace(name = "com_github_mingkaic_tenncor")
 
-load("//:tenncor.bzl", "dependencies")
+load("//:tenncor.bzl", "dependencies", "test_dependencies")
 dependencies()
+test_dependencies()
 
 load("@com_github_mingkaic_testify//:testify.bzl", "dependencies")
 dependencies()
