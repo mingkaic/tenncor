@@ -5,8 +5,8 @@ package(
 licenses(["notice"])
 
 load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cc_proto_library")
-load("@org_pubref_rules_protobuf//go:rules.bzl", "go_proto_library")
 load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 #######################################
 #           GENERAL PROTOS            #
@@ -51,19 +51,22 @@ cc_proto_library(
     with_grpc = False,
 )
 
-go_proto_library(
-    name = "tenncor_serial_go_proto",
-    protos = [ "//proto:serial" ],
-    imports = [ "external/com_google_protobuf/src" ],
-    inputs = [ "@com_google_protobuf//:well_known_protos" ],
-    deps = [ "@com_github_golang_protobuf//ptypes/any:go_default_library" ],
-    with_grpc = False,
-)
-
 py_proto_library(
     name = "tenncor_serial_py_proto",
     protos = [ "//proto:serial" ],
     imports = [ "external/com_google_protobuf/src" ],
     inputs = [ "@com_google_protobuf//:well_known_protos" ],
     with_grpc = False,
+)
+
+proto_library(
+    name = "tenncor_serial_proto",
+    srcs = [ "//proto:serial" ],
+    deps = [ "@com_google_protobuf//:any_proto" ],
+)
+
+go_proto_library(
+    name = "tenncor_serial_go_proto",
+    importpath = "github.com/mingkaic/proto/serial",
+    proto = ":tenncor_serial_proto",
 )

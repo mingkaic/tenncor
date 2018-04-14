@@ -5,8 +5,8 @@ package(
 licenses(["notice"])
 
 load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cc_proto_library")
-load("@org_pubref_rules_protobuf//go:rules.bzl", "go_proto_library")
 load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 filegroup(
     name = "srcs",
@@ -20,7 +20,7 @@ filegroup(
 
 cc_proto_library(
     name = "graphmgr_cc_grpc",
-    protos = glob([ "**/*.proto" ]),
+    protos = [ ":graphmgr" ],
     imports = [ "external/com_google_protobuf/src" ],
     proto_deps = [ "//proto:tenncor_serial_cc_proto" ],
     inputs = [
@@ -30,19 +30,9 @@ cc_proto_library(
     with_grpc = True,
 )
 
-go_proto_library(
-    name = "graphmgr_go_grpc",
-    protos = [ "//tests/graphmgr:graphmgr" ],
-    imports = [ "external/com_google_protobuf/src" ],
-    proto_deps = [ "//proto:tenncor_serial_go_proto" ],
-    inputs = [ "//proto:serial" ],
-    deps = [ "//proto:tenncor_serial_go_proto" ],
-    with_grpc = True,
-)
-
 py_proto_library(
     name = "graphmgr_py_grpc",
-    protos = glob([ "**/*.proto" ]),
+    protos = [ ":graphmgr" ],
     imports = [ "external/com_google_protobuf/src" ],
     proto_deps = [ "//proto:tenncor_serial_py_proto" ],
     inputs = [
@@ -50,4 +40,21 @@ py_proto_library(
         "//proto:serial",
     ],
     with_grpc = True,
+)
+
+proto_library(
+    name = "graphmgr_grpc",
+    srcs = [ ":graphmgr" ],
+    deps = [
+        "//proto:tenncor_serial_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+go_proto_library(
+    name = "graphmgr_go_grpc",
+    compilers = [ "@io_bazel_rules_go//proto:go_grpc" ],
+    importpath = "github.com/mingkaic/tests/graphmgr",
+    proto = ":graphmgr_grpc",
+    deps = [ "//proto:tenncor_serial_go_proto" ],
 )
