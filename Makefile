@@ -20,9 +20,9 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(COVERAGE_BZL_FLAG)
 
-SERIALS := serial_cc serial_py serial_go
+SERIALS := serial_cc serial_py
 
-GRAPHMGRS := graphmgr_cc graphmgr_py graphmgr_go
+GRAPHMGRS := graphmgr_cc graphmgr_py
 
 all: proto test_py proto_build unit_test test_regress
 
