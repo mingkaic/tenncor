@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/mingkaic/tenncor/tests/graphgen";
+option go_package = "github.com/mingkaic/tenncor/tests/graphmgr";
 
 import "proto/serial/data.proto";
 import "proto/serial/graph.proto";

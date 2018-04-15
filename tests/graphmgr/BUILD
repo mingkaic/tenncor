@@ -14,7 +14,7 @@ filegroup(
 
 filegroup(
     name = "graphmgr",
-    srcs = [ "graphgen.proto" ],
+    srcs = [ "graphmgr.proto" ],
 )
 
 proto_library(

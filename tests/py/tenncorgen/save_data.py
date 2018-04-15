@@ -2,8 +2,8 @@
 
 import numpy as np
 
-import tests.graphmgr.graphgen_pb2 as graphgen_pb
-from proto.serial import data_pb2 as data_pb
+import proto.serial.data_pb2 as data_pb
+import tests.graphmgr.graphmgr_pb2 as graphmgr_pb
 
 def add_data_repo(tens, data, shape):
 	tens.type = data_pb.DOUBLE
@@ -15,7 +15,7 @@ def add_data_repo(tens, data, shape):
 
 class profile:
 	def __init__(self):
-		self.pb = graphgen_pb.TestData()
+		self.pb = graphmgr_pb.TestData()
 
 	def save(self, ntype, id, result):
 		assert(isinstance(result, np.ndarray))
