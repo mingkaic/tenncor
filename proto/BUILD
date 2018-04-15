@@ -43,6 +43,12 @@ cc_proto_library(
 )
 
 # serialization library
+proto_library(
+    name = "tenncor_serial_proto",
+    srcs = [ "//proto:serial" ],
+    deps = [ "@com_google_protobuf//:any_proto" ],
+)
+
 cc_proto_library(
     name = "tenncor_serial_cc_proto",
     protos = [ "//proto:serial" ],
@@ -59,14 +65,8 @@ py_proto_library(
     with_grpc = False,
 )
 
-proto_library(
-    name = "tenncor_serial_proto",
-    srcs = [ "//proto:serial" ],
-    deps = [ "@com_google_protobuf//:any_proto" ],
-)
-
 go_proto_library(
     name = "tenncor_serial_go_proto",
-    importpath = "github.com/mingkaic/proto/serial",
+    importpath = "github.com/mingkaic/tenncor/proto/serial",
     proto = ":tenncor_serial_proto",
 )

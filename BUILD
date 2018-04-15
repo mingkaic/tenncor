@@ -138,7 +138,3 @@ cc_library(
     defines = [ "RPC_RCD" ],
     copts = [ "-std=c++14" ],
 )
-
-# golang prefix
-load("@io_bazel_rules_go//go:def.bzl", "go_prefix")
-go_prefix("github.com/mingkaic/tenncor")

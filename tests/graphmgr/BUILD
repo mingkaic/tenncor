@@ -15,7 +15,16 @@ filegroup(
 
 filegroup(
     name = "graphmgr",
-    srcs = glob([ "**/*.proto" ])
+    srcs = [ "graphgen.proto" ],
+)
+
+proto_library(
+    name = "graphmgr_grpc",
+    srcs = [ ":graphmgr" ],
+    deps = [
+        "//proto:tenncor_serial_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
 )
 
 cc_proto_library(
@@ -42,19 +51,10 @@ py_proto_library(
     with_grpc = True,
 )
 
-proto_library(
-    name = "graphmgr_grpc",
-    srcs = [ ":graphmgr" ],
-    deps = [
-        "//proto:tenncor_serial_proto",
-        "@com_google_protobuf//:any_proto",
-    ],
-)
-
 go_proto_library(
     name = "graphmgr_go_grpc",
     compilers = [ "@io_bazel_rules_go//proto:go_grpc" ],
-    importpath = "github.com/mingkaic/tests/graphmgr",
+    importpath = "github.com/mingkaic/tenncor/tests/graphmgr",
     proto = ":graphmgr_grpc",
     deps = [ "//proto:tenncor_serial_go_proto" ],
 )

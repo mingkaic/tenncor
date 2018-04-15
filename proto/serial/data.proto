@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/mingkaic/proto/serial";
+option go_package = "github.com/mingkaic/tenncor/proto/serial";
 
 package tenncor;
 
