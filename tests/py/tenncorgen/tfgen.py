@@ -7,7 +7,9 @@ import graphast.nodes as nodes
 from tenncorgen.utils import traverse
 
 # file 'save_data.py' defined at runtime
-tfScript = '''import tensorflow as tf
+tfScript = '''import sys
+
+import tensorflow as tf
 from tenncorgen.save_data import profile
 
 prof = profile()
@@ -37,7 +39,7 @@ with tf.Session() as sess:
 	# output result
 	prof.save("output", "{6}", sess.run({6}))
 
-prof.serialize("{0}")
+prof.serialize("{0}" + sys.argv[1] + ".data")
 '''
 
 class declarable:
@@ -86,7 +88,7 @@ def tf_gen(root, graphid, createOrder, out_prefix = ""):
 	gradMap = ', '.join([ '"{0}": grad_{0}'.format(leaf) for leaf in decl.leaves])
 
 	script = tfScript.format(
-		out_prefix + graphid + ".data",
+		out_prefix + graphid,
 		'\n'.join(lines),
 		tfGrad,
 		"{" + placeMap + "}",
