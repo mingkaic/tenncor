@@ -74,7 +74,7 @@ class declarable:
 			raise Exception("unsupported node type")
 		return id, "%s = %s" % (id, decl)
 
-def tf_gen(root, graphid, createOrder):
+def tf_gen(root, graphid, createOrder, out_prefix = ""):
 	decl = declarable(createOrder)
 	id, lines = traverse(root, decl.declare)
 	grads = ["grad_" + leaf for leaf in decl.leaves]
@@ -86,9 +86,9 @@ def tf_gen(root, graphid, createOrder):
 	gradMap = ', '.join([ '"{0}": grad_{0}'.format(leaf) for leaf in decl.leaves])
 
 	script = tfScript.format(
-		graphid,
+		out_prefix + graphid + ".data",
 		'\n'.join(lines),
-		tfGrad, 
+		tfGrad,
 		"{" + placeMap + "}",
 		"{" + leafMap + "}",
 		"{" + gradMap + "}",
