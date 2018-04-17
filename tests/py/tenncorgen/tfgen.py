@@ -8,6 +8,9 @@ from tenncorgen.utils import traverse
 
 # file 'save_data.py' defined at runtime
 tfScript = '''import sys
+import os
+if os.path.exists({7}):
+	sys.path.insert(0, {7})
 
 import tensorflow as tf
 from tenncorgen.save_data import profile
@@ -76,7 +79,7 @@ class declarable:
 			raise Exception("unsupported node type")
 		return id, "%s = %s" % (id, decl)
 
-def tf_gen(root, graphid, createOrder, out_prefix = ""):
+def tf_gen(root, graphid, createOrder, out_prefix = "", external = ""):
 	decl = declarable(createOrder)
 	id, lines = traverse(root, decl.declare)
 	grads = ["grad_" + leaf for leaf in decl.leaves]
@@ -94,5 +97,5 @@ def tf_gen(root, graphid, createOrder, out_prefix = ""):
 		"{" + placeMap + "}",
 		"{" + leafMap + "}",
 		"{" + gradMap + "}",
-		id)
+		id, external)
 	return script
