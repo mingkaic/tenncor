@@ -9,8 +9,9 @@ from tenncorgen.utils import traverse
 # file 'save_data.py' defined at runtime
 tfScript = '''import sys
 import os
-if os.path.exists({7}):
-	sys.path.append({7})
+import random
+if os.path.exists("{7}"):
+	sys.path.append("{7}")
 
 import tensorflow as tf
 from tests.py.tenncorgen.save_data import profile
@@ -25,18 +26,26 @@ with tf.Session() as sess:
 	sess.run(init)
 
 	# scalar results
-	for label, place in {3}:
+	placemap = {3}
+	for label in placemap:
+		place = placemap[label]
 		prof.save("place", label, place)
 
 	# variable results
-	for label, input in {4}:
+	varmap = {4}
+	for label in varmap:
+		input = varmap[label]
 		res = sess.run(input)
+		res = res.astype(float)
 		# save to protobuf
 		prof.save("variable", label, res)
 
 	# gradient results
-	for label, gradres in {5}:
+	gradmap = {5}
+	for label in gradmap:
+		gradres = gradmap[label]
 		res = sess.run(gradres)
+		res = res.astype(float)
 		prof.save("gradient", label, res)
 
 	# output result

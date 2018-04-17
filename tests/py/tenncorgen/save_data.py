@@ -18,6 +18,9 @@ class profile:
 		self.pb = graphmgr_pb.TestData()
 
 	def save(self, ntype, id, result):
+		if ntype == "place" and isinstance(result, float):
+			self.pb.places[id].data[:] = [result]
+			return
 		assert(isinstance(result, np.ndarray))
 		assert(result.dtype == float)
 		data = result.flatten()
