@@ -10,10 +10,10 @@ from tenncorgen.utils import traverse
 tfScript = '''import sys
 import os
 if os.path.exists({7}):
-	sys.path.insert(0, {7})
+	sys.path.append({7})
 
 import tensorflow as tf
-from tenncorgen.save_data import profile
+from tests.py.tenncorgen.save_data import profile
 
 prof = profile()
 {1}
