@@ -25,13 +25,14 @@ init = tf.global_variables_initializer()
 with tf.Session() as sess:
 	sess.run(init)
 
-	# scalar results
+	print("saving random scalar results")
 	placemap = {3}
 	for label in placemap:
 		place = placemap[label]
+		# save to protobuf
 		prof.save("place", label, place)
 
-	# variable results
+	print("saving variable results")
 	varmap = {4}
 	for label in varmap:
 		input = varmap[label]
@@ -40,17 +41,19 @@ with tf.Session() as sess:
 		# save to protobuf
 		prof.save("variable", label, res)
 
-	# gradient results
+	print("saving gradient results")
 	gradmap = {5}
 	for label in gradmap:
 		gradres = gradmap[label]
 		res = sess.run(gradres)
 		res = res.astype(float)
+		# save to protobuf
 		prof.save("gradient", label, res)
 
-	# output result
-	prof.save("output", "{6}", sess.run({6}))
+	print("saving output results")
+	prof.save("output", "{6}", sess.run({6}).astype(float))
 
+print("serializing to {0}" + sys.argv[1] + ".data")
 prof.serialize("{0}" + sys.argv[1] + ".data")
 '''
 
@@ -92,8 +95,12 @@ def tf_gen(root, graphid, createOrder, out_prefix = "", external = ""):
 	decl = declarable(createOrder)
 	id, lines = traverse(root, decl.declare)
 	grads = ["grad_" + leaf for leaf in decl.leaves]
-	tfGrad = "%s = tf.gradients(%s, [%s])" % \
-		(', '.join(grads), id, ', '.join(decl.leaves))
+	if len(decl.leaves) > 1:
+		tfGrad = "%s = tf.gradients(%s, [%s])" % \
+			(', '.join(grads), id, ', '.join(decl.leaves))
+	else:
+		tfGrad = "%s = tf.gradients(%s, %s)[0]" % \
+			(', '.join(grads), id, decl.leaves[0])
 
 	placeMap = ', '.join([ '"{0}": {0}'.format(place) for place in decl.placescalars])
 	leafMap = ', '.join([ '"{0}": {0}'.format(leaf) for leaf in decl.leaves])
