@@ -53,8 +53,9 @@ with tf.Session() as sess:
 	print("saving output results")
 	prof.save("output", "{6}", sess.run({6}).astype(float))
 
-print("serializing to {0}" + sys.argv[1] + ".data")
-prof.serialize("{0}" + sys.argv[1] + ".data")
+dest = "{0}" + sys.argv[1] + ".data"
+print("serializing to " + dest)
+prof.serialize(dest)
 '''
 
 class declarable:
