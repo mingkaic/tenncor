@@ -26,8 +26,14 @@ GRAPHMGRS := graphmgr_cc graphmgr_py
 
 all: proto test_py proto_build unit_test test_regress
 
+travis_test: build test_py proto_build memcheck coverage test_regress
 
 # build protobuf files
+build: tenncor_build proto
+
+tenncor_build:
+	$(BUILD) //:tenncor
+
 proto: monitor $(SERIALS) $(GRAPHMGRS)
 
 monitor:
@@ -39,14 +45,12 @@ $(SERIALS):
 $(GRAPHMGRS):
 	$(BUILD) //tests/graphmgr:$@_grpc
 
-
 # python data build and test
 proto_build:
 	$(RUN) //tests/py:protogen -- $(shell pwd)/tests/unit/samples
 
 test_py:
 	$(TEST) //tests/py/test:test
-
 
 # unit test
 unit_test: test_tensor test_graph test_operate test_serialize
@@ -63,38 +67,35 @@ test_operate:
 test_serialize:
 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_serialize
 
-
 # conducts coverage on unit tests
 coverage: cover_tensor cover_graph cover_operate cover_serialize
 
 cover_tensor:
-	$(COVER) //tests/unit:test_tensor
+	$(COVER) $(REP_BZL_FLAG) //tests/unit:test_tensor
 
 cover_graph:
-	$(COVER) //tests/unit:test_graph
+	$(COVER) $(REP_BZL_FLAG) //tests/unit:test_graph
 
 cover_operate:
-	$(COVER) //tests/unit:test_operate
+	$(COVER) $(REP_BZL_FLAG) //tests/unit:test_operate
 
-cover_serialize:
+cover_serialize: # serialize is already expensive. don't repeat
 	$(COVER) //tests/unit:test_serialize
-
 
 # runs unit tests with valgrind memory leak, require valgrind to be installed
 memcheck: memcheck_tensor memcheck_graph memcheck_operate memcheck_serialize
 
 memcheck_tensor:
-	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_tensor
+	$(GTEST) $(MEMCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //tests/unit:test_tensor
 
 memcheck_graph:
-	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_graph
+	$(GTEST) $(MEMCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //tests/unit:test_graph
 
 memcheck_operate:
-	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_operate
+	$(GTEST) $(MEMCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //tests/unit:test_operate
 
-memcheck_serialize:
+memcheck_serialize: # serialize is already expensive. don't repeat
 	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_serialize
-
 
 # regression test
 test_regress:
@@ -104,11 +105,9 @@ test_regress:
 acceptdata: cleandata
 	python tests/regress/tf_generate/tf_generate.py
 
-
 # clean C++ format with astyle, requires astyle to be installed
 fmt:
 	astyle --project --recursive --suffix=none *.hpp,*.ipp,*.cpp
-
 
 # remove all test data
 clean_data:
