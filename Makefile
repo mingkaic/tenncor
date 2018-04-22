@@ -113,3 +113,6 @@ fmt:
 clean_data:
 	rm -f tests/regress/samples/*
 	rm -f tests/unit/samples/*
+
+clean: clean_data
+	bazel clean
