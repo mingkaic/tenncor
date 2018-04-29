@@ -2,7 +2,7 @@
 // Created by Mingkai Chen on 2017-03-10.
 //
 
-#include "fuzz/fuzz.hpp"
+#include "testify_cpp/include/fuzz/fuzz.hpp"
 
 #include "utils/utils.hpp"
 #include "tensor/tensorshape.hpp"

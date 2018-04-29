@@ -1,6 +1,6 @@
 #include <cstdlib>
 
-#include "fuzz/fuzz.hpp"
+#include "testify_cpp/include/fuzz/fuzz.hpp"
 
 #ifndef TTEST_FUZZ_HPP
 #define TTEST_FUZZ_HPP

@@ -2,7 +2,7 @@
 // Created by Mingkai Chen on 2017-03-16.
 //
 
-#include "mocker/mocker.hpp"
+#include "testify_cpp/include/mocker/mocker.hpp"
 
 #include "graph/inode.hpp"
 

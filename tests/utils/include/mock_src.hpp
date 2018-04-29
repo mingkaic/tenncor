@@ -1,5 +1,5 @@
-#include "fuzz/fuzz.hpp"
-#include "mocker/mocker.hpp"
+#include "testify_cpp/include/fuzz/fuzz.hpp"
+#include "testify_cpp/include/mocker/mocker.hpp"
 
 #include "tensor/data_src.hpp"
 

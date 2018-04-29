@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "fuzz/irng.hpp"
+#include "testify_cpp/include/fuzz/irng.hpp"
 
 #include "sgen.hpp"
 

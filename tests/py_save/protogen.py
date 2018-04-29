@@ -8,9 +8,7 @@ import numpy as np
 
 import graphast.nodes as nodes
 from graphast.gen import generator, allOps
-from tenncorgen.save_ast import save_ast
-from tenncorgen.save_data import add_data_repo
-from tenncorgen.utils import traverse
+from py_save.save_ast import save_ast
 
 from proto.serial import data_pb2 as data_pb
 from proto.serial import graph_pb2 as graph_pb
@@ -19,6 +17,14 @@ MINDEPTH = os.environ['MINDEPTH'] if 'MINDEPTH' in os.environ else 1
 MAXDEPTH = os.environ['MAXDEPTH'] if 'MAXDEPTH' in os.environ else 10
 GRAPH_EXT = ".graph"
 REGISTRY = "registry.txt"
+
+def add_data_repo(tens, data, shape):
+	tens.type = data_pb.DOUBLE
+	tens.allowed_shape[:] = shape
+	tens.alloced_shape[:] = shape
+	arr = data_pb.DoubleArr()
+	arr.data[:] = data
+	tens.data.Pack(arr)
 
 def save_data(graphpb, outpath):
 	pb = data_pb.DataRepoPb()

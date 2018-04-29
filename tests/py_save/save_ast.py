@@ -8,7 +8,6 @@ from proto.serial import data_pb2 as data_pb
 from proto.serial import graph_pb2 as graph_pb
 
 import graphast.nodes as nodes
-from tenncorgen.utils import traverse
 
 MINDEPTH = os.environ['MINDEPTH'] if 'MINDEPTH' in os.environ else 1
 MAXDEPTH = os.environ['MAXDEPTH'] if 'MAXDEPTH' in os.environ else 10
@@ -79,5 +78,5 @@ def save_ast(root):
 			raise Exception("supported node type")
 		return id, None
 
-	traverse(root, proc_node)
+	nodes._traverse(root, proc_node)
 	return graphpb

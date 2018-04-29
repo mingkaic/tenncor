@@ -9,7 +9,7 @@ filegroup(
     srcs = [
         "BUILD",
         "//tests/graphmgr:srcs",
-        "//tests/py:srcs",
+        "//tests/py_save:srcs",
         "//tests/regress:srcs",
         "//tests/unit:srcs",
         "//tests/utils:srcs",

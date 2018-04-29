@@ -6,7 +6,7 @@ from proto.serial import graph_pb2 as graph_pb
 
 from graphast.nodes import leaf
 from graphast.gen import allOps
-from tenncorgen.save_ast import save_ast
+from tests.py_save.save_ast import save_ast
 
 class TestSaveAst(unittest.TestCase):
 	def test_save_ast(self):

@@ -111,30 +111,30 @@ cc_library(
 #           MONITOR LIBRARY           #
 #######################################
 
-######### CSV MONITOR #########
-cc_library(
-    name = "tenncor_csv",
-    hdrs = [ ":tenncor_hpp", ":monitor_csv_hpp" ],
-    srcs = [ ":tenncor_cpp", ":monitor_csv_cpp" ],
-    includes = [ "include" ],
-    deps = [ 
-        "//proto:tenncor_serial_cc_proto",
-    ],
-    defines = [ "CSV_RCD" ],
-    copts = [ "-std=c++14" ],
-)
+# ######### CSV MONITOR #########
+# cc_library(
+#     name = "tenncor_csv",
+#     hdrs = [ ":tenncor_hpp", ":monitor_csv_hpp" ],
+#     srcs = [ ":tenncor_cpp", ":monitor_csv_cpp" ],
+#     includes = [ "include" ],
+#     deps = [ 
+#         "//proto:tenncor_serial_cc_proto",
+#     ],
+#     defines = [ "CSV_RCD" ],
+#     copts = [ "-std=c++14" ],
+# )
 
-######### GRPC MONITOR #########
-cc_library(
-    name = "tenncor_rpc",
-    hdrs = [ ":tenncor_hpp", ":monitor_rpc_hpp" ],
-    srcs = [ ":tenncor_cpp", ":monitor_rpc_cpp" ],
-    includes = [ "include" ],
-    deps = [
-        "//proto:tenncor_serial_cc_proto",
-        "//proto:tenncor_monitor_grpc",
-        "@com_github_grpc_grpc//:grpc++",
-    ],
-    defines = [ "RPC_RCD" ],
-    copts = [ "-std=c++14" ],
-)
+# ######### GRPC MONITOR #########
+# cc_library(
+#     name = "tenncor_rpc",
+#     hdrs = [ ":tenncor_hpp", ":monitor_rpc_hpp" ],
+#     srcs = [ ":tenncor_cpp", ":monitor_rpc_cpp" ],
+#     includes = [ "include" ],
+#     deps = [
+#         "//proto:tenncor_serial_cc_proto",
+#         "//proto:tenncor_monitor_grpc",
+#         "@com_github_grpc_grpc//:grpc++",
+#     ],
+#     defines = [ "RPC_RCD" ],
+#     copts = [ "-std=c++14" ],
+# )

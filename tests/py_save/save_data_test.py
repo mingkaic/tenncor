@@ -4,7 +4,7 @@ import random
 import numpy as np
 import unittest
 
-from tenncorgen.save_data import profile
+from tests.py_save.save_data import profile
 
 from proto.serial import data_pb2 as data_pb
 
