@@ -50,7 +50,8 @@ message DataReq {
 message TestData
 {
 	tenncor.DataRepoPb vars = 1;
-	map<string, tenncor.FloatArr> places = 2;
-	tenncor.DataRepoPb grads = 3; // map wrt variable to gradient result
-	tenncor.TensorPb result = 4;
+	map<string, tenncor.FloatArr> dscalar = 2;
+	map<string, tenncor.Int32Arr> iscalar = 3;
+	tenncor.DataRepoPb grads = 4; // map wrt variable to gradient result
+	tenncor.TensorPb result = 5;
 }
