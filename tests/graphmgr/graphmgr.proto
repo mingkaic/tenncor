@@ -2,6 +2,8 @@ syntax = "proto3";
 
 option go_package = "github.com/mingkaic/tenncor/tests/graphmgr";
 
+import "google/protobuf/any.proto";
+
 import "proto/serial/data.proto";
 import "proto/serial/graph.proto";
 
@@ -10,6 +12,7 @@ package graphmgr;
 service Graphmgr {
 	// python generator client
 	rpc PostGraph(GraphCreated) returns (Nothing) {}
+	rpc PostData(DataCreated) returns (Nothing) {}
 
 	// real client
 	rpc GetGraphList(GraphListReq) returns (GraphList) {}
@@ -20,7 +23,21 @@ service Graphmgr {
 }
 
 message GraphCreated {
-    string gid = 1;
+	tenncor.GraphPb graph = 1;
+	google.protobuf.Any detail = 2;
+}
+
+message DataCreated {
+    tenncor.DataRepoPb data = 1;
+}
+
+message Script {
+	enum Category {
+		ALL = 0;
+		RAND = 1;
+	}
+	string script = 1;
+	Category category = 2;
 }
 
 message Nothing {}

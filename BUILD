@@ -1,8 +1,8 @@
+licenses(["notice"])
+
 package(
     default_visibility = [ "//visibility:public" ],
 )
-
-licenses(["notice"])
 
 #######################################
 #           GENERAL SOURCE            #
