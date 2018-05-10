@@ -5,9 +5,9 @@
 namespace testutils
 {
 
-bool tensorshape_equal (
-	const nnet::tensorshape& ts1,
-	const nnet::tensorshape& ts2)
+bool tshape_equal (
+	const nnet::tshape& ts1,
+	const nnet::tshape& ts2)
 {
 	std::vector<size_t> vs = ts1.as_list();
 	std::vector<size_t> vs2 = ts2.as_list();
@@ -15,8 +15,8 @@ bool tensorshape_equal (
 	return std::equal(vs.begin(), vs.end(), vs2.begin());
 }
 
-bool tensorshape_equal (
-	const nnet::tensorshape& ts1,
+bool tshape_equal (
+	const nnet::tshape& ts1,
 	std::vector<size_t>& ts2)
 {
 	std::vector<size_t> vs = ts1.as_list();

@@ -14,7 +14,7 @@ namespace nnet
 template <typename T>
 void abs (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
@@ -29,7 +29,7 @@ void abs (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void neg (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
@@ -44,7 +44,7 @@ void neg (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void sin (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
@@ -59,7 +59,7 @@ void sin (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void cos (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
@@ -74,7 +74,7 @@ void cos (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void tan (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
@@ -89,7 +89,7 @@ void tan (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void exp (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
@@ -104,7 +104,7 @@ void exp (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void log (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
@@ -119,7 +119,7 @@ void log (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void sqrt (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;
@@ -134,7 +134,7 @@ void sqrt (VARR_T dest, std::vector<CVAR_T> srcs)
 template <typename T>
 void round (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape);
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;

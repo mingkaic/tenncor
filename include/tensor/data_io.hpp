@@ -24,16 +24,16 @@ using TYPE_F = std::function<TENS_TYPE(std::vector<TENS_TYPE>)>;
 
 using GLUE_F = std::function<void(VARR_T,CVAR_T,unsigned short,size_t)>;
 
-using SIDX_F = std::function<std::vector<size_t>(tensorshape,const tensorshape,std::vector<uint64_t>)>;
+using SIDX_F = std::function<std::vector<size_t>(tshape,const tshape,std::vector<uint64_t>)>;
 
-using OMAP_F = std::function<std::vector<signed>(tensorshape,const tensorshape,std::vector<uint64_t>)>;
+using OMAP_F = std::function<std::vector<signed>(tshape,const tshape,std::vector<uint64_t>)>;
 
 struct tens_state final
 {
 	tens_state (void) : type_(BAD_T) {}
 
 	tens_state (std::weak_ptr<void> data,
-		tensorshape shape, TENS_TYPE type) : 
+		tshape shape, TENS_TYPE type) : 
 		data_(data), shape_(shape), type_(type) {}
 
 	tens_state (const tens_state& other) :
@@ -70,20 +70,20 @@ struct tens_state final
 	}
 
 	std::weak_ptr<void> data_;
-	tensorshape shape_;
+	tshape shape_;
 	TENS_TYPE type_;
 };
 
 struct idata_dest
 {
-	virtual ~idata_dest (void) {}
+	virtual ~idata_dest (void) = default;
 
-	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx) = 0;
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tshape shape, size_t idx) = 0;
 };
 
 struct portal_dest : public idata_dest
 {
-	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t);
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tshape shape, size_t);
 
 	void clear (void);
 
@@ -120,9 +120,9 @@ struct assign_io final : virtual idata_src, virtual idata_dest
 		return *this;
 	}
 	
-	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx);
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tshape shape, size_t idx);
 
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tshape shape) const;
 
 private:
 	assign_io (const assign_io& other) : 
@@ -176,9 +176,9 @@ struct operate_io final : virtual idata_src, virtual idata_dest
 		return *this;
 	}
 
-	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx);
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, tshape shape, size_t idx);
 
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tshape shape) const;
 
 private:
 	operate_io (const operate_io& other) :

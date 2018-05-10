@@ -141,7 +141,7 @@ TEST_F(GRAPH, GraphSerialize_A000)
 					dynamic_cast<nnet::placeholder*>(tempnode);
 				ASSERT_NE(nullptr, tempplace);
 				size_t nshape = srcplace.allowed_shape_size();
-				nnet::tensorshape tempshape = tempplace->get_tensor()->get_allowed();
+				nnet::tshape tempshape = tempplace->get_tensor()->get_allowed();
 				ASSERT_EQ(nshape, destplace.allowed_shape_size());
 				ASSERT_EQ(nshape, tempshape.rank());
 				for (size_t j = 0; j < nshape; j++)
@@ -161,8 +161,8 @@ TEST_F(GRAPH, GraphSerialize_A000)
 					dynamic_cast<nnet::constant*>(tempnode);
 				ASSERT_NE(nullptr, tempconst);
 				nnet::tensor* tempten = tempconst->get_tensor();
-				nnet::tensorshape tempshape = tempten->get_allowed();
-				nnet::tensorshape tempshape2 = tempten->get_shape();
+				nnet::tshape tempshape = tempten->get_allowed();
+				nnet::tshape tempshape2 = tempten->get_shape();
 		
 				size_t nshape = srcconst.allowed_shape_size();
 				ASSERT_EQ(nshape, destconst.allowed_shape_size());
@@ -217,7 +217,7 @@ TEST_F(GRAPH, GraphSerialize_A000)
 				EXPECT_EQ(srcvar.varpos(), destvar.varpos());
 				EXPECT_EQ(srcvar.varpos(), tempvar->get_varpos());
 
-				nnet::tensorshape tempshape = tempvar->get_tensor()->get_allowed();
+				nnet::tshape tempshape = tempvar->get_tensor()->get_allowed();
 				size_t nshape = srcvar.allowed_shape_size();
 				ASSERT_EQ(nshape, destvar.allowed_shape_size());
 				ASSERT_EQ(nshape, tempshape.rank());
@@ -270,7 +270,7 @@ TEST_F(GRAPH, SerialConst_A001)
 {
 	double c = get_double(1, "c")[0];
 
-	nnet::tensorshape shape = random_def_shape(this, {2, 5});
+	nnet::tshape shape = random_def_shape(this, {2, 5});
 	size_t n = shape.n_elems();
 	std::vector<double> v = get_double(n, "v");
 
@@ -304,7 +304,7 @@ TEST_F(GRAPH, SerialConst_A001)
 	nnet::tensor* ten = out2->get_tensor();
 	ASSERT_NE(nullptr, ten);
 	std::vector<double> vec = nnet::expose<double>(ten);
-	nnet::tensorshape oshape = ten->get_shape();
+	nnet::tshape oshape = ten->get_shape();
 	ASSERT_SHAPEQ(shape, oshape);
 	for (size_t i = 0, n = vec.size(); i < n; ++i)
 	{
@@ -326,10 +326,10 @@ TEST_F(GRAPH, SerialConst_A001)
 	auto loc2 = proto_src2.alloced_shape();
 	auto low3 = proto_src3.allowed_shape();
 	auto loc3 = proto_src3.alloced_shape();
-	nnet::tensorshape lows(std::vector<size_t>(low2.begin(), low2.end()));
-	nnet::tensorshape locs(std::vector<size_t>(loc2.begin(), loc2.end()));
-	nnet::tensorshape lows2(std::vector<size_t>(low3.begin(), low3.end()));
-	nnet::tensorshape locs2(std::vector<size_t>(loc3.begin(), loc3.end()));
+	nnet::tshape lows(std::vector<size_t>(low2.begin(), low2.end()));
+	nnet::tshape locs(std::vector<size_t>(loc2.begin(), loc2.end()));
+	nnet::tshape lows2(std::vector<size_t>(low3.begin(), low3.end()));
+	nnet::tshape locs2(std::vector<size_t>(loc3.begin(), loc3.end()));
 
 	EXPECT_SHAPEQ(lows,  lows2);
 	EXPECT_SHAPEQ(locs,  locs2);
@@ -343,8 +343,8 @@ TEST_F(GRAPH, SerialPlace_A002)
 	std::string label1 = get_string(strns[0], "label1");
 	std::string label2 = get_string(strns[1], "label2");
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
-	nnet::tensorshape pshape = make_partial(this, clist);
+	nnet::tshape shape = clist;
+	nnet::tshape pshape = make_partial(this, clist);
 
 	google::protobuf::Any proto_dest;
 	google::protobuf::Any proto_dest2;
@@ -365,20 +365,20 @@ TEST_F(GRAPH, SerialPlace_A002)
 
 	auto vec = place_src.allowed_shape();
 	auto vec2 = place_src2.allowed_shape();
-	nnet::tensorshape outshape(std::vector<size_t>(vec.begin(), vec.end()));
-	nnet::tensorshape outshape2(std::vector<size_t>(vec2.begin(), vec2.end()));
+	nnet::tshape outshape(std::vector<size_t>(vec.begin(), vec.end()));
+	nnet::tshape outshape2(std::vector<size_t>(vec2.begin(), vec2.end()));
 
 	EXPECT_SHAPEQ(pshape, outshape);
 	EXPECT_SHAPEQ(pshape, outshape2);
 
 	// overwrite check
-	nnet::tensorshape shape2 = random_def_shape(this);
+	nnet::tshape shape2 = random_def_shape(this);
 	nnet::placeholder place2(shape2, label2);
 	place2.serialize_detail(&proto_dest3);
 	tenncor::PlacePb place_src3;
 	proto_dest3.UnpackTo(&place_src3);
 	auto vec3 = place_src3.allowed_shape();
-	nnet::tensorshape outshape3(std::vector<size_t>(vec3.begin(), vec3.end()));
+	nnet::tshape outshape3(std::vector<size_t>(vec3.begin(), vec3.end()));
 	EXPECT_SHAPEQ(shape2, outshape3);
 }
 
@@ -391,8 +391,8 @@ TEST_F(GRAPH, SerialVar_A003)
 	std::string label2 = get_string(strns[1], "label2");
 	std::string label3 = get_string(strns[2], "label3");
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
-	nnet::tensorshape pshape = make_partial(this, clist);
+	nnet::tshape shape = clist;
+	nnet::tshape pshape = make_partial(this, clist);
 	double c = get_double(1, "c")[0];
 	std::vector<double> minmax = get_double(2, "min-max", {-24, 26});
 	double min = *std::min_element(minmax.begin(), minmax.end());
@@ -450,14 +450,14 @@ TEST_F(GRAPH, SerialVar_A003)
 
 	auto vec = var_src.allowed_shape();
 	auto vec2 = var_src.allowed_shape();
-	nnet::tensorshape outshape(std::vector<size_t>(vec.begin(), vec.end()));
-	nnet::tensorshape outshape2(std::vector<size_t>(vec2.begin(), vec2.end()));
+	nnet::tshape outshape(std::vector<size_t>(vec.begin(), vec.end()));
+	nnet::tshape outshape2(std::vector<size_t>(vec2.begin(), vec2.end()));
 
 	EXPECT_SHAPEQ(pshape, outshape);
 	EXPECT_SHAPEQ(pshape, outshape2);
 
 	// overwrite check
-	nnet::tensorshape shape2 = random_def_shape(this);
+	nnet::tshape shape2 = random_def_shape(this);
 	nnet::variable var(shape2, cinit, label2);
 	var.serialize_detail(&proto_dest3);
 	tenncor::VariablePb var_src3;
@@ -477,7 +477,7 @@ TEST_F(GRAPH, SerialVar_A003)
 	EXPECT_EQ(nnet::DOUBLE, vsrc.dtype());
 
 	auto vec3 = var_src3.allowed_shape();
-	nnet::tensorshape outshape3(std::vector<size_t>(vec3.begin(), vec3.end()));
+	nnet::tshape outshape3(std::vector<size_t>(vec3.begin(), vec3.end()));
 	EXPECT_SHAPEQ(shape2, outshape3);
 }
 
@@ -544,9 +544,9 @@ TEST_F(GRAPH, SerialData_A005)
 		std::vector<size_t> strns = get_int(2, "strns", {14, 29});
 		std::string varlabel = get_string(strns[0], "varlabel");
 		std::vector<size_t> clist = random_def_shape(this);
-		nnet::tensorshape cshape(clist);
+		nnet::tshape cshape(clist);
 		size_t n = cshape.n_elems();
-		nnet::tensorshape varshape = make_partial(this, clist);
+		nnet::tshape varshape = make_partial(this, clist);
 		double c = get_double(1, "c")[0];
 		tenncor::DataRepoPb uninitvar;
 		tenncor::DataRepoPb initvar;
@@ -566,10 +566,10 @@ TEST_F(GRAPH, SerialData_A005)
 		auto it = varmap.find(var->get_varpos());
 		ASSERT_TRUE(varmap.end() != it);
 		tenncor::TensorPb tp = it->second;
-		nnet::tensorshape allow(std::vector<size_t>(
+		nnet::tshape allow(std::vector<size_t>(
 			tp.allowed_shape().begin(),
 			tp.allowed_shape().end()));
-		nnet::tensorshape alloc(std::vector<size_t>(
+		nnet::tshape alloc(std::vector<size_t>(
 			tp.alloced_shape().begin(),
 			tp.alloced_shape().end()));
 		EXPECT_SHAPEQ(varshape, allow);

@@ -44,7 +44,7 @@ use libraries
 	using namespace nnet;
 	
 	int main () {
-		tensorshape common = std::vector<size_t>{5, 5};
+		tshape common = std::vector<size_t>{5, 5};
 		random_uniform rinit(-1, 1);
 	
 		// initializes a 5 by 5 matrix with uniformly distributed

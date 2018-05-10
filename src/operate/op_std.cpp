@@ -125,7 +125,7 @@ static inline varptr sample (std::string opname, OPCODE op, const varptr& a, con
 	return elem_func(deps, opname, op,
 	[](std::vector<std::pair<inode*,varptr> > args)
 	{
-		tensorshape shape = args.front().first->get_tensor()->get_shape();
+		tshape shape = args.front().first->get_tensor()->get_shape();
 		std::vector<double> zeroes(shape.n_elems(), 0); // todo: convert to data type
 		return constant::get<double>(zeroes, shape);
 	},
@@ -165,7 +165,7 @@ void assert_type(const varptr a, TENS_TYPE type)
 	// todo: implement
 }
 
-void assert_shape(const varptr a, tensorshape shape)
+void assert_shape(const varptr a, tshape shape)
 {
 	// todo: implement
 }
@@ -480,8 +480,8 @@ varptr transpose (const varptr a)
 		size_t per = type_size(type);
 		char* out = (char*) dest.first;
 		const char* in = (const char*) srcs[0].first;
-		tensorshape outshape = dest.second;
-		tensorshape inshape = srcs[0].second;
+		tshape outshape = dest.second;
+		tshape inshape = srcs[0].second;
 		size_t n = outshape.n_elems();
 		std::vector<size_t> coord;
 		for (size_t i = 0; i < n; ++i)
@@ -491,12 +491,12 @@ varptr transpose (const varptr a)
 			std::memcpy(out + i * per, in + inshape.flat_idx(coord) * per, per);
 		}
 	}, 
-	[](tensorshape inshape, std::vector<uint64_t>)
+	[](tshape inshape, std::vector<uint64_t>)
 	{
 		// rearrange inlist to outlist
 		std::vector<size_t> slist = inshape.as_list();
 		std::reverse(slist.begin(), slist.end());
-		return tensorshape(slist);
+		return tshape(slist);
 	}, op);
 }
 
@@ -515,7 +515,7 @@ varptr transpose (const varptr a, std::vector<uint64_t> perm)
 		}
 
 		pvar = constant::get<uint64_t>(perm, 
-			tensorshape(std::vector<size_t>{psize}));
+			tshape(std::vector<size_t>{psize}));
 	}
 	return transpose(a, pvar);
 }
@@ -541,8 +541,8 @@ varptr transpose (const varptr a, const varptr perm)
 		char* out = (char*) dest.first;
 		const char* in = (const char*) srcs[0].first;
 		size_t* perm = (size_t*) srcs[1].first;
-		tensorshape outshape = dest.second;
-		tensorshape inshape = srcs[0].second;
+		tshape outshape = dest.second;
+		tshape inshape = srcs[0].second;
 		size_t permsize = srcs[1].second.n_elems();
 		size_t n = outshape.n_elems();
 		std::vector<size_t> tmp_coord;
@@ -557,7 +557,7 @@ varptr transpose (const varptr a, const varptr perm)
 			std::memcpy(out + i * per, in + inshape.flat_idx(coord) * per, per);
 		}
 	}, 
-	[](tensorshape inshape, std::vector<uint64_t> perm)
+	[](tshape inshape, std::vector<uint64_t> perm)
 	{
 		// rearrange inlist to outlist
 		std::vector<size_t> inlist = inshape.as_list();
@@ -569,14 +569,14 @@ varptr transpose (const varptr a, const varptr perm)
 				outlist[i] = inlist[perm[i]];
 			}
 		}
-		return tensorshape(outlist);
+		return tshape(outlist);
 	}, op);
 }
 
 varptr flip (const varptr a, std::vector<uint64_t> dims)
 {
 	return flip(a, constant::get<uint64_t>(dims, 
-		tensorshape(std::vector<size_t>{dims.size()})));
+		tshape(std::vector<size_t>{dims.size()})));
 }
 
 varptr flip (const varptr a, const varptr dims)
@@ -597,8 +597,8 @@ varptr flip (const varptr a, const varptr dims)
 		char* out = (char*) dest.first;
 		const char* in = (const char*) srcs[0].first;
 		size_t* dims = (size_t*) srcs[1].first;
-		tensorshape outshape = dest.second;
-		tensorshape inshape = srcs[0].second;
+		tshape outshape = dest.second;
+		tshape inshape = srcs[0].second;
 		size_t ndims = srcs[1].second.n_elems();
 		size_t n = outshape.n_elems();
 		std::vector<size_t> slist = outshape.as_list();
@@ -613,7 +613,7 @@ varptr flip (const varptr a, const varptr dims)
 			memcpy(out + i * per, in + outshape.flat_idx(coord) * per, per);
 		}
 	},
-	[](tensorshape inshape, std::vector<uint64_t>) { return inshape; }, op);
+	[](tshape inshape, std::vector<uint64_t>) { return inshape; }, op);
 }
 
 
@@ -680,13 +680,13 @@ varptr n_elems (const varptr a)
 		return parent;
 	}
 	return shape_func({a},
-	[](tensorshape inshape, std::vector<uint64_t>)
+	[](tshape inshape, std::vector<uint64_t>)
 	{
 		return std::vector<size_t>{inshape.n_elems()};
 	},
-	[](tensorshape, std::vector<uint64_t>)
+	[](tshape, std::vector<uint64_t>)
 	{
-		return tensorshape(std::vector<size_t>{1});
+		return tshape(std::vector<size_t>{1});
 	}, op);
 }
 
@@ -710,16 +710,16 @@ varptr n_dimension (const varptr a, varptr dimension)
 		return parent;
 	}
 	return shape_func({a, dimension},
-	[](tensorshape inshape, std::vector<uint64_t> dimension)
+	[](tshape inshape, std::vector<uint64_t> dimension)
 	{
 		assert(dimension.size() > 0);
 		std::vector<size_t> vec = inshape.as_list();
 		assert(vec.size() > dimension[0]);
 		return std::vector<size_t>{vec[dimension[0]]};
 	},
-	[](tensorshape, std::vector<uint64_t>)
+	[](tshape, std::vector<uint64_t>)
 	{
-		return tensorshape(std::vector<size_t>{1});
+		return tshape(std::vector<size_t>{1});
 	}, op);
 }
 
@@ -759,8 +759,8 @@ varptr expand (const varptr a, const varptr n, const varptr dim)
 		const char* in = (const char*) srcs[0].first;
 		uint64_t mul = *((double*) srcs[1].first); // todo: make this uint64_t once shape_func uses uint64_t
 		uint64_t dim = *((uint64_t*) srcs[2].first);
-		tensorshape outshape = dest.second;
-		tensorshape inshape = srcs[0].second;
+		tshape outshape = dest.second;
+		tshape inshape = srcs[0].second;
 		
 		std::vector<size_t> slist = inshape.as_list();
 		auto it = slist.begin();
@@ -778,7 +778,7 @@ varptr expand (const varptr a, const varptr n, const varptr dim)
 			}
 		}
 	}, 
-	[](tensorshape inshape, std::vector<uint64_t> sinfo)
+	[](tshape inshape, std::vector<uint64_t> sinfo)
 	{
 		assert(sinfo.size() == 2);
 		uint64_t mul = sinfo[0];
@@ -786,7 +786,7 @@ varptr expand (const varptr a, const varptr n, const varptr dim)
 		std::vector<size_t> slist = inshape.as_list();
 		assert(slist.size() >= dim);
 		slist.insert(slist.begin() + dim, mul);
-		return tensorshape(slist);
+		return tshape(slist);
 	}, op);
 }
 

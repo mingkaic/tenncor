@@ -13,9 +13,9 @@
 namespace nnet
 {
 
-static inline tensorshape elementary_shaper (std::vector<tensorshape> shapes)
+static inline tshape elementary_shaper (std::vector<tshape> shapes)
 {
-	tensorshape lastshape;
+	tshape lastshape;
 	for (size_t i = 0, nshapes = shapes.size(); i < nshapes; ++i)
 	{
 		if (shapes[i].n_elems() == 1)
@@ -45,7 +45,7 @@ functor* elem_func (std::vector<inode*> args, std::string opname, OPCODE op, BAC
 	{
 		operate_io* io = new operate_io(ebind(opname));
 		src = std::unique_ptr<idata_src>(io);
-		std::vector<tensorshape> srcshapes;
+		std::vector<tshape> srcshapes;
 		for (size_t i = 0; i < args.size(); ++i)
 		{
 			tensor* tens = args[i]->get_tensor();
@@ -78,7 +78,7 @@ functor* elem_func (std::vector<inode*> args, std::string opname, OPCODE op, BAC
 	{
 		operate_io* io = new operate_io(ebind(opname), tprocess);
 		src = std::unique_ptr<idata_src>(io);
-		std::vector<tensorshape> srcshapes;
+		std::vector<tshape> srcshapes;
 		for (size_t i = 0; i < args.size(); ++i)
 		{
 			tensor* tens = args[i]->get_tensor();
@@ -156,9 +156,9 @@ functor* arg_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 		{
 			assert(srcs.size() == 1);
 			AFUNC_F agg = abind(opname)(type);
-			tensorshape outshape = dest.second;
+			tshape outshape = dest.second;
 			// assert(outshape.n_elems() == 1);
-			tensorshape inshape = srcs[0].second;
+			tshape inshape = srcs[0].second;
 			size_t per = type_size(type);
 			size_t n = inshape.n_elems();
 			std::string init(per, 0);
@@ -200,8 +200,8 @@ functor* arg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 			AFUNC_F agg = abind(opname)(type);
 			char* out = (char*) dest.first;
 			uint64_t dim = *((uint64_t*) srcs[1].first);
-			tensorshape outshape = dest.second;
-			tensorshape inshape = srcs[0].second;
+			tshape outshape = dest.second;
+			tshape inshape = srcs[0].second;
 			size_t per = type_size(type);
 
 			size_t rank = inshape.rank();
@@ -250,7 +250,7 @@ functor* arg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 		inode* darg = args[1];
 		tensor* tens = arg->get_tensor();
 		tensor* dtens = darg->get_tensor();
-		tensorshape shape = tens->get_shape();
+		tshape shape = tens->get_shape();
 		uint64_t dim = expose<uint64_t>(args[1])[0];
 		assert(tens && dtens && shape.rank() > dim);
 		// assert that shape only change once
@@ -265,7 +265,7 @@ functor* arg_func (inode* arg, inode* dimension, std::string opname, OPCODE op, 
 		{
 			slist.erase(slist.begin() + dim);
 		}
-		return new tensor(tensorshape(slist));
+		return new tensor(tshape(slist));
 	},
 	[bwd](inode* wrt, std::vector<inode*> args)
 	{
@@ -287,9 +287,9 @@ functor* reduce_func (inode* arg, std::string opname, OPCODE op, BACKMAP_F bwd)
 		{
 			assert(srcs.size() == 1);
 			AFUNC_F agg = abind(opname)(type);
-			tensorshape outshape = dest.second;
+			tshape outshape = dest.second;
 			// assert(outshape.n_elems() == 1);
-			tensorshape inshape = srcs[0].second;
+			tshape inshape = srcs[0].second;
 			size_t per = type_size(type);
 			size_t n = inshape.n_elems();
 			std::memcpy(dest.first, srcs[0].first, per);
@@ -331,8 +331,8 @@ functor* reduce_func (inode* arg, inode* dimension, std::string opname, OPCODE o
 			char* out = (char*) dest.first;
 			char* in = (char*) srcs[0].first;
 			uint64_t dim = *((uint64_t*) srcs[1].first);
-			tensorshape outshape = dest.second;
-			tensorshape inshape = srcs[0].second;
+			tshape outshape = dest.second;
+			tshape inshape = srcs[0].second;
 			size_t per = type_size(type);
 
 			size_t rank = inshape.rank();
@@ -379,7 +379,7 @@ functor* reduce_func (inode* arg, inode* dimension, std::string opname, OPCODE o
 		inode* darg = args[1];
 		tensor* tens = arg->get_tensor();
 		tensor* dtens = darg->get_tensor();
-		tensorshape shape = tens->get_shape();
+		tshape shape = tens->get_shape();
 		uint64_t dim = expose<uint64_t>(args[1])[0];
 		assert(tens && dtens && shape.rank() > dim);
 		// assert that shape only change once
@@ -394,7 +394,7 @@ functor* reduce_func (inode* arg, inode* dimension, std::string opname, OPCODE o
 		{
 			slist.erase(slist.begin() + dim);
 		}
-		return new tensor(tensorshape(slist));
+		return new tensor(tshape(slist));
 	},
 	[bwd](inode* wrt, std::vector<inode*> args)
 	{
@@ -419,7 +419,7 @@ functor* shape_func (std::vector<inode*> args, USIDX_F extracter, USHAPE_F shape
 			sinfo = expose<uint64_t>(args[1]);
 		}
 
-		tensorshape shape = tens->get_shape();
+		tshape shape = tens->get_shape();
 		std::vector<size_t> sdata = extracter(shape, sinfo);
 		std::vector<double> doub_d(sdata.begin(), sdata.end()); // todo: make tens's type
 		ci->set<double>(doub_d);

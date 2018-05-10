@@ -34,7 +34,7 @@ public:
 
 	//! builder for data and shape
 	template <typename T>
-	static varptr get (std::vector<T> raw, tensorshape shape);
+	static varptr get (std::vector<T> raw, tshape shape);
 
 	// static varptr get_generic (std::string data, TENS_TYPE type);
 
@@ -124,7 +124,7 @@ varptr constant::get (T scalar)
 	constant* cons = find_const(key);
 	if (nullptr == cons)
 	{
-		tensorshape shape = std::vector<size_t>{1};
+		tshape shape = std::vector<size_t>{1};
 		const_init ci;
 		ci.set(scalar);
 		tensor* data = new tensor(shape);
@@ -136,11 +136,11 @@ varptr constant::get (T scalar)
 }
 
 template <typename T>
-varptr constant::get (std::vector<T> raw, tensorshape shape)
+varptr constant::get (std::vector<T> raw, tshape shape)
 {
 	static_assert(std::is_arithmetic<T>::value, 
 		"constant must be arithmetic value");
-	shape.assert_is_fully_defined();
+	assert(shape.is_fully_defined());
 	std::string name;
 	if (raw.empty())
 	{

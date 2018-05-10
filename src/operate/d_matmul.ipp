@@ -177,8 +177,8 @@ void matmul (VARR_T dest, std::vector<CVAR_T> srcs)
 	T* tdest = (T*) dest.first;
 	T* src0 = (T*) srcs[0].first;
 	T* src1 = (T*) srcs[1].first;
-	tensorshape& ashape = srcs[0].second;
-	tensorshape& bshape = srcs[1].second;
+	tshape& ashape = srcs[0].second;
+	tshape& bshape = srcs[1].second;
 	size_t dim_z = ashape[0];
 	size_t dim_y;
 	if (ashape.rank() < 2)

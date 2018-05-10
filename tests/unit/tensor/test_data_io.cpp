@@ -40,9 +40,9 @@ static inline void bad_op (TENS_TYPE, nnet::VARR_T, std::vector<nnet::CVAR_T>) {
 
 TEST_F(DATA_IO, Copy_E000)
 {
-	nnet::tensorshape shape1(random_def_shape(this));
-	nnet::tensorshape shape2(random_def_shape(this));
-	nnet::tensorshape outshape(random_def_shape(this));
+	nnet::tshape shape1(random_def_shape(this));
+	nnet::tshape shape2(random_def_shape(this));
+	nnet::tshape outshape(random_def_shape(this));
 	nnet::portal_dest passign;
 	nnet::assign_io aassign;
 	nnet::operate_io oassign(bad_op);
@@ -163,9 +163,9 @@ TEST_F(DATA_IO, Copy_E000)
 
 TEST_F(DATA_IO, Move_E000)
 {
-	nnet::tensorshape shape1(random_def_shape(this));
-	nnet::tensorshape shape2(random_def_shape(this));
-	nnet::tensorshape outshape(random_def_shape(this));
+	nnet::tshape shape1(random_def_shape(this));
+	nnet::tshape shape2(random_def_shape(this));
+	nnet::tshape outshape(random_def_shape(this));
 	nnet::portal_dest passign;
 	nnet::assign_io aassign;
 	nnet::operate_io oassign(bad_op);
@@ -308,7 +308,7 @@ TEST_F(DATA_IO, Portal_E001)
 {
 	nnet::portal_dest portal;
 
-	nnet::tensorshape shape(random_def_shape(this));
+	nnet::tshape shape(random_def_shape(this));
 	mock_data_src src(this);
 	nnet::tensor arg(shape);
 	ASSERT_TRUE(arg.read_from(src)) <<
@@ -329,8 +329,8 @@ TEST_F(DATA_IO, Assign_E002)
 	nnet::assign_io assign;
 
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape(clist);
-	nnet::tensorshape bad = make_incompatible(clist);
+	nnet::tshape shape(clist);
+	nnet::tshape bad = make_incompatible(clist);
 	mock_data_src src(this);
 	{
 		nnet::tensor arg(shape);
@@ -360,9 +360,9 @@ TEST_F(DATA_IO, Assign_E002)
 
 TEST_F(DATA_IO, Operate_E003)
 {
-	nnet::tensorshape shape1(random_def_shape(this));
-	nnet::tensorshape shape2(random_def_shape(this));
-	nnet::tensorshape outshape(random_def_shape(this));
+	nnet::tshape shape1(random_def_shape(this));
+	nnet::tshape shape2(random_def_shape(this));
+	nnet::tshape outshape(random_def_shape(this));
 
 	TENS_TYPE otype = nnet::BAD_T;
 	std::vector<TENS_TYPE> otypes;

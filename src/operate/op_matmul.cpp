@@ -8,10 +8,10 @@
 namespace nnet
 {
 
-static tensorshape matmul_shaper (std::vector<tensorshape> shapes)
+static tshape matmul_shaper (std::vector<tshape> shapes)
 {
-	tensorshape& t1s = shapes[0];
-	tensorshape& t2s = shapes[1];
+	tshape& t1s = shapes[0];
+	tshape& t2s = shapes[1];
 
 	std::vector<size_t> al = t1s.as_list();
 	std::vector<size_t> bl = t2s.as_list();
@@ -88,7 +88,7 @@ static varptr flatten_mat (varptr a)
 		size_t per = type_size(type);
 		char* out = (char*) dest.first;
 		const char* in = (const char*) srcs[0].first;
-		tensorshape inshape = srcs[0].second;
+		tshape inshape = srcs[0].second;
 		size_t nelems = inshape.n_elems();
 		// zero out non-trace
 		std::memset(out, 0, per * nelems * nelems);
@@ -98,7 +98,7 @@ static varptr flatten_mat (varptr a)
 			std::memcpy(out + outidx * per, in + i * per, per);
 		}
 	},
-	[](tensorshape inshape, std::vector<uint64_t>) -> tensorshape
+	[](tshape inshape, std::vector<uint64_t>) -> tshape
 	{
 		size_t nelems = inshape.n_elems();
 		return std::vector<size_t>{nelems, nelems};
@@ -114,7 +114,7 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 	inode* c = matmul(varptr(a), varptr(b));
 	// process both arguments as jacobians
 	varptr da, db;
-	tensorshape bases = x->get_tensor()->get_shape();
+	tshape bases = x->get_tensor()->get_shape();
 	if (nullptr != adx.get())
 	{
 		adx = flatten_mat(adx); // todo: ensure adx keeps jacobian shape <xshape, cshape>
@@ -132,8 +132,8 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 				size_t per = type_size(type);
 				char* out = (char*) dest.first;
 				const char* in = (const char*) srcs[0].first;
-				tensorshape outshape = dest.second;
-				tensorshape inshape = srcs[0].second;
+				tshape outshape = dest.second;
+				tshape inshape = srcs[0].second;
 				size_t xlimit = inshape[0];
 				size_t ylimit = inshape[1];
 				size_t ns = inshape.n_elems();
@@ -156,7 +156,7 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 			src = std::unique_ptr<idata_src>(csrc);
 			size_t nouter = a->get_tensor()->get_shape().n_elems();
 			size_t ninner = c->get_tensor()->get_shape().n_elems();
-			tensorshape outshape({ninner, nouter});
+			tshape outshape({ninner, nouter});
 			b->get_tensor()->write_to(*csrc);
 			return new tensor(outshape);
 		},
@@ -182,8 +182,8 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 				size_t per = type_size(type);
 				char* out = (char*) dest.first;
 				const char* in = (const char*) srcs[0].first;
-				tensorshape outshape = dest.second;
-				tensorshape inshape = srcs[0].second;
+				tshape outshape = dest.second;
+				tshape inshape = srcs[0].second;
 				std::vector<size_t> blist = srcs[1].second.as_list();
 				size_t ylimit = inshape[0];
 				size_t xlimit = blist[0];
@@ -204,10 +204,10 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 				}
 			});
 			src = std::unique_ptr<idata_src>(csrc);
-			tensorshape bshape = b->get_tensor()->get_shape();
+			tshape bshape = b->get_tensor()->get_shape();
 			size_t nouter = bshape.n_elems();
 			size_t ninner = c->get_tensor()->get_shape().n_elems();
-			tensorshape outshape({ninner, nouter});
+			tshape outshape({ninner, nouter});
 			a->get_tensor()->write_to(*csrc, 0);
 			b->get_tensor()->write_to(*csrc, 1);
 			return new tensor(outshape);
@@ -226,11 +226,11 @@ static varptr matmul_gradient (inode* x, std::vector<inode*> args)
 		size_t per = type_size(type);
 		char* out = (char*) dest.first;
 		const char* in = (const char*) srcs[0].first;
-		tensorshape outshape = dest.second;
+		tshape outshape = dest.second;
 		size_t n = outshape.n_elems();
 		std::memcpy(out, in, n * per);
 	},
-	[bases](tensorshape, std::vector<uint64_t>)
+	[bases](tshape, std::vector<uint64_t>)
 	{
 		return bases;
 	}, OUTJACOBIAN);
@@ -254,7 +254,7 @@ varptr matmul (varptr a, varptr b)
 		const tensor* b = args.back()->get_tensor();
 		a->write_to(*io, 0);
 		b->write_to(*io, 1);
-		tensorshape dshape = matmul_shaper({a->get_shape(), b->get_shape()});
+		tshape dshape = matmul_shaper({a->get_shape(), b->get_shape()});
 		return new tensor(dshape);
 	}, matmul_gradient, op);
 }

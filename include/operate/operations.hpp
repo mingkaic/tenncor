@@ -36,7 +36,7 @@ inode* run_opcode (std::vector<inode*> args, OPCODE code);
 
 void assert_type (const varptr a, TENS_TYPE type);
 
-void assert_shape (const varptr a, tensorshape shape);
+void assert_shape (const varptr a, tshape shape);
 
 // >>>>>>>>>>>> UNARY STANDARD OPS <<<<<<<<<<<<
 

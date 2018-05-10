@@ -16,7 +16,7 @@
 #include <functional> // for std::bad_function_call();
 
 #include "include/tensor/type.hpp"
-#include "include/tensor/tensorshape.hpp"
+#include "include/tensor/tshape.hpp"
 
 #pragma once
 #ifndef TENNCOR_DATA_OP_HPP
@@ -25,9 +25,9 @@
 namespace nnet
 {
 
-using VARR_T = std::pair<void*,tensorshape>;
+using VARR_T = std::pair<void*,tshape>;
 
-using CVAR_T = std::pair<const void*,tensorshape>;
+using CVAR_T = std::pair<const void*,tshape>;
 
 using AFUNC_F = std::function<void(size_t,void*,const void*)>;
 
@@ -79,7 +79,7 @@ void neg<uint64_t> (VARR_T, std::vector<CVAR_T>);
 template <typename T>
 void logic_not (VARR_T dest, std::vector<CVAR_T> srcs)
 {
-	tensorshape& srcshape = srcs.front().second;
+	tshape& srcshape = srcs.front().second;
 	// assert(srcs.size() == 1 && dest.second.compatible_with(srcshape));
 	T* d = (T*) dest.first;
 	const T* s = (const T*) srcs.front().first;

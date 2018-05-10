@@ -1,38 +1,38 @@
 //
-//  tensorshape.cpp
+//  tshape.cpp
 //  cnnet
 //
 //  Created by Mingkai Chen on 2016-08-29.
 //  Copyright © 2018 Mingkai Chen. All rights reserved.
 //
 
-#include "include/tensor/tensorshape.hpp"
+#include "include/tensor/tshape.hpp"
 
 #ifdef TENNCOR_TENSORSHAPE_HPP
 
 namespace nnet
 {
 
-tensorshape::tensorshape (const std::vector<size_t>& dims) :
+tshape::tshape (const std::vector<size_t>& dims) :
 	dimensions_(dims) {}
 
-tensorshape& tensorshape::operator = (const std::vector<size_t>& dims)
+tshape& tshape::operator = (const std::vector<size_t>& dims)
 {
 	dimensions_ = dims;
 	return *this;
 }
 
-size_t tensorshape::operator [] (size_t dim) const
+size_t tshape::operator [] (size_t dim) const
 {
 	return dimensions_.at(dim);
 }
 
-std::vector<size_t> tensorshape::as_list (void) const
+std::vector<size_t> tshape::as_list (void) const
 {
 	return dimensions_;
 }
 
-size_t tensorshape::n_elems (void) const
+size_t tshape::n_elems (void) const
 {
 	if (dimensions_.empty())
 	{
@@ -43,7 +43,7 @@ size_t tensorshape::n_elems (void) const
 	return elems;
 }
 
-size_t tensorshape::n_known (void) const
+size_t tshape::n_known (void) const
 {
 	if (dimensions_.empty())
 	{
@@ -61,12 +61,12 @@ size_t tensorshape::n_known (void) const
 	return elems;
 }
 
-size_t tensorshape::rank (void) const
+size_t tshape::rank (void) const
 {
 	return dimensions_.size();
 }
 
-bool tensorshape::is_compatible_with (const tensorshape& other) const
+bool tshape::is_compatible_with (const tshape& other) const
 {
 	bool incomp = true;
 	if (!dimensions_.empty() && !other.dimensions_.empty())
@@ -125,12 +125,12 @@ bool tensorshape::is_compatible_with (const tensorshape& other) const
 	return incomp;
 }
 
-bool tensorshape::is_part_defined (void) const
+bool tshape::is_part_defined (void) const
 {
 	return !dimensions_.empty();
 }
 
-bool tensorshape::is_fully_defined (void) const
+bool tshape::is_fully_defined (void) const
 {
 	if (dimensions_.empty())
 	{
@@ -144,25 +144,9 @@ bool tensorshape::is_fully_defined (void) const
 	return known;
 }
 
-void tensorshape::assert_has_rank (size_t rank) const
-{
-	assert(dimensions_.empty() || rank == dimensions_.size());
-}
+void tshape::undefine (void) { dimensions_.clear(); }
 
-void tensorshape::assert_same_rank (const tensorshape& other) const
-{
-	assert(dimensions_.empty() || other.dimensions_.empty() ||
-		other.dimensions_.size() == dimensions_.size());
-}
-
-void tensorshape::assert_is_fully_defined (void) const
-{
-	assert(is_fully_defined());
-}
-
-void tensorshape::undefine (void) { dimensions_.clear(); }
-
-tensorshape tensorshape::merge_with (const tensorshape& other) const
+tshape tshape::merge_with (const tshape& other) const
 {
 	if (dimensions_.empty())
 	{
@@ -196,7 +180,7 @@ tensorshape tensorshape::merge_with (const tensorshape& other) const
 	return ds;
 }
 
-tensorshape tensorshape::trim (void) const
+tshape tshape::trim (void) const
 {
 	std::vector<size_t> res;
 	if (false == dimensions_.empty())
@@ -215,7 +199,7 @@ tensorshape tensorshape::trim (void) const
 	return res;
 }
 
-tensorshape tensorshape::concatenate (const tensorshape& other) const
+tshape tshape::concatenate (const tshape& other) const
 {
 	if (dimensions_.empty())
 	{
@@ -227,10 +211,10 @@ tensorshape tensorshape::concatenate (const tensorshape& other) const
 	}
 	std::vector<size_t> ds = dimensions_;
 	ds.insert(ds.end(), other.dimensions_.begin(), other.dimensions_.end());
-	return tensorshape(ds);
+	return tshape(ds);
 }
 
-tensorshape tensorshape::with_rank (size_t rank) const
+tshape tshape::with_rank (size_t rank) const
 {
 	size_t ndim = dimensions_.size();
 	std::vector<size_t> ds;
@@ -254,7 +238,7 @@ tensorshape tensorshape::with_rank (size_t rank) const
 	return ds;
 }
 
-tensorshape tensorshape::with_rank_at_least (size_t rank) const
+tshape tshape::with_rank_at_least (size_t rank) const
 {
 	size_t ndim = dimensions_.size();
 	std::vector<size_t> ds = dimensions_;
@@ -267,7 +251,7 @@ tensorshape tensorshape::with_rank_at_least (size_t rank) const
 	return ds;
 }
 
-tensorshape tensorshape::with_rank_at_most (size_t rank) const
+tshape tshape::with_rank_at_most (size_t rank) const
 {
 	std::vector<size_t> ds;
 	if (rank < dimensions_.size())
@@ -283,7 +267,7 @@ tensorshape tensorshape::with_rank_at_most (size_t rank) const
 	return ds;
 }
 
-size_t tensorshape::flat_idx (std::vector<size_t> coord) const
+size_t tshape::flat_idx (std::vector<size_t> coord) const
 {
 	size_t n = std::min(dimensions_.size(), coord.size());
 	size_t index = 0;
@@ -295,7 +279,7 @@ size_t tensorshape::flat_idx (std::vector<size_t> coord) const
 	return index + coord[0];
 }
 
-std::vector<size_t> tensorshape::coord_from_idx (size_t idx) const
+std::vector<size_t> tshape::coord_from_idx (size_t idx) const
 {
 	std::vector<size_t> coord;
 	size_t xd;
@@ -308,16 +292,7 @@ std::vector<size_t> tensorshape::coord_from_idx (size_t idx) const
 	return coord;
 }
 
-void tensorshape::iterate (std::function<void(std::vector<size_t>, size_t)> coord_call) const
-{
-	size_t n_elems = this->n_elems();
-	for (size_t i = 0; i < n_elems; i++)
-	{
-		coord_call(coord_from_idx(i), i);
-	}
-}
-
-void print_shape (tensorshape ts, std::ostream& os)
+void print_shape (tshape ts, std::ostream& os)
 {
 	std::vector<size_t> shape = ts.as_list();
 	if (shape.empty())

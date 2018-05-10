@@ -76,7 +76,7 @@ TEST_F(FUNCTOR, Copy_F000)
 	size_t counter = 0;
 	std::shared_ptr<nnet::const_init> ci = std::make_shared<nnet::const_init>();
 	ci->set<double>(c);
-	nnet::variable var(nnet::tensorshape(std::vector<size_t>{1}), ci, "variable");
+	nnet::variable var(nnet::tshape(std::vector<size_t>{1}), ci, "variable");
 	nnet::functor* func2 = nnet::functor::get({&var},
 		[&counter, c2](std::unique_ptr<nnet::idata_src>& src, std::vector<nnet::inode*>)
 		{
@@ -167,7 +167,7 @@ TEST_F(FUNCTOR, Move_F000)
 	size_t counter = 0;
 	std::shared_ptr<nnet::const_init> ci = std::make_shared<nnet::const_init>();
 	ci->set<double>(c);
-	nnet::variable var(nnet::tensorshape(std::vector<size_t>{1}), ci, "variable");
+	nnet::variable var(nnet::tshape(std::vector<size_t>{1}), ci, "variable");
 	nnet::functor* func2 = nnet::functor::get({&var},
 		[&counter, c2](std::unique_ptr<nnet::idata_src>& src, std::vector<nnet::inode*>)
 		{
@@ -264,8 +264,8 @@ TEST_F(FUNCTOR, GetLeaves_F002)
 TEST_F(FUNCTOR, GetTensor_F003)
 {
 	std::string varlabel = get_string(get_int(1, "varlabel.size", {14, 29})[0], "varlabel");
-	nnet::tensorshape shape = random_def_shape(this);
-	nnet::tensorshape shape2 = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
+	nnet::tshape shape2 = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 	double c2 = get_double(1, "c2")[0];
 	std::shared_ptr<nnet::const_init> ci = std::make_shared<nnet::const_init>();
@@ -285,7 +285,7 @@ TEST_F(FUNCTOR, GetTensor_F003)
 	nnet::tensor* ten = func->get_tensor();
 	EXPECT_TRUE(ten->has_data()) <<
 		"functor tensor does not have data";
-	nnet::tensorshape gotshape = ten->get_shape();
+	nnet::tshape gotshape = ten->get_shape();
 	ASSERT_SHAPEQ(shape2, gotshape);
 	std::vector<double> dvec = nnet::expose<double>(func);
 	EXPECT_EQ(gotshape.n_elems(), dvec.size());
@@ -300,8 +300,8 @@ TEST_F(FUNCTOR, GetTensor_F003)
 TEST_F(FUNCTOR, Derive_F004)
 {
 	std::string varlabel = get_string(get_int(1, "varlabel.size", {14, 29})[0], "varlabel");
-	nnet::tensorshape shape = random_def_shape(this);
-	nnet::tensorshape shape2 = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
+	nnet::tshape shape2 = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 	double c2 = get_double(1, "c2")[0];
 	mock_node goodleaf("gooflead");
@@ -326,7 +326,7 @@ TEST_F(FUNCTOR, Derive_F004)
 	EXPECT_EQ(&goodleaf, eleaf.get());
 	nnet::tensor* wten = ewun->get_tensor();
 	ASSERT_NE(nullptr, wten);
-	nnet::tensorshape gotshape = wten->get_shape();
+	nnet::tshape gotshape = wten->get_shape();
 	ASSERT_SHAPEQ(shape2, gotshape);
 	std::vector<double> wunvec = nnet::expose<double>(ewun);
 	size_t n = shape2.n_elems();

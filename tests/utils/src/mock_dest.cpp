@@ -7,7 +7,7 @@ namespace testutils
 
 mock_data_dest::mock_data_dest (void) : result_(16, ' ') {}
 
-void mock_data_dest::set_data (std::weak_ptr<void> data, TENS_TYPE type, nnet::tensorshape shape, size_t idx)
+void mock_data_dest::set_data (std::weak_ptr<void> data, TENS_TYPE type, nnet::tshape shape, size_t idx)
 {
 	label_incr("set_data");
 	std::stringstream ss;

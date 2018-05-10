@@ -41,7 +41,7 @@ nnet::variable* tensify (std::string str)
 	{
 		std::shared_ptr<nnet::const_init> ci = std::make_shared<nnet::const_init>();
 		ci->set((double) std::atof(str.c_str()));
-		return new nnet::variable(nnet::tensorshape(std::vector<size_t>{1}), ci, "");
+		return new nnet::variable(nnet::tshape(std::vector<size_t>{1}), ci, "");
 	}
 	std::vector<double> data;
 	std::vector<size_t> shaplist(rank, 0);
@@ -100,7 +100,7 @@ nnet::variable* tensify (std::string str)
 	std::shared_ptr<nnet::const_init> init = std::make_shared<nnet::const_init>();
 	init->set<double>(data);
 
-	return new nnet::variable(nnet::tensorshape(shaplist), init, "");
+	return new nnet::variable(nnet::tshape(shaplist), init, "");
 }
 
 #endif

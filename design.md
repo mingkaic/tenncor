@@ -118,7 +118,7 @@ Tensor Layer
 
 	- tensor wraps shape and raw data
 	
-	- tensorshape represents shape information
+	- tshape represents shape information
 	
 	- tensor manipulator is a delegate for changing raw data
 

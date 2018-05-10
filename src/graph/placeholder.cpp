@@ -13,7 +13,7 @@
 namespace nnet
 {
 
-placeholder::placeholder (const tensorshape& shape, std::string name) :
+placeholder::placeholder (const tshape& shape, std::string name) :
 	inode(name), data_(new tensor(shape)) {}
 
 placeholder::placeholder (const placeholder& other) :

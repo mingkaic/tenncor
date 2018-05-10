@@ -1,4 +1,4 @@
-#include "tensor/tensorshape.hpp"
+#include "tensor/tshape.hpp"
 
 #include "print.hpp"
 
@@ -44,7 +44,7 @@ std::string sprintf (const char* fmt...)
 				break;
 				case 'p': // shape
 				{
-					nnet::tensorshape* shape = va_arg(args, nnet::tensorshape*);
+					nnet::tshape* shape = va_arg(args, nnet::tshape*);
 					print_shape(*shape, ss);
 				}
 				break;

@@ -21,7 +21,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     deps = [ 
         "//:tenncor",
-        "@com_github_mingkaic_testify//testify_cpp:testify",
+        "@com_github_mingkaic_testify//:testify",
     ],
     includes = [ "include" ],
     copts = [ "-std=c++14" ],

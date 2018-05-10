@@ -20,7 +20,7 @@
 namespace nnet
 {
 
-using USIDX_F = std::function<std::vector<size_t>(tensorshape, std::vector<uint64_t>)>;
+using USIDX_F = std::function<std::vector<size_t>(tshape, std::vector<uint64_t>)>;
 
 functor* elem_func (std::vector<inode*> args, std::string opname, 
 	OPCODE op, BACKMAP_F bwd);

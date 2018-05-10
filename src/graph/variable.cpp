@@ -13,7 +13,7 @@
 namespace nnet
 {
 
-variable::variable (const tensorshape& shape,
+variable::variable (const tshape& shape,
 	std::shared_ptr<data_src> source,
 	std::string label) :
 inode(label), src_(source), data_(new tensor(shape)) {}
@@ -95,7 +95,7 @@ varptr variable::derive (inode* wrt)
 	varptr out = nullptr;
 	if (this == wrt)
 	{
-		tensorshape shape = data_->get_shape();
+		tshape shape = data_->get_shape();
 		std::vector<double> data(shape.n_elems(), 1); // change to match wrt type
 		out = constant::get<double>(data, shape);
 	}
@@ -112,7 +112,7 @@ bool variable::initialize (void)
 	return success;
 }
 
-bool variable::initialize (tensorshape shape)
+bool variable::initialize (tshape shape)
 {
 	bool success = data_->read_from(*src_, shape);
 	if (success)

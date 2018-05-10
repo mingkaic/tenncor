@@ -38,7 +38,7 @@ using namespace testutils;
 TEST_F(PLACEHOLDER, Constructor_E000)
 {
 	std::string label1 = get_string(get_int(1, "label1.size", {14, 29})[0], "label1");
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 
 	nnet::placeholder place(shape, label1);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
@@ -48,7 +48,7 @@ TEST_F(PLACEHOLDER, Constructor_E000)
 
 	EXPECT_FALSE(ten->has_data()) <<
 		"tensor ten has data";
-	nnet::tensorshape gotshape = ten->get_shape();
+	nnet::tshape gotshape = ten->get_shape();
 	EXPECT_SHAPEQ(shape, gotshape);
 
 	place = raw;
@@ -68,8 +68,8 @@ TEST_F(PLACEHOLDER, Copy_E001)
 	std::string label1 = get_string(strns[0], "label1");
 	std::string label2 = get_string(strns[1], "label2");
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
-	nnet::tensorshape badshape = make_incompatible(clist);
+	nnet::tshape shape = clist;
+	nnet::tshape badshape = make_incompatible(clist);
 
 	nnet::placeholder assign(badshape, label1);
 	mock_observer mconn({&assign});
@@ -133,8 +133,8 @@ TEST_F(PLACEHOLDER, Move_E001)
 	std::string label1 = get_string(strns[0], "label1");
 	std::string label2 = get_string(strns[1], "label2");
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
-	nnet::tensorshape badshape = make_incompatible(clist);
+	nnet::tshape shape = clist;
+	nnet::tshape badshape = make_incompatible(clist);
 
 	nnet::placeholder assign(badshape, label1);
 	mock_observer mconn({&assign});
@@ -197,7 +197,7 @@ TEST_F(PLACEHOLDER, Move_E001)
 TEST_F(PLACEHOLDER, GetLeaves_E002)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	nnet::placeholder res(shape, label);
 
 	std::unordered_set<const nnet::inode*> leafset = res.get_leaves();
@@ -210,7 +210,7 @@ TEST_F(PLACEHOLDER, GetLeaves_E002)
 TEST_F(PLACEHOLDER, GetTensor_E003)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	nnet::placeholder res(shape, label);
 	std::vector<double> raw = get_double(shape.n_elems(), "raw");
 
@@ -227,7 +227,7 @@ TEST_F(PLACEHOLDER, GetTensor_E003)
 TEST_F(PLACEHOLDER, Derive_E004)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	nnet::placeholder res(shape, label);
 	nnet::placeholder res2(shape, label);
 
@@ -250,8 +250,8 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 	std::string label3 = get_string(strns[2], "label3");
 
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
-	nnet::tensorshape part = make_partial(this, clist);
+	nnet::tshape shape = clist;
+	nnet::tshape part = make_partial(this, clist);
 
 	nnet::placeholder place(part, label1);
 	nnet::placeholder place2(shape, label2);
@@ -275,7 +275,7 @@ TEST_F(PLACEHOLDER, AssignRaw_E005)
 	// assign with guess shape to fit (should be shape)
 	EXPECT_FALSE(ten->has_data()) <<
 		"tensor ten has data";
-	nnet::tensorshape gotshape = ten->get_shape();
+	nnet::tshape gotshape = ten->get_shape();
 	EXPECT_SHAPEQ(part, gotshape);
 	place = raw;
 	EXPECT_TRUE(ten->has_data()) <<
@@ -340,9 +340,9 @@ TEST_F(PLACEHOLDER, AssignTensor_E006)
 	std::string label2 = get_string(strns[1], "label1");
 
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
-	nnet::tensorshape part = make_partial(this, clist);
-	nnet::tensorshape badshape = make_incompatible(clist);
+	nnet::tshape shape = clist;
+	nnet::tshape part = make_partial(this, clist);
+	nnet::tshape badshape = make_incompatible(clist);
 	size_t n = shape.n_elems();
 
 	double c = get_double(1, "c")[0];

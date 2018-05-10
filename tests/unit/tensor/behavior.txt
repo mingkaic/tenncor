@@ -6,24 +6,24 @@ A002 - as_list returns a shallow copy of the dimension values provided during co
 A003 - n_elems returns the product of all dimension value. non-fully defined shapes have n_elems of 0
 		n_known obtains the product of all known dimensions
 A004 - rank returns the length of the dimension vector
-A005 - tensorshape is compatible if one of the shapes are undefined,
+A005 - tshape is compatible if one of the shapes are undefined,
 		or the tensors are of the same rank and dimension values equal for defined dimensions (> 0)
-A006 - a tensorshapes is partially defined if it has a rank > 0
-A007 - a tensorshapes is fully defined if it is at least partially defined
+A006 - a tshapes is partially defined if it has a rank > 0
+A007 - a tshapes is fully defined if it is at least partially defined
 		and all its dimensional values are defined (> 0)
-A008 - a tensorshape assert its rank wrt to another value or shape.
+A008 - a tshape assert its rank wrt to another value or shape.
 		undefined shapes can have any rank
-A009 - a tensorshape can be undefined explicitly
-A010 - tensorshape merge return the most defined most defined shape
+A009 - a tshape can be undefined explicitly
+A010 - tshape merge return the most defined most defined shape
 		(that is dimension values > 0 are preferred)
-		merging incompatible tensorshapes results in a logic error
-A011 - a tensorshape can have its leading and trailing 1s removed
-A012 - two tensorshapes can concatenate to form a tensorshape depending on the order of
+		merging incompatible tshapes results in a logic error
+A011 - a tshape can have its leading and trailing 1s removed
+A012 - two tshapes can concatenate to form a tshape depending on the order of
 		concatenation assuming both tensors are at least partially defined
-A013 - a tensorshape's rank can be manipulated by padding with ones or clipping
-A014 - coord_from_idx converts coordinates C to sequential index I on a tensorshape S takes form:
+A013 - a tshape's rank can be manipulated by padding with ones or clipping
+A014 - coord_from_idx converts coordinates C to sequential index I on a tshape S takes form:
 		I = SIGMA_i=0:n(C[i]*PI_j=0:i-1(S[i])) where n is rank of S, and S[-1] is 1
-		flat_idx remap coordinate C on a tensorshape equals the initial index converted to C (reverse of A015)
+		flat_idx remap coordinate C on a tshape equals the initial index converted to C (reverse of A015)
 
 // TYPE
 B000 - type_size returns the number of bytes taken by specified type throws unsupported_type_error 

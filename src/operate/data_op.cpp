@@ -158,9 +158,9 @@ template <>
 void rand_uniform<float> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape_min = srcs.front().second;
-	tensorshape& srcshape_max = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape_min = srcs.front().second;
+	tshape& srcshape_max = srcs.back().second;
 	float* d = (float*) dest.first;
 	const float* s_min = (const float*) srcs.front().first;
 	const float* s_max = (const float*) srcs.back().first;
@@ -179,9 +179,9 @@ template <>
 void rand_uniform<double> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape_min = srcs.front().second;
-	tensorshape& srcshape_max = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape_min = srcs.front().second;
+	tshape& srcshape_max = srcs.back().second;
 	double* d = (double*) dest.first;
 	const double* s_min = (const double*) srcs.front().first;
 	const double* s_max = (const double*) srcs.back().first;
@@ -212,9 +212,9 @@ template <>
 void rand_normal<float> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape_min = srcs.front().second;
-	tensorshape& srcshape_max = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape_min = srcs.front().second;
+	tshape& srcshape_max = srcs.back().second;
 	float* d = (float*) dest.first;
 	const float* s_mean = (const float*) srcs.front().first;
 	const float* s_stdev = (const float*) srcs.back().first;
@@ -233,9 +233,9 @@ template <>
 void rand_normal<double> (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape_min = srcs.front().second;
-	tensorshape& srcshape_max = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape_min = srcs.front().second;
+	tshape& srcshape_max = srcs.back().second;
 	double* d = (double*) dest.first;
 	const double* s_mean = (const double*) srcs.front().first;
 	const double* s_stdev = (const double*) srcs.back().first;

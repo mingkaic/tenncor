@@ -13,7 +13,7 @@
 namespace nnet
 {
 
-void portal_dest::set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t)
+void portal_dest::set_data (std::weak_ptr<void> data, TENS_TYPE type, tshape shape, size_t)
 {
 	input_ = {data, shape, type};
 }
@@ -32,12 +32,12 @@ assign_io* assign_io::clone (void) const
 	return dynamic_cast<assign_io*>(clone_impl());
 }
 
-void assign_io::set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx)
+void assign_io::set_data (std::weak_ptr<void> data, TENS_TYPE type, tshape shape, size_t)
 {
 	input_ = {data, shape, type};
 }
 
-void assign_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+void assign_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tshape shape) const
 {
 	if (input_.type_ == BAD_T || input_.data_.expired() ||
 		false == shape.is_compatible_with(input_.shape_))
@@ -63,7 +63,7 @@ operate_io* operate_io::clone (void) const
 	return dynamic_cast<operate_io*>(clone_impl());
 }
 
-void operate_io::set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape shape, size_t idx)
+void operate_io::set_data (std::weak_ptr<void> data, TENS_TYPE type, tshape shape, size_t idx)
 {
 	size_t nargs = args_.size();
 	if (idx >= nargs)
@@ -73,7 +73,7 @@ void operate_io::set_data (std::weak_ptr<void> data, TENS_TYPE type, tensorshape
 	args_[idx] = tens_state{data, shape, type};
 }
 
-void operate_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const
+void operate_io::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tshape shape) const
 {
 	std::vector<TENS_TYPE> argtypes(args_.size());
 	std::transform(args_.begin(), args_.end(), argtypes.begin(),

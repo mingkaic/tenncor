@@ -2,7 +2,7 @@
 
 #include "utils/utils.hpp"
 
-#include "testify_cpp/include/fuzz/irng.hpp"
+#include "testify/fuzz/irng.hpp"
 
 #include "proto/serial/data.pb.h"
 

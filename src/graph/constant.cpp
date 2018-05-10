@@ -47,7 +47,7 @@ void register_const (size_t key, constant* cons)
 // 	constant* cons = find_const(key);
 // 	if (nullptr == cons)
 // 	{
-// 		tensorshape shape = std::vector<size_t>{1};
+// 		tshape shape = std::vector<size_t>{1};
 // 		const_init ci(data, type);
 // 		tensor* data = new tensor(shape);
 // 		data->read_from(ci);

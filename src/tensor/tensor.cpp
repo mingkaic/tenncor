@@ -15,7 +15,7 @@
 namespace nnet
 {
 
-tensor::tensor (tensorshape shape) :
+tensor::tensor (tshape shape) :
 	allowed_shape_(shape) {}
 
 tensor::tensor (const tenncor::TensorPb& proto_src)
@@ -78,8 +78,8 @@ void tensor::from_proto (const tenncor::TensorPb& proto_src)
 	assert(proto_src.alloced_shape_size() == proto_src.allowed_shape_size());
 	std::vector<size_t> allowed(proto_src.allowed_shape().begin(), proto_src.allowed_shape().end());
 	std::vector<size_t> alloced(proto_src.alloced_shape().begin(), proto_src.alloced_shape().end());
-	allowed_shape_ = tensorshape(allowed);
-	tensorshape temp_shape(alloced);
+	allowed_shape_ = tshape(allowed);
+	tshape temp_shape(alloced);
 	// another sanity check, be less stringent, since this may represent some less evident issue
 	assert(temp_shape.is_compatible_with(allowed_shape_) && temp_shape.is_fully_defined());
 
@@ -91,7 +91,7 @@ void tensor::from_proto (const tenncor::TensorPb& proto_src)
 
 
 
-tensorshape tensor::get_shape (void) const
+tshape tensor::get_shape (void) const
 {
 	if (has_data())
 	{
@@ -123,8 +123,8 @@ bool tensor::is_same_size (const tensor& other) const
 {
 	if (has_data() && other.has_data())
 	{
-		tensorshape simp_shape = alloced_shape_.trim();
-		tensorshape other_simp = other.alloced_shape_.trim();
+		tshape simp_shape = alloced_shape_.trim();
+		tshape other_simp = other.alloced_shape_.trim();
 		return simp_shape.is_compatible_with(other_simp);
 	}
 
@@ -138,7 +138,7 @@ bool tensor::is_compatible_with (const tensor& other) const
 
 bool tensor::is_compatible_with (size_t ndata) const
 {
-	const tensorshape& my_shape = get_shape();
+	const tshape& my_shape = get_shape();
 
 	bool compatible = true;
 	// perfect fit
@@ -160,7 +160,7 @@ bool tensor::is_compatible_with (size_t ndata) const
 
 bool tensor::is_loosely_compatible_with (size_t ndata) const
 {
-	const tensorshape& my_shape = get_shape();
+	const tshape& my_shape = get_shape();
 
 	bool compatible = true;
 	if (my_shape.is_fully_defined())
@@ -172,10 +172,10 @@ bool tensor::is_loosely_compatible_with (size_t ndata) const
 	return compatible;
 }
 
-optional<tensorshape> tensor::guess_shape (size_t ndata) const
+optional<tshape> tensor::guess_shape (size_t ndata) const
 {
-	optional<tensorshape> bestshape;
-	const tensorshape& allowed_shape = allowed_shape_;
+	optional<tshape> bestshape;
+	const tshape& allowed_shape = allowed_shape_;
 	// if allowed is fully defined
 	if (allowed_shape.is_fully_defined())
 	{
@@ -211,22 +211,22 @@ optional<tensorshape> tensor::guess_shape (size_t ndata) const
 		if (0 == ndata % known)
 		{
 			my_shape[first_undef] = ndata / known;
-			bestshape = tensorshape(my_shape);
+			bestshape = tshape(my_shape);
 		}
 	}
 	// if allowed is undefined
 	else
 	{
-		bestshape = tensorshape({ndata});
+		bestshape = tshape({ndata});
 	}
 	return bestshape;
 }
 
-optional<tensorshape> tensor::loosely_guess_shape (size_t ndata) const
+optional<tshape> tensor::loosely_guess_shape (size_t ndata) const
 {
 	if (allowed_shape_.is_fully_defined())
 	{
-		optional<tensorshape> bestshape;
+		optional<tshape> bestshape;
 		if (allowed_shape_.n_elems()>= ndata)
 		{
 			bestshape = allowed_shape_;
@@ -258,7 +258,7 @@ optional<tensorshape> tensor::loosely_guess_shape (size_t ndata) const
 		// (if we cast to double, we may lose precision)
 		slist[first_undef]++;
 	}
-	return tensorshape(slist);
+	return tshape(slist);
 }
 
 bool tensor::is_aligned (void) const
@@ -296,7 +296,7 @@ TENS_TYPE tensor::get_type (void) const
 }
 
 
-void tensor::set_shape (tensorshape shape)
+void tensor::set_shape (tshape shape)
 {
 	// allowed shape update
 	allowed_shape_ = shape;
@@ -331,7 +331,7 @@ bool tensor::read_from (const idata_src& src)
 	return successful;
 }
 
-bool tensor::read_from (const idata_src& src, const tensorshape shape)
+bool tensor::read_from (const idata_src& src, const tshape shape)
 {
 	bool successful = shape.is_fully_defined() && 
 		((nullptr != raw_data_ && 

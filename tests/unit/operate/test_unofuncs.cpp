@@ -63,7 +63,7 @@ static void expect_throw (VARFUNC op)
 static void unarNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC op, 
 	SCALAR expect, ZCHECK exz, std::pair<double,double> limits = {-1, 1})
 {
-	nnet::tensorshape shape = random_def_shape(fuzzer);
+	nnet::tshape shape = random_def_shape(fuzzer);
 	size_t n = shape.n_elems();
 	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
@@ -79,7 +79,7 @@ static void unarNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC o
 	// test behavior B1xx
 	nnet::tensor* ten = res->get_tensor();
 	ASSERT_NE(nullptr, ten);
-	EXPECT_TRUE(tensorshape_equal(shape, ten->get_shape()));
+	EXPECT_TRUE(tshape_equal(shape, ten->get_shape()));
 	std::vector<double> output = nnet::expose<double>(res.get());
 	for (size_t i = 0; i < n; ++i)
 	{

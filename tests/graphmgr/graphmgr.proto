@@ -23,8 +23,13 @@ service Graphmgr {
 }
 
 message GraphCreated {
+	enum Category {
+		ALL = 0;
+		RAND = 1;
+	}
 	tenncor.GraphPb graph = 1;
-	google.protobuf.Any detail = 2;
+	Category category = 2;
+	google.protobuf.Any detail = 3;
 }
 
 message DataCreated {
@@ -32,12 +37,7 @@ message DataCreated {
 }
 
 message Script {
-	enum Category {
-		ALL = 0;
-		RAND = 1;
-	}
-	string script = 1;
-	Category category = 2;
+	string message = 1;
 }
 
 message Nothing {}

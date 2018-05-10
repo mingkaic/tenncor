@@ -1,4 +1,4 @@
-#include "testify_cpp/include/mocker/mocker.hpp"
+#include "testify/mocker/mocker.hpp"
 
 #include "tensor/data_io.hpp"
 
@@ -12,11 +12,11 @@ struct mock_data_dest final : public nnet::idata_dest, public testify::mocker
 {
 	mock_data_dest (void);
 
-	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, nnet::tensorshape shape, size_t idx);
+	virtual void set_data (std::weak_ptr<void> data, TENS_TYPE type, nnet::tshape shape, size_t idx);
 
 	std::string result_;
 	TENS_TYPE type_ = nnet::BAD_T;
-	nnet::tensorshape shape_;
+	nnet::tshape shape_;
 };
 
 }

@@ -15,7 +15,7 @@
 
 #include "proto/serial/graph.pb.h"
 
-#include "include/tensor/tensorshape.hpp"
+#include "include/tensor/tshape.hpp"
 #include "include/tensor/type.hpp"
 #include "include/operate/data_op.hpp"
 #include "include/utils/error.hpp"
@@ -41,7 +41,7 @@ struct idata_src
 
 	idata_src* clone (void) const;
 
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const = 0;
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tshape shape) const = 0;
 
 protected:
 	virtual idata_src* clone_impl (void) const = 0;
@@ -88,7 +88,7 @@ struct const_init final : public data_src
 
 	const_init* clone (void) const;
 
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tshape shape) const;
 
 	GENERIC get_const (void) const
 	{
@@ -134,7 +134,7 @@ struct r_uniform_init final : public data_src
 
 	r_uniform_init* clone (void) const;
 
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tshape shape) const;
 
 	GENERIC get_min (void) const
 	{
@@ -188,7 +188,7 @@ struct r_normal_init final : public data_src
 
 	r_normal_init* clone (void) const;
 
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tensorshape shape) const;
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, tshape shape) const;
 
 	GENERIC get_mean (void) const
 	{

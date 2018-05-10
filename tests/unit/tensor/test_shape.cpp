@@ -21,34 +21,34 @@ class TENSORSHAPE : public testutils::fuzz_test {};
 using namespace testutils;
 
 
-// cover tensorshape:
+// cover tshape:
 // default and vector constructor
 // clone, and vector assignment
 TEST_F(TENSORSHAPE, Copy_A000)
 {
-	nnet::tensorshape incom_assign;
-	nnet::tensorshape pcom_assign;
-	nnet::tensorshape com_assign;
+	nnet::tshape incom_assign;
+	nnet::tshape pcom_assign;
+	nnet::tshape com_assign;
 
-	nnet::tensorshape incom_vassign;
-	nnet::tensorshape pcom_vassign;
-	nnet::tensorshape com_vassign;
+	nnet::tshape incom_vassign;
+	nnet::tshape pcom_vassign;
+	nnet::tshape com_vassign;
 
 	// define shapes
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	random_shapes(this, pds, cds);
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
 
 	incom_vassign = std::vector<size_t>{};
 	pcom_vassign = pds;
 	com_vassign = cds;
 
-	nnet::tensorshape incom_cpy(incom_ts);
-	nnet::tensorshape pcom_cpy(pcom_ts);
-	nnet::tensorshape com_cpy(com_ts);
+	nnet::tshape incom_cpy(incom_ts);
+	nnet::tshape pcom_cpy(pcom_ts);
+	nnet::tshape com_cpy(com_ts);
 
 	incom_assign = incom_ts;
 	pcom_assign = pcom_ts;
@@ -73,22 +73,22 @@ TEST_F(TENSORSHAPE, Copy_A000)
 }
 
 
-// cover tensorshape:
+// cover tshape:
 // default and vector constructor, and move
 TEST_F(TENSORSHAPE, Move_A000)
 {
-	nnet::tensorshape pcom_assign;
-	nnet::tensorshape com_assign;
+	nnet::tshape pcom_assign;
+	nnet::tshape com_assign;
 	std::vector<size_t> empty;
 	// define shapes
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	random_shapes(this, pds, cds);
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
 
-	nnet::tensorshape pcom_mv(std::move(pcom_ts));
-	nnet::tensorshape com_mv(std::move(com_ts));
+	nnet::tshape pcom_mv(std::move(pcom_ts));
+	nnet::tshape com_mv(std::move(com_ts));
 
 	EXPECT_SHAPEQ(pcom_mv,  pds);
 	EXPECT_SHAPEQ(com_mv,  cds);
@@ -105,27 +105,27 @@ TEST_F(TENSORSHAPE, Move_A000)
 }
 
 
-// covers tensorshape: operator []
+// covers tshape: operator []
 TEST_F(TENSORSHAPE, IndexAccessor_A001)
 {
 	std::vector<size_t> svec = random_def_shape(this);
-	nnet::tensorshape shape(svec);
+	nnet::tshape shape(svec);
 	size_t dim = get_int(1, "dim", {0, shape.rank()-1})[0];
 	EXPECT_EQ(svec[dim], shape[dim]);
 	EXPECT_THROW(shape[shape.rank()], std::out_of_range);
 }
 
 
-// covers tensorshape: as_list
+// covers tshape: as_list
 TEST_F(TENSORSHAPE, AsList_A002)
 {
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	random_shapes(this, pds, cds);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
 
 	std::vector<size_t> ires = incom_ts.as_list();
 	std::vector<size_t> pres = pcom_ts.as_list();
@@ -140,7 +140,7 @@ TEST_F(TENSORSHAPE, AsList_A002)
 }
 
 
-// covers tensorshape: n_elems
+// covers tshape: n_elems
 TEST_F(TENSORSHAPE, NElems_A003)
 {
 	std::vector<size_t> pds;
@@ -149,9 +149,9 @@ TEST_F(TENSORSHAPE, NElems_A003)
 	// since pds and cds ranks are independent
 	random_shapes(this, pds, cds);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
 
 	size_t expect_nelems = 1;
 	for (size_t c : cds)
@@ -178,7 +178,7 @@ TEST_F(TENSORSHAPE, NElems_A003)
 }
 
 
-// covers tensorshape: rank
+// covers tshape: rank
 TEST_F(TENSORSHAPE, Rank_A004)
 {
 	std::vector<size_t> pds;
@@ -187,9 +187,9 @@ TEST_F(TENSORSHAPE, Rank_A004)
 	// since pds and cds ranks are independent
 	random_shapes(this, pds, cds);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
 
 	EXPECT_EQ((size_t) 0, incom_ts.rank());
 	EXPECT_EQ(pds.size(), pcom_ts.rank());
@@ -197,7 +197,7 @@ TEST_F(TENSORSHAPE, Rank_A004)
 }
 
 
-// covers tensorshape: is_compatible_with
+// covers tshape: is_compatible_with
 TEST_F(TENSORSHAPE, Compatible_A005)
 {
 	std::vector<size_t> pds;
@@ -209,13 +209,13 @@ TEST_F(TENSORSHAPE, Compatible_A005)
 	cds2 = random_def_shape(this, {10, 17}, {17, std::numeric_limits<size_t>::max()});
 	pds2 = make_partial(this, cds2);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
-	nnet::tensorshape pcom2_ts(pds2);
-	nnet::tensorshape com2_ts(cds2);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
+	nnet::tshape pcom2_ts(pds2);
+	nnet::tshape com2_ts(cds2);
 
-	for (nnet::tensorshape* shape : {&incom_ts, &pcom_ts, &com_ts, &pcom2_ts, &com2_ts})
+	for (nnet::tshape* shape : {&incom_ts, &pcom_ts, &com_ts, &pcom2_ts, &com2_ts})
 	{
 		EXPECT_TRUE(incom_ts.is_compatible_with(*shape)) << 
 			testutils::sprintf("expecting %p compatible with empty", &shape);
@@ -236,11 +236,11 @@ TEST_F(TENSORSHAPE, Compatible_A005)
 	// this ensure cpy2s are never compatible with cpy
 	cds_cpy2[(idx1 + 1) % cds_cpy.size()]++;
 	cds2_cpy2[(idx2 + 1) % cds2_cpy.size()]++;
-	nnet::tensorshape fake_ps(cds_cpy);
-	nnet::tensorshape fake_ps2(cds2_cpy);
-	nnet::tensorshape bad_ps(cds_cpy2);
-	nnet::tensorshape bad_ps2(cds2_cpy2);
-	nnet::tensorshape bad_ps3(brank);
+	nnet::tshape fake_ps(cds_cpy);
+	nnet::tshape fake_ps2(cds2_cpy);
+	nnet::tshape bad_ps(cds_cpy2);
+	nnet::tshape bad_ps2(cds2_cpy2);
+	nnet::tshape bad_ps3(brank);
 
 	// guarantees
 	EXPECT_TRUE(fake_ps.is_compatible_with(fake_ps)) << 
@@ -268,7 +268,7 @@ TEST_F(TENSORSHAPE, Compatible_A005)
 }
 
 
-// covers tensorshape: is_part_defined
+// covers tshape: is_part_defined
 TEST_F(TENSORSHAPE, PartDef_A006)
 {
 	std::vector<size_t> pds;
@@ -278,11 +278,11 @@ TEST_F(TENSORSHAPE, PartDef_A006)
 	random_shapes(this, pds, cds);
 	random_shapes(this, pds2, cds2);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
-	nnet::tensorshape pcom2_ts(pds2);
-	nnet::tensorshape com2_ts(cds2);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
+	nnet::tshape pcom2_ts(pds2);
+	nnet::tshape com2_ts(cds2);
 
 	ASSERT_FALSE(incom_ts.is_part_defined()) << 
 		testutils::sprintf("expecting %p to be undefined", &incom_ts);
@@ -297,7 +297,7 @@ TEST_F(TENSORSHAPE, PartDef_A006)
 }
 
 
-// covers tensorshape: 
+// covers tshape: 
 // is_fully_defined and assert_is_fully_defined
 TEST_F(TENSORSHAPE, FullDef_A007)
 {
@@ -308,11 +308,11 @@ TEST_F(TENSORSHAPE, FullDef_A007)
 	random_shapes(this, pds, cds);
 	random_shapes(this, pds2, cds2);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape pcom2_ts(pds2);
-	nnet::tensorshape com_ts(cds);
-	nnet::tensorshape com2_ts(cds2);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape pcom2_ts(pds2);
+	nnet::tshape com_ts(cds);
+	nnet::tshape com2_ts(cds2);
 
 	EXPECT_FALSE(incom_ts.is_fully_defined()) << 
 		testutils::sprintf("expecting %p to not be fully defined", &incom_ts);
@@ -325,35 +325,12 @@ TEST_F(TENSORSHAPE, FullDef_A007)
 	EXPECT_TRUE(com2_ts.is_fully_defined()) << 
 		testutils::sprintf("expecting %p to be fully defined", &com2_ts);
 
-	com_ts.assert_is_fully_defined();
-	com2_ts.assert_is_fully_defined();
+	EXPECT_TRUE(com_ts.is_fully_defined()) << "com_ts is not fully defined";
+	EXPECT_TRUE(com2_ts.is_fully_defined()) << "com2_ts is not fully defined";
 }
 
 
-// covers tensorshape: 
-// assert_has_rank and assert_same_rank
-TEST_F(TENSORSHAPE, RankAssert_A008)
-{
-	std::vector<size_t> pds;
-	std::vector<size_t> cds;
-	random_shapes(this, pds, cds);
-	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
-
-	com_ts.assert_has_rank(cds.size());
-	pcom_ts.assert_has_rank(pds.size());
-	incom_ts.assert_has_rank(get_int(1, "assert random rank")[0]);
-
-	com_ts.assert_same_rank(com_ts);
-	pcom_ts.assert_same_rank(pcom_ts);
-	incom_ts.assert_same_rank(com_ts);
-	incom_ts.assert_same_rank(pcom_ts);
-}
-
-
-// covers tensorshape: 
+// covers tshape: 
 // undefine, dependent on is_part_defined
 TEST_F(TENSORSHAPE, Undefine_A009)
 {
@@ -361,9 +338,9 @@ TEST_F(TENSORSHAPE, Undefine_A009)
 	std::vector<size_t> cds;
 	random_shapes(this, pds, cds);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
 
 	EXPECT_FALSE(incom_ts.is_part_defined()) << 
 		testutils::sprintf("expecting %p to be undefined", &incom_ts);
@@ -385,7 +362,7 @@ TEST_F(TENSORSHAPE, Undefine_A009)
 }
 
 
-// covers tensorshape: merge_with
+// covers tshape: merge_with
 TEST_F(TENSORSHAPE, Merge_A010)
 {
 	std::vector<size_t> pds;
@@ -396,16 +373,16 @@ TEST_F(TENSORSHAPE, Merge_A010)
 	pds.push_back(1);
 	random_shapes(this, pds2, cds2);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
-	nnet::tensorshape pcom2_ts(pds2);
-	nnet::tensorshape com2_ts(cds2);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
+	nnet::tshape pcom2_ts(pds2);
+	nnet::tshape com2_ts(cds2);
 
 	// incomplete shape can merge with anything
-	for (nnet::tensorshape* shape : {&pcom_ts, &com_ts, &pcom2_ts, &com2_ts, &incom_ts})
+	for (nnet::tshape* shape : {&pcom_ts, &com_ts, &pcom2_ts, &com2_ts, &incom_ts})
 	{
-		nnet::tensorshape merged = incom_ts.merge_with(*shape);
+		nnet::tshape merged = incom_ts.merge_with(*shape);
 		// we're expecting merged shape to be the same as input shape
 		EXPECT_SHAPEQ(merged,  *shape); 
 	}
@@ -425,18 +402,18 @@ TEST_F(TENSORSHAPE, Merge_A010)
 	// this ensure cpy2s are never compatible with cpy
 	cds_cpy2[(idx1 + 1) % cds_cpy.size()]++;
 	cds2_cpy2[(idx2 + 1) % cds2_cpy.size()]++;
-	nnet::tensorshape fake_ps(cds_cpy);
-	nnet::tensorshape fake_ps2(cds2_cpy);
-	nnet::tensorshape incompatible(cds_cpy2);
-	nnet::tensorshape incompatible2(cds2_cpy2);
+	nnet::tshape fake_ps(cds_cpy);
+	nnet::tshape fake_ps2(cds2_cpy);
+	nnet::tshape incompatible(cds_cpy2);
+	nnet::tshape incompatible2(cds2_cpy2);
 
-	nnet::tensorshape merged = fake_ps.merge_with(com_ts);
-	nnet::tensorshape merged2 = fake_ps2.merge_with(com2_ts);
+	nnet::tshape merged = fake_ps.merge_with(com_ts);
+	nnet::tshape merged2 = fake_ps2.merge_with(com2_ts);
 	EXPECT_SHAPEQ(merged,  com_ts);
 	EXPECT_SHAPEQ(merged2,  com2_ts);
-	EXPECT_TRUE(tensorshape_equal(
+	EXPECT_TRUE(tshape_equal(
 		incompatible.merge_with(com_ts), incompatible));
-	EXPECT_TRUE(tensorshape_equal(
+	EXPECT_TRUE(tshape_equal(
 		incompatible2.merge_with(com2_ts), incompatible2));
 
 	// merging different ranks will error
@@ -445,7 +422,7 @@ TEST_F(TENSORSHAPE, Merge_A010)
 }
 
 
-// covers tensorshape: 
+// covers tshape: 
 // trim, dependent on rank
 TEST_F(TENSORSHAPE, Trim_A011)
 {
@@ -469,10 +446,10 @@ TEST_F(TENSORSHAPE, Trim_A011)
 	fakecds.push_back(2); // ensures trimming never proceeds inward
 	fakecds.insert(fakecds.end(), npads[4], 1);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape fakeincom_ts(ids);
-	nnet::tensorshape pcom_ts(fakepds);
-	nnet::tensorshape com_ts(fakecds);
+	nnet::tshape incom_ts;
+	nnet::tshape fakeincom_ts(ids);
+	nnet::tshape pcom_ts(fakepds);
+	nnet::tshape com_ts(fakecds);
 
 	EXPECT_EQ((size_t) 0, incom_ts.trim().rank());
 	EXPECT_LT((size_t) 0, fakeincom_ts.rank());
@@ -483,22 +460,22 @@ TEST_F(TENSORSHAPE, Trim_A011)
 }
 
 
-// covers tensorshape: concatenate
+// covers tshape: concatenate
 TEST_F(TENSORSHAPE, Concat_A012)
 {
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
 	random_shapes(this, pds, cds);
 	// define partial and complete shapes
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
 
 	// undefined concatenating anything is that thing
-	nnet::tensorshape none1 = incom_ts.concatenate(com_ts);
-	nnet::tensorshape none2 = com_ts.concatenate(incom_ts);
-	nnet::tensorshape none3 = incom_ts.concatenate(pcom_ts);
-	nnet::tensorshape none4 = pcom_ts.concatenate(incom_ts);
+	nnet::tshape none1 = incom_ts.concatenate(com_ts);
+	nnet::tshape none2 = com_ts.concatenate(incom_ts);
+	nnet::tshape none3 = incom_ts.concatenate(pcom_ts);
+	nnet::tshape none4 = pcom_ts.concatenate(incom_ts);
 	EXPECT_SHAPEQ(none1,  com_ts);
 	EXPECT_SHAPEQ(none2,  com_ts);
 	EXPECT_SHAPEQ(none3,  pcom_ts);
@@ -520,7 +497,7 @@ TEST_F(TENSORSHAPE, Concat_A012)
 }
 
 
-// covers tensorshape: 
+// covers tshape: 
 // with_rank, with_rank_at_least, with_rank_at_most, depends on rank
 TEST_F(TENSORSHAPE, WithRank_A013)
 {
@@ -530,9 +507,9 @@ TEST_F(TENSORSHAPE, WithRank_A013)
 	// this generation is better for rank testing,
 	// since pds and cds ranks are independent
 	random_shapes(this, pds, cds);
-	nnet::tensorshape incom_ts;
-	nnet::tensorshape pcom_ts(pds);
-	nnet::tensorshape com_ts(cds);
+	nnet::tshape incom_ts;
+	nnet::tshape pcom_ts(pds);
+	nnet::tshape com_ts(cds);
 
 	// expand rank
 	size_t peak = std::max(pds.size(), cds.size());
@@ -567,11 +544,11 @@ TEST_F(TENSORSHAPE, WithRank_A013)
 }
 
 
-// covers tensorshape: coord_from_idx, flat_idx
+// covers tshape: coord_from_idx, flat_idx
 TEST_F(TENSORSHAPE, CoordMap_A014)
 {
 	std::vector<size_t> slist = random_def_shape(this);
-	nnet::tensorshape shape(slist);
+	nnet::tshape shape(slist);
 	std::vector<size_t> coord;
 	for (size_t i = 0; i < shape.n_elems(); ++i)
 	{

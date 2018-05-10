@@ -1,10 +1,10 @@
 /*!
  *
- *  tensorshape.hpp
+ *  tshape.hpp
  *  cnnet
  *
  *  Purpose:
- *  tensorshape stores aligned shape information
+ *  tshape stores aligned shape information
  *
  *  Created by Mingkai Chen on 2016-08-29.
  *  Copyright © 2018 Mingkai Chen. All rights reserved.
@@ -31,17 +31,17 @@ using namespace std::experimental;
 namespace nnet
 {
 
-class tensorshape final
+class tshape final
 {
 public:
 	//! by default create a rankless shape
-	tensorshape (void) = default;
+	tshape (void) = default;
 
 	//! create a shape with the desired dimensions
-	tensorshape (const std::vector<size_t>& dims);
+	tshape (const std::vector<size_t>& dims);
 
 	//! assign the desired dimensions to this shape
-	tensorshape& operator = (const std::vector<size_t>& dims);
+	tshape& operator = (const std::vector<size_t>& dims);
 
 	// >>>> ACCESSORS <<<<
 	//! access value at index dim, throws std::out_of_range if dim >= rank
@@ -66,7 +66,7 @@ public:
 
 	//! check if the shape is compatible with other
 	//! does not accounts for grouping
-	bool is_compatible_with (const tensorshape& other) const;
+	bool is_compatible_with (const tshape& other) const;
 
 	//! check if shape is partially defined
 	//! (if there are unknowns but rank is not 0)
@@ -76,16 +76,6 @@ public:
 	//! (there are no unknowns)
 	bool is_fully_defined (void) const;
 
-	// >>>> ASSERT <<<<
-	//! assert if shape has specified rank
-	void assert_has_rank (size_t rank) const;
-
-	//! assert if shape has same rank as other shape
-	void assert_same_rank (const tensorshape& other) const;
-
-	//! assert if shape is fully defined
-	void assert_is_fully_defined (void) const;
-
 	// >>>> MUTATORS <<<<
 	//! invalidate shape
 	void undefine (void);
@@ -93,27 +83,27 @@ public:
 	// >>>> SHAPE CREATORS <<<<
 	//! create the most defined shape from this and other
 	//! prioritizes this over other value
-	tensorshape merge_with (const tensorshape& other) const;
+	tshape merge_with (const tshape& other) const;
 
 	//! create a copy of this shape with leading and
 	//! trailing ones removed
-	tensorshape trim (void) const;
+	tshape trim (void) const;
 
 	//! create a shape that is the concatenation of another shape
-	tensorshape concatenate (const tensorshape& other) const;
+	tshape concatenate (const tshape& other) const;
 
 	//! create a new tensors with same dimension
 	//! value and the specified rank
 	//! clip or pad with 1's to fit rank
-	tensorshape with_rank (size_t rank) const;
+	tshape with_rank (size_t rank) const;
 
 	//! create a new tensors with same dimension
 	//! value and at least the the specified rank
-	tensorshape with_rank_at_least (size_t rank) const;
+	tshape with_rank_at_least (size_t rank) const;
 
 	//! create a new tensors with same dimension
 	//! value and at most the the specified rank
-	tensorshape with_rank_at_most (size_t rank) const;
+	tshape with_rank_at_most (size_t rank) const;
 
 	// todo: test
 	// >>>> COORDINATES <<<<
@@ -123,9 +113,6 @@ public:
 	//! obtain cartesian coordinates given a flat vector index
 	std::vector<size_t> coord_from_idx (size_t idx) const;
 
-	//! iterate with cartesian and flat coordinates of every valid element in shape
-	void iterate (std::function<void(std::vector<size_t>, size_t)> coord_call) const;
-
 private:
 	//! zero values denotes unknown/undefined value
 	//! emtpy dimension_ denotes undefined shape
@@ -133,7 +120,7 @@ private:
 };
 
 //! print a shape's dimension values
-void print_shape (tensorshape ts, std::ostream& os = std::cout);
+void print_shape (tshape ts, std::ostream& os = std::cout);
 
 }
 

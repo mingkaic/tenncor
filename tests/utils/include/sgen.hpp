@@ -2,10 +2,10 @@
 // Created by Mingkai Chen on 2017-03-10.
 //
 
-#include "testify_cpp/include/fuzz/fuzz.hpp"
+#include "testify/fuzz/fuzz.hpp"
 
 #include "utils/utils.hpp"
-#include "tensor/tensorshape.hpp"
+#include "tensor/tshape.hpp"
 
 #ifndef TTEST_SGEN_HPP
 #define TTEST_SGEN_HPP
@@ -41,7 +41,7 @@ std::vector<size_t> random_undef_shape (testify::fuzz_test* fuzzer, range<size_t
 void random_shapes (testify::fuzz_test* fuzzer, std::vector<size_t>& partial, std::vector<size_t>& complete);
 
 
-nnet::tensorshape padd(std::vector<size_t> shapelist, size_t nfront, size_t nback);
+nnet::tshape padd(std::vector<size_t> shapelist, size_t nfront, size_t nback);
 
 }
 

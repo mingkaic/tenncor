@@ -9,7 +9,7 @@ mock_data_src::mock_data_src (testify::fuzz_test* fuzzer) :
 	type_((TENS_TYPE) fuzzer->get_int(1, "type", {1, nnet::_TYPE_SENTINEL - 1})[0]),
 	uuid_(fuzzer->get_string(16, "mock_src_uuid")) {}
 
-void mock_data_src::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, nnet::tensorshape shape) const
+void mock_data_src::get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, nnet::tshape shape) const
 {
 	size_t ns = shape.n_elems() * nnet::type_size(type_);
 	outptr = nnutils::make_svoid(ns);

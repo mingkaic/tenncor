@@ -64,9 +64,9 @@ namespace nnet
 using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,varptr> >)>; 
 
 //! calculate output shape from argument shapes 
-using SHAPER_F = std::function<tensorshape(std::vector<tensorshape>)>; 
+using SHAPER_F = std::function<tshape(std::vector<tshape>)>; 
  
-using USHAPE_F = std::function<tensorshape(tensorshape, std::vector<uint64_t>)>; 
+using USHAPE_F = std::function<tshape(tshape, std::vector<uint64_t>)>; 
 
 using TENSOP_F = std::function<tensor*(std::unique_ptr<idata_src>&,std::vector<inode*>)>;
 

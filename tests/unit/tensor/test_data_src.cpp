@@ -515,7 +515,7 @@ TEST_F(DATA_SRC, Copy_D000)
 
 TEST_F(DATA_SRC, ConstInit_D001)
 {
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	nnet::tensor cten(shape);
 	nnet::tensor vten(shape);
 
@@ -560,7 +560,7 @@ TEST_F(DATA_SRC, ConstInit_D001)
 
 TEST_F(DATA_SRC, RandUnif_D002)
 {
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	nnet::tensor ten(shape);
 
 	nnet::r_uniform_init ri;
@@ -718,7 +718,7 @@ TEST_F(DATA_SRC, RandUnif_D002)
 // todo: fix huge overhead by switching to a faster generator
 TEST_F(DATA_SRC, DISABLED_RandNorm_D003)
 {
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	nnet::tensor ten(shape);
 
 	nnet::r_normal_init ri;
@@ -816,7 +816,7 @@ TEST_F(DATA_SRC, Serial_D004)
 	tenncor::SourcePb u_src;
 	tenncor::SourcePb n_src;
 
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	nnet::const_init ci;
 	nnet::const_init vi;
 	nnet::r_uniform_init ui;

@@ -24,7 +24,7 @@ class variable final : public inode
 {
 public:
 	//! construct to init zero and one
-	variable (const tensorshape& shape,
+	variable (const tshape& shape,
 		std::shared_ptr<data_src> source,
 		std::string label);
 
@@ -93,7 +93,7 @@ public:
 
 	//! initialize data using shape,
 	//! return true if success
-	bool initialize (tensorshape shape);
+	bool initialize (tshape shape);
 
 	//! assign contents of input to this, return true if successful
 	bool assign (inode* input, bool notify = true); // todo: make assign notify a reference function<> of notifier, let caller call update

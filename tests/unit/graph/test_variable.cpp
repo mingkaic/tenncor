@@ -41,7 +41,7 @@ TEST_F(VARIABLE, Constructor_D000)
 	std::vector<size_t> strns = get_int(2, "strns", {14, 29});
 	std::string label1 = get_string(strns[0], "label1");
 	std::string label2 = get_string(strns[1], "label2");
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 	std::vector<double> minmax = get_double(2, "min-max", {-24, 26});
 	double min = *std::min_element(minmax.begin(), minmax.end());
@@ -64,9 +64,9 @@ TEST_F(VARIABLE, Constructor_D000)
 		"tensor cten has data";
 	EXPECT_FALSE(rten->has_data()) <<
 		"tensor rten has data";
-	nnet::tensorshape gotshape = cten->get_shape();
+	nnet::tshape gotshape = cten->get_shape();
 	EXPECT_SHAPEQ(shape, gotshape);
-	nnet::tensorshape gotshape2 = rten->get_shape();
+	nnet::tshape gotshape2 = rten->get_shape();
 	EXPECT_SHAPEQ(shape, gotshape2);
 
 	cinitv.initialize();
@@ -99,8 +99,8 @@ TEST_F(VARIABLE, Copy_D001)
 	std::vector<size_t> strns = get_int(2, "strns", {14, 29});
 	std::string label1 = get_string(strns[0], "label1");
 	std::string label2 = get_string(strns[1], "label2");
-	nnet::tensorshape shape = random_def_shape(this);
-	nnet::tensorshape shape2 = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
+	nnet::tshape shape2 = random_def_shape(this);
 	std::shared_ptr<mock_data_src> src = std::make_shared<mock_data_src>(this);
 
 	nnet::variable assign(shape2, nullptr, label2);
@@ -150,8 +150,8 @@ TEST_F(VARIABLE, Move_D001)
 	std::vector<size_t> strns = get_int(2, "strns", {14, 29});
 	std::string label1 = get_string(strns[0], "label1");
 	std::string label2 = get_string(strns[1], "label2");
-	nnet::tensorshape shape = random_def_shape(this);
-	nnet::tensorshape shape2 = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
+	nnet::tshape shape2 = random_def_shape(this);
 	std::shared_ptr<mock_data_src> src = std::make_shared<mock_data_src>(this);
 
 	nnet::variable assign(shape2, nullptr, label2);
@@ -205,7 +205,7 @@ TEST_F(VARIABLE, Move_D001)
 TEST_F(VARIABLE, GetLeaves_D002)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	std::shared_ptr<mock_data_src> src = std::make_shared<mock_data_src>(this);
 	nnet::variable res(shape, src, label);
 
@@ -219,7 +219,7 @@ TEST_F(VARIABLE, GetLeaves_D002)
 TEST_F(VARIABLE, GetTensor_D003)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	std::shared_ptr<mock_data_src> src = std::make_shared<mock_data_src>(this);
 	nnet::variable res(shape, src, label);
 
@@ -236,7 +236,7 @@ TEST_F(VARIABLE, GetTensor_D003)
 TEST_F(VARIABLE, Derive_D004)
 {
 	std::string label = get_string(get_int(1, "label.size", {14, 29})[0], "label");
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 	double c = get_double(1, "c")[0];
 
 	std::shared_ptr<nnet::const_init> src = std::make_shared<nnet::const_init>();
@@ -256,8 +256,8 @@ TEST_F(VARIABLE, Derive_D004)
 	nnet::tensor* wten2 = ewun2->get_tensor();
 	ASSERT_NE(nullptr, wten);
 	ASSERT_NE(nullptr, wten2);
-	nnet::tensorshape gotshape = wten->get_shape();
-	nnet::tensorshape gotshape2 = wten2->get_shape();
+	nnet::tshape gotshape = wten->get_shape();
+	nnet::tshape gotshape2 = wten2->get_shape();
 	ASSERT_SHAPEQ(shape, gotshape);
 	ASSERT_SHAPEQ(shape, gotshape2);
 	std::vector<double> wunvec = nnet::expose<double>(ewun);
@@ -284,9 +284,9 @@ TEST_F(VARIABLE, Initialize_D005)
 	std::vector<size_t> plist;
 	std::vector<size_t> ilist;
 	make_incom_partials(this, clist, plist, ilist);
-	nnet::tensorshape shape = clist;
-	nnet::tensorshape badshape = ilist;
-	nnet::tensorshape part = plist;
+	nnet::tshape shape = clist;
+	nnet::tshape badshape = ilist;
+	nnet::tshape part = plist;
 	double c = get_double(1, "c")[0];
 	std::vector<double> minmax = get_double(2, "min-max", {-24, 26});
 	double min = *std::min_element(minmax.begin(), minmax.end());
@@ -437,9 +437,9 @@ TEST_F(VARIABLE, Assign_D006)
 	std::vector<size_t> plist;
 	std::vector<size_t> ilist;
 	make_incom_partials(this, clist, plist, ilist);
-	nnet::tensorshape shape = clist;
-	nnet::tensorshape badshape = ilist;
-	nnet::tensorshape parts = plist;
+	nnet::tshape shape = clist;
+	nnet::tshape badshape = ilist;
+	nnet::tshape parts = plist;
 	std::vector<double> minmax = get_double(2, "min-max", {-24, 26});
 	double min = *std::min_element(minmax.begin(), minmax.end());
 	double max = *std::max_element(minmax.begin(), minmax.end());

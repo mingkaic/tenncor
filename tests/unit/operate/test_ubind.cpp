@@ -33,7 +33,7 @@ using AGGS = std::function<double(std::vector<double>)>;
 static void unaryElemTest (testutils::fuzz_test* fuzzer, std::string op, 
 	SCALAR expect, std::pair<double,double> limits = {-1, 1})
 {
-	nnet::tensorshape shape = random_def_shape(fuzzer);
+	nnet::tshape shape = random_def_shape(fuzzer);
 	size_t n = shape.n_elems();
 	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
 	std::vector<double> output(n);
@@ -54,7 +54,7 @@ static void unaryElemTest (testutils::fuzz_test* fuzzer, std::string op,
 static void unaryAggTest (testutils::fuzz_test* fuzzer, std::string op, 
 	double init, AGGS agg, std::pair<double,double> limits = {-1, 1})
 {
-	nnet::tensorshape shape = random_def_shape(fuzzer);
+	nnet::tshape shape = random_def_shape(fuzzer);
 	size_t n = shape.n_elems();
 	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
 	std::vector<double> output(n);

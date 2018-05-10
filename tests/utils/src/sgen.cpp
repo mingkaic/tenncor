@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "testify_cpp/include/fuzz/irng.hpp"
+#include "testify/fuzz/irng.hpp"
 
 #include "sgen.hpp"
 
@@ -192,7 +192,7 @@ void random_shapes (testify::fuzz_test* fuzzer, std::vector<size_t>& partial, st
 }
 
 
-nnet::tensorshape padd (std::vector<size_t> shapelist, size_t nfront, size_t nback)
+nnet::tshape padd (std::vector<size_t> shapelist, size_t nfront, size_t nback)
 {
 	std::vector<size_t> out(nfront, 1);
 	out.insert(out.end(), shapelist.begin(), shapelist.end());

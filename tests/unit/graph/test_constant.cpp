@@ -37,7 +37,7 @@ using namespace testutils;
 // covers constant: constructor, set
 TEST_F(CONSTANT, Constructor_C000)
 {
-	nnet::tensorshape shape = random_def_shape(this, {2, 5});
+	nnet::tshape shape = random_def_shape(this, {2, 5});
 	size_t n = shape.n_elems();
 	double c = get_double(1, "c")[0];
 
@@ -71,9 +71,9 @@ TEST_F(CONSTANT, Constructor_C000)
 		EXPECT_EQ(v3[i], r4[i]);
 	}
 
-	nnet::tensorshape cshape = res2->get_tensor()->get_shape();
-	nnet::tensorshape cshape2 = res3->get_tensor()->get_shape();
-	nnet::tensorshape cshape3 = res4->get_tensor()->get_shape();
+	nnet::tshape cshape = res2->get_tensor()->get_shape();
+	nnet::tshape cshape2 = res3->get_tensor()->get_shape();
+	nnet::tshape cshape3 = res4->get_tensor()->get_shape();
 	EXPECT_SHAPEQ(shape, cshape);
 	EXPECT_SHAPEQ(shape, cshape2);
 	EXPECT_SHAPEQ(shape, cshape3);
@@ -84,7 +84,7 @@ TEST_F(CONSTANT, Constructor_C000)
 TEST_F(CONSTANT, CopyNMove_C001)
 {
 	double c = get_double(1, "c")[0];
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 
 	size_t n = shape.n_elems();
 	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");
@@ -115,7 +115,7 @@ TEST_F(CONSTANT, GetLeaves_C002)
 TEST_F(CONSTANT, GetTensor_C003)
 {
 	double c = get_double(1, "c")[0];
-	nnet::tensorshape shape = random_def_shape(this);
+	nnet::tshape shape = random_def_shape(this);
 
 	size_t n = shape.n_elems();
 	std::vector<double> v = get_double(get_int(1, "v.size", {0.5*n, 1.5*n})[0], "v");

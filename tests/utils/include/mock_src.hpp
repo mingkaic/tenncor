@@ -1,5 +1,5 @@
-#include "testify_cpp/include/fuzz/fuzz.hpp"
-#include "testify_cpp/include/mocker/mocker.hpp"
+#include "testify/fuzz/fuzz.hpp"
+#include "testify/mocker/mocker.hpp"
 
 #include "tensor/data_src.hpp"
 
@@ -13,7 +13,7 @@ struct mock_data_src final : public nnet::data_src, public testify::mocker
 {
 	mock_data_src (testify::fuzz_test* fuzzer);
 
-	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, nnet::tensorshape shape) const;
+	virtual void get_data (std::shared_ptr<void>& outptr, TENS_TYPE& type, nnet::tshape shape) const;
 
 	virtual void serialize (tenncor::SourcePb& source_dst) const {}
 

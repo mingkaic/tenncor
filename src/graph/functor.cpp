@@ -181,7 +181,7 @@ varptr functor::derive (inode* wrt)
 	{
 		tensor* ten = wrt->get_tensor();
 		assert(ten && ten->has_data());
-		tensorshape shape = ten->get_shape();
+		tshape shape = ten->get_shape();
 		std::vector<double> data(shape.n_elems(), 1); // change to match wrt type
 		return constant::get<double>(data, shape);
 	}

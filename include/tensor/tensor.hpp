@@ -30,7 +30,7 @@ class tensor final
 {
 public:
 	//! create a tensor of a specified shape
-	tensor (tensorshape shape);
+	tensor (tshape shape);
 
 	tensor (const tenncor::TensorPb& proto_src);
 
@@ -63,9 +63,9 @@ public:
 	// >>>>>> SHAPE INFORMATION <<<<<<
 
 	//! get tensor shape (allocated if so, allowed shape otherwise)
-	tensorshape get_shape (void) const;
+	tshape get_shape (void) const;
 
-	tensorshape get_allowed (void) const
+	tshape get_allowed (void) const
 	{
 		return allowed_shape_;
 	}
@@ -80,7 +80,7 @@ public:
 	//! get vector dimension values
 	std::vector<size_t> dims (void) const;
 
-	//! checks if input tensor has a compatible allowed tensorshape
+	//! checks if input tensor has a compatible allowed tshape
 	//! or if both this and other are allocated and the trimmed shapes are compatible
 	bool is_same_size (const tensor& other) const;
 
@@ -92,7 +92,7 @@ public:
 	bool is_compatible_with (size_t ndata) const;
 
 	//! check if an array that is the size of vector
-	//! specified in input is compatible with tensorshape
+	//! specified in input is compatible with tshape
 	//! data is loosely compatible if ndata < (innate or external) shape size
 	bool is_loosely_compatible_with (size_t ndata) const;
 
@@ -102,13 +102,13 @@ public:
 	// this algorithm attempts to cover up the first unknown with data.size() / n_known
 	// iff data.size() % n_known == 0
 	// todo: attempt to add lambda function as parameter to distribute data.size() / n_known among unknowns (same for loosely guess)
-	optional<tensorshape> guess_shape (size_t ndata) const;
+	optional<tshape> guess_shape (size_t ndata) const;
 
 	//! return loosely compatible shape with n_elems <= data.size()
 	//! or undefined if compatibility is impossible
-	optional<tensorshape> loosely_guess_shape (size_t ndata) const;
+	optional<tshape> loosely_guess_shape (size_t ndata) const;
 
-	//! checks if tensorshape is aligned
+	//! checks if tshape is aligned
 	//! same number of column for each row
 	virtual bool is_aligned (void) const;
 
@@ -133,7 +133,7 @@ public:
 	//! set a new allowed shape
 	//! WARNING: clears existing content 
 	//! if allocedshape is not compatible with input shape
-	void set_shape (tensorshape shape); 
+	void set_shape (tshape shape); 
 
 	// >>>>>> DATA MUTATION <<<<<<
 
@@ -144,7 +144,7 @@ public:
 	//! read raw data from source using input shape
 	//! if shape is compatible with allowed
 	//! else return false
-	bool read_from (const idata_src& src, const tensorshape shape);
+	bool read_from (const idata_src& src, const tshape shape);
 
 	//! forcefully deallocate raw_data,
 	//! invalidates allocated (external) shape
@@ -165,10 +165,10 @@ private:
 	// >>>>>> SHAPE MEMBERS <<<<<<
 
 	//! not necessarily defined shape
-	tensorshape allowed_shape_;
+	tshape allowed_shape_;
 
 	//! allocated shape (must be defined)
-	tensorshape alloced_shape_;
+	tshape alloced_shape_;
 
 	//! raw data is available to tensor manipulators
 	std::shared_ptr<void> raw_data_ = nullptr; // make shared to communicate with idata_dest

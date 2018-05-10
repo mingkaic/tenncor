@@ -28,7 +28,7 @@ class placeholder final : public inode
 {
 public:
 	//! shape constructor
-	placeholder (const tensorshape& shape, std::string name = "");
+	placeholder (const tshape& shape, std::string name = "");
 
 	//! explicitly declare copy constructor since assignments are declared
 	placeholder (const placeholder& other);
@@ -90,7 +90,7 @@ public:
 	placeholder& operator = (std::vector<T> data)
 	{
 		size_t n = data.size();
-		nnet::tensorshape inshape;
+		nnet::tshape inshape;
 		if (data_->has_data())
 		{
 			if (data_->is_compatible_with(n))
@@ -106,7 +106,7 @@ public:
 		}
 		else
 		{
-			if (optional<tensorshape> shape = data_->guess_shape(n))
+			if (optional<tshape> shape = data_->guess_shape(n))
 			{
 				inshape = *shape;
 			}

@@ -15,9 +15,9 @@ template <typename T>
 void pow (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	T* bn = (T*) srcs.front().first;
 	T* xp = (T*) srcs.back().first;
@@ -35,9 +35,9 @@ template <typename T>
 void add (VARR_T dest, std::vector<CVAR_T> srcs)
 { // todo: mitigation strategies to prevent error propagation for overflows
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sa = (const T*) srcs.front().first;
 	const T* sb = (const T*) srcs.back().first;
@@ -55,9 +55,9 @@ template <typename T>
 void sub (VARR_T dest, std::vector<CVAR_T> srcs)
 { // todo: mitigation strategies to prevent error propagation for underflows
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sa = (const T*) srcs.front().first;
 	const T* sb = (const T*) srcs.back().first;
@@ -75,9 +75,9 @@ template <typename T>
 void mul (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sa = (const T*) srcs.front().first;
 	const T* sb = (const T*) srcs.back().first;
@@ -95,9 +95,9 @@ template <typename T>
 void div (VARR_T dest, std::vector<CVAR_T> srcs)
 { // todo: mitigation strategies to prevent error propagation for large/small numerator/denoms
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sa = (const T*) srcs.front().first;
 	const T* sb = (const T*) srcs.back().first;
@@ -115,9 +115,9 @@ template <typename T>
 void eq (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sa = (const T*) srcs.front().first;
 	const T* sb = (const T*) srcs.back().first;
@@ -135,9 +135,9 @@ template <typename T>
 void neq (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sa = (const T*) srcs.front().first;
 	const T* sb = (const T*) srcs.back().first;
@@ -155,9 +155,9 @@ template <typename T>
 void lt (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sa = (const T*) srcs.front().first;
 	const T* sb = (const T*) srcs.back().first;
@@ -175,9 +175,9 @@ template <typename T>
 void gt (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sa = (const T*) srcs.front().first;
 	const T* sb = (const T*) srcs.back().first;
@@ -195,9 +195,9 @@ template <typename T>
 void rand_binom (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape0 = srcs.front().second;
-	tensorshape& srcshape1 = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape0 = srcs.front().second;
+	tshape& srcshape1 = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* sn = (const T*) srcs.front().first;
 	const double* sp = (const double*) srcs.back().first;
@@ -217,9 +217,9 @@ template <typename T>
 void rand_uniform (VARR_T dest, std::vector<CVAR_T> srcs)
 {
 	// assert(srcs.size() == 2);
-	tensorshape& destshape = dest.second;
-	tensorshape& srcshape_min = srcs.front().second;
-	tensorshape& srcshape_max = srcs.back().second;
+	tshape& destshape = dest.second;
+	tshape& srcshape_min = srcs.front().second;
+	tshape& srcshape_max = srcs.back().second;
 	T* d = (T*) dest.first;
 	const T* s_min = (const T*) srcs.front().first;
 	const T* s_max = (const T*) srcs.back().first;

@@ -13,7 +13,7 @@ filegroup(
 UNITTEST_DEPS = [
     "//:tenncor",
     "//tests/utils:tenncor_testify",
-    "@com_github_mingkaic_testify//testify_cpp:testify",
+    "@com_github_mingkaic_testify//:testify",
 ]
 
 ######### FUZZ TESTS #########

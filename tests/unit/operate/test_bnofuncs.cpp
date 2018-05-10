@@ -49,7 +49,7 @@ static void binarNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC 
 	SVARFUNC<double> op_s1, SVARFUNC<double> op_s2, SCALARS<double> expect, ZCHECK exz, 
 	std::pair<double,double> limits = {-1, 1})
 {
-	nnet::tensorshape shape = random_def_shape(fuzzer);
+	nnet::tshape shape = random_def_shape(fuzzer);
 	size_t n = shape.n_elems();
 	std::vector<double> argument0 = fuzzer->get_double(n, "argument0", limits);
 	std::vector<double> argument1 = fuzzer->get_double(n, "argument1", limits);
@@ -76,7 +76,7 @@ static void binarNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFUNC 
 	// test behavior B1xx
 	nnet::tensor* ten = res->get_tensor();
 	ASSERT_NE(nullptr, ten);
-	EXPECT_TRUE(tensorshape_equal(shape, ten->get_shape()));
+	EXPECT_TRUE(tshape_equal(shape, ten->get_shape()));
 	std::vector<double> output = nnet::expose<double>(res.get());
 	std::vector<double> outputl = nnet::expose<double>(resl.get());
 	std::vector<double> outputr = nnet::expose<double>(resr.get());
@@ -96,7 +96,7 @@ static void binarIntNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFU
 	SVARFUNC<uint64_t> op_s1, SVARFUNC<uint64_t> op_s2, SCALARS<uint64_t> expect, ZCHECK exz, 
 	std::pair<uint64_t,uint64_t> limits = {0, 12})
 {
-	nnet::tensorshape shape = random_def_shape(fuzzer);
+	nnet::tshape shape = random_def_shape(fuzzer);
 	size_t n = shape.n_elems();
 	auto temp0 = fuzzer->get_int(n, "argument0", limits);
 	auto temp1 = fuzzer->get_int(n, "argument1", limits);
@@ -121,7 +121,7 @@ static void binarIntNodeTest (testutils::fuzz_test* fuzzer, OPCODE opcode, VARFU
 	// test behavior B1xx
 	nnet::tensor* ten = res->get_tensor();
 	ASSERT_NE(nullptr, ten);
-	EXPECT_TRUE(tensorshape_equal(shape, ten->get_shape()));
+	EXPECT_TRUE(tshape_equal(shape, ten->get_shape()));
 	std::vector<uint64_t> output = nnet::expose<uint64_t>(res.get());
 	std::vector<uint64_t> outputl = nnet::expose<uint64_t>(resl.get());
 	std::vector<uint64_t> outputr = nnet::expose<uint64_t>(resr.get());
@@ -454,7 +454,7 @@ TEST_F(BNOFUNCS, Lt_B0xxAndB128)
 
 TEST_F(BNOFUNCS, Binom_B0xxAndB129)
 {
-	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
+	nnet::tshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();
 	auto temp0 = get_int(n, "argument0", {2, 19});
 	std::vector<uint64_t> argument0(temp0.begin(), temp0.end());
@@ -560,7 +560,7 @@ TEST_F(BNOFUNCS, Binom_B0xxAndB129)
 
 TEST_F(BNOFUNCS, Unif_B0xxAndB130)
 {
-	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
+	nnet::tshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();
 	std::vector<double> argument0 = get_double(n, "argument0", {-2, 1});
 	std::vector<double> argument1 = get_double(n, "argument1", {2, 5});
@@ -606,7 +606,7 @@ TEST_F(BNOFUNCS, Unif_B0xxAndB130)
 
 TEST_F(BNOFUNCS, DISABLED_Norm_B0xxAndB131)
 {
-	nnet::tensorshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
+	nnet::tshape shape = random_def_shape(this, {2, 12}, {10000, 78910});
 	size_t n = shape.n_elems();
 	std::vector<double> argument0 = get_double(n, "argument0", {-21, 154});
 	std::vector<double> argument1 = get_double(n, "argument1", {1, 123});
@@ -713,12 +713,12 @@ TEST_F(BNOFUNCS, Matmul_B0xxAndB132)
 	size_t k = get_int(1, "k", {1, 8})[0];
 	size_t m = clist[0];
 	size_t n = clist[1];
-	nnet::tensorshape shape0 = clist;
+	nnet::tshape shape0 = clist;
 	clist[1] = clist[0];
 	clist[0] = k;
-	nnet::tensorshape shape1 = clist; // <k, m, ...>
+	nnet::tshape shape1 = clist; // <k, m, ...>
 	clist[1] = n;
-	nnet::tensorshape outshape = clist; // <k, n, ...>
+	nnet::tshape outshape = clist; // <k, n, ...>
 	size_t n1 = shape0.n_elems();
 	size_t n2 = shape1.n_elems();
 	size_t nout = outshape.n_elems();
@@ -733,7 +733,7 @@ TEST_F(BNOFUNCS, Matmul_B0xxAndB132)
 	nnet::tensor* ten = res->get_tensor();
 	std::vector<int64_t> output = nnet::expose<int64_t>(res);
 	ASSERT_EQ(nout, output.size());
-	nnet::tensorshape shape = ten->get_shape();
+	nnet::tshape shape = ten->get_shape();
 	EXPECT_SHAPEQ(outshape, shape);
 
 	// test behavior B000

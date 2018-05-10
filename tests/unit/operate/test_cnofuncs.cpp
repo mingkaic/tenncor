@@ -40,7 +40,7 @@ static void unaryAggTest (testutils::fuzz_test* fuzzer,
 {
 	std::vector<size_t> clist = random_def_shape(fuzzer);
 	uint64_t argidx = fuzzer->get_int(1, "argidx", {0, clist.size() - 1})[0];
-	nnet::tensorshape shape = clist;
+	nnet::tshape shape = clist;
 	if (1 == clist.size())
 	{
 		clist[0] = 1;
@@ -49,8 +49,8 @@ static void unaryAggTest (testutils::fuzz_test* fuzzer,
 	{
 		clist.erase(clist.begin() + argidx);
 	}
-	nnet::tensorshape scalshape = std::vector<size_t>{1};
-	nnet::tensorshape outshape = clist;
+	nnet::tshape scalshape = std::vector<size_t>{1};
+	nnet::tshape outshape = clist;
 	size_t n = shape.n_elems();
 	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
@@ -61,8 +61,8 @@ static void unaryAggTest (testutils::fuzz_test* fuzzer,
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensor* tenscalar = resscalar->get_tensor();
 
-	nnet::tensorshape ress = ten->get_shape();
-	nnet::tensorshape resscs = tenscalar->get_shape();
+	nnet::tshape ress = ten->get_shape();
+	nnet::tshape resscs = tenscalar->get_shape();
 	EXPECT_SHAPEQ(scalshape, ress);
 	EXPECT_SHAPEQ(outshape, resscs);
 
@@ -188,20 +188,20 @@ TEST_F(CNOFUNCS, Transpose_B0xxAndB143)
 	std::shuffle(perm.begin(), perm.end(),
 		testify::get_generator());
 
-	nnet::tensorshape shape = clist;
+	nnet::tshape shape = clist;
 	std::vector<size_t> permlist(rank);
 	for (size_t i = 0; i < rank; ++i)
 	{
 		permlist[i] = clist[perm[i]];
 	}
-	nnet::tensorshape permshape = permlist;
+	nnet::tshape permshape = permlist;
 	std::reverse(clist.begin(), clist.end());
-	nnet::tensorshape outshape = clist;
+	nnet::tshape outshape = clist;
 	size_t n = shape.n_elems();
 	std::vector<double> argument = get_double(n, "argument", {-1, 1});
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
 	nnet::varptr permleaf = nnet::constant::get<uint64_t>(perm, 
-		nnet::tensorshape(std::vector<size_t>{rank}));
+		nnet::tshape(std::vector<size_t>{rank}));
 
 	nnet::varptr res = nnet::transpose(leaf);
 	nnet::varptr resperm = nnet::transpose(leaf, permleaf);
@@ -209,8 +209,8 @@ TEST_F(CNOFUNCS, Transpose_B0xxAndB143)
 	nnet::tensor* ten = res->get_tensor();
 	nnet::tensor* tenperm = resperm->get_tensor();
 
-	nnet::tensorshape ress = ten->get_shape();
-	nnet::tensorshape resperms = tenperm->get_shape();
+	nnet::tshape ress = ten->get_shape();
+	nnet::tshape resperms = tenperm->get_shape();
 	EXPECT_SHAPEQ(outshape, ress);
 	EXPECT_SHAPEQ(permshape, resperms);
 
@@ -257,16 +257,16 @@ TEST_F(CNOFUNCS, Flip_B0xxAndB144)
 	std::vector<size_t> clist = random_def_shape(this);
 	uint64_t argidx = get_int(1, "argidx", {0, clist.size() - 1})[0];
 
-	nnet::tensorshape shape = clist;
+	nnet::tshape shape = clist;
 	size_t n = shape.n_elems();
 	std::vector<double> argument = get_double(n, "argument", {-1, 1});
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
 	nnet::varptr dimleaf = nnet::constant::get<uint64_t>({argidx}, 
-		nnet::tensorshape(std::vector<size_t>{1}));
+		nnet::tshape(std::vector<size_t>{1}));
 
 	nnet::varptr res = nnet::flip(leaf, dimleaf);
 	nnet::tensor* ten = res->get_tensor();
-	nnet::tensorshape ress = ten->get_shape();
+	nnet::tshape ress = ten->get_shape();
 	EXPECT_SHAPEQ(shape, ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
@@ -302,20 +302,20 @@ TEST_F(CNOFUNCS, ExpandB0xxAndB145)
 	uint64_t argidx = get_int(1, "argidx", {0, clist.size()})[0];
 	uint64_t mult = get_int(1, "mult", {1, 6})[0];
 
-	nnet::tensorshape shape = clist;
+	nnet::tshape shape = clist;
 	clist.insert(clist.begin() + argidx, mult);
-	nnet::tensorshape outshape = clist;
+	nnet::tshape outshape = clist;
 	size_t n = shape.n_elems();
 	std::vector<double> argument = get_double(n, "argument", {-1, 1});
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
 	nnet::varptr multleaf = nnet::constant::get<double>({(double) mult}, 
-		nnet::tensorshape(std::vector<size_t>{1})); // todo: make this uint64_t once shape_func uses uint64_t
+		nnet::tshape(std::vector<size_t>{1})); // todo: make this uint64_t once shape_func uses uint64_t
 	nnet::varptr dimleaf = nnet::constant::get<uint64_t>({argidx}, 
-		nnet::tensorshape(std::vector<size_t>{1}));
+		nnet::tshape(std::vector<size_t>{1}));
 
 	nnet::varptr res = nnet::expand(leaf, multleaf, dimleaf);
 	nnet::tensor* ten = res->get_tensor();
-	nnet::tensorshape ress = ten->get_shape();
+	nnet::tshape ress = ten->get_shape();
 	EXPECT_SHAPEQ(outshape, ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
@@ -356,15 +356,15 @@ TEST_F(CNOFUNCS, ExpandB0xxAndB145)
 TEST_F(CNOFUNCS, Nelems_B0xxAndB146)
 {
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
+	nnet::tshape shape = clist;
 	size_t n = shape.n_elems();
 	std::vector<double> argument = get_double(n, "argument", {-1, 1});
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
 
 	nnet::varptr res = nnet::n_elems(leaf);
 	nnet::tensor* ten = res->get_tensor();
-	nnet::tensorshape ress = ten->get_shape();
-	nnet::tensorshape outshape(std::vector<size_t>{1});
+	nnet::tshape ress = ten->get_shape();
+	nnet::tshape outshape(std::vector<size_t>{1});
 	EXPECT_SHAPEQ(outshape, ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
@@ -388,15 +388,15 @@ TEST_F(CNOFUNCS, Ndims_B0xxAndB147)
 {
 	std::vector<size_t> clist = random_def_shape(this);
 	uint64_t argidx = get_int(1, "argidx", {0, clist.size() - 1})[0];
-	nnet::tensorshape shape = clist;
+	nnet::tshape shape = clist;
 	size_t n = shape.n_elems();
 	std::vector<double> argument = get_double(n, "argument", {-1, 1});
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
 
 	nnet::varptr res = nnet::n_dimension(leaf, argidx);
 	nnet::tensor* ten = res->get_tensor();
-	nnet::tensorshape ress = ten->get_shape();
-	nnet::tensorshape outshape(std::vector<size_t>{1});
+	nnet::tshape ress = ten->get_shape();
+	nnet::tshape outshape(std::vector<size_t>{1});
 	EXPECT_SHAPEQ(outshape, ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
@@ -422,7 +422,7 @@ TEST_F(CNOFUNCS, Ndims_B0xxAndB147)
 TEST_F(CNOFUNCS, Clip_B0xxAndB148)
 {
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
+	nnet::tshape shape = clist;
 	size_t n = shape.n_elems();
 	std::vector<double> argument = get_double(n, "argument", {-1, 1});
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
@@ -431,7 +431,7 @@ TEST_F(CNOFUNCS, Clip_B0xxAndB148)
 
 	nnet::varptr res = nnet::clip(leaf, mi, ma);
 	nnet::tensor* ten = res->get_tensor();
-	nnet::tensorshape ress = ten->get_shape();
+	nnet::tshape ress = ten->get_shape();
 	EXPECT_SHAPEQ(shape, ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
@@ -471,7 +471,7 @@ TEST_F(CNOFUNCS, Clip_B0xxAndB148)
 TEST_F(CNOFUNCS, ClipNorm_B0xxAndB149)
 {
 	std::vector<size_t> clist = random_def_shape(this);
-	nnet::tensorshape shape = clist;
+	nnet::tshape shape = clist;
 	size_t n = shape.n_elems();
 	std::vector<double> argument = get_double(n, "argument", {-1, 1});
 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
@@ -484,7 +484,7 @@ TEST_F(CNOFUNCS, ClipNorm_B0xxAndB149)
 
 	nnet::varptr res = nnet::clip_norm(leaf, cap);
 	nnet::tensor* ten = res->get_tensor();
-	nnet::tensorshape ress = ten->get_shape();
+	nnet::tshape ress = ten->get_shape();
 	EXPECT_SHAPEQ(shape, ress);
 
 	std::vector<double> data = nnet::expose<double>(res);
