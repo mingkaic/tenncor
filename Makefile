@@ -53,7 +53,10 @@ test_py:
 	$(TEST) //tests/py/test:test
 
 # unit test
-unit_test: test_tensor test_graph test_operate test_serialize
+unit_test: test_clay test_tensor test_graph test_operate test_serialize
+
+test_clay:
+	$(GTEST) $(REP_BZL_FLAG) //clay:test
 
 test_tensor:
 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_tensor

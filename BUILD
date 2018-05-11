@@ -12,6 +12,7 @@ filegroup(
     name = "srcs",
     srcs = [
         "BUILD",
+        "//tensor:srcs",
         "//:tenncor_hpp",
         "//:tenncor_cpp",
         "//:monitor_csv_hpp",
@@ -90,6 +91,17 @@ filegroup(
         "src/edgeinfo/rpc_record/*.cpp", 
         "src/thread/*.cpp",
     ]),
+)
+
+#######################################
+#              LIBRARIES              #
+#######################################
+
+cc_library(
+    name = "ioutil",
+    hdrs = glob([ "ioutil/*.hpp" ]),
+    srcs = glob([ "ioutil/src/*.cpp" ]),
+    copts = [ "-std=c++14" ],
 )
 
 #######################################
