@@ -23,7 +23,7 @@ struct mock_source final : public clay::iSource, public testify::mocker
 
 	std::shared_ptr<char> ptr_;
 
-    std::string uuid_;
+	std::string uuid_;
 };
 
 }

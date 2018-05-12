@@ -8,7 +8,7 @@
 
 #include "clay/shape.hpp"
 
-#ifdef TENSOR_SHAPE_HPP
+#ifdef CLAY_SHAPE_HPP
 
 namespace clay
 {

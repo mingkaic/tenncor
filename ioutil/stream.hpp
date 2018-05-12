@@ -31,9 +31,9 @@ public:
 		to_str
 	};
 
-    Stream (void) = default;
+	Stream (void) = default;
 
-    virtual ~Stream (void) = default;
+	virtual ~Stream (void) = default;
 
 	//! no copying or moving to force string conversion
 	//! format content is always passed as a string
@@ -55,7 +55,7 @@ public:
 	template <typename T>
 	Stream& operator << (const std::vector<T>& values)
 	{
-        std::copy(values.begin(), values.end(), std::ostream_iterator<T>(stream_, " "));
+		std::copy(values.begin(), values.end(), std::ostream_iterator<T>(stream_, " "));
 		return *this;
 	}
 

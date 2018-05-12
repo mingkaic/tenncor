@@ -12,17 +12,17 @@ namespace ioutil
 
 std::string Stream::str(void) const
 {
-    return stream_.str();
+	return stream_.str();
 }
 
 Stream::operator std::string () const
 {
-    return stream_.str();
+	return stream_.str();
 }
 
 std::string Stream::operator >> (convert_to_string)
 {
-    return stream_.str();
+	return stream_.str();
 }
 
 }

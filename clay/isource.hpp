@@ -14,8 +14,8 @@
 #include "clay/state.hpp"
 
 #pragma once
-#ifndef TENSOR_ISOURCE_HPP
-#define TENSOR_ISOURCE_HPP
+#ifndef CLAY_ISOURCE_HPP
+#define CLAY_ISOURCE_HPP
 
 namespace clay
 {
@@ -29,4 +29,4 @@ struct iSource
 
 }
 
-#endif /* TENSOR_ISOURCE_HPP */
+#endif /* CLAY_ISOURCE_HPP */

@@ -15,7 +15,7 @@ namespace ioutil
 
 const char* Error::what (void) const throw ()
 {
-    return this->str().c_str(); 
+	return this->str().c_str(); 
 }
 
 }

@@ -17,8 +17,8 @@
 #include <exception>
 
 #pragma once
-#ifndef TENSOR_DTYPE_HPP
-#define TENSOR_DTYPE_HPP
+#ifndef CLAY_DTYPE_HPP
+#define CLAY_DTYPE_HPP
 
 namespace clay
 {
@@ -247,4 +247,4 @@ bool convert (std::string& out, DTYPE otype,
 
 }
 
-#endif /* TENSOR_DTYPE_HPP */
+#endif /* CLAY_DTYPE_HPP */

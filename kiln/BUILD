@@ -17,10 +17,11 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "clay",
+    name = "kiln",
     hdrs = glob([ "*.hpp" ]),
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
+    deps = [ "//clay:clay" ],
 )
 
 ######### TEST #########
@@ -31,6 +32,7 @@ cc_test(
     srcs = glob([ "test/*.cpp" ]),
     deps = [
         "//clay:clay",
+        "//kiln:kiln",
         "//:testutil",
         "@com_github_mingkaic_testify//:testify",
     ],

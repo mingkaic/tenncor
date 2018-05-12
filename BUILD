@@ -104,6 +104,19 @@ cc_library(
     copts = [ "-std=c++14" ],
 )
 
+cc_library(
+    name = "testutil",
+    hdrs = glob(["testutil/*.hpp"]),
+    srcs = glob(["testutil/src/*.cpp"]),
+    deps = [
+        "//clay:clay",
+        "//:ioutil",
+        "@com_github_mingkaic_testify//:testify",
+    ],
+    copts = [ "-std=c++14" ],
+    testonly = True,
+)
+
 #######################################
 #             MAIN LIBRARY            #
 #######################################

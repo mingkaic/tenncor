@@ -2,8 +2,8 @@
 
 #include "gtest/gtest.h"
 
-#include "clay/testutil/fuzz.hpp"
-#include "clay/testutil/check.hpp"
+#include "testutil/fuzz.hpp"
+#include "testutil/check.hpp"
 
 #include "clay/dtype.hpp"
 

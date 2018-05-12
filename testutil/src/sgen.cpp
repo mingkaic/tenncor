@@ -2,7 +2,7 @@
 
 #include "testify/fuzz/irng.hpp"
 
-#include "clay/testutil/sgen.hpp"
+#include "testutil/sgen.hpp"
 
 #ifdef TESTUTIL_SGEN_HPP
 

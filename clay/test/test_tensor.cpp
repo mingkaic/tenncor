@@ -2,16 +2,16 @@
 
 #include "gtest/gtest.h"
 
-#include "clay/testutil/fuzz.hpp"
-#include "clay/testutil/sgen.hpp"
-#include "clay/testutil/check.hpp"
-#include "clay/testutil/mock_src.hpp"
+#include "testutil/fuzz.hpp"
+#include "testutil/sgen.hpp"
+#include "testutil/check.hpp"
+#include "testutil/mock_src.hpp"
 
 #include "clay/tensor.hpp"
 #include "clay/memory.hpp"
 
 
-#ifndef DISABLE_TENSOR_TEST
+#ifndef DISABLE_CLAY_TEST
 
 
 using namespace testutil;
@@ -160,7 +160,7 @@ TEST_F(TENSOR, ReadFrom_C002)
 }
 
 
-#endif /* DISABLE_TENSOR_TEST */
+#endif /* DISABLE_CLAY_TEST */
 
 
 #endif /* DISABLE_CLAY_MODULE_TESTS */

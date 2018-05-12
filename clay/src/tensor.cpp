@@ -5,7 +5,7 @@
 
 #include "clay/tensor.hpp"
 
-#ifdef TENSOR_TENSOR_HPP
+#ifdef CLAY_CLAY_HPP
 
 namespace clay
 {

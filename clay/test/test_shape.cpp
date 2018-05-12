@@ -2,9 +2,9 @@
 
 #include "gtest/gtest.h"
 
-#include "clay/testutil/fuzz.hpp"
-#include "clay/testutil/sgen.hpp"
-#include "clay/testutil/check.hpp"
+#include "testutil/fuzz.hpp"
+#include "testutil/sgen.hpp"
+#include "testutil/check.hpp"
 
 #include "clay/shape.hpp"
 

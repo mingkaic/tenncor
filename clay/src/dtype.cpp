@@ -8,7 +8,7 @@
 
 #include "clay/dtype.hpp"
 
-#ifdef TENSOR_DTYPE_HPP
+#ifdef CLAY_DTYPE_HPP
 
 namespace clay
 {

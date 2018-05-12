@@ -27,8 +27,7 @@ A014 - coord_from_idx converts coordinates C to sequential index I on a Shape S 
 // TYPE
 B000 - type_size returns the number of bytes taken by specified type
 		throws error when requesting unsupported type
-B001 - get_type returns type mapped by the template argument to the protobuf enum specified in 
-		proto/serial/tenncor.proto returns BAD_T for unsupported type
+B001 - get_type returns type mapped by the template argument
 B002 - convert with string-vector input turns vector data to string of otype, return false if bad otype
 B003 - convert with vector-string input turns string data of itype to vector, return false if bad itype
 B004 - convert with string-string input converts between itype and otype, return false if otype or itype

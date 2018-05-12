@@ -17,8 +17,8 @@
 #include "clay/shape.hpp"
 
 #pragma once
-#ifndef TENSOR_STATE_HPP
-#define TENSOR_STATE_HPP
+#ifndef CLAY_STATE_HPP
+#define CLAY_STATE_HPP
 
 namespace clay
 {
@@ -36,4 +36,4 @@ struct State final
 
 }
 
-#endif /* TENSOR_STATE_HPP */
+#endif /* CLAY_STATE_HPP */

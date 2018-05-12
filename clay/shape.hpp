@@ -14,8 +14,8 @@
 #include <vector>
 
 #pragma once
-#ifndef TENSOR_SHAPE_HPP
-#define TENSOR_SHAPE_HPP
+#ifndef CLAY_SHAPE_HPP
+#define CLAY_SHAPE_HPP
 
 namespace clay
 {
@@ -119,4 +119,4 @@ private:
 
 }
 
-#endif /* TENSOR_SHAPE_HPP */
+#endif /* CLAY_SHAPE_HPP */

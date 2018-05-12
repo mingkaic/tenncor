@@ -23,8 +23,8 @@
 #include "clay/isource.hpp"
 
 #pragma once
-#ifndef TENSOR_TENSOR_HPP
-#define TENSOR_TENSOR_HPP
+#ifndef CLAY_CLAY_HPP
+#define CLAY_CLAY_HPP
 
 namespace clay
 {
@@ -78,4 +78,4 @@ private:
 
 }
 
-#endif /* TENSOR_TENSOR_HPP */
+#endif /* CLAY_CLAY_HPP */
