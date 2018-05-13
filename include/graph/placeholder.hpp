@@ -146,7 +146,7 @@ private:
 	assign_io asgn_;
 
 	//! raw data
-	std::unique_ptr<tensor> data_ = nullptr;
+	TensorPtrT data_ = nullptr;
 };
 
 class placeptr : public varptr

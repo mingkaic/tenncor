@@ -21,6 +21,10 @@ filegroup(
         "//:monitor_rpc_cpp",
         "//proto:srcs",
         "//tests:srcs",
+    
+        "//clay:srcs",
+        "//kiln:srcs",
+        "//lead:srcs",
     ],
 )
 
@@ -99,23 +103,36 @@ filegroup(
 
 cc_library(
     name = "ioutil",
-    hdrs = glob([ "ioutil/*.hpp" ]),
-    srcs = glob([ "ioutil/src/*.cpp" ]),
-    copts = [ "-std=c++14" ],
+    hdrs = glob(["ioutil/*.hpp"]),
+    srcs = glob(["ioutil/src/*.cpp"]),
+    copts = ["-std=c++14"],
 )
 
 cc_library(
-    name = "testutil",
-    hdrs = glob(["testutil/*.hpp"]),
-    srcs = glob(["testutil/src/*.cpp"]),
+    name = "fuzzutil",
+    hdrs = glob(["fuzzutil/*.hpp"]),
+    srcs = glob(["fuzzutil/src/*.cpp"]),
     deps = [
         "//clay:clay",
         "//:ioutil",
         "@com_github_mingkaic_testify//:testify",
     ],
-    copts = [ "-std=c++14" ],
+    copts = ["-std=c++14"],
     testonly = True,
 )
+
+# cc_library(
+#     name = "protoutil",
+#     hdrs = glob(["protoutil/*.hpp"]),
+#     srcs = glob(["protoutil/src/*.hpp"]),
+#     deps = [
+#         "//clay:clay",
+#         "//lead:lead",
+#         "@com_google_googletest//:gtest"
+#     ],
+#     copts = ["-std=c++14"],
+#     testonly = True,
+# )
 
 #######################################
 #             MAIN LIBRARY            #

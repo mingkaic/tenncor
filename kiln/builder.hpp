@@ -28,9 +28,9 @@ public:
 
 	Builder (Validator validate, clay::DTYPE dtype = clay::DTYPE::BAD);
 
-	clay::Tensor* get (void) const override;
+	std::unique_ptr<clay::Tensor> get (void) const override;
 
-	clay::Tensor* get (clay::Shape shape) const override;
+	std::unique_ptr<clay::Tensor> get (clay::Shape shape) const override;
 
 protected:
 	virtual void init (char* dest, size_t nbytes) const = 0;

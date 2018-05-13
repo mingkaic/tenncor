@@ -10,7 +10,6 @@ filegroup(
         "*.hpp",
         "src/*.cpp",
         "test/*.cpp",
-        "testutil/*.cpp",
     ]) + [ "BUILD" ],
 )
 
@@ -33,7 +32,7 @@ cc_test(
     deps = [
         "//clay:clay",
         "//kiln:kiln",
-        "//:testutil",
+        "//:fuzzutil",
         "@com_github_mingkaic_testify//:testify",
     ],
     linkstatic = 1,

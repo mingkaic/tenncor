@@ -14,9 +14,9 @@ namespace kiln
 Builder::Builder (Validator validate, clay::DTYPE dtype) :
 	dtype_(dtype), validate_(validate) {}
 
-clay::Tensor* Builder::get (void) const
+std::unique_ptr<clay::Tensor> Builder::get (void) const
 {
-	clay::Tensor* out = nullptr;
+	std::unique_ptr<clay::Tensor> out = nullptr;
 	if (validate_.allowed_.is_fully_defined())
 	{
 		out = get(validate_.allowed_);
@@ -24,16 +24,17 @@ clay::Tensor* Builder::get (void) const
 	return out;
 }
 
-clay::Tensor* Builder::get (clay::Shape shape) const
+std::unique_ptr<clay::Tensor> Builder::get (clay::Shape shape) const
 {
+	std::unique_ptr<clay::Tensor> out = nullptr;
 	if (validate_.support(shape, dtype_))
 	{
 		size_t nbytes = shape.n_elems() * clay::type_size(dtype_);
 		std::shared_ptr<char> data = clay::make_char(nbytes);
 		this->init(data.get(), nbytes);
-		return new clay::Tensor(data, shape, dtype_);
+		out = std::make_unique<clay::Tensor>(data, shape, dtype_);
 	}
-	return nullptr;
+	return out;
 }
 
 }

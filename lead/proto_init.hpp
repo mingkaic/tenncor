@@ -13,6 +13,9 @@
 
 #include "clay/ibuilder.hpp"
 
+#include "lead/clay.pb.h"
+#include "lead/clay_packer.hpp"
+
 #pragma once
 #ifndef LEAD_PB_BUILDER_HPP
 #define LEAD_PB_BUILDER_HPP
@@ -20,24 +23,17 @@
 namespace lead
 {
 
-class PbBuilder : public clay::iBuilder
+class PbBuilder final : public clay::iBuilder
 {
 public:
-    PbBuilder (const lead::TensorPb& pb) :
-        pb_(pb) {}
+	PbBuilder (const TensorPb& pb);
 
-    clay::Tensor* get (void) const
-    {
+	std::unique_ptr<clay::Tensor> get (void) const override;
 
-    }
-
-    clay::Tensor* get (clay::Shape shape) const
-    {
-        
-    }
+	std::unique_ptr<clay::Tensor> get (clay::Shape shape) const override;
 
 private:
-    lead::TensorPb pb_;
+	TensorPb pb_;
 };
 
 }

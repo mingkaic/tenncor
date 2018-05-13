@@ -13,8 +13,10 @@ filegroup(
         "*.hpp",
         "src/*.cpp",
         "test/*.cpp",
-        "testutil/*.cpp",
-    ]) + [ "BUILD" ],
+    ]) + [
+        "BUILD",
+        ":protos",
+    ],
 )
 
 filegroup(
@@ -59,16 +61,16 @@ cc_library(
 
 ######### TEST #########
 
-cc_test(
-    name = "test",
-    size = "small",
-    srcs = glob([ "test/*.cpp" ]),
-    deps = [
-        "//clay:clay",
-        "//lead:lead",
-        "//:testutil",
-        "@com_github_mingkaic_testify//:testify",
-    ],
-    linkstatic = 1,
-    copts = [ "-std=c++14" ],
-)
+# cc_test(
+#     name = "test",
+#     size = "small",
+#     srcs = glob([ "test/*.cpp" ]),
+#     deps = [
+#         "//clay:clay",
+#         "//lead:lead",
+#         "//:protoutil",
+#         "@com_github_mingkaic_testify//:testify",
+#     ],
+#     linkstatic = 1,
+#     copts = [ "-std=c++14" ],
+# )

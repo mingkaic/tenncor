@@ -1,7 +1,7 @@
 #include "clay/memory.hpp"
 
-#include "testutil/mock_src.hpp"
-#include "testutil/sgen.hpp"
+#include "fuzzutil/mock_src.hpp"
+#include "fuzzutil/sgen.hpp"
 
 #ifdef TESTUTIL_MOCK_SRC_HPP
 

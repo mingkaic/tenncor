@@ -6,9 +6,9 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/fuzz.hpp"
-#include "testutil/sgen.hpp"
-#include "testutil/check.hpp"
+#include "fuzzutil/fuzz.hpp"
+#include "fuzzutil/sgen.hpp"
+#include "fuzzutil/check.hpp"
 
 #include "clay/shape.hpp"
 #include "clay/dtype.hpp"
@@ -387,17 +387,17 @@ TEST_F(ALL_INIT, NoShapeGet_A004)
 	ASSERT_EQ(nullptr, bsui.get());
 	ASSERT_EQ(nullptr, bsni.get());
 
-	clay::Tensor* vcten = vci.get();
+	std::unique_ptr<clay::Tensor> vcten = vci.get();
 	ASSERT_NE(nullptr, vcten);
-	clay::Tensor* vuten = vui.get();
+	std::unique_ptr<clay::Tensor> vuten = vui.get();
 	ASSERT_NE(nullptr, vuten);
-	clay::Tensor* vnten = vni.get();
+	std::unique_ptr<clay::Tensor> vnten = vni.get();
 	ASSERT_NE(nullptr, vnten);
-	clay::Tensor* scten = sci.get();
+	std::unique_ptr<clay::Tensor> scten = sci.get();
 	ASSERT_NE(nullptr, scten);
-	clay::Tensor* suten = sui.get();
+	std::unique_ptr<clay::Tensor> suten = sui.get();
 	ASSERT_NE(nullptr, suten);
-	clay::Tensor* snten = sni.get();
+	std::unique_ptr<clay::Tensor> snten = sni.get();
 	ASSERT_NE(nullptr, snten);
 
 	EXPECT_SHAPEQ(shape, vcten->get_shape());
@@ -406,13 +406,6 @@ TEST_F(ALL_INIT, NoShapeGet_A004)
 	EXPECT_SHAPEQ(shape, scten->get_shape());
 	EXPECT_SHAPEQ(shape, suten->get_shape());
 	EXPECT_SHAPEQ(shape, snten->get_shape());
-
-	delete vcten;
-	delete vuten;
-	delete vnten;
-	delete scten;
-	delete suten;
-	delete snten;
 }
 
 

@@ -20,13 +20,15 @@
 namespace clay
 {
 
+using TensorPtrT = std::unique_ptr<Tensor>;
+
 struct iBuilder
 {
 	virtual ~iBuilder (void) = default;
 
-	virtual Tensor* get (void) const = 0;
+	virtual TensorPtrT get (void) const = 0;
 
-	virtual Tensor* get (Shape shape) const = 0;
+	virtual TensorPtrT get (Shape shape) const = 0;
 };
 
 }

@@ -105,7 +105,7 @@ private:
 
 
 	//! raw data
-	std::unique_ptr<tensor> data_ = nullptr;
+	TensorPtrT data_ = nullptr;
 };
 
 constant* find_const (size_t key);

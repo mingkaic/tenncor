@@ -2,10 +2,10 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/fuzz.hpp"
-#include "testutil/sgen.hpp"
-#include "testutil/check.hpp"
-#include "testutil/mock_src.hpp"
+#include "fuzzutil/fuzz.hpp"
+#include "fuzzutil/sgen.hpp"
+#include "fuzzutil/check.hpp"
+#include "fuzzutil/mock_src.hpp"
 
 #include "clay/tensor.hpp"
 #include "clay/memory.hpp"

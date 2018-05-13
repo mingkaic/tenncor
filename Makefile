@@ -52,11 +52,16 @@ proto_build:
 test_py:
 	$(TEST) //tests/py/test:test
 
-# unit test
-unit_test: test_clay test_tensor test_graph test_operate test_serialize
+test: test_clay test_kiln 
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test
+
+test_kiln:
+	$(GTEST) $(REP_BZL_FLAG) //kiln:test
+
+# unit test
+unit_test: test_tensor test_graph test_operate test_serialize
 
 test_tensor:
 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_tensor

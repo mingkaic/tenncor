@@ -173,7 +173,7 @@ private:
 
 	// todo: have an option to disable data_ caching for performance boost
 	//! inner tensor to cache forward evaluated values
-	std::unique_ptr<tensor> data_ = nullptr;
+	TensorPtrT data_ = nullptr;
 
 	OPCODE opcode_ = _OP_SENTINEL;
 };
