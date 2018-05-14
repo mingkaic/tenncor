@@ -11,7 +11,8 @@
  *
  */
 
-#include "mold/inode.hpp"
+#include "clay/ibuilder.hpp"
+#include "mold/constant.hpp"
 
 #pragma once
 #ifndef MOLD_VARIABLE_HPP
@@ -23,44 +24,22 @@ namespace mold
 class Variable final : public iNode
 {
 public:
-    clay::State get_data (void) const override
-    {
-        return data_->get_state();
-    }
+	bool has_data (void) const override;
+
+    clay::State get_state (void) const override;
 
     NodePtrT derive (NodeRefT wrt) override;
 
-    void notify (MSG msg) const override;
+    bool initialize (const clay::iBuilder& builder);
 
-    bool initialize (clay::iBuilder* builder)
-    {
-        auto out = builder->get();
-        bool success = nullptr != out;
-        if (success)
-        {
-            data_ = out;
-        }
-        return success;
-    }
+    bool initialize (const clay::iBuilder& builder, clay::Shape shape);
 
-    bool initialize (clay::iBuilder* builder, clay::Shape shape)
-    {
-        auto out = builder->get(shape);
-        bool success = nullptr != out;
-        if (success)
-        {
-            data_ = out;
-        }
-        return success;
-    }
-
-    void assign (clay::iSource* src)
-    {
-        data_.read_from(src);
-    }
+    void assign (const clay::iSource& src);
 
 private:
-    clay::TensorPtrT data_;
+    void notify_init (void);
+
+    clay::TensorPtrT data_ = nullptr;
 };
 
 }

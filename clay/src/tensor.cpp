@@ -72,15 +72,8 @@ bool Tensor::read_from (const iSource& src)
 	bool successful = data_ != nullptr;
 	if (successful)
 	{
-		State state = src.get_data();
-		successful = false == state.data_.expired() &&
-			shape_.is_compatible_with(state.shape_) &&
-			state.shape_.is_fully_defined() &&
-			state.dtype_ == dtype_;
-		if (successful)
-		{
-			std::memcpy(data_.get(), state.data_.lock().get(), total_bytes());
-		}
+		State state(data_, shape_, dtype_);
+		return src.read_data(state);
 	}
 	return successful;
 }

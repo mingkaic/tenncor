@@ -153,10 +153,13 @@ TEST_F(TENSOR, ReadFrom_C002)
 	EXPECT_FALSE(ten.read_from(badshape)) << "successful read from badshape source";
 	EXPECT_FALSE(ten.read_from(badtype)) << "successful read from badtype source";
 
-	// // assert data is unchanged after fail reads
-	// clay::State state2 = ten.get_state();
-	// std::string got2(state2.data_.lock().get(), nbytes);
-	// EXPECT_STREQ(source.uuid_.c_str(), got2.c_str());
+	// assert data is unchanged after fail reads
+	clay::State state2 = ten.get_state();
+	std::string got2(state2.data_.lock().get(), nbytes);
+	EXPECT_STREQ(source.uuid_.c_str(), got2.c_str());
+
+	clay::Tensor tenmvs = std::move(ten);
+	EXPECT_FALSE(ten.read_from(source)) << "successful read from source for a moved tensor";
 }
 
 

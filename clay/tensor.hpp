@@ -76,6 +76,8 @@ private:
 	DTYPE dtype_;
 };
 
+using TensorPtrT = std::unique_ptr<Tensor>;
+
 }
 
 #endif /* CLAY_CLAY_HPP */

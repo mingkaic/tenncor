@@ -20,8 +20,6 @@
 namespace clay
 {
 
-using TensorPtrT = std::unique_ptr<Tensor>;
-
 struct iBuilder
 {
 	virtual ~iBuilder (void) = default;

@@ -24,7 +24,7 @@ struct iSource
 {
 	virtual ~iSource (void) = default;
 
-	virtual State get_data (void) const = 0;
+	virtual bool read_data (State& dest) const = 0;
 };
 
 }

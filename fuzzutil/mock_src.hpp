@@ -17,7 +17,7 @@ struct mock_source final : public clay::iSource, public testify::mocker
 
 	mock_source (std::shared_ptr<char> ptr, clay::Shape shape, clay::DTYPE dtype);
 
-	virtual clay::State get_data (void) const;
+	bool read_data (clay::State& dest) const override;
 
 	clay::State state_;
 

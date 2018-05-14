@@ -34,9 +34,16 @@ mock_source::mock_source (std::shared_ptr<char> ptr, clay::Shape shape, clay::DT
 	}
 }
 
-clay::State mock_source::get_data (void) const
+bool mock_source::read_data (clay::State& dest) const
 {
-	return state_;
+	bool success = false == uuid_.empty() &&
+		dest.dtype_ == state_.dtype_ &&
+		dest.shape_.is_compatible_with(state_.shape_);
+	if (success)
+	{
+		std::memcpy((void*) dest.data_.lock().get(), ptr_.get(), uuid_.size());
+	}
+	return success;
 }
 
 }
