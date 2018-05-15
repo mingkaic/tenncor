@@ -49,7 +49,7 @@ public:
 
 	clay::State get_state (void) const override;
 
-	NodePtrT derive (NodeRefT wrt) override;
+	iNode* derive (iNode* wrt) override;
 
 private:
 	clay::State state_;
@@ -58,22 +58,22 @@ private:
 };
 
 template <typename T>
-NodePtrT make_constant (T scalar)
+iNode* make_constant (T scalar)
 {
 	std::shared_ptr<char> ptr = clay::make_char(sizeof(T));
 	memcpy(ptr.get(), (char*) &scalar, sizeof(T));
-	return NodePtrT(new Constant(ptr, std::vector<size_t>{1}, clay::get_type<T>()));
+	return new Constant(ptr, std::vector<size_t>{1}, clay::get_type<T>());
 }
 
 template <typename T>
-NodePtrT make_constant (std::vector<T> vec, clay::Shape shape)
+iNode* make_constant (std::vector<T> vec, clay::Shape shape)
 {
 	size_t n = vec.size();
 	assert(shape.n_elems() == n);
 	size_t nbytes = sizeof(T) * n;
 	std::shared_ptr<char> ptr = clay::make_char(nbytes);
 	memcpy(ptr.get(), (char*) &vec[0], nbytes);
-	return NodePtrT(new Constant(ptr, shape, clay::get_type<T>()));
+	return new Constant(ptr, shape, clay::get_type<T>());
 }
 
 }

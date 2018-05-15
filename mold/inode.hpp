@@ -22,41 +22,39 @@
 namespace mold
 {
 
-class iNode;
+class iObserver;
 
-class Functor;
-
-using NodePtrT = std::shared_ptr<iNode>;
-
-using NodeRefT = std::weak_ptr<iNode>;
-
-using FuncPtrT = std::shared_ptr<Functor>;
-
-using FuncRefT = std::weak_ptr<Functor>;
-
-using SourceIdxT = std::unordered_set<size_t>;
-
-using AudienceT = std::unordered_set<Functor*>;
+using AudienceT = std::unordered_set<iObserver*>;
 
 class iNode
 {
 public:
-    virtual ~iNode (void);
+	iNode (void) = default;
 
-    virtual bool has_data (void) const = 0;
+	virtual ~iNode (void);
 
-    virtual clay::State get_state (void) const = 0;
+	iNode (const iNode&);
 
-    virtual NodePtrT derive (NodeRefT wrt) = 0;
+	iNode (iNode&& other);
 
-    AudienceT get_audience (void) const;
+	iNode& operator = (const iNode&);
 
-    void add (Functor* aud);
+	iNode& operator = (iNode&& other);
 
-    void del (Functor* aud);
+	virtual bool has_data (void) const = 0;
+
+	virtual clay::State get_state (void) const = 0;
+
+	virtual iNode* derive (iNode* wrt) = 0;
+
+	AudienceT get_audience (void) const;
+
+	void add (iObserver* aud);
+
+	void del (iObserver* aud);
 
 protected:
-    AudienceT audience_;
+	AudienceT audience_;
 };
 
 }

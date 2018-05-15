@@ -14,6 +14,7 @@
  */
 
 #include "mold/inode.hpp"
+#include "mold/iobserver.hpp"
 #include "mold/operate_io.hpp"
 
 #pragma once
@@ -23,33 +24,37 @@
 namespace mold
 {
 
-using GradF = std::function<NodePtrT(NodeRefT, std::vector<iNode*>)>;
+using GradF = std::function<iNode*(iNode*, std::vector<iNode*>)>;
 
-class Functor final : public iNode
+class Functor final : public iNode, public iObserver
 {
 public:
-    Functor (std::vector<iNode*> args, OperateIO fwd, GradF bwd);
+	Functor (std::vector<iNode*> args, OperateIO fwd, GradF bwd);
+
+	Functor (const Functor& other);
+
+	Functor (Functor&& other);
+
+	Functor& operator = (const Functor& other);
+
+	Functor& operator = (Functor&& other);
 
 	bool has_data (void) const override;
 
-    clay::State get_state (void) const override;
+	clay::State get_state (void) const override;
 
-    NodePtrT derive (NodeRefT wrt) override;
+	iNode* derive (iNode* wrt) override;
 
-    void initialize (void);
+	void initialize (void) override;
 
-    void update (void);
-
-    std::vector<iNode*> get_args (void) const;
+	void update (void) override;
 
 private:
-    clay::TensorPtrT cache_;
+	clay::TensorPtrT cache_ = nullptr;
 
-    std::vector<iNode*> args_;
+	OperateIO fwd_;
 
-    OperateIO fwd_;
-
-    GradF bwd_;
+	GradF bwd_;
 };
 
 }

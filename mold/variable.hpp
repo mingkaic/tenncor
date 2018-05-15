@@ -26,20 +26,20 @@ class Variable final : public iNode
 public:
 	bool has_data (void) const override;
 
-    clay::State get_state (void) const override;
+	clay::State get_state (void) const override;
 
-    NodePtrT derive (NodeRefT wrt) override;
+	iNode* derive (iNode* wrt) override;
 
-    bool initialize (const clay::iBuilder& builder);
+	bool initialize (const clay::iBuilder& builder);
 
-    bool initialize (const clay::iBuilder& builder, clay::Shape shape);
+	bool initialize (const clay::iBuilder& builder, clay::Shape shape);
 
-    void assign (const clay::iSource& src);
+	void assign (const clay::iSource& src);
 
 private:
-    void notify_init (void);
+	void notify_init (void);
 
-    clay::TensorPtrT data_ = nullptr;
+	clay::TensorPtrT data_ = nullptr;
 };
 
 }

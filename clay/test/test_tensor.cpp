@@ -2,10 +2,11 @@
 
 #include "gtest/gtest.h"
 
+#include "testify/mocker/mocker.hpp" 
+
 #include "fuzzutil/fuzz.hpp"
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
-#include "fuzzutil/mock_src.hpp"
 
 #include "clay/tensor.hpp"
 #include "clay/memory.hpp"
@@ -27,6 +28,56 @@ protected:
 		testutil::fuzz_test::TearDown();
 		testify::mocker::clear();
 	}
+};
+
+
+struct mock_source final : public clay::iSource, public testify::mocker
+{
+	mock_source (testify::fuzz_test* fuzzer) :
+		mock_source(random_def_shape(fuzzer),
+		(clay::DTYPE) fuzzer->get_int(1, "dtype", 
+		{1, clay::DTYPE::_SENTINEL - 1})[0], fuzzer) {}
+
+	mock_source (clay::Shape shape, clay::DTYPE dtype, testify::fuzz_test* fuzzer)
+	{
+		size_t nbytes = shape.n_elems() * clay::type_size(dtype);
+		uuid_ = fuzzer->get_string(nbytes, "mock_src_uuid");
+
+		ptr_ = clay::make_char(nbytes);
+		std::memcpy(ptr_.get(), uuid_.c_str(), nbytes);
+
+		state_ = {ptr_, shape, dtype};
+	}
+
+	mock_source (std::shared_ptr<char> ptr, clay::Shape shape, clay::DTYPE dtype) :
+		state_(ptr, shape, dtype), ptr_(ptr)
+	{
+		if (nullptr != ptr && shape.is_fully_defined() && clay::DTYPE::BAD != dtype)
+		{
+			size_t nbytes = shape.n_elems() * clay::type_size(dtype);
+			uuid_ = std::string(ptr.get(), nbytes);
+		}
+	}
+
+	bool read_data (clay::State& dest) const override
+	{
+		bool success = false == uuid_.empty() &&
+			dest.dtype_ == state_.dtype_ &&
+			dest.shape_.is_compatible_with(state_.shape_);
+		if (success)
+		{
+			std::memcpy((void*) dest.data_.lock().get(), ptr_.get(), uuid_.size());
+			label_incr("read_data_success");
+		}
+		label_incr("read_data");
+		return success;
+	}
+
+	clay::State state_;
+
+	std::shared_ptr<char> ptr_;
+
+	std::string uuid_;
 };
 
 
@@ -140,6 +191,8 @@ TEST_F(TENSOR, ReadFrom_C002)
 
 	clay::Tensor ten(data2, shape, dtype);
 	EXPECT_TRUE(ten.read_from(source)) << "failed to read with appropriate source";
+	EXPECT_EQ(1, testify::mocker::get_usage(&source, "read_data"));
+	EXPECT_EQ(1, testify::mocker::get_usage(&source, "read_data_success"));
 
 	clay::State state = ten.get_state();
 	std::string got(state.data_.lock().get(), nbytes);
@@ -150,8 +203,14 @@ TEST_F(TENSOR, ReadFrom_C002)
 	mock_source badtype(data, shape, clay::DTYPE::BAD);
 
 	EXPECT_FALSE(ten.read_from(baddata)) << "successful read from baddata source";
+	EXPECT_EQ(1, testify::mocker::get_usage(&baddata, "read_data"));
+	EXPECT_EQ(0, testify::mocker::get_usage(&baddata, "read_data_success"));
 	EXPECT_FALSE(ten.read_from(badshape)) << "successful read from badshape source";
+	EXPECT_EQ(1, testify::mocker::get_usage(&badshape, "read_data"));
+	EXPECT_EQ(0, testify::mocker::get_usage(&badshape, "read_data_success"));
 	EXPECT_FALSE(ten.read_from(badtype)) << "successful read from badtype source";
+	EXPECT_EQ(1, testify::mocker::get_usage(&badtype, "read_data"));
+	EXPECT_EQ(0, testify::mocker::get_usage(&badtype, "read_data_success"));
 
 	// assert data is unchanged after fail reads
 	clay::State state2 = ten.get_state();

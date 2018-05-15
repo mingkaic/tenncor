@@ -1,0 +1,135 @@
+#ifndef DISABLE_MOLD_MODULE_TESTS
+
+#include "gtest/gtest.h"
+
+#include "testify/mocker/mocker.hpp" 
+
+#include "fuzzutil/fuzz.hpp"
+#include "fuzzutil/sgen.hpp"
+#include "fuzzutil/check.hpp"
+
+#include "ioutil/stream.hpp"
+
+#include "mold/sink.hpp"
+#include "mold/variable.hpp"
+
+
+#ifndef DISABLE_VARIABLE_TEST
+
+
+using namespace testutil;
+
+
+class VARIABLE : public fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testutil::fuzz_test::TearDown();
+		testify::mocker::clear();
+	}
+};
+
+
+struct mock_observer : public mold::iObserver, public testify::mocker
+{
+    mock_observer (mold::iNode* arg) :
+        mold::iObserver({arg}) {}
+
+    void initialize (void) override
+    {
+        label_incr("initialize");
+    }
+
+    void update (void) override
+    {
+        label_incr("update");
+    }
+};
+
+
+struct mock_builder final : public clay::iBuilder, public testify::mocker
+{
+    mock_builder (testify::fuzz_test* fuzzer) :
+        shape_(random_def_shape(fuzzer, {2, 6})),
+        dtype_((clay::DTYPE) fuzzer->get_int(1, "dtype", 
+		{1, clay::DTYPE::_SENTINEL - 1})[0])
+    {
+        size_t nbytes = shape_.n_elems() * clay::type_size(dtype_);
+        uuid_ = fuzzer->get_string(nbytes, "uuid_");
+        ptr_ = clay::make_char(nbytes);
+        std::memcpy(ptr_.get(), uuid_.c_str(), nbytes);
+    }
+
+	virtual clay::TensorPtrT get (void) const
+    {
+        label_incr("get");
+        return clay::TensorPtrT(new clay::Tensor(ptr_, shape_, dtype_));
+    }
+
+	virtual clay::TensorPtrT get (clay::Shape shape) const
+    {
+        label_incr("getwshape");
+        ioutil::Stream str;
+        str << shape.as_list();
+        set_label("getwshape", str.str());
+        return clay::TensorPtrT(new clay::Tensor(ptr_, shape_, dtype_));
+    }
+
+    clay::Shape shape_;
+    clay::DTYPE dtype_;
+    std::string uuid_;
+    std::shared_ptr<char> ptr_;
+};
+
+
+TEST_F(VARIABLE, Data_C000)
+{
+    mold::Variable var;
+    mold::Variable var2;
+    mock_observer* obs = new mock_observer(&var);
+    mock_observer* obs2 = new mock_observer(&var2);
+    mock_builder builder(this);
+	clay::Shape shape = random_def_shape(this);
+
+    EXPECT_FALSE(var.has_data()) << "uninitialized variable has data";
+    EXPECT_EQ(0, testify::mocker::get_usage(&builder, "get"));
+    var.initialize(builder);
+    EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));
+    EXPECT_TRUE(var.has_data()) << "initialized variable doesn't have data";
+    EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+
+    EXPECT_FALSE(var2.has_data()) << "uninitialized variable has data";
+    EXPECT_EQ(0, testify::mocker::get_usage(&builder, "getwshape"));
+    var2.initialize(builder, shape);
+    EXPECT_EQ(1, testify::mocker::get_usage(&builder, "getwshape"));
+    EXPECT_TRUE(var2.has_data()) << "initialized variable doesn't have data";
+    optional<std::string> initshape = testify::mocker::get_value(&builder, "getwshape");
+    EXPECT_EQ(1, testify::mocker::get_usage(obs2, "initialize"));
+
+    delete obs;
+    delete obs2;
+}
+
+
+TEST_F(VARIABLE, State_C001)
+{
+}
+
+
+TEST_F(VARIABLE, Assign_C002)
+{
+}
+
+
+TEST_F(VARIABLE, Derive_C003)
+{
+}
+
+
+#endif /* DISABLE_VARIABLE_TEST */
+
+
+#endif /* DISABLE_MOLD_MODULE_TESTS */

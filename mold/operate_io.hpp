@@ -30,22 +30,22 @@ using TyperF = std::function<clay::DTYPE(std::vector<clay::DTYPE>)>;
 
 struct OperateIO final : public clay::iSource
 {
-    OperateIO (ArgsF op, ShaperF shaper, TyperF typer);
+	OperateIO (ArgsF op, ShaperF shaper, TyperF typer);
 
-    bool read_data (clay::State& dest) const override;
+	bool read_data (clay::State& dest) const override;
 
-    clay::TensorPtrT get (void) const;
+	clay::TensorPtrT get (void) const;
 
-    std::vector<clay::State> args_;
+	std::vector<clay::State> args_;
 
 private:
-    std::pair<clay::Shape, clay::DTYPE> expect_out (void) const;
+	std::pair<clay::Shape, clay::DTYPE> expect_out (void) const;
 
-    ArgsF op_;
-    
-    ShaperF shaper_;
-    
-    TyperF typer_;
+	ArgsF op_;
+	
+	ShaperF shaper_;
+	
+	TyperF typer_;
 };
 
 }

@@ -4,7 +4,7 @@
 //
 
 #include "mold/inode.hpp"
-#include "mold/functor.hpp"
+#include "mold/iobserver.hpp"
 
 #ifdef MOLD_INODE_HPP
 
@@ -13,30 +13,55 @@ namespace mold
 
 iNode::~iNode (void)
 {
-    for (Functor* aud : audience_)
-    {
-        std::vector<iNode*> args = aud->get_args();
-        for (iNode*& arg : args)
-        {
-            arg->del(aud);
-        }
-        delete aud;
-    }
+	auto auds = std::move(audience_);
+	for (iObserver* aud : auds)
+	{
+		delete aud;
+	}
+}
+
+iNode::iNode (const iNode&) {}
+
+iNode::iNode (iNode&& other) :
+	audience_(std::move(other.audience_))
+{
+	for (iObserver* aud : audience_)
+	{
+		aud->replace(&other, this);
+	}
+}
+
+iNode& iNode::operator = (const iNode&)
+{
+	return *this;
+}
+
+iNode& iNode::operator = (iNode&& other)
+{
+	if (&other != this)
+	{
+		audience_ = std::move(other.audience_);
+		for (iObserver* aud : audience_)
+		{
+			aud->replace(&other, this);
+		}
+	}
+	return *this;
 }
 
 AudienceT iNode::get_audience (void) const
 {
-    return audience_;
+	return audience_;
 }
 
-void iNode::add (Functor* aud)
+void iNode::add (iObserver* aud)
 {
-    audience_.emplace(aud);
+	audience_.emplace(aud);
 }
 
-void iNode::del (Functor* aud)
+void iNode::del (iObserver* aud)
 {
-    audience_.erase(aud);
+	audience_.erase(aud);
 }
 
 }

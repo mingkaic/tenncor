@@ -21,10 +21,10 @@ namespace lead
 {
 
 std::shared_ptr<char> unpack_data (const google::protobuf::Any& data, 
-    TensorT dtype);
+	TensorT dtype);
 
 void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype, 
-    google::protobuf::Any& data);
+	google::protobuf::Any& data);
 
 }
 

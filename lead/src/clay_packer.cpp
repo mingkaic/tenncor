@@ -13,7 +13,7 @@ namespace lead
 {
 
 std::shared_ptr<char> unpack_data (const google::protobuf::Any& src, 
-    TensorT dtype)
+	TensorT dtype)
 {
 	std::shared_ptr<char> out;
 	size_t nout;
@@ -127,10 +127,10 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 }
 
 void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype, 
-    google::protobuf::Any& dest)
+	google::protobuf::Any& dest)
 {
-    switch (dtype)
-    {
+	switch (dtype)
+	{
 		case DOUBLE:
 		{
 			DoubleArr arr;
@@ -221,7 +221,7 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 		break;
 		default:
 			throw std::exception(); // todo: add context
-    }
+	}
 }
 
 }

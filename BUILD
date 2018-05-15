@@ -113,7 +113,6 @@ cc_library(
     hdrs = glob(["fuzzutil/*.hpp"]),
     srcs = glob(["fuzzutil/src/*.cpp"]),
     deps = [
-        "//clay:clay",
         "//:ioutil",
         "@com_github_mingkaic_testify//:testify",
     ],
