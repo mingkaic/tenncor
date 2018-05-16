@@ -10,17 +10,14 @@ A005 - Shape is compatible if one of the shapes are undefined,
 A006 - a Shapes is partially defined if it has a rank > 0
 A007 - a Shapes is fully defined if it is at least partially defined
 		and all its dimensional values are defined (> 0)
-A008 - a Shape assert its rank wrt to another value or shape.
-		undefined shapes can have any rank
-A009 - a Shape can be undefined explicitly
-A010 - Shape merge return the most defined most defined shape
+A008 - Shape merge return the most defined most defined shape
 		(that is dimension values > 0 are preferred)
 		merging incompatible Shapes results in a logic error
-A011 - a Shape can have its leading and trailing 1s removed
-A012 - two Shapes can concatenate to form a Shape depending on the order of
+A009 - a Shape can have its leading and trailing 1s removed
+A010 - two Shapes can concatenate to form a Shape depending on the order of
 		concatenation assuming both tensors are at least partially defined
-A013 - a Shape's rank can be manipulated by padding with ones or clipping
-A014 - coord_from_idx converts coordinates C to sequential index I on a Shape S takes form:
+A011 - a Shape's rank can be manipulated by padding with ones or clipping
+A012 - coord_from_idx converts coordinates C to sequential index I on a Shape S takes form:
 		I = SIGMA_i=0:n(C[i]*PI_j=0:i-1(S[i])) where n is rank of S, and S[-1] is 1
 		flat_idx remap coordinate C on a Shape equals the initial index converted to C (reverse of A015)
 

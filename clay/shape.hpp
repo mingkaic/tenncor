@@ -74,10 +74,6 @@ public:
 	//! (there are no unknowns)
 	bool is_fully_defined (void) const;
 
-	// >>>> MUTATORS <<<<
-	//! invalidate shape
-	void undefine (void);
-
 	// >>>> SHAPE CREATORS <<<<
 	//! create the most defined shape from this and other
 	//! prioritizes this over other value

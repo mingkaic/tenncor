@@ -144,8 +144,6 @@ bool Shape::is_fully_defined (void) const
 	return known;
 }
 
-void Shape::undefine (void) { dimensions_.clear(); }
-
 Shape Shape::merge_with (const Shape& other) const
 {
 	if (dimensions_.empty())

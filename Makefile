@@ -52,6 +52,7 @@ proto_build:
 test_py:
 	$(TEST) //tests/py/test:test
 
+# test
 test: test_clay test_mold test_kiln 
 
 test_clay:

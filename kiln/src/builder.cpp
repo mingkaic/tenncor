@@ -4,6 +4,7 @@
 //
 
 #include "clay/memory.hpp"
+
 #include "kiln/builder.hpp"
 
 #ifdef KILN_BUILDER_HPP

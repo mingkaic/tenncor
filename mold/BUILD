@@ -30,10 +30,8 @@ cc_test(
     size = "small",
     srcs = glob([ "test/*.cpp" ]),
     deps = [
-        "//clay:clay",
         "//mold:mold",
         "//:fuzzutil",
-        "@com_github_mingkaic_testify//:testify",
     ],
     linkstatic = 1,
     copts = [ "-std=c++14" ],

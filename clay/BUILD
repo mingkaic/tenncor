@@ -31,7 +31,6 @@ cc_test(
     deps = [
         "//clay:clay",
         "//:fuzzutil",
-        "@com_github_mingkaic_testify//:testify",
     ],
     linkstatic = 1,
     copts = [ "-std=c++14" ],

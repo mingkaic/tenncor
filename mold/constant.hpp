@@ -11,8 +11,6 @@
  *
  */
 
-#include <cassert>
-
 #include "clay/memory.hpp"
 
 #include "mold/functor.hpp"
@@ -57,26 +55,7 @@ private:
 	std::shared_ptr<char> data_;
 };
 
-iNode* make_one (clay::DTYPE dtype);
-
-template <typename T>
-iNode* make_constant (T scalar)
-{
-	std::shared_ptr<char> ptr = clay::make_char(sizeof(T));
-	memcpy(ptr.get(), (char*) &scalar, sizeof(T));
-	return new Constant(ptr, std::vector<size_t>{1}, clay::get_type<T>());
-}
-
-template <typename T>
-iNode* make_constant (std::vector<T> vec, clay::Shape shape)
-{
-	size_t n = vec.size();
-	assert(shape.n_elems() == n);
-	size_t nbytes = sizeof(T) * n;
-	std::shared_ptr<char> ptr = clay::make_char(nbytes);
-	memcpy(ptr.get(), (char*) &vec[0], nbytes);
-	return new Constant(ptr, shape, clay::get_type<T>());
-}
+Constant* make_one (clay::DTYPE dtype);
 
 }
 

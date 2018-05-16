@@ -33,45 +33,75 @@ iNode* Constant::derive (iNode* wrt)
 	return new Constant(out, clay::Shape(std::vector<size_t>{1}), dtype);
 }
 
-iNode* make_one (clay::DTYPE dtype)
+Constant* make_one (clay::DTYPE dtype)
 {
-	iNode* out = nullptr;
+	unsigned short bsize = clay::type_size(dtype);
+	std::shared_ptr<char> ptr = clay::make_char(bsize);
 	switch (dtype)
 	{
 		case clay::DTYPE::DOUBLE:
-			out = make_constant((double) 1);
+		{
+			double d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
 		break;
 		case clay::DTYPE::FLOAT:
-			out = make_constant((float) 1);
+		{
+			float d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
 		break;
 		case clay::DTYPE::INT8:
-			out = make_constant((int8_t) 1);
-		break;
-		case clay::DTYPE::INT16:
-			out = make_constant((int16_t) 1);
-		break;
-		case clay::DTYPE::INT32:
-			out = make_constant((int32_t) 1);
-		break;
-		case clay::DTYPE::INT64:
-			out = make_constant((int64_t) 1);
+		{
+			int8_t d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
 		break;
 		case clay::DTYPE::UINT8:
-			out = make_constant((uint8_t) 1);
+		{
+			uint8_t d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
+		break;
+		case clay::DTYPE::INT16:
+		{
+			int16_t d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
 		break;
 		case clay::DTYPE::UINT16:
-			out = make_constant((uint16_t) 1);
+		{
+			uint16_t d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
+		break;
+		case clay::DTYPE::INT32:
+		{
+			int32_t d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
 		break;
 		case clay::DTYPE::UINT32:
-			out = make_constant((uint32_t) 1);
+		{
+			uint32_t d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
+		break;
+		case clay::DTYPE::INT64:
+		{
+			int64_t d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
 		break;
 		case clay::DTYPE::UINT64:
-			out = make_constant((uint64_t) 1);
-		break;
+		{
+			uint64_t d = 1;
+			std::memcpy(ptr.get(), &d, bsize);
+		}
 		default:
 		break;
 	}
-	return out;
+	return new Constant(ptr, clay::Shape({1}), dtype);
 }
 
 }

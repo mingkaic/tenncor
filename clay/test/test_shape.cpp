@@ -298,46 +298,8 @@ TEST_F(SHAPE, FullDef_A007)
 }
 
 
-// covers Shape: 
-// undefine, dependent on is_part_defined
-TEST_F(SHAPE, Undefine_A009)
-{
-	std::vector<size_t> pds;
-	std::vector<size_t> cds;
-	random_shapes(this, pds, cds);
-	// define partial and complete shapes
-	clay::Shape incom_ts;
-	clay::Shape pcom_ts(pds);
-	clay::Shape com_ts(cds);
-
-	EXPECT_FALSE(incom_ts.is_part_defined()) << 
-		std::string(ioutil::Stream() << "expecting " <<
-		incom_ts.as_list() << " to be undefined");
-	EXPECT_TRUE(pcom_ts.is_part_defined()) << 
-		std::string(ioutil::Stream() << "expecting " <<
-		pcom_ts.as_list() <<" to be partially defined");
-	EXPECT_TRUE(com_ts.is_part_defined()) << 
-		std::string(ioutil::Stream() << "expecting " <<
-		com_ts.as_list() <<" to be partially defined");
-
-	incom_ts.undefine();
-	pcom_ts.undefine();
-	com_ts.undefine();
-
-	EXPECT_FALSE(incom_ts.is_part_defined()) << 
-		std::string(ioutil::Stream() << "expecting " <<
-		incom_ts.as_list() << " to be undefined");
-	EXPECT_FALSE(pcom_ts.is_part_defined()) << 
-		std::string(ioutil::Stream() << "expecting " <<
-		pcom_ts.as_list() << " to be undefined");
-	ASSERT_FALSE(com_ts.is_part_defined()) << 
-		std::string(ioutil::Stream() << "expecting " <<
-		com_ts.as_list() << " to be undefined");
-}
-
-
 // covers Shape: merge_with
-TEST_F(SHAPE, Merge_A010)
+TEST_F(SHAPE, Merge_A008)
 {
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
@@ -399,7 +361,7 @@ TEST_F(SHAPE, Merge_A010)
 // covers Shape:
 // trim, dependent on rank
 // trim, dependent on rank
-TEST_F(SHAPE, Trim_A011)
+TEST_F(SHAPE, Trim_A009)
 {
 	std::vector<size_t> ids;
 	std::vector<size_t> pds;
@@ -436,7 +398,7 @@ TEST_F(SHAPE, Trim_A011)
 
 
 // covers Shape: concatenate
-TEST_F(SHAPE, Concat_A012)
+TEST_F(SHAPE, Concat_A010)
 {
 	std::vector<size_t> pds;
 	std::vector<size_t> cds;
@@ -472,7 +434,7 @@ TEST_F(SHAPE, Concat_A012)
 
 // covers Shape: 
 // with_rank, with_rank_at_least, with_rank_at_most, depends on rank
-TEST_F(SHAPE, WithRank_A013)
+TEST_F(SHAPE, WithRank_A011)
 {
 	std::vector<size_t> ids;
 	std::vector<size_t> pds;
@@ -518,7 +480,7 @@ TEST_F(SHAPE, WithRank_A013)
 
 
 // covers Shape: coord_from_idx, flat_idx
-TEST_F(SHAPE, CoordMap_A014)
+TEST_F(SHAPE, CoordMap_A012)
 {
 	std::vector<size_t> slist = random_def_shape(this);
 	clay::Shape shape(slist);
