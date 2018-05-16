@@ -23,7 +23,7 @@ protected:
 
 	virtual void TearDown (void)
 	{
-		testutil::fuzz_test::TearDown();
+		fuzz_test::TearDown();
 		testify::mocker::clear();
 	}
 };
@@ -48,10 +48,9 @@ struct mock_node final : public mold::iNode, public testify::mocker
 };
 
 
-TEST_F(INODE, CopyMove_A000)
+TEST_F(INODE, Copy_A000)
 {
-	mock_node cpassign;
-	mock_node mvassign;
+	mock_node assign;
 
 	mock_node node;
 	mold::Sink sink(&node);
@@ -66,6 +65,25 @@ TEST_F(INODE, CopyMove_A000)
 	EXPECT_EQ(&node, sink.get());
 	EXPECT_EQ(&node, sink2.get());
 
+	assign = cp;
+	auto ass_aud = assign.get_audience();
+	EXPECT_EQ(0, ass_aud.size());
+	EXPECT_EQ(&node, sink.get());
+	EXPECT_EQ(&node, sink2.get());
+}
+
+
+TEST_F(INODE, Move_A001)
+{
+	mock_node assign;
+
+	mock_node node;
+	mold::Sink sink(&node);
+	mold::Sink sink2(&node);
+
+	auto aud = node.get_audience();
+	ASSERT_EQ(2, aud.size());
+
 	mock_node mv(std::move(node));
 	auto aud2 = node.get_audience();
 	ASSERT_EQ(0, aud2.size());
@@ -74,23 +92,17 @@ TEST_F(INODE, CopyMove_A000)
 	EXPECT_EQ(&mv, sink.get());
 	EXPECT_EQ(&mv, sink2.get());
 
-	cpassign = cp;
-	auto cpass_aud = cpassign.get_audience();
-	EXPECT_EQ(0, cpass_aud.size());
-	EXPECT_EQ(&mv, sink.get());
-	EXPECT_EQ(&mv, sink2.get());
-
-	mvassign = std::move(mv);
+	assign = std::move(mv);
 	auto mv_aud2 = mv.get_audience();
 	ASSERT_EQ(0, mv_aud2.size());
-	auto mvass_aud = mvassign.get_audience();
-	EXPECT_EQ(2, mvass_aud.size());
-	EXPECT_EQ(&mvassign, sink.get());
-	EXPECT_EQ(&mvassign, sink2.get());
+	auto ass_aud = assign.get_audience();
+	EXPECT_EQ(2, ass_aud.size());
+	EXPECT_EQ(&assign, sink.get());
+	EXPECT_EQ(&assign, sink2.get());
 }
 
 
-TEST_F(INODE, AudExpiration_A001)
+TEST_F(INODE, Death_A002)
 {
 	mock_node* node = new mock_node();
 	mold::Sink sink(node);

@@ -28,43 +28,24 @@ iNode* Variable::derive (iNode* wrt)
 {
 	if (data_ == nullptr)
 	{
-		throw std::exception();
+		throw std::exception(); // todo: add context
 	}
 	iNode* out;
-	switch (data_->get_type())
+	clay::DTYPE otype = data_->get_type();
+	if (this == wrt)
 	{
-		case clay::DTYPE::DOUBLE:
-			out = make_constant((double) 1);
-		break;
-		case clay::DTYPE::FLOAT:
-			out = make_constant((float) 1);
-		break;
-		case clay::DTYPE::INT8:
-			out = make_constant((int8_t) 1);
-		break;
-		case clay::DTYPE::INT16:
-			out = make_constant((int16_t) 1);
-		break;
-		case clay::DTYPE::INT32:
-			out = make_constant((int32_t) 1);
-		break;
-		case clay::DTYPE::INT64:
-			out = make_constant((int64_t) 1);
-		break;
-		case clay::DTYPE::UINT8:
-			out = make_constant((uint8_t) 1);
-		break;
-		case clay::DTYPE::UINT16:
-			out = make_constant((uint16_t) 1);
-		break;
-		case clay::DTYPE::UINT32:
-			out = make_constant((uint32_t) 1);
-		break;
-		case clay::DTYPE::UINT64:
-			out = make_constant((uint64_t) 1);
-		break;
-		default:
-			throw std::exception();
+		out = make_one(otype);
+	}
+	else
+	{
+		unsigned short bsize = clay::type_size(otype);
+		std::shared_ptr<char> data = clay::make_char(bsize);
+		memset(data.get(), 0, bsize);
+		out = new Constant(data, clay::Shape(std::vector<size_t>{1}), otype); 
+	}
+	if (nullptr == out)
+	{
+		throw std::exception(); // todo: add context
 	}
 	return out;
 }

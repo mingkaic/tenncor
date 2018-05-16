@@ -1,8 +1,8 @@
 // INODE BEHAVIOR
 A000 - copying do not copy over audiences
-		moving iNode move over audiences and
+A001 - moving iNode move over audiences and
 		audiences have their dependencies replaced by new iNode
-A001 - upon deletion, trigger all audiences' deletion
+A002 - upon deletion, trigger all audiences' deletion
 
 // CONSTANT BEHAVIOR
 B000 - always have data and get_state returns state set on construction
@@ -13,11 +13,11 @@ C000 - has_data if initialized successful
 C001 - get_state throws error if never initialized
 C002 - assign from source updates data_,
 		throws error if assigning to uninitialized variable
-C003 - derive returns 1 in variable type,
+C003 - derive returns 1 in variable type if wrt is var else return 0,
 		throws error if deriving uninitialized variable
 
 // FUNCTOR BEHAVIOR
-D000 - copy copies over arguments, clears cache, and
+D000 - copy copies over arguments, and
 		add new Functor as audience for all arguments
 D001 - move moves over arguments, add new Functor as audience
 		and remove old Functor as audience for all arguments
@@ -25,5 +25,4 @@ D002 - upon deletion, remove this from argument's audiences
 D003 - has_data returns false if never initialized, otherwise true
 D004 - get_state throws error if has_data returns false
 D005 - derive calls bwd_ to construct gradient tree
-D006 - update updates cache and triggers update for all audiences if has_data
-D007 - argument mutators and getters do exactly as named
+D006 - initialize and update propagate up for all audiences

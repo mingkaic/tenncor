@@ -3,6 +3,8 @@
 //  mold
 //
 
+#include <algorithm>
+
 #include "mold/iobserver.hpp"
 
 #ifdef MOLD_IOBSERVER_HPP
@@ -62,23 +64,29 @@ void iObserver::replace (iNode* target, iNode* repl)
 
 void iObserver::copy_helper (const iObserver& other)
 {
+	for (iNode* arg : args_)
+	{
+		arg->del(this);
+	}
 	args_ = other.args_;
 	for (iNode* arg : args_)
 	{
 		arg->add(this);
 	}
-	initialize();
 }
 
 void iObserver::move_helper (iObserver&& other)
 {
+	for (iNode* arg : args_)
+	{
+		arg->del(this);
+	}
 	args_ = std::move(other.args_);
 	for (iNode* arg : args_)
 	{
 		arg->del(&other);
 		arg->add(this);
 	}
-	initialize();
 }
 
 }

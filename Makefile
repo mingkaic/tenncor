@@ -52,10 +52,13 @@ proto_build:
 test_py:
 	$(TEST) //tests/py/test:test
 
-test: test_clay test_kiln 
+test: test_clay test_mold test_kiln 
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test
+
+test_mold:
+	$(GTEST) $(REP_BZL_FLAG) //mold:test
 
 test_kiln:
 	$(GTEST) $(REP_BZL_FLAG) //kiln:test

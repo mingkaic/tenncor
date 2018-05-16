@@ -3,7 +3,10 @@
 //  mold
 //
 
+#include <algorithm>
+
 #include "mold/functor.hpp"
+#include "mold/constant.hpp"
 
 #ifdef MOLD_FUNCTOR_HPP
 
@@ -18,12 +21,18 @@ Functor::Functor (std::vector<iNode*> args, OperateIO fwd, GradF bwd) :
 
 Functor::Functor (const Functor& other) :
 	iNode(other), iObserver(other),
-	fwd_(other.fwd_), bwd_(other.bwd_) {}
+	fwd_(other.fwd_), bwd_(other.bwd_)
+{
+	initialize();
+}
 
 Functor::Functor (Functor&& other) :
 	iNode(std::move(other)), iObserver(std::move(other)),
 	cache_(std::move(other.cache_)), fwd_(std::move(other.fwd_)),
-	bwd_(std::move(other.bwd_)) {}
+	bwd_(std::move(other.bwd_))
+{
+	initialize();
+}
 
 Functor& Functor::operator = (const Functor& other)
 {
@@ -34,6 +43,7 @@ Functor& Functor::operator = (const Functor& other)
 		cache_ = nullptr;
 		fwd_ = other.fwd_;
 		bwd_ = other.bwd_;
+		initialize();
 	}
 	return *this;
 }
@@ -47,13 +57,14 @@ Functor& Functor::operator = (Functor&& other)
 		cache_ = std::move(other.cache_);
 		fwd_ = std::move(other.fwd_);
 		bwd_ = std::move(other.bwd_);
+		initialize();
 	}
 	return *this;
 }
 
 bool Functor::has_data (void) const
 {
-	return nullptr == cache_;
+	return nullptr != cache_;
 }
 
 clay::State Functor::get_state (void) const
@@ -67,7 +78,24 @@ clay::State Functor::get_state (void) const
 
 iNode* Functor::derive (iNode* wrt)
 {
-	return bwd_(wrt, args_);
+	if (cache_ == nullptr)
+	{
+		throw std::exception(); // todo: add context
+	}
+	iNode* out;
+	if (this == wrt)
+	{
+		out = make_one(cache_->get_type());
+	}
+	else
+	{
+		out = bwd_(wrt, args_);
+	}
+	if (nullptr == out)
+	{
+		throw std::exception(); // todo: add context
+	}
+	return out;
 }
 
 void Functor::initialize (void)

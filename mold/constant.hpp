@@ -57,6 +57,8 @@ private:
 	std::shared_ptr<char> data_;
 };
 
+iNode* make_one (clay::DTYPE dtype);
+
 template <typename T>
 iNode* make_constant (T scalar)
 {
