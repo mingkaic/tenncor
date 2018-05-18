@@ -18,8 +18,6 @@ using namespace testutil;
 class SHAPE : public fuzz_test {};
 
 
-// covers vector constructor and assignment
-// and as_list
 TEST_F(SHAPE, Construct_A000)
 {
 	std::vector<size_t> empty;
@@ -55,7 +53,6 @@ TEST_F(SHAPE, Construct_A000)
 }
 
 
-// covers Shape: operator []
 TEST_F(SHAPE, IndexAccessor_A001)
 {
 	std::vector<size_t> svec = random_def_shape(this);
@@ -66,7 +63,6 @@ TEST_F(SHAPE, IndexAccessor_A001)
 }
 
 
-// covers Shape: n_elems
 TEST_F(SHAPE, NElems_A002)
 {
 	std::vector<size_t> pds;
@@ -91,7 +87,6 @@ TEST_F(SHAPE, NElems_A002)
 }
 
 
-// covers Shape: n_elems
 TEST_F(SHAPE, NKnowns_A003)
 {
 	std::vector<size_t> pds;
@@ -125,7 +120,6 @@ TEST_F(SHAPE, NKnowns_A003)
 }
 
 
-// covers Shape: rank
 TEST_F(SHAPE, Rank_A004)
 {
 	std::vector<size_t> pds;
@@ -144,7 +138,6 @@ TEST_F(SHAPE, Rank_A004)
 }
 
 
-// covers Shape: is_compatible_with
 TEST_F(SHAPE, Compatible_A005)
 {
 	std::vector<size_t> pds;
@@ -226,7 +219,6 @@ TEST_F(SHAPE, Compatible_A005)
 }
 
 
-// covers Shape: is_part_defined
 TEST_F(SHAPE, PartDef_A006)
 {
 	std::vector<size_t> pds;
@@ -260,8 +252,6 @@ TEST_F(SHAPE, PartDef_A006)
 }
 
 
-// covers Shape: 
-// is_fully_defined and assert_is_fully_defined
 TEST_F(SHAPE, FullDef_A007)
 {
 	std::vector<size_t> pds;
@@ -298,7 +288,6 @@ TEST_F(SHAPE, FullDef_A007)
 }
 
 
-// covers Shape: merge_with
 TEST_F(SHAPE, Merge_A008)
 {
 	std::vector<size_t> pds;
@@ -318,7 +307,7 @@ TEST_F(SHAPE, Merge_A008)
 	// incomplete shape can merge with anything
 	for (clay::Shape* shape : {&pcom_ts, &com_ts, &pcom2_ts, &com2_ts, &incom_ts})
 	{
-		clay::Shape merged = incom_ts.merge_with(*shape);
+		clay::Shape merged = clay::merge_with(incom_ts, *shape);
 		// we're expecting merged shape to be the same as input shape
 		EXPECT_SHAPEQ((*shape), merged);
 	}
@@ -343,24 +332,21 @@ TEST_F(SHAPE, Merge_A008)
 	clay::Shape incompatible(cds_cpy2);
 	clay::Shape incompatible2(cds2_cpy2);
 
-	clay::Shape merged = fake_ps.merge_with(com_ts);
-	clay::Shape merged2 = fake_ps2.merge_with(com2_ts);
+	clay::Shape merged = clay::merge_with(fake_ps, com_ts);
+	clay::Shape merged2 = clay::merge_with(fake_ps2, com2_ts);
 	EXPECT_SHAPEQ(merged,  com_ts);
 	EXPECT_SHAPEQ(merged2,  com2_ts);
-	clay::Shape merged3 = incompatible.merge_with(com_ts);
-	clay::Shape merged4 = incompatible2.merge_with(com2_ts);
+	clay::Shape merged3 = clay::merge_with(incompatible, com_ts);
+	clay::Shape merged4 = clay::merge_with(incompatible2, com2_ts);
 	EXPECT_SHAPEQ(incompatible, merged3);
 	EXPECT_SHAPEQ(incompatible2, merged4);
 
 	// merging different ranks will error
 	ASSERT_GT(pds.size(), cds.size()); // true by generation implementation
-	EXPECT_THROW(pcom_ts.merge_with(com_ts), std::exception);
+	EXPECT_THROW(clay::merge_with(pcom_ts, com_ts), std::exception);
 }
 
 
-// covers Shape:
-// trim, dependent on rank
-// trim, dependent on rank
 TEST_F(SHAPE, Trim_A009)
 {
 	std::vector<size_t> ids;
@@ -388,16 +374,15 @@ TEST_F(SHAPE, Trim_A009)
 	clay::Shape pcom_ts(fakepds);
 	clay::Shape com_ts(fakecds);
 
-	EXPECT_EQ((size_t) 0, incom_ts.trim().rank());
+	EXPECT_EQ((size_t) 0, clay::trim(incom_ts).rank());
 	EXPECT_LT((size_t) 0, fakeincom_ts.rank());
-	EXPECT_EQ((size_t) 0, fakeincom_ts.trim().rank());
+	EXPECT_EQ((size_t) 0, clay::trim(fakeincom_ts).rank());
 
-	EXPECT_EQ(pds.size()+2, pcom_ts.trim().rank());
-	ASSERT_EQ(cds.size()+2, com_ts.trim().rank());
+	EXPECT_EQ(pds.size()+2, clay::trim(pcom_ts).rank());
+	ASSERT_EQ(cds.size()+2, clay::trim(com_ts).rank());
 }
 
 
-// covers Shape: concatenate
 TEST_F(SHAPE, Concat_A010)
 {
 	std::vector<size_t> pds;
@@ -409,17 +394,17 @@ TEST_F(SHAPE, Concat_A010)
 	clay::Shape com_ts(cds);
 
 	// undefined concatenating anything is that thing
-	clay::Shape none1 = incom_ts.concatenate(com_ts);
-	clay::Shape none2 = com_ts.concatenate(incom_ts);
-	clay::Shape none3 = incom_ts.concatenate(pcom_ts);
-	clay::Shape none4 = pcom_ts.concatenate(incom_ts);
+	clay::Shape none1 = clay::concatenate(incom_ts, com_ts);
+	clay::Shape none2 = clay::concatenate(com_ts, incom_ts);
+	clay::Shape none3 = clay::concatenate(incom_ts, pcom_ts);
+	clay::Shape none4 = clay::concatenate(pcom_ts, incom_ts);
 	EXPECT_SHAPEQ(none1,  com_ts);
 	EXPECT_SHAPEQ(none2,  com_ts);
 	EXPECT_SHAPEQ(none3,  pcom_ts);
 	EXPECT_SHAPEQ(none4,  pcom_ts);
 
-	std::vector<size_t> straight = com_ts.concatenate(pcom_ts).as_list();
-	std::vector<size_t> backcat = pcom_ts.concatenate(com_ts).as_list();
+	std::vector<size_t> straight = clay::concatenate(com_ts, pcom_ts).as_list();
+	std::vector<size_t> backcat = clay::concatenate(pcom_ts, com_ts).as_list();
 
 	ASSERT_EQ(straight.size(), backcat.size());
 	ASSERT_EQ(straight.size(), cds.size() + pds.size());
@@ -432,8 +417,6 @@ TEST_F(SHAPE, Concat_A010)
 }
 
 
-// covers Shape: 
-// with_rank, with_rank_at_least, with_rank_at_most, depends on rank
 TEST_F(SHAPE, WithRank_A011)
 {
 	std::vector<size_t> ids;
@@ -453,33 +436,32 @@ TEST_F(SHAPE, WithRank_A011)
 	size_t upperbound = peak + bounds[0];
 	size_t lowerbound = trough - bounds[1];
 	// expansion
-	EXPECT_EQ(upperbound, incom_ts.with_rank(upperbound).rank());
-	EXPECT_EQ(upperbound, pcom_ts.with_rank(upperbound).rank());
-	EXPECT_EQ(upperbound, com_ts.with_rank(upperbound).rank());
+	EXPECT_EQ(upperbound, clay::with_rank(incom_ts, upperbound).rank());
+	EXPECT_EQ(upperbound, clay::with_rank(pcom_ts, upperbound).rank());
+	EXPECT_EQ(upperbound, clay::with_rank(com_ts, upperbound).rank());
 	// compression
-	EXPECT_EQ(lowerbound, incom_ts.with_rank(lowerbound).rank());
-	EXPECT_EQ(lowerbound, pcom_ts.with_rank(lowerbound).rank());
-	EXPECT_EQ(lowerbound, com_ts.with_rank(lowerbound).rank());
+	EXPECT_EQ(lowerbound, clay::with_rank(incom_ts, lowerbound).rank());
+	EXPECT_EQ(lowerbound, clay::with_rank(pcom_ts, lowerbound).rank());
+	EXPECT_EQ(lowerbound, clay::with_rank(com_ts, lowerbound).rank());
 
 	// favor higher dimensionalities
-	EXPECT_EQ(upperbound, incom_ts.with_rank_at_least(upperbound).rank());
-	EXPECT_EQ(upperbound, pcom_ts.with_rank_at_least(upperbound).rank());
-	EXPECT_EQ(upperbound, com_ts.with_rank_at_least(upperbound).rank());
-	EXPECT_EQ(lowerbound, incom_ts.with_rank_at_least(lowerbound).rank());
-	EXPECT_EQ(pds.size(), pcom_ts.with_rank_at_least(lowerbound).rank());
-	EXPECT_EQ(cds.size(), com_ts.with_rank_at_least(lowerbound).rank());
+	EXPECT_EQ(upperbound, clay::with_rank_at_least(incom_ts, upperbound).rank());
+	EXPECT_EQ(upperbound, clay::with_rank_at_least(pcom_ts, upperbound).rank());
+	EXPECT_EQ(upperbound, clay::with_rank_at_least(com_ts, upperbound).rank());
+	EXPECT_EQ(lowerbound, clay::with_rank_at_least(incom_ts, lowerbound).rank());
+	EXPECT_EQ(pds.size(), clay::with_rank_at_least(pcom_ts, lowerbound).rank());
+	EXPECT_EQ(cds.size(), clay::with_rank_at_least(com_ts, lowerbound).rank());
 
 	// favor lower dimensionalities
-	EXPECT_EQ((size_t) 0, incom_ts.with_rank_at_most(upperbound).rank());
-	EXPECT_EQ(pds.size(), pcom_ts.with_rank_at_most(upperbound).rank());
-	EXPECT_EQ(cds.size(), com_ts.with_rank_at_most(upperbound).rank());
-	EXPECT_EQ((size_t) 0, incom_ts.with_rank_at_most(lowerbound).rank());
-	EXPECT_EQ(lowerbound, pcom_ts.with_rank_at_most(lowerbound).rank());
-	EXPECT_EQ(lowerbound, com_ts.with_rank_at_most(lowerbound).rank());
+	EXPECT_EQ((size_t) 0, clay::with_rank_at_most(incom_ts, upperbound).rank());
+	EXPECT_EQ(pds.size(), clay::with_rank_at_most(pcom_ts, upperbound).rank());
+	EXPECT_EQ(cds.size(), clay::with_rank_at_most(com_ts, upperbound).rank());
+	EXPECT_EQ((size_t) 0, clay::with_rank_at_most(incom_ts, lowerbound).rank());
+	EXPECT_EQ(lowerbound, clay::with_rank_at_most(pcom_ts, lowerbound).rank());
+	EXPECT_EQ(lowerbound, clay::with_rank_at_most(com_ts, lowerbound).rank());
 }
 
 
-// covers Shape: coord_from_idx, flat_idx
 TEST_F(SHAPE, CoordMap_A012)
 {
 	std::vector<size_t> slist = random_def_shape(this);
@@ -487,7 +469,7 @@ TEST_F(SHAPE, CoordMap_A012)
 	std::vector<size_t> coord;
 	for (size_t i = 0; i < shape.n_elems(); ++i)
 	{
-		coord = shape.coord_from_idx(i);
+		coord = clay::coordinate(shape, i);
 		assert(coord.size() == slist.size());
 		size_t accum = 1;
 		size_t index = 0;
@@ -496,7 +478,7 @@ TEST_F(SHAPE, CoordMap_A012)
 			index += coord[j] * accum;
 			accum *= slist[j];
 		}
-		size_t cindex = shape.flat_idx(coord);
+		size_t cindex = clay::index(shape, coord);
 		EXPECT_EQ(i, index);
 		EXPECT_EQ(i, cindex);
 	}

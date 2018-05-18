@@ -1,0 +1,15 @@
+// ORDERED_MAP
+A000 - get without put returns empty optional
+		get after put returns optional containing put value
+		put after put returns false
+A001 - has before put returns false
+		has after put returns true if key matches
+		otherwise return false
+A002 - replace before put returns false
+		replace after put changes value
+A003 - replace puts the new entry to the end of order,
+		and removes the old entry
+
+// BUILDER
+B000 - build constant as scalar creates constant of shape {1} and data provided
+		vector constant creates constant of shape and data provided

@@ -61,6 +61,9 @@ test_clay:
 test_mold:
 	$(GTEST) $(REP_BZL_FLAG) //mold:test
 
+test_wire:
+	$(GTEST) $(REP_BZL_FLAG) //wire:test
+
 test_kiln:
 	$(GTEST) $(REP_BZL_FLAG) //kiln:test
 

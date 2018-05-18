@@ -27,6 +27,16 @@ size_t Shape::operator [] (size_t dim) const
 	return dimensions_.at(dim);
 }
 
+typename std::vector<size_t>::const_iterator Shape::cbegin (void) const
+{
+	return dimensions_.cbegin();
+}
+
+typename std::vector<size_t>::const_iterator Shape::cend (void) const
+{
+	return dimensions_.cend();
+}
+
 std::vector<size_t> Shape::as_list (void) const
 {
 	return dimensions_;
@@ -144,25 +154,26 @@ bool Shape::is_fully_defined (void) const
 	return known;
 }
 
-Shape Shape::merge_with (const Shape& other) const
+Shape merge_with (const Shape& shape, const Shape& other)
 {
-	if (dimensions_.empty())
+	if (false == shape.is_part_defined())
 	{
 		return other;
 	}
-	if (other.dimensions_.empty())
+	if (false == other.is_part_defined())
 	{
-		return *this;
+		return shape;
 	}
-	if (dimensions_.size() != other.dimensions_.size())
+	size_t rank = shape.rank();
+	if (rank != other.rank())
 	{
 		throw std::exception(); // todo: add context
 	}
 	std::vector<size_t> ds;
-	for (size_t i = 0; i < dimensions_.size(); i++)
+	for (size_t i = 0; i < rank; i++)
 	{
-		size_t value = dimensions_[i];
-		size_t ovalue = other.dimensions_[i];
+		size_t value = shape[i];
+		size_t ovalue = other[i];
 		if (value == ovalue || (value && ovalue))
 		{
 			ds.push_back(value);
@@ -176,68 +187,67 @@ Shape Shape::merge_with (const Shape& other) const
 	return ds;
 }
 
-Shape Shape::trim (void) const
+Shape trim (const Shape& shape)
 {
 	std::vector<size_t> res;
-	if (false == dimensions_.empty())
+	if (shape.is_part_defined())
 	{
 		size_t start = 0;
-		size_t end = dimensions_.size() - 1;
-		while (start < end && 1 == dimensions_.at(start)) { start++; }
-		while (start < end && 1 == dimensions_.at(end)) { end--; }
-		if (start < end || 1 != dimensions_.at(end))
+		size_t end = shape.rank() - 1;
+		while (start < end && 1 == shape[start]) { start++; }
+		while (start < end && 1 == shape[end]) { end--; }
+		if (start < end || 1 != shape[end])
 		{
-			res.insert(res.end(),
-				dimensions_.begin()+start,
-				dimensions_.begin()+end+1);
+			res.insert(res.end(), shape.cbegin() + start,
+				shape.cbegin() + end + 1);
 		}
 	}
 	return res;
 }
 
-Shape Shape::concatenate (const Shape& other) const
+Shape concatenate (const Shape& shape, const Shape& other)
 {
-	if (dimensions_.empty())
+	if (false == shape.is_part_defined())
 	{
 		return other;
 	}
-	if (other.dimensions_.empty())
+	if (false == other.is_part_defined())
 	{
-		return *this;
+		return shape;
 	}
-	std::vector<size_t> ds = dimensions_;
-	ds.insert(ds.end(), other.dimensions_.begin(), other.dimensions_.end());
+	std::vector<size_t> ds = shape.as_list();
+	ds.insert(ds.end(), other.cbegin(), other.cend());
 	return Shape(ds);
 }
 
-Shape Shape::with_rank (size_t rank) const
+Shape with_rank (const Shape& shape, size_t rank)
 {
-	size_t ndim = dimensions_.size();
+	size_t ndim = shape.rank();
 	std::vector<size_t> ds;
 	if (rank < ndim)
 	{
 		// clip to rank
-		auto it = dimensions_.begin();
+		auto it = shape.cbegin();
 		ds.insert(ds.end(), it, it+rank);
 	}
 	else if (rank> ndim)
 	{
 		// pad to fit rank
-		ds = dimensions_;
+		ds = shape.as_list();
 		size_t diff = rank - ndim;
 		ds.insert(ds.end(), diff, 1);
 	}
 	else
 	{
-		ds = dimensions_;
+		ds = shape.as_list();
 	}
 	return ds;
 }
 
-Shape Shape::with_rank_at_least (size_t rank) const
+Shape with_rank_at_least (const Shape& shape, size_t rank)
 {
-	size_t ndim = dimensions_.size();
-	std::vector<size_t> ds = dimensions_;
+	size_t ndim = shape.rank();
+	std::vector<size_t> ds = shape.as_list();
 	if (rank> ndim)
 	{
 		// pad to fit rank
@@ -247,43 +257,43 @@ Shape Shape::with_rank_at_least (size_t rank) const
 	return ds;
 }
 
-Shape Shape::with_rank_at_most (size_t rank) const
+Shape with_rank_at_most (const Shape& shape, size_t rank)
 {
 	std::vector<size_t> ds;
-	if (rank < dimensions_.size())
+	if (rank < shape.rank())
 	{
 		// clip to fit rank
-		auto it = dimensions_.begin();
+		auto it = shape.cbegin();
 		ds.insert(ds.end(), it, it+rank);
 	}
 	else
 	{
-		ds = dimensions_;
+		ds = shape.as_list();
 	}
 	return ds;
 }
 
-size_t Shape::flat_idx (std::vector<size_t> coord) const
+size_t index (const Shape& shape, std::vector<size_t> coord)
 {
-	size_t n = std::min(dimensions_.size(), coord.size());
+	size_t n = std::min(shape.rank(), coord.size());
 	size_t index = 0;
 	for (size_t i = 1; i < n; i++)
 	{
 		index += coord[n-i];
-		index *= dimensions_[n-i-1];
+		index *= shape[n-i-1];
 	}
 	return index + coord[0];
 }
 
-std::vector<size_t> Shape::coord_from_idx (size_t idx) const
+std::vector<size_t> coordinate (const Shape& shape, size_t idx)
 {
 	std::vector<size_t> coord;
 	size_t xd;
-	for (size_t d : dimensions_)
+	for (auto it = shape.cbegin(); it != shape.cend(); ++it)
 	{
-		xd = idx % d;
+		xd = idx % *it;
 		coord.push_back(xd);
-		idx = (idx - xd) / d;
+		idx = (idx - xd) / *it;
 	}
 	return coord;
 }

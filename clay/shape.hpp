@@ -45,6 +45,10 @@ public:
 	//! access value at index dim, throws std::out_of_range if dim >= rank
 	size_t operator [] (size_t dim) const;
 
+	typename std::vector<size_t>::const_iterator cbegin (void) const;
+
+	typename std::vector<size_t>::const_iterator cend (void) const;
+
 	//! get a copy of the shape as a list
 	//! accounts for grouping
 	std::vector<size_t> as_list (void) const;
@@ -74,44 +78,42 @@ public:
 	//! (there are no unknowns)
 	bool is_fully_defined (void) const;
 
-	// >>>> SHAPE CREATORS <<<<
-	//! create the most defined shape from this and other
-	//! prioritizes this over other value
-	Shape merge_with (const Shape& other) const;
-
-	//! create a copy of this shape with leading and
-	//! trailing ones removed
-	Shape trim (void) const;
-
-	//! create a shape that is the concatenation of another shape
-	Shape concatenate (const Shape& other) const;
-
-	//! create a new tensors with same dimension
-	//! value and the specified rank
-	//! clip or pad with 1's to fit rank
-	Shape with_rank (size_t rank) const;
-
-	//! create a new tensors with same dimension
-	//! value and at least the the specified rank
-	Shape with_rank_at_least (size_t rank) const;
-
-	//! create a new tensors with same dimension
-	//! value and at most the the specified rank
-	Shape with_rank_at_most (size_t rank) const;
-
-	// todo: test
-	// >>>> COORDINATES <<<<
-	//! obtain the flat vector index from cartesian coordinates (e.g.: 2-D [x, y] has flat index = y * dimensions_[0] + x)
-	size_t flat_idx (std::vector<size_t> coord) const;
-
-	//! obtain cartesian coordinates given a flat vector index
-	std::vector<size_t> coord_from_idx (size_t idx) const;
-
 private:
 	//! zero values denotes unknown/undefined value
 	//! emtpy dimension_ denotes undefined shape
 	std::vector<size_t> dimensions_;
 };
+
+//! create the most defined shape from this and other
+//! prioritizes this over other value
+Shape merge_with (const Shape& shape, const Shape& other);
+
+//! create a copy of this shape with leading and
+//! trailing ones removed
+Shape trim (const Shape& shape);
+
+//! create a shape that is the concatenation of another shape
+Shape concatenate (const Shape& shape, const Shape& other);
+
+//! create a new tensors with same dimension
+//! value and the specified rank
+//! clip or pad with 1's to fit rank
+Shape with_rank (const Shape& shape, size_t rank);
+
+//! create a new tensors with same dimension
+//! value and at least the the specified rank
+Shape with_rank_at_least (const Shape& shape, size_t rank);
+
+//! create a new tensors with same dimension
+//! value and at most the the specified rank
+Shape with_rank_at_most (const Shape& shape, size_t rank);
+
+//! obtain the flat vector index from cartesian coordinates 
+//! (e.g.: 2-D [x, y] has flat index = y * dimensions_[0] + x)
+size_t index (const Shape& shape, std::vector<size_t> coord);
+
+//! obtain cartesian coordinates given a flat vector index
+std::vector<size_t> coordinate (const Shape& shape, size_t idx);
 
 }
 

@@ -6,8 +6,9 @@
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
 
-#include "clay/dtype.hpp"
-#include "mold/constant.hpp"
+#include "wire/builder.hpp"
+
+#include "wire/omap.hpp"
 
 
 #ifndef DISABLE_BUILDER_TEST
