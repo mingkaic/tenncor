@@ -53,7 +53,7 @@ test_py:
 	$(TEST) //tests/py/test:test
 
 # test
-test: test_clay test_mold test_kiln 
+test: test_clay test_mold test_kiln test_wire
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test

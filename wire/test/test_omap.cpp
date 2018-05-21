@@ -24,7 +24,7 @@ TEST_F(OMAP, PutGet_A000)
     size_t value = get_int(1, "value", {1, 2523})[0];
     size_t value2 = get_int(1, "value2", {2524, 4253})[0];
 
-    wire::ordered_map<std::string, size_t> omap;
+    wire::OrderedMap<std::string, size_t> omap;
 
     wire::optional<size_t> nf = omap.get(key);
     EXPECT_FALSE((bool) nf);
@@ -46,7 +46,7 @@ TEST_F(OMAP, PutHas_A001)
     std::string key2 = get_string(nkey + 1, "key2");
     size_t value = get_int(1, "value", {1, 2523})[0];
 
-    wire::ordered_map<std::string, size_t> omap;
+    wire::OrderedMap<std::string, size_t> omap;
     EXPECT_FALSE(omap.has(key));
     EXPECT_TRUE(omap.put(key, value));
     EXPECT_TRUE(omap.has(key));
@@ -62,7 +62,7 @@ TEST_F(OMAP, PutReplace_A002)
     size_t value = get_int(1, "value", {1, 2523})[0];
     size_t value2 = get_int(1, "value2", {2524, 4253})[0];
 
-    wire::ordered_map<std::string, size_t> omap;
+    wire::OrderedMap<std::string, size_t> omap;
 
     EXPECT_FALSE(omap.replace(key, value));
     EXPECT_TRUE(omap.put(key, value));
@@ -88,7 +88,7 @@ TEST_F(OMAP, Range_A003)
     size_t value2 = get_int(1, "value2", {2524, 4253})[0];
     size_t value3 = get_int(1, "value2", {1, 4253})[0];
 
-    wire::ordered_map<std::string, size_t> omap;
+    wire::OrderedMap<std::string, size_t> omap;
 
     ASSERT_TRUE(omap.put(key, value));
     ASSERT_TRUE(omap.put(key2, value2));

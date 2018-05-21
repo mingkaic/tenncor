@@ -12,8 +12,7 @@
  *
  */
 
-#include "mold/inode.hpp"
-#include "mold/iobserver.hpp"
+#include "mold/ondeath.hpp"
 
 #include "wire/graph.hpp"
 
@@ -23,49 +22,71 @@
 
 namespace wire
 {
-    
-class Identifier : public iObserver
+
+//! observes and takes ownership of arg
+class Identifier : private mold::OnDeath
 {
 public:
-    Identifier (Graph* graph, iNode* arg) :
-        iObserver({arg}), graph_(graph)
-    {
-        id_ = graph->associate(arg, this);
-    }
+	Identifier (Graph* graph, mold::iNode* arg, std::string label);
 
-    virtual ~Identifier (void)
-    {
-        graph->disassociate(id_);
-    }
+	Identifier (Graph* graph, mold::iNode* arg, std::string label, InitF init);
 
-    Identifier (const Identifier& other) :
-        iObserver(other)
-    {
-        graph_->disassociate(id_);
-        graph_ = other.graph_;
-        // assert false == args_.empty()
-        graph_->associate(args_[0], this);
-    }
+	virtual ~Identifier (void);
 
-    Identifier (Identifier&& other) :
-        iObserver(std::move(other))
-    {
-        graph_->disassociate(id_);
-        graph_ = std::move(other.graph_);
-        // assert false == args_.empty()
-        graph_->associate(args_[0], this);
-    }
+	Identifier (const Identifier& other);
 
-    void initialize (void) override {} // todo: add functionality
+	Identifier (Identifier&& other);
 
-    void update (void) override {} // todo: add functionality
+	Identifier& operator = (const Identifier& other);
+
+	Identifier& operator = (Identifier&& other);
+
+	std::string get_uid (void) const;
+
+	std::string get_label (void) const;
+
+	std::string get_name (void) const;
+
+	bool has_data (void) const
+	{
+		return get()->has_data();
+	}
+
+	clay::State get_state (void) const
+	{
+		return get()->get_state();
+	}
+
+	Identifier* derive (Identifier* wrt)
+	{
+		mold::iNode* target = wrt->get();
+		return new Identifier(graph_, get()->derive(target), this->label_ + "_grad");
+	}
+
+protected:
+	Graph* graph_;
+
+	mold::iNode* get_node (void) const
+	{
+		return get();
+	}
 
 private:
-    Graph* graph_;
+	friend mold::TermF bind_id (Identifier* id);
 
-    std::string label_;
+	friend class Graph;
 
-    std::string id_;
+	void disassoc (std::string id)
+	{
+		if (graph_)
+		{
+			graph_->disassociate(id);
+		}
+	}
+
+	std::string label_;
+
+	std::string uid_;
 };
 
 }

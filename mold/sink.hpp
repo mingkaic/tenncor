@@ -13,10 +13,7 @@
  *
  */
 
-#include <iostream>
-
-#include "mold/inode.hpp"
-#include "mold/iobserver.hpp"
+#include "mold/ondeath.hpp"
 
 #pragma once
 #ifndef MOLD_SINK_HPP
@@ -28,97 +25,28 @@ namespace mold
 class Sink final
 {
 public:
-	Sink (iNode* arg) : death_sink_(new DeathSink(arg, this)) {}
+	Sink (iNode* arg);
 
-	~Sink (void)
-	{
-		clear();
-	}
+	~Sink (void);
 
-	Sink (const Sink& other) : death_sink_(other.death_sink_) {}
+	Sink (const Sink& other);
 
-	Sink (Sink&& other) : death_sink_(std::move(other.death_sink_)) {}
+	Sink (Sink&& other);
 
-	Sink& operator = (const Sink& other)
-	{
-		if (this != &other)
-		{
-			clear();
-			death_sink_ = new DeathSink(*(other.death_sink_), this);
-		}
-		return *this;
-	}
+	Sink& operator = (const Sink& other);
 
-	Sink& operator = (Sink&& other)
-	{
-		if (this != &other)
-		{
-			clear();
-			death_sink_ = new DeathSink(*(other.death_sink_), this);
-		}
-		return *this;
-	}
+	Sink& operator = (Sink&& other);
 
-	Sink& operator = (iNode* arg)
-	{
-		clear();
-		death_sink_ = new DeathSink(arg, this);
-		return *this;
-	}
+	Sink& operator = (iNode* arg);
 
-	iNode* get (void) const
-	{
-		iNode* out = nullptr;
-		if (death_sink_ != nullptr)
-		{
-			out = death_sink_->get();
-		}
-		return out;
-	}
+	iNode* get (void) const;
 
-	bool expired (void) const
-	{
-		return nullptr == death_sink_;
-	}
+	bool expired (void) const;
 
 private:
-	struct DeathSink final : public iObserver
-	{
-		DeathSink (iNode* arg, Sink* owner) :
-			iObserver({arg}), owner_(owner) {}
+	void clear (void);
 
-		~DeathSink (void)
-		{
-			owner_->death_sink_ = nullptr;
-		}
-
-		DeathSink (const DeathSink& other, Sink* owner) :
-			iObserver(other), owner_(owner) {}
-
-		DeathSink (DeathSink&& other, Sink* owner) :
-			iObserver(std::move(other)), owner_(owner) {}
-
-		iNode* get (void) const
-		{
-			return this->args_[0];
-		}
-
-		void initialize (void) override {} // todo: add functionality
-
-		void update (void) override {} // todo: add functionality
-
-		Sink* owner_;
-	};
-
-	void clear (void)
-	{
-		if (nullptr == death_sink_)
-		{
-			delete death_sink_;
-		}
-	}
-
-	const DeathSink* death_sink_;
+	const OnDeath* death_sink_;
 };
 
 }

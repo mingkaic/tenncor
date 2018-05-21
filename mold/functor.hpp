@@ -45,9 +45,16 @@ public:
 
 	iNode* derive (iNode* wrt) override;
 
+
 	void initialize (void) override;
 
 	void update (void) override;
+
+protected:
+	iNode* clone_impl (void) const override
+	{
+		return new Functor(*this);
+	}
 
 private:
 	clay::TensorPtrT cache_ = nullptr;

@@ -10,6 +10,15 @@ A002 - replace before put returns false
 A003 - replace puts the new entry to the end of order,
 		and removes the old entry
 
-// BUILDER
-B000 - build constant as scalar creates constant of shape {1} and data provided
-		vector constant creates constant of shape and data provided
+// GRAPH
+
+// IDENTIFIER
+000 - copying identity creates separate copies of the observed node
+		uids are different between copies
+		labels are copied over
+
+// CONSTANT
+B000 - get constant as scalar creates constant of shape {1} and scalar provided
+		get of bad type throws error
+B001 - get vector constant creates constant of shape and data provided
+		get of bad type throws error

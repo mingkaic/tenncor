@@ -1,5 +1,6 @@
 //
-// Created by Mingkai Chen on 2018-01-12.
+//  rand.cpp
+//  wire
 //
 
 #include <iostream>

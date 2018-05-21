@@ -2,7 +2,7 @@
 //  inode.cpp
 //  mold
 //
-
+#include <iostream>
 #include "mold/inode.hpp"
 #include "mold/iobserver.hpp"
 

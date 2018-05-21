@@ -21,6 +21,7 @@ cc_library(
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
     deps = [
+        "//:ioutil",
         "//clay:clay",
         "//mold:mold",
     ],

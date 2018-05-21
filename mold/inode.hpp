@@ -41,6 +41,12 @@ public:
 
 	iNode& operator = (iNode&& other);
 
+	iNode* clone (void) const
+	{
+		return clone_impl();
+	}
+
+
 	virtual bool has_data (void) const = 0;
 
 	virtual clay::State get_state (void) const = 0;
@@ -54,6 +60,8 @@ public:
 	void del (iObserver* aud);
 
 protected:
+	virtual iNode* clone_impl (void) const = 0;
+
 	AudienceT audience_;
 };
 

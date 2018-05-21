@@ -45,6 +45,12 @@ struct mock_node final : public mold::iNode, public testify::mocker
 	{
 		return nullptr;
 	}
+
+protected:
+	iNode* clone_impl (void) const override
+	{
+		return new mock_node(*this);
+	}
 };
 
 

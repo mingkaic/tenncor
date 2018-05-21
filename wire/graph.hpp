@@ -1,6 +1,6 @@
 /*!
  *
- *  graph.hpp
+ *  Graph.hpp
  *  wire
  *
  *  Purpose:
@@ -10,6 +10,11 @@
  *  Copyright © 2018 Mingkai Chen. All rights reserved.
  *
  */
+
+#include <memory>
+
+#include "clay/ibuilder.hpp"
+#include "mold/variable.hpp"
 
 #include "wire/omap.hpp"
 #include "wire/rand.hpp"
@@ -21,141 +26,54 @@
 namespace wire
 {
 
+using InitF = std::function<void(mold::Variable*)>;
+
 class Identifier;
 
-class graph
+class Graph
 {
 public:
-	static graph& get_global (void)
-	{
-		static graph g;
-	}
+	static Graph& get_global (void);
 
-	static std::unique_ptr<graph> get_temp (void)
-	{
-		return std::unique_ptr<graph>(new graph());
-	}
+	static std::unique_ptr<Graph> get_temp (void);
 
-	static void replace_global (std::unique_ptr<graph>&& temp)
-	{
-		get_global() = std::move(*temp);
-	}
+	static void replace_global (std::unique_ptr<Graph>&& temp);
 
-	graph (const graph&) = delete;
-	graph (graph&&) = delete;
-	graph& operator = (const graph&) = delete;
+	Graph (const Graph&) = delete;
+	Graph (Graph&&) = delete;
+	Graph& operator = (const Graph&) = delete;
+
+	Graph& operator = (Graph&&) = default;
 
 
-	std::string get_gid (void) const
-	{
-		return gid_;
-	}
+	std::string get_gid (void) const;
 
-	bool has_node (std::string id) const
-	{
-		return adjmap_.has(id);
-	}
+	bool has_node (std::string id) const;
 
-	Identifier* get_identifier (std::string id) const
-	{
-		Identifier* out = nullptr;
-		auto it = idmap_.find(id);
-		if (idmap_.end() != it)
-		{
-			optional<Identifier*> id = adjmap_.get(it->second);
-			if ((bool) id)
-			{
-				out = *id;
-			}
-		}
-		return out;
-	}
-
-	Identifier* get_identifier (mold::iNode* node) const
-	{
-		Identifier* out = nullptr;
-		optional<Identifier*> id = adjmap_.get(node);
-		if ((bool) id)
-		{
-			out = *id;
-		}
-		return out;
-	}
+	Identifier* get_node (std::string id) const;
 
 
-	void initialize_all (void)
-	{
-		for (auto upair : uninits_)
-		{
-			clay::iBuilder* builder = upair->second;
-			auto it = idmap_.find(upair->first);
-			if (idmap_.end() != it &&
-				(mold::Variable* var = dynamic_cast<mold::Variable*>(it->second)))
-			{
-				var->initialize(*builder);
-			}
-			else
-			{
-				// todo: error handle
-			}
-		}
-		uninits_.clear();
-	}
+	void initialize_all (void);
 
-	void initialize (std::string id)
-	{
-		auto it = idmap_.find(id);
-		auto ut = uninits_.find(id);
-		if (idmap_.end() != it && uninits_.end() != ut)
-		{
-			it->second->initialize(*ut->second);
-		}
-		else
-		{
-			// todo: error handle
-		}
-		uninits_.erase(id);
-	}
+	void initialize (std::string id);
 
 protected:
-	graph (void) = default;
+	Graph (void) = default;
 
 	friend class Identifier;
 
-	std::string associate (mold::iNode* arg, Identifier* ider)
-	{
-		if (false == adjmap_.put(arg, ider))
-		{
-			throw std::exception(); // todo: add context
-		}
-		std::string id = puid(arg);
-		idmap_[id] = arg;
-		return id;
-	}
+	std::string associate (Identifier* id);
 
-	void disassociate (std::string id)
-	{
-		auto it = idmap_.find(id);
-		if (idmap_.end() == it)
-		{
-			throw std::exception(); // todo: add context
-		}
-		iNode* del = *it;
-		if (false == adjmap_.remove(del))
-		{
-			throw std::exception();
-		}
-		idmap_.erase(it);
-	}
+	void disassociate (std::string id);
+
+	void add_uninit (std::string uid, InitF init);
 
 private:
 	std::string gid_ = puid(this);
 
-	OrderedMap<mold::iNode*, Identifier*> adjmap_;
+	OrderedMap<std::string, Identifier*> adjmap_;
 
-	std::unordered_map<std::string, mold::iNode*> idmap_;
-
-	std::unordered_map<std::string, clay::iBuilder*> uninits_;
+	std::unordered_map<std::string, InitF> uninits_;
 };
 
 }

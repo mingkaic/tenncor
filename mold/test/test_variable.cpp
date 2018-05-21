@@ -120,7 +120,100 @@ struct mock_builder final : public clay::iBuilder, public testify::mocker
 };
 
 
-TEST_F(VARIABLE, Data_C000)
+TEST_F(VARIABLE, Copy_C000)
+{
+	mock_builder builder(this);
+	mold::Variable assign;
+	mold::Variable assign1;
+	mold::Variable assign2;
+	assign.initialize(builder);
+	assign2.initialize(builder);
+
+	mold::Variable var;
+	mold::Variable var2;
+
+	mock_builder builder2(this);
+	var.initialize(builder2);
+
+	mold::Variable cp(var);
+	mold::Variable cp2(var2);
+	ASSERT_TRUE(cp.has_data());
+	clay::State state = cp.get_state();
+	std::string got_uuid(state.data_.lock().get(),
+		state.shape_.n_elems() * clay::type_size(state.dtype_));
+	EXPECT_STREQ(builder2.uuid_.c_str(), got_uuid.c_str());
+	EXPECT_SHAPEQ(builder2.shape_, state.shape_);
+	EXPECT_EQ(builder2.dtype_, state.dtype_);
+
+	EXPECT_FALSE(cp2.has_data());
+
+	assign = var;
+	assign1 = var;
+	assign2 = var2;
+	ASSERT_TRUE(assign.has_data());
+	ASSERT_TRUE(assign1.has_data());
+	clay::State state2 = assign.get_state();
+	std::string got_uuid2(state2.data_.lock().get(),
+		state2.shape_.n_elems() * clay::type_size(state2.dtype_));
+	EXPECT_STREQ(builder2.uuid_.c_str(), got_uuid2.c_str());
+	EXPECT_SHAPEQ(builder2.shape_, state2.shape_);
+	EXPECT_EQ(builder2.dtype_, state2.dtype_);
+	clay::State state3 = assign1.get_state();
+	std::string got_uuid3(state3.data_.lock().get(),
+		state3.shape_.n_elems() * clay::type_size(state3.dtype_));
+	EXPECT_STREQ(builder2.uuid_.c_str(), got_uuid3.c_str());
+	EXPECT_SHAPEQ(builder2.shape_, state3.shape_);
+	EXPECT_EQ(builder2.dtype_, state3.dtype_);
+
+	EXPECT_FALSE(assign2.has_data());
+}
+
+
+TEST_F(VARIABLE, Move_C001)
+{
+	mock_builder builder(this);
+	mold::Variable assign;
+	mold::Variable assign2;
+	assign.initialize(builder);
+	assign2.initialize(builder);
+
+	mold::Variable var;
+	mold::Variable var2;
+
+	mock_builder builder2(this);
+	var.initialize(builder2);
+
+	mold::Variable cp(std::move(var));
+	mold::Variable cp2(std::move(var2));
+	ASSERT_TRUE(cp.has_data());
+	clay::State state = cp.get_state();
+	std::string got_uuid(state.data_.lock().get(),
+		state.shape_.n_elems() * clay::type_size(state.dtype_));
+	EXPECT_STREQ(builder2.uuid_.c_str(), got_uuid.c_str());
+	EXPECT_SHAPEQ(builder2.shape_, state.shape_);
+	EXPECT_EQ(builder2.dtype_, state.dtype_);
+
+	EXPECT_FALSE(cp2.has_data());
+	EXPECT_FALSE(var.has_data());
+	EXPECT_FALSE(var2.has_data());
+
+	assign = std::move(cp);
+	assign2 = std::move(cp2);
+	ASSERT_TRUE(assign.has_data());
+	clay::State state2 = assign.get_state();
+	std::string got_uuid2(state2.data_.lock().get(),
+		state2.shape_.n_elems() * clay::type_size(state2.dtype_));
+	EXPECT_STREQ(builder2.uuid_.c_str(), got_uuid2.c_str());
+	EXPECT_SHAPEQ(builder2.shape_, state2.shape_);
+	EXPECT_EQ(builder2.dtype_, state2.dtype_);
+
+	EXPECT_FALSE(assign2.has_data());
+	EXPECT_FALSE(cp.has_data());
+	EXPECT_FALSE(cp2.has_data());
+}
+
+
+TEST_F(VARIABLE, Data_C002)
 {
 	mold::Variable var;
 	mold::Variable var2;
@@ -149,7 +242,7 @@ TEST_F(VARIABLE, Data_C000)
 }
 
 
-TEST_F(VARIABLE, State_C001)
+TEST_F(VARIABLE, State_C003)
 {
 	mold::Variable var;
 	mock_observer* obs = new mock_observer(&var);
@@ -171,7 +264,7 @@ TEST_F(VARIABLE, State_C001)
 }
 
 
-TEST_F(VARIABLE, Assign_C002)
+TEST_F(VARIABLE, Assign_C004)
 {
 	mold::Variable var;
 	mock_observer* obs = new mock_observer(&var);
@@ -200,7 +293,7 @@ TEST_F(VARIABLE, Assign_C002)
 }
 
 
-TEST_F(VARIABLE, Derive_C003)
+TEST_F(VARIABLE, Derive_C005)
 {
 	mold::Variable var;
 	mold::Variable var2;

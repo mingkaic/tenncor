@@ -5,15 +5,21 @@ A001 - moving iNode move over audiences and
 A002 - upon deletion, trigger all audiences' deletion
 
 // CONSTANT BEHAVIOR
-B000 - always have data and get_state returns state set on construction
-B001 - derive returns 0 in constant type
+B000 - construct with nullptr, non-fully defined shape or bad type throws exception
+B001 - copy constructor copies over data, shape, and dtype of original
+B002 - always have data and get_state returns state set on construction
+B003 - derive returns 0 in constant type
 
 // VARIABLE BEHAVIOR
-C000 - has_data if initialized successful
-C001 - get_state throws error if never initialized
-C002 - assign from source updates data_,
+C000 - copy constructor copies over data, shape, and dtype of original if initialized
+		otherwise uninitialize copied target
+C001 - move constructor moves over data, shape, and dtype of original if initialized
+		otherwise uninitialize moved target
+C002 - has_data if initialized successful
+C003 - get_state throws error if never initialized
+C004 - assign from source updates data_,
 		throws error if assigning to uninitialized variable
-C003 - derive returns 1 in variable type if wrt is var else return 0,
+C005 - derive returns 1 in variable type if wrt is var else return 0,
 		throws error if deriving uninitialized variable
 
 // FUNCTOR BEHAVIOR

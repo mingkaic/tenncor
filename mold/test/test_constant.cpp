@@ -19,7 +19,45 @@ using namespace testutil;
 class CONSTANT : public fuzz_test {};
 
 
-TEST_F(CONSTANT, Data_B000)
+TEST_F(CONSTANT, Bad_B000)
+{
+	std::vector<size_t> clist = random_def_shape(this);
+	clay::Shape shape = clist;
+	clay::Shape part = make_partial(this, clist);
+	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
+	size_t nbytes = clay::type_size(dtype) * shape.n_elems();
+	std::shared_ptr<char> ptr = clay::make_char(nbytes);
+	
+	EXPECT_THROW(mold::Constant(nullptr, shape, dtype), std::exception);
+	EXPECT_THROW(mold::Constant(ptr, part, dtype), std::exception);
+	EXPECT_THROW(mold::Constant(ptr, shape, clay::DTYPE::BAD), std::exception);
+}
+
+
+TEST_F(CONSTANT, Copy_B001)
+{
+	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
+	clay::Shape shape = random_def_shape(this);
+	size_t nbytes = clay::type_size(dtype) * shape.n_elems();
+	std::string data = get_string(nbytes, "data");
+	std::shared_ptr<char> ptr = clay::make_char(nbytes);
+	memcpy(ptr.get(), data.c_str(), nbytes);
+
+	mold::Constant con(ptr, shape, dtype);
+	void* origdata = (void*)ptr.get();
+
+	mold::Constant cp(con);
+	clay::State cstate = cp.get_state();
+	EXPECT_SHAPEQ(shape, cstate.shape_);
+	EXPECT_EQ(dtype, cstate.dtype_);
+	const char* gotdata = cstate.data_.lock().get();
+	EXPECT_NE(origdata, (void*) gotdata);
+	std::string cgot(gotdata, nbytes);
+	EXPECT_STREQ(data.c_str(), cgot.c_str());
+}
+
+
+TEST_F(CONSTANT, Data_B002)
 {
 	bool doub = get_int(1, "doub", {0, 1})[0];
 	mold::iNode* node;
@@ -67,7 +105,7 @@ TEST_F(CONSTANT, Data_B000)
 }
 
 
-TEST_F(CONSTANT, Derive_B001)
+TEST_F(CONSTANT, Derive_B003)
 {
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	unsigned short bsize = clay::type_size(dtype);
