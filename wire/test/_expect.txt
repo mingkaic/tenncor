@@ -31,7 +31,13 @@ E000 - sets initialization in graph
 		and initialize with input shape
 
 // PLACEHOLDER BEHAVIOR
-F000 - assigning vector initializes tensor with input data vector.
+F000 - without providing a shape to placeholder on construction,
+		assign initializes placeholder with 1-D shape of vector length
+F001 - provided a partly defined shape to placeholder on construction,
+		assign initializes placeholder with best fit shape of the given shape
 		it guesses best fit shape for input data size,
-		failure to guess shape or vector size will not fit allocated shape,
-		throws error
+F002 - provided a fully defined shape to placeholder on construction,
+		assign initialize placeholder with defined shape.
+F003 - reassign on initialized placeholder throws error if vector is larger than shape
+		reassign on initialized placeholder throws error if type is different
+		otherwise reassign is successful

@@ -68,7 +68,8 @@ public:
 				<< n << " elements cannot be assigned to allcoated tensor with " 
 				<< state.shape_.n_elems() << " elements");
 		}
-		AssignIO assign(state);
+		std::string s((char*) &data[0], n * sizeof(T));
+		AssignIO assign(s, state.shape_, state.dtype_);
 		arg->assign(assign);
 		return *this;
 	}
@@ -76,12 +77,17 @@ public:
 private:
 	struct AssignIO final : public clay::iSource
 	{
-		AssignIO (clay::State state);
+		AssignIO (std::string data,
+			clay::Shape shape, clay::DTYPE dtype);
 
 		bool read_data (clay::State& dest) const override;
 
 	private:
-		clay::State state_;
+		std::string data_;
+
+		clay::Shape shape_;
+
+		clay::DTYPE dtype_;
 	};
 
 	struct RawBuilder : public clay::iBuilder

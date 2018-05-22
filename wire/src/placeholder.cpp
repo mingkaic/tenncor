@@ -112,17 +112,18 @@ Placeholder::Placeholder (clay::Shape shape, std::string label,
 		}
 	}) {}
 
-Placeholder::AssignIO::AssignIO (clay::State state) : state_(state) {}
+Placeholder::AssignIO::AssignIO (std::string data,
+	clay::Shape shape, clay::DTYPE dtype) :
+	data_(data), shape_(shape), dtype_(dtype) {}
 
 bool Placeholder::AssignIO::read_data (clay::State& dest) const
 {
-	bool success = dest.shape_.is_compatible_with(state_.shape_) &&
-		dest.dtype_ == state_.dtype_;
+	bool success = dest.shape_.is_compatible_with(shape_) &&
+		dest.dtype_ == dtype_;
 	if (success)
 	{
-		size_t nbytes = state_.shape_.n_elems() * clay::type_size(state_.dtype_);
 		std::memcpy((void*) dest.data_.lock().get(),
-			state_.data_.lock().get(), nbytes);
+			data_.c_str(), data_.size());
 	}
 	return success;
 }
