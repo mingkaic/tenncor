@@ -17,46 +17,81 @@
 using namespace testutil;
 
 
-class IDENTITY : public fuzz_test {};
+class IDENTIFIER : public fuzz_test {};
 
 
 struct mock_identifier : public wire::Identifier
 {
 	mock_identifier (wire::Graph* graph, mold::iNode* arg, std::string label) :
-        wire::Identifier(graph, arg, label) {}
+		wire::Identifier(graph, arg, label) {}
 
-    mold::iNode* get_node (void) { return wire::Identifier::get_node(); }
+	wire::Graph* get_graph (void) const { return graph_; }
+
+	mold::iNode* get_node (void) const { return arg_.get(); }
 };
 
 
-TEST_F(IDENTITY, Copy_)
+TEST_F(IDENTIFIER, Copy_C000)
 {
-    wire::Graph& graph = wire::Graph::get_global();
+	wire::Graph& graph = wire::Graph::get_global();
 	std::string label = get_string(16, "label");
 
-    mold::Variable* assvar = new mold::Variable();
-    mold::Variable* convar = new mold::Variable();
+	mold::Variable* assvar = new mold::Variable();
+	mold::Variable* convar = new mold::Variable();
 	mock_identifier assign(&graph, assvar, "bad_sample");
 	mock_identifier id(&graph, convar, label);
-    ASSERT_TRUE(graph.has_node(id.get_uid())) << "id not found in global";
+	ASSERT_TRUE(graph.has_node(id.get_uid())) << "id not found in global";
+	ASSERT_EQ(convar, id.get_node());
+	ASSERT_EQ(&graph, id.get_graph());
 
 	mock_identifier cp(id);
-    EXPECT_TRUE(graph.has_node(cp.get_uid())) << "cp not found in global";
-    EXPECT_STRNE(id.get_uid().c_str(), cp.get_uid().c_str());
-    EXPECT_STREQ(id.get_label().c_str(), cp.get_label().c_str());
-    EXPECT_NE(id.get_node(), cp.get_node());
+	EXPECT_TRUE(graph.has_node(cp.get_uid())) << "cp not found in global";
+	EXPECT_STRNE(id.get_uid().c_str(), cp.get_uid().c_str());
+	EXPECT_STREQ(label.c_str(), cp.get_label().c_str());
+	EXPECT_NE(convar, cp.get_node());
 
 	assign = id;
-    ASSERT_TRUE(graph.has_node(assign.get_uid())) << "assign not found in global";
-    EXPECT_STRNE(id.get_uid().c_str(), assign.get_uid().c_str());
-    EXPECT_STREQ(id.get_label().c_str(), assign.get_label().c_str());
-    EXPECT_NE(id.get_node(), assign.get_node());
+	ASSERT_TRUE(graph.has_node(assign.get_uid())) << "assign not found in global";
+	EXPECT_STRNE(id.get_uid().c_str(), assign.get_uid().c_str());
+	EXPECT_STREQ(label.c_str(), assign.get_label().c_str());
+	EXPECT_NE(convar, assign.get_node());
 }
 
 
-TEST_F(IDENTITY, Move_)
+TEST_F(IDENTIFIER, Move_C001)
 {
+	wire::Graph& graph = wire::Graph::get_global();
+	std::string label = get_string(16, "label");
 
+	mold::Variable* assvar = new mold::Variable();
+	mold::Variable* convar = new mold::Variable();
+	mock_identifier assign(&graph, assvar, "bad_sample");
+	mock_identifier id(&graph, convar, label);
+	ASSERT_TRUE(graph.has_node(id.get_uid())) << "id not found in global";
+	ASSERT_EQ(convar, id.get_node());
+	ASSERT_EQ(&graph, id.get_graph());
+
+	mock_identifier mv(std::move(id));
+	EXPECT_TRUE(graph.has_node(mv.get_uid())) << "mv not found in global";
+	EXPECT_STRNE(id.get_uid().c_str(), mv.get_uid().c_str());
+	EXPECT_STREQ(label.c_str(), mv.get_label().c_str());
+	EXPECT_EQ(convar, mv.get_node());
+	EXPECT_EQ(&graph, mv.get_graph());
+
+	EXPECT_FALSE(graph.has_node(id.get_uid()));
+	EXPECT_EQ(nullptr, id.get_node());
+	EXPECT_EQ(nullptr, id.get_graph());
+
+	assign = std::move(mv);
+	ASSERT_TRUE(graph.has_node(assign.get_uid())) << "assign not found in global";
+	EXPECT_STRNE(id.get_uid().c_str(), assign.get_uid().c_str());
+	EXPECT_STREQ(label.c_str(), assign.get_label().c_str());
+	EXPECT_EQ(convar, assign.get_node());
+	EXPECT_EQ(&graph, assign.get_graph());
+
+	EXPECT_FALSE(graph.has_node(mv.get_uid()));
+	EXPECT_EQ(nullptr, mv.get_node());
+	EXPECT_EQ(nullptr, mv.get_graph());
 }
 
 

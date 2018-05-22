@@ -24,72 +24,16 @@
 namespace wire
 {
 
-struct AssignIO final : public clay::iSource
-{
-	AssignIO (clay::State state) : state_(state) {}
-
-	bool read_data (clay::State& dest) const override
-	{
-		bool success = dest.shape_.is_compatible_with(state_.shape_) &&
-			dest.dtype_ == state_.dtype_;
-		if (success)
-		{
-			size_t nbytes = state_.shape_.n_elems() * clay::type_size(state_.dtype_);
-			std::memcpy(dest.data_.lock().get(), state_.data_.lock().get(), nbytes);
-		}
-		return success;
-	}
-
-private:
-	clay::State state_;
-};
-
-bool shape_fits (clay::Shape shape, size_t n)
-{
-	bool compatible = true;
-	// perfect fit
-	if (shape.is_fully_defined())
-	{
-		compatible = n == shape.n_elems();
-	}
-	else
-	{
-		size_t known = shape.n_known();
-		if (0 < known)
-		{
-			compatible = 0 == n % known;
-		}
-	}
-	return compatible;
-}
+bool shape_fits (clay::Shape shape, size_t n);
 
 class Placeholder : public Identifier
 {
 public:
 	Placeholder (std::string label,
-		Graph& graph = Graph::get_global()) :
-		Identifier(&graph, new mold::Variable(), label,
-		[](mold::Variable* var)
-		{
-			RawBuilder builder;
-			var->initialize(builder);
-		}) {}
+		Graph& graph = Graph::get_global());
 
 	Placeholder (clay::Shape shape, std::string label,
-		Graph& graph = Graph::get_global()) :
-		Identifier(&graph, new mold::Variable(), label,
-		[shape](mold::Variable* var)
-		{
-			RawBuilder builder;
-			if (shape.is_fully_defined())
-			{
-				var->initialize(builder, shape);
-			}
-			else
-			{
-				var->initialize(builder);
-			}
-		}) {}
+		Graph& graph = Graph::get_global());
 
 	Placeholder& operator = (const Placeholder&) = default;
 
@@ -105,27 +49,56 @@ public:
 	Placeholder& operator = (std::vector<T> data)
 	{
 		size_t n = data.size();
-		mold::Variable* arg = static_cast<mold::Variable*>(get());
+		mold::Variable* arg = static_cast<mold::Variable*>(arg_.get());
 		if (false == arg->has_data())
 		{
-			graph_->initialize(id->get_uid());
+			clay::DTYPE dtype = clay::get_type<T>();
+			graph_->initialize(get_uid(), [n, dtype](clay::iBuilder& b)
+			{
+				RawBuilder* rb = static_cast<RawBuilder*>(&b);
+
+				rb->limit_ = n;
+				rb->dtype_ = dtype;
+			});
 		}
 		clay::State state = arg->get_state();
 		if (false == shape_fits(state.shape_, n))
 		{
-			throw std::logic_error(nnutils::formatter() << "data with " 
+			throw std::logic_error(ioutil::Stream() << "data with " 
 				<< n << " elements cannot be assigned to allcoated tensor with " 
-				<< data_->get_shape().n_elems() << " elements");
+				<< state.shape_.n_elems() << " elements");
 		}
 		AssignIO assign(state);
 		arg->assign(assign);
-		
-		for (clay::iObserver* aud : audience_)
-		{
-			aud->update();
-		}
 		return *this;
 	}
+
+private:
+	struct AssignIO final : public clay::iSource
+	{
+		AssignIO (clay::State state);
+
+		bool read_data (clay::State& dest) const override;
+
+	private:
+		clay::State state_;
+	};
+
+	struct RawBuilder : public clay::iBuilder
+	{
+		clay::TensorPtrT get (void) const override;
+
+		clay::TensorPtrT get (clay::Shape shape) const override;
+
+		size_t limit_;
+		clay::DTYPE dtype_;
+
+	protected:
+		clay::iBuilder* clone_impl (void) const override
+		{
+			return new RawBuilder(*this);
+		}
+	};
 };
 
 }

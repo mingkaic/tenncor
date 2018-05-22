@@ -49,16 +49,15 @@ Identifier* Graph::get_node (std::string id) const
 }
 
 
-void Graph::initialize_all (void)
+void Graph::initialize_all (SetBuilderF setter)
 {
 	for (auto upair : uninits_)
 	{
 		optional<Identifier*> id = adjmap_.get(upair.first);
 		if ((bool) id)
 		{
-			mold::Variable* var = static_cast<mold::Variable*>(
-				(*id)->get_node());
-			upair.second(var);
+			mold::iNode* nod = (*id)->arg_.get();
+			upair.second(static_cast<mold::Variable*>(nod), setter);
 		}
 		else
 		{
@@ -68,15 +67,14 @@ void Graph::initialize_all (void)
 	uninits_.clear();
 }
 
-void Graph::initialize (std::string id)
+void Graph::initialize (std::string id, SetBuilderF setter)
 {
 	optional<Identifier*> ider = adjmap_.get(id);
 	auto upair = uninits_.find(id);
 	if ((bool) ider && uninits_.end() != upair)
 	{
-		mold::Variable* var = static_cast<mold::Variable*>(
-			(*ider)->get_node());
-		upair->second(var);
+		mold::iNode* nod = (*ider)->arg_.get();
+		upair->second(static_cast<mold::Variable*>(nod), setter);
 	}
 	else
 	{

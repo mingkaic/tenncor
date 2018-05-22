@@ -24,9 +24,17 @@ struct iBuilder
 {
 	virtual ~iBuilder (void) = default;
 
+	iBuilder* clone (void) const
+	{
+		return clone_impl();
+	}
+
 	virtual TensorPtrT get (void) const = 0;
 
 	virtual TensorPtrT get (Shape shape) const = 0;
+
+protected:
+	virtual iBuilder* clone_impl (void) const = 0;
 };
 
 }

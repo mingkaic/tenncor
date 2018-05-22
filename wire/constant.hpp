@@ -64,8 +64,7 @@ struct Constant : public Identifier
 
 	Constant (std::shared_ptr<char> data, clay::Shape shape,
 		clay::DTYPE dtype, std::string label,
-		Graph& graph = Graph::get_global()) :
-		Identifier(&graph, new mold::Constant(data, shape, dtype), label) {}
+		Graph& graph = Graph::get_global());
 };
 
 }

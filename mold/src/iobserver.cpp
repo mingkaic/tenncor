@@ -17,6 +17,10 @@ iObserver::iObserver (std::vector<iNode*> args) :
 {
 	for (iNode*& arg : args_)
 	{
+		if (nullptr == arg)
+		{
+			throw std::exception();
+		}
 		arg->add(this);
 	}
 }

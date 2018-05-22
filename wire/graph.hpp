@@ -26,7 +26,9 @@
 namespace wire
 {
 
-using InitF = std::function<void(mold::Variable*)>;
+using SetBuilderF = std::function<void(clay::iBuilder&)>;
+
+using InitF = std::function<void(mold::Variable*, SetBuilderF)>;
 
 class Identifier;
 
@@ -53,9 +55,9 @@ public:
 	Identifier* get_node (std::string id) const;
 
 
-	void initialize_all (void);
+	void initialize_all (SetBuilderF setter = SetBuilderF());
 
-	void initialize (std::string id);
+	void initialize (std::string id, SetBuilderF setter = SetBuilderF());
 
 protected:
 	Graph (void) = default;

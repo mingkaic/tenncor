@@ -1,4 +1,4 @@
-// TENSORSHAPE
+// TENSORSHAPE BEHAVIOR
 A000 - vector constructor and vector assignment, does not override big 4 
 A001 - index accessor returns value at input dimension. 
 		accessing dimension greater or equal to rank throws std::out_of_range
@@ -21,7 +21,7 @@ A012 - coord_from_idx converts coordinates C to sequential index I on a Shape S 
 		I = SIGMA_i=0:n(C[i]*PI_j=0:i-1(S[i])) where n is rank of S, and S[-1] is 1
 		flat_idx remap coordinate C on a Shape equals the initial index converted to C (reverse of A015)
 
-// TYPE
+// TYPE BEHAVIOR
 B000 - type_size returns the number of bytes taken by specified type
 		throws error when requesting unsupported type
 B001 - get_type returns type mapped by the template argument
@@ -29,7 +29,7 @@ B002 - convert with string-vector input turns vector data to string of otype, re
 B003 - convert with vector-string input turns string data of itype to vector, return false if bad itype
 B004 - convert with string-string input converts between itype and otype, return false if otype or itype
 
-// TENSOR
+// TENSOR BEHAVIOR
 C000 - constructor throws error if data is nullptr, shape is not fully defined, or type is BAD,
 		does not override default big 4
 C001 - total_bytes returns the size of allocated bytes in data

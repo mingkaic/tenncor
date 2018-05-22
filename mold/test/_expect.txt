@@ -32,3 +32,10 @@ D003 - has_data returns false if never initialized, otherwise true
 D004 - get_state throws error if has_data returns false
 D005 - derive calls bwd_ to construct gradient tree
 D006 - initialize and update propagate up for all audiences
+
+// SINK BEHAVIOR
+E000 - copy deep copies observed arg if not expired,
+ 		otherwise expire sink
+E001 - move moves observed arg if not expired, otherwise expire sink
+E002 - assign inode to sink changes observed node
+E002 - expired returns true when observed arg is deleted

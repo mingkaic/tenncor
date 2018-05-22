@@ -12,8 +12,6 @@
  *
  */
 
-#include "mold/ondeath.hpp"
-
 #include "wire/graph.hpp"
 
 #pragma once
@@ -23,14 +21,10 @@
 namespace wire
 {
 
-//! observes and takes ownership of arg
-class Identifier : private mold::OnDeath
+//! wraps iNode and supplies = data
+class Identifier
 {
 public:
-	Identifier (Graph* graph, mold::iNode* arg, std::string label);
-
-	Identifier (Graph* graph, mold::iNode* arg, std::string label, InitF init);
-
 	virtual ~Identifier (void);
 
 	Identifier (const Identifier& other);
@@ -49,40 +43,31 @@ public:
 
 	bool has_data (void) const
 	{
-		return get()->has_data();
+		return arg_->has_data();
 	}
 
 	clay::State get_state (void) const
 	{
-		return get()->get_state();
+		return arg_->get_state();
 	}
 
 	Identifier* derive (Identifier* wrt)
 	{
-		mold::iNode* target = wrt->get();
-		return new Identifier(graph_, get()->derive(target), this->label_ + "_grad");
+		return new Identifier(graph_, arg_->derive(wrt->arg_.get()),
+			this->label_ + "_grad");
 	}
 
 protected:
+	Identifier (Graph* graph, mold::iNode* arg, std::string label);
+
+	Identifier (Graph* graph, mold::iNode* arg, std::string label, InitF init);
+
 	Graph* graph_;
 
-	mold::iNode* get_node (void) const
-	{
-		return get();
-	}
+	std::unique_ptr<mold::iNode> arg_;
 
 private:
-	friend mold::TermF bind_id (Identifier* id);
-
 	friend class Graph;
-
-	void disassoc (std::string id)
-	{
-		if (graph_)
-		{
-			graph_->disassociate(id);
-		}
-	}
 
 	std::string label_;
 

@@ -18,7 +18,7 @@ using namespace testutil;
 class CONSTANT : public fuzz_test {};
 
 
-TEST_F(CONSTANT, GetScalar_B000)
+TEST_F(CONSTANT, GetScalar_D000)
 {
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	unsigned short bsize = clay::type_size(dtype);
@@ -75,7 +75,7 @@ TEST_F(CONSTANT, GetScalar_B000)
 }
 
 
-TEST_F(CONSTANT, GetVec_B001)
+TEST_F(CONSTANT, GetVec_D001)
 {
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	clay::Shape shape = random_def_shape(this);
@@ -171,45 +171,6 @@ TEST_F(CONSTANT, GetVec_B001)
 
 	delete v;
 }
-
-
-TEST_F(CONSTANT, Copy_B002)
-{
-	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
-	clay::DTYPE dtype2 = (clay::DTYPE) get_int(1, "dtype2", {1, clay::DTYPE::_SENTINEL - 1})[0];
-	clay::Shape shape = random_def_shape(this);
-	clay::Shape shape2 = random_def_shape(this);
-	size_t nbytes = clay::type_size(dtype) * shape.n_elems();
-	std::string data = get_string(nbytes, "data");
-	std::string label = get_string(16, "label");
-	std::shared_ptr<char> ptr = clay::make_char(nbytes);
-	std::shared_ptr<char> ptr2 = clay::make_char(nbytes);
-	memcpy(ptr.get(), data.c_str(), nbytes);
-
-	wire::Constant assign(ptr2, shape2, dtype2, "bad_sample");
-	wire::Constant con(ptr, shape, dtype, label);
-	void* origdata = (void*)ptr.get();
-
-	wire::Constant cp(con);
-	clay::State cstate = cp.get_state();
-	EXPECT_SHAPEQ(shape, cstate.shape_);
-	EXPECT_EQ(dtype, cstate.dtype_);
-	const char* gotdata = cstate.data_.lock().get();
-	EXPECT_NE(origdata, (void*) gotdata);
-	std::string cgot(gotdata, nbytes);
-	EXPECT_STREQ(data.c_str(), cgot.c_str());
-
-	assign = con;
-	clay::State astate = assign.get_state();
-	EXPECT_SHAPEQ(shape, astate.shape_);
-	EXPECT_EQ(dtype, astate.dtype_);
-	std::string agot(astate.data_.lock().get(), nbytes);
-	EXPECT_STREQ(data.c_str(), agot.c_str());
-}
-
-
-TEST_F(CONSTANT, Move_B003)
-{}
 
 
 #endif /* DISABLE_CONSTANT_TEST */

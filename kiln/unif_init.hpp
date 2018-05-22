@@ -42,6 +42,11 @@ struct UnifInit final : public Builder
 	}
 
 protected:
+	clay::iBuilder* clone_impl (void) const override
+	{
+		return new UnifInit(*this);
+	}
+
 	void init (char* dest, size_t nbytes) const override;
 
 private:

@@ -98,13 +98,13 @@ struct mock_builder final : public clay::iBuilder, public testify::mocker
 		std::memcpy(ptr_.get(), uuid_.c_str(), nbytes);
 	}
 
-	virtual clay::TensorPtrT get (void) const
+	clay::TensorPtrT get (void) const override
 	{
 		label_incr("get");
 		return clay::TensorPtrT(new clay::Tensor(ptr_, shape_, dtype_));
 	}
 
-	virtual clay::TensorPtrT get (clay::Shape shape) const
+	clay::TensorPtrT get (clay::Shape shape) const override
 	{
 		label_incr("getwshape");
 		ioutil::Stream str;
@@ -117,6 +117,12 @@ struct mock_builder final : public clay::iBuilder, public testify::mocker
 	clay::DTYPE dtype_;
 	std::string uuid_;
 	std::shared_ptr<char> ptr_;
+
+protected:
+	clay::iBuilder* clone_impl (void) const override
+	{
+		return new mock_builder(*this);
+	}
 };
 
 

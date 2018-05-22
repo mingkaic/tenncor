@@ -53,6 +53,11 @@ public:
 	}
 
 protected:
+	clay::iBuilder* clone_impl (void) const override
+	{
+		return new ConstInit(*this);
+	}
+
 	void init (char* dest, size_t nbytes) const override;
 
 private:

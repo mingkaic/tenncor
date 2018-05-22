@@ -13,7 +13,7 @@
  *
  */
 
-#include "mold/ondeath.hpp"
+#include "mold/inode.hpp"
 
 #pragma once
 #ifndef MOLD_SINK_HPP
@@ -44,6 +44,14 @@ public:
 	bool expired (void) const;
 
 private:
+	//! associates node to function,
+	//! trigger function when observed node dies
+	struct OnDeath;
+
+	void copy_helper (const Sink& other);
+
+	void move_helper (Sink&& other);
+
 	void clear (void);
 
 	const OnDeath* death_sink_;

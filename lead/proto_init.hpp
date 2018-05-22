@@ -28,9 +28,15 @@ class PbBuilder final : public clay::iBuilder
 public:
 	PbBuilder (const TensorPb& pb);
 
-	std::unique_ptr<clay::Tensor> get (void) const override;
+	clay::TensorPtrT get (void) const override;
 
-	std::unique_ptr<clay::Tensor> get (clay::Shape shape) const override;
+	clay::TensorPtrT get (clay::Shape shape) const override;
+
+protected:
+	clay::iBuilder* clone_impl (void) const override
+	{
+		return new PbBuilder(*this);
+	}
 
 private:
 	TensorPb pb_;

@@ -1,4 +1,4 @@
-// ORDERED_MAP
+// ORDERED_MAP BEHAVIOR
 A000 - get without put returns empty optional
 		get after put returns optional containing put value
 		put after put returns false
@@ -12,13 +12,26 @@ A003 - replace puts the new entry to the end of order,
 
 // GRAPH
 
-// IDENTIFIER
-000 - copying identity creates separate copies of the observed node
+// IDENTIFIER BEHAVIOR
+C000 - copying identifier creates separate copies of the observed node
 		uids are different between copies
-		labels are copied over
+		label is copied over
+C001 - moving identifier moves the observed node
+		uids are different between copies
+		label is moved over
 
-// CONSTANT
-B000 - get constant as scalar creates constant of shape {1} and scalar provided
+// CONSTANT BEHAVIOR
+D000 - get constant as scalar creates constant of shape {1} and scalar provided
 		get of bad type throws error
-B001 - get vector constant creates constant of shape and data provided
+D001 - get vector constant creates constant of shape and data provided
 		get of bad type throws error
+
+// VARIABLE BEHAVIOR
+E000 - sets initialization in graph
+		and initialize with input shape
+
+// PLACEHOLDER BEHAVIOR
+F000 - assigning vector initializes tensor with input data vector.
+		it guesses best fit shape for input data size,
+		failure to guess shape or vector size will not fit allocated shape,
+		throws error

@@ -1,4 +1,4 @@
-// ALL_INIT
+// ALL_INIT BEHAVIORS
 A000 - set invalid type throws error regardless of construction (default, validate, string inited)
 A001 - get from unset (default and Validator constructor) will return nullptr
 A002 - get when set a rejected type (in Validator) will return nullptr
@@ -6,7 +6,7 @@ A003 - get when set an incompatible shape (in Validator) will return nullptr
 A004 - get without shape specifier will return nullptr if allowed is not fully defined
 		otherwise return Tensor of shape allowed
 
-// SPECIAL_INIT
+// SPECIAL_INIT BEHAVIORS
 B000 - const_init get tensor initialized with set values repeated to fit shape
 	default/string constructor with no validator or
 	with validator and non-rejected type and compatible shape

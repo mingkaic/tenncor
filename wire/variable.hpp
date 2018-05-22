@@ -28,27 +28,10 @@ class Variable : public Identifier
 {
 public:
 	Variable (const clay::iBuilder& builder, std::string label,
-		Graph& graph = Graph::get_global()) :
-		Identifier(&graph, new mold::Variable(), label,
-		[builder](mold::Variable* var)
-		{
-			var->initialize(builder);
-		}) {}
+		Graph& graph = Graph::get_global());
 
 	Variable (const clay::iBuilder& builder, clay::Shape shape,
-		std::string label, Graph& graph = Graph::get_global()) :
-		Identifier(&graph, new mold::Variable(), label,
-		[builder, shape](mold::Variable* var)
-		{
-			if (shape.is_fully_defined())
-			{
-				var->initialize(builder, shape);
-			}
-			else
-			{
-				var->initialize(builder);
-			}
-		}) {}
+		std::string label, Graph& graph = Graph::get_global());
 };
 
 }
