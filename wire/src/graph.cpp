@@ -48,16 +48,14 @@ Identifier* Graph::get_node (std::string id) const
 	return out;
 }
 
-
-void Graph::initialize_all (SetBuilderF setter)
+void Graph::initialize_all (void)
 {
-	for (auto upair : uninits_)
+	for (auto& upair : uninits_)
 	{
 		optional<Identifier*> id = adjmap_.get(upair.first);
 		if ((bool) id)
 		{
-			mold::iNode* nod = (*id)->arg_.get();
-			upair.second(static_cast<mold::Variable*>(nod), setter);
+			unsafe_init(*id, *upair.second.get());
 		}
 		else
 		{
@@ -67,14 +65,13 @@ void Graph::initialize_all (SetBuilderF setter)
 	uninits_.clear();
 }
 
-void Graph::initialize (std::string id, SetBuilderF setter)
+void Graph::initialize (std::string id)
 {
 	optional<Identifier*> ider = adjmap_.get(id);
 	auto upair = uninits_.find(id);
 	if ((bool) ider && uninits_.end() != upair)
 	{
-		mold::iNode* nod = (*ider)->arg_.get();
-		upair->second(static_cast<mold::Variable*>(nod), setter);
+		unsafe_init(*ider, *(upair->second.get()));
 	}
 	else
 	{
@@ -101,9 +98,24 @@ void Graph::disassociate (std::string id)
 	}
 }
 
-void Graph::add_uninit (std::string uid, InitF init)
+void Graph::unsafe_init (Identifier* id, clay::iBuilder& builder)
 {
-	uninits_[uid] = init;
+	mold::Variable* var = static_cast<mold::Variable*>(id->arg_.get());
+	clay::Shape allowed;
+	auto it = alloweds_.find(id->get_uid());
+	if (alloweds_.end() != it)
+	{
+		allowed = it->second;
+		alloweds_.erase(it);
+	}
+	if (allowed.is_fully_defined())
+	{
+		var->initialize(builder, allowed);
+	}
+	else
+	{
+		var->initialize(builder);
+	}
 }
 
 }

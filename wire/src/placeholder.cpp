@@ -60,57 +60,18 @@ static optional<clay::Shape> guess_shape (clay::Shape shape, size_t limit)
 	return bestshape;
 }
 
-bool shape_fits (clay::Shape shape, size_t n)
+Placeholder::Placeholder (std::string label, Graph& graph) :
+	Identifier(&graph, new mold::Variable(), label)
 {
-	bool compatible = true;
-	// perfect fit
-	if (shape.is_fully_defined())
-	{
-		compatible = n == shape.n_elems();
-	}
-	else
-	{
-		size_t known = shape.n_known();
-		if (0 < known)
-		{
-			compatible = 0 == n % known;
-		}
-	}
-	return compatible;
+	graph_->alloweds_[get_uid()] = clay::Shape();
 }
-
-Placeholder::Placeholder (std::string label,
-	Graph& graph) :
-	Identifier(&graph, new mold::Variable(), label,
-	[](mold::Variable* var, SetBuilderF setter)
-	{
-		RawBuilder builder;
-		if (setter)
-		{
-			setter(builder);
-		}
-		var->initialize(builder);
-	}) {}
 
 Placeholder::Placeholder (clay::Shape shape, std::string label,
 	Graph& graph) :
-	Identifier(&graph, new mold::Variable(), label,
-	[shape](mold::Variable* var, SetBuilderF setter)
-	{
-		RawBuilder builder;
-		if (setter)
-		{
-			setter(builder);
-		}
-		if (shape.is_fully_defined())
-		{
-			var->initialize(builder, shape);
-		}
-		else
-		{
-			var->initialize(builder);
-		}
-	}) {}
+	Identifier(&graph, new mold::Variable(), label)
+{
+	graph_->alloweds_[get_uid()] = shape;
+}
 
 Placeholder::AssignIO::AssignIO (std::string data,
 	clay::Shape shape, clay::DTYPE dtype) :

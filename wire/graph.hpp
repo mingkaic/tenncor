@@ -26,10 +26,6 @@
 namespace wire
 {
 
-using SetBuilderF = std::function<void(clay::iBuilder&)>;
-
-using InitF = std::function<void(mold::Variable*, SetBuilderF)>;
-
 class Identifier;
 
 class Graph
@@ -55,27 +51,38 @@ public:
 	Identifier* get_node (std::string id) const;
 
 
-	void initialize_all (SetBuilderF setter = SetBuilderF());
+	void initialize_all (void);
 
-	void initialize (std::string id, SetBuilderF setter = SetBuilderF());
+	void initialize (std::string id);
+
+	size_t n_uninit (void) const
+	{
+		return uninits_.size();
+	}
 
 protected:
-	Graph (void) = default;
-
 	friend class Identifier;
+
+	friend class Variable;
+
+	friend class Placeholder;
+
+	Graph (void) = default;
 
 	std::string associate (Identifier* id);
 
 	void disassociate (std::string id);
 
-	void add_uninit (std::string uid, InitF init);
+	std::unordered_map<std::string, std::unique_ptr<clay::iBuilder>> uninits_;
+
+	std::unordered_map<std::string, clay::Shape> alloweds_;
 
 private:
+	void unsafe_init (Identifier* id, clay::iBuilder& builder);
+
 	std::string gid_ = puid(this);
 
 	OrderedMap<std::string, Identifier*> adjmap_;
-
-	std::unordered_map<std::string, InitF> uninits_;
 };
 
 }

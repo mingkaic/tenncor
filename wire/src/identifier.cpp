@@ -13,17 +13,9 @@ namespace wire
 {
 
 Identifier::Identifier (Graph* graph, mold::iNode* arg, std::string label) :
-	graph_(graph), arg_(arg), label_(label)
+	graph_(graph), arg_(arg), label_(label), uid_(graph_->associate(this))
 {
 	assert(nullptr != arg);
-	uid_ = graph_->associate(this);
-}
-
-Identifier::Identifier (Graph* graph, mold::iNode* arg, std::string label,
-	InitF init) :
-	Identifier(graph, arg, label)
-{
-	graph_->add_uninit(uid_, init);
 }
 
 Identifier::~Identifier (void)
@@ -36,18 +28,14 @@ Identifier::~Identifier (void)
 
 Identifier::Identifier (const Identifier& other) :
 	graph_(other.graph_), arg_(other.arg_->clone()),
-	label_(other.label_)
-{
-	uid_ = graph_->associate(this);
-}
+	label_(other.label_), uid_(graph_->associate(this)) {}
 
 Identifier::Identifier (Identifier&& other) :
 	graph_(std::move(other.graph_)), arg_(std::move(other.arg_)),
-	label_(std::move(other.label_))
+	label_(std::move(other.label_)), uid_(graph_->associate(this))
 {
 	graph_->disassociate(other.uid_);
 	other.graph_ = nullptr;
-	uid_ = graph_->associate(this);
 }
 
 Identifier& Identifier::operator = (const Identifier& other)

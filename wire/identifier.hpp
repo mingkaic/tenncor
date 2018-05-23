@@ -60,8 +60,6 @@ public:
 protected:
 	Identifier (Graph* graph, mold::iNode* arg, std::string label);
 
-	Identifier (Graph* graph, mold::iNode* arg, std::string label, InitF init);
-
 	Graph* graph_;
 
 	std::unique_ptr<mold::iNode> arg_;

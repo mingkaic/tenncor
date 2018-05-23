@@ -24,8 +24,6 @@
 namespace wire
 {
 
-bool shape_fits (clay::Shape shape, size_t n);
-
 class Placeholder : public Identifier
 {
 public:
@@ -53,13 +51,23 @@ public:
 		if (false == arg->has_data())
 		{
 			clay::DTYPE dtype = clay::get_type<T>();
-			graph_->initialize(get_uid(), [n, dtype](clay::iBuilder& b)
+			std::shared_ptr<clay::iBuilder> bptr;
+			auto it = graph_->alloweds_.find(get_uid());
+			clay::Shape allowed;
+			if (graph_->alloweds_.end() != it)
 			{
-				RawBuilder* rb = static_cast<RawBuilder*>(&b);
-
-				rb->limit_ = n;
-				rb->dtype_ = dtype;
-			});
+				allowed = it->second;
+				graph_->alloweds_.erase(it);
+			}
+			RawBuilder builder(n, dtype);
+			if (allowed.is_fully_defined())
+			{
+				arg->initialize(builder, allowed);
+			}
+			else
+			{
+				arg->initialize(builder);
+			}
 		}
 		// assert(state.shape_.is_fully_defined());
 		clay::State state = arg->get_state();
@@ -91,17 +99,22 @@ private:
 		clay::DTYPE dtype_;
 	};
 
-	struct RawBuilder : public clay::iBuilder
+	struct RawBuilder final : public clay::iBuilder
 	{
+		RawBuilder (size_t limit, clay::DTYPE dtype) :
+			limit_(limit), dtype_(dtype) {}
+
 		clay::TensorPtrT get (void) const override;
 
 		clay::TensorPtrT get (clay::Shape shape) const override;
 
-		size_t limit_;
-		clay::DTYPE dtype_;
-
 	protected:
 		clay::iBuilder* clone_impl (void) const override;
+
+	private:
+		size_t limit_;
+
+		clay::DTYPE dtype_;
 	};
 };
 
