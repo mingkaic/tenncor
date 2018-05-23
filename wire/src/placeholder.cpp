@@ -149,6 +149,11 @@ clay::TensorPtrT Placeholder::RawBuilder::get (clay::Shape shape) const
 	return clay::TensorPtrT(new clay::Tensor(ptr, *oshape, dtype_));
 }
 
+clay::iBuilder* Placeholder::RawBuilder::clone_impl (void) const
+{
+	return new RawBuilder(*this);
+}
+
 }
 
 #endif

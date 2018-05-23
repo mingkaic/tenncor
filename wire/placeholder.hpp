@@ -61,8 +61,9 @@ public:
 				rb->dtype_ = dtype;
 			});
 		}
+		// assert(state.shape_.is_fully_defined());
 		clay::State state = arg->get_state();
-		if (false == shape_fits(state.shape_, n))
+		if (n > state.shape_.n_elems())
 		{
 			throw std::logic_error(ioutil::Stream() << "data with " 
 				<< n << " elements cannot be assigned to allcoated tensor with " 
@@ -100,10 +101,7 @@ private:
 		clay::DTYPE dtype_;
 
 	protected:
-		clay::iBuilder* clone_impl (void) const override
-		{
-			return new RawBuilder(*this);
-		}
+		clay::iBuilder* clone_impl (void) const override;
 	};
 };
 
