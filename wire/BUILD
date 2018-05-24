@@ -22,8 +22,7 @@ cc_library(
     copts = [ "-std=c++14" ],
     deps = [
         "//:ioutil",
-        "//clay:clay",
-        "//mold:mold",
+        "//slip:slip",
     ],
 )
 

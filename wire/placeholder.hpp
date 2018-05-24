@@ -4,7 +4,7 @@
  *  wire
  *
  *  Purpose:
- *  extend variable with vector assignment
+ *  variable wrapper with vector assignment
  *
  *  Created by Mingkai Chen on 2016-11-08
  *  Copyright © 2018 Mingkai Chen. All rights reserved.

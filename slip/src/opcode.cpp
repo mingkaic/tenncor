@@ -1,0 +1,57 @@
+//
+//  opcode.cpp
+//  slip
+//
+
+#include "slip/opcode.hpp"
+
+#ifdef SLIP_OPCODE_HPP
+
+namespace slip
+{
+
+#define OP_ASSOC(CODE) std::pair<OPCODE,std::string>{CODE, #CODE}
+
+std::unordered_map<OPCODE,std::string> opnames =
+{
+    OP_ASSOC(ABS),
+	OP_ASSOC(NEG),
+	OP_ASSOC(NOT),
+	OP_ASSOC(SIN),
+	OP_ASSOC(COS),
+	OP_ASSOC(TAN),
+	OP_ASSOC(EXP),
+	OP_ASSOC(LOG),
+	OP_ASSOC(SQRT),
+	OP_ASSOC(ROUND),
+	OP_ASSOC(POW),
+	OP_ASSOC(ADD),
+	OP_ASSOC(SUB),
+	OP_ASSOC(MUL),
+	OP_ASSOC(DIV),
+	OP_ASSOC(EQ),
+	OP_ASSOC(NE),
+	OP_ASSOC(GT),
+	OP_ASSOC(LT),
+	OP_ASSOC(BINO),
+	OP_ASSOC(UNIF),
+	OP_ASSOC(NORM),
+	OP_ASSOC(TRANSPOSE),
+	OP_ASSOC(FLIP),
+	OP_ASSOC(ARGMAX),
+	OP_ASSOC(RMAX),
+	OP_ASSOC(RSUM),
+	OP_ASSOC(EXPAND),
+	OP_ASSOC(N_ELEMS),
+	OP_ASSOC(N_DIMS),
+	OP_ASSOC(MATMUL),
+	OP_ASSOC(INJACOBIAN),
+	OP_ASSOC(OUTJACOBIAN),
+	OP_ASSOC(JACOBIANLEFT),
+	OP_ASSOC(JACOBIANRIGHT),
+	std::pair<OPCODE,std::string>{_SENTINEL, ""}
+};
+
+}
+
+#endif

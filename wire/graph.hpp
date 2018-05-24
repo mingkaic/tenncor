@@ -1,6 +1,6 @@
 /*!
  *
- *  Graph.hpp
+ *  graph.hpp
  *  wire
  *
  *  Purpose:
@@ -63,7 +63,7 @@ public:
 protected:
 	friend class Identifier;
 
-	friend class Variable;
+	friend struct Variable;
 
 	friend class Placeholder;
 

@@ -16,11 +16,14 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "kiln",
+    name = "slip",
     hdrs = glob([ "*.hpp" ]),
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
-    deps = [ "//slip:slip" ],
+    deps = [
+        "//:ioutil",
+        "//mold:mold",
+    ],
 )
 
 ######### TEST #########
@@ -30,7 +33,7 @@ cc_test(
     size = "small",
     srcs = glob([ "test/*.cpp" ]),
     deps = [
-        "//kiln:kiln",
+        "//slip:slip",
         "//:fuzzutil",
     ],
     linkstatic = 1,

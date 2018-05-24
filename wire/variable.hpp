@@ -4,7 +4,7 @@
  *  wire
  *
  *  Purpose:
- *  extend variable with vector assignment
+ *  mold variable wrapper
  *
  *  Created by Mingkai Chen on 2016-11-08
  *  Copyright © 2018 Mingkai Chen. All rights reserved.
@@ -24,9 +24,8 @@
 namespace wire
 {
 
-class Variable : public Identifier
+struct Variable : public Identifier
 {
-public:
 	Variable (const clay::iBuilder& builder, std::string label,
 		Graph& graph = Graph::get_global());
 

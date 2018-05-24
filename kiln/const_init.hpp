@@ -58,7 +58,7 @@ protected:
 		return new ConstInit(*this);
 	}
 
-	void init (char* dest, size_t nbytes) const override;
+	clay::TensorPtrT build (clay::Shape shape) const override;
 
 private:
 	std::string data_;

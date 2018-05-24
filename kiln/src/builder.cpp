@@ -30,10 +30,7 @@ std::unique_ptr<clay::Tensor> Builder::get (clay::Shape shape) const
 	std::unique_ptr<clay::Tensor> out = nullptr;
 	if (validate_.support(shape, dtype_))
 	{
-		size_t nbytes = shape.n_elems() * clay::type_size(dtype_);
-		std::shared_ptr<char> data = clay::make_char(nbytes);
-		this->init(data.get(), nbytes);
-		out = std::make_unique<clay::Tensor>(data, shape, dtype_);
+		out = build(shape);
 	}
 	return out;
 }

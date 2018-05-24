@@ -47,7 +47,7 @@ protected:
 		return new NormInit(*this);
 	}
 
-	void init (char* dest, size_t nbytes) const override;
+	clay::TensorPtrT build (clay::Shape shape) const override;
 
 private:
 	std::string mean_;

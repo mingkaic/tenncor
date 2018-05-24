@@ -58,6 +58,8 @@ public:
 	}
 
 protected:
+	friend class Functor;
+
 	Identifier (Graph* graph, mold::iNode* arg, std::string label);
 
 	Graph* graph_;

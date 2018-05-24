@@ -34,7 +34,7 @@ public:
 	clay::TensorPtrT get (clay::Shape shape) const override;
 
 protected:
-	virtual void init (char* dest, size_t nbytes) const = 0;
+	virtual clay::TensorPtrT build (clay::Shape shape) const = 0;
 
 	clay::DTYPE dtype_ = clay::DTYPE::BAD;
 
