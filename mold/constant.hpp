@@ -27,7 +27,7 @@ class Constant final : public iNode
 public:
 	Constant (std::shared_ptr<char> data,
 		clay::Shape shape, clay::DTYPE type);
-	
+
 	Constant (const Constant& other) : state_(other.state_)
 	{
 		size_t nbytes = state_.shape_.n_elems() * clay::type_size(state_.dtype_);
@@ -52,8 +52,6 @@ public:
 
 	clay::State get_state (void) const override;
 
-	iNode* derive (iNode* wrt) override;
-
 protected:
 	iNode* clone_impl (void) const override
 	{
@@ -65,8 +63,6 @@ private:
 
 	std::shared_ptr<char> data_;
 };
-
-Constant* make_one (clay::DTYPE dtype);
 
 }
 

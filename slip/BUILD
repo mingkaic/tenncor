@@ -17,7 +17,7 @@ filegroup(
 
 cc_library(
     name = "slip",
-    hdrs = glob([ "*.hpp" ]),
+    hdrs = glob([ "*.hpp", "ipp/*.ipp" ]),
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
     deps = [

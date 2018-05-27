@@ -10,7 +10,7 @@
 namespace clay
 {
 
-State::State (std::weak_ptr<const char> data, Shape shape, DTYPE dtype) : 
+State::State (std::weak_ptr<char> data, Shape shape, DTYPE dtype) : 
 	data_(data), shape_(shape), dtype_(dtype) {}
 
 }

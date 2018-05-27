@@ -13,23 +13,22 @@
 namespace mold
 {
 
-Functor::Functor (std::vector<iNode*> args, OperateIO fwd, GradF bwd) :
-	iObserver(args), fwd_(fwd), bwd_(bwd)
+Functor::Functor (std::vector<iNode*> args, mold::iOperatePtrT&& op) :
+	iObserver(args), op_(std::move(op))
 {
 	initialize();
 }
 
 Functor::Functor (const Functor& other) :
 	iNode(other), iObserver(other),
-	fwd_(other.fwd_), bwd_(other.bwd_)
+	op_(other.op_->clone())
 {
 	initialize();
 }
 
 Functor::Functor (Functor&& other) :
 	iNode(std::move(other)), iObserver(std::move(other)),
-	cache_(std::move(other.cache_)), fwd_(std::move(other.fwd_)),
-	bwd_(std::move(other.bwd_))
+	cache_(std::move(other.cache_)), op_(std::move(other.op_))
 {
 	initialize();
 }
@@ -41,8 +40,7 @@ Functor& Functor::operator = (const Functor& other)
 		iNode::operator = (other);
 		iObserver::operator = (other);
 		cache_ = nullptr;
-		fwd_ = other.fwd_;
-		bwd_ = other.bwd_;
+		op_ = std::unique_ptr<iOperateIO>(other.op_->clone());
 		initialize();
 	}
 	return *this;
@@ -55,8 +53,7 @@ Functor& Functor::operator = (Functor&& other)
 		iNode::operator = (std::move(other));
 		iObserver::operator = (std::move(other));
 		cache_ = std::move(other.cache_);
-		fwd_ = std::move(other.fwd_);
-		bwd_ = std::move(other.bwd_);
+		op_ = std::move(other.op_);
 		initialize();
 	}
 	return *this;
@@ -76,28 +73,6 @@ clay::State Functor::get_state (void) const
 	return cache_->get_state();
 }
 
-iNode* Functor::derive (iNode* wrt)
-{
-	if (cache_ == nullptr)
-	{
-		throw std::exception(); // todo: add context
-	}
-	iNode* out;
-	if (this == wrt)
-	{
-		out = make_one(cache_->get_type());
-	}
-	else
-	{
-		out = bwd_(wrt, args_);
-	}
-	if (nullptr == out)
-	{
-		throw std::exception(); // todo: add context
-	}
-	return out;
-}
-
 void Functor::initialize (void)
 {
 	if (false == std::all_of(args_.begin(), args_.end(),
@@ -108,15 +83,24 @@ void Functor::initialize (void)
 	{
 		return;
 	}
-	
+
 	std::vector<clay::State> inputs(args_.size());
 	std::transform(args_.begin(), args_.end(), inputs.begin(),
 	[](iNode* arg) -> clay::State
 	{
 		return arg->get_state();
 	});
-	fwd_.args_ = inputs;
-	cache_ = fwd_.get();
+	op_->set_args(inputs);
+	ImmPair imm = op_->get_imms();
+	clay::Shape& shape = imm.first;
+	clay::DTYPE& dtype = imm.second;
+	size_t nbytes = shape.n_elems() * clay::type_size(dtype);
+	std::shared_ptr<char> data = clay::make_char(nbytes);
+	cache_ = clay::TensorPtrT(new clay::Tensor(data, shape, dtype));
+	if (false == cache_->read_from(*op_))
+	{
+		throw std::exception(); // todo: add context
+	}
 
 	for (iObserver* aud : audience_)
 	{
@@ -128,7 +112,7 @@ void Functor::update (void)
 {
 	if (nullptr != cache_)
 	{
-		if (false == cache_->read_from(fwd_))
+		if (false == cache_->read_from(*op_))
 		{
 			throw std::exception(); // todo: add context
 		}

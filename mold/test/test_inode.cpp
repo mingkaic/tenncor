@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testify/mocker/mocker.hpp" 
+#include "testify/mocker/mocker.hpp"
 
 #include "fuzzutil/fuzz.hpp"
 
@@ -41,11 +41,6 @@ struct mock_node final : public mold::iNode, public testify::mocker
 		return clay::State();
 	}
 
-	mold::iNode* derive (mold::iNode* wrt) override
-	{
-		return nullptr;
-	}
-
 protected:
 	iNode* clone_impl (void) const override
 	{
@@ -64,7 +59,7 @@ TEST_F(INODE, Copy_A000)
 
 	auto aud = node.get_audience();
 	ASSERT_EQ(2, aud.size());
-	
+
 	mock_node cp(node);
 	auto cp_aud = cp.get_audience();
 	EXPECT_EQ(0, cp_aud.size());
@@ -113,7 +108,7 @@ TEST_F(INODE, Death_A002)
 	mock_node* node = new mock_node();
 	mold::Sink sink(node);
 	mold::Sink sink2(node);
-	
+
 	EXPECT_FALSE(sink.expired()) << "sink is expired before subject deletion";
 	EXPECT_FALSE(sink2.expired()) << "sink2 is expired before subject deletion";
 	delete node;

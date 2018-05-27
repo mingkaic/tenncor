@@ -27,9 +27,9 @@ struct State final
 {
 	State (void) = default;
 
-	State (std::weak_ptr<const char> data, Shape shape, DTYPE dtype);
+	State (std::weak_ptr<char> data, Shape shape, DTYPE dtype);
 
-	std::weak_ptr<const char> data_;
+	std::weak_ptr<char> data_;
 	Shape shape_;
 	DTYPE dtype_ = DTYPE::BAD;
 };

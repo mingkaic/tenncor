@@ -15,7 +15,7 @@
 
 #include "mold/inode.hpp"
 #include "mold/iobserver.hpp"
-#include "mold/operate_io.hpp"
+#include "mold/ioperate_io.hpp"
 
 #pragma once
 #ifndef MOLD_FUNCTOR_HPP
@@ -24,12 +24,10 @@
 namespace mold
 {
 
-using GradF = std::function<iNode*(iNode*, std::vector<iNode*>)>;
-
 class Functor final : public iNode, public iObserver
 {
 public:
-	Functor (std::vector<iNode*> args, OperateIO fwd, GradF bwd);
+	Functor (std::vector<iNode*> args, mold::iOperatePtrT&& op);
 
 	Functor (const Functor& other);
 
@@ -42,8 +40,6 @@ public:
 	bool has_data (void) const override;
 
 	clay::State get_state (void) const override;
-
-	iNode* derive (iNode* wrt) override;
 
 
 	void initialize (void) override;
@@ -59,9 +55,7 @@ protected:
 private:
 	clay::TensorPtrT cache_ = nullptr;
 
-	OperateIO fwd_;
-
-	GradF bwd_;
+	std::unique_ptr<iOperateIO> op_;
 };
 
 }

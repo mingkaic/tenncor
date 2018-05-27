@@ -3,6 +3,8 @@
 //  wire
 //
 
+#include <algorithm>
+
 #include "wire/functor.hpp"
 
 #ifdef WIRE_FUNCTOR_HPP
@@ -22,14 +24,14 @@ static std::vector<std::string> to_ids (std::vector<Identifier*> ids)
 }
 
 Functor::Functor (std::vector<Identifier*> args,
-    slip::OPCODE opcode, Graph& graph) :
+    slip::OPCODE opcode, GradF grad, Graph& graph) :
     Identifier(&graph,
     new mold::Functor(
         to_nodes(args),
-        slip::forward_op(opcode),
-        slip::backward_op(opcode)),
+        std::move(slip::get_op(opcode))),
     slip::opnames[opcode]),
-    arg_ids_(to_ids(args)) {}
+    arg_ids_(to_ids(args)),
+    grad_(grad) {}
 
 std::vector<mold::iNode*> Functor::to_nodes (std::vector<Identifier*> ids)
 {

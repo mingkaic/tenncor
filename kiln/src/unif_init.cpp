@@ -3,6 +3,7 @@
 //  kiln
 //
 
+#include "clay/memory.hpp"
 #include "slip/registry.hpp"
 
 #include "kiln/unif_init.hpp"
@@ -40,12 +41,17 @@ clay::TensorPtrT UnifInit::build (clay::Shape shape) const
 	std::memcpy(max_ptr.get(), max_.c_str(), bsize);
 
 	clay::Shape one({1});
-	mold::OperateIO op = slip::forward_op(slip::UNIF);
-	op.args_ = {
+	mold::iOperatePtrT op = slip::forward_op(slip::UNIF);
+	op->set_args({
 		clay::State{min_ptr, shape, dtype_},
 		clay::State{max_ptr, one, dtype_},
-	};
-	return op.get();
+	});
+	mold::ImmPair imm = op->get_imms();
+	clay::Shape& shape = imm.first;
+	clay::DTYPE& dtype = imm.second;
+	size_t nbytes = shape.n_elems() * clay::type_size(dtype);
+	std::shared_ptr<char> data = clay::make_char(nbytes);
+	return std::make_unique<clay::Tensor>(data, shape, dtype);
 }
 
 }

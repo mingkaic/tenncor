@@ -25,7 +25,7 @@ class Variable final : public iNode
 {
 public:
 	Variable (void) = default;
-	
+
 	Variable (const Variable& other)
 	{
 		if (nullptr != other.data_)
@@ -49,15 +49,13 @@ public:
 		}
 		return *this;
 	}
-	
+
 	Variable (Variable&&) = default;
 	Variable& operator = (Variable&&) = default;
 
 	bool has_data (void) const override;
 
 	clay::State get_state (void) const override;
-
-	iNode* derive (iNode* wrt) override;
 
 	bool initialize (const clay::iBuilder& builder);
 

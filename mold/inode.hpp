@@ -51,8 +51,6 @@ public:
 
 	virtual clay::State get_state (void) const = 0;
 
-	virtual iNode* derive (iNode* wrt) = 0;
-
 	AudienceT get_audience (void) const;
 
 	void add (iObserver* aud);

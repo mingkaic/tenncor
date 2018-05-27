@@ -73,14 +73,37 @@ public:
 		clay::State state = arg->get_state();
 		if (n > state.shape_.n_elems())
 		{
-			throw std::logic_error(ioutil::Stream() << "data with " 
-				<< n << " elements cannot be assigned to allcoated tensor with " 
+			throw std::logic_error(ioutil::Stream() << "data with "
+				<< n << " elements cannot be assigned to allcoated tensor with "
 				<< state.shape_.n_elems() << " elements");
 		}
 		std::string s((char*) &data[0], n * sizeof(T));
 		AssignIO assign(s, state.shape_, state.dtype_);
 		arg->assign(assign);
 		return *this;
+	}
+
+	Identifier* derive (Identifier* wrt) override
+    {
+        if (false == arg_->has_data())
+        {
+		    throw std::exception(); // todo: add context
+        }
+		Identifier* out;
+		clay::DTYPE otype = arg_.get_state().dtype_;
+		if (this == wrt)
+		{
+			out = make_one(otype);
+		}
+		else
+		{
+			out = make_zero(otype);
+		}
+		if (nullptr == out)
+		{
+			throw std::exception(); // todo: add context
+		}
+		return out;
 	}
 
 private:

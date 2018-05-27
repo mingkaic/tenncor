@@ -22,9 +22,7 @@
 namespace slip
 {
 
-mold::OperateIO forward_op (OPCODE opcode);
-
-mold::GradF backward_op (OPCODE opcode);
+mold::iOperatePtrT get_op (OPCODE opcode);
 
 }
 

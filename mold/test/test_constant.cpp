@@ -27,7 +27,7 @@ TEST_F(CONSTANT, Bad_B000)
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t nbytes = clay::type_size(dtype) * shape.n_elems();
 	std::shared_ptr<char> ptr = clay::make_char(nbytes);
-	
+
 	EXPECT_THROW(mold::Constant(nullptr, shape, dtype), std::exception);
 	EXPECT_THROW(mold::Constant(ptr, part, dtype), std::exception);
 	EXPECT_THROW(mold::Constant(ptr, shape, clay::DTYPE::BAD), std::exception);
@@ -77,7 +77,7 @@ TEST_F(CONSTANT, Data_B002)
 		memcpy(ptr.get(), &data[0], nbytes);
 		node = new mold::Constant(ptr, shape, clay::DTYPE::DOUBLE);
 		interm_check();
-	
+
 		clay::State state = node->get_state();
 		EXPECT_EQ(clay::DTYPE::DOUBLE, state.dtype_);
 		double* got = (double*) state.data_.lock().get();
@@ -93,7 +93,7 @@ TEST_F(CONSTANT, Data_B002)
 		memcpy(ptr.get(), &data[0], nbytes);
 		node = new mold::Constant(ptr, shape, clay::DTYPE::UINT64);
 		interm_check();
-	
+
 		clay::State state = node->get_state();
 		EXPECT_EQ(clay::DTYPE::UINT64, state.dtype_);
 		uint64_t* got = (uint64_t*) state.data_.lock().get();
@@ -102,153 +102,6 @@ TEST_F(CONSTANT, Data_B002)
 	}
 
 	delete node;
-}
-
-
-TEST_F(CONSTANT, Derive_B003)
-{
-	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
-	unsigned short bsize = clay::type_size(dtype);
-	std::shared_ptr<char> ptr = clay::make_char(bsize);
-	switch (dtype)
-	{
-		case clay::DTYPE::DOUBLE:
-		{
-			double d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::FLOAT:
-		{
-			float d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::INT8:
-		{
-			int8_t d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::UINT8:
-		{
-			uint8_t d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::INT16:
-		{
-			int16_t d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::UINT16:
-		{
-			uint16_t d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::INT32:
-		{
-			int32_t d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::UINT32:
-		{
-			uint32_t d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::INT64:
-		{
-			int64_t d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		case clay::DTYPE::UINT64:
-		{
-			uint64_t d = 10;
-			std::memcpy(ptr.get(), &d, bsize);
-		}
-		break;
-		default:
-			ASSERT_TRUE(false) << "generated bad type";
-		break;
-	}
-	mold::Constant c(ptr, clay::Shape({1}), dtype);
-	mold::iNode* zaro = c.derive(&c);
-	ASSERT_NE(nullptr, dynamic_cast<mold::Constant*>(zaro));
-	clay::State z = zaro->get_state();
-	EXPECT_EQ(dtype, z.dtype_);
-	std::vector<size_t> wun{1};
-	EXPECT_ARREQ(wun, z.shape_.as_list());
-	switch (dtype)
-	{
-		case clay::DTYPE::DOUBLE:
-		{
-			double gotz = *((double*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		case clay::DTYPE::FLOAT:
-		{
-			float gotz = *((float*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		case clay::DTYPE::INT8:
-		{
-			int8_t gotz = *((int8_t*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		case clay::DTYPE::UINT8:
-		{
-			uint8_t gotz = *((uint8_t*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		case clay::DTYPE::INT16:
-		{
-			int16_t gotz = *((int16_t*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		case clay::DTYPE::UINT16:
-		{
-			uint16_t gotz = *((uint16_t*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		case clay::DTYPE::INT32:
-		{
-			int32_t gotz = *((int32_t*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		case clay::DTYPE::UINT32:
-		{
-			uint32_t gotz = *((uint32_t*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		case clay::DTYPE::INT64:
-		{
-			int64_t gotz = *((int64_t*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-			}
-		break;
-		case clay::DTYPE::UINT64:
-		{
-			uint64_t gotz = *((uint64_t*) z.data_.lock().get());
-			EXPECT_EQ(0, gotz);
-		}
-		break;
-		default:
-		break;
-	}
-	delete zaro;
 }
 
 

@@ -8,7 +8,6 @@ A002 - upon deletion, trigger all audiences' deletion
 B000 - construct with nullptr, non-fully defined shape or bad type throws exception
 B001 - copy constructor copies over data, shape, and dtype of original
 B002 - always have data and get_state returns state set on construction
-B003 - derive returns 0 in constant type
 
 // VARIABLE BEHAVIOR
 C000 - copy constructor copies over data, shape, and dtype of original if initialized
@@ -19,8 +18,6 @@ C002 - has_data if initialized successful
 C003 - get_state throws error if never initialized
 C004 - assign from source updates data_,
 		throws error if assigning to uninitialized variable
-C005 - derive returns 1 in variable type if wrt is var else return 0,
-		throws error if deriving uninitialized variable
 
 // FUNCTOR BEHAVIOR
 D000 - copy copies over arguments, and
@@ -30,8 +27,6 @@ D001 - move moves over arguments, add new Functor as audience
 D002 - upon deletion, remove this from argument's audiences
 D003 - has_data returns false if never initialized, otherwise true
 D004 - get_state throws error if has_data returns false
-D005 - derive calls bwd_ to construct gradient tree
-D006 - initialize and update propagate up for all audiences
 
 // SINK BEHAVIOR
 E000 - copy deep copies observed arg if not expired,

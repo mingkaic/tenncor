@@ -65,7 +65,15 @@ struct Constant : public Identifier
 	Constant (std::shared_ptr<char> data, clay::Shape shape,
 		clay::DTYPE dtype, std::string label,
 		Graph& graph = Graph::get_global());
+
+	Identifier* derive (Identifier* wrt) override;
 };
+
+//! creates a zero scalar
+Constant* make_zero (clay::DTYPE dtype);
+
+//! creates a one scalar
+Constant* make_zero (clay::DTYPE dtype);
 
 }
 

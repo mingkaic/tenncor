@@ -45,7 +45,7 @@ varptr reduce_mean (const varptr a)
 varptr reduce_l2norm (const varptr a)
 {
 	if (nullptr == a.get()) return nullptr;
-	return sqrt(reduce_sum(a * a)); 
+	return sqrt(reduce_sum(a * a));
 }
 
 

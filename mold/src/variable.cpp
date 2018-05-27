@@ -24,32 +24,6 @@ clay::State Variable::get_state (void) const
 	return data_->get_state();
 }
 
-iNode* Variable::derive (iNode* wrt)
-{
-	if (data_ == nullptr)
-	{
-		throw std::exception(); // todo: add context
-	}
-	iNode* out;
-	clay::DTYPE otype = data_->get_type();
-	if (this == wrt)
-	{
-		out = make_one(otype);
-	}
-	else
-	{
-		unsigned short bsize = clay::type_size(otype);
-		std::shared_ptr<char> data = clay::make_char(bsize);
-		memset(data.get(), 0, bsize);
-		out = new Constant(data, clay::Shape(std::vector<size_t>{1}), otype); 
-	}
-	if (nullptr == out)
-	{
-		throw std::exception(); // todo: add context
-	}
-	return out;
-}
-
 bool Variable::initialize (const clay::iBuilder& builder)
 {
 	auto out = builder.get();

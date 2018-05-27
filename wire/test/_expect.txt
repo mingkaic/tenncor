@@ -25,9 +25,12 @@ D000 - get constant as scalar creates constant of shape {1} and scalar provided
 		get of bad type throws error
 D001 - get vector constant creates constant of shape and data provided
 		get of bad type throws error
+D002 - derive returns 0 in constant type
 
 // VARIABLE BEHAVIOR
 E000 - sets initialization in graph and initialize with input shape
+E001 - derive returns 1 in variable type if wrt is var else return 0,
+		throws error if deriving uninitialized variable
 
 // PLACEHOLDER BEHAVIOR
 F000 - without providing a shape to placeholder on construction,
@@ -40,3 +43,8 @@ F002 - provided a fully defined shape to placeholder on construction,
 F003 - reassign on initialized placeholder throws error if vector is larger than shape
 		reassign on initialized placeholder throws error if type is different
 		otherwise reassign is successful
+F004 - derive returns 1 in variable type if wrt is var else return 0,
+		throws error if deriving uninitialized variable
+
+// FUNCTOR BEHAVIOR
+G00x - derive calls bwd_ to construct gradient tree

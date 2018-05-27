@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testify/mocker/mocker.hpp" 
+#include "testify/mocker/mocker.hpp"
 
 #include "fuzzutil/fuzz.hpp"
 #include "fuzzutil/sgen.hpp"
@@ -45,11 +45,6 @@ struct mock_node final : public mold::iNode, public testify::mocker
 		return clay::State();
 	}
 
-	mold::iNode* derive (mold::iNode* wrt) override
-	{
-		return nullptr;
-	}
-
 protected:
 	iNode* clone_impl (void) const override
 	{
@@ -62,7 +57,7 @@ struct mock_builder final : public clay::iBuilder, public testify::mocker
 {
 	mock_builder (testify::fuzz_test* fuzzer) :
 		shape_(random_def_shape(fuzzer, {2, 6})),
-		dtype_((clay::DTYPE) fuzzer->get_int(1, "dtype", 
+		dtype_((clay::DTYPE) fuzzer->get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0])
 	{
 		size_t nbytes = shape_.n_elems() * clay::type_size(dtype_);
@@ -134,15 +129,74 @@ struct mock_source final : public clay::iSource, public testify::mocker
 };
 
 
-mold::Functor* junk_functor (std::vector<mold::iNode*> args,
-	testify::fuzz_test* fuzzer,
-	mold::GradF backward = 
-	[](mold::iNode* wrt, std::vector<mold::iNode*> args) -> mold::iNode*
-	{
-		return nullptr;
-	})
+struct mock_operateio final : public mold::iOperateIO
 {
-	mold::OperateIO op(
+	mock_operateio (
+		std::function<void(clay::State&,std::vector<clay::State>)> op,
+		std::function<clay::Shape(std::vector<clay::Shape>)> shaper,
+		std::function<clay::DTYPE(std::vector<clay::DTYPE>)> typer) :
+		op_(op), shaper_(shaper), typer_(typer) {}
+
+	bool read_data (clay::State& dest) const override
+	{
+		std::vector<clay::Shape> shapes;
+		std::vector<clay::DTYPE> types;
+		for (const clay::State& arg : args_)
+		{
+			shapes.push_back(arg.shape_);
+			types.push_back(arg.dtype_);
+		}
+		clay::Shape oshape = shaper_(shapes);
+		clay::DTYPE otype = typer_(types);
+		bool success = dest.shape_.is_compatible_with(oshape) &&
+			dest.dtype_ == otype;
+		if (success)
+		{
+			op_(dest, args_);
+		}
+		return success;
+	}
+
+	mold::ImmPair get_imms (void) override
+	{
+		std::vector<clay::Shape> shapes;
+		std::vector<clay::DTYPE> types;
+		for (const clay::State& arg : args_)
+		{
+			shapes.push_back(arg.shape_);
+			types.push_back(arg.dtype_);
+		}
+		return {shaper_(shapes), typer_(types)};
+	}
+
+	void set_args (std::vector<clay::State> args) override
+	{
+		args_ = args;
+	}
+
+private:
+	iOperateIO* clone_impl (void) const override
+	{
+		return new mock_operateio(*this);
+	}
+
+	std::vector<clay::State> args_;
+
+	std::function<void(clay::State&,std::vector<clay::State>)> op_;
+
+	std::function<clay::Shape(std::vector<clay::Shape>)> shaper_;
+
+	std::function<clay::DTYPE(std::vector<clay::DTYPE>)> typer_;
+};
+
+
+mold::Functor* junk_functor (std::vector<mold::iNode*> args,
+	testify::fuzz_test* fuzzer)
+{
+	clay::Shape shape = random_def_shape(fuzzer, {1, 6});
+	clay::DTYPE dtype = (clay::DTYPE) fuzzer->get_int(1, "dtype",
+		{1, clay::DTYPE::_SENTINEL - 1})[0];
+	mold::iOperatePtrT op = mold::iOperatePtrT(new mock_operateio(
 	[fuzzer](clay::State& state,std::vector<clay::State>)
 	{
 		size_t nbytes = state.shape_.n_elems() *
@@ -150,16 +204,15 @@ mold::Functor* junk_functor (std::vector<mold::iNode*> args,
 		std::string raw = fuzzer->get_string(nbytes, "mock_src_uuid");
 		std::memcpy((void*) state.data_.lock().get(), raw.c_str(), nbytes);
 	},
-	[fuzzer](std::vector<clay::Shape>) -> clay::Shape
+	[shape](std::vector<clay::Shape>) -> clay::Shape
 	{
-		return random_def_shape(fuzzer, {1, 6});
+		return shape;
 	},
-	[fuzzer](std::vector<clay::DTYPE>) -> clay::DTYPE
+	[dtype](std::vector<clay::DTYPE>) -> clay::DTYPE
 	{
-		return (clay::DTYPE) fuzzer->get_int(1, "dtype", 
-			{1, clay::DTYPE::_SENTINEL - 1})[0];
-	});
-	return new mold::Functor(args, op, backward);
+		return dtype;
+	}));
+	return new mold::Functor(args, std::move(op));
 }
 
 
@@ -254,12 +307,12 @@ TEST_F(FUNCTOR, HasData_D003)
 
 TEST_F(FUNCTOR, GetState_D004)
 {
-	mold::OperateIO identity(
+	mold::iOperatePtrT identity = mold::iOperatePtrT(new mock_operateio(
 	[](clay::State& out,std::vector<clay::State> in)
 	{
 		size_t nbytes = out.shape_.n_elems() *
 			clay::type_size(out.dtype_);
-		std::memcpy((void*) out.data_.lock().get(), 
+		std::memcpy((void*) out.data_.lock().get(),
 			in[0].data_.lock().get(), nbytes);
 	},
 	[](std::vector<clay::Shape> in) -> clay::Shape
@@ -269,15 +322,12 @@ TEST_F(FUNCTOR, GetState_D004)
 	[](std::vector<clay::DTYPE> in) -> clay::DTYPE
 	{
 		return in[0];
-	});
+	}));
 	mold::Variable arg;
 	mock_builder builder(this);
 	mock_source src(builder.shape_, builder.dtype_, this);
-	mold::Functor* f = new mold::Functor(std::vector<mold::iNode*>{&arg}, identity,
-	[](mold::iNode* wrt, std::vector<mold::iNode*> args) -> mold::iNode*
-	{
-		return nullptr;
-	});
+	mold::Functor* f = new mold::Functor(std::vector<mold::iNode*>{&arg},
+		std::move(identity));
 
 	EXPECT_THROW(f->get_state(), std::exception);
 	arg.initialize(builder);
@@ -297,114 +347,6 @@ TEST_F(FUNCTOR, GetState_D004)
 	EXPECT_EQ(src.state_.dtype_, state2.dtype_);
 
 	delete f;
-}
-
-
-TEST_F(FUNCTOR, Derive_D005)
-{
-	mold::Variable derout;
-	mold::Variable arg;
-	mold::Variable arg2;
-	mock_builder builder(this);
-	mold::Functor* f = junk_functor(std::vector<mold::iNode*>{&arg, &arg2}, this,
-	[&](mold::iNode* wrt, std::vector<mold::iNode*> args) -> mold::iNode*
-	{
-		EXPECT_EQ(&arg, wrt);
-		EXPECT_EQ(2, args.size());
-		EXPECT_EQ(&arg, args[0]);
-		EXPECT_EQ(&arg2, args[1]);
-		return &derout;
-	});
-
-	EXPECT_THROW(f->derive(f), std::exception);
-	EXPECT_THROW(f->derive(&arg), std::exception);
-	arg.initialize(builder);
-	arg2.initialize(builder);
-	f->initialize();
-	ASSERT_TRUE(f->has_data());
-
-	clay::State fwdstate = f->get_state();
-	clay::Shape scalars(std::vector<size_t>{1});
-	mold::iNode* wun = f->derive(f);
-	clay::State state = wun->get_state();
-	EXPECT_SHAPEQ(scalars, state.shape_);
-	EXPECT_EQ(fwdstate.dtype_, state.dtype_);
-	switch (fwdstate.dtype_)
-	{
-		case clay::DTYPE::DOUBLE:
-		{
-			double scalar = *((double*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::FLOAT:
-		{
-			float scalar = *((float*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::INT8:
-		{
-			int8_t scalar = *((int8_t*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::UINT8:
-		{
-			uint8_t scalar = *((uint8_t*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::INT16:
-		{
-			int16_t scalar = *((int16_t*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::UINT16:
-		{
-			uint16_t scalar = *((uint16_t*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::INT32:
-		{
-			int32_t scalar = *((int32_t*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::UINT32:
-		{
-			uint32_t scalar = *((uint32_t*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::INT64:
-		{
-			int64_t scalar = *((int64_t*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		break;
-		case clay::DTYPE::UINT64:
-		{
-			uint64_t scalar = *((uint64_t*) state.data_.lock().get());
-			EXPECT_EQ(1, scalar);
-		}
-		default:
-		break;
-	};
-
-	mold::iNode* der = f->derive(&arg);
-	EXPECT_EQ(&derout, der);
-
-	delete f;
-	delete wun;
-}
-
-
-TEST_F(FUNCTOR, Prop_D006)
-{
-	
 }
 
 

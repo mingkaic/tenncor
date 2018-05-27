@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testify/mocker/mocker.hpp" 
+#include "testify/mocker/mocker.hpp"
 
 #include "fuzzutil/fuzz.hpp"
 #include "fuzzutil/sgen.hpp"
@@ -89,7 +89,7 @@ struct mock_builder final : public clay::iBuilder, public testify::mocker
 {
 	mock_builder (testify::fuzz_test* fuzzer) :
 		shape_(random_def_shape(fuzzer, {2, 6})),
-		dtype_((clay::DTYPE) fuzzer->get_int(1, "dtype", 
+		dtype_((clay::DTYPE) fuzzer->get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0])
 	{
 		size_t nbytes = shape_.n_elems() * clay::type_size(dtype_);
@@ -296,120 +296,6 @@ TEST_F(VARIABLE, Assign_C004)
 	EXPECT_EQ(src.state_.dtype_, state.dtype_);
 
 	delete obs;
-}
-
-
-TEST_F(VARIABLE, Derive_C005)
-{
-	mold::Variable var;
-	mold::Variable var2;
-	mock_observer* obs = new mock_observer(&var);
-	mock_builder builder(this);
-
-	EXPECT_THROW(var.derive(&var), std::exception);
-	EXPECT_EQ(0, testify::mocker::get_usage(&builder, "get"));
-	var.initialize(builder);
-	EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
-	mold::iNode* wun = var.derive(&var);
-	mold::iNode* zaro = var.derive(&var2);
-	EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
-	clay::Shape scalars(std::vector<size_t>{1});
-	clay::State state = wun->get_state();
-	clay::State state2 = zaro->get_state();
-	EXPECT_SHAPEQ(scalars, state.shape_);
-	EXPECT_SHAPEQ(scalars, state2.shape_);
-	EXPECT_EQ(builder.dtype_, state.dtype_);
-	EXPECT_EQ(builder.dtype_, state2.dtype_);
-	switch (builder.dtype_)
-	{
-		case clay::DTYPE::DOUBLE:
-		{
-			double scalarw = *((double*) state.data_.lock().get());
-			double scalarz = *((double*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::FLOAT:
-		{
-			float scalarw = *((float*) state.data_.lock().get());
-			float scalarz = *((float*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::INT8:
-		{
-			int8_t scalarw = *((int8_t*) state.data_.lock().get());
-			int8_t scalarz = *((int8_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::UINT8:
-		{
-			uint8_t scalarw = *((uint8_t*) state.data_.lock().get());
-			uint8_t scalarz = *((uint8_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::INT16:
-		{
-			int16_t scalarw = *((int16_t*) state.data_.lock().get());
-			int16_t scalarz = *((int16_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::UINT16:
-		{
-			uint16_t scalarw = *((uint16_t*) state.data_.lock().get());
-			uint16_t scalarz = *((uint16_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::INT32:
-		{
-			int32_t scalarw = *((int32_t*) state.data_.lock().get());
-			int32_t scalarz = *((int32_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::UINT32:
-		{
-			uint32_t scalarw = *((uint32_t*) state.data_.lock().get());
-			uint32_t scalarz = *((uint32_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::INT64:
-		{
-			int64_t scalarw = *((int64_t*) state.data_.lock().get());
-			int64_t scalarz = *((int64_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::UINT64:
-		{
-			uint64_t scalarw = *((uint64_t*) state.data_.lock().get());
-			uint64_t scalarz = *((uint64_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		default:
-		break;
-	}
-
-	delete obs;
-	delete wun;
 }
 
 

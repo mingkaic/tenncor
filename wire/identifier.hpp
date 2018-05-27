@@ -51,11 +51,7 @@ public:
 		return arg_->get_state();
 	}
 
-	Identifier* derive (Identifier* wrt)
-	{
-		return new Identifier(graph_, arg_->derive(wrt->arg_.get()),
-			this->label_ + "_grad");
-	}
+	virtual Identifier* derive (Identifier* wrt) = 0;
 
 protected:
 	friend class Functor;

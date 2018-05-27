@@ -31,6 +31,29 @@ struct Variable : public Identifier
 
 	Variable (const clay::iBuilder& builder, clay::Shape shape,
 		std::string label, Graph& graph = Graph::get_global());
+
+	Identifier* derive (Identifier* wrt) override
+    {
+        if (false == arg_->has_data())
+        {
+		    throw std::exception(); // todo: add context
+        }
+		Identifier* out;
+		clay::DTYPE otype = arg_.get_state().dtype_;
+		if (this == wrt)
+		{
+			out = make_one(otype);
+		}
+		else
+		{
+			out = make_zero(otype);
+		}
+		if (nullptr == out)
+		{
+			throw std::exception(); // todo: add context
+		}
+		return out;
+	}
 };
 
 }

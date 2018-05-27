@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testify/mocker/mocker.hpp" 
+#include "testify/mocker/mocker.hpp"
 
 #include "fuzzutil/fuzz.hpp"
 
@@ -39,11 +39,6 @@ struct mock_node final : public mold::iNode, public testify::mocker
 	clay::State get_state (void) const override
 	{
 		return clay::State();
-	}
-
-	mold::iNode* derive (mold::iNode* wrt) override
-	{
-		return nullptr;
 	}
 
 protected:
