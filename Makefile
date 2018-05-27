@@ -6,9 +6,7 @@ GTEST_FLAGS := --action_env="GTEST_SHUFFLE=1" --action_env="GTEST_BREAK_ON_FAILU
 
 REP_BZL_FLAG := --action_env="GTEST_REPEAT=$(GTEST_REPEAT)"
 
-MEMCHECK_BZL_FLAG := --run_under="valgrind"
-
-COVERAGE_BZL_FLAG := --instrumentation_filter= --spawn_strategy=standalone
+VALCHECK_BZL_FLAG := --run_under="valgrind"
 
 BUILD := bazel build
 
@@ -18,7 +16,7 @@ TEST := bazel test $(COMMON_BZL_FLAGS)
 
 GTEST := $(TEST) $(GTEST_FLAGS)
 
-COVER := bazel coverage $(COMMON_BZL_FLAGS) $(COVERAGE_BZL_FLAG)
+COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 
 # SERIALS := serial_cc serial_py
 
@@ -52,8 +50,8 @@ COVER := bazel coverage $(COMMON_BZL_FLAGS) $(COVERAGE_BZL_FLAG)
 # test_py:
 # 	$(TEST) //tests/py/test:test
 
-# test
-test: test_clay test_mold test_slip test_kiln test_wire
+# unit test
+test: test_clay test_mold #test_slip test_kiln test_wire
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test
@@ -70,6 +68,24 @@ test_wire:
 test_kiln:
 	$(GTEST) $(REP_BZL_FLAG) //kiln:test
 
+# valgrind unit tests
+valgrind: valg_clay valg_mold #valg_slip valg_kiln valg_wire
+
+valg_clay:
+	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //clay:test
+
+valg_mold:
+	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //mold:test
+
+# coverage unit tests
+coverage: cover_clay cover_mold #cover_slip cover_kiln cover_wire
+
+cover_clay:
+	$(COVER) $(REP_BZL_FLAG) //clay:test --instrumentation_filter=/clay[/:]
+
+cover_mold:
+	$(COVER) $(REP_BZL_FLAG) //mold:test --instrumentation_filter=/mold[/:]
+
 # # unit test
 # unit_test: test_tensor test_graph test_operate test_serialize
 
@@ -84,36 +100,6 @@ test_kiln:
 
 # test_serialize:
 # 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_serialize
-
-# # conducts coverage on unit tests
-# coverage: cover_tensor cover_graph cover_operate cover_serialize
-
-# cover_tensor:
-# 	$(COVER) $(REP_BZL_FLAG) //tests/unit:test_tensor
-
-# cover_graph:
-# 	$(COVER) $(REP_BZL_FLAG) //tests/unit:test_graph
-
-# cover_operate:
-# 	$(COVER) $(REP_BZL_FLAG) //tests/unit:test_operate
-
-# cover_serialize: # serialize is already expensive. don't repeat
-# 	$(COVER) //tests/unit:test_serialize
-
-# # runs unit tests with valgrind memory leak, require valgrind to be installed
-# memcheck: memcheck_tensor memcheck_graph memcheck_operate memcheck_serialize
-
-# memcheck_tensor:
-# 	$(GTEST) $(MEMCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //tests/unit:test_tensor
-
-# memcheck_graph:
-# 	$(GTEST) $(MEMCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //tests/unit:test_graph
-
-# memcheck_operate:
-# 	$(GTEST) $(MEMCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //tests/unit:test_operate
-
-# memcheck_serialize: # serialize is already expensive. don't repeat
-# 	$(GTEST) $(MEMCHECK_BZL_FLAG) //tests/unit:test_serialize
 
 # # regression test
 # test_regress:
