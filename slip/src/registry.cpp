@@ -7,7 +7,7 @@
 
 #include "ioutil/stream.hpp"
 
-#include "slip/operations.hpp"
+#include "slip/include/operations.hpp"
 #include "slip/registry.hpp"
 
 #ifdef SLIP_REGISTRY_HPP
@@ -57,16 +57,16 @@ static std::unordered_map<OPCODE,TypeReg> op_registry =
 	REGISTER_FUNC(UNIF, rand_uniform)
 	REGISTER_FUNC(NORM, rand_normal)
 
-	REGISTER_FUNC(TRANSPOSE, transpose),
-	REGISTER_FUNC(FLIP, flip),
+	REGISTER_FUNC(TRANSPOSE, transpose)
+	REGISTER_FUNC(FLIP, flip)
 
 	REGISTER_FUNC(ARGMAX, argmax)
 	REGISTER_FUNC(RMAX, max)
 	REGISTER_FUNC(RSUM, sum)
 
-	REGISTER_FUNC(EXPAND, expand),
-	REGISTER_FUNC(N_ELEMS, n_elems),
-	REGISTER_FUNC(N_DIMS, n_dims),
+	REGISTER_FUNC(EXPAND, expand)
+	REGISTER_FUNC(N_ELEMS, n_elems)
+	REGISTER_FUNC(N_DIMS, n_dims)
 
 	REGISTER_FUNC(MATMUL, matmul)
 };
@@ -101,19 +101,17 @@ public:
 
 	mold::ImmPair get_imms (void) override
 	{
-		auto out = state_->get_imms();
-		if (UninitOperate* uop =
-			dynamic_cast<UninitOperate*>(state_.get()))
-		{
-			state_ = mold::iOperatePtrT(
-				new InitOperate(uop->args_, out, opcode_));
-		}
-		return out;
+		return state_->get_imms();
 	}
 
 	void set_args (std::vector<clay::State> args) override
 	{
 		state_->set_args(args);
+		if (UninitOperate* uop = static_cast<UninitOperate*>(state_.get()))
+		{
+			state_ = mold::iOperatePtrT(
+				new InitOperate(uop->args_, uop->get_imms(), opcode_));
+		}
 	}
 
 private:
@@ -135,10 +133,10 @@ private:
 				throw std::exception(); // todo: add context
 			}
 			std::vector<clay::DTYPE> types(args_.size());
-			std::transform(types.begin(), types.end(), args_.begin(),
+			std::transform(args_.begin(), args_.end(), types.begin(),
 			[](clay::State& state) -> clay::DTYPE
 			{
-				return arg.dtype_;
+				return state.dtype_;
 			});
 			clay::DTYPE otype = typer_(types);
 			return {shaper_(args_), otype};
@@ -364,9 +362,12 @@ static clay::Shape matmul_shape (std::vector<clay::State> states)
 }
 
 static std::unordered_map<OPCODE,OpWrapper> registry =
+[]()
 {
 	OpWrapper elem{elem_shape, same_type};
 	OpWrapper reduce{reduce_shape, reduce_type};
+
+	return std::unordered_map<OPCODE,OpWrapper>{
 	{ABS, elem},
 	{NEG, elem},
 	{NOT, elem},
@@ -425,12 +426,12 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		std::vector<size_t> outlist = state.shape_.as_list();
 		if (states.size() > 1)
 		{
-			clay::State& pstate = srcs[1];
-			if (pstate.type_ != UINT64)
+			clay::State& pstate = states[1];
+			if (pstate.dtype_ != clay::UINT64)
 			{
 				throw std::exception();
 			}
-			uint64_t* ptr = (uint64_t*) pstate.data_.get();
+			uint64_t* ptr = safe_get<uint64_t>(pstate.data_);
 			std::vector<size_t> perm(ptr, ptr + pstate.shape_.n_elems());
 			std::vector<size_t> inlist = outlist;
 			for (size_t i = 0; i < perm.size(); ++i)
@@ -495,10 +496,10 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		{
 			throw std::exception(); // todo: add context
 		}
-		clay::State& nstate = srcs[1];
-		clay::State& dstate = srcs[2];
-		uint64_t mul = *((uint64_t*) nstate.data_.get());
-		uint64_t dim = *((uint64_t*) dstate.data_.get());
+		clay::State& nstate = states[1];
+		clay::State& dstate = states[2];
+		uint64_t mul = *(safe_get<uint64_t>(nstate.data_));
+		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
 		std::vector<size_t> slist = states[0].shape_.as_list();
 		slist[dim] *= mul;
 		return clay::Shape(slist);
@@ -519,11 +520,11 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 	{N_ELEMS, OpWrapper{
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
-		if (shapes.empty())
+		if (states.empty())
 		{
 			throw std::exception(); // todo: add context
 		}
-		return clay::Shape{1};
+		return clay::Shape(std::vector<size_t>{1});
 	},
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
 	{
@@ -536,17 +537,17 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 	{N_DIMS, OpWrapper{
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
-		if (2 != shapes.size_t())
+		if (2 != states.size())
 		{
 			throw std::exception(); // todo: add context
 		}
-		clay::State& dstate = srcs[1];
+		clay::State& dstate = states[1];
 		if (1 != dstate.shape_.n_elems())
 		{
 			throw std::exception(); // todo: add context
 		}
-		uint64_t dim = *((uint64_t*) dstate.data_.get());
-		return clay::Shape{states[0].shape_[dim]};
+		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+		return clay::Shape(std::vector<size_t>{states[0].shape_[dim]});
 	},
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
 	{
@@ -556,8 +557,8 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		}
 		return types[0];
 	}}},
-	{MATMUL, OpWrapper{matmul_shape, same_type}}
-};
+	{MATMUL, OpWrapper{matmul_shape, same_type}}};
+}();
 
 mold::iOperatePtrT get_op (OPCODE opcode)
 {

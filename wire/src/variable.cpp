@@ -12,7 +12,7 @@
 namespace wire
 {
 
-Variable::Variable (const clay::iBuilder& builder, 
+Variable::Variable (const clay::iBuilder& builder,
 	std::string label, Graph& graph) :
 	Identifier(&graph, new mold::Variable(), label)
 {

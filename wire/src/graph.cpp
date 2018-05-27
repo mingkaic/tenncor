@@ -10,7 +10,7 @@
 
 namespace wire
 {
-	
+
 Graph& Graph::get_global (void)
 {
 	static Graph g;

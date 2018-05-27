@@ -10,16 +10,13 @@
 namespace wire
 {
 
-void assert_type (Identifier* a, TENS_TYPE type)
-{}
-
-void assert_shape (Identifier* a, tshape shape)
-{}
-
 Identifier* abs (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
-    return new Functor({a}, slip::ABS,
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
+	return new Functor({a}, slip::ABS,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return abs(args.front()->derive(wrt));
@@ -28,8 +25,11 @@ Identifier* abs (Identifier* a)
 
 Identifier* neg (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
-    return new Functor({a}, slip::NEG,
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
+	return new Functor({a}, slip::NEG,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return neg(args.front()->derive(wrt));
@@ -38,8 +38,11 @@ Identifier* neg (Identifier* a)
 
 Identifier* logical_not (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
-    return new Functor({a}, slip::NOT,
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
+	return new Functor({a}, slip::NOT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return logical_not(args.front()->derive(wrt));
@@ -48,82 +51,103 @@ Identifier* logical_not (Identifier* a)
 
 Identifier* sin (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::SIN,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// sin'(f) = f'*cos(f)
-        auto f = args.front();
+		auto f = args.front();
 		return mul(f->derive(wrt), cos(f));
 	});
 }
 
 Identifier* cos (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::COS,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// cos'(f) = -f'*sin(f)
-        auto f = args.front();
+		auto f = args.front();
 		return mul(neg(f->derive(wrt)), sin(f));
 	});
 }
 
 Identifier* tan (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::TAN,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// tan'(f) = f'*sec^2(f)
 		// 		= f'/cos^2(f)
-        auto f = args.front();
-        auto denom = cos(f);
+		auto f = args.front();
+		auto denom = cos(f);
 		return div(f->derive(wrt), mul(denom, denom));
 	});
 }
 
 Identifier* exp (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::EXP,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// exp'(f) = f'*exp(f)
-        auto f = args.front();
+		auto f = args.front();
 		return mul(f->derive(wrt), exp(f));
 	});
 }
 
 Identifier* log (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::LOG,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// log'(f) = f' / f
-        auto f = args.front();
+		auto f = args.front();
 		return div(f->derive(wrt), f);
 	});
 }
 
 Identifier* sqrt (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::SQRT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// sqrt'(f) = f'/(2*sqrt(f))
-        auto f = args.front();
-        auto denom = sqrt(f);
+		auto f = args.front();
+		auto denom = sqrt(f);
 		return div(f->derive(wrt), sum(f, f));
 	});
 }
 
 Identifier* round (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::ROUND,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -134,14 +158,17 @@ Identifier* round (Identifier* a)
 
 Identifier* pow (Identifier* b, Identifier* x)
 {
-	if (nullptr == b || nullptr == x) return nullptr;
+	if (nullptr == b || nullptr == x)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::POW,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// pow'(f, g) = f' * g * pow(f, g - 1) + g' * pow(f, g) * log(f)
 		//			= pow(f, g - 1) * (f' * g + g' * f * log(f))
-        auto f = args.front();
-        auto g = args.back();
+		auto f = args.front();
+		auto g = args.back();
 		assert(g->has_data());
 		auto lhs = pow(f, sub(g, make_one(g->get_state().dtype_)));
 		auto rhs = add(mul(f->derive(wrt), g), mul(g->derive(wrt), mul(f, log(f))));
@@ -151,7 +178,10 @@ Identifier* pow (Identifier* b, Identifier* x)
 
 Identifier* add (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::ADD,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -162,7 +192,10 @@ Identifier* add (Identifier* a, Identifier* b)
 
 Identifier* sub (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::SUB,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -173,27 +206,33 @@ Identifier* sub (Identifier* a, Identifier* b)
 
 Identifier* mul (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::MUL,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// h'(f, g) = f' * g + g' * f
-        auto f = args.front();
-        auto g = args.back();
+		auto f = args.front();
+		auto g = args.back();
 		return add(mul(f->derive(wrt), g), mul(g->derive(wrt), f));
 	});
 }
 
 Identifier* div (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::DIV,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// h'(f, g) = (f' * g - g' * f) / g^2
 		//		    = (f' / g - (g' * f) / g) / g
-        auto f = args.front();
-        auto g = args.back();
+		auto f = args.front();
+		auto g = args.back();
 		auto num = sub(div(f->derive(wrt), g), div(mul(g->derive(wrt), f), g));
 		return div(num, g);
 	});
@@ -201,7 +240,10 @@ Identifier* div (Identifier* a, Identifier* b)
 
 Identifier* eq (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::EQ,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -211,7 +253,10 @@ Identifier* eq (Identifier* a, Identifier* b)
 
 Identifier* neq (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::NE,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -221,7 +266,10 @@ Identifier* neq (Identifier* a, Identifier* b)
 
 Identifier* lt (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::LT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -231,7 +279,10 @@ Identifier* lt (Identifier* a, Identifier* b)
 
 Identifier* gt (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::GT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -251,7 +302,10 @@ Constant* sample_grad (Identifier*, std::vector<Identifier*> args)
 
 Identifier* binomial_sample (Identifier* n, Identifier* p)
 {
-	if (nullptr == n || nullptr == p) return nullptr;
+	if (nullptr == n || nullptr == p)
+	{
+		return nullptr;
+	}
 	return new Functor({n, p}, slip::BINO, sample_grad);
 }
 
@@ -262,19 +316,28 @@ Identifier* binomial_sample (Identifier* n, double p)
 
 Identifier* uniform_sample (Identifier* min, Identifier* max)
 {
-	if (nullptr == min || nullptr == max) return nullptr;
+	if (nullptr == min || nullptr == max)
+	{
+		return nullptr;
+	}
 	return new Functor({min, max}, slip::UNIF, sample_grad);
 }
 
 Identifier* normal_sample (Identifier* mean, Identifier* stdev)
 {
-	if (nullptr == mean || nullptr == stdev) return nullptr;
+	if (nullptr == mean || nullptr == stdev)
+	{
+		return nullptr;
+	}
 	return new Functor({mean, stdev}, slip::NORM, sample_grad);
 }
 
 Identifier* transpose (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::TRANSPOSE,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -284,7 +347,10 @@ Identifier* transpose (Identifier* a)
 
 Identifier* transpose (Identifier* a, Identifier* perm)
 {
-	if (nullptr == a || nullptr == perm) return nullptr;
+	if (nullptr == a || nullptr == perm)
+	{
+		return nullptr;
+	}
 	return new Functor({a, perm}, slip::TRANSPOSE,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -299,7 +365,10 @@ Identifier* transpose (Identifier* a, std::vector<uint64_t> perm)
 
 Identifier* flip (Identifier* a, Identifier* dims)
 {
-	if (nullptr == a || nullptr == dims) return nullptr;
+	if (nullptr == a || nullptr == dims)
+	{
+		return nullptr;
+	}
 	return new Functor({a, dims}, slip::FLIP,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -314,7 +383,10 @@ Identifier* flip (Identifier* a, std::vector<uint64_t> dims)
 
 Identifier* arg_max (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::ARGMAX,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -324,7 +396,10 @@ Identifier* arg_max (Identifier* a)
 
 Identifier* arg_max (Identifier* a, Identifier* dim)
 {
-	if (nullptr == a || nullptr == dim) return nullptr;
+	if (nullptr == a || nullptr == dim)
+	{
+		return nullptr;
+	}
 	return new Functor({a, dim}, slip::NOT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -339,7 +414,10 @@ Identifier* arg_max (Identifier* a, uint64_t dim)
 
 Identifier* reduce_max (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::RMAX,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -351,7 +429,10 @@ Identifier* reduce_max (Identifier* a)
 
 Identifier* reduce_max (Identifier* a, Identifier* dim)
 {
-	if (nullptr == a || nullptr == dim) return nullptr;
+	if (nullptr == a || nullptr == dim)
+	{
+		return nullptr;
+	}
 	return new Functor({a, dim}, slip::NOT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -370,7 +451,10 @@ Identifier* reduce_max (Identifier* a, uint64_t dim)
 
 Identifier* reduce_sum (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::RSUM,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -380,7 +464,10 @@ Identifier* reduce_sum (Identifier* a)
 
 Identifier* reduce_sum (Identifier* a, Identifier* dim)
 {
-	if (nullptr == a || nullptr == dim) return nullptr;
+	if (nullptr == a || nullptr == dim)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::NOT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -425,7 +512,10 @@ Identifier* reduce_l2norm (Identifier* a, uint64_t dim)
 
 Identifier* n_elems (Identifier* a)
 {
-	if (nullptr == a) return nullptr;
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
 	return new Functor({a}, slip::N_ELEMS,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -435,7 +525,10 @@ Identifier* n_elems (Identifier* a)
 
 Identifier* n_dimension (Identifier* a, Identifier* dim)
 {
-	if (nullptr == a || nullptr == dim) return nullptr;
+	if (nullptr == a || nullptr == dim)
+	{
+		return nullptr;
+	}
 	return new Functor({a, dim}, slip::N_DIMS,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -450,7 +543,10 @@ Identifier* n_dimension (Identifier* a, uint64_t dim)
 
 Identifier* expand (Identifier* a, Identifier* n, Identifier* dim)
 {
-	if (nullptr == a || nullptr == n || nullptr == dim) return nullptr;
+	if (nullptr == a || nullptr == n || nullptr == dim)
+	{
+		return nullptr;
+	}
 	return new Functor({a, n, dim}, slip::EXPAND,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
@@ -488,7 +584,10 @@ Identifier* clip_norm (Identifier* a, Identifier* cap)
 
 Identifier* matmul (Identifier* a, Identifier* b)
 {
-	if (nullptr == a || nullptr == b) return nullptr;
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
 	return new Functor({a, b}, slip::MATMUL,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{

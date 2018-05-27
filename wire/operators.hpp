@@ -21,10 +21,6 @@
 namespace wire
 {
 
-void assert_type (Identifier* a, TENS_TYPE type);
-
-void assert_shape (Identifier* a, tshape shape);
-
 //! absolute value of a
 Identifier* abs (Identifier* a);
 

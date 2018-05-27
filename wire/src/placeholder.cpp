@@ -34,7 +34,7 @@ static optional<clay::Shape> guess_shape (clay::Shape shape, size_t limit)
 		{
 			if (0 == my_shape[i])
 			{
-				if (first_undef> i)
+				if (first_undef > i)
 				{
 					first_undef = i;
 				}
@@ -45,7 +45,7 @@ static optional<clay::Shape> guess_shape (clay::Shape shape, size_t limit)
 				known *= my_shape[i];
 			}
 		}
-		assert(known> 0);
+		assert(known > 0);
 		if (0 == limit % known)
 		{
 			my_shape[first_undef] = limit / known;

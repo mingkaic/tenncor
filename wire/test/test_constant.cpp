@@ -305,7 +305,7 @@ TEST_F(CONSTANT, Derive_E001)
 		{
 			int64_t gotz = *((int64_t*) z.data_.lock().get());
 			EXPECT_EQ(0, gotz);
-			}
+		}
 		break;
 		case clay::DTYPE::UINT64:
 		{

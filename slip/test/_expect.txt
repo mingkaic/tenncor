@@ -1,0 +1,43 @@
+// OPERATE_IO BEHAVIOR
+A000 - OperateIO can only set_args once, second set_args throws error
+A001 - OperateIO read_data before set_args throws bad_function_call
+A002 - OperateIO get_imms before set_args throws exception
+
+// REGISTRY BEHAVIOR
+B000 - get_op for unsupported OPCODE throws
+
+
+A000 - abs ebinds to "abs". it returns the absolute value of input
+A001 - neg ebinds to "neg". it returns the negative value of input
+A002 - logical not ebinds to "logic_not". it applies the ! operator to input
+A003 - sin ebinds to "sin". it applies the std::sin function to input
+A004 - cos ebinds to "cos". it applies the std::cos function to input
+A005 - tan ebinds to "tan". it applies the std::tan function to input
+A006 - exp ebinds to "exp". it applies the std::exp function to input
+A007 - log ebinds to "log". it applies the std::log function to input
+A008 - sqrt ebinds to "sqrt". it applies the std::sqrt function to input
+A009 - round ebinds to "round". it applies the std::round function to input
+
+A010 - argmax abinds to "argmax". it returns the index of the max value
+A011 - max abinds to "max". it returns the max value
+A012 - sum abinds to "sum". it returns the sum of the inputs
+
+A020 - pow ebinds to "pow". it takes 2 inputs returns input1 to the power of input2
+A021 - add ebinds to "add". it takes 2 inputs returns the sum
+A022 - sub ebinds to "sub". it takes 2 inputs returns the difference
+A023 - mul ebinds to "mul". it takes 2 inputs returns the product
+A024 - div ebinds to "div". it takes 2 inputs returns the quotient
+A025 - eq ebinds to "eq". it takes 2 inputs and applies the == operator to inputs
+A026 - neq ebinds to "neq". it takes 2 inputs and applies the != operator to inputs
+A027 - lt ebinds to "lt". it takes 2 inputs and applies the < operator to inputs
+A028 - gt ebinds to "gt". it takes 2 inputs and applies the > operator to inputs
+A029 - rand_uniform ebinds to "rand_uniform".
+		it takes 2 inputs and returns the uniform_..._distribution(input1, input2)
+A030 - rand_binom ebinds to "rand_binom".
+		it takes 2 inputs and applies the std::binomial_distribution(input1, input2)
+		throws bad_function_call if type is double or float
+A031 - rand_normal ebinds to "rand_normal".
+		it takes 2 inputs and returns the normal_distribution(input1, input2)
+		throws bad_function_call if type is integer
+A032 - matmul ebinds to "matmul". it takes 2 inputs and
+		returns matrix multiplication of the first 2 dimensions of inputs

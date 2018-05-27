@@ -17,11 +17,16 @@ filegroup(
 
 cc_library(
     name = "slip",
-    hdrs = glob([ "*.hpp", "ipp/*.ipp" ]),
-    srcs = glob([ "src/*.cpp" ]),
+    hdrs = glob([ "*.hpp" ]),
+    srcs = glob([
+        "src/*.cpp",
+        "include/*.hpp",
+        "include/*.ipp",
+    ]),
     copts = [ "-std=c++14" ],
     deps = [
         "//:ioutil",
+        "//clay:clay",
         "//mold:mold",
     ],
 )

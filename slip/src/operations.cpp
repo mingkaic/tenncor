@@ -3,7 +3,7 @@
 //  slip
 //
 
-#include "slip/operations.hpp"
+#include "slip/include/operations.hpp"
 
 #ifdef SLIP_OPERATIONS_HPP
 
@@ -79,7 +79,7 @@ void rand_binom<float> (clay::State& dest, std::vector<clay::State> srcs)
 template <>
 void rand_binom<double> (clay::State& dest, std::vector<clay::State> srcs)
 {
-	throw std::bad_function_call(); 
+	throw std::bad_function_call();
 }
 
 template <>

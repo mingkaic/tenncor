@@ -1,3 +1,3 @@
 # mold
 
-mold library is responsible for defining nodes and their interactions for owning, creating and updating tensors
+mold library define nodes to propagate update and initialization events

@@ -25,4 +25,4 @@ std::shared_ptr<char> make_char (size_t n)
 
 }
 
-#endif 
+#endif

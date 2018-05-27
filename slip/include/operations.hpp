@@ -282,12 +282,12 @@ void transpose (clay::State& dest, std::vector<clay::State> srcs)
 	if (srcs.size() > 1)
 	{
 		clay::State& pstate = srcs[1];
-		if (pstate.type_ != UINT64)
+		if (pstate.dtype_ != clay::UINT64)
 		{
 			throw std::exception();
 		}
-		uint64_t* ptr = (uint64_t*) pstate.data_.get();
-		perm(ptr, ptr + pstate.shape_.n_elems());
+		uint64_t* ptr = safe_get<uint64_t>(pstate.data_);
+		perm = std::vector<uint64_t>(ptr, ptr + pstate.shape_.n_elems());
 	}
 	else
 	{
@@ -316,29 +316,28 @@ void flip (clay::State& dest, std::vector<clay::State> srcs)
 	{
 		throw std::exception();
 	}
-	clay::Shape& destshape = dest.shape_;
-	clay::Shape& srcshape = srcs.front().shape_;
+	clay::Shape& shape = dest.shape_;
 	T* d = safe_get<T>(dest.data_);
 	const T* s = safe_get<const T>(srcs.front().data_);
-	std::vector<uint64_t> dims;
 	clay::State& dstate = srcs[1];
-	if (dstate.type_ != UINT64)
+	if (dstate.dtype_ != clay::UINT64)
 	{
 		throw std::exception();
 	}
-	uint64_t* ptr = (uint64_t*) dstate.data_.get();
-	dims(ptr, ptr + dstate.shape_.n_elems());
-	std::vector<size_t> slist = destshape.as_list();
+	uint64_t* ptr = safe_get<uint64_t>(dstate.data_);
+	std::vector<uint64_t> dims(ptr, ptr + dstate.shape_.n_elems());
+	std::vector<size_t> slist = shape.as_list();
 	std::vector<size_t> coord;
-	for (size_t i = 0, n = destshape.n_elems();
+	for (size_t i = 0, n = shape.n_elems();
 		i < n; ++i)
 	{
-		coord = clay::coordinate(destshape, i);
-		for (size_t j = 0; j < ndims; ++j)
+		coord = clay::coordinate(shape, i);
+		for (size_t j = 0, ndims = dims.size();
+			j < ndims; ++j)
 		{
 			coord[dims[j]] = slist[dims[j]] - coord[dims[j]] - 1;
 		}
-		d[i] = s[clay::index(destshape, coord)];
+		d[i] = s[clay::index(shape, coord)];
 	}
 }
 
@@ -463,14 +462,13 @@ void expand (clay::State& dest, std::vector<clay::State> srcs)
 	{
 		throw std::exception();
 	}
-	clay::Shape& destshape = dest.shape_;
 	clay::Shape& srcshape = srcs.front().shape_;
 	T* d = safe_get<T>(dest.data_);
 	const T* s = safe_get<const T>(srcs.front().data_);
 	clay::State& nstate = srcs[1];
 	clay::State& dstate = srcs[2];
-	if (nstate.type_ != UINT64 ||
-		dstate.type_ != UINT64)
+	if (nstate.dtype_ != clay::UINT64 ||
+		dstate.dtype_ != clay::UINT64)
 	{
 		throw std::exception();
 	}
@@ -479,8 +477,8 @@ void expand (clay::State& dest, std::vector<clay::State> srcs)
 	{
 		throw std::exception();
 	}
-	uint64_t mul = *((uint64_t*) nstate.data_.get());
-	uint64_t dim = *((uint64_t*) dstate.data_.get());
+	uint64_t mul = *(safe_get<uint64_t>(nstate.data_));
+	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
 	std::vector<size_t> slist = srcshape.as_list();
 	auto it = slist.begin();
 	size_t innern = std::accumulate(it, it + dim, 1, std::multiplies<size_t>());
@@ -516,7 +514,7 @@ void n_dims (clay::State& dest, std::vector<clay::State> srcs)
 	clay::Shape& srcshape = srcs.front().shape_;
 	T* d = safe_get<T>(dest.data_);
 	clay::State& dstate = srcs[1];
-	if (dstate.type_ != UINT64)
+	if (dstate.dtype_ != clay::UINT64)
 	{
 		throw std::exception();
 	}
@@ -524,7 +522,7 @@ void n_dims (clay::State& dest, std::vector<clay::State> srcs)
 	{
 		throw std::exception();
 	}
-	uint64_t dim = *((uint64_t*) dstate.data_.get());
+	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
 	if (dim < srcshape.rank())
 	{
 		d[0] = srcshape[dim];
@@ -545,6 +543,6 @@ void matmul (clay::State& dest, std::vector<clay::State> srcs);
 
 }
 
-#include "slip/ipp/matmul.ipp"
+#include "slip/include/matmul.ipp"
 
 #endif /* SLIP_OPERATIONS_HPP */
