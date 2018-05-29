@@ -34,6 +34,34 @@ Functor::Functor (std::vector<Identifier*> args,
 	arg_ids_(to_ids(args)),
 	grad_(grad) {}
 
+Identifier* Functor::derive (Identifier* wrt)
+{
+	if (false == arg_->has_data())
+	{
+		throw std::exception(); // todo: add context
+	}
+	Identifier* out;
+	if (this == wrt)
+	{
+		out = make_one(arg_->get_state().dtype_);
+	}
+	else
+	{
+		std::vector<Identifier*> args(arg_ids_.size());
+		std::transform(arg_ids_.begin(), arg_ids_.end(), args.begin(),
+		[this](std::string id)
+		{
+			return graph_->get_node(id);
+		});
+		out = grad_(wrt, args);
+	}
+	if (nullptr == out)
+	{
+		throw std::exception(); // todo: add context
+	}
+	return out;
+}
+
 std::vector<mold::iNode*> Functor::to_nodes (std::vector<Identifier*> ids)
 {
 	std::vector<mold::iNode*> out(ids.size());

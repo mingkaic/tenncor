@@ -15,7 +15,18 @@
 using namespace testutil;
 
 
-class PLACEHOLDER : public fuzz_test {};
+class PLACEHOLDER : public fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testutil::fuzz_test::TearDown();
+		wire::Graph& g = wire::Graph::get_global();
+		assert(0 == g.size());
+	}
+};
 
 
 TEST_F(PLACEHOLDER, VecAssign_F000)
@@ -401,114 +412,27 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 
 TEST_F(PLACEHOLDER, Derive_F004)
 {
-	mold::Variable var;
-	mold::Variable var2;
-	mock_observer* obs = new mock_observer(&var);
-	mock_builder builder(this);
+	clay::Shape shape = random_def_shape(this);
+	wire::Placeholder var(shape, get_string(16, "plname"));
+	wire::Placeholder var2(shape, get_string(16, "plname"));
+	std::vector<double> data = get_double(shape.n_elems(), "data");
 
 	EXPECT_THROW(var.derive(&var), std::exception);
-	EXPECT_EQ(0, testify::mocker::get_usage(&builder, "get"));
-	var.initialize(builder);
-	EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
-	mold::iNode* wun = var.derive(&var);
-	mold::iNode* zaro = var.derive(&var2);
-	EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+	var = data;
+	wire::Identifier* wun = var.derive(&var);
+	wire::Identifier* zaro = var.derive(&var2);
 	clay::Shape scalars(std::vector<size_t>{1});
 	clay::State state = wun->get_state();
 	clay::State state2 = zaro->get_state();
 	EXPECT_SHAPEQ(scalars, state.shape_);
 	EXPECT_SHAPEQ(scalars, state2.shape_);
-	EXPECT_EQ(builder.dtype_, state.dtype_);
-	EXPECT_EQ(builder.dtype_, state2.dtype_);
-	switch (builder.dtype_)
-	{
-		case clay::DTYPE::DOUBLE:
-		{
-			double scalarw = *((double*) state.data_.lock().get());
-			double scalarz = *((double*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::FLOAT:
-		{
-			float scalarw = *((float*) state.data_.lock().get());
-			float scalarz = *((float*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::INT8:
-		{
-			int8_t scalarw = *((int8_t*) state.data_.lock().get());
-			int8_t scalarz = *((int8_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::UINT8:
-		{
-			uint8_t scalarw = *((uint8_t*) state.data_.lock().get());
-			uint8_t scalarz = *((uint8_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::INT16:
-		{
-			int16_t scalarw = *((int16_t*) state.data_.lock().get());
-			int16_t scalarz = *((int16_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::UINT16:
-		{
-			uint16_t scalarw = *((uint16_t*) state.data_.lock().get());
-			uint16_t scalarz = *((uint16_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::INT32:
-		{
-			int32_t scalarw = *((int32_t*) state.data_.lock().get());
-			int32_t scalarz = *((int32_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::UINT32:
-		{
-			uint32_t scalarw = *((uint32_t*) state.data_.lock().get());
-			uint32_t scalarz = *((uint32_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::INT64:
-		{
-			int64_t scalarw = *((int64_t*) state.data_.lock().get());
-			int64_t scalarz = *((int64_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		case clay::DTYPE::UINT64:
-		{
-			uint64_t scalarw = *((uint64_t*) state.data_.lock().get());
-			uint64_t scalarz = *((uint64_t*) state2.data_.lock().get());
-			EXPECT_EQ(1, scalarw);
-			EXPECT_EQ(0, scalarz);
-		}
-		break;
-		default:
-		break;
-	}
 
-	delete obs;
+	double scalarw = *((double*) state.data_.lock().get());
+	double scalarz = *((double*) state2.data_.lock().get());
+	EXPECT_EQ(1, scalarw);
+	EXPECT_EQ(0, scalarz);
+
+	delete zaro;
 	delete wun;
 }
 

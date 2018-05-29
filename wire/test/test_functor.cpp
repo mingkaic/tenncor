@@ -2,19 +2,37 @@
 
 #include "gtest/gtest.h"
 
-#include "testify/mocker/mocker.hpp"
-
 #include "fuzzutil/fuzz.hpp"
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
 
+#include "clay/memory.hpp"
+
 #include "wire/functor.hpp"
+#include "wire/variable.hpp"
 
 
 #ifndef DISABLE_FUNCTOR_TEST
 
 
-struct mock_builder final : public clay::iBuilder, public testify::mocker
+using namespace testutil;
+
+
+class FUNCTOR : public fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testutil::fuzz_test::TearDown();
+		wire::Graph& g = wire::Graph::get_global();
+		assert(0 == g.size());
+	}
+};
+
+
+struct mock_builder final : public clay::iBuilder
 {
 	mock_builder (testify::fuzz_test* fuzzer) :
 		shape_(random_def_shape(fuzzer, {2, 6})),
@@ -29,17 +47,12 @@ struct mock_builder final : public clay::iBuilder, public testify::mocker
 
 	clay::TensorPtrT get (void) const override
 	{
-		label_incr("get");
 		return clay::TensorPtrT(new clay::Tensor(ptr_, shape_, dtype_));
 	}
 
 	clay::TensorPtrT get (clay::Shape shape) const override
 	{
-		label_incr("getwshape");
-		ioutil::Stream str;
-		str << shape.as_list();
-		set_label("getwshape", str.str());
-		return clay::TensorPtrT(new clay::Tensor(ptr_, shape_, dtype_));
+		return clay::TensorPtrT(new clay::Tensor(ptr_, shape, dtype_));
 	}
 
 	clay::Shape shape_;
@@ -55,95 +68,17 @@ protected:
 };
 
 
-struct mock_operateio final : public mold::iOperateIO
-{
-	mock_operateio (
-		std::function<void(clay::State&,std::vector<clay::State>)> op,
-		std::function<clay::Shape(std::vector<clay::Shape>)> shaper,
-		std::function<clay::DTYPE(std::vector<clay::DTYPE>)> typer);
-
-	bool read_data (clay::State& dest) const override
-	{
-		auto outs = get_imms();
-		bool success = dest.shape_.is_compatible_with(outs.first) &&
-			dest.dtype_ == outs.second;
-		if (success)
-		{
-			op_(dest, args_);
-		}
-		return success;
-	}
-
-	mold::ImmPair get_imms (void) override
-	{
-		std::vector<clay::Shape> shapes;
-		std::vector<clay::DTYPE> types;
-		for (const clay::State& arg : args_)
-		{
-			shapes.push_back(arg.shape_);
-			types.push_back(arg.dtype_);
-		}
-		return {shaper_(shapes), typer_(types)};
-	}
-
-	void set_args (std::vector<clay::State> args) override
-	{
-		args_ = args;
-	}
-
-private:
-	iOperateIO* clone_impl (void) const override
-	{
-		return new mock_operateio(*this);
-	}
-
-	std::vector<clay::State> args_;
-
-	ArgsF op_;
-
-	ShaperF shaper_;
-
-	TyperF typer_;
-};
-
-
-mold::Functor* junk_functor (std::vector<mold::iNode*> args,
-	testify::fuzz_test* fuzzer,
-	mold::GradF backward =
-	[](mold::iNode* wrt, std::vector<mold::iNode*> args) -> mold::iNode*
-	{
-		return nullptr;
-	})
-{
-	mold::iOperatePtrT op = mold::iOperatePtrT(new mock_operateio(
-	[fuzzer](clay::State& state,std::vector<clay::State>)
-	{
-		size_t nbytes = state.shape_.n_elems() *
-			clay::type_size(state.dtype_);
-		std::string raw = fuzzer->get_string(nbytes, "mock_src_uuid");
-		std::memcpy((void*) state.data_.lock().get(), raw.c_str(), nbytes);
-	},
-	[fuzzer](std::vector<clay::Shape>) -> clay::Shape
-	{
-		return random_def_shape(fuzzer, {1, 6});
-	},
-	[fuzzer](std::vector<clay::DTYPE>) -> clay::DTYPE
-	{
-		return (clay::DTYPE) fuzzer->get_int(1, "dtype",
-			{1, clay::DTYPE::_SENTINEL - 1})[0];
-	}));
-	return new mold::Functor(args, std::move(op), backward);
-}
-
-
 TEST_F(FUNCTOR, Derive_G00x)
 {
-	mold::Variable derout;
-	mold::Variable arg;
-	mold::Variable arg2;
+	std::string derlabel = get_string(16, "derlabel");
+	std::string arglabel = get_string(16, "arglabel");
+	std::string arg2label = get_string(16, "arg2label");
 	mock_builder builder(this);
-	mold::Functor* f = junk_functor(std::vector<mold::iNode*>{&arg, &arg2}, this,
-	[&](mold::iNode* wrt, std::vector<mold::iNode*> args) -> mold::iNode*
+	wire::Variable derout(builder, derlabel);
+	wire::Variable arg(builder, arglabel);
+	wire::Variable arg2(builder, arg2label);
+	wire::Functor* f = new wire::Functor(std::vector<wire::Identifier*>{&arg, &arg2}, slip::ADD,
+	[&](wire::Identifier* wrt, std::vector<wire::Identifier*> args) -> wire::Identifier*
 	{
 		EXPECT_EQ(&arg, wrt);
 		EXPECT_EQ(2, args.size());
@@ -154,14 +89,12 @@ TEST_F(FUNCTOR, Derive_G00x)
 
 	EXPECT_THROW(f->derive(f), std::exception);
 	EXPECT_THROW(f->derive(&arg), std::exception);
-	arg.initialize(builder);
-	arg2.initialize(builder);
-	f->initialize();
+	wire::Graph::get_global().initialize_all();
 	ASSERT_TRUE(f->has_data());
 
 	clay::State fwdstate = f->get_state();
 	clay::Shape scalars(std::vector<size_t>{1});
-	mold::iNode* wun = f->derive(f);
+	wire::Identifier* wun = f->derive(f);
 	clay::State state = wun->get_state();
 	EXPECT_SHAPEQ(scalars, state.shape_);
 	EXPECT_EQ(fwdstate.dtype_, state.dtype_);
@@ -230,7 +163,7 @@ TEST_F(FUNCTOR, Derive_G00x)
 		break;
 	};
 
-	mold::iNode* der = f->derive(&arg);
+	wire::Identifier* der = f->derive(&arg);
 	EXPECT_EQ(&derout, der);
 
 	delete f;

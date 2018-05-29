@@ -17,7 +17,18 @@
 using namespace testutil;
 
 
-class IDENTIFIER : public fuzz_test {};
+class IDENTIFIER : public fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testutil::fuzz_test::TearDown();
+		wire::Graph& g = wire::Graph::get_global();
+		assert(0 == g.size());
+	}
+};
 
 
 struct mock_identifier : public wire::Identifier
@@ -28,6 +39,11 @@ struct mock_identifier : public wire::Identifier
 	wire::Graph* get_graph (void) const { return graph_; }
 
 	mold::iNode* get_node (void) const { return arg_.get(); }
+
+	Identifier* derive (Identifier* wrt) override
+	{
+		return nullptr;
+	}
 };
 
 

@@ -46,6 +46,11 @@ public:
 
 	std::string get_gid (void) const;
 
+	size_t size (void) const
+	{
+		return adjmap_.size();
+	}
+
 	bool has_node (std::string id) const;
 
 	Identifier* get_node (std::string id) const;

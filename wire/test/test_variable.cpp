@@ -6,6 +6,10 @@
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
 
+#include "clay/memory.hpp"
+
+#include "mold/iobserver.hpp"
+
 #include "wire/variable.hpp"
 
 
@@ -15,7 +19,18 @@
 using namespace testutil;
 
 
-class VARIABLE : public fuzz_test {};
+class VARIABLE : public fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		fuzz_test::TearDown();
+		wire::Graph& g = wire::Graph::get_global();
+		assert(0 == g.size());
+	}
+};
 
 
 struct mock_builder final : public clay::iBuilder
@@ -23,13 +38,16 @@ struct mock_builder final : public clay::iBuilder
 	mock_builder (testify::fuzz_test* fuzzer) :
 		shape_(random_def_shape(fuzzer, {2, 6})),
 		dtype_((clay::DTYPE) fuzzer->get_int(1, "dtype",
-		{1, clay::DTYPE::_SENTINEL - 1})[0])
+			{1, clay::DTYPE::_SENTINEL - 1})[0])
 	{
 		size_t nbytes = shape_.n_elems() * clay::type_size(dtype_);
 		uuid_ = fuzzer->get_string(nbytes, "uuid_");
 		ptr_ = clay::make_char(nbytes);
 		std::memcpy(ptr_.get(), uuid_.c_str(), nbytes);
 	}
+
+	mock_builder (const mock_builder& other) :
+		uuid_(other.uuid_), ptr_(other.ptr_), shape_(other.shape_), dtype_(other.dtype_) {}
 
 	clay::TensorPtrT get (void) const override
 	{
@@ -56,6 +74,9 @@ protected:
 
 TEST_F(VARIABLE, Init_E000)
 {
+	wire::Graph& graph = wire::Graph::get_global();
+	EXPECT_EQ(0, graph.n_uninit());
+
 	mock_builder builder(this);
 	clay::Shape shape = random_def_shape(this);
 	std::string label = get_string(16, "label");
@@ -63,7 +84,6 @@ TEST_F(VARIABLE, Init_E000)
 	wire::Variable var(builder, label);
 	wire::Variable var2(builder, shape, label2);
 
-	wire::Graph& graph = wire::Graph::get_global();
 	EXPECT_EQ(2, graph.n_uninit());
 	graph.initialize(var.get_uid());
 	ASSERT_TRUE(var.has_data());
@@ -82,20 +102,14 @@ TEST_F(VARIABLE, Init_E000)
 
 TEST_F(VARIABLE, Derive_C005)
 {
-	mold::Variable var;
-	mold::Variable var2;
-	mock_observer* obs = new mock_observer(&var);
 	mock_builder builder(this);
+	wire::Variable var(builder, get_string(16, "varname"));
+	wire::Variable var2(builder, get_string(16, "var2name"));
 
 	EXPECT_THROW(var.derive(&var), std::exception);
-	EXPECT_EQ(0, testify::mocker::get_usage(&builder, "get"));
-	var.initialize(builder);
-	EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
-	mold::iNode* wun = var.derive(&var);
-	mold::iNode* zaro = var.derive(&var2);
-	EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+	wire::Graph::get_global().initialize_all();
+	wire::Identifier* wun = var.derive(&var);
+	wire::Identifier* zaro = var.derive(&var2);
 	clay::Shape scalars(std::vector<size_t>{1});
 	clay::State state = wun->get_state();
 	clay::State state2 = zaro->get_state();
@@ -189,7 +203,7 @@ TEST_F(VARIABLE, Derive_C005)
 		break;
 	}
 
-	delete obs;
+	delete zaro;
 	delete wun;
 }
 

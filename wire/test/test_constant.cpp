@@ -15,7 +15,18 @@
 using namespace testutil;
 
 
-class CONSTANT : public fuzz_test {};
+class CONSTANT : public fuzz_test
+{
+protected:
+	virtual void SetUp (void) {}
+
+	virtual void TearDown (void)
+	{
+		testutil::fuzz_test::TearDown();
+		wire::Graph& g = wire::Graph::get_global();
+		assert(0 == g.size());
+	}
+};
 
 
 TEST_F(CONSTANT, GetScalar_D000)
@@ -244,9 +255,11 @@ TEST_F(CONSTANT, Derive_E001)
 			ASSERT_TRUE(false) << "generated bad type";
 		break;
 	}
-	mold::Constant c(ptr, clay::Shape({1}), dtype);
-	mold::iNode* zaro = c.derive(&c);
-	ASSERT_NE(nullptr, dynamic_cast<mold::Constant*>(zaro));
+	wire::Constant c(ptr, clay::Shape({1}), dtype, get_string(16, "cname"));
+	wire::Constant* c2 = wire::Constant::get(1);
+	EXPECT_THROW(c.derive(&c), std::exception);
+	wire::Identifier* zaro = c.derive(c2);
+	ASSERT_NE(nullptr, dynamic_cast<wire::Constant*>(zaro));
 	clay::State z = zaro->get_state();
 	EXPECT_EQ(dtype, z.dtype_);
 	std::vector<size_t> wun{1};
@@ -317,6 +330,7 @@ TEST_F(CONSTANT, Derive_E001)
 		break;
 	}
 	delete zaro;
+	delete c2;
 }
 
 
