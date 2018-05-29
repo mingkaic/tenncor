@@ -24,7 +24,8 @@ namespace slip
 
 enum OPCODE
 {
-	ABS = 0,
+	CAST = 0,
+	ABS,
 	NEG,
 	NOT,
 	SIN,
@@ -64,7 +65,18 @@ enum OPCODE
 	_SENTINEL
 };
 
-extern std::unordered_map<OPCODE,std::string> opnames;
+struct EnumHash
+{
+	template <typename T>
+	size_t operator() (T e) const
+	{
+		return static_cast<size_t>(e);
+	}
+};
+
+using OpnameMap = std::unordered_map<OPCODE,std::string,EnumHash>;
+
+extern OpnameMap opnames;
 
 }
 

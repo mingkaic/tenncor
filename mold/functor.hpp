@@ -27,7 +27,7 @@ namespace mold
 class Functor final : public iNode, public iObserver
 {
 public:
-	Functor (std::vector<iNode*> args, mold::iOperatePtrT&& op);
+	Functor (std::vector<iNode*> args, mold::iOperatePtrT op);
 
 	Functor (const Functor& other);
 
@@ -55,7 +55,7 @@ protected:
 private:
 	clay::TensorPtrT cache_ = nullptr;
 
-	std::unique_ptr<iOperateIO> op_;
+	iOperatePtrT op_;
 };
 
 }

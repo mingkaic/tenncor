@@ -12,7 +12,8 @@
  */
 
 #include "clay/ibuilder.hpp"
-#include "mold/constant.hpp"
+
+#include "mold/inode.hpp"
 
 #pragma once
 #ifndef MOLD_VARIABLE_HPP

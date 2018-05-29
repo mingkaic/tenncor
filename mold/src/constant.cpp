@@ -4,6 +4,7 @@
 //
 
 #include "mold/constant.hpp"
+#include "mold/functor.hpp"
 
 #ifdef MOLD_CONSTANT_HPP
 

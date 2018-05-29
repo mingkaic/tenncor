@@ -1,6 +1,6 @@
 // TENSORSHAPE BEHAVIOR
-A000 - vector constructor and vector assignment, does not override big 4 
-A001 - index accessor returns value at input dimension. 
+A000 - vector constructor and vector assignment, does not override big 4
+A001 - index accessor returns value at input dimension.
 		accessing dimension greater or equal to rank throws std::out_of_range
 A002 - n_elems returns the product of all dimension value. non-fully defined shapes have n_elems of 0
 A003 - n_known obtains the product of all known dimensions
@@ -33,6 +33,6 @@ B004 - convert with string-string input converts between itype and otype, return
 C000 - constructor throws error if data is nullptr, shape is not fully defined, or type is BAD,
 		does not override default big 4
 C001 - total_bytes returns the size of allocated bytes in data
-C002 - read_from copies data from input source, return false if 
+C002 - read_from copies data from input source, return false if
 		source shape or type not compatible with existing shape and type
 		fail reads do not change data

@@ -11,6 +11,7 @@
  *
  */
 
+#include <cstring>
 #include <cassert>
 #include <random>
 #include <functional>
@@ -37,6 +38,14 @@ T* safe_get (std::weak_ptr<char> ptr)
 	}
 	return (T*) ptr.lock().get();
 }
+
+#ifndef SLIP_CAST_HPP
+#define SLIP_CAST_HPP
+
+template <typename T>
+void cast (clay::State& dest, std::vector<clay::State> srcs);
+
+#endif /* SLIP_CAST_HPP */
 
 template <typename T>
 void unary (clay::State& dest, std::vector<clay::State> srcs,
@@ -291,7 +300,7 @@ void transpose (clay::State& dest, std::vector<clay::State> srcs)
 	}
 	else
 	{
-		perm = std::vector<uint64_t>(srcshape.n_elems());
+		perm = std::vector<uint64_t>(srcshape.rank());
 		std::iota(perm.rbegin(), perm.rend(), 0);
 	}
 	std::vector<size_t> tmp_coord;
@@ -324,16 +333,15 @@ void flip (clay::State& dest, std::vector<clay::State> srcs)
 	{
 		throw std::exception();
 	}
-	uint64_t* ptr = safe_get<uint64_t>(dstate.data_);
-	std::vector<uint64_t> dims(ptr, ptr + dstate.shape_.n_elems());
+	size_t ndims = dstate.shape_.n_elems();
+	uint64_t* dims = safe_get<uint64_t>(dstate.data_);
 	std::vector<size_t> slist = shape.as_list();
 	std::vector<size_t> coord;
 	for (size_t i = 0, n = shape.n_elems();
 		i < n; ++i)
 	{
 		coord = clay::coordinate(shape, i);
-		for (size_t j = 0, ndims = dims.size();
-			j < ndims; ++j)
+		for (size_t j = 0; j < ndims; ++j)
 		{
 			coord[dims[j]] = slist[dims[j]] - coord[dims[j]] - 1;
 		}
@@ -496,42 +504,9 @@ void expand (clay::State& dest, std::vector<clay::State> srcs)
 	}
 }
 
-template <typename T>
-void n_elems (clay::State& dest, std::vector<clay::State> srcs)
-{
-	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	d[0] = (T) srcshape.n_elems();
-}
+void n_elems (clay::State& dest, std::vector<clay::State> srcs);
 
-template <typename T>
-void n_dims (clay::State& dest, std::vector<clay::State> srcs)
-{
-	if (srcs.size() != 2)
-	{
-		throw std::exception();
-	}
-	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	clay::State& dstate = srcs[1];
-	if (dstate.dtype_ != clay::UINT64)
-	{
-		throw std::exception();
-	}
-	if (1 != dstate.shape_.n_elems())
-	{
-		throw std::exception();
-	}
-	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
-	if (dim < srcshape.rank())
-	{
-		d[0] = srcshape[dim];
-	}
-	else
-	{
-		d[0] = 0;
-	}
-}
+void n_dims (clay::State& dest, std::vector<clay::State> srcs);
 
 #ifndef SLIP_MATMUL_HPP
 #define SLIP_MATMUL_HPP
@@ -543,6 +518,7 @@ void matmul (clay::State& dest, std::vector<clay::State> srcs);
 
 }
 
+#include "slip/include/cast.ipp"
 #include "slip/include/matmul.ipp"
 
 #endif /* SLIP_OPERATIONS_HPP */

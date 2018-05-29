@@ -22,7 +22,7 @@
 namespace ioutil
 {
 
-class Stream
+class Stream final
 {
 public:
 	//! to_stream conversion enum trick
@@ -32,8 +32,6 @@ public:
 	};
 
 	Stream (void) = default;
-
-	virtual ~Stream (void) = default;
 
 	//! no copying or moving to force string conversion
 	//! format content is always passed as a string

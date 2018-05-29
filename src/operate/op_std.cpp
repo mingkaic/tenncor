@@ -473,7 +473,7 @@ varptr transpose (const varptr a)
 	{
 		return parent;
 	}
-	return coord_func({a}, 
+	return coord_func({a},
 	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
 		assert(srcs.size() == 1);
@@ -490,7 +490,7 @@ varptr transpose (const varptr a)
 			std::reverse(coord.begin(), coord.end());
 			std::memcpy(out + i * per, in + inshape.flat_idx(coord) * per, per);
 		}
-	}, 
+	},
 	[](tshape inshape, std::vector<uint64_t>)
 	{
 		// rearrange inlist to outlist
@@ -508,13 +508,13 @@ varptr transpose (const varptr a, std::vector<uint64_t> perm)
 	{
 		// perform sanity check on perm, perm must contain unique numbers in [0, psize)
 		std::unordered_set<uint64_t> pset(perm.begin(), perm.end());
-		if (pset.size() != psize || std::any_of(perm.begin(), perm.end(), 
+		if (pset.size() != psize || std::any_of(perm.begin(), perm.end(),
 			[psize](size_t p) { return p >= psize; }))
 		{
 			throw std::exception(); // todo: add message "bad perm" or something
 		}
 
-		pvar = constant::get<uint64_t>(perm, 
+		pvar = constant::get<uint64_t>(perm,
 			tshape(std::vector<size_t>{psize}));
 	}
 	return transpose(a, pvar);
@@ -533,7 +533,7 @@ varptr transpose (const varptr a, const varptr perm)
 	{
 		return parent;
 	}
-	return coord_func(args, 
+	return coord_func(args,
 	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
 		assert(srcs.size() == 2);
@@ -556,7 +556,7 @@ varptr transpose (const varptr a, const varptr perm)
 			}
 			std::memcpy(out + i * per, in + inshape.flat_idx(coord) * per, per);
 		}
-	}, 
+	},
 	[](tshape inshape, std::vector<uint64_t> perm)
 	{
 		// rearrange inlist to outlist
@@ -575,7 +575,7 @@ varptr transpose (const varptr a, const varptr perm)
 
 varptr flip (const varptr a, std::vector<uint64_t> dims)
 {
-	return flip(a, constant::get<uint64_t>(dims, 
+	return flip(a, constant::get<uint64_t>(dims,
 		tshape(std::vector<size_t>{dims.size()})));
 }
 
@@ -589,7 +589,7 @@ varptr flip (const varptr a, const varptr dims)
 	{
 		return parent;
 	}
-	return coord_func(args, 
+	return coord_func(args,
 	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
 		assert(srcs.size() == 2);
@@ -748,11 +748,11 @@ varptr expand (const varptr a, const varptr n, const varptr dim)
 	{
 		return parent;
 	}
-	return coord_func(deps, 
+	return coord_func(deps,
 	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
 	{
 		assert(srcs.size() == 3 &&
-			srcs[1].second.n_elems() == 1 && 
+			srcs[1].second.n_elems() == 1 &&
 			srcs[2].second.n_elems() == 1);
 		size_t per = type_size(type);
 		char* out = (char*) dest.first;
@@ -761,7 +761,7 @@ varptr expand (const varptr a, const varptr n, const varptr dim)
 		uint64_t dim = *((uint64_t*) srcs[2].first);
 		tshape outshape = dest.second;
 		tshape inshape = srcs[0].second;
-		
+
 		std::vector<size_t> slist = inshape.as_list();
 		auto it = slist.begin();
 		size_t outern = inshape.n_elems();
@@ -777,7 +777,7 @@ varptr expand (const varptr a, const varptr n, const varptr dim)
 				std::memcpy(out + outidx, in + inidx, innern * per);
 			}
 		}
-	}, 
+	},
 	[](tshape inshape, std::vector<uint64_t> sinfo)
 	{
 		assert(sinfo.size() == 2);

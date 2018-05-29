@@ -56,7 +56,7 @@ TEST_F(TYPE, ConvertSV_B002)
 	std::vector<double> ex_dbl = get_double(dsize, "datadoub", {0, 255});
 	std::vector<size_t> temp = get_int(usize, "datauint", {0, 255});
 	std::vector<uint16_t> ex_uit(temp.begin(), temp.end());
-	
+
 	std::string out;
 	std::vector<double> dvec;
 	std::vector<float> fvec;
@@ -86,7 +86,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<double> outV(optr, optr + out.size() / sizeof(double));
 		EXPECT_ARREQ(ex_dbl, outV);
 	}
-	
+
 	{
 		std::vector<float> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::FLOAT, ex_dbl);
@@ -94,7 +94,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<float> outV(optr, optr + out.size() / sizeof(float));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int8_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::INT8, ex_dbl);
@@ -102,7 +102,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<int8_t> outV(optr, optr + out.size() / sizeof(int8_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint8_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::UINT8, ex_dbl);
@@ -110,7 +110,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<uint8_t> outV(optr, optr + out.size() / sizeof(uint8_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int16_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::INT16, ex_dbl);
@@ -118,7 +118,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<int16_t> outV(optr, optr + out.size() / sizeof(int16_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint16_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::UINT16, ex_dbl);
@@ -126,7 +126,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<uint16_t> outV(optr, optr + out.size() / sizeof(uint16_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int32_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::INT32, ex_dbl);
@@ -134,7 +134,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<int32_t> outV(optr, optr + out.size() / sizeof(int32_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint32_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::UINT32, ex_dbl);
@@ -142,7 +142,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<uint32_t> outV(optr, optr + out.size() / sizeof(uint32_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int64_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::INT64, ex_dbl);
@@ -150,7 +150,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<int64_t> outV(optr, optr + out.size() / sizeof(int64_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint64_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<double>(out, clay::DTYPE::UINT64, ex_dbl);
@@ -167,7 +167,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<double> outV(optr, optr + out.size() / sizeof(double));
 		EXPECT_ARREQ(ex_uit, outV);
 	}
-	
+
 	{
 		std::vector<float> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint16_t>(out, clay::DTYPE::FLOAT, ex_uit);
@@ -175,7 +175,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<float> outV(optr, optr + out.size() / sizeof(float));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int8_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint16_t>(out, clay::DTYPE::INT8, ex_uit);
@@ -183,7 +183,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<int8_t> outV(optr, optr + out.size() / sizeof(int8_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint8_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint16_t>(out, clay::DTYPE::UINT8, ex_uit);
@@ -191,7 +191,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<uint8_t> outV(optr, optr + out.size() / sizeof(uint8_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int16_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint16_t>(out, clay::DTYPE::INT16, ex_uit);
@@ -199,14 +199,14 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<int16_t> outV(optr, optr + out.size() / sizeof(int16_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		clay::convert<uint16_t>(out, clay::DTYPE::UINT16, ex_uit);
 		const uint16_t* optr = (const uint16_t*) out.c_str();
 		std::vector<uint16_t> outV(optr, optr + out.size() / sizeof(uint16_t));
 		EXPECT_ARREQ(ex_uit, outV);
 	}
-	
+
 	{
 		std::vector<int32_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint16_t>(out, clay::DTYPE::INT32, ex_uit);
@@ -214,7 +214,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<int32_t> outV(optr, optr + out.size() / sizeof(int32_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint32_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint16_t>(out, clay::DTYPE::UINT32, ex_uit);
@@ -222,7 +222,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<uint32_t> outV(optr, optr + out.size() / sizeof(uint32_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int64_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint16_t>(out, clay::DTYPE::INT64, ex_uit);
@@ -230,7 +230,7 @@ TEST_F(TYPE, ConvertSV_B002)
 		std::vector<int64_t> outV(optr, optr + out.size() / sizeof(int64_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint64_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint16_t>(out, clay::DTYPE::UINT64, ex_uit);
@@ -248,7 +248,7 @@ TEST_F(TYPE, ConvertVS_B003)
 	std::vector<double> ex_dbl = get_double(dsize, "datadoub", {0, 255});
 	std::vector<size_t> temp = get_int(usize, "datauint", {0, 255});
 	std::vector<uint16_t> ex_uit(temp.begin(), temp.end());
-	
+
 	std::string data;
 	std::vector<double> dvec;
 	std::vector<float> fvec;
@@ -279,63 +279,63 @@ TEST_F(TYPE, ConvertVS_B003)
 		clay::convert<double>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(ex_dbl, outV);
 	}
-	
+
 	{
 		std::vector<float> outV;
 		std::vector<float> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<float>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int8_t> outV;
 		std::vector<int8_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<int8_t>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint8_t> outV;
 		std::vector<uint8_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<uint8_t>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int16_t> outV;
 		std::vector<int16_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<int16_t>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint16_t> outV;
 		std::vector<uint16_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<uint16_t>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int32_t> outV;
 		std::vector<int32_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<int32_t>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint32_t> outV;
 		std::vector<uint32_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<uint32_t>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int64_t> outV;
 		std::vector<int64_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert<int64_t>(outV, data, clay::DTYPE::DOUBLE);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint64_t> outV;
 		std::vector<uint64_t> expectV(ex_dbl.begin(), ex_dbl.end());
@@ -352,62 +352,62 @@ TEST_F(TYPE, ConvertVS_B003)
 		clay::convert<double>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(ex_uit, outV);
 	}
-	
+
 	{
 		std::vector<float> outV;
 		std::vector<float> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<float>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int8_t> outV;
 		std::vector<int8_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<int8_t>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint8_t> outV;
 		std::vector<uint8_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint8_t>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int16_t> outV;
 		std::vector<int16_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<int16_t>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint16_t> outV;
 		clay::convert<uint16_t>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(ex_uit, outV);
 	}
-	
+
 	{
 		std::vector<int32_t> outV;
 		std::vector<int32_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<int32_t>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint32_t> outV;
 		std::vector<uint32_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<uint32_t>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int64_t> outV;
 		std::vector<int64_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert<int64_t>(outV, data, clay::DTYPE::UINT16);
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint64_t> outV;
 		std::vector<uint64_t> expectV(ex_uit.begin(), ex_uit.end());
@@ -424,7 +424,7 @@ TEST_F(TYPE, ConvertSS_B004)
 	std::vector<double> ex_dbl = get_double(dsize, "datadoub", {0, 255});
 	std::vector<size_t> temp = get_int(usize, "datauint", {0, 255});
 	std::vector<uint16_t> ex_uit(temp.begin(), temp.end());
-	
+
 	std::string out;
 	std::string data;
 	EXPECT_FALSE(clay::convert(out, clay::DTYPE::DOUBLE,
@@ -477,7 +477,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<double> outV(optr, optr + out.size() / sizeof(double));
 		EXPECT_ARREQ(ex_dbl, outV);
 	}
-	
+
 	{
 		std::vector<float> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::FLOAT, data, clay::DTYPE::DOUBLE);
@@ -485,7 +485,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<float> outV(optr, optr + out.size() / sizeof(float));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int8_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::INT8, data, clay::DTYPE::DOUBLE);
@@ -493,7 +493,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<int8_t> outV(optr, optr + out.size() / sizeof(int8_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint8_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::UINT8, data, clay::DTYPE::DOUBLE);
@@ -501,7 +501,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<uint8_t> outV(optr, optr + out.size() / sizeof(uint8_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int16_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::INT16, data, clay::DTYPE::DOUBLE);
@@ -509,7 +509,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<int16_t> outV(optr, optr + out.size() / sizeof(int16_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint16_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::UINT16, data, clay::DTYPE::DOUBLE);
@@ -517,7 +517,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<uint16_t> outV(optr, optr + out.size() / sizeof(uint16_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int32_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::INT32, data, clay::DTYPE::DOUBLE);
@@ -525,7 +525,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<int32_t> outV(optr, optr + out.size() / sizeof(int32_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint32_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::UINT32, data, clay::DTYPE::DOUBLE);
@@ -533,7 +533,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<uint32_t> outV(optr, optr + out.size() / sizeof(uint32_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int64_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::INT64, data, clay::DTYPE::DOUBLE);
@@ -541,7 +541,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<int64_t> outV(optr, optr + out.size() / sizeof(int64_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint64_t> expectV(ex_dbl.begin(), ex_dbl.end());
 		clay::convert(out, clay::DTYPE::UINT64, data, clay::DTYPE::DOUBLE);
@@ -560,7 +560,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<double> outV(optr, optr + out.size() / sizeof(double));
 		EXPECT_ARREQ(ex_uit, outV);
 	}
-	
+
 	{
 		std::vector<float> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert(out, clay::DTYPE::FLOAT, data, clay::DTYPE::UINT16);
@@ -568,7 +568,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<float> outV(optr, optr + out.size() / sizeof(float));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int8_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert(out, clay::DTYPE::INT8, data, clay::DTYPE::UINT16);
@@ -576,7 +576,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<int8_t> outV(optr, optr + out.size() / sizeof(int8_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint8_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert(out, clay::DTYPE::UINT8, data, clay::DTYPE::UINT16);
@@ -584,7 +584,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<uint8_t> outV(optr, optr + out.size() / sizeof(uint8_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int16_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert(out, clay::DTYPE::INT16, data, clay::DTYPE::UINT16);
@@ -592,14 +592,14 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<int16_t> outV(optr, optr + out.size() / sizeof(int16_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		clay::convert(out, clay::DTYPE::UINT16, data, clay::DTYPE::UINT16);
 		const uint16_t* optr = (const uint16_t*) out.c_str();
 		std::vector<uint16_t> outV(optr, optr + out.size() / sizeof(uint16_t));
 		EXPECT_ARREQ(ex_uit, outV);
 	}
-	
+
 	{
 		std::vector<int32_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert(out, clay::DTYPE::INT32, data, clay::DTYPE::UINT16);
@@ -607,7 +607,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<int32_t> outV(optr, optr + out.size() / sizeof(int32_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint32_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert(out, clay::DTYPE::UINT32, data, clay::DTYPE::UINT16);
@@ -615,7 +615,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<uint32_t> outV(optr, optr + out.size() / sizeof(uint32_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<int64_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert(out, clay::DTYPE::INT64, data, clay::DTYPE::UINT16);
@@ -623,7 +623,7 @@ TEST_F(TYPE, ConvertSS_B004)
 		std::vector<int64_t> outV(optr, optr + out.size() / sizeof(int64_t));
 		EXPECT_ARREQ(expectV, outV);
 	}
-	
+
 	{
 		std::vector<uint64_t> expectV(ex_uit.begin(), ex_uit.end());
 		clay::convert(out, clay::DTYPE::UINT64, data, clay::DTYPE::UINT16);

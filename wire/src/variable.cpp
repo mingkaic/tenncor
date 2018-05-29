@@ -5,6 +5,7 @@
 
 #include <cassert>
 
+#include "wire/constant.hpp"
 #include "wire/variable.hpp"
 
 #ifdef WIRE_VARIABLE_HPP

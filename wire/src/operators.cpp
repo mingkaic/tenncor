@@ -10,6 +10,19 @@
 namespace wire
 {
 
+Identifier* cast (Identifier* type, Identifier* a)
+{
+	if (nullptr == a || nullptr == type)
+	{
+		return nullptr;
+	}
+	return new Functor({type, a}, slip::CAST,
+	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
+	{
+		return cast(args.front(), args.back()->derive(wrt));
+	});
+}
+
 Identifier* abs (Identifier* a)
 {
 	if (nullptr == a)
@@ -138,7 +151,7 @@ Identifier* sqrt (Identifier* a)
 		// sqrt'(f) = f'/(2*sqrt(f))
 		auto f = args.front();
 		auto denom = sqrt(f);
-		return div(f->derive(wrt), sum(f, f));
+		return div(f->derive(wrt), add(denom, denom));
 	});
 }
 
@@ -162,7 +175,7 @@ Identifier* pow (Identifier* b, Identifier* x)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::POW,
+	return new Functor({b, x}, slip::POW,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// pow'(f, g) = f' * g * pow(f, g - 1) + g' * pow(f, g) * log(f)
@@ -247,7 +260,7 @@ Identifier* eq (Identifier* a, Identifier* b)
 	return new Functor({a, b}, slip::EQ,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
-		return eq(args.front(), args.end());
+		return eq(args.front(), args.back());
 	});
 }
 
@@ -260,7 +273,7 @@ Identifier* neq (Identifier* a, Identifier* b)
 	return new Functor({a, b}, slip::NE,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
-		return neq(args.front(), args.end());
+		return neq(args.front(), args.back());
 	});
 }
 
@@ -273,7 +286,7 @@ Identifier* lt (Identifier* a, Identifier* b)
 	return new Functor({a, b}, slip::LT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
-		return lt(args.front(), args.end());
+		return lt(args.front(), args.back());
 	});
 }
 
@@ -286,18 +299,18 @@ Identifier* gt (Identifier* a, Identifier* b)
 	return new Functor({a, b}, slip::GT,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
-		return gt(args.front(), args.end());
+		return gt(args.front(), args.back());
 	});
 }
 
 Constant* sample_grad (Identifier*, std::vector<Identifier*> args)
 {
-	clay::State state = args.front().get_state();
+	clay::State state = args.front()->get_state();
 	unsigned short nbytes = clay::type_size(state.dtype_) *
 		state.shape_.n_elems();
 	std::shared_ptr<char> data = clay::make_char(nbytes);
 	memset(data.get(), 0, nbytes);
-	return new Constant(data, state.shape_, nbytes.dtype_);
+	return new Constant(data, state.shape_, state.dtype_, "sample_grad");
 }
 
 Identifier* binomial_sample (Identifier* n, Identifier* p)
@@ -360,7 +373,7 @@ Identifier* transpose (Identifier* a, Identifier* perm)
 
 Identifier* transpose (Identifier* a, std::vector<uint64_t> perm)
 {
-	return transpose(a, Constant::get(perm));
+	return transpose(a, Constant::get(perm, clay::Shape({perm.size()})));
 }
 
 Identifier* flip (Identifier* a, Identifier* dims)
@@ -438,8 +451,8 @@ Identifier* reduce_max (Identifier* a, Identifier* dim)
 	{
 		auto a = args.front();
 		auto dim = args.back();
-		varptr me = reduce_max(a, dim);
-		varptr bitmap = expand(me, n_dimension(a, dim), dim);
+		auto me = reduce_max(a, dim);
+		auto bitmap = expand(me, n_dimension(a, dim), dim);
 		return mul(a->derive(wrt), eq(bitmap, a));
 	});
 }
@@ -482,32 +495,35 @@ Identifier* reduce_sum (Identifier* a, uint64_t dim)
 
 Identifier* reduce_mean (Identifier* a)
 {
-	return reduce_sum(a) / n_elems(a);
+	auto denom = cast(a, n_elems(a));
+	return div(reduce_sum(a), denom);
 }
 
 Identifier* reduce_mean (Identifier* a, Identifier* dim)
 {
-	return reduce_sum(a, dim) / n_dimension(a, dim);
+	auto denom = cast(a, n_dimension(a, dim));
+	return div(reduce_sum(a, dim), denom);
 }
 
 Identifier* reduce_mean (Identifier* a, uint64_t dim)
 {
-	return reduce_sum(a, dim) / n_dimension(a, dim);
+	auto denom = cast(a, n_dimension(a, dim));
+	return div(reduce_sum(a, dim), denom);
 }
 
 Identifier* reduce_l2norm (Identifier* a)
 {
-	return sqrt(reduce_sum(a * a));
+	return sqrt(reduce_sum(mul(a, a)));
 }
 
 Identifier* reduce_l2norm (Identifier* a, Identifier* dim)
 {
-	return sqrt(reduce_sum(a * a, dim));
+	return sqrt(reduce_sum(mul(a, a), dim));
 }
 
 Identifier* reduce_l2norm (Identifier* a, uint64_t dim)
 {
-	return sqrt(reduce_sum(a * a, dim));
+	return sqrt(reduce_sum(mul(a, a), dim));
 }
 
 Identifier* n_elems (Identifier* a)
@@ -538,7 +554,7 @@ Identifier* n_dimension (Identifier* a, Identifier* dim)
 
 Identifier* n_dimension (Identifier* a, uint64_t dim)
 {
-	return n_dimensions(a, Constant::get(dim));
+	return n_dimension(a, Constant::get(dim));
 }
 
 Identifier* expand (Identifier* a, Identifier* n, Identifier* dim)
@@ -574,7 +590,6 @@ Identifier* clip (Identifier* a, Identifier* min, Identifier* max)
 
 Identifier* clip_norm (Identifier* a, Identifier* cap)
 {
-	assert_shape(cap, std::vector<size_t>{1});
 	auto l2 = reduce_l2norm(a);
 	auto is_clip = lt(l2, cap);
 	auto no_clip = logical_not(is_clip);

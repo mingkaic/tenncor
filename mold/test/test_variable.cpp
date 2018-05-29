@@ -10,8 +10,11 @@
 
 #include "ioutil/stream.hpp"
 
+#include "clay/memory.hpp"
+
 #include "mold/sink.hpp"
 #include "mold/variable.hpp"
+#include "mold/iobserver.hpp"
 
 
 #ifndef DISABLE_VARIABLE_TEST

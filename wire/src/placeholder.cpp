@@ -5,6 +5,7 @@
 
 #include <cassert>
 
+#include "wire/constant.hpp"
 #include "wire/placeholder.hpp"
 
 #ifdef WIRE_PLACEHOLDER_HPP
@@ -71,6 +72,29 @@ Placeholder::Placeholder (clay::Shape shape, std::string label,
 	Identifier(&graph, new mold::Variable(), label)
 {
 	graph_->alloweds_[get_uid()] = shape;
+}
+
+Identifier* Placeholder::derive (Identifier* wrt)
+{
+	if (false == arg_->has_data())
+	{
+		throw std::exception(); // todo: add context
+	}
+	Identifier* out;
+	clay::DTYPE otype = arg_->get_state().dtype_;
+	if (this == wrt)
+	{
+		out = make_one(otype);
+	}
+	else
+	{
+		out = make_zero(otype);
+	}
+	if (nullptr == out)
+	{
+		throw std::exception(); // todo: add context
+	}
+	return out;
 }
 
 Placeholder::AssignIO::AssignIO (std::string data,

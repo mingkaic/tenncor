@@ -23,17 +23,28 @@
 namespace kiln
 {
 
+struct EnumHash
+{
+	template <typename T>
+	size_t operator() (T e) const
+	{
+		return static_cast<size_t>(e);
+	}
+};
+
+using RejSet = std::unordered_set<clay::DTYPE, EnumHash>;
+
 struct Validator final
 {
 	Validator (void) = default;
 
-	Validator (clay::Shape allowed, std::unordered_set<clay::DTYPE> reject);
+	Validator (clay::Shape allowed, RejSet reject);
 
 	bool support (clay::Shape shape, clay::DTYPE dtype) const;
 
 	clay::Shape allowed_;
 
-	std::unordered_set<clay::DTYPE> reject_;
+	RejSet reject_;
 };
 
 }

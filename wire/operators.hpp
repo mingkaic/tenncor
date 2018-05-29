@@ -11,8 +11,8 @@
  *
  */
 
-#include "include/graph/constant.hpp"
-#include "include/graph/functor.hpp"
+#include "wire/constant.hpp"
+#include "wire/functor.hpp"
 
 #pragma once
 #ifndef WIRE_OPERATORS_HPP
@@ -21,12 +21,16 @@
 namespace wire
 {
 
+//! convert a to match type
+Identifier* cast (Identifier* type, Identifier* a);
+
 //! absolute value of a
 Identifier* abs (Identifier* a);
 
 //! negative value of a
 Identifier* neg (Identifier* a);
 
+//! operator ! of a
 Identifier* logical_not (Identifier* a);
 
 //! sin of a
@@ -138,29 +142,29 @@ Identifier* binomial_sample (Identifier* n, double p);
 
 template <typename T>
 Identifier* binomial_sample (T n, Identifier* p)
-{ return binomial_sample(Identifier*(Constant::get<T>(n)), p); }
+{ return binomial_sample(Constant::get<T>(n), p); }
 
 //! generate data of within uniform distribution given (min, max)
 Identifier* uniform_sample (Identifier* min, Identifier* max);
 
 template <typename T>
 Identifier* uniform_sample (Identifier* min, T max)
-{ return uniform_sample(min, Identifier*(Constant::get<T>(max))); }
+{ return uniform_sample(min, Constant::get<T>(max)); }
 
 template <typename T>
 Identifier* uniform_sample (T min, Identifier* max)
-{ return uniform_sample(Identifier*(Constant::get<T>(min)), max); }
+{ return uniform_sample(Constant::get<T>(min), max); }
 
 //! generate data of within normal distribution given (mean, stdev)
 Identifier* normal_sample (Identifier* mean, Identifier* stdev);
 
 template <typename T>
 Identifier* normal_sample (Identifier* mean, T stdev)
-{ return normal_sample(mean, Identifier*(Constant::get<T>(stdev))); }
+{ return normal_sample(mean, Constant::get<T>(stdev)); }
 
 template <typename T>
 Identifier* normal_sample (T mean, Identifier* stdev)
-{ return normal_sample(Identifier*(Constant::get<T>(mean)), stdev); }
+{ return normal_sample(Constant::get<T>(mean), stdev); }
 
 //! transpose, default perm is same as behavior n-1 ... 0
 Identifier* transpose (Identifier* a);
@@ -229,14 +233,14 @@ Identifier* clip (Identifier* a, Identifier* min, Identifier* max);
 
 template <typename T>
 Identifier* clip (Identifier* a, T min, T max)
-{ return clip(a, Identifier*(Constant::get<T>(min)), Identifier*(Constant::get<T>(max))); }
+{ return clip(a, Constant::get<T>(min), Constant::get<T>(max)); }
 
 //! normalize clip values with capacity cap
 Identifier* clip_norm (Identifier* a, Identifier* cap);
 
 template <typename T>
 Identifier* clip_norm (Identifier* a, T cap)
-{ return clip_norm(a, Identifier*(Constant::get<T>(cap))); }
+{ return clip_norm(a, Constant::get<T>(cap)); }
 
 //! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
 Identifier* matmul (Identifier* a, Identifier* b);

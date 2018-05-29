@@ -20,9 +20,9 @@ Identifier* Constant::derive (Identifier* wrt)
 {
 	if (wrt == this)
 	{
-		throws std::exception(); // todo: add context (logical error)
+		throw std::exception(); // todo: add context (logical error)
 	}
-	return make_zero(arg_.get_state().dtype_);
+	return make_zero(arg_->get_state().dtype_);
 }
 
 //! creates a zero scalar
@@ -35,7 +35,7 @@ Constant* make_zero (clay::DTYPE dtype)
 }
 
 //! creates a one scalar
-Constant* make_zero (clay::DTYPE dtype)
+Constant* make_one (clay::DTYPE dtype)
 {
 	unsigned short bsize = clay::type_size(dtype);
 	std::shared_ptr<char> ptr = clay::make_char(bsize);

@@ -39,7 +39,7 @@ struct Variable : public Identifier
 		    throw std::exception(); // todo: add context
         }
 		Identifier* out;
-		clay::DTYPE otype = arg_.get_state().dtype_;
+		clay::DTYPE otype = arg_->get_state().dtype_;
 		if (this == wrt)
 		{
 			out = make_one(otype);

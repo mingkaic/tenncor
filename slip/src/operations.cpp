@@ -49,25 +49,25 @@ void abs<uint64_t> (clay::State& dest, std::vector<clay::State> srcs)
 template <>
 void neg<uint8_t> (clay::State& dest, std::vector<clay::State> srcs)
 {
-    throw std::bad_function_call();
+	throw std::bad_function_call();
 }
 
 template <>
 void neg<uint16_t> (clay::State& dest, std::vector<clay::State> srcs)
 {
-    throw std::bad_function_call();
+	throw std::bad_function_call();
 }
 
 template <>
 void neg<uint32_t> (clay::State& dest, std::vector<clay::State> srcs)
 {
-    throw std::bad_function_call();
+	throw std::bad_function_call();
 }
 
 template <>
 void neg<uint64_t> (clay::State& dest, std::vector<clay::State> srcs)
 {
-    throw std::bad_function_call();
+	throw std::bad_function_call();
 }
 
 template <>
@@ -124,6 +124,41 @@ void rand_normal<double> (clay::State& dest, std::vector<clay::State> srcs)
 		std::normal_distribution<double> dist(a, b);
 		return dist(slip::get_generator());
 	});
+}
+
+void n_elems (clay::State& dest, std::vector<clay::State> srcs)
+{
+	clay::Shape& srcshape = srcs.front().shape_;
+	uint64_t* d = safe_get<uint64_t>(dest.data_);
+	d[0] = srcshape.n_elems();
+}
+
+void n_dims (clay::State& dest, std::vector<clay::State> srcs)
+{
+	if (srcs.size() != 2)
+	{
+		throw std::exception();
+	}
+	clay::Shape& srcshape = srcs.front().shape_;
+	uint64_t* d = safe_get<uint64_t>(dest.data_);
+	clay::State& dstate = srcs[1];
+	if (dstate.dtype_ != clay::UINT64)
+	{
+		throw std::exception();
+	}
+	if (1 != dstate.shape_.n_elems())
+	{
+		throw std::exception();
+	}
+	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+	if (dim < srcshape.rank())
+	{
+		d[0] = srcshape[dim];
+	}
+	else
+	{
+		d[0] = 0;
+	}
 }
 
 }

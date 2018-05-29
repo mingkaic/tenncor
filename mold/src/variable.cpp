@@ -4,6 +4,7 @@
 //
 
 #include "mold/variable.hpp"
+#include "mold/functor.hpp"
 
 #ifdef MOLD_VARIABLE_HPP
 

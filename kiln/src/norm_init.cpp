@@ -41,17 +41,19 @@ clay::TensorPtrT NormInit::build (clay::Shape shape) const
 	std::memcpy(stdev_ptr.get(), stdev_.c_str(), bsize);
 
 	clay::Shape one({1});
-	mold::iOperatePtrT op = slip::forward_op(slip::NORM);
+	mold::iOperatePtrT op = slip::get_op(slip::NORM);
 	op->set_args({
 		clay::State{mean_ptr, shape, dtype_},
 		clay::State{stdev_ptr, one, dtype_},
 	});
 	mold::ImmPair imm = op->get_imms();
-	clay::Shape& shape = imm.first;
+	clay::Shape& outshape = imm.first;
 	clay::DTYPE& dtype = imm.second;
-	size_t nbytes = shape.n_elems() * clay::type_size(dtype);
-	std::shared_ptr<char> data = clay::make_char(nbytes);
-	return std::make_unique<clay::Tensor>(data, shape, dtype);
+	size_t outbytes = outshape.n_elems() * clay::type_size(dtype);
+	std::shared_ptr<char> data = clay::make_char(outbytes);
+	auto out = std::make_unique<clay::Tensor>(data, outshape, dtype);
+	out->read_from(*op);
+	return out;
 }
 
 }

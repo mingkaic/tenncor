@@ -8,6 +8,8 @@
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
 
+#include "clay/memory.hpp"
+
 #include "mold/inode.hpp"
 #include "mold/variable.hpp"
 #include "mold/functor.hpp"

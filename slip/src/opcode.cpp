@@ -12,9 +12,10 @@ namespace slip
 
 #define OP_ASSOC(CODE) std::pair<OPCODE,std::string>{CODE, #CODE}
 
-std::unordered_map<OPCODE,std::string> opnames =
+OpnameMap opnames =
 {
-    OP_ASSOC(ABS),
+	OP_ASSOC(CAST),
+	OP_ASSOC(ABS),
 	OP_ASSOC(NEG),
 	OP_ASSOC(NOT),
 	OP_ASSOC(SIN),

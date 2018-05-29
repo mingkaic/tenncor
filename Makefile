@@ -47,11 +47,8 @@ COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 # proto_build:
 # 	$(RUN) //tests/py:protogen -- $(shell pwd)/tests/unit/samples
 
-# test_py:
-# 	$(TEST) //tests/py/test:test
-
 # unit test
-test: test_clay test_mold #test_slip test_kiln test_wire
+test: test_clay test_mold test_slip test_kiln #test_wire
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test
@@ -62,14 +59,14 @@ test_mold:
 test_slip:
 	$(GTEST) $(REP_BZL_FLAG) //slip:test
 
-test_wire:
-	$(GTEST) $(REP_BZL_FLAG) //wire:test
-
 test_kiln:
 	$(GTEST) $(REP_BZL_FLAG) //kiln:test
 
+test_wire:
+	$(GTEST) $(REP_BZL_FLAG) //wire:test
+
 # valgrind unit tests
-valgrind: valg_clay valg_mold #valg_slip valg_kiln valg_wire
+valgrind: valg_clay valg_mold valg_slip #valg_kiln valg_wire
 
 valg_clay:
 	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //clay:test
@@ -77,14 +74,28 @@ valg_clay:
 valg_mold:
 	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //mold:test
 
+valg_slip:
+	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //slip:test
+
+valg_kiln:
+	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //kiln:test
+
+# asan unit tests
+
 # coverage unit tests
-coverage: cover_clay cover_mold #cover_slip cover_kiln cover_wire
+coverage: cover_clay cover_mold cover_slip #cover_kiln cover_wire
 
 cover_clay:
 	$(COVER) $(REP_BZL_FLAG) //clay:test --instrumentation_filter=/clay[/:]
 
 cover_mold:
 	$(COVER) $(REP_BZL_FLAG) //mold:test --instrumentation_filter=/mold[/:]
+
+cover_slip:
+	$(COVER) $(REP_BZL_FLAG) //slip:test --instrumentation_filter=/slip[/:]
+
+cover_kiln:
+	$(COVER) $(REP_BZL_FLAG) //kiln:test --instrumentation_filter=/kiln[/:]
 
 # # unit test
 # unit_test: test_tensor test_graph test_operate test_serialize

@@ -13,7 +13,7 @@
 
 #include "clay/memory.hpp"
 
-#include "mold/functor.hpp"
+#include "mold/inode.hpp"
 
 #pragma once
 #ifndef MOLD_CONSTANT_HPP

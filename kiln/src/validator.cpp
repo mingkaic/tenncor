@@ -10,7 +10,7 @@
 namespace kiln
 {
 
-Validator::Validator (clay::Shape allowed, std::unordered_set<clay::DTYPE> reject) :
+Validator::Validator (clay::Shape allowed, RejSet reject) :
 	allowed_(allowed), reject_(reject) {}
 
 bool Validator::support (clay::Shape shape, clay::DTYPE dtype) const

@@ -47,7 +47,7 @@ public:
         else
         {
             std::vector<Identifier*> args(arg_ids_.size());
-            std::transform(args.begin(), args.end(), arg_ids_.begin()
+            std::transform(arg_ids_.begin(), arg_ids_.end(), args.begin(),
             [this](std::string id)
             {
                 return graph_->get_node(id);

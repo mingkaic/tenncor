@@ -14,6 +14,7 @@
 #include <cassert>
 
 #include "ioutil/stream.hpp"
+
 #include "mold/constant.hpp"
 
 #include "wire/graph.hpp"
@@ -36,7 +37,7 @@ struct Constant : public Identifier
 		{
 			throw std::exception(); // todo: get context
 		}
-		std::string label = (ioutil::Stream() << scalar);
+		std::string label = std::string(ioutil::Stream() << scalar);
 		std::shared_ptr<char> ptr = clay::make_char(sizeof(T));
 		memcpy(ptr.get(), (char*) &scalar, sizeof(T));
 		return new Constant(ptr, std::vector<size_t>{1},
@@ -73,7 +74,7 @@ struct Constant : public Identifier
 Constant* make_zero (clay::DTYPE dtype);
 
 //! creates a one scalar
-Constant* make_zero (clay::DTYPE dtype);
+Constant* make_one (clay::DTYPE dtype);
 
 }
 

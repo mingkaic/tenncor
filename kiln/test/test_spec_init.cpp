@@ -18,7 +18,7 @@
 #ifndef DISABLE_SPEC_INIT_TEST
 
 
-static const double ERR_THRESH = 0.03; // 3% error
+static const double ERR_THRESH = 0.08; // 8% error
 
 
 class SPEC_INIT : public testutil::fuzz_test {};
@@ -70,14 +70,17 @@ TEST_F(SPEC_INIT, ConstInit_B000)
 	size_t n = cshape.n_elems();
 	for (size_t i = 0; i < n; ++i)
 	{
-		ASSERT_EQ(cdata, cd[i]);
-		ASSERT_EQ(cdata, vd[i]);
-		ASSERT_EQ(vcdata[i % vcdata.size()], vcd[i]);
+		ASSERT_EQ(cdata, cd[i])
+			<< "failed at " << i;
+		ASSERT_EQ(cdata, vd[i])
+			<< "failed at " << i;
+		ASSERT_EQ(vcdata[i % vcdata.size()], vcd[i])
+			<< "failed at " << i;
 	}
 }
 
 
-TEST_F(SPEC_INIT, DISABLED_UnifInit_B001)
+TEST_F(SPEC_INIT, UnifInit_B001)
 {
 	std::vector<size_t> clist = random_def_shape(this);
 	clay::Shape cshape = clist;
@@ -90,7 +93,7 @@ TEST_F(SPEC_INIT, DISABLED_UnifInit_B001)
 
 	// validated
 	kiln::UnifInit vi(valid);
-	
+
 	std::vector<double> udata = get_double(2, "ui", {-12, 24});
 	double umin = std::min(udata[0], udata[1]);
 	double umax = std::max(udata[0], udata[1]);
@@ -116,17 +119,22 @@ TEST_F(SPEC_INIT, DISABLED_UnifInit_B001)
 	size_t n = cshape.n_elems();
 	for (size_t i = 0; i < n; ++i)
 	{
-		ASSERT_GE(umax, ud[i]);
-		ASSERT_LE(umin, ud[i]);
-		ASSERT_GE(umax, vd[i]);
-		ASSERT_LE(umin, vd[i]);
+		ASSERT_GE(umax, ud[i])
+			<< "failed at " << i;
+		ASSERT_LE(umin, ud[i])
+			<< "failed at " << i;
+		ASSERT_GE(umax, vd[i])
+			<< "failed at " << i;
+		ASSERT_LE(umin, vd[i])
+			<< "failed at " << i;
 	}
 }
 
 
+// todo: re-enable once shape gen of high minimum n is fixed
 TEST_F(SPEC_INIT, DISABLED_NormInit_B001)
 {
-	std::vector<size_t> clist = random_def_shape(this);
+	std::vector<size_t> clist = random_def_shape(this, {1, 6}, {3562, 8002});
 	clay::Shape cshape = clist;
 	clay::Shape pshape = make_partial(this, clist);
 
@@ -167,7 +175,7 @@ TEST_F(SPEC_INIT, DISABLED_NormInit_B001)
 	{
 		size_t ni = std::abs(nmean - nd[i]) / nstdev;
 		size_t vi = std::abs(nmean - vd[i]) / nstdev;
-		
+
 		if (ni < 3)
 		{
 			stdev_count[ni]++;
@@ -178,29 +186,29 @@ TEST_F(SPEC_INIT, DISABLED_NormInit_B001)
 		}
 	}
 	// check the first 3 stdev
-	float expect68 = stdev_count[0] / n; // expect ~68%
-	float expect95 = (stdev_count[0] + stdev_count[1]) / n; // expect ~95%
-	float expect99 = (stdev_count[0] + stdev_count[1] + stdev_count[2]) / n; // expect ~99.7%
+	float expect68 = (float) stdev_count[0] / n; // expect ~68%
+	float expect95 = (float) (stdev_count[0] + stdev_count[1]) / n; // expect ~95%
+	float expect99 = (float) (stdev_count[0] + stdev_count[1] + stdev_count[2]) / n; // expect ~99.7%
 
 	float err1 = std::abs(0.68 - expect68);
 	float err2 = std::abs(0.95 - expect95);
 	float err3 = std::abs(0.997 - expect99);
 
-	EXPECT_LT(ERR_THRESH, err1);
-	EXPECT_LT(ERR_THRESH, err2);
-	EXPECT_LT(ERR_THRESH, err3);
+	EXPECT_GT(ERR_THRESH, err1);
+	EXPECT_GT(ERR_THRESH, err2);
+	EXPECT_GT(ERR_THRESH, err3);
 
-	float vexpect68 = vstdev_count[0] / n; // expect ~68%
-	float vexpect95 = (vstdev_count[0] + vstdev_count[1]) / n; // expect ~95%
-	float vexpect99 = (vstdev_count[0] + vstdev_count[1] + vstdev_count[2]) / n; // expect ~99.7%
+	float vexpect68 = (float) vstdev_count[0] / n; // expect ~68%
+	float vexpect95 = (float) (vstdev_count[0] + vstdev_count[1]) / n; // expect ~95%
+	float vexpect99 = (float) (vstdev_count[0] + vstdev_count[1] + vstdev_count[2]) / n; // expect ~99.7%
 
 	float verr1 = std::abs(0.68 - vexpect68);
 	float verr2 = std::abs(0.95 - vexpect95);
 	float verr3 = std::abs(0.997 - vexpect99);
 
-	EXPECT_LT(ERR_THRESH, verr1);
-	EXPECT_LT(ERR_THRESH, verr2);
-	EXPECT_LT(ERR_THRESH, verr3);
+	EXPECT_GT(ERR_THRESH, verr1);
+	EXPECT_GT(ERR_THRESH, verr2);
+	EXPECT_GT(ERR_THRESH, verr3);
 }
 
 

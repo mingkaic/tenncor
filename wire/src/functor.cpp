@@ -5,6 +5,7 @@
 
 #include <algorithm>
 
+#include "wire/constant.hpp"
 #include "wire/functor.hpp"
 
 #ifdef WIRE_FUNCTOR_HPP
@@ -28,7 +29,7 @@ Functor::Functor (std::vector<Identifier*> args,
 	Identifier(&graph,
 		new mold::Functor(
 			to_nodes(args),
-			std::move(slip::get_op(opcode))),
+			slip::get_op(opcode)),
 		slip::opnames[opcode]),
 	arg_ids_(to_ids(args)),
 	grad_(grad) {}

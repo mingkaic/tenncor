@@ -21,18 +21,28 @@ using ShaperF = std::function<clay::Shape(std::vector<clay::State>)>;
 
 using TyperF = std::function<clay::DTYPE(std::vector<clay::DTYPE>)>;
 
-using TypeReg = std::unordered_map<clay::DTYPE, ArgsF>;
+using TypeReg = std::unordered_map<clay::DTYPE,ArgsF,EnumHash>;
 
 #define REGISTER_FUNC(CODE, FUNC) {\
 slip::CODE, TypeReg{\
-{ clay::DOUBLE, slip::FUNC<double> },{ clay::FLOAT, slip::FUNC<float>},\
-{ clay::INT8, slip::FUNC<int8_t> },{ clay::UINT8, slip::FUNC<uint8_t>},\
-{ clay::INT16, slip::FUNC<int16_t> },{ clay::UINT16, slip::FUNC<uint16_t>},\
-{ clay::INT32, slip::FUNC<int32_t> },{ clay::UINT32, slip::FUNC<uint32_t>},\
-{ clay::INT64, slip::FUNC<int64_t> },{ clay::UINT64, slip::FUNC<uint64_t>} } },
+{ clay::DOUBLE, slip::FUNC<double> },{ clay::FLOAT, slip::FUNC<float> },\
+{ clay::INT8, slip::FUNC<int8_t> },{ clay::UINT8, slip::FUNC<uint8_t> },\
+{ clay::INT16, slip::FUNC<int16_t> },{ clay::UINT16, slip::FUNC<uint16_t> },\
+{ clay::INT32, slip::FUNC<int32_t> },{ clay::UINT32, slip::FUNC<uint32_t> },\
+{ clay::INT64, slip::FUNC<int64_t> },{ clay::UINT64, slip::FUNC<uint64_t> } } },
 
-static std::unordered_map<OPCODE,TypeReg> op_registry =
+#define REGISTER_SFUNC(CODE, FUNC) {\
+slip::CODE, TypeReg{\
+{ clay::DOUBLE, slip::FUNC },{ clay::FLOAT, slip::FUNC },\
+{ clay::INT8, slip::FUNC },{ clay::UINT8, slip::FUNC },\
+{ clay::INT16, slip::FUNC },{ clay::UINT16, slip::FUNC },\
+{ clay::INT32, slip::FUNC },{ clay::UINT32, slip::FUNC },\
+{ clay::INT64, slip::FUNC },{ clay::UINT64, slip::FUNC } } },
+
+static std::unordered_map<OPCODE,TypeReg,EnumHash> op_registry =
 {
+	REGISTER_FUNC(CAST, cast)
+
 	REGISTER_FUNC(ABS, abs)
 	REGISTER_FUNC(NEG, neg)
 	REGISTER_FUNC(NOT, logic_not)
@@ -59,14 +69,14 @@ static std::unordered_map<OPCODE,TypeReg> op_registry =
 
 	REGISTER_FUNC(TRANSPOSE, transpose)
 	REGISTER_FUNC(FLIP, flip)
+	REGISTER_FUNC(EXPAND, expand)
 
 	REGISTER_FUNC(ARGMAX, argmax)
 	REGISTER_FUNC(RMAX, max)
 	REGISTER_FUNC(RSUM, sum)
 
-	REGISTER_FUNC(EXPAND, expand)
-	REGISTER_FUNC(N_ELEMS, n_elems)
-	REGISTER_FUNC(N_DIMS, n_dims)
+	REGISTER_SFUNC(N_ELEMS, n_elems)
+	REGISTER_SFUNC(N_DIMS, n_dims)
 
 	REGISTER_FUNC(MATMUL, matmul)
 };
@@ -273,11 +283,27 @@ static clay::Shape reduce_shape (std::vector<clay::State> states)
 	{
 		throw std::exception(); // todo: add context
 	}
-	if (states.size() > 1 && 0 != states[1].shape_.n_elems())
+	clay::Shape out;
+	if (states.size() > 1)
 	{
-		throw std::exception();
+		clay::State& state = states[1];
+		if (1 != state.shape_.n_elems())
+		{
+			throw std::exception();
+		}
+		uint64_t dim = *(safe_get<uint64_t>(state.data_));
+		clay::Shape& shape = states[0].shape_;
+		if (dim >= shape.rank())
+		{
+			throw std::exception();
+		}
+		out = {shape[dim]};
 	}
-	return states[0].shape_;
+	else
+	{
+		out = {1};
+	}
+	return out;
 }
 
 static clay::DTYPE reduce_type (std::vector<clay::DTYPE> types)
@@ -361,13 +387,30 @@ static clay::Shape matmul_shape (std::vector<clay::State> states)
 	return clay::Shape(res_shape);
 }
 
-static std::unordered_map<OPCODE,OpWrapper> registry =
+static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 []()
 {
 	OpWrapper elem{elem_shape, same_type};
 	OpWrapper reduce{reduce_shape, reduce_type};
 
-	return std::unordered_map<OPCODE,OpWrapper>{
+	return std::unordered_map<OPCODE,OpWrapper,EnumHash>{
+	{CAST, OpWrapper{
+	[](std::vector<clay::State> states) -> clay::Shape
+	{
+		if (states.size() != 2)
+		{
+			throw std::exception(); // todo: add context
+		}
+		return states[1].shape_;
+	},
+	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
+	{
+		if (types.size() != 2)
+		{
+			throw std::exception(); // todo: add context
+		}
+		return types[0];
+	}}},
 	{ABS, elem},
 	{NEG, elem},
 	{NOT, elem},
@@ -394,6 +437,11 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		{
 			throw std::exception(); // todo: add context
 		}
+		if (types[0] == clay::DOUBLE ||
+			types[0] == clay::FLOAT)
+		{
+			throw std::exception(); // todo: add context
+		}
 		if (types[1] != clay::DOUBLE)
 		{
 			throw std::exception(); // todo: add context
@@ -408,7 +456,7 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		{
 			throw std::exception(); // todo: add context
 		}
-		if ((types[0] != clay::DOUBLE || types[0] != clay::FLOAT) &&
+		if ((types[0] != clay::DOUBLE && types[0] != clay::FLOAT) ||
 			types[0] != types[1])
 		{
 			throw std::exception(); // todo: add context
@@ -467,6 +515,18 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		{
 			throw std::exception(); // todo: add context
 		}
+		size_t rank = states[0].shape_.rank();
+		clay::State& dstate = states[1];
+		size_t ndims = dstate.shape_.n_elems();
+		uint64_t* dims = safe_get<uint64_t>(dstate.data_);
+		if (std::any_of(dims, dims + ndims,
+		[rank](uint64_t d)
+		{
+			return d >= rank;
+		}))
+		{
+			throw std::exception();
+		}
 		return states.front().shape_;
 	},
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
@@ -501,7 +561,11 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		uint64_t mul = *(safe_get<uint64_t>(nstate.data_));
 		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
 		std::vector<size_t> slist = states[0].shape_.as_list();
-		slist[dim] *= mul;
+		if (slist.size() < dim)
+		{
+			throw std::exception();
+		}
+		slist.insert(slist.begin() + dim, mul);
 		return clay::Shape(slist);
 	},
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
@@ -532,7 +596,7 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		{
 			throw std::exception(); // todo: add context
 		}
-		return types[0];
+		return clay::UINT64;
 	}}},
 	{N_DIMS, OpWrapper{
 	[](std::vector<clay::State> states) -> clay::Shape
@@ -547,7 +611,11 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 			throw std::exception(); // todo: add context
 		}
 		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
-		return clay::Shape(std::vector<size_t>{states[0].shape_[dim]});
+		if (dim >= states[0].shape_.rank())
+		{
+			throw std::exception();
+		}
+		return clay::Shape(std::vector<size_t>{1});
 	},
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
 	{
@@ -555,10 +623,15 @@ static std::unordered_map<OPCODE,OpWrapper> registry =
 		{
 			throw std::exception(); // todo: add context
 		}
-		return types[0];
+		return clay::UINT64;
 	}}},
 	{MATMUL, OpWrapper{matmul_shape, same_type}}};
 }();
+
+bool has_op (OPCODE opcode)
+{
+	return registry.end() != registry.find(opcode);
+}
 
 mold::iOperatePtrT get_op (OPCODE opcode)
 {
