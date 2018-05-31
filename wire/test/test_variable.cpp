@@ -47,7 +47,8 @@ struct mock_builder final : public clay::iBuilder
 	}
 
 	mock_builder (const mock_builder& other) :
-		uuid_(other.uuid_), ptr_(other.ptr_), shape_(other.shape_), dtype_(other.dtype_) {}
+		shape_(other.shape_), dtype_(other.dtype_),
+		uuid_(other.uuid_), ptr_(other.ptr_) {}
 
 	clay::TensorPtrT get (void) const override
 	{

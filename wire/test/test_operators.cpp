@@ -8,17 +8,17 @@
 
 #include "clay/memory.hpp"
 
-#include "wire/functor.hpp"
+#include "wire/operators.hpp"
 #include "wire/variable.hpp"
 
 
-#ifndef DISABLE_FUNCTOR_TEST
+#ifndef DISABLE_OPERATORS_TEST
 
 
 using namespace testutil;
 
 
-class FUNCTOR : public fuzz_test
+class OPERATORS : public fuzz_test
 {
 protected:
 	virtual void SetUp (void) {}
@@ -68,7 +68,41 @@ protected:
 };
 
 
-TEST_F(FUNCTOR, Derive_G00x)
+using VARFUNC = std::function<wire::Identifier*(std::vector<wire::Identifier*>)>;
+
+
+// static void unarElemTest (fuzz_test* fuzzer, slip::OPCODE opcode, VARFUNC op,
+// 	SCALAR expect, ZCHECK exz, std::pair<double,double> limits = {-1, 1})
+// {
+// 	nnet::tshape shape = random_def_shape(fuzzer);
+// 	size_t n = shape.n_elems();
+// 	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
+// 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
+
+// 	// test behavior B000
+// 	nnet::varptr res = op({leaf});
+// 	nnet::varptr res2 = op({leaf});
+// 	EXPECT_EQ(res.get(), res2.get());
+
+// 	// test behavior B001
+// 	exz(op);
+
+// 	// test behavior B1xx
+// 	nnet::tensor* ten = res->get_tensor();
+// 	ASSERT_NE(nullptr, ten);
+// 	EXPECT_TRUE(tshape_equal(shape, ten->get_shape()));
+// 	std::vector<double> output = nnet::expose<double>(res.get());
+// 	for (size_t i = 0; i < n; ++i)
+// 	{
+// 		EXPECT_EQ(expect(argument[i]), output[i]);
+// 	}
+
+// 	nnet::varptr opres = nnet::run_opcode({leaf}, opcode);
+// 	EXPECT_EQ(res.get(), opres.get()); // invariant: behavior B000 is successful
+// }
+
+
+TEST_F(OPERATORS, Derive_G00x)
 {
 	std::string derlabel = get_string(16, "derlabel");
 	std::string arglabel = get_string(16, "arglabel");
@@ -171,7 +205,7 @@ TEST_F(FUNCTOR, Derive_G00x)
 }
 
 
-#endif /* DISABLE_FUNCTOR_TEST */
+#endif /* DISABLE_OPERATORS_TEST */
 
 
 #endif /* DISABLE_WIRE_MODULE_TESTS */

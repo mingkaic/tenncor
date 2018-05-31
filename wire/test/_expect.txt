@@ -47,5 +47,28 @@ F003 - reassign on initialized placeholder throws error if vector is larger than
 F004 - derive returns 1 in variable type if wrt is var else return 0,
 		throws error if deriving uninitialized variable
 
-// FUNCTOR BEHAVIOR
-G00x - derive calls bwd_ to construct gradient tree
+// OPERATOR BEHAVIOR
+G000 - multiple operators on the same array of arguments will use the same instance
+G001 - any nullptr argument returns a nullptr
+G002 - any derivative with respect to itself returns 1 constant of input type
+
+G100 - abs returns absolute of input
+		derivative of immediate argument is abs(1)
+G101 - neg returns negative of input
+		derivative of immediate argument is neg(1)
+G102 - logical_not applies not of input
+		derivative of immediate argument is not(1)
+G103 - sin applies std::sin function to input
+		derivative of immediate argument is cos(leaf)
+G104 - cos applies std::cos function to input
+		derivative of immediate argument is -sin(leaf)
+G105 - tan applies std::tan function to input
+		derivative of immediate argument is 1/cos^2(leaf)
+G106 - exp applies std::exp function to input
+		derivative of immediate argument is exp(leaf) [itself]
+G107 - log applies std::log function to input
+		derivative of immediate argument is 1 / leaf
+G108 - sqrt applies std::sqrt function to input
+		derivative of immediate argument is 1 / (2 * sqrt(leaf))
+G109 - round applies std::round function to input
+		derivative of immediate argument is round(1)

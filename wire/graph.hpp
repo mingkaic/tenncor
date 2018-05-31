@@ -14,7 +14,10 @@
 #include <memory>
 
 #include "clay/ibuilder.hpp"
+
 #include "mold/variable.hpp"
+
+#include "slip/opcode.hpp"
 
 #include "wire/omap.hpp"
 #include "wire/rand.hpp"
@@ -27,6 +30,10 @@ namespace wire
 {
 
 class Identifier;
+
+class Functor;
+
+using FunctorSetT = std::unordered_set<Functor*>;
 
 class Graph
 {
@@ -56,6 +63,17 @@ public:
 	Identifier* get_node (std::string id) const;
 
 
+	FunctorSetT get_func (slip::OPCODE opcode) const
+	{
+		auto it = funcs_.find(opcode);
+		if (funcs_.end() != it)
+		{
+			return it->second;
+		}
+		return FunctorSetT();
+	}
+
+
 	void initialize_all (void);
 
 	void initialize (std::string id);
@@ -72,22 +90,46 @@ protected:
 
 	friend class Placeholder;
 
+	friend class Functor;
+
 	Graph (void) = default;
 
 	std::string associate (Identifier* id);
 
 	void disassociate (std::string id);
 
-	std::unordered_map<std::string, std::unique_ptr<clay::iBuilder>> uninits_;
+	void add_func (slip::OPCODE opcode, Functor* func)
+	{
+		funcs_[opcode].emplace(func);
+	}
 
-	std::unordered_map<std::string, clay::Shape> alloweds_;
+	void remove_func (Functor* func)
+	{
+		for (auto& fpair : funcs_)
+		{
+			auto it = fpair.second.find(func);
+			if (fpair.second.end() != it)
+			{
+				fpair.second.erase(it);
+				return;
+			}
+		}
+	}
+
+	std::unordered_map<std::string,std::unique_ptr<clay::iBuilder>> uninits_;
+
+	std::unordered_map<std::string,clay::Shape> alloweds_;
 
 private:
 	void unsafe_init (Identifier* id, clay::iBuilder& builder);
 
 	std::string gid_ = puid(this);
 
-	OrderedMap<std::string, Identifier*> adjmap_;
+	OrderedMap<std::string,Identifier*> adjmap_;
+
+	std::unordered_map<mold::iNode*,Identifier*> owners_;
+
+	std::unordered_map<slip::OPCODE,FunctorSetT> funcs_;
 };
 
 }

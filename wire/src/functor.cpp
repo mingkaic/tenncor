@@ -32,7 +32,23 @@ Functor::Functor (std::vector<Identifier*> args,
 			slip::get_op(opcode)),
 		slip::opnames[opcode]),
 	arg_ids_(to_ids(args)),
-	grad_(grad) {}
+	grad_(grad)
+{
+	for (Identifier* arg : args)
+	{
+		// validate
+		if (false == graph.has_node(arg->get_uid()))
+		{
+			throw std::exception(); // todo: add context argument doesn't exist in graph
+		}
+	}
+	graph_->add_func(opcode, this);
+}
+
+Functor::~Functor (void)
+{
+	graph_->remove_func(this);
+}
 
 Identifier* Functor::derive (Identifier* wrt)
 {

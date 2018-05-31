@@ -40,25 +40,25 @@ use libraries
 	#include "graph/varptr.hpp"
 	#include "graph/variable.hpp"
 	#include "operate/operations.hpp"
-	
+
 	using namespace nnet;
-	
+
 	int main () {
 		tshape common = std::vector<size_t>{5, 5};
 		random_uniform rinit(-1, 1);
-	
+
 		// initializes a 5 by 5 matrix with uniformly distributed
 		// doubles between -1 and 1
 		variable* A = new variable(common, rinit, nnet::DOUBLE, "a");
 		placeptr B = new placeholder(common, nnet::DOUBLE, "b");
 		varptr C = matmul(varptr(A), B);
 		varptr D = sigmoid(C);
-		
+
 		A->initialize();
 		B = std::vector<double>{...};
-		
+
 		varptr grad = D->derive(A);
-		
+
 		// forward accumulation
 		tensor* result = D->get_eval();
 		// reverse accumulation
@@ -66,10 +66,10 @@ use libraries
 
 		std::vector<double> raw_data = expose<double>(D);
 		std::vector<double> raw_grad = expose<double>(grad);
-		
+
 		delete A;
 		delete B;
-		
+
 		return 0;
 	}
 

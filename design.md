@@ -1,6 +1,6 @@
 # Design
 ### Summary
-Tenncor differentiates values using Automatic Differentiation (AD) which maps each individual forward operation (addition, subtraction, multiplication, etc.) 
+Tenncor differentiates values using Automatic Differentiation (AD) which maps each individual forward operation (addition, subtraction, multiplication, etc.)
 to some backward operation representing the forward's first derivative. An equation represented in this fashion can correspond to its gradient
 by repeatedly applying chain rule to the backward operation of its forward operations.
 
@@ -49,15 +49,15 @@ To avoid recomputing gradients, let us cache the gradient values in the node str
 		R modifyroot
 		map<Nleaf, Nb> cache
 	}
-	
+
 Operation graphs are built by composite nodes
 
 	// inheritance hierarchy
 	Node -> [NLeaf, NConnnector]
 	NLeaf -> [Constant, NVariable]
 	NConnnector -> [Operations, ...]
-	
-Leaf nodes don't need a cache, manipulate data, or manage graph info. 
+
+Leaf nodes don't need a cache, manipulate data, or manage graph info.
 
 And leaves all share the the same forward and backward function.
 For connectors, gradient values don't need to be cached if they have only one consumer, since the value will be recalculated for each leaf update.
@@ -69,20 +69,20 @@ Additionally, connectors don't necessary have an active data whereas leaves and 
 		F backwardfunction = 0
 		[True, False] data_available;
 	}
-	
+
 	struct NLeaf : public Node {
 		tensor data
 	}
-	
+
 	struct Constant : public NLeaf {
 		F backwardfunction = [0]
 		True data_available;
 	}
-	
+
 	struct NVariable : public NLeaf {
 		F backwardfunction = [1 if derive wrt this, 0 otherwise]
 	}
-		
+
 	struct NConnnector : public Node {
 		tensorref data = null
 		stringref graphid
@@ -107,19 +107,19 @@ Three layers become immediately obvious:
 Graph Layer
 
 	- iobserver and subject enforce reactive behavior
-	
+
 	- leaves are graph subjects
-	
+
 	- connectors are graph subject, observer composites
-	
+
 	- iexecutor are graph observers and prevents updates
 
 Tensor Layer
 
 	- tensor wraps shape and raw data
-	
+
 	- tshape represents shape information
-	
+
 	- tensor manipulator is a delegate for changing raw data
 
 Memory Layer

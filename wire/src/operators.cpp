@@ -10,13 +10,67 @@
 namespace wire
 {
 
+static inline Identifier* single_parent (
+	std::string argid, slip::OPCODE opcode)
+{
+	FunctorSetT funcs = Graph::get_global().get_func(opcode);
+	for (Functor* f : funcs)
+	{
+		auto args = f->get_args();
+		if (args.size() == 1 && args[0] == argid)
+		{
+			return f;
+		}
+	}
+	return nullptr;
+}
+
+static inline Identifier* ordered_parent (
+	std::vector<std::string> srcs, slip::OPCODE opcode)
+{
+	assert(srcs.size() > 0);
+	FunctorSetT funcs = Graph::get_global().get_func(opcode);
+	for (Functor* f : funcs)
+	{
+		auto args = f->get_args();
+		if (std::equal(args.begin(), args.end(), srcs.end()))
+		{
+			return f;
+		}
+	}
+	return nullptr;
+}
+
+static inline Identifier* unordered_parent (
+	std::unordered_set<std::string> srcs, slip::OPCODE opcode)
+{
+	assert(srcs.size() > 0);
+	FunctorSetT funcs = Graph::get_global().get_func(opcode);
+	for (Functor* f : funcs)
+	{
+		auto args = f->get_args();
+		std::unordered_set<std::string> argset(
+			args.begin(), args.end());
+		if (argset == srcs)
+		{
+			return f;
+		}
+	}
+	return nullptr;
+}
+
 Identifier* cast (Identifier* type, Identifier* a)
 {
 	if (nullptr == a || nullptr == type)
 	{
 		return nullptr;
 	}
-	return new Functor({type, a}, slip::CAST,
+	slip::OPCODE opcode = slip::CAST;
+	if (Identifier* parent = ordered_parent({type->get_uid(), a->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({type, a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return cast(args.front(), args.back()->derive(wrt));
@@ -29,7 +83,12 @@ Identifier* abs (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::ABS,
+	slip::OPCODE opcode = slip::ABS;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return abs(args.front()->derive(wrt));
@@ -42,7 +101,12 @@ Identifier* neg (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::NEG,
+	slip::OPCODE opcode = slip::NEG;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return neg(args.front()->derive(wrt));
@@ -55,7 +119,12 @@ Identifier* logical_not (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::NOT,
+	slip::OPCODE opcode = slip::NOT;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return logical_not(args.front()->derive(wrt));
@@ -68,7 +137,12 @@ Identifier* sin (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::SIN,
+	slip::OPCODE opcode = slip::SIN;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// sin'(f) = f'*cos(f)
@@ -83,7 +157,12 @@ Identifier* cos (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::COS,
+	slip::OPCODE opcode = slip::COS;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// cos'(f) = -f'*sin(f)
@@ -98,7 +177,12 @@ Identifier* tan (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::TAN,
+	slip::OPCODE opcode = slip::TAN;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// tan'(f) = f'*sec^2(f)
@@ -115,7 +199,12 @@ Identifier* exp (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::EXP,
+	slip::OPCODE opcode = slip::EXP;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// exp'(f) = f'*exp(f)
@@ -130,7 +219,12 @@ Identifier* log (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::LOG,
+	slip::OPCODE opcode = slip::LOG;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// log'(f) = f' / f
@@ -145,7 +239,12 @@ Identifier* sqrt (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::SQRT,
+	slip::OPCODE opcode = slip::SQRT;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// sqrt'(f) = f'/(2*sqrt(f))
@@ -161,7 +260,12 @@ Identifier* round (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::ROUND,
+	slip::OPCODE opcode = slip::ROUND;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// round'(f) = round(f')
@@ -175,7 +279,12 @@ Identifier* pow (Identifier* b, Identifier* x)
 	{
 		return nullptr;
 	}
-	return new Functor({b, x}, slip::POW,
+	slip::OPCODE opcode = slip::POW;
+	if (Identifier* parent = ordered_parent({b->get_uid(), x->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({b, x}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// pow'(f, g) = f' * g * pow(f, g - 1) + g' * pow(f, g) * log(f)
@@ -195,7 +304,12 @@ Identifier* add (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::ADD,
+	slip::OPCODE opcode = slip::ADD;
+	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// h'(f, g) = f' + g'
@@ -209,7 +323,12 @@ Identifier* sub (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::SUB,
+	slip::OPCODE opcode = slip::SUB;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// h'(f, g) = f' - g'
@@ -223,7 +342,12 @@ Identifier* mul (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::MUL,
+	slip::OPCODE opcode = slip::MUL;
+	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// h'(f, g) = f' * g + g' * f
@@ -239,11 +363,16 @@ Identifier* div (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::DIV,
+	slip::OPCODE opcode = slip::DIV;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// h'(f, g) = (f' * g - g' * f) / g^2
-		//		    = (f' / g - (g' * f) / g) / g
+		//			= (f' / g - (g' * f) / g) / g
 		auto f = args.front();
 		auto g = args.back();
 		auto num = sub(div(f->derive(wrt), g), div(mul(g->derive(wrt), f), g));
@@ -257,7 +386,12 @@ Identifier* eq (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::EQ,
+	slip::OPCODE opcode = slip::EQ;
+	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return eq(args.front(), args.back());
@@ -270,7 +404,12 @@ Identifier* neq (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::NE,
+	slip::OPCODE opcode = slip::NE;
+	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return neq(args.front(), args.back());
@@ -283,7 +422,12 @@ Identifier* lt (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::LT,
+	slip::OPCODE opcode = slip::LT;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return lt(args.front(), args.back());
@@ -296,7 +440,12 @@ Identifier* gt (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::GT,
+	slip::OPCODE opcode = slip::GT;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return gt(args.front(), args.back());
@@ -319,7 +468,12 @@ Identifier* binomial_sample (Identifier* n, Identifier* p)
 	{
 		return nullptr;
 	}
-	return new Functor({n, p}, slip::BINO, sample_grad);
+	slip::OPCODE opcode = slip::BINO;
+	if (Identifier* parent = ordered_parent({n->get_uid(), p->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({n, p}, opcode, sample_grad);
 }
 
 Identifier* binomial_sample (Identifier* n, double p)
@@ -333,7 +487,12 @@ Identifier* uniform_sample (Identifier* min, Identifier* max)
 	{
 		return nullptr;
 	}
-	return new Functor({min, max}, slip::UNIF, sample_grad);
+	slip::OPCODE opcode = slip::UNIF;
+	if (Identifier* parent = ordered_parent({min->get_uid(), max->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({min, max}, opcode, sample_grad);
 }
 
 Identifier* normal_sample (Identifier* mean, Identifier* stdev)
@@ -342,7 +501,12 @@ Identifier* normal_sample (Identifier* mean, Identifier* stdev)
 	{
 		return nullptr;
 	}
-	return new Functor({mean, stdev}, slip::NORM, sample_grad);
+	slip::OPCODE opcode = slip::NORM;
+	if (Identifier* parent = ordered_parent({mean->get_uid(), stdev->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({mean, stdev}, opcode, sample_grad);
 }
 
 Identifier* transpose (Identifier* a)
@@ -351,7 +515,12 @@ Identifier* transpose (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::TRANSPOSE,
+	slip::OPCODE opcode = slip::TRANSPOSE;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return args.front()->derive(wrt);
@@ -364,7 +533,12 @@ Identifier* transpose (Identifier* a, Identifier* perm)
 	{
 		return nullptr;
 	}
-	return new Functor({a, perm}, slip::TRANSPOSE,
+	slip::OPCODE opcode = slip::TRANSPOSE;
+	if (Identifier* parent = ordered_parent({a->get_uid(), perm->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, perm}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return args.front()->derive(wrt);
@@ -382,7 +556,12 @@ Identifier* flip (Identifier* a, Identifier* dims)
 	{
 		return nullptr;
 	}
-	return new Functor({a, dims}, slip::FLIP,
+	slip::OPCODE opcode = slip::FLIP;
+	if (Identifier* parent = ordered_parent({a->get_uid(), dims->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, dims}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return args.front()->derive(wrt);
@@ -400,7 +579,12 @@ Identifier* arg_max (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::ARGMAX,
+	slip::OPCODE opcode = slip::ARGMAX;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		throw std::exception();
@@ -413,7 +597,12 @@ Identifier* arg_max (Identifier* a, Identifier* dim)
 	{
 		return nullptr;
 	}
-	return new Functor({a, dim}, slip::NOT,
+	slip::OPCODE opcode = slip::NOT;
+	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, dim}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		throw std::exception();
@@ -431,7 +620,12 @@ Identifier* reduce_max (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::RMAX,
+	slip::OPCODE opcode = slip::RMAX;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		auto a = args.front();
@@ -446,7 +640,12 @@ Identifier* reduce_max (Identifier* a, Identifier* dim)
 	{
 		return nullptr;
 	}
-	return new Functor({a, dim}, slip::NOT,
+	slip::OPCODE opcode = slip::NOT;
+	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, dim}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		auto a = args.front();
@@ -468,7 +667,12 @@ Identifier* reduce_sum (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::RSUM,
+	slip::OPCODE opcode = slip::RSUM;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return args.front()->derive(wrt);
@@ -481,7 +685,12 @@ Identifier* reduce_sum (Identifier* a, Identifier* dim)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::NOT,
+	slip::OPCODE opcode = slip::NOT;
+	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return args.front()->derive(wrt);
@@ -532,7 +741,12 @@ Identifier* n_elems (Identifier* a)
 	{
 		return nullptr;
 	}
-	return new Functor({a}, slip::N_ELEMS,
+	slip::OPCODE opcode = slip::N_ELEMS;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return nullptr;
@@ -545,7 +759,12 @@ Identifier* n_dimension (Identifier* a, Identifier* dim)
 	{
 		return nullptr;
 	}
-	return new Functor({a, dim}, slip::N_DIMS,
+	slip::OPCODE opcode = slip::N_DIMS;
+	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, dim}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return nullptr;
@@ -563,7 +782,12 @@ Identifier* expand (Identifier* a, Identifier* n, Identifier* dim)
 	{
 		return nullptr;
 	}
-	return new Functor({a, n, dim}, slip::EXPAND,
+	slip::OPCODE opcode = slip::EXPAND;
+	if (Identifier* parent = ordered_parent({a->get_uid(), n->get_uid(), dim->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, n, dim}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return args.front()->derive(wrt);
@@ -603,7 +827,12 @@ Identifier* matmul (Identifier* a, Identifier* b)
 	{
 		return nullptr;
 	}
-	return new Functor({a, b}, slip::MATMUL,
+	slip::OPCODE opcode = slip::MATMUL;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return nullptr;
