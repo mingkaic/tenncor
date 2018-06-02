@@ -361,7 +361,7 @@ void argmax (clay::State& dest, std::vector<clay::State> srcs)
 		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
-		slist[dim] = 0;
+		slist[dim] = 1;
 		clay::Shape nilshape = slist;
 		std::vector<size_t> coord;
 		size_t n = nilshape.n_elems();
@@ -372,7 +372,7 @@ void argmax (clay::State& dest, std::vector<clay::State> srcs)
 			d[i] = index(srcshape, coord);
 			for (size_t j = 1; j < nd; ++j)
 			{
-				coord[i] = j;
+				coord[dim] = j;
 				size_t srcidx = index(srcshape, coord);
 				if (s[(size_t) d[i]] < s[srcidx])
 				{
@@ -400,7 +400,7 @@ void max (clay::State& dest, std::vector<clay::State> srcs)
 		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
-		slist[dim] = 0;
+		slist[dim] = 1;
 		clay::Shape nilshape = slist;
 		std::vector<size_t> coord;
 		size_t n = nilshape.n_elems();
@@ -408,10 +408,10 @@ void max (clay::State& dest, std::vector<clay::State> srcs)
 		for (size_t i = 0; i < n; ++i)
 		{
 			coord = coordinate(nilshape, i);
-			d[i] = index(srcshape, coord);
+			d[i] = s[index(srcshape, coord)];
 			for (size_t j = 1; j < nd; ++j)
 			{
-				coord[i] = j;
+				coord[dim] = j;
 				size_t srcidx = index(srcshape, coord);
 				if (d[i] < s[srcidx])
 				{
@@ -439,7 +439,7 @@ void sum (clay::State& dest, std::vector<clay::State> srcs)
 		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
-		slist[dim] = 0;
+		slist[dim] = 1;
 		clay::Shape nilshape = slist;
 		std::vector<size_t> coord;
 		size_t n = nilshape.n_elems();
@@ -447,10 +447,10 @@ void sum (clay::State& dest, std::vector<clay::State> srcs)
 		for (size_t i = 0; i < n; ++i)
 		{
 			coord = coordinate(nilshape, i);
-			d[i] = index(srcshape, coord);
+			d[i] = s[index(srcshape, coord)];
 			for (size_t j = 1; j < nd; ++j)
 			{
-				coord[i] = j;
+				coord[dim] = j;
 				size_t srcidx = index(srcshape, coord);
 				d[i] += s[srcidx];
 			}

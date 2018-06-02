@@ -9,6 +9,7 @@
 #include "clay/memory.hpp"
 
 #include "mold/iobserver.hpp"
+#include "mold/error.hpp"
 
 #include "wire/variable.hpp"
 
@@ -107,15 +108,14 @@ TEST_F(VARIABLE, Derive_C005)
 	wire::Variable var(builder, get_string(16, "varname"));
 	wire::Variable var2(builder, get_string(16, "var2name"));
 
-	EXPECT_THROW(var.derive(&var), std::exception);
+	EXPECT_THROW(var.derive(&var), mold::UninitializedError);
 	wire::Graph::get_global().initialize_all();
 	wire::Identifier* wun = var.derive(&var);
 	wire::Identifier* zaro = var.derive(&var2);
-	clay::Shape scalars(std::vector<size_t>{1});
 	clay::State state = wun->get_state();
 	clay::State state2 = zaro->get_state();
-	EXPECT_SHAPEQ(scalars, state.shape_);
-	EXPECT_SHAPEQ(scalars, state2.shape_);
+	EXPECT_SHAPEQ(builder.shape_, state.shape_);
+	EXPECT_SHAPEQ(builder.shape_, state2.shape_);
 	EXPECT_EQ(builder.dtype_, state.dtype_);
 	EXPECT_EQ(builder.dtype_, state2.dtype_);
 	switch (builder.dtype_)

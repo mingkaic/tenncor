@@ -7,6 +7,7 @@
 #include "fuzzutil/check.hpp"
 
 #include "clay/shape.hpp"
+#include "clay/error.hpp"
 
 
 #ifndef DISABLE_SHAPE_TEST
@@ -157,7 +158,7 @@ TEST_F(SHAPE, Compatible_A005)
 
 	for (clay::Shape* shape : {&incom_ts, &pcom_ts, &com_ts, &pcom2_ts, &com2_ts})
 	{
-		EXPECT_TRUE(incom_ts.is_compatible_with(*shape)) << 
+		EXPECT_TRUE(incom_ts.is_compatible_with(*shape)) <<
 			std::string(ioutil::Stream() << "expecting " <<
 			shape->as_list() << " to be compatible with empty");
 	}
@@ -184,36 +185,36 @@ TEST_F(SHAPE, Compatible_A005)
 	clay::Shape bad_ps3(brank);
 
 	// guarantees
-	EXPECT_TRUE(fake_ps.is_compatible_with(fake_ps)) << 
-		std::string(ioutil::Stream() << "expecting " << 
+	EXPECT_TRUE(fake_ps.is_compatible_with(fake_ps)) <<
+		std::string(ioutil::Stream() << "expecting " <<
 		fake_ps.as_list() << " to be compatible with itself");
-	EXPECT_TRUE(fake_ps2.is_compatible_with(fake_ps2)) << 
+	EXPECT_TRUE(fake_ps2.is_compatible_with(fake_ps2)) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		fake_ps2.as_list() << " to be compatible with itself");
 	EXPECT_TRUE(fake_ps.is_compatible_with(com_ts)) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		com_ts.as_list() << " to be compatible with " << fake_ps.as_list());
-	EXPECT_TRUE(fake_ps2.is_compatible_with(com2_ts)) << 
+	EXPECT_TRUE(fake_ps2.is_compatible_with(com2_ts)) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		com2_ts.as_list() << " to be compatible with " << fake_ps2.as_list());
-	EXPECT_FALSE(fake_ps.is_compatible_with(bad_ps)) << 
-		std::string(ioutil::Stream() << "expecting " << 
+	EXPECT_FALSE(fake_ps.is_compatible_with(bad_ps)) <<
+		std::string(ioutil::Stream() << "expecting " <<
 		bad_ps.as_list() << " to be incompatible with " << fake_ps.as_list());
-	EXPECT_FALSE(fake_ps2.is_compatible_with(bad_ps2)) << 
+	EXPECT_FALSE(fake_ps2.is_compatible_with(bad_ps2)) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		bad_ps2.as_list() << " to be incompatible with " << fake_ps2.as_list());
-	EXPECT_FALSE(fake_ps2.is_compatible_with(bad_ps3)) << 
+	EXPECT_FALSE(fake_ps2.is_compatible_with(bad_ps3)) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		bad_ps3.as_list() << " to be incompatible with " << fake_ps2.as_list());
 
 	// fully defined are not expected to be compatible with bad
-	EXPECT_TRUE(com_ts.is_compatible_with(com_ts)) << 
-		std::string(ioutil::Stream() << "expecting " << 
+	EXPECT_TRUE(com_ts.is_compatible_with(com_ts)) <<
+		std::string(ioutil::Stream() << "expecting " <<
 		com_ts.as_list() << " to be compatible with itself");
-	EXPECT_FALSE(com_ts.is_compatible_with(bad_ps)) << 
+	EXPECT_FALSE(com_ts.is_compatible_with(bad_ps)) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		bad_ps.as_list() << " to be incompatible with " << com_ts.as_list());
-	ASSERT_FALSE(com_ts.is_compatible_with(bad_ps2)) << 
+	ASSERT_FALSE(com_ts.is_compatible_with(bad_ps2)) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		bad_ps2.as_list() << " incompatible with " << com_ts.as_list());
 }
@@ -234,19 +235,19 @@ TEST_F(SHAPE, PartDef_A006)
 	clay::Shape pcom2_ts(pds2);
 	clay::Shape com2_ts(cds2);
 
-	ASSERT_FALSE(incom_ts.is_part_defined()) << 
+	ASSERT_FALSE(incom_ts.is_part_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		incom_ts.as_list() << " to be undefined");
-	ASSERT_TRUE(pcom_ts.is_part_defined()) << 
+	ASSERT_TRUE(pcom_ts.is_part_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		pcom_ts.as_list() << " to be partially defined");
-	ASSERT_TRUE(pcom2_ts.is_part_defined()) << 
+	ASSERT_TRUE(pcom2_ts.is_part_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		pcom2_ts.as_list() << " to be partially defined");
-	ASSERT_TRUE(com_ts.is_part_defined()) << 
+	ASSERT_TRUE(com_ts.is_part_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		com_ts.as_list() << " to be partially defined");
-	ASSERT_TRUE(com2_ts.is_part_defined()) << 
+	ASSERT_TRUE(com2_ts.is_part_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		com2_ts.as_list() << " to be partially defined");
 }
@@ -267,19 +268,19 @@ TEST_F(SHAPE, FullDef_A007)
 	clay::Shape com_ts(cds);
 	clay::Shape com2_ts(cds2);
 
-	EXPECT_FALSE(incom_ts.is_fully_defined()) << 
+	EXPECT_FALSE(incom_ts.is_fully_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		incom_ts.as_list() << " to not be fully defined");
-	EXPECT_FALSE(pcom_ts.is_fully_defined()) << 
+	EXPECT_FALSE(pcom_ts.is_fully_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		pcom_ts.as_list() << " to not be fully defined");
-	EXPECT_FALSE(pcom2_ts.is_fully_defined()) << 
+	EXPECT_FALSE(pcom2_ts.is_fully_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		pcom2_ts.as_list() << " to not be fully defined");
-	EXPECT_TRUE(com_ts.is_fully_defined()) << 
+	EXPECT_TRUE(com_ts.is_fully_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		com_ts.as_list() << " to be fully defined");
-	EXPECT_TRUE(com2_ts.is_fully_defined()) << 
+	EXPECT_TRUE(com2_ts.is_fully_defined()) <<
 		std::string(ioutil::Stream() << "expecting " <<
 		com2_ts.as_list() << " to be fully defined");
 
@@ -343,7 +344,7 @@ TEST_F(SHAPE, Merge_A008)
 
 	// merging different ranks will error
 	ASSERT_GT(pds.size(), cds.size()); // true by generation implementation
-	EXPECT_THROW(clay::merge_with(pcom_ts, com_ts), std::exception);
+	EXPECT_THROW(clay::merge_with(pcom_ts, com_ts), clay::InvalidShapeError);
 }
 
 

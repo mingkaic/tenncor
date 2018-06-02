@@ -3,10 +3,11 @@
 //  kiln
 //
 
-#include "clay/memory.hpp"
-#include "slip/registry.hpp"
-
 #include "kiln/unif_init.hpp"
+
+#include "clay/memory.hpp"
+
+#include "slip/registry.hpp"
 
 #ifdef KILN_UNIF_INIT_HPP
 

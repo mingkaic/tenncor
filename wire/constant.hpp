@@ -15,7 +15,10 @@
 
 #include "ioutil/stream.hpp"
 
+#include "clay/error.hpp"
+
 #include "mold/constant.hpp"
+#include "mold/error.hpp"
 
 #include "wire/graph.hpp"
 #include "wire/identifier.hpp"
@@ -35,7 +38,7 @@ struct Constant : public Identifier
 		clay::DTYPE dtype = clay::get_type<T>();
 		if (clay::DTYPE::BAD == dtype)
 		{
-			throw std::exception(); // todo: get context
+			throw clay::UnsupportedTypeError(dtype);
 		}
 		std::string label = std::string(ioutil::Stream() << scalar);
 		std::shared_ptr<char> ptr = clay::make_char(sizeof(T));
@@ -51,7 +54,7 @@ struct Constant : public Identifier
 		clay::DTYPE dtype = clay::get_type<T>();
 		if (clay::DTYPE::BAD == dtype)
 		{
-			throw std::exception(); // todo: get context
+			throw clay::UnsupportedTypeError(dtype);
 		}
 		std::string label = (ioutil::Stream() << vec[0] << "...");
 		size_t n = vec.size();
@@ -71,10 +74,10 @@ struct Constant : public Identifier
 };
 
 //! creates a zero scalar
-Constant* make_zero (clay::DTYPE dtype);
+Constant* make_zero (clay::Shape shape, clay::DTYPE dtype);
 
 //! creates a one scalar
-Constant* make_one (clay::DTYPE dtype);
+Constant* make_one (clay::Shape shape, clay::DTYPE dtype);
 
 }
 

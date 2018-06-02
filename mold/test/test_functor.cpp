@@ -14,6 +14,7 @@
 #include "mold/variable.hpp"
 #include "mold/functor.hpp"
 #include "mold/sink.hpp"
+#include "mold/error.hpp"
 
 
 #ifndef DISABLE_FUNCTOR_TEST
@@ -331,7 +332,7 @@ TEST_F(FUNCTOR, GetState_D004)
 	mold::Functor* f = new mold::Functor(std::vector<mold::iNode*>{&arg},
 		std::move(identity));
 
-	EXPECT_THROW(f->get_state(), std::exception);
+	EXPECT_THROW(f->get_state(), mold::UninitializedError);
 	arg.initialize(builder);
 	clay::State state = f->get_state();
 	std::string got_uuid(state.data_.lock().get(),

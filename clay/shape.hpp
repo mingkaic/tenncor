@@ -11,6 +11,7 @@
  *
  */
 
+#include <cstdlib>
 #include <vector>
 
 #pragma once
@@ -108,7 +109,7 @@ Shape with_rank_at_least (const Shape& shape, size_t rank);
 //! value and at most the the specified rank
 Shape with_rank_at_most (const Shape& shape, size_t rank);
 
-//! obtain the flat vector index from cartesian coordinates 
+//! obtain the flat vector index from cartesian coordinates
 //! (e.g.: 2-D [x, y] has flat index = y * dimensions_[0] + x)
 size_t index (const Shape& shape, std::vector<size_t> coord);
 

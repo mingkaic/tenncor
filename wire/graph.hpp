@@ -35,6 +35,8 @@ class Functor;
 
 using FunctorSetT = std::unordered_set<Functor*>;
 
+using OPCODEFuncMapT = std::unordered_map<slip::OPCODE,FunctorSetT,slip::EnumHash>;
+
 class Graph
 {
 public:
@@ -127,9 +129,7 @@ private:
 
 	OrderedMap<std::string,Identifier*> adjmap_;
 
-	std::unordered_map<mold::iNode*,Identifier*> owners_;
-
-	std::unordered_map<slip::OPCODE,FunctorSetT> funcs_;
+	OPCODEFuncMapT funcs_;
 };
 
 }

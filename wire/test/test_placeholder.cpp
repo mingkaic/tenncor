@@ -6,6 +6,8 @@
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
 
+#include "mold/error.hpp"
+
 #include "wire/placeholder.hpp"
 
 
@@ -373,11 +375,11 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 
 		double* badptr = (double*) badfit.c_str();
 		std::vector<double> badvec(badptr, badptr + more);
-		EXPECT_THROW(place = badvec, std::exception);
+		EXPECT_THROW(place = badvec, std::logic_error);
 
 		uint16_t* typeptr = (uint16_t*) badtype.c_str();
 		std::vector<uint16_t> typevec(typeptr, typeptr + typebytes);
-		EXPECT_THROW(place = typevec, std::exception);
+		EXPECT_THROW(place = typevec, std::logic_error);
 	}
 	else
 	{
@@ -401,11 +403,11 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 
 		uint16_t* badptr = (uint16_t*) badfit.c_str();
 		std::vector<uint16_t> badvec(badptr, badptr + more);
-		EXPECT_THROW(place = badvec, std::exception);
+		EXPECT_THROW(place = badvec, std::logic_error);
 
 		double* typeptr = (double*) badtype.c_str();
 		std::vector<double> typevec(typeptr, typeptr + typebytes);
-		EXPECT_THROW(place = typevec, std::exception);
+		EXPECT_THROW(place = typevec, std::logic_error);
 	}
 }
 
@@ -417,15 +419,14 @@ TEST_F(PLACEHOLDER, Derive_F004)
 	wire::Placeholder var2(shape, get_string(16, "plname"));
 	std::vector<double> data = get_double(shape.n_elems(), "data");
 
-	EXPECT_THROW(var.derive(&var), std::exception);
+	EXPECT_THROW(var.derive(&var), mold::UninitializedError);
 	var = data;
 	wire::Identifier* wun = var.derive(&var);
 	wire::Identifier* zaro = var.derive(&var2);
-	clay::Shape scalars(std::vector<size_t>{1});
 	clay::State state = wun->get_state();
 	clay::State state2 = zaro->get_state();
-	EXPECT_SHAPEQ(scalars, state.shape_);
-	EXPECT_SHAPEQ(scalars, state2.shape_);
+	EXPECT_SHAPEQ(shape, state.shape_);
+	EXPECT_SHAPEQ(shape, state2.shape_);
 
 	double scalarw = *((double*) state.data_.lock().get());
 	double scalarz = *((double*) state2.data_.lock().get());

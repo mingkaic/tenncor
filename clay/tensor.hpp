@@ -23,8 +23,8 @@
 #include "clay/isource.hpp"
 
 #pragma once
-#ifndef CLAY_CLAY_HPP
-#define CLAY_CLAY_HPP
+#ifndef CLAY_TENSOR_HPP
+#define CLAY_TENSOR_HPP
 
 namespace clay
 {
@@ -80,4 +80,4 @@ using TensorPtrT = std::unique_ptr<Tensor>;
 
 }
 
-#endif /* CLAY_CLAY_HPP */
+#endif /* CLAY_TENSOR_HPP */

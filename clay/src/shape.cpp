@@ -7,6 +7,7 @@
 #include <numeric>
 
 #include "clay/shape.hpp"
+#include "clay/error.hpp"
 
 #ifdef CLAY_SHAPE_HPP
 
@@ -167,7 +168,7 @@ Shape merge_with (const Shape& shape, const Shape& other)
 	size_t rank = shape.rank();
 	if (rank != other.rank())
 	{
-		throw std::exception(); // todo: add context
+		throw InvalidShapeError(shape, other);
 	}
 	std::vector<size_t> ds;
 	for (size_t i = 0; i < rank; i++)

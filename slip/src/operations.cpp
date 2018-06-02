@@ -4,6 +4,9 @@
 //
 
 #include "slip/include/operations.hpp"
+#include "slip/error.hpp"
+
+#include "clay/error.hpp"
 
 #ifdef SLIP_OPERATIONS_HPP
 
@@ -137,18 +140,18 @@ void n_dims (clay::State& dest, std::vector<clay::State> srcs)
 {
 	if (srcs.size() != 2)
 	{
-		throw std::exception();
+		throw BadNArgsError(2, srcs.size());
 	}
 	clay::Shape& srcshape = srcs.front().shape_;
 	uint64_t* d = safe_get<uint64_t>(dest.data_);
 	clay::State& dstate = srcs[1];
 	if (dstate.dtype_ != clay::UINT64)
 	{
-		throw std::exception();
+		throw clay::UnsupportedTypeError(dstate.dtype_);
 	}
 	if (1 != dstate.shape_.n_elems())
 	{
-		throw std::exception();
+		throw ShapeMismatchError(clay::Shape({1}), dstate.shape_);
 	}
 	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
 	if (dim < srcshape.rank())

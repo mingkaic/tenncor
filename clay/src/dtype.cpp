@@ -7,6 +7,7 @@
 #include <numeric>
 
 #include "clay/dtype.hpp"
+#include "clay/error.hpp"
 
 #ifdef CLAY_DTYPE_HPP
 
@@ -34,7 +35,7 @@ unsigned short type_size (DTYPE type)
 		case DTYPE::UINT64:
 			return sizeof(int64_t);
 		default:
-			throw std::exception(); // todo: add context
+			throw UnsupportedTypeError(type);
 	}
 }
 

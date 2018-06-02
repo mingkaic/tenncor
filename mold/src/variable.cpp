@@ -5,6 +5,7 @@
 
 #include "mold/variable.hpp"
 #include "mold/functor.hpp"
+#include "mold/error.hpp"
 
 #ifdef MOLD_VARIABLE_HPP
 
@@ -20,7 +21,7 @@ clay::State Variable::get_state (void) const
 {
 	if (nullptr == data_)
 	{
-		throw std::exception(); // todo: add context
+		throw UninitializedError();
 	}
 	return data_->get_state();
 }
@@ -53,7 +54,7 @@ void Variable::assign (const clay::iSource& src)
 {
 	if (nullptr == data_)
 	{
-		throw std::exception(); // todo: add context
+		throw UninitializedError();
 	}
 	data_->read_from(src);
 	for (iObserver* aud : audience_)

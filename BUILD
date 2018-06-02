@@ -21,9 +21,12 @@ filegroup(
         "//:monitor_rpc_cpp",
         "//proto:srcs",
         "//tests:srcs",
-    
+
         "//clay:srcs",
+        "//mold:srcs",
+        "//slip:srcs",
         "//kiln:srcs",
+        "//wire:srcs",
         "//lead:srcs",
     ],
 )
@@ -65,7 +68,7 @@ filegroup(
     name = "monitor_csv_hpp",
     srcs = glob([
         "include/edgeinfo/*.hpp",
-        "include/edgeinfo/csv_record/*.hpp", 
+        "include/edgeinfo/csv_record/*.hpp",
     ]),
 )
 
@@ -82,7 +85,7 @@ filegroup(
     name = "monitor_rpc_hpp",
     srcs = glob([
         "include/edgeinfo/*.hpp",
-        "include/edgeinfo/rpc_record/*.hpp", 
+        "include/edgeinfo/rpc_record/*.hpp",
         "include/thread/*.hpp",
         "src/thread/*.ipp",
     ]),
@@ -92,7 +95,7 @@ filegroup(
     name = "monitor_rpc_cpp",
     srcs = glob([
         "src/edgeinfo/*.cpp",
-        "src/edgeinfo/rpc_record/*.cpp", 
+        "src/edgeinfo/rpc_record/*.cpp",
         "src/thread/*.cpp",
     ]),
 )
@@ -158,7 +161,7 @@ cc_library(
 #     hdrs = [ ":tenncor_hpp", ":monitor_csv_hpp" ],
 #     srcs = [ ":tenncor_cpp", ":monitor_csv_cpp" ],
 #     includes = [ "include" ],
-#     deps = [ 
+#     deps = [
 #         "//proto:tenncor_serial_cc_proto",
 #     ],
 #     defines = [ "CSV_RCD" ],

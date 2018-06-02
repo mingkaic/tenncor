@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testify/mocker/mocker.hpp" 
+#include "testify/mocker/mocker.hpp"
 
 #include "fuzzutil/fuzz.hpp"
 #include "fuzzutil/sgen.hpp"
@@ -10,6 +10,7 @@
 
 #include "clay/tensor.hpp"
 #include "clay/memory.hpp"
+#include "clay/error.hpp"
 
 
 #ifndef DISABLE_CLAY_TEST
@@ -35,7 +36,7 @@ struct mock_source final : public clay::iSource, public testify::mocker
 {
 	mock_source (testify::fuzz_test* fuzzer) :
 		mock_source(random_def_shape(fuzzer),
-		(clay::DTYPE) fuzzer->get_int(1, "dtype", 
+		(clay::DTYPE) fuzzer->get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0], fuzzer) {}
 
 	mock_source (clay::Shape shape, clay::DTYPE dtype, testify::fuzz_test* fuzzer)
@@ -98,10 +99,10 @@ TEST_F(TENSOR, Constructor_C000)
 	memcpy(data.get(), s1.c_str(), nbytes);
 
 	clay::Tensor ten(data, cshape, dtype);
-	EXPECT_THROW(clay::Tensor(nullptr, cshape, dtype), std::exception);
-	EXPECT_THROW(clay::Tensor(data, undef, dtype), std::exception);
-	EXPECT_THROW(clay::Tensor(data, plist, dtype), std::exception);
-	EXPECT_THROW(clay::Tensor(data, cshape, clay::DTYPE::BAD), std::exception);
+	EXPECT_THROW(clay::Tensor(nullptr, cshape, dtype), clay::NilDataError);
+	EXPECT_THROW(clay::Tensor(data, undef, dtype), clay::InvalidShapeError);
+	EXPECT_THROW(clay::Tensor(data, plist, dtype), clay::InvalidShapeError);
+	EXPECT_THROW(clay::Tensor(data, cshape, clay::DTYPE::BAD), clay::UnsupportedTypeError);
 
 	clay::Shape gotshape = ten.get_shape();
 	clay::DTYPE gottype = ten.get_type();

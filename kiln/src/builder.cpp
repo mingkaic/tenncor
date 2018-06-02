@@ -3,9 +3,9 @@
 //  kiln
 //
 
-#include "clay/memory.hpp"
-
 #include "kiln/builder.hpp"
+
+#include "clay/memory.hpp"
 
 #ifdef KILN_BUILDER_HPP
 

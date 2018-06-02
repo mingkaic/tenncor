@@ -3,9 +3,9 @@
 //  kiln
 //
 
-#include "clay/memory.hpp"
-
 #include "kiln/const_init.hpp"
+
+#include "clay/memory.hpp"
 
 #ifdef KILN_CONST_INIT_HPP
 

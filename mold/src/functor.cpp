@@ -7,6 +7,7 @@
 
 #include "mold/functor.hpp"
 #include "mold/constant.hpp"
+#include "mold/error.hpp"
 
 #ifdef MOLD_FUNCTOR_HPP
 
@@ -68,7 +69,7 @@ clay::State Functor::get_state (void) const
 {
 	if (nullptr == cache_)
 	{
-		throw std::exception(); // todo: add context
+		throw UninitializedError();
 	}
 	return cache_->get_state();
 }
@@ -99,7 +100,7 @@ void Functor::initialize (void)
 	cache_ = clay::TensorPtrT(new clay::Tensor(data, shape, dtype));
 	if (false == cache_->read_from(*op_))
 	{
-		throw std::exception(); // todo: add context
+		throw FunctorUpdateError();
 	}
 
 	for (iObserver* aud : audience_)
@@ -114,7 +115,7 @@ void Functor::update (void)
 	{
 		if (false == cache_->read_from(*op_))
 		{
-			throw std::exception(); // todo: add context
+			throw FunctorUpdateError();
 		}
 		for (iObserver* aud : audience_)
 		{

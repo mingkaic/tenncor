@@ -47,8 +47,10 @@ COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 # proto_build:
 # 	$(RUN) //tests/py:protogen -- $(shell pwd)/tests/unit/samples
 
+test: unittest regression
+
 # unit test
-test: test_clay test_mold test_slip test_kiln #test_wire
+unittest: test_clay test_mold test_slip test_kiln test_wire
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test
@@ -66,7 +68,7 @@ test_wire:
 	$(GTEST) $(REP_BZL_FLAG) //wire:test
 
 # valgrind unit tests
-valgrind: valg_clay valg_mold valg_slip #valg_kiln valg_wire
+valgrind: valg_clay valg_mold valg_slip valg_kiln valg_wire
 
 valg_clay:
 	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //clay:test
@@ -83,7 +85,7 @@ valg_kiln:
 # asan unit tests
 
 # coverage unit tests
-coverage: cover_clay cover_mold cover_slip #cover_kiln cover_wire
+coverage: cover_clay cover_mold cover_slip cover_kiln cover_wire
 
 cover_clay:
 	$(COVER) $(REP_BZL_FLAG) //clay:test --instrumentation_filter=/clay[/:]
@@ -97,28 +99,12 @@ cover_slip:
 cover_kiln:
 	$(COVER) $(REP_BZL_FLAG) //kiln:test --instrumentation_filter=/kiln[/:]
 
-# # unit test
-# unit_test: test_tensor test_graph test_operate test_serialize
+regression:
+	$(GTEST) //regress:test
 
-# test_tensor:
-# 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_tensor
-
-# test_graph:
-# 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_graph
-
-# test_operate:
-# 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_operate
-
-# test_serialize:
-# 	$(GTEST) $(REP_BZL_FLAG) //tests/unit:test_serialize
-
-# # regression test
-# test_regress:
-# 	$(GTEST) //tests/regress:test
-
-# # todo: deprecate
-# acceptdata: cleandata
-# 	python tests/regress/tf_generate/tf_generate.py
+# todo: deprecate
+acceptdata: cleandata
+	python regress/tf_generate/tf_generate.py
 
 # remove all test data
 clean_data:

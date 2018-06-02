@@ -3,10 +3,11 @@
 //  kiln
 //
 
-#include "clay/memory.hpp"
-#include "slip/registry.hpp"
-
 #include "kiln/norm_init.hpp"
+
+#include "clay/memory.hpp"
+
+#include "slip/registry.hpp"
 
 #ifdef KILN_NORM_INIT_HPP
 

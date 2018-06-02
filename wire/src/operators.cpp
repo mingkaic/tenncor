@@ -292,7 +292,9 @@ Identifier* pow (Identifier* b, Identifier* x)
 		auto f = args.front();
 		auto g = args.back();
 		assert(g->has_data());
-		auto lhs = pow(f, sub(g, make_one(g->get_state().dtype_)));
+		clay::Shape scalar({1});
+		Identifier* one = make_one(scalar, g->get_state().dtype_);
+		auto lhs = pow(f, sub(g, one));
 		auto rhs = add(mul(f->derive(wrt), g), mul(g->derive(wrt), mul(f, log(f))));
 		return mul(lhs, rhs);
 	});
@@ -372,11 +374,12 @@ Identifier* div (Identifier* a, Identifier* b)
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		// h'(f, g) = (f' * g - g' * f) / g^2
-		//			= (f' / g - (g' * f) / g) / g
+		//			= f' / g - ((g' * f) / g) / g
 		auto f = args.front();
 		auto g = args.back();
-		auto num = sub(div(f->derive(wrt), g), div(mul(g->derive(wrt), f), g));
-		return div(num, g);
+		auto lhs = div(f->derive(wrt), g);
+		auto rhs_num = div(mul(g->derive(wrt), f), g);
+		return sub(lhs, div(rhs_num, g));
 	});
 }
 
@@ -587,7 +590,7 @@ Identifier* arg_max (Identifier* a)
 	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
-		throw std::exception();
+		throw std::bad_function_call();
 	});
 }
 
@@ -597,7 +600,7 @@ Identifier* arg_max (Identifier* a, Identifier* dim)
 	{
 		return nullptr;
 	}
-	slip::OPCODE opcode = slip::NOT;
+	slip::OPCODE opcode = slip::ARGMAX;
 	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
 	{
 		return parent;
@@ -605,7 +608,7 @@ Identifier* arg_max (Identifier* a, Identifier* dim)
 	return new Functor({a, dim}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
-		throw std::exception();
+		throw std::bad_function_call();
 	});
 }
 
@@ -640,7 +643,7 @@ Identifier* reduce_max (Identifier* a, Identifier* dim)
 	{
 		return nullptr;
 	}
-	slip::OPCODE opcode = slip::NOT;
+	slip::OPCODE opcode = slip::RMAX;
 	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
 	{
 		return parent;
@@ -685,12 +688,12 @@ Identifier* reduce_sum (Identifier* a, Identifier* dim)
 	{
 		return nullptr;
 	}
-	slip::OPCODE opcode = slip::NOT;
+	slip::OPCODE opcode = slip::RSUM;
 	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({a}, opcode,
+	return new Functor({a, dim}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		return args.front()->derive(wrt);
@@ -749,7 +752,9 @@ Identifier* n_elems (Identifier* a)
 	return new Functor({a}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
-		return nullptr;
+		Identifier* a = args.front();
+		clay::State state = a->get_state();
+		return make_zero(state.shape_, state.dtype_);
 	});
 }
 
@@ -767,7 +772,9 @@ Identifier* n_dimension (Identifier* a, Identifier* dim)
 	return new Functor({a, dim}, opcode,
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
-		return nullptr;
+		Identifier* a = args.front();
+		clay::State state = a->get_state();
+		return make_zero(state.shape_, state.dtype_);
 	});
 }
 

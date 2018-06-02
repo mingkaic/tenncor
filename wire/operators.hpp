@@ -57,114 +57,40 @@ Identifier* round (Identifier* a);
 //! b to the power of x
 Identifier* pow (Identifier* b, Identifier* x);
 
-template <typename T>
-Identifier* pow (Identifier* b, T x) { return pow(b, Constant::get<T>(x)); }
-
-template <typename T>
-Identifier* pow (T b, Identifier* x) { return pow(Constant::get<T>(b), x); }
-
 //! add a and b
 Identifier* add (Identifier* a, Identifier* b);
-
-template <typename T>
-Identifier* add (Identifier* a, T b) { return add(a, Constant::get<T>(b)); }
-
-template <typename T>
-Identifier* add (T a, Identifier* b) { return add(Constant::get<T>(a), b); }
 
 //! subtract a and b
 Identifier* sub (Identifier* a, Identifier* b);
 
-template <typename T>
-Identifier* sub (Identifier* a, T b) { return sub(a, Constant::get<T>(b)); }
-
-template <typename T>
-Identifier* sub (T a, Identifier* b) { return sub(Constant::get<T>(a), b); }
-
 //! multiply a and b
 Identifier* mul (Identifier* a, Identifier* b);
-
-template <typename T>
-Identifier* mul (Identifier* a, T b) { return mul(a, Constant::get<T>(b)); }
-
-template <typename T>
-Identifier* mul (T a, Identifier* b) { return mul(Constant::get<T>(a), b); }
 
 //! divide a and b
 Identifier* div (Identifier* a, Identifier* b);
 
-template <typename T>
-Identifier* div (Identifier* a, T b) { return div(a, Constant::get<T>(b)); }
-
-template <typename T>
-Identifier* div (T a, Identifier* b) { return div(Constant::get<T>(a), b); }
-
 //! a == b
 Identifier* eq (Identifier* a, Identifier* b);
-
-template <typename T>
-Identifier* eq (Identifier* a, T b) { return eq(a, Constant::get<T>(b)); }
-
-template <typename T>
-Identifier* eq (T a, Identifier* b) { return eq(Constant::get<T>(a), b); }
 
 //! a != b
 Identifier* neq (Identifier* a, Identifier* b);
 
-template <typename T>
-Identifier* neq (Identifier* a, T b) { return neq(a, Constant::get<T>(b)); }
-
-template <typename T>
-Identifier* neq (T a, Identifier* b) { return neq(Constant::get<T>(a), b); }
-
 //! a < b
 Identifier* lt (Identifier* a, Identifier* b);
 
-template <typename T>
-Identifier* lt (Identifier* a, T b) { return lt(a, Constant::get<T>(b)); }
-
-template <typename T>
-Identifier* lt (T a, Identifier* b) { return lt(Constant::get<T>(a), b); }
-
 //! a > b
 Identifier* gt (Identifier* a, Identifier* b);
-
-template <typename T>
-Identifier* gt (Identifier* a, T b) { return gt(a, Constant::get<T>(b)); }
-
-template <typename T>
-Identifier* gt (T a, Identifier* b) { return gt(Constant::get<T>(a), b); }
 
 //! generate data of within binomial distribution given (n, p)
 Identifier* binomial_sample (Identifier* n, Identifier* p);
 
 Identifier* binomial_sample (Identifier* n, double p);
 
-template <typename T>
-Identifier* binomial_sample (T n, Identifier* p)
-{ return binomial_sample(Constant::get<T>(n), p); }
-
 //! generate data of within uniform distribution given (min, max)
 Identifier* uniform_sample (Identifier* min, Identifier* max);
 
-template <typename T>
-Identifier* uniform_sample (Identifier* min, T max)
-{ return uniform_sample(min, Constant::get<T>(max)); }
-
-template <typename T>
-Identifier* uniform_sample (T min, Identifier* max)
-{ return uniform_sample(Constant::get<T>(min), max); }
-
 //! generate data of within normal distribution given (mean, stdev)
 Identifier* normal_sample (Identifier* mean, Identifier* stdev);
-
-template <typename T>
-Identifier* normal_sample (Identifier* mean, T stdev)
-{ return normal_sample(mean, Constant::get<T>(stdev)); }
-
-template <typename T>
-Identifier* normal_sample (T mean, Identifier* stdev)
-{ return normal_sample(Constant::get<T>(mean), stdev); }
 
 //! transpose, default perm is same as behavior n-1 ... 0
 Identifier* transpose (Identifier* a);
@@ -231,16 +157,8 @@ Identifier* expand (Identifier* a, uint64_t n, uint64_t dim);
 //! clip values in range [min, max]
 Identifier* clip (Identifier* a, Identifier* min, Identifier* max);
 
-template <typename T>
-Identifier* clip (Identifier* a, T min, T max)
-{ return clip(a, Constant::get<T>(min), Constant::get<T>(max)); }
-
 //! normalize clip values with capacity cap
 Identifier* clip_norm (Identifier* a, Identifier* cap);
-
-template <typename T>
-Identifier* clip_norm (Identifier* a, T cap)
-{ return clip_norm(a, Constant::get<T>(cap)); }
 
 //! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
 Identifier* matmul (Identifier* a, Identifier* b);

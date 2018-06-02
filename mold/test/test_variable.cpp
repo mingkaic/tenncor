@@ -15,6 +15,7 @@
 #include "mold/sink.hpp"
 #include "mold/variable.hpp"
 #include "mold/iobserver.hpp"
+#include "mold/error.hpp"
 
 
 #ifndef DISABLE_VARIABLE_TEST
@@ -257,7 +258,7 @@ TEST_F(VARIABLE, State_C003)
 	mock_observer* obs = new mock_observer(&var);
 	mock_builder builder(this);
 
-	EXPECT_THROW(var.get_state(), std::exception);
+	EXPECT_THROW(var.get_state(), mold::UninitializedError);
 	EXPECT_EQ(0, testify::mocker::get_usage(&builder, "get"));
 	var.initialize(builder);
 	EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));
@@ -280,7 +281,7 @@ TEST_F(VARIABLE, Assign_C004)
 	mock_builder builder(this);
 	mock_source src(builder.shape_, builder.dtype_, this);
 
-	EXPECT_THROW(var.assign(src), std::exception);
+	EXPECT_THROW(var.assign(src), mold::UninitializedError);
 	EXPECT_EQ(0, testify::mocker::get_usage(&builder, "get"));
 	var.initialize(builder);
 	EXPECT_EQ(1, testify::mocker::get_usage(&builder, "get"));

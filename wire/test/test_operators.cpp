@@ -35,9 +35,12 @@ protected:
 struct mock_builder final : public clay::iBuilder
 {
 	mock_builder (testify::fuzz_test* fuzzer) :
-		shape_(random_def_shape(fuzzer, {2, 6})),
-		dtype_((clay::DTYPE) fuzzer->get_int(1, "dtype",
-		{1, clay::DTYPE::_SENTINEL - 1})[0])
+		mock_builder(fuzzer,
+		(clay::DTYPE) fuzzer->get_int(1, "dtype",
+		{1, clay::DTYPE::_SENTINEL - 1})[0]) {}
+
+	mock_builder (testify::fuzz_test* fuzzer, clay::DTYPE dtype) :
+		shape_(random_def_shape(fuzzer, {2, 6})), dtype_(dtype)
 	{
 		size_t nbytes = shape_.n_elems() * clay::type_size(dtype_);
 		uuid_ = fuzzer->get_string(nbytes, "uuid_");
@@ -71,39 +74,134 @@ protected:
 using VARFUNC = std::function<wire::Identifier*(std::vector<wire::Identifier*>)>;
 
 
+using SCALAR = std::function<double(double)>;
+
+
+using GRADER = std::function<std::vector<double>(std::vector<double> input)>;
+
+
+static void selfGrad (wire::Identifier* f, clay::State state)
+{
+	clay::Shape scalars(std::vector<size_t>{1});
+	wire::Identifier* wun = f->derive(f);
+	clay::State back = wun->get_state();
+	EXPECT_SHAPEQ(scalars, back.shape_);
+	EXPECT_EQ(state.dtype_, back.dtype_);
+	switch (state.dtype_)
+	{
+		case clay::DTYPE::DOUBLE:
+		{
+			double scalar = *((double*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::FLOAT:
+		{
+			float scalar = *((float*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::INT8:
+		{
+			int8_t scalar = *((int8_t*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::UINT8:
+		{
+			uint8_t scalar = *((uint8_t*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::INT16:
+		{
+			int16_t scalar = *((int16_t*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::UINT16:
+		{
+			uint16_t scalar = *((uint16_t*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::INT32:
+		{
+			int32_t scalar = *((int32_t*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::UINT32:
+		{
+			uint32_t scalar = *((uint32_t*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::INT64:
+		{
+			int64_t scalar = *((int64_t*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		break;
+		case clay::DTYPE::UINT64:
+		{
+			uint64_t scalar = *((uint64_t*) state.data_.lock().get());
+			EXPECT_EQ(1, scalar);
+		}
+		default:
+		break;
+	};
+}
+
+
 // static void unarElemTest (fuzz_test* fuzzer, slip::OPCODE opcode, VARFUNC op,
-// 	SCALAR expect, ZCHECK exz, std::pair<double,double> limits = {-1, 1})
+// 	SCALAR expect, GRADER grad, std::pair<double,double> limits = {-1, 1})
 // {
-// 	nnet::tshape shape = random_def_shape(fuzzer);
-// 	size_t n = shape.n_elems();
-// 	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
-// 	nnet::varptr leaf = nnet::constant::get<double>(argument, shape);
+// 	mock_builder builder(this, clay::DOUBLE);
+// 	wire::Variable arg(builder, arglabel);
 
-// 	// test behavior B000
-// 	nnet::varptr res = op({leaf});
-// 	nnet::varptr res2 = op({leaf});
-// 	EXPECT_EQ(res.get(), res2.get());
+// 	// test behavior G000
+// 	wire::Identifier* f = op({&leaf});
+// 	wire::Identifier* f2 = op({&leaf});
+// 	EXPECT_EQ(f, f2);
 
-// 	// test behavior B001
-// 	exz(op);
+// 	// test behavior G001
+// 	EXPECT_EQ(nullptr, op({nullptr}));
+
+// 	// test behavior G002
+// 	EXPECT_THROW(f->derive(f), std::exception);
+// 	EXPECT_THROW(f->derive(&arg), std::exception);
+
+// 	wire::Graph::get_global().initialize_all();
+// 	ASSERT_TRUE(f->has_data());
+// 	clay::State state = f->get_state();
+// 	// test behavior G003
+// 	selfGrad(f, state);
 
 // 	// test behavior B1xx
-// 	nnet::tensor* ten = res->get_tensor();
-// 	ASSERT_NE(nullptr, ten);
-// 	EXPECT_TRUE(tshape_equal(shape, ten->get_shape()));
-// 	std::vector<double> output = nnet::expose<double>(res.get());
+// 	wire::Identifier* der = f->derive(&arg);
+// 	EXPECT_SHAPEQ(builder.shape_, state.shape_);
+// 	double* inptr = (double*) builder.data_.get();
+// 	double* outptr = (double*) state.data_.get();
+// 	std::vector<double> input(inptr, inptr + builder.shape_.n_elems());
+// 	std::vector<double> output(outptr, outptr + state.shape_.n_elems());
 // 	for (size_t i = 0; i < n; ++i)
 // 	{
-// 		EXPECT_EQ(expect(argument[i]), output[i]);
+// 		EXPECT_EQ(expect(input[i]), output[i]);
 // 	}
 
-// 	nnet::varptr opres = nnet::run_opcode({leaf}, opcode);
-// 	EXPECT_EQ(res.get(), opres.get()); // invariant: behavior B000 is successful
+// 	clay::State back = der->get_state();
+// 	double* backptr = (double*) back.data_.get();
+// 	std::vector<double> backput(backptr, backptr + back.shape_.n_elems());
+// 	std::vector<double> expect_grad = grad(input);
+// 	EXPECT_ARREQ(backput, expect_grad);
 // }
 
 
 TEST_F(OPERATORS, Derive_G00x)
 {
+	// slip::OPCODE opcode = (slip::OPCODE) get_int(1, "opcode", {0, slip::_SENTINEL - 1})[0];
+
 	std::string derlabel = get_string(16, "derlabel");
 	std::string arglabel = get_string(16, "arglabel");
 	std::string arg2label = get_string(16, "arg2label");
@@ -127,10 +225,9 @@ TEST_F(OPERATORS, Derive_G00x)
 	ASSERT_TRUE(f->has_data());
 
 	clay::State fwdstate = f->get_state();
-	clay::Shape scalars(std::vector<size_t>{1});
 	wire::Identifier* wun = f->derive(f);
 	clay::State state = wun->get_state();
-	EXPECT_SHAPEQ(scalars, state.shape_);
+	EXPECT_SHAPEQ(builder.shape_, state.shape_);
 	EXPECT_EQ(fwdstate.dtype_, state.dtype_);
 	switch (fwdstate.dtype_)
 	{

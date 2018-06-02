@@ -38,7 +38,15 @@ struct mock_identifier : public wire::Identifier
 
 	wire::Graph* get_graph (void) const { return graph_; }
 
-	mold::iNode* get_node (void) const { return arg_.get(); }
+	mold::iNode* get_node (void) const
+	{
+		mold::iNode* out = nullptr;
+		if (args_.size() > 0)
+		{
+			out = args_[0];
+		}
+		return out;
+	}
 
 	Identifier* derive (Identifier* wrt) override
 	{

@@ -6,6 +6,7 @@
 #include "fuzzutil/check.hpp"
 
 #include "clay/dtype.hpp"
+#include "clay/error.hpp"
 
 
 #ifndef DISABLE_DTYPE_TEST
@@ -29,7 +30,7 @@ TEST_F(TYPE, TypeSize_B000)
 	EXPECT_EQ(4, clay::type_size(clay::DTYPE::UINT32));
 	EXPECT_EQ(8, clay::type_size(clay::DTYPE::INT64));
 	EXPECT_EQ(8, clay::type_size(clay::DTYPE::UINT64));
-	EXPECT_THROW(clay::type_size(clay::DTYPE::BAD), std::exception);
+	EXPECT_THROW(clay::type_size(clay::DTYPE::BAD), clay::UnsupportedTypeError);
 }
 
 

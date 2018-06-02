@@ -7,9 +7,11 @@
 #include "fuzzutil/check.hpp"
 
 #include "clay/memory.hpp"
+#include "clay/error.hpp"
 
 #include "slip/registry.hpp"
 #include "slip/rand.hpp"
+#include "slip/error.hpp"
 
 
 #ifndef DISABLE_REGISTRY_TEST
@@ -103,7 +105,8 @@ static void unaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	auto bad_op = slip::get_op(opcode);
 	auto dim_op = slip::get_op(opcode);
 	EXPECT_THROW(bad_op->set_args(
-		{in, clay::State(bad_data, wun, clay::UINT64)}), std::exception);
+		{in, clay::State(bad_data, wun, clay::UINT64)}),
+		slip::InvalidDimensionError);
 	dim_op->set_args({in, clay::State(dim_data, wun, clay::UINT64)});
 
 	mold::ImmPair dim_imms = dim_op->get_imms();
@@ -275,7 +278,7 @@ static inline bool freivald (fuzz_test* fuzzer, TWODV a, TWODV b, TWODV c)
 TEST_F(REGISTRY, Unsupported_B000)
 {
 	EXPECT_FALSE(slip::has_op(slip::_SENTINEL));
-	EXPECT_THROW(slip::get_op(slip::_SENTINEL), std::exception);
+	EXPECT_THROW(slip::get_op(slip::_SENTINEL), slip::UnsupportedOpcodeError);
 }
 
 
@@ -517,7 +520,8 @@ TEST_F(REGISTRY, Flip_B016)
 
 	auto bad_op = slip::get_op(opcode);
 	EXPECT_THROW(bad_op->set_args({in0,
-		clay::State(baddata, clay::Shape({1}), clay::UINT64)}), std::exception);
+		clay::State(baddata, clay::Shape({1}), clay::UINT64)}),
+		slip::InvalidDimensionError);
 
 	mold::ImmPair imms = op->get_imms();
 	ASSERT_SHAPEQ(shape, imms.first);
@@ -573,7 +577,8 @@ TEST_F(REGISTRY, Expand_B017)
 
 	auto bad_op = slip::get_op(opcode);
 	EXPECT_THROW(bad_op->set_args({in0, in1,
-		clay::State(baddata, clay::Shape({1}), clay::UINT64)}), std::exception);
+		clay::State(baddata, clay::Shape({1}), clay::UINT64)}),
+		slip::InvalidDimensionError);
 
 	mold::ImmPair imms = op->get_imms();
 	ASSERT_SHAPEQ(outshape, imms.first);
@@ -660,7 +665,8 @@ TEST_F(REGISTRY, NDims_B019)
 	op->set_args({in, clay::State(dptr, outshape, clay::UINT64)});
 
 	auto bad_op = slip::get_op(opcode);
-	EXPECT_THROW(bad_op->set_args({in, clay::State(baddata, outshape, clay::UINT64)}), std::exception);
+	EXPECT_THROW(bad_op->set_args({in, clay::State(baddata, outshape, clay::UINT64)}),
+		slip::InvalidDimensionError);
 
 	mold::ImmPair imms = op->get_imms();
 	ASSERT_SHAPEQ(outshape, imms.first);
@@ -799,14 +805,17 @@ TEST_F(REGISTRY, Binom_B040)
 	auto badop_double = slip::get_op(opcode);
 	auto badop_float = slip::get_op(opcode);
 	auto bad_arg = slip::get_op(opcode);
-	EXPECT_THROW(badop_double->set_args({clay::State(data0, shape, clay::DOUBLE), in1}), std::exception);
-	EXPECT_THROW(badop_float->set_args({clay::State(data0, shape, clay::FLOAT), in1}), std::exception);
+	EXPECT_THROW(badop_double->set_args({clay::State(data0, shape, clay::DOUBLE), in1}),
+		clay::UnsupportedTypeError);
+	EXPECT_THROW(badop_float->set_args({clay::State(data0, shape, clay::FLOAT), in1}),
+		clay::UnsupportedTypeError);
 	clay::DTYPE notdoub = (clay::DTYPE) get_int(1, "notdoub", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	if (notdoub == clay::DOUBLE)
 	{
 		notdoub = clay::FLOAT;
 	}
-	EXPECT_THROW(bad_arg->set_args({in0, clay::State(data1, shape, notdoub)}), std::exception);
+	EXPECT_THROW(bad_arg->set_args({in0, clay::State(data1, shape, notdoub)}),
+		clay::UnsupportedTypeError);
 
 	mold::ImmPair imms = op->get_imms();
 	ASSERT_SHAPEQ(shape, imms.first);
@@ -868,28 +877,36 @@ TEST_F(REGISTRY, Norm_B041)
 	auto badop = slip::get_op(opcode);
 	ASSERT_THROW(badop->set_args({
 		clay::State(data0, shape, clay::INT8),
-		clay::State(data1, shape, clay::INT8)}), std::exception);
+		clay::State(data1, shape, clay::INT8)}),
+		clay::UnsupportedTypeError);
 	ASSERT_THROW(badop->set_args({
 		clay::State(data0, shape, clay::UINT8),
-		clay::State(data1, shape, clay::UINT8)}), std::exception);
+		clay::State(data1, shape, clay::UINT8)}),
+		clay::UnsupportedTypeError);
 	ASSERT_THROW(badop->set_args({
 		clay::State(data0, shape, clay::INT16),
-		clay::State(data1, shape, clay::INT16)}), std::exception);
+		clay::State(data1, shape, clay::INT16)}),
+		clay::UnsupportedTypeError);
 	ASSERT_THROW(badop->set_args({
 		clay::State(data0, shape, clay::UINT16),
-		clay::State(data1, shape, clay::UINT16)}), std::exception);
+		clay::State(data1, shape, clay::UINT16)}),
+		clay::UnsupportedTypeError);
 	ASSERT_THROW(badop->set_args({
 		clay::State(data0, shape, clay::INT32),
-		clay::State(data1, shape, clay::INT32)}), std::exception);
+		clay::State(data1, shape, clay::INT32)}),
+		clay::UnsupportedTypeError);
 	ASSERT_THROW(badop->set_args({
 		clay::State(data0, shape, clay::UINT32),
-		clay::State(data1, shape, clay::UINT32)}), std::exception);
+		clay::State(data1, shape, clay::UINT32)}),
+		clay::UnsupportedTypeError);
 	ASSERT_THROW(badop->set_args({
 		clay::State(data0, shape, clay::INT64),
-		clay::State(data1, shape, clay::INT64)}), std::exception);
+		clay::State(data1, shape, clay::INT64)}),
+		clay::UnsupportedTypeError);
 	ASSERT_THROW(badop->set_args({
 		clay::State(data0, shape, clay::UINT64),
-		clay::State(data1, shape, clay::UINT64)}), std::exception);
+		clay::State(data1, shape, clay::UINT64)}),
+		clay::UnsupportedTypeError);
 
 	mold::ImmPair imms = op->get_imms();
 	ASSERT_SHAPEQ(shape, imms.first);

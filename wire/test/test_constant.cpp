@@ -6,6 +6,8 @@
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
 
+#include "clay/error.hpp"
+
 #include "wire/constant.hpp"
 
 
@@ -80,7 +82,7 @@ TEST_F(CONSTANT, GetScalar_D000)
 	std::string got(state.data_.lock().get(), bsize);
 	EXPECT_STREQ(data.c_str(), got.c_str());
 
-	EXPECT_THROW(wire::Constant::get(data), std::exception);
+	EXPECT_THROW(wire::Constant::get(data), clay::UnsupportedTypeError);
 
 	delete c;
 }
@@ -178,7 +180,7 @@ TEST_F(CONSTANT, GetVec_D001)
 	EXPECT_STREQ(data.c_str(), got.c_str());
 
 	std::vector<std::string> sdata(shape.n_elems(), "sample");
-	EXPECT_THROW(wire::Constant::get(sdata, shape), std::exception);
+	EXPECT_THROW(wire::Constant::get(sdata, shape), clay::UnsupportedTypeError);
 
 	delete v;
 }
@@ -257,7 +259,7 @@ TEST_F(CONSTANT, Derive_E001)
 	}
 	wire::Constant c(ptr, clay::Shape({1}), dtype, get_string(16, "cname"));
 	wire::Constant* c2 = wire::Constant::get(1);
-	EXPECT_THROW(c.derive(&c), std::exception);
+	EXPECT_THROW(c.derive(&c), std::logic_error);
 	wire::Identifier* zaro = c.derive(c2);
 	ASSERT_NE(nullptr, dynamic_cast<wire::Constant*>(zaro));
 	clay::State z = zaro->get_state();

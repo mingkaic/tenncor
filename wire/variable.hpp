@@ -35,6 +35,8 @@ struct Variable : public Identifier
 	~Variable (void);
 
 	Identifier* derive (Identifier* wrt) override;
+
+	void assign (const Identifier& src);
 };
 
 }

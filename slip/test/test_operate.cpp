@@ -9,6 +9,7 @@
 #include "clay/memory.hpp"
 
 #include "slip/registry.hpp"
+#include "slip/error.hpp"
 
 
 #ifndef DISABLE_OPERATE_IO_TEST
@@ -155,7 +156,7 @@ TEST_F(OPERATE_IO, SetEmpty_A000)
 {
 	slip::OPCODE opcode = (slip::OPCODE) get_int(1, "opcode", {0, slip::MATMUL})[0];
 	mold::iOperatePtrT op = slip::get_op(opcode);
-	EXPECT_THROW(op->set_args({}), std::exception);
+	EXPECT_THROW(op->set_args({}), slip::NoArgumentsError);
 }
 
 
@@ -164,7 +165,7 @@ TEST_F(OPERATE_IO, SetOnce_A001)
 	slip::OPCODE opcode = (slip::OPCODE) get_int(1, "opcode", {0, slip::MATMUL})[0];
 	mold::iOperatePtrT op = slip::get_op(opcode);
 	set_op(this, op, opcode);
-	EXPECT_THROW(set_op(this, op, opcode), std::exception);
+	EXPECT_THROW(set_op(this, op, opcode), std::bad_function_call);
 }
 
 
@@ -173,7 +174,7 @@ TEST_F(OPERATE_IO, ReadBeforeSet_A002)
 	slip::OPCODE opcode = (slip::OPCODE) get_int(1, "opcode", {0, slip::MATMUL})[0];
 	mold::iOperatePtrT op = slip::get_op(opcode);
 	clay::State out;
-	EXPECT_THROW(op->read_data(out), std::exception);
+	EXPECT_THROW(op->read_data(out), std::bad_function_call);
 }
 
 
@@ -181,7 +182,7 @@ TEST_F(OPERATE_IO, GetImmsBeforeSet_A003)
 {
 	slip::OPCODE opcode = (slip::OPCODE) get_int(1, "opcode", {0, slip::MATMUL})[0];
 	mold::iOperatePtrT op = slip::get_op(opcode);
-	EXPECT_THROW(op->get_imms(), std::exception);
+	EXPECT_THROW(op->get_imms(), slip::NoArgumentsError);
 }
 
 

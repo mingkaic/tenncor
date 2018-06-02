@@ -5,8 +5,9 @@
 
 #include <algorithm>
 
-#include "wire/constant.hpp"
 #include "wire/functor.hpp"
+#include "wire/constant.hpp"
+#include "wire/error.hpp"
 
 #ifdef WIRE_FUNCTOR_HPP
 
@@ -37,9 +38,10 @@ Functor::Functor (std::vector<Identifier*> args,
 	for (Identifier* arg : args)
 	{
 		// validate
-		if (false == graph.has_node(arg->get_uid()))
+		std::string uid = arg->get_uid();
+		if (false == graph.has_node(uid))
 		{
-			throw std::exception(); // todo: add context argument doesn't exist in graph
+			throw MissingNodeError(graph.get_gid(), uid);
 		}
 	}
 	graph_->add_func(opcode, this);
@@ -52,14 +54,15 @@ Functor::~Functor (void)
 
 Identifier* Functor::derive (Identifier* wrt)
 {
-	if (false == arg_->has_data())
+	if (false == args_[0]->has_data())
 	{
-		throw std::exception(); // todo: add context
+		throw mold::UninitializedError();
 	}
 	Identifier* out;
 	if (this == wrt)
 	{
-		out = make_one(arg_->get_state().dtype_);
+		clay::State state = args_[0]->get_state();
+		out = make_one(state.shape_, state.dtype_);
 	}
 	else
 	{
@@ -71,10 +74,6 @@ Identifier* Functor::derive (Identifier* wrt)
 		});
 		out = grad_(wrt, args);
 	}
-	if (nullptr == out)
-	{
-		throw std::exception(); // todo: add context
-	}
 	return out;
 }
 
@@ -84,7 +83,7 @@ std::vector<mold::iNode*> Functor::to_nodes (std::vector<Identifier*> ids)
 	std::transform(ids.begin(), ids.end(), out.begin(),
 	[](Identifier * id) -> mold::iNode*
 	{
-		return id->arg_.get();
+		return id->args_[0];
 	});
 	return out;
 }

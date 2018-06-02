@@ -39,9 +39,9 @@ struct Sink::OnDeath final : public iObserver
 		return out;
 	}
 
-	void initialize (void) override {} // todo: add functionality
+	void initialize (void) override {}
 
-	void update (void) override {} // todo: add functionality
+	void update (void) override {}
 
 private:
 	TermF terminate_;

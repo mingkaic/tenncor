@@ -5,10 +5,13 @@
 
 #include <algorithm>
 
-#include "ioutil/stream.hpp"
-
 #include "slip/include/operations.hpp"
 #include "slip/registry.hpp"
+#include "slip/error.hpp"
+
+#include "clay/error.hpp"
+
+#include "ioutil/stream.hpp"
 
 #ifdef SLIP_REGISTRY_HPP
 
@@ -133,14 +136,14 @@ private:
 
 		bool read_data (clay::State&) const override
 		{
-			throw std::bad_function_call(); // todo: add context
+			throw std::bad_function_call();
 		}
 
 		mold::ImmPair get_imms (void) override
 		{
 			if (args_.empty())
 			{
-				throw std::exception(); // todo: add context
+				throw NoArgumentsError();
 			}
 			std::vector<clay::DTYPE> types(args_.size());
 			std::transform(args_.begin(), args_.end(), types.begin(),
@@ -180,12 +183,12 @@ private:
 			auto types = op_registry.find(opcode);
 			if (op_registry.end() == types)
 			{
-				throw std::exception(); // todo: add context
+				throw UnsupportedOpcodeError(opcode);
 			}
 			auto it = types->second.find(imms.second);
 			if (types->second.end() == it)
 			{
-				throw std::exception(); // todo: add context
+				throw clay::UnsupportedTypeError(imms.second);
 			}
 			op_ = it->second;
 		}
@@ -209,7 +212,7 @@ private:
 
 		void set_args (std::vector<clay::State> args) override
 		{
-			throw std::bad_function_call(); // todo: add context
+			throw std::bad_function_call();
 		}
 
 	private:
@@ -245,16 +248,17 @@ static clay::Shape elem_shape (std::vector<clay::State> states)
 {
 	if (states.empty())
 	{
-		throw std::exception(); // todo: add context
+		throw NoArgumentsError();
 	}
 	clay::Shape out = states[0].shape_;
-	if (false == std::all_of(states.begin() + 1, states.end(),
-	[&out](clay::State& state)
+	for (auto it = states.begin() + 1, et = states.end();
+		it != et; it++)
 	{
-		return state.shape_.n_elems() == 1 || state.shape_.is_compatible_with(out);
-	}))
-	{
-		throw std::exception(); // todo: add context
+		if (it->shape_.n_elems() != 1 &&
+			false == it->shape_.is_compatible_with(out))
+		{
+			throw ShapeMismatchError(out, it->shape_);
+		}
 	}
 	return out;
 }
@@ -263,16 +267,16 @@ static clay::DTYPE same_type (std::vector<clay::DTYPE> types)
 {
 	if (types.empty())
 	{
-		throw std::exception(); // todo: add context
+		throw NoArgumentsError();
 	}
 	clay::DTYPE out = types[0];
-	if (false == std::all_of(types.begin() + 1, types.end(),
-	[&out](clay::DTYPE& dtype)
+	for (auto it = types.begin() + 1, et = types.end();
+		it != et; it++)
 	{
-		return dtype == out;
-	}))
-	{
-		throw std::exception(); // todo: add context
+		if (*it != out)
+		{
+			throw TypeMismatchError(out, *it);
+		}
 	}
 	return out;
 }
@@ -281,7 +285,7 @@ static clay::Shape reduce_shape (std::vector<clay::State> states)
 {
 	if (states.empty())
 	{
-		throw std::exception(); // todo: add context
+		throw NoArgumentsError();
 	}
 	clay::Shape out;
 	if (states.size() > 1)
@@ -289,15 +293,24 @@ static clay::Shape reduce_shape (std::vector<clay::State> states)
 		clay::State& state = states[1];
 		if (1 != state.shape_.n_elems())
 		{
-			throw std::exception();
+			throw ShapeMismatchError(clay::Shape({1}), state.shape_);
 		}
 		uint64_t dim = *(safe_get<uint64_t>(state.data_));
 		clay::Shape& shape = states[0].shape_;
 		if (dim >= shape.rank())
 		{
-			throw std::exception();
+			throw InvalidDimensionError(dim, shape);
 		}
-		out = {shape[dim]};
+		std::vector<size_t> slist = shape.as_list();
+		if (1 == slist.size())
+		{
+			slist[0] = 1;
+		}
+		else
+		{
+			slist.erase(slist.begin() + dim);
+		}
+		out = slist;
 	}
 	else
 	{
@@ -310,11 +323,11 @@ static clay::DTYPE reduce_type (std::vector<clay::DTYPE> types)
 {
 	if (types.empty())
 	{
-		throw std::exception(); // todo: add context
+		throw NoArgumentsError();
 	}
 	if (types.size() > 1 && clay::UINT64 != types[1])
 	{
-		throw std::exception();
+		throw clay::UnsupportedTypeError(types[1]);
 	}
 	return types[0];
 }
@@ -323,7 +336,7 @@ static clay::Shape matmul_shape (std::vector<clay::State> states)
 {
 	if (states.size() != 2)
 	{
-		throw std::exception(); // todo: add context
+		throw BadNArgsError(2, states.size());
 	}
 	clay::Shape& t1s = states[0].shape_;
 	clay::Shape& t2s = states[1].shape_;
@@ -399,7 +412,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (states.size() != 2)
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(2, states.size());
 		}
 		return states[1].shape_;
 	},
@@ -407,7 +420,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (types.size() != 2)
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(2, types.size());
 		}
 		return types[0];
 	}}},
@@ -435,16 +448,16 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (types.size() != 2)
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(2, types.size());
 		}
 		if (types[0] == clay::DOUBLE ||
 			types[0] == clay::FLOAT)
 		{
-			throw std::exception(); // todo: add context
+			throw clay::UnsupportedTypeError(types[0]);
 		}
 		if (types[1] != clay::DOUBLE)
 		{
-			throw std::exception(); // todo: add context
+			throw clay::UnsupportedTypeError(types[1]);
 		}
 		return types[0];
 	}}},
@@ -454,12 +467,15 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (types.size() != 2)
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(2, types.size());
 		}
-		if ((types[0] != clay::DOUBLE && types[0] != clay::FLOAT) ||
-			types[0] != types[1])
+		if (types[0] != clay::DOUBLE && types[0] != clay::FLOAT)
 		{
-			throw std::exception(); // todo: add context
+			throw clay::UnsupportedTypeError(types[0]);
+		}
+		if (types[0] != types[1])
+		{
+			throw TypeMismatchError(types[0], types[1]);
 		}
 		return types[0];
 	}}},
@@ -468,7 +484,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (states.empty())
 		{
-			throw std::exception(); // todo: add context
+			throw NoArgumentsError();
 		}
 		clay::State state = states.front();
 		std::vector<size_t> outlist = state.shape_.as_list();
@@ -477,7 +493,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			clay::State& pstate = states[1];
 			if (pstate.dtype_ != clay::UINT64)
 			{
-				throw std::exception();
+				throw clay::UnsupportedTypeError(pstate.dtype_);
 			}
 			uint64_t* ptr = safe_get<uint64_t>(pstate.data_);
 			std::vector<size_t> perm(ptr, ptr + pstate.shape_.n_elems());
@@ -500,11 +516,11 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (types.empty())
 		{
-			throw std::exception(); // todo: add context
+			throw NoArgumentsError();
 		}
 		if (types.size() > 1 && types[1] != clay::UINT64)
 		{
-			throw std::exception(); // todo: add context
+			throw clay::UnsupportedTypeError(types[1]);
 		}
 		return types[0];
 	}}},
@@ -513,19 +529,19 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (2 != states.size())
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(2, states.size());
 		}
 		size_t rank = states[0].shape_.rank();
 		clay::State& dstate = states[1];
 		size_t ndims = dstate.shape_.n_elems();
 		uint64_t* dims = safe_get<uint64_t>(dstate.data_);
-		if (std::any_of(dims, dims + ndims,
-		[rank](uint64_t d)
+		for (size_t i = 0; i < ndims; ++i)
 		{
-			return d >= rank;
-		}))
-		{
-			throw std::exception();
+			if (dims[i] >= rank)
+			{
+				throw InvalidDimensionError(
+					dims[i], states[0].shape_);
+			}
 		}
 		return states.front().shape_;
 	},
@@ -533,11 +549,11 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (2 != types.size())
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(2, types.size());
 		}
 		if (types[1] != clay::UINT64)
 		{
-			throw std::exception(); // todo: add context
+			throw clay::UnsupportedTypeError(types[1]);
 		}
 		return types[0];
 	}}},
@@ -549,12 +565,19 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (3 != states.size())
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(3, states.size());
 		}
-		if (1 != states[1].shape_.n_elems() ||
-			1 != states[2].shape_.n_elems())
+		if (1 != states[1].shape_.n_elems())
 		{
-			throw std::exception(); // todo: add context
+			throw ShapeMismatchError(
+				clay::Shape({1}),
+				states[1].shape_);
+		}
+		if (1 != states[2].shape_.n_elems())
+		{
+			throw ShapeMismatchError(
+				clay::Shape({1}),
+				states[2].shape_);
 		}
 		clay::State& nstate = states[1];
 		clay::State& dstate = states[2];
@@ -563,7 +586,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 		std::vector<size_t> slist = states[0].shape_.as_list();
 		if (slist.size() < dim)
 		{
-			throw std::exception();
+			throw InvalidDimensionError(dim, states[0].shape_);
 		}
 		slist.insert(slist.begin() + dim, mul);
 		return clay::Shape(slist);
@@ -572,12 +595,15 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (3 != types.size())
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(3, types.size());
 		}
-		if (types[1] != clay::UINT64 ||
-			types[2] != clay::UINT64)
+		if (types[1] != clay::UINT64)
 		{
-			throw std::exception(); // todo: add context
+			throw clay::UnsupportedTypeError(types[1]);
+		}
+		if (types[2] != clay::UINT64)
+		{
+			throw clay::UnsupportedTypeError(types[2]);
 		}
 		return types[0];
 	}}},
@@ -586,7 +612,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (states.empty())
 		{
-			throw std::exception(); // todo: add context
+			throw NoArgumentsError();
 		}
 		return clay::Shape(std::vector<size_t>{1});
 	},
@@ -594,7 +620,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (types.empty())
 		{
-			throw std::exception(); // todo: add context
+			throw NoArgumentsError();
 		}
 		return clay::UINT64;
 	}}},
@@ -603,17 +629,19 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (2 != states.size())
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(2, states.size());
 		}
 		clay::State& dstate = states[1];
 		if (1 != dstate.shape_.n_elems())
 		{
-			throw std::exception(); // todo: add context
+			throw ShapeMismatchError(
+				clay::Shape({1}),
+				dstate.shape_);
 		}
 		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
 		if (dim >= states[0].shape_.rank())
 		{
-			throw std::exception();
+			throw InvalidDimensionError(dim, states[0].shape_);
 		}
 		return clay::Shape(std::vector<size_t>{1});
 	},
@@ -621,7 +649,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 	{
 		if (2 != types.size())
 		{
-			throw std::exception(); // todo: add context
+			throw BadNArgsError(2, types.size());
 		}
 		return clay::UINT64;
 	}}},
@@ -638,7 +666,7 @@ mold::iOperatePtrT get_op (OPCODE opcode)
 	auto it = registry.find(opcode);
 	if (registry.end() == it)
 	{
-		throw std::exception();
+		throw UnsupportedOpcodeError(opcode);
 	}
 	return mold::iOperatePtrT(new OperateIO(opcode,
 		it->second.shaper_, it->second.typer_));

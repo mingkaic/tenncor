@@ -5,6 +5,7 @@
 
 #include "wire/graph.hpp"
 #include "wire/identifier.hpp"
+#include "wire/error.hpp"
 
 #ifdef WIRE_GRAPH_HPP
 
@@ -85,7 +86,7 @@ std::string Graph::associate (Identifier* ider)
 	std::string id = puid(ider);
 	if (false == adjmap_.put(id, ider))
 	{
-		throw std::exception(); // todo: add context
+		throw DuplicateNodeIDError(gid_, id);
 	}
 	return id;
 }
@@ -94,13 +95,13 @@ void Graph::disassociate (std::string id)
 {
 	if (false == adjmap_.remove(id))
 	{
-		throw std::exception(); // todo: add context
+		throw MissingNodeError(gid_, id);
 	}
 }
 
 void Graph::unsafe_init (Identifier* id, clay::iBuilder& builder)
 {
-	mold::Variable* var = static_cast<mold::Variable*>(id->arg_.get());
+	mold::Variable* var = static_cast<mold::Variable*>(id->args_[0]);
 	clay::Shape allowed;
 	auto it = alloweds_.find(id->get_uid());
 	if (alloweds_.end() != it)

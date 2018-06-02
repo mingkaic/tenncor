@@ -20,90 +20,92 @@ Identifier* Constant::derive (Identifier* wrt)
 {
 	if (wrt == this)
 	{
-		throw std::exception(); // todo: add context (logical error)
+		throw std::logic_error("deriving with respect to a constant");
 	}
-	return make_zero(arg_->get_state().dtype_);
+	clay::State state = args_[0]->get_state();
+	return make_zero(state.shape_, state.dtype_);
 }
 
 //! creates a zero scalar
-Constant* make_zero (clay::DTYPE dtype)
+Constant* make_zero (clay::Shape shape, clay::DTYPE dtype)
 {
-	unsigned short bsize = clay::type_size(dtype);
-	std::shared_ptr<char> out = clay::make_char(bsize);
-	memset(out.get(), 0, bsize);
-	return new Constant(out, clay::Shape(std::vector<size_t>{1}), dtype, "0");
+	size_t nbytes = clay::type_size(dtype) * shape.n_elems();
+	std::shared_ptr<char> out = clay::make_char(nbytes);
+	memset(out.get(), 0, nbytes);
+	return new Constant(out, shape, dtype, "0");
 }
 
 //! creates a one scalar
-Constant* make_one (clay::DTYPE dtype)
+Constant* make_one (clay::Shape shape, clay::DTYPE dtype)
 {
-	unsigned short bsize = clay::type_size(dtype);
-	std::shared_ptr<char> ptr = clay::make_char(bsize);
+	size_t n = shape.n_elems();
+	size_t nbytes = clay::type_size(dtype) * n;
+	std::shared_ptr<char> ptr = clay::make_char(nbytes);
 	switch (dtype)
 	{
 		case clay::DTYPE::DOUBLE:
 		{
-			double d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			double* dptr = (double*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::FLOAT:
 		{
-			float d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			float* dptr = (float*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::INT8:
 		{
-			int8_t d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			int8_t* dptr = (int8_t*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::UINT8:
 		{
-			uint8_t d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			uint8_t* dptr = (uint8_t*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::INT16:
 		{
-			int16_t d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			int16_t* dptr = (int16_t*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::UINT16:
 		{
-			uint16_t d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			uint16_t* dptr = (uint16_t*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::INT32:
 		{
-			int32_t d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			int32_t* dptr = (int32_t*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::UINT32:
 		{
-			uint32_t d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			uint32_t* dptr = (uint32_t*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::INT64:
 		{
-			int64_t d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			int64_t* dptr = (int64_t*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		break;
 		case clay::DTYPE::UINT64:
 		{
-			uint64_t d = 1;
-			std::memcpy(ptr.get(), &d, bsize);
+			uint64_t* dptr = (uint64_t*) ptr.get();
+			std::fill(dptr, dptr + n, 1);
 		}
 		default:
 		break;
 	}
-	return new Constant(ptr, clay::Shape({1}), dtype, "1");
+	return new Constant(ptr, shape, dtype, "1");
 }
 
 }

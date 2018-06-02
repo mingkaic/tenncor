@@ -3,9 +3,9 @@
 //  lead
 //
 
-#include "clay/memory.hpp"
-
 #include "lead/clay_packer.hpp"
+
+#include "clay/memory.hpp"
 
 #ifdef LEAD_CLAY_PACKER_HPP
 

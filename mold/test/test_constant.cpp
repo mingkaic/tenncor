@@ -7,6 +7,7 @@
 #include "fuzzutil/check.hpp"
 
 #include "clay/dtype.hpp"
+#include "clay/error.hpp"
 #include "mold/constant.hpp"
 
 
@@ -28,9 +29,10 @@ TEST_F(CONSTANT, Bad_B000)
 	size_t nbytes = clay::type_size(dtype) * shape.n_elems();
 	std::shared_ptr<char> ptr = clay::make_char(nbytes);
 
-	EXPECT_THROW(mold::Constant(nullptr, shape, dtype), std::exception);
-	EXPECT_THROW(mold::Constant(ptr, part, dtype), std::exception);
-	EXPECT_THROW(mold::Constant(ptr, shape, clay::DTYPE::BAD), std::exception);
+	EXPECT_THROW(mold::Constant(nullptr, shape, dtype), clay::NilDataError);
+	EXPECT_THROW(mold::Constant(ptr, part, dtype), clay::InvalidShapeError);
+	EXPECT_THROW(mold::Constant(ptr, shape, clay::DTYPE::BAD),
+		clay::UnsupportedTypeError);
 }
 
 

@@ -46,7 +46,7 @@ public:
 	Placeholder& operator = (std::vector<T> data)
 	{
 		size_t n = data.size();
-		mold::Variable* arg = static_cast<mold::Variable*>(arg_.get());
+		mold::Variable* arg = static_cast<mold::Variable*>(args_[0]);
 		if (false == arg->has_data())
 		{
 			clay::DTYPE dtype = clay::get_type<T>();

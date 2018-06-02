@@ -50,7 +50,8 @@ F004 - derive returns 1 in variable type if wrt is var else return 0,
 // OPERATOR BEHAVIOR
 G000 - multiple operators on the same array of arguments will use the same instance
 G001 - any nullptr argument returns a nullptr
-G002 - any derivative with respect to itself returns 1 constant of input type
+G002 - derive before initialization throws error
+G003 - any derivative with respect to itself returns 1 constant of input type
 
 G100 - abs returns absolute of input
 		derivative of immediate argument is abs(1)

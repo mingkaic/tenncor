@@ -6,6 +6,8 @@
 #include "mold/constant.hpp"
 #include "mold/functor.hpp"
 
+#include "clay/error.hpp"
+
 #ifdef MOLD_CONSTANT_HPP
 
 namespace mold
@@ -15,11 +17,17 @@ Constant::Constant (std::shared_ptr<char> data,
 	clay::Shape shape, clay::DTYPE type) :
 state_(data, shape, type), data_(data)
 {
-	if (nullptr == data ||
-		false == shape.is_fully_defined() ||
-		clay::DTYPE::BAD == type)
+	if (nullptr == data)
 	{
-		throw std::exception(); // todo: add context
+		throw clay::NilDataError();
+	}
+	if (false == shape.is_fully_defined())
+	{
+		throw clay::InvalidShapeError(shape);
+	}
+	if (clay::BAD == type)
+	{
+		throw clay::UnsupportedTypeError(type);
 	}
 }
 

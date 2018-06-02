@@ -12,6 +12,8 @@
  *
  */
 
+#include "mold/iobserver.hpp"
+
 #include "wire/graph.hpp"
 
 #pragma once
@@ -22,7 +24,7 @@ namespace wire
 {
 
 //! wraps iNode and supplies = data
-class Identifier
+class Identifier : protected mold::iObserver
 {
 public:
 	virtual ~Identifier (void);
@@ -41,26 +43,22 @@ public:
 
 	std::string get_name (void) const;
 
-	bool has_data (void) const
-	{
-		return arg_->has_data();
-	}
+	bool has_data (void) const;
 
-	clay::State get_state (void) const
-	{
-		return arg_->get_state();
-	}
+	clay::State get_state (void) const;
 
 	virtual Identifier* derive (Identifier* wrt) = 0;
 
 protected:
 	friend class Functor;
 
+	void initialize (void) override {}
+
+	void update (void) override {}
+
 	Identifier (Graph* graph, mold::iNode* arg, std::string label);
 
 	Graph* graph_;
-
-	std::unique_ptr<mold::iNode> arg_;
 
 private:
 	friend class Graph;

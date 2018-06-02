@@ -4,8 +4,9 @@
 //
 
 #include "clay/tensor.hpp"
+#include "clay/error.hpp"
 
-#ifdef CLAY_CLAY_HPP
+#ifdef CLAY_TENSOR_HPP
 
 namespace clay
 {
@@ -15,15 +16,15 @@ Tensor::Tensor (std::shared_ptr<char> data, Shape shape, DTYPE dtype) :
 {
 	if (nullptr == data)
 	{
-		throw std::exception(); // todo: add context
+		throw NilDataError();
 	}
 	if (false == shape.is_fully_defined())
 	{
-		throw std::exception(); // todo: add context
+		throw InvalidShapeError(shape);
 	}
 	if (DTYPE::BAD == dtype)
 	{
-		throw std::exception(); // todo: add context
+		throw UnsupportedTypeError(dtype);
 	}
 }
 
