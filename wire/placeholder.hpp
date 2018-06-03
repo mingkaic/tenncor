@@ -12,7 +12,10 @@
  */
 
 #include "ioutil/stream.hpp"
+
 #include "mold/variable.hpp"
+
+#include "slip/error.hpp"
 
 #include "wire/identifier.hpp"
 
@@ -68,13 +71,18 @@ public:
 				arg->initialize(builder);
 			}
 		}
-		// assert(state.shape_.is_fully_defined());
 		clay::State state = arg->get_state();
+		assert(state.shape_.is_fully_defined());
 		if (n > state.shape_.n_elems())
 		{
 			throw std::logic_error(ioutil::Stream() << "data with "
 				<< n << " elements cannot be assigned to allcoated tensor with "
 				<< state.shape_.n_elems() << " elements");
+		}
+		clay::DTYPE dtype = clay::get_type<T>();
+		if (dtype != state.dtype_)
+		{
+			throw slip::TypeMismatchError(state.dtype_, dtype);
 		}
 		std::string s((char*) &data[0], n * sizeof(T));
 		AssignIO assign(s, state.shape_, state.dtype_);

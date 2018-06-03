@@ -8,6 +8,8 @@
 
 #include "mold/error.hpp"
 
+#include "slip/error.hpp"
+
 #include "wire/placeholder.hpp"
 
 
@@ -350,8 +352,7 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 	{
 		badbsize = clay::type_size(clay::DTYPE::DOUBLE);
 	}
-	size_t typebytes = n * badbsize;
-	std::string badtype = get_string(typebytes, "badtype");
+	std::string badtype = get_string(n * badbsize, "badtype");
 
 	if (doub)
 	{
@@ -378,8 +379,8 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 		EXPECT_THROW(place = badvec, std::logic_error);
 
 		uint16_t* typeptr = (uint16_t*) badtype.c_str();
-		std::vector<uint16_t> typevec(typeptr, typeptr + typebytes);
-		EXPECT_THROW(place = typevec, std::logic_error);
+		std::vector<uint16_t> typevec(typeptr, typeptr + n);
+		EXPECT_THROW(place = typevec, slip::TypeMismatchError);
 	}
 	else
 	{
@@ -406,8 +407,8 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 		EXPECT_THROW(place = badvec, std::logic_error);
 
 		double* typeptr = (double*) badtype.c_str();
-		std::vector<double> typevec(typeptr, typeptr + typebytes);
-		EXPECT_THROW(place = typevec, std::logic_error);
+		std::vector<double> typevec(typeptr, typeptr + n);
+		EXPECT_THROW(place = typevec, slip::TypeMismatchError);
 	}
 }
 
