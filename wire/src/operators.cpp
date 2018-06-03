@@ -292,8 +292,7 @@ Identifier* pow (Identifier* b, Identifier* x)
 		auto f = args.front();
 		auto g = args.back();
 		assert(g->has_data());
-		clay::Shape scalar({1});
-		Identifier* one = make_one(scalar, g->get_state().dtype_);
+		Identifier* one = div(g, g);
 		auto lhs = pow(f, sub(g, one));
 		auto rhs = add(mul(f->derive(wrt), g), mul(g->derive(wrt), mul(f, log(f))));
 		return mul(lhs, rhs);

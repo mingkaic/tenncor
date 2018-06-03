@@ -223,8 +223,6 @@ static void unarElemTest (fuzz_test* fuzzer, slip::OPCODE opcode, VARFUNC op,
 		EXPECT_EQ(expect(inptr[i]), outptr[i]);
 		EXPECT_EQ(grad(inptr[i]), backptr[i]);
 	}
-	std::cout << leaf.get_name() << std::endl;
-	std::cout << wire::Graph::get_global().size() << std::endl;
 }
 
 

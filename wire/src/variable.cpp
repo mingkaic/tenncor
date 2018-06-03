@@ -50,12 +50,10 @@ Identifier* Variable::derive (Identifier* wrt)
 	clay::State state = get()->get_state();
 	if (this == wrt)
 	{
-		// out = make_one(state.shape_, state.dtype_);
 		out = div(this, this);
 	}
 	else
 	{
-		// out = make_zero(state.shape_, state.dtype_);
 		out = sub(this, this);
 	}
 	return out;

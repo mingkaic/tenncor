@@ -121,7 +121,7 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 		}
 		break;
 		default:
-			throw std::exception(); // todo: add context
+			throw clay::UnsupportedTypeError(dtype);
 	}
 	return out;
 }
@@ -220,7 +220,7 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 		}
 		break;
 		default:
-			throw std::exception(); // todo: add context
+			throw clay::UnsupportedTypeError(dtype);
 	}
 }
 

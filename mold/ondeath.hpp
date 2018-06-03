@@ -25,38 +25,21 @@ using TermF = std::function<void(void)>;
 
 struct OnDeath final : public iObserver
 {
-	OnDeath (iNode* arg, TermF term) :
-		iObserver({arg}), terminate_(term) {}
+	OnDeath (iNode* arg, TermF term);
 
-	virtual ~OnDeath (void)
-	{
-		terminate_();
-	}
+	virtual ~OnDeath (void);
 
-	OnDeath (const OnDeath& other, TermF term) :
-		iObserver(other), terminate_(term) {}
+	OnDeath (const OnDeath& other, TermF term);
 
-	OnDeath (OnDeath&& other, TermF term) :
-		iObserver(std::move(other)), terminate_(std::move(term)) {}
+	OnDeath (OnDeath&& other, TermF term);
 
-	iNode* get (void) const
-	{
-		iNode* out = nullptr;
-		if (false == this->args_.empty())
-		{
-			out = this->args_[0];
-		}
-		return out;
-	}
+	iNode* get (void) const;
 
-	void initialize (void) override {}
+	void initialize (void) override;
 
-	void update (void) override {}
+	void update (void) override;
 
-    void clear_term (void)
-    {
-        terminate_ = [](){};
-    }
+    void clear_term (void);
 
 private:
 	TermF terminate_;

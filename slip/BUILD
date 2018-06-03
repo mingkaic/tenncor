@@ -35,7 +35,7 @@ cc_library(
 
 cc_test(
     name = "test",
-    size = "small",
+    size = "medium",
     srcs = glob([ "test/*.cpp" ]),
     deps = [
         "//slip:slip",

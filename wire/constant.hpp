@@ -73,12 +73,6 @@ struct Constant final : public Identifier
 	Identifier* derive (Identifier* wrt) override;
 };
 
-//! creates a zero scalar
-Constant* make_zero (clay::Shape shape, clay::DTYPE dtype);
-
-//! creates a one scalar
-Constant* make_one (clay::Shape shape, clay::DTYPE dtype);
-
 }
 
 #endif /* WIRE_CONSTANT_HPP */

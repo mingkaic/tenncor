@@ -11,6 +11,8 @@
  *
  */
 
+#include "clay/error.hpp"
+
 #include "kiln/builder.hpp"
 
 #pragma once
@@ -36,7 +38,7 @@ public:
 		dtype_ = clay::get_type<T>();
 		if (dtype_ == clay::DTYPE::BAD)
 		{
-			throw std::exception(); // setting bad type
+			throw clay::UnsupportedTypeError(dtype_);
 		}
 		data_ = std::string((char*) &value, sizeof(T));
 	}
@@ -47,7 +49,7 @@ public:
 		dtype_ = clay::get_type<T>();
 		if (dtype_ == clay::DTYPE::BAD)
 		{
-			throw std::exception(); // setting bad type
+			throw clay::UnsupportedTypeError(dtype_);
 		}
 		data_ = std::string((char*) &value[0], sizeof(T) * value.size());
 	}

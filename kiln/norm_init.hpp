@@ -11,6 +11,8 @@
  *
  */
 
+#include "clay/error.hpp"
+
 #include "kiln/builder.hpp"
 
 #pragma once
@@ -35,7 +37,7 @@ struct NormInit final : public Builder
 		dtype_ = clay::get_type<T>();
 		if (dtype_ == clay::DTYPE::BAD)
 		{
-			throw std::exception(); // setting bad type
+			throw clay::UnsupportedTypeError(dtype_);
 		}
 		mean_ = std::string((char*) &mean, sizeof(T));
 		stdev_ = std::string((char*) &stdev, sizeof(T));

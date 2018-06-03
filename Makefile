@@ -6,7 +6,7 @@ GTEST_FLAGS := --action_env="GTEST_SHUFFLE=1" --action_env="GTEST_BREAK_ON_FAILU
 
 REP_BZL_FLAG := --action_env="GTEST_REPEAT=$(GTEST_REPEAT)"
 
-VALCHECK_BZL_FLAG := --run_under="valgrind"
+VALCHECK_BZL_FLAG := --run_under="valgrind --leak-check=full"
 
 BUILD := bazel build
 
@@ -47,10 +47,8 @@ COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 # proto_build:
 # 	$(RUN) //tests/py:protogen -- $(shell pwd)/tests/unit/samples
 
-test: unittest regression
-
 # unit test
-unittest: test_clay test_mold test_slip test_kiln test_wire
+test: test_clay test_mold test_slip test_kiln test_wire
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test

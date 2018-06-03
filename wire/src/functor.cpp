@@ -62,8 +62,6 @@ Identifier* Functor::derive (Identifier* wrt)
 	Identifier* out;
 	if (this == wrt)
 	{
-		// clay::State state = get()->get_state();
-		// out = make_one(state.shape_, state.dtype_);
 		out = div(this, this);
 	}
 	else

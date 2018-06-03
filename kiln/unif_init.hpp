@@ -11,6 +11,8 @@
  *
  */
 
+#include "clay/error.hpp"
+
 #include "kiln/builder.hpp"
 
 #pragma once
@@ -35,7 +37,7 @@ struct UnifInit final : public Builder
 		dtype_ = clay::get_type<T>();
 		if (dtype_ == clay::DTYPE::BAD)
 		{
-			throw std::exception(); // setting bad type
+			throw clay::UnsupportedTypeError(dtype_);
 		}
 		min_ = std::string((char*) &min, sizeof(T));
 		max_ = std::string((char*) &max, sizeof(T));

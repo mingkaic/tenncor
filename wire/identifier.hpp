@@ -59,12 +59,18 @@ protected:
 		return death_sink_->get();
 	}
 
-	Graph* graph_;
+	Graph* graph_ = nullptr;
 
 	mold::OnDeath* death_sink_ = nullptr;
 
 private:
 	friend class Graph;
+
+	void copy_helper (const Identifier& other);
+
+	void move_helper (Identifier&& other);
+
+	void clear (void);
 
 	std::string label_;
 
