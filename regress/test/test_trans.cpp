@@ -1,6 +1,6 @@
 #ifndef DISABLE_TF_TRANS_TESTS
 
-#include "regress_util/tf_verify.hpp"
+#include "regressutil/tf_verify.hpp"
 
 #include "wire/variable.hpp"
 #include "wire/operators.hpp"

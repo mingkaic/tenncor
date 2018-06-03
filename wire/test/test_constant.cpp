@@ -261,7 +261,6 @@ TEST_F(CONSTANT, Derive_E001)
 	wire::Constant* c2 = wire::Constant::get(1);
 	EXPECT_THROW(c.derive(&c), std::logic_error);
 	wire::Identifier* zaro = c.derive(c2);
-	ASSERT_NE(nullptr, dynamic_cast<wire::Constant*>(zaro));
 	clay::State z = zaro->get_state();
 	EXPECT_EQ(dtype, z.dtype_);
 	std::vector<size_t> wun{1};

@@ -2,8 +2,8 @@
 #include <vector>
 #include <string>
 
-#include "regress_util/tf_verify.hpp"
-#include "regress_util/tf_reader.hpp"
+#include "regressutil/tf_verify.hpp"
+#include "regressutil/tf_reader.hpp"
 
 #include "ioutil/stream.hpp"
 

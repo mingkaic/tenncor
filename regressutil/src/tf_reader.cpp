@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "regress_util/tf_reader.hpp"
+#include "regressutil/tf_reader.hpp"
 
 #include "kiln/const_init.hpp"
 

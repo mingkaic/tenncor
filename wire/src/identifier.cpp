@@ -13,9 +13,15 @@ namespace wire
 {
 
 Identifier::Identifier (Graph* graph, mold::iNode* arg, std::string label) :
-	mold::iObserver({arg}), graph_(graph), label_(label)
+	graph_(graph), label_(label)
 {
 	assert(nullptr != arg && nullptr != graph_);
+	death_sink_ = new mold::OnDeath(arg,
+	[this]()
+	{
+		this->death_sink_ = nullptr;
+		delete this;
+	});
 	uid_ = graph_->associate(this);
 }
 
@@ -25,29 +31,56 @@ Identifier::~Identifier (void)
 	{
 		graph_->disassociate(uid_);
 	}
+	if (death_sink_ != nullptr)
+	{
+		mold::iNode* node = get();
+		death_sink_->clear_term();
+		delete node;
+	}
 }
 
 Identifier::Identifier (const Identifier& other) :
-	mold::iObserver({other.args_[0]->clone()}), graph_(other.graph_),
-	label_(other.label_), uid_(graph_->associate(this)) {}
+	graph_(other.graph_), label_(other.label_),
+	uid_(graph_->associate(this))
+{
+	death_sink_ = new mold::OnDeath(
+		other.get()->clone(),
+		[this]()
+		{
+			this->death_sink_ = nullptr;
+			delete this;
+		});
+}
 
 Identifier::Identifier (Identifier&& other) :
-	mold::iObserver(std::move(other)), graph_(std::move(other.graph_)),
-	label_(std::move(other.label_)), uid_(graph_->associate(this))
+	graph_(std::move(other.graph_)), label_(std::move(other.label_)),
+	uid_(graph_->associate(this))
 {
 	graph_->disassociate(other.uid_);
 	other.graph_ = nullptr;
+
+	death_sink_ = new mold::OnDeath(
+		std::move(*other.death_sink_),
+		[this]()
+		{
+			this->death_sink_ = nullptr;
+			delete this;
+		});
 }
 
 Identifier& Identifier::operator = (const Identifier& other)
 {
 	if (this != &other)
 	{
-		for (mold::iNode* arg : args_)
-		{
-			arg->del(this);
-		}
-		args_ = {other.args_[0]->clone()};
+		death_sink_->clear_term();
+		delete death_sink_;
+		death_sink_ = new mold::OnDeath(
+			other.get()->clone(),
+			[this]()
+			{
+				this->death_sink_ = nullptr;
+				delete this;
+			});
 		graph_->disassociate(uid_);
 
 		graph_ = other.graph_;
@@ -61,7 +94,15 @@ Identifier& Identifier::operator = (Identifier&& other)
 {
 	if (this != &other)
 	{
-		iObserver::operator = (std::move(other));
+		death_sink_->clear_term();
+		delete death_sink_;
+		death_sink_ = new mold::OnDeath(
+			std::move(*other.death_sink_),
+			[this]()
+			{
+				this->death_sink_ = nullptr;
+				delete this;
+			});
 		graph_->disassociate(uid_);
 
 		graph_ = std::move(other.graph_);
@@ -90,12 +131,12 @@ std::string Identifier::get_name (void) const
 
 bool Identifier::has_data (void) const
 {
-	return args_[0]->has_data();
+	return get()->has_data();
 }
 
 clay::State Identifier::get_state (void) const
 {
-	return args_[0]->get_state();
+	return get()->get_state();
 }
 
 }

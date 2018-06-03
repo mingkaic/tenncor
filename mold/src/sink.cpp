@@ -4,48 +4,11 @@
 //
 
 #include "mold/sink.hpp"
-#include "mold/iobserver.hpp"
 
 #ifdef MOLD_SINK_HPP
 
 namespace mold
 {
-
-using TermF = std::function<void(void)>;
-
-struct Sink::OnDeath final : public iObserver
-{
-	OnDeath (iNode* arg, TermF term) :
-		iObserver({arg}), terminate_(term) {}
-
-	virtual ~OnDeath (void)
-	{
-		terminate_();
-	}
-
-	OnDeath (const OnDeath& other, TermF term) :
-		iObserver(other), terminate_(term) {}
-
-	OnDeath (OnDeath&& other, TermF term) :
-		iObserver(std::move(other)), terminate_(std::move(term)) {}
-
-	iNode* get (void) const
-	{
-		iNode* out = nullptr;
-		if (false == this->args_.empty())
-		{
-			out = this->args_[0];
-		}
-		return out;
-	}
-
-	void initialize (void) override {}
-
-	void update (void) override {}
-
-private:
-	TermF terminate_;
-};
 
 Sink::Sink (iNode* arg) : death_sink_(new OnDeath(arg,
 	[this]()

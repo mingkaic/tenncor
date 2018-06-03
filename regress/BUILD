@@ -21,7 +21,7 @@ cc_test(
     size = "enormous",
     srcs = glob([ "test/*.cpp" ]),
     data = glob([ "samples/**" ]),
-    deps = [ "//regress_util:regress_util" ],
+    deps = [ "//:regressutil" ],
     linkstatic = 1,
     copts = [ "-std=c++14" ],
 )

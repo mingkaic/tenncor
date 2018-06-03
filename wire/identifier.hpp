@@ -12,7 +12,7 @@
  *
  */
 
-#include "mold/iobserver.hpp"
+#include "mold/ondeath.hpp"
 
 #include "wire/graph.hpp"
 
@@ -24,7 +24,7 @@ namespace wire
 {
 
 //! wraps iNode and supplies = data
-class Identifier : protected mold::iObserver
+class Identifier
 {
 public:
 	virtual ~Identifier (void);
@@ -52,13 +52,16 @@ public:
 protected:
 	friend class Functor;
 
-	void initialize (void) override {}
-
-	void update (void) override {}
-
 	Identifier (Graph* graph, mold::iNode* arg, std::string label);
 
+	mold::iNode* get (void) const
+	{
+		return death_sink_->get();
+	}
+
 	Graph* graph_;
+
+	mold::OnDeath* death_sink_ = nullptr;
 
 private:
 	friend class Graph;

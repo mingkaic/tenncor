@@ -41,9 +41,9 @@ struct mock_identifier : public wire::Identifier
 	mold::iNode* get_node (void) const
 	{
 		mold::iNode* out = nullptr;
-		if (args_.size() > 0)
+		if (nullptr != death_sink_)
 		{
-			out = args_[0];
+			out = get();
 		}
 		return out;
 	}

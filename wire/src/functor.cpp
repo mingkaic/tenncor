@@ -6,7 +6,8 @@
 #include <algorithm>
 
 #include "wire/functor.hpp"
-#include "wire/constant.hpp"
+// #include "wire/constant.hpp"
+#include "wire/operators.hpp"
 #include "wire/error.hpp"
 
 #ifdef WIRE_FUNCTOR_HPP
@@ -54,15 +55,16 @@ Functor::~Functor (void)
 
 Identifier* Functor::derive (Identifier* wrt)
 {
-	if (false == args_[0]->has_data())
+	if (false == get()->has_data())
 	{
 		throw mold::UninitializedError();
 	}
 	Identifier* out;
 	if (this == wrt)
 	{
-		clay::State state = args_[0]->get_state();
-		out = make_one(state.shape_, state.dtype_);
+		// clay::State state = get()->get_state();
+		// out = make_one(state.shape_, state.dtype_);
+		out = div(this, this);
 	}
 	else
 	{
@@ -83,7 +85,7 @@ std::vector<mold::iNode*> Functor::to_nodes (std::vector<Identifier*> ids)
 	std::transform(ids.begin(), ids.end(), out.begin(),
 	[](Identifier * id) -> mold::iNode*
 	{
-		return id->args_[0];
+		return id->get();
 	});
 	return out;
 }

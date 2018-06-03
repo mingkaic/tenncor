@@ -23,7 +23,7 @@
 namespace wire
 {
 
-class Placeholder : public Identifier
+class Placeholder final : public Identifier
 {
 public:
 	Placeholder (std::string label,
@@ -46,7 +46,7 @@ public:
 	Placeholder& operator = (std::vector<T> data)
 	{
 		size_t n = data.size();
-		mold::Variable* arg = static_cast<mold::Variable*>(args_[0]);
+		mold::Variable* arg = static_cast<mold::Variable*>(get());
 		if (false == arg->has_data())
 		{
 			clay::DTYPE dtype = clay::get_type<T>();

@@ -82,6 +82,9 @@ valg_slip:
 valg_kiln:
 	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //kiln:test
 
+valg_wire:
+	$(GTEST) $(VALCHECK_BZL_FLAG) --action_env="GTEST_REPEAT=5" //wire:test
+
 # asan unit tests
 
 # coverage unit tests
@@ -99,6 +102,10 @@ cover_slip:
 cover_kiln:
 	$(COVER) $(REP_BZL_FLAG) //kiln:test --instrumentation_filter=/kiln[/:]
 
+cover_wire:
+	$(COVER) $(REP_BZL_FLAG) //wire:test --instrumentation_filter=/wire[/:]
+
+# regression testing
 regression:
 	$(GTEST) //regress:test
 

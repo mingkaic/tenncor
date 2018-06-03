@@ -24,7 +24,7 @@
 namespace wire
 {
 
-struct Variable : public Identifier
+struct Variable final : public Identifier
 {
 	Variable (const clay::iBuilder& builder, std::string label,
 		Graph& graph = Graph::get_global());

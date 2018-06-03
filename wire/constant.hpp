@@ -30,7 +30,7 @@
 namespace wire
 {
 
-struct Constant : public Identifier
+struct Constant final : public Identifier
 {
 	template <typename T>
 	static Constant* get (T scalar, Graph& graph = Graph::get_global())

@@ -101,7 +101,7 @@ void Graph::disassociate (std::string id)
 
 void Graph::unsafe_init (Identifier* id, clay::iBuilder& builder)
 {
-	mold::Variable* var = static_cast<mold::Variable*>(id->args_[0]);
+	mold::Variable* var = static_cast<mold::Variable*>(id->get());
 	clay::Shape allowed;
 	auto it = alloweds_.find(id->get_uid());
 	if (alloweds_.end() != it)

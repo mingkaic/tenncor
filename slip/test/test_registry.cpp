@@ -110,7 +110,9 @@ static void unaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	dim_op->set_args({in, clay::State(dim_data, wun, clay::UINT64)});
 
 	mold::ImmPair dim_imms = dim_op->get_imms();
-	clay::Shape dshape = std::vector<size_t>{shape[dim]};
+	std::vector<size_t> slist = shape.as_list();
+	slist.erase(slist.begin() + dim);
+	clay::Shape dshape = slist;
 	ASSERT_SHAPEQ(dshape, dim_imms.first);
 	ASSERT_EQ(clay::DOUBLE, dim_imms.second);
 

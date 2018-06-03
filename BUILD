@@ -10,7 +10,10 @@ package(
 
 filegroup(
     name = "srcs",
-    srcs = [
+    srcs = glob([
+        "*util/*.hpp",
+        "*util/**/*.cpp",
+    ]) + [
         "BUILD",
         "//tensor:srcs",
         "//:tenncor_hpp",
@@ -28,6 +31,8 @@ filegroup(
         "//kiln:srcs",
         "//wire:srcs",
         "//lead:srcs",
+
+        "//regress:srcs",
     ],
 )
 
@@ -121,6 +126,19 @@ cc_library(
     ],
     copts = ["-std=c++14"],
     testonly = True,
+)
+
+cc_library(
+    name = "regressutil",
+    hdrs = glob([ "regressutil/*.hpp" ]),
+    srcs = glob([ "regressutil/src/*.cpp" ]),
+    copts = [ "-std=c++14" ],
+    deps = [
+        "//:ioutil",
+        "//wire:wire",
+        "//kiln:kiln",
+        "@com_google_googletest//:gtest",
+    ],
 )
 
 # cc_library(

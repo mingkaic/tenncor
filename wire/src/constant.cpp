@@ -6,6 +6,7 @@
 #include <cassert>
 
 #include "wire/constant.hpp"
+#include "wire/operators.hpp"
 
 #ifdef WIRE_CONSTANT_HPP
 
@@ -22,8 +23,9 @@ Identifier* Constant::derive (Identifier* wrt)
 	{
 		throw std::logic_error("deriving with respect to a constant");
 	}
-	clay::State state = args_[0]->get_state();
-	return make_zero(state.shape_, state.dtype_);
+	// clay::State state = get()->get_state();
+	// return make_zero(state.shape_, state.dtype_);
+	return sub(this, this);
 }
 
 //! creates a zero scalar

@@ -6,7 +6,8 @@
 #include <cassert>
 
 #include "wire/variable.hpp"
-#include "wire/constant.hpp"
+// #include "wire/constant.hpp"
+#include "wire/operators.hpp"
 
 #ifdef WIRE_VARIABLE_HPP
 
@@ -41,19 +42,21 @@ Variable::~Variable (void)
 
 Identifier* Variable::derive (Identifier* wrt)
 {
-	if (false == args_[0]->has_data())
+	if (false == get()->has_data())
 	{
 		throw mold::UninitializedError();
 	}
 	Identifier* out;
-	clay::State state = args_[0]->get_state();
+	clay::State state = get()->get_state();
 	if (this == wrt)
 	{
-		out = make_one(state.shape_, state.dtype_);
+		// out = make_one(state.shape_, state.dtype_);
+		out = div(this, this);
 	}
 	else
 	{
-		out = make_zero(state.shape_, state.dtype_);
+		// out = make_zero(state.shape_, state.dtype_);
+		out = sub(this, this);
 	}
 	return out;
 }

@@ -60,6 +60,16 @@ public:
 		return adjmap_.size();
 	}
 
+	list_it<Identifier*> begin (void)
+	{
+		return adjmap_.begin();
+	}
+
+	list_it<Identifier*> end (void)
+	{
+		return adjmap_.end();
+	}
+
 	bool has_node (std::string id) const;
 
 	Identifier* get_node (std::string id) const;

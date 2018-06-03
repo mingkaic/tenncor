@@ -753,8 +753,9 @@ Identifier* n_elems (Identifier* a)
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		Identifier* a = args.front();
-		clay::State state = a->get_state();
-		return make_zero(state.shape_, state.dtype_);
+		// clay::State state = a->get_state();
+		// return make_zero(state.shape_, state.dtype_);
+		return sub(a, a);
 	});
 }
 
@@ -773,8 +774,9 @@ Identifier* n_dimension (Identifier* a, Identifier* dim)
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		Identifier* a = args.front();
-		clay::State state = a->get_state();
-		return make_zero(state.shape_, state.dtype_);
+		// clay::State state = a->get_state();
+		// return make_zero(state.shape_, state.dtype_);
+		return sub(a, a);
 	});
 }
 
