@@ -13,10 +13,13 @@ namespace mold
 
 iNode::~iNode (void)
 {
-	auto auds = std::move(audience_);
+	auto auds = audience_;
 	for (iObserver* aud : auds)
 	{
-		delete aud;
+		if (audience_.end() != audience_.find(aud))
+		{
+			delete aud;
+		}
 	}
 }
 

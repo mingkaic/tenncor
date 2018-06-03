@@ -52,6 +52,8 @@ public:
 protected:
 	friend class Functor;
 
+	friend void assoc (Identifier* source, Identifier* kill);
+
 	Identifier (Graph* graph, mold::iNode* arg, std::string label);
 
 	mold::iNode* get (void) const
@@ -76,6 +78,9 @@ private:
 
 	std::string uid_;
 };
+
+//! associate two identifiers to delete kill when source dies
+void assoc (Identifier* source, Identifier* kill);
 
 }
 

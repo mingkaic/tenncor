@@ -292,7 +292,7 @@ Identifier* pow (Identifier* b, Identifier* x)
 		auto f = args.front();
 		auto g = args.back();
 		assert(g->has_data());
-		Identifier* one = div(g, g);
+		Identifier* one = make_one(g);
 		auto lhs = pow(f, sub(g, one));
 		auto rhs = add(mul(f->derive(wrt), g), mul(g->derive(wrt), mul(f, log(f))));
 		return mul(lhs, rhs);
@@ -752,9 +752,7 @@ Identifier* n_elems (Identifier* a)
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		Identifier* a = args.front();
-		// clay::State state = a->get_state();
-		// return make_zero(state.shape_, state.dtype_);
-		return sub(a, a);
+		return make_zero(a);
 	});
 }
 
@@ -773,9 +771,7 @@ Identifier* n_dimension (Identifier* a, Identifier* dim)
 	[](Identifier* wrt, std::vector<Identifier*> args) -> Identifier*
 	{
 		Identifier* a = args.front();
-		// clay::State state = a->get_state();
-		// return make_zero(state.shape_, state.dtype_);
-		return sub(a, a);
+		return make_zero(a);
 	});
 }
 

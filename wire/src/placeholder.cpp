@@ -6,8 +6,7 @@
 #include <cassert>
 
 #include "wire/placeholder.hpp"
-// #include "wire/constant.hpp"
-#include "wire/operators.hpp"
+#include "wire/constant.hpp"
 
 #ifdef WIRE_PLACEHOLDER_HPP
 
@@ -85,11 +84,11 @@ Identifier* Placeholder::derive (Identifier* wrt)
 	clay::State state = get()->get_state();
 	if (this == wrt)
 	{
-		out = div(this, this);
+		out = make_one(this);
 	}
 	else
 	{
-		out = sub(this, this);
+		out = make_zero(this);
 	}
 	return out;
 }

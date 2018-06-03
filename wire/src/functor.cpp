@@ -6,8 +6,7 @@
 #include <algorithm>
 
 #include "wire/functor.hpp"
-// #include "wire/constant.hpp"
-#include "wire/operators.hpp"
+#include "wire/constant.hpp"
 #include "wire/error.hpp"
 
 #ifdef WIRE_FUNCTOR_HPP
@@ -62,7 +61,7 @@ Identifier* Functor::derive (Identifier* wrt)
 	Identifier* out;
 	if (this == wrt)
 	{
-		out = div(this, this);
+		out = make_one(this);
 	}
 	else
 	{

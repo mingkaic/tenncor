@@ -183,7 +183,7 @@ static void selfGrad (wire::Identifier* f, clay::State state)
 }
 
 
-static void unarElemTest (fuzz_test* fuzzer, slip::OPCODE opcode, VARFUNC op,
+static void unarElemTest (fuzz_test* fuzzer, VARFUNC op,
 	SCALAR expect, SCALAR grad, std::pair<double,double> limits = {-1, 1})
 {
 	mock_builder builder(fuzzer, clay::DOUBLE);
@@ -228,7 +228,7 @@ static void unarElemTest (fuzz_test* fuzzer, slip::OPCODE opcode, VARFUNC op,
 
 TEST_F(OPERATORS, Abs_G0xxAndG100)
 {
-	unarElemTest(this, slip::ABS,
+	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
 	{
 		return wire::abs(args[0]);
@@ -236,6 +236,170 @@ TEST_F(OPERATORS, Abs_G0xxAndG100)
 	[](double arg)
 	{
 		return std::abs(arg);
+	},
+	[](double)
+	{
+		return 1;
+	});
+}
+
+
+TEST_F(OPERATORS, Neg_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::neg(args[0]);
+	},
+	[](double arg)
+	{
+		return -arg;
+	},
+	[](double)
+	{
+		return -1;
+	});
+}
+
+
+TEST_F(OPERATORS, Not_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::logical_not(args[0]);
+	},
+	[](double arg)
+	{
+		return !arg;
+	},
+	[](double)
+	{
+		return 0;
+	});
+}
+
+
+TEST_F(OPERATORS, Sin_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::sin(args[0]);
+	},
+	[](double arg)
+	{
+		return std::sin(arg);
+	},
+	[](double arg)
+	{
+		return std::cos(arg);
+	});
+}
+
+
+TEST_F(OPERATORS, Cos_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::cos(args[0]);
+	},
+	[](double arg)
+	{
+		return std::cos(arg);
+	},
+	[](double arg)
+	{
+		return -std::sin(arg);
+	});
+}
+
+
+TEST_F(OPERATORS, Tan_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::tan(args[0]);
+	},
+	[](double arg)
+	{
+		return std::tan(arg);
+	},
+	[](double arg)
+	{
+		double denom = std::cos(arg);
+		return 1 / (denom * denom);
+	});
+}
+
+
+TEST_F(OPERATORS, Exp_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::exp(args[0]);
+	},
+	[](double arg)
+	{
+		return std::exp(arg);
+	},
+	[](double arg)
+	{
+		return std::exp(arg);
+	});
+}
+
+
+TEST_F(OPERATORS, Log_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::log(args[0]);
+	},
+	[](double arg)
+	{
+		return std::log(arg);
+	},
+	[](double arg)
+	{
+		return 1 / arg;
+	});
+}
+
+
+TEST_F(OPERATORS, Sqrt_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::sqrt(args[0]);
+	},
+	[](double arg)
+	{
+		return std::sqrt(arg);
+	},
+	[](double arg)
+	{
+		double denom = std::sqrt(arg);
+		return 1 / (2 * denom);
+	});
+}
+
+
+TEST_F(OPERATORS, Round_G0xxAndG100)
+{
+	unarElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::round(args[0]);
+	},
+	[](double arg)
+	{
+		return std::round(arg);
 	},
 	[](double)
 	{

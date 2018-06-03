@@ -5,6 +5,8 @@
 
 #include <cassert>
 
+#include "mold/iobserver.hpp"
+
 #include "wire/identifier.hpp"
 
 #ifdef WIRE_IDENTIFIER_HPP
@@ -132,6 +134,37 @@ void Identifier::clear (void)
 		death_sink_->clear_term();
 		delete node;
 	}
+}
+
+struct Assoc final : public mold::iObserver
+{
+	Assoc (mold::iNode* source, mold::iNode* kill) :
+		mold::iObserver({source}),
+		killer_(new mold::OnDeath(kill,
+		[this]()
+		{
+			killer_ = nullptr;
+		})) {}
+
+	~Assoc (void)
+	{
+		if (nullptr != killer_)
+		{
+			delete killer_->get();
+		}
+	}
+
+	void initialize (void) override {}
+
+	void update (void) override {}
+
+private:
+	mold::OnDeath* killer_;
+};
+
+void assoc (Identifier* source, Identifier* kill)
+{
+	new Assoc(source->get(), kill->get());
 }
 
 }

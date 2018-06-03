@@ -73,6 +73,10 @@ struct Constant final : public Identifier
 	Identifier* derive (Identifier* wrt) override;
 };
 
+Constant* make_zero (Identifier* src);
+
+Constant* make_one (Identifier* src);
+
 }
 
 #endif /* WIRE_CONSTANT_HPP */
