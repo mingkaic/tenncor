@@ -8,11 +8,16 @@
 
 #include "clay/memory.hpp"
 
+#include "kiln/unif_init.hpp"
+
 #include "wire/operators.hpp"
 #include "wire/variable.hpp"
 
 
 #ifndef DISABLE_OPERATORS_TEST
+
+
+static const double ERR_THRESH = 0.001; // 0.1% error
 
 
 using namespace testutil;
@@ -32,49 +37,14 @@ protected:
 };
 
 
-struct mock_builder final : public clay::iBuilder
-{
-	mock_builder (testify::fuzz_test* fuzzer) :
-		mock_builder(fuzzer,
-		(clay::DTYPE) fuzzer->get_int(1, "dtype",
-		{1, clay::DTYPE::_SENTINEL - 1})[0]) {}
-
-	mock_builder (testify::fuzz_test* fuzzer, clay::DTYPE dtype) :
-		shape_(random_def_shape(fuzzer, {2, 6})), dtype_(dtype)
-	{
-		size_t nbytes = shape_.n_elems() * clay::type_size(dtype_);
-		uuid_ = fuzzer->get_string(nbytes, "uuid_");
-		ptr_ = clay::make_char(nbytes);
-		std::memcpy(ptr_.get(), uuid_.c_str(), nbytes);
-	}
-
-	clay::TensorPtrT get (void) const override
-	{
-		return clay::TensorPtrT(new clay::Tensor(ptr_, shape_, dtype_));
-	}
-
-	clay::TensorPtrT get (clay::Shape shape) const override
-	{
-		return clay::TensorPtrT(new clay::Tensor(ptr_, shape, dtype_));
-	}
-
-	clay::Shape shape_;
-	clay::DTYPE dtype_;
-	std::string uuid_;
-	std::shared_ptr<char> ptr_;
-
-protected:
-	clay::iBuilder* clone_impl (void) const override
-	{
-		return new mock_builder(*this);
-	}
-};
-
-
 using VARFUNC = std::function<wire::Identifier*(std::vector<wire::Identifier*>)>;
 
 
 using SCALAR = std::function<double(double)>;
+
+
+template <typename T=double>
+using BINAR = std::function<T(T,T)>;
 
 
 static void selfGrad (wire::Identifier* f, clay::State state)
@@ -186,8 +156,10 @@ static void selfGrad (wire::Identifier* f, clay::State state)
 static void unarElemTest (fuzz_test* fuzzer, VARFUNC op,
 	SCALAR expect, SCALAR grad, std::pair<double,double> limits = {-1, 1})
 {
-	mock_builder builder(fuzzer, clay::DOUBLE);
-	wire::Variable leaf(builder, "leaf");
+	kiln::UnifInit builder;
+	builder.set(limits.first, limits.second);
+	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
+	wire::Variable leaf(builder, shape, "leaf");
 
 	// test behavior G000
 	wire::Identifier* f = op({&leaf});
@@ -204,24 +176,167 @@ static void unarElemTest (fuzz_test* fuzzer, VARFUNC op,
 	wire::Graph::get_global().initialize_all();
 	ASSERT_TRUE(f->has_data());
 	clay::State state = f->get_state();
+
 	// test behavior G003
 	selfGrad(f, state);
 
 	// test behavior B1xx
 	wire::Identifier* der = f->derive(&leaf);
 	clay::State back = der->get_state();
-	EXPECT_SHAPEQ(builder.shape_, state.shape_);
-	EXPECT_SHAPEQ(builder.shape_, back.shape_);
-	double* inptr = (double*) builder.ptr_.get();
+	EXPECT_SHAPEQ(shape, state.shape_);
+	EXPECT_SHAPEQ(shape, back.shape_);
+	double* inptr = (double*) leaf.get_state().data_.lock().get();
 	ASSERT_FALSE(state.data_.expired());
 	ASSERT_FALSE(back.data_.expired());
 	double* outptr = (double*) state.data_.lock().get();
 	double* backptr = (double*) back.data_.lock().get();
-	for (size_t i = 0, n = builder.shape_.n_elems();
+	for (size_t i = 0, n = shape.n_elems();
 		i < n; ++i)
 	{
-		EXPECT_EQ(expect(inptr[i]), outptr[i]);
-		EXPECT_EQ(grad(inptr[i]), backptr[i]);
+		double expectfwd = expect(inptr[i]);
+		double expectbwd = grad(inptr[i]);
+		double err = expectfwd - outptr[i];
+		double err2 = expectbwd - backptr[i];
+		if (2 < expectfwd)
+		{
+			err /= expectfwd;
+		}
+		if (2 < expectbwd)
+		{
+			err2 /= expectbwd;
+		}
+		EXPECT_GT(ERR_THRESH, err) << expectfwd << " " << outptr[i];
+		EXPECT_GT(ERR_THRESH, err2) << expectbwd << " " << backptr[i];
+	}
+}
+
+
+static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
+	BINAR<double> expect, BINAR<double> gradA, BINAR<double> gradB,
+	std::pair<double,double> limits = {-1, 1})
+{
+	kiln::UnifInit builder;
+	builder.set(limits.first, limits.second);
+	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
+	wire::Variable leaf(builder, shape, "leaf");
+	wire::Variable leaf2(builder, shape, "leaf2");
+
+	// test behavior G000
+	wire::Identifier* f = op({&leaf, &leaf2});
+	wire::Identifier* f2 = op({&leaf, &leaf2});
+	EXPECT_EQ(f, f2);
+
+	// test behavior G001
+	EXPECT_EQ(nullptr, op({nullptr}));
+
+	// test behavior G002
+	EXPECT_THROW(f->derive(f), std::exception);
+	EXPECT_THROW(f->derive(&leaf), std::exception);
+	EXPECT_THROW(f->derive(&leaf2), std::exception);
+
+	wire::Graph::get_global().initialize_all();
+	ASSERT_TRUE(f->has_data());
+	clay::State state = f->get_state();
+
+	// test behavior G003
+	selfGrad(f, state);
+
+	// test behavior B1xx
+	wire::Identifier* der = f->derive(&leaf);
+	wire::Identifier* der2 = f->derive(&leaf2);
+	clay::State back = der->get_state();
+	clay::State back2 = der2->get_state();
+	EXPECT_SHAPEQ(shape, state.shape_);
+	EXPECT_SHAPEQ(shape, back.shape_);
+	EXPECT_SHAPEQ(shape, back2.shape_);
+	double* inptr = (double*) leaf.get_state().data_.lock().get();
+	double* inptr2 = (double*) leaf2.get_state().data_.lock().get();
+	ASSERT_FALSE(state.data_.expired());
+	ASSERT_FALSE(back.data_.expired());
+	ASSERT_FALSE(back2.data_.expired());
+	double* outptr = (double*) state.data_.lock().get();
+	double* backptr = (double*) back.data_.lock().get();
+	double* backptr2 = (double*) back2.data_.lock().get();
+	for (size_t i = 0, n = shape.n_elems();
+		i < n; ++i)
+	{
+		double expectfwd = expect(inptr[i], inptr2[i]);
+		double expectbwdA = gradA(inptr[i], inptr2[i]);
+		double expectbwdB = gradB(inptr[i], inptr2[i]);
+		double err = expectfwd - outptr[i];
+		double err2 = expectbwdA - backptr[i];
+		double err3 = expectbwdB - backptr2[i];
+		if (2 < expectfwd)
+		{
+			err /= expectfwd;
+		}
+		if (2 < expectbwdA)
+		{
+			err2 /= expectbwdA;
+		}
+		if (2 < expectbwdB)
+		{
+			err3 /= expectbwdB;
+		}
+		EXPECT_GT(ERR_THRESH, err);
+		EXPECT_GT(ERR_THRESH, err2);
+		EXPECT_GT(ERR_THRESH, err3);
+	}
+}
+
+
+static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
+	BINAR<int16_t> expect, BINAR<int16_t> gradA, BINAR<int16_t> gradB,
+	std::pair<int16_t,int16_t> limits = {-1, 1})
+{
+	kiln::UnifInit builder;
+	builder.set(limits.first, limits.second);
+	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
+	wire::Variable leaf(builder, shape, "leaf");
+	wire::Variable leaf2(builder, shape, "leaf2");
+
+	// test behavior G000
+	wire::Identifier* f = op({&leaf, &leaf2});
+	wire::Identifier* f2 = op({&leaf, &leaf2});
+	EXPECT_EQ(f, f2);
+
+	// test behavior G001
+	EXPECT_EQ(nullptr, op({nullptr}));
+
+	// test behavior G002
+	EXPECT_THROW(f->derive(f), std::exception);
+	EXPECT_THROW(f->derive(&leaf), std::exception);
+	EXPECT_THROW(f->derive(&leaf2), std::exception);
+
+	wire::Graph::get_global().initialize_all();
+	ASSERT_TRUE(f->has_data());
+	clay::State state = f->get_state();
+
+	// test behavior G003
+	selfGrad(f, state);
+
+	// test behavior B1xx
+	wire::Identifier* der = f->derive(&leaf);
+	wire::Identifier* der2 = f->derive(&leaf2);
+	clay::State back = der->get_state();
+	clay::State back2 = der2->get_state();
+	EXPECT_SHAPEQ(shape, state.shape_);
+	EXPECT_SHAPEQ(shape, back.shape_);
+	EXPECT_SHAPEQ(shape, back2.shape_);
+	int16_t* inptr = (int16_t*) leaf.get_state().data_.lock().get();
+	int16_t* inptr2 = (int16_t*) leaf2.get_state().data_.lock().get();
+	ASSERT_FALSE(state.data_.expired());
+	ASSERT_FALSE(back.data_.expired());
+	ASSERT_FALSE(back2.data_.expired());
+	int16_t* outptr = (int16_t*) state.data_.lock().get();
+	int16_t* backptr = (int16_t*) back.data_.lock().get();
+	int16_t* backptr2 = (int16_t*) back2.data_.lock().get();
+	for (size_t i = 0, n = shape.n_elems();
+		i < n; ++i)
+	{
+		EXPECT_EQ(expect(inptr[i], inptr2[i]), outptr[i]);
+		EXPECT_EQ(gradA(inptr[i], inptr2[i]), backptr[i]);
+		EXPECT_EQ(gradB(inptr[i], inptr2[i]), backptr2[i]);
 	}
 }
 
@@ -244,7 +359,7 @@ TEST_F(OPERATORS, Abs_G0xxAndG100)
 }
 
 
-TEST_F(OPERATORS, Neg_G0xxAndG100)
+TEST_F(OPERATORS, Neg_G0xxAndG101)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -262,7 +377,7 @@ TEST_F(OPERATORS, Neg_G0xxAndG100)
 }
 
 
-TEST_F(OPERATORS, Not_G0xxAndG100)
+TEST_F(OPERATORS, Not_G0xxAndG102)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -280,7 +395,7 @@ TEST_F(OPERATORS, Not_G0xxAndG100)
 }
 
 
-TEST_F(OPERATORS, Sin_G0xxAndG100)
+TEST_F(OPERATORS, Sin_G0xxAndG103)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -298,7 +413,7 @@ TEST_F(OPERATORS, Sin_G0xxAndG100)
 }
 
 
-TEST_F(OPERATORS, Cos_G0xxAndG100)
+TEST_F(OPERATORS, Cos_G0xxAndG104)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -316,7 +431,7 @@ TEST_F(OPERATORS, Cos_G0xxAndG100)
 }
 
 
-TEST_F(OPERATORS, Tan_G0xxAndG100)
+TEST_F(OPERATORS, Tan_G0xxAndG105)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -335,7 +450,7 @@ TEST_F(OPERATORS, Tan_G0xxAndG100)
 }
 
 
-TEST_F(OPERATORS, Exp_G0xxAndG100)
+TEST_F(OPERATORS, Exp_G0xxAndG106)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -353,7 +468,7 @@ TEST_F(OPERATORS, Exp_G0xxAndG100)
 }
 
 
-TEST_F(OPERATORS, Log_G0xxAndG100)
+TEST_F(OPERATORS, Log_G0xxAndG107)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -367,11 +482,11 @@ TEST_F(OPERATORS, Log_G0xxAndG100)
 	[](double arg)
 	{
 		return 1 / arg;
-	});
+	}, {0.5, 7});
 }
 
 
-TEST_F(OPERATORS, Sqrt_G0xxAndG100)
+TEST_F(OPERATORS, Sqrt_G0xxAndG108)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -386,11 +501,11 @@ TEST_F(OPERATORS, Sqrt_G0xxAndG100)
 	{
 		double denom = std::sqrt(arg);
 		return 1 / (2 * denom);
-	});
+	}, {0, 7});
 }
 
 
-TEST_F(OPERATORS, Round_G0xxAndG100)
+TEST_F(OPERATORS, Round_G0xxAndG109)
 {
 	unarElemTest(this,
 	[](std::vector<wire::Identifier*> args)
@@ -408,34 +523,174 @@ TEST_F(OPERATORS, Round_G0xxAndG100)
 }
 
 
-TEST_F(OPERATORS, Derive_G00x)
+TEST_F(OPERATORS, Pow_G0xxAndG130)
 {
-	std::string derlabel = get_string(16, "derlabel");
-	std::string arglabel = get_string(16, "arglabel");
-	std::string arg2label = get_string(16, "arg2label");
-	mock_builder builder(this);
-	wire::Variable derout(builder, derlabel);
-	wire::Variable arg(builder, arglabel);
-	wire::Variable arg2(builder, arg2label);
-	wire::Functor* f = new wire::Functor(std::vector<wire::Identifier*>{&arg, &arg2}, slip::ADD,
-	[&](wire::Identifier* wrt, std::vector<wire::Identifier*> args) -> wire::Identifier*
+	binaryElemTest(this,
+	[](std::vector<wire::Identifier*> args)
 	{
-		EXPECT_EQ(&arg, wrt);
-		EXPECT_EQ(2, args.size());
-		EXPECT_EQ(&arg, args[0]);
-		EXPECT_EQ(&arg2, args[1]);
-		return &derout;
+		return wire::pow(args[0], args[1]);
+	},
+	[](double a, double b)
+	{
+		return std::pow(a, b);
+	},
+	[](double a, double b)
+	{
+		return b * std::pow(a, b - 1);
+	},
+	[](double a, double b)
+	{
+		return std::pow(a, b) * std::log(a);
+	}, {0, 7});
+}
+
+
+TEST_F(OPERATORS, Add_G0xxAndG131)
+{
+	binaryElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::add(args[0], args[1]);
+	},
+	[](double a, double b)
+	{
+		return a + b;
+	},
+	[](double a, double b)
+	{
+		return 1;
+	},
+	[](double a, double b)
+	{
+		return 1;
 	});
+}
 
-	EXPECT_THROW(f->derive(f), std::exception);
-	EXPECT_THROW(f->derive(&arg), std::exception);
-	wire::Graph::get_global().initialize_all();
-	ASSERT_TRUE(f->has_data());
 
-	wire::Identifier* der = f->derive(&arg);
-	EXPECT_EQ(&derout, der);
+TEST_F(OPERATORS, Sub_G0xxAndG132)
+{
+	binaryElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::sub(args[0], args[1]);
+	},
+	[](double a, double b)
+	{
+		return a - b;
+	},
+	[](double a, double b)
+	{
+		return 1;
+	},
+	[](double a, double b)
+	{
+		return -1;
+	});
+}
 
-	delete f;
+
+TEST_F(OPERATORS, Mul_G0xxAndG133)
+{
+	binaryElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::mul(args[0], args[1]);
+	},
+	[](double a, double b)
+	{
+		return a * b;
+	},
+	[](double a, double b)
+	{
+		return b;
+	},
+	[](double a, double b)
+	{
+		return a;
+	});
+}
+
+
+TEST_F(OPERATORS, Div_G0xxAndG134)
+{
+	binaryElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::div(args[0], args[1]);
+	},
+	[](double a, double b)
+	{
+		return a / b;
+	},
+	[](double a, double b)
+	{
+		return 1/b;
+	},
+	[](double a, double b)
+	{
+		return -a/std::pow(b, 2);
+	}, {0.1, 7});
+}
+
+
+TEST_F(OPERATORS, Eq_G0xxAndG135)
+{
+	BINAR<int16_t> bin = [](int16_t a, int16_t b)
+	{
+		return a == b;
+	};
+	binaryIntElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::eq(args[0], args[1]);
+	}, bin, bin, bin);
+}
+
+
+TEST_F(OPERATORS, Neq_G0xxAndG136)
+{
+	BINAR<int16_t> bin = [](int16_t a, int16_t b)
+	{
+		return a != b;
+	};
+	binaryIntElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::neq(args[0], args[1]);
+	}, bin, bin, bin);
+}
+
+
+TEST_F(OPERATORS, Lt_G0xxAndG137)
+{
+	BINAR<int16_t> bin = [](int16_t a, int16_t b)
+	{
+		return a < b;
+	};
+	binaryIntElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::lt(args[0], args[1]);
+	}, bin, bin, bin);
+}
+
+
+TEST_F(OPERATORS, Gt_G0xxAndG138)
+{
+	BINAR<int16_t> bin = [](int16_t a, int16_t b)
+	{
+		return a > b;
+	};
+	binaryIntElemTest(this,
+	[](std::vector<wire::Identifier*> args)
+	{
+		return wire::gt(args[0], args[1]);
+	}, bin, bin, bin);
+}
+
+
+TEST_F(OPERATORS, Matmul_G0xxAndG139)
+{
 }
 
 

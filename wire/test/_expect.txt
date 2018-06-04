@@ -73,3 +73,27 @@ G108 - sqrt applies std::sqrt function to input
 		derivative of immediate argument is 1 / (2 * sqrt(leaf))
 G109 - round applies std::round function to input
 		derivative of immediate argument is round(1)
+
+G130 - pow applies std::pow function to input
+		derivative of f is g * pow(f, g - 1)
+		derivative of g is pow(f, g) * log(f)
+G131 - add applies addition function to input
+		derivative of f and g are 1
+G132 - sub applies subtraction function to input
+		derivative of f is 1
+		derivative of g is -1
+G133 - mul applies multiplication function to input
+		derivative of f is g
+		derivative of g is f
+G134 - div applies division function to input
+		derivative of f is 1/g
+		derivative of g is -f/(g^2)
+G135 - eq applies == function to input
+		derivative of f and g are f == g
+G136 - neq applies != function to input
+		derivative of f and g are f != g
+G137 - lt applies < function to input
+		derivative of f and g are f < g
+G138 - gt applies > function to input
+		derivative of f and g are f > g
+G139 - gt applies matmul function to input

@@ -33,7 +33,7 @@ static inline Identifier* ordered_parent (
 	for (Functor* f : funcs)
 	{
 		auto args = f->get_args();
-		if (std::equal(args.begin(), args.end(), srcs.end()))
+		if (std::equal(args.begin(), args.end(), srcs.begin()))
 		{
 			return f;
 		}

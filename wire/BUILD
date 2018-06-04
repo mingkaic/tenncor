@@ -34,6 +34,7 @@ cc_test(
     srcs = glob([ "test/*.cpp" ]),
     deps = [
         "//wire:wire",
+        "//kiln:kiln",
         "//:fuzzutil",
     ],
     linkstatic = 1,
