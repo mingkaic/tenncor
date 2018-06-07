@@ -43,11 +43,12 @@ enum OpcodeT
 	N_ELEMS = 31;
 	N_DIMS = 32;
 	MATMUL = 33;
+	RESHAPE = 34;
 	// gradient nodes (todo: remove this)
-	JACOBIAN = 34;
-	RESHAPE = 35;
+	JACOBIAN = 35;
+	TRACE_EXPAND = 36;
 	// sentinel
-	_OP_SENTINEL = 36;
+	_OP_SENTINEL = 37;
 }
 
 message NodePb

@@ -59,9 +59,9 @@ enum OPCODE
 	N_ELEMS,
 	N_DIMS,
 	MATMUL,
+	RESHAPE,
 	// gradient nodes (todo: revise these)
 	JACOBIAN,
-	RESHAPE,
 	TRACE_EXPAND,
 	// sentinel
 	_SENTINEL

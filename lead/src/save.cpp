@@ -58,16 +58,6 @@ void save_data (tenncor::DataRepoPb& out, const wire::Graph& graph)
 
 void save_graph (tenncor::GraphPb& out, const wire::Graph& graph)
 {
-	std::unordered_map<const wire::Functor*,slip::OPCODE> ops;
-	for (size_t i = 0; i < slip::_SENTINEL; ++i)
-	{
-		wire::FunctorSetT fs = graph.get_func((slip::OPCODE) i);
-		for (wire::Functor* f : fs)
-		{
-			ops[f] = (slip::OPCODE) i;
-		}
-	}
-
 	// set GraphPb gid (1)
 	out.set_gid(graph.get_gid());
 	out.clear_node_map();
@@ -89,7 +79,7 @@ void save_graph (tenncor::GraphPb& out, const wire::Graph& graph)
 			node_dest.set_type(tenncor::NodePb::FUNCTOR);
 
 			tenncor::FunctorPb fpb;
-			fpb.set_opcode((tenncor::OpcodeT) ops[f]);
+			fpb.set_opcode((tenncor::OpcodeT) f->opcode_);
 			auto args = f->get_args();
 			for (std::string& arg_id : args)
 			{
