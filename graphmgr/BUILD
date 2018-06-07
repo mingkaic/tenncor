@@ -18,34 +18,34 @@ filegroup(
 )
 
 proto_library(
-    name = "graphmgr_grpc",
+    name = "grpc",
     srcs = [ ":graphmgr" ],
     deps = [
-        "//proto:tenncor_serial_proto",
+        "//lead:proto",
         "@com_google_protobuf//:any_proto",
     ],
 )
 
 cc_proto_library(
-    name = "graphmgr_cc_grpc",
+    name = "cc_grpc",
     protos = [ ":graphmgr" ],
     imports = [ "external/com_google_protobuf/src" ],
-    proto_deps = [ "//proto:tenncor_serial_cc_proto" ],
+    proto_deps = [ "//lead:cc_proto" ],
     inputs = [
+        "//lead:proto",
         "@com_google_protobuf//:well_known_protos",
-        "//proto:serial",
     ],
     with_grpc = True,
 )
 
 py_proto_library(
-    name = "graphmgr_py_grpc",
+    name = "py_grpc",
     protos = [ ":graphmgr" ],
     imports = [ "external/com_google_protobuf/src" ],
-    proto_deps = [ "//proto:tenncor_serial_py_proto" ],
+    proto_deps = [ "//lead:py_proto" ],
     inputs = [
+        "//lead:proto",
         "@com_google_protobuf//:well_known_protos",
-        "//proto:serial",
     ],
     with_grpc = True,
 )

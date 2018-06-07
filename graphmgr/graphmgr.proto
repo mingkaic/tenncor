@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-option go_package = "github.com/mingkaic/tenncor/tests/graphmgr";
+option go_package = "github.com/mingkaic/tenncor/graphmgr";
 
 import "google/protobuf/any.proto";
 
-import "proto/serial/data.proto";
-import "proto/serial/graph.proto";
+import "lead/data.proto";
+import "lead/graph.proto";
 
 package graphmgr;
 
