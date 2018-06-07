@@ -20,35 +20,6 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 
-# SERIALS := serial_cc serial_py
-
-# GRAPHMGRS := graphmgr_cc graphmgr_py
-
-# all: proto test_py proto_build unit_test test_regress
-
-# travis_test: build test_py proto_build memcheck coverage test_regress
-
-# build protobuf files
-# build: tenncor_build proto
-
-# tenncor_build:
-# 	$(BUILD) //:tenncor
-
-# proto: monitor $(SERIALS) $(GRAPHMGRS)
-
-# monitor:
-# 	$(BUILD) //proto:tenncor_monitor_grpc
-
-# $(SERIALS):
-# 	$(BUILD) //proto:tenncor_$@_proto
-
-# $(GRAPHMGRS):
-# 	$(BUILD) //tests/graphmgr:$@_grpc
-
-# # python data build and test
-# proto_build:
-# 	$(RUN) //tests/py:protogen -- $(shell pwd)/tests/unit/samples
-
 # unit test
 test: test_clay test_mold test_slip test_kiln test_wire
 

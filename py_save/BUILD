@@ -16,8 +16,8 @@ py_library(
         "save_data.py",
     ],
     deps = [
-        "//tests/graphmgr:graphmgr_py_grpc",
-        "//proto:tenncor_serial_py_proto",
+        "//graphmgr:py_grpc",
+        "//lead:py_proto",
         "@com_github_mingkaic_testify//testify_py:graphast",
     ],
 )
