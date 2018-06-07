@@ -12,7 +12,7 @@
  */
 
 #include "include/graph/react/iobserver.hpp"
-#include "include/graph/constant.hpp" 
+#include "include/graph/constant.hpp"
 
 #ifndef TENNCOR_FUNCTOR_HPP
 #define TENNCOR_FUNCTOR_HPP
@@ -60,13 +60,13 @@ namespace nnet
 #define JACOBIANLEFT tenncor::JACOBIANLEFT
 #define JACOBIANRIGHT tenncor::JACOBIANRIGHT
 
-//! backward transfer function, get gradient nodes; F: Nf -> Nb 
-using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,varptr> >)>; 
+//! backward transfer function, get gradient nodes; F: Nf -> Nb
+using BACKMAP_F = std::function<varptr(std::vector<std::pair<inode*,varptr> >)>;
 
-//! calculate output shape from argument shapes 
-using SHAPER_F = std::function<tshape(std::vector<tshape>)>; 
- 
-using USHAPE_F = std::function<tshape(tshape, std::vector<uint64_t>)>; 
+//! calculate output shape from argument shapes
+using SHAPER_F = std::function<tshape(std::vector<tshape>)>;
+
+using USHAPE_F = std::function<tshape(tshape, std::vector<uint64_t>)>;
 
 using TENSOP_F = std::function<tensor*(std::unique_ptr<idata_src>&,std::vector<inode*>)>;
 
@@ -75,7 +75,7 @@ using DERIVE_F = std::function<varptr(inode*,std::vector<inode*>)>;
 class functor final : public inode, public iobserver
 {
 public:
-	static functor* get (std::vector<inode*> args, TENSOP_F tensop, 
+	static functor* get (std::vector<inode*> args, TENSOP_F tensop,
 		DERIVE_F derive, OPCODE code);
 
 	//! clone function
@@ -100,7 +100,7 @@ public:
 	virtual std::string get_name (void) const;
 
 	// >>>>>> CONNECTION QUERY <<<<<<
-	
+
 	//! get gradient leaves
 	virtual std::unordered_set<const inode*> get_leaves (void) const;
 
@@ -166,14 +166,14 @@ private:
 
 
 	TENSOP_F tensop_;
-	
+
 	DERIVE_F derive_;
 
 	std::unique_ptr<idata_src> io_ = nullptr;
 
 	// todo: have an option to disable data_ caching for performance boost
 	//! inner tensor to cache forward evaluated values
-	TensorPtrT data_ = nullptr;
+	std::unique_ptr<tensor> data_ = nullptr;
 
 	OPCODE opcode_ = _OP_SENTINEL;
 };

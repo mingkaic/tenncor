@@ -50,7 +50,7 @@ static void unaryElemTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	std::memcpy(data.get(), &argument[0], nbytes);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"unary " << slip::opnames[opcode] << " not found";
+		"unary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	op->set_args({clay::State(data, shape, clay::DOUBLE)});
 
@@ -79,15 +79,15 @@ static void unaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	size_t nbytes = argument.size() * sizeof(double);
 	std::shared_ptr<char> data = clay::make_char(nbytes);
 	std::memcpy(data.get(), &argument[0], nbytes);
+	clay::State in(data, shape, clay::DOUBLE);
+	clay::Shape wun = std::vector<size_t>{1};
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"unary " << slip::opnames[opcode] << " not found";
+		"unary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
-	clay::State in(data, shape, clay::DOUBLE);
 	op->set_args({in});
 
 	mold::ImmPair imms = op->get_imms();
-	clay::Shape wun = std::vector<size_t>{1};
 	ASSERT_SHAPEQ(wun, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 
@@ -95,15 +95,31 @@ static void unaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	clay::State out(output, wun, clay::DOUBLE);
 	ASSERT_TRUE(op->read_data(out));
 	EXPECT_EQ(agg(argument), *((double*) output.get()));
+}
 
+
+static void binaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
+	std::pair<double,double> limits = {-1, 1})
+{
+	clay::Shape shape = random_def_shape(fuzzer);
+	size_t n = shape.n_elems();
+	std::vector<double> argument = fuzzer->get_double(n, "argument", limits);
+	size_t nbytes = argument.size() * sizeof(double);
+	std::shared_ptr<char> data = clay::make_char(nbytes);
+	std::memcpy(data.get(), &argument[0], nbytes);
+	clay::State in(data, shape, clay::DOUBLE);
+	clay::Shape wun = std::vector<size_t>{1};
+
+	ASSERT_TRUE(slip::has_op(opcode)) <<
+		"unary " << slip::opnames.at(opcode) << " not found";
+	auto bad_op = slip::get_op(opcode);
+	auto dim_op = slip::get_op(opcode);
 	uint64_t badrank = shape.rank();
 	uint64_t dim = (uint64_t) fuzzer->get_int(1, "dim", {0, badrank-1})[0];
 	std::shared_ptr<char> bad_data = clay::make_char(sizeof(uint64_t));
 	std::shared_ptr<char> dim_data = clay::make_char(sizeof(uint64_t));
 	std::memcpy(bad_data.get(), &badrank, sizeof(uint64_t));
 	std::memcpy(dim_data.get(), &dim, sizeof(uint64_t));
-	auto bad_op = slip::get_op(opcode);
-	auto dim_op = slip::get_op(opcode);
 	EXPECT_THROW(bad_op->set_args(
 		{in, clay::State(bad_data, wun, clay::UINT64)}),
 		slip::InvalidDimensionError);
@@ -136,7 +152,7 @@ static void binaryElemTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	std::memcpy(data1.get(), &argument1[0], nbytes);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"binary " << slip::opnames[opcode] << " not found";
+		"binary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, shape, clay::DOUBLE);
@@ -174,7 +190,7 @@ static void binaryElemTestInt (fuzz_test* fuzzer, slip::OPCODE opcode,
 	std::memcpy(data1.get(), &argument1[0], nbytes);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"binary " << slip::opnames[opcode] << " not found";
+		"binary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::UINT64);
 	clay::State in1(data1, shape, clay::UINT64);
@@ -295,7 +311,7 @@ TEST_F(REGISTRY, Cast_B001)
 	std::memcpy(data.get(), &argument[0], nbytes);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"binary " << slip::opnames[opcode] << " not found";
+		"binary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data, shape, clay::INT64);
 	clay::State in1(data, shape, clay::DOUBLE);
@@ -388,9 +404,9 @@ TEST_F(REGISTRY, Round_B011)
 }
 
 
-TEST_F(REGISTRY, Argmax_B012)
+TEST_F(REGISTRY, UArgmax_B012)
 {
-	unaryAggTest(this, slip::ARGMAX,
+	unaryAggTest(this, slip::UARGMAX,
 	[](std::vector<double> vec) -> double
 	{
 		auto it = std::max_element(vec.begin(), vec.end());
@@ -399,9 +415,9 @@ TEST_F(REGISTRY, Argmax_B012)
 }
 
 
-TEST_F(REGISTRY, Max_B013)
+TEST_F(REGISTRY, UMax_B013)
 {
-	unaryAggTest(this, slip::RMAX,
+	unaryAggTest(this, slip::URMAX,
 	[](std::vector<double> vec) -> double
 	{
 		return *std::max_element(vec.begin(), vec.end());
@@ -409,13 +425,31 @@ TEST_F(REGISTRY, Max_B013)
 }
 
 
-TEST_F(REGISTRY, Sum_B014)
+TEST_F(REGISTRY, USum_B014)
 {
-	unaryAggTest(this, slip::RSUM,
+	unaryAggTest(this, slip::URSUM,
 	[](std::vector<double> vec) -> double
 	{
 		return std::accumulate(vec.begin(), vec.end(), (double) 0);
 	});
+}
+
+
+TEST_F(REGISTRY, Argmax_B012)
+{
+	binaryAggTest(this, slip::ARGMAX);
+}
+
+
+TEST_F(REGISTRY, Max_B013)
+{
+	binaryAggTest(this, slip::RMAX);
+}
+
+
+TEST_F(REGISTRY, Sum_B014)
+{
+	binaryAggTest(this, slip::RSUM);
 }
 
 
@@ -448,7 +482,7 @@ TEST_F(REGISTRY, Tranpose_B015)
 	std::memcpy(data1.get(), &perm[0], nbytes1);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"function " << slip::opnames[opcode] << " not found";
+		"function " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	auto op1 = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
@@ -514,7 +548,7 @@ TEST_F(REGISTRY, Flip_B016)
 	std::memcpy(baddata.get(), &badarg, sizeof(uint64_t));
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"function " << slip::opnames[opcode] << " not found";
+		"function " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, clay::Shape({1}), clay::UINT64);
@@ -570,7 +604,7 @@ TEST_F(REGISTRY, Expand_B017)
 	std::memcpy(baddata.get(), &badarg, sizeof(uint64_t));
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"function " << slip::opnames[opcode] << " not found";
+		"function " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, clay::Shape({1}), clay::UINT64);
@@ -621,7 +655,7 @@ TEST_F(REGISTRY, NElems_B018)
 	std::memcpy(data.get(), argument.c_str(), nbytes);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"function " << slip::opnames[opcode] << " not found";
+		"function " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	op->set_args({clay::State(data, shape, dtype)});
 
@@ -660,7 +694,7 @@ TEST_F(REGISTRY, NDims_B019)
 	std::memcpy(baddata.get(), &badarg, sizeof(uint64_t));
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"function " << slip::opnames[opcode] << " not found";
+		"function " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 
 	clay::State in(data, shape, dtype);
@@ -760,7 +794,7 @@ TEST_F(REGISTRY, Uniform_B039)
 	std::memcpy(data1.get(), &argument1[0], nbytes);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"sample " << slip::opnames[opcode] << " not found";
+		"sample " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, shape, clay::DOUBLE);
@@ -786,7 +820,7 @@ TEST_F(REGISTRY, Uniform_B039)
 TEST_F(REGISTRY, Binom_B040)
 {
 	slip::OPCODE opcode = slip::BINO;
-	clay::Shape shape = random_def_shape(this, {1, 6}, {300, 7983});
+	clay::Shape shape = random_def_shape(this, {1, 6}, {500, 7983});
 	size_t n = shape.n_elems();
 	auto temp0 = get_int(n, "argument0", {2, 19});
 	std::vector<uint64_t> argument0(temp0.begin(), temp0.end());
@@ -798,7 +832,7 @@ TEST_F(REGISTRY, Binom_B040)
 	std::memcpy(data1.get(), &argument1[0], n * sizeof(double));
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"sample " << slip::opnames[opcode] << " not found";
+		"sample " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::UINT64);
 	clay::State in1(data1, shape, clay::DOUBLE);
@@ -870,7 +904,7 @@ TEST_F(REGISTRY, Norm_B041)
 	std::memcpy(data1.get(), &argument1[0], nbytes);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"sample " << slip::opnames[opcode] << " not found";
+		"sample " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, shape, clay::DOUBLE);
@@ -971,7 +1005,7 @@ TEST_F(REGISTRY, Matmul_B042)
 	std::memcpy(data1.get(), &argument1[0], nbytes1);
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
-		"binary " << slip::opnames[opcode] << " not found";
+		"binary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape0, clay::INT64);
 	clay::State in1(data1, shape1, clay::INT64);

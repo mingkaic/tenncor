@@ -24,30 +24,27 @@
 namespace wire
 {
 
-using GradF = std::function<Identifier*(Identifier*, std::vector<Identifier*>)>;
+using GradArgsT = std::vector<std::pair<Identifier*,Identifier*>>;
+
+using GradF = std::function<Identifier*(Identifier*,GradArgsT)>;
 
 class Functor final : public Identifier
 {
 public:
 	Functor (std::vector<Identifier*> args,
-		slip::OPCODE opcode, GradF grad,
-		Graph& graph = Graph::get_global());
+		slip::OPCODE opcode, Graph& graph = Graph::get_global());
 
 	~Functor (void);
 
-	Identifier* derive (Identifier* wrt) override;
-
-	std::vector<std::string> get_args (void) const
+	std::vector<UID> get_args (void) const override
 	{
 		return arg_ids_;
 	}
 
+	slip::OPCODE opcode_;
+
 private:
-	std::vector<std::string> arg_ids_;
-
-	std::vector<mold::iNode*> to_nodes (std::vector<Identifier*> ids);
-
-	GradF grad_;
+	std::vector<UID> arg_ids_;
 };
 
 }

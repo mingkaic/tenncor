@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "github.com/mingkaic/tenncor/lead";
 
-package lead;
+package tenncor;
 
 import "google/protobuf/any.proto";
 
@@ -33,7 +33,7 @@ message Uint64Arr { repeated uint64 data = 1; }
 
 message TensorPb
 {
-	// takes messages DoubleArr, ..., 
+	// takes messages DoubleArr, ...,
 	// Uint64Arr depending on dtype
 	google.protobuf.Any data = 1;
 	TensorT type = 2;
@@ -42,5 +42,6 @@ message TensorPb
 
 message DataRepoPb
 {
-	map<string, TensorPb> data_map = 1;
+	string gid = 1;
+	map<string, TensorPb> data_map = 2;
 }

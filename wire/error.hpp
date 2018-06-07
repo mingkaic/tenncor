@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "wire/graph.hpp"
+
 #pragma once
 #ifndef WIRE_ERROR_HPP
 #define WIRE_ERROR_HPP
@@ -23,12 +25,12 @@ namespace wire
 
 struct DuplicateNodeIDError : public std::runtime_error
 {
-	DuplicateNodeIDError (std::string gid, std::string node_id);
+	DuplicateNodeIDError (std::string gid, UID node_id);
 };
 
 struct MissingNodeError : public std::runtime_error
 {
-	MissingNodeError (std::string gid, std::string node_id);
+	MissingNodeError (std::string gid, UID node_id);
 };
 
 }

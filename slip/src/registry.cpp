@@ -74,6 +74,10 @@ static std::unordered_map<OPCODE,TypeReg,EnumHash> op_registry =
 	REGISTER_FUNC(FLIP, flip)
 	REGISTER_FUNC(EXPAND, expand)
 
+	REGISTER_FUNC(UARGMAX, unar_argmax)
+	REGISTER_FUNC(URMAX, unar_max)
+	REGISTER_FUNC(URSUM, unar_sum)
+
 	REGISTER_FUNC(ARGMAX, argmax)
 	REGISTER_FUNC(RMAX, max)
 	REGISTER_FUNC(RSUM, sum)
@@ -82,6 +86,9 @@ static std::unordered_map<OPCODE,TypeReg,EnumHash> op_registry =
 	REGISTER_SFUNC(N_DIMS, n_dims)
 
 	REGISTER_FUNC(MATMUL, matmul)
+	REGISTER_FUNC(RESHAPE, copyover)
+	REGISTER_FUNC(JACOBIAN, jacobian)
+	REGISTER_FUNC(TRACE_EXPAND, trace_expand)
 };
 
 // proxy for either init or uninit operate
@@ -281,51 +288,60 @@ static clay::DTYPE same_type (std::vector<clay::DTYPE> types)
 	return out;
 }
 
+static clay::Shape scalar_shape (std::vector<clay::State> states)
+{
+	if (states.size() != 1)
+	{
+		throw BadNArgsError(1, states.size());
+	}
+	return clay::Shape({1});
+}
+
+static clay::DTYPE scalar_type (std::vector<clay::DTYPE> types)
+{
+	if (types.size() != 1)
+	{
+		throw BadNArgsError(1, types.size());
+	}
+	return types[0];
+}
+
 static clay::Shape reduce_shape (std::vector<clay::State> states)
 {
-	if (states.empty())
+	if (states.size() != 2)
 	{
-		throw NoArgumentsError();
+		throw BadNArgsError(2, states.size());
 	}
-	clay::Shape out;
-	if (states.size() > 1)
+	clay::State& state = states[1];
+	if (1 != state.shape_.n_elems())
 	{
-		clay::State& state = states[1];
-		if (1 != state.shape_.n_elems())
-		{
-			throw ShapeMismatchError(clay::Shape({1}), state.shape_);
-		}
-		uint64_t dim = *(safe_get<uint64_t>(state.data_));
-		clay::Shape& shape = states[0].shape_;
-		if (dim >= shape.rank())
-		{
-			throw InvalidDimensionError(dim, shape);
-		}
-		std::vector<size_t> slist = shape.as_list();
-		if (1 == slist.size())
-		{
-			slist[0] = 1;
-		}
-		else
-		{
-			slist.erase(slist.begin() + dim);
-		}
-		out = slist;
+		throw ShapeMismatchError(clay::Shape({1}), state.shape_);
+	}
+	uint64_t dim = *(safe_get<uint64_t>(state.data_));
+	clay::Shape& shape = states[0].shape_;
+	if (dim >= shape.rank())
+	{
+		throw InvalidDimensionError(dim, shape);
+	}
+	std::vector<size_t> slist = shape.as_list();
+	if (1 == slist.size())
+	{
+		slist[0] = 1;
 	}
 	else
 	{
-		out = {1};
+		slist.erase(slist.begin() + dim);
 	}
-	return out;
+	return clay::Shape(slist);
 }
 
 static clay::DTYPE reduce_type (std::vector<clay::DTYPE> types)
 {
-	if (types.empty())
+	if (types.size() != 2)
 	{
-		throw NoArgumentsError();
+		throw BadNArgsError(2, types.size());
 	}
-	if (types.size() > 1 && clay::UINT64 != types[1])
+	if (clay::UINT64 != types[1])
 	{
 		throw clay::UnsupportedTypeError(types[1]);
 	}
@@ -404,6 +420,7 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 []()
 {
 	OpWrapper elem{elem_shape, same_type};
+	OpWrapper scalar{scalar_shape, scalar_type};
 	OpWrapper reduce{reduce_shape, reduce_type};
 
 	return std::unordered_map<OPCODE,OpWrapper,EnumHash>{
@@ -557,6 +574,9 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 		}
 		return types[0];
 	}}},
+	{UARGMAX, scalar},
+	{URMAX, scalar},
+	{URSUM, scalar},
 	{ARGMAX, reduce},
 	{RMAX, reduce},
 	{RSUM, reduce},
@@ -651,9 +671,126 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 		{
 			throw BadNArgsError(2, types.size());
 		}
+		// todo: add test for this, then uncomment
+		// if (types[1] != clay::UINT64)
+		// {
+		// 	throw clay::UnsupportedTypeError(types[1]);
+		// }
 		return clay::UINT64;
 	}}},
-	{MATMUL, OpWrapper{matmul_shape, same_type}}};
+	{MATMUL, OpWrapper{matmul_shape, same_type}},
+	{RESHAPE, OpWrapper{
+	[](std::vector<clay::State> states) -> clay::Shape
+	{
+		if (2 != states.size())
+		{
+			throw BadNArgsError(2, states.size());
+		}
+		clay::State& shapes = states[1];
+		clay::Shape& srcshape = states[0].shape_;
+		uint64_t* dim = safe_get<uint64_t>(shapes.data_);
+		clay::Shape replshape(
+			std::vector<size_t>{dim, dim + shapes.shape_.n_elems()});
+		if (srcshape.n_elems() != replshape.n_elems())
+		{
+			throw std::exception(); // todo: add context
+		}
+		return replshape;
+	},
+	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
+	{
+		if (2 != types.size())
+		{
+			throw BadNArgsError(2, types.size());
+		}
+		if (types[1] != clay::UINT64)
+		{
+			throw clay::UnsupportedTypeError(types[1]);
+		}
+		return types[0];
+	}}},
+	{JACOBIAN, OpWrapper{
+	[](std::vector<clay::State> states) -> clay::Shape
+	{
+		if (3 != states.size())
+		{
+			throw BadNArgsError(3, states.size());
+		}
+		clay::State& dims = states[2];
+		if (dims.shape_.n_elems() != 2)
+		{
+			throw std::runtime_error("failed to specify target and swap dimensions in jacobian");
+		}
+		uint64_t* dim = safe_get<uint64_t>(dims.data_);
+		clay::Shape ashape = states[0].shape_;
+		clay::Shape bshape = states[1].shape_;
+		clay::Shape yshape = states[*dim].shape_;
+		size_t x = bshape[0];
+		size_t y = yshape[0];
+		if (ashape.rank() > 1)
+		{
+			x *= ashape[1];
+		}
+		if (yshape.rank() > 1)
+		{
+			y *= yshape[1];
+		}
+		std::vector<size_t> slist = yshape.as_list();
+		slist[0] = x;
+		slist[1] = y;
+		return clay::Shape(slist);
+	},
+	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
+	{
+		if (3 != types.size())
+		{
+			throw BadNArgsError(3, types.size());
+		}
+		if (types[0] != types[1])
+		{
+			throw TypeMismatchError(types[0], types[1]);
+		}
+		if (types[2] != clay::UINT64)
+		{
+			throw clay::UnsupportedTypeError(types[2]);
+		}
+		return types[0];
+	}}},
+	{TRACE_EXPAND, OpWrapper{
+	[](std::vector<clay::State> states) -> clay::Shape
+	{
+		if (2 != states.size())
+		{
+			throw BadNArgsError(2, states.size());
+		}
+		if (1 != states[1].shape_.n_elems())
+		{
+			throw ShapeMismatchError(
+				clay::Shape({1}),
+				states[1].shape_);
+		}
+		clay::State& dstate = states[1];
+		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+		std::vector<size_t> slist = states[0].shape_.as_list();
+		if (slist.size() <= dim)
+		{
+			throw InvalidDimensionError(dim, states[0].shape_);
+		}
+		slist.insert(slist.begin() + dim, slist[dim]);
+		return clay::Shape(slist);
+	},
+	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
+	{
+		if (2 != types.size())
+		{
+			throw BadNArgsError(3, types.size());
+		}
+		if (types[1] != clay::UINT64)
+		{
+			throw clay::UnsupportedTypeError(types[1]);
+		}
+		return types[0];
+	}}}};
 }();
 
 bool has_op (OPCODE opcode)

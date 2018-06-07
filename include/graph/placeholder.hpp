@@ -99,8 +99,8 @@ public:
 			}
 			else
 			{
-				throw std::logic_error(nnutils::formatter() << "data with " 
-					<< n << " elements cannot be assigned to allcoated tensor with " 
+				throw std::logic_error(nnutils::formatter() << "data with "
+					<< n << " elements cannot be assigned to allcoated tensor with "
 					<< data_->get_shape().n_elems() << " elements");
 			}
 		}
@@ -121,7 +121,7 @@ public:
 		std::memcpy(ptr.get(), &data[0], nbytes);
 		asgn_.set_data(ptr, type, inshape, 0);
 		data_->read_from(asgn_, inshape);
-	
+
 		this->notify(UPDATE);
 		return *this;
 	}
@@ -146,7 +146,7 @@ private:
 	assign_io asgn_;
 
 	//! raw data
-	TensorPtrT data_ = nullptr;
+	std::unique_ptr<tensor> data_ = nullptr;
 };
 
 class placeptr : public varptr

@@ -47,11 +47,6 @@ struct mock_identifier : public wire::Identifier
 		}
 		return out;
 	}
-
-	Identifier* derive (Identifier* wrt) override
-	{
-		return nullptr;
-	}
 };
 
 
@@ -70,13 +65,13 @@ TEST_F(IDENTIFIER, Copy_C000)
 
 	mock_identifier cp(id);
 	EXPECT_TRUE(graph.has_node(cp.get_uid())) << "cp not found in global";
-	EXPECT_STRNE(id.get_uid().c_str(), cp.get_uid().c_str());
+	EXPECT_NE(id.get_uid(), cp.get_uid());
 	EXPECT_STREQ(label.c_str(), cp.get_label().c_str());
 	EXPECT_NE(convar, cp.get_node());
 
 	assign = id;
 	ASSERT_TRUE(graph.has_node(assign.get_uid())) << "assign not found in global";
-	EXPECT_STRNE(id.get_uid().c_str(), assign.get_uid().c_str());
+	EXPECT_NE(id.get_uid(), assign.get_uid());
 	EXPECT_STREQ(label.c_str(), assign.get_label().c_str());
 	EXPECT_NE(convar, assign.get_node());
 }
@@ -97,7 +92,7 @@ TEST_F(IDENTIFIER, Move_C001)
 
 	mock_identifier mv(std::move(id));
 	EXPECT_TRUE(graph.has_node(mv.get_uid())) << "mv not found in global";
-	EXPECT_STRNE(id.get_uid().c_str(), mv.get_uid().c_str());
+	EXPECT_NE(id.get_uid(), mv.get_uid());
 	EXPECT_STREQ(label.c_str(), mv.get_label().c_str());
 	EXPECT_EQ(convar, mv.get_node());
 	EXPECT_EQ(&graph, mv.get_graph());
@@ -108,7 +103,7 @@ TEST_F(IDENTIFIER, Move_C001)
 
 	assign = std::move(mv);
 	ASSERT_TRUE(graph.has_node(assign.get_uid())) << "assign not found in global";
-	EXPECT_STRNE(id.get_uid().c_str(), assign.get_uid().c_str());
+	EXPECT_NE(id.get_uid(), assign.get_uid());
 	EXPECT_STREQ(label.c_str(), assign.get_label().c_str());
 	EXPECT_EQ(convar, assign.get_node());
 	EXPECT_EQ(&graph, assign.get_graph());

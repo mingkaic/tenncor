@@ -13,13 +13,13 @@ namespace wire
 {
 
 DuplicateNodeIDError::DuplicateNodeIDError (
-	std::string gid, std::string node_id) :
+	std::string gid, UID node_id) :
 	std::runtime_error(ioutil::Stream() <<
 		"duplicate id " << node_id <<
 		" found in graph " << gid) {}
 
 MissingNodeError::MissingNodeError (
-	std::string gid, std::string node_id) :
+	std::string gid, UID node_id) :
 	std::runtime_error(ioutil::Stream() <<
 		"node " << node_id <<
 		" missing from graph " << gid) {}

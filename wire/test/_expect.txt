@@ -25,13 +25,9 @@ D000 - get constant as scalar creates constant of shape {1} and scalar provided
 		get of bad type throws error
 D001 - get vector constant creates constant of shape and data provided
 		get of bad type throws error
-D002 - derive returns 0 in constant type
-		derive with respect to self throws error
 
 // VARIABLE BEHAVIOR
 E000 - sets initialization in graph and initialize with input shape
-E001 - derive returns 1 in variable type if wrt is var else return 0,
-		throws error if deriving uninitialized variable
 
 // PLACEHOLDER BEHAVIOR
 F000 - without providing a shape to placeholder on construction,
@@ -44,8 +40,6 @@ F002 - provided a fully defined shape to placeholder on construction,
 F003 - reassign on initialized placeholder throws error if vector is larger than shape
 		reassign on initialized placeholder throws error if type is different
 		otherwise reassign is successful
-F004 - derive returns 1 in variable type if wrt is var else return 0,
-		throws error if deriving uninitialized variable
 
 // OPERATOR BEHAVIOR
 G000 - multiple operators on the same array of arguments will use the same instance
@@ -97,3 +91,11 @@ G137 - lt applies < function to input
 G138 - gt applies > function to input
 		derivative of f and g are f > g
 G139 - gt applies matmul function to input
+
+// DELTA BEHAVIOR
+H000 - constant delta returns 0 in constant type
+		derive with respect to self throws error
+H001 - placeholder derive returns 1 in variable type if wrt is var else return 0,
+		throws error if deriving uninitialized variable
+H002 - variable derive returns 1 in variable type if wrt is var else return 0,
+		throws error if deriving uninitialized variable

@@ -27,6 +27,9 @@ using namespace std::experimental;
 template <typename T>
 using list_it = typename std::list<T>::iterator;
 
+template <typename T>
+using list_const_it = typename std::list<T>::const_iterator;
+
 template <typename K, typename V>
 class OrderedMap
 {
@@ -60,6 +63,16 @@ public:
 	list_it<V> end (void)
 	{
 		return order_.end();
+	}
+
+	list_const_it<V> begin (void) const
+	{
+		return order_.cbegin();
+	}
+
+	list_const_it<V> end (void) const
+	{
+		return order_.cend();
 	}
 
 	bool put (K key, V value)

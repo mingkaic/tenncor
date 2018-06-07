@@ -8,7 +8,7 @@ REP_BZL_FLAG := --action_env="GTEST_REPEAT=$(GTEST_REPEAT)"
 
 VAL_BZL_FLAG := --run_under="valgrind --leak-check=full" --action_env="GTEST_REPEAT=5"
 
-ASAN_BZL_FLAG := --linkopt -fsanitize=address --action_env="GTEST_REPEAT=25"
+ASAN_BZL_FLAG := --linkopt -fsanitize=address
 
 BUILD := bazel build
 
@@ -67,6 +67,9 @@ test_kiln:
 test_wire:
 	$(GTEST) $(REP_BZL_FLAG) //wire:test
 
+test_lead:
+	$(GTEST) $(REP_BZL_FLAG) //lead:test
+
 # valgrind unit tests
 valgrind: valg_clay valg_mold valg_slip valg_kiln valg_wire
 
@@ -89,19 +92,19 @@ valg_wire:
 asan: asan_clay asan_mold asan_slip asan_kiln asan_wire
 
 asan_clay:
-	$(GTEST) $(ASAN_BZL_FLAG) //clay:test
+	$(GTEST) $(ASAN_BZL_FLAG) --action_env="GTEST_REPEAT=25" //clay:test
 
 asan_mold:
-	$(GTEST) $(ASAN_BZL_FLAG) //mold:test
+	$(GTEST) $(ASAN_BZL_FLAG) --action_env="GTEST_REPEAT=25" //mold:test
 
 asan_slip:
-	$(GTEST) $(ASAN_BZL_FLAG) //slip:test
+	$(GTEST) $(ASAN_BZL_FLAG) --action_env="GTEST_REPEAT=25" //slip:test
 
 asan_kiln:
-	$(GTEST) $(ASAN_BZL_FLAG) //kiln:test
+	$(GTEST) $(ASAN_BZL_FLAG) --action_env="GTEST_REPEAT=25" //kiln:test
 
 asan_wire:
-	$(GTEST) $(ASAN_BZL_FLAG) //wire:test
+	$(GTEST) $(ASAN_BZL_FLAG) --action_env="GTEST_REPEAT=25" //wire:test
 
 # coverage unit tests
 coverage: cover_clay cover_mold cover_slip cover_kiln cover_wire

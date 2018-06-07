@@ -5,9 +5,11 @@
 
 #include <cassert>
 
-#include "mold/iobserver.hpp"
+#include "ioutil/stream.hpp"
 
 #include "wire/identifier.hpp"
+
+#include "mold/iobserver.hpp"
 
 #ifdef WIRE_IDENTIFIER_HPP
 
@@ -60,7 +62,7 @@ Identifier& Identifier::operator = (Identifier&& other)
 	return *this;
 }
 
-std::string Identifier::get_uid (void) const
+UID Identifier::get_uid (void) const
 {
 	return uid_;
 }
@@ -72,7 +74,8 @@ std::string Identifier::get_label (void) const
 
 std::string Identifier::get_name (void) const
 {
-	return "<" + label_ + ":" + uid_ + ">";
+	return ioutil::Stream() << "<" << label_
+		<< ":" << uid_ << ">";
 }
 
 bool Identifier::has_data (void) const

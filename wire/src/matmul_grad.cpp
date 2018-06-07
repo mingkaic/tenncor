@@ -1,157 +1,88 @@
+//
+//  matmul_grad.cpp
+//  wire
+//
 
-// static Identifier* flatten_mat (Identifier* a)
-// {
-// 	return coord_func({a},
-// 	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
-// 	{
-// 		assert(srcs.size() == 1);
-// 		size_t per = type_size(type);
-// 		char* out = (char*) dest.first;
-// 		const char* in = (const char*) srcs[0].first;
-// 		tshape inshape = srcs[0].second;
-// 		size_t nelems = inshape.n_elems();
-// 		// zero out non-trace
-// 		std::memset(out, 0, per * nelems * nelems);
-// 		for (size_t i = 0; i < nelems; i++)
-// 		{
-// 			size_t outidx = i * nelems + i; // populate the trace
-// 			std::memcpy(out + outidx * per, in + i * per, per);
-// 		}
-// 	},
-// 	[](tshape inshape, std::vector<uint64_t>) -> tshape
-// 	{
-// 		size_t nelems = inshape.n_elems();
-// 		return std::vector<size_t>{nelems, nelems};
-// 	}, INJACOBIAN);
-// }
+#include <cassert>
 
-// Identifier* matmul_grad (Identifier* x, std::vector<Identifier*> args)
-// {
-// 	Identifier* a = args.front();
-// 	Identifier* b = args.back();
-// 	Identifier* adx = a->derive(x);
-// 	Identifier* bdx = b->derive(x);
-// 	Identifier* c = matmul(a, b);
-// 	// process both arguments as jacobians
-// 	Identifier* da, db;
-// 	tshape bases = x->get_tensor()->get_shape();
-// 	if (nullptr != adx.get())
-// 	{
-// 		adx = flatten_mat(adx); // todo: ensure adx keeps jacobian shape <xshape, cshape>
-// 		// todo: check for parent ja
-// 		Identifier* ja = functor::get({b, a, c},
-// 		[](std::unique_ptr<idata_src>& src, std::vector<Identifier*> args)
-// 		{
-// 			Identifier* b = args[0];
-// 			Identifier* a = args[1];
-// 			Identifier* c = args[2];
-// 			operate_io* csrc = new operate_io(
-// 			[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
-// 			{
-// 				assert(srcs.size() == 1);
-// 				size_t per = type_size(type);
-// 				char* out = (char*) dest.first;
-// 				const char* in = (const char*) srcs[0].first;
-// 				tshape outshape = dest.second;
-// 				tshape inshape = srcs[0].second;
-// 				size_t xlimit = inshape[0];
-// 				size_t ylimit = inshape[1];
-// 				size_t ns = inshape.n_elems();
-// 				size_t nparts = outshape[0] / xlimit;
-// 				// zero out background
-// 				std::memset(out, 0, outshape.n_elems() * per);
-// 				for (size_t i = 0; i < ns; ++i)
-// 				{
-// 					std::vector<size_t> coord = inshape.coord_from_idx(i);
-// 					size_t x = coord[0];
-// 					size_t y = coord[1];
-// 					for (size_t j = 0; j < nparts; ++j)
-// 					{
-// 						coord[0] = x + j * xlimit;
-// 						coord[1] = y + j * ylimit;
-// 						std::memcpy(out + outshape.flat_idx(coord) * per, in + i * per, per);
-// 					}
-// 				}
-// 			});
-// 			src = std::unique_ptr<idata_src>(csrc);
-// 			size_t nouter = a->get_tensor()->get_shape().n_elems();
-// 			size_t ninner = c->get_tensor()->get_shape().n_elems();
-// 			tshape outshape({ninner, nouter});
-// 			b->get_tensor()->write_to(*csrc);
-// 			return new tensor(outshape);
-// 		},
-// 		[](Identifier*, std::vector<Identifier*>) -> Identifier*
-// 		{
-// 			throw std::bad_function_call(); // unimplemented
-// 		}, JACOBIANLEFT); // ja has shape <ashape, cshape>
-// 		da = matmul(adx, ja); // da should have shape <xshape, ashape>
-// 	}
-// 	if (nullptr != bdx.get())
-// 	{
-// 		bdx = flatten_mat(bdx);
-// 		Identifier* jb = functor::get({a, b, c},
-// 		[](std::unique_ptr<idata_src>& src, std::vector<Identifier*> args)
-// 		{
-// 			Identifier* a = args[0];
-// 			Identifier* b = args[1];
-// 			Identifier* c = args[2];
-// 			operate_io* csrc = new operate_io(
-// 			[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
-// 			{
-// 				assert(srcs.size() == 2);
-// 				size_t per = type_size(type);
-// 				char* out = (char*) dest.first;
-// 				const char* in = (const char*) srcs[0].first;
-// 				tshape outshape = dest.second;
-// 				tshape inshape = srcs[0].second;
-// 				std::vector<size_t> blist = srcs[1].second.as_list();
-// 				size_t ylimit = inshape[0];
-// 				size_t xlimit = blist[0];
-// 				size_t ns = inshape.n_elems();
-// 				// zero out background
-// 				std::memset(out, 0, outshape.n_elems() * per);
-// 				for (size_t i = 0; i < ns; ++i)
-// 				{
-// 					std::vector<size_t> coord = inshape.coord_from_idx(i);
-// 					size_t x = coord[1] * ylimit;
-// 					size_t y = coord[0] * xlimit;
-// 					for (size_t j = 0; j < xlimit; ++j)
-// 					{
-// 						coord[0] = x + j;
-// 						coord[1] = y + j;
-// 						std::memcpy(out + outshape.flat_idx(coord) * per, in + i * per, per);
-// 					}
-// 				}
-// 			});
-// 			src = std::unique_ptr<idata_src>(csrc);
-// 			tshape bshape = b->get_tensor()->get_shape();
-// 			size_t nouter = bshape.n_elems();
-// 			size_t ninner = c->get_tensor()->get_shape().n_elems();
-// 			tshape outshape({ninner, nouter});
-// 			a->get_tensor()->write_to(*csrc, 0);
-// 			b->get_tensor()->write_to(*csrc, 1);
-// 			return new tensor(outshape);
-// 		},
-// 		[](Identifier*, std::vector<Identifier*>) -> Identifier*
-// 		{
-// 			throw std::bad_function_call(); // unimplemented
-// 		}, JACOBIANRIGHT);
-// 		db = matmul(bdx, jb);
-// 	}
-// 	// todo: ensure non-terminating matmul keep jacobian shape
-// 	return coord_func({reduce_sum(da + db, 0)},
-// 	[](TENS_TYPE type, VARR_T dest, std::vector<CVAR_T> srcs)
-// 	{
-// 		assert(srcs.size() == 1);
-// 		size_t per = type_size(type);
-// 		char* out = (char*) dest.first;
-// 		const char* in = (const char*) srcs[0].first;
-// 		tshape outshape = dest.second;
-// 		size_t n = outshape.n_elems();
-// 		std::memcpy(out, in, n * per);
-// 	},
-// 	[bases](tshape, std::vector<uint64_t>)
-// 	{
-// 		return bases;
-// 	}, OUTJACOBIAN);
-// }
+#include "wire/matmul_grad.hpp"
+#include "wire/operators.hpp"
+
+#ifdef WIRE_MATMUL_GRAD_HPP
+
+namespace wire
+{
+
+static Identifier* tracify (Identifier* arg)
+{
+    clay::State state = arg->get_state();
+    clay::Shape& shape = state.shape_;
+    std::vector<size_t> slist = shape.as_list();
+    if (slist.size() > 1)
+    {
+        slist[0] *= slist[1];
+        slist.erase(slist.begin() + 1);
+    }
+    Identifier* flat = reshape(arg, std::vector<uint64_t>(
+        slist.begin(), slist.end()));
+    return trace_expand(flat, (uint64_t) 0);
+}
+
+Identifier* matmul_grad (Identifier*, GradArgsT args)
+{
+    // matmul'(f, g) = matmul(f', dmatmul/df) + matmul(g', dmatmul/dg)
+    // dmatmul/df = jacobian(g), dmatmul/dg = jacobian(f)
+    // C = matmul(A, B), where A has shape <m, n>, B has shape <p, m>
+    // C has shape <p, n>
+    // c_xy = sum_k=0,m-1(a_ky * b_xk)
+    // d c_xy / d a_vu = sum(b_xk yf a_ky == a_vu else 0)
+    // d c_xy / d a_vy = b_xv
+    // d c_xy / d a_uk = 0 for k != y
+
+	Identifier* a = args.front().first;
+	Identifier* b = args.back().first;
+	Identifier* da = args.front().second;
+	Identifier* db = args.back().second;
+	// process both arguments as jacobians
+    Identifier* lhs = nullptr;
+    Identifier* rhs = nullptr;
+    if (nullptr != da)
+    {
+        clay::Shape dashape = da->get_state().shape_;
+        clay::Shape ashape = a->get_state().shape_;
+        assert(ashape.is_fully_defined());
+        if (dashape[0] != ashape.n_elems())
+        // this is an unreliable way of detecting non-jacobian da
+        // todo: improve this check
+        {
+            da = tracify(da);
+        }
+        Identifier* jb = jacobian(a, b, 0, 1);
+        lhs = matmul(da, jb);
+    }
+    if (nullptr != db)
+    {
+        clay::Shape dbshape = db->get_state().shape_;
+        clay::Shape bshape = b->get_state().shape_;
+        assert(bshape.is_fully_defined());
+        if (dbshape[0] != bshape.n_elems())
+        {
+            db = tracify(db);
+        }
+        Identifier* ja = jacobian(a, b, 1, 0);
+        rhs = matmul(db, ja);
+    }
+    if (nullptr == lhs)
+    {
+        return rhs;
+    }
+    else if (nullptr == rhs)
+    {
+        return lhs;
+    }
+    return add(lhs, rhs);
+}
+
+}
+
+#endif

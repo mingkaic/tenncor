@@ -39,7 +39,7 @@ struct OnDeath final : public iObserver
 
 	void update (void) override;
 
-    void clear_term (void);
+	void clear_term (void);
 
 private:
 	TermF terminate_;

@@ -105,7 +105,7 @@ private:
 
 
 	//! raw data
-	TensorPtrT data_ = nullptr;
+	std::unique_ptr<tensor> data_ = nullptr;
 };
 
 constant* find_const (size_t key);
@@ -138,7 +138,7 @@ varptr constant::get (T scalar)
 template <typename T>
 varptr constant::get (std::vector<T> raw, tshape shape)
 {
-	static_assert(std::is_arithmetic<T>::value, 
+	static_assert(std::is_arithmetic<T>::value,
 		"constant must be arithmetic value");
 	assert(shape.is_fully_defined());
 	std::string name;

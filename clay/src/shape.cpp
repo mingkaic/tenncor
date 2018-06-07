@@ -28,12 +28,12 @@ size_t Shape::operator [] (size_t dim) const
 	return dimensions_.at(dim);
 }
 
-typename std::vector<size_t>::const_iterator Shape::cbegin (void) const
+typename std::vector<size_t>::const_iterator Shape::begin (void) const
 {
 	return dimensions_.cbegin();
 }
 
-typename std::vector<size_t>::const_iterator Shape::cend (void) const
+typename std::vector<size_t>::const_iterator Shape::end (void) const
 {
 	return dimensions_.cend();
 }
@@ -199,8 +199,8 @@ Shape trim (const Shape& shape)
 		while (start < end && 1 == shape[end]) { end--; }
 		if (start < end || 1 != shape[end])
 		{
-			res.insert(res.end(), shape.cbegin() + start,
-				shape.cbegin() + end + 1);
+			res.insert(res.end(), shape.begin() + start,
+				shape.begin() + end + 1);
 		}
 	}
 	return res;
@@ -217,7 +217,7 @@ Shape concatenate (const Shape& shape, const Shape& other)
 		return shape;
 	}
 	std::vector<size_t> ds = shape.as_list();
-	ds.insert(ds.end(), other.cbegin(), other.cend());
+	ds.insert(ds.end(), other.begin(), other.end());
 	return Shape(ds);
 }
 
@@ -228,7 +228,7 @@ Shape with_rank (const Shape& shape, size_t rank)
 	if (rank < ndim)
 	{
 		// clip to rank
-		auto it = shape.cbegin();
+		auto it = shape.begin();
 		ds.insert(ds.end(), it, it+rank);
 	}
 	else if (rank> ndim)
@@ -264,7 +264,7 @@ Shape with_rank_at_most (const Shape& shape, size_t rank)
 	if (rank < shape.rank())
 	{
 		// clip to fit rank
-		auto it = shape.cbegin();
+		auto it = shape.begin();
 		ds.insert(ds.end(), it, it+rank);
 	}
 	else
@@ -290,7 +290,7 @@ std::vector<size_t> coordinate (const Shape& shape, size_t idx)
 {
 	std::vector<size_t> coord;
 	size_t xd;
-	for (auto it = shape.cbegin(); it != shape.cend(); ++it)
+	for (auto it = shape.begin(); it != shape.end(); ++it)
 	{
 		xd = idx % *it;
 		coord.push_back(xd);

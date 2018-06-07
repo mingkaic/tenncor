@@ -21,6 +21,10 @@
 namespace wire
 {
 
+using GradMapT = std::unordered_map<slip::OPCODE,GradF,slip::EnumHash>;
+
+extern const GradMapT grad_op;
+
 //! convert a to match type
 Identifier* cast (Identifier* type, Identifier* a);
 
@@ -162,6 +166,18 @@ Identifier* clip_norm (Identifier* a, Identifier* cap);
 
 //! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
 Identifier* matmul (Identifier* a, Identifier* b);
+
+Identifier* reshape (Identifier* a, Identifier* shape);
+
+Identifier* reshape (Identifier* a, std::vector<uint64_t> shape);
+
+Identifier* jacobian (Identifier* a, Identifier* b, Identifier* dims);
+
+Identifier* jacobian (Identifier* a, Identifier* b, uint64_t targetdim, uint64_t swapdim);
+
+Identifier* trace_expand (Identifier* a, Identifier* dim);
+
+Identifier* trace_expand (Identifier* a, uint64_t dim);
 
 // unimplemented
 

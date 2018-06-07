@@ -16,15 +16,6 @@ Constant::Constant (std::shared_ptr<char> data, clay::Shape shape,
 	clay::DTYPE dtype, std::string label, Graph& graph) :
 	Identifier(&graph, new mold::Constant(data, shape, dtype), label) {}
 
-Identifier* Constant::derive (Identifier* wrt)
-{
-	if (wrt == this)
-	{
-		throw std::logic_error("deriving with respect to a constant");
-	}
-	return make_zero(this);
-}
-
 Constant* make_zero (Identifier* src)
 {
 	clay::State state = src->get_state();

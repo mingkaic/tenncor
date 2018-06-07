@@ -33,9 +33,15 @@ class Identifier;
 
 class Functor;
 
+using UID = size_t;
+
 using FunctorSetT = std::unordered_set<Functor*>;
 
-using OPCODEFuncMapT = std::unordered_map<slip::OPCODE,FunctorSetT,slip::EnumHash>;
+using OpcodeMapT = std::unordered_map<slip::OPCODE,
+	FunctorSetT,slip::EnumHash>;
+
+using BuilderMapT = std::unordered_map<UID,
+	std::unique_ptr<clay::iBuilder>>;
 
 class Graph
 {
@@ -44,10 +50,14 @@ public:
 
 	static std::unique_ptr<Graph> get_temp (void);
 
+	static std::unique_ptr<Graph> get_temp (std::string gid);
+
 	static void replace_global (std::unique_ptr<Graph>&& temp);
 
 	Graph (const Graph&) = delete;
+
 	Graph (Graph&&) = delete;
+
 	Graph& operator = (const Graph&) = delete;
 
 	Graph& operator = (Graph&&) = default;
@@ -55,45 +65,31 @@ public:
 
 	std::string get_gid (void) const;
 
-	size_t size (void) const
-	{
-		return adjmap_.size();
-	}
+	size_t size (void) const;
 
-	list_it<Identifier*> begin (void)
-	{
-		return adjmap_.begin();
-	}
+	list_it<Identifier*> begin (void);
 
-	list_it<Identifier*> end (void)
-	{
-		return adjmap_.end();
-	}
+	list_it<Identifier*> end (void);
 
-	bool has_node (std::string id) const;
+	list_const_it<Identifier*> begin (void) const;
 
-	Identifier* get_node (std::string id) const;
+	list_const_it<Identifier*> end (void) const;
+
+	bool has_node (UID id) const;
+
+	Identifier* get_node (UID id) const;
+
+	bool replace_id (wire::Identifier* id, UID repl_id);
 
 
-	FunctorSetT get_func (slip::OPCODE opcode) const
-	{
-		auto it = funcs_.find(opcode);
-		if (funcs_.end() != it)
-		{
-			return it->second;
-		}
-		return FunctorSetT();
-	}
+	FunctorSetT get_func (slip::OPCODE opcode) const;
 
 
 	void initialize_all (void);
 
-	void initialize (std::string id);
+	void initialize (UID id);
 
-	size_t n_uninit (void) const
-	{
-		return uninits_.size();
-	}
+	size_t n_uninit (void) const;
 
 protected:
 	friend class Identifier;
@@ -104,42 +100,32 @@ protected:
 
 	friend class Functor;
 
-	Graph (void) = default;
+	Graph (void) : gid_(puid(this)) {}
 
-	std::string associate (Identifier* id);
+	Graph (std::string gid) : gid_(gid) {}
 
-	void disassociate (std::string id);
+	UID associate (Identifier* id);
 
-	void add_func (slip::OPCODE opcode, Functor* func)
-	{
-		funcs_[opcode].emplace(func);
-	}
+	void disassociate (UID id);
 
-	void remove_func (Functor* func)
-	{
-		for (auto& fpair : funcs_)
-		{
-			auto it = fpair.second.find(func);
-			if (fpair.second.end() != it)
-			{
-				fpair.second.erase(it);
-				return;
-			}
-		}
-	}
+	void add_func (slip::OPCODE opcode, Functor* func);
 
-	std::unordered_map<std::string,std::unique_ptr<clay::iBuilder>> uninits_;
+	void remove_func (Functor* func);
 
-	std::unordered_map<std::string,clay::Shape> alloweds_;
+	BuilderMapT uninits_;
+
+	std::unordered_map<UID,clay::Shape> alloweds_;
 
 private:
 	void unsafe_init (Identifier* id, clay::iBuilder& builder);
 
-	std::string gid_ = puid(this);
+	std::string gid_;
 
-	OrderedMap<std::string,Identifier*> adjmap_;
+	OrderedMap<UID,Identifier*> adjmap_;
 
-	OPCODEFuncMapT funcs_;
+	UID next_uid_ = 0;
+
+	OpcodeMapT funcs_;
 };
 
 }

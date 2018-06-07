@@ -245,6 +245,43 @@ void matmul (clay::State& dest, std::vector<clay::State> srcs)
 	}
 }
 
+template <typename T>
+void jacobian (clay::State& dest, std::vector<clay::State> srcs)
+{
+	clay::Shape& outshape = dest.shape_;
+	clay::State& dstate = srcs[2];
+	uint64_t* dims = safe_get<uint64_t>(dstate.data_);
+	uint64_t matchdim = dims[0];
+	uint64_t swapdim = dims[1];
+
+	clay::State& state = srcs[swapdim];
+	T* d = safe_get<T>(dest.data_);
+	clay::Shape& inshape = state.shape_;
+	const T* s = safe_get<const T>(state.data_);
+	size_t innerlimit = srcs[matchdim].shape_.as_list()[swapdim];
+	size_t ylimit = srcs[0].shape_.as_list()[0];
+	size_t xlimit = srcs[1].shape_.as_list()[0];
+	size_t n = inshape.n_elems();
+	// zero out background
+	std::memset(d, 0, outshape.n_elems() * sizeof(T));
+	for (size_t i = 0; i < n; ++i)
+	{
+		std::vector<size_t> coord = coordinate(inshape, i);
+		size_t x = coord[0];
+		size_t y = coord[1];
+		for (size_t j = 0; j < innerlimit; ++j)
+		{
+			std::vector<size_t> vx = {x, j};
+			std::vector<size_t> vy = {y, j};
+			vx[swapdim] *= xlimit;
+			vy[swapdim] *= ylimit;
+			coord[matchdim] = vx[0] + vx[1];
+			coord[swapdim] = vy[0] + vy[1];
+			d[index(outshape, coord)] = s[i];
+		}
+	}
+}
+
 }
 
 #endif

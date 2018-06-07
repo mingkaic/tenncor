@@ -4,6 +4,7 @@
 
 #include "wire/variable.hpp"
 #include "wire/operators.hpp"
+#include "wire/delta.hpp"
 
 
 class BINAR_TESTS : public TF_VERIFY
@@ -35,12 +36,12 @@ void check_binar (OpArgs args, BINARY_OP op)
 	clay::State outt = out->get_state();
 	state_check(expectt, outt);
 
-	wire::Identifier* grad1 = out->derive(input1);
+	wire::Identifier* grad1 = wire::delta(out, input1);
 	clay::State expectgrad1t = expectgrad1->get_state();
 	clay::State grad1t = grad1->get_state();
 	state_check(expectgrad1t, grad1t);
 
-	wire::Identifier* grad2 = out->derive(input2);
+	wire::Identifier* grad2 = wire::delta(out, input2);
 	clay::State expectgrad2t = expectgrad2->get_state();
 	clay::State grad2t = grad2->get_state();
 	state_check(expectgrad2t, grad2t);

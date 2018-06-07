@@ -37,7 +37,7 @@ public:
 
 	Identifier& operator = (Identifier&& other);
 
-	std::string get_uid (void) const;
+	UID get_uid (void) const;
 
 	std::string get_label (void) const;
 
@@ -47,19 +47,29 @@ public:
 
 	clay::State get_state (void) const;
 
-	virtual Identifier* derive (Identifier* wrt) = 0;
+	virtual std::vector<UID> get_args (void) const
+	{
+		return {};
+	}
+
+	mold::iNode* get (void) const
+	{
+		mold::iNode* out = nullptr;
+		if (nullptr != death_sink_)
+		{
+			out = death_sink_->get();
+		}
+		return out;
+	}
 
 protected:
 	friend class Functor;
 
 	friend void assoc (Identifier* source, Identifier* kill);
 
-	Identifier (Graph* graph, mold::iNode* arg, std::string label);
+	friend Identifier* delta (Identifier* root, Identifier* wrt);
 
-	mold::iNode* get (void) const
-	{
-		return death_sink_->get();
-	}
+	Identifier (Graph* graph, mold::iNode* arg, std::string label);
 
 	Graph* graph_ = nullptr;
 
@@ -76,7 +86,7 @@ private:
 
 	std::string label_;
 
-	std::string uid_;
+	UID uid_;
 };
 
 //! associate two identifiers to delete kill when source dies

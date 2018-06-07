@@ -1,27 +1,28 @@
 //
-//  clay_packer.cpp
+//  packer.cpp
 //  lead
 //
 
-#include "lead/clay_packer.hpp"
+#include "lead/include/packer.hpp"
 
 #include "clay/memory.hpp"
+#include "clay/error.hpp"
 
-#ifdef LEAD_CLAY_PACKER_HPP
+#ifdef LEAD_PACKER_HPP
 
 namespace lead
 {
 
-std::shared_ptr<char> unpack_data (const google::protobuf::Any& src, 
-	TensorT dtype)
+std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
+	tenncor::TensorT dtype)
 {
 	std::shared_ptr<char> out;
 	size_t nout;
 	switch (dtype)
 	{
-		case DOUBLE:
+		case tenncor::DOUBLE:
 		{
-			DoubleArr arr;
+			tenncor::DoubleArr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<double>& vec = arr.data();
 			nout = vec.size();
@@ -30,9 +31,9 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 			std::memcpy(out.get(), &vec[0], nb);
 		}
 		break;
-		case FLOAT:
+		case tenncor::FLOAT:
 		{
-			FloatArr arr;
+			tenncor::FloatArr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<float>& vec = arr.data();
 			nout = vec.size();
@@ -41,10 +42,10 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 			std::memcpy(out.get(), &vec[0], nb);
 		}
 		break;
-		case INT8:
-		case UINT8:
+		case tenncor::INT8:
+		case tenncor::UINT8:
 		{
-			ByteArr arr;
+			tenncor::ByteArr arr;
 			src.UnpackTo(&arr);
 			std::string vec = arr.data();
 			nout = vec.size();
@@ -52,9 +53,9 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 			std::memcpy(out.get(), vec.c_str(), nout);
 		}
 		break;
-		case INT16:
+		case tenncor::INT16:
 		{
-			Int32Arr arr;
+			tenncor::Int32Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<int32_t>& vec = arr.data();
 			std::vector<int16_t> conv(vec.begin(), vec.end());
@@ -64,9 +65,9 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 			std::memcpy(out.get(), &conv[0], nb);
 		}
 		break;
-		case UINT16:
+		case tenncor::UINT16:
 		{
-			Uint32Arr arr;
+			tenncor::Uint32Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<uint32_t>& vec = arr.data();
 			std::vector<uint16_t> conv(vec.begin(), vec.end());
@@ -76,9 +77,9 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 			std::memcpy(out.get(), &conv[0], nb);
 		}
 		break;
-		case INT32:
+		case tenncor::INT32:
 		{
-			Int32Arr arr;
+			tenncor::Int32Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<int32_t>& vec = arr.data();
 			nout = vec.size();
@@ -87,9 +88,9 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 			std::memcpy(out.get(), &vec[0], nb);
 		}
 		break;
-		case UINT32:
+		case tenncor::UINT32:
 		{
-			Uint32Arr arr;
+			tenncor::Uint32Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<uint32_t>& vec = arr.data();
 			nout = vec.size();
@@ -98,9 +99,9 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 			std::memcpy(out.get(), &vec[0], nb);
 		}
 		break;
-		case INT64:
+		case tenncor::INT64:
 		{
-			Int64Arr arr;
+			tenncor::Int64Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<int64_t>& vec = arr.data();
 			nout = vec.size();
@@ -109,9 +110,9 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 			std::memcpy(out.get(), &vec[0], nb);
 		}
 		break;
-		case UINT64:
+		case tenncor::UINT64:
 		{
-			Uint64Arr arr;
+			tenncor::Uint64Arr arr;
 			src.UnpackTo(&arr);
 			const google::protobuf::RepeatedField<uint64_t>& vec = arr.data();
 			nout = vec.size();
@@ -121,19 +122,18 @@ std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
 		}
 		break;
 		default:
-			throw clay::UnsupportedTypeError(dtype);
+			throw clay::UnsupportedTypeError((clay::DTYPE) dtype);
 	}
 	return out;
 }
 
-void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype, 
-	google::protobuf::Any& dest)
+void pack_data (google::protobuf::Any* dest, std::shared_ptr<char> src, size_t n, tenncor::TensorT dtype)
 {
 	switch (dtype)
 	{
-		case DOUBLE:
+		case tenncor::DOUBLE:
 		{
-			DoubleArr arr;
+			tenncor::DoubleArr arr;
 			double* dptr = (double*) src.get();
 			std::vector<double> vec(dptr, dptr + n);
 			google::protobuf::RepeatedField<double> field(vec.begin(), vec.end());
@@ -141,9 +141,9 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 			dest->PackFrom(arr);
 		}
 		break;
-		case FLOAT:
+		case tenncor::FLOAT:
 		{
-			FloatArr arr;
+			tenncor::FloatArr arr;
 			float* dptr = (float*) src.get();
 			std::vector<float> vec(dptr, dptr + n);
 			google::protobuf::RepeatedField<float> field(vec.begin(), vec.end());
@@ -151,17 +151,17 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 			dest->PackFrom(arr);
 		}
 		break;
-		case INT8:
-		case UINT8:
+		case tenncor::INT8:
+		case tenncor::UINT8:
 		{
-			ByteArr arr;
+			tenncor::ByteArr arr;
 			arr.set_data(src.get(), n);
 			dest->PackFrom(arr);
 		}
 		break;
-		case INT16:
+		case tenncor::INT16:
 		{
-			Int32Arr arr;
+			tenncor::Int32Arr arr;
 			int16_t* dptr = (int16_t*) src.get();
 			std::vector<int16_t> vec(dptr, dptr + n);
 			google::protobuf::RepeatedField<int32_t> field(vec.begin(), vec.end());
@@ -169,9 +169,9 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 			dest->PackFrom(arr);
 		}
 		break;
-		case UINT16:
+		case tenncor::UINT16:
 		{
-			Uint32Arr arr;
+			tenncor::Uint32Arr arr;
 			uint16_t* dptr = (uint16_t*) src.get();
 			std::vector<uint16_t> vec(dptr, dptr + n);
 			google::protobuf::RepeatedField<uint32_t> field(vec.begin(), vec.end());
@@ -179,9 +179,9 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 			dest->PackFrom(arr);
 		}
 		break;
-		case INT32:
+		case tenncor::INT32:
 		{
-			Int32Arr arr;
+			tenncor::Int32Arr arr;
 			int32_t* dptr = (int32_t*) src.get();
 			std::vector<int32_t> vec(dptr, dptr + n);
 			google::protobuf::RepeatedField<int32_t> field(vec.begin(), vec.end());
@@ -189,9 +189,9 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 			dest->PackFrom(arr);
 		}
 		break;
-		case UINT32:
+		case tenncor::UINT32:
 		{
-			Uint32Arr arr;
+			tenncor::Uint32Arr arr;
 			uint32_t* dptr = (uint32_t*) src.get();
 			std::vector<uint32_t> vec(dptr, dptr + n);
 			google::protobuf::RepeatedField<uint32_t> field(vec.begin(), vec.end());
@@ -199,9 +199,9 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 			dest->PackFrom(arr);
 		}
 		break;
-		case INT64:
+		case tenncor::INT64:
 		{
-			Int64Arr arr;
+			tenncor::Int64Arr arr;
 			int64_t* dptr = (int64_t*) src.get();
 			std::vector<int64_t> vec(dptr, dptr + n);
 			google::protobuf::RepeatedField<int64_t> field(vec.begin(), vec.end());
@@ -209,9 +209,9 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 			dest->PackFrom(arr);
 		}
 		break;
-		case UINT64:
+		case tenncor::UINT64:
 		{
-			Uint64Arr arr;
+			tenncor::Uint64Arr arr;
 			uint64_t* dptr = (uint64_t*) src.get();
 			std::vector<uint64_t> vec(dptr, dptr + n);
 			google::protobuf::RepeatedField<uint64_t> field(vec.begin(), vec.end());
@@ -220,7 +220,7 @@ void pack_data (std::shared_ptr<char> src, size_t n, TensorT dtype,
 		}
 		break;
 		default:
-			throw clay::UnsupportedTypeError(dtype);
+			throw clay::UnsupportedTypeError((clay::DTYPE) dtype);
 	}
 }
 

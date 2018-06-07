@@ -106,7 +106,7 @@ varptr constant::derive (inode*)
 
 
 constant::constant (tensor* data, std::string name) :
-	inode(name), data_(TensorPtrT(data)) {}
+	inode(name), data_(std::unique_ptr<tensor>(data)) {}
 
 constant::~constant (void)
 {

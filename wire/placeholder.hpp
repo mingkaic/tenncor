@@ -90,8 +90,6 @@ public:
 		return *this;
 	}
 
-	Identifier* derive (Identifier* wrt) override;
-
 private:
 	struct AssignIO final : public clay::iSource
 	{

@@ -2,10 +2,10 @@ syntax = "proto3";
 
 option go_package = "github.com/mingkaic/tenncor/lead";
 
-package lead;
+package tenncor;
 
 import "google/protobuf/any.proto";
-import "lead/clay.proto";
+import "lead/data.proto";
 
 enum OpcodeT
 {
@@ -33,20 +33,21 @@ enum OpcodeT
 	NORM = 21;
 	TRANSPOSE = 22;
 	FLIP = 23;
-	ARGMAX = 24;
-	RMAX = 25;
-	RSUM = 26;
-	EXPAND = 27;
-	N_ELEMS = 28;
-	N_DIMS = 29;
-	MATMUL = 30;
+	UARGMAX = 24;
+	URMAX = 25;
+	URSUM = 26;
+	ARGMAX = 27;
+	RMAX = 28;
+	RSUM = 29;
+	EXPAND = 30;
+	N_ELEMS = 31;
+	N_DIMS = 32;
+	MATMUL = 33;
 	// gradient nodes (todo: remove this)
-	INJACOBIAN = 31;
-	OUTJACOBIAN = 32;
-	JACOBIANLEFT = 33;
-	JACOBIANRIGHT = 34;
+	JACOBIAN = 34;
+	RESHAPE = 35;
 	// sentinel
-	_OP_SENTINEL = 35;
+	_OP_SENTINEL = 36;
 }
 
 message NodePb
@@ -61,9 +62,10 @@ message NodePb
 	NodeT type = 1;
 	string label = 2;
 	// takes messages:
-    // TensorPb for type == VARIABLE || 
-    // type == PLACEHOLDER || type == CONSTANT
+	// TensorPb for type == CONSTANT
 	// FunctorPb for type == FUNCTOR
+	// unset for type == VARIABLE ||
+	// 			type == PLACEHOLDER
 	google.protobuf.Any detail = 3;
 }
 

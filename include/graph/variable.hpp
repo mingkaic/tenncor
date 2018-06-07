@@ -120,7 +120,7 @@ private:
 	std::shared_ptr<data_src> src_; // todo: consider this temporary variable
 
 	//! raw data
-	TensorPtrT data_ = nullptr;
+	std::unique_ptr<tensor> data_ = nullptr;
 };
 
 }

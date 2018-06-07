@@ -12,6 +12,7 @@
 
 #include "wire/operators.hpp"
 #include "wire/variable.hpp"
+#include "wire/delta.hpp"
 
 
 #ifndef DISABLE_OPERATORS_TEST
@@ -50,7 +51,7 @@ using BINAR = std::function<T(T,T)>;
 static void selfGrad (wire::Identifier* f, clay::State state)
 {
 	clay::Shape shape = f->get_state().shape_;
-	wire::Identifier* wun = f->derive(f);
+	wire::Identifier* wun = wire::delta(f, f);
 	clay::State back = wun->get_state();
 	EXPECT_SHAPEQ(shape, back.shape_);
 	EXPECT_EQ(state.dtype_, back.dtype_);
@@ -170,8 +171,8 @@ static void unarElemTest (fuzz_test* fuzzer, VARFUNC op,
 	EXPECT_EQ(nullptr, op({nullptr}));
 
 	// test behavior G002
-	EXPECT_THROW(f->derive(f), std::exception);
-	EXPECT_THROW(f->derive(&leaf), std::exception);
+	EXPECT_THROW(wire::delta(f, f), std::exception);
+	EXPECT_THROW(wire::delta(f, &leaf), std::exception);
 
 	wire::Graph::get_global().initialize_all();
 	ASSERT_TRUE(f->has_data());
@@ -181,7 +182,7 @@ static void unarElemTest (fuzz_test* fuzzer, VARFUNC op,
 	selfGrad(f, state);
 
 	// test behavior B1xx
-	wire::Identifier* der = f->derive(&leaf);
+	wire::Identifier* der = wire::delta(f, &leaf);
 	clay::State back = der->get_state();
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_SHAPEQ(shape, back.shape_);
@@ -227,12 +228,14 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 	EXPECT_EQ(f, f2);
 
 	// test behavior G001
-	EXPECT_EQ(nullptr, op({nullptr}));
+	EXPECT_EQ(nullptr, op({&leaf, nullptr}));
+	EXPECT_EQ(nullptr, op({nullptr, &leaf2}));
+	EXPECT_EQ(nullptr, op({nullptr, nullptr}));
 
 	// test behavior G002
-	EXPECT_THROW(f->derive(f), std::exception);
-	EXPECT_THROW(f->derive(&leaf), std::exception);
-	EXPECT_THROW(f->derive(&leaf2), std::exception);
+	EXPECT_THROW(wire::delta(f, f), std::exception);
+	EXPECT_THROW(wire::delta(f, &leaf), std::exception);
+	EXPECT_THROW(wire::delta(f, &leaf2), std::exception);
 
 	wire::Graph::get_global().initialize_all();
 	ASSERT_TRUE(f->has_data());
@@ -242,8 +245,8 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 	selfGrad(f, state);
 
 	// test behavior B1xx
-	wire::Identifier* der = f->derive(&leaf);
-	wire::Identifier* der2 = f->derive(&leaf2);
+	wire::Identifier* der = wire::delta(f, &leaf);
+	wire::Identifier* der2 = wire::delta(f, &leaf2);
 	clay::State back = der->get_state();
 	clay::State back2 = der2->get_state();
 	EXPECT_SHAPEQ(shape, state.shape_);
@@ -278,9 +281,9 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 		{
 			err3 /= expectbwdB;
 		}
-		EXPECT_GT(ERR_THRESH, err);
-		EXPECT_GT(ERR_THRESH, err2);
-		EXPECT_GT(ERR_THRESH, err3);
+		EXPECT_GT(ERR_THRESH, err) << expectfwd << " " << outptr[i];
+		EXPECT_GT(ERR_THRESH, err2) << expectbwdA << " " << backptr[i];
+		EXPECT_GT(ERR_THRESH, err3) << expectbwdB << " " << backptr2[i];
 	}
 }
 
@@ -301,12 +304,14 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	EXPECT_EQ(f, f2);
 
 	// test behavior G001
-	EXPECT_EQ(nullptr, op({nullptr}));
+	EXPECT_EQ(nullptr, op({&leaf, nullptr}));
+	EXPECT_EQ(nullptr, op({nullptr, &leaf2}));
+	EXPECT_EQ(nullptr, op({nullptr, nullptr}));
 
 	// test behavior G002
-	EXPECT_THROW(f->derive(f), std::exception);
-	EXPECT_THROW(f->derive(&leaf), std::exception);
-	EXPECT_THROW(f->derive(&leaf2), std::exception);
+	EXPECT_THROW(wire::delta(f, f), std::exception);
+	EXPECT_THROW(wire::delta(f, &leaf), std::exception);
+	EXPECT_THROW(wire::delta(f, &leaf2), std::exception);
 
 	wire::Graph::get_global().initialize_all();
 	ASSERT_TRUE(f->has_data());
@@ -316,8 +321,8 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	selfGrad(f, state);
 
 	// test behavior B1xx
-	wire::Identifier* der = f->derive(&leaf);
-	wire::Identifier* der2 = f->derive(&leaf2);
+	wire::Identifier* der = wire::delta(f, &leaf);
+	wire::Identifier* der2 = wire::delta(f, &leaf2);
 	clay::State back = der->get_state();
 	clay::State back2 = der2->get_state();
 	EXPECT_SHAPEQ(shape, state.shape_);

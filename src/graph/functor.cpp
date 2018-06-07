@@ -251,7 +251,7 @@ void functor::update (void)
 	{
 		if (nullptr == data_)
 		{
-			data_ = TensorPtrT(tensop_(io_, args));
+			data_ = std::unique_ptr<tensor>(tensop_(io_, args));
 		}
 		data_->read_from(*io_);
 		this->notify(UPDATE);

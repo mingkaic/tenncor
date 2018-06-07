@@ -12,6 +12,7 @@
  */
 
 #include "ioutil/stream.hpp"
+
 #include "mold/variable.hpp"
 
 #include "wire/graph.hpp"
@@ -33,8 +34,6 @@ struct Variable final : public Identifier
 		std::string label, Graph& graph = Graph::get_global());
 
 	~Variable (void);
-
-	Identifier* derive (Identifier* wrt) override;
 
 	void assign (const Identifier& src);
 };

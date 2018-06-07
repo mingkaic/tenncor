@@ -36,9 +36,9 @@ void set_op (fuzz_test* fuzzer, mold::iOperatePtrT& op, slip::OPCODE opcode)
 		case slip::SQRT:
 		case slip::ROUND:
 		case slip::TRANSPOSE:
-		case slip::ARGMAX:
-		case slip::RMAX:
-		case slip::RSUM:
+		case slip::UARGMAX:
+		case slip::URMAX:
+		case slip::URSUM:
 		case slip::N_ELEMS:
 		{
 			clay::Shape shape = random_def_shape(fuzzer);
@@ -96,6 +96,9 @@ void set_op (fuzz_test* fuzzer, mold::iOperatePtrT& op, slip::OPCODE opcode)
 		break;
 		case slip::FLIP:
 		case slip::N_DIMS:
+		case slip::ARGMAX:
+		case slip::RMAX:
+		case slip::RSUM:
 		{
 			clay::Shape shape = random_def_shape(fuzzer);
 			clay::Shape wun({1});

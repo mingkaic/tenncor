@@ -413,32 +413,6 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 }
 
 
-TEST_F(PLACEHOLDER, Derive_F004)
-{
-	clay::Shape shape = random_def_shape(this);
-	wire::Placeholder var(shape, get_string(16, "plname"));
-	wire::Placeholder var2(shape, get_string(16, "plname"));
-	std::vector<double> data = get_double(shape.n_elems(), "data");
-
-	EXPECT_THROW(var.derive(&var), mold::UninitializedError);
-	var = data;
-	wire::Identifier* wun = var.derive(&var);
-	wire::Identifier* zaro = var.derive(&var2);
-	clay::State state = wun->get_state();
-	clay::State state2 = zaro->get_state();
-	EXPECT_SHAPEQ(shape, state.shape_);
-	EXPECT_SHAPEQ(shape, state2.shape_);
-
-	double scalarw = *((double*) state.data_.lock().get());
-	double scalarz = *((double*) state2.data_.lock().get());
-	EXPECT_EQ(1, scalarw);
-	EXPECT_EQ(0, scalarz);
-
-	delete zaro;
-	delete wun;
-}
-
-
 #endif /* DISABLE_PLACEHOLDER_TEST */
 
 

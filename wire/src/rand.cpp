@@ -4,6 +4,7 @@
 //
 
 #include <iostream>
+
 #include "wire/rand.hpp"
 
 #ifdef WIRE_RAND_HPP

@@ -4,6 +4,7 @@
 
 #include "wire/variable.hpp"
 #include "wire/operators.hpp"
+#include "wire/delta.hpp"
 
 
 class TRANS_TESTS : public TF_VERIFY
@@ -33,7 +34,7 @@ void check_trans (OpArgs args, UNARY_OP op)
 	clay::State outt = out->get_state();
 	state_check(expectt, outt);
 
-	wire::Identifier* grad = out->derive(input);
+	wire::Identifier* grad = wire::delta(out, input);
 	clay::State expectgradt = expectgrad->get_state();
 	clay::State gradt = grad->get_state();
 	state_check(expectgradt, gradt);

@@ -12,7 +12,7 @@ namespace slip
 
 #define OP_ASSOC(CODE) std::pair<OPCODE,std::string>{CODE, #CODE}
 
-OpnameMap opnames =
+const OpnameMap opnames =
 {
 	OP_ASSOC(CAST),
 	OP_ASSOC(ABS),
@@ -46,10 +46,9 @@ OpnameMap opnames =
 	OP_ASSOC(N_ELEMS),
 	OP_ASSOC(N_DIMS),
 	OP_ASSOC(MATMUL),
-	OP_ASSOC(INJACOBIAN),
-	OP_ASSOC(OUTJACOBIAN),
-	OP_ASSOC(JACOBIANLEFT),
-	OP_ASSOC(JACOBIANRIGHT),
+	OP_ASSOC(JACOBIAN),
+	OP_ASSOC(RESHAPE),
+	OP_ASSOC(TRACE_EXPAND),
 	std::pair<OPCODE,std::string>{_SENTINEL, ""}
 };
 

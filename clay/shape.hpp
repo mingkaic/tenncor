@@ -46,9 +46,9 @@ public:
 	//! access value at index dim, throws std::out_of_range if dim >= rank
 	size_t operator [] (size_t dim) const;
 
-	typename std::vector<size_t>::const_iterator cbegin (void) const;
+	typename std::vector<size_t>::const_iterator begin (void) const;
 
-	typename std::vector<size_t>::const_iterator cend (void) const;
+	typename std::vector<size_t>::const_iterator end (void) const;
 
 	//! get a copy of the shape as a list
 	//! accounts for grouping

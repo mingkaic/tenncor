@@ -50,11 +50,14 @@ py_proto_library(
 
 cc_library(
     name = "lead",
-    hdrs = glob([ "*.hpp" ]),
+    hdrs = glob([
+        "*.hpp",
+        "include/*.hpp",
+    ]),
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
     deps = [
-        "//clay:clay",
+        "//wire:wire",
         "//lead:cc_proto",
     ],
 )

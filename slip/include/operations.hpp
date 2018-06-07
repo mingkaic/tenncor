@@ -48,6 +48,18 @@ void cast (clay::State& dest, std::vector<clay::State> srcs);
 #endif /* SLIP_CAST_HPP */
 
 template <typename T>
+void copyover (clay::State& dest, std::vector<clay::State> srcs)
+{
+	clay::Shape& destshape = dest.shape_;
+	clay::Shape& srcshape = srcs.front().shape_;
+	size_t n = srcshape.n_elems();
+	assert(destshape.n_elems() == n);
+	T* d = safe_get<T>(dest.data_);
+	const T* s = safe_get<const T>(srcs.front().data_);
+	std::memcpy(d, s, sizeof(T) * n);
+}
+
+template <typename T>
 void unary (clay::State& dest, std::vector<clay::State> srcs,
 	std::function<T(const T&)> f)
 {
@@ -350,14 +362,45 @@ void flip (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <typename T>
-void argmax (clay::State& dest, std::vector<clay::State> srcs)
+void unar_argmax (clay::State& dest, std::vector<clay::State> srcs)
 {
 	clay::Shape& srcshape = srcs.front().shape_;
 	T* d = safe_get<T>(dest.data_);
 	const T* s = safe_get<const T>(srcs.front().data_);
+	size_t n = srcshape.n_elems();
+	*d = std::distance(s, std::max_element(s, s + n));
+}
+
+template <typename T>
+void unar_max (clay::State& dest, std::vector<clay::State> srcs)
+{
+	clay::Shape& srcshape = srcs.front().shape_;
+	T* d = safe_get<T>(dest.data_);
+	const T* s = safe_get<const T>(srcs.front().data_);
+	size_t n = srcshape.n_elems();
+	*d = *(std::max_element(s, s + n));
+}
+
+template <typename T>
+void unar_sum (clay::State& dest, std::vector<clay::State> srcs)
+{
+	clay::Shape& srcshape = srcs.front().shape_;
+	T* d = safe_get<T>(dest.data_);
+	const T* s = safe_get<const T>(srcs.front().data_);
+	size_t n = srcshape.n_elems();
+	*d = std::accumulate(s, s + n, (T) 0);
+}
+
+template <typename T>
+void argmax (clay::State& dest, std::vector<clay::State> srcs)
+{
+	assert(srcs.size() > 1);
+	clay::Shape& srcshape = srcs.front().shape_;
 	size_t rank = srcshape.rank();
-	if (srcs.size() > 1 && rank > 1)
+	if (rank > 1)
 	{
+		T* d = safe_get<T>(dest.data_);
+		const T* s = safe_get<const T>(srcs.front().data_);
 		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
@@ -383,20 +426,20 @@ void argmax (clay::State& dest, std::vector<clay::State> srcs)
 	}
 	else
 	{
-		size_t n = srcshape.n_elems();
-		*d = std::distance(s, std::max_element(s, s + n));
+		unar_argmax<T>(dest, srcs);
 	}
 }
 
 template <typename T>
 void max (clay::State& dest, std::vector<clay::State> srcs)
 {
+	assert(srcs.size() > 1);
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
 	size_t rank = srcshape.rank();
-	if (srcs.size() > 1 && rank > 1)
+	if (rank > 1)
 	{
+		T* d = safe_get<T>(dest.data_);
+		const T* s = safe_get<const T>(srcs.front().data_);
 		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
@@ -422,20 +465,20 @@ void max (clay::State& dest, std::vector<clay::State> srcs)
 	}
 	else
 	{
-		size_t n = srcshape.n_elems();
-		*d = *(std::max_element(s, s + n));
+		unar_max<T>(dest, srcs);
 	}
 }
 
 template <typename T>
 void sum (clay::State& dest, std::vector<clay::State> srcs)
 {
+	assert(srcs.size() > 1);
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
 	size_t rank = srcshape.rank();
-	if (srcs.size() > 1 && rank > 1)
+	if (rank > 1)
 	{
+		T* d = safe_get<T>(dest.data_);
+		const T* s = safe_get<const T>(srcs.front().data_);
 		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
@@ -458,8 +501,7 @@ void sum (clay::State& dest, std::vector<clay::State> srcs)
 	}
 	else
 	{
-		size_t n = srcshape.n_elems();
-		*d = std::accumulate(s, s + n, (T) 0);
+		unar_sum<T>(dest, srcs);
 	}
 }
 
@@ -513,6 +555,42 @@ void n_dims (clay::State& dest, std::vector<clay::State> srcs);
 
 template <typename T>
 void matmul (clay::State& dest, std::vector<clay::State> srcs);
+
+template <typename T>
+void jacobian (clay::State& dest, std::vector<clay::State> srcs);
+
+template <typename T>
+void trace_expand (clay::State& dest, std::vector<clay::State> srcs)
+{
+	if (srcs.size() != 2)
+	{
+		throw std::exception();
+	}
+	clay::Shape& destshape = dest.shape_;
+	clay::Shape& srcshape = srcs.front().shape_;
+	T* d = safe_get<T>(dest.data_);
+	const T* s = safe_get<const T>(srcs.front().data_);
+	clay::State& dstate = srcs[1];
+	if (dstate.dtype_ != clay::UINT64)
+	{
+		throw std::exception();
+	}
+	if (1 != dstate.shape_.n_elems())
+	{
+		throw std::exception();
+	}
+	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+	size_t n = srcshape.n_elems();
+	std::vector<size_t> coord;
+	std::memset(d, 0, sizeof(T) * destshape.n_elems());
+	for (size_t i = 0; i < n; ++i)
+	{
+		coord = coordinate(srcshape, i);
+		coord.insert(coord.begin() + dim, coord[dim]);
+		size_t outidx = index(destshape, coord);
+		d[outidx] = s[i];
+	}
+}
 
 #endif /* SLIP_MATMUL_HPP */
 

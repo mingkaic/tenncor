@@ -49,6 +49,9 @@ enum OPCODE
 	NORM,
 	TRANSPOSE,
 	FLIP,
+	UARGMAX,
+	URMAX,
+	URSUM,
 	ARGMAX,
 	RMAX,
 	RSUM,
@@ -56,11 +59,10 @@ enum OPCODE
 	N_ELEMS,
 	N_DIMS,
 	MATMUL,
-	// gradient nodes (todo: remove this)
-	INJACOBIAN,
-	OUTJACOBIAN,
-	JACOBIANLEFT,
-	JACOBIANRIGHT,
+	// gradient nodes (todo: revise these)
+	JACOBIAN,
+	RESHAPE,
+	TRACE_EXPAND,
 	// sentinel
 	_SENTINEL
 };
@@ -76,7 +78,7 @@ struct EnumHash
 
 using OpnameMap = std::unordered_map<OPCODE,std::string,EnumHash>;
 
-extern OpnameMap opnames;
+extern const OpnameMap opnames;
 
 }
 

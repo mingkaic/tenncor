@@ -96,11 +96,7 @@ void vec_check (std::vector<double> expectv, std::vector<double> gotv)
 		{
 			diff /= expectv[i];
 		}
-		if (EPSILON < diff)
-		{
-			std::cout << i << " " << expectv[i] << " " << gotv[i] << std::endl;
-		}
-		ASSERT_GE(EPSILON, diff);
+		ASSERT_GE(EPSILON, diff) << i << " " << expectv[i] << " " << gotv[i];
 	}
 }
 
