@@ -24,7 +24,7 @@ clay::TensorPtrT PbBuilder::get (void) const
 
 clay::TensorPtrT PbBuilder::get (clay::Shape shape) const
 {
-	std::unique_ptr<clay::Tensor> out = nullptr;
+	clay::TensorPtrT out = nullptr;
 	auto shapepb = pb_.shape();
 	clay::Shape inshape(std::vector<size_t>{shapepb.begin(), shapepb.end()});
 	if (inshape.is_compatible_with(shape))

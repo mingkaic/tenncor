@@ -39,6 +39,11 @@ public:
 
 	bool has_data (void) const override;
 
+	clay::Shape get_shape (void) const override
+	{
+		return cache_->get_shape();
+	}
+
 	clay::State get_state (void) const override;
 
 

@@ -16,11 +16,7 @@
 #include <type_traits>
 #include <cstring>
 
-#include "clay/shape.hpp"
-#include "clay/dtype.hpp"
-
-#include "clay/state.hpp"
-#include "clay/isource.hpp"
+#include "clay/itensor.hpp"
 
 #pragma once
 #ifndef CLAY_TENSOR_HPP
@@ -29,54 +25,44 @@
 namespace clay
 {
 
-class Tensor final
+class Tensor final : public iTensor
 {
 public:
 	//! create a tensor of a specified shape
 	Tensor (std::shared_ptr<char> data, Shape shape, DTYPE dtype);
 
-	//! other.dtype_ is BAD afterwards
-	Tensor (Tensor&& other);
+    Tensor (const Tensor& other) = default;
+    Tensor& operator = (const Tensor& other) = default;
 
-	//! other.dtype_ is BAD afterwards
-	Tensor& operator = (Tensor&& other);
-
-	// >>>> AVOID OVERRIDE <<<<
-	Tensor (const Tensor&) = default;
-
-	Tensor& operator = (const Tensor&) = default;
-
+    Tensor (Tensor&& other) = delete;
+    Tensor& operator = (Tensor&& other) = delete;
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
 	//! get internal state
-	State get_state (void) const;
+	State get_state (void) const override;
 
 	//! get tensor shape
-	Shape get_shape (void) const;
+	Shape get_shape (void) const override;
 
 	//! get tensor dtype
-	DTYPE get_type (void) const;
+	DTYPE get_type (void) const override;
 
 	//! get bytes allocated
-	size_t total_bytes (void) const;
-
-
-	// >>>>>>>>>>>> MUTATOR <<<<<<<<<<<<
-
-	//! copy over data from src
-	//! return true if successful
-	bool read_from (const iSource& src);
+	size_t total_bytes (void) const override;
 
 private:
+	iTensor* clone_impl (void) const override
+	{
+		return new Tensor(*this);
+	}
+
 	std::shared_ptr<char> data_;
 
 	Shape shape_;
 
 	DTYPE dtype_;
 };
-
-using TensorPtrT = std::unique_ptr<Tensor>;
 
 }
 

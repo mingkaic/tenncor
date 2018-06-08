@@ -31,7 +31,7 @@ public:
 	{
 		if (nullptr != other.data_)
 		{
-			data_ = clay::TensorPtrT(new clay::Tensor(*other.data_));
+			data_ = clay::TensorPtrT(other.data_->clone());
 		}
 	}
 
@@ -41,7 +41,7 @@ public:
 		{
 			if (nullptr != other.data_)
 			{
-				data_ = clay::TensorPtrT(new clay::Tensor(*other.data_));
+				data_ = clay::TensorPtrT(other.data_->clone());
 			}
 			else
 			{
@@ -55,6 +55,11 @@ public:
 	Variable& operator = (Variable&&) = default;
 
 	bool has_data (void) const override;
+
+	clay::Shape get_shape (void) const override
+	{
+		return data_->get_shape();
+	}
 
 	clay::State get_state (void) const override;
 

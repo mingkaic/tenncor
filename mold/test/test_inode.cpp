@@ -36,6 +36,11 @@ struct mock_node final : public mold::iNode, public testify::mocker
 		return true;
 	}
 
+	clay::Shape get_shape (void) const override
+	{
+		return clay::Shape();
+	}
+
 	clay::State get_state (void) const override
 	{
 		return clay::State();

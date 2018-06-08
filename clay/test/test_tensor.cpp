@@ -123,44 +123,22 @@ TEST_F(TENSOR, Constructor_C000)
 	std::shared_ptr<char> data2 = clay::make_char(nbytes2);
 
 	clay::Tensor cpassign(data2, cshape2, dtype2);
-	clay::Tensor mvassign(data2, cshape2, dtype2);
 	clay::Tensor cp(ten);
-	clay::Tensor mv(std::move(ten));
 
 	clay::State cp_state = cp.get_state();
-	clay::State mv_state = mv.get_state();
 	clay::State state2 = ten.get_state();
 
 	EXPECT_EQ(data, cp_state.data_.lock());
 	EXPECT_SHAPEQ(cshape,  cp_state.shape_);
 	EXPECT_EQ(dtype, cp_state.dtype_);
 
-	EXPECT_EQ(data, mv_state.data_.lock());
-	EXPECT_SHAPEQ(cshape,  mv_state.shape_);
-	EXPECT_EQ(dtype, mv_state.dtype_);
-
-	EXPECT_TRUE(state2.data_.expired()) << "moved ten data ptr not expired";
-	EXPECT_SHAPEQ(undef,  state2.shape_);
-	EXPECT_EQ(clay::DTYPE::BAD, state2.dtype_);
-
 	cpassign = cp;
-	mvassign = std::move(mv);
 
 	clay::State cpa_state = cpassign.get_state();
-	clay::State mva_state = mvassign.get_state();
-	clay::State mv2 = mv.get_state();
 
 	EXPECT_EQ(data, cpa_state.data_.lock());
 	EXPECT_SHAPEQ(cshape,  cpa_state.shape_);
 	EXPECT_EQ(dtype, cpa_state.dtype_);
-
-	EXPECT_EQ(data, mva_state.data_.lock());
-	EXPECT_SHAPEQ(cshape,  mva_state.shape_);
-	EXPECT_EQ(dtype, mva_state.dtype_);
-
-	EXPECT_TRUE(mv2.data_.expired()) << "moved mv data ptr not expired";
-	EXPECT_SHAPEQ(undef,  mv2.shape_);
-	EXPECT_EQ(clay::DTYPE::BAD, mv2.dtype_);
 }
 
 
@@ -217,9 +195,6 @@ TEST_F(TENSOR, ReadFrom_C002)
 	clay::State state2 = ten.get_state();
 	std::string got2(state2.data_.lock().get(), nbytes);
 	EXPECT_STREQ(source.uuid_.c_str(), got2.c_str());
-
-	clay::Tensor tenmvs = std::move(ten);
-	EXPECT_FALSE(ten.read_from(source)) << "successful read from source for a moved tensor";
 }
 
 

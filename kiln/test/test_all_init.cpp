@@ -387,17 +387,17 @@ TEST_F(ALL_INIT, NoShapeGet_A004)
 	ASSERT_EQ(nullptr, bsui.get());
 	ASSERT_EQ(nullptr, bsni.get());
 
-	std::unique_ptr<clay::Tensor> vcten = vci.get();
+	clay::TensorPtrT vcten = vci.get();
 	ASSERT_NE(nullptr, vcten);
-	std::unique_ptr<clay::Tensor> vuten = vui.get();
+	clay::TensorPtrT vuten = vui.get();
 	ASSERT_NE(nullptr, vuten);
-	std::unique_ptr<clay::Tensor> vnten = vni.get();
+	clay::TensorPtrT vnten = vni.get();
 	ASSERT_NE(nullptr, vnten);
-	std::unique_ptr<clay::Tensor> scten = sci.get();
+	clay::TensorPtrT scten = sci.get();
 	ASSERT_NE(nullptr, scten);
-	std::unique_ptr<clay::Tensor> suten = sui.get();
+	clay::TensorPtrT suten = sui.get();
 	ASSERT_NE(nullptr, suten);
-	std::unique_ptr<clay::Tensor> snten = sni.get();
+	clay::TensorPtrT snten = sni.get();
 	ASSERT_NE(nullptr, snten);
 
 	EXPECT_SHAPEQ(shape, vcten->get_shape());

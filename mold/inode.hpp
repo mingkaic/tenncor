@@ -49,6 +49,8 @@ public:
 
 	virtual bool has_data (void) const = 0;
 
+	virtual clay::Shape get_shape (void) const = 0;
+
 	virtual clay::State get_state (void) const = 0;
 
 	AudienceT get_audience (void) const;
