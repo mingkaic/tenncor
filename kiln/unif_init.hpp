@@ -23,7 +23,7 @@
 namespace kiln
 {
 
-clay::Tensor* unif_build (char* min, char* max,
+clay::TensorPtrT unif_build (char* min, char* max,
 	clay::Shape shape, clay::DTYPE dtype);
 
 template <typename T>
@@ -38,8 +38,7 @@ clay::BuildTensorT unif_init (T min, T max,
 	correct_shape(shape, 1);
 	return [min, max, shape, dtype]()
 	{
-		return clay::TensorPtrT(
-			unif_build((char*) &min, (char*) &max, shape, dtype));
+		return unif_build((char*) &min, (char*) &max, shape, dtype);
 	};
 }
 

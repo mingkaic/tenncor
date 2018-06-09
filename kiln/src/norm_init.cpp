@@ -14,7 +14,7 @@
 namespace kiln
 {
 
-clay::Tensor* norm_build (char* mean, char* stdev,
+clay::TensorPtrT norm_build (char* mean, char* stdev,
 	clay::Shape shape, clay::DTYPE dtype)
 {
 	unsigned short bsize = clay::type_size(dtype);
@@ -27,16 +27,10 @@ clay::Tensor* norm_build (char* mean, char* stdev,
 	std::memcpy(stdev_ptr.get(), stdev, bsize);
 
 	clay::Shape one({1});
-	mold::iOperatePtrT op = slip::get_op(slip::NORM);
-	std::vector<clay::State> states{
+	return slip::get_op(slip::NORM)->make_data({
 		clay::State{mean_ptr, shape, dtype},
 		clay::State{stdev_ptr, one, dtype},
-	};
-	mold::ImmPair imm = op->get_imms(states);
-	auto out = new clay::Tensor(imm.first, imm.second);
-	clay::State state = out->get_state();
-	op->write_data(state, states);
-	return out;
+	});
 }
 
 }

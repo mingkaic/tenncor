@@ -104,6 +104,20 @@ struct mock_operateio final : public mold::iOperateIO
 		std::function<clay::DTYPE(std::vector<clay::DTYPE>)> typer) :
 		op_(op), shaper_(shaper), typer_(typer) {}
 
+	bool validate_data (clay::State state,
+		std::vector<clay::State> args) const override
+	{
+		std::vector<clay::Shape> shapes;
+		std::vector<clay::DTYPE> types;
+		for (const clay::State& arg : args)
+		{
+			shapes.push_back(arg.shape_);
+			types.push_back(arg.dtype_);
+		}
+		return state.shape_.is_compatible_with(shaper_(shapes)) &&
+			state.dtype_ == typer_(types);
+	}
+
 	bool write_data (clay::State& dest,
 		std::vector<clay::State> args) const override
 	{
@@ -125,7 +139,7 @@ struct mock_operateio final : public mold::iOperateIO
 		return success;
 	}
 
-	mold::ImmPair get_imms (std::vector<clay::State> args) const override
+	clay::TensorPtrT make_data (std::vector<clay::State> args) const override
 	{
 		std::vector<clay::Shape> shapes;
 		std::vector<clay::DTYPE> types;
@@ -134,7 +148,10 @@ struct mock_operateio final : public mold::iOperateIO
 			shapes.push_back(arg.shape_);
 			types.push_back(arg.dtype_);
 		}
-		return {shaper_(shapes), typer_(types)};
+		clay::Tensor* out = new clay::Tensor(shaper_(shapes), typer_(types));
+		clay::State dest = out->get_state();
+		write_data(dest, args);
+		return clay::TensorPtrT(out);
 	}
 
 private:
@@ -285,7 +302,7 @@ TEST_F(FUNCTOR, GetState_D004)
 	{
 		size_t nbytes = out.shape_.n_elems() *
 			clay::type_size(out.dtype_);
-		std::memcpy((void*) out.data_.lock().get(),
+		std::memcpy(out.data_.lock().get(),
 			in[0].data_.lock().get(), nbytes);
 	},
 	[](std::vector<clay::Shape> in) -> clay::Shape
@@ -309,19 +326,19 @@ TEST_F(FUNCTOR, GetState_D004)
 	std::string uuid = fake_init(tens, this);
 	arg.initialize(clay::TensorPtrT(tens));
 	clay::State state = f->get_state();
+	ASSERT_SHAPEQ(shape, state.shape_);
+	ASSERT_EQ(dtype, state.dtype_);
 	std::string got_uuid(state.data_.lock().get(),
 		state.shape_.n_elems() * clay::type_size(state.dtype_));
 	EXPECT_STREQ(uuid.c_str(), got_uuid.c_str());
-	EXPECT_SHAPEQ(shape, state.shape_);
-	EXPECT_EQ(dtype, state.dtype_);
 
 	arg.assign(src);
 	clay::State state2 = f->get_state();
+	ASSERT_SHAPEQ(src.state_.shape_, state2.shape_);
+	ASSERT_EQ(src.state_.dtype_, state2.dtype_);
 	std::string got_uuid2(state2.data_.lock().get(),
 		state2.shape_.n_elems() * clay::type_size(state2.dtype_));
 	EXPECT_STREQ(src.uuid_.c_str(), got_uuid2.c_str());
-	EXPECT_SHAPEQ(src.state_.shape_, state2.shape_);
-	EXPECT_EQ(src.state_.dtype_, state2.dtype_);
 
 	delete f;
 }

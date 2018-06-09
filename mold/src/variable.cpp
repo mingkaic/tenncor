@@ -4,7 +4,7 @@
 //
 
 #include "mold/variable.hpp"
-#include "mold/functor.hpp"
+#include "mold/iobserver.hpp"
 #include "mold/error.hpp"
 
 #ifdef MOLD_VARIABLE_HPP

@@ -6,7 +6,6 @@
 #include <algorithm>
 
 #include "mold/functor.hpp"
-#include "mold/constant.hpp"
 #include "mold/error.hpp"
 
 #ifdef MOLD_FUNCTOR_HPP
@@ -91,16 +90,7 @@ void Functor::initialize (void)
 	{
 		return arg->get_state();
 	});
-	ImmPair imm = op_->get_imms(inputs);
-	clay::Shape& shape = imm.first;
-	clay::DTYPE& dtype = imm.second;
-	cache_ = clay::TensorPtrT(new clay::Tensor(shape, dtype));
-	clay::State dest = cache_->get_state();
-	if (false == op_->write_data(dest, inputs))
-	{
-		throw FunctorUpdateError();
-	}
-
+	cache_ = op_->make_data(inputs);
 	for (iObserver* aud : audience_)
 	{
 		aud->initialize();

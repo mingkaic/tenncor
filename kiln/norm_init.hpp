@@ -23,7 +23,7 @@
 namespace kiln
 {
 
-clay::Tensor* norm_build (char* mean, char* stdev,
+clay::TensorPtrT norm_build (char* mean, char* stdev,
 	clay::Shape shape, clay::DTYPE dtype);
 
 template <typename T>
@@ -38,8 +38,7 @@ clay::BuildTensorT norm_init (T mean, T stdev,
 	correct_shape(shape, 1);
 	return [mean, stdev, shape, dtype]()
 	{
-		return clay::TensorPtrT(
-			norm_build((char*) &mean, (char*) &stdev, shape, dtype));
+		return norm_build((char*) &mean, (char*) &stdev, shape, dtype);
 	};
 }
 

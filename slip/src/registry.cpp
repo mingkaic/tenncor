@@ -26,6 +26,8 @@ using TyperF = std::function<clay::DTYPE(std::vector<clay::DTYPE>)>;
 
 using TypeReg = std::unordered_map<clay::DTYPE,ArgsF,EnumHash>;
 
+using ImmPair = std::pair<clay::Shape,clay::DTYPE>;
+
 #define REGISTER_FUNC(CODE, FUNC) {\
 slip::CODE, TypeReg{\
 { clay::DOUBLE, slip::FUNC<double> },{ clay::FLOAT, slip::FUNC<float> },\
@@ -106,6 +108,14 @@ public:
 		ops_ = types->second;
 	}
 
+	bool validate_data (clay::State state,
+		std::vector<clay::State> args) const override
+	{
+		auto imms = get_imms(args);
+		return state.shape_.is_compatible_with(imms.first) &&
+			state.dtype_ == imms.second;
+	}
+
 	bool write_data (clay::State& dest,
 		std::vector<clay::State> args) const override
 	{
@@ -115,17 +125,25 @@ public:
 			dest.dtype_ == imms.second;
 		if (success)
 		{
-			auto op = ops_.find(imms.second);
-			if (ops_.end() == op)
-			{
-				throw clay::UnsupportedTypeError(imms.second);
-			}
-			op->second(dest, args);
+			unsafe_write(dest, args, imms.second);
 		}
 		return success;
 	}
 
-	mold::ImmPair get_imms (std::vector<clay::State> args) const override
+	clay::TensorPtrT make_data (
+		std::vector<clay::State> args) const override
+	{
+		auto imms = get_imms(args);
+		clay::Shape& shape = imms.first;
+		clay::DTYPE& dtype = imms.second;
+		clay::Tensor* out = new clay::Tensor(shape, dtype);
+		clay::State dest = out->get_state();
+		unsafe_write(dest, args, dtype);
+		return clay::TensorPtrT(out);
+	}
+
+private:
+	ImmPair get_imms (std::vector<clay::State>& args) const
 	{
 		if (args.empty())
 		{
@@ -141,7 +159,17 @@ public:
 		return {shaper_(args), otype};
 	}
 
-private:
+	void unsafe_write (clay::State& dest,
+		std::vector<clay::State>& args, clay::DTYPE dtype) const
+	{
+		auto op = ops_.find(dtype);
+		if (ops_.end() == op)
+		{
+			throw clay::UnsupportedTypeError(dtype);
+		}
+		op->second(dest, args);
+	}
+
 	iOperateIO* clone_impl (void) const override
 	{
 		return new OperateIO(*this);

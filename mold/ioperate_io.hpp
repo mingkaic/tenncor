@@ -22,8 +22,6 @@
 namespace mold
 {
 
-using ImmPair = std::pair<clay::Shape,clay::DTYPE>;
-
 class iOperateIO
 {
 public:
@@ -34,7 +32,10 @@ public:
 		return clone_impl();
 	}
 
-	virtual ImmPair get_imms (
+	virtual bool validate_data (clay::State state,
+		std::vector<clay::State> args) const = 0;
+
+	virtual clay::TensorPtrT make_data (
 		std::vector<clay::State> args) const = 0;
 
 	virtual bool write_data (clay::State& dest,

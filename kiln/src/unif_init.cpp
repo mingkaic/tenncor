@@ -14,7 +14,7 @@
 namespace kiln
 {
 
-clay::Tensor* unif_build (char* min, char* max,
+clay::TensorPtrT unif_build (char* min, char* max,
 	clay::Shape shape, clay::DTYPE dtype)
 {
 	unsigned short bsize = clay::type_size(dtype);
@@ -27,16 +27,10 @@ clay::Tensor* unif_build (char* min, char* max,
 	std::memcpy(max_ptr.get(), max, bsize);
 
 	clay::Shape one({1});
-	mold::iOperatePtrT op = slip::get_op(slip::UNIF);
-	std::vector<clay::State> states{
+	return slip::get_op(slip::UNIF)->make_data({
 		clay::State{min_ptr, shape, dtype},
 		clay::State{max_ptr, one, dtype},
-	};
-	mold::ImmPair imm = op->get_imms(states);
-	auto out = new clay::Tensor(imm.first, imm.second);
-	clay::State state = out->get_state();
-	op->write_data(state, states);
-	return out;
+	});
 }
 
 }
