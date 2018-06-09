@@ -11,8 +11,6 @@
  *
  */
 
-#include "clay/memory.hpp"
-
 #include "mold/inode.hpp"
 
 #pragma once
@@ -28,13 +26,7 @@ public:
 	Constant (std::shared_ptr<char> data,
 		clay::Shape shape, clay::DTYPE type);
 
-	Constant (const Constant& other) : state_(other.state_)
-	{
-		size_t nbytes = state_.shape_.n_elems() * clay::type_size(state_.dtype_);
-		data_ = clay::make_char(nbytes);
-		std::memcpy(data_.get(), other.data_.get(), nbytes);
-		state_.data_ = data_;
-	}
+	Constant (const Constant& other);
 
 	// >>>> CAN'T COPY OR MOVE (GOES AGAINST IMMUTABILITY) <<<<
 

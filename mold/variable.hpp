@@ -11,8 +11,6 @@
  *
  */
 
-#include "clay/ibuilder.hpp"
-
 #include "mold/inode.hpp"
 
 #pragma once
@@ -63,11 +61,9 @@ public:
 
 	clay::State get_state (void) const override;
 
-	bool initialize (const clay::iBuilder& builder);
+	void initialize (clay::TensorPtrT data);
 
-	bool initialize (const clay::iBuilder& builder, clay::Shape shape);
-
-	void assign (const clay::iSource& src);
+	void assign (const mold::iSource& src);
 
 protected:
 	iNode* clone_impl (void) const override

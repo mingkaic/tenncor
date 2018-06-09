@@ -6,8 +6,6 @@
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
 
-#include "clay/memory.hpp"
-
 #include "kiln/unif_init.hpp"
 
 #include "wire/operators.hpp"
@@ -157,10 +155,10 @@ static void selfGrad (wire::Identifier* f, clay::State state)
 static void unarElemTest (fuzz_test* fuzzer, VARFUNC op,
 	SCALAR expect, SCALAR grad, std::pair<double,double> limits = {-1, 1})
 {
-	kiln::UnifInit builder;
-	builder.set(limits.first, limits.second);
 	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
-	wire::Variable leaf(builder, shape, "leaf");
+	clay::BuildTensorT builder = kiln::unif_init(
+		limits.first, limits.second, shape);
+	wire::Variable leaf(builder, "leaf");
 
 	// test behavior G000
 	wire::Identifier* f = op({&leaf});
@@ -216,11 +214,11 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 	BINAR<double> expect, BINAR<double> gradA, BINAR<double> gradB,
 	std::pair<double,double> limits = {-1, 1})
 {
-	kiln::UnifInit builder;
-	builder.set(limits.first, limits.second);
 	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
-	wire::Variable leaf(builder, shape, "leaf");
-	wire::Variable leaf2(builder, shape, "leaf2");
+	clay::BuildTensorT builder = kiln::unif_init(
+		limits.first, limits.second, shape);
+	wire::Variable leaf(builder, "leaf");
+	wire::Variable leaf2(builder, "leaf2");
 
 	// test behavior G000
 	wire::Identifier* f = op({&leaf, &leaf2});
@@ -292,11 +290,11 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	BINAR<int16_t> expect, BINAR<int16_t> gradA, BINAR<int16_t> gradB,
 	std::pair<int16_t,int16_t> limits = {-1, 1})
 {
-	kiln::UnifInit builder;
-	builder.set(limits.first, limits.second);
 	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
-	wire::Variable leaf(builder, shape, "leaf");
-	wire::Variable leaf2(builder, shape, "leaf2");
+	clay::BuildTensorT builder = kiln::unif_init(
+		limits.first, limits.second, shape);
+	wire::Variable leaf(builder, "leaf");
+	wire::Variable leaf2(builder, "leaf2");
 
 	// test behavior G000
 	wire::Identifier* f = op({&leaf, &leaf2});

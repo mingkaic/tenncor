@@ -408,7 +408,7 @@ void argmax (clay::State& dest, std::vector<clay::State> srcs)
 		clay::Shape nilshape = slist;
 		std::vector<size_t> coord;
 		size_t n = nilshape.n_elems();
-		size_t nd = srcshape[dim];
+		size_t nd = srcshape.at(dim);
 		for (size_t i = 0; i < n; ++i)
 		{
 			coord = coordinate(nilshape, i);
@@ -447,7 +447,7 @@ void max (clay::State& dest, std::vector<clay::State> srcs)
 		clay::Shape nilshape = slist;
 		std::vector<size_t> coord;
 		size_t n = nilshape.n_elems();
-		size_t nd = srcshape[dim];
+		size_t nd = srcshape.at(dim);
 		for (size_t i = 0; i < n; ++i)
 		{
 			coord = coordinate(nilshape, i);
@@ -486,7 +486,7 @@ void sum (clay::State& dest, std::vector<clay::State> srcs)
 		clay::Shape nilshape = slist;
 		std::vector<size_t> coord;
 		size_t n = nilshape.n_elems();
-		size_t nd = srcshape[dim];
+		size_t nd = srcshape.at(dim);
 		for (size_t i = 0; i < n; ++i)
 		{
 			coord = coordinate(nilshape, i);

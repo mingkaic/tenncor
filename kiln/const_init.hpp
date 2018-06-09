@@ -11,9 +11,8 @@
  *
  */
 
+#include "clay/tensor.hpp"
 #include "clay/error.hpp"
-
-#include "kiln/builder.hpp"
 
 #pragma once
 #ifndef KILN_CONST_INIT_HPP
@@ -22,49 +21,51 @@
 namespace kiln
 {
 
-class ConstInit final : public Builder
+void copy_over (char* dest, size_t ndest,
+	const char* src, size_t nsrc);
+
+void correct_shape (clay::Shape& shape, size_t n);
+
+template <typename T>
+clay::BuildTensorT const_init (T value,
+	clay::Shape shape = clay::Shape())
 {
-public:
-	ConstInit (void) = default;
-
-	ConstInit (Validator validate);
-
-	ConstInit (std::string data, clay::DTYPE dtype,
-		Validator validate = Validator());
-
-	template <typename T>
-	void set (T value)
+	clay::DTYPE dtype = clay::get_type<T>();
+	if (dtype == clay::DTYPE::BAD)
 	{
-		dtype_ = clay::get_type<T>();
-		if (dtype_ == clay::DTYPE::BAD)
-		{
-			throw clay::UnsupportedTypeError(dtype_);
-		}
-		data_ = std::string((char*) &value, sizeof(T));
+		throw clay::UnsupportedTypeError(dtype);
 	}
-
-	template <typename T>
-	void set (std::vector<T> value)
+	correct_shape(shape, 1);
+	return [value, shape, dtype]()
 	{
-		dtype_ = clay::get_type<T>();
-		if (dtype_ == clay::DTYPE::BAD)
-		{
-			throw clay::UnsupportedTypeError(dtype_);
-		}
-		data_ = std::string((char*) &value[0], sizeof(T) * value.size());
-	}
+		auto out = std::make_unique<clay::Tensor>(shape, dtype);
+		char* dest = out->get_state().data_.lock().get();
+		size_t nbytes = out->total_bytes();
+		copy_over(dest, nbytes, (char*) &value, clay::type_size(dtype));
+		return out;
+	};
+}
 
-protected:
-	clay::iBuilder* clone_impl (void) const override
+template <typename T>
+clay::BuildTensorT const_init (std::vector<T> value,
+	clay::Shape shape = clay::Shape())
+{
+	clay::DTYPE dtype = clay::get_type<T>();
+	if (dtype == clay::DTYPE::BAD)
 	{
-		return new ConstInit(*this);
+		throw clay::UnsupportedTypeError(dtype);
 	}
-
-	clay::TensorPtrT build (clay::Shape shape) const override;
-
-private:
-	std::string data_;
-};
+	correct_shape(shape, value.size());
+	return [value, shape, dtype]()
+	{
+		auto out = std::make_unique<clay::Tensor>(shape, dtype);
+		char* dest = out->get_state().data_.lock().get();
+		size_t nbytes = out->total_bytes();
+		copy_over(dest, nbytes, (char*) &value[0],
+			value.size() * clay::type_size(dtype));
+		return out;
+	};
+}
 
 }
 

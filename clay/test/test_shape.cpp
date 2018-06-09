@@ -59,8 +59,8 @@ TEST_F(SHAPE, IndexAccessor_A001)
 	std::vector<size_t> svec = random_def_shape(this);
 	clay::Shape shape(svec);
 	size_t dim = get_int(1, "dim", {0, shape.rank()-1})[0];
-	EXPECT_EQ(svec[dim], shape[dim]);
-	EXPECT_THROW(shape[shape.rank()], std::out_of_range);
+	EXPECT_EQ(svec[dim], shape.at(dim));
+	EXPECT_THROW(shape.at(shape.rank()), std::out_of_range);
 }
 
 

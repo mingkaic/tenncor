@@ -52,15 +52,14 @@ static void unaryElemTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	ASSERT_TRUE(slip::has_op(opcode)) <<
 		"unary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
-	op->set_args({clay::State(data, shape, clay::DOUBLE)});
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({clay::State(data, shape, clay::DOUBLE)});
 	ASSERT_SHAPEQ(shape, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, shape, clay::DOUBLE);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {clay::State(data, shape, clay::DOUBLE)}));
 
 	double* outptr = (double*) output.get();
 	for (size_t i = 0; i < n; ++i)
@@ -85,15 +84,14 @@ static void unaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	ASSERT_TRUE(slip::has_op(opcode)) <<
 		"unary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
-	op->set_args({in});
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in});
 	ASSERT_SHAPEQ(wun, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(sizeof(double));
 	clay::State out(output, wun, clay::DOUBLE);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in}));
 	EXPECT_EQ(agg(argument), *((double*) output.get()));
 }
 
@@ -120,12 +118,11 @@ static void binaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	std::shared_ptr<char> dim_data = clay::make_char(sizeof(uint64_t));
 	std::memcpy(bad_data.get(), &badrank, sizeof(uint64_t));
 	std::memcpy(dim_data.get(), &dim, sizeof(uint64_t));
-	EXPECT_THROW(bad_op->set_args(
+	EXPECT_THROW(bad_op->get_imms(
 		{in, clay::State(bad_data, wun, clay::UINT64)}),
 		slip::InvalidDimensionError);
-	dim_op->set_args({in, clay::State(dim_data, wun, clay::UINT64)});
 
-	mold::ImmPair dim_imms = dim_op->get_imms();
+	mold::ImmPair dim_imms = dim_op->get_imms({in, clay::State(dim_data, wun, clay::UINT64)});
 	std::vector<size_t> slist = shape.as_list();
 	slist.erase(slist.begin() + dim);
 	clay::Shape dshape = slist;
@@ -134,7 +131,7 @@ static void binaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 
 	std::shared_ptr<char> dim_output = clay::make_char(dshape.n_elems() * sizeof(double));
 	clay::State dim_out(dim_output, dshape, clay::DOUBLE);
-	ASSERT_TRUE(dim_op->read_data(dim_out));
+	ASSERT_TRUE(dim_op->write_data(dim_out, {in, clay::State(dim_data, wun, clay::UINT64)}));
 }
 
 
@@ -156,15 +153,14 @@ static void binaryElemTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, shape, clay::DOUBLE);
-	op->set_args({in0, in1});
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1});
 	ASSERT_SHAPEQ(shape, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, shape, clay::DOUBLE);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1}));
 
 	double* outptr = (double*) output.get();
 	for (size_t i = 0; i < n; ++i)
@@ -194,15 +190,14 @@ static void binaryElemTestInt (fuzz_test* fuzzer, slip::OPCODE opcode,
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::UINT64);
 	clay::State in1(data1, shape, clay::UINT64);
-	op->set_args({in0, in1});
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1});
 	ASSERT_SHAPEQ(shape, imms.first);
 	ASSERT_EQ(clay::UINT64, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, shape, clay::UINT64);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1}));
 
 	uint64_t* outptr = (uint64_t*) output.get();
 	for (size_t i = 0; i < n; ++i)
@@ -315,15 +310,14 @@ TEST_F(REGISTRY, Cast_B001)
 	auto op = slip::get_op(opcode);
 	clay::State in0(data, shape, clay::INT64);
 	clay::State in1(data, shape, clay::DOUBLE);
-	op->set_args({in0, in1});
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1});
 	ASSERT_SHAPEQ(shape, imms.first);
 	ASSERT_EQ(clay::INT64, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, shape, clay::INT64);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1}));
 
 	int64_t* outptr = (int64_t*) output.get();
 	for (size_t i = 0; i < n; ++i)
@@ -487,11 +481,9 @@ TEST_F(REGISTRY, Tranpose_B015)
 	auto op1 = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, clay::Shape({rank}), clay::UINT64);
-	op->set_args({in0});
-	op1->set_args({in0, in1});
 
-	mold::ImmPair imms = op->get_imms();
-	mold::ImmPair imms1 = op1->get_imms();
+	mold::ImmPair imms = op->get_imms({in0});
+	mold::ImmPair imms1 = op1->get_imms({in0, in1});
 	ASSERT_SHAPEQ(outshape, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 	ASSERT_SHAPEQ(permshape, imms1.first);
@@ -499,11 +491,11 @@ TEST_F(REGISTRY, Tranpose_B015)
 
 	std::shared_ptr<char> output = clay::make_char(nbytes0);
 	clay::State out(output, outshape, clay::DOUBLE);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0}));
 
 	std::shared_ptr<char> outputperm = clay::make_char(nbytes0);
 	clay::State outperm(outputperm, permshape, clay::DOUBLE);
-	ASSERT_TRUE(op1->read_data(outperm));
+	ASSERT_TRUE(op1->write_data(outperm, {in0, in1}));
 
 	double* data = (double*) output.get();
 	double* dataperm = (double*) outputperm.get();
@@ -552,20 +544,19 @@ TEST_F(REGISTRY, Flip_B016)
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, clay::Shape({1}), clay::UINT64);
-	op->set_args({in0, in1});
 
 	auto bad_op = slip::get_op(opcode);
-	EXPECT_THROW(bad_op->set_args({in0,
+	EXPECT_THROW(bad_op->get_imms({in0,
 		clay::State(baddata, clay::Shape({1}), clay::UINT64)}),
 		slip::InvalidDimensionError);
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1});
 	ASSERT_SHAPEQ(shape, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, shape, clay::DOUBLE);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1}));
 
 	double* data = (double*) output.get();
 	std::vector<size_t> coord;
@@ -609,21 +600,20 @@ TEST_F(REGISTRY, Expand_B017)
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, clay::Shape({1}), clay::UINT64);
 	clay::State in2(data2, clay::Shape({1}), clay::UINT64);
-	op->set_args({in0, in1, in2});
 
 	auto bad_op = slip::get_op(opcode);
-	EXPECT_THROW(bad_op->set_args({in0, in1,
+	EXPECT_THROW(bad_op->get_imms({in0, in1,
 		clay::State(baddata, clay::Shape({1}), clay::UINT64)}),
 		slip::InvalidDimensionError);
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1, in2});
 	ASSERT_SHAPEQ(outshape, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 
 	size_t noutbytes = outshape.n_elems() * sizeof(double);
 	std::shared_ptr<char> output = clay::make_char(noutbytes);
 	clay::State out(output, outshape, clay::DOUBLE);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1, in2}));
 
 	double* data = (double*) output.get();
 	std::vector<size_t> coord;
@@ -657,15 +647,14 @@ TEST_F(REGISTRY, NElems_B018)
 	ASSERT_TRUE(slip::has_op(opcode)) <<
 		"function " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
-	op->set_args({clay::State(data, shape, dtype)});
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({clay::State(data, shape, dtype)});
 	ASSERT_SHAPEQ(outshape, imms.first);
 	ASSERT_EQ(clay::UINT64, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(sizeof(uint64_t));
 	clay::State out(output, outshape, clay::UINT64);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {clay::State(data, shape, dtype)}));
 
 	uint64_t* outptr = (uint64_t*) output.get();
 	EXPECT_EQ(n, *outptr);
@@ -698,19 +687,18 @@ TEST_F(REGISTRY, NDims_B019)
 	auto op = slip::get_op(opcode);
 
 	clay::State in(data, shape, dtype);
-	op->set_args({in, clay::State(dptr, outshape, clay::UINT64)});
 
 	auto bad_op = slip::get_op(opcode);
-	EXPECT_THROW(bad_op->set_args({in, clay::State(baddata, outshape, clay::UINT64)}),
+	EXPECT_THROW(bad_op->get_imms({in, clay::State(baddata, outshape, clay::UINT64)}),
 		slip::InvalidDimensionError);
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in, clay::State(dptr, outshape, clay::UINT64)});
 	ASSERT_SHAPEQ(outshape, imms.first);
 	ASSERT_EQ(clay::UINT64, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(sizeof(uint64_t));
 	clay::State out(output, outshape, clay::UINT64);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in, clay::State(dptr, outshape, clay::UINT64)}));
 
 	uint64_t* outptr = (uint64_t*) output.get();
 	EXPECT_EQ(clist[argidx], *outptr);
@@ -798,15 +786,14 @@ TEST_F(REGISTRY, Uniform_B039)
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, shape, clay::DOUBLE);
-	op->set_args({in0, in1});
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1});
 	ASSERT_SHAPEQ(shape, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, shape, clay::DOUBLE);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1}));
 
 	double* outptr = (double*) output.get();
 	for (size_t i = 0; i < n; ++i)
@@ -836,30 +823,29 @@ TEST_F(REGISTRY, Binom_B040)
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::UINT64);
 	clay::State in1(data1, shape, clay::DOUBLE);
-	op->set_args({in0, in1});
 
 	auto badop_double = slip::get_op(opcode);
 	auto badop_float = slip::get_op(opcode);
 	auto bad_arg = slip::get_op(opcode);
-	EXPECT_THROW(badop_double->set_args({clay::State(data0, shape, clay::DOUBLE), in1}),
+	EXPECT_THROW(badop_double->get_imms({clay::State(data0, shape, clay::DOUBLE), in1}),
 		clay::UnsupportedTypeError);
-	EXPECT_THROW(badop_float->set_args({clay::State(data0, shape, clay::FLOAT), in1}),
+	EXPECT_THROW(badop_float->get_imms({clay::State(data0, shape, clay::FLOAT), in1}),
 		clay::UnsupportedTypeError);
 	clay::DTYPE notdoub = (clay::DTYPE) get_int(1, "notdoub", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	if (notdoub == clay::DOUBLE)
 	{
 		notdoub = clay::FLOAT;
 	}
-	EXPECT_THROW(bad_arg->set_args({in0, clay::State(data1, shape, notdoub)}),
+	EXPECT_THROW(bad_arg->get_imms({in0, clay::State(data1, shape, notdoub)}),
 		clay::UnsupportedTypeError);
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1});
 	ASSERT_SHAPEQ(shape, imms.first);
 	ASSERT_EQ(clay::UINT64, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, shape, clay::UINT64);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1}));
 
 	uint64_t* outptr = (uint64_t*) output.get();
 	// approximate to normal distribution
@@ -908,49 +894,48 @@ TEST_F(REGISTRY, Norm_B041)
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, shape, clay::DOUBLE);
-	op->set_args({in0, in1});
 
 	auto badop = slip::get_op(opcode);
-	ASSERT_THROW(badop->set_args({
+	ASSERT_THROW(badop->get_imms({
 		clay::State(data0, shape, clay::INT8),
 		clay::State(data1, shape, clay::INT8)}),
 		clay::UnsupportedTypeError);
-	ASSERT_THROW(badop->set_args({
+	ASSERT_THROW(badop->get_imms({
 		clay::State(data0, shape, clay::UINT8),
 		clay::State(data1, shape, clay::UINT8)}),
 		clay::UnsupportedTypeError);
-	ASSERT_THROW(badop->set_args({
+	ASSERT_THROW(badop->get_imms({
 		clay::State(data0, shape, clay::INT16),
 		clay::State(data1, shape, clay::INT16)}),
 		clay::UnsupportedTypeError);
-	ASSERT_THROW(badop->set_args({
+	ASSERT_THROW(badop->get_imms({
 		clay::State(data0, shape, clay::UINT16),
 		clay::State(data1, shape, clay::UINT16)}),
 		clay::UnsupportedTypeError);
-	ASSERT_THROW(badop->set_args({
+	ASSERT_THROW(badop->get_imms({
 		clay::State(data0, shape, clay::INT32),
 		clay::State(data1, shape, clay::INT32)}),
 		clay::UnsupportedTypeError);
-	ASSERT_THROW(badop->set_args({
+	ASSERT_THROW(badop->get_imms({
 		clay::State(data0, shape, clay::UINT32),
 		clay::State(data1, shape, clay::UINT32)}),
 		clay::UnsupportedTypeError);
-	ASSERT_THROW(badop->set_args({
+	ASSERT_THROW(badop->get_imms({
 		clay::State(data0, shape, clay::INT64),
 		clay::State(data1, shape, clay::INT64)}),
 		clay::UnsupportedTypeError);
-	ASSERT_THROW(badop->set_args({
+	ASSERT_THROW(badop->get_imms({
 		clay::State(data0, shape, clay::UINT64),
 		clay::State(data1, shape, clay::UINT64)}),
 		clay::UnsupportedTypeError);
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1});
 	ASSERT_SHAPEQ(shape, imms.first);
 	ASSERT_EQ(clay::DOUBLE, imms.second);
 
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, shape, clay::DOUBLE);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1}));
 
 	// double* outptr = (double*) output.get();
 	// std::vector<double> stdev_count(3, 0);
@@ -1009,16 +994,15 @@ TEST_F(REGISTRY, Matmul_B042)
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape0, clay::INT64);
 	clay::State in1(data1, shape1, clay::INT64);
-	op->set_args({in0, in1});
 
-	mold::ImmPair imms = op->get_imms();
+	mold::ImmPair imms = op->get_imms({in0, in1});
 	ASSERT_SHAPEQ(outshape, imms.first);
 	ASSERT_EQ(clay::INT64, imms.second);
 
 	size_t nbytes = nout * sizeof(int64_t);
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, outshape, clay::INT64);
-	ASSERT_TRUE(op->read_data(out));
+	ASSERT_TRUE(op->write_data(out, {in0, in1}));
 
 	int64_t* outptr = (int64_t*) output.get();
 

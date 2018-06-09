@@ -61,48 +61,7 @@ protected:
 };
 
 
-struct mock_builder final : public clay::iBuilder, public testify::mocker
-{
-	mock_builder (testify::fuzz_test* fuzzer) :
-		shape_(random_def_shape(fuzzer, {2, 6})),
-		dtype_((clay::DTYPE) fuzzer->get_int(1, "dtype",
-		{1, clay::DTYPE::_SENTINEL - 1})[0])
-	{
-		size_t nbytes = shape_.n_elems() * clay::type_size(dtype_);
-		uuid_ = fuzzer->get_string(nbytes, "uuid_");
-		ptr_ = clay::make_char(nbytes);
-		std::memcpy(ptr_.get(), uuid_.c_str(), nbytes);
-	}
-
-	clay::TensorPtrT get (void) const override
-	{
-		label_incr("get");
-		return clay::TensorPtrT(new clay::Tensor(ptr_, shape_, dtype_));
-	}
-
-	clay::TensorPtrT get (clay::Shape shape) const override
-	{
-		label_incr("getwshape");
-		ioutil::Stream str;
-		str << shape.as_list();
-		set_label("getwshape", str.str());
-		return clay::TensorPtrT(new clay::Tensor(ptr_, shape_, dtype_));
-	}
-
-	clay::Shape shape_;
-	clay::DTYPE dtype_;
-	std::string uuid_;
-	std::shared_ptr<char> ptr_;
-
-protected:
-	clay::iBuilder* clone_impl (void) const override
-	{
-		return new mock_builder(*this);
-	}
-};
-
-
-struct mock_source final : public clay::iSource, public testify::mocker
+struct mock_source final : public mold::iSource, public testify::mocker
 {
 	mock_source (clay::Shape shape, clay::DTYPE dtype, testify::fuzz_test* fuzzer)
 	{
@@ -115,7 +74,7 @@ struct mock_source final : public clay::iSource, public testify::mocker
 		state_ = {ptr_, shape, dtype};
 	}
 
-	bool read_data (clay::State& dest) const override
+	bool write_data (clay::State& dest) const override
 	{
 		bool success = false == uuid_.empty() &&
 			dest.dtype_ == state_.dtype_ &&
@@ -123,9 +82,9 @@ struct mock_source final : public clay::iSource, public testify::mocker
 		if (success)
 		{
 			std::memcpy((void*) dest.data_.lock().get(), ptr_.get(), uuid_.size());
-			label_incr("read_data_success");
+			label_incr("write_data_success");
 		}
-		label_incr("read_data");
+		label_incr("write_data");
 		return success;
 	}
 
@@ -145,11 +104,12 @@ struct mock_operateio final : public mold::iOperateIO
 		std::function<clay::DTYPE(std::vector<clay::DTYPE>)> typer) :
 		op_(op), shaper_(shaper), typer_(typer) {}
 
-	bool read_data (clay::State& dest) const override
+	bool write_data (clay::State& dest,
+		std::vector<clay::State> args) const override
 	{
 		std::vector<clay::Shape> shapes;
 		std::vector<clay::DTYPE> types;
-		for (const clay::State& arg : args_)
+		for (const clay::State& arg : args)
 		{
 			shapes.push_back(arg.shape_);
 			types.push_back(arg.dtype_);
@@ -160,16 +120,16 @@ struct mock_operateio final : public mold::iOperateIO
 			dest.dtype_ == otype;
 		if (success)
 		{
-			op_(dest, args_);
+			op_(dest, args);
 		}
 		return success;
 	}
 
-	mold::ImmPair get_imms (void) override
+	mold::ImmPair get_imms (std::vector<clay::State> args) const override
 	{
 		std::vector<clay::Shape> shapes;
 		std::vector<clay::DTYPE> types;
-		for (const clay::State& arg : args_)
+		for (const clay::State& arg : args)
 		{
 			shapes.push_back(arg.shape_);
 			types.push_back(arg.dtype_);
@@ -177,18 +137,11 @@ struct mock_operateio final : public mold::iOperateIO
 		return {shaper_(shapes), typer_(types)};
 	}
 
-	void set_args (std::vector<clay::State> args) override
-	{
-		args_ = args;
-	}
-
 private:
 	iOperateIO* clone_impl (void) const override
 	{
 		return new mock_operateio(*this);
 	}
-
-	std::vector<clay::State> args_;
 
 	std::function<void(clay::State&,std::vector<clay::State>)> op_;
 
@@ -221,6 +174,16 @@ mold::Functor* junk_functor (std::vector<mold::iNode*> args,
 		return dtype;
 	}));
 	return new mold::Functor(args, std::move(op));
+}
+
+
+std::string fake_init (clay::Tensor* tens, testify::fuzz_test* fuzzer)
+{
+	clay::State state = tens->get_state();
+	size_t nbytes = state.shape_.n_elems() * clay::type_size(state.dtype_);
+	std::string uuid = fuzzer->get_string(nbytes, "uuid");
+	std::memcpy(state.data_.lock().get(), uuid.c_str(), nbytes);
+	return uuid;
 }
 
 
@@ -302,11 +265,13 @@ TEST_F(FUNCTOR, Death_D002)
 TEST_F(FUNCTOR, HasData_D003)
 {
 	mold::Variable arg;
-	mock_builder builder(this);
+	clay::Shape shape = random_def_shape(this, {2, 6});
+	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype",
+		{1, clay::DTYPE::_SENTINEL - 1})[0];
 	mold::Functor* f = junk_functor(std::vector<mold::iNode*>{&arg}, this);
 
 	EXPECT_FALSE(f->has_data());
-	arg.initialize(builder);
+	arg.initialize(clay::TensorPtrT(new clay::Tensor(shape, dtype)));
 
 	EXPECT_TRUE(f->has_data());
 	delete f;
@@ -332,19 +297,23 @@ TEST_F(FUNCTOR, GetState_D004)
 		return in[0];
 	}));
 	mold::Variable arg;
-	mock_builder builder(this);
-	mock_source src(builder.shape_, builder.dtype_, this);
+	clay::Shape shape = random_def_shape(this, {2, 6});
+	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype",
+		{1, clay::DTYPE::_SENTINEL - 1})[0];
+	mock_source src(shape, dtype, this);
 	mold::Functor* f = new mold::Functor(std::vector<mold::iNode*>{&arg},
 		std::move(identity));
 
 	EXPECT_THROW(f->get_state(), mold::UninitializedError);
-	arg.initialize(builder);
+	clay::Tensor* tens = new clay::Tensor(shape, dtype);
+	std::string uuid = fake_init(tens, this);
+	arg.initialize(clay::TensorPtrT(tens));
 	clay::State state = f->get_state();
 	std::string got_uuid(state.data_.lock().get(),
 		state.shape_.n_elems() * clay::type_size(state.dtype_));
-	EXPECT_STREQ(builder.uuid_.c_str(), got_uuid.c_str());
-	EXPECT_SHAPEQ(builder.shape_, state.shape_);
-	EXPECT_EQ(builder.dtype_, state.dtype_);
+	EXPECT_STREQ(uuid.c_str(), got_uuid.c_str());
+	EXPECT_SHAPEQ(shape, state.shape_);
+	EXPECT_EQ(dtype, state.dtype_);
 
 	arg.assign(src);
 	clay::State state2 = f->get_state();

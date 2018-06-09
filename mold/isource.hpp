@@ -1,7 +1,7 @@
 /*!
  *
  *  isource.hpp
- *  clay
+ *  mold
  *
  *  Purpose:
  *  input source
@@ -14,19 +14,19 @@
 #include "clay/state.hpp"
 
 #pragma once
-#ifndef CLAY_ISOURCE_HPP
-#define CLAY_ISOURCE_HPP
+#ifndef MOLD_ISOURCE_HPP
+#define MOLD_ISOURCE_HPP
 
-namespace clay
+namespace mold
 {
 
 struct iSource
 {
 	virtual ~iSource (void) = default;
 
-	virtual bool read_data (State& dest) const = 0;
+	virtual bool write_data (clay::State& dest) const = 0;
 };
 
 }
 
-#endif /* CLAY_ISOURCE_HPP */
+#endif /* MOLD_ISOURCE_HPP */

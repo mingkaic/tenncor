@@ -3,6 +3,7 @@
 //  wire
 //
 
+#include <algorithm>
 #include <stack>
 #include <queue>
 
@@ -117,13 +118,13 @@ Identifier* delta (Identifier* root, Identifier* wrt)
 	wire::Graph* graph = root->graph_;
 	if (nullptr == graph)
 	{
-	    throw std::exception(); // todo: add context
+		throw std::exception(); // todo: add context
 	}
 	std::unordered_set<UID> reachable;
 	get_paths(reachable, root, target, graph);
 	if (reachable.empty())
 	{
-	    return make_zero(wrt);
+		return make_zero(wrt);
 	}
 	// asserts lower UID always appear lower in the graph
 	BotUpPathT path;
@@ -164,9 +165,9 @@ Identifier* delta (Identifier* root, Identifier* wrt)
 		clay::Shape shape = out->get_state().shape_;
 		clay::Shape base = wrt->get_state().shape_;
 		if (false == shape.is_compatible_with(base) &&
-			shape.rank() > 1 && shape[1] == base.n_elems())
-        // this is an unreliable way of detecting jacobian node
-        // todo: improve this check
+			shape.rank() > 1 && shape.at(1) == base.n_elems())
+		// this is an unreliable way of detecting jacobian node
+		// todo: improve this check
 		{
 			out = reduce_sum(out, (uint64_t) 0);
 			std::vector<size_t> blist = base.as_list();

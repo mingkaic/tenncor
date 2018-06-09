@@ -15,6 +15,7 @@
 
 #include "ioutil/stream.hpp"
 
+#include "clay/memory.hpp"
 #include "clay/error.hpp"
 
 #include "mold/constant.hpp"

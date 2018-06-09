@@ -7,7 +7,7 @@
 
 #include "wire/placeholder.hpp"
 
-#include "clay/memory.hpp"
+#include "mold/variable.hpp"
 
 #ifdef WIRE_PLACEHOLDER_HPP
 
@@ -63,58 +63,29 @@ static optional<clay::Shape> guess_shape (clay::Shape shape, size_t limit)
 }
 
 Placeholder::Placeholder (std::string label, Graph& graph) :
-	Identifier(&graph, new mold::Variable(), label)
-{
-	graph_->alloweds_[get_uid()] = clay::Shape();
-}
+	Identifier(&graph, new mold::Variable(), label) {}
 
-Placeholder::Placeholder (clay::Shape shape, std::string label,
-	Graph& graph) :
-	Identifier(&graph, new mold::Variable(), label)
+bool Placeholder::init_helper (size_t n,
+	clay::Shape shape, clay::DTYPE dtype)
 {
-	graph_->alloweds_[get_uid()] = shape;
-}
-
-Placeholder::AssignIO::AssignIO (std::string data,
-	clay::Shape shape, clay::DTYPE dtype) :
-	data_(data), shape_(shape), dtype_(dtype) {}
-
-bool Placeholder::AssignIO::read_data (clay::State& dest) const
-{
-	bool success = dest.shape_.is_compatible_with(shape_) &&
-		dest.dtype_ == dtype_;
-	if (success)
+	mold::Variable* arg = static_cast<mold::Variable*>(get());
+	bool inited = false == arg->has_data();
+	if (inited)
 	{
-		std::memcpy((void*) dest.data_.lock().get(),
-			data_.c_str(), data_.size());
+		if (false == shape.is_fully_defined())
+		{
+			optional<clay::Shape> oshape = guess_shape(shape, n);
+			if (false == (bool) oshape)
+			{
+				throw std::logic_error(
+					"attempting to assign badly "
+					"shaped data to an unallocated tensor");
+			}
+			shape = *oshape;
+		}
+		arg->initialize(clay::TensorPtrT(new clay::Tensor(shape, dtype)));
 	}
-	return success;
-}
-
-clay::TensorPtrT Placeholder::RawBuilder::get (void) const
-{
-	clay::Shape shape({limit_});
-	size_t nbytes = limit_ * clay::type_size(dtype_);
-	std::shared_ptr<char> ptr = clay::make_char(nbytes);
-	return std::make_unique<clay::Tensor>(ptr, shape, dtype_);
-}
-
-clay::TensorPtrT Placeholder::RawBuilder::get (clay::Shape shape) const
-{
-	optional<clay::Shape> oshape = guess_shape(shape, limit_);
-	if (false == (bool) oshape)
-	{
-		throw std::logic_error(
-			"attempting to assign badly shaped data to an unallocated tensor");
-	}
-	size_t nbytes = limit_ * clay::type_size(dtype_);
-	std::shared_ptr<char> ptr = clay::make_char(nbytes);
-	return clay::TensorPtrT(new clay::Tensor(ptr, *oshape, dtype_));
-}
-
-clay::iBuilder* Placeholder::RawBuilder::clone_impl (void) const
-{
-	return new RawBuilder(*this);
+	return inited;
 }
 
 }

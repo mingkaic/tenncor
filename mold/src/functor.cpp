@@ -91,14 +91,12 @@ void Functor::initialize (void)
 	{
 		return arg->get_state();
 	});
-	op_->set_args(inputs);
-	ImmPair imm = op_->get_imms();
+	ImmPair imm = op_->get_imms(inputs);
 	clay::Shape& shape = imm.first;
 	clay::DTYPE& dtype = imm.second;
-	size_t nbytes = shape.n_elems() * clay::type_size(dtype);
-	std::shared_ptr<char> data = clay::make_char(nbytes);
-	cache_ = clay::TensorPtrT(new clay::Tensor(data, shape, dtype));
-	if (false == cache_->read_from(*op_))
+	cache_ = clay::TensorPtrT(new clay::Tensor(shape, dtype));
+	clay::State dest = cache_->get_state();
+	if (false == op_->write_data(dest, inputs))
 	{
 		throw FunctorUpdateError();
 	}
@@ -113,7 +111,14 @@ void Functor::update (void)
 {
 	if (nullptr != cache_)
 	{
-		if (false == cache_->read_from(*op_))
+		clay::State dest = cache_->get_state();
+		std::vector<clay::State> inputs(args_.size());
+		std::transform(args_.begin(), args_.end(), inputs.begin(),
+		[](iNode* arg) -> clay::State
+		{
+			return arg->get_state();
+		});
+		if (false == op_->write_data(dest, inputs))
 		{
 			throw FunctorUpdateError();
 		}

@@ -7,50 +7,6 @@ package tenncor;
 import "google/protobuf/any.proto";
 import "lead/data.proto";
 
-enum OpcodeT
-{
-	ABS = 0;
-	NEG = 1;
-	NOT = 2;
-	SIN = 3;
-	COS = 4;
-	TAN = 5;
-	EXP = 6;
-	LOG = 7;
-	SQRT = 8;
-	ROUND = 9;
-	POW = 10;
-	ADD = 11;
-	SUB = 12;
-	MUL = 13;
-	DIV = 14;
-	EQ = 15;
-	NE = 16;
-	GT = 17;
-	LT = 18;
-	BINO = 19;
-	UNIF = 20;
-	NORM = 21;
-	TRANSPOSE = 22;
-	FLIP = 23;
-	UARGMAX = 24;
-	URMAX = 25;
-	URSUM = 26;
-	ARGMAX = 27;
-	RMAX = 28;
-	RSUM = 29;
-	EXPAND = 30;
-	N_ELEMS = 31;
-	N_DIMS = 32;
-	MATMUL = 33;
-	RESHAPE = 34;
-	// gradient nodes (todo: remove this)
-	JACOBIAN = 35;
-	TRACE_EXPAND = 36;
-	// sentinel
-	_OP_SENTINEL = 37;
-}
-
 message NodePb
 {
 	enum NodeT
@@ -72,7 +28,7 @@ message NodePb
 
 message FunctorPb
 {
-	OpcodeT opcode = 1;
+	uint32 opcode = 1;
 	repeated string args = 2;
 }
 

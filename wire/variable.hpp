@@ -27,11 +27,8 @@ namespace wire
 
 struct Variable final : public Identifier
 {
-	Variable (const clay::iBuilder& builder, std::string label,
+	Variable (const clay::BuildTensorT, std::string label,
 		Graph& graph = Graph::get_global());
-
-	Variable (const clay::iBuilder& builder, clay::Shape shape,
-		std::string label, Graph& graph = Graph::get_global());
 
 	~Variable (void);
 

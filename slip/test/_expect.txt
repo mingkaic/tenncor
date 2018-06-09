@@ -1,9 +1,3 @@
-// OPERATE_IO BEHAVIOR
-A000 - OperateIO setting empty argument for any op throws error
-A001 - OperateIO can only set_args once, second set_args throws error
-A002 - OperateIO read_data before set_args throws bad_function_call
-A003 - OperateIO get_imms before set_args throws exception
-
 // REGISTRY BEHAVIOR
 B000 - get_op for unsupported OPCODE throws
 B001 - slip::CAST returns operate_io casting input2 to input1 type

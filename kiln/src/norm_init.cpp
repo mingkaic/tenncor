@@ -14,46 +14,28 @@
 namespace kiln
 {
 
-NormInit::NormInit (Validator validate) :
-	Builder(validate) {}
-
-NormInit::NormInit (std::string mean, std::string stdev,
-	clay::DTYPE dtype, Validator validate) :
-	Builder(validate, dtype), mean_(mean), stdev_(stdev) {}
-
-clay::TensorPtrT NormInit::build (clay::Shape shape) const
+clay::Tensor* norm_build (char* mean, char* stdev,
+	clay::Shape shape, clay::DTYPE dtype)
 {
-	unsigned short bsize = clay::type_size(dtype_);
+	unsigned short bsize = clay::type_size(dtype);
 	size_t nbytes = bsize * shape.n_elems();
 	std::shared_ptr<char> mean_ptr = clay::make_char(nbytes);
 	std::shared_ptr<char> stdev_ptr = clay::make_char(bsize);
 
-	size_t ncopied = bsize;
 	char* dest = mean_ptr.get();
-	std::memcpy(dest, mean_.c_str(), bsize);
-	for (; ncopied * 2 <= nbytes; ncopied *= 2)
-	{
-		memcpy(dest + ncopied, dest, ncopied);
-	}
-	if(ncopied < nbytes)
-	{
-		memcpy(dest + ncopied, dest, nbytes - ncopied);
-	}
-	std::memcpy(stdev_ptr.get(), stdev_.c_str(), bsize);
+	copy_over(dest, nbytes, mean, bsize);
+	std::memcpy(stdev_ptr.get(), stdev, bsize);
 
 	clay::Shape one({1});
 	mold::iOperatePtrT op = slip::get_op(slip::NORM);
-	op->set_args({
-		clay::State{mean_ptr, shape, dtype_},
-		clay::State{stdev_ptr, one, dtype_},
-	});
-	mold::ImmPair imm = op->get_imms();
-	clay::Shape& outshape = imm.first;
-	clay::DTYPE& dtype = imm.second;
-	size_t outbytes = outshape.n_elems() * clay::type_size(dtype);
-	std::shared_ptr<char> data = clay::make_char(outbytes);
-	auto out = std::make_unique<clay::Tensor>(data, outshape, dtype);
-	out->read_from(*op);
+	std::vector<clay::State> states{
+		clay::State{mean_ptr, shape, dtype},
+		clay::State{stdev_ptr, one, dtype},
+	};
+	mold::ImmPair imm = op->get_imms(states);
+	auto out = new clay::Tensor(imm.first, imm.second);
+	clay::State state = out->get_state();
+	op->write_data(state, states);
 	return out;
 }
 

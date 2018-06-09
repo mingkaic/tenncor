@@ -11,9 +11,10 @@
  *
  */
 
+#include "clay/tensor.hpp"
 #include "clay/error.hpp"
 
-#include "kiln/builder.hpp"
+#include "kiln/const_init.hpp"
 
 #pragma once
 #ifndef KILN_NORM_INIT_HPP
@@ -22,39 +23,25 @@
 namespace kiln
 {
 
-struct NormInit final : public Builder
+clay::Tensor* norm_build (char* mean, char* stdev,
+	clay::Shape shape, clay::DTYPE dtype);
+
+template <typename T>
+clay::BuildTensorT norm_init (T mean, T stdev,
+	clay::Shape shape = clay::Shape())
 {
-	NormInit (void) = default;
-
-	NormInit (Validator validate);
-
-	NormInit (std::string mean, std::string stdev,
-		clay::DTYPE dtype, Validator validate = Validator());
-
-	template <typename T>
-	void set (T mean, T stdev)
+	clay::DTYPE dtype = clay::get_type<T>();
+	if (dtype == clay::DTYPE::BAD)
 	{
-		dtype_ = clay::get_type<T>();
-		if (dtype_ == clay::DTYPE::BAD)
-		{
-			throw clay::UnsupportedTypeError(dtype_);
-		}
-		mean_ = std::string((char*) &mean, sizeof(T));
-		stdev_ = std::string((char*) &stdev, sizeof(T));
+		throw clay::UnsupportedTypeError(dtype);
 	}
-
-protected:
-	clay::iBuilder* clone_impl (void) const override
+	correct_shape(shape, 1);
+	return [mean, stdev, shape, dtype]()
 	{
-		return new NormInit(*this);
-	}
-
-	clay::TensorPtrT build (clay::Shape shape) const override;
-
-private:
-	std::string mean_;
-	std::string stdev_;
-};
+		return clay::TensorPtrT(
+			norm_build((char*) &mean, (char*) &stdev, shape, dtype));
+	};
+}
 
 }
 

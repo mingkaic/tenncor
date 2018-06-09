@@ -15,6 +15,8 @@
 
 #include "clay/tensor.hpp"
 
+#include "mold/isource.hpp"
+
 #pragma once
 #ifndef MOLD_INODE_HPP
 #define MOLD_INODE_HPP

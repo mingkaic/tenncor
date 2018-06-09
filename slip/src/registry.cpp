@@ -96,153 +96,62 @@ class OperateIO final : public mold::iOperateIO
 {
 public:
 	OperateIO (OPCODE opcode, ShaperF shaper, TyperF typer) :
-		opcode_(opcode), state_(new UninitOperate(shaper, typer)) {}
-
-	OperateIO (const OperateIO& other) :
-		state_(other.state_->clone()) {}
-
-	OperateIO (OperateIO&&) = default;
-
-	OperateIO& operator = (const OperateIO& other)
+		shaper_(shaper), typer_(typer)
 	{
-		if (this != &other)
+		auto types = op_registry.find(opcode);
+		if (op_registry.end() == types)
 		{
-			state_ = mold::iOperatePtrT(other.state_->clone());
+			throw UnsupportedOpcodeError(opcode);
 		}
-		return *this;
+		ops_ = types->second;
 	}
 
-	OperateIO& operator = (OperateIO&&) = default;
-
-	bool read_data (clay::State& dest) const override
+	bool write_data (clay::State& dest,
+		std::vector<clay::State> args) const override
 	{
-		return state_->read_data(dest);
-	}
-
-	mold::ImmPair get_imms (void) override
-	{
-		return state_->get_imms();
-	}
-
-	void set_args (std::vector<clay::State> args) override
-	{
-		state_->set_args(args);
-		if (UninitOperate* uop = static_cast<UninitOperate*>(state_.get()))
+		auto imms = get_imms(args);
+		bool success = dest.shape_.
+			is_compatible_with(imms.first) &&
+			dest.dtype_ == imms.second;
+		if (success)
 		{
-			state_ = mold::iOperatePtrT(
-				new InitOperate(uop->args_, uop->get_imms(), opcode_));
-		}
-	}
-
-private:
-	class UninitOperate final : public mold::iOperateIO
-	{
-	public:
-		UninitOperate (ShaperF shaper, TyperF typer) :
-			shaper_(shaper), typer_(typer) {}
-
-		bool read_data (clay::State&) const override
-		{
-			throw std::bad_function_call();
-		}
-
-		mold::ImmPair get_imms (void) override
-		{
-			if (args_.empty())
-			{
-				throw NoArgumentsError();
-			}
-			std::vector<clay::DTYPE> types(args_.size());
-			std::transform(args_.begin(), args_.end(), types.begin(),
-			[](clay::State& state) -> clay::DTYPE
-			{
-				return state.dtype_;
-			});
-			clay::DTYPE otype = typer_(types);
-			return {shaper_(args_), otype};
-		}
-
-		void set_args (std::vector<clay::State> args) override
-		{
-			args_ = args;
-		}
-
-		std::vector<clay::State> args_;
-
-	private:
-		iOperateIO* clone_impl (void) const override
-		{
-			return new UninitOperate(*this);
-		}
-
-		ShaperF shaper_;
-
-		TyperF typer_;
-	};
-
-	class InitOperate final : public mold::iOperateIO
-	{
-	public:
-		InitOperate (std::vector<clay::State> args,
-			mold::ImmPair imms, OPCODE opcode) :
-		args_(args), imms_(imms)
-		{
-			auto types = op_registry.find(opcode);
-			if (op_registry.end() == types)
-			{
-				throw UnsupportedOpcodeError(opcode);
-			}
-			auto it = types->second.find(imms.second);
-			if (types->second.end() == it)
+			auto op = ops_.find(imms.second);
+			if (ops_.end() == op)
 			{
 				throw clay::UnsupportedTypeError(imms.second);
 			}
-			op_ = it->second;
+			op->second(dest, args);
 		}
+		return success;
+	}
 
-		bool read_data (clay::State& dest) const override
+	mold::ImmPair get_imms (std::vector<clay::State> args) const override
+	{
+		if (args.empty())
 		{
-			bool success = dest.shape_.
-				is_compatible_with(imms_.first) &&
-				dest.dtype_ == imms_.second;
-			if (success)
-			{
-				op_(dest, args_);
-			}
-			return success;
+			throw NoArgumentsError();
 		}
-
-		mold::ImmPair get_imms (void) override
+		std::vector<clay::DTYPE> types(args.size());
+		std::transform(args.begin(), args.end(), types.begin(),
+		[](clay::State& state) -> clay::DTYPE
 		{
-			return imms_;
-		}
+			return state.dtype_;
+		});
+		clay::DTYPE otype = typer_(types);
+		return {shaper_(args), otype};
+	}
 
-		void set_args (std::vector<clay::State> args) override
-		{
-			throw std::bad_function_call();
-		}
-
-	private:
-		iOperateIO* clone_impl (void) const override
-		{
-			return new InitOperate(*this);
-		}
-
-		std::vector<clay::State> args_;
-
-		mold::ImmPair imms_;
-
-		ArgsF op_;
-	};
-
+private:
 	iOperateIO* clone_impl (void) const override
 	{
 		return new OperateIO(*this);
 	}
 
-	OPCODE opcode_;
+	ShaperF shaper_;
 
-	mold::iOperatePtrT state_;
+	TyperF typer_;
+
+	TypeReg ops_;
 };
 
 struct OpWrapper
@@ -725,15 +634,15 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 		clay::Shape ashape = states[0].shape_;
 		clay::Shape bshape = states[1].shape_;
 		clay::Shape yshape = states[*dim].shape_;
-		size_t x = bshape[0];
-		size_t y = yshape[0];
+		size_t x = bshape.at(0);
+		size_t y = yshape.at(0);
 		if (ashape.rank() > 1)
 		{
-			x *= ashape[1];
+			x *= ashape.at(1);
 		}
 		if (yshape.rank() > 1)
 		{
-			y *= yshape[1];
+			y *= yshape.at(1);
 		}
 		std::vector<size_t> slist = yshape.as_list();
 		slist[0] = x;

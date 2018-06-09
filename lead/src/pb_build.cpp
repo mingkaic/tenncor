@@ -17,9 +17,9 @@ clay::TensorPtrT PbBuilder::get (void) const
 {
 	auto shapepb = pb_.shape();
 	clay::Shape shape(std::vector<size_t>{shapepb.begin(), shapepb.end()});
-	tenncor::TensorT dtype = pb_.type();
+	clay::DTYPE dtype = pb_.type();
 	std::shared_ptr<char> data = unpack_data(pb_.data(), dtype);
-	return std::make_unique<clay::Tensor>(data, shape, (clay::DTYPE) dtype);
+	return std::make_unique<clay::Tensor>(shape, (clay::DTYPE) dtype);
 }
 
 clay::TensorPtrT PbBuilder::get (clay::Shape shape) const
@@ -29,9 +29,9 @@ clay::TensorPtrT PbBuilder::get (clay::Shape shape) const
 	clay::Shape inshape(std::vector<size_t>{shapepb.begin(), shapepb.end()});
 	if (inshape.is_compatible_with(shape))
 	{
-		tenncor::TensorT dtype = pb_.type();
+		clay::DTYPE dtype = pb_.type();
 		std::shared_ptr<char> data = unpack_data(pb_.data(), dtype);
-		out = std::make_unique<clay::Tensor>(data, shape, (clay::DTYPE) dtype);
+		out = std::make_unique<clay::Tensor>(shape, (clay::DTYPE) dtype);
 	}
 	return out;
 }

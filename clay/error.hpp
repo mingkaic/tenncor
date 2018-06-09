@@ -23,11 +23,6 @@
 namespace clay
 {
 
-struct NilDataError : public std::runtime_error
-{
-	NilDataError (void);
-};
-
 struct UnsupportedTypeError : public std::runtime_error
 {
 	UnsupportedTypeError (clay::DTYPE type);

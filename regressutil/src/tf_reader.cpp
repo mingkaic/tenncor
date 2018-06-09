@@ -44,9 +44,8 @@ wire::Variable* varify (std::string str, std::string label)
 	if (rank == 0)
 	{
 		double scalar = (double) std::atof(str.c_str());
-		kiln::ConstInit ci(std::string((char*) &scalar, sizeof(double)), clay::DOUBLE);
-		clay::Shape wun({1});
-		return new wire::Variable(ci, wun, str);
+		clay::BuildTensorT builder = kiln::const_init(scalar);
+		return new wire::Variable(builder, str);
 	}
 
 	std::vector<double> data;
@@ -102,11 +101,10 @@ wire::Variable* varify (std::string str, std::string label)
 		}
 		// assert max_level == rank
 	}
-	kiln::ConstInit ci;
-	ci.set<double>(data);
 	clay::Shape outshape(shaplist);
+	clay::BuildTensorT builder = kiln::const_init(data, outshape);
 
-	return new wire::Variable(ci, outshape, label);
+	return new wire::Variable(builder, label);
 }
 
 #endif

@@ -29,13 +29,14 @@ class Tensor final : public iTensor
 {
 public:
 	//! create a tensor of a specified shape
-	Tensor (std::shared_ptr<char> data, Shape shape, DTYPE dtype);
+	Tensor (Shape shape, DTYPE dtype);
 
-    Tensor (const Tensor& other) = default;
-    Tensor& operator = (const Tensor& other) = default;
+	Tensor (const Tensor& other);
 
-    Tensor (Tensor&& other) = delete;
-    Tensor& operator = (Tensor&& other) = delete;
+	Tensor& operator = (const Tensor& other);
+
+	Tensor (Tensor&& other) = delete;
+	Tensor& operator = (Tensor&& other) = delete;
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 

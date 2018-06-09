@@ -21,9 +21,10 @@ namespace lead
 {
 
 std::shared_ptr<char> unpack_data (const google::protobuf::Any& src,
-	tenncor::TensorT dtype);
+	clay::DTYPE dtype);
 
-void pack_data (google::protobuf::Any* dest, std::shared_ptr<char> src, size_t n, tenncor::TensorT dtype);
+void pack_data (google::protobuf::Any* dest, std::shared_ptr<char> src,
+	size_t n, clay::DTYPE dtype);
 
 }
 

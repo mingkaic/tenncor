@@ -11,9 +11,10 @@
  *
  */
 
+#include "clay/tensor.hpp"
 #include "clay/error.hpp"
 
-#include "kiln/builder.hpp"
+#include "kiln/const_init.hpp"
 
 #pragma once
 #ifndef KILN_UNIF_INIT_HPP
@@ -22,40 +23,25 @@
 namespace kiln
 {
 
-struct UnifInit final : public Builder
+clay::Tensor* unif_build (char* min, char* max,
+	clay::Shape shape, clay::DTYPE dtype);
+
+template <typename T>
+clay::BuildTensorT unif_init (T min, T max,
+	clay::Shape shape = clay::Shape())
 {
-	UnifInit (void) = default;
-
-	UnifInit (Validator validate);
-
-	UnifInit (std::string min, std::string max,
-		clay::DTYPE dtype, Validator validate = Validator());
-
-	template <typename T>
-	void set (T min, T max)
+	clay::DTYPE dtype = clay::get_type<T>();
+	if (dtype == clay::DTYPE::BAD)
 	{
-		dtype_ = clay::get_type<T>();
-		if (dtype_ == clay::DTYPE::BAD)
-		{
-			throw clay::UnsupportedTypeError(dtype_);
-		}
-		min_ = std::string((char*) &min, sizeof(T));
-		max_ = std::string((char*) &max, sizeof(T));
+		throw clay::UnsupportedTypeError(dtype);
 	}
-
-protected:
-	clay::iBuilder* clone_impl (void) const override
+	correct_shape(shape, 1);
+	return [min, max, shape, dtype]()
 	{
-		return new UnifInit(*this);
-	}
-
-	clay::TensorPtrT build (clay::Shape shape) const override;
-
-private:
-	std::string min_;
-
-	std::string max_;
-};
+		return clay::TensorPtrT(
+			unif_build((char*) &min, (char*) &max, shape, dtype));
+	};
+}
 
 }
 

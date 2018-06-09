@@ -23,17 +23,17 @@ void save_tensor (tenncor::TensorPb& out, clay::State state)
 		throw std::exception(); // todo: add context
 	}
 	clay::Shape& shape = state.shape_;
-	tenncor::TensorT type = (tenncor::TensorT) state.dtype_;
+	clay::DTYPE type = state.dtype_;
 	// set TensorPb data (1)
 	pack_data(out.mutable_data(), state.data_.lock(), shape.n_elems(), type);
 
-	// set TensorPb type (2)
-	out.set_type(type);
-
-	// set TensorPb shape (3)
+	// set TensorPb shape (2)
 	std::vector<size_t> slist = shape.as_list();
 	google::protobuf::RepeatedField<uint64_t> field(slist.begin(), slist.end());
 	out.mutable_shape()->Swap(&field);
+
+	// set TensorPb type (3)
+	out.set_type(type);
 }
 
 void save_data (tenncor::DataRepoPb& out, const wire::Graph& graph)
@@ -79,7 +79,7 @@ void save_graph (tenncor::GraphPb& out, const wire::Graph& graph)
 			node_dest.set_type(tenncor::NodePb::FUNCTOR);
 
 			tenncor::FunctorPb fpb;
-			fpb.set_opcode((tenncor::OpcodeT) f->opcode_);
+			fpb.set_opcode(f->opcode_);
 			auto args = f->get_args();
 			for (std::string& arg_id : args)
 			{

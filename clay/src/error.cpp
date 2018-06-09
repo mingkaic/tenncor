@@ -12,9 +12,6 @@
 namespace clay
 {
 
-NilDataError::NilDataError (void) :
-	std::runtime_error("passing with null data") {}
-
 UnsupportedTypeError::UnsupportedTypeError (clay::DTYPE type) :
 	std::runtime_error(ioutil::Stream() <<
 	"unsupported type " << type) {}

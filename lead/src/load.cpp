@@ -18,7 +18,7 @@ namespace lead
 {
 
 static inline void placeholder_assign (wire::Placeholder* place,
-    const tenncor::TensorPb& tpb)
+	const tenncor::TensorPb& tpb)
 {
 	switch (tpb.type())
 	{
@@ -134,12 +134,12 @@ std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 				tenncor::FunctorPb fpb;
 				node.detail().UnpackTo(&fpb);
 				const google::protobuf::RepeatedPtrField<std::string>&
-                    arg_ids = fpb.args();
+					arg_ids = fpb.args();
 				std::vector<wire::Identifier*> args(arg_ids.size());
 				std::transform(arg_ids.begin(), arg_ids.end(), args.begin(),
 				[&](std::string argid)
 				{
-                    rootids.erase(argid);
+					rootids.erase(argid);
 					return graph->get_node(argid);
 				});
 				node_id = new wire::Functor(args, (slip::OPCODE) fpb.opcode(), *graph);
@@ -152,7 +152,7 @@ std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 
 				auto slist = tpb.shape();
 				clay::Shape shape(std::vector<size_t>(slist.begin(), slist.end()));
-				tenncor::TensorT type = tpb.type();
+				clay::DTYPE type = tpb.type();
 				std::shared_ptr<char> data = unpack_data(tpb.data(), type);
 				node_id = new wire::Constant(data, shape, (clay::DTYPE) type, label, *graph);
 				leafset.emplace(node_id);
@@ -179,8 +179,8 @@ std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 				leafset.emplace(place);
 			}
 			break;
-            default:
-                throw std::exception(); // todo: add context
+			default:
+				throw std::exception(); // todo: add context
 		}
 		graph->replace_id(node_id, id);
 		rootids.emplace(id);

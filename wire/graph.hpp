@@ -13,8 +13,6 @@
 
 #include <memory>
 
-#include "clay/ibuilder.hpp"
-
 #include "mold/variable.hpp"
 
 #include "slip/opcode.hpp"
@@ -40,8 +38,7 @@ using FunctorSetT = std::unordered_set<Functor*>;
 using OpcodeMapT = std::unordered_map<slip::OPCODE,
 	FunctorSetT,slip::EnumHash>;
 
-using BuilderMapT = std::unordered_map<UID,
-	std::unique_ptr<clay::iBuilder>>;
+using BuilderMapT = std::unordered_map<UID,clay::BuildTensorT>;
 
 class Graph
 {
@@ -114,11 +111,7 @@ protected:
 
 	BuilderMapT uninits_;
 
-	std::unordered_map<UID,clay::Shape> alloweds_;
-
 private:
-	void unsafe_init (Identifier* id, clay::iBuilder& builder);
-
 	std::string gid_;
 
 	OrderedMap<UID,Identifier*> adjmap_;

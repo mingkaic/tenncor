@@ -11,11 +11,12 @@
  *
  */
 
+#include <functional>
+
 #include "clay/shape.hpp"
 #include "clay/dtype.hpp"
 
 #include "clay/state.hpp"
-#include "clay/isource.hpp"
 
 #pragma once
 #ifndef CLAY_ITENSOR_HPP
@@ -30,21 +31,19 @@ public:
 	//! create a tensor of a specified shape
 	iTensor (void) = default;
 
-    virtual ~iTensor (void) = default;
+	virtual ~iTensor (void) = default;
 
-    iTensor (const iTensor& other) = default;
-    iTensor& operator = (const iTensor& other) = default;
+	iTensor (const iTensor& other) = default;
+	iTensor& operator = (const iTensor& other) = default;
 
-    iTensor (iTensor&& other) = delete;
-    iTensor& operator = (iTensor&& other) = delete;
+	iTensor (iTensor&& other) = delete;
+	iTensor& operator = (iTensor&& other) = delete;
 
-    iTensor* clone (void) const
-    {
-        return clone_impl();
-    }
+	iTensor* clone (void) const
+	{
+		return clone_impl();
+	}
 
-
-	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
 	//! get internal state
 	virtual State get_state (void) const = 0;
@@ -58,22 +57,13 @@ public:
 	//! get bytes allocated
 	virtual size_t total_bytes (void) const = 0;
 
-
-	// >>>>>>>>>>>> MUTATOR <<<<<<<<<<<<
-
-	//! copy over data from src
-	//! return true if successful
-	bool read_from (const iSource& src)
-    {
-        State state = get_state();
-        return src.read_data(state);
-    }
-
 protected:
-    virtual iTensor* clone_impl (void) const = 0;
+	virtual iTensor* clone_impl (void) const = 0;
 };
 
 using TensorPtrT = std::unique_ptr<iTensor>;
+
+using BuildTensorT = std::function<TensorPtrT()>;
 
 }
 

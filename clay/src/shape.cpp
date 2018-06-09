@@ -9,6 +9,8 @@
 #include "clay/shape.hpp"
 #include "clay/error.hpp"
 
+#include "ioutil/stream.hpp"
+
 #ifdef CLAY_SHAPE_HPP
 
 namespace clay
@@ -23,7 +25,7 @@ Shape& Shape::operator = (const std::vector<size_t>& dims)
 	return *this;
 }
 
-size_t Shape::operator [] (size_t dim) const
+size_t Shape::at (size_t dim) const
 {
 	return dimensions_.at(dim);
 }
@@ -173,8 +175,8 @@ Shape merge_with (const Shape& shape, const Shape& other)
 	std::vector<size_t> ds;
 	for (size_t i = 0; i < rank; i++)
 	{
-		size_t value = shape[i];
-		size_t ovalue = other[i];
+		size_t value = shape.at(i);
+		size_t ovalue = other.at(i);
 		if (value == ovalue || (value && ovalue))
 		{
 			ds.push_back(value);
@@ -195,9 +197,9 @@ Shape trim (const Shape& shape)
 	{
 		size_t start = 0;
 		size_t end = shape.rank() - 1;
-		while (start < end && 1 == shape[start]) { start++; }
-		while (start < end && 1 == shape[end]) { end--; }
-		if (start < end || 1 != shape[end])
+		while (start < end && 1 == shape.at(start)) { start++; }
+		while (start < end && 1 == shape.at(end)) { end--; }
+		if (start < end || 1 != shape.at(end))
 		{
 			res.insert(res.end(), shape.begin() + start,
 				shape.begin() + end + 1);
@@ -280,8 +282,8 @@ size_t index (const Shape& shape, std::vector<size_t> coord)
 	size_t index = 0;
 	for (size_t i = 1; i < n; i++)
 	{
-		index += coord[n-i];
-		index *= shape[n-i-1];
+		index += coord[n - i];
+		index *= shape.at(n - i - 1);
 	}
 	return index + coord[0];
 }
@@ -297,6 +299,11 @@ std::vector<size_t> coordinate (const Shape& shape, size_t idx)
 		idx = (idx - xd) / *it;
 	}
 	return coord;
+}
+
+std::string to_string (const Shape& shape)
+{
+	return ioutil::Stream() << shape.as_list();
 }
 
 }

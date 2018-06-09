@@ -11,6 +11,7 @@
  *
  */
 
+#include <string>
 #include <cstdlib>
 #include <vector>
 
@@ -44,7 +45,7 @@ public:
 
 	// >>>> ACCESSORS <<<<
 	//! access value at index dim, throws std::out_of_range if dim >= rank
-	size_t operator [] (size_t dim) const;
+	size_t at (size_t dim) const;
 
 	typename std::vector<size_t>::const_iterator begin (void) const;
 
@@ -115,6 +116,9 @@ size_t index (const Shape& shape, std::vector<size_t> coord);
 
 //! obtain cartesian coordinates given a flat vector index
 std::vector<size_t> coordinate (const Shape& shape, size_t idx);
+
+//! write shape dimensions to string
+std::string to_string (const Shape& shape);
 
 }
 

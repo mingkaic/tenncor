@@ -30,6 +30,3 @@ B001 - get_type returns type mapped by the template argument
 C000 - constructor throws error if data is nullptr, shape is not fully defined, or type is BAD,
 		does not override default big 4
 C001 - total_bytes returns the size of allocated bytes in data
-C002 - read_from copies data from input source, return false if
-		source shape or type not compatible with existing shape and type
-		fail reads do not change data

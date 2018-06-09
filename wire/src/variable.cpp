@@ -12,20 +12,11 @@
 namespace wire
 {
 
-Variable::Variable (const clay::iBuilder& builder,
+Variable::Variable (clay::BuildTensorT builder,
 	std::string label, Graph& graph) :
 	Identifier(&graph, new mold::Variable(), label)
 {
-	graph_->uninits_[get_uid()] = std::unique_ptr<clay::iBuilder>(builder.clone());
-}
-
-Variable::Variable (const clay::iBuilder& builder,
-	clay::Shape shape, std::string label, Graph& graph) :
-	Identifier(&graph, new mold::Variable(), label)
-{
-	UID uid = get_uid();
-	graph_->alloweds_[uid] = shape;
-	graph_->uninits_[uid] = std::unique_ptr<clay::iBuilder>(builder.clone());
+	graph_->uninits_[get_uid()] = builder;
 }
 
 Variable::~Variable (void)

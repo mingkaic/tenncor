@@ -26,37 +26,24 @@ clay::State Variable::get_state (void) const
 	return data_->get_state();
 }
 
-bool Variable::initialize (const clay::iBuilder& builder)
+void Variable::initialize (clay::TensorPtrT data)
 {
-	auto out = builder.get();
-	bool success = nullptr != out;
-	if (success)
+	if (nullptr == data)
 	{
-		data_ = std::move(out);
-		notify_init();
+		throw NilDataError();
 	}
-	return success;
+	data_ = std::move(data);
+	notify_init();
 }
 
-bool Variable::initialize (const clay::iBuilder& builder, clay::Shape shape)
-{
-	auto out = builder.get(shape);
-	bool success = nullptr != out;
-	if (success)
-	{
-		data_ = std::move(out);
-		notify_init();
-	}
-	return success;
-}
-
-void Variable::assign (const clay::iSource& src)
+void Variable::assign (const mold::iSource& src)
 {
 	if (nullptr == data_)
 	{
 		throw UninitializedError();
 	}
-	data_->read_from(src);
+	clay::State dest = data_->get_state();
+	src.write_data(dest);
 	for (iObserver* aud : audience_)
 	{
 		aud->update();

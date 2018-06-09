@@ -176,7 +176,7 @@ void matmul (clay::State& dest, std::vector<clay::State> srcs)
 	T* tdest = safe_get<T>(dest.data_);
 	const T* src0 = safe_get<const T>(srcs.front().data_);
 	const T* src1 = safe_get<const T>(srcs.back().data_);
-	size_t dim_z = ashape[0];
+	size_t dim_z = ashape.at(0);
 	size_t dim_y;
 	if (ashape.rank() < 2)
 	{
@@ -184,9 +184,9 @@ void matmul (clay::State& dest, std::vector<clay::State> srcs)
 	}
 	else
 	{
-		dim_y = ashape[1];
+		dim_y = ashape.at(1);
 	}
-	size_t dim_x = bshape[0];
+	size_t dim_x = bshape.at(0);
 
 	// assert that beyond2d is same for A, B, and output C
 	size_t beyond2d = srcs[0].shape_.n_elems() / (dim_z * dim_y);

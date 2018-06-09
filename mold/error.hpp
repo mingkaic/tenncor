@@ -20,6 +20,11 @@
 namespace mold
 {
 
+struct NilDataError : public std::runtime_error
+{
+	NilDataError (void);
+};
+
 struct UninitializedError : public std::runtime_error
 {
 	UninitializedError (void);

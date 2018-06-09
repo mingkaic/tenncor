@@ -48,70 +48,70 @@ TEST_F(PLACEHOLDER, VecAssign_F000)
 		{
 			double* ptr = (double*) data.c_str();
 			std::vector<double> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::FLOAT:
 		{
 			float* ptr = (float*) data.c_str();
 			std::vector<float> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::INT8:
 		{
 			int8_t* ptr = (int8_t*) data.c_str();
 			std::vector<int8_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::UINT8:
 		{
 			uint8_t* ptr = (uint8_t*) data.c_str();
 			std::vector<uint8_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::INT16:
 		{
 			int16_t* ptr = (int16_t*) data.c_str();
 			std::vector<int16_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::UINT16:
 		{
 			uint16_t* ptr = (uint16_t*) data.c_str();
 			std::vector<uint16_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::INT32:
 		{
 			int32_t* ptr = (int32_t*) data.c_str();
 			std::vector<int32_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::UINT32:
 		{
 			uint32_t* ptr = (uint32_t*) data.c_str();
 			std::vector<uint32_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::INT64:
 		{
 			int64_t* ptr = (int64_t*) data.c_str();
 			std::vector<int64_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		case clay::DTYPE::UINT64:
 		{
 			uint64_t* ptr = (uint64_t*) data.c_str();
 			std::vector<uint64_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec);
 		}
 		break;
 		default:
@@ -130,7 +130,7 @@ TEST_F(PLACEHOLDER, ShapedAssign_F000)
 {
 	std::string label = get_string(16, "label");
 	clay::Shape shape = random_def_shape(this);
-	wire::Placeholder place(shape, label);
+	wire::Placeholder place(label);
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t n = shape.n_elems();
 	size_t nbytes = n * clay::type_size(dtype);
@@ -142,70 +142,70 @@ TEST_F(PLACEHOLDER, ShapedAssign_F000)
 		{
 			double* ptr = (double*) data.c_str();
 			std::vector<double> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::FLOAT:
 		{
 			float* ptr = (float*) data.c_str();
 			std::vector<float> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::INT8:
 		{
 			int8_t* ptr = (int8_t*) data.c_str();
 			std::vector<int8_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::UINT8:
 		{
 			uint8_t* ptr = (uint8_t*) data.c_str();
 			std::vector<uint8_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::INT16:
 		{
 			int16_t* ptr = (int16_t*) data.c_str();
 			std::vector<int16_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::UINT16:
 		{
 			uint16_t* ptr = (uint16_t*) data.c_str();
 			std::vector<uint16_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::INT32:
 		{
 			int32_t* ptr = (int32_t*) data.c_str();
 			std::vector<int32_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::UINT32:
 		{
 			uint32_t* ptr = (uint32_t*) data.c_str();
 			std::vector<uint32_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::INT64:
 		{
 			int64_t* ptr = (int64_t*) data.c_str();
 			std::vector<int64_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		case clay::DTYPE::UINT64:
 		{
 			uint64_t* ptr = (uint64_t*) data.c_str();
 			std::vector<uint64_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, shape);
 		}
 		break;
 		default:
@@ -225,7 +225,7 @@ TEST_F(PLACEHOLDER, PartAssign_F000)
 	std::vector<size_t> clist = random_def_shape(this);
 	clay::Shape shape = clist;
 	clay::Shape parts = make_partial(this, clist);
-	wire::Placeholder place(parts, label);
+	wire::Placeholder place(label);
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t n = shape.n_elems();
 	size_t nbytes = n * clay::type_size(dtype);
@@ -237,70 +237,70 @@ TEST_F(PLACEHOLDER, PartAssign_F000)
 		{
 			double* ptr = (double*) data.c_str();
 			std::vector<double> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::FLOAT:
 		{
 			float* ptr = (float*) data.c_str();
 			std::vector<float> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::INT8:
 		{
 			int8_t* ptr = (int8_t*) data.c_str();
 			std::vector<int8_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::UINT8:
 		{
 			uint8_t* ptr = (uint8_t*) data.c_str();
 			std::vector<uint8_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::INT16:
 		{
 			int16_t* ptr = (int16_t*) data.c_str();
 			std::vector<int16_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::UINT16:
 		{
 			uint16_t* ptr = (uint16_t*) data.c_str();
 			std::vector<uint16_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::INT32:
 		{
 			int32_t* ptr = (int32_t*) data.c_str();
 			std::vector<int32_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::UINT32:
 		{
 			uint32_t* ptr = (uint32_t*) data.c_str();
 			std::vector<uint32_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::INT64:
 		{
 			int64_t* ptr = (int64_t*) data.c_str();
 			std::vector<int64_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		case clay::DTYPE::UINT64:
 		{
 			uint64_t* ptr = (uint64_t*) data.c_str();
 			std::vector<uint64_t> vec(ptr, ptr + n);
-			place = vec;
+			place.initialize(vec, parts);
 		}
 		break;
 		default:
@@ -318,7 +318,7 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 {
 	std::string label = get_string(16, "label");
 	clay::Shape shape = random_def_shape(this);
-	wire::Placeholder place(shape, label);
+	wire::Placeholder place(label);
 	bool doub = get_int(1, "doub")[0] % 2;
 	size_t n = shape.n_elems();
 	size_t bsize;
@@ -358,7 +358,9 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 	{
 		double* ptr = (double*) data.c_str();
 		std::vector<double> vec(ptr, ptr + n);
-		place = vec;
+		EXPECT_THROW(place = vec, mold::UninitializedError);
+
+		place.initialize(vec, shape);
 
 		double* goodptr = (double*) good.c_str();
 		std::vector<double> goodvec(goodptr, goodptr + n);
@@ -386,7 +388,9 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 	{
 		uint16_t* ptr = (uint16_t*) data.c_str();
 		std::vector<uint16_t> vec(ptr, ptr + n);
-		place = vec;
+		EXPECT_THROW(place = vec, mold::UninitializedError);
+
+		place.initialize(vec, shape);
 
 		uint16_t* goodptr = (uint16_t*) good.c_str();
 		std::vector<uint16_t> goodvec(goodptr, goodptr + n);

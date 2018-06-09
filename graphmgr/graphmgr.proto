@@ -33,7 +33,7 @@ message GraphCreated {
 }
 
 message DataCreated {
-    tenncor.DataRepoPb data = 1;
+	tenncor.DataRepoPb data = 1;
 }
 
 message Script {

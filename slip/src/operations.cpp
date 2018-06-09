@@ -156,7 +156,7 @@ void n_dims (clay::State& dest, std::vector<clay::State> srcs)
 	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
 	if (dim < srcshape.rank())
 	{
-		d[0] = srcshape[dim];
+		d[0] = srcshape.at(dim);
 	}
 	else
 	{

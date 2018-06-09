@@ -24,7 +24,7 @@ namespace mold
 
 using ImmPair = std::pair<clay::Shape,clay::DTYPE>;
 
-class iOperateIO : public clay::iSource
+class iOperateIO
 {
 public:
 	virtual ~iOperateIO (void) = default;
@@ -34,9 +34,11 @@ public:
 		return clone_impl();
 	}
 
-	virtual ImmPair get_imms (void) = 0;
+	virtual ImmPair get_imms (
+		std::vector<clay::State> args) const = 0;
 
-	virtual void set_args (std::vector<clay::State> args) = 0;
+	virtual bool write_data (clay::State& dest,
+		std::vector<clay::State> args) const = 0;
 
 private:
 	virtual iOperateIO* clone_impl (void) const = 0;

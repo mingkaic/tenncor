@@ -10,6 +10,9 @@
 namespace mold
 {
 
+NilDataError::NilDataError (void) :
+	std::runtime_error("passing with null data") {}
+
 UninitializedError::UninitializedError (void) : std::runtime_error(
 	"operating on uninitialized node") {}
 

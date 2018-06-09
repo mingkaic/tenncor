@@ -95,12 +95,6 @@ bool Graph::replace_id (wire::Identifier* id, UID repl_id)
 			uninits_[repl_id] = std::move(uit->second);
 			uninits_.erase(uit);
 		}
-		auto sit = alloweds_.find(src_id);
-		if (alloweds_.end() != sit)
-		{
-			alloweds_[repl_id] = sit->second;
-			alloweds_.erase(sit);
-		}
 	}
 	return success;
 }
@@ -122,7 +116,9 @@ void Graph::initialize_all (void)
 		optional<Identifier*> id = adjmap_.get(upair.first);
 		if ((bool) id)
 		{
-			unsafe_init(*id, *upair.second.get());
+			mold::Variable* var =
+				static_cast<mold::Variable*>((*id)->get());
+			var->initialize(upair.second());
 		}
 		else
 		{
@@ -138,7 +134,9 @@ void Graph::initialize (UID id)
 	auto upair = uninits_.find(id);
 	if ((bool) ider && uninits_.end() != upair)
 	{
-		unsafe_init(*ider, *(upair->second.get()));
+		mold::Variable* var =
+			static_cast<mold::Variable*>((*ider)->get());
+		var->initialize(upair->second());
 	}
 	else
 	{
@@ -185,26 +183,6 @@ void Graph::remove_func (Functor* func)
 			fpair.second.erase(it);
 			return;
 		}
-	}
-}
-
-void Graph::unsafe_init (Identifier* id, clay::iBuilder& builder)
-{
-	mold::Variable* var = static_cast<mold::Variable*>(id->get());
-	clay::Shape allowed;
-	auto it = alloweds_.find(id->get_uid());
-	if (alloweds_.end() != it)
-	{
-		allowed = it->second;
-		alloweds_.erase(it);
-	}
-	if (allowed.is_fully_defined())
-	{
-		var->initialize(builder, allowed);
-	}
-	else
-	{
-		var->initialize(builder);
 	}
 }
 

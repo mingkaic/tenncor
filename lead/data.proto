@@ -6,23 +6,6 @@ package tenncor;
 
 import "google/protobuf/any.proto";
 
-enum TensorT
-{
-	BAD = 0;
-	DOUBLE = 1;
-	FLOAT = 2;
-	INT8 = 3;
-	INT16 = 4;
-	INT32 = 5;
-	INT64 = 6;
-	UINT8 = 7;
-	UINT16 = 8;
-	UINT32 = 9;
-	UINT64 = 10;
-	// sentinel
-	_TYPE_SENTINEL = 11;
-}
-
 message DoubleArr { repeated double data = 1; }
 message FloatArr { repeated float data = 1; }
 message ByteArr { bytes data = 1; }
@@ -36,8 +19,8 @@ message TensorPb
 	// takes messages DoubleArr, ...,
 	// Uint64Arr depending on dtype
 	google.protobuf.Any data = 1;
-	TensorT type = 2;
-	repeated uint64 shape = 3;
+	repeated uint64 shape = 2;
+	uint32 type = 3;
 }
 
 message DataRepoPb

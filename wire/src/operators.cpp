@@ -1000,9 +1000,9 @@ Identifier* reshape (Identifier* a, Identifier* shape)
 Identifier* reshape (Identifier* a, std::vector<uint64_t> shape)
 {
 	Identifier* sid = wire::Constant::get(shape,
-        clay::Shape({shape.size()}));
+		clay::Shape({shape.size()}));
 	assoc(a, sid);
-    return reshape(a, sid);
+	return reshape(a, sid);
 }
 
 Identifier* jacobian (Identifier* a, Identifier* b, Identifier* dims)
