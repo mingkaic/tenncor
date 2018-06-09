@@ -13,12 +13,6 @@
 
 #include "kiln/identifier.hpp"
 
-#include "ioutil/stream.hpp"
-
-#include "mold/error.hpp"
-
-#include "slip/error.hpp"
-
 #pragma once
 #ifndef KILN_PLACEHOLDER_HPP
 #define KILN_PLACEHOLDER_HPP
@@ -37,12 +31,8 @@ public:
 		clay::Shape shape = clay::Shape())
 	{
 		clay::DTYPE dtype = clay::get_type<T>();
-		bool success = init_helper(data.size(), shape, dtype);
-		if (success)
-		{
-			*this = data;
-		}
-		return success;
+		size_t n = data.size();
+		return init_helper((char*) &data[0], n, shape, dtype);
 	}
 
 	template <typename T>
@@ -50,31 +40,15 @@ public:
 	{
 		clay::DTYPE dtype = clay::get_type<T>();
 		size_t n = data.size();
-		mold::Variable* arg = static_cast<mold::Variable*>(get());
-		if (false == arg->has_data())
-		{
-			throw mold::UninitializedError();
-		}
-		clay::State state = arg->get_state();
-		assert(state.shape_.is_fully_defined());
-		if (n > state.shape_.n_elems())
-		{
-			throw std::logic_error(ioutil::Stream() << "data with "
-				<< n << " elements cannot be assigned to allcoated tensor with "
-				<< state.shape_.n_elems() << " elements");
-		}
-		if (dtype != state.dtype_)
-		{
-			throw slip::TypeMismatchError(state.dtype_, dtype);
-		}
-		std::memcpy(state.data_.lock().get(),
-			(char*) &data[0], n * sizeof(T));
+		assign_helper((char*) &data[0], n, dtype);
 		return *this;
 	}
 
 private:
-	bool init_helper (size_t n,
-		clay::Shape shape, clay::DTYPE dtype);
+	bool init_helper (const char* s, size_t n, clay::Shape shape,
+		clay::DTYPE dtype);
+
+	void assign_helper (const char* s, size_t n, clay::DTYPE dtype);
 };
 
 }

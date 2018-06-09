@@ -63,6 +63,7 @@ public:
 
 	void initialize (clay::TensorPtrT data);
 
+// todo: deprecate
 	void assign (const iSource& src);
 
 protected:

@@ -32,8 +32,8 @@ TEST_F(SPEC_INIT, ConstInit_B000)
 	clay::Shape cshape = random_def_shape(this);
 	double cdata = get_double(1, "ci")[0];
 	std::vector<double> vdata = get_double(get_int(1, "vci.size", {23, 52})[0], "vci");
-	clay::BuildTensorT ci = kiln::const_init(cdata, cshape);
-	clay::BuildTensorT vi = kiln::const_init(vdata, cshape);
+	clay::BuildTensorF ci = kiln::const_init(cdata, cshape);
+	clay::BuildTensorF vi = kiln::const_init(vdata, cshape);
 
 	clay::TensorPtrT cten = ci();
 	ASSERT_NE(nullptr, cten);
@@ -63,7 +63,7 @@ TEST_F(SPEC_INIT, UnifInit_B001)
 	std::vector<double> udata = get_double(2, "ui", {-12, 24});
 	double umin = std::min(udata[0], udata[1]);
 	double umax = std::max(udata[0], udata[1]);
-	clay::BuildTensorT ui = kiln::unif_init(umin, umax, cshape);
+	clay::BuildTensorF ui = kiln::unif_init(umin, umax, cshape);
 
 	clay::TensorPtrT uten = ui();
 	ASSERT_NE(nullptr, uten);
@@ -88,7 +88,7 @@ TEST_F(SPEC_INIT, DISABLED_NormInit_B001)
 	std::vector<double> ndata = get_double(2, "ni", {0.5, 2});
 	double nmean = ndata[0];
 	double nstdev = ndata[1];
-	clay::BuildTensorT ni = kiln::norm_init(nmean, nstdev, cshape);
+	clay::BuildTensorF ni = kiln::norm_init(nmean, nstdev, cshape);
 
 	clay::TensorPtrT nten = ni();
 	ASSERT_NE(nullptr, nten);

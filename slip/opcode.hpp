@@ -76,7 +76,10 @@ struct EnumHash
 	}
 };
 
-using OpnameMap = std::unordered_map<OPCODE,std::string,EnumHash>;
+template <typename K, typename V>
+using EnumMap = std::unordered_map<K,V,EnumHash>;
+
+using OpnameMap = EnumMap<OPCODE,std::string>;
 
 extern const OpnameMap opnames;
 

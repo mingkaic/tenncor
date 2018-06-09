@@ -2,6 +2,8 @@
 
 #include "gtest/gtest.h"
 
+#include "testify/mocker/mocker.hpp"
+
 #include "fuzzutil/fuzz.hpp"
 #include "fuzzutil/sgen.hpp"
 #include "fuzzutil/check.hpp"
@@ -29,19 +31,40 @@ protected:
 		testutil::fuzz_test::TearDown();
 		kiln::Graph& g = kiln::Graph::get_global();
 		assert(0 == g.size());
+		testify::mocker::clear();
 	}
 };
 
 
-TEST_F(PLACEHOLDER, VecAssign_F000)
+struct mock_observer : public mold::iObserver, public testify::mocker
+{
+	mock_observer (mold::iNode* arg) :
+		mold::iObserver({arg}) {}
+
+	void initialize (void) override
+	{
+		label_incr("initialize");
+	}
+
+	void update (void) override
+	{
+		label_incr("update");
+	}
+};
+
+
+TEST_F(PLACEHOLDER, VecInit_F000)
 {
 	std::string label = get_string(16, "label");
 	kiln::Placeholder place(label);
+	mock_observer* obs = new mock_observer(place.get());
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t n = get_int(1, "n", {16, 64})[0];
 	size_t nbytes = n * clay::type_size(dtype);
 	std::string data = get_string(nbytes, "data");
 
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "initialize"));
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
 	switch (dtype)
 	{
 		case clay::DTYPE::DOUBLE:
@@ -123,19 +146,25 @@ TEST_F(PLACEHOLDER, VecAssign_F000)
 	ASSERT_SHAPEQ(vshape, state.shape_);
 	std::string gotvec(state.data_.lock().get(), nbytes);
 	EXPECT_STREQ(data.c_str(), gotvec.c_str());
+	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
+	delete obs;
 }
 
 
-TEST_F(PLACEHOLDER, ShapedAssign_F000)
+TEST_F(PLACEHOLDER, ShapedInit_F001)
 {
 	std::string label = get_string(16, "label");
 	clay::Shape shape = random_def_shape(this);
 	kiln::Placeholder place(label);
+	mock_observer* obs = new mock_observer(place.get());
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t n = shape.n_elems();
 	size_t nbytes = n * clay::type_size(dtype);
 	std::string data = get_string(nbytes, "data");
 
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "initialize"));
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
 	switch (dtype)
 	{
 		case clay::DTYPE::DOUBLE:
@@ -216,21 +245,27 @@ TEST_F(PLACEHOLDER, ShapedAssign_F000)
 	ASSERT_SHAPEQ(shape, state.shape_);
 	std::string got(state.data_.lock().get(), nbytes);
 	EXPECT_STREQ(data.c_str(), got.c_str());
+	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
+	delete obs;
 }
 
 
-TEST_F(PLACEHOLDER, PartAssign_F000)
+TEST_F(PLACEHOLDER, PartInit_F002)
 {
 	std::string label = get_string(16, "label");
 	std::vector<size_t> clist = random_def_shape(this);
 	clay::Shape shape = clist;
 	clay::Shape parts = make_partial(this, clist);
 	kiln::Placeholder place(label);
+	mock_observer* obs = new mock_observer(place.get());
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t n = shape.n_elems();
 	size_t nbytes = n * clay::type_size(dtype);
 	std::string data = get_string(nbytes, "data");
 
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "initialize"));
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
 	switch (dtype)
 	{
 		case clay::DTYPE::DOUBLE:
@@ -311,14 +346,18 @@ TEST_F(PLACEHOLDER, PartAssign_F000)
 	ASSERT_EQ(n, state.shape_.n_elems());
 	std::string got(state.data_.lock().get(), nbytes);
 	EXPECT_STREQ(data.c_str(), got.c_str());
+	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
+	delete obs;
 }
 
 
-TEST_F(PLACEHOLDER, Reassign_F000)
+TEST_F(PLACEHOLDER, Assign_F003)
 {
 	std::string label = get_string(16, "label");
 	clay::Shape shape = random_def_shape(this);
 	kiln::Placeholder place(label);
+	mock_observer* obs = new mock_observer(place.get());
 	bool doub = get_int(1, "doub")[0] % 2;
 	size_t n = shape.n_elems();
 	size_t bsize;
@@ -360,14 +399,20 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 		std::vector<double> vec(ptr, ptr + n);
 		EXPECT_THROW(place = vec, mold::UninitializedError);
 
+		EXPECT_EQ(0, testify::mocker::get_usage(obs, "initialize"));
+		EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
 		place.initialize(vec, shape);
 
+		EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+		EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
 		double* goodptr = (double*) good.c_str();
 		std::vector<double> goodvec(goodptr, goodptr + n);
 		place = goodvec;
 		clay::State state = place.get_state();
 		std::string got(state.data_.lock().get(), nbytes);
 		EXPECT_STREQ(good.c_str(), got.c_str());
+		EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+		EXPECT_EQ(1, testify::mocker::get_usage(obs, "update"));
 
 		double* fitptr = (double*) goodfit.c_str();
 		std::vector<double> fitvec(fitptr, fitptr + less);
@@ -375,6 +420,8 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 		state = place.get_state();
 		std::string gotfit(state.data_.lock().get(), lessbytes);
 		EXPECT_STREQ(goodfit.c_str(), gotfit.c_str());
+		EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+		EXPECT_EQ(2, testify::mocker::get_usage(obs, "update"));
 
 		double* badptr = (double*) badfit.c_str();
 		std::vector<double> badvec(badptr, badptr + more);
@@ -414,6 +461,7 @@ TEST_F(PLACEHOLDER, Reassign_F000)
 		std::vector<double> typevec(typeptr, typeptr + n);
 		EXPECT_THROW(place = typevec, slip::TypeMismatchError);
 	}
+	delete obs;
 }
 
 

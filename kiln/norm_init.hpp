@@ -27,7 +27,7 @@ clay::TensorPtrT norm_build (char* mean, char* stdev,
 	clay::Shape shape, clay::DTYPE dtype);
 
 template <typename T>
-clay::BuildTensorT norm_init (T mean, T stdev,
+clay::BuildTensorF norm_init (T mean, T stdev,
 	clay::Shape shape = clay::Shape())
 {
 	clay::DTYPE dtype = clay::get_type<T>();

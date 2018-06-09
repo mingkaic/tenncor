@@ -6,10 +6,8 @@
 #include <algorithm>
 
 #include "slip/include/operations.hpp"
+#include "slip/include/operate_io.hpp"
 #include "slip/registry.hpp"
-#include "slip/error.hpp"
-
-#include "clay/error.hpp"
 
 #include "ioutil/stream.hpp"
 
@@ -18,175 +16,21 @@
 namespace slip
 {
 
-using ArgsF = std::function<void(clay::State&,std::vector<clay::State>)>;
-
-using ShaperF = std::function<clay::Shape(std::vector<clay::State>)>;
-
-using TyperF = std::function<clay::DTYPE(std::vector<clay::DTYPE>)>;
-
-using TypeReg = std::unordered_map<clay::DTYPE,ArgsF,EnumHash>;
-
-using ImmPair = std::pair<clay::Shape,clay::DTYPE>;
-
-#define REGISTER_FUNC(CODE, FUNC) {\
-CODE, TypeReg{\
+#define TMAP_FUNC(FUNC) TypeRegT{\
 { clay::DOUBLE, FUNC<double> },{ clay::FLOAT, FUNC<float> },\
 { clay::INT8, FUNC<int8_t> },{ clay::UINT8, FUNC<uint8_t> },\
 { clay::INT16, FUNC<int16_t> },{ clay::UINT16, FUNC<uint16_t> },\
 { clay::INT32, FUNC<int32_t> },{ clay::UINT32, FUNC<uint32_t> },\
-{ clay::INT64, FUNC<int64_t> },{ clay::UINT64, FUNC<uint64_t> } } },
+{ clay::INT64, FUNC<int64_t> },{ clay::UINT64, FUNC<uint64_t> } }
 
-#define REGISTER_SFUNC(CODE, FUNC) {\
-CODE, TypeReg{\
+#define TMAP_SFUNC(FUNC) TypeRegT{\
 { clay::DOUBLE, FUNC },{ clay::FLOAT, FUNC },\
 { clay::INT8, FUNC },{ clay::UINT8, FUNC },\
 { clay::INT16, FUNC },{ clay::UINT16, FUNC },\
 { clay::INT32, FUNC },{ clay::UINT32, FUNC },\
-{ clay::INT64, FUNC },{ clay::UINT64, FUNC } } },
+{ clay::INT64, FUNC },{ clay::UINT64, FUNC } }
 
-static std::unordered_map<OPCODE,TypeReg,EnumHash> op_registry =
-{
-	REGISTER_FUNC(CAST, cast)
-
-	REGISTER_FUNC(ABS, abs)
-	REGISTER_FUNC(NEG, neg)
-	REGISTER_FUNC(NOT, logic_not)
-	REGISTER_FUNC(SIN, sin)
-	REGISTER_FUNC(COS, cos)
-	REGISTER_FUNC(TAN, tan)
-	REGISTER_FUNC(EXP, exp)
-	REGISTER_FUNC(LOG, log)
-	REGISTER_FUNC(SQRT, sqrt)
-	REGISTER_FUNC(ROUND, round)
-
-	REGISTER_FUNC(POW, pow)
-	REGISTER_FUNC(ADD, add)
-	REGISTER_FUNC(SUB, sub)
-	REGISTER_FUNC(MUL, mul)
-	REGISTER_FUNC(DIV, div)
-	REGISTER_FUNC(EQ, eq)
-	REGISTER_FUNC(NE, neq)
-	REGISTER_FUNC(LT, lt)
-	REGISTER_FUNC(GT, gt)
-	REGISTER_FUNC(BINO, rand_binom)
-	REGISTER_FUNC(UNIF, rand_uniform)
-	REGISTER_FUNC(NORM, rand_normal)
-
-	REGISTER_FUNC(TRANSPOSE, transpose)
-	REGISTER_FUNC(FLIP, flip)
-	REGISTER_FUNC(EXPAND, expand)
-
-	REGISTER_FUNC(UARGMAX, unar_argmax)
-	REGISTER_FUNC(URMAX, unar_max)
-	REGISTER_FUNC(URSUM, unar_sum)
-
-	REGISTER_FUNC(ARGMAX, argmax)
-	REGISTER_FUNC(RMAX, max)
-	REGISTER_FUNC(RSUM, sum)
-
-	REGISTER_SFUNC(N_ELEMS, n_elems)
-	REGISTER_SFUNC(N_DIMS, n_dims)
-
-	REGISTER_FUNC(MATMUL, matmul)
-	REGISTER_FUNC(RESHAPE, copyover)
-	REGISTER_FUNC(JACOBIAN, jacobian)
-	REGISTER_FUNC(TRACE_EXPAND, trace_expand)
-};
-
-// proxy for either init or uninit operate
-class OperateIO final : public mold::iOperateIO
-{
-public:
-	OperateIO (OPCODE opcode, ShaperF shaper, TyperF typer) :
-		shaper_(shaper), typer_(typer)
-	{
-		auto types = op_registry.find(opcode);
-		if (op_registry.end() == types)
-		{
-			throw UnsupportedOpcodeError(opcode);
-		}
-		ops_ = types->second;
-	}
-
-	bool validate_data (clay::State state,
-		std::vector<clay::State> args) const override
-	{
-		auto imms = get_imms(args);
-		return state.shape_.is_compatible_with(imms.first) &&
-			state.dtype_ == imms.second;
-	}
-
-	bool write_data (clay::State& dest,
-		std::vector<clay::State> args) const override
-	{
-		auto imms = get_imms(args);
-		bool success = dest.shape_.
-			is_compatible_with(imms.first) &&
-			dest.dtype_ == imms.second;
-		if (success)
-		{
-			unsafe_write(dest, args, imms.second);
-		}
-		return success;
-	}
-
-	clay::TensorPtrT make_data (
-		std::vector<clay::State> args) const override
-	{
-		auto imms = get_imms(args);
-		clay::Shape& shape = imms.first;
-		clay::DTYPE& dtype = imms.second;
-		clay::Tensor* out = new clay::Tensor(shape, dtype);
-		clay::State dest = out->get_state();
-		unsafe_write(dest, args, dtype);
-		return clay::TensorPtrT(out);
-	}
-
-private:
-	ImmPair get_imms (std::vector<clay::State>& args) const
-	{
-		if (args.empty())
-		{
-			throw NoArgumentsError();
-		}
-		std::vector<clay::DTYPE> types(args.size());
-		std::transform(args.begin(), args.end(), types.begin(),
-		[](clay::State& state) -> clay::DTYPE
-		{
-			return state.dtype_;
-		});
-		clay::DTYPE otype = typer_(types);
-		return {shaper_(args), otype};
-	}
-
-	void unsafe_write (clay::State& dest,
-		std::vector<clay::State>& args, clay::DTYPE dtype) const
-	{
-		auto op = ops_.find(dtype);
-		if (ops_.end() == op)
-		{
-			throw clay::UnsupportedTypeError(dtype);
-		}
-		op->second(dest, args);
-	}
-
-	iOperateIO* clone_impl (void) const override
-	{
-		return new OperateIO(*this);
-	}
-
-	ShaperF shaper_;
-
-	TyperF typer_;
-
-	TypeReg ops_;
-};
-
-struct OpWrapper
-{
-	ShaperF shaper_;
-	TyperF typer_;
-};
+// SHAPE HANDLERS
 
 static clay::Shape elem_shape (std::vector<clay::State> states)
 {
@@ -207,24 +51,6 @@ static clay::Shape elem_shape (std::vector<clay::State> states)
 	return out;
 }
 
-static clay::DTYPE same_type (std::vector<clay::DTYPE> types)
-{
-	if (types.empty())
-	{
-		throw NoArgumentsError();
-	}
-	clay::DTYPE out = types[0];
-	for (auto it = types.begin() + 1, et = types.end();
-		it != et; it++)
-	{
-		if (*it != out)
-		{
-			throw TypeMismatchError(out, *it);
-		}
-	}
-	return out;
-}
-
 static clay::Shape scalar_shape (std::vector<clay::State> states)
 {
 	if (states.size() != 1)
@@ -232,15 +58,6 @@ static clay::Shape scalar_shape (std::vector<clay::State> states)
 		throw BadNArgsError(1, states.size());
 	}
 	return clay::Shape({1});
-}
-
-static clay::DTYPE scalar_type (std::vector<clay::DTYPE> types)
-{
-	if (types.size() != 1)
-	{
-		throw BadNArgsError(1, types.size());
-	}
-	return types[0];
 }
 
 static clay::Shape reduce_shape (std::vector<clay::State> states)
@@ -270,19 +87,6 @@ static clay::Shape reduce_shape (std::vector<clay::State> states)
 		slist.erase(slist.begin() + dim);
 	}
 	return clay::Shape(slist);
-}
-
-static clay::DTYPE reduce_type (std::vector<clay::DTYPE> types)
-{
-	if (types.size() != 2)
-	{
-		throw BadNArgsError(2, types.size());
-	}
-	if (clay::UINT64 != types[1])
-	{
-		throw clay::UnsupportedTypeError(types[1]);
-	}
-	return types[0];
 }
 
 static clay::Shape matmul_shape (std::vector<clay::State> states)
@@ -353,15 +157,50 @@ static clay::Shape matmul_shape (std::vector<clay::State> states)
 	return clay::Shape(res_shape);
 }
 
-static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
-[]()
-{
-	OpWrapper elem{elem_shape, same_type};
-	OpWrapper scalar{scalar_shape, scalar_type};
-	OpWrapper reduce{reduce_shape, reduce_type};
+// TYPE HANDLERS
 
-	return std::unordered_map<OPCODE,OpWrapper,EnumHash>{
-	{CAST, OpWrapper{
+static clay::DTYPE same_type (std::vector<clay::DTYPE> types)
+{
+	if (types.empty())
+	{
+		throw NoArgumentsError();
+	}
+	clay::DTYPE out = types[0];
+	for (auto it = types.begin() + 1, et = types.end();
+		it != et; it++)
+	{
+		if (*it != out)
+		{
+			throw TypeMismatchError(out, *it);
+		}
+	}
+	return out;
+}
+
+static clay::DTYPE reduce_type (std::vector<clay::DTYPE> types)
+{
+	if (types.size() != 2)
+	{
+		throw BadNArgsError(2, types.size());
+	}
+	if (clay::UINT64 != types[1])
+	{
+		throw clay::UnsupportedTypeError(types[1]);
+	}
+	return types[0];
+}
+
+// REGISTRY DEFINITION
+
+#define MAKE_OP(treg, shaper, typer)\
+mold::OperatePtrT(new OperateIO(treg, shaper, typer))
+#define ELEM(op) MAKE_OP(TMAP_FUNC(op), elem_shape, same_type)
+#define SCALAR(op) MAKE_OP(TMAP_FUNC(op), scalar_shape, same_type)
+#define REDUCE(op) MAKE_OP(TMAP_FUNC(op), reduce_shape, reduce_type)
+
+static EnumMap<OPCODE,mold::OperatePtrT> registry =
+{
+	{CAST, MAKE_OP(TMAP_FUNC(cast),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (states.size() != 2)
@@ -377,27 +216,27 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw BadNArgsError(2, types.size());
 		}
 		return types[0];
-	}}},
-	{ABS, elem},
-	{NEG, elem},
-	{NOT, elem},
-	{SIN, elem},
-	{COS, elem},
-	{TAN, elem},
-	{EXP, elem},
-	{LOG, elem},
-	{SQRT, elem},
-	{ROUND, elem},
-	{POW, elem},
-	{ADD, elem},
-	{SUB, elem},
-	{MUL, elem},
-	{DIV, elem},
-	{EQ, elem},
-	{NE, elem},
-	{GT, elem},
-	{LT, elem},
-	{BINO, OpWrapper{elem_shape,
+	})},
+	{ABS, ELEM(abs)},
+	{NEG, ELEM(neg)},
+	{NOT, ELEM(logic_not)},
+	{SIN, ELEM(sin)},
+	{COS, ELEM(cos)},
+	{TAN, ELEM(tan)},
+	{EXP, ELEM(exp)},
+	{LOG, ELEM(log)},
+	{SQRT, ELEM(sqrt)},
+	{ROUND, ELEM(round)},
+	{POW, ELEM(pow)},
+	{ADD, ELEM(add)},
+	{SUB, ELEM(sub)},
+	{MUL, ELEM(mul)},
+	{DIV, ELEM(div)},
+	{EQ, ELEM(eq)},
+	{NE, ELEM(neq)},
+	{GT, ELEM(gt)},
+	{LT, ELEM(lt)},
+	{BINO, MAKE_OP(TMAP_FUNC(rand_binom), elem_shape,
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
 	{
 		if (types.size() != 2)
@@ -414,9 +253,9 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw clay::UnsupportedTypeError(types[1]);
 		}
 		return types[0];
-	}}},
-	{UNIF, elem},
-	{NORM, OpWrapper{elem_shape,
+	})},
+	{UNIF, ELEM(rand_uniform)},
+	{NORM, MAKE_OP(TMAP_FUNC(rand_normal), elem_shape,
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
 	{
 		if (types.size() != 2)
@@ -432,8 +271,8 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw TypeMismatchError(types[0], types[1]);
 		}
 		return types[0];
-	}}},
-	{TRANSPOSE, OpWrapper{
+	})},
+	{TRANSPOSE, MAKE_OP(TMAP_FUNC(transpose),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (states.empty())
@@ -477,8 +316,8 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw clay::UnsupportedTypeError(types[1]);
 		}
 		return types[0];
-	}}},
-	{FLIP, OpWrapper{
+	})},
+	{FLIP, MAKE_OP(TMAP_FUNC(flip),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (2 != states.size())
@@ -510,14 +349,14 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw clay::UnsupportedTypeError(types[1]);
 		}
 		return types[0];
-	}}},
-	{UARGMAX, scalar},
-	{URMAX, scalar},
-	{URSUM, scalar},
-	{ARGMAX, reduce},
-	{RMAX, reduce},
-	{RSUM, reduce},
-	{EXPAND, OpWrapper{
+	})},
+	{UARGMAX, SCALAR(unar_argmax)},
+	{URMAX, SCALAR(unar_max)},
+	{URSUM, SCALAR(unar_sum)},
+	{ARGMAX, REDUCE(argmax)},
+	{RMAX, REDUCE(max)},
+	{RSUM, REDUCE(sum)},
+	{EXPAND, MAKE_OP(TMAP_FUNC(expand),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (3 != states.size())
@@ -563,8 +402,8 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw clay::UnsupportedTypeError(types[2]);
 		}
 		return types[0];
-	}}},
-	{N_ELEMS, OpWrapper{
+	})},
+	{N_ELEMS, MAKE_OP(TMAP_SFUNC(n_elems),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (states.empty())
@@ -580,8 +419,8 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw NoArgumentsError();
 		}
 		return clay::UINT64;
-	}}},
-	{N_DIMS, OpWrapper{
+	})},
+	{N_DIMS, MAKE_OP(TMAP_SFUNC(n_dims),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (2 != states.size())
@@ -614,9 +453,9 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 		// 	throw clay::UnsupportedTypeError(types[1]);
 		// }
 		return clay::UINT64;
-	}}},
-	{MATMUL, OpWrapper{matmul_shape, same_type}},
-	{RESHAPE, OpWrapper{
+	})},
+	{MATMUL, MAKE_OP(TMAP_FUNC(matmul), matmul_shape, same_type)},
+	{RESHAPE, MAKE_OP(TMAP_FUNC(copyover),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (2 != states.size())
@@ -645,8 +484,8 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw clay::UnsupportedTypeError(types[1]);
 		}
 		return types[0];
-	}}},
-	{JACOBIAN, OpWrapper{
+	})},
+	{JACOBIAN, MAKE_OP(TMAP_FUNC(jacobian),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (3 != states.size())
@@ -692,8 +531,8 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw clay::UnsupportedTypeError(types[2]);
 		}
 		return types[0];
-	}}},
-	{TRACE_EXPAND, OpWrapper{
+	})},
+	{TRACE_EXPAND, MAKE_OP(TMAP_FUNC(trace_expand),
 	[](std::vector<clay::State> states) -> clay::Shape
 	{
 		if (2 != states.size())
@@ -727,23 +566,22 @@ static std::unordered_map<OPCODE,OpWrapper,EnumHash> registry =
 			throw clay::UnsupportedTypeError(types[1]);
 		}
 		return types[0];
-	}}}};
-}();
+	})}
+};
 
 bool has_op (OPCODE opcode)
 {
 	return registry.end() != registry.find(opcode);
 }
 
-mold::iOperatePtrT get_op (OPCODE opcode)
+mold::OperatePtrT get_op (OPCODE opcode)
 {
 	auto it = registry.find(opcode);
 	if (registry.end() == it)
 	{
 		throw UnsupportedOpcodeError(opcode);
 	}
-	return mold::iOperatePtrT(new OperateIO(opcode,
-		it->second.shaper_, it->second.typer_));
+	return it->second;
 }
 
 }

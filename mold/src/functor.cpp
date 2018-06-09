@@ -13,7 +13,7 @@
 namespace mold
 {
 
-Functor::Functor (std::vector<iNode*> args, iOperatePtrT op) :
+Functor::Functor (std::vector<iNode*> args, OperatePtrT op) :
 	iObserver(args), op_(op)
 {
 	initialize();

@@ -35,10 +35,9 @@ using UID = size_t;
 
 using FunctorSetT = std::unordered_set<Functor*>;
 
-using OpcodeMapT = std::unordered_map<slip::OPCODE,
-	FunctorSetT,slip::EnumHash>;
+using OpcodeMapT = slip::EnumMap<slip::OPCODE,FunctorSetT>;
 
-using BuilderMapT = std::unordered_map<UID,clay::BuildTensorT>;
+using BuilderMapT = std::unordered_map<UID,clay::BuildTensorF>;
 
 class Graph
 {

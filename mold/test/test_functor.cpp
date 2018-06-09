@@ -174,7 +174,7 @@ mold::Functor* junk_functor (std::vector<mold::iNode*> args,
 	clay::Shape shape = random_def_shape(fuzzer, {1, 6});
 	clay::DTYPE dtype = (clay::DTYPE) fuzzer->get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0];
-	mold::iOperatePtrT op = mold::iOperatePtrT(new mock_operateio(
+	mold::OperatePtrT op = mold::OperatePtrT(new mock_operateio(
 	[fuzzer](clay::State& state,std::vector<clay::State>)
 	{
 		size_t nbytes = state.shape_.n_elems() *
@@ -297,7 +297,7 @@ TEST_F(FUNCTOR, HasData_D003)
 
 TEST_F(FUNCTOR, GetState_D004)
 {
-	mold::iOperatePtrT identity = mold::iOperatePtrT(new mock_operateio(
+	mold::OperatePtrT identity = mold::OperatePtrT(new mock_operateio(
 	[](clay::State& out,std::vector<clay::State> in)
 	{
 		size_t nbytes = out.shape_.n_elems() *

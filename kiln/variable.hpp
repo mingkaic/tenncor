@@ -27,12 +27,12 @@ namespace kiln
 
 struct Variable final : public Identifier
 {
-	Variable (const clay::BuildTensorT, std::string label,
+	Variable (const clay::BuildTensorF, std::string label,
 		Graph& graph = Graph::get_global());
 
 	~Variable (void);
 
-	void assign (const Identifier& src);
+	bool assign (const Identifier& src);
 };
 
 }

@@ -7,7 +7,11 @@
 
 #include "kiln/placeholder.hpp"
 
+#include "ioutil/stream.hpp"
+
 #include "mold/variable.hpp"
+
+#include "slip/error.hpp"
 
 #ifdef KILN_PLACEHOLDER_HPP
 
@@ -65,7 +69,7 @@ static optional<clay::Shape> guess_shape (clay::Shape shape, size_t limit)
 Placeholder::Placeholder (std::string label, Graph& graph) :
 	Identifier(&graph, new mold::Variable(), label) {}
 
-bool Placeholder::init_helper (size_t n,
+bool Placeholder::init_helper (const char* s, size_t n,
 	clay::Shape shape, clay::DTYPE dtype)
 {
 	mold::Variable* arg = static_cast<mold::Variable*>(get());
@@ -83,9 +87,35 @@ bool Placeholder::init_helper (size_t n,
 			}
 			shape = *oshape;
 		}
-		arg->initialize(clay::TensorPtrT(new clay::Tensor(shape, dtype)));
+		clay::Tensor* tens = new clay::Tensor(shape, dtype);
+		char* dest = tens->get_state().data_.lock().get();
+		std::memcpy(dest, s, n * clay::type_size(dtype));
+		arg->initialize(clay::TensorPtrT(tens));
 	}
 	return inited;
+}
+
+void Placeholder::assign_helper (const char* s, size_t n, clay::DTYPE dtype)
+{
+	mold::iNode* arg = get();
+	clay::State state = arg->get_state();
+	assert(state.shape_.is_fully_defined());
+	if (n > state.shape_.n_elems())
+	{
+		throw std::logic_error(ioutil::Stream() << "data with "
+			<< n << " elements cannot be assigned to allcoated tensor with "
+			<< state.shape_.n_elems() << " elements");
+	}
+	if (dtype != state.dtype_)
+	{
+		throw slip::TypeMismatchError(state.dtype_, dtype);
+	}
+	std::memcpy(state.data_.lock().get(), s, n * clay::type_size(dtype));
+	mold::AudienceT auds = arg->get_audience();
+	for (mold::iObserver* aud : auds)
+	{
+		aud->update();
+	}
 }
 
 }

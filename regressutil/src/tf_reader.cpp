@@ -44,7 +44,7 @@ kiln::Variable* varify (std::string str, std::string label)
 	if (rank == 0)
 	{
 		double scalar = (double) std::atof(str.c_str());
-		clay::BuildTensorT builder = kiln::const_init(scalar);
+		clay::BuildTensorF builder = kiln::const_init(scalar);
 		return new kiln::Variable(builder, str);
 	}
 
@@ -102,7 +102,7 @@ kiln::Variable* varify (std::string str, std::string label)
 		// assert max_level == rank
 	}
 	clay::Shape outshape(shaplist);
-	clay::BuildTensorT builder = kiln::const_init(data, outshape);
+	clay::BuildTensorF builder = kiln::const_init(data, outshape);
 
 	return new kiln::Variable(builder, label);
 }

@@ -27,7 +27,7 @@ clay::TensorPtrT unif_build (char* min, char* max,
 	clay::Shape shape, clay::DTYPE dtype);
 
 template <typename T>
-clay::BuildTensorT unif_init (T min, T max,
+clay::BuildTensorF unif_init (T min, T max,
 	clay::Shape shape = clay::Shape())
 {
 	clay::DTYPE dtype = clay::get_type<T>();

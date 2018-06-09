@@ -196,7 +196,7 @@ TEST_F(DELTA, Constant_H000)
 TEST_F(DELTA, Variable_H001)
 {
 	clay::Shape shape = random_def_shape(this);
-	clay::BuildTensorT builder = kiln::const_init((double) 0, shape);
+	clay::BuildTensorF builder = kiln::const_init((double) 0, shape);
 	kiln::Variable var(builder, get_string(16, "varname"));
 	kiln::Variable var2(builder, get_string(16, "var2name"));
 

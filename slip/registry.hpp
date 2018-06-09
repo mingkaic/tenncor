@@ -24,7 +24,7 @@ namespace slip
 
 bool has_op (OPCODE opcode);
 
-mold::iOperatePtrT get_op (OPCODE opcode);
+mold::OperatePtrT get_op (OPCODE opcode);
 
 }
 

@@ -45,7 +45,7 @@ private:
 	virtual iOperateIO* clone_impl (void) const = 0;
 };
 
-using iOperatePtrT = std::shared_ptr<iOperateIO>;
+using OperatePtrT = std::shared_ptr<iOperateIO>;
 
 }
 

@@ -27,7 +27,7 @@ void copy_over (char* dest, size_t ndest,
 void correct_shape (clay::Shape& shape, size_t n);
 
 template <typename T>
-clay::BuildTensorT const_init (T value,
+clay::BuildTensorF const_init (T value,
 	clay::Shape shape = clay::Shape())
 {
 	clay::DTYPE dtype = clay::get_type<T>();
@@ -47,7 +47,7 @@ clay::BuildTensorT const_init (T value,
 }
 
 template <typename T>
-clay::BuildTensorT const_init (std::vector<T> value,
+clay::BuildTensorF const_init (std::vector<T> value,
 	clay::Shape shape = clay::Shape())
 {
 	clay::DTYPE dtype = clay::get_type<T>();

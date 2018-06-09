@@ -63,7 +63,7 @@ protected:
 
 using TensorPtrT = std::unique_ptr<iTensor>;
 
-using BuildTensorT = std::function<TensorPtrT()>;
+using BuildTensorF = std::function<TensorPtrT()>;
 
 }
 

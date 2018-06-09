@@ -156,7 +156,7 @@ static void unarElemTest (fuzz_test* fuzzer, VARFUNC op,
 	SCALAR expect, SCALAR grad, std::pair<double,double> limits = {-1, 1})
 {
 	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
-	clay::BuildTensorT builder = kiln::unif_init(
+	clay::BuildTensorF builder = kiln::unif_init(
 		limits.first, limits.second, shape);
 	kiln::Variable leaf(builder, "leaf");
 
@@ -215,7 +215,7 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 	std::pair<double,double> limits = {-1, 1})
 {
 	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
-	clay::BuildTensorT builder = kiln::unif_init(
+	clay::BuildTensorF builder = kiln::unif_init(
 		limits.first, limits.second, shape);
 	kiln::Variable leaf(builder, "leaf");
 	kiln::Variable leaf2(builder, "leaf2");
@@ -291,7 +291,7 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	std::pair<int16_t,int16_t> limits = {-1, 1})
 {
 	clay::Shape shape = random_def_shape(fuzzer, {2, 6});
-	clay::BuildTensorT builder = kiln::unif_init(
+	clay::BuildTensorF builder = kiln::unif_init(
 		limits.first, limits.second, shape);
 	kiln::Variable leaf(builder, "leaf");
 	kiln::Variable leaf2(builder, "leaf2");
