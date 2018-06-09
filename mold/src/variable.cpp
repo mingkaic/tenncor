@@ -36,7 +36,7 @@ void Variable::initialize (clay::TensorPtrT data)
 	notify_init();
 }
 
-void Variable::assign (const mold::iSource& src)
+void Variable::assign (const iSource& src)
 {
 	if (nullptr == data_)
 	{

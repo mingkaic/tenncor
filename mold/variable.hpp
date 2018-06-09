@@ -63,7 +63,7 @@ public:
 
 	void initialize (clay::TensorPtrT data);
 
-	void assign (const mold::iSource& src);
+	void assign (const iSource& src);
 
 protected:
 	iNode* clone_impl (void) const override

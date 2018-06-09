@@ -250,7 +250,7 @@ void rand_binom (clay::State& dest, std::vector<clay::State> srcs)
 	for (size_t i = 0; i < n; ++i)
 	{
 		std::binomial_distribution<T> dist(sn[i * left_mul], sp[i * right_mul]);
-		d[i] = dist(slip::get_generator());
+		d[i] = dist(get_generator());
 	}
 }
 
@@ -268,7 +268,7 @@ void rand_uniform (clay::State& dest, std::vector<clay::State> srcs)
 	[](const T& a, const T& b)
 	{
 		std::uniform_int_distribution<T> dist(a, b);
-		return dist(slip::get_generator());
+		return dist(get_generator());
 	});
 }
 

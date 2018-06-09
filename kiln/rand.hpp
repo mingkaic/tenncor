@@ -17,10 +17,10 @@
 #include <sstream>
 
 #pragma once
-#ifndef SLIP_RAND_HPP
-#define SLIP_RAND_HPP
+#ifndef KILN_RAND_HPP
+#define KILN_RAND_HPP
 
-namespace slip
+namespace kiln
 {
 
 std::default_random_engine& get_generator (void);
@@ -32,4 +32,4 @@ std::string puid (const void* addr);
 
 }
 
-#endif /* SLIP_RAND_HPP */
+#endif /* KILN_RAND_HPP */

@@ -1,7 +1,7 @@
 #include <vector>
 #include <string>
 
-#include "wire/variable.hpp"
+#include "kiln/variable.hpp"
 
 #pragma once
 #ifndef TF_READER_HPP
@@ -9,6 +9,6 @@
 
 std::vector<double> parse_param (std::string str);
 
-wire::Variable* varify (std::string str, std::string label);
+kiln::Variable* varify (std::string str, std::string label);
 
 #endif /* TF_READER_HPP */

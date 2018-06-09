@@ -92,7 +92,7 @@ void rand_uniform<float> (clay::State& dest, std::vector<clay::State> srcs)
 	[](const float& a, const float& b) -> float
 	{
 		std::uniform_real_distribution<float> dist(a, b);
-		return dist(slip::get_generator());
+		return dist(get_generator());
 	});
 }
 
@@ -103,7 +103,7 @@ void rand_uniform<double> (clay::State& dest, std::vector<clay::State> srcs)
 	[](const double& a, const double& b) -> double
 	{
 		std::uniform_real_distribution<double> dist(a, b);
-		return dist(slip::get_generator());
+		return dist(get_generator());
 	});
 }
 
@@ -114,7 +114,7 @@ void rand_normal<float> (clay::State& dest, std::vector<clay::State> srcs)
 	[](const float& a, const float& b) -> float
 	{
 		std::normal_distribution<float> dist(a, b);
-		return dist(slip::get_generator());
+		return dist(get_generator());
 	});
 }
 
@@ -125,7 +125,7 @@ void rand_normal<double> (clay::State& dest, std::vector<clay::State> srcs)
 	[](const double& a, const double& b) -> double
 	{
 		std::normal_distribution<double> dist(a, b);
-		return dist(slip::get_generator());
+		return dist(get_generator());
 	});
 }
 

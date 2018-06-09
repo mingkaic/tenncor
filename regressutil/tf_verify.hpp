@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "wire/variable.hpp"
+#include "kiln/variable.hpp"
 
 #ifndef TF_VERIFY_HPP
 #define TF_VERIFY_HPP
@@ -13,7 +13,7 @@ struct OpArgs
 {
 	std::vector<double> params_;
 
-	std::vector<wire::Variable*> vars_;
+	std::vector<kiln::Variable*> vars_;
 };
 
 class TF_VERIFY : public ::testing::Test

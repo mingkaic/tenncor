@@ -21,7 +21,7 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 
 # unit test
-test: test_clay test_mold test_slip test_kiln test_wire
+test: test_clay test_mold test_slip test_kiln
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test
@@ -35,14 +35,11 @@ test_slip:
 test_kiln:
 	$(GTEST) $(REP_BZL_FLAG) //kiln:test
 
-test_wire:
-	$(GTEST) $(REP_BZL_FLAG) //wire:test
-
 test_lead:
 	$(GTEST) $(REP_BZL_FLAG) //lead:test
 
 # valgrind unit tests
-valgrind: valg_clay valg_mold valg_slip valg_kiln valg_wire
+valgrind: valg_clay valg_mold valg_slip valg_kiln
 
 valg_clay:
 	$(GTEST) $(VAL_BZL_FLAG) //clay:test
@@ -56,11 +53,8 @@ valg_slip:
 valg_kiln:
 	$(GTEST) $(VAL_BZL_FLAG) //kiln:test
 
-valg_wire:
-	$(GTEST) $(VAL_BZL_FLAG) //wire:test
-
 # asan unit tests
-asan: asan_clay asan_mold asan_slip asan_kiln asan_wire
+asan: asan_clay asan_mold asan_slip asan_kiln
 
 asan_clay:
 	$(GTEST) $(ASAN_BZL_FLAG) --action_env="GTEST_REPEAT=25" //clay:test
@@ -74,11 +68,8 @@ asan_slip:
 asan_kiln:
 	$(GTEST) $(ASAN_BZL_FLAG) --action_env="GTEST_REPEAT=25" //kiln:test
 
-asan_wire:
-	$(GTEST) $(ASAN_BZL_FLAG) --action_env="GTEST_REPEAT=25" //wire:test
-
 # coverage unit tests
-coverage: cover_clay cover_mold cover_slip cover_kiln cover_wire
+coverage: cover_clay cover_mold cover_slip cover_kiln
 
 cover_clay:
 	$(COVER) $(REP_BZL_FLAG) //clay:test --instrumentation_filter=/clay[/:]
@@ -91,9 +82,6 @@ cover_slip:
 
 cover_kiln:
 	$(COVER) $(REP_BZL_FLAG) //kiln:test --instrumentation_filter=/kiln[/:]
-
-cover_wire:
-	$(COVER) $(REP_BZL_FLAG) //wire:test --instrumentation_filter=/wire[/:]
 
 # regression testing
 regression:

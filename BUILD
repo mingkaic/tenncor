@@ -19,7 +19,6 @@ filegroup(
         "//mold:srcs",
         "//slip:srcs",
         "//kiln:srcs",
-        "//wire:srcs",
         "//lead:srcs",
         "//regress:srcs",
     ],
@@ -55,7 +54,6 @@ cc_library(
     copts = [ "-std=c++14" ],
     deps = [
         "//:ioutil",
-        "//wire:wire",
         "//kiln:kiln",
         "@com_google_googletest//:gtest",
     ],

@@ -37,7 +37,7 @@ struct BadNArgsError : public std::runtime_error
 
 struct UnsupportedOpcodeError : public std::runtime_error
 {
-	UnsupportedOpcodeError (slip::OPCODE opcode);
+	UnsupportedOpcodeError (OPCODE opcode);
 };
 
 struct ShapeMismatchError : public std::runtime_error

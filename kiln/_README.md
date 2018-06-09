@@ -1,3 +1,3 @@
 # kiln
 
-kiln library implements builder declared in clay library
+kiln library wraps mold and slip to implement graph manager, operator short cuts, and perform automatic differentiation

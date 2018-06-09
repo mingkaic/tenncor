@@ -6,10 +6,10 @@
 #include "lead/save.hpp"
 #include "lead/include/packer.hpp"
 
-#include "wire/variable.hpp"
-#include "wire/placeholder.hpp"
-#include "wire/constant.hpp"
-#include "wire/functor.hpp"
+#include "kiln/variable.hpp"
+#include "kiln/placeholder.hpp"
+#include "kiln/constant.hpp"
+#include "kiln/functor.hpp"
 
 #ifdef LEAD_SAVE_HPP
 
@@ -36,7 +36,7 @@ void save_tensor (tenncor::TensorPb& out, clay::State state)
 	out.set_type(type);
 }
 
-void save_data (tenncor::DataRepoPb& out, const wire::Graph& graph)
+void save_data (tenncor::DataRepoPb& out, const kiln::Graph& graph)
 {
 	// set GraphPb gid (1)
 	out.set_gid(graph.get_gid());
@@ -44,10 +44,10 @@ void save_data (tenncor::DataRepoPb& out, const wire::Graph& graph)
 	// set GraphPb node_map (2)
 	google::protobuf::Map<std::string,tenncor::TensorPb>&
 		tmap = *(out.mutable_data_map());
-	for (const wire::Identifier* id : graph)
+	for (const kiln::Identifier* id : graph)
 	{
-		if (dynamic_cast<const wire::Variable*>(id) ||
-			dynamic_cast<const wire::Placeholder*>(id))
+		if (dynamic_cast<const kiln::Variable*>(id) ||
+			dynamic_cast<const kiln::Placeholder*>(id))
 		{
 			clay::State state = id->get_state();
 			tenncor::TensorPb& tenout = tmap[id->get_uid()];
@@ -56,7 +56,7 @@ void save_data (tenncor::DataRepoPb& out, const wire::Graph& graph)
 	}
 }
 
-void save_graph (tenncor::GraphPb& out, const wire::Graph& graph)
+void save_graph (tenncor::GraphPb& out, const kiln::Graph& graph)
 {
 	// set GraphPb gid (1)
 	out.set_gid(graph.get_gid());
@@ -65,7 +65,7 @@ void save_graph (tenncor::GraphPb& out, const wire::Graph& graph)
 	// set GraphPb node_map (3)
 	google::protobuf::Map<std::string,tenncor::NodePb>&
 		nmap = *(out.mutable_node_map());
-	for (const wire::Identifier* id : graph)
+	for (const kiln::Identifier* id : graph)
 	{
 		std::string uid = id->get_uid();
 		tenncor::NodePb& node_dest = nmap[uid];
@@ -73,7 +73,7 @@ void save_graph (tenncor::GraphPb& out, const wire::Graph& graph)
 		// set NodePb label (2)
 		node_dest.set_label(id->get_label());
 
-		if (const wire::Functor* f = dynamic_cast<const wire::Functor*>(id))
+		if (const kiln::Functor* f = dynamic_cast<const kiln::Functor*>(id))
 		{
 			// set NodePb type (1)
 			node_dest.set_type(tenncor::NodePb::FUNCTOR);
@@ -92,7 +92,7 @@ void save_graph (tenncor::GraphPb& out, const wire::Graph& graph)
 		else
 		{
 			tenncor::NodePb::NodeT type;
-			if (dynamic_cast<const wire::Constant*>(id))
+			if (dynamic_cast<const kiln::Constant*>(id))
 			{
 				type = tenncor::NodePb::CONSTANT;
 
@@ -102,11 +102,11 @@ void save_graph (tenncor::GraphPb& out, const wire::Graph& graph)
 				save_tensor(tenout, state);
 				node_dest.mutable_detail()->PackFrom(tenout);
 			}
-			else if (dynamic_cast<const wire::Variable*>(id))
+			else if (dynamic_cast<const kiln::Variable*>(id))
 			{
 				type = tenncor::NodePb::VARIABLE;
 			}
-			else if (dynamic_cast<const wire::Placeholder*>(id))
+			else if (dynamic_cast<const kiln::Placeholder*>(id))
 			{
 				type = tenncor::NodePb::PLACEHOLDER;
 			}

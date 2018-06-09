@@ -14,7 +14,7 @@
 #include "lead/data.pb.h"
 #include "lead/graph.pb.h"
 
-#include "wire/graph.hpp"
+#include "kiln/graph.hpp"
 
 #pragma once
 #ifndef LEAD_LOAD_HPP
@@ -23,11 +23,11 @@
 namespace lead
 {
 
-using LeafSetT = std::unordered_set<wire::Identifier*>;
+using LeafSetT = std::unordered_set<kiln::Identifier*>;
 
 using RootIds = std::unordered_set<std::string>;
 
-std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
+std::unique_ptr<kiln::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 	const tenncor::GraphPb& ingraph, const tenncor::DataRepoPb& in);
 
 }

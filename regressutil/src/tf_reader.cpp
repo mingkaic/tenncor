@@ -33,7 +33,7 @@ std::vector<double> parse_param (std::string str)
 	return param;
 }
 
-wire::Variable* varify (std::string str, std::string label)
+kiln::Variable* varify (std::string str, std::string label)
 {
 	// get shape rank
 	size_t rank = 0;
@@ -45,7 +45,7 @@ wire::Variable* varify (std::string str, std::string label)
 	{
 		double scalar = (double) std::atof(str.c_str());
 		clay::BuildTensorT builder = kiln::const_init(scalar);
-		return new wire::Variable(builder, str);
+		return new kiln::Variable(builder, str);
 	}
 
 	std::vector<double> data;
@@ -104,7 +104,7 @@ wire::Variable* varify (std::string str, std::string label)
 	clay::Shape outshape(shaplist);
 	clay::BuildTensorT builder = kiln::const_init(data, outshape);
 
-	return new wire::Variable(builder, label);
+	return new kiln::Variable(builder, label);
 }
 
 #endif

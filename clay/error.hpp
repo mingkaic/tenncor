@@ -25,14 +25,14 @@ namespace clay
 
 struct UnsupportedTypeError : public std::runtime_error
 {
-	UnsupportedTypeError (clay::DTYPE type);
+	UnsupportedTypeError (DTYPE type);
 };
 
 struct InvalidShapeError : public std::runtime_error
 {
-	InvalidShapeError (clay::Shape shape);
+	InvalidShapeError (Shape shape);
 
-	InvalidShapeError (clay::Shape shape, clay::Shape shape2);
+	InvalidShapeError (Shape shape, Shape shape2);
 };
 
 }

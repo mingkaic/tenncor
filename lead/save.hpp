@@ -14,7 +14,7 @@
 #include "lead/data.pb.h"
 #include "lead/graph.pb.h"
 
-#include "wire/graph.hpp"
+#include "kiln/graph.hpp"
 
 #pragma once
 #ifndef LEAD_SAVE_HPP
@@ -25,9 +25,9 @@ namespace lead
 
 void save_tensor (tenncor::TensorPb& out, clay::State state);
 
-void save_data (tenncor::DataRepoPb& out, const wire::Graph& graph);
+void save_data (tenncor::DataRepoPb& out, const kiln::Graph& graph);
 
-void save_graph (tenncor::GraphPb& out, const wire::Graph& graph);
+void save_graph (tenncor::GraphPb& out, const kiln::Graph& graph);
 
 }
 

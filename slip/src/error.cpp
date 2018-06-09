@@ -20,7 +20,7 @@ BadNArgsError::BadNArgsError (size_t nexpect, size_t ngot) :
 	"expected " << nexpect <<
 	" arguments, got " << ngot) {}
 
-UnsupportedOpcodeError::UnsupportedOpcodeError (slip::OPCODE opcode) :
+UnsupportedOpcodeError::UnsupportedOpcodeError (OPCODE opcode) :
 	std::runtime_error(ioutil::Stream() <<
 	"unsupported opcode " << opcode) {}
 

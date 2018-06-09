@@ -57,7 +57,7 @@ cc_library(
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
     deps = [
-        "//wire:wire",
+        "//kiln:kiln",
         "//lead:cc_proto",
     ],
 )

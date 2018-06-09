@@ -2,9 +2,9 @@
 
 #include "regressutil/tf_verify.hpp"
 
-#include "wire/variable.hpp"
-#include "wire/operators.hpp"
-#include "wire/delta.hpp"
+#include "kiln/variable.hpp"
+#include "kiln/operators.hpp"
+#include "kiln/delta.hpp"
 
 
 class UNAR_TESTS : public TF_VERIFY
@@ -17,24 +17,24 @@ public:
 };
 
 
-using UNARY_OP = std::function<wire::Identifier*(wire::Variable*)>;
+using UNARY_OP = std::function<kiln::Identifier*(kiln::Variable*)>;
 
 
 void check_unar (OpArgs args, UNARY_OP op)
 {
 	assert(args.vars_.size() == 3);
-	wire::Variable* input = args.vars_[0];
-	wire::Variable* expectout = args.vars_[1];
-	wire::Variable* expectgrad = args.vars_[2];
+	kiln::Variable* input = args.vars_[0];
+	kiln::Variable* expectout = args.vars_[1];
+	kiln::Variable* expectgrad = args.vars_[2];
 
-	wire::Identifier* out = op(input);
-	wire::Graph::get_global().initialize_all();
+	kiln::Identifier* out = op(input);
+	kiln::Graph::get_global().initialize_all();
 
 	clay::State expectt = expectout->get_state();
 	clay::State outt = out->get_state();
 	state_check(expectt, outt);
 
-	wire::Identifier* grad = wire::delta(out, input);
+	kiln::Identifier* grad = kiln::delta(out, input);
 	clay::State expectgradt = expectgrad->get_state();
 	clay::State gradt = grad->get_state();
 	state_check(expectgradt, gradt);
@@ -48,9 +48,9 @@ void check_unar (OpArgs args, UNARY_OP op)
 TEST_F(UNAR_TESTS, Abs)
 {
 	check_unar(parse_line("abs"),
-	[](wire::Variable* in) -> wire::Identifier*
+	[](kiln::Variable* in) -> kiln::Identifier*
 	{
-		return wire::abs(in);
+		return kiln::abs(in);
 	});
 }
 
@@ -58,9 +58,9 @@ TEST_F(UNAR_TESTS, Abs)
 TEST_F(UNAR_TESTS, Neg)
 {
 	check_unar(parse_line("neg"),
-	[](wire::Variable* in) -> wire::Identifier*
+	[](kiln::Variable* in) -> kiln::Identifier*
 	{
-		return wire::neg(in);
+		return kiln::neg(in);
 	});
 }
 
@@ -68,9 +68,9 @@ TEST_F(UNAR_TESTS, Neg)
 TEST_F(UNAR_TESTS, Sin)
 {
 	check_unar(parse_line("sin"),
-	[](wire::Variable* in) -> wire::Identifier*
+	[](kiln::Variable* in) -> kiln::Identifier*
 	{
-		return wire::sin(in);
+		return kiln::sin(in);
 	});
 }
 
@@ -78,9 +78,9 @@ TEST_F(UNAR_TESTS, Sin)
 TEST_F(UNAR_TESTS, Cos)
 {
 	check_unar(parse_line("cos"),
-	[](wire::Variable* in) -> wire::Identifier*
+	[](kiln::Variable* in) -> kiln::Identifier*
 	{
-		return wire::cos(in);
+		return kiln::cos(in);
 	});
 }
 
@@ -88,9 +88,9 @@ TEST_F(UNAR_TESTS, Cos)
 TEST_F(UNAR_TESTS, Tan)
 {
 	check_unar(parse_line("tan"),
-	[](wire::Variable* in) -> wire::Identifier*
+	[](kiln::Variable* in) -> kiln::Identifier*
 	{
-		return wire::tan(in);
+		return kiln::tan(in);
 	});
 }
 
@@ -98,9 +98,9 @@ TEST_F(UNAR_TESTS, Tan)
 TEST_F(UNAR_TESTS, Exp)
 {
 	check_unar(parse_line("exp"),
-	[](wire::Variable* in) -> wire::Identifier*
+	[](kiln::Variable* in) -> kiln::Identifier*
 	{
-		return wire::exp(in);
+		return kiln::exp(in);
 	});
 }
 
@@ -108,9 +108,9 @@ TEST_F(UNAR_TESTS, Exp)
 TEST_F(UNAR_TESTS, Log) // Precision problem
 {
 	check_unar(parse_line("log"),
-	[](wire::Variable* in) -> wire::Identifier*
+	[](kiln::Variable* in) -> kiln::Identifier*
 	{
-		return wire::log(in);
+		return kiln::log(in);
 	});
 }
 
@@ -118,9 +118,9 @@ TEST_F(UNAR_TESTS, Log) // Precision problem
 TEST_F(UNAR_TESTS, Sqrt)
 {
 	check_unar(parse_line("sqrt"),
-	[](wire::Variable* in) -> wire::Identifier*
+	[](kiln::Variable* in) -> kiln::Identifier*
 	{
-		return wire::sqrt(in);
+		return kiln::sqrt(in);
 	});
 }
 

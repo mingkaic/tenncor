@@ -7,17 +7,17 @@
 #include "lead/include/packer.hpp"
 #include "lead/include/pb_build.hpp"
 
-#include "wire/functor.hpp"
-#include "wire/constant.hpp"
-#include "wire/variable.hpp"
-#include "wire/placeholder.hpp"
+#include "kiln/functor.hpp"
+#include "kiln/constant.hpp"
+#include "kiln/variable.hpp"
+#include "kiln/placeholder.hpp"
 
 #ifdef LEAD_LOAD_HPP
 
 namespace lead
 {
 
-static inline void placeholder_assign (wire::Placeholder* place,
+static inline void placeholder_assign (kiln::Placeholder* place,
 	const tenncor::TensorPb& tpb)
 {
 	switch (tpb.type())
@@ -109,12 +109,12 @@ static inline void placeholder_assign (wire::Placeholder* place,
 	}
 }
 
-std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
+std::unique_ptr<kiln::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 	const tenncor::GraphPb& ingraph, const tenncor::DataRepoPb& in)
 {
 	std::string gid = ingraph.gid();
 	assert(in.gid() == gid);
-	std::unique_ptr<wire::Graph> graph = wire::Graph::get_temp(gid);
+	std::unique_ptr<kiln::Graph> graph = kiln::Graph::get_temp(gid);
 
 	const google::protobuf::Map<std::string,tenncor::NodePb>& nmap =
 		ingraph.node_map();
@@ -124,7 +124,7 @@ std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 		in.data_map();
 	for (std::string id : order)
 	{
-		wire::Identifier* node_id;
+		kiln::Identifier* node_id;
 		const tenncor::NodePb& node = nmap.at(id);
 		std::string label = node.label();
 		switch (node.type())
@@ -135,14 +135,14 @@ std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 				node.detail().UnpackTo(&fpb);
 				const google::protobuf::RepeatedPtrField<std::string>&
 					arg_ids = fpb.args();
-				std::vector<wire::Identifier*> args(arg_ids.size());
+				std::vector<kiln::Identifier*> args(arg_ids.size());
 				std::transform(arg_ids.begin(), arg_ids.end(), args.begin(),
 				[&](std::string argid)
 				{
 					rootids.erase(argid);
 					return graph->get_node(argid);
 				});
-				node_id = new wire::Functor(args, (slip::OPCODE) fpb.opcode(), *graph);
+				node_id = new kiln::Functor(args, (slip::OPCODE) fpb.opcode(), *graph);
 			}
 			break;
 			case tenncor::NodePb::CONSTANT:
@@ -154,7 +154,7 @@ std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 				clay::Shape shape(std::vector<size_t>(slist.begin(), slist.end()));
 				clay::DTYPE type = tpb.type();
 				std::shared_ptr<char> data = unpack_data(tpb.data(), type);
-				node_id = new wire::Constant(data, shape, (clay::DTYPE) type, label, *graph);
+				node_id = new kiln::Constant(data, shape, (clay::DTYPE) type, label, *graph);
 				leafset.emplace(node_id);
 			}
 			break;
@@ -164,7 +164,7 @@ std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 				auto slist = tpb.shape();
 				clay::Shape shape(std::vector<size_t>(slist.begin(), slist.end()));
 				PbBuilder builder(tpb);
-				node_id = new wire::Variable(builder, shape, label, *graph);
+				node_id = new kiln::Variable(builder, shape, label, *graph);
 				leafset.emplace(node_id);
 			}
 			break;
@@ -173,7 +173,7 @@ std::unique_ptr<wire::Graph> load_graph (LeafSetT& leafset, RootIds& rootids,
 				const tenncor::TensorPb& tpb = dmap.at(id);
 				auto slist = tpb.shape();
 				clay::Shape shape(std::vector<size_t>(slist.begin(), slist.end()));
-				wire::Placeholder* place = new wire::Placeholder(shape, label, *graph);
+				kiln::Placeholder* place = new kiln::Placeholder(shape, label, *graph);
 				node_id = place;
 				placeholder_assign(place, tpb);
 				leafset.emplace(place);

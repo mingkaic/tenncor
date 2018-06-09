@@ -20,7 +20,10 @@ cc_library(
     hdrs = glob([ "*.hpp" ]),
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
-    deps = [ "//slip:slip" ],
+    deps = [
+        "//:ioutil",
+        "//slip:slip",
+    ],
 )
 
 ######### TEST #########

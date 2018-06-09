@@ -2,9 +2,9 @@
 
 #include "regressutil/tf_verify.hpp"
 
-#include "wire/variable.hpp"
-#include "wire/operators.hpp"
-#include "wire/delta.hpp"
+#include "kiln/variable.hpp"
+#include "kiln/operators.hpp"
+#include "kiln/delta.hpp"
 
 
 class BINAR_TESTS : public TF_VERIFY
@@ -17,31 +17,31 @@ public:
 };
 
 
-using BINARY_OP = std::function<wire::Identifier*(wire::Variable*,wire::Variable*)>;
+using BINARY_OP = std::function<kiln::Identifier*(kiln::Variable*,kiln::Variable*)>;
 
 
 void check_binar (OpArgs args, BINARY_OP op)
 {
 	assert(args.vars_.size() == 5);
-	wire::Variable* input1 = args.vars_[0];
-	wire::Variable* input2 = args.vars_[1];
-	wire::Variable* expectout = args.vars_[2];
-	wire::Variable* expectgrad1 = args.vars_[3];
-	wire::Variable* expectgrad2 = args.vars_[4];
+	kiln::Variable* input1 = args.vars_[0];
+	kiln::Variable* input2 = args.vars_[1];
+	kiln::Variable* expectout = args.vars_[2];
+	kiln::Variable* expectgrad1 = args.vars_[3];
+	kiln::Variable* expectgrad2 = args.vars_[4];
 
-	wire::Identifier* out = op(input1, input2);
-	wire::Graph::get_global().initialize_all();
+	kiln::Identifier* out = op(input1, input2);
+	kiln::Graph::get_global().initialize_all();
 
 	clay::State expectt = expectout->get_state();
 	clay::State outt = out->get_state();
 	state_check(expectt, outt);
 
-	wire::Identifier* grad1 = wire::delta(out, input1);
+	kiln::Identifier* grad1 = kiln::delta(out, input1);
 	clay::State expectgrad1t = expectgrad1->get_state();
 	clay::State grad1t = grad1->get_state();
 	state_check(expectgrad1t, grad1t);
 
-	wire::Identifier* grad2 = wire::delta(out, input2);
+	kiln::Identifier* grad2 = kiln::delta(out, input2);
 	clay::State expectgrad2t = expectgrad2->get_state();
 	clay::State grad2t = grad2->get_state();
 	state_check(expectgrad2t, grad2t);
@@ -57,9 +57,9 @@ void check_binar (OpArgs args, BINARY_OP op)
 TEST_F(BINAR_TESTS, Add)
 {
 	check_binar(parse_line("add"),
-	[](wire::Variable* a, wire::Variable* b) -> wire::Identifier*
+	[](kiln::Variable* a, kiln::Variable* b) -> kiln::Identifier*
 	{
-		return wire::add(a, b);
+		return kiln::add(a, b);
 	});
 }
 
@@ -67,9 +67,9 @@ TEST_F(BINAR_TESTS, Add)
 TEST_F(BINAR_TESTS, Sub)
 {
 	check_binar(parse_line("sub"),
-	[](wire::Variable* a, wire::Variable* b) -> wire::Identifier*
+	[](kiln::Variable* a, kiln::Variable* b) -> kiln::Identifier*
 	{
-		return wire::sub(a, b);
+		return kiln::sub(a, b);
 	});
 }
 
@@ -77,9 +77,9 @@ TEST_F(BINAR_TESTS, Sub)
 TEST_F(BINAR_TESTS, Mul)
 {
 	check_binar(parse_line("mul"),
-	[](wire::Variable* a, wire::Variable* b) -> wire::Identifier*
+	[](kiln::Variable* a, kiln::Variable* b) -> kiln::Identifier*
 	{
-		return wire::mul(a, b);
+		return kiln::mul(a, b);
 	});
 }
 
@@ -87,9 +87,9 @@ TEST_F(BINAR_TESTS, Mul)
 TEST_F(BINAR_TESTS, Div)
 {
 	check_binar(parse_line("div"),
-	[](wire::Variable* a, wire::Variable* b) -> wire::Identifier*
+	[](kiln::Variable* a, kiln::Variable* b) -> kiln::Identifier*
 	{
-		return wire::div(a, b);
+		return kiln::div(a, b);
 	});
 }
 

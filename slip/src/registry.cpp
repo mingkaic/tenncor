@@ -29,20 +29,20 @@ using TypeReg = std::unordered_map<clay::DTYPE,ArgsF,EnumHash>;
 using ImmPair = std::pair<clay::Shape,clay::DTYPE>;
 
 #define REGISTER_FUNC(CODE, FUNC) {\
-slip::CODE, TypeReg{\
-{ clay::DOUBLE, slip::FUNC<double> },{ clay::FLOAT, slip::FUNC<float> },\
-{ clay::INT8, slip::FUNC<int8_t> },{ clay::UINT8, slip::FUNC<uint8_t> },\
-{ clay::INT16, slip::FUNC<int16_t> },{ clay::UINT16, slip::FUNC<uint16_t> },\
-{ clay::INT32, slip::FUNC<int32_t> },{ clay::UINT32, slip::FUNC<uint32_t> },\
-{ clay::INT64, slip::FUNC<int64_t> },{ clay::UINT64, slip::FUNC<uint64_t> } } },
+CODE, TypeReg{\
+{ clay::DOUBLE, FUNC<double> },{ clay::FLOAT, FUNC<float> },\
+{ clay::INT8, FUNC<int8_t> },{ clay::UINT8, FUNC<uint8_t> },\
+{ clay::INT16, FUNC<int16_t> },{ clay::UINT16, FUNC<uint16_t> },\
+{ clay::INT32, FUNC<int32_t> },{ clay::UINT32, FUNC<uint32_t> },\
+{ clay::INT64, FUNC<int64_t> },{ clay::UINT64, FUNC<uint64_t> } } },
 
 #define REGISTER_SFUNC(CODE, FUNC) {\
-slip::CODE, TypeReg{\
-{ clay::DOUBLE, slip::FUNC },{ clay::FLOAT, slip::FUNC },\
-{ clay::INT8, slip::FUNC },{ clay::UINT8, slip::FUNC },\
-{ clay::INT16, slip::FUNC },{ clay::UINT16, slip::FUNC },\
-{ clay::INT32, slip::FUNC },{ clay::UINT32, slip::FUNC },\
-{ clay::INT64, slip::FUNC },{ clay::UINT64, slip::FUNC } } },
+CODE, TypeReg{\
+{ clay::DOUBLE, FUNC },{ clay::FLOAT, FUNC },\
+{ clay::INT8, FUNC },{ clay::UINT8, FUNC },\
+{ clay::INT16, FUNC },{ clay::UINT16, FUNC },\
+{ clay::INT32, FUNC },{ clay::UINT32, FUNC },\
+{ clay::INT64, FUNC },{ clay::UINT64, FUNC } } },
 
 static std::unordered_map<OPCODE,TypeReg,EnumHash> op_registry =
 {
