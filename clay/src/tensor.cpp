@@ -3,6 +3,8 @@
 //  cnnet
 //
 
+#include <cassert>
+
 #include "clay/tensor.hpp"
 #include "clay/memory.hpp"
 #include "clay/error.hpp"
@@ -60,6 +62,12 @@ State Tensor::get_state (void) const
 	return State{data_, shape_, dtype_};
 }
 
+State Tensor::get_state (size_t idx) const
+{
+	assert(idx < shape_.n_elems());
+	return {data_.get() + idx * type_size(dtype_), data_, Shape({1}), dtype_};
+}
+
 Shape Tensor::get_shape (void) const
 {
 	return shape_;
@@ -73,6 +81,11 @@ DTYPE Tensor::get_type (void) const
 size_t Tensor::total_bytes (void) const
 {
 	return shape_.n_elems() * type_size(dtype_);
+}
+
+iTensor* Tensor::clone_impl (void) const
+{
+	return new Tensor(*this);
 }
 
 }

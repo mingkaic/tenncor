@@ -12,9 +12,38 @@
 namespace mold
 {
 
+Variable::Variable (const Variable& other)
+{
+	if (nullptr != other.data_)
+	{
+		data_ = clay::TensorPtrT(other.data_->clone());
+	}
+}
+
+Variable& Variable::operator = (const Variable& other)
+{
+	if (&other != this)
+	{
+		if (nullptr != other.data_)
+		{
+			data_ = clay::TensorPtrT(other.data_->clone());
+		}
+		else
+		{
+			data_ = nullptr;
+		}
+	}
+	return *this;
+}
+
 bool Variable::has_data (void) const
 {
 	return nullptr != data_;
+}
+
+clay::Shape Variable::get_shape (void) const
+{
+	return data_->get_shape();
 }
 
 clay::State Variable::get_state (void) const
@@ -33,29 +62,15 @@ void Variable::initialize (clay::TensorPtrT data)
 		throw NilDataError();
 	}
 	data_ = std::move(data);
-	notify_init();
-}
-
-void Variable::assign (const iSource& src)
-{
-	if (nullptr == data_)
-	{
-		throw UninitializedError();
-	}
-	clay::State dest = data_->get_state();
-	src.write_data(dest);
-	for (iObserver* aud : audience_)
-	{
-		aud->update();
-	}
-}
-
-void Variable::notify_init (void)
-{
 	for (iObserver* aud : audience_)
 	{
 		aud->initialize();
 	}
+}
+
+iNode* Variable::clone_impl (void) const
+{
+	return new Variable(*this);
 }
 
 }

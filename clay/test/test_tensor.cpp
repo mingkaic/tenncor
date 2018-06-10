@@ -47,8 +47,7 @@ TEST_F(TENSOR, Constructor_C000)
 	std::string s1 = get_string(nbytes, "s1");
 	clay::Tensor ten(cshape, dtype);
 	clay::State state = ten.get_state();
-	memcpy(state.data_.lock().get(),
-		s1.c_str(), nbytes);
+	memcpy(state.get(), s1.c_str(), nbytes);
 
 	EXPECT_THROW(clay::Tensor(undef, dtype), clay::InvalidShapeError);
 	EXPECT_THROW(clay::Tensor(plist, dtype), clay::InvalidShapeError);

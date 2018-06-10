@@ -58,7 +58,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 	{
 		case clay::DTYPE::DOUBLE:
 		{
-			double* oneptr = (double*) back.data_.lock().get();
+			double* oneptr = (double*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -67,7 +67,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::FLOAT:
 		{
-			float* oneptr = (float*) back.data_.lock().get();
+			float* oneptr = (float*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -76,7 +76,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::INT8:
 		{
-			int8_t* oneptr = (int8_t*) back.data_.lock().get();
+			int8_t* oneptr = (int8_t*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -85,7 +85,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::UINT8:
 		{
-			uint8_t* oneptr = (uint8_t*) back.data_.lock().get();
+			uint8_t* oneptr = (uint8_t*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -94,7 +94,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::INT16:
 		{
-			int16_t* oneptr = (int16_t*) back.data_.lock().get();
+			int16_t* oneptr = (int16_t*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -103,7 +103,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::UINT16:
 		{
-			uint16_t* oneptr = (uint16_t*) back.data_.lock().get();
+			uint16_t* oneptr = (uint16_t*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -112,7 +112,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::INT32:
 		{
-			int32_t* oneptr = (int32_t*) back.data_.lock().get();
+			int32_t* oneptr = (int32_t*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -121,7 +121,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::UINT32:
 		{
-			uint32_t* oneptr = (uint32_t*) back.data_.lock().get();
+			uint32_t* oneptr = (uint32_t*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -130,7 +130,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::INT64:
 		{
-			int64_t* oneptr = (int64_t*) back.data_.lock().get();
+			int64_t* oneptr = (int64_t*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -139,7 +139,7 @@ static void selfGrad (kiln::Identifier* f, clay::State state)
 		break;
 		case clay::DTYPE::UINT64:
 		{
-			uint64_t* oneptr = (uint64_t*) back.data_.lock().get();
+			uint64_t* oneptr = (uint64_t*) back.get();
 			for (size_t i = 0; i < n; ++i)
 			{
 				EXPECT_EQ(1, oneptr[i]) << i;
@@ -184,11 +184,11 @@ static void unarElemTest (fuzz_test* fuzzer, VARFUNC op,
 	clay::State back = der->get_state();
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_SHAPEQ(shape, back.shape_);
-	double* inptr = (double*) leaf.get_state().data_.lock().get();
-	ASSERT_FALSE(state.data_.expired());
-	ASSERT_FALSE(back.data_.expired());
-	double* outptr = (double*) state.data_.lock().get();
-	double* backptr = (double*) back.data_.lock().get();
+	double* inptr = (double*) leaf.get_state().get();
+	ASSERT_NE(nullptr, state.get());
+	ASSERT_NE(nullptr, back.get());
+	double* outptr = (double*) state.get();
+	double* backptr = (double*) back.get();
 	for (size_t i = 0, n = shape.n_elems();
 		i < n; ++i)
 	{
@@ -250,14 +250,14 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_SHAPEQ(shape, back.shape_);
 	EXPECT_SHAPEQ(shape, back2.shape_);
-	double* inptr = (double*) leaf.get_state().data_.lock().get();
-	double* inptr2 = (double*) leaf2.get_state().data_.lock().get();
-	ASSERT_FALSE(state.data_.expired());
-	ASSERT_FALSE(back.data_.expired());
-	ASSERT_FALSE(back2.data_.expired());
-	double* outptr = (double*) state.data_.lock().get();
-	double* backptr = (double*) back.data_.lock().get();
-	double* backptr2 = (double*) back2.data_.lock().get();
+	double* inptr = (double*) leaf.get_state().get();
+	double* inptr2 = (double*) leaf2.get_state().get();
+	ASSERT_NE(nullptr, state.get());
+	ASSERT_NE(nullptr, back.get());
+	ASSERT_NE(nullptr, back2.get());
+	double* outptr = (double*) state.get();
+	double* backptr = (double*) back.get();
+	double* backptr2 = (double*) back2.get();
 	for (size_t i = 0, n = shape.n_elems();
 		i < n; ++i)
 	{
@@ -326,14 +326,14 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_SHAPEQ(shape, back.shape_);
 	EXPECT_SHAPEQ(shape, back2.shape_);
-	int16_t* inptr = (int16_t*) leaf.get_state().data_.lock().get();
-	int16_t* inptr2 = (int16_t*) leaf2.get_state().data_.lock().get();
-	ASSERT_FALSE(state.data_.expired());
-	ASSERT_FALSE(back.data_.expired());
-	ASSERT_FALSE(back2.data_.expired());
-	int16_t* outptr = (int16_t*) state.data_.lock().get();
-	int16_t* backptr = (int16_t*) back.data_.lock().get();
-	int16_t* backptr2 = (int16_t*) back2.data_.lock().get();
+	int16_t* inptr = (int16_t*) leaf.get_state().get();
+	int16_t* inptr2 = (int16_t*) leaf2.get_state().get();
+	ASSERT_NE(nullptr, state.get());
+	ASSERT_NE(nullptr, back.get());
+	ASSERT_NE(nullptr, back2.get());
+	int16_t* outptr = (int16_t*) state.get();
+	int16_t* backptr = (int16_t*) back.get();
+	int16_t* backptr2 = (int16_t*) back2.get();
 	for (size_t i = 0, n = shape.n_elems();
 		i < n; ++i)
 	{

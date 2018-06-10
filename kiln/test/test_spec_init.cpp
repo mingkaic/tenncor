@@ -43,8 +43,8 @@ TEST_F(SPEC_INIT, ConstInit_B000)
 	ASSERT_SHAPEQ(cshape, cten->get_shape());
 	ASSERT_SHAPEQ(cshape, vten->get_shape());
 
-	double* cd = (double*) cten->get_state().data_.lock().get();
-	double* vd = (double*) vten->get_state().data_.lock().get();
+	double* cd = (double*) cten->get_state().get();
+	double* vd = (double*) vten->get_state().get();
 
 	size_t n = cshape.n_elems();
 	for (size_t i = 0; i < n; ++i)
@@ -68,7 +68,7 @@ TEST_F(SPEC_INIT, UnifInit_B001)
 	clay::TensorPtrT uten = ui();
 	ASSERT_NE(nullptr, uten);
 	ASSERT_SHAPEQ(cshape, uten->get_shape());
-	double* ud = (double*) uten->get_state().data_.lock().get();
+	double* ud = (double*) uten->get_state().get();
 
 	size_t n = cshape.n_elems();
 	for (size_t i = 0; i < n; ++i)
@@ -93,7 +93,7 @@ TEST_F(SPEC_INIT, DISABLED_NormInit_B001)
 	clay::TensorPtrT nten = ni();
 	ASSERT_NE(nullptr, nten);
 	ASSERT_SHAPEQ(cshape, nten->get_shape());
-	double* nd = (double*) nten->get_state().data_.lock().get();
+	double* nd = (double*) nten->get_state().get();
 
 	size_t n = cshape.n_elems();
 	std::vector<size_t> stdev_count(3, 0);

@@ -173,9 +173,9 @@ void matmul (clay::State& dest, std::vector<clay::State> srcs)
 	assert(2 == srcs.size());
 	clay::Shape& ashape = srcs.front().shape_;
 	clay::Shape& bshape = srcs.back().shape_;
-	T* tdest = safe_get<T>(dest.data_);
-	const T* src0 = safe_get<const T>(srcs.front().data_);
-	const T* src1 = safe_get<const T>(srcs.back().data_);
+	T* tdest = safe_get<T>(dest);
+	const T* src0 = safe_get<const T>(srcs.front());
+	const T* src1 = safe_get<const T>(srcs.back());
 	size_t dim_z = ashape.at(0);
 	size_t dim_y;
 	if (ashape.rank() < 2)
@@ -250,14 +250,14 @@ void jacobian (clay::State& dest, std::vector<clay::State> srcs)
 {
 	clay::Shape& outshape = dest.shape_;
 	clay::State& dstate = srcs[2];
-	uint64_t* dims = safe_get<uint64_t>(dstate.data_);
+	uint64_t* dims = safe_get<uint64_t>(dstate);
 	uint64_t matchdim = dims[0];
 	uint64_t swapdim = dims[1];
 
 	clay::State& state = srcs[swapdim];
-	T* d = safe_get<T>(dest.data_);
+	T* d = safe_get<T>(dest);
 	clay::Shape& inshape = state.shape_;
-	const T* s = safe_get<const T>(state.data_);
+	const T* s = safe_get<const T>(state);
 	size_t innerlimit = srcs[matchdim].shape_.as_list()[swapdim];
 	size_t ylimit = srcs[0].shape_.as_list()[0];
 	size_t xlimit = srcs[1].shape_.as_list()[0];

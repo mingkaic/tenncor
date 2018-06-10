@@ -15,8 +15,6 @@
 
 #include "clay/tensor.hpp"
 
-#include "mold/isource.hpp"
-
 #pragma once
 #ifndef MOLD_INODE_HPP
 #define MOLD_INODE_HPP
@@ -43,10 +41,7 @@ public:
 
 	iNode& operator = (iNode&& other);
 
-	iNode* clone (void) const
-	{
-		return clone_impl();
-	}
+	iNode* clone (void) const;
 
 
 	virtual bool has_data (void) const = 0;

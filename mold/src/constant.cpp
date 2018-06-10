@@ -33,22 +33,33 @@ state_(data, shape, type), data_(data)
 	}
 }
 
-Constant::Constant (const Constant& other) : state_(other.state_)
-{
-	size_t nbytes = state_.shape_.n_elems() * clay::type_size(state_.dtype_);
-	data_ = clay::make_char(nbytes);
-	std::memcpy(data_.get(), other.data_.get(), nbytes);
-	state_.data_ = data_;
-}
+Constant::Constant (const Constant& other) :
+	state_([&]()
+	{
+		size_t nbytes = other.state_.shape_.n_elems() * clay::type_size(other.state_.dtype_);
+		data_ = clay::make_char(nbytes);
+		std::memcpy(data_.get(), other.state_.get(), nbytes);
+		return clay::State(other.state_, data_);
+	}()) {}
 
 bool Constant::has_data (void) const
 {
 	return true;
 }
 
+clay::Shape Constant::get_shape (void) const
+{
+	return state_.shape_;
+}
+
 clay::State Constant::get_state (void) const
 {
 	return state_;
+}
+
+iNode* Constant::clone_impl (void) const
+{
+	return new Constant(*this);
 }
 
 }

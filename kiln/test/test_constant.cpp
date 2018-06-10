@@ -79,7 +79,7 @@ TEST_F(CONSTANT, GetScalar_D000)
 	clay::Shape wun({1});
 	EXPECT_SHAPEQ(wun, state.shape_);
 	EXPECT_EQ(dtype, state.dtype_);
-	std::string got(state.data_.lock().get(), bsize);
+	std::string got(state.get(), bsize);
 	EXPECT_STREQ(data.c_str(), got.c_str());
 
 	EXPECT_THROW(kiln::Constant::get(data), clay::UnsupportedTypeError);
@@ -176,7 +176,7 @@ TEST_F(CONSTANT, GetVec_D001)
 	clay::State state = v->get_state();
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_EQ(dtype, state.dtype_);
-	std::string got(state.data_.lock().get(), bytesize);
+	std::string got(state.get(), bytesize);
 	EXPECT_STREQ(data.c_str(), got.c_str());
 
 	std::vector<std::string> sdata(shape.n_elems(), "sample");

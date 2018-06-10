@@ -25,55 +25,24 @@ class Variable final : public iNode
 public:
 	Variable (void) = default;
 
-	Variable (const Variable& other)
-	{
-		if (nullptr != other.data_)
-		{
-			data_ = clay::TensorPtrT(other.data_->clone());
-		}
-	}
-
-	Variable& operator = (const Variable& other)
-	{
-		if (&other != this)
-		{
-			if (nullptr != other.data_)
-			{
-				data_ = clay::TensorPtrT(other.data_->clone());
-			}
-			else
-			{
-				data_ = nullptr;
-			}
-		}
-		return *this;
-	}
+	Variable (const Variable& other);
 
 	Variable (Variable&&) = default;
+
+	Variable& operator = (const Variable& other);
+
 	Variable& operator = (Variable&&) = default;
 
 	bool has_data (void) const override;
 
-	clay::Shape get_shape (void) const override
-	{
-		return data_->get_shape();
-	}
+	clay::Shape get_shape (void) const override;
 
 	clay::State get_state (void) const override;
 
 	void initialize (clay::TensorPtrT data);
 
-// todo: deprecate
-	void assign (const iSource& src);
-
-protected:
-	iNode* clone_impl (void) const override
-	{
-		return new Variable(*this);
-	}
-
 private:
-	void notify_init (void);
+	iNode* clone_impl (void) const override;
 
 	clay::TensorPtrT data_ = nullptr;
 };

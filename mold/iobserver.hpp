@@ -41,10 +41,7 @@ public:
 
 	void replace (iNode* target, iNode* repl);
 
-	std::vector<iNode*> get_args (void) const
-	{
-		return args_;
-	}
+	std::vector<iNode*> get_args (void) const;
 
 protected:
 	std::vector<iNode*> args_;

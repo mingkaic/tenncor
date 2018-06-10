@@ -76,7 +76,7 @@ TEST_F(VARIABLE, Init_E000)
 	clay::State state = var.get_state();
 	ASSERT_SHAPEQ(shape, state.shape_);
 	ASSERT_EQ(clay::DOUBLE, state.dtype_);
-	double* ptr = (double*) state.data_.lock().get();
+	double* ptr = (double*) state.get();
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(scalar, ptr[i]);
@@ -123,7 +123,7 @@ TEST_F(VARIABLE, Assign_E001)
 	clay::State state = var.get_state();
 	ASSERT_SHAPEQ(shape, state.shape_);
 	ASSERT_EQ(clay::DOUBLE, state.dtype_);
-	double* ptr = (double*) state.data_.lock().get();
+	double* ptr = (double*) state.get();
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(scalar, ptr[i]);
@@ -141,7 +141,7 @@ TEST_F(VARIABLE, Assign_E001)
 	clay::State state2 = var.get_state();
 	ASSERT_SHAPEQ(shape, state.shape_);
 	ASSERT_EQ(clay::DOUBLE, state.dtype_);
-	double* ptr2 = (double*) state.data_.lock().get();
+	double* ptr2 = (double*) state.get();
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(data[i], ptr2[i]) << "failed at " << i;

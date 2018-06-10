@@ -64,6 +64,11 @@ bool Functor::has_data (void) const
 	return nullptr != cache_;
 }
 
+clay::Shape Functor::get_shape (void) const
+{
+	return cache_->get_shape();
+}
+
 clay::State Functor::get_state (void) const
 {
 	if (nullptr == cache_)
@@ -117,6 +122,11 @@ void Functor::update (void)
 			aud->update();
 		}
 	}
+}
+
+iNode* Functor::clone_impl (void) const
+{
+	return new Functor(*this);
 }
 
 }

@@ -52,6 +52,11 @@ iNode& iNode::operator = (iNode&& other)
 	return *this;
 }
 
+iNode* iNode::clone (void) const
+{
+	return clone_impl();
+}
+
 AudienceT iNode::get_audience (void) const
 {
 	return audience_;

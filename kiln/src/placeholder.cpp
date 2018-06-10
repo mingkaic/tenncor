@@ -88,7 +88,7 @@ bool Placeholder::init_helper (const char* s, size_t n,
 			shape = *oshape;
 		}
 		clay::Tensor* tens = new clay::Tensor(shape, dtype);
-		char* dest = tens->get_state().data_.lock().get();
+		char* dest = tens->get_state().get();
 		std::memcpy(dest, s, n * clay::type_size(dtype));
 		arg->initialize(clay::TensorPtrT(tens));
 	}
@@ -110,7 +110,7 @@ void Placeholder::assign_helper (const char* s, size_t n, clay::DTYPE dtype)
 	{
 		throw slip::TypeMismatchError(state.dtype_, dtype);
 	}
-	std::memcpy(state.data_.lock().get(), s, n * clay::type_size(dtype));
+	std::memcpy(state.get(), s, n * clay::type_size(dtype));
 	mold::AudienceT auds = arg->get_audience();
 	for (mold::iObserver* aud : auds)
 	{

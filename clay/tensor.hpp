@@ -33,15 +33,18 @@ public:
 
 	Tensor (const Tensor& other);
 
+	Tensor (Tensor&& other) = delete;
+
 	Tensor& operator = (const Tensor& other);
 
-	Tensor (Tensor&& other) = delete;
 	Tensor& operator = (Tensor&& other) = delete;
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
 	//! get internal state
 	State get_state (void) const override;
+
+	State get_state (size_t idx) const override;
 
 	//! get tensor shape
 	Shape get_shape (void) const override;
@@ -53,10 +56,7 @@ public:
 	size_t total_bytes (void) const override;
 
 private:
-	iTensor* clone_impl (void) const override
-	{
-		return new Tensor(*this);
-	}
+	iTensor* clone_impl (void) const override;
 
 	std::shared_ptr<char> data_;
 

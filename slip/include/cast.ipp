@@ -13,8 +13,8 @@ void cast (clay::State& dest, std::vector<clay::State> srcs)
 {
 	clay::Shape& shape = dest.shape_;
 	size_t n = shape.n_elems();
-	T* d = safe_get<T>(dest.data_);
-	const char* s = safe_get<const char>(srcs.back().data_);
+	T* d = safe_get<T>(dest);
+	const char* s = safe_get<const char>(srcs.back());
 	clay::DTYPE srctype = srcs.back().dtype_;
 	if (srctype == dest.dtype_)
 	{

@@ -66,6 +66,11 @@ void iObserver::replace (iNode* target, iNode* repl)
 	std::replace(args_.begin(), args_.end(), target, repl);
 }
 
+std::vector<iNode*> iObserver::get_args (void) const
+{
+	return args_;
+}
+
 void iObserver::copy_helper (const iObserver& other)
 {
 	for (iNode* arg : args_)

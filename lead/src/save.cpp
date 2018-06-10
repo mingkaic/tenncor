@@ -18,7 +18,7 @@ namespace lead
 
 void save_tensor (tenncor::TensorPb& out, clay::State state)
 {
-	if (state.data_.expired())
+	if (nullptr == state.get())
 	{
 		throw std::exception(); // todo: add context
 	}

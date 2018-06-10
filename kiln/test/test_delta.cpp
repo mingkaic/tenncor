@@ -128,61 +128,61 @@ TEST_F(DELTA, Constant_H000)
 	{
 		case clay::DTYPE::DOUBLE:
 		{
-			double gotz = *((double*) z.data_.lock().get());
+			double gotz = *((double*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::FLOAT:
 		{
-			float gotz = *((float*) z.data_.lock().get());
+			float gotz = *((float*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::INT8:
 		{
-			int8_t gotz = *((int8_t*) z.data_.lock().get());
+			int8_t gotz = *((int8_t*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::UINT8:
 		{
-			uint8_t gotz = *((uint8_t*) z.data_.lock().get());
+			uint8_t gotz = *((uint8_t*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::INT16:
 		{
-			int16_t gotz = *((int16_t*) z.data_.lock().get());
+			int16_t gotz = *((int16_t*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::UINT16:
 		{
-			uint16_t gotz = *((uint16_t*) z.data_.lock().get());
+			uint16_t gotz = *((uint16_t*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::INT32:
 		{
-			int32_t gotz = *((int32_t*) z.data_.lock().get());
+			int32_t gotz = *((int32_t*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::UINT32:
 		{
-			uint32_t gotz = *((uint32_t*) z.data_.lock().get());
+			uint32_t gotz = *((uint32_t*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::INT64:
 		{
-			int64_t gotz = *((int64_t*) z.data_.lock().get());
+			int64_t gotz = *((int64_t*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
 		case clay::DTYPE::UINT64:
 		{
-			uint64_t gotz = *((uint64_t*) z.data_.lock().get());
+			uint64_t gotz = *((uint64_t*) z.get());
 			EXPECT_EQ(0, gotz);
 		}
 		break;
@@ -210,8 +210,8 @@ TEST_F(DELTA, Variable_H001)
 	EXPECT_SHAPEQ(shape, state2.shape_);
 	EXPECT_EQ(clay::DOUBLE, state.dtype_);
 	EXPECT_EQ(clay::DOUBLE, state2.dtype_);
-	double scalarw = *((double*) state.data_.lock().get());
-	double scalarz = *((double*) state2.data_.lock().get());
+	double scalarw = *((double*) state.get());
+	double scalarz = *((double*) state2.get());
 	EXPECT_EQ(1, scalarw);
 	EXPECT_EQ(0, scalarz);
 
@@ -238,8 +238,8 @@ TEST_F(DELTA, Placeholder_H002)
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_SHAPEQ(shape, state2.shape_);
 
-	double scalarw = *((double*) state.data_.lock().get());
-	double scalarz = *((double*) state2.data_.lock().get());
+	double scalarw = *((double*) state.get());
+	double scalarz = *((double*) state2.get());
 	EXPECT_EQ(1, scalarw);
 	EXPECT_EQ(0, scalarz);
 

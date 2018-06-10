@@ -16,8 +16,8 @@ namespace slip
 template <>
 void abs<uint8_t> (clay::State& dest, std::vector<clay::State> srcs)
 {
-	uint8_t* d = safe_get<uint8_t>(dest.data_);
-	const uint8_t* s = safe_get<const uint8_t>(srcs.front().data_);
+	uint8_t* d = safe_get<uint8_t>(dest);
+	const uint8_t* s = safe_get<const uint8_t>(srcs.front());
 	size_t n = dest.shape_.n_elems();
 	std::memcpy(d, s, sizeof(uint8_t) * n);
 }
@@ -25,8 +25,8 @@ void abs<uint8_t> (clay::State& dest, std::vector<clay::State> srcs)
 template <>
 void abs<uint16_t> (clay::State& dest, std::vector<clay::State> srcs)
 {
-	uint16_t* d = safe_get<uint16_t>(dest.data_);
-	const uint16_t* s = safe_get<const uint16_t>(srcs.front().data_);
+	uint16_t* d = safe_get<uint16_t>(dest);
+	const uint16_t* s = safe_get<const uint16_t>(srcs.front());
 	size_t n = dest.shape_.n_elems();
 	std::memcpy(d, s, sizeof(uint16_t) * n);
 }
@@ -34,8 +34,8 @@ void abs<uint16_t> (clay::State& dest, std::vector<clay::State> srcs)
 template <>
 void abs<uint32_t> (clay::State& dest, std::vector<clay::State> srcs)
 {
-	uint32_t* d = safe_get<uint32_t>(dest.data_);
-	const uint32_t* s = safe_get<const uint32_t>(srcs.front().data_);
+	uint32_t* d = safe_get<uint32_t>(dest);
+	const uint32_t* s = safe_get<const uint32_t>(srcs.front());
 	size_t n = dest.shape_.n_elems();
 	std::memcpy(d, s, sizeof(uint32_t) * n);
 }
@@ -43,8 +43,8 @@ void abs<uint32_t> (clay::State& dest, std::vector<clay::State> srcs)
 template <>
 void abs<uint64_t> (clay::State& dest, std::vector<clay::State> srcs)
 {
-	uint64_t* d = safe_get<uint64_t>(dest.data_);
-	const uint64_t* s = safe_get<const uint64_t>(srcs.front().data_);
+	uint64_t* d = safe_get<uint64_t>(dest);
+	const uint64_t* s = safe_get<const uint64_t>(srcs.front());
 	size_t n = dest.shape_.n_elems();
 	std::memcpy(d, s, sizeof(uint64_t) * n);
 }
@@ -132,7 +132,7 @@ void rand_normal<double> (clay::State& dest, std::vector<clay::State> srcs)
 void n_elems (clay::State& dest, std::vector<clay::State> srcs)
 {
 	clay::Shape& srcshape = srcs.front().shape_;
-	uint64_t* d = safe_get<uint64_t>(dest.data_);
+	uint64_t* d = safe_get<uint64_t>(dest);
 	d[0] = srcshape.n_elems();
 }
 
@@ -143,7 +143,7 @@ void n_dims (clay::State& dest, std::vector<clay::State> srcs)
 		throw BadNArgsError(2, srcs.size());
 	}
 	clay::Shape& srcshape = srcs.front().shape_;
-	uint64_t* d = safe_get<uint64_t>(dest.data_);
+	uint64_t* d = safe_get<uint64_t>(dest);
 	clay::State& dstate = srcs[1];
 	if (dstate.dtype_ != clay::UINT64)
 	{
@@ -153,7 +153,7 @@ void n_dims (clay::State& dest, std::vector<clay::State> srcs)
 	{
 		throw ShapeMismatchError(clay::Shape({1}), dstate.shape_);
 	}
-	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+	uint64_t dim = *(safe_get<uint64_t>(dstate));
 	if (dim < srcshape.rank())
 	{
 		d[0] = srcshape.at(dim);

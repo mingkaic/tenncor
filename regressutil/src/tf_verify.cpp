@@ -108,10 +108,10 @@ void state_check (clay::State expect, clay::State result)
 	std::vector<size_t> gots = result.shape_.as_list();
 	size_t exn = expect.shape_.n_elems();
 	size_t gon = result.shape_.n_elems();
-	assert(!expect.data_.expired());
-	assert(!result.data_.expired());
-	double* exptr = (double*) expect.data_.lock().get();
-	double* goptr = (double*) result.data_.lock().get();
+	assert(nullptr != expect.get());
+	assert(nullptr != result.get());
+	double* exptr = (double*) expect.get();
+	double* goptr = (double*) result.get();
 	std::vector<double> expectv(exptr, exptr + exn);
 	std::vector<double> gotv(goptr, goptr + gon);
 

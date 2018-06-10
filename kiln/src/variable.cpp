@@ -47,7 +47,7 @@ bool Variable::assign (const Identifier& src)
 		throw slip::ShapeMismatchError(dstate.shape_, sstate.shape_);
 	}
 	size_t nbytes = dstate.shape_.n_elems() * clay::type_size(dstate.dtype_);
-	std::memcpy(dstate.data_.lock().get(), sstate.data_.lock().get(), nbytes);
+	std::memcpy(dstate.get(), sstate.get(), nbytes);
 	mold::AudienceT auds = arg->get_audience();
 	for (mold::iObserver* aud : auds)
 	{

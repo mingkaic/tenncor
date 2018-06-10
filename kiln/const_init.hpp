@@ -39,7 +39,7 @@ clay::BuildTensorF const_init (T value,
 	return [value, shape, dtype]()
 	{
 		auto out = std::make_unique<clay::Tensor>(shape, dtype);
-		char* dest = out->get_state().data_.lock().get();
+		char* dest = out->get_state().get();
 		size_t nbytes = out->total_bytes();
 		copy_over(dest, nbytes, (char*) &value, clay::type_size(dtype));
 		return out;
@@ -59,7 +59,7 @@ clay::BuildTensorF const_init (std::vector<T> value,
 	return [value, shape, dtype]()
 	{
 		auto out = std::make_unique<clay::Tensor>(shape, dtype);
-		char* dest = out->get_state().data_.lock().get();
+		char* dest = out->get_state().get();
 		size_t nbytes = out->total_bytes();
 		copy_over(dest, nbytes, (char*) &value[0],
 			value.size() * clay::type_size(dtype));

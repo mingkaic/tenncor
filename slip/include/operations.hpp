@@ -30,13 +30,14 @@ namespace slip
 {
 
 template <typename T>
-T* safe_get (std::weak_ptr<char> ptr)
+T* safe_get (clay::State& state)
 {
-	if (ptr.expired())
+	char* out = state.get();
+	if (nullptr == out)
 	{
 		throw std::exception();
 	}
-	return (T*) ptr.lock().get();
+	return (T*) out;
 }
 
 #ifndef SLIP_CAST_HPP
@@ -54,8 +55,8 @@ void copyover (clay::State& dest, std::vector<clay::State> srcs)
 	clay::Shape& srcshape = srcs.front().shape_;
 	size_t n = srcshape.n_elems();
 	assert(destshape.n_elems() == n);
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	std::memcpy(d, s, sizeof(T) * n);
 }
 
@@ -64,8 +65,8 @@ void unary (clay::State& dest, std::vector<clay::State> srcs,
 	std::function<T(const T&)> f)
 {
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	size_t n = dest.shape_.n_elems();
 	bool src_mul = srcshape.n_elems() > 1;
 	for (size_t i = 0; i < n; ++i)
@@ -167,9 +168,9 @@ void binary (clay::State& dest, std::vector<clay::State> srcs,
 	clay::Shape& destshape = dest.shape_;
 	clay::Shape& srcshape0 = srcs.front().shape_;
 	clay::Shape& srcshape1 = srcs.back().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* a = safe_get<const T>(srcs.front().data_);
-	const T* b = safe_get<const T>(srcs.back().data_);
+	T* d = safe_get<T>(dest);
+	const T* a = safe_get<const T>(srcs.front());
+	const T* b = safe_get<const T>(srcs.back());
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -240,9 +241,9 @@ void rand_binom (clay::State& dest, std::vector<clay::State> srcs)
 	clay::Shape& destshape = dest.shape_;
 	clay::Shape& srcshape0 = srcs.front().shape_;
 	clay::Shape& srcshape1 = srcs.back().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* sn = safe_get<const T>(srcs.front().data_);
-	const double* sp = safe_get<const double>(srcs.back().data_);
+	T* d = safe_get<T>(dest);
+	const T* sn = safe_get<const T>(srcs.front());
+	const double* sp = safe_get<const double>(srcs.back());
 	bool left_mul = srcshape0.n_elems() > 1;
 	bool right_mul = srcshape1.n_elems() > 1;
 	size_t n = destshape.n_elems();
@@ -297,8 +298,8 @@ void transpose (clay::State& dest, std::vector<clay::State> srcs)
 {
 	clay::Shape& destshape = dest.shape_;
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	std::vector<uint64_t> perm;
 	if (srcs.size() > 1)
 	{
@@ -307,7 +308,7 @@ void transpose (clay::State& dest, std::vector<clay::State> srcs)
 		{
 			throw std::exception();
 		}
-		uint64_t* ptr = safe_get<uint64_t>(pstate.data_);
+		uint64_t* ptr = safe_get<uint64_t>(pstate);
 		perm = std::vector<uint64_t>(ptr, ptr + pstate.shape_.n_elems());
 	}
 	else
@@ -338,15 +339,15 @@ void flip (clay::State& dest, std::vector<clay::State> srcs)
 		throw std::exception();
 	}
 	clay::Shape& shape = dest.shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	clay::State& dstate = srcs[1];
 	if (dstate.dtype_ != clay::UINT64)
 	{
 		throw std::exception();
 	}
 	size_t ndims = dstate.shape_.n_elems();
-	uint64_t* dims = safe_get<uint64_t>(dstate.data_);
+	uint64_t* dims = safe_get<uint64_t>(dstate);
 	std::vector<size_t> slist = shape.as_list();
 	std::vector<size_t> coord;
 	for (size_t i = 0, n = shape.n_elems();
@@ -365,8 +366,8 @@ template <typename T>
 void unar_argmax (clay::State& dest, std::vector<clay::State> srcs)
 {
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	size_t n = srcshape.n_elems();
 	*d = std::distance(s, std::max_element(s, s + n));
 }
@@ -375,8 +376,8 @@ template <typename T>
 void unar_max (clay::State& dest, std::vector<clay::State> srcs)
 {
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	size_t n = srcshape.n_elems();
 	*d = *(std::max_element(s, s + n));
 }
@@ -385,8 +386,8 @@ template <typename T>
 void unar_sum (clay::State& dest, std::vector<clay::State> srcs)
 {
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	size_t n = srcshape.n_elems();
 	*d = std::accumulate(s, s + n, (T) 0);
 }
@@ -399,9 +400,9 @@ void argmax (clay::State& dest, std::vector<clay::State> srcs)
 	size_t rank = srcshape.rank();
 	if (rank > 1)
 	{
-		T* d = safe_get<T>(dest.data_);
-		const T* s = safe_get<const T>(srcs.front().data_);
-		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
+		T* d = safe_get<T>(dest);
+		const T* s = safe_get<const T>(srcs.front());
+		uint64_t dim = *(safe_get<uint64_t>(srcs[1]));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
 		slist[dim] = 1;
@@ -438,9 +439,9 @@ void max (clay::State& dest, std::vector<clay::State> srcs)
 	size_t rank = srcshape.rank();
 	if (rank > 1)
 	{
-		T* d = safe_get<T>(dest.data_);
-		const T* s = safe_get<const T>(srcs.front().data_);
-		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
+		T* d = safe_get<T>(dest);
+		const T* s = safe_get<const T>(srcs.front());
+		uint64_t dim = *(safe_get<uint64_t>(srcs[1]));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
 		slist[dim] = 1;
@@ -477,9 +478,9 @@ void sum (clay::State& dest, std::vector<clay::State> srcs)
 	size_t rank = srcshape.rank();
 	if (rank > 1)
 	{
-		T* d = safe_get<T>(dest.data_);
-		const T* s = safe_get<const T>(srcs.front().data_);
-		uint64_t dim = *(safe_get<uint64_t>(srcs[1].data_));
+		T* d = safe_get<T>(dest);
+		const T* s = safe_get<const T>(srcs.front());
+		uint64_t dim = *(safe_get<uint64_t>(srcs[1]));
 		assert(rank > dim);
 		std::vector<size_t> slist = srcshape.as_list();
 		slist[dim] = 1;
@@ -513,8 +514,8 @@ void expand (clay::State& dest, std::vector<clay::State> srcs)
 		throw std::exception();
 	}
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	clay::State& nstate = srcs[1];
 	clay::State& dstate = srcs[2];
 	if (nstate.dtype_ != clay::UINT64 ||
@@ -527,8 +528,8 @@ void expand (clay::State& dest, std::vector<clay::State> srcs)
 	{
 		throw std::exception();
 	}
-	uint64_t mul = *(safe_get<uint64_t>(nstate.data_));
-	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+	uint64_t mul = *(safe_get<uint64_t>(nstate));
+	uint64_t dim = *(safe_get<uint64_t>(dstate));
 	std::vector<size_t> slist = srcshape.as_list();
 	auto it = slist.begin();
 	size_t innern = std::accumulate(it, it + dim, 1, std::multiplies<size_t>());
@@ -568,8 +569,8 @@ void trace_expand (clay::State& dest, std::vector<clay::State> srcs)
 	}
 	clay::Shape& destshape = dest.shape_;
 	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest.data_);
-	const T* s = safe_get<const T>(srcs.front().data_);
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
 	clay::State& dstate = srcs[1];
 	if (dstate.dtype_ != clay::UINT64)
 	{
@@ -579,7 +580,7 @@ void trace_expand (clay::State& dest, std::vector<clay::State> srcs)
 	{
 		throw std::exception();
 	}
-	uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+	uint64_t dim = *(safe_get<uint64_t>(dstate));
 	size_t n = srcshape.n_elems();
 	std::vector<size_t> coord;
 	std::memset(d, 0, sizeof(T) * destshape.n_elems());

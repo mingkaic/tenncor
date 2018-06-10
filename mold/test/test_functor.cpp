@@ -61,41 +61,6 @@ protected:
 };
 
 
-struct mock_source final : public mold::iSource, public testify::mocker
-{
-	mock_source (clay::Shape shape, clay::DTYPE dtype, testify::fuzz_test* fuzzer)
-	{
-		size_t nbytes = shape.n_elems() * clay::type_size(dtype);
-		uuid_ = fuzzer->get_string(nbytes, "mock_src_uuid");
-
-		ptr_ = clay::make_char(nbytes);
-		std::memcpy(ptr_.get(), uuid_.c_str(), nbytes);
-
-		state_ = {ptr_, shape, dtype};
-	}
-
-	bool write_data (clay::State& dest) const override
-	{
-		bool success = false == uuid_.empty() &&
-			dest.dtype_ == state_.dtype_ &&
-			dest.shape_.is_compatible_with(state_.shape_);
-		if (success)
-		{
-			std::memcpy((void*) dest.data_.lock().get(), ptr_.get(), uuid_.size());
-			label_incr("write_data_success");
-		}
-		label_incr("write_data");
-		return success;
-	}
-
-	clay::State state_;
-
-	std::shared_ptr<char> ptr_;
-
-	std::string uuid_;
-};
-
-
 struct mock_operateio final : public mold::iOperateIO
 {
 	mock_operateio (
@@ -180,7 +145,7 @@ mold::Functor* junk_functor (std::vector<mold::iNode*> args,
 		size_t nbytes = state.shape_.n_elems() *
 			clay::type_size(state.dtype_);
 		std::string raw = fuzzer->get_string(nbytes, "mock_src_uuid");
-		std::memcpy((void*) state.data_.lock().get(), raw.c_str(), nbytes);
+		std::memcpy((void*) state.get(), raw.c_str(), nbytes);
 	},
 	[shape](std::vector<clay::Shape>) -> clay::Shape
 	{
@@ -199,7 +164,7 @@ std::string fake_init (clay::Tensor* tens, testify::fuzz_test* fuzzer)
 	clay::State state = tens->get_state();
 	size_t nbytes = state.shape_.n_elems() * clay::type_size(state.dtype_);
 	std::string uuid = fuzzer->get_string(nbytes, "uuid");
-	std::memcpy(state.data_.lock().get(), uuid.c_str(), nbytes);
+	std::memcpy(state.get(), uuid.c_str(), nbytes);
 	return uuid;
 }
 
@@ -302,8 +267,8 @@ TEST_F(FUNCTOR, GetState_D004)
 	{
 		size_t nbytes = out.shape_.n_elems() *
 			clay::type_size(out.dtype_);
-		std::memcpy(out.data_.lock().get(),
-			in[0].data_.lock().get(), nbytes);
+		std::memcpy(out.get(),
+			in[0].get(), nbytes);
 	},
 	[](std::vector<clay::Shape> in) -> clay::Shape
 	{
@@ -317,7 +282,6 @@ TEST_F(FUNCTOR, GetState_D004)
 	clay::Shape shape = random_def_shape(this, {2, 6});
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0];
-	mock_source src(shape, dtype, this);
 	mold::Functor* f = new mold::Functor(std::vector<mold::iNode*>{&arg},
 		std::move(identity));
 
@@ -328,17 +292,9 @@ TEST_F(FUNCTOR, GetState_D004)
 	clay::State state = f->get_state();
 	ASSERT_SHAPEQ(shape, state.shape_);
 	ASSERT_EQ(dtype, state.dtype_);
-	std::string got_uuid(state.data_.lock().get(),
+	std::string got_uuid(state.get(),
 		state.shape_.n_elems() * clay::type_size(state.dtype_));
 	EXPECT_STREQ(uuid.c_str(), got_uuid.c_str());
-
-	arg.assign(src);
-	clay::State state2 = f->get_state();
-	ASSERT_SHAPEQ(src.state_.shape_, state2.shape_);
-	ASSERT_EQ(src.state_.dtype_, state2.dtype_);
-	std::string got_uuid2(state2.data_.lock().get(),
-		state2.shape_.n_elems() * clay::type_size(state2.dtype_));
-	EXPECT_STREQ(src.uuid_.c_str(), got_uuid2.c_str());
 
 	delete f;
 }

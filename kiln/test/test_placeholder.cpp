@@ -144,7 +144,7 @@ TEST_F(PLACEHOLDER, VecInit_F000)
 	EXPECT_EQ(dtype, state.dtype_);
 	clay::Shape vshape({n});
 	ASSERT_SHAPEQ(vshape, state.shape_);
-	std::string gotvec(state.data_.lock().get(), nbytes);
+	std::string gotvec(state.get(), nbytes);
 	EXPECT_STREQ(data.c_str(), gotvec.c_str());
 	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
 	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
@@ -243,7 +243,7 @@ TEST_F(PLACEHOLDER, ShapedInit_F001)
 	clay::State state = place.get_state();
 	EXPECT_EQ(dtype, state.dtype_);
 	ASSERT_SHAPEQ(shape, state.shape_);
-	std::string got(state.data_.lock().get(), nbytes);
+	std::string got(state.get(), nbytes);
 	EXPECT_STREQ(data.c_str(), got.c_str());
 	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
 	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
@@ -344,7 +344,7 @@ TEST_F(PLACEHOLDER, PartInit_F002)
 	clay::State state = place.get_state();
 	EXPECT_EQ(dtype, state.dtype_);
 	ASSERT_EQ(n, state.shape_.n_elems());
-	std::string got(state.data_.lock().get(), nbytes);
+	std::string got(state.get(), nbytes);
 	EXPECT_STREQ(data.c_str(), got.c_str());
 	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
 	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
@@ -409,7 +409,7 @@ TEST_F(PLACEHOLDER, Assign_F003)
 		std::vector<double> goodvec(goodptr, goodptr + n);
 		place = goodvec;
 		clay::State state = place.get_state();
-		std::string got(state.data_.lock().get(), nbytes);
+		std::string got(state.get(), nbytes);
 		EXPECT_STREQ(good.c_str(), got.c_str());
 		EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
 		EXPECT_EQ(1, testify::mocker::get_usage(obs, "update"));
@@ -418,7 +418,7 @@ TEST_F(PLACEHOLDER, Assign_F003)
 		std::vector<double> fitvec(fitptr, fitptr + less);
 		place = fitvec;
 		state = place.get_state();
-		std::string gotfit(state.data_.lock().get(), lessbytes);
+		std::string gotfit(state.get(), lessbytes);
 		EXPECT_STREQ(goodfit.c_str(), gotfit.c_str());
 		EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
 		EXPECT_EQ(2, testify::mocker::get_usage(obs, "update"));
@@ -443,14 +443,14 @@ TEST_F(PLACEHOLDER, Assign_F003)
 		std::vector<uint16_t> goodvec(goodptr, goodptr + n);
 		place = goodvec;
 		clay::State state = place.get_state();
-		std::string got(state.data_.lock().get(), nbytes);
+		std::string got(state.get(), nbytes);
 		EXPECT_STREQ(good.c_str(), got.c_str());
 
 		uint16_t* fitptr = (uint16_t*) goodfit.c_str();
 		std::vector<uint16_t> fitvec(fitptr, fitptr + less);
 		place = fitvec;
 		state = place.get_state();
-		std::string gotfit(state.data_.lock().get(), lessbytes);
+		std::string gotfit(state.get(), lessbytes);
 		EXPECT_STREQ(goodfit.c_str(), gotfit.c_str());
 
 		uint16_t* badptr = (uint16_t*) badfit.c_str();

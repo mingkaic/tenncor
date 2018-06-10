@@ -39,10 +39,7 @@ public:
 
 	bool has_data (void) const override;
 
-	clay::Shape get_shape (void) const override
-	{
-		return cache_->get_shape();
-	}
+	clay::Shape get_shape (void) const override;
 
 	clay::State get_state (void) const override;
 
@@ -51,13 +48,9 @@ public:
 
 	void update (void) override;
 
-protected:
-	iNode* clone_impl (void) const override
-	{
-		return new Functor(*this);
-	}
-
 private:
+	iNode* clone_impl (void) const override;
+
 	clay::TensorPtrT cache_ = nullptr;
 
 	OperatePtrT op_;

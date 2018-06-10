@@ -71,7 +71,7 @@ static clay::Shape reduce_shape (std::vector<clay::State> states)
 	{
 		throw ShapeMismatchError(clay::Shape({1}), state.shape_);
 	}
-	uint64_t dim = *(safe_get<uint64_t>(state.data_));
+	uint64_t dim = *(safe_get<uint64_t>(state));
 	clay::Shape& shape = states[0].shape_;
 	if (dim >= shape.rank())
 	{
@@ -288,7 +288,7 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 			{
 				throw clay::UnsupportedTypeError(pstate.dtype_);
 			}
-			uint64_t* ptr = safe_get<uint64_t>(pstate.data_);
+			uint64_t* ptr = safe_get<uint64_t>(pstate);
 			std::vector<size_t> perm(ptr, ptr + pstate.shape_.n_elems());
 			std::vector<size_t> inlist = outlist;
 			for (size_t i = 0; i < perm.size(); ++i)
@@ -327,7 +327,7 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		size_t rank = states[0].shape_.rank();
 		clay::State& dstate = states[1];
 		size_t ndims = dstate.shape_.n_elems();
-		uint64_t* dims = safe_get<uint64_t>(dstate.data_);
+		uint64_t* dims = safe_get<uint64_t>(dstate);
 		for (size_t i = 0; i < ndims; ++i)
 		{
 			if (dims[i] >= rank)
@@ -377,8 +377,8 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		}
 		clay::State& nstate = states[1];
 		clay::State& dstate = states[2];
-		uint64_t mul = *(safe_get<uint64_t>(nstate.data_));
-		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+		uint64_t mul = *(safe_get<uint64_t>(nstate));
+		uint64_t dim = *(safe_get<uint64_t>(dstate));
 		std::vector<size_t> slist = states[0].shape_.as_list();
 		if (slist.size() < dim)
 		{
@@ -434,7 +434,7 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 				clay::Shape({1}),
 				dstate.shape_);
 		}
-		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+		uint64_t dim = *(safe_get<uint64_t>(dstate));
 		if (dim >= states[0].shape_.rank())
 		{
 			throw InvalidDimensionError(dim, states[0].shape_);
@@ -464,7 +464,7 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		}
 		clay::State& shapes = states[1];
 		clay::Shape& srcshape = states[0].shape_;
-		uint64_t* dim = safe_get<uint64_t>(shapes.data_);
+		uint64_t* dim = safe_get<uint64_t>(shapes);
 		clay::Shape replshape(
 			std::vector<size_t>{dim, dim + shapes.shape_.n_elems()});
 		if (srcshape.n_elems() != replshape.n_elems())
@@ -497,7 +497,7 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		{
 			throw std::runtime_error("failed to specify target and swap dimensions in jacobian");
 		}
-		uint64_t* dim = safe_get<uint64_t>(dims.data_);
+		uint64_t* dim = safe_get<uint64_t>(dims);
 		clay::Shape ashape = states[0].shape_;
 		clay::Shape bshape = states[1].shape_;
 		clay::Shape yshape = states[*dim].shape_;
@@ -546,7 +546,7 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 				states[1].shape_);
 		}
 		clay::State& dstate = states[1];
-		uint64_t dim = *(safe_get<uint64_t>(dstate.data_));
+		uint64_t dim = *(safe_get<uint64_t>(dstate));
 		std::vector<size_t> slist = states[0].shape_.as_list();
 		if (slist.size() <= dim)
 		{

@@ -42,20 +42,13 @@ public:
 
 	bool has_data (void) const override;
 
-	clay::Shape get_shape (void) const override
-	{
-		return state_.shape_;
-	}
+	clay::Shape get_shape (void) const override;
 
 	clay::State get_state (void) const override;
 
-protected:
-	iNode* clone_impl (void) const override
-	{
-		return new Constant(*this);
-	}
-
 private:
+	iNode* clone_impl (void) const override;
+
 	clay::State state_;
 
 	std::shared_ptr<char> data_;

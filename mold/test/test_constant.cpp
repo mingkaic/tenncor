@@ -55,7 +55,7 @@ TEST_F(CONSTANT, Copy_B001)
 	clay::State cstate = cp.get_state();
 	EXPECT_SHAPEQ(shape, cstate.shape_);
 	EXPECT_EQ(dtype, cstate.dtype_);
-	const char* gotdata = cstate.data_.lock().get();
+	const char* gotdata = cstate.get();
 	EXPECT_NE(origdata, (void*) gotdata);
 	std::string cgot(gotdata, nbytes);
 	EXPECT_STREQ(data.c_str(), cgot.c_str());
@@ -85,7 +85,7 @@ TEST_F(CONSTANT, Data_B002)
 
 		clay::State state = node->get_state();
 		EXPECT_EQ(clay::DTYPE::DOUBLE, state.dtype_);
-		double* got = (double*) state.data_.lock().get();
+		double* got = (double*) state.get();
 		std::vector<double> gvec(got, got + n);
 		EXPECT_ARREQ(data, gvec);
 	}
@@ -101,7 +101,7 @@ TEST_F(CONSTANT, Data_B002)
 
 		clay::State state = node->get_state();
 		EXPECT_EQ(clay::DTYPE::UINT64, state.dtype_);
-		uint64_t* got = (uint64_t*) state.data_.lock().get();
+		uint64_t* got = (uint64_t*) state.get();
 		std::vector<uint64_t> gvec(got, got + n);
 		EXPECT_ARREQ(data, gvec);
 	}

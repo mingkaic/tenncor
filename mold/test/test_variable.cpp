@@ -37,41 +37,6 @@ protected:
 };
 
 
-struct mock_source final : public mold::iSource, public testify::mocker
-{
-	mock_source (clay::Shape shape, clay::DTYPE dtype, testify::fuzz_test* fuzzer)
-	{
-		size_t nbytes = shape.n_elems() * clay::type_size(dtype);
-		uuid_ = fuzzer->get_string(nbytes, "mock_src_uuid");
-
-		ptr_ = clay::make_char(nbytes);
-		std::memcpy(ptr_.get(), uuid_.c_str(), nbytes);
-
-		state_ = {ptr_, shape, dtype};
-	}
-
-	bool write_data (clay::State& dest) const override
-	{
-		bool success = false == uuid_.empty() &&
-			dest.dtype_ == state_.dtype_ &&
-			dest.shape_.is_compatible_with(state_.shape_);
-		if (success)
-		{
-			std::memcpy((void*) dest.data_.lock().get(), ptr_.get(), uuid_.size());
-			label_incr("write_data_success");
-		}
-		label_incr("write_data");
-		return success;
-	}
-
-	clay::State state_;
-
-	std::shared_ptr<char> ptr_;
-
-	std::string uuid_;
-};
-
-
 struct mock_observer : public mold::iObserver, public testify::mocker
 {
 	mock_observer (mold::iNode* arg) :
@@ -94,7 +59,7 @@ std::string fake_init_v (clay::Tensor* tens, testify::fuzz_test* fuzzer)
 	clay::State state = tens->get_state();
 	size_t nbytes = state.shape_.n_elems() * clay::type_size(state.dtype_);
 	std::string uuid = fuzzer->get_string(nbytes, "uuid");
-	std::memcpy(state.data_.lock().get(), uuid.c_str(), nbytes);
+	std::memcpy(state.get(), uuid.c_str(), nbytes);
 	return uuid;
 	}
 
@@ -126,7 +91,7 @@ TEST_F(VARIABLE, Copy_C000)
 	mold::Variable cp2(var2);
 	ASSERT_TRUE(cp.has_data());
 	clay::State state = cp.get_state();
-	std::string got_uuid(state.data_.lock().get(),
+	std::string got_uuid(state.get(),
 		state.shape_.n_elems() * clay::type_size(state.dtype_));
 	EXPECT_STREQ(uuid2.c_str(), got_uuid.c_str());
 	EXPECT_SHAPEQ(shape2, state.shape_);
@@ -140,13 +105,13 @@ TEST_F(VARIABLE, Copy_C000)
 	ASSERT_TRUE(assign.has_data());
 	ASSERT_TRUE(assign1.has_data());
 	clay::State state2 = assign.get_state();
-	std::string got_uuid2(state2.data_.lock().get(),
+	std::string got_uuid2(state2.get(),
 		state2.shape_.n_elems() * clay::type_size(state2.dtype_));
 	EXPECT_STREQ(uuid2.c_str(), got_uuid2.c_str());
 	EXPECT_SHAPEQ(shape2, state2.shape_);
 	EXPECT_EQ(dtype2, state2.dtype_);
 	clay::State state3 = assign1.get_state();
-	std::string got_uuid3(state3.data_.lock().get(),
+	std::string got_uuid3(state3.get(),
 		state3.shape_.n_elems() * clay::type_size(state3.dtype_));
 	EXPECT_STREQ(uuid2.c_str(), got_uuid3.c_str());
 	EXPECT_SHAPEQ(shape2, state3.shape_);
@@ -182,7 +147,7 @@ TEST_F(VARIABLE, Move_C001)
 	mold::Variable cp2(std::move(var2));
 	ASSERT_TRUE(cp.has_data());
 	clay::State state = cp.get_state();
-	std::string got_uuid(state.data_.lock().get(),
+	std::string got_uuid(state.get(),
 		state.shape_.n_elems() * clay::type_size(state.dtype_));
 	EXPECT_STREQ(uuid2.c_str(), got_uuid.c_str());
 	EXPECT_SHAPEQ(shape2, state.shape_);
@@ -196,7 +161,7 @@ TEST_F(VARIABLE, Move_C001)
 	assign2 = std::move(cp2);
 	ASSERT_TRUE(assign.has_data());
 	clay::State state2 = assign.get_state();
-	std::string got_uuid2(state2.data_.lock().get(),
+	std::string got_uuid2(state2.get(),
 		state2.shape_.n_elems() * clay::type_size(state2.dtype_));
 	EXPECT_STREQ(uuid2.c_str(), got_uuid2.c_str());
 	EXPECT_SHAPEQ(shape2, state2.shape_);
@@ -242,41 +207,11 @@ TEST_F(VARIABLE, State_C003)
 	var.initialize(clay::TensorPtrT(tens));
 	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
 	clay::State state = var.get_state();
-	std::string got_uuid(state.data_.lock().get(),
+	std::string got_uuid(state.get(),
 		state.shape_.n_elems() * clay::type_size(state.dtype_));
 	EXPECT_STREQ(uuid.c_str(), got_uuid.c_str());
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_EQ(dtype, state.dtype_);
-
-	delete obs;
-}
-
-
-TEST_F(VARIABLE, Assign_C004)
-{
-	mold::Variable var;
-	mock_observer* obs = new mock_observer(&var);
-	clay::Shape shape = random_def_shape(this, {2, 6});
-	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype",
-		{1, clay::DTYPE::_SENTINEL - 1})[0];
-	clay::Tensor* tens = new clay::Tensor(shape, dtype);
-	mock_source src(shape, dtype, this);
-
-	EXPECT_THROW(var.assign(src), mold::UninitializedError);
-	var.initialize(clay::TensorPtrT(tens));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
-	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
-	var.assign(src);
-	EXPECT_EQ(1, testify::mocker::get_usage(&src, "write_data_success"));
-	EXPECT_EQ(1, testify::mocker::get_usage(&src, "write_data"));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "update"));
-	var.get_state();
-	clay::State state = var.get_state();
-	std::string got_uuid(state.data_.lock().get(),
-		state.shape_.n_elems() * clay::type_size(state.dtype_));
-	EXPECT_STREQ(src.uuid_.c_str(), got_uuid.c_str());
-	EXPECT_SHAPEQ(src.state_.shape_, state.shape_);
-	EXPECT_EQ(src.state_.dtype_, state.dtype_);
 
 	delete obs;
 }
