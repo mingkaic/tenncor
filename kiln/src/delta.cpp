@@ -162,8 +162,8 @@ Identifier* delta (Identifier* root, Identifier* wrt)
 	}
 	else
 	{
-		clay::Shape shape = out->get_state().shape_;
-		clay::Shape base = wrt->get_state().shape_;
+		clay::Shape shape = out->get()->get_shape();
+		clay::Shape base = wrt->get()->get_shape();
 		if (false == shape.is_compatible_with(base) &&
 			shape.rank() > 1 && shape.at(1) == base.n_elems())
 		// this is an unreliable way of detecting jacobian node

@@ -33,6 +33,22 @@ Variable::~Variable (void)
 	}
 }
 
+bool Variable::initialize (clay::TensorPtrT ten)
+{
+	mold::Variable* arg = static_cast<mold::Variable*>(get());
+	bool inited = false == arg->has_data();
+	if (inited)
+	{
+		arg->set_data(std::move(ten));
+		mold::AudienceT auds = arg->get_audience();
+		for (mold::iObserver* aud : auds)
+		{
+			aud->initialize();
+		}
+	}
+	return inited;
+}
+
 bool Variable::assign (const Identifier& src)
 {
 	mold::iNode* arg = get();

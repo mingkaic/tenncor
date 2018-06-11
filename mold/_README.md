@@ -1,3 +1,3 @@
 # mold
 
-mold library define nodes to propagate update and initialization events
+mold library define ondeath and data operation update events

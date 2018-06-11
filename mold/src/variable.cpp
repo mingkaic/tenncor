@@ -55,17 +55,17 @@ clay::State Variable::get_state (void) const
 	return data_->get_state();
 }
 
-void Variable::initialize (clay::TensorPtrT data)
+void Variable::set_data (clay::TensorPtrT data)
 {
 	if (nullptr == data)
 	{
 		throw NilDataError();
 	}
-	data_ = std::move(data);
-	for (iObserver* aud : audience_)
+	if (nullptr != data_)
 	{
-		aud->initialize();
+		throw std::exception(); // todo: add context reinitializing
 	}
+	data_ = std::move(data);
 }
 
 iNode* Variable::clone_impl (void) const

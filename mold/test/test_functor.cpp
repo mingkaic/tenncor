@@ -253,8 +253,8 @@ TEST_F(FUNCTOR, HasData_D003)
 	mold::Functor* f = junk_functor(std::vector<mold::iNode*>{&arg}, this);
 
 	EXPECT_FALSE(f->has_data());
-	arg.initialize(clay::TensorPtrT(new clay::Tensor(shape, dtype)));
-
+	arg.set_data(clay::TensorPtrT(new clay::Tensor(shape, dtype)));
+	f->initialize();
 	EXPECT_TRUE(f->has_data());
 	delete f;
 }
@@ -288,7 +288,8 @@ TEST_F(FUNCTOR, GetState_D004)
 	EXPECT_THROW(f->get_state(), mold::UninitializedError);
 	clay::Tensor* tens = new clay::Tensor(shape, dtype);
 	std::string uuid = fake_init(tens, this);
-	arg.initialize(clay::TensorPtrT(tens));
+	arg.set_data(clay::TensorPtrT(tens));
+	f->initialize();
 	clay::State state = f->get_state();
 	ASSERT_SHAPEQ(shape, state.shape_);
 	ASSERT_EQ(dtype, state.dtype_);

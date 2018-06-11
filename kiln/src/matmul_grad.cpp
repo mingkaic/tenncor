@@ -48,8 +48,8 @@ Identifier* matmul_grad (Identifier*, GradArgsT args)
 	Identifier* rhs = nullptr;
 	if (nullptr != da)
 	{
-		clay::Shape dashape = da->get_state().shape_;
-		clay::Shape ashape = a->get_state().shape_;
+		clay::Shape dashape = da->get()->get_shape();
+		clay::Shape ashape = a->get()->get_shape();
 		assert(ashape.is_fully_defined());
 		if (dashape.at(0) != ashape.n_elems())
 		// this is an unreliable way of detecting non-jacobian da
@@ -62,8 +62,8 @@ Identifier* matmul_grad (Identifier*, GradArgsT args)
 	}
 	if (nullptr != db)
 	{
-		clay::Shape dbshape = db->get_state().shape_;
-		clay::Shape bshape = b->get_state().shape_;
+		clay::Shape dbshape = db->get()->get_shape();
+		clay::Shape bshape = b->get()->get_shape();
 		assert(bshape.is_fully_defined());
 		if (dbshape.at(0) != bshape.n_elems())
 		{

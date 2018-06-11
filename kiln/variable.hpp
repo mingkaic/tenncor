@@ -32,6 +32,8 @@ struct Variable final : public Identifier
 
 	~Variable (void);
 
+	bool initialize (clay::TensorPtrT ten);
+
 	bool assign (const Identifier& src);
 };
 

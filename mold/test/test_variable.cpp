@@ -14,7 +14,6 @@
 
 #include "mold/sink.hpp"
 #include "mold/variable.hpp"
-#include "mold/iobserver.hpp"
 #include "mold/error.hpp"
 
 
@@ -33,23 +32,6 @@ protected:
 	{
 		fuzz_test::TearDown();
 		testify::mocker::clear();
-	}
-};
-
-
-struct mock_observer : public mold::iObserver, public testify::mocker
-{
-	mock_observer (mold::iNode* arg) :
-		mold::iObserver({arg}) {}
-
-	void initialize (void) override
-	{
-		label_incr("initialize");
-	}
-
-	void update (void) override
-	{
-		label_incr("update");
 	}
 };
 
@@ -74,8 +56,8 @@ TEST_F(VARIABLE, Copy_C000)
 	mold::Variable assign;
 	mold::Variable assign1;
 	mold::Variable assign2;
-	assign.initialize(clay::TensorPtrT(tens));
-	assign2.initialize(clay::TensorPtrT(ten2s));
+	assign.set_data(clay::TensorPtrT(tens));
+	assign2.set_data(clay::TensorPtrT(ten2s));
 
 	mold::Variable var;
 	mold::Variable var2;
@@ -85,7 +67,7 @@ TEST_F(VARIABLE, Copy_C000)
 		{1, clay::DTYPE::_SENTINEL - 1})[0];
 	clay::Tensor* tens2 = new clay::Tensor(shape2, dtype2);
 	std::string uuid2 = fake_init_v(tens2, this);
-	var.initialize(clay::TensorPtrT(tens2));
+	var.set_data(clay::TensorPtrT(tens2));
 
 	mold::Variable cp(var);
 	mold::Variable cp2(var2);
@@ -130,8 +112,8 @@ TEST_F(VARIABLE, Move_C001)
 	clay::Tensor* ten2s = new clay::Tensor(shape, dtype);
 	mold::Variable assign;
 	mold::Variable assign2;
-	assign.initialize(clay::TensorPtrT(tens));
-	assign2.initialize(clay::TensorPtrT(ten2s));
+	assign.set_data(clay::TensorPtrT(tens));
+	assign2.set_data(clay::TensorPtrT(ten2s));
 
 	mold::Variable var;
 	mold::Variable var2;
@@ -141,7 +123,7 @@ TEST_F(VARIABLE, Move_C001)
 		{1, clay::DTYPE::_SENTINEL - 1})[0];
 	clay::Tensor* tens2 = new clay::Tensor(shape2, dtype2);
 	std::string uuid2 = fake_init_v(tens2, this);
-	var.initialize(clay::TensorPtrT(tens2));
+	var.set_data(clay::TensorPtrT(tens2));
 
 	mold::Variable cp(std::move(var));
 	mold::Variable cp2(std::move(var2));
@@ -177,7 +159,6 @@ TEST_F(VARIABLE, Data_C002)
 {
 	mold::Variable var;
 	mold::Variable var2;
-	mock_observer* obs = new mock_observer(&var);
 	clay::Shape shape = random_def_shape(this, {2, 6});
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0];
@@ -185,18 +166,14 @@ TEST_F(VARIABLE, Data_C002)
 	std::string uuid = fake_init_v(tens, this);
 
 	EXPECT_FALSE(var.has_data()) << "uninitialized variable has data";
-	var.initialize(clay::TensorPtrT(tens));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+	var.set_data(clay::TensorPtrT(tens));
 	EXPECT_TRUE(var.has_data()) << "initialized variable doesn't have data";
-
-	delete obs;
 }
 
 
 TEST_F(VARIABLE, State_C003)
 {
 	mold::Variable var;
-	mock_observer* obs = new mock_observer(&var);
 	clay::Shape shape = random_def_shape(this, {2, 6});
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0];
@@ -204,16 +181,13 @@ TEST_F(VARIABLE, State_C003)
 	EXPECT_THROW(var.get_state(), mold::UninitializedError);
 	clay::Tensor* tens = new clay::Tensor(shape, dtype);
 	std::string uuid = fake_init_v(tens, this);
-	var.initialize(clay::TensorPtrT(tens));
-	EXPECT_EQ(1, testify::mocker::get_usage(obs, "initialize"));
+	var.set_data(clay::TensorPtrT(tens));
 	clay::State state = var.get_state();
 	std::string got_uuid(state.get(),
 		state.shape_.n_elems() * clay::type_size(state.dtype_));
 	EXPECT_STREQ(uuid.c_str(), got_uuid.c_str());
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_EQ(dtype, state.dtype_);
-
-	delete obs;
 }
 
 

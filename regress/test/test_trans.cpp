@@ -60,7 +60,7 @@ TEST_F(TRANS_TESTS, ReduceMax)
 	check_trans(parse_line("reduce_max_i"),
 	[](kiln::Variable* in, std::vector<double> params)
 	{
-		size_t rank = in->get_state().shape_.rank();
+		size_t rank = in->get()->get_shape().rank();
 		return kiln::reduce_max(in, rank - params[0] - 1);
 	});
 }
@@ -71,7 +71,7 @@ TEST_F(TRANS_TESTS, ReduceSum)
 	check_trans(parse_line("reduce_sum_i"),
 	[](kiln::Variable* in, std::vector<double> params)
 	{
-		size_t rank = in->get_state().shape_.rank();
+		size_t rank = in->get()->get_shape().rank();
 		return kiln::reduce_sum(in, rank - params[0] - 1);
 	});
 }
@@ -82,7 +82,7 @@ TEST_F(TRANS_TESTS, ReduceMean)
 	check_trans(parse_line("reduce_mean_i"),
 	[](kiln::Variable* in, std::vector<double> params)
 	{
-		size_t rank = in->get_state().shape_.rank();
+		size_t rank = in->get()->get_shape().rank();
 		return kiln::reduce_mean(in, rank - params[0] - 1);
 	});
 }

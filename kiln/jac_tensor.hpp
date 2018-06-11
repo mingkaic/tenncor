@@ -11,7 +11,7 @@
  *
  */
 
-#include "clay/itensor.hpp"
+#include "clay/tensor.hpp"
 
 #pragma once
 #ifndef KILN_JAC_TENSOR_HPP
@@ -24,64 +24,33 @@ class JacTensor final : public clay::iTensor
 {
 public:
     JacTensor (clay::Shape innershape,
-        clay::Shape outershape, clay::DTYPE dtype) :
-        ten_(clay::concatenate(innershape, outershape), dtype),
-        hidden_(innershape.rank()) {}
+        clay::Shape outershape, clay::DTYPE dtype);
 
 	//! get internal state
-	clay::State get_state (void) const override
-    {
-        return ten_.get_state();
-    }
+	clay::State get_state (void) const override;
 
-    clay::State get_State (size_t idx) const override
-    {
-        clay::Shape internal = get_internal();
-        clay::State out = ten_.get_state(internal.n_elems() * idx);
-        out.shape_ = internal;
-        return out;
-    }
+    clay::State get_state (size_t idx) const override;
 
 	//! get tensor shape
-	clay::Shape get_shape (void) const override
-    {
-        return ten_.get_shape();
-    }
+	clay::Shape get_shape (void) const override;
 
-    clay::Shape external_shape (void) const
-    {
-        std::vector<size_t> slist = ten_.get_shape().as_list();
-        return std::vector<size_t>(slist.begin() + hidden_, slist.end());
-    }
+    clay::Shape external_shape (void) const;
 
 	//! get tensor dtype
-    clay::DTYPE get_type (void) const override
-    {
-        return ten_.get_type();
-    }
+    clay::DTYPE get_type (void) const override;
 
 	//! get bytes allocated
-    size_t total_bytes (void) const override
-    {
-        return ten_.total_bytes();
-    }
+    size_t total_bytes (void) const override;
 
 private:
-    iTensor* clone_impl (void) const override
-    {
-        return new JacTensor(*this);
-    }
+    clay::iTensor* clone_impl (void) const override;
 
-    clay::Shape internal_shape (void) const
-    {
-        std::vector<size_t> slist = ten_.get_shape().as_list();
-        return std::vector<size_t>(slist.begin(), slist.begin() + hidden_);
-    }
+    clay::Shape internal_shape (void) const;
 
     clay::Tensor ten_;
 
     size_t hidden_;
-}
+};
 
 }
 

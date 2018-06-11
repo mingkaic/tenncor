@@ -39,7 +39,7 @@ public:
 
 	clay::State get_state (void) const override;
 
-	void initialize (clay::TensorPtrT data);
+	void set_data (clay::TensorPtrT data);
 
 private:
 	iNode* clone_impl (void) const override;

@@ -48,7 +48,7 @@ using BINAR = std::function<T(T,T)>;
 
 static void selfGrad (kiln::Identifier* f, clay::State state)
 {
-	clay::Shape shape = f->get_state().shape_;
+	clay::Shape shape = f->get()->get_shape();
 	kiln::Identifier* wun = kiln::delta(f, f);
 	clay::State back = wun->get_state();
 	EXPECT_SHAPEQ(shape, back.shape_);

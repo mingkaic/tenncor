@@ -90,7 +90,12 @@ bool Placeholder::init_helper (const char* s, size_t n,
 		clay::Tensor* tens = new clay::Tensor(shape, dtype);
 		char* dest = tens->get_state().get();
 		std::memcpy(dest, s, n * clay::type_size(dtype));
-		arg->initialize(clay::TensorPtrT(tens));
+		arg->set_data(clay::TensorPtrT(tens));
+		mold::AudienceT auds = arg->get_audience();
+		for (mold::iObserver* aud : auds)
+		{
+			aud->initialize();
+		}
 	}
 	return inited;
 }

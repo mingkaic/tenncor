@@ -5,6 +5,7 @@
 
 #include "kiln/graph.hpp"
 #include "kiln/identifier.hpp"
+#include "kiln/variable.hpp"
 #include "kiln/error.hpp"
 
 #ifdef KILN_GRAPH_HPP
@@ -116,9 +117,7 @@ void Graph::initialize_all (void)
 		optional<Identifier*> id = adjmap_.get(upair.first);
 		if ((bool) id)
 		{
-			mold::Variable* var =
-				static_cast<mold::Variable*>((*id)->get());
-			var->initialize(upair.second());
+			static_cast<Variable*>(*id)->initialize(upair.second());
 		}
 		else
 		{
@@ -134,9 +133,7 @@ void Graph::initialize (UID id)
 	auto upair = uninits_.find(id);
 	if ((bool) ider && uninits_.end() != upair)
 	{
-		mold::Variable* var =
-			static_cast<mold::Variable*>((*ider)->get());
-		var->initialize(upair->second());
+		static_cast<Variable*>(*ider)->initialize(upair->second());
 	}
 	else
 	{
