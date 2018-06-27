@@ -62,12 +62,6 @@ State Tensor::get_state (void) const
 	return State{data_, shape_, dtype_};
 }
 
-State Tensor::get_state (size_t idx) const
-{
-	assert(idx < shape_.n_elems());
-	return {data_.get() + idx * type_size(dtype_), data_, Shape({1}), dtype_};
-}
-
 Shape Tensor::get_shape (void) const
 {
 	return shape_;

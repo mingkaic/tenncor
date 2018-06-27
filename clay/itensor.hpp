@@ -48,8 +48,6 @@ public:
 	//! get internal state
 	virtual State get_state (void) const = 0;
 
-	virtual State get_state (size_t idx) const = 0;
-
 	//! get tensor shape
 	virtual Shape get_shape (void) const = 0;
 

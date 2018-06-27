@@ -28,9 +28,16 @@ iNode::iNode (const iNode&) {}
 iNode::iNode (iNode&& other) :
 	audience_(std::move(other.audience_))
 {
+	// todo: deprecate audience in favor of notification at kiln-level
 	for (iObserver* aud : audience_)
 	{
-		aud->replace(&other, this);
+		for (DimRange& arg : aud->args_)
+		{
+			if (&other == arg.arg_)
+			{
+				arg.arg_ = this;
+			}
+		}
 	}
 }
 
@@ -46,7 +53,13 @@ iNode& iNode::operator = (iNode&& other)
 		audience_ = std::move(other.audience_);
 		for (iObserver* aud : audience_)
 		{
-			aud->replace(&other, this);
+			for (DimRange& arg : aud->args_)
+			{
+				if (&other == arg.arg_)
+				{
+					arg.arg_ = this;
+				}
+			}
 		}
 	}
 	return *this;

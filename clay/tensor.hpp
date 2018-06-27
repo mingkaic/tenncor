@@ -44,8 +44,6 @@ public:
 	//! get internal state
 	State get_state (void) const override;
 
-	State get_state (size_t idx) const override;
-
 	//! get tensor shape
 	Shape get_shape (void) const override;
 

@@ -13,7 +13,7 @@
 namespace mold
 {
 
-Functor::Functor (std::vector<iNode*> args, OperatePtrT op) :
+Functor::Functor (std::vector<DimRange> args, OperatePtrT op) :
 	iObserver(args), op_(op)
 {
 	initialize();
@@ -81,9 +81,9 @@ clay::State Functor::get_state (void) const
 void Functor::initialize (void)
 {
 	if (false == std::all_of(args_.begin(), args_.end(),
-	[](iNode*& arg)
+	[](DimRange& arg)
 	{
-		return arg->has_data();
+		return arg.arg_->has_data();
 	}))
 	{
 		return;
@@ -91,9 +91,9 @@ void Functor::initialize (void)
 
 	std::vector<clay::State> inputs(args_.size());
 	std::transform(args_.begin(), args_.end(), inputs.begin(),
-	[](iNode* arg) -> clay::State
+	[](DimRange& arg) -> clay::State
 	{
-		return arg->get_state();
+		return arg.arg_->get_state();
 	});
 	cache_ = op_->make_data(inputs);
 	for (iObserver* aud : audience_)
@@ -109,9 +109,9 @@ void Functor::update (void)
 		clay::State dest = cache_->get_state();
 		std::vector<clay::State> inputs(args_.size());
 		std::transform(args_.begin(), args_.end(), inputs.begin(),
-		[](iNode* arg) -> clay::State
+		[](DimRange& arg) -> clay::State
 		{
-			return arg->get_state();
+			return arg.arg_->get_state();
 		});
 		if (false == op_->write_data(dest, inputs))
 		{

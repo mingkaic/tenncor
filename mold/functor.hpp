@@ -27,7 +27,7 @@ namespace mold
 class Functor final : public iNode, public iObserver
 {
 public:
-	Functor (std::vector<iNode*> args, OperatePtrT op);
+	Functor (std::vector<DimRange> args, OperatePtrT op);
 
 	Functor (const Functor& other);
 

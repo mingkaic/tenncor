@@ -520,6 +520,126 @@ Identifier* round (Identifier* a)
 	return new Functor({a}, opcode);
 }
 
+Identifier* flip (Identifier* a, Identifier* dims)
+{
+	if (nullptr == a || nullptr == dims)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::FLIP;
+	if (Identifier* parent = ordered_parent({a->get_uid(), dims->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, dims}, opcode);
+}
+
+Identifier* flip (Identifier* a, std::vector<uint64_t> dims)
+{
+	Identifier* did = Constant::get(dims);
+	assoc(a, did);
+	return flip(a, did);
+}
+
+Identifier* transpose (Identifier* a)
+{
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::TRANSPOSE;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode);
+}
+
+Identifier* transpose (Identifier* a, Identifier* perm)
+{
+	if (nullptr == a || nullptr == perm)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::TRANSPOSE;
+	if (Identifier* parent = ordered_parent({a->get_uid(), perm->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, perm}, opcode);
+}
+
+Identifier* transpose (Identifier* a, std::vector<uint64_t> perm)
+{
+	Identifier* pid = Constant::get(perm, clay::Shape({perm.size()}));
+	assoc(a, pid);
+	return transpose(a, pid);
+}
+
+Identifier* expand (Identifier* a, Identifier* n, Identifier* dim)
+{
+	if (nullptr == a || nullptr == n || nullptr == dim)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::EXPAND;
+	if (Identifier* parent = ordered_parent({a->get_uid(), n->get_uid(), dim->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, n, dim}, opcode);
+}
+
+Identifier* expand (Identifier* a, Identifier* n, uint64_t dim)
+{
+	Identifier* did = Constant::get(dim);
+	assoc(a, did);
+	return expand(a, n, did);
+}
+
+Identifier* expand (Identifier* a, uint64_t n, uint64_t dim)
+{
+	Identifier* nid = Constant::get(n);
+	assoc(a, nid);
+	return expand(a, nid, dim);
+}
+
+Identifier* n_elems (Identifier* a)
+{
+	if (nullptr == a)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::N_ELEMS;
+	if (Identifier* parent = single_parent(a->get_uid(), opcode))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode);
+}
+
+Identifier* n_dimension (Identifier* a, Identifier* dim)
+{
+	if (nullptr == a || nullptr == dim)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::N_DIMS;
+	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, dim}, opcode);
+}
+
+Identifier* n_dimension (Identifier* a, uint64_t dim)
+{
+	Identifier* did = Constant::get(dim);
+	assoc(a, did);
+	return n_dimension(a, did);
+}
+
+dimensioned operators
 Identifier* pow (Identifier* b, Identifier* x)
 {
 	if (nullptr == b || nullptr == x)
@@ -646,6 +766,141 @@ Identifier* gt (Identifier* a, Identifier* b)
 	return new Functor({a, b}, opcode);
 }
 
+Identifier* pow (Identifier* b, mold::RangeT bdim,
+    Identifier* x, mold::RangeT xdim)
+{
+	if (nullptr == b || nullptr == x)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::POW;
+	if (Identifier* parent = ordered_parent({b->get_uid(), x->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{b, bdim}, {x, xdim}}, opcode);
+}
+
+Identifier* add (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::ADD;
+	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{a, adim}, {b, bdim}},, opcode);
+}
+
+Identifier* sub (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::SUB;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{a, adim}, {b, bdim}},, opcode);
+}
+
+Identifier* mul (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::MUL;
+	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{a, adim}, {b, bdim}},, opcode);
+}
+
+Identifier* div (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::DIV;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{a, adim}, {b, bdim}},, opcode);
+}
+
+Identifier* eq (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::EQ;
+	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{a, adim}, {b, bdim}},, opcode);
+}
+
+Identifier* neq (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::NE;
+	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{a, adim}, {b, bdim}},, opcode);
+}
+
+Identifier* lt (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::LT;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{a, adim}, {b, bdim}}, opcode);
+}
+
+Identifier* gt (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::GT;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({{a, adim}, {b, bdim}}, opcode);
+}
+
 Identifier* binomial_sample (Identifier* n, Identifier* p)
 {
 	if (nullptr == n || nullptr == p)
@@ -693,62 +948,6 @@ Identifier* normal_sample (Identifier* mean, Identifier* stdev)
 		return parent;
 	}
 	return new Functor({mean, stdev}, opcode);
-}
-
-Identifier* transpose (Identifier* a)
-{
-	if (nullptr == a)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::TRANSPOSE;
-	if (Identifier* parent = single_parent(a->get_uid(), opcode))
-	{
-		return parent;
-	}
-	return new Functor({a}, opcode);
-}
-
-Identifier* transpose (Identifier* a, Identifier* perm)
-{
-	if (nullptr == a || nullptr == perm)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::TRANSPOSE;
-	if (Identifier* parent = ordered_parent({a->get_uid(), perm->get_uid()}, opcode))
-	{
-		return parent;
-	}
-	return new Functor({a, perm}, opcode);
-}
-
-Identifier* transpose (Identifier* a, std::vector<uint64_t> perm)
-{
-	Identifier* pid = Constant::get(perm, clay::Shape({perm.size()}));
-	assoc(a, pid);
-	return transpose(a, pid);
-}
-
-Identifier* flip (Identifier* a, Identifier* dims)
-{
-	if (nullptr == a || nullptr == dims)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::FLIP;
-	if (Identifier* parent = ordered_parent({a->get_uid(), dims->get_uid()}, opcode))
-	{
-		return parent;
-	}
-	return new Functor({a, dims}, opcode);
-}
-
-Identifier* flip (Identifier* a, std::vector<uint64_t> dims)
-{
-	Identifier* did = Constant::get(dims);
-	assoc(a, did);
-	return flip(a, did);
 }
 
 Identifier* arg_max (Identifier* a)
@@ -856,6 +1055,20 @@ Identifier* reduce_sum (Identifier* a, uint64_t dim)
 	return reduce_sum(a, did);
 }
 
+Identifier* matmul (Identifier* a, Identifier* b)
+{
+	if (nullptr == a || nullptr == b)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::MATMUL;
+	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	{
+		return parent;
+	}
+	return new Functor({a, b}, opcode);
+}
+
 Identifier* reduce_mean (Identifier* a)
 {
 	auto denom = cast(a, n_elems(a));
@@ -889,69 +1102,6 @@ Identifier* reduce_l2norm (Identifier* a, uint64_t dim)
 	return sqrt(reduce_sum(mul(a, a), dim));
 }
 
-Identifier* n_elems (Identifier* a)
-{
-	if (nullptr == a)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::N_ELEMS;
-	if (Identifier* parent = single_parent(a->get_uid(), opcode))
-	{
-		return parent;
-	}
-	return new Functor({a}, opcode);
-}
-
-Identifier* n_dimension (Identifier* a, Identifier* dim)
-{
-	if (nullptr == a || nullptr == dim)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::N_DIMS;
-	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
-	{
-		return parent;
-	}
-	return new Functor({a, dim}, opcode);
-}
-
-Identifier* n_dimension (Identifier* a, uint64_t dim)
-{
-	Identifier* did = Constant::get(dim);
-	assoc(a, did);
-	return n_dimension(a, did);
-}
-
-Identifier* expand (Identifier* a, Identifier* n, Identifier* dim)
-{
-	if (nullptr == a || nullptr == n || nullptr == dim)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::EXPAND;
-	if (Identifier* parent = ordered_parent({a->get_uid(), n->get_uid(), dim->get_uid()}, opcode))
-	{
-		return parent;
-	}
-	return new Functor({a, n, dim}, opcode);
-}
-
-Identifier* expand (Identifier* a, Identifier* n, uint64_t dim)
-{
-	Identifier* did = Constant::get(dim);
-	assoc(a, did);
-	return expand(a, n, did);
-}
-
-Identifier* expand (Identifier* a, uint64_t n, uint64_t dim)
-{
-	Identifier* nid = Constant::get(n);
-	assoc(a, nid);
-	return expand(a, nid, dim);
-}
-
 Identifier* clip (Identifier* a, Identifier* min, Identifier* max)
 {
 	auto lt_min = lt(a, min);
@@ -967,20 +1117,6 @@ Identifier* clip_norm (Identifier* a, Identifier* cap)
 	auto no_clip = logical_not(is_clip);
 	auto cli = div(mul(a, cap), l2);
 	return add(mul(is_clip, cli), mul(no_clip, a));
-}
-
-Identifier* matmul (Identifier* a, Identifier* b)
-{
-	if (nullptr == a || nullptr == b)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::MATMUL;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
-	{
-		return parent;
-	}
-	return new Functor({a, b}, opcode);
 }
 
 Identifier* reshape (Identifier* a, Identifier* shape)

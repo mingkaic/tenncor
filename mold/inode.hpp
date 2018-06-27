@@ -24,7 +24,15 @@ namespace mold
 
 class iObserver;
 
+using RangeT = std::pair<size_t,size_t>;
+
 using AudienceT = std::unordered_set<iObserver*>;
+
+struct StateRange
+{
+	clay::State arg_;
+	RangeT drange_;
+};
 
 class iNode
 {

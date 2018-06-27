@@ -24,6 +24,7 @@ namespace slip
 
 enum OPCODE
 {
+	// ==== dimensionless ====
 	CAST = 0,
 	ABS,
 	NEG,
@@ -35,6 +36,17 @@ enum OPCODE
 	LOG,
 	SQRT,
 	ROUND,
+
+	// explicit dimension args
+	FLIP,
+	EXPAND,
+	TRANSPOSE,
+
+	// shaped
+	N_ELEMS,
+	N_DIMS, // explict args
+
+	// ==== dimensioned ====
 	POW,
 	ADD,
 	SUB,
@@ -47,22 +59,24 @@ enum OPCODE
 	BINO,
 	UNIF,
 	NORM,
-	TRANSPOSE,
-	FLIP,
+
+	// dimensioned (merge)
 	UARGMAX,
-	URMAX,
-	URSUM,
 	ARGMAX,
+	URMAX,
 	RMAX,
+	URSUM,
 	RSUM,
-	EXPAND,
-	N_ELEMS,
-	N_DIMS,
+
+	// dimensioned (assert 2 dimensions specified)
 	MATMUL,
-	RESHAPE,
+
+	// ==== deprecate ====
 	// gradient nodes (todo: revise these)
+	RESHAPE,
 	JACOBIAN,
 	TRACE_EXPAND,
+
 	// sentinel
 	_SENTINEL
 };

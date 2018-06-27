@@ -58,6 +58,34 @@ Identifier* sqrt (Identifier* a);
 //! round a
 Identifier* round (Identifier* a);
 
+//! transpose, default perm is same as behavior n-1 ... 0
+Identifier* transpose (Identifier* a);
+
+Identifier* transpose (Identifier* a, Identifier* perm);
+
+Identifier* transpose (Identifier* a, std::vector<uint64_t> perm);
+
+//! flip a in specified dimensions
+Identifier* flip (Identifier* a, Identifier* dims);
+
+Identifier* flip (Identifier* a, std::vector<uint64_t> dims);
+
+//! repeat a n times along inserted dimension dim
+Identifier* expand (Identifier* a, Identifier* n, Identifier* dim);
+
+Identifier* expand (Identifier* a, Identifier* n, uint64_t dim);
+
+Identifier* expand (Identifier* a, uint64_t n, uint64_t dim);
+
+//! get the number of elements in a
+Identifier* n_elems (Identifier* a);
+
+//! get the number of elements in across a dimension in a
+Identifier* n_dimension (Identifier* a, Identifier* dim);
+
+Identifier* n_dimension (Identifier* a, uint64_t dim);
+
+dimensioned operators
 //! b to the power of x
 Identifier* pow (Identifier* b, Identifier* x);
 
@@ -85,6 +113,33 @@ Identifier* lt (Identifier* a, Identifier* b);
 //! a > b
 Identifier* gt (Identifier* a, Identifier* b);
 
+Identifier* pow (Identifier* b, mold::RangeT xdim
+    Identifier* x, mold::RangeT bdim);
+
+Identifier* add (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim);
+
+Identifier* sub (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim);
+
+Identifier* mul (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim);
+
+Identifier* div (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim);
+
+Identifier* eq (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim);
+
+Identifier* neq (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim);
+
+Identifier* lt (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim);
+
+Identifier* gt (Identifier* a, mold::RangeT adim,
+    Identifier* b, mold::RangeT bdim);
+
 //! generate data of within binomial distribution given (n, p)
 Identifier* binomial_sample (Identifier* n, Identifier* p);
 
@@ -95,18 +150,6 @@ Identifier* uniform_sample (Identifier* min, Identifier* max);
 
 //! generate data of within normal distribution given (mean, stdev)
 Identifier* normal_sample (Identifier* mean, Identifier* stdev);
-
-//! transpose, default perm is same as behavior n-1 ... 0
-Identifier* transpose (Identifier* a);
-
-Identifier* transpose (Identifier* a, Identifier* perm);
-
-Identifier* transpose (Identifier* a, std::vector<uint64_t> perm);
-
-//! flip a in specified dimensions
-Identifier* flip (Identifier* a, Identifier* dims);
-
-Identifier* flip (Identifier* a, std::vector<uint64_t> dims);
 
 //! obtain the index of max value in a, lack of or invalid dimension look across all of a
 Identifier* arg_max (Identifier* a);
@@ -129,6 +172,10 @@ Identifier* reduce_sum (Identifier* a, Identifier* dim);
 
 Identifier* reduce_sum (Identifier* a, uint64_t dim);
 
+//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
+Identifier* matmul (Identifier* a, Identifier* b);
+
+
 //! obtain the mean of a, lack of or invalid dimension look across all of a
 Identifier* reduce_mean (Identifier* a);
 
@@ -143,29 +190,11 @@ Identifier* reduce_l2norm (Identifier* a, Identifier* dim);
 
 Identifier* reduce_l2norm (Identifier* a, uint64_t dim);
 
-//! get the number of elements in a
-Identifier* n_elems (Identifier* a);
-
-//! get the number of elements in across a dimension in a
-Identifier* n_dimension (Identifier* a, Identifier* dim);
-
-Identifier* n_dimension (Identifier* a, uint64_t dim);
-
-//! repeat a n times along inserted dimension dim
-Identifier* expand (Identifier* a, Identifier* n, Identifier* dim);
-
-Identifier* expand (Identifier* a, Identifier* n, uint64_t dim);
-
-Identifier* expand (Identifier* a, uint64_t n, uint64_t dim);
-
 //! clip values in range [min, max]
 Identifier* clip (Identifier* a, Identifier* min, Identifier* max);
 
 //! normalize clip values with capacity cap
 Identifier* clip_norm (Identifier* a, Identifier* cap);
-
-//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
-Identifier* matmul (Identifier* a, Identifier* b);
 
 Identifier* reshape (Identifier* a, Identifier* shape);
 

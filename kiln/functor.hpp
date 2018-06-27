@@ -28,10 +28,19 @@ using GradArgsT = std::vector<std::pair<Identifier*,Identifier*>>;
 
 using GradF = std::function<Identifier*(Identifier*,GradArgsT)>;
 
+struct IdRange
+{
+	Identifier* arg_;
+	mold::RangeT drange_;
+};
+
 class Functor final : public Identifier
 {
 public:
 	Functor (std::vector<Identifier*> args,
+		slip::OPCODE opcode, Graph& graph = Graph::get_global());
+
+	Functor (std::vector<IdRange> args,
 		slip::OPCODE opcode, Graph& graph = Graph::get_global());
 
 	~Functor (void);

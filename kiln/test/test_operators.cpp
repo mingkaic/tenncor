@@ -250,6 +250,9 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_SHAPEQ(shape, back.shape_);
 	EXPECT_SHAPEQ(shape, back2.shape_);
+	EXPECT_EQ(clay::DOUBLE, state.dtype_);
+	EXPECT_EQ(clay::DOUBLE, back.dtype_);
+	EXPECT_EQ(clay::DOUBLE, back2.dtype_);
 	double* inptr = (double*) leaf.get_state().get();
 	double* inptr2 = (double*) leaf2.get_state().get();
 	ASSERT_NE(nullptr, state.get());
@@ -258,15 +261,38 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 	double* outptr = (double*) state.get();
 	double* backptr = (double*) back.get();
 	double* backptr2 = (double*) back2.get();
+
+	double s = fuzzer->get_double(1, "scalar")[0];
+	kiln::Constant* scalar = kiln::Constant::get(s);
+	kiln::Identifier* f3 = op({scalar, &leaf2});
+	kiln::Identifier* f4 = op({&leaf, scalar});
+
+	ASSERT_TRUE(f3->has_data());
+	ASSERT_TRUE(f4->has_data());
+	clay::State state3 = f3->get_state();
+	clay::State state4 = f4->get_state();
+	EXPECT_SHAPEQ(shape, state3.shape_);
+	EXPECT_SHAPEQ(shape, state4.shape_);
+	EXPECT_EQ(clay::DOUBLE, state3.dtype_);
+	EXPECT_EQ(clay::DOUBLE, state4.dtype_);
+	ASSERT_NE(nullptr, state3.get());
+	ASSERT_NE(nullptr, state4.get());
+	double* outptr3 = (double*) state3.get();
+	double* outptr4 = (double*) state4.get();
+
 	for (size_t i = 0, n = shape.n_elems();
 		i < n; ++i)
 	{
 		double expectfwd = expect(inptr[i], inptr2[i]);
+		double expectfwd2 = expect(s, inptr2[i]);
+		double expectfwd3 = expect(inptr[i], s);
 		double expectbwdA = gradA(inptr[i], inptr2[i]);
 		double expectbwdB = gradB(inptr[i], inptr2[i]);
 		double err = expectfwd - outptr[i];
 		double err2 = expectbwdA - backptr[i];
 		double err3 = expectbwdB - backptr2[i];
+		double err4 = expectfwd2 - outptr3[i];
+		double err5 = expectfwd3 - outptr4[i];
 		if (2 < expectfwd)
 		{
 			err /= expectfwd;
@@ -279,10 +305,22 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 		{
 			err3 /= expectbwdB;
 		}
+		if (2 < expectfwd2)
+		{
+			err4 /= expectfwd2;
+		}
+		if (2 < expectfwd3)
+		{
+			err5 /= expectfwd3;
+		}
 		EXPECT_GT(ERR_THRESH, err) << expectfwd << " " << outptr[i];
 		EXPECT_GT(ERR_THRESH, err2) << expectbwdA << " " << backptr[i];
 		EXPECT_GT(ERR_THRESH, err3) << expectbwdB << " " << backptr2[i];
+		EXPECT_GT(ERR_THRESH, err4) << expectfwd2 << " " << outptr3[i];
+		EXPECT_GT(ERR_THRESH, err5) << expectfwd3 << " " << outptr4[i];
 	}
+
+	delete scalar;
 }
 
 
@@ -326,6 +364,9 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_SHAPEQ(shape, back.shape_);
 	EXPECT_SHAPEQ(shape, back2.shape_);
+	EXPECT_EQ(clay::INT64, state.dtype_);
+	EXPECT_EQ(clay::INT64, back.dtype_);
+	EXPECT_EQ(clay::INT64, back2.dtype_);
 	int16_t* inptr = (int16_t*) leaf.get_state().get();
 	int16_t* inptr2 = (int16_t*) leaf2.get_state().get();
 	ASSERT_NE(nullptr, state.get());
@@ -334,13 +375,36 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	int16_t* outptr = (int16_t*) state.get();
 	int16_t* backptr = (int16_t*) back.get();
 	int16_t* backptr2 = (int16_t*) back2.get();
+
+	int16_t s = fuzzer->get_double(1, "scalar")[0];
+	kiln::Constant* scalar = kiln::Constant::get(s);
+	kiln::Identifier* f3 = op({scalar, &leaf2});
+	kiln::Identifier* f4 = op({&leaf, scalar});
+
+	ASSERT_TRUE(f3->has_data());
+	ASSERT_TRUE(f4->has_data());
+	clay::State state3 = f3->get_state();
+	clay::State state4 = f4->get_state();
+	EXPECT_SHAPEQ(shape, state3.shape_);
+	EXPECT_SHAPEQ(shape, state4.shape_);
+	EXPECT_EQ(clay::INT16, state3.dtype_);
+	EXPECT_EQ(clay::INT16, state4.dtype_);
+	ASSERT_NE(nullptr, state3.get());
+	ASSERT_NE(nullptr, state4.get());
+	int16_t* outptr3 = (int16_t*) state3.get();
+	int16_t* outptr4 = (int16_t*) state4.get();
+
 	for (size_t i = 0, n = shape.n_elems();
 		i < n; ++i)
 	{
 		EXPECT_EQ(expect(inptr[i], inptr2[i]), outptr[i]);
+		EXPECT_EQ(expect(s, inptr2[i]), outptr3[i]);
+		EXPECT_EQ(expect(inptr[i], s), outptr4[i]);
 		EXPECT_EQ(gradA(inptr[i], inptr2[i]), backptr[i]);
 		EXPECT_EQ(gradB(inptr[i], inptr2[i]), backptr2[i]);
 	}
+
+	delete scalar;
 }
 
 

@@ -20,10 +20,19 @@
 namespace mold
 {
 
+struct DimRange
+{
+	iNode* arg_;
+	RangeT drange_;
+};
+
+// todo: make this pure abstract (move args to functor, add args as iNode to OnDeath)
 class iObserver
 {
 public:
-	iObserver (std::vector<iNode*> args);
+	iObserver (std::vector<iNode*> args); // todo: deprecate this
+
+	iObserver (std::vector<DimRange> args); // todo: move this to functor
 
 	virtual ~iObserver (void);
 
@@ -39,12 +48,12 @@ public:
 
 	virtual void update (void) = 0;
 
-	void replace (iNode* target, iNode* repl);
-
-	std::vector<iNode*> get_args (void) const;
+	std::vector<DimRange> get_args (void) const;
 
 protected:
-	std::vector<iNode*> args_;
+	friend class iNode;
+
+	std::vector<DimRange> args_;
 
 private:
 	void copy_helper (const iObserver& other);

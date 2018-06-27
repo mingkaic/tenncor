@@ -14,41 +14,81 @@
 namespace kiln
 {
 
-static std::vector<mold::iNode*> to_nodes (std::vector<Identifier*> ids)
-{
-	std::vector<mold::iNode*> out(ids.size());
-	std::transform(ids.begin(), ids.end(), out.begin(),
-	[](Identifier* id) -> mold::iNode*
-	{
-		return id->get();
-	});
-	return out;
-}
-
-static std::vector<UID> to_ids (std::vector<Identifier*> ids)
-{
-	std::vector<UID> out(ids.size());
-	std::transform(ids.begin(), ids.end(), out.begin(),
-	[](Identifier * id) -> UID
-	{
-		return id->get_uid();
-	});
-	return out;
-}
-
 Functor::Functor (std::vector<Identifier*> args,
 	slip::OPCODE opcode, Graph& graph) :
 	Identifier(&graph,
 		new mold::Functor(
-			to_nodes(args),
+			[](std::vector<Identifier*> args) -> std::vector<mold::DimRange>
+			{
+				std::vector<mold::DimRange> out(args.size());
+				std::transform(args.begin(), args.end(), out.begin(),
+				[](Identifier* id) -> mold::DimRange
+				{
+					return mold::DimRange{
+						id->get(),mold::RangeT{0,0}};
+				});
+				return out;
+			}(args),
 			slip::get_op(opcode)),
 		slip::opnames.at(opcode)),
-	opcode_(opcode), arg_ids_(to_ids(args))
+	opcode_(opcode),
+	arg_ids_(
+		[](std::vector<Identifier*> ids) -> std::vector<UID>
+		{
+			std::vector<UID> out(ids.size());
+			std::transform(ids.begin(), ids.end(), out.begin(),
+			[](Identifier * id) -> UID
+			{
+				return id->get_uid();
+			});
+			return out;
+		}(args))
 {
+	// validate
 	for (Identifier* arg : args)
 	{
-		// validate
 		UID uid = arg->get_uid();
+		if (false == graph.has_node(uid))
+		{
+			throw MissingNodeError(graph.get_gid(), uid);
+		}
+	}
+	graph_->add_func(opcode, this);
+}
+
+Functor::Functor (std::vector<IdRange> args,
+	slip::OPCODE opcode, Graph& graph) :
+	Identifier(&graph,
+		new mold::Functor(
+			[](std::vector<IdRange>& args) -> std::vector<mold::DimRange>
+			{
+				std::vector<mold::DimRange> out(args.size());
+				std::transform(args.begin(), args.end(), out.begin(),
+				[](IdRange id) -> mold::DimRange
+				{
+					return mold::DimRange{id.arg_->get(), id.drange_};
+				});
+				return out;
+			}(args),
+			slip::get_op(opcode)),
+		slip::opnames.at(opcode)),
+	opcode_(opcode),
+	arg_ids_(
+		[](std::vector<IdRange>& ids) -> std::vector<UID>
+		{
+			std::vector<UID> out(ids.size());
+			std::transform(ids.begin(), ids.end(), out.begin(),
+			[](IdRange& id) -> UID
+			{
+				return id.arg_->get_uid();
+			});
+			return out;
+		}(args))
+{
+	// validate
+	for (IdRange& arg : args)
+	{
+		UID uid = arg.arg_->get_uid();
 		if (false == graph.has_node(uid))
 		{
 			throw MissingNodeError(graph.get_gid(), uid);
