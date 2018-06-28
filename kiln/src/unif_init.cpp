@@ -28,8 +28,8 @@ clay::TensorPtrT unif_build (char* min, char* max,
 
 	clay::Shape one({1});
 	return slip::get_op(slip::UNIF)->make_data({
-		clay::State{min_ptr, shape, dtype},
-		clay::State{max_ptr, one, dtype},
+		mold::StateRange(clay::State{min_ptr, shape, dtype}, mold::Range(0, 0)),
+		mold::StateRange(clay::State{max_ptr, one, dtype}, mold::Range(0, 0)),
 	});
 }
 

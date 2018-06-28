@@ -85,7 +85,7 @@ Identifier* n_dimension (Identifier* a, Identifier* dim);
 
 Identifier* n_dimension (Identifier* a, uint64_t dim);
 
-dimensioned operators
+//! dimensioned operators
 //! b to the power of x
 Identifier* pow (Identifier* b, Identifier* x);
 
@@ -113,32 +113,32 @@ Identifier* lt (Identifier* a, Identifier* b);
 //! a > b
 Identifier* gt (Identifier* a, Identifier* b);
 
-Identifier* pow (Identifier* b, mold::RangeT xdim
-    Identifier* x, mold::RangeT bdim);
+Identifier* pow (Identifier* b, mold::Range xdim,
+    Identifier* x, mold::Range bdim);
 
-Identifier* add (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim);
+Identifier* add (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim);
 
-Identifier* sub (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim);
+Identifier* sub (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim);
 
-Identifier* mul (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim);
+Identifier* mul (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim);
 
-Identifier* div (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim);
+Identifier* div (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim);
 
-Identifier* eq (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim);
+Identifier* eq (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim);
 
-Identifier* neq (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim);
+Identifier* neq (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim);
 
-Identifier* lt (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim);
+Identifier* lt (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim);
 
-Identifier* gt (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim);
+Identifier* gt (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim);
 
 //! generate data of within binomial distribution given (n, p)
 Identifier* binomial_sample (Identifier* n, Identifier* p);

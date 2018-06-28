@@ -23,7 +23,7 @@ namespace mold
 struct DimRange
 {
 	iNode* arg_;
-	RangeT drange_;
+	Range drange_;
 };
 
 // todo: make this pure abstract (move args to functor, add args as iNode to OnDeath)

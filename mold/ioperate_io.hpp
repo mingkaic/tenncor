@@ -33,13 +33,13 @@ public:
 	}
 
 	virtual bool validate_data (clay::State state,
-		std::vector<clay::State> args) const = 0;
+		std::vector<StateRange> args) const = 0;
 
 	virtual clay::TensorPtrT make_data (
-		std::vector<clay::State> args) const = 0;
+		std::vector<StateRange> args) const = 0;
 
 	virtual bool write_data (clay::State& dest,
-		std::vector<clay::State> args) const = 0;
+		std::vector<StateRange> args) const = 0;
 
 private:
 	virtual iOperateIO* clone_impl (void) const = 0;

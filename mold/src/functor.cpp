@@ -89,13 +89,7 @@ void Functor::initialize (void)
 		return;
 	}
 
-	std::vector<clay::State> inputs(args_.size());
-	std::transform(args_.begin(), args_.end(), inputs.begin(),
-	[](DimRange& arg) -> clay::State
-	{
-		return arg.arg_->get_state();
-	});
-	cache_ = op_->make_data(inputs);
+	cache_ = op_->make_data(get_args());
 	for (iObserver* aud : audience_)
 	{
 		aud->initialize();
@@ -107,13 +101,7 @@ void Functor::update (void)
 	if (nullptr != cache_)
 	{
 		clay::State dest = cache_->get_state();
-		std::vector<clay::State> inputs(args_.size());
-		std::transform(args_.begin(), args_.end(), inputs.begin(),
-		[](DimRange& arg) -> clay::State
-		{
-			return arg.arg_->get_state();
-		});
-		if (false == op_->write_data(dest, inputs))
+		if (false == op_->write_data(dest, get_args()))
 		{
 			throw FunctorUpdateError();
 		}
@@ -122,6 +110,17 @@ void Functor::update (void)
 			aud->update();
 		}
 	}
+}
+
+std::vector<StateRange> Functor::get_args (void) const
+{
+	std::vector<StateRange> args;
+	std::transform(args_.begin(), args_.end(), std::back_inserter(args),
+	[](const DimRange& arg) -> StateRange
+	{
+		return {arg.arg_->get_state(), arg.drange_};
+	});
+	return args;
 }
 
 iNode* Functor::clone_impl (void) const

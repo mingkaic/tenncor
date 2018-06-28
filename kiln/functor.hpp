@@ -31,7 +31,7 @@ using GradF = std::function<Identifier*(Identifier*,GradArgsT)>;
 struct IdRange
 {
 	Identifier* arg_;
-	mold::RangeT drange_;
+	mold::Range drange_;
 };
 
 class Functor final : public Identifier

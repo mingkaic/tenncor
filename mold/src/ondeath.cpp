@@ -29,7 +29,7 @@ iNode* OnDeath::get (void) const
 	iNode* out = nullptr;
 	if (false == this->args_.empty())
 	{
-		out = this->args_[0];
+		out = this->args_[0].arg_;
 	}
 	return out;
 }

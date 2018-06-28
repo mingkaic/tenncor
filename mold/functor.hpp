@@ -49,6 +49,8 @@ public:
 	void update (void) override;
 
 private:
+	std::vector<StateRange> get_args (void) const;
+
 	iNode* clone_impl (void) const override;
 
 	clay::TensorPtrT cache_ = nullptr;

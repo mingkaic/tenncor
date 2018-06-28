@@ -32,26 +32,39 @@ namespace slip
 
 // SHAPE HANDLERS
 
-static clay::Shape elem_shape (std::vector<clay::State> states)
+static clay::Shape elem_shape (std::vector<mold::StateRange> states)
 {
 	if (states.empty())
 	{
 		throw NoArgumentsError();
 	}
-	clay::Shape out = states[0].shape_;
+	clay::Shape outshape = states.front().shape();
+	clay::Shape in = states.front().inner();
+	clay::Shape out = states.front().outer();
 	for (auto it = states.begin() + 1, et = states.end();
 		it != et; it++)
 	{
-		if (it->shape_.n_elems() != 1 &&
-			false == it->shape_.is_compatible_with(out))
+		clay::Shape ishape = it->inner();
+		clay::Shape oshape = it->outer();
+		if (false == ishape.is_compatible_with(in))
 		{
-			throw ShapeMismatchError(out, it->shape_);
+			throw ShapeMismatchError(in, ishape);
+		}
+		if (out.n_elems() == 1)
+		{
+			out = oshape;
+			outshape = it->shape();
+		}
+		else if (oshape.n_elems() != 1 &&
+			false == oshape.is_compatible_with(out))
+		{
+			throw ShapeMismatchError(out, oshape);
 		}
 	}
-	return out;
+	return outshape;
 }
 
-static clay::Shape scalar_shape (std::vector<clay::State> states)
+static clay::Shape scalar_shape (std::vector<mold::StateRange> states)
 {
 	if (states.size() != 1)
 	{
@@ -60,19 +73,19 @@ static clay::Shape scalar_shape (std::vector<clay::State> states)
 	return clay::Shape({1});
 }
 
-static clay::Shape reduce_shape (std::vector<clay::State> states)
+static clay::Shape reduce_shape (std::vector<mold::StateRange> states)
 {
 	if (states.size() != 2)
 	{
 		throw BadNArgsError(2, states.size());
 	}
-	clay::State& state = states[1];
+	clay::State& state = states[1].arg_;
 	if (1 != state.shape_.n_elems())
 	{
 		throw ShapeMismatchError(clay::Shape({1}), state.shape_);
 	}
 	uint64_t dim = *(safe_get<uint64_t>(state));
-	clay::Shape& shape = states[0].shape_;
+	clay::Shape shape = states[0].shape();
 	if (dim >= shape.rank())
 	{
 		throw InvalidDimensionError(dim, shape);
@@ -89,14 +102,14 @@ static clay::Shape reduce_shape (std::vector<clay::State> states)
 	return clay::Shape(slist);
 }
 
-static clay::Shape matmul_shape (std::vector<clay::State> states)
+static clay::Shape matmul_shape (std::vector<mold::StateRange> states)
 {
 	if (states.size() != 2)
 	{
 		throw BadNArgsError(2, states.size());
 	}
-	clay::Shape& t1s = states[0].shape_;
-	clay::Shape& t2s = states[1].shape_;
+	clay::Shape t1s = states[0].shape();
+	clay::Shape t2s = states[1].shape();
 
 	std::vector<size_t> al = t1s.as_list();
 	std::vector<size_t> bl = t2s.as_list();
@@ -201,13 +214,13 @@ mold::OperatePtrT(new OperateIO(treg, shaper, typer))
 static EnumMap<OPCODE,mold::OperatePtrT> registry =
 {
 	{CAST, MAKE_OP(TMAP_FUNC(cast),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (states.size() != 2)
 		{
 			throw BadNArgsError(2, states.size());
 		}
-		return states[1].shape_;
+		return states[1].shape();
 	},
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
 	{
@@ -273,17 +286,17 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		return types[0];
 	})},
 	{TRANSPOSE, MAKE_OP(TMAP_FUNC(transpose),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (states.empty())
 		{
 			throw NoArgumentsError();
 		}
-		clay::State state = states.front();
+		clay::State& state = states.front().arg_;
 		std::vector<size_t> outlist = state.shape_.as_list();
 		if (states.size() > 1)
 		{
-			clay::State& pstate = states[1];
+			clay::State& pstate = states[1].arg_;
 			if (pstate.dtype_ != clay::UINT64)
 			{
 				throw clay::UnsupportedTypeError(pstate.dtype_);
@@ -318,14 +331,14 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		return types[0];
 	})},
 	{FLIP, MAKE_OP(TMAP_FUNC(flip),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (2 != states.size())
 		{
 			throw BadNArgsError(2, states.size());
 		}
-		size_t rank = states[0].shape_.rank();
-		clay::State& dstate = states[1];
+		size_t rank = states[0].shape().rank();
+		clay::State& dstate = states[1].arg_;
 		size_t ndims = dstate.shape_.n_elems();
 		uint64_t* dims = safe_get<uint64_t>(dstate);
 		for (size_t i = 0; i < ndims; ++i)
@@ -333,10 +346,10 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 			if (dims[i] >= rank)
 			{
 				throw InvalidDimensionError(
-					dims[i], states[0].shape_);
+					dims[i], states[0].shape());
 			}
 		}
-		return states.front().shape_;
+		return states.front().shape();
 	},
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
 	{
@@ -357,32 +370,32 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 	{RMAX, REDUCE(max)},
 	{RSUM, REDUCE(sum)},
 	{EXPAND, MAKE_OP(TMAP_FUNC(expand),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (3 != states.size())
 		{
 			throw BadNArgsError(3, states.size());
 		}
-		if (1 != states[1].shape_.n_elems())
+		if (1 != states[1].shape().n_elems())
 		{
 			throw ShapeMismatchError(
 				clay::Shape({1}),
-				states[1].shape_);
+				states[1].shape());
 		}
-		if (1 != states[2].shape_.n_elems())
+		if (1 != states[2].shape().n_elems())
 		{
 			throw ShapeMismatchError(
 				clay::Shape({1}),
-				states[2].shape_);
+				states[2].shape());
 		}
-		clay::State& nstate = states[1];
-		clay::State& dstate = states[2];
+		clay::State& nstate = states[1].arg_;
+		clay::State& dstate = states[2].arg_;
 		uint64_t mul = *(safe_get<uint64_t>(nstate));
 		uint64_t dim = *(safe_get<uint64_t>(dstate));
-		std::vector<size_t> slist = states[0].shape_.as_list();
+		std::vector<size_t> slist = states[0].shape().as_list();
 		if (slist.size() < dim)
 		{
-			throw InvalidDimensionError(dim, states[0].shape_);
+			throw InvalidDimensionError(dim, states[0].shape());
 		}
 		slist.insert(slist.begin() + dim, mul);
 		return clay::Shape(slist);
@@ -404,7 +417,7 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		return types[0];
 	})},
 	{N_ELEMS, MAKE_OP(TMAP_SFUNC(n_elems),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (states.empty())
 		{
@@ -421,13 +434,13 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		return clay::UINT64;
 	})},
 	{N_DIMS, MAKE_OP(TMAP_SFUNC(n_dims),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (2 != states.size())
 		{
 			throw BadNArgsError(2, states.size());
 		}
-		clay::State& dstate = states[1];
+		clay::State& dstate = states[1].arg_;
 		if (1 != dstate.shape_.n_elems())
 		{
 			throw ShapeMismatchError(
@@ -435,9 +448,9 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 				dstate.shape_);
 		}
 		uint64_t dim = *(safe_get<uint64_t>(dstate));
-		if (dim >= states[0].shape_.rank())
+		if (dim >= states[0].shape().rank())
 		{
-			throw InvalidDimensionError(dim, states[0].shape_);
+			throw InvalidDimensionError(dim, states[0].shape());
 		}
 		return clay::Shape(std::vector<size_t>{1});
 	},
@@ -456,14 +469,14 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 	})},
 	{MATMUL, MAKE_OP(TMAP_FUNC(matmul), matmul_shape, same_type)},
 	{RESHAPE, MAKE_OP(TMAP_FUNC(copyover),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (2 != states.size())
 		{
 			throw BadNArgsError(2, states.size());
 		}
-		clay::State& shapes = states[1];
-		clay::Shape& srcshape = states[0].shape_;
+		clay::State& shapes = states[1].arg_;
+		clay::Shape srcshape = states[0].shape();
 		uint64_t* dim = safe_get<uint64_t>(shapes);
 		clay::Shape replshape(
 			std::vector<size_t>{dim, dim + shapes.shape_.n_elems()});
@@ -486,21 +499,21 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		return types[0];
 	})},
 	{JACOBIAN, MAKE_OP(TMAP_FUNC(jacobian),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (3 != states.size())
 		{
 			throw BadNArgsError(3, states.size());
 		}
-		clay::State& dims = states[2];
+		clay::State& dims = states[2].arg_;
 		if (dims.shape_.n_elems() != 2)
 		{
 			throw std::runtime_error("failed to specify target and swap dimensions in jacobian");
 		}
 		uint64_t* dim = safe_get<uint64_t>(dims);
-		clay::Shape ashape = states[0].shape_;
-		clay::Shape bshape = states[1].shape_;
-		clay::Shape yshape = states[*dim].shape_;
+		clay::Shape ashape = states[0].shape();
+		clay::Shape bshape = states[1].shape();
+		clay::Shape yshape = states[*dim].shape();
 		size_t x = bshape.at(0);
 		size_t y = yshape.at(0);
 		if (ashape.rank() > 1)
@@ -533,24 +546,24 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		return types[0];
 	})},
 	{TRACE_EXPAND, MAKE_OP(TMAP_FUNC(trace_expand),
-	[](std::vector<clay::State> states) -> clay::Shape
+	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
 		if (2 != states.size())
 		{
 			throw BadNArgsError(2, states.size());
 		}
-		if (1 != states[1].shape_.n_elems())
+		if (1 != states[1].shape().n_elems())
 		{
 			throw ShapeMismatchError(
 				clay::Shape({1}),
-				states[1].shape_);
+				states[1].shape());
 		}
-		clay::State& dstate = states[1];
+		clay::State& dstate = states[1].arg_;
 		uint64_t dim = *(safe_get<uint64_t>(dstate));
-		std::vector<size_t> slist = states[0].shape_.as_list();
+		std::vector<size_t> slist = states[0].shape().as_list();
 		if (slist.size() <= dim)
 		{
-			throw InvalidDimensionError(dim, states[0].shape_);
+			throw InvalidDimensionError(dim, states[0].shape());
 		}
 		slist.insert(slist.begin() + dim, slist[dim]);
 		return clay::Shape(slist);

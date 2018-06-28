@@ -20,12 +20,12 @@ Functor::Functor (std::vector<Identifier*> args,
 		new mold::Functor(
 			[](std::vector<Identifier*> args) -> std::vector<mold::DimRange>
 			{
-				std::vector<mold::DimRange> out(args.size());
-				std::transform(args.begin(), args.end(), out.begin(),
+				std::vector<mold::DimRange> out;
+				std::transform(args.begin(), args.end(), std::back_inserter(out),
 				[](Identifier* id) -> mold::DimRange
 				{
 					return mold::DimRange{
-						id->get(),mold::RangeT{0,0}};
+						id->get(),mold::Range{0,0}};
 				});
 				return out;
 			}(args),
@@ -62,8 +62,8 @@ Functor::Functor (std::vector<IdRange> args,
 		new mold::Functor(
 			[](std::vector<IdRange>& args) -> std::vector<mold::DimRange>
 			{
-				std::vector<mold::DimRange> out(args.size());
-				std::transform(args.begin(), args.end(), out.begin(),
+				std::vector<mold::DimRange> out;
+				std::transform(args.begin(), args.end(), std::back_inserter(out),
 				[](IdRange id) -> mold::DimRange
 				{
 					return mold::DimRange{id.arg_->get(), id.drange_};

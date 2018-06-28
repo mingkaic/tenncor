@@ -70,28 +70,30 @@ struct mock_operateio final : public mold::iOperateIO
 		op_(op), shaper_(shaper), typer_(typer) {}
 
 	bool validate_data (clay::State state,
-		std::vector<clay::State> args) const override
+		std::vector<mold::StateRange> args) const override
 	{
 		std::vector<clay::Shape> shapes;
 		std::vector<clay::DTYPE> types;
-		for (const clay::State& arg : args)
+		for (const mold::StateRange& arg : args)
 		{
-			shapes.push_back(arg.shape_);
-			types.push_back(arg.dtype_);
+			shapes.push_back(arg.shape());
+			types.push_back(arg.type());
 		}
 		return state.shape_.is_compatible_with(shaper_(shapes)) &&
 			state.dtype_ == typer_(types);
 	}
 
 	bool write_data (clay::State& dest,
-		std::vector<clay::State> args) const override
+		std::vector<mold::StateRange> args) const override
 	{
 		std::vector<clay::Shape> shapes;
 		std::vector<clay::DTYPE> types;
-		for (const clay::State& arg : args)
+		std::vector<clay::State> states;
+		for (const mold::StateRange& arg : args)
 		{
-			shapes.push_back(arg.shape_);
-			types.push_back(arg.dtype_);
+			shapes.push_back(arg.shape());
+			types.push_back(arg.type());
+			states.push_back(arg.arg_);
 		}
 		clay::Shape oshape = shaper_(shapes);
 		clay::DTYPE otype = typer_(types);
@@ -99,19 +101,19 @@ struct mock_operateio final : public mold::iOperateIO
 			dest.dtype_ == otype;
 		if (success)
 		{
-			op_(dest, args);
+			op_(dest, states);
 		}
 		return success;
 	}
 
-	clay::TensorPtrT make_data (std::vector<clay::State> args) const override
+	clay::TensorPtrT make_data (std::vector<mold::StateRange> args) const override
 	{
 		std::vector<clay::Shape> shapes;
 		std::vector<clay::DTYPE> types;
-		for (const clay::State& arg : args)
+		for (const mold::StateRange& arg : args)
 		{
-			shapes.push_back(arg.shape_);
-			types.push_back(arg.dtype_);
+			shapes.push_back(arg.shape());
+			types.push_back(arg.type());
 		}
 		clay::Tensor* out = new clay::Tensor(shaper_(shapes), typer_(types));
 		clay::State dest = out->get_state();
@@ -155,7 +157,13 @@ mold::Functor* junk_functor (std::vector<mold::iNode*> args,
 	{
 		return dtype;
 	}));
-	return new mold::Functor(args, std::move(op));
+	std::vector<mold::DimRange> dims;
+	std::transform(args.begin(), args.end(), std::back_inserter(dims),
+	[](mold::iNode* node)
+	{
+		return mold::DimRange{node,mold::Range{0,0}};
+	});
+	return new mold::Functor(dims, std::move(op));
 }
 
 
@@ -282,7 +290,8 @@ TEST_F(FUNCTOR, GetState_D004)
 	clay::Shape shape = random_def_shape(this, {2, 6});
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0];
-	mold::Functor* f = new mold::Functor(std::vector<mold::iNode*>{&arg},
+	mold::Functor* f = new mold::Functor(
+		std::vector<mold::DimRange>{{&arg, {0, 0}}},
 		std::move(identity));
 
 	EXPECT_THROW(f->get_state(), mold::UninitializedError);

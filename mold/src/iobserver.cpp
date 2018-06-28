@@ -15,11 +15,11 @@ namespace mold
 iObserver::iObserver (std::vector<iNode*> args) :
 	iObserver([](std::vector<iNode*> nodes) -> std::vector<DimRange>
 	{
-		std::vector<DimRange> out(nodes.size());
-		std::transform(nodes.begin(), nodes.end(), out.begin(),
+		std::vector<DimRange> out;
+		std::transform(nodes.begin(), nodes.end(), std::back_inserter(out),
 		[](iNode* node)
 		{
-			return DimRange{node, RangeT{0,0}};
+			return DimRange{node, Range{0,0}};
 		});
 		return out;
 	}(args)) {}

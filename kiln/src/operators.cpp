@@ -639,7 +639,7 @@ Identifier* n_dimension (Identifier* a, uint64_t dim)
 	return n_dimension(a, did);
 }
 
-dimensioned operators
+// dimensioned operators
 Identifier* pow (Identifier* b, Identifier* x)
 {
 	if (nullptr == b || nullptr == x)
@@ -766,8 +766,8 @@ Identifier* gt (Identifier* a, Identifier* b)
 	return new Functor({a, b}, opcode);
 }
 
-Identifier* pow (Identifier* b, mold::RangeT bdim,
-    Identifier* x, mold::RangeT xdim)
+Identifier* pow (Identifier* b, mold::Range bdim,
+    Identifier* x, mold::Range xdim)
 {
 	if (nullptr == b || nullptr == x)
 	{
@@ -781,8 +781,8 @@ Identifier* pow (Identifier* b, mold::RangeT bdim,
 	return new Functor({{b, bdim}, {x, xdim}}, opcode);
 }
 
-Identifier* add (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim)
+Identifier* add (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -793,11 +793,11 @@ Identifier* add (Identifier* a, mold::RangeT adim,
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}},, opcode);
+	return new Functor({{a, adim}, {b, bdim}}, opcode);
 }
 
-Identifier* sub (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim)
+Identifier* sub (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -808,11 +808,11 @@ Identifier* sub (Identifier* a, mold::RangeT adim,
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}},, opcode);
+	return new Functor({{a, adim}, {b, bdim}}, opcode);
 }
 
-Identifier* mul (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim)
+Identifier* mul (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -823,11 +823,11 @@ Identifier* mul (Identifier* a, mold::RangeT adim,
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}},, opcode);
+	return new Functor({{a, adim}, {b, bdim}}, opcode);
 }
 
-Identifier* div (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim)
+Identifier* div (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -838,11 +838,11 @@ Identifier* div (Identifier* a, mold::RangeT adim,
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}},, opcode);
+	return new Functor({{a, adim}, {b, bdim}}, opcode);
 }
 
-Identifier* eq (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim)
+Identifier* eq (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -853,11 +853,11 @@ Identifier* eq (Identifier* a, mold::RangeT adim,
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}},, opcode);
+	return new Functor({{a, adim}, {b, bdim}}, opcode);
 }
 
-Identifier* neq (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim)
+Identifier* neq (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -868,11 +868,11 @@ Identifier* neq (Identifier* a, mold::RangeT adim,
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}},, opcode);
+	return new Functor({{a, adim}, {b, bdim}}, opcode);
 }
 
-Identifier* lt (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim)
+Identifier* lt (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -886,8 +886,8 @@ Identifier* lt (Identifier* a, mold::RangeT adim,
 	return new Functor({{a, adim}, {b, bdim}}, opcode);
 }
 
-Identifier* gt (Identifier* a, mold::RangeT adim,
-    Identifier* b, mold::RangeT bdim)
+Identifier* gt (Identifier* a, mold::Range adim,
+    Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{

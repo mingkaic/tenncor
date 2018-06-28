@@ -262,7 +262,7 @@ static void binaryElemTest (fuzz_test* fuzzer, VARFUNC op,
 	double* backptr = (double*) back.get();
 	double* backptr2 = (double*) back2.get();
 
-	double s = fuzzer->get_double(1, "scalar")[0];
+	double s = fuzzer->get_double(1, "scalar", limits)[0];
 	kiln::Constant* scalar = kiln::Constant::get(s);
 	kiln::Identifier* f3 = op({scalar, &leaf2});
 	kiln::Identifier* f4 = op({&leaf, scalar});
@@ -364,9 +364,9 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	EXPECT_SHAPEQ(shape, state.shape_);
 	EXPECT_SHAPEQ(shape, back.shape_);
 	EXPECT_SHAPEQ(shape, back2.shape_);
-	EXPECT_EQ(clay::INT64, state.dtype_);
-	EXPECT_EQ(clay::INT64, back.dtype_);
-	EXPECT_EQ(clay::INT64, back2.dtype_);
+	EXPECT_EQ(clay::INT16, state.dtype_);
+	EXPECT_EQ(clay::INT16, back.dtype_);
+	EXPECT_EQ(clay::INT16, back2.dtype_);
 	int16_t* inptr = (int16_t*) leaf.get_state().get();
 	int16_t* inptr2 = (int16_t*) leaf2.get_state().get();
 	ASSERT_NE(nullptr, state.get());
@@ -376,7 +376,7 @@ static void binaryIntElemTest (fuzz_test* fuzzer, VARFUNC op,
 	int16_t* backptr = (int16_t*) back.get();
 	int16_t* backptr2 = (int16_t*) back2.get();
 
-	int16_t s = fuzzer->get_double(1, "scalar")[0];
+	int16_t s = fuzzer->get_double(1, "scalar", limits)[0];
 	kiln::Constant* scalar = kiln::Constant::get(s);
 	kiln::Identifier* f3 = op({scalar, &leaf2});
 	kiln::Identifier* f4 = op({&leaf, scalar});

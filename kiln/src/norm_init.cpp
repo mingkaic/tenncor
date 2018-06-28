@@ -28,8 +28,8 @@ clay::TensorPtrT norm_build (char* mean, char* stdev,
 
 	clay::Shape one({1});
 	return slip::get_op(slip::NORM)->make_data({
-		clay::State{mean_ptr, shape, dtype},
-		clay::State{stdev_ptr, one, dtype},
+		mold::StateRange(clay::State{mean_ptr, shape, dtype}, mold::Range(0, 0)),
+		mold::StateRange(clay::State{stdev_ptr, one, dtype}, mold::Range(0, 0))
 	});
 }
 
