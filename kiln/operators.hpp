@@ -114,31 +114,31 @@ Identifier* lt (Identifier* a, Identifier* b);
 Identifier* gt (Identifier* a, Identifier* b);
 
 Identifier* pow (Identifier* b, mold::Range xdim,
-    Identifier* x, mold::Range bdim);
+	Identifier* x, mold::Range bdim);
 
 Identifier* add (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim);
+	Identifier* b, mold::Range bdim);
 
 Identifier* sub (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim);
+	Identifier* b, mold::Range bdim);
 
 Identifier* mul (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim);
+	Identifier* b, mold::Range bdim);
 
 Identifier* div (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim);
+	Identifier* b, mold::Range bdim);
 
 Identifier* eq (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim);
+	Identifier* b, mold::Range bdim);
 
 Identifier* neq (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim);
+	Identifier* b, mold::Range bdim);
 
 Identifier* lt (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim);
+	Identifier* b, mold::Range bdim);
 
 Identifier* gt (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim);
+	Identifier* b, mold::Range bdim);
 
 //! generate data of within binomial distribution given (n, p)
 Identifier* binomial_sample (Identifier* n, Identifier* p);

@@ -33,14 +33,13 @@ state_(data, shape, type), data_(data)
 	}
 }
 
-Constant::Constant (const Constant& other) :
-	state_([&]()
-	{
-		size_t nbytes = other.state_.shape_.n_elems() * clay::type_size(other.state_.dtype_);
-		data_ = clay::make_char(nbytes);
-		std::memcpy(data_.get(), other.state_.get(), nbytes);
-		return clay::State(other.state_, data_);
-	}()) {}
+Constant::Constant (const Constant& other)
+{
+	size_t nbytes = other.state_.shape_.n_elems() * clay::type_size(other.state_.dtype_);
+	data_ = clay::make_char(nbytes);
+	std::memcpy(data_.get(), other.data_.get(), nbytes);
+	state_ = clay::State(other.state_, data_);
+}
 
 bool Constant::has_data (void) const
 {

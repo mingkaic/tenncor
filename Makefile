@@ -71,6 +71,18 @@ asan_kiln:
 # coverage unit tests
 coverage: cover_clay cover_mold cover_slip cover_kiln
 
+lcov_clay: cover_clay
+	bash listcov.sh
+
+lcov_mold: cover_mold
+	bash listcov.sh
+
+lcov_slip: cover_slip
+	bash listcov.sh
+
+lcov_kiln: cover_kiln
+	bash listcov.sh
+
 cover_clay:
 	$(COVER) $(REP_BZL_FLAG) //clay:test --instrumentation_filter=/clay[/:]
 
@@ -91,7 +103,7 @@ asan_regress:
 	$(GTEST) $(ASAN_BZL_FLAG) //regress:test
 
 # todo: deprecate
-acceptdata: cleandata
+regress_data: clean_data
 	python regress/tf_generate/tf_generate.py
 
 # remove all test data

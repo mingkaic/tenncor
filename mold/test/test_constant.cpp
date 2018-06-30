@@ -49,7 +49,7 @@ TEST_F(CONSTANT, Copy_B001)
 	memcpy(ptr.get(), data.c_str(), nbytes);
 
 	mold::Constant con(ptr, shape, dtype);
-	void* origdata = (void*)ptr.get();
+	void* origdata = (void*) ptr.get();
 
 	mold::Constant cp(con);
 	clay::State cstate = cp.get_state();

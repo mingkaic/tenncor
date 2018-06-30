@@ -377,7 +377,7 @@ Identifier* cast (Identifier* type, Identifier* a)
 	{
 		return parent;
 	}
-	return new Functor({type, a}, opcode);
+	return new Functor(std::vector<Identifier*>{type, a}, opcode);
 }
 
 Identifier* abs (Identifier* a)
@@ -531,7 +531,7 @@ Identifier* flip (Identifier* a, Identifier* dims)
 	{
 		return parent;
 	}
-	return new Functor({a, dims}, opcode);
+	return new Functor(std::vector<Identifier*>{a, dims}, opcode);
 }
 
 Identifier* flip (Identifier* a, std::vector<uint64_t> dims)
@@ -566,7 +566,7 @@ Identifier* transpose (Identifier* a, Identifier* perm)
 	{
 		return parent;
 	}
-	return new Functor({a, perm}, opcode);
+	return new Functor(std::vector<Identifier*>{a, perm}, opcode);
 }
 
 Identifier* transpose (Identifier* a, std::vector<uint64_t> perm)
@@ -587,7 +587,7 @@ Identifier* expand (Identifier* a, Identifier* n, Identifier* dim)
 	{
 		return parent;
 	}
-	return new Functor({a, n, dim}, opcode);
+	return new Functor(std::vector<Identifier*>{a, n, dim}, opcode);
 }
 
 Identifier* expand (Identifier* a, Identifier* n, uint64_t dim)
@@ -629,7 +629,7 @@ Identifier* n_dimension (Identifier* a, Identifier* dim)
 	{
 		return parent;
 	}
-	return new Functor({a, dim}, opcode);
+	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
 }
 
 Identifier* n_dimension (Identifier* a, uint64_t dim)
@@ -651,7 +651,7 @@ Identifier* pow (Identifier* b, Identifier* x)
 	{
 		return parent;
 	}
-	return new Functor({b, x}, opcode);
+	return new Functor(std::vector<Identifier*>{b, x}, opcode);
 }
 
 Identifier* add (Identifier* a, Identifier* b)
@@ -665,7 +665,7 @@ Identifier* add (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* sub (Identifier* a, Identifier* b)
@@ -679,7 +679,7 @@ Identifier* sub (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* mul (Identifier* a, Identifier* b)
@@ -693,7 +693,7 @@ Identifier* mul (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* div (Identifier* a, Identifier* b)
@@ -707,7 +707,7 @@ Identifier* div (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* eq (Identifier* a, Identifier* b)
@@ -721,7 +721,7 @@ Identifier* eq (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* neq (Identifier* a, Identifier* b)
@@ -735,7 +735,7 @@ Identifier* neq (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* lt (Identifier* a, Identifier* b)
@@ -749,7 +749,7 @@ Identifier* lt (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* gt (Identifier* a, Identifier* b)
@@ -763,11 +763,11 @@ Identifier* gt (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* pow (Identifier* b, mold::Range bdim,
-    Identifier* x, mold::Range xdim)
+	Identifier* x, mold::Range xdim)
 {
 	if (nullptr == b || nullptr == x)
 	{
@@ -782,7 +782,7 @@ Identifier* pow (Identifier* b, mold::Range bdim,
 }
 
 Identifier* add (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim)
+	Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -797,7 +797,7 @@ Identifier* add (Identifier* a, mold::Range adim,
 }
 
 Identifier* sub (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim)
+	Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -812,7 +812,7 @@ Identifier* sub (Identifier* a, mold::Range adim,
 }
 
 Identifier* mul (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim)
+	Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -827,7 +827,7 @@ Identifier* mul (Identifier* a, mold::Range adim,
 }
 
 Identifier* div (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim)
+	Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -842,7 +842,7 @@ Identifier* div (Identifier* a, mold::Range adim,
 }
 
 Identifier* eq (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim)
+	Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -857,7 +857,7 @@ Identifier* eq (Identifier* a, mold::Range adim,
 }
 
 Identifier* neq (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim)
+	Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -872,7 +872,7 @@ Identifier* neq (Identifier* a, mold::Range adim,
 }
 
 Identifier* lt (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim)
+	Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -887,7 +887,7 @@ Identifier* lt (Identifier* a, mold::Range adim,
 }
 
 Identifier* gt (Identifier* a, mold::Range adim,
-    Identifier* b, mold::Range bdim)
+	Identifier* b, mold::Range bdim)
 {
 	if (nullptr == a || nullptr == b)
 	{
@@ -912,7 +912,7 @@ Identifier* binomial_sample (Identifier* n, Identifier* p)
 	{
 		return parent;
 	}
-	return new Functor({n, p}, opcode);
+	return new Functor(std::vector<Identifier*>{n, p}, opcode);
 }
 
 Identifier* binomial_sample (Identifier* n, double p)
@@ -933,7 +933,7 @@ Identifier* uniform_sample (Identifier* min, Identifier* max)
 	{
 		return parent;
 	}
-	return new Functor({min, max}, opcode);
+	return new Functor(std::vector<Identifier*>{min, max}, opcode);
 }
 
 Identifier* normal_sample (Identifier* mean, Identifier* stdev)
@@ -947,7 +947,7 @@ Identifier* normal_sample (Identifier* mean, Identifier* stdev)
 	{
 		return parent;
 	}
-	return new Functor({mean, stdev}, opcode);
+	return new Functor(std::vector<Identifier*>{mean, stdev}, opcode);
 }
 
 Identifier* arg_max (Identifier* a)
@@ -975,7 +975,7 @@ Identifier* arg_max (Identifier* a, Identifier* dim)
 	{
 		return parent;
 	}
-	return new Functor({a, dim}, opcode);
+	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
 }
 
 Identifier* arg_max (Identifier* a, uint64_t dim)
@@ -996,7 +996,7 @@ Identifier* reduce_max (Identifier* a)
 	{
 		return parent;
 	}
-	return new Functor({a}, opcode);
+	return new Functor(std::vector<Identifier*>{a}, opcode);
 }
 
 Identifier* reduce_max (Identifier* a, Identifier* dim)
@@ -1010,7 +1010,7 @@ Identifier* reduce_max (Identifier* a, Identifier* dim)
 	{
 		return parent;
 	}
-	return new Functor({a, dim}, opcode);
+	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
 }
 
 Identifier* reduce_max (Identifier* a, uint64_t dim)
@@ -1045,7 +1045,7 @@ Identifier* reduce_sum (Identifier* a, Identifier* dim)
 	{
 		return parent;
 	}
-	return new Functor({a, dim}, opcode);
+	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
 }
 
 Identifier* reduce_sum (Identifier* a, uint64_t dim)
@@ -1066,7 +1066,7 @@ Identifier* matmul (Identifier* a, Identifier* b)
 	{
 		return parent;
 	}
-	return new Functor({a, b}, opcode);
+	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
 Identifier* reduce_mean (Identifier* a)
@@ -1130,7 +1130,7 @@ Identifier* reshape (Identifier* a, Identifier* shape)
 	{
 		return parent;
 	}
-	return new Functor({a, shape}, opcode);
+	return new Functor(std::vector<Identifier*>{a, shape}, opcode);
 }
 
 Identifier* reshape (Identifier* a, std::vector<uint64_t> shape)
@@ -1176,7 +1176,7 @@ Identifier* trace_expand (Identifier* a, Identifier* dim)
 	{
 		return parent;
 	}
-	return new Functor({a, dim}, opcode);
+	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
 }
 
 Identifier* trace_expand (Identifier* a, uint64_t dim)
