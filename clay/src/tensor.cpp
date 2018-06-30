@@ -77,11 +77,6 @@ size_t Tensor::total_bytes (void) const
 	return shape_.n_elems() * type_size(dtype_);
 }
 
-iTensor* Tensor::clone_impl (void) const
-{
-	return new Tensor(*this);
-}
-
 }
 
 #endif

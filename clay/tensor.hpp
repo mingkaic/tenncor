@@ -15,8 +15,12 @@
 #include <string>
 #include <type_traits>
 #include <cstring>
+#include <functional>
 
-#include "clay/itensor.hpp"
+#include "clay/shape.hpp"
+#include "clay/dtype.hpp"
+
+#include "clay/state.hpp"
 
 #pragma once
 #ifndef CLAY_TENSOR_HPP
@@ -25,7 +29,7 @@
 namespace clay
 {
 
-class Tensor final : public iTensor
+class Tensor final
 {
 public:
 	//! create a tensor of a specified shape
@@ -33,35 +37,37 @@ public:
 
 	Tensor (const Tensor& other);
 
-	Tensor (Tensor&& other) = delete;
-
 	Tensor& operator = (const Tensor& other);
+
+	Tensor (Tensor&& other) = delete;
 
 	Tensor& operator = (Tensor&& other) = delete;
 
 	// >>>>>>>>>>>> ACCESSORS <<<<<<<<<<<<
 
 	//! get internal state
-	State get_state (void) const override;
+	State get_state (void) const;
 
 	//! get tensor shape
-	Shape get_shape (void) const override;
+	Shape get_shape (void) const;
 
 	//! get tensor dtype
-	DTYPE get_type (void) const override;
+	DTYPE get_type (void) const;
 
 	//! get bytes allocated
-	size_t total_bytes (void) const override;
+	size_t total_bytes (void) const;
 
 private:
-	iTensor* clone_impl (void) const override;
-
 	std::shared_ptr<char> data_;
 
 	Shape shape_;
 
 	DTYPE dtype_;
 };
+
+using TensorPtrT = std::unique_ptr<Tensor>;
+
+using BuildTensorF = std::function<TensorPtrT()>;
 
 }
 

@@ -16,7 +16,7 @@ Variable::Variable (const Variable& other)
 {
 	if (nullptr != other.data_)
 	{
-		data_ = clay::TensorPtrT(other.data_->clone());
+		data_ = std::make_unique<clay::Tensor>(*other.data_);
 	}
 }
 
@@ -26,7 +26,7 @@ Variable& Variable::operator = (const Variable& other)
 	{
 		if (nullptr != other.data_)
 		{
-			data_ = clay::TensorPtrT(other.data_->clone());
+			data_ = std::make_unique<clay::Tensor>(*other.data_);
 		}
 		else
 		{

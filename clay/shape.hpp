@@ -32,15 +32,15 @@ public:
 	Shape& operator = (const std::vector<size_t>& dims);
 
 	// >>>> AVOID OVERRIDE <<<<
-	Shape (void) = default;
+	Shape (void);
 
-	Shape (const Shape&) = default;
+	Shape (const Shape& other);
 
-	Shape (Shape&&) = default;
+	Shape (Shape&&);
 
-	Shape& operator = (const Shape&) = default;
+	Shape& operator = (const Shape&);
 
-	Shape& operator = (Shape&&) = default;
+	Shape& operator = (Shape&&);
 
 
 	// >>>> ACCESSORS <<<<

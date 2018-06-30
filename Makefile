@@ -20,6 +20,8 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 
+COVERAGE_INFO_FILE := coverage.info
+
 # unit test
 test: test_clay test_mold test_slip test_kiln
 
@@ -71,29 +73,36 @@ asan_kiln:
 # coverage unit tests
 coverage: cover_clay cover_mold cover_slip cover_kiln
 
-lcov_clay: cover_clay
-	bash listcov.sh
+lcov_clay:
+	bash listcov.sh cover_clay $(COVERAGE_INFO_FILE)
+	lcov --list $(COVERAGE_INFO_FILE)
 
-lcov_mold: cover_mold
-	bash listcov.sh
+lcov_mold:
+	bash listcov.sh cover_mold $(COVERAGE_INFO_FILE)
+	lcov --remove $(COVERAGE_INFO_FILE) '**/clay/*' -o $(COVERAGE_INFO_FILE)
+	lcov --list $(COVERAGE_INFO_FILE)
 
-lcov_slip: cover_slip
-	bash listcov.sh
+lcov_slip:
+	bash listcov.sh cover_slip $(COVERAGE_INFO_FILE)
+	lcov --remove $(COVERAGE_INFO_FILE) '**/clay/*' '**/mold/*' -o $(COVERAGE_INFO_FILE)
+	lcov --list $(COVERAGE_INFO_FILE)
 
-lcov_kiln: cover_kiln
-	bash listcov.sh
+lcov_kiln:
+	bash listcov.sh cover_kiln $(COVERAGE_INFO_FILE)
+	lcov --remove $(COVERAGE_INFO_FILE) '**/clay/*' '**/mold/*' '**/slip/*' -o $(COVERAGE_INFO_FILE)
+	lcov --list $(COVERAGE_INFO_FILE)
 
 cover_clay:
 	$(COVER) $(REP_BZL_FLAG) //clay:test --instrumentation_filter=/clay[/:]
 
 cover_mold:
-	$(COVER) $(REP_BZL_FLAG) //mold:test --instrumentation_filter=/mold[/:]
+	$(COVER) $(REP_BZL_FLAG) //mold:test --instrumentation_filter=/clay[/:],/mold[/:]
 
 cover_slip:
-	$(COVER) $(REP_BZL_FLAG) //slip:test --instrumentation_filter=/slip[/:]
+	$(COVER) $(REP_BZL_FLAG) //slip:test --instrumentation_filter=/clay[/:],/mold[/:],slip[/:]
 
 cover_kiln:
-	$(COVER) $(REP_BZL_FLAG) //kiln:test --instrumentation_filter=/kiln[/:]
+	$(COVER) $(REP_BZL_FLAG) //kiln:test --instrumentation_filter=/clay[/:],/mold[/:],slip[/:],/kiln[/:]
 
 # regression testing
 regression:

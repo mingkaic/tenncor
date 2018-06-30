@@ -38,7 +38,7 @@ Constant::Constant (const Constant& other)
 	size_t nbytes = other.state_.shape_.n_elems() * clay::type_size(other.state_.dtype_);
 	data_ = clay::make_char(nbytes);
 	std::memcpy(data_.get(), other.data_.get(), nbytes);
-	state_ = clay::State(other.state_, data_);
+	state_ = clay::State(data_, other.state_.shape_, other.state_.dtype_);
 }
 
 bool Constant::has_data (void) const

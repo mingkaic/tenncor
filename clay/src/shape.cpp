@@ -25,6 +25,16 @@ Shape& Shape::operator = (const std::vector<size_t>& dims)
 	return *this;
 }
 
+Shape::Shape (void) = default;
+
+Shape::Shape (const Shape& other) = default;
+
+Shape::Shape (Shape&&) = default;
+
+Shape& Shape::operator = (const Shape&) = default;
+
+Shape& Shape::operator = (Shape&&) = default;
+
 size_t Shape::at (size_t dim) const
 {
 	return dimensions_.at(dim);
@@ -81,61 +91,24 @@ size_t Shape::rank (void) const
 
 bool Shape::is_compatible_with (const Shape& other) const
 {
-	bool incomp = true;
-	if (!dimensions_.empty() && !other.dimensions_.empty())
+	if (dimensions_.empty() || other.dimensions_.empty())
 	{
-		size_t thisn = dimensions_.size();
-		size_t othern = other.dimensions_.size();
-		size_t beginthis = 0;
-		size_t beginother = 0;
-		// invariant thisn and othern>= 1 (since dimensions are not empty)
-		size_t endthis = thisn-1;
-		size_t endother = othern-1;
-
-		if (thisn != othern)
+		return true;
+	}
+	size_t rank = dimensions_.size();
+	if (rank != other.dimensions_.size())
+	{
+		return false;
+	}
+	for (size_t i = 0; i < rank; ++i)
+	{
+		if (dimensions_[i] != other.dimensions_[i] &&
+			0 != dimensions_[i] * other.dimensions_[i])
 		{
-			while (beginthis < thisn-1 && 1 == dimensions_[beginthis]) { beginthis++; }
-			while (endthis> beginthis && 1 == dimensions_[endthis]) { endthis--; }
-			while (beginother < othern-1 && 1 == other.dimensions_[beginother]) { beginother++; }
-			while (endother> beginother && 1 == other.dimensions_[endother]) { endother--; }
-			size_t lenthis = endthis - beginthis;
-			size_t lenother = endother - beginother;
-			if (lenthis> lenother)
-			{
-				// todo: improve this matching algorithm to account for cases where
-				// decrementing endthis before incrementing beginthis matches while the opposite order doesn't
-
-				// try to match this to other by searching for padding zeros to convert to 1 padding in this
-				while (endthis - beginthis> lenother && beginthis < endthis && 0 == dimensions_[beginthis]) { beginthis++; }
-				while (endthis - beginthis> lenother && endthis> beginthis && 0 == dimensions_[endthis]) { endthis--; }
-
-				if (endthis - beginthis> lenother)
-					// match unsuccessful, they are incompatible
-					return false;
-			}
-			else if (lenother> lenthis)
-			{
-				// try to match other to this by searching for padding zeros to convert to 1 padding in other
-				while (endother - beginother> lenthis && beginother < endother && 0 == other.dimensions_[beginother]) { beginother++; }
-				while (endother - beginother> lenthis && endother> beginother && 0 == other.dimensions_[endother]) { endother--; }
-
-				if (endother - beginother> lenthis)
-					// match unsuccessful, they are incompatible
-					return false;
-			}
-		}
-
-		// invariant: endthis - beginthis == endother - beginother
-		while (beginthis <= endthis && beginother <= endother)
-		{
-			incomp = incomp &&
-				(dimensions_[beginthis] == other.dimensions_[beginother] ||
-				0 == (dimensions_[beginthis] && other.dimensions_[beginother]));
-			beginthis++;
-			beginother++;
+			return false;
 		}
 	}
-	return incomp;
+	return true;
 }
 
 bool Shape::is_part_defined (void) const

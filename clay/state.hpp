@@ -29,20 +29,14 @@ struct State final
 
 	State (std::weak_ptr<char> data, Shape shape, DTYPE dtype);
 
-	State (char* data, std::weak_ptr<char> block,
-		Shape shape, DTYPE dtype);
-
-	State (const State& other, std::weak_ptr<char> block);
-
 	char* get (void) const;
 
 	Shape shape_;
+
 	DTYPE dtype_ = DTYPE::BAD;
 
 private:
-	char* data_ = nullptr;
-
-	std::weak_ptr<char> block_;
+	std::weak_ptr<char> data_;
 };
 
 }

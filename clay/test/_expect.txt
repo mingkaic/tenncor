@@ -5,8 +5,9 @@ A001 - index accessor returns value at input dimension.
 A002 - n_elems returns the product of all dimension value. non-fully defined shapes have n_elems of 0
 A003 - n_known obtains the product of all known dimensions
 A004 - rank returns the length of the dimension vector
-A005 - Shape is compatible if one of the shapes are undefined,
-		or the tensors are of the same rank and dimension values equal for defined dimensions (> 0)
+A005 - Shape is compatible if one of the shapes is undefined,
+		or the tensors are of the same rank and
+		dimension values > 0 are equal
 A006 - a Shapes is partially defined if it has a rank > 0
 A007 - a Shapes is fully defined if it is at least partially defined
 		and all its dimensional values are defined (> 0)
@@ -20,6 +21,7 @@ A011 - a Shape's rank can be manipulated by padding with ones or clipping
 A012 - coord_from_idx converts coordinates C to sequential index I on a Shape S takes form:
 		I = SIGMA_i=0:n(C[i]*PI_j=0:i-1(S[i])) where n is rank of S, and S[-1] is 1
 		flat_idx remap coordinate C on a Shape equals the initial index converted to C (reverse of A015)
+A013 - to_string writes the contents of the shape as string
 
 // TYPE BEHAVIOR
 B000 - type_size returns the number of bytes taken by specified type
