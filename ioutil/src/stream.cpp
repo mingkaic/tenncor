@@ -10,6 +10,8 @@
 namespace ioutil
 {
 
+Stream::Stream (void) = default;
+
 std::string Stream::str(void) const
 {
 	return stream_.str();

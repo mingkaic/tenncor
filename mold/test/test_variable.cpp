@@ -81,6 +81,20 @@ TEST_F(VARIABLE, Copy_C000)
 
 	EXPECT_FALSE(cp2.has_data());
 
+	mold::iNode* clone = var.clone();
+	mold::iNode* clone2 = var2.clone();
+	ASSERT_TRUE(clone->has_data());
+	clay::State statec = clone->get_state();
+	std::string got_uuidc(statec.get(),
+		statec.shape_.n_elems() * clay::type_size(statec.dtype_));
+	EXPECT_STREQ(uuid2.c_str(), got_uuidc.c_str());
+	EXPECT_SHAPEQ(shape2, statec.shape_);
+	EXPECT_EQ(dtype2, statec.dtype_);
+
+	EXPECT_FALSE(clone2->has_data());
+	delete clone;
+	delete clone2;
+
 	assign = var;
 	assign1 = var;
 	assign2 = var2;
@@ -165,9 +179,14 @@ TEST_F(VARIABLE, Data_C002)
 	clay::Tensor* tens = new clay::Tensor(shape, dtype);
 	std::string uuid = fake_init_v(tens, this);
 
+	EXPECT_THROW(var.set_data(nullptr), mold::NilDataError);
+
 	EXPECT_FALSE(var.has_data()) << "uninitialized variable has data";
 	var.set_data(clay::TensorPtrT(tens));
 	EXPECT_TRUE(var.has_data()) << "initialized variable doesn't have data";
+
+	EXPECT_THROW(var.set_data(clay::TensorPtrT(
+		new clay::Tensor(shape, dtype))), std::exception);
 }
 
 
@@ -187,6 +206,8 @@ TEST_F(VARIABLE, State_C003)
 		state.shape_.n_elems() * clay::type_size(state.dtype_));
 	EXPECT_STREQ(uuid.c_str(), got_uuid.c_str());
 	EXPECT_SHAPEQ(shape, state.shape_);
+	clay::Shape vshape = var.get_shape();
+	EXPECT_SHAPEQ(shape, vshape);
 	EXPECT_EQ(dtype, state.dtype_);
 }
 

@@ -23,21 +23,27 @@ Range::Range (size_t lower, size_t upper)
 clay::Shape Range::apply (const clay::Shape& inshape) const
 {
     size_t n = inshape.rank();
-    size_t lower = std::min(n - 1, lower_);
+    if (lower_ >= n)
+    {
+        return clay::Shape();
+    }
     size_t upper = std::min(n, upper_);
     auto bt = inshape.begin();
-    if (lower == upper) return {};
-    return std::vector<size_t>(bt + lower, bt + upper);
+    if (lower_ == upper) return {};
+    return std::vector<size_t>(bt + lower_, bt + upper);
 }
 
 clay::Shape Range::remove (const clay::Shape& inshape) const
 {
     size_t n = inshape.rank();
-    size_t lower = std::min(n - 1, lower_);
+    if (lower_ >= n)
+    {
+        return inshape;
+    }
     size_t upper = std::min(n, upper_);
     auto bt = inshape.begin();
-    if (lower == upper) return inshape;
-    std::vector<size_t> out(bt, bt + lower);
+    if (lower_ == upper) return inshape;
+    std::vector<size_t> out(bt, bt + lower_);
     out.insert(out.end(), bt + upper, inshape.end());
     return out;
 }

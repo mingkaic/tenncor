@@ -59,6 +59,16 @@ TEST_F(CONSTANT, Copy_B001)
 	EXPECT_NE(origdata, (void*) gotdata);
 	std::string cgot(gotdata, nbytes);
 	EXPECT_STREQ(data.c_str(), cgot.c_str());
+
+	mold::iNode* clone = con.clone();
+	clay::State cstate2 = clone->get_state();
+	EXPECT_SHAPEQ(shape, cstate2.shape_);
+	EXPECT_EQ(dtype, cstate2.dtype_);
+	const char* gotdata2 = cstate2.get();
+	EXPECT_NE(origdata, (void*) gotdata2);
+	std::string cgot2(gotdata2, nbytes);
+	EXPECT_STREQ(data.c_str(), cgot2.c_str());
+	delete clone;
 }
 
 
@@ -105,6 +115,8 @@ TEST_F(CONSTANT, Data_B002)
 		std::vector<uint64_t> gvec(got, got + n);
 		EXPECT_ARREQ(data, gvec);
 	}
+	clay::Shape cshape = node->get_shape();
+	EXPECT_SHAPEQ(shape, cshape);
 
 	delete node;
 }

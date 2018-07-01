@@ -40,3 +40,12 @@ F000 - when deleted, ondeath triggers its ondeath function
 F001 - copy and move constructors specify and use their
 		own ondeath functions instead of the source's ondeath
 F002 - clear_term removes the ondeath function
+
+// RANGE BEHAVIOR
+G000 - upon construction, range will sort its 2 inputs by lower and upper values
+G001 - apply takes the subshape of input starting at index lower (inclusive) and ending at upper (exclusive)
+		range partially outside of shape will clip upper at the max rank of input
+		range outside of shape will return undefined shape
+G002 - remove takes the concatenation of the subshapes before the range [0:lower) and after [upper:]
+		range partially outside of the shape will only take subshape before range
+		range outside of shape will return input shape

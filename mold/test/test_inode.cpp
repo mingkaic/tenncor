@@ -68,14 +68,19 @@ TEST_F(INODE, Copy_A000)
 	mock_node cp(node);
 	auto cp_aud = cp.get_audience();
 	EXPECT_EQ(0, cp_aud.size());
-	EXPECT_EQ(&node, sink.get());
-	EXPECT_EQ(&node, sink2.get());
+
+	mold::iNode* clone = node.clone();
+	auto clone_aud = clone->get_audience();
+	EXPECT_EQ(0, clone_aud.size());
 
 	assign = cp;
 	auto ass_aud = assign.get_audience();
 	EXPECT_EQ(0, ass_aud.size());
+
 	EXPECT_EQ(&node, sink.get());
 	EXPECT_EQ(&node, sink2.get());
+	
+	delete clone;
 }
 
 

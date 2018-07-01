@@ -23,15 +23,15 @@ namespace mold
 class Variable final : public iNode
 {
 public:
-	Variable (void) = default;
+	Variable (void);
 
 	Variable (const Variable& other);
 
-	Variable (Variable&&) = default;
+	Variable (Variable&&);
 
 	Variable& operator = (const Variable& other);
 
-	Variable& operator = (Variable&&) = default;
+	Variable& operator = (Variable&&);
 
 	bool has_data (void) const override;
 

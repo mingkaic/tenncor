@@ -31,7 +31,7 @@ public:
 		to_str
 	};
 
-	Stream (void) = default;
+	Stream (void);
 
 	//! no copying or moving to force string conversion
 	//! format content is always passed as a string

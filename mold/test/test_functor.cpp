@@ -189,6 +189,7 @@ TEST_F(FUNCTOR, Copy_D000)
 	ASSERT_TRUE(f->has_data());
 
 	mold::Functor* cp = new mold::Functor(*f);
+	mold::iNode* clone = f->clone();
 	*assign = *f;
 
 	auto aud = arg.get_audience();
@@ -196,12 +197,17 @@ TEST_F(FUNCTOR, Copy_D000)
 	auto nonaud = non.get_audience();
 	EXPECT_EQ(0, nonaud.size());
 	EXPECT_TRUE(aud.end() != aud.find(cp)) << "cp not found in audience of arg";
+	EXPECT_TRUE(aud.end() != aud.find(
+		dynamic_cast<mold::Functor*>(clone))) << "clone not found in audience of arg";
 	EXPECT_TRUE(aud.end() != aud.find(assign)) << "assign not found in audience of arg";
 	EXPECT_TRUE(aud2.end() != aud2.find(cp)) << "cp not found in audience of arg2";
+	EXPECT_TRUE(aud2.end() != aud2.find(
+		dynamic_cast<mold::Functor*>(clone))) << "clone not found in audience of arg2";
 	EXPECT_TRUE(aud2.end() != aud2.find(assign)) << "assign not found in audience of arg2";
 
 	delete f;
 	delete cp;
+	delete clone;
 	delete assign;
 }
 
@@ -301,6 +307,8 @@ TEST_F(FUNCTOR, GetState_D004)
 	f->initialize();
 	clay::State state = f->get_state();
 	ASSERT_SHAPEQ(shape, state.shape_);
+	clay::Shape fshape = f->get_shape();
+	EXPECT_SHAPEQ(shape, fshape);
 	ASSERT_EQ(dtype, state.dtype_);
 	std::string got_uuid(state.get(),
 		state.shape_.n_elems() * clay::type_size(state.dtype_));

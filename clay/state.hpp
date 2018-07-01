@@ -25,7 +25,7 @@ namespace clay
 
 struct State final
 {
-	State (void) = default;
+	State (void);
 
 	State (std::weak_ptr<char> data, Shape shape, DTYPE dtype);
 

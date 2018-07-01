@@ -34,6 +34,8 @@ void Graph::replace_global (std::unique_ptr<Graph>&& temp)
 	get_global() = std::move(*temp);
 }
 
+Graph& Graph::operator = (Graph&&) = default;
+
 std::string Graph::get_gid (void) const
 {
 	return gid_;

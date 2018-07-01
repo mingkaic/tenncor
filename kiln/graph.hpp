@@ -56,7 +56,7 @@ public:
 
 	Graph& operator = (const Graph&) = delete;
 
-	Graph& operator = (Graph&&) = default;
+	Graph& operator = (Graph&&);
 
 
 	std::string get_gid (void) const;

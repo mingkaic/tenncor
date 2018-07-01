@@ -11,6 +11,8 @@
 
 namespace mold
 {
+	
+Variable::Variable (void) = default;
 
 Variable::Variable (const Variable& other)
 {
@@ -19,6 +21,8 @@ Variable::Variable (const Variable& other)
 		data_ = std::make_unique<clay::Tensor>(*other.data_);
 	}
 }
+
+Variable::Variable (Variable&&) = default;
 
 Variable& Variable::operator = (const Variable& other)
 {
@@ -35,6 +39,8 @@ Variable& Variable::operator = (const Variable& other)
 	}
 	return *this;
 }
+
+Variable& Variable::operator = (Variable&&) = default;
 
 bool Variable::has_data (void) const
 {

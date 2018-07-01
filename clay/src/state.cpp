@@ -10,6 +10,8 @@
 namespace clay
 {
 
+State::State (void) = default;
+
 State::State (std::weak_ptr<char> data, Shape shape, DTYPE dtype) :
 	shape_(shape), dtype_(dtype), data_(data) {}
 

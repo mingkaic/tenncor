@@ -25,12 +25,9 @@ namespace mold
 class iOperateIO
 {
 public:
-	virtual ~iOperateIO (void) = default;
+	virtual ~iOperateIO (void);
 
-	iOperateIO* clone (void) const
-	{
-		return clone_impl();
-	}
+	iOperateIO* clone (void) const;
 
 	virtual bool validate_data (clay::State state,
 		std::vector<StateRange> args) const = 0;
