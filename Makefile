@@ -75,21 +75,22 @@ coverage: cover_clay cover_mold cover_slip cover_kiln
 
 lcov_clay:
 	bash listcov.sh cover_clay $(COVERAGE_INFO_FILE)
+	lcov --remove $(COVERAGE_INFO_FILE) '*.hpp' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_mold:
 	bash listcov.sh cover_mold $(COVERAGE_INFO_FILE)
-	lcov --remove $(COVERAGE_INFO_FILE) '**/clay/*' -o $(COVERAGE_INFO_FILE)
+	lcov --remove $(COVERAGE_INFO_FILE) '*.hpp' '**/clay/*' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_slip:
 	bash listcov.sh cover_slip $(COVERAGE_INFO_FILE)
-	lcov --remove $(COVERAGE_INFO_FILE) '**/clay/*' '**/mold/*' -o $(COVERAGE_INFO_FILE)
+	lcov --remove $(COVERAGE_INFO_FILE) '*.hpp' '**/clay/*' '**/mold/*' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_kiln:
 	bash listcov.sh cover_kiln $(COVERAGE_INFO_FILE)
-	lcov --remove $(COVERAGE_INFO_FILE) '**/clay/*' '**/mold/*' '**/slip/*' -o $(COVERAGE_INFO_FILE)
+	lcov --remove $(COVERAGE_INFO_FILE) '*.hpp' '**/clay/*' '**/mold/*' '**/slip/*' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 cover_clay:

@@ -33,4 +33,10 @@ E000 - copy deep copies observed arg if not expired,
  		otherwise expire sink
 E001 - move moves observed arg if not expired, otherwise expire sink
 E002 - assign inode to sink changes observed node
-E002 - expired returns true when observed arg is deleted
+E003 - expired returns true when observed arg is deleted
+
+// ONDEATH BEHAVIOR
+F000 - when deleted, ondeath triggers its ondeath function
+F001 - copy and move constructors specify and use their
+		own ondeath functions instead of the source's ondeath
+F002 - clear_term removes the ondeath function

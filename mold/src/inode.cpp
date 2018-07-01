@@ -11,6 +11,8 @@
 namespace mold
 {
 
+iNode::iNode (void) = default;
+
 iNode::~iNode (void)
 {
 	auto auds = audience_;

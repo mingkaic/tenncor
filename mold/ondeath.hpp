@@ -33,6 +33,10 @@ struct OnDeath final : public iObserver
 
 	OnDeath (OnDeath&& other, TermF term);
 
+	OnDeath& operator = (const OnDeath& other) = delete;
+
+	OnDeath& operator = (OnDeath&& other) = delete;
+
 	iNode* get (void) const;
 
 	void initialize (void) override;

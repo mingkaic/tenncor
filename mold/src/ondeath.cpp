@@ -15,7 +15,10 @@ OnDeath::OnDeath (iNode* arg, TermF term) :
 
 OnDeath::~OnDeath (void)
 {
-	terminate_();
+	if (terminate_)
+	{
+		terminate_();
+	}
 }
 
 OnDeath::OnDeath (const OnDeath& other, TermF term) :
