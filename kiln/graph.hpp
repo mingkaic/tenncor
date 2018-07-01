@@ -96,9 +96,9 @@ protected:
 
 	friend class Functor;
 
-	Graph (void) : gid_(puid(this)) {}
+	Graph (void);
 
-	Graph (std::string gid) : gid_(gid) {}
+	Graph (std::string gid);
 
 	UID associate (Identifier* id);
 

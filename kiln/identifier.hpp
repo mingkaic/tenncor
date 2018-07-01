@@ -47,20 +47,9 @@ public:
 
 	clay::State get_state (void) const;
 
-	virtual std::vector<UID> get_args (void) const
-	{
-		return {};
-	}
+	virtual std::vector<UID> get_args (void) const;
 
-	mold::iNode* get (void) const
-	{
-		mold::iNode* out = nullptr;
-		if (nullptr != death_sink_)
-		{
-			out = death_sink_->get();
-		}
-		return out;
-	}
+	mold::iNode* get (void) const;
 
 protected:
 	friend class Functor;

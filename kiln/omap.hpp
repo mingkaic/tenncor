@@ -34,80 +34,25 @@ template <typename K, typename V>
 class OrderedMap
 {
 public:
-	optional<V> get (K key) const
-	{
-		optional<V> out;
-		auto it = dict_.find(key);
-		if (dict_.end() != it)
-		{
-			out = *(it->second);
-		}
-		return out;
-	}
+	optional<V> get (K key) const;
 
-	bool has (K key) const
-	{
-		return dict_.end() != dict_.find(key);
-	}
+	bool has (K key) const;
 
-	size_t size (void) const
-	{
-		return order_.size();
-	}
+	size_t size (void) const;
 
-	list_it<V> begin (void)
-	{
-		return order_.begin();
-	}
+	list_it<V> begin (void);
 
-	list_it<V> end (void)
-	{
-		return order_.end();
-	}
+	list_it<V> end (void);
 
-	list_const_it<V> begin (void) const
-	{
-		return order_.cbegin();
-	}
+	list_const_it<V> begin (void) const;
 
-	list_const_it<V> end (void) const
-	{
-		return order_.cend();
-	}
+	list_const_it<V> end (void) const;
 
-	bool put (K key, V value)
-	{
-		bool success = false == has(key);
-		if (success)
-		{
-			order_.push_back(value);
-			dict_[key] = std::prev(order_.end());
-		}
-		return success;
-	}
+	bool put (K key, V value);
 
-	bool remove (K key)
-	{
-		auto it = dict_.find(key);
-		bool success = dict_.end() != it;
-		if (success)
-		{
-			auto vt = it->second;
-			order_.erase(vt);
-			dict_.erase(it);
-		}
-		return success;
-	}
+	bool remove (K key);
 
-	bool replace (K key, V value)
-	{
-		bool success = remove(key);
-		if (success)
-		{
-			success = put(key, value);
-		}
-		return success;
-	}
+	bool replace (K key, V value);
 
 private:
 	std::list<V> order_;
@@ -118,3 +63,5 @@ private:
 }
 
 #endif /* KILN_OMAP_HPP */
+
+#include "kiln/include/omap.ipp"

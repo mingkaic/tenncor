@@ -45,10 +45,7 @@ public:
 
 	~Functor (void);
 
-	std::vector<UID> get_args (void) const override
-	{
-		return arg_ids_;
-	}
+	std::vector<UID> get_args (void) const override;
 
 	slip::OPCODE opcode_;
 

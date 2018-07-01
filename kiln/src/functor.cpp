@@ -102,6 +102,11 @@ Functor::~Functor (void)
 	graph_->remove_func(this);
 }
 
+std::vector<UID> Functor::get_args (void) const
+{
+	return arg_ids_;
+}
+
 }
 
 #endif

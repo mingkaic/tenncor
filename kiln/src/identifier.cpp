@@ -88,6 +88,21 @@ clay::State Identifier::get_state (void) const
 	return get()->get_state();
 }
 
+std::vector<UID> Identifier::get_args (void) const
+{
+	return {};
+}
+
+mold::iNode* Identifier::get (void) const
+{
+	mold::iNode* out = nullptr;
+	if (nullptr != death_sink_)
+	{
+		out = death_sink_->get();
+	}
+	return out;
+}
+
 void Identifier::copy_helper (const Identifier& other)
 {
 	clear();

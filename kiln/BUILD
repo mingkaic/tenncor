@@ -17,7 +17,11 @@ filegroup(
 
 cc_library(
     name = "kiln",
-    hdrs = glob([ "*.hpp" ]),
+    hdrs = glob([
+        "*.hpp",
+        "include/*.hpp",
+        "include/*.ipp",
+    ]),
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
     deps = [

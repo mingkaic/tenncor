@@ -149,6 +149,10 @@ size_t Graph::n_uninit (void) const
 	return uninits_.size();
 }
 
+Graph::Graph (void) : gid_(puid(this)) {}
+
+Graph::Graph (std::string gid) : gid_(gid) {}
+
 UID Graph::associate (Identifier* ider)
 {
 	UID id = next_uid_++;

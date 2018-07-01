@@ -14,7 +14,7 @@ iOperateIO::~iOperateIO (void) = default;
 
 iOperateIO* iOperateIO::clone (void) const
 {
-    return clone_impl();
+	return clone_impl();
 }
 
 }

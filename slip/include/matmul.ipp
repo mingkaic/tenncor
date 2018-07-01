@@ -282,6 +282,39 @@ void jacobian (clay::State& dest, std::vector<clay::State> srcs)
 	}
 }
 
+template <typename T>
+void trace_expand (clay::State& dest, std::vector<clay::State> srcs)
+{
+	if (srcs.size() != 2)
+	{
+		throw std::exception();
+	}
+	clay::Shape& destshape = dest.shape_;
+	clay::Shape& srcshape = srcs.front().shape_;
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(srcs.front());
+	clay::State& dstate = srcs[1];
+	if (dstate.dtype_ != clay::UINT64)
+	{
+		throw std::exception();
+	}
+	if (1 != dstate.shape_.n_elems())
+	{
+		throw std::exception();
+	}
+	uint64_t dim = *(safe_get<uint64_t>(dstate));
+	size_t n = srcshape.n_elems();
+	std::vector<size_t> coord;
+	std::memset(d, 0, sizeof(T) * destshape.n_elems());
+	for (size_t i = 0; i < n; ++i)
+	{
+		coord = coordinate(srcshape, i);
+		coord.insert(coord.begin() + dim, coord[dim]);
+		size_t outidx = index(destshape, coord);
+		d[outidx] = s[i];
+	}
+}
+
 }
 
 #endif
