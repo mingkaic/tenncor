@@ -1,3 +1,9 @@
+// SHAPER BEHAVIOR
+A000 - without range, elem_shaper returns non-scalar shape if all shapes are the compatible or scalar
+		with range, elem_shaper returns the larger shape if outer shapes are compatible or scalar and
+		innershapes are compatible
+		incompatibilities throws ShapeMismatchError
+
 // REGISTRY BEHAVIOR
 B000 - get_op for unsupported OPCODE throws
 B001 - slip::CAST returns operate_io casting input2 to input1 type

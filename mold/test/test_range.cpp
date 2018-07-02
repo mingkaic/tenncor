@@ -68,17 +68,17 @@ TEST_F(RANGE, Remove_G002)
 	std::vector<size_t> exouter(it, it + range.lower_);
 	exouter.insert(exouter.end(), it + range.upper_, shape.end());
 	clay::Shape expect(exouter);
-	clay::Shape outer = range.remove(shape);
+	clay::Shape outer = range.split(shape);
 	EXPECT_SHAPEQ(expect, outer);
 
 	mold::Range halfin(values[0], 2 * rank);
 	std::vector<size_t> halfvec(it, it + values[0]);
 	clay::Shape halfexpect(halfvec);
-	clay::Shape halfouter = halfin.remove(shape);
+	clay::Shape halfouter = halfin.split(shape);
 	EXPECT_SHAPEQ(halfexpect, halfouter);
 
 	mold::Range allout(2 * rank, 4 * rank);
-	clay::Shape outouter = allout.remove(shape);
+	clay::Shape outouter = allout.split(shape);
 	EXPECT_SHAPEQ(shape, outouter);
 }
 

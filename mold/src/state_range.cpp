@@ -35,7 +35,7 @@ clay::Shape StateRange::inner (void) const
 
 clay::Shape StateRange::outer (void) const
 {
-	return drange_.remove(arg_.shape_);
+	return drange_.split(arg_.shape_);
 }
 
 }

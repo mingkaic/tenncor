@@ -33,7 +33,7 @@ clay::Shape Range::apply (const clay::Shape& inshape) const
 	return std::vector<size_t>(bt + lower_, bt + upper);
 }
 
-clay::Shape Range::remove (const clay::Shape& inshape) const
+clay::Shape Range::split (const clay::Shape& inshape) const
 {
 	size_t n = inshape.rank();
 	if (lower_ >= n)

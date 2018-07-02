@@ -83,23 +83,20 @@ static void unaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	std::shared_ptr<char> data = clay::make_char(nbytes);
 	std::memcpy(data.get(), &argument[0], nbytes);
 	clay::State in(data, shape, clay::DOUBLE);
+	mold::StateRange inr(in, mold::Range(0, -1));
 	clay::Shape wun = std::vector<size_t>{1};
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
 		"unary " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 
-	clay::TensorPtrT tens = op->make_data({
-		mold::StateRange(in, mold::Range(0, 0))
-	});
+	clay::TensorPtrT tens = op->make_data({inr});
 	ASSERT_SHAPEQ(wun, tens->get_shape());
 	ASSERT_EQ(clay::DOUBLE, tens->get_type());
 
 	std::shared_ptr<char> output = clay::make_char(sizeof(double));
 	clay::State out(output, wun, clay::DOUBLE);
-	ASSERT_TRUE(op->write_data(out, {
-		mold::StateRange(in, mold::Range(0, 0))
-	}));
+	ASSERT_TRUE(op->write_data(out, {inr}));
 	EXPECT_EQ(agg(argument), *((double*) output.get()));
 }
 

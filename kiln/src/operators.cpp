@@ -346,8 +346,11 @@ const GradMapT grad_op =
 		}
 		auto dim = args.back().first;
 		auto me = reduce_max(a, dim);
-		auto bitmap = expand(me, n_dimension(a, dim), dim);
-		return mul(da, eq(bitmap, a));
+		if (me->get()->get_shape().rank() > 1)
+		{
+			me = expand(me, n_dimension(a, dim), dim);
+		}
+		return mul(da, eq(me, a));
 	}},
 	std::pair<slip::OPCODE,GradF>{slip::RSUM, straight_grad},
 	std::pair<slip::OPCODE,GradF>{slip::N_ELEMS, zero_grad},
@@ -961,7 +964,7 @@ Identifier* arg_max (Identifier* a)
 	{
 		return parent;
 	}
-	return new Functor({a}, opcode);
+	return new Functor({{a, mold::Range(0, -1)}}, opcode);
 }
 
 Identifier* arg_max (Identifier* a, Identifier* dim)
@@ -996,7 +999,7 @@ Identifier* reduce_max (Identifier* a)
 	{
 		return parent;
 	}
-	return new Functor(std::vector<Identifier*>{a}, opcode);
+	return new Functor({{a, mold::Range(0, -1)}}, opcode);
 }
 
 Identifier* reduce_max (Identifier* a, Identifier* dim)
@@ -1031,7 +1034,7 @@ Identifier* reduce_sum (Identifier* a)
 	{
 		return parent;
 	}
-	return new Functor({a}, opcode);
+	return new Functor({{a, mold::Range(0, -1)}}, opcode);
 }
 
 Identifier* reduce_sum (Identifier* a, Identifier* dim)
