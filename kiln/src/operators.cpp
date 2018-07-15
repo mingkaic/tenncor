@@ -11,13 +11,15 @@
 namespace kiln
 {
 
-static inline Identifier* single_parent (UID argid, slip::OPCODE opcode)
+static inline Identifier* single_parent (UID argid, slip::OPCODE opcode,
+	mold::Range arange = {0,0})
 {
+	UIDRange arg{argid, arange};
 	FunctorSetT funcs = Graph::get_global().get_func(opcode);
 	for (Functor* f : funcs)
 	{
 		auto args = f->get_args();
-		if (args.size() == 1 && args[0] == argid)
+		if (args.size() == 1 && args[0] == arg)
 		{
 			return f;
 		}
@@ -26,7 +28,7 @@ static inline Identifier* single_parent (UID argid, slip::OPCODE opcode)
 }
 
 static inline Identifier* ordered_parent (
-	std::vector<UID> srcs, slip::OPCODE opcode)
+	std::vector<UIDRange> srcs, slip::OPCODE opcode)
 {
 	assert(srcs.size() > 0);
 	FunctorSetT funcs = Graph::get_global().get_func(opcode);
@@ -42,14 +44,14 @@ static inline Identifier* ordered_parent (
 }
 
 static inline Identifier* unordered_parent (
-	std::unordered_set<UID> srcs, slip::OPCODE opcode)
+	std::unordered_set<UIDRange,UIDRangeHasher> srcs, slip::OPCODE opcode)
 {
 	assert(srcs.size() > 0);
 	FunctorSetT funcs = Graph::get_global().get_func(opcode);
 	for (Functor* f : funcs)
 	{
 		auto args = f->get_args();
-		std::unordered_set<UID> argset(
+		std::unordered_set<UIDRange,UIDRangeHasher> argset(
 			args.begin(), args.end());
 		if (argset == srcs)
 		{
@@ -61,7 +63,7 @@ static inline Identifier* unordered_parent (
 
 static Identifier* straight_grad (Identifier*, GradArgsT args)
 {
-	return args.front().second;
+	return args.front().second.arg_;
 }
 
 static Constant* zero_grad (Identifier*, GradArgsT args)
@@ -74,22 +76,22 @@ const GradMapT grad_op =
 	std::pair<slip::OPCODE,GradF>{slip::CAST,
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
-		return cast(args.front().first, args.back().second);
+		return cast(args.front().first.arg_, args.back().second.arg_);
 	}},
 	std::pair<slip::OPCODE,GradF>{slip::ABS,
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
-		return abs(args.front().second);
+		return abs(args.front().second.arg_);
 	}},
 	std::pair<slip::OPCODE,GradF>{slip::NEG,
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
-		return neg(args.front().second);
+		return neg(args.front().second.arg_);
 	}},
 	std::pair<slip::OPCODE,GradF>{slip::NOT,
 	[](Identifier* one, GradArgsT args) -> Identifier*
 	{
-		auto df = args.front().second;
+		auto df = args.front().second.arg_;
 		if (nullptr == df)
 		{
 			return one;
@@ -100,8 +102,8 @@ const GradMapT grad_op =
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
 		// sin'(f) = f'*cos(f)
-		auto f = args.front().first;
-		auto df = args.front().second;
+		auto f = args.front().first.arg_;
+		auto df = args.front().second.arg_;
 		if (nullptr == df)
 		{
 			return nullptr;
@@ -112,8 +114,8 @@ const GradMapT grad_op =
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
 		// cos'(f) = -f'*sin(f)
-		auto f = args.front().first;
-		auto df = args.front().second;
+		auto f = args.front().first.arg_;
+		auto df = args.front().second.arg_;
 		if (nullptr == df)
 		{
 			return nullptr;
@@ -125,8 +127,8 @@ const GradMapT grad_op =
 	{
 		// tan'(f) = f'*sec^2(f)
 		// 		= f'/cos^2(f)
-		auto f = args.front().first;
-		auto df = args.front().second;
+		auto f = args.front().first.arg_;
+		auto df = args.front().second.arg_;
 		if (nullptr == df)
 		{
 			return nullptr;
@@ -138,8 +140,8 @@ const GradMapT grad_op =
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
 		// exp'(f) = f'*exp(f)
-		auto f = args.front().first;
-		auto df = args.front().second;
+		auto f = args.front().first.arg_;
+		auto df = args.front().second.arg_;
 		if (nullptr == df)
 		{
 			return nullptr;
@@ -150,8 +152,8 @@ const GradMapT grad_op =
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
 		// log'(f) = f' / f
-		auto f = args.front().first;
-		auto df = args.front().second;
+		auto f = args.front().first.arg_;
+		auto df = args.front().second.arg_;
 		if (nullptr == df)
 		{
 			return nullptr;
@@ -162,8 +164,8 @@ const GradMapT grad_op =
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
 		// sqrt'(f) = f'/(2*sqrt(f))
-		auto f = args.front().first;
-		auto df = args.front().second;
+		auto f = args.front().first.arg_;
+		auto df = args.front().second.arg_;
 		if (nullptr == df)
 		{
 			return nullptr;
@@ -175,7 +177,14 @@ const GradMapT grad_op =
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
 		// round'(f) = round(f')
-		return round(args.front().second);
+		return round(args.front().second.arg_);
+	}},
+	std::pair<slip::OPCODE,GradF>{slip::ISMAX,
+	[](Identifier*, GradArgsT args) -> Identifier*
+	{
+		return mul(
+			IdRange{is_max(args.front().first), mold::Range(0, 0)},
+			IdRange{args.front().second.arg_, mold::Range(0, 0)});
 	}},
 	std::pair<slip::OPCODE,GradF>{slip::POW,
 	[](Identifier*, GradArgsT args) -> Identifier*
@@ -186,18 +195,24 @@ const GradMapT grad_op =
 		auto g = args.back().first;
 		auto df = args.front().second;
 		auto dg = args.back().second;
-		assert(g->has_data());
-		Identifier* one = make_one(g);
-		auto pre = pow(f, sub(g, one));
+		assert(g.arg_->has_data());
+		Identifier* one = make_one(g.arg_);
+		auto pre = pow(f, IdRange{
+			sub(g, IdRange{one, mold::Range(0, 0)}),
+			g.drange_
+		});
 		Identifier* lhs = nullptr;
 		Identifier* rhs = nullptr;
-		if (nullptr != df)
+		if (nullptr != df.arg_)
 		{
 			lhs = mul(df, g);
 		}
-		if (nullptr != dg)
+		if (nullptr != dg.arg_)
 		{
-			rhs = mul(dg, mul(f, log(f)));
+			rhs = mul(dg, IdRange{mul(f,
+				IdRange{log(f.arg_), f.drange_}),
+				f.drange_
+			});
 		}
 		Identifier* main;
 		if (nullptr == lhs)
@@ -220,13 +235,13 @@ const GradMapT grad_op =
 		// h'(f, g) = f' + g'
 		auto lhs = args.front().second;
 		auto rhs = args.back().second;
-		if (nullptr == lhs)
+		if (nullptr == lhs.arg_)
 		{
-			return rhs;
+			return rhs.arg_;
 		}
-		else if (nullptr == rhs)
+		else if (nullptr == rhs.arg_)
 		{
-			return lhs;
+			return lhs.arg_;
 		}
 		return add(lhs, rhs);
 	}},
@@ -236,13 +251,13 @@ const GradMapT grad_op =
 		// h'(f, g) = f' - g'
 		auto lhs = args.front().second;
 		auto rhs = args.back().second;
-		if (nullptr == lhs)
+		if (nullptr == lhs.arg_)
 		{
-			return neg(rhs);
+			return neg(rhs.arg_);
 		}
-		else if (nullptr == rhs)
+		else if (nullptr == rhs.arg_)
 		{
-			return lhs;
+			return lhs.arg_;
 		}
 		return sub(lhs, rhs);
 	}},
@@ -276,7 +291,9 @@ const GradMapT grad_op =
 		auto g = args.back().first;
 		auto dg = args.back().second;
 		auto lhs = div(df, g);
-		auto rhs = div(div(mul(dg, f), g), g);
+		auto rhs = div(IdRange{div(
+			IdRange{mul(dg, f), dg.drange_}, g), dg.drange_
+		}, g);
 		if (nullptr == lhs)
 		{
 			return neg(rhs);
@@ -312,24 +329,6 @@ const GradMapT grad_op =
 	std::pair<slip::OPCODE,GradF>{slip::NORM, zero_grad},
 	std::pair<slip::OPCODE,GradF>{slip::TRANSPOSE, straight_grad},
 	std::pair<slip::OPCODE,GradF>{slip::FLIP, straight_grad},
-	std::pair<slip::OPCODE,GradF>{slip::UARGMAX,
-	[](Identifier*, GradArgsT args) -> Identifier*
-	{
-		throw std::bad_function_call();
-	}},
-	std::pair<slip::OPCODE,GradF>{slip::URMAX,
-	[](Identifier*, GradArgsT args) -> Identifier*
-	{
-		auto a = args.front().first;
-		auto da = args.front().second;
-		if (da == nullptr)
-		{
-			return nullptr;
-		}
-		auto me = reduce_max(a);
-		return mul(da, eq(me, a));
-	}},
-	std::pair<slip::OPCODE,GradF>{slip::URSUM, straight_grad},
 	std::pair<slip::OPCODE,GradF>{slip::ARGMAX,
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
@@ -340,17 +339,14 @@ const GradMapT grad_op =
 	{
 		auto a = args.front().first;
 		auto da = args.front().second;
-		if (da == nullptr)
+		if (da.arg_ == nullptr)
 		{
 			return nullptr;
 		}
-		auto dim = args.back().first;
-		auto me = reduce_max(a, dim);
-		if (me->get()->get_shape().rank() > 1)
-		{
-			me = expand(me, n_dimension(a, dim), dim);
-		}
-		return mul(da, eq(me, a));
+		auto out = is_max(a);
+		auto occ = reduce_sum(IdRange{out, a.drange_});
+		auto g = div(IdRange{out, a.drange_}, IdRange{occ, mold::Range(0, 0)});
+		return mul(IdRange{g, a.drange_}, da);
 	}},
 	std::pair<slip::OPCODE,GradF>{slip::RSUM, straight_grad},
 	std::pair<slip::OPCODE,GradF>{slip::N_ELEMS, zero_grad},
@@ -360,7 +356,7 @@ const GradMapT grad_op =
 	std::pair<slip::OPCODE,GradF>{slip::RESHAPE,
 	[](Identifier*, GradArgsT args) -> Identifier*
 	{
-		return reshape(args.front().second, args.back().first);
+		return reshape(args.front().second.arg_, args.back().first.arg_);
 	}},
 	std::pair<slip::OPCODE,GradF>{slip::JACOBIAN,
 	[](Identifier*, GradArgsT args) -> Identifier*
@@ -376,7 +372,9 @@ Identifier* cast (Identifier* type, Identifier* a)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::CAST;
-	if (Identifier* parent = ordered_parent({type->get_uid(), a->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{type->get_uid(), mold::Range(0, 0)},
+    	{a->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -530,7 +528,9 @@ Identifier* flip (Identifier* a, Identifier* dims)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::FLIP;
-	if (Identifier* parent = ordered_parent({a->get_uid(), dims->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{dims->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -565,7 +565,9 @@ Identifier* transpose (Identifier* a, Identifier* perm)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::TRANSPOSE;
-	if (Identifier* parent = ordered_parent({a->get_uid(), perm->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{perm->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -586,7 +588,10 @@ Identifier* expand (Identifier* a, Identifier* n, Identifier* dim)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::EXPAND;
-	if (Identifier* parent = ordered_parent({a->get_uid(), n->get_uid(), dim->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{n->get_uid(), mold::Range(0, 0)},
+		{dim->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -628,7 +633,9 @@ Identifier* n_dimension (Identifier* a, Identifier* dim)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::N_DIMS;
-	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{dim->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -650,7 +657,9 @@ Identifier* pow (Identifier* b, Identifier* x)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::POW;
-	if (Identifier* parent = ordered_parent({b->get_uid(), x->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{b->get_uid(), mold::Range(0, 0)},
+		{x->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -664,7 +673,9 @@ Identifier* add (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::ADD;
-	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = unordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -678,7 +689,9 @@ Identifier* sub (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::SUB;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -692,7 +705,9 @@ Identifier* mul (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::MUL;
-	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = unordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -706,7 +721,9 @@ Identifier* div (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::DIV;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -720,7 +737,9 @@ Identifier* eq (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::EQ;
-	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = unordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -734,7 +753,9 @@ Identifier* neq (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::NE;
-	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = unordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -748,7 +769,9 @@ Identifier* lt (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::LT;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -762,146 +785,204 @@ Identifier* gt (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::GT;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
 	return new Functor(std::vector<Identifier*>{a, b}, opcode);
 }
 
-Identifier* pow (Identifier* b, mold::Range bdim,
-	Identifier* x, mold::Range xdim)
+Identifier* pow (IdRange b, IdRange x)
 {
-	if (nullptr == b || nullptr == x)
+	if (nullptr == b.arg_ || nullptr == x.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::POW;
-	if (Identifier* parent = ordered_parent({b->get_uid(), x->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		b.get_uid(), x.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{b, bdim}, {x, xdim}}, opcode);
+	return new Functor({b, x}, opcode);
 }
 
-Identifier* add (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim)
+Identifier* add (IdRange a, IdRange b)
 {
-	if (nullptr == a || nullptr == b)
+	if (nullptr == a.arg_ || nullptr == b.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::ADD;
-	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = unordered_parent({
+		a.get_uid(), b.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}}, opcode);
+	return new Functor({a, b}, opcode);
 }
 
-Identifier* sub (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim)
+Identifier* sub (IdRange a, IdRange b)
 {
-	if (nullptr == a || nullptr == b)
+	if (nullptr == a.arg_ || nullptr == b.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::SUB;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		a.get_uid(), b.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}}, opcode);
+	return new Functor({a, b}, opcode);
 }
 
-Identifier* mul (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim)
+Identifier* mul (IdRange a, IdRange b)
 {
-	if (nullptr == a || nullptr == b)
+	if (nullptr == a.arg_ || nullptr == b.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::MUL;
-	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = unordered_parent({
+		a.get_uid(), b.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}}, opcode);
+	return new Functor({a, b}, opcode);
 }
 
-Identifier* div (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim)
+Identifier* div (IdRange a, IdRange b)
 {
-	if (nullptr == a || nullptr == b)
+	if (nullptr == a.arg_ || nullptr == b.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::DIV;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		a.get_uid(), b.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}}, opcode);
+	return new Functor({a, b}, opcode);
 }
 
-Identifier* eq (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim)
+Identifier* eq (IdRange a, IdRange b)
 {
-	if (nullptr == a || nullptr == b)
+	if (nullptr == a.arg_ || nullptr == b.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::EQ;
-	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = unordered_parent({
+		a.get_uid(), b.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}}, opcode);
+	return new Functor({a, b}, opcode);
 }
 
-Identifier* neq (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim)
+Identifier* neq (IdRange a, IdRange b)
 {
-	if (nullptr == a || nullptr == b)
+	if (nullptr == a.arg_ || nullptr == b.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::NE;
-	if (Identifier* parent = unordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = unordered_parent({
+		a.get_uid(), b.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}}, opcode);
+	return new Functor({a, b}, opcode);
 }
 
-Identifier* lt (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim)
+Identifier* lt (IdRange a, IdRange b)
 {
-	if (nullptr == a || nullptr == b)
+	if (nullptr == a.arg_ || nullptr == b.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::LT;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		a.get_uid(), b.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}}, opcode);
+	return new Functor({a, b}, opcode);
 }
 
-Identifier* gt (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim)
+Identifier* gt (IdRange a, IdRange b)
 {
-	if (nullptr == a || nullptr == b)
+	if (nullptr == a.arg_ || nullptr == b.arg_)
 	{
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::GT;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		a.get_uid(), b.get_uid()}, opcode))
 	{
 		return parent;
 	}
-	return new Functor({{a, adim}, {b, bdim}}, opcode);
+	return new Functor({a, b}, opcode);
+}
+
+Identifier* arg_max (IdRange a)
+{
+	if (nullptr == a.arg_)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::ARGMAX; // todo: optimize include dim
+	if (Identifier* parent = single_parent(a.arg_->get_uid(), opcode, a.drange_))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode);
+}
+
+Identifier* is_max (IdRange a)
+{
+	if (nullptr == a.arg_)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::ISMAX; // todo: optimize include dim
+	if (Identifier* parent = single_parent(a.arg_->get_uid(), opcode, a.drange_))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode);
+}
+
+Identifier* reduce_max (IdRange a)
+{
+	if (nullptr == a.arg_)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::RMAX; // todo: optimize include dim
+	if (Identifier* parent = single_parent(a.arg_->get_uid(), opcode, a.drange_))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode);
+}
+
+Identifier* reduce_sum (IdRange a)
+{
+	if (nullptr == a.arg_)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::RSUM; // todo: optimize include dim
+	if (Identifier* parent = single_parent(a.arg_->get_uid(), opcode, a.drange_))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode);
 }
 
 Identifier* binomial_sample (Identifier* n, Identifier* p)
@@ -911,7 +992,9 @@ Identifier* binomial_sample (Identifier* n, Identifier* p)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::BINO;
-	if (Identifier* parent = ordered_parent({n->get_uid(), p->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{n->get_uid(), mold::Range(0, 0)},
+		{p->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -932,7 +1015,9 @@ Identifier* uniform_sample (Identifier* min, Identifier* max)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::UNIF;
-	if (Identifier* parent = ordered_parent({min->get_uid(), max->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{min->get_uid(), mold::Range(0, 0)},
+		{max->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -946,7 +1031,9 @@ Identifier* normal_sample (Identifier* mean, Identifier* stdev)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::NORM;
-	if (Identifier* parent = ordered_parent({mean->get_uid(), stdev->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{mean->get_uid(), mold::Range(0, 0)},
+		{stdev->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -955,107 +1042,32 @@ Identifier* normal_sample (Identifier* mean, Identifier* stdev)
 
 Identifier* arg_max (Identifier* a)
 {
-	if (nullptr == a)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::UARGMAX;
-	if (Identifier* parent = single_parent(a->get_uid(), opcode))
-	{
-		return parent;
-	}
-	return new Functor({{a, mold::Range(0, -1)}}, opcode);
-}
-
-Identifier* arg_max (Identifier* a, Identifier* dim)
-{
-	if (nullptr == a || nullptr == dim)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::ARGMAX;
-	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
-	{
-		return parent;
-	}
-	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
+	return arg_max(IdRange{a, mold::Range(0, -1)});
 }
 
 Identifier* arg_max (Identifier* a, uint64_t dim)
 {
-	Identifier* did = Constant::get(dim);
-	assoc(a, did);
-	return arg_max(a, did);
+	return arg_max(IdRange{a, mold::Range(dim, dim + 1)});
 }
 
 Identifier* reduce_max (Identifier* a)
 {
-	if (nullptr == a)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::URMAX;
-	if (Identifier* parent = single_parent(a->get_uid(), opcode))
-	{
-		return parent;
-	}
-	return new Functor({{a, mold::Range(0, -1)}}, opcode);
-}
-
-Identifier* reduce_max (Identifier* a, Identifier* dim)
-{
-	if (nullptr == a || nullptr == dim)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::RMAX;
-	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
-	{
-		return parent;
-	}
-	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
+	return reduce_max(IdRange{a, mold::Range(0, -1)});
 }
 
 Identifier* reduce_max (Identifier* a, uint64_t dim)
 {
-	Identifier* did = Constant::get(dim);
-	assoc(a, did);
-	return reduce_max(a, did);
+	return reduce_max(IdRange{a, mold::Range(dim, dim + 1)});
 }
 
 Identifier* reduce_sum (Identifier* a)
 {
-	if (nullptr == a)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::URSUM;
-	if (Identifier* parent = single_parent(a->get_uid(), opcode))
-	{
-		return parent;
-	}
-	return new Functor({{a, mold::Range(0, -1)}}, opcode);
-}
-
-Identifier* reduce_sum (Identifier* a, Identifier* dim)
-{
-	if (nullptr == a || nullptr == dim)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::RSUM;
-	if (Identifier* parent = ordered_parent({a->get_uid(), dim->get_uid()}, opcode))
-	{
-		return parent;
-	}
-	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
+	return reduce_sum(IdRange{a, mold::Range(0, -1)});
 }
 
 Identifier* reduce_sum (Identifier* a, uint64_t dim)
 {
-	Identifier* did = Constant::get(dim);
-	assoc(a, did);
-	return reduce_sum(a, did);
+	return reduce_sum(IdRange{a, mold::Range(dim, dim + 1)});
 }
 
 Identifier* matmul (Identifier* a, Identifier* b)
@@ -1065,7 +1077,9 @@ Identifier* matmul (Identifier* a, Identifier* b)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::MATMUL;
-	if (Identifier* parent = ordered_parent({a->get_uid(), b->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -1078,12 +1092,6 @@ Identifier* reduce_mean (Identifier* a)
 	return div(reduce_sum(a), denom);
 }
 
-Identifier* reduce_mean (Identifier* a, Identifier* dim)
-{
-	auto denom = cast(a, n_dimension(a, dim));
-	return div(reduce_sum(a, dim), denom);
-}
-
 Identifier* reduce_mean (Identifier* a, uint64_t dim)
 {
 	auto denom = cast(a, n_dimension(a, dim));
@@ -1093,11 +1101,6 @@ Identifier* reduce_mean (Identifier* a, uint64_t dim)
 Identifier* reduce_l2norm (Identifier* a)
 {
 	return sqrt(reduce_sum(mul(a, a)));
-}
-
-Identifier* reduce_l2norm (Identifier* a, Identifier* dim)
-{
-	return sqrt(reduce_sum(mul(a, a), dim));
 }
 
 Identifier* reduce_l2norm (Identifier* a, uint64_t dim)
@@ -1129,7 +1132,9 @@ Identifier* reshape (Identifier* a, Identifier* shape)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::RESHAPE;
-	if (Identifier* parent = ordered_parent({a->get_uid(), shape->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{shape->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -1151,8 +1156,10 @@ Identifier* jacobian (Identifier* a, Identifier* b, Identifier* dims)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::JACOBIAN;
-	if (Identifier* parent = ordered_parent(
-		{a->get_uid(), b->get_uid(), dims->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{b->get_uid(), mold::Range(0, 0)},
+		{dims->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}
@@ -1174,8 +1181,9 @@ Identifier* trace_expand (Identifier* a, Identifier* dim)
 		return nullptr;
 	}
 	slip::OPCODE opcode = slip::TRACE_EXPAND;
-	if (Identifier* parent = ordered_parent(
-		{a->get_uid(), dim->get_uid()}, opcode))
+	if (Identifier* parent = ordered_parent({
+		{a->get_uid(), mold::Range(0, 0)},
+		{dim->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}

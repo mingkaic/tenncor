@@ -39,10 +39,10 @@ Identifier* matmul_grad (Identifier*, GradArgsT args)
 	// d c_xy / d a_vy = b_xv
 	// d c_xy / d a_uk = 0 for k != y
 
-	Identifier* a = args.front().first;
-	Identifier* b = args.back().first;
-	Identifier* da = args.front().second;
-	Identifier* db = args.back().second;
+	Identifier* a = args.front().first.arg_;
+	Identifier* b = args.back().first.arg_;
+	Identifier* da = args.front().second.arg_;
+	Identifier* db = args.back().second.arg_;
 	// process both arguments as jacobians
 	Identifier* lhs = nullptr;
 	Identifier* rhs = nullptr;

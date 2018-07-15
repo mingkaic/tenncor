@@ -11,7 +11,7 @@
 
 namespace mold
 {
-	
+
 Variable::Variable (void) = default;
 
 Variable::Variable (const Variable& other)

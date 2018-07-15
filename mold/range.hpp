@@ -27,7 +27,9 @@ struct Range
 
 	clay::Shape apply (const clay::Shape& inshape) const;
 
-	clay::Shape split (const clay::Shape& inshape) const;
+	clay::Shape front (const clay::Shape& inshape) const;
+
+	clay::Shape back (const clay::Shape& inshape) const;
 
 	size_t lower_;
 

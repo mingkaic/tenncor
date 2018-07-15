@@ -14,7 +14,7 @@ namespace slip
 {
 
 template <>
-void abs<uint8_t> (clay::State& dest, std::vector<clay::State> srcs)
+void abs<uint8_t> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	uint8_t* d = safe_get<uint8_t>(dest);
 	const uint8_t* s = safe_get<const uint8_t>(srcs.front());
@@ -23,7 +23,7 @@ void abs<uint8_t> (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <>
-void abs<uint16_t> (clay::State& dest, std::vector<clay::State> srcs)
+void abs<uint16_t> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	uint16_t* d = safe_get<uint16_t>(dest);
 	const uint16_t* s = safe_get<const uint16_t>(srcs.front());
@@ -32,7 +32,7 @@ void abs<uint16_t> (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <>
-void abs<uint32_t> (clay::State& dest, std::vector<clay::State> srcs)
+void abs<uint32_t> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	uint32_t* d = safe_get<uint32_t>(dest);
 	const uint32_t* s = safe_get<const uint32_t>(srcs.front());
@@ -41,7 +41,7 @@ void abs<uint32_t> (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <>
-void abs<uint64_t> (clay::State& dest, std::vector<clay::State> srcs)
+void abs<uint64_t> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	uint64_t* d = safe_get<uint64_t>(dest);
 	const uint64_t* s = safe_get<const uint64_t>(srcs.front());
@@ -50,43 +50,43 @@ void abs<uint64_t> (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <>
-void neg<uint8_t> (clay::State& dest, std::vector<clay::State> srcs)
+void neg<uint8_t> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void neg<uint16_t> (clay::State& dest, std::vector<clay::State> srcs)
+void neg<uint16_t> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void neg<uint32_t> (clay::State& dest, std::vector<clay::State> srcs)
+void neg<uint32_t> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void neg<uint64_t> (clay::State& dest, std::vector<clay::State> srcs)
+void neg<uint64_t> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void rand_binom<float> (clay::State& dest, std::vector<clay::State> srcs)
+void rand_binom<float> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void rand_binom<double> (clay::State& dest, std::vector<clay::State> srcs)
+void rand_binom<double> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void rand_uniform<float> (clay::State& dest, std::vector<clay::State> srcs)
+void rand_uniform<float> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<float>(dest, srcs,
 	[](const float& a, const float& b) -> float
@@ -97,7 +97,7 @@ void rand_uniform<float> (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <>
-void rand_uniform<double> (clay::State& dest, std::vector<clay::State> srcs)
+void rand_uniform<double> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<double>(dest, srcs,
 	[](const double& a, const double& b) -> double
@@ -108,7 +108,7 @@ void rand_uniform<double> (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <>
-void rand_normal<float> (clay::State& dest, std::vector<clay::State> srcs)
+void rand_normal<float> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<float>(dest, srcs,
 	[](const float& a, const float& b) -> float
@@ -119,7 +119,7 @@ void rand_normal<float> (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <>
-void rand_normal<double> (clay::State& dest, std::vector<clay::State> srcs)
+void rand_normal<double> (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<double>(dest, srcs,
 	[](const double& a, const double& b) -> double
@@ -129,29 +129,29 @@ void rand_normal<double> (clay::State& dest, std::vector<clay::State> srcs)
 	});
 }
 
-void n_elems (clay::State& dest, std::vector<clay::State> srcs)
+void n_elems (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
-	clay::Shape& srcshape = srcs.front().shape_;
+	clay::Shape srcshape = srcs.front().shape();
 	uint64_t* d = safe_get<uint64_t>(dest);
 	d[0] = srcshape.n_elems();
 }
 
-void n_dims (clay::State& dest, std::vector<clay::State> srcs)
+void n_dims (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	if (srcs.size() != 2)
 	{
 		throw BadNArgsError(2, srcs.size());
 	}
-	clay::Shape& srcshape = srcs.front().shape_;
+	clay::Shape srcshape = srcs.front().shape();
 	uint64_t* d = safe_get<uint64_t>(dest);
-	clay::State& dstate = srcs[1];
-	if (dstate.dtype_ != clay::UINT64)
+	mold::StateRange& dstate = srcs[1];
+	if (dstate.type() != clay::UINT64)
 	{
-		throw clay::UnsupportedTypeError(dstate.dtype_);
+		throw clay::UnsupportedTypeError(dstate.type());
 	}
-	if (1 != dstate.shape_.n_elems())
+	if (1 != dstate.shape().n_elems())
 	{
-		throw ShapeMismatchError(clay::Shape({1}), dstate.shape_);
+		throw ShapeMismatchError(clay::Shape({1}), dstate.shape());
 	}
 	uint64_t dim = *(safe_get<uint64_t>(dstate));
 	if (dim < srcshape.rank())

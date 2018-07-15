@@ -32,14 +32,10 @@ iNode* OnDeath::get (void) const
 	iNode* out = nullptr;
 	if (false == this->args_.empty())
 	{
-		out = this->args_[0].arg_;
+		out = this->args_[0];
 	}
 	return out;
 }
-
-void OnDeath::initialize (void) {}
-
-void OnDeath::update (void) {}
 
 void OnDeath::clear_term (void)
 {

@@ -55,6 +55,11 @@ struct InvalidDimensionError : public std::runtime_error
 	InvalidDimensionError (uint64_t dim, clay::Shape shape);
 };
 
+struct InvalidRangeError : public std::runtime_error
+{
+	InvalidRangeError (mold::Range range, clay::Shape shape);
+};
+
 }
 
 #endif /* SLIP_ERROR_HPP */

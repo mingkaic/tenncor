@@ -24,15 +24,17 @@
 namespace kiln
 {
 
-using GradArgsT = std::vector<std::pair<Identifier*,Identifier*>>;
-
-using GradF = std::function<Identifier*(Identifier*,GradArgsT)>;
-
 struct IdRange
 {
+	UIDRange get_uid (void) const;
+
 	Identifier* arg_;
 	mold::Range drange_;
 };
+
+using GradArgsT = std::vector<std::pair<IdRange,IdRange>>;
+
+using GradF = std::function<Identifier*(Identifier*,GradArgsT)>;
 
 class Functor final : public Identifier
 {
@@ -45,7 +47,7 @@ public:
 
 	~Functor (void);
 
-	std::vector<UID> get_args (void) const override;
+	std::vector<UIDRange> get_args (void) const override;
 
 	slip::OPCODE opcode_;
 

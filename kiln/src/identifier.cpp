@@ -16,6 +16,13 @@
 namespace kiln
 {
 
+bool operator == (const UIDRange& a, const UIDRange& b)
+{
+	return a.uid_ == b.uid_ &&
+		a.range_.lower_ == b.range_.lower_ &&
+		a.range_.upper_ == b.range_.upper_;
+}
+
 Identifier::Identifier (Graph* graph, mold::iNode* arg, std::string label) :
 	graph_(graph), label_(label)
 {
@@ -88,7 +95,7 @@ clay::State Identifier::get_state (void) const
 	return get()->get_state();
 }
 
-std::vector<UID> Identifier::get_args (void) const
+std::vector<UIDRange> Identifier::get_args (void) const
 {
 	return {};
 }
@@ -171,10 +178,6 @@ struct Assoc final : public mold::iObserver
 			delete killer_->get();
 		}
 	}
-
-	void initialize (void) override {}
-
-	void update (void) override {}
 
 private:
 	mold::OnDeath* killer_;

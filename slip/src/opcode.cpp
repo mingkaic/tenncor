@@ -25,6 +25,7 @@ const OpnameMap opnames =
 	OP_ASSOC(LOG),
 	OP_ASSOC(SQRT),
 	OP_ASSOC(ROUND),
+	OP_ASSOC(ISMAX),
 	OP_ASSOC(POW),
 	OP_ASSOC(ADD),
 	OP_ASSOC(SUB),

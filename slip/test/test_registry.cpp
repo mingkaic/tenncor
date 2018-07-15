@@ -124,17 +124,15 @@ static void binaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	std::memcpy(bad_data.get(), &badrank, sizeof(uint64_t));
 	std::memcpy(dim_data.get(), &dim, sizeof(uint64_t));
 	EXPECT_THROW(bad_op->make_data({
-			mold::StateRange(in, mold::Range(0, 0)),
-			mold::StateRange(clay::State(bad_data, wun, clay::UINT64), mold::Range(0, 0))
+			mold::StateRange(in, mold::Range(badrank, badrank+1))
 		}),
-		slip::InvalidDimensionError);
+		slip::InvalidRangeError);
 
 	std::vector<size_t> slist = shape.as_list();
 	slist.erase(slist.begin() + dim);
 	clay::Shape dshape = slist;
 	clay::TensorPtrT tens = dim_op->make_data({
-		mold::StateRange(in, mold::Range(0, 0)),
-		mold::StateRange(clay::State(dim_data, wun, clay::UINT64), mold::Range(0, 0))
+		mold::StateRange(in, mold::Range(dim, dim+1))
 	});
 	ASSERT_SHAPEQ(dshape, tens->get_shape());
 	ASSERT_EQ(clay::DOUBLE, tens->get_type());
@@ -142,8 +140,7 @@ static void binaryAggTest (fuzz_test* fuzzer, slip::OPCODE opcode,
 	std::shared_ptr<char> dim_output = clay::make_char(dshape.n_elems() * sizeof(double));
 	clay::State dim_out(dim_output, dshape, clay::DOUBLE);
 	ASSERT_TRUE(dim_op->write_data(dim_out, {
-		mold::StateRange(in, mold::Range(0, 0)),
-		mold::StateRange(clay::State(dim_data, wun, clay::UINT64), mold::Range(0, 0))
+		mold::StateRange(in, mold::Range(dim, dim+1))
 	}));
 }
 
@@ -431,7 +428,7 @@ TEST_F(REGISTRY, Round_B011)
 
 TEST_F(REGISTRY, UArgmax_B012)
 {
-	unaryAggTest(this, slip::UARGMAX,
+	unaryAggTest(this, slip::ARGMAX,
 	[](std::vector<double> vec) -> double
 	{
 		auto it = std::max_element(vec.begin(), vec.end());
@@ -442,7 +439,7 @@ TEST_F(REGISTRY, UArgmax_B012)
 
 TEST_F(REGISTRY, UMax_B013)
 {
-	unaryAggTest(this, slip::URMAX,
+	unaryAggTest(this, slip::RMAX,
 	[](std::vector<double> vec) -> double
 	{
 		return *std::max_element(vec.begin(), vec.end());
@@ -452,7 +449,7 @@ TEST_F(REGISTRY, UMax_B013)
 
 TEST_F(REGISTRY, USum_B014)
 {
-	unaryAggTest(this, slip::URSUM,
+	unaryAggTest(this, slip::RSUM,
 	[](std::vector<double> vec) -> double
 	{
 		return std::accumulate(vec.begin(), vec.end(), (double) 0);

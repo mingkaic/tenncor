@@ -23,6 +23,29 @@
 namespace kiln
 {
 
+struct UIDRange
+{
+	UID uid_;
+	mold::Range range_;
+};
+
+bool operator == (const UIDRange& a, const UIDRange& b);
+
+struct UIDRangeHasher
+{
+	size_t operator () (const UIDRange& id) const
+	{
+		size_t ssize = sizeof(size_t);
+		std::string s(3 * ssize, 0);
+		std::memcpy(&s[0], &id.uid_, ssize);
+		std::memcpy(&s[0] + ssize,
+			&id.range_.lower_, ssize);
+		std::memcpy(&s[0] + 2 * ssize,
+			&id.range_.upper_, ssize);
+		return std::hash<std::string>()(s);
+	}
+};
+
 //! wraps iNode and supplies = data
 class Identifier
 {
@@ -47,7 +70,7 @@ public:
 
 	clay::State get_state (void) const;
 
-	virtual std::vector<UID> get_args (void) const;
+	virtual std::vector<UIDRange> get_args (void) const;
 
 	mold::iNode* get (void) const;
 

@@ -33,19 +33,22 @@ clay::Shape Range::apply (const clay::Shape& inshape) const
 	return std::vector<size_t>(bt + lower_, bt + upper);
 }
 
-clay::Shape Range::split (const clay::Shape& inshape) const
+clay::Shape Range::front (const clay::Shape& inshape) const
 {
-	size_t n = inshape.rank();
-	if (lower_ >= n)
+	if (lower_ >= inshape.rank())
 	{
 		return inshape;
 	}
-	size_t upper = std::min(n, upper_);
 	auto bt = inshape.begin();
-	if (lower_ == upper) return inshape;
-	std::vector<size_t> out(bt, bt + lower_);
-	out.insert(out.end(), bt + upper, inshape.end());
-	return out;
+	return std::vector<size_t>(bt, bt + lower_);
+}
+
+clay::Shape Range::back (const clay::Shape& inshape) const
+{
+	size_t n = inshape.rank();
+	return std::vector<size_t>(
+		inshape.begin() + std::min(n, upper_),
+		inshape.end());
 }
 
 }

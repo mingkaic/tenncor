@@ -3,6 +3,8 @@
 //  slip
 //
 
+#include <list>
+
 #ifdef SLIP_UNARY_HPP
 
 namespace slip
@@ -20,10 +22,21 @@ T* safe_get (clay::State& state)
 }
 
 template <typename T>
-void copyover (clay::State& dest, std::vector<clay::State> srcs)
+T* safe_get (mold::StateRange& state)
+{
+	char* out = state.get();
+	if (nullptr == out)
+	{
+		throw std::exception();
+	}
+	return (T*) out;
+}
+
+template <typename T>
+void copyover (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	clay::Shape& destshape = dest.shape_;
-	clay::Shape& srcshape = srcs.front().shape_;
+	clay::Shape srcshape = srcs.front().shape();
 	size_t n = srcshape.n_elems();
 	assert(destshape.n_elems() == n);
 	T* d = safe_get<T>(dest);
@@ -32,10 +45,10 @@ void copyover (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <typename T>
-void unary (clay::State& dest, std::vector<clay::State> srcs,
+void unary (clay::State& dest, std::vector<mold::StateRange> srcs,
 	std::function<T(const T&)> f)
 {
-	clay::Shape& srcshape = srcs.front().shape_;
+	clay::Shape srcshape = srcs.front().shape();
 	T* d = safe_get<T>(dest);
 	const T* s = safe_get<const T>(srcs.front());
 	size_t n = dest.shape_.n_elems();
@@ -47,82 +60,82 @@ void unary (clay::State& dest, std::vector<clay::State> srcs,
 }
 
 template <typename T>
-void abs (clay::State& dest, std::vector<clay::State> srcs)
+void abs (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return std::abs(src); });
 }
 
 template <typename T>
-void neg (clay::State& dest, std::vector<clay::State> srcs)
+void neg (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return -src; });
 }
 
 template <typename T>
-void logic_not (clay::State& dest, std::vector<clay::State> srcs)
+void logic_not (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return !src; });
 }
 
 template <typename T>
-void sin (clay::State& dest, std::vector<clay::State> srcs)
+void sin (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return std::sin(src); });
 }
 
 template <typename T>
-void cos (clay::State& dest, std::vector<clay::State> srcs)
+void cos (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return std::cos(src); });
 }
 
 template <typename T>
-void tan (clay::State& dest, std::vector<clay::State> srcs)
+void tan (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return std::tan(src); });
 }
 
 template <typename T>
-void exp (clay::State& dest, std::vector<clay::State> srcs)
+void exp (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return std::exp(src); });
 }
 
 template <typename T>
-void log (clay::State& dest, std::vector<clay::State> srcs)
+void log (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return std::log(src); });
 }
 
 template <typename T>
-void sqrt (clay::State& dest, std::vector<clay::State> srcs)
+void sqrt (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return std::sqrt(src); });
 }
 
 template <typename T>
-void round (clay::State& dest, std::vector<clay::State> srcs)
+void round (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	unary<T>(dest, srcs, [](const T& src) { return std::round(src); });
 }
 
 template <typename T>
-void transpose (clay::State& dest, std::vector<clay::State> srcs)
+void transpose (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	clay::Shape& destshape = dest.shape_;
-	clay::Shape& srcshape = srcs.front().shape_;
+	clay::Shape srcshape = srcs.front().shape();
 	T* d = safe_get<T>(dest);
 	const T* s = safe_get<const T>(srcs.front());
 	std::vector<uint64_t> perm;
 	if (srcs.size() > 1)
 	{
-		clay::State& pstate = srcs[1];
-		if (pstate.dtype_ != clay::UINT64)
+		mold::StateRange& pstate = srcs[1];
+		if (pstate.type() != clay::UINT64)
 		{
 			throw std::exception();
 		}
 		uint64_t* ptr = safe_get<uint64_t>(pstate);
-		perm = std::vector<uint64_t>(ptr, ptr + pstate.shape_.n_elems());
+		perm = std::vector<uint64_t>(ptr, ptr + pstate.shape().n_elems());
 	}
 	else
 	{
@@ -145,7 +158,7 @@ void transpose (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <typename T>
-void flip (clay::State& dest, std::vector<clay::State> srcs)
+void flip (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	if (srcs.size() != 2)
 	{
@@ -154,12 +167,12 @@ void flip (clay::State& dest, std::vector<clay::State> srcs)
 	clay::Shape& shape = dest.shape_;
 	T* d = safe_get<T>(dest);
 	const T* s = safe_get<const T>(srcs.front());
-	clay::State& dstate = srcs[1];
-	if (dstate.dtype_ != clay::UINT64)
+	mold::StateRange& dstate = srcs[1];
+	if (dstate.type() != clay::UINT64)
 	{
 		throw std::exception();
 	}
-	size_t ndims = dstate.shape_.n_elems();
+	size_t ndims = dstate.shape().n_elems();
 	uint64_t* dims = safe_get<uint64_t>(dstate);
 	std::vector<size_t> slist = shape.as_list();
 	std::vector<size_t> coord;
@@ -176,33 +189,148 @@ void flip (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <typename T>
-void unar_argmax (clay::State& dest, std::vector<clay::State> srcs)
+void arg_reduce (clay::State& dest, mold::StateRange& src,
+	std::function<bool(const T&,const T&)> cmp)
 {
-	clay::Shape& srcshape = srcs.front().shape_;
 	T* d = safe_get<T>(dest);
-	const T* s = safe_get<const T>(srcs.front());
-	size_t n = srcshape.n_elems();
-	*d = std::distance(s, std::max_element(s, s + n));
+	const T* s = safe_get<const T>(src);
+	clay::Shape out1 = src.front();
+	clay::Shape inner = src.inner();
+	clay::Shape out2 = src.back();
+	size_t nouter = std::max<size_t>(1, out1.n_elems());
+	size_t ninner = inner.n_elems();
+	size_t nout2 = std::max<size_t>(1, out2.n_elems());
+	assert(ninner > 0);
+
+	for (size_t i = 0; i < nouter; ++i)
+	{
+		for (size_t j = 0; j < nout2; ++j)
+		{
+			size_t outidx = i + j * nouter;
+			size_t inidx = i + j * ninner * nouter;
+			size_t n = i + (j + 1) * ninner * nouter;
+			size_t out = inidx;
+			for (inidx += nouter; inidx < n; inidx += nouter)
+			{
+				if (cmp(s[out], s[inidx]))
+				{
+					out = inidx;
+				}
+			}
+			d[outidx] = out;
+		}
+	}
 }
 
 template <typename T>
-void unar_max (clay::State& dest, std::vector<clay::State> srcs)
+void arg_max (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
-	clay::Shape& srcshape = srcs.front().shape_;
-	T* d = safe_get<T>(dest);
-	const T* s = safe_get<const T>(srcs.front());
-	size_t n = srcshape.n_elems();
-	*d = *(std::max_element(s, s + n));
+	auto lt = [](const T& a, const T& b)
+	{
+		return a < b;
+	};
+	arg_reduce<T>(dest, srcs[0], lt);
 }
 
 template <typename T>
-void unar_sum (clay::State& dest, std::vector<clay::State> srcs)
+void is_max (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
-	clay::Shape& srcshape = srcs.front().shape_;
+	mold::StateRange& src = srcs[0];
 	T* d = safe_get<T>(dest);
-	const T* s = safe_get<const T>(srcs.front());
-	size_t n = srcshape.n_elems();
-	*d = std::accumulate(s, s + n, (T) 0);
+	const T* s = safe_get<const T>(src);
+	clay::Shape out1 = src.front();
+	clay::Shape inner = src.inner();
+	clay::Shape out2 = src.back();
+	size_t nouter = std::max<size_t>(1, out1.n_elems());
+	size_t ninner = inner.n_elems();
+	size_t nout2 = std::max<size_t>(1, out2.n_elems());
+	assert(ninner > 0);
+
+	std::list<size_t> ones;
+	for (size_t i = 0; i < nouter; ++i)
+	{
+		for (size_t j = 0; j < nout2; ++j)
+		{
+			size_t inidx = i + j * ninner * nouter;
+			size_t n = i + (j + 1) * ninner * nouter;
+			std::list<size_t> indices = {inidx};
+			for (inidx += nouter; inidx < n; inidx += nouter)
+			{
+				if (s[indices.front()] == s[inidx])
+				{
+					indices.push_back(inidx);
+				}
+				else if (s[indices.front()] < s[inidx])
+				{
+					indices = {inidx};
+				}
+			}
+			ones.insert(ones.end(), indices.begin(), indices.end());
+		}
+	}
+	memset(d, 0, sizeof(T) * dest.shape_.n_elems());
+	for (size_t one : ones)
+	{
+		d[one] = 1;
+	}
+}
+
+template <typename T>
+void reduce (clay::State& dest, mold::StateRange& src,
+	std::function<void(T&,const T&)> accum)
+{
+	T* d = safe_get<T>(dest);
+	const T* s = safe_get<const T>(src);
+	clay::Shape out1 = src.front();
+	clay::Shape inner = src.inner();
+	clay::Shape out2 = src.back();
+	size_t nouter = std::max<size_t>(1, out1.n_elems());
+	size_t ninner = inner.n_elems();
+	size_t nout2 = std::max<size_t>(1, out2.n_elems());
+	assert(ninner > 0);
+
+	for (size_t i = 0; i < nouter; ++i)
+	{
+		for (size_t j = 0; j < nout2; ++j)
+		{
+			size_t outidx = i + j * nouter;
+			size_t inidx = i + j * ninner * nouter;
+			size_t n = i + (j + 1) * ninner * nouter;
+			T out = s[inidx];
+			for (inidx += nouter; inidx < n; inidx += nouter)
+			{
+				accum(out, s[inidx]);
+			}
+			d[outidx] = out;
+		}
+	}
+}
+
+template <typename T>
+void rmax_helper (T& acc, const T& e)
+{
+	if (acc < e)
+	{
+		acc = e;
+	}
+}
+
+template <typename T>
+void rmax (clay::State& dest, std::vector<mold::StateRange> srcs)
+{
+	reduce<T>(dest, srcs[0], rmax_helper<T>);
+}
+
+template <typename T>
+void rsum_helper (T& acc, const T& e)
+{
+	acc += e;
+}
+
+template <typename T>
+void rsum (clay::State& dest, std::vector<mold::StateRange> srcs)
+{
+	reduce<T>(dest, srcs[0], rsum_helper<T>);
 }
 
 }

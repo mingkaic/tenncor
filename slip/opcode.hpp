@@ -38,6 +38,8 @@ enum OPCODE
 	ROUND,
 
 	// explicit dimension args
+	ISMAX,
+
 	FLIP,
 	EXPAND,
 	TRANSPOSE,
@@ -61,11 +63,8 @@ enum OPCODE
 	NORM,
 
 	// dimensioned (merge)
-	UARGMAX,
 	ARGMAX,
-	URMAX,
 	RMAX,
-	URSUM,
 	RSUM,
 
 	// dimensioned (assert 2 dimensions specified)

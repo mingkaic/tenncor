@@ -9,12 +9,12 @@ namespace slip
 {
 
 template <typename T>
-void binary (clay::State& dest, std::vector<clay::State> srcs,
+void binary (clay::State& dest, std::vector<mold::StateRange> srcs,
 	std::function<T(const T&,const T&)> f)
 {
 	clay::Shape& destshape = dest.shape_;
-	clay::Shape& srcshape0 = srcs.front().shape_;
-	clay::Shape& srcshape1 = srcs.back().shape_;
+	clay::Shape srcshape0 = srcs.front().shape();
+	clay::Shape srcshape1 = srcs.back().shape();
 	T* d = safe_get<T>(dest);
 	const T* a = safe_get<const T>(srcs.front());
 	const T* b = safe_get<const T>(srcs.back());
@@ -29,65 +29,65 @@ void binary (clay::State& dest, std::vector<clay::State> srcs,
 }
 
 template <typename T>
-void pow (clay::State& dest, std::vector<clay::State> srcs)
+void pow (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& b, const T& x) { return std::pow(b, x); });
 }
 
 template <typename T>
-void add (clay::State& dest, std::vector<clay::State> srcs)
+void add (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& a, const T& b) { return a + b; });
 }
 
 template <typename T>
-void sub (clay::State& dest, std::vector<clay::State> srcs)
+void sub (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& a, const T& b) { return a - b; });
 }
 
 template <typename T>
-void mul (clay::State& dest, std::vector<clay::State> srcs)
+void mul (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& a, const T& b) { return a * b; });
 }
 
 template <typename T>
-void div (clay::State& dest, std::vector<clay::State> srcs)
+void div (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& a, const T& b) { return a / b; });
 }
 
 template <typename T>
-void eq (clay::State& dest, std::vector<clay::State> srcs)
+void eq (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& a, const T& b) { return a == b; });
 }
 
 template <typename T>
-void neq (clay::State& dest, std::vector<clay::State> srcs)
+void neq (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& a, const T& b) { return a != b; });
 }
 
 template <typename T>
-void lt (clay::State& dest, std::vector<clay::State> srcs)
+void lt (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& a, const T& b) { return a < b; });
 }
 
 template <typename T>
-void gt (clay::State& dest, std::vector<clay::State> srcs)
+void gt (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs, [](const T& a, const T& b) { return a > b; });
 }
 
 template <typename T>
-void rand_binom (clay::State& dest, std::vector<clay::State> srcs)
+void rand_binom (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	clay::Shape& destshape = dest.shape_;
-	clay::Shape& srcshape0 = srcs.front().shape_;
-	clay::Shape& srcshape1 = srcs.back().shape_;
+	clay::Shape srcshape0 = srcs.front().shape();
+	clay::Shape srcshape1 = srcs.back().shape();
 	T* d = safe_get<T>(dest);
 	const T* sn = safe_get<const T>(srcs.front());
 	const double* sp = safe_get<const double>(srcs.back());
@@ -103,7 +103,7 @@ void rand_binom (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <typename T>
-void rand_uniform (clay::State& dest, std::vector<clay::State> srcs)
+void rand_uniform (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	binary<T>(dest, srcs,
 	[](const T& a, const T& b)
@@ -114,144 +114,29 @@ void rand_uniform (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <typename T>
-void rand_normal (clay::State& dest, std::vector<clay::State> srcs)
+void rand_normal (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	throw std::bad_function_call();
 }
 
 template <typename T>
-void argmax (clay::State& dest, std::vector<clay::State> srcs)
-{
-	assert(srcs.size() > 1);
-	clay::Shape& srcshape = srcs.front().shape_;
-	size_t rank = srcshape.rank();
-	if (rank > 1)
-	{
-		T* d = safe_get<T>(dest);
-		const T* s = safe_get<const T>(srcs.front());
-		uint64_t dim = *(safe_get<uint64_t>(srcs[1]));
-		assert(rank > dim);
-		std::vector<size_t> slist = srcshape.as_list();
-		slist[dim] = 1;
-		clay::Shape nilshape = slist;
-		std::vector<size_t> coord;
-		size_t n = nilshape.n_elems();
-		size_t nd = srcshape.at(dim);
-		for (size_t i = 0; i < n; ++i)
-		{
-			coord = coordinate(nilshape, i);
-			d[i] = index(srcshape, coord);
-			for (size_t j = 1; j < nd; ++j)
-			{
-				coord[dim] = j;
-				size_t srcidx = index(srcshape, coord);
-				if (s[(size_t) d[i]] < s[srcidx])
-				{
-					d[i] = srcidx;
-				}
-			}
-		}
-	}
-	else
-	{
-		unar_argmax<T>(dest, srcs);
-	}
-}
-
-template <typename T>
-void max (clay::State& dest, std::vector<clay::State> srcs)
-{
-	assert(srcs.size() > 1);
-	clay::Shape& srcshape = srcs.front().shape_;
-	size_t rank = srcshape.rank();
-	if (rank > 1)
-	{
-		T* d = safe_get<T>(dest);
-		const T* s = safe_get<const T>(srcs.front());
-		uint64_t dim = *(safe_get<uint64_t>(srcs[1]));
-		assert(rank > dim);
-		std::vector<size_t> slist = srcshape.as_list();
-		slist[dim] = 1;
-		clay::Shape nilshape = slist;
-		std::vector<size_t> coord;
-		size_t n = nilshape.n_elems();
-		size_t nd = srcshape.at(dim);
-		for (size_t i = 0; i < n; ++i)
-		{
-			coord = coordinate(nilshape, i);
-			d[i] = s[index(srcshape, coord)];
-			for (size_t j = 1; j < nd; ++j)
-			{
-				coord[dim] = j;
-				size_t srcidx = index(srcshape, coord);
-				if (d[i] < s[srcidx])
-				{
-					d[i] = s[srcidx];
-				}
-			}
-		}
-	}
-	else
-	{
-		unar_max<T>(dest, srcs);
-	}
-}
-
-template <typename T>
-void sum (clay::State& dest, std::vector<clay::State> srcs)
-{
-	assert(srcs.size() > 1);
-	clay::Shape& srcshape = srcs.front().shape_;
-	size_t rank = srcshape.rank();
-	if (rank > 1)
-	{
-		T* d = safe_get<T>(dest);
-		const T* s = safe_get<const T>(srcs.front());
-		uint64_t dim = *(safe_get<uint64_t>(srcs[1]));
-		assert(rank > dim);
-		std::vector<size_t> slist = srcshape.as_list();
-		slist[dim] = 1;
-		clay::Shape nilshape = slist;
-		std::vector<size_t> coord;
-		size_t n = nilshape.n_elems();
-		size_t nd = srcshape.at(dim);
-		for (size_t i = 0; i < n; ++i)
-		{
-			coord = coordinate(nilshape, i);
-			d[i] = s[index(srcshape, coord)];
-			for (size_t j = 1; j < nd; ++j)
-			{
-				coord[dim] = j;
-				size_t srcidx = index(srcshape, coord);
-				d[i] += s[srcidx];
-			}
-		}
-	}
-	else
-	{
-		unar_sum<T>(dest, srcs);
-	}
-}
-
-template <typename T>
-void expand (clay::State& dest, std::vector<clay::State> srcs)
+void expand (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	if (srcs.size() != 3)
 	{
 		throw std::exception();
 	}
-	clay::Shape& srcshape = srcs.front().shape_;
+	clay::Shape srcshape = srcs.front().shape();
 	T* d = safe_get<T>(dest);
 	const T* s = safe_get<const T>(srcs.front());
-	clay::State& nstate = srcs[1];
-	clay::State& dstate = srcs[2];
-	if (nstate.dtype_ != clay::UINT64 ||
-		dstate.dtype_ != clay::UINT64)
+	mold::StateRange& nstate = srcs[1];
+	mold::StateRange& dstate = srcs[2];
+	if (nstate.type() != clay::UINT64 || dstate.type() != clay::UINT64)
 	{
 		throw std::exception();
 	}
-	if (1 != nstate.shape_.n_elems() ||
-		1 != dstate.shape_.n_elems())
+	if (1 != nstate.shape().n_elems() ||
+		1 != dstate.shape().n_elems())
 	{
 		throw std::exception();
 	}

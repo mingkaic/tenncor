@@ -3,6 +3,7 @@
 //  mold
 //
 
+#include <cassert>
 #include <algorithm>
 
 #include "mold/functor.hpp"
@@ -13,22 +14,45 @@
 namespace mold
 {
 
-Functor::Functor (std::vector<DimRange> args, OperatePtrT op) :
-	iObserver(args), op_(op)
+static std::vector<iNode*> to_nodes (std::vector<NodeRange>& args)
+{
+	std::vector<iNode*> out;
+	std::transform(args.begin(), args.end(), std::back_inserter(out),
+	[](NodeRange& nr)
+	{
+		return nr.arg_;
+	});
+	return out;
+}
+
+static std::vector<Range> to_ranges (std::vector<NodeRange>& args)
+{
+	std::vector<Range> out;
+	std::transform(args.begin(), args.end(), std::back_inserter(out),
+	[](NodeRange& nr)
+	{
+		return nr.drange_;
+	});
+	return out;
+}
+
+Functor::Functor (std::vector<NodeRange> args, OperatePtrT op) :
+	iFunctor(to_nodes(args)), ranges_(to_ranges(args)), op_(op)
 {
 	initialize();
 }
 
 Functor::Functor (const Functor& other) :
-	iNode(other), iObserver(other),
+	iNode(other), iFunctor(other), ranges_(other.ranges_),
 	op_(other.op_->clone())
 {
 	initialize();
 }
 
 Functor::Functor (Functor&& other) :
-	iNode(std::move(other)), iObserver(std::move(other)),
-	cache_(std::move(other.cache_)), op_(std::move(other.op_))
+	iNode(std::move(other)), iFunctor(std::move(other)),
+	cache_(std::move(other.cache_)), ranges_(std::move(other.ranges_)),
+	op_(std::move(other.op_))
 {
 	initialize();
 }
@@ -38,7 +62,8 @@ Functor& Functor::operator = (const Functor& other)
 	if (&other != this)
 	{
 		iNode::operator = (other);
-		iObserver::operator = (other);
+		iFunctor::operator = (other);
+		ranges_ = other.ranges_;
 		cache_ = nullptr;
 		op_ = std::unique_ptr<iOperateIO>(other.op_->clone());
 		initialize();
@@ -51,7 +76,8 @@ Functor& Functor::operator = (Functor&& other)
 	if (&other != this)
 	{
 		iNode::operator = (std::move(other));
-		iObserver::operator = (std::move(other));
+		iFunctor::operator = (std::move(other));
+		ranges_ = std::move(other.ranges_);
 		cache_ = std::move(other.cache_);
 		op_ = std::move(other.op_);
 		initialize();
@@ -81,9 +107,9 @@ clay::State Functor::get_state (void) const
 void Functor::initialize (void)
 {
 	if (false == std::all_of(args_.begin(), args_.end(),
-	[](DimRange& arg)
+	[](iNode*& arg)
 	{
-		return arg.arg_->has_data();
+		return arg->has_data();
 	}))
 	{
 		return;
@@ -92,7 +118,10 @@ void Functor::initialize (void)
 	cache_ = op_->make_data(get_args());
 	for (iObserver* aud : audience_)
 	{
-		aud->initialize();
+		if (iFunctor* f = dynamic_cast<iFunctor*>(aud))
+		{
+			f->initialize();
+		}
 	}
 }
 
@@ -107,19 +136,28 @@ void Functor::update (void)
 		}
 		for (iObserver* aud : audience_)
 		{
-			aud->update();
+			if (iFunctor* f = dynamic_cast<iFunctor*>(aud))
+			{
+				f->initialize();
+			}
 		}
 	}
 }
 
+std::vector<Range> Functor::get_ranges (void) const
+{
+	return ranges_;
+}
+
 std::vector<StateRange> Functor::get_args (void) const
 {
+	size_t n = args_.size();
+	assert(n == ranges_.size());
 	std::vector<StateRange> args;
-	std::transform(args_.begin(), args_.end(), std::back_inserter(args),
-	[](const DimRange& arg) -> StateRange
+	for (size_t i = 0; i < n; ++i)
 	{
-		return {arg.arg_->get_state(), arg.drange_};
-	});
+		args.push_back({args_[i]->get_state(), ranges_[i]});
+	}
 	return args;
 }
 

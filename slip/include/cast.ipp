@@ -9,13 +9,13 @@ namespace slip
 {
 
 template <typename T>
-void cast (clay::State& dest, std::vector<clay::State> srcs)
+void cast (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	clay::Shape& shape = dest.shape_;
 	size_t n = shape.n_elems();
 	T* d = safe_get<T>(dest);
 	const char* s = safe_get<const char>(srcs.back());
-	clay::DTYPE srctype = srcs.back().dtype_;
+	clay::DTYPE srctype = srcs.back().type();
 	if (srctype == dest.dtype_)
 	{
 		std::memcpy(d, s, n * sizeof(T));

@@ -33,53 +33,94 @@ TEST_F(RANGE, Constructor_G000)
 
 TEST_F(RANGE, Apply_G001)
 {
-	std::vector<size_t> clist = random_def_shape(this);
+	std::vector<size_t> fragranks = get_int(3, "fragranks", {0, 4});
+	std::vector<size_t> outer1 = get_int(fragranks[0], "outer1", {1, 6});
+	std::vector<size_t> inner = get_int(fragranks[1], "inner", {1, 6});
+	std::vector<size_t> outer2 = get_int(fragranks[2], "outer2", {1, 6});
+	std::vector<size_t> clist = outer1;
+	clist.insert(clist.end(), inner.begin(), inner.end());
+	clist.insert(clist.end(), outer2.begin(), outer2.end());
+
 	clay::Shape shape(clist);
-	size_t rank = shape.rank();
-	std::vector<size_t> values = get_int(2, "rangevalues", {0, rank});
-	mold::Range range(values[0], values[1]);
-	auto it = shape.begin();
-	std::vector<size_t> exinner(it + range.lower_, it + range.upper_);
-	clay::Shape expect(exinner);
-	clay::Shape inner = range.apply(shape);
-	EXPECT_SHAPEQ(expect, inner);
+	mold::Range range(fragranks[0], fragranks[0] + fragranks[1]);
+	clay::Shape expect(inner);
+	clay::Shape inners = range.apply(shape);
+	EXPECT_SHAPEQ(expect, inners);
 
-	mold::Range halfin(values[0], 2 * rank);
-	std::vector<size_t> halfvec(it + values[0], shape.end());
-	clay::Shape halfexpect(halfvec);
-	clay::Shape halfinner = halfin.apply(shape);
-	EXPECT_SHAPEQ(halfexpect, halfinner);
+	mold::Range halfin(fragranks[0], clist.size());
+	std::vector<size_t> halfvec = outer1;
+	halfvec.insert(halfvec.end(), inner.begin(), inner.end());
+	clay::Shape halfinner = halfin.apply(clay::Shape(halfvec));
+	EXPECT_SHAPEQ(inners, halfinner);
 
-	mold::Range allout(2 * rank, 4 * rank);
-	clay::Shape outinner = allout.apply(shape);
+	mold::Range allout(fragranks[0] + fragranks[1], clist.size());
+	clay::Shape outinner = allout.apply(clay::Shape(outer1));
 	EXPECT_FALSE(outinner.is_part_defined()) <<
 		"out of range inner shape is defined: " << clay::to_string(outinner);
 }
 
 
-TEST_F(RANGE, Remove_G002)
+TEST_F(RANGE, Front_)
 {
-	std::vector<size_t> clist = random_def_shape(this);
+	clay::Shape scalar = get_int(1, "scalar", {1, 6});
+	mold::Range srange(0, 0);
+	clay::Shape undef = srange.front(scalar);
+	EXPECT_FALSE(undef.is_part_defined()) <<
+		"scalar shape with scalar outer range is defined: " << clay::to_string(undef);
+
+	std::vector<size_t> fragranks = get_int(3, "fragranks", {0, 4});
+	std::vector<size_t> outer1 = get_int(fragranks[0], "outer1", {1, 6});
+	std::vector<size_t> inner = get_int(fragranks[1], "inner", {1, 6});
+	std::vector<size_t> outer2 = get_int(fragranks[2], "outer2", {1, 6});
+	std::vector<size_t> clist = outer1;
+	clist.insert(clist.end(), inner.begin(), inner.end());
+	clist.insert(clist.end(), outer2.begin(), outer2.end());
+
 	clay::Shape shape(clist);
-	size_t rank = shape.rank();
-	std::vector<size_t> values = get_int(2, "rangevalues", {0, rank});
-	mold::Range range(values[0], values[1]);
-	auto it = shape.begin();
-	std::vector<size_t> exouter(it, it + range.lower_);
-	exouter.insert(exouter.end(), it + range.upper_, shape.end());
-	clay::Shape expect(exouter);
-	clay::Shape outer = range.split(shape);
-	EXPECT_SHAPEQ(expect, outer);
+	mold::Range range(fragranks[0], fragranks[0] + fragranks[1]);
+	clay::Shape expect(outer1);
+	clay::Shape ot1 = range.front(shape);
+	EXPECT_SHAPEQ(expect, ot1);
 
-	mold::Range halfin(values[0], 2 * rank);
-	std::vector<size_t> halfvec(it, it + values[0]);
-	clay::Shape halfexpect(halfvec);
-	clay::Shape halfouter = halfin.split(shape);
-	EXPECT_SHAPEQ(halfexpect, halfouter);
+	mold::Range halfin(fragranks[0], clist.size());
+	std::vector<size_t> halfvec = outer1;
+	halfvec.insert(halfvec.end(), inner.begin(), inner.end());
+	clay::Shape halfinner = halfin.front(clay::Shape(halfvec));
+	EXPECT_SHAPEQ(expect, halfinner);
 
-	mold::Range allout(2 * rank, 4 * rank);
-	clay::Shape outouter = allout.split(shape);
-	EXPECT_SHAPEQ(shape, outouter);
+	mold::Range allout(fragranks[0] + fragranks[1], clist.size());
+	clay::Shape outinner = allout.front(clay::Shape(outer1));
+	EXPECT_SHAPEQ(expect, outinner);
+}
+
+
+TEST_F(RANGE, Back_)
+{
+	std::vector<size_t> fragranks = get_int(3, "fragranks", {0, 4});
+	std::vector<size_t> outer1 = get_int(fragranks[0], "outer1", {1, 6});
+	std::vector<size_t> inner = get_int(fragranks[1], "inner", {1, 6});
+	std::vector<size_t> outer2 = get_int(fragranks[2], "outer2", {1, 6});
+	std::vector<size_t> clist = outer1;
+	clist.insert(clist.end(), inner.begin(), inner.end());
+	clist.insert(clist.end(), outer2.begin(), outer2.end());
+
+	clay::Shape shape(clist);
+	mold::Range range(fragranks[0], fragranks[0] + fragranks[1]);
+	clay::Shape expect(outer2);
+	clay::Shape ot2 = range.back(shape);
+	EXPECT_SHAPEQ(expect, ot2);
+
+	mold::Range halfin(fragranks[0], clist.size());
+	std::vector<size_t> halfvec = outer1;
+	halfvec.insert(halfvec.end(), inner.begin(), inner.end());
+	clay::Shape halfinner = halfin.back(clay::Shape(halfvec));
+	EXPECT_FALSE(halfinner.is_part_defined()) <<
+		"partial range second outer shape is defined: " << clay::to_string(halfinner);
+
+	mold::Range allout(fragranks[0] + fragranks[1], clist.size());
+	clay::Shape outinner = allout.back(clay::Shape(outer1));
+	EXPECT_FALSE(outinner.is_part_defined()) <<
+		"out of range second outer shape is defined: " << clay::to_string(outinner);
 }
 
 

@@ -33,9 +33,21 @@ clay::Shape StateRange::inner (void) const
 	return drange_.apply(arg_.shape_);
 }
 
+clay::Shape StateRange::front (void) const
+{
+	return drange_.front(arg_.shape_);
+}
+
+clay::Shape StateRange::back (void) const
+{
+	return drange_.back(arg_.shape_);
+}
+
 clay::Shape StateRange::outer (void) const
 {
-	return drange_.split(arg_.shape_);
+	return clay::concatenate(
+		drange_.front(arg_.shape_),
+		drange_.back(arg_.shape_));
 }
 
 }

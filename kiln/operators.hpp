@@ -113,32 +113,32 @@ Identifier* lt (Identifier* a, Identifier* b);
 //! a > b
 Identifier* gt (Identifier* a, Identifier* b);
 
-Identifier* pow (Identifier* b, mold::Range xdim,
-	Identifier* x, mold::Range bdim);
+Identifier* pow (IdRange b, IdRange x);
 
-Identifier* add (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim);
+Identifier* add (IdRange a, IdRange b);
 
-Identifier* sub (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim);
+Identifier* sub (IdRange a, IdRange b);
 
-Identifier* mul (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim);
+Identifier* mul (IdRange a, IdRange b);
 
-Identifier* div (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim);
+Identifier* div (IdRange a, IdRange b);
 
-Identifier* eq (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim);
+Identifier* eq (IdRange a, IdRange b);
 
-Identifier* neq (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim);
+Identifier* neq (IdRange a, IdRange b);
 
-Identifier* lt (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim);
+Identifier* lt (IdRange a, IdRange b);
 
-Identifier* gt (Identifier* a, mold::Range adim,
-	Identifier* b, mold::Range bdim);
+Identifier* gt (IdRange a, IdRange b);
+
+Identifier* arg_max (IdRange a);
+
+Identifier* is_max (IdRange a);
+
+Identifier* reduce_max (IdRange a);
+
+Identifier* reduce_sum (IdRange a);
+
 
 //! generate data of within binomial distribution given (n, p)
 Identifier* binomial_sample (Identifier* n, Identifier* p);
@@ -154,21 +154,15 @@ Identifier* normal_sample (Identifier* mean, Identifier* stdev);
 //! obtain the index of max value in a, lack of or invalid dimension look across all of a
 Identifier* arg_max (Identifier* a);
 
-Identifier* arg_max (Identifier* a, Identifier* dim);
-
 Identifier* arg_max (Identifier* a, uint64_t dim);
 
 //! obtain the max of a, lack of or invalid dimension look across all of a
 Identifier* reduce_max (Identifier* a);
 
-Identifier* reduce_max (Identifier* a, Identifier* dim);
-
 Identifier* reduce_max (Identifier* a, uint64_t dim);
 
 //! obtain the sum of a, lack of or invalid dimension look across all of a
 Identifier* reduce_sum (Identifier* a);
-
-Identifier* reduce_sum (Identifier* a, Identifier* dim);
 
 Identifier* reduce_sum (Identifier* a, uint64_t dim);
 
@@ -179,14 +173,10 @@ Identifier* matmul (Identifier* a, Identifier* b);
 //! obtain the mean of a, lack of or invalid dimension look across all of a
 Identifier* reduce_mean (Identifier* a);
 
-Identifier* reduce_mean (Identifier* a, Identifier* dim);
-
 Identifier* reduce_mean (Identifier* a, uint64_t dim);
 
 //! obtain the l2norm of a, lack of or invalid dimension look across all of a
 Identifier* reduce_l2norm (Identifier* a);
-
-Identifier* reduce_l2norm (Identifier* a, Identifier* dim);
 
 Identifier* reduce_l2norm (Identifier* a, uint64_t dim);
 

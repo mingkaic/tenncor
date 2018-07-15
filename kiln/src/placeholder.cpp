@@ -94,7 +94,10 @@ bool Placeholder::init_helper (const char* s, size_t n,
 		mold::AudienceT auds = arg->get_audience();
 		for (mold::iObserver* aud : auds)
 		{
-			aud->initialize();
+			if (mold::iFunctor* f = dynamic_cast<mold::iFunctor*>(aud))
+			{
+				f->initialize();
+			}
 		}
 	}
 	return inited;
@@ -119,7 +122,10 @@ void Placeholder::assign_helper (const char* s, size_t n, clay::DTYPE dtype)
 	mold::AudienceT auds = arg->get_audience();
 	for (mold::iObserver* aud : auds)
 	{
-		aud->update();
+		if (mold::iFunctor* f = dynamic_cast<mold::iFunctor*>(aud))
+		{
+			f->update();
+		}
 	}
 }
 

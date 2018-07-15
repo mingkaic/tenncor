@@ -14,7 +14,7 @@
  */
 
 #include "mold/inode.hpp"
-#include "mold/iobserver.hpp"
+#include "mold/ondeath.hpp"
 #include "mold/ioperate_io.hpp"
 
 #pragma once
@@ -24,10 +24,50 @@
 namespace mold
 {
 
-class Functor final : public iNode, public iObserver
+struct NodeRange
+{
+	iNode* arg_;
+	Range drange_;
+};
+
+struct iFunctor : public iObserver
+{
+	iFunctor (std::vector<iNode*> args) :
+		iObserver(args) {}
+
+	iFunctor (const iFunctor& other) :
+		iObserver(other) {}
+
+	iFunctor (iFunctor&& other) :
+		iObserver(std::move(other)) {}
+
+	iFunctor& operator = (const iFunctor& other)
+	{
+		if (&other != this)
+		{
+			iObserver::operator = (other);
+		}
+		return *this;
+	}
+
+	iFunctor& operator = (iFunctor&& other)
+	{
+		if (&other != this)
+		{
+			iObserver::operator = (std::move(other));
+		}
+		return *this;
+	}
+
+	virtual void initialize (void) = 0;
+
+	virtual void update (void) = 0;
+};
+
+class Functor final : public iNode, public iFunctor
 {
 public:
-	Functor (std::vector<DimRange> args, OperatePtrT op);
+	Functor (std::vector<NodeRange> args, OperatePtrT op);
 
 	Functor (const Functor& other);
 
@@ -48,12 +88,16 @@ public:
 
 	void update (void) override;
 
-private:
-	std::vector<StateRange> get_args (void) const;
+	std::vector<Range> get_ranges (void) const;
 
+private:
 	iNode* clone_impl (void) const override;
 
+	std::vector<StateRange> get_args (void) const;
+
 	clay::TensorPtrT cache_ = nullptr;
+
+	std::vector<Range> ranges_;
 
 	OperatePtrT op_;
 };

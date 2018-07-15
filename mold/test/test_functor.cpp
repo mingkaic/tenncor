@@ -157,11 +157,11 @@ mold::Functor* junk_functor (std::vector<mold::iNode*> args,
 	{
 		return dtype;
 	}));
-	std::vector<mold::DimRange> dims;
+	std::vector<mold::NodeRange> dims;
 	std::transform(args.begin(), args.end(), std::back_inserter(dims),
 	[](mold::iNode* node)
 	{
-		return mold::DimRange{node,mold::Range{0,0}};
+		return mold::NodeRange{node,mold::Range{0,0}};
 	});
 	return new mold::Functor(dims, std::move(op));
 }
@@ -297,7 +297,7 @@ TEST_F(FUNCTOR, GetState_D004)
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype",
 		{1, clay::DTYPE::_SENTINEL - 1})[0];
 	mold::Functor* f = new mold::Functor(
-		std::vector<mold::DimRange>{{&arg, {0, 0}}},
+		std::vector<mold::NodeRange>{{&arg, {0, 0}}},
 		std::move(identity));
 
 	EXPECT_THROW(f->get_state(), mold::UninitializedError);

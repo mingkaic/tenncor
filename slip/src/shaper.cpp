@@ -45,48 +45,39 @@ clay::Shape elem_shape (std::vector<mold::StateRange> states)
 	return outshape;
 }
 
-clay::Shape scalar_shape (std::vector<mold::StateRange> states)
+clay::Shape relem_shape (std::vector<mold::StateRange> states)
 {
 	if (states.size() != 1)
 	{
 		throw BadNArgsError(1, states.size());
 	}
 	mold::StateRange& srange = states[0];
+	clay::Shape inner = srange.inner();
+	if (false == inner.is_fully_defined())
+	{
+		throw InvalidRangeError(srange.drange_, srange.shape());
+	}
+	return srange.shape();
+}
+
+clay::Shape reduce_shape (std::vector<mold::StateRange> states)
+{
+	if (states.size() != 1)
+	{
+		throw BadNArgsError(1, states.size());
+	}
+	mold::StateRange& srange = states[0];
+	clay::Shape inner = srange.inner();
+	if (false == inner.is_fully_defined())
+	{
+		throw InvalidRangeError(srange.drange_, srange.shape());
+	}
 	clay::Shape outer = srange.outer();
 	if (false == outer.is_part_defined())
 	{
 		return clay::Shape({1});
 	}
 	return outer;
-}
-
-clay::Shape reduce_shape (std::vector<mold::StateRange> states)
-{
-	if (states.size() != 2)
-	{
-		throw BadNArgsError(2, states.size());
-	}
-	clay::State& state = states[1].arg_;
-	if (1 != state.shape_.n_elems())
-	{
-		throw ShapeMismatchError(clay::Shape({1}), state.shape_);
-	}
-	uint64_t dim = *(safe_get<uint64_t>(state));
-	clay::Shape shape = states[0].shape();
-	if (dim >= shape.rank())
-	{
-		throw InvalidDimensionError(dim, shape);
-	}
-	std::vector<size_t> slist = shape.as_list();
-	if (1 == slist.size())
-	{
-		slist[0] = 1;
-	}
-	else
-	{
-		slist.erase(slist.begin() + dim);
-	}
-	return clay::Shape(slist);
 }
 
 clay::Shape matmul_shape (std::vector<mold::StateRange> states)

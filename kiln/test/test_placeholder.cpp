@@ -36,10 +36,10 @@ protected:
 };
 
 
-struct mock_observer : public mold::iObserver, public testify::mocker
+struct mock_functor : public mold::iFunctor, public testify::mocker
 {
-	mock_observer (mold::iNode* arg) :
-		mold::iObserver({arg}) {}
+	mock_functor (mold::iNode* arg) :
+		mold::iFunctor({arg}) {}
 
 	void initialize (void) override
 	{
@@ -57,7 +57,7 @@ TEST_F(PLACEHOLDER, VecInit_F000)
 {
 	std::string label = get_string(16, "label");
 	kiln::Placeholder place(label);
-	mock_observer* obs = new mock_observer(place.get());
+	mock_functor* obs = new mock_functor(place.get());
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t n = get_int(1, "n", {16, 64})[0];
 	size_t nbytes = n * clay::type_size(dtype);
@@ -157,7 +157,7 @@ TEST_F(PLACEHOLDER, ShapedInit_F001)
 	std::string label = get_string(16, "label");
 	clay::Shape shape = random_def_shape(this);
 	kiln::Placeholder place(label);
-	mock_observer* obs = new mock_observer(place.get());
+	mock_functor* obs = new mock_functor(place.get());
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t n = shape.n_elems();
 	size_t nbytes = n * clay::type_size(dtype);
@@ -258,7 +258,7 @@ TEST_F(PLACEHOLDER, PartInit_F002)
 	clay::Shape shape = clist;
 	clay::Shape parts = make_partial(this, clist);
 	kiln::Placeholder place(label);
-	mock_observer* obs = new mock_observer(place.get());
+	mock_functor* obs = new mock_functor(place.get());
 	clay::DTYPE dtype = (clay::DTYPE) get_int(1, "dtype", {1, clay::DTYPE::_SENTINEL - 1})[0];
 	size_t n = shape.n_elems();
 	size_t nbytes = n * clay::type_size(dtype);
@@ -357,7 +357,7 @@ TEST_F(PLACEHOLDER, Assign_F003)
 	std::string label = get_string(16, "label");
 	clay::Shape shape = random_def_shape(this);
 	kiln::Placeholder place(label);
-	mock_observer* obs = new mock_observer(place.get());
+	mock_functor* obs = new mock_functor(place.get());
 	bool doub = get_int(1, "doub")[0] % 2;
 	size_t n = shape.n_elems();
 	size_t bsize;

@@ -14,17 +14,22 @@
 namespace kiln
 {
 
+UIDRange IdRange::get_uid (void) const
+{
+	return UIDRange{arg_->get_uid(), drange_};
+}
+
 Functor::Functor (std::vector<Identifier*> args,
 	slip::OPCODE opcode, Graph& graph) :
 	Identifier(&graph,
 		new mold::Functor(
-			[](std::vector<Identifier*> args) -> std::vector<mold::DimRange>
+			[](std::vector<Identifier*> args) -> std::vector<mold::NodeRange>
 			{
-				std::vector<mold::DimRange> out;
+				std::vector<mold::NodeRange> out;
 				std::transform(args.begin(), args.end(), std::back_inserter(out),
-				[](Identifier* id) -> mold::DimRange
+				[](Identifier* id) -> mold::NodeRange
 				{
-					return mold::DimRange{
+					return mold::NodeRange{
 						id->get(),mold::Range{0,0}};
 				});
 				return out;
@@ -60,13 +65,13 @@ Functor::Functor (std::vector<IdRange> args,
 	slip::OPCODE opcode, Graph& graph) :
 	Identifier(&graph,
 		new mold::Functor(
-			[](std::vector<IdRange>& args) -> std::vector<mold::DimRange>
+			[](std::vector<IdRange>& args) -> std::vector<mold::NodeRange>
 			{
-				std::vector<mold::DimRange> out;
+				std::vector<mold::NodeRange> out;
 				std::transform(args.begin(), args.end(), std::back_inserter(out),
-				[](IdRange id) -> mold::DimRange
+				[](IdRange id) -> mold::NodeRange
 				{
-					return mold::DimRange{id.arg_->get(), id.drange_};
+					return mold::NodeRange{id.arg_->get(), id.drange_};
 				});
 				return out;
 			}(args),
@@ -102,9 +107,17 @@ Functor::~Functor (void)
 	graph_->remove_func(this);
 }
 
-std::vector<UID> Functor::get_args (void) const
+std::vector<UIDRange> Functor::get_args (void) const
 {
-	return arg_ids_;
+	size_t n = arg_ids_.size();
+	std::vector<UIDRange> out;
+	std::vector<mold::Range> ranges = static_cast<mold::Functor*>(get())->get_ranges();
+	assert(n == ranges.size());
+	for (size_t i = 0; i < n; ++i)
+	{
+		out.push_back({arg_ids_[i], ranges[i]});
+	}
+	return out;
 }
 
 }

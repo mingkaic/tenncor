@@ -26,7 +26,7 @@
 namespace slip
 {
 
-using ArgsF = std::function<void(clay::State&,std::vector<clay::State>)>;
+using ArgsF = std::function<void(clay::State&,std::vector<mold::StateRange>)>;
 
 using ShaperF = std::function<clay::Shape(std::vector<mold::StateRange>)>;
 

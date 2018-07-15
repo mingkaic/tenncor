@@ -27,7 +27,7 @@ struct OnDeath final : public iObserver
 {
 	OnDeath (iNode* arg, TermF term);
 
-	virtual ~OnDeath (void);
+	~OnDeath (void);
 
 	OnDeath (const OnDeath& other, TermF term);
 
@@ -38,10 +38,6 @@ struct OnDeath final : public iObserver
 	OnDeath& operator = (OnDeath&& other) = delete;
 
 	iNode* get (void) const;
-
-	void initialize (void) override;
-
-	void update (void) override;
 
 	void clear_term (void);
 

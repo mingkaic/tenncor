@@ -38,6 +38,11 @@ InvalidDimensionError::InvalidDimensionError (uint64_t dim, clay::Shape shape) :
 	"dimension " << dim <<
 	" cannot accommodate shape " << shape.as_list()) {}
 
+InvalidRangeError::InvalidRangeError (mold::Range range, clay::Shape shape) :
+	std::runtime_error(ioutil::Stream() <<
+	"range <" << range.lower_ << "," << range.upper_ <<
+	"> cannot accommodate shape " << shape.as_list()) {}
+
 }
 
 #endif

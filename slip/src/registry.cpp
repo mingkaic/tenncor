@@ -49,26 +49,13 @@ static clay::DTYPE same_type (std::vector<clay::DTYPE> types)
 	return out;
 }
 
-static clay::DTYPE reduce_type (std::vector<clay::DTYPE> types)
-{
-	if (types.size() != 2)
-	{
-		throw BadNArgsError(2, types.size());
-	}
-	if (clay::UINT64 != types[1])
-	{
-		throw clay::UnsupportedTypeError(types[1]);
-	}
-	return types[0];
-}
-
 // REGISTRY DEFINITION
 
 #define MAKE_OP(treg, shaper, typer)\
 mold::OperatePtrT(new OperateIO(treg, shaper, typer))
 #define ELEM(op) MAKE_OP(TMAP_FUNC(op), elem_shape, same_type)
-#define SCALAR(op) MAKE_OP(TMAP_FUNC(op), scalar_shape, same_type)
-#define REDUCE(op) MAKE_OP(TMAP_FUNC(op), reduce_shape, reduce_type)
+#define RELEM(op) MAKE_OP(TMAP_FUNC(op), relem_shape, same_type)
+#define REDUCE(op) MAKE_OP(TMAP_FUNC(op), reduce_shape, same_type)
 
 static EnumMap<OPCODE,mold::OperatePtrT> registry =
 {
@@ -99,6 +86,7 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 	{LOG, ELEM(log)},
 	{SQRT, ELEM(sqrt)},
 	{ROUND, ELEM(round)},
+	{ISMAX, RELEM(is_max)},
 	{POW, ELEM(pow)},
 	{ADD, ELEM(add)},
 	{SUB, ELEM(sub)},
@@ -222,12 +210,9 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 		}
 		return types[0];
 	})},
-	{UARGMAX, SCALAR(unar_argmax)},
-	{URMAX, SCALAR(unar_max)},
-	{URSUM, SCALAR(unar_sum)},
-	{ARGMAX, REDUCE(argmax)},
-	{RMAX, REDUCE(max)},
-	{RSUM, REDUCE(sum)},
+	{ARGMAX, REDUCE(arg_max)},
+	{RMAX, REDUCE(rmax)},
+	{RSUM, REDUCE(rsum)},
 	{EXPAND, MAKE_OP(TMAP_FUNC(expand),
 	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{

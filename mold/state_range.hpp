@@ -34,6 +34,10 @@ struct StateRange
 
 	clay::Shape inner (void) const;
 
+	clay::Shape front (void) const;
+
+	clay::Shape back (void) const;
+
 	clay::Shape outer (void) const;
 
 	clay::State arg_;

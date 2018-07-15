@@ -43,7 +43,10 @@ bool Variable::initialize (clay::TensorPtrT ten)
 		mold::AudienceT auds = arg->get_audience();
 		for (mold::iObserver* aud : auds)
 		{
-			aud->initialize();
+			if (mold::iFunctor* f = dynamic_cast<mold::iFunctor*>(aud))
+			{
+				f->initialize();
+			}
 		}
 	}
 	return inited;
@@ -67,7 +70,10 @@ bool Variable::assign (const Identifier& src)
 	mold::AudienceT auds = arg->get_audience();
 	for (mold::iObserver* aud : auds)
 	{
-		aud->update();
+		if (mold::iFunctor* f = dynamic_cast<mold::iFunctor*>(aud))
+		{
+			f->update();
+		}
 	}
 	return false;
 }

@@ -12,36 +12,23 @@
 namespace mold
 {
 
-iObserver::iObserver (std::vector<iNode*> args) :
-	iObserver([](std::vector<iNode*> nodes) -> std::vector<DimRange>
-	{
-		std::vector<DimRange> out;
-		std::transform(nodes.begin(), nodes.end(), std::back_inserter(out),
-		[](iNode* node)
-		{
-			return DimRange{node, Range{0,0}};
-		});
-		return out;
-	}(args)) {}
-
-iObserver::iObserver (std::vector<DimRange> args) :
-	args_(args)
+iObserver::iObserver (std::vector<iNode*> args) : args_(args)
 {
-	for (DimRange& arg : args_)
+	for (iNode*& arg : args)
 	{
-		if (nullptr == arg.arg_)
+		if (nullptr == arg)
 		{
 			throw std::exception();
 		}
-		arg.arg_->add(this);
+		arg->add(this);
 	}
 }
 
 iObserver::~iObserver (void)
 {
-	for (DimRange& arg : args_)
+	for (iNode* arg : args_)
 	{
-		arg.arg_->del(this);
+		arg->del(this);
 	}
 }
 
@@ -73,35 +60,35 @@ iObserver& iObserver::operator = (iObserver&& other)
 	return *this;
 }
 
-std::vector<DimRange> iObserver::get_args (void) const
+std::vector<iNode*> iObserver::get_args (void) const
 {
 	return args_;
 }
 
 void iObserver::copy_helper (const iObserver& other)
 {
-	for (DimRange& arg : args_)
+	for (iNode*& arg : args_)
 	{
-		arg.arg_->del(this);
+		arg->del(this);
 	}
 	args_ = other.args_;
-	for (DimRange& arg : args_)
+	for (iNode*& arg : args_)
 	{
-		arg.arg_->add(this);
+		arg->add(this);
 	}
 }
 
 void iObserver::move_helper (iObserver&& other)
 {
-	for (DimRange& arg : args_)
+	for (iNode*& arg : args_)
 	{
-		arg.arg_->del(this);
+		arg->del(this);
 	}
 	args_ = std::move(other.args_);
-	for (DimRange& arg : args_)
+	for (iNode*& arg : args_)
 	{
-		arg.arg_->del(&other);
-		arg.arg_->add(this);
+		arg->del(&other);
+		arg->add(this);
 	}
 }
 

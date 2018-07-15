@@ -168,11 +168,11 @@ static void strassen (T* c, T* a, T* b, size_t dimPad)
 
 
 template <typename T>
-void matmul (clay::State& dest, std::vector<clay::State> srcs)
+void matmul (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	assert(2 == srcs.size());
-	clay::Shape& ashape = srcs.front().shape_;
-	clay::Shape& bshape = srcs.back().shape_;
+	clay::Shape ashape = srcs.front().shape();
+	clay::Shape bshape = srcs.back().shape();
 	T* tdest = safe_get<T>(dest);
 	const T* src0 = safe_get<const T>(srcs.front());
 	const T* src1 = safe_get<const T>(srcs.back());
@@ -189,7 +189,7 @@ void matmul (clay::State& dest, std::vector<clay::State> srcs)
 	size_t dim_x = bshape.at(0);
 
 	// assert that beyond2d is same for A, B, and output C
-	size_t beyond2d = srcs[0].shape_.n_elems() / (dim_z * dim_y);
+	size_t beyond2d = srcs[0].shape().n_elems() / (dim_z * dim_y);
 
 #ifdef ENABLE_STRASSEN // strassen is very cumbersome in a lot of cases
 	size_t dim_pad = min_pad(std::max(std::max(dim_x, dim_y), dim_z));
@@ -246,21 +246,21 @@ void matmul (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <typename T>
-void jacobian (clay::State& dest, std::vector<clay::State> srcs)
+void jacobian (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	clay::Shape& outshape = dest.shape_;
-	clay::State& dstate = srcs[2];
+	mold::StateRange& dstate = srcs[2];
 	uint64_t* dims = safe_get<uint64_t>(dstate);
 	uint64_t matchdim = dims[0];
 	uint64_t swapdim = dims[1];
 
-	clay::State& state = srcs[swapdim];
+	mold::StateRange& state = srcs[swapdim];
 	T* d = safe_get<T>(dest);
-	clay::Shape& inshape = state.shape_;
+	clay::Shape inshape = state.shape();
 	const T* s = safe_get<const T>(state);
-	size_t innerlimit = srcs[matchdim].shape_.as_list()[swapdim];
-	size_t ylimit = srcs[0].shape_.as_list()[0];
-	size_t xlimit = srcs[1].shape_.as_list()[0];
+	size_t innerlimit = srcs[matchdim].shape().as_list()[swapdim];
+	size_t ylimit = srcs[0].shape().as_list()[0];
+	size_t xlimit = srcs[1].shape().as_list()[0];
 	size_t n = inshape.n_elems();
 	// zero out background
 	std::memset(d, 0, outshape.n_elems() * sizeof(T));
@@ -283,22 +283,22 @@ void jacobian (clay::State& dest, std::vector<clay::State> srcs)
 }
 
 template <typename T>
-void trace_expand (clay::State& dest, std::vector<clay::State> srcs)
+void trace_expand (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
 	if (srcs.size() != 2)
 	{
 		throw std::exception();
 	}
 	clay::Shape& destshape = dest.shape_;
-	clay::Shape& srcshape = srcs.front().shape_;
+	clay::Shape srcshape = srcs.front().shape();
 	T* d = safe_get<T>(dest);
 	const T* s = safe_get<const T>(srcs.front());
-	clay::State& dstate = srcs[1];
-	if (dstate.dtype_ != clay::UINT64)
+	mold::StateRange& dstate = srcs[1];
+	if (dstate.type() != clay::UINT64)
 	{
 		throw std::exception();
 	}
-	if (1 != dstate.shape_.n_elems())
+	if (1 != dstate.shape().n_elems())
 	{
 		throw std::exception();
 	}

@@ -39,10 +39,10 @@ protected:
 };
 
 
-struct mock_observer : public mold::iObserver, public testify::mocker
+struct mock_functor : public mold::iFunctor, public testify::mocker
 {
-	mock_observer (mold::iNode* arg) :
-		mold::iObserver({arg}) {}
+	mock_functor (mold::iNode* arg) :
+		mold::iFunctor({arg}) {}
 
 	void initialize (void) override
 	{
@@ -66,7 +66,7 @@ TEST_F(VARIABLE, Init_E000)
 	clay::BuildTensorF builder = kiln::const_init(scalar, shape);
 	std::string label = get_string(16, "label");
 	kiln::Variable var(builder, label);
-	mock_observer* obs = new mock_observer(var.get());
+	mock_functor* obs = new mock_functor(var.get());
 
 	EXPECT_EQ(0, testify::mocker::get_usage(obs, "initialize"));
 	EXPECT_EQ(0, testify::mocker::get_usage(obs, "update"));
@@ -107,7 +107,7 @@ TEST_F(VARIABLE, Assign_E001)
 	std::string label = get_string(16, "label");
 	kiln::Variable var(builder, label);
 	kiln::Variable var2(builder, label);
-	mock_observer* obs = new mock_observer(var.get());
+	mock_functor* obs = new mock_functor(var.get());
 
 	kiln::Constant* c = kiln::Constant::get(data, shape);
 	kiln::Constant* c2 = kiln::Constant::get(baddata, badshape);

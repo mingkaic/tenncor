@@ -22,7 +22,7 @@ namespace slip
 
 clay::Shape elem_shape (std::vector<mold::StateRange> states);
 
-clay::Shape scalar_shape (std::vector<mold::StateRange> states);
+clay::Shape relem_shape (std::vector<mold::StateRange> states);
 
 clay::Shape reduce_shape (std::vector<mold::StateRange> states);
 

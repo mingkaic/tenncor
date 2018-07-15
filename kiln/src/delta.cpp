@@ -62,17 +62,17 @@ static void get_paths (std::unordered_set<UID>& reachable,
 			}
 			else if (id > target)
 			{
-				auto arg_ids = top->get_args();
+				auto args = top->get_args();
 				stk.push(nullptr);
 				path.push_back(0);
-				for (UID arg_id : arg_ids)
+				for (UIDRange& arg : args)
 				{
-					if (visited.end() == visited.find(arg_id))
+					if (visited.end() == visited.find(arg.uid_))
 					{
-						stk.push(graph->get_node(arg_id));
+						stk.push(graph->get_node(arg.uid_));
 					}
-					else if (reachable.end() != reachable.find(arg_id) ||
-						arg_id == target)
+					else if (reachable.end() != reachable.find(arg.uid_) ||
+						arg.uid_ == target)
 					{
 						// add path
 						for (auto it = path.begin(), et = --path.end();
@@ -139,19 +139,20 @@ Identifier* delta (Identifier* root, Identifier* wrt)
 		UID id = path.top();
 		path.pop();
 		Functor* f = static_cast<Functor*>(graph->get_node(id));
-		std::vector<UID> ids = f->get_args();
-		GradArgsT args(ids.size());
-		std::transform(ids.begin(), ids.end(), args.begin(),
-		[&](UID id) -> std::pair<Identifier*,Identifier*>
+		std::vector<UIDRange> ids = f->get_args();
+		GradArgsT args;
+		std::transform(ids.begin(), ids.end(), std::back_inserter(args),
+		[&](UIDRange& id) -> std::pair<IdRange,IdRange>
 		{
-			Identifier* fwd = graph->get_node(id);
+			Identifier* fwd = graph->get_node(id.uid_);
 			Identifier* bwd = nullptr;
-			auto it = backs.find(id);
+			auto it = backs.find(id.uid_);
 			if (backs.end() != it)
 			{
 				bwd = it->second;
 			}
-			return {fwd, bwd};
+			return {IdRange{fwd, id.range_},
+				IdRange{bwd, id.range_}};
 		});
 		backs[id] = grad_op.at(f->opcode_)(one, args);
 	}

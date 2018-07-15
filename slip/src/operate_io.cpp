@@ -73,13 +73,7 @@ void OperateIO::unsafe_write (clay::State& dest,
 	{
 		throw clay::UnsupportedTypeError(dtype);
 	}
-	std::vector<clay::State> states(args.size());
-	std::transform(args.begin(), args.end(), states.begin(),
-	[](const mold::StateRange& sr) -> clay::State
-	{
-		return sr.arg_;
-	});
-	op->second(dest, states);
+	op->second(dest, args);
 }
 
 mold::iOperateIO* OperateIO::clone_impl (void) const
