@@ -740,12 +740,7 @@ TEST_F(REGISTRY, NDims_B019)
 	std::string argument = get_string(nbytes, "argument");
 
 	std::shared_ptr<char> data = clay::make_char(nbytes);
-	std::shared_ptr<char> dptr = clay::make_char(sizeof(uint64_t));
 	std::memcpy(data.get(), argument.c_str(), nbytes);
-	std::memcpy(dptr.get(), &argidx, sizeof(uint64_t));
-
-	std::shared_ptr<char> baddata = clay::make_char(sizeof(uint64_t));
-	std::memcpy(baddata.get(), &badarg, sizeof(uint64_t));
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
 		"function " << slip::opnames.at(opcode) << " not found";
@@ -754,25 +749,18 @@ TEST_F(REGISTRY, NDims_B019)
 	clay::State in(data, shape, dtype);
 
 	auto bad_op = slip::get_op(opcode);
-	EXPECT_THROW(bad_op->make_data({
-			mold::StateRange(in, mold::Range(0, 0)),
-			mold::StateRange(clay::State(baddata, outshape, clay::UINT64), mold::Range(0, 0))
-		}),
+	EXPECT_THROW(bad_op->make_data({mold::StateRange(in, mold::Range(argidx, argidx+1))}),
+		slip::InvalidRangeError);
+	EXPECT_THROW(bad_op->make_data({mold::StateRange(in, mold::Range(badarg, badarg))}),
 		slip::InvalidDimensionError);
 
-	clay::TensorPtrT tens = op->make_data({
-		mold::StateRange(in, mold::Range(0, 0)),
-		mold::StateRange(clay::State(dptr, outshape, clay::UINT64), mold::Range(0, 0))
-	});
+	clay::TensorPtrT tens = op->make_data({mold::StateRange(in, mold::Range(argidx, argidx))});
 	ASSERT_SHAPEQ(outshape, tens->get_shape());
 	ASSERT_EQ(clay::UINT64, tens->get_type());
 
 	std::shared_ptr<char> output = clay::make_char(sizeof(uint64_t));
 	clay::State out(output, outshape, clay::UINT64);
-	ASSERT_TRUE(op->write_data(out, {
-		mold::StateRange(in, mold::Range(0, 0)),
-		mold::StateRange(clay::State(dptr, outshape, clay::UINT64), mold::Range(0, 0))
-	}));
+	ASSERT_TRUE(op->write_data(out, {mold::StateRange(in, mold::Range(argidx, argidx))}));
 
 	uint64_t* outptr = (uint64_t*) output.get();
 	EXPECT_EQ(clist[argidx], *outptr);

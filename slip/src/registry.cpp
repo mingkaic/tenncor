@@ -280,35 +280,28 @@ static EnumMap<OPCODE,mold::OperatePtrT> registry =
 	{N_DIMS, MAKE_OP(TMAP_SFUNC(n_dims),
 	[](std::vector<mold::StateRange> states) -> clay::Shape
 	{
-		if (2 != states.size())
+		if (1 != states.size())
 		{
-			throw BadNArgsError(2, states.size());
+			throw BadNArgsError(1, states.size());
 		}
-		clay::State& dstate = states[1].arg_;
-		if (1 != dstate.shape_.n_elems())
+		size_t dim = states[0].drange_.lower_;
+		clay::Shape shape = states[0].shape();
+		if (dim != states[0].drange_.upper_)
 		{
-			throw ShapeMismatchError(
-				clay::Shape({1}),
-				dstate.shape_);
+			throw InvalidRangeError(states[0].drange_, shape);
 		}
-		uint64_t dim = *(safe_get<uint64_t>(dstate));
-		if (dim >= states[0].shape().rank())
+		if (dim >= shape.rank())
 		{
-			throw InvalidDimensionError(dim, states[0].shape());
+			throw InvalidDimensionError(dim, shape);
 		}
 		return clay::Shape(std::vector<size_t>{1});
 	},
 	[](std::vector<clay::DTYPE> types) -> clay::DTYPE
 	{
-		if (2 != types.size())
+		if (1 != types.size())
 		{
-			throw BadNArgsError(2, types.size());
+			throw BadNArgsError(1, types.size());
 		}
-		// todo: add test for this, then uncomment
-		// if (types[1] != clay::UINT64)
-		// {
-		// 	throw clay::UnsupportedTypeError(types[1]);
-		// }
 		return clay::UINT64;
 	})},
 	{MATMUL, MAKE_OP(TMAP_FUNC(matmul), matmul_shape, same_type)},

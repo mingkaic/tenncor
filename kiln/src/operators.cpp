@@ -626,30 +626,13 @@ Identifier* n_elems (Identifier* a)
 	return new Functor({a}, opcode);
 }
 
-Identifier* n_dimension (Identifier* a, Identifier* dim)
-{
-	if (nullptr == a || nullptr == dim)
-	{
-		return nullptr;
-	}
-	slip::OPCODE opcode = slip::N_DIMS;
-	if (Identifier* parent = ordered_parent({
-		{a->get_uid(), mold::Range(0, 0)},
-		{dim->get_uid(), mold::Range(0, 0)}}, opcode))
-	{
-		return parent;
-	}
-	return new Functor(std::vector<Identifier*>{a, dim}, opcode);
-}
+// dimensioned operators
 
 Identifier* n_dimension (Identifier* a, uint64_t dim)
 {
-	Identifier* did = Constant::get(dim);
-	assoc(a, did);
-	return n_dimension(a, did);
+	return n_dimension(IdRange{a, mold::Range(dim, dim)});
 }
 
-// dimensioned operators
 Identifier* pow (Identifier* b, Identifier* x)
 {
 	if (nullptr == b || nullptr == x)
@@ -792,6 +775,22 @@ Identifier* gt (Identifier* a, Identifier* b)
 		return parent;
 	}
 	return new Functor(std::vector<Identifier*>{a, b}, opcode);
+}
+
+
+
+Identifier* n_dimension (IdRange a)
+{
+	if (nullptr == a.arg_)
+	{
+		return nullptr;
+	}
+	slip::OPCODE opcode = slip::N_DIMS;
+	if (Identifier* parent = single_parent(a.arg_->get_uid(), opcode, a.drange_))
+	{
+		return parent;
+	}
+	return new Functor({a}, opcode);
 }
 
 Identifier* pow (IdRange b, IdRange x)

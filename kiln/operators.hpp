@@ -58,6 +58,9 @@ Identifier* sqrt (Identifier* a);
 //! round a
 Identifier* round (Identifier* a);
 
+//! get the number of elements in a
+Identifier* n_elems (Identifier* a);
+
 //! transpose, default perm is same as behavior n-1 ... 0
 Identifier* transpose (Identifier* a);
 
@@ -70,6 +73,8 @@ Identifier* flip (Identifier* a, Identifier* dims);
 
 Identifier* flip (Identifier* a, std::vector<uint64_t> dims);
 
+////////////
+
 //! repeat a n times along inserted dimension dim
 Identifier* expand (Identifier* a, Identifier* n, Identifier* dim);
 
@@ -77,12 +82,9 @@ Identifier* expand (Identifier* a, Identifier* n, uint64_t dim);
 
 Identifier* expand (Identifier* a, uint64_t n, uint64_t dim);
 
-//! get the number of elements in a
-Identifier* n_elems (Identifier* a);
+////////////
 
 //! get the number of elements in across a dimension in a
-Identifier* n_dimension (Identifier* a, Identifier* dim);
-
 Identifier* n_dimension (Identifier* a, uint64_t dim);
 
 //! dimensioned operators
@@ -112,6 +114,10 @@ Identifier* lt (Identifier* a, Identifier* b);
 
 //! a > b
 Identifier* gt (Identifier* a, Identifier* b);
+
+
+
+Identifier* n_dimension (IdRange a);
 
 Identifier* pow (IdRange b, IdRange x);
 

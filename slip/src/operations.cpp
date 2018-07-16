@@ -138,22 +138,14 @@ void n_elems (clay::State& dest, std::vector<mold::StateRange> srcs)
 
 void n_dims (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
-	if (srcs.size() != 2)
-	{
-		throw BadNArgsError(2, srcs.size());
-	}
-	clay::Shape srcshape = srcs.front().shape();
+	mold::StateRange& src = srcs[0];
+	clay::Shape srcshape = src.shape();
 	uint64_t* d = safe_get<uint64_t>(dest);
-	mold::StateRange& dstate = srcs[1];
-	if (dstate.type() != clay::UINT64)
+	size_t dim = src.drange_.lower_;
+	if (dim != src.drange_.upper_)
 	{
-		throw clay::UnsupportedTypeError(dstate.type());
+		throw InvalidRangeError(src.drange_, srcshape);
 	}
-	if (1 != dstate.shape().n_elems())
-	{
-		throw ShapeMismatchError(clay::Shape({1}), dstate.shape());
-	}
-	uint64_t dim = *(safe_get<uint64_t>(dstate));
 	if (dim < srcshape.rank())
 	{
 		d[0] = srcshape.at(dim);
