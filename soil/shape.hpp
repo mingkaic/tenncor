@@ -64,16 +64,7 @@ private:
 	void move_helper (Shape&& other);
 
 	// get the first index of the kth group
-	uint8_t kth_group (uint8_t k) const
-	{
-		// [lsb] 0 ... rank_cap-1 [msb]
-		uint8_t i = 0;
-		for (; i < rank_cap && k > 0; ++i)
-		{
-			k -= (groups_ >> i) & 1;
-		}
-		return i;
-	}
+	uint8_t kth_group (uint8_t k) const;
 
 	std::array<DimT,rank_cap> dims_; // todo: add padding for groups
 

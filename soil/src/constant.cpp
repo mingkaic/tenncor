@@ -9,7 +9,7 @@ Nodeptr Constant::get (char* data, DTYPE type, Shape shape)
 	return Nodeptr(new Constant(data, type, shape));
 }
 
-std::shared_ptr<char> Constant::calculate (void)
+std::shared_ptr<char> Constant::calculate (Session& sess)
 {
 	if (data_ == nullptr)
 	{

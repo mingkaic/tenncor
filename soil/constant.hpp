@@ -20,7 +20,15 @@ struct Constant final : public iNode
 
 	static Nodeptr get (char* data, DTYPE type, Shape shape);
 
-	std::shared_ptr<char> calculate (void) override;
+	Constant (const Constant&) = default;
+
+	Constant (Constant&&) = delete;
+
+	Constant& operator = (const Constant&) = default;
+
+	Constant& operator = (Constant&&) = delete;
+
+	std::shared_ptr<char> calculate (Session& sess) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
@@ -33,14 +41,6 @@ struct Constant final : public iNode
 
 private:
 	Constant (char* data, DTYPE type, Shape shape);
-
-	Constant (const Constant&) = default;
-
-	Constant (Constant&&) = delete;
-
-	Constant& operator = (const Constant&) = default;
-
-	Constant& operator = (Constant&&) = delete;
 
 	std::shared_ptr<char> data_;
 	Shape shape_;

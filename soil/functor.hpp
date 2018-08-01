@@ -1,3 +1,5 @@
+#include <functional>
+
 #include "soil/inode.hpp"
 
 #ifndef FUNCTOR_HPP
@@ -48,7 +50,7 @@ struct Functor final : public iNode
 {
 	static Nodeptr get (std::vector<Nodeptr> args, OPCODE opcode);
 
-	std::shared_ptr<char> calculate (void) override;
+	std::shared_ptr<char> calculate (Session& sess) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
@@ -73,7 +75,7 @@ struct Copyover final : public iNode
 {
 	static Nodeptr get (Nodeptr& arg, CoordOp swapdim);
 
-	std::shared_ptr<char> calculate (void) override;
+	std::shared_ptr<char> calculate (Session& sess) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
@@ -100,9 +102,9 @@ struct ShapeTransform final : public iNode
 		return new ShapeTransform(arg, shape);
 	}
 
-	std::shared_ptr<char> calculate (void) override
+	std::shared_ptr<char> calculate (Session& sess) override
 	{
-		return arg_->calculate();
+		return arg_->calculate(sess);
 	}
 
 	Nodeptr gradient (Nodeptr& leaf) const override
@@ -121,18 +123,7 @@ struct ShapeTransform final : public iNode
 	}
 
 private:
-	ShapeTransform (Nodeptr& arg, Shape shape) :
-		shape_(shape), arg_(arg)
-	{
-		NElemT nin = shape.n_elems();
-		NElemT nout = arg->shape().n_elems();
-		if (nin != nout)
-		{
-			handle_error("shape transform data of incompatible size",
-				ErrArg<NElemT>("indata_size", nin),
-				ErrArg<NElemT>("outdata_size", nout));
-		}
-	}
+	ShapeTransform (Nodeptr& arg, Shape shape);
 
 	Shape shape_;
 	Nodeptr arg_;

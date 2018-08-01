@@ -1,4 +1,5 @@
 #include "soil/inode.hpp"
+#include "soil/error.hpp"
 
 #ifdef NODE_HPP
 

@@ -67,10 +67,25 @@ Nodeptr Functor::get (std::vector<Nodeptr> args, OPCODE opcode)
 	return Nodeptr(new Functor(args, opcode));
 }
 
-std::shared_ptr<char> Functor::calculate (void)
+std::shared_ptr<char> Functor::calculate (Session& sess)
 {
+	std::vector<std::shared_ptr<char> > temp; // todo: remove
+	std::vector<NodeInfo> args;
+	std::transform(args_.begin(), args_.end(), std::back_inserter(args),
+	[&sess, &temp](Nodeptr& arg)
+	{
+		temp.push_back(arg->calculate(sess));
+		return NodeInfo{
+			temp.back().get(),
+			arg->shape()
+		};
+	});
 	std::shared_ptr<char> out = make_data(type_size(type_) * shape_.n_elems());
-	get_op(opcode_, type_)(out.get(), shape_, args_);
+	NodeInfo dest{
+		out.get(),
+		shape_
+	};
+	get_op(opcode_, type_)(dest, args);
 	return out;
 }
 
@@ -122,9 +137,9 @@ Nodeptr Copyover::get (Nodeptr& arg, CoordOp swapdim)
 	return Nodeptr(new Copyover(arg, swapdim));
 }
 
-std::shared_ptr<char> Copyover::calculate (void)
+std::shared_ptr<char> Copyover::calculate (Session& sess)
 {
-	std::shared_ptr<char> src = arg_->calculate();
+	std::shared_ptr<char> src = arg_->calculate(sess);
 	DTYPE outtype = type();
 	uint8_t bsize = type_size(outtype);
 	Shape destshape = shape();
@@ -162,6 +177,19 @@ Shape Copyover::shape (void) const
 
 Copyover::Copyover (Nodeptr& arg, CoordOp swapdim) :
 	shape_(swap_shape(arg, swapdim)), arg_(arg), swapdim_(swapdim) {}
+
+ShapeTransform::ShapeTransform (Nodeptr& arg, Shape shape) :
+	shape_(shape), arg_(arg)
+{
+	NElemT nin = shape.n_elems();
+	NElemT nout = arg->shape().n_elems();
+	if (nin != nout)
+	{
+		handle_error("shape transform data of incompatible size",
+			ErrArg<NElemT>("indata_size", nin),
+			ErrArg<NElemT>("outdata_size", nout));
+	}
+}
 
 CoordOp dim_swap (std::pair<uint8_t,uint8_t> dims)
 {

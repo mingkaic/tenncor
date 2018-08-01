@@ -1,23 +1,32 @@
-#include <memory>
+#include <unordered_map>
 
 #include "soil/data.hpp"
+#include "soil/shape.hpp"
+#include "soil/type.hpp"
 
 #ifndef NODE_HPP
 #define NODE_HPP
 
 struct Nodeptr;
 
+struct Session;
+
 struct iNode
 {
 	virtual ~iNode (void);
 
-	virtual std::shared_ptr<char> calculate (void) = 0;
+	virtual std::shared_ptr<char> calculate (Session& sess) = 0;
 
 	virtual Nodeptr gradient (Nodeptr& leaf) const = 0;
 
 	virtual Shape shape (void) const = 0;
 
 	virtual DTYPE type (void) const = 0;
+};
+
+struct Session
+{
+	std::unordered_map<iNode*,std::shared_ptr<char> > pool_;
 };
 
 struct Nodeptr

@@ -2,14 +2,21 @@
 
 #include "soil/inode.hpp"
 #include "soil/functor.hpp"
+#include "soil/error.hpp"
 
 #ifndef OPERATOR_HPP
 #define OPERATOR_HPP
 
-using Operation = std::function<void(char*,Shape&,std::vector<Nodeptr>&)>;
+struct NodeInfo
+{
+	char* data_;
+	Shape shape_;
+};
+
+using Operation = std::function<void(NodeInfo&,std::vector<NodeInfo>&)>;
 
 template <typename T>
-void add (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
+void add (NodeInfo dest, std::vector<NodeInfo>& srcs)
 {
 	if (2 != srcs.size())
 	{
@@ -17,15 +24,13 @@ void add (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 			ErrArg<size_t>{"num_args", srcs.size()});
 	}
 
-	std::shared_ptr<char> aptr = srcs[0]->calculate();
-	std::shared_ptr<char> bptr = srcs[1]->calculate();
-	T* a = (T*) aptr.get();
-	T* b = (T*) bptr.get();
-	T* c = (T*) dest;
+	T* a = (T*) srcs[0].data_;
+	T* b = (T*) srcs[1].data_;
+	T* c = (T*) dest.data_;
 
-	NElemT an = srcs[0]->shape().n_elems();
-	NElemT bn = srcs[1]->shape().n_elems();
-	NElemT n = destshape.n_elems();
+	NElemT an = srcs[0].shape_.n_elems();
+	NElemT bn = srcs[1].shape_.n_elems();
+	NElemT n = dest.shape_.n_elems();
 
 	for (NElemT i = 0; i < n; ++i)
 	{
@@ -34,7 +39,7 @@ void add (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 }
 
 template <typename T>
-void mul (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
+void mul (NodeInfo dest, std::vector<NodeInfo>& srcs)
 {
 	if (2 != srcs.size())
 	{
@@ -42,15 +47,13 @@ void mul (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 			ErrArg<size_t>{"num_args", srcs.size()});
 	}
 
-	std::shared_ptr<char> aptr = srcs[0]->calculate();
-	std::shared_ptr<char> bptr = srcs[1]->calculate();
-	T* a = (T*) aptr.get();
-	T* b = (T*) bptr.get();
-	T* c = (T*) dest;
+	T* a = (T*) srcs[0].data_;
+	T* b = (T*) srcs[1].data_;
+	T* c = (T*) dest.data_;
 
-	NElemT an = srcs[0]->shape().n_elems();
-	NElemT bn = srcs[1]->shape().n_elems();
-	NElemT n = destshape.n_elems();
+	NElemT an = srcs[0].shape_.n_elems();
+	NElemT bn = srcs[1].shape_.n_elems();
+	NElemT n = dest.shape_.n_elems();
 
 	for (NElemT i = 0; i < n; ++i)
 	{
@@ -59,7 +62,7 @@ void mul (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 }
 
 template <typename T>
-void transpose (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
+void transpose (NodeInfo dest, std::vector<NodeInfo>& srcs)
 {
 	if (1 != srcs.size())
 	{
@@ -67,10 +70,9 @@ void transpose (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 			ErrArg<size_t>{"num_args", srcs.size()});
 	}
 
-	Nodeptr& src = srcs[0];
-	Shape srcshape = src->shape();
-	NElemT an = srcshape.n_elems();
-	NElemT n = destshape.n_elems();
+	NodeInfo& src = srcs[0];
+	NElemT an = src.shape_.n_elems();
+	NElemT n = dest.shape_.n_elems();
 
 	if (an != n)
 	{
@@ -79,12 +81,11 @@ void transpose (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 			ErrArg<size_t>{"nsrc", an});
 	}
 
-	T* destdata = (T*) dest;
-	std::shared_ptr<char> sptr = src->calculate();
-	T* srcdata = (T*) sptr.get();
+	T* destdata = (T*) dest.data_;
+	T* srcdata = (T*) src.data_;
 
-	NElemT srcx = srcshape.group(0).n_elems();
-	NElemT srcy = srcshape.group(1).n_elems();
+	NElemT srcx = src.shape_.group(0).n_elems();
+	NElemT srcy = src.shape_.group(1).n_elems();
 
 	// apply transformation
 	for (NElemT srci = 0; srci < n; ++srci)

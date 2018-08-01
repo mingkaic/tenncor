@@ -1,5 +1,6 @@
 #include "soil/grader.hpp"
 #include "soil/constant.hpp"
+#include "soil/mapper.hpp"
 
 #ifdef GRADER_HPP
 

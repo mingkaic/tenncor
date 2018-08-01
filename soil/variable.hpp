@@ -33,7 +33,40 @@ struct Variable final : public iNode
 		return Varptr(out);
 	}
 
-	std::shared_ptr<char> calculate (void) override;
+	Variable (const Variable& other) :
+		shape_(other.shape_), type_(other.type_)
+	{
+		if (nullptr != other.data_)
+		{
+			data_ = make_data(other.data_.get(),
+				type_size(other.type_) * other.shape_.n_elems());
+		}
+	}
+
+	Variable (Variable&&) = default;
+
+	Variable& operator = (const Variable& other)
+	{
+		if (this != &other)
+		{
+			if (nullptr != other.data_)
+			{
+				data_ = make_data(other.data_.get(),
+					type_size(other.type_) * other.shape_.n_elems());
+			}
+			else
+			{
+				data_ = nullptr;
+			}
+			shape_ = other.shape_;
+			type_ = other.type_;
+		}
+		return *this;
+	}
+
+	Variable& operator = (Variable&&) = default;
+
+	std::shared_ptr<char> calculate (Session& sess) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
@@ -66,39 +99,6 @@ struct Variable final : public iNode
 
 private:
 	Variable (Shape shape, DTYPE type);
-
-	Variable (const Variable& other) :
-		shape_(other.shape_), type_(other.type_)
-	{
-		if (nullptr != other.data_)
-		{
-			data_ = make_data(other.data_.get(),
-				type_size(other.type_) * other.shape_.n_elems());
-		}
-	}
-
-	Variable& operator = (const Variable& other)
-	{
-		if (this != &other)
-		{
-			if (nullptr != other.data_)
-			{
-				data_ = make_data(other.data_.get(),
-					type_size(other.type_) * other.shape_.n_elems());
-			}
-			else
-			{
-				data_ = nullptr;
-			}
-			shape_ = other.shape_;
-			type_ = other.type_;
-		}
-		return *this;
-	}
-
-	Variable (Variable&&) = default;
-
-	Variable& operator = (Variable&&) = default;
 
 	std::shared_ptr<char> data_ = nullptr; // todo: make unique
 	Shape shape_;

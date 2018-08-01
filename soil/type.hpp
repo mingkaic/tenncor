@@ -1,5 +1,4 @@
-#include "soil/error.hpp"
-#include "soil/mapper.hpp"
+#include <string>
 
 #ifndef TYPE_HPP
 #define TYPE_HPP

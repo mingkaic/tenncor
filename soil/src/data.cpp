@@ -1,6 +1,5 @@
 #include <cstring>
 
-#include "soil/error.hpp"
 #include "soil/data.hpp"
 
 #ifdef DATA_HPP

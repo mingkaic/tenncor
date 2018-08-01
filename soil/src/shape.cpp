@@ -207,6 +207,17 @@ void Shape::move_helper (Shape&& other)
 	other.rank_ = 0;
 }
 
+uint8_t Shape::kth_group (uint8_t k) const
+{
+	// [lsb] 0 ... rank_cap-1 [msb]
+	uint8_t i = 0;
+	for (; i < rank_cap && k > 0; ++i)
+	{
+		k -= (groups_ >> i) & 1;
+	}
+	return i;
+}
+
 bool higher_order (Shape shape)
 {
 	std::vector<Shape> groups = shape.as_groups();

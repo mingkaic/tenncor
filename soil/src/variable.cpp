@@ -7,7 +7,7 @@ Varptr Variable::get (Shape shape, DTYPE type)
 	return Varptr(new Variable(shape, type));
 }
 
-std::shared_ptr<char> Variable::calculate (void)
+std::shared_ptr<char> Variable::calculate (Session& sess)
 {
 	if (data_ == nullptr)
 	{

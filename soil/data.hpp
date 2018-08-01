@@ -1,12 +1,4 @@
-#include <algorithm>
-#include <functional>
 #include <memory>
-#include <numeric>
-
-#include "soil/shape.hpp"
-#include "soil/type.hpp"
-#include "soil/error.hpp"
-#include "soil/mapper.hpp"
 
 #ifndef DATA_HPP
 #define DATA_HPP
