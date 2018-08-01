@@ -48,16 +48,22 @@ struct Functor final : public iNode
 {
 	static Nodeptr get (std::vector<Nodeptr> args, OPCODE opcode);
 
-	DataSource calculate (void) override;
+	std::shared_ptr<char> calculate (void) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
 	Shape shape (void) const override;
 
+	DTYPE type (void) const override
+	{
+		return type_;
+	}
+
 private:
 	Functor (std::vector<Nodeptr> args, OPCODE opcode);
 
 	Shape shape_;
+	DTYPE type_;
 
 	std::vector<Nodeptr> args_;
 	OPCODE opcode_;
@@ -67,11 +73,16 @@ struct Copyover final : public iNode
 {
 	static Nodeptr get (Nodeptr& arg, CoordOp swapdim);
 
-	DataSource calculate (void) override;
+	std::shared_ptr<char> calculate (void) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
 	Shape shape (void) const override;
+
+	DTYPE type (void) const override
+	{
+		return arg_->type();
+	}
 
 private:
 	Copyover (Nodeptr& arg, CoordOp swapdim);
@@ -89,7 +100,7 @@ struct ShapeTransform final : public iNode
 		return new ShapeTransform(arg, shape);
 	}
 
-	DataSource calculate (void) override
+	std::shared_ptr<char> calculate (void) override
 	{
 		return arg_->calculate();
 	}
@@ -102,6 +113,11 @@ struct ShapeTransform final : public iNode
 	Shape shape (void) const override
 	{
 		return shape_;
+	}
+
+	DTYPE type (void) const override
+	{
+		return arg_->type();
 	}
 
 private:

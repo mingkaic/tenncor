@@ -11,11 +11,13 @@ struct iNode
 {
 	virtual ~iNode (void);
 
-	virtual DataSource calculate (void) = 0;
+	virtual std::shared_ptr<char> calculate (void) = 0;
 
 	virtual Nodeptr gradient (Nodeptr& leaf) const = 0;
 
 	virtual Shape shape (void) const = 0;
+
+	virtual DTYPE type (void) const = 0;
 };
 
 struct Nodeptr

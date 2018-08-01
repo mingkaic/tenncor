@@ -2,6 +2,8 @@
 
 DataBucket evaluate (Nodeptr& exit_node)
 {
-	DataSource src = exit_node->calculate();
-	return DataBucket(src.data(), src.type(), exit_node->shape());
+	return DataBucket(
+		exit_node->calculate(),
+		exit_node->type(),
+		exit_node->shape());
 }

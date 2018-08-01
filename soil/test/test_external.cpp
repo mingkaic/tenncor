@@ -8,6 +8,7 @@
 #include "soil/external.hpp"
 #include "soil/variable.hpp"
 #include "soil/constant.hpp"
+#include "soil/functor.hpp"
 
 // #define DISABLE_EXTERNAL_TEST
 #ifndef DISABLE_EXTERNAL_TEST
@@ -27,7 +28,7 @@ TEST_F(EXTERNAL, Transpose)
 	Shape as({2, 3});
 	Shape outshape({3, 2});
 
-	Varptr a = Variable::get(as);
+	Varptr a = Variable::get(as, DOUBLE);
 
 	Nodeptr b = transpose(a);
 	a.set_data<double>(adata);
@@ -67,7 +68,7 @@ TEST_F(EXTERNAL, TransposeDim01To2)
 		Shape(std::vector<DimT>{2})});
 	Shape outshape({2, 3, 2});
 
-	Varptr a = Variable::get(as);
+	Varptr a = Variable::get(as, DOUBLE);
 
 	Nodeptr b = transpose(a);
 	a.set_data<double>(adata);
@@ -107,7 +108,7 @@ TEST_F(EXTERNAL, TransposeDim0To12)
 		Shape(std::vector<DimT>{2, 2})});
 	Shape outshape({2, 2, 3});
 
-	Varptr a = Variable::get(as);
+	Varptr a = Variable::get(as, DOUBLE);
 
 	Nodeptr b = transpose(a);
 	a.set_data<double>(adata);
@@ -143,8 +144,8 @@ TEST_F(EXTERNAL, OneLevelElem)
 	std::vector<double> expectout = {
 		1.5, -0.8, 1.3, 2, -1.7, -1.4};
 
-	Varptr a = Variable::get(outshape);
-	Varptr b = Variable::get(outshape);
+	Varptr a = Variable::get(outshape, DOUBLE);
+	Varptr b = Variable::get(outshape, DOUBLE);
 
 	Nodeptr c = a + b;
 	a.set_data<double>(adata);
@@ -182,8 +183,8 @@ TEST_F(EXTERNAL, MultiLevelElem)
 		1, 0.2, -0.2, 2, 0.3, -1.025};
 
 	Nodeptr a = Constant::get(outshape, adata);
-	Varptr b = Variable::get(outshape);
-	Varptr c = Variable::get(outshape);
+	Varptr b = Variable::get(outshape, DOUBLE);
+	Varptr c = Variable::get(outshape, DOUBLE);
 
 	Nodeptr d = a + b * c;
 	b.set_data<double>(bdata);
@@ -219,8 +220,8 @@ TEST_F(EXTERNAL, MultiLevelElemGrad)
 		1, -1, 1, 1, -1, -0.5};
 
 	Nodeptr a = Constant::get(outshape, adata);
-	Varptr b = Variable::get(outshape);
-	Varptr c = Variable::get(outshape);
+	Varptr b = Variable::get(outshape, DOUBLE);
+	Varptr c = Variable::get(outshape, DOUBLE);
 
 	Nodeptr d = a + b * c;
 	b.set_data<double>(bdata);
@@ -261,7 +262,7 @@ TEST_F(EXTERNAL, OneLevelMatrix)
 	};
 
 	Nodeptr a = Constant::get(ashape, adata);
-	Varptr b = Variable::get(bshape);
+	Varptr b = Variable::get(bshape, DOUBLE);
 
 	Nodeptr c = matmul(a, b);
 	b.set_data<double>(bdata);
@@ -302,8 +303,8 @@ TEST_F(EXTERNAL, MultiLevelMatrix)
 	};
 
 	Nodeptr a = Constant::get(ashape, adata);
-	Varptr b = Variable::get(bshape);
-	Varptr c = Variable::get(cshape);
+	Varptr b = Variable::get(bshape, DOUBLE);
+	Varptr c = Variable::get(cshape, DOUBLE);
 
 	Nodeptr d = matmul(a, matmul(b, c));
 	b.set_data<double>(bdata);
@@ -358,8 +359,8 @@ TEST_F(EXTERNAL, OneLevelMatrixGrad)
 		0,    0,    0.25, 0, 0, 1, 0,  0,  -1
 	};
 
-	Varptr a = Variable::get(ashape);
-	Varptr b = Variable::get(bshape);
+	Varptr a = Variable::get(ashape, DOUBLE);
+	Varptr b = Variable::get(bshape, DOUBLE);
 
 	Nodeptr c = matmul(a, b);
 	a.set_data<double>(adata);
@@ -455,8 +456,8 @@ TEST_F(EXTERNAL, MultiLevelMatrixGrad)
 	};
 
 	Nodeptr a = Constant::get(ashape, adata);
-	Varptr b = Variable::get(bshape);
-	Varptr c = Variable::get(cshape);
+	Varptr b = Variable::get(bshape, DOUBLE);
+	Varptr c = Variable::get(cshape, DOUBLE);
 
 	Nodeptr d = matmul(a, matmul(b, c));
 	b.set_data<double>(bdata);

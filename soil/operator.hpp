@@ -6,16 +6,10 @@
 #ifndef OPERATOR_HPP
 #define OPERATOR_HPP
 
-struct OpArg
-{
-	DataSource data_;
-	Shape shape_;
-};
-
-using Operation = std::function<void(OpArg&,std::vector<OpArg>)>;
+using Operation = std::function<void(char*,Shape&,std::vector<Nodeptr>&)>;
 
 template <typename T>
-void add (OpArg& dest, std::vector<OpArg> srcs)
+void add (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 {
 	if (2 != srcs.size())
 	{
@@ -23,13 +17,15 @@ void add (OpArg& dest, std::vector<OpArg> srcs)
 			ErrArg<size_t>{"num_args", srcs.size()});
 	}
 
-	T* a = (T*) srcs[0].data_;
-	T* b = (T*) srcs[1].data_;
-	T* c = (T*) dest.data_;
+	std::shared_ptr<char> aptr = srcs[0]->calculate();
+	std::shared_ptr<char> bptr = srcs[1]->calculate();
+	T* a = (T*) aptr.get();
+	T* b = (T*) bptr.get();
+	T* c = (T*) dest;
 
-	NElemT an = srcs[0].shape_.n_elems();
-	NElemT bn = srcs[1].shape_.n_elems();
-	NElemT n = dest.shape_.n_elems();
+	NElemT an = srcs[0]->shape().n_elems();
+	NElemT bn = srcs[1]->shape().n_elems();
+	NElemT n = destshape.n_elems();
 
 	for (NElemT i = 0; i < n; ++i)
 	{
@@ -38,7 +34,7 @@ void add (OpArg& dest, std::vector<OpArg> srcs)
 }
 
 template <typename T>
-void mul (OpArg& dest, std::vector<OpArg> srcs)
+void mul (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 {
 	if (2 != srcs.size())
 	{
@@ -46,13 +42,15 @@ void mul (OpArg& dest, std::vector<OpArg> srcs)
 			ErrArg<size_t>{"num_args", srcs.size()});
 	}
 
-	T* a = (T*) srcs[0].data_;
-	T* b = (T*) srcs[1].data_;
-	T* c = (T*) dest.data_;
+	std::shared_ptr<char> aptr = srcs[0]->calculate();
+	std::shared_ptr<char> bptr = srcs[1]->calculate();
+	T* a = (T*) aptr.get();
+	T* b = (T*) bptr.get();
+	T* c = (T*) dest;
 
-	NElemT an = srcs[0].shape_.n_elems();
-	NElemT bn = srcs[1].shape_.n_elems();
-	NElemT n = dest.shape_.n_elems();
+	NElemT an = srcs[0]->shape().n_elems();
+	NElemT bn = srcs[1]->shape().n_elems();
+	NElemT n = destshape.n_elems();
 
 	for (NElemT i = 0; i < n; ++i)
 	{
@@ -61,7 +59,7 @@ void mul (OpArg& dest, std::vector<OpArg> srcs)
 }
 
 template <typename T>
-void transpose (OpArg& dest, std::vector<OpArg> srcs)
+void transpose (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 {
 	if (1 != srcs.size())
 	{
@@ -69,10 +67,10 @@ void transpose (OpArg& dest, std::vector<OpArg> srcs)
 			ErrArg<size_t>{"num_args", srcs.size()});
 	}
 
-	OpArg& src = srcs[0];
-	Shape srcshape = src.shape_;
+	Nodeptr& src = srcs[0];
+	Shape srcshape = src->shape();
 	NElemT an = srcshape.n_elems();
-	NElemT n = dest.shape_.n_elems();
+	NElemT n = destshape.n_elems();
 
 	if (an != n)
 	{
@@ -81,8 +79,9 @@ void transpose (OpArg& dest, std::vector<OpArg> srcs)
 			ErrArg<size_t>{"nsrc", an});
 	}
 
-	T* destdata = dest.data_;
-	T* srcdata = src.data_;
+	T* destdata = (T*) dest;
+	std::shared_ptr<char> sptr = src->calculate();
+	T* srcdata = (T*) sptr.get();
 
 	NElemT srcx = srcshape.group(0).n_elems();
 	NElemT srcy = srcshape.group(1).n_elems();

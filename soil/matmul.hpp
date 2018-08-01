@@ -162,7 +162,7 @@ static void strassen (T* c, T* a, T* b, size_t dimPad)
 }
 
 template <typename T>
-void matmul (OpArg& dest, std::vector<OpArg> srcs)
+void matmul (char* dest, Shape& destshape, std::vector<Nodeptr>& srcs)
 {
 	if (2 != srcs.size())
 	{
@@ -170,15 +170,18 @@ void matmul (OpArg& dest, std::vector<OpArg> srcs)
 			ErrArg<size_t>{"num_args", srcs.size()});
 	}
 
-	T* a = (T*) srcs[0].data_;
-	T* b = (T*) srcs[1].data_;
-	T* c = (T*) dest.data_;
+	std::shared_ptr<char> aptr = srcs[0]->calculate();
+	std::shared_ptr<char> bptr = srcs[1]->calculate();
+	T* a = (T*) aptr.get();
+	T* b = (T*) bptr.get();
+	T* c = (T*) dest;
 
-	NElemT dim_x = srcs[1].shape_.group(0).n_elems();
-	NElemT dim_y = srcs[0].shape_.group(1).n_elems();
-	NElemT dim_z = srcs[0].shape_.group(0).n_elems();
+	Shape ashape = srcs[0]->shape();
+	NElemT dim_x = srcs[1]->shape().group(0).n_elems();
+	NElemT dim_y = ashape.group(1).n_elems();
+	NElemT dim_z = ashape.group(0).n_elems();
 
-	NElemT n = dest.shape_.n_elems();
+	NElemT n = destshape.n_elems();
 
 	NElemT beyond2d = n / (dim_x * dim_y);
 

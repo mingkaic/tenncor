@@ -15,22 +15,36 @@ struct Constant final : public iNode
 				ErrArg<size_t>{"vecsize", data.size()},
 				ErrArg<std::string>{"shape", shape.to_string()});
 		}
-		return Nodeptr(new Constant(shape, (char*) &data[0], get_type<T>()));
+		return Nodeptr(new Constant((char*) &data[0], get_type<T>(), shape));
 	}
 
-	static Nodeptr get (Shape shape, char* data, DTYPE type);
+	static Nodeptr get (char* data, DTYPE type, Shape shape);
 
-	DataSource calculate (void) override;
+	std::shared_ptr<char> calculate (void) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
 	Shape shape (void) const override;
 
-private:
-	Constant (Shape shape, char* data, DTYPE type);
+	DTYPE type (void) const override
+	{
+		return type_;
+	}
 
+private:
+	Constant (char* data, DTYPE type, Shape shape);
+
+	Constant (const Constant&) = default;
+
+	Constant (Constant&&) = delete;
+
+	Constant& operator = (const Constant&) = default;
+
+	Constant& operator = (Constant&&) = delete;
+
+	std::shared_ptr<char> data_;
 	Shape shape_;
-	DataSource ds_;
+	DTYPE type_;
 };
 
 Nodeptr get_zero (Shape shape, DTYPE type);

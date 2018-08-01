@@ -7,6 +7,7 @@
 #include "soil/typer.hpp"
 #include "soil/grader.hpp"
 #include "soil/operator.hpp"
+#include "soil/constant.hpp"
 
 #ifdef FUNCTOR_HPP
 
@@ -66,20 +67,10 @@ Nodeptr Functor::get (std::vector<Nodeptr> args, OPCODE opcode)
 	return Nodeptr(new Functor(args, opcode));
 }
 
-DataSource Functor::calculate (void)
+std::shared_ptr<char> Functor::calculate (void)
 {
-	std::vector<OpArg> args;
-	std::vector<DTYPE> types;
-	for (Nodeptr& arg : args_)
-	{
-		DataSource ds = arg->calculate();
-		args.push_back(OpArg{ds, arg->shape()});
-		types.push_back(ds.type());
-	}
-	DTYPE outtype = get_typer(opcode_)(types);
-	DataSource out{outtype, shape_.n_elems()};
-	OpArg dest{out, shape_};
-	get_op(opcode_, outtype)(dest, args);
+	std::shared_ptr<char> out = make_data(type_size(type_) * shape_.n_elems());
+	get_op(opcode_, type_)(out.get(), shape_, args_);
 	return out;
 }
 
@@ -87,7 +78,7 @@ Nodeptr Functor::gradient (Nodeptr& leaf) const
 {
 	if (leaf.get() == this)
 	{
-		throw std::bad_function_call(); // unimplemented
+		return get_one(shape_, type_);
 	}
 	return get_grader(opcode_)(args_, leaf);
 }
@@ -100,9 +91,13 @@ Shape Functor::shape (void) const
 Functor::Functor (std::vector<Nodeptr> args, OPCODE opcode) :
 	args_(args), opcode_(opcode)
 {
-	std::vector<iNode*> raw(args.size());
-	std::transform(args.begin(), args.end(), raw.begin(),
-		[](Nodeptr& arg) { return arg.get(); });
+	std::vector<iNode*> raw;
+	std::vector<DTYPE> types;
+	for (Nodeptr& arg : args_)
+	{
+		raw.push_back(arg.get());
+		types.push_back(arg->type());
+	}
 	if (std::any_of(raw.begin(), raw.end(),
 		[](iNode* arg)
 		{
@@ -112,6 +107,7 @@ Functor::Functor (std::vector<Nodeptr> args, OPCODE opcode) :
 		handle_error("creating functor with null argument");
 	}
 	shape_ = get_shaper(opcode)(raw);
+	type_ = get_typer(opcode_)(types);
 }
 
 static inline Shape swap_shape(Nodeptr& arg, CoordOp& op)
@@ -126,18 +122,19 @@ Nodeptr Copyover::get (Nodeptr& arg, CoordOp swapdim)
 	return Nodeptr(new Copyover(arg, swapdim));
 }
 
-DataSource Copyover::calculate (void)
+std::shared_ptr<char> Copyover::calculate (void)
 {
-	DataSource src = arg_->calculate();
-	DTYPE outtype = src.type();
+	std::shared_ptr<char> src = arg_->calculate();
+	DTYPE outtype = type();
 	uint8_t bsize = type_size(outtype);
 	Shape destshape = shape();
 	Shape srcshape = arg_->shape();
-	DataSource out{outtype, srcshape.n_elems()};
 	NElemT n = srcshape.n_elems();
 
-	char* destdata = out.data();
-	char* srcdata = src.data();
+	std::shared_ptr<char> out = make_data(
+		type_size(outtype) * destshape.n_elems());
+	char* destdata = out.get();
+	char* srcdata = src.get();
 
 	// apply transformation
 	std::vector<DimT> coords;
