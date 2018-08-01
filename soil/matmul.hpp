@@ -1,12 +1,7 @@
-//
-//  matmul.ipp
-//  slip
-//
+#include "soil/error.hpp"
 
-#ifdef SLIP_MATMUL_HPP
-
-namespace slip
-{
+#ifndef MATMUL_HPP
+#define MATMUL_HPP
 
 static const uint16_t STRASSEN_THRESHOLD = 256;
 
@@ -166,40 +161,36 @@ static void strassen (T* c, T* a, T* b, size_t dimPad)
 	delete [] temp3;
 }
 
-
 template <typename T>
-void matmul (clay::State& dest, std::vector<mold::StateRange> srcs)
+void matmul (OpArg& dest, std::vector<OpArg> srcs)
 {
-	assert(2 == srcs.size());
-	clay::Shape ashape = srcs.front().shape();
-	clay::Shape bshape = srcs.back().shape();
-	T* tdest = safe_get<T>(dest);
-	const T* src0 = safe_get<const T>(srcs.front());
-	const T* src1 = safe_get<const T>(srcs.back());
-	size_t dim_z = ashape.at(0);
-	size_t dim_y;
-	if (ashape.rank() < 2)
+	if (2 != srcs.size())
 	{
-		dim_y = 1;
+		handle_error("matmul requires 2 arguments",
+			ErrArg<size_t>{"num_args", srcs.size()});
 	}
-	else
-	{
-		dim_y = ashape.at(1);
-	}
-	size_t dim_x = bshape.at(0);
 
-	// assert that beyond2d is same for A, B, and output C
-	size_t beyond2d = srcs[0].shape().n_elems() / (dim_z * dim_y);
+	T* a = (T*) srcs[0].data_;
+	T* b = (T*) srcs[1].data_;
+	T* c = (T*) dest.data_;
+
+	NElemT dim_x = srcs[1].shape_.group(0).n_elems();
+	NElemT dim_y = srcs[0].shape_.group(1).n_elems();
+	NElemT dim_z = srcs[0].shape_.group(0).n_elems();
+
+	NElemT n = dest.shape_.n_elems();
+
+	NElemT beyond2d = n / (dim_x * dim_y);
 
 #ifdef ENABLE_STRASSEN // strassen is very cumbersome in a lot of cases
 	size_t dim_pad = min_pad(std::max(std::max(dim_x, dim_y), dim_z));
 	if (dim_pad > STRASSEN_THRESHOLD)
 	{
-		for (size_t i = 0; i < beyond2d; i++)
+		for (NElemT i = 0; i < beyond2d; ++i)
 		{
-			const T* rawa = src0 + i * (dim_z * dim_y);
-			const T* rawb = src1 + i * (dim_x * dim_z);
-			T* rawc = tdest + i * (dim_x * dim_y);
+			T* rawa = a + i * (dim_z * dim_y);
+			T* rawb = b + i * (dim_x * dim_z);
+			T* rawc = c + i * (dim_x * dim_y);
 
 			size_t n_mat = dim_pad * dim_pad;
 			T* out = new T[n_mat];
@@ -234,87 +225,15 @@ void matmul (clay::State& dest, std::vector<mold::StateRange> srcs)
 		return;
 	}
 #endif /* ENABLE_STRASSEN */
-	for (size_t i = 0; i < beyond2d; i++)
+	for (NElemT i = 0; i < beyond2d; ++i)
 	{
-		const T* rawa = src0 + i * (dim_z * dim_y);
-		const T* rawb = src1 + i * (dim_x * dim_z);
-		T* rawc = tdest + i * (dim_x * dim_y);
+		T* rawa = a + i * (dim_z * dim_y);
+		T* rawb = b + i * (dim_x * dim_z);
+		T* rawc = c + i * (dim_x * dim_y);
 
 		size_t coord_map[4] = {dim_z, 1, 1, dim_x};
 		cubic_mul(rawc, rawa, rawb, dim_x, dim_y, dim_z, coord_map);
 	}
 }
 
-template <typename T>
-void jacobian (clay::State& dest, std::vector<mold::StateRange> srcs)
-{
-	clay::Shape& outshape = dest.shape_;
-	mold::StateRange& dstate = srcs[2];
-	uint64_t* dims = safe_get<uint64_t>(dstate);
-	uint64_t matchdim = dims[0];
-	uint64_t swapdim = dims[1];
-
-	mold::StateRange& state = srcs[swapdim];
-	T* d = safe_get<T>(dest);
-	clay::Shape inshape = state.shape();
-	const T* s = safe_get<const T>(state);
-	size_t innerlimit = srcs[matchdim].shape().as_list()[swapdim];
-	size_t ylimit = srcs[0].shape().as_list()[0];
-	size_t xlimit = srcs[1].shape().as_list()[0];
-	size_t n = inshape.n_elems();
-	// zero out background
-	std::memset(d, 0, outshape.n_elems() * sizeof(T));
-	for (size_t i = 0; i < n; ++i)
-	{
-		std::vector<size_t> coord = coordinate(inshape, i);
-		size_t x = coord[0];
-		size_t y = coord[1];
-		for (size_t j = 0; j < innerlimit; ++j)
-		{
-			std::vector<size_t> vx = {x, j};
-			std::vector<size_t> vy = {y, j};
-			vx[swapdim] *= xlimit;
-			vy[swapdim] *= ylimit;
-			coord[matchdim] = vx[0] + vx[1];
-			coord[swapdim] = vy[0] + vy[1];
-			d[index(outshape, coord)] = s[i];
-		}
-	}
-}
-
-template <typename T>
-void trace_expand (clay::State& dest, std::vector<mold::StateRange> srcs)
-{
-	if (srcs.size() != 2)
-	{
-		throw std::exception();
-	}
-	clay::Shape& destshape = dest.shape_;
-	clay::Shape srcshape = srcs.front().shape();
-	T* d = safe_get<T>(dest);
-	const T* s = safe_get<const T>(srcs.front());
-	mold::StateRange& dstate = srcs[1];
-	if (dstate.type() != clay::UINT64)
-	{
-		throw std::exception();
-	}
-	if (1 != dstate.shape().n_elems())
-	{
-		throw std::exception();
-	}
-	uint64_t dim = *(safe_get<uint64_t>(dstate));
-	size_t n = srcshape.n_elems();
-	std::vector<size_t> coord;
-	std::memset(d, 0, sizeof(T) * destshape.n_elems());
-	for (size_t i = 0; i < n; ++i)
-	{
-		coord = coordinate(srcshape, i);
-		coord.insert(coord.begin() + dim, coord[dim]);
-		size_t outidx = index(destshape, coord);
-		d[outidx] = s[i];
-	}
-}
-
-}
-
-#endif
+#endif /* MATMUL_HPP */

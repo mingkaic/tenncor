@@ -76,16 +76,11 @@ Identifier* flip (Identifier* a, std::vector<uint64_t> dims);
 ////////////
 
 //! repeat a n times along inserted dimension dim
-Identifier* expand (Identifier* a, Identifier* n, Identifier* dim);
-
-Identifier* expand (Identifier* a, Identifier* n, uint64_t dim);
-
 Identifier* expand (Identifier* a, uint64_t n, uint64_t dim);
 
-////////////
+Identifier* expand (IdRange a, uint64_t n);
 
-//! get the number of elements in across a dimension in a
-Identifier* n_dimension (Identifier* a, uint64_t dim);
+////////////
 
 //! dimensioned operators
 //! b to the power of x
@@ -115,9 +110,42 @@ Identifier* lt (Identifier* a, Identifier* b);
 //! a > b
 Identifier* gt (Identifier* a, Identifier* b);
 
+//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
+Identifier* matmul (Identifier* a, Identifier* b);
 
 
-Identifier* n_dimension (IdRange a);
+//! generate data of within binomial distribution given (n, p)
+Identifier* binomial_sample (Identifier* n, Identifier* p);
+
+Identifier* binomial_sample (Identifier* n, double p);
+
+//! generate data of within uniform distribution given (min, max)
+Identifier* uniform_sample (Identifier* min, Identifier* max);
+
+//! generate data of within normal distribution given (mean, stdev)
+Identifier* normal_sample (Identifier* mean, Identifier* stdev);
+
+
+//! get the number of elements in across a dimension in a
+Identifier* n_dimension (Identifier* a, uint64_t dim);
+
+//! obtain the index of max value in a, lack of or invalid dimension look across all of a
+Identifier* arg_max (Identifier* a);
+
+Identifier* arg_max (Identifier* a, uint64_t dim);
+
+//! obtain the max of a, lack of or invalid dimension look across all of a
+Identifier* reduce_max (Identifier* a);
+
+Identifier* reduce_max (Identifier* a, uint64_t dim);
+
+//! obtain the sum of a, lack of or invalid dimension look across all of a
+Identifier* reduce_sum (Identifier* a);
+
+Identifier* reduce_sum (Identifier* a, uint64_t dim);
+
+
+
 
 Identifier* pow (IdRange b, IdRange x);
 
@@ -137,6 +165,11 @@ Identifier* lt (IdRange a, IdRange b);
 
 Identifier* gt (IdRange a, IdRange b);
 
+Identifier* matmul (IdRange a, IdRange b);
+
+
+Identifier* n_dimension (IdRange a);
+
 Identifier* arg_max (IdRange a);
 
 Identifier* is_max (IdRange a);
@@ -145,35 +178,6 @@ Identifier* reduce_max (IdRange a);
 
 Identifier* reduce_sum (IdRange a);
 
-
-//! generate data of within binomial distribution given (n, p)
-Identifier* binomial_sample (Identifier* n, Identifier* p);
-
-Identifier* binomial_sample (Identifier* n, double p);
-
-//! generate data of within uniform distribution given (min, max)
-Identifier* uniform_sample (Identifier* min, Identifier* max);
-
-//! generate data of within normal distribution given (mean, stdev)
-Identifier* normal_sample (Identifier* mean, Identifier* stdev);
-
-//! obtain the index of max value in a, lack of or invalid dimension look across all of a
-Identifier* arg_max (Identifier* a);
-
-Identifier* arg_max (Identifier* a, uint64_t dim);
-
-//! obtain the max of a, lack of or invalid dimension look across all of a
-Identifier* reduce_max (Identifier* a);
-
-Identifier* reduce_max (Identifier* a, uint64_t dim);
-
-//! obtain the sum of a, lack of or invalid dimension look across all of a
-Identifier* reduce_sum (Identifier* a);
-
-Identifier* reduce_sum (Identifier* a, uint64_t dim);
-
-//! matrix multiplication (todo: expand to include matmul along other dimensions, currently {0, 1} only)
-Identifier* matmul (Identifier* a, Identifier* b);
 
 
 //! obtain the mean of a, lack of or invalid dimension look across all of a
@@ -185,6 +189,7 @@ Identifier* reduce_mean (Identifier* a, uint64_t dim);
 Identifier* reduce_l2norm (Identifier* a);
 
 Identifier* reduce_l2norm (Identifier* a, uint64_t dim);
+
 
 //! clip values in range [min, max]
 Identifier* clip (Identifier* a, Identifier* min, Identifier* max);

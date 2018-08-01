@@ -122,26 +122,21 @@ void rand_normal (clay::State& dest, std::vector<mold::StateRange> srcs)
 template <typename T>
 void expand (clay::State& dest, std::vector<mold::StateRange> srcs)
 {
-	if (srcs.size() != 3)
-	{
-		throw std::exception();
-	}
+	assert(srcs.size() == 2);
 	clay::Shape srcshape = srcs.front().shape();
 	T* d = safe_get<T>(dest);
 	const T* s = safe_get<const T>(srcs.front());
 	mold::StateRange& nstate = srcs[1];
-	mold::StateRange& dstate = srcs[2];
-	if (nstate.type() != clay::UINT64 || dstate.type() != clay::UINT64)
+	if (nstate.type() != clay::UINT64)
 	{
 		throw std::exception();
 	}
-	if (1 != nstate.shape().n_elems() ||
-		1 != dstate.shape().n_elems())
+	if (1 != nstate.shape().n_elems())
 	{
 		throw std::exception();
 	}
 	uint64_t mul = *(safe_get<uint64_t>(nstate));
-	uint64_t dim = *(safe_get<uint64_t>(dstate));
+	size_t dim = srcs[0].drange_.lower_;
 	std::vector<size_t> slist = srcshape.as_list();
 	auto it = slist.begin();
 	size_t innern = std::accumulate(it, it + dim, 1, std::multiplies<size_t>());

@@ -53,7 +53,15 @@ public:
 	template <typename T>
 	Stream& operator << (const std::vector<T>& values)
 	{
-		std::copy(values.begin(), values.end(), std::ostream_iterator<T>(stream_, " "));
+		size_t n = values.size();
+		if (n > 0)
+		{
+			stream_ << values[0];
+			for (size_t i = 1; i < n; ++i)
+			{
+				stream_ << " " << values[i];
+			}
+		}
 		return *this;
 	}
 

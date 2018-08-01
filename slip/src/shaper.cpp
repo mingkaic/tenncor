@@ -86,66 +86,45 @@ clay::Shape matmul_shape (std::vector<mold::StateRange> states)
 	{
 		throw BadNArgsError(2, states.size());
 	}
-	clay::Shape t1s = states[0].shape();
-	clay::Shape t2s = states[1].shape();
 
-	std::vector<size_t> al = t1s.as_list();
-	std::vector<size_t> bl = t2s.as_list();
-	size_t rank1 = t1s.rank();
-	size_t rank2 = t2s.rank();
-
-	// account for vectors
-	size_t ax = rank1 ? al[0] : 0;
-	size_t ay = rank1> 1 ? al[1] : 1;
-	size_t bx = rank2 ? bl[0] : 0;
-	size_t by = rank2> 1 ? bl[1] : 1;
-
-	// ensure the dimensions beyond 2d are equal
-	size_t minend = std::min(rank1, rank2);
-	std::vector<size_t> beyond2d;
-	if (minend> 2)
+	clay::Shape ins1 = states[0].inner();
+	clay::Shape ins2 = states[1].inner();
+	size_t rank1 = ins1.rank();
+	size_t rank2 = ins2.rank();
+	if (0 == rank1 || 2 > rank1)
 	{
-		auto ait = al.begin()+2;
-		auto aet = al.begin()+minend;
-		if (std::equal(ait, aet, bl.begin()+2))
-		{
-			beyond2d.insert(beyond2d.end(), ait, aet);
-		}
-		else
-		{
-			ioutil::Stream s;
-			s << "attempting to matrix multiple shapes "
-				<< t1s.as_list() << " and " << t2s.as_list();
-			throw std::logic_error(s.str());
-		}
-		// check that remaining shape values are ones,
-		// otherwise one shape is larger than the other
-		auto it = rank1> rank2 ? al.begin() : bl.begin();
-		auto et = rank1> rank2 ? al.end() : bl.end();
-		if (!std::all_of(it + minend, et, [](size_t e) { return e == 1; }))
-		{
-			ioutil::Stream s;
-			s << "attempting to matrix multiple different shapes "
-				<< t1s.as_list() << " and " << t2s.as_list();
-			throw std::logic_error(s.str());
-		}
+		throw InvalidRangeError(states[0].drange_, states[0].shape());
+	}
+	if (0 == rank2 || 2 > rank2)
+	{
+		throw InvalidRangeError(states[1].drange_, states[1].shape());
 	}
 
+	// ensure the dimensions beyond 2d are equal
+	if (false == states[0].outer().is_compatible_with(states[1].outer()))
+	{
+		throw ShapeMismatchError(states[0].shape(), states[1].shape());
+	}
+
+	// account for vectors
+	size_t ax = rank1 ? ins1.at(0) : 0;
+	size_t ay = rank1 > 1 ? ins1.at(1) : 1;
+	size_t bx = rank2 ? ins2.at(0) : 0;
+	size_t by = rank2 > 1 ? ins2.at(1) : 1;
+
 	// get resulting shape
-	std::vector<size_t> res_shape;
+	clay::Shape innershape;
 	if (ax == by)
 	{
-		res_shape = {bx, ay};
+		innershape = {bx, ay};
 	}
 	else
 	{
-		ioutil::Stream s;
-		s << "matmul shapes " << t1s.as_list()
-			<< " and " << t2s.as_list() << " do not match";
-		throw std::logic_error(s.str());
+		throw std::logic_error("matmul shapes " + clay::to_string(ins1) +
+			" and " + clay::to_string(ins2) + " do not match");
 	}
-	res_shape.insert(res_shape.end(), beyond2d.begin(), beyond2d.end());
-	return clay::Shape(res_shape);
+	clay::Shape front = concatenate(states[0].front(), innershape);
+	return concatenate(front, states[0].back());
 }
 
 }

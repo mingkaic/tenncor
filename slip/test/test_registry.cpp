@@ -633,36 +633,30 @@ TEST_F(REGISTRY, Expand_B017)
 	size_t nbytes = n * sizeof(double);
 	std::shared_ptr<char> data0 = clay::make_char(nbytes);
 	std::shared_ptr<char> data1 = clay::make_char(sizeof(uint64_t));
-	std::shared_ptr<char> data2 = clay::make_char(sizeof(uint64_t));
 	std::memcpy(data0.get(), &argument[0], nbytes);
 	std::memcpy(data1.get(), &mult, sizeof(uint64_t));
-	std::memcpy(data2.get(), &argidx, sizeof(uint64_t));
-
-	std::shared_ptr<char> baddata = clay::make_char(sizeof(uint64_t));
-	std::memcpy(baddata.get(), &badarg, sizeof(uint64_t));
 
 	ASSERT_TRUE(slip::has_op(opcode)) <<
 		"function " << slip::opnames.at(opcode) << " not found";
 	auto op = slip::get_op(opcode);
 	clay::State in0(data0, shape, clay::DOUBLE);
 	clay::State in1(data1, clay::Shape({1}), clay::UINT64);
-	clay::State in2(data2, clay::Shape({1}), clay::UINT64);
 
 	auto bad_op = slip::get_op(opcode);
 	EXPECT_THROW(bad_op->make_data({
-			mold::StateRange(in0, mold::Range(0, 0)),
-			mold::StateRange(in1, mold::Range(0, 0)),
-			mold::StateRange(clay::State(
-				baddata,
-				clay::Shape({1}),
-				clay::UINT64), mold::Range(0, 0))
+			mold::StateRange(in0, mold::Range(argidx, argidx+1)),
+			mold::StateRange(in1, mold::Range(0, 0))
+		}),
+		slip::InvalidRangeError);
+	EXPECT_THROW(bad_op->make_data({
+			mold::StateRange(in0, mold::Range(badarg, badarg)),
+			mold::StateRange(in1, mold::Range(0, 0))
 		}),
 		slip::InvalidDimensionError);
 
 	clay::TensorPtrT tens = op->make_data({
-		mold::StateRange(in0, mold::Range(0, 0)),
-		mold::StateRange(in1, mold::Range(0, 0)),
-		mold::StateRange(in2, mold::Range(0, 0))
+		mold::StateRange(in0, mold::Range(argidx, argidx)),
+		mold::StateRange(in1, mold::Range(0, 0))
 	});
 	ASSERT_SHAPEQ(outshape, tens->get_shape());
 	ASSERT_EQ(clay::DOUBLE, tens->get_type());
@@ -671,9 +665,8 @@ TEST_F(REGISTRY, Expand_B017)
 	std::shared_ptr<char> output = clay::make_char(noutbytes);
 	clay::State out(output, outshape, clay::DOUBLE);
 	ASSERT_TRUE(op->write_data(out, {
-		mold::StateRange(in0, mold::Range(0, 0)),
-		mold::StateRange(in1, mold::Range(0, 0)),
-		mold::StateRange(in2, mold::Range(0, 0))
+		mold::StateRange(in0, mold::Range(argidx, argidx)),
+		mold::StateRange(in1, mold::Range(0, 0))
 	}));
 
 	double* data = (double*) output.get();
@@ -1093,8 +1086,8 @@ TEST_F(REGISTRY, Matmul_B042)
 	clay::State in1(data1, shape1, clay::INT64);
 
 	clay::TensorPtrT tens = op->make_data({
-		mold::StateRange(in0, mold::Range(0, 0)),
-		mold::StateRange(in1, mold::Range(0, 0))
+		mold::StateRange(in0, mold::Range(0, 2)),
+		mold::StateRange(in1, mold::Range(0, 2))
 	});
 	ASSERT_SHAPEQ(outshape, tens->get_shape());
 	ASSERT_EQ(clay::INT64, tens->get_type());
@@ -1103,8 +1096,8 @@ TEST_F(REGISTRY, Matmul_B042)
 	std::shared_ptr<char> output = clay::make_char(nbytes);
 	clay::State out(output, outshape, clay::INT64);
 	ASSERT_TRUE(op->write_data(out, {
-		mold::StateRange(in0, mold::Range(0, 0)),
-		mold::StateRange(in1, mold::Range(0, 0))
+		mold::StateRange(in0, mold::Range(0, 2)),
+		mold::StateRange(in1, mold::Range(0, 2))
 	}));
 
 	int64_t* outptr = (int64_t*) output.get();
