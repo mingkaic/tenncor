@@ -1,52 +1,14 @@
 #include <functional>
 
-#include "soil/inode.hpp"
+#include "soil/node.hpp"
+#include "soil/opcode.hpp"
 
 #ifndef FUNCTOR_HPP
 #define FUNCTOR_HPP
 
-enum OPCODE
-{
-	CAST = 0,
-	ABS,
-	NEG,
-	NOT,
-	SIN,
-	COS,
-	TAN,
-	EXP,
-	LOG,
-	SQRT,
-	ROUND,
-	ISMAX,
-	FLIP,
-	EXPAND,
-	TRANSPOSE,
-	N_ELEMS,
-	N_DIMS,
-	POW,
-	ADD,
-	SUB,
-	MUL,
-	DIV,
-	EQ,
-	NE,
-	GT,
-	LT,
-	BINO,
-	UNIF,
-	NORM,
-	ARGMAX,
-	RMAX,
-	RSUM,
-	MATMUL
-};
-
 using CoordOp = std::function<void(std::vector<DimT>&)>;
 
-std::string opname (OPCODE opcode);
-
-struct Functor final : public iNode
+struct Functor final : public Node
 {
 	static Nodeptr get (std::vector<Nodeptr> args, OPCODE opcode);
 
@@ -54,18 +16,8 @@ struct Functor final : public iNode
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
-	Shape shape (void) const override;
-
-	DTYPE type (void) const override
-	{
-		return type_;
-	}
-
 private:
 	Functor (std::vector<Nodeptr> args, OPCODE opcode);
-
-	Shape shape_;
-	DTYPE type_;
 
 	std::vector<Nodeptr> args_;
 	OPCODE opcode_;
@@ -128,19 +80,5 @@ private:
 	Shape shape_;
 	Nodeptr arg_;
 };
-
-CoordOp dim_swap (std::pair<uint8_t,uint8_t> dims);
-
-Nodeptr group (Nodeptr a);
-
-Nodeptr transpose (Nodeptr a);
-
-Nodeptr transpose (Nodeptr a, CoordOp dim_op);
-
-Nodeptr operator + (Nodeptr a, Nodeptr b);
-
-Nodeptr operator * (Nodeptr a, Nodeptr b);
-
-Nodeptr matmul (Nodeptr a, Nodeptr b);
 
 #endif /* FUNCTOR_HPP */

@@ -6,21 +6,21 @@
 
 #ifdef SHAPER_HPP
 
-using Shaper = std::function<Shape(std::vector<iNode*>)>;
+using Shaper = std::function<Shape(std::vector<Shape>)>;
 
-Shape elem_shaper (std::vector<iNode*> args)
+Shape elem_shaper (std::vector<Shape> shapes)
 {
-	if (args.size() == 0)
+	if (shapes.size() == 0)
 	{
 		handle_error("creating elementary shape not from no shapes",
-			ErrArg<size_t>{"num_args", args.size()});
+			ErrArg<size_t>{"num_shapes", shapes.size()});
 	}
 
-	Shape outshape = args.front()->shape();
+	Shape outshape = shapes.front();
 	uint8_t outrank = outshape.n_rank();
-	for (auto it = args.begin() + 1, et = args.end(); it != et; ++it)
+	for (auto it = shapes.begin() + 1, et = shapes.end(); it != et; ++it)
 	{
-		Shape shape = (*it)->shape();
+		Shape shape = *it;
 		uint8_t rank = shape.n_rank();
 		if (false == outshape.compatible_before(shape, std::min(outrank, rank)))
 		{
@@ -37,15 +37,15 @@ Shape elem_shaper (std::vector<iNode*> args)
 	return outshape;
 }
 
-Shape transpose_shaper (std::vector<iNode*> args)
+Shape transpose_shaper (std::vector<Shape> shapes)
 {
-	if (args.size() != 1)
+	if (shapes.size() != 1)
 	{
 		handle_error("creating tranpose shape from multiple shapes",
-			ErrArg<size_t>{"num_args", args.size()});
+			ErrArg<size_t>{"num_shapes", shapes.size()});
 	}
 
-	Shape shape = args.front()->shape();
+	Shape& shape = shapes[0];
 	Shape shape0 = shape.group(0);
 	Shape shape1 = shape.group(1);
 	std::vector<Shape> groups = shape.as_groups();
@@ -67,16 +67,16 @@ Shape transpose_shaper (std::vector<iNode*> args)
 	return Shape(groups);
 }
 
-Shape matmul_shaper (std::vector<iNode*> args)
+Shape matmul_shaper (std::vector<Shape> shapes)
 {
-	if (args.size() != 2)
+	if (shapes.size() != 2)
 	{
 		handle_error("creating matmul shape not from 2 shapes",
-			ErrArg<size_t>{"num_args", args.size()});
+			ErrArg<size_t>{"num_shapes", shapes.size()});
 	}
 
-	Shape ashape = args.front()->shape();
-	Shape bshape = args.back()->shape();
+	Shape ashape = shapes.front();
+	Shape bshape = shapes.back();
 	if (false == ashape.group(0).compatible_after(bshape.group(1), 0))
 	{
 		handle_error("incompatible common dimension in matmul",

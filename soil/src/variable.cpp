@@ -25,12 +25,7 @@ Nodeptr Variable::gradient (Nodeptr& leaf) const
 	return get_zero(shape_, type_);
 }
 
-Shape Variable::shape (void) const
-{
-	return shape_;
-}
-
-Variable::Variable (Shape shape, DTYPE type) : shape_(shape), type_(type) {}
+Variable::Variable (Shape shape, DTYPE type) : Node({shape, type}) {}
 
 Varptr::Varptr (Variable* var) : Nodeptr(var) {}
 

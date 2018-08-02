@@ -1,7 +1,7 @@
 #include <functional>
 
-#include "soil/inode.hpp"
-#include "soil/functor.hpp"
+#include "soil/type.hpp"
+#include "soil/opcode.hpp"
 
 #ifndef TYPER_HPP
 #define TYPER_HPP

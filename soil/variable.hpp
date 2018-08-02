@@ -1,4 +1,4 @@
-#include "soil/inode.hpp"
+#include "soil/node.hpp"
 #include "soil/error.hpp"
 #include "soil/constant.hpp"
 
@@ -15,7 +15,7 @@ struct Varptr : public Nodeptr
 	void set_data (std::vector<T> data);
 };
 
-struct Variable final : public iNode
+struct Variable final : public Node
 {
 	static Varptr get (Shape shape, DTYPE type);
 
@@ -33,13 +33,11 @@ struct Variable final : public iNode
 		return Varptr(out);
 	}
 
-	Variable (const Variable& other) :
-		shape_(other.shape_), type_(other.type_)
+	Variable (const Variable& other) : Node(other)
 	{
 		if (nullptr != other.data_)
 		{
-			data_ = make_data(other.data_.get(),
-				type_size(other.type_) * other.shape_.n_elems());
+			data_ = make_data(other.data_.get(), other.nbytes());
 		}
 	}
 
@@ -49,17 +47,15 @@ struct Variable final : public iNode
 	{
 		if (this != &other)
 		{
+			Node::operator = (other);
 			if (nullptr != other.data_)
 			{
-				data_ = make_data(other.data_.get(),
-					type_size(other.type_) * other.shape_.n_elems());
+				data_ = make_data(other.data_.get(), other.nbytes());
 			}
 			else
 			{
 				data_ = nullptr;
 			}
-			shape_ = other.shape_;
-			type_ = other.type_;
 		}
 		return *this;
 	}
@@ -69,13 +65,6 @@ struct Variable final : public iNode
 	std::shared_ptr<char> calculate (Session& sess) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
-
-	Shape shape (void) const override;
-
-	DTYPE type (void) const override
-	{
-		return type_;
-	}
 
 	template <typename T>
 	void set_data (std::vector<T> data)
@@ -93,16 +82,13 @@ struct Variable final : public iNode
 				ErrArg<size_t>{"vecsize", data.size()},
 				ErrArg<std::string>{"shape", shape_.to_string()});
 		}
-		data_ = make_data((char*) &data[0],
-			type_size(type_) * shape_.n_elems());
+		data_ = make_data((char*) &data[0], nbytes());
 	}
 
 private:
 	Variable (Shape shape, DTYPE type);
 
 	std::shared_ptr<char> data_ = nullptr; // todo: make unique
-	Shape shape_;
-	DTYPE type_;
 };
 
 template <typename T>

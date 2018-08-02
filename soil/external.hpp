@@ -1,4 +1,4 @@
-#include "soil/inode.hpp"
+#include "soil/functor.hpp"
 
 struct DataBucket
 {
@@ -35,3 +35,17 @@ private:
 };
 
 DataBucket evaluate (Nodeptr& exit_node);
+
+CoordOp dim_swap (std::pair<uint8_t,uint8_t> dims);
+
+Nodeptr group (Nodeptr a);
+
+Nodeptr transpose (Nodeptr a);
+
+Nodeptr transpose (Nodeptr a, CoordOp dim_op);
+
+Nodeptr operator + (Nodeptr a, Nodeptr b);
+
+Nodeptr operator * (Nodeptr a, Nodeptr b);
+
+Nodeptr matmul (Nodeptr a, Nodeptr b);

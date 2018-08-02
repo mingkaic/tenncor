@@ -1,7 +1,8 @@
 #include <functional>
 
-#include "soil/inode.hpp"
-#include "soil/functor.hpp"
+#include "soil/shape.hpp"
+#include "soil/type.hpp"
+#include "soil/opcode.hpp"
 #include "soil/error.hpp"
 
 #ifndef OPERATOR_HPP

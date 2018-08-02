@@ -1,7 +1,7 @@
 #include "soil/inode.hpp"
 #include "soil/error.hpp"
 
-#ifdef NODE_HPP
+#ifdef INODE_HPP
 
 iNode::~iNode (void) = default;
 

@@ -1,18 +1,18 @@
 #include <functional>
 
-#include "soil/inode.hpp"
-#include "soil/functor.hpp"
+#include "soil/shape.hpp"
+#include "soil/opcode.hpp"
 
 #ifndef SHAPER_HPP
 #define SHAPER_HPP
 
-using Shaper = std::function<Shape(std::vector<iNode*>)>;
+using Shaper = std::function<Shape(std::vector<Shape>)>;
 
-Shape elem_shaper (std::vector<iNode*> args);
+Shape elem_shaper (std::vector<Shape> shapes);
 
-Shape transpose_shaper (std::vector<iNode*> args);
+Shape transpose_shaper (std::vector<Shape> shapes);
 
-Shape matmul_shaper (std::vector<iNode*> args);
+Shape matmul_shaper (std::vector<Shape> shapes);
 
 Shaper get_shaper (OPCODE opcode);
 

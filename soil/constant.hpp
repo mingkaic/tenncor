@@ -1,10 +1,10 @@
-#include "soil/inode.hpp"
+#include "soil/node.hpp"
 #include "soil/error.hpp"
 
 #ifndef CONSTANT_HPP
 #define CONSTANT_HPP
 
-struct Constant final : public iNode
+struct Constant final : public Node
 {
 	template <typename T>
 	static Nodeptr get (Shape shape, std::vector<T> data)
@@ -32,19 +32,10 @@ struct Constant final : public iNode
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
-	Shape shape (void) const override;
-
-	DTYPE type (void) const override
-	{
-		return type_;
-	}
-
 private:
 	Constant (char* data, DTYPE type, Shape shape);
 
 	std::shared_ptr<char> data_;
-	Shape shape_;
-	DTYPE type_;
 };
 
 Nodeptr get_zero (Shape shape, DTYPE type);

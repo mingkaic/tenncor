@@ -6,6 +6,10 @@
 
 Nodeptr Constant::get (char* data, DTYPE type, Shape shape)
 {
+	if (nullptr == data)
+	{
+		handle_error("creating null constant");
+	}
 	return Nodeptr(new Constant(data, type, shape));
 }
 
@@ -22,19 +26,14 @@ Nodeptr Constant::gradient (Nodeptr& leaf) const
 {
 	if (this == leaf.get())
 	{
-		handle_error("eliciting gradient from constant");
+		handle_error("eliciting gradient with respect to a constant");
 	}
 	return get_zero(shape_, type_);
 }
 
-Shape Constant::shape (void) const
-{
-	return shape_;
-}
-
 Constant::Constant (char* data, DTYPE type, Shape shape) :
-	data_(make_data(data, type_size(type) * shape.n_elems())),
-	shape_(shape), type_(type) {}
+	Node({shape, type}),
+	data_(make_data(data, type_size(type) * shape.n_elems())) {}
 
 Nodeptr get_zero (Shape shape, DTYPE type)
 {

@@ -4,8 +4,8 @@
 #include "soil/shape.hpp"
 #include "soil/type.hpp"
 
-#ifndef NODE_HPP
-#define NODE_HPP
+#ifndef INODE_HPP
+#define INODE_HPP
 
 struct Nodeptr;
 
@@ -42,4 +42,4 @@ struct Nodeptr
 	std::shared_ptr<iNode> ptr_;
 };
 
-#endif /* NODE_HPP */
+#endif /* INODE_HPP */
