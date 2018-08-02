@@ -1,8 +1,7 @@
 #include <unordered_map>
 
-#include "soil/data.hpp"
-#include "soil/shape.hpp"
-#include "soil/type.hpp"
+#include "sand/shape.hpp"
+#include "sand/type.hpp"
 
 #ifndef INODE_HPP
 #define INODE_HPP

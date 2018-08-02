@@ -1,7 +1,7 @@
 #include <functional>
 
-#include "soil/node.hpp"
-#include "soil/opcode.hpp"
+#include "sand/node.hpp"
+#include "sand/opcode.hpp"
 
 #ifndef FUNCTOR_HPP
 #define FUNCTOR_HPP

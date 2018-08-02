@@ -1,5 +1,6 @@
 #include <cstring>
 
+#include "soil/data.hpp"
 #include "soil/constant.hpp"
 
 #ifdef CONSTANT_HPP

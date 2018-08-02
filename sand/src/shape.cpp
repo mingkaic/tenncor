@@ -5,8 +5,8 @@
 #include <numeric>
 #include <sstream>
 
-#include "soil/error.hpp"
-#include "soil/shape.hpp"
+#include "sand/shape.hpp"
+#include "util/error.hpp"
 
 #ifdef SHAPE_HPP
 

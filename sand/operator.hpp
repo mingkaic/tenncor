@@ -1,9 +1,9 @@
 #include <functional>
 
-#include "soil/shape.hpp"
-#include "soil/type.hpp"
-#include "soil/opcode.hpp"
-#include "soil/error.hpp"
+#include "sand/shape.hpp"
+#include "sand/type.hpp"
+#include "sand/opcode.hpp"
+#include "util/error.hpp"
 
 #ifndef OPERATOR_HPP
 #define OPERATOR_HPP

@@ -1,13 +1,16 @@
 #include <cstring>
 #include <algorithm>
 
+#include "sand/shaper.hpp"
+#include "sand/typer.hpp"
+#include "sand/operator.hpp"
+
+#include "soil/data.hpp"
 #include "soil/functor.hpp"
-#include "soil/error.hpp"
-#include "soil/shaper.hpp"
-#include "soil/typer.hpp"
 #include "soil/grader.hpp"
-#include "soil/operator.hpp"
 #include "soil/constant.hpp"
+
+#include "util/error.hpp"
 
 #ifdef FUNCTOR_HPP
 

@@ -5,7 +5,7 @@
 #include "fuzzutil/fuzz.hpp"
 #include "fuzzutil/check.hpp"
 
-#include "soil/shape.hpp"
+#include "sand/shape.hpp"
 
 
 #ifndef DISABLE_SHAPE_TEST

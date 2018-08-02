@@ -29,6 +29,13 @@ filegroup(
 #######################################
 
 cc_library(
+    name = "util",
+    hdrs = glob(["util/*.hpp"]),
+    srcs = glob(["util/src/*.cpp"]),
+    copts = ["-std=c++14"],
+)
+
+cc_library(
     name = "ioutil",
     hdrs = glob(["ioutil/*.hpp"]),
     srcs = glob(["ioutil/src/*.cpp"]),

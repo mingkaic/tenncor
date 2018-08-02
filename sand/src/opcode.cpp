@@ -1,5 +1,5 @@
-#include "soil/opcode.hpp"
-#include "soil/mapper.hpp"
+#include "sand/opcode.hpp"
+#include "util/mapper.hpp"
 
 #ifdef OPCODE_HPP
 

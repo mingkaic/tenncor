@@ -1,7 +1,7 @@
 #include <functional>
 
-#include "soil/shape.hpp"
-#include "soil/opcode.hpp"
+#include "sand/shape.hpp"
+#include "sand/opcode.hpp"
 
 #ifndef SHAPER_HPP
 #define SHAPER_HPP

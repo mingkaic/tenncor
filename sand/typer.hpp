@@ -1,7 +1,7 @@
 #include <functional>
 
-#include "soil/type.hpp"
-#include "soil/opcode.hpp"
+#include "sand/type.hpp"
+#include "sand/opcode.hpp"
 
 #ifndef TYPER_HPP
 #define TYPER_HPP

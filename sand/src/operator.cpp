@@ -1,7 +1,8 @@
-#include "soil/operator.hpp"
-#include "soil/error.hpp"
-#include "soil/mapper.hpp"
-#include "soil/matmul.hpp"
+#include "sand/operator.hpp"
+#include "util/error.hpp"
+#include "util/mapper.hpp"
+
+#include "sand/include/matmul.hpp"
 
 #ifdef OPERATOR_HPP
 

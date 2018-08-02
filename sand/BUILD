@@ -8,6 +8,7 @@ filegroup(
     name = "srcs",
     srcs = glob([
         "*.hpp",
+        "include/*.hpp",
         "src/*.cpp",
         "test/*.cpp",
     ]) + [ "BUILD" ],
@@ -16,11 +17,14 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "soil",
-    hdrs = glob([ "*.hpp" ]),
+    name = "sand",
+    hdrs = glob([
+        "*.hpp",
+        "include/*.hpp",
+    ]),
     srcs = glob([ "src/*.cpp" ]),
     copts = [ "-std=c++14" ],
-    deps = [ "//sand:sand" ],
+    deps = [ "//:util" ],
 )
 
 ######### TEST #########
@@ -30,7 +34,7 @@ cc_test(
     size = "small",
     srcs = glob([ "test/*.cpp" ]),
     deps = [
-        "//soil:soil",
+        "//sand:sand",
         "//:fuzzutil",
     ],
     linkstatic = 1,

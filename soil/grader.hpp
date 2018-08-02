@@ -1,7 +1,7 @@
 #include <functional>
 
-#include "soil/inode.hpp"
-#include "soil/opcode.hpp"
+#include "sand/inode.hpp"
+#include "sand/opcode.hpp"
 
 #ifndef GRADER_HPP
 #define GRADER_HPP

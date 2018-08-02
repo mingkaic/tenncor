@@ -1,4 +1,4 @@
-#include "soil/error.hpp"
+#include "util/error.hpp"
 
 #ifndef MATMUL_HPP
 #define MATMUL_HPP

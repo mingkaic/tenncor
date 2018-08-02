@@ -1,6 +1,6 @@
-#include "soil/typer.hpp"
-#include "soil/error.hpp"
-#include "soil/mapper.hpp"
+#include "sand/typer.hpp"
+#include "util/error.hpp"
+#include "util/mapper.hpp"
 
 #ifdef TYPER_HPP
 

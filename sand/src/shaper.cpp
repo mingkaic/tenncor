@@ -1,8 +1,8 @@
 #include <cassert>
 
-#include "soil/shaper.hpp"
-#include "soil/error.hpp"
-#include "soil/mapper.hpp"
+#include "sand/shaper.hpp"
+#include "util/error.hpp"
+#include "util/mapper.hpp"
 
 #ifdef SHAPER_HPP
 
