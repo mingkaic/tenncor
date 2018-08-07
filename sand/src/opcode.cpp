@@ -1,7 +1,7 @@
 #include "sand/opcode.hpp"
 #include "util/mapper.hpp"
 
-#ifdef OPCODE_HPP
+#ifdef SAND_OPCODE_HPP
 
 #define OP_ASSOC(CODE) std::pair<OPCODE,std::string>{CODE, #CODE}
 

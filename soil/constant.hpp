@@ -2,8 +2,8 @@
 
 #include "util/error.hpp"
 
-#ifndef CONSTANT_HPP
-#define CONSTANT_HPP
+#ifndef SOIL_CONSTANT_HPP
+#define SOIL_CONSTANT_HPP
 
 struct Constant final : public Node
 {
@@ -16,10 +16,10 @@ struct Constant final : public Node
 				ErrArg<size_t>{"vecsize", data.size()},
 				ErrArg<std::string>{"shape", shape.to_string()});
 		}
-		return Nodeptr(new Constant((char*) &data[0], get_type<T>(), shape));
+		return Nodeptr(new Constant((char*) &data[0], shape, get_type<T>()));
 	}
 
-	static Nodeptr get (char* data, DTYPE type, Shape shape);
+	static Nodeptr get (char* data, Shape shape, DTYPE type);
 
 	Constant (const Constant&) = default;
 
@@ -29,20 +29,20 @@ struct Constant final : public Node
 
 	Constant& operator = (Constant&&) = delete;
 
-	std::shared_ptr<char> calculate (Session& sess) override;
+	std::shared_ptr<char> calculate (Pool& pool) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
 private:
-	Constant (char* data, DTYPE type, Shape shape);
+	Constant (char* data, Shape shape, DTYPE type);
 
 	std::shared_ptr<char> data_;
 };
 
-Nodeptr get_zero (Shape shape, DTYPE type);
+Nodeptr get_zero (Meta info);
 
-Nodeptr get_one (Shape shape, DTYPE type);
+Nodeptr get_one (Meta info);
 
 Nodeptr get_identity (DimT d, DTYPE type, Shape inner = std::vector<DimT>{1});
 
-#endif /* CONSTANT_HPP */
+#endif /* SOIL_CONSTANT_HPP */

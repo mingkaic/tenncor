@@ -3,8 +3,8 @@
 #include "sand/inode.hpp"
 #include "sand/opcode.hpp"
 
-#ifndef GRADER_HPP
-#define GRADER_HPP
+#ifndef SOIL_GRADER_HPP
+#define SOIL_GRADER_HPP
 
 using Grader = std::function<Nodeptr(std::vector<Nodeptr>,Nodeptr&)>;
 
@@ -16,4 +16,4 @@ Nodeptr matmul_grad (std::vector<Nodeptr> args, Nodeptr& wrt);
 
 Grader get_grader (OPCODE opcode);
 
-#endif /* GRADER_HPP */
+#endif /* SOIL_GRADER_HPP */

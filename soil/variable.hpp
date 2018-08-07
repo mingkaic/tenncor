@@ -5,8 +5,8 @@
 
 #include "util/error.hpp"
 
-#ifndef VARIABLE_HPP
-#define VARIABLE_HPP
+#ifndef SOIL_VARIABLE_HPP
+#define SOIL_VARIABLE_HPP
 
 struct Variable;
 
@@ -40,7 +40,7 @@ struct Variable final : public Node
 	{
 		if (nullptr != other.data_)
 		{
-			data_ = make_data(other.data_.get(), other.nbytes());
+			data_ = make_data(other.data_.get(), other.info_.nbytes());
 		}
 	}
 
@@ -53,7 +53,7 @@ struct Variable final : public Node
 			Node::operator = (other);
 			if (nullptr != other.data_)
 			{
-				data_ = make_data(other.data_.get(), other.nbytes());
+				data_ = make_data(other.data_.get(), other.info_.nbytes());
 			}
 			else
 			{
@@ -65,7 +65,7 @@ struct Variable final : public Node
 
 	Variable& operator = (Variable&&) = default;
 
-	std::shared_ptr<char> calculate (Session& sess) override;
+	std::shared_ptr<char> calculate (Pool& pool) override;
 
 	Nodeptr gradient (Nodeptr& leaf) const override;
 
@@ -73,25 +73,25 @@ struct Variable final : public Node
 	void set_data (std::vector<T> data)
 	{
 		DTYPE settype = get_type<T>();
-		if (settype != type_)
+		if (settype != info_.type_)
 		{
 			handle_error("set data with mismatch type",
 				ErrArg<std::string>("set_type", name_type(settype)),
-				ErrArg<std::string>("var_type", name_type(type_)));
+				ErrArg<std::string>("var_type", name_type(info_.type_)));
 		}
-		if (data.size() != shape_.n_elems())
+		if (data.size() != info_.shape_.n_elems())
 		{
 			handle_error("vector size not fitting shape",
 				ErrArg<size_t>{"vecsize", data.size()},
-				ErrArg<std::string>{"shape", shape_.to_string()});
+				ErrArg<std::string>{"shape", info_.shape_.to_string()});
 		}
-		data_ = make_data((char*) &data[0], nbytes());
+		data_ = make_data((char*) &data[0], info_.nbytes());
 	}
 
 private:
 	Variable (Shape shape, DTYPE type);
 
-	std::shared_ptr<char> data_ = nullptr; // todo: make unique
+	std::shared_ptr<char> data_ = nullptr;
 };
 
 template <typename T>
@@ -100,4 +100,4 @@ void Varptr::set_data (std::vector<T> data)
 	return static_cast<Variable*>(this->ptr_.get())->set_data<T>(data);
 }
 
-#endif /* VARIABLE_HPP */
+#endif /* SOIL_VARIABLE_HPP */

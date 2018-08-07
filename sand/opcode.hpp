@@ -1,7 +1,7 @@
 #include <string>
 
-#ifndef OPCODE_HPP
-#define OPCODE_HPP
+#ifndef SAND_OPCODE_HPP
+#define SAND_OPCODE_HPP
 
 enum OPCODE
 {
@@ -37,9 +37,10 @@ enum OPCODE
 	ARGMAX,
 	RMAX,
 	RSUM,
-	MATMUL
+	MATMUL,
+	RESHAPE,
 };
 
 std::string opname (OPCODE opcode);
 
-#endif /* OPCODE_HPP */
+#endif /* SAND_OPCODE_HPP */

@@ -1,7 +1,12 @@
+#include <algorithm>
+#include <numeric>
+
+#include "sand/operator.hpp"
+
 #include "util/error.hpp"
 
-#ifndef MATMUL_HPP
-#define MATMUL_HPP
+#ifndef SAND_MATMUL_HPP
+#define SAND_MATMUL_HPP
 
 static const uint16_t STRASSEN_THRESHOLD = 256;
 
@@ -18,7 +23,8 @@ static inline size_t min_pad (size_t insize)
 }
 
 template <typename T>
-static void cubic_mul (T* c, const T* a, const T* b, size_t dimX, size_t dimY, size_t dimZ, size_t coord_map[4])
+static void cubic_mul (T* c, const T* a, const T* b,
+	size_t dimX, size_t dimY, size_t dimZ, size_t coord_map[4])
 {
 	for (size_t y = 0; y < dimY; y++)
 	{
@@ -162,7 +168,8 @@ static void strassen (T* c, T* a, T* b, size_t dimPad)
 }
 
 template <typename T>
-void matmul (NodeInfo dest, std::vector<NodeInfo>& srcs)
+void matmul (NodeInfo dest, std::vector<NodeInfo>& srcs,
+	MetaEncoder::MetaData mdata)
 {
 	if (2 != srcs.size())
 	{
@@ -174,9 +181,14 @@ void matmul (NodeInfo dest, std::vector<NodeInfo>& srcs)
 	T* b = (T*) srcs[1].data_;
 	T* c = (T*) dest.data_;
 
-	NElemT dim_x = srcs[1].shape_.group(0).n_elems();
-	NElemT dim_y = srcs[0].shape_.group(1).n_elems();
-	NElemT dim_z = srcs[0].shape_.group(0).n_elems();
+	auto ita = srcs[0].shape_.begin();
+	auto itb = srcs[1].shape_.begin();
+	NElemT dim_x = std::accumulate(itb, itb + mdata[2],
+		1, std::multiplies<NElemT>());
+	NElemT dim_y = std::accumulate(ita + mdata[0], ita + mdata[1],
+		1, std::multiplies<NElemT>());
+	NElemT dim_z = std::accumulate(ita, ita + mdata[0],
+		1, std::multiplies<NElemT>());
 
 	NElemT n = dest.shape_.n_elems();
 
@@ -236,4 +248,4 @@ void matmul (NodeInfo dest, std::vector<NodeInfo>& srcs)
 	}
 }
 
-#endif /* MATMUL_HPP */
+#endif /* SAND_MATMUL_HPP */

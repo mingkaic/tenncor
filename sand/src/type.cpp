@@ -2,7 +2,7 @@
 #include "util/error.hpp"
 #include "util/mapper.hpp"
 
-#ifdef TYPE_HPP
+#ifdef SAND_TYPE_HPP
 
 #define TYPE_ASSOC(TYPE) std::pair<DTYPE,std::string>{TYPE, #TYPE}
 

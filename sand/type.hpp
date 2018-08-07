@@ -1,7 +1,7 @@
 #include <string>
 
-#ifndef TYPE_HPP
-#define TYPE_HPP
+#ifndef SAND_TYPE_HPP
+#define SAND_TYPE_HPP
 
 enum DTYPE
 {
@@ -59,4 +59,4 @@ DTYPE get_type<uint64_t> (void);
 
 uint8_t type_size (DTYPE type);
 
-#endif /* TYPE_HPP */
+#endif /* SAND_TYPE_HPP */

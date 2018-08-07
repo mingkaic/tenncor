@@ -23,7 +23,7 @@ COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 COVERAGE_INFO_FILE := coverage.info
 
 # unit test
-test: test_clay test_mold test_slip test_kiln
+test_old: test_clay test_mold test_slip test_kiln
 
 test_clay:
 	$(GTEST) $(REP_BZL_FLAG) //clay:test
@@ -39,6 +39,15 @@ test_kiln:
 
 test_lead:
 	$(GTEST) $(REP_BZL_FLAG) //lead:test
+
+
+test: test_sand test_soil
+
+test_sand:
+	$(GTEST) //sand:test
+
+test_soil:
+	$(GTEST) //soil:test
 
 # valgrind unit tests
 valgrind: valg_clay valg_mold valg_slip valg_kiln

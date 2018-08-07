@@ -2,7 +2,7 @@
 
 #include "soil/data.hpp"
 
-#ifdef DATA_HPP
+#ifdef SOIL_DATA_HPP
 
 struct varr_deleter
 {

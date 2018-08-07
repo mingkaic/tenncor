@@ -1,5 +1,9 @@
 #include "soil/functor.hpp"
 
+#include "util/sorted_arr.hpp"
+
+using Group = SortedArr<uint8_t,2>;
+
 struct DataBucket
 {
 	DataBucket (std::shared_ptr<char> data, DTYPE type, Shape shape) :
@@ -36,13 +40,13 @@ private:
 
 DataBucket evaluate (Nodeptr& exit_node);
 
-CoordOp dim_swap (std::pair<uint8_t,uint8_t> dims);
-
 Nodeptr group (Nodeptr a);
 
 Nodeptr transpose (Nodeptr a);
 
-Nodeptr transpose (Nodeptr a, CoordOp dim_op);
+Nodeptr transpose (Nodeptr a, std::pair<Group,Group> groups);
+
+Nodeptr transpose (Nodeptr a, std::pair<uint8_t,uint8_t> dims);
 
 Nodeptr operator + (Nodeptr a, Nodeptr b);
 

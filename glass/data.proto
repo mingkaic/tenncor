@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option go_package = "github.com/mingkaic/tenncor/glass";
+
+package tenncor;
+
+import "google/protobuf/any.proto";
+
+message ByteArr { bytes data = 1; }
+message DoubleArr { repeated double data = 1; }
+message FloatArr { repeated float data = 1; }
+message Int32Arr { repeated int32 data = 1; }
+message Int64Arr { repeated int64 data = 1; }
+message Uint32Arr { repeated uint32 data = 1; }
+message Uint64Arr { repeated uint64 data = 1; }
+
+message DataInfoPb
+{
+	bytes shape = 1;
+	uint32 type = 2;
+}
+
+message DataPb
+{
+	// takes messages DoubleArr, ...,
+	// Uint64Arr depending on dtype
+	google.protobuf.Any data = 1;
+	DataInfoPb info = 2;
+}
+
+message DataRepoPb
+{
+	string id = 1;
+	map<uint32,DataPb> data_map = 2;
+}

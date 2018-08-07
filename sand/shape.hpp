@@ -1,8 +1,8 @@
 #include <array>
 #include <vector>
 
-#ifndef SHAPE_HPP
-#define SHAPE_HPP
+#ifndef SAND_SHAPE_HPP
+#define SAND_SHAPE_HPP
 
 using DimT = uint8_t;
 using NElemT = uint32_t; // reliant on Shape::rank_limit_
@@ -18,6 +18,12 @@ struct Shape
 	Shape (std::vector<DimT> dims);
 
 	Shape (std::vector<Shape> shapes);
+
+	Shape (std::vector<DimT> dims, uint8_t group) :
+		Shape(dims)
+	{
+		groups_ = group;
+	}
 
 	Shape (const Shape& other);
 
@@ -52,6 +58,11 @@ struct Shape
 
 	std::string to_string (void) const;
 
+	uint8_t groups_encoding (void) const
+	{
+		return groups_;
+	}
+
 	// >>>> ITERATORS <<<<
 
 	ShapeIterator begin (void);
@@ -66,9 +77,9 @@ private:
 	// get the first index of the kth group
 	uint8_t kth_group (uint8_t k) const;
 
-	std::array<DimT,rank_cap> dims_; // todo: add padding for groups
+	std::array<DimT,rank_cap> dims_;
 
-	uint8_t groups_ = 0xFF;
+	uint8_t groups_ = 0xFF; // todo: deprecate by opstring system
 
 	uint8_t rank_;
 };
@@ -82,4 +93,4 @@ NElemT index (Shape shape, std::vector<DimT> coord);
 //! obtain cartesian coordinates given a flat vector index
 std::vector<DimT> coordinate (Shape shape, NElemT idx);
 
-#endif /* SHAPE_HPP */
+#endif /* SAND_SHAPE_HPP */

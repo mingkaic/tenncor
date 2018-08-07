@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option go_package = "github.com/mingkaic/tenncor/glass";
+
+package tenncor;
+
+import "google/protobuf/any.proto";
+import "glass/data.proto";
+
+message NodePb
+{
+	enum NodeT
+	{
+		VARIABLE = 0;
+		CONSTANT = 1;
+		FUNCTOR = 2;
+	}
+	NodeT type = 1;
+	// takes messages:
+	// DataPb for type == CONSTANT
+	// DataInfoPb for type == VARIABLE
+	// FunctorPb for type == FUNCTOR
+	google.protobuf.Any detail = 2;
+}
+
+message FunctorPb
+{
+	bytes encoding = 1;
+	repeated uint32 args = 2;
+}
+
+message GraphPb
+{
+	string id = 1;
+	repeated NodePb nodes = 2;
+	repeated string labels = 3;
+}

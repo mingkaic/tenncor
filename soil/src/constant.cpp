@@ -3,18 +3,18 @@
 #include "soil/data.hpp"
 #include "soil/constant.hpp"
 
-#ifdef CONSTANT_HPP
+#ifdef SOIL_CONSTANT_HPP
 
-Nodeptr Constant::get (char* data, DTYPE type, Shape shape)
+Nodeptr Constant::get (char* data, Shape shape, DTYPE type)
 {
 	if (nullptr == data)
 	{
 		handle_error("creating null constant");
 	}
-	return Nodeptr(new Constant(data, type, shape));
+	return Nodeptr(new Constant(data, shape, type));
 }
 
-std::shared_ptr<char> Constant::calculate (Session& sess)
+std::shared_ptr<char> Constant::calculate (Pool& pool)
 {
 	if (data_ == nullptr)
 	{
@@ -29,27 +29,27 @@ Nodeptr Constant::gradient (Nodeptr& leaf) const
 	{
 		handle_error("eliciting gradient with respect to a constant");
 	}
-	return get_zero(shape_, type_);
+	return get_zero(info_);
 }
 
-Constant::Constant (char* data, DTYPE type, Shape shape) :
+Constant::Constant (char* data, Shape shape, DTYPE type) :
 	Node({shape, type}),
 	data_(make_data(data, type_size(type) * shape.n_elems())) {}
 
-Nodeptr get_zero (Shape shape, DTYPE type)
+Nodeptr get_zero (Meta info)
 {
-	uint8_t nbytes = type_size(type) * shape.n_elems();
+	uint8_t nbytes = info.nbytes();
 	std::string zero(nbytes, 0);
-	return Constant::get(&zero[0], type, shape);
+	return Constant::get(&zero[0], info.shape_, info.type_);
 }
 
-Nodeptr get_one (Shape shape, DTYPE type)
+Nodeptr get_one (Meta info)
 {
-	NElemT n = shape.n_elems();
-	uint8_t nbytes = type_size(type) * n;
+	NElemT n = info.shape_.n_elems();
+	uint8_t nbytes = info.nbytes();
 	std::string one(nbytes, 0);
 	char* ptr = &one[0];
-	switch (type)
+	switch (info.type_)
 	{
 		case DTYPE::DOUBLE:
 		{
@@ -113,7 +113,7 @@ Nodeptr get_one (Shape shape, DTYPE type)
 		default:
 		break;
 	}
-	return Constant::get(ptr, type, shape);
+	return Constant::get(ptr, info.shape_, info.type_);
 }
 
 Nodeptr get_identity (DimT d, DTYPE type, Shape inner)
@@ -194,7 +194,7 @@ Nodeptr get_identity (DimT d, DTYPE type, Shape inner)
 	{
 		std::memcpy(iptr + i * (nbytes * (d + 1)), ptr, nbytes);
 	}
-	return Constant::get(iptr, type, outs);
+	return Constant::get(iptr, outs, type);
 }
 
 #endif

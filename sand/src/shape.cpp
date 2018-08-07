@@ -8,7 +8,7 @@
 #include "sand/shape.hpp"
 #include "util/error.hpp"
 
-#ifdef SHAPE_HPP
+#ifdef SAND_SHAPE_HPP
 
 Shape::Shape (void) : rank_(0)
 {

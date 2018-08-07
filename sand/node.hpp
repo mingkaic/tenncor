@@ -1,33 +1,21 @@
 #include "sand/inode.hpp"
+#include "sand/meta.hpp"
 
-#ifndef NODE_HPP
-#define NODE_HPP
+#ifndef SAND_NODE_HPP
+#define SAND_NODE_HPP
 
 struct Node : public iNode
 {
-	virtual ~Node (void) = default;
+	virtual ~Node (void);
 
-	Shape shape (void) const override
-	{
-		return shape_;
-	}
+	Shape shape (void) const override;
 
-	DTYPE type (void) const override
-	{
-		return type_;
-	}
+	DTYPE type (void) const override;
 
 protected:
-	Node (std::pair<Shape,DTYPE> stpair) :
-		shape_(stpair.first), type_(stpair.second) {}
+	Node (Meta info);
 
-	size_t nbytes (void) const
-	{
-		return type_size(type_) * shape_.n_elems();
-	}
-
-	Shape shape_;
-	DTYPE type_;
+	Meta info_;
 };
 
-#endif /* NODE_HPP */
+#endif /* SAND_NODE_HPP */

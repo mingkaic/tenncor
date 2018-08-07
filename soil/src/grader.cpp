@@ -4,7 +4,7 @@
 
 #include "util/mapper.hpp"
 
-#ifdef GRADER_HPP
+#ifdef SOIL_GRADER_HPP
 
 Nodeptr add_grad (std::vector<Nodeptr> args, Nodeptr& wrt)
 {
@@ -35,41 +35,38 @@ Nodeptr matmul_grad (std::vector<Nodeptr> args, Nodeptr& wrt)
 	// dh/df = transpose_0,n_rank-1(
 	//		id[shape:g1g0g...f1f1] * transpose(g)[g0g1g...])[shape:gf0f1])
 	Nodeptr lhs = get_identity(fdim, g->type(), gshape) * g;
-	lhs = transpose(lhs, dim_swap({1, lhs->shape().n_rank() - 2}));
+	lhs = transpose(lhs, {1, lhs->shape().n_rank() - 2});
 	lhs = ShapeTransform::get(lhs, Shape({
 		Shape({(DimT) gdim, (DimT) fdim}), fshape}));
 	// dh/dg = transpose_1,n_rank-2(
 	//		id[shape:f1f0f...g1g1] * transpose(f)[f0f1f...])[shape:fg0g1])
 	Nodeptr rhs = get_identity(gdim, f->type(), fshape) * f;
-	rhs = transpose(rhs, dim_swap({0, rhs->shape().n_rank() - 1}));
+	rhs = transpose(rhs, {0, rhs->shape().n_rank() - 1});
 	rhs = ShapeTransform::get(rhs, Shape({
 		Shape({(DimT) gdim, (DimT) fdim}), gshape}));
 	// todo: attempt to get rid of these checks
-	if (f.get() == wrt.get() && g.get() == wrt.get())
+	if (f.get() != wrt.get())
 	{
-		return lhs + rhs;
+		// df/dx
+		Nodeptr dlhs = f->gradient(wrt);
+		if (false == higher_order(dlhs->shape()))
+		{
+			dlhs = group(dlhs);
+		}
+		lhs = matmul(dlhs, lhs);
 	}
-	else if (f.get() == wrt.get())
+	if (g.get() != wrt.get())
 	{
-		return lhs;
+		// dg/dx
+		Nodeptr drhs = g->gradient(wrt);
+		if (false == higher_order(drhs->shape()))
+		{
+			drhs = group(drhs);
+		}
+		rhs = matmul(drhs, rhs);
 	}
-	else if (g.get() == wrt.get())
-	{
-		return rhs;
-	}
-	// df/dx
-	Nodeptr dlhs = f->gradient(wrt);
-	if (false == higher_order(dlhs->shape()))
-	{
-		dlhs = group(dlhs);
-	}
-	// dg/dx
-	Nodeptr drhs = g->gradient(wrt);
-	if (false == higher_order(drhs->shape()))
-	{
-		drhs = group(drhs);
-	}
-	return matmul(dlhs, lhs) + matmul(drhs, rhs);
+
+	return lhs + rhs;
 }
 
 static EnumMap<OPCODE,Grader> graders =

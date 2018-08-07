@@ -1,20 +1,22 @@
+#include <memory>
 #include <unordered_map>
 
 #include "sand/shape.hpp"
 #include "sand/type.hpp"
 
-#ifndef INODE_HPP
-#define INODE_HPP
+#ifndef SAND_INODE_HPP
+#define SAND_INODE_HPP
 
 struct Nodeptr;
 
-struct Session;
+struct Pool;
 
 struct iNode
 {
 	virtual ~iNode (void);
 
-	virtual std::shared_ptr<char> calculate (Session& sess) = 0;
+	// expensive: unnecessary passing shared_ptr, todo: use pool
+	virtual std::shared_ptr<char> calculate (Pool& pool) = 0;
 
 	virtual Nodeptr gradient (Nodeptr& leaf) const = 0;
 
@@ -23,14 +25,16 @@ struct iNode
 	virtual DTYPE type (void) const = 0;
 };
 
-struct Session
+struct Pool
 {
-	std::unordered_map<iNode*,std::shared_ptr<char> > pool_;
+	std::unordered_map<iNode*,std::shared_ptr<char> > data_;
 };
 
 struct Nodeptr
 {
 	Nodeptr (iNode* node);
+
+	virtual ~Nodeptr (void) = default;
 
 	iNode* operator -> (void);
 
@@ -38,7 +42,13 @@ struct Nodeptr
 
 	iNode* get (void) const;
 
+	std::weak_ptr<iNode> ref (void) const
+	{
+		return ptr_;
+	}
+
+protected:
 	std::shared_ptr<iNode> ptr_;
 };
 
-#endif /* INODE_HPP */
+#endif /* SAND_INODE_HPP */

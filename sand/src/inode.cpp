@@ -1,7 +1,7 @@
 #include "sand/inode.hpp"
 #include "util/error.hpp"
 
-#ifdef INODE_HPP
+#ifdef SAND_INODE_HPP
 
 iNode::~iNode (void) = default;
 

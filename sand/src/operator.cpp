@@ -2,9 +2,11 @@
 #include "util/error.hpp"
 #include "util/mapper.hpp"
 
+#include "sand/include/unary.hpp"
+#include "sand/include/binary.hpp"
 #include "sand/include/matmul.hpp"
 
-#ifdef OPERATOR_HPP
+#ifdef SAND_OPERATOR_HPP
 
 using TypedOperations = EnumMap<DTYPE,Operation>;
 
@@ -22,6 +24,18 @@ static EnumMap<OPCODE,TypedOperations> operations =
 	{MUL, TYPE_FUNC(mul)},
 	{MATMUL, TYPE_FUNC(matmul)},
 };
+
+bool has_op (OPCODE opcode, DTYPE type)
+{
+	auto it = operations.find(opcode);
+	if (operations.end() == it)
+	{
+		return false;
+	}
+	auto typemap = it->second;
+	auto tit = typemap.find(type);
+	return typemap.end() != tit;
+}
 
 Operation get_op (OPCODE opcode, DTYPE type)
 {

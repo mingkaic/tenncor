@@ -21,14 +21,14 @@ TEST_F(SHAPE, Init)
 {
 	Shape scalar;
 
-	std::vector<DimT> slist = {2, 3}; // tie to fuzz engine
+	std::vector<DimT> slist = {2, 3}; // todo: tie to fuzz engine
 	Shape vec(slist);
 
 	std::vector<DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
-		10, 11, 12, 13, 14, 15, 16, 17}; // tie to fuzz engine
+		10, 11, 12, 13, 14, 15, 16, 17}; // todo: tie to fuzz engine
 	Shape lvec(longlist);
 
-	std::vector<DimT> zerolist = {1, 2, 0, 3}; // tie to fuzz engine
+	std::vector<DimT> zerolist = {1, 2, 0, 3}; // todo: tie to fuzz engine
 	EXPECT_THROW(Shape junk(zerolist), std::exception);
 
 	for (uint8_t i = 0; i < rank_cap; ++i)
@@ -62,13 +62,13 @@ TEST_F(SHAPE, Copies)
 	Shape mvassign;
 	Shape vecassign;
 
-	std::vector<DimT> junk = {1, 3, 3, 7}; // tie to fuzz engine
+	std::vector<DimT> junk = {1, 3, 3, 7}; // todo: tie to fuzz engine
 	Shape cpassign2(junk);
 	Shape mvassign2(junk);
 	Shape vecassign2(junk);
 
-	std::vector<DimT> slist = {2, 3}; // tie to fuzz engine
-	std::vector<DimT> zerolist = {1, 2, 0, 3}; // tie to fuzz engine
+	std::vector<DimT> slist = {2, 3}; // todo: tie to fuzz engine
+	std::vector<DimT> zerolist = {1, 2, 0, 3}; // todo: tie to fuzz engine
 	Shape orig(slist);
 
 	Shape cp(orig);
@@ -124,11 +124,11 @@ TEST_F(SHAPE, Copies)
 
 TEST_F(SHAPE, NElems)
 {
-	std::vector<DimT> slist = {2, 3}; // tie to fuzz engine
+	std::vector<DimT> slist = {2, 3}; // todo: tie to fuzz engine
 	Shape shape(slist);
 
 	std::vector<DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
-		10, 11, 12, 13, 14, 15, 16, 17}; // tie to fuzz engine
+		10, 11, 12, 13, 14, 15, 16, 17}; // todo: tie to fuzz engine
 	Shape lshape(longlist);
 
 	size_t expect_nelems = 1;
@@ -150,11 +150,11 @@ TEST_F(SHAPE, NElems)
 
 TEST_F(SHAPE, NRank)
 {
-	std::vector<DimT> slist = {2, 3}; // tie to fuzz engine
+	std::vector<DimT> slist = {2, 3}; // todo: tie to fuzz engine
 	Shape shape(slist);
 
 	std::vector<DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
-		10, 11, 12, 13, 14, 15, 16, 17}; // tie to fuzz engine
+		10, 11, 12, 13, 14, 15, 16, 17}; // todo: tie to fuzz engine
 	Shape lshape(longlist);
 
 	uint8_t cap = rank_cap;
@@ -166,7 +166,7 @@ TEST_F(SHAPE, NRank)
 TEST_F(SHAPE, Compatible)
 {
 	// assert slist.size() < 16
-	std::vector<DimT> slist = {2, 3}; // tie to fuzz engine
+	std::vector<DimT> slist = {2, 3}; // todo: tie to fuzz engine
 	Shape shape(slist);
 
 	// shape is compatible with itself regardless of after idx
@@ -210,7 +210,7 @@ TEST_F(SHAPE, Compatible)
 
 TEST_F(SHAPE, ToString)
 {
-	std::vector<DimT> slist = {2, 3}; // tie to fuzz engine
+	std::vector<DimT> slist = {2, 3}; // todo: tie to fuzz engine
 	Shape shape(slist);
 	std::string out = shape.to_string();
 	std::string expect_out = std::to_string(slist[0]);
