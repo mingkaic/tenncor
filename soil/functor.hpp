@@ -39,38 +39,4 @@ private:
 	OPCODE opcode_;
 };
 
-struct ShapeTransform final : public iNode
-{
-	static Nodeptr get (Nodeptr& arg, Shape shape)
-	{
-		return new ShapeTransform(arg, shape);
-	}
-
-	std::shared_ptr<char> calculate (Pool& pool) override
-	{
-		return arg_->calculate(pool);
-	}
-
-	Nodeptr gradient (Nodeptr& leaf) const override
-	{
-		return arg_->gradient(leaf);
-	}
-
-	Shape shape (void) const override
-	{
-		return shape_;
-	}
-
-	DTYPE type (void) const override
-	{
-		return arg_->type();
-	}
-
-private:
-	ShapeTransform (Nodeptr& arg, Shape shape);
-
-	Shape shape_;
-	Nodeptr arg_;
-};
-
 #endif /* SOIL_FUNCTOR_HPP */

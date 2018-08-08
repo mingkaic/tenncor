@@ -1,12 +1,10 @@
-- move shape transform to functor
-
 tests:
 - full unit test coverage on sand
-- add remaining operators to sand/soil
-- full unit test coverage on sand/soil
-- add test coverage on gara
-- valgrind/asan check on sand/soil/gara
+- full unit test coverage on soil
+- add test coverage on glass
+- valgrind/asan check on sand/soil/glass
 - update regression test
+
 - remove clay/mold/kiln/lead/ioutil
 - update pysave/graphmgr
 

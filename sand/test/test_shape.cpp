@@ -1,5 +1,3 @@
-#ifndef DISABLE_MODULE_TESTS
-
 #include "gtest/gtest.h"
 
 #include "fuzzutil/fuzz.hpp"
@@ -223,6 +221,3 @@ TEST_F(SHAPE, ToString)
 
 
 #endif /* DISABLE_SHAPE_TEST */
-
-
-#endif /* DISABLE_MODULE_TESTS */

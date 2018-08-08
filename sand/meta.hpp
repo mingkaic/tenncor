@@ -6,22 +6,9 @@
 
 struct Meta
 {
-	bool compatible (Meta& other) const
-	{
-		uint8_t rank = std::min(shape_.n_rank(), other.shape_.n_rank());
-		return other.shape_.compatible_before(shape_, rank) &&
-			other.type_ == type_;
-	}
+	std::string to_string (void) const;
 
-	std::string to_string (void) const
-	{
-		return shape_.to_string() + ":" + name_type(type_);
-	}
-
-	size_t nbytes (void) const
-	{
-		return shape_.n_elems() * type_size(type_);
-	}
+	size_t nbytes (void) const;
 
 	Shape shape_;
 	DTYPE type_;
@@ -32,6 +19,13 @@ enum SCODE
 	ELEM = 0,
 	TSHAPE,
 	MATSHAPE,
+	FLIPSHAPE,
+	TCAST,
+	GROUP,
+	NELEMSPRE,
+	NDIMSPRE,
+	BINOPRE,
+	REDUCEPRE,
 };
 
 struct MetaEncoder
@@ -40,37 +34,17 @@ struct MetaEncoder
 
 	using MetaData = uint8_t[NHash];
 
-	MetaEncoder (SCODE code) : code_(code)
-	{
-		std::memset(data_, 0, NHash);
-	}
+	MetaEncoder (SCODE code);
 
-	MetaEncoder (const MetaEncoder& other) : code_(other.code_)
-	{
-		std::memcpy(data_, other.data_, NHash);
-	}
+	MetaEncoder (const MetaEncoder& other);
 
-	MetaEncoder (MetaEncoder&& other) = default;
+	MetaEncoder (MetaEncoder&& other);
 
-	MetaEncoder& operator = (const MetaEncoder& other)
-	{
-		if (this != &other)
-		{
-			code_ = other.code_;
-			std::memcpy(data_, other.data_, NHash);
-		}
-		return *this;
-	}
+	MetaEncoder& operator = (const MetaEncoder& other);
 
-	MetaEncoder& operator = (MetaEncoder&& other) = default;
+	MetaEncoder& operator = (MetaEncoder&& other);
 
-	operator std::string(void)
-	{
-		std::string out(1 + NHash, 0);
-		out[0] = code_;
-		std::memcpy(&out[1], data_, NHash);
-		return out;
-	}
+	operator std::string(void);
 
 	SCODE code_;
 	MetaData data_;

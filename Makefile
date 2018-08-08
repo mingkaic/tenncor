@@ -50,7 +50,7 @@ test_soil:
 	$(GTEST) //soil:test
 
 # valgrind unit tests
-valgrind: valg_clay valg_mold valg_slip valg_kiln
+valgrind_old: valg_clay valg_mold valg_slip valg_kiln
 
 valg_clay:
 	$(GTEST) $(VAL_BZL_FLAG) //clay:test
@@ -63,6 +63,15 @@ valg_slip:
 
 valg_kiln:
 	$(GTEST) $(VAL_BZL_FLAG) //kiln:test
+
+
+valgrind: valgrind_sand valgrind_soil
+
+valgrind_sand:
+	$(GTEST) $(VAL_BZL_FLAG) //sand:test
+
+valgrind_soil:
+	$(GTEST) $(VAL_BZL_FLAG) //soil:test
 
 # asan unit tests
 asan: asan_clay asan_mold asan_slip asan_kiln

@@ -374,7 +374,7 @@ Identifier* cast (Identifier* type, Identifier* a)
 	slip::OPCODE opcode = slip::CAST;
 	if (Identifier* parent = ordered_parent({
 		{type->get_uid(), mold::Range(0, 0)},
-    	{a->get_uid(), mold::Range(0, 0)}}, opcode))
+		{a->get_uid(), mold::Range(0, 0)}}, opcode))
 	{
 		return parent;
 	}

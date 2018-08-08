@@ -1,4 +1,4 @@
-#include <cassert>
+#include <cstring>
 
 #include "sand/preop.hpp"
 #include "util/error.hpp"
@@ -20,7 +20,9 @@ Meta ElemPreOperator::operator () (std::vector<Meta> args)
 	{
 		Meta arg = *it;
 		uint8_t rank = arg.shape_.n_rank();
-		if (false == out.compatible(arg))
+		if (out.type_ != arg.type_ ||
+			false == arg.shape_.compatible_before(out.shape_,
+			std::min(outrank, rank)))
 		{
 			handle_error("incompatible elem arg",
 				ErrArg<std::string>{"first", out.to_string()},
@@ -59,17 +61,24 @@ Meta TransPreOperator::operator () (std::vector<Meta> args)
 
 	Meta& arg = args[0];
 	auto it = arg.shape_.begin();
-	std::vector<DimT> olist(it, it + groups_[0]);
-	olist.insert(olist.end(), it + groups_[2], it + groups_[3]);
-	olist.insert(olist.end(), it + groups_[1], it + groups_[2]);
-	olist.insert(olist.end(), it + groups_[0], it + groups_[1]);
-	olist.insert(olist.end(), it + groups_[3], arg.shape_.end());
+	uint8_t arank = arg.shape_.n_rank();
+	// std::vector<DimT> olist(it, it + groups_[0]);
+	// olist.insert(olist.end(), it + groups_[2], it + groups_[3]);
+	// olist.insert(olist.end(), it + groups_[1], it + groups_[2]);
+	// olist.insert(olist.end(), it + groups_[0], it + groups_[1]);
+	// if (groups_[3] < arank)
+	// {
+	// 	olist.insert(olist.end(), it + groups_[3], it + arank);
+	// }
 
-	// std::vector<Shape> olist = {Shape(std::vector<DimT>(it, it + groups_[0]))};
-	// olist.push_back(Shape(std::vector<DimT>(it + groups_[2], it + groups_[3])));
-	// olist.push_back(Shape(std::vector<DimT>(it + groups_[1], it + groups_[2])));
-	// olist.push_back(Shape(std::vector<DimT>(it + groups_[0], it + groups_[1])));
-	// olist.push_back(Shape(std::vector<DimT>(it + groups_[3], arg.shape_.end())));
+	std::vector<Shape> olist = {Shape(std::vector<DimT>(it, it + groups_[0]))};
+	olist.push_back(Shape(std::vector<DimT>(it + groups_[2], it + groups_[3])));
+	olist.push_back(Shape(std::vector<DimT>(it + groups_[1], it + groups_[2])));
+	olist.push_back(Shape(std::vector<DimT>(it + groups_[0], it + groups_[1])));
+	if (groups_[3] < arank)
+	{
+		olist.push_back(Shape(std::vector<DimT>(it + groups_[3], it + arank)));
+	}
 
 	return Meta{Shape(olist), arg.type_};
 }
@@ -81,7 +90,7 @@ MetaEncoder TransPreOperator::encode (void) const
 	return out;
 }
 
-MatPreOperator::MatPreOperator (TwoGroups groups0, TwoGroups groups1) :
+MatPreOperator::MatPreOperator (Range groups0, Range groups1) :
 	groups0_(groups0), groups1_(groups1)
 {
 	if (groups0[1] > rank_cap || groups1[1] > rank_cap)
@@ -174,6 +183,37 @@ std::shared_ptr<iPreOperator> decode_meta (std::string msg)
 			return std::shared_ptr<MatPreOperator>(
 				new MatPreOperator({(uint8_t) msg[1], (uint8_t) msg[2]},
 				{(uint8_t) msg[3], (uint8_t) msg[4]}));
+		case TCAST:
+			return std::shared_ptr<TypecastPreOperator>(
+				new TypecastPreOperator((DTYPE) msg[0], (DTYPE) msg[1]));
+		case FLIPSHAPE:
+			return std::shared_ptr<FlipPreOperator>(
+				new FlipPreOperator((uint8_t) msg[1]));
+		case GROUP:
+			return std::shared_ptr<GroupPreOperator>(
+				new GroupPreOperator({(uint8_t) msg[1], (uint8_t) msg[2]}));
+		case NELEMSPRE:
+			return std::make_shared<NElemsPreOperator>();
+		case NDIMSPRE:
+		{
+			if (msg[1] > 0)
+			{
+				return std::shared_ptr<NDimsPreOperator>(
+					new NDimsPreOperator(msg[1] - 1));
+			}
+			return std::make_shared<NDimsPreOperator>();
+		}
+		case REDUCEPRE:
+		{
+			if (msg[1] > 0)
+			{
+				return std::shared_ptr<ReducePreOperator>(
+					new ReducePreOperator(msg[1] - 1));
+			}
+			return std::make_shared<ReducePreOperator>();
+		}
+		case BINOPRE:
+			return std::make_shared<BinomPreOperator>();
 	}
 	return nullptr;
 }

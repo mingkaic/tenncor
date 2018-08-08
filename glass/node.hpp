@@ -23,6 +23,6 @@ std::list<iNode*> order_nodes (const Session& in);
 // same as order_nodes above except map nodes to index
 // when node and index need to be bimapped
 std::list<iNode*> order_nodes (const Session& in,
-    std::unordered_map<iNode*,uint32_t>& nodemap);
+	std::unordered_map<iNode*,uint32_t>& nodemap);
 
 #endif /* GLASS_NODE_HPP */

@@ -38,9 +38,9 @@ out.mutable_data()->PackFrom(arr);
 
 void save_node (tenncor::DataPb& out, iNode* data)
 {
-    Pool pool;
+	Pool pool;
 	std::shared_ptr<char> ptr = data->calculate(pool);
-    char* raw = ptr.get();
+	char* raw = ptr.get();
 	NElemT nelem = data->shape().n_elems();
 	switch (data->type())
 	{

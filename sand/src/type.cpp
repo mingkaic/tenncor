@@ -10,7 +10,6 @@ using TypenameMap = EnumMap<DTYPE,std::string>;
 
 const TypenameMap named_types =
 {
-	TYPE_ASSOC(BAD),
 	TYPE_ASSOC(DOUBLE),
 	TYPE_ASSOC(FLOAT),
 	TYPE_ASSOC(INT8),
@@ -21,7 +20,6 @@ const TypenameMap named_types =
 	TYPE_ASSOC(UINT16),
 	TYPE_ASSOC(UINT32),
 	TYPE_ASSOC(UINT64),
-	std::pair<DTYPE,std::string>{_SENTINEL, ""}
 };
 
 std::string name_type (DTYPE type)

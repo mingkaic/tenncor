@@ -85,17 +85,4 @@ Functor::Functor (std::vector<Nodeptr> args,
 	Node(metamorph(args, preop)),
 	args_(args), encoder_(preop.encode()), opcode_(opcode) {}
 
-ShapeTransform::ShapeTransform (Nodeptr& arg, Shape shape) :
-	shape_(shape), arg_(arg)
-{
-	NElemT nin = shape.n_elems();
-	NElemT nout = arg->shape().n_elems();
-	if (nin != nout)
-	{
-		handle_error("shape transform data of incompatible size",
-			ErrArg<NElemT>("indata_size", nin),
-			ErrArg<NElemT>("outdata_size", nout));
-	}
-}
-
 #endif

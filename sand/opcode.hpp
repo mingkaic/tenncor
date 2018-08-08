@@ -5,7 +5,8 @@
 
 enum OPCODE
 {
-	CAST = 0,
+	COPY = 0, // copy ops have no corresponding operator
+	TYPECAST,
 	ABS,
 	NEG,
 	NOT,
@@ -16,12 +17,11 @@ enum OPCODE
 	LOG,
 	SQRT,
 	ROUND,
-	ISMAX,
 	FLIP,
-	EXPAND,
 	TRANSPOSE,
 	N_ELEMS,
 	N_DIMS,
+
 	POW,
 	ADD,
 	SUB,
@@ -29,16 +29,16 @@ enum OPCODE
 	DIV,
 	EQ,
 	NE,
-	GT,
 	LT,
+	GT,
+	MATMUL,
 	BINO,
 	UNIF,
 	NORM,
+
 	ARGMAX,
 	RMAX,
 	RSUM,
-	MATMUL,
-	RESHAPE,
 };
 
 std::string opname (OPCODE opcode);
