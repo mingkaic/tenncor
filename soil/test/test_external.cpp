@@ -1,26 +1,43 @@
 #ifndef DISABLE_MODULE_TESTS
 
-#include "gtest/gtest.h"
+#include <sstream>
 
-#include "fuzzutil/fuzz.hpp"
-#include "fuzzutil/check.hpp"
+#include "gtest/gtest.h"
 
 #include "soil/external.hpp"
 #include "soil/variable.hpp"
 #include "soil/constant.hpp"
 #include "soil/functor.hpp"
 
-// #define DISABLE_EXTERNAL_TEST
+
 #ifndef DISABLE_EXTERNAL_TEST
 
 
-using namespace testutil;
+template <typename Iterator>
+std::string to_str (Iterator begin, Iterator end)
+{
+	std::stringstream ss;
+	ss << "[";
+	if (begin != end)
+	{
+		ss << *begin;
+		for (++begin; begin != end; ++begin)
+		{
+			ss << "," << *begin;
+		}
+	}
+	ss << "]";
+	return ss.str();
+}
 
 
-class EXTERNAL : public fuzz_test {};
+#define EXPECT_ARREQ(arr, arr2)\
+EXPECT_TRUE(std::equal(arr.begin(), arr.end(), arr2.begin())) <<\
+"expect list " + to_str(arr.begin(), arr.end()) +\
+", got " + to_str(arr2.begin(), arr2.end()) + " instead"
 
 
-TEST_F(EXTERNAL, Transpose)
+TEST(EXTERNAL, Transpose)
 {
 	// todo: tie to fuzz engine
 	std::vector<double> adata = {1, 2, 3, 4, 5, 6};
@@ -55,7 +72,7 @@ TEST_F(EXTERNAL, Transpose)
 }
 
 
-TEST_F(EXTERNAL, TransposeDim01To2)
+TEST(EXTERNAL, TransposeDim01To2)
 {
 	// todo: tie to fuzz engine
 	std::vector<double> adata = {
@@ -94,7 +111,7 @@ TEST_F(EXTERNAL, TransposeDim01To2)
 }
 
 
-TEST_F(EXTERNAL, TransposeDim0To12)
+TEST(EXTERNAL, TransposeDim0To12)
 {
 	// todo: tie to fuzz engine
 	std::vector<double> adata = {
@@ -133,7 +150,7 @@ TEST_F(EXTERNAL, TransposeDim0To12)
 }
 
 
-TEST_F(EXTERNAL, OneLevelElem)
+TEST(EXTERNAL, OneLevelElem)
 {
 	// todo: tie to fuzz engine
 	Shape outshape({3, 2});
@@ -170,7 +187,7 @@ TEST_F(EXTERNAL, OneLevelElem)
 	}
 }
 
-TEST_F(EXTERNAL, MultiLevelElem)
+TEST(EXTERNAL, MultiLevelElem)
 {
 	// todo: tie to fuzz engine
 	Shape outshape({3, 2});
@@ -207,7 +224,7 @@ TEST_F(EXTERNAL, MultiLevelElem)
 	}
 }
 
-TEST_F(EXTERNAL, MultiLevelElemGrad)
+TEST(EXTERNAL, MultiLevelElemGrad)
 {
 	// todo: tie to fuzz engine
 	Shape outshape({3, 2});
@@ -245,7 +262,7 @@ TEST_F(EXTERNAL, MultiLevelElemGrad)
 	}
 }
 
-TEST_F(EXTERNAL, OneLevelMatrix)
+TEST(EXTERNAL, OneLevelMatrix)
 {
 	// todo: tie to fuzz engine
 	Shape ashape({2, 3});
@@ -284,7 +301,7 @@ TEST_F(EXTERNAL, OneLevelMatrix)
 	}
 }
 
-TEST_F(EXTERNAL, MultiLevelMatrix)
+TEST(EXTERNAL, MultiLevelMatrix)
 {
 	// todo: tie to fuzz engine
 	Shape ashape({2, 3});
@@ -327,7 +344,7 @@ TEST_F(EXTERNAL, MultiLevelMatrix)
 	}
 }
 
-TEST_F(EXTERNAL, OneLevelMatrixGradLeft)
+TEST(EXTERNAL, OneLevelMatrixGradLeft)
 {
 	// todo: tie to fuzz engine
 	Shape ashape({2, 3});
@@ -373,7 +390,7 @@ TEST_F(EXTERNAL, OneLevelMatrixGradLeft)
 	}
 }
 
-TEST_F(EXTERNAL, OneLevelMatrixGradRight)
+TEST(EXTERNAL, OneLevelMatrixGradRight)
 {
 	// todo: tie to fuzz engine
 	Shape ashape({2, 3});
@@ -418,7 +435,7 @@ TEST_F(EXTERNAL, OneLevelMatrixGradRight)
 	}
 }
 
-TEST_F(EXTERNAL, TwoLevelMatrixGrad)
+TEST(EXTERNAL, TwoLevelMatrixGrad)
 {
 	// todo: tie to fuzz engine
 	Shape ashape({2, 3});
@@ -495,7 +512,7 @@ TEST_F(EXTERNAL, TwoLevelMatrixGrad)
 	}
 }
 
-TEST_F(EXTERNAL, MultiLevelMatrixGrad)
+TEST(EXTERNAL, MultiLevelMatrixGrad)
 {
 	// todo: tie to fuzz engine
 	Shape ashape({2, 3});

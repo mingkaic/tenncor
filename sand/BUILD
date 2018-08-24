@@ -1,7 +1,7 @@
 licenses(["notice"])
 
 package(
-    default_visibility = [ "//visibility:public" ],
+    default_visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -11,7 +11,7 @@ filegroup(
         "include/*.hpp",
         "src/*.cpp",
         "test/*.cpp",
-    ]) + [ "BUILD" ],
+    ]) + ["BUILD"],
 )
 
 ######### LIBRARY #########
@@ -22,9 +22,9 @@ cc_library(
         "*.hpp",
         "include/*.hpp",
     ]),
-    srcs = glob([ "src/*.cpp" ]),
-    copts = [ "-std=c++14" ],
-    deps = [ "//:util" ],
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++14"],
+    deps = ["//:util"],
 )
 
 ######### TEST #########
@@ -32,11 +32,11 @@ cc_library(
 cc_test(
     name = "test",
     size = "small",
-    srcs = glob([ "test/*.cpp" ]),
+    srcs = glob(["test/*.cpp"]),
     deps = [
         "//sand:sand",
-        "//:fuzzutil",
+        "@com_google_googletest//:gtest",
     ],
     linkstatic = 1,
-    copts = [ "-std=c++14" ],
+    copts = ["-std=c++14"],
 )

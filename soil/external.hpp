@@ -69,7 +69,7 @@ Nodeptr sqrt (Nodeptr a);
 Nodeptr round (Nodeptr a);
 
 //! flip a values in specified dimensions
-Nodeptr flip (Nodeptr a, uint dim);
+Nodeptr flip (Nodeptr a, uint8_t dim);
 
 //! transpose dimensions or groups of consecutive dimensions,
 //! default is first 2 dimensions

@@ -31,7 +31,7 @@ cc_test(
     srcs = glob([ "test/*.cpp" ]),
     deps = [
         "//soil:soil",
-        "//:fuzzutil",
+        "@com_google_googletest//:gtest",
     ],
     linkstatic = 1,
     copts = [ "-std=c++14" ],

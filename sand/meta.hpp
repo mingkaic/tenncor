@@ -19,7 +19,6 @@ enum SCODE
 	ELEM = 0,
 	TSHAPE,
 	MATSHAPE,
-	FLIPSHAPE,
 	TCAST,
 	GROUP,
 	NELEMSPRE,
@@ -30,7 +29,7 @@ enum SCODE
 
 struct MetaEncoder
 {
-	static const int NHash = 4;
+	static const uint8_t NHash = 4;
 
 	using MetaData = uint8_t[NHash];
 

@@ -17,6 +17,7 @@ enum OPCODE
 	LOG,
 	SQRT,
 	ROUND,
+
 	FLIP,
 	TRANSPOSE,
 	N_ELEMS,

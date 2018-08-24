@@ -86,10 +86,10 @@ Nodeptr round (Nodeptr a)
 	return Functor::get({a}, elem, opcode);
 }
 
-Nodeptr flip (Nodeptr a, uint dim)
+Nodeptr flip (Nodeptr a, uint8_t dim)
 {
 	OPCODE opcode = FLIP;
-	FlipPreOperator inst(dim);
+	ElemPreOperator inst({dim});
 	return Functor::get({a}, inst, opcode);
 }
 
