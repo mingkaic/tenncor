@@ -1,11 +1,6 @@
 #include "util/error.hpp"
 
-#ifdef ERROR_HPP
-
-iErrArg::operator std::string (void) const
-{
-	return to_string();
-}
+#ifdef UTIL_ERROR_HPP
 
 void handle_args (std::stringstream& ss, std::string entry)
 {

@@ -1,15 +1,27 @@
-#include "sand/opcode.hpp"
-#include "util/mapper.hpp"
+#include <unordered_map>
 
-#ifdef SAND_OPCODE_HPP
+#include "ade/opcode.hpp"
+
+#ifdef ADE_OPCODE_HPP
+
+namespace ade
+{
+
+struct EnumHash
+{
+	template <typename T>
+	size_t operator() (T e) const
+	{
+		return static_cast<size_t>(e);
+	}
+};
+
+using OpnameMap = std::unordered_map<OPCODE,std::string,EnumHash>;
 
 #define OP_ASSOC(CODE) std::pair<OPCODE,std::string>{CODE, #CODE}
 
-using OpnameMap = EnumMap<OPCODE,std::string>;
-
 const OpnameMap opnames =
 {
-	OP_ASSOC(TYPECAST),
 	OP_ASSOC(ABS),
 	OP_ASSOC(NEG),
 	OP_ASSOC(NOT),
@@ -21,9 +33,6 @@ const OpnameMap opnames =
 	OP_ASSOC(SQRT),
 	OP_ASSOC(ROUND),
 	OP_ASSOC(FLIP),
-	OP_ASSOC(TRANSPOSE),
-	OP_ASSOC(N_ELEMS),
-	OP_ASSOC(N_DIMS),
 
 	OP_ASSOC(POW),
 	OP_ASSOC(ADD),
@@ -34,16 +43,26 @@ const OpnameMap opnames =
 	OP_ASSOC(NE),
 	OP_ASSOC(GT),
 	OP_ASSOC(LT),
-	OP_ASSOC(MATMUL),
 
 	OP_ASSOC(BINO),
 	OP_ASSOC(UNIF),
 	OP_ASSOC(NORM),
 
+	OP_ASSOC(N_ELEMS),
+	OP_ASSOC(N_DIMS),
+
 	OP_ASSOC(ARGMAX),
 	OP_ASSOC(RMAX),
 	OP_ASSOC(RSUM),
+
+	OP_ASSOC(MATMUL),
+
+	OP_ASSOC(PERMUTE),
+	OP_ASSOC(EXTEND),
+	OP_ASSOC(RESHAPE),
 };
+
+#undef OP_ASSOC
 
 std::string opname (OPCODE opcode)
 {
@@ -53,6 +72,8 @@ std::string opname (OPCODE opcode)
 		return "BAD_OP";
 	}
 	return it->second;
+}
+
 }
 
 #endif

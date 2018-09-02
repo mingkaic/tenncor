@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sand/shape.hpp"
+#include "ade/shape.hpp"
 
 
 #ifndef DISABLE_SHAPE_TEST
@@ -18,7 +18,7 @@ std::string to_str (Iterator begin, Iterator end)
 		ss << *begin;
 		for (++begin; begin != end; ++begin)
 		{
-			ss << "," << *begin;
+			ss << "\\" << *begin;
 		}
 	}
 	ss << "]";
@@ -34,19 +34,19 @@ EXPECT_TRUE(std::equal(arr.begin(), arr.end(), arr2.begin())) <<\
 
 TEST(SHAPE, Init)
 {
-	Shape scalar;
+	ade::Shape scalar;
 
-	std::vector<DimT> slist = {2, 3};
-	Shape vec(slist);
+	std::vector<ade::DimT> slist = {2, 3};
+	ade::Shape vec(slist);
 
-	std::vector<DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
+	std::vector<ade::DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
 		10, 11, 12, 13, 14, 15, 16, 17};
-	Shape lvec(longlist);
+	ade::Shape lvec(longlist);
 
-	std::vector<DimT> zerolist = {1, 2, 0, 3};
-	EXPECT_THROW(Shape junk(zerolist), std::exception);
+	std::vector<ade::DimT> zerolist = {1, 2, 0, 3};
+	EXPECT_THROW(ade::Shape junk(zerolist), std::exception);
 
-	for (uint8_t i = 0; i < rank_cap; ++i)
+	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, scalar.at(i));
 	}
@@ -56,74 +56,29 @@ TEST(SHAPE, Init)
 	{
 		EXPECT_EQ(slist[i], vec.at(i));
 	}
-	for (uint8_t i = nslist; i < rank_cap; ++i)
+	for (uint8_t i = nslist; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, vec.at(i));
 	}
 
-	for (uint8_t i = 0; i < rank_cap; ++i)
+	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(longlist[i], lvec.at(i));
 	}
 
-	EXPECT_THROW(scalar.at(rank_cap), std::out_of_range);
-	EXPECT_THROW(vec.at(rank_cap), std::out_of_range);
+	EXPECT_THROW(scalar.at(ade::rank_cap), std::out_of_range);
+	EXPECT_THROW(vec.at(ade::rank_cap), std::out_of_range);
 }
 
 
-TEST(SHAPE, Copies)
+TEST(SHAPE, VecAssign)
 {
-	Shape cpassign;
-	Shape mvassign;
-	Shape vecassign;
+	std::vector<ade::DimT> zerolist = {1, 2, 0, 3};
+	std::vector<ade::DimT> junk = {1, 3, 3, 7};
+	std::vector<ade::DimT> slist = {2, 3};
 
-	std::vector<DimT> junk = {1, 3, 3, 7};
-	Shape cpassign2(junk);
-	Shape mvassign2(junk);
-	Shape vecassign2(junk);
-
-	std::vector<DimT> slist = {2, 3};
-	std::vector<DimT> zerolist = {1, 2, 0, 3};
-	Shape orig(slist);
-
-	Shape cp(orig);
-	EXPECT_EQ(slist.size(), cp.n_rank());
-	EXPECT_ARREQ(slist, cp.as_list());
-
-	Shape mv(std::move(orig));
-	EXPECT_EQ(slist.size(), mv.n_rank());
-	EXPECT_ARREQ(slist, mv.as_list());
-	EXPECT_EQ(0, orig.n_rank());
-	for (uint8_t i = 0; i < rank_cap; ++i)
-	{
-		EXPECT_EQ(1, orig.at(i));
-	}
-
-	cpassign = cp;
-	EXPECT_EQ(slist.size(), cpassign.n_rank());
-	EXPECT_ARREQ(slist, cpassign.as_list());
-
-	cpassign2 = cp;
-	EXPECT_EQ(slist.size(), cpassign2.n_rank());
-	EXPECT_ARREQ(slist, cpassign2.as_list());
-
-	mvassign = std::move(mv);
-	EXPECT_EQ(slist.size(), mvassign.n_rank());
-	EXPECT_ARREQ(slist, mvassign.as_list());
-	EXPECT_EQ(0, mv.n_rank());
-	for (uint8_t i = 0; i < rank_cap; ++i)
-	{
-		EXPECT_EQ(1, mv.at(i));
-	}
-
-	mvassign2 = std::move(mvassign);
-	EXPECT_EQ(slist.size(), mvassign2.n_rank());
-	EXPECT_ARREQ(slist, mvassign2.as_list());
-	EXPECT_EQ(0, mvassign.n_rank());
-	for (uint8_t i = 0; i < rank_cap; ++i)
-	{
-		EXPECT_EQ(1, mvassign.at(i));
-	}
+	ade::Shape vecassign;
+	ade::Shape vecassign2(junk);
 
 	vecassign = slist;
 	EXPECT_EQ(slist.size(), vecassign.n_rank());
@@ -137,23 +92,61 @@ TEST(SHAPE, Copies)
 }
 
 
+TEST(SHAPE, Moves)
+{
+	std::vector<ade::DimT> junk = {1, 3, 3, 7};
+	std::vector<ade::DimT> slist = {2, 3};
+
+	ade::Shape mvassign;
+	ade::Shape mvassign2(junk);
+	ade::Shape orig(slist);
+
+	ade::Shape mv(std::move(orig));
+	EXPECT_EQ(slist.size(), mv.n_rank());
+	EXPECT_ARREQ(slist, mv.as_list());
+	EXPECT_EQ(0, orig.n_rank());
+	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	{
+		EXPECT_EQ(1, orig.at(i));
+	}
+
+	mvassign = std::move(mv);
+	EXPECT_EQ(slist.size(), mvassign.n_rank());
+	EXPECT_ARREQ(slist, mvassign.as_list());
+	EXPECT_EQ(0, mv.n_rank());
+	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	{
+		EXPECT_EQ(1, mv.at(i));
+	}
+
+	mvassign2 = std::move(mvassign);
+	EXPECT_EQ(slist.size(), mvassign2.n_rank());
+	EXPECT_ARREQ(slist, mvassign2.as_list());
+	EXPECT_EQ(0, mvassign.n_rank());
+	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	{
+		EXPECT_EQ(1, mvassign.at(i));
+	}
+}
+
+
 TEST(SHAPE, NElems)
 {
-	std::vector<DimT> slist = {2, 3};
-	Shape shape(slist);
+	std::vector<ade::DimT> slist = {2, 3};
+	ade::Shape shape(slist);
 
-	std::vector<DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
+	std::vector<ade::DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
 		10, 11, 12, 13, 14, 15, 16, 17};
-	Shape lshape(longlist);
+	ade::Shape lshape(longlist);
 
 	size_t expect_nelems = 1;
-	for (DimT c : slist)
+	for (ade::DimT c : slist)
 	{
 		expect_nelems *= c;
 	}
 
 	size_t expect_long = 1;
-	for (uint8_t i = 0; i < rank_cap; ++i)
+	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
 		expect_long *= longlist[i];
 	}
@@ -165,14 +158,14 @@ TEST(SHAPE, NElems)
 
 TEST(SHAPE, NRank)
 {
-	std::vector<DimT> slist = {2, 3};
-	Shape shape(slist);
+	std::vector<ade::DimT> slist = {2, 3};
+	ade::Shape shape(slist);
 
-	std::vector<DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
+	std::vector<ade::DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
 		10, 11, 12, 13, 14, 15, 16, 17};
-	Shape lshape(longlist);
+	ade::Shape lshape(longlist);
 
-	uint8_t cap = rank_cap;
+	uint8_t cap = ade::rank_cap;
 	EXPECT_EQ(slist.size(), shape.n_rank());
 	EXPECT_EQ(cap, lshape.n_rank());
 }
@@ -181,11 +174,11 @@ TEST(SHAPE, NRank)
 TEST(SHAPE, Compatible)
 {
 	// assert slist.size() < 16
-	std::vector<DimT> slist = {2, 3};
-	Shape shape(slist);
+	std::vector<ade::DimT> slist = {2, 3};
+	ade::Shape shape(slist);
 
 	// shape is compatible with itself regardless of after idx
-	for (uint8_t idx = 0; idx < rank_cap; ++idx)
+	for (uint8_t idx = 0; idx < ade::rank_cap; ++idx)
 	{
 		EXPECT_TRUE(shape.compatible_after(shape, idx)) <<
 			"expect " << shape.to_string() <<
@@ -193,9 +186,9 @@ TEST(SHAPE, Compatible)
 	}
 
 	uint8_t insertion_pt = 1;
-	std::vector<DimT> ilist = slist;
+	std::vector<ade::DimT> ilist = slist;
 	ilist.insert(ilist.begin() + insertion_pt, 1);
-	Shape ishape(ilist);
+	ade::Shape ishape(ilist);
 	for (uint8_t idx = 0, rank = ishape.n_rank(); idx < rank; ++idx)
 	{
 		EXPECT_FALSE(shape.compatible_after(ishape, idx)) <<
@@ -205,7 +198,7 @@ TEST(SHAPE, Compatible)
 	}
 
 	ilist[insertion_pt] = 2;
-	Shape ishape2(ilist);
+	ade::Shape ishape2(ilist);
 	for (uint8_t idx = 0; idx <= insertion_pt; ++idx)
 	{
 		EXPECT_FALSE(ishape.compatible_after(ishape2, idx)) <<
@@ -213,7 +206,7 @@ TEST(SHAPE, Compatible)
 			" to be incompatible with " << ishape2.to_string() <<
 			" after idx " << unsigned(idx);
 	}
-	for (uint8_t idx = insertion_pt + 1; idx < rank_cap; ++idx)
+	for (uint8_t idx = insertion_pt + 1; idx < ade::rank_cap; ++idx)
 	{
 		EXPECT_TRUE(ishape.compatible_after(ishape2, idx)) <<
 			"shape " << ishape.to_string() <<
@@ -225,14 +218,10 @@ TEST(SHAPE, Compatible)
 
 TEST(SHAPE, ToString)
 {
-	std::vector<DimT> slist = {2, 3};
-	Shape shape(slist);
+	std::vector<ade::DimT> slist = {2, 3};
+	ade::Shape shape(slist);
 	std::string out = shape.to_string();
-	std::string expect_out = std::to_string(slist[0]);
-	for (size_t i = 1, n = slist.size(); i < n; ++i)
-	{
-		expect_out += " " + std::to_string(slist[i]);
-	}
+	std::string expect_out = "[2\\3]";
 	EXPECT_STREQ(expect_out.c_str(), out.c_str());
 }
 

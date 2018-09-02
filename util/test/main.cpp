@@ -1,6 +1,3 @@
-#include <ctime>
-#include <random>
-
 #include "gtest/gtest.h"
 
 int main (int argc, char** argv)

@@ -11,7 +11,7 @@ lcov --base-directory . --directory . --zerocounters;
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 
-make travis_test
+make
 
 # ===== Check Docs Directory =====
 echo "===== CHECK DOCUMENT EXISTENCE =====";

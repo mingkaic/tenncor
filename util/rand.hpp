@@ -1,13 +1,13 @@
 #include <string>
 #include <random>
 
-#ifndef RAND_HPP
-#define RAND_HPP
+#ifndef UTIL_RAND_HPP
+#define UTIL_RAND_HPP
 
 using ENGINE = std::default_random_engine;
 
 ENGINE& get_engine (void);
 
-std::string make_uid (void* ptr);
+std::string make_uid (void* ptr, ENGINE& engine = get_engine());
 
-#endif /* RAND_HPP */
+#endif /* UTIL_RAND_HPP */
