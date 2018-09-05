@@ -13,6 +13,6 @@ filegroup(
 
 py_binary(
     name = "tfgen",
-    srcs = glob(["*.py"]),
+    srcs = glob(["tfgen.py"]),
     deps = ["@com_github_mingkaic_testify//retrop:retrop"],
 )

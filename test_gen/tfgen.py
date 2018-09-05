@@ -32,7 +32,8 @@ def unary(name, func, pos=False):
     with tf.Session() as sess:
         sess.run(var.initializer)
         outdata = sess.run(out)
-        io.set_arr(list(np.reshape(outdata, [n])), float)
+        io.set_arr("unary_out", list(np.reshape(outdata, [n])), float)
+        io.send()
 
 def binary(name, func, apos=False, bpos=False):
     io = gen.GenIO(name)
@@ -54,7 +55,8 @@ def binary(name, func, apos=False, bpos=False):
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         outdata = sess.run(out)
-        io.set_arr(list(np.reshape(outdata, [n])), float)
+        io.set_arr("binary_out", list(np.reshape(outdata, [n])), float)
+        io.send()
 
 def matmul():
     io = gen.GenIO("tf_matmul")
@@ -76,7 +78,8 @@ def matmul():
         sess.run(tf.global_variables_initializer())
         outdata = sess.run(out)
         nout = outdata.shape[0] * outdata.shape[1]
-        io.set_arr(list(np.reshape(outdata, [nout])), float)
+        io.set_arr("matmul_out", list(np.reshape(outdata, [nout])), float)
+        io.send()
 
 if __name__ == "__main__":
     client.init("0.0.0.0:8581")

@@ -11,7 +11,7 @@ TEST(ERROR, NoArg)
 	std::string expect = "generic message";
 	try
 	{
-		handle_error(expect);
+		util::handle_error(expect);
 		FAIL() << "handler failed to throw";
 	}
 	catch (std::runtime_error& e)
@@ -31,8 +31,8 @@ TEST(ERROR, StringArg)
 		"\\\\abcd\\\\efgh\\\\ijkl\\\\]";
 	try
 	{
-		handle_error("generic message",
-			ErrArg<std::string>("key", "\\abcd\\efgh\\ijkl\\"));
+		util::handle_error("generic message",
+			util::ErrArg<std::string>("key", "\\abcd\\efgh\\ijkl\\"));
 		FAIL() << "handler failed to throw";
 	}
 	catch (std::runtime_error& e)
@@ -51,8 +51,8 @@ TEST(ERROR, VectorArg)
 	std::string expect = "generic message[key\\[-1\\21\\-13]]";
 	try
 	{
-		handle_error("generic message",
-			ErrArg<std::vector<int>>("key", {-1, 21, -13}));
+		util::handle_error("generic message",
+			util::ErrArg<std::vector<int>>("key", {-1, 21, -13}));
 		FAIL() << "handler failed to throw";
 	}
 	catch (std::runtime_error& e)
@@ -71,8 +71,8 @@ TEST(ERROR, GenericArg)
 	std::string expect = "generic message[key\\2.42333]";
 	try
 	{
-		handle_error("generic message",
-			ErrArg<float>("key", 2.42333));
+		util::handle_error("generic message",
+			util::ErrArg<float>("key", 2.42333));
 		FAIL() << "handler failed to throw";
 	}
 	catch (std::runtime_error& e)
@@ -94,12 +94,12 @@ TEST(ERROR, MultiArg)
 		"[dblvec\\[16.001\\-13.2\\45.2]]";
 	try
 	{
-		handle_error("generic message",
-			ErrArg<std::string>("str", "hey what's the answer to number"),
-			ErrArg<int>("int", 15),
-			ErrArg<std::vector<std::string>>("strvec", {
+		util::handle_error("generic message",
+			util::ErrArg<std::string>("str", "hey what's the answer to number"),
+			util::ErrArg<int>("int", 15),
+			util::ErrArg<std::vector<std::string>>("strvec", {
 				"\\", "fine I'll tell you", "it's"}),
-			ErrArg<std::vector<double>>("dblvec", {16.001, -13.2, 45.2}));
+			util::ErrArg<std::vector<double>>("dblvec", {16.001, -13.2, 45.2}));
 		FAIL() << "handler failed to throw";
 	}
 	catch (std::runtime_error& e)

@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "ade/test/common.hpp"
+
 #include "ade/tensor.hpp"
 #include "ade/functor.hpp"
 
@@ -9,7 +11,9 @@
 
 TEST(TENSOR, Gradient)
 {
-	std::string expectlabel = opname(ade::RESHAPE) + "<[2\\3]>";
+	// SESSION sess = getSession("TENSOR::Gradient");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf2 = ade::Tensor::get(ade::Shape(slist));
@@ -26,8 +30,15 @@ TEST(TENSOR, Gradient)
 	ASSERT_NE(nullptr, wunrp);
 	ASSERT_NE(nullptr, zrorp);
 
+	// std::string expect_label = sess->expect_string("expect_label");
+	std::string expectlabel = opname(ade::RESHAPE) + "<[2\\3]>";
 	EXPECT_STREQ(expectlabel.c_str(), wunrp->to_string().c_str());
 	EXPECT_STREQ(expectlabel.c_str(), zrorp->to_string().c_str());
+	// sess->store_string("expect_label", zrorp->to_string());
+
+	EXPECT_ARREQ(slist, wunrp->shape_.slist());
+	EXPECT_ARREQ(slist, zrorp->shape_.slist());
+
 	std::vector<ade::iTensor*> wun_vec = wunrp->get_refs();
 	std::vector<ade::iTensor*> zro_vec = zrorp->get_refs();
 	ASSERT_EQ(1, wun_vec.size());
@@ -39,13 +50,18 @@ TEST(TENSOR, Gradient)
 
 TEST(TENSOR, ToString)
 {
+	// SESSION sess = getSession("TENSOR::ToString");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 
 	ASSERT_NE(nullptr, leaf.get());
 
+	// std::string expect_out = sess->expect_string("expect_out");
 	std::string expect_out = "[2\\3]";
 	EXPECT_STREQ(expect_out.c_str(), leaf->to_string().c_str());
+	// sess->store_string("expect_out", out);
 }
 
 

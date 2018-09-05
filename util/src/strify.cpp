@@ -2,6 +2,9 @@
 
 #ifdef UTIL_STRIFY_HPP
 
+namespace util
+{
+
 void to_stream (std::ostream&) {}
 
 void to_stream (std::ostream& s, const char* str)
@@ -35,6 +38,8 @@ void to_stream (std::ostream& s, int8_t c)
 void to_stream (std::ostream& s, uint8_t c)
 {
 	s << (unsigned) c;
+}
+
 }
 
 #endif

@@ -1,6 +1,6 @@
-#include <sstream>
-
 #include "gtest/gtest.h"
+
+#include "ade/test/common.hpp"
 
 #include "ade/shape.hpp"
 
@@ -8,41 +8,23 @@
 #ifndef DISABLE_SHAPE_TEST
 
 
-template <typename Iterator>
-std::string to_str (Iterator begin, Iterator end)
-{
-	std::stringstream ss;
-	ss << "[";
-	if (begin != end)
-	{
-		ss << *begin;
-		for (++begin; begin != end; ++begin)
-		{
-			ss << "\\" << *begin;
-		}
-	}
-	ss << "]";
-	return ss.str();
-}
-
-
-#define EXPECT_ARREQ(arr, arr2)\
-EXPECT_TRUE(std::equal(arr.begin(), arr.end(), arr2.begin())) <<\
-"expect list " + to_str(arr.begin(), arr.end()) +\
-", got " + to_str(arr2.begin(), arr2.end()) + " instead"
-
-
 TEST(SHAPE, Init)
 {
+	// SESSION sess = getSession("SHAPE::Init");
+
 	ade::Shape scalar;
 
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Shape vec(slist);
+	uint8_t n = slist.size();
 
+	// std::vector<ade::DimT> longlist = get_longshape(sess, "n_longlist");
 	std::vector<ade::DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
 		10, 11, 12, 13, 14, 15, 16, 17};
 	ade::Shape lvec(longlist);
 
+	// std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
 	std::vector<ade::DimT> zerolist = {1, 2, 0, 3};
 	EXPECT_THROW(ade::Shape junk(zerolist), std::exception);
 
@@ -51,12 +33,11 @@ TEST(SHAPE, Init)
 		EXPECT_EQ(1, scalar.at(i));
 	}
 
-	uint8_t nslist = slist.size();
-	for (uint8_t i = 0; i < nslist; ++i)
+	for (uint8_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(slist[i], vec.at(i));
 	}
-	for (uint8_t i = nslist; i < ade::rank_cap; ++i)
+	for (uint8_t i = n; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, vec.at(i));
 	}
@@ -73,6 +54,11 @@ TEST(SHAPE, Init)
 
 TEST(SHAPE, VecAssign)
 {
+	// SESSION sess = getSession("SHAPE::VecAssign");
+
+	// std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	// std::vector<ade::DimT> junk = get_shape(sess, "junk");
 	std::vector<ade::DimT> zerolist = {1, 2, 0, 3};
 	std::vector<ade::DimT> junk = {1, 3, 3, 7};
 	std::vector<ade::DimT> slist = {2, 3};
@@ -94,6 +80,10 @@ TEST(SHAPE, VecAssign)
 
 TEST(SHAPE, Moves)
 {
+	// SESSION sess = getSession("SHAPE::Moves");
+
+	// std::vector<ade::DimT> junk = get_shape(sess, "junk");
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> junk = {1, 3, 3, 7};
 	std::vector<ade::DimT> slist = {2, 3};
 
@@ -132,9 +122,13 @@ TEST(SHAPE, Moves)
 
 TEST(SHAPE, NElems)
 {
+	// SESSION sess = getSession("SHAPE::NElems");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Shape shape(slist);
 
+	// std::vector<ade::DimT> longlist = get_longshape(sess, "n_longlist");
 	std::vector<ade::DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
 		10, 11, 12, 13, 14, 15, 16, 17};
 	ade::Shape lshape(longlist);
@@ -145,35 +139,45 @@ TEST(SHAPE, NElems)
 		expect_nelems *= c;
 	}
 
-	size_t expect_long = 1;
+	size_t expect_long_nelems = 1;
 	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
-		expect_long *= longlist[i];
+		expect_long_nelems *= longlist[i];
 	}
 
+	// long expect_nelems = sess->expect_long("expect_nelems");
+	// long expect_long_nelems =
+	// 	sess->expect_long("expect_long_nelems");
 	EXPECT_EQ(expect_nelems, shape.n_elems());
-	EXPECT_EQ(expect_long, lshape.n_elems());
+	EXPECT_EQ(expect_long_nelems, lshape.n_elems());
+	// sess->store_long("expect_nelems", expect_nelems);
+	// sess->store_long("expect_long_nelems", expect_long_nelems);
 }
 
 
 TEST(SHAPE, NRank)
 {
+	// SESSION sess = getSession("SHAPE::NRank");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Shape shape(slist);
 
+	// std::vector<ade::DimT> longlist = get_longshape(sess, "n_longlist");
 	std::vector<ade::DimT> longlist = {1, 2, 3, 4, 5, 6, 7, 8, 9,
 		10, 11, 12, 13, 14, 15, 16, 17};
 	ade::Shape lshape(longlist);
 
-	uint8_t cap = ade::rank_cap;
 	EXPECT_EQ(slist.size(), shape.n_rank());
-	EXPECT_EQ(cap, lshape.n_rank());
+	EXPECT_EQ(ade::rank_cap, lshape.n_rank());
 }
 
 
 TEST(SHAPE, Compatible)
 {
-	// assert slist.size() < 16
+	// SESSION sess = getSession("SHAPE::Compatible");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Shape shape(slist);
 
@@ -185,6 +189,7 @@ TEST(SHAPE, Compatible)
 			" to be compatible with itself after idx " << unsigned(idx);
 	}
 
+	// long insertion_pt = sess->get_scalar("insertion_pt" + label, {0, slist.size()+1});
 	uint8_t insertion_pt = 1;
 	std::vector<ade::DimT> ilist = slist;
 	ilist.insert(ilist.begin() + insertion_pt, 1);
@@ -218,11 +223,17 @@ TEST(SHAPE, Compatible)
 
 TEST(SHAPE, ToString)
 {
+	// SESSION sess = getSession("SHAPE::ToString");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Shape shape(slist);
 	std::string out = shape.to_string();
+
+	// std::string expect_out = sess->expect_string("expect_out");
 	std::string expect_out = "[2\\3]";
 	EXPECT_STREQ(expect_out.c_str(), out.c_str());
+	// sess->store_string("expect_out", out);
 }
 
 

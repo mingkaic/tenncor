@@ -36,7 +36,7 @@ struct Tensorptr
 	{
 		if (nullptr == tens)
 		{
-			handle_error("init nodeptr with nullptr");
+			util::handle_error("init nodeptr with nullptr");
 		}
 	}
 

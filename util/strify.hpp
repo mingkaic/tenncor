@@ -15,8 +15,6 @@ const char END = ']';
 
 const char DELIM = '\\';
 
-}
-
 void to_stream (std::ostream& s);
 
 void to_stream (std::ostream& s, const char* str);
@@ -36,24 +34,24 @@ void to_stream (std::ostream& s, T val)
 template <typename T>
 void to_stream (std::ostream& s, std::vector<T> vec)
 {
-	s << util::BEGIN;
+	s << BEGIN;
 	if (vec.size() > 0)
 	{
 		to_stream(s, vec[0]);
 		for (size_t i = 1, n = vec.size(); i < n; ++i)
 		{
-			s << util::DELIM;
+			s << DELIM;
 			to_stream(s, vec[i]);
 		}
 	}
-	s << util::END;
+	s << END;
 }
 
 template <typename T, typename... Args>
 void to_stream (std::ostream& s, T val, Args... args)
 {
 	to_stream(s, val);
-	s << util::DELIM;
+	s << DELIM;
 	to_stream(s, args...);
 }
 
@@ -69,6 +67,8 @@ template <typename... Args>
 std::string tuple_to_string (const std::tuple<Args...>& tp)
 {
 	return tuple_to_string(tp, std::index_sequence_for<Args...>());
+}
+
 }
 
 #endif /* UTIL_STRIFY_HPP */

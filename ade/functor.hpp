@@ -33,7 +33,7 @@ struct Functor final : public iTensor
 
 	std::string to_string (void) const override
 	{
-		return opname(opcode) + "<" + tuple_to_string(meta_) + ">";
+		return opname(opcode) + "<" + util::tuple_to_string(meta_) + ">";
 	}
 
 	std::vector<iTensor*> get_refs (void) const

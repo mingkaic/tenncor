@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "ade/test/common.hpp"
+
 #include "ade/functor.hpp"
 
 
@@ -8,11 +10,17 @@
 
 TEST(FUNCTOR, Gradient)
 {
-	std::string expectlabel = opname(ade::RESHAPE) + "<[2\\3]>";
+	// SESSION sess = getSession("FUNCTOR::Gradient");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
+	ade::Tensorptr badleaf = ade::Tensor::get(ade::Shape(slist));
+
+	// ade::OPCODE unary = sess->get_scalar("unary_op", {ade::ABS, ade::FLIP});
+	// ade::OPCODE binary = sess->get_scalar("binary_op", {ade::POW, ade::NORM});
+
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr leaf2 = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr f = ade::Functor<ade::ADD>::get({leaf, leaf1});
 
 	ASSERT_NE(nullptr, f.get());
@@ -20,7 +28,7 @@ TEST(FUNCTOR, Gradient)
 	ade::Tensorptr gotwun = f->gradient(f);
 	ade::Tensorptr got1p0 = f->gradient(leaf);
 	ade::Tensorptr got0p1 = f->gradient(leaf1);
-	ade::Tensorptr got0p0 = f->gradient(leaf2);
+	ade::Tensorptr got0p0 = f->gradient(badleaf);
 
 	{
 		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
@@ -47,6 +55,7 @@ TEST(FUNCTOR, Gradient)
 	ASSERT_EQ(2, args01.size());
 	ASSERT_EQ(2, args00.size());
 
+	std::string expectlabel = opname(ade::RESHAPE) + "<[2\\3]>";
 	{
 		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
 			std::vector<ade::DimT>>*>(args10[0]);
@@ -105,6 +114,9 @@ TEST(FUNCTOR, Gradient)
 
 TEST(FUNCTOR, Refs)
 {
+	// SESSION sess = getSession("FUNCTOR::Refs");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
@@ -123,6 +135,9 @@ TEST(FUNCTOR, Refs)
 
 TEST(FUNCTOR, ToString)
 {
+	// SESSION sess = getSession("FUNCTOR::ToString");
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));

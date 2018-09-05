@@ -113,7 +113,7 @@ struct Shape
 	std::string to_string (void) const
 	{
 		std::stringstream ss;
-		to_stream(ss, as_list());
+		util::to_stream(ss, as_list());
 		return ss.str();
 	}
 
@@ -139,8 +139,8 @@ private:
 				return d == 0;
 			}))
 		{
-			handle_error("shape assignment with zero vector",
-				ErrArg<std::vector<DimT>>{"vec", dims});
+			util::handle_error("shape assignment with zero vector",
+				util::ErrArg<std::vector<DimT>>{"vec", dims});
 		}
 		auto dest = dims_.begin();
 

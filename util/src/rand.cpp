@@ -6,6 +6,9 @@
 
 #ifdef UTIL_RAND_HPP
 
+namespace util
+{
+
 ENGINE& get_engine (void)
 {
 	static ENGINE engine;
@@ -27,6 +30,8 @@ std::string make_uid (void* ptr, ENGINE& engine)
 		ss << std::hex << token;
 	}
 	return ss.str();
+}
+
 }
 
 #endif

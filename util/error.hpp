@@ -3,6 +3,9 @@
 #ifndef UTIL_ERROR_HPP
 #define UTIL_ERROR_HPP
 
+namespace util
+{
+
 struct iErrArg
 {
 	operator std::string (void) const
@@ -51,6 +54,8 @@ void handle_error (std::string msg, Args... args)
 	ss << msg;
 	handle_args(ss, args...);
 	throw std::runtime_error(ss.str());
+}
+
 }
 
 #endif /* UTIL_ERROR_HPP */
