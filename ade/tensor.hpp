@@ -14,7 +14,7 @@ struct Tensorptr;
 
 struct iTensor
 {
-	iTensor (Shape shape) :
+	iTensor (Shape& shape) :
 		shape_(shape) {}
 
 	virtual ~iTensor (void) {}

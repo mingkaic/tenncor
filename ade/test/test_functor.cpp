@@ -30,6 +30,7 @@ TEST(FUNCTOR, Gradient)
 	ade::Tensorptr got0p1 = f->gradient(leaf1);
 	ade::Tensorptr got0p0 = f->gradient(badleaf);
 
+	std::string expectlabel = opname(ade::RESHAPE) + "<[2\\3]>";
 	{
 		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
 			std::vector<ade::DimT>>*>(gotwun.get());
@@ -55,7 +56,6 @@ TEST(FUNCTOR, Gradient)
 	ASSERT_EQ(2, args01.size());
 	ASSERT_EQ(2, args00.size());
 
-	std::string expectlabel = opname(ade::RESHAPE) + "<[2\\3]>";
 	{
 		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
 			std::vector<ade::DimT>>*>(args10[0]);

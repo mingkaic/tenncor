@@ -12,14 +12,39 @@
 namespace ade
 {
 
+// useful for equation graph traversal
+struct iFunctor : public iTensor
+{
+	virtual ~iFunctor (void) = default;
+
+	virtual OPCODE get_code (void) const = 0;
+
+	std::vector<iTensor*> get_refs (void) const
+	{
+		std::vector<iTensor*> out(args_.size());
+		std::transform(args_.begin(), args_.end(), out.begin(),
+		[](const Tensorptr& arg)
+		{
+			return arg.get();
+		});
+		return out;
+	}
+
+protected:
+	iFunctor (Shape& shape, std::vector<Tensorptr>& args) :
+		iTensor(shape), args_(args) {}
+
+	std::vector<Tensorptr> args_;
+};
+
 template <OPCODE opcode, typename... Args>
-struct Functor final : public iTensor
+struct Functor final : public iFunctor
 {
 	static Tensorptr get (std::vector<Tensorptr> args, Args... meta)
 	{
 		std::tuple<Args...> tp(meta...);
-		return new Functor(
-			forwarder<opcode,Args...>(args, std::forward<Args>(meta)...), args, tp);
+		return new Functor(forwarder<opcode,Args...>(args,
+			std::forward<Args>(meta)...), args, tp);
 	}
 
 	Tensorptr gradient (Tensorptr& wrt) const override
@@ -36,28 +61,21 @@ struct Functor final : public iTensor
 		return opname(opcode) + "<" + util::tuple_to_string(meta_) + ">";
 	}
 
-	std::vector<iTensor*> get_refs (void) const
+	OPCODE get_code (void) const override
 	{
-		std::vector<iTensor*> out(args_.size());
-		std::transform(args_.begin(), args_.end(), out.begin(),
-		[](const Tensorptr& arg)
-		{
-			return arg.get();
-		});
-		return out;
+		return opcode;
 	}
 
 private:
 	Functor (Shape shape, std::vector<Tensorptr> args,
-		std::tuple<Args...>& meta) : iTensor(shape), args_(args), meta_(meta) {}
+		std::tuple<Args...>& meta) :
+		iFunctor(shape, args), meta_(meta) {}
 
 	template <size_t... I>
 	Tensorptr grad_helper (Tensorptr& wrt, std::index_sequence<I...>) const
 	{
 		return grader<opcode,Args...>(args_, wrt, std::get<I>(meta_)...);
 	}
-
-	std::vector<Tensorptr> args_;
 
 	std::tuple<Args...> meta_;
 };

@@ -36,8 +36,8 @@ TEST(TENSOR, Gradient)
 	EXPECT_STREQ(expectlabel.c_str(), zrorp->to_string().c_str());
 	// sess->store_string("expect_label", zrorp->to_string());
 
-	EXPECT_ARREQ(slist, wunrp->shape_.slist());
-	EXPECT_ARREQ(slist, zrorp->shape_.slist());
+	EXPECT_ARREQ(slist, wunrp->shape_.as_list());
+	EXPECT_ARREQ(slist, zrorp->shape_.as_list());
 
 	std::vector<ade::iTensor*> wun_vec = wunrp->get_refs();
 	std::vector<ade::iTensor*> zro_vec = zrorp->get_refs();

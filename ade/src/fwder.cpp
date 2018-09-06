@@ -132,7 +132,7 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 	}
 
 	std::vector<DimT> outlist(bit, bit + bgroup_idx);
-	outlist.insert(outlist.end(), ait + agroup_idx, ashape.end());
+	outlist.insert(outlist.end(), ait + agroup_idx, ait + arank);
 	return Shape(outlist);
 }
 
