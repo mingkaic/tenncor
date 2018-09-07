@@ -68,5 +68,16 @@ cover_util:
 cover_ade:
 	$(COVER) $(REP_BZL_FLAG) //ade:test --instrumentation_filter=/ade[/:],/util[/:]
 
+# cli tool
+cli_check:
+	./bazel-bin/ade_cli/cli ade_cli/test/input/noassign.txt
+
+build_cli: yacc_update
+	bazel build //ade_cli:cli
+
+yacc_update:
+	cd ade_cli && yacc -d calc.yacc && cd ..
+	cd ade_cli && lex calc.lex && cd ..
+
 clean:
 	bazel clean

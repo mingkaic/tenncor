@@ -2,6 +2,18 @@
 [![Build Status](https://travis-ci.org/mingkaic/tenncor.svg?branch=master)](https://travis-ci.org/mingkaic/tenncor)
 [![Coverage Status](https://coveralls.io/repos/github/mingkaic/tenncor/badge.svg)](https://coveralls.io/github/mingkaic/tenncor)
 
+## Components
+
+- ADE (Automatic Differentiation Engine)
+
+This module supplies syntax tree for equation and generates derivative.
+Constraints to the equation is limited to each tensor's shape.
+
+- LLO (Low Level Operators)
+
+This module is a sample library of data operators mapped to the ADE opcodes.
+Expect this module to split when I decide to depend on external libraries (like eigen).
+
 ## Synopsis
 
 The Tenncor library facilitates developers in coding mathematical tensor functions in C++.

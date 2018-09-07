@@ -80,6 +80,53 @@ private:
 	std::tuple<Args...> meta_;
 };
 
+#define MAPCASE(CODE)case CODE: return Functor<CODE,Args...>::get(args, meta...);
+
+template <typename... Args>
+Tensorptr runtime_functor (OPCODE opcode,
+	std::vector<Tensorptr> args, Args... meta)
+{
+	switch (opcode)
+	{
+		MAPCASE(ABS)
+		MAPCASE(NEG)
+		MAPCASE(NOT)
+		MAPCASE(SIN)
+		MAPCASE(COS)
+		MAPCASE(TAN)
+		MAPCASE(EXP)
+		MAPCASE(LOG)
+		MAPCASE(SQRT)
+		MAPCASE(ROUND)
+		MAPCASE(FLIP)
+		MAPCASE(POW)
+		MAPCASE(ADD)
+		MAPCASE(SUB)
+		MAPCASE(MUL)
+		MAPCASE(DIV)
+		MAPCASE(EQ)
+		MAPCASE(NE)
+		MAPCASE(LT)
+		MAPCASE(GT)
+		MAPCASE(BINO)
+		MAPCASE(UNIF)
+		MAPCASE(NORM)
+		MAPCASE(N_ELEMS)
+		MAPCASE(N_DIMS)
+		MAPCASE(ARGMAX)
+		MAPCASE(RMAX)
+		MAPCASE(RSUM)
+		MAPCASE(MATMUL)
+		MAPCASE(PERMUTE)
+		MAPCASE(EXTEND)
+		MAPCASE(RESHAPE)
+		default:
+			throw std::bad_function_call();
+	}
+}
+
+#undef MAPCASE
+
 }
 
 #endif /* ADE_FUNCTOR_HPP */

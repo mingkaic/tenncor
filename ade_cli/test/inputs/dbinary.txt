@@ -1,0 +1,26 @@
+a = [13, 45]
+b = [13, 45]
+c = pow(a, b)
+print(c)
+print(grad(c, a))
+print(grad(c, b))
+
+c = a + b
+print(c)
+print(grad(c, a))
+print(grad(c, b))
+
+c = a - b
+print(c)
+print(grad(c, a))
+print(grad(c, b))
+
+c = a * b
+print(c)
+print(grad(c, a))
+print(grad(c, b))
+
+c = a / b
+print(c)
+print(grad(c, a))
+print(grad(c, b))

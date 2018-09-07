@@ -1,0 +1,6 @@
+a = [14]
+b = [13, 14]
+c = matmul(a, b)
+c
+grad(c, a)
+grad(c, b)

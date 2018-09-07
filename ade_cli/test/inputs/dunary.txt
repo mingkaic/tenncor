@@ -1,0 +1,32 @@
+a = [13, 45]
+b = sin(a)
+print(b)
+print(grad(b, a))
+
+b = cos(a)
+print(b)
+print(grad(b, a))
+
+b = tan(a)
+print(b)
+print(grad(b, a))
+
+b = exp(a)
+print(b)
+print(grad(b, a))
+
+b = log(a)
+print(b)
+print(grad(b, a))
+
+b = sqrt(a)
+print(b)
+print(grad(b, a))
+
+b = round(a)
+print(b)
+print(grad(b, a))
+
+b = flip(a)
+print(b)
+print(grad(b, a))
