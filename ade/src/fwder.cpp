@@ -28,11 +28,11 @@ static Shape bijection (std::vector<Tensorptr> args, std::string op)
 			util::ErrArg<size_t>{"num_args", args.size()});
 	}
 
-	Shape& outshape = args[0]->shape_;
+	Shape outshape = args[0]->shape();
 	uint8_t outrank = outshape.n_rank();
 	for (auto it = args.begin() + 1, et = args.end(); it != et; ++it)
 	{
-		Shape& shape = (*it)->shape_;
+		const Shape& shape = (*it)->shape();
 		uint8_t rank = shape.n_rank();
 		if (false == shape.compatible_before(outshape,
 			std::min(outrank, rank)))
@@ -105,8 +105,8 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 	{
 		util::handle_error("bgroup_idx == 0");
 	}
-	Shape& ashape = tens[0]->shape_;
-	Shape& bshape = tens[1]->shape_;
+	const Shape& ashape = tens[0]->shape();
+	const Shape& bshape = tens[1]->shape();
 	uint8_t arank = ashape.n_rank();
 	uint8_t brank = bshape.n_rank();
 	if (agroup_idx > arank)
@@ -121,8 +121,8 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 			util::ErrArg<size_t>("bgroup_idx", bgroup_idx),
 			util::ErrArg<size_t>("rank", brank));
 	}
-	auto ait = ashape.begin();
-	auto bit = bshape.begin();
+	const auto ait = ashape.begin();
+	const auto bit = bshape.begin();
 	if (false == std::equal(ait, ait + agroup_idx, bit + bgroup_idx) ||
 		agroup_idx != (bshape.n_rank() - bgroup_idx))
 	{
@@ -144,7 +144,7 @@ Shape forwarder<PERMUTE,std::vector<uint8_t>> (std::vector<Tensorptr> tens, std:
 		util::handle_error("wrong number of arguments (expected 1)",
 			util::ErrArg<size_t>("got", tens.size()));
 	}
-	Shape& shape = tens[0]->shape_;
+	const Shape& shape = tens[0]->shape();
 	bool visited[rank_cap];
 	std::memset(visited, false, rank_cap);
 	std::vector<DimT> outlist(dims.size(), 0);
@@ -176,13 +176,13 @@ Shape forwarder<EXTEND,std::vector<DimT>> (
 	{
 		util::handle_error("empty extension to shape");
 	}
-	if ((tens[0]->shape_.n_rank() + ext.size()) >= rank_cap)
+	if ((tens[0]->shape().n_rank() + ext.size()) >= rank_cap)
 	{
 		util::handle_error("failed attempt to extend dimension to beyond rank_cap",
-			util::ErrArg<std::vector<DimT>>("shape", tens[0]->shape_.as_list()),
+			util::ErrArg<std::vector<DimT>>("shape", tens[0]->shape().as_list()),
 			util::ErrArg<std::vector<DimT>>("ext", ext));
 	}
-	std::vector<DimT> outlist = tens[0]->shape_.as_list();
+	std::vector<DimT> outlist = tens[0]->shape().as_list();
 	outlist.insert(outlist.end(), ext.begin(), ext.end());
 	return Shape(outlist);
 }
@@ -197,7 +197,7 @@ Shape forwarder<RESHAPE,std::vector<DimT>> (
 			util::ErrArg<size_t>("got", tens.size()));
 	}
 	Shape outshape(outlist);
-	NElemT nin = tens[0]->shape_.n_elems();
+	NElemT nin = tens[0]->shape().n_elems();
 	NElemT nout = outshape.n_elems();
 	if (1 < nin && nin != nout)
 	{

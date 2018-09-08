@@ -22,6 +22,8 @@ struct Shape
 {
 	using ShapeIterator = std::array<DimT,rank_cap>::iterator;
 
+	using ConstShapeIterators = std::array<DimT,rank_cap>::const_iterator;
+
 	Shape (void) : rank_(0)
 	{
 		std::fill(dims_.begin(), dims_.end(), 1);
@@ -125,6 +127,16 @@ struct Shape
 	}
 
 	ShapeIterator end (void)
+	{
+		return dims_.end();
+	}
+
+	ConstShapeIterators begin (void) const
+	{
+		return dims_.begin();
+	}
+
+	ConstShapeIterators end (void) const
 	{
 		return dims_.end();
 	}

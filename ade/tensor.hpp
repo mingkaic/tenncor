@@ -14,16 +14,13 @@ struct Tensorptr;
 
 struct iTensor
 {
-	iTensor (Shape& shape) :
-		shape_(shape) {}
+	virtual ~iTensor (void) = default;
 
-	virtual ~iTensor (void) {}
+	virtual const Shape& shape (void) const = 0;
 
 	virtual Tensorptr gradient (Tensorptr& leaf) const = 0;
 
 	virtual std::string to_string (void) const = 0;
-
-	Shape shape_;
 };
 
 struct Tensorptr
@@ -80,9 +77,14 @@ struct Tensor final : public iTensor
 		return new Tensor(shape);
 	}
 
+	const Shape& shape (void) const override
+	{
+		return shape_;
+	}
+
 	Tensorptr gradient (Tensorptr& wrt) const override
 	{
-		std::vector<DimT> shape = wrt->shape_.as_list();
+		std::vector<DimT> shape = wrt->shape().as_list();
 		if (this == wrt.get())
 		{
 			return constant_one(shape);
@@ -96,7 +98,9 @@ struct Tensor final : public iTensor
 	}
 
 private:
-	Tensor (Shape shape) : iTensor(shape) {}
+	Tensor (Shape shape) : shape_(shape) {}
+
+	Shape shape_;
 };
 
 }

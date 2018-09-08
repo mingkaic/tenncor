@@ -181,7 +181,7 @@ void to_string (char out[64], struct ASTNode* node)
 {
 	if (node)
 	{
-		std::string str = node->ptr_->shape_.to_string();
+		std::string str = node->ptr_->shape().to_string();
 		std::replace(str.begin(), str.end(), '\\', ',');
 		std::memcpy(out, str.c_str(), std::min((size_t) 64, str.size() + 1));
 	}

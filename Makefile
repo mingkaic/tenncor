@@ -22,7 +22,7 @@ COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 
 COVERAGE_INFO_FILE := coverage.info
 
-test: test_util test_ade
+test: test_util test_ade cli_check
 
 test_util:
 	$(GTEST) //util:test
@@ -70,7 +70,7 @@ cover_ade:
 
 # cli tool
 cli_check:
-	./bazel-bin/ade_cli/cli ade_cli/test/input/noassign.txt
+	ade_cli/test/check.sh bazel-bin/ade_cli/cli
 
 build_cli: yacc_update
 	bazel build //ade_cli:cli

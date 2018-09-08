@@ -17,6 +17,11 @@ struct iFunctor : public iTensor
 {
 	virtual ~iFunctor (void) = default;
 
+	const Shape& shape (void) const override
+	{
+		return shape_;
+	}
+
 	virtual OPCODE get_code (void) const = 0;
 
 	std::vector<iTensor*> get_refs (void) const
@@ -32,9 +37,11 @@ struct iFunctor : public iTensor
 
 protected:
 	iFunctor (Shape& shape, std::vector<Tensorptr>& args) :
-		iTensor(shape), args_(args) {}
+		args_(args), shape_(shape) {}
 
 	std::vector<Tensorptr> args_;
+
+	Shape shape_;
 };
 
 template <OPCODE opcode, typename... Args>
@@ -51,7 +58,7 @@ struct Functor final : public iFunctor
 	{
 		if (wrt.get() == this)
 		{
-			return constant_one(wrt->shape_.as_list());
+			return constant_one(wrt->shape().as_list());
 		}
 		return grad_helper(wrt, std::index_sequence_for<Args...>());
 	}
