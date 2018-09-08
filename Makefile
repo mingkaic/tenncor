@@ -77,7 +77,7 @@ build_cli: yacc_update
 
 yacc_update:
 	cd ade_cli && yacc -d calc.yacc && cd ..
-	cd ade_cli && lex calc.lex && cd ..
+	cd ade_cli && flex calc.lex && cd ..
 
 clean:
 	bazel clean

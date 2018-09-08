@@ -27,6 +27,6 @@ Generate the derivative equation with respect to a variable by running `grad(exp
 
 Print the shape of an expression or variable by specify it on a single line without assignment
 
-Print the graph of an expression or variable by running `show_eq(expr)` or `show_eq(variable)`.
+Print the graph of an expression or variable by running `print(expr)` or `print(variable)`.
 
 Exit the interactive mode or prematurely terminate file read by add `exit` line.

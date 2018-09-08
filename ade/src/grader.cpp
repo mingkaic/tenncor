@@ -241,11 +241,15 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	uint8_t bgroup_idx1 = brank - bgroup_idx;
 	auto fit = ashape.begin();
 	auto git = bshape.begin();
-	std::vector<DimT> a_ext(fit + agroup_idx, fit + brank); // agroup1
+	std::vector<DimT> a_ext(fit + agroup_idx, fit + arank); // agroup1
 	std::vector<DimT> b_ext(git, git + bgroup_idx); // bgroup0
 
 	// [bgroup0<0:bgroup_idx>, bgroup1<bgroup_idx:brank>, a_ext<brank:>]
-	Tensorptr lhs = Functor<EXTEND,std::vector<DimT>>::get({b}, a_ext);
+	Tensorptr lhs = b;
+	if (a_ext.size() > 0)
+	{
+		lhs = Functor<EXTEND,std::vector<DimT>>::get({lhs}, a_ext);
+	}
 	uint8_t lrank = lhs->shape_.n_rank();
 	uint8_t n_aext = a_ext.size();
 	// [bgroup0, a_ext, bgroup1, a_ext]
@@ -266,7 +270,11 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	lhs = Functor<PERMUTE,std::vector<uint8_t>>::get({lhs}, lindices);
 
 	// [agroup0<0:agroup_idx>, agroup1<agroup_idx:arank>, b_ext<arank:>]
-	Tensorptr rhs = Functor<EXTEND,std::vector<DimT>>::get({a}, b_ext);
+	Tensorptr rhs = a;
+	if (b_ext.size() > 0)
+	{
+		rhs = Functor<EXTEND,std::vector<DimT>>::get({rhs}, b_ext);
+	}
 	uint8_t rrank = rhs->shape_.n_rank();
 	uint8_t n_bext = b_ext.size();
 	// [b_ext, agroup1, b_ext, agroup0]
@@ -286,20 +294,28 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	}
 	rhs = Functor<PERMUTE,std::vector<uint8_t>>::get({rhs}, rindices);
 
+	Shape& wrtshape = wrt->shape_;
+	uint8_t wrank = wrtshape.n_rank();
+	auto wit = wrtshape.begin();
+
 	uint8_t lgroup = bgroup_idx + n_aext;
 	Tensorptr dlhs = a->gradient(wrt);
-	auto dlit = dlhs->shape_.begin();
-	if (std::equal(dlit, dlit + lgroup, lhs->shape_.begin() + lgroup) &&
-		lgroup == (lhs->shape_.n_rank() - lgroup))
+	Shape& dlshape = dlhs->shape_;
+	auto dlit = dlshape.begin();
+	uint8_t dlrank = dlshape.n_rank();
+	if (std::equal(dlit + lgroup, dlit + dlrank, wit) &&
+		dlrank - lgroup == wrank)
 	{
 		lhs = Functor<MATMUL,uint8_t,uint8_t>::get({dlhs, lhs}, lgroup, lgroup);
 	}
 
 	uint8_t rgroup = n_bext + agroup_idx1;
 	Tensorptr drhs = b->gradient(wrt);
-	auto drit = drhs->shape_.begin();
-	if (std::equal(drit, drit + rgroup, rhs->shape_.begin() + rgroup) &&
-		rgroup == (rhs->shape_.n_rank() - rgroup))
+	Shape& drshape = drhs->shape_;
+	auto drit = drshape.begin();
+	uint8_t drrank = drshape.n_rank();
+	if (std::equal(drit + rgroup, drit + drshape.n_rank(), wit) &&
+		drrank - rgroup == wrank)
 	{
 		rhs = Functor<MATMUL,uint8_t,uint8_t>::get({drhs, rhs}, rgroup, rgroup);
 	}
@@ -310,9 +326,8 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	{
 		return Functor<ADD>::get({lhs, rhs});
 	}
-	Shape& wrtshape = wrt->shape_;
-	if (std::equal(wrtshape.begin(), wrtshape.end(),
-		lhs->shape_.begin() + bgroup_idx + n_aext))
+	if (std::equal(wit, wit + wrank,
+		lhs->shape_.begin() + bgroup_idx1 + n_aext))
 	{
 		return lhs;
 	}

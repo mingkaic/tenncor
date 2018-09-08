@@ -2,9 +2,9 @@
 
 #include "llo/dtype.hpp"
 
-struct iSource
+struct iNode
 {
-	virtual ~iSource (void) = default;
+	virtual ~iNode (void) = default;
 
 	virtual DTYPE get_type (void) const = 0;
 };
@@ -19,11 +19,11 @@ struct TptrHasher
 
 struct Session
 {
-	std::unordered_map<ade::Tensorptr,iSource*,TptrHasher> sources_;
+	std::unordered_map<ade::Tensorptr,iNode*,TptrHasher> sources_;
 };
 
 template <typename T>
-struct Source : public iSource
+struct Source : public iNode
 {
 	Source (ade::Shape shape) : data_(shape.n_elems()) {}
 

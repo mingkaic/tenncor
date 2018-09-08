@@ -1,6 +1,26 @@
-a = [14]
+a = [14, 1]
 b = [13, 14]
 c = matmul(a, b)
 c
-grad(c, a)
-grad(c, b)
+print(c)
+
+da = grad(c, a)
+da
+print(da)
+
+db = grad(c, b)
+db
+print(db)
+
+a = [14]
+c = matmul(a, b)
+c
+print(c)
+
+da = grad(c, a)
+da
+print(da)
+
+db = grad(c, b)
+db
+print(db)
