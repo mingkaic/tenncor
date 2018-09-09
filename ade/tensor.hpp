@@ -1,8 +1,8 @@
 #include <memory>
 
-#include "ade/shape.hpp"
-
 #include "util/error.hpp"
+
+#include "ade/shape.hpp"
 
 #ifndef ADE_TENSOR_HPP
 #define ADE_TENSOR_HPP

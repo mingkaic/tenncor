@@ -1,6 +1,6 @@
-#include "ade/shape.hpp"
-
 #include "util/strify.hpp"
+
+#include "ade/shape.hpp"
 
 // #include "simple/jack.hpp"
 

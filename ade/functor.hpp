@@ -1,10 +1,10 @@
 #include <algorithm>
 
+#include "util/strify.hpp"
+
 #include "ade/tensor.hpp"
 #include "ade/grader.hpp"
 #include "ade/fwder.hpp"
-
-#include "util/strify.hpp"
 
 #ifndef ADE_FUNCTOR_HPP
 #define ADE_FUNCTOR_HPP
@@ -17,31 +17,9 @@ struct iFunctor : public iTensor
 {
 	virtual ~iFunctor (void) = default;
 
-	const Shape& shape (void) const override
-	{
-		return shape_;
-	}
-
 	virtual OPCODE get_code (void) const = 0;
 
-	std::vector<iTensor*> get_refs (void) const
-	{
-		std::vector<iTensor*> out(args_.size());
-		std::transform(args_.begin(), args_.end(), out.begin(),
-		[](const Tensorptr& arg)
-		{
-			return arg.get();
-		});
-		return out;
-	}
-
-protected:
-	iFunctor (Shape& shape, std::vector<Tensorptr>& args) :
-		args_(args), shape_(shape) {}
-
-	std::vector<Tensorptr> args_;
-
-	Shape shape_;
+	virtual std::vector<iTensor*> get_refs (void) const = 0;
 };
 
 template <OPCODE opcode, typename... Args>
@@ -52,6 +30,11 @@ struct Functor final : public iFunctor
 		std::tuple<Args...> tp(meta...);
 		return new Functor(forwarder<opcode,Args...>(args,
 			std::forward<Args>(meta)...), args, tp);
+	}
+
+	const Shape& shape (void) const override
+	{
+		return shape_;
 	}
 
 	Tensorptr gradient (Tensorptr& wrt) const override
@@ -73,16 +56,30 @@ struct Functor final : public iFunctor
 		return opcode;
 	}
 
+	std::vector<iTensor*> get_refs (void) const override
+	{
+		std::vector<iTensor*> out(args_.size());
+		std::transform(args_.begin(), args_.end(), out.begin(),
+		[](const Tensorptr& arg)
+		{
+			return arg.get();
+		});
+		return out;
+	}
+
 private:
 	Functor (Shape shape, std::vector<Tensorptr> args,
 		std::tuple<Args...>& meta) :
-		iFunctor(shape, args), meta_(meta) {}
+		args_(args), shape_(shape), meta_(meta) {}
 
 	template <size_t... I>
 	Tensorptr grad_helper (Tensorptr& wrt, std::index_sequence<I...>) const
 	{
 		return grader<opcode,Args...>(args_, wrt, std::get<I>(meta_)...);
 	}
+
+	std::vector<Tensorptr> args_;
+	Shape shape_;
 
 	std::tuple<Args...> meta_;
 };

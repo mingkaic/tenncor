@@ -1,8 +1,8 @@
 #include <cstring>
 
-#include "ade/fwder.hpp"
-
 #include "util/error.hpp"
+
+#include "ade/fwder.hpp"
 
 #ifdef ADE_FWDER_HPP
 

@@ -1,27 +1,17 @@
 #include <cstring>
 #include <cmath>
-#include <assert>
+
+#include "util/rand.hpp"
 
 #include "ade/shape.hpp"
 
 #ifndef LLO_OPERATOR_HPP
 #define LLO_OPERATOR_HPP
 
-template <typename OUTTYPE, typename INTYPE>
-void typecast (std::vector<OUTTYPE>& out, const std::vector<INTYPE>& in)
-{
-	size_t n = out.size();
-	assert(n == in.size());
-	std::vector<OUTTYPE> temp(in.begin(), in.end());
-	std::memcpy(&out[0], &temp[0], sizeof(OUTTYPE) * n);
-}
-
 template <typename T>
-void unary (std::vector<T>& out, const std::vector<T>& in,
+void unary (T* out, const T* in, size_t n,
 	std::function<T(const T&)> f)
 {
-	size_t n = out.size();
-	assert(n == in.size());
 	for (size_t i = 0; i < n; ++i)
 	{
 		out[i] = f(in[i]);
@@ -29,97 +19,95 @@ void unary (std::vector<T>& out, const std::vector<T>& in,
 }
 
 template <typename T>
-void abs (std::vector<T>& out, const std::vector<T>& in)
+void abs (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return std::abs(src); });
+	unary<T>(out, in, n, [](const T& src) { return std::abs(src); });
 }
 
 template <>
-void abs<uint8_t> (std::vector<T>& out, const std::vector<T>& in);
+void abs<uint8_t> (uint8_t* out, const uint8_t* in, size_t n);
 
 template <>
-void abs<uint16_t> (std::vector<T>& out, const std::vector<T>& in);
+void abs<uint16_t> (uint16_t* out, const uint16_t* in, size_t n);
 
 template <>
-void abs<uint32_t> (std::vector<T>& out, const std::vector<T>& in);
+void abs<uint32_t> (uint32_t* out, const uint32_t* in, size_t n);
 
 template <>
-void abs<uint64_t> (std::vector<T>& out, const std::vector<T>& in);
+void abs<uint64_t> (uint64_t* out, const uint64_t* in, size_t n);
 
 template <typename T>
-void neg (std::vector<T>& out, const std::vector<T>& in)
+void neg (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return -src; });
+	unary<T>(out, in, n, [](const T& src) { return -src; });
 }
 
 template <>
-void neg<uint8_t> (std::vector<T>& out, const std::vector<T>& in);
+void neg<uint8_t> (uint8_t* out, const uint8_t* in, size_t n);
 
 template <>
-void neg<uint16_t> (std::vector<T>& out, const std::vector<T>& in);
+void neg<uint16_t> (uint16_t* out, const uint16_t* in, size_t n);
 
 template <>
-void neg<uint32_t> (std::vector<T>& out, const std::vector<T>& in);
+void neg<uint32_t> (uint32_t* out, const uint32_t* in, size_t n);
 
 template <>
-void neg<uint64_t> (std::vector<T>& out, const std::vector<T>& in);
+void neg<uint64_t> (uint64_t* out, const uint64_t* in, size_t n);
 
 template <typename T>
-void logic_not (std::vector<T>& out, const std::vector<T>& in)
+void logic_not (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return !src; });
+	unary<T>(out, in, n, [](const T& src) { return !src; });
 }
 
 template <typename T>
-void sin (std::vector<T>& out, const std::vector<T>& in)
+void sin (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return std::sin(src); });
+	unary<T>(out, in, n, [](const T& src) { return std::sin(src); });
 }
 
 template <typename T>
-void cos (std::vector<T>& out, const std::vector<T>& in)
+void cos (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return std::cos(src); });
+	unary<T>(out, in, n, [](const T& src) { return std::cos(src); });
 }
 
 template <typename T>
-void tan (std::vector<T>& out, const std::vector<T>& in)
+void tan (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return std::tan(src); });
+	unary<T>(out, in, n, [](const T& src) { return std::tan(src); });
 }
 
 template <typename T>
-void exp (std::vector<T>& out, const std::vector<T>& in)
+void exp (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return std::exp(src); });
+	unary<T>(out, in, n, [](const T& src) { return std::exp(src); });
 }
 
 template <typename T>
-void log (std::vector<T>& out, const std::vector<T>& in)
+void log (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return std::log(src); });
+	unary<T>(out, in, n, [](const T& src) { return std::log(src); });
 }
 
 template <typename T>
-void sqrt (std::vector<T>& out, const std::vector<T>& in)
+void sqrt (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return std::sqrt(src); });
+	unary<T>(out, in, n, [](const T& src) { return std::sqrt(src); });
 }
 
 template <typename T>
-void round (std::vector<T>& out, const std::vector<T>& in)
+void round (T* out, const T* in, size_t n)
 {
-	unary<T>(out, in, [](const T& src) { return std::round(src); });
+	unary<T>(out, in, n, [](const T& src) { return std::round(src); });
 }
 
 template <typename T>
-void flip (std::vector<T>& out, const std::vector<T>& in, ade::Shape shape, uint8_t dim)
+void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
 {
-	size_t n = out.size();
-	assert(n == in.size());
-	assert(n == shape.n_elems());
-	std::vector<DimT> slist = shape.as_list();
-	std::vector<DimT> coord;
+	size_t n = shape.n_elems();
+	std::vector<ade::DimT> slist = shape.as_list();
+	std::vector<ade::DimT> coord;
 	for (size_t i = 0; i < n; ++i)
 	{
 		coord = coordinate(shape, i);
@@ -129,9 +117,10 @@ void flip (std::vector<T>& out, const std::vector<T>& in, ade::Shape shape, uint
 }
 
 template <typename T>
-void permute (std::vector<T>& out, const std::vector<T>& in,
-	ade::Shape outshape, ade::Shape shape, std::vector<uint8_t> order)
+void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
+	std::vector<uint8_t> order)
 {
+	size_t n = shape.n_elems();
 	uint8_t orig_rank = shape.n_rank();
 	bool visited[ade::rank_cap];
 	std::memset(visited, false, sizeof(ade::DimT) * ade::rank_cap);
@@ -148,9 +137,9 @@ void permute (std::vector<T>& out, const std::vector<T>& in,
 	}
 
 	uint8_t norder = order.size();
-	std::vector<DimT> coords(orig_rank);
-	std::vector<DimT> converted(norder);
-	for (NElemT srci = 0; srci < n; ++srci)
+	std::vector<ade::DimT> coords(orig_rank);
+	std::vector<ade::DimT> converted(norder);
+	for (ade::NElemT srci = 0; srci < n; ++srci)
 	{
 		coords = coordinate(shape, srci);
 
@@ -159,81 +148,71 @@ void permute (std::vector<T>& out, const std::vector<T>& in,
 			converted[i] = coords[order[i]];
 		}
 
-		NElemT desti = index(outshape, coords);
+		ade::NElemT desti = index(outshape, coords);
 		out[desti] = in[srci];
 	}
 }
 
 template <typename T>
-void n_elems (std::vector<T>& out, const ade::Shape& in)
+void n_elems (T& out, const ade::Shape& in)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void n_elems<uint64_t> (std::vector<T>& out, const ade::Shape& in);
+void n_elems<uint64_t> (uint64_t& out, const ade::Shape& in);
 
 template <typename T>
-void n_dims (std::vector<T>& out, const ade::Shape& in, uint8_t dim)
+void n_dims (T& out, const ade::Shape& in, uint8_t dim)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void n_dims<uint8_t> (std::vector<T>& out, const ade::Shape& in, uint8_t dim);
+void n_dims<uint8_t> (uint8_t& out, const ade::Shape& in, uint8_t dim);
 
 template <typename T>
-void arg_max (std::vector<T>& out, const std::vector<T>& in)
+void arg_max (T& out, const T* in, size_t n)
 {
-	assert(out.size() == 1);
 	size_t temp = 0;
-	for (size_t i = 1, n = in.size(); i < n; ++i)
+	for (size_t i = 1; i < n; ++i)
 	{
-		if (in[temp] < s[i])
+		if (in[temp] < in[i])
 		{
 			temp = i;
 		}
 	}
-	out[0] = temp;
+	out = temp;
 }
 
 template <typename T>
-void reduce_max (std::vector<T>& out, const std::vector<T>& in)
+void reduce_max (T& out, const T* in, size_t n)
 {
-	assert(out.size() == 1);
-	T temp = in[0];
-	for (size_t i = 1, n = in.size(); i < n; ++i)
+	out = in[0];
+	for (size_t i = 1; i < n; ++i)
 	{
-		if (temp < s[i])
+		if (out < in[i])
 		{
-			temp = s[i];
+			out = in[i];
 		}
 	}
-	out[0] = temp;
 }
 
 template <typename T>
-void reduce_sum (std::vector<T>& out, const std::vector<T>& in)
+void reduce_sum (T& out, const T* in, size_t n)
 {
-	assert(out.size() == 1);
-	T temp = in[0];
-	for (size_t i = 1, n = in.size(); i < n; ++i)
+	out = in[0];
+	for (size_t i = 1; i < n; ++i)
 	{
-		temp += in[i];
+		out += in[i];
 	}
-	out[0] = temp;
 }
 
 template <typename T>
-void binary (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b,
+void binary (T* out, const T* a, size_t an, const T* b, size_t bn,
 	std::function<T(const T&,const T&)> f)
 {
-	size_t n = out.size();
-	size_t an = a.size();
-	size_t bn = b.size();
-	assert(n == std::max(an, bn));
-
+	size_t n = std::max(an, bn);
 	for (size_t i = 0; i < n; ++i)
 	{
 		out[i] = f(a[i % an], b[i % bn]);
@@ -241,125 +220,117 @@ void binary (std::vector<T>& out,
 }
 
 template <typename T>
-void pow (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void pow (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& b, const T& x) { return std::pow(b, x); });
+	binary<T>(out, a, an, b, bn,
+		[](const T& b, const T& x) { return std::pow(b, x); });
 }
 
 template <typename T>
-void add (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void add (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a + b; });
+	binary<T>(out, a, an, b, bn,
+		[](const T& a, const T& b) { return a + b; });
 }
 
 template <typename T>
-void sub (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void sub (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a - b; });
+	binary<T>(out, a, an, b, bn,
+		[](const T& a, const T& b) { return a - b; });
 }
 
 template <typename T>
-void mul (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void mul (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a * b; });
+	binary<T>(out, a, an, b, bn,
+		[](const T& a, const T& b) { return a * b; });
 }
 
 template <typename T>
-void div (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void div (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a / b; });
+	binary<T>(out, a, an, b, bn,
+		[](const T& a, const T& b) { return a / b; });
 }
 
 template <typename T>
-void eq (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void eq (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a == b; });
+	binary<T>(out, a, an, b, bn,
+		[](const T& a, const T& b) { return a == b; });
 }
 
 template <typename T>
-void neq (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void neq (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a != b; });
+	binary<T>(out, a, an, b, bn,
+		[](const T& a, const T& b) { return a != b; });
 }
 
 template <typename T>
-void lt (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void lt (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a < b; });
+	binary<T>(out, a, an, b, bn,
+		[](const T& a, const T& b) { return a < b; });
 }
 
 template <typename T>
-void gt (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void gt (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a > b; });
+	binary<T>(out, a, an, b, bn,
+		[](const T& a, const T& b) { return a > b; });
 }
 
 template <typename T>
-void rand_binom (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<double>& b)
+void rand_binom (T* out, const T* a, size_t an, const double* b, size_t bn)
 {
-	size_t an = a.size();
-	size_t bn = b.size();
-	size_t n = out.size();
-	assert(n == std::max(an, bn));
-
+	size_t n = std::max(an, bn);
 	for (size_t i = 0; i < n; ++i)
 	{
 		std::binomial_distribution<T> dist(a[i % an], b[i % bn]);
-		out[i] = dist(get_engine());
+		out[i] = dist(util::get_engine());
 	}
 }
 
 template <typename T>
-void rand_uniform (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void rand_uniform (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
-	binary<T>(out, a, b,
+	binary<T>(out, a, an, b, bn,
 	[](const T& a, const T& b)
 	{
 		std::uniform_int_distribution<T> dist(a, b);
-		return dist(get_engine());
+		return dist(util::get_engine());
 	});
 }
 
 template <typename T>
-void rand_normal (std::vector<T>& out,
-	const std::vector<T>& a, const std::vector<T>& b)
+void rand_normal (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void rand_normal<float> (std::vector<float>& out,
-	const std::vector<float>& a, const std::vector<float>& b);
+void rand_normal<float> (float* out,
+	const float* a, size_t an, const float* b, size_t bn);
 
 template <>
-void rand_normal<double> (std::vector<double>& out,
-	const std::vector<double>& a, const std::vector<double>& b);
+void rand_normal<double> (double* out,
+	const double* a, size_t an, const double* b, size_t bn);
 
 template <typename T>
-void matmul (std::vector<T>& out,
-	const std::vector<float>& a, const std::vector<float>& b,
+void matmul (T* out, const T* a, const T* b,
 	const ade::Shape& ashape, const ade::Shape& bshape,
 	uint8_t agroup_idx, uint8_t bgroup_idx)
 {
 	auto ita = ashape.begin();
 	auto itb = bshape.begin();
-	NElemT dim_x = std::accumulate(itb, itb + bgroup_idx,
-		1, std::multiplies<NElemT>());
-	NElemT dim_y = std::accumulate(ita + agroup_idx, ita + ashape.n_rank(),
-		1, std::multiplies<NElemT>());
-	NElemT dim_z = std::accumulate(ita, ita + agroup_idx,
-		1, std::multiplies<NElemT>());
+	ade::NElemT dim_x = std::accumulate(itb, itb + bgroup_idx,
+		1, std::multiplies<ade::NElemT>());
+	ade::NElemT dim_y = std::accumulate(ita + agroup_idx, ita + ashape.n_rank(),
+		1, std::multiplies<ade::NElemT>());
+	ade::NElemT dim_z = std::accumulate(ita, ita + agroup_idx,
+		1, std::multiplies<ade::NElemT>());
 
 	for (size_t y = 0; y < dim_y; y++)
 	{
@@ -374,6 +345,20 @@ void matmul (std::vector<T>& out,
 				out[outidx] += a[aidx] * b[bidx];
 			}
 		}
+	}
+}
+
+template <typename T>
+void copyover (T* out, size_t nout, const T* in, size_t nin)
+{
+	size_t mult = nout / nin;
+	for (size_t i = 0; i < mult; ++i)
+	{
+		std::memcpy(out + i * nin, in, sizeof(T) * nin);
+	}
+	if (size_t leftover = nout % nin)
+	{
+		std::memcpy(out + mult * nin, in, sizeof(T) * leftover);
 	}
 }
 

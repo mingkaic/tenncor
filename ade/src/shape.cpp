@@ -1,5 +1,6 @@
-#include "ade/shape.hpp"
 #include "util/error.hpp"
+
+#include "ade/shape.hpp"
 
 #ifdef ADE_SHAPE_HPP
 

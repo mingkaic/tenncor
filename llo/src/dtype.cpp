@@ -1,6 +1,8 @@
-#include "llo/dtype.hpp"
+#include <unordered_map>
 
 #include "util/error.hpp"
+
+#include "llo/dtype.hpp"
 
 #ifdef LLO_DTYPE_HPP
 
@@ -122,8 +124,8 @@ uint8_t type_size (DTYPE type)
 		case DTYPE::UINT64:
 			return sizeof(int64_t);
 		default:
-			handle_error("unsupported type",
-				ErrArg<size_t>("typeval", type));
+			util::handle_error("unsupported type",
+				util::ErrArg<size_t>("typeval", type));
 	}
 	return 0;
 }

@@ -2,35 +2,16 @@
 
 #include "llo/dtype.hpp"
 
-struct iNode
+struct GenericData
 {
-	virtual ~iNode (void) = default;
+	GenericData (void) = default;
 
-	virtual DTYPE get_type (void) const = 0;
-};
+	GenericData (ade::Shape shape, DTYPE dtype);
 
-struct TptrHasher
-{
-	size_t operator() (const ade::Tensorptr& p) const
-	{
-		return (size_t) p.get();
-	}
-};
+	GenericData convert_to (DTYPE dtype) const;
 
-struct Session
-{
-	std::unordered_map<ade::Tensorptr,iNode*,TptrHasher> sources_;
-};
+	std::shared_ptr<char> data_;
 
-template <typename T>
-struct Source : public iNode
-{
-	Source (ade::Shape shape) : data_(shape.n_elems()) {}
-
-	DTYPE get_type (void) const override
-	{
-		return get_type<T>();
-	}
-
-	std::vector<T> data_;
+	ade::Shape shape_;
+	DTYPE dtype_ = BAD;
 };
