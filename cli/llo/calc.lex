@@ -1,8 +1,7 @@
 %{
-#include <stdio.h>
 #include <string.h>
 
-#include "cli/llo/ast/calc_ast.h"
+#include "cli/llo/ast/ast.h"
 
 #include "cli/llo/y.tab.h"
 
@@ -55,7 +54,7 @@ round	{
 
 flip	{
 	yylval.int_type = FLIP;
-	return UNARY;
+	return DIMOP;
 }
 
 pow		{
@@ -85,7 +84,7 @@ n_elems		{
 
 n_dims		{
 	yylval.int_type = NDIMS;
-	return UNARY;
+	return DIMOP;
 }
 
 argmax	{
@@ -129,6 +128,10 @@ grad	{
 
 mode	{
 	return MODE;
+}
+
+shape	{
+	return SHAPE;
 }
 
 print	{

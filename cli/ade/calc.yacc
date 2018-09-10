@@ -1,9 +1,7 @@
 %{
 #include<stdio.h>
 
-#include "cli/ade/ast/calc_ast.h"
-
-int base;
+#include "cli/ade/ast/ast.h"
 
 extern int yylex();
 extern int yyerror();
@@ -64,7 +62,7 @@ stat:	/* empty */
 		|
 		VAR '=' expr
 		{
-			saveAST($1, $3);
+			save_ast($1, $3);
 			free_ast($3);
 		}
 		|
@@ -82,7 +80,7 @@ stat:	/* empty */
 
 expr:   GRAD '(' expr ',' VAR ')'
 		{
-			struct ASTNode* node = loadAST($5);
+			struct ASTNode* node = load_ast($5);
 			$$ = grad($3, node);
 			free_ast($3);
 			free_ast(node);
@@ -150,18 +148,18 @@ expr:   GRAD '(' expr ',' VAR ')'
 		|
 		VAR
 		{
-			$$ = loadAST($1);
+			$$ = load_ast($1);
 		}
 		|
 		'[' shape ']'
 		{
-			$$ = toNode($2);
+			$$ = to_node($2);
 			free_shape($2);
 		}
 		|
 		'[' ']'
 		{
-			$$ = emptyNode();
+			$$ = empty_node();
 		}
 		;
 
@@ -180,12 +178,11 @@ shape:	shape ',' number
 number: DIGIT
 		{
 		   $$ = $1;
-		   base = ($1==0) ? 8 : 10;
 		}
 		|
 		number DIGIT
 		{
-		   $$ = base * $1 + $2;
+		   $$ = 10 * $1 + $2;
 		}
 		;
 

@@ -43,12 +43,14 @@
      VAR = 259,
      UNARY = 260,
      BINARY = 261,
-     SHAPEOP = 262,
-     GRAD = 263,
-     PRINT = 264,
-     EXIT = 265,
-     MODE = 266,
-     UMINUS = 267
+     DIMOP = 262,
+     SHAPEOP = 263,
+     GRAD = 264,
+     PRINT = 265,
+     SHAPE = 266,
+     EXIT = 267,
+     MODE = 268,
+     UMINUS = 269
    };
 #endif
 /* Tokens.  */
@@ -56,12 +58,14 @@
 #define VAR 259
 #define UNARY 260
 #define BINARY 261
-#define SHAPEOP 262
-#define GRAD 263
-#define PRINT 264
-#define EXIT 265
-#define MODE 266
-#define UMINUS 267
+#define DIMOP 262
+#define SHAPEOP 263
+#define GRAD 264
+#define PRINT 265
+#define SHAPE 266
+#define EXIT 267
+#define MODE 268
+#define UMINUS 269
 
 
 
@@ -71,12 +75,14 @@ typedef union YYSTYPE
 #line 15 "calc.yacc"
 {
 	int int_type;
+	double num_type;
 	char str_type[32];
+	struct DataHolder* data_type;
 	struct ShapeHolder* vec_type;
 	struct ASTNode* ref_type;
 }
 /* Line 1529 of yacc.c.  */
-#line 80 "y.tab.h"
+#line 86 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

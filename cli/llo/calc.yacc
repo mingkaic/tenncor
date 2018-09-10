@@ -1,9 +1,7 @@
 %{
 #include<stdio.h>
 
-#include "cli/llo/ast/calc_ast.h"
-
-int base;
+#include "cli/llo/ast/ast.h"
 
 extern int yylex();
 extern int yyerror();
@@ -16,17 +14,21 @@ extern FILE *yyin;
 %union
 {
 	int int_type;
+	double num_type;
 	char str_type[32];
+	struct DataHolder* data_type;
 	struct ShapeHolder* vec_type;
 	struct ASTNode* ref_type;
 }
 
-%type <int_type> number UNARY BINARY SHAPEOP DIGIT
+%type <int_type> integer UNARY BINARY DIMOP SHAPEOP DIGIT
+%type <num_type> number
 %type <str_type> VAR
+%type <data_type> arr
 %type <vec_type> shape
 %type <ref_type> expr
 
-%token DIGIT VAR UNARY BINARY SHAPEOP GRAD PRINT EXIT MODE
+%token DIGIT VAR UNARY BINARY DIMOP SHAPEOP GRAD PRINT SHAPE EXIT MODE
 
 %left '+' '-'
 %left '*' '/'
@@ -58,13 +60,13 @@ stat:	/* empty */
 		|
 		expr
 		{
-			show_shape($1);
+			show_data($1);
 			free_ast($1);
 		}
 		|
 		VAR '=' expr
 		{
-			saveAST($1, $3);
+			save_ast($1, $3);
 			free_ast($3);
 		}
 		|
@@ -78,22 +80,27 @@ stat:	/* empty */
 			show_eq($3);
 			free_ast($3);
 		}
+		|
+		PRINT '(' expr ',' SHAPE ')'
+		{
+			show_shape($3);
+			free_ast($3);
+		}
 		;
 
 expr:   GRAD '(' expr ',' VAR ')'
 		{
-			struct ASTNode* node = loadAST($5);
+			struct ASTNode* node = load_ast($5);
 			$$ = grad($3, node);
 			free_ast($3);
 			free_ast(node);
 
 		}
 		|
-		SHAPEOP '(' expr ',' shape ')'
+		UNARY '(' expr ')'
 		{
-			$$ = shapeop($3, $5, $1);
+			$$ = unary($3, $1);
 			free_ast($3);
-			free_shape($5);
 		}
 		|
 		BINARY '(' expr ',' expr ')'
@@ -103,10 +110,17 @@ expr:   GRAD '(' expr ',' VAR ')'
 			free_ast($5);
 		}
 		|
-		UNARY '(' expr ')'
+		DIMOP '(' expr ',' integer ')'
 		{
-			$$ = unary($3, $1);
+			$$ = unary_dim($3, $5, $1);
 			free_ast($3);
+		}
+		|
+		SHAPEOP '(' expr ',' shape ')'
+		{
+			$$ = shapeop($3, $5, $1);
+			free_ast($3);
+			free_shape($5);
 		}
 		|
 		'(' expr ')'
@@ -150,42 +164,74 @@ expr:   GRAD '(' expr ',' VAR ')'
 		|
 		VAR
 		{
-			$$ = loadAST($1);
+			$$ = load_ast($1);
 		}
 		|
-		'[' shape ']'
+		'[' arr ']'
 		{
-			$$ = toNode($2);
-			free_shape($2);
+			$$ = to_node($2);
+			free_data($2);
 		}
 		|
 		'[' ']'
 		{
-			$$ = emptyNode();
+			$$ = empty_node();
 		}
 		;
 
-shape:	shape ',' number
+arr:	arr ',' '[' arr ']'
 		{
-			append($1, $3);
+			data_append($1, $4);
+			$$ = $1;
+		}
+		|
+		'[' arr ']'
+		{
+			$$ = make_data($2);
+		}
+		|
+		arr ',' number
+		{
+			data_append_d($1, $3);
 			$$ = $1;
 		}
 		|
 		number
 		{
-			$$ = make($1);
+			$$ = make_data_d($1);
 		}
 		;
 
-number: DIGIT
+shape:	shape ',' integer
 		{
-		   $$ = $1;
-		   base = ($1==0) ? 8 : 10;
+			shape_append($1, $3);
+			$$ = $1;
 		}
 		|
-		number DIGIT
+		integer
 		{
-		   $$ = base * $1 + $2;
+			$$ = make_shape($1);
+		}
+		;
+
+number: integer '.' integer
+		{
+			$$ = $1 + 1.0 / $3;
+		}
+		|
+		integer
+		{
+			$$ = $1;
+		};
+
+integer: DIGIT
+		{
+		   $$ = $1;
+		}
+		|
+		integer DIGIT
+		{
+		   $$ = 10 * $1 + $2;
 		}
 		;
 

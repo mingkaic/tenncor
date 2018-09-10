@@ -31,4 +31,3 @@ gza = grad(z, a)
 gzb = grad(z, b)
 print(gza)
 print(gzb)
-print

@@ -20,7 +20,7 @@ cc_library(
 	srcs = glob(["ast/*.cpp"]),
 	copts = ["-std=c++14"],
     deps = [
-		"//ade:ade",
+		"//llo:llo",
 		"//cli/util:util",
 	],
 )

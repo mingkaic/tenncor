@@ -1,8 +1,7 @@
 %{
-#include <stdio.h>
 #include <string.h>
 
-#include "cli/ade/ast/calc_ast.h"
+#include "cli/ade/ast/ast.h"
 
 #include "cli/ade/y.tab.h"
 

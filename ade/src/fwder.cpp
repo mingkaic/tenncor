@@ -24,27 +24,32 @@ static Shape bijection (std::vector<Tensorptr> args, std::string op)
 {
 	if (args.size() == 0)
 	{
-		util::handle_error(op + " error: creating elementary shape from no args",
+		util::handle_error(op +
+			" error: creating elementary shape from no args",
 			util::ErrArg<size_t>{"num_args", args.size()});
 	}
 
 	Shape outshape = args[0]->shape();
 	uint8_t outrank = outshape.n_rank();
+	NElemT outn = outshape.n_elems();
 	for (auto it = args.begin() + 1, et = args.end(); it != et; ++it)
 	{
 		const Shape& shape = (*it)->shape();
 		uint8_t rank = shape.n_rank();
+		NElemT nelems = shape.n_elems();
 		if (false == shape.compatible_before(outshape,
-			std::min(outrank, rank)))
+			std::min(outrank, rank)) && std::min(nelems, outn) > 1)
 		{
 			util::handle_error(op + " error: incompatible shapes",
-				util::ErrArg<std::vector<DimT>>{"outshape", outshape.as_list()},
+				util::ErrArg<std::vector<DimT>>{"outshape",
+					outshape.as_list()},
 				util::ErrArg<std::vector<DimT>>{"shape", shape.as_list()});
 		}
-		if (rank > outrank)
+		if (nelems > outn)
 		{
 			outshape = shape;
 			outrank = rank;
+			outn = nelems;
 		}
 	}
 	return outshape;
@@ -137,7 +142,8 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 }
 
 template <>
-Shape forwarder<PERMUTE,std::vector<uint8_t>> (std::vector<Tensorptr> tens, std::vector<uint8_t> dims)
+Shape forwarder<PERMUTE,std::vector<uint8_t>> (
+	std::vector<Tensorptr> tens, std::vector<uint8_t> dims)
 {
 	if (1 != tens.size())
 	{
@@ -178,8 +184,10 @@ Shape forwarder<EXTEND,std::vector<DimT>> (
 	}
 	if ((tens[0]->shape().n_rank() + ext.size()) >= rank_cap)
 	{
-		util::handle_error("failed attempt to extend dimension to beyond rank_cap",
-			util::ErrArg<std::vector<DimT>>("shape", tens[0]->shape().as_list()),
+		util::handle_error(
+			"failed attempt to extend dimension to beyond rank_cap",
+			util::ErrArg<std::vector<DimT>>("shape",
+				tens[0]->shape().as_list()),
 			util::ErrArg<std::vector<DimT>>("ext", ext));
 	}
 	std::vector<DimT> outlist = tens[0]->shape().as_list();

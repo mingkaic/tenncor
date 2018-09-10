@@ -45,37 +45,48 @@ enum FUNCODE
 	RESHAPE,
 };
 
+// data
+struct DataHolder;
+// caller must free instance using free_data
+struct DataHolder* make_data (struct DataHolder* e);
+struct DataHolder* make_data_d (double e);
+void free_data (struct DataHolder* data);
+void data_append (struct DataHolder* dest, struct DataHolder* e);
+void data_append_d (struct DataHolder* dest, double e);
+
+
+// shape
 struct ShapeHolder;
-
-void use_mode (char mode[32]);
-
 // caller must free instance using free_shape
-struct ShapeHolder* make (int dim);
+struct ShapeHolder* make_shape (int dim);
 void free_shape (struct ShapeHolder* shape);
-void append (struct ShapeHolder* dest, int dim);
+void shape_append (struct ShapeHolder* dest, int dim);
 
+
+// ast
 struct ASTNode;
-
 // caller must free instance using free_ast
-struct ASTNode* emptyNode (void);
-struct ASTNode* toNode (const struct ShapeHolder* shape);
+struct ASTNode* empty_node (void);
+struct ASTNode* to_node (const struct DataHolder* data);
 void free_ast (struct ASTNode* node);
-void saveAST (char key[32], struct ASTNode* value);
+void save_ast (char key[32], struct ASTNode* value);
+struct ASTNode* load_ast (char key[32]);
 
-struct ASTNode* loadAST (char key[32]);
 
 // operators
 struct ASTNode* unary (struct ASTNode* node, enum FUNCODE code);
 struct ASTNode* binary (struct ASTNode* node,
 	struct ASTNode* node2, enum FUNCODE code);
+struct ASTNode* unary_dim (struct ASTNode* child, int dim, enum FUNCODE code);
 struct ASTNode* shapeop (struct ASTNode* node,
 	struct ShapeHolder* shape, enum FUNCODE code);
 struct ASTNode* grad (struct ASTNode* node, struct ASTNode* wrt);
 
+
 // display
-// write out node's shape
+void use_mode (char mode[32]);
+void show_data (struct ASTNode* node);
 void show_shape (struct ASTNode* node);
-// print out subgraph node
 void show_eq (struct ASTNode* node);
 
 #ifdef __cplusplus
