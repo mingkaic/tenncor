@@ -45,9 +45,10 @@
      BINARY = 261,
      SHAPEOP = 262,
      GRAD = 263,
-     SHOW_EQ = 264,
+     PRINT = 264,
      EXIT = 265,
-     UMINUS = 266
+     MODE = 266,
+     UMINUS = 267
    };
 #endif
 /* Tokens.  */
@@ -57,16 +58,17 @@
 #define BINARY 261
 #define SHAPEOP 262
 #define GRAD 263
-#define SHOW_EQ 264
+#define PRINT 264
 #define EXIT 265
-#define UMINUS 266
+#define MODE 266
+#define UMINUS 267
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 18 "calc.yacc"
+#line 17 "calc.yacc"
 {
 	int int_type;
 	char str_type[32];
@@ -74,7 +76,7 @@ typedef union YYSTYPE
 	struct ASTNode* ref_type;
 }
 /* Line 1529 of yacc.c.  */
-#line 78 "y.tab.h"
+#line 80 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

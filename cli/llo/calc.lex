@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ade_cli/ast/calc_ast.h"
+#include "cli/llo/ast/calc_ast.h"
 
-#include "ade_cli/y.tab.h"
+#include "cli/llo/y.tab.h"
 
 int c;
 
@@ -127,8 +127,12 @@ grad	{
 	return GRAD;
 }
 
+mode	{
+	return MODE;
+}
+
 print	{
-	return SHOW_EQ;
+	return PRINT;
 }
 
 exit 	{

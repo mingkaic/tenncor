@@ -133,10 +133,10 @@ struct Executer<ade::PERMUTE,T,std::vector<uint8_t>>
 UNARY_COPY(EXTEND)
 UNARY_COPY(RESHAPE)
 
-// #undef UNARY_ELEM
-// #undef BINARY_ELEM
-// #undef UNARY_REDUCE
-// #undef UNARY_COPY
+#undef UNARY_ELEM
+#undef BINARY_ELEM
+#undef UNARY_REDUCE
+#undef UNARY_COPY
 
 template <ade::OPCODE opcode, typename... Args>
 void exec (GenericData& out,

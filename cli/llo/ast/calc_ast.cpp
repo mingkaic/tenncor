@@ -6,14 +6,23 @@
 #include <iostream>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "ade/functor.hpp"
 
-#include "ade_cli/ast/ascii.hpp"
-#include "ade_cli/ast/calc_ast.h"
+#include "cli/util/ascii.hpp"
+
+#include "cli/llo/ast/calc_ast.h"
 
 const uint8_t RANK_CAP = 8;
 const uint8_t NBINS = 53;
+
+static std::unordered_set<std::string> modes;
+
+void use_mode (char mode[32])
+{
+	modes.emplace(std::string(mode));
+}
 
 struct ShapeHolder
 {
@@ -56,6 +65,7 @@ struct ASTNode
 };
 
 static std::unordered_map<std::string,ade::Tensorptr> asts;
+static std::unordered_map<ade::iTensor*,std::string> varname;
 
 struct ASTNode* emptyNode (void)
 {
@@ -86,9 +96,11 @@ void saveAST (char key[32], struct ASTNode* value)
 		auto it = asts.find(skey);
 		if (it != asts.end())
 		{
+			varname.erase(it->second.get());
 			asts.erase(it);
 		}
 		asts.emplace(skey, value->ptr_);
+		varname.emplace(value->ptr_.get(), skey);
 	}
 }
 
@@ -177,22 +189,32 @@ struct ASTNode* grad (struct ASTNode* node, struct ASTNode* wrt)
 	return out;
 }
 
-void to_string (char out[64], struct ASTNode* node)
+void show_shape (struct ASTNode* node)
 {
+	std::string prefix;
+	if (modes.end() != modes.find("showvar"))
+	{
+		auto it = varname.find(node->ptr_.get());
+		if (varname.end() != it)
+		{
+			prefix = it->second + "=";
+		}
+	}
 	if (node)
 	{
 		std::string str = node->ptr_->shape().to_string();
 		std::replace(str.begin(), str.end(), '\\', ',');
-		std::memcpy(out, str.c_str(), std::min((size_t) 64, str.size() + 1));
+		std::cout << prefix << str << std::endl;
 	}
 	else
 	{
-		std::memcpy(out, "<nil>", 6);
+		std::cout << prefix << "<nil>" << std::endl;
 	}
 }
 
 void show_eq (struct ASTNode* node)
 {
+	bool showvar = modes.end() != modes.find("showvar");
 	ade::iTensor* root = node->ptr_.get();
 	PrettyTree<ade::iTensor*> artist(
 		[](ade::iTensor*& root) -> std::vector<ade::iTensor*>
@@ -203,10 +225,20 @@ void show_eq (struct ASTNode* node)
 			}
 			return {};
 		},
-		[](std::ostream& out, ade::iTensor*& root)
+		[showvar](std::ostream& out, ade::iTensor*& root)
 		{
+			if (showvar)
+			{
+				auto it = varname.find(root);
+				if (varname.end() != it)
+				{
+					out << it->second << "=";
+				}
+			}
 			if (root)
+			{
 				out << root->to_string();
+			}
 		});
 
 	artist.print(std::cout, root);

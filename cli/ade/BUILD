@@ -15,14 +15,14 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-	name = "ade_ast",
-	hdrs = glob([
-		"ast/*.h",
-		"ast/*.hpp",
-	]),
+	name = "ast",
+	hdrs = glob(["ast/*.h"]),
 	srcs = glob(["ast/*.cpp"]),
 	copts = ["-std=c++14"],
-    deps = ["//ade:ade"],
+    deps = [
+		"//ade:ade",
+		"//cli/util:util",
+	],
 )
 
 ######### BINARY #########
@@ -30,5 +30,5 @@ cc_library(
 cc_binary(
 	name = "cli",
 	srcs = glob(["*.h", "*.c"]),
-    deps = [":ade_ast"],
+    deps = [":ast"],
 )

@@ -5,24 +5,28 @@ c
 print(c)
 print(grad(c, a))
 print(grad(c, b))
+print
 
 c = a + b
 c
 print(c)
 print(grad(c, a))
 print(grad(c, b))
+print
 
 c = a - b
 c
 print(c)
 print(grad(c, a))
 print(grad(c, b))
+print
 
 c = a * b
 c
 print(c)
 print(grad(c, a))
 print(grad(c, b))
+print
 
 c = a / b
 c

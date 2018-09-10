@@ -1,9 +1,8 @@
 %{
 #include<stdio.h>
 
-#include "ade_cli/ast/calc_ast.h"
+#include "cli/llo/ast/calc_ast.h"
 
-char buffer[64];
 int base;
 
 extern int yylex();
@@ -27,7 +26,7 @@ extern FILE *yyin;
 %type <vec_type> shape
 %type <ref_type> expr
 
-%token DIGIT VAR UNARY BINARY SHAPEOP GRAD SHOW_EQ EXIT
+%token DIGIT VAR UNARY BINARY SHAPEOP GRAD PRINT EXIT MODE
 
 %left '+' '-'
 %left '*' '/'
@@ -50,14 +49,16 @@ list: 	/* empty */
 		}
 
 stat:	/* empty */
+		{}
+		|
+		MODE VAR
 		{
-			printf("\n");
+			use_mode($2);
 		}
 		|
 		expr
 		{
-			to_string(buffer, $1);
-			printf("%s\n", buffer);
+			show_shape($1);
 			free_ast($1);
 		}
 		|
@@ -67,7 +68,12 @@ stat:	/* empty */
 			free_ast($3);
 		}
 		|
-		SHOW_EQ '(' expr ')'
+		PRINT
+		{
+			printf("\n");
+		}
+		|
+		PRINT '(' expr ')'
 		{
 			show_eq($3);
 			free_ast($3);

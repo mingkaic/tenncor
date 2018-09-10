@@ -47,6 +47,8 @@ enum FUNCODE
 
 struct ShapeHolder;
 
+void use_mode (char mode[32]);
+
 // caller must free instance using free_shape
 struct ShapeHolder* make (int dim);
 void free_shape (struct ShapeHolder* shape);
@@ -72,7 +74,7 @@ struct ASTNode* grad (struct ASTNode* node, struct ASTNode* wrt);
 
 // display
 // write out node's shape
-void to_string (char out[64], struct ASTNode* node);
+void show_shape (struct ASTNode* node);
 // print out subgraph node
 void show_eq (struct ASTNode* node);
 

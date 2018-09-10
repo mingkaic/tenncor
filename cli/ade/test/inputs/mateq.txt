@@ -1,0 +1,34 @@
+mode showvar
+
+a = [12, 32]
+b = [13, 12]
+c = [32, 2]
+d = [4, 13]
+x = matmul(a, b)
+y = matmul(c, x)
+z = matmul(y, d)
+x
+y
+z
+print(z)
+print
+
+gzy = grad(z, y)
+gzd = grad(z, d)
+gzy
+gzd
+print(gzy)
+print(gzd)
+print
+
+gzc = grad(z, c)
+gzx = grad(z, x)
+print(gzc)
+print(gzx)
+print
+
+gza = grad(z, a)
+gzb = grad(z, b)
+print(gza)
+print(gzb)
+print
