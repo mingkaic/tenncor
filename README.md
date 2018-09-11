@@ -14,6 +14,10 @@ Constraints to the equation is limited to each tensor's shape.
 This module is a sample library of data operators mapped to the ADE opcodes.
 Expect this module to split when I decide to depend on external libraries (like eigen).
 
+- PBM (Protobuf Marshaller)
+
+This module marshals llo-extended ade graph
+
 ## Synopsis
 
 The Tenncor library facilitates developers in coding mathematical tensor functions in C++.
