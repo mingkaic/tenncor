@@ -1,3 +1,5 @@
+mode showvar
+
 a = [13, 45]
 b = [13, 45]
 c = pow(a, b)

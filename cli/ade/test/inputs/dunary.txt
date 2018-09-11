@@ -1,3 +1,5 @@
+mode showvar
+
 a = [13, 45]
 b = sin(a)
 b

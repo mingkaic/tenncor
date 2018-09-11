@@ -31,6 +31,31 @@ GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 			argdata[i] = evaluate(dtype, refs[i]);
 		}
 	}
-	op_exec(opcode, out, argdata);
+	switch (opcode)
+	{
+		case ade::MATMUL:
+		{
+			if (auto mf = dynamic_cast<ade::Functor<
+				ade::MATMUL,uint8_t,uint8_t>*>(f))
+			{
+				op_exec(opcode, out, argdata,
+					std::get<0>(mf->meta_), std::get<1>(mf->meta_));
+			}
+			else
+			{
+				op_exec(opcode, out, argdata);
+			}
+		}
+		break;
+		case ade::PERMUTE:
+		{
+			auto pf = static_cast<ade::Functor<
+				ade::PERMUTE,std::vector<uint8_t>>*>(f);
+			op_exec(opcode, out, argdata, std::get<0>(pf->meta_));
+		}
+		break;
+		default:
+			op_exec(opcode, out, argdata);
+	}
 	return out;
 }

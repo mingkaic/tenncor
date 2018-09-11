@@ -1,5 +1,6 @@
 #include <cstring>
 #include <cmath>
+#include <functional>
 
 #include "util/rand.hpp"
 
@@ -156,20 +157,14 @@ void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
 template <typename T>
 void n_elems (T& out, const ade::Shape& in)
 {
-	throw std::bad_function_call();
+	out = in.n_elems();
 }
-
-template <>
-void n_elems<uint64_t> (uint64_t& out, const ade::Shape& in);
 
 template <typename T>
 void n_dims (T& out, const ade::Shape& in, uint8_t dim)
 {
-	throw std::bad_function_call();
+	out = in.at(dim);
 }
-
-template <>
-void n_dims<uint8_t> (uint8_t& out, const ade::Shape& in, uint8_t dim);
 
 template <typename T>
 void arg_max (T& out, const T* in, size_t n)
@@ -293,6 +288,14 @@ void rand_binom (T* out, const T* a, size_t an, const double* b, size_t bn)
 	}
 }
 
+template <>
+void rand_binom<double> (double* out,
+	const double* a, size_t an, const double* b, size_t bn);
+
+template <>
+void rand_binom<float> (float* out,
+	const float* a, size_t an, const double* b, size_t bn);
+
 template <typename T>
 void rand_uniform (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -303,6 +306,14 @@ void rand_uniform (T* out, const T* a, size_t an, const T* b, size_t bn)
 		return dist(util::get_engine());
 	});
 }
+
+template <>
+void rand_uniform<double> (double* out,
+	const double* a, size_t an, const double* b, size_t bn);
+
+template <>
+void rand_uniform<float> (float* out,
+	const float* a, size_t an, const float* b, size_t bn);
 
 template <typename T>
 void rand_normal (T* out, const T* a, size_t an, const T* b, size_t bn)

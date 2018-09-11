@@ -22,13 +22,19 @@ COVER := bazel coverage $(COMMON_BZL_FLAGS) $(GTEST_FLAGS)
 
 COVERAGE_INFO_FILE := coverage.info
 
-test: test_util test_ade cli_check
+test: test_util test_ade check_cli
 
 test_util:
 	$(GTEST) //util:test
 
 test_ade:
 	$(GTEST) //ade:test
+
+build_ade:
+	bazel build //ade:ade
+
+build_llo:
+	bazel build //llo:llo
 
 # valgrind unit tests
 
@@ -69,28 +75,28 @@ cover_ade:
 	$(COVER) $(REP_BZL_FLAG) //ade:test --instrumentation_filter=/ade[/:],/util[/:]
 
 # cli tools
-cli_check: ade_cli_check
+check_cli: check_ade_cli check_llo_cli
 
-ade_cli_check: ade_build_cli
+check_ade_cli: build_ade_cli
 	cli/ade/test/check.sh bazel-bin/cli/ade/cli
 
-llo_cli_check: llo_build_cli
+check_llo_cli: build_llo_cli
 	cli/llo/test/check.sh bazel-bin/cli/llo/cli
 
-build_cli: ade_build_cli llo_yacc_update
+build_cli: build_ade_cli build_llo_cli
 
-ade_build_cli: ade_yacc_update
+build_ade_cli: update_ade_yacc
 	bazel build //cli/ade:cli
 
-llo_build_cli: llo_yacc_update
+build_llo_cli: update_llo_yacc
 	bazel build //cli/llo:cli
 
-yacc_update: ade_yacc_update llo_yacc_update
+update_yacc: update_ade_yacc update_llo_yacc
 
-ade_yacc_update:
+update_ade_yacc:
 	cd cli/ade && yacc -d calc.yacc && flex calc.lex && cd ../..
 
-llo_yacc_update:
+update_llo_yacc:
 	cd cli/llo && yacc -d calc.yacc && flex calc.lex && cd ../..
 
 clean:

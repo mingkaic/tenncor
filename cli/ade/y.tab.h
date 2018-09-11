@@ -39,7 +39,7 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     DIGIT = 258,
+     INTEGER = 258,
      VAR = 259,
      UNARY = 260,
      BINARY = 261,
@@ -48,11 +48,22 @@
      PRINT = 264,
      EXIT = 265,
      MODE = 266,
-     UMINUS = 267
+     ASSIGN = 267,
+     LPAREN = 268,
+     RPAREN = 269,
+     LSB = 270,
+     RSB = 271,
+     COMMA = 272,
+     PLUS = 273,
+     MINUS = 274,
+     STAR = 275,
+     SLASH = 276,
+     NEWLINE = 277,
+     UMINUS = 278
    };
 #endif
 /* Tokens.  */
-#define DIGIT 258
+#define INTEGER 258
 #define VAR 259
 #define UNARY 260
 #define BINARY 261
@@ -61,7 +72,18 @@
 #define PRINT 264
 #define EXIT 265
 #define MODE 266
-#define UMINUS 267
+#define ASSIGN 267
+#define LPAREN 268
+#define RPAREN 269
+#define LSB 270
+#define RSB 271
+#define COMMA 272
+#define PLUS 273
+#define MINUS 274
+#define STAR 275
+#define SLASH 276
+#define NEWLINE 277
+#define UMINUS 278
 
 
 
@@ -76,7 +98,7 @@ typedef union YYSTYPE
 	struct ASTNode* ref_type;
 }
 /* Line 1529 of yacc.c.  */
-#line 80 "y.tab.h"
+#line 102 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

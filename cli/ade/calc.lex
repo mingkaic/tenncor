@@ -10,7 +10,29 @@ int c;
 %}
 
 %%
-" "		;
+[\t\r\a\v\b ]	;
+
+\n	{ return NEWLINE; }
+
+=	{ return ASSIGN; }
+
+\(	{ return LPAREN; }
+
+\)	{ return RPAREN; }
+
+,	{ return COMMA; }
+
+\+	{ return PLUS; }
+
+-	{ return MINUS; }
+
+\*	{ return STAR; }
+
+\/	{ return SLASH; }
+
+\[ 	{ return LSB; }
+
+\]	{ return RSB; }
 
 abs		{
 	yylval.int_type = ABS;
@@ -143,14 +165,8 @@ exit 	{
 	return VAR;
 }
 
-[0-9]	{
-	c = yytext[0];
-	yylval.int_type = c - '0';
-	return DIGIT;
-}
-
-[^a-z0-9;\b]	{
-	c = yytext[0];
-	return c;
+0|[1-9][0-9]*	{
+	yylval.int_type = atoi(yytext);
+	return INTEGER;
 }
 %%

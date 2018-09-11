@@ -49,6 +49,10 @@ enum OPCODE
 	EXTEND,
 	RESHAPE,
 
+	// todo: implement (replace CLIP)
+	MIN,
+	MAX,
+
 	_NUM_OPS,
 };
 

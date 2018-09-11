@@ -1,5 +1,6 @@
 %{
-#include<stdio.h>
+#include <stdio.h>
+#include <math.h>
 
 #include "cli/llo/ast/ast.h"
 
@@ -21,17 +22,18 @@ extern FILE *yyin;
 	struct ASTNode* ref_type;
 }
 
-%type <int_type> integer UNARY BINARY DIMOP SHAPEOP DIGIT
-%type <num_type> number
+%type <int_type> INTEGER UNARY BINARY DIMOP SHAPEOP
+%type <num_type> number DECIMAL
 %type <str_type> VAR
 %type <data_type> arr
 %type <vec_type> shape
 %type <ref_type> expr
 
-%token DIGIT VAR UNARY BINARY DIMOP SHAPEOP GRAD PRINT SHAPE EXIT MODE
+%token INTEGER DECIMAL VAR UNARY BINARY DIMOP SHAPEOP GRAD PRINT SHAPE EXIT MODE
+ASSIGN LPAREN RPAREN LSB RSB COMMA PLUS MINUS STAR SLASH NEWLINE
 
-%left '+' '-'
-%left '*' '/'
+%left PLUS MINUS
+%left STAR SLASH
 %left UMINUS /*supplies precedence for unary minus */
 
 %% /* beginning of rules section */
@@ -43,9 +45,9 @@ list: 	/* empty */
 			YYACCEPT;
 		}
 		|
-		list stat '\n'
+		list stat NEWLINE
 		|
-		list error '\n'
+		list error NEWLINE
 		{
 			yyerrok;
 		}
@@ -64,7 +66,7 @@ stat:	/* empty */
 			free_ast($1);
 		}
 		|
-		VAR '=' expr
+		VAR ASSIGN expr
 		{
 			save_ast($1, $3);
 			free_ast($3);
@@ -75,88 +77,87 @@ stat:	/* empty */
 			printf("\n");
 		}
 		|
-		PRINT '(' expr ')'
+		PRINT LPAREN expr RPAREN
 		{
 			show_eq($3);
 			free_ast($3);
 		}
 		|
-		PRINT '(' expr ',' SHAPE ')'
+		SHAPE LPAREN expr RPAREN
 		{
 			show_shape($3);
 			free_ast($3);
 		}
 		;
 
-expr:   GRAD '(' expr ',' VAR ')'
+expr:   GRAD LPAREN expr COMMA VAR RPAREN
 		{
 			struct ASTNode* node = load_ast($5);
 			$$ = grad($3, node);
 			free_ast($3);
 			free_ast(node);
-
 		}
 		|
-		UNARY '(' expr ')'
+		UNARY LPAREN expr RPAREN
 		{
 			$$ = unary($3, $1);
 			free_ast($3);
 		}
 		|
-		BINARY '(' expr ',' expr ')'
+		BINARY LPAREN expr COMMA expr RPAREN
 		{
 			$$ = binary($3, $5, $1);
 			free_ast($3);
 			free_ast($5);
 		}
 		|
-		DIMOP '(' expr ',' integer ')'
+		DIMOP LPAREN expr COMMA INTEGER RPAREN
 		{
 			$$ = unary_dim($3, $5, $1);
 			free_ast($3);
 		}
 		|
-		SHAPEOP '(' expr ',' shape ')'
+		SHAPEOP LPAREN expr COMMA shape RPAREN
 		{
 			$$ = shapeop($3, $5, $1);
 			free_ast($3);
 			free_shape($5);
 		}
 		|
-		'(' expr ')'
+		LPAREN expr RPAREN
 		{
 			$$ = $2;
 		}
 		|
-		expr '*' expr
+		expr STAR expr
 		{
 			$$ = binary($1, $3, MUL);
 			free_ast($1);
 			free_ast($3);
 		}
 		|
-		expr '/' expr
+		expr SLASH expr
 		{
 			$$ = binary($1, $3, DIV);
 			free_ast($1);
 			free_ast($3);
 		}
 		|
-		expr '+' expr
+		expr PLUS expr
 		{
 			$$ = binary($1, $3, ADD);
 			free_ast($1);
 			free_ast($3);
 		}
 		|
-		expr '-' expr
+		expr MINUS expr
 		{
 			$$ = binary($1, $3, SUB);
 			free_ast($1);
 			free_ast($3);
 		}
 		|
-		'-' expr %prec UMINUS
+		MINUS expr %prec UMINUS
 		{
 			$$ = unary($2, NEG);
 			free_ast($2);
@@ -167,30 +168,30 @@ expr:   GRAD '(' expr ',' VAR ')'
 			$$ = load_ast($1);
 		}
 		|
-		'[' arr ']'
+		LSB arr RSB
 		{
 			$$ = to_node($2);
 			free_data($2);
 		}
 		|
-		'[' ']'
+		LSB RSB
 		{
 			$$ = empty_node();
 		}
 		;
 
-arr:	arr ',' '[' arr ']'
+arr:	arr COMMA LSB arr RSB
 		{
 			data_append($1, $4);
 			$$ = $1;
 		}
 		|
-		'[' arr ']'
+		LSB arr RSB
 		{
 			$$ = make_data($2);
 		}
 		|
-		arr ',' number
+		arr COMMA number
 		{
 			data_append_d($1, $3);
 			$$ = $1;
@@ -202,36 +203,26 @@ arr:	arr ',' '[' arr ']'
 		}
 		;
 
-shape:	shape ',' integer
+shape:	shape COMMA INTEGER
 		{
 			shape_append($1, $3);
 			$$ = $1;
 		}
 		|
-		integer
+		INTEGER
 		{
 			$$ = make_shape($1);
 		}
 		;
 
-number: integer '.' integer
-		{
-			$$ = $1 + 1.0 / $3;
-		}
-		|
-		integer
+number:	DECIMAL
 		{
 			$$ = $1;
-		};
-
-integer: DIGIT
-		{
-		   $$ = $1;
 		}
 		|
-		integer DIGIT
+		INTEGER
 		{
-		   $$ = 10 * $1 + $2;
+			$$ = $1;
 		}
 		;
 

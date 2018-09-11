@@ -67,10 +67,12 @@ struct Functor final : public iFunctor
 		return out;
 	}
 
+	std::tuple<Args...> meta_;
+
 private:
 	Functor (Shape shape, std::vector<Tensorptr> args,
 		std::tuple<Args...>& meta) :
-		args_(args), shape_(shape), meta_(meta) {}
+		meta_(meta), args_(args), shape_(shape) {}
 
 	template <size_t... I>
 	Tensorptr grad_helper (Tensorptr& wrt, std::index_sequence<I...>) const
@@ -80,8 +82,6 @@ private:
 
 	std::vector<Tensorptr> args_;
 	Shape shape_;
-
-	std::tuple<Args...> meta_;
 };
 
 #define MAPCASE(CODE)case CODE: return Functor<CODE,Args...>::get(args, meta...);

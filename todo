@@ -1,16 +1,17 @@
 tests:
-- full unit test coverage on sand
-- full unit test coverage on soil
-- add test coverage on glass
-- valgrind/asan check on sand/soil/glass
-- update regression test
+- full unit test coverage on ade
+- full unit test coverage on llo
+- add test coverage on save
+- valgrind/asan check everything
 
-- remove clay/mold/kiln/lead/ioutil
+- update regression test
 - update pysave/graphmgr
 
 enhancements:
-readability:
+readability
+documentation
 
 performance:
-- deprecate groups over metadata passing at preop
-- implement memory pooling over returning shared_ptr blocks
+- reduce shared_ptr overhead
+- implement optimization options to decrease equation graph size
+- implement optimization options to increase data accuracy

@@ -51,15 +51,51 @@ void neg<uint64_t> (uint64_t* out, const uint64_t* in, size_t n)
 }
 
 template <>
-void n_elems<uint64_t> (uint64_t& out, const ade::Shape& in)
+void rand_binom<double> (double* out,
+	const double* a, size_t an, const double* b, size_t bn)
 {
-	out = in.n_elems();
+	size_t n = std::max(an, bn);
+	for (size_t i = 0; i < n; ++i)
+	{
+		std::binomial_distribution<int64_t> dist(a[i % an], b[i % bn]);
+		out[i] = dist(util::get_engine());
+	}
 }
 
 template <>
-void n_dims<uint8_t> (uint8_t& out, const ade::Shape& in, uint8_t dim)
+void rand_binom<float> (float* out,
+	const float* a, size_t an, const double* b, size_t bn)
 {
-	out = in.at(dim);
+	size_t n = std::max(an, bn);
+	for (size_t i = 0; i < n; ++i)
+	{
+		std::binomial_distribution<int32_t> dist(a[i % an], b[i % bn]);
+		out[i] = dist(util::get_engine());
+	}
+}
+
+template <>
+void rand_uniform<double> (double* out,
+	const double* a, size_t an, const double* b, size_t bn)
+{
+	binary<double>(out, a, an, b, bn,
+	[](const double& a, const double& b)
+	{
+		std::uniform_real_distribution<double> dist(a, b);
+		return dist(util::get_engine());
+	});
+}
+
+template <>
+void rand_uniform<float> (float* out,
+	const float* a, size_t an, const float* b, size_t bn)
+{
+	binary<float>(out, a, an, b, bn,
+	[](const float& a, const float& b)
+	{
+		std::uniform_real_distribution<float> dist(a, b);
+		return dist(util::get_engine());
+	});
 }
 
 template <>

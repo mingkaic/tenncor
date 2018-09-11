@@ -108,6 +108,17 @@ UNARY_REDUCE(RMAX, reduce_max)
 UNARY_REDUCE(RSUM, reduce_sum)
 
 template <typename T>
+struct Executer<ade::MATMUL,T>
+{
+	static void exec (GenericData& out, std::vector<GenericData>& data)
+	{
+		matmul((T*) out.data_.get(),
+			(T*) data[0].data_.get(), (T*) data[1].data_.get(),
+			data[0].shape_, data[1].shape_, 1, 1);
+	}
+};
+
+template <typename T>
 struct Executer<ade::MATMUL,T,uint8_t,uint8_t>
 {
 	static void exec (GenericData& out, std::vector<GenericData>& data,

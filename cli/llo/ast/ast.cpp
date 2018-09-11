@@ -334,8 +334,16 @@ void show_data (struct ASTNode* node)
 			}
 		}
 		GenericData data = evaluate(DOUBLE, node->ptr_.get());
-		PrettyTensor<double> artist(data.shape_.as_list(),
-			{15, 5, 1, 1, 1, 1, 1, 1});
+		std::vector<uint8_t> slist;
+		if (data.shape_.n_rank() == 0)
+		{
+			slist = {1};
+		}
+		else
+		{
+			slist = data.shape_.as_list();
+		}
+		PrettyTensor<double> artist(slist, {15, 5, 1, 1, 1, 1, 1, 1});
 		std::cout << prefix;
 		artist.print(std::cout, (double*) data.data_.get());
 		std::cout << std::endl;
@@ -356,7 +364,7 @@ void show_shape (struct ASTNode* node)
 			auto it = varname.find(node->ptr_.get());
 			if (varname.end() != it)
 			{
-				prefix = it->second + "=";
+				prefix = it->second + "_shape=";
 			}
 		}
 		std::string str = node->ptr_->shape().to_string();

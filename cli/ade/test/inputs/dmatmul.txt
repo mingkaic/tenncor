@@ -1,3 +1,5 @@
+mode showvar
+
 a = [14, 1]
 b = [13, 14]
 c = matmul(a, b)

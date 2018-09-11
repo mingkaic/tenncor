@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "util/error.hpp"
 
 #include "llo/data.hpp"

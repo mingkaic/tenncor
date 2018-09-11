@@ -39,40 +39,64 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     DIGIT = 258,
-     VAR = 259,
-     UNARY = 260,
-     BINARY = 261,
-     DIMOP = 262,
-     SHAPEOP = 263,
-     GRAD = 264,
-     PRINT = 265,
-     SHAPE = 266,
-     EXIT = 267,
-     MODE = 268,
-     UMINUS = 269
+     INTEGER = 258,
+     DECIMAL = 259,
+     VAR = 260,
+     UNARY = 261,
+     BINARY = 262,
+     DIMOP = 263,
+     SHAPEOP = 264,
+     GRAD = 265,
+     PRINT = 266,
+     SHAPE = 267,
+     EXIT = 268,
+     MODE = 269,
+     ASSIGN = 270,
+     LPAREN = 271,
+     RPAREN = 272,
+     LSB = 273,
+     RSB = 274,
+     COMMA = 275,
+     PLUS = 276,
+     MINUS = 277,
+     STAR = 278,
+     SLASH = 279,
+     NEWLINE = 280,
+     UMINUS = 281
    };
 #endif
 /* Tokens.  */
-#define DIGIT 258
-#define VAR 259
-#define UNARY 260
-#define BINARY 261
-#define DIMOP 262
-#define SHAPEOP 263
-#define GRAD 264
-#define PRINT 265
-#define SHAPE 266
-#define EXIT 267
-#define MODE 268
-#define UMINUS 269
+#define INTEGER 258
+#define DECIMAL 259
+#define VAR 260
+#define UNARY 261
+#define BINARY 262
+#define DIMOP 263
+#define SHAPEOP 264
+#define GRAD 265
+#define PRINT 266
+#define SHAPE 267
+#define EXIT 268
+#define MODE 269
+#define ASSIGN 270
+#define LPAREN 271
+#define RPAREN 272
+#define LSB 273
+#define RSB 274
+#define COMMA 275
+#define PLUS 276
+#define MINUS 277
+#define STAR 278
+#define SLASH 279
+#define NEWLINE 280
+#define UMINUS 281
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 15 "calc.yacc"
+#line 16 "calc.yacc"
 {
 	int int_type;
 	double num_type;
@@ -82,7 +106,7 @@ typedef union YYSTYPE
 	struct ASTNode* ref_type;
 }
 /* Line 1529 of yacc.c.  */
-#line 86 "y.tab.h"
+#line 110 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
