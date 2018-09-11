@@ -29,8 +29,8 @@ extern FILE *yyin;
 %type <vec_type> shape
 %type <ref_type> expr
 
-%token INTEGER DECIMAL VAR UNARY BINARY DIMOP SHAPEOP GRAD PRINT SHAPE EXIT MODE
-ASSIGN LPAREN RPAREN LSB RSB COMMA PLUS MINUS STAR SLASH NEWLINE
+%token INTEGER DECIMAL VAR UNARY BINARY DIMOP SHAPEOP GRAD PRINT SHAPE EXIT
+MODE ASSIGN LPAREN RPAREN LSB RSB COMMA PLUS MINUS STAR SLASH ENDSTMT
 
 %left PLUS MINUS
 %left STAR SLASH
@@ -45,9 +45,9 @@ list: 	/* empty */
 			YYACCEPT;
 		}
 		|
-		list stat NEWLINE
+		list stat ENDSTMT
 		|
-		list error NEWLINE
+		list error ENDSTMT
 		{
 			yyerrok;
 		}
@@ -60,15 +60,21 @@ stat:	/* empty */
 			use_mode($2);
 		}
 		|
+		VAR ASSIGN expr
+		{
+			save_ast($1, $3);
+			free_ast($3);
+		}
+		|
 		expr
 		{
 			show_data($1);
 			free_ast($1);
 		}
 		|
-		VAR ASSIGN expr
+		SHAPE LPAREN expr RPAREN
 		{
-			save_ast($1, $3);
+			show_shape($3);
 			free_ast($3);
 		}
 		|
@@ -80,12 +86,6 @@ stat:	/* empty */
 		PRINT LPAREN expr RPAREN
 		{
 			show_eq($3);
-			free_ast($3);
-		}
-		|
-		SHAPE LPAREN expr RPAREN
-		{
-			show_shape($3);
 			free_ast($3);
 		}
 		;

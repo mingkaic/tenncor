@@ -61,7 +61,7 @@
      MINUS = 277,
      STAR = 278,
      SLASH = 279,
-     NEWLINE = 280,
+     ENDSTMT = 280,
      UMINUS = 281
    };
 #endif
@@ -88,7 +88,7 @@
 #define MINUS 277
 #define STAR 278
 #define SLASH 279
-#define NEWLINE 280
+#define ENDSTMT 280
 #define UMINUS 281
 
 

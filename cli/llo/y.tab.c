@@ -88,7 +88,7 @@
      MINUS = 277,
      STAR = 278,
      SLASH = 279,
-     NEWLINE = 280,
+     ENDSTMT = 280,
      UMINUS = 281
    };
 #endif
@@ -115,7 +115,7 @@
 #define MINUS 277
 #define STAR 278
 #define SLASH 279
-#define NEWLINE 280
+#define ENDSTMT 280
 #define UMINUS 281
 
 
@@ -450,8 +450,8 @@ static const yytype_uint8 yytranslate[] =
    YYRHS.  */
 static const yytype_uint8 yyprhs[] =
 {
-       0,     0,     3,     4,     7,    11,    15,    16,    19,    21,
-      25,    27,    32,    37,    44,    49,    56,    63,    70,    74,
+       0,     0,     3,     4,     7,    11,    15,    16,    19,    23,
+      25,    30,    32,    37,    44,    49,    56,    63,    70,    74,
       78,    82,    86,    90,    93,    95,    99,   102,   108,   112,
      116,   118,   122,   124,   126
 };
@@ -460,9 +460,9 @@ static const yytype_uint8 yyprhs[] =
 static const yytype_int8 yyrhs[] =
 {
       28,     0,    -1,    -1,    28,    13,    -1,    28,    29,    25,
-      -1,    28,     1,    25,    -1,    -1,    14,     5,    -1,    30,
-      -1,     5,    15,    30,    -1,    11,    -1,    11,    16,    30,
-      17,    -1,    12,    16,    30,    17,    -1,    10,    16,    30,
+      -1,    28,     1,    25,    -1,    -1,    14,     5,    -1,     5,
+      15,    30,    -1,    30,    -1,    12,    16,    30,    17,    -1,
+      11,    -1,    11,    16,    30,    17,    -1,    10,    16,    30,
       20,     5,    17,    -1,     6,    16,    30,    17,    -1,     7,
       16,    30,    20,    30,    17,    -1,     8,    16,    30,    20,
        3,    17,    -1,     9,    16,    30,    20,    32,    17,    -1,
@@ -478,7 +478,7 @@ static const yytype_int8 yyrhs[] =
 static const yytype_uint8 yyrline[] =
 {
        0,    41,    41,    43,    48,    50,    56,    58,    63,    69,
-      75,    80,    86,    93,   101,   107,   114,   120,   127,   132,
+      75,    81,    86,    93,   101,   107,   114,   120,   127,   132,
      139,   146,   153,   160,   166,   171,   177,   183,   189,   194,
      200,   206,   212,   218,   223
 };
@@ -492,7 +492,7 @@ static const char *const yytname[] =
   "$end", "error", "$undefined", "INTEGER", "DECIMAL", "VAR", "UNARY",
   "BINARY", "DIMOP", "SHAPEOP", "GRAD", "PRINT", "SHAPE", "EXIT", "MODE",
   "ASSIGN", "LPAREN", "RPAREN", "LSB", "RSB", "COMMA", "PLUS", "MINUS",
-  "STAR", "SLASH", "NEWLINE", "UMINUS", "$accept", "list", "stat", "expr",
+  "STAR", "SLASH", "ENDSTMT", "UMINUS", "$accept", "list", "stat", "expr",
   "arr", "shape", "number", 0
 };
 #endif
@@ -520,8 +520,8 @@ static const yytype_uint8 yyr1[] =
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     0,     2,     3,     3,     0,     2,     1,     3,
-       1,     4,     4,     6,     4,     6,     6,     6,     3,     3,
+       0,     2,     0,     2,     3,     3,     0,     2,     3,     1,
+       4,     1,     4,     6,     4,     6,     6,     6,     3,     3,
        3,     3,     3,     2,     1,     3,     2,     5,     3,     3,
        1,     3,     1,     1,     1
 };
@@ -532,12 +532,12 @@ static const yytype_uint8 yyr2[] =
 static const yytype_uint8 yydefact[] =
 {
        2,     0,     1,     0,    24,     0,     0,     0,     0,     0,
-      10,     0,     3,     0,     0,     0,     0,     0,     8,     5,
+      11,     0,     3,     0,     0,     0,     0,     0,     9,     5,
        0,     0,     0,     0,     0,     0,     0,     0,     7,    24,
        0,    34,    33,     0,    26,     0,    30,    23,     4,     0,
-       0,     0,     0,     9,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     8,     0,     0,     0,     0,     0,     0,
        0,    18,     0,    25,     0,    21,    22,    19,    20,    14,
-       0,     0,     0,     0,    11,    12,    28,     0,    29,     0,
+       0,     0,     0,     0,    12,    10,    28,     0,    29,     0,
        0,    32,     0,     0,     0,    15,    16,    17,     0,    13,
       27,    31
 };
@@ -1464,38 +1464,38 @@ yyreduce:
   case 8:
 #line 64 "calc.yacc"
     {
-			show_data((yyvsp[(1) - (1)].ref_type));
-			free_ast((yyvsp[(1) - (1)].ref_type));
+			save_ast((yyvsp[(1) - (3)].str_type), (yyvsp[(3) - (3)].ref_type));
+			free_ast((yyvsp[(3) - (3)].ref_type));
 		}
     break;
 
   case 9:
 #line 70 "calc.yacc"
     {
-			save_ast((yyvsp[(1) - (3)].str_type), (yyvsp[(3) - (3)].ref_type));
-			free_ast((yyvsp[(3) - (3)].ref_type));
+			show_data((yyvsp[(1) - (1)].ref_type));
+			free_ast((yyvsp[(1) - (1)].ref_type));
 		}
     break;
 
   case 10:
 #line 76 "calc.yacc"
     {
-			printf("\n");
+			show_shape((yyvsp[(3) - (4)].ref_type));
+			free_ast((yyvsp[(3) - (4)].ref_type));
 		}
     break;
 
   case 11:
-#line 81 "calc.yacc"
+#line 82 "calc.yacc"
     {
-			show_eq((yyvsp[(3) - (4)].ref_type));
-			free_ast((yyvsp[(3) - (4)].ref_type));
+			printf("\n");
 		}
     break;
 
   case 12:
 #line 87 "calc.yacc"
     {
-			show_shape((yyvsp[(3) - (4)].ref_type));
+			show_eq((yyvsp[(3) - (4)].ref_type));
 			free_ast((yyvsp[(3) - (4)].ref_type));
 		}
     break;

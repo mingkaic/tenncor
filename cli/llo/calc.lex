@@ -10,9 +10,7 @@ int c;
 %}
 
 %%
-[\t\r\a\v\b ]	;
-
-\n	{ return NEWLINE; }
+[\t\r\a\v\b\n ]	;
 
 =	{ return ASSIGN; }
 
@@ -33,6 +31,8 @@ int c;
 \[ 	{ return LSB; }
 
 \]	{ return RSB; }
+
+;	{ return ENDSTMT; }
 
 abs		{
 	yylval.int_type = ABS;

@@ -1,80 +1,80 @@
-mode showvar
+mode showvar;
 
-a = [[-12,13],[1.2, -3], [-3]]
-b = abs(a)
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [[-12,13],[1.2, -3], [-3]];
+b = abs(a);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [[-12,1,3],[0,1.2,-3],[1.2,3,0]]
-b = -a
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [[-12,1,3],[0,1.2,-3],[1.2,3,0]];
+b = -a;
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [[-12,1,3],[1.2,3,0]]
-b = sin(a)
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [[-12,1,3],[1.2,3,0]];
+b = sin(a);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [[1,3],[1.2,0]]
-b = cos(a)
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [[1,3],[1.2,0]];
+b = cos(a);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [12, 3]
-b = tan(a)
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [12, 3];
+b = tan(a);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [[[12, 43]]]
-b = exp(a)
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [[[12, 43]]];
+b = exp(a);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [12]
-b = log(a)
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [12];
+b = log(a);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [16, 1, 3]
-b = sqrt(a)
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [16, 1, 3];
+b = sqrt(a);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [[1.5, 16.4, 3.2], [1.45, 16.54, 33.2]]
-b = round(a)
-b
-shape(b)
-print(b)
-print(grad(b, a))
-print
+a = [[1.5, 16.4, 3.2], [1.45, 16.54, 33.2]];
+b = round(a);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
+print;
 
-a = [[16, 3], [2.4, 5]]
-b = flip(a, 0)
-b
-shape(b)
-print(b)
-print(grad(b, a))
+a = [[16, 3], [2.4, 5]];
+b = flip(a, 0);
+b;
+shape(b);
+print(b);
+print(grad(b, a));
