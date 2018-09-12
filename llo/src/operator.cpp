@@ -2,6 +2,9 @@
 
 #ifdef LLO_OPERATOR_HPP
 
+namespace llo
+{
+
 template <>
 void abs<uint8_t> (uint8_t* out, const uint8_t* in, size_t n)
 {
@@ -120,6 +123,8 @@ void rand_normal<double> (double* out,
 		std::normal_distribution<double> dist(a, b);
 		return dist(util::get_engine());
 	});
+}
+
 }
 
 #endif

@@ -1,11 +1,10 @@
 syntax = "proto3";
 
-option go_package = "github.com/mingkaic/tenncor/glass";
+option go_package = "github.com/mingkaic/tenncor/pbm";
 
 package tenncor;
 
 import "google/protobuf/any.proto";
-import "glass/data.proto";
 
 message ByteArr { bytes data = 1; }
 message DoubleArr { repeated double data = 1; }

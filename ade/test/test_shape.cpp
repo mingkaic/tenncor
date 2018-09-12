@@ -189,7 +189,7 @@ TEST(SHAPE, Compatible)
 			" to be compatible with itself after idx " << unsigned(idx);
 	}
 
-	// long insertion_pt = sess->get_scalar("insertion_pt" + label, {0, slist.size()+1});
+	// long insertion_pt = sess->get_scalar("insertion_pt", {0, slist.size()+1});
 	uint8_t insertion_pt = 1;
 	std::vector<ade::DimT> ilist = slist;
 	ilist.insert(ilist.begin() + insertion_pt, 1);

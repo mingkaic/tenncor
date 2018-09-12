@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "ade/test/common.hpp"
+
 #include "ade/fwder.hpp"
 
 
@@ -9,27 +11,54 @@
 template <ade::OPCODE opcode>
 static void unary_elementary (void)
 {
+	// SESSION sess = getSession("FWDER::" + ade::opname(opcode));
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 
 	ade::Shape same_shape = ade::forwarder<opcode>({leaf});
+	EXPECT_ARREQ(slist, same_shape.as_list());
 }
 
 
 template <ade::OPCODE opcode>
 static void binary_elementary (void)
 {
+	// SESSION sess = getSession("FWDER::" + ade::opname(opcode));
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	// long incr_pt = sess->get_scalar("incr_pt", {0, slist.size()});
+	// long ext_value = sess->get_scalar("ext_value");
+	// std::vector<ade::DimT> badlist = slist;
+	// badlist[insertion_pt]++;
+	// std::vector<ade::DimT> extlist = slist;
+	// extlist.push_back(ext_value);
 	std::vector<ade::DimT> badlist = {2, 4};
 	std::vector<ade::DimT> extlist = {2, 3, 4};
 	std::vector<ade::DimT> slist = {2, 3};
+	ade::Tensorptr scalar = ade::Tensor::get(ade::Shape());
+	ade::Tensorptr alt_scalar = ade::Tensor::get(ade::Shape({1}));
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf2 = ade::Tensor::get(ade::Shape(extlist));
 	ade::Tensorptr badleaf = ade::Tensor::get(ade::Shape(badlist));
 
 	ade::Shape same_shape = ade::forwarder<opcode>({leaf, leaf1});
+	ade::Shape same_shape2 = ade::forwarder<opcode>({leaf, scalar});
+	ade::Shape same_shape3 = ade::forwarder<opcode>({scalar, leaf1});
+	ade::Shape same_shape4 = ade::forwarder<opcode>({leaf, alt_scalar});
+	ade::Shape same_shape5 = ade::forwarder<opcode>({alt_scalar, leaf1});
+	EXPECT_ARREQ(slist, same_shape.as_list());
+	EXPECT_ARREQ(slist, same_shape2.as_list());
+	EXPECT_ARREQ(slist, same_shape3.as_list());
+	EXPECT_ARREQ(slist, same_shape4.as_list());
+	EXPECT_ARREQ(slist, same_shape5.as_list());
+
 	ade::Shape ext_shape = ade::forwarder<opcode>({leaf, leaf2});
 	ade::Shape ext_shape1 = ade::forwarder<opcode>({leaf1, leaf2});
+	EXPECT_ARREQ(extlist, ext_shape.as_list());
+	EXPECT_ARREQ(extlist, ext_shape1.as_list());
 
 	EXPECT_THROW(ade::forwarder<opcode>({leaf, badleaf}), std::runtime_error);
 	EXPECT_THROW(ade::forwarder<opcode>({badleaf, leaf}), std::runtime_error);
@@ -39,11 +68,15 @@ static void binary_elementary (void)
 template <ade::OPCODE opcode>
 static void scalar (void)
 {
+	// SESSION sess = getSession("FWDER::" + ade::opname(opcode));
+
+	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
 	ade::Shape scal_shape = ade::forwarder<opcode>({leaf});
+	EXPECT_EQ(1, scal_shape.n_elems());
 
 	EXPECT_THROW(ade::forwarder<opcode>({leaf, leaf1}), std::runtime_error);
 }

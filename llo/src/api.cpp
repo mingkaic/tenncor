@@ -2,6 +2,8 @@
 
 #include "llo/api.hpp"
 
+#ifdef LLO_API_HPP
+
 ade::Tensorptr abs (ade::Tensorptr& arg)
 {
 	return ade::Functor<ade::ABS>::get({arg});
@@ -160,3 +162,5 @@ ade::Tensorptr reshape (ade::Tensorptr& arg, std::vector<uint8_t> slist)
 	return ade::Functor<ade::RESHAPE,
 		std::vector<ade::DimT>>::get({arg}, slist);
 }
+
+#endif

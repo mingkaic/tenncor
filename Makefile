@@ -30,12 +30,6 @@ test_util:
 test_ade:
 	$(GTEST) //ade:test
 
-build_ade:
-	bazel build //ade:ade
-
-build_llo:
-	bazel build //llo:llo
-
 # valgrind unit tests
 
 valgrind: valgrind_util valgrind_ade
@@ -74,7 +68,7 @@ cover_util:
 cover_ade:
 	$(COVER) $(REP_BZL_FLAG) //ade:test --instrumentation_filter=/ade[/:],/util[/:]
 
-# cli tools
+# CLI test
 check_cli: check_ade_cli check_llo_cli
 
 check_ade_cli: build_ade_cli
@@ -83,21 +77,15 @@ check_ade_cli: build_ade_cli
 check_llo_cli: build_llo_cli
 	cli/llo/test/check.sh bazel-bin/cli/llo/cli
 
+# build CLI
 build_cli: build_ade_cli build_llo_cli
 
-build_ade_cli: update_ade_yacc
+build_ade_cli:
 	bazel build //cli/ade:cli
 
-build_llo_cli: update_llo_yacc
+build_llo_cli:
 	bazel build //cli/llo:cli
 
-update_yacc: update_ade_yacc update_llo_yacc
-
-update_ade_yacc:
-	cd cli/ade && yacc -d calc.yacc && flex calc.lex && cd ../..
-
-update_llo_yacc:
-	cd cli/llo && yacc -d calc.yacc && flex calc.lex && cd ../..
 
 clean:
 	bazel clean

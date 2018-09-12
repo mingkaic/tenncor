@@ -66,6 +66,9 @@ doxout
 CMakeFiles
 **/samples
 
+**/lex.yy.c
+**/y.tab.*
+
 # whitelist
 !.gitignore
 !.travis.yml

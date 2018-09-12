@@ -1,10 +1,12 @@
 tests:
-- full unit test coverage on ade
-- full unit test coverage on llo
-- add test coverage on save
+- full test coverage on ade
+- full test coverage on llo
+- add test on pbm
 - valgrind/asan check everything
-
 - update regression test
+
+- experiment with top-level code
+
 - update pysave/graphmgr
 
 enhancements:

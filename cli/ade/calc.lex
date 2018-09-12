@@ -3,7 +3,7 @@
 
 #include "cli/ade/ast/ast.h"
 
-#include "cli/ade/y.tab.h"
+#include "cli/ade/ade.cli.h"
 
 int c;
 

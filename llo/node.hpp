@@ -2,11 +2,16 @@
 
 #include "llo/opmap.hpp"
 
+#ifndef LLO_NODE_HPP
+#define LLO_NODE_HPP
+
 struct Evaluable
 {
 	virtual ~Evaluable (void) = default;
 
 	virtual GenericData evaluate (DTYPE dtype) = 0;
+
+	virtual DTYPE native_type (void) const = 0;
 
 	virtual ade::Tensorptr inner (void) const = 0;
 };
@@ -71,6 +76,11 @@ struct Source final : public ade::iTensor, public Evaluable
 		return out;
 	}
 
+	DTYPE native_type (void) const override
+	{
+		return get_type<T>();
+	}
+
 	ade::Tensorptr inner (void) const override
 	{
 		return tens_;
@@ -133,14 +143,21 @@ struct DirectWrapper final : public ade::iFunctor, public Evaluable
 		return eval_helper(dtype, std::index_sequence_for<Args...>());
 	}
 
+	DTYPE native_type (void) const override
+	{
+		return BAD;
+	}
+
 	ade::Tensorptr inner (void) const override
 	{
 		return tens_;
 	}
 
+	std::tuple<Args...> args_;
+
 private:
 	DirectWrapper (ade::Tensorptr& tens, std::tuple<Args...>& args) :
-		tens_(tens), args_(args) {}
+		args_(args), tens_(tens) {}
 
 	template <size_t... I>
 	GenericData eval_helper (DTYPE dtype, std::index_sequence<I...>) const
@@ -162,5 +179,6 @@ private:
 	}
 
 	ade::Tensorptr tens_;
-	std::tuple<Args...> args_;
 };
+
+#endif /* LLO_NODE_HPP */

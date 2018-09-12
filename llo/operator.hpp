@@ -9,6 +9,9 @@
 #ifndef LLO_OPERATOR_HPP
 #define LLO_OPERATOR_HPP
 
+namespace llo
+{
+
 template <typename T>
 void unary (T* out, const T* in, size_t n,
 	std::function<T(const T&)> f)
@@ -371,6 +374,8 @@ void copyover (T* out, size_t nout, const T* in, size_t nin)
 	{
 		std::memcpy(out + mult * nin, in, sizeof(T) * leftover);
 	}
+}
+
 }
 
 #endif /* LLO_OPERATOR_HPP */

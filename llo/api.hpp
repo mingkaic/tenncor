@@ -1,5 +1,8 @@
 #include "llo/node.hpp"
 
+#ifndef LLO_API_HPP
+#define LLO_API_HPP
+
 ade::Tensorptr abs (ade::Tensorptr& arg);
 
 ade::Tensorptr neg (ade::Tensorptr& arg);
@@ -60,3 +63,5 @@ ade::Tensorptr permute (ade::Tensorptr& arg, std::vector<uint8_t> order);
 ade::Tensorptr extend (ade::Tensorptr& arg, std::vector<uint8_t> ext);
 
 ade::Tensorptr reshape (ade::Tensorptr& arg, std::vector<uint8_t> slist);
+
+#endif /* LLO_API_HPP */

@@ -1,5 +1,7 @@
 #include "llo/node.hpp"
 
+#ifdef LLO_NODE_HPP
+
 GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 {
 	if (Evaluable* ev = dynamic_cast<Evaluable*>(tens))
@@ -59,3 +61,5 @@ GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 	}
 	return out;
 }
+
+#endif

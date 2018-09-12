@@ -4,6 +4,8 @@
 
 #include "llo/data.hpp"
 
+#ifdef LLO_DATA_HPP
+
 struct CDeleter
 {
 	void operator () (void* p)
@@ -74,3 +76,5 @@ GenericData GenericData::convert_to (DTYPE out_type) const
 }
 
 #undef CONVERT
+
+#endif

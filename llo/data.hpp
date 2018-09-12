@@ -2,6 +2,9 @@
 
 #include "llo/dtype.hpp"
 
+#ifndef LLO_DATA_HPP
+#define LLO_DATA_HPP
+
 struct GenericData
 {
 	GenericData (void) = default;
@@ -15,3 +18,5 @@ struct GenericData
 	ade::Shape shape_;
 	DTYPE dtype_ = BAD;
 };
+
+#endif /* LLO_DATA_HPP */

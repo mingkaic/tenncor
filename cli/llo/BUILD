@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("//:yacc.bzl", "genyacc", "genlex")
+
 filegroup(
 	name = "srcs",
 	srcs = glob([
@@ -13,6 +15,19 @@ filegroup(
 )
 
 ######### LIBRARY #########
+
+genyacc(
+	name = "yacc",
+	out_hdr = "ade.cli.h",
+	out_src = "ade.cli.c",
+	src = "calc.yacc",
+)
+
+genlex(
+	name = "flex",
+	out = "ade.lex.c",
+	src = "calc.lex",
+)
 
 cc_library(
 	name = "ast",
@@ -29,6 +44,6 @@ cc_library(
 
 cc_binary(
 	name = "cli",
-	srcs = glob(["*.h", "*.c"]),
+	srcs = [":flex", ":yacc"],
     deps = [":ast"],
 )
