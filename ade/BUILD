@@ -32,8 +32,8 @@ cc_test(
 	srcs = glob(["test/*.hpp", "test/*.cpp"]),
 	deps = [
 		"//ade:ade",
-        "@com_google_googletest//:gtest",
-        #"@com_github_mingkaic_testify//simple:simple",
+        #"@com_google_googletest//:gtest",
+        "@com_github_mingkaic_testify//simple:simple",
 	],
 	linkstatic = 1,
 	copts = ["-std=c++14"],

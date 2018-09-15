@@ -28,7 +28,7 @@ test_util:
 	$(GTEST) //util:test
 
 test_ade:
-	$(GTEST) //ade:test
+	$(GTEST) $(REP_BZL_FLAG) //ade:test
 
 # valgrind unit tests
 

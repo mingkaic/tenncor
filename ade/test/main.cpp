@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-// #include "simple/jack.hpp"
+#include "simple/jack.hpp"
 
 int main (int argc, char** argv)
 {
@@ -14,12 +14,12 @@ int main (int argc, char** argv)
 	{
 		nreps = atoi(nrepeats);
 	}
-	// char* gen = getenv("GENERATE_MODE");
-	// simple::INIT(":32768", gen != nullptr, nreps);
+	char* gen = getenv("GENERATE_MODE");
+	simple::INIT(":32768", gen != nullptr, nreps);
 
 	::testing::InitGoogleTest(&argc, argv);
 	int ret = RUN_ALL_TESTS();
 
-	// simple::SHUTDOWN();
+	simple::SHUTDOWN();
 	return ret;
 }

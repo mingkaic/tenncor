@@ -8,19 +8,29 @@
 #ifndef DISABLE_FUNCTOR_TEST
 
 
-TEST(FUNCTOR, Gradient)
-{
-	// SESSION sess = get_session("FUNCTOR::Gradient");
+struct FUNCTOR : public TestModel {};
 
-	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr badleaf = ade::Tensor::get(ade::Shape(slist));
+
+TEST_F(FUNCTOR, Gradient)
+{
+	SESSION sess = get_session("FUNCTOR::Gradient");
+
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	ade::Shape shape(slist);
+	ade::Tensorptr badleaf = ade::Tensor::get(shape);
+
+	ade::Tensorptr leaf = ade::Tensor::get(shape);
+	ade::Tensorptr leaf1 = ade::Tensor::get(shape);
 
 	// ade::OPCODE unary = sess->get_scalar("unary_op", {ade::ABS, ade::FLIP});
 	// ade::OPCODE binary = sess->get_scalar("binary_op", {ade::POW, ade::NORM});
 
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
+	// ade::Tensorptr fu = ade::runtime_functor(unary, {leaf});
+	// ade::Tensorptr fb = ade::runtime_functor(binary, {leaf, leaf1});
+
+	// ASSERT_NE(nullptr, fu.get());
+	// ASSERT_NE(nullptr, fb.get());
+
 	ade::Tensorptr f = ade::Functor<ade::ADD>::get({leaf, leaf1});
 
 	ASSERT_NE(nullptr, f.get());
@@ -30,7 +40,7 @@ TEST(FUNCTOR, Gradient)
 	ade::Tensorptr got0p1 = f->gradient(leaf1);
 	ade::Tensorptr got0p0 = f->gradient(badleaf);
 
-	std::string expectlabel = opname(ade::RESHAPE) + "<[2\\3]>";
+	std::string expectlabel = opname(ade::RESHAPE) + "<" + shape.to_string() + ">";
 	{
 		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
 			std::vector<ade::DimT>>*>(gotwun.get());
@@ -112,41 +122,56 @@ TEST(FUNCTOR, Gradient)
 }
 
 
-TEST(FUNCTOR, Refs)
+TEST_F(FUNCTOR, Refs)
 {
-	// SESSION sess = get_session("FUNCTOR::Refs");
+	SESSION sess = get_session("FUNCTOR::Refs");
 
-	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr f = ade::Functor<ade::ADD>::get({leaf, leaf1});
+	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
+	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
-	ASSERT_NE(nullptr, f.get());
+	ade::OPCODE unary = (ade::OPCODE) sess->get_scalar("unary_op", {ade::ABS, ade::FLIP});
+	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op", {ade::POW, ade::NORM});
 
+	ade::Tensorptr fu = ade::runtime_functor(unary, {leaf});
+	ade::Tensorptr fb = ade::runtime_functor(binary, {leaf, leaf1});
+
+	ASSERT_NE(nullptr, fu.get());
+	ASSERT_NE(nullptr, fb.get());
+
+	std::vector<ade::iTensor*> ref =
+		static_cast<ade::iFunctor*>(fu.get())->get_refs();
 	std::vector<ade::iTensor*> refs =
-		static_cast<ade::Functor<ade::ADD>*>(f.get())->get_refs();
+		static_cast<ade::iFunctor*>(fb.get())->get_refs();
 
+	ASSERT_EQ(1, ref.size());
+	EXPECT_EQ(leaf.get(), ref[0]);
 	ASSERT_EQ(2, refs.size());
 	EXPECT_EQ(leaf.get(), refs[0]);
 	EXPECT_EQ(leaf1.get(), refs[1]);
 }
 
 
-TEST(FUNCTOR, ToString)
+TEST_F(FUNCTOR, ToString)
 {
-	// SESSION sess = get_session("FUNCTOR::ToString");
+	SESSION sess = get_session("FUNCTOR::ToString");
 
-	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr f = ade::Functor<ade::ADD>::get({leaf, leaf1});
+	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
+	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
-	ASSERT_NE(nullptr, f.get());
+	ade::OPCODE unary = (ade::OPCODE) sess->get_scalar("unary_op", {ade::ABS, ade::FLIP});
+	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op", {ade::POW, ade::NORM});
 
-	std::string expect_out = "ADD<>";
-	EXPECT_STREQ(expect_out.c_str(), f->to_string().c_str());
+	ade::Tensorptr fu = ade::runtime_functor(unary, {leaf});
+	ade::Tensorptr fb = ade::runtime_functor(binary, {leaf, leaf1});
+
+	ASSERT_NE(nullptr, fu.get());
+	ASSERT_NE(nullptr, fb.get());
+
+	std::string expect_out_unary = ade::opname(unary) + "<>";
+	EXPECT_STREQ(expect_out_unary.c_str(), fu->to_string().c_str());
+
+	std::string expect_out_binary = ade::opname(binary) + "<>";
+	EXPECT_STREQ(expect_out_binary.c_str(), fb->to_string().c_str());
 }
 
 
