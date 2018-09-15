@@ -19,30 +19,30 @@ filegroup(
 
 filegroup(
     name = "protos",
-    srcs = glob([ "*.proto" ]),
+    srcs = glob(["*.proto"]),
 )
 
 ######### LIBRARY #########
 
 proto_library(
     name = "proto",
-    srcs = [ "//pbm:protos" ],
-    deps = [ "@com_google_protobuf//:any_proto" ],
+    srcs = ["//pbm:protos"],
+    deps = ["@com_google_protobuf//:any_proto"],
 )
 
 cc_proto_library(
     name = "cc_proto",
-    protos = [ "//pbm:protos" ],
-    imports = [ "external/com_google_protobuf/src" ],
-    inputs = [ "@com_google_protobuf//:well_known_protos" ],
+    protos = ["//pbm:protos"],
+    imports = ["external/com_google_protobuf/src"],
+    inputs = ["@com_google_protobuf//:well_known_protos"],
     with_grpc = False,
 )
 
 py_proto_library(
     name = "py_proto",
-    protos = [ "//pbm:protos" ],
-    imports = [ "external/com_google_protobuf/src" ],
-    inputs = [ "@com_google_protobuf//:well_known_protos" ],
+    protos = ["//pbm:protos"],
+    imports = ["external/com_google_protobuf/src"],
+    inputs = ["@com_google_protobuf//:well_known_protos"],
     with_grpc = False,
 )
 

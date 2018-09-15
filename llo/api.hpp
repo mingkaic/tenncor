@@ -43,6 +43,12 @@ ade::Tensorptr lt (ade::Tensorptr& a, ade::Tensorptr& b);
 
 ade::Tensorptr gt (ade::Tensorptr& a, ade::Tensorptr& b);
 
+ade::Tensorptr binom (ade::Tensorptr& ntrials, ade::Tensorptr& prob);
+
+ade::Tensorptr uniform (ade::Tensorptr& lower, ade::Tensorptr& upper);
+
+ade::Tensorptr normal (ade::Tensorptr& mean, ade::Tensorptr& stdev);
+
 ade::Tensorptr n_elems (ade::Tensorptr& arg);
 
 ade::Tensorptr n_dims (ade::Tensorptr& arg, uint8_t dim);
@@ -57,6 +63,8 @@ ade::Tensorptr matmul (ade::Tensorptr& a, ade::Tensorptr& b);
 
 ade::Tensorptr matmul (ade::Tensorptr& a, ade::Tensorptr& b,
 	uint8_t agroup_idx, uint8_t bgroup_idx);
+
+ade::Tensorptr convolute (ade::Tensorptr& canvas, ade::Tensorptr& window);
 
 ade::Tensorptr permute (ade::Tensorptr& arg, std::vector<uint8_t> order);
 

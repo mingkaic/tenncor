@@ -1,12 +1,15 @@
 licenses(["notice"])
 
+package(
+    default_visibility = ["//visibility:public"],
+)
+
 filegroup(
 	name = "srcs",
 	srcs = glob([
         "*.hpp",
         "*.cpp",
 	]) + ["BUILD"],
-	visibility = ["//cli"],
 )
 
 ######### LIBRARY #########
@@ -16,5 +19,4 @@ cc_library(
 	hdrs = glob(["*.hpp"]),
 	srcs = glob(["*.cpp"]),
 	copts = ["-std=c++14"],
-	visibility = ["//visibility:public"],
 )

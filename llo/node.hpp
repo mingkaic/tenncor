@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "ade/functor.hpp"
 
 #include "llo/opmap.hpp"
@@ -11,15 +13,20 @@ struct Evaluable
 
 	virtual GenericData evaluate (DTYPE dtype) = 0;
 
-	virtual DTYPE native_type (void) const = 0;
-
 	virtual ade::Tensorptr inner (void) const = 0;
 };
 
 GenericData evaluate (DTYPE dtype, ade::iTensor* tens);
 
+struct iSource : public ade::iTensor, public Evaluable
+{
+	virtual DTYPE native_type (void) const = 0;
+
+	virtual void reassign (const GenericRef& data) = 0;
+};
+
 template <typename T>
-struct Source final : public ade::iTensor, public Evaluable
+struct Source final : public iSource
 {
 	static ade::Tensorptr get (ade::Shape shape, std::vector<T> data)
 	{
@@ -76,14 +83,20 @@ struct Source final : public ade::iTensor, public Evaluable
 		return out;
 	}
 
+	ade::Tensorptr inner (void) const override
+	{
+		return tens_;
+	}
+
 	DTYPE native_type (void) const override
 	{
 		return get_type<T>();
 	}
 
-	ade::Tensorptr inner (void) const override
+	void reassign (const GenericRef& data) override
 	{
-		return tens_;
+		assert(data.shape_.compatible_after(tens_->shape(), 0));
+		std::memcpy(&data_[0], data.data_, sizeof(T) * data.shape_.n_elems());
 	}
 
 private:
@@ -92,6 +105,26 @@ private:
 
 	ade::Tensorptr tens_;
 	std::vector<T> data_;
+};
+
+template <typename T>
+struct Placeholder : public ade::Tensorptr
+{
+	Placeholder (ade::Shape shape) : ade::Tensorptr(
+		Source<T>::get(shape, std::vector<T>(shape.n_elems()))) {}
+
+	Placeholder (const Placeholder&) = default;
+	Placeholder (Placeholder&&) = default;
+	Placeholder& operator = (const Placeholder&) = default;
+	Placeholder& operator = (Placeholder&&) = default;
+
+	Placeholder& operator = (std::vector<T>& data)
+	{
+		auto src = static_cast<iSource*>(ptr_.get());
+		GenericRef gdata(&data[0], src->shape(), src->native_type());
+		src->reassign(gdata);
+		return *this;
+	}
 };
 
 // maintains other argument
@@ -141,11 +174,6 @@ struct DirectWrapper final : public ade::iFunctor, public Evaluable
 	GenericData evaluate (DTYPE dtype) override
 	{
 		return eval_helper(dtype, std::index_sequence_for<Args...>());
-	}
-
-	DTYPE native_type (void) const override
-	{
-		return BAD;
 	}
 
 	ade::Tensorptr inner (void) const override

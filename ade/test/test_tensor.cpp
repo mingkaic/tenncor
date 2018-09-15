@@ -11,7 +11,7 @@
 
 TEST(TENSOR, Gradient)
 {
-	// SESSION sess = getSession("TENSOR::Gradient");
+	// SESSION sess = get_session("TENSOR::Gradient");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
@@ -50,7 +50,7 @@ TEST(TENSOR, Gradient)
 
 TEST(TENSOR, ToString)
 {
-	// SESSION sess = getSession("TENSOR::ToString");
+	// SESSION sess = get_session("TENSOR::ToString");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};

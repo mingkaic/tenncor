@@ -192,7 +192,7 @@ void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Source* src = pb_node->mutable_source();
-		if (Evaluable* eval = dynamic_cast<Evaluable*>(node))
+		if (iSource* eval = dynamic_cast<iSource*>(node))
 		{
 			GenericData data = eval->evaluate(eval->native_type());
 			save_data(src->mutable_data(), data);

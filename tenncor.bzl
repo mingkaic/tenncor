@@ -6,8 +6,8 @@ def dependencies():
     if "org_pubref_rules_protobuf" not in native.existing_rules():
         git_repository(
             name = "org_pubref_rules_protobuf",
-            remote = "https://github.com/mingkaic/rules_protobuf", # todo: revert to pubref after fix
-            commit = "d60352ba20aa5eba5f86e1b93c1e048483372bf8",
+            remote = "https://github.com/pubref/rules_protobuf",
+            commit = "82dee5585aae7e0ed111b221187852a71ad8a71b",
         )
 
 def test_dependencies():
@@ -16,5 +16,5 @@ def test_dependencies():
         git_repository(
             name = "com_github_mingkaic_testify",
             remote = "https://github.com/raggledodo/testify",
-            commit = "57371416ee6f7e85a6a555f6d5ff6c236bd63de2",
+            commit = "d51725bea2dd2837c69617548613a7a9c22ddadc",
         )

@@ -12,6 +12,7 @@ tests:
 enhancements:
 readability
 documentation
+even debugging tools
 
 performance:
 - reduce shared_ptr overhead

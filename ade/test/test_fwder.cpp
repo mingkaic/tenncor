@@ -11,7 +11,7 @@
 template <ade::OPCODE opcode>
 static void unary_elementary (void)
 {
-	// SESSION sess = getSession("FWDER::" + ade::opname(opcode));
+	// SESSION sess = get_session("FWDER::" + ade::opname(opcode));
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
@@ -25,7 +25,7 @@ static void unary_elementary (void)
 template <ade::OPCODE opcode>
 static void binary_elementary (void)
 {
-	// SESSION sess = getSession("FWDER::" + ade::opname(opcode));
+	// SESSION sess = get_session("FWDER::" + ade::opname(opcode));
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	// long incr_pt = sess->get_scalar("incr_pt", {0, slist.size()});
@@ -68,7 +68,7 @@ static void binary_elementary (void)
 template <ade::OPCODE opcode>
 static void scalar (void)
 {
-	// SESSION sess = getSession("FWDER::" + ade::opname(opcode));
+	// SESSION sess = get_session("FWDER::" + ade::opname(opcode));
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
@@ -142,6 +142,9 @@ TEST(FWDER, MATMUL)
 	ade::Tensorptr b1 = ade::Tensor::get(ade::Shape(blist1));
 
 	ade::Shape m43 = ade::forwarder<ade::MATMUL>({a, b});
+	EXPECT_EQ(2, m43.n_rank());
+	EXPECT_EQ(blist[0], m43.at(0));
+	EXPECT_EQ(alist[1], m43.at(1));
 
 	EXPECT_THROW(ade::forwarder<ade::MATMUL>({a}), std::runtime_error);
 	EXPECT_THROW(ade::forwarder<ade::MATMUL>({a1, b}), std::runtime_error);
@@ -150,10 +153,20 @@ TEST(FWDER, MATMUL)
 
 	ade::Shape m33 = ade::forwarder<
 		ade::MATMUL,uint8_t,uint8_t>({a1, b1}, 2, 1);
+	EXPECT_EQ(2, m33.n_rank());
+	EXPECT_EQ(blist1[0], m33.at(0));
+	EXPECT_EQ(alist1[2], m33.at(1));
+
 	ade::Shape m32 = ade::forwarder<
 		ade::MATMUL,uint8_t,uint8_t>({a, a1}, 2, 1);
+	EXPECT_EQ(1, m32.n_rank());
+	EXPECT_EQ(alist1[0], m32.at(0));
+
 	ade::Shape m32a = ade::forwarder<
 		ade::MATMUL,uint8_t,uint8_t>({b, b1}, 2, 1);
+	EXPECT_EQ(1, m32a.n_rank());
+	EXPECT_EQ(blist1[0], m32a.at(0));
+
 	auto fail = [&]()
 	{
 		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a1, b}, 2, 1);
@@ -193,14 +206,50 @@ TEST(FWDER, PERMUTE)
 	};
 	EXPECT_THROW(fail(), std::runtime_error);
 
+	std::vector<uint8_t> pidx = {2, 1, 3, 4, 0};
 	ade::Shape perm = ade::forwarder<ade::PERMUTE,
-		std::vector<uint8_t>>({leaf}, {2, 1, 3, 4, 0});
+		std::vector<uint8_t>>({leaf}, pidx);
 
+	auto plist = perm.as_list();
+	size_t np = plist.size();
+	ASSERT_EQ(pidx.size(), np);
+	// todo: improve this test (it's technically following the definition of the function)
+	for (size_t i = 0; i < np; ++i)
+	{
+		EXPECT_EQ((int) slist[pidx[i]], (int) plist[i]) << "index " << i;
+	}
+
+	std::vector<uint8_t> pidx2 = {1, 4, 3, 0};
+	std::vector<uint8_t> remaining_idx = {2};
 	ade::Shape low_perm = ade::forwarder<ade::PERMUTE,
-		std::vector<uint8_t>>({leaf}, {1, 4, 3, 0});
+		std::vector<uint8_t>>({leaf}, pidx2);
 
+	auto plist2 = low_perm.as_list();
+	size_t np2 = plist2.size();
+	ASSERT_EQ(slist.size(), np2);
+	size_t npidx2 = pidx2.size();
+	size_t nremaining = remaining_idx.size();
+	ASSERT_EQ(npidx2 + nremaining, np2);
+	for (size_t i = 0; i < npidx2; ++i)
+	{
+		EXPECT_EQ((int) slist[pidx2[i]], (int) plist2[i]) << "index " << i;
+	}
+	for (size_t i = 0; i < nremaining; ++i)
+	{
+		EXPECT_EQ((int) slist[remaining_idx[i]], (int) plist2[npidx2 + i]) << "index " << npidx2 + i;
+	}
+
+	std::vector<uint8_t> pidx3 = {2, 3, 3, 4, 1, 0};
 	ade::Shape rep_perm = ade::forwarder<ade::PERMUTE,
-		std::vector<uint8_t>>({leaf}, {2, 3, 3, 4, 1, 0});
+		std::vector<uint8_t>>({leaf}, pidx3);
+
+	auto plist3 = rep_perm.as_list();
+	size_t np3 = plist3.size();
+	ASSERT_EQ(pidx3.size(), np3);
+	for (size_t i = 0; i < np3; ++i)
+	{
+		EXPECT_EQ((int) slist[pidx3[i]], (int) plist3[i]) << "index " << i;
+	}
 }
 
 
@@ -232,8 +281,14 @@ TEST(FWDER, EXTEND)
 	EXPECT_THROW(fail2(), std::runtime_error);
 	EXPECT_THROW(fail3(), std::runtime_error);
 
+	std::vector<ade::DimT> ext = {4, 3};
 	ade::Shape copied = ade::forwarder<ade::EXTEND,
-		std::vector<ade::DimT>>({leaf}, {4, 3});
+		std::vector<ade::DimT>>({leaf}, ext);
+	std::vector<ade::DimT> expect = slist;
+	expect.insert(expect.end(), ext.begin(), ext.end());
+
+	auto got = copied.as_list();
+	EXPECT_ARREQ(expect, got);
 }
 
 
@@ -265,14 +320,28 @@ TEST(FWDER, RESHAPE)
 
 	ade::Shape res = ade::forwarder<ade::RESHAPE,
 		std::vector<ade::DimT>>({leaf}, olist);
+	std::vector<ade::DimT> got = res.as_list();
+	EXPECT_ARREQ(olist, got);
+
 	ade::Shape res1 = ade::forwarder<ade::RESHAPE,
 		std::vector<ade::DimT>>({scalar}, slist);
+	std::vector<ade::DimT> got1 = res1.as_list();
+	EXPECT_ARREQ(slist, got1);
+
 	ade::Shape res2 = ade::forwarder<ade::RESHAPE,
 		std::vector<ade::DimT>>({scalar}, badlist);
+	std::vector<ade::DimT> got2 = res2.as_list();
+	EXPECT_ARREQ(badlist, got2);
+
 	ade::Shape res3 = ade::forwarder<ade::RESHAPE,
 		std::vector<ade::DimT>>({scalar1}, slist);
+	std::vector<ade::DimT> got3 = res3.as_list();
+	EXPECT_ARREQ(slist, got3);
+
 	ade::Shape res4 = ade::forwarder<ade::RESHAPE,
 		std::vector<ade::DimT>>({scalar1}, badlist);
+	std::vector<ade::DimT> got4 = res4.as_list();
+	EXPECT_ARREQ(badlist, got4);
 }
 
 

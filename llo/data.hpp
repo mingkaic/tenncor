@@ -19,4 +19,18 @@ struct GenericData
 	DTYPE dtype_ = BAD;
 };
 
+struct GenericRef
+{
+	GenericRef (char* data, ade::Shape shape, DTYPE dtype) :
+		data_(data), shape_(shape), dtype_(dtype) {}
+
+	GenericRef (GenericData& generic) :
+		data_(generic.data_.get()),
+		shape_(generic.shape_), dtype_(generic.dtype_) {}
+
+	char* data_;
+	ade::Shape shape_;
+	DTYPE dtype_;
+};
+
 #endif /* LLO_DATA_HPP */

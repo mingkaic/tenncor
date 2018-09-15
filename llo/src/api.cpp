@@ -105,6 +105,21 @@ ade::Tensorptr gt (ade::Tensorptr& a, ade::Tensorptr& b)
 	return ade::Functor<ade::GT>::get({a, b});
 }
 
+ade::Tensorptr binom (ade::Tensorptr& ntrials, ade::Tensorptr& prob)
+{
+	return ade::Functor<ade::BINO>::get({ntrials, prob});
+}
+
+ade::Tensorptr uniform (ade::Tensorptr& lower, ade::Tensorptr& upper)
+{
+	return ade::Functor<ade::UNIF>::get({lower, upper});
+}
+
+ade::Tensorptr normal (ade::Tensorptr& mean, ade::Tensorptr& stdev)
+{
+	return ade::Functor<ade::NORM>::get({mean, stdev});
+}
+
 ade::Tensorptr n_elems (ade::Tensorptr& arg)
 {
 	return ade::Functor<ade::N_ELEMS>::get({arg});
@@ -143,6 +158,11 @@ ade::Tensorptr matmul (ade::Tensorptr& a, ade::Tensorptr& b,
 	return DirectWrapper<uint8_t,uint8_t>::get(
 		ade::Functor<ade::MATMUL,uint8_t,uint8_t>::get({a, b},
 			agroup_idx, bgroup_idx), agroup_idx, bgroup_idx);
+}
+
+ade::Tensorptr convolute (ade::Tensorptr& canvas, ade::Tensorptr& window)
+{
+	throw std::bad_function_call(); // unimplemented
 }
 
 ade::Tensorptr permute (ade::Tensorptr& arg, std::vector<uint8_t> order)

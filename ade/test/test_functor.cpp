@@ -10,7 +10,7 @@
 
 TEST(FUNCTOR, Gradient)
 {
-	// SESSION sess = getSession("FUNCTOR::Gradient");
+	// SESSION sess = get_session("FUNCTOR::Gradient");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
@@ -114,7 +114,7 @@ TEST(FUNCTOR, Gradient)
 
 TEST(FUNCTOR, Refs)
 {
-	// SESSION sess = getSession("FUNCTOR::Refs");
+	// SESSION sess = get_session("FUNCTOR::Refs");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
@@ -135,7 +135,7 @@ TEST(FUNCTOR, Refs)
 
 TEST(FUNCTOR, ToString)
 {
-	// SESSION sess = getSession("FUNCTOR::ToString");
+	// SESSION sess = get_session("FUNCTOR::ToString");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};

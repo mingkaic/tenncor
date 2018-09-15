@@ -10,7 +10,7 @@
 
 TEST(SHAPE, Init)
 {
-	// SESSION sess = getSession("SHAPE::Init");
+	// SESSION sess = get_session("SHAPE::Init");
 
 	ade::Shape scalar;
 
@@ -54,7 +54,7 @@ TEST(SHAPE, Init)
 
 TEST(SHAPE, VecAssign)
 {
-	// SESSION sess = getSession("SHAPE::VecAssign");
+	// SESSION sess = get_session("SHAPE::VecAssign");
 
 	// std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
@@ -80,7 +80,7 @@ TEST(SHAPE, VecAssign)
 
 TEST(SHAPE, Moves)
 {
-	// SESSION sess = getSession("SHAPE::Moves");
+	// SESSION sess = get_session("SHAPE::Moves");
 
 	// std::vector<ade::DimT> junk = get_shape(sess, "junk");
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
@@ -122,7 +122,7 @@ TEST(SHAPE, Moves)
 
 TEST(SHAPE, NElems)
 {
-	// SESSION sess = getSession("SHAPE::NElems");
+	// SESSION sess = get_session("SHAPE::NElems");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
@@ -157,7 +157,7 @@ TEST(SHAPE, NElems)
 
 TEST(SHAPE, NRank)
 {
-	// SESSION sess = getSession("SHAPE::NRank");
+	// SESSION sess = get_session("SHAPE::NRank");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
@@ -175,7 +175,7 @@ TEST(SHAPE, NRank)
 
 TEST(SHAPE, Compatible)
 {
-	// SESSION sess = getSession("SHAPE::Compatible");
+	// SESSION sess = get_session("SHAPE::Compatible");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
@@ -223,7 +223,7 @@ TEST(SHAPE, Compatible)
 
 TEST(SHAPE, ToString)
 {
-	// SESSION sess = getSession("SHAPE::ToString");
+	// SESSION sess = get_session("SHAPE::ToString");
 
 	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> slist = {2, 3};
