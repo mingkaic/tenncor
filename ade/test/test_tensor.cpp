@@ -32,17 +32,14 @@ TEST_F(TENSOR, Gradient)
 	ASSERT_NE(nullptr, wunrp);
 	ASSERT_NE(nullptr, zrorp);
 
-	if (GENERATE_MODE)
+	optional<std::string> expect_label = sess->expect_string("expect_label");
+	if (expect_label)
 	{
-		EXPECT_STREQ(zrorp->to_string().c_str(), wunrp->to_string().c_str());
-		sess->store_string("expect_label", zrorp->to_string());
+		EXPECT_STREQ(expect_label->c_str(), wunrp->to_string().c_str());
+		EXPECT_STREQ(expect_label->c_str(), zrorp->to_string().c_str());
 	}
-	else
-	{
-		std::string expect_label = sess->expect_string("expect_label");
-		EXPECT_STREQ(expect_label.c_str(), wunrp->to_string().c_str());
-		EXPECT_STREQ(expect_label.c_str(), zrorp->to_string().c_str());
-	}
+	EXPECT_STREQ(zrorp->to_string().c_str(), wunrp->to_string().c_str());
+	sess->store_string("expect_label", zrorp->to_string());
 
 	EXPECT_ARREQ(slist, wunrp->shape().as_list());
 	EXPECT_ARREQ(slist, zrorp->shape().as_list());
@@ -65,15 +62,12 @@ TEST_F(TENSOR, ToString)
 
 	ASSERT_NE(nullptr, leaf.get());
 
-	if (GENERATE_MODE)
+	optional<std::string> expect_out = sess->expect_string("expect_out");
+	if (expect_out)
 	{
-		sess->store_string("expect_out", leaf->to_string());
+		EXPECT_STREQ(expect_out->c_str(), leaf->to_string().c_str());
 	}
-	else
-	{
-		std::string expect_out = sess->expect_string("expect_out");
-		EXPECT_STREQ(expect_out.c_str(), leaf->to_string().c_str());
-	}
+	sess->store_string("expect_out", leaf->to_string());
 }
 
 

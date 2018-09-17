@@ -213,15 +213,12 @@ TEST_F(SHAPE, ToString)
 	ade::Shape shape(slist);
 	std::string out = shape.to_string();
 
-	if (GENERATE_MODE)
+	optional<std::string> expect_out = sess->expect_string("expect_out");
+	if (expect_out)
 	{
-		sess->store_string("expect_out", out);
+		EXPECT_STREQ(expect_out->c_str(), out.c_str());
 	}
-	else
-	{
-		std::string expect_out = sess->expect_string("expect_out");
-		EXPECT_STREQ(expect_out.c_str(), out.c_str());
-	}
+	sess->store_string("expect_out", out);
 }
 
 

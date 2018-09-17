@@ -8,13 +8,13 @@
 #ifndef DISABLE_FWDER_TEST
 
 
-template <ade::OPCODE opcode>
-static void unary_elementary (void)
-{
-	// SESSION sess = get_session("FWDER::" + ade::opname(opcode));
+struct FWDER : public TestModel {};
 
-	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	std::vector<ade::DimT> slist = {2, 3};
+
+template <ade::OPCODE opcode>
+static void unary_elementary (SESSION& sess)
+{
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 
 	ade::Shape same_shape = ade::forwarder<opcode>({leaf});
@@ -23,20 +23,19 @@ static void unary_elementary (void)
 
 
 template <ade::OPCODE opcode>
-static void binary_elementary (void)
+static void binary_elementary (SESSION& sess)
 {
-	// SESSION sess = get_session("FWDER::" + ade::opname(opcode));
-
-	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	// long incr_pt = sess->get_scalar("incr_pt", {0, slist.size()});
-	// long ext_value = sess->get_scalar("ext_value");
-	// std::vector<ade::DimT> badlist = slist;
-	// badlist[insertion_pt]++;
-	// std::vector<ade::DimT> extlist = slist;
-	// extlist.push_back(ext_value);
-	std::vector<ade::DimT> badlist = {2, 4};
-	std::vector<ade::DimT> extlist = {2, 3, 4};
-	std::vector<ade::DimT> slist = {2, 3};
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	int32_t incr_pt = 0;
+	if (slist.size() > 1)
+	{
+		incr_pt = sess->get_scalar("incr_pt", {0, (int32_t) slist.size() - 1});
+	}
+	int32_t ext_value = sess->get_scalar("ext_value", {1, 13});
+	std::vector<ade::DimT> badlist = slist;
+	badlist[incr_pt]++;
+	std::vector<ade::DimT> extlist = slist;
+	extlist.push_back(ext_value);
 	ade::Tensorptr scalar = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr alt_scalar = ade::Tensor::get(ade::Shape({1}));
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
@@ -60,18 +59,17 @@ static void binary_elementary (void)
 	EXPECT_ARREQ(extlist, ext_shape.as_list());
 	EXPECT_ARREQ(extlist, ext_shape1.as_list());
 
-	EXPECT_THROW(ade::forwarder<opcode>({leaf, badleaf}), std::runtime_error);
-	EXPECT_THROW(ade::forwarder<opcode>({badleaf, leaf}), std::runtime_error);
+	EXPECT_THROW(ade::forwarder<opcode>({leaf, badleaf}), std::runtime_error) <<
+		"leaf=" << leaf->shape().to_string() << ", badleaf=" << badleaf->shape().to_string();
+	EXPECT_THROW(ade::forwarder<opcode>({badleaf, leaf}), std::runtime_error) <<
+		"badleaf=" << badleaf->shape().to_string() << ", leaf=" << leaf->shape().to_string();
 }
 
 
 template <ade::OPCODE opcode>
-static void scalar (void)
+static void scalar (SESSION& sess)
 {
-	// SESSION sess = get_session("FWDER::" + ade::opname(opcode));
-
-	// std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	std::vector<ade::DimT> slist = {2, 3};
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
@@ -83,7 +81,9 @@ static void scalar (void)
 
 
 #define FWD_UNAR(CODE)\
-TEST(FWDER, CODE) { unary_elementary<ade::CODE>(); }
+TEST_F(FWDER, CODE) {\
+	SESSION sess = get_session("FWDER::" + std::string(#CODE));\
+	unary_elementary<ade::CODE>(sess); }
 
 
 FWD_UNAR(ABS)
@@ -100,7 +100,9 @@ FWD_UNAR(FLIP)
 
 
 #define FWD_BINAR(CODE)\
-TEST(FWDER, CODE) { binary_elementary<ade::CODE>(); }
+TEST_F(FWDER, CODE) {\
+	SESSION sess = get_session("FWDER::" + std::string(#CODE));\
+	binary_elementary<ade::CODE>(sess); }
 
 
 FWD_BINAR(POW)
@@ -119,7 +121,9 @@ FWD_BINAR(NORM)
 
 
 #define FWD_SCALAR(CODE)\
-TEST(FWDER, CODE) { scalar<ade::CODE>(); }
+TEST_F(FWDER, CODE) {\
+	SESSION sess = get_session("FWDER::" + std::string(#CODE));\
+	scalar<ade::CODE>(sess); }
 
 
 FWD_SCALAR(N_ELEMS)
@@ -129,7 +133,7 @@ FWD_SCALAR(RMAX)
 FWD_SCALAR(RSUM)
 
 
-TEST(FWDER, MATMUL)
+TEST_F(FWDER, MATMUL)
 {
 	std::vector<ade::DimT> alist = {2, 3};
 	std::vector<ade::DimT> blist = {4, 2};
@@ -195,7 +199,7 @@ TEST(FWDER, MATMUL)
 }
 
 
-TEST(FWDER, PERMUTE)
+TEST_F(FWDER, PERMUTE)
 {
 	std::vector<ade::DimT> slist = {2, 3, 4, 5, 7};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
@@ -253,7 +257,7 @@ TEST(FWDER, PERMUTE)
 }
 
 
-TEST(FWDER, EXTEND)
+TEST_F(FWDER, EXTEND)
 {
 	std::vector<ade::DimT> slist = {2, 3, 4, 5, 7};
 	std::vector<ade::DimT> badlist = {2, 3, 4, 5, 7, 1, 8};
@@ -292,7 +296,7 @@ TEST(FWDER, EXTEND)
 }
 
 
-TEST(FWDER, RESHAPE)
+TEST_F(FWDER, RESHAPE)
 {
 	std::vector<ade::DimT> slist = {2, 3, 4, 5, 7};
 	std::vector<ade::DimT> olist = {2, 12, 5, 7};
