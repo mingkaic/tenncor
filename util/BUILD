@@ -32,6 +32,5 @@ cc_test(
 		"//util:util",
         "@com_google_googletest//:gtest",
 	],
-	linkstatic = 1,
 	copts = ["-std=c++14"],
 )

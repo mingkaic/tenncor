@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "ade/test/common.hpp"
-
 #include "ade/tensor.hpp"
 #include "ade/functor.hpp"
+
+#include "ade/test/common.hpp"
 
 
 #ifndef DISABLE_TENSOR_TEST

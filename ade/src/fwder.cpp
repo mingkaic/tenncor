@@ -182,7 +182,7 @@ Shape forwarder<EXTEND,std::vector<DimT>> (
 	{
 		util::handle_error("empty extension to shape");
 	}
-	if ((tens[0]->shape().n_rank() + ext.size()) >= rank_cap)
+	if ((tens[0]->shape().n_rank() + ext.size()) > rank_cap)
 	{
 		util::handle_error(
 			"failed attempt to extend dimension to beyond rank_cap",

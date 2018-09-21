@@ -1,12 +1,23 @@
 #include "ade/test/common.hpp"
-#include <iostream>
-std::vector<ade::DimT> get_shape (SESSION& sess, std::string label)
+
+std::vector<ade::DimT> get_shape_n (SESSION& sess, size_t n, std::string label)
 {
-	int32_t n = sess->get_scalar("n_" + label, {1, ade::rank_cap - 1});
 	int32_t max_elem = std::log(nelem_limit) / std::log(n);
 	max_elem = std::max(3, max_elem);
 	auto temp = sess->get_int(label, n, {2, max_elem});
 	return std::vector<ade::DimT>(temp.begin(), temp.end());
+}
+
+std::vector<ade::DimT> get_shape (SESSION& sess, std::string label)
+{
+	int32_t n = sess->get_scalar("n_" + label, {1, ade::rank_cap - 1});
+	return get_shape_n(sess, n, label);
+}
+
+std::vector<ade::DimT> get_longshape (SESSION& sess, std::string label)
+{
+	int32_t nl = sess->get_scalar("n_" + label, {ade::rank_cap, 57});
+	return get_shape_n(sess, nl, label);
 }
 
 std::vector<ade::DimT> get_zeroshape (SESSION& sess, std::string label)
@@ -24,11 +35,16 @@ std::vector<ade::DimT> get_zeroshape (SESSION& sess, std::string label)
 	return std::vector<ade::DimT>(temp.begin(), temp.end());
 }
 
-std::vector<ade::DimT> get_longshape (SESSION& sess, std::string label)
+std::vector<ade::DimT> get_incompatible (SESSION& sess,
+	std::vector<ade::DimT> inshape, std::string label)
 {
-	int32_t nl = sess->get_scalar("n_" + label, {ade::rank_cap, 57});
-	int32_t max_lelem = std::log(nelem_limit) / std::log(nl);
-	max_lelem = std::max(3, max_lelem);
-	auto temp = sess->get_int(label, nl, {1, max_lelem});
-	return std::vector<ade::DimT>(temp.begin(), temp.end());
+	int32_t rank = inshape.size();
+	int32_t incr_pt = 0;
+	if (rank > 1)
+	{
+		incr_pt = sess->get_scalar(label + "_incr_pt", {0, rank - 1});
+	}
+	std::vector<ade::DimT> bad = inshape;
+	bad[incr_pt]++;
+	return bad;
 }

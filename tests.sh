@@ -12,6 +12,7 @@ lcov --base-directory . --directory . --zerocounters;
 echo "===== TESTS =====";
 
 make
+make asan
 
 # ===== Check Docs Directory =====
 echo "===== CHECK DOCUMENT EXISTENCE =====";

@@ -26,15 +26,42 @@ cc_library(
 
 ######### TEST #########
 
+filegroup(
+    name = "expected_data",
+    srcs = glob(["test/expects/*.txt"]),
+)
+
 cc_test(
-	name = "test",
+	name = "test_dynamic",
 	size = "small",
-	srcs = glob(["test/*.hpp", "test/*.cpp"]),
+	srcs = [
+		"test/common.hpp",
+		"test/common.cpp",
+		"test/dmain.cpp",
+		"test/test_functor.cpp",
+		"test/test_fwder.cpp",
+		"test/test_shape.cpp",
+		"test/test_tensor.cpp",
+	],
 	deps = [
 		"//ade:ade",
-        #"@com_google_googletest//:gtest",
         "@com_github_mingkaic_testify//simple:simple",
 	],
-	linkstatic = 1,
 	copts = ["-std=c++14"],
+)
+
+cc_test(
+	name = "test_static",
+	size = "small",
+	srcs = glob([
+		"test/smain.cpp",
+		"test/test_grader.cpp",
+	]),
+	deps = [
+		"//ade:ade",
+		"//cli/util:util",
+        "@com_google_googletest//:gtest",
+	],
+	copts = ["-std=c++14"],
+	data = ["//ade:expected_data"],
 )

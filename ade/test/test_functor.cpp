@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "ade/test/common.hpp"
-
 #include "ade/functor.hpp"
+
+#include "ade/test/common.hpp"
 
 
 #ifndef DISABLE_FUNCTOR_TEST
@@ -21,15 +21,6 @@ TEST_F(FUNCTOR, Gradient)
 
 	ade::Tensorptr leaf = ade::Tensor::get(shape);
 	ade::Tensorptr leaf1 = ade::Tensor::get(shape);
-
-	// ade::OPCODE unary = sess->get_scalar("unary_op", {ade::ABS, ade::FLIP});
-	// ade::OPCODE binary = sess->get_scalar("binary_op", {ade::POW, ade::NORM});
-
-	// ade::Tensorptr fu = ade::runtime_functor(unary, {leaf});
-	// ade::Tensorptr fb = ade::runtime_functor(binary, {leaf, leaf1});
-
-	// ASSERT_NE(nullptr, fu.get());
-	// ASSERT_NE(nullptr, fb.get());
 
 	ade::Tensorptr f = ade::Functor<ade::ADD>::get({leaf, leaf1});
 

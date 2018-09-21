@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "ade/test/common.hpp"
-
 #include "ade/fwder.hpp"
+
+#include "ade/test/common.hpp"
 
 
 #ifndef DISABLE_FWDER_TEST
@@ -26,14 +26,8 @@ template <ade::OPCODE opcode>
 static void binary_elementary (SESSION& sess)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	int32_t incr_pt = 0;
-	if (slist.size() > 1)
-	{
-		incr_pt = sess->get_scalar("incr_pt", {0, (int32_t) slist.size() - 1});
-	}
-	int32_t ext_value = sess->get_scalar("ext_value", {1, 13});
-	std::vector<ade::DimT> badlist = slist;
-	badlist[incr_pt]++;
+	std::vector<ade::DimT> badlist = get_incompatible(sess, slist, "slist");
+	int32_t ext_value = sess->get_scalar("ext_value", {2, 13});
 	std::vector<ade::DimT> extlist = slist;
 	extlist.push_back(ext_value);
 	ade::Tensorptr scalar = ade::Tensor::get(ade::Shape());
@@ -133,76 +127,101 @@ FWD_SCALAR(RMAX)
 FWD_SCALAR(RSUM)
 
 
-TEST_F(FWDER, MATMUL)
+TEST_F(FWDER, MATMUL2D)
 {
-	std::vector<ade::DimT> alist = {2, 3};
-	std::vector<ade::DimT> blist = {4, 2};
+	SESSION sess = get_session("FWDER::MATMUL2D");
+
+	ade::DimT cdim = sess->get_scalar("cdim", {1, 255});
+	ade::DimT adim = sess->get_scalar("adim", {1, 255});
+	ade::DimT bdim = sess->get_scalar("bdim", {1, 255});
+	std::vector<ade::DimT> alist = {cdim, adim};
+	std::vector<ade::DimT> blist = {bdim, cdim};
 	ade::Tensorptr a = ade::Tensor::get(ade::Shape(alist));
 	ade::Tensorptr b = ade::Tensor::get(ade::Shape(blist));
 
-	std::vector<ade::DimT> alist1 = {4, 2, 3};
-	std::vector<ade::DimT> blist1 = {3, 4, 2};
-	ade::Tensorptr a1 = ade::Tensor::get(ade::Shape(alist1));
-	ade::Tensorptr b1 = ade::Tensor::get(ade::Shape(blist1));
-
-	ade::Shape m43 = ade::forwarder<ade::MATMUL>({a, b});
-	EXPECT_EQ(2, m43.n_rank());
-	EXPECT_EQ(blist[0], m43.at(0));
-	EXPECT_EQ(alist[1], m43.at(1));
+	ade::Shape mat2d = ade::forwarder<ade::MATMUL>({a, b});
+	EXPECT_EQ(2, mat2d.n_rank());
+	EXPECT_EQ(bdim, mat2d.at(0));
+	EXPECT_EQ(adim, mat2d.at(1));
 
 	EXPECT_THROW(ade::forwarder<ade::MATMUL>({a}), std::runtime_error);
-	EXPECT_THROW(ade::forwarder<ade::MATMUL>({a1, b}), std::runtime_error);
-	EXPECT_THROW(ade::forwarder<ade::MATMUL>({a, b1}), std::runtime_error);
-	EXPECT_THROW(ade::forwarder<ade::MATMUL>({a1, b1}), std::runtime_error);
+}
 
-	ade::Shape m33 = ade::forwarder<
-		ade::MATMUL,uint8_t,uint8_t>({a1, b1}, 2, 1);
-	EXPECT_EQ(2, m33.n_rank());
-	EXPECT_EQ(blist1[0], m33.at(0));
-	EXPECT_EQ(alist1[2], m33.at(1));
 
-	ade::Shape m32 = ade::forwarder<
-		ade::MATMUL,uint8_t,uint8_t>({a, a1}, 2, 1);
-	EXPECT_EQ(1, m32.n_rank());
-	EXPECT_EQ(alist1[0], m32.at(0));
+TEST_F(FWDER, MATMUL)
+{
+	SESSION sess = get_session("FWDER::MATMUL");
 
-	ade::Shape m32a = ade::forwarder<
-		ade::MATMUL,uint8_t,uint8_t>({b, b1}, 2, 1);
-	EXPECT_EQ(1, m32a.n_rank());
-	EXPECT_EQ(blist1[0], m32a.at(0));
+	ade::DimT agroupidx = sess->get_scalar("agroupidx", {1, ade::rank_cap - 1});
+	std::vector<ade::DimT> common_group = get_shape_n(sess, agroupidx, "common_group");
+	ade::DimT nremaining = ade::rank_cap - agroupidx;
+	ade::DimT nagroup = 1;
+	if (nremaining > 1)
+	{
+		nagroup = sess->get_scalar("agroupidx", {1, nremaining});
+	}
+	if (nagroup > agroupidx)
+	{
+		nremaining = ade::rank_cap - nagroup;
+	}
+	ade::DimT nbgroup = 1;
+	if (nremaining > 1)
+	{
+		nbgroup = sess->get_scalar("bagroup", {1, nremaining});
+	}
+	std::vector<ade::DimT> agroup = get_shape_n(sess, nagroup, "agroup");
+	std::vector<ade::DimT> bgroup = get_shape_n(sess, nbgroup, "bgroup");
+	std::vector<ade::DimT> bad_cgroup = get_incompatible(sess, common_group, "common_group");
+
+	std::vector<ade::DimT> alist = common_group;
+	alist.insert(alist.end(), agroup.begin(), agroup.end());
+	std::vector<ade::DimT> blist = bgroup;
+	blist.insert(blist.end(), common_group.begin(), common_group.end());
+	ade::Tensorptr a = ade::Tensor::get(ade::Shape(alist));
+	ade::Tensorptr b = ade::Tensor::get(ade::Shape(blist));
+
+	std::vector<ade::DimT> badalist = bad_cgroup;
+	badalist.insert(badalist.end(), agroup.begin(), agroup.end());
+	std::vector<ade::DimT> badblist = bgroup;
+	badblist.insert(badblist.end(), bad_cgroup.begin(), bad_cgroup.end());
+	ade::Tensorptr bad_a = ade::Tensor::get(ade::Shape(badalist));
+	ade::Tensorptr bad_b = ade::Tensor::get(ade::Shape(badblist));
+
+	ade::Shape bigmat = ade::forwarder<
+		ade::MATMUL,uint8_t,uint8_t>({a, b}, common_group.size(), bgroup.size());
+	EXPECT_EQ(bgroup.size() + agroup.size(), (int) bigmat.n_rank());
+	std::vector<ade::DimT> expect = bgroup;
+	expect.insert(expect.end(), agroup.begin(), agroup.end());
+	std::vector<ade::DimT> got = bigmat.as_list();
+	EXPECT_ARREQ(expect, got);
 
 	auto fail = [&]()
 	{
-		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a1, b}, 2, 1);
+		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a, bad_b}, common_group.size(), bgroup.size());
 	};
 	auto fail1 = [&]()
 	{
-		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a1, b1}, 0, 1);
+		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({bad_a, b}, common_group.size(), bgroup.size());
 	};
-	auto fail2 = [&]()
-	{
-		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a1, b1}, 1, 0);
-	};
-	auto fail3 = [&]()
-	{
-		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a1, b1}, 7, 1);
-	};
-	auto fail4 = [&]()
-	{
-		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a1, b1}, 1, 7);
-	};
-	EXPECT_THROW(fail(), std::runtime_error);
-	EXPECT_THROW(fail1(), std::runtime_error);
-	EXPECT_THROW(fail2(), std::runtime_error);
-	EXPECT_THROW(fail3(), std::runtime_error);
-	EXPECT_THROW(fail4(), std::runtime_error);
+
+	EXPECT_THROW(fail(), std::runtime_error) <<
+		"ashape=" << a->shape().to_string() << ", bad_bshape=" << bad_b->shape().to_string();
+	EXPECT_THROW(fail1(), std::runtime_error) <<
+		"bad_ashape=" << bad_a->shape().to_string() << ", bshape=" << b->shape().to_string();
 }
 
 
 TEST_F(FWDER, PERMUTE)
 {
+	// SESSION sess = get_session("FWDER::PERMUTE");
+
+	// int32_t n = sess->get_scalar("n", {2, ade::rank_cap - 1});
+	// std::vector<ade::DimT> slist = get_shape_n(sess, n, "slist");
+	// std::vector<uint8_t> pidx = sess->choose(slist.size(), slist.size());
 	std::vector<ade::DimT> slist = {2, 3, 4, 5, 7};
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
+	std::vector<uint8_t> pidx = {2, 1, 3, 4, 0};
+	ade::Shape ogshape(slist);
+	ade::Tensorptr leaf = ade::Tensor::get(ogshape);
 
 	auto fail = [&]()
 	{
@@ -210,19 +229,26 @@ TEST_F(FWDER, PERMUTE)
 	};
 	EXPECT_THROW(fail(), std::runtime_error);
 
-	std::vector<uint8_t> pidx = {2, 1, 3, 4, 0};
 	ade::Shape perm = ade::forwarder<ade::PERMUTE,
 		std::vector<uint8_t>>({leaf}, pidx);
 
 	auto plist = perm.as_list();
 	size_t np = plist.size();
 	ASSERT_EQ(pidx.size(), np);
-	// todo: improve this test (it's technically following the definition of the function)
 	for (size_t i = 0; i < np; ++i)
 	{
-		EXPECT_EQ((int) slist[pidx[i]], (int) plist[i]) << "index " << i;
+		EXPECT_EQ((int) ogshape.at(pidx[i]), (int) plist[i]) << "index " << i;
 	}
 
+	// int32_t divide = 1;
+	// if (n > 2)
+	// {
+	// 	divide = sess->get_scalar("divide", {1, n - 1});
+	// }
+	// auto sit = slist.begin();
+	// auto ets = slist.end();
+	// std::vector<uint8_t> pidx2(sit, sit + divide);
+	// std::vector<uint8_t> remaining_idx(sit + divide, ets);
 	std::vector<uint8_t> pidx2 = {1, 4, 3, 0};
 	std::vector<uint8_t> remaining_idx = {2};
 	ade::Shape low_perm = ade::forwarder<ade::PERMUTE,
@@ -236,13 +262,15 @@ TEST_F(FWDER, PERMUTE)
 	ASSERT_EQ(npidx2 + nremaining, np2);
 	for (size_t i = 0; i < npidx2; ++i)
 	{
-		EXPECT_EQ((int) slist[pidx2[i]], (int) plist2[i]) << "index " << i;
+		EXPECT_EQ((int) ogshape.at(pidx2[i]), (int) plist2[i]) << "index " << i;
 	}
 	for (size_t i = 0; i < nremaining; ++i)
 	{
-		EXPECT_EQ((int) slist[remaining_idx[i]], (int) plist2[npidx2 + i]) << "index " << npidx2 + i;
+		EXPECT_EQ((int) ogshape.at(remaining_idx[i]), (int) plist2[npidx2 + i]) << "index " << npidx2 + i;
 	}
 
+	// int32_t nweird = sess->get_scalar("nweird", {1, ade::rank_cap - 1});
+	// std::vector<uint8_t> pidx3 = sess->get_int("pidx3", nweird, {0, ade::rank_cap - 1});
 	std::vector<uint8_t> pidx3 = {2, 3, 3, 4, 1, 0};
 	ade::Shape rep_perm = ade::forwarder<ade::PERMUTE,
 		std::vector<uint8_t>>({leaf}, pidx3);
@@ -252,15 +280,28 @@ TEST_F(FWDER, PERMUTE)
 	ASSERT_EQ(pidx3.size(), np3);
 	for (size_t i = 0; i < np3; ++i)
 	{
-		EXPECT_EQ((int) slist[pidx3[i]], (int) plist3[i]) << "index " << i;
+		EXPECT_EQ((int) ogshape.at(pidx3[i]), (int) plist3[i]) << "index " << i;
 	}
 }
 
 
 TEST_F(FWDER, EXTEND)
 {
-	std::vector<ade::DimT> slist = {2, 3, 4, 5, 7};
-	std::vector<ade::DimT> badlist = {2, 3, 4, 5, 7, 1, 8};
+	SESSION sess = get_session("FWDER::EXTEND");
+
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	std::vector<ade::DimT> badlist = get_shape_n(sess, ade::rank_cap, "badlist");
+
+	int32_t n = slist.size();
+	int32_t remainder = ade::rank_cap - n;
+
+	int32_t n_ext = 1;
+	if (remainder > 1)
+	{
+		n_ext = sess->get_scalar("n_ext", {1, remainder});
+	}
+	std::vector<ade::DimT> ext = get_shape_n(sess, n_ext, "ext");
+	std::vector<ade::DimT> bad_ext = get_shape_n(sess, remainder + 1, "bad_ext");
 
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr badleaf = ade::Tensor::get(ade::Shape(badlist));
@@ -274,7 +315,7 @@ TEST_F(FWDER, EXTEND)
 	};
 	auto fail2 = [&]()
 	{
-		ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({badleaf}, {4, 3});
+		ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({leaf}, bad_ext);
 	};
 	auto fail3 = [&]()
 	{
@@ -285,7 +326,6 @@ TEST_F(FWDER, EXTEND)
 	EXPECT_THROW(fail2(), std::runtime_error);
 	EXPECT_THROW(fail3(), std::runtime_error);
 
-	std::vector<ade::DimT> ext = {4, 3};
 	ade::Shape copied = ade::forwarder<ade::EXTEND,
 		std::vector<ade::DimT>>({leaf}, ext);
 	std::vector<ade::DimT> expect = slist;
@@ -298,9 +338,22 @@ TEST_F(FWDER, EXTEND)
 
 TEST_F(FWDER, RESHAPE)
 {
-	std::vector<ade::DimT> slist = {2, 3, 4, 5, 7};
-	std::vector<ade::DimT> olist = {2, 12, 5, 7};
-	std::vector<ade::DimT> badlist = {2, 3, 4, 5, 7, 1, 8};
+	SESSION sess = get_session("FWDER::RESHAPE");
+
+	int32_t n = sess->get_scalar("n", {2, ade::rank_cap - 2});
+	std::vector<ade::DimT> slist = get_shape_n(sess, n, "slist");
+	uint8_t mergeidx = 0;
+	if (n > 2)
+	{
+		mergeidx = sess->get_scalar("mergeidx", {0, (uint8_t) slist.size() - 2});
+	}
+	std::vector<ade::DimT> olist = slist;
+	olist.erase(olist.begin() + mergeidx);
+	olist[mergeidx] *= slist[mergeidx];
+	int32_t nremaining = ade::rank_cap - n;
+	std::vector<ade::DimT> extra = get_shape_n(sess, nremaining, "extra");
+	std::vector<ade::DimT> badlist = slist;
+	badlist.insert(badlist.end(), extra.begin(), extra.end());
 
 	ade::Tensorptr scalar = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr scalar1 = ade::Tensor::get(ade::Shape({1}));

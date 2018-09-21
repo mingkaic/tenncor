@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "ade/test/common.hpp"
-
 #include "ade/shape.hpp"
+
+#include "ade/test/common.hpp"
 
 
 #ifndef DISABLE_SHAPE_TEST

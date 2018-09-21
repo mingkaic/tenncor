@@ -7,4 +7,4 @@ LLO provides an evaluation function which directs the appropriate arguments to t
 # Future Work
 
 In order for decouple the ADE extension from the operator implementations, we need to experiment and settle on a stable API.
-This module is ultimately a glue layer for ADE, operator libraries, and top-level components.
+This module is ultimately a wrapper library for ADE, and operator libraries for the benefit of top-level executables.
