@@ -1,5 +1,4 @@
 tests:
-- full test coverage on ade
 - full test coverage on llo
 - add test on pbm
 - valgrind/asan check everything
