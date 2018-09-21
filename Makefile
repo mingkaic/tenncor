@@ -70,17 +70,19 @@ asan_ade_static:
 	$(GTEST) $(ASAN_BZL_FLAGS) //ade:test_static
 
 # coverage unit tests
-coverage: cover_ade
+lcov_all:
+	bash listcov.sh coverage $(COVERAGE_INFO_FILE)
+	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_util:
 	bash listcov.sh cover_util $(COVERAGE_INFO_FILE)
-	lcov --remove $(COVERAGE_INFO_FILE) -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_ade:
 	bash listcov.sh cover_ade $(COVERAGE_INFO_FILE)
-	lcov --remove $(COVERAGE_INFO_FILE) '**/util/*' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
+
+coverage: cover_util cover_ade
 
 cover_util:
 	$(COVER) //util:test --instrumentation_filter=/util[/:]

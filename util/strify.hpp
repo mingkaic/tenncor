@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <tuple>
+#include <vector>
 
 #ifndef UTIL_STRIFY_HPP
 #define UTIL_STRIFY_HPP
