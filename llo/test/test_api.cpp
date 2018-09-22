@@ -25,6 +25,35 @@ static const Range<double> default_range = {-9876, 9876};
 struct API : public TestModel {};
 
 
+static void unary_generic (SESSION& sess,
+	Range<double> range, UNARY_OP op,
+	std::function<void(llo::GenericData&,ade::Shape&,std::vector<double>&)> verify,
+	std::function<void(double*,std::vector<double>&)> bwverify)
+{
+	std::vector<ade::DimT> slist = get_shape(sess, "shape");
+	ade::Shape shape(slist);
+	ade::NElemT n = shape.n_elems();
+	std::vector<double> data = sess->get_double("data", n, default_range);
+
+	auto src = llo::Source<double>::get(shape, data);
+	auto dest = op(src);
+
+	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	verify(out, shape, data);
+
+	auto gsrc = dest->gradient(src);
+
+	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	{
+		auto expectshape = shape.as_list();
+		auto gotshape = gout.shape_.as_list();
+		ASSERT_ARREQ(expectshape, gotshape);
+	}
+	double* goptr = (double*) gout.data_.get();
+	bwverify(goptr, data);
+}
+
+
 static void unary_elementary (SESSION& sess,
 	Range<double> range, UNARY_OP op,
 	UNARY_DBL fwd, UNARY_DBL bwd, bool save_grad = true)
@@ -366,49 +395,37 @@ TEST_F(API, Flip)
 	SESSION sess = get_session("API::Flip");
 	uint8_t dim = sess->get_scalar("dim", {0, ade::rank_cap - 1});
 
-	std::vector<ade::DimT> slist = get_shape(sess, "shape");
-	ade::Shape shape(slist);
-	ade::NElemT n = shape.n_elems();
-	std::vector<double> data = sess->get_double("data", n, default_range);
-
-	auto src = llo::Source<double>::get(shape, data);
-	auto dest = llo::flip(src, dim);
-
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	unary_generic(sess, default_range,
+	[dim](ade::Tensorptr& src) { return llo::flip(src, dim); },
+	[dim, &sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
 	{
 		auto expectshape = shape.as_list();
 		auto gotshape = out.shape_.as_list();
 		ASSERT_ARREQ(expectshape, gotshape);
-	}
-	double* optr = (double*) out.data_.get();
+		double* optr = (double*) out.data_.get();
+		size_t n = data.size();
 
-	double_verify(sess, "out", std::vector<double>(optr, optr + n),
-	[&]()
-	{
-		std::vector<ade::DimT> coord;
-		uint8_t dimlimit = shape.at(dim) - 1;
-		for (size_t i = 0; i < n; ++i)
+		double_verify(sess, "out", std::vector<double>(optr, optr + n),
+		[&]()
 		{
-			coord = ade::coordinate(shape, i);
-			coord[dim] = dimlimit - coord[dim];
+			std::vector<ade::DimT> coord;
+			uint8_t dimlimit = shape.at(dim) - 1;
+			for (size_t i = 0; i < n; ++i)
+			{
+				coord = ade::coordinate(shape, i);
+				coord[dim] = dimlimit - coord[dim];
 
-			EXPECT_EQ(data[ade::index(shape, coord)], optr[i]);
+				EXPECT_EQ(data[ade::index(shape, coord)], optr[i]);
+			}
+		});
+	},
+	[](double* gout, std::vector<double>& og)
+	{
+		for (size_t i = 0, n = og.size(); i < n; ++i)
+		{
+			EXPECT_EQ(1, gout[i]);
 		}
 	});
-
-	auto gsrc = dest->gradient(src);
-
-	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
-	{
-		auto expectshape = shape.as_list();
-		auto gotshape = gout.shape_.as_list();
-		ASSERT_ARREQ(expectshape, gotshape);
-	}
-	double* goptr = (double*) gout.data_.get();
-	for (size_t i = 0; i < n; ++i)
-	{
-		EXPECT_EQ(1, goptr[i]);
-	}
 }
 
 
@@ -526,6 +543,194 @@ TEST_F(API, Gt)
 	{
 		return leftg > rightg;
 	});
+}
+
+
+TEST_F(API, NElems)
+{
+	SESSION sess = get_session("API::NElems");
+
+	unary_generic(sess, default_range,
+	[](ade::Tensorptr& src) { return llo::n_elems(src); },
+	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>&)
+	{
+		EXPECT_EQ(0, out.shape_.n_rank());
+		ASSERT_EQ(1, out.shape_.n_elems());
+		double got = *((double*) out.data_.get());
+
+		double_verify(sess, "out", {got},
+		[&]()
+		{
+			EXPECT_EQ(shape.n_elems(), got);
+		});
+	},
+	[](double* gout, std::vector<double>& og)
+	{
+		for (size_t i = 0, n = og.size(); i < n; ++i)
+		{
+			EXPECT_EQ(0, gout[i]);
+		}
+	});
+}
+
+
+TEST_F(API, NDims)
+{
+	SESSION sess = get_session("API::NDims");
+	uint8_t dim = sess->get_scalar("dim", {0, ade::rank_cap - 1});
+	
+	unary_generic(sess, default_range,
+	[dim](ade::Tensorptr& src) { return llo::n_dims(src, dim); },
+	[dim, &sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>&)
+	{
+		EXPECT_EQ(0, out.shape_.n_rank());
+		ASSERT_EQ(1, out.shape_.n_elems());
+		double got = *((double*) out.data_.get());
+
+		double_verify(sess, "out", {got},
+		[&]()
+		{
+			EXPECT_EQ(shape.at(dim), got);
+		});
+	},
+	[](double* gout, std::vector<double>& og)
+	{
+		for (size_t i = 0, n = og.size(); i < n; ++i)
+		{
+			EXPECT_EQ(0, gout[i]);
+		}
+	});
+}
+
+
+TEST_F(API, Argmax)
+{
+	SESSION sess = get_session("API::Argmax");
+
+	std::vector<ade::DimT> slist = get_shape(sess, "shape");
+	ade::Shape shape(slist);
+	ade::NElemT n = shape.n_elems();
+	std::vector<double> data = sess->get_double("data", n, default_range);
+	auto it = data.begin();
+	auto maxit = std::max_element(it, data.end());
+	size_t maxidx = std::distance(it, maxit);
+
+	auto src = llo::Source<double>::get(shape, data);
+	auto dest = llo::argmax(src);
+
+	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	EXPECT_EQ(0, out.shape_.n_rank());
+	ASSERT_EQ(1, out.shape_.n_elems());
+	double got = *((double*) out.data_.get());
+
+	double_verify(sess, "out", {got},
+	[&]()
+	{
+		EXPECT_EQ(maxidx, got);
+	});
+
+	EXPECT_THROW(dest->gradient(src), std::bad_function_call);
+}
+
+
+TEST_F(API, Rmax)
+{
+	SESSION sess = get_session("API::Rmax");
+	
+	unary_generic(sess, default_range,
+	[](ade::Tensorptr& src) { return llo::rmax(src); },
+	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
+	{
+		size_t n = out.shape_.n_elems();
+		EXPECT_EQ(0, out.shape_.n_rank());
+		ASSERT_EQ(1, n);
+		double got = *((double*) out.data_.get());
+
+		double_verify(sess, "out", {got},
+		[&]()
+		{
+			double expect = *(std::max_element(data.begin(), data.end()));
+			EXPECT_DOUBLE_EQ(expect, got);
+		});
+	},
+	[](double* gout, std::vector<double>& og)
+	{
+		double bigly = *(std::max_element(og.begin(), og.end()));
+		for (size_t i = 0, n = og.size(); i < n; ++i)
+		{
+			if (og[i] == bigly)
+			{
+				EXPECT_EQ(1, gout[i]);
+			}
+		}
+	});
+}
+
+
+TEST_F(API, Rsum)
+{
+	SESSION sess = get_session("API::Rsum");
+	
+	unary_generic(sess, default_range,
+	[](ade::Tensorptr& src) { return llo::rsum(src); },
+	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
+	{
+		size_t n = out.shape_.n_elems();
+		{
+			EXPECT_EQ(0, out.shape_.n_rank());
+			ASSERT_EQ(1, n);
+		}
+		double got = *((double*) out.data_.get());
+
+		double_verify(sess, "out", {got},
+		[&]()
+		{
+			double expect = std::accumulate(data.begin(), data.end(), 0.0);
+			EXPECT_DOUBLE_EQ(expect, got);
+		});
+	},
+	[](double* gout, std::vector<double>& og)
+	{
+		for (size_t i = 0, n = og.size(); i < n; ++i)
+		{
+			EXPECT_EQ(1, gout[i]);
+		}
+	});
+}
+
+
+TEST_F(API, Matmul2d)
+{
+	SESSION sess = get_session("API::Matmul2d");
+	
+}
+
+
+TEST_F(API, Matmul)
+{
+	SESSION sess = get_session("API::Matmul");
+	
+}
+
+
+TEST_F(API, Permute)
+{
+	SESSION sess = get_session("API::Permute");
+	
+}
+
+
+TEST_F(API, Extend)
+{
+	SESSION sess = get_session("API::Extend");
+	
+}
+
+
+TEST_F(API, Reshape)
+{
+	SESSION sess = get_session("API::Reshape");
+	
 }
 
 
