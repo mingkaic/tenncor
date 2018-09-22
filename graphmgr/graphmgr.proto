@@ -3,72 +3,29 @@ syntax = "proto3";
 option go_package = "github.com/mingkaic/tenncor/graphmgr";
 
 import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 
-import "lead/data.proto";
-import "lead/graph.proto";
+import "pbm/graph.proto";
 
 package graphmgr;
 
 service Graphmgr {
-	// python generator client
-	rpc PostGraph(GraphCreated) returns (Nothing) {}
-	rpc PostData(DataCreated) returns (Nothing) {}
+	rpc AllGraphs(google.protobuf.Empty) returns (GraphRes) {}
 
-	// real client
-	rpc GetGraphList(GraphListReq) returns (GraphList) {}
-	rpc GetGraphPb(GraphReq) returns (tenncor.GraphPb) {}
-
-	rpc GetData(DataReq) returns (stream tenncor.DataRepoPb) {}
-	rpc GetTestData(DataReq) returns (stream TestData) {}
-}
-
-message GraphCreated {
-	enum Category {
-		ALL = 0;
-		RAND = 1;
-	}
-	tenncor.GraphPb graph = 1;
-	Category category = 2;
-	google.protobuf.Any detail = 3;
-}
-
-message DataCreated {
-	tenncor.DataRepoPb data = 1;
-}
-
-message Script {
-	string message = 1;
-}
-
-message Nothing {}
-
-// real client messages
-
-message GraphListReq {
-	enum Category {
-		TEST = 0;
-		LIVE = 1;
-	}
-	Category category = 1;
-}
-
-message GraphList {
-	repeated string gids = 1;
+	rpc CreateGraph(tenncor.Graph) returns (GraphRes) {}
+	rpc GetGraphPb(GraphReq) returns (GraphRes) {}
+	rpc DelGraphPb(GraphReq) returns (Status) {}
 }
 
 message GraphReq {
 	string gid = 1;
 }
 
-message DataReq {
-	string gid = 1;
+message GraphRes {
+	string status = 1;
+	repeated tenncor.Graph results = 2;
 }
 
-message TestData
-{
-	tenncor.DataRepoPb vars = 1;
-	map<string, tenncor.FloatArr> dscalar = 2;
-	map<string, tenncor.Int32Arr> iscalar = 3;
-	tenncor.DataRepoPb grads = 4; // map wrt variable to gradient result
-	tenncor.TensorPb result = 5;
+message Status {
+	string status = 1;
 }

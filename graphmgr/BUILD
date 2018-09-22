@@ -1,38 +1,39 @@
-package(
-    default_visibility = [ "//visibility:public" ],
-)
-
 licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
 
 load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cc_proto_library")
 load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
 
 filegroup(
     name = "srcs",
-    srcs = [ ":graphmgr", "BUILD" ],
+    srcs = [":protos", "BUILD"],
 )
 
 filegroup(
-    name = "graphmgr",
-    srcs = [ "graphmgr.proto" ],
+    name = "protos",
+    srcs = glob(["*.proto"]),
 )
 
 proto_library(
-    name = "grpc",
-    srcs = [ ":graphmgr" ],
+    name = "proto_lib",
+    srcs = ["//graphmgr:protos"],
     deps = [
-        "//lead:proto",
+        "//pbm:proto_lib",
         "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:empty_proto",
     ],
 )
 
 cc_proto_library(
     name = "cc_grpc",
-    protos = [ ":graphmgr" ],
-    imports = [ "external/com_google_protobuf/src" ],
-    proto_deps = [ "//lead:cc_proto" ],
+    protos = ["//pbm:protos"],
+    imports = ["external/com_google_protobuf/src"],
+    proto_deps = ["//lead:cc_proto"],
     inputs = [
-        "//lead:proto",
+        "//pbm:proto_lib",
         "@com_google_protobuf//:well_known_protos",
     ],
     with_grpc = True,
@@ -40,11 +41,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "py_grpc",
-    protos = [ ":graphmgr" ],
-    imports = [ "external/com_google_protobuf/src" ],
-    proto_deps = [ "//lead:py_proto" ],
+    protos = ["//pbm:protos"],
+    imports = ["external/com_google_protobuf/src"],
+    proto_deps = ["//lead:py_proto"],
     inputs = [
-        "//lead:proto",
+        "//pbm:proto_lib",
         "@com_google_protobuf//:well_known_protos",
     ],
     with_grpc = True,

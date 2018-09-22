@@ -14,7 +14,7 @@ filegroup(
 		"src/*.cpp",
 		"test/*.hpp",
 		"test/*.cpp",
-	]) + ["BUILD"],
+	]) + [":protos", "BUILD"],
 )
 
 filegroup(
@@ -25,9 +25,12 @@ filegroup(
 ######### LIBRARY #########
 
 proto_library(
-    name = "proto",
+    name = "proto_lib",
     srcs = ["//pbm:protos"],
-    deps = ["@com_google_protobuf//:any_proto"],
+    deps = [
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:empty_proto",
+    ],
 )
 
 cc_proto_library(

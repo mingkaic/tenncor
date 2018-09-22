@@ -404,7 +404,18 @@ void show_eq (struct ASTNode* node)
 				}
 				if (root)
 				{
-					out << root->to_string();
+					if (root == ade::Tensor::SYMBOLIC_ONE.get())
+					{
+						out << 1;
+					}
+					else if (root == ade::Tensor::SYMBOLIC_ZERO.get())
+					{
+						out << 0;
+					}
+					else
+					{
+						out << root->to_string();
+					}
 				}
 			});
 

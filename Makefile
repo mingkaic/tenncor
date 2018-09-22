@@ -95,7 +95,7 @@ cover_ade_dynamic:
 cover_ade_static:
 	$(COVER) //ade:test_static --instrumentation_filter=/ade[/:],/util[/:]
 
-# CLI test
+# check CLI
 check_cli: check_ade_cli check_llo_cli
 
 check_ade_cli: build_ade_cli
