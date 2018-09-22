@@ -13,22 +13,22 @@
 
 static inline void ltrim(std::string &s)
 {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
 		std::not1(std::ptr_fun<int, int>(std::isspace))));
 }
 
 
 static inline void rtrim(std::string &s)
 {
-    s.erase(std::find_if(s.rbegin(), s.rend(),
+	s.erase(std::find_if(s.rbegin(), s.rend(),
 		std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
 }
 
 
 static inline void trim(std::string &s)
 {
-    ltrim(s);
-    rtrim(s);
+	ltrim(s);
+	rtrim(s);
 }
 
 

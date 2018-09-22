@@ -24,7 +24,7 @@ COVERAGE_INFO_FILE := coverage.info
 
 # all tests
 
-test: test_util test_ade check_cli
+test: test_util test_ade test_llo check_cli
 
 test_util:
 	$(GTEST) //util:test

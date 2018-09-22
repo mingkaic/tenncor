@@ -15,6 +15,8 @@ struct PrettyTree
 		traverser_(traverser),
 		to_stream_(to_stream) {}
 
+	virtual ~PrettyTree (void) = default;
+
 	void print (std::ostream& out, T root)
 	{
 		out << "(";

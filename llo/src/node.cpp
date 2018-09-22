@@ -5,8 +5,55 @@
 namespace llo
 {
 
+#define FILL_ONE(TYPE){\
+TYPE* ptr = (TYPE*) cptr;\
+std::fill(ptr, ptr + n, (TYPE) 1); } break;
+
+static void fill_one (char* cptr, size_t n, DTYPE dtype)
+{
+	switch (dtype)
+	{
+		case DOUBLE:
+			FILL_ONE(double)
+		case FLOAT:
+			FILL_ONE(float)
+		case INT8:
+			FILL_ONE(int8_t)
+		case INT16:
+			FILL_ONE(int16_t)
+		case INT32:
+			FILL_ONE(int32_t)
+		case INT64:
+			FILL_ONE(int64_t)
+		case UINT8:
+			FILL_ONE(uint8_t)
+		case UINT16:
+			FILL_ONE(uint16_t)
+		case UINT32:
+			FILL_ONE(uint32_t)
+		case UINT64:
+			FILL_ONE(uint64_t)
+		default:
+			util::handle_error("evaluating unknown type");
+	}
+}
+
+#undef FILL_ONE
+
 GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 {
+	if (tens == ade::Tensor::SYMBOLIC_ONE.get())
+	{
+		GenericData out(ade::Shape(), dtype);
+		fill_one(out.data_.get(), 1, dtype);
+		return out;
+	}
+	else if (tens == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		GenericData out(ade::Shape(), dtype);
+		std::memset(out.data_.get(), 0, type_size(dtype));
+		return out;
+	}
 	if (Evaluable* ev = dynamic_cast<Evaluable*>(tens))
 	{
 		return ev->evaluate(dtype);

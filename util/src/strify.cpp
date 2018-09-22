@@ -18,9 +18,7 @@ void to_stream (std::ostream& s, std::string str)
 	{
 		switch (str[i]) {
 			case util::BEGIN:
-			[[fallthrough]];
 			case util::END:
-			[[fallthrough]];
 			case util::DELIM:
 				str.insert(str.begin() + i, util::DELIM);
 				++i;

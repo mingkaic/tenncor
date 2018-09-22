@@ -51,22 +51,7 @@ struct Source final : public iSource
 	{
 		Evaluable* eval = dynamic_cast<Evaluable*>(leaf.get());
 		ade::Tensorptr wrt = nullptr == eval ? leaf : eval->inner();
-		ade::Tensorptr out = tens_->gradient(wrt);
-		// optimize out reshaper
-		ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(out.get());
-		if (f == nullptr || ade::RESHAPE != f->get_code())
-		{
-			util::handle_error("source gradient not reshaped",
-				util::ErrArg<std::string>("grad_op", ade::opname(
-					f->get_code())));
-		}
-		const ade::Shape& gshape = f->shape();
-		std::vector<T> gdata(gshape.n_elems());
-		if (ade::Tensor::SYMBOLIC_ONE.get() == f->get_refs()[0])
-		{
-			std::fill(gdata.begin(), gdata.end(), (T) 1);
-		}
-		return Source::get(gshape, gdata);
+		return tens_->gradient(wrt);
 	}
 
 	std::string to_string (void) const override

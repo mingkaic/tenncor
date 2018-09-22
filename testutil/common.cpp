@@ -48,3 +48,33 @@ std::vector<ade::DimT> get_incompatible (SESSION& sess,
 	bad[incr_pt]++;
 	return bad;
 }
+
+void int_verify (SESSION& sess, std::string key,
+	std::vector<int32_t> data, std::function<void()> verify)
+{
+	// if (sess->generated_input()) 
+	// {
+		verify(); 
+		sess->store_int(key, data); 
+	// } 
+	// else 
+	// { 
+	// 	auto expect = expect_int(key); 
+	// 	EXPECT_ARREQ(expect, data); 
+	// }
+}
+
+void double_verify (SESSION& sess, std::string key,
+	std::vector<double> data, std::function<void()> verify)
+{
+	// if (sess->generated_input()) 
+	// {
+		verify(); 
+		sess->store_double(key, data); 
+	// }
+	// else 
+	// { 
+	// 	auto expect = expect_double(key); 
+	// 	EXPECT_ARREQ(expect, data); 
+	// }
+}
