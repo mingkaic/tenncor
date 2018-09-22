@@ -6,6 +6,9 @@
 #ifndef LLO_OPMAP_HPP
 #define LLO_OPMAP_HPP
 
+namespace llo
+{
+
 template <ade::OPCODE opcode, typename T, typename... Args>
 struct Executer
 {
@@ -19,13 +22,13 @@ struct Executer
 #define UNARY_ELEM(OP, METHOD)template <typename T>\
 struct Executer<ade::OP,T> { static void exec\
 (GenericData& out, std::vector<GenericData>& data)\
-{ llo::METHOD((T*) out.data_.get(),\
+{ METHOD((T*) out.data_.get(),\
 (T*) data[0].data_.get(), out.shape_.n_elems()); } };
 
 #define BINARY_ELEM(OP, METHOD)template <typename T>\
 struct Executer<ade::OP,T> { static void exec\
 (GenericData& out, std::vector<GenericData>& data)\
-{ llo::METHOD((T*) out.data_.get(),\
+{ METHOD((T*) out.data_.get(),\
 (T*) data[0].data_.get(), data[0].shape_.n_elems(),\
 (T*) data[1].data_.get(), data[1].shape_.n_elems()); } };
 
@@ -33,12 +36,12 @@ struct Executer<ade::OP,T> { static void exec\
 struct Executer<ade::OP,T> {\
 static void exec (GenericData& out, std::vector<GenericData>& data)\
 { T* ptr = (T*) out.data_.get();\
-llo::METHOD(*ptr, (T*) data[0].data_.get(), data[0].shape_.n_elems()); } };
+METHOD(*ptr, (T*) data[0].data_.get(), data[0].shape_.n_elems()); } };
 
 #define UNARY_COPY(OP)template <typename T>\
 struct Executer<ade::OP,T> {\
 static void exec (GenericData& out, std::vector<GenericData>& data)\
-{ llo::copyover((T*) out.data_.get(), out.shape_.n_elems(),\
+{ copyover((T*) out.data_.get(), out.shape_.n_elems(),\
 (T*) data[0].data_.get(), data[0].shape_.n_elems()); } };
 
 UNARY_ELEM(ABS, abs)
@@ -58,7 +61,7 @@ struct Executer<ade::FLIP,T,uint8_t>
 	static void exec (GenericData& out,
 		std::vector<GenericData>& data, uint8_t dim)
 	{
-		llo::flip((T*) out.data_.get(), (T*) data[0].data_.get(), out.shape_, dim);
+		flip((T*) out.data_.get(), (T*) data[0].data_.get(), out.shape_, dim);
 	}
 };
 
@@ -77,7 +80,7 @@ struct Executer<ade::BINO,T>
 {
 	static void exec (GenericData& out, std::vector<GenericData>& data)
 	{
-		llo::rand_binom((T*) out.data_.get(),
+		rand_binom((T*) out.data_.get(),
 			(T*) data[0].data_.get(), data[0].shape_.n_elems(),
 			(double*) data[1].data_.get(), data[1].shape_.n_elems());
 	}
@@ -92,7 +95,7 @@ struct Executer<ade::N_ELEMS,T>
 	static void exec (GenericData& out, std::vector<GenericData>& data)
 	{
 		T* ptr = (T*) out.data_.get();
-		llo::n_elems(*ptr, data[0].shape_);
+		n_elems(*ptr, data[0].shape_);
 	}
 };
 
@@ -102,7 +105,7 @@ struct Executer<ade::N_DIMS,T,uint8_t>
 	static void exec (GenericData& out, std::vector<GenericData>& data, uint8_t dim)
 	{
 		T* ptr = (T*) out.data_.get();
-		llo::n_dims(*ptr, data[0].shape_, dim);
+		n_dims(*ptr, data[0].shape_, dim);
 	}
 };
 
@@ -115,7 +118,7 @@ struct Executer<ade::MATMUL,T>
 {
 	static void exec (GenericData& out, std::vector<GenericData>& data)
 	{
-		llo::matmul((T*) out.data_.get(),
+		matmul((T*) out.data_.get(),
 			(T*) data[0].data_.get(), (T*) data[1].data_.get(),
 			data[0].shape_, data[1].shape_, 1, 1);
 	}
@@ -127,7 +130,7 @@ struct Executer<ade::MATMUL,T,uint8_t,uint8_t>
 	static void exec (GenericData& out, std::vector<GenericData>& data,
 		uint8_t agroup_idx, uint8_t bgroup_idx)
 	{
-		llo::matmul((T*) out.data_.get(),
+		matmul((T*) out.data_.get(),
 			(T*) data[0].data_.get(), (T*) data[1].data_.get(),
 			data[0].shape_, data[1].shape_, agroup_idx, bgroup_idx);
 	}
@@ -139,7 +142,7 @@ struct Executer<ade::PERMUTE,T,std::vector<uint8_t>>
 	static void exec (GenericData& out, std::vector<GenericData>& data,
 		std::vector<uint8_t> order)
 	{
-		llo::permute((T*) out.data_.get(),
+		permute((T*) out.data_.get(),
 			(T*) data[0].data_.get(), out.shape_, data[0].shape_, order);
 	}
 };
@@ -298,6 +301,8 @@ void op_exec (ade::OPCODE opcode, GenericData& out,
 		default:
 			util::handle_error("unknown opcode");
 	}
+}
+
 }
 
 #endif /* LLO_OPMAP_HPP */

@@ -4,6 +4,9 @@
 
 #ifdef LLO_API_HPP
 
+namespace llo
+{
+
 ade::Tensorptr abs (ade::Tensorptr& arg)
 {
 	return ade::Functor<ade::ABS>::get({arg});
@@ -14,7 +17,7 @@ ade::Tensorptr neg (ade::Tensorptr& arg)
 	return ade::Functor<ade::NEG>::get({arg});
 }
 
-ade::Tensorptr logic_not (ade::Tensorptr& arg)
+ade::Tensorptr bit_not (ade::Tensorptr& arg)
 {
 	return ade::Functor<ade::NOT>::get({arg});
 }
@@ -181,6 +184,8 @@ ade::Tensorptr reshape (ade::Tensorptr& arg, std::vector<uint8_t> slist)
 {
 	return ade::Functor<ade::RESHAPE,
 		std::vector<ade::DimT>>::get({arg}, slist);
+}
+
 }
 
 #endif

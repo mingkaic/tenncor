@@ -3,6 +3,9 @@
 #ifndef LLO_DTYPE_HPP
 #define LLO_DTYPE_HPP
 
+namespace llo
+{
+
 enum DTYPE
 {
 	BAD = 0,
@@ -58,5 +61,7 @@ template <>
 DTYPE get_type<uint64_t> (void);
 
 uint8_t type_size (DTYPE type);
+
+}
 
 #endif /* LLO_DTYPE_HPP */

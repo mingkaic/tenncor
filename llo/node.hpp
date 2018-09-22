@@ -7,6 +7,9 @@
 #ifndef LLO_NODE_HPP
 #define LLO_NODE_HPP
 
+namespace llo
+{
+
 struct Evaluable
 {
 	virtual ~Evaluable (void) = default;
@@ -200,7 +203,7 @@ private:
 		std::vector<GenericData> argdata(nargs);
 		for (uint8_t i = 0; i < nargs; ++i)
 		{
-			argdata[i] = ::evaluate(dtype, refs[i]);
+			argdata[i] = llo::evaluate(dtype, refs[i]);
 		}
 		op_exec(opcode, out, argdata, std::get<I>(args_)...);
 		return out;
@@ -208,5 +211,7 @@ private:
 
 	ade::Tensorptr tens_;
 };
+
+}
 
 #endif /* LLO_NODE_HPP */

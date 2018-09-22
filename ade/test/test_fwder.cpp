@@ -2,7 +2,7 @@
 
 #include "ade/fwder.hpp"
 
-#include "ade/test/common.hpp"
+#include "testutil/common.hpp"
 
 
 #ifndef DISABLE_FWDER_TEST
@@ -139,12 +139,24 @@ TEST_F(FWDER, MATMUL2D)
 	ade::Tensorptr a = ade::Tensor::get(ade::Shape(alist));
 	ade::Tensorptr b = ade::Tensor::get(ade::Shape(blist));
 
+	EXPECT_THROW(ade::forwarder<ade::MATMUL>({a}), std::runtime_error);
+
 	ade::Shape mat2d = ade::forwarder<ade::MATMUL>({a, b});
+
+	std::vector<ade::DimT> got = mat2d.as_list();
+	std::string mat2d_key = "mat2d";
+	// if (sess->generated_input())
+	// {
 	EXPECT_EQ(2, mat2d.n_rank());
 	EXPECT_EQ(bdim, mat2d.at(0));
 	EXPECT_EQ(adim, mat2d.at(1));
-
-	EXPECT_THROW(ade::forwarder<ade::MATMUL>({a}), std::runtime_error);
+	// 	sess->store_int(mat2d_key, std::vector<int32_t>(got.begin(), got.end()));
+	// }
+	// else
+	// {
+	// 	auto expect = expect_int(mat2d_key);
+	// 	EXPECT_ARREQ(expect, got);
+	// }
 }
 
 
@@ -187,14 +199,6 @@ TEST_F(FWDER, MATMUL)
 	ade::Tensorptr bad_a = ade::Tensor::get(ade::Shape(badalist));
 	ade::Tensorptr bad_b = ade::Tensor::get(ade::Shape(badblist));
 
-	ade::Shape bigmat = ade::forwarder<
-		ade::MATMUL,uint8_t,uint8_t>({a, b}, common_group.size(), bgroup.size());
-	EXPECT_EQ(bgroup.size() + agroup.size(), (int) bigmat.n_rank());
-	std::vector<ade::DimT> expect = bgroup;
-	expect.insert(expect.end(), agroup.begin(), agroup.end());
-	std::vector<ade::DimT> got = bigmat.as_list();
-	EXPECT_ARREQ(expect, got);
-
 	auto fail = [&]()
 	{
 		ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a, bad_b}, common_group.size(), bgroup.size());
@@ -208,18 +212,35 @@ TEST_F(FWDER, MATMUL)
 		"ashape=" << a->shape().to_string() << ", bad_bshape=" << bad_b->shape().to_string();
 	EXPECT_THROW(fail1(), std::runtime_error) <<
 		"bad_ashape=" << bad_a->shape().to_string() << ", bshape=" << b->shape().to_string();
+
+	ade::Shape bigmat = ade::forwarder<
+		ade::MATMUL,uint8_t,uint8_t>({a, b}, common_group.size(), bgroup.size());
+	std::string bigmat_key = "bigmat";
+	std::vector<ade::DimT> got = bigmat.as_list();
+	// if (sess->generated_input())
+	// {
+	EXPECT_EQ(bgroup.size() + agroup.size(), (int) bigmat.n_rank());
+	std::vector<ade::DimT> expect = bgroup;
+	expect.insert(expect.end(), agroup.begin(), agroup.end());
+	EXPECT_ARREQ(expect, got);
+	// 	sess->store_int(bigmat_key, std::vector<int32_t>(got.begin(), got.end()));
+	// }
+	// else
+	// {
+	// 	auto expect = expect_int(bigmat_key);
+	// 	EXPECT_ARREQ(expect, got);
+	// }
 }
 
 
 TEST_F(FWDER, PERMUTE)
 {
-	// SESSION sess = get_session("FWDER::PERMUTE");
+	SESSION sess = get_session("FWDER::PERMUTE");
 
-	// int32_t n = sess->get_scalar("n", {2, ade::rank_cap - 1});
-	// std::vector<ade::DimT> slist = get_shape_n(sess, n, "slist");
-	// std::vector<uint8_t> pidx = sess->choose(slist.size(), slist.size());
-	std::vector<ade::DimT> slist = {2, 3, 4, 5, 7};
-	std::vector<uint8_t> pidx = {2, 1, 3, 4, 0};
+	int32_t n = sess->get_scalar("n", {2, ade::rank_cap - 2});
+	std::vector<ade::DimT> slist = get_shape_n(sess, n, "slist");
+	std::vector<uint64_t> pidx_temp = sess->choose("pidx", slist.size(), slist.size());
+	std::vector<uint8_t> pidx(pidx_temp.begin(), pidx_temp.end());
 	ade::Shape ogshape(slist);
 	ade::Tensorptr leaf = ade::Tensor::get(ogshape);
 
@@ -232,29 +253,41 @@ TEST_F(FWDER, PERMUTE)
 	ade::Shape perm = ade::forwarder<ade::PERMUTE,
 		std::vector<uint8_t>>({leaf}, pidx);
 
+	std::string plist_key = "plist";
 	auto plist = perm.as_list();
+	// if (sess->generated_input())
+	// {
 	size_t np = plist.size();
 	ASSERT_EQ(pidx.size(), np);
 	for (size_t i = 0; i < np; ++i)
 	{
 		EXPECT_EQ((int) ogshape.at(pidx[i]), (int) plist[i]) << "index " << i;
 	}
-
-	// int32_t divide = 1;
-	// if (n > 2)
-	// {
-	// 	divide = sess->get_scalar("divide", {1, n - 1});
+	// 	sess->store_int(plist_key, std::vector<int32_t>(plist.begin(), plist.end()));
 	// }
-	// auto sit = slist.begin();
-	// auto ets = slist.end();
-	// std::vector<uint8_t> pidx2(sit, sit + divide);
-	// std::vector<uint8_t> remaining_idx(sit + divide, ets);
-	std::vector<uint8_t> pidx2 = {1, 4, 3, 0};
-	std::vector<uint8_t> remaining_idx = {2};
+	// else
+	// {
+	// 	auto expect = expect_int(plist_key);
+	// 	EXPECT_ARREQ(expect, plist);
+	// }
+
+	int32_t divide = 1;
+	if (n > 2)
+	{
+		divide = sess->get_scalar("divide", {1, n - 1});
+	}
+	auto sit = pidx.begin();
+	auto ets = pidx.end();
+	std::vector<uint8_t> pidx2(sit, sit + divide);
+	std::vector<uint8_t> remaining_idx(sit + divide, ets);
+	std::sort(remaining_idx.begin(), remaining_idx.end());
 	ade::Shape low_perm = ade::forwarder<ade::PERMUTE,
 		std::vector<uint8_t>>({leaf}, pidx2);
 
+	std::string plist2_key = "plist2";
 	auto plist2 = low_perm.as_list();
+	// if (sess->generated_input())
+	// {
 	size_t np2 = plist2.size();
 	ASSERT_EQ(slist.size(), np2);
 	size_t npidx2 = pidx2.size();
@@ -268,20 +301,38 @@ TEST_F(FWDER, PERMUTE)
 	{
 		EXPECT_EQ((int) ogshape.at(remaining_idx[i]), (int) plist2[npidx2 + i]) << "index " << npidx2 + i;
 	}
+	// 	sess->store_int(plist2_key, std::vector<int32_t>(plist2.begin(), plist2.end()));
+	// }
+	// else
+	// {
+	// 	auto expect = expect_int(plist2_key);
+	// 	EXPECT_ARREQ(expect, plist2);
+	// }
 
-	// int32_t nweird = sess->get_scalar("nweird", {1, ade::rank_cap - 1});
-	// std::vector<uint8_t> pidx3 = sess->get_int("pidx3", nweird, {0, ade::rank_cap - 1});
-	std::vector<uint8_t> pidx3 = {2, 3, 3, 4, 1, 0};
+	int32_t naddition = sess->get_scalar("naddition", {1, ade::rank_cap - n});
+	std::vector<int32_t> pidx3_temp = sess->get_int("pidx3", naddition, {0, ade::rank_cap - 1});
+	std::vector<uint8_t> pidx3(pidx3_temp.begin(), pidx3_temp.end());
+	pidx3.insert(pidx3.end(), pidx.begin(), pidx.end());
 	ade::Shape rep_perm = ade::forwarder<ade::PERMUTE,
 		std::vector<uint8_t>>({leaf}, pidx3);
 
+	std::string plist3_key = "plist3";
 	auto plist3 = rep_perm.as_list();
+	// if (sess->generated_input())
+	// {
 	size_t np3 = plist3.size();
 	ASSERT_EQ(pidx3.size(), np3);
 	for (size_t i = 0; i < np3; ++i)
 	{
 		EXPECT_EQ((int) ogshape.at(pidx3[i]), (int) plist3[i]) << "index " << i;
 	}
+	// 	sess->store_int(plist3_key, std::vector<int32_t>(plist3.begin(), plist3.end()));
+	// }
+	// else
+	// {
+	// 	auto expect = expect_int(plist3_key);
+	// 	EXPECT_ARREQ(expect, plist3);
+	// }
 }
 
 

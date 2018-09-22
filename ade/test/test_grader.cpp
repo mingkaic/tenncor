@@ -32,7 +32,7 @@ static inline void trim(std::string &s)
 }
 
 
-void TREE_EQ (std::istream& expectstr, ade::iTensor* root)
+static void TREE_EQ (std::istream& expectstr, ade::iTensor* root)
 {
 	PrettyTree<ade::iTensor*> artist(
 		[](ade::iTensor*& root) -> std::vector<ade::iTensor*>
@@ -65,9 +65,9 @@ void TREE_EQ (std::istream& expectstr, ade::iTensor* root)
 	std::stringstream gotstr;
 	artist.print(gotstr, root);
 
-#ifdef _DEBUG_MODE
+#if 0
 	std::cout << gotstr.str() << std::endl;
-#endif /* _DEBUG_MODE */
+#endif
 
 	std::string expect;
 	std::string got;

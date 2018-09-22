@@ -2,7 +2,7 @@
 
 #include "ade/functor.hpp"
 
-#include "ade/test/common.hpp"
+#include "testutil/common.hpp"
 
 
 #ifndef DISABLE_FUNCTOR_TEST

@@ -2,7 +2,7 @@
 
 #include "ade/shape.hpp"
 
-#include "ade/test/common.hpp"
+#include "testutil/common.hpp"
 
 
 #ifndef DISABLE_SHAPE_TEST

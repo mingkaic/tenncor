@@ -5,6 +5,9 @@
 #ifndef LLO_DATA_HPP
 #define LLO_DATA_HPP
 
+namespace llo
+{
+
 struct GenericData
 {
 	GenericData (void) = default;
@@ -32,5 +35,7 @@ struct GenericRef
 	ade::Shape shape_;
 	DTYPE dtype_;
 };
+
+}
 
 #endif /* LLO_DATA_HPP */

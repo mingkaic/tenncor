@@ -35,18 +35,13 @@ cc_test(
 	name = "test_dynamic",
 	size = "small",
 	srcs = [
-		"test/common.hpp",
-		"test/common.cpp",
 		"test/dmain.cpp",
 		"test/test_functor.cpp",
 		"test/test_fwder.cpp",
 		"test/test_shape.cpp",
 		"test/test_tensor.cpp",
 	],
-	deps = [
-		"//ade:ade",
-        "@com_github_mingkaic_testify//simple:simple",
-	],
+	deps = ["//testutil:testutil"],
 	copts = ["-std=c++14"],
 )
 

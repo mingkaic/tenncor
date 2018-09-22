@@ -179,7 +179,7 @@ struct ASTNode* to_node (const struct DataHolder* data)
 		ade::Shape shape = ade::Shape(slist);
 		std::vector<double> vec(shape.n_elems(), 0);
 		data->data_fill(&vec[0], shape);
-		out = new ASTNode{Source<double>::get(shape, vec)};
+		out = new ASTNode{llo::Source<double>::get(shape, vec)};
 	}
 	return out;
 };
@@ -248,10 +248,10 @@ struct ASTNode* unary_dim (struct ASTNode* child, int dim, enum FUNCODE code)
 		switch (code)
 		{
 			case FLIP:
-				out  = new ASTNode{flip(child->ptr_, dim)};
+				out  = new ASTNode{llo::flip(child->ptr_, dim)};
 			break;
 			case NDIMS:
-				out  = new ASTNode{n_dims(child->ptr_, dim)};
+				out  = new ASTNode{llo::n_dims(child->ptr_, dim)};
 			break;
 			default:
 				// is not shape op, treat like unary
@@ -333,7 +333,7 @@ void show_data (struct ASTNode* node)
 				prefix = it->second + "=";
 			}
 		}
-		GenericData data = evaluate(DOUBLE, node->ptr_.get());
+		llo::GenericData data = llo::evaluate(llo::DOUBLE, node->ptr_.get());
 		std::vector<uint8_t> slist;
 		if (data.shape_.n_rank() == 0)
 		{

@@ -1,4 +1,4 @@
-#include "ade/test/common.hpp"
+#include "testutil/common.hpp"
 
 std::vector<ade::DimT> get_shape_n (SESSION& sess, size_t n, std::string label)
 {

@@ -6,6 +6,9 @@
 
 #ifdef LLO_DTYPE_HPP
 
+namespace llo
+{
+
 struct EnumHash
 {
 	template <typename T>
@@ -128,6 +131,8 @@ uint8_t type_size (DTYPE type)
 				util::ErrArg<size_t>("typeval", type));
 	}
 	return 0;
+}
+
 }
 
 #endif
