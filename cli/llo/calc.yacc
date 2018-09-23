@@ -166,10 +166,10 @@ expr:   GRAD LPAREN expr COMMA VAR RPAREN
 			$$ = load_ast($1);
 		}
 		|
-		arr
+		LSB arr RSB
 		{
-			$$ = to_node($1);
-			free_data($1);
+			$$ = to_node($2);
+			free_data($2);
 		}
 		|
 		LSB RSB
