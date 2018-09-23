@@ -152,7 +152,7 @@ void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
 			converted[i] = coords[order[i]];
 		}
 
-		ade::NElemT desti = index(outshape, coords);
+		ade::NElemT desti = index(outshape, converted);
 		out[desti] = in[srci];
 	}
 }

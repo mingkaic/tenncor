@@ -169,7 +169,6 @@ static void unary_elementary (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	double* optr = (double*) out.data_.get();
-
 	double_verify(sess, "out", std::vector<double>(optr, optr + n),
 	[&]()
 	{
@@ -189,7 +188,6 @@ static void unary_elementary (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	double* goptr = (double*) gout.data_.get();
-
 	auto verify = [&]()
 	{
 		for (size_t i = 0; i < n; ++i)
@@ -230,7 +228,6 @@ static void binary_elementary (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	double* optr = (double*) out.data_.get();
-
 	double_verify(sess, "out", std::vector<double>(optr, optr + n),
 	[&]()
 	{
@@ -250,7 +247,6 @@ static void binary_elementary (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	double* goptr = (double*) gout.data_.get();
-
 	double_verify(sess, "gout", std::vector<double>(goptr, goptr + n),
 	[&]()
 	{
@@ -269,7 +265,6 @@ static void binary_elementary (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	double* goptr2 = (double*) gout_left.data_.get();
-
 	double_verify(sess, "gout_left", std::vector<double>(goptr2, goptr2 + n),
 	[&]()
 	{
@@ -288,7 +283,6 @@ static void binary_elementary (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	double* goptr3 = (double*) gout_right.data_.get();
-
 	double_verify(sess, "gout_right", std::vector<double>(goptr3, goptr3 + n),
 	[&]()
 	{
@@ -322,7 +316,6 @@ static void binary_elementary_int (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	int32_t* optr = (int32_t*) out.data_.get();
-
 	int_verify(sess, "out", std::vector<int32_t>(optr, optr + n),
 	[&]()
 	{
@@ -342,7 +335,6 @@ static void binary_elementary_int (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	int32_t* goptr = (int32_t*) gout.data_.get();
-
 	int_verify(sess, "gout", std::vector<int32_t>(goptr, goptr + n),
 	[&]()
 	{
@@ -361,7 +353,6 @@ static void binary_elementary_int (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	int32_t* goptr2 = (int32_t*) gout_left.data_.get();
-
 	int_verify(sess, "gout_left", std::vector<int32_t>(goptr2, goptr2 + n),
 	[&]()
 	{
@@ -380,7 +371,6 @@ static void binary_elementary_int (SESSION& sess,
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	int32_t* goptr3 = (int32_t*) gout_right.data_.get();
-
 	int_verify(sess, "gout_right", std::vector<int32_t>(goptr3, goptr3 + n),
 	[&]()
 	{
@@ -728,7 +718,6 @@ TEST_F(API, Argmax)
 	EXPECT_EQ(0, out.shape_.n_rank());
 	ASSERT_EQ(1, out.shape_.n_elems());
 	double got = *((double*) out.data_.get());
-
 	double_verify(sess, "out", {got},
 	[&]()
 	{
@@ -835,7 +824,6 @@ TEST_F(API, Matmul2d)
 	EXPECT_EQ(bdim, gotshape.at(0));
 	EXPECT_EQ(adim, gotshape.at(1));
 	int32_t* optr = (int32_t*) out.data_.get();
-
 	int_verify(sess, "out",
 	std::vector<int32_t>(optr, optr + gotshape.n_elems()),
 	[&]()
@@ -867,7 +855,7 @@ TEST_F(API, Matmul2d)
 	std::vector<int32_t>(goptr, goptr + gcshape.n_elems()),
 	[&]()
 	{
-		
+		// todo: implement
 	});
 
 	auto gleft = dest->gradient(a);
@@ -888,7 +876,7 @@ TEST_F(API, Matmul2d)
 	std::vector<int32_t>(goptr2, goptr2 + gashape.n_elems()),
 	[&]()
 	{
-		
+		// todo: implement
 	});
 
 	auto gright = dest->gradient(b);
@@ -909,7 +897,7 @@ TEST_F(API, Matmul2d)
 	std::vector<int32_t>(goptr3, goptr3 + gbshape.n_elems()),
 	[&]()
 	{
-		
+		// todo: implement
 	});
 }
 
@@ -925,20 +913,158 @@ TEST_F(API, Permute)
 {
 	SESSION sess = get_session("API::Permute");
 	
+	int32_t nrank = sess->get_scalar("nrank", {2, ade::rank_cap - 2});
+	std::vector<ade::DimT> slist = get_shape_n(sess, nrank, "slist");
+	std::vector<uint64_t> pidx_temp = sess->choose("pidx", slist.size(), slist.size());
+	std::vector<uint8_t> pidx(pidx_temp.begin(), pidx_temp.end());
+	ade::Shape shape(slist);
+	ade::NElemT nelem = shape.n_elems();
+	std::vector<double> data = sess->get_double("data", nelem, default_range);
+
+	auto src = llo::Source<double>::get(shape, data);
+	auto dest = llo::permute(src, pidx);
+
+	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	ASSERT_EQ(llo::DOUBLE, out.dtype_);
+	size_t n = out.shape_.n_elems();
+	ASSERT_EQ(nelem, n);
+	double* got = (double*) out.data_.get();
+	double_verify(sess, "out", std::vector<double>{got, got + n},
+	[&]()
+	{
+		std::vector<ade::DimT> coord;
+		std::vector<ade::DimT> temp;
+		for (size_t i = 0; i < n; ++i)
+		{
+			coord = temp = ade::coordinate(shape, i);
+			for (int32_t j = 0; j < nrank; ++j)
+			{
+				coord[j] = temp[pidx[j]];
+			}
+
+			EXPECT_EQ(data[i], got[ade::index(out.shape_, coord)]);
+		}
+	});
+
+	auto gsrc = dest->gradient(src);
+
+	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
+	{
+		auto expectshape = shape.as_list();
+		auto gotshape = gout.shape_.as_list();
+		ASSERT_ARREQ(expectshape, gotshape);
+	}
+	double* goptr = (double*) gout.data_.get();
+	for (size_t i = 0, n = data.size(); i < n; ++i)
+	{
+		EXPECT_EQ(1, goptr[i]);
+	}
 }
 
 
 TEST_F(API, Extend)
 {
 	SESSION sess = get_session("API::Extend");
+
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	
+	int32_t nrank = slist.size();
+	int32_t remainder = ade::rank_cap - nrank;
+
+	int32_t n_ext = 1;
+	if (remainder > 1)
+	{
+		n_ext = sess->get_scalar("n_ext", {1, remainder});
+	}
+	std::vector<ade::DimT> ext = get_shape_n(sess, n_ext, "ext");
+	ade::Shape shape(slist);
+	ade::NElemT nelem = shape.n_elems();
+	std::vector<double> data = sess->get_double("data", nelem, default_range);
+
+	auto src = llo::Source<double>::get(shape, data);
+	auto dest = llo::extend(src, ext);
+
+	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	ASSERT_EQ(llo::DOUBLE, out.dtype_);
+	size_t ext_nelem = ade::Shape(ext).n_elems();
+	size_t n = out.shape_.n_elems();
+	ASSERT_EQ(nelem * ext_nelem, n);
+	double* got = (double*) out.data_.get();
+	double_verify(sess, "out", std::vector<double>{got, got + n},
+	[&]()
+	{
+		for (size_t i = 0; i < nelem; ++i)
+		{
+			for (size_t j = 0; j < ext_nelem; ++j)
+			{
+				EXPECT_EQ(data[i], got[i + j * nelem]);
+			}
+		}
+	});
+
+	auto gsrc = dest->gradient(src);
+
+	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
+	{
+		auto expectshape = shape.as_list();
+		auto gotshape = gout.shape_.as_list();
+		ASSERT_ARREQ(expectshape, gotshape);
+	}
+	double* goptr = (double*) gout.data_.get();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(1, goptr[i]);
+	}
 }
 
 
 TEST_F(API, Reshape)
 {
 	SESSION sess = get_session("API::Reshape");
-	
+
+	int32_t nrank = sess->get_scalar("nrank", {2, ade::rank_cap - 2});
+	std::vector<ade::DimT> slist = get_shape_n(sess, nrank, "slist");
+	uint8_t mergeidx = 0;
+	if (nrank > 2)
+	{
+		mergeidx = sess->get_scalar("mergeidx", {0, (uint8_t) nrank - 2});
+	}
+	std::vector<ade::DimT> olist = slist;
+	olist.erase(olist.begin() + mergeidx);
+	olist[mergeidx] *= slist[mergeidx];
+
+	ade::Shape shape(slist);
+	ade::NElemT n = shape.n_elems();
+	std::vector<double> data = sess->get_double("data", n, default_range);
+
+	auto src = llo::Source<double>::get(shape, data);
+	auto dest = llo::reshape(src, olist);
+
+	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	ASSERT_EQ(llo::DOUBLE, out.dtype_);
+	ASSERT_EQ(n, out.shape_.n_elems());
+	double* got = (double*) out.data_.get();
+	double_verify(sess, "out", std::vector<double>{got, got + n},
+	[&]()
+	{
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_EQ(data[i], got[i]);
+		}
+	});
+
+	auto gsrc = dest->gradient(src);
+
+	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
+	ASSERT_EQ(n, gout.shape_.n_elems());
+	double* goptr = (double*) gout.data_.get();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(1, goptr[i]);
+	}
 }
 
 
