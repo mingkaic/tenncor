@@ -169,18 +169,8 @@ exit 	{
 	return VAR;
 }
 
--?(0|[1-9][0-9]*)\.[0-9]*	{
+-?(0|[1-9][0-9]*)(\.[0-9]*)?	{
 	yylval.num_type = atof(yytext);
-	return DECIMAL;
-}
-
--[1-9][0-9]*	{
-	yylval.num_type = atoi(yytext);
-	return DECIMAL;
-}
-
-0|[1-9][0-9]*	{
-	yylval.int_type = atoi(yytext);
-	return INTEGER;
+	return NUMBER;
 }
 %%

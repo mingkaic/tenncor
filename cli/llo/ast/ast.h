@@ -55,14 +55,6 @@ void data_append (struct DataHolder* dest, struct DataHolder* e);
 void data_append_d (struct DataHolder* dest, double e);
 
 
-// shape
-struct ShapeHolder;
-// caller must free instance using free_shape
-struct ShapeHolder* make_shape (int dim);
-void free_shape (struct ShapeHolder* shape);
-void shape_append (struct ShapeHolder* dest, int dim);
-
-
 // ast
 struct ASTNode;
 // caller must free instance using free_ast
@@ -77,9 +69,10 @@ struct ASTNode* load_ast (char key[32]);
 struct ASTNode* unary (struct ASTNode* node, enum FUNCODE code);
 struct ASTNode* binary (struct ASTNode* node,
 	struct ASTNode* node2, enum FUNCODE code);
-struct ASTNode* unary_dim (struct ASTNode* child, int dim, enum FUNCODE code);
+struct ASTNode* unary_dim (struct ASTNode* child, double dim,
+	enum FUNCODE code);
 struct ASTNode* shapeop (struct ASTNode* node,
-	struct ShapeHolder* shape, enum FUNCODE code);
+	struct DataHolder* shape, enum FUNCODE code);
 struct ASTNode* grad (struct ASTNode* node, struct ASTNode* wrt);
 
 

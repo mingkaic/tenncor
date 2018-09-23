@@ -56,3 +56,29 @@ cc_library(
 	copts = ["-std=c++14"],
 	deps = ["//llo:llo", ":cc_proto"],
 )
+
+######### TEST #########
+
+filegroup(
+    name = "expected_data",
+    srcs = glob([
+        "test/expects/*.pb",
+        "test/expects/*.txt",
+    ]),
+)
+
+cc_test(
+	name = "test",
+	size = "small",
+	srcs = glob([
+		"test/main.cpp",
+		"test/test_save.cpp",
+		"test/test_load.cpp",
+	]),
+	deps = [
+		"//pbm:pbm",
+        "@com_google_googletest//:gtest",
+	],
+	copts = ["-std=c++14"],
+	data = ["//pbm:expected_data"],
+)

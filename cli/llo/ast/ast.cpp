@@ -121,41 +121,6 @@ void data_append_d (struct DataHolder* dest, double e)
 }
 
 
-struct ShapeHolder
-{
-	uint8_t d_[ade::rank_cap];
-	uint8_t rank_ = 0;
-};
-
-struct ShapeHolder* make_shape (int dim)
-{
-	struct ShapeHolder* out = new ShapeHolder{};
-	out->d_[0] = dim;
-	out->rank_ = 1;
-	return out;
-}
-
-void free_shape (struct ShapeHolder* shape)
-{
-	if (shape) delete shape;
-}
-
-void shape_append (struct ShapeHolder* dest, int dim)
-{
-	if (dest)
-	{
-		if (dest->rank_ < ade::rank_cap)
-		{
-			dest->d_[dest->rank_] = dim;
-			++dest->rank_;
-		}
-		else
-		{
-			// warn
-		}
-	}
-}
-
 struct ASTNode
 {
 	ade::Tensorptr ptr_;
@@ -240,7 +205,8 @@ struct ASTNode* binary (struct ASTNode* child,
 	return out;
 }
 
-struct ASTNode* unary_dim (struct ASTNode* child, int dim, enum FUNCODE code)
+struct ASTNode* unary_dim (struct ASTNode* child, double dim,
+	enum FUNCODE code)
 {
 	struct ASTNode* out = NULL;
 	if (child)
@@ -263,33 +229,32 @@ struct ASTNode* unary_dim (struct ASTNode* child, int dim, enum FUNCODE code)
 }
 
 struct ASTNode* shapeop (struct ASTNode* child,
-	struct ShapeHolder* shape, enum FUNCODE code)
+	struct DataHolder* shape, enum FUNCODE code)
 {
+	auto dholder = dynamic_cast<DoublesHolder*>(shape);
 	struct ASTNode* out = NULL;
-	if (child)
+	if (child && dholder)
 	{
+		std::vector<double>& data = dholder->data_;
 		switch (code)
 		{
 			case PERMUTE:
 			{
-				std::vector<uint8_t> perm(shape->d_,
-					shape->d_ + shape->rank_);
+				std::vector<uint8_t> perm(data.begin(), data.end());
 				out = new ASTNode{ade::Functor<ade::PERMUTE,
 					std::vector<uint8_t>>::get({child->ptr_}, perm)};
 			}
 			break;
 			case EXTEND:
 			{
-				std::vector<ade::DimT> ext(shape->d_,
-					shape->d_ + shape->rank_);
+				std::vector<ade::DimT> ext(data.begin(), data.end());
 				out = new ASTNode{ade::Functor<ade::EXTEND,
 					std::vector<ade::DimT>>::get({child->ptr_}, ext)};
 			}
 			break;
 			case RESHAPE:
 			{
-				std::vector<ade::DimT> slist(shape->d_,
-					shape->d_ + shape->rank_);
+				std::vector<ade::DimT> slist(data.begin(), data.end());
 				out = new ASTNode{ade::Functor<ade::RESHAPE,
 					std::vector<ade::DimT>>::get({child->ptr_}, slist)};
 			}

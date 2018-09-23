@@ -18,18 +18,16 @@ extern FILE *yyin;
 	double num_type;
 	char str_type[32];
 	struct DataHolder* data_type;
-	struct ShapeHolder* vec_type;
 	struct ASTNode* ref_type;
 }
 
-%type <int_type> INTEGER UNARY BINARY DIMOP SHAPEOP
-%type <num_type> number DECIMAL
+%type <int_type> UNARY BINARY DIMOP SHAPEOP
+%type <num_type> NUMBER
 %type <str_type> VAR
 %type <data_type> arr
-%type <vec_type> shape
 %type <ref_type> expr
 
-%token INTEGER DECIMAL VAR UNARY BINARY DIMOP SHAPEOP GRAD PRINT SHAPE EXIT
+%token NUMBER VAR UNARY BINARY DIMOP SHAPEOP GRAD PRINT SHAPE EXIT
 MODE ASSIGN LPAREN RPAREN LSB RSB COMMA PLUS MINUS STAR SLASH ENDSTMT
 
 %left PLUS MINUS
@@ -111,17 +109,17 @@ expr:   GRAD LPAREN expr COMMA VAR RPAREN
 			free_ast($5);
 		}
 		|
-		DIMOP LPAREN expr COMMA INTEGER RPAREN
+		DIMOP LPAREN expr COMMA NUMBER RPAREN
 		{
 			$$ = unary_dim($3, $5, $1);
 			free_ast($3);
 		}
 		|
-		SHAPEOP LPAREN expr COMMA shape RPAREN
+		SHAPEOP LPAREN expr COMMA arr RPAREN
 		{
 			$$ = shapeop($3, $5, $1);
 			free_ast($3);
-			free_shape($5);
+			free_data($5);
 		}
 		|
 		LPAREN expr RPAREN
@@ -168,10 +166,10 @@ expr:   GRAD LPAREN expr COMMA VAR RPAREN
 			$$ = load_ast($1);
 		}
 		|
-		LSB arr RSB
+		arr
 		{
-			$$ = to_node($2);
-			free_data($2);
+			$$ = to_node($1);
+			free_data($1);
 		}
 		|
 		LSB RSB
@@ -191,38 +189,15 @@ arr:	arr COMMA LSB arr RSB
 			$$ = make_data($2);
 		}
 		|
-		arr COMMA number
+		arr COMMA NUMBER
 		{
 			data_append_d($1, $3);
 			$$ = $1;
 		}
 		|
-		number
+		NUMBER
 		{
 			$$ = make_data_d($1);
-		}
-		;
-
-shape:	shape COMMA INTEGER
-		{
-			shape_append($1, $3);
-			$$ = $1;
-		}
-		|
-		INTEGER
-		{
-			$$ = make_shape($1);
-		}
-		;
-
-number:	DECIMAL
-		{
-			$$ = $1;
-		}
-		|
-		INTEGER
-		{
-			$$ = $1;
 		}
 		;
 
