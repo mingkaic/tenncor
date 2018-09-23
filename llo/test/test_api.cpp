@@ -809,9 +809,9 @@ TEST_F(API, Matmul2d)
 {
 	SESSION sess = get_session("API::Matmul2d");
 
-	ade::DimT cdim = sess->get_scalar("cdim", {1, 255});
-	ade::DimT adim = sess->get_scalar("adim", {1, 255});
-	ade::DimT bdim = sess->get_scalar("bdim", {1, 255});
+	ade::DimT cdim = sess->get_scalar("cdim", {1, 24});
+	ade::DimT adim = sess->get_scalar("adim", {1, 24});
+	ade::DimT bdim = sess->get_scalar("bdim", {1, 24});
 	std::vector<ade::DimT> alist = {cdim, adim};
 	std::vector<ade::DimT> blist = {bdim, cdim};
 	ade::Shape ashape(alist);
@@ -853,64 +853,64 @@ TEST_F(API, Matmul2d)
 	auto c = llo::Source<int32_t>::get(cshape, data3);
 	auto dest2 = llo::matmul(c, c);
 	auto gsame = dest2->gradient(c);
-	// llo::GenericData gout = llo::evaluate(llo::INT32, gsame.get());
-	// EXPECT_EQ(llo::INT32, gout.dtype_);
-	// ade::Shape gcshape = gout.shape_;
-	// {
-	// 	auto expectshape = {cdim, cdim, cdim, cdim};
-	// 	auto gotshape = gcshape.as_list();
-	// 	ASSERT_ARREQ(expectshape, gotshape);
-	// }
-	// int32_t* goptr = (int32_t*) gout.data_.get();
+	llo::GenericData gout = llo::evaluate(llo::INT32, gsame.get());
+	EXPECT_EQ(llo::INT32, gout.dtype_);
+	ade::Shape& gcshape = gout.shape_;
+	{
+		std::vector<ade::DimT> expectshape = {cdim, cdim, cdim, cdim};
+		auto gotshape = gcshape.as_list();
+		ASSERT_ARREQ(expectshape, gotshape);
+	}
+	int32_t* goptr = (int32_t*) gout.data_.get();
 
-	// int_verify(sess, "gout", 
-	// std::vector<int32_t>(goptr, goptr + gcshape.n_elems()),
-	// [&]()
-	// {
+	int_verify(sess, "gout", 
+	std::vector<int32_t>(goptr, goptr + gcshape.n_elems()),
+	[&]()
+	{
 		
-	// });
+	});
 
 	auto gleft = dest->gradient(a);
-	// llo::GenericData gout_left = llo::evaluate(llo::INT32, gleft.get());
-	// EXPECT_EQ(llo::INT32, gout_left.dtype_);
-	// ade::Shape gashape = gout_left.shape_;
-	// {
-	// 	auto expectshape = gotshape.as_list();
-	// 	expectshape.insert(expectshape.end(), 
-	// 		alist.begin(), alist.end());
+	llo::GenericData gout_left = llo::evaluate(llo::INT32, gleft.get());
+	EXPECT_EQ(llo::INT32, gout_left.dtype_);
+	ade::Shape& gashape = gout_left.shape_;
+	{
+		auto expectshape = gotshape.as_list();
+		expectshape.insert(expectshape.end(), 
+			alist.begin(), alist.end());
 	
-	// 	auto gotshape = gashape.as_list();
-	// 	ASSERT_ARREQ(expectshape, gotshape);
-	// }
-	// int32_t* goptr2 = (int32_t*) gout_left.data_.get();
+		auto gotshape = gashape.as_list();
+		ASSERT_ARREQ(expectshape, gotshape);
+	}
+	int32_t* goptr2 = (int32_t*) gout_left.data_.get();
 
-	// int_verify(sess, "gout_left", 
-	// std::vector<int32_t>(goptr2, goptr2 + gashape.n_elems()),
-	// [&]()
-	// {
+	int_verify(sess, "gout_left", 
+	std::vector<int32_t>(goptr2, goptr2 + gashape.n_elems()),
+	[&]()
+	{
 		
-	// });
+	});
 
 	auto gright = dest->gradient(b);
-	// llo::GenericData gout_right = llo::evaluate(llo::INT32, gright.get());
-	// EXPECT_EQ(llo::INT32, gout_right.dtype_);
-	// ade::Shape gbshape = gout_right.shape_;
-	// {
-	// 	auto expectshape = gotshape.as_list();
-	// 	expectshape.insert(expectshape.end(), 
-	// 		blist.begin(), blist.end());
+	llo::GenericData gout_right = llo::evaluate(llo::INT32, gright.get());
+	EXPECT_EQ(llo::INT32, gout_right.dtype_);
+	ade::Shape& gbshape = gout_right.shape_;
+	{
+		auto expectshape = gotshape.as_list();
+		expectshape.insert(expectshape.end(), 
+			blist.begin(), blist.end());
 
-	// 	auto gotshape = gbshape.as_list();
-	// 	ASSERT_ARREQ(expectshape, gotshape);
-	// }
-	// int32_t* goptr3 = (int32_t*) gout_right.data_.get();
+		auto gotshape = gbshape.as_list();
+		ASSERT_ARREQ(expectshape, gotshape);
+	}
+	int32_t* goptr3 = (int32_t*) gout_right.data_.get();
 
-	// int_verify(sess, "gout_right", 
-	// std::vector<int32_t>(goptr3, goptr3 + gbshape.n_elems()),
-	// [&]()
-	// {
+	int_verify(sess, "gout_right", 
+	std::vector<int32_t>(goptr3, goptr3 + gbshape.n_elems()),
+	[&]()
+	{
 		
-	// });
+	});
 }
 
 
