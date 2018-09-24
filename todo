@@ -1,0 +1,17 @@
+tests:
+- valgrind/asan check everything
+- use testify for regression test
+
+move out:
+- update graphmgr
+
+codability:
+- add/update documentation
+- refactor, and rename variables to improve readability
+- add even debugging tools
+- investigate llo api: experiment with top-level code
+
+performance:
+- reduce shared_ptr overhead
+- implement optimization options to decrease equation graph size
+- implement optimization options to increase data accuracy

@@ -44,6 +44,7 @@ Desktop.ini
 *.info
 
 # Compiled Python files
+**/__pycache__
 *.pyc
 
 # Application specific files
@@ -63,9 +64,14 @@ doxout
 **/*.pbx
 
 CMakeFiles
+**/samples
+
+**/lex.yy.c
+**/y.tab.*
 
 # whitelist
 !.gitignore
 !.travis.yml
 !.dockerignore
 !.gitmodules
+!.astylerc
