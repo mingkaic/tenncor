@@ -488,39 +488,61 @@ TEST_F(API, Round)
 TEST_F(API, Flip)
 {
 	SESSION sess = get_session("API::Flip");
-	uint8_t dim = sess->get_scalar("dim", {0, ade::rank_cap - 1});
 
-	unary_generic(sess, default_range,
-	[dim](ade::Tensorptr& src) { return llo::flip(src, dim); },
-	[dim, &sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
+	int32_t nrank = sess->get_scalar("nrank", {1, ade::rank_cap - 1});
+	std::vector<ade::DimT> slist = get_shape_n(sess, nrank, "shape");
+	ade::Shape shape(slist);
+	uint8_t dim = 0;
+	if (nrank > 1)
 	{
-		auto expectshape = shape.as_list();
-		auto gotshape = out.shape_.as_list();
-		ASSERT_ARREQ(expectshape, gotshape);
-		double* optr = (double*) out.data_.get();
-		size_t n = data.size();
+		dim = sess->get_scalar("dim", {0, nrank - 1});
+	}
+	uint8_t baddim = sess->get_scalar("baddim", {nrank, ade::rank_cap});
+	ade::NElemT n = shape.n_elems();
+	std::vector<double> data = sess->get_double("data", n, default_range);
 
-		double_verify(sess, "out", std::vector<double>(optr, optr + n),
-		[&]()
-		{
-			std::vector<ade::DimT> coord;
-			uint8_t dimlimit = shape.at(dim) - 1;
-			for (size_t i = 0; i < n; ++i)
-			{
-				coord = ade::coordinate(shape, i);
-				coord[dim] = dimlimit - coord[dim];
+	auto src = llo::Source<double>::get(shape, data);
+	auto dest = llo::flip(src, dim);
 
-				EXPECT_EQ(data[ade::index(shape, coord)], optr[i]);
-			}
-		});
-	},
-	[](double* gout, std::vector<double>& og)
+	auto bad = llo::flip(src, baddim);
+	EXPECT_THROW(llo::evaluate(llo::DOUBLE, bad.get()), std::runtime_error) <<
+		"baddim: " << (int) baddim << " nrank: " << nrank;
+
+	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	ASSERT_EQ(llo::DOUBLE, out.dtype_);
+	auto expectshape = shape.as_list();
+	auto gotshape = out.shape_.as_list();
+	ASSERT_ARREQ(expectshape, gotshape);
+	double* optr = (double*) out.data_.get();
+
+	double_verify(sess, "out", std::vector<double>(optr, optr + n),
+	[&]()
 	{
-		for (size_t i = 0, n = og.size(); i < n; ++i)
+		std::vector<ade::DimT> coord;
+		uint8_t dimlimit = shape.at(dim) - 1;
+		for (size_t i = 0; i < n; ++i)
 		{
-			EXPECT_EQ(1, gout[i]);
+			coord = ade::coordinate(shape, i);
+			coord[dim] = dimlimit - coord[dim];
+
+			EXPECT_EQ(data[ade::index(shape, coord)], optr[i]);
 		}
 	});
+
+	auto gsrc = dest->gradient(src);
+
+	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
+	{
+		auto expectshape = shape.as_list();
+		auto gotshape = gout.shape_.as_list();
+		ASSERT_ARREQ(expectshape, gotshape);
+	}
+	double* goptr = (double*) gout.data_.get();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(1, goptr[i]);
+	}
 }
 
 
@@ -673,7 +695,7 @@ TEST_F(API, NDims)
 {
 	SESSION sess = get_session("API::NDims");
 	uint8_t dim = sess->get_scalar("dim", {0, ade::rank_cap - 1});
-	
+
 	unary_generic(sess, default_range,
 	[dim](ade::Tensorptr& src) { return llo::n_dims(src, dim); },
 	[dim, &sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>&)
@@ -731,7 +753,7 @@ TEST_F(API, Argmax)
 TEST_F(API, Rmax)
 {
 	SESSION sess = get_session("API::Rmax");
-	
+
 	unary_generic(sess, default_range,
 	[](ade::Tensorptr& src) { return llo::rmax(src); },
 	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
@@ -765,7 +787,7 @@ TEST_F(API, Rmax)
 TEST_F(API, Rsum)
 {
 	SESSION sess = get_session("API::Rsum");
-	
+
 	unary_generic(sess, default_range,
 	[](ade::Tensorptr& src) { return llo::rsum(src); },
 	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
@@ -798,9 +820,9 @@ TEST_F(API, Matmul2d)
 {
 	SESSION sess = get_session("API::Matmul2d");
 
-	ade::DimT cdim = sess->get_scalar("cdim", {1, 24});
-	ade::DimT adim = sess->get_scalar("adim", {1, 24});
-	ade::DimT bdim = sess->get_scalar("bdim", {1, 24});
+	ade::DimT cdim = sess->get_scalar("cdim", {1, 17});
+	ade::DimT adim = sess->get_scalar("adim", {1, 17});
+	ade::DimT bdim = sess->get_scalar("bdim", {1, 13});
 	std::vector<ade::DimT> alist = {cdim, adim};
 	std::vector<ade::DimT> blist = {bdim, cdim};
 	ade::Shape ashape(alist);
@@ -851,12 +873,12 @@ TEST_F(API, Matmul2d)
 	}
 	int32_t* goptr = (int32_t*) gout.data_.get();
 
-	int_verify(sess, "gout", 
-	std::vector<int32_t>(goptr, goptr + gcshape.n_elems()),
-	[&]()
-	{
-		// todo: implement
-	});
+	// int_verify(sess, "gout",
+	// std::vector<int32_t>(goptr, goptr + gcshape.n_elems()),
+	// [&]()
+	// {
+	// 	// todo: implement
+	// });
 
 	auto gleft = dest->gradient(a);
 	llo::GenericData gout_left = llo::evaluate(llo::INT32, gleft.get());
@@ -864,20 +886,20 @@ TEST_F(API, Matmul2d)
 	ade::Shape& gashape = gout_left.shape_;
 	{
 		auto expectshape = gotshape.as_list();
-		expectshape.insert(expectshape.end(), 
+		expectshape.insert(expectshape.end(),
 			alist.begin(), alist.end());
-	
+
 		auto gotshape = gashape.as_list();
 		ASSERT_ARREQ(expectshape, gotshape);
 	}
 	int32_t* goptr2 = (int32_t*) gout_left.data_.get();
 
-	int_verify(sess, "gout_left", 
-	std::vector<int32_t>(goptr2, goptr2 + gashape.n_elems()),
-	[&]()
-	{
-		// todo: implement
-	});
+	// int_verify(sess, "gout_left",
+	// std::vector<int32_t>(goptr2, goptr2 + gashape.n_elems()),
+	// [&]()
+	// {
+	// 	// todo: implement
+	// });
 
 	auto gright = dest->gradient(b);
 	llo::GenericData gout_right = llo::evaluate(llo::INT32, gright.get());
@@ -885,7 +907,7 @@ TEST_F(API, Matmul2d)
 	ade::Shape& gbshape = gout_right.shape_;
 	{
 		auto expectshape = gotshape.as_list();
-		expectshape.insert(expectshape.end(), 
+		expectshape.insert(expectshape.end(),
 			blist.begin(), blist.end());
 
 		auto gotshape = gbshape.as_list();
@@ -893,26 +915,26 @@ TEST_F(API, Matmul2d)
 	}
 	int32_t* goptr3 = (int32_t*) gout_right.data_.get();
 
-	int_verify(sess, "gout_right", 
-	std::vector<int32_t>(goptr3, goptr3 + gbshape.n_elems()),
-	[&]()
-	{
-		// todo: implement
-	});
+	// int_verify(sess, "gout_right",
+	// std::vector<int32_t>(goptr3, goptr3 + gbshape.n_elems()),
+	// [&]()
+	// {
+	// 	// todo: implement
+	// });
 }
 
 
-TEST_F(API, Matmul)
+TEST_F(API, DISABLED_Matmul)
 {
 	SESSION sess = get_session("API::Matmul");
-	
+
 }
 
 
 TEST_F(API, Permute)
 {
 	SESSION sess = get_session("API::Permute");
-	
+
 	int32_t nrank = sess->get_scalar("nrank", {2, ade::rank_cap - 2});
 	std::vector<ade::DimT> slist = get_shape_n(sess, nrank, "slist");
 	std::vector<uint64_t> pidx_temp = sess->choose("pidx", slist.size(), slist.size());
@@ -968,7 +990,7 @@ TEST_F(API, Extend)
 	SESSION sess = get_session("API::Extend");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	
+
 	int32_t nrank = slist.size();
 	int32_t remainder = ade::rank_cap - nrank;
 

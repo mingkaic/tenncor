@@ -320,8 +320,6 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 		rhs = Functor<MATMUL,uint8_t,uint8_t>::get({drhs, rhs}, rgroup, rgroup);
 	}
 
-	// Shape fwdshape = forwarder<MATMUL,uint8_t,uint8_t>(
-	// 	{a, b}, agroup_idx, bgroup_idx);
 	if (lhs->shape().compatible_after(rhs->shape(), 0))
 	{
 		return Functor<ADD>::get({lhs, rhs});

@@ -15,25 +15,25 @@ google::protobuf::RepeatedField<TYPE> vec(ptr, ptr + nelems);\
 arr.mutable_data()->Swap(&vec);\
 out->PackFrom(arr);
 
-static void save_data (google::protobuf::Any* out, GenericData& data)
+static void save_data (google::protobuf::Any* out, llo::GenericData& data)
 {
 	size_t nelems = data.shape_.n_elems();
 	switch (data.dtype_)
 	{
-		case DOUBLE:
+		case llo::DOUBLE:
 		{
 			tenncor::DoubleArr arr;
 			PACK_DATA(double)
 		}
 		break;
-		case FLOAT:
+		case llo::FLOAT:
 		{
 			tenncor::FloatArr arr;
 			PACK_DATA(float)
 		}
 		break;
-		case INT8:
-		case UINT8:
+		case llo::INT8:
+		case llo::UINT8:
 		{
 			tenncor::ByteArr arr;
 			char* ptr = data.data_.get();
@@ -41,7 +41,7 @@ static void save_data (google::protobuf::Any* out, GenericData& data)
 			out->PackFrom(arr);
 		}
 		break;
-		case INT16:
+		case llo::INT16:
 		{
 			tenncor::Int32Arr arr;
 			int16_t* ptr = (int16_t*) data.data_.get();
@@ -52,7 +52,7 @@ static void save_data (google::protobuf::Any* out, GenericData& data)
 			out->PackFrom(arr);
 		}
 		break;
-		case UINT16:
+		case llo::UINT16:
 		{
 			tenncor::Uint32Arr arr;
 			uint16_t* ptr = (uint16_t*) data.data_.get();
@@ -63,25 +63,25 @@ static void save_data (google::protobuf::Any* out, GenericData& data)
 			out->PackFrom(arr);
 		}
 		break;
-		case INT32:
+		case llo::INT32:
 		{
 			tenncor::Int32Arr arr;
 			PACK_DATA(int32_t)
 		}
 		break;
-		case INT64:
+		case llo::INT64:
 		{
 			tenncor::Int64Arr arr;
 			PACK_DATA(int64_t)
 		}
 		break;
-		case UINT32:
+		case llo::UINT32:
 		{
 			tenncor::Uint32Arr arr;
 			PACK_DATA(uint32_t)
 		}
 		break;
-		case UINT64:
+		case llo::UINT64:
 		{
 			tenncor::Uint64Arr arr;
 			PACK_DATA(uint64_t)
@@ -102,20 +102,20 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 		case ade::FLIP:
 		case ade::N_DIMS:
 		{
-			auto ev = static_cast<DirectWrapper<uint8_t>*>(f);
+			auto ev = static_cast<llo::DirectWrapper<uint8_t>*>(f);
 			*(meta->Add()) = std::get<0>(ev->args_);
 		}
 		break;
 		case ade::MATMUL:
 		{
-			auto ev = static_cast<DirectWrapper<uint8_t,uint8_t>*>(f);
+			auto ev = static_cast<llo::DirectWrapper<uint8_t,uint8_t>*>(f);
 			*(meta->Add()) = std::get<0>(ev->args_);
 			*(meta->Add()) = std::get<1>(ev->args_);
 		}
 		break;
 		case ade::PERMUTE:
 		{
-			auto ev = static_cast<DirectWrapper<std::vector<uint8_t>>*>(f);
+			auto ev = static_cast<llo::DirectWrapper<std::vector<uint8_t>>*>(f);
 			std::vector<uint8_t> slist = std::get<0>(ev->args_);
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());
@@ -192,15 +192,15 @@ void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Source* src = pb_node->mutable_source();
-		if (iSource* eval = dynamic_cast<iSource*>(node))
+		if (llo::iSource* eval = dynamic_cast<llo::iSource*>(node))
 		{
-			GenericData data = eval->evaluate(eval->native_type());
+			llo::GenericData data = eval->evaluate(eval->native_type());
 			save_data(src->mutable_data(), data);
 			src->set_type(data.dtype_);
 		}
 		else
 		{
-			src->set_type(BAD);
+			src->set_type(llo::BAD);
 		}
 		auto vec = node->shape().as_list();
 		std::string shape(vec.begin(), vec.end());
@@ -238,7 +238,7 @@ static ade::Shape load_shape (std::string sstr)
 #define UNPACK_SOURCE(TYPE)\
 source.data().UnpackTo(&arr);\
 auto vec = arr.data();\
-return Source<TYPE>::get(shape,\
+return llo::Source<TYPE>::get(shape,\
 	std::vector<TYPE>(vec.begin(), vec.end()));
 
 static ade::Tensorptr load_source (tenncor::Source& source)
@@ -246,58 +246,58 @@ static ade::Tensorptr load_source (tenncor::Source& source)
 	ade::Shape shape = load_shape(source.shape());
 	switch (source.type())
 	{
-		case DOUBLE:
+		case llo::DOUBLE:
 		{
 			tenncor::DoubleArr arr;
 			UNPACK_SOURCE(double)
 		}
-		case FLOAT:
+		case llo::FLOAT:
 		{
 			tenncor::FloatArr arr;
 			UNPACK_SOURCE(float)
 		}
-		case INT8:
+		case llo::INT8:
 		{
 			tenncor::ByteArr arr;
 			UNPACK_SOURCE(int8_t)
 		}
-		case UINT8:
+		case llo::UINT8:
 		{
 			tenncor::ByteArr arr;
 			UNPACK_SOURCE(uint8_t)
 		}
 		break;
-		case INT16:
+		case llo::INT16:
 		{
 			tenncor::Int32Arr arr;
 			UNPACK_SOURCE(int16_t)
 		}
 		break;
-		case UINT16:
+		case llo::UINT16:
 		{
 			tenncor::Uint32Arr arr;
 			UNPACK_SOURCE(uint16_t)
 		}
 		break;
-		case INT32:
+		case llo::INT32:
 		{
 			tenncor::Int32Arr arr;
 			UNPACK_SOURCE(int32_t)
 		}
 		break;
-		case INT64:
+		case llo::INT64:
 		{
 			tenncor::Int64Arr arr;
 			UNPACK_SOURCE(int64_t)
 		}
 		break;
-		case UINT32:
+		case llo::UINT32:
 		{
 			tenncor::Uint32Arr arr;
 			UNPACK_SOURCE(uint32_t)
 		}
 		break;
-		case UINT64:
+		case llo::UINT64:
 		{
 			tenncor::Uint64Arr arr;
 			UNPACK_SOURCE(uint64_t)
@@ -306,6 +306,7 @@ static ade::Tensorptr load_source (tenncor::Source& source)
 		default:
 			util::handle_error("failed to deserialize badly typed node"); // todo: make warn instead
 	}
+	return nullptr;
 }
 
 #undef UNPACK_SOURCE
@@ -317,20 +318,20 @@ static ade::Tensorptr load_op (ade::OPCODE opcode,
 	switch (opcode)
 	{
 		case ade::FLIP:
-			return flip(args[0], meta[0]);
+			return llo::flip(args[0], meta[0]);
 		case ade::N_DIMS:
-			return n_dims(args[0], meta[0]);
+			return llo::n_dims(args[0], meta[0]);
 		case ade::MATMUL:
-			return matmul(args[0], args[1],
+			return llo::matmul(args[0], args[1],
 				meta[0], meta[1]);
 		case ade::PERMUTE:
-			return permute(args[0],
+			return llo::permute(args[0],
 				std::vector<uint8_t>(meta.begin(), meta.end()));
 		case ade::EXTEND:
-			return extend(args[0],
+			return llo::extend(args[0],
 				std::vector<uint8_t>(meta.begin(), meta.end()));
 		case ade::RESHAPE:
-			return reshape(args[0],
+			return llo::reshape(args[0],
 				std::vector<uint8_t>(meta.begin(), meta.end()));
 		default: break;
 	}
@@ -346,7 +347,7 @@ std::vector<ade::Tensorptr> load_graph (const tenncor::Graph& in)
 		if (node.has_source())
 		{
 			tenncor::Source source = node.source();
-			if (source.type() != BAD)
+			if (source.type() != llo::BAD)
 			{
 				outvec.push_back(load_source(source));
 			}

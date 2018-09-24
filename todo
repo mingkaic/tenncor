@@ -1,16 +1,15 @@
 tests:
-- add test on pbm
 - valgrind/asan check everything
-- update regression test
+- use testify for regression test
 
-- experiment with top-level code
+move out:
+- update graphmgr
 
-- update pysave/graphmgr
-
-enhancements:
-readability
-documentation
-even debugging tools
+codability:
+- add/update documentation
+- refactor, and rename variables to improve readability
+- add even debugging tools
+- investigate llo api: experiment with top-level code
 
 performance:
 - reduce shared_ptr overhead

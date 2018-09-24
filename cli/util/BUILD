@@ -5,18 +5,18 @@ package(
 )
 
 filegroup(
-	name = "srcs",
-	srcs = glob([
+    name = "srcs",
+    srcs = glob([
         "*.hpp",
         "*.cpp",
-	]) + ["BUILD"],
+    ]) + ["BUILD"],
 )
 
 ######### LIBRARY #########
 
 cc_library(
-	name = "util",
-	hdrs = glob(["*.hpp"]),
-	srcs = glob(["*.cpp"]),
-	copts = ["-std=c++14"],
+    name = "util",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["*.cpp"]),
+    copts = ["-std=c++14"],
 )

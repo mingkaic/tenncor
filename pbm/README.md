@@ -2,7 +2,7 @@
 
 Serialize ADE and LLO-extended graphs created by top-level code in protobuf format.
 
-Protobuf is platform independent format for structured data. The format is mostly-readable, but not as ubiquitous and familiar as JSON.
+Protobuf is platform independent format for structured data.
 
 ## Why Protobuf
 

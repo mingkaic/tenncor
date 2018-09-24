@@ -111,11 +111,19 @@ void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
 {
 	size_t n = shape.n_elems();
 	std::vector<ade::DimT> slist = shape.as_list();
+	uint8_t rank = slist.size();
+	if (dim >= rank)
+	{
+		util::handle_error("attempting to flip a dimension beyond shape rank",
+			util::ErrArg<size_t>("dim", dim),
+			util::ErrArg<size_t>("rank", rank));
+	}
 	std::vector<ade::DimT> coord;
+	ade::DimT dlimit = slist[dim] - 1;
 	for (size_t i = 0; i < n; ++i)
 	{
 		coord = coordinate(shape, i);
-		coord[dim] = slist[dim] - coord[dim] - 1;
+		coord[dim] = dlimit - coord[dim];
 		out[i] = in[index(shape, coord)];
 	}
 }
