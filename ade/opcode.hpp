@@ -1,3 +1,13 @@
+/*!
+ *
+ *  opcode.hpp
+ *  ade
+ *
+ *  Purpose:
+ *  opcodes enumerates operations
+ *
+ */
+
 #include <string>
 
 #include "ade/shape.hpp"
@@ -8,46 +18,51 @@
 namespace ade
 {
 
+/*! enumerated representation of operations */
 enum OPCODE
 {
-	ABS = 0,
-	NEG,
-	NOT,
-	SIN,
-	COS,
-	TAN,
-	EXP,
-	LOG,
-	SQRT,
-	ROUND,
-	FLIP,
+	ABS = 0, //! make absolute
+	NEG, //! make negative
+	NOT, //! bitwise not
+	SIN, //! sine
+	COS, //! cosine
+	TAN, //! tangent
+	EXP, //! exponent
+	LOG, //! natural log
+	SQRT, //! square root
+	ROUND, //! round value
+	FLIP, //! flip values along a dimension
 
-	POW,
-	ADD,
-	SUB,
-	MUL,
-	DIV,
-	EQ,
-	NE,
-	LT,
-	GT,
+	POW, //! base ^ exponent
+	ADD, //! a + b
+	SUB, //! a - b
+	MUL, //! a * b
+	DIV, //! a / b
+	EQ, //! a == b
+	NE, //! a != b
+	LT, //! a < b
+	GT, //! a > b
 
-	BINO,
-	UNIF,
-	NORM,
+	BINO, //! std::binomial_distribution(a, b)
+	UNIF, //! std::uniform_distributon(a, b)
+	NORM, //! std::normal_distribution(a, b)
 
-	N_ELEMS,
-	N_DIMS,
+	N_ELEMS, //! get n_elem of input shape as value
+	N_DIMS, //! get value at specified dimension of input shape
 
-	ARGMAX,
-	RMAX,
-	RSUM,
+	ARGMAX, //! get first flat index of the max value
+	RMAX, //! get the max value
+	RSUM, //! get the sum of all values
 
-	MATMUL,
+	MATMUL, //! matrix multiplication
 
-	PERMUTE,
-	EXTEND,
-	RESHAPE,
+	PERMUTE, /*! permute shape according to input indices. output shape take
+	on input dimensions ordered by indices, and concatenated by unreferenced
+	input dimensions ordered by input's original order */
+	EXTEND, /*! concatenate input shape vector to input tensor's shape.
+	expect value to expand into the new shape by duplicating */
+	RESHAPE, /*! reshape input tensor's shape to new shape assuming the new
+	shape has the same n_elems as old shape */
 
 	// todo: implement (replace CLIP)
 	MIN,

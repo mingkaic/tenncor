@@ -1,3 +1,13 @@
+/*!
+ *
+ *  grader.hpp
+ *  ade
+ *
+ *  Purpose:
+ *  grader provides gradient functor - opcode mapping
+ *
+ */
+
 #include "ade/tensor.hpp"
 #include "ade/opcode.hpp"
 

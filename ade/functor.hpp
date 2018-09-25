@@ -1,3 +1,13 @@
+/*!
+ *
+ *  functor.hpp
+ *  ade
+ *
+ *  Purpose:
+ *  functor is a tensor extension using fwder, and grader mapping
+ *
+ */
+
 #include <algorithm>
 
 #include "util/strify.hpp"
@@ -17,8 +27,10 @@ struct iFunctor : public iTensor
 {
 	virtual ~iFunctor (void) = default;
 
+	/*! get opcode mapping to forward and gradient operators */
 	virtual OPCODE get_code (void) const = 0;
 
+	/*! get arguments as raw pointers */
 	virtual std::vector<iTensor*> get_refs (void) const = 0;
 };
 
@@ -32,11 +44,13 @@ struct Functor final : public iFunctor
 			std::forward<Args>(meta)...), args, tp);
 	}
 
+	/*! implementation of iTensor  */
 	const Shape& shape (void) const override
 	{
 		return shape_;
 	}
 
+	/*! implementation of iTensor  */
 	Tensorptr gradient (Tensorptr& wrt) const override
 	{
 		if (wrt.get() == this)
@@ -46,16 +60,19 @@ struct Functor final : public iFunctor
 		return grad_helper(wrt, std::index_sequence_for<Args...>());
 	}
 
+	/*! implementation of iTensor  */
 	std::string to_string (void) const override
 	{
 		return opname(opcode) + "<" + util::tuple_to_string(meta_) + ">";
 	}
 
+	/*! implementation of iFunctor  */
 	OPCODE get_code (void) const override
 	{
 		return opcode;
 	}
 
+	/*! implementation of iFunctor  */
 	std::vector<iTensor*> get_refs (void) const override
 	{
 		std::vector<iTensor*> out(args_.size());
@@ -67,6 +84,7 @@ struct Functor final : public iFunctor
 		return out;
 	}
 
+	/*! metadata for forward operator  */
 	std::tuple<Args...> meta_;
 
 private:
@@ -80,12 +98,16 @@ private:
 		return grader<opcode,Args...>(args_, wrt, std::get<I>(meta_)...);
 	}
 
+	/*! functor argument  */
 	std::vector<Tensorptr> args_;
+
+	/*! internal shape  */
 	Shape shape_;
 };
 
 #define MAPCASE(CODE)case CODE: return Functor<CODE,Args...>::get(args, meta...);
 
+/*! create functor of opcode determined at runtime  */
 template <typename... Args>
 Tensorptr runtime_functor (OPCODE opcode,
 	std::vector<Tensorptr> args, Args... meta)

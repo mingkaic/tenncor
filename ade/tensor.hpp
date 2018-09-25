@@ -1,3 +1,13 @@
+/*!
+ *
+ *  tensor.hpp
+ *  ade
+ *
+ *  Purpose:
+ *  tensors are basic building blocks for equation tree
+ *
+ */
+
 #include <memory>
 
 #include "util/error.hpp"
@@ -16,10 +26,13 @@ struct iTensor
 {
 	virtual ~iTensor (void) = default;
 
+	/*! get internal shape */
 	virtual const Shape& shape (void) const = 0;
 
-	virtual Tensorptr gradient (Tensorptr& leaf) const = 0;
+	/*! build the gradient subtree with respect to wrt node */
+	virtual Tensorptr gradient (Tensorptr& wrt) const = 0;
 
+	/*! represent tensor information as string (for debug purposes) */
 	virtual std::string to_string (void) const = 0;
 };
 
@@ -49,39 +62,44 @@ struct Tensorptr
 		return ptr_.get();
 	}
 
+	/*! get raw pointer */
 	iTensor* get (void) const
 	{
 		return ptr_.get();
 	}
 
+	/*! get weakptr reference */
 	std::weak_ptr<iTensor> ref (void) const
 	{
 		return ptr_;
 	}
 
 protected:
+	/*! smartpointer to iTensor */
 	std::shared_ptr<iTensor> ptr_;
 };
 
-Tensorptr constant_one (std::vector<DimT> shape);
-
-Tensorptr constant_zero (std::vector<DimT> shape);
-
 struct Tensor final : public iTensor
 {
+	/*! representation for a scalar containing value one */
 	static Tensorptr SYMBOLIC_ONE;
+
+	/*! representation for a scalar containing value zero */
 	static Tensorptr SYMBOLIC_ZERO;
 
+	/*! build a tensor of input shape */
 	static Tensorptr get (Shape shape)
 	{
 		return new Tensor(shape);
 	}
 
+	/*! implementation of iTensor  */
 	const Shape& shape (void) const override
 	{
 		return shape_;
 	}
 
+	/*! implementation of iTensor  */
 	Tensorptr gradient (Tensorptr& wrt) const override
 	{
 		std::vector<DimT> shape = wrt->shape().as_list();
@@ -92,6 +110,7 @@ struct Tensor final : public iTensor
 		return constant_zero(shape);
 	}
 
+	/*! implementation of iTensor  */
 	std::string to_string (void) const override
 	{
 		return shape_.to_string();
@@ -100,8 +119,15 @@ struct Tensor final : public iTensor
 private:
 	Tensor (Shape shape) : shape_(shape) {}
 
+	/*! internal shape  */
 	Shape shape_;
 };
+
+/*! reshaping Tensor::SYMBOLIC_ONE to input shape */
+Tensorptr constant_one (std::vector<DimT> shape);
+
+/*! reshaping Tensor::SYMBOLIC_ZERO to input shape */
+Tensorptr constant_zero (std::vector<DimT> shape);
 
 }
 

@@ -1,3 +1,13 @@
+/*!
+ *
+ *  fwder.hpp
+ *  ade
+ *
+ *  Purpose:
+ *  fwder provides shape transformation functor - opcode mapping
+ *
+ */
+
 #include "ade/tensor.hpp"
 #include "ade/opcode.hpp"
 

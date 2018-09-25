@@ -1,3 +1,13 @@
+/*!
+ *
+ *  shape.hpp
+ *  ade
+ *
+ *  Purpose:
+ *  shapes are arrays providing shape and coordinate utility functions
+ *
+ */
+
 #include <algorithm>
 #include <array>
 #include <iterator>
@@ -15,6 +25,8 @@ namespace ade
 
 using DimT = uint8_t;
 using NElemT = uint64_t; // reliant on rank_cap
+
+/*! limit on the rank of the shape */
 const uint8_t rank_cap = 8;
 
 // aligned shape representation
@@ -61,6 +73,7 @@ struct Shape
 
 	// >>>> ACCESSORS <<<<
 
+	/*! get element at idx. idx can be greater than n_rank, but must be less than rank_cap */
 	DimT at (uint8_t idx) const
 	{
 		if (idx >= rank_cap)
@@ -71,11 +84,13 @@ struct Shape
 		return dims_.at(idx);
 	}
 
+	/*! rank size containing meaningful dimensions */
 	uint8_t n_rank (void) const
 	{
 		return rank_;
 	}
 
+	/*! total number of elements represented by shape */
 	NElemT n_elems (void) const
 	{
 		auto it = dims_.begin();
@@ -83,13 +98,14 @@ struct Shape
 			std::multiplies<NElemT>());
 	}
 
-	// vectorize dim up to rank
+	/*! get vector of meaningful dimensions */
 	std::vector<DimT> as_list (void) const
 	{
 		auto it = dims_.begin();
 		return std::vector<DimT>(it, it + rank_);
 	}
 
+	/*! check if sub-shape up to idx is equal to another sub-shape up to idx */
 	bool compatible_before (const Shape& other, uint8_t idx) const
 	{
 		auto it = dims_.begin();
@@ -99,8 +115,8 @@ struct Shape
 			other.dims_.begin());
 	}
 
-	//! check if this is compatible
-	//! with another shape after a certain rank
+	/*! check if sub-shape after idx is equal to another sub-shape after idx,
+	 *	set idx to 0 to compare entire shape */
 	bool compatible_after (const Shape& other, uint8_t idx) const
 	{
 		bool compatible = false;
@@ -112,6 +128,7 @@ struct Shape
 		return compatible;
 	}
 
+	/*! represent the shape as string (for debugging purposes) */
 	std::string to_string (void) const
 	{
 		std::stringstream ss;
@@ -121,21 +138,26 @@ struct Shape
 
 	// >>>> ITERATORS <<<<
 
+	/*! get beginning iterator for internal dimension array */
 	ShapeIterator begin (void)
 	{
 		return dims_.begin();
 	}
 
+	/*! get end iterator for internal dimension array
+	 *	(this may extend beyond range of n_rank) */
 	ShapeIterator end (void)
 	{
 		return dims_.end();
 	}
 
+	/*! get constant beginning iterator for internal dimension array */
 	ConstShapeIterators begin (void) const
 	{
 		return dims_.begin();
 	}
 
+	/*! get constant end iterator for internal dimension array */
 	ConstShapeIterators end (void) const
 	{
 		return dims_.end();
@@ -175,16 +197,18 @@ private:
 		other.rank_ = 0;
 	}
 
+	/*! internal dimension array */
 	std::array<DimT,rank_cap> dims_;
 
+	/*! number of meaningful dimensions */
 	uint8_t rank_;
 };
 
-//! obtain the flat vector index from cartesian coordinates
-//! (e.g.: 2-D [x, y] has flat index = y * dimensions_[0] + x)
+/*! obtain the flat vector index from cartesian coordinates
+ *	(e.g.: 2-D [x, y] has flat index = y * dimensions_[0] + x) */
 NElemT index (Shape shape, std::vector<DimT> coord);
 
-//! obtain cartesian coordinates given a flat vector index
+/*! obtain cartesian coordinates given a flat vector index */
 std::vector<DimT> coordinate (Shape shape, NElemT idx);
 
 }

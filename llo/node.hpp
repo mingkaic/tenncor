@@ -47,10 +47,10 @@ struct Source final : public iSource
 		return tens_->shape();
 	}
 
-	ade::Tensorptr gradient (ade::Tensorptr& leaf) const override
+	ade::Tensorptr gradient (ade::Tensorptr& wrt) const override
 	{
-		Evaluable* eval = dynamic_cast<Evaluable*>(leaf.get());
-		ade::Tensorptr wrt = nullptr == eval ? leaf : eval->inner();
+		Evaluable* eval = dynamic_cast<Evaluable*>(wrt.get());
+		ade::Tensorptr wrt = nullptr == eval ? wrt : eval->inner();
 		return tens_->gradient(wrt);
 	}
 
@@ -134,14 +134,14 @@ struct DirectWrapper final : public ade::iFunctor, public Evaluable
 		return tens_->shape();
 	}
 
-	ade::Tensorptr gradient (ade::Tensorptr& leaf) const override
+	ade::Tensorptr gradient (ade::Tensorptr& wrt) const override
 	{
-		if (Evaluable* eval = dynamic_cast<Evaluable*>(leaf.get()))
+		if (Evaluable* eval = dynamic_cast<Evaluable*>(wrt.get()))
 		{
 			ade::Tensorptr wrt = eval->inner();
 			return tens_->gradient(wrt);
 		}
-		return tens_->gradient(leaf);
+		return tens_->gradient(wrt);
 	}
 
 	std::string to_string (void) const override
