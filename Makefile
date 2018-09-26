@@ -159,6 +159,10 @@ build_ade_cli:
 build_llo_cli:
 	bazel build //cli/llo:cli
 
+# make documents
+docs:
+	./deploy-docs.sh
+
 
 clean:
 	bazel clean
