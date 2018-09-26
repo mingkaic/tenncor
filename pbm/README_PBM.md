@@ -1,4 +1,4 @@
-# Protobuf Marshaller
+# PBM (Protobuf Marshaller)
 
 Serialize ADE and LLO-extended graphs created by top-level code in protobuf format.
 

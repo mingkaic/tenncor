@@ -1,0 +1,12 @@
+var searchData=
+[
+  ['save_5fdata',['save_data',['../graph_8cpp.html#ad7c0e77096d2ab3fc62136570188f122',1,'graph.cpp']]],
+  ['save_5fgraph',['save_graph',['../graph_8hpp.html#a5f2608546e41ce3966d56d06f45fa8b8',1,'save_graph(tenncor::Graph &amp;out, std::vector&lt; ade::Tensorptr &gt; &amp;roots):&#160;graph.cpp'],['../graph_8cpp.html#a5f2608546e41ce3966d56d06f45fa8b8',1,'save_graph(tenncor::Graph &amp;out, std::vector&lt; ade::Tensorptr &gt; &amp;roots):&#160;graph.cpp']]],
+  ['save_5fmeta',['save_meta',['../graph_8cpp.html#a683fa4633682addfee537a30f819ac5b',1,'graph.cpp']]],
+  ['scalar',['scalar',['../test__fwder_8cpp.html#ad214f6e47871729b6bc2a6deafee1368',1,'test_fwder.cpp']]],
+  ['shape',['shape',['../structade_1_1_functor.html#af7890f08b0f0f16065ea0b1411354a73',1,'ade::Functor::shape()'],['../structade_1_1i_tensor.html#a782c626a29501f974532905657c8d66b',1,'ade::iTensor::shape()'],['../structade_1_1_tensor.html#a7460655c01d7be7fed376d30b8aa3804',1,'ade::Tensor::shape()'],['../structllo_1_1_source.html#a9e185272975252e021adb542c0ef9aec',1,'llo::Source::shape()'],['../structllo_1_1_direct_wrapper.html#acd20a2d37b1ed0af543a91953227b75c',1,'llo::DirectWrapper::shape()'],['../structade_1_1_shape.html#a75d3e1cea374e9aa648fac6b4cadbb04',1,'ade::Shape::Shape(void)'],['../structade_1_1_shape.html#a30248491a0ecde17ae698ff6419917c6',1,'ade::Shape::Shape(std::vector&lt; DimT &gt; dims)'],['../structade_1_1_shape.html#a4f965312d8df445063305ea750220b3d',1,'ade::Shape::Shape(const Shape &amp;other)=default'],['../structade_1_1_shape.html#ab5dd96f6f468e8b17e66e94ec22a9b41',1,'ade::Shape::Shape(Shape &amp;&amp;other)']]],
+  ['sin',['sin',['../namespacello.html#a9972bdc83f28e00b4231a022a8dfe8fe',1,'llo::sin(ade::Tensorptr arg)'],['../namespacello.html#aa9f1366da8e24c48830971f091bab0e3',1,'llo::sin(T *out, const T *in, size_t n)']]],
+  ['source',['Source',['../structllo_1_1_source.html#a4ad2ccfbdb2d2ce495a9c5e5c0081ea4',1,'llo::Source']]],
+  ['sqrt',['sqrt',['../namespacello.html#aab9fe3b9477c7c31d8ac4256e2a3ad8d',1,'llo::sqrt(ade::Tensorptr arg)'],['../namespacello.html#a423bb00a41a65d3e35141c5c3e9a55ee',1,'llo::sqrt(T *out, const T *in, size_t n)']]],
+  ['sub',['sub',['../namespacello.html#a851541b297e820b6af62d745446e18e8',1,'llo::sub(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#a9e7a604e369db346c909398c59b1a5c9',1,'llo::sub(T *out, const T *a, size_t an, const T *b, size_t bn)']]]
+];
