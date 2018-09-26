@@ -4,7 +4,7 @@
  *  ade
  *
  *  Purpose:
- *  opcodes enumerates operations
+ *  define enumerations for representing operations
  *
  */
 
@@ -18,7 +18,7 @@
 namespace ade
 {
 
-/*! enumerated representation of operations */
+/*! Enumerated representation of operations */
 enum OPCODE
 {
 	ABS = 0, //! make absolute
@@ -64,12 +64,18 @@ enum OPCODE
 	RESHAPE, /*! reshape input tensor's shape to new shape assuming the new
 	shape has the same n_elems as old shape */
 
-	// todo: implement (replace CLIP)
+	// todo: implement
+	CONVOLUTE,
+
+	// replace CLIP
 	MIN,
 	MAX,
 
 	_NUM_OPS,
 };
+
+/*! Convert the OPCODE to string */
+std::string opname (OPCODE opcode);
 
 #define _DECL_NOARG(OUT, NAME, CODE, ...)\
 template <> OUT NAME<CODE> (__VA_ARGS__);
@@ -117,8 +123,6 @@ template <> OUT NAME<PERMUTE,std::vector<uint8_t>> (\
 	__VA_ARGS__,std::vector<uint8_t>);\
 _DECL_SHPARG(OUT, NAME, EXTEND, __VA_ARGS__)\
 _DECL_SHPARG(OUT, NAME, RESHAPE, __VA_ARGS__)
-
-std::string opname (OPCODE opcode);
 
 }
 

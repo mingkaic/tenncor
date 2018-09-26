@@ -46,6 +46,33 @@ std::string name_type (DTYPE type)
 	return it->second;
 }
 
+uint8_t type_size (DTYPE type)
+{
+	switch (type)
+	{
+		case DTYPE::DOUBLE:
+			return sizeof(double);
+		case DTYPE::FLOAT:
+			return sizeof(float);
+		case DTYPE::INT8:
+		case DTYPE::UINT8:
+			return sizeof(int8_t);
+		case DTYPE::INT16:
+		case DTYPE::UINT16:
+			return sizeof(int16_t);
+		case DTYPE::INT32:
+		case DTYPE::UINT32:
+			return sizeof(int32_t);
+		case DTYPE::INT64:
+		case DTYPE::UINT64:
+			return sizeof(int64_t);
+		default:
+			util::handle_error("unsupported type",
+				util::ErrArg<size_t>("typeval", type));
+	}
+	return 0;
+}
+
 template <>
 DTYPE get_type<double> (void)
 {
@@ -104,33 +131,6 @@ template <>
 DTYPE get_type<uint64_t> (void)
 {
 	return DTYPE::UINT64;
-}
-
-uint8_t type_size (DTYPE type)
-{
-	switch (type)
-	{
-		case DTYPE::DOUBLE:
-			return sizeof(double);
-		case DTYPE::FLOAT:
-			return sizeof(float);
-		case DTYPE::INT8:
-		case DTYPE::UINT8:
-			return sizeof(int8_t);
-		case DTYPE::INT16:
-		case DTYPE::UINT16:
-			return sizeof(int16_t);
-		case DTYPE::INT32:
-		case DTYPE::UINT32:
-			return sizeof(int32_t);
-		case DTYPE::INT64:
-		case DTYPE::UINT64:
-			return sizeof(int64_t);
-		default:
-			util::handle_error("unsupported type",
-				util::ErrArg<size_t>("typeval", type));
-	}
-	return 0;
 }
 
 }

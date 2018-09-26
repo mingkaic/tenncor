@@ -1,3 +1,13 @@
+/*!
+ *
+ *  node.hpp
+ *  llo
+ *
+ *  Purpose:
+ *  define extensions to ade::iTensor that evaluate data
+ *
+ */
+
 #include <cassert>
 
 #include "ade/functor.hpp"
@@ -10,24 +20,34 @@
 namespace llo
 {
 
-struct Evaluable
+/*! Evaluable interface for calculating data of subtree */
+struct iEvaluable
 {
-	virtual ~Evaluable (void) = default;
+	virtual ~iEvaluable (void) = default;
 
+	/*! calculate data of operation subtree and return in the specified type */
 	virtual GenericData evaluate (DTYPE dtype) = 0;
 
+	/*! calculate data of operation subtree and return in the specified type */
 	virtual ade::Tensorptr inner (void) const = 0;
 };
 
+/*! Evaluate Tensors and get return data of input type */
 GenericData evaluate (DTYPE dtype, ade::iTensor* tens);
 
-struct iSource : public ade::iTensor, public Evaluable
+/*! Tensor evaluable interface for representing leaf nodes with data */
+struct iSource : public ade::iTensor, public iEvaluable
 {
+	virtual ~iSource (void) = default;
+
+	/*! get type of data held by the source */
 	virtual DTYPE native_type (void) const = 0;
 
+	/*! assign data to the source */
 	virtual void reassign (const GenericRef& data) = 0;
 };
 
+/*! Source implementation holding data */
 template <typename T>
 struct Source final : public iSource
 {
@@ -42,23 +62,27 @@ struct Source final : public iSource
 		return new Source(shape, data);
 	}
 
+	/*! implementation of iTensor */
 	const ade::Shape& shape (void) const override
 	{
 		return tens_->shape();
 	}
 
+	/*! implementation of iTensor */
 	ade::Tensorptr gradient (ade::Tensorptr& wrt) const override
 	{
-		Evaluable* eval = dynamic_cast<Evaluable*>(wrt.get());
-		ade::Tensorptr wrt = nullptr == eval ? wrt : eval->inner();
-		return tens_->gradient(wrt);
+		iEvaluable* eval = dynamic_cast<iEvaluable*>(wrt.get());
+		ade::Tensorptr target = nullptr == eval ? wrt : eval->inner();
+		return tens_->gradient(target);
 	}
 
+	/*! implementation of iTensor */
 	std::string to_string (void) const override
 	{
 		return tens_->to_string();
 	}
 
+	/*! implementation of iEvaluable */
 	GenericData evaluate (DTYPE dtype) override
 	{
 		DTYPE curtype = get_type<T>();
@@ -71,16 +95,19 @@ struct Source final : public iSource
 		return out;
 	}
 
+	/*! implementation of iEvaluable */
 	ade::Tensorptr inner (void) const override
 	{
 		return tens_;
 	}
 
+	/*! implementation of iSource */
 	DTYPE native_type (void) const override
 	{
 		return get_type<T>();
 	}
 
+	/*! implementation of iSource */
 	void reassign (const GenericRef& data) override
 	{
 		assert(data.shape_.compatible_after(tens_->shape(), 0));
@@ -91,12 +118,15 @@ private:
 	Source (ade::Shape shape, std::vector<T>& data) :
 		tens_(ade::Tensor::get(shape)), data_(data) {}
 
+	/*! tensor holding shape info */
 	ade::Tensorptr tens_;
+	/*! data vector */
 	std::vector<T> data_;
 };
 
+/*! Tensorptr extension to provide data assignment functionality */
 template <typename T>
-struct Placeholder : public ade::Tensorptr
+struct Placeholder final : public ade::Tensorptr
 {
 	Placeholder (ade::Shape shape) : ade::Tensorptr(
 		Source<T>::get(shape, std::vector<T>(shape.n_elems()))) {}
@@ -106,6 +136,7 @@ struct Placeholder : public ade::Tensorptr
 	Placeholder& operator = (const Placeholder&) = default;
 	Placeholder& operator = (Placeholder&&) = default;
 
+	/*! assign data to interally referenced source */
 	Placeholder& operator = (std::vector<T>& data)
 	{
 		auto src = static_cast<iSource*>(ptr_.get());
@@ -115,9 +146,9 @@ struct Placeholder : public ade::Tensorptr
 	}
 };
 
-// maintains other argument
+/*! Functor evaluable implementation for executing data operations */
 template <typename... Args>
-struct DirectWrapper final : public ade::iFunctor, public Evaluable
+struct DirectWrapper final : public ade::iFunctor, public iEvaluable
 {
 	static ade::Tensorptr get (ade::Tensorptr tens, Args... args)
 	{
@@ -129,14 +160,16 @@ struct DirectWrapper final : public ade::iFunctor, public Evaluable
 		return new DirectWrapper(tens, tp);
 	}
 
+	/*! implementation of iTensor  */
 	const ade::Shape& shape (void) const override
 	{
 		return tens_->shape();
 	}
 
+	/*! implementation of iTensor  */
 	ade::Tensorptr gradient (ade::Tensorptr& wrt) const override
 	{
-		if (Evaluable* eval = dynamic_cast<Evaluable*>(wrt.get()))
+		if (iEvaluable* eval = dynamic_cast<iEvaluable*>(wrt.get()))
 		{
 			ade::Tensorptr wrt = eval->inner();
 			return tens_->gradient(wrt);
@@ -144,31 +177,37 @@ struct DirectWrapper final : public ade::iFunctor, public Evaluable
 		return tens_->gradient(wrt);
 	}
 
+	/*! implementation of iTensor  */
 	std::string to_string (void) const override
 	{
 		return "Wrapper_" + opname(get_code()) + "<" + util::tuple_to_string(args_) + ">";
 	}
 
+	/*! implementation of iFunctor  */
 	ade::OPCODE get_code (void) const override
 	{
 		return static_cast<ade::iFunctor*>(tens_.get())->get_code();
 	}
 
+	/*! implementation of iFunctor  */
 	std::vector<ade::iTensor*> get_refs (void) const override
 	{
 		return static_cast<ade::iFunctor*>(tens_.get())->get_refs();
 	}
 
+	/*! implementation of iEvaluable  */
 	GenericData evaluate (DTYPE dtype) override
 	{
 		return eval_helper(dtype, std::index_sequence_for<Args...>());
 	}
 
+	/*! implementation of iEvaluable  */
 	ade::Tensorptr inner (void) const override
 	{
 		return tens_;
 	}
 
+	/*! non-tensor metadata used by certain data operations  */
 	std::tuple<Args...> args_;
 
 private:
@@ -194,6 +233,7 @@ private:
 		return out;
 	}
 
+	/*! tensor proxy source */
 	ade::Tensorptr tens_;
 };
 

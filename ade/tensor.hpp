@@ -4,7 +4,7 @@
  *  ade
  *
  *  Purpose:
- *  tensors are basic building blocks for equation tree
+ *  define building blocks for an equation tree
  *
  */
 
@@ -22,6 +22,7 @@ namespace ade
 
 struct Tensorptr;
 
+/*! Tensor interface for ensuring derivation functionality */
 struct iTensor
 {
 	virtual ~iTensor (void) = default;
@@ -36,6 +37,7 @@ struct iTensor
 	virtual std::string to_string (void) const = 0;
 };
 
+/*! Internal smart pointer wrapper to Tensors guaranteeing non-null pointers */
 struct Tensorptr
 {
 	Tensorptr (iTensor& tens) :
@@ -79,6 +81,13 @@ protected:
 	std::shared_ptr<iTensor> ptr_;
 };
 
+/*! Reshaping Tensor::SYMBOLIC_ONE to input shape */
+Tensorptr constant_one (std::vector<DimT> shape);
+
+/*! Reshaping Tensor::SYMBOLIC_ZERO to input shape */
+Tensorptr constant_zero (std::vector<DimT> shape);
+
+/*! Tensor implementation representing leaf node in operation graph */
 struct Tensor final : public iTensor
 {
 	/*! representation for a scalar containing value one */
@@ -122,12 +131,6 @@ private:
 	/*! internal shape  */
 	Shape shape_;
 };
-
-/*! reshaping Tensor::SYMBOLIC_ONE to input shape */
-Tensorptr constant_one (std::vector<DimT> shape);
-
-/*! reshaping Tensor::SYMBOLIC_ZERO to input shape */
-Tensorptr constant_zero (std::vector<DimT> shape);
 
 }
 

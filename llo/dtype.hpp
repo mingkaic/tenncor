@@ -1,3 +1,13 @@
+/*!
+ *
+ *  dtype.hpp
+ *  llo
+ *
+ *  Purpose:
+ *  define enumerations for representing types
+ *
+ */
+
 #include <string>
 
 #ifndef LLO_DTYPE_HPP
@@ -6,6 +16,7 @@
 namespace llo
 {
 
+/*! Enumerated representation of data types */
 enum DTYPE
 {
 	BAD = 0,
@@ -22,8 +33,13 @@ enum DTYPE
 	_SENTINEL
 };
 
+/*! Convert the DTYPE to string */
 std::string name_type (DTYPE type);
 
+/*! Get size of enumerate type in bytes */
+uint8_t type_size (DTYPE type);
+
+/*! Get enumerate type specified in template */
 template <typename T>
 DTYPE get_type (void)
 {
@@ -59,8 +75,6 @@ DTYPE get_type<int64_t> (void);
 
 template <>
 DTYPE get_type<uint64_t> (void);
-
-uint8_t type_size (DTYPE type);
 
 }
 

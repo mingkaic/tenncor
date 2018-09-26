@@ -54,11 +54,17 @@ GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 		std::memset(out.data_.get(), 0, type_size(dtype));
 		return out;
 	}
-	if (Evaluable* ev = dynamic_cast<Evaluable*>(tens))
+	else if (iEvaluable* ev = dynamic_cast<iEvaluable*>(tens))
 	{
 		return ev->evaluate(dtype);
 	}
-	ade::iFunctor* f = static_cast<ade::iFunctor*>(tens);
+	ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(tens);
+	if (nullptr != f)
+	{
+		// todo: provide more trouble shoot info such as location of tens
+		util::handle_error("Attempting to evaluate unevauable tensor",
+			util::ErrArg<std::string>("unevaluable", tens->to_string()));
+	}
 	ade::OPCODE opcode = f->get_code();
 
 	std::vector<ade::iTensor*> refs = f->get_refs();

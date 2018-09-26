@@ -1,3 +1,13 @@
+/*!
+ *
+ *  opmap.hpp
+ *  llo
+ *
+ *  Purpose:
+ *  map opcode to low level operations accordingly
+ *
+ */
+
 #include "ade/opcode.hpp"
 
 #include "llo/data.hpp"
@@ -46,7 +56,7 @@ static void exec (GenericData& out, std::vector<GenericData>& data)\
 
 UNARY_ELEM(ABS, abs)
 UNARY_ELEM(NEG, neg)
-UNARY_ELEM(NOT, logic_not)
+UNARY_ELEM(NOT, bit_not)
 UNARY_ELEM(SIN, sin)
 UNARY_ELEM(COS, cos)
 UNARY_ELEM(TAN, tan)

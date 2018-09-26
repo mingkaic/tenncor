@@ -4,7 +4,7 @@
  *  ade
  *
  *  Purpose:
- *  shapes are arrays providing shape and coordinate utility functions
+ *  define shape representation and coordinate utility functions
  *
  */
 
@@ -29,8 +29,8 @@ using NElemT = uint64_t; // reliant on rank_cap
 /*! limit on the rank of the shape */
 const uint8_t rank_cap = 8;
 
-// aligned shape representation
-struct Shape
+/*! Aligned shape representation */
+struct Shape final
 {
 	using ShapeIterator = std::array<DimT,rank_cap>::iterator;
 
@@ -204,11 +204,11 @@ private:
 	uint8_t rank_;
 };
 
-/*! obtain the flat vector index from cartesian coordinates
+/*! Obtain the flat vector index from cartesian coordinates
  *	(e.g.: 2-D [x, y] has flat index = y * dimensions_[0] + x) */
 NElemT index (Shape shape, std::vector<DimT> coord);
 
-/*! obtain cartesian coordinates given a flat vector index */
+/*! Obtain cartesian coordinates given a flat vector index */
 std::vector<DimT> coordinate (Shape shape, NElemT idx);
 
 }

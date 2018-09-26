@@ -4,7 +4,7 @@
  *  ade
  *
  *  Purpose:
- *  functor is a tensor extension using fwder, and grader mapping
+ *  define traversible tensor extension
  *
  */
 
@@ -22,7 +22,7 @@
 namespace ade
 {
 
-// useful for equation graph traversal
+/*! Traversible extension of Tensor interface */
 struct iFunctor : public iTensor
 {
 	virtual ~iFunctor (void) = default;
@@ -34,6 +34,7 @@ struct iFunctor : public iTensor
 	virtual std::vector<iTensor*> get_refs (void) const = 0;
 };
 
+/*! Tensor implementation representing an operation specified in OPCODE  */
 template <OPCODE opcode, typename... Args>
 struct Functor final : public iFunctor
 {
@@ -107,7 +108,7 @@ private:
 
 #define MAPCASE(CODE)case CODE: return Functor<CODE,Args...>::get(args, meta...);
 
-/*! create functor of opcode determined at runtime  */
+/*! Create functor of opcode determined at runtime  */
 template <typename... Args>
 Tensorptr runtime_functor (OPCODE opcode,
 	std::vector<Tensorptr> args, Args... meta)

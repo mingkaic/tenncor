@@ -1,3 +1,13 @@
+/*!
+ *
+ *  operator.hpp
+ *  llo
+ *
+ *  Purpose:
+ *  define low level operators on continguous data
+ *
+ */
+
 #include <cstring>
 #include <cmath>
 #include <functional>
@@ -12,6 +22,7 @@
 namespace llo
 {
 
+/*! Generic unary operation */
 template <typename T>
 void unary (T* out, const T* in, size_t n,
 	std::function<T(const T&)> f)
@@ -22,6 +33,7 @@ void unary (T* out, const T* in, size_t n,
 	}
 }
 
+/*! Absolute */
 template <typename T>
 void abs (T* out, const T* in, size_t n)
 {
@@ -40,6 +52,7 @@ void abs<uint32_t> (uint32_t* out, const uint32_t* in, size_t n);
 template <>
 void abs<uint64_t> (uint64_t* out, const uint64_t* in, size_t n);
 
+/*! Negative */
 template <typename T>
 void neg (T* out, const T* in, size_t n)
 {
@@ -58,54 +71,63 @@ void neg<uint32_t> (uint32_t* out, const uint32_t* in, size_t n);
 template <>
 void neg<uint64_t> (uint64_t* out, const uint64_t* in, size_t n);
 
+/*! Bitwise Not */
 template <typename T>
-void logic_not (T* out, const T* in, size_t n)
+void bit_not (T* out, const T* in, size_t n)
 {
 	unary<T>(out, in, n, [](const T& src) { return !src; });
 }
 
+/*! Sine */
 template <typename T>
 void sin (T* out, const T* in, size_t n)
 {
 	unary<T>(out, in, n, [](const T& src) { return std::sin(src); });
 }
 
+/*! Cosine */
 template <typename T>
 void cos (T* out, const T* in, size_t n)
 {
 	unary<T>(out, in, n, [](const T& src) { return std::cos(src); });
 }
 
+/*! Tangent */
 template <typename T>
 void tan (T* out, const T* in, size_t n)
 {
 	unary<T>(out, in, n, [](const T& src) { return std::tan(src); });
 }
 
+/*! Exponent */
 template <typename T>
 void exp (T* out, const T* in, size_t n)
 {
 	unary<T>(out, in, n, [](const T& src) { return std::exp(src); });
 }
 
+/*! Natural log */
 template <typename T>
 void log (T* out, const T* in, size_t n)
 {
 	unary<T>(out, in, n, [](const T& src) { return std::log(src); });
 }
 
+/*! Square root */
 template <typename T>
 void sqrt (T* out, const T* in, size_t n)
 {
 	unary<T>(out, in, n, [](const T& src) { return std::sqrt(src); });
 }
 
+/*! Round */
 template <typename T>
 void round (T* out, const T* in, size_t n)
 {
 	unary<T>(out, in, n, [](const T& src) { return std::round(src); });
 }
 
+/*! Flip */
 template <typename T>
 void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
 {
@@ -128,6 +150,7 @@ void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
 	}
 }
 
+/*! Permute coordinates according to order */
 template <typename T>
 void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
 	std::vector<uint8_t> order)
@@ -165,18 +188,21 @@ void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
 	}
 }
 
+/*! Shape's n_elems */
 template <typename T>
 void n_elems (T& out, const ade::Shape& in)
 {
 	out = in.n_elems();
 }
 
+/*! Shape's dimension value at dim */
 template <typename T>
 void n_dims (T& out, const ade::Shape& in, uint8_t dim)
 {
 	out = in.at(dim);
 }
 
+/*! Get first flat index of the max value */
 template <typename T>
 void arg_max (T& out, const T* in, size_t n)
 {
@@ -191,6 +217,7 @@ void arg_max (T& out, const T* in, size_t n)
 	out = temp;
 }
 
+/*! Get the max value */
 template <typename T>
 void reduce_max (T& out, const T* in, size_t n)
 {
@@ -204,6 +231,7 @@ void reduce_max (T& out, const T* in, size_t n)
 	}
 }
 
+/*! Get the sum of all value */
 template <typename T>
 void reduce_sum (T& out, const T* in, size_t n)
 {
@@ -214,6 +242,7 @@ void reduce_sum (T& out, const T* in, size_t n)
 	}
 }
 
+/*! Generic binary operation */
 template <typename T>
 void binary (T* out, const T* a, size_t an, const T* b, size_t bn,
 	std::function<T(const T&,const T&)> f)
@@ -225,6 +254,7 @@ void binary (T* out, const T* a, size_t an, const T* b, size_t bn,
 	}
 }
 
+/*! Pow */
 template <typename T>
 void pow (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -232,6 +262,7 @@ void pow (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& b, const T& x) { return std::pow(b, x); });
 }
 
+/*! Add */
 template <typename T>
 void add (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -239,6 +270,7 @@ void add (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& a, const T& b) { return a + b; });
 }
 
+/*! Sub */
 template <typename T>
 void sub (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -246,6 +278,7 @@ void sub (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& a, const T& b) { return a - b; });
 }
 
+/*! Mul */
 template <typename T>
 void mul (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -253,6 +286,7 @@ void mul (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& a, const T& b) { return a * b; });
 }
 
+/*! Div */
 template <typename T>
 void div (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -260,6 +294,7 @@ void div (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& a, const T& b) { return a / b; });
 }
 
+/*! Equality */
 template <typename T>
 void eq (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -267,6 +302,7 @@ void eq (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& a, const T& b) { return a == b; });
 }
 
+/*! Non-equality */
 template <typename T>
 void neq (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -274,6 +310,7 @@ void neq (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& a, const T& b) { return a != b; });
 }
 
+/*! Less than */
 template <typename T>
 void lt (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -281,6 +318,7 @@ void lt (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& a, const T& b) { return a < b; });
 }
 
+/*! Greater than */
 template <typename T>
 void gt (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -288,6 +326,7 @@ void gt (T* out, const T* a, size_t an, const T* b, size_t bn)
 		[](const T& a, const T& b) { return a > b; });
 }
 
+/*! Randomly generated values according to binomial distribution */
 template <typename T>
 void rand_binom (T* out, const T* a, size_t an, const double* b, size_t bn)
 {
@@ -307,6 +346,7 @@ template <>
 void rand_binom<float> (float* out,
 	const float* a, size_t an, const double* b, size_t bn);
 
+/*! Randomly generated values according to uniform distribution */
 template <typename T>
 void rand_uniform (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -326,6 +366,7 @@ template <>
 void rand_uniform<float> (float* out,
 	const float* a, size_t an, const float* b, size_t bn);
 
+/*! Randomly generated values according to normal distribution */
 template <typename T>
 void rand_normal (T* out, const T* a, size_t an, const T* b, size_t bn)
 {
@@ -340,6 +381,7 @@ template <>
 void rand_normal<double> (double* out,
 	const double* a, size_t an, const double* b, size_t bn);
 
+/*! Matrix multiplication */
 template <typename T>
 void matmul (T* out, const T* a, const T* b,
 	const ade::Shape& ashape, const ade::Shape& bshape,
@@ -349,7 +391,8 @@ void matmul (T* out, const T* a, const T* b,
 	auto itb = bshape.begin();
 	ade::NElemT dim_x = std::accumulate(itb, itb + bgroup_idx,
 		1, std::multiplies<ade::NElemT>());
-	ade::NElemT dim_y = std::accumulate(ita + agroup_idx, ita + ashape.n_rank(),
+	ade::NElemT dim_y = std::accumulate(
+		ita + agroup_idx, ita + ashape.n_rank(),
 		1, std::multiplies<ade::NElemT>());
 	ade::NElemT dim_z = std::accumulate(ita, ita + agroup_idx,
 		1, std::multiplies<ade::NElemT>());
@@ -370,6 +413,7 @@ void matmul (T* out, const T* a, const T* b,
 	}
 }
 
+/*! Copy over data from nin to out repeating nin to fit when necessary. */
 template <typename T>
 void copyover (T* out, size_t nout, const T* in, size_t nin)
 {

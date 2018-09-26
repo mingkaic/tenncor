@@ -4,7 +4,7 @@
  *  ade
  *
  *  Purpose:
- *  fwder provides shape transformation functor - opcode mapping
+ *  define shape transformation functions mapped to opcodes
  *
  */
 

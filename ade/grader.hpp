@@ -4,7 +4,7 @@
  *  ade
  *
  *  Purpose:
- *  grader provides gradient functor - opcode mapping
+ *  define gradient functions mapped to opcode
  *
  */
 
