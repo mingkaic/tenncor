@@ -3,7 +3,7 @@
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
 TEST_OUT_FILE=bazel-out/k8-fastbuild/testlogs/tests/tenncor_all/test.log;
 COV_OUT_DIR=bazel-tenncor/_coverage/tests/tenncor_all/test/bazel-out/k8-fastbuild/bin/_objs;
-COV_FILE=coverage.info;
+COV_FILE=$THIS_DIR/coverage.info;
 DOCS=$THIS_DIR/docs
 
 lcov --base-directory . --directory . --zerocounters;
@@ -16,18 +16,16 @@ make asan
 
 # ===== Check Docs Directory =====
 echo "===== CHECK DOCUMENT EXISTENCE =====";
-if [ -d "$DOCS" ]; then
+if [ !-d "$DOCS" ]; then
+	echo "Documents not found. Please generate documents then try again"
 	exit 1;
 fi
 
 echo "===== STARTING COVERAGE ANALYSIS =====";
 # ===== Coverage Analysis ======
-lcov --directory $COV_OUT_DIR --gcov-tool gcov-6 --capture --output-file $COV_FILE;
-lcov --remove $COV_FILE '*/bazel-tenncor/external/*' '*/bazel-tenncor/bazel-out/*' '/usr/include/*' -o $COV_FILE;
-lcov --list $COV_FILE;
+make lcov_all
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
-	sed -i 's:bazel-tenncor/::g' $COV_FILE;
 	git rev-parse --abbrev-inode* HEAD;
 	coveralls-lcov --repo-token $COVERALLS_TOKEN $COV_FILE; # uploads to coveralls
 fi

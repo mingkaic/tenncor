@@ -51,6 +51,8 @@ do
         if [ -f "$OUTFILE" ]; then
             lcov -a "$OUTFILE" -a "/tmp/$OUTFILE" -o "/tmp/$OUTFILE"
         fi
-        mv "/tmp/$OUTFILE" "$OUTFILE"
+        if [ -f "/tmp/$OUTFILE" ]; then
+            mv "/tmp/$OUTFILE" "$OUTFILE"
+        fi
     fi
 done

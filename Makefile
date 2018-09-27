@@ -36,7 +36,7 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage --test_output=all $(GTEST_FLAGS) # we want cache result for coverage
 
-COVERAGE_PIPE := 2>/dev/null | tee /dev/tty | ./listcov.sh $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE)
+COVERAGE_PIPE := 2>/dev/null | tee tty | ./listcov.sh $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE)
 
 
 # all tests
