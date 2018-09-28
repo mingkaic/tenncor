@@ -1,10 +1,6 @@
 var searchData=
 [
-  ['n_5farguments',['n_arguments',['../classnnet_1_1iconnector.html#a3735a6c67395f9e431b83df50eecccc9',1,'nnet::iconnector::n_arguments()'],['../classnnet_1_1inode.html#a7d2368b1ba72a640d15b962e17d5eb58',1,'nnet::inode::n_arguments()'],['../classnnet_1_1ileaf.html#a474c62f1a07f08ad387151769b09da12',1,'nnet::ileaf::n_arguments()']]],
-  ['n_5faudience',['n_audience',['../classnnet_1_1subject.html#a88a52f66f3c333e3b68a4b25dc988012',1,'nnet::subject']]],
-  ['n_5felems',['n_elems',['../classnnet_1_1itensor.html#abd0af6b18dabdc15c690070dba32935c',1,'nnet::itensor::n_elems()'],['../classnnet_1_1tensor.html#a99bf4543c49a573ac7d4cc29af335031',1,'nnet::tensor::n_elems()'],['../classnnet_1_1tensor__double.html#a88fac28c87a1dfa5ac46a90e50530662',1,'nnet::tensor_double::n_elems()'],['../classnnet_1_1tensor__signed.html#a62b9f747cd0f25d406d81b7eca0bb06e',1,'nnet::tensor_signed::n_elems()'],['../classnnet_1_1tensorshape.html#a5a5b78b606bbe0f1ef9f1966f6509ebb',1,'nnet::tensorshape::n_elems()']]],
-  ['n_5fknown',['n_known',['../classnnet_1_1tensorshape.html#a71c617028dc06b35f2cf6dbdd309f818',1,'nnet::tensorshape']]],
-  ['neq',['neq',['../namespacennet.html#a96dd7b0e111d178b2f5bce8c96f68c54',1,'nnet']]],
-  ['no_5faudience',['no_audience',['../classnnet_1_1subject.html#ad8addf3a90086a7bd7990d3e719d5226',1,'nnet::subject']]],
-  ['notify',['notify',['../classnnet_1_1subject.html#a65359d2f1cde2bfc4bc257009fa2f29b',1,'nnet::subject']]]
+  ['permute',['permute',['../namespacello.html#a92628450f68abf56a8ccbb511ecdd021',1,'llo::permute(ade::Tensorptr arg, std::vector&lt; uint8_t &gt; order)'],['../namespacello.html#a144ed0ca83c6530004761315b357e128',1,'llo::permute(T *out, const T *in, ade::Shape outshape, ade::Shape shape, std::vector&lt; uint8_t &gt; order)']]],
+  ['placeholder',['Placeholder',['../structllo_1_1_placeholder.html#a587082bd609ee47264d6869ba3f0a25e',1,'llo::Placeholder::Placeholder(ade::Shape shape)'],['../structllo_1_1_placeholder.html#a6b002f80d325d9d7a50f06da73858ccd',1,'llo::Placeholder::Placeholder(const Placeholder &amp;)=default'],['../structllo_1_1_placeholder.html#a06aac2f255786fb7c51181d298026b5d',1,'llo::Placeholder::Placeholder(Placeholder &amp;&amp;)=default']]],
+  ['pow',['pow',['../namespacello.html#a666fea91c816ee3cb4308fb84447bdff',1,'llo::pow(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#aebfa01fdc1f12dc6f2b72c71bc546b69',1,'llo::pow(T *out, const T *a, size_t an, const T *b, size_t bn)']]]
 ];

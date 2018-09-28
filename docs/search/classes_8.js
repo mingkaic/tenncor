@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['momentum_5fupdater',['momentum_updater',['../classnnet_1_1momentum__updater.html',1,'nnet']]]
+  ['tensor',['TENSOR',['../struct_t_e_n_s_o_r.html',1,'TENSOR'],['../structade_1_1_tensor.html',1,'ade::Tensor']]],
+  ['tensorptr',['Tensorptr',['../structade_1_1_tensorptr.html',1,'ade']]]
 ];

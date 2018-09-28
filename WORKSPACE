@@ -1,7 +1,14 @@
 workspace(name = "com_github_mingkaic_tenncor")
 
-load("//bazel:tncr_deps.bzl", "tncr_deps")
-tncr_deps()
+load("//:tenncor.bzl", "dependencies", "test_dependencies")
+dependencies()
+test_dependencies()
 
-load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
-grpc_deps()
+load("@com_github_mingkaic_testify//:testify.bzl", "dependencies")
+dependencies()
+
+load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cpp_proto_repositories")
+cpp_proto_repositories()
+
+load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_repositories")
+py_proto_repositories()

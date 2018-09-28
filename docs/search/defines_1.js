@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['rocnnet_5fgd_5futils_5fhpp',['ROCNNET_GD_UTILS_HPP',['../gd__utils_8hpp.html#ad7b8799bd8e58f7f4cede58017712ff8',1,'gd_utils.hpp']]],
-  ['rocnnet_5fgenerator_5fhpp',['ROCNNET_GENERATOR_HPP',['../generator_8hpp.html#a99b1e55c2be5d3faa4e197bc877d6507',1,'generator.hpp']]]
+  ['ade_5ffunctor_5fhpp',['ADE_FUNCTOR_HPP',['../functor_8hpp.html#a646c8c5e369c97d29823863ca56374b0',1,'functor.hpp']]]
 ];

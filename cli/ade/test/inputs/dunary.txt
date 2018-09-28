@@ -1,0 +1,49 @@
+mode showvar
+
+a = [13, 45]
+b = sin(a)
+b
+print(b)
+print(grad(b, a))
+print
+
+b = cos(a)
+b
+print(b)
+print(grad(b, a))
+print
+
+b = tan(a)
+b
+print(b)
+print(grad(b, a))
+print
+
+b = exp(a)
+b
+print(b)
+print(grad(b, a))
+print
+
+b = log(a)
+b
+print(b)
+print(grad(b, a))
+print
+
+b = sqrt(a)
+b
+print(b)
+print(grad(b, a))
+print
+
+b = round(a)
+b
+print(b)
+print(grad(b, a))
+print
+
+b = flip(a)
+b
+print(b)
+print(grad(b, a))

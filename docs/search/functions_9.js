@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['jacobian_5fcall',['jacobian_call',['../classnnet_1_1iconnector.html#ad2638a9bf6b9d1c77174e09b0db85274',1,'nnet::iconnector']]],
-  ['jacobian_5fcorrection',['jacobian_correction',['../classnnet_1_1iconnector.html#a0a7fbb33c56c6367ca27ad0a7acce15d',1,'nnet::iconnector']]],
-  ['join',['join',['../classnnet_1_1stoppable__thread.html#a403bd442a146f4dcb7f2e51dfe746545',1,'nnet::stoppable_thread']]],
-  ['joinable',['joinable',['../classnnet_1_1stoppable__thread.html#ab3300796f82fb6417ea74e92db8aeb39',1,'nnet::stoppable_thread']]]
+  ['main',['main',['../dmain_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;dmain.cpp'],['../smain_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;smain.cpp'],['../llo_2test_2main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;main.cpp'],['../pbm_2test_2main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;main.cpp']]],
+  ['matmul',['matmul',['../namespacello.html#a06634a81d1694e65afd063e14993f93f',1,'llo::matmul(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#a20ecb95305fbb0a263091104ee40736f',1,'llo::matmul(ade::Tensorptr a, ade::Tensorptr b, uint8_t agroup_idx, uint8_t bgroup_idx)'],['../namespacello.html#a6e2474867b79d7449816d468b3ef01f2',1,'llo::matmul(T *out, const T *a, const T *b, const ade::Shape &amp;ashape, const ade::Shape &amp;bshape, uint8_t agroup_idx, uint8_t bgroup_idx)']]],
+  ['move_5fhelper',['move_helper',['../structade_1_1_shape.html#ae2cffe358880cabd1a4a06b56c15e2b5',1,'ade::Shape']]],
+  ['mul',['mul',['../namespacello.html#a92fe69fadcf0ef9fe58d6420ee6d0f95',1,'llo::mul(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#a04b32424b48839faf99655802a82b9d4',1,'llo::mul(T *out, const T *a, size_t an, const T *b, size_t bn)']]]
 ];

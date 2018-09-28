@@ -1,16 +1,9 @@
 var searchData=
 [
-  ['n_5farguments',['n_arguments',['../classnnet_1_1iconnector.html#a3735a6c67395f9e431b83df50eecccc9',1,'nnet::iconnector::n_arguments()'],['../classnnet_1_1inode.html#a7d2368b1ba72a640d15b962e17d5eb58',1,'nnet::inode::n_arguments()'],['../classnnet_1_1ileaf.html#a474c62f1a07f08ad387151769b09da12',1,'nnet::ileaf::n_arguments()']]],
-  ['n_5faudience',['n_audience',['../classnnet_1_1subject.html#a88a52f66f3c333e3b68a4b25dc988012',1,'nnet::subject']]],
-  ['n_5felems',['n_elems',['../classnnet_1_1itensor.html#abd0af6b18dabdc15c690070dba32935c',1,'nnet::itensor::n_elems()'],['../classnnet_1_1tensor.html#a99bf4543c49a573ac7d4cc29af335031',1,'nnet::tensor::n_elems()'],['../classnnet_1_1tensor__double.html#a88fac28c87a1dfa5ac46a90e50530662',1,'nnet::tensor_double::n_elems()'],['../classnnet_1_1tensor__signed.html#a62b9f747cd0f25d406d81b7eca0bb06e',1,'nnet::tensor_signed::n_elems()'],['../classnnet_1_1tensorshape.html#a5a5b78b606bbe0f1ef9f1966f6509ebb',1,'nnet::tensorshape::n_elems()']]],
-  ['n_5fknown',['n_known',['../classnnet_1_1tensorshape.html#a71c617028dc06b35f2cf6dbdd309f818',1,'nnet::tensorshape']]],
-  ['neq',['neq',['../namespacennet.html#a96dd7b0e111d178b2f5bce8c96f68c54',1,'nnet']]],
-  ['next_5f',['next_',['../structnnet_1_1cache__node.html#a37f43170fe3240724be8d33feb2a32a8',1,'nnet::cache_node']]],
-  ['nf_5f',['Nf_',['../structnnet_1_1iconnector_1_1conn__summary.html#a3920bce88db7ebee1fee4402ad623bca',1,'nnet::iconnector::conn_summary::Nf_()'],['../classnnet_1_1immutable.html#a6b84b641a524a0d838a2392d2c391bce',1,'nnet::immutable::Nf_()']]],
-  ['nnet',['nnet',['../namespacennet.html',1,'']]],
-  ['nnutils',['nnutils',['../namespacennutils.html',1,'']]],
-  ['no_5faudience',['no_audience',['../classnnet_1_1subject.html#ad8addf3a90086a7bd7990d3e719d5226',1,'nnet::subject']]],
-  ['node_5fman',['NODE_MAN',['../namespacennet.html#aaeb24779b9f7e3d560b2da35ebdda94a',1,'nnet']]],
-  ['notification',['notification',['../namespacennet.html#a36aef385a72d370dd1a1aa6e8321ea8f',1,'nnet']]],
-  ['notify',['notify',['../classnnet_1_1subject.html#a65359d2f1cde2bfc4bc257009fa2f29b',1,'nnet::subject']]]
+  ['protobuf_20marshaller',['Protobuf Marshaller',['../md_pbm__r_e_a_d_m_e__p_b_m.html',1,'']]],
+  ['pack_5fdata',['PACK_DATA',['../graph_8cpp.html#ab171e03bf6b7bf75db1fb1b0f49de66a',1,'graph.cpp']]],
+  ['permute',['PERMUTE',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773a52e58fd4775d95d82f543ef70898f967',1,'ade::PERMUTE()'],['../namespacello.html#a92628450f68abf56a8ccbb511ecdd021',1,'llo::permute(ade::Tensorptr arg, std::vector&lt; uint8_t &gt; order)'],['../namespacello.html#a144ed0ca83c6530004761315b357e128',1,'llo::permute(T *out, const T *in, ade::Shape outshape, ade::Shape shape, std::vector&lt; uint8_t &gt; order)']]],
+  ['placeholder',['Placeholder',['../structllo_1_1_placeholder.html',1,'llo::Placeholder&lt; T &gt;'],['../structllo_1_1_placeholder.html#a587082bd609ee47264d6869ba3f0a25e',1,'llo::Placeholder::Placeholder(ade::Shape shape)'],['../structllo_1_1_placeholder.html#a6b002f80d325d9d7a50f06da73858ccd',1,'llo::Placeholder::Placeholder(const Placeholder &amp;)=default'],['../structllo_1_1_placeholder.html#a06aac2f255786fb7c51181d298026b5d',1,'llo::Placeholder::Placeholder(Placeholder &amp;&amp;)=default']]],
+  ['pow',['pow',['../namespacello.html#a666fea91c816ee3cb4308fb84447bdff',1,'llo::pow(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#aebfa01fdc1f12dc6f2b72c71bc546b69',1,'llo::pow(T *out, const T *a, size_t an, const T *b, size_t bn)'],['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773a66445942a1762a2ecbd885dd235e9699',1,'ade::POW()']]],
+  ['ptr_5f',['ptr_',['../structade_1_1_tensorptr.html#a55f00218f0e721910cc1d156f6dae2ad',1,'ade::Tensorptr']]]
 ];

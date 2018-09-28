@@ -1,21 +1,7 @@
 var searchData=
 [
-  ['iallocator_2ecpp',['iallocator.cpp',['../iallocator_8cpp.html',1,'']]],
-  ['iallocator_2ehpp',['iallocator.hpp',['../iallocator_8hpp.html',1,'']]],
-  ['iconnector_2ecpp',['iconnector.cpp',['../iconnector_8cpp.html',1,'']]],
-  ['iconnector_2ehpp',['iconnector.hpp',['../iconnector_8hpp.html',1,'']]],
-  ['igraph_5frecord_2ecpp',['igraph_record.cpp',['../igraph__record_8cpp.html',1,'']]],
-  ['igraph_5frecord_2ehpp',['igraph_record.hpp',['../igraph__record_8hpp.html',1,'']]],
-  ['ileaf_2ecpp',['ileaf.cpp',['../ileaf_8cpp.html',1,'']]],
-  ['ileaf_2ehpp',['ileaf.hpp',['../ileaf_8hpp.html',1,'']]],
-  ['immutable_2ecpp',['immutable.cpp',['../immutable_8cpp.html',1,'']]],
-  ['immutable_2ehpp',['immutable.hpp',['../immutable_8hpp.html',1,'']]],
-  ['inode_2ecpp',['inode.cpp',['../inode_8cpp.html',1,'']]],
-  ['inode_2ehpp',['inode.hpp',['../inode_8hpp.html',1,'']]],
-  ['iobserver_2ecpp',['iobserver.cpp',['../iobserver_8cpp.html',1,'']]],
-  ['iobserver_2ehpp',['iobserver.hpp',['../iobserver_8hpp.html',1,'']]],
-  ['itensor_2ecpp',['itensor.cpp',['../itensor_8cpp.html',1,'']]],
-  ['itensor_2ehpp',['itensor.hpp',['../itensor_8hpp.html',1,'']]],
-  ['ivariable_2ecpp',['ivariable.cpp',['../ivariable_8cpp.html',1,'']]],
-  ['ivariable_2ehpp',['ivariable.hpp',['../ivariable_8hpp.html',1,'']]]
+  ['readme_2emd',['README.md',['../_r_e_a_d_m_e_8md.html',1,'']]],
+  ['readme_5fade_2emd',['README_ADE.md',['../_r_e_a_d_m_e___a_d_e_8md.html',1,'']]],
+  ['readme_5fllo_2emd',['README_LLO.md',['../_r_e_a_d_m_e___l_l_o_8md.html',1,'']]],
+  ['readme_5fpbm_2emd',['README_PBM.md',['../_r_e_a_d_m_e___p_b_m_8md.html',1,'']]]
 ];

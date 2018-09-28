@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option go_package = "github.com/mingkaic/tenncor/pbm";
+
+package tenncor;
+
+import "google/protobuf/any.proto";
+
+message ByteArr { bytes data = 1; }
+message DoubleArr { repeated double data = 1; }
+message FloatArr { repeated float data = 1; }
+message Int32Arr { repeated int32 data = 1; }
+message Int64Arr { repeated int64 data = 1; }
+message Uint32Arr { repeated uint32 data = 1; }
+message Uint64Arr { repeated uint64 data = 1; }
+
+message Source
+{
+	// takes messages DoubleArr, ..., Uint64Arr depending on dtype
+	google.protobuf.Any data = 1;
+	uint32 type = 2;
+	bytes shape = 3;
+}
+
+message Functor
+{
+    uint32 opcode = 1;
+    // indices of args in graph
+    repeated uint32 args = 2;
+    repeated uint32 meta = 3;
+}
+
+message Node
+{
+    oneof detail {
+        Source source = 1;
+        Functor functor = 2;
+    }
+}
+
+message Graph
+{
+	string id = 1;
+	repeated Node nodes = 2;
+}

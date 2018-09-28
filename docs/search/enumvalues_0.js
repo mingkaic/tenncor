@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['to_5fstr',['to_str',['../classnnutils_1_1formatter.html#ad0fe20a72f0862bfa5cbef39c79448dbaf7e7ca1f5c10b81c0f6612ebed710dcf',1,'nnutils::formatter']]]
+  ['_5fnum_5fops',['_NUM_OPS',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773ad02f2efca3cd9eb05120b0658b441a4a',1,'ade']]],
+  ['_5fsentinel',['_SENTINEL',['../namespacello.html#a864d1f98406a21c285a4ea3768804a79abd4d0a05e0053a1abd35ac16240e31d5',1,'llo']]]
 ];

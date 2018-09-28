@@ -28,5 +28,6 @@ branches:
 branches:
   only:
   - master
-  - stable
   - experimental
+  - docs
+  - stable

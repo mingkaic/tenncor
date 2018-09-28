@@ -1,7 +1,9 @@
 var searchData=
 [
-  ['backward_5fpass',['backward_pass',['../classnnet_1_1base__immutable.html#a936b9273d90ea8afacce3cdabf25d31a',1,'nnet::base_immutable::backward_pass()'],['../classnnet_1_1immutable.html#a23aad1f15ba6694f3cd75e47e25d041e',1,'nnet::immutable::backward_pass()'],['../classnnet_1_1shape__dep.html#aa55f315731b5bf37249ee37adaa370d4',1,'nnet::shape_dep::backward_pass()']]],
-  ['base_5fimmutable',['base_immutable',['../classnnet_1_1base__immutable.html#a3abcc70633a853fed2886d13a349252f',1,'nnet::base_immutable::base_immutable(std::vector&lt; inode *&gt; args, std::string label)'],['../classnnet_1_1base__immutable.html#a3cd5366edcf82aafd231bd26a10849c3',1,'nnet::base_immutable::base_immutable(const base_immutable &amp;other)'],['../classnnet_1_1base__immutable.html#adb648ef7d21d694fe7fb0ce5b7998325',1,'nnet::base_immutable::base_immutable(base_immutable &amp;&amp;other)']]],
-  ['be_5fmanaged',['be_managed',['../classnnet_1_1constant.html#a48835c1355dcd722e38d421f25898f9f',1,'nnet::constant']]],
-  ['binomial_5fsample',['binomial_sample',['../namespacennet.html#ac8e395c32bc25db2d0032703cfb5e796',1,'nnet::binomial_sample(signed n, const varptr p)'],['../namespacennet.html#afa79b0c6bc6b4cff3d82ccafbe206903',1,'nnet::binomial_sample(const varptr n, double p)'],['../namespacennet.html#af6bbaeb787494f37bb64b203ca3d52e3',1,'nnet::binomial_sample(const varptr n, const varptr p)']]]
+  ['begin',['begin',['../structade_1_1_shape.html#ad81f5e516c2588d8136d1bc1a63a1e1b',1,'ade::Shape::begin(void)'],['../structade_1_1_shape.html#a5f47d46634d8f92cf5a3774b0aca2abb',1,'ade::Shape::begin(void) const']]],
+  ['binary',['binary',['../namespacello.html#af2ee2fd1013409eaa136ee63cd56e29c',1,'llo']]],
+  ['binary_5felementary',['binary_elementary',['../test__fwder_8cpp.html#a7b4695ba4779957c8175b9c95cb60d5b',1,'binary_elementary(SESSION &amp;sess):&#160;test_fwder.cpp'],['../test__api_8cpp.html#acd941215cf97e7f1b4461f17ac6dfb71',1,'binary_elementary(SESSION &amp;sess, Range&lt; double &gt; range, BINARY_OP op, BINARY_FWD&lt; double &gt; fwd, BINARY_BWD&lt; double &gt; bwd):&#160;test_api.cpp']]],
+  ['binary_5felementary_5fint',['binary_elementary_int',['../test__api_8cpp.html#a3376fb2d2d8791b4b9d1d9a35dba58e9',1,'test_api.cpp']]],
+  ['binom',['binom',['../namespacello.html#a5f75e67dc725c1196fa1ce7437f48ff1',1,'llo']]],
+  ['bit_5fnot',['bit_not',['../namespacello.html#a85dd22d6b2ec9ea6560f2dcf9751d7eb',1,'llo::bit_not(ade::Tensorptr arg)'],['../namespacello.html#ae2a77fd1e414f83e5c840e13645dc17d',1,'llo::bit_not(T *out, const T *in, size_t n)']]]
 ];

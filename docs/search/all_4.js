@@ -1,14 +1,17 @@
 var searchData=
 [
-  ['elem_5funi_2ecpp',['elem_uni.cpp',['../elem__uni_8cpp.html',1,'']]],
-  ['elems_5fbi_2ecpp',['elems_bi.cpp',['../elems__bi_8cpp.html',1,'']]],
-  ['epsilon_5f',['epsilon_',['../classnnet_1_1adadelta__updater.html#a462c16e7f99df42ab8ab47ef04129df5',1,'nnet::adadelta_updater::epsilon_()'],['../classnnet_1_1rmspropupdater.html#ae935d3a3b4ea2754b2968e1d2441d147',1,'nnet::rmspropupdater::epsilon_()']]],
-  ['eq',['eq',['../namespacennet.html#a5ceca6fc770de3b78a957bb1ddb37eb6',1,'nnet']]],
-  ['escape_5fwait',['escape_wait',['../classnnet_1_1shareable__cache.html#ad0d67f95f66c13ceac704cf7a81c0278',1,'nnet::shareable_cache']]],
-  ['eval',['eval',['../classnnet_1_1iconnector.html#a779e80ca8002135475384a56ad7b59d0',1,'nnet::iconnector::eval()'],['../classnnet_1_1inode.html#ae9146aeae0f09e9155af33b7ecc5aaef',1,'nnet::inode::eval()'],['../classnnet_1_1ileaf.html#a4d3fa4041be1598e46cea68876b97d2d',1,'nnet::ileaf::eval()']]],
-  ['exp',['exp',['../namespacennet.html#a0caa8b7951f4d477ce16cef8d1ef64fb',1,'nnet']]],
-  ['expose',['expose',['../classnnet_1_1tensor.html#ada94dc8dc4b9cf3cdd46f9e6101203e0',1,'nnet::tensor::expose()'],['../classnnet_1_1tensor__double.html#a8a6ff47a4792d651731d75edcb2936b7',1,'nnet::tensor_double::expose()'],['../classnnet_1_1tensor__signed.html#aad1edf49cd6e12ff9dce0b40fa27b111',1,'nnet::tensor_signed::expose()'],['../namespacennet.html#a00f772895fe3ba503a1610c0fe885357',1,'nnet::expose()']]],
-  ['extend',['extend',['../namespacennet.html#a75d2fffc6882bdc97e1e1d42c55250b9',1,'nnet']]],
-  ['extract_5fmetadata',['extract_metadata',['../classnnet_1_1inode.html#a2dd94ee748a54d7c999643f0ed9ebfb0',1,'nnet::inode']]],
-  ['extracter_5f',['extracter_',['../classnnet_1_1shape__dep.html#ae293330ecce04218220677fa7d639ffe',1,'nnet::shape_dep']]]
+  ['data_2ecpp',['data.cpp',['../data_8cpp.html',1,'']]],
+  ['data_2ehpp',['data.hpp',['../data_8hpp.html',1,'']]],
+  ['data_5f',['data_',['../structllo_1_1_generic_data.html#a6f12c56eaeb79cf14b926980a6203da1',1,'llo::GenericData::data_()'],['../structllo_1_1_generic_ref.html#a9d314ae707d61bd500586b25fc34bc76',1,'llo::GenericRef::data_()'],['../structllo_1_1_source.html#a59aacad93562a1b1601259655f707966',1,'llo::Source::data_()']]],
+  ['default_5frange',['default_range',['../test__api_8cpp.html#a5431c7d991ab632107a2b22cd5da24c2',1,'test_api.cpp']]],
+  ['dims_5f',['dims_',['../structade_1_1_shape.html#a4b79549aa88b253775fb4610ddd0f57a',1,'ade::Shape']]],
+  ['dimt',['DimT',['../namespaceade.html#a127eeea15ccaee9ff162f34393f314c2',1,'ade']]],
+  ['directwrapper',['DirectWrapper',['../structllo_1_1_direct_wrapper.html',1,'llo::DirectWrapper&lt; Args &gt;'],['../structllo_1_1_direct_wrapper.html#a9928177aba99d7b601928f70fa349981',1,'llo::DirectWrapper::DirectWrapper()']]],
+  ['div',['DIV',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773a6cb5637144c6ab897e097348d9456cb5',1,'ade::DIV()'],['../namespacello.html#aa833d9c099fa62f3f90fc0a1b852772d',1,'llo::div(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#ae9f871464b51995799a5ed3b692fac58',1,'llo::div(T *out, const T *a, size_t an, const T *b, size_t bn)']]],
+  ['dmain_2ecpp',['dmain.cpp',['../dmain_8cpp.html',1,'']]],
+  ['double',['DOUBLE',['../namespacello.html#a864d1f98406a21c285a4ea3768804a79a35d71cf0301e9015fcf78befaa352c95',1,'llo']]],
+  ['dtype',['DTYPE',['../struct_d_t_y_p_e.html',1,'DTYPE'],['../namespacello.html#a864d1f98406a21c285a4ea3768804a79',1,'llo::DTYPE()']]],
+  ['dtype_2ecpp',['dtype.cpp',['../dtype_8cpp.html',1,'']]],
+  ['dtype_2ehpp',['dtype.hpp',['../dtype_8hpp.html',1,'']]],
+  ['dtype_5f',['dtype_',['../structllo_1_1_generic_data.html#a48c849e0c1e6a394859094a2e1c23d84',1,'llo::GenericData::dtype_()'],['../structllo_1_1_generic_ref.html#aab703bd680370c62004c94d89500db80',1,'llo::GenericRef::dtype_()']]]
 ];

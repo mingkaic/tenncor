@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['comp_5f',['comp_',['../classnnet_1_1tens__conditional__uni.html#acbda636edd4eb764629445b87deb0714',1,'nnet::tens_conditional_uni::comp_()'],['../classnnet_1_1tens__conditional.html#ad7d10778da0f0e4bdce87d3519538905',1,'nnet::tens_conditional::comp_()']]],
-  ['cond_5f',['cond_',['../classnnet_1_1shareable__cache.html#a7e32226fa77cb12518c03e9217907c80',1,'nnet::shareable_cache::cond_()'],['../classnnet_1_1stop__flag.html#a275b445d08f8f07b62d4fa39fb3db335',1,'nnet::stop_flag::cond_()']]],
-  ['content_5f',['content_',['../classnnet_1_1tensor__double.html#ac07b90c546cb3aa0df1e8d40da59ad99',1,'nnet::tensor_double::content_()'],['../classnnet_1_1tensor__signed.html#ab26ce5de2da0f11741f82ee6135fe9d6',1,'nnet::tensor_signed::content_()'],['../classnnet_1_1shareable__cache.html#a4c36405a1098223364ad5541133a8d14',1,'nnet::shareable_cache::content_()']]]
+  ['data_5f',['data_',['../structllo_1_1_generic_data.html#a6f12c56eaeb79cf14b926980a6203da1',1,'llo::GenericData::data_()'],['../structllo_1_1_generic_ref.html#a9d314ae707d61bd500586b25fc34bc76',1,'llo::GenericRef::data_()'],['../structllo_1_1_source.html#a59aacad93562a1b1601259655f707966',1,'llo::Source::data_()']]],
+  ['default_5frange',['default_range',['../test__api_8cpp.html#a5431c7d991ab632107a2b22cd5da24c2',1,'test_api.cpp']]],
+  ['dims_5f',['dims_',['../structade_1_1_shape.html#a4b79549aa88b253775fb4610ddd0f57a',1,'ade::Shape']]],
+  ['dtype_5f',['dtype_',['../structllo_1_1_generic_data.html#a48c849e0c1e6a394859094a2e1c23d84',1,'llo::GenericData::dtype_()'],['../structllo_1_1_generic_ref.html#aab703bd680370c62004c94d89500db80',1,'llo::GenericRef::dtype_()']]]
 ];

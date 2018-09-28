@@ -67,66 +67,23 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p><a href="https://travis-ci.org/mingkaic/tenncor"></a> <a href="https://coveralls.io/github/mingkaic/tenncor"></a></p>
 <h2>Synopsis</h2>
-<p>The Tenncor library facilitates developers in coding mathematical tensor functions in C++. Through Tenncor, developers can obtain the tensor function's nth derivative via automatic differentiation. A tensor is an N-dimensional numerical value container that organizes its content by some shape. A M by N matrix for instance, is a 2-dimensional tensor with a shape of &lt;N, M&gt; (in Tenncor).</p>
-<p>Tensor abstractions are often useful in machine learning models because features (represented as a tensor) are almost always transformed in an ordered fashion. Since transforming arrays with respect to shape and type information is often tedious, cython frameworks are currently the best tools for ML. Tenncor aims to provide cython's elegant interface in C++ with minimal dependenices.</p>
+<p>Tenncor libraries help developers build and evaluate tensor equations and its derivatives. A tensor is an N-dimensional container that organizes its content by some shape. An M by N matrix for instance, is a 2-dimensional tensor with a shape of &lt;N, M&gt; (according to Tenncor's x-y-z-... coordinate notation).</p>
+<h2>Components</h2>
+<ul>
+<li><a class="el" href="md_ade__r_e_a_d_m_e__a_d_e.html">ADE (Automatic Differentiation Engine)</a></li>
+</ul>
+<p>This module supplies syntax tree for equation and generates derivative. Constraints to the equation is limited to each tensor's shape.</p>
+<ul>
+<li><a class="el" href="md_llo__r_e_a_d_m_e__l_l_o.html">LLO (Low Level Operators)</a></li>
+</ul>
+<p>This module is a sample library of data operators mapped to the ADE opcodes. Expect this module to split when I decide to depend on external libraries (like eigen).</p>
+<ul>
+<li><a class="el" href="md_pbm__r_e_a_d_m_e__p_b_m.html">PBM (Protobuf Marshaller)</a></li>
+</ul>
+<p>This module marshals llo-extended ade graph</p>
 <h2>Building</h2>
 <p>Tenncor uses bazel 0.9+.</p>
-<p>Download bazel: <a href="https://docs.bazel.build/versions/master/install.html">https://docs.bazel.build/versions/master/install.html</a></p>
-<h2>Testing</h2>
-<p>Run</p>
-<blockquote class="doxtable">
-<p>bazel test //tests:tenncor_all </p>
-</blockquote>
-<p>other tests:</p><ul>
-<li>//tests:tenncor_connector</li>
-<li>//tests:tenncor_leaf</li>
-<li>//tests:tenncor_nodes</li>
-<li>//tests:tenncor_memory</li>
-<li>//tests:tenncor_operation</li>
-<li>//tests:tenncor_tensor</li>
-</ul>
-<h2>Example</h2>
-<pre class="fragment">#include "executor/gradient.hpp"
-#include "graph/varptr.hpp"
-#include "graph/leaf/variable.hpp"
-#include "graph/connector/immutable/matmul.hpp"
-
-using namespace nnet;
-
-int main () {
-    tensorshape common = std::vector&lt;size_t&gt;{5, 5};
-    random_uniform rinit(-1, 1);
-
-    // initializes a 5 by 5 matrix with uniformly distributed
-    // doubles between -1 and 1
-    variable* A = new variable(common, rinit, tenncor::tensor_proto::DOUBLE_T, "a");
-    placeptr B = new placeholder(common, tenncor::tensor_proto::DOUBLE_T, "b");
-    varptr C = matmul(varptr(A), B);
-    varptr D = sigmoid(C);
-
-    A-&gt;initialize();
-    B = std::vector&lt;double&gt;{...};
-
-    varptr grad = D-&gt;derive(A);
-
-    // forward accumulation
-    itensor* result = D-&gt;get_eval();
-    // reverse accumulation
-    itensor* grad_result = grad-&gt;eval();
-
-    std::vector&lt;double&gt; raw_data = expose&lt;double&gt;(D);
-    std::vector&lt;double&gt; raw_grad = expose&lt;double&gt;(grad);
-
-    delete A;
-    delete B;
-
-    return 0;
-} 
-</pre><h2>Todos and Quirks</h2>
-<p>For the first 3 dimensions, shape values follow cartesian coordinates (x, y, z). This convention means that for matrices, rows are the second dimension, and columns are the first dimension, contrary to row and column major order.</p>
-<p>An ongoing effort is made towards parameterizing shape conventions.</p>
-<p>No special structured tensors are supported. (Example: symmetric, Toeplitz, positive definite)</p>
-<p>Tensor operation optimizations (minimizing intermediate values and instigating multithreading) are in progress. </p>
+<p>Download bazel: <a href="https://docs.bazel.build/versions/master/install.html">https://docs.bazel.build/versions/master/install.html</a> </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

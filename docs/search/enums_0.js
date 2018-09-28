@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['convert_5fto_5fstring',['convert_to_string',['../classnnutils_1_1formatter.html#ad0fe20a72f0862bfa5cbef39c79448db',1,'nnutils::formatter']]]
+  ['dtype',['DTYPE',['../namespacello.html#a864d1f98406a21c285a4ea3768804a79',1,'llo']]]
 ];
