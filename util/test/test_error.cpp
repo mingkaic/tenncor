@@ -6,7 +6,7 @@
 #ifndef DISABLE_ERROR_TEST
 
 
-TEST(ERROR, NoArg)
+TEST(ERR, NoArg)
 {
 	std::string expect = "generic message";
 	try
@@ -25,7 +25,7 @@ TEST(ERROR, NoArg)
 }
 
 
-TEST(ERROR, StringArg)
+TEST(ERR, StringArg)
 {
 	std::string expect = "generic message[key\\"
 		"\\\\abcd\\\\efgh\\\\ijkl\\\\]";
@@ -46,7 +46,7 @@ TEST(ERROR, StringArg)
 }
 
 
-TEST(ERROR, VectorArg)
+TEST(ERR, VectorArg)
 {
 	std::string expect = "generic message[key\\[-1\\21\\-13]]";
 	try
@@ -66,7 +66,7 @@ TEST(ERROR, VectorArg)
 }
 
 
-TEST(ERROR, GenericArg)
+TEST(ERR, GenericArg)
 {
 	std::string expect = "generic message[key\\2.42333]";
 	try
@@ -86,7 +86,7 @@ TEST(ERROR, GenericArg)
 }
 
 
-TEST(ERROR, MultiArg)
+TEST(ERR, MultiArg)
 {
 	std::string expect = "generic message"
 		"[str\\hey what's the answer to number]"

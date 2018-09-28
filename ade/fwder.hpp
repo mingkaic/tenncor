@@ -8,6 +8,8 @@
  *
  */
 
+#include <functional>
+
 #include "ade/tensor.hpp"
 #include "ade/opcode.hpp"
 

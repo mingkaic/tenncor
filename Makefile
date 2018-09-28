@@ -36,7 +36,9 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage --test_output=all $(GTEST_FLAGS) # we want cache result for coverage
 
-COVERAGE_PIPE := 2>/dev/null | tee tty | ./listcov.sh $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE)
+COVERAGE_PIPE := ./listcov.sh $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE)
+
+TMP_LOGFILE := /tmp/tenncor-test.log
 
 
 # all tests
@@ -82,6 +84,7 @@ valgrind_pbm:
 	$(GTEST) $(VAL_BZL_FLAGS) $(PBM_TEST)
 
 # asan unit tests
+
 asan: asan_util asan_ade asan_llo asan_pbm
 
 asan_util:
@@ -102,25 +105,6 @@ asan_pbm:
 	$(GTEST) $(ASAN_BZL_FLAGS) $(PBM_TEST)
 
 # coverage unit tests
-lcov_all:
-	make coverage $(COVERAGE_PIPE)
-	lcov --list $(COVERAGE_INFO_FILE)
-
-lcov_util:
-	make cover_util $(COVERAGE_PIPE)
-	lcov --list $(COVERAGE_INFO_FILE)
-
-lcov_ade:
-	make cover_ade $(COVERAGE_PIPE) 'util/*'
-	lcov --list $(COVERAGE_INFO_FILE)
-
-lcov_llo:
-	make cover_llo $(COVERAGE_PIPE) 'util/*' 'ade/*'
-	lcov --list $(COVERAGE_INFO_FILE)
-
-lcov_pbm:
-	make cover_pbm $(COVERAGE_PIPE) 'util/*' 'ade/*' 'llo/*'
-	lcov --list $(COVERAGE_INFO_FILE)
 
 coverage: cover_util cover_ade cover_llo cover_pbm
 
@@ -141,7 +125,41 @@ cover_llo:
 cover_pbm:
 	$(COVER) --instrumentation_filter=/pbm[/:],/llo[/:],/ade[/:],/util[/:] $(PBM_TEST)
 
+# generate coverage.info
+
+lcov_all: coverage
+	rm -f $(TMP_LOGFILE)
+	cat bazel-testlogs/util/test_util/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/ade/test_dynamic/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/ade/test_static/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/llo/test_llo/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/pbm/test_pbm/test.log >> $(TMP_LOGFILE)
+	cat $(TMP_LOGFILE) | $(COVERAGE_PIPE)
+	rm -f $(TMP_LOGFILE)
+	lcov --list $(COVERAGE_INFO_FILE)
+
+lcov_util: cover_util
+	cat bazel-testlogs/util/test_util/test.log | $(COVERAGE_PIPE)
+	lcov --list $(COVERAGE_INFO_FILE)
+
+lcov_ade: cover_ade
+	rm -f $(TMP_LOGFILE)
+	cat bazel-testlogs/ade/test_dynamic/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/ade/test_static/test.log >> $(TMP_LOGFILE)
+	cat $(TMP_LOGFILE) | $(COVERAGE_PIPE) 'util/*'
+	rm -f $(TMP_LOGFILE)
+	lcov --list $(COVERAGE_INFO_FILE)
+
+lcov_llo: cover_llo
+	cat bazel-testlogs/llo/test_llo/test.log | $(COVERAGE_PIPE) 'util/*' 'ade/*'
+	lcov --list $(COVERAGE_INFO_FILE)
+
+lcov_pbm: cover_pbm
+	cat bazel-testlogs/pbm/test_pbm/test.log | $(COVERAGE_PIPE) 'util/*' 'ade/*' 'llo/*'
+	lcov --list $(COVERAGE_INFO_FILE)
+
 # check CLI
+
 check_cli: check_ade_cli check_llo_cli
 
 check_ade_cli: build_ade_cli
@@ -151,6 +169,7 @@ check_llo_cli: build_llo_cli
 	cli/llo/test/check.sh bazel-bin/cli/llo/cli
 
 # build CLI
+
 build_cli: build_ade_cli build_llo_cli
 
 build_ade_cli:

@@ -16,13 +16,14 @@ make asan
 
 # ===== Check Docs Directory =====
 echo "===== CHECK DOCUMENT EXISTENCE =====";
-if [ !-d "$DOCS" ]; then
+if ! [ -d "$DOCS" ];
+then
 	echo "Documents not found. Please generate documents then try again"
 	exit 1;
 fi
 
-echo "===== STARTING COVERAGE ANALYSIS =====";
 # ===== Coverage Analysis ======
+echo "===== STARTING COVERAGE ANALYSIS =====";
 make lcov_all
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
