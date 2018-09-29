@@ -32,27 +32,36 @@ struct Executer
 #define UNARY_ELEM(OP, METHOD)template <typename T>\
 struct Executer<ade::OP,T> { static void exec\
 (GenericData& out, std::vector<GenericData>& data)\
-{ METHOD((T*) out.data_.get(),\
-(T*) data[0].data_.get(), out.shape_.n_elems()); } };
+{ METHOD((T*) out.data_.get(), VecRef<T>{(T*) data[0].data_.get(),\
+out.shape_.n_elems()}); } };
 
 #define BINARY_ELEM(OP, METHOD)template <typename T>\
 struct Executer<ade::OP,T> { static void exec\
 (GenericData& out, std::vector<GenericData>& data)\
 { METHOD((T*) out.data_.get(),\
-(T*) data[0].data_.get(), data[0].shape_.n_elems(),\
-(T*) data[1].data_.get(), data[1].shape_.n_elems()); } };
+VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()},\
+VecRef<T>{(T*) data[1].data_.get(), data[1].shape_.n_elems()}); } };
+
+#define NARY_ELEM(OP, METHOD)template <typename T>\
+struct Executer<ade::OP,T> { static void exec\
+(GenericData& out, std::vector<GenericData>& data)\
+{ std::vector<VecRef<T>> args(data.size()); \
+std::transform(data.begin(), data.end(), args.begin(), \
+[](GenericData& gd) { return VecRef<T>{\
+(T*) gd.data_.get(), gd.shape_.n_elems()}; });\
+METHOD((T*) out.data_.get(), args); } };
 
 #define UNARY_REDUCE(OP, METHOD)template <typename T>\
 struct Executer<ade::OP,T> {\
 static void exec (GenericData& out, std::vector<GenericData>& data)\
-{ T* ptr = (T*) out.data_.get();\
-METHOD(*ptr, (T*) data[0].data_.get(), data[0].shape_.n_elems()); } };
+{ T* ptr = (T*) out.data_.get(); METHOD(*ptr,\
+VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()}); } };
 
 #define UNARY_COPY(OP)template <typename T>\
 struct Executer<ade::OP,T> {\
 static void exec (GenericData& out, std::vector<GenericData>& data)\
 { copyover((T*) out.data_.get(), out.shape_.n_elems(),\
-(T*) data[0].data_.get(), data[0].shape_.n_elems()); } };
+VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()}); } };
 
 UNARY_ELEM(ABS, abs)
 UNARY_ELEM(NEG, neg)
@@ -76,7 +85,7 @@ struct Executer<ade::FLIP,T,uint8_t>
 };
 
 BINARY_ELEM(POW, pow)
-BINARY_ELEM(ADD, add)
+NARY_ELEM(ADD, add)
 BINARY_ELEM(SUB, sub)
 BINARY_ELEM(MUL, mul)
 BINARY_ELEM(DIV, div)
@@ -91,8 +100,9 @@ struct Executer<ade::BINO,T>
 	static void exec (GenericData& out, std::vector<GenericData>& data)
 	{
 		rand_binom((T*) out.data_.get(),
-			(T*) data[0].data_.get(), data[0].shape_.n_elems(),
-			(double*) data[1].data_.get(), data[1].shape_.n_elems());
+			VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()},
+			VecRef<double>{(double*) data[1].data_.get(),
+				data[1].shape_.n_elems()});
 	}
 };
 

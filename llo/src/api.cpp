@@ -73,6 +73,11 @@ ade::Tensorptr add (ade::Tensorptr a, ade::Tensorptr b)
 	return ade::Functor<ade::ADD>::get({a, b});
 }
 
+ade::Tensorptr sum (std::vector<ade::Tensorptr> args)
+{
+	return ade::Functor<ade::ADD>::get(args);
+}
+
 ade::Tensorptr sub (ade::Tensorptr a, ade::Tensorptr b)
 {
 	return ade::Functor<ade::SUB>::get({a, b});
@@ -139,12 +144,12 @@ ade::Tensorptr argmax (ade::Tensorptr arg)
 	return ade::Functor<ade::ARGMAX>::get({arg});
 }
 
-ade::Tensorptr rmax (ade::Tensorptr arg)
+ade::Tensorptr reduce_max (ade::Tensorptr arg)
 {
 	return ade::Functor<ade::RMAX>::get({arg});
 }
 
-ade::Tensorptr rsum (ade::Tensorptr arg)
+ade::Tensorptr reduce_sum (ade::Tensorptr arg)
 {
 	return ade::Functor<ade::RSUM>::get({arg});
 }

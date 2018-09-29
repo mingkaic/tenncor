@@ -28,6 +28,14 @@ filegroup(
     srcs = glob(["*.proto"]),
 )
 
+filegroup(
+    name = "test_data",
+    srcs = glob([
+        "test/data/*.pb",
+        "test/data/*.txt",
+    ]),
+)
+
 ######### LIBRARY #########
 
 proto_library(
@@ -65,14 +73,6 @@ cc_library(
 
 ######### TEST #########
 
-filegroup(
-    name = "testdata",
-    srcs = glob([
-        "test/data/*.pb",
-        "test/data/*.txt",
-    ]),
-)
-
 cc_test(
     name = "test_pbm",
     size = "small",
@@ -87,5 +87,5 @@ cc_test(
         "@com_google_googletest//:gtest",
     ],
     copts = ["-std=c++14"],
-    data = ["//pbm:testdata"],
+    data = ["//pbm:test_data"],
 )

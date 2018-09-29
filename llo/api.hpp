@@ -55,6 +55,9 @@ ade::Tensorptr pow (ade::Tensorptr a, ade::Tensorptr b);
 /*! Value-wise operation: a + b*/
 ade::Tensorptr add (ade::Tensorptr a, ade::Tensorptr b);
 
+/*! Get value-wise sum of args */
+ade::Tensorptr sum (std::vector<ade::Tensorptr> args);
+
 /*! Value-wise operation: a - b*/
 ade::Tensorptr sub (ade::Tensorptr a, ade::Tensorptr b);
 
@@ -95,10 +98,10 @@ ade::Tensorptr n_dims (ade::Tensorptr arg, uint8_t dim);
 ade::Tensorptr argmax (ade::Tensorptr arg);
 
 /*! Get the max value */
-ade::Tensorptr rmax (ade::Tensorptr arg);
+ade::Tensorptr reduce_max (ade::Tensorptr arg);
 
 /*! Get the sum of all values */
-ade::Tensorptr rsum (ade::Tensorptr arg);
+ade::Tensorptr reduce_sum (ade::Tensorptr arg);
 
 /*! Matrix multiplication of 2 or 1 dimension matrices,
  *  higher dimensions throws runtime error */

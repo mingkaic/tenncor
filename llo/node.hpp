@@ -140,7 +140,7 @@ struct Placeholder final : public ade::Tensorptr
 	Placeholder& operator = (std::vector<T>& data)
 	{
 		auto src = static_cast<iSource*>(ptr_.get());
-		GenericRef gdata(&data[0], src->shape(), src->native_type());
+		GenericRef gdata((char*) &data[0], src->shape(), get_type<T>());
 		src->reassign(gdata);
 		return *this;
 	}
@@ -236,6 +236,12 @@ private:
 	/*! tensor proxy source */
 	ade::Tensorptr tens_;
 };
+
+template <typename T>
+ade::Tensorptr scalar (T value)
+{
+	return llo::Source<T>::get(ade::Shape(), {value});
+}
 
 }
 

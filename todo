@@ -1,5 +1,4 @@
 tests:
-- valgrind/asan check everything
 - use testify for regression test
 
 move out:
@@ -15,3 +14,7 @@ performance:
 - reduce shared_ptr overhead
 - implement optimization options to decrease equation graph size
 - implement optimization options to increase data accuracy
+
+features:
+- implement deep copy utility
+- implement clip

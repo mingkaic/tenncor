@@ -6,82 +6,81 @@ namespace llo
 {
 
 template <>
-void abs<uint8_t> (uint8_t* out, const uint8_t* in, size_t n)
+void abs<uint8_t> (uint8_t* out, VecRef<uint8_t> in)
 {
-	std::memcpy(&out[0], &in[0], sizeof(uint8_t) * n);
+	std::memcpy(out, in.data, sizeof(uint8_t) * in.n);
 }
 
 template <>
-void abs<uint16_t> (uint16_t* out, const uint16_t* in, size_t n)
+void abs<uint16_t> (uint16_t* out, VecRef<uint16_t> in)
 {
-	std::memcpy(&out[0], &in[0], sizeof(uint16_t) * n);
+	std::memcpy(out, in.data, sizeof(uint16_t) * in.n);
 }
 
 template <>
-void abs<uint32_t> (uint32_t* out, const uint32_t* in, size_t n)
+void abs<uint32_t> (uint32_t* out, VecRef<uint32_t> in)
 {
-	std::memcpy(&out[0], &in[0], sizeof(uint32_t) * n);
+	std::memcpy(out, in.data, sizeof(uint32_t) * in.n);
 }
 
 template <>
-void abs<uint64_t> (uint64_t* out, const uint64_t* in, size_t n)
+void abs<uint64_t> (uint64_t* out, VecRef<uint64_t> in)
 {
-	std::memcpy(&out[0], &in[0], sizeof(uint64_t) * n);
+	std::memcpy(out, in.data, sizeof(uint64_t) * in.n);
 }
 
 template <>
-void neg<uint8_t> (uint8_t* out, const uint8_t* in, size_t n)
+void neg<uint8_t> (uint8_t* out, VecRef<uint8_t> in)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void neg<uint16_t> (uint16_t* out, const uint16_t* in, size_t n)
+void neg<uint16_t> (uint16_t* out, VecRef<uint16_t> in)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void neg<uint32_t> (uint32_t* out, const uint32_t* in, size_t n)
+void neg<uint32_t> (uint32_t* out, VecRef<uint32_t> in)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void neg<uint64_t> (uint64_t* out, const uint64_t* in, size_t n)
+void neg<uint64_t> (uint64_t* out, VecRef<uint64_t> in)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void rand_binom<double> (double* out,
-	const double* a, size_t an, const double* b, size_t bn)
+void rand_binom<double> (double* out, VecRef<double> a, VecRef<double> b)
 {
-	size_t n = std::max(an, bn);
+	size_t n = std::max(a.n, b.n);
 	for (size_t i = 0; i < n; ++i)
 	{
-		std::binomial_distribution<int64_t> dist(a[i % an], b[i % bn]);
+		std::binomial_distribution<int64_t> dist(
+			a.data[i % a.n], b.data[i % b.n]);
 		out[i] = dist(util::get_engine());
 	}
 }
 
 template <>
-void rand_binom<float> (float* out,
-	const float* a, size_t an, const double* b, size_t bn)
+void rand_binom<float> (float* out, VecRef<float> a, VecRef<double> b)
 {
-	size_t n = std::max(an, bn);
+	size_t n = std::max(a.n, b.n);
 	for (size_t i = 0; i < n; ++i)
 	{
-		std::binomial_distribution<int32_t> dist(a[i % an], b[i % bn]);
+		std::binomial_distribution<int32_t> dist(
+			a.data[i % a.n], b.data[i % b.n]);
 		out[i] = dist(util::get_engine());
 	}
 }
 
 template <>
-void rand_uniform<double> (double* out,
-	const double* a, size_t an, const double* b, size_t bn)
+void rand_uniform<double> (double* out, VecRef<double> a, VecRef<double> b)
 {
-	binary<double>(out, a, an, b, bn,
+	binary<double>(out, a, b,
 	[](const double& a, const double& b)
 	{
 		std::uniform_real_distribution<double> dist(a, b);
@@ -90,10 +89,9 @@ void rand_uniform<double> (double* out,
 }
 
 template <>
-void rand_uniform<float> (float* out,
-	const float* a, size_t an, const float* b, size_t bn)
+void rand_uniform<float> (float* out, VecRef<float> a, VecRef<float> b)
 {
-	binary<float>(out, a, an, b, bn,
+	binary<float>(out, a, b,
 	[](const float& a, const float& b)
 	{
 		std::uniform_real_distribution<float> dist(a, b);
@@ -102,10 +100,9 @@ void rand_uniform<float> (float* out,
 }
 
 template <>
-void rand_normal<float> (float* out,
-	const float* a, size_t an, const float* b, size_t bn)
+void rand_normal<float> (float* out, VecRef<float> a, VecRef<float> b)
 {
-	binary<float>(out, a, an, b, bn,
+	binary<float>(out, a, b,
 	[](const float& a, const float& b) -> float
 	{
 		std::normal_distribution<float> dist(a, b);
@@ -114,10 +111,9 @@ void rand_normal<float> (float* out,
 }
 
 template <>
-void rand_normal<double> (double* out,
-	const double* a, size_t an, const double* b, size_t bn)
+void rand_normal<double> (double* out, VecRef<double> a, VecRef<double> b)
 {
-	binary<double>(out, a, an, b, bn,
+	binary<double>(out, a, b,
 	[](const double& a, const double& b) -> double
 	{
 		std::normal_distribution<double> dist(a, b);

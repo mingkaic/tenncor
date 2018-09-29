@@ -20,6 +20,11 @@ filegroup(
     ]),
 )
 
+filegroup(
+    name = "test_data",
+    srcs = glob(["test/data/*.txt"]),
+)
+
 ######### LIBRARY #########
 
 cc_library(
@@ -31,11 +36,6 @@ cc_library(
 )
 
 ######### TEST #########
-
-filegroup(
-    name = "testdata",
-    srcs = glob(["test/data/*.txt"]),
-)
 
 cc_test(
     name = "test_dynamic",
@@ -64,5 +64,5 @@ cc_test(
         "@com_google_googletest//:gtest",
     ],
     copts = ["-std=c++14"],
-    data = ["//ade:testdata"],
+    data = ["//ade:test_data"],
 )

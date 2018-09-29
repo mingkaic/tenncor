@@ -755,7 +755,7 @@ TEST_F(API, Rmax)
 	SESSION sess = get_session("API::Rmax");
 
 	unary_generic(sess, default_range,
-	[](ade::Tensorptr& src) { return llo::rmax(src); },
+	[](ade::Tensorptr& src) { return llo::reduce_max(src); },
 	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
 	{
 		size_t n = out.shape_.n_elems();
@@ -789,7 +789,7 @@ TEST_F(API, Rsum)
 	SESSION sess = get_session("API::Rsum");
 
 	unary_generic(sess, default_range,
-	[](ade::Tensorptr& src) { return llo::rsum(src); },
+	[](ade::Tensorptr& src) { return llo::reduce_sum(src); },
 	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
 	{
 		size_t n = out.shape_.n_elems();
