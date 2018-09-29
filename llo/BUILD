@@ -9,9 +9,15 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
+    ]) + ["BUILD"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
         "test/*.hpp",
         "test/*.cpp",
-    ]) + ["BUILD"],
+    ]),
 )
 
 ######### LIBRARY #########

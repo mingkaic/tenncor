@@ -12,9 +12,15 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
+    ]) + [":protos", "BUILD"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
         "test/*.hpp",
         "test/*.cpp",
-    ]) + [":protos", "BUILD"],
+    ]),
 )
 
 filegroup(
