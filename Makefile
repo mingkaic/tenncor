@@ -10,6 +10,8 @@ ADE_STEST := //ade:test_static
 
 LLO_TEST := //llo:test_llo
 
+REGRESS_TEST := //llo:test_regress
+
 PBM_TEST := //pbm:test_pbm
 
 
@@ -58,6 +60,9 @@ test_ade_static:
 
 test_llo:
 	$(GTEST) $(REP_BZL_FLAGS) $(LLO_TEST)
+
+test_regress:
+	$(GTEST) $(REGRESS_TEST)
 
 test_pbm:
 	$(GTEST) $(PBM_TEST)

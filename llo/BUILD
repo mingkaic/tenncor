@@ -35,10 +35,26 @@ cc_library(
 cc_test(
     name = "test_llo",
     size = "small",
-    srcs = glob(["test/*.hpp", "test/*.cpp"]),
+    srcs = [
+        "test/main.cpp",
+        "test/test_api.cpp",
+        "test/test_dtype.cpp",
+        "test/test_node.cpp",
+    ],
+    copts = ["-std=c++14"],
     deps = [
         "//llo:llo",
         "//testutil:testutil",
     ],
+)
+
+cc_test(
+    name = "test_regress",
+    size = "small",
+    srcs = ["test/rmain.cpp"],
     copts = ["-std=c++14"],
+    deps = [
+        "//llo:llo",
+        "@com_github_mingkaic_testify//anteroc:anteroc",
+    ]
 )

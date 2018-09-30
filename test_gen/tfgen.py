@@ -29,10 +29,16 @@ def unary(name, func, pos=False):
 
     var = tf.Variable(shaped_data)
     out = func(var)
+    ga = tf.gradients(out, [var])[0]
+
     with tf.Session() as sess:
         sess.run(var.initializer)
         outdata = sess.run(out)
         io.set_arr("unary_out", list(np.reshape(outdata, [n])), float)
+
+        outga = sess.run(ga)
+        io.set_arr("unary_ga", list(np.reshape(outga, [n])), float)
+
         io.send()
 
 def binary(name, func, apos=False, bpos=False):
@@ -52,14 +58,25 @@ def binary(name, func, apos=False, bpos=False):
     var = tf.Variable(shaped_data)
     var2 = tf.Variable(shaped_data2)
     out = func(var, var2)
+    ga, gb = tf.gradients(out, [var, var2])
+
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         outdata = sess.run(out)
         io.set_arr("binary_out", list(np.reshape(outdata, [n])), float)
+
+        outga = sess.run(ga)
+        io.set_arr("binary_ga", list(np.reshape(outga, [n])), float)
+
+        outgb = sess.run(gb)
+        io.set_arr("binary_gb", list(np.reshape(outgb, [n])), float)
+
         io.send()
 
 def matmul():
-    io = gen.GenIO("tf_matmul")
+    label = 'REGRESS::Matmul'
+    print('generating ' + label)
+    io = gen.GenIO(label)
     dimlimit = math.sqrt(N_LIMIT)
     ashape = io.get_arr("ashape", int, 2, (1, dimlimit))
     bdim = io.get_arr("bdim", int, 1, (1, dimlimit))[0]
@@ -74,51 +91,51 @@ def matmul():
     var = tf.Variable(shaped_data)
     var2 = tf.Variable(shaped_data2)
     out = tf.matmul(var, var2)
+    ga, gb = tf.gradients(out, [var, var2])
+
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         outdata = sess.run(out)
         nout = outdata.shape[0] * outdata.shape[1]
         io.set_arr("matmul_out", list(np.reshape(outdata, [nout])), float)
+
+        outga = sess.run(ga)
+        io.set_arr("matmul_ga", list(np.reshape(outga, [an])), float)
+
+        outgb = sess.run(gb)
+        io.set_arr("matmul_gb", list(np.reshape(outgb, [bn])), float)
+
         io.send()
 
 if __name__ == "__main__":
     client.init("0.0.0.0:8581")
     print("client initialized")
 
-    ufs = {
-        'tf_abs': tf.abs,
-        'tf_neg': tf.neg,
-        'tf_sin': tf.sin,
-        'tf_cos': tf.cos,
-        'tf_tan': tf.tan,
-        'tf_exp': tf.exp,
-    }
+    ufs = [
+        ('REGRESS::Abs', tf.abs, False),
+        ('REGRESS::Neg', tf.neg, False),
+        ('REGRESS::Sin', tf.sin, False),
+        ('REGRESS::Cos', tf.cos, False),
+        ('REGRESS::Tan', tf.tan, False),
+        ('REGRESS::Exp', tf.exp, False),
+        ('REGRESS::Log', tf.log, True),
+        ('REGRESS::Sqrt', tf.sqrt, True)
+    ]
 
-    for name in ufs:
+    for name, f, pos in ufs:
         print("generating " + name)
-        unary(name, ufs[name])
+        unary(name, f, pos=pos)
 
-    ufs_pos = {
-        'tf_log': tf.log,
-        'tf_sqrt': tf.sqrt,
-    }
+    bfs = [
+        ('REGRESS::Pow', tf.pow, False),
+        ('REGRESS::Add', tf.add, False),
+        ('REGRESS::Sub', tf.sub, False),
+        ('REGRESS::Mul', tf.mul, False),
+        ('REGRESS::Div', tf.div, True)
+    ]
 
-    for name in ufs_pos:
-        print("generating " + name)
-        unary(name, ufs_pos[name], pos=True)
+    for name, f, pos in bfs:
+        print('generating ' + name)
+        binary(name, f, bpos=pos)
 
-    bfs = {
-        'tf_pow': tf.pow,
-        "tf_add": tf.add,
-        "tf_sub": tf.sub,
-        "tf_mul": tf.mul,
-    }
-
-    for name in bfs:
-        print("generating " + name)
-        binary(name, bfs[name])
-
-    print("generating tf_div")
-    binary("tf_div", tf.div, bpos=True)
-    print("generating tf_matmul")
     matmul()
