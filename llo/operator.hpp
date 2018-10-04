@@ -181,6 +181,7 @@ void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
 	uint8_t norder = order.size();
 	std::vector<ade::DimT> coords(orig_rank);
 	std::vector<ade::DimT> converted(norder);
+	std::memset(out, 0, sizeof(T) * outshape.n_elems());
 	for (ade::NElemT srci = 0; srci < n; ++srci)
 	{
 		coords = coordinate(shape, srci);

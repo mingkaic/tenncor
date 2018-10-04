@@ -28,7 +28,7 @@ extern FILE *yyin;
 %type <ref_type> expr
 
 %token NUMBER VAR UNARY BINARY DIMOP SHAPEOP GRAD PRINT SHAPE EXIT
-MODE ASSIGN LPAREN RPAREN LSB RSB COMMA PLUS MINUS STAR SLASH ENDSTMT
+MODE ASSIGN LPAREN RPAREN LSB RSB COMMA PLUS MINUS STAR SLASH ENDSTMT LIMIT
 
 %left PLUS MINUS
 %left STAR SLASH
@@ -52,6 +52,16 @@ list: 	/* empty */
 
 stat:	/* empty */
 		{}
+		|
+		LIMIT
+		{
+			print_datalimit();
+		}
+		|
+		LIMIT arr
+		{
+			set_datalimit($2);
+		}
 		|
 		MODE VAR
 		{

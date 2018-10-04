@@ -21,7 +21,9 @@ GTEST_FLAGS := --action_env="GTEST_SHUFFLE=1" --action_env="GTEST_BREAK_ON_FAILU
 
 REP_BZL_FLAGS := --action_env="GTEST_REPEAT=$(GTEST_REPEAT)"
 
-VAL_BZL_FLAGS := --run_under="valgrind --leak-check=full"
+VALGRIND_CMD := valgrind --leak-check=full
+
+VAL_BZL_FLAGS := --run_under="$(VALGRIND_CMD)"
 
 ASAN_BZL_FLAGS := --linkopt -fsanitize=address
 
@@ -69,7 +71,7 @@ test_pbm:
 
 # valgrind unit tests
 
-valgrind: valgrind_util valgrind_ade valgrind_llo valgrind_pbm
+valgrind: valgrind_util valgrind_ade valgrind_llo valgrind_pbm valgrind_cli
 
 valgrind_util:
 	$(GTEST) $(VAL_BZL_FLAGS) $(UTIL_TEST)
@@ -172,6 +174,16 @@ check_ade_cli: build_ade_cli
 
 check_llo_cli: build_llo_cli
 	cli/llo/test/check.sh bazel-bin/cli/llo/cli
+
+# check CLI with valgrind
+
+valgrind_cli: valgrind_ade_cli valgrind_llo_cli
+
+valgrind_ade_cli: build_ade_cli
+	cli/ade/test/check.sh $(VALGRIND_CMD) bazel-bin/cli/ade/cli
+
+valgrind_llo_cli: build_llo_cli
+	cli/llo/test/check.sh $(VALGRIND_CMD) bazel-bin/cli/llo/cli
 
 # build CLI
 

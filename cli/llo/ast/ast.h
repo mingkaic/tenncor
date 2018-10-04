@@ -78,6 +78,8 @@ struct ASTNode* grad (struct ASTNode* node, struct ASTNode* wrt);
 
 // display
 void use_mode (char mode[32]);
+void print_datalimit (void);
+void set_datalimit (struct DataHolder* limit);
 void show_data (struct ASTNode* node);
 void show_shape (struct ASTNode* node);
 void show_eq (struct ASTNode* node);

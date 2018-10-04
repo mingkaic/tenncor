@@ -64,6 +64,10 @@ enum OPCODE
 	RESHAPE, /*! reshape input tensor's shape to new shape assuming the new
 	shape has the same n_elems as old shape */
 
+	GROUP, /*! In addition to tensor arguments, given an opcode and for each tensor,
+	a list of indices to the tensor's shape dimension, execute the operation
+	associated to that opcode for each of the arguments grouped by the shape indices. Todo: add details on how shapes are grouped */
+
 	// todo: implement
 	CONVOLUTE,
 

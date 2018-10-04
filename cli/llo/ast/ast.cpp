@@ -128,6 +128,7 @@ struct ASTNode
 
 static std::unordered_map<std::string,ade::Tensorptr> asts;
 static std::unordered_map<ade::iTensor*,std::string> varname;
+static std::vector<uint16_t> data_limits = {15, 5, 5, 5, 1, 1, 1, 1};
 
 struct ASTNode* empty_node (void)
 {
@@ -168,6 +169,10 @@ void save_ast (char key[32], struct ASTNode* value)
 		asts.emplace(skey, value->ptr_);
 		varname.emplace(value->ptr_.get(), skey);
 	}
+	else
+	{
+		std::cerr << "Failed to assign nil value to variable " << key << std::endl;
+	}
 }
 
 struct ASTNode* load_ast (char key[32])
@@ -190,6 +195,11 @@ struct ASTNode* unary (struct ASTNode* child, enum FUNCODE code)
 		out = new ASTNode{
 			ade::runtime_functor((ade::OPCODE) code, {child->ptr_})};
 	}
+	else
+	{
+		std::cerr << "Failed to perform <" << ade::opname((ade::OPCODE) code)
+			<< "> with input " << child << std::endl;
+	}
 	return out;
 }
 
@@ -201,6 +211,11 @@ struct ASTNode* binary (struct ASTNode* child,
 	{
 		out = new ASTNode{ade::runtime_functor(
 			(ade::OPCODE) code, {child->ptr_, child1->ptr_})};
+	}
+	else
+	{
+		std::cerr << "Failed to run <" << ade::opname((ade::OPCODE) code)
+			<< "> with inputs " << child << ", " << child1 << std::endl;
 	}
 	return out;
 }
@@ -220,10 +235,14 @@ struct ASTNode* unary_dim (struct ASTNode* child, double dim,
 				out  = new ASTNode{llo::n_dims(child->ptr_, dim)};
 			break;
 			default:
-				// is not shape op, treat like unary
-				out = new ASTNode{ade::runtime_functor(
-					(ade::OPCODE) code, {child->ptr_})};
+				std::cerr << "Failed to run <" << ade::opname((ade::OPCODE) code)
+					<< "> as function with dimension " << dim << std::endl;
 		}
+	}
+	else
+	{
+		std::cerr << "Failed to run dimensioned <" << ade::opname((ade::OPCODE) code)
+			<< "> with input " << child << std::endl;
 	}
 	return out;
 }
@@ -260,10 +279,14 @@ struct ASTNode* shapeop (struct ASTNode* child,
 			}
 			break;
 			default:
-				// is not shape op, treat like unary
-				out = new ASTNode{ade::runtime_functor(
-					(ade::OPCODE) code, {child->ptr_})};
+				std::cerr << "Failed to run <" << ade::opname((ade::OPCODE) code)
+					<< "> as function with shape" << std::endl;
 		}
+	}
+	else
+	{
+		std::cerr << "Failed to run shaped <" << ade::opname((ade::OPCODE) code)
+			<< "> with inputs " << child << ", " << dholder << std::endl;
 	}
 	return out;
 }
@@ -275,6 +298,11 @@ struct ASTNode* grad (struct ASTNode* node, struct ASTNode* wrt)
 	{
 		out = new ASTNode{node->ptr_->gradient(wrt->ptr_)};
 	}
+	else
+	{
+		std::cerr << "Failed to run gradient with root=" << node << ", wrt="
+			<< wrt << std::endl;
+	}
 	return out;
 }
 
@@ -283,6 +311,35 @@ static std::unordered_set<std::string> modes;
 void use_mode (char mode[32])
 {
 	modes.emplace(std::string(mode));
+}
+
+void print_datalimit (void)
+{
+	auto it = data_limits.begin();
+	std::cout << (int) *it++;
+	for (auto et = data_limits.end(); et != it; ++it)
+	{
+		std::cout << "," << (int) *it;
+	}
+	std::cout << std::endl;
+}
+
+void set_datalimit (struct DataHolder* limit)
+{
+	if (DoublesHolder* dh = dynamic_cast<DoublesHolder*>(limit))
+	{
+		auto it = dh->data_.begin();
+		size_t nlimits = std::min((size_t) 8, dh->data_.size());
+		data_limits = std::vector<uint16_t>(it, it + nlimits);
+		if (nlimits < 8)
+		{
+			data_limits.insert(data_limits.end(), 8 - nlimits, 1);
+		}
+	}
+	else
+	{
+		std::cerr << "Failed to set non-vector data limit" << std::endl;
+	}
 }
 
 void show_data (struct ASTNode* node)
@@ -308,7 +365,7 @@ void show_data (struct ASTNode* node)
 		{
 			slist = data.shape_.as_list();
 		}
-		PrettyTensor<double> artist(slist, {15, 5, 1, 1, 1, 1, 1, 1});
+		PrettyTensor<double> artist(slist, data_limits);
 		std::cout << prefix;
 		artist.print(std::cout, (double*) data.data_.get());
 		std::cout << std::endl;

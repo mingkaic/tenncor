@@ -27,17 +27,19 @@ struct iTensor
 {
 	virtual ~iTensor (void) = default;
 
-	/*! get internal shape */
+	/*! return the shape held by this tensor */
 	virtual const Shape& shape (void) const = 0;
 
-	/*! build the gradient subtree with respect to wrt node */
+	/*! given a tensor to derive with respect to,
+	return the root tensor of the partial derivative subtree */
 	virtual Tensorptr gradient (Tensorptr& wrt) const = 0;
 
-	/*! represent tensor information as string (for debug purposes) */
+	/*! return the string representation of the tensor
+	(commonly for debug purposes) */
 	virtual std::string to_string (void) const = 0;
 };
 
-/*! Internal smart pointer wrapper to Tensors guaranteeing non-null pointers */
+/*! iTensor smart pointer ensuring non-null references */
 struct Tensorptr
 {
 	Tensorptr (iTensor& tens) :
@@ -64,20 +66,20 @@ struct Tensorptr
 		return ptr_.get();
 	}
 
-	/*! get raw pointer */
+	/*! return the raw pointer */
 	iTensor* get (void) const
 	{
 		return ptr_.get();
 	}
 
-	/*! get weakptr reference */
+	/*! return the weakptr reference */
 	std::weak_ptr<iTensor> ref (void) const
 	{
 		return ptr_;
 	}
 
 protected:
-	/*! smartpointer to iTensor */
+	/*! strong reference to iTensor */
 	std::shared_ptr<iTensor> ptr_;
 };
 

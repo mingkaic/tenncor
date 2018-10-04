@@ -2,7 +2,7 @@
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
 
-BIN=$1
+BIN=$@
 INPUT_DIR=$THIS_DIR/inputs
 EXPECT_DIR=$THIS_DIR/expects
 

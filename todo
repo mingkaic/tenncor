@@ -1,13 +1,16 @@
 tests:
 - use testify for regression test
+- implement better fallback strategy when test server is unavailable
+- move test generation out of this repo
 
 move out:
 - update graphmgr
 
-codability:
-- add/update documentation
+readability:
+- improve comments according to some styleguide
+- make comment styles consistent (proably // instead of /* */ )
 - refactor, and rename variables to improve readability
-- add even debugging tools
+- add more debugging tools
 - investigate llo api: experiment with top-level code
 
 performance:
@@ -16,5 +19,8 @@ performance:
 - implement optimization options to increase data accuracy
 
 features:
+- implement group
 - implement deep copy utility
 - implement clip
+- reuse cli/util/ascii_* for debug tools, and simplify traversal strategy
+- investigate better error handling strategy (perhaps allow error log plugin)

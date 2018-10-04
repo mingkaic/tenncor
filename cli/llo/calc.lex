@@ -152,6 +152,10 @@ mode	{
 	return MODE;
 }
 
+datalimit	{
+	return LIMIT;
+}
+
 shape	{
 	return SHAPE;
 }
