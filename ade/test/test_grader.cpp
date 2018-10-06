@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "cli/util/ascii_tree.hpp"
+#include "dbg/ade.hpp"
 
 #include "ade/functor.hpp"
 #include "ade/grader.hpp"
@@ -17,14 +17,14 @@ const std::string testdir = "ade/test/data";
 static inline void ltrim(std::string &s)
 {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-		std::not1(std::ptr_fun<int, int>(std::isspace))));
+		std::not1(std::ptr_fun<int,int>(std::isspace))));
 }
 
 
 static inline void rtrim(std::string &s)
 {
 	s.erase(std::find_if(s.rbegin(), s.rend(),
-		std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+		std::not1(std::ptr_fun<int,int>(std::isspace))).base(), s.end());
 }
 
 
@@ -35,36 +35,9 @@ static inline void trim(std::string &s)
 }
 
 
-static void TREE_EQ (std::istream& expectstr, ade::iTensor* root)
+static void TREE_EQ (std::istream& expectstr, ade::Tensorptr& root)
 {
-	PrettyTree<ade::iTensor*> artist(
-		[](ade::iTensor*& root) -> std::vector<ade::iTensor*>
-		{
-			if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(root))
-			{
-				return f->get_refs();
-			}
-			return {};
-		},
-		[](std::ostream& out, ade::iTensor*& root)
-		{
-			if (root)
-			{
-				if (root == ade::Tensor::SYMBOLIC_ONE.get())
-				{
-					out << 1;
-				}
-				else if (root == ade::Tensor::SYMBOLIC_ZERO.get())
-				{
-					out << 0;
-				}
-				else
-				{
-					out << root->to_string();
-				}
-			}
-		});
-
+	PrettyEquation artist;
 	std::stringstream gotstr;
 	artist.print(gotstr, root);
 
@@ -106,11 +79,11 @@ TEST(GRADER, ABS)
 
 	std::ifstream zstr(testdir + "/abs0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/abs1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -125,11 +98,11 @@ TEST(GRADER, NEG)
 
 	std::ifstream zstr(testdir + "/neg0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/neg1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -144,11 +117,11 @@ TEST(GRADER, NOT)
 
 	std::ifstream zstr(testdir + "/not0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/not1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -163,11 +136,11 @@ TEST(GRADER, SIN)
 
 	std::ifstream zstr(testdir + "/sin0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/sin1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -182,11 +155,11 @@ TEST(GRADER, COS)
 
 	std::ifstream zstr(testdir + "/cos0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/cos1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -201,11 +174,11 @@ TEST(GRADER, TAN)
 
 	std::ifstream zstr(testdir + "/tan0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/tan1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -220,11 +193,11 @@ TEST(GRADER, EXP)
 
 	std::ifstream zstr(testdir + "/exp0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/exp1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -239,11 +212,11 @@ TEST(GRADER, LOG)
 
 	std::ifstream zstr(testdir + "/log0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/log1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -258,11 +231,11 @@ TEST(GRADER, SQRT)
 
 	std::ifstream zstr(testdir + "/sqrt0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/sqrt1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -277,11 +250,11 @@ TEST(GRADER, ROUND)
 
 	std::ifstream zstr(testdir + "/round0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/round1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -296,11 +269,11 @@ TEST(GRADER, FLIP)
 
 	std::ifstream zstr(testdir + "/zero.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/one.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -316,15 +289,15 @@ TEST(GRADER, POW)
 
 	std::ifstream ostr(testdir + "/pow1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/powl.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/powr.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -340,15 +313,15 @@ TEST(GRADER, ADD)
 
 	std::ifstream ostr(testdir + "/add1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/addl.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/addr.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -364,15 +337,15 @@ TEST(GRADER, SUB)
 
 	std::ifstream ostr(testdir + "/sub1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/subl.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/subr.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -388,15 +361,15 @@ TEST(GRADER, MUL)
 
 	std::ifstream ostr(testdir + "/mul1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/mull.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/mulr.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -412,15 +385,15 @@ TEST(GRADER, DIV)
 
 	std::ifstream ostr(testdir + "/div1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/divl.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/divr.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -436,15 +409,15 @@ TEST(GRADER, EQ)
 
 	std::ifstream ostr(testdir + "/eq1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/eql.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/eqr.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -460,15 +433,15 @@ TEST(GRADER, NE)
 
 	std::ifstream ostr(testdir + "/ne1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/nel.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/ner.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -484,15 +457,15 @@ TEST(GRADER, LT)
 
 	std::ifstream ostr(testdir + "/lt1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/ltl.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/ltr.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -508,87 +481,87 @@ TEST(GRADER, GT)
 
 	std::ifstream ostr(testdir + "/gt1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/gtl.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/gtr.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
-TEST(GRADER, BINO)
+TEST(GRADER, RAND_BINO)
 {
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
-	ade::Tensorptr g = ade::grader<ade::BINO>({leaf, leaf1}, leaf1);
-	ade::Tensorptr g1 = ade::grader<ade::BINO>({leaf, leaf1}, leaf);
-	ade::Tensorptr g2 = ade::grader<ade::BINO>({leaf, leaf}, leaf);
+	ade::Tensorptr g = ade::grader<ade::RAND_BINO>({leaf, leaf1}, leaf1);
+	ade::Tensorptr g1 = ade::grader<ade::RAND_BINO>({leaf, leaf1}, leaf);
+	ade::Tensorptr g2 = ade::grader<ade::RAND_BINO>({leaf, leaf}, leaf);
 
 	std::ifstream ostr(testdir + "/zero.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/zero.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/zero.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
-TEST(GRADER, UNIF)
+TEST(GRADER, RAND_UNIF)
 {
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
-	ade::Tensorptr g = ade::grader<ade::UNIF>({leaf, leaf1}, leaf1);
-	ade::Tensorptr g1 = ade::grader<ade::UNIF>({leaf, leaf1}, leaf);
-	ade::Tensorptr g2 = ade::grader<ade::UNIF>({leaf, leaf}, leaf);
+	ade::Tensorptr g = ade::grader<ade::RAND_UNIF>({leaf, leaf1}, leaf1);
+	ade::Tensorptr g1 = ade::grader<ade::RAND_UNIF>({leaf, leaf1}, leaf);
+	ade::Tensorptr g2 = ade::grader<ade::RAND_UNIF>({leaf, leaf}, leaf);
 
 	std::ifstream ostr(testdir + "/zero.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/zero.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/zero.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
-TEST(GRADER, NORM)
+TEST(GRADER, RAND_NORM)
 {
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
-	ade::Tensorptr g = ade::grader<ade::NORM>({leaf, leaf1}, leaf1);
-	ade::Tensorptr g1 = ade::grader<ade::NORM>({leaf, leaf1}, leaf);
-	ade::Tensorptr g2 = ade::grader<ade::NORM>({leaf, leaf}, leaf);
+	ade::Tensorptr g = ade::grader<ade::RAND_NORM>({leaf, leaf1}, leaf1);
+	ade::Tensorptr g1 = ade::grader<ade::RAND_NORM>({leaf, leaf1}, leaf);
+	ade::Tensorptr g2 = ade::grader<ade::RAND_NORM>({leaf, leaf}, leaf);
 
 	std::ifstream ostr(testdir + "/zero.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g2.get());
+	TREE_EQ(ostr, g2);
 
 	std::ifstream lstr(testdir + "/zero.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(lstr, g.get());
+	TREE_EQ(lstr, g);
 
 	std::ifstream rstr(testdir + "/zero.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, g1.get());
+	TREE_EQ(rstr, g1);
 }
 
 
@@ -603,11 +576,11 @@ TEST(GRADER, N_ELEMS)
 
 	std::ifstream zstr(testdir + "/zero.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/zero.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -622,11 +595,11 @@ TEST(GRADER, N_DIMS)
 
 	std::ifstream zstr(testdir + "/zero.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/zero.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -652,11 +625,11 @@ TEST(GRADER, RMAX)
 
 	std::ifstream zstr(testdir + "/rmax0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/rmax1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -671,11 +644,11 @@ TEST(GRADER, RSUM)
 
 	std::ifstream zstr(testdir + "/rsum0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/rsum1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -698,19 +671,19 @@ TEST(GRADER, MATMUL)
 
 	std::ifstream lstr(testdir + "/matmula.txt");
 	ASSERT_TRUE(lstr.is_open());
-	TREE_EQ(lstr, ga.get());
+	TREE_EQ(lstr, ga);
 
 	std::ifstream rstr(testdir + "/matmulb.txt");
 	ASSERT_TRUE(rstr.is_open());
-	TREE_EQ(rstr, gb.get());
+	TREE_EQ(rstr, gb);
 
 	std::ifstream zlstr(testdir + "/matmula0.txt");
 	ASSERT_TRUE(zlstr.is_open());
-	TREE_EQ(zlstr, z.get());
+	TREE_EQ(zlstr, z);
 
 	std::ifstream zrstr(testdir + "/matmulb0.txt");
 	ASSERT_TRUE(zrstr.is_open());
-	TREE_EQ(zrstr, z1.get());
+	TREE_EQ(zrstr, z1);
 
 	ade::Tensorptr g1a1 = ade::grader<
 		ade::MATMUL,uint8_t,uint8_t>({a1, b1}, a1, 2, 1);
@@ -727,27 +700,27 @@ TEST(GRADER, MATMUL)
 
 	std::ifstream big_lstr(testdir + "/big_matmula.txt");
 	ASSERT_TRUE(big_lstr.is_open());
-	TREE_EQ(big_lstr, g1a1.get());
+	TREE_EQ(big_lstr, g1a1);
 
 	std::ifstream big_rstr(testdir + "/big_matmulb.txt");
 	ASSERT_TRUE(big_rstr.is_open());
-	TREE_EQ(big_rstr, g1b1.get());
+	TREE_EQ(big_rstr, g1b1);
 
 	std::ifstream g2a_str(testdir + "/matmul_g2a.txt");
 	ASSERT_TRUE(g2a_str.is_open());
-	TREE_EQ(g2a_str, g2a.get());
+	TREE_EQ(g2a_str, g2a);
 
 	std::ifstream g2a1_str(testdir + "/matmul_g2a1.txt");
 	ASSERT_TRUE(g2a1_str.is_open());
-	TREE_EQ(g2a1_str, g2a1.get());
+	TREE_EQ(g2a1_str, g2a1);
 
 	std::ifstream g3b_str(testdir + "/matmul_g3b.txt");
 	ASSERT_TRUE(g3b_str.is_open());
-	TREE_EQ(g3b_str, g3b.get());
+	TREE_EQ(g3b_str, g3b);
 
 	std::ifstream g3b1_str(testdir + "/matmul_g3b1.txt");
 	ASSERT_TRUE(g3b1_str.is_open());
-	TREE_EQ(g3b1_str, g3b1.get());
+	TREE_EQ(g3b1_str, g3b1);
 
 	std::vector<ade::DimT> duplist = {3, 3};
 	ade::Tensorptr d = ade::Tensor::get(ade::Shape(duplist));
@@ -768,11 +741,11 @@ TEST(GRADER, PERMUTE)
 
 	std::ifstream zstr(testdir + "/perm0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/perm1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -790,11 +763,11 @@ TEST(GRADER, EXTEND)
 
 	std::ifstream zstr(testdir + "/extend0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/extend1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
@@ -813,12 +786,12 @@ TEST(GRADER, RESHAPE)
 
 	std::ifstream zstr(testdir + "/reshape0.txt");
 	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0.get());
+	TREE_EQ(zstr, g0);
 
 	std::ifstream ostr(testdir + "/reshape1.txt");
 	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1.get());
+	TREE_EQ(ostr, g1);
 }
 
 
-#endif /* DISABLE_GRADER_TEST */
+#endif // DISABLE_GRADER_TEST

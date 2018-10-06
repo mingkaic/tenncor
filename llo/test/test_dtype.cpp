@@ -77,4 +77,4 @@ TEST_F(DTYPE, TypeName)
 }
 
 
-#endif /* DISABLE_DTYPE_TEST */
+#endif // DISABLE_DTYPE_TEST

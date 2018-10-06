@@ -1,12 +1,10 @@
-/*!
- *
- *  grader.hpp
- *  ade
- *
- *  Purpose:
- *  define gradient functions mapped to opcode
- *
- */
+///
+///	grader.hpp
+///	ade
+///
+///	Purpose:
+///	Define derivative chain rules and map to OPCODEs
+///
 
 #include "ade/tensor.hpp"
 #include "ade/opcode.hpp"
@@ -27,4 +25,4 @@ _SIGNATURE_DEF(Tensorptr, grader, std::vector<Tensorptr>, Tensorptr& wrt)
 
 }
 
-#endif /* ADE_GRADER_HPP */
+#endif // ADE_GRADER_HPP

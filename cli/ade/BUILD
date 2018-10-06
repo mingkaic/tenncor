@@ -34,10 +34,7 @@ cc_library(
     hdrs = glob(["ast/*.h"]),
     srcs = glob(["ast/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = [
-        "//ade:ade",
-        "//cli/util:util",
-    ],
+    deps = ["//dbg:dbg"],
 )
 
 ######### BINARY #########

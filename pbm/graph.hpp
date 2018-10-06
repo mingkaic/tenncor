@@ -1,19 +1,17 @@
-/*!
- *
- *  graph.hpp
- *  pbm
- *
- *  Purpose:
- *  define functions for marshal and unmarshal operation graph
- *
- */
+///
+/// graph.hpp
+/// pbm
+///
+/// Purpose:
+/// Define functions for marshal and unmarshal equation graph
+///
 
 #include "llo/node.hpp"
 
 #include "pbm/graph.pb.h"
 
-/*! marshal all operation subgraphs in root vector to protobuf object */
+/// Marshal all equation graphs in roots vector to protobuf object */
 void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots);
 
-/*! unmarshal protobuf object and return all nodes in graph */
+/// Return all nodes in graph unmarshalled from protobuf object */
 std::vector<ade::Tensorptr> load_graph (const tenncor::Graph& in);

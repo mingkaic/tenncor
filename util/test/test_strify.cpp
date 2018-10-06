@@ -78,4 +78,4 @@ TEST(STRIFY, Tuple)
 }
 
 
-#endif /* DISABLE_STRIFY_TEST */
+#endif // DISABLE_STRIFY_TEST

@@ -222,4 +222,4 @@ TEST_F(SHAPE, ToString)
 }
 
 
-#endif /* DISABLE_SHAPE_TEST */
+#endif // DISABLE_SHAPE_TEST 

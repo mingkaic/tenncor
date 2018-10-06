@@ -120,10 +120,14 @@ NOARG_SIG(POW)
 
 NOARG_SIG(ADD)
 {
-	// h'(f, g) = f' + g'
-	return Functor<ADD>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
+	// h'(f, g, ...) = f' + g' + ...
+	std::vector<Tensorptr> gargs;
+	std::transform(args.begin(), args.end(), std::back_inserter(gargs),
+	[&](ade::Tensorptr& arg)
+	{
+		return arg->gradient(wrt);
+	});
+	return Functor<ADD>::get(gargs);
 }
 
 NOARG_SIG(SUB)
@@ -136,12 +140,17 @@ NOARG_SIG(SUB)
 
 NOARG_SIG(MUL)
 {
-	// h'(f, g) = f' * g + g' * f
-	return Functor<ADD>::get({
-		Functor<MUL>::get({
-			args.front(), args.front()->gradient(wrt)}),
-		Functor<MUL>::get({
-			args.back(), args.back()->gradient(wrt)})});
+	// h'(f, g) = f' * g * ... + f * g' * ... + ...
+	std::vector<Tensorptr> gargs;
+	for (size_t i = 0, n = args.size(); i < n; ++i)
+	{
+		// f' * g * ...
+		Tensorptr f = args[i];
+		args[i] = args[i]->gradient(wrt);
+		gargs.push_back(Functor<MUL>::get(args));
+		args[i] = f;
+	}
+	return Functor<ADD>::get(gargs);
 }
 
 NOARG_SIG(DIV)
@@ -187,11 +196,39 @@ NOARG_SIG(GT)
 		args.back()->gradient(wrt)});
 }
 
-ZERO_GRAD(BINO)
+NOARG_SIG(MIN)
+{
+	Tensorptr f = Functor<MIN>::get(args);
+	std::vector<Tensorptr> gargs;
+	std::transform(args.begin(), args.end(), std::back_inserter(gargs),
+	[&](ade::Tensorptr& arg)
+	{
+		return Functor<MUL>::get({
+			Functor<EQ>::get({f, arg}),
+			arg->gradient(wrt)});
+	});
+	return Functor<ADD>::get(gargs);
+}
 
-ZERO_GRAD(UNIF)
+NOARG_SIG(MAX)
+{
+	Tensorptr f = Functor<MAX>::get(args);
+	std::vector<Tensorptr> gargs;
+	std::transform(args.begin(), args.end(), std::back_inserter(gargs),
+	[&](ade::Tensorptr& arg)
+	{
+		return Functor<MUL>::get({
+			Functor<EQ>::get({f, arg}),
+			arg->gradient(wrt)});
+	});
+	return Functor<ADD>::get(gargs);
+}
 
-ZERO_GRAD(NORM)
+ZERO_GRAD(RAND_BINO)
+
+ZERO_GRAD(RAND_UNIF)
+
+ZERO_GRAD(RAND_NORM)
 
 ZERO_GRAD(N_ELEMS)
 

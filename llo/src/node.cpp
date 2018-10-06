@@ -61,16 +61,16 @@ GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 	ade::iFunctor* f = static_cast<ade::iFunctor*>(tens);
 	ade::OPCODE opcode = f->get_code();
 
-	std::vector<ade::iTensor*> refs = f->get_refs();
+	std::vector<ade::iTensor*> refs = f->get_children();
 	uint8_t nargs = refs.size();
 
 	GenericData out(f->shape(), dtype);
 	std::vector<GenericData> argdata(nargs);
-	if (opcode == ade::BINO)
+	if (opcode == ade::RAND_BINO)
 	{
 		if (nargs != 2)
 		{
-			util::handle_error("BINO op does not have 2 args",
+			util::handle_error("RAND_BINO op does not have 2 args",
 				util::ErrArg<size_t>("nargs", nargs));
 		}
 		argdata[0] = evaluate(dtype, refs[0]);
@@ -91,7 +91,7 @@ GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 				ade::MATMUL,uint8_t,uint8_t>*>(f))
 			{
 				op_exec(opcode, out, argdata,
-					std::get<0>(mf->meta_), std::get<1>(mf->meta_));
+					std::get<0>(mf->meta()), std::get<1>(mf->meta()));
 			}
 			else
 			{
@@ -103,7 +103,7 @@ GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 		{
 			auto pf = static_cast<ade::Functor<
 				ade::PERMUTE,std::vector<uint8_t>>*>(f);
-			op_exec(opcode, out, argdata, std::get<0>(pf->meta_));
+			op_exec(opcode, out, argdata, std::get<0>(pf->meta()));
 		}
 		break;
 		default:

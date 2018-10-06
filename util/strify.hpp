@@ -1,3 +1,11 @@
+///
+/// strify.hpp
+/// util
+///
+/// Purpose:
+/// Define string conversions for displaying various types
+///
+
 #include <algorithm>
 #include <string>
 #include <sstream>
@@ -16,22 +24,29 @@ const char END = ']';
 
 const char DELIM = '\\';
 
+/// Do nothing to stream, needed to terminate template
 void to_stream (std::ostream& s);
 
+/// Stream C-style strings to s
 void to_stream (std::ostream& s, const char* str);
 
+/// Stream std::strings to s
 void to_stream (std::ostream& s, std::string str);
 
+/// Stream byte-size integers and display as numbers to s
 void to_stream (std::ostream& s, int8_t c);
 
+/// Stream byte-size unsigned integers and display as numbers to s
 void to_stream (std::ostream& s, uint8_t c);
 
+/// Stream generic value to s
 template <typename T>
 void to_stream (std::ostream& s, T val)
 {
 	s << val;
 }
 
+/// Stream generic vector to s
 template <typename T>
 void to_stream (std::ostream& s, std::vector<T> vec)
 {
@@ -48,6 +63,7 @@ void to_stream (std::ostream& s, std::vector<T> vec)
 	s << END;
 }
 
+/// Stream variadic args to s
 template <typename T, typename... Args>
 void to_stream (std::ostream& s, T val, Args... args)
 {
@@ -56,6 +72,7 @@ void to_stream (std::ostream& s, T val, Args... args)
 	to_stream(s, args...);
 }
 
+/// Return string representation of a tuple content given a specific sequence
 template <typename Tuple, size_t... I>
 std::string tuple_to_string (const Tuple& tp, std::index_sequence<I...>)
 {
@@ -64,6 +81,7 @@ std::string tuple_to_string (const Tuple& tp, std::index_sequence<I...>)
 	return ss.str();
 }
 
+/// Return string representation of a tuple content in order stored
 template <typename... Args>
 std::string tuple_to_string (const std::tuple<Args...>& tp)
 {
@@ -72,4 +90,4 @@ std::string tuple_to_string (const std::tuple<Args...>& tp)
 
 }
 
-#endif /* UTIL_STRIFY_HPP */
+#endif // UTIL_STRIFY_HPP

@@ -9,15 +9,15 @@
 namespace util
 {
 
-ENGINE& get_engine (void)
+EngineT& get_engine (void)
 {
-	static ENGINE engine;
+	static EngineT engine;
 	return engine;
 }
 
-std::string make_uid (void* ptr, ENGINE& engine)
+std::string make_uid (void* ptr, EngineT& engine)
 {
-	static std::uniform_int_distribution<size_t> tok_dist(0, 15);
+	static std::uniform_int_distribution<short> tok_dist(0, 15);
 	auto now = std::chrono::system_clock::now();
 	time_t now_c = std::chrono::system_clock::to_time_t(now);
 
@@ -26,7 +26,7 @@ std::string make_uid (void* ptr, ENGINE& engine)
 
 	for (size_t i = 0; i < 16; i++)
 	{
-		size_t token = tok_dist(engine);
+		short token = tok_dist(engine);
 		ss << std::hex << token;
 	}
 	return ss.str();

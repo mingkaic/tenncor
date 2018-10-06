@@ -18,11 +18,9 @@ struct EnumHash
 	}
 };
 
-using TypenameMap = std::unordered_map<DTYPE,std::string,EnumHash>;
-
 #define TYPE_ASSOC(TYPE) std::pair<DTYPE,std::string>{TYPE, #TYPE}
 
-const TypenameMap named_types =
+const std::unordered_map<DTYPE,std::string,EnumHash> named_types =
 {
 	TYPE_ASSOC(DOUBLE),
 	TYPE_ASSOC(FLOAT),

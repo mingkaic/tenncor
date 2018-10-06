@@ -88,6 +88,11 @@ ade::Tensorptr mul (ade::Tensorptr a, ade::Tensorptr b)
 	return ade::Functor<ade::MUL>::get({a, b});
 }
 
+ade::Tensorptr prod (std::vector<ade::Tensorptr> args)
+{
+	return ade::Functor<ade::MUL>::get(args);
+}
+
 ade::Tensorptr div (ade::Tensorptr a, ade::Tensorptr b)
 {
 	return ade::Functor<ade::DIV>::get({a, b});
@@ -113,19 +118,34 @@ ade::Tensorptr gt (ade::Tensorptr a, ade::Tensorptr b)
 	return ade::Functor<ade::GT>::get({a, b});
 }
 
-ade::Tensorptr binom (ade::Tensorptr ntrials, ade::Tensorptr prob)
+ade::Tensorptr min (std::vector<ade::Tensorptr> args)
 {
-	return ade::Functor<ade::BINO>::get({ntrials, prob});
+	return ade::Functor<ade::MIN>::get(args);
 }
 
-ade::Tensorptr uniform (ade::Tensorptr lower, ade::Tensorptr upper)
+ade::Tensorptr max (std::vector<ade::Tensorptr> args)
 {
-	return ade::Functor<ade::UNIF>::get({lower, upper});
+	return ade::Functor<ade::MAX>::get(args);
 }
 
-ade::Tensorptr normal (ade::Tensorptr mean, ade::Tensorptr stdev)
+ade::Tensorptr clip (ade::Tensorptr x, ade::Tensorptr lo, ade::Tensorptr hi)
 {
-	return ade::Functor<ade::NORM>::get({mean, stdev});
+	return min({max({x, lo}), hi});
+}
+
+ade::Tensorptr rand_binom (ade::Tensorptr ntrials, ade::Tensorptr prob)
+{
+	return ade::Functor<ade::RAND_BINO>::get({ntrials, prob});
+}
+
+ade::Tensorptr rand_uniform (ade::Tensorptr lower, ade::Tensorptr upper)
+{
+	return ade::Functor<ade::RAND_UNIF>::get({lower, upper});
+}
+
+ade::Tensorptr rand_normal (ade::Tensorptr mean, ade::Tensorptr stdev)
+{
+	return ade::Functor<ade::RAND_NORM>::get({mean, stdev});
 }
 
 ade::Tensorptr n_elems (ade::Tensorptr arg)

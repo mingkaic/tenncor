@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "cli/util/ascii_tree.hpp"
+#include "dbg/ade.hpp"
 
 #include "pbm/graph.hpp"
 
@@ -16,14 +16,14 @@ const std::string testdir = "pbm/test/data";
 static inline void ltrim(std::string &s)
 {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-		std::not1(std::ptr_fun<int, int>(std::isspace))));
+		std::not1(std::ptr_fun<int,int>(std::isspace))));
 }
 
 
 static inline void rtrim(std::string &s)
 {
 	s.erase(std::find_if(s.rbegin(), s.rend(),
-		std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+		std::not1(std::ptr_fun<int,int>(std::isspace))).base(), s.end());
 }
 
 
@@ -52,7 +52,7 @@ TEST(LOAD, LoadGraph)
 		{
 			if (ade::iFunctor* func = dynamic_cast<ade::iFunctor*>(it->get()))
 			{
-				auto refs = func->get_refs();
+				auto refs = func->get_children();
 				for (auto ref : refs)
 				{
 					nparents.emplace(ref);
@@ -82,36 +82,9 @@ TEST(LOAD, LoadGraph)
 	}
 	for (ade::Tensorptr& root : roots)
 	{
-		PrettyTree<ade::iTensor*> artist(
-			[](ade::iTensor*& root) -> std::vector<ade::iTensor*>
-			{
-				if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(root))
-				{
-					return f->get_refs();
-				}
-				return {};
-			},
-			[](std::ostream& out, ade::iTensor*& root)
-			{
-				if (root)
-				{
-					if (root == ade::Tensor::SYMBOLIC_ONE.get())
-					{
-						out << 1;
-					}
-					else if (root == ade::Tensor::SYMBOLIC_ZERO.get())
-					{
-						out << 0;
-					}
-					else
-					{
-						out << root->to_string();
-					}
-				}
-			});
-
+		PrettyEquation artist;
 		std::stringstream gotstr;
-		artist.print(gotstr, root.get());
+		artist.print(gotstr, root);
 
 #if 0
 		std::cout << gotstr.str() << std::endl;
@@ -129,4 +102,4 @@ TEST(LOAD, LoadGraph)
 }
 
 
-#endif /* DISABLE_LOAD_TEST */
+#endif // DISABLE_LOAD_TEST

@@ -1,12 +1,10 @@
-/*!
- *
- *  fwder.hpp
- *  ade
- *
- *  Purpose:
- *  define shape transformation functions mapped to opcodes
- *
- */
+///
+///	fwder.hpp
+///	ade
+///
+///	Purpose:
+///	Define shape transformation functions and map to OPCODEs
+///
 
 #include <functional>
 
@@ -29,4 +27,4 @@ _SIGNATURE_DEF(Shape, forwarder, std::vector<Tensorptr>)
 
 }
 
-#endif /* ADE_FWDER_HPP */
+#endif // ADE_FWDER_HPP

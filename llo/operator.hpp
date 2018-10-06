@@ -1,12 +1,11 @@
-/*!
- *
- *  operator.hpp
- *  llo
- *
- *  Purpose:
- *  define low level operators on continguous data
- *
- */
+///
+/// operator.hpp
+/// llo
+///
+/// Purpose:
+/// Define functions manipulating tensor data values
+/// No function in this file makes any attempt to check for nullptrs
+///
 
 #include <cstring>
 #include <cmath>
@@ -22,7 +21,8 @@
 namespace llo
 {
 
-/*! Wrap raw pointer and data size */
+/// Tensor data wrapper using raw pointer and data size
+/// Avoid using std constainers in case of unintentional deep copies
 template <typename T>
 struct VecRef
 {
@@ -30,7 +30,7 @@ struct VecRef
 	size_t n;
 };
 
-/*! Generic unary operation */
+/// Generic unary operation
 template <typename T>
 void unary (T* out, VecRef<T> in, std::function<T(const T&)> f)
 {
@@ -40,7 +40,8 @@ void unary (T* out, VecRef<T> in, std::function<T(const T&)> f)
 	}
 }
 
-/*! Absolute */
+/// Given reference to output array, and input vector ref,
+/// make output elements take absolute value of inputs
 template <typename T>
 void abs (T* out, VecRef<T> in)
 {
@@ -59,7 +60,8 @@ void abs<uint32_t> (uint32_t* out, VecRef<uint32_t> in);
 template <>
 void abs<uint64_t> (uint64_t* out, VecRef<uint64_t> in);
 
-/*! Negative */
+/// Given reference to output array, and input vector ref,
+/// make output elements take negatives of inputs
 template <typename T>
 void neg (T* out, VecRef<T> in)
 {
@@ -78,63 +80,75 @@ void neg<uint32_t> (uint32_t* out, VecRef<uint32_t> in);
 template <>
 void neg<uint64_t> (uint64_t* out, VecRef<uint64_t> in);
 
-/*! Bitwise Not */
+/// Given reference to output array, and input vector ref,
+/// make output elements take bitwise nots of inputs
 template <typename T>
 void bit_not (T* out, VecRef<T> in)
 {
 	unary<T>(out, in, [](const T& src) { return !src; });
 }
 
-/*! Sine */
+/// Given reference to output array, and input vector ref,
+/// make output elements take sine of inputs
 template <typename T>
 void sin (T* out, VecRef<T> in)
 {
 	unary<T>(out, in, [](const T& src) { return std::sin(src); });
 }
 
-/*! Cosine */
+/// Given reference to output array, and input vector ref,
+/// make output elements take cosine of inputs
 template <typename T>
 void cos (T* out, VecRef<T> in)
 {
 	unary<T>(out, in, [](const T& src) { return std::cos(src); });
 }
 
-/*! Tangent */
+/// Given reference to output array, and input vector ref,
+/// make output elements take tangent of inputs
 template <typename T>
 void tan (T* out, VecRef<T> in)
 {
 	unary<T>(out, in, [](const T& src) { return std::tan(src); });
 }
 
-/*! Exponent */
+/// Given reference to output array, and input vector ref,
+/// make output elements take exponent of inputs
 template <typename T>
 void exp (T* out, VecRef<T> in)
 {
 	unary<T>(out, in, [](const T& src) { return std::exp(src); });
 }
 
-/*! Natural log */
+/// Given reference to output array, and input vector ref,
+/// make output elements take natural log of inputs
 template <typename T>
 void log (T* out, VecRef<T> in)
 {
 	unary<T>(out, in, [](const T& src) { return std::log(src); });
 }
 
-/*! Square root */
+/// Given reference to output array, and input vector ref,
+/// make output elements take square root of inputs
 template <typename T>
 void sqrt (T* out, VecRef<T> in)
 {
 	unary<T>(out, in, [](const T& src) { return std::sqrt(src); });
 }
 
-/*! Round */
+/// Given reference to output array, and input vector ref,
+/// make output elements take rounded values of inputs
 template <typename T>
 void round (T* out, VecRef<T> in)
 {
 	unary<T>(out, in, [](const T& src) { return std::round(src); });
 }
 
-/*! Flip */
+/// Given reference to output array, and input vector ref,
+/// and index of dimension to flip, map output and input elements such that
+/// output.coordinate[dim] = shape[dim] - input.coordinate[dim]
+/// From cartesian perspective, invert the order of values along an axis
+/// For example: in=[[1, 2], [3, 4]], dim=1, yields out=[[3, 4], [1, 2]]
 template <typename T>
 void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
 {
@@ -157,7 +171,14 @@ void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
 	}
 }
 
-/*! Permute coordinates according to order */
+/// Given a tensor argument and a vector of shape indices, permute tensor
+/// The tensor's shape and each element's coordinates are reordered
+/// according to shape indices
+/// Unreferenced input shape dimensions are appended to the output shape
+/// Input dimensions can be referenced more than once
+/// Because output.nelems >= input.nelems, and coordinates are mapped 1-1,
+/// Output indices that do not take input elements take on value 0
+/// This 1-1 behavior is to facilitate creating identity matrices/tensors
 template <typename T>
 void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
 	std::vector<uint8_t> order)
@@ -196,21 +217,22 @@ void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
 	}
 }
 
-/*! Shape's n_elems */
+/// Given a single argument get the n_elem value of the argument's shape
 template <typename T>
 void n_elems (T& out, const ade::Shape& in)
 {
 	out = in.n_elems();
 }
 
-/*! Shape's dimension value at dim */
+/// Given an argument and a dimension index get the value of the argument's
+/// shape at that index
 template <typename T>
 void n_dims (T& out, const ade::Shape& in, uint8_t dim)
 {
 	out = in.at(dim);
 }
 
-/*! Get first flat index of the max value */
+/// Out of all elements, assign first flat index of the max value to out
 template <typename T>
 void arg_max (T& out, VecRef<T> in)
 {
@@ -225,7 +247,7 @@ void arg_max (T& out, VecRef<T> in)
 	out = temp;
 }
 
-/*! Get the max value */
+/// Out of all elements in an argument, assign the max value to out
 template <typename T>
 void reduce_max (T& out, VecRef<T> in)
 {
@@ -239,7 +261,7 @@ void reduce_max (T& out, VecRef<T> in)
 	}
 }
 
-/*! Get the sum of all value */
+/// Out of all elements in an argument, assign the sum of all values to out
 template <typename T>
 void reduce_sum (T& out, VecRef<T> in)
 {
@@ -250,7 +272,7 @@ void reduce_sum (T& out, VecRef<T> in)
 	}
 }
 
-/*! Generic binary operation */
+/// Generic binary operation
 template <typename T>
 void binary (T* out, VecRef<T> a, VecRef<T> b,
 	std::function<T(const T&,const T&)> f)
@@ -262,7 +284,34 @@ void binary (T* out, VecRef<T> a, VecRef<T> b,
 	}
 }
 
-/*! Pow */
+/// Generic n-nary operation
+template <typename T>
+void nnary (T* out, std::vector<VecRef<T>> args,
+	std::function<void(T&, const T&)> acc)
+{
+	if (args.empty())
+	{
+		util::handle_error("Cannot perform operation with no arguments");
+	}
+	size_t n = std::max_element(args.begin(), args.end(),
+	[](VecRef<T>& a, VecRef<T>& b)
+	{
+		return a.n < b.n;
+	})->n;
+	for (size_t i = 0; i < n; ++i)
+	{
+		out[i] = args[0].data[i % args[0].n];
+		for (size_t j = 1, n = args.size(); j < n; ++j)
+		{
+			acc(out[i], args[j].data[i % args[j].n]);
+		}
+	}
+}
+
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply std::pow operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void pow (T* out, VecRef<T> a, VecRef<T> b)
 {
@@ -270,75 +319,111 @@ void pow (T* out, VecRef<T> a, VecRef<T> b)
 		[](const T& b, const T& x) { return std::pow(b, x); });
 }
 
-/*! Add */
+/// Given arguments, for every index i in range [0:max_nelems],
+/// sum all elements arg[i % arg.nelems] for arg in arguments
+/// Shapes must be compatible before min_rank of all arguments
 template <typename T>
 void add (T* out, std::vector<VecRef<T>> args)
 {
-	size_t n = std::max_element(args.begin(), args.end(),
-	[](VecRef<T>& a, VecRef<T>& b)
-	{
-		return a.n < b.n;
-	})->n;
-	std::memset(out, 0, sizeof(T) * n);
-	for (size_t i = 0; i < n; ++i)
-	{
-		for (VecRef<T>& arg : args)
-		{
-			out[i] += arg.data[i % arg.n];
-		}
-	}
+	nnary<T>(out, args, [](T& out, const T& val) { out += val; });
 }
 
-/*! Sub */
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply subtract elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void sub (T* out, VecRef<T> a, VecRef<T> b)
 {
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a - b; });
 }
 
-/*! Mul */
+/// Given arguments, for every index i in range [0:max_nelems],
+/// multiply all elements arg[i % arg.nelems] for arg in arguments
+/// Shapes must be compatible before min_rank of all arguments
 template <typename T>
-void mul (T* out, VecRef<T> a, VecRef<T> b)
+void mul (T* out, std::vector<VecRef<T>> args)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a * b; });
+	nnary<T>(out, args, [](T& out, const T& val) { out *= val; });
 }
 
-/*! Div */
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply divide elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void div (T* out, VecRef<T> a, VecRef<T> b)
 {
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a / b; });
 }
 
-/*! Equality */
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply == operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void eq (T* out, VecRef<T> a, VecRef<T> b)
 {
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a == b; });
 }
 
-/*! Non-equality */
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply != operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void neq (T* out, VecRef<T> a, VecRef<T> b)
 {
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a != b; });
 }
 
-/*! Less than */
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply < operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void lt (T* out, VecRef<T> a, VecRef<T> b)
 {
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a < b; });
 }
 
-/*! Greater than */
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply > operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void gt (T* out, VecRef<T> a, VecRef<T> b)
 {
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a > b; });
 }
 
-/*! Randomly generated values according to binomial distribution */
+/// Given arguments, for every index i in range [0:max_nelems],
+/// take the minimum all elements arg[i % arg.nelems]
+/// for arg in arguments
+/// Shapes must be compatible before min_rank of all arguments
+template <typename T>
+void min (T* out, std::vector<VecRef<T>> args)
+{
+	nnary<T>(out, args,
+	[](T& out, const T& val) { out = std::min(out, val); });
+}
+
+/// Given arguments, for every index i in range [0:max_nelems],
+/// take the maximum all elements arg[i % arg.nelems]
+/// for arg in arguments
+/// Shapes must be compatible before min_rank of all arguments
+template <typename T>
+void max (T* out, std::vector<VecRef<T>> args)
+{
+	nnary<T>(out, args,
+	[](T& out, const T& val) { out = std::max(out, val); });
+}
+
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply std::binomial_distribution function
+/// to elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void rand_binom (T* out, VecRef<T> a, VecRef<double> b)
 {
@@ -356,7 +441,11 @@ void rand_binom<double> (double* out, VecRef<double> a, VecRef<double> b);
 template <>
 void rand_binom<float> (float* out, VecRef<float> a, VecRef<double> b);
 
-/*! Randomly generated values according to uniform distribution */
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply std::uniform_distributon function
+/// to elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void rand_uniform (T* out, VecRef<T> a, VecRef<T> b)
 {
@@ -374,7 +463,11 @@ void rand_uniform<double> (double* out, VecRef<double> a, VecRef<double> b);
 template <>
 void rand_uniform<float> (float* out, VecRef<float> a, VecRef<float> b);
 
-/*! Randomly generated values according to normal distribution */
+/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// apply std::normal_distribution function
+/// to elements a[i % a.nelems] and b[i % b.nelems]
+/// Shapes must be compatible before min_rank of both arguments
+/// Only accept 2 arguments
 template <typename T>
 void rand_normal (T* out, VecRef<T> a, VecRef<T> b)
 {
@@ -387,7 +480,14 @@ void rand_normal<float> (float* out, VecRef<float> a, VecRef<float> b);
 template <>
 void rand_normal<double> (double* out, VecRef<double> a, VecRef<double> b);
 
-/*! Matrix multiplication */
+/// Given 2 arguments, matrix multiply
+/// The # of column of the first argument must match the nrow of the second
+/// Given the arguments and 2 indices, for each argument
+/// form groups [:idx) and [index:rank) and treat dimensions falling in
+/// those ranges as a single dimension (where the shape values must match)
+/// then apply matmul given the grouped shape
+/// For example, given shapea={3, 4, 5}, ai=2, shapeb={7, 8, 3, 4}, bi=2,
+/// output tensor has shape {7, 8, 5}, since {3, 4} in a and b matches
 template <typename T>
 void matmul (T* out, const T* a, const T* b,
 	const ade::Shape& ashape, const ade::Shape& bshape,
@@ -419,7 +519,9 @@ void matmul (T* out, const T* a, const T* b,
 	}
 }
 
-/*! Copy over data from nin to out repeating nin to fit when necessary. */
+/// Given a single input ref and output information
+/// (including length of output vector), copy over data
+/// repeating input data to fit when necessary.
 template <typename T>
 void copyover (T* out, size_t nout, VecRef<T> in)
 {
@@ -436,4 +538,4 @@ void copyover (T* out, size_t nout, VecRef<T> in)
 
 }
 
-#endif /* LLO_OPERATOR_HPP */
+#endif // LLO_OPERATOR_HPP

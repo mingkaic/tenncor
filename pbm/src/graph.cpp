@@ -103,20 +103,20 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 		case ade::N_DIMS:
 		{
 			auto ev = static_cast<llo::DirectWrapper<uint8_t>*>(f);
-			*(meta->Add()) = std::get<0>(ev->args_);
+			*(meta->Add()) = std::get<0>(ev->meta());
 		}
 		break;
 		case ade::MATMUL:
 		{
 			auto ev = static_cast<llo::DirectWrapper<uint8_t,uint8_t>*>(f);
-			*(meta->Add()) = std::get<0>(ev->args_);
-			*(meta->Add()) = std::get<1>(ev->args_);
+			*(meta->Add()) = std::get<0>(ev->meta());
+			*(meta->Add()) = std::get<1>(ev->meta());
 		}
 		break;
 		case ade::PERMUTE:
 		{
 			auto ev = static_cast<llo::DirectWrapper<std::vector<uint8_t>>*>(f);
-			std::vector<uint8_t> slist = std::get<0>(ev->args_);
+			std::vector<uint8_t> slist = std::get<0>(ev->meta());
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());
 			meta->Swap(&vec);
@@ -126,7 +126,7 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 		{
 			auto ev = static_cast<
 				ade::Functor<ade::EXTEND,std::vector<ade::DimT>>*>(f);
-			std::vector<ade::DimT> slist = std::get<0>(ev->meta_);
+			std::vector<ade::DimT> slist = std::get<0>(ev->meta());
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());
 			meta->Swap(&vec);
@@ -136,7 +136,7 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 		{
 			auto ev = static_cast<
 				ade::Functor<ade::RESHAPE,std::vector<ade::DimT>>*>(f);
-			std::vector<ade::DimT> slist = std::get<0>(ev->meta_);
+			std::vector<ade::DimT> slist = std::get<0>(ev->meta());
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());
 			meta->Swap(&vec);
@@ -165,7 +165,7 @@ void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
 			{
 				if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(iter))
 				{
-					auto children = f->get_refs();
+					auto children = f->get_children();
 					for (auto child : children)
 					{
 						q.push(child);
@@ -215,7 +215,7 @@ void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
 		tenncor::Functor* func = pb_node->mutable_functor();
 		ade::OPCODE op = f->get_code();
 		func->set_opcode(op);
-		std::vector<ade::iTensor*> children = f->get_refs();
+		std::vector<ade::iTensor*> children = f->get_children();
 		google::protobuf::RepeatedField<uint32_t> indices;
 		for (ade::iTensor* child : children)
 		{

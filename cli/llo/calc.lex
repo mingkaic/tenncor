@@ -85,17 +85,17 @@ pow		{
 }
 
 binomial	{
-	yylval.int_type = BINO;
+	yylval.int_type = RAND_BINO;
 	return BINARY;
 }
 
 uniform		{
-	yylval.int_type = UNIF;
+	yylval.int_type = RAND_UNIF;
 	return BINARY;
 }
 
 normal		{
-	yylval.int_type = NORM;
+	yylval.int_type = RAND_NORM;
 	return BINARY;
 }
 

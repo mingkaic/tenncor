@@ -5,7 +5,7 @@
 ## Synopsis
 
 Tenncor libraries help developers build and evaluate tensor equations and its derivatives.
-A tensor is an N-dimensional container that organizes its content by some shape. An M by N matrix for instance, is a 2-dimensional tensor with a shape of <N, M> (according to Tenncor's x-y-z-... coordinate notation).
+A tensor is an N-dimensional container that organizes its content by some shape. An M by N matrix for instance, is a 2-dimensional tensor with a shape of [N, M] (according to Tenncor's x-y-z-... coordinate notation).
 
 ## Components
 
@@ -22,6 +22,14 @@ Expect this module to split when I decide to depend on external libraries (like 
 - [PBM (Protobuf Marshaller)](pbm/README_PBM.md)
 
 This module marshals llo-extended ade graph
+
+## Tools and utility
+
+- CLI
+
+- DBG (Debugger)
+
+- Util
 
 ## Building
 

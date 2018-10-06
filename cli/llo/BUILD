@@ -35,8 +35,8 @@ cc_library(
     srcs = glob(["ast/*.cpp"]),
     copts = ["-std=c++14"],
     deps = [
+        "//dbg:dbg",
         "//llo:llo",
-        "//cli/util:util",
     ],
 )
 

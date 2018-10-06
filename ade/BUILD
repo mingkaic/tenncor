@@ -59,8 +59,7 @@ cc_test(
         "test/test_grader.cpp",
     ]),
     deps = [
-        "//ade:ade",
-        "//cli/util:util",
+        "//dbg:dbg",
         "@com_google_googletest//:gtest",
     ],
     copts = ["-std=c++14"],

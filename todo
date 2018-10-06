@@ -1,17 +1,16 @@
-tests:
+correctness:
 - use testify for regression test
 - implement better fallback strategy when test server is unavailable
-- move test generation out of this repo
+- thoroughly test cli
+- update graphmgr and test complicate equations
 
-move out:
-- update graphmgr
-
-readability:
-- improve comments according to some styleguide
-- make comment styles consistent (proably // instead of /* */ )
-- refactor, and rename variables to improve readability
+transparency:
+- combine ade and llo cli into one powerful interactive cli
+- add mechanism to map opname to opcode, so cli can avoid FUNCODE enum
 - add more debugging tools
 - investigate llo api: experiment with top-level code
+- formalize codestyle
+- refactor, and rename variables to improve readability
 
 performance:
 - reduce shared_ptr overhead
@@ -21,6 +20,5 @@ performance:
 features:
 - implement group
 - implement deep copy utility
-- implement clip
-- reuse cli/util/ascii_* for debug tools, and simplify traversal strategy
 - investigate better error handling strategy (perhaps allow error log plugin)
+- implement convolution

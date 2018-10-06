@@ -113,4 +113,4 @@ TEST(ERR, MultiArg)
 }
 
 
-#endif /* DISABLE_ERROR_TEST */
+#endif // DISABLE_ERROR_TEST

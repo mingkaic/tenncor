@@ -11,8 +11,8 @@
 
 #include "llo/api.hpp"
 
-#include "cli/util/ascii_tree.hpp"
-#include "cli/util/ascii_tensor.hpp"
+#include "dbg/ade.hpp"
+#include "dbg/tensor.hpp"
 
 #include "cli/llo/ast/ast.h"
 
@@ -365,9 +365,9 @@ void show_data (struct ASTNode* node)
 		{
 			slist = data.shape_.as_list();
 		}
-		PrettyTensor<double> artist(slist, data_limits);
+		PrettyTensor<double> artist(data_limits);
 		std::cout << prefix;
-		artist.print(std::cout, (double*) data.data_.get());
+		artist.print(std::cout, (double*) data.data_.get(), slist);
 		std::cout << std::endl;
 	}
 	else
@@ -403,45 +403,12 @@ void show_eq (struct ASTNode* node)
 {
 	if (node)
 	{
-		bool showvar = modes.end() != modes.find("showvar");
-		ade::iTensor* root = node->ptr_.get();
-		PrettyTree<ade::iTensor*> artist(
-			[](ade::iTensor*& root) -> std::vector<ade::iTensor*>
-			{
-				if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(root))
-				{
-					return f->get_refs();
-				}
-				return {};
-			},
-			[showvar](std::ostream& out, ade::iTensor*& root)
-			{
-				if (showvar)
-				{
-					auto it = varname.find(root);
-					if (varname.end() != it)
-					{
-						out << it->second << "=";
-					}
-				}
-				if (root)
-				{
-					if (root == ade::Tensor::SYMBOLIC_ONE.get())
-					{
-						out << 1;
-					}
-					else if (root == ade::Tensor::SYMBOLIC_ZERO.get())
-					{
-						out << 0;
-					}
-					else
-					{
-						out << root->to_string();
-					}
-				}
-			});
-
-		artist.print(std::cout, root);
+		PrettyEquation artist;
+		if (modes.end() != modes.find("showvar"))
+		{
+			artist.labels_ = varname;
+		}
+		artist.print(std::cout, node->ptr_);
 	}
 	else
 	{

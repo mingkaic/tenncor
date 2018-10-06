@@ -44,8 +44,8 @@ TEST_F(TENSOR, Gradient)
 	EXPECT_ARREQ(slist, wunrp->shape().as_list());
 	EXPECT_ARREQ(slist, zrorp->shape().as_list());
 
-	std::vector<ade::iTensor*> wun_vec = wunrp->get_refs();
-	std::vector<ade::iTensor*> zro_vec = zrorp->get_refs();
+	std::vector<ade::iTensor*> wun_vec = wunrp->get_children();
+	std::vector<ade::iTensor*> zro_vec = zrorp->get_children();
 	ASSERT_EQ(1, wun_vec.size());
 	ASSERT_EQ(1, zro_vec.size());
 	EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0]);
@@ -71,4 +71,4 @@ TEST_F(TENSOR, ToString)
 }
 
 
-#endif /* DISABLE_TENSOR_TEST */
+#endif // DISABLE_TENSOR_TEST 

@@ -16,11 +16,9 @@ struct EnumHash
 	}
 };
 
-using OpnameMap = std::unordered_map<OPCODE,std::string,EnumHash>;
-
 #define OP_ASSOC(CODE) std::pair<OPCODE,std::string>{CODE, #CODE}
 
-const OpnameMap opnames =
+const std::unordered_map<OPCODE,std::string,EnumHash> opnames =
 {
 	OP_ASSOC(ABS),
 	OP_ASSOC(NEG),
@@ -43,10 +41,12 @@ const OpnameMap opnames =
 	OP_ASSOC(NE),
 	OP_ASSOC(GT),
 	OP_ASSOC(LT),
+	OP_ASSOC(MIN),
+	OP_ASSOC(MAX),
 
-	OP_ASSOC(BINO),
-	OP_ASSOC(UNIF),
-	OP_ASSOC(NORM),
+	OP_ASSOC(RAND_BINO),
+	OP_ASSOC(RAND_UNIF),
+	OP_ASSOC(RAND_NORM),
 
 	OP_ASSOC(N_ELEMS),
 	OP_ASSOC(N_DIMS),
@@ -56,10 +56,13 @@ const OpnameMap opnames =
 	OP_ASSOC(RSUM),
 
 	OP_ASSOC(MATMUL),
+	// OP_ASSOC(CONVOLUTE),
 
 	OP_ASSOC(PERMUTE),
 	OP_ASSOC(EXTEND),
 	OP_ASSOC(RESHAPE),
+
+	// OP_ASSOC(GROUP),
 };
 
 #undef OP_ASSOC

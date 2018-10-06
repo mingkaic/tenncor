@@ -15,4 +15,4 @@ TEST(RAND, UID)
 }
 
 
-#endif /* DISABLE_RAND_TEST */
+#endif // DISABLE_RAND_TEST

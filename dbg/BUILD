@@ -15,8 +15,9 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "util",
+    name = "dbg",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["*.cpp"]),
     copts = ["-std=c++14"],
+    deps = ["//ade:ade"],
 )

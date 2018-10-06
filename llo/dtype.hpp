@@ -1,12 +1,10 @@
-/*!
- *
- *  dtype.hpp
- *  llo
- *
- *  Purpose:
- *  define enumerations for representing types
- *
- */
+///
+/// dtype.hpp
+/// llo
+///
+/// Purpose:
+/// Enumerate tensor data types
+///
 
 #include <string>
 
@@ -16,10 +14,10 @@
 namespace llo
 {
 
-/*! Enumerated representation of data types */
+/// Enumerated representation of data types
 enum DTYPE
 {
-	BAD = 0,
+	BAD = 0, /// Invalid data type
 	DOUBLE,
 	FLOAT,
 	INT8,
@@ -33,13 +31,13 @@ enum DTYPE
 	_SENTINEL
 };
 
-/*! Convert the DTYPE to string */
+/// Return the string name of input DTYPE
 std::string name_type (DTYPE type);
 
-/*! Get size of enumerate type in bytes */
+/// Return the byte size of input DTYPE
 uint8_t type_size (DTYPE type);
 
-/*! Get enumerate type specified in template */
+/// Return the DTYPE of type in template
 template <typename T>
 DTYPE get_type (void)
 {
@@ -78,4 +76,4 @@ DTYPE get_type<uint64_t> (void);
 
 }
 
-#endif /* LLO_DTYPE_HPP */
+#endif // LLO_DTYPE_HPP

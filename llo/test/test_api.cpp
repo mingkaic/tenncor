@@ -593,7 +593,7 @@ TEST_F(API, Mul)
 	[](double a, double b) { return a * b; },
 	[](double a, double b, double leftg, double rightg)
 	{
-		return leftg * a + rightg * b;
+		return leftg * b + rightg * a;
 	});
 }
 
@@ -1090,4 +1090,4 @@ TEST_F(API, Reshape)
 }
 
 
-#endif /* DISABLE_API_TEST */
+#endif // DISABLE_API_TEST

@@ -82,8 +82,8 @@ cc_test(
         "test/test_save.cpp",
     ]),
     deps = [
+        "//dbg:dbg",
         "//pbm:pbm",
-        "//cli/util:util",
         "@com_google_googletest//:gtest",
     ],
     copts = ["-std=c++14"],

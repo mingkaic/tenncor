@@ -10,7 +10,7 @@
 
 #include "ade/functor.hpp"
 
-#include "cli/util/ascii_tree.hpp"
+#include "dbg/ade.hpp"
 
 #include "cli/ade/ast/ast.h"
 
@@ -216,34 +216,12 @@ void show_eq (struct ASTNode* node)
 {
 	if (node)
 	{
-		bool showvar = modes.end() != modes.find("showvar");
-		ade::iTensor* root = node->ptr_.get();
-		PrettyTree<ade::iTensor*> artist(
-			[](ade::iTensor*& root) -> std::vector<ade::iTensor*>
-			{
-				if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(root))
-				{
-					return f->get_refs();
-				}
-				return {};
-			},
-			[showvar](std::ostream& out, ade::iTensor*& root)
-			{
-				if (showvar)
-				{
-					auto it = varname.find(root);
-					if (varname.end() != it)
-					{
-						out << it->second << "=";
-					}
-				}
-				if (root)
-				{
-					out << root->to_string();
-				}
-			});
-
-		artist.print(std::cout, root);
+		PrettyEquation artist;
+		if (modes.end() != modes.find("showvar"))
+		{
+			artist.labels_ = varname;
+		}
+		artist.print(std::cout, node->ptr_);
 	}
 	else
 	{

@@ -26,10 +26,12 @@ enum FUNCODE
 	NE,
 	LT,
 	GT,
+	MIN,
+	MAX,
 
-	BINO,
-	UNIF,
-	NORM,
+	RAND_BINO,
+	RAND_UNIF,
+	RAND_NORM,
 
 	NELEMS,
 	NDIMS,
@@ -39,6 +41,7 @@ enum FUNCODE
 	RSUM,
 
 	MATMUL,
+	CONVOLUTE,
 
 	PERMUTE,
 	EXTEND,

@@ -1,12 +1,10 @@
-/*!
- *
- *  tensor.hpp
- *  ade
- *
- *  Purpose:
- *  define building blocks for an equation tree
- *
- */
+///
+///	tensor.hpp
+///	ade
+///
+///	Purpose:
+///	Define interfaces and building blocks for an equation graph
+///
 
 #include <memory>
 
@@ -22,24 +20,22 @@ namespace ade
 
 struct Tensorptr;
 
-/*! Tensor interface for ensuring derivation functionality */
+/// Interface for ensuring derivation functionality, and shape encapsulation
 struct iTensor
 {
 	virtual ~iTensor (void) = default;
 
-	/*! return the shape held by this tensor */
+	/// Return the shape held by this tensor
 	virtual const Shape& shape (void) const = 0;
 
-	/*! given a tensor to derive with respect to,
-	return the root tensor of the partial derivative subtree */
+	/// Return the root of the partial derivative with respect to input wrt
 	virtual Tensorptr gradient (Tensorptr& wrt) const = 0;
 
-	/*! return the string representation of the tensor
-	(commonly for debug purposes) */
+	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;
 };
 
-/*! iTensor smart pointer ensuring non-null references */
+/// Smart pointer to iTensor ensuring non-null references
 struct Tensorptr
 {
 	Tensorptr (iTensor& tens) :
@@ -66,51 +62,51 @@ struct Tensorptr
 		return ptr_.get();
 	}
 
-	/*! return the raw pointer */
+	/// Return the raw pointer
 	iTensor* get (void) const
 	{
 		return ptr_.get();
 	}
 
-	/*! return the weakptr reference */
+	/// Return the weakptr reference
 	std::weak_ptr<iTensor> ref (void) const
 	{
 		return ptr_;
 	}
 
 protected:
-	/*! strong reference to iTensor */
+	/// Strong reference to iTensor
 	std::shared_ptr<iTensor> ptr_;
 };
 
-/*! Reshaping Tensor::SYMBOLIC_ONE to input shape */
+/// Return a Tensor::SYMBOLIC_ONE reshaped to input shape
 Tensorptr constant_one (std::vector<DimT> shape);
 
-/*! Reshaping Tensor::SYMBOLIC_ZERO to input shape */
+/// Return a Tensor::SYMBOLIC_ZERO reshaped to input shape
 Tensorptr constant_zero (std::vector<DimT> shape);
 
-/*! Tensor implementation representing leaf node in operation graph */
+/// Leaf of the graph commonly representing the variable in an equation
 struct Tensor final : public iTensor
 {
-	/*! representation for a scalar containing value one */
+	/// Represent a scalar containing value one
 	static Tensorptr SYMBOLIC_ONE;
 
-	/*! representation for a scalar containing value zero */
+	/// Represent a scalar containing value zero
 	static Tensorptr SYMBOLIC_ZERO;
 
-	/*! build a tensor of input shape */
+	/// Return a Tensor with input shape
 	static Tensorptr get (Shape shape)
 	{
 		return new Tensor(shape);
 	}
 
-	/*! implementation of iTensor  */
+	/// Implementation of iTensor
 	const Shape& shape (void) const override
 	{
 		return shape_;
 	}
 
-	/*! implementation of iTensor  */
+	/// Implementation of iTensor
 	Tensorptr gradient (Tensorptr& wrt) const override
 	{
 		std::vector<DimT> shape = wrt->shape().as_list();
@@ -121,7 +117,7 @@ struct Tensor final : public iTensor
 		return constant_zero(shape);
 	}
 
-	/*! implementation of iTensor  */
+	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
 		return shape_.to_string();
@@ -130,10 +126,10 @@ struct Tensor final : public iTensor
 private:
 	Tensor (Shape shape) : shape_(shape) {}
 
-	/*! internal shape  */
+	/// Shape info of the tensor instance
 	Shape shape_;
 };
 
 }
 
-#endif /* ADE_TENSOR_HPP */
+#endif // ADE_TENSOR_HPP

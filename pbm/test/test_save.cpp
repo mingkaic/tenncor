@@ -78,4 +78,4 @@ TEST(SAVE, SaveGraph)
 }
 
 
-#endif /* DISABLE_SAVE_TEST */
+#endif // DISABLE_SAVE_TEST

@@ -38,7 +38,7 @@ TEST_F(FUNCTOR, Gradient)
 		ASSERT_NE(nullptr, wunrp);
 
 		EXPECT_STREQ(expectlabel.c_str(), wunrp->to_string().c_str());
-		std::vector<ade::iTensor*> wun_vec = wunrp->get_refs();
+		std::vector<ade::iTensor*> wun_vec = wunrp->get_children();
 		ASSERT_EQ(1, wun_vec.size());
 		EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0]);
 	}
@@ -50,9 +50,9 @@ TEST_F(FUNCTOR, Gradient)
 	ASSERT_NE(nullptr, p01);
 	ASSERT_NE(nullptr, p00);
 
-	auto args10 = p10->get_refs();
-	auto args01 = p01->get_refs();
-	auto args00 = p00->get_refs();
+	auto args10 = p10->get_children();
+	auto args01 = p01->get_children();
+	auto args00 = p00->get_children();
 	ASSERT_EQ(2, args10.size());
 	ASSERT_EQ(2, args01.size());
 	ASSERT_EQ(2, args00.size());
@@ -67,8 +67,8 @@ TEST_F(FUNCTOR, Gradient)
 
 		EXPECT_STREQ(expectlabel.c_str(), wunrp->to_string().c_str());
 		EXPECT_STREQ(expectlabel.c_str(), zrorp->to_string().c_str());
-		std::vector<ade::iTensor*> wun_vec = wunrp->get_refs();
-		std::vector<ade::iTensor*> zro_vec = zrorp->get_refs();
+		std::vector<ade::iTensor*> wun_vec = wunrp->get_children();
+		std::vector<ade::iTensor*> zro_vec = zrorp->get_children();
 		ASSERT_EQ(1, wun_vec.size());
 		ASSERT_EQ(1, zro_vec.size());
 		EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0]);
@@ -85,8 +85,8 @@ TEST_F(FUNCTOR, Gradient)
 
 		EXPECT_STREQ(expectlabel.c_str(), zrorp->to_string().c_str());
 		EXPECT_STREQ(expectlabel.c_str(), wunrp->to_string().c_str());
-		std::vector<ade::iTensor*> zro_vec = zrorp->get_refs();
-		std::vector<ade::iTensor*> wun_vec = wunrp->get_refs();
+		std::vector<ade::iTensor*> zro_vec = zrorp->get_children();
+		std::vector<ade::iTensor*> wun_vec = wunrp->get_children();
 		ASSERT_EQ(1, zro_vec.size());
 		ASSERT_EQ(1, wun_vec.size());
 		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), zro_vec[0]);
@@ -103,8 +103,8 @@ TEST_F(FUNCTOR, Gradient)
 
 		EXPECT_STREQ(expectlabel.c_str(), zrorp->to_string().c_str());
 		EXPECT_STREQ(expectlabel.c_str(), zrorp2->to_string().c_str());
-		std::vector<ade::iTensor*> zro_vec = zrorp->get_refs();
-		std::vector<ade::iTensor*> zro_vec2 = zrorp2->get_refs();
+		std::vector<ade::iTensor*> zro_vec = zrorp->get_children();
+		std::vector<ade::iTensor*> zro_vec2 = zrorp2->get_children();
 		ASSERT_EQ(1, zro_vec.size());
 		ASSERT_EQ(1, zro_vec2.size());
 		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), zro_vec[0]);
@@ -113,15 +113,15 @@ TEST_F(FUNCTOR, Gradient)
 }
 
 
-TEST_F(FUNCTOR, Refs)
+TEST_F(FUNCTOR, Childrens)
 {
-	SESSION sess = get_session("FUNCTOR::Refs");
+	SESSION sess = get_session("FUNCTOR::Childrens");
 
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
 	ade::OPCODE unary = (ade::OPCODE) sess->get_scalar("unary_op", {ade::ABS, ade::FLIP});
-	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op", {ade::POW, ade::NORM});
+	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op", {ade::POW, ade::RAND_NORM});
 
 	ade::Tensorptr fu = ade::runtime_functor(unary, {leaf});
 	ade::Tensorptr fb = ade::runtime_functor(binary, {leaf, leaf1});
@@ -130,9 +130,9 @@ TEST_F(FUNCTOR, Refs)
 	ASSERT_NE(nullptr, fb.get());
 
 	std::vector<ade::iTensor*> ref =
-		static_cast<ade::iFunctor*>(fu.get())->get_refs();
+		static_cast<ade::iFunctor*>(fu.get())->get_children();
 	std::vector<ade::iTensor*> refs =
-		static_cast<ade::iFunctor*>(fb.get())->get_refs();
+		static_cast<ade::iFunctor*>(fb.get())->get_children();
 
 	ASSERT_EQ(1, ref.size());
 	EXPECT_EQ(leaf.get(), ref[0]);
@@ -150,7 +150,7 @@ TEST_F(FUNCTOR, ToString)
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
 	ade::OPCODE unary = (ade::OPCODE) sess->get_scalar("unary_op", {ade::ABS, ade::FLIP});
-	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op", {ade::POW, ade::NORM});
+	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op", {ade::POW, ade::RAND_NORM});
 
 	ade::Tensorptr fu = ade::runtime_functor(unary, {leaf});
 	ade::Tensorptr fb = ade::runtime_functor(binary, {leaf, leaf1});
@@ -166,4 +166,4 @@ TEST_F(FUNCTOR, ToString)
 }
 
 
-#endif /* DISABLE_FUNCTOR_TEST */
+#endif // DISABLE_FUNCTOR_TEST

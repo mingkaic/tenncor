@@ -1,12 +1,10 @@
-/*!
- *
- *  functor.hpp
- *  ade
- *
- *  Purpose:
- *  define traversible tensor extension
- *
- */
+///
+///	functor.hpp
+///	ade
+///
+///	Purpose:
+///	Define functor nodes of an equation graph
+///
 
 #include <algorithm>
 
@@ -22,59 +20,61 @@
 namespace ade
 {
 
-/*! Traversible extension of Tensor interface */
+/// Interface for ensuring OPCODE mapping and children accessor
 struct iFunctor : public iTensor
 {
 	virtual ~iFunctor (void) = default;
 
-	/*! get opcode mapping to forward and gradient operators */
+	/// Return OPCODE mapping to forward and gradient operators
 	virtual OPCODE get_code (void) const = 0;
 
-	/*! get arguments as raw pointers */
-	virtual std::vector<iTensor*> get_refs (void) const = 0;
+	/// Return children nodes as a vector of raw pointers
+	virtual std::vector<iTensor*> get_children (void) const = 0;
 };
 
-/*! Tensor implementation representing an operation specified in OPCODE  */
-template <OPCODE opcode, typename... Args>
+/// Functor of the graph mapping to operators specified in OPCODE template
+/// ARGS template captures non-tensor arguments used for certain operators
+template <OPCODE opcode, typename... ARGS>
 struct Functor final : public iFunctor
 {
-	static Tensorptr get (std::vector<Tensorptr> args, Args... meta)
+	/// Return a Functor with with input tensor and meta arguments
+	static Tensorptr get (std::vector<Tensorptr> args, ARGS... meta)
 	{
-		std::tuple<Args...> tp(meta...);
-		return new Functor(forwarder<opcode,Args...>(args,
-			std::forward<Args>(meta)...), args, tp);
+		std::tuple<ARGS...> tp(meta...);
+		return new Functor(forwarder<opcode,ARGS...>(args,
+			std::forward<ARGS>(meta)...), args, tp);
 	}
 
-	/*! implementation of iTensor  */
+	/// Implementation of iTensor
 	const Shape& shape (void) const override
 	{
 		return shape_;
 	}
 
-	/*! implementation of iTensor  */
+	/// Implementation of iTensor
 	Tensorptr gradient (Tensorptr& wrt) const override
 	{
 		if (wrt.get() == this)
 		{
 			return constant_one(wrt->shape().as_list());
 		}
-		return grad_helper(wrt, std::index_sequence_for<Args...>());
+		return grad_helper(wrt, std::index_sequence_for<ARGS...>());
 	}
 
-	/*! implementation of iTensor  */
+	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
 		return opname(opcode) + "<" + util::tuple_to_string(meta_) + ">";
 	}
 
-	/*! implementation of iFunctor  */
+	/// Implementation of iFunctor
 	OPCODE get_code (void) const override
 	{
 		return opcode;
 	}
 
-	/*! implementation of iFunctor  */
-	std::vector<iTensor*> get_refs (void) const override
+	/// Implementation of iFunctor
+	std::vector<iTensor*> get_children (void) const override
 	{
 		std::vector<iTensor*> out(args_.size());
 		std::transform(args_.begin(), args_.end(), out.begin(),
@@ -85,33 +85,42 @@ struct Functor final : public iFunctor
 		return out;
 	}
 
-	/*! metadata for forward operator  */
-	std::tuple<Args...> meta_;
+	/// Return extra non-tensor arguments
+	const std::tuple<ARGS...>& meta (void) const
+	{
+		return meta_;
+	}
 
 private:
 	Functor (Shape shape, std::vector<Tensorptr> args,
-		std::tuple<Args...>& meta) :
-		meta_(meta), args_(args), shape_(shape) {}
+		std::tuple<ARGS...>& meta) :
+		args_(args), meta_(meta), shape_(shape) {}
 
 	template <size_t... I>
 	Tensorptr grad_helper (Tensorptr& wrt, std::index_sequence<I...>) const
 	{
-		return grader<opcode,Args...>(args_, wrt, std::get<I>(meta_)...);
+		return grader<opcode,ARGS...>(args_, wrt, std::get<I>(meta_)...);
 	}
 
-	/*! functor argument  */
+	/// Tensor arguments (and children)
 	std::vector<Tensorptr> args_;
 
-	/*! internal shape  */
+	/// Extra arguments for certain operators
+	/// These arguments are hidden to ensure shape is correct
+	/// since meta data can influence shape
+	std::tuple<ARGS...> meta_;
+
+	/// Shape info built at construction time according to arguments
 	Shape shape_;
 };
 
-#define MAPCASE(CODE)case CODE: return Functor<CODE,Args...>::get(args, meta...);
+#define MAPCASE(CODE)case CODE:\
+return Functor<CODE,ARGS...>::get(args, meta...);
 
-/*! Create functor of opcode determined at runtime  */
-template <typename... Args>
+/// Return Functor of non-template OPCODE useful for runtime OPCODE generation
+template <typename... ARGS>
 Tensorptr runtime_functor (OPCODE opcode,
-	std::vector<Tensorptr> args, Args... meta)
+	std::vector<Tensorptr> args, ARGS... meta)
 {
 	switch (opcode)
 	{
@@ -135,9 +144,11 @@ Tensorptr runtime_functor (OPCODE opcode,
 		MAPCASE(NE)
 		MAPCASE(LT)
 		MAPCASE(GT)
-		MAPCASE(BINO)
-		MAPCASE(UNIF)
-		MAPCASE(NORM)
+		MAPCASE(MIN)
+		MAPCASE(MAX)
+		MAPCASE(RAND_BINO)
+		MAPCASE(RAND_UNIF)
+		MAPCASE(RAND_NORM)
 		MAPCASE(N_ELEMS)
 		MAPCASE(N_DIMS)
 		MAPCASE(ARGMAX)
@@ -156,4 +167,4 @@ Tensorptr runtime_functor (OPCODE opcode,
 
 }
 
-#endif /* ADE_FUNCTOR_HPP */
+#endif // ADE_FUNCTOR_HPP
