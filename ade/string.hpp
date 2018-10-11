@@ -1,6 +1,6 @@
 ///
-/// strify.hpp
-/// util
+/// string.hpp
+/// ade
 ///
 /// Purpose:
 /// Define string conversions for displaying various types
@@ -12,10 +12,10 @@
 #include <tuple>
 #include <vector>
 
-#ifndef UTIL_STRIFY_HPP
-#define UTIL_STRIFY_HPP
+#ifndef ADE_STRING_HPP
+#define ADE_STRING_HPP
 
-namespace util
+namespace ade
 {
 
 const char BEGIN = '[';
@@ -74,7 +74,7 @@ void to_stream (std::ostream& s, T val, Args... args)
 
 /// Return string representation of a tuple content given a specific sequence
 template <typename Tuple, size_t... I>
-std::string tuple_to_string (const Tuple& tp, std::index_sequence<I...>)
+std::string to_string (const Tuple& tp, std::index_sequence<I...>)
 {
 	std::stringstream ss;
 	to_stream(ss, std::get<I>(tp)...);
@@ -83,11 +83,20 @@ std::string tuple_to_string (const Tuple& tp, std::index_sequence<I...>)
 
 /// Return string representation of a tuple content in order stored
 template <typename... Args>
-std::string tuple_to_string (const std::tuple<Args...>& tp)
+std::string to_string (const std::tuple<Args...>& tp)
 {
-	return tuple_to_string(tp, std::index_sequence_for<Args...>());
+	return to_string(tp, std::index_sequence_for<Args...>());
+}
+
+/// Return string representation for common arguments
+template <typename T>
+std::string to_string (T arg)
+{
+	std::stringstream ss;
+	to_stream(ss, arg);
+	return ss.str();
 }
 
 }
 
-#endif // UTIL_STRIFY_HPP
+#endif // ADE_STRING_HPP

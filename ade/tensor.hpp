@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "util/error.hpp"
+#include "ade/log.hpp"
 
 #include "ade/shape.hpp"
 
@@ -46,7 +46,7 @@ struct Tensorptr
 	{
 		if (nullptr == tens)
 		{
-			util::handle_error("init nodeptr with nullptr");
+			fatal("cannot create nodeptr with nullptr");
 		}
 	}
 

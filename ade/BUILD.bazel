@@ -9,15 +9,12 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
-    ]) + ["BUILD"],
+    ]) + ["BUILD.bazel"],
 )
 
 filegroup(
     name = "test_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
+    srcs = glob(["test/**/*.cpp"]),
 )
 
 filegroup(
@@ -32,21 +29,25 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["//util:util"],
 )
 
 ######### TEST #########
 
 cc_test(
+    name = "test_util",
+    size = "small",
+    srcs = glob(["test/util/*.cpp"]),
+    deps = [
+        "//ade:ade",
+        "@com_google_googletest//:gtest",
+    ],
+    copts = ["-std=c++14"],
+)
+
+cc_test(
     name = "test_dynamic",
     size = "small",
-    srcs = [
-        "test/dmain.cpp",
-        "test/test_functor.cpp",
-        "test/test_fwder.cpp",
-        "test/test_shape.cpp",
-        "test/test_tensor.cpp",
-    ],
+    srcs = glob(["test/dynamic/*.cpp"]),
     deps = ["//testutil:testutil"],
     copts = ["-std=c++14"],
 )
@@ -54,10 +55,7 @@ cc_test(
 cc_test(
     name = "test_static",
     size = "small",
-    srcs = glob([
-        "test/smain.cpp",
-        "test/test_grader.cpp",
-    ]),
+    srcs = glob(["test/static/*.cpp"]),
     deps = [
         "//dbg:dbg",
         "@com_google_googletest//:gtest",

@@ -5,6 +5,12 @@
 namespace llo
 {
 
+EngineT& get_engine (void)
+{
+	static EngineT engine;
+	return engine;
+}
+
 template <>
 void abs<uint8_t> (uint8_t* out, VecRef<uint8_t> in)
 {
@@ -61,7 +67,7 @@ void rand_binom<double> (double* out, VecRef<double> a, VecRef<double> b)
 	{
 		std::binomial_distribution<int64_t> dist(
 			a.data[i % a.n], b.data[i % b.n]);
-		out[i] = dist(util::get_engine());
+		out[i] = dist(get_engine());
 	}
 }
 
@@ -73,7 +79,7 @@ void rand_binom<float> (float* out, VecRef<float> a, VecRef<double> b)
 	{
 		std::binomial_distribution<int32_t> dist(
 			a.data[i % a.n], b.data[i % b.n]);
-		out[i] = dist(util::get_engine());
+		out[i] = dist(get_engine());
 	}
 }
 
@@ -84,7 +90,7 @@ void rand_uniform<double> (double* out, VecRef<double> a, VecRef<double> b)
 	[](const double& a, const double& b)
 	{
 		std::uniform_real_distribution<double> dist(a, b);
-		return dist(util::get_engine());
+		return dist(get_engine());
 	});
 }
 
@@ -95,7 +101,7 @@ void rand_uniform<float> (float* out, VecRef<float> a, VecRef<float> b)
 	[](const float& a, const float& b)
 	{
 		std::uniform_real_distribution<float> dist(a, b);
-		return dist(util::get_engine());
+		return dist(get_engine());
 	});
 }
 
@@ -106,7 +112,7 @@ void rand_normal<float> (float* out, VecRef<float> a, VecRef<float> b)
 	[](const float& a, const float& b) -> float
 	{
 		std::normal_distribution<float> dist(a, b);
-		return dist(util::get_engine());
+		return dist(get_engine());
 	});
 }
 
@@ -117,7 +123,7 @@ void rand_normal<double> (double* out, VecRef<double> a, VecRef<double> b)
 	[](const double& a, const double& b) -> double
 	{
 		std::normal_distribution<double> dist(a, b);
-		return dist(util::get_engine());
+		return dist(get_engine());
 	});
 }
 

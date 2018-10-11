@@ -9,7 +9,7 @@ load("@org_pubref_rules_protobuf//python:rules.bzl", "py_proto_library")
 
 filegroup(
     name = "srcs",
-    srcs = [":protos", "BUILD"],
+    srcs = [":protos", "BUILD.bazel"],
 )
 
 filegroup(

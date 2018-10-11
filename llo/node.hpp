@@ -54,9 +54,8 @@ struct Source final : public iSource
 	{
 		if (shape.n_elems() != data.size())
 		{
-			util::handle_error("data size does not match shape",
-				util::ErrArg<size_t>("data.size", data.size()),
-				util::ErrArg<size_t>("shape.n_elems", shape.n_elems()));
+			ade::fatalf("data size %d does not match shape %s",
+				data.size(), shape.to_string());
 		}
 		return new Source(shape, data);
 	}
@@ -158,7 +157,7 @@ struct DirectWrapper final : public ade::iFunctor, public iEvaluable
 	{
 		if (nullptr == dynamic_cast<ade::iFunctor*>(tens.get()))
 		{
-			util::handle_error("wrapping non-functor");
+			ade::fatal("wrapping non-functor");
 		}
 		std::tuple<ARGS...> tp(args...);
 		return new DirectWrapper(tens, tp);
@@ -184,7 +183,7 @@ struct DirectWrapper final : public ade::iFunctor, public iEvaluable
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return "Wrapper_" + opname(get_code()) + "<" + util::tuple_to_string(meta_) + ">";
+		return "Wrapper_" + opname(get_code()) + "<" + ade::to_string(meta_) + ">";
 	}
 
 	/// Implementation of iFunctor

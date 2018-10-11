@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "util/error.hpp"
+#include "ade/log.hpp"
 
 #include "ade/fwder.hpp"
 
@@ -16,17 +16,15 @@ template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
 #define SCALAR(CODE)\
 template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
 { if (1 != tens.size()) {\
-	util::handle_error("wrong number of arguments (expected 1)",\
-		util::ErrArg<size_t>("got", tens.size()));\
+	fatalf("cannot %s for non-single argument(s): "\
+		"using %d arguments", #CODE, tens.size());\
 } return Shape(); }
 
 static Shape bijection (std::vector<Tensorptr> args, std::string op)
 {
 	if (args.size() == 0)
 	{
-		util::handle_error(op +
-			" error: creating elementary shape from no args",
-			util::ErrArg<size_t>{"num_args", args.size()});
+		fatalf("cannot %s with no arguments", op);
 	}
 
 	Shape outshape = args[0]->shape();
@@ -40,10 +38,8 @@ static Shape bijection (std::vector<Tensorptr> args, std::string op)
 		if (false == shape.compatible_before(outshape,
 			std::min(outrank, rank)) && std::min(nelems, outn) > 1)
 		{
-			util::handle_error(op + " error: incompatible shapes",
-				util::ErrArg<std::vector<DimT>>{"outshape",
-					outshape.as_list()},
-				util::ErrArg<std::vector<DimT>>{"shape", shape.as_list()});
+			fatalf("cannot %s with incompatible shapes %s and %s",
+				op, outshape.to_string(), shape.to_string());
 		}
 		if (nelems > outn)
 		{
@@ -101,16 +97,16 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 {
 	if (2 != tens.size())
 	{
-		util::handle_error("wrong number of arguments (expected 2)",
-			util::ErrArg<size_t>("got", tens.size()));
+		fatalf("cannot MATMUL without 2 arguments: "
+			"using %d arguments", tens.size());
 	}
 	if (agroup_idx == 0)
 	{
-		util::handle_error("agroup_idx == 0");
+		fatal("agroup_idx == 0");
 	}
 	if (bgroup_idx == 0)
 	{
-		util::handle_error("bgroup_idx == 0");
+		fatal("bgroup_idx == 0");
 	}
 	const Shape& ashape = tens[0]->shape();
 	const Shape& bshape = tens[1]->shape();
@@ -118,24 +114,21 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 	uint8_t brank = bshape.n_rank();
 	if (agroup_idx > arank)
 	{
-		util::handle_error("agroup_idx > rank",
-			util::ErrArg<size_t>("agroup_idx", agroup_idx),
-			util::ErrArg<size_t>("rank", arank));
+		fatalf("agroup_idx %d > rank %d",
+			agroup_idx, arank);
 	}
 	if (bgroup_idx > brank)
 	{
-		util::handle_error("bgroup_idx > rank",
-			util::ErrArg<size_t>("bgroup_idx", bgroup_idx),
-			util::ErrArg<size_t>("rank", brank));
+		fatalf("bgroup_idx %d > rank %d",
+			bgroup_idx, brank);
 	}
 	const auto ait = ashape.begin();
 	const auto bit = bshape.begin();
 	if (false == std::equal(ait, ait + agroup_idx, bit + bgroup_idx) ||
 		agroup_idx != (bshape.n_rank() - bgroup_idx))
 	{
-		util::handle_error("incompatible common dimension in matmul",
-			util::ErrArg<std::vector<DimT>>{"a", ashape.as_list()},
-			util::ErrArg<std::vector<DimT>>{"b", bshape.as_list()});
+		fatalf("incompatible common dimensions in matmuling %s, %s",
+			ashape.to_string(), bshape.to_string());
 	}
 
 	std::vector<DimT> outlist(bit, bit + bgroup_idx);
@@ -149,8 +142,8 @@ Shape forwarder<PERMUTE,std::vector<uint8_t>> (
 {
 	if (1 != tens.size())
 	{
-		util::handle_error("wrong number of arguments (expected 1)",
-			util::ErrArg<size_t>("got", tens.size()));
+		fatalf("cannot PERMUTE non-single argument(s): "
+			"using %d arguments", tens.size());
 	}
 	const Shape& shape = tens[0]->shape();
 	bool visited[rank_cap];
@@ -177,24 +170,27 @@ Shape forwarder<EXTEND,std::vector<DimT>> (
 {
 	if (1 != tens.size())
 	{
-		util::handle_error("wrong number of arguments (expected 1)",
-			util::ErrArg<size_t>("got", tens.size()));
+		fatalf("cannot EXTEND non-single argument(s): "
+			"using %d arguments", tens.size());
 	}
+	ade::Shape shape = tens[0]->shape();
 	if (0 == ext.size())
 	{
-		util::handle_error("empty extension to shape");
+		warn("EXTENDing with empty vector... created useless node");
 	}
-	if ((tens[0]->shape().n_rank() + ext.size()) > rank_cap)
+	else
 	{
-		util::handle_error(
-			"failed attempt to extend dimension to beyond rank_cap",
-			util::ErrArg<std::vector<DimT>>("shape",
-				tens[0]->shape().as_list()),
-			util::ErrArg<std::vector<DimT>>("ext", ext));
+		if ((shape.n_rank() + ext.size()) > rank_cap)
+		{
+			fatalf("cannot EXTEND dimension beyond rank_cap using "
+				"vector %s on shape %s",
+				to_string(ext), shape.to_string());
+		}
+		std::vector<DimT> outlist = shape.as_list();
+		outlist.insert(outlist.end(), ext.begin(), ext.end());
+		shape = Shape(outlist);
 	}
-	std::vector<DimT> outlist = tens[0]->shape().as_list();
-	outlist.insert(outlist.end(), ext.begin(), ext.end());
-	return Shape(outlist);
+	return shape;
 }
 
 template <>
@@ -203,17 +199,17 @@ Shape forwarder<RESHAPE,std::vector<DimT>> (
 {
 	if (1 != tens.size())
 	{
-		util::handle_error("wrong number of arguments (expected 1)",
-			util::ErrArg<size_t>("got", tens.size()));
+		fatalf("cannot RESHAPE non-single argument(s): "
+			"using %d arguments", tens.size());
 	}
+	Shape inshape = tens[0]->shape();
 	Shape outshape(outlist);
-	NElemT nin = tens[0]->shape().n_elems();
+	NElemT nin = inshape.n_elems();
 	NElemT nout = outshape.n_elems();
 	if (1 < nin && nin != nout)
 	{
-		util::handle_error("input can't be easily expanded to output",
-			util::ErrArg<NElemT>("nin", nin),
-			util::ErrArg<NElemT>("nout", nout));
+		fatalf("cannot RESHAPE non-scalar to shape %s with different "
+			"nelems (shape %s)", inshape.to_string(), outshape.to_string());
 	}
 	return outshape;
 }

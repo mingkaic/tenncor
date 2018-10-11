@@ -9,14 +9,13 @@ package(
 filegroup(
     name = "srcs",
     srcs = [
-        "BUILD",
         "//ade:srcs",
         "//cli/ade:srcs",
         "//cli/llo:srcs",
         "//cli/utils:srcs",
         "//llo:srcs",
         "//pbm:srcs",
-        "//utils:srcs",
+        "BUILD.bazel",
     ],
 )
 
@@ -26,7 +25,6 @@ filegroup(
         "//ade:test_srcs",
         "//llo:test_srcs",
         "//pbm:test_srcs",
-        "//utils:test_srcs",
         "//testutil:srcs",
     ],
 )

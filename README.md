@@ -29,8 +29,6 @@ This module marshals llo-extended ade graph
 
 - DBG (Debugger)
 
-- Util
-
 ## Building
 
 Tenncor uses bazel 0.9+.

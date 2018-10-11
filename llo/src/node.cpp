@@ -34,7 +34,7 @@ static void fill_one (char* cptr, size_t n, DTYPE dtype)
 		case UINT64:
 			FILL_ONE(uint64_t)
 		default:
-			util::handle_error("evaluating unknown type");
+			ade::fatal("evaluating unknown type");
 	}
 }
 
@@ -70,8 +70,8 @@ GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 	{
 		if (nargs != 2)
 		{
-			util::handle_error("RAND_BINO op does not have 2 args",
-				util::ErrArg<size_t>("nargs", nargs));
+			ade::fatalf("cannot RAND_BINO without 2 arguments: "
+				"using %d arguments", nargs);
 		}
 		argdata[0] = evaluate(dtype, refs[0]);
 		argdata[1] = evaluate(DOUBLE, refs[1]);

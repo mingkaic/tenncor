@@ -338,14 +338,12 @@ TEST_F(FWDER, EXTEND)
 	{
 		ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({leaf}, bad_ext);
 	};
-	auto fail3 = [&]()
-	{
-		ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({leaf}, {});
-	};
 	EXPECT_THROW(fail(), std::runtime_error);
 	EXPECT_THROW(fail1(), std::runtime_error);
 	EXPECT_THROW(fail2(), std::runtime_error);
-	EXPECT_THROW(fail3(), std::runtime_error);
+	ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({leaf}, {});
+	EXPECT_STREQ("EXTENDing with empty vector... created useless node",
+		TestLogger::latest_warning_.c_str());
 
 	ade::Shape copied = ade::forwarder<ade::EXTEND,
 		std::vector<ade::DimT>>({leaf}, ext);
@@ -423,4 +421,4 @@ TEST_F(FWDER, RESHAPE)
 }
 
 
-#endif // DISABLE_FWDER_TEST 
+#endif // DISABLE_FWDER_TEST

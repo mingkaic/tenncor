@@ -6,7 +6,7 @@ package(
 
 filegroup(
     name = "srcs",
-    srcs = glob(["*.hpp", "*.cpp"]) + ["BUILD"],
+    srcs = glob(["*.hpp", "*.cpp"]) + ["BUILD.bazel"],
 )
 
 ######### LIBRARY #########

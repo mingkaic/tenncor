@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("//:yacc.bzl", "genyacc", "genlex")
+load("//cli:yacc.bzl", "genyacc", "genlex")
 
 filegroup(
     name = "srcs",
@@ -8,7 +8,7 @@ filegroup(
         "**/*.h", "*.c",
         "ast/*.hpp", "ast/*.cpp",
     ]) + [
-        "BUILD",
+        "BUILD.bazel",
         "ascii/srcs",
     ],
     visibility = ["//visibility:public"],

@@ -6,7 +6,7 @@ package(
 
 filegroup(
     name = "srcs",
-    srcs = glob(["*.py"]) + ["BUILD"],
+    srcs = glob(["*.py"]) + ["BUILD.bazel"],
 )
 
 ######### LIBRARY #########

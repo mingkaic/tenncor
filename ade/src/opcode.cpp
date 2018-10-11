@@ -65,8 +65,6 @@ const std::unordered_map<OPCODE,std::string,EnumHash> opnames =
 	// OP_ASSOC(GROUP),
 };
 
-#undef OP_ASSOC
-
 std::string opname (OPCODE opcode)
 {
 	auto it = opnames.find(opcode);
@@ -76,6 +74,8 @@ std::string opname (OPCODE opcode)
 	}
 	return it->second;
 }
+
+#undef OP_ASSOC
 
 }
 

@@ -1,5 +1,9 @@
 #include "testutil/common.hpp"
 
+std::string TestLogger::latest_warning_;
+std::string TestLogger::latest_error_;
+std::string TestLogger::latest_fatal_;
+
 std::vector<ade::DimT> get_shape_n (SESSION& sess, size_t n, std::string label)
 {
 	int32_t max_elem = std::log(nelem_limit) / std::log(n);

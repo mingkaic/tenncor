@@ -12,7 +12,7 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
-    ]) + [":protos", "BUILD"],
+    ]) + [":protos", "BUILD.bazel"],
 )
 
 filegroup(
@@ -41,25 +41,17 @@ filegroup(
 proto_library(
     name = "proto_lib",
     srcs = ["//pbm:protos"],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:empty_proto",
-    ],
 )
 
 cc_proto_library(
     name = "cc_proto",
     protos = ["//pbm:protos"],
-    imports = ["external/com_google_protobuf/src"],
-    inputs = ["@com_google_protobuf//:well_known_protos"],
     with_grpc = False,
 )
 
 py_proto_library(
     name = "py_proto",
     protos = ["//pbm:protos"],
-    imports = ["external/com_google_protobuf/src"],
-    inputs = ["@com_google_protobuf//:well_known_protos"],
     with_grpc = False,
 )
 
@@ -68,7 +60,10 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["//llo:llo", ":cc_proto"],
+    deps = [
+        "//llo:llo",
+        "//pbm:cc_proto",
+    ],
 )
 
 ######### TEST #########

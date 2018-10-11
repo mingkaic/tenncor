@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "util/error.hpp"
+#include "ade/log.hpp"
 
 #include "llo/data.hpp"
 
@@ -41,8 +41,7 @@ static void to_generic (char* out, DTYPE out_type, T* data, size_t n)
 		case UINT32: COPYOVER(uint32_t)
 		case UINT64: COPYOVER(uint64_t)
 		default:
-			util::handle_error("invalid output type",
-				util::ErrArg<std::string>("output.type", name_type(out_type)));
+			ade::fatalf("invalid output type %s", name_type(out_type));
 	}
 }
 
@@ -72,8 +71,7 @@ GenericData GenericData::convert_to (DTYPE out_type) const
 		case UINT32: CONVERT(uint32_t)
 		case UINT64: CONVERT(uint64_t)
 		default:
-			util::handle_error("invalid input type",
-				util::ErrArg<std::string>("input.type", name_type(dtype_)));
+			ade::fatalf("invalid input type %s", name_type(dtype_));
 	}
 	return out;
 }

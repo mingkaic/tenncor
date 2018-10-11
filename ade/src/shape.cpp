@@ -1,4 +1,4 @@
-#include "util/error.hpp"
+#include "ade/log.hpp"
 
 #include "ade/shape.hpp"
 
@@ -14,9 +14,8 @@ NElemT index (Shape shape, std::vector<DimT> coord)
 	{
 		if (coord[i] >= shape.at(i))
 		{
-			util::handle_error("invalid coordinate",
-				util::ErrArg<std::vector<uint8_t>>("coord", coord),
-				util::ErrArg<std::string>("shape", shape.to_string()));
+			fatalf("cannot get index of bad coordinate %s for shape %s",
+				to_string(coord), shape.to_string());
 		}
 	}
 	NElemT index = 0;
@@ -32,9 +31,8 @@ std::vector<DimT> coordinate (Shape shape, NElemT idx)
 {
 	if (idx >= shape.n_elems())
 	{
-		util::handle_error("index greater than maximum number of elements",
-			util::ErrArg<size_t>("index", idx),
-			util::ErrArg<std::string>("shape", shape.to_string()));
+		fatalf("cannot get coordinate of index %d (>= shape %s nelems)",
+			idx, shape.to_string());
 	}
 	std::vector<DimT> coord;
 	DimT xd;

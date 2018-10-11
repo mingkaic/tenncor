@@ -4,8 +4,6 @@ option go_package = "github.com/mingkaic/tenncor/pbm";
 
 package tenncor;
 
-import "google/protobuf/any.proto";
-
 message ByteArr { bytes data = 1; }
 message DoubleArr { repeated double data = 1; }
 message FloatArr { repeated float data = 1; }
@@ -16,10 +14,19 @@ message Uint64Arr { repeated uint64 data = 1; }
 
 message Source
 {
-	// takes messages DoubleArr, ..., Uint64Arr depending on dtype
-	google.protobuf.Any data = 1;
-	uint32 type = 2;
-	bytes shape = 3;
+	bytes shape = 1;
+    oneof data {
+        ByteArr sbyte_arrs = 2;
+        ByteArr ubyte_arrs = 3;
+        DoubleArr double_arrs = 4;
+        FloatArr float_arrs = 5;
+        Int32Arr sshort_arrs = 6;
+        Int32Arr sint_arrs = 7;
+        Int64Arr slong_arrs = 8;
+        Uint32Arr ushort_arrs = 9;
+        Uint32Arr uint_arrs = 10;
+        Uint64Arr ulong_arrs = 11;
+    }
 }
 
 message Functor

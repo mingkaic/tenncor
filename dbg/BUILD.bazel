@@ -9,7 +9,7 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "*.cpp",
-    ]) + ["BUILD"],
+    ]) + ["BUILD.bazel"],
 )
 
 ######### LIBRARY #########

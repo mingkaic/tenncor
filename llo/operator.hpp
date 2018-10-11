@@ -11,8 +11,6 @@
 #include <cmath>
 #include <functional>
 
-#include "util/rand.hpp"
-
 #include "ade/shape.hpp"
 
 #ifndef LLO_OPERATOR_HPP
@@ -20,6 +18,12 @@
 
 namespace llo
 {
+
+/// RNG engine used
+using EngineT = std::default_random_engine;
+
+/// Return global random generator
+EngineT& get_engine (void);
 
 /// Tensor data wrapper using raw pointer and data size
 /// Avoid using std constainers in case of unintentional deep copies
@@ -157,9 +161,8 @@ void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
 	uint8_t rank = slist.size();
 	if (dim >= rank)
 	{
-		util::handle_error("attempting to flip a dimension beyond shape rank",
-			util::ErrArg<size_t>("dim", dim),
-			util::ErrArg<size_t>("rank", rank));
+		ade::fatalf("attempting to flip dimension %d beyond shape rank %d",
+			dim, rank);
 	}
 	std::vector<ade::DimT> coord;
 	ade::DimT dlimit = slist[dim] - 1;
@@ -291,7 +294,7 @@ void nnary (T* out, std::vector<VecRef<T>> args,
 {
 	if (args.empty())
 	{
-		util::handle_error("Cannot perform operation with no arguments");
+		ade::fatal("Cannot perform operation with no arguments");
 	}
 	size_t n = std::max_element(args.begin(), args.end(),
 	[](VecRef<T>& a, VecRef<T>& b)
@@ -431,7 +434,7 @@ void rand_binom (T* out, VecRef<T> a, VecRef<double> b)
 	for (size_t i = 0; i < n; ++i)
 	{
 		std::binomial_distribution<T> dist(a.data[i % a.n], b.data[i % b.n]);
-		out[i] = dist(util::get_engine());
+		out[i] = dist(get_engine());
 	}
 }
 
@@ -453,7 +456,7 @@ void rand_uniform (T* out, VecRef<T> a, VecRef<T> b)
 	[](const T& a, const T& b)
 	{
 		std::uniform_int_distribution<T> dist(a, b);
-		return dist(util::get_engine());
+		return dist(get_engine());
 	});
 }
 

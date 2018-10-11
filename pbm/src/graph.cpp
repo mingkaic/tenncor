@@ -1,94 +1,113 @@
 #include <unordered_set>
 #include <list>
 #include <queue>
+#include <chrono>
 
-#include "util/rand.hpp"
-#include "util/error.hpp"
+#include "ade/log.hpp"
 
 #include "llo/api.hpp"
 
 #include "pbm/graph.hpp"
 
+static std::string make_uid (void* ptr, llo::EngineT& engine)
+{
+	static std::uniform_int_distribution<short> tok_dist(0, 15);
+	auto now = std::chrono::system_clock::now();
+	time_t now_c = std::chrono::system_clock::to_time_t(now);
+
+	std::stringstream ss;
+	ss << std::hex << now_c << (size_t) ptr;
+
+	for (size_t i = 0; i < 16; i++)
+	{
+		short token = tok_dist(engine);
+		ss << std::hex << token;
+	}
+	return ss.str();
+}
+
 #define PACK_DATA(TYPE)\
 TYPE* ptr = (TYPE*) data.data_.get();\
 google::protobuf::RepeatedField<TYPE> vec(ptr, ptr + nelems);\
-arr.mutable_data()->Swap(&vec);\
-out->PackFrom(arr);
+arr->mutable_data()->Swap(&vec);
 
-static void save_data (google::protobuf::Any* out, llo::GenericData& data)
+static void save_data (tenncor::Source* out, llo::GenericData& data)
 {
 	size_t nelems = data.shape_.n_elems();
 	switch (data.dtype_)
 	{
 		case llo::DOUBLE:
 		{
-			tenncor::DoubleArr arr;
+			auto arr = out->mutable_double_arrs();
 			PACK_DATA(double)
 		}
 		break;
 		case llo::FLOAT:
 		{
-			tenncor::FloatArr arr;
+			auto arr = out->mutable_float_arrs();
 			PACK_DATA(float)
 		}
 		break;
 		case llo::INT8:
+		{
+			auto arr = out->mutable_sbyte_arrs();
+			char* ptr = data.data_.get();
+			arr->set_data(std::string(ptr, ptr + nelems));
+		}
+		break;
 		case llo::UINT8:
 		{
-			tenncor::ByteArr arr;
+			auto arr = out->mutable_ubyte_arrs();
 			char* ptr = data.data_.get();
-			arr.set_data(std::string(ptr, ptr + nelems));
-			out->PackFrom(arr);
+			arr->set_data(std::string(ptr, ptr + nelems));
 		}
 		break;
 		case llo::INT16:
 		{
-			tenncor::Int32Arr arr;
+			auto arr = out->mutable_sshort_arrs();
 			int16_t* ptr = (int16_t*) data.data_.get();
 			std::vector<int16_t> temp(ptr, ptr + nelems);
 			google::protobuf::RepeatedField<int32_t> vec(
 				temp.begin(), temp.end());
-			arr.mutable_data()->Swap(&vec);
-			out->PackFrom(arr);
-		}
-		break;
-		case llo::UINT16:
-		{
-			tenncor::Uint32Arr arr;
-			uint16_t* ptr = (uint16_t*) data.data_.get();
-			std::vector<uint16_t> temp(ptr, ptr + nelems);
-			google::protobuf::RepeatedField<uint32_t> vec(
-				temp.begin(), temp.end());
-			arr.mutable_data()->Swap(&vec);
-			out->PackFrom(arr);
+			arr->mutable_data()->Swap(&vec);
 		}
 		break;
 		case llo::INT32:
 		{
-			tenncor::Int32Arr arr;
+			auto arr = out->mutable_sint_arrs();
 			PACK_DATA(int32_t)
 		}
 		break;
 		case llo::INT64:
 		{
-			tenncor::Int64Arr arr;
+			auto arr = out->mutable_slong_arrs();
 			PACK_DATA(int64_t)
+		}
+		break;
+		case llo::UINT16:
+		{
+			auto arr = out->mutable_ushort_arrs();
+			uint16_t* ptr = (uint16_t*) data.data_.get();
+			std::vector<uint16_t> temp(ptr, ptr + nelems);
+			google::protobuf::RepeatedField<uint32_t> vec(
+				temp.begin(), temp.end());
+			arr->mutable_data()->Swap(&vec);
 		}
 		break;
 		case llo::UINT32:
 		{
-			tenncor::Uint32Arr arr;
+			auto arr = out->mutable_uint_arrs();
 			PACK_DATA(uint32_t)
 		}
 		break;
 		case llo::UINT64:
 		{
-			tenncor::Uint64Arr arr;
+			auto arr = out->mutable_ulong_arrs();
 			PACK_DATA(uint64_t)
 		}
 		break;
 		default:
-			util::handle_error("failed to serialize badly typed node"); // todo: make warn instead
+			ade::error("cannot serialize badly typed node... skipping");
 	}
 }
 
@@ -192,19 +211,14 @@ void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Source* src = pb_node->mutable_source();
-		if (llo::iSource* eval = dynamic_cast<llo::iSource*>(node))
-		{
-			llo::GenericData data = eval->evaluate(eval->native_type());
-			save_data(src->mutable_data(), data);
-			src->set_type(data.dtype_);
-		}
-		else
-		{
-			src->set_type(llo::BAD);
-		}
 		auto vec = node->shape().as_list();
 		std::string shape(vec.begin(), vec.end());
 		src->set_shape(shape);
+		if (llo::iSource* eval = dynamic_cast<llo::iSource*>(node))
+		{
+			llo::GenericData data = eval->evaluate(eval->native_type());
+			save_data(src, data);
+		}
 	}
 	for (size_t i = 0, n = order.size(); i < n; ++i)
 	{
@@ -226,7 +240,7 @@ void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
 		func->mutable_args()->Swap(&indices);
 		save_meta(func->mutable_meta(), f, op);
 	}
-	out.set_id(util::make_uid(&out));
+	out.set_id(make_uid(&out, llo::get_engine()));
 }
 
 static ade::Shape load_shape (std::string sstr)
@@ -236,75 +250,74 @@ static ade::Shape load_shape (std::string sstr)
 }
 
 #define UNPACK_SOURCE(TYPE)\
-source.data().UnpackTo(&arr);\
 auto vec = arr.data();\
 return llo::Source<TYPE>::get(shape,\
 	std::vector<TYPE>(vec.begin(), vec.end()));
 
-static ade::Tensorptr load_source (tenncor::Source& source)
+static ade::Tensorptr load_source (const tenncor::Source& source)
 {
 	ade::Shape shape = load_shape(source.shape());
-	switch (source.type())
+	switch (source.data_case())
 	{
-		case llo::DOUBLE:
+		case tenncor::Source::DataCase::kDoubleArrs:
 		{
-			tenncor::DoubleArr arr;
+			auto arr = source.double_arrs();
 			UNPACK_SOURCE(double)
 		}
-		case llo::FLOAT:
+		case tenncor::Source::DataCase::kFloatArrs:
 		{
-			tenncor::FloatArr arr;
+			auto arr = source.float_arrs();
 			UNPACK_SOURCE(float)
 		}
-		case llo::INT8:
+		case tenncor::Source::DataCase::kSbyteArrs:
 		{
-			tenncor::ByteArr arr;
+			auto arr = source.sbyte_arrs();
 			UNPACK_SOURCE(int8_t)
 		}
-		case llo::UINT8:
+		case tenncor::Source::DataCase::kUbyteArrs:
 		{
-			tenncor::ByteArr arr;
+			auto arr = source.ubyte_arrs();
 			UNPACK_SOURCE(uint8_t)
 		}
 		break;
-		case llo::INT16:
+		case tenncor::Source::DataCase::kSshortArrs:
 		{
-			tenncor::Int32Arr arr;
+			auto arr = source.sshort_arrs();
 			UNPACK_SOURCE(int16_t)
 		}
 		break;
-		case llo::UINT16:
+		case tenncor::Source::DataCase::kSintArrs:
 		{
-			tenncor::Uint32Arr arr;
-			UNPACK_SOURCE(uint16_t)
-		}
-		break;
-		case llo::INT32:
-		{
-			tenncor::Int32Arr arr;
+			auto arr = source.sint_arrs();
 			UNPACK_SOURCE(int32_t)
 		}
 		break;
-		case llo::INT64:
+		case tenncor::Source::DataCase::kSlongArrs:
 		{
-			tenncor::Int64Arr arr;
+			auto arr = source.slong_arrs();
 			UNPACK_SOURCE(int64_t)
 		}
 		break;
-		case llo::UINT32:
+		case tenncor::Source::DataCase::kUshortArrs:
 		{
-			tenncor::Uint32Arr arr;
+			auto arr = source.ushort_arrs();
+			UNPACK_SOURCE(uint16_t)
+		}
+		break;
+		case tenncor::Source::DataCase::kUintArrs:
+		{
+			auto arr = source.uint_arrs();
 			UNPACK_SOURCE(uint32_t)
 		}
 		break;
-		case llo::UINT64:
+		case tenncor::Source::DataCase::kUlongArrs:
 		{
-			tenncor::Uint64Arr arr;
+			auto arr = source.ulong_arrs();
 			UNPACK_SOURCE(uint64_t)
 		}
 		break;
 		default:
-			util::handle_error("failed to deserialize badly typed node"); // todo: make warn instead
+			return ade::Tensor::get(load_shape(source.shape()));
 	}
 	return nullptr;
 }
@@ -346,16 +359,8 @@ std::vector<ade::Tensorptr> load_graph (const tenncor::Graph& in)
 	{
 		if (node.has_source())
 		{
-			tenncor::Source source = node.source();
-			if (source.type() != llo::BAD)
-			{
-				outvec.push_back(load_source(source));
-			}
-			else
-			{
-				outvec.push_back(ade::Tensor::get(
-					load_shape(source.shape())));
-			}
+			const tenncor::Source& source = node.source();
+			outvec.push_back(load_source(source));
 		}
 		else
 		{

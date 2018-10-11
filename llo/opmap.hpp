@@ -212,7 +212,7 @@ void exec (GenericData& out,
 			Executer<opcode,uint64_t,ARGS...>::exec(out, data, args...);
 		break;
 		default:
-			util::handle_error("executing bad type");
+			ade::fatal("executing bad type");
 	}
 }
 
@@ -319,7 +319,7 @@ void op_exec (ade::OPCODE opcode, GenericData& out,
 			exec<ade::RESHAPE,ARGS...>(out, data, args...);
 		break;
 		default:
-			util::handle_error("unknown opcode");
+			ade::fatal("unknown opcode");
 	}
 }
 

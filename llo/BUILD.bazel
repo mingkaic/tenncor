@@ -9,7 +9,7 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
-    ]) + ["BUILD"],
+    ]) + ["BUILD.bazel"],
 )
 
 filegroup(

@@ -8,6 +8,8 @@ ADE_DTEST := //ade:test_dynamic
 
 ADE_STEST := //ade:test_static
 
+ADE_UTEST := //ade:test_util
+
 LLO_TEST := //llo:test_llo
 
 REGRESS_TEST := //llo:test_regress
@@ -47,12 +49,12 @@ TMP_LOGFILE := /tmp/tenncor-test.log
 
 # all tests
 
-test: test_util test_ade test_llo test_pbm check_cli
+test: test_ade test_llo test_pbm check_cli
 
-test_util:
-	$(GTEST) $(UTIL_TEST)
+test_ade: test_ade_util test_ade_dynamic test_ade_static
 
-test_ade: test_ade_dynamic test_ade_static
+test_ade_util:
+	$(GTEST) $(ADE_UTEST)
 
 test_ade_dynamic:
 	$(GTEST) $(REP_BZL_FLAGS) $(ADE_DTEST)

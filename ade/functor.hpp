@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "util/strify.hpp"
+#include "ade/string.hpp"
 
 #include "ade/tensor.hpp"
 #include "ade/grader.hpp"
@@ -64,7 +64,7 @@ struct Functor final : public iFunctor
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return opname(opcode) + "<" + util::tuple_to_string(meta_) + ">";
+		return opname(opcode) + "<" + ade::to_string(meta_) + ">";
 	}
 
 	/// Implementation of iFunctor
