@@ -28,3 +28,11 @@ filegroup(
         "//testutil:srcs",
     ],
 )
+
+filegroup(
+    name = "credentials",
+    srcs = [
+        "certs/server.key",
+        "certs/server.crt",
+    ],
+)

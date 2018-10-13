@@ -6,7 +6,7 @@
 int main (int argc, char** argv)
 {
 	char* gen = getenv("GENERATE_MODE");
-	simple::INIT(":32768", gen != nullptr);
+	simple::INIT("localhost:10000", gen != nullptr, "certs/server.crt");
 
 	set_logger(std::static_pointer_cast<ade::iLogger>(tlogger));
 

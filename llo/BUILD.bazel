@@ -46,6 +46,7 @@ cc_test(
         "//llo:llo",
         "//testutil:testutil",
     ],
+    data = ["//:credentials"],
 )
 
 cc_test(

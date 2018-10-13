@@ -50,6 +50,7 @@ cc_test(
     srcs = glob(["test/dynamic/*.cpp"]),
     deps = ["//testutil:testutil"],
     copts = ["-std=c++14"],
+    data = ["//:credentials"],
 )
 
 cc_test(
