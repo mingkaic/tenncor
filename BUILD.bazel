@@ -12,7 +12,7 @@ filegroup(
         "//ade:srcs",
         "//cli/ade:srcs",
         "//cli/llo:srcs",
-        "//cli/utils:srcs",
+        "//dbg:srcs",
         "//llo:srcs",
         "//pbm:srcs",
         "BUILD.bazel",

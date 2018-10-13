@@ -3,10 +3,10 @@
 #include "ade/string.hpp"
 
 
-#ifndef DISABLE_STRIFY_TEST
+#ifndef DISABLE_STRING_TEST
 
 
-TEST(STRIFY, StringFmt)
+TEST(STRING, StringFmt)
 {
 	std::stringstream ss;
 	ade::to_stream(ss, "abcdefghijkl");
@@ -22,7 +22,7 @@ TEST(STRIFY, StringFmt)
 }
 
 
-TEST(STRIFY, VectorFmt)
+TEST(STRING, VectorFmt)
 {
 	std::stringstream ss;
 	ade::to_stream(ss, std::vector<int>{14, 15, 16});
@@ -40,7 +40,7 @@ TEST(STRIFY, VectorFmt)
 }
 
 
-TEST(STRIFY, GenericFmt)
+TEST(STRING, GenericFmt)
 {
 	std::stringstream ss;
 	ade::to_stream(ss, -15);
@@ -52,7 +52,7 @@ TEST(STRIFY, GenericFmt)
 }
 
 
-TEST(STRIFY, MultiFmt)
+TEST(STRING, MultiFmt)
 {
 	std::stringstream ss;
 	ade::to_stream(ss, "hey what's the answer to number", 15,
@@ -63,7 +63,7 @@ TEST(STRIFY, MultiFmt)
 }
 
 
-TEST(STRIFY, Tuple)
+TEST(STRING, Tuple)
 {
 	std::tuple<std::string,double,std::vector<std::string>,std::vector<int>>
 	tp{"hey what's the answer to number", 15.1,
@@ -78,4 +78,14 @@ TEST(STRIFY, Tuple)
 }
 
 
-#endif // DISABLE_STRIFY_TEST
+TEST(STRING, Sprintf)
+{
+	const char* str = "string";
+	const char* oth = "other";
+	std::string s = ade::sprintf("%% %s %d %.3f %% %%%% %s %d %.1f %% %%%%",
+		str, 123, 5.689, oth, 77, 0.4, 12);
+	EXPECT_STREQ("% string 123 5.689 % %% other 77 0.4 % %%", s.c_str());
+}
+
+
+#endif // DISABLE_STRING_TEST

@@ -15,7 +15,7 @@ NElemT index (Shape shape, std::vector<DimT> coord)
 		if (coord[i] >= shape.at(i))
 		{
 			fatalf("cannot get index of bad coordinate %s for shape %s",
-				to_string(coord), shape.to_string());
+				to_string(coord).c_str(), shape.to_string().c_str());
 		}
 	}
 	NElemT index = 0;
@@ -32,7 +32,7 @@ std::vector<DimT> coordinate (Shape shape, NElemT idx)
 	if (idx >= shape.n_elems())
 	{
 		fatalf("cannot get coordinate of index %d (>= shape %s nelems)",
-			idx, shape.to_string());
+			idx, shape.to_string().c_str());
 	}
 	std::vector<DimT> coord;
 	DimT xd;

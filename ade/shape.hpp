@@ -186,7 +186,7 @@ private:
 			}))
 		{
 			fatalf("cannot create shape with vector containing zero: %s",
-				ade::to_string(dims));
+				ade::to_string(dims).c_str());
 		}
 		auto dest = dims_.begin();
 

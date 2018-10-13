@@ -42,23 +42,23 @@ static void fill_one (char* cptr, size_t n, DTYPE dtype)
 
 GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
 {
-	if (tens == ade::Tensor::SYMBOLIC_ONE.get())
+	if (iEvaluable* ev = dynamic_cast<iEvaluable*>(tens))
+	{
+		return ev->evaluate(dtype);
+	}
+	else if (tens == ade::Tensor::SYMBOLIC_ONE.get())
 	{
 		GenericData out(ade::Shape(), dtype);
 		fill_one(out.data_.get(), 1, dtype);
 		return out;
 	}
-	else if (tens == ade::Tensor::SYMBOLIC_ZERO.get())
+	ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(tens);
+	if (f == nullptr) // || tens == ade::Tensor::SYMBOLIC_ZERO.get()
 	{
 		GenericData out(ade::Shape(), dtype);
 		std::memset(out.data_.get(), 0, type_size(dtype));
 		return out;
 	}
-	else if (iEvaluable* ev = dynamic_cast<iEvaluable*>(tens))
-	{
-		return ev->evaluate(dtype);
-	}
-	ade::iFunctor* f = static_cast<ade::iFunctor*>(tens);
 	ade::OPCODE opcode = f->get_code();
 
 	std::vector<ade::iTensor*> refs = f->get_children();

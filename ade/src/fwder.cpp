@@ -24,7 +24,7 @@ static Shape bijection (std::vector<Tensorptr> args, std::string op)
 {
 	if (args.size() == 0)
 	{
-		fatalf("cannot %s with no arguments", op);
+		fatalf("cannot %s with no arguments", op.c_str());
 	}
 
 	Shape outshape = args[0]->shape();
@@ -38,8 +38,8 @@ static Shape bijection (std::vector<Tensorptr> args, std::string op)
 		if (false == shape.compatible_before(outshape,
 			std::min(outrank, rank)) && std::min(nelems, outn) > 1)
 		{
-			fatalf("cannot %s with incompatible shapes %s and %s",
-				op, outshape.to_string(), shape.to_string());
+			fatalf("cannot %s with incompatible shapes %s and %s", op.c_str(),
+				outshape.to_string().c_str(), shape.to_string().c_str());
 		}
 		if (nelems > outn)
 		{
@@ -128,7 +128,7 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 		agroup_idx != (bshape.n_rank() - bgroup_idx))
 	{
 		fatalf("incompatible common dimensions in matmuling %s, %s",
-			ashape.to_string(), bshape.to_string());
+			ashape.to_string().c_str(), bshape.to_string().c_str());
 	}
 
 	std::vector<DimT> outlist(bit, bit + bgroup_idx);
@@ -184,7 +184,7 @@ Shape forwarder<EXTEND,std::vector<DimT>> (
 		{
 			fatalf("cannot EXTEND dimension beyond rank_cap using "
 				"vector %s on shape %s",
-				to_string(ext), shape.to_string());
+				to_string(ext).c_str(), shape.to_string().c_str());
 		}
 		std::vector<DimT> outlist = shape.as_list();
 		outlist.insert(outlist.end(), ext.begin(), ext.end());
@@ -208,8 +208,8 @@ Shape forwarder<RESHAPE,std::vector<DimT>> (
 	NElemT nout = outshape.n_elems();
 	if (1 < nin && nin != nout)
 	{
-		fatalf("cannot RESHAPE non-scalar to shape %s with different "
-			"nelems (shape %s)", inshape.to_string(), outshape.to_string());
+		fatalf("cannot RESHAPE non-scalar shape %s to shape %s",
+			inshape.to_string().c_str(), outshape.to_string().c_str());
 	}
 	return outshape;
 }

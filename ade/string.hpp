@@ -97,6 +97,16 @@ std::string to_string (T arg)
 	return ss.str();
 }
 
+/// Return std::string with snprintf formatting
+template <typename... ARGS>
+std::string sprintf (std::string format, ARGS... args)
+{
+	size_t n = std::snprintf(nullptr, 0, format.c_str(), args...) + 1;
+	char buf[n];
+	std::snprintf(buf, n, format.c_str(), args...);
+	return std::string(buf, buf + n - 1);
+}
+
 }
 
 #endif // ADE_STRING_HPP

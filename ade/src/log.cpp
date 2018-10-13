@@ -42,17 +42,17 @@ const iLogger& get_logger (void)
 
 void warn (std::string msg)
 {
-    get_logger().warn(msg);
+	get_logger().warn(msg);
 }
 
 void error (std::string msg)
 {
-    get_logger().error(msg);
+	get_logger().error(msg);
 }
 
 void fatal (std::string msg)
 {
-    get_logger().fatal(msg);
+	get_logger().fatal(msg);
 }
 
 }

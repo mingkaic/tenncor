@@ -20,10 +20,29 @@ namespace ade
 
 struct Tensorptr;
 
-/// Interface for ensuring derivation functionality, and shape encapsulation
+struct Tensor;
+
+struct iFunctor;
+
+/// Interface to travel through graph, treating Tensor and iFunctor differently
+struct Traveler
+{
+	virtual ~Traveler (void) = default;
+
+	/// Visit leaf node
+	virtual void visit (Tensor* leaf) = 0;
+
+	/// Visit functor node
+	virtual void visit (iFunctor* func) = 0;
+};
+
+/// Interface of traversible and differentiable nodes with shape information
 struct iTensor
 {
 	virtual ~iTensor (void) = default;
+
+	/// Obtain concrete information on either leaf or functor implementations
+	virtual void accept (Traveler& visiter) = 0;
 
 	/// Return the shape held by this tensor
 	virtual const Shape& shape (void) const = 0;
@@ -42,6 +61,15 @@ struct Tensorptr
 		ptr_(&tens) {}
 
 	Tensorptr (iTensor* tens) :
+		ptr_(tens)
+	{
+		if (nullptr == tens)
+		{
+			fatal("cannot create nodeptr with nullptr");
+		}
+	}
+
+	Tensorptr (std::shared_ptr<iTensor> tens) :
 		ptr_(tens)
 	{
 		if (nullptr == tens)
@@ -80,10 +108,10 @@ protected:
 };
 
 /// Return a Tensor::SYMBOLIC_ONE reshaped to input shape
-Tensorptr constant_one (std::vector<DimT> shape);
+Tensorptr constant_one (Shape shape);
 
 /// Return a Tensor::SYMBOLIC_ZERO reshaped to input shape
-Tensorptr constant_zero (std::vector<DimT> shape);
+Tensorptr constant_zero (Shape shape);
 
 /// Leaf of the graph commonly representing the variable in an equation
 struct Tensor final : public iTensor
@@ -95,9 +123,15 @@ struct Tensor final : public iTensor
 	static Tensorptr SYMBOLIC_ZERO;
 
 	/// Return a Tensor with input shape
-	static Tensorptr get (Shape shape)
+	static Tensor* get (Shape shape)
 	{
 		return new Tensor(shape);
+	}
+
+	/// Implementation of iTensor
+	void accept (Traveler& visiter) override
+	{
+		visiter.visit(this);
 	}
 
 	/// Implementation of iTensor
@@ -109,7 +143,7 @@ struct Tensor final : public iTensor
 	/// Implementation of iTensor
 	Tensorptr gradient (Tensorptr& wrt) const override
 	{
-		std::vector<DimT> shape = wrt->shape().as_list();
+		const Shape& shape = wrt->shape();
 		if (this == wrt.get())
 		{
 			return constant_one(shape);

@@ -9,17 +9,17 @@ Tensorptr Tensor::SYMBOLIC_ONE = new Tensor{Shape()};
 
 Tensorptr Tensor::SYMBOLIC_ZERO = new Tensor{Shape()};
 
-Tensorptr constant_one (std::vector<DimT> shape)
+Tensorptr constant_one (Shape shape)
 {
 	auto out = Functor<RESHAPE,std::vector<DimT>>::get(
-		{Tensor::SYMBOLIC_ONE}, shape);
+		{Tensor::SYMBOLIC_ONE}, shape.as_list());
 	return out;
 }
 
-Tensorptr constant_zero (std::vector<DimT> shape)
+Tensorptr constant_zero (Shape shape)
 {
 	auto out = Functor<RESHAPE,std::vector<DimT>>::get(
-		{Tensor::SYMBOLIC_ZERO}, shape);
+		{Tensor::SYMBOLIC_ZERO}, shape.as_list());
 	return out;
 }
 

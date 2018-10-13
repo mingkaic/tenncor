@@ -55,7 +55,7 @@ struct Source final : public iSource
 		if (shape.n_elems() != data.size())
 		{
 			ade::fatalf("data size %d does not match shape %s",
-				data.size(), shape.to_string());
+				data.size(), shape.to_string().c_str());
 		}
 		return new Source(shape, data);
 	}
@@ -69,9 +69,11 @@ struct Source final : public iSource
 	/// Implementation of iTensor
 	ade::Tensorptr gradient (ade::Tensorptr& wrt) const override
 	{
-		iEvaluable* eval = dynamic_cast<iEvaluable*>(wrt.get());
-		ade::Tensorptr target = nullptr == eval ? wrt : eval->inner();
-		return tens_->gradient(target);
+		if (this == wrt.get())
+		{
+			return ade::constant_one(shape());
+		}
+		return tens_->gradient(wrt);
 	}
 
 	/// Implementation of iTensor
@@ -153,12 +155,8 @@ template <typename... ARGS>
 struct DirectWrapper final : public ade::iFunctor, public iEvaluable
 {
 	/// Return direct wrapper proxying input tensor and using input metadata
-	static ade::Tensorptr get (ade::Tensorptr tens, ARGS... args)
+	static ade::Tensorptr get (ade::iFunctor* tens, ARGS... args)
 	{
-		if (nullptr == dynamic_cast<ade::iFunctor*>(tens.get()))
-		{
-			ade::fatal("wrapping non-functor");
-		}
 		std::tuple<ARGS...> tp(args...);
 		return new DirectWrapper(tens, tp);
 	}
@@ -172,10 +170,9 @@ struct DirectWrapper final : public ade::iFunctor, public iEvaluable
 	/// Implementation of iTensor
 	ade::Tensorptr gradient (ade::Tensorptr& wrt) const override
 	{
-		if (iEvaluable* eval = dynamic_cast<iEvaluable*>(wrt.get()))
+		if (this == wrt.get())
 		{
-			ade::Tensorptr wrt = eval->inner();
-			return tens_->gradient(wrt);
+			return ade::constant_one(shape());
 		}
 		return tens_->gradient(wrt);
 	}
@@ -217,7 +214,7 @@ struct DirectWrapper final : public ade::iFunctor, public iEvaluable
 	}
 
 private:
-	DirectWrapper (ade::Tensorptr& tens, std::tuple<ARGS...>& args) :
+	DirectWrapper (ade::iFunctor* tens, std::tuple<ARGS...>& args) :
 		tens_(tens), meta_(args) {}
 
 	template <size_t... I>

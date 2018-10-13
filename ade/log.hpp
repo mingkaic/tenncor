@@ -37,16 +37,6 @@ void set_logger (std::shared_ptr<iLogger> logger);
 /// Get reference to ADE global logger
 const iLogger& get_logger (void);
 
-/// C++ version of sprintf
-template <typename... ARGS>
-std::string sprintf (std::string format, ARGS... args)
-{
-	size_t size = std::snprintf(nullptr, 0, format.c_str(), args...) + 1;
-    char buf[size];
-    std::snprintf(buf, size, format.c_str(), args...);
-	return std::string(buf, buf + size - 1);
-}
-
 /// Warn using global logger
 void warn (std::string msg);
 
@@ -60,21 +50,21 @@ void fatal (std::string msg);
 template <typename... ARGS>
 void warnf (std::string format, ARGS... args)
 {
-    get_logger().warn(ade::sprintf(format, args...));
+	warn(ade::sprintf(format, args...));
 }
 
 /// Error using global logger with arguments
 template <typename... ARGS>
 void errorf (std::string format, ARGS... args)
 {
-    get_logger().error(ade::sprintf(format, args...));
+	error(ade::sprintf(format, args...));
 }
 
 /// Fatal using global logger with arguments
 template <typename... ARGS>
 void fatalf (std::string format, ARGS... args)
 {
-    get_logger().fatal(ade::sprintf(format, args...));
+	fatal(ade::sprintf(format, args...));
 }
 
 }

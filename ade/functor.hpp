@@ -20,10 +20,16 @@
 namespace ade
 {
 
-/// Interface for ensuring OPCODE mapping and children accessor
+/// Interface of OPCODE-defined operation node
 struct iFunctor : public iTensor
 {
 	virtual ~iFunctor (void) = default;
+
+	/// Implementation of iTensor
+	void accept (Traveler& visiter) override
+	{
+		visiter.visit(this);
+	}
 
 	/// Return OPCODE mapping to forward and gradient operators
 	virtual OPCODE get_code (void) const = 0;
@@ -34,14 +40,14 @@ struct iFunctor : public iTensor
 
 /// Functor of the graph mapping to operators specified in OPCODE template
 /// ARGS template captures non-tensor arguments used for certain operators
-template <OPCODE opcode, typename... ARGS>
+template <OPCODE OP, typename... ARGS>
 struct Functor final : public iFunctor
 {
 	/// Return a Functor with with input tensor and meta arguments
-	static Tensorptr get (std::vector<Tensorptr> args, ARGS... meta)
+	static Functor<OP,ARGS...>* get (std::vector<Tensorptr> args, ARGS... meta)
 	{
 		std::tuple<ARGS...> tp(meta...);
-		return new Functor(forwarder<opcode,ARGS...>(args,
+		return new Functor(forwarder<OP,ARGS...>(args,
 			std::forward<ARGS>(meta)...), args, tp);
 	}
 
@@ -56,7 +62,7 @@ struct Functor final : public iFunctor
 	{
 		if (wrt.get() == this)
 		{
-			return constant_one(wrt->shape().as_list());
+			return constant_one(wrt->shape());
 		}
 		return grad_helper(wrt, std::index_sequence_for<ARGS...>());
 	}
@@ -64,13 +70,13 @@ struct Functor final : public iFunctor
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return opname(opcode) + "<" + ade::to_string(meta_) + ">";
+		return opname(OP) + "<" + ade::to_string(meta_) + ">";
 	}
 
 	/// Implementation of iFunctor
 	OPCODE get_code (void) const override
 	{
-		return opcode;
+		return OP;
 	}
 
 	/// Implementation of iFunctor
@@ -99,7 +105,7 @@ private:
 	template <size_t... I>
 	Tensorptr grad_helper (Tensorptr& wrt, std::index_sequence<I...>) const
 	{
-		return grader<opcode,ARGS...>(args_, wrt, std::get<I>(meta_)...);
+		return grader<OP,ARGS...>(args_, wrt, std::get<I>(meta_)...);
 	}
 
 	/// Tensor arguments (and children)
