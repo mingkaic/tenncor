@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "gtest/gtest.h"
 
 #include "anteroc/testcase.hpp"
@@ -5,7 +7,17 @@
 #include "llo/api.hpp"
 
 
-static ade::Shape get_shape (GeneratedCase& gcase)
+void EXPECT_DATAEQ (std::string name, std::vector<double> expect, std::vector<double> got)
+{
+	ASSERT_EQ(expect.size(), got.size());
+	for (size_t i = 0, n = expect.size(); i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(expect[i], got[i]) << " @name=" << name << ",index=" << i;
+	}
+}
+
+
+static ade::Shape get_shape (testify::GeneratedCase& gcase)
 {
 	auto& inputs = gcase.inputs();
 	auto it = inputs.find("shape");
@@ -13,62 +25,81 @@ static ade::Shape get_shape (GeneratedCase& gcase)
 	{
 		throw std::runtime_error("shape not found");
 	}
-	assert(testify::INT64 == it->second.dtype());
-	testify::Int64s arr;
-	it->second.data().UnpackTo(&arr);
+	assert(it->second.has_dint64s());
+	const testify::Int64s& arr = it->second.dint64s();
 	auto temp = arr.data();
 	std::vector<ade::DimT> slist(temp.begin(), temp.end());
 	return ade::Shape(slist);
 }
 
 
-static std::vector<double> get_data (GeneratedCase& gcase, std::string key)
+static std::vector<double> get_input_data (testify::GeneratedCase& gcase, std::string key)
 {
 	auto& inputs = gcase.inputs();
 	auto it = inputs.find(key);
 	if (inputs.end() == it)
 	{
-		throw std::runtime_error(key + " not found");
+		throw std::runtime_error(key + " not found in input");
 	}
-	assert(testify::DOUBLE == it->second.dtype());
-	testify::Doubles arr;
-	it->second.data().UnpackTo(&arr);
+	assert(it->second.has_ddoubles());
+	const testify::Doubles& arr = it->second.ddoubles();
 	auto temp = arr.data();
 	return std::vector<double>(temp.begin(), temp.end());
 }
 
 
-static void unary_op (std::string tname,
+static std::vector<double> get_output_data (testify::GeneratedCase& gcase, std::string key)
+{
+	auto& outputs = gcase.outputs();
+	auto it = outputs.find(key);
+	if (outputs.end() == it)
+	{
+		throw std::runtime_error(key + " not found in output");
+	}
+	assert(it->second.has_ddoubles());
+	const testify::Doubles& arr = it->second.ddoubles();
+	auto temp = arr.data();
+	return std::vector<double>(temp.begin(), temp.end());
+}
+
+
+static void unary_op (antero::Testament* test, std::string tname,
 	std::function<ade::Tensorptr(ade::Tensorptr&)> op)
 {
-	GeneratedCase gcase = get("REGRESS::" + tname);
+	testify::GeneratedCase gcase = test->get("REGRESS::" + tname);
 	ade::Shape shape = get_shape(gcase);
-	std::vector<double> data = get_data(gcase, "data");
-	std::vector<double> resdata = get_data(gcase, "unary_out");
-	std::vector<double> gresdata = get_data(gcase, "unary_ga");
+	std::vector<double> data = get_input_data(gcase, "data");
+	std::vector<double> resdata = get_output_data(gcase, "unary_out");
+	std::vector<double> gresdata = get_output_data(gcase, "unary_ga");
 
 	auto leaf = llo::Source<double>::get(shape, data);
 	auto res = op(leaf);
 	auto gres = res->gradient(leaf);
 
-	std::vector<double> resd = llo::evaluate(llo::DOUBLE, res.get());
-	std::vector<double> gresd = llo::evaluate(llo::DOUBLE, gres.get());
+	llo::GenericData resgd = llo::evaluate(llo::DOUBLE, res.get());
+	llo::GenericData gresgd = llo::evaluate(llo::DOUBLE, gres.get());
 
-	EXPECT_ARREQ(resdata, resd);
-	EXPECT_ARREQ(gresdata, gresd);
+	double* resptr = (double*) resgd.data_.get();
+	double* gresptr = (double*) gresgd.data_.get();
+
+	std::vector<double> resd(resptr, resptr + resgd.shape_.n_elems());
+	std::vector<double> gresd(gresptr, gresptr + gresgd.shape_.n_elems());
+
+	EXPECT_DATAEQ("res", resdata, resd);
+	EXPECT_DATAEQ("gres", gresdata, gresd);
 }
 
 
-static void binary_op (std::string tname,
+static void binary_op (antero::Testament* test, std::string tname,
 	std::function<ade::Tensorptr(ade::Tensorptr&,ade::Tensorptr&)> op)
 {
-	GeneratedCase gcase = get("REGRESS::" + tname);
+	testify::GeneratedCase gcase = test->get("REGRESS::" + tname);
 	ade::Shape shape = get_shape(gcase);
-	std::vector<double> data = get_data(gcase, "data");
-	std::vector<double> data2 = get_data(gcase, "data2");
-	std::vector<double> resdata = get_data(gcase, "binary_out");
-	std::vector<double> gresdata = get_data(gcase, "binary_ga");
-	std::vector<double> gresdata2 = get_data(gcase, "binary_gb");
+	std::vector<double> data = get_input_data(gcase, "data");
+	std::vector<double> data2 = get_input_data(gcase, "data2");
+	std::vector<double> resdata = get_output_data(gcase, "binary_out");
+	std::vector<double> gresdata = get_output_data(gcase, "binary_ga");
+	std::vector<double> gresdata2 = get_output_data(gcase, "binary_gb");
 
 	auto leaf = llo::Source<double>::get(shape, data);
 	auto leaf2 = llo::Source<double>::get(shape, data2);
@@ -76,20 +107,31 @@ static void binary_op (std::string tname,
 	auto gres = res->gradient(leaf);
 	auto gres2 = res->gradient(leaf2);
 
-	std::vector<double> resd = llo::evaluate(llo::DOUBLE, res.get());
-	std::vector<double> gresd = llo::evaluate(llo::DOUBLE, gres.get());
-	std::vector<double> gresd2 = llo::evaluate(llo::DOUBLE, gres2.get());
+	llo::GenericData resgd = llo::evaluate(llo::DOUBLE, res.get());
+	llo::GenericData gresgd = llo::evaluate(llo::DOUBLE, gres.get());
+	llo::GenericData gresgd2 = llo::evaluate(llo::DOUBLE, gres2.get());
 
-	EXPECT_ARREQ(resdata, resd);
-	EXPECT_ARREQ(gresdata, gresd);
-	EXPECT_ARREQ(gresdata2, gresd2);
+	double* resptr = (double*) resgd.data_.get();
+	double* gresptr = (double*) gresgd.data_.get();
+	double* gresptr2 = (double*) gresgd2.data_.get();
+
+	std::vector<double> resd(resptr, resptr + resgd.shape_.n_elems());
+	std::vector<double> gresd(gresptr, gresptr + gresgd.shape_.n_elems());
+	std::vector<double> gresd2(gresptr2, gresptr2 + gresgd2.shape_.n_elems());
+
+	EXPECT_DATAEQ("res", resdata, resd);
+	EXPECT_DATAEQ("gres", gresdata, gresd);
+	EXPECT_DATAEQ("gres2", gresdata2, gresd2);
 }
 
 
 int main (int argc, char** argv)
 {
-	char* gen = getenv("GENERATE_MODE");
-	antero::INIT(":32768", gen != nullptr);
+	// todo: make this configurable
+	dora::ClientConfig cfg;
+	cfg.host = "localhost:10000";
+	cfg.cert = dora::read_keycert("certs/server.crt");
+	antero::INIT(cfg);
 
 	::testing::InitGoogleTest(&argc, argv);
 	int ret = RUN_ALL_TESTS();
@@ -99,12 +141,12 @@ int main (int argc, char** argv)
 }
 
 
-struct REGRESS : public Testament {};
+struct REGRESS : public antero::Testament {};
 
 
 TEST_F(REGRESS, Abs)
 {
-	unary_op("Abs", [](ade::Tensorptr& a)
+	unary_op(this, "Abs", [](ade::Tensorptr& a)
 	{
 		return llo::abs(a);
 	});
@@ -113,7 +155,7 @@ TEST_F(REGRESS, Abs)
 
 TEST_F(REGRESS, Neg)
 {
-	unary_op("Neg", [](ade::Tensorptr& a)
+	unary_op(this, "Neg", [](ade::Tensorptr& a)
 	{
 		return llo::neg(a);
 	});
@@ -122,7 +164,7 @@ TEST_F(REGRESS, Neg)
 
 TEST_F(REGRESS, Sin)
 {
-	unary_op("Sin", [](ade::Tensorptr& a)
+	unary_op(this, "Sin", [](ade::Tensorptr& a)
 	{
 		return llo::sin(a);
 	});
@@ -131,7 +173,7 @@ TEST_F(REGRESS, Sin)
 
 TEST_F(REGRESS, Cos)
 {
-	unary_op("Cos", [](ade::Tensorptr& a)
+	unary_op(this, "Cos", [](ade::Tensorptr& a)
 	{
 		return llo::cos(a);
 	});
@@ -139,7 +181,7 @@ TEST_F(REGRESS, Cos)
 
 TEST_F(REGRESS, Tan)
 {
-	unary_op("Tan", [](ade::Tensorptr& a)
+	unary_op(this, "Tan", [](ade::Tensorptr& a)
 	{
 		return llo::tan(a);
 	});
@@ -148,7 +190,7 @@ TEST_F(REGRESS, Tan)
 
 TEST_F(REGRESS, Exp)
 {
-	unary_op("Exp", [](ade::Tensorptr& a)
+	unary_op(this, "Exp", [](ade::Tensorptr& a)
 	{
 		return llo::exp(a);
 	});
@@ -157,7 +199,7 @@ TEST_F(REGRESS, Exp)
 
 TEST_F(REGRESS, Log)
 {
-	unary_op("Log", [](ade::Tensorptr& a)
+	unary_op(this, "Log", [](ade::Tensorptr& a)
 	{
 		return llo::log(a);
 	});
@@ -166,7 +208,7 @@ TEST_F(REGRESS, Log)
 
 TEST_F(REGRESS, Sqrt)
 {
-	unary_op("Sqrt", [](ade::Tensorptr& a)
+	unary_op(this, "Sqrt", [](ade::Tensorptr& a)
 	{
 		return llo::sqrt(a);
 	});
@@ -175,7 +217,7 @@ TEST_F(REGRESS, Sqrt)
 
 TEST_F(REGRESS, Pow)
 {
-	binary_op("Pow", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Pow", [](ade::Tensorptr& a, ade::Tensorptr& b)
 	{
 		return llo::pow(a, b);
 	});
@@ -184,7 +226,7 @@ TEST_F(REGRESS, Pow)
 
 TEST_F(REGRESS, Add)
 {
-	binary_op("Add", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Add", [](ade::Tensorptr& a, ade::Tensorptr& b)
 	{
 		return llo::add(a, b);
 	});
@@ -193,7 +235,7 @@ TEST_F(REGRESS, Add)
 
 TEST_F(REGRESS, Sub)
 {
-	binary_op("Sub", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Sub", [](ade::Tensorptr& a, ade::Tensorptr& b)
 	{
 		return llo::sub(a, b);
 	});
@@ -202,7 +244,7 @@ TEST_F(REGRESS, Sub)
 
 TEST_F(REGRESS, Mul)
 {
-	binary_op("Mul", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Mul", [](ade::Tensorptr& a, ade::Tensorptr& b)
 	{
 		return llo::mul(a, b);
 	});
@@ -211,7 +253,7 @@ TEST_F(REGRESS, Mul)
 
 TEST_F(REGRESS, Div)
 {
-	binary_op("Div", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Div", [](ade::Tensorptr& a, ade::Tensorptr& b)
 	{
 		return llo::div(a, b);
 	});
@@ -220,7 +262,7 @@ TEST_F(REGRESS, Div)
 
 TEST_F(REGRESS, Matmul)
 {
-	GeneratedCase gcase = get("REGRESS::Matmul");
+	testify::GeneratedCase gcase = get("REGRESS::Matmul");
 	ade::Shape ashape;
 	ade::Shape bshape;
 	{
@@ -230,9 +272,8 @@ TEST_F(REGRESS, Matmul)
 		{
 			throw std::runtime_error("ashape not found");
 		}
-		assert(testify::INT64 == it->second.dtype());
-		testify::Int64s arr;
-		it->second.data().UnpackTo(&arr);
+		assert(it->second.has_dint64s());
+		const testify::Int64s& arr = it->second.dint64s();
 		auto temp = arr.data();
 		std::vector<ade::DimT> slist(temp.begin(), temp.end());
 		ashape = ade::Shape(slist);
@@ -242,17 +283,17 @@ TEST_F(REGRESS, Matmul)
 		{
 			throw std::runtime_error("bdim not found");
 		}
-		assert(testify::INT64 == bit->second.dtype());
-		bit->second.data().UnpackTo(&arr);
-		ade::DimT bdim = arr.data()[0];
+		assert(bit->second.has_dint64s());
+		const testify::Int64s& barr = bit->second.dint64s();
+		ade::DimT bdim = barr.data()[0];
 		bshape = ade::Shape({bdim, slist[0]});
 	}
 
-	std::vector<double> data = get_data(gcase, "data");
-	std::vector<double> data2 = get_data(gcase, "data2");
-	std::vector<double> resdata = get_data(gcase, "matmul_out");
-	std::vector<double> gresdata = get_data(gcase, "matmul_ga");
-	std::vector<double> gresdata2 = get_data(gcase, "matmul_gb");
+	std::vector<double> data = get_input_data(gcase, "data");
+	std::vector<double> data2 = get_input_data(gcase, "data2");
+	std::vector<double> resdata = get_output_data(gcase, "matmul_out");
+	std::vector<double> gresdata = get_output_data(gcase, "matmul_ga");
+	std::vector<double> gresdata2 = get_output_data(gcase, "matmul_gb");
 
 	auto leaf = llo::Source<double>::get(ashape, data);
 	auto leaf2 = llo::Source<double>::get(bshape, data2);
@@ -260,11 +301,38 @@ TEST_F(REGRESS, Matmul)
 	auto gres = res->gradient(leaf);
 	auto gres2 = res->gradient(leaf2);
 
-	std::vector<double> resd = llo::evaluate(llo::DOUBLE, res.get());
-	std::vector<double> gresd = llo::evaluate(llo::DOUBLE, gres.get());
-	std::vector<double> gresd2 = llo::evaluate(llo::DOUBLE, gres2.get());
+	llo::GenericData resgd = llo::evaluate(llo::DOUBLE, res.get());
+	llo::GenericData gresgd = llo::evaluate(llo::DOUBLE, gres.get());
+	llo::GenericData gresgd2 = llo::evaluate(llo::DOUBLE, gres2.get());
 
-	EXPECT_ARREQ(resdata, resd);
-	EXPECT_ARREQ(gresdata, gresd);
-	EXPECT_ARREQ(gresdata2, gresd2);
+	double* resptr = (double*) resgd.data_.get();
+	double* gresptr = (double*) gresgd.data_.get();
+	double* gresptr2 = (double*) gresgd2.data_.get();
+
+	std::vector<double> resd(resptr, resptr + resgd.shape_.n_elems());
+	size_t totalga = gresgd.shape_.n_elems();
+	std::vector<double> gresd(gresptr, gresptr + totalga);
+	size_t totalgb = gresgd2.shape_.n_elems();
+	std::vector<double> gresd2(gresptr2, gresptr2 + totalgb);
+
+	// group gradients to ashape and bshape
+	// todo: replace this manual process using ade::GROUP when implemented
+	size_t an = ashape.n_elems();
+	size_t bn = bshape.n_elems();
+	std::vector<double> processed_ga(an, 0);
+	std::vector<double> processed_gb(bn, 0);
+	size_t batchga = totalga / an;
+	size_t batchgb = totalgb / bn;
+	for (size_t i = 0; i < totalga; ++i)
+	{
+		processed_ga[i / batchga] += gresd[i];
+	}
+	for (size_t i = 0; i < totalgb; ++i)
+	{
+		processed_gb[i / batchgb] += gresd2[i];
+	}
+
+	EXPECT_DATAEQ("res", resdata, resd);
+	EXPECT_DATAEQ("gres", gresdata, processed_ga);
+	EXPECT_DATAEQ("gres2", gresdata2, processed_gb);
 }

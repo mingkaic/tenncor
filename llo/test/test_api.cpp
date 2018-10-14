@@ -9,34 +9,36 @@
 #ifndef DISABLE_API_TEST
 
 
-using UNARY_DBL = std::function<double(double)>;
-using UNARY_OP = std::function<ade::Tensorptr(ade::Tensorptr&)>;
-using BINARY_OP = std::function<ade::Tensorptr(ade::Tensorptr&,
+using UnaryDblF = std::function<double(double)>;
+
+using UnaryOpF = std::function<ade::Tensorptr(ade::Tensorptr&)>;
+
+using BinaryOpF = std::function<ade::Tensorptr(ade::Tensorptr&,
 	ade::Tensorptr&)>;
 
 template <typename T>
-using BINARY_FWD = std::function<T(T,T)>;
+using BinaryFwdF = std::function<T(T,T)>;
 
 template <typename T>
-using BINARY_BWD = std::function<T(T,T,T,T)>;
+using BinaryBwdF = std::function<T(T,T,T,T)>;
 
-using TWODV = std::vector<std::vector<int32_t>>;
+using MatVecT = std::vector<std::vector<int32_t>>;
 
-static const Range<double> default_range = {-9876, 9876};
+static const retro::Range<double> default_range = {-9876, 9876};
 
 const int FREIVALD_N = 10;
 
 
-struct API : public TestModel {};
+struct API : public simple::TestModel {};
 
 
-TWODV create_2d (llo::GenericData& data)
+MatVecT create_2d (llo::GenericData& data)
 {
 	int32_t* ptr = (int32_t*) data.data_.get();
 	std::vector<ade::DimT> dims = data.shape_.as_list();
 	ade::DimT C = dims[0];
 	ade::DimT R = dims[1];
-	TWODV res;
+	MatVecT res;
 
  	for (size_t y = 0; y < R; y++)
 	{
@@ -54,7 +56,7 @@ TWODV create_2d (llo::GenericData& data)
 }
 
 
-bool freivald (TWODV a, TWODV b, TWODV c)
+bool freivald (MatVecT a, MatVecT b, MatVecT c)
 {
 	uint8_t cdim = b.size();
 	uint8_t bdim = b[0].size();
@@ -67,7 +69,7 @@ bool freivald (TWODV a, TWODV b, TWODV c)
 	for (int i = 0; i < FREIVALD_N; i++)
 	{
 		// generate r of len b[0].size() or c[0].size()
-		std::vector<int32_t> r = get_vec<int32_t>(bdim, {0, 1});
+		std::vector<int32_t> r = retro::get_vec<int32_t>(bdim, {0, 1});
 
 		// p = matmul(a, matmul(b, r)) - matmul(c, r)
 		std::vector<int32_t> br; // matmul(b, r)
@@ -118,8 +120,8 @@ bool freivald (TWODV a, TWODV b, TWODV c)
 }
 
 
-static void unary_generic (SESSION& sess,
-	Range<double> range, UNARY_OP op,
+static void unary_generic (simple::SessionT& sess,
+	retro::Range<double> range, UnaryOpF op,
 	std::function<void(llo::GenericData&,ade::Shape&,std::vector<double>&)> verify,
 	std::function<void(double*,std::vector<double>&)> bwverify)
 {
@@ -149,9 +151,9 @@ static void unary_generic (SESSION& sess,
 }
 
 
-static void unary_elementary (SESSION& sess,
-	Range<double> range, UNARY_OP op,
-	UNARY_DBL fwd, UNARY_DBL bwd, bool save_grad = true)
+static void unary_elementary (simple::SessionT& sess,
+	retro::Range<double> range, UnaryOpF op,
+	UnaryDblF fwd, UnaryDblF bwd, bool save_grad = true)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "shape");
 	ade::Shape shape(slist);
@@ -206,9 +208,9 @@ static void unary_elementary (SESSION& sess,
 }
 
 
-static void binary_elementary (SESSION& sess,
-	Range<double> range, BINARY_OP op,
-	BINARY_FWD<double> fwd, BINARY_BWD<double> bwd)
+static void binary_elementary (simple::SessionT& sess,
+	retro::Range<double> range, BinaryOpF op,
+	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "shape");
 	ade::Shape shape(slist);
@@ -294,9 +296,9 @@ static void binary_elementary (SESSION& sess,
 }
 
 
-static void binary_elementary_int (SESSION& sess,
-	Range<int32_t> range, BINARY_OP op,
-	BINARY_FWD<int32_t> fwd, BINARY_BWD<int32_t> bwd)
+static void binary_elementary_int (simple::SessionT& sess,
+	retro::Range<int32_t> range, BinaryOpF op,
+	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "shape");
 	ade::Shape shape(slist);
@@ -384,17 +386,17 @@ static void binary_elementary_int (SESSION& sess,
 
 TEST_F(API, Abs)
 {
-	SESSION sess = get_session("API::Abs");
+	simple::SessionT sess = get_session("API::Abs");
 	unary_elementary(sess, default_range,
 	[](ade::Tensorptr& a) { return llo::abs(a); },
 	[](double d) { return std::abs(d); },
-	[](double d) { return 1.0; }, false);
+	[](double d) { return d / std::abs(d); }, false);
 }
 
 
 TEST_F(API, Neg)
 {
-	SESSION sess = get_session("API::Neg");
+	simple::SessionT sess = get_session("API::Neg");
 	unary_elementary(sess, default_range,
 	[](ade::Tensorptr& a) { return llo::neg(a); },
 	[](double d) { return -d; },
@@ -404,7 +406,7 @@ TEST_F(API, Neg)
 
 TEST_F(API, Not)
 {
-	SESSION sess = get_session("API::Not");
+	simple::SessionT sess = get_session("API::Not");
 	unary_elementary(sess, default_range,
 	[](ade::Tensorptr& a) { return llo::bit_not(a); },
 	[](double d) { return !d; },
@@ -414,7 +416,7 @@ TEST_F(API, Not)
 
 TEST_F(API, Sin)
 {
-	SESSION sess = get_session("API::Sin");
+	simple::SessionT sess = get_session("API::Sin");
 	unary_elementary(sess, default_range,
 	[](ade::Tensorptr& a) { return llo::sin(a); },
 	[](double d) { return std::sin(d); },
@@ -424,7 +426,7 @@ TEST_F(API, Sin)
 
 TEST_F(API, Cos)
 {
-	SESSION sess = get_session("API::Cos");
+	simple::SessionT sess = get_session("API::Cos");
 	unary_elementary(sess, default_range,
 	[](ade::Tensorptr& a) { return llo::cos(a); },
 	[](double d) { return std::cos(d); },
@@ -434,7 +436,7 @@ TEST_F(API, Cos)
 
 TEST_F(API, Tan)
 {
-	SESSION sess = get_session("API::Tan");
+	simple::SessionT sess = get_session("API::Tan");
 	unary_elementary(sess, {-1, 1},
 	[](ade::Tensorptr& a) { return llo::tan(a); },
 	[](double d) { return std::tan(d); },
@@ -447,7 +449,7 @@ TEST_F(API, Tan)
 
 TEST_F(API, Exp)
 {
-	SESSION sess = get_session("API::Exp");
+	simple::SessionT sess = get_session("API::Exp");
 	unary_elementary(sess, {-9876, 5},
 	[](ade::Tensorptr& a) { return llo::exp(a); },
 	[](double d) { return std::exp(d); },
@@ -457,7 +459,7 @@ TEST_F(API, Exp)
 
 TEST_F(API, Log)
 {
-	SESSION sess = get_session("API::Log");
+	simple::SessionT sess = get_session("API::Log");
 	unary_elementary(sess, {0.5, 9876},
 	[](ade::Tensorptr& a) { return llo::log(a); },
 	[](double d) { return std::log(d); },
@@ -467,7 +469,7 @@ TEST_F(API, Log)
 
 TEST_F(API, Sqrt)
 {
-	SESSION sess = get_session("API::Sqrt");
+	simple::SessionT sess = get_session("API::Sqrt");
 	unary_elementary(sess, {0, 9876},
 	[](ade::Tensorptr& a) { return llo::sqrt(a); },
 	[](double d) { return std::sqrt(d); },
@@ -477,7 +479,7 @@ TEST_F(API, Sqrt)
 
 TEST_F(API, Round)
 {
-	SESSION sess = get_session("API::Round");
+	simple::SessionT sess = get_session("API::Round");
 	unary_elementary(sess, default_range,
 	[](ade::Tensorptr& a) { return llo::round(a); },
 	[](double d) { return std::round(d); },
@@ -487,7 +489,7 @@ TEST_F(API, Round)
 
 TEST_F(API, Flip)
 {
-	SESSION sess = get_session("API::Flip");
+	simple::SessionT sess = get_session("API::Flip");
 
 	int32_t nrank = sess->get_scalar("nrank", {1, ade::rank_cap - 1});
 	std::vector<ade::DimT> slist = get_shape_n(sess, nrank, "shape");
@@ -548,7 +550,7 @@ TEST_F(API, Flip)
 
 TEST_F(API, Pow)
 {
-	SESSION sess = get_session("API::Pow");
+	simple::SessionT sess = get_session("API::Pow");
 	binary_elementary(sess, {0, 5},
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::pow(a, b); },
 	[](double a, double b) { return std::pow(a, b); },
@@ -561,7 +563,7 @@ TEST_F(API, Pow)
 
 TEST_F(API, Add)
 {
-	SESSION sess = get_session("API::Add");
+	simple::SessionT sess = get_session("API::Add");
 	binary_elementary(sess, default_range,
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::add(a, b); },
 	[](double a, double b) { return a + b; },
@@ -574,7 +576,7 @@ TEST_F(API, Add)
 
 TEST_F(API, Sub)
 {
-	SESSION sess = get_session("API::Sub");
+	simple::SessionT sess = get_session("API::Sub");
 	binary_elementary(sess, default_range,
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::sub(a, b); },
 	[](double a, double b) { return a - b; },
@@ -587,7 +589,7 @@ TEST_F(API, Sub)
 
 TEST_F(API, Mul)
 {
-	SESSION sess = get_session("API::Mul");
+	simple::SessionT sess = get_session("API::Mul");
 	binary_elementary(sess, default_range,
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::mul(a, b); },
 	[](double a, double b) { return a * b; },
@@ -600,7 +602,7 @@ TEST_F(API, Mul)
 
 TEST_F(API, Div)
 {
-	SESSION sess = get_session("API::Div");
+	simple::SessionT sess = get_session("API::Div");
 	binary_elementary(sess, default_range,
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::div(a, b); },
 	[](double a, double b) { return a / b; },
@@ -613,7 +615,7 @@ TEST_F(API, Div)
 
 TEST_F(API, Eq)
 {
-	SESSION sess = get_session("API::Eq");
+	simple::SessionT sess = get_session("API::Eq");
 	binary_elementary_int(sess, {-1, 1},
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::eq(a, b); },
 	[](int32_t a, int32_t b) { return a == b; },
@@ -626,7 +628,7 @@ TEST_F(API, Eq)
 
 TEST_F(API, Neq)
 {
-	SESSION sess = get_session("API::Neq");
+	simple::SessionT sess = get_session("API::Neq");
 	binary_elementary_int(sess, {-1, 1},
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::neq(a, b); },
 	[](int32_t a, int32_t b) { return a != b; },
@@ -639,7 +641,7 @@ TEST_F(API, Neq)
 
 TEST_F(API, Lt)
 {
-	SESSION sess = get_session("API::Lt");
+	simple::SessionT sess = get_session("API::Lt");
 	binary_elementary_int(sess, {-1, 1},
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::lt(a, b); },
 	[](int32_t a, int32_t b) { return a < b; },
@@ -652,7 +654,7 @@ TEST_F(API, Lt)
 
 TEST_F(API, Gt)
 {
-	SESSION sess = get_session("API::Gt");
+	simple::SessionT sess = get_session("API::Gt");
 	binary_elementary_int(sess, {-1, 1},
 	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::gt(a, b); },
 	[](int32_t a, int32_t b) { return a > b; },
@@ -665,7 +667,7 @@ TEST_F(API, Gt)
 
 TEST_F(API, NElems)
 {
-	SESSION sess = get_session("API::NElems");
+	simple::SessionT sess = get_session("API::NElems");
 
 	unary_generic(sess, default_range,
 	[](ade::Tensorptr& src) { return llo::n_elems(src); },
@@ -693,7 +695,7 @@ TEST_F(API, NElems)
 
 TEST_F(API, NDims)
 {
-	SESSION sess = get_session("API::NDims");
+	simple::SessionT sess = get_session("API::NDims");
 	uint8_t dim = sess->get_scalar("dim", {0, ade::rank_cap - 1});
 
 	unary_generic(sess, default_range,
@@ -722,7 +724,7 @@ TEST_F(API, NDims)
 
 TEST_F(API, Argmax)
 {
-	SESSION sess = get_session("API::Argmax");
+	simple::SessionT sess = get_session("API::Argmax");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "shape");
 	ade::Shape shape(slist);
@@ -752,7 +754,7 @@ TEST_F(API, Argmax)
 
 TEST_F(API, Rmax)
 {
-	SESSION sess = get_session("API::Rmax");
+	simple::SessionT sess = get_session("API::Rmax");
 
 	unary_generic(sess, default_range,
 	[](ade::Tensorptr& src) { return llo::reduce_max(src); },
@@ -786,7 +788,7 @@ TEST_F(API, Rmax)
 
 TEST_F(API, Rsum)
 {
-	SESSION sess = get_session("API::Rsum");
+	simple::SessionT sess = get_session("API::Rsum");
 
 	unary_generic(sess, default_range,
 	[](ade::Tensorptr& src) { return llo::reduce_sum(src); },
@@ -818,7 +820,7 @@ TEST_F(API, Rsum)
 
 TEST_F(API, Matmul2d)
 {
-	SESSION sess = get_session("API::Matmul2d");
+	simple::SessionT sess = get_session("API::Matmul2d");
 
 	ade::DimT cdim = sess->get_scalar("cdim", {1, 17});
 	ade::DimT adim = sess->get_scalar("adim", {1, 17});
@@ -854,9 +856,9 @@ TEST_F(API, Matmul2d)
 			evaluate(llo::INT32);
 		llo::GenericData bd = static_cast<llo::iSource*>(b.get())->
 			evaluate(llo::INT32);
-		TWODV dda = create_2d(ad);
-		TWODV ddb = create_2d(bd);
-		TWODV ddc = create_2d(out);
+		MatVecT dda = create_2d(ad);
+		MatVecT ddb = create_2d(bd);
+		MatVecT ddc = create_2d(out);
 		EXPECT_TRUE(freivald(dda, ddb, ddc));
 	});
 
@@ -926,14 +928,14 @@ TEST_F(API, Matmul2d)
 
 TEST_F(API, DISABLED_Matmul)
 {
-	SESSION sess = get_session("API::Matmul");
+	simple::SessionT sess = get_session("API::Matmul");
 
 }
 
 
 TEST_F(API, Permute)
 {
-	SESSION sess = get_session("API::Permute");
+	simple::SessionT sess = get_session("API::Permute");
 
 	int32_t nrank = sess->get_scalar("nrank", {2, ade::rank_cap - 2});
 	std::vector<ade::DimT> slist = get_shape_n(sess, nrank, "slist");
@@ -987,7 +989,7 @@ TEST_F(API, Permute)
 
 TEST_F(API, Extend)
 {
-	SESSION sess = get_session("API::Extend");
+	simple::SessionT sess = get_session("API::Extend");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 
@@ -1044,7 +1046,7 @@ TEST_F(API, Extend)
 
 TEST_F(API, Reshape)
 {
-	SESSION sess = get_session("API::Reshape");
+	simple::SessionT sess = get_session("API::Reshape");
 
 	int32_t nrank = sess->get_scalar("nrank", {2, ade::rank_cap - 2});
 	std::vector<ade::DimT> slist = get_shape_n(sess, nrank, "slist");

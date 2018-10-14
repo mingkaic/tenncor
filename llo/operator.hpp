@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cmath>
 #include <functional>
+#include <random>
 
 #include "ade/shape.hpp"
 

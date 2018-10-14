@@ -8,12 +8,12 @@
 #ifndef DISABLE_DTYPE_TEST
 
 
-struct DTYPE : public TestModel {};
+struct DTYPE : public simple::TestModel {};
 
 
 TEST_F(DTYPE, DataConvert)
 {
-	SESSION sess = get_session("DTYPE::DataConvert");
+	simple::SessionT sess = get_session("DTYPE::DataConvert");
 
 	auto dtype = (llo::DTYPE) sess->get_scalar("dtype", {1, llo::_SENTINEL - 1});
 	auto dtype_other = (llo::DTYPE) sess->get_scalar("dtype_other", {1, llo::_SENTINEL - 1});

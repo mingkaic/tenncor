@@ -9,12 +9,12 @@
 #ifndef DISABLE_TENSOR_TEST
 
 
-struct TENSOR : public TestModel {};
+struct TENSOR : public simple::TestModel {};
 
 
 TEST_F(TENSOR, Gradient)
 {
-	SESSION sess = get_session("TENSOR::Gradient");
+	simple::SessionT sess = get_session("TENSOR::Gradient");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
@@ -55,7 +55,7 @@ TEST_F(TENSOR, Gradient)
 
 TEST_F(TENSOR, ToString)
 {
-	SESSION sess = get_session("TENSOR::ToString");
+	simple::SessionT sess = get_session("TENSOR::ToString");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
@@ -71,4 +71,4 @@ TEST_F(TENSOR, ToString)
 }
 
 
-#endif // DISABLE_TENSOR_TEST 
+#endif // DISABLE_TENSOR_TEST

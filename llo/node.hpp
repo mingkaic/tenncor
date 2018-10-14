@@ -61,6 +61,11 @@ struct Source final : public iSource
 	}
 
 	/// Implementation of iTensor
+	void accept (ade::Traveler& visiter) override
+	{
+	}
+
+	/// Implementation of iTensor
 	const ade::Shape& shape (void) const override
 	{
 		return tens_->shape();
@@ -159,6 +164,11 @@ struct DirectWrapper final : public ade::iFunctor, public iEvaluable
 	{
 		std::tuple<ARGS...> tp(args...);
 		return new DirectWrapper(tens, tp);
+	}
+
+	/// Implementation of iTensor
+	void accept (ade::Traveler& visiter) override
+	{
 	}
 
 	/// Implementation of iTensor

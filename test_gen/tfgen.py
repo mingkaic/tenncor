@@ -2,18 +2,20 @@
 
 import math
 import tensorflow as tf
+import argparse
 import numpy as np
 import functools
 
 import retrop.generate as gen
 import retrop.client as client
 
-N_LIMIT = 32000
-RANK_LIMIT = 8
+# N_LIMIT = 32000
+N_LIMIT = 16000
+RANK_LIMIT = 6
 
 def make_shape(io, nrank=RANK_LIMIT):
     rank = io.get_arr("rank", int, 1, (1, nrank))[0]
-    dimlimit = 10 ** (math.log(N_LIMIT, 10) / rank)
+    dimlimit = min(10 ** (math.log(N_LIMIT, 10) / rank), 255)
     shape = io.get_arr("shape", int, rank, (1, int(dimlimit)))
     n = functools.reduce(lambda d1, d2 : d1 * d2, shape)
     return shape, n, dimlimit
@@ -22,9 +24,9 @@ def unary(name, func, pos=False):
     io = gen.GenIO(name)
     shape, n, _ = make_shape(io)
     if pos:
-        data = io.get_arr("data", float, n, (0.1, 1542.973))
+        data = io.get_arr("data", float, n, (0.1, 1.0))
     else:
-        data = io.get_arr("data", float, n, (-1542.973, 1542.973))
+        data = io.get_arr("data", float, n, (-1.0, 1.0))
     shaped_data = np.reshape(data, shape)
 
     var = tf.Variable(shaped_data)
@@ -41,17 +43,11 @@ def unary(name, func, pos=False):
 
         io.send()
 
-def binary(name, func, apos=False, bpos=False):
+def binary(name, func, arange=(-1.0, 1.0), brange=(-1.0, 1.0)):
     io = gen.GenIO(name)
     shape, n, _ = make_shape(io)
-    if apos:
-        data = io.get_arr("data", float, n, (0.1, 1542.973))
-    else:
-        data = io.get_arr("data", float, n, (-1542.973, 1542.973))
-    if bpos:
-        data2 = io.get_arr("data2", float, n, (0.1, 1542.973))
-    else:
-        data2 = io.get_arr("data2", float, n, (-1542.973, 1542.973))
+    data = io.get_arr("data", float, n, arange)
+    data2 = io.get_arr("data2", float, n, brange)
     shaped_data = np.reshape(data, shape)
     shaped_data2 = np.reshape(data2, shape)
 
@@ -83,8 +79,8 @@ def matmul():
     bshape = [bdim, ashape[0]]
     an = ashape[0] * ashape[1]
     bn = bdim * ashape[0]
-    data = io.get_arr("data", float, an, (-1542.973, 1542.973))
-    data2 = io.get_arr("data2", float, bn, (-1542.973, 1542.973))
+    data = io.get_arr("data", float, an, (-1.0, 1.0))
+    data2 = io.get_arr("data2", float, bn, (-1.0, 1.0))
     shaped_data = np.reshape(data, ashape[::-1])
     shaped_data2 = np.reshape(data2, bshape[::-1])
 
@@ -108,12 +104,21 @@ def matmul():
         io.send()
 
 if __name__ == "__main__":
-    client.init("0.0.0.0:8581")
+    parser = argparse.ArgumentParser(description='Generate tensorflow testdata')
+    parser.add_argument('--cert', type=str, dest='cert', default='certs/server.crt',
+        help="Path to dora server's x509 certificate file")
+    parser.add_argument('--address', type=str, dest='addr', default='localhost:10000',
+        help='Dora server address')
+
+    args = parser.parse_args()
+    cert = open(args.cert).read()
+
+    client.init(args.addr, cert)
     print("client initialized")
 
     ufs = [
         ('REGRESS::Abs', tf.abs, False),
-        ('REGRESS::Neg', tf.neg, False),
+        ('REGRESS::Neg', tf.negative, False),
         ('REGRESS::Sin', tf.sin, False),
         ('REGRESS::Cos', tf.cos, False),
         ('REGRESS::Tan', tf.tan, False),
@@ -127,15 +132,18 @@ if __name__ == "__main__":
         unary(name, f, pos=pos)
 
     bfs = [
-        ('REGRESS::Pow', tf.pow, False),
-        ('REGRESS::Add', tf.add, False),
-        ('REGRESS::Sub', tf.sub, False),
-        ('REGRESS::Mul', tf.mul, False),
-        ('REGRESS::Div', tf.div, True)
+        ('REGRESS::Pow', tf.pow, ((1.0, 6.0), (-1.0, 1.0))),
+        ('REGRESS::Add', tf.add, None),
+        ('REGRESS::Sub', tf.subtract, None),
+        ('REGRESS::Mul', tf.multiply, None),
+        ('REGRESS::Div', tf.div, ((-1.0, 1.0), (0.1, 1.0)))
     ]
 
-    for name, f, pos in bfs:
+    for name, f, bounds in bfs:
         print('generating ' + name)
-        binary(name, f, bpos=pos)
+        if bounds is not None:
+            binary(name, f, arange = bounds[0], brange = bounds[1])
+        else:
+            binary(name, f)
 
     matmul()

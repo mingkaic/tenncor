@@ -23,7 +23,10 @@ Tensorptr grader<CODE,std::vector<DimT>> (std::vector<Tensorptr> args,\
 
 NOARG_SIG(ABS)
 {
-	return Functor<ABS>::get({args.front()->gradient(wrt)});
+	// abs'(f) = f * f' / abs(f)
+	return Functor<DIV>::get({Functor<MUL>::get({
+		args.front(), args.front()->gradient(wrt)}),
+		Functor<ABS>::get({args.front()})});
 }
 
 NOARG_SIG(NEG)

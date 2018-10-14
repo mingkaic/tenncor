@@ -8,11 +8,11 @@
 #ifndef DISABLE_FWDER_TEST
 
 
-struct FWDER : public TestModel {};
+struct FWDER : public simple::TestModel {};
 
 
 template <ade::OPCODE opcode>
-static void unary_elementary (SESSION& sess)
+static void unary_elementary (simple::SessionT& sess)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
@@ -23,7 +23,7 @@ static void unary_elementary (SESSION& sess)
 
 
 template <ade::OPCODE opcode>
-static void binary_elementary (SESSION& sess)
+static void binary_elementary (simple::SessionT& sess)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> badlist = get_incompatible(sess, slist, "slist");
@@ -61,7 +61,7 @@ static void binary_elementary (SESSION& sess)
 
 
 template <ade::OPCODE opcode>
-static void scalar (SESSION& sess)
+static void scalar (simple::SessionT& sess)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
@@ -76,7 +76,7 @@ static void scalar (SESSION& sess)
 
 #define FWD_UNAR(CODE)\
 TEST_F(FWDER, CODE) {\
-	SESSION sess = get_session("FWDER::" + std::string(#CODE));\
+	simple::SessionT sess = get_session("FWDER::" + std::string(#CODE));\
 	unary_elementary<ade::CODE>(sess); }
 
 
@@ -95,7 +95,7 @@ FWD_UNAR(FLIP)
 
 #define FWD_BINAR(CODE)\
 TEST_F(FWDER, CODE) {\
-	SESSION sess = get_session("FWDER::" + std::string(#CODE));\
+	simple::SessionT sess = get_session("FWDER::" + std::string(#CODE));\
 	binary_elementary<ade::CODE>(sess); }
 
 
@@ -116,7 +116,7 @@ FWD_BINAR(RAND_NORM)
 
 #define FWD_SCALAR(CODE)\
 TEST_F(FWDER, CODE) {\
-	SESSION sess = get_session("FWDER::" + std::string(#CODE));\
+	simple::SessionT sess = get_session("FWDER::" + std::string(#CODE));\
 	scalar<ade::CODE>(sess); }
 
 
@@ -129,7 +129,7 @@ FWD_SCALAR(RSUM)
 
 TEST_F(FWDER, MATMUL2D)
 {
-	SESSION sess = get_session("FWDER::MATMUL2D");
+	simple::SessionT sess = get_session("FWDER::MATMUL2D");
 
 	ade::DimT cdim = sess->get_scalar("cdim", {1, 255});
 	ade::DimT adim = sess->get_scalar("adim", {1, 255});
@@ -156,7 +156,7 @@ TEST_F(FWDER, MATMUL2D)
 
 TEST_F(FWDER, MATMUL)
 {
-	SESSION sess = get_session("FWDER::MATMUL");
+	simple::SessionT sess = get_session("FWDER::MATMUL");
 
 	ade::DimT agroupidx = sess->get_scalar("agroupidx", {1, ade::rank_cap - 1});
 	std::vector<ade::DimT> common_group = get_shape_n(sess, agroupidx, "common_group");
@@ -223,7 +223,7 @@ TEST_F(FWDER, MATMUL)
 
 TEST_F(FWDER, PERMUTE)
 {
-	SESSION sess = get_session("FWDER::PERMUTE");
+	simple::SessionT sess = get_session("FWDER::PERMUTE");
 
 	int32_t n = sess->get_scalar("n", {2, ade::rank_cap - 2});
 	std::vector<ade::DimT> slist = get_shape_n(sess, n, "slist");
@@ -308,7 +308,7 @@ TEST_F(FWDER, PERMUTE)
 
 TEST_F(FWDER, EXTEND)
 {
-	SESSION sess = get_session("FWDER::EXTEND");
+	simple::SessionT sess = get_session("FWDER::EXTEND");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	std::vector<ade::DimT> badlist = get_shape_n(sess, ade::rank_cap, "badlist");
@@ -357,7 +357,7 @@ TEST_F(FWDER, EXTEND)
 
 TEST_F(FWDER, RESHAPE)
 {
-	SESSION sess = get_session("FWDER::RESHAPE");
+	simple::SessionT sess = get_session("FWDER::RESHAPE");
 
 	int32_t n = sess->get_scalar("n", {2, ade::rank_cap - 2});
 	std::vector<ade::DimT> slist = get_shape_n(sess, n, "slist");

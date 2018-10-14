@@ -8,12 +8,12 @@
 #ifndef DISABLE_SHAPE_TEST
 
 
-struct SHAPE : public TestModel {};
+struct SHAPE : public simple::TestModel {};
 
 
 TEST_F(SHAPE, Init)
 {
-	SESSION sess = get_session("SHAPE::Init");
+	simple::SessionT sess = get_session("SHAPE::Init");
 
 	ade::Shape scalar;
 
@@ -53,7 +53,7 @@ TEST_F(SHAPE, Init)
 
 TEST_F(SHAPE, VecAssign)
 {
-	SESSION sess = get_session("SHAPE::VecAssign");
+	simple::SessionT sess = get_session("SHAPE::VecAssign");
 
 	std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
@@ -76,7 +76,7 @@ TEST_F(SHAPE, VecAssign)
 
 TEST_F(SHAPE, Moves)
 {
-	SESSION sess = get_session("SHAPE::Moves");
+	simple::SessionT sess = get_session("SHAPE::Moves");
 
 	std::vector<ade::DimT> junk = get_shape(sess, "junk");
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
@@ -116,7 +116,7 @@ TEST_F(SHAPE, Moves)
 
 TEST_F(SHAPE, NElems)
 {
-	SESSION sess = get_session("SHAPE::NElems");
+	simple::SessionT sess = get_session("SHAPE::NElems");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
@@ -145,7 +145,7 @@ TEST_F(SHAPE, NElems)
 
 TEST_F(SHAPE, NRank)
 {
-	SESSION sess = get_session("SHAPE::NRank");
+	simple::SessionT sess = get_session("SHAPE::NRank");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
@@ -160,7 +160,7 @@ TEST_F(SHAPE, NRank)
 
 TEST_F(SHAPE, Compatible)
 {
-	SESSION sess = get_session("SHAPE::Compatible");
+	simple::SessionT sess = get_session("SHAPE::Compatible");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
@@ -207,7 +207,7 @@ TEST_F(SHAPE, Compatible)
 
 TEST_F(SHAPE, ToString)
 {
-	SESSION sess = get_session("SHAPE::ToString");
+	simple::SessionT sess = get_session("SHAPE::ToString");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
@@ -222,4 +222,4 @@ TEST_F(SHAPE, ToString)
 }
 
 
-#endif // DISABLE_SHAPE_TEST 
+#endif // DISABLE_SHAPE_TEST

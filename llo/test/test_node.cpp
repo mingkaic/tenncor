@@ -8,12 +8,12 @@
 #ifndef DISABLE_NODE_TEST
 
 
-struct NODE : public TestModel {};
+struct NODE : public simple::TestModel {};
 
 
 TEST_F(NODE, MismatchSource)
 {
-	SESSION sess = get_session("NODE::MismatchSource");
+	simple::SessionT sess = get_session("NODE::MismatchSource");
 
 	auto slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
@@ -25,7 +25,7 @@ TEST_F(NODE, MismatchSource)
 
 TEST_F(NODE, SourceRetype)
 {
-	SESSION sess = get_session("NODE::SourceRetype");
+	simple::SessionT sess = get_session("NODE::SourceRetype");
 
 	auto slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
@@ -51,7 +51,7 @@ TEST_F(NODE, SourceRetype)
 
 TEST_F(NODE, Placeholder)
 {
-	SESSION sess = get_session("NODE::Placeholder");
+	simple::SessionT sess = get_session("NODE::Placeholder");
 
 	auto slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);

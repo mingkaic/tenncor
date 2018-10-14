@@ -1,5 +1,4 @@
 correctness:
-P2 - use testify for regression test
 P2 - update graphmgr and test complicate equations
 P2 - test log utility in ade
 P2 - verify error messages

@@ -65,7 +65,7 @@ test_ade_static:
 test_llo:
 	$(GTEST) $(REP_BZL_FLAGS) $(LLO_TEST)
 
-test_regress:
+test_regress: gen_test
 	$(GTEST) $(REGRESS_TEST)
 
 test_pbm:
@@ -196,3 +196,11 @@ build_ade_cli:
 
 build_llo_cli:
 	bazel build //cli/llo:cli
+
+# test management
+
+dora_run:
+	./start_dora.sh
+
+gen_test: dora_run
+	bazel run //test_gen:tfgen

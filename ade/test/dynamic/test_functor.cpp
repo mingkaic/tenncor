@@ -8,12 +8,12 @@
 #ifndef DISABLE_FUNCTOR_TEST
 
 
-struct FUNCTOR : public TestModel {};
+struct FUNCTOR : public simple::TestModel {};
 
 
 TEST_F(FUNCTOR, Gradient)
 {
-	SESSION sess = get_session("FUNCTOR::Gradient");
+	simple::SessionT sess = get_session("FUNCTOR::Gradient");
 
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
@@ -115,7 +115,7 @@ TEST_F(FUNCTOR, Gradient)
 
 TEST_F(FUNCTOR, Childrens)
 {
-	SESSION sess = get_session("FUNCTOR::Childrens");
+	simple::SessionT sess = get_session("FUNCTOR::Childrens");
 
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
@@ -144,7 +144,7 @@ TEST_F(FUNCTOR, Childrens)
 
 TEST_F(FUNCTOR, ToString)
 {
-	SESSION sess = get_session("FUNCTOR::ToString");
+	simple::SessionT sess = get_session("FUNCTOR::ToString");
 
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());

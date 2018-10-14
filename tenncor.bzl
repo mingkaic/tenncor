@@ -13,5 +13,5 @@ def test_dependencies():
         git_repository(
             name = "com_github_mingkaic_testify",
             remote = "https://github.com/raggledodo/testify",
-            commit = "854b668548e30753dc6e5e3ef77af3fcd9a09c05",
+            commit = "e96e793b7082c3eb95f6177d5e7b0612ef6cd29c",
         )

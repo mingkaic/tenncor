@@ -15,4 +15,5 @@ py_binary(
     name = "tfgen",
     srcs = glob(["tfgen.py"]),
     deps = ["@com_github_mingkaic_testify//retrop:retrop"],
+    data = ["//:credentials"]
 )

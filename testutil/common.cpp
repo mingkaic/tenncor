@@ -4,7 +4,7 @@ std::string TestLogger::latest_warning_;
 std::string TestLogger::latest_error_;
 std::string TestLogger::latest_fatal_;
 
-std::vector<ade::DimT> get_shape_n (SESSION& sess, size_t n, std::string label)
+std::vector<ade::DimT> get_shape_n (simple::SessionT& sess, size_t n, std::string label)
 {
 	int32_t max_elem = std::log(nelem_limit) / std::log(n);
 	max_elem = std::max(3, max_elem);
@@ -12,19 +12,19 @@ std::vector<ade::DimT> get_shape_n (SESSION& sess, size_t n, std::string label)
 	return std::vector<ade::DimT>(temp.begin(), temp.end());
 }
 
-std::vector<ade::DimT> get_shape (SESSION& sess, std::string label)
+std::vector<ade::DimT> get_shape (simple::SessionT& sess, std::string label)
 {
 	int32_t n = sess->get_scalar("n_" + label, {1, ade::rank_cap - 1});
 	return get_shape_n(sess, n, label);
 }
 
-std::vector<ade::DimT> get_longshape (SESSION& sess, std::string label)
+std::vector<ade::DimT> get_longshape (simple::SessionT& sess, std::string label)
 {
 	int32_t nl = sess->get_scalar("n_" + label, {ade::rank_cap, 57});
 	return get_shape_n(sess, nl, label);
 }
 
-std::vector<ade::DimT> get_zeroshape (SESSION& sess, std::string label)
+std::vector<ade::DimT> get_zeroshape (simple::SessionT& sess, std::string label)
 {
 	int32_t nz = sess->get_scalar("n_" + label, {1, ade::rank_cap - 1});
 	int32_t max_zelem = std::log(nelem_limit) / std::log(nz);
@@ -39,7 +39,7 @@ std::vector<ade::DimT> get_zeroshape (SESSION& sess, std::string label)
 	return std::vector<ade::DimT>(temp.begin(), temp.end());
 }
 
-std::vector<ade::DimT> get_incompatible (SESSION& sess,
+std::vector<ade::DimT> get_incompatible (simple::SessionT& sess,
 	std::vector<ade::DimT> inshape, std::string label)
 {
 	int32_t rank = inshape.size();
@@ -53,7 +53,7 @@ std::vector<ade::DimT> get_incompatible (SESSION& sess,
 	return bad;
 }
 
-void int_verify (SESSION& sess, std::string key,
+void int_verify (simple::SessionT& sess, std::string key,
 	std::vector<int32_t> data, std::function<void()> verify)
 {
 	// if (sess->generated_input())
@@ -68,7 +68,7 @@ void int_verify (SESSION& sess, std::string key,
 	// }
 }
 
-void double_verify (SESSION& sess, std::string key,
+void double_verify (simple::SessionT& sess, std::string key,
 	std::vector<double> data, std::function<void()> verify)
 {
 	// if (sess->generated_input())
