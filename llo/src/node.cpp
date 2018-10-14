@@ -9,7 +9,7 @@ namespace llo
 TYPE* ptr = (TYPE*) cptr;\
 std::fill(ptr, ptr + n, (TYPE) 1); } break;
 
-static void fill_one (char* cptr, size_t n, DTYPE dtype)
+void fill_one (char* cptr, size_t n, DTYPE dtype)
 {
 	switch (dtype)
 	{
@@ -38,79 +38,39 @@ static void fill_one (char* cptr, size_t n, DTYPE dtype)
 	}
 }
 
-#undef FILL_ONE
-
-GenericData evaluate (DTYPE dtype, ade::iTensor* tens)
+void get_func_children (std::vector<GenericData>& out,
+	const EvalCtx& ctx, DTYPE dtype, ade::iFunctor* func)
 {
-	if (iEvaluable* ev = dynamic_cast<iEvaluable*>(tens))
-	{
-		return ev->evaluate(dtype);
-	}
-	else if (tens == ade::Tensor::SYMBOLIC_ONE.get())
-	{
-		GenericData out(ade::Shape(), dtype);
-		fill_one(out.data_.get(), 1, dtype);
-		return out;
-	}
-	ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(tens);
-	if (f == nullptr) // || tens == ade::Tensor::SYMBOLIC_ZERO.get()
-	{
-		GenericData out(ade::Shape(), dtype);
-		std::memset(out.data_.get(), 0, type_size(dtype));
-		return out;
-	}
-	ade::OPCODE opcode = f->get_code();
-
-	std::vector<ade::iTensor*> refs = f->get_children();
-	uint8_t nargs = refs.size();
-
-	GenericData out(f->shape(), dtype);
-	std::vector<GenericData> argdata(nargs);
-	if (opcode == ade::RAND_BINO)
+	std::vector<ade::iTensor*> children = func->get_children();
+	uint8_t nargs = children.size();
+	out = std::vector<GenericData>(nargs);
+	if (func->get_code() == ade::RAND_BINO)
 	{
 		if (nargs != 2)
 		{
 			ade::fatalf("cannot RAND_BINO without 2 arguments: "
 				"using %d arguments", nargs);
 		}
-		argdata[0] = evaluate(dtype, refs[0]);
-		argdata[1] = evaluate(DOUBLE, refs[1]);
+		Evaluator left_eval(ctx, dtype);
+		children[0]->accept(left_eval);
+		out[0] = left_eval.out_;
+
+		Evaluator right_eval(ctx, DOUBLE);
+		children[1]->accept(right_eval);
+		out[1] = right_eval.out_;
 	}
 	else
 	{
 		for (uint8_t i = 0; i < nargs; ++i)
 		{
-			argdata[i] = evaluate(dtype, refs[i]);
+			Evaluator evaler(ctx, dtype);
+			children[i]->accept(evaler);
+			out[i] = evaler.out_;
 		}
 	}
-	switch (opcode)
-	{
-		case ade::MATMUL:
-		{
-			if (auto mf = dynamic_cast<ade::Functor<
-				ade::MATMUL,uint8_t,uint8_t>*>(f))
-			{
-				op_exec(opcode, out, argdata,
-					std::get<0>(mf->meta()), std::get<1>(mf->meta()));
-			}
-			else
-			{
-				op_exec(opcode, out, argdata);
-			}
-		}
-		break;
-		case ade::PERMUTE:
-		{
-			auto pf = static_cast<ade::Functor<
-				ade::PERMUTE,std::vector<uint8_t>>*>(f);
-			op_exec(opcode, out, argdata, std::get<0>(pf->meta()));
-		}
-		break;
-		default:
-			op_exec(opcode, out, argdata);
-	}
-	return out;
 }
+
+#undef FILL_ONE
 
 }
 

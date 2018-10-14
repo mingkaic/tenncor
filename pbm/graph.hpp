@@ -11,7 +11,7 @@
 #include "pbm/graph.pb.h"
 
 /// Marshal all equation graphs in roots vector to protobuf object */
-void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots);
+void save_graph (tenncor::Graph& out, std::vector<DataNode>& roots);
 
 /// Return all nodes in graph unmarshalled from protobuf object */
-std::vector<ade::Tensorptr> load_graph (const tenncor::Graph& in);
+std::vector<DataNode> load_graph (const tenncor::Graph& in);

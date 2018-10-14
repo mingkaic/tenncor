@@ -63,17 +63,17 @@ TEST_F(DTYPE, TypeSize)
 
 TEST_F(DTYPE, TypeName)
 {
-	EXPECT_STREQ("DOUBLE", llo::name_type(llo::DOUBLE).c_str());;
-	EXPECT_STREQ("FLOAT", llo::name_type(llo::FLOAT).c_str());;
-	EXPECT_STREQ("INT8", llo::name_type(llo::INT8).c_str());;
-	EXPECT_STREQ("UINT8", llo::name_type(llo::UINT8).c_str());;
-	EXPECT_STREQ("INT16", llo::name_type(llo::INT16).c_str());;
-	EXPECT_STREQ("UINT16", llo::name_type(llo::UINT16).c_str());;
-	EXPECT_STREQ("INT32", llo::name_type(llo::INT32).c_str());;
-	EXPECT_STREQ("UINT32", llo::name_type(llo::UINT32).c_str());;
-	EXPECT_STREQ("INT64", llo::name_type(llo::INT64).c_str());;
-	EXPECT_STREQ("UINT64", llo::name_type(llo::UINT64).c_str());;
-	EXPECT_STREQ("BAD_TYPE", llo::name_type(llo::BAD).c_str());;
+	EXPECT_STREQ("DOUBLE", llo::nametype(llo::DOUBLE).c_str());;
+	EXPECT_STREQ("FLOAT", llo::nametype(llo::FLOAT).c_str());;
+	EXPECT_STREQ("INT8", llo::nametype(llo::INT8).c_str());;
+	EXPECT_STREQ("UINT8", llo::nametype(llo::UINT8).c_str());;
+	EXPECT_STREQ("INT16", llo::nametype(llo::INT16).c_str());;
+	EXPECT_STREQ("UINT16", llo::nametype(llo::UINT16).c_str());;
+	EXPECT_STREQ("INT32", llo::nametype(llo::INT32).c_str());;
+	EXPECT_STREQ("UINT32", llo::nametype(llo::UINT32).c_str());;
+	EXPECT_STREQ("INT64", llo::nametype(llo::INT64).c_str());;
+	EXPECT_STREQ("UINT64", llo::nametype(llo::UINT64).c_str());;
+	EXPECT_STREQ("BAD_TYPE", llo::nametype(llo::BAD).c_str());;
 }
 
 

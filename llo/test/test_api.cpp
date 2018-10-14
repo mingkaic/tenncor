@@ -11,10 +11,9 @@
 
 using UnaryDblF = std::function<double(double)>;
 
-using UnaryOpF = std::function<ade::Tensorptr(ade::Tensorptr&)>;
+using UnaryOpF = std::function<llo::DataNode(llo::DataNode&)>;
 
-using BinaryOpF = std::function<ade::Tensorptr(ade::Tensorptr&,
-	ade::Tensorptr&)>;
+using BinaryOpF = std::function<llo::DataNode(llo::DataNode&,llo::DataNode&)>;
 
 template <typename T>
 using BinaryFwdF = std::function<T(T,T)>;
@@ -133,13 +132,13 @@ static void unary_generic (simple::SessionT& sess,
 	auto src = llo::Source<double>::get(shape, data);
 	auto dest = op(src);
 
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	llo::GenericData out = dest.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, out.dtype_);
 	verify(out, shape, data);
 
-	auto gsrc = dest->gradient(src);
+	auto gsrc = dest.derive(src);
 
-	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	llo::GenericData gout = gsrc.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -163,7 +162,7 @@ static void unary_elementary (simple::SessionT& sess,
 	auto src = llo::Source<double>::get(shape, data);
 	auto dest = op(src);
 
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	llo::GenericData out = dest.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, out.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -180,9 +179,9 @@ static void unary_elementary (simple::SessionT& sess,
 		}
 	});
 
-	auto gsrc = dest->gradient(src);
+	auto gsrc = dest.derive(src);
 
-	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	llo::GenericData gout = gsrc.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -222,7 +221,7 @@ static void binary_elementary (simple::SessionT& sess,
 	auto src2 = llo::Source<double>::get(shape, data2);
 	auto dest = op(src, src2);
 
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	llo::GenericData out = dest.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, out.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -240,8 +239,8 @@ static void binary_elementary (simple::SessionT& sess,
 	});
 
 	auto dest2 = op(src, src);
-	auto gsame = dest2->gradient(src);
-	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsame.get());
+	auto gsame = dest2.derive(src);
+	llo::GenericData gout = gsame.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -258,8 +257,8 @@ static void binary_elementary (simple::SessionT& sess,
 		}
 	});
 
-	auto gleft = dest->gradient(src);
-	llo::GenericData gout_left = llo::evaluate(llo::DOUBLE, gleft.get());
+	auto gleft = dest.derive(src);
+	llo::GenericData gout_left = gleft.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout_left.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -276,8 +275,8 @@ static void binary_elementary (simple::SessionT& sess,
 		}
 	});
 
-	auto gright = dest->gradient(src2);
-	llo::GenericData gout_right = llo::evaluate(llo::DOUBLE, gright.get());
+	auto gright = dest.derive(src2);
+	llo::GenericData gout_right = gright.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout_right.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -310,7 +309,7 @@ static void binary_elementary_int (simple::SessionT& sess,
 	auto src2 = llo::Source<int32_t>::get(shape, data2);
 	auto dest = op(src, src2);
 
-	llo::GenericData out = llo::evaluate(llo::INT32, dest.get());
+	llo::GenericData out = dest.data(llo::INT32);
 	ASSERT_EQ(llo::INT32, out.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -328,8 +327,8 @@ static void binary_elementary_int (simple::SessionT& sess,
 	});
 
 	auto dest2 = op(src, src);
-	auto gsame = dest2->gradient(src);
-	llo::GenericData gout = llo::evaluate(llo::INT32, gsame.get());
+	auto gsame = dest2.derive(src);
+	llo::GenericData gout = gsame.data(llo::INT32);
 	ASSERT_EQ(llo::INT32, gout.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -346,8 +345,8 @@ static void binary_elementary_int (simple::SessionT& sess,
 		}
 	});
 
-	auto gleft = dest->gradient(src);
-	llo::GenericData gout_left = llo::evaluate(llo::INT32, gleft.get());
+	auto gleft = dest.derive(src);
+	llo::GenericData gout_left = gleft.data(llo::INT32);
 	ASSERT_EQ(llo::INT32, gout_left.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -364,8 +363,8 @@ static void binary_elementary_int (simple::SessionT& sess,
 		}
 	});
 
-	auto gright = dest->gradient(src2);
-	llo::GenericData gout_right = llo::evaluate(llo::INT32, gright.get());
+	auto gright = dest.derive(src2);
+	llo::GenericData gout_right = gright.data(llo::INT32);
 	ASSERT_EQ(llo::INT32, gout_right.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -388,7 +387,7 @@ TEST_F(API, Abs)
 {
 	simple::SessionT sess = get_session("API::Abs");
 	unary_elementary(sess, default_range,
-	[](ade::Tensorptr& a) { return llo::abs(a); },
+	[](llo::DataNode& a) { return llo::abs(a); },
 	[](double d) { return std::abs(d); },
 	[](double d) { return d / std::abs(d); }, false);
 }
@@ -398,7 +397,7 @@ TEST_F(API, Neg)
 {
 	simple::SessionT sess = get_session("API::Neg");
 	unary_elementary(sess, default_range,
-	[](ade::Tensorptr& a) { return llo::neg(a); },
+	[](llo::DataNode& a) { return llo::neg(a); },
 	[](double d) { return -d; },
 	[](double d) { return -1.0; }, false);
 }
@@ -408,7 +407,7 @@ TEST_F(API, Not)
 {
 	simple::SessionT sess = get_session("API::Not");
 	unary_elementary(sess, default_range,
-	[](ade::Tensorptr& a) { return llo::bit_not(a); },
+	[](llo::DataNode& a) { return llo::bit_not(a); },
 	[](double d) { return !d; },
 	[](double d) { return !1.0; }, false);
 }
@@ -418,7 +417,7 @@ TEST_F(API, Sin)
 {
 	simple::SessionT sess = get_session("API::Sin");
 	unary_elementary(sess, default_range,
-	[](ade::Tensorptr& a) { return llo::sin(a); },
+	[](llo::DataNode& a) { return llo::sin(a); },
 	[](double d) { return std::sin(d); },
 	[](double d) { return std::cos(d); });
 }
@@ -428,7 +427,7 @@ TEST_F(API, Cos)
 {
 	simple::SessionT sess = get_session("API::Cos");
 	unary_elementary(sess, default_range,
-	[](ade::Tensorptr& a) { return llo::cos(a); },
+	[](llo::DataNode& a) { return llo::cos(a); },
 	[](double d) { return std::cos(d); },
 	[](double d) { return -std::sin(d); });
 }
@@ -438,7 +437,7 @@ TEST_F(API, Tan)
 {
 	simple::SessionT sess = get_session("API::Tan");
 	unary_elementary(sess, {-1, 1},
-	[](ade::Tensorptr& a) { return llo::tan(a); },
+	[](llo::DataNode& a) { return llo::tan(a); },
 	[](double d) { return std::tan(d); },
 	[](double d) {
 		double denom = std::cos(d);
@@ -451,7 +450,7 @@ TEST_F(API, Exp)
 {
 	simple::SessionT sess = get_session("API::Exp");
 	unary_elementary(sess, {-9876, 5},
-	[](ade::Tensorptr& a) { return llo::exp(a); },
+	[](llo::DataNode& a) { return llo::exp(a); },
 	[](double d) { return std::exp(d); },
 	[](double d) { return std::exp(d); });
 }
@@ -461,7 +460,7 @@ TEST_F(API, Log)
 {
 	simple::SessionT sess = get_session("API::Log");
 	unary_elementary(sess, {0.5, 9876},
-	[](ade::Tensorptr& a) { return llo::log(a); },
+	[](llo::DataNode& a) { return llo::log(a); },
 	[](double d) { return std::log(d); },
 	[](double d) { return 1.0 / d; });
 }
@@ -471,7 +470,7 @@ TEST_F(API, Sqrt)
 {
 	simple::SessionT sess = get_session("API::Sqrt");
 	unary_elementary(sess, {0, 9876},
-	[](ade::Tensorptr& a) { return llo::sqrt(a); },
+	[](llo::DataNode& a) { return llo::sqrt(a); },
 	[](double d) { return std::sqrt(d); },
 	[](double d) { return 1.0 / (2 * std::sqrt(d)); });
 }
@@ -481,7 +480,7 @@ TEST_F(API, Round)
 {
 	simple::SessionT sess = get_session("API::Round");
 	unary_elementary(sess, default_range,
-	[](ade::Tensorptr& a) { return llo::round(a); },
+	[](llo::DataNode& a) { return llo::round(a); },
 	[](double d) { return std::round(d); },
 	[](double d) { return 1.0; }, false);
 }
@@ -507,10 +506,10 @@ TEST_F(API, Flip)
 	auto dest = llo::flip(src, dim);
 
 	auto bad = llo::flip(src, baddim);
-	EXPECT_THROW(llo::evaluate(llo::DOUBLE, bad.get()), std::runtime_error) <<
+	EXPECT_THROW(bad.data(llo::DOUBLE), std::runtime_error) <<
 		"baddim: " << (int) baddim << " nrank: " << nrank;
 
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	llo::GenericData out = dest.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, out.dtype_);
 	auto expectshape = shape.as_list();
 	auto gotshape = out.shape_.as_list();
@@ -531,9 +530,9 @@ TEST_F(API, Flip)
 		}
 	});
 
-	auto gsrc = dest->gradient(src);
+	auto gsrc = dest.derive(src);
 
-	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	llo::GenericData gout = gsrc.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -552,7 +551,7 @@ TEST_F(API, Pow)
 {
 	simple::SessionT sess = get_session("API::Pow");
 	binary_elementary(sess, {0, 5},
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::pow(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::pow(a, b); },
 	[](double a, double b) { return std::pow(a, b); },
 	[](double a, double b, double leftg, double rightg)
 	{
@@ -565,7 +564,7 @@ TEST_F(API, Add)
 {
 	simple::SessionT sess = get_session("API::Add");
 	binary_elementary(sess, default_range,
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::add(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::add(a, b); },
 	[](double a, double b) { return a + b; },
 	[](double a, double b, double leftg, double rightg)
 	{
@@ -578,7 +577,7 @@ TEST_F(API, Sub)
 {
 	simple::SessionT sess = get_session("API::Sub");
 	binary_elementary(sess, default_range,
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::sub(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::sub(a, b); },
 	[](double a, double b) { return a - b; },
 	[](double a, double b, double leftg, double rightg)
 	{
@@ -591,7 +590,7 @@ TEST_F(API, Mul)
 {
 	simple::SessionT sess = get_session("API::Mul");
 	binary_elementary(sess, default_range,
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::mul(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::mul(a, b); },
 	[](double a, double b) { return a * b; },
 	[](double a, double b, double leftg, double rightg)
 	{
@@ -604,7 +603,7 @@ TEST_F(API, Div)
 {
 	simple::SessionT sess = get_session("API::Div");
 	binary_elementary(sess, default_range,
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::div(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::div(a, b); },
 	[](double a, double b) { return a / b; },
 	[](double a, double b, double leftg, double rightg)
 	{
@@ -617,7 +616,7 @@ TEST_F(API, Eq)
 {
 	simple::SessionT sess = get_session("API::Eq");
 	binary_elementary_int(sess, {-1, 1},
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::eq(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::eq(a, b); },
 	[](int32_t a, int32_t b) { return a == b; },
 	[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 	{
@@ -630,7 +629,7 @@ TEST_F(API, Neq)
 {
 	simple::SessionT sess = get_session("API::Neq");
 	binary_elementary_int(sess, {-1, 1},
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::neq(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::neq(a, b); },
 	[](int32_t a, int32_t b) { return a != b; },
 	[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 	{
@@ -643,7 +642,7 @@ TEST_F(API, Lt)
 {
 	simple::SessionT sess = get_session("API::Lt");
 	binary_elementary_int(sess, {-1, 1},
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::lt(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::lt(a, b); },
 	[](int32_t a, int32_t b) { return a < b; },
 	[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 	{
@@ -656,7 +655,7 @@ TEST_F(API, Gt)
 {
 	simple::SessionT sess = get_session("API::Gt");
 	binary_elementary_int(sess, {-1, 1},
-	[](ade::Tensorptr& a, ade::Tensorptr& b) { return llo::gt(a, b); },
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::gt(a, b); },
 	[](int32_t a, int32_t b) { return a > b; },
 	[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 	{
@@ -670,7 +669,7 @@ TEST_F(API, NElems)
 	simple::SessionT sess = get_session("API::NElems");
 
 	unary_generic(sess, default_range,
-	[](ade::Tensorptr& src) { return llo::n_elems(src); },
+	[](llo::DataNode& src) { return llo::n_elems(src); },
 	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>&)
 	{
 		EXPECT_EQ(0, out.shape_.n_rank());
@@ -699,7 +698,7 @@ TEST_F(API, NDims)
 	uint8_t dim = sess->get_scalar("dim", {0, ade::rank_cap - 1});
 
 	unary_generic(sess, default_range,
-	[dim](ade::Tensorptr& src) { return llo::n_dims(src, dim); },
+	[dim](llo::DataNode& src) { return llo::n_dims(src, dim); },
 	[dim, &sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>&)
 	{
 		EXPECT_EQ(0, out.shape_.n_rank());
@@ -737,7 +736,7 @@ TEST_F(API, Argmax)
 	auto src = llo::Source<double>::get(shape, data);
 	auto dest = llo::argmax(src);
 
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	llo::GenericData out = dest.data(llo::DOUBLE);
 	EXPECT_EQ(llo::DOUBLE, out.dtype_);
 	EXPECT_EQ(0, out.shape_.n_rank());
 	ASSERT_EQ(1, out.shape_.n_elems());
@@ -748,7 +747,7 @@ TEST_F(API, Argmax)
 		EXPECT_EQ(maxidx, got);
 	});
 
-	EXPECT_THROW(dest->gradient(src), std::bad_function_call);
+	EXPECT_THROW(dest.derive(src), std::bad_function_call);
 }
 
 
@@ -757,7 +756,7 @@ TEST_F(API, Rmax)
 	simple::SessionT sess = get_session("API::Rmax");
 
 	unary_generic(sess, default_range,
-	[](ade::Tensorptr& src) { return llo::reduce_max(src); },
+	[](llo::DataNode& src) { return llo::reduce_max(src); },
 	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
 	{
 		size_t n = out.shape_.n_elems();
@@ -791,7 +790,7 @@ TEST_F(API, Rsum)
 	simple::SessionT sess = get_session("API::Rsum");
 
 	unary_generic(sess, default_range,
-	[](ade::Tensorptr& src) { return llo::reduce_sum(src); },
+	[](llo::DataNode& src) { return llo::reduce_sum(src); },
 	[&sess](llo::GenericData& out, ade::Shape& shape, std::vector<double>& data)
 	{
 		size_t n = out.shape_.n_elems();
@@ -841,7 +840,7 @@ TEST_F(API, Matmul2d)
 	auto b = llo::Source<int32_t>::get(bshape, data2);
 	auto dest = llo::matmul(a, b);
 
-	llo::GenericData out = llo::evaluate(llo::INT32, dest.get());
+	llo::GenericData out = dest.data(llo::INT32);
 	EXPECT_EQ(llo::INT32, out.dtype_);
 	ade::Shape& gotshape = out.shape_;
 	EXPECT_EQ(2, gotshape.n_rank());
@@ -852,10 +851,8 @@ TEST_F(API, Matmul2d)
 	std::vector<int32_t>(optr, optr + gotshape.n_elems()),
 	[&]()
 	{
-		llo::GenericData ad = static_cast<llo::iSource*>(a.get())->
-			evaluate(llo::INT32);
-		llo::GenericData bd = static_cast<llo::iSource*>(b.get())->
-			evaluate(llo::INT32);
+		llo::GenericData ad = a.data(llo::INT32);
+		llo::GenericData bd = b.data(llo::INT32);
 		MatVecT dda = create_2d(ad);
 		MatVecT ddb = create_2d(bd);
 		MatVecT ddc = create_2d(out);
@@ -864,8 +861,8 @@ TEST_F(API, Matmul2d)
 
 	auto c = llo::Source<int32_t>::get(cshape, data3);
 	auto dest2 = llo::matmul(c, c);
-	auto gsame = dest2->gradient(c);
-	llo::GenericData gout = llo::evaluate(llo::INT32, gsame.get());
+	auto gsame = dest2.derive(c);
+	llo::GenericData gout = gsame.data(llo::INT32);
 	EXPECT_EQ(llo::INT32, gout.dtype_);
 	ade::Shape& gcshape = gout.shape_;
 	{
@@ -882,8 +879,8 @@ TEST_F(API, Matmul2d)
 	// 	// todo: implement
 	// });
 
-	auto gleft = dest->gradient(a);
-	llo::GenericData gout_left = llo::evaluate(llo::INT32, gleft.get());
+	auto gleft = dest.derive(a);
+	llo::GenericData gout_left = gleft.data(llo::INT32);
 	EXPECT_EQ(llo::INT32, gout_left.dtype_);
 	ade::Shape& gashape = gout_left.shape_;
 	{
@@ -903,8 +900,8 @@ TEST_F(API, Matmul2d)
 	// 	// todo: implement
 	// });
 
-	auto gright = dest->gradient(b);
-	llo::GenericData gout_right = llo::evaluate(llo::INT32, gright.get());
+	auto gright = dest.derive(b);
+	llo::GenericData gout_right = gright.data(llo::INT32);
 	EXPECT_EQ(llo::INT32, gout_right.dtype_);
 	ade::Shape& gbshape = gout_right.shape_;
 	{
@@ -948,7 +945,7 @@ TEST_F(API, Permute)
 	auto src = llo::Source<double>::get(shape, data);
 	auto dest = llo::permute(src, pidx);
 
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	llo::GenericData out = dest.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, out.dtype_);
 	size_t n = out.shape_.n_elems();
 	ASSERT_EQ(nelem, n);
@@ -970,9 +967,9 @@ TEST_F(API, Permute)
 		}
 	});
 
-	auto gsrc = dest->gradient(src);
+	auto gsrc = dest.derive(src);
 
-	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	llo::GenericData gout = gsrc.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -1009,7 +1006,7 @@ TEST_F(API, Extend)
 	auto src = llo::Source<double>::get(shape, data);
 	auto dest = llo::extend(src, ext);
 
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	llo::GenericData out = dest.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, out.dtype_);
 	size_t ext_nelem = ade::Shape(ext).n_elems();
 	size_t n = out.shape_.n_elems();
@@ -1027,9 +1024,9 @@ TEST_F(API, Extend)
 		}
 	});
 
-	auto gsrc = dest->gradient(src);
+	auto gsrc = dest.derive(src);
 
-	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	llo::GenericData gout = gsrc.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
 	{
 		auto expectshape = shape.as_list();
@@ -1066,7 +1063,7 @@ TEST_F(API, Reshape)
 	auto src = llo::Source<double>::get(shape, data);
 	auto dest = llo::reshape(src, olist);
 
-	llo::GenericData out = llo::evaluate(llo::DOUBLE, dest.get());
+	llo::GenericData out = dest.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, out.dtype_);
 	ASSERT_EQ(n, out.shape_.n_elems());
 	double* got = (double*) out.data_.get();
@@ -1079,9 +1076,9 @@ TEST_F(API, Reshape)
 		}
 	});
 
-	auto gsrc = dest->gradient(src);
+	auto gsrc = dest.derive(src);
 
-	llo::GenericData gout = llo::evaluate(llo::DOUBLE, gsrc.get());
+	llo::GenericData gout = gsrc.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gout.dtype_);
 	ASSERT_EQ(n, gout.shape_.n_elems());
 	double* goptr = (double*) gout.data_.get();

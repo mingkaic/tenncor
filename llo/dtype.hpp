@@ -32,7 +32,7 @@ enum DTYPE
 };
 
 /// Return the string name of input DTYPE
-std::string name_type (DTYPE type);
+std::string nametype (DTYPE type);
 
 /// Return the byte size of input DTYPE
 uint8_t type_size (DTYPE type);

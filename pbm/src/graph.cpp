@@ -165,17 +165,17 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 	}
 }
 
-void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
+void save_graph (tenncor::Graph& out, std::vector<DataNode>& roots)
 {
 	ade::iTensor* iter;
 	std::unordered_set<ade::iTensor*> visited;
 	std::vector<ade::iTensor*> leaves;
 	std::vector<ade::iFunctor*> order;
-	for (ade::Tensorptr& tptr : roots)
+	for (DataNode& tptr : roots)
 	{
 		std::list<ade::iFunctor*> appearance;
 		std::queue<ade::iTensor*> q;
-		q.push(tptr.get());
+		q.push(tptr.tensor_);
 		while (false == q.empty())
 		{
 			iter = q.front();
@@ -351,10 +351,10 @@ static ade::Tensorptr load_op (ade::OPCODE opcode,
 	return ade::runtime_functor(opcode, args);
 }
 
-std::vector<ade::Tensorptr> load_graph (const tenncor::Graph& in)
+std::vector<DataNode> load_graph (const tenncor::Graph& in)
 {
 	auto nodes = in.nodes();
-	std::vector<ade::Tensorptr> outvec;
+	std::vector<DataNode> outvec;
 	for (const tenncor::Node& node : nodes)
 	{
 		if (node.has_source())
