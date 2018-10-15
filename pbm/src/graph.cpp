@@ -187,29 +187,45 @@ struct GraphStat final : public ade::Traveler
 {
 	void visit (ade::Tensor* leaf) override
 	{
-		leaves_.push_back(leaf);
+		if (visited_.end() == visited_.find(leaf))
+		{
+			leaves_.push_back(leaf);
+			visited_.emplace(leaf);
+		}
 	}
 
 	void visit (ade::iFunctor* func) override
 	{
-		auto children = func->get_children();
-		size_t ngraph = 0;
-		for (ade::iTensor* child : children)
+		if (graphsize_.end() == graphsize_.find(func))
 		{
-			if (graphsize_.end() == graphsize_.find(child))
+			order_.push_back(func);
+			auto children = func->get_children();
+			size_t ngraph = 0;
+			for (ade::iTensor* child : children)
 			{
-				child->accept(*this);
+				if (graphsize_.end() == graphsize_.find(child))
+				{
+					child->accept(*this);
+				}
+				auto childinfo = graphsize_.find(child);
+				if (graphsize_.end() != childinfo &&
+					childinfo->second > ngraph)
+				{
+					ngraph = childinfo->second;
+				} // else child is leaf
 			}
-			auto childinfo = graphsize_.find(child);
-			if (graphsize_.end() != childinfo && childinfo->second > ngraph)
-			{
-				ngraph = childinfo->second;
-			} // else child is leaf
+			graphsize_[func] = ngraph + 1;
 		}
-		graphsize_[func] = ngraph + 1;
 	}
 
 	std::vector<ade::Tensor*> leaves_;
+
+	// ensure we don't serialize leaves twice
+	std::unordered_set<ade::Tensor*> visited_;
+
+	// store list of funcs to ensure determinisitc ordering
+	std::list<ade::iFunctor*> order_;
+
 	std::unordered_map<ade::iTensor*,size_t> graphsize_;
 };
 
@@ -229,11 +245,7 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 		tptr.tensor_->accept(stat);
 	}
 
-	std::list<ade::iTensor*> funcs;
-	for (auto gpair : stat.graphsize_)
-	{
-		funcs.push_back(gpair.first);
-	}
+	std::list<ade::iTensor*> funcs(stat.order_.begin(), stat.order_.end());
 	// sort functions from the root with the smallest subgraph to the largest
 	// this ensures every children of a node appears before the parent,
 	// as is the order of node creations
