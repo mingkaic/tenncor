@@ -25,8 +25,9 @@ struct Executer
 	{
 		std::stringstream ss;
 		ade::to_stream(ss, args...);
-		ade::fatalf("cannot %s of type %s with args %s",
-			ade::opname(OP), nametype(get_type<T>()), ss.str());
+		ade::fatalf(
+			"cannot %s of type %s with args %s", ade::opname(OP).c_str(),
+			nametype(get_type<T>()).c_str(), ss.str().c_str());
 	}
 };
 

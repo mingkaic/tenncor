@@ -94,7 +94,7 @@ struct Evaluator final : public ade::Traveler
 			{
 				ade::warnf("evaluating an ade::Tensor %s without associated "
 					"Source according to input context... treating data as 0",
-					leaf->to_string()); // todo: describe ctx for comprehensive report
+					leaf->to_string().c_str()); // todo: describe ctx for comprehensive report
 			}
 			out_ = GenericData(ade::Shape(), dtype_);
 			std::memset(out_.data_.get(), 0, type_size(dtype_));
@@ -206,7 +206,7 @@ struct Source final : public iSource
 		if (shape.n_elems() != data.size())
 		{
 			ade::fatalf("data size %d does not match shape %s",
-				data.size(), shape.to_string());
+				data.size(), shape.to_string().c_str());
 		}
 		auto tens = std::shared_ptr<ade::Tensor>(ade::Tensor::get(shape));
 		auto src = std::shared_ptr<iSource>(new Source(tens, data));
@@ -246,8 +246,8 @@ struct Source final : public iSource
 		if (false == data.shape_.compatible_after(internal_shape, 0))
 		{
 			ade::fatalf("cannot assign data of incompatible shaped %s to "
-				"internal data of shape %s", data.shape_.to_string(),
-				internal_shape.to_string());
+				"internal data of shape %s", data.shape_.to_string().c_str(),
+				internal_shape.to_string().c_str());
 		}
 		std::memcpy(&data_[0], data.data_, sizeof(T) * data.shape_.n_elems());
 	}
