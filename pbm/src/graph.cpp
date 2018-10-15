@@ -114,27 +114,45 @@ static void save_data (tenncor::Source* out, llo::GenericData& data)
 #undef PACK_DATA
 
 static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
-	ade::iFunctor* f, ade::OPCODE op)
+	llo::iEvaluable* eval, ade::OPCODE op)
 {
 	switch (op)
 	{
 		case ade::FLIP:
 		case ade::N_DIMS:
 		{
-			auto ev = static_cast<llo::DirectWrapper<uint8_t>*>(f);
+			auto ev = static_cast<llo::FuncWrapper<uint8_t>*>(eval);
 			*(meta->Add()) = std::get<0>(ev->meta());
 		}
 		break;
 		case ade::MATMUL:
 		{
-			auto ev = static_cast<llo::DirectWrapper<uint8_t,uint8_t>*>(f);
+			auto ev = static_cast<llo::FuncWrapper<uint8_t,uint8_t>*>(eval);
+			*(meta->Add()) = std::get<0>(ev->meta());
+			*(meta->Add()) = std::get<1>(ev->meta());
+		}
+		break;
+		default: break; // no meta
+	}
+}
+
+static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
+	ade::iFunctor* f, ade::OPCODE op)
+{
+	switch (op)
+	{
+		case ade::MATMUL:
+		{
+			auto ev = static_cast<ade::Functor<
+				ade::MATMUL,uint8_t,uint8_t>*>(f);
 			*(meta->Add()) = std::get<0>(ev->meta());
 			*(meta->Add()) = std::get<1>(ev->meta());
 		}
 		break;
 		case ade::PERMUTE:
 		{
-			auto ev = static_cast<llo::DirectWrapper<std::vector<uint8_t>>*>(f);
+			auto ev = static_cast<ade::Functor<
+				ade::PERMUTE,std::vector<uint8_t>>*>(f);
 			std::vector<uint8_t> slist = std::get<0>(ev->meta());
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());
@@ -143,8 +161,8 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 		break;
 		case ade::EXTEND:
 		{
-			auto ev = static_cast<
-				ade::Functor<ade::EXTEND,std::vector<ade::DimT>>*>(f);
+			auto ev = static_cast<ade::Functor<
+				ade::EXTEND,std::vector<ade::DimT>>*>(f);
 			std::vector<ade::DimT> slist = std::get<0>(ev->meta());
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());
@@ -153,8 +171,8 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 		break;
 		case ade::RESHAPE:
 		{
-			auto ev = static_cast<
-				ade::Functor<ade::RESHAPE,std::vector<ade::DimT>>*>(f);
+			auto ev = static_cast<ade::Functor<
+				ade::RESHAPE,std::vector<ade::DimT>>*>(f);
 			std::vector<ade::DimT> slist = std::get<0>(ev->meta());
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());
@@ -165,65 +183,104 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 	}
 }
 
-void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
+struct GraphStat final : public ade::Traveler
 {
-	ade::iTensor* iter;
-	std::unordered_set<ade::iTensor*> visited;
-	std::vector<ade::iTensor*> leaves;
-	std::vector<ade::iFunctor*> order;
-	for (ade::Tensorptr& tptr : roots)
+	void visit (ade::Tensor* leaf) override
 	{
-		std::list<ade::iFunctor*> appearance;
-		std::queue<ade::iTensor*> q;
-		q.push(tptr.get());
-		while (false == q.empty())
+		if (visited_.end() == visited_.find(leaf))
 		{
-			iter = q.front();
-			q.pop();
-			if (visited.end() == visited.find(iter))
-			{
-				if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(iter))
-				{
-					auto children = f->get_children();
-					for (auto child : children)
-					{
-						q.push(child);
-					}
-					appearance.push_back(f);
-				}
-				else
-				{
-					leaves.push_back(iter);
-				}
-				visited.emplace(iter);
-			}
+			leaves_.push_back(leaf);
+			visited_.emplace(leaf);
 		}
-		order.insert(order.end(), appearance.rbegin(), appearance.rend());
 	}
-	// order guarantees for any index i, all children of node i is in order[:i]
-	// all nodes in leaf are some children of nodes in order
-	std::unordered_map<ade::iTensor*,size_t> imap;
-	size_t nleaves = leaves.size();
+
+	void visit (ade::iFunctor* func) override
+	{
+		if (graphsize_.end() == graphsize_.find(func))
+		{
+			order_.push_back(func);
+			auto children = func->get_children();
+			size_t ngraph = 0;
+			for (ade::iTensor* child : children)
+			{
+				if (graphsize_.end() == graphsize_.find(child))
+				{
+					child->accept(*this);
+				}
+				auto childinfo = graphsize_.find(child);
+				if (graphsize_.end() != childinfo &&
+					childinfo->second > ngraph)
+				{
+					ngraph = childinfo->second;
+				} // else child is leaf
+			}
+			graphsize_[func] = ngraph + 1;
+		}
+	}
+
+	std::vector<ade::Tensor*> leaves_;
+
+	// ensure we don't serialize leaves twice
+	std::unordered_set<ade::Tensor*> visited_;
+
+	// store list of funcs to ensure determinisitc ordering
+	std::list<ade::iFunctor*> order_;
+
+	std::unordered_map<ade::iTensor*,size_t> graphsize_;
+};
+
+void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
+{
+	std::vector<const llo::EvalCtx*> contexas(roots.size());
+	std::transform(roots.begin(), roots.end(), contexas.begin(),
+	[](llo::DataNode& tptr)
+	{
+		return &tptr.ctx_;
+	});
+	llo::EvalCtx global_ctx(contexas);
+
+	GraphStat stat;
+	for (llo::DataNode& tptr : roots)
+	{
+		tptr.tensor_->accept(stat);
+	}
+
+	std::list<ade::iTensor*> funcs(stat.order_.begin(), stat.order_.end());
+	// sort functions from the root with the smallest subgraph to the largest
+	// this ensures every children of a node appears before the parent,
+	// as is the order of node creations
+	funcs.sort(
+	[&stat](ade::iTensor* a, ade::iTensor* b)
+	{
+		return stat.graphsize_[a] < stat.graphsize_[b];
+	});
+
+	// all nodes in leaf appear before funcs
+	std::unordered_map<ade::iTensor*,size_t> ordermap;
+	size_t nleaves = stat.leaves_.size();
 	for (size_t i = 0; i < nleaves; ++i)
 	{
-		ade::iTensor* node = leaves[i];
-		imap[node] = i;
+		ade::Tensor* leaf = stat.leaves_[i];
+		ordermap[leaf] = i;
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Source* src = pb_node->mutable_source();
-		auto vec = node->shape().as_list();
+		auto vec = leaf->shape().as_list();
 		std::string shape(vec.begin(), vec.end());
 		src->set_shape(shape);
-		if (llo::iSource* eval = dynamic_cast<llo::iSource*>(node))
+		auto srcinfo = global_ctx.srcs_.find(leaf);
+		if (global_ctx.srcs_.end() != srcinfo)
 		{
-			llo::GenericData data = eval->evaluate(eval->native_type());
+			llo::GenericData data = srcinfo->second->data(
+				srcinfo->second->native_type());
 			save_data(src, data);
 		}
 	}
-	for (size_t i = 0, n = order.size(); i < n; ++i)
+	auto it = funcs.begin();
+	for (size_t i = 0, n = funcs.size(); i < n; ++i)
 	{
-		ade::iFunctor* f = order[i];
-		imap[f] = nleaves + i;
+		ade::iFunctor* f = static_cast<ade::iFunctor*>(*(it++));
+		ordermap[f] = nleaves + i;
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Functor* func = pb_node->mutable_functor();
@@ -233,12 +290,20 @@ void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
 		google::protobuf::RepeatedField<uint32_t> indices;
 		for (ade::iTensor* child : children)
 		{
-			auto it = imap.find(child);
-			assert(imap.end() != it);
+			auto it = ordermap.find(child);
+			assert(ordermap.end() != it);
 			indices.Add(it->second);
 		}
 		func->mutable_args()->Swap(&indices);
-		save_meta(func->mutable_meta(), f, op);
+		auto it = global_ctx.funks_.find(f);
+		if (global_ctx.funks_.end() != it)
+		{
+			save_meta(func->mutable_meta(), it->second.get(), op);
+		}
+		else
+		{
+			save_meta(func->mutable_meta(), f, op);
+		}
 	}
 	out.set_id(make_uid(&out, llo::get_engine()));
 }
@@ -254,7 +319,7 @@ auto vec = arr.data();\
 return llo::Source<TYPE>::get(shape,\
 	std::vector<TYPE>(vec.begin(), vec.end()));
 
-static ade::Tensorptr load_source (const tenncor::Source& source)
+static llo::DataNode load_source (const tenncor::Source& source)
 {
 	ade::Shape shape = load_shape(source.shape());
 	switch (source.data_case())
@@ -317,15 +382,14 @@ static ade::Tensorptr load_source (const tenncor::Source& source)
 		}
 		break;
 		default:
-			return ade::Tensor::get(load_shape(source.shape()));
+			ade::fatalf("cannot load source"); // todo: make more informative
 	}
-	return nullptr;
 }
 
 #undef UNPACK_SOURCE
 
-static ade::Tensorptr load_op (ade::OPCODE opcode,
-	std::vector<ade::Tensorptr>& args,
+static llo::DataNode load_op (ade::OPCODE opcode,
+	std::vector<llo::DataNode>& args,
 	google::protobuf::RepeatedField<uint32_t> meta)
 {
 	switch (opcode)
@@ -348,13 +412,21 @@ static ade::Tensorptr load_op (ade::OPCODE opcode,
 				std::vector<uint8_t>(meta.begin(), meta.end()));
 		default: break;
 	}
-	return ade::runtime_functor(opcode, args);
+	std::vector<ade::Tensorptr> tens;
+	std::vector<const llo::EvalCtx*> contexas;
+	for (llo::DataNode& node : args)
+	{
+		tens.push_back(node.tensor_);
+		contexas.push_back(&node.ctx_);
+	}
+	return llo::DataNode{llo::EvalCtx(contexas),
+		ade::runtime_functor(opcode, tens)};
 }
 
-std::vector<ade::Tensorptr> load_graph (const tenncor::Graph& in)
+std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
 {
 	auto nodes = in.nodes();
-	std::vector<ade::Tensorptr> outvec;
+	std::vector<llo::DataNode> outvec;
 	for (const tenncor::Node& node : nodes)
 	{
 		if (node.has_source())
@@ -366,7 +438,7 @@ std::vector<ade::Tensorptr> load_graph (const tenncor::Graph& in)
 		{
 			tenncor::Functor func = node.functor();
 			auto argidx = func.args();
-			std::vector<ade::Tensorptr> args;
+			std::vector<llo::DataNode> args;
 			for (uint32_t i : argidx)
 			{
 				args.push_back(outvec[i]);

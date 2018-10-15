@@ -32,11 +32,9 @@ TEST_F(NODE, SourceRetype)
 
 	size_t n = shape.n_elems();
 	std::vector<double> data = sess->get_double("data", n);
-	ade::Tensorptr ptr = llo::Source<double>::get(shape, data);
-	llo::iEvaluable* evaler = dynamic_cast<llo::iEvaluable*>(ptr.get());
-	ASSERT_NE(nullptr, evaler);
+	llo::DataNode ptr = llo::Source<double>::get(shape, data);
 
-	llo::GenericData gd = evaler->evaluate(llo::UINT16);
+	llo::GenericData gd = ptr.data(llo::UINT16);
 	ASSERT_EQ(llo::UINT16, gd.dtype_);
 	std::vector<ade::DimT> gotslist = gd.shape_.as_list();
 	EXPECT_ARREQ(slist, gotslist);
@@ -49,18 +47,29 @@ TEST_F(NODE, SourceRetype)
 }
 
 
-TEST_F(NODE, Placeholder)
+TEST_F(NODE, PlaceHolder)
 {
 	simple::SessionT sess = get_session("NODE::Placeholder");
 
 	auto slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
-	llo::Placeholder<double> pl(shape);
-
 	size_t n = shape.n_elems();
+	llo::PlaceHolder<double> pl(shape);
+
+	llo::GenericData uninit_gd = pl.data(llo::DOUBLE);
+	ASSERT_EQ(llo::DOUBLE, uninit_gd.dtype_);
+	std::vector<ade::DimT> uninit_slist = uninit_gd.shape_.as_list();
+	EXPECT_ARREQ(slist, uninit_slist);
+
+	double* uninit_data = (double*) uninit_gd.data_.get();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(0, uninit_data[i]);
+	}
+
 	std::vector<double> data = sess->get_double("data", n);
 	pl = data;
-	llo::GenericData gd = llo::evaluate(llo::DOUBLE, pl.get());
+	llo::GenericData gd = pl.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gd.dtype_);
 	std::vector<ade::DimT> gotslist = gd.shape_.as_list();
 	EXPECT_ARREQ(slist, gotslist);

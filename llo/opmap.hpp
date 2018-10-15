@@ -17,13 +17,17 @@
 namespace llo
 {
 
-template <ade::OPCODE opcode, typename T, typename... ARGS>
+template <ade::OPCODE OP, typename T, typename... ARGS>
 struct Executer
 {
 	static void exec (GenericData& out,
 		std::vector<GenericData>& data, ARGS... args)
 	{
-		throw std::bad_function_call();
+		std::stringstream ss;
+		ade::to_stream(ss, args...);
+		ade::fatalf(
+			"cannot %s of type %s with args %s", ade::opname(OP).c_str(),
+			nametype(get_type<T>()).c_str(), ss.str().c_str());
 	}
 };
 
@@ -56,8 +60,9 @@ static void exec (GenericData& out, std::vector<GenericData>& data)\
 VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()}); } };
 
 #define UNARY_COPY(OP)template <typename T>\
-struct Executer<ade::OP,T> {\
-static void exec (GenericData& out, std::vector<GenericData>& data)\
+struct Executer<ade::OP,T,std::vector<ade::DimT>> {\
+static void exec (GenericData& out,\
+std::vector<GenericData>& data, std::vector<ade::DimT>)\
 { copyover((T*) out.data_.get(), out.shape_.n_elems(),\
 VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()}); } };
 
@@ -175,41 +180,41 @@ UNARY_COPY(RESHAPE)
 #undef UNARY_REDUCE
 #undef UNARY_COPY
 
-template <ade::OPCODE opcode, typename... ARGS>
+template <ade::OPCODE OP, typename... ARGS>
 void exec (GenericData& out,
 	std::vector<GenericData>& data, ARGS... args)
 {
 	switch (out.dtype_)
 	{
 		case DOUBLE:
-			Executer<opcode,double,ARGS...>::exec(out, data, args...);
+			Executer<OP,double,ARGS...>::exec(out, data, args...);
 		break;
 		case FLOAT:
-			Executer<opcode,float,ARGS...>::exec(out, data, args...);
+			Executer<OP,float,ARGS...>::exec(out, data, args...);
 		break;
 		case INT8:
-			Executer<opcode,int8_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,int8_t,ARGS...>::exec(out, data, args...);
 		break;
 		case INT16:
-			Executer<opcode,int16_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,int16_t,ARGS...>::exec(out, data, args...);
 		break;
 		case INT32:
-			Executer<opcode,int32_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,int32_t,ARGS...>::exec(out, data, args...);
 		break;
 		case INT64:
-			Executer<opcode,int64_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,int64_t,ARGS...>::exec(out, data, args...);
 		break;
 		case UINT8:
-			Executer<opcode,uint8_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,uint8_t,ARGS...>::exec(out, data, args...);
 		break;
 		case UINT16:
-			Executer<opcode,uint16_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,uint16_t,ARGS...>::exec(out, data, args...);
 		break;
 		case UINT32:
-			Executer<opcode,uint32_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,uint32_t,ARGS...>::exec(out, data, args...);
 		break;
 		case UINT64:
-			Executer<opcode,uint64_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,uint64_t,ARGS...>::exec(out, data, args...);
 		break;
 		default:
 			ade::fatal("executing bad type");

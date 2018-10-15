@@ -44,13 +44,14 @@ TEST(LOAD, LoadGraph)
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
 	}
 
-	std::vector<ade::Tensorptr> roots;
+	std::vector<llo::DataNode> roots;
 	{
-		std::vector<ade::Tensorptr> nodes = load_graph(graph);
+		std::vector<llo::DataNode> nodes = load_graph(graph);
 		std::unordered_set<ade::iTensor*> nparents;
 		for (auto it = nodes.begin(), et = nodes.end(); et != it; ++it)
 		{
-			if (ade::iFunctor* func = dynamic_cast<ade::iFunctor*>(it->get()))
+			if (ade::iFunctor* func =
+				dynamic_cast<ade::iFunctor*>(it->tensor_.get()))
 			{
 				auto refs = func->get_children();
 				for (auto ref : refs)
@@ -61,9 +62,9 @@ TEST(LOAD, LoadGraph)
 		}
 
 		std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(roots),
-		[&](ade::Tensorptr& node)
+		[&](llo::DataNode& node)
 		{
-			return nparents.end() == nparents.find(node.get());
+			return nparents.end() == nparents.find(node.tensor_.get());
 		});
 	}
 
@@ -80,11 +81,11 @@ TEST(LOAD, LoadGraph)
 			expect += line + "\n";
 		}
 	}
-	for (ade::Tensorptr& root : roots)
+	for (llo::DataNode& root : roots)
 	{
 		PrettyEquation artist;
 		std::stringstream gotstr;
-		artist.print(gotstr, root);
+		artist.print(gotstr, root.tensor_);
 
 #if 0
 		std::cout << gotstr.str() << std::endl;

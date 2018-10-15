@@ -6,7 +6,7 @@
 /// Extend ade::iTensor with proxies that carry and evaluate tensor data
 ///
 
-#include <cassert>
+#include <unordered_map>
 
 #include "ade/functor.hpp"
 
@@ -18,25 +18,22 @@
 namespace llo
 {
 
-/// Interface for ensuring data evaluation functionality for proxies
+/// Interface for evaluating data of a type
 struct iEvaluable
 {
 	virtual ~iEvaluable (void) = default;
 
-	/// Return the result of the equation subgraph of input type
-	virtual GenericData evaluate (DTYPE dtype) = 0;
-
-	// Return the internal ade::Tensorptr
-	virtual ade::Tensorptr inner (void) const = 0;
+	/// Return data evaluated from subgraph converted to input type
+	virtual GenericData data (DTYPE dtype) const = 0;
 };
 
-/// Return the evaluate result of ade::Tensorptr polymorphically
-GenericData evaluate (DTYPE dtype, ade::iTensor* tens);
-
-/// Extended interface for leaf proxies with tensor data
-struct iSource : public ade::iTensor, public iEvaluable
+/// Interface for leaves with tensor data
+struct iSource
 {
 	virtual ~iSource (void) = default;
+
+	/// Return data converted to input type
+	virtual GenericData data (DTYPE dtype) const = 0;
 
 	/// Return the type of data stored
 	virtual DTYPE native_type (void) const = 0;
@@ -45,65 +42,195 @@ struct iSource : public ade::iTensor, public iEvaluable
 	virtual void reassign (const GenericRef& data) = 0;
 };
 
-/// Leaf proxy holding tensor data
+using SourcePoolT = std::unordered_map<ade::Tensor*,std::shared_ptr<iSource>>;
+using FuncPoolT = std::unordered_map<ade::iFunctor*,std::shared_ptr<iEvaluable>>;
+
+struct EvalCtx final
+{
+	EvalCtx (ade::Tensor* srckey, std::shared_ptr<iSource>& srcval)
+	{
+		srcs_[srckey] = srcval;
+	}
+
+	EvalCtx (std::vector<const EvalCtx*> contexas)
+	{
+		for (const EvalCtx* ctx : contexas)
+		{
+			srcs_.insert(ctx->srcs_.begin(), ctx->srcs_.end());
+			funks_.insert(ctx->funks_.begin(), ctx->funks_.end());
+		}
+	}
+
+	SourcePoolT srcs_;
+	FuncPoolT funks_;
+};
+
+void fill_one (char* cptr, size_t n, DTYPE dtype);
+
+void get_func_children (std::vector<GenericData>& out,
+	const EvalCtx& ctx, DTYPE dtype, ade::iFunctor* func);
+
+struct Evaluator final : public ade::Traveler
+{
+	Evaluator (const EvalCtx& ctx, DTYPE dtype) :
+		ctx_(&ctx), dtype_(dtype) {}
+
+	void visit (ade::Tensor* leaf) override
+	{
+		if (leaf == ade::Tensor::SYMBOLIC_ONE.get())
+		{
+			out_ = GenericData(ade::Shape(), dtype_);
+			fill_one(out_.data_.get(), 1, dtype_);
+			return;
+		}
+		auto srcpair = ctx_->srcs_.find(leaf);
+		if (ctx_->srcs_.end() != srcpair)
+		{
+			out_ = srcpair->second->data(dtype_);
+		}
+		else
+		{
+			if (leaf != ade::Tensor::SYMBOLIC_ZERO.get())
+			{
+				ade::warnf("evaluating an ade::Tensor %s without associated "
+					"Source according to input context... treating data as 0",
+					leaf->to_string().c_str()); // todo: describe ctx for comprehensive report
+			}
+			out_ = GenericData(ade::Shape(), dtype_);
+			std::memset(out_.data_.get(), 0, type_size(dtype_));
+		}
+	}
+
+	void visit (ade::iFunctor* func) override
+	{
+		auto funkpair = ctx_->funks_.find(func);
+		if (ctx_->funks_.end() != funkpair)
+		{
+			out_ = funkpair->second->data(dtype_);
+			return;
+		}
+		// else visit pure ade::iFunctor
+		ade::OPCODE opcode = func->get_code();
+
+		out_ = GenericData(func->shape(), dtype_);
+
+		std::vector<GenericData> argdata;
+		get_func_children(argdata, *ctx_, dtype_, func);
+		// todo: think of better way to deal with these metadata
+		// (perhaps pass around as metadata interface of template implementation)
+		switch (opcode)
+		{
+			case ade::MATMUL:
+			{
+				if (auto mf = static_cast<ade::Functor<
+					ade::MATMUL,uint8_t,uint8_t>*>(func))
+				{
+					op_exec(opcode, out_, argdata,
+						std::get<0>(mf->meta()), std::get<1>(mf->meta()));
+				}
+			}
+			break;
+			case ade::PERMUTE:
+			{
+				auto pf = static_cast<ade::Functor<
+					ade::PERMUTE,std::vector<uint8_t>>*>(func);
+				op_exec(opcode, out_, argdata, std::get<0>(pf->meta()));
+			}
+			break;
+			case ade::EXTEND:
+			{
+				auto ef = static_cast<ade::Functor<
+					ade::EXTEND,std::vector<ade::DimT>>*>(func);
+				op_exec(opcode, out_, argdata, std::get<0>(ef->meta()));
+			}
+			break;
+			case ade::RESHAPE:
+			{
+				auto rf = static_cast<ade::Functor<
+					ade::RESHAPE,std::vector<ade::DimT>>*>(func);
+				op_exec(opcode, out_, argdata, std::get<0>(rf->meta()));
+			}
+			break;
+			default:
+				op_exec(opcode, out_, argdata);
+		}
+	}
+
+	GenericData out_;
+
+private:
+	const EvalCtx* ctx_; // not owner
+
+	DTYPE dtype_;
+};
+
+/// API Node encapsulating ade::Tensorptr and context
+/// Context maps tensors to data sources/meta-data evaluators in this subgraph
+struct DataNode
+{
+	DataNode (EvalCtx ctx, ade::Tensorptr tensor) :
+		ctx_(ctx), tensor_(tensor) {}
+
+	virtual ~DataNode (void) = default;
+
+	GenericData data (DTYPE dtype)
+	{
+		Evaluator eval(ctx_, dtype);
+		tensor_->accept(eval);
+		return eval.out_;
+	}
+
+	DataNode derive (ade::Tensorptr& wrt)
+	{
+		ade::Tensorptr grad = tensor_->gradient(wrt);
+		return DataNode(ctx_, grad);
+	}
+
+	DataNode derive (DataNode& wrt)
+	{
+		return derive(wrt.tensor_);
+	}
+
+	EvalCtx ctx_;
+
+	ade::Tensorptr tensor_;
+};
+
+/// Leaf evaluable holding tensor data
 template <typename T>
 struct Source final : public iSource
 {
 	/// Return a Source of input shape and containing input data
-	static ade::Tensorptr get (ade::Shape shape, std::vector<T> data)
+	static DataNode get (ade::Shape shape, std::vector<T> data)
 	{
 		if (shape.n_elems() != data.size())
 		{
 			ade::fatalf("data size %d does not match shape %s",
 				data.size(), shape.to_string().c_str());
 		}
-		return new Source(shape, data);
+		auto tens = std::shared_ptr<ade::Tensor>(ade::Tensor::get(shape));
+		auto src = std::shared_ptr<iSource>(new Source(tens, data));
+		return DataNode(EvalCtx(tens.get(), src),
+			std::static_pointer_cast<ade::iTensor>(tens));
 	}
 
-	/// Implementation of iTensor
-	void accept (ade::Traveler& visiter) override
+	/// Return a source instance with a scalar as tensor data
+	static DataNode get_scalar (T value)
 	{
+		return Source<T>::get(ade::Shape(), {value});
 	}
 
-	/// Implementation of iTensor
-	const ade::Shape& shape (void) const override
-	{
-		return tens_->shape();
-	}
-
-	/// Implementation of iTensor
-	ade::Tensorptr gradient (ade::Tensorptr& wrt) const override
-	{
-		if (this == wrt.get())
-		{
-			return ade::constant_one(shape());
-		}
-		return tens_->gradient(wrt);
-	}
-
-	/// Implementation of iTensor
-	std::string to_string (void) const override
-	{
-		return tens_->to_string();
-	}
-
-	/// Implementation of iEvaluable
-	GenericData evaluate (DTYPE dtype) override
+	/// Implementation of iSource
+	GenericData data (DTYPE dtype) const override
 	{
 		DTYPE curtype = get_type<T>();
-		GenericData out(tens_->shape(), curtype);
+		GenericData out(tensor_->shape(), curtype);
 		std::memcpy(out.data_.get(), &data_[0], sizeof(T) * data_.size());
 		if (curtype != dtype)
 		{
 			return out.convert_to(dtype);
 		}
 		return out;
-	}
-
-	/// Implementation of iEvaluable
-	ade::Tensorptr inner (void) const override
-	{
-		return tens_;
 	}
 
 	/// Implementation of iSource
@@ -115,106 +242,69 @@ struct Source final : public iSource
 	/// Implementation of iSource
 	void reassign (const GenericRef& data) override
 	{
-		assert(data.shape_.compatible_after(tens_->shape(), 0));
+		const ade::Shape& internal_shape = tensor_->shape();
+		if (false == data.shape_.compatible_after(internal_shape, 0))
+		{
+			ade::fatalf("cannot assign data of incompatible shaped %s to "
+				"internal data of shape %s", data.shape_.to_string().c_str(),
+				internal_shape.to_string().c_str());
+		}
 		std::memcpy(&data_[0], data.data_, sizeof(T) * data.shape_.n_elems());
 	}
 
 private:
-	Source (ade::Shape shape, std::vector<T>& data) :
-		tens_(ade::Tensor::get(shape)), data_(data) {}
+	Source (std::shared_ptr<ade::Tensor>& tensor, std::vector<T>& data) :
+		tensor_(tensor), data_(data) {}
 
-	/// Tensor holding shape info
-	ade::Tensorptr tens_;
+	/// Tensor node of subgraph
+	std::shared_ptr<ade::Tensor> tensor_;
 
 	/// Tensor data
 	std::vector<T> data_;
 };
 
-/// Source smartpointer to provide data assignment functionality as Tensorptr
 template <typename T>
-struct Placeholder final : public ade::Tensorptr
+struct PlaceHolder : public DataNode
 {
-	Placeholder (ade::Shape shape) : ade::Tensorptr(
-		Source<T>::get(shape, std::vector<T>(shape.n_elems()))) {}
+	PlaceHolder (ade::Shape shape) :
+		DataNode(Source<T>::get(shape, std::vector<T>(shape.n_elems()))) {}
 
-	Placeholder (const Placeholder&) = default;
-	Placeholder (Placeholder&&) = default;
-	Placeholder& operator = (const Placeholder&) = default;
-	Placeholder& operator = (Placeholder&&) = default;
+	PlaceHolder (const PlaceHolder&) = default;
+	PlaceHolder (PlaceHolder&&) = default;
+	PlaceHolder& operator = (const PlaceHolder&) = default;
+	PlaceHolder& operator = (PlaceHolder&&) = default;
 
 	/// Assign vectorized data to source
-	Placeholder& operator = (std::vector<T>& data)
+	PlaceHolder& operator = (std::vector<T>& data)
 	{
-		auto src = static_cast<iSource*>(ptr_.get());
-		GenericRef gdata((char*) &data[0], src->shape(), get_type<T>());
+		auto key = static_cast<ade::Tensor*>(tensor_.get());
+		auto src = ctx_.srcs_[key];
+		GenericRef gdata((char*) &data[0], tensor_->shape(), get_type<T>());
 		src->reassign(gdata);
 		return *this;
 	}
 };
 
-/// Extend ade::Functor for operators requiring
-/// non-tensor meta data not needed in ade
+/// Wrap ade::Functor for operators with non-shape related meta data
 /// For example, ade::FLIP has the same output shape as input shape,
 /// but the dimension value is needed when evaluating data
 template <typename... ARGS>
-struct DirectWrapper final : public ade::iFunctor, public iEvaluable
+struct FuncWrapper final : public iEvaluable
 {
-	/// Return direct wrapper proxying input tensor and using input metadata
-	static ade::Tensorptr get (ade::iFunctor* tens, ARGS... args)
+	/// Return direct function wrapper of input functor and metadata
+	static DataNode get (EvalCtx ctx,
+		std::shared_ptr<ade::iFunctor> func, ARGS... args)
 	{
 		std::tuple<ARGS...> tp(args...);
-		return new DirectWrapper(tens, tp);
-	}
-
-	/// Implementation of iTensor
-	void accept (ade::Traveler& visiter) override
-	{
-	}
-
-	/// Implementation of iTensor
-	const ade::Shape& shape (void) const override
-	{
-		return tens_->shape();
-	}
-
-	/// Implementation of iTensor
-	ade::Tensorptr gradient (ade::Tensorptr& wrt) const override
-	{
-		if (this == wrt.get())
-		{
-			return ade::constant_one(shape());
-		}
-		return tens_->gradient(wrt);
-	}
-
-	/// Implementation of iTensor
-	std::string to_string (void) const override
-	{
-		return "Wrapper_" + opname(get_code()) + "<" + ade::to_string(meta_) + ">";
-	}
-
-	/// Implementation of iFunctor
-	ade::OPCODE get_code (void) const override
-	{
-		return static_cast<ade::iFunctor*>(tens_.get())->get_code();
-	}
-
-	/// Implementation of iFunctor
-	std::vector<ade::iTensor*> get_children (void) const override
-	{
-		return static_cast<ade::iFunctor*>(tens_.get())->get_children();
+		auto wrapper = std::shared_ptr<iEvaluable>(new FuncWrapper(ctx, func, tp));
+		ctx.funks_[func.get()] = wrapper;
+		return DataNode(ctx, std::static_pointer_cast<ade::iTensor>(func));
 	}
 
 	/// Implementation of iEvaluable
-	GenericData evaluate (DTYPE dtype) override
+	GenericData data (DTYPE dtype) const override
 	{
 		return eval_helper(dtype, std::index_sequence_for<ARGS...>());
-	}
-
-	/// Implementation of iEvaluable
-	ade::Tensorptr inner (void) const override
-	{
-		return tens_;
 	}
 
 	/// Return extra non-tensor arguments
@@ -224,43 +314,31 @@ struct DirectWrapper final : public ade::iFunctor, public iEvaluable
 	}
 
 private:
-	DirectWrapper (ade::iFunctor* tens, std::tuple<ARGS...>& args) :
-		tens_(tens), meta_(args) {}
+	FuncWrapper (const EvalCtx& ctx,
+		std::shared_ptr<ade::iFunctor> func, std::tuple<ARGS...>& args) :
+		ctx_(ctx), func_(func), meta_(args) {}
 
 	template <size_t... I>
 	GenericData eval_helper (DTYPE dtype, std::index_sequence<I...>) const
 	{
-		ade::iFunctor* f = static_cast<ade::iFunctor*>(tens_.get());
-		ade::OPCODE opcode = f->get_code();
-
-		std::vector<ade::iTensor*> refs = f->get_children();
-		uint8_t nargs = refs.size();
-
-		GenericData out(f->shape(), dtype);
-		std::vector<GenericData> argdata(nargs);
-		for (uint8_t i = 0; i < nargs; ++i)
-		{
-			argdata[i] = llo::evaluate(dtype, refs[i]);
-		}
+		ade::OPCODE opcode = func_->get_code();
+		GenericData out(func_->shape(), dtype);
+		std::vector<GenericData> argdata;
+		get_func_children(argdata, ctx_, dtype, func_.get());
 		op_exec(opcode, out, argdata, std::get<I>(meta_)...);
 		return out;
 	}
 
+	EvalCtx ctx_;
+
 	/// Tensor proxy source
-	ade::Tensorptr tens_;
+	std::shared_ptr<ade::iFunctor> func_;
 
 	/// Extra arguments for certain operators
 	/// These arguments are hidden to ensure shape is correct
 	/// since meta data can influence shape
 	std::tuple<ARGS...> meta_;
 };
-
-/// Return a source instance with a scalar as tensor data
-template <typename T>
-ade::Tensorptr scalar (T value)
-{
-	return llo::Source<T>::get(ade::Shape(), {value});
-}
 
 }
 

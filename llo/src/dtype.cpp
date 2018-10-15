@@ -34,7 +34,7 @@ const std::unordered_map<DTYPE,std::string,EnumHash> named_types =
 	TYPE_ASSOC(UINT64),
 };
 
-std::string name_type (DTYPE type)
+std::string nametype (DTYPE type)
 {
 	auto it = named_types.find(type);
 	if (named_types.end() == it)

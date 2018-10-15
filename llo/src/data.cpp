@@ -41,7 +41,7 @@ static void to_generic (char* out, DTYPE out_type, T* data, size_t n)
 		case UINT32: COPYOVER(uint32_t)
 		case UINT64: COPYOVER(uint64_t)
 		default:
-			ade::fatalf("invalid output type %s", name_type(out_type).c_str());
+			ade::fatalf("invalid output type %s", nametype(out_type).c_str());
 	}
 }
 
@@ -71,7 +71,7 @@ GenericData GenericData::convert_to (DTYPE out_type) const
 		case UINT32: CONVERT(uint32_t)
 		case UINT64: CONVERT(uint64_t)
 		default:
-			ade::fatalf("invalid input type %s", name_type(dtype_).c_str());
+			ade::fatalf("invalid input type %s", nametype(dtype_).c_str());
 	}
 	return out;
 }
