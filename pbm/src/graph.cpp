@@ -165,41 +165,63 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 	}
 }
 
-void save_graph (tenncor::Graph& out, std::vector<DataNode>& roots)
+struct GraphStat final : public ade::Traveler
 {
-	ade::iTensor* iter;
-	std::unordered_set<ade::iTensor*> visited;
-	std::vector<ade::iTensor*> leaves;
-	std::vector<ade::iFunctor*> order;
-	for (DataNode& tptr : roots)
+	void visit (ade::Tensor* leaf) override
 	{
-		std::list<ade::iFunctor*> appearance;
-		std::queue<ade::iTensor*> q;
-		q.push(tptr.tensor_);
-		while (false == q.empty())
-		{
-			iter = q.front();
-			q.pop();
-			if (visited.end() == visited.find(iter))
-			{
-				if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(iter))
-				{
-					auto children = f->get_children();
-					for (auto child : children)
-					{
-						q.push(child);
-					}
-					appearance.push_back(f);
-				}
-				else
-				{
-					leaves.push_back(iter);
-				}
-				visited.emplace(iter);
-			}
-		}
-		order.insert(order.end(), appearance.rbegin(), appearance.rend());
+        leaves_.push_back(leaf);
 	}
+
+	void visit (ade::iFunctor* func) override
+	{
+        auto children = func->get_children();
+        size_t ngraph = 0;
+        for (ade::iTensor* child : children)
+        {
+			if (graphsize_.end() == graphsize_.find(child))
+			{
+            	child->accept(*this);
+			}
+            auto childinfo = graphsize_.find(child);
+            if (graphsize_.end() != childinfo && childinfo->second > ngraph)
+            {
+                ngraph = childinfo->second;
+            } // else child is leaf
+        }
+        graphsize_[func] = ngraph + 1;
+	}
+
+    std::vector<ade::Tensor*> leaves_;
+	std::unordered_map<ade::iTensor*,size_t> graphsize_;
+};
+
+void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
+{
+	std::vector<const llo::EvalCtx*> contexas(roots.size());
+	std::transform(roots.begin(), roots.end(), contexas.begin(),
+	[](llo::DataNode& tptr)
+	{
+		return tptr.ctx_;
+	});
+	llo::EvalCtx global_ctx(contexas);
+
+	GraphStat stat;
+	for (llo::DataNode& tptr : roots)
+	{
+		tptr.tensor_->accept(stat);
+	}
+
+	std::list<ade::iTensor*> funcs;
+	for (auto gpair : stat.graphsize_)
+	{
+		funcs.push_back(gpair.first);
+	}
+	funcs.sort(
+	[&stat](ade::iTensor* a, ade::iTensor* b)
+	{
+		return stat.graphsize_[a] < stat.graphsize_[b];
+	});
+
 	// order guarantees for any index i, all children of node i is in order[:i]
 	// all nodes in leaf are some children of nodes in order
 	std::unordered_map<ade::iTensor*,size_t> imap;
@@ -351,10 +373,10 @@ static ade::Tensorptr load_op (ade::OPCODE opcode,
 	return ade::runtime_functor(opcode, args);
 }
 
-std::vector<DataNode> load_graph (const tenncor::Graph& in)
+std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
 {
 	auto nodes = in.nodes();
-	std::vector<DataNode> outvec;
+	std::vector<llo::DataNode> outvec;
 	for (const tenncor::Node& node : nodes)
 	{
 		if (node.has_source())

@@ -7,12 +7,23 @@
 #include "llo/api.hpp"
 
 
-void EXPECT_DATAEQ (std::string name, std::vector<double> expect, std::vector<double> got)
+void EXPECT_DATA_EQ (std::string name, std::vector<double> expect, std::vector<double> got)
 {
 	ASSERT_EQ(expect.size(), got.size());
 	for (size_t i = 0, n = expect.size(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect[i], got[i]) << " @name=" << name << ",index=" << i;
+	}
+}
+
+
+void EXPECT_DATA_APPROX (std::string name, std::vector<double> expect, std::vector<double> got)
+{
+	ASSERT_EQ(expect.size(), got.size());
+	for (size_t i = 0, n = expect.size(); i < n; ++i)
+	{
+		double err = expect[i] - got[i];
+		EXPECT_GT(0.000000001, err) << " @name=" << name << ",index=" << i;
 	}
 }
 
@@ -64,7 +75,7 @@ static std::vector<double> get_output_data (testify::GeneratedCase& gcase, std::
 
 
 static void unary_op (antero::Testament* test, std::string tname,
-	std::function<ade::Tensorptr(ade::Tensorptr&)> op)
+	std::function<llo::DataNode(llo::DataNode&)> op)
 {
 	testify::GeneratedCase gcase = test->get("REGRESS::" + tname);
 	ade::Shape shape = get_shape(gcase);
@@ -74,10 +85,10 @@ static void unary_op (antero::Testament* test, std::string tname,
 
 	auto leaf = llo::Source<double>::get(shape, data);
 	auto res = op(leaf);
-	auto gres = res->gradient(leaf);
+	auto gres = res.derive(leaf);
 
-	llo::GenericData resgd = llo::evaluate(llo::DOUBLE, res.get());
-	llo::GenericData gresgd = llo::evaluate(llo::DOUBLE, gres.get());
+	llo::GenericData resgd = res.data(llo::DOUBLE);
+	llo::GenericData gresgd = gres.data(llo::DOUBLE);
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();
@@ -85,13 +96,13 @@ static void unary_op (antero::Testament* test, std::string tname,
 	std::vector<double> resd(resptr, resptr + resgd.shape_.n_elems());
 	std::vector<double> gresd(gresptr, gresptr + gresgd.shape_.n_elems());
 
-	EXPECT_DATAEQ("res", resdata, resd);
-	EXPECT_DATAEQ("gres", gresdata, gresd);
+	EXPECT_DATA_EQ("res", resdata, resd);
+	EXPECT_DATA_EQ("gres", gresdata, gresd);
 }
 
 
 static void binary_op (antero::Testament* test, std::string tname,
-	std::function<ade::Tensorptr(ade::Tensorptr&,ade::Tensorptr&)> op)
+	std::function<llo::DataNode(llo::DataNode&,llo::DataNode&)> op)
 {
 	testify::GeneratedCase gcase = test->get("REGRESS::" + tname);
 	ade::Shape shape = get_shape(gcase);
@@ -104,12 +115,12 @@ static void binary_op (antero::Testament* test, std::string tname,
 	auto leaf = llo::Source<double>::get(shape, data);
 	auto leaf2 = llo::Source<double>::get(shape, data2);
 	auto res = op(leaf, leaf2);
-	auto gres = res->gradient(leaf);
-	auto gres2 = res->gradient(leaf2);
+	auto gres = res.derive(leaf);
+	auto gres2 = res.derive(leaf2);
 
-	llo::GenericData resgd = llo::evaluate(llo::DOUBLE, res.get());
-	llo::GenericData gresgd = llo::evaluate(llo::DOUBLE, gres.get());
-	llo::GenericData gresgd2 = llo::evaluate(llo::DOUBLE, gres2.get());
+	llo::GenericData resgd = res.data(llo::DOUBLE);
+	llo::GenericData gresgd = gres.data(llo::DOUBLE);
+	llo::GenericData gresgd2 = gres2.data(llo::DOUBLE);
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();
@@ -119,9 +130,9 @@ static void binary_op (antero::Testament* test, std::string tname,
 	std::vector<double> gresd(gresptr, gresptr + gresgd.shape_.n_elems());
 	std::vector<double> gresd2(gresptr2, gresptr2 + gresgd2.shape_.n_elems());
 
-	EXPECT_DATAEQ("res", resdata, resd);
-	EXPECT_DATAEQ("gres", gresdata, gresd);
-	EXPECT_DATAEQ("gres2", gresdata2, gresd2);
+	EXPECT_DATA_EQ("res", resdata, resd);
+	EXPECT_DATA_EQ("gres", gresdata, gresd);
+	EXPECT_DATA_EQ("gres2", gresdata2, gresd2);
 }
 
 
@@ -146,7 +157,7 @@ struct REGRESS : public antero::Testament {};
 
 TEST_F(REGRESS, Abs)
 {
-	unary_op(this, "Abs", [](ade::Tensorptr& a)
+	unary_op(this, "Abs", [](llo::DataNode& a)
 	{
 		return llo::abs(a);
 	});
@@ -155,7 +166,7 @@ TEST_F(REGRESS, Abs)
 
 TEST_F(REGRESS, Neg)
 {
-	unary_op(this, "Neg", [](ade::Tensorptr& a)
+	unary_op(this, "Neg", [](llo::DataNode& a)
 	{
 		return llo::neg(a);
 	});
@@ -164,7 +175,7 @@ TEST_F(REGRESS, Neg)
 
 TEST_F(REGRESS, Sin)
 {
-	unary_op(this, "Sin", [](ade::Tensorptr& a)
+	unary_op(this, "Sin", [](llo::DataNode& a)
 	{
 		return llo::sin(a);
 	});
@@ -173,7 +184,7 @@ TEST_F(REGRESS, Sin)
 
 TEST_F(REGRESS, Cos)
 {
-	unary_op(this, "Cos", [](ade::Tensorptr& a)
+	unary_op(this, "Cos", [](llo::DataNode& a)
 	{
 		return llo::cos(a);
 	});
@@ -181,7 +192,7 @@ TEST_F(REGRESS, Cos)
 
 TEST_F(REGRESS, Tan)
 {
-	unary_op(this, "Tan", [](ade::Tensorptr& a)
+	unary_op(this, "Tan", [](llo::DataNode& a)
 	{
 		return llo::tan(a);
 	});
@@ -190,7 +201,7 @@ TEST_F(REGRESS, Tan)
 
 TEST_F(REGRESS, Exp)
 {
-	unary_op(this, "Exp", [](ade::Tensorptr& a)
+	unary_op(this, "Exp", [](llo::DataNode& a)
 	{
 		return llo::exp(a);
 	});
@@ -199,7 +210,7 @@ TEST_F(REGRESS, Exp)
 
 TEST_F(REGRESS, Log)
 {
-	unary_op(this, "Log", [](ade::Tensorptr& a)
+	unary_op(this, "Log", [](llo::DataNode& a)
 	{
 		return llo::log(a);
 	});
@@ -208,7 +219,7 @@ TEST_F(REGRESS, Log)
 
 TEST_F(REGRESS, Sqrt)
 {
-	unary_op(this, "Sqrt", [](ade::Tensorptr& a)
+	unary_op(this, "Sqrt", [](llo::DataNode& a)
 	{
 		return llo::sqrt(a);
 	});
@@ -217,7 +228,7 @@ TEST_F(REGRESS, Sqrt)
 
 TEST_F(REGRESS, Pow)
 {
-	binary_op(this, "Pow", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Pow", [](llo::DataNode& a, llo::DataNode& b)
 	{
 		return llo::pow(a, b);
 	});
@@ -226,7 +237,7 @@ TEST_F(REGRESS, Pow)
 
 TEST_F(REGRESS, Add)
 {
-	binary_op(this, "Add", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Add", [](llo::DataNode& a, llo::DataNode& b)
 	{
 		return llo::add(a, b);
 	});
@@ -235,7 +246,7 @@ TEST_F(REGRESS, Add)
 
 TEST_F(REGRESS, Sub)
 {
-	binary_op(this, "Sub", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Sub", [](llo::DataNode& a, llo::DataNode& b)
 	{
 		return llo::sub(a, b);
 	});
@@ -244,7 +255,7 @@ TEST_F(REGRESS, Sub)
 
 TEST_F(REGRESS, Mul)
 {
-	binary_op(this, "Mul", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Mul", [](llo::DataNode& a, llo::DataNode& b)
 	{
 		return llo::mul(a, b);
 	});
@@ -253,7 +264,7 @@ TEST_F(REGRESS, Mul)
 
 TEST_F(REGRESS, Div)
 {
-	binary_op(this, "Div", [](ade::Tensorptr& a, ade::Tensorptr& b)
+	binary_op(this, "Div", [](llo::DataNode& a, llo::DataNode& b)
 	{
 		return llo::div(a, b);
 	});
@@ -298,12 +309,12 @@ TEST_F(REGRESS, Matmul)
 	auto leaf = llo::Source<double>::get(ashape, data);
 	auto leaf2 = llo::Source<double>::get(bshape, data2);
 	auto res = llo::matmul(leaf, leaf2);
-	auto gres = res->gradient(leaf);
-	auto gres2 = res->gradient(leaf2);
+	auto gres = res.derive(leaf);
+	auto gres2 = res.derive(leaf2);
 
-	llo::GenericData resgd = llo::evaluate(llo::DOUBLE, res.get());
-	llo::GenericData gresgd = llo::evaluate(llo::DOUBLE, gres.get());
-	llo::GenericData gresgd2 = llo::evaluate(llo::DOUBLE, gres2.get());
+	llo::GenericData resgd = res.data(llo::DOUBLE);
+	llo::GenericData gresgd = gres.data(llo::DOUBLE);
+	llo::GenericData gresgd2 = gres2.data(llo::DOUBLE);
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();
@@ -332,7 +343,7 @@ TEST_F(REGRESS, Matmul)
 		processed_gb[i / batchgb] += gresd2[i];
 	}
 
-	EXPECT_DATAEQ("res", resdata, resd);
-	EXPECT_DATAEQ("gres", gresdata, processed_ga);
-	EXPECT_DATAEQ("gres2", gresdata2, processed_gb);
+	EXPECT_DATA_APPROX("res", resdata, resd);
+	EXPECT_DATA_APPROX("gres", gresdata, processed_ga);
+	EXPECT_DATA_APPROX("gres2", gresdata2, processed_gb);
 }

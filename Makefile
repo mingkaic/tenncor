@@ -49,7 +49,7 @@ TMP_LOGFILE := /tmp/tenncor-test.log
 
 # all tests
 
-test: test_ade test_llo test_pbm check_cli
+test: test_ade test_llo test_pbm test_regress check_cli
 
 test_ade: test_ade_util test_ade_dynamic test_ade_static
 
