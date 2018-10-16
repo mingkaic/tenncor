@@ -33,7 +33,7 @@ Synopsis
 EOF
 }
 
-while getopts ":t:i:d:" option; do
+while getopts ":t:i:p:" option; do
     case "$option" in
         t) timeout=$OPTARG ;;
         i) interval=$OPTARG ;;

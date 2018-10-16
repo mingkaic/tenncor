@@ -183,7 +183,7 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 	}
 }
 
-struct GraphStat final : public ade::Traveler
+struct GraphStat final : public ade::iTraveler
 {
 	void visit (ade::Tensor* leaf) override
 	{
@@ -220,7 +220,7 @@ struct GraphStat final : public ade::Traveler
 
 	std::vector<ade::Tensor*> leaves_;
 
-	// ensure we don't serialize leaves twice
+	// ensure we don't pick the same leaves twice
 	std::unordered_set<ade::Tensor*> visited_;
 
 	// store list of funcs to ensure determinisitc ordering
@@ -382,7 +382,7 @@ static llo::DataNode load_source (const tenncor::Source& source)
 		}
 		break;
 		default:
-			ade::fatalf("cannot load source"); // todo: make more informative
+			ade::fatal("cannot load source"); // todo: make more informative
 	}
 }
 

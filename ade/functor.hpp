@@ -26,7 +26,7 @@ struct iFunctor : public iTensor
 	virtual ~iFunctor (void) = default;
 
 	/// Implementation of iTensor
-	void accept (Traveler& visiter) override
+	void accept (iTraveler& visiter) override
 	{
 		visiter.visit(this);
 	}

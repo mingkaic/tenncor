@@ -8,7 +8,16 @@
 #ifndef DISABLE_DTYPE_TEST
 
 
-struct DTYPE : public simple::TestModel {};
+struct DTYPE : public simple::TestModel
+{
+	virtual void TearDown (void)
+	{
+		simple::TestModel::TearDown();
+		TestLogger::latest_warning_ = "";
+		TestLogger::latest_error_ = "";
+		TestLogger::latest_fatal_ = "";
+	}
+};
 
 
 TEST_F(DTYPE, DataConvert)

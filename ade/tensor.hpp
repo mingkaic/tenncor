@@ -25,9 +25,9 @@ struct Tensor;
 struct iFunctor;
 
 /// Interface to travel through graph, treating Tensor and iFunctor differently
-struct Traveler
+struct iTraveler
 {
-	virtual ~Traveler (void) = default;
+	virtual ~iTraveler (void) = default;
 
 	/// Visit leaf node
 	virtual void visit (Tensor* leaf) = 0;
@@ -42,7 +42,7 @@ struct iTensor
 	virtual ~iTensor (void) = default;
 
 	/// Obtain concrete information on either leaf or functor implementations
-	virtual void accept (Traveler& visiter) = 0;
+	virtual void accept (iTraveler& visiter) = 0;
 
 	/// Return the shape held by this tensor
 	virtual const Shape& shape (void) const = 0;
@@ -129,7 +129,7 @@ struct Tensor final : public iTensor
 	}
 
 	/// Implementation of iTensor
-	void accept (Traveler& visiter) override
+	void accept (iTraveler& visiter) override
 	{
 		visiter.visit(this);
 	}

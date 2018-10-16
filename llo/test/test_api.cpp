@@ -28,7 +28,16 @@ static const retro::Range<double> default_range = {-9876, 9876};
 const int FREIVALD_N = 10;
 
 
-struct API : public simple::TestModel {};
+struct API : public simple::TestModel
+{
+	virtual void TearDown (void)
+	{
+		simple::TestModel::TearDown();
+		TestLogger::latest_warning_ = "";
+		TestLogger::latest_error_ = "";
+		TestLogger::latest_fatal_ = "";
+	}
+};
 
 
 MatVecT create_2d (llo::GenericData& data)

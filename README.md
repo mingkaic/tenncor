@@ -25,12 +25,10 @@ This module marshals llo-extended ade graph
 
 ## Tools and utility
 
-- CLI
-
 - DBG (Debugger)
 
 ## Building
 
-Tenncor uses bazel 0.9+.
+Tenncor uses bazel 0.15+.
 
 Download bazel: https://docs.bazel.build/versions/master/install.html

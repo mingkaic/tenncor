@@ -4,6 +4,8 @@ std::string TestLogger::latest_warning_;
 std::string TestLogger::latest_error_;
 std::string TestLogger::latest_fatal_;
 
+std::shared_ptr<TestLogger> tlogger = std::make_shared<TestLogger>();
+
 std::vector<ade::DimT> get_shape_n (simple::SessionT& sess, size_t n, std::string label)
 {
 	int32_t max_elem = std::log(nelem_limit) / std::log(n);

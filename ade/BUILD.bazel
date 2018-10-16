@@ -36,7 +36,10 @@ cc_library(
 cc_test(
     name = "test_util",
     size = "small",
-    srcs = glob(["test/util/*.cpp"]),
+    srcs = glob([
+        "test/util/*.hpp",
+        "test/util/*.cpp",
+    ]),
     deps = [
         "//ade:ade",
         "@com_google_googletest//:gtest",

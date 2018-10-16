@@ -10,8 +10,6 @@ filegroup(
     name = "srcs",
     srcs = [
         "//ade:srcs",
-        "//cli/ade:srcs",
-        "//cli/llo:srcs",
         "//dbg:srcs",
         "//llo:srcs",
         "//pbm:srcs",

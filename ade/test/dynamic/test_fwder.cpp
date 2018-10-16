@@ -8,21 +8,30 @@
 #ifndef DISABLE_FWDER_TEST
 
 
-struct FWDER : public simple::TestModel {};
+struct FWDER : public simple::TestModel
+{
+	virtual void TearDown (void)
+	{
+		simple::TestModel::TearDown();
+		TestLogger::latest_warning_ = "";
+		TestLogger::latest_error_ = "";
+		TestLogger::latest_fatal_ = "";
+	}
+};
 
 
-template <ade::OPCODE opcode>
+template <ade::OPCODE OP>
 static void unary_elementary (simple::SessionT& sess)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 
-	ade::Shape same_shape = ade::forwarder<opcode>({leaf});
+	ade::Shape same_shape = ade::forwarder<OP>({leaf});
 	EXPECT_ARREQ(slist, same_shape.as_list());
 }
 
 
-template <ade::OPCODE opcode>
+template <ade::OPCODE OP>
 static void binary_elementary (simple::SessionT& sess)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
@@ -30,47 +39,53 @@ static void binary_elementary (simple::SessionT& sess)
 	int32_t ext_value = sess->get_scalar("ext_value", {2, 13});
 	std::vector<ade::DimT> extlist = slist;
 	extlist.push_back(ext_value);
+	ade::Shape shape(slist);
+	ade::Shape badshape(badlist);
 	ade::Tensorptr scalar = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr alt_scalar = ade::Tensor::get(ade::Shape({1}));
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
+	ade::Tensorptr leaf = ade::Tensor::get(shape);
+	ade::Tensorptr leaf1 = ade::Tensor::get(shape);
 	ade::Tensorptr leaf2 = ade::Tensor::get(ade::Shape(extlist));
-	ade::Tensorptr badleaf = ade::Tensor::get(ade::Shape(badlist));
+	ade::Tensorptr badleaf = ade::Tensor::get(badshape);
 
-	ade::Shape same_shape = ade::forwarder<opcode>({leaf, leaf1});
-	ade::Shape same_shape2 = ade::forwarder<opcode>({leaf, scalar});
-	ade::Shape same_shape3 = ade::forwarder<opcode>({scalar, leaf1});
-	ade::Shape same_shape4 = ade::forwarder<opcode>({leaf, alt_scalar});
-	ade::Shape same_shape5 = ade::forwarder<opcode>({alt_scalar, leaf1});
+	ade::Shape same_shape = ade::forwarder<OP>({leaf, leaf1});
+	ade::Shape same_shape2 = ade::forwarder<OP>({leaf, scalar});
+	ade::Shape same_shape3 = ade::forwarder<OP>({scalar, leaf1});
+	ade::Shape same_shape4 = ade::forwarder<OP>({leaf, alt_scalar});
+	ade::Shape same_shape5 = ade::forwarder<OP>({alt_scalar, leaf1});
 	EXPECT_ARREQ(slist, same_shape.as_list());
 	EXPECT_ARREQ(slist, same_shape2.as_list());
 	EXPECT_ARREQ(slist, same_shape3.as_list());
 	EXPECT_ARREQ(slist, same_shape4.as_list());
 	EXPECT_ARREQ(slist, same_shape5.as_list());
 
-	ade::Shape ext_shape = ade::forwarder<opcode>({leaf, leaf2});
-	ade::Shape ext_shape1 = ade::forwarder<opcode>({leaf1, leaf2});
+	ade::Shape ext_shape = ade::forwarder<OP>({leaf, leaf2});
+	ade::Shape ext_shape1 = ade::forwarder<OP>({leaf1, leaf2});
 	EXPECT_ARREQ(extlist, ext_shape.as_list());
 	EXPECT_ARREQ(extlist, ext_shape1.as_list());
 
-	EXPECT_THROW(ade::forwarder<opcode>({leaf, badleaf}), std::runtime_error) <<
+	EXPECT_THROW(ade::forwarder<OP>({leaf, badleaf}), std::runtime_error) <<
 		"leaf=" << leaf->shape().to_string() << ", badleaf=" << badleaf->shape().to_string();
-	EXPECT_THROW(ade::forwarder<opcode>({badleaf, leaf}), std::runtime_error) <<
+	std::string expect_msg = "cannot " + ade::opname(OP) +
+		" with incompatible shapes " + shape.to_string() + " and " + badshape.to_string();
+	const char* fmsg = TestLogger::latest_fatal_.c_str();
+	EXPECT_STREQ(expect_msg.c_str(), fmsg);
+	EXPECT_THROW(ade::forwarder<OP>({badleaf, leaf}), std::runtime_error) <<
 		"badleaf=" << badleaf->shape().to_string() << ", leaf=" << leaf->shape().to_string();
 }
 
 
-template <ade::OPCODE opcode>
+template <ade::OPCODE OP>
 static void scalar (simple::SessionT& sess)
 {
 	std::vector<ade::DimT> slist = get_shape(sess, "slist");
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
-	ade::Shape scal_shape = ade::forwarder<opcode>({leaf});
+	ade::Shape scal_shape = ade::forwarder<OP>({leaf});
 	EXPECT_EQ(1, scal_shape.n_elems());
 
-	EXPECT_THROW(ade::forwarder<opcode>({leaf, leaf1}), std::runtime_error);
+	EXPECT_THROW(ade::forwarder<OP>({leaf, leaf1}), std::runtime_error);
 }
 
 

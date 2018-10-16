@@ -28,7 +28,7 @@ struct TestLogger : public ade::iLogger
 	}
 };
 
-const std::shared_ptr<TestLogger> tlogger = std::make_shared<TestLogger>();
+extern std::shared_ptr<TestLogger> tlogger;
 
 const size_t nelem_limit = 32456;
 
