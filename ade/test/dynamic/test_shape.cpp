@@ -15,7 +15,6 @@ struct SHAPE : public simple::TestModel
 		simple::TestModel::TearDown();
 		TestLogger::latest_warning_ = "";
 		TestLogger::latest_error_ = "";
-		TestLogger::latest_fatal_ = "";
 	}
 };
 
@@ -34,7 +33,9 @@ TEST_F(SHAPE, Init)
 	ade::Shape lvec(longlist);
 
 	std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
-	EXPECT_THROW(ade::Shape junk(zerolist), std::exception);
+	std::string expect_fatalmsg = "cannot create shape with vector containing zero: " +
+		ade::to_string(zerolist);
+	EXPECT_FATAL(ade::Shape junk(zerolist), expect_fatalmsg.c_str());
 
 	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
@@ -79,7 +80,9 @@ TEST_F(SHAPE, VecAssign)
 	EXPECT_EQ(slist.size(), vecassign2.n_rank());
 	EXPECT_ARREQ(slist, vecassign2.as_list());
 
-	EXPECT_THROW(vecassign = zerolist, std::exception);
+	std::string expect_fatalmsg = "cannot create shape with vector containing zero: " +
+		ade::to_string(zerolist);
+	EXPECT_FATAL(vecassign = zerolist, expect_fatalmsg.c_str());
 }
 
 

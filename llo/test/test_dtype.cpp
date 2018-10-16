@@ -15,7 +15,6 @@ struct DTYPE : public simple::TestModel
 		simple::TestModel::TearDown();
 		TestLogger::latest_warning_ = "";
 		TestLogger::latest_error_ = "";
-		TestLogger::latest_fatal_ = "";
 	}
 };
 
@@ -66,7 +65,7 @@ TEST_F(DTYPE, TypeSize)
 	EXPECT_EQ(sizeof(uint32_t), llo::type_size(llo::UINT32));
 	EXPECT_EQ(sizeof(int64_t), llo::type_size(llo::INT64));
 	EXPECT_EQ(sizeof(uint64_t), llo::type_size(llo::UINT64));
-	EXPECT_THROW(llo::type_size(llo::BAD), std::runtime_error);
+	EXPECT_FATAL(llo::type_size(llo::BAD), "unsupported type 0");
 }
 
 

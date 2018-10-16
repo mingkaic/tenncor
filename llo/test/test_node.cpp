@@ -15,7 +15,6 @@ struct NODE : public simple::TestModel
 		simple::TestModel::TearDown();
 		TestLogger::latest_warning_ = "";
 		TestLogger::latest_error_ = "";
-		TestLogger::latest_fatal_ = "";
 	}
 };
 
@@ -28,7 +27,10 @@ TEST_F(NODE, MismatchSource)
 	ade::Shape shape(slist);
 	std::vector<double> data = sess->get_double("data", shape.n_elems() - 1);
 
-	EXPECT_THROW(llo::Source<double>::get(shape, data), std::runtime_error);
+	std::stringstream ss;
+	ss << "data size " << data.size() <<
+		" does not match shape " << shape.to_string();
+	EXPECT_FATAL(llo::Source<double>::get(shape, data), ss.str().c_str());
 }
 
 

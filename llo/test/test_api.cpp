@@ -35,7 +35,6 @@ struct API : public simple::TestModel
 		simple::TestModel::TearDown();
 		TestLogger::latest_warning_ = "";
 		TestLogger::latest_error_ = "";
-		TestLogger::latest_fatal_ = "";
 	}
 };
 
@@ -515,8 +514,10 @@ TEST_F(API, Flip)
 	auto dest = llo::flip(src, dim);
 
 	auto bad = llo::flip(src, baddim);
-	EXPECT_THROW(bad.data(llo::DOUBLE), std::runtime_error) <<
-		"baddim: " << (int) baddim << " nrank: " << nrank;
+	std::stringstream ss;
+	ss << "attempting to flip dimension " <<
+		(int) baddim << " beyond shape rank " << nrank;
+	EXPECT_FATAL(bad.data(llo::DOUBLE), ss.str().c_str())
 
 	llo::GenericData out = dest.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, out.dtype_);

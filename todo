@@ -1,6 +1,5 @@
 correctness:
 P2 - test complicate equations
-P2 - verify error messages
 P3 - implement better fallback strategy when test server is unavailable
 
 transparency:

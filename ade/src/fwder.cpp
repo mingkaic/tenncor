@@ -17,7 +17,7 @@ template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
 template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
 { if (1 != tens.size()) {\
 	fatalf("cannot %s for non-single argument(s): "\
-		"using %d arguments", #CODE, tens.size());\
+		"using %d argument(s)", #CODE, tens.size());\
 } return Shape(); }
 
 static Shape bijection (std::vector<Tensorptr> args, std::string op)
@@ -98,7 +98,7 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 	if (2 != tens.size())
 	{
 		fatalf("cannot MATMUL without 2 arguments: "
-			"using %d arguments", tens.size());
+			"using %d argument(s)", tens.size());
 	}
 	if (agroup_idx == 0)
 	{
@@ -127,7 +127,7 @@ Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
 	if (false == std::equal(ait, ait + agroup_idx, bit + bgroup_idx) ||
 		agroup_idx != (bshape.n_rank() - bgroup_idx))
 	{
-		fatalf("incompatible common dimensions in matmuling %s, %s",
+		fatalf("incompatible common dimensions when matmuling shapes %s, %s",
 			ashape.to_string().c_str(), bshape.to_string().c_str());
 	}
 
@@ -143,7 +143,7 @@ Shape forwarder<PERMUTE,std::vector<uint8_t>> (
 	if (1 != tens.size())
 	{
 		fatalf("cannot PERMUTE non-single argument(s): "
-			"using %d arguments", tens.size());
+			"using %d argument(s)", tens.size());
 	}
 	const Shape& shape = tens[0]->shape();
 	bool visited[rank_cap];
@@ -171,7 +171,7 @@ Shape forwarder<EXTEND,std::vector<DimT>> (
 	if (1 != tens.size())
 	{
 		fatalf("cannot EXTEND non-single argument(s): "
-			"using %d arguments", tens.size());
+			"using %d argument(s)", tens.size());
 	}
 	ade::Shape shape = tens[0]->shape();
 	if (0 == ext.size())
@@ -200,7 +200,7 @@ Shape forwarder<RESHAPE,std::vector<DimT>> (
 	if (1 != tens.size())
 	{
 		fatalf("cannot RESHAPE non-single argument(s): "
-			"using %d arguments", tens.size());
+			"using %d argument(s)", tens.size());
 	}
 	Shape inshape = tens[0]->shape();
 	Shape outshape(outlist);
