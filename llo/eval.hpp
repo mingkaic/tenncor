@@ -52,9 +52,14 @@ using FuncPoolT = std::unordered_map<
 /// Context used to associate ade nodes to llo nodes under a particular graph
 struct EvalCtx final
 {
+	EvalCtx (void) = default;
+
 	EvalCtx (ade::Tensor* srckey, std::shared_ptr<iSource>& srcval)
 	{
-		srcs_[srckey] = srcval;
+		if (srcval != nullptr && srckey != nullptr)
+		{
+			srcs_[srckey] = srcval;
+		}
 	}
 
 	EvalCtx (std::vector<const EvalCtx*> contexas)
@@ -118,14 +123,14 @@ struct DataNode
 	}
 
 	/// Return DataNode of gradient tree derived with respect to wrt tensor
-	DataNode derive (ade::Tensorptr& wrt)
+	DataNode derive (ade::Tensorptr& wrt) const
 	{
 		ade::Tensorptr grad = tensor_->gradient(wrt);
 		return DataNode(ctx_, grad);
 	}
 
 	/// Return DataNode of gradient tree derived with respect to wrt DataNode
-	DataNode derive (DataNode& wrt)
+	DataNode derive (DataNode& wrt) const
 	{
 		return derive(wrt.tensor_);
 	}

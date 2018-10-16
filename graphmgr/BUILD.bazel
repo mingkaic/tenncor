@@ -31,7 +31,7 @@ cc_proto_library(
     name = "cc_grpc",
     protos = ["//pbm:protos"],
     imports = ["external/com_google_protobuf/src"],
-    proto_deps = ["//lead:cc_proto"],
+    proto_deps = ["//pbm:cc_proto"],
     inputs = [
         "//pbm:proto_lib",
         "@com_google_protobuf//:well_known_protos",
@@ -43,7 +43,7 @@ py_proto_library(
     name = "py_grpc",
     protos = ["//pbm:protos"],
     imports = ["external/com_google_protobuf/src"],
-    proto_deps = ["//lead:py_proto"],
+    proto_deps = ["//pbm:py_proto"],
     inputs = [
         "//pbm:proto_lib",
         "@com_google_protobuf//:well_known_protos",
