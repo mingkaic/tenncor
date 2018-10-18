@@ -54,9 +54,9 @@ std::transform(data.begin(), data.end(), args.begin(), \
 METHOD((T*) out.data_.get(), args); } };
 
 #define UNARY_REDUCE(OP, METHOD)template <typename T>\
-struct Executer<ade::OP,T> {\
-static void exec (GenericData& out, std::vector<GenericData>& data)\
-{ T* ptr = (T*) out.data_.get(); METHOD(*ptr,\
+struct Executer<ade::OP,T,uint8_t> {\
+static void exec (GenericData& out, std::vector<GenericData>& data, uint8_t)\
+{ METHOD((T*) out.data_.get(), out.shape_.n_elems(),\
 VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()}); } };
 
 #define UNARY_COPY(OP)template <typename T>\

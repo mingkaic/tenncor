@@ -83,14 +83,30 @@ void Evaluator::visit (ade::iFunctor* func)
 	// (perhaps pass around as metadata interface of template implementation)
 	switch (opcode)
 	{
+		case ade::ARGMAX:
+		{
+			auto mf = static_cast<ade::Functor<ade::ARGMAX,uint8_t>*>(func);
+			op_exec(opcode, out_, argdata, std::get<0>(mf->meta()));
+		}
+		break;
+		case ade::RSUM:
+		{
+			auto mf = static_cast<ade::Functor<ade::RSUM,uint8_t>*>(func);
+			op_exec(opcode, out_, argdata, std::get<0>(mf->meta()));
+		}
+		break;
+		case ade::RMAX:
+		{
+			auto mf = static_cast<ade::Functor<ade::RMAX,uint8_t>*>(func);
+			op_exec(opcode, out_, argdata, std::get<0>(mf->meta()));
+		}
+		break;
 		case ade::MATMUL:
 		{
-			if (auto mf = dynamic_cast<ade::Functor<
-				ade::MATMUL,uint8_t,uint8_t>*>(func))
-			{
-				op_exec(opcode, out_, argdata,
-					std::get<0>(mf->meta()), std::get<1>(mf->meta()));
-			}
+			auto mf = static_cast<ade::Functor<
+				ade::MATMUL,uint8_t,uint8_t>*>(func);
+			op_exec(opcode, out_, argdata,
+				std::get<0>(mf->meta()), std::get<1>(mf->meta()));
 		}
 		break;
 		case ade::PERMUTE:

@@ -34,7 +34,7 @@ cc_library(
 
 cc_test(
     name = "test_llo",
-    size = "small",
+    size = "medium",
     srcs = [
         "test/main.cpp",
         "test/test_api.cpp",

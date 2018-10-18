@@ -89,6 +89,41 @@ static void scalar (simple::SessionT& sess)
 }
 
 
+template <ade::OPCODE OP>
+static void reduce (simple::SessionT& sess)
+{
+	int32_t n = sess->get_scalar("n_slist", {2, ade::rank_cap - 1});
+	std::vector<ade::DimT> slist = get_shape_n(sess, n, "slist");
+	uint8_t dim = 1;
+	if (n > 2)
+	{
+		dim = sess->get_scalar("dim", {1, n - 1});
+	}
+	uint8_t beyonddim = sess->get_scalar("beyonddim", {8, 16});
+	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
+	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
+
+	ade::Shape scal_shape = ade::forwarder<OP,uint8_t>({leaf}, beyonddim);
+	EXPECT_EQ(1, scal_shape.n_elems());
+
+	ade::Shape shape = ade::forwarder<OP,uint8_t>({leaf}, 0);
+	EXPECT_EQ(slist, shape.as_list());
+	EXPECT_STREQ("reducing coordinates [:0] ... created useless node",
+		TestLogger::latest_warning_.c_str());
+
+	ade::Shape red_shape = ade::forwarder<OP,uint8_t>({leaf}, dim);
+	auto rlist = red_shape.as_list();
+	std::vector<ade::DimT> exlist(slist.begin() + dim,
+		slist.begin() + slist.size());
+	EXPECT_ARREQ(exlist, rlist);
+
+	std::string expect_fatalmsg = "cannot " + ade::opname(OP) +
+		" for non-single argument(s): using 2 argument(s)";
+	auto fail = [&](){ ade::forwarder<OP,uint8_t>({leaf, leaf1}, 5); };
+	EXPECT_FATAL(fail(), expect_fatalmsg.c_str())
+}
+
+
 #define FWD_UNAR(CODE)\
 TEST_F(FWDER, CODE) {\
 	simple::SessionT sess = get_session("FWDER::" + std::string(#CODE));\
@@ -137,9 +172,17 @@ TEST_F(FWDER, CODE) {\
 
 FWD_SCALAR(N_ELEMS)
 FWD_SCALAR(N_DIMS)
-FWD_SCALAR(ARGMAX)
-FWD_SCALAR(RMAX)
-FWD_SCALAR(RSUM)
+
+
+#define FWD_REDUCE(CODE)\
+TEST_F(FWDER, CODE) {\
+	simple::SessionT sess = get_session("FWDER::" + std::string(#CODE));\
+	reduce<ade::CODE>(sess); }
+
+
+FWD_REDUCE(ARGMAX)
+FWD_REDUCE(RMAX)
+FWD_REDUCE(RSUM)
 
 
 TEST_F(FWDER, MATMUL2D)
@@ -154,10 +197,11 @@ TEST_F(FWDER, MATMUL2D)
 	ade::Tensorptr a = ade::Tensor::get(ade::Shape(alist));
 	ade::Tensorptr b = ade::Tensor::get(ade::Shape(blist));
 
-	EXPECT_FATAL(ade::forwarder<ade::MATMUL>({a}),
-		"cannot MATMUL without 2 arguments: using 1 argument(s)")
+	auto fail = [&](){ ade::forwarder<ade::MATMUL,uint8_t,uint8_t>(
+		{a},1,1); };
+	EXPECT_FATAL(fail(), "cannot MATMUL without 2 arguments: using 1 argument(s)")
 
-	ade::Shape mat2d = ade::forwarder<ade::MATMUL>({a, b});
+	ade::Shape mat2d = ade::forwarder<ade::MATMUL,uint8_t,uint8_t>({a, b}, 1, 1);
 
 	std::vector<ade::DimT> got = mat2d.as_list();
 	int_verify(sess, "mat2d", std::vector<int32_t>(got.begin(), got.end()),
@@ -250,8 +294,8 @@ TEST_F(FWDER, PERMUTE)
 	ade::Shape ogshape(slist);
 	ade::Tensorptr leaf = ade::Tensor::get(ogshape);
 
-	auto fail = [&](){
-		ade::forwarder<ade::PERMUTE,std::vector<uint8_t>>({leaf, leaf}, {}); };
+	auto fail = [&](){ ade::forwarder<ade::PERMUTE,std::vector<uint8_t>>(
+		{leaf, leaf}, {}); };
 	EXPECT_FATAL(fail(), "cannot PERMUTE non-single argument(s): using 2 argument(s)");
 
 	ade::Shape perm = ade::forwarder<ade::PERMUTE,
@@ -343,12 +387,12 @@ TEST_F(FWDER, EXTEND)
 	ade::Shape shape(slist);
 	ade::Tensorptr leaf = ade::Tensor::get(shape);
 	ade::Tensorptr badleaf = ade::Tensor::get(ade::Shape(badlist));
-	auto fail = [&](){
-		ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({leaf, leaf}, {1}); };
-	auto fail1 = [&](){
-		ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({leaf}, {0}); };
-	auto fail2 = [&](){
-		ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({leaf}, bad_ext); };
+	auto fail = [&](){ ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>(
+		{leaf, leaf}, {1}); };
+	auto fail1 = [&](){ ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>(
+		{leaf}, {0}); };
+	auto fail2 = [&](){ ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>(
+		{leaf}, bad_ext); };
 	EXPECT_FATAL(fail(), "cannot EXTEND non-single argument(s): using 2 argument(s)");
 	std::string expect_fatalmsg;
 	{
@@ -402,12 +446,12 @@ TEST_F(FWDER, RESHAPE)
 	ade::Tensorptr scalar1 = ade::Tensor::get(ade::Shape({1}));
 	ade::Tensorptr leaf = ade::Tensor::get(shape);
 	ade::Tensorptr badleaf = ade::Tensor::get(ade::Shape(badlist));
-	auto fail = [&](){
-		ade::forwarder<ade::RESHAPE,std::vector<ade::DimT>>({leaf, leaf}, {1}); };
-	auto fail1 = [&](){
-		ade::forwarder<ade::RESHAPE,std::vector<ade::DimT>>({leaf}, {0}); };
-	auto fail2 = [&](){
-		ade::forwarder<ade::RESHAPE,std::vector<ade::DimT>>({leaf}, badlist); };
+	auto fail = [&](){ ade::forwarder<ade::RESHAPE,std::vector<ade::DimT>>(
+		{leaf, leaf}, {1}); };
+	auto fail1 = [&](){ ade::forwarder<ade::RESHAPE,std::vector<ade::DimT>>(
+		{leaf}, {0}); };
+	auto fail2 = [&](){ ade::forwarder<ade::RESHAPE,std::vector<ade::DimT>>(
+		{leaf}, badlist); };
 	EXPECT_FATAL(fail(), "cannot RESHAPE non-single argument(s): using 2 argument(s)");
 	std::string expect_fatalmsg;
 	{

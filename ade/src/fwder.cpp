@@ -11,7 +11,7 @@ namespace ade
 
 #define BIJECT(CODE)\
 template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
-{ return bijection(tens, opname(CODE)); }
+{ return bijection(tens, #CODE); }
 
 #define SCALAR(CODE)\
 template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
@@ -20,11 +20,15 @@ template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
 		"using %d argument(s)", #CODE, tens.size());\
 } return Shape(); }
 
-static Shape bijection (std::vector<Tensorptr> args, std::string op)
+#define REDUCE(CODE)\
+template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens, uint8_t dim)\
+{ return reduction(tens, dim, #CODE); }
+
+static Shape bijection (std::vector<Tensorptr>& args, const char* op)
 {
 	if (args.size() == 0)
 	{
-		fatalf("cannot %s with no arguments", op.c_str());
+		fatalf("cannot %s with no arguments", op);
 	}
 
 	Shape outshape = args[0]->shape();
@@ -38,7 +42,7 @@ static Shape bijection (std::vector<Tensorptr> args, std::string op)
 		if (false == shape.compatible_before(outshape,
 			std::min(outrank, rank)) && std::min(nelems, outn) > 1)
 		{
-			fatalf("cannot %s with incompatible shapes %s and %s", op.c_str(),
+			fatalf("cannot %s with incompatible shapes %s and %s", op,
 				outshape.to_string().c_str(), shape.to_string().c_str());
 		}
 		if (nelems > outn)
@@ -49,6 +53,23 @@ static Shape bijection (std::vector<Tensorptr> args, std::string op)
 		}
 	}
 	return outshape;
+}
+
+static Shape reduction (std::vector<Tensorptr>& args, uint8_t dim, const char* op)
+{
+	if (1 != args.size())
+	{
+		fatalf("cannot %s for non-single argument(s): using %d argument(s)",
+			op, args.size());
+	}
+	if (dim == 0)
+	{
+		warn("reducing coordinates [:0] ... created useless node");
+	}
+	const Shape& shape = args.front()->shape();
+	auto it = shape.begin();
+	uint8_t rank = shape.n_rank();
+	return Shape(std::vector<ade::DimT>(it + std::min(rank, dim), it + rank));
 }
 
 BIJECT(ABS)
@@ -81,15 +102,10 @@ BIJECT(RAND_NORM)
 
 SCALAR(N_ELEMS)
 SCALAR(N_DIMS)
-SCALAR(ARGMAX)
-SCALAR(RMAX)
-SCALAR(RSUM)
 
-template <>
-Shape forwarder<MATMUL> (std::vector<Tensorptr> tens)
-{
-	return forwarder<MATMUL,uint8_t,uint8_t>(tens,1,1);
-}
+REDUCE(ARGMAX)
+REDUCE(RMAX)
+REDUCE(RSUM)
 
 template <>
 Shape forwarder<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> tens,
@@ -217,6 +233,8 @@ Shape forwarder<RESHAPE,std::vector<DimT>> (
 #undef BIJECT
 
 #undef SCALAR
+
+#undef REDUCE
 
 }
 

@@ -236,43 +236,62 @@ void n_dims (T& out, const ade::Shape& in, uint8_t dim)
 	out = in.at(dim);
 }
 
-/// Out of all elements, assign first flat index of the max value to out
+/// For each batch of in.n / nout elements,
+/// assign first flat indices of the max value to out
+/// Assert that in.n is a multiple of nout
 template <typename T>
-void arg_max (T& out, VecRef<T> in)
+void arg_max (T* out, size_t nout, VecRef<T> in)
 {
-	size_t temp = 0;
-	for (size_t i = 1; i < in.n; ++i)
+	size_t nbatch = in.n / nout;
+	for (size_t i = 0; i < nout; ++i)
 	{
-		if (in.data[temp] < in.data[i])
+		size_t temp = i * nbatch;
+		for (size_t j = 1; j < nbatch; ++j)
 		{
-			temp = i;
+			if (in.data[temp] < in.data[i * nbatch + j])
+			{
+				temp = i * nbatch + j;
+			}
 		}
-	}
-	out = temp;
-}
-
-/// Out of all elements in an argument, assign the max value to out
-template <typename T>
-void reduce_max (T& out, VecRef<T> in)
-{
-	out = in.data[0];
-	for (size_t i = 1; i < in.n; ++i)
-	{
-		if (out < in.data[i])
-		{
-			out = in.data[i];
-		}
+		out[i] = temp;
 	}
 }
 
-/// Out of all elements in an argument, assign the sum of all values to out
+/// For each batch of in.n / nout elements,
+/// assign the max values to out
+/// Assert that in.n is a multiple of nout
 template <typename T>
-void reduce_sum (T& out, VecRef<T> in)
+void reduce_max (T* out, size_t nout, VecRef<T> in)
 {
-	out = in.data[0];
-	for (size_t i = 1; i < in.n; ++i)
+	size_t nbatch = in.n / nout;
+	for (size_t i = 0; i < nout; ++i)
 	{
-		out += in.data[i];
+		out[i] = in.data[i * nbatch];
+		for (size_t j = 1; j < nbatch; ++j)
+		{
+			size_t k = i * nbatch + j;
+			if (out[i] < in.data[k])
+			{
+				out[i] = in.data[k];
+			}
+		}
+	}
+}
+
+/// For each batch of in.n / nout elements,
+/// assign the sum of values to out
+/// Assert that in.n is a multiple of nout
+template <typename T>
+void reduce_sum (T* out, size_t nout, VecRef<T> in)
+{
+	size_t nbatch = in.n / nout;
+	for (size_t i = 0; i < nout; ++i)
+	{
+		out[i] = in.data[i * nbatch];
+		for (size_t j = 1; j < nbatch; ++j)
+		{
+			out[i] += in.data[i * nbatch + j];
+		}
 	}
 }
 

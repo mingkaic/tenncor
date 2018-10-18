@@ -166,9 +166,8 @@ NOARG_SIG(DIV)
 	Tensorptr dg = g->gradient(wrt);
 	return Functor<SUB>::get({
 		Functor<DIV>::get({df, g}),
-		Functor<DIV>::get({
-			Functor<DIV>::get({
-				Functor<MUL>::get({dg, f}), g}), g})});
+		Functor<DIV>::get({Functor<DIV>::get({
+			Functor<MUL>::get({dg, f}), g}), g})});
 }
 
 NOARG_SIG(EQ)
@@ -237,39 +236,34 @@ ZERO_GRAD(N_ELEMS)
 
 ZERO_GRAD(N_DIMS)
 
-NOARG_SIG(ARGMAX)
+INTARG_SIG(ARGMAX)
 {
 	// ARGMAX has no gradient
 	throw std::bad_function_call();
 }
 
-NOARG_SIG(RMAX)
+INTARG_SIG(RMAX)
 {
 	Tensorptr& a = args[0];
 	Tensorptr da = a->gradient(wrt);
 	Tensorptr ismax = Functor<EQ>::get({a,
-		Functor<RMAX>::get({a})});
-	Tensorptr nmax = Functor<RSUM>::get({ismax});
+		Functor<RMAX,uint8_t>::get({a}, dim)});
+	Tensorptr nmax = Functor<RSUM,uint8_t>::get({ismax}, dim);
 	Tensorptr g = Functor<DIV>::get({ismax, nmax});
 	return Functor<MUL>::get({g, da});
 }
 
-NOARG_SIG(RSUM)
+INTARG_SIG(RSUM)
 {
 	return args.front()->gradient(wrt);
-}
-
-template <>
-Tensorptr grader<MATMUL> (std::vector<Tensorptr> args, Tensorptr& wrt)
-{
-	return grader<MATMUL,uint8_t,uint8_t>(args, wrt, 1, 1);
 }
 
 template <>
 Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	Tensorptr& wrt, uint8_t agroup_idx, uint8_t bgroup_idx)
 {
-	// dc(a, b)/dx = matmul(da/dx[shape:fx], dc/da[shape:ca])[shape:cx] +
+	// dc(a, b)/dx =
+	//	matmul(da/dx[shape:fx], dc/da[shape:ca])[shape:cx] +
 	//	matmul(db/dx[shape:bx], dc/db[shape:cb])[shape:cx]
 	Tensorptr& a = args[0];
 	Tensorptr& b = args[1];
@@ -279,58 +273,43 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	uint8_t brank = bshape.n_rank();
 	uint8_t agroup_idx1 = arank - agroup_idx;
 	uint8_t bgroup_idx1 = brank - bgroup_idx;
-	auto fit = ashape.begin();
-	auto git = bshape.begin();
-	std::vector<DimT> a_ext(fit + agroup_idx, fit + arank); // agroup1
-	std::vector<DimT> b_ext(git, git + bgroup_idx); // bgroup0
+	uint8_t crank = bgroup_idx + agroup_idx1;
+	auto ita = ashape.begin();
+	auto itb = bshape.begin();
+	std::vector<DimT> agroup1(ita + agroup_idx, ita + arank); // agroup1
+	std::vector<DimT> bgroup0(itb, itb + bgroup_idx); // bgroup0
 
-	// [bgroup0<0:bgroup_idx>, bgroup1<bgroup_idx:brank>, a_ext<brank:>]
+	// [bgroup0<0:bgroup_idx>, bgroup1<bgroup_idx:brank>, agroup1<brank:>]
 	Tensorptr lhs = b;
-	if (a_ext.size() > 0)
+	if (agroup1.size() > 0)
 	{
-		lhs = Functor<EXTEND,std::vector<DimT>>::get({lhs}, a_ext);
+		lhs = Functor<EXTEND,std::vector<DimT>>::get({lhs}, agroup1);
 	}
-	uint8_t lrank = lhs->shape().n_rank();
-	uint8_t n_aext = a_ext.size();
-	// [bgroup0, a_ext, bgroup1, a_ext]
-	std::vector<uint8_t> lindices(lrank + n_aext);
-	for (uint8_t i = 0; i < bgroup_idx; ++i)
+	// [bgroup0, agroup1, bgroup1, agroup1]
+	std::vector<uint8_t> lindices(crank + arank);
 	{
-		lindices[i] = i;
-	}
-	for (uint8_t i = 0; i < bgroup_idx1; ++i)
-	{
-		lindices[bgroup_idx + n_aext + i] = bgroup_idx + i;
-	}
-	for (uint8_t i = 0; i < n_aext; ++i)
-	{
-		lindices[bgroup_idx + i] = brank + i;
-		lindices[lrank + i] = brank + i;
+		auto it = lindices.begin();
+		std::iota(it, it + bgroup_idx, 0); // bgroup0
+		std::iota(it + bgroup_idx, it + crank, brank); // agroup1
+		std::iota(it + crank, it + crank + bgroup_idx1, bgroup_idx); // bgroup1
+		std::iota(it + crank + bgroup_idx1, lindices.end(), brank); // agroup1
 	}
 	lhs = Functor<PERMUTE,std::vector<uint8_t>>::get({lhs}, lindices);
 
-	// [agroup0<0:agroup_idx>, agroup1<agroup_idx:arank>, b_ext<arank:>]
+	// [agroup0<0:agroup_idx>, agroup1<agroup_idx:arank>, bgroup0<arank:>]
 	Tensorptr rhs = a;
-	if (b_ext.size() > 0)
+	if (bgroup0.size() > 0)
 	{
-		rhs = Functor<EXTEND,std::vector<DimT>>::get({rhs}, b_ext);
+		rhs = Functor<EXTEND,std::vector<DimT>>::get({rhs}, bgroup0);
 	}
-	uint8_t rrank = rhs->shape().n_rank();
-	uint8_t n_bext = b_ext.size();
-	// [b_ext, agroup1, b_ext, agroup0]
-	std::vector<uint8_t> rindices(rrank + n_bext);
-	for (uint8_t i = 0; i < agroup_idx; ++i)
+	// [bgroup0, agroup1, bgroup0, agroup0]
+	std::vector<uint8_t> rindices(crank + brank);
 	{
-		rindices[2 * n_bext + agroup_idx1 + i] = i;
-	}
-	for (uint8_t i = 0; i < agroup_idx1; ++i)
-	{
-		rindices[agroup_idx + i] = agroup_idx + i;
-	}
-	for (uint8_t i = 0; i < n_bext; ++i)
-	{
-		rindices[i] = arank + i;
-		rindices[n_bext + agroup_idx1 + i] = arank + i;
+		auto it = rindices.begin();
+		std::iota(it, it + bgroup_idx, arank); // bgroup0
+		std::iota(it + bgroup_idx, it + crank, agroup_idx); // agroup1
+		std::iota(it + crank, it + crank + bgroup_idx, arank); // bgroup0
+		std::iota(it + crank + bgroup_idx, rindices.end(), 0); // agroup0
 	}
 	rhs = Functor<PERMUTE,std::vector<uint8_t>>::get({rhs}, rindices);
 
@@ -338,34 +317,31 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	uint8_t wrank = wrtshape.n_rank();
 	auto wit = wrtshape.begin();
 
-	uint8_t lgroup = bgroup_idx + n_aext;
 	Tensorptr dlhs = a->gradient(wrt);
 	const Shape& dlshape = dlhs->shape();
 	auto dlit = dlshape.begin();
 	uint8_t dlrank = dlshape.n_rank();
-	if (std::equal(dlit + lgroup, dlit + dlrank, wit) &&
-		dlrank - lgroup == wrank)
+	if (std::equal(dlit + crank, dlit + dlrank, wit) &&
+		dlrank - crank == wrank)
 	{
-		lhs = Functor<MATMUL,uint8_t,uint8_t>::get({dlhs, lhs}, lgroup, lgroup);
+		lhs = Functor<MATMUL,uint8_t,uint8_t>::get({dlhs, lhs}, crank, crank);
 	}
 
-	uint8_t rgroup = n_bext + agroup_idx1;
 	Tensorptr drhs = b->gradient(wrt);
 	const Shape& drshape = drhs->shape();
 	auto drit = drshape.begin();
 	uint8_t drrank = drshape.n_rank();
-	if (std::equal(drit + rgroup, drit + drshape.n_rank(), wit) &&
-		drrank - rgroup == wrank)
+	if (std::equal(drit + crank, drit + drshape.n_rank(), wit) &&
+		drrank - crank == wrank)
 	{
-		rhs = Functor<MATMUL,uint8_t,uint8_t>::get({drhs, rhs}, rgroup, rgroup);
+		rhs = Functor<MATMUL,uint8_t,uint8_t>::get({drhs, rhs}, crank, crank);
 	}
 
 	if (lhs->shape().compatible_after(rhs->shape(), 0))
 	{
 		return Functor<ADD>::get({lhs, rhs});
 	}
-	if (std::equal(wit, wit + wrank,
-		lhs->shape().begin() + bgroup_idx1 + n_aext))
+	if (std::equal(wit, wit + wrank, lhs->shape().begin() + arank))
 	{
 		return lhs;
 	}

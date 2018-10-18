@@ -162,12 +162,6 @@ enum OPCODE
 	/// Report error if new shape.nelems != old shape.nelems
 	RESHAPE,
 
-	/// <<< UNIMPLEMENTED >>>
-	/// Given an OPCODE, any number of tensors, and for each tensor,
-	/// a vector of indices to the corresponding tensor's shape, run the op
-	/// associated with OPCODE grouping the tensors according to shape indices
-	GROUP,
-
 	_NUM_OPS,
 };
 
@@ -212,10 +206,9 @@ _DECL_NOARG(OUT, NAME, RAND_UNIF, __VA_ARGS__)\
 _DECL_NOARG(OUT, NAME, RAND_NORM, __VA_ARGS__)\
 _DECL_NOARG(OUT, NAME, N_ELEMS, __VA_ARGS__)\
 _DECL_NOARG(OUT, NAME, N_DIMS, __VA_ARGS__)\
-_DECL_NOARG(OUT, NAME, ARGMAX, __VA_ARGS__)\
-_DECL_NOARG(OUT, NAME, RMAX, __VA_ARGS__)\
-_DECL_NOARG(OUT, NAME, RSUM, __VA_ARGS__)\
-template <> OUT NAME<MATMUL> (__VA_ARGS__);\
+_DECL_INTARG(OUT, NAME, ARGMAX, __VA_ARGS__)\
+_DECL_INTARG(OUT, NAME, RMAX, __VA_ARGS__)\
+_DECL_INTARG(OUT, NAME, RSUM, __VA_ARGS__)\
 template <> OUT NAME<MATMUL,uint8_t,uint8_t> (\
 	__VA_ARGS__,uint8_t,uint8_t);\
 template <> OUT NAME<PERMUTE,std::vector<uint8_t>> (\

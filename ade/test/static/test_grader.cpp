@@ -267,7 +267,7 @@ TEST(GRADER, FLIP)
 	ade::Tensorptr g0 = ade::grader<ade::FLIP>({leaf}, leaf1);
 	ade::Tensorptr g1 = ade::grader<ade::FLIP>({leaf}, leaf);
 
-	std::ifstream zstr(testdir + "/zero.txt");
+	std::ifstream zstr(testdir + "/flip0.txt");
 	ASSERT_TRUE(zstr.is_open());
 	TREE_EQ(zstr, g0);
 
@@ -609,8 +609,10 @@ TEST(GRADER, ARGMAX)
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
-	EXPECT_THROW(ade::grader<ade::ARGMAX>({leaf}, leaf1), std::bad_function_call);
-	EXPECT_THROW(ade::grader<ade::ARGMAX>({leaf}, leaf), std::bad_function_call);
+	auto fail = [&](){ ade::grader<ade::ARGMAX,uint8_t>({leaf}, leaf1, 8); };
+	auto fail2 = [&]() { ade::grader<ade::ARGMAX,uint8_t>({leaf}, leaf, 8); };
+	EXPECT_THROW(fail(), std::bad_function_call);
+	EXPECT_THROW(fail2(), std::bad_function_call);
 }
 
 
@@ -620,8 +622,8 @@ TEST(GRADER, RMAX)
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
-	ade::Tensorptr g0 = ade::grader<ade::RMAX>({leaf}, leaf1);
-	ade::Tensorptr g1 = ade::grader<ade::RMAX>({leaf}, leaf);
+	ade::Tensorptr g0 = ade::grader<ade::RMAX,uint8_t>({leaf}, leaf1, 8);
+	ade::Tensorptr g1 = ade::grader<ade::RMAX,uint8_t>({leaf}, leaf, 8);
 
 	std::ifstream zstr(testdir + "/rmax0.txt");
 	ASSERT_TRUE(zstr.is_open());
@@ -639,8 +641,8 @@ TEST(GRADER, RSUM)
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
 
-	ade::Tensorptr g0 = ade::grader<ade::RSUM>({leaf}, leaf1);
-	ade::Tensorptr g1 = ade::grader<ade::RSUM>({leaf}, leaf);
+	ade::Tensorptr g0 = ade::grader<ade::RSUM,uint8_t>({leaf}, leaf1, 8);
+	ade::Tensorptr g1 = ade::grader<ade::RSUM,uint8_t>({leaf}, leaf, 8);
 
 	std::ifstream zstr(testdir + "/rsum0.txt");
 	ASSERT_TRUE(zstr.is_open());
@@ -664,10 +666,14 @@ TEST(GRADER, MATMUL)
 	ade::Tensorptr a1 = ade::Tensor::get(ade::Shape(alist1));
 	ade::Tensorptr b1 = ade::Tensor::get(ade::Shape(blist1));
 
-	ade::Tensorptr ga = ade::grader<ade::MATMUL>({a, b}, a);
-	ade::Tensorptr gb = ade::grader<ade::MATMUL>({a, b}, b);
-	ade::Tensorptr z = ade::grader<ade::MATMUL>({a, b}, a1);
-	ade::Tensorptr z1 = ade::grader<ade::MATMUL>({a, b}, b1);
+	ade::Tensorptr ga = ade::grader<ade::MATMUL,uint8_t,uint8_t>(
+		{a, b}, a, 1, 1);
+	ade::Tensorptr gb = ade::grader<ade::MATMUL,uint8_t,uint8_t>(
+		{a, b}, b, 1, 1);
+	ade::Tensorptr z = ade::grader<ade::MATMUL,uint8_t,uint8_t>(
+		{a, b}, a1, 1, 1);
+	ade::Tensorptr z1 = ade::grader<ade::MATMUL,uint8_t,uint8_t>(
+		{a, b}, b1, 1, 1);
 
 	std::ifstream lstr(testdir + "/matmula.txt");
 	ASSERT_TRUE(lstr.is_open());
@@ -724,7 +730,8 @@ TEST(GRADER, MATMUL)
 
 	std::vector<ade::DimT> duplist = {3, 3};
 	ade::Tensorptr d = ade::Tensor::get(ade::Shape(duplist));
-	ade::Tensorptr gd = ade::grader<ade::MATMUL>({d, d}, d);
+	ade::Tensorptr gd = ade::grader<ade::MATMUL,uint8_t,uint8_t>(
+		{d, d}, d, 1, 1);
 }
 
 

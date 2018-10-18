@@ -14,6 +14,9 @@
 namespace llo
 {
 
+/// Returns DataNode with SYMBOLIC_ONE
+DataNode one (void);
+
 /// Element-wise absolute operation
 DataNode abs (DataNode arg);
 
@@ -114,6 +117,9 @@ DataNode reduce_max (DataNode arg);
 /// Get the sum of all values
 DataNode reduce_sum (DataNode arg);
 
+/// Apply reduce_sum to elements of coordinate range [0:groupidx]
+DataNode reduce_sum (DataNode arg, uint8_t groupidx);
+
 /// Matrix multiply 2 or 1 dimension matrices,
 /// Tensors with ranks higher than 2 throws runtime error
 DataNode matmul (DataNode a, DataNode b);
@@ -142,9 +148,6 @@ DataNode extend (DataNode arg, std::vector<uint8_t> ext);
 /// Reshape input tensor's shape to new shape assuming the new
 /// shape has the same n_elems as old shape
 DataNode reshape (DataNode arg, std::vector<uint8_t> slist);
-
-// // NOT IMPLEMENTED
-// DataNode group (ade::OPCODE op, std::vector<std::pair<DataNode,std::vector<uint8_t>> args);
 
 }
 

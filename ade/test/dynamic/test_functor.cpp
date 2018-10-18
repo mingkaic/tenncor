@@ -58,57 +58,34 @@ TEST_F(FUNCTOR, Gradient)
 	ASSERT_EQ(2, args00.size());
 
 	{
+		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), args10[1]);
+
 		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
 			std::vector<ade::DimT>>*>(args10[0]);
-		auto zrorp = dynamic_cast<ade::Functor<ade::RESHAPE,
-			std::vector<ade::DimT>>*>(args10[1]);
 		ASSERT_NE(nullptr, wunrp);
-		ASSERT_NE(nullptr, zrorp);
 
 		EXPECT_STREQ(expectlabel.c_str(), wunrp->to_string().c_str());
-		EXPECT_STREQ(expectlabel.c_str(), zrorp->to_string().c_str());
 		std::vector<ade::iTensor*> wun_vec = wunrp->get_children();
-		std::vector<ade::iTensor*> zro_vec = zrorp->get_children();
 		ASSERT_EQ(1, wun_vec.size());
-		ASSERT_EQ(1, zro_vec.size());
 		EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0]);
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), zro_vec[0]);
 	}
 
 	{
-		auto zrorp = dynamic_cast<ade::Functor<ade::RESHAPE,
-			std::vector<ade::DimT>>*>(args01[0]);
+		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), args01[0]);
+
 		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
 			std::vector<ade::DimT>>*>(args01[1]);
-		ASSERT_NE(nullptr, zrorp);
 		ASSERT_NE(nullptr, wunrp);
 
-		EXPECT_STREQ(expectlabel.c_str(), zrorp->to_string().c_str());
 		EXPECT_STREQ(expectlabel.c_str(), wunrp->to_string().c_str());
-		std::vector<ade::iTensor*> zro_vec = zrorp->get_children();
 		std::vector<ade::iTensor*> wun_vec = wunrp->get_children();
-		ASSERT_EQ(1, zro_vec.size());
 		ASSERT_EQ(1, wun_vec.size());
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), zro_vec[0]);
 		EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0]);
 	}
 
 	{
-		auto zrorp = dynamic_cast<ade::Functor<ade::RESHAPE,
-			std::vector<ade::DimT>>*>(args00[0]);
-		auto zrorp2 = dynamic_cast<ade::Functor<ade::RESHAPE,
-			std::vector<ade::DimT>>*>(args00[1]);
-		ASSERT_NE(nullptr, zrorp);
-		ASSERT_NE(nullptr, zrorp2);
-
-		EXPECT_STREQ(expectlabel.c_str(), zrorp->to_string().c_str());
-		EXPECT_STREQ(expectlabel.c_str(), zrorp2->to_string().c_str());
-		std::vector<ade::iTensor*> zro_vec = zrorp->get_children();
-		std::vector<ade::iTensor*> zro_vec2 = zrorp2->get_children();
-		ASSERT_EQ(1, zro_vec.size());
-		ASSERT_EQ(1, zro_vec2.size());
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), zro_vec[0]);
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), zro_vec2[0]);
+		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), args00[0]);
+		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), args00[1]);
 	}
 }
 

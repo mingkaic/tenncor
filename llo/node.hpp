@@ -38,6 +38,15 @@ struct Source final : public iSource
 		return Source<T>::get(ade::Shape(), {value});
 	}
 
+	static DataNode copy (const llo::Source<T>& other)
+	{
+		auto rawsrc = new Source<T>(other);
+		auto src = std::shared_ptr<iSource>(rawsrc);
+		std::shared_ptr<ade::Tensor> tens = rawsrc->inner();
+		return DataNode(EvalCtx(tens.get(), src),
+			std::static_pointer_cast<ade::iTensor>(tens));
+	}
+
 	/// Implementation of iSource
 	GenericData data (DTYPE dtype) const override
 	{
@@ -70,9 +79,18 @@ struct Source final : public iSource
 		std::memcpy(&data_[0], data.data_, sizeof(T) * data.shape_.n_elems());
 	}
 
+	/// Return internal tensor referencing this
+	const std::shared_ptr<ade::Tensor>& inner (void) const
+	{
+		return tensor_;
+	}
+
 private:
 	Source (std::shared_ptr<ade::Tensor>& tensor, std::vector<T>& data) :
 		tensor_(tensor), data_(data) {}
+
+	Source (const Source<T>& other) :
+		tensor_(other.tensor_), data_(other.data_) {}
 
 	/// Tensor node of subgraph
 	std::shared_ptr<ade::Tensor> tensor_;

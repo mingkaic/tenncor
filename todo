@@ -19,6 +19,5 @@ P4 - implement optimization options to decrease equation graph size
 P4 - implement optimization options to increase data accuracy
 
 features:
-P2 - implement group
 P2 - implement convolution
 P3 - implement deep copy

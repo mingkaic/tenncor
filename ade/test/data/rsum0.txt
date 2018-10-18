@@ -1,2 +1,1 @@
-(RESHAPE<[2\3\4\5]>)
- `--([1]<SYMBOLIC_0>)
+([1]<SYMBOLIC_0>)

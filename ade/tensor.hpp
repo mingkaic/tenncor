@@ -148,7 +148,7 @@ struct Tensor final : public iTensor
 		{
 			return constant_one(shape);
 		}
-		return constant_zero(shape);
+		return Tensor::SYMBOLIC_ZERO;
 	}
 
 	/// Implementation of iTensor

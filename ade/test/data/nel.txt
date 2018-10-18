@@ -1,5 +1,4 @@
 (NE<>)
- `--(RESHAPE<[2\3]>)
- |   `--([1]<SYMBOLIC_0>)
+ `--([1]<SYMBOLIC_0>)
  `--(RESHAPE<[2\3]>)
      `--([1]<SYMBOLIC_1>)

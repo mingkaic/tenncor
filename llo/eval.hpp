@@ -43,7 +43,7 @@ struct iEvaluable
 };
 
 /// Type used by context to associate ade::Tensors to Sources
-using SourcePoolT = std::unordered_map<ade::Tensor*,std::shared_ptr<iSource>>;
+using SourcePoolT = std::unordered_map<ade::iTensor*,std::shared_ptr<iSource>>;
 
 /// Type used by context to associate ade::iFunctor to llo meta-data wrappers
 using FuncPoolT = std::unordered_map<
@@ -54,7 +54,7 @@ struct EvalCtx final
 {
 	EvalCtx (void) = default;
 
-	EvalCtx (ade::Tensor* srckey, std::shared_ptr<iSource>& srcval)
+	EvalCtx (ade::iTensor* srckey, std::shared_ptr<iSource>& srcval)
 	{
 		if (srcval != nullptr && srckey != nullptr)
 		{
@@ -133,6 +133,24 @@ struct DataNode
 	DataNode derive (DataNode& wrt) const
 	{
 		return derive(wrt.tensor_);
+	}
+
+	/// Return iSource mapped by tensor_ if found in ctx_, otherwise null
+	std::shared_ptr<llo::iSource> source (void) const
+	{
+		return get_src(tensor_);
+	}
+
+	/// Return iSource mapped by target if found in ctx_, otherwise null
+	std::shared_ptr<llo::iSource> get_src (ade::Tensorptr target) const
+	{
+		std::shared_ptr<llo::iSource> out = nullptr;
+		auto it = ctx_.srcs_.find(target.get());
+		if (ctx_.srcs_.end() != it)
+		{
+			out = it->second;
+		}
+		return out;
 	}
 
 	/// Accumulated context

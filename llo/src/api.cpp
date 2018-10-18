@@ -7,6 +7,11 @@
 namespace llo
 {
 
+DataNode one (void)
+{
+	return DataNode(EvalCtx(), ade::Tensor::SYMBOLIC_ONE);
+}
+
 DataNode abs (DataNode arg)
 {
 	return DataNode(arg.ctx_, ade::Functor<ade::ABS>::get({arg.tensor_}));
@@ -199,24 +204,31 @@ DataNode n_dims (DataNode arg, uint8_t dim)
 
 DataNode argmax (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::ARGMAX>::get({arg.tensor_}));
+	return DataNode(arg.ctx_, ade::Functor<ade::ARGMAX,uint8_t>::get(
+		{arg.tensor_}, 8));
 }
 
 DataNode reduce_max (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::RMAX>::get({arg.tensor_}));
+	return DataNode(arg.ctx_, ade::Functor<ade::RMAX,uint8_t>::get(
+		{arg.tensor_}, 8));
 }
 
 DataNode reduce_sum (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::RSUM>::get({arg.tensor_}));
+	return DataNode(arg.ctx_, ade::Functor<ade::RSUM,uint8_t>::get(
+		{arg.tensor_}, 8));
+}
+
+DataNode reduce_sum (DataNode arg, uint8_t groupidx)
+{
+	return DataNode(arg.ctx_, ade::Functor<ade::RSUM,uint8_t>::get(
+		{arg.tensor_}, groupidx));
 }
 
 DataNode matmul (DataNode a, DataNode b)
 {
-	return FuncWrapper<uint8_t,uint8_t>::get(EvalCtx({&a.ctx_, &b.ctx_}),
-		std::shared_ptr<ade::iFunctor>(ade::Functor<ade::MATMUL>::get(
-			{a.tensor_, b.tensor_})), 1, 1);
+	return matmul(a, b, 1, 1);
 }
 
 DataNode matmul (DataNode a, DataNode b,

@@ -49,7 +49,7 @@ cc_test(
 
 cc_test(
     name = "test_dynamic",
-    size = "small",
+    size = "medium",
     srcs = glob(["test/dynamic/*.cpp"]),
     deps = ["//testutil:testutil"],
     copts = ["-std=c++14"],
