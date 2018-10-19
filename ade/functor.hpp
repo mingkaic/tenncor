@@ -62,7 +62,7 @@ struct Functor final : public iFunctor
 	{
 		if (wrt.get() == this)
 		{
-			return constant_one(wrt->shape());
+			return constant_one(shape_);
 		}
 		return grad_helper(wrt, std::index_sequence_for<ARGS...>());
 	}

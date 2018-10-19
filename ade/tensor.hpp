@@ -143,10 +143,9 @@ struct Tensor final : public iTensor
 	/// Implementation of iTensor
 	Tensorptr gradient (Tensorptr& wrt) const override
 	{
-		const Shape& shape = wrt->shape();
 		if (this == wrt.get())
 		{
-			return constant_one(shape);
+			return constant_one(shape_);
 		}
 		return Tensor::SYMBOLIC_ZERO;
 	}

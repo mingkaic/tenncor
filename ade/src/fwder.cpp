@@ -9,24 +9,35 @@
 namespace ade
 {
 
-#define BIJECT(CODE)\
-template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
-{ return bijection(tens, #CODE); }
+#define UNARY(CODE)template <> Shape forwarder<CODE> (\
+std::vector<Tensorptr> tens) { return unary(tens, #CODE); }
 
-#define SCALAR(CODE)\
-template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens)\
-{ if (1 != tens.size()) {\
-	fatalf("cannot %s for non-single argument(s): "\
-		"using %d argument(s)", #CODE, tens.size());\
-} return Shape(); }
+#define BIJECT(CODE)template <> Shape forwarder<CODE> (\
+std::vector<Tensorptr> tens) { return bijection(tens, #CODE); }
 
-#define REDUCE(CODE)\
-template <> Shape forwarder<CODE> (std::vector<Tensorptr> tens, uint8_t dim)\
-{ return reduction(tens, dim, #CODE); }
+#define SCALAR(CODE)template <> Shape forwarder<CODE> (\
+std::vector<Tensorptr> tens) { if (1 != tens.size()) {\
+fatalf("cannot %s for non-single argument(s): using %d argument(s)",\
+#CODE, tens.size()); } return Shape(); }
+
+#define REDUCE(CODE)template <> Shape forwarder<CODE> (\
+std::vector<Tensorptr> tens, uint8_t dim) {\
+return reduction(tens, dim, #CODE); }
+
+static Shape unary (std::vector<Tensorptr>& args, const char* op)
+{
+	if (1 != args.size())
+	{
+		fatalf("cannot %s for non-single argument(s): using %d argument(s)",
+			op, args.size());
+	}
+
+	return args[0]->shape();
+}
 
 static Shape bijection (std::vector<Tensorptr>& args, const char* op)
 {
-	if (args.size() == 0)
+	if (0 == args.size())
 	{
 		fatalf("cannot %s with no arguments", op);
 	}
@@ -72,17 +83,17 @@ static Shape reduction (std::vector<Tensorptr>& args, uint8_t dim, const char* o
 	return Shape(std::vector<ade::DimT>(it + std::min(rank, dim), it + rank));
 }
 
-BIJECT(ABS)
-BIJECT(NEG)
-BIJECT(NOT)
-BIJECT(SIN)
-BIJECT(COS)
-BIJECT(TAN)
-BIJECT(EXP)
-BIJECT(LOG)
-BIJECT(SQRT)
-BIJECT(ROUND)
-BIJECT(FLIP)
+UNARY(ABS)
+UNARY(NEG)
+UNARY(NOT)
+UNARY(SIN)
+UNARY(COS)
+UNARY(TAN)
+UNARY(EXP)
+UNARY(LOG)
+UNARY(SQRT)
+UNARY(ROUND)
+UNARY(FLIP)
 
 BIJECT(POW)
 BIJECT(ADD)
