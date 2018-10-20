@@ -24,14 +24,23 @@ Tensorptr grader<CODE,std::vector<DimT>> (std::vector<Tensorptr> args,\
 NOARG_SIG(ABS)
 {
 	// abs'(f) = f * f' / abs(f)
-	return Functor<DIV>::get({Functor<MUL>::get({
-		args.front(), args.front()->gradient(wrt)}),
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	return Functor<DIV>::get({Functor<MUL>::get({args.front(), df}),
 		Functor<ABS>::get({args.front()})});
 }
 
 NOARG_SIG(NEG)
 {
-	return Functor<NEG>::get({args.front()->gradient(wrt)});
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	return Functor<NEG>::get({df});
 }
 
 NOARG_SIG(NOT)
@@ -42,16 +51,23 @@ NOARG_SIG(NOT)
 NOARG_SIG(SIN)
 {
 	// sin'(f) = f'*cos(f)
-	return Functor<MUL>::get({
-		args.front()->gradient(wrt),
-		Functor<COS>::get({args.front()})});
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	return Functor<MUL>::get({df, Functor<COS>::get({args.front()})});
 }
 
 NOARG_SIG(COS)
 {
 	// cos'(f) = -f'*sin(f)
-	return Functor<MUL>::get({
-		Functor<NEG>::get({args.front()->gradient(wrt)}),
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	return Functor<MUL>::get({Functor<NEG>::get({df}),
 		Functor<SIN>::get({args.front()})});
 }
 
@@ -59,41 +75,58 @@ NOARG_SIG(TAN)
 {
 	// tan'(f) = f'*sec^2(f)
 	// 		= f'/cos^2(f)
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
 	Tensorptr denom = Functor<COS>::get({args.front()});
-	return Functor<DIV>::get({
-		Functor<DIV>::get({
-			args.front()->gradient(wrt), denom}), denom});
+	return Functor<DIV>::get({Functor<DIV>::get({df, denom}), denom});
 }
 
 NOARG_SIG(EXP)
 {
 	// exp'(f) = f'*exp(f)
-	return Functor<MUL>::get({
-		args.front()->gradient(wrt),
-		Functor<EXP>::get({args.front()})});
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	return Functor<MUL>::get({df, Functor<EXP>::get({args.front()})});
 }
 
 NOARG_SIG(LOG)
 {
 	// log'(f) = f' / f
-	return Functor<DIV>::get({
-		args.front()->gradient(wrt),
-		 args.front()});
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	return Functor<DIV>::get({df, args.front()});
 }
 
 NOARG_SIG(SQRT)
 {
 	// sqrt'(f) = f'/(2*sqrt(f))
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
 	Tensorptr denom = Functor<SQRT>::get({args.front()});
-	return Functor<DIV>::get({
-		args.front()->gradient(wrt),
-		Functor<ADD>::get({denom, denom})});
+	return Functor<DIV>::get({df, Functor<ADD>::get({denom, denom})});
 }
 
 NOARG_SIG(ROUND)
 {
 	// round'(f) = round(f')
-	return Functor<ROUND>::get({args.front()->gradient(wrt)});
+	auto df = args.front()->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	return Functor<ROUND>::get({df});
 }
 
 NOARG_SIG(FLIP)
@@ -109,6 +142,11 @@ NOARG_SIG(POW)
 	Tensorptr& g = args[1];
 	Tensorptr df = f->gradient(wrt);
 	Tensorptr dg = g->gradient(wrt);
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get() &&
+		dg.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
 	return Functor<MUL>::get({
 		Functor<POW>::get({
 			f, Functor<SUB>::get({g, Tensor::SYMBOLIC_ONE})}),
@@ -130,15 +168,37 @@ NOARG_SIG(ADD)
 	{
 		return arg->gradient(wrt);
 	});
-	return Functor<ADD>::get(gargs);
+	std::vector<Tensorptr> filtered;
+	std::copy_if(gargs.begin(), gargs.end(), std::back_inserter(filtered),
+		[](Tensorptr& d)
+		{
+			return d.get() != ade::Tensor::SYMBOLIC_ZERO.get();
+		});
+	if (filtered.empty())
+	{
+		return Tensor::SYMBOLIC_ZERO;
+	}
+	if (1 == filtered.size())
+	{
+		return filtered[0];
+	}
+	return Functor<ADD>::get(filtered);
 }
 
 NOARG_SIG(SUB)
 {
 	// h'(f, g) = f' - g'
-	return Functor<SUB>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
+	Tensorptr df = args[0]->gradient(wrt);
+	Tensorptr dg = args[1]->gradient(wrt);
+	if (dg.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return Functor<NEG>::get({dg});
+	}
+	return Functor<SUB>::get({df, dg});
 }
 
 NOARG_SIG(MUL)
@@ -153,6 +213,14 @@ NOARG_SIG(MUL)
 		gargs.push_back(Functor<MUL>::get(args));
 		args[i] = f;
 	}
+	if (std::any_of(gargs.begin(), gargs.end(),
+		[](Tensorptr& d)
+		{
+			return d.get() == ade::Tensor::SYMBOLIC_ZERO.get();
+		}))
+	{
+		return Tensor::SYMBOLIC_ZERO;
+	}
 	return Functor<ADD>::get(gargs);
 }
 
@@ -164,38 +232,68 @@ NOARG_SIG(DIV)
 	Tensorptr& g = args[1];
 	Tensorptr df = f->gradient(wrt);
 	Tensorptr dg = g->gradient(wrt);
-	return Functor<SUB>::get({
-		Functor<DIV>::get({df, g}),
-		Functor<DIV>::get({Functor<DIV>::get({
-			Functor<MUL>::get({dg, f}), g}), g})});
+	if (df.get() != ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		df = Functor<DIV>::get({df, g});
+	}
+	if (dg.get() != ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		dg = Functor<DIV>::get({Functor<DIV>::get({
+			Functor<MUL>::get({dg, f}), g}), g});
+	}
+	if (dg.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return df;
+	}
+	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return Functor<NEG>::get({dg});
+	}
+	return Functor<SUB>::get({df, dg});
 }
 
 NOARG_SIG(EQ)
 {
-	return Functor<EQ>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
+	Tensorptr df = args[0]->gradient(wrt);
+	Tensorptr dg = args[1]->gradient(wrt);
+	if (df.get() == dg.get())
+	{
+		return Tensor::SYMBOLIC_ONE;
+	}
+	return Functor<EQ>::get({df, dg});
 }
 
 NOARG_SIG(NE)
 {
-	return Functor<NE>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
+	Tensorptr df = args[0]->gradient(wrt);
+	Tensorptr dg = args[1]->gradient(wrt);
+	if (df.get() == dg.get())
+	{
+		return Tensor::SYMBOLIC_ZERO;
+	}
+	return Functor<NE>::get({df, dg});
 }
 
 NOARG_SIG(LT)
 {
-	return Functor<LT>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
+	Tensorptr df = args[0]->gradient(wrt);
+	Tensorptr dg = args[1]->gradient(wrt);
+	if (df.get() == dg.get())
+	{
+		return Tensor::SYMBOLIC_ZERO;
+	}
+	return Functor<LT>::get({df, dg});
 }
 
 NOARG_SIG(GT)
 {
-	return Functor<GT>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
+	Tensorptr df = args[0]->gradient(wrt);
+	Tensorptr dg = args[1]->gradient(wrt);
+	if (df.get() == dg.get())
+	{
+		return Tensor::SYMBOLIC_ZERO;
+	}
+	return Functor<GT>::get({df, dg});
 }
 
 NOARG_SIG(MIN)
@@ -209,6 +307,14 @@ NOARG_SIG(MIN)
 			Functor<EQ>::get({f, arg}),
 			arg->gradient(wrt)});
 	});
+	if (std::all_of(gargs.begin(), gargs.end(),
+		[](Tensorptr& d)
+		{
+			return d.get() == ade::Tensor::SYMBOLIC_ZERO.get();
+		}))
+	{
+		return Tensor::SYMBOLIC_ZERO;
+	}
 	return Functor<ADD>::get(gargs);
 }
 
@@ -223,6 +329,14 @@ NOARG_SIG(MAX)
 			Functor<EQ>::get({f, arg}),
 			arg->gradient(wrt)});
 	});
+	if (std::all_of(gargs.begin(), gargs.end(),
+		[](Tensorptr& d)
+		{
+			return d.get() == ade::Tensor::SYMBOLIC_ZERO.get();
+		}))
+	{
+		return Tensor::SYMBOLIC_ZERO;
+	}
 	return Functor<ADD>::get(gargs);
 }
 
@@ -246,6 +360,10 @@ INTARG_SIG(RMAX)
 {
 	Tensorptr& a = args[0];
 	Tensorptr da = a->gradient(wrt);
+	if (da.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return da;
+	}
 	Tensorptr ismax = Functor<EQ>::get({a,
 		Functor<RMAX,uint8_t>::get({a}, dim)});
 	Tensorptr nmax = Functor<RSUM,uint8_t>::get({ismax}, dim);
@@ -321,7 +439,11 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	const Shape& dlshape = dlhs->shape();
 	auto dlit = dlshape.begin();
 	uint8_t dlrank = dlshape.n_rank();
-	if (std::equal(dlit + crank, dlit + dlrank, wit) &&
+	if (dlhs.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		lhs = ade::Tensor::SYMBOLIC_ZERO;
+	}
+	else if (std::equal(dlit + crank, dlit + dlrank, wit) &&
 		dlrank - crank == wrank)
 	{
 		lhs = Functor<MATMUL,uint8_t,uint8_t>::get({dlhs, lhs}, crank, crank);
@@ -331,21 +453,25 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	const Shape& drshape = drhs->shape();
 	auto drit = drshape.begin();
 	uint8_t drrank = drshape.n_rank();
-	if (std::equal(drit + crank, drit + drshape.n_rank(), wit) &&
+	if (drhs.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		rhs = ade::Tensor::SYMBOLIC_ZERO;
+	}
+	else if (std::equal(drit + crank, drit + drshape.n_rank(), wit) &&
 		drrank - crank == wrank)
 	{
 		rhs = Functor<MATMUL,uint8_t,uint8_t>::get({drhs, rhs}, crank, crank);
 	}
 
-	if (lhs->shape().compatible_after(rhs->shape(), 0))
+	if (lhs.get() == ade::Tensor::SYMBOLIC_ZERO.get())
 	{
-		return Functor<ADD>::get({lhs, rhs});
+		return rhs;
 	}
-	if (std::equal(wit, wit + wrank, lhs->shape().begin() + arank))
+	if (rhs.get() == ade::Tensor::SYMBOLIC_ZERO.get())
 	{
 		return lhs;
 	}
-	return rhs;
+	return Functor<ADD>::get({lhs, rhs});
 }
 
 template <>
@@ -357,14 +483,22 @@ Tensorptr grader<PERMUTE,std::vector<uint8_t>> (
 
 SHPARG_SIG(EXTEND)
 {
-	return Functor<EXTEND,std::vector<DimT>>::get(
-		{args.front()->gradient(wrt)}, shape);
+	Tensorptr da = args.front()->gradient(wrt);
+	if (da.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return da;
+	}
+	return Functor<EXTEND,std::vector<DimT>>::get({da}, shape);
 }
 
 SHPARG_SIG(RESHAPE)
 {
-	return Functor<RESHAPE,std::vector<DimT>>::get(
-		{args.front()->gradient(wrt)}, shape);
+	Tensorptr da = args.front()->gradient(wrt);
+	if (da.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		return da;
+	}
+	return Functor<RESHAPE,std::vector<DimT>>::get({da}, shape);
 }
 
 #undef NOARG_SIG

@@ -48,7 +48,7 @@ struct PrettyEquation final
 				{
 					out << root->to_string();
 				}
-				if (dynamic_cast<ade::iFunctor*>(root))
+				if (showshape_ && nullptr != dynamic_cast<ade::iFunctor*>(root))
 				{
 					out << root->shape().to_string();
 				}
@@ -64,7 +64,7 @@ struct PrettyEquation final
 	/// For every label associated with a tensor, show LABEL=value in the tree
 	std::unordered_map<ade::iTensor*,std::string> labels_;
 
-	bool showshape = false;
+	bool showshape_ = false;
 
 private:
 	/// Actual ascii renderer
