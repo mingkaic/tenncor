@@ -157,10 +157,6 @@ enum OPCODE
 	/// tensor data duplicate to accommodate new shape
 	/// Combined with PERMUTE, EXTEND can remap values 1-N
 	EXTEND,
-	/// Given a tensor and a shape, output tensor's data with new shape without
-	/// changing the coordinate of each element
-	/// Report error if new shape.nelems != old shape.nelems
-	RESHAPE,
 
 	_NUM_OPS,
 };
@@ -213,8 +209,7 @@ template <> OUT NAME<MATMUL,uint8_t,uint8_t> (\
 	__VA_ARGS__,uint8_t,uint8_t);\
 template <> OUT NAME<PERMUTE,std::vector<uint8_t>> (\
 	__VA_ARGS__,std::vector<uint8_t>);\
-_DECL_SHPARG(OUT, NAME, EXTEND, __VA_ARGS__)\
-_DECL_SHPARG(OUT, NAME, RESHAPE, __VA_ARGS__)
+_DECL_SHPARG(OUT, NAME, EXTEND, __VA_ARGS__)
 
 }
 

@@ -123,13 +123,6 @@ void Evaluator::visit (ade::iFunctor* func)
 			op_exec(opcode, out_, argdata, std::get<0>(ef->meta()));
 		}
 		break;
-		case ade::RESHAPE:
-		{
-			auto rf = static_cast<ade::Functor<
-				ade::RESHAPE,std::vector<ade::DimT>>*>(func);
-			op_exec(opcode, out_, argdata, std::get<0>(rf->meta()));
-		}
-		break;
 		default:
 			op_exec(opcode, out_, argdata);
 	}

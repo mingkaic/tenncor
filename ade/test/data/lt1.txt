@@ -1,5 +1,5 @@
 (LT<>)
- `--(RESHAPE<[2\3]>)
+ `--(EXTEND<[2\3]>)
  |   `--([1]<SYMBOLIC_1>)
- `--(RESHAPE<[2\3]>)
+ `--(EXTEND<[2\3]>)
      `--([1]<SYMBOLIC_1>)

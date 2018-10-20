@@ -31,9 +31,9 @@ TEST_F(FUNCTOR, Gradient)
 	ade::Tensorptr got0p1 = f->gradient(leaf1);
 	ade::Tensorptr got0p0 = f->gradient(badleaf);
 
-	std::string expectlabel = opname(ade::RESHAPE) + "<" + shape.to_string() + ">";
+	std::string expectlabel = opname(ade::EXTEND) + "<" + shape.to_string() + ">";
 	{
-		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
+		auto wunrp = dynamic_cast<ade::Functor<ade::EXTEND,
 			std::vector<ade::DimT>>*>(gotwun.get());
 		ASSERT_NE(nullptr, wunrp);
 
@@ -43,50 +43,19 @@ TEST_F(FUNCTOR, Gradient)
 		EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0]);
 	}
 
-	auto p10 = dynamic_cast<ade::Functor<ade::ADD>*>(got1p0.get());
-	auto p01 = dynamic_cast<ade::Functor<ade::ADD>*>(got0p1.get());
-	auto p00 = dynamic_cast<ade::Functor<ade::ADD>*>(got0p0.get());
+	auto p10 = dynamic_cast<ade::Functor<ade::EXTEND,std::vector<ade::DimT>>*>(got1p0.get());
+	auto p01 = dynamic_cast<ade::Functor<ade::EXTEND,std::vector<ade::DimT>>*>(got0p1.get());
 	ASSERT_NE(nullptr, p10);
 	ASSERT_NE(nullptr, p01);
-	ASSERT_NE(nullptr, p00);
+	EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), got0p0.get());
 
 	auto args10 = p10->get_children();
 	auto args01 = p01->get_children();
-	auto args00 = p00->get_children();
-	ASSERT_EQ(2, args10.size());
-	ASSERT_EQ(2, args01.size());
-	ASSERT_EQ(2, args00.size());
+	ASSERT_EQ(1, args10.size());
+	ASSERT_EQ(1, args01.size());
 
-	{
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), args10[1]);
-
-		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
-			std::vector<ade::DimT>>*>(args10[0]);
-		ASSERT_NE(nullptr, wunrp);
-
-		EXPECT_STREQ(expectlabel.c_str(), wunrp->to_string().c_str());
-		std::vector<ade::iTensor*> wun_vec = wunrp->get_children();
-		ASSERT_EQ(1, wun_vec.size());
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0]);
-	}
-
-	{
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), args01[0]);
-
-		auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
-			std::vector<ade::DimT>>*>(args01[1]);
-		ASSERT_NE(nullptr, wunrp);
-
-		EXPECT_STREQ(expectlabel.c_str(), wunrp->to_string().c_str());
-		std::vector<ade::iTensor*> wun_vec = wunrp->get_children();
-		ASSERT_EQ(1, wun_vec.size());
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0]);
-	}
-
-	{
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), args00[0]);
-		EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), args00[1]);
-	}
+	EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), args10[0]);
+	EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), args01[0]);
 }
 
 

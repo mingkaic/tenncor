@@ -142,21 +142,26 @@ NOARG_SIG(POW)
 	Tensorptr& g = args[1];
 	Tensorptr df = f->gradient(wrt);
 	Tensorptr dg = g->gradient(wrt);
-	if (df.get() == ade::Tensor::SYMBOLIC_ZERO.get() &&
-		dg.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	std::vector<ade::Tensorptr> lhsargs;
+	if (df.get() != ade::Tensor::SYMBOLIC_ZERO.get())
 	{
-		return df;
+		lhsargs.push_back(Functor<MUL>::get({df, g}));
 	}
-	return Functor<MUL>::get({
-		Functor<POW>::get({
-			f, Functor<SUB>::get({g, Tensor::SYMBOLIC_ONE})}),
-		Functor<ADD>::get({
-			Functor<MUL>::get({df, g}),
-			Functor<MUL>::get({dg,
-				Functor<MUL>::get({f, Functor<LOG>::get({f})})
-			})
-		})
-	});
+	if (dg.get() != ade::Tensor::SYMBOLIC_ZERO.get())
+	{
+		lhsargs.push_back(Functor<MUL>::get({dg, f, Functor<LOG>::get({f})}));
+	}
+	if (lhsargs.empty())
+	{
+		return ade::Tensor::SYMBOLIC_ZERO;
+	}
+	Tensorptr lhs = lhsargs[0];
+	if (lhsargs.size() > 1)
+	{
+		lhs = Functor<ADD>::get(lhsargs);
+	}
+	return Functor<MUL>::get({Functor<POW>::get({
+		f, Functor<SUB>::get({g, Tensor::SYMBOLIC_ONE})}), lhs});
 }
 
 NOARG_SIG(ADD)
@@ -210,16 +215,19 @@ NOARG_SIG(MUL)
 		// f' * g * ...
 		Tensorptr f = args[i];
 		args[i] = args[i]->gradient(wrt);
-		gargs.push_back(Functor<MUL>::get(args));
+		if (ade::Tensor::SYMBOLIC_ZERO.get() != args[i].get())
+		{
+			gargs.push_back(Functor<MUL>::get(args));
+		}
 		args[i] = f;
 	}
-	if (std::any_of(gargs.begin(), gargs.end(),
-		[](Tensorptr& d)
-		{
-			return d.get() == ade::Tensor::SYMBOLIC_ZERO.get();
-		}))
+	if (gargs.empty())
 	{
 		return Tensor::SYMBOLIC_ZERO;
+	}
+	if (gargs.size() == 1)
+	{
+		return gargs[0];
 	}
 	return Functor<ADD>::get(gargs);
 }
@@ -397,81 +405,91 @@ Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
 	std::vector<DimT> agroup1(ita + agroup_idx, ita + arank); // agroup1
 	std::vector<DimT> bgroup0(itb, itb + bgroup_idx); // bgroup0
 
-	// [bgroup0<0:bgroup_idx>, bgroup1<bgroup_idx:brank>, agroup1<brank:>]
-	Tensorptr lhs = b;
-	if (agroup1.size() > 0)
-	{
-		lhs = Functor<EXTEND,std::vector<DimT>>::get({lhs}, agroup1);
-	}
-	// [bgroup0, agroup1, bgroup1, agroup1]
-	std::vector<uint8_t> lindices(crank + arank);
-	{
-		auto it = lindices.begin();
-		std::iota(it, it + bgroup_idx, 0); // bgroup0
-		std::iota(it + bgroup_idx, it + crank, brank); // agroup1
-		std::iota(it + crank, it + crank + bgroup_idx1, bgroup_idx); // bgroup1
-		std::iota(it + crank + bgroup_idx1, lindices.end(), brank); // agroup1
-	}
-	lhs = Functor<PERMUTE,std::vector<uint8_t>>::get({lhs}, lindices);
-
-	// [agroup0<0:agroup_idx>, agroup1<agroup_idx:arank>, bgroup0<arank:>]
-	Tensorptr rhs = a;
-	if (bgroup0.size() > 0)
-	{
-		rhs = Functor<EXTEND,std::vector<DimT>>::get({rhs}, bgroup0);
-	}
-	// [bgroup0, agroup1, bgroup0, agroup0]
-	std::vector<uint8_t> rindices(crank + brank);
-	{
-		auto it = rindices.begin();
-		std::iota(it, it + bgroup_idx, arank); // bgroup0
-		std::iota(it + bgroup_idx, it + crank, agroup_idx); // agroup1
-		std::iota(it + crank, it + crank + bgroup_idx, arank); // bgroup0
-		std::iota(it + crank + bgroup_idx, rindices.end(), 0); // agroup0
-	}
-	rhs = Functor<PERMUTE,std::vector<uint8_t>>::get({rhs}, rindices);
-
 	const Shape& wrtshape = wrt->shape();
 	uint8_t wrank = wrtshape.n_rank();
 	auto wit = wrtshape.begin();
+	std::vector<Tensorptr> addargs;
 
 	Tensorptr dlhs = a->gradient(wrt);
-	const Shape& dlshape = dlhs->shape();
-	auto dlit = dlshape.begin();
-	uint8_t dlrank = dlshape.n_rank();
-	if (dlhs.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	if (ade::Tensor::SYMBOLIC_ZERO.get() != dlhs.get())
 	{
-		lhs = ade::Tensor::SYMBOLIC_ZERO;
-	}
-	else if (std::equal(dlit + crank, dlit + dlrank, wit) &&
-		dlrank - crank == wrank)
-	{
-		lhs = Functor<MATMUL,uint8_t,uint8_t>::get({dlhs, lhs}, crank, crank);
+		// [bgroup0<0:bgroup_idx>, bgroup1<bgroup_idx:brank>, agroup1<brank:>]
+		Tensorptr lhs = b;
+		if (agroup1.size() > 0)
+		{
+			lhs = Functor<EXTEND,std::vector<DimT>>::get({lhs}, agroup1);
+		}
+		// [bgroup0, agroup1, bgroup1, agroup1]
+		std::vector<uint8_t> lindices(crank + arank);
+		{
+			auto it = lindices.begin();
+			std::iota(it, it + bgroup_idx, 0); // bgroup0
+			std::iota(it + bgroup_idx, it + crank, brank); // agroup1
+			std::iota(it + crank, it + crank + bgroup_idx1, bgroup_idx); // bgroup1
+			std::iota(it + crank + bgroup_idx1, lindices.end(), brank); // agroup1
+		}
+		lhs = Functor<PERMUTE,std::vector<uint8_t>>::get({lhs}, lindices);
+
+		const Shape& dlshape = dlhs->shape();
+		auto dlit = dlshape.begin();
+		uint8_t dlrank = dlshape.n_rank();
+		if (std::equal(dlit + crank, dlit + dlrank, wit) &&
+			dlrank - crank == wrank)
+		{
+			addargs.push_back(Functor<MATMUL,uint8_t,uint8_t>::get(
+				{dlhs, lhs}, crank, crank));
+		}
+		else
+		{
+			addargs.push_back(lhs);
+		}
 	}
 
 	Tensorptr drhs = b->gradient(wrt);
-	const Shape& drshape = drhs->shape();
-	auto drit = drshape.begin();
-	uint8_t drrank = drshape.n_rank();
-	if (drhs.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	if (ade::Tensor::SYMBOLIC_ZERO.get() != drhs.get())
 	{
-		rhs = ade::Tensor::SYMBOLIC_ZERO;
-	}
-	else if (std::equal(drit + crank, drit + drshape.n_rank(), wit) &&
-		drrank - crank == wrank)
-	{
-		rhs = Functor<MATMUL,uint8_t,uint8_t>::get({drhs, rhs}, crank, crank);
+		// [agroup0<0:agroup_idx>, agroup1<agroup_idx:arank>, bgroup0<arank:>]
+		Tensorptr rhs = a;
+		if (bgroup0.size() > 0)
+		{
+			rhs = Functor<EXTEND,std::vector<DimT>>::get({rhs}, bgroup0);
+		}
+		// [bgroup0, agroup1, bgroup0, agroup0]
+		std::vector<uint8_t> rindices(crank + brank);
+		{
+			auto it = rindices.begin();
+			std::iota(it, it + bgroup_idx, arank); // bgroup0
+			std::iota(it + bgroup_idx, it + crank, agroup_idx); // agroup1
+			std::iota(it + crank, it + crank + bgroup_idx, arank); // bgroup0
+			std::iota(it + crank + bgroup_idx, rindices.end(), 0); // agroup0
+		}
+		rhs = Functor<PERMUTE,std::vector<uint8_t>>::get({rhs}, rindices);
+
+		const Shape& drshape = drhs->shape();
+		auto drit = drshape.begin();
+		uint8_t drrank = drshape.n_rank();
+		if (std::equal(drit + crank, drit + drshape.n_rank(), wit) &&
+			drrank - crank == wrank)
+		{
+			addargs.push_back(Functor<MATMUL,uint8_t,uint8_t>::get(
+				{drhs, rhs}, crank, crank));
+		}
+		else
+		{
+			addargs.push_back(rhs);
+		}
 	}
 
-	if (lhs.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	if (addargs.empty())
 	{
-		return rhs;
+		return ade::Tensor::SYMBOLIC_ZERO;
 	}
-	if (rhs.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+	Tensorptr out = addargs[0];
+	if (addargs.size() > 1)
 	{
-		return lhs;
+		out = Functor<ADD>::get(addargs);
 	}
-	return Functor<ADD>::get({lhs, rhs});
+	return out;
 }
 
 template <>
@@ -489,16 +507,6 @@ SHPARG_SIG(EXTEND)
 		return da;
 	}
 	return Functor<EXTEND,std::vector<DimT>>::get({da}, shape);
-}
-
-SHPARG_SIG(RESHAPE)
-{
-	Tensorptr da = args.front()->gradient(wrt);
-	if (da.get() == ade::Tensor::SYMBOLIC_ZERO.get())
-	{
-		return da;
-	}
-	return Functor<RESHAPE,std::vector<DimT>>::get({da}, shape);
 }
 
 #undef NOARG_SIG

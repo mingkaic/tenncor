@@ -60,7 +60,6 @@ const std::unordered_map<OPCODE,std::string,EnumHash> opnames =
 
 	OP_ASSOC(PERMUTE),
 	OP_ASSOC(EXTEND),
-	OP_ASSOC(RESHAPE),
 };
 
 std::string opname (OPCODE opcode)

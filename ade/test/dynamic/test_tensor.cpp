@@ -26,7 +26,7 @@ TEST_F(TENSOR, Gradient)
 	ade::Tensorptr gotzro = leaf->gradient(leaf2);
 
 	EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), gotzro.get());
-	auto wunrp = dynamic_cast<ade::Functor<ade::RESHAPE,
+	auto wunrp = dynamic_cast<ade::Functor<ade::EXTEND,
 		std::vector<ade::DimT>>*>(gotwun.get());
 	ASSERT_NE(nullptr, wunrp);
 

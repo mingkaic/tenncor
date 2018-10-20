@@ -173,7 +173,6 @@ struct Executer<ade::PERMUTE,T,std::vector<uint8_t>>
 };
 
 UNARY_COPY(EXTEND)
-UNARY_COPY(RESHAPE)
 
 #undef UNARY_ELEM
 #undef BINARY_ELEM
@@ -319,9 +318,6 @@ void op_exec (ade::OPCODE opcode, GenericData& out,
 		break;
 		case ade::EXTEND:
 			exec<ade::EXTEND,ARGS...>(out, data, args...);
-		break;
-		case ade::RESHAPE:
-			exec<ade::RESHAPE,ARGS...>(out, data, args...);
 		break;
 		default:
 			ade::fatal("unknown opcode");

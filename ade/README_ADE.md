@@ -45,7 +45,7 @@ Tensors hold shape info, and their gradient is 1 or 0 depending on the node it's
 Forwarders aggregate and transform shape information and fall in 3 classes:
 
 - elementary (or identity): these reject non-scalar shapes that are not compatible with other non-scalar shapes
-- reshape transformer: takes a single shape and an integer array argument. This integer array holds some dimension information on how to transform the shape.
+- coordinate transformer: takes a single shape and an integer array argument. This integer array holds some dimension information on how to transform the shape.
 - multi-argument aggregators: such as matrix multiplication or convolution
 
 Since all forwarders conform to a specific rule, their expected behavior can inferred from auto-generated input (mostly shapes).

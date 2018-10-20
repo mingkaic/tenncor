@@ -163,7 +163,6 @@ Tensorptr runtime_functor (OPCODE opcode,
 		MAPCASE(MATMUL)
 		MAPCASE(PERMUTE)
 		MAPCASE(EXTEND)
-		MAPCASE(RESHAPE)
 		default:
 			throw std::bad_function_call();
 	}

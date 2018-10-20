@@ -1,4 +1,4 @@
 (EQ<>)
- `--(RESHAPE<[2\3]>)
+ `--(EXTEND<[2\3]>)
  |   `--([1]<SYMBOLIC_1>)
  `--([1]<SYMBOLIC_0>)

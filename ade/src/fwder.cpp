@@ -220,27 +220,6 @@ Shape forwarder<EXTEND,std::vector<DimT>> (
 	return shape;
 }
 
-template <>
-Shape forwarder<RESHAPE,std::vector<DimT>> (
-	std::vector<Tensorptr> tens, std::vector<DimT> outlist)
-{
-	if (1 != tens.size())
-	{
-		fatalf("cannot RESHAPE non-single argument(s): "
-			"using %d argument(s)", tens.size());
-	}
-	Shape inshape = tens[0]->shape();
-	Shape outshape(outlist);
-	NElemT nin = inshape.n_elems();
-	NElemT nout = outshape.n_elems();
-	if (1 < nin && nin != nout)
-	{
-		fatalf("cannot RESHAPE non-scalar shape %s to shape %s",
-			inshape.to_string().c_str(), outshape.to_string().c_str());
-	}
-	return outshape;
-}
-
 #undef BIJECT
 
 #undef SCALAR

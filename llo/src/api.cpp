@@ -255,12 +255,6 @@ DataNode extend (DataNode arg, std::vector<uint8_t> ext)
 		std::vector<ade::DimT>>::get({arg.tensor_}, ext));
 }
 
-DataNode reshape (DataNode arg, std::vector<uint8_t> slist)
-{
-	return DataNode(arg.ctx_, ade::Functor<ade::RESHAPE,
-		std::vector<ade::DimT>>::get({arg.tensor_}, slist));
-}
-
 }
 
 #endif

@@ -169,16 +169,6 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 			meta->Swap(&vec);
 		}
 		break;
-		case ade::RESHAPE:
-		{
-			auto ev = static_cast<ade::Functor<
-				ade::RESHAPE,std::vector<ade::DimT>>*>(f);
-			std::vector<ade::DimT> slist = std::get<0>(ev->meta());
-			google::protobuf::RepeatedField<uint32_t> vec(
-				slist.begin(), slist.end());
-			meta->Swap(&vec);
-		}
-		break;
 		default: break; // no meta
 	}
 }
@@ -407,9 +397,6 @@ static llo::DataNode load_op (ade::OPCODE opcode,
 				std::vector<uint8_t>(meta.begin(), meta.end()));
 		case ade::EXTEND:
 			return llo::extend(args[0],
-				std::vector<uint8_t>(meta.begin(), meta.end()));
-		case ade::RESHAPE:
-			return llo::reshape(args[0],
 				std::vector<uint8_t>(meta.begin(), meta.end()));
 		default: break;
 	}

@@ -107,10 +107,10 @@ protected:
 	std::shared_ptr<iTensor> ptr_;
 };
 
-/// Return a Tensor::SYMBOLIC_ONE reshaped to input shape
+/// Return a Tensor::SYMBOLIC_ONE extended to input shape
 Tensorptr constant_one (Shape shape);
 
-/// Return a Tensor::SYMBOLIC_ZERO reshaped to input shape
+/// Return a Tensor::SYMBOLIC_ZERO extended to input shape
 Tensorptr constant_zero (Shape shape);
 
 /// Leaf of the graph commonly representing the variable in an equation

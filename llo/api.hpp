@@ -145,10 +145,6 @@ DataNode permute (DataNode arg, std::vector<uint8_t> order);
 /// expect value to expand into the new shape by duplicating
 DataNode extend (DataNode arg, std::vector<uint8_t> ext);
 
-/// Reshape input tensor's shape to new shape assuming the new
-/// shape has the same n_elems as old shape
-DataNode reshape (DataNode arg, std::vector<uint8_t> slist);
-
 }
 
 #endif // LLO_API_HPP
