@@ -48,9 +48,6 @@ const std::unordered_map<OPCODE,std::string,EnumHash> opnames =
 	OP_ASSOC(RAND_UNIF),
 	OP_ASSOC(RAND_NORM),
 
-	OP_ASSOC(N_ELEMS),
-	OP_ASSOC(N_DIMS),
-
 	OP_ASSOC(ARGMAX),
 	OP_ASSOC(RMAX),
 	OP_ASSOC(RSUM),

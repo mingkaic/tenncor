@@ -15,11 +15,6 @@ std::vector<Tensorptr> tens) { return unary(tens, #CODE); }
 #define BIJECT(CODE)template <> Shape forwarder<CODE> (\
 std::vector<Tensorptr> tens) { return bijection(tens, #CODE); }
 
-#define SCALAR(CODE)template <> Shape forwarder<CODE> (\
-std::vector<Tensorptr> tens) { if (1 != tens.size()) {\
-fatalf("cannot %s for non-single argument(s): using %d argument(s)",\
-#CODE, tens.size()); } return Shape(); }
-
 #define REDUCE(CODE)template <> Shape forwarder<CODE> (\
 std::vector<Tensorptr> tens, uint8_t dim) {\
 return reduction(tens, dim, #CODE); }
@@ -110,9 +105,6 @@ BIJECT(MAX)
 BIJECT(RAND_BINO)
 BIJECT(RAND_UNIF)
 BIJECT(RAND_NORM)
-
-SCALAR(N_ELEMS)
-SCALAR(N_DIMS)
 
 REDUCE(ARGMAX)
 REDUCE(RMAX)
@@ -220,9 +212,9 @@ Shape forwarder<EXTEND,std::vector<DimT>> (
 	return shape;
 }
 
-#undef BIJECT
+#undef UNARY
 
-#undef SCALAR
+#undef BIJECT
 
 #undef REDUCE
 

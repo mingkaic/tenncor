@@ -565,44 +565,6 @@ TEST(GRADER, RAND_NORM)
 }
 
 
-TEST(GRADER, N_ELEMS)
-{
-	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
-
-	ade::Tensorptr g0 = ade::grader<ade::N_ELEMS>({leaf}, leaf1);
-	ade::Tensorptr g1 = ade::grader<ade::N_ELEMS>({leaf}, leaf);
-
-	std::ifstream zstr(testdir + "/ezero.txt");
-	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0);
-
-	std::ifstream ostr(testdir + "/ezero.txt");
-	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1);
-}
-
-
-TEST(GRADER, N_DIMS)
-{
-	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
-
-	ade::Tensorptr g0 = ade::grader<ade::N_DIMS>({leaf}, leaf1);
-	ade::Tensorptr g1 = ade::grader<ade::N_DIMS>({leaf}, leaf);
-
-	std::ifstream zstr(testdir + "/ezero.txt");
-	ASSERT_TRUE(zstr.is_open());
-	TREE_EQ(zstr, g0);
-
-	std::ifstream ostr(testdir + "/ezero.txt");
-	ASSERT_TRUE(ostr.is_open());
-	TREE_EQ(ostr, g1);
-}
-
-
 TEST(GRADER, ARGMAX)
 {
 	std::vector<ade::DimT> slist = {2, 3, 4, 5};

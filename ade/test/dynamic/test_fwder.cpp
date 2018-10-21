@@ -74,22 +74,6 @@ static void binary_elementary (simple::SessionT& sess)
 
 
 template <ade::OPCODE OP>
-static void scalar (simple::SessionT& sess)
-{
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
-
-	ade::Shape scal_shape = ade::forwarder<OP>({leaf});
-	EXPECT_EQ(1, scal_shape.n_elems());
-
-	std::string expect_fatalmsg = "cannot " + ade::opname(OP) +
-		" for non-single argument(s): using 2 argument(s)";
-	EXPECT_FATAL(ade::forwarder<OP>({leaf, leaf1}), expect_fatalmsg.c_str())
-}
-
-
-template <ade::OPCODE OP>
 static void reduce (simple::SessionT& sess)
 {
 	int32_t n = sess->get_scalar("n_slist", {2, ade::rank_cap - 1});
@@ -162,16 +146,6 @@ FWD_BINAR(GT)
 FWD_BINAR(RAND_BINO)
 FWD_BINAR(RAND_UNIF)
 FWD_BINAR(RAND_NORM)
-
-
-#define FWD_SCALAR(CODE)\
-TEST_F(FWDER, CODE) {\
-	simple::SessionT sess = get_session("FWDER::" + std::string(#CODE));\
-	scalar<ade::CODE>(sess); }
-
-
-FWD_SCALAR(N_ELEMS)
-FWD_SCALAR(N_DIMS)
 
 
 #define FWD_REDUCE(CODE)\

@@ -193,13 +193,12 @@ DataNode rand_normal (DataNode mean, DataNode stdev)
 
 DataNode n_elems (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::N_ELEMS>::get({arg.tensor_}));
+	return Source<uint64_t>::get_scalar(arg.tensor_->shape().n_elems());
 }
 
 DataNode n_dims (DataNode arg, uint8_t dim)
 {
-	return FuncWrapper<uint8_t>::get(arg.ctx_, std::shared_ptr<ade::iFunctor>(
-		ade::Functor<ade::N_DIMS>::get({arg.tensor_})), dim);
+	return Source<uint8_t>::get_scalar(arg.tensor_->shape().at(dim));
 }
 
 DataNode argmax (DataNode arg)

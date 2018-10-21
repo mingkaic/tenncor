@@ -117,12 +117,6 @@ enum OPCODE
 	/// Only accept 2 arguments
 	RAND_NORM,
 
-	/// Given a single argument get the n_elem value of the argument's shape
-	N_ELEMS,
-	/// Given an argument and a dimension index get the value of the argument's
-	/// shape at that index
-	N_DIMS,
-
 	/// Out of all elements, get first flat index of the max value
 	ARGMAX,
 	/// Out of all elements in an argument, get the max value
@@ -200,8 +194,6 @@ _DECL_NOARG(OUT, NAME, MAX, __VA_ARGS__)\
 _DECL_NOARG(OUT, NAME, RAND_BINO, __VA_ARGS__)\
 _DECL_NOARG(OUT, NAME, RAND_UNIF, __VA_ARGS__)\
 _DECL_NOARG(OUT, NAME, RAND_NORM, __VA_ARGS__)\
-_DECL_NOARG(OUT, NAME, N_ELEMS, __VA_ARGS__)\
-_DECL_NOARG(OUT, NAME, N_DIMS, __VA_ARGS__)\
 _DECL_INTARG(OUT, NAME, ARGMAX, __VA_ARGS__)\
 _DECL_INTARG(OUT, NAME, RMAX, __VA_ARGS__)\
 _DECL_INTARG(OUT, NAME, RSUM, __VA_ARGS__)\

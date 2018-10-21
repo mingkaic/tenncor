@@ -114,26 +114,6 @@ struct Executer<ade::RAND_BINO,T>
 BINARY_ELEM(RAND_UNIF, rand_uniform)
 BINARY_ELEM(RAND_NORM, rand_normal)
 
-template <typename T>
-struct Executer<ade::N_ELEMS,T>
-{
-	static void exec (GenericData& out, std::vector<GenericData>& data)
-	{
-		T* ptr = (T*) out.data_.get();
-		n_elems(*ptr, data[0].shape_);
-	}
-};
-
-template <typename T>
-struct Executer<ade::N_DIMS,T,uint8_t>
-{
-	static void exec (GenericData& out, std::vector<GenericData>& data, uint8_t dim)
-	{
-		T* ptr = (T*) out.data_.get();
-		n_dims(*ptr, data[0].shape_, dim);
-	}
-};
-
 UNARY_REDUCE(ARGMAX, arg_max)
 UNARY_REDUCE(RMAX, reduce_max)
 UNARY_REDUCE(RSUM, reduce_sum)
@@ -294,12 +274,6 @@ void op_exec (ade::OPCODE opcode, GenericData& out,
 		break;
 		case ade::RAND_NORM:
 			exec<ade::RAND_NORM,ARGS...>(out, data, args...);
-		break;
-		case ade::N_ELEMS:
-			exec<ade::N_ELEMS,ARGS...>(out, data, args...);
-		break;
-		case ade::N_DIMS:
-			exec<ade::N_DIMS,ARGS...>(out, data, args...);
 		break;
 		case ade::ARGMAX:
 			exec<ade::ARGMAX,ARGS...>(out, data, args...);
