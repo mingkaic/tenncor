@@ -124,15 +124,6 @@ DataNode reduce_sum (DataNode arg, uint8_t groupidx);
 /// Tensors with ranks higher than 2 throws runtime error
 DataNode matmul (DataNode a, DataNode b);
 
-/// High dimension matrix multiplication, using 2 group indices,
-/// for each tensor, form groups [:idx) and [index:rank) and treat dimensions
-/// falling in those ranges as a single dimension (where the shape values must
-/// match) then apply matmul given the grouped shape
-/// For example, given shapea={3, 4, 5}, ai=2, shapeb={7, 8, 3, 4}, bi=2,
-/// output tensor has shape {7, 8, 5}, since {3, 4} in a and b matches
-DataNode matmul (DataNode a, DataNode b,
-	uint8_t agroup_idx, uint8_t bgroup_idx);
-
 // // NOT IMPLEMENTED
 // DataNode convolute (DataNode canvas, DataNode window);
 

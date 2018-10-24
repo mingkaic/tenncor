@@ -19,5 +19,8 @@ P4 - implement optimization options to decrease equation graph size
 P4 - implement optimization options to increase data accuracy
 
 features:
+P1 - represent forward shape manipulation as coordinate transformation
+P2 - convert forward, backward operators in ade to generated configuration
+P2 - represent matmul as extend, permute, mul, and reduce_sum
 P2 - implement convolution
 P3 - implement deep copy

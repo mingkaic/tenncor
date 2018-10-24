@@ -9,16 +9,17 @@
 #include <algorithm>
 
 #include "ade/string.hpp"
-
 #include "ade/tensor.hpp"
-#include "ade/grader.hpp"
-#include "ade/fwder.hpp"
+#include "ade/opcode.hpp"
+#include "ade/coord.hpp"
 
 #ifndef ADE_FUNCTOR_HPP
 #define ADE_FUNCTOR_HPP
 
 namespace ade
 {
+
+using ArgsT = std::vector<std::pair<CoordPtrT,Tensorptr>>;
 
 /// Interface of OPCODE-defined operation node
 struct iFunctor : public iTensor
@@ -35,20 +36,37 @@ struct iFunctor : public iTensor
 	virtual OPCODE get_code (void) const = 0;
 
 	/// Return children nodes as a vector of raw pointers
-	virtual std::vector<iTensor*> get_children (void) const = 0;
+	virtual ArgsT get_children (void) const = 0;
 };
 
-/// Functor of the graph mapping to operators specified in OPCODE template
-/// ARGS template captures non-tensor arguments used for certain operators
-template <OPCODE OP, typename... ARGS>
+/// Functor of the graph mapping to operators specified in template argument OP
+template <OPCODE OP> // todo: make OP non-template argument
 struct Functor final : public iFunctor
 {
 	/// Return a Functor with with input tensor and meta arguments
-	static Functor<OP,ARGS...>* get (std::vector<Tensorptr> args, ARGS... meta)
+	static Functor<OP>* get (ArgsT args)
 	{
-		std::tuple<ARGS...> tp(meta...);
-		return new Functor(forwarder<OP,ARGS...>(args,
-			std::forward<ARGS>(meta)...), args, tp);
+		std::string oname = opname(OP);
+		const char* label = oname.c_str();
+		if (0 == args.size())
+		{
+			fatalf("cannot %s with no arguments", label);
+		}
+
+		Shape shape;
+		args[0].first->forward(shape.begin(), args[0].second->shape().begin());
+		for (size_t i = 1, n = args.size(); i < n; ++i)
+		{
+			Shape ishape;
+			args[i].first->forward(shape.begin(),
+				args[i].second->shape().begin());
+			if (false == ishape.compatible_after(shape, 0))
+			{
+				fatalf("cannot %s with incompatible shapes %s and %s", label,
+					shape.to_string().c_str(), ishape.to_string().c_str());
+			}
+		}
+		return new Functor<OP>(shape, args);
 	}
 
 	/// Implementation of iTensor
@@ -62,15 +80,15 @@ struct Functor final : public iFunctor
 	{
 		if (wrt.get() == this)
 		{
-			return constant_one(shape_);
+			return shaped_one(shape_);
 		}
-		return grad_helper(wrt, std::index_sequence_for<ARGS...>());
+		return grader<OP>(this, args_, wrt);
 	}
 
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return opname(OP) + "<" + ade::to_string(meta_) + ">";
+		return opname(OP);
 	}
 
 	/// Implementation of iFunctor
@@ -80,93 +98,21 @@ struct Functor final : public iFunctor
 	}
 
 	/// Implementation of iFunctor
-	std::vector<iTensor*> get_children (void) const override
+	ArgsT get_children (void) const override
 	{
-		std::vector<iTensor*> out(args_.size());
-		std::transform(args_.begin(), args_.end(), out.begin(),
-		[](const Tensorptr& arg)
-		{
-			return arg.get();
-		});
-		return out;
-	}
-
-	/// Return extra non-tensor arguments
-	const std::tuple<ARGS...>& meta (void) const
-	{
-		return meta_;
+		return args;
 	}
 
 private:
-	Functor (Shape shape, std::vector<Tensorptr> args,
-		std::tuple<ARGS...>& meta) :
-		args_(args), meta_(meta), shape_(shape) {}
-
-	template <size_t... I>
-	Tensorptr grad_helper (Tensorptr& wrt, std::index_sequence<I...>) const
-	{
-		return grader<OP,ARGS...>(args_, wrt, std::get<I>(meta_)...);
-	}
-
-	/// Tensor arguments (and children)
-	std::vector<Tensorptr> args_;
-
-	/// Extra arguments for certain operators
-	/// These arguments are hidden to ensure shape is correct
-	/// since meta data can influence shape
-	std::tuple<ARGS...> meta_;
+	Functor (Shape shape, ArgsT args) :
+		shape_(shape), args_(args) {}
 
 	/// Shape info built at construction time according to arguments
 	Shape shape_;
+
+	/// Tensor arguments (and children)
+	ArgsT args_;
 };
-
-#define MAPCASE(CODE)case CODE:\
-return Functor<CODE,ARGS...>::get(args, meta...);
-
-/// Return Functor of non-template OPCODE useful for runtime OPCODE generation
-template <typename... ARGS>
-Tensorptr runtime_functor (OPCODE opcode,
-	std::vector<Tensorptr> args, ARGS... meta)
-{
-	switch (opcode)
-	{
-		MAPCASE(ABS)
-		MAPCASE(NEG)
-		MAPCASE(NOT)
-		MAPCASE(SIN)
-		MAPCASE(COS)
-		MAPCASE(TAN)
-		MAPCASE(EXP)
-		MAPCASE(LOG)
-		MAPCASE(SQRT)
-		MAPCASE(ROUND)
-		MAPCASE(FLIP)
-		MAPCASE(POW)
-		MAPCASE(ADD)
-		MAPCASE(SUB)
-		MAPCASE(MUL)
-		MAPCASE(DIV)
-		MAPCASE(EQ)
-		MAPCASE(NE)
-		MAPCASE(LT)
-		MAPCASE(GT)
-		MAPCASE(MIN)
-		MAPCASE(MAX)
-		MAPCASE(RAND_BINO)
-		MAPCASE(RAND_UNIF)
-		MAPCASE(RAND_NORM)
-		MAPCASE(ARGMAX)
-		MAPCASE(RMAX)
-		MAPCASE(RSUM)
-		MAPCASE(MATMUL)
-		MAPCASE(PERMUTE)
-		MAPCASE(EXTEND)
-		default:
-			throw std::bad_function_call();
-	}
-}
-
-#undef MAPCASE
 
 }
 

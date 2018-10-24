@@ -104,11 +104,11 @@ TEST_F(FUNCTOR, ToString)
 	ASSERT_NE(nullptr, fu.get());
 	ASSERT_NE(nullptr, fb.get());
 
-	std::string expect_out_unary = ade::opname(unary) + "<>";
-	EXPECT_STREQ(expect_out_unary.c_str(), fu->to_string().c_str());
+	std::string out_unary = ade::opname(unary) + "<>";
+	EXPECT_STREQ(out_unary.c_str(), fu->to_string().c_str());
 
-	std::string expect_out_binary = ade::opname(binary) + "<>";
-	EXPECT_STREQ(expect_out_binary.c_str(), fb->to_string().c_str());
+	std::string out_binary = ade::opname(binary) + "<>";
+	EXPECT_STREQ(out_binary.c_str(), fb->to_string().c_str());
 }
 
 

@@ -108,10 +108,10 @@ protected:
 };
 
 /// Return a Tensor::SYMBOLIC_ONE extended to input shape
-Tensorptr constant_one (Shape shape);
+Tensorptr shaped_one (Shape shape);
 
 /// Return a Tensor::SYMBOLIC_ZERO extended to input shape
-Tensorptr constant_zero (Shape shape);
+Tensorptr shaped_zero (Shape shape);
 
 /// Leaf of the graph commonly representing the variable in an equation
 struct Tensor final : public iTensor
@@ -145,9 +145,9 @@ struct Tensor final : public iTensor
 	{
 		if (this == wrt.get())
 		{
-			return constant_one(shape_);
+			return shaped_one(shape_);
 		}
-		return Tensor::SYMBOLIC_ZERO;
+		return shaped_zero(shape_);
 	}
 
 	/// Implementation of iTensor

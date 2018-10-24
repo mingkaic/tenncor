@@ -33,9 +33,9 @@ TEST_F(SHAPE, Init)
 	ade::Shape lvec(longlist);
 
 	std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
-	std::string expect_fatalmsg = "cannot create shape with vector containing zero: " +
+	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		ade::to_string(zerolist);
-	EXPECT_FATAL(ade::Shape junk(zerolist), expect_fatalmsg.c_str());
+	EXPECT_FATAL(ade::Shape junk(zerolist), fatalmsg.c_str());
 
 	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
@@ -80,9 +80,9 @@ TEST_F(SHAPE, VecAssign)
 	EXPECT_EQ(slist.size(), vecassign2.n_rank());
 	EXPECT_ARREQ(slist, vecassign2.as_list());
 
-	std::string expect_fatalmsg = "cannot create shape with vector containing zero: " +
+	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		ade::to_string(zerolist);
-	EXPECT_FATAL(vecassign = zerolist, expect_fatalmsg.c_str());
+	EXPECT_FATAL(vecassign = zerolist, fatalmsg.c_str());
 }
 
 

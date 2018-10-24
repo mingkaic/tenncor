@@ -39,37 +39,54 @@ static void binary_elementary (simple::SessionT& sess)
 	std::vector<ade::DimT> extlist = slist;
 	extlist.push_back(ext_value);
 	ade::Shape shape(slist);
+	ade::Shape extshape(extlist);
 	ade::Shape badshape(badlist);
 	ade::Tensorptr scalar = ade::Tensor::get(ade::Shape());
-	ade::Tensorptr alt_scalar = ade::Tensor::get(ade::Shape({1}));
 	ade::Tensorptr leaf = ade::Tensor::get(shape);
 	ade::Tensorptr leaf1 = ade::Tensor::get(shape);
-	ade::Tensorptr leaf2 = ade::Tensor::get(ade::Shape(extlist));
+	ade::Tensorptr ext_leaf = ade::Tensor::get(extshape);
 	ade::Tensorptr badleaf = ade::Tensor::get(badshape);
 
 	ade::Shape same_shape = ade::forwarder<OP>({leaf, leaf1});
-	ade::Shape same_shape2 = ade::forwarder<OP>({leaf, scalar});
-	ade::Shape same_shape3 = ade::forwarder<OP>({scalar, leaf1});
-	ade::Shape same_shape4 = ade::forwarder<OP>({leaf, alt_scalar});
-	ade::Shape same_shape5 = ade::forwarder<OP>({alt_scalar, leaf1});
 	EXPECT_ARREQ(slist, same_shape.as_list());
-	EXPECT_ARREQ(slist, same_shape2.as_list());
-	EXPECT_ARREQ(slist, same_shape3.as_list());
-	EXPECT_ARREQ(slist, same_shape4.as_list());
-	EXPECT_ARREQ(slist, same_shape5.as_list());
 
-	ade::Shape ext_shape = ade::forwarder<OP>({leaf, leaf2});
-	ade::Shape ext_shape1 = ade::forwarder<OP>({leaf1, leaf2});
-	EXPECT_ARREQ(extlist, ext_shape.as_list());
-	EXPECT_ARREQ(extlist, ext_shape1.as_list());
+	std::string fatalmsg = "cannot " + ade::opname(OP) +
+		" with incompatible shapes " + shape.to_string() +
+		" and " + badshape.to_string();
+	EXPECT_FATAL(ade::forwarder<OP>({leaf, badleaf}), fatalmsg.c_str())
 
-	std::string expect_fatalmsg = "cannot " + ade::opname(OP) +
-		" with incompatible shapes " + shape.to_string() + " and " + badshape.to_string();
-	EXPECT_FATAL(ade::forwarder<OP>({leaf, badleaf}), expect_fatalmsg.c_str())
+	std::string fatalmsg2 = "cannot " + ade::opname(OP) +
+		" with incompatible shapes " + badshape.to_string() +
+		" and " + shape.to_string();
+	EXPECT_FATAL(ade::forwarder<OP>({badleaf, leaf}), fatalmsg2.c_str())
 
-	std::string expect_fatalmsg2 = "cannot " + ade::opname(OP) +
-		" with incompatible shapes " + badshape.to_string() + " and " + shape.to_string();
-	EXPECT_FATAL(ade::forwarder<OP>({badleaf, leaf}), expect_fatalmsg2.c_str())
+	std::stringstream fatalss;
+	fatalss << "cannot map coordinate of rank 0, requires at least rank " <<
+		(int) shape.n_rank();
+	EXPECT_FATAL(ade::forwarder<OP>({leaf, scalar}), fatalss.str().c_str())
+	EXPECT_FATAL(ade::forwarder<OP>({scalar, leaf1}), fatalss.str().c_str())
+
+	std::stringstream fatalss2;
+	fatalss2 << "cannot map coordinate of rank " << (int) shape.n_rank() <<
+		", requires at least rank " << (int) shape.n_rank() + 1;
+	EXPECT_FATAL(ade::forwarder<OP>({leaf, ext_leaf}), fatalss2.str().c_str())
+	EXPECT_FATAL(ade::forwarder<OP>({leaf1, ext_leaf}), fatalss2.str().c_str());
+}
+
+
+template <ade::OPCODE OP>
+static void scalar (simple::SessionT& sess)
+{
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape(slist));
+	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape(slist));
+
+	ade::Shape scal_shape = ade::forwarder<OP>({leaf});
+	EXPECT_EQ(1, scal_shape.n_elems());
+
+	std::string fatalmsg = "cannot " + ade::opname(OP) +
+		" for non-single argument(s): using 2 argument(s)";
+	EXPECT_FATAL(ade::forwarder<OP>({leaf, leaf1}), fatalmsg.c_str())
 }
 
 
@@ -101,10 +118,10 @@ static void reduce (simple::SessionT& sess)
 		slist.begin() + slist.size());
 	EXPECT_ARREQ(exlist, rlist);
 
-	std::string expect_fatalmsg = "cannot " + ade::opname(OP) +
+	std::string fatalmsg = "cannot " + ade::opname(OP) +
 		" for non-single argument(s): using 2 argument(s)";
 	auto fail = [&](){ ade::forwarder<OP,uint8_t>({leaf, leaf1}, 5); };
-	EXPECT_FATAL(fail(), expect_fatalmsg.c_str())
+	EXPECT_FATAL(fail(), fatalmsg.c_str())
 }
 
 
@@ -231,17 +248,17 @@ TEST_F(FWDER, MATMUL)
 	ade::Tensorptr bad_a = ade::Tensor::get(badashape);
 	ade::Tensorptr bad_b = ade::Tensor::get(badbshape);
 
-	std::string expect_fatalmsg = "incompatible common dimensions when matmuling shapes " +
+	std::string fatalmsg = "incompatible common dimensions when matmuling shapes " +
 		ashape.to_string() + ", " + badbshape.to_string();
 	auto fail = [&](){ ade::forwarder<ade::MATMUL,uint8_t,uint8_t>(
 		{a, bad_b}, common_group.size(), bgroup.size()); };
-	EXPECT_FATAL(fail(), expect_fatalmsg.c_str());
+	EXPECT_FATAL(fail(), fatalmsg.c_str());
 
-	std::string expect_fatalmsg2 = "incompatible common dimensions when matmuling shapes " +
+	std::string fatalmsg2 = "incompatible common dimensions when matmuling shapes " +
 		badashape.to_string() + ", " + bshape.to_string();
 	auto fail2 = [&](){ ade::forwarder<ade::MATMUL,uint8_t,uint8_t>(
 		{bad_a, b}, common_group.size(), bgroup.size()); };
-	EXPECT_FATAL(fail2(), expect_fatalmsg2.c_str());
+	EXPECT_FATAL(fail2(), fatalmsg2.c_str());
 
 	ade::Shape bigmat = ade::forwarder<
 		ade::MATMUL,uint8_t,uint8_t>({a, b}, common_group.size(), bgroup.size());
@@ -368,20 +385,20 @@ TEST_F(FWDER, EXTEND)
 	auto fail2 = [&](){ ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>(
 		{leaf}, bad_ext); };
 	EXPECT_FATAL(fail(), "cannot EXTEND non-single argument(s): using 2 argument(s)");
-	std::string expect_fatalmsg;
+	std::string fatalmsg;
 	{
 		std::vector<ade::DimT> zlist = slist;
 		zlist.push_back(0);
-		expect_fatalmsg = "cannot create shape with vector containing zero: " +
+		fatalmsg = "cannot create shape with vector containing zero: " +
 			ade::to_string(zlist);
 	}
-	EXPECT_FATAL(fail1(), expect_fatalmsg.c_str());
-	std::string expect_fatalmsg2;
+	EXPECT_FATAL(fail1(), fatalmsg.c_str());
+	std::string fatalmsg2;
 	{
-		expect_fatalmsg2 = "cannot EXTEND dimension beyond rank_cap using vector " +
+		fatalmsg2 = "cannot EXTEND dimension beyond rank_cap using vector " +
 			ade::to_string(bad_ext) + " on shape " + shape.to_string();
 	}
-	EXPECT_FATAL(fail2(), expect_fatalmsg2.c_str());
+	EXPECT_FATAL(fail2(), fatalmsg2.c_str());
 	ade::forwarder<ade::EXTEND,std::vector<ade::DimT>>({leaf}, {});
 	EXPECT_STREQ("EXTENDing with empty vector... created useless node",
 		TestLogger::latest_warning_.c_str());
