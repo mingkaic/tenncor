@@ -41,6 +41,8 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext);
 
 CoordPtrT permute (std::vector<uint8_t> order);
 
+CoordPtrT flip (uint8_t dim);
+
 }
 
 #endif // ADE_COORD_HPP

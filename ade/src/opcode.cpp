@@ -31,7 +31,6 @@ const std::unordered_map<OPCODE,std::string,EnumHash> opnames =
 	OP_ASSOC(LOG),
 	OP_ASSOC(SQRT),
 	OP_ASSOC(ROUND),
-	OP_ASSOC(FLIP),
 
 	OP_ASSOC(POW),
 	OP_ASSOC(ADD),

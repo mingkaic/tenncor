@@ -17,17 +17,14 @@
 namespace llo
 {
 
-template <ade::OPCODE OP, typename T, typename... ARGS>
+template <ade::OPCODE OP, typename T>
 struct Executer
 {
 	static void exec (GenericData& out,
 		std::vector<GenericData>& data, ARGS... args)
 	{
-		std::stringstream ss;
-		ade::to_stream(ss, args...);
-		ade::fatalf(
-			"cannot %s of type %s with args %s", ade::opname(OP).c_str(),
-			nametype(get_type<T>()).c_str(), ss.str().c_str());
+		ade::fatalf("cannot %s of type %s", ade::opname(OP).c_str(),
+			nametype(get_type<T>()).c_str());
 	}
 };
 
@@ -53,18 +50,17 @@ std::transform(data.begin(), data.end(), args.begin(), \
 (T*) gd.data_.get(), gd.shape_.n_elems()}; });\
 METHOD((T*) out.data_.get(), args); } };
 
-#define UNARY_REDUCE(OP, METHOD)template <typename T>\
-struct Executer<ade::OP,T,uint8_t> {\
-static void exec (GenericData& out, std::vector<GenericData>& data, uint8_t)\
-{ METHOD((T*) out.data_.get(), out.shape_.n_elems(),\
-VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()}); } };
-
-#define UNARY_COPY(OP)template <typename T>\
-struct Executer<ade::OP,T,std::vector<ade::DimT>> {\
-static void exec (GenericData& out,\
-std::vector<GenericData>& data, std::vector<ade::DimT>)\
-{ copyover((T*) out.data_.get(), out.shape_.n_elems(),\
-VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()}); } };
+template <typename T>
+struct Executer<ade::COPY,T>
+{
+	static void exec (GenericData& out, std::vector<GenericData>& data)
+	{
+		copy((T*) out.data_.get(),
+			VecRef<T>{(T*) data[0].data_.get(), data[0].shape_.n_elems()},
+			VecRef<double>{(double*) data[1].data_.get(),
+				data[1].shape_.n_elems()});
+	}
+};
 
 UNARY_ELEM(ABS, abs)
 UNARY_ELEM(NEG, neg)
@@ -76,16 +72,6 @@ UNARY_ELEM(EXP, exp)
 UNARY_ELEM(LOG, log)
 UNARY_ELEM(SQRT, sqrt)
 UNARY_ELEM(ROUND, round)
-
-template <typename T>
-struct Executer<ade::FLIP,T,uint8_t>
-{
-	static void exec (GenericData& out,
-		std::vector<GenericData>& data, uint8_t dim)
-	{
-		flip((T*) out.data_.get(), (T*) data[0].data_.get(), out.shape_, dim);
-	}
-};
 
 BINARY_ELEM(POW, pow)
 NARY_ELEM(ADD, add)
@@ -114,184 +100,125 @@ struct Executer<ade::RAND_BINO,T>
 BINARY_ELEM(RAND_UNIF, rand_uniform)
 BINARY_ELEM(RAND_NORM, rand_normal)
 
-UNARY_REDUCE(ARGMAX, arg_max)
-UNARY_REDUCE(RMAX, reduce_max)
-UNARY_REDUCE(RSUM, reduce_sum)
-
-template <typename T>
-struct Executer<ade::MATMUL,T>
-{
-	static void exec (GenericData& out, std::vector<GenericData>& data)
-	{
-		matmul((T*) out.data_.get(),
-			(T*) data[0].data_.get(), (T*) data[1].data_.get(),
-			data[0].shape_, data[1].shape_, 1, 1);
-	}
-};
-
-template <typename T>
-struct Executer<ade::MATMUL,T,uint8_t,uint8_t>
-{
-	static void exec (GenericData& out, std::vector<GenericData>& data,
-		uint8_t agroup_idx, uint8_t bgroup_idx)
-	{
-		matmul((T*) out.data_.get(),
-			(T*) data[0].data_.get(), (T*) data[1].data_.get(),
-			data[0].shape_, data[1].shape_, agroup_idx, bgroup_idx);
-	}
-};
-
-template <typename T>
-struct Executer<ade::PERMUTE,T,std::vector<uint8_t>>
-{
-	static void exec (GenericData& out, std::vector<GenericData>& data,
-		std::vector<uint8_t> order)
-	{
-		permute((T*) out.data_.get(),
-			(T*) data[0].data_.get(), out.shape_, data[0].shape_, order);
-	}
-};
-
-UNARY_COPY(EXTEND)
-
 #undef UNARY_ELEM
 #undef BINARY_ELEM
 #undef UNARY_REDUCE
 #undef UNARY_COPY
 
-template <ade::OPCODE OP, typename... ARGS>
+template <ade::OPCODE OP>
 void exec (GenericData& out,
-	std::vector<GenericData>& data, ARGS... args)
+	std::vector<GenericData>& data)
 {
 	switch (out.dtype_)
 	{
 		case DOUBLE:
-			Executer<OP,double,ARGS...>::exec(out, data, args...);
+			Executer<OP,double>::exec(out, data);
 		break;
 		case FLOAT:
-			Executer<OP,float,ARGS...>::exec(out, data, args...);
+			Executer<OP,float>::exec(out, data);
 		break;
 		case INT8:
-			Executer<OP,int8_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,int8_t>::exec(out, data);
 		break;
 		case INT16:
-			Executer<OP,int16_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,int16_t>::exec(out, data);
 		break;
 		case INT32:
-			Executer<OP,int32_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,int32_t>::exec(out, data);
 		break;
 		case INT64:
-			Executer<OP,int64_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,int64_t>::exec(out, data);
 		break;
 		case UINT8:
-			Executer<OP,uint8_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,uint8_t>::exec(out, data);
 		break;
 		case UINT16:
-			Executer<OP,uint16_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,uint16_t>::exec(out, data);
 		break;
 		case UINT32:
-			Executer<OP,uint32_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,uint32_t>::exec(out, data);
 		break;
 		case UINT64:
-			Executer<OP,uint64_t,ARGS...>::exec(out, data, args...);
+			Executer<OP,uint64_t>::exec(out, data);
 		break;
 		default:
 			ade::fatal("executing bad type");
 	}
 }
 
-template <typename... ARGS>
 void op_exec (ade::OPCODE opcode, GenericData& out,
-	std::vector<GenericData>& data, ARGS... args)
+	std::vector<GenericData>& data)
 {
 	switch (opcode)
 	{
+		case ade::COPY:
+			exec<ade::COPY>(out, data);
+		break;
 		case ade::ABS:
-			exec<ade::ABS,ARGS...>(out, data, args...);
+			exec<ade::ABS>(out, data);
 		break;
 		case ade::NEG:
-			exec<ade::NEG,ARGS...>(out, data, args...);
+			exec<ade::NEG>(out, data);
 		break;
 		case ade::NOT:
-			exec<ade::NOT,ARGS...>(out, data, args...);
+			exec<ade::NOT>(out, data);
 		break;
 		case ade::SIN:
-			exec<ade::SIN,ARGS...>(out, data, args...);
+			exec<ade::SIN>(out, data);
 		break;
 		case ade::COS:
-			exec<ade::COS,ARGS...>(out, data, args...);
+			exec<ade::COS>(out, data);
 		break;
 		case ade::TAN:
-			exec<ade::TAN,ARGS...>(out, data, args...);
+			exec<ade::TAN>(out, data);
 		break;
 		case ade::EXP:
-			exec<ade::EXP,ARGS...>(out, data, args...);
+			exec<ade::EXP>(out, data);
 		break;
 		case ade::LOG:
-			exec<ade::LOG,ARGS...>(out, data, args...);
+			exec<ade::LOG>(out, data);
 		break;
 		case ade::SQRT:
-			exec<ade::SQRT,ARGS...>(out, data, args...);
+			exec<ade::SQRT>(out, data);
 		break;
 		case ade::ROUND:
-			exec<ade::ROUND,ARGS...>(out, data, args...);
-		break;
-		case ade::FLIP:
-			exec<ade::FLIP,ARGS...>(out, data, args...);
+			exec<ade::ROUND>(out, data);
 		break;
 		case ade::POW:
-			exec<ade::POW,ARGS...>(out, data, args...);
+			exec<ade::POW>(out, data);
 		break;
 		case ade::ADD:
-			exec<ade::ADD,ARGS...>(out, data, args...);
+			exec<ade::ADD>(out, data);
 		break;
 		case ade::SUB:
-			exec<ade::SUB,ARGS...>(out, data, args...);
+			exec<ade::SUB>(out, data);
 		break;
 		case ade::MUL:
-			exec<ade::MUL,ARGS...>(out, data, args...);
+			exec<ade::MUL>(out, data);
 		break;
 		case ade::DIV:
-			exec<ade::DIV,ARGS...>(out, data, args...);
+			exec<ade::DIV>(out, data);
 		break;
 		case ade::EQ:
-			exec<ade::EQ,ARGS...>(out, data, args...);
+			exec<ade::EQ>(out, data);
 		break;
 		case ade::NE:
-			exec<ade::NE,ARGS...>(out, data, args...);
+			exec<ade::NE>(out, data);
 		break;
 		case ade::LT:
-			exec<ade::LT,ARGS...>(out, data, args...);
+			exec<ade::LT>(out, data);
 		break;
 		case ade::GT:
-			exec<ade::GT,ARGS...>(out, data, args...);
+			exec<ade::GT>(out, data);
 		break;
 		case ade::RAND_BINO:
-			exec<ade::RAND_BINO,ARGS...>(out, data, args...);
+			exec<ade::RAND_BINO>(out, data);
 		break;
 		case ade::RAND_UNIF:
-			exec<ade::RAND_UNIF,ARGS...>(out, data, args...);
+			exec<ade::RAND_UNIF>(out, data);
 		break;
 		case ade::RAND_NORM:
-			exec<ade::RAND_NORM,ARGS...>(out, data, args...);
-		break;
-		case ade::ARGMAX:
-			exec<ade::ARGMAX,ARGS...>(out, data, args...);
-		break;
-		case ade::RMAX:
-			exec<ade::RMAX,ARGS...>(out, data, args...);
-		break;
-		case ade::RSUM:
-			exec<ade::RSUM,ARGS...>(out, data, args...);
-		break;
-		case ade::MATMUL:
-			exec<ade::MATMUL,ARGS...>(out, data, args...);
-		break;
-		case ade::PERMUTE:
-			exec<ade::PERMUTE,ARGS...>(out, data, args...);
-		break;
-		case ade::EXTEND:
-			exec<ade::EXTEND,ARGS...>(out, data, args...);
+			exec<ade::RAND_NORM>(out, data);
 		break;
 		default:
 			ade::fatal("unknown opcode");

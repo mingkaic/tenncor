@@ -92,7 +92,23 @@ struct Evaluator final : public ade::iTraveler
 	void visit (ade::Tensor* leaf) override;
 
 	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override;
+	void visit (ade::iFunctor* func) override
+	{
+		auto funkpair = ctx_->funks_.find(func);
+		if (ctx_->funks_.end() != funkpair)
+		{
+			out_ = funkpair->second->data(dtype_);
+			return;
+		}
+		// else visit pure ade::iFunctor
+		ade::OPCODE opcode = func->get_code();
+
+		out_ = GenericData(func->shape(), dtype_);
+
+		std::vector<GenericData> argdata;
+		get_func_children(argdata, *ctx_, dtype_, func);
+		op_exec(opcode, out_, argdata);
+	}
 
 	/// Output data evaluated upon visiting node
 	GenericData out_;
@@ -123,16 +139,16 @@ struct DataNode
 	}
 
 	/// Return DataNode of gradient tree derived with respect to wrt tensor
-	DataNode derive (ade::Tensorptr& wrt) const
+	DataNode derive (const ade::iTensor* wrt)
 	{
 		ade::Tensorptr grad = tensor_->gradient(wrt);
 		return DataNode(ctx_, grad);
 	}
 
 	/// Return DataNode of gradient tree derived with respect to wrt DataNode
-	DataNode derive (DataNode& wrt) const
+	DataNode derive (DataNode& wrt)
 	{
-		return derive(wrt.tensor_);
+		return derive(wrt.tensor_.get());
 	}
 
 	/// Return iSource mapped by tensor_ if found in ctx_, otherwise null

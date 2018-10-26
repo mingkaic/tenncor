@@ -122,61 +122,6 @@ struct PlaceHolder : public DataNode
 	}
 };
 
-/// Wrap ade::Functor for operators with non-shape related meta data
-/// For example, ade::FLIP has the same output shape as input shape,
-/// but the dimension value is needed when evaluating data
-template <typename... ARGS>
-struct FuncWrapper final : public iEvaluable
-{
-	/// Return direct function wrapper of input functor and metadata
-	static DataNode get (EvalCtx ctx,
-		std::shared_ptr<ade::iFunctor> func, ARGS... args)
-	{
-		std::tuple<ARGS...> tp(args...);
-		auto wrapper = std::shared_ptr<iEvaluable>(new FuncWrapper(ctx, func, tp));
-		ctx.funks_[func.get()] = wrapper;
-		return DataNode(ctx, std::static_pointer_cast<ade::iTensor>(func));
-	}
-
-	/// Implementation of iEvaluable
-	GenericData data (DTYPE dtype) const override
-	{
-		return eval_helper(dtype, std::index_sequence_for<ARGS...>());
-	}
-
-	/// Return extra non-tensor arguments
-	const std::tuple<ARGS...>& meta (void) const
-	{
-		return meta_;
-	}
-
-private:
-	FuncWrapper (const EvalCtx& ctx,
-		std::shared_ptr<ade::iFunctor> func, std::tuple<ARGS...>& args) :
-		ctx_(ctx), func_(func), meta_(args) {}
-
-	template <size_t... I>
-	GenericData eval_helper (DTYPE dtype, std::index_sequence<I...>) const
-	{
-		ade::OPCODE opcode = func_->get_code();
-		GenericData out(func_->shape(), dtype);
-		std::vector<GenericData> argdata;
-		get_func_children(argdata, ctx_, dtype, func_.get());
-		op_exec(opcode, out, argdata, std::get<I>(meta_)...);
-		return out;
-	}
-
-	EvalCtx ctx_;
-
-	/// Tensor proxy source
-	std::shared_ptr<ade::iFunctor> func_;
-
-	/// Extra arguments for certain operators
-	/// These arguments are hidden to ensure shape is correct
-	/// since meta data can influence shape
-	std::tuple<ARGS...> meta_;
-};
-
 }
 
 #endif // LLO_NODE_HPP

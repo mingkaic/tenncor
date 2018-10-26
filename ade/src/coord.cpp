@@ -117,7 +117,7 @@ CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 	}
 	if (0 == n_red)
 	{
-		warn("reducing with empty vector... created useless node");
+		warn("reducing with empty vector... will do nothing");
 		return identity;
 	}
 
@@ -152,7 +152,7 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
 	}
 	if (0 == n_ext)
 	{
-		warn("extending with empty vector... created useless node");
+		warn("extending with empty vector... will do nothing");
 		return identity;
 	}
 
@@ -175,7 +175,7 @@ CoordPtrT permute (std::vector<uint8_t> dims)
 {
 	if (dims.size() == 0)
 	{
-		warn("PERMUTING with same dimensions ... created useless node");
+		warn("permuting with same dimensions ... will do nothing");
 		return identity;
 	}
 
@@ -200,6 +200,26 @@ CoordPtrT permute (std::vector<uint8_t> dims)
 			{
 				fwd[dims[i]][i] = 1;
 			}
+		}));
+}
+
+CoordPtrT flip (uint8_t dim)
+{
+	if (dim >= rank_cap)
+	{
+		warn("flipping dimension out of rank_cap ... will do nothing");
+		return identity;
+	}
+
+	return CoordPtrT(new CoordMap(
+		[&](MatrixT fwd)
+		{
+			for (uint8_t i = 0; i < rank_cap; ++i)
+			{
+				fwd[i][i] = 1;
+			}
+			// // todo: fix
+			// fwd[dim][dim] = -1;
 		}));
 }
 

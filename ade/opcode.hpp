@@ -43,10 +43,6 @@ enum OPCODE
 	SQRT,
 	/// Round every element
 	ROUND,
-	/// Flip element along a specific dimension
-	/// For example, given 2-D tensor [[1, 2], [3, 4]], dim=1,
-	/// output tensor is [[3, 4], [1, 2]]
-	FLIP,
 
 	/// Given tensors a, and b, for every index i in range [0:max_nelems],
 	/// apply std::pow operator to elements a[i % a.nelems] and b[i % b.nelems]

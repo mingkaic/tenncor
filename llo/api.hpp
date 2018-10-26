@@ -108,16 +108,16 @@ DataNode n_elems (DataNode arg);
 /// Get value at specified dimension of input shape
 DataNode n_dims (DataNode arg, uint8_t dim);
 
-/// Get first flat index of the max value
-DataNode argmax (DataNode arg);
-
 /// Get the max value
 DataNode reduce_max (DataNode arg);
+
+/// Apply reduce_max to elements of coordinate range [groupidx:]
+DataNode reduce_max (DataNode arg, uint8_t groupidx);
 
 /// Get the sum of all values
 DataNode reduce_sum (DataNode arg);
 
-/// Apply reduce_sum to elements of coordinate range [0:groupidx]
+/// Apply reduce_sum to elements of coordinate range [groupidx:]
 DataNode reduce_sum (DataNode arg, uint8_t groupidx);
 
 /// Matrix multiply 2 or 1 dimension matrices,

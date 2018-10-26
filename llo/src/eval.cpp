@@ -64,74 +64,10 @@ void Evaluator::visit (ade::Tensor* leaf)
 	}
 }
 
-void Evaluator::visit (ade::iFunctor* func)
-{
-	auto funkpair = ctx_->funks_.find(func);
-	if (ctx_->funks_.end() != funkpair)
-	{
-		out_ = funkpair->second->data(dtype_);
-		return;
-	}
-	// else visit pure ade::iFunctor
-	ade::OPCODE opcode = func->get_code();
-
-	out_ = GenericData(func->shape(), dtype_);
-
-	std::vector<GenericData> argdata;
-	get_func_children(argdata, *ctx_, dtype_, func);
-	// todo: think of better way to deal with these metadata
-	// (perhaps pass around as metadata interface of template implementation)
-	switch (opcode)
-	{
-		case ade::ARGMAX:
-		{
-			auto mf = static_cast<ade::Functor<ade::ARGMAX,uint8_t>*>(func);
-			op_exec(opcode, out_, argdata, std::get<0>(mf->meta()));
-		}
-		break;
-		case ade::RSUM:
-		{
-			auto mf = static_cast<ade::Functor<ade::RSUM,uint8_t>*>(func);
-			op_exec(opcode, out_, argdata, std::get<0>(mf->meta()));
-		}
-		break;
-		case ade::RMAX:
-		{
-			auto mf = static_cast<ade::Functor<ade::RMAX,uint8_t>*>(func);
-			op_exec(opcode, out_, argdata, std::get<0>(mf->meta()));
-		}
-		break;
-		case ade::MATMUL:
-		{
-			auto mf = static_cast<ade::Functor<
-				ade::MATMUL,uint8_t,uint8_t>*>(func);
-			op_exec(opcode, out_, argdata,
-				std::get<0>(mf->meta()), std::get<1>(mf->meta()));
-		}
-		break;
-		case ade::PERMUTE:
-		{
-			auto pf = static_cast<ade::Functor<
-				ade::PERMUTE,std::vector<uint8_t>>*>(func);
-			op_exec(opcode, out_, argdata, std::get<0>(pf->meta()));
-		}
-		break;
-		case ade::EXTEND:
-		{
-			auto ef = static_cast<ade::Functor<
-				ade::EXTEND,std::vector<ade::DimT>>*>(func);
-			op_exec(opcode, out_, argdata, std::get<0>(ef->meta()));
-		}
-		break;
-		default:
-			op_exec(opcode, out_, argdata);
-	}
-}
-
 void get_func_children (std::vector<GenericData>& out,
 	const EvalCtx& ctx, DTYPE dtype, ade::iFunctor* func)
 {
-	std::vector<ade::iTensor*> children = func->get_children();
+	ade::ArgsT children = func->get_children();
 	uint8_t nargs = children.size();
 	out = std::vector<GenericData>(nargs);
 	if (func->get_code() == ade::RAND_BINO)
@@ -142,11 +78,11 @@ void get_func_children (std::vector<GenericData>& out,
 				"using %d arguments", nargs);
 		}
 		Evaluator left_eval(ctx, dtype);
-		children[0]->accept(left_eval);
+		children[0].second->accept(left_eval);
 		out[0] = left_eval.out_;
 
 		Evaluator right_eval(ctx, DOUBLE);
-		children[1]->accept(right_eval);
+		children[1].second->accept(right_eval);
 		out[1] = right_eval.out_;
 	}
 	else
@@ -154,7 +90,7 @@ void get_func_children (std::vector<GenericData>& out,
 		for (uint8_t i = 0; i < nargs; ++i)
 		{
 			Evaluator evaler(ctx, dtype);
-			children[i]->accept(evaler);
+			children[i].second->accept(evaler);
 			out[i] = evaler.out_;
 		}
 	}

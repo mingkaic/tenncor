@@ -149,12 +149,6 @@ GRAD_SIGNATURE(ROUND)
 	return Functor<ROUND>::get({{child.first, grads.front()}});
 }
 
-GRAD_SIGNATURE(FLIP) // todo: fix this
-{
-	check_unary("FLIP", args);
-	return grads.front();
-}
-
 GRAD_SIGNATURE(POW)
 {
 	check_binary("POW", args);
@@ -318,7 +312,6 @@ Tensorptr gradmap (OPCODE op, Tensorptr& fwd, ArgsT args,
 		CALL_GRAD(LOG)
 		CALL_GRAD(SQRT)
 		CALL_GRAD(ROUND)
-		CALL_GRAD(FLIP)
 		CALL_GRAD(POW)
 		CALL_GRAD(ADD)
 		CALL_GRAD(SUB)

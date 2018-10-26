@@ -1,0 +1,24 @@
+licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["demo/*.cpp"]) + [
+        "//eqns:srcs",
+        "//layr:srcs",
+        "//modl:srcs",
+        "BUILD.bazel",
+    ],
+)
+
+######### DEMOS #########
+
+cc_binary(
+    name = "gd_demo",
+    srcs = ["demo/gd_demo.cpp"],
+    copts = ["-std=c++14"],
+    deps = ["//rocnnet/modl:modl"],
+)
