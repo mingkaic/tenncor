@@ -144,7 +144,7 @@ struct Functor final : public iFunctor
 		{
 			auto& fpair = funcs.front();
 			iFunctor* f = fpair.first;
-			auto& grad = fpair.second;
+			auto grad = fpair.second;
 			funcs.pop_front();
 			auto& paint = finder.parents_[f];
 			ArgsT children = f->get_children();
@@ -160,18 +160,18 @@ struct Functor final : public iFunctor
 				{
 					Tensorptr& fwd = children[i].second;
 					iTensor* child = fwd.get();
+					std::vector<Tensorptr> grads(n, zero);
+					grads[i] = grad;
+					auto g = gradmap(f->get_code(), fwd, children, grads);
 					if (wrt == child)
 					{
 						// grad should be compatible with wrt
-						finalgrad.push_back(grad);
+						finalgrad.push_back(g);
 					}
 					else
 					{
 						// calculate grad using chain rule then pass down forward-gradient pair
-						std::vector<Tensorptr> grads(n, zero);
-						grads[i] = grad;
-						auto f = static_cast<iFunctor*>(child);
-						funcs.push_back({f, gradmap(f->get_code(), fwd, children, grads)});
+						funcs.push_back({static_cast<iFunctor*>(child), g});
 					}
 				}
 			}

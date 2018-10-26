@@ -20,6 +20,7 @@ struct EnumHash
 
 const std::unordered_map<OPCODE,std::string,EnumHash> opnames =
 {
+	OP_ASSOC(COPY),
 	OP_ASSOC(ABS),
 	OP_ASSOC(NEG),
 	OP_ASSOC(NOT),

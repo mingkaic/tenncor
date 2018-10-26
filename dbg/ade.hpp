@@ -23,7 +23,14 @@ struct PrettyEquation final
 		{
 			if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(root))
 			{
-				return f->get_children();
+				auto& children = f->get_children();
+				std::vector<ade::iTensor*> tens(children.size());
+				std::transform(children.begin(), children.end(), tens.begin(),
+				[](const std::pair<ade::CoordPtrT,ade::Tensorptr>& child)
+				{
+					return child.second.get();
+				});
+				return tens;
 			}
 			return {};
 		},
