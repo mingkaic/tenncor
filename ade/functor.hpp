@@ -102,7 +102,7 @@ struct Functor final : public iFunctor
 		for (size_t i = 1, n = args.size(); i < n; ++i)
 		{
 			Shape ishape;
-			args[i].first->forward(shape.begin(),
+			args[i].first->forward(ishape.begin(),
 				args[i].second->shape().begin());
 			if (false == ishape.compatible_after(shape, 0))
 			{
@@ -177,16 +177,18 @@ struct Functor final : public iFunctor
 			}
 		}
 
+		assert(finalgrad.size() > 0);
 		if (finalgrad.size() == 1)
 		{
 			return finalgrad[0];
 		}
 		ArgsT finalargs;
-		std::transform(finalgrad.begin(), finalgrad.end(), finalargs.begin(),
-		[](Tensorptr& tens) -> std::pair<CoordPtrT,Tensorptr>
-		{
-			return {identity, tens};
-		});
+		std::transform(finalgrad.begin(), finalgrad.end(),
+			std::back_inserter(finalargs),
+			[](Tensorptr& tens) -> std::pair<CoordPtrT,Tensorptr>
+			{
+				return {identity, tens};
+			});
 		return Functor<ADD>::get(finalargs);
 	}
 

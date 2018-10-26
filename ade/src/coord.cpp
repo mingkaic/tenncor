@@ -22,6 +22,7 @@ struct CoordMap final : public iCoordMap
 		Shape::const_iterator in) const override
 	{
 		std::array<double,rank_cap> temp;
+		temp.fill(0);
 		for (uint8_t i = 0; i < rank_cap; ++i)
 		{
 			for (uint8_t j = 0; j < rank_cap; ++j)
@@ -39,6 +40,7 @@ struct CoordMap final : public iCoordMap
 		Shape::const_iterator in) const override
 	{
 		std::array<double,rank_cap> temp;
+		temp.fill(0);
 		for (uint8_t i = 0; i < rank_cap; ++i)
 		{
 			for (uint8_t j = 0; j < rank_cap; ++j)
@@ -55,6 +57,28 @@ struct CoordMap final : public iCoordMap
 	iCoordMap* reverse (void) const override
 	{
 		return new CoordMap(bwd_, fwd_);
+	}
+
+	std::string to_string (void) const override
+	{
+		std::stringstream ss;
+		ss << arr_begin;
+		for (uint8_t i = 0; i < rank_cap - 1; ++i)
+		{
+			ss << arr_begin << fwd_[i][0];
+			for (uint8_t j = 1; j < rank_cap; ++j)
+			{
+				ss << arr_delim << fwd_[i][j];
+			}
+			ss << arr_end << arr_delim << '\n';
+		}
+		ss << arr_begin << fwd_[rank_cap - 1][0];
+		for (uint8_t j = 1; j < rank_cap; ++j)
+		{
+			ss << arr_delim << fwd_[rank_cap - 1][j];
+		}
+		ss << arr_end << arr_end;
+		return ss.str();
 	}
 
 private:

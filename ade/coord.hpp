@@ -27,6 +27,8 @@ struct iCoordMap
 		Shape::const_iterator in) const = 0;
 
 	virtual iCoordMap* reverse (void) const = 0;
+
+	virtual std::string to_string (void) const = 0;
 };
 
 using CoordPtrT = std::shared_ptr<iCoordMap>;
