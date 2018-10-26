@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "ade/log.hpp"
+#include "ade/log/log.hpp"
 
 #ifdef ADE_LOG_HPP
 

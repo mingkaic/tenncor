@@ -13,7 +13,7 @@
 #include <sstream>
 #include <vector>
 
-#include "ade/log.hpp"
+#include "ade/log/log.hpp"
 
 #ifndef ADE_SHAPE_HPP
 #define ADE_SHAPE_HPP
@@ -133,7 +133,7 @@ struct Shape final
 	/// Return string representation of shape
 	std::string to_string (void) const
 	{
-		return ade::to_string(std::vector<DimT>(begin(), end()));
+		return ade::to_string(begin(), end());
 	}
 
 	// >>>> INTERNAL CONTROL <<<<

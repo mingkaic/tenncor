@@ -7,19 +7,17 @@
 ///
 
 #include <algorithm>
+#include <unordered_map>
+#include <list>
 
-#include "ade/string.hpp"
-#include "ade/tensor.hpp"
-#include "ade/opcode.hpp"
-#include "ade/coord.hpp"
+#include "ade/log/string.hpp"
+#include "ade/grader.hpp"
 
 #ifndef ADE_FUNCTOR_HPP
 #define ADE_FUNCTOR_HPP
 
 namespace ade
 {
-
-using ArgsT = std::vector<std::pair<CoordPtrT,Tensorptr>>;
 
 /// Interface of OPCODE-defined operation node
 struct iFunctor : public iTensor
@@ -36,7 +34,53 @@ struct iFunctor : public iTensor
 	virtual OPCODE get_code (void) const = 0;
 
 	/// Return children nodes as a vector of raw pointers
-	virtual ArgsT get_children (void) const = 0;
+	virtual const ArgsT& get_children (void) const = 0;
+};
+
+struct PathFinder final : public iTraveler
+{
+	using ParentMapT = std::unordered_map<iTensor*,std::vector<bool>>;
+
+	PathFinder (const iTensor* target) : target_(target) {}
+
+	/// Implementation of iTraveler
+	void visit (Tensor* leaf) override {}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor* func) override
+	{
+		if (parents_.end() == parents_.find(func))
+		{
+			auto& children = func->get_children();
+			size_t n = children.size();
+			bool has_path = false;
+			std::vector<bool> path(n, false);
+			for (size_t i = 0; i < n; ++i)
+			{
+				Tensorptr tens = children[i].second;
+				if (tens.get() == target_)
+				{
+					path[i] = has_path = true;
+				}
+				else
+				{
+					tens->accept(*this);
+					if (parents_.end() != parents_.find(tens.get()))
+					{
+						path[i] = has_path = true;
+					}
+				}
+			}
+			if (has_path)
+			{
+				parents_[func] = path;
+			}
+		}
+	}
+
+	const iTensor* target_;
+
+	ParentMapT parents_;
 };
 
 /// Functor of the graph mapping to operators specified in template argument OP
@@ -76,13 +120,74 @@ struct Functor final : public iFunctor
 	}
 
 	/// Implementation of iTensor
-	Tensorptr gradient (Tensorptr& wrt) const override
+	Tensorptr gradient (const iTensor* wrt) override
 	{
-		if (wrt.get() == this)
+		if (this == wrt)
 		{
 			return shaped_one(shape_);
 		}
-		return grader<OP>(this, args_, wrt);
+
+		// define traversal path from this to wrt
+		PathFinder finder(wrt);
+		accept(finder);
+
+		auto zero = shaped_zero(shape_);
+		if (finder.parents_.empty())
+		{
+			return zero;
+		}
+		// else there exists a path to wrt
+		// using pathfinder, breadth first traverse to wrt
+		std::list<std::pair<iFunctor*,Tensorptr>> funcs = {{this, shaped_one(shape_)}};
+		std::vector<Tensorptr> finalgrad;
+		while (false == funcs.empty())
+		{
+			auto& fpair = funcs.front();
+			iFunctor* f = fpair.first;
+			auto& grad = fpair.second;
+			funcs.pop_front();
+			auto& paint = finder.parents_[f];
+			ArgsT children = f->get_children();
+			// prep children for downward traversal
+			for (auto& child : children)
+			{
+				child.first = CoordPtrT(child.first->reverse());
+			}
+			// for each painted child, calculate dThis/dChild
+			for (size_t i = 0, n = children.size(); i < n; ++i)
+			{
+				if (paint[i])
+				{
+					Tensorptr& fwd = children[i].second;
+					iTensor* child = fwd.get();
+					if (wrt == child)
+					{
+						// grad should be compatible with wrt
+						finalgrad.push_back(grad);
+					}
+					else
+					{
+						// calculate grad using chain rule then pass down forward-gradient pair
+						std::vector<Tensorptr> grads(n, zero);
+						grads[i] = grad;
+						auto f = static_cast<iFunctor*>(child);
+						funcs.push_back({f, gradmap(f->get_code(), fwd, children, grads)});
+					}
+				}
+			}
+		}
+
+		if (finalgrad.size() == 1)
+		{
+			return finalgrad[0];
+		}
+		ArgsT finalargs;
+		std::transform(finalgrad.begin(), finalgrad.end(), finalargs.begin(),
+		[](Tensorptr& tens) -> std::pair<CoordPtrT,Tensorptr>
+		{
+			return {identity, tens};
+		});
+		return Functor<ADD>::get(finalargs);
 	}
 
 	/// Implementation of iTensor
@@ -98,9 +203,9 @@ struct Functor final : public iFunctor
 	}
 
 	/// Implementation of iFunctor
-	ArgsT get_children (void) const override
+	const ArgsT& get_children (void) const override
 	{
-		return args;
+		return args_;
 	}
 
 private:

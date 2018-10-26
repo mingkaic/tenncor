@@ -1,4 +1,4 @@
-#include "ade/log.hpp"
+#include "ade/log/log.hpp"
 
 #include "ade/shape.hpp"
 
@@ -14,7 +14,8 @@ NElemT index (Shape shape, CoordT coord)
 		if (coord[i] >= shape.at(i))
 		{
 			fatalf("cannot get index of bad coordinate %s for shape %s",
-				to_string(coord).c_str(), shape.to_string().c_str());
+				to_string(coord.begin(), coord.end()).c_str(),
+				shape.to_string().c_str());
 		}
 	}
 	NElemT index = 0;

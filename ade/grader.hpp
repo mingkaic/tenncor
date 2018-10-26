@@ -6,7 +6,9 @@
 ///	Define derivative chain rules and map to OPCODEs
 ///
 
-#include "ade/functor.hpp"
+#include "ade/opcode.hpp"
+#include "ade/tensor.hpp"
+#include "ade/coord.hpp"
 
 #ifndef ADE_GRADER_HPP
 #define ADE_GRADER_HPP
@@ -14,14 +16,19 @@
 namespace ade
 {
 
+// TODO: CONVERT TO GENERATED CONFIG
+
+using ArgsT = std::vector<std::pair<CoordPtrT,Tensorptr>>;
+
 template <OPCODE OP>
-Tensorptr grader (Tensorptr& fwd, ArgsT& args, Tensorptr& wrt)
+Tensorptr grader (Tensorptr& fwd, ArgsT& args,
+	std::vector<Tensorptr>& wrt)
 {
 	throw std::bad_function_call();
 }
 
 #define GRAD_DECLARE(CODE)template <>\
-Tensorptr grader<CODE> (Tensorptr&,ArgsT&,Tensorptr&);
+Tensorptr grader<CODE> (Tensorptr&,ArgsT&,std::vector<Tensorptr>&);
 
 GRAD_DECLARE(COPY)
 
@@ -76,6 +83,9 @@ GRAD_DECLARE(RAND_UNIF)
 GRAD_DECLARE(RAND_NORM)
 
 #undef GRAD_DECLARE
+
+Tensorptr gradmap (OPCODE op, Tensorptr& fwd, ArgsT args,
+	std::vector<Tensorptr>& grads);
 
 }
 

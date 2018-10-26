@@ -1,9 +1,12 @@
-#include "gtest/gtest.h"
-
-#include "ade/string.hpp"
-
 
 #ifndef DISABLE_STRING_TEST
+
+
+#include <array>
+
+#include "gtest/gtest.h"
+
+#include "ade/log/string.hpp"
 
 
 TEST(STRING, StringFmt)
@@ -75,6 +78,17 @@ TEST(STRING, Tuple)
 		std::integer_sequence<size_t, 0, 3, 2, 1>());
 	EXPECT_STREQ("hey what's the answer to number\\[16\\13\\45]\\[\\\\\\"
 		"fine I'll tell you\\it's]\\15.1", outorder.c_str());
+}
+
+
+TEST(STRING, Iterators)
+{
+	std::vector<double> dbs = {1.5, 1, 5.6, 7.8};
+	std::array<int,4> iar = {-5, 2, -3, 6};
+	std::string dbstr = ade::to_string(dbs.begin(), dbs.end());
+	std::string iarstr = ade::to_string(iar.begin(), iar.end());
+	EXPECT_STREQ("[1.5\\1\\5.6\\7.8]", dbstr.c_str());
+	EXPECT_STREQ("[-5\\2\\-3\\6]", iarstr.c_str());
 }
 
 

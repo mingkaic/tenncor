@@ -1,11 +1,12 @@
+
+#ifndef DISABLE_SHAPE_TEST
+
+
 #include "gtest/gtest.h"
 
 #include "ade/shape.hpp"
 
 #include "testutil/common.hpp"
-
-
-#ifndef DISABLE_SHAPE_TEST
 
 
 struct SHAPE : public simple::TestModel

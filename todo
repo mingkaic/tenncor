@@ -10,6 +10,7 @@ P4 - refactor, and rename variables to improve readability
 
 structure:
 P2 - create cython interface for llo + examples
+- remove cli
 P3 - restructure llo to separate glue and data operators
 
 performance:
@@ -20,7 +21,7 @@ P4 - implement optimization options to increase data accuracy
 
 features:
 P1 - represent forward shape manipulation as coordinate transformation
-P2 - convert forward, backward operators in ade to generated configuration
 P2 - represent matmul as extend, permute, mul, and reduce_sum
+P2 - convert forward, backward operators in ade to generated configuration
 P2 - implement convolution
 P3 - implement deep copy

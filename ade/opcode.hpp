@@ -16,6 +16,8 @@
 namespace ade
 {
 
+// TODO: CONVERT TO GENERATED CONFIG
+
 /// Enumerated representation of operations
 enum OPCODE
 {
@@ -118,9 +120,6 @@ enum OPCODE
 	/// Shapes must be compatible before min_rank of both tensors
 	/// Only accept 2 arguments
 	RAND_NORM,
-
-	/// <<< UNIMPLEMENTED >>>
-	CONVOLUTE,
 };
 
 /// Return the string name of input OPCODE

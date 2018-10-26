@@ -22,26 +22,34 @@ filegroup(
     srcs = glob(["test/data/*.txt"]),
 )
 
-######### LIBRARY #########
+######### LIBRARIES #########
+
+cc_library(
+    name = "log",
+    hdrs = ["log/string.hpp", "log/log.hpp"],
+    srcs = ["log/string.cpp", "log/log.cpp"],
+    copts = ["-std=c++14"],
+)
 
 cc_library(
     name = "ade",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
+    deps = ["//ade:log"],
 )
 
 ######### TEST #########
 
 cc_test(
-    name = "test_util",
+    name = "test_log",
     size = "small",
     srcs = glob([
-        "test/util/*.hpp",
-        "test/util/*.cpp",
+        "test/log/*.hpp",
+        "test/log/*.cpp",
     ]),
     deps = [
-        "//ade:ade",
+        "//ade:log",
         "@com_google_googletest//:gtest",
     ],
     copts = ["-std=c++14"],

@@ -1,4 +1,4 @@
-#include "ade/log.hpp"
+#include "ade/log/log.hpp"
 
 struct TestLogger : public ade::iLogger
 {

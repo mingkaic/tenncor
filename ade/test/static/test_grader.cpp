@@ -1,3 +1,7 @@
+
+#ifndef DISABLE_GRADER_TEST
+
+
 #include <fstream>
 
 #include "gtest/gtest.h"
@@ -6,9 +10,6 @@
 
 #include "ade/functor.hpp"
 #include "ade/grader.hpp"
-
-
-#ifndef DISABLE_GRADER_TEST
 
 
 const std::string testdir = "ade/test/data";

@@ -8,8 +8,7 @@
 
 #include <memory>
 
-#include "ade/log.hpp"
-
+#include "ade/log/log.hpp"
 #include "ade/shape.hpp"
 
 #ifndef ADE_TENSOR_HPP
@@ -47,8 +46,8 @@ struct iTensor
 	/// Return the shape held by this tensor
 	virtual const Shape& shape (void) const = 0;
 
-	/// Return the root of the partial derivative with respect to input wrt
-	virtual Tensorptr gradient (Tensorptr& wrt) const = 0;
+	/// Return the partial derivative of this with respect to input wrt
+	virtual Tensorptr gradient (const iTensor* wrt) = 0;
 
 	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;
@@ -141,9 +140,9 @@ struct Tensor final : public iTensor
 	}
 
 	/// Implementation of iTensor
-	Tensorptr gradient (Tensorptr& wrt) const override
+	Tensorptr gradient (const iTensor* wrt) override
 	{
-		if (this == wrt.get())
+		if (this == wrt)
 		{
 			return shaped_one(shape_);
 		}

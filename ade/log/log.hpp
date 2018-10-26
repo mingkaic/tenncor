@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "ade/string.hpp"
+#include "ade/log/string.hpp"
 
 #ifndef ADE_LOG_HPP
 #define ADE_LOG_HPP

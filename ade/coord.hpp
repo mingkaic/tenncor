@@ -3,7 +3,7 @@
 ///	ade
 ///
 ///	Purpose:
-///	Define shape transformation functions and map to OPCODEs
+///	Define shape/coordinate transformation functions
 ///
 
 #include <functional>
@@ -25,17 +25,19 @@ struct iCoordMap
 
 	virtual void backward (Shape::iterator out,
 		Shape::const_iterator in) const = 0;
+
+	virtual iCoordMap* reverse (void) const = 0;
 };
 
 using CoordPtrT = std::shared_ptr<iCoordMap>;
 
 extern CoordPtrT identity;
 
-CoordPtrT reduce (uint8_t dim);
-
-CoordPtrT permute (std::vector<uint8_t> order);
+CoordPtrT reduce (uint8_t rank, std::vector<DimT> red);
 
 CoordPtrT extend (uint8_t rank, std::vector<DimT> ext);
+
+CoordPtrT permute (std::vector<uint8_t> order);
 
 }
 

@@ -1,12 +1,13 @@
+
+#ifndef DISABLE_TENSOR_TEST
+
+
 #include "gtest/gtest.h"
 
 #include "ade/tensor.hpp"
 #include "ade/functor.hpp"
 
 #include "testutil/common.hpp"
-
-
-#ifndef DISABLE_TENSOR_TEST
 
 
 struct TENSOR : public simple::TestModel {};

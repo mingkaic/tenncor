@@ -1,11 +1,12 @@
+
+#ifndef DISABLE_FUNCTOR_TEST
+
+
 #include "gtest/gtest.h"
 
 #include "ade/functor.hpp"
 
 #include "testutil/common.hpp"
-
-
-#ifndef DISABLE_FUNCTOR_TEST
 
 
 struct FUNCTOR : public simple::TestModel {};

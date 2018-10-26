@@ -1,8 +1,10 @@
-#include "gtest/gtest.h"
-
-#include "ade/test/util/common.hpp"
 
 #ifndef DISABLE_LOG_TEST
+
+
+#include "gtest/gtest.h"
+
+#include "ade/test/log/common.hpp"
 
 
 struct LOG : public ::testing::Test

@@ -2,7 +2,7 @@ GTEST_REPEAT := 50
 
 COVERAGE_INFO_FILE := coverage.info
 
-ADE_UTEST := //ade:test_util
+ADE_LTEST := //ade:test_log
 
 ADE_DTEST := //ade:test_dynamic
 
@@ -40,7 +40,7 @@ GTEST := $(TEST) $(GTEST_FLAGS)
 
 COVER := bazel coverage --test_output=all $(GTEST_FLAGS) # we want cache result for coverage
 
-COVERAGE_PIPE := ./listcov.sh $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE)
+COVERAGE_PIPE := ./scripts/merge_cov.sh $(COVERAGE_INFO_FILE)
 
 TMP_LOGFILE := /tmp/tenncor-test.log
 
@@ -49,10 +49,10 @@ TMP_LOGFILE := /tmp/tenncor-test.log
 
 test: test_ade test_llo test_pbm
 
-test_ade: test_ade_util test_ade_dynamic test_ade_static
+test_ade: test_ade_log test_ade_dynamic test_ade_static
 
-test_ade_util:
-	$(GTEST) $(ADE_UTEST)
+test_ade_log:
+	$(GTEST) $(ADE_LTEST)
 
 test_ade_dynamic:
 	$(GTEST) $(REP_BZL_FLAGS) $(ADE_DTEST)
@@ -70,10 +70,10 @@ test_pbm:
 
 valgrind: valgrind_ade valgrind_llo valgrind_pbm
 
-valgrind_ade: valgrind_ade_util valgrind_ade_dynamic valgrind_ade_static
+valgrind_ade: valgrind_ade_log valgrind_ade_dynamic valgrind_ade_static
 
-valgrind_ade_util:
-	$(GTEST) $(VAL_BZL_FLAGS) $(ADE_UTEST)
+valgrind_ade_log:
+	$(GTEST) $(VAL_BZL_FLAGS) $(ADE_LTEST)
 
 valgrind_ade_dynamic:
 	$(GTEST) $(VAL_BZL_FLAGS) --action_env="GTEST_REPEAT=5" $(ADE_DTEST)
@@ -91,10 +91,10 @@ valgrind_pbm:
 
 asan: asan_ade asan_llo asan_pbm
 
-asan_ade: asan_ade_util asan_ade_dynamic asan_ade_static
+asan_ade: asan_ade_log asan_ade_dynamic asan_ade_static
 
-asan_ade_util:
-	$(GTEST) $(ASAN_BZL_FLAGS) $(ADE_UTEST)
+asan_ade_log:
+	$(GTEST) $(ASAN_BZL_FLAGS) $(ADE_LTEST)
 
 asan_ade_dynamic:
 	$(GTEST) $(ASAN_BZL_FLAGS) $(REP_BZL_FLAGS) $(ADE_DTEST)
@@ -112,10 +112,10 @@ asan_pbm:
 
 coverage: cover_ade cover_llo cover_pbm
 
-cover_ade: cover_ade_util cover_ade_dynamic cover_ade_static
+cover_ade: cover_ade_log cover_ade_dynamic cover_ade_static
 
-cover_ade_util:
-	$(COVER) --instrumentation_filter=/ade[/:] $(ADE_UTEST)
+cover_ade_log:
+	$(COVER) --instrumentation_filter=/ade[/:] $(ADE_LTEST)
 
 cover_ade_dynamic:
 	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter=/ade[/:] $(ADE_DTEST)
@@ -124,48 +124,60 @@ cover_ade_static:
 	$(COVER) --instrumentation_filter=/ade[/:] $(ADE_STEST)
 
 cover_llo:
-	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter=/llo[/:],/ade[/:],/util[/:] $(LLO_TEST)
+	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter=/llo[/:],/ade[/:] $(LLO_TEST)
 
 cover_pbm:
-	$(COVER) --instrumentation_filter=/pbm[/:],/llo[/:],/ade[/:],/util[/:] $(PBM_TEST)
+	$(COVER) --instrumentation_filter=/pbm[/:],/llo[/:],/ade[/:] $(PBM_TEST)
 
 # generate coverage.info
 
 lcov_all: coverage
 	rm -f $(TMP_LOGFILE)
-	cat bazel-testlogs/ade/test_util/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/ade/test_log/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test_dynamic/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test_static/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/llo/test_llo/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/pbm/test_pbm/test.log >> $(TMP_LOGFILE)
 	cat $(TMP_LOGFILE) | $(COVERAGE_PIPE)
+	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
 	rm -f $(TMP_LOGFILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_ade: cover_ade
 	rm -f $(TMP_LOGFILE)
-	cat bazel-testlogs/ade/test_util/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/ade/test_log/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test_dynamic/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test_static/test.log >> $(TMP_LOGFILE)
 	cat $(TMP_LOGFILE) | $(COVERAGE_PIPE)
+	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
 	rm -f $(TMP_LOGFILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_llo: cover_llo
-	cat bazel-testlogs/llo/test_llo/test.log | $(COVERAGE_PIPE) 'ade/*'
+	cat bazel-testlogs/llo/test_llo/test.log | $(COVERAGE_PIPE)
+	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'ade/*' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_pbm: cover_pbm
-	cat bazel-testlogs/pbm/test_pbm/test.log | $(COVERAGE_PIPE) 'ade/*' 'llo/*'
+	cat bazel-testlogs/pbm/test_pbm/test.log | $(COVERAGE_PIPE)
+	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'ade/*' 'llo/*' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 # test management
 
 dora_run:
-	./start_dora.sh
+	./scripts/start_dora.sh ./certs
 
 gen_test: dora_run
 	bazel run //test_gen:tfgen
 
 test_regress: gen_test
 	$(GTEST) $(REGRESS_TEST)
+
+# deployment
+
+docs:
+	rm -rf docs
+	doxygen
+	mv doxout/html docs
+	rm -rf doxout

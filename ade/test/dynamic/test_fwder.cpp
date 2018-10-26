@@ -1,11 +1,12 @@
+
+#ifndef DISABLE_FWDER_TEST
+
+
 #include "gtest/gtest.h"
 
 #include "ade/fwder.hpp"
 
 #include "testutil/common.hpp"
-
-
-#ifndef DISABLE_FWDER_TEST
 
 
 struct FWDER : public simple::TestModel

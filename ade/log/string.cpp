@@ -1,4 +1,4 @@
-#include "ade/string.hpp"
+#include "ade/log/string.hpp"
 
 #ifdef ADE_STRING_HPP
 
@@ -17,10 +17,10 @@ void to_stream (std::ostream& s, std::string str)
 	for (size_t i = 0, n = str.size(); i < n; ++i)
 	{
 		switch (str[i]) {
-			case ade::BEGIN:
-			case ade::END:
-			case ade::DELIM:
-				str.insert(str.begin() + i, ade::DELIM);
+			case ade::arr_begin:
+			case ade::arr_end:
+			case ade::arr_delim:
+				str.insert(str.begin() + i, ade::arr_delim);
 				++i;
 				++n;
 		}
