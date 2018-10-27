@@ -22,6 +22,8 @@ const size_t mat_size = sizeof(double) * mat_dim * mat_dim;
 
 using MatrixT = double[mat_dim][mat_dim];
 
+std::string to_string (const MatrixT& mat);
+
 /// LU decompose in matrix into upper (U) and lower (L) trangiular matrices
 void lu_decomposition (MatrixT lower, MatrixT upper, const MatrixT in);
 

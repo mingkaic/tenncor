@@ -61,24 +61,7 @@ struct CoordMap final : public iCoordMap
 
 	std::string to_string (void) const override
 	{
-		std::stringstream ss;
-		ss << arr_begin;
-		for (uint8_t i = 0; i < rank_cap - 1; ++i)
-		{
-			ss << arr_begin << fwd_[i][0];
-			for (uint8_t j = 1; j < rank_cap; ++j)
-			{
-				ss << arr_delim << fwd_[i][j];
-			}
-			ss << arr_end << arr_delim << '\n';
-		}
-		ss << arr_begin << fwd_[rank_cap - 1][0];
-		for (uint8_t j = 1; j < rank_cap; ++j)
-		{
-			ss << arr_delim << fwd_[rank_cap - 1][j];
-		}
-		ss << arr_end << arr_end;
-		return ss.str();
+		return ade::to_string(fwd_);
 	}
 
 private:

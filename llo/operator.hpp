@@ -38,19 +38,43 @@ struct VecRef
 
 /// Given reference to output array, expected output shape,
 /// and input vector ref, copy input elements to outputs according to mapper
-/// Copy cannot resolve conflicts, so assume 1-M mapping (non-surjective)
+/// Resolve surjective conflicts by summing
 template <typename T>
 void copy (T* out, ade::Shape outshape, VecRef<T> in)
 {
-	ade::NElemT n = outshape.n_elems();
+	ade::NElemT nout = outshape.n_elems();
+	ade::NElemT nin = in.shape.n_elems();
 	ade::CoordT coord;
-	for (size_t outidx = 0; outidx < n; ++outidx)
+	if (nout > nin) // non-surjective
 	{
-		// backward since cardinality of output >= cardinality of input
-		in.mapper->backward(coord.begin(),
-			ade::coordinate(outshape, outidx).begin());
-		ade::NElemT i = ade::index(in.shape, coord);
-		out[outidx] = in.data[i];
+		for (ade::NElemT outidx = 0; outidx < nout; ++outidx)
+		{
+			in.mapper->backward(coord.begin(),
+				ade::coordinate(outshape, outidx).begin());
+			ade::NElemT i = ade::index(in.shape, coord);
+			out[outidx] = in.data[i];
+		}
+	}
+	else // resolve surjective conflicts
+	{
+		bool visited[nout];
+		std::memset(visited, false, nout);
+		for (ade::NElemT i = 0; i < nin; ++i)
+		{
+			in.mapper->forward(coord.begin(),
+				ade::coordinate(in.shape, i).begin());
+			ade::NElemT outidx = ade::index(outshape, coord);
+			if (visited[outidx])
+			{
+				out[outidx] += in.data[i];
+			}
+			else
+			{
+				out[outidx] = in.data[i];
+				visited[outidx] = true;
+			}
+		}
+		// todo: do something/check non-visited elements
 	}
 }
 
@@ -59,7 +83,7 @@ template <typename T>
 void unary (T* out, VecRef<T> in, std::function<T(const T&)> f)
 {
 	ade::NElemT n = in.shape.n_elems();
-	for (size_t i = 0; i < n; ++i)
+	for (ade::NElemT i = 0; i < n; ++i)
 	{
 		out[i] = f(in.data[i]);
 	}
@@ -180,7 +204,7 @@ void binary (T* out, VecRef<T> a, VecRef<T> b,
 		ade::fatalf("cannot perform binary operation on non-bijective "
 			"arguments of sizes %d and %d", n, b.shape.n_elems());
 	}
-	for (size_t i = 0; i < n; ++i)
+	for (ade::NElemT i = 0; i < n; ++i)
 	{
 		out[i] = f(a.data[i], b.data[i]);
 	}
@@ -270,7 +294,7 @@ void rand_binom (T* out, VecRef<T> a, VecRef<double> b)
 		ade::fatalf("cannot perform binary operation on non-bijective "
 			"arguments of sizes %d and %d", n, b.shape.n_elems());
 	}
-	for (size_t i = 0; i < n; ++i)
+	for (ade::NElemT i = 0; i < n; ++i)
 	{
 		std::binomial_distribution<T> dist(a.data[i], b.data[i]);
 		out[i] = dist(get_engine());
@@ -329,31 +353,45 @@ void nnary (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args,
 	{
 		ade::fatal("Cannot perform operation with no arguments");
 	}
-	size_t nout = outshape.n_elems();
+	ade::NElemT nout = outshape.n_elems();
 	bool visited[nout];
 	std::memset(visited, false, nout);
 	ade::CoordT coord;
 	size_t nargs = args.size();
-	for (size_t i = 0; i < nargs; ++i)
+	if (nargs == 1 && nout > args[0].shape.n_elems()) // resolve extensions
 	{
-		VecRef<T>& arg = args[i];
-		for (size_t i = 0, n = arg.shape.n_elems(); i < n; ++i)
+		VecRef<T>& arg = args[0];
+		for (ade::NElemT outidx = 0; outidx < nout; ++outidx)
 		{
-			arg.mapper->forward(coord.begin(),
-				ade::coordinate(arg.shape, i).begin());
-			size_t outidx = ade::index(outshape, coord);
-			if (visited[outidx])
-			{
-				acc(out[outidx], arg.data[i]);
-			}
-			else
-			{
-				out[outidx] = arg.data[i];
-				visited[outidx] = true;
-			}
+			arg.mapper->backward(coord.begin(),
+				ade::coordinate(outshape, outidx).begin());
+			ade::NElemT i = ade::index(arg.shape, coord);
+			out[outidx] = arg.data[i];
 		}
 	}
-	// todo: do something/check non-visited elements
+	else
+	{
+		for (size_t i = 0; i < nargs; ++i)
+		{
+			VecRef<T>& arg = args[i];
+			for (ade::NElemT i = 0, n = arg.shape.n_elems(); i < n; ++i)
+			{
+				arg.mapper->forward(coord.begin(),
+					ade::coordinate(arg.shape, i).begin());
+				ade::NElemT outidx = ade::index(outshape, coord);
+				if (visited[outidx])
+				{
+					acc(out[outidx], arg.data[i]);
+				}
+				else
+				{
+					out[outidx] = arg.data[i];
+					visited[outidx] = true;
+				}
+			}
+		}
+		// todo: do something/check non-visited elements
+	}
 }
 
 /// Given arguments, for every index i in range [0:max_nelems],

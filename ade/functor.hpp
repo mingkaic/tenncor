@@ -129,43 +129,49 @@ struct Functor final : public iFunctor
 		PathFinder finder(wrt);
 		accept(finder);
 
-		auto zero = shaped_zero(shape_);
 		if (finder.parents_.empty())
 		{
-			return zero;
+			return shaped_zero(shape_);
 		}
 		// else there exists a path to wrt
 		// using pathfinder, breadth first traverse to wrt
-		std::list<std::pair<iFunctor*,Tensorptr>> funcs = {{this, shaped_one(shape_)}};
+		std::list<std::pair<iTensor*,Tensorptr>> tmaps = {{this, shaped_one(shape_)}};
 		std::vector<Tensorptr> finalgrad;
-		while (false == funcs.empty())
+		while (false == tmaps.empty())
 		{
-			auto& fpair = funcs.front();
-			iFunctor* f = fpair.first;
-			auto grad = fpair.second;
-			funcs.pop_front();
-			auto& paint = finder.parents_[f];
-			ArgsT children = f->get_children();
+			auto fpair = tmaps.front();
+			tmaps.pop_front();
+			iTensor* fwd = fpair.first;
+			auto bwd = fpair.second;
+			if (wrt == fwd)
+			{
+				finalgrad.push_back(bwd);
+				continue;
+			}
+			iFunctor* func = static_cast<iFunctor*>(fwd);
+			OPCODE opcode = func->get_code();
+			auto& paint = finder.parents_[func];
+			ArgsT children = func->get_children();
+			ArgsT grad_children;
+			std::transform(children.begin(), children.end(),
+				std::back_inserter(grad_children),
+				[](std::pair<CoordPtrT,Tensorptr>& child)
+				{ return std::pair<CoordPtrT,Tensorptr>{
+					child.first->reverse(),
+					shaped_zero(child.second->shape())}; });
 			// for each painted child, calculate dThis/dChild
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
 				if (paint[i])
 				{
-					Tensorptr& fwd = children[i].second;
-					iTensor* child = fwd.get();
-					std::vector<Tensorptr> grads(n, zero);
-					grads[i] = grad;
-					auto g = gradmap(f->get_code(), children, grads);
-					if (wrt == child)
-					{
-						// grad should be compatible with wrt
-						finalgrad.push_back(g);
-					}
-					else
-					{
-						// calculate grad using chain rule then pass down forward-gradient pair
-						funcs.push_back({static_cast<iFunctor*>(child), g});
-					}
+					Tensorptr& child = children[i].second;
+					iTensor* tens = child.get();
+					auto zero = grad_children[i].second;
+					grad_children[i].second = bwd;
+					// pass down forward-gradient pair
+					tmaps.push_back({tens,
+						gradmap(opcode, children, grad_children)});
+					grad_children[i].second = zero;
 				}
 			}
 		}

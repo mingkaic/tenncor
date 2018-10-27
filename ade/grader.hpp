@@ -21,13 +21,13 @@ namespace ade
 using ArgsT = std::vector<std::pair<CoordPtrT,Tensorptr>>;
 
 template <OPCODE OP>
-Tensorptr grader (ArgsT& args, std::vector<Tensorptr>& wrt)
+Tensorptr grader (ArgsT& args, ArgsT& grads)
 {
 	throw std::bad_function_call();
 }
 
 #define GRAD_DECLARE(CODE)template <>\
-Tensorptr grader<CODE> (ArgsT&,std::vector<Tensorptr>&);
+Tensorptr grader<CODE> (ArgsT&,ArgsT&);
 
 GRAD_DECLARE(COPY)
 
@@ -81,8 +81,7 @@ GRAD_DECLARE(RAND_NORM)
 
 #undef GRAD_DECLARE
 
-Tensorptr gradmap (OPCODE op, ArgsT args,
-	std::vector<Tensorptr>& grads);
+Tensorptr gradmap (OPCODE op, ArgsT args, ArgsT& grads);
 
 }
 

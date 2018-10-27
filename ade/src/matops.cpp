@@ -5,6 +5,28 @@
 namespace ade
 {
 
+std::string to_string (const MatrixT& mat)
+{
+    std::stringstream ss;
+    ss << arr_begin;
+    for (uint8_t i = 0; i < rank_cap - 1; ++i)
+    {
+        ss << arr_begin << mat[i][0];
+        for (uint8_t j = 1; j < rank_cap; ++j)
+        {
+            ss << arr_delim << mat[i][j];
+        }
+        ss << arr_end << arr_delim << '\n';
+    }
+    ss << arr_begin << mat[rank_cap - 1][0];
+    for (uint8_t j = 1; j < rank_cap; ++j)
+    {
+        ss << arr_delim << mat[rank_cap - 1][j];
+    }
+    ss << arr_end << arr_end;
+    return ss.str();
+}
+
 void lu_decomposition (MatrixT lower, MatrixT upper, const MatrixT in)
 {
 	memset(lower, 0, mat_size);
