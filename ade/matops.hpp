@@ -4,6 +4,7 @@
 ///
 ///	Purpose:
 ///	Define matrix operations for coordinate transformation
+/// This functions are here to avoid external dependencies in ADE
 ///
 
 #include <cstring>
@@ -16,19 +17,23 @@
 namespace ade
 {
 
-const uint8_t mat_dim = rank_cap; // todo: make homogeneous
+const uint8_t mat_dim = rank_cap; // todo: make homogeneous (for large shapes)
 
 const size_t mat_size = sizeof(double) * mat_dim * mat_dim;
 
 using MatrixT = double[mat_dim][mat_dim];
 
+using AugMatrixT = double[mat_dim][mat_dim * 2];
+
 std::string to_string (const MatrixT& mat);
 
-/// LU decompose in matrix into upper (U) and lower (L) trangiular matrices
-void lu_decomposition (MatrixT lower, MatrixT upper, const MatrixT in);
+std::string to_string (const AugMatrixT& mat);
 
-/// OUT = IN^-1
-void inverse (MatrixT out, const MatrixT in);
+/// Reduce row echelon form mat augmented matrix in-place
+void rrow_echelon_form (AugMatrixT mat);
+
+/// Inverse in matrix and dump to out matrix
+void inverse (MatrixT out, const MatrixT& in);
 
 }
 

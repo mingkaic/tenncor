@@ -27,86 +27,98 @@ std::string to_string (const MatrixT& mat)
     return ss.str();
 }
 
-void lu_decomposition (MatrixT lower, MatrixT upper, const MatrixT in)
+std::string to_string (const AugMatrixT& mat)
 {
-	memset(lower, 0, mat_size);
-	memset(upper, 0, mat_size);
-
-	for (uint8_t i = 0; i < mat_dim; ++i)
-	{
-		// upper triangle
-		for (uint8_t j = i; j < mat_dim; ++j)
-		{
-			// Σ(L[i][k] * U[k][j])
-			double sum = 0;
-			for (uint8_t k = 0; k < i; ++k)
-			{
-				sum += (lower[i][k] * upper[k][j]);
-			}
-
-			upper[i][j] = in[i][j] - sum;
-		}
-
-		// lower triangle
-		for (uint8_t j = i; j < mat_dim; ++j)
-		{
-			if (i == j)
-			{
-				lower[i][i] = 1;
-			}
-			else
-			{
-				// Σ(L[j][k] * U[k][i])
-				double sum = 0;
-				for (uint8_t k = 0; k < i; ++k)
-				{
-					sum += (lower[j][k] * upper[k][i]);
-				}
-
-				lower[j][i] = (in[j][i] - sum) / upper[i][i];
-			}
-		}
-	}
+    std::stringstream ss;
+    ss << arr_begin;
+    for (uint8_t i = 0; i < rank_cap - 1; ++i)
+    {
+        ss << arr_begin << mat[i][0];
+        for (uint8_t j = 1; j < 2 * rank_cap; ++j)
+        {
+            ss << arr_delim << mat[i][j];
+        }
+        ss << arr_end << arr_delim << '\n';
+    }
+    ss << arr_begin << mat[rank_cap - 1][0];
+    for (uint8_t j = 1; j < 2 * rank_cap; ++j)
+    {
+        ss << arr_delim << mat[rank_cap - 1][j];
+    }
+    ss << arr_end << arr_end;
+    return ss.str();
 }
 
-void inverse (MatrixT out, const MatrixT in)
+// algorithm taken from
+// https://rosettacode.org/wiki/Gauss-Jordan_matrix_inversion#Go
+// todo: simplify and clean up to fit C++ convention
+void rrow_echelon_form (AugMatrixT mat)
 {
-	// IN = L @ U -> IN^-1 = U^-1 @ L^-1
-	MatrixT lower;
-	MatrixT upper;
-	lu_decomposition(lower, upper, in);
-	// inverse lower and upper
-	for (uint8_t i = 0; i < mat_dim; ++i)
+    uint8_t lead = 0;
+    for (uint8_t r = 0; r < mat_dim; r++)
 	{
-		// lower triangle
-		for (uint8_t j = 0; j < i; ++j)
+        if (2 * mat_dim <= lead)
 		{
-			lower[i][j] *= -1;
-		}
+            return;
+        }
+        uint8_t i = r;
 
-		// upper triangle
-		for (uint8_t j = 0; j < i; ++j)
+        while (mat[i][lead] == 0)
 		{
-			upper[j][i] /= upper[i][i];
-		}
-		for (uint8_t j = i + 1; j < mat_dim; ++j)
-		{
-			upper[i][j] /= upper[i][i];
-		}
-		upper[i][i] = 1 / upper[i][i];
-	}
-	// OUT = U^-1 @ L^-1
-	for (uint8_t i = 0; i < mat_dim; ++i)
-	{
-		for (uint8_t j = 0; j < mat_dim; ++j)
-		{
-			out[i][j] = 0;
-			for (uint8_t k = std::max(i, j); k < mat_dim; ++k)
+            i++;
+            if (mat_dim == i)
 			{
-				out[i][j] += upper[i][k] * lower[k][j];
-			}
-		}
-	}
+                i = r;
+                lead++;
+                if (2 * mat_dim == lead)
+				{
+                    return;
+                }
+            }
+        }
+
+		std::swap(mat[i], mat[r]);
+		double div = mat[r][lead];
+        if (div != 0)
+		{
+            for (uint8_t j = 0; j < 2 * mat_dim; ++j)
+			{
+                mat[r][j] /= div;
+            }
+        }
+
+        for (uint8_t k = 0; k < mat_dim; ++k)
+		{
+            if (k != r)
+			{
+                double mult = mat[k][lead];
+                for (uint8_t j = 0; j < 2 * mat_dim; ++j)
+				{
+                    mat[k][j] -= mat[r][j] * mult;
+                }
+            }
+        }
+        lead++;
+    }
+}
+
+void inverse (MatrixT out, const MatrixT& in)
+{
+	size_t rowbytes = sizeof(double) * mat_dim;
+    AugMatrixT aug;
+    for (uint8_t i = 0; i < mat_dim; ++i)
+	{
+        std::memcpy(aug[i], in[i], rowbytes);
+		std::memset(aug[i] + mat_dim, 0, rowbytes);
+        // augment by identity matrix to right
+        aug[i][mat_dim + i] = 1;
+    }
+    rrow_echelon_form(aug);
+    // remove identity matrix to left
+    for (uint8_t i = 0; i < mat_dim; ++i)
+	{
+        std::memcpy(out[i], aug[i] + mat_dim, rowbytes);
+    }
 }
 
 }

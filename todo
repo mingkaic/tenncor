@@ -1,5 +1,4 @@
 correctness:
-P1 - test llo regression with coordinate feature
 P1 - fix ade tests
 P1 - test coordinate transformation (ade)
 P2 - test complicate equations
@@ -13,6 +12,7 @@ P4 - refactor, and rename variables to improve readability
 
 structure:
 - fix comments
+- clean up new code
 P2 - create cython interface for llo + examples
 P3 - restructure llo to separate glue and data operators
 
