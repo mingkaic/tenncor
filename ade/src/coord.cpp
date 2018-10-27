@@ -18,8 +18,8 @@ struct CoordMap final : public iCoordMap
 		inverse(bwd_, fwd_);
 	}
 
-	void forward (Shape::iterator out,
-		Shape::const_iterator in) const override
+	void forward (CoordT::iterator out,
+		CoordT::const_iterator in) const override
 	{
 		std::array<double,rank_cap> temp;
 		temp.fill(0);
@@ -32,12 +32,12 @@ struct CoordMap final : public iCoordMap
 		}
 		for (uint8_t i = 0; i < rank_cap; ++i)
 		{
-			out[i] = std::round(temp[i]);
+			out[i] = temp[i];
 		}
 	}
 
-	void backward (Shape::iterator out,
-		Shape::const_iterator in) const override
+	void backward (CoordT::iterator out,
+		CoordT::const_iterator in) const override
 	{
 		std::array<double,rank_cap> temp;
 		temp.fill(0);
@@ -50,7 +50,7 @@ struct CoordMap final : public iCoordMap
 		}
 		for (uint8_t i = 0; i < rank_cap; ++i)
 		{
-			out[i] = std::round(temp[i]);
+			out[i] = temp[i];
 		}
 	}
 
@@ -100,6 +100,18 @@ CoordPtrT identity(new CoordMap(
 			fwd[i][i] = 1;
 		}
 	}));
+
+Shape map_shape (CoordPtrT& mapper, const Shape& shape)
+{
+	CoordT out;
+	CoordT in;
+	std::copy(shape.begin(), shape.end(), in.begin());
+	mapper->forward(out.begin(), in.begin());
+	std::vector<DimT> slist(rank_cap);
+	std::transform(out.begin(), out.end(), slist.begin(),
+		[](CDimT cd) -> DimT { return std::abs(cd); });
+	return Shape(slist);
+}
 
 CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 {
@@ -218,8 +230,7 @@ CoordPtrT flip (uint8_t dim)
 			{
 				fwd[i][i] = 1;
 			}
-			// // todo: fix
-			// fwd[dim][dim] = -1;
+			fwd[dim][dim] = -1;
 		}));
 }
 

@@ -241,7 +241,7 @@ DataNode n_dims (DataNode arg, uint8_t dim)
 	return Source<uint8_t>::get_scalar(arg.tensor_->shape().at(dim));
 }
 
-DataNode reduce_max (DataNode arg, uint8_t groupidx)
+DataNode reduce_max (DataNode arg)
 {
 	return reduce_max(arg, 0);
 }

@@ -120,13 +120,6 @@ DataNode reduce_sum (DataNode arg);
 /// Apply reduce_sum to elements of coordinate range [groupidx:]
 DataNode reduce_sum (DataNode arg, uint8_t groupidx);
 
-/// Matrix multiply 2 or 1 dimension matrices,
-/// Tensors with ranks higher than 2 throws runtime error
-DataNode matmul (DataNode a, DataNode b);
-
-// // NOT IMPLEMENTED
-// DataNode convolute (DataNode canvas, DataNode window);
-
 /// Permute shape according to input indices. output shape take
 /// on input dimensions ordered by indices, and concatenated by unreferenced
 /// input dimensions ordered by input's original order
@@ -135,6 +128,13 @@ DataNode permute (DataNode arg, std::vector<uint8_t> order);
 /// Concatenate input shape vector to input tensor's shape.
 /// expect value to expand into the new shape by duplicating
 DataNode extend (DataNode arg, std::vector<uint8_t> ext);
+
+/// Matrix multiply 2 or 1 dimension matrices,
+/// Tensors with ranks higher than 2 throws runtime error
+DataNode matmul (DataNode a, DataNode b);
+
+// // NOT IMPLEMENTED
+// DataNode convolute (DataNode canvas, DataNode window);
 
 }
 

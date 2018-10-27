@@ -6,11 +6,12 @@ namespace ade
 #ifdef ADE_GRADER_HPP
 
 #define GRAD_SIGNATURE(CODE)template <>\
-Tensorptr grader<CODE> (Tensorptr& fwd, ArgsT& args,\
+Tensorptr grader<CODE> (ArgsT& args,\
 	std::vector<Tensorptr>& grads)
 
 #define ZERO_GRAD(CODE)GRAD_SIGNATURE(CODE)\
-{ return shaped_zero(fwd->shape()); }
+{ Shape shape = map_shape(args[0].first, args[0].second->shape());\
+return shaped_zero(shape); }
 
 static void check_unary (const char* op, ArgsT& args)
 {
@@ -42,7 +43,8 @@ GRAD_SIGNATURE(COPY)
 {
 	check_unary("COPY", args);
 	auto child = args.front();
-	return Functor<COPY>::get({{child.first, grads.front()}});
+	CoordPtrT mapper(child.first->reverse());
+	return Functor<COPY>::get({{mapper, grads.front()}});
 }
 
 GRAD_SIGNATURE(ABS)
@@ -50,9 +52,11 @@ GRAD_SIGNATURE(ABS)
 	check_unary("ABS", args);
 	auto child = args.front();
 	// abs'(f) = f * f' / abs(f)
+	CoordPtrT mapper(child.first->reverse());
 	return Functor<DIV>::get({
-		{identity, Functor<MUL>::get({child, {child.first, grads.front()}})},
-		{identity, fwd},
+		{identity, Functor<MUL>::get({child, {
+			mapper, grads.front()}})},
+		{identity, Functor<ABS>::get(args)},
 	});
 }
 
@@ -60,14 +64,16 @@ GRAD_SIGNATURE(NEG)
 {
 	check_unary("NEG", args);
 	// neg'(f) = -f'
-	return Functor<NEG>::get({{args.front().first, grads.front()}});
+	CoordPtrT mapper(args.front().first->reverse());
+	return Functor<NEG>::get({{mapper, grads.front()}});
 }
 
 GRAD_SIGNATURE(NOT)
 {
 	check_unary("NOT", args);
 	// neg'(f) = not(f')
-	return Functor<NOT>::get({{args.front().first, grads.front()}});
+	CoordPtrT mapper(args.front().first->reverse());
+	return Functor<NOT>::get({{mapper, grads.front()}});
 }
 
 GRAD_SIGNATURE(SIN)
@@ -75,8 +81,9 @@ GRAD_SIGNATURE(SIN)
 	check_unary("SIN", args);
 	auto child = args.front();
 	// sin'(f) = f'*cos(f)
+	CoordPtrT mapper(child.first->reverse());
 	return Functor<MUL>::get({
-		{child.first, grads.front()},
+		{mapper, grads.front()},
 		{identity, Functor<COS>::get({child})},
 	});
 }
@@ -86,8 +93,9 @@ GRAD_SIGNATURE(COS)
 	check_unary("COS", args);
 	auto child = args.front();
 	// cos'(f) = -f'*sin(f)
+	CoordPtrT mapper(child.first->reverse());
 	return Functor<MUL>::get({
-		{identity, Functor<NEG>::get({{child.first, grads.front()}})},
+		{identity, Functor<NEG>::get({{mapper, grads.front()}})},
 		{identity, Functor<SIN>::get({child})},
 	});
 }
@@ -99,9 +107,10 @@ GRAD_SIGNATURE(TAN)
 	// tan'(f) = f'*sec^2(f)
 	// 		= f'/cos^2(f)
 	Tensorptr denom = Functor<COS>::get({child});
+	CoordPtrT mapper(child.first->reverse());
 	return Functor<DIV>::get({
 		{identity, Functor<DIV>::get({
-			{child.first, grads.front()},
+			{mapper, grads.front()},
 			{identity, denom}
 		})},
 		{identity, denom},
@@ -113,9 +122,10 @@ GRAD_SIGNATURE(EXP)
 	check_unary("EXP", args);
 	auto child = args.front();
 	// exp'(f) = f'*exp(f)
+	CoordPtrT mapper(child.first->reverse());
 	return Functor<MUL>::get({
-		{child.first, grads.front()},
-		{identity, fwd},
+		{mapper, grads.front()},
+		{identity, Functor<EXP>::get(args)},
 	});
 }
 
@@ -124,7 +134,8 @@ GRAD_SIGNATURE(LOG)
 	check_unary("LOG", args);
 	auto child = args.front();
 	// log'(f) = f' / f
-	return Functor<DIV>::get({{child.first, grads.front()}, child});
+	CoordPtrT mapper(child.first->reverse());
+	return Functor<DIV>::get({{mapper, grads.front()}, child});
 }
 
 GRAD_SIGNATURE(SQRT)
@@ -132,8 +143,10 @@ GRAD_SIGNATURE(SQRT)
 	check_unary("SQRT", args);
 	auto child = args.front();
 	// sqrt'(f) = f'/(2*sqrt(f))
+	CoordPtrT mapper(child.first->reverse());
+	Tensorptr fwd = Functor<SQRT>::get(args);
 	return Functor<DIV>::get({
-		{child.first, grads.front()},
+		{mapper, grads.front()},
 		{identity, Functor<ADD>::get({
 			{identity, fwd},
 			{identity, fwd}
@@ -146,7 +159,8 @@ GRAD_SIGNATURE(ROUND)
 	check_unary("ROUND", args);
 	auto child = args.front();
 	// round'(f) = round(f')
-	return Functor<ROUND>::get({{child.first, grads.front()}});
+	CoordPtrT mapper(child.first->reverse());
+	return Functor<ROUND>::get({{mapper, grads.front()}});
 }
 
 GRAD_SIGNATURE(POW)
@@ -156,13 +170,15 @@ GRAD_SIGNATURE(POW)
 	//			= pow(f, g - 1) * (f' * g + g' * f * log(f))
 	auto& child_f = args[0];
 	auto& child_g = args[1];
+	CoordPtrT mapper_f(child_f.first->reverse());
+	CoordPtrT mapper_g(child_g.first->reverse());
 	Tensorptr lhs = Functor<ADD>::get({
 		{identity, Functor<MUL>::get({
-			{child_f.first, grads[0]},
+			{mapper_f, grads[0]},
 			child_g
 		})},
 		{identity, Functor<MUL>::get({
-			{child_g.first, grads[1]},
+			{mapper_g, grads[1]},
 			child_f,
 			{identity, Functor<LOG>::get({child_f})},
 		})},
@@ -186,7 +202,8 @@ GRAD_SIGNATURE(ADD)
 	ArgsT gargs;
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
-		gargs.push_back({args[i].first, grads[i]});
+		CoordPtrT mapper(args[i].first->reverse());
+		gargs.push_back({mapper, grads[i]});
 	};
 	return Functor<ADD>::get(gargs);
 }
@@ -195,9 +212,11 @@ GRAD_SIGNATURE(SUB)
 {
 	check_binary("SUB", args);
 	// h'(f, g) = f' - g'
+	CoordPtrT mapper0(args[0].first->reverse());
+	CoordPtrT mapper1(args[1].first->reverse());
 	return Functor<SUB>::get({
-		{args[0].first, grads[0]},
-		{args[1].first, grads[1]}
+		{mapper0, grads[0]},
+		{mapper1, grads[1]}
 	});
 }
 
@@ -210,7 +229,8 @@ GRAD_SIGNATURE(MUL)
 	{
 		// f' * g * ...
 		auto child = args[i];
-		args[i] = {child.first, grads[i]};
+		CoordPtrT mapper(child.first->reverse());
+		args[i] = {mapper, grads[i]};
 		gargs.push_back({identity, Functor<MUL>::get(args)});
 		args[i] = child;
 	}
@@ -224,15 +244,17 @@ GRAD_SIGNATURE(DIV)
 	//			= f' / g - ((g' * f) / g) / g
 	auto& child_f = args[0];
 	auto& child_g = args[1];
+	CoordPtrT mapper_f(child_f.first->reverse());
+	CoordPtrT mapper_g(child_g.first->reverse());
 	return Functor<SUB>::get({
 		{identity, Functor<DIV>::get({
-			{child_f.first, grads[0]},
+			{mapper_f, grads[0]},
 			child_g,
 		})},
 		{identity, Functor<DIV>::get({
 			{identity, Functor<DIV>::get({
 				{identity, Functor<MUL>::get({
-					{child_g.first, grads[1]},
+					{mapper_g, grads[1]},
 					child_f,
 				})},
 				child_g,
@@ -248,12 +270,13 @@ GRAD_SIGNATURE(MIN)
 	ArgsT gargs;
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
+		CoordPtrT mapper(args[i].first->reverse());
 		gargs.push_back({identity, Functor<MUL>::get({
 			{identity, Functor<EQ>::get({
-				{identity, fwd},
+				{identity, Functor<MIN>::get(args)},
 				args[i]
 			})},
-			{args[i].first, grads[i]},
+			{mapper, grads[i]},
 		})});
 	}
 	return Functor<ADD>::get(gargs);
@@ -265,12 +288,13 @@ GRAD_SIGNATURE(MAX)
 	ArgsT gargs;
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
+		CoordPtrT mapper(args[i].first->reverse());
 		gargs.push_back({identity, Functor<MUL>::get({
 			{identity, Functor<EQ>::get({
-				{identity, fwd},
+				{identity, Functor<MAX>::get(args)},
 				args[i]
 			})},
-			{args[i].first, grads[i]},
+			{mapper, grads[i]},
 		})});
 	}
 	return Functor<ADD>::get(gargs);
@@ -294,9 +318,9 @@ ZERO_GRAD(RAND_NORM)
 
 #undef ZERO_GRAD
 
-#define CALL_GRAD(OP)case OP: return grader<OP>(fwd, args, grads);
+#define CALL_GRAD(OP)case OP: return grader<OP>(args, grads);
 
-Tensorptr gradmap (OPCODE op, Tensorptr& fwd, ArgsT args,
+Tensorptr gradmap (OPCODE op, ArgsT args,
 	std::vector<Tensorptr>& grads)
 {
 	switch (op)

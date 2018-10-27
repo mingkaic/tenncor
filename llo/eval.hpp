@@ -78,6 +78,10 @@ struct EvalCtx final
 	FuncPoolT funks_;
 };
 
+/// Evaluate the data of children for func according to inputs ctx and dtype
+void calc_func_args (DataArgsT& out, const EvalCtx& ctx,
+	DTYPE dtype, ade::iFunctor* func);
+
 /// Visitor implementation to evaluate ade nodes according to ctx and dtype
 /// Given a global context containing ade-llo association maps, get data from
 /// llo::Sources when possible, otherwise treat native ade::Tensors as zeroes
@@ -89,7 +93,31 @@ struct Evaluator final : public ade::iTraveler
 		ctx_(&ctx), dtype_(dtype) {}
 
 	/// Implementation of iTraveler
-	void visit (ade::Tensor* leaf) override;
+	void visit (ade::Tensor* leaf) override
+	{
+		if (leaf == ade::Tensor::SYMBOLIC_ONE.get())
+		{
+			out_ = GenericData(ade::Shape(), dtype_);
+			fill_one(out_.data_.get(), 1, dtype_);
+			return;
+		}
+		auto srcpair = ctx_->srcs_.find(leaf);
+		if (ctx_->srcs_.end() != srcpair)
+		{
+			out_ = srcpair->second->data(dtype_);
+		}
+		else
+		{
+			if (leaf != ade::Tensor::SYMBOLIC_ZERO.get())
+			{
+				ade::warnf("evaluating an ade::Tensor %s without associated "
+					"Source according to input context... treating data as 0",
+					leaf->to_string().c_str()); // todo: describe ctx for comprehensive report
+			}
+			out_ = GenericData(ade::Shape(), dtype_);
+			std::memset(out_.data_.get(), 0, type_size(dtype_));
+		}
+	}
 
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
@@ -105,8 +133,8 @@ struct Evaluator final : public ade::iTraveler
 
 		out_ = GenericData(func->shape(), dtype_);
 
-		std::vector<GenericData> argdata;
-		get_func_children(argdata, *ctx_, dtype_, func);
+		DataArgsT argdata;
+		calc_func_args(argdata, *ctx_, dtype_, func);
 		op_exec(opcode, out_, argdata);
 	}
 
@@ -175,10 +203,6 @@ struct DataNode
 	/// Subgraph root
 	ade::Tensorptr tensor_;
 };
-
-/// Evaluate the data of children for func according to inputs ctx and dtype
-void get_func_children (std::vector<GenericData>& out,
-	const EvalCtx& ctx, DTYPE dtype, ade::iFunctor* func);
 
 }
 

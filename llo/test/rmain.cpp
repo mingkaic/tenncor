@@ -326,24 +326,7 @@ TEST_F(REGRESS, Matmul)
 	size_t totalgb = gresgd2.shape_.n_elems();
 	std::vector<double> gresd2(gresptr2, gresptr2 + totalgb);
 
-	// group gradients to ashape and bshape
-	// todo: replace this manual process using ade::GROUP when implemented
-	size_t an = ashape.n_elems();
-	size_t bn = bshape.n_elems();
-	std::vector<double> processed_ga(an, 0);
-	std::vector<double> processed_gb(bn, 0);
-	size_t batchga = totalga / an;
-	size_t batchgb = totalgb / bn;
-	for (size_t i = 0; i < totalga; ++i)
-	{
-		processed_ga[i / batchga] += gresd[i];
-	}
-	for (size_t i = 0; i < totalgb; ++i)
-	{
-		processed_gb[i / batchgb] += gresd2[i];
-	}
-
 	EXPECT_DATA_APPROX("res", resdata, resd);
-	EXPECT_DATA_APPROX("gres", gresdata, processed_ga);
-	EXPECT_DATA_APPROX("gres2", gresdata2, processed_gb);
+	EXPECT_DATA_APPROX("gres", gresdata, gresd);
+	EXPECT_DATA_APPROX("gres2", gresdata2, gresd2);
 }

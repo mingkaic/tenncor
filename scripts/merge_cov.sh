@@ -8,7 +8,7 @@ synopsis: filter for trace files found by COVERAGE_OUTPUT_FILE=<file/path>
 format in stdin, then stitch tracefiles together as outfile.
 
 usage: stdin | $MYNAME outfile
-EOF;
+EOF
     exit 1;
 }
 

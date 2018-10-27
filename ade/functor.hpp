@@ -7,8 +7,9 @@
 ///
 
 #include <algorithm>
-#include <unordered_map>
+#include <cassert>
 #include <list>
+#include <unordered_map>
 
 #include "ade/log/string.hpp"
 #include "ade/grader.hpp"
@@ -97,13 +98,10 @@ struct Functor final : public iFunctor
 			fatalf("cannot %s with no arguments", label);
 		}
 
-		Shape shape;
-		args[0].first->forward(shape.begin(), args[0].second->shape().begin());
+		Shape shape = map_shape(args[0].first, args[0].second->shape());
 		for (size_t i = 1, n = args.size(); i < n; ++i)
 		{
-			Shape ishape;
-			args[i].first->forward(ishape.begin(),
-				args[i].second->shape().begin());
+			Shape ishape = map_shape(args[i].first, args[i].second->shape());
 			if (false == ishape.compatible_after(shape, 0))
 			{
 				fatalf("cannot %s with incompatible shapes %s and %s", label,
@@ -148,11 +146,6 @@ struct Functor final : public iFunctor
 			funcs.pop_front();
 			auto& paint = finder.parents_[f];
 			ArgsT children = f->get_children();
-			// prep children for downward traversal
-			for (auto& child : children)
-			{
-				child.first = CoordPtrT(child.first->reverse());
-			}
 			// for each painted child, calculate dThis/dChild
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
@@ -162,7 +155,7 @@ struct Functor final : public iFunctor
 					iTensor* child = fwd.get();
 					std::vector<Tensorptr> grads(n, zero);
 					grads[i] = grad;
-					auto g = gradmap(f->get_code(), fwd, children, grads);
+					auto g = gradmap(f->get_code(), children, grads);
 					if (wrt == child)
 					{
 						// grad should be compatible with wrt

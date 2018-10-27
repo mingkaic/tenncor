@@ -12,7 +12,7 @@
 #include <functional>
 #include <random>
 
-#include "ade/shape.hpp"
+#include "ade/coord.hpp"
 
 #ifndef LLO_OPERATOR_HPP
 #define LLO_OPERATOR_HPP
@@ -31,15 +31,35 @@ EngineT& get_engine (void);
 template <typename T>
 struct VecRef
 {
+	ade::CoordPtrT mapper;
 	const T* data;
-	size_t n;
+	ade::Shape shape;
 };
 
-/// Generic unary operation
+/// Given reference to output array, expected output shape,
+/// and input vector ref, copy input elements to outputs according to mapper
+/// Copy cannot resolve conflicts, so assume 1-M mapping (non-surjective)
+template <typename T>
+void copy (T* out, ade::Shape outshape, VecRef<T> in)
+{
+	ade::NElemT n = outshape.n_elems();
+	ade::CoordT coord;
+	for (size_t outidx = 0; outidx < n; ++outidx)
+	{
+		// backward since cardinality of output >= cardinality of input
+		in.mapper->backward(coord.begin(),
+			ade::coordinate(outshape, outidx).begin());
+		ade::NElemT i = ade::index(in.shape, coord);
+		out[outidx] = in.data[i];
+	}
+}
+
+/// Generic unary operation assuming identity mapping (bijective)
 template <typename T>
 void unary (T* out, VecRef<T> in, std::function<T(const T&)> f)
 {
-	for (size_t i = 0; i < in.n; ++i)
+	ade::NElemT n = in.shape.n_elems();
+	for (size_t i = 0; i < n; ++i)
 	{
 		out[i] = f(in.data[i]);
 	}
@@ -149,190 +169,25 @@ void round (T* out, VecRef<T> in)
 	unary<T>(out, in, [](const T& src) { return std::round(src); });
 }
 
-/// Given reference to output array, and input vector ref,
-/// and index of dimension to flip, map output and input elements such that
-/// output.coordinate[dim] = shape[dim] - input.coordinate[dim]
-/// From cartesian perspective, invert the order of values along an axis
-/// For example: in=[[1, 2], [3, 4]], dim=1, yields out=[[3, 4], [1, 2]]
-template <typename T>
-void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
-{
-	size_t n = shape.n_elems();
-	std::vector<ade::DimT> slist = shape.as_list();
-	uint8_t rank = slist.size();
-	if (dim >= rank)
-	{
-		ade::fatalf("attempting to flip dimension %d beyond shape rank %d",
-			dim, rank);
-	}
-	std::vector<ade::DimT> coord;
-	ade::DimT dlimit = slist[dim] - 1;
-	for (size_t i = 0; i < n; ++i)
-	{
-		coord = coordinate(shape, i);
-		coord[dim] = dlimit - coord[dim];
-		out[i] = in[index(shape, coord)];
-	}
-}
-
-/// Given a tensor argument and a vector of shape indices, permute tensor
-/// The tensor's shape and each element's coordinates are reordered
-/// according to shape indices
-/// Unreferenced input shape dimensions are appended to the output shape
-/// Input dimensions can be referenced more than once
-/// Because output.nelems >= input.nelems, and coordinates are mapped 1-1,
-/// Output indices that do not take input elements take on value 0
-/// This 1-1 behavior is to facilitate creating identity matrices/tensors
-template <typename T>
-void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
-	std::vector<uint8_t> order)
-{
-	size_t n = shape.n_elems();
-	uint8_t orig_rank = shape.n_rank();
-	bool visited[ade::rank_cap];
-	std::memset(visited, false, sizeof(ade::DimT) * ade::rank_cap);
-	for (size_t i = 0, n = order.size(); i < n; ++i)
-	{
-		visited[order[i]] = true;
-	}
-	for (size_t i = 0, n = orig_rank; i < n; ++i)
-	{
-		if (false == visited[i])
-		{
-			order.push_back(i);
-		}
-	}
-
-	uint8_t norder = order.size();
-	std::vector<ade::DimT> coords(orig_rank);
-	std::vector<ade::DimT> converted(norder);
-	std::memset(out, 0, sizeof(T) * outshape.n_elems());
-	for (ade::NElemT srci = 0; srci < n; ++srci)
-	{
-		coords = coordinate(shape, srci);
-
-		for (uint8_t i = 0; i < norder; ++i)
-		{
-			converted[i] = coords[order[i]];
-		}
-
-		ade::NElemT desti = index(outshape, converted);
-		out[desti] = in[srci];
-	}
-}
-
-/// Given a single argument get the n_elem value of the argument's shape
-template <typename T>
-void n_elems (T& out, const ade::Shape& in)
-{
-	out = in.n_elems();
-}
-
-/// Given an argument and a dimension index get the value of the argument's
-/// shape at that index
-template <typename T>
-void n_dims (T& out, const ade::Shape& in, uint8_t dim)
-{
-	out = in.at(dim);
-}
-
-/// For each batch of in.n / nout elements,
-/// assign first flat indices of the max value to out
-/// Assert that in.n is a multiple of nout
-template <typename T>
-void arg_max (T* out, size_t nout, VecRef<T> in)
-{
-	size_t nbatch = in.n / nout;
-	for (size_t i = 0; i < nout; ++i)
-	{
-		size_t temp = i * nbatch;
-		for (size_t j = 1; j < nbatch; ++j)
-		{
-			if (in.data[temp] < in.data[i * nbatch + j])
-			{
-				temp = i * nbatch + j;
-			}
-		}
-		out[i] = temp;
-	}
-}
-
-/// For each batch of in.n / nout elements,
-/// assign the max values to out
-/// Assert that in.n is a multiple of nout
-template <typename T>
-void reduce_max (T* out, size_t nout, VecRef<T> in)
-{
-	size_t nbatch = in.n / nout;
-	for (size_t i = 0; i < nout; ++i)
-	{
-		out[i] = in.data[i * nbatch];
-		for (size_t j = 1; j < nbatch; ++j)
-		{
-			size_t k = i * nbatch + j;
-			if (out[i] < in.data[k])
-			{
-				out[i] = in.data[k];
-			}
-		}
-	}
-}
-
-/// For each batch of in.n / nout elements,
-/// assign the sum of values to out
-/// Assert that in.n is a multiple of nout
-template <typename T>
-void reduce_sum (T* out, size_t nout, VecRef<T> in)
-{
-	size_t nbatch = in.n / nout;
-	for (size_t i = 0; i < nout; ++i)
-	{
-		out[i] = in.data[i * nbatch];
-		for (size_t j = 1; j < nbatch; ++j)
-		{
-			out[i] += in.data[i * nbatch + j];
-		}
-	}
-}
-
-/// Generic binary operation
+/// Generic binary operation assuming identity mapping (bijective)
 template <typename T>
 void binary (T* out, VecRef<T> a, VecRef<T> b,
 	std::function<T(const T&,const T&)> f)
 {
-	size_t n = std::max(a.n, b.n);
+	ade::NElemT n = a.shape.n_elems();
+	if (b.shape.n_elems() != n)
+	{
+		ade::fatalf("cannot perform binary operation on non-bijective "
+			"arguments of sizes %d and %d", n, b.shape.n_elems());
+	}
 	for (size_t i = 0; i < n; ++i)
 	{
-		out[i] = f(a.data[i % a.n], b.data[i % b.n]);
+		out[i] = f(a.data[i], b.data[i]);
 	}
 }
 
-/// Generic n-nary operation
-template <typename T>
-void nnary (T* out, std::vector<VecRef<T>> args,
-	std::function<void(T&, const T&)> acc)
-{
-	if (args.empty())
-	{
-		ade::fatal("Cannot perform operation with no arguments");
-	}
-	size_t n = std::max_element(args.begin(), args.end(),
-	[](VecRef<T>& a, VecRef<T>& b)
-	{
-		return a.n < b.n;
-	})->n;
-	for (size_t i = 0; i < n; ++i)
-	{
-		out[i] = args[0].data[i % args[0].n];
-		for (size_t j = 1, n = args.size(); j < n; ++j)
-		{
-			acc(out[i], args[j].data[i % args[j].n]);
-		}
-	}
-}
-
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
-/// apply std::pow operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Given arguments a, and b, for every pair of elements sharing the same index
+/// apply std::pow operator
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -342,17 +197,8 @@ void pow (T* out, VecRef<T> a, VecRef<T> b)
 		[](const T& b, const T& x) { return std::pow(b, x); });
 }
 
-/// Given arguments, for every index i in range [0:max_nelems],
-/// sum all elements arg[i % arg.nelems] for arg in arguments
-/// Shapes must be compatible before min_rank of all arguments
-template <typename T>
-void add (T* out, std::vector<VecRef<T>> args)
-{
-	nnary<T>(out, args, [](T& out, const T& val) { out += val; });
-}
-
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
-/// apply subtract elements a[i % a.nelems] and b[i % b.nelems]
+/// Given arguments a, and b, for every pair of elements sharing the same index
+/// subtract
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -361,17 +207,8 @@ void sub (T* out, VecRef<T> a, VecRef<T> b)
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a - b; });
 }
 
-/// Given arguments, for every index i in range [0:max_nelems],
-/// multiply all elements arg[i % arg.nelems] for arg in arguments
-/// Shapes must be compatible before min_rank of all arguments
-template <typename T>
-void mul (T* out, std::vector<VecRef<T>> args)
-{
-	nnary<T>(out, args, [](T& out, const T& val) { out *= val; });
-}
-
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
-/// apply divide elements a[i % a.nelems] and b[i % b.nelems]
+/// Given arguments a, and b, for every pair of elements sharing the same index
+/// divide
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -380,8 +217,8 @@ void div (T* out, VecRef<T> a, VecRef<T> b)
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a / b; });
 }
 
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
-/// apply == operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Given arguments a, and b, for every pair of elements sharing the same index
+/// apply == operator
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -390,8 +227,8 @@ void eq (T* out, VecRef<T> a, VecRef<T> b)
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a == b; });
 }
 
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
-/// apply != operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Given arguments a, and b, for every pair of elements sharing the same index
+/// apply != operator
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -400,8 +237,8 @@ void neq (T* out, VecRef<T> a, VecRef<T> b)
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a != b; });
 }
 
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
-/// apply < operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Given arguments a, and b, for every pair of elements sharing the same index
+/// apply < operator
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -410,8 +247,8 @@ void lt (T* out, VecRef<T> a, VecRef<T> b)
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a < b; });
 }
 
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
-/// apply > operator to elements a[i % a.nelems] and b[i % b.nelems]
+/// Given arguments a, and b, for every pair of elements sharing the same index
+/// apply > operator
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -420,40 +257,22 @@ void gt (T* out, VecRef<T> a, VecRef<T> b)
 	binary<T>(out, a, b, [](const T& a, const T& b) { return a > b; });
 }
 
-/// Given arguments, for every index i in range [0:max_nelems],
-/// take the minimum all elements arg[i % arg.nelems]
-/// for arg in arguments
-/// Shapes must be compatible before min_rank of all arguments
-template <typename T>
-void min (T* out, std::vector<VecRef<T>> args)
-{
-	nnary<T>(out, args,
-	[](T& out, const T& val) { out = std::min(out, val); });
-}
-
-/// Given arguments, for every index i in range [0:max_nelems],
-/// take the maximum all elements arg[i % arg.nelems]
-/// for arg in arguments
-/// Shapes must be compatible before min_rank of all arguments
-template <typename T>
-void max (T* out, std::vector<VecRef<T>> args)
-{
-	nnary<T>(out, args,
-	[](T& out, const T& val) { out = std::max(out, val); });
-}
-
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// Given arguments a, and b, for every pair of elements sharing the same index
 /// apply std::binomial_distribution function
-/// to elements a[i % a.nelems] and b[i % b.nelems]
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
 void rand_binom (T* out, VecRef<T> a, VecRef<double> b)
 {
-	size_t n = std::max(a.n, b.n);
+	ade::NElemT n = a.shape.n_elems();
+	if (b.shape.n_elems() != n)
+	{
+		ade::fatalf("cannot perform binary operation on non-bijective "
+			"arguments of sizes %d and %d", n, b.shape.n_elems());
+	}
 	for (size_t i = 0; i < n; ++i)
 	{
-		std::binomial_distribution<T> dist(a.data[i % a.n], b.data[i % b.n]);
+		std::binomial_distribution<T> dist(a.data[i], b.data[i]);
 		out[i] = dist(get_engine());
 	}
 }
@@ -464,9 +283,8 @@ void rand_binom<double> (double* out, VecRef<double> a, VecRef<double> b);
 template <>
 void rand_binom<float> (float* out, VecRef<float> a, VecRef<double> b);
 
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// Given arguments a, and b, for every pair of elements sharing the same index
 /// apply std::uniform_distributon function
-/// to elements a[i % a.nelems] and b[i % b.nelems]
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -486,9 +304,8 @@ void rand_uniform<double> (double* out, VecRef<double> a, VecRef<double> b);
 template <>
 void rand_uniform<float> (float* out, VecRef<float> a, VecRef<float> b);
 
-/// Given arguments a, and b, for every index i in range [0:max_nelems],
+/// Given arguments a, and b, for every pair of elements sharing the same index
 /// apply std::normal_distribution function
-/// to elements a[i % a.nelems] and b[i % b.nelems]
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
@@ -503,60 +320,80 @@ void rand_normal<float> (float* out, VecRef<float> a, VecRef<float> b);
 template <>
 void rand_normal<double> (double* out, VecRef<double> a, VecRef<double> b);
 
-/// Given 2 arguments, matrix multiply
-/// The # of column of the first argument must match the nrow of the second
-/// Given the arguments and 2 indices, for each argument
-/// form groups [:idx) and [index:rank) and treat dimensions falling in
-/// those ranges as a single dimension (where the shape values must match)
-/// then apply matmul given the grouped shape
-/// For example, given shapea={3, 4, 5}, ai=2, shapeb={7, 8, 3, 4}, bi=2,
-/// output tensor has shape {7, 8, 5}, since {3, 4} in a and b matches
+/// Generic n-nary operation (potentially surjective)
 template <typename T>
-void matmul (T* out, const T* a, const T* b,
-	const ade::Shape& ashape, const ade::Shape& bshape,
-	uint8_t agroup_idx, uint8_t bgroup_idx)
+void nnary (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args,
+	std::function<void(T&, const T&)> acc)
 {
-	auto ita = ashape.begin();
-	auto itb = bshape.begin();
-	ade::NElemT dim_x = std::accumulate(itb, itb + bgroup_idx,
-		1, std::multiplies<ade::NElemT>());
-	ade::NElemT dim_y = std::accumulate(
-		ita + agroup_idx, ita + ashape.n_rank(),
-		1, std::multiplies<ade::NElemT>());
-	ade::NElemT dim_z = std::accumulate(ita, ita + agroup_idx,
-		1, std::multiplies<ade::NElemT>());
-
-	for (size_t y = 0; y < dim_y; y++)
+	if (args.empty())
 	{
-		for (size_t x = 0; x < dim_x; x++)
+		ade::fatal("Cannot perform operation with no arguments");
+	}
+	size_t nout = outshape.n_elems();
+	bool visited[nout];
+	std::memset(visited, false, nout);
+	ade::CoordT coord;
+	size_t nargs = args.size();
+	for (size_t i = 0; i < nargs; ++i)
+	{
+		VecRef<T>& arg = args[i];
+		for (size_t i = 0, n = arg.shape.n_elems(); i < n; ++i)
 		{
-			size_t outidx = x + y * dim_x;
-			out[outidx] = 0;
-			for (size_t z = 0; z < dim_z; z++)
+			arg.mapper->forward(coord.begin(),
+				ade::coordinate(arg.shape, i).begin());
+			size_t outidx = ade::index(outshape, coord);
+			if (visited[outidx])
 			{
-				size_t aidx = dim_z * y + z;
-				size_t bidx = x + dim_x * z;
-				out[outidx] += a[aidx] * b[bidx];
+				acc(out[outidx], arg.data[i]);
+			}
+			else
+			{
+				out[outidx] = arg.data[i];
+				visited[outidx] = true;
 			}
 		}
 	}
+	// todo: do something/check non-visited elements
 }
 
-/// Given a single input ref and output information
-/// (including length of output vector), copy over data
-/// repeating input data to fit when necessary.
+/// Given arguments, for every index i in range [0:max_nelems],
+/// sum all elements for all arguments
+/// Shapes must be compatible before min_rank of all arguments
 template <typename T>
-void copyover (T* out, size_t nout, VecRef<T> in)
+void add (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 {
-	size_t mult = nout / in.n;
-	for (size_t i = 0; i < mult; ++i)
-	{
-		std::memcpy(out + i * in.n, in.data, sizeof(T) * in.n);
-	}
-	if (size_t leftover = nout % in.n)
-	{
-		std::memcpy(out + mult * in.n, in.data, sizeof(T) * leftover);
-	}
+	nnary<T>(out, outshape, args,
+		[](T& out, const T& val) { out += val; });
+}
+
+/// Given arguments, for every index i in range [0:max_nelems],
+/// multiply all elements for all arguments
+/// Shapes must be compatible before min_rank of all arguments
+template <typename T>
+void mul (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
+{
+	nnary<T>(out, outshape, args,
+		[](T& out, const T& val) { out *= val; });
+}
+
+/// Given arguments, for every index i in range [0:max_nelems],
+/// take the minimum all elements for all arguments
+/// Shapes must be compatible before min_rank of all arguments
+template <typename T>
+void min (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
+{
+	nnary<T>(out, outshape, args,
+		[](T& out, const T& val) { out = std::min(out, val); });
+}
+
+/// Given arguments, for every index i in range [0:max_nelems],
+/// take the maximum all elements for all arguments
+/// Shapes must be compatible before min_rank of all arguments
+template <typename T>
+void max (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
+{
+	nnary<T>(out, outshape, args,
+		[](T& out, const T& val) { out = std::max(out, val); });
 }
 
 }

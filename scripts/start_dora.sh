@@ -21,7 +21,7 @@ reports SERVING
         Positive integer, default value: $DEFAULT_PORT seconds.
 
 usage: $MYNAME [-t timeout] [-i interval] [-p port] cert_path
-EOF;
+EOF
     exit 1;
 }
 
@@ -61,7 +61,7 @@ then
     exit 0;
 fi
 
-docker run --rm -d -p "$SERVER_PORT:$SERVER_PORT" -v "$CERTPATH":/etc/ssl/dora\
+docker run --rm -d -p "$SERVER_PORT:$SERVER_PORT" -v "$(realpath $CERTPATH)":/etc/ssl/dora\
     mkaichen/dora_server:latest -host 0.0.0.0 -servername "$SERVER_NAME" -port $SERVER_PORT\
     -key /etc/ssl/dora/server.key -cert /etc/ssl/dora/server.crt;
 

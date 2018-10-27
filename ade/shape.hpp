@@ -21,8 +21,11 @@
 namespace ade
 {
 
-/// Type used for each dimension
+/// Type used for shape dimension
 using DimT = uint8_t;
+
+/// Type used for coordinate dimensions
+using CDimT = int16_t;
 
 /// Type used for flattened index
 /// DimT having 8 bits and shape comprising of 8 DimT values means a maximum
@@ -33,7 +36,9 @@ using NElemT = uint64_t;
 /// The logical rank of a shape can be less than rank_cap
 const uint8_t rank_cap = 8;
 
-using CoordT = std::array<DimT,rank_cap>;
+using ShapeT = std::array<DimT,rank_cap>;
+
+using CoordT = std::array<CDimT,rank_cap>;
 
 /// Models an aligned shape using an array of DimT values
 /// For each DimT at index i, DimT value is number of elements at dimension i
@@ -46,10 +51,10 @@ using CoordT = std::array<DimT,rank_cap>;
 struct Shape final
 {
 	/// Type of iterator used to iterate through internal array
-	using iterator = CoordT::iterator;
+	using iterator = ShapeT::iterator;
 
 	/// Type of constant iterator used to iterate through internal array
-	using const_iterator = CoordT::const_iterator;
+	using const_iterator = ShapeT::const_iterator;
 
 	Shape (void)
 	{
@@ -189,7 +194,7 @@ private:
 
 	/// Array of dimension values, we hide these to prevent assignment
 	/// and ensure rank_ and dims_ relationship
-	CoordT dims_;
+	ShapeT dims_;
 };
 
 /// Return the flat index mapped by coord according to shape

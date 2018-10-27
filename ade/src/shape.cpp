@@ -11,12 +11,15 @@ NElemT index (Shape shape, CoordT coord)
 {
 	for (uint8_t i = 0; i < rank_cap; i++)
 	{
-		if (coord[i] >= shape.at(i))
+		DimT limit = shape.at(i);
+		if (coord[i] >= limit)
 		{
 			fatalf("cannot get index of bad coordinate %s for shape %s",
 				to_string(coord.begin(), coord.end()).c_str(),
 				shape.to_string().c_str());
 		}
+		// account for negative coordinates by (limit + c) % limit
+		coord[i] = (limit + coord[i]) % limit;
 	}
 	NElemT index = 0;
 	for (uint8_t i = 1; i < rank_cap; i++)

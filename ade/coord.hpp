@@ -20,11 +20,11 @@ struct iCoordMap
 {
 	virtual ~iCoordMap (void) = default;
 
-	virtual void forward (Shape::iterator out,
-		Shape::const_iterator in) const = 0;
+	virtual void forward (CoordT::iterator out,
+		CoordT::const_iterator in) const = 0;
 
-	virtual void backward (Shape::iterator out,
-		Shape::const_iterator in) const = 0;
+	virtual void backward (CoordT::iterator out,
+		CoordT::const_iterator in) const = 0;
 
 	virtual iCoordMap* reverse (void) const = 0;
 
@@ -34,6 +34,8 @@ struct iCoordMap
 using CoordPtrT = std::shared_ptr<iCoordMap>;
 
 extern CoordPtrT identity;
+
+Shape map_shape (CoordPtrT& mapper, const Shape& shape);
 
 CoordPtrT reduce (uint8_t rank, std::vector<DimT> red);
 
