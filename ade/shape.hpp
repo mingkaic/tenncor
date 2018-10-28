@@ -206,6 +206,8 @@ private:
 NElemT index (Shape shape, CoordT coord);
 
 /// Return the coordinate of a flat index according to shape
+/// Coordinate dimensions are 0-based
+/// For example [0, 0, ..., 0] <-> 0
 CoordT coordinate (Shape shape, NElemT idx);
 
 }

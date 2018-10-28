@@ -24,15 +24,15 @@ TEST_F(DTYPE, DataConvert)
 {
 	simple::SessionT sess = get_session("DTYPE::DataConvert");
 
-	auto dtype = (llo::DTYPE) sess->get_scalar("dtype", {1, llo::_SENTINEL - 1});
-	auto dtype_other = (llo::DTYPE) sess->get_scalar("dtype_other", {1, llo::_SENTINEL - 1});
+	auto dtype = (llo::DTYPE) sess->get_scalar("dtype", {1, llo::UINT64 - 1});
+	auto dtype_other = (llo::DTYPE) sess->get_scalar("dtype_other", {1, llo::UINT64 - 1});
 	auto slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
 	llo::GenericData data(shape, dtype);
 	std::memset(data.data_.get(), 0, type_size(dtype) * shape.n_elems()); // avoid memory issues
 	llo::GenericData odata = data.convert_to(dtype_other);
 
-	std::vector<ade::DimT> gotslist = odata.shape_.as_list();
+	std::vector<ade::DimT> gotslist(odata.shape_.begin(), odata.shape_.end());
 	EXPECT_ARREQ(slist, gotslist);
 	EXPECT_EQ(dtype_other, odata.dtype_);
 }

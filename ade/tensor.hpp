@@ -146,7 +146,7 @@ struct Tensor final : public iTensor
 		{
 			return shaped_one(shape_);
 		}
-		return shaped_zero(shape_);
+		return shaped_zero(wrt->shape());
 	}
 
 	/// Implementation of iTensor

@@ -48,7 +48,7 @@ TEST_F(NODE, SourceRetype)
 
 	llo::GenericData gd = ptr.data(llo::UINT16);
 	ASSERT_EQ(llo::UINT16, gd.dtype_);
-	std::vector<ade::DimT> gotslist = gd.shape_.as_list();
+	std::vector<ade::DimT> gotslist(gd.shape_.begin(), gd.shape_.end());
 	EXPECT_ARREQ(slist, gotslist);
 
 	uint16_t* gotdata = (uint16_t*) gd.data_.get();
@@ -70,7 +70,7 @@ TEST_F(NODE, PlaceHolder)
 
 	llo::GenericData uninit_gd = pl.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, uninit_gd.dtype_);
-	std::vector<ade::DimT> uninit_slist = uninit_gd.shape_.as_list();
+	std::vector<ade::DimT> uninit_slist(uninit_gd.shape_.begin(), uninit_gd.shape_.end());
 	EXPECT_ARREQ(slist, uninit_slist);
 
 	double* uninit_data = (double*) uninit_gd.data_.get();
@@ -83,7 +83,7 @@ TEST_F(NODE, PlaceHolder)
 	pl = data;
 	llo::GenericData gd = pl.data(llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gd.dtype_);
-	std::vector<ade::DimT> gotslist = gd.shape_.as_list();
+	std::vector<ade::DimT> gotslist(gd.shape_.begin(), gd.shape_.end());
 	EXPECT_ARREQ(slist, gotslist);
 
 	double* gotdata = (double*) gd.data_.get();

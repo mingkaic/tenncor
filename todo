@@ -1,6 +1,5 @@
 correctness:
-P1 - test coordinate transformation (ade)
-P2 - update llo tests
+P2 - test coordinate transformation (ade)
 P2 - test complicate equations
 P3 - implement better fallback strategy when test server is unavailable
 

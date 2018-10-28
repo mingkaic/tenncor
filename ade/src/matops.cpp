@@ -9,19 +9,19 @@ std::string to_string (const MatrixT& mat)
 {
 	std::stringstream ss;
 	ss << arr_begin;
-	for (uint8_t i = 0; i < rank_cap - 1; ++i)
+	for (uint8_t i = 0; i < mat_dim - 1; ++i)
 	{
 		ss << arr_begin << mat[i][0];
-		for (uint8_t j = 1; j < rank_cap; ++j)
+		for (uint8_t j = 1; j < mat_dim; ++j)
 		{
 			ss << arr_delim << mat[i][j];
 		}
 		ss << arr_end << arr_delim << '\n';
 	}
-	ss << arr_begin << mat[rank_cap - 1][0];
-	for (uint8_t j = 1; j < rank_cap; ++j)
+	ss << arr_begin << mat[mat_dim - 1][0];
+	for (uint8_t j = 1; j < mat_dim; ++j)
 	{
-		ss << arr_delim << mat[rank_cap - 1][j];
+		ss << arr_delim << mat[mat_dim - 1][j];
 	}
 	ss << arr_end << arr_end;
 	return ss.str();
@@ -31,19 +31,19 @@ std::string to_string (const AugMatrixT& mat)
 {
 	std::stringstream ss;
 	ss << arr_begin;
-	for (uint8_t i = 0; i < rank_cap - 1; ++i)
+	for (uint8_t i = 0; i < mat_dim - 1; ++i)
 	{
 		ss << arr_begin << mat[i][0];
-		for (uint8_t j = 1; j < 2 * rank_cap; ++j)
+		for (uint8_t j = 1; j < 2 * mat_dim; ++j)
 		{
 			ss << arr_delim << mat[i][j];
 		}
 		ss << arr_end << arr_delim << '\n';
 	}
-	ss << arr_begin << mat[rank_cap - 1][0];
-	for (uint8_t j = 1; j < 2 * rank_cap; ++j)
+	ss << arr_begin << mat[mat_dim - 1][0];
+	for (uint8_t j = 1; j < 2 * mat_dim; ++j)
 	{
-		ss << arr_delim << mat[rank_cap - 1][j];
+		ss << arr_delim << mat[mat_dim - 1][j];
 	}
 	ss << arr_end << arr_end;
 	return ss.str();

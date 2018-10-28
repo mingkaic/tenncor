@@ -75,15 +75,6 @@ void to_stream (std::ostream& s, T val, Args... args)
 	to_stream(s, args...);
 }
 
-/// Return string representation of a tuple content given a specific sequence
-template <typename Tuple, size_t... I>
-std::string to_string (const Tuple& tp, std::index_sequence<I...>)
-{
-	std::stringstream ss;
-	to_stream(ss, std::get<I>(tp)...);
-	return ss.str();
-}
-
 /// Return string representation of a tuple content in order stored
 template <typename... Args>
 std::string to_string (const std::tuple<Args...>& tp)

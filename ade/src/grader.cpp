@@ -204,11 +204,13 @@ GRAD_SIGNATURE(MIN)
 {
 	check_nnary("MIN", args);
 	ArgsT gargs;
+	Tensorptr fwd = Functor::get(MIN, args);
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
 		gargs.push_back({identity, Functor::get(MUL, {
 			{identity, Functor::get(EQ, {
-				{identity, Functor::get(MIN, args)}, args[i],
+				{grads[i].first, fwd},
+				{identity, args[i].second},
 			})}, grads[i],
 		})});
 	}
@@ -219,11 +221,13 @@ GRAD_SIGNATURE(MAX)
 {
 	check_nnary("MAX", args);
 	ArgsT gargs;
+	Tensorptr fwd = Functor::get(MAX, args);
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
 		gargs.push_back({identity, Functor::get(MUL, {
 			{identity, Functor::get(EQ, {
-				{identity, Functor::get(MAX, args)}, args[i],
+				{grads[i].first, fwd},
+				{identity, args[i].second},
 			})}, grads[i],
 		})});
 	}

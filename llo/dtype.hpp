@@ -28,7 +28,6 @@ enum DTYPE
 	UINT16,
 	UINT32,
 	UINT64,
-	_SENTINEL
 };
 
 /// Return the string name of input DTYPE

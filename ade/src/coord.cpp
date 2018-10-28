@@ -9,11 +9,31 @@
 namespace ade
 {
 
+using WorkArrT = std::array<double,mat_dim>;
+
+static inline void vecmul (WorkArrT& out, const MatrixT& mat, CoordT::const_iterator in)
+{
+	out.fill(0);
+	for (uint8_t i = 0; i < mat_dim; ++i)
+	{
+		ade::CDimT inv = 1;
+		if (i < mat_dim - 1)
+		{
+			inv = *(in + i);
+		}
+		for (uint8_t j = 0; j < mat_dim; ++j)
+		{
+			out[j] += inv * mat[i][j];
+		}
+	}
+}
+
 struct CoordMap final : public iCoordMap
 {
 	CoordMap (std::function<void(MatrixT)> init)
 	{
 		std::memset(fwd_, 0, mat_size);
+		fwd_[rank_cap][rank_cap] = 1;
 		init(fwd_);
 		inverse(bwd_, fwd_);
 	}
@@ -21,36 +41,22 @@ struct CoordMap final : public iCoordMap
 	void forward (CoordT::iterator out,
 		CoordT::const_iterator in) const override
 	{
-		std::array<double,rank_cap> temp;
-		temp.fill(0);
+		WorkArrT temp;
+		vecmul(temp, fwd_, in);
 		for (uint8_t i = 0; i < rank_cap; ++i)
 		{
-			for (uint8_t j = 0; j < rank_cap; ++j)
-			{
-				temp[j] += *(in + i) * fwd_[i][j];
-			}
-		}
-		for (uint8_t i = 0; i < rank_cap; ++i)
-		{
-			out[i] = temp[i];
+			out[i] = temp[i] / temp[rank_cap];
 		}
 	}
 
 	void backward (CoordT::iterator out,
 		CoordT::const_iterator in) const override
 	{
-		std::array<double,rank_cap> temp;
-		temp.fill(0);
+		WorkArrT temp;
+		vecmul(temp, bwd_, in);
 		for (uint8_t i = 0; i < rank_cap; ++i)
 		{
-			for (uint8_t j = 0; j < rank_cap; ++j)
-			{
-				temp[j] += *(in + i) * bwd_[i][j];
-			}
-		}
-		for (uint8_t i = 0; i < rank_cap; ++i)
-		{
-			out[i] = temp[i];
+			out[i] = temp[i] / temp[rank_cap];
 		}
 	}
 
@@ -92,7 +98,14 @@ Shape map_shape (CoordPtrT& mapper, const Shape& shape)
 	mapper->forward(out.begin(), in.begin());
 	std::vector<DimT> slist(rank_cap);
 	std::transform(out.begin(), out.end(), slist.begin(),
-		[](CDimT cd) -> DimT { return std::abs(cd); });
+		[](CDimT cd) -> DimT
+		{
+			if (cd < 0)
+			{
+				cd = -cd - 1;
+			}
+			return cd;
+		});
 	return Shape(slist);
 }
 
@@ -214,6 +227,7 @@ CoordPtrT flip (uint8_t dim)
 				fwd[i][i] = 1;
 			}
 			fwd[dim][dim] = -1;
+			fwd[rank_cap][dim] = -1;
 		}));
 }
 

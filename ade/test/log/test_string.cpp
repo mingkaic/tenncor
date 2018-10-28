@@ -66,21 +66,6 @@ TEST(STRING, MultiFmt)
 }
 
 
-TEST(STRING, Tuple)
-{
-	std::tuple<std::string,double,std::vector<std::string>,std::vector<int>>
-	tp{"hey what's the answer to number", 15.1,
-		{"\\", "fine I'll tell you", "it's"}, {16, 13, 45}};
-	std::string inorder = ade::to_string(tp);
-	EXPECT_STREQ("hey what's the answer to number\\15.1\\[\\\\\\"
-		"fine I'll tell you\\it's]\\[16\\13\\45]", inorder.c_str());
-	std::string outorder = ade::to_string(tp,
-		std::integer_sequence<size_t, 0, 3, 2, 1>());
-	EXPECT_STREQ("hey what's the answer to number\\[16\\13\\45]\\[\\\\\\"
-		"fine I'll tell you\\it's]\\15.1", outorder.c_str());
-}
-
-
 TEST(STRING, Iterators)
 {
 	std::vector<double> dbs = {1.5, 1, 5.6, 7.8};

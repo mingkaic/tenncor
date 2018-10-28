@@ -17,7 +17,7 @@
 namespace ade
 {
 
-const uint8_t mat_dim = rank_cap; // todo: make homogeneous (for large shapes)
+const uint8_t mat_dim = rank_cap + 1; // todo: make homogeneous (for large shapes)
 
 const size_t mat_size = sizeof(double) * mat_dim * mat_dim;
 

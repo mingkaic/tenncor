@@ -66,6 +66,12 @@ void op_exec (ade::OPCODE opcode, GenericData& out, DataArgsT& data)
 		case ade::GT:
 			exec<ade::GT>(out, data);
 		break;
+		case ade::MIN:
+			exec<ade::MIN>(out, data);
+		break;
+		case ade::MAX:
+			exec<ade::MAX>(out, data);
+		break;
 		case ade::RAND_BINO:
 			exec<ade::RAND_BINO>(out, data);
 		break;

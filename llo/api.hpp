@@ -124,7 +124,7 @@ DataNode permute (DataNode arg, std::vector<uint8_t> order);
 
 /// Concatenate input shape vector to input tensor's shape.
 /// expect value to expand into the new shape by duplicating
-DataNode extend (DataNode arg, std::vector<uint8_t> ext);
+DataNode extend (DataNode arg, uint8_t after, std::vector<uint8_t> ext);
 
 /// Matrix multiply 2 or 1 dimension matrices,
 /// Tensors with ranks higher than 2 throws runtime error

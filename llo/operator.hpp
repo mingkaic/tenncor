@@ -195,18 +195,20 @@ void round (T* out, VecRef<T> in)
 
 /// Generic binary operation assuming identity mapping (bijective)
 template <typename T>
-void binary (T* out, VecRef<T> a, VecRef<T> b,
+void binary (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b,
 	std::function<T(const T&,const T&)> f)
 {
-	ade::NElemT n = a.shape.n_elems();
-	if (b.shape.n_elems() != n)
-	{
-		ade::fatalf("cannot perform binary operation on non-bijective "
-			"arguments of sizes %d and %d", n, b.shape.n_elems());
-	}
+	ade::NElemT n = outshape.n_elems();
+	ade::CoordT acoord;
+	ade::CoordT bcoord;
 	for (ade::NElemT i = 0; i < n; ++i)
 	{
-		out[i] = f(a.data[i], b.data[i]);
+		a.mapper->backward(acoord.begin(),
+			ade::coordinate(outshape, i).begin());
+		b.mapper->backward(bcoord.begin(),
+			ade::coordinate(outshape, i).begin());
+		out[i] = f(a.data[ade::index(a.shape, acoord)],
+			b.data[ade::index(b.shape, bcoord)]);
 	}
 }
 
@@ -215,9 +217,9 @@ void binary (T* out, VecRef<T> a, VecRef<T> b,
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void pow (T* out, VecRef<T> a, VecRef<T> b)
+void pow (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, b,
+	binary<T>(out, outshape, a, b,
 		[](const T& b, const T& x) { return std::pow(b, x); });
 }
 
@@ -226,9 +228,10 @@ void pow (T* out, VecRef<T> a, VecRef<T> b)
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void sub (T* out, VecRef<T> a, VecRef<T> b)
+void sub (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a - b; });
+	binary<T>(out, outshape, a, b,
+		[](const T& a, const T& b) { return a - b; });
 }
 
 /// Given arguments a, and b, for every pair of elements sharing the same index
@@ -236,9 +239,10 @@ void sub (T* out, VecRef<T> a, VecRef<T> b)
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void div (T* out, VecRef<T> a, VecRef<T> b)
+void div (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a / b; });
+	binary<T>(out, outshape, a, b,
+		[](const T& a, const T& b) { return a / b; });
 }
 
 /// Given arguments a, and b, for every pair of elements sharing the same index
@@ -246,9 +250,10 @@ void div (T* out, VecRef<T> a, VecRef<T> b)
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void eq (T* out, VecRef<T> a, VecRef<T> b)
+void eq (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a == b; });
+	binary<T>(out, outshape, a, b,
+		[](const T& a, const T& b) { return a == b; });
 }
 
 /// Given arguments a, and b, for every pair of elements sharing the same index
@@ -256,9 +261,10 @@ void eq (T* out, VecRef<T> a, VecRef<T> b)
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void neq (T* out, VecRef<T> a, VecRef<T> b)
+void neq (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a != b; });
+	binary<T>(out, outshape, a, b,
+		[](const T& a, const T& b) { return a != b; });
 }
 
 /// Given arguments a, and b, for every pair of elements sharing the same index
@@ -266,9 +272,10 @@ void neq (T* out, VecRef<T> a, VecRef<T> b)
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void lt (T* out, VecRef<T> a, VecRef<T> b)
+void lt (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a < b; });
+	binary<T>(out, outshape, a, b,
+		[](const T& a, const T& b) { return a < b; });
 }
 
 /// Given arguments a, and b, for every pair of elements sharing the same index
@@ -276,9 +283,10 @@ void lt (T* out, VecRef<T> a, VecRef<T> b)
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void gt (T* out, VecRef<T> a, VecRef<T> b)
+void gt (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, b, [](const T& a, const T& b) { return a > b; });
+	binary<T>(out, outshape, a, b,
+		[](const T& a, const T& b) { return a > b; });
 }
 
 /// Given arguments a, and b, for every pair of elements sharing the same index
@@ -286,35 +294,41 @@ void gt (T* out, VecRef<T> a, VecRef<T> b)
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void rand_binom (T* out, VecRef<T> a, VecRef<double> b)
+void rand_binom (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<double> b)
 {
-	ade::NElemT n = a.shape.n_elems();
-	if (b.shape.n_elems() != n)
-	{
-		ade::fatalf("cannot perform binary operation on non-bijective "
-			"arguments of sizes %d and %d", n, b.shape.n_elems());
-	}
+	ade::NElemT n = outshape.n_elems();
+	ade::CoordT acoord;
+	ade::CoordT bcoord;
 	for (ade::NElemT i = 0; i < n; ++i)
 	{
-		std::binomial_distribution<T> dist(a.data[i], b.data[i]);
+		a.mapper->backward(acoord.begin(),
+			ade::coordinate(outshape, i).begin());
+		b.mapper->backward(bcoord.begin(),
+			ade::coordinate(outshape, i).begin());
+		std::binomial_distribution<T> dist(
+			a.data[ade::index(a.shape, acoord)],
+			b.data[ade::index(b.shape, bcoord)]);
 		out[i] = dist(get_engine());
 	}
 }
 
 template <>
-void rand_binom<double> (double* out, VecRef<double> a, VecRef<double> b);
+void rand_binom<double> (double* out,
+	ade::Shape& outshape, VecRef<double> a, VecRef<double> b);
 
 template <>
-void rand_binom<float> (float* out, VecRef<float> a, VecRef<double> b);
+void rand_binom<float> (float* out,
+	ade::Shape& outshape, VecRef<float> a, VecRef<double> b);
 
 /// Given arguments a, and b, for every pair of elements sharing the same index
 /// apply std::uniform_distributon function
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void rand_uniform (T* out, VecRef<T> a, VecRef<T> b)
+void rand_uniform (T* out,
+	ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, b,
+	binary<T>(out, outshape, a, b,
 	[](const T& a, const T& b)
 	{
 		std::uniform_int_distribution<T> dist(a, b);
@@ -323,26 +337,30 @@ void rand_uniform (T* out, VecRef<T> a, VecRef<T> b)
 }
 
 template <>
-void rand_uniform<double> (double* out, VecRef<double> a, VecRef<double> b);
+void rand_uniform<double> (double* out,
+	ade::Shape& outshape, VecRef<double> a, VecRef<double> b);
 
 template <>
-void rand_uniform<float> (float* out, VecRef<float> a, VecRef<float> b);
+void rand_uniform<float> (float* out,
+	ade::Shape& outshape, VecRef<float> a, VecRef<float> b);
 
 /// Given arguments a, and b, for every pair of elements sharing the same index
 /// apply std::normal_distribution function
 /// Shapes must be compatible before min_rank of both arguments
 /// Only accept 2 arguments
 template <typename T>
-void rand_normal (T* out, VecRef<T> a, VecRef<T> b)
+void rand_normal (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
 	throw std::bad_function_call();
 }
 
 template <>
-void rand_normal<float> (float* out, VecRef<float> a, VecRef<float> b);
+void rand_normal<float> (float* out,
+	ade::Shape& outshape, VecRef<float> a, VecRef<float> b);
 
 template <>
-void rand_normal<double> (double* out, VecRef<double> a, VecRef<double> b);
+void rand_normal<double> (double* out,
+	ade::Shape& outshape, VecRef<double> a, VecRef<double> b);
 
 /// Generic n-nary operation (potentially surjective)
 template <typename T>
