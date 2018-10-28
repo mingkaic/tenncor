@@ -79,8 +79,8 @@ struct Source final : public iSource
 		std::memcpy(&data_[0], data.data_, sizeof(T) * data.shape_.n_elems());
 	}
 
-	/// Return internal tensor referencing this
-	const std::shared_ptr<ade::Tensor>& inner (void) const
+	/// Implementation of iSource
+	const std::shared_ptr<ade::Tensor>& inner (void) const override
 	{
 		return tensor_;
 	}
@@ -121,6 +121,15 @@ struct PlaceHolder : public DataNode
 		return *this;
 	}
 };
+
+template <typename T>
+DataNode shaped_scalar (T scalar, ade::Shape shape)
+{
+	DataNode snode = Source<double>::get_scalar(scalar);
+	return DataNode(snode.ctx_, ade::Functor::get(ade::COPY, {
+		{ade::extend(0, std::vector<ade::DimT>(shape.begin(), shape.end())),
+		snode.tensor_}}));
+}
 
 }
 

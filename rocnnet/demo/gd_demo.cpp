@@ -4,6 +4,8 @@
 #include <ctime>
 #include <iostream>
 
+#include "dbg/ade.hpp"
+
 #include "rocnnet/eqns/activations.hpp"
 
 #include "rocnnet/modl/gd_trainer.hpp"
@@ -71,11 +73,36 @@ int main (int argc, char** argv)
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
-	ApproxFuncT approx = [](const llo::DataNode& root, std::vector<llo::DataNode> leaves)
+	ApproxFuncT approx = [](llo::DataNode& root, std::vector<llo::DataNode> leaves)
 	{
 		return sgd(root, leaves, 0.9); // learning rate = 0.9
 	};
 	GDTrainer trainer(brain, approx, n_batch, "gdn");
+
+	PrettyEquation peq;
+	size_t i = 0;
+	for (auto deltas : trainer.updates_)
+	{
+		peq.labels_[deltas.first->inner().get()] = ade::sprintf("var%d", i);
+		++i;
+	}
+	peq.labels_[trainer.expected_out_.tensor_.get()] = "expected_out";
+	peq.labels_[trainer.error_.tensor_.get()] = "error";
+	peq.labels_[trainer.train_in_.tensor_.get()] = "train_in";
+	peq.print(std::cout, trainer.error_.tensor_);
+	std::cout << "\n";
+#if 0
+	for (auto deltas : trainer.updates_)
+	{
+		peq.print(std::cout, deltas.second.tensor_);
+		std::cout << "\n";
+	}
+#endif
+
+	std::vector<double> batch = batch_generate(n_in, n_batch);
+	std::vector<double> batch_out = avgevry2(batch);
+	trainer.train_in_ = batch;
+	trainer.expected_out_ = batch_out;
 
 	// train mlp to output input
 	start = std::clock();
@@ -83,7 +110,10 @@ int main (int argc, char** argv)
 	{
 		if (i % show_every_n == show_every_n-1)
 		{
+			llo::GenericData trained_derr = trainer.error_.data(llo::DOUBLE);
+			double* trained_err_res = (double*) trained_derr.data_.get();
 			std::cout << "training " << i+1 << std::endl;
+			std::cout << "trained error: " << ade::to_string(trained_err_res, trained_err_res + n_out) << std::endl;
 		}
 		std::vector<double> batch = batch_generate(n_in, n_batch);
 		std::vector<double> batch_out = avgevry2(batch);
@@ -101,8 +131,8 @@ int main (int argc, char** argv)
 	double pretrained_err = 0;
 
 	llo::PlaceHolder<double> testin(ade::Shape({n_in}));
-	auto trained_out = brain(testin);
 	auto untrained_out = untrained_brain(testin);
+	auto trained_out = brain(testin);
 	// auto pretrained_out = pretrained_brain(testin);
 	for (size_t i = 0; i < n_test; i++)
 	{
@@ -114,12 +144,12 @@ int main (int argc, char** argv)
 		std::vector<double> batch_out = avgevry2(batch);
 		testin = batch;
 
-		llo::GenericData trained_data = trained_out.data(llo::DOUBLE);
 		llo::GenericData untrained_data = untrained_out.data(llo::DOUBLE);
+		llo::GenericData trained_data = trained_out.data(llo::DOUBLE);
 		// llo::GenericData pretrained_data = pretrained_out.data(llo::DOUBLE);
 
-		double* trained_res = (double*) trained_data.data_.get();
 		double* untrained_res = (double*) untrained_data.data_.get();
+		double* trained_res = (double*) trained_data.data_.get();
 		// double* pretrained_res = (double*) pretrained_data.data_.get();
 
 		double untrained_avgerr = 0;
@@ -137,10 +167,10 @@ int main (int argc, char** argv)
 	}
 	untrained_err /= (double) n_test;
 	trained_err /= (double) n_test;
-	pretrained_err /= (double) n_test;
+	// pretrained_err /= (double) n_test;
 	std::cout << "untrained mlp error rate: " << untrained_err * 100 << "%\n";
 	std::cout << "trained mlp error rate: " << trained_err * 100 << "%\n";
-	std::cout << "pretrained mlp error rate: " << pretrained_err * 100 << "%\n";
+	// std::cout << "pretrained mlp error rate: " << pretrained_err * 100 << "%\n";
 
 	if (exit_status == 0 && save)
 	{

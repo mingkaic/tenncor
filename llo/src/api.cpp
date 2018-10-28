@@ -7,9 +7,9 @@
 namespace llo
 {
 
-DataNode one (void)
+DataNode one (ade::Shape shape)
 {
-	return DataNode(EvalCtx(), ade::Tensor::SYMBOLIC_ONE);
+	return DataNode(EvalCtx(), ade::shaped_one(shape));
 }
 
 DataNode abs (DataNode arg)

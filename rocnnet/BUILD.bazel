@@ -20,5 +20,8 @@ cc_binary(
     name = "gd_demo",
     srcs = ["demo/gd_demo.cpp"],
     copts = ["-std=c++14"],
-    deps = ["//rocnnet/modl:modl"],
+    deps = [
+        "//rocnnet/modl:modl",
+        "//dbg:dbg",
+    ],
 )

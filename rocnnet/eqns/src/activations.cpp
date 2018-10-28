@@ -2,15 +2,17 @@
 
 llo::DataNode sigmoid (llo::DataNode x)
 {
-	auto denom = llo::add(llo::one(), llo::exp(llo::neg(x)));
-	return llo::div(llo::one(), denom);
+	ade::Shape shape = x.tensor_->shape();
+	auto denom = llo::add(llo::one(shape), llo::exp(llo::neg(x)));
+	return llo::div(llo::one(shape), denom);
 }
 
 llo::DataNode tanh (llo::DataNode x)
 {
+	ade::Shape shape = x.tensor_->shape();
 	auto expxx = llo::exp(llo::add(x, x));
-	auto num = llo::add(expxx, llo::one());
-	auto denom = llo::sub(expxx, llo::one());
+	auto num = llo::add(expxx, llo::one(shape));
+	auto denom = llo::sub(expxx, llo::one(shape));
 	return llo::div(num, denom);
 }
 

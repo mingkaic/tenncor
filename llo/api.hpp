@@ -14,8 +14,8 @@
 namespace llo
 {
 
-/// Returns DataNode with SYMBOLIC_ONE
-DataNode one (void);
+/// Returns DataNode with SYMBOLIC_ONE extended to input shape
+DataNode one (ade::Shape shape);
 
 /// Element-wise absolute operation
 DataNode abs (DataNode arg);

@@ -31,6 +31,9 @@ struct iSource
 
 	/// Assign new data values
 	virtual void reassign (const GenericRef& data) = 0;
+
+	/// Return internal tensor referencing this
+	virtual const std::shared_ptr<ade::Tensor>& inner (void) const = 0;
 };
 
 /// Interface for evaluating data of a type

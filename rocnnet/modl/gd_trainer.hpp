@@ -12,7 +12,7 @@ struct GDTrainer
 		expected_out_(ade::Shape({brain.get_noutput(), batch_size})),
 		// todo: move error out of initializer list to avoid confusing order of init
 		error_(llo::pow(llo::sub(expected_out_, brain(train_in_)),
-			llo::Source<double>::get_scalar(2)))
+			llo::shaped_scalar<double>(2, expected_out_.tensor_->shape())))
 	{
 		updates_ = update(error_, brain.get_variables());
 	}

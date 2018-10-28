@@ -75,8 +75,9 @@ struct FCLayer : public iLayer
 		std::vector<llo::DataNode> args;
 		for (size_t i = 0; i < n; ++i)
 		{
+			ade::DimT cdim = inputs[i].tensor_->shape().at(1);
 			args.push_back(llo::matmul(inputs[i], weight_bias_[i].first));
-			args.push_back(weight_bias_[i].second);
+			args.push_back(llo::extend(weight_bias_[i].second, 1, {cdim}));
 		}
 		return llo::sum(args);
 	}

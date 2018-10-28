@@ -2,7 +2,7 @@
 
 #include "rocnnet/eqns/err_approx.hpp"
 
-DeltasT sgd (const llo::DataNode& root, std::vector<llo::DataNode> leaves,
+DeltasT sgd (llo::DataNode& root, std::vector<llo::DataNode> leaves,
 	double learning_rate)
 {
 	DeltasT errs;
@@ -18,14 +18,15 @@ DeltasT sgd (const llo::DataNode& root, std::vector<llo::DataNode> leaves,
 		}
 
 		// given root = f, err(x) ~ x - η * df(x), where η is the learning rate
-		llo::DataNode gres = llo::reduce_sum(root.derive(leaf), 2);
+		llo::DataNode gres = root.derive(leaf);
+		ade::Shape gshape = gres.tensor_->shape();
 		errs.emplace(leafsrc.get(), llo::sub(leaf,
-			llo::mul(gres, llo::Source<double>::get_scalar(learning_rate))));
+			llo::mul(gres, llo::shaped_scalar(learning_rate, gshape))));
 	}
 	return errs;
 }
 
-DeltasT rms_momentum (const llo::DataNode& root,
+DeltasT rms_momentum (llo::DataNode& root,
 	std::vector<llo::DataNode> leaves, double learning_rate,
 	double discount_factor, double epsilon)
 {
@@ -42,7 +43,7 @@ DeltasT rms_momentum (const llo::DataNode& root,
 		}
 		// given root = f, err(x) ~ x - (η * df(x)) / (sqrt(ε + momentum)),
 		// where η is the learning rate, and ε is epsilon
-		auto gres = llo::reduce_sum(root.derive(leaf), 2);
+		auto gres = root.derive(leaf);
 
 		// upkeep additional hidden variable momentum: starting with value 1
 		// given root = f, err(momentum) ~ χ * momentum + (1 - χ) * df(x) ^ 2,
@@ -50,15 +51,16 @@ DeltasT rms_momentum (const llo::DataNode& root,
 		ade::Shape shape = leaf.tensor_->shape();
 		std::vector<double> wun(shape.n_elems(), 1);
 		llo::DataNode momentum = llo::Source<double>::get(shape, wun);
-		auto discount_node = llo::Source<double>::get_scalar(discount_factor);
-		auto datcount_node = llo::Source<double>::get_scalar(1.0 - discount_factor);
+		auto discount_node = llo::shaped_scalar(discount_factor, shape);
+		auto datcount_node = llo::shaped_scalar(1.0 - discount_factor, shape);
 		errs.insert({momentum.source().get(),
 			llo::add(llo::mul(discount_node, momentum),
 			llo::prod({datcount_node, gres, gres}))});
 
 		errs.emplace(leafsrc.get(), llo::sub(leaf,
-			llo::div(llo::mul(gres, llo::Source<double>::get_scalar(learning_rate)),
-			llo::add(llo::sqrt(momentum), llo::Source<double>::get_scalar(epsilon)))));
+			llo::div(llo::mul(gres, llo::shaped_scalar(learning_rate, shape)),
+			llo::add(llo::sqrt(momentum), llo::shaped_scalar(epsilon, shape)))
+		));
 	}
 	return errs;
 }

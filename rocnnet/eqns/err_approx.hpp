@@ -8,10 +8,10 @@ using ApproxFuncT = std::function<DeltasT(llo::DataNode&,
 	std::vector<llo::DataNode>)>;
 
 // Stochastic Gradient Descent Approximation
-DeltasT sgd (const llo::DataNode& root, std::vector<llo::DataNode> leaves,
+DeltasT sgd (llo::DataNode& root, std::vector<llo::DataNode> leaves,
 	double learning_rate);
 
 // Momentum-based Root Mean Square Approximation
-DeltasT rms_momentum (const llo::DataNode& root,
+DeltasT rms_momentum (llo::DataNode& root,
 	std::vector<llo::DataNode> leaves, double learning_rate,
 	double discount_factor, double epsilon);
