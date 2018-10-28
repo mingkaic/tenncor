@@ -27,8 +27,6 @@ enum OPCODE
 	ABS,
 	/// Negate the sign of every element
 	NEG,
-	/// Bitwise not every element
-	NOT,
 	/// Sine every element
 	SIN,
 	/// Cosine every element

@@ -84,14 +84,13 @@ struct PathFinder final : public iTraveler
 	ParentMapT parents_;
 };
 
-/// Functor of the graph mapping to operators specified in template argument OP
-template <OPCODE OP> // todo: make OP non-template argument
+/// Functor of the graph mapping to operators specified by opcode argument
 struct Functor final : public iFunctor
 {
 	/// Return a Functor with with input tensor and meta arguments
-	static Functor<OP>* get (ArgsT args)
+	static Functor* get (OPCODE opcode, ArgsT args)
 	{
-		std::string oname = opname(OP);
+		std::string oname = opname(opcode);
 		const char* label = oname.c_str();
 		if (0 == args.size())
 		{
@@ -108,7 +107,7 @@ struct Functor final : public iFunctor
 					shape.to_string().c_str(), ishape.to_string().c_str());
 			}
 		}
-		return new Functor<OP>(shape, args);
+		return new Functor(opcode, shape, args);
 	}
 
 	/// Implementation of iTensor
@@ -128,10 +127,10 @@ struct Functor final : public iFunctor
 		// define traversal path from this to wrt
 		PathFinder finder(wrt);
 		accept(finder);
-
+		// no path to wrt
 		if (finder.parents_.empty())
 		{
-			return shaped_zero(shape_);
+			return shaped_zero(wrt->shape());
 		}
 		// else there exists a path to wrt
 		// using pathfinder, breadth first traverse to wrt
@@ -188,19 +187,19 @@ struct Functor final : public iFunctor
 			{
 				return {identity, tens};
 			});
-		return Functor<ADD>::get(finalargs);
+		return Functor::get(ADD, finalargs);
 	}
 
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return opname(OP);
+		return opname(opcode_);
 	}
 
 	/// Implementation of iFunctor
 	OPCODE get_code (void) const override
 	{
-		return OP;
+		return opcode_;
 	}
 
 	/// Implementation of iFunctor
@@ -210,8 +209,10 @@ struct Functor final : public iFunctor
 	}
 
 private:
-	Functor (Shape shape, ArgsT args) :
-		shape_(shape), args_(args) {}
+	Functor (OPCODE opcode, Shape shape, ArgsT args) :
+		opcode_(opcode), shape_(shape), args_(args) {}
+
+	OPCODE opcode_;
 
 	/// Shape info built at construction time according to arguments
 	Shape shape_;

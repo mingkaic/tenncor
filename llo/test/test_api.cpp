@@ -1,12 +1,13 @@
+
+#ifndef DISABLE_API_TEST
+
+
 #include "gtest/gtest.h"
 
 #include "testutil/common.hpp"
 #include "retroc/rand.hpp"
 
 #include "llo/api.hpp"
-
-
-#ifndef DISABLE_API_TEST
 
 
 using UnaryDblF = std::function<double(double)>;

@@ -1,4 +1,4 @@
-(SUB)
+(ADD)
  `--(COPY)
  |   `--([1]<SYMBOLIC_1>)
  `--(COPY)

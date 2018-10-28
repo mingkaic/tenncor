@@ -1,11 +1,12 @@
+
+#ifndef DISABLE_NODE_TEST
+
+
 #include "gtest/gtest.h"
 
 #include "testutil/common.hpp"
 
 #include "llo/node.hpp"
-
-
-#ifndef DISABLE_NODE_TEST
 
 
 struct NODE : public simple::TestModel

@@ -51,7 +51,6 @@ data[0].second.shape_}); } };
 
 UNARY_ELEM(ABS, abs)
 UNARY_ELEM(NEG, neg)
-UNARY_ELEM(NOT, bit_not)
 UNARY_ELEM(SIN, sin)
 UNARY_ELEM(COS, cos)
 UNARY_ELEM(TAN, tan)

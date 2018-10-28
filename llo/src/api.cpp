@@ -14,74 +14,68 @@ DataNode one (void)
 
 DataNode abs (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::ABS>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::ABS, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode neg (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::NEG>::get({
-		{ade::identity, arg.tensor_}}));
-}
-
-DataNode bit_not (DataNode arg)
-{
-	return DataNode(arg.ctx_, ade::Functor<ade::NOT>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::NEG, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode sin (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::SIN>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::SIN, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode cos (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::COS>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::COS, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode tan (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::TAN>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::TAN, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode exp (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::EXP>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::EXP, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode log (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::LOG>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::LOG, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode sqrt (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::SQRT>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::SQRT, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode round (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::ROUND>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::ROUND, {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode flip (DataNode arg, uint8_t dim)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::COPY>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::COPY, {
 		{ade::flip(dim), arg.tensor_}}));
 }
 
 DataNode pow (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor<ade::POW>::get({
+		ade::Functor::get(ade::POW, {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -101,13 +95,13 @@ DataNode sum (std::vector<DataNode> args)
 		contexas.push_back(&arg.ctx_);
 		ade_args.push_back({ade::identity, arg.tensor_});
 	}
-	return DataNode(EvalCtx(contexas), ade::Functor<ade::ADD>::get(ade_args));
+	return DataNode(EvalCtx(contexas), ade::Functor::get(ade::ADD, ade_args));
 }
 
 DataNode sub (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor<ade::SUB>::get({
+		ade::Functor::get(ade::SUB, {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -127,13 +121,13 @@ DataNode prod (std::vector<DataNode> args)
 		contexas.push_back(&arg.ctx_);
 		ade_args.push_back({ade::identity, arg.tensor_});
 	}
-	return DataNode(EvalCtx(contexas), ade::Functor<ade::MUL>::get(ade_args));
+	return DataNode(EvalCtx(contexas), ade::Functor::get(ade::MUL, ade_args));
 }
 
 DataNode div (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor<ade::DIV>::get({
+		ade::Functor::get(ade::DIV, {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -142,7 +136,7 @@ DataNode div (DataNode a, DataNode b)
 DataNode eq (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor<ade::EQ>::get({
+		ade::Functor::get(ade::EQ, {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -151,7 +145,7 @@ DataNode eq (DataNode a, DataNode b)
 DataNode neq (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor<ade::NE>::get({
+		ade::Functor::get(ade::NE, {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -160,7 +154,7 @@ DataNode neq (DataNode a, DataNode b)
 DataNode lt (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor<ade::LT>::get({
+		ade::Functor::get(ade::LT, {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -169,7 +163,7 @@ DataNode lt (DataNode a, DataNode b)
 DataNode gt (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor<ade::GT>::get({
+		ade::Functor::get(ade::GT, {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -184,7 +178,7 @@ DataNode min (std::vector<DataNode> args)
 		contexas.push_back(&arg.ctx_);
 		ade_args.push_back({ade::identity, arg.tensor_});
 	}
-	return DataNode(EvalCtx(contexas), ade::Functor<ade::MIN>::get(ade_args));
+	return DataNode(EvalCtx(contexas), ade::Functor::get(ade::MIN, ade_args));
 }
 
 DataNode max (std::vector<DataNode> args)
@@ -196,7 +190,7 @@ DataNode max (std::vector<DataNode> args)
 		contexas.push_back(&arg.ctx_);
 		ade_args.push_back({ade::identity, arg.tensor_});
 	}
-	return DataNode(EvalCtx(contexas), ade::Functor<ade::MAX>::get(ade_args));
+	return DataNode(EvalCtx(contexas), ade::Functor::get(ade::MAX, ade_args));
 }
 
 DataNode clip (DataNode x, DataNode lo, DataNode hi)
@@ -207,7 +201,7 @@ DataNode clip (DataNode x, DataNode lo, DataNode hi)
 DataNode rand_binom (DataNode ntrials, DataNode prob)
 {
 	return DataNode(EvalCtx({&ntrials.ctx_, &prob.ctx_}),
-		ade::Functor<ade::RAND_BINO>::get({
+		ade::Functor::get(ade::RAND_BINO, {
 			{ade::identity, ntrials.tensor_},
 			{ade::identity, prob.tensor_}
 		}));
@@ -216,7 +210,7 @@ DataNode rand_binom (DataNode ntrials, DataNode prob)
 DataNode rand_uniform (DataNode lower, DataNode upper)
 {
 	return DataNode(EvalCtx({&lower.ctx_, &upper.ctx_}),
-		ade::Functor<ade::RAND_UNIF>::get({
+		ade::Functor::get(ade::RAND_UNIF, {
 			{ade::identity, lower.tensor_},
 			{ade::identity, upper.tensor_}
 		}));
@@ -225,7 +219,7 @@ DataNode rand_uniform (DataNode lower, DataNode upper)
 DataNode rand_normal (DataNode mean, DataNode stdev)
 {
 	return DataNode(EvalCtx({&mean.ctx_, &stdev.ctx_}),
-		ade::Functor<ade::RAND_NORM>::get({
+		ade::Functor::get(ade::RAND_NORM, {
 			{ade::identity, mean.tensor_},
 			{ade::identity, stdev.tensor_}
 		}));
@@ -250,7 +244,7 @@ DataNode reduce_max (DataNode arg, uint8_t groupidx)
 {
 	const ade::Shape& shape = arg.tensor_->shape();
 	std::vector<ade::DimT> slist(shape.begin() + groupidx, shape.end());
-	return DataNode(arg.ctx_, ade::Functor<ade::MAX>::get(
+	return DataNode(arg.ctx_, ade::Functor::get(ade::MAX,
 		{{ade::reduce(groupidx, slist), arg.tensor_}}));
 }
 
@@ -263,19 +257,19 @@ DataNode reduce_sum (DataNode arg, uint8_t groupidx)
 {
 	const ade::Shape& shape = arg.tensor_->shape();
 	std::vector<ade::DimT> slist(shape.begin() + groupidx, shape.end());
-	return DataNode(arg.ctx_, ade::Functor<ade::ADD>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::ADD, {
 		{ade::reduce(groupidx, slist), arg.tensor_}}));
 }
 
 DataNode permute (DataNode arg, std::vector<uint8_t> order)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::COPY>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::COPY, {
 		{ade::permute(order), arg.tensor_}}));
 }
 
 DataNode extend (DataNode arg, uint8_t after, std::vector<uint8_t> ext)
 {
-	return DataNode(arg.ctx_, ade::Functor<ade::COPY>::get({
+	return DataNode(arg.ctx_, ade::Functor::get(ade::COPY, {
 		{ade::extend(after, ext), arg.tensor_}}));
 }
 

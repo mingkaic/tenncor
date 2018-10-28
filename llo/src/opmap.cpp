@@ -18,9 +18,6 @@ void op_exec (ade::OPCODE opcode, GenericData& out, DataArgsT& data)
 		case ade::NEG:
 			exec<ade::NEG>(out, data);
 		break;
-		case ade::NOT:
-			exec<ade::NOT>(out, data);
-		break;
 		case ade::SIN:
 			exec<ade::SIN>(out, data);
 		break;

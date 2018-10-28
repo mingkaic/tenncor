@@ -1,2 +1,2 @@
-(EXTEND<[2\3]>)
+(COPY)
  `--([1]<SYMBOLIC_0>)

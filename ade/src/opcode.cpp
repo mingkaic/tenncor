@@ -23,7 +23,6 @@ const std::unordered_map<OPCODE,std::string,EnumHash> opnames =
 	OP_ASSOC(COPY),
 	OP_ASSOC(ABS),
 	OP_ASSOC(NEG),
-	OP_ASSOC(NOT),
 	OP_ASSOC(SIN),
 	OP_ASSOC(COS),
 	OP_ASSOC(TAN),

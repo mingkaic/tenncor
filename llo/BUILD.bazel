@@ -51,7 +51,7 @@ cc_test(
 
 cc_test(
     name = "test_regress",
-    size = "small",
+    size = "medium",
     srcs = ["test/rmain.cpp"],
     copts = ["-std=c++14"],
     deps = [

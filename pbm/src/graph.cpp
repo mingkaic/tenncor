@@ -143,16 +143,14 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 	{
 		case ade::MATMUL:
 		{
-			auto ev = static_cast<ade::Functor<
-				ade::MATMUL,uint8_t,uint8_t>*>(f);
+			auto ev = static_cast<ade::Functor>(f);
 			*(meta->Add()) = std::get<0>(ev->meta());
 			*(meta->Add()) = std::get<1>(ev->meta());
 		}
 		break;
 		case ade::PERMUTE:
 		{
-			auto ev = static_cast<ade::Functor<
-				ade::PERMUTE,std::vector<uint8_t>>*>(f);
+			auto ev = static_cast<ade::Functor*>(f);
 			std::vector<uint8_t> slist = std::get<0>(ev->meta());
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());
@@ -161,8 +159,7 @@ static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
 		break;
 		case ade::EXTEND:
 		{
-			auto ev = static_cast<ade::Functor<
-				ade::EXTEND,std::vector<ade::DimT>>*>(f);
+			auto ev = static_cast<ade::Functor*>(f);
 			std::vector<ade::DimT> slist = std::get<0>(ev->meta());
 			google::protobuf::RepeatedField<uint32_t> vec(
 				slist.begin(), slist.end());

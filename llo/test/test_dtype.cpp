@@ -1,11 +1,12 @@
+
+#ifndef DISABLE_DTYPE_TEST
+
+
 #include "gtest/gtest.h"
 
 #include "testutil/common.hpp"
 
 #include "llo/data.hpp"
-
-
-#ifndef DISABLE_DTYPE_TEST
 
 
 struct DTYPE : public simple::TestModel

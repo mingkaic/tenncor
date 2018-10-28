@@ -23,9 +23,6 @@ DataNode abs (DataNode arg);
 /// Element-wise negative operation
 DataNode neg (DataNode arg);
 
-/// Element-wise bitwise not operation
-DataNode bit_not (DataNode arg);
-
 /// Element-wise sine operation
 DataNode sin (DataNode arg);
 
