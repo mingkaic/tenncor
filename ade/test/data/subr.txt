@@ -1,4 +1,5 @@
-(SUB<>)
- `--(RESHAPE<[2\3]>)
+(SUB)
+ `--(COPY)
  |   `--([1]<SYMBOLIC_1>)
- `--([1]<SYMBOLIC_0>)
+ `--(COPY)
+     `--([1]<SYMBOLIC_0>)

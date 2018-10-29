@@ -1,5 +1,5 @@
-#include "ade/log.hpp"
-#include "ade/string.hpp"
+#include "ade/log/log.hpp"
+#include "ade/log/string.hpp"
 #include "ade/shape.hpp"
 #include "ade/functor.hpp"
 

@@ -23,7 +23,14 @@ struct PrettyEquation final
 		{
 			if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(root))
 			{
-				return f->get_children();
+				auto& children = f->get_children();
+				std::vector<ade::iTensor*> tens(children.size());
+				std::transform(children.begin(), children.end(), tens.begin(),
+				[](const std::pair<ade::CoordPtrT,ade::Tensorptr>& child)
+				{
+					return child.second.get();
+				});
+				return tens;
 			}
 			return {};
 		},
@@ -48,6 +55,10 @@ struct PrettyEquation final
 				{
 					out << root->to_string();
 				}
+				if (showshape_ && nullptr != dynamic_cast<ade::iFunctor*>(root))
+				{
+					out << root->shape().to_string();
+				}
 			}
 		}) {}
 
@@ -57,8 +68,15 @@ struct PrettyEquation final
 		drawer_.print(out, ptr.get());
 	}
 
+	void print (std::ostream& out, ade::iTensor* ptr)
+	{
+		drawer_.print(out, ptr);
+	}
+
 	/// For every label associated with a tensor, show LABEL=value in the tree
 	std::unordered_map<ade::iTensor*,std::string> labels_;
+
+	bool showshape_ = false;
 
 private:
 	/// Actual ascii renderer

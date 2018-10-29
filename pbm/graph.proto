@@ -29,12 +29,19 @@ message Source
     }
 }
 
+message NodeArg
+{
+    // -1 for symbolic_zero, -2 for symbolic_one,
+    // otherwise index of node in graph
+    int32 idx = 1;
+    repeated double coord = 2 [packed = true];
+}
+
 message Functor
 {
-    uint32 opcode = 1;
+    string opname = 1;
     // indices of args in graph
-    repeated uint32 args = 2;
-    repeated uint32 meta = 3;
+    repeated NodeArg args = 2;
 }
 
 message Node

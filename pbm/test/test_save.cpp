@@ -1,3 +1,7 @@
+
+#ifndef DISABLE_SAVE_TEST
+
+
 #include <fstream>
 
 #include "gtest/gtest.h"
@@ -5,9 +9,6 @@
 #include "llo/api.hpp"
 
 #include "pbm/graph.hpp"
-
-
-#ifndef DISABLE_SAVE_TEST
 
 
 const std::string testdir = "pbm/test/data";

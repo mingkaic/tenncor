@@ -31,6 +31,9 @@ struct iSource
 
 	/// Assign new data values
 	virtual void reassign (const GenericRef& data) = 0;
+
+	/// Return internal tensor referencing this
+	virtual const std::shared_ptr<ade::Tensor>& inner (void) const = 0;
 };
 
 /// Interface for evaluating data of a type
@@ -78,6 +81,10 @@ struct EvalCtx final
 	FuncPoolT funks_;
 };
 
+/// Evaluate the data of children for func according to inputs ctx and dtype
+void calc_func_args (DataArgsT& out, const EvalCtx& ctx,
+	DTYPE dtype, ade::iFunctor* func);
+
 /// Visitor implementation to evaluate ade nodes according to ctx and dtype
 /// Given a global context containing ade-llo association maps, get data from
 /// llo::Sources when possible, otherwise treat native ade::Tensors as zeroes
@@ -89,10 +96,50 @@ struct Evaluator final : public ade::iTraveler
 		ctx_(&ctx), dtype_(dtype) {}
 
 	/// Implementation of iTraveler
-	void visit (ade::Tensor* leaf) override;
+	void visit (ade::Tensor* leaf) override
+	{
+		if (leaf == ade::Tensor::SYMBOLIC_ONE.get())
+		{
+			out_ = GenericData(ade::Shape(), dtype_);
+			fill_one(out_.data_.get(), 1, dtype_);
+			return;
+		}
+		auto srcpair = ctx_->srcs_.find(leaf);
+		if (ctx_->srcs_.end() != srcpair)
+		{
+			out_ = srcpair->second->data(dtype_);
+		}
+		else
+		{
+			if (leaf != ade::Tensor::SYMBOLIC_ZERO.get())
+			{
+				ade::warnf("evaluating an ade::Tensor %s without associated "
+					"Source according to input context... treating data as 0",
+					leaf->to_string().c_str()); // todo: describe ctx for comprehensive report
+			}
+			out_ = GenericData(ade::Shape(), dtype_);
+			std::memset(out_.data_.get(), 0, type_size(dtype_));
+		}
+	}
 
 	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override;
+	void visit (ade::iFunctor* func) override
+	{
+		auto funkpair = ctx_->funks_.find(func);
+		if (ctx_->funks_.end() != funkpair)
+		{
+			out_ = funkpair->second->data(dtype_);
+			return;
+		}
+		// else visit pure ade::iFunctor
+		ade::OPCODE opcode = func->get_code();
+
+		out_ = GenericData(func->shape(), dtype_);
+
+		DataArgsT argdata;
+		calc_func_args(argdata, *ctx_, dtype_, func);
+		op_exec(opcode, out_, argdata);
+	}
 
 	/// Output data evaluated upon visiting node
 	GenericData out_;
@@ -123,16 +170,16 @@ struct DataNode
 	}
 
 	/// Return DataNode of gradient tree derived with respect to wrt tensor
-	DataNode derive (ade::Tensorptr& wrt) const
+	DataNode derive (const ade::iTensor* wrt)
 	{
 		ade::Tensorptr grad = tensor_->gradient(wrt);
 		return DataNode(ctx_, grad);
 	}
 
 	/// Return DataNode of gradient tree derived with respect to wrt DataNode
-	DataNode derive (DataNode& wrt) const
+	DataNode derive (DataNode& wrt)
 	{
-		return derive(wrt.tensor_);
+		return derive(wrt.tensor_.get());
 	}
 
 	/// Return iSource mapped by tensor_ if found in ctx_, otherwise null
@@ -159,10 +206,6 @@ struct DataNode
 	/// Subgraph root
 	ade::Tensorptr tensor_;
 };
-
-/// Evaluate the data of children for func according to inputs ctx and dtype
-void get_func_children (std::vector<GenericData>& out,
-	const EvalCtx& ctx, DTYPE dtype, ade::iFunctor* func);
 
 }
 

@@ -1,11 +1,12 @@
+
+#ifndef DISABLE_SHAPE_TEST
+
+
 #include "gtest/gtest.h"
 
 #include "ade/shape.hpp"
 
 #include "testutil/common.hpp"
-
-
-#ifndef DISABLE_SHAPE_TEST
 
 
 struct SHAPE : public simple::TestModel
@@ -33,9 +34,9 @@ TEST_F(SHAPE, Init)
 	ade::Shape lvec(longlist);
 
 	std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
-	std::string expect_fatalmsg = "cannot create shape with vector containing zero: " +
+	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		ade::to_string(zerolist);
-	EXPECT_FATAL(ade::Shape junk(zerolist), expect_fatalmsg.c_str());
+	EXPECT_FATAL(ade::Shape junk(zerolist), fatalmsg.c_str());
 
 	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
@@ -73,16 +74,16 @@ TEST_F(SHAPE, VecAssign)
 	ade::Shape vecassign2(junk);
 
 	vecassign = slist;
-	EXPECT_EQ(slist.size(), vecassign.n_rank());
-	EXPECT_ARREQ(slist, vecassign.as_list());
+	std::vector<ade::DimT> vlist(vecassign.begin(), vecassign.end());
+	EXPECT_ARREQ(slist, vlist);
 
 	vecassign2 = slist;
-	EXPECT_EQ(slist.size(), vecassign2.n_rank());
-	EXPECT_ARREQ(slist, vecassign2.as_list());
+	std::vector<ade::DimT> vlist2(vecassign2.begin(), vecassign2.end());
+	EXPECT_ARREQ(slist, vlist2);
 
-	std::string expect_fatalmsg = "cannot create shape with vector containing zero: " +
+	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		ade::to_string(zerolist);
-	EXPECT_FATAL(vecassign = zerolist, expect_fatalmsg.c_str());
+	EXPECT_FATAL(vecassign = zerolist, fatalmsg.c_str());
 }
 
 
@@ -98,27 +99,24 @@ TEST_F(SHAPE, Moves)
 	ade::Shape orig(slist);
 
 	ade::Shape mv(std::move(orig));
-	EXPECT_EQ(slist.size(), mv.n_rank());
-	EXPECT_ARREQ(slist, mv.as_list());
-	EXPECT_EQ(0, orig.n_rank());
+	std::vector<ade::DimT> mlist(mv.begin(), mv.end());
+	EXPECT_ARREQ(slist, mlist);
 	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, orig.at(i));
 	}
 
 	mvassign = std::move(mv);
-	EXPECT_EQ(slist.size(), mvassign.n_rank());
-	EXPECT_ARREQ(slist, mvassign.as_list());
-	EXPECT_EQ(0, mv.n_rank());
+	std::vector<ade::DimT> alist(mvassign.begin(), mvassign.end());
+	EXPECT_ARREQ(slist, alist);
 	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, mv.at(i));
 	}
 
 	mvassign2 = std::move(mvassign);
-	EXPECT_EQ(slist.size(), mvassign2.n_rank());
-	EXPECT_ARREQ(slist, mvassign2.as_list());
-	EXPECT_EQ(0, mvassign.n_rank());
+	std::vector<ade::DimT> alist2(mvassign2.begin(), mvassign2.end());
+	EXPECT_ARREQ(slist, alist2);
 	for (uint8_t i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, mvassign.at(i));
@@ -155,21 +153,6 @@ TEST_F(SHAPE, NElems)
 }
 
 
-TEST_F(SHAPE, NRank)
-{
-	simple::SessionT sess = get_session("SHAPE::NRank");
-
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	ade::Shape shape(slist);
-
-	std::vector<ade::DimT> longlist = get_longshape(sess, "n_longlist");
-	ade::Shape lshape(longlist);
-
-	EXPECT_EQ(slist.size(), shape.n_rank());
-	EXPECT_EQ(ade::rank_cap, lshape.n_rank());
-}
-
-
 TEST_F(SHAPE, Compatible)
 {
 	simple::SessionT sess = get_session("SHAPE::Compatible");
@@ -190,7 +173,7 @@ TEST_F(SHAPE, Compatible)
 	std::vector<ade::DimT> ilist = slist;
 	ilist.insert(ilist.begin() + insertion_pt, 2);
 	ade::Shape ishape(ilist);
-	for (uint8_t idx = 0, rank = shape.n_rank(); idx < rank; ++idx)
+	for (uint8_t idx = 0; idx < insertion_pt; ++idx)
 	{
 		EXPECT_FALSE(shape.compatible_after(ishape, idx)) <<
 			"expect " << shape.to_string() <<

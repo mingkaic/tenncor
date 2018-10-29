@@ -57,6 +57,8 @@ struct GenericRef
 	DTYPE dtype_;
 };
 
+void fill_one (char* cptr, size_t n, DTYPE dtype);
+
 }
 
 #endif // LLO_DATA_HPP

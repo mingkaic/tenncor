@@ -16,52 +16,71 @@ struct EnumHash
 	}
 };
 
-#define OP_ASSOC(CODE) std::pair<OPCODE,std::string>{CODE, #CODE}
+#define CODE_ASSOC(CODE) std::pair<OPCODE,std::string>{CODE, #CODE}
+#define NAME_ASSOC(CODE) std::pair<std::string,OPCODE>{#CODE, CODE}
 
 const std::unordered_map<OPCODE,std::string,EnumHash> opnames =
 {
-	OP_ASSOC(ABS),
-	OP_ASSOC(NEG),
-	OP_ASSOC(NOT),
-	OP_ASSOC(SIN),
-	OP_ASSOC(COS),
-	OP_ASSOC(TAN),
-	OP_ASSOC(EXP),
-	OP_ASSOC(LOG),
-	OP_ASSOC(SQRT),
-	OP_ASSOC(ROUND),
-	OP_ASSOC(FLIP),
+	CODE_ASSOC(COPY),
+	CODE_ASSOC(ABS),
+	CODE_ASSOC(NEG),
+	CODE_ASSOC(SIN),
+	CODE_ASSOC(COS),
+	CODE_ASSOC(TAN),
+	CODE_ASSOC(EXP),
+	CODE_ASSOC(LOG),
+	CODE_ASSOC(SQRT),
+	CODE_ASSOC(ROUND),
 
-	OP_ASSOC(POW),
-	OP_ASSOC(ADD),
-	OP_ASSOC(SUB),
-	OP_ASSOC(MUL),
-	OP_ASSOC(DIV),
-	OP_ASSOC(EQ),
-	OP_ASSOC(NE),
-	OP_ASSOC(GT),
-	OP_ASSOC(LT),
-	OP_ASSOC(MIN),
-	OP_ASSOC(MAX),
+	CODE_ASSOC(POW),
+	CODE_ASSOC(ADD),
+	CODE_ASSOC(SUB),
+	CODE_ASSOC(MUL),
+	CODE_ASSOC(DIV),
+	CODE_ASSOC(EQ),
+	CODE_ASSOC(NE),
+	CODE_ASSOC(GT),
+	CODE_ASSOC(LT),
+	CODE_ASSOC(MIN),
+	CODE_ASSOC(MAX),
 
-	OP_ASSOC(RAND_BINO),
-	OP_ASSOC(RAND_UNIF),
-	OP_ASSOC(RAND_NORM),
-
-	OP_ASSOC(N_ELEMS),
-	OP_ASSOC(N_DIMS),
-
-	OP_ASSOC(ARGMAX),
-	OP_ASSOC(RMAX),
-	OP_ASSOC(RSUM),
-
-	OP_ASSOC(MATMUL),
-	// OP_ASSOC(CONVOLUTE),
-
-	OP_ASSOC(PERMUTE),
-	OP_ASSOC(EXTEND),
-	OP_ASSOC(RESHAPE),
+	CODE_ASSOC(RAND_BINO),
+	CODE_ASSOC(RAND_UNIF),
+	CODE_ASSOC(RAND_NORM),
 };
+
+const std::unordered_map<std::string,OPCODE> opcodes =
+{
+	NAME_ASSOC(COPY),
+	NAME_ASSOC(ABS),
+	NAME_ASSOC(NEG),
+	NAME_ASSOC(SIN),
+	NAME_ASSOC(COS),
+	NAME_ASSOC(TAN),
+	NAME_ASSOC(EXP),
+	NAME_ASSOC(LOG),
+	NAME_ASSOC(SQRT),
+	NAME_ASSOC(ROUND),
+
+	NAME_ASSOC(POW),
+	NAME_ASSOC(ADD),
+	NAME_ASSOC(SUB),
+	NAME_ASSOC(MUL),
+	NAME_ASSOC(DIV),
+	NAME_ASSOC(EQ),
+	NAME_ASSOC(NE),
+	NAME_ASSOC(GT),
+	NAME_ASSOC(LT),
+	NAME_ASSOC(MIN),
+	NAME_ASSOC(MAX),
+
+	NAME_ASSOC(RAND_BINO),
+	NAME_ASSOC(RAND_UNIF),
+	NAME_ASSOC(RAND_NORM),
+};
+
+#undef CODE_ASSOC
+#undef NAME_ASSOC
 
 std::string opname (OPCODE opcode)
 {
@@ -73,7 +92,15 @@ std::string opname (OPCODE opcode)
 	return it->second;
 }
 
-#undef OP_ASSOC
+OPCODE name_op (std::string oname)
+{
+	auto it = opcodes.find(oname);
+	if (opcodes.end() == it)
+	{
+		return _BAD_OP;
+	}
+	return it->second;
+}
 
 }
 

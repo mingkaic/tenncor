@@ -7,12 +7,12 @@
 ///
 
 #include <algorithm>
+#include <cassert>
+#include <list>
+#include <unordered_map>
 
-#include "ade/string.hpp"
-
-#include "ade/tensor.hpp"
+#include "ade/log/string.hpp"
 #include "ade/grader.hpp"
-#include "ade/fwder.hpp"
 
 #ifndef ADE_FUNCTOR_HPP
 #define ADE_FUNCTOR_HPP
@@ -35,20 +35,79 @@ struct iFunctor : public iTensor
 	virtual OPCODE get_code (void) const = 0;
 
 	/// Return children nodes as a vector of raw pointers
-	virtual std::vector<iTensor*> get_children (void) const = 0;
+	virtual const ArgsT& get_children (void) const = 0;
 };
 
-/// Functor of the graph mapping to operators specified in OPCODE template
-/// ARGS template captures non-tensor arguments used for certain operators
-template <OPCODE OP, typename... ARGS>
+struct PathFinder final : public iTraveler
+{
+	using ParentMapT = std::unordered_map<iTensor*,std::vector<bool>>;
+
+	PathFinder (const iTensor* target) : target_(target) {}
+
+	/// Implementation of iTraveler
+	void visit (Tensor* leaf) override {}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor* func) override
+	{
+		if (parents_.end() == parents_.find(func))
+		{
+			auto& children = func->get_children();
+			size_t n = children.size();
+			bool has_path = false;
+			std::vector<bool> path(n, false);
+			for (size_t i = 0; i < n; ++i)
+			{
+				Tensorptr tens = children[i].second;
+				if (tens.get() == target_)
+				{
+					path[i] = has_path = true;
+				}
+				else
+				{
+					tens->accept(*this);
+					if (parents_.end() != parents_.find(tens.get()))
+					{
+						path[i] = has_path = true;
+					}
+				}
+			}
+			if (has_path)
+			{
+				parents_[func] = path;
+			}
+		}
+	}
+
+	const iTensor* target_;
+
+	ParentMapT parents_;
+};
+
+/// Functor of the graph mapping to operators specified by opcode argument
 struct Functor final : public iFunctor
 {
 	/// Return a Functor with with input tensor and meta arguments
-	static Functor<OP,ARGS...>* get (std::vector<Tensorptr> args, ARGS... meta)
+	static Functor* get (OPCODE opcode, ArgsT args)
 	{
-		std::tuple<ARGS...> tp(meta...);
-		return new Functor(forwarder<OP,ARGS...>(args,
-			std::forward<ARGS>(meta)...), args, tp);
+		std::string oname = opname(opcode);
+		const char* label = oname.c_str();
+		if (0 == args.size())
+		{
+			fatalf("cannot %s with no arguments", label);
+		}
+
+		Shape shape = map_shape(args[0].first, args[0].second->shape());
+		for (size_t i = 1, n = args.size(); i < n; ++i)
+		{
+			Shape ishape = map_shape(args[i].first, args[i].second->shape());
+			if (false == ishape.compatible_after(shape, 0))
+			{
+				fatalf("cannot %s with incompatible shapes %s and %s", label,
+					shape.to_string().c_str(), ishape.to_string().c_str());
+			}
+		}
+		return new Functor(opcode, shape, args);
 	}
 
 	/// Implementation of iTensor
@@ -58,118 +117,109 @@ struct Functor final : public iFunctor
 	}
 
 	/// Implementation of iTensor
-	Tensorptr gradient (Tensorptr& wrt) const override
+	Tensorptr gradient (const iTensor* wrt) override
 	{
-		if (wrt.get() == this)
+		if (this == wrt)
 		{
-			return constant_one(wrt->shape());
+			return shaped_one(shape_);
 		}
-		return grad_helper(wrt, std::index_sequence_for<ARGS...>());
+
+		// define traversal path from this to wrt
+		PathFinder finder(wrt);
+		accept(finder);
+		// no path to wrt
+		if (finder.parents_.empty())
+		{
+			return shaped_zero(wrt->shape());
+		}
+		// else there exists a path to wrt
+		// using pathfinder, breadth first traverse to wrt
+		std::list<std::pair<iTensor*,Tensorptr>> tmaps = {{this, shaped_one(shape_)}};
+		std::vector<Tensorptr> finalgrad;
+		while (false == tmaps.empty())
+		{
+			auto fpair = tmaps.front();
+			tmaps.pop_front();
+			iTensor* fwd = fpair.first;
+			auto bwd = fpair.second;
+			if (wrt == fwd)
+			{
+				finalgrad.push_back(bwd);
+				continue;
+			}
+			iFunctor* func = static_cast<iFunctor*>(fwd);
+			OPCODE opcode = func->get_code();
+			auto& paint = finder.parents_[func];
+			ArgsT children = func->get_children();
+			ArgsT grad_children;
+			std::transform(children.begin(), children.end(),
+				std::back_inserter(grad_children),
+				[](std::pair<CoordPtrT,Tensorptr>& child)
+				{ return std::pair<CoordPtrT,Tensorptr>{
+					child.first->reverse(),
+					shaped_zero(child.second->shape())}; });
+			// for each painted child, calculate dThis/dChild
+			for (size_t i = 0, n = children.size(); i < n; ++i)
+			{
+				if (paint[i])
+				{
+					Tensorptr& child = children[i].second;
+					iTensor* tens = child.get();
+					auto zero = grad_children[i].second;
+					grad_children[i].second = bwd;
+					// pass down forward-gradient pair
+					tmaps.push_back({tens,
+						gradmap(opcode, children, grad_children)});
+					grad_children[i].second = zero;
+				}
+			}
+		}
+
+		assert(finalgrad.size() > 0);
+		if (finalgrad.size() == 1)
+		{
+			return finalgrad[0];
+		}
+		ArgsT finalargs;
+		std::transform(finalgrad.begin(), finalgrad.end(),
+			std::back_inserter(finalargs),
+			[](Tensorptr& tens) -> std::pair<CoordPtrT,Tensorptr>
+			{
+				return {identity, tens};
+			});
+		return Functor::get(ADD, finalargs);
 	}
 
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return opname(OP) + "<" + ade::to_string(meta_) + ">";
+		return opname(opcode_);
 	}
 
 	/// Implementation of iFunctor
 	OPCODE get_code (void) const override
 	{
-		return OP;
+		return opcode_;
 	}
 
 	/// Implementation of iFunctor
-	std::vector<iTensor*> get_children (void) const override
+	const ArgsT& get_children (void) const override
 	{
-		std::vector<iTensor*> out(args_.size());
-		std::transform(args_.begin(), args_.end(), out.begin(),
-		[](const Tensorptr& arg)
-		{
-			return arg.get();
-		});
-		return out;
-	}
-
-	/// Return extra non-tensor arguments
-	const std::tuple<ARGS...>& meta (void) const
-	{
-		return meta_;
+		return args_;
 	}
 
 private:
-	Functor (Shape shape, std::vector<Tensorptr> args,
-		std::tuple<ARGS...>& meta) :
-		args_(args), meta_(meta), shape_(shape) {}
+	Functor (OPCODE opcode, Shape shape, ArgsT args) :
+		opcode_(opcode), shape_(shape), args_(args) {}
 
-	template <size_t... I>
-	Tensorptr grad_helper (Tensorptr& wrt, std::index_sequence<I...>) const
-	{
-		return grader<OP,ARGS...>(args_, wrt, std::get<I>(meta_)...);
-	}
-
-	/// Tensor arguments (and children)
-	std::vector<Tensorptr> args_;
-
-	/// Extra arguments for certain operators
-	/// These arguments are hidden to ensure shape is correct
-	/// since meta data can influence shape
-	std::tuple<ARGS...> meta_;
+	OPCODE opcode_;
 
 	/// Shape info built at construction time according to arguments
 	Shape shape_;
+
+	/// Tensor arguments (and children)
+	ArgsT args_;
 };
-
-#define MAPCASE(CODE)case CODE:\
-return Functor<CODE,ARGS...>::get(args, meta...);
-
-/// Return Functor of non-template OPCODE useful for runtime OPCODE generation
-template <typename... ARGS>
-Tensorptr runtime_functor (OPCODE opcode,
-	std::vector<Tensorptr> args, ARGS... meta)
-{
-	switch (opcode)
-	{
-		MAPCASE(ABS)
-		MAPCASE(NEG)
-		MAPCASE(NOT)
-		MAPCASE(SIN)
-		MAPCASE(COS)
-		MAPCASE(TAN)
-		MAPCASE(EXP)
-		MAPCASE(LOG)
-		MAPCASE(SQRT)
-		MAPCASE(ROUND)
-		MAPCASE(FLIP)
-		MAPCASE(POW)
-		MAPCASE(ADD)
-		MAPCASE(SUB)
-		MAPCASE(MUL)
-		MAPCASE(DIV)
-		MAPCASE(EQ)
-		MAPCASE(NE)
-		MAPCASE(LT)
-		MAPCASE(GT)
-		MAPCASE(MIN)
-		MAPCASE(MAX)
-		MAPCASE(RAND_BINO)
-		MAPCASE(RAND_UNIF)
-		MAPCASE(RAND_NORM)
-		MAPCASE(N_ELEMS)
-		MAPCASE(N_DIMS)
-		MAPCASE(ARGMAX)
-		MAPCASE(RMAX)
-		MAPCASE(RSUM)
-		MAPCASE(MATMUL)
-		MAPCASE(PERMUTE)
-		MAPCASE(EXTEND)
-		MAPCASE(RESHAPE)
-		default:
-			throw std::bad_function_call();
-	}
-}
-
-#undef MAPCASE
 
 }
 

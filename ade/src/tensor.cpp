@@ -5,22 +5,24 @@
 namespace ade
 {
 
-Tensorptr Tensor::SYMBOLIC_ONE = new Tensor{Shape()};
+Tensorptr Tensor::SYMBOLIC_ONE = new Tensor(Shape());
 
-Tensorptr Tensor::SYMBOLIC_ZERO = new Tensor{Shape()};
+Tensorptr Tensor::SYMBOLIC_ZERO = new Tensor(Shape());
 
-Tensorptr constant_one (Shape shape)
+Tensorptr shaped_one (Shape shape)
 {
-	auto out = Functor<RESHAPE,std::vector<DimT>>::get(
-		{Tensor::SYMBOLIC_ONE}, shape.as_list());
-	return out;
+	return Functor::get(COPY, {{
+		extend(0, std::vector<DimT>(shape.begin(), shape.end())),
+		Tensor::SYMBOLIC_ONE
+	}});
 }
 
-Tensorptr constant_zero (Shape shape)
+Tensorptr shaped_zero (Shape shape)
 {
-	auto out = Functor<RESHAPE,std::vector<DimT>>::get(
-		{Tensor::SYMBOLIC_ZERO}, shape.as_list());
-	return out;
+	return Functor::get(COPY, {{
+		extend(0, std::vector<DimT>(shape.begin(), shape.end())),
+		Tensor::SYMBOLIC_ZERO
+	}});
 }
 
 }

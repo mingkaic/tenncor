@@ -1,3 +1,7 @@
+
+#ifndef DISABLE_LOAD_TEST
+
+
 #include <fstream>
 
 #include "gtest/gtest.h"
@@ -5,9 +9,6 @@
 #include "dbg/ade.hpp"
 
 #include "pbm/graph.hpp"
-
-
-#ifndef DISABLE_LOAD_TEST
 
 
 const std::string testdir = "pbm/test/data";
@@ -47,24 +48,25 @@ TEST(LOAD, LoadGraph)
 	std::vector<llo::DataNode> roots;
 	{
 		std::vector<llo::DataNode> nodes = load_graph(graph);
-		std::unordered_set<ade::iTensor*> nparents;
+		std::unordered_set<ade::iTensor*> have_parents;
 		for (auto it = nodes.begin(), et = nodes.end(); et != it; ++it)
 		{
 			if (ade::iFunctor* func =
 				dynamic_cast<ade::iFunctor*>(it->tensor_.get()))
 			{
-				auto refs = func->get_children();
-				for (auto ref : refs)
+				ade::ArgsT refs = func->get_children();
+				for (auto& ref : refs)
 				{
-					nparents.emplace(ref);
+					have_parents.emplace(ref.second.get());
 				}
 			}
 		}
 
+		// filter out nodes with parents to find roots
 		std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(roots),
 		[&](llo::DataNode& node)
 		{
-			return nparents.end() == nparents.find(node.tensor_.get());
+			return have_parents.end() == have_parents.find(node.tensor_.get());
 		});
 	}
 

@@ -14,17 +14,14 @@
 namespace llo
 {
 
-/// Returns DataNode with SYMBOLIC_ONE
-DataNode one (void);
+/// Returns DataNode with SYMBOLIC_ONE extended to input shape
+DataNode one (ade::Shape shape);
 
 /// Element-wise absolute operation
 DataNode abs (DataNode arg);
 
 /// Element-wise negative operation
 DataNode neg (DataNode arg);
-
-/// Element-wise bitwise not operation
-DataNode bit_not (DataNode arg);
 
 /// Element-wise sine operation
 DataNode sin (DataNode arg);
@@ -108,33 +105,17 @@ DataNode n_elems (DataNode arg);
 /// Get value at specified dimension of input shape
 DataNode n_dims (DataNode arg, uint8_t dim);
 
-/// Get first flat index of the max value
-DataNode argmax (DataNode arg);
-
 /// Get the max value
 DataNode reduce_max (DataNode arg);
+
+/// Apply reduce_max to elements of coordinate range [groupidx:]
+DataNode reduce_max (DataNode arg, uint8_t groupidx);
 
 /// Get the sum of all values
 DataNode reduce_sum (DataNode arg);
 
-/// Apply reduce_sum to elements of coordinate range [0:groupidx]
+/// Apply reduce_sum to elements of coordinate range [groupidx:]
 DataNode reduce_sum (DataNode arg, uint8_t groupidx);
-
-/// Matrix multiply 2 or 1 dimension matrices,
-/// Tensors with ranks higher than 2 throws runtime error
-DataNode matmul (DataNode a, DataNode b);
-
-/// High dimension matrix multiplication, using 2 group indices,
-/// for each tensor, form groups [:idx) and [index:rank) and treat dimensions
-/// falling in those ranges as a single dimension (where the shape values must
-/// match) then apply matmul given the grouped shape
-/// For example, given shapea={3, 4, 5}, ai=2, shapeb={7, 8, 3, 4}, bi=2,
-/// output tensor has shape {7, 8, 5}, since {3, 4} in a and b matches
-DataNode matmul (DataNode a, DataNode b,
-	uint8_t agroup_idx, uint8_t bgroup_idx);
-
-// // NOT IMPLEMENTED
-// DataNode convolute (DataNode canvas, DataNode window);
 
 /// Permute shape according to input indices. output shape take
 /// on input dimensions ordered by indices, and concatenated by unreferenced
@@ -143,11 +124,14 @@ DataNode permute (DataNode arg, std::vector<uint8_t> order);
 
 /// Concatenate input shape vector to input tensor's shape.
 /// expect value to expand into the new shape by duplicating
-DataNode extend (DataNode arg, std::vector<uint8_t> ext);
+DataNode extend (DataNode arg, uint8_t after, std::vector<uint8_t> ext);
 
-/// Reshape input tensor's shape to new shape assuming the new
-/// shape has the same n_elems as old shape
-DataNode reshape (DataNode arg, std::vector<uint8_t> slist);
+/// Matrix multiply 2 or 1 dimension matrices,
+/// Tensors with ranks higher than 2 throws runtime error
+DataNode matmul (DataNode a, DataNode b);
+
+// // NOT IMPLEMENTED
+// DataNode convolute (DataNode canvas, DataNode window);
 
 }
 

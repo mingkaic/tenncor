@@ -1,5 +1,3 @@
-#include "ade/grader.hpp"
-#include "ade/tensor.hpp"
 #include "ade/functor.hpp"
 
 namespace ade
@@ -7,224 +5,242 @@ namespace ade
 
 #ifdef ADE_GRADER_HPP
 
-#define NOARG_SIG(CODE)template <>\
-Tensorptr grader<CODE> (std::vector<Tensorptr> args, Tensorptr& wrt)
+#define GRAD_SIGNATURE(CODE)template <>\
+Tensorptr grader<CODE> (ArgsT& args, ArgsT& grads)
 
-#define INTARG_SIG(CODE)template <>\
-Tensorptr grader<CODE> (std::vector<Tensorptr> args, Tensorptr& wrt,\
-	uint8_t dim)
+#define ZERO_GRAD(CODE)GRAD_SIGNATURE(CODE)\
+{ Shape shape = map_shape(args[0].first, args[0].second->shape());\
+return shaped_zero(shape); }
 
-#define SHPARG_SIG(CODE)template <>\
-Tensorptr grader<CODE,std::vector<DimT>> (std::vector<Tensorptr> args,\
-	Tensorptr& wrt, std::vector<DimT> shape)
-
-#define ZERO_GRAD(CODE)NOARG_SIG(CODE)\
-{ return constant_zero(wrt->shape().as_list()); }
-
-NOARG_SIG(ABS)
+static void check_unary (const char* op, ArgsT& args)
 {
+	if (1 != args.size())
+	{
+		fatalf("cannot %s for non-single argument(s): using %d argument(s)",
+			op, args.size());
+	}
+}
+
+static void check_binary (const char* op, ArgsT& args)
+{
+	if (2 != args.size())
+	{
+		fatalf("cannot %s for non-binary argument(s): using %d argument(s)",
+			op, args.size());
+	}
+}
+
+static void check_nnary (const char* op, ArgsT& args)
+{
+	if (0 == args.size())
+	{
+		fatalf("cannot %s with arguments", op);
+	}
+}
+
+GRAD_SIGNATURE(COPY)
+{
+	check_unary("COPY", args);
+	return Functor::get(COPY, {grads.front()});
+}
+
+GRAD_SIGNATURE(ABS)
+{
+	check_unary("ABS", args);
 	// abs'(f) = f * f' / abs(f)
-	return Functor<DIV>::get({Functor<MUL>::get({
-		args.front(), args.front()->gradient(wrt)}),
-		Functor<ABS>::get({args.front()})});
+	return Functor::get(DIV, {
+		{identity, Functor::get(MUL, {args.front(), grads.front()})},
+		{identity, Functor::get(ABS, args)},
+	});
 }
 
-NOARG_SIG(NEG)
+GRAD_SIGNATURE(NEG)
 {
-	return Functor<NEG>::get({args.front()->gradient(wrt)});
+	check_unary("NEG", args);
+	// neg'(f) = -f'
+	return Functor::get(NEG, {grads.front()});
 }
 
-NOARG_SIG(NOT)
+GRAD_SIGNATURE(SIN)
 {
-	return Functor<NOT>::get({args.front()->gradient(wrt)});
-}
-
-NOARG_SIG(SIN)
-{
+	check_unary("SIN", args);
 	// sin'(f) = f'*cos(f)
-	return Functor<MUL>::get({
-		args.front()->gradient(wrt),
-		Functor<COS>::get({args.front()})});
+	return Functor::get(MUL, {grads.front(),
+		{identity, Functor::get(COS, args)},
+	});
 }
 
-NOARG_SIG(COS)
+GRAD_SIGNATURE(COS)
 {
+	check_unary("COS", args);
 	// cos'(f) = -f'*sin(f)
-	return Functor<MUL>::get({
-		Functor<NEG>::get({args.front()->gradient(wrt)}),
-		Functor<SIN>::get({args.front()})});
+	return Functor::get(MUL, {
+		{identity, Functor::get(NEG, {grads.front()})},
+		{identity, Functor::get(SIN, args)},
+	});
 }
 
-NOARG_SIG(TAN)
+GRAD_SIGNATURE(TAN)
 {
+	check_unary("TAN", args);
 	// tan'(f) = f'*sec^2(f)
 	// 		= f'/cos^2(f)
-	Tensorptr denom = Functor<COS>::get({args.front()});
-	return Functor<DIV>::get({
-		Functor<DIV>::get({
-			args.front()->gradient(wrt), denom}), denom});
+	Tensorptr denom = Functor::get(COS, args);
+	return Functor::get(DIV, {
+		{identity, Functor::get(DIV, {grads.front(),
+			{identity, denom},
+		})},
+		{identity, denom},
+	});
 }
 
-NOARG_SIG(EXP)
+GRAD_SIGNATURE(EXP)
 {
+	check_unary("EXP", args);
 	// exp'(f) = f'*exp(f)
-	return Functor<MUL>::get({
-		args.front()->gradient(wrt),
-		Functor<EXP>::get({args.front()})});
+	return Functor::get(MUL, {grads.front(),
+		{identity, Functor::get(EXP, args)},
+	});
 }
 
-NOARG_SIG(LOG)
+GRAD_SIGNATURE(LOG)
 {
+	check_unary("LOG", args);
 	// log'(f) = f' / f
-	return Functor<DIV>::get({
-		args.front()->gradient(wrt),
-		 args.front()});
+	return Functor::get(DIV, {grads.front(), args.front()});
 }
 
-NOARG_SIG(SQRT)
+GRAD_SIGNATURE(SQRT)
 {
+	check_unary("SQRT", args);
 	// sqrt'(f) = f'/(2*sqrt(f))
-	Tensorptr denom = Functor<SQRT>::get({args.front()});
-	return Functor<DIV>::get({
-		args.front()->gradient(wrt),
-		Functor<ADD>::get({denom, denom})});
+	Tensorptr fwd = Functor::get(SQRT, args);
+	return Functor::get(DIV, {grads.front(),
+		{identity, Functor::get(ADD, {
+			{identity, fwd}, {identity, fwd},
+		})},
+	});
 }
 
-NOARG_SIG(ROUND)
+GRAD_SIGNATURE(ROUND)
 {
+	check_unary("ROUND", args);
 	// round'(f) = round(f')
-	return Functor<ROUND>::get({args.front()->gradient(wrt)});
+	return Functor::get(ROUND, {grads.front()});
 }
 
-NOARG_SIG(FLIP)
+GRAD_SIGNATURE(POW)
 {
-	return args.front()->gradient(wrt);
-}
-
-NOARG_SIG(POW)
-{
+	check_binary("POW", args);
 	// pow'(f, g) = f' * g * pow(f, g - 1) + g' * pow(f, g) * log(f)
 	//			= pow(f, g - 1) * (f' * g + g' * f * log(f))
-	Tensorptr& f = args[0];
-	Tensorptr& g = args[1];
-	Tensorptr df = f->gradient(wrt);
-	Tensorptr dg = g->gradient(wrt);
-	return Functor<MUL>::get({
-		Functor<POW>::get({
-			f, Functor<SUB>::get({g, Tensor::SYMBOLIC_ONE})}),
-		Functor<ADD>::get({
-			Functor<MUL>::get({df, g}),
-			Functor<MUL>::get({dg,
-				Functor<MUL>::get({f, Functor<LOG>::get({f})})
-			})
-		})
+	Tensorptr lhs = Functor::get(ADD, {
+		{identity, Functor::get(MUL, {
+			grads[0], args[1]
+		})},
+		{identity, Functor::get(MUL, {
+			grads[1], args[0],
+			{identity, Functor::get(LOG, {args[0]})},
+		})},
+	});
+	return Functor::get(MUL, {
+		{identity, Functor::get(POW, {args[0],
+			{identity, Functor::get(SUB, {
+				args[1], {identity, shaped_one(args[1].second->shape())},
+			})},
+		})},
+		{identity, lhs},
 	});
 }
 
-NOARG_SIG(ADD)
+GRAD_SIGNATURE(ADD)
 {
+	check_nnary("ADD", args);
 	// h'(f, g, ...) = f' + g' + ...
-	std::vector<Tensorptr> gargs;
-	std::transform(args.begin(), args.end(), std::back_inserter(gargs),
-	[&](ade::Tensorptr& arg)
-	{
-		return arg->gradient(wrt);
-	});
-	return Functor<ADD>::get(gargs);
+	return Functor::get(ADD, grads);
 }
 
-NOARG_SIG(SUB)
+GRAD_SIGNATURE(SUB)
 {
+	check_binary("SUB", args);
 	// h'(f, g) = f' - g'
-	return Functor<SUB>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
+	return Functor::get(SUB, grads);
 }
 
-NOARG_SIG(MUL)
+GRAD_SIGNATURE(MUL)
 {
+	check_nnary("MUL", args);
 	// h'(f, g) = f' * g * ... + f * g' * ... + ...
-	std::vector<Tensorptr> gargs;
+	ArgsT gargs;
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
 		// f' * g * ...
-		Tensorptr f = args[i];
-		args[i] = args[i]->gradient(wrt);
-		gargs.push_back(Functor<MUL>::get(args));
-		args[i] = f;
+		auto child = args[i];
+		args[i] = grads[i];
+		gargs.push_back({identity, Functor::get(MUL, args)});
+		args[i] = child;
 	}
-	return Functor<ADD>::get(gargs);
+	return Functor::get(ADD, gargs);
 }
 
-NOARG_SIG(DIV)
+GRAD_SIGNATURE(DIV)
 {
+	check_binary("DIV", args);
 	// h'(f, g) = (f' * g - g' * f) / g^2
 	//			= f' / g - ((g' * f) / g) / g
-	Tensorptr& f = args[0];
-	Tensorptr& g = args[1];
-	Tensorptr df = f->gradient(wrt);
-	Tensorptr dg = g->gradient(wrt);
-	return Functor<SUB>::get({
-		Functor<DIV>::get({df, g}),
-		Functor<DIV>::get({Functor<DIV>::get({
-			Functor<MUL>::get({dg, f}), g}), g})});
-}
-
-NOARG_SIG(EQ)
-{
-	return Functor<EQ>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
-}
-
-NOARG_SIG(NE)
-{
-	return Functor<NE>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
-}
-
-NOARG_SIG(LT)
-{
-	return Functor<LT>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
-}
-
-NOARG_SIG(GT)
-{
-	return Functor<GT>::get({
-		args.front()->gradient(wrt),
-		args.back()->gradient(wrt)});
-}
-
-NOARG_SIG(MIN)
-{
-	Tensorptr f = Functor<MIN>::get(args);
-	std::vector<Tensorptr> gargs;
-	std::transform(args.begin(), args.end(), std::back_inserter(gargs),
-	[&](ade::Tensorptr& arg)
-	{
-		return Functor<MUL>::get({
-			Functor<EQ>::get({f, arg}),
-			arg->gradient(wrt)});
+	return Functor::get(SUB, {
+		{identity, Functor::get(DIV, {grads[0], args[1]})},
+		{identity, Functor::get(DIV, {
+			{identity, Functor::get(DIV, {
+				{identity, Functor::get(MUL, {grads[1], args[0]})},
+				args[1],
+			})},
+			args[1],
+		})},
 	});
-	return Functor<ADD>::get(gargs);
 }
 
-NOARG_SIG(MAX)
+GRAD_SIGNATURE(MIN)
 {
-	Tensorptr f = Functor<MAX>::get(args);
-	std::vector<Tensorptr> gargs;
-	std::transform(args.begin(), args.end(), std::back_inserter(gargs),
-	[&](ade::Tensorptr& arg)
+	check_nnary("MIN", args);
+	ArgsT gargs;
+	Tensorptr fwd = Functor::get(MIN, args);
+	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
-		return Functor<MUL>::get({
-			Functor<EQ>::get({f, arg}),
-			arg->gradient(wrt)});
-	});
-	return Functor<ADD>::get(gargs);
+		gargs.push_back({identity, Functor::get(MUL, {
+			{identity, Functor::get(EQ, {
+				{grads[i].first, fwd},
+				{identity, args[i].second},
+			})}, grads[i],
+		})});
+	}
+	return Functor::get(ADD, gargs);
 }
+
+GRAD_SIGNATURE(MAX)
+{
+	check_nnary("MAX", args);
+	ArgsT gargs;
+	Tensorptr fwd = Functor::get(MAX, args);
+	for (size_t i = 0, n = args.size(); i < n; ++i)
+	{
+		gargs.push_back({identity, Functor::get(MUL, {
+			{identity, Functor::get(EQ, {
+				{grads[i].first, fwd},
+				{identity, args[i].second},
+			})}, grads[i],
+		})});
+	}
+	return Functor::get(ADD, gargs);
+}
+
+ZERO_GRAD(EQ)
+
+ZERO_GRAD(NE)
+
+ZERO_GRAD(LT)
+
+ZERO_GRAD(GT)
 
 ZERO_GRAD(RAND_BINO)
 
@@ -232,148 +248,44 @@ ZERO_GRAD(RAND_UNIF)
 
 ZERO_GRAD(RAND_NORM)
 
-ZERO_GRAD(N_ELEMS)
-
-ZERO_GRAD(N_DIMS)
-
-INTARG_SIG(ARGMAX)
-{
-	// ARGMAX has no gradient
-	throw std::bad_function_call();
-}
-
-INTARG_SIG(RMAX)
-{
-	Tensorptr& a = args[0];
-	Tensorptr da = a->gradient(wrt);
-	Tensorptr ismax = Functor<EQ>::get({a,
-		Functor<RMAX,uint8_t>::get({a}, dim)});
-	Tensorptr nmax = Functor<RSUM,uint8_t>::get({ismax}, dim);
-	Tensorptr g = Functor<DIV>::get({ismax, nmax});
-	return Functor<MUL>::get({g, da});
-}
-
-INTARG_SIG(RSUM)
-{
-	return args.front()->gradient(wrt);
-}
-
-template <>
-Tensorptr grader<MATMUL,uint8_t,uint8_t> (std::vector<Tensorptr> args,
-	Tensorptr& wrt, uint8_t agroup_idx, uint8_t bgroup_idx)
-{
-	// dc(a, b)/dx =
-	//	matmul(da/dx[shape:fx], dc/da[shape:ca])[shape:cx] +
-	//	matmul(db/dx[shape:bx], dc/db[shape:cb])[shape:cx]
-	Tensorptr& a = args[0];
-	Tensorptr& b = args[1];
-	Shape ashape = a->shape();
-	Shape bshape = b->shape();
-	uint8_t arank = ashape.n_rank();
-	uint8_t brank = bshape.n_rank();
-	uint8_t agroup_idx1 = arank - agroup_idx;
-	uint8_t bgroup_idx1 = brank - bgroup_idx;
-	uint8_t crank = bgroup_idx + agroup_idx1;
-	auto ita = ashape.begin();
-	auto itb = bshape.begin();
-	std::vector<DimT> agroup1(ita + agroup_idx, ita + arank); // agroup1
-	std::vector<DimT> bgroup0(itb, itb + bgroup_idx); // bgroup0
-
-	// [bgroup0<0:bgroup_idx>, bgroup1<bgroup_idx:brank>, agroup1<brank:>]
-	Tensorptr lhs = b;
-	if (agroup1.size() > 0)
-	{
-		lhs = Functor<EXTEND,std::vector<DimT>>::get({lhs}, agroup1);
-	}
-	// [bgroup0, agroup1, bgroup1, agroup1]
-	std::vector<uint8_t> lindices(crank + arank);
-	{
-		auto it = lindices.begin();
-		std::iota(it, it + bgroup_idx, 0); // bgroup0
-		std::iota(it + bgroup_idx, it + crank, brank); // agroup1
-		std::iota(it + crank, it + crank + bgroup_idx1, bgroup_idx); // bgroup1
-		std::iota(it + crank + bgroup_idx1, lindices.end(), brank); // agroup1
-	}
-	lhs = Functor<PERMUTE,std::vector<uint8_t>>::get({lhs}, lindices);
-
-	// [agroup0<0:agroup_idx>, agroup1<agroup_idx:arank>, bgroup0<arank:>]
-	Tensorptr rhs = a;
-	if (bgroup0.size() > 0)
-	{
-		rhs = Functor<EXTEND,std::vector<DimT>>::get({rhs}, bgroup0);
-	}
-	// [bgroup0, agroup1, bgroup0, agroup0]
-	std::vector<uint8_t> rindices(crank + brank);
-	{
-		auto it = rindices.begin();
-		std::iota(it, it + bgroup_idx, arank); // bgroup0
-		std::iota(it + bgroup_idx, it + crank, agroup_idx); // agroup1
-		std::iota(it + crank, it + crank + bgroup_idx, arank); // bgroup0
-		std::iota(it + crank + bgroup_idx, rindices.end(), 0); // agroup0
-	}
-	rhs = Functor<PERMUTE,std::vector<uint8_t>>::get({rhs}, rindices);
-
-	const Shape& wrtshape = wrt->shape();
-	uint8_t wrank = wrtshape.n_rank();
-	auto wit = wrtshape.begin();
-
-	Tensorptr dlhs = a->gradient(wrt);
-	const Shape& dlshape = dlhs->shape();
-	auto dlit = dlshape.begin();
-	uint8_t dlrank = dlshape.n_rank();
-	if (std::equal(dlit + crank, dlit + dlrank, wit) &&
-		dlrank - crank == wrank)
-	{
-		lhs = Functor<MATMUL,uint8_t,uint8_t>::get({dlhs, lhs}, crank, crank);
-	}
-
-	Tensorptr drhs = b->gradient(wrt);
-	const Shape& drshape = drhs->shape();
-	auto drit = drshape.begin();
-	uint8_t drrank = drshape.n_rank();
-	if (std::equal(drit + crank, drit + drshape.n_rank(), wit) &&
-		drrank - crank == wrank)
-	{
-		rhs = Functor<MATMUL,uint8_t,uint8_t>::get({drhs, rhs}, crank, crank);
-	}
-
-	if (lhs->shape().compatible_after(rhs->shape(), 0))
-	{
-		return Functor<ADD>::get({lhs, rhs});
-	}
-	if (std::equal(wit, wit + wrank, lhs->shape().begin() + arank))
-	{
-		return lhs;
-	}
-	return rhs;
-}
-
-template <>
-Tensorptr grader<PERMUTE,std::vector<uint8_t>> (
-	std::vector<Tensorptr> args, Tensorptr& wrt, std::vector<uint8_t>)
-{
-	return args.front()->gradient(wrt);
-}
-
-SHPARG_SIG(EXTEND)
-{
-	return Functor<EXTEND,std::vector<DimT>>::get(
-		{args.front()->gradient(wrt)}, shape);
-}
-
-SHPARG_SIG(RESHAPE)
-{
-	return Functor<RESHAPE,std::vector<DimT>>::get(
-		{args.front()->gradient(wrt)}, shape);
-}
-
-#undef NOARG_SIG
-
-#undef INTARG_SIG
-
-#undef SHPARG_SIG
+#undef GRAD_SIGNATURE
 
 #undef ZERO_GRAD
+
+#define CALL_GRAD(OP)case OP: return grader<OP>(args, grads);
+
+Tensorptr gradmap (OPCODE op, ArgsT args, ArgsT& grads)
+{
+	switch (op)
+	{
+		CALL_GRAD(COPY)
+		CALL_GRAD(ABS)
+		CALL_GRAD(NEG)
+		CALL_GRAD(SIN)
+		CALL_GRAD(COS)
+		CALL_GRAD(TAN)
+		CALL_GRAD(EXP)
+		CALL_GRAD(LOG)
+		CALL_GRAD(SQRT)
+		CALL_GRAD(ROUND)
+		CALL_GRAD(POW)
+		CALL_GRAD(ADD)
+		CALL_GRAD(SUB)
+		CALL_GRAD(MUL)
+		CALL_GRAD(DIV)
+		CALL_GRAD(EQ)
+		CALL_GRAD(NE)
+		CALL_GRAD(LT)
+		CALL_GRAD(GT)
+		CALL_GRAD(MIN)
+		CALL_GRAD(MAX)
+		CALL_GRAD(RAND_BINO)
+		CALL_GRAD(RAND_UNIF)
+		CALL_GRAD(RAND_NORM)
+		default: break;
+	}
+	return Tensorptr(nullptr);
+}
 
 }
 

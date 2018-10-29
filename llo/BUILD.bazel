@@ -35,12 +35,7 @@ cc_library(
 cc_test(
     name = "test_llo",
     size = "medium",
-    srcs = [
-        "test/main.cpp",
-        "test/test_api.cpp",
-        "test/test_dtype.cpp",
-        "test/test_node.cpp",
-    ],
+    srcs = glob(["test/dynamic/*"]),
     copts = ["-std=c++14"],
     deps = [
         "//llo:llo",
@@ -51,8 +46,8 @@ cc_test(
 
 cc_test(
     name = "test_regress",
-    size = "small",
-    srcs = ["test/rmain.cpp"],
+    size = "medium",
+    srcs = glob(["test/regress/*"]),
     copts = ["-std=c++14"],
     deps = [
         "//llo:llo",

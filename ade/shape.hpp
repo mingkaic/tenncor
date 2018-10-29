@@ -13,7 +13,7 @@
 #include <sstream>
 #include <vector>
 
-#include "ade/log.hpp"
+#include "ade/log/log.hpp"
 
 #ifndef ADE_SHAPE_HPP
 #define ADE_SHAPE_HPP
@@ -21,8 +21,11 @@
 namespace ade
 {
 
-/// Type used for each dimension
+/// Type used for shape dimension
 using DimT = uint8_t;
+
+/// Type used for coordinate dimensions
+using CDimT = int16_t;
 
 /// Type used for flattened index
 /// DimT having 8 bits and shape comprising of 8 DimT values means a maximum
@@ -32,6 +35,10 @@ using NElemT = uint64_t;
 /// Number of DimT in a shape
 /// The logical rank of a shape can be less than rank_cap
 const uint8_t rank_cap = 8;
+
+using ShapeT = std::array<DimT,rank_cap>;
+
+using CoordT = std::array<CDimT,rank_cap>;
 
 /// Models an aligned shape using an array of DimT values
 /// For each DimT at index i, DimT value is number of elements at dimension i
@@ -44,17 +51,17 @@ const uint8_t rank_cap = 8;
 struct Shape final
 {
 	/// Type of iterator used to iterate through internal array
-	using iterator = std::array<DimT,rank_cap>::iterator;
+	using iterator = ShapeT::iterator;
 
 	/// Type of constant iterator used to iterate through internal array
-	using const_iterator = std::array<DimT,rank_cap>::const_iterator;
+	using const_iterator = ShapeT::const_iterator;
 
-	Shape (void) : rank_(0)
+	Shape (void)
 	{
 		std::fill(dims_.begin(), dims_.end(), 1);
 	}
 
-	Shape (std::vector<DimT> dims) : rank_(rank_cap)
+	Shape (std::vector<DimT> dims)
 	{
 		vector_assign(dims);
 	}
@@ -97,25 +104,12 @@ struct Shape final
 		return dims_.at(idx);
 	}
 
-	/// Return the rank (number of guaranteed meaningful dimensions)
-	uint8_t n_rank (void) const
-	{
-		return rank_;
-	}
-
 	/// Return the total number of elements represented by the shape
 	NElemT n_elems (void) const
 	{
 		auto it = dims_.begin();
-		return std::accumulate(it, it + rank_, 1,
+		return std::accumulate(it, it + rank_cap, 1,
 			std::multiplies<NElemT>());
-	}
-
-	/// Return shape as a vector of only the meaningful dimensions
-	std::vector<DimT> as_list (void) const
-	{
-		auto it = dims_.begin();
-		return std::vector<DimT>(it, it + rank_);
 	}
 
 	/// Return true if this->dims_[0:idx) is equal to other.dims_[0:idx),
@@ -124,9 +118,7 @@ struct Shape final
 	{
 		auto it = dims_.begin();
 		uint8_t cap = rank_cap;
-		return std::equal(it,
-			it + std::min(idx, cap),
-			other.dims_.begin());
+		return std::equal(it, it + std::min(idx, cap), other.dims_.begin());
 	}
 
 	/// Return true if this->dims_[idx:rank_cap) is
@@ -146,7 +138,7 @@ struct Shape final
 	/// Return string representation of shape
 	std::string to_string (void) const
 	{
-		return ade::to_string(as_list());
+		return ade::to_string(begin(), end());
 	}
 
 	// >>>> INTERNAL CONTROL <<<<
@@ -189,32 +181,20 @@ private:
 				ade::to_string(dims).c_str());
 		}
 		auto dest = dims_.begin();
-
-		uint8_t newrank = std::min((size_t) rank_cap, dims.size());
-		std::copy(src, src + newrank, dest);
-		if (newrank < rank_)
-		{
-			std::fill(dest + newrank, dest + rank_, 1);
-		}
-		rank_ = newrank;
+		uint8_t rank = std::min((size_t) rank_cap, dims.size());
+		std::copy(src, src + rank, dest);
+		std::fill(dest + rank, dest + rank_cap, 1);
 	}
 
 	void move_helper (Shape&& other)
 	{
 		dims_ = std::move(other.dims_);
-		rank_ = std::move(other.rank_);
-
-		auto ot = other.dims_.begin();
-		std::fill(ot, ot + rank_, 1);
-		other.rank_ = 0;
+		std::fill(other.dims_.begin(), other.dims_.end(), 1);
 	}
 
 	/// Array of dimension values, we hide these to prevent assignment
 	/// and ensure rank_ and dims_ relationship
-	std::array<DimT,rank_cap> dims_;
-
-	/// Guaranteed number of meaningful dimensions
-	uint8_t rank_;
+	ShapeT dims_;
 };
 
 /// Return the flat index mapped by coord according to shape
@@ -223,10 +203,12 @@ private:
 /// The index follows the equation: index = coord[0]+coord[1]*shape[0]+...
 /// Invalid coordinate where the coordinate value is beyond the dimension
 /// for any index will report error
-NElemT index (Shape shape, std::vector<DimT> coord);
+NElemT index (Shape shape, CoordT coord);
 
 /// Return the coordinate of a flat index according to shape
-std::vector<DimT> coordinate (Shape shape, NElemT idx);
+/// Coordinate dimensions are 0-based
+/// For example [0, 0, ..., 0] <-> 0
+CoordT coordinate (Shape shape, NElemT idx);
 
 }
 
