@@ -114,10 +114,15 @@ enum OPCODE
 	/// Shapes must be compatible before min_rank of both tensors
 	/// Only accept 2 arguments
 	RAND_NORM,
+
+	_BAD_OP,
 };
 
 /// Return the string name of input OPCODE
 std::string opname (OPCODE opcode);
+
+/// Return the OPCODE of the string name
+OPCODE name_op (std::string oname);
 
 }
 

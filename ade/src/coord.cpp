@@ -1,7 +1,6 @@
 #include <cmath>
 
 #include "ade/log/log.hpp"
-#include "ade/matops.hpp"
 #include "ade/coord.hpp"
 
 #ifdef ADE_COORD_HPP
@@ -11,7 +10,8 @@ namespace ade
 
 using WorkArrT = std::array<double,mat_dim>;
 
-static inline void vecmul (WorkArrT& out, const MatrixT& mat, CoordT::const_iterator in)
+static inline void vecmul (WorkArrT& out,
+	const MatrixT& mat, CoordT::const_iterator in)
 {
 	out.fill(0);
 	for (uint8_t i = 0; i < mat_dim; ++i)
@@ -28,58 +28,25 @@ static inline void vecmul (WorkArrT& out, const MatrixT& mat, CoordT::const_iter
 	}
 }
 
-struct CoordMap final : public iCoordMap
+void CoordMap::forward (CoordT::iterator out, CoordT::const_iterator in) const
 {
-	CoordMap (std::function<void(MatrixT)> init)
+	WorkArrT temp;
+	vecmul(temp, fwd_, in);
+	for (uint8_t i = 0; i < rank_cap; ++i)
 	{
-		std::memset(fwd_, 0, mat_size);
-		fwd_[rank_cap][rank_cap] = 1;
-		init(fwd_);
-		inverse(bwd_, fwd_);
+		out[i] = temp[i] / temp[rank_cap];
 	}
+}
 
-	void forward (CoordT::iterator out,
-		CoordT::const_iterator in) const override
+void CoordMap::backward (CoordT::iterator out, CoordT::const_iterator in) const
+{
+	WorkArrT temp;
+	vecmul(temp, bwd_, in);
+	for (uint8_t i = 0; i < rank_cap; ++i)
 	{
-		WorkArrT temp;
-		vecmul(temp, fwd_, in);
-		for (uint8_t i = 0; i < rank_cap; ++i)
-		{
-			out[i] = temp[i] / temp[rank_cap];
-		}
+		out[i] = temp[i] / temp[rank_cap];
 	}
-
-	void backward (CoordT::iterator out,
-		CoordT::const_iterator in) const override
-	{
-		WorkArrT temp;
-		vecmul(temp, bwd_, in);
-		for (uint8_t i = 0; i < rank_cap; ++i)
-		{
-			out[i] = temp[i] / temp[rank_cap];
-		}
-	}
-
-	iCoordMap* reverse (void) const override
-	{
-		return new CoordMap(bwd_, fwd_);
-	}
-
-	std::string to_string (void) const override
-	{
-		return ade::to_string(fwd_);
-	}
-
-private:
-	CoordMap (const MatrixT fwd, const MatrixT bwd)
-	{
-		std::memcpy(fwd_, fwd, mat_size);
-		std::memcpy(bwd_, bwd, mat_size);
-	}
-
-	MatrixT fwd_;
-	MatrixT bwd_;
-};
+}
 
 CoordPtrT identity(new CoordMap(
 	[](MatrixT fwd)

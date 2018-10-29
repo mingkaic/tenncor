@@ -68,6 +68,11 @@ struct PrettyEquation final
 		drawer_.print(out, ptr.get());
 	}
 
+	void print (std::ostream& out, ade::iTensor* ptr)
+	{
+		drawer_.print(out, ptr);
+	}
+
 	/// For every label associated with a tensor, show LABEL=value in the tree
 	std::unordered_map<ade::iTensor*,std::string> labels_;
 

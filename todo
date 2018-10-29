@@ -22,6 +22,6 @@ P4 - implement optimization options to decrease equation graph size
 P4 - implement optimization options to increase data accuracy
 
 features:
-P2 - convert forward, backward operators in ade to generated configuration
+P2 - convert grader operators in ade to generated configuration
 P2 - implement convolution
 P3 - implement deep copy
