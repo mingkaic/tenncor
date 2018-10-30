@@ -180,6 +180,39 @@ TEST_F(COORD, Extend)
 TEST_F(COORD, Permute)
 {
 	simple::SessionT sess = get_session("COORD::Permute");
+
+    size_t rank = sess->get_scalar("rank", {0, ade::rank_cap - 1});
+    std::vector<uint64_t> perm = sess->choose("perm", ade::rank_cap, rank);
+    ade::CoordPtrT permuter = ade::permute(perm);
+    std::array<bool,ade::rank_cap> permed;
+    permed.fill(false);
+    for (uint64_t p : perm)
+    {
+        permed[p] = true;
+    }
+    for (size_t i = 0; i < ade::rank_cap; ++i)
+    {
+        if (false == permed[i])
+        {
+            perm.push_back(i);
+        }
+    }
+
+    std::vector<int16_t> icoord = sess->get_double("icoord", ade::rank_cap, {0, 255});
+    ade::CoordT fwd_out, bwd_out, in;
+    std::copy(icoord.begin(), icoord.end(), in.begin());
+
+    permuter->forward(fwd_out, in);
+    for (size_t i = 0; i < ade::rank_cap; ++i)
+    {
+        EXPECT_EQ(icoord[i], fwd_out[perm[i]]);
+    }
+
+    permuter->backward(bwd_out, in);
+    for (size_t i = 0; i < ade::rank_cap; ++i)
+    {
+        EXPECT_EQ(icoord[perm[i]], bwd_out[i]);
+    }
 }
 
 
