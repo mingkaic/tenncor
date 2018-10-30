@@ -5,54 +5,13 @@
 namespace ade
 {
 
-std::string to_string (const MatrixT& mat)
-{
-	std::stringstream ss;
-	ss << arr_begin;
-	for (uint8_t i = 0; i < mat_dim - 1; ++i)
-	{
-		ss << arr_begin << mat[i][0];
-		for (uint8_t j = 1; j < mat_dim; ++j)
-		{
-			ss << arr_delim << mat[i][j];
-		}
-		ss << arr_end << arr_delim << '\n';
-	}
-	ss << arr_begin << mat[mat_dim - 1][0];
-	for (uint8_t j = 1; j < mat_dim; ++j)
-	{
-		ss << arr_delim << mat[mat_dim - 1][j];
-	}
-	ss << arr_end << arr_end;
-	return ss.str();
-}
+using AugMatrixT = double[mat_dim][mat_dim * 2];
 
-std::string to_string (const AugMatrixT& mat)
-{
-	std::stringstream ss;
-	ss << arr_begin;
-	for (uint8_t i = 0; i < mat_dim - 1; ++i)
-	{
-		ss << arr_begin << mat[i][0];
-		for (uint8_t j = 1; j < 2 * mat_dim; ++j)
-		{
-			ss << arr_delim << mat[i][j];
-		}
-		ss << arr_end << arr_delim << '\n';
-	}
-	ss << arr_begin << mat[mat_dim - 1][0];
-	for (uint8_t j = 1; j < 2 * mat_dim; ++j)
-	{
-		ss << arr_delim << mat[mat_dim - 1][j];
-	}
-	ss << arr_end << arr_end;
-	return ss.str();
-}
-
+// reduce row echelon form mat augmented matrix in-place
 // algorithm taken from
 // https://rosettacode.org/wiki/Gauss-Jordan_matrix_inversion#Go
 // todo: simplify and clean up to fit C++ convention
-void rrow_echelon_form (AugMatrixT mat)
+static inline void rrow_echelon_form (AugMatrixT mat)
 {
 	uint8_t lead = 0;
 	for (uint8_t r = 0; r < mat_dim; r++)
@@ -100,6 +59,28 @@ void rrow_echelon_form (AugMatrixT mat)
 		}
 		lead++;
 	}
+}
+
+std::string to_string (const MatrixT& mat)
+{
+	std::stringstream ss;
+	ss << arr_begin;
+	for (uint8_t i = 0; i < mat_dim - 1; ++i)
+	{
+		ss << arr_begin << mat[i][0];
+		for (uint8_t j = 1; j < mat_dim; ++j)
+		{
+			ss << arr_delim << mat[i][j];
+		}
+		ss << arr_end << arr_delim << '\n';
+	}
+	ss << arr_begin << mat[mat_dim - 1][0];
+	for (uint8_t j = 1; j < mat_dim; ++j)
+	{
+		ss << arr_delim << mat[mat_dim - 1][j];
+	}
+	ss << arr_end << arr_end;
+	return ss.str();
 }
 
 void inverse (MatrixT out, const MatrixT& in)
