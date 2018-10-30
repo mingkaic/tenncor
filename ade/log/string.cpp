@@ -5,8 +5,6 @@
 namespace ade
 {
 
-void to_stream (std::ostream&) {}
-
 void to_stream (std::ostream& s, const char* str)
 {
 	to_stream(s, std::string(str));

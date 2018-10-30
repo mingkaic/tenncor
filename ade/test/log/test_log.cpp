@@ -19,6 +19,28 @@ protected:
 };
 
 
+TEST_F(LOG, Default)
+{
+	ade::DefLogger log;
+	log.warn("warning message");
+	log.error("error message");
+	try
+	{
+		log.fatal("fatal message");
+		FAIL() << "log.fatal failed to throw error";
+	}
+	catch (std::runtime_error& e)
+	{
+		const char* msg = e.what();
+		EXPECT_STREQ("fatal message", msg);
+	}
+	catch (...)
+	{
+		FAIL() << "expected to throw runtime_error";
+	}
+}
+
+
 TEST_F(LOG, Warn)
 {
 	ade::warn("warning message");

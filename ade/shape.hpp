@@ -178,7 +178,7 @@ private:
 			}))
 		{
 			fatalf("cannot create shape with vector containing zero: %s",
-				ade::to_string(dims).c_str());
+				ade::to_string(dims.begin(), dims.end()).c_str());
 		}
 		auto dest = dims_.begin();
 		uint8_t rank = std::min((size_t) rank_cap, dims.size());

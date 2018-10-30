@@ -10,7 +10,6 @@
 #include <string>
 #include <sstream>
 #include <tuple>
-#include <vector>
 
 #ifndef ADE_STRING_HPP
 #define ADE_STRING_HPP
@@ -18,17 +17,11 @@
 namespace ade
 {
 
-template <typename Iterator>
-using IterT = typename std::iterator_traits<Iterator>::value_type;
-
 const char arr_begin = '[';
 
 const char arr_end = ']';
 
 const char arr_delim = '\\';
-
-/// Do nothing to stream, needed to terminate template
-void to_stream (std::ostream& s);
 
 /// Stream C-style strings to s
 void to_stream (std::ostream& s, const char* str);
@@ -49,46 +42,21 @@ void to_stream (std::ostream& s, T val)
 	s << val;
 }
 
-/// Stream generic vector to s
-template <typename T>
-void to_stream (std::ostream& s, std::vector<T> vec)
+/// Stream values between iterators as an array
+template <typename Iterator>
+void to_stream (std::ostream& s, Iterator begin, Iterator end)
 {
 	s << arr_begin;
-	if (vec.size() > 0)
+	if (begin != end)
 	{
-		to_stream(s, vec[0]);
-		for (size_t i = 1, n = vec.size(); i < n; ++i)
+		to_stream(s, *(begin++));
+		while (begin != end)
 		{
 			s << arr_delim;
-			to_stream(s, vec[i]);
+			to_stream(s, *(begin++));
 		}
 	}
 	s << arr_end;
-}
-
-/// Stream variadic args to s
-template <typename T, typename... Args>
-void to_stream (std::ostream& s, T val, Args... args)
-{
-	to_stream(s, val);
-	s << arr_delim;
-	to_stream(s, args...);
-}
-
-/// Return string representation of a tuple content in order stored
-template <typename... Args>
-std::string to_string (const std::tuple<Args...>& tp)
-{
-	return to_string(tp, std::index_sequence_for<Args...>());
-}
-
-/// Return string representation of values between iterators
-template <typename Iterator>
-std::string to_string (Iterator begin, Iterator end)
-{
-	std::stringstream ss;
-	to_stream(ss, std::vector<IterT<Iterator>>(begin, end));
-	return ss.str();
 }
 
 /// Return string representation for common arguments
@@ -97,6 +65,15 @@ std::string to_string (T arg)
 {
 	std::stringstream ss;
 	to_stream(ss, arg);
+	return ss.str();
+}
+
+/// Return string representation of values between iterators
+template <typename Iterator>
+std::string to_string (Iterator begin, Iterator end)
+{
+	std::stringstream ss;
+	to_stream(ss, begin, end);
 	return ss.str();
 }
 

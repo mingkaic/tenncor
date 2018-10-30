@@ -31,12 +31,14 @@ extern std::shared_ptr<TestLogger> tlogger;
 const size_t nelem_limit = 32456;
 
 #define ASSERT_ARREQ(ARR, ARR2) { std::stringstream arrs, arrs2;\
-	ade::to_stream(arrs, ARR); ade::to_stream(arrs2, ARR2);\
+	ade::to_stream(arrs, ARR.begin(), ARR.end());\
+	ade::to_stream(arrs2, ARR2.begin(), ARR2.end());\
 	ASSERT_TRUE(std::equal(ARR.begin(), ARR.end(), ARR2.begin())) <<\
 		"expect list " << arrs.str() << ", got " << arrs2.str() << " instead"; }
 
 #define EXPECT_ARREQ(ARR, ARR2) { std::stringstream arrs, arrs2;\
-	ade::to_stream(arrs, ARR); ade::to_stream(arrs2, ARR2);\
+	ade::to_stream(arrs, ARR.begin(), ARR.end());\
+	ade::to_stream(arrs2, ARR2.begin(), ARR2.end());\
 	EXPECT_TRUE(std::equal(ARR.begin(), ARR.end(), ARR2.begin())) <<\
 		"expect list " << arrs.str() << ", got " << arrs2.str() << " instead"; }
 

@@ -83,7 +83,7 @@ CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 		[](DimT& d) { return 0 == d; }))
 	{
 		fatalf("cannot reduce using zero dimensions %s",
-			to_string(red).c_str());
+			to_string(red.begin(), red.end()).c_str());
 	}
 	if (rank + n_red > rank_cap)
 	{
@@ -118,7 +118,7 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
 		[](DimT& d) { return 0 == d; }))
 	{
 		fatalf("cannot extend using zero dimensions %s",
-			to_string(ext).c_str());
+			to_string(ext.begin(), ext.end()).c_str());
 	}
 	if (rank + n_ext > rank_cap)
 	{

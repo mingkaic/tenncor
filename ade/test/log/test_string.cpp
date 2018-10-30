@@ -3,13 +3,15 @@
 
 
 #include <array>
+#include <list>
+#include <vector>
 
 #include "gtest/gtest.h"
 
 #include "ade/log/string.hpp"
 
 
-TEST(STRING, StringFmt)
+TEST(STREAM, StringFmt)
 {
 	std::stringstream ss;
 	ade::to_stream(ss, "abcdefghijkl");
@@ -25,25 +27,7 @@ TEST(STRING, StringFmt)
 }
 
 
-TEST(STRING, VectorFmt)
-{
-	std::stringstream ss;
-	ade::to_stream(ss, std::vector<int>{14, 15, 16});
-	EXPECT_STREQ("[14\\15\\16]", ss.str().c_str());
-	ss.str("");
-
-	ade::to_stream(ss, std::vector<std::string>{
-		"what's\\up\\mybro", "nothing\\much\\fam", "\\hella\\lit"});
-	EXPECT_STREQ("[what's\\\\up\\\\mybro\\nothing\\\\much\\\\fam\\\\\\hella\\\\lit]",
-		ss.str().c_str());
-	ss.str("");
-
-	ade::to_stream(ss, std::vector<int>{});
-	EXPECT_STREQ("[]", ss.str().c_str());
-}
-
-
-TEST(STRING, GenericFmt)
+TEST(STREAM, GenericFmt)
 {
 	std::stringstream ss;
 	ade::to_stream(ss, -15);
@@ -55,14 +39,34 @@ TEST(STRING, GenericFmt)
 }
 
 
-TEST(STRING, MultiFmt)
+TEST(STREAM, Iterators)
 {
 	std::stringstream ss;
-	ade::to_stream(ss, "hey what's the answer to number", 15,
-		std::vector<std::string>{"\\", "fine I'll tell you", "it's"},
-		std::vector<double>{16.001, -13.2, 45.2});
-	EXPECT_STREQ("hey what's the answer to number\\15\\[\\\\\\"
-		"fine I'll tell you\\it's]\\[16.001\\-13.2\\45.2]", ss.str().c_str());
+	std::vector<int> ivec = {14, 15, 16};
+	ade::to_stream(ss, ivec.begin(), ivec.end());
+	EXPECT_STREQ("[14\\15\\16]", ss.str().c_str());
+	ss.str("");
+
+	std::vector<std::string> svec = {
+		"what's\\up\\mybro", "nothing\\much\\fam", "\\hella\\lit"};
+	ade::to_stream(ss, svec.begin(), svec.end());
+	EXPECT_STREQ("[what's\\\\up\\\\mybro\\nothing\\\\much\\\\fam\\\\\\hella\\\\lit]",
+		ss.str().c_str());
+	ss.str("");
+
+	std::vector<int> emptyvec;
+	ade::to_stream(ss, emptyvec.begin(), emptyvec.end());
+	EXPECT_STREQ("[]", ss.str().c_str());
+	ss.str("");
+
+	std::array<uint8_t,4> uarr = {9, 0, 3, 36};
+	std::list<int8_t> ilist = {-5, -2, 13, 61};
+	ade::to_stream(ss, uarr.begin(), uarr.end());
+	EXPECT_STREQ("[9\\0\\3\\36]", ss.str().c_str());
+	ss.str("");
+
+	ade::to_stream(ss, ilist.begin(), ilist.end());
+	EXPECT_STREQ("[-5\\-2\\13\\61]", ss.str().c_str());
 }
 
 

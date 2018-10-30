@@ -6,6 +6,7 @@
 /// Define log message handling interface
 ///
 
+#include <iostream>
 #include <memory>
 
 #include "ade/log/string.hpp"
@@ -29,6 +30,27 @@ struct iLogger
 
 	/// Notify user of message regarding fatal error, then finish him
 	virtual void fatal (std::string msg) const = 0;
+};
+
+const std::string warn_tag = "[WARNING]:";
+const std::string err_tag = "[ERROR]:";
+
+struct DefLogger : public iLogger
+{
+	void warn (std::string msg) const override
+	{
+		std::cerr << warn_tag << msg << std::endl;
+	}
+
+	void error (std::string msg) const override
+	{
+		std::cerr << err_tag << msg << std::endl;
+	}
+
+	void fatal (std::string msg) const override
+	{
+		throw std::runtime_error(msg);
+	}
 };
 
 /// Set input logger for ADE global logger

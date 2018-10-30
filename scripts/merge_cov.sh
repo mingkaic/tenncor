@@ -64,6 +64,7 @@ do
             lcov -a "$CFILE" -a "$OUTPATH" -o "$OUTPATH";
         else
             cp "$CFILE" "$OUTPATH";
+            chmod u+rw "$OUTPATH";
         fi
     fi
 done
