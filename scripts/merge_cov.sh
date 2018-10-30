@@ -5,9 +5,12 @@ MYNAME="${0##*/}";
 function usage {
     cat <<EOF
 synopsis: filter for trace files found by COVERAGE_OUTPUT_FILE=<file/path>
-format in stdin, then stitch tracefiles together as outfile.
+format in stdin, then stitch tracefiles together as outpath.
 
-usage: stdin | $MYNAME outfile
+    outpath
+        Path of the stitched output trace file
+
+usage: stdin | $MYNAME outpath
 EOF
     exit 1;
 }
@@ -23,11 +26,11 @@ fi
 
 if [ "$#" -lt 1 ];
 then
-    echo "Missing outfile argument";
+    echo "Missing outpath argument";
     usage;
 fi
 
-OUTFILE=$1;
+OUTPATH=$1;
 
 # extract coverage paths
 PATHS_STR="$(echo "$PIPE_IN" | sed -rn 's/.*COVERAGE_OUTPUT_FILE=(.*)\/coverage\.dat.*/\1/p')";
@@ -49,18 +52,18 @@ IFS=$' ';
 UCPATHS=($(printf "%s " "${CPATHS[@]}" | sort -u));
 
 # start stitching tracefiles together
-rm -f "$OUTFILE";
+rm -f "$OUTPATH";
 for CPATH in "${UCPATHS[@]}"
 do
     if [ -d "$CPATH" ];
     then
         CFILE="$CPATH/coverage.dat";
         echo "Stitching file $CFILE";
-        if [ -f "$OUTFILE" ];
+        if [ -f "$OUTPATH" ];
         then
-            lcov -a "$CFILE" -a "$OUTFILE" -o "$OUTFILE";
+            lcov -a "$CFILE" -a "$OUTPATH" -o "$OUTPATH";
         else
-            cp "$CFILE" "$OUTFILE";
+            cp "$CFILE" "$OUTPATH";
         fi
     fi
 done

@@ -9,9 +9,10 @@ struct GDTrainer
 		uint8_t batch_size, std::string label) :
 		label_(label), brain_(&brain), batch_size_(batch_size),
 		train_in_(ade::Shape({brain.get_ninput(), batch_size})),
+		train_out_(brain(train_in_)),
 		expected_out_(ade::Shape({brain.get_noutput(), batch_size})),
 		// todo: move error out of initializer list to avoid confusing order of init
-		error_(llo::pow(llo::sub(expected_out_, brain(train_in_)),
+		error_(llo::pow(llo::sub(expected_out_, train_out_),
 			llo::shaped_scalar<double>(2, expected_out_.tensor_->shape())))
 	{
 		updates_ = update(error_, brain.get_variables());
@@ -51,6 +52,7 @@ struct GDTrainer
 	uint8_t batch_size_;
 	llo::PlaceHolder<double> train_in_;
 	llo::PlaceHolder<double> expected_out_;
+	llo::DataNode train_out_;
 	llo::DataNode error_;
 
 	DeltasT updates_;

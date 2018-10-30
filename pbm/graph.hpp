@@ -6,7 +6,7 @@
 /// Define functions for marshal and unmarshal equation graph
 ///
 
-#include "llo/node.hpp"
+#include "llo/traveler.hpp"
 
 #include "pbm/graph.pb.h"
 

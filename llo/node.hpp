@@ -112,7 +112,7 @@ struct PlaceHolder : public DataNode
 	PlaceHolder& operator = (PlaceHolder&&) = default;
 
 	/// Assign vectorized data to source
-	PlaceHolder& operator = (std::vector<T>& data)
+	PlaceHolder& operator = (std::vector<T> data)
 	{
 		auto key = static_cast<ade::Tensor*>(tensor_.get());
 		auto src = ctx_.srcs_[key];

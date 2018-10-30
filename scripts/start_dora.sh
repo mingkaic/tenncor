@@ -2,6 +2,10 @@
 
 MYNAME="${0##*/}";
 
+DEFAULT_PORT=10000;
+DEFAULT_TIMEOUT=30;
+DEFAULT_INTERVAL=1;
+
 function usage {
     cat <<EOF
 synopsis: start up dora server at specified port then wait at until server
@@ -24,10 +28,6 @@ usage: $MYNAME [-t timeout] [-i interval] [-p port] cert_path
 EOF
     exit 1;
 }
-
-DEFAULT_PORT=10000;
-DEFAULT_TIMEOUT=30;
-DEFAULT_INTERVAL=1;
 
 declare -i timeout=$DEFAULT_TIMEOUT;
 declare -i interval=$DEFAULT_INTERVAL;

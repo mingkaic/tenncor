@@ -3,8 +3,11 @@
 #include <iterator>
 #include <ctime>
 #include <iostream>
+#include <fstream>
 
 #include "dbg/ade.hpp"
+
+#include "pbm/graph.hpp"
 
 #include "rocnnet/eqns/activations.hpp"
 
@@ -40,9 +43,11 @@ static std::vector<double> avgevry2 (std::vector<double>& in)
 
 int main (int argc, char** argv)
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+	int exit_status = 0;
 	std::clock_t start;
 	double duration;
-	std::string outdir = ".";
+	std::string outdir = "data";
 	size_t n_train = 3000;
 	size_t n_test = 500;
 	// size_t seed_val;
@@ -57,6 +62,10 @@ int main (int argc, char** argv)
 	{
 		// rnd_device.seed(seed_val);
 		// seed_generator(seed_val);
+	}
+	else
+	{
+		// seed by time
 	}
 
 	uint8_t n_in = 10;
@@ -122,7 +131,6 @@ int main (int argc, char** argv)
 	duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
 	std::cout << "training time: " << duration << " seconds" << std::endl;
 
-	int exit_status = 0;
 	// exit code:
 	//	0 = fine
 	//	1 = training error rate is wrong
@@ -185,7 +193,7 @@ int main (int argc, char** argv)
 // }
 // #endif /* CSV_RCD */
 
-// 	google::protobuf::ShutdownProtobufLibrary();
+	google::protobuf::ShutdownProtobufLibrary();
 
 	return exit_status;
 }

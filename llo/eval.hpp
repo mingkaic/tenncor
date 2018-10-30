@@ -36,21 +36,8 @@ struct iSource
 	virtual const std::shared_ptr<ade::Tensor>& inner (void) const = 0;
 };
 
-/// Interface for evaluating data of a type
-struct iEvaluable
-{
-	virtual ~iEvaluable (void) = default;
-
-	/// Return data evaluated from subgraph converted to input type
-	virtual GenericData data (DTYPE dtype) const = 0;
-};
-
 /// Type used by context to associate ade::Tensors to Sources
 using SourcePoolT = std::unordered_map<ade::iTensor*,std::shared_ptr<iSource>>;
-
-/// Type used by context to associate ade::iFunctor to llo meta-data wrappers
-using FuncPoolT = std::unordered_map<
-	ade::iFunctor*,std::shared_ptr<iEvaluable>>;
 
 /// Context used to associate ade nodes to llo nodes under a particular graph
 struct EvalCtx final
@@ -70,15 +57,11 @@ struct EvalCtx final
 		for (const EvalCtx* ctx : contexas)
 		{
 			srcs_.insert(ctx->srcs_.begin(), ctx->srcs_.end());
-			funks_.insert(ctx->funks_.begin(), ctx->funks_.end());
 		}
 	}
 
 	/// List all ade-source mapping
 	SourcePoolT srcs_;
-
-	/// List all ade-funcwrapper mapping
-	FuncPoolT funks_;
 };
 
 /// Evaluate the data of children for func according to inputs ctx and dtype
@@ -125,15 +108,7 @@ struct Evaluator final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		auto funkpair = ctx_->funks_.find(func);
-		if (ctx_->funks_.end() != funkpair)
-		{
-			out_ = funkpair->second->data(dtype_);
-			return;
-		}
-		// else visit pure ade::iFunctor
 		ade::OPCODE opcode = func->get_code();
-
 		out_ = GenericData(func->shape(), dtype_);
 
 		DataArgsT argdata;

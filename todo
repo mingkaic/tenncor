@@ -1,6 +1,8 @@
 correctness:
 P2 - test coordinate transformation (ade)
 P2 - test complicate equations
+P3 - test travelling, and pruning algorithms
+P3 - verify rocnnet correctness using automated test
 P3 - implement better fallback strategy when test server is unavailable
 
 transparency:

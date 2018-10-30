@@ -11,83 +11,83 @@ void save_data (tenncor::Source* out, llo::iSource* in)
 {
 	const ade::Shape& shape = in->inner()->shape();
 	out->set_shape(std::string(shape.begin(), shape.end()));
-    llo::GenericData data = in->data(in->native_type());
-    size_t nelems = data.shape_.n_elems();
-    switch (data.dtype_)
-    {
-        case llo::DOUBLE:
-        {
-            auto arr = out->mutable_double_arrs();
-            PACK_DATA(double)
-        }
-        break;
-        case llo::FLOAT:
-        {
-            auto arr = out->mutable_float_arrs();
-            PACK_DATA(float)
-        }
-        break;
-        case llo::INT8:
-        {
-            auto arr = out->mutable_sbyte_arrs();
-            char* ptr = data.data_.get();
-            arr->set_data(std::string(ptr, ptr + nelems));
-        }
-        break;
-        case llo::UINT8:
-        {
-            auto arr = out->mutable_ubyte_arrs();
-            char* ptr = data.data_.get();
-            arr->set_data(std::string(ptr, ptr + nelems));
-        }
-        break;
-        case llo::INT16:
-        {
-            auto arr = out->mutable_sshort_arrs();
-            int16_t* ptr = (int16_t*) data.data_.get();
-            std::vector<int16_t> temp(ptr, ptr + nelems);
-            google::protobuf::RepeatedField<int32_t> vec(
-                temp.begin(), temp.end());
-            arr->mutable_data()->Swap(&vec);
-        }
-        break;
-        case llo::INT32:
-        {
-            auto arr = out->mutable_sint_arrs();
-            PACK_DATA(int32_t)
-        }
-        break;
-        case llo::INT64:
-        {
-            auto arr = out->mutable_slong_arrs();
-            PACK_DATA(int64_t)
-        }
-        break;
-        case llo::UINT16:
-        {
-            auto arr = out->mutable_ushort_arrs();
-            uint16_t* ptr = (uint16_t*) data.data_.get();
-            std::vector<uint16_t> temp(ptr, ptr + nelems);
-            google::protobuf::RepeatedField<uint32_t> vec(
-                temp.begin(), temp.end());
-            arr->mutable_data()->Swap(&vec);
-        }
-        break;
-        case llo::UINT32:
-        {
-            auto arr = out->mutable_uint_arrs();
-            PACK_DATA(uint32_t)
-        }
-        break;
-        case llo::UINT64:
-        {
-            auto arr = out->mutable_ulong_arrs();
-            PACK_DATA(uint64_t)
-        }
-        break;
-        default:
-            ade::error("cannot serialize badly typed node... skipping");
-    }
+	llo::GenericData data = in->data(in->native_type());
+	size_t nelems = data.shape_.n_elems();
+	switch (data.dtype_)
+	{
+		case llo::DOUBLE:
+		{
+			auto arr = out->mutable_double_arrs();
+			PACK_DATA(double)
+		}
+		break;
+		case llo::FLOAT:
+		{
+			auto arr = out->mutable_float_arrs();
+			PACK_DATA(float)
+		}
+		break;
+		case llo::INT8:
+		{
+			auto arr = out->mutable_sbyte_arrs();
+			char* ptr = data.data_.get();
+			arr->set_data(std::string(ptr, ptr + nelems));
+		}
+		break;
+		case llo::UINT8:
+		{
+			auto arr = out->mutable_ubyte_arrs();
+			char* ptr = data.data_.get();
+			arr->set_data(std::string(ptr, ptr + nelems));
+		}
+		break;
+		case llo::INT16:
+		{
+			auto arr = out->mutable_sshort_arrs();
+			int16_t* ptr = (int16_t*) data.data_.get();
+			std::vector<int16_t> temp(ptr, ptr + nelems);
+			google::protobuf::RepeatedField<int32_t> vec(
+				temp.begin(), temp.end());
+			arr->mutable_data()->Swap(&vec);
+		}
+		break;
+		case llo::INT32:
+		{
+			auto arr = out->mutable_sint_arrs();
+			PACK_DATA(int32_t)
+		}
+		break;
+		case llo::INT64:
+		{
+			auto arr = out->mutable_slong_arrs();
+			PACK_DATA(int64_t)
+		}
+		break;
+		case llo::UINT16:
+		{
+			auto arr = out->mutable_ushort_arrs();
+			uint16_t* ptr = (uint16_t*) data.data_.get();
+			std::vector<uint16_t> temp(ptr, ptr + nelems);
+			google::protobuf::RepeatedField<uint32_t> vec(
+				temp.begin(), temp.end());
+			arr->mutable_data()->Swap(&vec);
+		}
+		break;
+		case llo::UINT32:
+		{
+			auto arr = out->mutable_uint_arrs();
+			PACK_DATA(uint32_t)
+		}
+		break;
+		case llo::UINT64:
+		{
+			auto arr = out->mutable_ulong_arrs();
+			PACK_DATA(uint64_t)
+		}
+		break;
+		default:
+			ade::error("cannot serialize badly typed node... skipping");
+	}
 }
 
 #undef PACK_DATA

@@ -1,4 +1,5 @@
 #include "llo/api.hpp"
+#include "llo/shear.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
 
@@ -18,7 +19,7 @@ DeltasT sgd (llo::DataNode& root, std::vector<llo::DataNode> leaves,
 		}
 
 		// given root = f, err(x) ~ x - η * df(x), where η is the learning rate
-		llo::DataNode gres = root.derive(leaf);
+		llo::DataNode gres = llo::zero_prune(root.derive(leaf));
 		ade::Shape gshape = gres.tensor_->shape();
 		errs.emplace(leafsrc.get(), llo::sub(leaf,
 			llo::mul(gres, llo::shaped_scalar(learning_rate, gshape))));
@@ -43,7 +44,7 @@ DeltasT rms_momentum (llo::DataNode& root,
 		}
 		// given root = f, err(x) ~ x - (η * df(x)) / (sqrt(ε + momentum)),
 		// where η is the learning rate, and ε is epsilon
-		auto gres = root.derive(leaf);
+		auto gres = llo::zero_prune(root.derive(leaf));
 
 		// upkeep additional hidden variable momentum: starting with value 1
 		// given root = f, err(momentum) ~ χ * momentum + (1 - χ) * df(x) ^ 2,

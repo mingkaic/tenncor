@@ -156,7 +156,7 @@ struct Functor final : public iFunctor
 				std::back_inserter(grad_children),
 				[](std::pair<CoordPtrT,Tensorptr>& child)
 				{ return std::pair<CoordPtrT,Tensorptr>{
-					child.first->reverse(),
+					CoordPtrT(child.first->reverse()),
 					shaped_zero(child.second->shape())}; });
 			// for each painted child, calculate dThis/dChild
 			for (size_t i = 0, n = children.size(); i < n; ++i)
