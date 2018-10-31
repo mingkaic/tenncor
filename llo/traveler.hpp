@@ -14,6 +14,12 @@
 namespace llo
 {
 
+/// Traveler implementation that given a vector of root DataNodes:
+/// - gathers a list of all functors under the roots sorted by
+///   each functor's subtree's maximum depth in ascending order
+/// - a map of each functor's subtree's maximum depth
+/// - gathers the context of all roots
+/// - ensures all tensor leaves visited have a source
 struct GraphStat final : public ade::iTraveler
 {
 	GraphStat (std::vector<llo::DataNode> roots) :
@@ -32,7 +38,7 @@ struct GraphStat final : public ade::iTraveler
 		{
 			tptr.tensor_->accept(*this);
 		}
-		// sort functions from the root with the smallest subgraph to the largest
+		// sort functions from the root with the smallest subtree to the largest
 		// this ensures every children of a node appears before the parent,
 		// as is the order of node creations
 		funcs_.sort(
@@ -42,6 +48,7 @@ struct GraphStat final : public ade::iTraveler
 		});
 	}
 
+	/// Implemenation of iTraveler
 	void visit (ade::Tensor* leaf) override
 	{
 		if (graphsize_.end() == graphsize_.find(leaf))
@@ -61,6 +68,7 @@ struct GraphStat final : public ade::iTraveler
 		}
 	}
 
+	/// Implemenation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
 		if (graphsize_.end() == graphsize_.find(func))
@@ -87,17 +95,17 @@ struct GraphStat final : public ade::iTraveler
 		}
 	}
 
-	// unified context of root data nodes
+	/// Collected context of all root DataNodes
 	llo::EvalCtx global_ctx_;
 
-	// list of leaves visited
+	/// Vector of leaves visited to maintain order
 	std::vector<llo::iSource*> leaves_;
 
-	// list of functions visited (by dfs) then sorted by graphsize_ in
+	// List of functions visited (by depth-first) then sorted by graphsize_ in
 	// ascending order
 	std::list<ade::iFunctor*> funcs_;
 
-	// cardinality of the subgraph arguments of mapped tensors
+	// Maximum depth of the subtree of mapped tensors
 	std::unordered_map<ade::iTensor*,size_t> graphsize_;
 };
 

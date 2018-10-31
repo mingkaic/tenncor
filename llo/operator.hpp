@@ -212,9 +212,8 @@ void binary (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b,
 	}
 }
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// apply std::pow operator
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::pow operator
 /// Only accept 2 arguments
 template <typename T>
 void pow (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
@@ -223,9 +222,8 @@ void pow (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 		[](const T& b, const T& x) { return std::pow(b, x); });
 }
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// subtract
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index subtract
 /// Only accept 2 arguments
 template <typename T>
 void sub (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
@@ -234,9 +232,8 @@ void sub (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 		[](const T& a, const T& b) { return a - b; });
 }
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// divide
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index divide
 /// Only accept 2 arguments
 template <typename T>
 void div (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
@@ -245,9 +242,8 @@ void div (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 		[](const T& a, const T& b) { return a / b; });
 }
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// apply == operator
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply == operator
 /// Only accept 2 arguments
 template <typename T>
 void eq (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
@@ -256,9 +252,8 @@ void eq (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 		[](const T& a, const T& b) { return a == b; });
 }
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// apply != operator
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply != operator
 /// Only accept 2 arguments
 template <typename T>
 void neq (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
@@ -267,9 +262,8 @@ void neq (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 		[](const T& a, const T& b) { return a != b; });
 }
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// apply < operator
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply < operator
 /// Only accept 2 arguments
 template <typename T>
 void lt (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
@@ -278,9 +272,8 @@ void lt (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 		[](const T& a, const T& b) { return a < b; });
 }
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// apply > operator
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply > operator
 /// Only accept 2 arguments
 template <typename T>
 void gt (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
@@ -289,9 +282,8 @@ void gt (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 		[](const T& a, const T& b) { return a > b; });
 }
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// apply std::binomial_distribution function
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::binomial_distribution function
 /// Only accept 2 arguments
 template <typename T>
 void rand_binom (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<double> b)
@@ -320,9 +312,8 @@ template <>
 void rand_binom<float> (float* out,
 	ade::Shape& outshape, VecRef<float> a, VecRef<double> b);
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// apply std::uniform_distributon function
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::uniform_distributon function
 /// Only accept 2 arguments
 template <typename T>
 void rand_uniform (T* out,
@@ -344,9 +335,8 @@ template <>
 void rand_uniform<float> (float* out,
 	ade::Shape& outshape, VecRef<float> a, VecRef<float> b);
 
-/// Given arguments a, and b, for every pair of elements sharing the same index
-/// apply std::normal_distribution function
-/// Shapes must be compatible before min_rank of both arguments
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::normal_distribution function
 /// Only accept 2 arguments
 template <typename T>
 void rand_normal (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
@@ -408,9 +398,8 @@ void nnary (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args,
 	}
 }
 
-/// Given arguments, for every index i in range [0:max_nelems],
+/// Given arguments, for every mapped index i in range [0:max_nelems],
 /// sum all elements for all arguments
-/// Shapes must be compatible before min_rank of all arguments
 template <typename T>
 void add (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 {
@@ -418,9 +407,8 @@ void add (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 		[](T& out, const T& val) { out += val; });
 }
 
-/// Given arguments, for every index i in range [0:max_nelems],
+/// Given arguments, for every mapped index i in range [0:max_nelems],
 /// multiply all elements for all arguments
-/// Shapes must be compatible before min_rank of all arguments
 template <typename T>
 void mul (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 {
@@ -428,9 +416,8 @@ void mul (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 		[](T& out, const T& val) { out *= val; });
 }
 
-/// Given arguments, for every index i in range [0:max_nelems],
+/// Given arguments, for every mapped index i in range [0:max_nelems],
 /// take the minimum all elements for all arguments
-/// Shapes must be compatible before min_rank of all arguments
 template <typename T>
 void min (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 {
@@ -438,9 +425,8 @@ void min (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 		[](T& out, const T& val) { out = std::min(out, val); });
 }
 
-/// Given arguments, for every index i in range [0:max_nelems],
+/// Given arguments, for every mapped index i in range [0:max_nelems],
 /// take the maximum all elements for all arguments
-/// Shapes must be compatible before min_rank of all arguments
 template <typename T>
 void max (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 {

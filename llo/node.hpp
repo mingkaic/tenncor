@@ -122,6 +122,7 @@ struct PlaceHolder : public DataNode
 	}
 };
 
+/// Return source holding a scalar value extended to input shape
 template <typename T>
 DataNode shaped_scalar (T scalar, ade::Shape shape)
 {
