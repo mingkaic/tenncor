@@ -1,0 +1,77 @@
+licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "**/*.hpp",
+        "**/*.cpp",
+    ]) + ["BUILD.bazel"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/**/*.hpp",
+        "test/**/*.cpp",
+    ]),
+)
+
+filegroup(
+    name = "test_data",
+    srcs = glob(["test/data/*.txt"]),
+)
+
+######### LIBRARIES #########
+
+cc_library(
+    name = "log",
+    hdrs = ["log/string.hpp", "log/log.hpp"],
+    srcs = ["log/string.cpp", "log/log.cpp"],
+    copts = ["-std=c++14"],
+)
+
+cc_library(
+    name = "ade",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++14"],
+    deps = ["//ade:log"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test_log",
+    size = "small",
+    srcs = glob(["test/log/*"]),
+    deps = [
+        "//ade:log",
+        "@com_google_googletest//:gtest",
+    ],
+    copts = ["-std=c++14"],
+)
+
+cc_test(
+    name = "test_dynamic",
+    size = "medium",
+    srcs = glob(["test/dynamic/*"]),
+    deps = ["//testutil:testutil"],
+    copts = ["-std=c++14"],
+    data = ["//:credentials"],
+)
+
+cc_test(
+    name = "test_static",
+    size = "small",
+    srcs = glob(["test/static/*"]),
+    deps = [
+        "//dbg:dbg",
+        "@com_google_googletest//:gtest",
+    ],
+    copts = ["-std=c++14"],
+    data = ["//ade:test_data"],
+)

@@ -1,12 +1,10 @@
-/*!
- *
- *  shape.hpp
- *  ade
- *
- *  Purpose:
- *  define shape representation and coordinate utility functions
- *
- */
+///
+///	shape.hpp
+///	ade
+///
+///	Purpose:
+///	Define shapes models and coordinate to flattened index mapping
+///
 
 #include <algorithm>
 #include <array>
@@ -15,7 +13,7 @@
 #include <sstream>
 #include <vector>
 
-#include "util/error.hpp"
+#include "ade/log/log.hpp"
 
 #ifndef ADE_SHAPE_HPP
 #define ADE_SHAPE_HPP
@@ -23,25 +21,47 @@
 namespace ade
 {
 
+/// Type used for shape dimension
 using DimT = uint8_t;
-using NElemT = uint64_t; // reliant on rank_cap
 
-/*! limit on the rank of the shape */
+/// Type used for coordinate dimensions
+using CDimT = int16_t;
+
+/// Type used for flattened index
+/// DimT having 8 bits and shape comprising of 8 DimT values means a maximum
+/// flattened index of (2 ^ 8) ^ 8 = 2 ^ 64
+using NElemT = uint64_t;
+
+/// Number of dimsensions in a shape/coordinate
 const uint8_t rank_cap = 8;
 
-/*! Aligned shape representation */
+/// Array type used to hold dimension info in Shape
+using ShapeT = std::array<DimT,rank_cap>;
+
+/// Array type used to hold dimension info when transforming coordinates
+/// Coordinates are allowed to be negative, negative dimensions are counted
+/// backward from the corresponding shape dimension
+/// For example, given shape=[5], coord=[-1] is the same as coord=[4]
+using CoordT = std::array<CDimT,rank_cap>;
+
+/// Models an aligned shape using an array of DimT values
+/// For each DimT at index i, DimT value is number of elements at dimension i
+/// For example, shape={3, 2} can model tensor [[x, y, z], [u, v, w]]
+/// (In cartesian coordinate, we treat values along the X-axis as dimension 0)
 struct Shape final
 {
-	using ShapeIterator = std::array<DimT,rank_cap>::iterator;
+	/// Type of iterator used to iterate through internal array
+	using iterator = ShapeT::iterator;
 
-	using ConstShapeIterators = std::array<DimT,rank_cap>::const_iterator;
+	/// Type of constant iterator used to iterate through internal array
+	using const_iterator = ShapeT::const_iterator;
 
-	Shape (void) : rank_(0)
+	Shape (void)
 	{
 		std::fill(dims_.begin(), dims_.end(), 1);
 	}
 
-	Shape (std::vector<DimT> dims) : rank_(rank_cap)
+	Shape (std::vector<DimT> dims)
 	{
 		vector_assign(dims);
 	}
@@ -73,10 +93,10 @@ struct Shape final
 
 	// >>>> ACCESSORS <<<<
 
-	/*! get element at idx. idx can be greater than n_rank, but must be less than rank_cap */
+	/// Return DimT element at idx for any index in range [0:rank_cap)
 	DimT at (uint8_t idx) const
 	{
-		if (idx >= rank_cap)
+		if (rank_cap <= idx)
 		{
 			throw std::out_of_range(
 				"accessing dimension out of allocated rank cap");
@@ -84,39 +104,25 @@ struct Shape final
 		return dims_.at(idx);
 	}
 
-	/*! rank size containing meaningful dimensions */
-	uint8_t n_rank (void) const
-	{
-		return rank_;
-	}
-
-	/*! total number of elements represented by shape */
+	/// Return the total number of elements represented by the shape
 	NElemT n_elems (void) const
 	{
 		auto it = dims_.begin();
-		return std::accumulate(it, it + rank_, 1,
+		return std::accumulate(it, it + rank_cap, 1,
 			std::multiplies<NElemT>());
 	}
 
-	/*! get vector of meaningful dimensions */
-	std::vector<DimT> as_list (void) const
-	{
-		auto it = dims_.begin();
-		return std::vector<DimT>(it, it + rank_);
-	}
-
-	/*! check if sub-shape up to idx is equal to another sub-shape up to idx */
+	/// Return true if this->dims_[0:idx) is equal to other.dims_[0:idx),
+	/// otherwise return false
 	bool compatible_before (const Shape& other, uint8_t idx) const
 	{
 		auto it = dims_.begin();
-		uint8_t cap = rank_cap;
-		return std::equal(it,
-			it + std::min(idx, cap),
-			other.dims_.begin());
+		return std::equal(it, it + std::min(idx, rank_cap), other.dims_.begin());
 	}
 
-	/*! check if sub-shape after idx is equal to another sub-shape after idx,
-	 *	set idx to 0 to compare entire shape */
+	/// Return true if this->dims_[idx:rank_cap) is
+	/// equal to other.dims_[idx:rank_cap), otherwise return false
+	///	Set idx to 0 to compare entire shape
 	bool compatible_after (const Shape& other, uint8_t idx) const
 	{
 		bool compatible = false;
@@ -128,37 +134,34 @@ struct Shape final
 		return compatible;
 	}
 
-	/*! represent the shape as string (for debugging purposes) */
+	/// Return string representation of shape
 	std::string to_string (void) const
 	{
-		std::stringstream ss;
-		util::to_stream(ss, as_list());
-		return ss.str();
+		return ade::to_string(begin(), end());
 	}
 
-	// >>>> ITERATORS <<<<
+	// >>>> INTERNAL CONTROL <<<<
 
-	/*! get beginning iterator for internal dimension array */
-	ShapeIterator begin (void)
+	/// Return begin iterator of internal array
+	iterator begin (void)
 	{
 		return dims_.begin();
 	}
 
-	/*! get end iterator for internal dimension array
-	 *	(this may extend beyond range of n_rank) */
-	ShapeIterator end (void)
+	/// Return end iterator of internal array
+	iterator end (void)
 	{
 		return dims_.end();
 	}
 
-	/*! get constant beginning iterator for internal dimension array */
-	ConstShapeIterators begin (void) const
+	/// Return begin constant iterator of internal array
+	const_iterator begin (void) const
 	{
 		return dims_.begin();
 	}
 
-	/*! get constant end iterator for internal dimension array */
-	ConstShapeIterators end (void) const
+	/// Return end constant iterator of internal array
+	const_iterator end (void) const
 	{
 		return dims_.end();
 	}
@@ -173,44 +176,38 @@ private:
 				return d == 0;
 			}))
 		{
-			util::handle_error("shape assignment with zero vector",
-				util::ErrArg<std::vector<DimT>>{"vec", dims});
+			fatalf("cannot create shape with vector containing zero: %s",
+				ade::to_string(dims.begin(), dims.end()).c_str());
 		}
 		auto dest = dims_.begin();
-
-		uint8_t newrank = std::min((size_t) rank_cap, dims.size());
-		std::copy(src, src + newrank, dest);
-		if (newrank < rank_)
-		{
-			std::fill(dest + newrank, dest + rank_, 1);
-		}
-		rank_ = newrank;
+		uint8_t rank = std::min((size_t) rank_cap, dims.size());
+		std::copy(src, src + rank, dest);
+		std::fill(dest + rank, dest + rank_cap, 1);
 	}
 
 	void move_helper (Shape&& other)
 	{
 		dims_ = std::move(other.dims_);
-		rank_ = std::move(other.rank_);
-
-		auto ot = other.dims_.begin();
-		std::fill(ot, ot + rank_, 1);
-		other.rank_ = 0;
+		std::fill(other.dims_.begin(), other.dims_.end(), 1);
 	}
 
-	/*! internal dimension array */
-	std::array<DimT,rank_cap> dims_;
-
-	/*! number of meaningful dimensions */
-	uint8_t rank_;
+	/// Array of dimension values
+	ShapeT dims_;
 };
 
-/*! Obtain the flat vector index from cartesian coordinates
- *	(e.g.: 2-D [x, y] has flat index = y * dimensions_[0] + x) */
-NElemT index (Shape shape, std::vector<DimT> coord);
+/// Return the flat index mapped by coord according to shape
+///	For example, 2-D tensor has indices in place of value as follows:
+/// [[0, 1, ..., n-1], [n, n+1, ..., 2*n-1]]
+/// The index follows the equation: index = coord[0]+coord[1]*shape[0]+...
+/// Invalid coordinate where the coordinate value is beyond the dimension
+/// for any index will report error
+NElemT index (Shape shape, CoordT coord);
 
-/*! Obtain cartesian coordinates given a flat vector index */
-std::vector<DimT> coordinate (Shape shape, NElemT idx);
+/// Return the coordinate of a flat index according to shape
+/// Coordinate dimensions are 0-based
+/// For example [0, 0, ..., 0] <-> 0
+CoordT coordinate (Shape shape, NElemT idx);
 
 }
 
-#endif /* ADE_SHAPE_HPP */
+#endif // ADE_SHAPE_HPP

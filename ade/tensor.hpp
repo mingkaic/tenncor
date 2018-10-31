@@ -1,17 +1,14 @@
-/*!
- *
- *  tensor.hpp
- *  ade
- *
- *  Purpose:
- *  define building blocks for an equation tree
- *
- */
+///
+///	tensor.hpp
+///	ade
+///
+///	Purpose:
+///	Define interfaces and building blocks for an equation graph
+///
 
 #include <memory>
 
-#include "util/error.hpp"
-
+#include "ade/log/log.hpp"
 #include "ade/shape.hpp"
 
 #ifndef ADE_TENSOR_HPP
@@ -22,22 +19,41 @@ namespace ade
 
 struct Tensorptr;
 
-/*! Tensor interface for ensuring derivation functionality */
+struct Tensor;
+
+struct iFunctor;
+
+/// Interface to travel through graph, treating Tensor and iFunctor differently
+struct iTraveler
+{
+	virtual ~iTraveler (void) = default;
+
+	/// Visit leaf node
+	virtual void visit (Tensor* leaf) = 0;
+
+	/// Visit functor node
+	virtual void visit (iFunctor* func) = 0;
+};
+
+/// Interface of traversible and differentiable nodes with shape information
 struct iTensor
 {
 	virtual ~iTensor (void) = default;
 
-	/*! get internal shape */
+	/// Obtain concrete information on either leaf or functor implementations
+	virtual void accept (iTraveler& visiter) = 0;
+
+	/// Return the shape held by this tensor
 	virtual const Shape& shape (void) const = 0;
 
-	/*! build the gradient subtree with respect to wrt node */
-	virtual Tensorptr gradient (Tensorptr& wrt) const = 0;
+	/// Return the partial derivative of this with respect to input wrt
+	virtual Tensorptr gradient (const iTensor* wrt) = 0;
 
-	/*! represent tensor information as string (for debug purposes) */
+	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;
 };
 
-/*! Internal smart pointer wrapper to Tensors guaranteeing non-null pointers */
+/// Smart pointer to iTensor ensuring non-null references
 struct Tensorptr
 {
 	Tensorptr (iTensor& tens) :
@@ -48,7 +64,16 @@ struct Tensorptr
 	{
 		if (nullptr == tens)
 		{
-			util::handle_error("init nodeptr with nullptr");
+			fatal("cannot create nodeptr with nullptr");
+		}
+	}
+
+	Tensorptr (std::shared_ptr<iTensor> tens) :
+		ptr_(tens)
+	{
+		if (nullptr == tens)
+		{
+			fatal("cannot create nodeptr with nullptr");
 		}
 	}
 
@@ -64,62 +89,67 @@ struct Tensorptr
 		return ptr_.get();
 	}
 
-	/*! get raw pointer */
+	/// Return the raw pointer
 	iTensor* get (void) const
 	{
 		return ptr_.get();
 	}
 
-	/*! get weakptr reference */
+	/// Return the weakptr reference
 	std::weak_ptr<iTensor> ref (void) const
 	{
 		return ptr_;
 	}
 
 protected:
-	/*! smartpointer to iTensor */
+	/// Strong reference to iTensor
 	std::shared_ptr<iTensor> ptr_;
 };
 
-/*! Reshaping Tensor::SYMBOLIC_ONE to input shape */
-Tensorptr constant_one (std::vector<DimT> shape);
+/// Return a Tensor::SYMBOLIC_ONE extended to input shape
+Tensorptr shaped_one (Shape shape);
 
-/*! Reshaping Tensor::SYMBOLIC_ZERO to input shape */
-Tensorptr constant_zero (std::vector<DimT> shape);
+/// Return a Tensor::SYMBOLIC_ZERO extended to input shape
+Tensorptr shaped_zero (Shape shape);
 
-/*! Tensor implementation representing leaf node in operation graph */
+/// Leaf of the graph commonly representing the variable in an equation
 struct Tensor final : public iTensor
 {
-	/*! representation for a scalar containing value one */
+	/// Represent a scalar containing value one
 	static Tensorptr SYMBOLIC_ONE;
 
-	/*! representation for a scalar containing value zero */
+	/// Represent a scalar containing value zero
 	static Tensorptr SYMBOLIC_ZERO;
 
-	/*! build a tensor of input shape */
-	static Tensorptr get (Shape shape)
+	/// Return a Tensor with input shape
+	static Tensor* get (Shape shape)
 	{
 		return new Tensor(shape);
 	}
 
-	/*! implementation of iTensor  */
+	/// Implementation of iTensor
+	void accept (iTraveler& visiter) override
+	{
+		visiter.visit(this);
+	}
+
+	/// Implementation of iTensor
 	const Shape& shape (void) const override
 	{
 		return shape_;
 	}
 
-	/*! implementation of iTensor  */
-	Tensorptr gradient (Tensorptr& wrt) const override
+	/// Implementation of iTensor
+	Tensorptr gradient (const iTensor* wrt) override
 	{
-		std::vector<DimT> shape = wrt->shape().as_list();
-		if (this == wrt.get())
+		if (this == wrt)
 		{
-			return constant_one(shape);
+			return shaped_one(shape_);
 		}
-		return constant_zero(shape);
+		return shaped_zero(wrt->shape());
 	}
 
-	/*! implementation of iTensor  */
+	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
 		return shape_.to_string();
@@ -128,10 +158,10 @@ struct Tensor final : public iTensor
 private:
 	Tensor (Shape shape) : shape_(shape) {}
 
-	/*! internal shape  */
+	/// Shape info of the tensor instance
 	Shape shape_;
 };
 
 }
 
-#endif /* ADE_TENSOR_HPP */
+#endif // ADE_TENSOR_HPP

@@ -1,6 +1,6 @@
 #include <unordered_map>
 
-#include "util/error.hpp"
+#include "ade/log/log.hpp"
 
 #include "llo/dtype.hpp"
 
@@ -18,11 +18,9 @@ struct EnumHash
 	}
 };
 
-using TypenameMap = std::unordered_map<DTYPE,std::string,EnumHash>;
-
 #define TYPE_ASSOC(TYPE) std::pair<DTYPE,std::string>{TYPE, #TYPE}
 
-const TypenameMap named_types =
+const std::unordered_map<DTYPE,std::string,EnumHash> named_types =
 {
 	TYPE_ASSOC(DOUBLE),
 	TYPE_ASSOC(FLOAT),
@@ -36,7 +34,7 @@ const TypenameMap named_types =
 	TYPE_ASSOC(UINT64),
 };
 
-std::string name_type (DTYPE type)
+std::string nametype (DTYPE type)
 {
 	auto it = named_types.find(type);
 	if (named_types.end() == it)
@@ -67,10 +65,8 @@ uint8_t type_size (DTYPE type)
 		case DTYPE::UINT64:
 			return sizeof(int64_t);
 		default:
-			util::handle_error("unsupported type",
-				util::ErrArg<size_t>("typeval", type));
+			ade::fatalf("unsupported type %d", type);
 	}
-	return 0;
 }
 
 template <>

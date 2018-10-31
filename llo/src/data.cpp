@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "util/error.hpp"
+#include "ade/log/log.hpp"
 
 #include "llo/data.hpp"
 
@@ -40,9 +40,8 @@ static void to_generic (char* out, DTYPE out_type, T* data, size_t n)
 		case UINT16: COPYOVER(uint16_t)
 		case UINT32: COPYOVER(uint32_t)
 		case UINT64: COPYOVER(uint64_t)
-		default:
-			util::handle_error("invalid output type",
-				util::ErrArg<std::string>("output.type", name_type(out_type)));
+		default: ade::fatalf("invalid output type %s",
+			nametype(out_type).c_str());
 	}
 }
 
@@ -71,14 +70,37 @@ GenericData GenericData::convert_to (DTYPE out_type) const
 		case UINT16: CONVERT(uint16_t)
 		case UINT32: CONVERT(uint32_t)
 		case UINT64: CONVERT(uint64_t)
-		default:
-			util::handle_error("invalid input type",
-				util::ErrArg<std::string>("input.type", name_type(dtype_)));
+		default: ade::fatalf("invalid input type %s",
+			nametype(dtype_).c_str());
 	}
 	return out;
 }
 
 #undef CONVERT
+
+#define FILL_ONE(TYPE){ TYPE* ptr = (TYPE*) cptr;\
+std::fill(ptr, ptr + n, (TYPE) 1); } break;
+
+// fill all elements of specified type under cptr with values of 1
+void fill_one (char* cptr, size_t n, DTYPE dtype)
+{
+	switch (dtype)
+	{
+		case DOUBLE: FILL_ONE(double)
+		case FLOAT: FILL_ONE(float)
+		case INT8: FILL_ONE(int8_t)
+		case INT16: FILL_ONE(int16_t)
+		case INT32: FILL_ONE(int32_t)
+		case INT64: FILL_ONE(int64_t)
+		case UINT8: FILL_ONE(uint8_t)
+		case UINT16: FILL_ONE(uint16_t)
+		case UINT32: FILL_ONE(uint32_t)
+		case UINT64: FILL_ONE(uint64_t)
+		default: ade::fatal("filling unknown type");
+	}
+}
+
+#undef FILL_ONE
 
 }
 

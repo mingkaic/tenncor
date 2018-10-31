@@ -1,13 +1,14 @@
+
+#ifndef DISABLE_LOAD_TEST
+
+
 #include <fstream>
 
 #include "gtest/gtest.h"
 
-#include "cli/util/ascii_tree.hpp"
+#include "dbg/ade.hpp"
 
 #include "pbm/graph.hpp"
-
-
-#ifndef DISABLE_LOAD_TEST
 
 
 const std::string testdir = "pbm/test/data";
@@ -16,14 +17,14 @@ const std::string testdir = "pbm/test/data";
 static inline void ltrim(std::string &s)
 {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-		std::not1(std::ptr_fun<int, int>(std::isspace))));
+		std::not1(std::ptr_fun<int,int>(std::isspace))));
 }
 
 
 static inline void rtrim(std::string &s)
 {
 	s.erase(std::find_if(s.rbegin(), s.rend(),
-		std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+		std::not1(std::ptr_fun<int,int>(std::isspace))).base(), s.end());
 }
 
 
@@ -44,26 +45,28 @@ TEST(LOAD, LoadGraph)
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
 	}
 
-	std::vector<ade::Tensorptr> roots;
+	std::vector<llo::DataNode> roots;
 	{
-		std::vector<ade::Tensorptr> nodes = load_graph(graph);
-		std::unordered_set<ade::iTensor*> nparents;
+		std::vector<llo::DataNode> nodes = load_graph(graph);
+		std::unordered_set<ade::iTensor*> have_parents;
 		for (auto it = nodes.begin(), et = nodes.end(); et != it; ++it)
 		{
-			if (ade::iFunctor* func = dynamic_cast<ade::iFunctor*>(it->get()))
+			if (ade::iFunctor* func =
+				dynamic_cast<ade::iFunctor*>(it->tensor_.get()))
 			{
-				auto refs = func->get_refs();
-				for (auto ref : refs)
+				ade::ArgsT refs = func->get_children();
+				for (auto& ref : refs)
 				{
-					nparents.emplace(ref);
+					have_parents.emplace(ref.second.get());
 				}
 			}
 		}
 
+		// filter out nodes with parents to find roots
 		std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(roots),
-		[&](ade::Tensorptr& node)
+		[&](llo::DataNode& node)
 		{
-			return nparents.end() == nparents.find(node.get());
+			return have_parents.end() == have_parents.find(node.tensor_.get());
 		});
 	}
 
@@ -80,38 +83,11 @@ TEST(LOAD, LoadGraph)
 			expect += line + "\n";
 		}
 	}
-	for (ade::Tensorptr& root : roots)
+	for (llo::DataNode& root : roots)
 	{
-		PrettyTree<ade::iTensor*> artist(
-			[](ade::iTensor*& root) -> std::vector<ade::iTensor*>
-			{
-				if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(root))
-				{
-					return f->get_refs();
-				}
-				return {};
-			},
-			[](std::ostream& out, ade::iTensor*& root)
-			{
-				if (root)
-				{
-					if (root == ade::Tensor::SYMBOLIC_ONE.get())
-					{
-						out << 1;
-					}
-					else if (root == ade::Tensor::SYMBOLIC_ZERO.get())
-					{
-						out << 0;
-					}
-					else
-					{
-						out << root->to_string();
-					}
-				}
-			});
-
+		PrettyEquation artist;
 		std::stringstream gotstr;
-		artist.print(gotstr, root.get());
+		artist.print(gotstr, root.tensor_);
 
 #if 0
 		std::cout << gotstr.str() << std::endl;
@@ -129,4 +105,4 @@ TEST(LOAD, LoadGraph)
 }
 
 
-#endif /* DISABLE_LOAD_TEST */
+#endif // DISABLE_LOAD_TEST

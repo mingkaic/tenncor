@@ -1,12 +1,10 @@
-/*!
- *
- *  api.hpp
- *  llo
- *
- *  Purpose:
- *  define api for easily tensors operations
- *
- */
+///
+/// api.hpp
+/// llo
+///
+/// Purpose:
+/// Define API to easily build equations
+///
 
 #include "llo/node.hpp"
 
@@ -16,117 +14,125 @@
 namespace llo
 {
 
-/*! Valuewise absolute operation */
-ade::Tensorptr abs (ade::Tensorptr arg);
+/// Returns DataNode with SYMBOLIC_ONE extended to input shape
+DataNode one (ade::Shape shape);
 
-/*! Value-wise negative operation */
-ade::Tensorptr neg (ade::Tensorptr arg);
+/// Element-wise absolute operation
+DataNode abs (DataNode arg);
 
-/*! Value-wise bitwise not operation */
-ade::Tensorptr bit_not (ade::Tensorptr arg);
+/// Element-wise negative operation
+DataNode neg (DataNode arg);
 
-/*! Value-wise sine operation*/
-ade::Tensorptr sin (ade::Tensorptr arg);
+/// Element-wise sine operation
+DataNode sin (DataNode arg);
 
-/*! Value-wise cosine operation*/
-ade::Tensorptr cos (ade::Tensorptr arg);
+/// Element-wise cosine operation
+DataNode cos (DataNode arg);
 
-/*! Value-wise tangent operation*/
-ade::Tensorptr tan (ade::Tensorptr arg);
+/// Element-wise tangent operation
+DataNode tan (DataNode arg);
 
-/*! Value-wise exponent operation*/
-ade::Tensorptr exp (ade::Tensorptr arg);
+/// Element-wise exponent operation
+DataNode exp (DataNode arg);
 
-/*! Value-wise natural log operation*/
-ade::Tensorptr log (ade::Tensorptr arg);
+/// Element-wise natural log operation
+DataNode log (DataNode arg);
 
-/*! Value-wise square root operation*/
-ade::Tensorptr sqrt (ade::Tensorptr arg);
+/// Element-wise square root operation
+DataNode sqrt (DataNode arg);
 
-/*! Value-wise round operation*/
-ade::Tensorptr round (ade::Tensorptr arg);
+/// Element-wise round operation
+DataNode round (DataNode arg);
 
-/*! Flip values along a dimension */
-ade::Tensorptr flip (ade::Tensorptr arg, uint8_t dim);
+/// Flip values of arg along specified dimension
+DataNode flip (DataNode arg, uint8_t dim);
 
-/*! Value-wise operation: base ^ exponent*/
-ade::Tensorptr pow (ade::Tensorptr a, ade::Tensorptr b);
+/// Element-wise operation: base ^ exponent
+DataNode pow (DataNode a, DataNode b);
 
-/*! Value-wise operation: a + b*/
-ade::Tensorptr add (ade::Tensorptr a, ade::Tensorptr b);
+/// Element-wise operation: a + b
+DataNode add (DataNode a, DataNode b);
 
-/*! Value-wise operation: a - b*/
-ade::Tensorptr sub (ade::Tensorptr a, ade::Tensorptr b);
+/// Get Element-wise sum of args
+DataNode sum (std::vector<DataNode> args);
 
-/*! Value-wise operation: a * b*/
-ade::Tensorptr mul (ade::Tensorptr a, ade::Tensorptr b);
+/// Element-wise operation: a - b
+DataNode sub (DataNode a, DataNode b);
 
-/*! Value-wise operation: a / b*/
-ade::Tensorptr div (ade::Tensorptr a, ade::Tensorptr b);
+/// Element-wise operation: a///b
+DataNode mul (DataNode a, DataNode b);
 
-/*! Value-wise operation: a == b*/
-ade::Tensorptr eq (ade::Tensorptr a, ade::Tensorptr b);
+/// Get Element-wise product of args
+DataNode prod (std::vector<DataNode> args);
 
-/*! Value-wise operation: a != b*/
-ade::Tensorptr neq (ade::Tensorptr a, ade::Tensorptr b);
+/// Element-wise operation: a / b
+DataNode div (DataNode a, DataNode b);
 
-/*! Value-wise operation: a < b*/
-ade::Tensorptr lt (ade::Tensorptr a, ade::Tensorptr b);
+/// Element-wise operation: a == b
+DataNode eq (DataNode a, DataNode b);
 
-/*! Value-wise operation: a > b*/
-ade::Tensorptr gt (ade::Tensorptr a, ade::Tensorptr b);
+/// Element-wise operation: a != b
+DataNode neq (DataNode a, DataNode b);
 
-/*! Generate random numbers according to std::binomial_distribution(a, b) */
-ade::Tensorptr binom (ade::Tensorptr ntrials, ade::Tensorptr prob);
+/// Element-wise operation: a < b
+DataNode lt (DataNode a, DataNode b);
 
-/*! Generate random numbers according to std::uniform_distributon(a, b) */
-ade::Tensorptr uniform (ade::Tensorptr lower, ade::Tensorptr upper);
+/// Element-wise operation: a > b
+DataNode gt (DataNode a, DataNode b);
 
-/*! Generate random numbers according to std::normal_distribution(a, b) */
-ade::Tensorptr normal (ade::Tensorptr mean, ade::Tensorptr stdev);
+/// Get Element-wise minimum of args
+DataNode min (std::vector<DataNode> args);
 
-/*! Get n_elem of input shape as value */
-ade::Tensorptr n_elems (ade::Tensorptr arg);
+/// Get Element-wise maximum of args
+DataNode max (std::vector<DataNode> args);
 
-/*! Get value at specified dimension of input shape */
-ade::Tensorptr n_dims (ade::Tensorptr arg, uint8_t dim);
+/// Element-wise clip x between lo and hi
+/// Values in x larger than hi take value hi, vice versa for lo
+DataNode clip (DataNode x, DataNode lo, DataNode hi);
 
-/*! Get first flat index of the max value */
-ade::Tensorptr argmax (ade::Tensorptr arg);
+/// Generate random numbers according to std::binomial_distribution(a, b)
+DataNode rand_binom (DataNode ntrials, DataNode prob);
 
-/*! Get the max value */
-ade::Tensorptr rmax (ade::Tensorptr arg);
+/// Generate random numbers according to std::uniform_distributon(a, b)
+DataNode rand_uniform (DataNode lower, DataNode upper);
 
-/*! Get the sum of all values */
-ade::Tensorptr rsum (ade::Tensorptr arg);
+/// Generate random numbers according to std::normal_distribution(a, b)
+DataNode rand_normal (DataNode mean, DataNode stdev);
 
-/*! Matrix multiplication of 2 or 1 dimension matrices,
- *  higher dimensions throws runtime error */
-ade::Tensorptr matmul (ade::Tensorptr a, ade::Tensorptr b);
+/// Get n_elem of input shape as value
+DataNode n_elems (DataNode arg);
 
-/*! High dimension matrix multiplication, translating input into 2-D virtual
- *  matrices, take n_elems of subshape in range [:group_idx] as the first
- *  dimension and n_elems of subshape in range [group_idx:] as second dimension
- */
-ade::Tensorptr matmul (ade::Tensorptr a, ade::Tensorptr b,
-	uint8_t agroup_idx, uint8_t bgroup_idx);
+/// Get value at specified dimension of input shape
+DataNode n_dims (DataNode arg, uint8_t dim);
 
-// NOT IMPLEMENTED
-ade::Tensorptr convolute (ade::Tensorptr canvas, ade::Tensorptr window);
+/// Get the max value
+DataNode reduce_max (DataNode arg);
 
-/*! Permute shape according to input indices. output shape take
- *  on input dimensions ordered by indices, and concatenated by unreferenced
- *  input dimensions ordered by input's original order */
-ade::Tensorptr permute (ade::Tensorptr arg, std::vector<uint8_t> order);
+/// Apply reduce_max to elements of coordinate range [groupidx:]
+DataNode reduce_max (DataNode arg, uint8_t groupidx);
 
-/*! Concatenate input shape vector to input tensor's shape.
- *  expect value to expand into the new shape by duplicating */
-ade::Tensorptr extend (ade::Tensorptr arg, std::vector<uint8_t> ext);
+/// Get the sum of all values
+DataNode reduce_sum (DataNode arg);
 
-/*! Reshape input tensor's shape to new shape assuming the new
- *  shape has the same n_elems as old shape */
-ade::Tensorptr reshape (ade::Tensorptr arg, std::vector<uint8_t> slist);
+/// Apply reduce_sum to elements of coordinate range [groupidx:]
+DataNode reduce_sum (DataNode arg, uint8_t groupidx);
+
+/// Permute shape according to input indices. output shape take
+/// on input dimensions ordered by indices, and concatenated by unreferenced
+/// input dimensions ordered by input's original order
+DataNode permute (DataNode arg, std::vector<uint8_t> order);
+
+/// Concatenate input shape vector to input tensor's shape.
+/// expect value to expand into the new shape by duplicating
+DataNode extend (DataNode arg, uint8_t after, std::vector<uint8_t> ext);
+
+/// Matrix multiply 2 or 1 dimension matrices,
+/// Tensors with ranks higher than 2 throws runtime error
+DataNode matmul (DataNode a, DataNode b);
+
+// // NOT IMPLEMENTED
+// DataNode convolute (DataNode canvas, DataNode window);
 
 }
 
-#endif /* LLO_API_HPP */
+#endif // LLO_API_HPP

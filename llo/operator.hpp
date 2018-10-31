@@ -1,20 +1,18 @@
-/*!
- *
- *  operator.hpp
- *  llo
- *
- *  Purpose:
- *  define low level operators on continguous data
- *
- */
+///
+/// operator.hpp
+/// llo
+///
+/// Purpose:
+/// Define functions manipulating tensor data values
+/// No function in this file makes any attempt to check for nullptrs
+///
 
 #include <cstring>
 #include <cmath>
 #include <functional>
+#include <random>
 
-#include "util/rand.hpp"
-
-#include "ade/shape.hpp"
+#include "ade/coord.hpp"
 
 #ifndef LLO_OPERATOR_HPP
 #define LLO_OPERATOR_HPP
@@ -22,412 +20,420 @@
 namespace llo
 {
 
-/*! Generic unary operation */
+/// RNG engine used
+using EngineT = std::default_random_engine;
+
+/// Return global random generator
+EngineT& get_engine (void);
+
+/// Tensor data wrapper using raw pointer and data size
+/// Avoid using std constainers in case of unintentional deep copies
 template <typename T>
-void unary (T* out, const T* in, size_t n,
-	std::function<T(const T&)> f)
+struct VecRef
 {
-	for (size_t i = 0; i < n; ++i)
+	ade::CoordPtrT mapper;
+	const T* data;
+	ade::Shape shape;
+};
+
+/// Given reference to output array, expected output shape,
+/// and input vector ref, copy input elements to outputs according to mapper
+/// Resolve surjective conflicts by summing
+template <typename T>
+void copy (T* out, ade::Shape outshape, VecRef<T> in)
+{
+	ade::NElemT nout = outshape.n_elems();
+	ade::NElemT nin = in.shape.n_elems();
+	ade::CoordT coord;
+	if (nout > nin) // non-surjective
 	{
-		out[i] = f(in[i]);
-	}
-}
-
-/*! Absolute */
-template <typename T>
-void abs (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return std::abs(src); });
-}
-
-template <>
-void abs<uint8_t> (uint8_t* out, const uint8_t* in, size_t n);
-
-template <>
-void abs<uint16_t> (uint16_t* out, const uint16_t* in, size_t n);
-
-template <>
-void abs<uint32_t> (uint32_t* out, const uint32_t* in, size_t n);
-
-template <>
-void abs<uint64_t> (uint64_t* out, const uint64_t* in, size_t n);
-
-/*! Negative */
-template <typename T>
-void neg (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return -src; });
-}
-
-template <>
-void neg<uint8_t> (uint8_t* out, const uint8_t* in, size_t n);
-
-template <>
-void neg<uint16_t> (uint16_t* out, const uint16_t* in, size_t n);
-
-template <>
-void neg<uint32_t> (uint32_t* out, const uint32_t* in, size_t n);
-
-template <>
-void neg<uint64_t> (uint64_t* out, const uint64_t* in, size_t n);
-
-/*! Bitwise Not */
-template <typename T>
-void bit_not (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return !src; });
-}
-
-/*! Sine */
-template <typename T>
-void sin (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return std::sin(src); });
-}
-
-/*! Cosine */
-template <typename T>
-void cos (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return std::cos(src); });
-}
-
-/*! Tangent */
-template <typename T>
-void tan (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return std::tan(src); });
-}
-
-/*! Exponent */
-template <typename T>
-void exp (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return std::exp(src); });
-}
-
-/*! Natural log */
-template <typename T>
-void log (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return std::log(src); });
-}
-
-/*! Square root */
-template <typename T>
-void sqrt (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return std::sqrt(src); });
-}
-
-/*! Round */
-template <typename T>
-void round (T* out, const T* in, size_t n)
-{
-	unary<T>(out, in, n, [](const T& src) { return std::round(src); });
-}
-
-/*! Flip */
-template <typename T>
-void flip (T* out, const T* in, ade::Shape shape, uint8_t dim)
-{
-	size_t n = shape.n_elems();
-	std::vector<ade::DimT> slist = shape.as_list();
-	uint8_t rank = slist.size();
-	if (dim >= rank)
-	{
-		util::handle_error("attempting to flip a dimension beyond shape rank",
-			util::ErrArg<size_t>("dim", dim),
-			util::ErrArg<size_t>("rank", rank));
-	}
-	std::vector<ade::DimT> coord;
-	ade::DimT dlimit = slist[dim] - 1;
-	for (size_t i = 0; i < n; ++i)
-	{
-		coord = coordinate(shape, i);
-		coord[dim] = dlimit - coord[dim];
-		out[i] = in[index(shape, coord)];
-	}
-}
-
-/*! Permute coordinates according to order */
-template <typename T>
-void permute (T* out, const T* in, ade::Shape outshape, ade::Shape shape,
-	std::vector<uint8_t> order)
-{
-	size_t n = shape.n_elems();
-	uint8_t orig_rank = shape.n_rank();
-	bool visited[ade::rank_cap];
-	std::memset(visited, false, sizeof(ade::DimT) * ade::rank_cap);
-	for (size_t i = 0, n = order.size(); i < n; ++i)
-	{
-		visited[order[i]] = true;
-	}
-	for (size_t i = 0, n = orig_rank; i < n; ++i)
-	{
-		if (false == visited[i])
+		for (ade::NElemT outidx = 0; outidx < nout; ++outidx)
 		{
-			order.push_back(i);
+			in.mapper->backward(coord.begin(),
+				ade::coordinate(outshape, outidx).begin());
+			ade::NElemT i = ade::index(in.shape, coord);
+			out[outidx] = in.data[i];
 		}
 	}
-
-	uint8_t norder = order.size();
-	std::vector<ade::DimT> coords(orig_rank);
-	std::vector<ade::DimT> converted(norder);
-	for (ade::NElemT srci = 0; srci < n; ++srci)
+	else // resolve surjective conflicts
 	{
-		coords = coordinate(shape, srci);
-
-		for (uint8_t i = 0; i < norder; ++i)
+		bool visited[nout];
+		std::memset(visited, false, nout);
+		for (ade::NElemT i = 0; i < nin; ++i)
 		{
-			converted[i] = coords[order[i]];
+			in.mapper->forward(coord.begin(),
+				ade::coordinate(in.shape, i).begin());
+			ade::NElemT outidx = ade::index(outshape, coord);
+			if (visited[outidx])
+			{
+				out[outidx] += in.data[i];
+			}
+			else
+			{
+				out[outidx] = in.data[i];
+				visited[outidx] = true;
+			}
 		}
-
-		ade::NElemT desti = index(outshape, converted);
-		out[desti] = in[srci];
+		// todo: do something/check non-visited elements
 	}
 }
 
-/*! Shape's n_elems */
+/// Generic unary operation assuming identity mapping (bijective)
 template <typename T>
-void n_elems (T& out, const ade::Shape& in)
+void unary (T* out, VecRef<T> in, std::function<T(const T&)> f)
 {
-	out = in.n_elems();
-}
-
-/*! Shape's dimension value at dim */
-template <typename T>
-void n_dims (T& out, const ade::Shape& in, uint8_t dim)
-{
-	out = in.at(dim);
-}
-
-/*! Get first flat index of the max value */
-template <typename T>
-void arg_max (T& out, const T* in, size_t n)
-{
-	size_t temp = 0;
-	for (size_t i = 1; i < n; ++i)
+	ade::NElemT n = in.shape.n_elems();
+	for (ade::NElemT i = 0; i < n; ++i)
 	{
-		if (in[temp] < in[i])
-		{
-			temp = i;
-		}
+		out[i] = f(in.data[i]);
 	}
-	out = temp;
 }
 
-/*! Get the max value */
+/// Given reference to output array, and input vector ref,
+/// make output elements take absolute value of inputs
 template <typename T>
-void reduce_max (T& out, const T* in, size_t n)
+void abs (T* out, VecRef<T> in)
 {
-	out = in[0];
-	for (size_t i = 1; i < n; ++i)
-	{
-		if (out < in[i])
-		{
-			out = in[i];
-		}
-	}
+	unary<T>(out, in, [](const T& src) { return std::abs(src); });
 }
 
-/*! Get the sum of all value */
+template <>
+void abs<uint8_t> (uint8_t* out, VecRef<uint8_t> in);
+
+template <>
+void abs<uint16_t> (uint16_t* out, VecRef<uint16_t> in);
+
+template <>
+void abs<uint32_t> (uint32_t* out, VecRef<uint32_t> in);
+
+template <>
+void abs<uint64_t> (uint64_t* out, VecRef<uint64_t> in);
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take negatives of inputs
 template <typename T>
-void reduce_sum (T& out, const T* in, size_t n)
+void neg (T* out, VecRef<T> in)
 {
-	out = in[0];
-	for (size_t i = 1; i < n; ++i)
-	{
-		out += in[i];
-	}
+	unary<T>(out, in, [](const T& src) { return -src; });
 }
 
-/*! Generic binary operation */
+template <>
+void neg<uint8_t> (uint8_t* out, VecRef<uint8_t> in);
+
+template <>
+void neg<uint16_t> (uint16_t* out, VecRef<uint16_t> in);
+
+template <>
+void neg<uint32_t> (uint32_t* out, VecRef<uint32_t> in);
+
+template <>
+void neg<uint64_t> (uint64_t* out, VecRef<uint64_t> in);
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take bitwise nots of inputs
 template <typename T>
-void binary (T* out, const T* a, size_t an, const T* b, size_t bn,
+void bit_not (T* out, VecRef<T> in)
+{
+	unary<T>(out, in, [](const T& src) { return !src; });
+}
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take sine of inputs
+template <typename T>
+void sin (T* out, VecRef<T> in)
+{
+	unary<T>(out, in, [](const T& src) { return std::sin(src); });
+}
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take cosine of inputs
+template <typename T>
+void cos (T* out, VecRef<T> in)
+{
+	unary<T>(out, in, [](const T& src) { return std::cos(src); });
+}
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take tangent of inputs
+template <typename T>
+void tan (T* out, VecRef<T> in)
+{
+	unary<T>(out, in, [](const T& src) { return std::tan(src); });
+}
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take exponent of inputs
+template <typename T>
+void exp (T* out, VecRef<T> in)
+{
+	unary<T>(out, in, [](const T& src) { return std::exp(src); });
+}
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take natural log of inputs
+template <typename T>
+void log (T* out, VecRef<T> in)
+{
+	unary<T>(out, in, [](const T& src) { return std::log(src); });
+}
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take square root of inputs
+template <typename T>
+void sqrt (T* out, VecRef<T> in)
+{
+	unary<T>(out, in, [](const T& src) { return std::sqrt(src); });
+}
+
+/// Given reference to output array, and input vector ref,
+/// make output elements take rounded values of inputs
+template <typename T>
+void round (T* out, VecRef<T> in)
+{
+	unary<T>(out, in, [](const T& src) { return std::round(src); });
+}
+
+/// Generic binary operation assuming identity mapping (bijective)
+template <typename T>
+void binary (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b,
 	std::function<T(const T&,const T&)> f)
 {
-	size_t n = std::max(an, bn);
-	for (size_t i = 0; i < n; ++i)
+	ade::NElemT n = outshape.n_elems();
+	ade::CoordT acoord;
+	ade::CoordT bcoord;
+	for (ade::NElemT i = 0; i < n; ++i)
 	{
-		out[i] = f(a[i % an], b[i % bn]);
+		a.mapper->backward(acoord.begin(),
+			ade::coordinate(outshape, i).begin());
+		b.mapper->backward(bcoord.begin(),
+			ade::coordinate(outshape, i).begin());
+		out[i] = f(a.data[ade::index(a.shape, acoord)],
+			b.data[ade::index(b.shape, bcoord)]);
 	}
 }
 
-/*! Pow */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::pow operator
+/// Only accept 2 arguments
 template <typename T>
-void pow (T* out, const T* a, size_t an, const T* b, size_t bn)
+void pow (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, an, b, bn,
+	binary<T>(out, outshape, a, b,
 		[](const T& b, const T& x) { return std::pow(b, x); });
 }
 
-/*! Add */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index subtract
+/// Only accept 2 arguments
 template <typename T>
-void add (T* out, const T* a, size_t an, const T* b, size_t bn)
+void sub (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, an, b, bn,
-		[](const T& a, const T& b) { return a + b; });
-}
-
-/*! Sub */
-template <typename T>
-void sub (T* out, const T* a, size_t an, const T* b, size_t bn)
-{
-	binary<T>(out, a, an, b, bn,
+	binary<T>(out, outshape, a, b,
 		[](const T& a, const T& b) { return a - b; });
 }
 
-/*! Mul */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index divide
+/// Only accept 2 arguments
 template <typename T>
-void mul (T* out, const T* a, size_t an, const T* b, size_t bn)
+void div (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, an, b, bn,
-		[](const T& a, const T& b) { return a * b; });
-}
-
-/*! Div */
-template <typename T>
-void div (T* out, const T* a, size_t an, const T* b, size_t bn)
-{
-	binary<T>(out, a, an, b, bn,
+	binary<T>(out, outshape, a, b,
 		[](const T& a, const T& b) { return a / b; });
 }
 
-/*! Equality */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply == operator
+/// Only accept 2 arguments
 template <typename T>
-void eq (T* out, const T* a, size_t an, const T* b, size_t bn)
+void eq (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, an, b, bn,
+	binary<T>(out, outshape, a, b,
 		[](const T& a, const T& b) { return a == b; });
 }
 
-/*! Non-equality */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply != operator
+/// Only accept 2 arguments
 template <typename T>
-void neq (T* out, const T* a, size_t an, const T* b, size_t bn)
+void neq (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, an, b, bn,
+	binary<T>(out, outshape, a, b,
 		[](const T& a, const T& b) { return a != b; });
 }
 
-/*! Less than */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply < operator
+/// Only accept 2 arguments
 template <typename T>
-void lt (T* out, const T* a, size_t an, const T* b, size_t bn)
+void lt (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, an, b, bn,
+	binary<T>(out, outshape, a, b,
 		[](const T& a, const T& b) { return a < b; });
 }
 
-/*! Greater than */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply > operator
+/// Only accept 2 arguments
 template <typename T>
-void gt (T* out, const T* a, size_t an, const T* b, size_t bn)
+void gt (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, an, b, bn,
+	binary<T>(out, outshape, a, b,
 		[](const T& a, const T& b) { return a > b; });
 }
 
-/*! Randomly generated values according to binomial distribution */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::binomial_distribution function
+/// Only accept 2 arguments
 template <typename T>
-void rand_binom (T* out, const T* a, size_t an, const double* b, size_t bn)
+void rand_binom (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<double> b)
 {
-	size_t n = std::max(an, bn);
-	for (size_t i = 0; i < n; ++i)
+	ade::NElemT n = outshape.n_elems();
+	ade::CoordT acoord;
+	ade::CoordT bcoord;
+	for (ade::NElemT i = 0; i < n; ++i)
 	{
-		std::binomial_distribution<T> dist(a[i % an], b[i % bn]);
-		out[i] = dist(util::get_engine());
+		a.mapper->backward(acoord.begin(),
+			ade::coordinate(outshape, i).begin());
+		b.mapper->backward(bcoord.begin(),
+			ade::coordinate(outshape, i).begin());
+		std::binomial_distribution<T> dist(
+			a.data[ade::index(a.shape, acoord)],
+			b.data[ade::index(b.shape, bcoord)]);
+		out[i] = dist(get_engine());
 	}
 }
 
 template <>
 void rand_binom<double> (double* out,
-	const double* a, size_t an, const double* b, size_t bn);
+	ade::Shape& outshape, VecRef<double> a, VecRef<double> b);
 
 template <>
 void rand_binom<float> (float* out,
-	const float* a, size_t an, const double* b, size_t bn);
+	ade::Shape& outshape, VecRef<float> a, VecRef<double> b);
 
-/*! Randomly generated values according to uniform distribution */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::uniform_distributon function
+/// Only accept 2 arguments
 template <typename T>
-void rand_uniform (T* out, const T* a, size_t an, const T* b, size_t bn)
+void rand_uniform (T* out,
+	ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
-	binary<T>(out, a, an, b, bn,
+	binary<T>(out, outshape, a, b,
 	[](const T& a, const T& b)
 	{
 		std::uniform_int_distribution<T> dist(a, b);
-		return dist(util::get_engine());
+		return dist(get_engine());
 	});
 }
 
 template <>
 void rand_uniform<double> (double* out,
-	const double* a, size_t an, const double* b, size_t bn);
+	ade::Shape& outshape, VecRef<double> a, VecRef<double> b);
 
 template <>
 void rand_uniform<float> (float* out,
-	const float* a, size_t an, const float* b, size_t bn);
+	ade::Shape& outshape, VecRef<float> a, VecRef<float> b);
 
-/*! Randomly generated values according to normal distribution */
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::normal_distribution function
+/// Only accept 2 arguments
 template <typename T>
-void rand_normal (T* out, const T* a, size_t an, const T* b, size_t bn)
+void rand_normal (T* out, ade::Shape& outshape, VecRef<T> a, VecRef<T> b)
 {
 	throw std::bad_function_call();
 }
 
 template <>
 void rand_normal<float> (float* out,
-	const float* a, size_t an, const float* b, size_t bn);
+	ade::Shape& outshape, VecRef<float> a, VecRef<float> b);
 
 template <>
 void rand_normal<double> (double* out,
-	const double* a, size_t an, const double* b, size_t bn);
+	ade::Shape& outshape, VecRef<double> a, VecRef<double> b);
 
-/*! Matrix multiplication */
+/// Generic n-nary operation (potentially surjective)
 template <typename T>
-void matmul (T* out, const T* a, const T* b,
-	const ade::Shape& ashape, const ade::Shape& bshape,
-	uint8_t agroup_idx, uint8_t bgroup_idx)
+void nnary (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args,
+	std::function<void(T&, const T&)> acc)
 {
-	auto ita = ashape.begin();
-	auto itb = bshape.begin();
-	ade::NElemT dim_x = std::accumulate(itb, itb + bgroup_idx,
-		1, std::multiplies<ade::NElemT>());
-	ade::NElemT dim_y = std::accumulate(
-		ita + agroup_idx, ita + ashape.n_rank(),
-		1, std::multiplies<ade::NElemT>());
-	ade::NElemT dim_z = std::accumulate(ita, ita + agroup_idx,
-		1, std::multiplies<ade::NElemT>());
-
-	for (size_t y = 0; y < dim_y; y++)
+	ade::NElemT nout = outshape.n_elems();
+	bool visited[nout];
+	std::memset(visited, false, nout);
+	ade::CoordT coord;
+	size_t nargs = args.size();
+	if (nargs == 1 && nout > args[0].shape.n_elems()) // resolve extensions
 	{
-		for (size_t x = 0; x < dim_x; x++)
+		VecRef<T>& arg = args[0];
+		for (ade::NElemT outidx = 0; outidx < nout; ++outidx)
 		{
-			size_t outidx = x + y * dim_x;
-			out[outidx] = 0;
-			for (size_t z = 0; z < dim_z; z++)
-			{
-				size_t aidx = dim_z * y + z;
-				size_t bidx = x + dim_x * z;
-				out[outidx] += a[aidx] * b[bidx];
-			}
+			arg.mapper->backward(coord.begin(),
+				ade::coordinate(outshape, outidx).begin());
+			ade::NElemT i = ade::index(arg.shape, coord);
+			out[outidx] = arg.data[i];
 		}
 	}
+	else
+	{
+		for (size_t i = 0; i < nargs; ++i)
+		{
+			VecRef<T>& arg = args[i];
+			for (ade::NElemT i = 0, n = arg.shape.n_elems(); i < n; ++i)
+			{
+				arg.mapper->forward(coord.begin(),
+					ade::coordinate(arg.shape, i).begin());
+				ade::NElemT outidx = ade::index(outshape, coord);
+				if (visited[outidx])
+				{
+					acc(out[outidx], arg.data[i]);
+				}
+				else
+				{
+					out[outidx] = arg.data[i];
+					visited[outidx] = true;
+				}
+			}
+		}
+		// todo: do something/check non-visited elements
+	}
 }
 
-/*! Copy over data from nin to out repeating nin to fit when necessary. */
+/// Given arguments, for every mapped index i in range [0:max_nelems],
+/// sum all elements for all arguments
 template <typename T>
-void copyover (T* out, size_t nout, const T* in, size_t nin)
+void add (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
 {
-	size_t mult = nout / nin;
-	for (size_t i = 0; i < mult; ++i)
-	{
-		std::memcpy(out + i * nin, in, sizeof(T) * nin);
-	}
-	if (size_t leftover = nout % nin)
-	{
-		std::memcpy(out + mult * nin, in, sizeof(T) * leftover);
-	}
+	nnary<T>(out, outshape, args,
+		[](T& out, const T& val) { out += val; });
+}
+
+/// Given arguments, for every mapped index i in range [0:max_nelems],
+/// multiply all elements for all arguments
+template <typename T>
+void mul (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
+{
+	nnary<T>(out, outshape, args,
+		[](T& out, const T& val) { out *= val; });
+}
+
+/// Given arguments, for every mapped index i in range [0:max_nelems],
+/// take the minimum all elements for all arguments
+template <typename T>
+void min (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
+{
+	nnary<T>(out, outshape, args,
+		[](T& out, const T& val) { out = std::min(out, val); });
+}
+
+/// Given arguments, for every mapped index i in range [0:max_nelems],
+/// take the maximum all elements for all arguments
+template <typename T>
+void max (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args)
+{
+	nnary<T>(out, outshape, args,
+		[](T& out, const T& val) { out = std::max(out, val); });
 }
 
 }
 
-#endif /* LLO_OPERATOR_HPP */
+#endif // LLO_OPERATOR_HPP

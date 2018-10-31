@@ -7,183 +7,298 @@
 namespace llo
 {
 
-ade::Tensorptr abs (ade::Tensorptr arg)
+DataNode one (ade::Shape shape)
 {
-	return ade::Functor<ade::ABS>::get({arg});
+	return DataNode(EvalCtx(), ade::shaped_one(shape));
 }
 
-ade::Tensorptr neg (ade::Tensorptr arg)
+DataNode abs (DataNode arg)
 {
-	return ade::Functor<ade::NEG>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::ABS, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr bit_not (ade::Tensorptr arg)
+DataNode neg (DataNode arg)
 {
-	return ade::Functor<ade::NOT>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::NEG, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr sin (ade::Tensorptr arg)
+DataNode sin (DataNode arg)
 {
-	return ade::Functor<ade::SIN>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::SIN, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr cos (ade::Tensorptr arg)
+DataNode cos (DataNode arg)
 {
-	return ade::Functor<ade::COS>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::COS, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr tan (ade::Tensorptr arg)
+DataNode tan (DataNode arg)
 {
-	return ade::Functor<ade::TAN>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::TAN, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr exp (ade::Tensorptr arg)
+DataNode exp (DataNode arg)
 {
-	return ade::Functor<ade::EXP>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::EXP, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr log (ade::Tensorptr arg)
+DataNode log (DataNode arg)
 {
-	return ade::Functor<ade::LOG>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::LOG, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr sqrt (ade::Tensorptr arg)
+DataNode sqrt (DataNode arg)
 {
-	return ade::Functor<ade::SQRT>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::SQRT, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr round (ade::Tensorptr arg)
+DataNode round (DataNode arg)
 {
-	return ade::Functor<ade::ROUND>::get({arg});
+	return DataNode(arg.ctx_, ade::Functor::get(ade::ROUND, {
+		{ade::identity, arg.tensor_}}));
 }
 
-ade::Tensorptr flip (ade::Tensorptr arg, uint8_t dim)
+DataNode flip (DataNode arg, uint8_t dim)
 {
-	return DirectWrapper<uint8_t>::get(
-		ade::Functor<ade::FLIP>::get({arg}), dim);
+	return DataNode(arg.ctx_, ade::Functor::get(ade::COPY, {
+		{ade::flip(dim), arg.tensor_}}));
 }
 
-ade::Tensorptr pow (ade::Tensorptr a, ade::Tensorptr b)
+DataNode pow (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::POW>::get({a, b});
+	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
+		ade::Functor::get(ade::POW, {
+			{ade::identity, a.tensor_},
+			{ade::identity, b.tensor_}
+		}));
 }
 
-ade::Tensorptr add (ade::Tensorptr a, ade::Tensorptr b)
+DataNode add (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::ADD>::get({a, b});
+	return sum({a, b});
 }
 
-ade::Tensorptr sub (ade::Tensorptr a, ade::Tensorptr b)
+DataNode sum (std::vector<DataNode> args)
 {
-	return ade::Functor<ade::SUB>::get({a, b});
+	std::vector<const EvalCtx*> contexas;
+	ade::ArgsT ade_args;
+	for (DataNode& arg : args)
+	{
+		contexas.push_back(&arg.ctx_);
+		ade_args.push_back({ade::identity, arg.tensor_});
+	}
+	return DataNode(EvalCtx(contexas), ade::Functor::get(ade::ADD, ade_args));
 }
 
-ade::Tensorptr mul (ade::Tensorptr a, ade::Tensorptr b)
+DataNode sub (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::MUL>::get({a, b});
+	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
+		ade::Functor::get(ade::SUB, {
+			{ade::identity, a.tensor_},
+			{ade::identity, b.tensor_}
+		}));
 }
 
-ade::Tensorptr div (ade::Tensorptr a, ade::Tensorptr b)
+DataNode mul (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::DIV>::get({a, b});
+	return prod({a, b});
 }
 
-ade::Tensorptr eq (ade::Tensorptr a, ade::Tensorptr b)
+DataNode prod (std::vector<DataNode> args)
 {
-	return ade::Functor<ade::EQ>::get({a, b});
+	std::vector<const EvalCtx*> contexas;
+	ade::ArgsT ade_args;
+	for (DataNode& arg : args)
+	{
+		contexas.push_back(&arg.ctx_);
+		ade_args.push_back({ade::identity, arg.tensor_});
+	}
+	return DataNode(EvalCtx(contexas), ade::Functor::get(ade::MUL, ade_args));
 }
 
-ade::Tensorptr neq (ade::Tensorptr a, ade::Tensorptr b)
+DataNode div (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::NE>::get({a, b});
+	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
+		ade::Functor::get(ade::DIV, {
+			{ade::identity, a.tensor_},
+			{ade::identity, b.tensor_}
+		}));
 }
 
-ade::Tensorptr lt (ade::Tensorptr a, ade::Tensorptr b)
+DataNode eq (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::LT>::get({a, b});
+	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
+		ade::Functor::get(ade::EQ, {
+			{ade::identity, a.tensor_},
+			{ade::identity, b.tensor_}
+		}));
 }
 
-ade::Tensorptr gt (ade::Tensorptr a, ade::Tensorptr b)
+DataNode neq (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::GT>::get({a, b});
+	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
+		ade::Functor::get(ade::NE, {
+			{ade::identity, a.tensor_},
+			{ade::identity, b.tensor_}
+		}));
 }
 
-ade::Tensorptr binom (ade::Tensorptr ntrials, ade::Tensorptr prob)
+DataNode lt (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::BINO>::get({ntrials, prob});
+	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
+		ade::Functor::get(ade::LT, {
+			{ade::identity, a.tensor_},
+			{ade::identity, b.tensor_}
+		}));
 }
 
-ade::Tensorptr uniform (ade::Tensorptr lower, ade::Tensorptr upper)
+DataNode gt (DataNode a, DataNode b)
 {
-	return ade::Functor<ade::UNIF>::get({lower, upper});
+	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
+		ade::Functor::get(ade::GT, {
+			{ade::identity, a.tensor_},
+			{ade::identity, b.tensor_}
+		}));
 }
 
-ade::Tensorptr normal (ade::Tensorptr mean, ade::Tensorptr stdev)
+DataNode min (std::vector<DataNode> args)
 {
-	return ade::Functor<ade::NORM>::get({mean, stdev});
+	std::vector<const EvalCtx*> contexas;
+	ade::ArgsT ade_args;
+	for (DataNode& arg : args)
+	{
+		contexas.push_back(&arg.ctx_);
+		ade_args.push_back({ade::identity, arg.tensor_});
+	}
+	return DataNode(EvalCtx(contexas), ade::Functor::get(ade::MIN, ade_args));
 }
 
-ade::Tensorptr n_elems (ade::Tensorptr arg)
+DataNode max (std::vector<DataNode> args)
 {
-	return ade::Functor<ade::N_ELEMS>::get({arg});
+	std::vector<const EvalCtx*> contexas;
+	ade::ArgsT ade_args;
+	for (DataNode& arg : args)
+	{
+		contexas.push_back(&arg.ctx_);
+		ade_args.push_back({ade::identity, arg.tensor_});
+	}
+	return DataNode(EvalCtx(contexas), ade::Functor::get(ade::MAX, ade_args));
 }
 
-ade::Tensorptr n_dims (ade::Tensorptr arg, uint8_t dim)
+DataNode clip (DataNode x, DataNode lo, DataNode hi)
 {
-	return DirectWrapper<uint8_t>::get(
-		ade::Functor<ade::N_DIMS>::get({arg}), dim);
+	return min({max({x, lo}), hi});
 }
 
-ade::Tensorptr argmax (ade::Tensorptr arg)
+DataNode rand_binom (DataNode ntrials, DataNode prob)
 {
-	return ade::Functor<ade::ARGMAX>::get({arg});
+	return DataNode(EvalCtx({&ntrials.ctx_, &prob.ctx_}),
+		ade::Functor::get(ade::RAND_BINO, {
+			{ade::identity, ntrials.tensor_},
+			{ade::identity, prob.tensor_}
+		}));
 }
 
-ade::Tensorptr rmax (ade::Tensorptr arg)
+DataNode rand_uniform (DataNode lower, DataNode upper)
 {
-	return ade::Functor<ade::RMAX>::get({arg});
+	return DataNode(EvalCtx({&lower.ctx_, &upper.ctx_}),
+		ade::Functor::get(ade::RAND_UNIF, {
+			{ade::identity, lower.tensor_},
+			{ade::identity, upper.tensor_}
+		}));
 }
 
-ade::Tensorptr rsum (ade::Tensorptr arg)
+DataNode rand_normal (DataNode mean, DataNode stdev)
 {
-	return ade::Functor<ade::RSUM>::get({arg});
+	return DataNode(EvalCtx({&mean.ctx_, &stdev.ctx_}),
+		ade::Functor::get(ade::RAND_NORM, {
+			{ade::identity, mean.tensor_},
+			{ade::identity, stdev.tensor_}
+		}));
 }
 
-ade::Tensorptr matmul (ade::Tensorptr a, ade::Tensorptr b)
+DataNode n_elems (DataNode arg)
 {
-	return DirectWrapper<uint8_t,uint8_t>::get(
-		ade::Functor<ade::MATMUL>::get({a, b}), 1, 1);
+	return Source<uint64_t>::get_scalar(arg.tensor_->shape().n_elems());
 }
 
-ade::Tensorptr matmul (ade::Tensorptr a, ade::Tensorptr b,
-	uint8_t agroup_idx, uint8_t bgroup_idx)
+DataNode n_dims (DataNode arg, uint8_t dim)
 {
-	return DirectWrapper<uint8_t,uint8_t>::get(
-		ade::Functor<ade::MATMUL,uint8_t,uint8_t>::get({a, b},
-			agroup_idx, bgroup_idx), agroup_idx, bgroup_idx);
+	return Source<uint8_t>::get_scalar(arg.tensor_->shape().at(dim));
 }
 
-ade::Tensorptr convolute (ade::Tensorptr canvas, ade::Tensorptr window)
+DataNode reduce_max (DataNode arg)
+{
+	return reduce_max(arg, 0);
+}
+
+DataNode reduce_max (DataNode arg, uint8_t groupidx)
+{
+	const ade::Shape& shape = arg.tensor_->shape();
+	std::vector<ade::DimT> slist(shape.begin() + groupidx, shape.end());
+	return DataNode(arg.ctx_, ade::Functor::get(ade::MAX,
+		{{ade::reduce(groupidx, slist), arg.tensor_}}));
+}
+
+DataNode reduce_sum (DataNode arg)
+{
+	return reduce_sum(arg, 0);
+}
+
+DataNode reduce_sum (DataNode arg, uint8_t groupidx)
+{
+	const ade::Shape& shape = arg.tensor_->shape();
+	std::vector<ade::DimT> slist(shape.begin() + groupidx, shape.end());
+	return DataNode(arg.ctx_, ade::Functor::get(ade::ADD, {
+		{ade::reduce(groupidx, slist), arg.tensor_}}));
+}
+
+DataNode permute (DataNode arg, std::vector<uint8_t> order)
+{
+	return DataNode(arg.ctx_, ade::Functor::get(ade::COPY, {
+		{ade::permute(order), arg.tensor_}}));
+}
+
+DataNode extend (DataNode arg, uint8_t after, std::vector<uint8_t> ext)
+{
+	return DataNode(arg.ctx_, ade::Functor::get(ade::COPY, {
+		{ade::extend(after, ext), arg.tensor_}}));
+}
+
+DataNode matmul (DataNode a, DataNode b)
+{
+	const ade::Shape& ashape = a.tensor_->shape();
+	const ade::Shape& bshape = b.tensor_->shape();
+	if (std::any_of(ashape.begin() + 2, ashape.end(),
+		[](ade::DimT d) { return 1 != d; }) ||
+		std::any_of(bshape.begin() + 2, bshape.end(),
+		[](ade::DimT d) { return 1 != d; }))
+	{
+		ade::fatalf("cannot matmul with non-2D shapes %s and %s",
+			ashape.to_string().c_str(), bshape.to_string().c_str());
+	}
+	if (ashape.at(0) != bshape.at(1))
+	{
+		ade::fatalf("cannot matmul with incompatible common dimensions in "
+			"shapes %s, %s", ashape.to_string().c_str(),
+			bshape.to_string().c_str());
+	}
+	auto ap = permute(extend(a, 2, {bshape.at(0)}), {2, 1, 0});
+	auto bp = permute(extend(b, 2, {ashape.at(1)}), {0, 2, 1});
+	return reduce_sum(mul(ap, bp), 2);
+}
+
+DataNode convolute (DataNode canvas, DataNode window)
 {
 	throw std::bad_function_call(); // unimplemented
-}
-
-ade::Tensorptr permute (ade::Tensorptr arg, std::vector<uint8_t> order)
-{
-	return DirectWrapper<std::vector<uint8_t>>::get(
-		ade::Functor<ade::PERMUTE,std::vector<uint8_t>>::get(
-			{arg}, order), order);
-}
-
-ade::Tensorptr extend (ade::Tensorptr arg, std::vector<uint8_t> ext)
-{
-	return ade::Functor<ade::EXTEND,std::vector<ade::DimT>>::get({arg}, ext);
-}
-
-ade::Tensorptr reshape (ade::Tensorptr arg, std::vector<uint8_t> slist)
-{
-	return ade::Functor<ade::RESHAPE,
-		std::vector<ade::DimT>>::get({arg}, slist);
 }
 
 }
