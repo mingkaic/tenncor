@@ -32,7 +32,7 @@ using CDimT = int16_t;
 /// flattened index of (2 ^ 8) ^ 8 = 2 ^ 64
 using NElemT = uint64_t;
 
-/// Number of DimT in a shape
+/// Number of dimsensions in a shape/coordinate
 const uint8_t rank_cap = 8;
 
 /// Array type used to hold dimension info in Shape
@@ -96,7 +96,7 @@ struct Shape final
 	/// Return DimT element at idx for any index in range [0:rank_cap)
 	DimT at (uint8_t idx) const
 	{
-		if (idx >= rank_cap)
+		if (rank_cap <= idx)
 		{
 			throw std::out_of_range(
 				"accessing dimension out of allocated rank cap");
@@ -117,8 +117,7 @@ struct Shape final
 	bool compatible_before (const Shape& other, uint8_t idx) const
 	{
 		auto it = dims_.begin();
-		uint8_t cap = rank_cap;
-		return std::equal(it, it + std::min(idx, cap), other.dims_.begin());
+		return std::equal(it, it + std::min(idx, rank_cap), other.dims_.begin());
 	}
 
 	/// Return true if this->dims_[idx:rank_cap) is

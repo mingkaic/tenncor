@@ -11,8 +11,6 @@ P4 - formalize codestyle
 P4 - refactor, and rename variables to improve readability
 
 structure:
-- fix comments
-- clean up new code
 P2 - create cython interface for llo + examples
 P3 - restructure llo to separate glue and data operators
 
