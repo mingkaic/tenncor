@@ -67,7 +67,6 @@ uint8_t type_size (DTYPE type)
 		default:
 			ade::fatalf("unsupported type %d", type);
 	}
-	return 0;
 }
 
 template <>

@@ -284,7 +284,6 @@ Tensorptr gradmap (OPCODE op, ArgsT args, ArgsT& grads)
 		CALL_GRAD(RAND_NORM)
 		default: break;
 	}
-	return Tensorptr(nullptr);
 }
 
 }

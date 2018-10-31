@@ -217,6 +217,19 @@ TEST_F(SHAPE, Coordinates)
 		ade::NElemT idx = ade::index(shape, coord);
 		EXPECT_EQ(i, idx);
 	}
+
+	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	{
+		coord[i] = shape.at(i);
+	}
+	std::string shapestr = shape.to_string();
+	std::string fatalmsg = ade::sprintf("cannot get index of bad coordinate "
+		"%s for shape %s", shapestr.c_str(), shapestr.c_str());
+	EXPECT_FATAL(ade::index(shape, coord), fatalmsg.c_str());
+
+	std::string fatalmsg2 = ade::sprintf("cannot get coordinate of index %d "
+		"(>= shape %s nelems)", shape.n_elems(), shapestr.c_str());
+	EXPECT_FATAL(ade::coordinate(shape, shape.n_elems()), fatalmsg2.c_str());
 }
 
 

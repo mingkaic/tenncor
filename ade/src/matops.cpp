@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "ade/matops.hpp"
 
 #ifdef ADE_MATOPS_HPP
@@ -11,7 +13,6 @@ using AugMatrixT = double[mat_dim][mat_dim * 2];
 // return true if inversible
 // algorithm taken from
 // https://rosettacode.org/wiki/Gauss-Jordan_matrix_inversion#Go
-// todo: simplify and clean up to fit C++ convention
 bool gauss_jordan_elim (AugMatrixT mat)
 {
 	uint8_t ncols = 2 * mat_dim;
@@ -22,7 +23,7 @@ bool gauss_jordan_elim (AugMatrixT mat)
 		uint8_t next = row;
 		while (col < ncols && mat[next][col] == 0)
 		{
-			if (mat_dim == ++next)
+			if (mat_dim <= ++next)
 			{
 				next = row;
 				++col;
@@ -34,17 +35,18 @@ bool gauss_jordan_elim (AugMatrixT mat)
 			return false; // reduced (although non-inversible)
 		}
 
+		// assert(mat[next][col] != 0);
 		std::swap(mat[next], mat[row]);
 		// leading entry is now at [row][col]
-		double div = mat[row][col];
-		if (div != 0)
+		assert(mat[row][col] != 0);
+		// row reduce by leading
+		double leading = mat[row][col];
+		for (uint8_t j = 0; j < ncols; ++j)
 		{
-			for (uint8_t j = 0; j < ncols; ++j)
-			{
-				mat[row][j] /= div;
-			}
+			mat[row][j] /= leading;
 		}
 
+		// eliminate other rows by multiples of row
 		for (uint8_t k = 0; k < mat_dim; ++k)
 		{
 			if (k != row)

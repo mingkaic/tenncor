@@ -163,7 +163,6 @@ llo::DataNode load_source (const tenncor::Source& source)
 		default:
 			ade::fatal("cannot load source"); // todo: make more informative
 	}
-	return llo::DataNode(llo::EvalCtx(), ade::Tensorptr(nullptr));
 }
 
 #undef UNPACK_SOURCE
