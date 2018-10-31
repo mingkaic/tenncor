@@ -32,21 +32,28 @@ struct iLogger
 	virtual void fatal (std::string msg) const = 0;
 };
 
+/// String tagged prepending a warning message in default logger
 const std::string warn_tag = "[WARNING]:";
+
+/// String tagged prepending an error message in default logger
 const std::string err_tag = "[ERROR]:";
 
+/// Default implementation of iLogger used in ADE
 struct DefLogger : public iLogger
 {
+	/// Implementation of iLogger
 	void warn (std::string msg) const override
 	{
 		std::cerr << warn_tag << msg << std::endl;
 	}
 
+	/// Implementation of iLogger
 	void error (std::string msg) const override
 	{
 		std::cerr << err_tag << msg << std::endl;
 	}
 
+	/// Implementation of iLogger
 	void fatal (std::string msg) const override
 	{
 		throw std::runtime_error(msg);

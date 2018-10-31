@@ -15,8 +15,8 @@ filegroup(
 filegroup(
     name = "test_srcs",
     srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
+        "test/**/*.hpp",
+        "test/**/*.cpp",
     ]),
 )
 

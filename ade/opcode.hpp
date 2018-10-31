@@ -42,79 +42,66 @@ enum OPCODE
 	/// Round every element
 	ROUND,
 
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply std::pow operator to elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply std::pow operator to elements a[i] and b[i]
 	/// Only accept 2 arguments
 	POW,
-	/// Given tensors, for every index i in range [0:max_nelems],
-	/// sum all elements arg[i % arg.nelems] for arg in tensors
-	/// Shapes must be compatible before min_rank of all tensors
+	/// Given tensors, for every mapped index i in range [0:max_nelems],
+	/// sum all elements arg[i] for arg in tensors
 	ADD,
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply subtract elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply subtract elements a[i] and b[i]
 	/// Only accept 2 arguments
 	SUB,
-	/// Given tensors, for every index i in range [0:max_nelems],
-	/// multiply all elements arg[i % arg.nelems] for arg in tensors
-	/// Shapes must be compatible before min_rank of all tensors
+	/// Given tensors, for every mapped index i in range [0:max_nelems],
+	/// multiply all elements arg[i] for arg in tensors
 	MUL,
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply divide elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply divide elements a[i] and b[i]
 	/// Only accept 2 arguments
 	DIV,
-	/// Given tensors, for every index i in range [0:max_nelems],
-	/// take the minimum all elements arg[i % arg.nelems]
+	/// Given tensors, for every mapped index i in range [0:max_nelems],
+	/// take the minimum all elements arg[i]
 	/// for arg in tensors
-	/// Shapes must be compatible before min_rank of all tensors
 	MIN,
-	/// Given tensors, for every index i in range [0:max_nelems],
-	/// take the maximum all elements arg[i % arg.nelems]
+	/// Given tensors, for every mapped index i in range [0:max_nelems],
+	/// take the maximum all elements arg[i]
 	/// for arg in tensors
-	/// Shapes must be compatible before min_rank of all tensors
 	MAX,
 
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply == operator to elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply == operator to elements a[i] and b[i]
 	/// Only accept 2 arguments
 	EQ,
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply != operator to elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply != operator to elements a[i] and b[i]
 	/// Only accept 2 arguments
 	NE,
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply < operator to elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply < operator to elements a[i] and b[i]
 	/// Only accept 2 arguments
 	LT,
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply > operator to elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply > operator to elements a[i] and b[i]
 	/// Only accept 2 arguments
 	GT,
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply std::binomial_distribution function
-	/// to elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply std::binomial_distribution function
+	/// to elements a[i] and b[i]
 	/// Only accept 2 arguments
 	RAND_BINO,
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply std::uniform_distributon function
-	/// to elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply std::uniform_distributon function
+	/// to elements a[i] and b[i]
 	/// Only accept 2 arguments
 	RAND_UNIF,
-	/// Given tensors a, and b, for every index i in range [0:max_nelems],
-	/// apply std::normal_distribution function
-	/// to elements a[i % a.nelems] and b[i % b.nelems]
-	/// Shapes must be compatible before min_rank of both tensors
+	/// Given tensors a, and b, for every mapped index i in range
+	/// [0:max_nelems], apply std::normal_distribution function
+	/// to elements a[i] and b[i]
 	/// Only accept 2 arguments
 	RAND_NORM,
 
+	/// Sentinel value of bad opcodes
 	_BAD_OP,
 };
 

@@ -14,7 +14,10 @@ filegroup(
 
 filegroup(
     name = "test_srcs",
-    srcs = glob(["test/**/*.cpp"]),
+    srcs = glob([
+        "test/**/*.hpp",
+        "test/**/*.cpp",
+    ]),
 )
 
 filegroup(

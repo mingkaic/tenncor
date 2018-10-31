@@ -33,21 +33,21 @@ using CDimT = int16_t;
 using NElemT = uint64_t;
 
 /// Number of DimT in a shape
-/// The logical rank of a shape can be less than rank_cap
 const uint8_t rank_cap = 8;
 
+/// Array type used to hold dimension info in Shape
 using ShapeT = std::array<DimT,rank_cap>;
 
+/// Array type used to hold dimension info when transforming coordinates
+/// Coordinates are allowed to be negative, negative dimensions are counted
+/// backward from the corresponding shape dimension
+/// For example, given shape=[5], coord=[-1] is the same as coord=[4]
 using CoordT = std::array<CDimT,rank_cap>;
 
 /// Models an aligned shape using an array of DimT values
 /// For each DimT at index i, DimT value is number of elements at dimension i
 /// For example, shape={3, 2} can model tensor [[x, y, z], [u, v, w]]
 /// (In cartesian coordinate, we treat values along the X-axis as dimension 0)
-/// Shapes will always hold a fixed number of values, but may vary in rank
-/// Rank is the number of meaningful dimensions, values beyond the rank are 1
-/// For example, a 2 rank shape of {3, 2} is internally {3, 2, 1, 1, 1, ...}
-/// This choice is intended to simplify shape manipulation functions
 struct Shape final
 {
 	/// Type of iterator used to iterate through internal array
@@ -192,8 +192,7 @@ private:
 		std::fill(other.dims_.begin(), other.dims_.end(), 1);
 	}
 
-	/// Array of dimension values, we hide these to prevent assignment
-	/// and ensure rank_ and dims_ relationship
+	/// Array of dimension values
 	ShapeT dims_;
 };
 

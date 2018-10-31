@@ -38,8 +38,14 @@ struct iFunctor : public iTensor
 	virtual const ArgsT& get_children (void) const = 0;
 };
 
+/// Traveler implementation that paints paths to a target tensor
+/// All nodes in the path are added as keys to the parents_ map with the values
+/// being a boolean vector denoting nodes leading to target
+/// For a boolean value x at index i in mapped vector,
+/// x is true if the ith child leads to target
 struct PathFinder final : public iTraveler
 {
+	/// Type for mapping function nodes in path to boolean vector
 	using ParentMapT = std::unordered_map<iTensor*,std::vector<bool>>;
 
 	PathFinder (const iTensor* target) : target_(target) {}
@@ -79,8 +85,10 @@ struct PathFinder final : public iTraveler
 		}
 	}
 
+	/// Target of tensor all paths are travelling to
 	const iTensor* target_;
 
+	/// Map of parent nodes in path
 	ParentMapT parents_;
 };
 
@@ -212,6 +220,7 @@ private:
 	Functor (OPCODE opcode, Shape shape, ArgsT args) :
 		opcode_(opcode), shape_(shape), args_(args) {}
 
+	/// OPCODE represented by functor
 	OPCODE opcode_;
 
 	/// Shape info built at construction time according to arguments

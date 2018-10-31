@@ -18,6 +18,7 @@ namespace ade
 
 // TODO: CONVERT TO GENERATED CONFIG
 
+/// Type of functor arguments
 using ArgsT = std::vector<std::pair<CoordPtrT,Tensorptr>>;
 
 template <OPCODE OP>

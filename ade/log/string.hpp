@@ -17,10 +17,13 @@
 namespace ade
 {
 
+/// Symbol for the start of an array as string
 const char arr_begin = '[';
 
+/// Symbol for the end of an array as string
 const char arr_end = ']';
 
+/// Symbol for the delimter between elements of an array as string
 const char arr_delim = '\\';
 
 /// Stream C-style strings to s

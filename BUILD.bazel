@@ -34,3 +34,8 @@ filegroup(
         "certs/server.crt",
     ],
 )
+
+filegroup(
+    name = "scripts",
+    srcs = glob(["scripts/*"]),
+)
