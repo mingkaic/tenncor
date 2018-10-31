@@ -599,6 +599,50 @@ TEST_F(API, Div)
 }
 
 
+TEST_F(API, Min)
+{
+	simple::SessionT sess = get_session("API::Min");
+	binary_elementary(sess, default_range,
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::min({a, b}); },
+	[](double a, double b) { return std::min(a, b); },
+	[](double a, double b, double leftg, double rightg)
+	{
+		if (a > b)
+		{
+			return rightg;
+		}
+		else if (b > a)
+		{
+			return leftg;
+		}
+		// else
+		return leftg + rightg;
+	});
+}
+
+
+TEST_F(API, Max)
+{
+	simple::SessionT sess = get_session("API::Max");
+	binary_elementary(sess, default_range,
+	[](llo::DataNode& a, llo::DataNode& b) { return llo::max({a, b}); },
+	[](double a, double b) { return std::max(a, b); },
+	[](double a, double b, double leftg, double rightg)
+	{
+		if (a > b)
+		{
+			return leftg;
+		}
+		else if (b > a)
+		{
+			return rightg;
+		}
+		// else
+		return leftg + rightg;
+	});
+}
+
+
 TEST_F(API, Eq)
 {
 	simple::SessionT sess = get_session("API::Eq");

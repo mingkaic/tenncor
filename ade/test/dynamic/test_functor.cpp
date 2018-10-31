@@ -69,4 +69,16 @@ TEST_F(FUNCTOR, ToString)
 }
 
 
+TEST_F(FUNCTOR, OpNaming)
+{
+	simple::SessionT sess = get_session("FUNCTOR::OpNaming");
+
+	ade::OPCODE op = (ade::OPCODE) sess->get_scalar("unary_op",
+		{ade::ABS, ade::RAND_NORM});
+
+	std::string name = ade::opname(op);
+	EXPECT_EQ(op, ade::name_op(name));
+}
+
+
 #endif // DISABLE_FUNCTOR_TEST

@@ -200,6 +200,26 @@ TEST_F(SHAPE, Compatible)
 }
 
 
+TEST_F(SHAPE, Coordinates)
+{
+	simple::SessionT sess = get_session("SHAPE::ToString");
+
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	ade::Shape shape(slist);
+	ade::CoordT coord;
+	for (ade::NElemT i = 0, n = shape.n_elems(); i < n; ++i)
+	{
+		coord = ade::coordinate(shape, i);
+		for (uint8_t i = 0; i < ade::rank_cap; ++i)
+		{
+			EXPECT_GT(shape.at(i), coord[i]);
+		}
+		ade::NElemT idx = ade::index(shape, coord);
+		EXPECT_EQ(i, idx);
+	}
+}
+
+
 TEST_F(SHAPE, ToString)
 {
 	simple::SessionT sess = get_session("SHAPE::ToString");

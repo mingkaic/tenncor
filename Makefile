@@ -27,7 +27,7 @@ VAL_BZL_FLAGS := --run_under="$(VALGRIND_CMD)"
 
 ASAN_BZL_FLAGS := --linkopt -fsanitize=address
 
-COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*'
+COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*'
 
 
 BUILD := bazel build
@@ -115,19 +115,19 @@ coverage: cover_ade cover_llo cover_pbm
 cover_ade: cover_ade_log cover_ade_dynamic cover_ade_static
 
 cover_ade_log:
-	$(COVER) --instrumentation_filter=/ade[/:] $(ADE_LTEST)
+	$(COVER) --instrumentation_filter= $(ADE_LTEST)
 
 cover_ade_dynamic:
-	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter=/ade[/:] $(ADE_DTEST)
+	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter= $(ADE_DTEST)
 
 cover_ade_static:
-	$(COVER) --instrumentation_filter=/ade[/:] $(ADE_STEST)
+	$(COVER) --instrumentation_filter= $(ADE_STEST)
 
 cover_llo:
-	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter=/llo[/:],/ade[/:] $(LLO_TEST)
+	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter= $(LLO_TEST)
 
 cover_pbm:
-	$(COVER) --instrumentation_filter=/pbm[/:],/llo[/:],/ade[/:] $(PBM_TEST)
+	$(COVER) --instrumentation_filter= $(PBM_TEST)
 
 # generate coverage.info
 

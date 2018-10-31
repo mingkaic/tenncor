@@ -367,10 +367,6 @@ template <typename T>
 void nnary (T* out, ade::Shape& outshape, std::vector<VecRef<T>> args,
 	std::function<void(T&, const T&)> acc)
 {
-	if (args.empty())
-	{
-		ade::fatal("Cannot perform operation with no arguments");
-	}
 	ade::NElemT nout = outshape.n_elems();
 	bool visited[nout];
 	std::memset(visited, false, nout);

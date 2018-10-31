@@ -7,58 +7,57 @@ namespace ade
 
 using AugMatrixT = double[mat_dim][mat_dim * 2];
 
-// reduce row echelon form mat augmented matrix in-place
+// gauss_jordan_elim augmented matrix in-place
+// return true if inversible
 // algorithm taken from
 // https://rosettacode.org/wiki/Gauss-Jordan_matrix_inversion#Go
 // todo: simplify and clean up to fit C++ convention
-static inline void rrow_echelon_form (AugMatrixT mat)
+bool gauss_jordan_elim (AugMatrixT mat)
 {
-	uint8_t lead = 0;
-	for (uint8_t r = 0; r < mat_dim; r++)
+	uint8_t ncols = 2 * mat_dim;
+	for (uint8_t row = 0, col = 0;
+		row < mat_dim && col < ncols; ++row, ++col)
 	{
-		if (2 * mat_dim <= lead)
+		// search in submatrix [row:][col:] for next leading entry
+		uint8_t next = row;
+		while (col < ncols && mat[next][col] == 0)
 		{
-			return;
-		}
-		uint8_t i = r;
-
-		while (mat[i][lead] == 0)
-		{
-			i++;
-			if (mat_dim == i)
+			if (mat_dim == ++next)
 			{
-				i = r;
-				lead++;
-				if (2 * mat_dim == lead)
-				{
-					return;
-				}
+				next = row;
+				++col;
 			}
 		}
 
-		std::swap(mat[i], mat[r]);
-		double div = mat[r][lead];
+		if (col >= ncols)
+		{
+			return false; // reduced (although non-inversible)
+		}
+
+		std::swap(mat[next], mat[row]);
+		// leading entry is now at [row][col]
+		double div = mat[row][col];
 		if (div != 0)
 		{
-			for (uint8_t j = 0; j < 2 * mat_dim; ++j)
+			for (uint8_t j = 0; j < ncols; ++j)
 			{
-				mat[r][j] /= div;
+				mat[row][j] /= div;
 			}
 		}
 
 		for (uint8_t k = 0; k < mat_dim; ++k)
 		{
-			if (k != r)
+			if (k != row)
 			{
-				double mult = mat[k][lead];
-				for (uint8_t j = 0; j < 2 * mat_dim; ++j)
+				double mult = mat[k][col];
+				for (uint8_t j = 0; j < ncols; ++j)
 				{
-					mat[k][j] -= mat[r][j] * mult;
+					mat[k][j] -= mat[row][j] * mult;
 				}
 			}
 		}
-		lead++;
 	}
+	return true;
 }
 
 std::string to_string (const MatrixT& mat)
@@ -94,7 +93,10 @@ void inverse (MatrixT out, const MatrixT& in)
 		// augment by identity matrix to right
 		aug[i][mat_dim + i] = 1;
 	}
-	rrow_echelon_form(aug);
+	if (false == gauss_jordan_elim(aug))
+	{
+		fatalf("cannot invert matrix:\n%s", to_string(in).c_str());
+	}
 	// remove identity matrix to left
 	for (uint8_t i = 0; i < mat_dim; ++i)
 	{
