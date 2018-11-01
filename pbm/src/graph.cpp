@@ -61,16 +61,82 @@ ade::CoordPtrT load_coord (const google::protobuf::RepeatedField<double>& coord)
 		});
 }
 
+struct GraphDFSOrder final : public ade::iTraveler
+{
+	/// Implemenation of iTraveler
+	void visit (ade::Tensor* leaf) override
+	{
+		if (visited_.end() == visited_.find(leaf))
+		{
+			leaves_.push_back(leaf);
+			visited_.emplace(leaf);
+		}
+	}
+
+	/// Implemenation of iTraveler
+	void visit (ade::iFunctor* func) override
+	{
+		if (visited_.end() == visited_.find(func))
+		{
+			funcs_.push_back(func);
+			visited_.emplace(func);
+
+			ade::ArgsT children = func->get_children();
+			for (auto& child : children)
+			{
+				child.tensor_->accept(*this);
+			}
+		}
+	}
+
+	// List of leaves visited (left to right)
+	std::list<ade::Tensor*> leaves_;
+
+	// List of functions visited (by depth-first)
+	std::list<ade::iFunctor*> funcs_;
+
+	// Visited nodes
+	std::unordered_set<ade::iTensor*> visited_;
+};
+
 void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 {
-	llo::GraphStat stat(roots);
+	ade::GraphStat stat;
+	GraphDFSOrder order;
+
+	std::vector<const llo::EvalCtx*> contexas(roots.size());
+	std::transform(roots.begin(), roots.end(), contexas.begin(),
+	[&](llo::DataNode& tptr)
+	{
+		tptr.tensor_->accept(stat);
+		tptr.tensor_->accept(order);
+		return &tptr.ctx_;
+	});
+	llo::EvalCtx global_ctx(contexas);
+
+	// sort functions from the root with the smallest subtree to the largest
+	// this ensures every children of a node appears before the parent,
+	// as is the order of node creations
+	order.funcs_.sort(
+		[&](ade::iTensor* a, ade::iTensor* b)
+		{
+			return stat.graphsize_[a] < stat.graphsize_[b];
+		});
+
+	std::vector<ade::iFunctor*> funcs(order.funcs_.begin(), order.funcs_.end());
+	std::vector<ade::Tensor*> leaves;
+	std::copy_if(order.leaves_.begin(), order.leaves_.end(), std::back_inserter(leaves),
+		[&](ade::Tensor* leaf)
+		{
+			return global_ctx.srcs_.end() != global_ctx.srcs_.find(leaf);
+		});
 
 	// all nodes in leaf appear before funcs
 	std::unordered_map<ade::iTensor*,size_t> ordermap;
-	size_t nleaves = stat.leaves_.size();
+	size_t nleaves = leaves.size();
 	for (size_t i = 0; i < nleaves; ++i)
 	{
-		llo::iSource* source = stat.leaves_[i];
+		llo::iSource* source = global_ctx.srcs_[leaves[i]].get();
 		ade::Tensor* tens = source->inner().get();
 		ordermap[tens] = i;
 
@@ -78,10 +144,9 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 		tenncor::Source* src = pb_node->mutable_source();
 		save_data(src, source);
 	}
-	auto it = stat.funcs_.begin();
-	for (size_t i = 0, n = stat.funcs_.size(); i < n; ++i)
+	for (size_t i = 0, n = funcs.size(); i < n; ++i)
 	{
-		ade::iFunctor* f = *(it++);
+		ade::iFunctor* f = funcs[i];
 		ordermap[f] = nleaves + i;
 
 		tenncor::Node* pb_node = out.add_nodes();

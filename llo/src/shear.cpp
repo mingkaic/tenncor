@@ -126,14 +126,20 @@ DataNode zero_prune (DataNode root)
 	{
 		return root;
 	}
-	GraphStat stat({root});
+	ade::GraphStat stat;
+	root.tensor_->accept(stat);
 	// grab the intersection of stat.funcs_ and finder.parents_
-	std::list<ade::iFunctor*> parents;
-	std::copy_if(stat.funcs_.begin(), stat.funcs_.end(), std::back_inserter(parents),
-		[&](ade::iFunctor* func)
+	std::list<ade::iFunctor*> parents(finder.parents_.size());
+	std::transform(finder.parents_.begin(), finder.parents_.end(),
+		parents.begin(), [](std::pair<ade::iTensor*,std::vector<bool>> parent)
 		{
-			return finder.parents_.end() != finder.parents_.find(func);
+			return static_cast<ade::iFunctor*>(parent.first);
 		});
+	parents.sort([&](ade::iTensor* a, ade::iTensor* b)
+		{
+			return stat.graphsize_[a] < stat.graphsize_[b];
+		});
+
 	// each proceeding node in parents list is closer to SYMBOLIC_ZERO
 	// start pruning according to each parent node in order
 	std::unordered_map<ade::iTensor*,ade::Tensorptr> mapping;
@@ -166,7 +172,7 @@ DataNode zero_prune (DataNode root)
 		ade::fatal("something went wrong"); // todo: probably add context?
 	}
 
-	return DataNode{stat.global_ctx_, it->second};
+	return DataNode{root.ctx_, it->second};
 }
 
 }

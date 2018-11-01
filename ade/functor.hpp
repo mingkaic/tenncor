@@ -14,84 +14,13 @@
 #include "ade/log/string.hpp"
 
 #include "ade/grader.hpp"
+#include "ade/traveler.hpp"
 
 #ifndef ADE_FUNCTOR_HPP
 #define ADE_FUNCTOR_HPP
 
 namespace ade
 {
-
-/// Interface of OPCODE-defined operation node
-struct iFunctor : public iTensor
-{
-	virtual ~iFunctor (void) = default;
-
-	/// Implementation of iTensor
-	void accept (iTraveler& visiter) override
-	{
-		visiter.visit(this);
-	}
-
-	/// Return OPCODE mapping to forward and gradient operators
-	virtual OPCODE get_code (void) const = 0;
-
-	/// Return children nodes as a vector of raw pointers
-	virtual const ArgsT& get_children (void) const = 0;
-};
-
-/// Traveler implementation that paints paths to a target tensor
-/// All nodes in the path are added as keys to the parents_ map with the values
-/// being a boolean vector denoting nodes leading to target
-/// For a boolean value x at index i in mapped vector,
-/// x is true if the ith child leads to target
-struct PathFinder final : public iTraveler
-{
-	/// Type for mapping function nodes in path to boolean vector
-	using ParentMapT = std::unordered_map<iTensor*,std::vector<bool>>;
-
-	PathFinder (const iTensor* target) : target_(target) {}
-
-	/// Implementation of iTraveler
-	void visit (Tensor* leaf) override {}
-
-	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
-	{
-		if (parents_.end() == parents_.find(func))
-		{
-			auto& children = func->get_children();
-			size_t n = children.size();
-			bool has_path = false;
-			std::vector<bool> path(n, false);
-			for (size_t i = 0; i < n; ++i)
-			{
-				Tensorptr tens = children[i].tensor_;
-				if (tens.get() == target_)
-				{
-					path[i] = has_path = true;
-				}
-				else
-				{
-					tens->accept(*this);
-					if (parents_.end() != parents_.find(tens.get()))
-					{
-						path[i] = has_path = true;
-					}
-				}
-			}
-			if (has_path)
-			{
-				parents_[func] = path;
-			}
-		}
-	}
-
-	/// Target of tensor all paths are travelling to
-	const iTensor* target_;
-
-	/// Map of parent nodes in path
-	ParentMapT parents_;
-};
 
 /// Functor of the graph mapping to operators specified by opcode argument
 struct Functor final : public iFunctor

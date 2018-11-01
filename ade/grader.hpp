@@ -6,8 +6,7 @@
 ///	Define derivative chain rules and map to OPCODEs
 ///
 
-#include "ade/opcode.hpp"
-#include "ade/tensor.hpp"
+#include "ade/ifunctor.hpp"
 
 #ifndef ADE_GRADER_HPP
 #define ADE_GRADER_HPP
@@ -16,9 +15,6 @@ namespace ade
 {
 
 // TODO: CONVERT TO GENERATED CONFIG
-
-/// Type of functor arguments
-using ArgsT = std::vector<MappedTensor>;
 
 template <OPCODE OP>
 Tensorptr grader (ArgsT& args, ArgsT& grads)

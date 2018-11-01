@@ -6,7 +6,7 @@
 ///	Define llo graph pruning functions
 ///
 
-#include "llo/traveler.hpp"
+#include "llo/node.hpp"
 
 #ifndef LLO_SHEAR_HPP
 #define LLO_SHEAR_HPP
