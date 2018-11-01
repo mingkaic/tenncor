@@ -1,13 +1,12 @@
 var searchData=
 [
-  ['abs',['abs',['../namespacello.html#add0dc07c55c3d20f92b9412ce6b7b359',1,'llo::abs(ade::Tensorptr arg)'],['../namespacello.html#a6df2650240e365748634f88451b955e8',1,'llo::abs(T *out, const T *in, size_t n)']]],
-  ['abs_3c_20uint16_5ft_20_3e',['abs&lt; uint16_t &gt;',['../namespacello.html#accb2b8ce7acf552e5d7bf24eddb6e9dd',1,'llo']]],
-  ['abs_3c_20uint32_5ft_20_3e',['abs&lt; uint32_t &gt;',['../namespacello.html#a540bc459ef612cd519b068a872ff8405',1,'llo']]],
-  ['abs_3c_20uint64_5ft_20_3e',['abs&lt; uint64_t &gt;',['../namespacello.html#a606a59de33c3aadedcc1328115fadec5',1,'llo']]],
-  ['abs_3c_20uint8_5ft_20_3e',['abs&lt; uint8_t &gt;',['../namespacello.html#ae01c9cf6b8f685ad579d1e71c2f678c4',1,'llo']]],
-  ['add',['add',['../namespacello.html#af4fe6e7299328e0f0d283e359ad08f54',1,'llo::add(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#afc082420af71a19515a64c00a9be6f66',1,'llo::add(T *out, const T *a, size_t an, const T *b, size_t bn)']]],
-  ['arg_5fmax',['arg_max',['../namespacello.html#a43e52238eab1145f38ede26ca69ad9ac',1,'llo']]],
-  ['argmax',['argmax',['../namespacello.html#abe9b4556048d5f69cc08598ab34a99b5',1,'llo']]],
-  ['as_5flist',['as_list',['../structade_1_1_shape.html#ab44853104cb2fdd892bfe24b30cb070c',1,'ade::Shape']]],
+  ['abs',['abs',['../namespacello.html#a52a0fbefad25868ae1303adc10099747',1,'llo::abs(DataNode arg)'],['../namespacello.html#af3ffcdedba093a42da3e937e945aba30',1,'llo::abs(T *out, VecRef&lt; T &gt; in)']]],
+  ['abs_3c_20uint16_5ft_20_3e',['abs&lt; uint16_t &gt;',['../namespacello.html#a3225c21e361f4174c5cb7b0b7517cd35',1,'llo']]],
+  ['abs_3c_20uint32_5ft_20_3e',['abs&lt; uint32_t &gt;',['../namespacello.html#a3a9fcb6f5c2acaf81fe507d88f4d1545',1,'llo']]],
+  ['abs_3c_20uint64_5ft_20_3e',['abs&lt; uint64_t &gt;',['../namespacello.html#a6cc677bc649f2d5d28b13ee527a84623',1,'llo']]],
+  ['abs_3c_20uint8_5ft_20_3e',['abs&lt; uint8_t &gt;',['../namespacello.html#a4eccdc385167ad9aa81ea1f64df7b236',1,'llo']]],
+  ['accept',['accept',['../structade_1_1i_functor.html#a66d87d6447e6d7336e2c118cc1e18a55',1,'ade::iFunctor::accept()'],['../structade_1_1i_tensor.html#aa7a69b3831cc43a6d173c08848662b24',1,'ade::iTensor::accept()'],['../structade_1_1_tensor.html#ae994443392939b32cf9ec98e91f7638a',1,'ade::Tensor::accept()']]],
+  ['access',['access',['../structade_1_1i_coord_map.html#a180b66d9db3782b17d7507bfe6967236',1,'ade::iCoordMap::access()'],['../structade_1_1_coord_map.html#aa0509214368694f866addb0df5df784a',1,'ade::CoordMap::access()']]],
+  ['add',['add',['../namespacello.html#af0313753acb9bfd2ece42d468b9f41f9',1,'llo::add(DataNode a, DataNode b)'],['../namespacello.html#a891db6a8dd93b21745773a877d795044',1,'llo::add(T *out, ade::Shape &amp;outshape, std::vector&lt; VecRef&lt; T &gt;&gt; args)']]],
   ['at',['at',['../structade_1_1_shape.html#ab75dac360d94e88c3215b9dcf1e29752',1,'ade::Shape']]]
 ];

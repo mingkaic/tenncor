@@ -1,6 +1,9 @@
 var searchData=
 [
-  ['permute',['permute',['../namespacello.html#a92628450f68abf56a8ccbb511ecdd021',1,'llo::permute(ade::Tensorptr arg, std::vector&lt; uint8_t &gt; order)'],['../namespacello.html#a144ed0ca83c6530004761315b357e128',1,'llo::permute(T *out, const T *in, ade::Shape outshape, ade::Shape shape, std::vector&lt; uint8_t &gt; order)']]],
-  ['placeholder',['Placeholder',['../structllo_1_1_placeholder.html#a587082bd609ee47264d6869ba3f0a25e',1,'llo::Placeholder::Placeholder(ade::Shape shape)'],['../structllo_1_1_placeholder.html#a6b002f80d325d9d7a50f06da73858ccd',1,'llo::Placeholder::Placeholder(const Placeholder &amp;)=default'],['../structllo_1_1_placeholder.html#a06aac2f255786fb7c51181d298026b5d',1,'llo::Placeholder::Placeholder(Placeholder &amp;&amp;)=default']]],
-  ['pow',['pow',['../namespacello.html#a666fea91c816ee3cb4308fb84447bdff',1,'llo::pow(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#aebfa01fdc1f12dc6f2b72c71bc546b69',1,'llo::pow(T *out, const T *a, size_t an, const T *b, size_t bn)']]]
+  ['pathfinder',['PathFinder',['../structade_1_1_path_finder.html#a97e908678c6b0136bf6e0ccaaa1e5b4f',1,'ade::PathFinder']]],
+  ['permute',['permute',['../namespaceade.html#a710e31803e0e22e65d94ee855b411634',1,'ade::permute()'],['../namespacello.html#a79672cad76a10788719f85cdf2466f82',1,'llo::permute()']]],
+  ['placeholder',['PlaceHolder',['../structllo_1_1_place_holder.html#ac342364040e547d2b9a5b9a8dce2e805',1,'llo::PlaceHolder::PlaceHolder(ade::Shape shape)'],['../structllo_1_1_place_holder.html#aefc2afa23afecbc078e62557b0f1de30',1,'llo::PlaceHolder::PlaceHolder(const PlaceHolder &amp;)=default'],['../structllo_1_1_place_holder.html#a2f841994ecf7cd08ef3b888e63883776',1,'llo::PlaceHolder::PlaceHolder(PlaceHolder &amp;&amp;)=default']]],
+  ['pow',['pow',['../namespacello.html#ae235b0d4d0f0a0de283d9fe1275f7f21',1,'llo::pow(DataNode a, DataNode b)'],['../namespacello.html#aa56e03e88d5be448c2d06294014a1ff5',1,'llo::pow(T *out, ade::Shape &amp;outshape, VecRef&lt; T &gt; a, VecRef&lt; T &gt; b)']]],
+  ['prod',['prod',['../namespacello.html#a0cfc133665440a351813d16951840063',1,'llo']]],
+  ['prune0',['prune0',['../namespacello.html#a226bb5e882e8849525865fb52034e618',1,'llo']]]
 ];

@@ -1,10 +1,9 @@
 var searchData=
 [
-  ['load_5fgraph',['load_graph',['../graph_8hpp.html#ae52b529289d3d91907392360221cd230',1,'load_graph(const tenncor::Graph &amp;in):&#160;graph.cpp'],['../graph_8cpp.html#ae52b529289d3d91907392360221cd230',1,'load_graph(const tenncor::Graph &amp;in):&#160;graph.cpp']]],
-  ['load_5fop',['load_op',['../graph_8cpp.html#a7f27028110a91b1b7e0c36a53e8f4780',1,'graph.cpp']]],
-  ['load_5fshape',['load_shape',['../graph_8cpp.html#a34c43683ef3136703281629e5b447ccc',1,'graph.cpp']]],
-  ['load_5fsource',['load_source',['../graph_8cpp.html#a518a2a3a01807497bd3dd9504f0984b4',1,'graph.cpp']]],
-  ['log',['log',['../namespacello.html#aa4647d9a6917f115ac7351d6177d77b1',1,'llo::log(ade::Tensorptr arg)'],['../namespacello.html#aa439c062f76e90f2954ae73ca85b2452',1,'llo::log(T *out, const T *in, size_t n)']]],
-  ['lt',['lt',['../namespacello.html#abf2a9c477a45f9d07cc4110064e1f9f1',1,'llo::lt(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#ad57c0f8d17e201ee5375ec7ad28cc473',1,'llo::lt(T *out, const T *a, size_t an, const T *b, size_t bn)']]],
+  ['load_5fcoord',['load_coord',['../graph_8cpp.html#a346c9cdaee1257a84dff7dd5efa4fbae',1,'graph.cpp']]],
+  ['load_5fgraph',['load_graph',['../graph_8hpp.html#ae35ecd49b330c50df22594ad87eb9ad5',1,'load_graph(const tenncor::Graph &amp;in):&#160;graph.cpp'],['../graph_8cpp.html#ae35ecd49b330c50df22594ad87eb9ad5',1,'load_graph(const tenncor::Graph &amp;in):&#160;graph.cpp']]],
+  ['load_5fsource',['load_source',['../source_8hpp.html#afa8b9b2d46a75dbb8c1810bea63f6bc9',1,'load_source(const tenncor::Source &amp;source):&#160;source.cpp'],['../source_8cpp.html#afa8b9b2d46a75dbb8c1810bea63f6bc9',1,'load_source(const tenncor::Source &amp;source):&#160;source.cpp']]],
+  ['log',['log',['../namespacello.html#ae89b1685de2ca1d943ea292d4b4db4b4',1,'llo::log(DataNode arg)'],['../namespacello.html#ab1380d9ae294bf7d8e3d6cef4ef40396',1,'llo::log(T *out, VecRef&lt; T &gt; in)']]],
+  ['lt',['lt',['../namespacello.html#ad10eccbdafb491529a3886084e1664ef',1,'llo::lt(DataNode a, DataNode b)'],['../namespacello.html#a37ca02223b4f25f1d4f8c99c74a82619',1,'llo::lt(T *out, ade::Shape &amp;outshape, VecRef&lt; T &gt; a, VecRef&lt; T &gt; b)']]],
   ['ltrim',['ltrim',['../test__grader_8cpp.html#a47084ee818936eef3c48be492c0e860f',1,'ltrim(std::string &amp;s):&#160;test_grader.cpp'],['../test__load_8cpp.html#a47084ee818936eef3c48be492c0e860f',1,'ltrim(std::string &amp;s):&#160;test_load.cpp']]]
 ];

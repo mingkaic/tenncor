@@ -80,10 +80,12 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:ab9d97358f349dc78401e5ff12c068902"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#ab9d97358f349dc78401e5ff12c068902">ShapeIterator</a> = std::array&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a>, <a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">rank_cap</a> &gt;::iterator</td></tr>
-<tr class="separator:ab9d97358f349dc78401e5ff12c068902"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b231292832668072f15e8b8d48279d4"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a3b231292832668072f15e8b8d48279d4">ConstShapeIterators</a> = std::array&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a>, <a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">rank_cap</a> &gt;::const_iterator</td></tr>
-<tr class="separator:a3b231292832668072f15e8b8d48279d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a724478494d1b325cc5f16e35d3c72172"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a724478494d1b325cc5f16e35d3c72172">iterator</a> = ShapeT::iterator</td></tr>
+<tr class="memdesc:a724478494d1b325cc5f16e35d3c72172"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of iterator used to iterate through internal array.  <a href="#a724478494d1b325cc5f16e35d3c72172">More...</a><br /></td></tr>
+<tr class="separator:a724478494d1b325cc5f16e35d3c72172"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5d9eb48851f23a0ea928618459da7c7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#af5d9eb48851f23a0ea928618459da7c7">const_iterator</a> = ShapeT::const_iterator</td></tr>
+<tr class="memdesc:af5d9eb48851f23a0ea928618459da7c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of constant iterator used to iterate through internal array.  <a href="#af5d9eb48851f23a0ea928618459da7c7">More...</a><br /></td></tr>
+<tr class="separator:af5d9eb48851f23a0ea928618459da7c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -102,27 +104,30 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aff04970d322736d89caeece427a3ac03"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html">Shape</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#aff04970d322736d89caeece427a3ac03">operator=</a> (<a class="el" href="structade_1_1_shape.html">Shape</a> &amp;&amp;other)</td></tr>
 <tr class="separator:aff04970d322736d89caeece427a3ac03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab75dac360d94e88c3215b9dcf1e29752"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#ab75dac360d94e88c3215b9dcf1e29752">at</a> (uint8_t idx) const</td></tr>
+<tr class="memdesc:ab75dac360d94e88c3215b9dcf1e29752"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return DimT element at idx for any index in range [0:rank_cap)  <a href="#ab75dac360d94e88c3215b9dcf1e29752">More...</a><br /></td></tr>
 <tr class="separator:ab75dac360d94e88c3215b9dcf1e29752"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2219117d9c33ac0d5d0e9032a30b19ab"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a2219117d9c33ac0d5d0e9032a30b19ab">n_rank</a> (void) const</td></tr>
-<tr class="separator:a2219117d9c33ac0d5d0e9032a30b19ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04fd9614b166a1519221441abeff050d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a2fba34a89f37ea9ee310914daefd880d">NElemT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a04fd9614b166a1519221441abeff050d">n_elems</a> (void) const</td></tr>
+<tr class="memdesc:a04fd9614b166a1519221441abeff050d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the total number of elements represented by the shape.  <a href="#a04fd9614b166a1519221441abeff050d">More...</a><br /></td></tr>
 <tr class="separator:a04fd9614b166a1519221441abeff050d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab44853104cb2fdd892bfe24b30cb070c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#ab44853104cb2fdd892bfe24b30cb070c">as_list</a> (void) const</td></tr>
-<tr class="separator:ab44853104cb2fdd892bfe24b30cb070c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab80adb387453a25c3d22193308a512cf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#ab80adb387453a25c3d22193308a512cf">compatible_before</a> (const <a class="el" href="structade_1_1_shape.html">Shape</a> &amp;other, uint8_t idx) const</td></tr>
 <tr class="separator:ab80adb387453a25c3d22193308a512cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a486f09d5fd8c99ac078e6ddf58797c96"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a486f09d5fd8c99ac078e6ddf58797c96">compatible_after</a> (const <a class="el" href="structade_1_1_shape.html">Shape</a> &amp;other, uint8_t idx) const</td></tr>
 <tr class="separator:a486f09d5fd8c99ac078e6ddf58797c96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92348dfc2c555cae7d1d42a48f59bd6d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a92348dfc2c555cae7d1d42a48f59bd6d">to_string</a> (void) const</td></tr>
+<tr class="memdesc:a92348dfc2c555cae7d1d42a48f59bd6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return string representation of shape.  <a href="#a92348dfc2c555cae7d1d42a48f59bd6d">More...</a><br /></td></tr>
 <tr class="separator:a92348dfc2c555cae7d1d42a48f59bd6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad81f5e516c2588d8136d1bc1a63a1e1b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html#ab9d97358f349dc78401e5ff12c068902">ShapeIterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#ad81f5e516c2588d8136d1bc1a63a1e1b">begin</a> (void)</td></tr>
-<tr class="separator:ad81f5e516c2588d8136d1bc1a63a1e1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d72e1fc880f30d57587bf5b874096a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html#ab9d97358f349dc78401e5ff12c068902">ShapeIterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a1d72e1fc880f30d57587bf5b874096a8">end</a> (void)</td></tr>
-<tr class="separator:a1d72e1fc880f30d57587bf5b874096a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f47d46634d8f92cf5a3774b0aca2abb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html#a3b231292832668072f15e8b8d48279d4">ConstShapeIterators</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a5f47d46634d8f92cf5a3774b0aca2abb">begin</a> (void) const</td></tr>
-<tr class="separator:a5f47d46634d8f92cf5a3774b0aca2abb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3218d52e34dd7d1fbf848290491d7e9e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html#a3b231292832668072f15e8b8d48279d4">ConstShapeIterators</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a3218d52e34dd7d1fbf848290491d7e9e">end</a> (void) const</td></tr>
-<tr class="separator:a3218d52e34dd7d1fbf848290491d7e9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5bcad1a815356a3623978f9608abf50"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html#a724478494d1b325cc5f16e35d3c72172">iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#ac5bcad1a815356a3623978f9608abf50">begin</a> (void)</td></tr>
+<tr class="memdesc:ac5bcad1a815356a3623978f9608abf50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return begin iterator of internal array.  <a href="#ac5bcad1a815356a3623978f9608abf50">More...</a><br /></td></tr>
+<tr class="separator:ac5bcad1a815356a3623978f9608abf50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85700f185320892b5dde0474c88fd33c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html#a724478494d1b325cc5f16e35d3c72172">iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a85700f185320892b5dde0474c88fd33c">end</a> (void)</td></tr>
+<tr class="memdesc:a85700f185320892b5dde0474c88fd33c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return end iterator of internal array.  <a href="#a85700f185320892b5dde0474c88fd33c">More...</a><br /></td></tr>
+<tr class="separator:a85700f185320892b5dde0474c88fd33c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad677c4671e1b24bedaf1736bfddc1dac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html#af5d9eb48851f23a0ea928618459da7c7">const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#ad677c4671e1b24bedaf1736bfddc1dac">begin</a> (void) const</td></tr>
+<tr class="memdesc:ad677c4671e1b24bedaf1736bfddc1dac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return begin constant iterator of internal array.  <a href="#ad677c4671e1b24bedaf1736bfddc1dac">More...</a><br /></td></tr>
+<tr class="separator:ad677c4671e1b24bedaf1736bfddc1dac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8df8b0d454942a59441c8adcebdc176a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html#af5d9eb48851f23a0ea928618459da7c7">const_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a8df8b0d454942a59441c8adcebdc176a">end</a> (void) const</td></tr>
+<tr class="memdesc:a8df8b0d454942a59441c8adcebdc176a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return end constant iterator of internal array.  <a href="#a8df8b0d454942a59441c8adcebdc176a">More...</a><br /></td></tr>
+<tr class="separator:a8df8b0d454942a59441c8adcebdc176a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -133,39 +138,42 @@ Private Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a4b79549aa88b253775fb4610ddd0f57a"><td class="memItemLeft" align="right" valign="top">std::array&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a>, <a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">rank_cap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a4b79549aa88b253775fb4610ddd0f57a">dims_</a></td></tr>
-<tr class="separator:a4b79549aa88b253775fb4610ddd0f57a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a721594e3c050e2e68df5c63337ebbef1"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a721594e3c050e2e68df5c63337ebbef1">rank_</a></td></tr>
-<tr class="separator:a721594e3c050e2e68df5c63337ebbef1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ed417376c158cf66d6803dd88262446"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae85a1831aeb0b2b43c3730301cbaec30">ShapeT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_shape.html#a0ed417376c158cf66d6803dd88262446">dims_</a></td></tr>
+<tr class="memdesc:a0ed417376c158cf66d6803dd88262446"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of dimension values.  <a href="#a0ed417376c158cf66d6803dd88262446">More...</a><br /></td></tr>
+<tr class="separator:a0ed417376c158cf66d6803dd88262446"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Aligned shape representation </p>
+<div class="textblock"><p>Models an aligned shape using an array of DimT values For each DimT at index i, DimT value is number of elements at dimension i For example, shape={3, 2} can model tensor [[x, y, z], [u, v, w]] (In cartesian coordinate, we treat values along the X-axis as dimension 0) </p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a3b231292832668072f15e8b8d48279d4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b231292832668072f15e8b8d48279d4">&#9670;&nbsp;</a></span>ConstShapeIterators</h2>
+<a id="af5d9eb48851f23a0ea928618459da7c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5d9eb48851f23a0ea928618459da7c7">&#9670;&nbsp;</a></span>const_iterator</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="structade_1_1_shape.html#a3b231292832668072f15e8b8d48279d4">ade::Shape::ConstShapeIterators</a> =  std::array&lt;<a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a>,<a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">rank_cap</a>&gt;::const_iterator</td>
+          <td class="memname">using <a class="el" href="structade_1_1_shape.html#af5d9eb48851f23a0ea928618459da7c7">ade::Shape::const_iterator</a> =  ShapeT::const_iterator</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
+<p>Type of constant iterator used to iterate through internal array. </p>
+
 </div>
 </div>
-<a id="ab9d97358f349dc78401e5ff12c068902"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9d97358f349dc78401e5ff12c068902">&#9670;&nbsp;</a></span>ShapeIterator</h2>
+<a id="a724478494d1b325cc5f16e35d3c72172"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a724478494d1b325cc5f16e35d3c72172">&#9670;&nbsp;</a></span>iterator</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="structade_1_1_shape.html#ab9d97358f349dc78401e5ff12c068902">ade::Shape::ShapeIterator</a> =  std::array&lt;<a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a>,<a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">rank_cap</a>&gt;::iterator</td>
+          <td class="memname">using <a class="el" href="structade_1_1_shape.html#a724478494d1b325cc5f16e35d3c72172">ade::Shape::iterator</a> =  ShapeT::iterator</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Type of iterator used to iterate through internal array. </p>
 
 </div>
 </div>
@@ -275,33 +283,6 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ab44853104cb2fdd892bfe24b30cb070c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab44853104cb2fdd892bfe24b30cb070c">&#9670;&nbsp;</a></span>as_list()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a>&gt; ade::Shape::as_list </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>get vector of meaningful dimensions </p>
-
-</div>
-</div>
 <a id="ab75dac360d94e88c3215b9dcf1e29752"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab75dac360d94e88c3215b9dcf1e29752">&#9670;&nbsp;</a></span>at()</h2>
 
@@ -325,12 +306,13 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get element at idx. idx can be greater than n_rank, but must be less than rank_cap </p>
+
+<p>Return DimT element at idx for any index in range [0:rank_cap) </p>
 
 </div>
 </div>
-<a id="ad81f5e516c2588d8136d1bc1a63a1e1b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad81f5e516c2588d8136d1bc1a63a1e1b">&#9670;&nbsp;</a></span>begin() <span class="overload">[1/2]</span></h2>
+<a id="ac5bcad1a815356a3623978f9608abf50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5bcad1a815356a3623978f9608abf50">&#9670;&nbsp;</a></span>begin() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -339,7 +321,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structade_1_1_shape.html#ab9d97358f349dc78401e5ff12c068902">ShapeIterator</a> ade::Shape::begin </td>
+          <td class="memname"><a class="el" href="structade_1_1_shape.html#a724478494d1b325cc5f16e35d3c72172">iterator</a> ade::Shape::begin </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -352,12 +334,13 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get beginning iterator for internal dimension array </p>
+
+<p>Return begin iterator of internal array. </p>
 
 </div>
 </div>
-<a id="a5f47d46634d8f92cf5a3774b0aca2abb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f47d46634d8f92cf5a3774b0aca2abb">&#9670;&nbsp;</a></span>begin() <span class="overload">[2/2]</span></h2>
+<a id="ad677c4671e1b24bedaf1736bfddc1dac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad677c4671e1b24bedaf1736bfddc1dac">&#9670;&nbsp;</a></span>begin() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -366,7 +349,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structade_1_1_shape.html#a3b231292832668072f15e8b8d48279d4">ConstShapeIterators</a> ade::Shape::begin </td>
+          <td class="memname"><a class="el" href="structade_1_1_shape.html#af5d9eb48851f23a0ea928618459da7c7">const_iterator</a> ade::Shape::begin </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -379,7 +362,8 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get constant beginning iterator for internal dimension array </p>
+
+<p>Return begin constant iterator of internal array. </p>
 
 </div>
 </div>
@@ -416,7 +400,7 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>check if sub-shape after idx is equal to another sub-shape after idx, set idx to 0 to compare entire shape </p>
+<p>Return true if this-&gt;dims_[idx:rank_cap) is equal to other.dims_[idx:rank_cap), otherwise return false Set idx to 0 to compare entire shape </p>
 
 </div>
 </div>
@@ -453,12 +437,12 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>check if sub-shape up to idx is equal to another sub-shape up to idx </p>
+<p>Return true if this-&gt;dims_[0:idx) is equal to other.dims_[0:idx), otherwise return false </p>
 
 </div>
 </div>
-<a id="a1d72e1fc880f30d57587bf5b874096a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1d72e1fc880f30d57587bf5b874096a8">&#9670;&nbsp;</a></span>end() <span class="overload">[1/2]</span></h2>
+<a id="a85700f185320892b5dde0474c88fd33c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85700f185320892b5dde0474c88fd33c">&#9670;&nbsp;</a></span>end() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -467,7 +451,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structade_1_1_shape.html#ab9d97358f349dc78401e5ff12c068902">ShapeIterator</a> ade::Shape::end </td>
+          <td class="memname"><a class="el" href="structade_1_1_shape.html#a724478494d1b325cc5f16e35d3c72172">iterator</a> ade::Shape::end </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -480,12 +464,13 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get end iterator for internal dimension array (this may extend beyond range of n_rank) </p>
+
+<p>Return end iterator of internal array. </p>
 
 </div>
 </div>
-<a id="a3218d52e34dd7d1fbf848290491d7e9e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3218d52e34dd7d1fbf848290491d7e9e">&#9670;&nbsp;</a></span>end() <span class="overload">[2/2]</span></h2>
+<a id="a8df8b0d454942a59441c8adcebdc176a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8df8b0d454942a59441c8adcebdc176a">&#9670;&nbsp;</a></span>end() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -494,7 +479,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structade_1_1_shape.html#a3b231292832668072f15e8b8d48279d4">ConstShapeIterators</a> ade::Shape::end </td>
+          <td class="memname"><a class="el" href="structade_1_1_shape.html#af5d9eb48851f23a0ea928618459da7c7">const_iterator</a> ade::Shape::end </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -507,7 +492,8 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get constant end iterator for internal dimension array </p>
+
+<p>Return end constant iterator of internal array. </p>
 
 </div>
 </div>
@@ -560,34 +546,8 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>total number of elements represented by shape </p>
 
-</div>
-</div>
-<a id="a2219117d9c33ac0d5d0e9032a30b19ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2219117d9c33ac0d5d0e9032a30b19ab">&#9670;&nbsp;</a></span>n_rank()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint8_t ade::Shape::n_rank </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>rank size containing meaningful dimensions </p>
+<p>Return the total number of elements represented by the shape. </p>
 
 </div>
 </div>
@@ -692,7 +652,8 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>represent the shape as string (for debugging purposes) </p>
+
+<p>Return string representation of shape. </p>
 
 </div>
 </div>
@@ -723,8 +684,8 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a4b79549aa88b253775fb4610ddd0f57a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b79549aa88b253775fb4610ddd0f57a">&#9670;&nbsp;</a></span>dims_</h2>
+<a id="a0ed417376c158cf66d6803dd88262446"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ed417376c158cf66d6803dd88262446">&#9670;&nbsp;</a></span>dims_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -733,7 +694,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::array&lt;<a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a>,<a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">rank_cap</a>&gt; ade::Shape::dims_</td>
+          <td class="memname"><a class="el" href="namespaceade.html#ae85a1831aeb0b2b43c3730301cbaec30">ShapeT</a> ade::Shape::dims_</td>
         </tr>
       </table>
   </td>
@@ -742,30 +703,8 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>internal dimension array </p>
 
-</div>
-</div>
-<a id="a721594e3c050e2e68df5c63337ebbef1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a721594e3c050e2e68df5c63337ebbef1">&#9670;&nbsp;</a></span>rank_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint8_t ade::Shape::rank_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>number of meaningful dimensions </p>
+<p>Array of dimension values. </p>
 
 </div>
 </div>

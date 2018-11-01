@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['nelemt',['NElemT',['../namespaceade.html#a2fba34a89f37ea9ee310914daefd880d',1,'ade']]]
+  ['dataargst',['DataArgsT',['../namespacello.html#a6ec0ba51bfa245ed21dfe6b84bc995c1',1,'llo']]],
+  ['dimt',['DimT',['../namespaceade.html#a127eeea15ccaee9ff162f34393f314c2',1,'ade']]]
 ];

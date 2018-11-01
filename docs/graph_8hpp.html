@@ -71,27 +71,29 @@ $(function() {
 <div class="title">graph.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="node_8hpp_source.html">llo/node.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="traveler_8hpp_source.html">llo/traveler.hpp</a>&quot;</code><br />
 <code>#include &quot;pbm/graph.pb.h&quot;</code><br />
 </div>
 <p><a href="graph_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a5f2608546e41ce3966d56d06f45fa8b8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="graph_8hpp.html#a5f2608546e41ce3966d56d06f45fa8b8">save_graph</a> (tenncor::Graph &amp;out, std::vector&lt; <a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a> &gt; &amp;roots)</td></tr>
-<tr class="separator:a5f2608546e41ce3966d56d06f45fa8b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae52b529289d3d91907392360221cd230"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="graph_8hpp.html#ae52b529289d3d91907392360221cd230">load_graph</a> (const tenncor::Graph &amp;in)</td></tr>
-<tr class="separator:ae52b529289d3d91907392360221cd230"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11863a9583c183f1f7393fe9589f4435"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="graph_8hpp.html#a11863a9583c183f1f7393fe9589f4435">save_graph</a> (tenncor::Graph &amp;out, std::vector&lt; <a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a> &gt; &amp;roots)</td></tr>
+<tr class="memdesc:a11863a9583c183f1f7393fe9589f4435"><td class="mdescLeft">&#160;</td><td class="mdescRight">Marshal all equation graphs in roots vector to protobuf object.  <a href="#a11863a9583c183f1f7393fe9589f4435">More...</a><br /></td></tr>
+<tr class="separator:a11863a9583c183f1f7393fe9589f4435"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae35ecd49b330c50df22594ad87eb9ad5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="graph_8hpp.html#ae35ecd49b330c50df22594ad87eb9ad5">load_graph</a> (const tenncor::Graph &amp;in)</td></tr>
+<tr class="memdesc:ae35ecd49b330c50df22594ad87eb9ad5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return all nodes in graph unmarshalled from protobuf object.  <a href="#ae35ecd49b330c50df22594ad87eb9ad5">More...</a><br /></td></tr>
+<tr class="separator:ae35ecd49b330c50df22594ad87eb9ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ae52b529289d3d91907392360221cd230"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae52b529289d3d91907392360221cd230">&#9670;&nbsp;</a></span>load_graph()</h2>
+<a id="ae35ecd49b330c50df22594ad87eb9ad5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae35ecd49b330c50df22594ad87eb9ad5">&#9670;&nbsp;</a></span>load_graph()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>&gt; load_graph </td>
+          <td class="memname">std::vector&lt;<a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a>&gt; load_graph </td>
           <td>(</td>
           <td class="paramtype">const tenncor::Graph &amp;&#160;</td>
           <td class="paramname"><em>in</em></td><td>)</td>
@@ -99,12 +101,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>unmarshal protobuf object and return all nodes in graph </p>
+
+<p>Return all nodes in graph unmarshalled from protobuf object. </p>
 
 </div>
 </div>
-<a id="a5f2608546e41ce3966d56d06f45fa8b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f2608546e41ce3966d56d06f45fa8b8">&#9670;&nbsp;</a></span>save_graph()</h2>
+<a id="a11863a9583c183f1f7393fe9589f4435"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11863a9583c183f1f7393fe9589f4435">&#9670;&nbsp;</a></span>save_graph()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -118,7 +121,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>roots</em>&#160;</td>
         </tr>
         <tr>
@@ -128,9 +131,10 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Marshal all equation graphs in roots vector to protobuf object. </p>
 <p><a class="el" href="graph_8hpp.html">graph.hpp</a> pbm</p>
-<p>Purpose: define functions for marshal and unmarshal operation graph</p>
-<p>marshal all operation subgraphs in root vector to protobuf object </p>
+<p>Purpose: Define functions for marshal and unmarshal equation graph </p>
 
 </div>
 </div>

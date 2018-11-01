@@ -81,7 +81,7 @@ $(function() {
 <code>#include &lt;numeric&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;util/error.hpp&quot;</code><br />
+<code>#include &quot;<a class="el" href="log_8hpp_source.html">ade/log/log.hpp</a>&quot;</code><br />
 </div>
 <p><a href="shape_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -98,20 +98,30 @@ Namespaces</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:a127eeea15ccaee9ff162f34393f314c2"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">ade::DimT</a> = uint8_t</td></tr>
+<tr class="memdesc:a127eeea15ccaee9ff162f34393f314c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type used for shape dimension.  <a href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">More...</a><br /></td></tr>
 <tr class="separator:a127eeea15ccaee9ff162f34393f314c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d51824d72b7db5898f13557cbb46bfe"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a3d51824d72b7db5898f13557cbb46bfe">ade::CDimT</a> = int16_t</td></tr>
+<tr class="memdesc:a3d51824d72b7db5898f13557cbb46bfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type used for coordinate dimensions.  <a href="namespaceade.html#a3d51824d72b7db5898f13557cbb46bfe">More...</a><br /></td></tr>
+<tr class="separator:a3d51824d72b7db5898f13557cbb46bfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2fba34a89f37ea9ee310914daefd880d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a2fba34a89f37ea9ee310914daefd880d">ade::NElemT</a> = uint64_t</td></tr>
 <tr class="separator:a2fba34a89f37ea9ee310914daefd880d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae85a1831aeb0b2b43c3730301cbaec30"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ae85a1831aeb0b2b43c3730301cbaec30">ade::ShapeT</a> = std::array&lt; DimT, rank_cap &gt;</td></tr>
+<tr class="memdesc:ae85a1831aeb0b2b43c3730301cbaec30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array type used to hold dimension info in <a class="el" href="structade_1_1_shape.html">Shape</a>.  <a href="namespaceade.html#ae85a1831aeb0b2b43c3730301cbaec30">More...</a><br /></td></tr>
+<tr class="separator:ae85a1831aeb0b2b43c3730301cbaec30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2abdde771b6a0fd0afdafaed7ab00c48"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a2abdde771b6a0fd0afdafaed7ab00c48">ade::CoordT</a> = std::array&lt; CDimT, rank_cap &gt;</td></tr>
+<tr class="separator:a2abdde771b6a0fd0afdafaed7ab00c48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aefd2b12e3b4f2b835b18f63e6f788e12"><td class="memItemLeft" align="right" valign="top">NElemT&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aefd2b12e3b4f2b835b18f63e6f788e12">ade::index</a> (Shape shape, std::vector&lt; DimT &gt; coord)</td></tr>
-<tr class="separator:aefd2b12e3b4f2b835b18f63e6f788e12"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d6029ae4e71f2c69e56c5ef25cec6bf"><td class="memItemLeft" align="right" valign="top">std::vector&lt; DimT &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a3d6029ae4e71f2c69e56c5ef25cec6bf">ade::coordinate</a> (Shape shape, NElemT idx)</td></tr>
-<tr class="separator:a3d6029ae4e71f2c69e56c5ef25cec6bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4b0a59c967fe9699b5b66de3c8fab49"><td class="memItemLeft" align="right" valign="top">NElemT&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ae4b0a59c967fe9699b5b66de3c8fab49">ade::index</a> (Shape shape, CoordT coord)</td></tr>
+<tr class="separator:ae4b0a59c967fe9699b5b66de3c8fab49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a785be8ee10cd4af039c458e057b32263"><td class="memItemLeft" align="right" valign="top">CoordT&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a785be8ee10cd4af039c458e057b32263">ade::coordinate</a> (Shape shape, NElemT idx)</td></tr>
+<tr class="separator:a785be8ee10cd4af039c458e057b32263"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:abe7612b911dddb042aa394cc0125ea69"><td class="memItemLeft" align="right" valign="top">const uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">ade::rank_cap</a> = 8</td></tr>
+<tr class="memdesc:abe7612b911dddb042aa394cc0125ea69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of dimsensions in a shape/coordinate.  <a href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">More...</a><br /></td></tr>
 <tr class="separator:abe7612b911dddb042aa394cc0125ea69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->

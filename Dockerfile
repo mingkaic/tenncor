@@ -7,4 +7,4 @@ WORKDIR $APP_DIR
 
 COPY . $APP_DIR
 
-CMD [ "bash", "tests.sh" ]
+CMD [ "./tests.sh" ]

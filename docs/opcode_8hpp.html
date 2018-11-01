@@ -67,7 +67,6 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#define-members">Macros</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -84,23 +83,12 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceade"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html">ade</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:a7d5d9e4adedfa24fd76231580bcba61c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opcode_8hpp.html#a7d5d9e4adedfa24fd76231580bcba61c">_DECL_NOARG</a>(OUT,  NAME,  CODE, ...)&#160;&#160;&#160;template &lt;&gt; OUT NAME&lt;CODE&gt; (__VA_ARGS__);</td></tr>
-<tr class="separator:a7d5d9e4adedfa24fd76231580bcba61c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1eae6950a0215193febdf20b5eaed97d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opcode_8hpp.html#a1eae6950a0215193febdf20b5eaed97d">_DECL_INTARG</a>(OUT,  NAME,  CODE, ...)&#160;&#160;&#160;template &lt;&gt; OUT NAME&lt;CODE,uint8_t&gt; (__VA_ARGS__, uint8_t);</td></tr>
-<tr class="separator:a1eae6950a0215193febdf20b5eaed97d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91db256f386f6a095f6efcf3b000fcec"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opcode_8hpp.html#a91db256f386f6a095f6efcf3b000fcec">_DECL_SHPARG</a>(OUT,  NAME,  CODE, ...)&#160;&#160;&#160;template &lt;&gt; OUT NAME&lt;CODE,std::vector&lt;DimT&gt;&gt; (__VA_ARGS__,std::vector&lt;DimT&gt;);</td></tr>
-<tr class="separator:a91db256f386f6a095f6efcf3b000fcec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8815725d82014a96a16406fbdb12da1e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opcode_8hpp.html#a8815725d82014a96a16406fbdb12da1e">_SIGNATURE_DEF</a>(OUT,  NAME, ...)</td></tr>
-<tr class="separator:a8815725d82014a96a16406fbdb12da1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:a608b0009e35de2aa479a4fcae513b773"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">ade::OPCODE</a> { <br />
-&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773adfab6b2b630b060edd8fcc995f62297b">ade::ABS</a> = 0, 
+&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773abf9aec1aa2d891d7cd8a1673a89cea64">ade::COPY</a> = 0, 
+<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773adfab6b2b630b060edd8fcc995f62297b">ade::ABS</a>, 
 <a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a3daf1fa0dd087729555fed4380e517c1">ade::NEG</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773aa4ce7aea3f96ead0896a5b13fa1579ea">ade::NOT</a>, 
 <a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a08c22fa19b9303df105f9196b193c122">ade::SIN</a>, 
 <br />
 &#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773ab012d188973892aff5f535e0be0fa2e1">ade::COS</a>, 
@@ -110,202 +98,39 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a3de0a8c8e2f14ff6c4a2e2391f7c707c">ade::SQRT</a>, 
 <a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a6eb73e3db0bc05df6d4897bbbb4af51f">ade::ROUND</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773af6ec9a629bd97b2e478929f83adf545f">ade::FLIP</a>, 
 <a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a66445942a1762a2ecbd885dd235e9699">ade::POW</a>, 
+<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a9b4c1fab2f78aa34195cd1867e009ce3">ade::ADD</a>, 
 <br />
-&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a9b4c1fab2f78aa34195cd1867e009ce3">ade::ADD</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773afcd6003b78891d85f1c5f9bb16cd0c2b">ade::SUB</a>, 
+&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773afcd6003b78891d85f1c5f9bb16cd0c2b">ade::SUB</a>, 
 <a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773aac675708a09412dc558640dbb0702986">ade::MUL</a>, 
 <a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a6cb5637144c6ab897e097348d9456cb5">ade::DIV</a>, 
+<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a8e2757c5898e55c8cfe7779f5b9cd5a0">ade::MIN</a>, 
 <br />
-&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a1016f8ef7ae15c5351cea9bec2eebe4e">ade::EQ</a>, 
+&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a673bead42397992e7015f7c020764ba2">ade::MAX</a>, 
+<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a1016f8ef7ae15c5351cea9bec2eebe4e">ade::EQ</a>, 
 <a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773afe8facc035cb5cbacc88e59b50490a91">ade::NE</a>, 
 <a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773ac2146256dad7ef84440a9e36f8af282f">ade::LT</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773aecc04dea4b702e73eca0ce97a7e3b7cc">ade::GT</a>, 
 <br />
-&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773afb5a1ab229e214f1b3c18eaf1f129a64">ade::BINO</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773aaaba02dcbc62f740de4dae6564615aa6">ade::UNIF</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a27c40adda8a9b22e8bdfcc006e224616">ade::NORM</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a9ef03e3f65548f2f5c813bb0a0cfc22b">ade::N_ELEMS</a>, 
+&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773aecc04dea4b702e73eca0ce97a7e3b7cc">ade::GT</a>, 
+<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773abf32a3343444bd0e85ec3ae8581e4311">ade::RAND_BINO</a>, 
+<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773afc3fa8e9341d334bede4b5788f1cdebc">ade::RAND_UNIF</a>, 
+<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773aae72ec7426c64d6395224da3848a51db">ade::RAND_NORM</a>, 
 <br />
-&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773aa9760ba338e046e7257d9c39066f3be8">ade::N_DIMS</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a9b27a85876af2e6313ee2d6cb2e920ec">ade::ARGMAX</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a4be54e86475865a4ac50b6ef84531441">ade::RMAX</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a953f8d84765044b2860be95a94cf6391">ade::RSUM</a>, 
-<br />
-&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a74435927c335b2155543d1d3477e761c">ade::MATMUL</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a52e58fd4775d95d82f543ef70898f967">ade::PERMUTE</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773ae89f7e2df853e0dbfde0541f936db128">ade::EXTEND</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773aabc4f05d45782607e976685d693f4af1">ade::RESHAPE</a>, 
-<br />
-&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a25808c54f23f4bf52ece02f004ee2ba2">ade::CONVOLUTE</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a8e2757c5898e55c8cfe7779f5b9cd5a0">ade::MIN</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a673bead42397992e7015f7c020764ba2">ade::MAX</a>, 
-<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773ad02f2efca3cd9eb05120b0658b441a4a">ade::_NUM_OPS</a>
+&#160;&#160;<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773a16467a09b585036ad3816697c849695a">ade::_BAD_OP</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a608b0009e35de2aa479a4fcae513b773"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerated representation of operations.  <a href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">More...</a><br /></td></tr>
 <tr class="separator:a608b0009e35de2aa479a4fcae513b773"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:afcde656fd1d8db590042832b525d45be"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#afcde656fd1d8db590042832b525d45be">ade::opname</a> (OPCODE opcode)</td></tr>
+<tr class="memdesc:afcde656fd1d8db590042832b525d45be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the string name of input OPCODE.  <a href="namespaceade.html#afcde656fd1d8db590042832b525d45be">More...</a><br /></td></tr>
 <tr class="separator:afcde656fd1d8db590042832b525d45be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f0d102e4fe792b98b84bff469dc55a1"><td class="memItemLeft" align="right" valign="top">OPCODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a8f0d102e4fe792b98b84bff469dc55a1">ade::name_op</a> (std::string oname)</td></tr>
+<tr class="memdesc:a8f0d102e4fe792b98b84bff469dc55a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the OPCODE of the string name.  <a href="namespaceade.html#a8f0d102e4fe792b98b84bff469dc55a1">More...</a><br /></td></tr>
+<tr class="separator:a8f0d102e4fe792b98b84bff469dc55a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="a1eae6950a0215193febdf20b5eaed97d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1eae6950a0215193febdf20b5eaed97d">&#9670;&nbsp;</a></span>_DECL_INTARG</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define _DECL_INTARG</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">OUT, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">NAME, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">CODE, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;template &lt;&gt; OUT NAME&lt;CODE,uint8_t&gt; (__VA_ARGS__, uint8_t);</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7d5d9e4adedfa24fd76231580bcba61c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7d5d9e4adedfa24fd76231580bcba61c">&#9670;&nbsp;</a></span>_DECL_NOARG</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define _DECL_NOARG</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">OUT, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">NAME, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">CODE, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;template &lt;&gt; OUT NAME&lt;CODE&gt; (__VA_ARGS__);</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a91db256f386f6a095f6efcf3b000fcec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91db256f386f6a095f6efcf3b000fcec">&#9670;&nbsp;</a></span>_DECL_SHPARG</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define _DECL_SHPARG</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">OUT, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">NAME, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">CODE, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;template &lt;&gt; OUT NAME&lt;CODE,std::vector&lt;DimT&gt;&gt; (__VA_ARGS__,std::vector&lt;DimT&gt;);</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a8815725d82014a96a16406fbdb12da1e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8815725d82014a96a16406fbdb12da1e">&#9670;&nbsp;</a></span>_SIGNATURE_DEF</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define _SIGNATURE_DEF</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">OUT, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">NAME, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

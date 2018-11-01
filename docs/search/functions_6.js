@@ -2,9 +2,16 @@ var searchData=
 [
   ['genericdata',['GenericData',['../structllo_1_1_generic_data.html#a55a23000ad17dc42ac4d1b7085bea40c',1,'llo::GenericData::GenericData(void)=default'],['../structllo_1_1_generic_data.html#aec83aa8596ec0504c0379f14d33aab5e',1,'llo::GenericData::GenericData(ade::Shape shape, DTYPE dtype)']]],
   ['genericref',['GenericRef',['../structllo_1_1_generic_ref.html#aeecba1404dbeb7670f5173f4cf93c2c6',1,'llo::GenericRef::GenericRef(char *data, ade::Shape shape, DTYPE dtype)'],['../structllo_1_1_generic_ref.html#a68bfd5024e80187e0ca1e620df1be1de',1,'llo::GenericRef::GenericRef(GenericData &amp;generic)']]],
-  ['get',['get',['../structade_1_1_functor.html#a1a0cd82f8470248d79b7c9612e94c976',1,'ade::Functor::get()'],['../structade_1_1_tensorptr.html#abe33b19e27214d8995fa92781432c59c',1,'ade::Tensorptr::get()'],['../structade_1_1_tensor.html#a83cfe3eb74512e4104f0b52841fcb5df',1,'ade::Tensor::get()'],['../structllo_1_1_source.html#a35c0b07ab263f16e968ee1a97f1548f5',1,'llo::Source::get()'],['../structllo_1_1_direct_wrapper.html#a05d1abfa14fb39fd3bdb21a9a31f6fdd',1,'llo::DirectWrapper::get()']]],
-  ['get_5fcode',['get_code',['../structade_1_1i_functor.html#aa709a158c3e4df237b9fad463771487f',1,'ade::iFunctor::get_code()'],['../structade_1_1_functor.html#a9b75f7667696d68614705f64438b7200',1,'ade::Functor::get_code()'],['../structllo_1_1_direct_wrapper.html#a37f6dcdb0a23a4521b091999b1853909',1,'llo::DirectWrapper::get_code()']]],
-  ['get_5frefs',['get_refs',['../structade_1_1i_functor.html#ab803b02941477a186010ce5bac9a791d',1,'ade::iFunctor::get_refs()'],['../structade_1_1_functor.html#ac42f18a8679607ab392b6e88c6b32d09',1,'ade::Functor::get_refs()'],['../structllo_1_1_direct_wrapper.html#ae66f31274b2f55cb833387beb5bbe324',1,'llo::DirectWrapper::get_refs()']]],
+  ['get',['get',['../structade_1_1_functor.html#aa2292d9f235bc1ee0615a5ad4c88d8ba',1,'ade::Functor::get()'],['../structade_1_1_tensorptr.html#abe33b19e27214d8995fa92781432c59c',1,'ade::Tensorptr::get()'],['../structade_1_1_tensor.html#a12d316a94c3e1a766afa4df1c74970cf',1,'ade::Tensor::get()'],['../structllo_1_1_source.html#ae6cb2e2a4b948f6920400b8fd1f83782',1,'llo::Source::get()']]],
+  ['get_5fchildren',['get_children',['../structade_1_1i_functor.html#a074e2f5304eb5d59e585e480d27f8953',1,'ade::iFunctor::get_children()'],['../structade_1_1_functor.html#ab15cc2bb1f427f25b16d78080f5a0572',1,'ade::Functor::get_children()']]],
+  ['get_5fcode',['get_code',['../structade_1_1i_functor.html#aa709a158c3e4df237b9fad463771487f',1,'ade::iFunctor::get_code()'],['../structade_1_1_functor.html#a7f11bd1d4f4ddc2ccdb7ab283c562b49',1,'ade::Functor::get_code()']]],
+  ['get_5fengine',['get_engine',['../namespacello.html#a61884656c3aa93b200183b6047ef40dd',1,'llo']]],
+  ['get_5finput_5fdata',['get_input_data',['../llo_2test_2regress_2main_8cpp.html#a3d50348b16e67f307241135e258c3f0d',1,'main.cpp']]],
+  ['get_5flogger',['get_logger',['../namespaceade.html#aeac9c84fbc8ce71ca86397d050d0948c',1,'ade']]],
+  ['get_5foutput_5fdata',['get_output_data',['../llo_2test_2regress_2main_8cpp.html#aef2c45e3061d201c20ec88b8ca9246b3',1,'main.cpp']]],
+  ['get_5fscalar',['get_scalar',['../structllo_1_1_source.html#a4b41d81c37d0db19be491ae7cd884c3e',1,'llo::Source']]],
+  ['get_5fshape',['get_shape',['../llo_2test_2regress_2main_8cpp.html#a6f292812a763a0b1470f6cdb4af18542',1,'main.cpp']]],
+  ['get_5fsrc',['get_src',['../structllo_1_1_data_node.html#a996b653ad205b29ab80922fd1c79337a',1,'llo::DataNode']]],
   ['get_5ftype',['get_type',['../namespacello.html#af64d944f20a11333d9ef0ac956f31b86',1,'llo']]],
   ['get_5ftype_3c_20double_20_3e',['get_type&lt; double &gt;',['../namespacello.html#aaaf182fb85986a52f70546748dc69cd9',1,'llo']]],
   ['get_5ftype_3c_20float_20_3e',['get_type&lt; float &gt;',['../namespacello.html#a3cff688f2e1a47a694e4f6ea1f88d0c1',1,'llo']]],
@@ -16,8 +23,9 @@ var searchData=
   ['get_5ftype_3c_20uint32_5ft_20_3e',['get_type&lt; uint32_t &gt;',['../namespacello.html#a0e80d784e11ec48c23d4f585a28298f2',1,'llo']]],
   ['get_5ftype_3c_20uint64_5ft_20_3e',['get_type&lt; uint64_t &gt;',['../namespacello.html#ac7d46386eb33cedc3a2edbf1f592d6f2',1,'llo']]],
   ['get_5ftype_3c_20uint8_5ft_20_3e',['get_type&lt; uint8_t &gt;',['../namespacello.html#aa0ff02d900a47981be5534edc4a2c0bb',1,'llo']]],
-  ['grad_5fhelper',['grad_helper',['../structade_1_1_functor.html#ab70457aa907f206bb99e7ca2fb1aa4d7',1,'ade::Functor']]],
-  ['grader',['grader',['../namespaceade.html#a29e12f23ce8f580003e822836d17f291',1,'ade']]],
-  ['gradient',['gradient',['../structade_1_1_functor.html#a994a16ee0d6b97d7450ddbc050a006bb',1,'ade::Functor::gradient()'],['../structade_1_1i_tensor.html#a5f7ebdbdb7603c36a5751f3de33ea5f1',1,'ade::iTensor::gradient()'],['../structade_1_1_tensor.html#a794625b47e30ebee44faea13b50a106a',1,'ade::Tensor::gradient()'],['../structllo_1_1_source.html#afe045b1e0c4fe6b2e0e3cc6b182a8315',1,'llo::Source::gradient()'],['../structllo_1_1_direct_wrapper.html#a267f5a42ccf01690c5ec4ad6ec092300',1,'llo::DirectWrapper::gradient()']]],
-  ['gt',['gt',['../namespacello.html#a0e71ff095ba035c2b206aa302307f54e',1,'llo::gt(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#afe1a789534ea1b33d13e9e0f8e879f6b',1,'llo::gt(T *out, const T *a, size_t an, const T *b, size_t bn)']]]
+  ['grader',['grader',['../namespaceade.html#a1f416c166cd10d1f7fd049d9f379be11',1,'ade']]],
+  ['gradient',['gradient',['../structade_1_1_functor.html#aa8a91aa5d7298a658d5b15167b8528ec',1,'ade::Functor::gradient()'],['../structade_1_1i_tensor.html#a6ac779f81888c46b40804c9f716eaf10',1,'ade::iTensor::gradient()'],['../structade_1_1_tensor.html#a00463a6a5011279d917bf08c7b45ea2b',1,'ade::Tensor::gradient()']]],
+  ['gradmap',['gradmap',['../namespaceade.html#a925a1c9fe2f12c3c0138376c1c0b74a3',1,'ade']]],
+  ['graphstat',['GraphStat',['../structllo_1_1_graph_stat.html#af796f28c6a30fc143ee8c0708e290fa9',1,'llo::GraphStat']]],
+  ['gt',['gt',['../namespacello.html#a3465603256b700c902f23582a9a5f8f1',1,'llo::gt(DataNode a, DataNode b)'],['../namespacello.html#a8ae7b7bbdc2eab5e5eca92ab98914883',1,'llo::gt(T *out, ade::Shape &amp;outshape, VecRef&lt; T &gt; a, VecRef&lt; T &gt; b)']]]
 ];

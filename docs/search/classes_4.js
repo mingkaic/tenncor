@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['genericdata',['GenericData',['../structllo_1_1_generic_data.html',1,'llo']]],
-  ['genericref',['GenericRef',['../structllo_1_1_generic_ref.html',1,'llo']]]
+  ['functor',['Functor',['../structade_1_1_functor.html',1,'ade::Functor'],['../struct_f_u_n_c_t_o_r.html',1,'FUNCTOR']]]
 ];

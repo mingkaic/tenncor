@@ -1,373 +1,156 @@
 #include <unordered_set>
 #include <list>
 #include <queue>
+#include <chrono>
 
-#include "util/rand.hpp"
-#include "util/error.hpp"
+#include "ade/log/log.hpp"
 
 #include "llo/api.hpp"
 
 #include "pbm/graph.hpp"
+#include "pbm/source.hpp"
 
-#define PACK_DATA(TYPE)\
-TYPE* ptr = (TYPE*) data.data_.get();\
-google::protobuf::RepeatedField<TYPE> vec(ptr, ptr + nelems);\
-arr.mutable_data()->Swap(&vec);\
-out->PackFrom(arr);
-
-static void save_data (google::protobuf::Any* out, llo::GenericData& data)
+static std::string make_uid (void* ptr, llo::EngineT& engine)
 {
-	size_t nelems = data.shape_.n_elems();
-	switch (data.dtype_)
+	static std::uniform_int_distribution<short> tok_dist(0, 15);
+	auto now = std::chrono::system_clock::now();
+	time_t now_c = std::chrono::system_clock::to_time_t(now);
+
+	std::stringstream ss;
+	ss << std::hex << now_c << (size_t) ptr;
+
+	for (size_t i = 0; i < 16; i++)
 	{
-		case llo::DOUBLE:
-		{
-			tenncor::DoubleArr arr;
-			PACK_DATA(double)
-		}
-		break;
-		case llo::FLOAT:
-		{
-			tenncor::FloatArr arr;
-			PACK_DATA(float)
-		}
-		break;
-		case llo::INT8:
-		case llo::UINT8:
-		{
-			tenncor::ByteArr arr;
-			char* ptr = data.data_.get();
-			arr.set_data(std::string(ptr, ptr + nelems));
-			out->PackFrom(arr);
-		}
-		break;
-		case llo::INT16:
-		{
-			tenncor::Int32Arr arr;
-			int16_t* ptr = (int16_t*) data.data_.get();
-			std::vector<int16_t> temp(ptr, ptr + nelems);
-			google::protobuf::RepeatedField<int32_t> vec(
-				temp.begin(), temp.end());
-			arr.mutable_data()->Swap(&vec);
-			out->PackFrom(arr);
-		}
-		break;
-		case llo::UINT16:
-		{
-			tenncor::Uint32Arr arr;
-			uint16_t* ptr = (uint16_t*) data.data_.get();
-			std::vector<uint16_t> temp(ptr, ptr + nelems);
-			google::protobuf::RepeatedField<uint32_t> vec(
-				temp.begin(), temp.end());
-			arr.mutable_data()->Swap(&vec);
-			out->PackFrom(arr);
-		}
-		break;
-		case llo::INT32:
-		{
-			tenncor::Int32Arr arr;
-			PACK_DATA(int32_t)
-		}
-		break;
-		case llo::INT64:
-		{
-			tenncor::Int64Arr arr;
-			PACK_DATA(int64_t)
-		}
-		break;
-		case llo::UINT32:
-		{
-			tenncor::Uint32Arr arr;
-			PACK_DATA(uint32_t)
-		}
-		break;
-		case llo::UINT64:
-		{
-			tenncor::Uint64Arr arr;
-			PACK_DATA(uint64_t)
-		}
-		break;
-		default:
-			util::handle_error("failed to serialize badly typed node"); // todo: make warn instead
+		short token = tok_dist(engine);
+		ss << std::hex << token;
 	}
+	return ss.str();
 }
 
-#undef PACK_DATA
-
-static void save_meta (google::protobuf::RepeatedField<uint32_t>* meta,
-	ade::iFunctor* f, ade::OPCODE op)
+void save_coord (google::protobuf::RepeatedField<double>* coord,
+	const ade::CoordPtrT& mapper)
 {
-	switch (op)
+	mapper->access([coord](const ade::MatrixT& mat)
 	{
-		case ade::FLIP:
-		case ade::N_DIMS:
+		for (uint8_t i = 0; i < ade::mat_dim; ++i)
 		{
-			auto ev = static_cast<llo::DirectWrapper<uint8_t>*>(f);
-			*(meta->Add()) = std::get<0>(ev->args_);
-		}
-		break;
-		case ade::MATMUL:
-		{
-			auto ev = static_cast<llo::DirectWrapper<uint8_t,uint8_t>*>(f);
-			*(meta->Add()) = std::get<0>(ev->args_);
-			*(meta->Add()) = std::get<1>(ev->args_);
-		}
-		break;
-		case ade::PERMUTE:
-		{
-			auto ev = static_cast<llo::DirectWrapper<std::vector<uint8_t>>*>(f);
-			std::vector<uint8_t> slist = std::get<0>(ev->args_);
-			google::protobuf::RepeatedField<uint32_t> vec(
-				slist.begin(), slist.end());
-			meta->Swap(&vec);
-		}
-		break;
-		case ade::EXTEND:
-		{
-			auto ev = static_cast<
-				ade::Functor<ade::EXTEND,std::vector<ade::DimT>>*>(f);
-			std::vector<ade::DimT> slist = std::get<0>(ev->meta_);
-			google::protobuf::RepeatedField<uint32_t> vec(
-				slist.begin(), slist.end());
-			meta->Swap(&vec);
-		}
-		break;
-		case ade::RESHAPE:
-		{
-			auto ev = static_cast<
-				ade::Functor<ade::RESHAPE,std::vector<ade::DimT>>*>(f);
-			std::vector<ade::DimT> slist = std::get<0>(ev->meta_);
-			google::protobuf::RepeatedField<uint32_t> vec(
-				slist.begin(), slist.end());
-			meta->Swap(&vec);
-		}
-		break;
-		default: break; // no meta
-	}
-}
-
-void save_graph (tenncor::Graph& out, std::vector<ade::Tensorptr>& roots)
-{
-	ade::iTensor* iter;
-	std::unordered_set<ade::iTensor*> visited;
-	std::vector<ade::iTensor*> leaves;
-	std::vector<ade::iFunctor*> order;
-	for (ade::Tensorptr& tptr : roots)
-	{
-		std::list<ade::iFunctor*> appearance;
-		std::queue<ade::iTensor*> q;
-		q.push(tptr.get());
-		while (false == q.empty())
-		{
-			iter = q.front();
-			q.pop();
-			if (visited.end() == visited.find(iter))
+			for (uint8_t j = 0; j < ade::mat_dim; ++j)
 			{
-				if (ade::iFunctor* f = dynamic_cast<ade::iFunctor*>(iter))
-				{
-					auto children = f->get_refs();
-					for (auto child : children)
-					{
-						q.push(child);
-					}
-					appearance.push_back(f);
-				}
-				else
-				{
-					leaves.push_back(iter);
-				}
-				visited.emplace(iter);
+				(*coord->Add()) = mat[i][j];
 			}
 		}
-		order.insert(order.end(), appearance.rbegin(), appearance.rend());
+	});
+}
+
+ade::CoordPtrT load_coord (const google::protobuf::RepeatedField<double>& coord)
+{
+	if (ade::mat_dim * ade::mat_dim != coord.size())
+	{
+		ade::fatal("cannot deserialize non-matrix coordinate map");
 	}
-	// order guarantees for any index i, all children of node i is in order[:i]
-	// all nodes in leaf are some children of nodes in order
-	std::unordered_map<ade::iTensor*,size_t> imap;
-	size_t nleaves = leaves.size();
+	return std::make_shared<ade::CoordMap>(
+		[&](ade::MatrixT fwd)
+		{
+			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			{
+				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				{
+					fwd[i][j] = coord[i * ade::mat_dim + j];
+				}
+			}
+		});
+}
+
+void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
+{
+	llo::GraphStat stat(roots);
+
+	// all nodes in leaf appear before funcs
+	std::unordered_map<ade::iTensor*,size_t> ordermap;
+	size_t nleaves = stat.leaves_.size();
 	for (size_t i = 0; i < nleaves; ++i)
 	{
-		ade::iTensor* node = leaves[i];
-		imap[node] = i;
+		llo::iSource* source = stat.leaves_[i];
+		ade::Tensor* tens = source->inner().get();
+		ordermap[tens] = i;
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Source* src = pb_node->mutable_source();
-		if (llo::iSource* eval = dynamic_cast<llo::iSource*>(node))
-		{
-			llo::GenericData data = eval->evaluate(eval->native_type());
-			save_data(src->mutable_data(), data);
-			src->set_type(data.dtype_);
-		}
-		else
-		{
-			src->set_type(llo::BAD);
-		}
-		auto vec = node->shape().as_list();
-		std::string shape(vec.begin(), vec.end());
-		src->set_shape(shape);
+		save_data(src, source);
 	}
-	for (size_t i = 0, n = order.size(); i < n; ++i)
+	auto it = stat.funcs_.begin();
+	for (size_t i = 0, n = stat.funcs_.size(); i < n; ++i)
 	{
-		ade::iFunctor* f = order[i];
-		imap[f] = nleaves + i;
+		ade::iFunctor* f = *(it++);
+		ordermap[f] = nleaves + i;
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Functor* func = pb_node->mutable_functor();
-		ade::OPCODE op = f->get_code();
-		func->set_opcode(op);
-		std::vector<ade::iTensor*> children = f->get_refs();
-		google::protobuf::RepeatedField<uint32_t> indices;
-		for (ade::iTensor* child : children)
+		func->set_opname(ade::opname(f->get_code()));
+		const ade::ArgsT& children = f->get_children();
+		for (auto& child : children)
 		{
-			auto it = imap.find(child);
-			assert(imap.end() != it);
-			indices.Add(it->second);
+			tenncor::NodeArg* arg = func->add_args();
+			ade::iTensor* tens = child.second.get();
+			if (tens == ade::Tensor::SYMBOLIC_ONE.get())
+			{
+				arg->set_idx(-2);
+			}
+			else if (tens == ade::Tensor::SYMBOLIC_ZERO.get())
+			{
+				arg->set_idx(-1);
+			}
+			else
+			{
+				arg->set_idx(ordermap[tens]);
+			}
+			save_coord(arg->mutable_coord(), child.first);
 		}
-		func->mutable_args()->Swap(&indices);
-		save_meta(func->mutable_meta(), f, op);
 	}
-	out.set_id(util::make_uid(&out));
+	out.set_id(make_uid(&out, llo::get_engine()));
 }
 
-static ade::Shape load_shape (std::string sstr)
-{
-	std::vector<ade::DimT> slist(sstr.begin(), sstr.end());
-	return ade::Shape(slist);
-}
-
-#define UNPACK_SOURCE(TYPE)\
-source.data().UnpackTo(&arr);\
-auto vec = arr.data();\
-return llo::Source<TYPE>::get(shape,\
-	std::vector<TYPE>(vec.begin(), vec.end()));
-
-static ade::Tensorptr load_source (tenncor::Source& source)
-{
-	ade::Shape shape = load_shape(source.shape());
-	switch (source.type())
-	{
-		case llo::DOUBLE:
-		{
-			tenncor::DoubleArr arr;
-			UNPACK_SOURCE(double)
-		}
-		case llo::FLOAT:
-		{
-			tenncor::FloatArr arr;
-			UNPACK_SOURCE(float)
-		}
-		case llo::INT8:
-		{
-			tenncor::ByteArr arr;
-			UNPACK_SOURCE(int8_t)
-		}
-		case llo::UINT8:
-		{
-			tenncor::ByteArr arr;
-			UNPACK_SOURCE(uint8_t)
-		}
-		break;
-		case llo::INT16:
-		{
-			tenncor::Int32Arr arr;
-			UNPACK_SOURCE(int16_t)
-		}
-		break;
-		case llo::UINT16:
-		{
-			tenncor::Uint32Arr arr;
-			UNPACK_SOURCE(uint16_t)
-		}
-		break;
-		case llo::INT32:
-		{
-			tenncor::Int32Arr arr;
-			UNPACK_SOURCE(int32_t)
-		}
-		break;
-		case llo::INT64:
-		{
-			tenncor::Int64Arr arr;
-			UNPACK_SOURCE(int64_t)
-		}
-		break;
-		case llo::UINT32:
-		{
-			tenncor::Uint32Arr arr;
-			UNPACK_SOURCE(uint32_t)
-		}
-		break;
-		case llo::UINT64:
-		{
-			tenncor::Uint64Arr arr;
-			UNPACK_SOURCE(uint64_t)
-		}
-		break;
-		default:
-			util::handle_error("failed to deserialize badly typed node"); // todo: make warn instead
-	}
-	return nullptr;
-}
-
-#undef UNPACK_SOURCE
-
-static ade::Tensorptr load_op (ade::OPCODE opcode,
-	std::vector<ade::Tensorptr>& args,
-	google::protobuf::RepeatedField<uint32_t> meta)
-{
-	switch (opcode)
-	{
-		case ade::FLIP:
-			return llo::flip(args[0], meta[0]);
-		case ade::N_DIMS:
-			return llo::n_dims(args[0], meta[0]);
-		case ade::MATMUL:
-			return llo::matmul(args[0], args[1],
-				meta[0], meta[1]);
-		case ade::PERMUTE:
-			return llo::permute(args[0],
-				std::vector<uint8_t>(meta.begin(), meta.end()));
-		case ade::EXTEND:
-			return llo::extend(args[0],
-				std::vector<uint8_t>(meta.begin(), meta.end()));
-		case ade::RESHAPE:
-			return llo::reshape(args[0],
-				std::vector<uint8_t>(meta.begin(), meta.end()));
-		default: break;
-	}
-	return ade::runtime_functor(opcode, args);
-}
-
-std::vector<ade::Tensorptr> load_graph (const tenncor::Graph& in)
+std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
 {
 	auto nodes = in.nodes();
-	std::vector<ade::Tensorptr> outvec;
+	std::vector<llo::DataNode> outvec;
 	for (const tenncor::Node& node : nodes)
 	{
 		if (node.has_source())
 		{
-			tenncor::Source source = node.source();
-			if (source.type() != llo::BAD)
-			{
-				outvec.push_back(load_source(source));
-			}
-			else
-			{
-				outvec.push_back(ade::Tensor::get(
-					load_shape(source.shape())));
-			}
+			const tenncor::Source& source = node.source();
+			outvec.push_back(load_source(source));
 		}
 		else
 		{
 			tenncor::Functor func = node.functor();
-			auto argidx = func.args();
-			std::vector<ade::Tensorptr> args;
-			for (uint32_t i : argidx)
+			auto nodeargs = func.args();
+			ade::ArgsT args;
+			std::vector<const llo::EvalCtx*> contexas;
+			for (auto nodearg : nodeargs)
 			{
-				args.push_back(outvec[i]);
+				int32_t i = nodearg.idx();
+				ade::CoordPtrT coord = load_coord(nodearg.coord());
+				if (i >= 0)
+				{
+					args.push_back({coord, outvec[i].tensor_});
+					contexas.push_back(&outvec[i].ctx_);
+				}
+				else if (-2 == i)
+				{
+					args.push_back({coord, ade::Tensor::SYMBOLIC_ONE});
+				}
+				else if (-1 == i)
+				{
+					args.push_back({coord, ade::Tensor::SYMBOLIC_ZERO});
+				}
+				else
+				{
+					ade::fatalf("cannot find tensor of index %d", i);
+				}
 			}
-			outvec.push_back(load_op((ade::OPCODE)
-				func.opcode(), args, func.meta()));
+			outvec.push_back(llo::DataNode{llo::EvalCtx(contexas),
+				ade::Functor::get(ade::name_op(func.opname()), args)});
 		}
 	}
 	return outvec;

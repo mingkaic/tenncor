@@ -73,6 +73,9 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>Interface of traversible and differentiable nodes with shape information.  
+ <a href="structade_1_1i_tensor.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="tensor_8hpp_source.html">tensor.hpp</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for ade::iTensor:</div>
@@ -80,12 +83,9 @@ Inheritance diagram for ade::iTensor:</div>
  <div class="center">
   <img src="structade_1_1i_tensor.png" usemap="#ade::iTensor_map" alt=""/>
   <map id="ade::iTensor_map" name="ade::iTensor_map">
-<area href="structade_1_1i_functor.html" alt="ade::iFunctor" shape="rect" coords="97,56,282,80"/>
-<area href="structade_1_1_tensor.html" alt="ade::Tensor" shape="rect" coords="292,56,477,80"/>
-<area href="structllo_1_1i_source.html" alt="llo::iSource" shape="rect" coords="487,56,672,80"/>
-<area href="structade_1_1_functor.html" alt="ade::Functor&lt; opcode, Args &gt;" shape="rect" coords="0,112,185,136"/>
-<area href="structllo_1_1_direct_wrapper.html" alt="llo::DirectWrapper&lt; Args &gt;" shape="rect" coords="195,112,380,136"/>
-<area href="structllo_1_1_source.html" alt="llo::Source&lt; T &gt;" shape="rect" coords="487,112,672,136"/>
+<area href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. " alt="ade::iFunctor" shape="rect" coords="0,56,86,80"/>
+<area href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="ade::Tensor" shape="rect" coords="96,56,182,80"/>
+<area href="structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. " alt="ade::Functor" shape="rect" coords="0,112,86,136"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -93,15 +93,21 @@ Inheritance diagram for ade::iTensor:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1eb974b967ef2da732ee074e73631342"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a1eb974b967ef2da732ee074e73631342">~iTensor</a> (void)=default</td></tr>
 <tr class="separator:a1eb974b967ef2da732ee074e73631342"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7a69b3831cc43a6d173c08848662b24"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#aa7a69b3831cc43a6d173c08848662b24">accept</a> (<a class="el" href="structade_1_1i_traveler.html">iTraveler</a> &amp;visiter)=0</td></tr>
+<tr class="memdesc:aa7a69b3831cc43a6d173c08848662b24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Obtain concrete information on either leaf or functor implementations.  <a href="#aa7a69b3831cc43a6d173c08848662b24">More...</a><br /></td></tr>
+<tr class="separator:aa7a69b3831cc43a6d173c08848662b24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a782c626a29501f974532905657c8d66b"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="structade_1_1_shape.html">Shape</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a782c626a29501f974532905657c8d66b">shape</a> (void) const =0</td></tr>
+<tr class="memdesc:a782c626a29501f974532905657c8d66b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the shape held by this tensor.  <a href="#a782c626a29501f974532905657c8d66b">More...</a><br /></td></tr>
 <tr class="separator:a782c626a29501f974532905657c8d66b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f7ebdbdb7603c36a5751f3de33ea5f1"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a5f7ebdbdb7603c36a5751f3de33ea5f1">gradient</a> (<a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a> &amp;wrt) const =0</td></tr>
-<tr class="separator:a5f7ebdbdb7603c36a5751f3de33ea5f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ac779f81888c46b40804c9f716eaf10"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a6ac779f81888c46b40804c9f716eaf10">gradient</a> (const <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *wrt)=0</td></tr>
+<tr class="memdesc:a6ac779f81888c46b40804c9f716eaf10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the partial derivative of this with respect to input wrt.  <a href="#a6ac779f81888c46b40804c9f716eaf10">More...</a><br /></td></tr>
+<tr class="separator:a6ac779f81888c46b40804c9f716eaf10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01138fc6bce780fcd4b4e495ca050fce"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a01138fc6bce780fcd4b4e495ca050fce">to_string</a> (void) const =0</td></tr>
+<tr class="memdesc:a01138fc6bce780fcd4b4e495ca050fce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the string representation of the tensor.  <a href="#a01138fc6bce780fcd4b4e495ca050fce">More...</a><br /></td></tr>
 <tr class="separator:a01138fc6bce780fcd4b4e495ca050fce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p><a class="el" href="structade_1_1_tensor.html">Tensor</a> interface for ensuring derivation functionality </p>
+<div class="textblock"><p>Interface of traversible and differentiable nodes with shape information. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1eb974b967ef2da732ee074e73631342"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1eb974b967ef2da732ee074e73631342">&#9670;&nbsp;</a></span>~iTensor()</h2>
@@ -130,8 +136,38 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a5f7ebdbdb7603c36a5751f3de33ea5f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f7ebdbdb7603c36a5751f3de33ea5f1">&#9670;&nbsp;</a></span>gradient()</h2>
+<a id="aa7a69b3831cc43a6d173c08848662b24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7a69b3831cc43a6d173c08848662b24">&#9670;&nbsp;</a></span>accept()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void ade::iTensor::accept </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structade_1_1i_traveler.html">iTraveler</a> &amp;&#160;</td>
+          <td class="paramname"><em>visiter</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Obtain concrete information on either leaf or functor implementations. </p>
+
+<p>Implemented in <a class="el" href="structade_1_1_tensor.html#ae994443392939b32cf9ec98e91f7638a">ade::Tensor</a>, and <a class="el" href="structade_1_1i_functor.html#a66d87d6447e6d7336e2c118cc1e18a55">ade::iFunctor</a>.</p>
+
+</div>
+</div>
+<a id="a6ac779f81888c46b40804c9f716eaf10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ac779f81888c46b40804c9f716eaf10">&#9670;&nbsp;</a></span>gradient()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -142,9 +178,9 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">virtual <a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a> ade::iTensor::gradient </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *&#160;</td>
           <td class="paramname"><em>wrt</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
   </td>
@@ -153,9 +189,10 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>build the gradient subtree with respect to wrt node </p>
 
-<p>Implemented in <a class="el" href="structllo_1_1_direct_wrapper.html#a267f5a42ccf01690c5ec4ad6ec092300">llo::DirectWrapper&lt; Args &gt;</a>, <a class="el" href="structade_1_1_tensor.html#a794625b47e30ebee44faea13b50a106a">ade::Tensor</a>, <a class="el" href="structllo_1_1_source.html#afe045b1e0c4fe6b2e0e3cc6b182a8315">llo::Source&lt; T &gt;</a>, and <a class="el" href="structade_1_1_functor.html#a994a16ee0d6b97d7450ddbc050a006bb">ade::Functor&lt; opcode, Args &gt;</a>.</p>
+<p>Return the partial derivative of this with respect to input wrt. </p>
+
+<p>Implemented in <a class="el" href="structade_1_1_tensor.html#a00463a6a5011279d917bf08c7b45ea2b">ade::Tensor</a>, and <a class="el" href="structade_1_1_functor.html#aa8a91aa5d7298a658d5b15167b8528ec">ade::Functor</a>.</p>
 
 </div>
 </div>
@@ -182,9 +219,10 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get internal shape </p>
 
-<p>Implemented in <a class="el" href="structllo_1_1_direct_wrapper.html#acd20a2d37b1ed0af543a91953227b75c">llo::DirectWrapper&lt; Args &gt;</a>, <a class="el" href="structade_1_1_tensor.html#a7460655c01d7be7fed376d30b8aa3804">ade::Tensor</a>, <a class="el" href="structllo_1_1_source.html#a9e185272975252e021adb542c0ef9aec">llo::Source&lt; T &gt;</a>, and <a class="el" href="structade_1_1_functor.html#af7890f08b0f0f16065ea0b1411354a73">ade::Functor&lt; opcode, Args &gt;</a>.</p>
+<p>Return the shape held by this tensor. </p>
+
+<p>Implemented in <a class="el" href="structade_1_1_tensor.html#a7460655c01d7be7fed376d30b8aa3804">ade::Tensor</a>, and <a class="el" href="structade_1_1_functor.html#a00c3cbc202d5c94ab9a2fa2270e3a688">ade::Functor</a>.</p>
 
 </div>
 </div>
@@ -211,9 +249,10 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>represent tensor information as string (for debug purposes) </p>
 
-<p>Implemented in <a class="el" href="structllo_1_1_direct_wrapper.html#a6d2df47e1d93499f48643d4db64dbb95">llo::DirectWrapper&lt; Args &gt;</a>, <a class="el" href="structade_1_1_tensor.html#ac589897b8d4294ab3d272c1600bd4064">ade::Tensor</a>, <a class="el" href="structllo_1_1_source.html#a77da8f3b7bc43b249ae60df5724d2f06">llo::Source&lt; T &gt;</a>, and <a class="el" href="structade_1_1_functor.html#ace69ad9f61fe832c5a11ec59ce64af43">ade::Functor&lt; opcode, Args &gt;</a>.</p>
+<p>Return the string representation of the tensor. </p>
+
+<p>Implemented in <a class="el" href="structade_1_1_functor.html#a4503e570f95a289825384be36689be9a">ade::Functor</a>, and <a class="el" href="structade_1_1_tensor.html#ac589897b8d4294ab3d272c1600bd4064">ade::Tensor</a>.</p>
 
 </div>
 </div>

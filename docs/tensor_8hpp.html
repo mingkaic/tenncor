@@ -74,18 +74,24 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;memory&gt;</code><br />
-<code>#include &quot;util/error.hpp&quot;</code><br />
+<code>#include &quot;<a class="el" href="log_8hpp_source.html">ade/log/log.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="shape_8hpp_source.html">ade/shape.hpp</a>&quot;</code><br />
 </div>
 <p><a href="tensor_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_traveler.html">ade::iTraveler</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface to travel through graph, treating <a class="el" href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. ">Tensor</a> and <a class="el" href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. ">iFunctor</a> differently.  <a href="structade_1_1i_traveler.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface of traversible and differentiable nodes with shape information.  <a href="structade_1_1i_tensor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Smart pointer to <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a> ensuring non-null references.  <a href="structade_1_1_tensorptr.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html">ade::Tensor</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leaf of the graph commonly representing the variable in an equation.  <a href="structade_1_1_tensor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
@@ -95,10 +101,12 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a21f877a1205c5578f4929472b1fa671b"><td class="memItemLeft" align="right" valign="top">Tensorptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a21f877a1205c5578f4929472b1fa671b">ade::constant_one</a> (std::vector&lt; DimT &gt; shape)</td></tr>
-<tr class="separator:a21f877a1205c5578f4929472b1fa671b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e32aa85642c4ffeb7e7379d0b4fdd5e"><td class="memItemLeft" align="right" valign="top">Tensorptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a6e32aa85642c4ffeb7e7379d0b4fdd5e">ade::constant_zero</a> (std::vector&lt; DimT &gt; shape)</td></tr>
-<tr class="separator:a6e32aa85642c4ffeb7e7379d0b4fdd5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af467998d5df53ca21a0d0c19f3a7afaa"><td class="memItemLeft" align="right" valign="top">Tensorptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#af467998d5df53ca21a0d0c19f3a7afaa">ade::shaped_one</a> (Shape shape)</td></tr>
+<tr class="memdesc:af467998d5df53ca21a0d0c19f3a7afaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a <a class="el" href="structade_1_1_tensor.html#a21edc3441632e34df586632f813d2629" title="Represent a scalar containing value one. ">Tensor::SYMBOLIC_ONE</a> extended to input shape.  <a href="namespaceade.html#af467998d5df53ca21a0d0c19f3a7afaa">More...</a><br /></td></tr>
+<tr class="separator:af467998d5df53ca21a0d0c19f3a7afaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0dd34842c0ca097338a8dad3614e8061"><td class="memItemLeft" align="right" valign="top">Tensorptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a0dd34842c0ca097338a8dad3614e8061">ade::shaped_zero</a> (Shape shape)</td></tr>
+<tr class="memdesc:a0dd34842c0ca097338a8dad3614e8061"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a <a class="el" href="structade_1_1_tensor.html#a8c62991c6440560181d34f8be02ee4f5" title="Represent a scalar containing value zero. ">Tensor::SYMBOLIC_ZERO</a> extended to input shape.  <a href="namespaceade.html#a0dd34842c0ca097338a8dad3614e8061">More...</a><br /></td></tr>
+<tr class="separator:a0dd34842c0ca097338a8dad3614e8061"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->

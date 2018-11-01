@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Tenncor: llo/test/test_api.cpp File Reference</title>
+<title>Tenncor: llo/test/dynamic/test_api.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -61,7 +61,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_37a5bcfeff8e3f55b6b5ee63a08952c5.html">llo</a></li><li class="navelem"><a class="el" href="dir_41a258040bf916c8b05d97478d62b805.html">test</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_37a5bcfeff8e3f55b6b5ee63a08952c5.html">llo</a></li><li class="navelem"><a class="el" href="dir_41a258040bf916c8b05d97478d62b805.html">test</a></li><li class="navelem"><a class="el" href="dir_0e9e9c5a190fe51da95abd6edfca7e22.html">dynamic</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -86,41 +86,39 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ad1536bf43bceb76c6d062e8b161cbdc3"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#ad1536bf43bceb76c6d062e8b161cbdc3">UNARY_DBL</a> = std::function&lt; double(double)&gt;</td></tr>
-<tr class="separator:ad1536bf43bceb76c6d062e8b161cbdc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b8b8cb61b36e016b322b5d8978378eb"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a6b8b8cb61b36e016b322b5d8978378eb">UNARY_OP</a> = std::function&lt; <a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>(<a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a> &amp;)&gt;</td></tr>
-<tr class="separator:a6b8b8cb61b36e016b322b5d8978378eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a72c318f8bbd146dc50c780c373806652"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a72c318f8bbd146dc50c780c373806652">BINARY_OP</a> = std::function&lt; <a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>(<a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a> &amp;, <a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a> &amp;)&gt;</td></tr>
-<tr class="separator:a72c318f8bbd146dc50c780c373806652"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9eed26f890ffab27a1f98254d9a4a3ae"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a9eed26f890ffab27a1f98254d9a4a3ae"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a9eed26f890ffab27a1f98254d9a4a3ae">BINARY_FWD</a> = std::function&lt; T(T, T)&gt;</td></tr>
-<tr class="separator:a9eed26f890ffab27a1f98254d9a4a3ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf31189c2b6f907e095b874aec030dd2"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:acf31189c2b6f907e095b874aec030dd2"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#acf31189c2b6f907e095b874aec030dd2">BINARY_BWD</a> = std::function&lt; T(T, T, T, T)&gt;</td></tr>
-<tr class="separator:acf31189c2b6f907e095b874aec030dd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0416176d801e20441ec4ed8522c176cf"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a> = std::vector&lt; std::vector&lt; int32_t &gt; &gt;</td></tr>
-<tr class="separator:a0416176d801e20441ec4ed8522c176cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af863536444756eb5bb525470a3d368c6"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#af863536444756eb5bb525470a3d368c6">UnaryDblF</a> = std::function&lt; double(double)&gt;</td></tr>
+<tr class="separator:af863536444756eb5bb525470a3d368c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a802c759275175c3bb135d502defdba6d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a802c759275175c3bb135d502defdba6d">UnaryOpF</a> = std::function&lt; <a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a>(<a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a> &amp;)&gt;</td></tr>
+<tr class="separator:a802c759275175c3bb135d502defdba6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8b4913dc1af71d011a683f98fad3b6c"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#ae8b4913dc1af71d011a683f98fad3b6c">BinaryOpF</a> = std::function&lt; <a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a>(<a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a> &amp;, <a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a> &amp;)&gt;</td></tr>
+<tr class="separator:ae8b4913dc1af71d011a683f98fad3b6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc6a67acd6e318317965cb0470942d09"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:afc6a67acd6e318317965cb0470942d09"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#afc6a67acd6e318317965cb0470942d09">BinaryFwdF</a> = std::function&lt; T(T, T)&gt;</td></tr>
+<tr class="separator:afc6a67acd6e318317965cb0470942d09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cb611b7fa6349c0100441a53436355e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a6cb611b7fa6349c0100441a53436355e"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a6cb611b7fa6349c0100441a53436355e">BinaryBwdF</a> = std::function&lt; T(T, T, T, T)&gt;</td></tr>
+<tr class="separator:a6cb611b7fa6349c0100441a53436355e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af816362a86a0829de834ee7c8ddb8a57"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a> = std::vector&lt; std::vector&lt; int32_t &gt; &gt;</td></tr>
+<tr class="separator:af816362a86a0829de834ee7c8ddb8a57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a300e24c2f6f845f4977d3ca88a60019d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a300e24c2f6f845f4977d3ca88a60019d">create_2d</a> (<a class="el" href="structllo_1_1_generic_data.html">llo::GenericData</a> &amp;data)</td></tr>
-<tr class="separator:a300e24c2f6f845f4977d3ca88a60019d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeff96327eabca9c0ed10a3e282a98e47"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#aeff96327eabca9c0ed10a3e282a98e47">freivald</a> (<a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a> a, <a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a> b, <a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a> c)</td></tr>
-<tr class="separator:aeff96327eabca9c0ed10a3e282a98e47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:accfe3acb9015081d87ca291823c535c8"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#accfe3acb9015081d87ca291823c535c8">unary_generic</a> (SESSION &amp;sess, Range&lt; double &gt; range, <a class="el" href="test__api_8cpp.html#a6b8b8cb61b36e016b322b5d8978378eb">UNARY_OP</a> op, std::function&lt; void(<a class="el" href="structllo_1_1_generic_data.html">llo::GenericData</a> &amp;, <a class="el" href="structade_1_1_shape.html">ade::Shape</a> &amp;, std::vector&lt; double &gt; &amp;)&gt; verify, std::function&lt; void(double *, std::vector&lt; double &gt; &amp;)&gt; bwverify)</td></tr>
-<tr class="separator:accfe3acb9015081d87ca291823c535c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa539bc3830483a387bbd4af1f595be92"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#aa539bc3830483a387bbd4af1f595be92">unary_elementary</a> (SESSION &amp;sess, Range&lt; double &gt; range, <a class="el" href="test__api_8cpp.html#a6b8b8cb61b36e016b322b5d8978378eb">UNARY_OP</a> op, <a class="el" href="test__api_8cpp.html#ad1536bf43bceb76c6d062e8b161cbdc3">UNARY_DBL</a> fwd, <a class="el" href="test__api_8cpp.html#ad1536bf43bceb76c6d062e8b161cbdc3">UNARY_DBL</a> bwd, bool save_grad=true)</td></tr>
-<tr class="separator:aa539bc3830483a387bbd4af1f595be92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd941215cf97e7f1b4461f17ac6dfb71"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#acd941215cf97e7f1b4461f17ac6dfb71">binary_elementary</a> (SESSION &amp;sess, Range&lt; double &gt; range, <a class="el" href="test__api_8cpp.html#a72c318f8bbd146dc50c780c373806652">BINARY_OP</a> op, <a class="el" href="test__api_8cpp.html#a9eed26f890ffab27a1f98254d9a4a3ae">BINARY_FWD</a>&lt; double &gt; fwd, <a class="el" href="test__api_8cpp.html#acf31189c2b6f907e095b874aec030dd2">BINARY_BWD</a>&lt; double &gt; bwd)</td></tr>
-<tr class="separator:acd941215cf97e7f1b4461f17ac6dfb71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3376fb2d2d8791b4b9d1d9a35dba58e9"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a3376fb2d2d8791b4b9d1d9a35dba58e9">binary_elementary_int</a> (SESSION &amp;sess, Range&lt; int32_t &gt; range, <a class="el" href="test__api_8cpp.html#a72c318f8bbd146dc50c780c373806652">BINARY_OP</a> op, <a class="el" href="test__api_8cpp.html#a9eed26f890ffab27a1f98254d9a4a3ae">BINARY_FWD</a>&lt; int32_t &gt; fwd, <a class="el" href="test__api_8cpp.html#acf31189c2b6f907e095b874aec030dd2">BINARY_BWD</a>&lt; int32_t &gt; bwd)</td></tr>
-<tr class="separator:a3376fb2d2d8791b4b9d1d9a35dba58e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e00b669d9f91f8b968d524d8edfff73"><td class="memItemLeft" align="right" valign="top"><a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a3e00b669d9f91f8b968d524d8edfff73">create_2d</a> (<a class="el" href="structllo_1_1_generic_data.html">llo::GenericData</a> &amp;data)</td></tr>
+<tr class="separator:a3e00b669d9f91f8b968d524d8edfff73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a670fd79bcde3bae160f6ddd5d8f6d903"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a670fd79bcde3bae160f6ddd5d8f6d903">freivald</a> (<a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a> a, <a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a> b, <a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a> c)</td></tr>
+<tr class="separator:a670fd79bcde3bae160f6ddd5d8f6d903"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7effea8de7ba25a324ab55ae9adc2493"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a7effea8de7ba25a324ab55ae9adc2493">unary_generic</a> (simple::SessionT &amp;sess, retro::Range&lt; double &gt; range, <a class="el" href="test__api_8cpp.html#a802c759275175c3bb135d502defdba6d">UnaryOpF</a> op, std::function&lt; void(<a class="el" href="structllo_1_1_generic_data.html">llo::GenericData</a> &amp;, <a class="el" href="structade_1_1_shape.html">ade::Shape</a> &amp;, std::vector&lt; double &gt; &amp;)&gt; verify, std::function&lt; void(double *, std::vector&lt; double &gt; &amp;)&gt; bwverify)</td></tr>
+<tr class="separator:a7effea8de7ba25a324ab55ae9adc2493"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab3ca48935be2000354a511ba726fb3d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#aab3ca48935be2000354a511ba726fb3d">unary_elementary</a> (simple::SessionT &amp;sess, retro::Range&lt; double &gt; range, <a class="el" href="test__api_8cpp.html#a802c759275175c3bb135d502defdba6d">UnaryOpF</a> op, <a class="el" href="test__api_8cpp.html#af863536444756eb5bb525470a3d368c6">UnaryDblF</a> fwd, <a class="el" href="test__api_8cpp.html#af863536444756eb5bb525470a3d368c6">UnaryDblF</a> bwd, bool save_grad=true)</td></tr>
+<tr class="separator:aab3ca48935be2000354a511ba726fb3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6d830a1830cf33e5ede7e3934afa326"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#af6d830a1830cf33e5ede7e3934afa326">binary_elementary</a> (simple::SessionT &amp;sess, retro::Range&lt; double &gt; range, <a class="el" href="test__api_8cpp.html#ae8b4913dc1af71d011a683f98fad3b6c">BinaryOpF</a> op, <a class="el" href="test__api_8cpp.html#afc6a67acd6e318317965cb0470942d09">BinaryFwdF</a>&lt; double &gt; fwd, <a class="el" href="test__api_8cpp.html#a6cb611b7fa6349c0100441a53436355e">BinaryBwdF</a>&lt; double &gt; bwd)</td></tr>
+<tr class="separator:af6d830a1830cf33e5ede7e3934afa326"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e5d2bfc9883f8338558a112ddc8b31e"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a4e5d2bfc9883f8338558a112ddc8b31e">binary_elementary_int</a> (simple::SessionT &amp;sess, retro::Range&lt; int32_t &gt; range, <a class="el" href="test__api_8cpp.html#ae8b4913dc1af71d011a683f98fad3b6c">BinaryOpF</a> op, <a class="el" href="test__api_8cpp.html#afc6a67acd6e318317965cb0470942d09">BinaryFwdF</a>&lt; int32_t &gt; fwd, <a class="el" href="test__api_8cpp.html#a6cb611b7fa6349c0100441a53436355e">BinaryBwdF</a>&lt; int32_t &gt; bwd)</td></tr>
+<tr class="separator:a4e5d2bfc9883f8338558a112ddc8b31e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a461c984a6247f220fde82579b8fab468"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a461c984a6247f220fde82579b8fab468">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Abs)</td></tr>
 <tr class="separator:a461c984a6247f220fde82579b8fab468"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48a67dcd99184f9c5451fbc27b18439b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a48a67dcd99184f9c5451fbc27b18439b">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Neg)</td></tr>
 <tr class="separator:a48a67dcd99184f9c5451fbc27b18439b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a03a45fa8fe614e7c150db2477f5c47af"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a03a45fa8fe614e7c150db2477f5c47af">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Not)</td></tr>
-<tr class="separator:a03a45fa8fe614e7c150db2477f5c47af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a340d7c7c92253cbeb307fd49ebda30"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a3a340d7c7c92253cbeb307fd49ebda30">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Sin)</td></tr>
 <tr class="separator:a3a340d7c7c92253cbeb307fd49ebda30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21109270c4c95ad524d5d86392b7cf8b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a21109270c4c95ad524d5d86392b7cf8b">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Cos)</td></tr>
@@ -147,6 +145,10 @@ Functions</h2></td></tr>
 <tr class="separator:a5dd589b167f1105081003f4ccd4f61c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4dbd00e9f8783b52e2202e5834d53be5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a4dbd00e9f8783b52e2202e5834d53be5">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Div)</td></tr>
 <tr class="separator:a4dbd00e9f8783b52e2202e5834d53be5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33afece09ea0b40fe91dfc50d4d8d235"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a33afece09ea0b40fe91dfc50d4d8d235">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Min)</td></tr>
+<tr class="separator:a33afece09ea0b40fe91dfc50d4d8d235"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6098e32e19efe3e38b2f0b10851dcd5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#ab6098e32e19efe3e38b2f0b10851dcd5">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Max)</td></tr>
+<tr class="separator:ab6098e32e19efe3e38b2f0b10851dcd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a606bfa4f0a176e06aea72e5c29831bf4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a606bfa4f0a176e06aea72e5c29831bf4">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Eq)</td></tr>
 <tr class="separator:a606bfa4f0a176e06aea72e5c29831bf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:accaaea6b56c31c276b32d9bb4df3a9b3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#accaaea6b56c31c276b32d9bb4df3a9b3">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Neq)</td></tr>
@@ -159,33 +161,27 @@ Functions</h2></td></tr>
 <tr class="separator:aa8d49738c4426156768cee274b042cd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cdf739fb5856ddf4f6650d72eedc515"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a8cdf739fb5856ddf4f6650d72eedc515">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, NDims)</td></tr>
 <tr class="separator:a8cdf739fb5856ddf4f6650d72eedc515"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2cb7fad311ee15dad53b71703745fc40"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a2cb7fad311ee15dad53b71703745fc40">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Argmax)</td></tr>
-<tr class="separator:a2cb7fad311ee15dad53b71703745fc40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6469a9d8a5433b267b559d00a05fe2c8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a6469a9d8a5433b267b559d00a05fe2c8">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Rmax)</td></tr>
 <tr class="separator:a6469a9d8a5433b267b559d00a05fe2c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2bbd7afa5da39c828741e81fd17f1ba4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a2bbd7afa5da39c828741e81fd17f1ba4">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Rsum)</td></tr>
 <tr class="separator:a2bbd7afa5da39c828741e81fd17f1ba4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7da937909092b7a9676e80813e1a0779"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a7da937909092b7a9676e80813e1a0779">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Matmul2d)</td></tr>
 <tr class="separator:a7da937909092b7a9676e80813e1a0779"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2abc4fa61a29c4f48a12a80454ac5b65"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a2abc4fa61a29c4f48a12a80454ac5b65">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, DISABLED_Matmul)</td></tr>
-<tr class="separator:a2abc4fa61a29c4f48a12a80454ac5b65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae05f8d6eb95c4f4992fbf3228f7ffe70"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#ae05f8d6eb95c4f4992fbf3228f7ffe70">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Permute)</td></tr>
 <tr class="separator:ae05f8d6eb95c4f4992fbf3228f7ffe70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7aa36a76311f19227ae781092fde71f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#ab7aa36a76311f19227ae781092fde71f">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Extend)</td></tr>
 <tr class="separator:ab7aa36a76311f19227ae781092fde71f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeeac286cb4a54e02b904a5dff0063c12"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#aeeac286cb4a54e02b904a5dff0063c12">TEST_F</a> (<a class="el" href="struct_a_p_i.html">API</a>, Reshape)</td></tr>
-<tr class="separator:aeeac286cb4a54e02b904a5dff0063c12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a5431c7d991ab632107a2b22cd5da24c2"><td class="memItemLeft" align="right" valign="top">static const Range&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a5431c7d991ab632107a2b22cd5da24c2">default_range</a> = {-9876, 9876}</td></tr>
-<tr class="separator:a5431c7d991ab632107a2b22cd5da24c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ef6340bc2e388db4b4318435dd76bae"><td class="memItemLeft" align="right" valign="top">static const retro::Range&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#a5ef6340bc2e388db4b4318435dd76bae">default_range</a> = {-9876, 9876}</td></tr>
+<tr class="separator:a5ef6340bc2e388db4b4318435dd76bae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6f5744451d4abbb5df1e089c8d02c31"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="test__api_8cpp.html#ac6f5744451d4abbb5df1e089c8d02c31">FREIVALD_N</a> = 10</td></tr>
 <tr class="separator:ac6f5744451d4abbb5df1e089c8d02c31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="acf31189c2b6f907e095b874aec030dd2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf31189c2b6f907e095b874aec030dd2">&#9670;&nbsp;</a></span>BINARY_BWD</h2>
+<a id="a6cb611b7fa6349c0100441a53436355e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6cb611b7fa6349c0100441a53436355e">&#9670;&nbsp;</a></span>BinaryBwdF</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -193,15 +189,15 @@ Variables</h2></td></tr>
 template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="test__api_8cpp.html#acf31189c2b6f907e095b874aec030dd2">BINARY_BWD</a> =  std::function&lt;T(T,T,T,T)&gt;</td>
+          <td class="memname">using <a class="el" href="test__api_8cpp.html#a6cb611b7fa6349c0100441a53436355e">BinaryBwdF</a> =  std::function&lt;T(T,T,T,T)&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a9eed26f890ffab27a1f98254d9a4a3ae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9eed26f890ffab27a1f98254d9a4a3ae">&#9670;&nbsp;</a></span>BINARY_FWD</h2>
+<a id="afc6a67acd6e318317965cb0470942d09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc6a67acd6e318317965cb0470942d09">&#9670;&nbsp;</a></span>BinaryFwdF</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -209,63 +205,63 @@ template&lt;typename T &gt; </div>
 template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="test__api_8cpp.html#a9eed26f890ffab27a1f98254d9a4a3ae">BINARY_FWD</a> =  std::function&lt;T(T,T)&gt;</td>
+          <td class="memname">using <a class="el" href="test__api_8cpp.html#afc6a67acd6e318317965cb0470942d09">BinaryFwdF</a> =  std::function&lt;T(T,T)&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a72c318f8bbd146dc50c780c373806652"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a72c318f8bbd146dc50c780c373806652">&#9670;&nbsp;</a></span>BINARY_OP</h2>
+<a id="ae8b4913dc1af71d011a683f98fad3b6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8b4913dc1af71d011a683f98fad3b6c">&#9670;&nbsp;</a></span>BinaryOpF</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="test__api_8cpp.html#a72c318f8bbd146dc50c780c373806652">BINARY_OP</a> =  std::function&lt;<a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>(<a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>&amp;, <a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>&amp;)&gt;</td>
+          <td class="memname">using <a class="el" href="test__api_8cpp.html#ae8b4913dc1af71d011a683f98fad3b6c">BinaryOpF</a> =  std::function&lt;<a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a>(<a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a>&amp;,<a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a>&amp;)&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a0416176d801e20441ec4ed8522c176cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0416176d801e20441ec4ed8522c176cf">&#9670;&nbsp;</a></span>TWODV</h2>
+<a id="af816362a86a0829de834ee7c8ddb8a57"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af816362a86a0829de834ee7c8ddb8a57">&#9670;&nbsp;</a></span>MatVecT</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a> =  std::vector&lt;std::vector&lt;int32_t&gt; &gt;</td>
+          <td class="memname">using <a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a> =  std::vector&lt;std::vector&lt;int32_t&gt; &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ad1536bf43bceb76c6d062e8b161cbdc3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1536bf43bceb76c6d062e8b161cbdc3">&#9670;&nbsp;</a></span>UNARY_DBL</h2>
+<a id="af863536444756eb5bb525470a3d368c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af863536444756eb5bb525470a3d368c6">&#9670;&nbsp;</a></span>UnaryDblF</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="test__api_8cpp.html#ad1536bf43bceb76c6d062e8b161cbdc3">UNARY_DBL</a> =  std::function&lt;double(double)&gt;</td>
+          <td class="memname">using <a class="el" href="test__api_8cpp.html#af863536444756eb5bb525470a3d368c6">UnaryDblF</a> =  std::function&lt;double(double)&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a6b8b8cb61b36e016b322b5d8978378eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b8b8cb61b36e016b322b5d8978378eb">&#9670;&nbsp;</a></span>UNARY_OP</h2>
+<a id="a802c759275175c3bb135d502defdba6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a802c759275175c3bb135d502defdba6d">&#9670;&nbsp;</a></span>UnaryOpF</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="test__api_8cpp.html#a6b8b8cb61b36e016b322b5d8978378eb">UNARY_OP</a> =  std::function&lt;<a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>(<a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>&amp;)&gt;</td>
+          <td class="memname">using <a class="el" href="test__api_8cpp.html#a802c759275175c3bb135d502defdba6d">UnaryOpF</a> =  std::function&lt;<a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a>(<a class="el" href="structllo_1_1_data_node.html">llo::DataNode</a>&amp;)&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -273,8 +269,8 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="acd941215cf97e7f1b4461f17ac6dfb71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd941215cf97e7f1b4461f17ac6dfb71">&#9670;&nbsp;</a></span>binary_elementary()</h2>
+<a id="af6d830a1830cf33e5ede7e3934afa326"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6d830a1830cf33e5ede7e3934afa326">&#9670;&nbsp;</a></span>binary_elementary()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -285,31 +281,31 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">static void binary_elementary </td>
           <td>(</td>
-          <td class="paramtype">SESSION &amp;&#160;</td>
+          <td class="paramtype">simple::SessionT &amp;&#160;</td>
           <td class="paramname"><em>sess</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Range&lt; double &gt;&#160;</td>
+          <td class="paramtype">retro::Range&lt; double &gt;&#160;</td>
           <td class="paramname"><em>range</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a72c318f8bbd146dc50c780c373806652">BINARY_OP</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#ae8b4913dc1af71d011a683f98fad3b6c">BinaryOpF</a>&#160;</td>
           <td class="paramname"><em>op</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a9eed26f890ffab27a1f98254d9a4a3ae">BINARY_FWD</a>&lt; double &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#afc6a67acd6e318317965cb0470942d09">BinaryFwdF</a>&lt; double &gt;&#160;</td>
           <td class="paramname"><em>fwd</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#acf31189c2b6f907e095b874aec030dd2">BINARY_BWD</a>&lt; double &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a6cb611b7fa6349c0100441a53436355e">BinaryBwdF</a>&lt; double &gt;&#160;</td>
           <td class="paramname"><em>bwd</em>&#160;</td>
         </tr>
         <tr>
@@ -327,8 +323,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a3376fb2d2d8791b4b9d1d9a35dba58e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3376fb2d2d8791b4b9d1d9a35dba58e9">&#9670;&nbsp;</a></span>binary_elementary_int()</h2>
+<a id="a4e5d2bfc9883f8338558a112ddc8b31e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e5d2bfc9883f8338558a112ddc8b31e">&#9670;&nbsp;</a></span>binary_elementary_int()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -339,31 +335,31 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">static void binary_elementary_int </td>
           <td>(</td>
-          <td class="paramtype">SESSION &amp;&#160;</td>
+          <td class="paramtype">simple::SessionT &amp;&#160;</td>
           <td class="paramname"><em>sess</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Range&lt; int32_t &gt;&#160;</td>
+          <td class="paramtype">retro::Range&lt; int32_t &gt;&#160;</td>
           <td class="paramname"><em>range</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a72c318f8bbd146dc50c780c373806652">BINARY_OP</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#ae8b4913dc1af71d011a683f98fad3b6c">BinaryOpF</a>&#160;</td>
           <td class="paramname"><em>op</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a9eed26f890ffab27a1f98254d9a4a3ae">BINARY_FWD</a>&lt; int32_t &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#afc6a67acd6e318317965cb0470942d09">BinaryFwdF</a>&lt; int32_t &gt;&#160;</td>
           <td class="paramname"><em>fwd</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#acf31189c2b6f907e095b874aec030dd2">BINARY_BWD</a>&lt; int32_t &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a6cb611b7fa6349c0100441a53436355e">BinaryBwdF</a>&lt; int32_t &gt;&#160;</td>
           <td class="paramname"><em>bwd</em>&#160;</td>
         </tr>
         <tr>
@@ -381,14 +377,14 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a300e24c2f6f845f4977d3ca88a60019d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a300e24c2f6f845f4977d3ca88a60019d">&#9670;&nbsp;</a></span>create_2d()</h2>
+<a id="a3e00b669d9f91f8b968d524d8edfff73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e00b669d9f91f8b968d524d8edfff73">&#9670;&nbsp;</a></span>create_2d()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a> create_2d </td>
+          <td class="memname"><a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a> create_2d </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structllo_1_1_generic_data.html">llo::GenericData</a> &amp;&#160;</td>
           <td class="paramname"><em>data</em></td><td>)</td>
@@ -399,8 +395,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="aeff96327eabca9c0ed10a3e282a98e47"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeff96327eabca9c0ed10a3e282a98e47">&#9670;&nbsp;</a></span>freivald()</h2>
+<a id="a670fd79bcde3bae160f6ddd5d8f6d903"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a670fd79bcde3bae160f6ddd5d8f6d903">&#9670;&nbsp;</a></span>freivald()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -408,19 +404,19 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">bool freivald </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a>&#160;</td>
           <td class="paramname"><em>a</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a>&#160;</td>
           <td class="paramname"><em>b</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a0416176d801e20441ec4ed8522c176cf">TWODV</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#af816362a86a0829de834ee7c8ddb8a57">MatVecT</a>&#160;</td>
           <td class="paramname"><em>c</em>&#160;</td>
         </tr>
         <tr>
@@ -434,7 +430,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a461c984a6247f220fde82579b8fab468"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a461c984a6247f220fde82579b8fab468">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[1/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a461c984a6247f220fde82579b8fab468">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[1/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -462,7 +458,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a48a67dcd99184f9c5451fbc27b18439b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48a67dcd99184f9c5451fbc27b18439b">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[2/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a48a67dcd99184f9c5451fbc27b18439b">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[2/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -489,36 +485,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a03a45fa8fe614e7c150db2477f5c47af"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a03a45fa8fe614e7c150db2477f5c47af">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[3/30]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">TEST_F </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_a_p_i.html">API</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Not&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a3a340d7c7c92253cbeb307fd49ebda30"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a340d7c7c92253cbeb307fd49ebda30">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[4/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a340d7c7c92253cbeb307fd49ebda30">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[3/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -546,7 +514,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a21109270c4c95ad524d5d86392b7cf8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a21109270c4c95ad524d5d86392b7cf8b">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[5/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a21109270c4c95ad524d5d86392b7cf8b">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[4/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -574,7 +542,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a6058800160c6bdedfb46271934bca012"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6058800160c6bdedfb46271934bca012">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[6/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6058800160c6bdedfb46271934bca012">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[5/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -602,7 +570,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="ad4aac26090d20c25bf2302b06fca68c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad4aac26090d20c25bf2302b06fca68c0">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[7/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4aac26090d20c25bf2302b06fca68c0">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[6/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -630,7 +598,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="ae44ed8d3c782a473c5d7640a83981aa0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae44ed8d3c782a473c5d7640a83981aa0">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[8/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae44ed8d3c782a473c5d7640a83981aa0">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[7/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -658,7 +626,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a71aaae207128ed5b63e9ea355bdabe04"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71aaae207128ed5b63e9ea355bdabe04">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[9/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a71aaae207128ed5b63e9ea355bdabe04">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[8/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -686,7 +654,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="ae281bca03267474c3d95e27680cbd379"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae281bca03267474c3d95e27680cbd379">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[10/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae281bca03267474c3d95e27680cbd379">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[9/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -714,7 +682,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a61d9bf2c1a58f81bbdf917b0e88e33dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a61d9bf2c1a58f81bbdf917b0e88e33dc">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[11/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a61d9bf2c1a58f81bbdf917b0e88e33dc">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[10/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -742,7 +710,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="abe9dfec523d97cf990782d316987e5ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abe9dfec523d97cf990782d316987e5ab">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[12/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#abe9dfec523d97cf990782d316987e5ab">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[11/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -770,7 +738,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a945d667b859ceb5f4a9a8abba86a625e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a945d667b859ceb5f4a9a8abba86a625e">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[13/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a945d667b859ceb5f4a9a8abba86a625e">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[12/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -798,7 +766,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a7fc6fbb4349c809aeba735400c12f471"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7fc6fbb4349c809aeba735400c12f471">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[14/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a7fc6fbb4349c809aeba735400c12f471">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[13/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -826,7 +794,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a5dd589b167f1105081003f4ccd4f61c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5dd589b167f1105081003f4ccd4f61c6">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[15/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5dd589b167f1105081003f4ccd4f61c6">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[14/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -854,7 +822,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a4dbd00e9f8783b52e2202e5834d53be5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4dbd00e9f8783b52e2202e5834d53be5">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[16/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a4dbd00e9f8783b52e2202e5834d53be5">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[15/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -881,8 +849,64 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="a33afece09ea0b40fe91dfc50d4d8d235"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33afece09ea0b40fe91dfc50d4d8d235">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[16/28]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">TEST_F </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_a_p_i.html">API</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Min&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab6098e32e19efe3e38b2f0b10851dcd5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6098e32e19efe3e38b2f0b10851dcd5">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[17/28]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">TEST_F </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_a_p_i.html">API</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Max&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a606bfa4f0a176e06aea72e5c29831bf4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a606bfa4f0a176e06aea72e5c29831bf4">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[17/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a606bfa4f0a176e06aea72e5c29831bf4">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[18/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -910,7 +934,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="accaaea6b56c31c276b32d9bb4df3a9b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#accaaea6b56c31c276b32d9bb4df3a9b3">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[18/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#accaaea6b56c31c276b32d9bb4df3a9b3">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[19/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -938,7 +962,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="ae902852811aba465879ba6c922d8e64e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae902852811aba465879ba6c922d8e64e">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[19/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae902852811aba465879ba6c922d8e64e">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[20/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -966,7 +990,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a3570e66ac5db522f59c4ef79366f3244"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3570e66ac5db522f59c4ef79366f3244">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[20/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a3570e66ac5db522f59c4ef79366f3244">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[21/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -994,7 +1018,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="aa8d49738c4426156768cee274b042cd5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8d49738c4426156768cee274b042cd5">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[21/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8d49738c4426156768cee274b042cd5">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[22/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1022,7 +1046,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a8cdf739fb5856ddf4f6650d72eedc515"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8cdf739fb5856ddf4f6650d72eedc515">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[22/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a8cdf739fb5856ddf4f6650d72eedc515">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[23/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1049,36 +1073,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a2cb7fad311ee15dad53b71703745fc40"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2cb7fad311ee15dad53b71703745fc40">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[23/30]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">TEST_F </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_a_p_i.html">API</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Argmax&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a6469a9d8a5433b267b559d00a05fe2c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6469a9d8a5433b267b559d00a05fe2c8">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[24/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6469a9d8a5433b267b559d00a05fe2c8">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[24/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1106,7 +1102,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a2bbd7afa5da39c828741e81fd17f1ba4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2bbd7afa5da39c828741e81fd17f1ba4">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[25/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bbd7afa5da39c828741e81fd17f1ba4">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[25/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1134,7 +1130,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a7da937909092b7a9676e80813e1a0779"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7da937909092b7a9676e80813e1a0779">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[26/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a7da937909092b7a9676e80813e1a0779">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[26/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1161,36 +1157,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a2abc4fa61a29c4f48a12a80454ac5b65"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2abc4fa61a29c4f48a12a80454ac5b65">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[27/30]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">TEST_F </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_a_p_i.html">API</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">DISABLED_Matmul&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ae05f8d6eb95c4f4992fbf3228f7ffe70"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae05f8d6eb95c4f4992fbf3228f7ffe70">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[28/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae05f8d6eb95c4f4992fbf3228f7ffe70">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[27/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1218,7 +1186,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="ab7aa36a76311f19227ae781092fde71f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7aa36a76311f19227ae781092fde71f">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[29/30]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7aa36a76311f19227ae781092fde71f">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[28/28]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1245,36 +1213,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="aeeac286cb4a54e02b904a5dff0063c12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeeac286cb4a54e02b904a5dff0063c12">&#9670;&nbsp;</a></span>TEST_F() <span class="overload">[30/30]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">TEST_F </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_a_p_i.html">API</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Reshape&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa539bc3830483a387bbd4af1f595be92"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa539bc3830483a387bbd4af1f595be92">&#9670;&nbsp;</a></span>unary_elementary()</h2>
+<a id="aab3ca48935be2000354a511ba726fb3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab3ca48935be2000354a511ba726fb3d">&#9670;&nbsp;</a></span>unary_elementary()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1285,31 +1225,31 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">static void unary_elementary </td>
           <td>(</td>
-          <td class="paramtype">SESSION &amp;&#160;</td>
+          <td class="paramtype">simple::SessionT &amp;&#160;</td>
           <td class="paramname"><em>sess</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Range&lt; double &gt;&#160;</td>
+          <td class="paramtype">retro::Range&lt; double &gt;&#160;</td>
           <td class="paramname"><em>range</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a6b8b8cb61b36e016b322b5d8978378eb">UNARY_OP</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a802c759275175c3bb135d502defdba6d">UnaryOpF</a>&#160;</td>
           <td class="paramname"><em>op</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#ad1536bf43bceb76c6d062e8b161cbdc3">UNARY_DBL</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#af863536444756eb5bb525470a3d368c6">UnaryDblF</a>&#160;</td>
           <td class="paramname"><em>fwd</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#ad1536bf43bceb76c6d062e8b161cbdc3">UNARY_DBL</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#af863536444756eb5bb525470a3d368c6">UnaryDblF</a>&#160;</td>
           <td class="paramname"><em>bwd</em>, </td>
         </tr>
         <tr>
@@ -1333,8 +1273,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="accfe3acb9015081d87ca291823c535c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#accfe3acb9015081d87ca291823c535c8">&#9670;&nbsp;</a></span>unary_generic()</h2>
+<a id="a7effea8de7ba25a324ab55ae9adc2493"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7effea8de7ba25a324ab55ae9adc2493">&#9670;&nbsp;</a></span>unary_generic()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1345,19 +1285,19 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">static void unary_generic </td>
           <td>(</td>
-          <td class="paramtype">SESSION &amp;&#160;</td>
+          <td class="paramtype">simple::SessionT &amp;&#160;</td>
           <td class="paramname"><em>sess</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Range&lt; double &gt;&#160;</td>
+          <td class="paramtype">retro::Range&lt; double &gt;&#160;</td>
           <td class="paramname"><em>range</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a6b8b8cb61b36e016b322b5d8978378eb">UNARY_OP</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="test__api_8cpp.html#a802c759275175c3bb135d502defdba6d">UnaryOpF</a>&#160;</td>
           <td class="paramname"><em>op</em>, </td>
         </tr>
         <tr>
@@ -1388,8 +1328,8 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
-<a id="a5431c7d991ab632107a2b22cd5da24c2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5431c7d991ab632107a2b22cd5da24c2">&#9670;&nbsp;</a></span>default_range</h2>
+<a id="a5ef6340bc2e388db4b4318435dd76bae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ef6340bc2e388db4b4318435dd76bae">&#9670;&nbsp;</a></span>default_range</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1398,7 +1338,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const Range&lt;double&gt; default_range = {-9876, 9876}</td>
+          <td class="memname">const retro::Range&lt;double&gt; default_range = {-9876, 9876}</td>
         </tr>
       </table>
   </td>

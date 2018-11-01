@@ -64,8 +64,14 @@ $(function() {
 &#160;
 
 <h3><a id="index_a"></a>- a -</h3><ul>
-<li>as_list()
-: <a class="el" href="structade_1_1_shape.html#ab44853104cb2fdd892bfe24b30cb070c">ade::Shape</a>
+<li>accept()
+: <a class="el" href="structade_1_1i_functor.html#a66d87d6447e6d7336e2c118cc1e18a55">ade::iFunctor</a>
+, <a class="el" href="structade_1_1i_tensor.html#aa7a69b3831cc43a6d173c08848662b24">ade::iTensor</a>
+, <a class="el" href="structade_1_1_tensor.html#ae994443392939b32cf9ec98e91f7638a">ade::Tensor</a>
+</li>
+<li>access()
+: <a class="el" href="structade_1_1_coord_map.html#aa0509214368694f866addb0df5df784a">ade::CoordMap</a>
+, <a class="el" href="structade_1_1i_coord_map.html#a180b66d9db3782b17d7507bfe6967236">ade::iCoordMap</a>
 </li>
 <li>at()
 : <a class="el" href="structade_1_1_shape.html#ab75dac360d94e88c3215b9dcf1e29752">ade::Shape</a>
@@ -74,8 +80,12 @@ $(function() {
 
 
 <h3><a id="index_b"></a>- b -</h3><ul>
+<li>backward()
+: <a class="el" href="structade_1_1_coord_map.html#af3f34b43814282f682569a1c5c599889">ade::CoordMap</a>
+, <a class="el" href="structade_1_1i_coord_map.html#ad40fe274c62ad72e920c6496d0951ec1">ade::iCoordMap</a>
+</li>
 <li>begin()
-: <a class="el" href="structade_1_1_shape.html#ad81f5e516c2588d8136d1bc1a63a1e1b">ade::Shape</a>
+: <a class="el" href="structade_1_1_shape.html#ac5bcad1a815356a3623978f9608abf50">ade::Shape</a>
 </li>
 </ul>
 
@@ -90,44 +100,65 @@ $(function() {
 <li>convert_to()
 : <a class="el" href="structllo_1_1_generic_data.html#ac689472ef80809db20ad83f60042dac7">llo::GenericData</a>
 </li>
+<li>CoordMap()
+: <a class="el" href="structade_1_1_coord_map.html#afb5c1dcf8267026e74f1fe3b3997785f">ade::CoordMap</a>
+</li>
+<li>copy()
+: <a class="el" href="structllo_1_1_source.html#a7dae00390e432d4f37a49b7e33c6e56b">llo::Source&lt; T &gt;</a>
+</li>
 </ul>
 
 
 <h3><a id="index_d"></a>- d -</h3><ul>
-<li>DirectWrapper()
-: <a class="el" href="structllo_1_1_direct_wrapper.html#a9928177aba99d7b601928f70fa349981">llo::DirectWrapper&lt; Args &gt;</a>
+<li>data()
+: <a class="el" href="structllo_1_1_data_node.html#a4772b4e9bd7253d02f5a89e57be1c386">llo::DataNode</a>
+, <a class="el" href="structllo_1_1i_source.html#a90ea20f6def00bb4522a5c7baf27b8f6">llo::iSource</a>
+, <a class="el" href="structllo_1_1_source.html#a33d7a472b44a4cde6c7d218818f57be1">llo::Source&lt; T &gt;</a>
+</li>
+<li>DataNode()
+: <a class="el" href="structllo_1_1_data_node.html#afdc532ff71063be67c2114ecc8d121d2">llo::DataNode</a>
+</li>
+<li>derive()
+: <a class="el" href="structllo_1_1_data_node.html#affa0248c9c5c7fa4188d13b4b67c9e06">llo::DataNode</a>
 </li>
 </ul>
 
 
 <h3><a id="index_e"></a>- e -</h3><ul>
 <li>end()
-: <a class="el" href="structade_1_1_shape.html#a1d72e1fc880f30d57587bf5b874096a8">ade::Shape</a>
+: <a class="el" href="structade_1_1_shape.html#a85700f185320892b5dde0474c88fd33c">ade::Shape</a>
 </li>
-<li>eval_helper()
-: <a class="el" href="structllo_1_1_direct_wrapper.html#a3c2888a37416ebc659b9d5d9884cb0a6">llo::DirectWrapper&lt; Args &gt;</a>
+<li>error()
+: <a class="el" href="structade_1_1_def_logger.html#a5a30f80d76f4690733221d0da91ff3f2">ade::DefLogger</a>
+, <a class="el" href="structade_1_1i_logger.html#a8ed2bc690b40832e873f7458e69dcf6b">ade::iLogger</a>
+, <a class="el" href="struct_test_logger.html#a251edd0536f34a74c69f3cbecc1f022f">TestLogger</a>
 </li>
-<li>evaluate()
-: <a class="el" href="structllo_1_1_direct_wrapper.html#a19f03006bc5d976f67b2ee39cb94d4fb">llo::DirectWrapper&lt; Args &gt;</a>
-, <a class="el" href="structllo_1_1i_evaluable.html#a10fd0710e25d9e1ffcc0f0e0d179de38">llo::iEvaluable</a>
-, <a class="el" href="structllo_1_1_source.html#ab2c35ab2a80f85f6832b330471339373">llo::Source&lt; T &gt;</a>
+<li>EvalCtx()
+: <a class="el" href="structllo_1_1_eval_ctx.html#a61e246ee388a79aac89dba080f615584">llo::EvalCtx</a>
+</li>
+<li>Evaluator()
+: <a class="el" href="structllo_1_1_evaluator.html#afdedeffc8cc66b6afce2bc4b8e3804b2">llo::Evaluator</a>
 </li>
 <li>exec()
-: <a class="el" href="structllo_1_1_executer.html#adba216c7876f336ee0dfecbeab1b38ec">llo::Executer&lt; opcode, T, Args &gt;</a>
-, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_b_i_n_o_00_01_t_01_4.html#ab8379f1f89cf3649ef3991c44795b550">llo::Executer&lt; ade::BINO, T &gt;</a>
-, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_f_l_i_p_00_01_t_00_01uint8__t_01_4.html#afd80346d7da6f585b0778dbc2191a27d">llo::Executer&lt; ade::FLIP, T, uint8_t &gt;</a>
-, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_m_a_t_m_u_l_00_01_t_01_4.html#aeeb9165d2d474593a5747b0b198a3173">llo::Executer&lt; ade::MATMUL, T &gt;</a>
-, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_m_a_t_m_u_l_00_01_t_00_01uint8__t_00_01uint8__t_01_4.html#aee7d6cc01d973d20a61a6bd77cad214d">llo::Executer&lt; ade::MATMUL, T, uint8_t, uint8_t &gt;</a>
-, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_n___d_i_m_s_00_01_t_00_01uint8__t_01_4.html#aa357dfa3d22ffbffbefc62d41e55a8b5">llo::Executer&lt; ade::N_DIMS, T, uint8_t &gt;</a>
-, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_n___e_l_e_m_s_00_01_t_01_4.html#ad829b06fec7e3f6d8907f2f373183ff5">llo::Executer&lt; ade::N_ELEMS, T &gt;</a>
-, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_p_e_r_m_u_t_e_00_01_t_00_01std_1_1vector_3_01uint8__t_01_4_01_4.html#af8578b352decc55f37bd160e7df018a5">llo::Executer&lt; ade::PERMUTE, T, std::vector&lt; uint8_t &gt; &gt;</a>
+: <a class="el" href="structllo_1_1_executer.html#a5a9b22b4775b26785f566ea034e57ae3">llo::Executer&lt; OP, T &gt;</a>
+, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_c_o_p_y_00_01_t_01_4.html#a97a6a95f2c04f521a9f3453f5cfef27c">llo::Executer&lt; ade::COPY, T &gt;</a>
+, <a class="el" href="structllo_1_1_executer_3_01ade_1_1_r_a_n_d___b_i_n_o_00_01_t_01_4.html#a8fba0209c67769c9f73bb95d92b1a9c6">llo::Executer&lt; ade::RAND_BINO, T &gt;</a>
 </li>
 </ul>
 
 
 <h3><a id="index_f"></a>- f -</h3><ul>
+<li>fatal()
+: <a class="el" href="structade_1_1_def_logger.html#a40a4bc33563eaa415f1b929640e91157">ade::DefLogger</a>
+, <a class="el" href="structade_1_1i_logger.html#a0410a8ec51f37b8f742b78ffd30237aa">ade::iLogger</a>
+, <a class="el" href="struct_test_logger.html#abd50bacaa15f868caf73ad2195582177">TestLogger</a>
+</li>
+<li>forward()
+: <a class="el" href="structade_1_1_coord_map.html#a179711b98f6980bd4e5e8f592fccb0c6">ade::CoordMap</a>
+, <a class="el" href="structade_1_1i_coord_map.html#abc27f1c79994569812647d63401e208d">ade::iCoordMap</a>
+</li>
 <li>Functor()
-: <a class="el" href="structade_1_1_functor.html#ae085dffa39e435e3609e5ba610f1d110">ade::Functor&lt; opcode, Args &gt;</a>
+: <a class="el" href="structade_1_1_functor.html#a10f8297f3357a778a93b3c57167417a6">ade::Functor</a>
 </li>
 </ul>
 
@@ -137,43 +168,43 @@ $(function() {
 : <a class="el" href="structllo_1_1_generic_data.html#a55a23000ad17dc42ac4d1b7085bea40c">llo::GenericData</a>
 </li>
 <li>GenericRef()
-: <a class="el" href="structllo_1_1_generic_ref.html#a68bfd5024e80187e0ca1e620df1be1de">llo::GenericRef</a>
+: <a class="el" href="structllo_1_1_generic_ref.html#aeecba1404dbeb7670f5173f4cf93c2c6">llo::GenericRef</a>
 </li>
 <li>get()
-: <a class="el" href="structade_1_1_functor.html#a1a0cd82f8470248d79b7c9612e94c976">ade::Functor&lt; opcode, Args &gt;</a>
-, <a class="el" href="structade_1_1_tensor.html#a83cfe3eb74512e4104f0b52841fcb5df">ade::Tensor</a>
+: <a class="el" href="structade_1_1_functor.html#aa2292d9f235bc1ee0615a5ad4c88d8ba">ade::Functor</a>
+, <a class="el" href="structade_1_1_tensor.html#a12d316a94c3e1a766afa4df1c74970cf">ade::Tensor</a>
 , <a class="el" href="structade_1_1_tensorptr.html#abe33b19e27214d8995fa92781432c59c">ade::Tensorptr</a>
-, <a class="el" href="structllo_1_1_direct_wrapper.html#a05d1abfa14fb39fd3bdb21a9a31f6fdd">llo::DirectWrapper&lt; Args &gt;</a>
-, <a class="el" href="structllo_1_1_source.html#a35c0b07ab263f16e968ee1a97f1548f5">llo::Source&lt; T &gt;</a>
+, <a class="el" href="structllo_1_1_source.html#ae6cb2e2a4b948f6920400b8fd1f83782">llo::Source&lt; T &gt;</a>
+</li>
+<li>get_children()
+: <a class="el" href="structade_1_1_functor.html#ab15cc2bb1f427f25b16d78080f5a0572">ade::Functor</a>
+, <a class="el" href="structade_1_1i_functor.html#a074e2f5304eb5d59e585e480d27f8953">ade::iFunctor</a>
 </li>
 <li>get_code()
-: <a class="el" href="structade_1_1_functor.html#a9b75f7667696d68614705f64438b7200">ade::Functor&lt; opcode, Args &gt;</a>
+: <a class="el" href="structade_1_1_functor.html#a7f11bd1d4f4ddc2ccdb7ab283c562b49">ade::Functor</a>
 , <a class="el" href="structade_1_1i_functor.html#aa709a158c3e4df237b9fad463771487f">ade::iFunctor</a>
-, <a class="el" href="structllo_1_1_direct_wrapper.html#a37f6dcdb0a23a4521b091999b1853909">llo::DirectWrapper&lt; Args &gt;</a>
 </li>
-<li>get_refs()
-: <a class="el" href="structade_1_1_functor.html#ac42f18a8679607ab392b6e88c6b32d09">ade::Functor&lt; opcode, Args &gt;</a>
-, <a class="el" href="structade_1_1i_functor.html#ab803b02941477a186010ce5bac9a791d">ade::iFunctor</a>
-, <a class="el" href="structllo_1_1_direct_wrapper.html#ae66f31274b2f55cb833387beb5bbe324">llo::DirectWrapper&lt; Args &gt;</a>
+<li>get_scalar()
+: <a class="el" href="structllo_1_1_source.html#a4b41d81c37d0db19be491ae7cd884c3e">llo::Source&lt; T &gt;</a>
 </li>
-<li>grad_helper()
-: <a class="el" href="structade_1_1_functor.html#ab70457aa907f206bb99e7ca2fb1aa4d7">ade::Functor&lt; opcode, Args &gt;</a>
+<li>get_src()
+: <a class="el" href="structllo_1_1_data_node.html#a996b653ad205b29ab80922fd1c79337a">llo::DataNode</a>
 </li>
 <li>gradient()
-: <a class="el" href="structade_1_1_functor.html#a994a16ee0d6b97d7450ddbc050a006bb">ade::Functor&lt; opcode, Args &gt;</a>
-, <a class="el" href="structade_1_1i_tensor.html#a5f7ebdbdb7603c36a5751f3de33ea5f1">ade::iTensor</a>
-, <a class="el" href="structade_1_1_tensor.html#a794625b47e30ebee44faea13b50a106a">ade::Tensor</a>
-, <a class="el" href="structllo_1_1_direct_wrapper.html#a267f5a42ccf01690c5ec4ad6ec092300">llo::DirectWrapper&lt; Args &gt;</a>
-, <a class="el" href="structllo_1_1_source.html#afe045b1e0c4fe6b2e0e3cc6b182a8315">llo::Source&lt; T &gt;</a>
+: <a class="el" href="structade_1_1_functor.html#aa8a91aa5d7298a658d5b15167b8528ec">ade::Functor</a>
+, <a class="el" href="structade_1_1i_tensor.html#a6ac779f81888c46b40804c9f716eaf10">ade::iTensor</a>
+, <a class="el" href="structade_1_1_tensor.html#a00463a6a5011279d917bf08c7b45ea2b">ade::Tensor</a>
+</li>
+<li>GraphStat()
+: <a class="el" href="structllo_1_1_graph_stat.html#af796f28c6a30fc143ee8c0708e290fa9">llo::GraphStat</a>
 </li>
 </ul>
 
 
 <h3><a id="index_i"></a>- i -</h3><ul>
 <li>inner()
-: <a class="el" href="structllo_1_1_direct_wrapper.html#a968ef9c61faecad2c0288d332820d9a3">llo::DirectWrapper&lt; Args &gt;</a>
-, <a class="el" href="structllo_1_1i_evaluable.html#a364d0013a604ba56f76c1de207462b0e">llo::iEvaluable</a>
-, <a class="el" href="structllo_1_1_source.html#a7cdd34aed200aab0ca0154a92b779b56">llo::Source&lt; T &gt;</a>
+: <a class="el" href="structllo_1_1i_source.html#ad0b1b3594e603b0f1ff19184b5229ec1">llo::iSource</a>
+, <a class="el" href="structllo_1_1_source.html#aca2b1b1aad74573743859329c23ebdd4">llo::Source&lt; T &gt;</a>
 </li>
 </ul>
 
@@ -189,9 +220,6 @@ $(function() {
 <li>n_elems()
 : <a class="el" href="structade_1_1_shape.html#a04fd9614b166a1519221441abeff050d">ade::Shape</a>
 </li>
-<li>n_rank()
-: <a class="el" href="structade_1_1_shape.html#a2219117d9c33ac0d5d0e9032a30b19ab">ade::Shape</a>
-</li>
 <li>native_type()
 : <a class="el" href="structllo_1_1i_source.html#af7dacf3af20cd637516cc1803207b483">llo::iSource</a>
 , <a class="el" href="structllo_1_1_source.html#a7840aafe93147ea135358cca681d2887">llo::Source&lt; T &gt;</a>
@@ -204,15 +232,18 @@ $(function() {
 : <a class="el" href="structade_1_1_tensorptr.html#a530e6549d45b7f3f357905198879aa0f">ade::Tensorptr</a>
 </li>
 <li>operator=()
-: <a class="el" href="structade_1_1_shape.html#aff04970d322736d89caeece427a3ac03">ade::Shape</a>
-, <a class="el" href="structllo_1_1_placeholder.html#a7fb0d1005dc77b8f30cc43ccf6d015ea">llo::Placeholder&lt; T &gt;</a>
+: <a class="el" href="structade_1_1_shape.html#acd2a09bd0d441203386e75fe5251d697">ade::Shape</a>
+, <a class="el" href="structllo_1_1_place_holder.html#aab58d2d748a70fc664ab2dd6b3ea127e">llo::PlaceHolder&lt; T &gt;</a>
 </li>
 </ul>
 
 
 <h3><a id="index_p"></a>- p -</h3><ul>
-<li>Placeholder()
-: <a class="el" href="structllo_1_1_placeholder.html#a587082bd609ee47264d6869ba3f0a25e">llo::Placeholder&lt; T &gt;</a>
+<li>PathFinder()
+: <a class="el" href="structade_1_1_path_finder.html#a97e908678c6b0136bf6e0ccaaa1e5b4f">ade::PathFinder</a>
+</li>
+<li>PlaceHolder()
+: <a class="el" href="structllo_1_1_place_holder.html#ac342364040e547d2b9a5b9a8dce2e805">llo::PlaceHolder&lt; T &gt;</a>
 </li>
 </ul>
 
@@ -225,29 +256,42 @@ $(function() {
 <li>ref()
 : <a class="el" href="structade_1_1_tensorptr.html#a43e398be476f6a57ffbb42b93d314fa9">ade::Tensorptr</a>
 </li>
+<li>reverse()
+: <a class="el" href="structade_1_1_coord_map.html#a729c3bc4daf89f8185d22c199dab88a4">ade::CoordMap</a>
+, <a class="el" href="structade_1_1i_coord_map.html#aefa18191949c10d211e16c7d07957f88">ade::iCoordMap</a>
+</li>
 </ul>
 
 
 <h3><a id="index_s"></a>- s -</h3><ul>
 <li>shape()
-: <a class="el" href="structade_1_1_functor.html#af7890f08b0f0f16065ea0b1411354a73">ade::Functor&lt; opcode, Args &gt;</a>
+: <a class="el" href="structade_1_1_functor.html#a00c3cbc202d5c94ab9a2fa2270e3a688">ade::Functor</a>
 , <a class="el" href="structade_1_1i_tensor.html#a782c626a29501f974532905657c8d66b">ade::iTensor</a>
 </li>
 <li>Shape()
-: <a class="el" href="structade_1_1_shape.html#ab5dd96f6f468e8b17e66e94ec22a9b41">ade::Shape</a>
+: <a class="el" href="structade_1_1_shape.html#a30248491a0ecde17ae698ff6419917c6">ade::Shape</a>
 </li>
 <li>shape()
 : <a class="el" href="structade_1_1_tensor.html#a7460655c01d7be7fed376d30b8aa3804">ade::Tensor</a>
-, <a class="el" href="structllo_1_1_direct_wrapper.html#acd20a2d37b1ed0af543a91953227b75c">llo::DirectWrapper&lt; Args &gt;</a>
-, <a class="el" href="structllo_1_1_source.html#a9e185272975252e021adb542c0ef9aec">llo::Source&lt; T &gt;</a>
+</li>
+<li>source()
+: <a class="el" href="structllo_1_1_data_node.html#a412496c79e9b7ffe52ea7db0d8b1e794">llo::DataNode</a>
 </li>
 <li>Source()
-: <a class="el" href="structllo_1_1_source.html#a4ad2ccfbdb2d2ce495a9c5e5c0081ea4">llo::Source&lt; T &gt;</a>
+: <a class="el" href="structllo_1_1_source.html#ae8c90f69b2ffd3828f934e781b7b5d8d">llo::Source&lt; T &gt;</a>
 </li>
 </ul>
 
 
 <h3><a id="index_t"></a>- t -</h3><ul>
+<li>TearDown()
+: <a class="el" href="struct_a_p_i.html#a11d8384d704cec34cfb08aad9742472c">API</a>
+, <a class="el" href="struct_c_o_o_r_d.html#a4d0ce8968404b9026081a71880b752a1">COORD</a>
+, <a class="el" href="struct_d_t_y_p_e.html#a328f14706c9d297aa59d885a2dc40f86">DTYPE</a>
+, <a class="el" href="struct_l_o_g.html#a010bcb9309098fe9c0496f8e5ab002f0">LOG</a>
+, <a class="el" href="struct_n_o_d_e.html#a19335d31d29d44019fe67655b97ce1f8">NODE</a>
+, <a class="el" href="struct_s_h_a_p_e.html#a431c4086d62fbeefd75c6ba15ab0234f">SHAPE</a>
+</li>
 <li>Tensor()
 : <a class="el" href="structade_1_1_tensor.html#ae6bba462f252fd2c8c4d50cca35f0b93">ade::Tensor</a>
 </li>
@@ -255,12 +299,12 @@ $(function() {
 : <a class="el" href="structade_1_1_tensorptr.html#a0a689a5fc65e812539dce83d064912c0">ade::Tensorptr</a>
 </li>
 <li>to_string()
-: <a class="el" href="structade_1_1_functor.html#ace69ad9f61fe832c5a11ec59ce64af43">ade::Functor&lt; opcode, Args &gt;</a>
+: <a class="el" href="structade_1_1_coord_map.html#a35bd718362918b31a1f0f2a86c2a3c3b">ade::CoordMap</a>
+, <a class="el" href="structade_1_1_functor.html#a4503e570f95a289825384be36689be9a">ade::Functor</a>
+, <a class="el" href="structade_1_1i_coord_map.html#a1303dc91fea22702ba403732ba25227f">ade::iCoordMap</a>
 , <a class="el" href="structade_1_1i_tensor.html#a01138fc6bce780fcd4b4e495ca050fce">ade::iTensor</a>
 , <a class="el" href="structade_1_1_shape.html#a92348dfc2c555cae7d1d42a48f59bd6d">ade::Shape</a>
 , <a class="el" href="structade_1_1_tensor.html#ac589897b8d4294ab3d272c1600bd4064">ade::Tensor</a>
-, <a class="el" href="structllo_1_1_direct_wrapper.html#a6d2df47e1d93499f48643d4db64dbb95">llo::DirectWrapper&lt; Args &gt;</a>
-, <a class="el" href="structllo_1_1_source.html#a77da8f3b7bc43b249ae60df5724d2f06">llo::Source&lt; T &gt;</a>
 </li>
 </ul>
 
@@ -269,21 +313,45 @@ $(function() {
 <li>vector_assign()
 : <a class="el" href="structade_1_1_shape.html#ad84123094695df9886c8cc8f76d4d21e">ade::Shape</a>
 </li>
+<li>visit()
+: <a class="el" href="structade_1_1i_traveler.html#a61de422a7412edfe9406c0a53a9c2c03">ade::iTraveler</a>
+, <a class="el" href="structade_1_1_path_finder.html#abea2f985569ec7769f0ec82281248c7e">ade::PathFinder</a>
+, <a class="el" href="structllo_1_1_evaluator.html#a205b9f59926a92f905a5cf59cdc76910">llo::Evaluator</a>
+, <a class="el" href="structllo_1_1_graph_stat.html#afdb73a1a0a23db4ef8e8e17487613834">llo::GraphStat</a>
+</li>
+</ul>
+
+
+<h3><a id="index_w"></a>- w -</h3><ul>
+<li>warn()
+: <a class="el" href="structade_1_1_def_logger.html#a7b8b85dbdf2fa536556df47f1811b713">ade::DefLogger</a>
+, <a class="el" href="structade_1_1i_logger.html#a67a4f91050f91844a719ae49169c479e">ade::iLogger</a>
+, <a class="el" href="struct_test_logger.html#accc25d91d021c85df7f3d1a5d98ebe16">TestLogger</a>
+</li>
 </ul>
 
 
 <h3><a id="index_0x7e"></a>- ~ -</h3><ul>
-<li>~iEvaluable()
-: <a class="el" href="structllo_1_1i_evaluable.html#ac771cbe88564b960f6ad7f8e57d92e55">llo::iEvaluable</a>
+<li>~DataNode()
+: <a class="el" href="structllo_1_1_data_node.html#a1f61ba5ab97be1c02ee8583dc0b6f1f2">llo::DataNode</a>
+</li>
+<li>~iCoordMap()
+: <a class="el" href="structade_1_1i_coord_map.html#a4e8f4d22d68fbf9512f97bfb4d317009">ade::iCoordMap</a>
 </li>
 <li>~iFunctor()
 : <a class="el" href="structade_1_1i_functor.html#a9f5aebb693faea7cc5a822ca403f40c0">ade::iFunctor</a>
+</li>
+<li>~iLogger()
+: <a class="el" href="structade_1_1i_logger.html#a83e0deab12ad9a5ade032c6fb177ab97">ade::iLogger</a>
 </li>
 <li>~iSource()
 : <a class="el" href="structllo_1_1i_source.html#a38da28ad557c2e08df9366441acd3177">llo::iSource</a>
 </li>
 <li>~iTensor()
 : <a class="el" href="structade_1_1i_tensor.html#a1eb974b967ef2da732ee074e73631342">ade::iTensor</a>
+</li>
+<li>~iTraveler()
+: <a class="el" href="structade_1_1i_traveler.html#af8279cb7fbe1363298287f4e2061254a">ade::iTraveler</a>
 </li>
 <li>~Tensorptr()
 : <a class="el" href="structade_1_1_tensorptr.html#ad80d90228d477bac5a71ff2cd2f51aa4">ade::Tensorptr</a>

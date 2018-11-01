@@ -4,8 +4,6 @@ option go_package = "github.com/mingkaic/tenncor/pbm";
 
 package tenncor;
 
-import "google/protobuf/any.proto";
-
 message ByteArr { bytes data = 1; }
 message DoubleArr { repeated double data = 1; }
 message FloatArr { repeated float data = 1; }
@@ -16,18 +14,34 @@ message Uint64Arr { repeated uint64 data = 1; }
 
 message Source
 {
-	// takes messages DoubleArr, ..., Uint64Arr depending on dtype
-	google.protobuf.Any data = 1;
-	uint32 type = 2;
-	bytes shape = 3;
+	bytes shape = 1;
+    oneof data {
+        ByteArr sbyte_arrs = 2;
+        ByteArr ubyte_arrs = 3;
+        DoubleArr double_arrs = 4;
+        FloatArr float_arrs = 5;
+        Int32Arr sshort_arrs = 6;
+        Int32Arr sint_arrs = 7;
+        Int64Arr slong_arrs = 8;
+        Uint32Arr ushort_arrs = 9;
+        Uint32Arr uint_arrs = 10;
+        Uint64Arr ulong_arrs = 11;
+    }
+}
+
+message NodeArg
+{
+    // -1 for symbolic_zero, -2 for symbolic_one,
+    // otherwise index of node in graph
+    int32 idx = 1;
+    repeated double coord = 2 [packed = true];
 }
 
 message Functor
 {
-    uint32 opcode = 1;
+    string opname = 1;
     // indices of args in graph
-    repeated uint32 args = 2;
-    repeated uint32 meta = 3;
+    repeated NodeArg args = 2;
 }
 
 message Node

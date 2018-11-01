@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['ievaluable',['iEvaluable',['../structllo_1_1i_evaluable.html',1,'llo']]],
-  ['ifunctor',['iFunctor',['../structade_1_1i_functor.html',1,'ade']]],
-  ['isource',['iSource',['../structllo_1_1i_source.html',1,'llo']]],
-  ['itensor',['iTensor',['../structade_1_1i_tensor.html',1,'ade']]]
+  ['genericdata',['GenericData',['../structllo_1_1_generic_data.html',1,'llo']]],
+  ['genericref',['GenericRef',['../structllo_1_1_generic_ref.html',1,'llo']]],
+  ['graphstat',['GraphStat',['../structllo_1_1_graph_stat.html',1,'llo']]]
 ];

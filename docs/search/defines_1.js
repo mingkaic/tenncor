@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ade_5ffunctor_5fhpp',['ADE_FUNCTOR_HPP',['../functor_8hpp.html#a646c8c5e369c97d29823863ca56374b0',1,'functor.hpp']]]
+  ['binary',['BINARY',['../opmap_8hpp.html#a403d496dccddc6ca6650fab2a2d457ae',1,'opmap.hpp']]]
 ];

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['directwrapper',['DirectWrapper',['../structllo_1_1_direct_wrapper.html',1,'llo']]],
-  ['dtype',['DTYPE',['../struct_d_t_y_p_e.html',1,'']]]
+  ['coord',['COORD',['../struct_c_o_o_r_d.html',1,'']]],
+  ['coordmap',['CoordMap',['../structade_1_1_coord_map.html',1,'ade']]]
 ];

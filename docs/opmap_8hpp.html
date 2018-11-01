@@ -69,6 +69,7 @@ $(function() {
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">opmap.hpp File Reference</div>  </div>
@@ -82,21 +83,11 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer.html">llo::Executer&lt; opcode, T, Args &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer.html">llo::Executer&lt; OP, T &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_f_l_i_p_00_01_t_00_01uint8__t_01_4.html">llo::Executer&lt; ade::FLIP, T, uint8_t &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_c_o_p_y_00_01_t_01_4.html">llo::Executer&lt; ade::COPY, T &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_b_i_n_o_00_01_t_01_4.html">llo::Executer&lt; ade::BINO, T &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_n___e_l_e_m_s_00_01_t_01_4.html">llo::Executer&lt; ade::N_ELEMS, T &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_n___d_i_m_s_00_01_t_00_01uint8__t_01_4.html">llo::Executer&lt; ade::N_DIMS, T, uint8_t &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_m_a_t_m_u_l_00_01_t_01_4.html">llo::Executer&lt; ade::MATMUL, T &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_m_a_t_m_u_l_00_01_t_00_01uint8__t_00_01uint8__t_01_4.html">llo::Executer&lt; ade::MATMUL, T, uint8_t, uint8_t &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_p_e_r_m_u_t_e_00_01_t_00_01std_1_1vector_3_01uint8__t_01_4_01_4.html">llo::Executer&lt; ade::PERMUTE, T, std::vector&lt; uint8_t &gt; &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_executer_3_01ade_1_1_r_a_n_d___b_i_n_o_00_01_t_01_4.html">llo::Executer&lt; ade::RAND_BINO, T &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
@@ -106,33 +97,35 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:af6a11b1de3e3d419bf1bf7064ca04be0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opmap_8hpp.html#af6a11b1de3e3d419bf1bf7064ca04be0">UNARY_ELEM</a>(OP,  METHOD)</td></tr>
-<tr class="separator:af6a11b1de3e3d419bf1bf7064ca04be0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada298674374c23528ba03daf901116b0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opmap_8hpp.html#ada298674374c23528ba03daf901116b0">BINARY_ELEM</a>(OP,  METHOD)</td></tr>
-<tr class="separator:ada298674374c23528ba03daf901116b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86b0c3082521b172520619313e5d1978"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opmap_8hpp.html#a86b0c3082521b172520619313e5d1978">UNARY_REDUCE</a>(OP,  METHOD)</td></tr>
-<tr class="separator:a86b0c3082521b172520619313e5d1978"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba343baf682b09516fd59ecc4abc9523"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opmap_8hpp.html#aba343baf682b09516fd59ecc4abc9523">UNARY_COPY</a>(OP)</td></tr>
-<tr class="separator:aba343baf682b09516fd59ecc4abc9523"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8ab03742db276a0f267133610820fd9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opmap_8hpp.html#af8ab03742db276a0f267133610820fd9">UNARY</a>(OP,  METHOD)</td></tr>
+<tr class="separator:af8ab03742db276a0f267133610820fd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a403d496dccddc6ca6650fab2a2d457ae"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opmap_8hpp.html#a403d496dccddc6ca6650fab2a2d457ae">BINARY</a>(OP,  METHOD)</td></tr>
+<tr class="separator:a403d496dccddc6ca6650fab2a2d457ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acefb246ccc8de67677e36e7b110b058b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="opmap_8hpp.html#acefb246ccc8de67677e36e7b110b058b">NARY</a>(OP,  METHOD)</td></tr>
+<tr class="separator:acefb246ccc8de67677e36e7b110b058b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a6ec0ba51bfa245ed21dfe6b84bc995c1"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacello.html#a6ec0ba51bfa245ed21dfe6b84bc995c1">llo::DataArgsT</a> = std::vector&lt; std::pair&lt; <a class="el" href="namespaceade.html#a0ef5f1cbd91bffedaec8b24004b5597a">ade::CoordPtrT</a>, GenericData &gt; &gt;</td></tr>
+<tr class="separator:a6ec0ba51bfa245ed21dfe6b84bc995c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a221b5d58fec1d7b3a534edf0d885255e"><td class="memTemplParams" colspan="2">template&lt;ade::OPCODE opcode, typename... Args&gt; </td></tr>
-<tr class="memitem:a221b5d58fec1d7b3a534edf0d885255e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">llo::exec</a> (GenericData &amp;out, std::vector&lt; GenericData &gt; &amp;data, Args... args)</td></tr>
-<tr class="separator:a221b5d58fec1d7b3a534edf0d885255e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92aafd2ab4407025881e2f9a0b7852b1"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:a92aafd2ab4407025881e2f9a0b7852b1"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacello.html#a92aafd2ab4407025881e2f9a0b7852b1">llo::op_exec</a> (<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">ade::OPCODE</a> opcode, GenericData &amp;out, std::vector&lt; GenericData &gt; &amp;data, Args... args)</td></tr>
-<tr class="separator:a92aafd2ab4407025881e2f9a0b7852b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cc1d4f37f8f5fda5d4174c25d3f3bee"><td class="memTemplParams" colspan="2">template&lt;ade::OPCODE OP&gt; </td></tr>
+<tr class="memitem:a0cc1d4f37f8f5fda5d4174c25d3f3bee"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacello.html#a0cc1d4f37f8f5fda5d4174c25d3f3bee">llo::exec</a> (GenericData &amp;out, DataArgsT &amp;data)</td></tr>
+<tr class="separator:a0cc1d4f37f8f5fda5d4174c25d3f3bee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf503fcb029864e47a51221d0a50de85"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacello.html#adf503fcb029864e47a51221d0a50de85">llo::op_exec</a> (<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">ade::OPCODE</a> opcode, GenericData &amp;out, DataArgsT &amp;data)</td></tr>
+<tr class="separator:adf503fcb029864e47a51221d0a50de85"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="ada298674374c23528ba03daf901116b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ada298674374c23528ba03daf901116b0">&#9670;&nbsp;</a></span>BINARY_ELEM</h2>
+<a id="a403d496dccddc6ca6650fab2a2d457ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a403d496dccddc6ca6650fab2a2d457ae">&#9670;&nbsp;</a></span>BINARY</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define BINARY_ELEM</td>
+          <td class="memname">#define BINARY</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">OP, </td>
@@ -150,38 +143,20 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;\</div><div class="line">struct Executer&lt;ade::OP,T&gt; { <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">exec</a>\</div><div class="line">(GenericData&amp; out, std::vector&lt;GenericData&gt;&amp; data)\</div><div class="line">{ METHOD((T*) out.data_.get(),\</div><div class="line">(T*) data[0].data_.get(), data[0].shape_.n_elems(),\</div><div class="line">(T*) data[1].data_.get(), data[1].shape_.n_elems()); } };</div><div class="ttc" id="namespacello_html_a221b5d58fec1d7b3a534edf0d885255e"><div class="ttname"><a href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">llo::exec</a></div><div class="ttdeci">void exec(GenericData &amp;out, std::vector&lt; GenericData &gt; &amp;data, Args... args)</div><div class="ttdef"><b>Definition:</b> opmap.hpp:169</div></div>
+<b>Value:</b><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">struct </span>Executer&lt;<a class="code" href="namespaceade.html">ade</a>::OP,T&gt;{\</div><div class="line">static <span class="keywordtype">void</span> <a class="code" href="namespacello.html#a0cc1d4f37f8f5fda5d4174c25d3f3bee">exec</a> (GenericData&amp; out, <a class="code" href="namespacello.html#a6ec0ba51bfa245ed21dfe6b84bc995c1">DataArgsT</a>&amp; data) {\</div><div class="line">METHOD((T*) out.data_.get(), out.shape_, VecRef&lt;T&gt;{data[0].first,\</div><div class="line">(T*) data[0].second.data_.get(), data[0].second.shape_}, VecRef&lt;T&gt;{\</div><div class="line">data[1].first, (T*) data[1].second.data_.get(), data[1].second.shape_}); } };</div><div class="ttc" id="namespacello_html_a6ec0ba51bfa245ed21dfe6b84bc995c1"><div class="ttname"><a href="namespacello.html#a6ec0ba51bfa245ed21dfe6b84bc995c1">llo::DataArgsT</a></div><div class="ttdeci">std::vector&lt; std::pair&lt; ade::CoordPtrT, GenericData &gt; &gt; DataArgsT</div><div class="ttdef"><b>Definition:</b> opmap.hpp:20</div></div>
+<div class="ttc" id="namespaceade_html"><div class="ttname"><a href="namespaceade.html">ade</a></div><div class="ttdef"><b>Definition:</b> coord.hpp:18</div></div>
+<div class="ttc" id="namespacello_html_a0cc1d4f37f8f5fda5d4174c25d3f3bee"><div class="ttname"><a href="namespacello.html#a0cc1d4f37f8f5fda5d4174c25d3f3bee">llo::exec</a></div><div class="ttdeci">void exec(GenericData &amp;out, DataArgsT &amp;data)</div><div class="ttdef"><b>Definition:</b> opmap.hpp:112</div></div>
 </div><!-- fragment -->
 </div>
 </div>
-<a id="aba343baf682b09516fd59ecc4abc9523"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba343baf682b09516fd59ecc4abc9523">&#9670;&nbsp;</a></span>UNARY_COPY</h2>
+<a id="acefb246ccc8de67677e36e7b110b058b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acefb246ccc8de67677e36e7b110b058b">&#9670;&nbsp;</a></span>NARY</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define UNARY_COPY</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">OP</td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;\</div><div class="line">struct Executer&lt;ade::OP,T&gt; {\</div><div class="line">static <span class="keywordtype">void</span> <a class="code" href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">exec</a> (GenericData&amp; out, std::vector&lt;GenericData&gt;&amp; data)\</div><div class="line">{ <a class="code" href="namespacello.html#af6371809f65dc1765f9b6bc68d8fd4e5">copyover</a>((T*) out.data_.get(), out.shape_.n_elems(),\</div><div class="line">(T*) data[0].data_.get(), data[0].shape_.n_elems()); } };</div><div class="ttc" id="namespacello_html_a221b5d58fec1d7b3a534edf0d885255e"><div class="ttname"><a href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">llo::exec</a></div><div class="ttdeci">void exec(GenericData &amp;out, std::vector&lt; GenericData &gt; &amp;data, Args... args)</div><div class="ttdef"><b>Definition:</b> opmap.hpp:169</div></div>
-<div class="ttc" id="namespacello_html_af6371809f65dc1765f9b6bc68d8fd4e5"><div class="ttname"><a href="namespacello.html#af6371809f65dc1765f9b6bc68d8fd4e5">llo::copyover</a></div><div class="ttdeci">void copyover(T *out, size_t nout, const T *in, size_t nin)</div><div class="ttdef"><b>Definition:</b> operator.hpp:418</div></div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="af6a11b1de3e3d419bf1bf7064ca04be0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af6a11b1de3e3d419bf1bf7064ca04be0">&#9670;&nbsp;</a></span>UNARY_ELEM</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define UNARY_ELEM</td>
+          <td class="memname">#define NARY</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">OP, </td>
@@ -199,18 +174,20 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;\</div><div class="line">struct Executer&lt;ade::OP,T&gt; { <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">exec</a>\</div><div class="line">(GenericData&amp; out, std::vector&lt;GenericData&gt;&amp; data)\</div><div class="line">{ METHOD((T*) out.data_.get(),\</div><div class="line">(T*) data[0].data_.get(), out.shape_.n_elems()); } };</div><div class="ttc" id="namespacello_html_a221b5d58fec1d7b3a534edf0d885255e"><div class="ttname"><a href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">llo::exec</a></div><div class="ttdeci">void exec(GenericData &amp;out, std::vector&lt; GenericData &gt; &amp;data, Args... args)</div><div class="ttdef"><b>Definition:</b> opmap.hpp:169</div></div>
+<b>Value:</b><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">struct </span>Executer&lt;<a class="code" href="namespaceade.html">ade</a>::OP,T&gt; {\</div><div class="line">static <span class="keywordtype">void</span> <a class="code" href="namespacello.html#a0cc1d4f37f8f5fda5d4174c25d3f3bee">exec</a> (GenericData&amp; out, <a class="code" href="namespacello.html#a6ec0ba51bfa245ed21dfe6b84bc995c1">DataArgsT</a>&amp; data){\</div><div class="line">std::vector&lt;VecRef&lt;T&gt;&gt; args(data.size());\</div><div class="line">std::transform(data.begin(), data.end(), args.begin(),\</div><div class="line">[](std::pair&lt;ade::CoordPtrT,GenericData&gt;&amp; gd) { <span class="keywordflow">return</span> VecRef&lt;T&gt;{gd.first,\</div><div class="line">(T*) gd.second.data_.get(), gd.second.shape_}; });\</div><div class="line">METHOD((T*) out.data_.get(), out.shape_, args); } };</div><div class="ttc" id="namespacello_html_a6ec0ba51bfa245ed21dfe6b84bc995c1"><div class="ttname"><a href="namespacello.html#a6ec0ba51bfa245ed21dfe6b84bc995c1">llo::DataArgsT</a></div><div class="ttdeci">std::vector&lt; std::pair&lt; ade::CoordPtrT, GenericData &gt; &gt; DataArgsT</div><div class="ttdef"><b>Definition:</b> opmap.hpp:20</div></div>
+<div class="ttc" id="namespaceade_html"><div class="ttname"><a href="namespaceade.html">ade</a></div><div class="ttdef"><b>Definition:</b> coord.hpp:18</div></div>
+<div class="ttc" id="namespacello_html_a0cc1d4f37f8f5fda5d4174c25d3f3bee"><div class="ttname"><a href="namespacello.html#a0cc1d4f37f8f5fda5d4174c25d3f3bee">llo::exec</a></div><div class="ttdeci">void exec(GenericData &amp;out, DataArgsT &amp;data)</div><div class="ttdef"><b>Definition:</b> opmap.hpp:112</div></div>
 </div><!-- fragment -->
 </div>
 </div>
-<a id="a86b0c3082521b172520619313e5d1978"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a86b0c3082521b172520619313e5d1978">&#9670;&nbsp;</a></span>UNARY_REDUCE</h2>
+<a id="af8ab03742db276a0f267133610820fd9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8ab03742db276a0f267133610820fd9">&#9670;&nbsp;</a></span>UNARY</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define UNARY_REDUCE</td>
+          <td class="memname">#define UNARY</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">OP, </td>
@@ -228,7 +205,9 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;\</div><div class="line">struct Executer&lt;ade::OP,T&gt; {\</div><div class="line">static <span class="keywordtype">void</span> <a class="code" href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">exec</a> (GenericData&amp; out, std::vector&lt;GenericData&gt;&amp; data)\</div><div class="line">{ T* ptr = (T*) out.data_.get();\</div><div class="line">METHOD(*ptr, (T*) data[0].data_.get(), data[0].shape_.n_elems()); } };</div><div class="ttc" id="namespacello_html_a221b5d58fec1d7b3a534edf0d885255e"><div class="ttname"><a href="namespacello.html#a221b5d58fec1d7b3a534edf0d885255e">llo::exec</a></div><div class="ttdeci">void exec(GenericData &amp;out, std::vector&lt; GenericData &gt; &amp;data, Args... args)</div><div class="ttdef"><b>Definition:</b> opmap.hpp:169</div></div>
+<b>Value:</b><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;<span class="keyword">struct </span>Executer&lt;<a class="code" href="namespaceade.html">ade</a>::OP,T&gt;{\</div><div class="line">static <span class="keywordtype">void</span> <a class="code" href="namespacello.html#a0cc1d4f37f8f5fda5d4174c25d3f3bee">exec</a> (GenericData&amp; out, <a class="code" href="namespacello.html#a6ec0ba51bfa245ed21dfe6b84bc995c1">DataArgsT</a>&amp; data) {\</div><div class="line">METHOD((T*) out.data_.get(), VecRef&lt;T&gt;{data[0].first,\</div><div class="line">(T*) data[0].second.data_.get(), data[0].second.shape_}); } };</div><div class="ttc" id="namespacello_html_a6ec0ba51bfa245ed21dfe6b84bc995c1"><div class="ttname"><a href="namespacello.html#a6ec0ba51bfa245ed21dfe6b84bc995c1">llo::DataArgsT</a></div><div class="ttdeci">std::vector&lt; std::pair&lt; ade::CoordPtrT, GenericData &gt; &gt; DataArgsT</div><div class="ttdef"><b>Definition:</b> opmap.hpp:20</div></div>
+<div class="ttc" id="namespaceade_html"><div class="ttname"><a href="namespaceade.html">ade</a></div><div class="ttdef"><b>Definition:</b> coord.hpp:18</div></div>
+<div class="ttc" id="namespacello_html_a0cc1d4f37f8f5fda5d4174c25d3f3bee"><div class="ttname"><a href="namespacello.html#a0cc1d4f37f8f5fda5d4174c25d3f3bee">llo::exec</a></div><div class="ttdeci">void exec(GenericData &amp;out, DataArgsT &amp;data)</div><div class="ttdef"><b>Definition:</b> opmap.hpp:112</div></div>
 </div><!-- fragment -->
 </div>
 </div>

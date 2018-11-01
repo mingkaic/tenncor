@@ -73,23 +73,17 @@ $(function() {
 <div class="title">node.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;cassert&gt;</code><br />
-<code>#include &quot;<a class="el" href="functor_8hpp_source.html">ade/functor.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="opmap_8hpp_source.html">llo/opmap.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="eval_8hpp_source.html">llo/eval.hpp</a>&quot;</code><br />
 </div>
 <p><a href="node_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1i_evaluable.html">llo::iEvaluable</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1i_source.html">llo::iSource</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_source.html">llo::Source&lt; T &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leaf evaluable holding tensor data.  <a href="structllo_1_1_source.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_placeholder.html">llo::Placeholder&lt; T &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_direct_wrapper.html">llo::DirectWrapper&lt; Args &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structllo_1_1_place_holder.html">llo::PlaceHolder&lt; T &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structllo_1_1_data_node.html">DataNode</a> of a leaf that can be assignable by data vectors.  <a href="structllo_1_1_place_holder.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
@@ -99,8 +93,10 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ad0021d197825da04165a97291f39c9a7"><td class="memItemLeft" align="right" valign="top">GenericData&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacello.html#ad0021d197825da04165a97291f39c9a7">llo::evaluate</a> (<a class="el" href="struct_d_t_y_p_e.html">DTYPE</a> dtype, <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *tens)</td></tr>
-<tr class="separator:ad0021d197825da04165a97291f39c9a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d0d6658687aa47d631679302c3cc3b7"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a2d0d6658687aa47d631679302c3cc3b7"><td class="memTemplItemLeft" align="right" valign="top">DataNode&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacello.html#a2d0d6658687aa47d631679302c3cc3b7">llo::shaped_scalar</a> (T scalar, <a class="el" href="structade_1_1_shape.html">ade::Shape</a> shape)</td></tr>
+<tr class="memdesc:a2d0d6658687aa47d631679302c3cc3b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return source holding a scalar value extended to input shape.  <a href="namespacello.html#a2d0d6658687aa47d631679302c3cc3b7">More...</a><br /></td></tr>
+<tr class="separator:a2d0d6658687aa47d631679302c3cc3b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->

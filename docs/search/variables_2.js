@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['freivald_5fn',['FREIVALD_N',['../test__api_8cpp.html#ac6f5744451d4abbb5df1e089c8d02c31',1,'test_api.cpp']]]
+  ['ctx_5f',['ctx_',['../structllo_1_1_evaluator.html#a05118225a96ac85f599b49c9518239c9',1,'llo::Evaluator::ctx_()'],['../structllo_1_1_data_node.html#a28da1646a89edad7e57efddfdcf350d1',1,'llo::DataNode::ctx_()']]]
 ];

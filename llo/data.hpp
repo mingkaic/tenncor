@@ -1,12 +1,10 @@
-/*!
- *
- *  data.hpp
- *  llo
- *
- *  Purpose:
- *  define typed data for evaluating the operation tree
- *
- */
+///
+/// data.hpp
+/// llo
+///
+/// Purpose:
+/// Define tensor data to pass up the equation graph
+///
 
 #include "ade/tensor.hpp"
 
@@ -18,26 +16,28 @@
 namespace llo
 {
 
-/*! GenericData for encapsulating data to up the tensor tree */
+/// GenericData for holding data when passing up the tensor graph
 struct GenericData
 {
 	GenericData (void) = default;
 
 	GenericData (ade::Shape shape, DTYPE dtype);
 
-	/*! convert data to specified input type */
+	/// Return data converted to specified input type
 	GenericData convert_to (DTYPE dtype) const;
 
-	/*! smartpointer to a block of generic data */
+	/// Smartpointer to a block of untyped data
 	std::shared_ptr<char> data_;
 
-	/*! shape data to hold size info */
+	/// Shape of data_
 	ade::Shape shape_;
-	/*! type of owned data */
+
+	/// Data type of data_
 	DTYPE dtype_ = BAD;
 };
 
-/*! GenericRef encapsulating data through raw pointer (memory unsafe) */
+/// GenericRef for holding data
+/// Ref uses raw pointer instead of shared, so it's memory unsafe
 struct GenericRef
 {
 	GenericRef (char* data, ade::Shape shape, DTYPE dtype) :
@@ -47,14 +47,18 @@ struct GenericRef
 		data_(generic.data_.get()),
 		shape_(generic.shape_), dtype_(generic.dtype_) {}
 
-	/*! raw pointer to a block of generic data */
+	/// Raw pointer to a block of untyped data
 	char* data_;
-	/*! shape data to hold size info */
+
+	/// Shape of data_
 	ade::Shape shape_;
-	/*! type of referenced data */
+
+	/// Data type of data_
 	DTYPE dtype_;
 };
 
+void fill_one (char* cptr, size_t n, DTYPE dtype);
+
 }
 
-#endif /* LLO_DATA_HPP */
+#endif // LLO_DATA_HPP

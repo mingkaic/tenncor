@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['directwrapper',['DirectWrapper',['../structllo_1_1_direct_wrapper.html#a9928177aba99d7b601928f70fa349981',1,'llo::DirectWrapper']]],
-  ['div',['div',['../namespacello.html#aa833d9c099fa62f3f90fc0a1b852772d',1,'llo::div(ade::Tensorptr a, ade::Tensorptr b)'],['../namespacello.html#ae9f871464b51995799a5ed3b692fac58',1,'llo::div(T *out, const T *a, size_t an, const T *b, size_t bn)']]]
+  ['data',['data',['../structllo_1_1i_source.html#a90ea20f6def00bb4522a5c7baf27b8f6',1,'llo::iSource::data()'],['../structllo_1_1_data_node.html#a4772b4e9bd7253d02f5a89e57be1c386',1,'llo::DataNode::data()'],['../structllo_1_1_source.html#a33d7a472b44a4cde6c7d218818f57be1',1,'llo::Source::data()']]],
+  ['datanode',['DataNode',['../structllo_1_1_data_node.html#afdc532ff71063be67c2114ecc8d121d2',1,'llo::DataNode']]],
+  ['derive',['derive',['../structllo_1_1_data_node.html#affa0248c9c5c7fa4188d13b4b67c9e06',1,'llo::DataNode::derive(const ade::iTensor *wrt)'],['../structllo_1_1_data_node.html#a5098c8a0184b333b1acdeda02cdee3e2',1,'llo::DataNode::derive(DataNode &amp;wrt)']]],
+  ['div',['div',['../namespacello.html#ab035ae9901aba246c002cc2daee6d9f4',1,'llo::div(DataNode a, DataNode b)'],['../namespacello.html#a9b229ad91f79cdc35b02e9a833e6a7ae',1,'llo::div(T *out, ade::Shape &amp;outshape, VecRef&lt; T &gt; a, VecRef&lt; T &gt; b)']]]
 ];

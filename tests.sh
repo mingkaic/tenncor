@@ -7,6 +7,7 @@ COV_FILE=$THIS_DIR/coverage.info;
 DOCS=$THIS_DIR/docs
 
 lcov --base-directory . --directory . --zerocounters;
+set -e
 
 # ===== Run Gtest =====
 echo "===== TESTS =====";

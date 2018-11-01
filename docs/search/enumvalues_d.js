@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['reshape',['RESHAPE',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773aabc4f05d45782607e976685d693f4af1',1,'ade']]],
-  ['rmax',['RMAX',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773a4be54e86475865a4ac50b6ef84531441',1,'ade']]],
-  ['round',['ROUND',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773a6eb73e3db0bc05df6d4897bbbb4af51f',1,'ade']]],
-  ['rsum',['RSUM',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773a953f8d84765044b2860be95a94cf6391',1,'ade']]]
+  ['rand_5fbino',['RAND_BINO',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773abf32a3343444bd0e85ec3ae8581e4311',1,'ade']]],
+  ['rand_5fnorm',['RAND_NORM',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773aae72ec7426c64d6395224da3848a51db',1,'ade']]],
+  ['rand_5funif',['RAND_UNIF',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773afc3fa8e9341d334bede4b5788f1cdebc',1,'ade']]],
+  ['round',['ROUND',['../namespaceade.html#a608b0009e35de2aa479a4fcae513b773a6eb73e3db0bc05df6d4897bbbb4af51f',1,'ade']]]
 ];

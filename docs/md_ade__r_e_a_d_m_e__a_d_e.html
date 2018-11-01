@@ -93,7 +93,7 @@ $(function() {
 <p>Forwarders aggregate and transform shape information and fall in 3 classes:</p>
 <ul>
 <li>elementary (or identity): these reject non-scalar shapes that are not compatible with other non-scalar shapes</li>
-<li>reshape transformer: takes a single shape and an integer array argument. This integer array holds some dimension information on how to transform the shape.</li>
+<li>coordinate transformer: takes a single shape and an integer array argument. This integer array holds some dimension information on how to transform the shape.</li>
 <li>multi-argument aggregators: such as matrix multiplication or convolution</li>
 </ul>
 <p>Since all forwarders conform to a specific rule, their expected behavior can inferred from auto-generated input (mostly shapes).</p>

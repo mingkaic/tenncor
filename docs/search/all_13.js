@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['_7eievaluable',['~iEvaluable',['../structllo_1_1i_evaluable.html#ac771cbe88564b960f6ad7f8e57d92e55',1,'llo::iEvaluable']]],
-  ['_7eifunctor',['~iFunctor',['../structade_1_1i_functor.html#a9f5aebb693faea7cc5a822ca403f40c0',1,'ade::iFunctor']]],
-  ['_7eisource',['~iSource',['../structllo_1_1i_source.html#a38da28ad557c2e08df9366441acd3177',1,'llo::iSource']]],
-  ['_7eitensor',['~iTensor',['../structade_1_1i_tensor.html#a1eb974b967ef2da732ee074e73631342',1,'ade::iTensor']]],
-  ['_7etensorptr',['~Tensorptr',['../structade_1_1_tensorptr.html#ad80d90228d477bac5a71ff2cd2f51aa4',1,'ade::Tensorptr']]]
+  ['warn',['warn',['../structade_1_1i_logger.html#a67a4f91050f91844a719ae49169c479e',1,'ade::iLogger::warn()'],['../structade_1_1_def_logger.html#a7b8b85dbdf2fa536556df47f1811b713',1,'ade::DefLogger::warn()'],['../struct_test_logger.html#accc25d91d021c85df7f3d1a5d98ebe16',1,'TestLogger::warn()'],['../namespaceade.html#a947ed7832b3fd461a41b28928e2aebbd',1,'ade::warn()']]],
+  ['warn_5ftag',['warn_tag',['../namespaceade.html#a880e280affae2d0aa13b096dcf0232b6',1,'ade']]],
+  ['warnf',['warnf',['../namespaceade.html#ac8c5293665e9489b0ecb83a8b1a9f2c0',1,'ade']]]
 ];

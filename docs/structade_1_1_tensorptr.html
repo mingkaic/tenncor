@@ -74,16 +74,10 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>Smart pointer to <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a> ensuring non-null references.  
+ <a href="structade_1_1_tensorptr.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="tensor_8hpp_source.html">tensor.hpp</a>&gt;</code></p>
-<div class="dynheader">
-Inheritance diagram for ade::Tensorptr:</div>
-<div class="dyncontent">
- <div class="center">
-  <img src="structade_1_1_tensorptr.png" usemap="#ade::Tensorptr_map" alt=""/>
-  <map id="ade::Tensorptr_map" name="ade::Tensorptr_map">
-<area href="structllo_1_1_placeholder.html" alt="llo::Placeholder&lt; T &gt;" shape="rect" coords="0,56,130,80"/>
-</map>
- </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -91,6 +85,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0a689a5fc65e812539dce83d064912c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98822824f7bfea19f31f38f47de18401"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html#a98822824f7bfea19f31f38f47de18401">Tensorptr</a> (<a class="el" href="structade_1_1i_tensor.html">iTensor</a> *tens)</td></tr>
 <tr class="separator:a98822824f7bfea19f31f38f47de18401"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3d85def7b088f5063c9fa59650d7071"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html#ad3d85def7b088f5063c9fa59650d7071">Tensorptr</a> (std::shared_ptr&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> &gt; tens)</td></tr>
+<tr class="separator:ad3d85def7b088f5063c9fa59650d7071"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad80d90228d477bac5a71ff2cd2f51aa4"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html#ad80d90228d477bac5a71ff2cd2f51aa4">~Tensorptr</a> (void)=default</td></tr>
 <tr class="separator:ad80d90228d477bac5a71ff2cd2f51aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a530e6549d45b7f3f357905198879aa0f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1i_tensor.html">iTensor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html#a530e6549d45b7f3f357905198879aa0f">operator-&gt;</a> (void)</td></tr>
@@ -98,20 +94,23 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a92da5a589d2f479753acc953f8bc0b61"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html#a92da5a589d2f479753acc953f8bc0b61">operator-&gt;</a> (void) const</td></tr>
 <tr class="separator:a92da5a589d2f479753acc953f8bc0b61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe33b19e27214d8995fa92781432c59c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1i_tensor.html">iTensor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html#abe33b19e27214d8995fa92781432c59c">get</a> (void) const</td></tr>
+<tr class="memdesc:abe33b19e27214d8995fa92781432c59c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the raw pointer.  <a href="#abe33b19e27214d8995fa92781432c59c">More...</a><br /></td></tr>
 <tr class="separator:abe33b19e27214d8995fa92781432c59c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a43e398be476f6a57ffbb42b93d314fa9"><td class="memItemLeft" align="right" valign="top">std::weak_ptr&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html#a43e398be476f6a57ffbb42b93d314fa9">ref</a> (void) const</td></tr>
+<tr class="memdesc:a43e398be476f6a57ffbb42b93d314fa9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the weakptr reference.  <a href="#a43e398be476f6a57ffbb42b93d314fa9">More...</a><br /></td></tr>
 <tr class="separator:a43e398be476f6a57ffbb42b93d314fa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a55f00218f0e721910cc1d156f6dae2ad"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensorptr.html#a55f00218f0e721910cc1d156f6dae2ad">ptr_</a></td></tr>
+<tr class="memdesc:a55f00218f0e721910cc1d156f6dae2ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Strong reference to <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="#a55f00218f0e721910cc1d156f6dae2ad">More...</a><br /></td></tr>
 <tr class="separator:a55f00218f0e721910cc1d156f6dae2ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Internal smart pointer wrapper to Tensors guaranteeing non-null pointers </p>
+<div class="textblock"><p>Smart pointer to <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a> ensuring non-null references. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a0a689a5fc65e812539dce83d064912c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0a689a5fc65e812539dce83d064912c0">&#9670;&nbsp;</a></span>Tensorptr() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a689a5fc65e812539dce83d064912c0">&#9670;&nbsp;</a></span>Tensorptr() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -137,7 +136,7 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <a id="a98822824f7bfea19f31f38f47de18401"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a98822824f7bfea19f31f38f47de18401">&#9670;&nbsp;</a></span>Tensorptr() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a98822824f7bfea19f31f38f47de18401">&#9670;&nbsp;</a></span>Tensorptr() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -149,6 +148,32 @@ Protected Attributes</h2></td></tr>
           <td class="memname">ade::Tensorptr::Tensorptr </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structade_1_1i_tensor.html">iTensor</a> *&#160;</td>
+          <td class="paramname"><em>tens</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad3d85def7b088f5063c9fa59650d7071"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3d85def7b088f5063c9fa59650d7071">&#9670;&nbsp;</a></span>Tensorptr() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ade::Tensorptr::Tensorptr </td>
+          <td>(</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> &gt;&#160;</td>
           <td class="paramname"><em>tens</em></td><td>)</td>
           <td></td>
         </tr>
@@ -212,7 +237,8 @@ Protected Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get raw pointer </p>
+
+<p>Return the raw pointer. </p>
 
 </div>
 </div>
@@ -291,7 +317,8 @@ Protected Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get weakptr reference </p>
+
+<p>Return the weakptr reference. </p>
 
 </div>
 </div>
@@ -315,7 +342,8 @@ Protected Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>smartpointer to <a class="el" href="structade_1_1i_tensor.html">iTensor</a> </p>
+
+<p>Strong reference to <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>. </p>
 
 </div>
 </div>
