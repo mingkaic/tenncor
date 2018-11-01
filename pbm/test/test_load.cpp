@@ -57,7 +57,7 @@ TEST(LOAD, LoadGraph)
 				ade::ArgsT refs = func->get_children();
 				for (auto& ref : refs)
 				{
-					have_parents.emplace(ref.second.get());
+					have_parents.emplace(ref.tensor_.get());
 				}
 			}
 		}

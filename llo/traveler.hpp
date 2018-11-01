@@ -78,10 +78,10 @@ struct GraphStat final : public ade::iTraveler
 			size_t ngraph = 0;
 			for (auto& child : children)
 			{
-				ade::iTensor* tens = child.second.get();
+				ade::iTensor* tens = child.tensor_.get();
 				if (graphsize_.end() == graphsize_.find(tens))
 				{
-					child.second->accept(*this);
+					child.tensor_->accept(*this);
 				}
 				auto childinfo = graphsize_.find(tens);
 				if (graphsize_.end() != childinfo &&

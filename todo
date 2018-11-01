@@ -21,6 +21,7 @@ P4 - implement optimization options to decrease equation graph size
 P4 - implement optimization options to increase data accuracy
 
 features:
+P1 - fix gradient chain rule to match mathematic notation
 P2 - convert grader operators + opcodes in ade to generatable configuration
 P2 - implement convolution
 P3 - implement deep copy

@@ -30,6 +30,8 @@ std::string to_string (const MatrixT& mat);
 /// Inverse in matrix and dump to out matrix
 void inverse (MatrixT out, const MatrixT& in);
 
+void matmul (MatrixT out, const MatrixT& lhs, const MatrixT& rhs);
+
 }
 
 #endif /// ADE_MATOPS_HPP

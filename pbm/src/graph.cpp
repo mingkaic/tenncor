@@ -91,7 +91,7 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 		for (auto& child : children)
 		{
 			tenncor::NodeArg* arg = func->add_args();
-			ade::iTensor* tens = child.second.get();
+			ade::iTensor* tens = child.tensor_.get();
 			if (tens == ade::Tensor::SYMBOLIC_ONE.get())
 			{
 				arg->set_idx(-2);
@@ -104,7 +104,7 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 			{
 				arg->set_idx(ordermap[tens]);
 			}
-			save_coord(arg->mutable_coord(), child.first);
+			save_coord(arg->mutable_coord(), child.mapper_);
 		}
 	}
 	out.set_id(make_uid(&out, llo::get_engine()));

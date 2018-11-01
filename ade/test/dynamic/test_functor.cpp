@@ -35,10 +35,10 @@ TEST_F(FUNCTOR, Childrens)
 	ade::ArgsT brefs = static_cast<ade::iFunctor*>(fb.get())->get_children();
 
 	ASSERT_EQ(1, uref.size());
-	EXPECT_EQ(leaf.get(), uref[0].second.get());
+	EXPECT_EQ(leaf.get(), uref[0].tensor_.get());
 	ASSERT_EQ(2, brefs.size());
-	EXPECT_EQ(leaf.get(), brefs[0].second.get());
-	EXPECT_EQ(leaf1.get(), brefs[1].second.get());
+	EXPECT_EQ(leaf.get(), brefs[0].tensor_.get());
+	EXPECT_EQ(leaf1.get(), brefs[1].tensor_.get());
 }
 
 

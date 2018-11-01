@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 #include "ade/log/string.hpp"
+
 #include "ade/grader.hpp"
 
 #ifndef ADE_FUNCTOR_HPP
@@ -64,7 +65,7 @@ struct PathFinder final : public iTraveler
 			std::vector<bool> path(n, false);
 			for (size_t i = 0; i < n; ++i)
 			{
-				Tensorptr tens = children[i].second;
+				Tensorptr tens = children[i].tensor_;
 				if (tens.get() == target_)
 				{
 					path[i] = has_path = true;
@@ -105,10 +106,10 @@ struct Functor final : public iFunctor
 			fatalf("cannot %s with no arguments", label);
 		}
 
-		Shape shape = map_shape(args[0].first, args[0].second->shape());
+		Shape shape = args[0].shape();
 		for (size_t i = 1, n = args.size(); i < n; ++i)
 		{
-			Shape ishape = map_shape(args[i].first, args[i].second->shape());
+			Shape ishape = args[i].shape();
 			if (false == ishape.compatible_after(shape, 0))
 			{
 				fatalf("cannot %s with incompatible shapes %s and %s", label,
@@ -162,23 +163,23 @@ struct Functor final : public iFunctor
 			ArgsT grad_children;
 			std::transform(children.begin(), children.end(),
 				std::back_inserter(grad_children),
-				[](std::pair<CoordPtrT,Tensorptr>& child)
-				{ return std::pair<CoordPtrT,Tensorptr>{
-					CoordPtrT(child.first->reverse()),
-					shaped_zero(child.second->shape())}; });
+				[](MappedTensor& child)
+				{ return MappedTensor{
+					CoordPtrT(child.mapper_->reverse()),
+					shaped_zero(child.tensor_->shape())}; });
 			// for each painted child, calculate dThis/dChild
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
 				if (paint[i])
 				{
-					Tensorptr& child = children[i].second;
+					Tensorptr& child = children[i].tensor_;
 					iTensor* tens = child.get();
-					auto zero = grad_children[i].second;
-					grad_children[i].second = bwd;
+					auto zero = grad_children[i].tensor_;
+					grad_children[i].tensor_ = bwd;
 					// pass down forward-gradient pair
 					tmaps.push_back({tens,
 						gradmap(opcode, children, grad_children)});
-					grad_children[i].second = zero;
+					grad_children[i].tensor_ = zero;
 				}
 			}
 		}
@@ -191,7 +192,7 @@ struct Functor final : public iFunctor
 		ArgsT finalargs;
 		std::transform(finalgrad.begin(), finalgrad.end(),
 			std::back_inserter(finalargs),
-			[](Tensorptr& tens) -> std::pair<CoordPtrT,Tensorptr>
+			[](Tensorptr& tens) -> MappedTensor
 			{
 				return {identity, tens};
 			});

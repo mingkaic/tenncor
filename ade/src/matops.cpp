@@ -107,6 +107,21 @@ void inverse (MatrixT out, const MatrixT& in)
 	}
 }
 
+void matmul (MatrixT out, const MatrixT& lhs, const MatrixT& rhs)
+{
+	for (uint8_t i = 0; i < mat_dim; ++i)
+	{
+		for (uint8_t j = 0; j < mat_dim; ++j)
+		{
+			out[i][j] = 0;
+			for (uint8_t k = 0; k < mat_dim; ++k)
+			{
+				out[i][j] += lhs[k][j] * rhs[i][k];
+			}
+		}
+	}
+}
+
 }
 
 #endif

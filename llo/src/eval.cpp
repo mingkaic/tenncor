@@ -19,20 +19,20 @@ void calc_func_args (DataArgsT& out, const EvalCtx& ctx,
 				"using %d arguments", nargs);
 		}
 		Evaluator left_eval(ctx, dtype);
-		children[0].second->accept(left_eval);
-		out[0] = {children[0].first, left_eval.out_};
+		children[0].tensor_->accept(left_eval);
+		out[0] = {children[0].mapper_, left_eval.out_};
 
 		Evaluator right_eval(ctx, DOUBLE);
-		children[1].second->accept(right_eval);
-		out[1] = {children[0].first, right_eval.out_};
+		children[1].tensor_->accept(right_eval);
+		out[1] = {children[0].mapper_, right_eval.out_};
 	}
 	else
 	{
 		for (uint8_t i = 0; i < nargs; ++i)
 		{
 			Evaluator evaler(ctx, dtype);
-			children[i].second->accept(evaler);
-			out[i] = {children[i].first, evaler.out_};
+			children[i].tensor_->accept(evaler);
+			out[i] = {children[i].mapper_, evaler.out_};
 		}
 	}
 }

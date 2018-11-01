@@ -9,7 +9,9 @@
 #include <memory>
 
 #include "ade/log/log.hpp"
+
 #include "ade/shape.hpp"
+#include "ade/coord.hpp"
 
 #ifndef ADE_TENSOR_HPP
 #define ADE_TENSOR_HPP
@@ -104,6 +106,35 @@ struct Tensorptr
 protected:
 	/// Strong reference to iTensor
 	std::shared_ptr<iTensor> ptr_;
+};
+
+struct MappedTensor final
+{
+	MappedTensor (CoordPtrT mapper, Tensorptr tensor) :
+		mapper_(mapper), tensor_(tensor) {}
+
+	Shape shape (void) const
+	{
+		const Shape& shape = tensor_->shape();
+		CoordT out;
+		CoordT in;
+		std::copy(shape.begin(), shape.end(), in.begin());
+		mapper_->forward(out.begin(), in.begin());
+		std::vector<DimT> slist(rank_cap);
+		std::transform(out.begin(), out.end(), slist.begin(),
+			[](CDimT cd) -> DimT
+			{
+				if (cd < 0)
+				{
+					cd = -cd - 1;
+				}
+				return cd;
+			});
+		return Shape(slist);
+	}
+
+	CoordPtrT mapper_;
+	Tensorptr tensor_;
 };
 
 /// Return a Tensor::SYMBOLIC_ONE extended to input shape

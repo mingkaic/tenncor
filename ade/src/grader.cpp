@@ -9,7 +9,7 @@ namespace ade
 Tensorptr grader<CODE> (ArgsT& args, ArgsT& grads)
 
 #define ZERO_GRAD(CODE)GRAD_SIGNATURE(CODE)\
-{ Shape shape = map_shape(args[0].first, args[0].second->shape());\
+{ Shape shape = map_shape(args[0].mapper_, args[0].tensor_->shape());\
 return shaped_zero(shape); }
 
 static void check_unary (const char* op, ArgsT& args)
@@ -146,7 +146,7 @@ GRAD_SIGNATURE(POW)
 	return Functor::get(MUL, {
 		{identity, Functor::get(POW, {args[0],
 			{identity, Functor::get(SUB, {
-				args[1], {identity, shaped_one(args[1].second->shape())},
+				args[1], {identity, shaped_one(args[1].tensor_->shape())},
 			})},
 		})},
 		{identity, lhs},
@@ -209,8 +209,8 @@ GRAD_SIGNATURE(MIN)
 	{
 		gargs.push_back({identity, Functor::get(MUL, {
 			{identity, Functor::get(EQ, {
-				{grads[i].first, fwd},
-				{identity, args[i].second},
+				{grads[i].mapper_, fwd},
+				{identity, args[i].tensor_},
 			})}, grads[i],
 		})});
 	}
@@ -226,8 +226,8 @@ GRAD_SIGNATURE(MAX)
 	{
 		gargs.push_back({identity, Functor::get(MUL, {
 			{identity, Functor::get(EQ, {
-				{grads[i].first, fwd},
-				{identity, args[i].second},
+				{grads[i].mapper_, fwd},
+				{identity, args[i].tensor_},
 			})}, grads[i],
 		})});
 	}

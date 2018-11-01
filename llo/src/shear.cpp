@@ -87,7 +87,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 			}
 			else if (zeros[1])
 			{
-				return args[0].second;
+				return args[0].tensor_;
 			}
 			break;
 		case ade::DIV:
@@ -144,7 +144,7 @@ DataNode zero_prune (DataNode root)
 		std::vector<bool> paints = finder.parents_[func];
 		for (size_t i = 0, n = children.size(); i < n; ++i)
 		{
-			ade::iTensor* tens = children[i].second.get();
+			ade::iTensor* tens = children[i].tensor_.get();
 			auto zit = zeromap.find(tens);
 			if (zeromap.end() != zit)
 			{
@@ -153,7 +153,7 @@ DataNode zero_prune (DataNode root)
 			auto mit = mapping.find(tens);
 			if (mapping.end() != mit)
 			{
-				children[i].second = mit->second;
+				children[i].tensor_ = mit->second;
 			}
 		}
 		bool is_zero = false;

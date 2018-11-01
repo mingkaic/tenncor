@@ -27,6 +27,9 @@ struct iCoordMap
 	virtual void forward (CoordT::iterator out,
 		CoordT::const_iterator in) const = 0;
 
+	/// Return matmul(this, lhs)
+	virtual iCoordMap* forward (const iCoordMap& lhs) const = 0;
+
 	/// Reverse transform coordinates
 	virtual void backward (CoordT::iterator out,
 		CoordT::const_iterator in) const = 0;
@@ -58,6 +61,18 @@ struct CoordMap final : public iCoordMap
 	/// Implementation of iCoordMap
 	void forward (CoordT::iterator out,
 		CoordT::const_iterator in) const override;
+
+	/// Implementation of iCoordMap
+	iCoordMap* forward (const iCoordMap& lhs) const override
+	{
+		return new CoordMap([&](MatrixT out)
+		{
+			lhs.access([&](const MatrixT& in)
+			{
+				matmul(out, fwd_, in);
+			});
+		});
+	}
 
 	/// Implementation of iCoordMap
 	void backward (CoordT::iterator out,

@@ -45,7 +45,7 @@ TEST_F(TENSOR, Gradient)
 
 	ade::ArgsT zro_vec = zrorp->get_children();
 	ASSERT_EQ(1, zro_vec.size());
-	EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), zro_vec[0].second.get());
+	EXPECT_EQ(ade::Tensor::SYMBOLIC_ZERO.get(), zro_vec[0].tensor_.get());
 
 	// check one
 	std::vector<ade::DimT> wlist(wunrp->shape().begin(), wunrp->shape().end());
@@ -53,7 +53,7 @@ TEST_F(TENSOR, Gradient)
 
 	ade::ArgsT wun_vec = wunrp->get_children();
 	ASSERT_EQ(1, wun_vec.size());
-	EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0].second.get());
+	EXPECT_EQ(ade::Tensor::SYMBOLIC_ONE.get(), wun_vec[0].tensor_.get());
 }
 
 

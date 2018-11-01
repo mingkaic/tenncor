@@ -8,8 +8,6 @@
 
 #include <string>
 
-#include "ade/shape.hpp"
-
 #ifndef ADE_OPCODE_HPP
 #define ADE_OPCODE_HPP
 
