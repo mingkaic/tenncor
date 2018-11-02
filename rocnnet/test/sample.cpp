@@ -39,10 +39,12 @@ int main (int argc, char** argv)
 	// 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 	// 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 	// 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-	llo::DataNode root = trainer.error_;//llo::sub(trainer.expected_out_, trainer.train_out_);
+	llo::DataNode root = trainer.error_;
+
 	for (auto var : vars)
 	{
-		llo::GenericData gdata = llo::zero_prune(root.derive(var)).data(llo::DOUBLE);
+		auto der = root.derive(var);
+		llo::GenericData gdata = llo::zero_prune(der).data(llo::DOUBLE);
 		double* gdptr = (double*) gdata.data_.get();
 		std::cout << ade::to_string(gdptr, gdptr + gdata.shape_.n_elems()) << std::endl;
 	}

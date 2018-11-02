@@ -6,232 +6,194 @@ namespace ade
 #ifdef ADE_GRADER_HPP
 
 #define GRAD_SIGNATURE(CODE)template <>\
-Tensorptr grader<CODE> (ArgsT& args, ArgsT& grads)
+Tensorptr grader<CODE> (ArgsT args, size_t gradidx)
+
+#define CHECK_UNARY(CODE)if (1 != args.size())\
+{ fatalf("cannot %s gradient without 1 argument: using %d argument(s)",\
+#CODE, args.size()); } if (gradidx > 0)\
+return shaped_zero(args.front().shape());
+
+#define CHECK_BINARY(CODE)if (2 != args.size())\
+{ fatalf("cannot %s gradient without 2 arguments: using %d argument(s)",\
+#CODE, args.size()); } if (gradidx > 1)\
+return shaped_zero(args.front().shape());
+
+#define CHECK_NNARY(CODE)if (0 == args.size())\
+{ fatalf("cannot %s gradient with no arguments", #CODE); }\
+if (gradidx >= args.size()) return shaped_zero(args.front().shape());
 
 #define ZERO_GRAD(CODE)GRAD_SIGNATURE(CODE)\
-{ Shape shape = map_shape(args[0].mapper_, args[0].tensor_->shape());\
-return shaped_zero(shape); }
+{ return shaped_zero(args.front().shape()); }
 
-static void check_unary (const char* op, ArgsT& args)
-{
-	if (1 != args.size())
-	{
-		fatalf("cannot %s for non-single argument(s): using %d argument(s)",
-			op, args.size());
-	}
-}
+#define ONE_GRAD(CODE)GRAD_SIGNATURE(CODE)\
+{ CHECK_UNARY(CODE) return shaped_one(args.front().shape()); }
 
-static void check_binary (const char* op, ArgsT& args)
-{
-	if (2 != args.size())
-	{
-		fatalf("cannot %s for non-binary argument(s): using %d argument(s)",
-			op, args.size());
-	}
-}
+#define HANDLE_BINARY(LEFT, RIGHT)return gradidx == 0 ? LEFT : RIGHT;
 
-static void check_nnary (const char* op, ArgsT& args)
-{
-	if (0 == args.size())
-	{
-		fatalf("cannot %s with arguments", op);
-	}
-}
+// grad(copy(f), f) = 1
+ONE_GRAD(COPY)
 
-GRAD_SIGNATURE(COPY)
-{
-	check_unary("COPY", args);
-	return Functor::get(COPY, {grads.front()});
-}
-
+// grad(abs(f), f) = f / abs(f)
 GRAD_SIGNATURE(ABS)
 {
-	check_unary("ABS", args);
-	// abs'(f) = f * f' / abs(f)
+	CHECK_UNARY(ABS)
 	return Functor::get(DIV, {
-		{identity, Functor::get(MUL, {args.front(), grads.front()})},
-		{identity, Functor::get(ABS, args)},
-	});
+		args.front(),
+		{identity, Functor::get(ABS, args)}});
 }
 
+// grad(neg(f), f) = -1
 GRAD_SIGNATURE(NEG)
 {
-	check_unary("NEG", args);
-	// neg'(f) = -f'
-	return Functor::get(NEG, {grads.front()});
+	CHECK_UNARY(NEG)
+	return Functor::get(NEG, {
+		{identity, shaped_one(args.front().shape())}});
 }
 
+// grad(sin(f), f) = cos(f)
 GRAD_SIGNATURE(SIN)
 {
-	check_unary("SIN", args);
-	// sin'(f) = f'*cos(f)
-	return Functor::get(MUL, {grads.front(),
-		{identity, Functor::get(COS, args)},
-	});
+	CHECK_UNARY(SIN)
+	return Functor::get(COS, args);
 }
 
+// grad(cos(f), f) = -sin(f)
 GRAD_SIGNATURE(COS)
 {
-	check_unary("COS", args);
-	// cos'(f) = -f'*sin(f)
-	return Functor::get(MUL, {
-		{identity, Functor::get(NEG, {grads.front()})},
-		{identity, Functor::get(SIN, args)},
-	});
+	CHECK_UNARY(COS)
+	return Functor::get(NEG, {{identity, Functor::get(SIN, args)}});
 }
 
+// grad(tan(f), f) = sec^2(f)
+// 		= 1/cos^2(f)
 GRAD_SIGNATURE(TAN)
 {
-	check_unary("TAN", args);
-	// tan'(f) = f'*sec^2(f)
-	// 		= f'/cos^2(f)
+	CHECK_UNARY(TAN)
 	Tensorptr denom = Functor::get(COS, args);
 	return Functor::get(DIV, {
-		{identity, Functor::get(DIV, {grads.front(),
+		{identity, Functor::get(DIV, {
+			{identity, shaped_one(args.front().shape())},
 			{identity, denom},
 		})},
 		{identity, denom},
 	});
 }
 
+// grad(exp(f), f) = exp(f)
 GRAD_SIGNATURE(EXP)
 {
-	check_unary("EXP", args);
-	// exp'(f) = f'*exp(f)
-	return Functor::get(MUL, {grads.front(),
-		{identity, Functor::get(EXP, args)},
-	});
+	CHECK_UNARY(EXP)
+	return Functor::get(EXP, args);
 }
 
+// grad(log(f), f) = 1 / f
 GRAD_SIGNATURE(LOG)
 {
-	check_unary("LOG", args);
-	// log'(f) = f' / f
-	return Functor::get(DIV, {grads.front(), args.front()});
+	CHECK_UNARY(LOG)
+	return Functor::get(DIV, {
+		{identity, shaped_one(args.front().shape())},
+		args.front()
+	});
 }
 
+// grad(sqrt(f), f) = 1/(2*sqrt(f))
 GRAD_SIGNATURE(SQRT)
 {
-	check_unary("SQRT", args);
-	// sqrt'(f) = f'/(2*sqrt(f))
-	Tensorptr fwd = Functor::get(SQRT, args);
-	return Functor::get(DIV, {grads.front(),
+	CHECK_UNARY(SQRT)
+	Tensorptr denom = Functor::get(SQRT, args);
+	return Functor::get(DIV, {
+		{identity, shaped_one(args.front().shape())},
 		{identity, Functor::get(ADD, {
-			{identity, fwd}, {identity, fwd},
+			{identity, denom}, {identity, denom},
 		})},
 	});
 }
 
-GRAD_SIGNATURE(ROUND)
-{
-	check_unary("ROUND", args);
-	// round'(f) = round(f')
-	return Functor::get(ROUND, {grads.front()});
-}
+// grad(round(f), f) = 1
+ONE_GRAD(ROUND)
 
+// grad(pow(f, g), f) = g * pow(f, g - 1)
+// grad(pow(f, g), g) = pow(f, g) * log(f)
 GRAD_SIGNATURE(POW)
 {
-	check_binary("POW", args);
-	// pow'(f, g) = f' * g * pow(f, g - 1) + g' * pow(f, g) * log(f)
-	//			= pow(f, g - 1) * (f' * g + g' * f * log(f))
-	Tensorptr lhs = Functor::get(ADD, {
-		{identity, Functor::get(MUL, {
-			grads[0], args[1]
-		})},
-		{identity, Functor::get(MUL, {
-			grads[1], args[0],
+	CHECK_BINARY(POW)
+	HANDLE_BINARY(
+		Functor::get(MUL, {
+			args[1],
+			{identity, Functor::get(POW, {
+				args[0],
+				{identity, Functor::get(SUB, {
+					args[1],
+					{identity, shaped_one(args[0].shape())},
+				})}
+			})}
+		}),
+		Functor::get(MUL, {
+			{identity, Functor::get(POW, args)},
 			{identity, Functor::get(LOG, {args[0]})},
-		})},
-	});
-	return Functor::get(MUL, {
-		{identity, Functor::get(POW, {args[0],
-			{identity, Functor::get(SUB, {
-				args[1], {identity, shaped_one(args[1].tensor_->shape())},
-			})},
-		})},
-		{identity, lhs},
-	});
+		}))
 }
 
-GRAD_SIGNATURE(ADD)
-{
-	check_nnary("ADD", args);
-	// h'(f, g, ...) = f' + g' + ...
-	return Functor::get(ADD, grads);
-}
-
+// grad(sub(f, g), f) = 1
+// grad(sub(f, g), g) = -1
 GRAD_SIGNATURE(SUB)
 {
-	check_binary("SUB", args);
-	// h'(f, g) = f' - g'
-	return Functor::get(SUB, grads);
+	CHECK_BINARY(SUB)
+	HANDLE_BINARY(
+		shaped_one(args[0].shape()),
+		Functor::get(NEG, {
+			{identity, shaped_one(args[0].shape())}
+		}))
 }
 
-GRAD_SIGNATURE(MUL)
-{
-	check_nnary("MUL", args);
-	// h'(f, g) = f' * g * ... + f * g' * ... + ...
-	ArgsT gargs;
-	for (size_t i = 0, n = args.size(); i < n; ++i)
-	{
-		// f' * g * ...
-		auto child = args[i];
-		args[i] = grads[i];
-		gargs.push_back({identity, Functor::get(MUL, args)});
-		args[i] = child;
-	}
-	return Functor::get(ADD, gargs);
-}
-
+// grad(div(f, g), f) = 1 / g
+// grad(div(f, g), g) = -f / g^2
 GRAD_SIGNATURE(DIV)
 {
-	check_binary("DIV", args);
-	// h'(f, g) = (f' * g - g' * f) / g^2
-	//			= f' / g - ((g' * f) / g) / g
-	return Functor::get(SUB, {
-		{identity, Functor::get(DIV, {grads[0], args[1]})},
-		{identity, Functor::get(DIV, {
-			{identity, Functor::get(DIV, {
-				{identity, Functor::get(MUL, {grads[1], args[0]})},
-				args[1],
-			})},
-			args[1],
-		})},
+	CHECK_BINARY(DIV)
+	HANDLE_BINARY(
+		Functor::get(DIV, {
+			{identity, shaped_one(args[0].shape())}, args[1]
+		}),
+		Functor::get(DIV, {
+			{identity, Functor::get(NEG, {args[0]})},
+			{identity, Functor::get(MUL, {args[1], args[1]})},
+		}))
+}
+
+// grad(sum(f, g, ...), argi) = 1 if (argi is in args)
+GRAD_SIGNATURE(ADD)
+{
+	CHECK_NNARY(ADD)
+	return shaped_one(args.front().shape());
+}
+
+// grad(prod(f, g, ...), argi) = prod(argj if j is not i for j=0:n)
+GRAD_SIGNATURE(MUL)
+{
+	CHECK_NNARY(MUL)
+	args.erase(args.begin() + gradidx);
+	return Functor::get(MUL, args);
+}
+
+// grad(min(f, g, ...), argi) = min(f, g, ...) == argi
+GRAD_SIGNATURE(MIN)
+{
+	CHECK_NNARY(MIN)
+	return Functor::get(EQ, {
+		{identity, Functor::get(MIN, args)},
+		args[gradidx],
 	});
 }
 
-GRAD_SIGNATURE(MIN)
-{
-	check_nnary("MIN", args);
-	ArgsT gargs;
-	Tensorptr fwd = Functor::get(MIN, args);
-	for (size_t i = 0, n = args.size(); i < n; ++i)
-	{
-		gargs.push_back({identity, Functor::get(MUL, {
-			{identity, Functor::get(EQ, {
-				{grads[i].mapper_, fwd},
-				{identity, args[i].tensor_},
-			})}, grads[i],
-		})});
-	}
-	return Functor::get(ADD, gargs);
-}
-
+// grad(min(f, g, ...), argi) = max(f, g, ...) == argi
 GRAD_SIGNATURE(MAX)
 {
-	check_nnary("MAX", args);
-	ArgsT gargs;
-	Tensorptr fwd = Functor::get(MAX, args);
-	for (size_t i = 0, n = args.size(); i < n; ++i)
-	{
-		gargs.push_back({identity, Functor::get(MUL, {
-			{identity, Functor::get(EQ, {
-				{grads[i].mapper_, fwd},
-				{identity, args[i].tensor_},
-			})}, grads[i],
-		})});
-	}
-	return Functor::get(ADD, gargs);
+	CHECK_NNARY(MAX)
+	return Functor::get(EQ, {
+		{identity, Functor::get(MAX, args)},
+		args[gradidx],
+	});
 }
 
 ZERO_GRAD(EQ)
@@ -252,9 +214,9 @@ ZERO_GRAD(RAND_NORM)
 
 #undef ZERO_GRAD
 
-#define CALL_GRAD(OP)case OP: return grader<OP>(args, grads);
+#define CALL_GRAD(OP)case OP: return grader<OP>(args, gradidx);
 
-Tensorptr gradmap (OPCODE op, ArgsT args, ArgsT& grads)
+Tensorptr gradmap (OPCODE op, ArgsT args, size_t gradidx)
 {
 	switch (op)
 	{

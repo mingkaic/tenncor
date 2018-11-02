@@ -17,13 +17,13 @@ namespace ade
 // TODO: CONVERT TO GENERATED CONFIG
 
 template <OPCODE OP>
-Tensorptr grader (ArgsT& args, ArgsT& grads)
+Tensorptr grader (ArgsT args, size_t gradidx)
 {
 	throw std::bad_function_call();
 }
 
 #define GRAD_DECLARE(CODE)template <>\
-Tensorptr grader<CODE> (ArgsT&,ArgsT&);
+Tensorptr grader<CODE> (ArgsT args, size_t gradidx);
 
 GRAD_DECLARE(COPY)
 
@@ -75,7 +75,7 @@ GRAD_DECLARE(RAND_NORM)
 
 #undef GRAD_DECLARE
 
-Tensorptr gradmap (OPCODE op, ArgsT args, ArgsT& grads);
+Tensorptr gradmap (OPCODE op, ArgsT args, size_t gradidx);
 
 }
 

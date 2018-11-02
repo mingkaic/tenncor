@@ -72,7 +72,8 @@ struct Functor final : public iFunctor
 		}
 		// else there exists a path to wrt
 		// using pathfinder, breadth first traverse to wrt
-		std::list<std::pair<iTensor*,Tensorptr>> tmaps = {{this, shaped_one(shape_)}};
+		std::list<std::pair<iTensor*,Tensorptr>> tmaps = {
+			{this, shaped_one(shape_)}};
 		std::vector<Tensorptr> finalgrad;
 		while (false == tmaps.empty())
 		{
@@ -89,26 +90,35 @@ struct Functor final : public iFunctor
 			OPCODE opcode = func->get_code();
 			auto& paint = finder.parents_[func];
 			ArgsT children = func->get_children();
-			ArgsT grad_children;
-			std::transform(children.begin(), children.end(),
-				std::back_inserter(grad_children),
-				[](MappedTensor& child)
-				{ return MappedTensor{
-					CoordPtrT(child.mapper_->reverse()),
-					shaped_zero(child.tensor_->shape())}; });
 			// for each painted child, calculate dThis/dChild
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
 				if (paint[i])
 				{
-					Tensorptr& child = children[i].tensor_;
-					iTensor* tens = child.get();
-					auto zero = grad_children[i].tensor_;
-					grad_children[i].tensor_ = bwd;
+					ArgsT args;
+					CoordPtrT mapper(children[i].mapper_->reverse());
+					for (size_t j = 0; j < n; ++j)
+					{
+						if (j == i)
+						{
+							args.push_back(MappedTensor{
+								identity, children[j].tensor_});
+						}
+						else
+						{
+							CoordPtrT toshape(
+								children[j].mapper_->forward(*mapper));
+							Tensorptr& tens = children[j].tensor_;
+							args.push_back(MappedTensor{toshape, tens});
+						}
+					}
 					// pass down forward-gradient pair
-					tmaps.push_back({tens,
-						gradmap(opcode, children, grad_children)});
-					grad_children[i].tensor_ = zero;
+					Tensorptr grad = gradmap(opcode, args, i);
+					tmaps.push_back({children[i].tensor_.get(),
+						Functor::get(MUL, {
+							{identity, Functor::get(COPY, {{mapper, bwd}})},
+							{identity, grad},
+						})});
 				}
 			}
 		}
