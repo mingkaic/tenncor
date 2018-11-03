@@ -25,7 +25,7 @@ namespace ade
 using DimT = uint8_t;
 
 /// Type used for coordinate dimensions
-using CDimT = int16_t;
+using CDimT = double;
 
 /// Type used for flattened index
 /// DimT having 8 bits and shape comprising of 8 DimT values means a maximum

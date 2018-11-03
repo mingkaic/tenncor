@@ -6,6 +6,7 @@
 ///	Define interfaces and building blocks for an equation graph
 ///
 
+#include <cmath>
 #include <memory>
 
 #include "ade/log/log.hpp"
@@ -39,7 +40,7 @@ struct MappedTensor final
 				{
 					cd = -cd - 1;
 				}
-				return cd;
+				return std::round(cd);
 			});
 		return Shape(slist);
 	}

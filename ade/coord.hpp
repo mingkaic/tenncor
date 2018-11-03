@@ -116,9 +116,6 @@ using CoordPtrT = std::shared_ptr<iCoordMap>;
 /// Identity matrix instance
 extern CoordPtrT identity;
 
-/// Return transformed shape according to coordinate mapper on input shape
-Shape map_shape (CoordPtrT& mapper, const Shape& shape);
-
 /// Return coordinate mapper dividing dimensions after rank
 /// by values in red vector
 /// For example, given coordinate [2, 2, 6, 6], rank=2, and red=[3, 3],

@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "ade/log/log.hpp"
 
 #include "ade/shape.hpp"
@@ -19,7 +21,7 @@ NElemT index (Shape shape, CoordT coord)
 				shape.to_string().c_str());
 		}
 		// account for negative coordinates by (limit + c) % limit
-		coord[i] = (limit + coord[i]) % limit;
+		coord[i] = fmod(limit + coord[i], limit);
 	}
 	NElemT index = 0;
 	for (uint8_t i = 1; i < rank_cap; i++)

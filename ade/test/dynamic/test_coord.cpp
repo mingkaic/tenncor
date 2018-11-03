@@ -103,7 +103,7 @@ TEST_F(COORD, Reduce)
 	std::vector<ade::DimT> dred(red.begin(), red.end());
 	ade::CoordPtrT reducer = ade::reduce(rank, dred);
 
-	std::vector<int32_t> icoord = sess->get_int("icoord", ade::rank_cap, {0, 255});
+	std::vector<double> icoord = sess->get_double("icoord", ade::rank_cap, {0, 255});
 	ade::CoordT fwd_out, bwd_out, in;
 	std::copy(icoord.begin(), icoord.end(), in.begin());
 
@@ -146,7 +146,7 @@ TEST_F(COORD, Extend)
 	std::vector<ade::DimT> dext(ext.begin(), ext.end());
 	ade::CoordPtrT extender = ade::extend(rank, dext);
 
-	std::vector<int32_t> icoord = sess->get_int("icoord", ade::rank_cap, {0, 255});
+	std::vector<double> icoord = sess->get_double("icoord", ade::rank_cap, {0, 255});
 	ade::CoordT fwd_out, bwd_out, in;
 	std::copy(icoord.begin(), icoord.end(), in.begin());
 

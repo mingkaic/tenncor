@@ -49,7 +49,7 @@ TMP_LOGFILE := /tmp/tenncor-test.log
 
 test: test_ade test_llo test_pbm
 
-test_ade: test_ade_log test_ade_dynamic test_ade_static
+test_ade: test_ade_log test_ade_dynamic #test_ade_static
 
 test_ade_log:
 	$(GTEST) $(ADE_LTEST)

@@ -156,8 +156,9 @@ GRAD_SIGNATURE(DIV)
 			{identity, shaped_one(args[0].shape())}, args[1]
 		}),
 		Functor::get(DIV, {
-			{identity, Functor::get(NEG, {args[0]})},
-			{identity, Functor::get(MUL, {args[1], args[1]})},
+			{identity, Functor::get(DIV, {
+				{identity, Functor::get(NEG, {args[0]})}, args[1],
+			})}, args[1],
 		}))
 }
 

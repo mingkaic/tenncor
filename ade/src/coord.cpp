@@ -57,25 +57,6 @@ CoordPtrT identity(new CoordMap(
 		}
 	}));
 
-Shape map_shape (CoordPtrT& mapper, const Shape& shape)
-{
-	CoordT out;
-	CoordT in;
-	std::copy(shape.begin(), shape.end(), in.begin());
-	mapper->forward(out.begin(), in.begin());
-	std::vector<DimT> slist(rank_cap);
-	std::transform(out.begin(), out.end(), slist.begin(),
-		[](CDimT cd) -> DimT
-		{
-			if (cd < 0)
-			{
-				cd = -cd - 1;
-			}
-			return cd;
-		});
-	return Shape(slist);
-}
-
 CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 {
 	uint8_t n_red = red.size();

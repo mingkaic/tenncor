@@ -255,7 +255,7 @@ static void binary_elementary (simple::SessionT& sess,
 	{
 		for (size_t i = 0; i < n; ++i)
 		{
-			EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
+			EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]) << data[i];
 		}
 	});
 
@@ -541,8 +541,8 @@ TEST_F(API, Pow)
 	[](double a, double b) { return std::pow(a, b); },
 	[](double a, double b, double leftg, double rightg)
 	{
-		double lhs = leftg * b + rightg * a * std::log(a);
-		return std::pow(a, b - 1) * lhs;
+		return leftg * b * std::pow(a, b - 1) +
+			rightg * std::pow(a, b) * std::log(a);
 	});
 }
 
