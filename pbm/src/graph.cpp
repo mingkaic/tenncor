@@ -151,7 +151,7 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Functor* func = pb_node->mutable_functor();
-		func->set_opname(ade::opname(f->get_code()));
+		func->set_opname(f->get_code().opname());
 		const ade::ArgsT& children = f->get_children();
 		for (auto& child : children)
 		{
@@ -215,7 +215,8 @@ std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
 				}
 			}
 			outvec.push_back(llo::DataNode{llo::EvalCtx(contexas),
-				ade::Functor::get(ade::name_op(func.opname()), args)});
+				ade::Functor::get(std::move(ade::CodePtrT(
+					ade::make_code(ade::name_op(func.opname())))), args)});
 		}
 	}
 	return outvec;

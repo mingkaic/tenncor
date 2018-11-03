@@ -6,7 +6,7 @@
 /// Associate ade::OPCODE to operations on data
 ///
 
-#include "ade/opcode.hpp"
+#include "age/opcode.hpp"
 
 #include "llo/data.hpp"
 #include "llo/operator.hpp"

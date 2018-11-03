@@ -6,7 +6,9 @@ ADE_LTEST := //ade:test_log
 
 ADE_DTEST := //ade:test_dynamic
 
-ADE_STEST := //ade:test_static
+AGE_DTEST := //age:test_dynamic
+
+AGE_STEST := //age:test_static
 
 LLO_TEST := //llo:test_llo
 
@@ -49,7 +51,7 @@ TMP_LOGFILE := /tmp/tenncor-test.log
 
 test: test_ade test_llo test_pbm
 
-test_ade: test_ade_log test_ade_dynamic #test_ade_static
+test_ade: test_ade_log test_ade_dynamic
 
 test_ade_log:
 	$(GTEST) $(ADE_LTEST)
@@ -57,8 +59,13 @@ test_ade_log:
 test_ade_dynamic:
 	$(GTEST) $(REP_BZL_FLAGS) $(ADE_DTEST)
 
-test_ade_static:
-	$(GTEST) $(ADE_STEST)
+test_age: test_age_dynamic test_age_static
+
+test_age_dynamic:
+	$(GTEST) $(REP_BZL_FLAGS) $(AGE_DTEST)
+
+test_age_static:
+	$(GTEST) $(AGE_STEST)
 
 test_llo:
 	$(GTEST) $(REP_BZL_FLAGS) $(LLO_TEST)

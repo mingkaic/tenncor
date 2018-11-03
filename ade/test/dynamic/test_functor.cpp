@@ -12,6 +12,38 @@
 struct FUNCTOR : public simple::TestModel {};
 
 
+static ade::Tensorptr mock_back = ade::Tensor::get(ade::Shape());
+
+
+struct MockOpcode : public ade::iOpcode
+{
+	std::string opname (void) const override
+	{
+		return "MOCK";
+	}
+
+	size_t opnum (void) const override
+	{
+		return 0;
+	}
+
+	ade::Tensorptr gradient (ade::ArgsT args, size_t gradidx) const override
+	{
+		return mock_back;
+	}
+
+	ade::Tensorptr grad_vertical_merge (ade::MappedTensor bot, ade::MappedTensor top) const override
+	{
+		return top.tensor_;
+	}
+
+	ade::Tensorptr grad_horizontal_merge (ade::ArgsT& grads) const override
+	{
+		return grads.front().tensor_;
+	}
+};
+
+
 TEST_F(FUNCTOR, Childrens)
 {
 	simple::SessionT sess = get_session("FUNCTOR::Childrens");
@@ -19,26 +51,17 @@ TEST_F(FUNCTOR, Childrens)
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
-	ade::OPCODE unary = (ade::OPCODE) sess->get_scalar("unary_op",
-		{ade::ABS, ade::ROUND});
-	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op",
-		{ade::POW, ade::RAND_NORM});
+	ade::Tensorptr func = ade::Functor::get(
+		std::move(std::make_unique<MockOpcode>()),
+		{{ade::identity, leaf}, {ade::identity, leaf1}});
 
-	ade::Tensorptr fu = ade::Functor::get(unary, {{ade::identity, leaf}});
-	ade::Tensorptr fb = ade::Functor::get(binary, {
-		{ade::identity, leaf}, {ade::identity, leaf1}});
+	ASSERT_NE(nullptr, func.get());
 
-	ASSERT_NE(nullptr, fu.get());
-	ASSERT_NE(nullptr, fb.get());
+	ade::ArgsT refs = static_cast<ade::iFunctor*>(func.get())->get_children();
 
-	ade::ArgsT uref = static_cast<ade::iFunctor*>(fu.get())->get_children();
-	ade::ArgsT brefs = static_cast<ade::iFunctor*>(fb.get())->get_children();
-
-	ASSERT_EQ(1, uref.size());
-	EXPECT_EQ(leaf.get(), uref[0].tensor_.get());
-	ASSERT_EQ(2, brefs.size());
-	EXPECT_EQ(leaf.get(), brefs[0].tensor_.get());
-	EXPECT_EQ(leaf1.get(), brefs[1].tensor_.get());
+	ASSERT_EQ(2, refs.size());
+	EXPECT_EQ(leaf.get(), refs[0].tensor_.get());
+	EXPECT_EQ(leaf1.get(), refs[1].tensor_.get());
 }
 
 
@@ -49,35 +72,13 @@ TEST_F(FUNCTOR, ToString)
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
-	ade::OPCODE unary = (ade::OPCODE) sess->get_scalar("unary_op",
-		{ade::ABS, ade::ROUND});
-	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op",
-		{ade::POW, ade::RAND_NORM});
+	ade::Tensorptr func = ade::Functor::get(
+		std::move(std::make_unique<MockOpcode>()),
+		{{ade::identity, leaf}, {ade::identity, leaf1}});
 
-	ade::Tensorptr fu = ade::Functor::get(unary, {{ade::identity, leaf}});
-	ade::Tensorptr fb = ade::Functor::get(binary, {
-		{ade::identity, leaf}, {ade::identity, leaf1}});
+	ASSERT_NE(nullptr, func.get());
 
-	ASSERT_NE(nullptr, fu.get());
-	ASSERT_NE(nullptr, fb.get());
-
-	std::string out_unary = ade::opname(unary);
-	EXPECT_STREQ(out_unary.c_str(), fu->to_string().c_str());
-
-	std::string out_binary = ade::opname(binary);
-	EXPECT_STREQ(out_binary.c_str(), fb->to_string().c_str());
-}
-
-
-TEST_F(FUNCTOR, OpNaming)
-{
-	simple::SessionT sess = get_session("FUNCTOR::OpNaming");
-
-	ade::OPCODE op = (ade::OPCODE) sess->get_scalar("unary_op",
-		{ade::ABS, ade::RAND_NORM});
-
-	std::string name = ade::opname(op);
-	EXPECT_EQ(op, ade::name_op(name));
+	EXPECT_STREQ("MOCK", func->to_string().c_str());
 }
 
 

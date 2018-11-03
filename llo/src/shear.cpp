@@ -1,3 +1,5 @@
+#include "age/grader.hpp"
+
 #include "llo/shear.hpp"
 
 #ifdef LLO_SHEAR_HPP
@@ -10,7 +12,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 	std::vector<bool> zeros, ade::ArgsT args)
 {
 	is_zero = false;
-	ade::OPCODE opcode = func->get_code();
+	ade::OPCODE opcode = (ade::OPCODE) func->get_code().opnum();
 	switch (opcode)
 	{
 		case ade::COPY:
@@ -65,7 +67,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 				is_zero = true;
 				return ade::shaped_zero(func->shape());
 			}
-			return ade::Functor::get(ade::ADD, filtered);
+			return ade::Functor::get(MAKE_CODE(ade::ADD), filtered);
 		}
 		case ade::MUL:
 			if (std::any_of(zeros.begin(), zeros.end(),
@@ -83,7 +85,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 			}
 			else if (zeros[0])
 			{
-				return ade::Functor::get(ade::NEG, {args[1]});
+				return ade::Functor::get(MAKE_CODE(ade::NEG), {args[1]});
 			}
 			else if (zeros[1])
 			{
@@ -113,7 +115,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 		default:
 			return ade::Tensorptr(nullptr);
 	}
-	return ade::Functor::get(opcode, args);
+	return ade::Functor::get(std::move(ade::CodePtrT(ade::make_code(opcode))), args);
 }
 
 DataNode zero_prune (DataNode root)

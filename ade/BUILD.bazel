@@ -20,11 +20,6 @@ filegroup(
     ]),
 )
 
-filegroup(
-    name = "test_data",
-    srcs = glob(["test/data/*.txt"]),
-)
-
 ######### LIBRARIES #########
 
 cc_library(
@@ -59,19 +54,10 @@ cc_test(
     name = "test_dynamic",
     size = "medium",
     srcs = glob(["test/dynamic/*"]),
-    deps = ["//testutil:testutil"],
-    copts = ["-std=c++14"],
-    data = ["//:credentials"],
-)
-
-cc_test(
-    name = "test_static",
-    size = "small",
-    srcs = glob(["test/static/*"]),
     deps = [
-        "//dbg:dbg",
-        "@com_google_googletest//:gtest",
+        "//ade:ade",
+        "//testutil:testutil",
     ],
     copts = ["-std=c++14"],
-    data = ["//ade:test_data"],
+    data = ["//:credentials"],
 )

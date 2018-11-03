@@ -20,39 +20,44 @@ filegroup(
     ]),
 )
 
-######### LIBRARY #########
+filegroup(
+    name = "test_data",
+    srcs = glob(["test/data/*.txt"]),
+)
+
+######### LIBRARIES #########
 
 cc_library(
-    name = "llo",
+    name = "age",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["//age:age"],
+    deps = ["//ade:ade"],
 )
 
 ######### TEST #########
 
 cc_test(
-    name = "test_llo",
+    name = "test_dynamic",
     size = "medium",
     srcs = glob(["test/dynamic/*"]),
-    copts = ["-std=c++14"],
     deps = [
-        "//llo:llo",
+        "//age:age",
         "//testutil:testutil",
     ],
+    copts = ["-std=c++14"],
     data = ["//:credentials"],
 )
 
 cc_test(
-    name = "test_regress",
-    size = "medium",
-    srcs = glob(["test/regress/*"]),
-    copts = ["-std=c++14"],
+    name = "test_static",
+    size = "small",
+    srcs = glob(["test/static/*"]),
     deps = [
-        "//llo:llo",
-        "//testutil:testutil",
-        "@com_github_mingkaic_testify//anteroc:anteroc",
+        "//age:age",
+        "//dbg:dbg",
+        "@com_google_googletest//:gtest",
     ],
-    data = ["//:credentials"],
+    copts = ["-std=c++14"],
+    data = ["//age:test_data"],
 )

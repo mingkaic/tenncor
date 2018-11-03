@@ -6,6 +6,8 @@
 /// Extend ade::iTensor with proxies that carry and evaluate tensor data
 ///
 
+#include "age/grader.hpp"
+
 #include "llo/eval.hpp"
 
 #ifndef LLO_NODE_HPP
@@ -101,7 +103,7 @@ private:
 
 /// DataNode of a leaf that can be assignable by data vectors
 template <typename T>
-struct PlaceHolder : public DataNode
+struct PlaceHolder final : public DataNode
 {
 	PlaceHolder (ade::Shape shape) :
 		DataNode(Source<T>::get(shape, std::vector<T>(shape.n_elems()))) {}
@@ -127,7 +129,7 @@ template <typename T>
 DataNode shaped_scalar (T scalar, ade::Shape shape)
 {
 	DataNode snode = Source<double>::get_scalar(scalar);
-	return DataNode(snode.ctx_, ade::Functor::get(ade::COPY, {
+	return DataNode(snode.ctx_, ade::Functor::get(MAKE_CODE(ade::COPY), {
 		{ade::extend(0, std::vector<ade::DimT>(shape.begin(), shape.end())),
 		snode.tensor_}}));
 }

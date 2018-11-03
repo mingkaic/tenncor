@@ -22,7 +22,7 @@ struct GraphStat final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (Tensor* leaf) override
 	{
-        graphsize_.emplace(leaf, 0);
+		graphsize_.emplace(leaf, 0);
 	}
 
 	/// Implementation of iTraveler
@@ -35,7 +35,7 @@ struct GraphStat final : public iTraveler
 			for (auto& child : children)
 			{
 				iTensor* tens = child.tensor_.get();
-                tens->accept(*this);
+				tens->accept(*this);
 				auto childinfo = graphsize_.find(tens);
 				if (graphsize_.end() != childinfo &&
 					childinfo->second > ngraph)

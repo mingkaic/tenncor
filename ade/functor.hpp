@@ -13,8 +13,9 @@
 
 #include "ade/log/string.hpp"
 
-#include "ade/grader.hpp"
+#include "ade/tensor.hpp"
 #include "ade/traveler.hpp"
+#include "ade/coord.hpp"
 
 #ifndef ADE_FUNCTOR_HPP
 #define ADE_FUNCTOR_HPP
@@ -26,9 +27,9 @@ namespace ade
 struct Functor final : public iFunctor
 {
 	/// Return a Functor with with input tensor and meta arguments
-	static Functor* get (OPCODE opcode, ArgsT args)
+	static Functor* get (CodePtrT&& opcode, ArgsT args)
 	{
-		std::string oname = opname(opcode);
+		std::string oname = opcode->opname();
 		const char* label = oname.c_str();
 		if (0 == args.size())
 		{
@@ -45,7 +46,7 @@ struct Functor final : public iFunctor
 					shape.to_string().c_str(), ishape.to_string().c_str());
 			}
 		}
-		return new Functor(opcode, shape, args);
+		return new Functor(std::move(opcode), shape, args);
 	}
 
 	/// Implementation of iTensor
@@ -88,7 +89,7 @@ struct Functor final : public iFunctor
 				continue;
 			}
 			iFunctor* func = static_cast<iFunctor*>(fwd);
-			OPCODE opcode = func->get_code();
+			const iOpcode& opcode = func->get_code();
 			auto& paint = finder.parents_[func];
 			ArgsT children = func->get_children();
 			// for each painted child, calculate dThis/dChild
@@ -114,33 +115,30 @@ struct Functor final : public iFunctor
 						}
 					}
 					// pass down forward-gradient pair
+					Tensorptr grad = opcode.gradient(args, i);
 					CoordPtrT bwd_mapper(bwd.mapper_->forward(*mapper));
-					Tensorptr grad = gradmap(opcode, args, i);
 					tmaps.push_back({children[i].tensor_.get(),
-						{identity, Functor::get(MUL, {
-							{identity, Functor::get(COPY, {
-								{bwd_mapper, bwd.tensor_},
-							})},
-							{identity, grad},
-						})}
+						{identity, opcode_->grad_vertical_merge(
+							{bwd_mapper, bwd.tensor_}, {identity, grad})
+						}
 					});
 				}
 			}
 		}
 
-		return Functor::get(ADD, grads);
+		return opcode_->grad_horizontal_merge(grads);
 	}
 
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return opname(opcode_);
+		return opcode_->opname();
 	}
 
 	/// Implementation of iFunctor
-	OPCODE get_code (void) const override
+	const iOpcode& get_code (void) const override
 	{
-		return opcode_;
+		return *opcode_;
 	}
 
 	/// Implementation of iFunctor
@@ -150,11 +148,11 @@ struct Functor final : public iFunctor
 	}
 
 private:
-	Functor (OPCODE opcode, Shape shape, ArgsT args) :
-		opcode_(opcode), shape_(shape), args_(args) {}
+	Functor (CodePtrT&& opcode, Shape shape, ArgsT args) :
+		opcode_(std::move(opcode)), shape_(shape), args_(args) {}
 
 	/// OPCODE represented by functor
-	OPCODE opcode_;
+	CodePtrT opcode_;
 
 	/// Shape info built at construction time according to arguments
 	Shape shape_;

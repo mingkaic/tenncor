@@ -11,7 +11,7 @@ void calc_func_args (DataArgsT& out, const EvalCtx& ctx,
 	ade::ArgsT children = func->get_children();
 	uint8_t nargs = children.size();
 	out = DataArgsT(nargs);
-	if (func->get_code() == ade::RAND_BINO)
+	if (func->get_code().opnum() == ade::RAND_BINO)
 	{
 		if (nargs != 2)
 		{

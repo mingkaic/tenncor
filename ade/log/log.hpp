@@ -39,7 +39,7 @@ const std::string warn_tag = "[WARNING]:";
 const std::string err_tag = "[ERROR]:";
 
 /// Default implementation of iLogger used in ADE
-struct DefLogger : public iLogger
+struct DefLogger final : public iLogger
 {
 	/// Implementation of iLogger
 	void warn (std::string msg) const override

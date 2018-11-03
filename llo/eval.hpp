@@ -8,7 +8,7 @@
 
 #include <unordered_map>
 
-#include "ade/functor.hpp"
+#include "age/grader.hpp"
 
 #include "llo/opmap.hpp"
 
@@ -108,7 +108,7 @@ struct Evaluator final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		ade::OPCODE opcode = func->get_code();
+		ade::OPCODE opcode = (ade::OPCODE) func->get_code().opnum();
 		out_ = GenericData(func->shape(), dtype_);
 
 		DataArgsT argdata;
@@ -152,7 +152,7 @@ struct DataNode
 			grad.get() == ade::Tensor::SYMBOLIC_ZERO.get())
 		{
 			const ade::Shape& shape = wrt->shape();
-			grad = ade::Functor::get(ade::COPY, {
+			grad = ade::Functor::get(MAKE_CODE(ade::COPY), {
 				{ade::extend(0, std::vector<ade::DimT>(
 					shape.begin(), shape.end())), grad},
 			});
