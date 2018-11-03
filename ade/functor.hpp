@@ -29,7 +29,7 @@ struct Functor final : public iFunctor
 	/// Return a Functor with with input tensor and meta arguments
 	static Functor* get (CodePtrT&& opcode, ArgsT args)
 	{
-		std::string oname = opcode->opname();
+		std::string oname = opcode->to_string();
 		const char* label = oname.c_str();
 		if (0 == args.size())
 		{
@@ -66,71 +66,84 @@ struct Functor final : public iFunctor
 		// define traversal path from this to wrt
 		PathFinder finder(wrt);
 		accept(finder);
+		auto& pathmap = finder.parents_;
 		// no path to wrt
-		if (finder.parents_.empty())
+		if (pathmap.empty())
 		{
 			return Tensor::SYMBOLIC_ZERO;
 		}
 		// else there exists a path to wrt
 		// using pathfinder, breadth first traverse from this to wrt
-		std::list<std::pair<iTensor*,MappedTensor>> tmaps = {
-			{this, {extend(0, std::vector<DimT>(shape_.begin(), shape_.end())),
-				Tensor::SYMBOLIC_ONE}}};
-		ArgsT grads;
-		while (false == tmaps.empty())
-		{
-			auto fpair = tmaps.front();
-			tmaps.pop_front();
-			iTensor* fwd = fpair.first;
-			MappedTensor& bwd = fpair.second;
-			if (wrt == fwd)
+		GraphStat stat;
+		accept(stat);
+
+		std::list<iFunctor*> parents;
+		std::transform(pathmap.begin(), pathmap.end(),
+			std::back_inserter(parents),
+			[](std::pair<iTensor*,std::unordered_set<size_t>> parent)
 			{
-				grads.push_back(bwd);
-				continue;
+				return static_cast<ade::iFunctor*>(parent.first);
+			});
+		parents.sort(
+			[&](iFunctor* a, iFunctor* b)
+			{
+				return stat.graphsize_[a] > stat.graphsize_[b];
+			});
+
+		std::unordered_map<const iTensor*,ArgsT> grads = {{this,
+			{{extend(0, std::vector<DimT>(shape_.begin(), shape_.end())),
+				Tensor::SYMBOLIC_ONE}},
+		}};
+		for (iFunctor* parent : parents)
+		{
+			const iOpcode& opcode = parent->get_code();
+			ArgsT& gradargs = grads[parent];
+			MappedTensor bwd = gradargs[0];
+			if (gradargs.size() > 1)
+			{
+				bwd = {identity, opcode.grad_horizontal_merge(gradargs)};
 			}
-			iFunctor* func = static_cast<iFunctor*>(fwd);
-			const iOpcode& opcode = func->get_code();
-			auto& grad_indices = finder.parents_[func];
-			ArgsT children = func->get_children();
+
+			auto& grad_indices = pathmap[parent];
+			ArgsT children = parent->get_children();
 			size_t nchildren = children.size();
 			// for each painted child, calculate dThis/dChild
 			for (size_t i : grad_indices)
 			{
+				MappedTensor& child = children[i];
 				ArgsT args;
-				CoordPtrT mapper(children[i].mapper_->reverse());
+				CoordPtrT mapper(child.mapper_->reverse());
 				for (size_t j = 0; j < nchildren; ++j)
 				{
+					Tensorptr& tens = children[j].tensor_;
 					if (j == i)
 					{
-						args.push_back(MappedTensor{
-							identity, children[j].tensor_});
+						args.push_back({identity, tens});
 					}
 					else
 					{
 						CoordPtrT toshape(
 							children[j].mapper_->forward(*mapper));
-						Tensorptr& tens = children[j].tensor_;
-						args.push_back(MappedTensor{toshape, tens});
+						args.push_back({toshape, tens});
 					}
 				}
 				// pass down forward-gradient pair
 				Tensorptr grad = opcode.gradient(args, i);
 				CoordPtrT bwd_mapper(bwd.mapper_->forward(*mapper));
-				tmaps.push_back({children[i].tensor_.get(),
-					{identity, opcode_->grad_vertical_merge(
+				grads[child.tensor_.get()].push_back({
+					identity, opcode.grad_vertical_merge(
 						{bwd_mapper, bwd.tensor_}, {identity, grad})
-					}
 				});
 			}
 		}
 
-		return opcode_->grad_horizontal_merge(grads);
+		return opcode_->grad_horizontal_merge(grads[wrt]);
 	}
 
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return opcode_->opname();
+		return opcode_->to_string();
 	}
 
 	/// Implementation of iFunctor

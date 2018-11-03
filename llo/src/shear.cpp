@@ -109,8 +109,9 @@ DataNode zero_prune (DataNode root)
 	ade::GraphStat stat;
 	root.tensor_->accept(stat);
 	// grab the intersection of stat.funcs_ and pathmap
-	std::list<ade::iFunctor*> parents(pathmap.size());
-	std::transform(pathmap.begin(), pathmap.end(), parents.begin(),
+	std::list<ade::iFunctor*> parents;
+	std::transform(pathmap.begin(), pathmap.end(),
+		std::back_inserter(parents),
 		[](std::pair<ade::iTensor*,std::unordered_set<size_t>> parent)
 		{
 			return static_cast<ade::iFunctor*>(parent.first);

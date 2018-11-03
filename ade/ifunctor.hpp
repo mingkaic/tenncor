@@ -26,7 +26,7 @@ struct iOpcode
 {
 	virtual ~iOpcode (void) = default;
 
-	virtual std::string opname (void) const = 0;
+	virtual std::string to_string (void) const = 0;
 
 	virtual size_t opnum (void) const = 0;
 

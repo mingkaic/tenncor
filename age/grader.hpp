@@ -30,7 +30,7 @@ Tensorptr shaped_zero (Shape shape);
 template <OPCODE OP>
 struct Opcode final : public iOpcode
 {
-	std::string opname (void) const override
+	std::string to_string (void) const override
 	{
 		return ade::opname(OP);
 	}

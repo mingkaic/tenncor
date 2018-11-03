@@ -151,7 +151,7 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Functor* func = pb_node->mutable_functor();
-		func->set_opname(f->get_code().opname());
+		func->set_opname(f->get_code().to_string());
 		const ade::ArgsT& children = f->get_children();
 		for (auto& child : children)
 		{

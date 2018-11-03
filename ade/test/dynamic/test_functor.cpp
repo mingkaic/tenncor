@@ -17,7 +17,7 @@ static ade::Tensorptr mock_back = ade::Tensor::get(ade::Shape());
 
 struct MockOpcode : public ade::iOpcode
 {
-	std::string opname (void) const override
+	std::string to_string (void) const override
 	{
 		return "MOCK";
 	}
