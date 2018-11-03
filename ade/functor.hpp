@@ -59,7 +59,7 @@ struct Functor final : public iFunctor
 	{
 		if (this == wrt)
 		{
-			return shaped_one(shape_);
+			return Tensor::SYMBOLIC_ONE;
 		}
 
 		// define traversal path from this to wrt
@@ -68,7 +68,7 @@ struct Functor final : public iFunctor
 		// no path to wrt
 		if (finder.parents_.empty())
 		{
-			return shaped_zero(wrt->shape());
+			return Tensor::SYMBOLIC_ZERO;
 		}
 		// else there exists a path to wrt
 		// using pathfinder, breadth first traverse to wrt

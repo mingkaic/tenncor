@@ -148,6 +148,15 @@ struct DataNode
 	DataNode derive (const ade::iTensor* wrt)
 	{
 		ade::Tensorptr grad = tensor_->gradient(wrt);
+		if (grad.get() == ade::Tensor::SYMBOLIC_ONE.get() ||
+			grad.get() == ade::Tensor::SYMBOLIC_ZERO.get())
+		{
+			const ade::Shape& shape = wrt->shape();
+			grad = ade::Functor::get(ade::COPY, {
+				{ade::extend(0, std::vector<ade::DimT>(
+					shape.begin(), shape.end())), grad},
+			});
+		}
 		return DataNode(ctx_, grad);
 	}
 

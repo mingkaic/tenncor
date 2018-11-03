@@ -49,12 +49,6 @@ struct MappedTensor final
 	Tensorptr tensor_;
 };
 
-/// Return a Tensor::SYMBOLIC_ONE extended to input shape
-Tensorptr shaped_one (Shape shape);
-
-/// Return a Tensor::SYMBOLIC_ZERO extended to input shape
-Tensorptr shaped_zero (Shape shape);
-
 /// Leaf of the graph commonly representing the variable in an equation
 struct Tensor final : public iTensor
 {
@@ -87,9 +81,9 @@ struct Tensor final : public iTensor
 	{
 		if (this == wrt)
 		{
-			return shaped_one(shape_);
+			return Tensor::SYMBOLIC_ONE;
 		}
-		return shaped_zero(wrt->shape());
+		return Tensor::SYMBOLIC_ZERO;
 	}
 
 	/// Implementation of iTensor

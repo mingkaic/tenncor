@@ -16,6 +16,12 @@ namespace ade
 
 // TODO: CONVERT TO GENERATED CONFIG
 
+/// Return a Tensor::SYMBOLIC_ONE extended to input shape
+Tensorptr shaped_one (Shape shape);
+
+/// Return a Tensor::SYMBOLIC_ZERO extended to input shape
+Tensorptr shaped_zero (Shape shape);
+
 template <OPCODE OP>
 Tensorptr grader (ArgsT args, size_t gradidx)
 {
