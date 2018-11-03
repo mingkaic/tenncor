@@ -1013,7 +1013,7 @@ TEST_F(API, Extend)
 	double* goptr = (double*) gout.data_.get();
 	for (size_t i = 0; i < nelem; ++i)
 	{
-		EXPECT_EQ(ext_nelem, goptr[i]);
+		EXPECT_EQ(1, goptr[i]);
 	}
 }
 

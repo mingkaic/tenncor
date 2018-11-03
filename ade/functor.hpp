@@ -72,18 +72,19 @@ struct Functor final : public iFunctor
 		}
 		// else there exists a path to wrt
 		// using pathfinder, breadth first traverse to wrt
-		std::list<std::pair<iTensor*,Tensorptr>> tmaps = {
-			{this, shaped_one(shape_)}};
-		std::vector<Tensorptr> finalgrad;
+		std::list<std::pair<iTensor*,MappedTensor>> tmaps = {
+			{this, {extend(0, std::vector<DimT>(shape_.begin(), shape_.end())),
+				Tensor::SYMBOLIC_ONE}}};
+		ArgsT grads;
 		while (false == tmaps.empty())
 		{
 			auto fpair = tmaps.front();
 			tmaps.pop_front();
 			iTensor* fwd = fpair.first;
-			auto bwd = fpair.second;
+			MappedTensor& bwd = fpair.second;
 			if (wrt == fwd)
 			{
-				finalgrad.push_back(bwd);
+				grads.push_back(bwd);
 				continue;
 			}
 			iFunctor* func = static_cast<iFunctor*>(fwd);
@@ -113,29 +114,21 @@ struct Functor final : public iFunctor
 						}
 					}
 					// pass down forward-gradient pair
+					CoordPtrT bwd_mapper(bwd.mapper_->forward(*mapper));
 					Tensorptr grad = gradmap(opcode, args, i);
 					tmaps.push_back({children[i].tensor_.get(),
-						Functor::get(MUL, {
-							{identity, Functor::get(COPY, {{mapper, bwd}})},
+						{identity, Functor::get(MUL, {
+							{identity, Functor::get(COPY, {
+								{bwd_mapper, bwd.tensor_},
+							})},
 							{identity, grad},
-						})});
+						})}
+					});
 				}
 			}
 		}
 
-		assert(finalgrad.size() > 0);
-		if (finalgrad.size() == 1)
-		{
-			return finalgrad[0];
-		}
-		ArgsT finalargs;
-		std::transform(finalgrad.begin(), finalgrad.end(),
-			std::back_inserter(finalargs),
-			[](Tensorptr& tens) -> MappedTensor
-			{
-				return {identity, tens};
-			});
-		return Functor::get(ADD, finalargs);
+		return Functor::get(ADD, grads);
 	}
 
 	/// Implementation of iTensor

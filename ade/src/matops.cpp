@@ -116,7 +116,7 @@ void matmul (MatrixT out, const MatrixT& lhs, const MatrixT& rhs)
 			out[i][j] = 0;
 			for (uint8_t k = 0; k < mat_dim; ++k)
 			{
-				out[i][j] += lhs[k][j] * rhs[i][k];
+				out[i][j] += lhs[i][k] * rhs[k][j];
 			}
 		}
 	}
