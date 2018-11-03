@@ -9,113 +9,90 @@ namespace llo
 
 // todo: move somewhere else
 static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
-	std::vector<bool> zeros, ade::ArgsT args)
+	std::unordered_set<size_t> zeros, ade::ArgsT args)
 {
 	is_zero = false;
 	ade::OPCODE opcode = (ade::OPCODE) func->get_code().opnum();
-	switch (opcode)
+	if (false == zeros.empty())
 	{
-		case ade::COPY:
-		case ade::ABS:
-		case ade::NEG:
-		case ade::SIN:
-		case ade::TAN:
-		case ade::SQRT:
-		case ade::ROUND:
-			if (zeros[0])
-			{
-				is_zero = true;
-				return ade::shaped_zero(func->shape());
-			}
-			break;
-		case ade::COS:
-		case ade::EXP:
-			if (zeros[0])
-			{
-				return ade::shaped_one(func->shape());
-			}
-			break;
-		case ade::LOG:
-			if (zeros[0])
-			{
-				ade::fatal("cannot LOG by zero");
-			}
-			break;
-		case ade::POW:
-			if (zeros[0])
-			{
-				is_zero = true;
-				return ade::shaped_zero(func->shape());
-			}
-			else if (zeros[1])
-			{
-				return ade::shaped_one(func->shape());
-			}
-			break;
-		case ade::ADD:
+		switch (opcode)
 		{
-			ade::ArgsT filtered;
-			for (size_t i = 0, n = args.size(); i < n; ++i)
-			{
-				if (false == zeros[i])
+			case ade::COPY:
+			case ade::ABS:
+			case ade::NEG:
+			case ade::SIN:
+			case ade::TAN:
+			case ade::SQRT:
+			case ade::ROUND:
+			case ade::MUL:
+				is_zero = true;
+				return ade::shaped_zero(func->shape());
+			case ade::COS:
+			case ade::EXP:
+				return ade::shaped_one(func->shape());
+			case ade::LOG:
+				ade::fatal("cannot LOG by zero");
+			case ade::POW:
+				if (zeros.end() != zeros.find(0))
 				{
-					filtered.push_back(args[i]);
+					is_zero = true;
+					return ade::shaped_zero(func->shape());
 				}
-			}
-			if (filtered.empty())
+				// else if zeros.end() != zeros.find(1)
+				return ade::shaped_one(func->shape());
+			case ade::ADD:
 			{
-				is_zero = true;
-				return ade::shaped_zero(func->shape());
+				ade::ArgsT filtered;
+				for (size_t i = 0, n = args.size(); i < n; ++i)
+				{
+					if (zeros.end() == zeros.find(i))
+					{
+						filtered.push_back(args[i]);
+					}
+				}
+				if (filtered.empty())
+				{
+					is_zero = true;
+					return ade::shaped_zero(func->shape());
+				}
+				return ade::Functor::get(MAKE_CODE(ade::ADD), filtered);
 			}
-			return ade::Functor::get(MAKE_CODE(ade::ADD), filtered);
-		}
-		case ade::MUL:
-			if (std::any_of(zeros.begin(), zeros.end(),
-				[](bool b) { return b; }))
-			{
-				is_zero = true;
-				return ade::shaped_zero(func->shape());
-			}
-			break;
-		case ade::SUB:
-			if (zeros[0] && zeros[1])
-			{
-				is_zero = true;
-				return ade::shaped_zero(func->shape());
-			}
-			else if (zeros[0])
-			{
-				return ade::Functor::get(MAKE_CODE(ade::NEG), {args[1]});
-			}
-			else if (zeros[1])
-			{
+			case ade::SUB:
+				if (2 == zeros.size())
+				{
+					is_zero = true;
+					return ade::shaped_zero(func->shape());
+				}
+				else if (zeros.end() != zeros.find(0))
+				{
+					return ade::Functor::get(MAKE_CODE(ade::NEG), {args[1]});
+				}
+				// else if zeros.end() != zeros.find(1)
 				return args[0].tensor_;
-			}
-			break;
-		case ade::DIV:
-			if (zeros[1])
-			{
-				ade::fatal("cannot DIV by zero");
-			}
-			else if (zeros[0])
-			{
+			case ade::DIV:
+				if (zeros.end() != zeros.find(1))
+				{
+					ade::fatal("cannot DIV by zero");
+				}
+				// else if 0 == zeros.front()
 				is_zero = true;
 				return ade::shaped_zero(func->shape());
-			}
-		case ade::MIN:
-		case ade::MAX:
-		case ade::EQ:
-		case ade::NE:
-		case ade::LT:
-		case ade::GT:
-		case ade::RAND_BINO:
-		case ade::RAND_UNIF:
-		case ade::RAND_NORM:
-			break;
-		default:
-			return ade::Tensorptr(nullptr);
+			case ade::MIN:
+			case ade::MAX:
+			case ade::EQ:
+			case ade::NE:
+			case ade::LT:
+			case ade::GT:
+			case ade::RAND_BINO:
+			case ade::RAND_UNIF:
+			case ade::RAND_NORM:
+				break;
+			default:
+				ade::fatal("cannot prune unknown opcode");
+		}
 	}
-	return ade::Functor::get(std::move(ade::CodePtrT(ade::make_code(opcode))), args);
+	return ade::Functor::get(
+		std::move(ade::CodePtrT(ade::make_code(opcode))), args);
 }
 
 DataNode zero_prune (DataNode root)
@@ -124,20 +101,22 @@ DataNode zero_prune (DataNode root)
 	// since source will never be touched
 	ade::PathFinder finder(ade::Tensor::SYMBOLIC_ZERO.get());
 	root.tensor_->accept(finder);
-	if (finder.parents_.empty()) // not path to zero or root is not a parent
+	auto& pathmap = finder.parents_;
+	if (pathmap.empty()) // not path to zero or root is not a parent
 	{
 		return root;
 	}
 	ade::GraphStat stat;
 	root.tensor_->accept(stat);
-	// grab the intersection of stat.funcs_ and finder.parents_
-	std::list<ade::iFunctor*> parents(finder.parents_.size());
-	std::transform(finder.parents_.begin(), finder.parents_.end(),
-		parents.begin(), [](std::pair<ade::iTensor*,std::vector<bool>> parent)
+	// grab the intersection of stat.funcs_ and pathmap
+	std::list<ade::iFunctor*> parents(pathmap.size());
+	std::transform(pathmap.begin(), pathmap.end(), parents.begin(),
+		[](std::pair<ade::iTensor*,std::unordered_set<size_t>> parent)
 		{
 			return static_cast<ade::iFunctor*>(parent.first);
 		});
-	parents.sort([&](ade::iTensor* a, ade::iTensor* b)
+	parents.sort(
+		[&](ade::iTensor* a, ade::iTensor* b)
 		{
 			return stat.graphsize_[a] < stat.graphsize_[b];
 		});
@@ -149,23 +128,27 @@ DataNode zero_prune (DataNode root)
 	for (ade::iFunctor* func : parents)
 	{
 		ade::ArgsT children = func->get_children();
-		std::vector<bool> paints = finder.parents_[func];
-		for (size_t i = 0, n = children.size(); i < n; ++i)
+		std::unordered_set<size_t> indices = pathmap[func];
+		for (auto it = indices.begin(), et = indices.end(); it != et;)
 		{
-			ade::iTensor* tens = children[i].tensor_.get();
+			ade::MappedTensor& child = children[*it];
+			ade::iTensor* tens = child.tensor_.get();
 			auto zit = zeromap.find(tens);
-			if (zeromap.end() != zit)
+			assert(zeromap.end() != zit );
+			if (false == zit->second)
 			{
-				paints[i] = paints[i] && zit->second;
+				it = indices.erase(it);
+			}
+			else
+			{
+				++it;
 			}
 			auto mit = mapping.find(tens);
-			if (mapping.end() != mit)
-			{
-				children[i].tensor_ = mit->second;
-			}
+			assert(mapping.end() != mit);
+			child.tensor_ = mit->second;
 		}
 		bool is_zero = false;
-		mapping.emplace(func, prune0(is_zero, func, paints, children));
+		mapping.emplace(func, prune0(is_zero, func, indices, children));
 		zeromap.emplace(func, is_zero);
 	}
 	auto it = mapping.find(root.tensor_.get());

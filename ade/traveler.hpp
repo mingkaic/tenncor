@@ -6,6 +6,7 @@
 ///	Define functor nodes of an equation graph
 ///
 
+#include <unordered_set>
 #include <unordered_map>
 
 #include "ade/ifunctor.hpp"
@@ -59,7 +60,7 @@ struct GraphStat final : public iTraveler
 struct PathFinder final : public iTraveler
 {
 	/// Type for mapping function nodes in path to boolean vector
-	using ParentMapT = std::unordered_map<iTensor*,std::vector<bool>>;
+	using ParentMapT = std::unordered_map<iTensor*,std::unordered_set<size_t>>;
 
 	PathFinder (const iTensor* target) : target_(target) {}
 
@@ -73,25 +74,24 @@ struct PathFinder final : public iTraveler
 		{
 			auto& children = func->get_children();
 			size_t n = children.size();
-			bool has_path = false;
-			std::vector<bool> path(n, false);
+			std::unordered_set<size_t> path;
 			for (size_t i = 0; i < n; ++i)
 			{
 				Tensorptr tens = children[i].tensor_;
 				if (tens.get() == target_)
 				{
-					path[i] = has_path = true;
+					path.emplace(i);
 				}
 				else
 				{
 					tens->accept(*this);
 					if (parents_.end() != parents_.find(tens.get()))
 					{
-						path[i] = has_path = true;
+						path.emplace(i);
 					}
 				}
 			}
-			if (has_path)
+			if (false == path.empty())
 			{
 				parents_[func] = path;
 			}

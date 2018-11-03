@@ -72,7 +72,7 @@ struct Functor final : public iFunctor
 			return Tensor::SYMBOLIC_ZERO;
 		}
 		// else there exists a path to wrt
-		// using pathfinder, breadth first traverse to wrt
+		// using pathfinder, breadth first traverse from this to wrt
 		std::list<std::pair<iTensor*,MappedTensor>> tmaps = {
 			{this, {extend(0, std::vector<DimT>(shape_.begin(), shape_.end())),
 				Tensor::SYMBOLIC_ONE}}};
@@ -90,39 +90,37 @@ struct Functor final : public iFunctor
 			}
 			iFunctor* func = static_cast<iFunctor*>(fwd);
 			const iOpcode& opcode = func->get_code();
-			auto& paint = finder.parents_[func];
+			auto& grad_indices = finder.parents_[func];
 			ArgsT children = func->get_children();
+			size_t nchildren = children.size();
 			// for each painted child, calculate dThis/dChild
-			for (size_t i = 0, n = children.size(); i < n; ++i)
+			for (size_t i : grad_indices)
 			{
-				if (paint[i])
+				ArgsT args;
+				CoordPtrT mapper(children[i].mapper_->reverse());
+				for (size_t j = 0; j < nchildren; ++j)
 				{
-					ArgsT args;
-					CoordPtrT mapper(children[i].mapper_->reverse());
-					for (size_t j = 0; j < n; ++j)
+					if (j == i)
 					{
-						if (j == i)
-						{
-							args.push_back(MappedTensor{
-								identity, children[j].tensor_});
-						}
-						else
-						{
-							CoordPtrT toshape(
-								children[j].mapper_->forward(*mapper));
-							Tensorptr& tens = children[j].tensor_;
-							args.push_back(MappedTensor{toshape, tens});
-						}
+						args.push_back(MappedTensor{
+							identity, children[j].tensor_});
 					}
-					// pass down forward-gradient pair
-					Tensorptr grad = opcode.gradient(args, i);
-					CoordPtrT bwd_mapper(bwd.mapper_->forward(*mapper));
-					tmaps.push_back({children[i].tensor_.get(),
-						{identity, opcode_->grad_vertical_merge(
-							{bwd_mapper, bwd.tensor_}, {identity, grad})
-						}
-					});
+					else
+					{
+						CoordPtrT toshape(
+							children[j].mapper_->forward(*mapper));
+						Tensorptr& tens = children[j].tensor_;
+						args.push_back(MappedTensor{toshape, tens});
+					}
 				}
+				// pass down forward-gradient pair
+				Tensorptr grad = opcode.gradient(args, i);
+				CoordPtrT bwd_mapper(bwd.mapper_->forward(*mapper));
+				tmaps.push_back({children[i].tensor_.get(),
+					{identity, opcode_->grad_vertical_merge(
+						{bwd_mapper, bwd.tensor_}, {identity, grad})
+					}
+				});
 			}
 		}
 
