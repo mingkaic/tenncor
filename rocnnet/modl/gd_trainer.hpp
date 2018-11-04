@@ -25,12 +25,12 @@ struct GDTrainer
 		size_t outsize = brain_->get_noutput();
 		if (train_in.size() != insize * batch_size_)
 		{
-			ade::fatalf("training vector size (%d) does not match input size "
+			err::fatalf("training vector size (%d) does not match input size "
 				"(%d) * batchsize (%d)", train_in.size(), insize, batch_size_);
 		}
 		if (expected_out.size() != outsize * batch_size_)
 		{
-			ade::fatalf("expected output size (%d) does not match output size "
+			err::fatalf("expected output size (%d) does not match output size "
 				"(%d) * batchsize (%d)", expected_out.size(), outsize, batch_size_);
 		}
 		train_in_ = train_in;

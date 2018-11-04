@@ -12,35 +12,35 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 	std::unordered_set<size_t> zeros, ade::ArgsT args)
 {
 	is_zero = false;
-	ade::OPCODE opcode = (ade::OPCODE) func->get_code().opnum();
+	age::OPCODE opcode = (age::OPCODE) func->get_code().opnum();
 	if (false == zeros.empty())
 	{
 		switch (opcode)
 		{
-			case ade::COPY:
-			case ade::ABS:
-			case ade::NEG:
-			case ade::SIN:
-			case ade::TAN:
-			case ade::SQRT:
-			case ade::ROUND:
-			case ade::MUL:
+			case age::COPY:
+			case age::ABS:
+			case age::NEG:
+			case age::SIN:
+			case age::TAN:
+			case age::SQRT:
+			case age::ROUND:
+			case age::MUL:
 				is_zero = true;
-				return ade::shaped_zero(func->shape());
-			case ade::COS:
-			case ade::EXP:
-				return ade::shaped_one(func->shape());
-			case ade::LOG:
-				ade::fatal("cannot LOG by zero");
-			case ade::POW:
+				return age::shaped_zero(func->shape());
+			case age::COS:
+			case age::EXP:
+				return age::shaped_one(func->shape());
+			case age::LOG:
+				err::fatal("cannot LOG by zero");
+			case age::POW:
 				if (zeros.end() != zeros.find(0))
 				{
 					is_zero = true;
-					return ade::shaped_zero(func->shape());
+					return age::shaped_zero(func->shape());
 				}
 				// else if zeros.end() != zeros.find(1)
-				return ade::shaped_one(func->shape());
-			case ade::ADD:
+				return age::shaped_one(func->shape());
+			case age::ADD:
 			{
 				ade::ArgsT filtered;
 				for (size_t i = 0, n = args.size(); i < n; ++i)
@@ -53,45 +53,45 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 				if (filtered.empty())
 				{
 					is_zero = true;
-					return ade::shaped_zero(func->shape());
+					return age::shaped_zero(func->shape());
 				}
-				return ade::Functor::get(MAKE_CODE(ade::ADD), filtered);
+				return ade::Functor::get(MAKE_CODE(age::ADD), filtered);
 			}
-			case ade::SUB:
+			case age::SUB:
 				if (2 == zeros.size())
 				{
 					is_zero = true;
-					return ade::shaped_zero(func->shape());
+					return age::shaped_zero(func->shape());
 				}
 				else if (zeros.end() != zeros.find(0))
 				{
-					return ade::Functor::get(MAKE_CODE(ade::NEG), {args[1]});
+					return ade::Functor::get(MAKE_CODE(age::NEG), {args[1]});
 				}
 				// else if zeros.end() != zeros.find(1)
 				return args[0].tensor_;
-			case ade::DIV:
+			case age::DIV:
 				if (zeros.end() != zeros.find(1))
 				{
-					ade::fatal("cannot DIV by zero");
+					err::fatal("cannot DIV by zero");
 				}
 				// else if 0 == zeros.front()
 				is_zero = true;
-				return ade::shaped_zero(func->shape());
-			case ade::MIN:
-			case ade::MAX:
-			case ade::EQ:
-			case ade::NE:
-			case ade::LT:
-			case ade::GT:
-			case ade::RAND_BINO:
-			case ade::RAND_UNIF:
-			case ade::RAND_NORM:
+				return age::shaped_zero(func->shape());
+			case age::MIN:
+			case age::MAX:
+			case age::EQ:
+			case age::NE:
+			case age::LT:
+			case age::GT:
+			case age::RAND_BINO:
+			case age::RAND_UNIF:
+			case age::RAND_NORM:
 				break;
 			default:
-				ade::fatal("cannot prune unknown opcode");
+				err::fatal("cannot prune unknown opcode");
 		}
 	}
-	return ade::Functor::get(ade::make_code(opcode), args);
+	return ade::Functor::get(age::make_code(opcode), args);
 }
 
 DataNode zero_prune (DataNode root)
@@ -154,7 +154,7 @@ DataNode zero_prune (DataNode root)
 	auto it = mapping.find(root.tensor_.get());
 	if (mapping.end() == it)
 	{
-		ade::fatal("something went wrong"); // todo: probably add context?
+		err::fatal("something went wrong"); // todo: probably add context?
 	}
 
 	return DataNode{root.ctx_, it->second};

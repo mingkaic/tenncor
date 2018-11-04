@@ -8,7 +8,7 @@ struct FCLayer : public iLayer
 		size_t n = n_inputs.size();
 		if (n == 0)
 		{
-			ade::fatal("cannot create FCLayer with no inputs");
+			err::fatal("cannot create FCLayer with no inputs");
 		}
 		for (size_t i = 0; i < n; ++i)
 		{
@@ -70,7 +70,7 @@ struct FCLayer : public iLayer
 		size_t n = inputs.size();
 		if (n != weight_bias_.size())
 		{
-			ade::fatalf("number of inputs must be exactly %d", n);
+			err::fatalf("number of inputs must be exactly %d", n);
 		}
 		std::vector<llo::DataNode> args;
 		for (size_t i = 0; i < n; ++i)

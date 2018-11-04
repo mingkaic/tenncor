@@ -3,7 +3,7 @@
 /// llo
 ///
 /// Purpose:
-/// Associate ade::OPCODE to operations on data
+/// Associate age::OPCODE to operations on data
 ///
 
 #include "age/opcode.hpp"
@@ -19,18 +19,18 @@ namespace llo
 
 using DataArgsT = std::vector<std::pair<ade::CoordPtrT,GenericData>>;
 
-template <ade::OPCODE OP, typename T>
+template <age::OPCODE OP, typename T>
 struct Executer
 {
 	static void exec (GenericData& out, DataArgsT& data)
 	{
-		ade::fatalf("cannot %s of type %s", ade::opname(OP).c_str(),
+		err::fatalf("cannot %s of type %s", age::opname(OP).c_str(),
 			nametype(get_type<T>()).c_str());
 	}
 };
 
 template <typename T>
-struct Executer<ade::COPY,T>
+struct Executer<age::COPY,T>
 {
 	static void exec (GenericData& out, DataArgsT& data)
 	{
@@ -42,7 +42,7 @@ struct Executer<ade::COPY,T>
 	}
 };
 
-#define UNARY(OP, METHOD)template <typename T>struct Executer<ade::OP,T>{\
+#define UNARY(OP, METHOD)template <typename T>struct Executer<age::OP,T>{\
 static void exec (GenericData& out, DataArgsT& data) {\
 METHOD((T*) out.data_.get(), VecRef<T>{data[0].first,\
 (T*) data[0].second.data_.get(), data[0].second.shape_}); } };
@@ -59,7 +59,7 @@ UNARY(ROUND, round)
 
 #undef UNARY
 
-#define BINARY(OP, METHOD)template <typename T> struct Executer<ade::OP,T>{\
+#define BINARY(OP, METHOD)template <typename T> struct Executer<age::OP,T>{\
 static void exec (GenericData& out, DataArgsT& data) {\
 METHOD((T*) out.data_.get(), out.shape_, VecRef<T>{data[0].first,\
 (T*) data[0].second.data_.get(), data[0].second.shape_}, VecRef<T>{\
@@ -74,7 +74,7 @@ BINARY(LT, lt)
 BINARY(GT, gt)
 
 template <typename T>
-struct Executer<ade::RAND_BINO,T>
+struct Executer<age::RAND_BINO,T>
 {
 	static void exec (GenericData& out, DataArgsT& data)
 	{
@@ -93,7 +93,7 @@ BINARY(RAND_NORM, rand_normal)
 
 #undef BINARY
 
-#define NARY(OP, METHOD)template <typename T> struct Executer<ade::OP,T> {\
+#define NARY(OP, METHOD)template <typename T> struct Executer<age::OP,T> {\
 static void exec (GenericData& out, DataArgsT& data){\
 std::vector<VecRef<T>> args(data.size());\
 std::transform(data.begin(), data.end(), args.begin(),\
@@ -108,7 +108,7 @@ NARY(MAX, max)
 
 #undef NARY
 
-template <ade::OPCODE OP>
+template <age::OPCODE OP>
 void exec (GenericData& out, DataArgsT& data)
 {
 	switch (out.dtype_)
@@ -144,11 +144,11 @@ void exec (GenericData& out, DataArgsT& data)
 			Executer<OP,uint64_t>::exec(out, data);
 		break;
 		default:
-			ade::fatal("executing bad type");
+			err::fatal("executing bad type");
 	}
 }
 
-void op_exec (ade::OPCODE opcode, GenericData& out, DataArgsT& data);
+void op_exec (age::OPCODE opcode, GenericData& out, DataArgsT& data);
 
 }
 

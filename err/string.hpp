@@ -1,6 +1,6 @@
 ///
 /// string.hpp
-/// ade
+/// err
 ///
 /// Purpose:
 /// Define string conversions for displaying various types
@@ -11,10 +11,10 @@
 #include <sstream>
 #include <tuple>
 
-#ifndef ADE_STRING_HPP
-#define ADE_STRING_HPP
+#ifndef ERR_STRING_HPP
+#define ERR_STRING_HPP
 
-namespace ade
+namespace err
 {
 
 /// Symbol for the start of an array as string
@@ -92,4 +92,4 @@ std::string sprintf (std::string format, ARGS... args)
 
 }
 
-#endif // ADE_STRING_HPP
+#endif // ERR_STRING_HPP

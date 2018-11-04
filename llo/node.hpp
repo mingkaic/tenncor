@@ -25,7 +25,7 @@ struct Source final : public iSource
 	{
 		if (shape.n_elems() != data.size())
 		{
-			ade::fatalf("data size %d does not match shape %s",
+			err::fatalf("data size %d does not match shape %s",
 				data.size(), shape.to_string().c_str());
 		}
 		auto tens = std::shared_ptr<ade::Tensor>(ade::Tensor::get(shape));
@@ -74,7 +74,7 @@ struct Source final : public iSource
 		const ade::Shape& internal_shape = tensor_->shape();
 		if (false == data.shape_.compatible_after(internal_shape, 0))
 		{
-			ade::fatalf("cannot assign data of incompatible shaped %s to "
+			err::fatalf("cannot assign data of incompatible shaped %s to "
 				"internal data of shape %s", data.shape_.to_string().c_str(),
 				internal_shape.to_string().c_str());
 		}
@@ -129,7 +129,7 @@ template <typename T>
 DataNode shaped_scalar (T scalar, ade::Shape shape)
 {
 	DataNode snode = Source<double>::get_scalar(scalar);
-	return DataNode(snode.ctx_, ade::Functor::get(MAKE_CODE(ade::COPY), {
+	return DataNode(snode.ctx_, ade::Functor::get(MAKE_CODE(age::COPY), {
 		{ade::extend(0, std::vector<ade::DimT>(shape.begin(), shape.end())),
 		snode.tensor_}}));
 }

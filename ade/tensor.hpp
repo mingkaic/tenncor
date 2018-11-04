@@ -9,7 +9,7 @@
 #include <cmath>
 #include <memory>
 
-#include "log/log.hpp"
+#include "err/log.hpp"
 
 #include "ade/itensor.hpp"
 #include "ade/coord.hpp"

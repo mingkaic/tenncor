@@ -2,9 +2,9 @@
 
 #include "age/opcode.hpp"
 
-#ifdef ADE_OPCODE_HPP
+#ifdef AGE_OPCODE_HPP
 
-namespace ade
+namespace age
 {
 
 struct EnumHash

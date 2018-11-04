@@ -13,26 +13,26 @@
 #ifndef ADE_GRADER_HPP
 #define ADE_GRADER_HPP
 
-namespace ade
+namespace age
 {
 
 /// Return a Tensor::SYMBOLIC_ONE extended to input shape
-Tensorptr shaped_one (Shape shape);
+ade::Tensorptr shaped_one (ade::Shape shape);
 
 /// Return a Tensor::SYMBOLIC_ZERO extended to input shape
-Tensorptr shaped_zero (Shape shape);
+ade::Tensorptr shaped_zero (ade::Shape shape);
 
 // TODO: CONVERT TO GENERATED CONFIG
 
 // todo: remove and make better
-#define MAKE_CODE(CODE)ade::CodePtrT(new ade::Opcode<CODE>)
+#define MAKE_CODE(CODE)ade::CodePtrT(new age::Opcode<CODE>)
 
 template <OPCODE OP>
-struct Opcode final : public iOpcode
+struct Opcode final : public ade::iOpcode
 {
 	std::string to_string (void) const override
 	{
-		return ade::opname(OP);
+		return age::opname(OP);
 	}
 
 	size_t opnum (void) const override
@@ -40,28 +40,28 @@ struct Opcode final : public iOpcode
 		return OP;
 	}
 
-	Tensorptr gradient (ArgsT args, size_t gradidx) const override
+	ade::Tensorptr gradient (ade::ArgsT args, size_t gradidx) const override
 	{
 		throw std::bad_function_call();
 	}
 
-	Tensorptr grad_vertical_merge (MappedTensor bot, MappedTensor top) const override
+	ade::Tensorptr grad_vertical_merge (ade::MappedTensor bot, ade::MappedTensor top) const override
 	{
-		return Functor::get(MAKE_CODE(MUL), {
-			{identity, Functor::get(MAKE_CODE(ADD), {bot})}, top,
+		return ade::Functor::get(MAKE_CODE(MUL), {
+			{ade::identity, ade::Functor::get(MAKE_CODE(ADD), {bot})}, top,
 		});
 	}
 
-	Tensorptr grad_horizontal_merge (ArgsT& grads) const override
+	ade::Tensorptr grad_horizontal_merge (ade::ArgsT& grads) const override
 	{
-		return Functor::get(MAKE_CODE(ADD), grads);
+		return ade::Functor::get(MAKE_CODE(ADD), grads);
 	}
 };
 
 ade::CodePtrT make_code (OPCODE opcode);
 
 #define GRAD_DECLARE(CODE)template <>\
-Tensorptr Opcode<CODE>::gradient (ade::ArgsT args, size_t gradidx) const;
+ade::Tensorptr Opcode<CODE>::gradient (ade::ArgsT args, size_t gradidx) const;
 
 GRAD_DECLARE(COPY)
 

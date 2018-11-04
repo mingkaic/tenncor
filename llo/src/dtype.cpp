@@ -1,6 +1,6 @@
 #include <unordered_map>
 
-#include "log/log.hpp"
+#include "err/log.hpp"
 
 #include "llo/dtype.hpp"
 
@@ -65,7 +65,7 @@ uint8_t type_size (DTYPE type)
 		case DTYPE::UINT64:
 			return sizeof(int64_t);
 		default:
-			ade::fatalf("unsupported type %d", type);
+			err::fatalf("unsupported type %d", type);
 	}
 }
 

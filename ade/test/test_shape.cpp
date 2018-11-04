@@ -35,7 +35,7 @@ TEST_F(SHAPE, Init)
 
 	std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
-		ade::to_string(zerolist.begin(), zerolist.end());
+		err::to_string(zerolist.begin(), zerolist.end());
 	EXPECT_FATAL(ade::Shape junk(zerolist), fatalmsg.c_str());
 
 	for (uint8_t i = 0; i < ade::rank_cap; ++i)
@@ -82,7 +82,7 @@ TEST_F(SHAPE, VecAssign)
 	EXPECT_ARREQ(slist, vlist2);
 
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
-		ade::to_string(zerolist.begin(), zerolist.end());
+		err::to_string(zerolist.begin(), zerolist.end());
 	EXPECT_FATAL(vecassign = zerolist, fatalmsg.c_str());
 }
 
@@ -223,11 +223,11 @@ TEST_F(SHAPE, Coordinates)
 		coord[i] = shape.at(i);
 	}
 	std::string shapestr = shape.to_string();
-	std::string fatalmsg = ade::sprintf("cannot get index of bad coordinate "
+	std::string fatalmsg = err::sprintf("cannot get index of bad coordinate "
 		"%s for shape %s", shapestr.c_str(), shapestr.c_str());
 	EXPECT_FATAL(ade::index(shape, coord), fatalmsg.c_str());
 
-	std::string fatalmsg2 = ade::sprintf("cannot get coordinate of index %d "
+	std::string fatalmsg2 = err::sprintf("cannot get coordinate of index %d "
 		"(>= shape %s nelems)", shape.n_elems(), shapestr.c_str());
 	EXPECT_FATAL(ade::coordinate(shape, shape.n_elems()), fatalmsg2.c_str());
 }

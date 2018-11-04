@@ -2,7 +2,7 @@ GTEST_REPEAT := 50
 
 COVERAGE_INFO_FILE := coverage.info
 
-LOG_TEST := //log:test
+ERR_TEST := //err:test
 
 ADE_TEST := //ade:test
 
@@ -49,10 +49,10 @@ TMP_LOGFILE := /tmp/tenncor-test.log
 
 # all tests
 
-test: test_log test_ade test_llo test_pbm
+test: test_err test_ade test_llo test_pbm
 
-test_log:
-	$(GTEST) $(LOG_TEST)
+test_err:
+	$(GTEST) $(ERR_TEST)
 
 test_ade:
 	$(GTEST) $(REP_BZL_FLAGS) $(ADE_TEST)
@@ -73,10 +73,10 @@ test_pbm:
 
 # valgrind unit tests
 
-valgrind: valgrind_log valgrind_ade valgrind_llo valgrind_pbm
+valgrind: valgrind_err valgrind_ade valgrind_llo valgrind_pbm
 
-valgrind_log:
-	$(GTEST) $(VAL_BZL_FLAGS) $(LOG_TEST)
+valgrind_err:
+	$(GTEST) $(VAL_BZL_FLAGS) $(ERR_TEST)
 
 valgrind_ade:
 	$(GTEST) $(VAL_BZL_FLAGS) --action_env="GTEST_REPEAT=5" $(ADE_TEST)
@@ -97,10 +97,10 @@ valgrind_pbm:
 
 # asan unit tests
 
-asan: asan_log asan_ade asan_llo asan_pbm
+asan: asan_err asan_ade asan_llo asan_pbm
 
-asan_log:
-	$(GTEST) $(ASAN_BZL_FLAGS) $(LOG_TEST)
+asan_err:
+	$(GTEST) $(ASAN_BZL_FLAGS) $(ERR_TEST)
 
 asan_ade:
 	$(GTEST) $(ASAN_BZL_FLAGS) $(REP_BZL_FLAGS) $(ADE_TEST)
@@ -121,10 +121,10 @@ asan_pbm:
 
 # coverage unit tests
 
-coverage: cover_log cover_ade cover_llo cover_pbm
+coverage: cover_err cover_ade cover_llo cover_pbm
 
-cover_log:
-	$(COVER) --instrumentation_filter= $(LOG_TEST)
+cover_err:
+	$(COVER) --instrumentation_filter= $(ERR_TEST)
 
 cover_ade:
 	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter= $(ADE_TEST)
@@ -147,7 +147,7 @@ cover_pbm:
 
 lcov_all: coverage
 	rm -f $(TMP_LOGFILE)
-	cat bazel-testlogs/log/test/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/err/test/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/age/test_dynamic/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/age/test_static/test.log >> $(TMP_LOGFILE)
@@ -158,8 +158,8 @@ lcov_all: coverage
 	rm -f $(TMP_LOGFILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
-lcov_log: cover_log
-	cat bazel-testlogs/log/test/test.log | $(COVERAGE_PIPE)
+lcov_err: cover_err
+	cat bazel-testlogs/err/test/test.log | $(COVERAGE_PIPE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 

@@ -96,7 +96,7 @@ struct Evaluator final : public ade::iTraveler
 		{
 			if (leaf != ade::Tensor::SYMBOLIC_ZERO.get())
 			{
-				ade::warnf("evaluating an ade::Tensor %s without associated "
+				err::warnf("evaluating an ade::Tensor %s without associated "
 					"Source according to input context... treating data as 0",
 					leaf->to_string().c_str()); // todo: describe ctx for comprehensive report
 			}
@@ -108,7 +108,7 @@ struct Evaluator final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		ade::OPCODE opcode = (ade::OPCODE) func->get_code().opnum();
+		age::OPCODE opcode = (age::OPCODE) func->get_code().opnum();
 		out_ = GenericData(func->shape(), dtype_);
 
 		DataArgsT argdata;
@@ -152,7 +152,7 @@ struct DataNode
 			grad.get() == ade::Tensor::SYMBOLIC_ZERO.get())
 		{
 			const ade::Shape& shape = wrt->shape();
-			grad = ade::Functor::get(MAKE_CODE(ade::COPY), {
+			grad = ade::Functor::get(MAKE_CODE(age::COPY), {
 				{ade::extend(0, std::vector<ade::DimT>(
 					shape.begin(), shape.end())), grad},
 			});

@@ -1,4 +1,4 @@
-#include "log/log.hpp"
+#include "err/log.hpp"
 
 #include "pbm/source.hpp"
 
@@ -86,7 +86,7 @@ void save_data (tenncor::Source* out, llo::iSource* in)
 		}
 		break;
 		default:
-			ade::error("cannot serialize badly typed node... skipping");
+			err::error("cannot serialize badly typed node... skipping");
 	}
 }
 
@@ -161,7 +161,7 @@ llo::DataNode load_source (const tenncor::Source& source)
 		}
 		break;
 		default:
-			ade::fatal("cannot load source"); // todo: make more informative
+			err::fatal("cannot load source"); // todo: make more informative
 	}
 }
 

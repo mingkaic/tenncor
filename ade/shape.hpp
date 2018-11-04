@@ -13,7 +13,7 @@
 #include <sstream>
 #include <vector>
 
-#include "log/log.hpp"
+#include "err/log.hpp"
 
 #ifndef ADE_SHAPE_HPP
 #define ADE_SHAPE_HPP
@@ -137,7 +137,7 @@ struct Shape final
 	/// Return string representation of shape
 	std::string to_string (void) const
 	{
-		return ade::to_string(begin(), end());
+		return err::to_string(begin(), end());
 	}
 
 	// >>>> INTERNAL CONTROL <<<<
@@ -176,8 +176,8 @@ private:
 				return d == 0;
 			}))
 		{
-			fatalf("cannot create shape with vector containing zero: %s",
-				ade::to_string(dims.begin(), dims.end()).c_str());
+			err::fatalf("cannot create shape with vector containing zero: %s",
+				err::to_string(dims.begin(), dims.end()).c_str());
 		}
 		auto dest = dims_.begin();
 		uint8_t rank = std::min((size_t) rank_cap, dims.size());

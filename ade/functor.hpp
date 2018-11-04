@@ -11,7 +11,7 @@
 #include <list>
 #include <unordered_map>
 
-#include "log/string.hpp"
+#include "err/string.hpp"
 
 #include "ade/tensor.hpp"
 #include "ade/traveler.hpp"
@@ -33,7 +33,7 @@ struct Functor final : public iFunctor
 		const char* label = oname.c_str();
 		if (0 == args.size())
 		{
-			fatalf("cannot %s with no arguments", label);
+			err::fatalf("cannot %s with no arguments", label);
 		}
 
 		Shape shape = args[0].shape();
@@ -42,7 +42,7 @@ struct Functor final : public iFunctor
 			Shape ishape = args[i].shape();
 			if (false == ishape.compatible_after(shape, 0))
 			{
-				fatalf("cannot %s with incompatible shapes %s and %s", label,
+				err::fatalf("cannot %s with incompatible shapes %s and %s", label,
 					shape.to_string().c_str(), ishape.to_string().c_str());
 			}
 		}

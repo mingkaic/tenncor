@@ -12,7 +12,7 @@ DeltasT sgd (llo::DataNode& root, std::vector<llo::DataNode> leaves,
 		std::shared_ptr<llo::iSource> leafsrc = leaf.source();
 		if (nullptr == leafsrc)
 		{
-			ade::warnf("attempting to approximate error of root with respect "
+			err::warnf("attempting to approximate error of root with respect "
 				"to context-less tensor %s... skipping",
 				leaf.tensor_->to_string().c_str());
 			continue;
@@ -37,7 +37,7 @@ DeltasT rms_momentum (llo::DataNode& root,
 		std::shared_ptr<llo::iSource> leafsrc = leaf.source();
 		if (nullptr == leafsrc)
 		{
-			ade::warnf("attempting to approximate error of root with respect "
+			err::warnf("attempting to approximate error of root with respect "
 				"to context-less tensor %s... skipping",
 				leaf.tensor_->to_string().c_str());
 			continue;

@@ -63,7 +63,7 @@ struct Tensorptr
 	{
 		if (nullptr == tens)
 		{
-			fatal("cannot create nodeptr with nullptr");
+			err::fatal("cannot create nodeptr with nullptr");
 		}
 	}
 
@@ -72,7 +72,7 @@ struct Tensorptr
 	{
 		if (nullptr == tens)
 		{
-			fatal("cannot create nodeptr with nullptr");
+			err::fatal("cannot create nodeptr with nullptr");
 		}
 	}
 

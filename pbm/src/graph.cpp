@@ -3,7 +3,7 @@
 #include <queue>
 #include <chrono>
 
-#include "log/log.hpp"
+#include "err/log.hpp"
 
 #include "llo/api.hpp"
 
@@ -47,7 +47,7 @@ ade::CoordPtrT load_coord (
 {
 	if (ade::mat_dim * ade::mat_dim != coord.size())
 	{
-		ade::fatal("cannot deserialize non-matrix coordinate map");
+		err::fatal("cannot deserialize non-matrix coordinate map");
 	}
 	return std::make_shared<ade::CoordMap>(
 		[&](ade::MatrixT fwd)
@@ -214,12 +214,12 @@ std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
 				}
 				else
 				{
-					ade::fatalf("cannot find tensor of index %d", i);
+					err::fatalf("cannot find tensor of index %d", i);
 				}
 			}
 			outvec.push_back(llo::DataNode{llo::EvalCtx(contexas),
-				ade::Functor::get(ade::make_code(
-					ade::name_op(func.opname())), args)});
+				ade::Functor::get(age::make_code(
+					age::name_op(func.opname())), args)});
 		}
 	}
 	return outvec;

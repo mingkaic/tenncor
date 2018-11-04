@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "log/log.hpp"
+#include "err/log.hpp"
 #include "ade/coord.hpp"
 
 #ifdef ADE_COORD_HPP
@@ -63,17 +63,17 @@ CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 	if (std::any_of(red.begin(), red.end(),
 		[](DimT& d) { return 0 == d; }))
 	{
-		fatalf("cannot reduce using zero dimensions %s",
-			to_string(red.begin(), red.end()).c_str());
+		err::fatalf("cannot reduce using zero dimensions %s",
+			err::to_string(red.begin(), red.end()).c_str());
 	}
 	if (rank + n_red > rank_cap)
 	{
-		fatalf("cannot reduce shape rank %d beyond rank_cap with n_red %d",
+		err::fatalf("cannot reduce shape rank %d beyond rank_cap with n_red %d",
 			rank, n_red);
 	}
 	if (0 == n_red)
 	{
-		warn("reducing with empty vector... will do nothing");
+		err::warn("reducing with empty vector... will do nothing");
 		return identity;
 	}
 
@@ -98,17 +98,17 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
 	if (std::any_of(ext.begin(), ext.end(),
 		[](DimT& d) { return 0 == d; }))
 	{
-		fatalf("cannot extend using zero dimensions %s",
-			to_string(ext.begin(), ext.end()).c_str());
+		err::fatalf("cannot extend using zero dimensions %s",
+			err::to_string(ext.begin(), ext.end()).c_str());
 	}
 	if (rank + n_ext > rank_cap)
 	{
-		fatalf("cannot extend shape rank %d beyond rank_cap with n_ext %d",
+		err::fatalf("cannot extend shape rank %d beyond rank_cap with n_ext %d",
 			rank, n_ext);
 	}
 	if (0 == n_ext)
 	{
-		warn("extending with empty vector... will do nothing");
+		err::warn("extending with empty vector... will do nothing");
 		return identity;
 	}
 
@@ -131,7 +131,7 @@ CoordPtrT permute (std::vector<uint8_t> dims)
 {
 	if (dims.size() == 0)
 	{
-		warn("permuting with same dimensions ... will do nothing");
+		err::warn("permuting with same dimensions ... will do nothing");
 		return identity;
 	}
 
@@ -163,7 +163,7 @@ CoordPtrT flip (uint8_t dim)
 {
 	if (dim >= rank_cap)
 	{
-		warn("flipping dimension out of rank_cap ... will do nothing");
+		err::warn("flipping dimension out of rank_cap ... will do nothing");
 		return identity;
 	}
 

@@ -19,9 +19,9 @@ TEST_F(GENERATED, Childrens)
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
-	ade::OPCODE unary = (ade::OPCODE) sess->get_scalar("unary_op",
+	age::OPCODE unary = (age::OPCODE) sess->get_scalar("unary_op",
 		{ade::ABS, ade::ROUND});
-	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op",
+	age::OPCODE binary = (age::OPCODE) sess->get_scalar("binary_op",
 		{ade::POW, ade::RAND_NORM});
 
 	ade::Tensorptr fu = ade::Functor::get(make_code(unary),
@@ -50,9 +50,9 @@ TEST_F(GENERATED, ToString)
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
-	ade::OPCODE unary = (ade::OPCODE) sess->get_scalar("unary_op",
+	age::OPCODE unary = (age::OPCODE) sess->get_scalar("unary_op",
 		{ade::ABS, ade::ROUND});
-	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op",
+	age::OPCODE binary = (age::OPCODE) sess->get_scalar("binary_op",
 		{ade::POW, ade::RAND_NORM});
 
 	ade::Tensorptr fu = ade::Functor::get(make_code(unary),
@@ -63,10 +63,10 @@ TEST_F(GENERATED, ToString)
 	ASSERT_NE(nullptr, fu.get());
 	ASSERT_NE(nullptr, fb.get());
 
-	std::string out_unary = ade::opname(unary);
+	std::string out_unary = age::opname(unary);
 	EXPECT_STREQ(out_unary.c_str(), fu->to_string().c_str());
 
-	std::string out_binary = ade::opname(binary);
+	std::string out_binary = age::opname(binary);
 	EXPECT_STREQ(out_binary.c_str(), fb->to_string().c_str());
 }
 
@@ -75,10 +75,10 @@ TEST_F(GENERATED, OpNaming)
 {
 	simple::SessionT sess = get_session("GENERATED::OpNaming");
 
-	ade::OPCODE op = (ade::OPCODE) sess->get_scalar("unary_op",
+	age::OPCODE op = (age::OPCODE) sess->get_scalar("unary_op",
 		{ade::ABS, ade::RAND_NORM});
 
-	std::string name = ade::opname(op);
+	std::string name = age::opname(op);
 	EXPECT_EQ(op, ade::name_op(name));
 }
 

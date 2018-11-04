@@ -46,12 +46,12 @@ int main (int argc, char** argv)
 		auto der = root.derive(var);
 		llo::GenericData gdata = llo::zero_prune(der).data(llo::DOUBLE);
 		double* gdptr = (double*) gdata.data_.get();
-		std::cout << ade::to_string(gdptr, gdptr + gdata.shape_.n_elems()) << std::endl;
+		std::cout << err::to_string(gdptr, gdptr + gdata.shape_.n_elems()) << std::endl;
 	}
 
 	llo::GenericData data = root.data(llo::DOUBLE);
 	double* dptr = (double*) data.data_.get();
-	std::cout << ade::to_string(dptr, dptr + data.shape_.n_elems()) << std::endl;
+	std::cout << err::to_string(dptr, dptr + data.shape_.n_elems()) << std::endl;
 
 
 	tenncor::Graph graph;
@@ -60,7 +60,7 @@ int main (int argc, char** argv)
 	std::fstream outstr(serialpath, std::ios::out | std::ios::trunc | std::ios::binary);
 	if (!graph.SerializeToOstream(&outstr))
 	{
-		ade::warn("failed to serialize initial trainer");
+		err::warn("failed to serialize initial trainer");
 	}
 
 	google::protobuf::ShutdownProtobufLibrary();

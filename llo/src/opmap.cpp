@@ -5,84 +5,84 @@
 namespace llo
 {
 
-void op_exec (ade::OPCODE opcode, GenericData& out, DataArgsT& data)
+void op_exec (age::OPCODE opcode, GenericData& out, DataArgsT& data)
 {
 	switch (opcode)
 	{
-		case ade::COPY:
-			exec<ade::COPY>(out, data);
+		case age::COPY:
+			exec<age::COPY>(out, data);
 		break;
-		case ade::ABS:
-			exec<ade::ABS>(out, data);
+		case age::ABS:
+			exec<age::ABS>(out, data);
 		break;
-		case ade::NEG:
-			exec<ade::NEG>(out, data);
+		case age::NEG:
+			exec<age::NEG>(out, data);
 		break;
-		case ade::SIN:
-			exec<ade::SIN>(out, data);
+		case age::SIN:
+			exec<age::SIN>(out, data);
 		break;
-		case ade::COS:
-			exec<ade::COS>(out, data);
+		case age::COS:
+			exec<age::COS>(out, data);
 		break;
-		case ade::TAN:
-			exec<ade::TAN>(out, data);
+		case age::TAN:
+			exec<age::TAN>(out, data);
 		break;
-		case ade::EXP:
-			exec<ade::EXP>(out, data);
+		case age::EXP:
+			exec<age::EXP>(out, data);
 		break;
-		case ade::LOG:
-			exec<ade::LOG>(out, data);
+		case age::LOG:
+			exec<age::LOG>(out, data);
 		break;
-		case ade::SQRT:
-			exec<ade::SQRT>(out, data);
+		case age::SQRT:
+			exec<age::SQRT>(out, data);
 		break;
-		case ade::ROUND:
-			exec<ade::ROUND>(out, data);
+		case age::ROUND:
+			exec<age::ROUND>(out, data);
 		break;
-		case ade::POW:
-			exec<ade::POW>(out, data);
+		case age::POW:
+			exec<age::POW>(out, data);
 		break;
-		case ade::ADD:
-			exec<ade::ADD>(out, data);
+		case age::ADD:
+			exec<age::ADD>(out, data);
 		break;
-		case ade::SUB:
-			exec<ade::SUB>(out, data);
+		case age::SUB:
+			exec<age::SUB>(out, data);
 		break;
-		case ade::MUL:
-			exec<ade::MUL>(out, data);
+		case age::MUL:
+			exec<age::MUL>(out, data);
 		break;
-		case ade::DIV:
-			exec<ade::DIV>(out, data);
+		case age::DIV:
+			exec<age::DIV>(out, data);
 		break;
-		case ade::EQ:
-			exec<ade::EQ>(out, data);
+		case age::EQ:
+			exec<age::EQ>(out, data);
 		break;
-		case ade::NE:
-			exec<ade::NE>(out, data);
+		case age::NE:
+			exec<age::NE>(out, data);
 		break;
-		case ade::LT:
-			exec<ade::LT>(out, data);
+		case age::LT:
+			exec<age::LT>(out, data);
 		break;
-		case ade::GT:
-			exec<ade::GT>(out, data);
+		case age::GT:
+			exec<age::GT>(out, data);
 		break;
-		case ade::MIN:
-			exec<ade::MIN>(out, data);
+		case age::MIN:
+			exec<age::MIN>(out, data);
 		break;
-		case ade::MAX:
-			exec<ade::MAX>(out, data);
+		case age::MAX:
+			exec<age::MAX>(out, data);
 		break;
-		case ade::RAND_BINO:
-			exec<ade::RAND_BINO>(out, data);
+		case age::RAND_BINO:
+			exec<age::RAND_BINO>(out, data);
 		break;
-		case ade::RAND_UNIF:
-			exec<ade::RAND_UNIF>(out, data);
+		case age::RAND_UNIF:
+			exec<age::RAND_UNIF>(out, data);
 		break;
-		case ade::RAND_NORM:
-			exec<ade::RAND_NORM>(out, data);
+		case age::RAND_NORM:
+			exec<age::RAND_NORM>(out, data);
 		break;
 		default:
-			ade::fatal("unknown opcode");
+			err::fatal("unknown opcode");
 	}
 }
 

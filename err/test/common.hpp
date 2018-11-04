@@ -1,6 +1,6 @@
-#include "log/log.hpp"
+#include "err/log.hpp"
 
-struct TestLogger : public ade::iLogger
+struct TestLogger : public err::iLogger
 {
 	static std::string latest_warning_;
 	static std::string latest_error_;

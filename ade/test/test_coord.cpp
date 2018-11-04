@@ -71,6 +71,8 @@ TEST_F(COORD, Identity)
 			idstr = ade::to_string(mat);
 		});
 
+	std::string idstr2 = ade::identity->to_string();
+
 	EXPECT_STREQ("[[1\\0\\0\\0\\0\\0\\0\\0\\0]\\\n"
 		"[0\\1\\0\\0\\0\\0\\0\\0\\0]\\\n"
 		"[0\\0\\1\\0\\0\\0\\0\\0\\0]\\\n"
@@ -80,6 +82,7 @@ TEST_F(COORD, Identity)
 		"[0\\0\\0\\0\\0\\0\\1\\0\\0]\\\n"
 		"[0\\0\\0\\0\\0\\0\\0\\1\\0]\\\n"
 		"[0\\0\\0\\0\\0\\0\\0\\0\\1]]", idstr.c_str());
+	EXPECT_STREQ(idstr.c_str(), idstr2.c_str());
 
 	std::vector<int32_t> icoord = sess->get_int("icoord", ade::rank_cap, {0, 255});
 	ade::CoordT fwd_out, bwd_out, in;
@@ -129,7 +132,7 @@ TEST_F(COORD, Reduce)
 
 	EXPECT_FATAL(ade::reduce(rank, {0}), "cannot reduce using zero dimensions [0]");
 
-	std::string fatalmsg = ade::sprintf(
+	std::string fatalmsg = err::sprintf(
 		"cannot reduce shape rank %d beyond rank_cap with n_red %d",
 		rank + 1, red.size());
 	EXPECT_FATAL(ade::reduce(rank + 1, dred), fatalmsg.c_str());
@@ -172,7 +175,7 @@ TEST_F(COORD, Extend)
 
 	EXPECT_FATAL(ade::extend(rank, {0}), "cannot extend using zero dimensions [0]");
 
-	std::string fatalmsg = ade::sprintf(
+	std::string fatalmsg = err::sprintf(
 		"cannot extend shape rank %d beyond rank_cap with n_ext %d",
 		rank + 1, ext.size());
 	EXPECT_FATAL(ade::extend(rank + 1, dext), fatalmsg.c_str());

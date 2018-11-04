@@ -1,6 +1,6 @@
 ///
 /// log.hpp
-/// ade
+/// err
 ///
 /// Purpose:
 /// Define log message handling interface
@@ -9,15 +9,15 @@
 #include <iostream>
 #include <memory>
 
-#include "log/string.hpp"
+#include "err/string.hpp"
 
-#ifndef ADE_LOG_HPP
-#define ADE_LOG_HPP
+#ifndef ERR_LOG_HPP
+#define ERR_LOG_HPP
 
-namespace ade
+namespace err
 {
 
-/// Interface of logger used in ADE
+/// Interface of logger
 struct iLogger
 {
 	virtual ~iLogger (void) = default;
@@ -79,23 +79,23 @@ void fatal (std::string msg);
 template <typename... ARGS>
 void warnf (std::string format, ARGS... args)
 {
-	warn(ade::sprintf(format, args...));
+	warn(err::sprintf(format, args...));
 }
 
 /// Error using global logger with arguments
 template <typename... ARGS>
 void errorf (std::string format, ARGS... args)
 {
-	error(ade::sprintf(format, args...));
+	error(err::sprintf(format, args...));
 }
 
 /// Fatal using global logger with arguments
 template <typename... ARGS>
 void fatalf (std::string format, ARGS... args)
 {
-	fatal(ade::sprintf(format, args...));
+	fatal(err::sprintf(format, args...));
 }
 
 }
 
-#endif // ADE_LOG_HPP
+#endif // ERR_LOG_HPP

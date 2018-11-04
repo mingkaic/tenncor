@@ -92,7 +92,7 @@ int main (int argc, char** argv)
 	size_t i = 0;
 	for (auto deltas : trainer.updates_)
 	{
-		peq.labels_[deltas.first->inner().get()] = ade::sprintf("var%d", i);
+		peq.labels_[deltas.first->inner().get()] = err::sprintf("var%d", i);
 		++i;
 	}
 	peq.labels_[trainer.expected_out_.tensor_.get()] = "expected_out";
@@ -122,7 +122,7 @@ int main (int argc, char** argv)
 			llo::GenericData trained_derr = trainer.error_.data(llo::DOUBLE);
 			double* trained_err_res = (double*) trained_derr.data_.get();
 			std::cout << "training " << i+1 << std::endl;
-			std::cout << "trained error: " << ade::to_string(trained_err_res, trained_err_res + n_out) << std::endl;
+			std::cout << "trained error: " << err::to_string(trained_err_res, trained_err_res + n_out) << std::endl;
 		}
 		std::vector<double> batch = batch_generate(n_in, n_batch);
 		std::vector<double> batch_out = avgevry2(batch);

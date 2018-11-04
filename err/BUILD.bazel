@@ -23,7 +23,7 @@ filegroup(
 ######### LIBRARIES #########
 
 cc_library(
-    name = "log",
+    name = "err",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
@@ -36,7 +36,7 @@ cc_test(
     size = "small",
     srcs = [":test_srcs"],
     deps = [
-        "//log:log",
+        "//err:err",
         "@com_google_googletest//:gtest",
     ],
     copts = ["-std=c++14"],

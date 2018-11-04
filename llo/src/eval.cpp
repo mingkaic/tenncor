@@ -11,11 +11,11 @@ void calc_func_args (DataArgsT& out, const EvalCtx& ctx,
 	ade::ArgsT children = func->get_children();
 	uint8_t nargs = children.size();
 	out = DataArgsT(nargs);
-	if (func->get_code().opnum() == ade::RAND_BINO)
+	if (func->get_code().opnum() == age::RAND_BINO)
 	{
 		if (nargs != 2)
 		{
-			ade::fatalf("cannot RAND_BINO without exactly 2 arguments: "
+			err::fatalf("cannot RAND_BINO without exactly 2 arguments: "
 				"using %d arguments", nargs);
 		}
 		Evaluator left_eval(ctx, dtype);

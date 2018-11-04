@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "log/test/common.hpp"
+#include "err/test/common.hpp"
 
 std::string TestLogger::latest_warning_;
 
@@ -12,7 +12,7 @@ std::shared_ptr<TestLogger> tlogger = std::make_shared<TestLogger>();
 
 int main (int argc, char** argv)
 {
-	ade::set_logger(std::static_pointer_cast<ade::iLogger>(tlogger));
+	err::set_logger(std::static_pointer_cast<err::iLogger>(tlogger));
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

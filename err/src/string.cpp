@@ -1,8 +1,8 @@
-#include "log/string.hpp"
+#include "err/string.hpp"
 
-#ifdef ADE_STRING_HPP
+#ifdef ERR_STRING_HPP
 
-namespace ade
+namespace err
 {
 
 void to_stream (std::ostream& s, const char* str)
@@ -15,10 +15,10 @@ void to_stream (std::ostream& s, std::string str)
 	for (size_t i = 0, n = str.size(); i < n; ++i)
 	{
 		switch (str[i]) {
-			case ade::arr_begin:
-			case ade::arr_end:
-			case ade::arr_delim:
-				str.insert(str.begin() + i, ade::arr_delim);
+			case arr_begin:
+			case arr_end:
+			case arr_delim:
+				str.insert(str.begin() + i, arr_delim);
 				++i;
 				++n;
 		}

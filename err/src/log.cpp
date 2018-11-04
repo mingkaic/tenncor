@@ -1,8 +1,8 @@
-#include "log/log.hpp"
+#include "err/log.hpp"
 
-#ifdef ADE_LOG_HPP
+#ifdef ERR_LOG_HPP
 
-namespace ade
+namespace err
 {
 
 static std::shared_ptr<iLogger> glogger = std::make_shared<DefLogger>();

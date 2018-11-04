@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "log/log.hpp"
+#include "err/log.hpp"
 
 #include "llo/data.hpp"
 
@@ -40,7 +40,7 @@ static void to_generic (char* out, DTYPE out_type, T* data, size_t n)
 		case UINT16: COPYOVER(uint16_t)
 		case UINT32: COPYOVER(uint32_t)
 		case UINT64: COPYOVER(uint64_t)
-		default: ade::fatalf("invalid output type %s",
+		default: err::fatalf("invalid output type %s",
 			nametype(out_type).c_str());
 	}
 }
@@ -70,7 +70,7 @@ GenericData GenericData::convert_to (DTYPE out_type) const
 		case UINT16: CONVERT(uint16_t)
 		case UINT32: CONVERT(uint32_t)
 		case UINT64: CONVERT(uint64_t)
-		default: ade::fatalf("invalid input type %s",
+		default: err::fatalf("invalid input type %s",
 			nametype(dtype_).c_str());
 	}
 	return out;
@@ -96,7 +96,7 @@ void fill_one (char* cptr, size_t n, DTYPE dtype)
 		case UINT16: FILL_ONE(uint16_t)
 		case UINT32: FILL_ONE(uint32_t)
 		case UINT64: FILL_ONE(uint64_t)
-		default: ade::fatal("filling unknown type");
+		default: err::fatal("filling unknown type");
 	}
 }
 

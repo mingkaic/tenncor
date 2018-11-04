@@ -8,10 +8,10 @@
 
 #include <string>
 
-#ifndef ADE_OPCODE_HPP
-#define ADE_OPCODE_HPP
+#ifndef AGE_OPCODE_HPP
+#define AGE_OPCODE_HPP
 
-namespace ade
+namespace age
 {
 
 // TODO: CONVERT TO GENERATED CONFIG
