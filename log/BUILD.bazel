@@ -23,23 +23,21 @@ filegroup(
 ######### LIBRARIES #########
 
 cc_library(
-    name = "ade",
+    name = "log",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["//log:log"],
 )
 
 ######### TEST #########
 
 cc_test(
     name = "test",
-    size = "medium",
+    size = "small",
     srcs = [":test_srcs"],
     deps = [
-        "//ade:ade",
-        "//testutil:testutil",
+        "//log:log",
+        "@com_google_googletest//:gtest",
     ],
     copts = ["-std=c++14"],
-    data = ["//:credentials"],
 )

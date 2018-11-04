@@ -1,4 +1,4 @@
-#include "ade/log/string.hpp"
+#include "log/string.hpp"
 
 #ifdef ADE_STRING_HPP
 

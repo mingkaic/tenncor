@@ -24,11 +24,9 @@ TEST_F(GENERATED, Childrens)
 	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op",
 		{ade::POW, ade::RAND_NORM});
 
-	ade::Tensorptr fu = ade::Functor::get(
-		std::move(ade::CodePtrT(make_code(unary))),
+	ade::Tensorptr fu = ade::Functor::get(make_code(unary),
 		{{ade::identity, leaf}});
-	ade::Tensorptr fb = ade::Functor::get(
-		std::move(ade::CodePtrT(make_code(binary))),
+	ade::Tensorptr fb = ade::Functor::get(make_code(binary),
 		{{ade::identity, leaf}, {ade::identity, leaf1}});
 
 	ASSERT_NE(nullptr, fu.get());
@@ -57,11 +55,9 @@ TEST_F(GENERATED, ToString)
 	ade::OPCODE binary = (ade::OPCODE) sess->get_scalar("binary_op",
 		{ade::POW, ade::RAND_NORM});
 
-	ade::Tensorptr fu = ade::Functor::get(
-		std::move(ade::CodePtrT(make_code(unary))),
+	ade::Tensorptr fu = ade::Functor::get(make_code(unary),
 		{{ade::identity, leaf}});
-	ade::Tensorptr fb = ade::Functor::get(
-		std::move(ade::CodePtrT(make_code(binary))),
+	ade::Tensorptr fb = ade::Functor::get(make_code(binary),
 		{{ade::identity, leaf}, {ade::identity, leaf1}});
 
 	ASSERT_NE(nullptr, fu.get());

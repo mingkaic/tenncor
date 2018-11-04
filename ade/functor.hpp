@@ -11,7 +11,7 @@
 #include <list>
 #include <unordered_map>
 
-#include "ade/log/string.hpp"
+#include "log/string.hpp"
 
 #include "ade/tensor.hpp"
 #include "ade/traveler.hpp"
@@ -27,7 +27,7 @@ namespace ade
 struct Functor final : public iFunctor
 {
 	/// Return a Functor with with input tensor and meta arguments
-	static Functor* get (CodePtrT&& opcode, ArgsT args)
+	static Functor* get (CodePtrT opcode, ArgsT args)
 	{
 		std::string oname = opcode->to_string();
 		const char* label = oname.c_str();
@@ -46,7 +46,7 @@ struct Functor final : public iFunctor
 					shape.to_string().c_str(), ishape.to_string().c_str());
 			}
 		}
-		return new Functor(std::move(opcode), shape, args);
+		return new Functor(opcode, shape, args);
 	}
 
 	/// Implementation of iTensor
@@ -110,8 +110,8 @@ struct Functor final : public iFunctor
 			// for each painted child, calculate dThis/dChild
 			for (size_t i : grad_indices)
 			{
-				MappedTensor& child = children[i];
 				ArgsT args;
+				MappedTensor& child = children[i];
 				CoordPtrT mapper(child.mapper_->reverse());
 				for (size_t j = 0; j < nchildren; ++j)
 				{
@@ -159,8 +159,8 @@ struct Functor final : public iFunctor
 	}
 
 private:
-	Functor (CodePtrT&& opcode, Shape shape, ArgsT args) :
-		opcode_(std::move(opcode)), shape_(shape), args_(args) {}
+	Functor (CodePtrT& opcode, Shape shape, ArgsT args) :
+		opcode_(opcode), shape_(shape), args_(args) {}
 
 	/// OPCODE represented by functor
 	CodePtrT opcode_;

@@ -11,7 +11,7 @@
 #include "pbm/graph.hpp"
 
 
-const std::string testdir = "pbm/test/data";
+const std::string testdir = "pbm/data";
 
 
 static inline void ltrim(std::string &s)

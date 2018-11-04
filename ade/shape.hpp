@@ -13,7 +13,7 @@
 #include <sstream>
 #include <vector>
 
-#include "ade/log/log.hpp"
+#include "log/log.hpp"
 
 #ifndef ADE_SHAPE_HPP
 #define ADE_SHAPE_HPP

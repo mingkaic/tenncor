@@ -9,7 +9,7 @@
 #include <iostream>
 #include <memory>
 
-#include "ade/log/string.hpp"
+#include "log/string.hpp"
 
 #ifndef ADE_LOG_HPP
 #define ADE_LOG_HPP

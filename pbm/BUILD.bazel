@@ -31,8 +31,8 @@ filegroup(
 filegroup(
     name = "test_data",
     srcs = glob([
-        "test/data/*.pb",
-        "test/data/*.txt",
+        "data/*.pb",
+        "data/*.txt",
     ]),
 )
 
@@ -69,13 +69,9 @@ cc_library(
 ######### TEST #########
 
 cc_test(
-    name = "test_pbm",
+    name = "test",
     size = "small",
-    srcs = glob([
-        "test/main.cpp",
-        "test/test_load.cpp",
-        "test/test_save.cpp",
-    ]),
+    srcs = [":test_srcs"],
     deps = [
         "//dbg:dbg",
         "//pbm:pbm",

@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "ade/test/log/common.hpp"
+#include "log/test/common.hpp"
 
 std::string TestLogger::latest_warning_;
 

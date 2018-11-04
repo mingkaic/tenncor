@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/log/string.hpp"
+#include "log/string.hpp"
 
 
 TEST(STREAM, StringFmt)

@@ -91,8 +91,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 				ade::fatal("cannot prune unknown opcode");
 		}
 	}
-	return ade::Functor::get(
-		std::move(ade::CodePtrT(ade::make_code(opcode))), args);
+	return ade::Functor::get(ade::make_code(opcode), args);
 }
 
 DataNode zero_prune (DataNode root)

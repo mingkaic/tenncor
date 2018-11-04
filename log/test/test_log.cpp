@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/test/log/common.hpp"
+#include "log/test/common.hpp"
 
 
 struct LOG : public ::testing::Test

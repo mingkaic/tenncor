@@ -51,8 +51,7 @@ TEST_F(FUNCTOR, Childrens)
 	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
 	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
 
-	ade::Tensorptr func = ade::Functor::get(
-		std::move(std::make_unique<MockOpcode>()),
+	ade::Tensorptr func = ade::Functor::get(std::make_shared<MockOpcode>(),
 		{{ade::identity, leaf}, {ade::identity, leaf1}});
 
 	ASSERT_NE(nullptr, func.get());

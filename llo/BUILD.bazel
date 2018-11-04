@@ -33,7 +33,7 @@ cc_library(
 ######### TEST #########
 
 cc_test(
-    name = "test_llo",
+    name = "test",
     size = "medium",
     srcs = glob(["test/dynamic/*"]),
     copts = ["-std=c++14"],

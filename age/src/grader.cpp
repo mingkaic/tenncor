@@ -21,9 +21,9 @@ Tensorptr shaped_zero (Shape shape)
 	});
 }
 
-#define CODE_CASE(CODE)case CODE: return new Opcode<CODE>();
+#define CODE_CASE(CODE)case CODE: return MAKE_CODE(CODE);
 
-iOpcode* make_code (OPCODE opcode)
+ade::CodePtrT make_code (OPCODE opcode)
 {
 	switch (opcode)
 	{
@@ -52,7 +52,7 @@ iOpcode* make_code (OPCODE opcode)
 		CODE_CASE(RAND_UNIF)
 		CODE_CASE(RAND_NORM)
 		default:
-			return new Opcode<_BAD_OP>();
+			return MAKE_CODE(_BAD_OP);
 	}
 }
 

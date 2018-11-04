@@ -38,7 +38,7 @@ struct iOpcode
 	virtual Tensorptr grad_horizontal_merge (ArgsT& grads) const = 0;
 };
 
-using CodePtrT = std::unique_ptr<iOpcode>;
+using CodePtrT = std::shared_ptr<iOpcode>;
 
 /// Interface of OPCODE-defined operation node
 struct iFunctor : public iTensor

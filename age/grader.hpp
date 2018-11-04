@@ -25,7 +25,7 @@ Tensorptr shaped_zero (Shape shape);
 // TODO: CONVERT TO GENERATED CONFIG
 
 // todo: remove and make better
-#define MAKE_CODE(CODE)std::move(std::make_unique<ade::Opcode<CODE>>())
+#define MAKE_CODE(CODE)ade::CodePtrT(new ade::Opcode<CODE>)
 
 template <OPCODE OP>
 struct Opcode final : public iOpcode
@@ -58,7 +58,7 @@ struct Opcode final : public iOpcode
 	}
 };
 
-iOpcode* make_code (OPCODE opcode);
+ade::CodePtrT make_code (OPCODE opcode);
 
 #define GRAD_DECLARE(CODE)template <>\
 Tensorptr Opcode<CODE>::gradient (ade::ArgsT args, size_t gradidx) const;

@@ -3,7 +3,7 @@
 #include <queue>
 #include <chrono>
 
-#include "ade/log/log.hpp"
+#include "log/log.hpp"
 
 #include "llo/api.hpp"
 
@@ -42,7 +42,8 @@ void save_coord (google::protobuf::RepeatedField<double>* coord,
 	});
 }
 
-ade::CoordPtrT load_coord (const google::protobuf::RepeatedField<double>& coord)
+ade::CoordPtrT load_coord (
+	const google::protobuf::RepeatedField<double>& coord)
 {
 	if (ade::mat_dim * ade::mat_dim != coord.size())
 	{
@@ -123,9 +124,11 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 			return stat.graphsize_[a] < stat.graphsize_[b];
 		});
 
-	std::vector<ade::iFunctor*> funcs(order.funcs_.begin(), order.funcs_.end());
+	std::vector<ade::iFunctor*> funcs(
+		order.funcs_.begin(), order.funcs_.end());
 	std::vector<ade::Tensor*> leaves;
-	std::copy_if(order.leaves_.begin(), order.leaves_.end(), std::back_inserter(leaves),
+	std::copy_if(order.leaves_.begin(), order.leaves_.end(),
+		std::back_inserter(leaves),
 		[&](ade::Tensor* leaf)
 		{
 			return global_ctx.srcs_.end() != global_ctx.srcs_.find(leaf);
@@ -215,8 +218,8 @@ std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
 				}
 			}
 			outvec.push_back(llo::DataNode{llo::EvalCtx(contexas),
-				ade::Functor::get(std::move(ade::CodePtrT(
-					ade::make_code(ade::name_op(func.opname())))), args)});
+				ade::Functor::get(ade::make_code(
+					ade::name_op(func.opname())), args)});
 		}
 	}
 	return outvec;
