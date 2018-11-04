@@ -1,6 +1,6 @@
 ///
 /// opcode.hpp
-/// ade
+/// age
 ///
 /// Purpose:
 /// Enumerate operators and define their function signature
@@ -13,8 +13,6 @@
 
 namespace age
 {
-
-// TODO: CONVERT TO GENERATED CONFIG
 
 /// Enumerated representation of operations
 enum OPCODE

@@ -15,7 +15,7 @@ struct FUNCTOR : public simple::TestModel {};
 static ade::Tensorptr mock_back = ade::Tensor::get(ade::Shape());
 
 
-struct MockOpcode : public ade::iOpcode
+struct MockOpcode : public ade::iOperation
 {
 	std::string to_string (void) const override
 	{

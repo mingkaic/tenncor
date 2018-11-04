@@ -22,9 +22,9 @@ namespace ade
 /// Type of functor arguments
 using ArgsT = std::vector<MappedTensor>;
 
-struct iOpcode
+struct iOperation
 {
-	virtual ~iOpcode (void) = default;
+	virtual ~iOperation (void) = default;
 
 	virtual std::string to_string (void) const = 0;
 
@@ -38,7 +38,7 @@ struct iOpcode
 	virtual Tensorptr grad_horizontal_merge (ArgsT& grads) const = 0;
 };
 
-using CodePtrT = std::shared_ptr<iOpcode>;
+using OpPtrT = std::shared_ptr<iOperation>;
 
 /// Interface of OPCODE-defined operation node
 struct iFunctor : public iTensor
@@ -52,7 +52,7 @@ struct iFunctor : public iTensor
 	}
 
 	/// Return OPCODE mapping to forward and gradient operators
-	virtual const iOpcode& get_code (void) const = 0;
+	virtual const iOperation& get_code (void) const = 0;
 
 	/// Return children nodes as a vector of raw pointers
 	virtual const ArgsT& get_children (void) const = 0;

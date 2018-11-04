@@ -27,7 +27,7 @@ namespace ade
 struct Functor final : public iFunctor
 {
 	/// Return a Functor with with input tensor and meta arguments
-	static Functor* get (CodePtrT opcode, ArgsT args)
+	static Functor* get (OpPtrT opcode, ArgsT args)
 	{
 		std::string oname = opcode->to_string();
 		const char* label = oname.c_str();
@@ -96,7 +96,7 @@ struct Functor final : public iFunctor
 		}};
 		for (iFunctor* parent : parents)
 		{
-			const iOpcode& opcode = parent->get_code();
+			const iOperation& opcode = parent->get_code();
 			ArgsT& gradargs = grads[parent];
 			MappedTensor bwd = gradargs[0];
 			if (gradargs.size() > 1)
@@ -147,7 +147,7 @@ struct Functor final : public iFunctor
 	}
 
 	/// Implementation of iFunctor
-	const iOpcode& get_code (void) const override
+	const iOperation& get_code (void) const override
 	{
 		return *opcode_;
 	}
@@ -159,11 +159,11 @@ struct Functor final : public iFunctor
 	}
 
 private:
-	Functor (CodePtrT& opcode, Shape shape, ArgsT args) :
+	Functor (OpPtrT& opcode, Shape shape, ArgsT args) :
 		opcode_(opcode), shape_(shape), args_(args) {}
 
 	/// OPCODE represented by functor
-	CodePtrT opcode_;
+	OpPtrT opcode_;
 
 	/// Shape info built at construction time according to arguments
 	Shape shape_;
