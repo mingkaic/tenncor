@@ -101,7 +101,7 @@ struct Functor final : public iFunctor
 			MappedTensor bwd = gradargs[0];
 			if (gradargs.size() > 1)
 			{
-				bwd = {identity, opcode.grad_horizontal_merge(gradargs)};
+				bwd = {identity, opcode.add_grads(gradargs)};
 			}
 
 			auto& grad_indices = pathmap[parent];
@@ -131,13 +131,13 @@ struct Functor final : public iFunctor
 				Tensorptr grad = opcode.gradient(args, i);
 				CoordPtrT bwd_mapper(bwd.mapper_->forward(*mapper));
 				grads[child.tensor_.get()].push_back({
-					identity, opcode.grad_vertical_merge(
-						{bwd_mapper, bwd.tensor_}, {identity, grad})
+					identity, opcode.chain_grad(grad,
+						{bwd_mapper, bwd.tensor_})
 				});
 			}
 		}
 
-		return opcode_->grad_horizontal_merge(grads[wrt]);
+		return opcode_->add_grads(grads[wrt]);
 	}
 
 	/// Implementation of iTensor

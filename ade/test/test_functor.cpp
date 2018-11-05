@@ -32,12 +32,13 @@ struct MockOpcode : public ade::iOperation
 		return mock_back;
 	}
 
-	ade::Tensorptr grad_vertical_merge (ade::MappedTensor bot, ade::MappedTensor top) const override
+	ade::Tensorptr chain_grad (ade::Tensorptr& wrt_child,
+		ade::MappedTensor wrt_me) const override
 	{
-		return top.tensor_;
+		return wrt_child;
 	}
 
-	ade::Tensorptr grad_horizontal_merge (ade::ArgsT& grads) const override
+	ade::Tensorptr add_grads (ade::ArgsT& grads) const override
 	{
 		return grads.front().tensor_;
 	}

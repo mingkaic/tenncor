@@ -36,14 +36,16 @@ struct Operation final : public ade::iOperation
 		throw std::bad_function_call();
 	}
 
-	ade::Tensorptr grad_vertical_merge (ade::MappedTensor bot, ade::MappedTensor top) const override
+	ade::Tensorptr chain_grad (ade::Tensorptr& wrt_child,
+		ade::MappedTensor wrt_me) const override
 	{
 		return ade::Functor::get(MAKE_CODE(MUL), {
-			{ade::identity, ade::Functor::get(MAKE_CODE(ADD), {bot})}, top,
+			{ade::identity, wrt_child},
+			{ade::identity, ade::Functor::get(MAKE_CODE(ADD), {wrt_me})},
 		});
 	}
 
-	ade::Tensorptr grad_horizontal_merge (ade::ArgsT& grads) const override
+	ade::Tensorptr add_grads (ade::ArgsT& grads) const override
 	{
 		return ade::Functor::get(MAKE_CODE(ADD), grads);
 	}
