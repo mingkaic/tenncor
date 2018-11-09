@@ -1,6 +1,6 @@
-#include "age/operation.hpp"
+#include "adhoc/age/operation.hpp"
 
-#include "llo/shear.hpp"
+#include "adhoc/llo/shear.hpp"
 
 #ifdef LLO_SHEAR_HPP
 
@@ -12,7 +12,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 	std::unordered_set<size_t> zeros, ade::ArgsT args)
 {
 	is_zero = false;
-	age::OPCODE opcode = (age::OPCODE) func->get_code().opnum();
+	age::OPCODE opcode = (age::OPCODE) func->get_opcode().code_;
 	if (false == zeros.empty())
 	{
 		switch (opcode)
@@ -55,7 +55,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 					is_zero = true;
 					return age::shaped_zero(func->shape());
 				}
-				return ade::Functor::get(MAKE_CODE(age::ADD), filtered);
+				return ade::Functor::get(make_code(age::ADD), filtered);
 			}
 			case age::SUB:
 				if (2 == zeros.size())
@@ -65,7 +65,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 				}
 				else if (zeros.end() != zeros.find(0))
 				{
-					return ade::Functor::get(MAKE_CODE(age::NEG), {args[1]});
+					return ade::Functor::get(make_code(age::NEG), {args[1]});
 				}
 				// else if zeros.end() != zeros.find(1)
 				return args[0].tensor_;

@@ -1,13 +1,34 @@
-#include "age/grader.hpp"
+#include "adhoc/age/grader.hpp"
 
 #ifdef AGE_GRADER_HPP
 
 namespace age
 {
 
+ade::Opcode make_code (OPCODE opcode)
+{
+	return ade::Opcode{opname(opcode), opcode};
+}
+
+ade::Tensorptr shaped_one (ade::Shape shape)
+{
+	return ade::Functor::get(make_code(COPY), {
+		{ade::extend(0, std::vector<ade::DimT>(shape.begin(), shape.end())),
+		ade::Tensor::SYMBOLIC_ONE}
+	});
+}
+
+ade::Tensorptr shaped_zero (ade::Shape shape)
+{
+	return ade::Functor::get(make_code(COPY), {
+		{ade::extend(0, std::vector<ade::DimT>(shape.begin(), shape.end())),
+		ade::Tensor::SYMBOLIC_ZERO}
+	});
+}
+
 #define GRAD_SIGNATURE(CODE)template <>\
-ade::Tensorptr Operation<CODE>::gradient (\
-ade::ArgsT args, size_t gradidx) const
+ade::Tensorptr gradient<CODE> (\
+ade::ArgsT args, size_t gradidx)
 
 #define CHECK_UNARY(CODE)if (1 != args.size())\
 { err::fatalf("cannot %s gradient without 1 argument: using %d argument(s)",\
@@ -38,16 +59,16 @@ ONE_GRAD(COPY)
 GRAD_SIGNATURE(ABS)
 {
 	CHECK_UNARY(ABS)
-	return ade::Functor::get(MAKE_CODE(DIV), {
+	return ade::Functor::get(make_code(DIV), {
 		args[0],
-		{ade::identity, ade::Functor::get(MAKE_CODE(ABS), args)}});
+		{ade::identity, ade::Functor::get(make_code(ABS), args)}});
 }
 
 // grad(neg(f), f) = -1
 GRAD_SIGNATURE(NEG)
 {
 	CHECK_UNARY(NEG)
-	return ade::Functor::get(MAKE_CODE(NEG), {
+	return ade::Functor::get(make_code(NEG), {
 		{ade::identity, shaped_one(args[0].shape())}});
 }
 
@@ -55,15 +76,15 @@ GRAD_SIGNATURE(NEG)
 GRAD_SIGNATURE(SIN)
 {
 	CHECK_UNARY(SIN)
-	return ade::Functor::get(MAKE_CODE(COS), args);
+	return ade::Functor::get(make_code(COS), args);
 }
 
 // grad(cos(f), f) = -sin(f)
 GRAD_SIGNATURE(COS)
 {
 	CHECK_UNARY(COS)
-	return ade::Functor::get(MAKE_CODE(NEG), {
-		{ade::identity, ade::Functor::get(MAKE_CODE(SIN), args)}
+	return ade::Functor::get(make_code(NEG), {
+		{ade::identity, ade::Functor::get(make_code(SIN), args)}
 	});
 }
 
@@ -72,9 +93,9 @@ GRAD_SIGNATURE(COS)
 GRAD_SIGNATURE(TAN)
 {
 	CHECK_UNARY(TAN)
-	ade::Tensorptr denom = ade::Functor::get(MAKE_CODE(COS), args);
-	return ade::Functor::get(MAKE_CODE(DIV), {
-		{ade::identity, ade::Functor::get(MAKE_CODE(DIV), {
+	ade::Tensorptr denom = ade::Functor::get(make_code(COS), args);
+	return ade::Functor::get(make_code(DIV), {
+		{ade::identity, ade::Functor::get(make_code(DIV), {
 			{ade::identity, shaped_one(args[0].shape())},
 			{ade::identity, denom},
 		})},
@@ -86,14 +107,14 @@ GRAD_SIGNATURE(TAN)
 GRAD_SIGNATURE(EXP)
 {
 	CHECK_UNARY(EXP)
-	return ade::Functor::get(MAKE_CODE(EXP), args);
+	return ade::Functor::get(make_code(EXP), args);
 }
 
 // grad(log(f), f) = 1 / f
 GRAD_SIGNATURE(LOG)
 {
 	CHECK_UNARY(LOG)
-	return ade::Functor::get(MAKE_CODE(DIV), {
+	return ade::Functor::get(make_code(DIV), {
 		{ade::identity, shaped_one(args[0].shape())},
 		args[0]
 	});
@@ -103,10 +124,10 @@ GRAD_SIGNATURE(LOG)
 GRAD_SIGNATURE(SQRT)
 {
 	CHECK_UNARY(SQRT)
-	ade::Tensorptr denom = ade::Functor::get(MAKE_CODE(SQRT), args);
-	return ade::Functor::get(MAKE_CODE(DIV), {
+	ade::Tensorptr denom = ade::Functor::get(make_code(SQRT), args);
+	return ade::Functor::get(make_code(DIV), {
 		{ade::identity, shaped_one(args[0].shape())},
-		{ade::identity, ade::Functor::get(MAKE_CODE(ADD), {
+		{ade::identity, ade::Functor::get(make_code(ADD), {
 			{ade::identity, denom}, {ade::identity, denom},
 		})},
 	});
@@ -121,19 +142,19 @@ GRAD_SIGNATURE(POW)
 {
 	CHECK_BINARY(POW)
 	HANDLE_BINARY(
-		ade::Functor::get(MAKE_CODE(MUL), {
+		ade::Functor::get(make_code(MUL), {
 			args[1],
-			{ade::identity, ade::Functor::get(MAKE_CODE(POW), {
+			{ade::identity, ade::Functor::get(make_code(POW), {
 				args[0],
-				{ade::identity, ade::Functor::get(MAKE_CODE(SUB), {
+				{ade::identity, ade::Functor::get(make_code(SUB), {
 					args[1],
 					{ade::identity, shaped_one(args[0].shape())},
 				})}
 			})}
 		}),
-		ade::Functor::get(MAKE_CODE(MUL), {
-			{ade::identity, ade::Functor::get(MAKE_CODE(POW), args)},
-			{ade::identity, ade::Functor::get(MAKE_CODE(LOG), {args[0]})},
+		ade::Functor::get(make_code(MUL), {
+			{ade::identity, ade::Functor::get(make_code(POW), args)},
+			{ade::identity, ade::Functor::get(make_code(LOG), {args[0]})},
 		}))
 }
 
@@ -144,7 +165,7 @@ GRAD_SIGNATURE(SUB)
 	CHECK_BINARY(SUB)
 	HANDLE_BINARY(
 		shaped_one(args[0].shape()),
-		ade::Functor::get(MAKE_CODE(NEG), {
+		ade::Functor::get(make_code(NEG), {
 			{ade::identity, shaped_one(args[0].shape())}
 		}))
 }
@@ -155,12 +176,12 @@ GRAD_SIGNATURE(DIV)
 {
 	CHECK_BINARY(DIV)
 	HANDLE_BINARY(
-		ade::Functor::get(MAKE_CODE(DIV), {
+		ade::Functor::get(make_code(DIV), {
 			{ade::identity, shaped_one(args[0].shape())}, args[1]
 		}),
-		ade::Functor::get(MAKE_CODE(DIV), {
-			{ade::identity, ade::Functor::get(MAKE_CODE(DIV), {
-				{ade::identity, ade::Functor::get(MAKE_CODE(NEG), {args[0]})},
+		ade::Functor::get(make_code(DIV), {
+			{ade::identity, ade::Functor::get(make_code(DIV), {
+				{ade::identity, ade::Functor::get(make_code(NEG), {args[0]})},
 				args[1],
 			})}, args[1],
 		}))
@@ -178,15 +199,15 @@ GRAD_SIGNATURE(MUL)
 {
 	CHECK_NNARY(MUL)
 	args.erase(args.begin() + gradidx);
-	return ade::Functor::get(MAKE_CODE(MUL), args);
+	return ade::Functor::get(make_code(MUL), args);
 }
 
 // grad(min(f, g, ...), argi) = min(f, g, ...) == argi
 GRAD_SIGNATURE(MIN)
 {
 	CHECK_NNARY(MIN)
-	return ade::Functor::get(MAKE_CODE(EQ), {
-		{ade::identity, ade::Functor::get(MAKE_CODE(MIN), args)},
+	return ade::Functor::get(make_code(EQ), {
+		{ade::identity, ade::Functor::get(make_code(MIN), args)},
 		args[gradidx],
 	});
 }
@@ -195,8 +216,8 @@ GRAD_SIGNATURE(MIN)
 GRAD_SIGNATURE(MAX)
 {
 	CHECK_NNARY(MAX)
-	return ade::Functor::get(MAKE_CODE(EQ), {
-		{ade::identity, ade::Functor::get(MAKE_CODE(MAX), args)},
+	return ade::Functor::get(make_code(EQ), {
+		{ade::identity, ade::Functor::get(make_code(MAX), args)},
 		args[gradidx],
 	});
 }
@@ -228,6 +249,37 @@ ZERO_GRAD(RAND_NORM)
 #undef ONE_GRAD
 
 #undef HANDLE_BINARY
+
+ade::Tensorptr gradient (OPCODE opcode, ade::ArgsT args, size_t gradidx)
+{
+    switch (opcode)
+    {
+        CASE_DEFN(COPY)
+        CASE_DEFN(ABS)
+        CASE_DEFN(NEG)
+        CASE_DEFN(SIN)
+        CASE_DEFN(COS)
+        CASE_DEFN(TAN)
+        CASE_DEFN(EXP)
+        CASE_DEFN(LOG)
+        CASE_DEFN(SQRT)
+        CASE_DEFN(ROUND)
+        CASE_DEFN(POW)
+        CASE_DEFN(ADD)
+        CASE_DEFN(SUB)
+        CASE_DEFN(MUL)
+        CASE_DEFN(DIV)
+        CASE_DEFN(MIN)
+        CASE_DEFN(MAX)
+        CASE_DEFN(EQ)
+        CASE_DEFN(NE)
+        CASE_DEFN(LT)
+        CASE_DEFN(GT)
+        CASE_DEFN(RAND_BINO)
+        CASE_DEFN(RAND_UNIF)
+        CASE_DEFN(RAND_NORM)
+    }
+}
 
 }
 

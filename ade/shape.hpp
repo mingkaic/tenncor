@@ -8,9 +8,7 @@
 
 #include <algorithm>
 #include <array>
-#include <iterator>
 #include <numeric>
-#include <sstream>
 #include <vector>
 
 #include "err/log.hpp"
@@ -98,8 +96,7 @@ struct Shape final
 	{
 		if (rank_cap <= idx)
 		{
-			throw std::out_of_range(
-				"accessing dimension out of allocated rank cap");
+			err::fatalf("cannot access out of bounds index %d", idx);
 		}
 		return dims_.at(idx);
 	}

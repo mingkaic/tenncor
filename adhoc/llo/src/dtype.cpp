@@ -2,7 +2,7 @@
 
 #include "err/log.hpp"
 
-#include "llo/dtype.hpp"
+#include "adhoc/llo/dtype.hpp"
 
 #ifdef LLO_DTYPE_HPP
 

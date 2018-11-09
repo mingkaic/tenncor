@@ -1,4 +1,4 @@
-#include "llo/opmap.hpp"
+#include "adhoc/llo/opmap.hpp"
 
 #ifdef LLO_OPMAP_HPP
 
@@ -81,8 +81,7 @@ void op_exec (age::OPCODE opcode, GenericData& out, DataArgsT& data)
 		case age::RAND_NORM:
 			exec<age::RAND_NORM>(out, data);
 		break;
-		default:
-			err::fatal("unknown opcode");
+		default: err::fatal("unknown opcode");
 	}
 }
 

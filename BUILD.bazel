@@ -11,7 +11,7 @@ filegroup(
     srcs = [
         "//ade:srcs",
         "//dbg:srcs",
-        "//llo:srcs",
+        "//adhoc/llo:srcs",
         "//pbm:srcs",
         "BUILD.bazel",
     ],
@@ -21,7 +21,7 @@ filegroup(
     name = "test_srcs",
     srcs = [
         "//ade:test_srcs",
-        "//llo:test_srcs",
+        "//adhoc/llo:test_srcs",
         "//pbm:test_srcs",
         "//testutil:srcs",
     ],

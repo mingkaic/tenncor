@@ -6,10 +6,10 @@
 /// Associate age::OPCODE to operations on data
 ///
 
-#include "age/opcode.hpp"
+#include "adhoc/age/opcode.hpp"
 
-#include "llo/data.hpp"
-#include "llo/operator.hpp"
+#include "adhoc/llo/data.hpp"
+#include "adhoc/llo/operator.hpp"
 
 #ifndef LLO_OPMAP_HPP
 #define LLO_OPMAP_HPP

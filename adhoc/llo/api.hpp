@@ -6,7 +6,7 @@
 /// Define API to easily build equations
 ///
 
-#include "llo/node.hpp"
+#include "adhoc/llo/node.hpp"
 
 #ifndef LLO_API_HPP
 #define LLO_API_HPP

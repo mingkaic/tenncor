@@ -1,0 +1,379 @@
+{
+    "includes": [
+        "\"llo/node.hpp\"",
+        "\"llo/grad_helper.hpp\""
+    ],
+    "refs": {
+        "api-unary": "llo::DataNode $API (llo::DataNode arg1)",
+        "api-unary-int": "llo::DataNode $API (llo::DataNode arg1,uint8_t arg2)",
+        "api-unary-array": "llo::DataNode $API (llo::DataNode arg1,std::vector<uint8_t> arg2)",
+        "api-extend": "llo::DataNode $API (llo::DataNode arg1,uint8_t arg2,std::vector<uint8_t> arg3)",
+        "api-binary": "llo::DataNode $API (llo::DataNode arg1,llo::DataNode arg2)",
+        "api-nnary": "llo::DataNode $API (std::vector<llo::DataNode> arg1)",
+        "call-unary": "llo::DataNode($OPCODE,{{ade::identity,arg1}})",
+        "call-flip": "llo::DataNode($OPCODE,{{ade::flip(arg2),arg1}}))",
+        "call-binary": "llo::DataNode($OPCODE,{{ade::identity,arg1},{ade::identity,arg2}})",
+        "call-nnary": "llo::DataNode($OPCODE,assign_mapper(arg1,ade::identity))",
+        "call-reduce": "llo::DataNode($OPCODE,{{reduce(arg2,arg1.shape()),arg1}})",
+        "call-permute": "llo::DataNode($OPCODE,{{ade::permute(arg2),arg1}})",
+        "call-extend": "llo::DataNode($OPCODE,{{ade::extend(arg2,arg3),arg1}})"
+    },
+    "opcodes": {
+        "ABS": "div($0,abs($0))",
+        "NEG": "neg(shape_scalar(1,$0.shape()))",
+        "SIN": "cos($0)",
+        "COS": "neg(sin($0))",
+        "TAN": "div(shape_scalar(1,$0.shape()),pow(cos($0),shape_scalar(2,$0.shape())))",
+        "EXP": "exp($0)",
+        "LOG": "div(shape_scalar(1,$0.shape()),$0)",
+        "SQRT": "div(shape_scalar(1,$0.shape()),mul(shape_scalar(2,$0.shape()),sqrt($0)))",
+        "ROUND": "shape_scalar(1,$0.shape())",
+        "POW": "$! == 0 ? mul($1,pow($0,sub($1,shape_scalar(1,$0.shape())))) : mul(log($0),pow($0,$1))",
+        "SUM": "llo::grad_sum($!,$@)",
+        "SUB": "$! == 0 ? shape_scalar(1,$0.shape()) : neg(shape_scalar(1,$0.shape()))",
+        "PROD": "llo::grad_prod($!,$@)",
+        "DIV": "$! == 0 ? div(shape_scalar(1,$0.shape()),$1) : div(neg($0),pow($1,shape_scalar(2,$0.shape())))",
+        "MIN": "llo::grad_min($!,$@)",
+        "MAX": "llo::grad_max($!,$@)"
+    },
+    "apis": [
+        {
+            "io": {
+                "format": {"ref": "api-unary"},
+                "args": {"API": "abs"}
+            },
+            "out": {
+                "format": {"ref": "call-unary"},
+                "args": {"OPCODE": "ABS"}
+            }
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "neg"}
+			},
+            "out": {
+                "format": {"ref": "call-unary"},
+                "args": {"OPCODE": "NEG"}
+            }
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "sin"}
+			},
+            "out": {
+				"format": {"ref": "call-unary"},
+				"args": {"OPCODE": "SIN"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "cos"}
+			},
+            "out": {
+				"format": {"ref": "call-unary"},
+				"args": {"OPCODE": "COS"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "tan"}
+			},
+            "out": {
+				"format": {"ref": "call-unary"},
+				"args": {"OPCODE": "TAN"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "exp"}
+			},
+            "out": {
+				"format": {"ref": "call-unary"},
+				"args": {"OPCODE": "EXP"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "log"}
+			},
+            "out": {
+				"format": {"ref": "call-unary"},
+				"args": {"OPCODE": "LOG"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "sqrt"}
+			},
+            "out": {
+				"format": {"ref": "call-unary"},
+				"args": {"OPCODE": "SQRT"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "round"}
+			},
+            "out": {
+				"format": {"ref": "call-unary"},
+				"args": {"OPCODE": "ROUND"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary-int"},
+				"args": {"API": "flip"}
+			},
+            "out": {
+				"format": {"ref": "call-flip"},
+				"args": {"OPCODE": "SUM"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "pow"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "POW"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "add"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "SUM"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "sub"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "SUB"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "mul"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "PROD"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "div"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "DIV"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "eq"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "EQ"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "ne"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "NEQ"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "lt"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "LT"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "gt"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "GT"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "rand_bino"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "RAND_BINO"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "rand_unif"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "RAND_UNIF"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "rand_norm"}
+			},
+            "out": {
+				"format": {"ref": "call-binary"},
+				"args": {"OPCODE": "RAND_NORM"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-nnary"},
+				"args": {"API": "sum"}
+			},
+            "out": {
+				"format": {"ref": "call-nnary"},
+				"args": {"OPCODE": "SUM"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-nnary"},
+				"args": {"API": "prod"}
+			},
+            "out": {
+				"format": {"ref": "call-nnary"},
+				"args": {"OPCODE": "PROD"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-nnary"},
+				"args": {"API": "min"}
+			},
+            "out": {
+				"format": {"ref": "call-nnary"},
+				"args": {"OPCODE": "MIN"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-nnary"},
+				"args": {"API": "max"}
+			},
+            "out": {
+				"format": {"ref": "call-nnary"},
+				"args": {"OPCODE": "MAX"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary-int"},
+				"args": {"API": "reduce_sum"}
+			},
+            "out": {
+				"format": {"ref": "call-reduce"},
+				"args": {"OPCODE": "SUM"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary-int"},
+				"args": {"API": "reduce_min"}
+			},
+            "out": {
+				"format": {"ref": "call-reduce"},
+				"args": {"OPCODE": "MIN"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary-int"},
+				"args": {"API": "reduce_max"}
+			},
+            "out": {
+				"format": {"ref": "call-reduce"},
+				"args": {"OPCODE": "MAX"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary-array"},
+				"args": {"API": "permute"}
+			},
+            "out": {
+				"format": {"ref": "call-permute"},
+				"args": {"OPCODE": "SUM"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-extend"},
+				"args": {"API": "extend"}
+			},
+            "out": {
+				"format": {"ref": "call-extend"},
+				"args": {"OPCODE": "SUM"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-binary"},
+				"args": {"API": "matmul"}
+			},
+            "out": "reduce_sum(mul(permute(expand(arg1,2,{arg2.shape().at(0)}),{0,2,1}),permute(expand(arg2,2,{arg1.shape().at(1)}),{2,1,0})),2)"
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "reduce_sum"}
+			},
+            "out": "reduce_sum(arg1,0)"
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "reduce_min"}
+			},
+            "out": "reduce_min(arg1,0)"
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "reduce_max"}
+			},
+            "out": "reduce_max(arg1,0)"
+        }
+    ]
+}

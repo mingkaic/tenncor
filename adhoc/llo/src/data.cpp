@@ -2,7 +2,7 @@
 
 #include "err/log.hpp"
 
-#include "llo/data.hpp"
+#include "adhoc/llo/data.hpp"
 
 #ifdef LLO_DATA_HPP
 

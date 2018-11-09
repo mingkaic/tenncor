@@ -57,8 +57,8 @@ TEST_F(SHAPE, Init)
 		EXPECT_EQ(longlist[i], lvec.at(i));
 	}
 
-	EXPECT_THROW(scalar.at(ade::rank_cap), std::out_of_range);
-	EXPECT_THROW(vec.at(ade::rank_cap), std::out_of_range);
+	EXPECT_FATAL(scalar.at(ade::rank_cap), "cannot access out of bounds index 8");
+	EXPECT_FATAL(vec.at(ade::rank_cap), "cannot access out of bounds index 8");
 }
 
 

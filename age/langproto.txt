@@ -1,0 +1,59 @@
+{ // root node must be object
+    "includes": [ // files to include into generated header file
+        "\"llo.hpp\"", // includes must be include quotations or '<>'
+        "\"graders.hpp\""
+    ],
+    "refs": { // map of reference to long strings
+        "api-unary": "DataNode $API (DataNode arg1)",
+        "api-unary-int": "DataNode $API (DataNode arg1,uint8_t arg2)",
+        "api-nnary": "DataNode $API (std::vector<DataNode> arg1)",
+        "call-unary": "DataNode<$OPCODE>::get($!,{{ade::identity,arg1}})",
+        "call-nnary": "DataNode<$OPCODE>::get($!,assign_mapper(arg1,ade::identity))",
+        "call-reduce": "DataNode<$OPCODE>::get($!,{{reduce(arg2,arg1.shape()),arg1}})"
+    },
+    "opcodes": { // opcodes are enumerated and associated with gradient functions
+        "ABS": "div($0,abs($0))", // ${number} references the args[{number}] in ade::iOperation::gradient parameters
+        "SUM": "llo::grad_sum($!,$@)", // $! in derivative refers to gradidx in ade::iOperation::gradient parameters
+    }, // $@ in derivative refers to entire args vector in ade::iOperation::gradient parameters
+    "basic-apis": [
+        { // basic-api objects must include "io", "out, and "derive"
+            "io": {
+                "format": {"ref": "api-unary"}, // call on the references using map with "ref" key
+                "args": {"API": "abs"} // "format" strings with keys specified in "args". in this case replace $API with abs
+            },
+            "out": {
+                "format": {"ref": "call-unary"},
+                "args": {"OPCODE": "ABS"}
+            }
+        },
+        {
+            "io": {
+				"format": {"ref": "api-nnary"},
+				"args": {"API": "sum"}
+			},
+            "out": {
+				"format": {"ref": "call-nnary"},
+				"args": {"OPCODE": "SUM"}
+			}
+        },
+        {
+            "io": {
+				"format": {"ref": "api-unary-int"},
+				"args": {"API": "reduce_sum"}
+			},
+            "out": {
+				"format": {"ref": "call-reduce"},
+				"args": {"OPCODE": "SUM"}
+			}
+        }
+    ],
+    "composite-apis": [ // composite-apis are optional
+        { // composite-apis must include "io" and "out". anything else is ignored
+            "io": {
+				"format": {"ref": "api-unary"},
+				"args": {"API": "reduce_sum"}
+			},
+            "out": "reduce_sum(arg1,0)"
+        },
+    ]
+}

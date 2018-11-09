@@ -6,7 +6,9 @@
 ///	Define derivative chain rules and map to OPCODEs
 ///
 
-#include "age/operation.hpp"
+#include "ade/functor.hpp"
+
+#include "adhoc/age/opcode.hpp"
 
 #ifndef AGE_GRADER_HPP
 #define AGE_GRADER_HPP
@@ -14,8 +16,22 @@
 namespace age
 {
 
+ade::Opcode make_code (OPCODE opcode);
+
+/// Return a Tensor::SYMBOLIC_ONE extended to input shape
+ade::Tensorptr shaped_one (ade::Shape shape);
+
+/// Return a Tensor::SYMBOLIC_ZERO extended to input shape
+ade::Tensorptr shaped_zero (ade::Shape shape);
+
+template <OPCODE OP>
+ade::Tensorptr gradient (ade::ArgsT args, size_t gradidx)
+{
+    throw std::bad_function_call();
+}
+
 #define GRAD_DECLARE(CODE)template <>\
-ade::Tensorptr Operation<CODE>::gradient (ade::ArgsT args, size_t gradidx) const;
+ade::Tensorptr gradient<CODE> (ade::ArgsT args, size_t gradidx);
 
 GRAD_DECLARE(COPY)
 
@@ -66,6 +82,10 @@ GRAD_DECLARE(RAND_UNIF)
 GRAD_DECLARE(RAND_NORM)
 
 #undef GRAD_DECLARE
+
+#define CASE_DEFN(CODE) case CODE: return gradient<CODE>(args, gradidx);
+
+ade::Tensorptr gradient (OPCODE opcode, ade::ArgsT args, size_t gradidx);
 
 }
 

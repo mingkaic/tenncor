@@ -3,7 +3,7 @@
 
 #include "dbg/ade.hpp"
 
-#include "llo/shear.hpp"
+#include "adhoc/llo/shear.hpp"
 
 #include "pbm/graph.hpp"
 

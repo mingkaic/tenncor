@@ -8,9 +8,9 @@
 
 #include <unordered_map>
 
-#include "age/grader.hpp"
+#include "adhoc/age/operation.hpp"
 
-#include "llo/opmap.hpp"
+#include "adhoc/llo/opmap.hpp"
 
 #ifndef LLO_EVAL_HPP
 #define LLO_EVAL_HPP
@@ -108,7 +108,7 @@ struct Evaluator final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		age::OPCODE opcode = (age::OPCODE) func->get_code().opnum();
+		age::OPCODE opcode = (age::OPCODE) func->get_opcode().code_;
 		out_ = GenericData(func->shape(), dtype_);
 
 		DataArgsT argdata;
@@ -147,12 +147,15 @@ struct DataNode
 	/// Return DataNode of gradient tree derived with respect to wrt tensor
 	DataNode derive (const ade::iTensor* wrt)
 	{
-		ade::Tensorptr grad = tensor_->gradient(wrt);
+		age::Grader grader(wrt);
+		tensor_->accept(grader);
+		auto it = grader.grads_.find(tensor_.get());
+		ade::Tensorptr grad = it->second;
 		if (grad.get() == ade::Tensor::SYMBOLIC_ONE.get() ||
 			grad.get() == ade::Tensor::SYMBOLIC_ZERO.get())
 		{
 			const ade::Shape& shape = wrt->shape();
-			grad = ade::Functor::get(MAKE_CODE(age::COPY), {
+			grad = ade::Functor::get(make_code(age::COPY), {
 				{ade::extend(0, std::vector<ade::DimT>(
 					shape.begin(), shape.end())), grad},
 			});

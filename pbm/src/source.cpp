@@ -2,6 +2,8 @@
 
 #include "pbm/source.hpp"
 
+#ifdef PBM_SOURCE_HPP
+
 #define PACK_DATA(TYPE)\
 TYPE* ptr = (TYPE*) data.data_.get();\
 google::protobuf::RepeatedField<TYPE> vec(ptr, ptr + nelems);\
@@ -166,3 +168,5 @@ llo::DataNode load_source (const tenncor::Source& source)
 }
 
 #undef UNPACK_SOURCE
+
+#endif

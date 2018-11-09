@@ -8,7 +8,7 @@
 
 #include "ade/tensor.hpp"
 
-#include "llo/dtype.hpp"
+#include "adhoc/llo/dtype.hpp"
 
 #ifndef LLO_DATA_HPP
 #define LLO_DATA_HPP

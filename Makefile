@@ -6,13 +6,13 @@ ERR_TEST := //err:test
 
 ADE_TEST := //ade:test
 
-AGE_DTEST := //age:test_dynamic
+AGE_DTEST := //adhoc/age:test_dynamic
 
-AGE_STEST := //age:test_static
+AGE_STEST := //adhoc/age:test_static
 
-LLO_TEST := //llo:test
+LLO_TEST := //adhoc/llo:test
 
-REGRESS_TEST := //llo:test_regress
+REGRESS_TEST := //adhoc/llo:test_regress
 
 PBM_TEST := //pbm:test
 

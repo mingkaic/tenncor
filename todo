@@ -23,7 +23,7 @@ P4 - implement optimization options to decrease equation graph size
 P4 - implement optimization options to increase data accuracy
 
 features:
-P1 - invert age-llo relationship, age should depend on llo, top-level libraries should build graphs through age's api
 P2 - implement parser for grader operators + opcodes generatable configuration
+P2 - invert age-llo relationship, age should depend on llo, top-level libraries should build graphs through age's api
 P2 - implement convolution
 P3 - implement deep copy

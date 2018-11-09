@@ -1,139 +1,147 @@
-///
-/// node.hpp
-/// llo
-///
-/// Purpose:
-/// Extend ade::iTensor with proxies that carry and evaluate tensor data
-///
+#include <memory>
+#include <function>
 
-#include "age/grader.hpp"
-
-#include "llo/eval.hpp"
-
-#ifndef LLO_NODE_HPP
-#define LLO_NODE_HPP
+#include "ade/traveler.hpp"
 
 namespace llo
 {
 
-/// Leaf evaluable holding tensor data
-template <typename T>
-struct Source final : public iSource
+using GradFunctorT = std::function<ade::Tensorptr(ade::ArgsT,size_t)>;
+
+struct iDataNode
 {
-	/// Return a Source of input shape and containing input data
-	static DataNode get (ade::Shape shape, std::vector<T> data)
+	virtual ~iDataNode (void) = default;
+
+	operator ade::Tensorptr (void)
 	{
-		if (shape.n_elems() != data.size())
+		return get_tensor();
+	}
+
+	virtual OPCODE get_code (void) const = 0;
+
+	virtual ade::Shape shape (void) const = 0;
+
+	virtual ade::Tensorptr get_tensor (void) const = 0;
+};
+
+using NodeptrT = std::shared_ptr<iDataNode>;
+
+using NoderefT = std::weak_ptr<iDataNode>;
+
+using ArgsT = std::vector<std::pair<ade::CoordPtrT,NodeptrT>>;
+
+struct Grader final : public ade::iGrader
+{
+	Grader (const ade::iTensor* target) : ade::iGrader(target) {}
+
+	ade::Tensorptr chain_grad (ade::Tensorptr& wrt_child,
+		ade::MappedTensor wrt_me) const override
+	{
+		return ade::Functor::get(make_code(MUL), {
+			{ade::identity, wrt_child},
+			{ade::identity, ade::Functor::get(make_code(ADD), {wrt_me})},
+		});
+	}
+
+	ade::Tensorptr add_grads (ade::ArgsT& grads) const override
+	{
+		return ade::Functor::get(make_code(ADD), grads);
+	}
+
+	ade::Tensorptr get_grad (ade::Opcode opcode, ade::ArgsT args, size_t gradidx) const override
+	{
+		return gradient((OPCODE) opcode.code_, args, gradidx);
+	}
+
+	ade::Tensorptr get_scalar (const ade::Shape& shape, size_t scalar) const override
+	{
+		if (scalar)
 		{
-			err::fatalf("data size %d does not match shape %s",
-				data.size(), shape.to_string().c_str());
+			return shaped_one(shape);
 		}
-		auto tens = std::shared_ptr<ade::Tensor>(ade::Tensor::get(shape));
-		auto src = std::shared_ptr<iSource>(new Source(tens, data));
-		return DataNode(EvalCtx(tens.get(), src),
-			std::static_pointer_cast<ade::iTensor>(tens));
+		return shaped_zero(shape);
 	}
 
-	/// Return a source instance with a scalar as tensor data
-	static DataNode get_scalar (T value)
+	void set_scalar (const ade::iTensor* key, size_t scalar) override
 	{
-		return Source<T>::get(ade::Shape(), {value});
+		set_grad(key, get_scalar(key->shape(), scalar));
 	}
 
-	static DataNode copy (const llo::Source<T>& other)
+	void set_grad (const ade::iTensor* key, ade::Tensorptr value) override
 	{
-		auto rawsrc = new Source<T>(other);
-		auto src = std::shared_ptr<iSource>(rawsrc);
-		std::shared_ptr<ade::Tensor> tens = rawsrc->inner();
-		return DataNode(EvalCtx(tens.get(), src),
-			std::static_pointer_cast<ade::iTensor>(tens));
+		grads_.emplace(key, value);
 	}
 
-	/// Implementation of iSource
-	GenericData data (DTYPE dtype) const override
+	std::unordered_map<const ade::iTensor*,ade::Tensorptr> grads_;
+};
+
+struct Operation final : public iOperation
+{
+	Operation (GradFunctorT bwd, NoderefT node) :
+		bwd_(bwd), node_(node) {}
+
+	std::string to_string (void) const override
 	{
-		DTYPE curtype = get_type<T>();
-		GenericData out(tensor_->shape(), curtype);
-		std::memcpy(out.data_.get(), &data_[0], sizeof(T) * data_.size());
-		if (curtype != dtype)
-		{
-			return out.convert_to(dtype);
-		}
-		return out;
+		return name_op(node_.lock()->get_code());
 	}
 
-	/// Implementation of iSource
-	DTYPE native_type (void) const override
+	size_t opnum (void) const override
 	{
-		return get_type<T>();
+		return node_.lock()->get_code();
 	}
 
-	/// Implementation of iSource
-	void reassign (const GenericRef& data) override
+	Tensorptr gradient (ArgsT args, size_t gradidx) const override
 	{
-		const ade::Shape& internal_shape = tensor_->shape();
-		if (false == data.shape_.compatible_after(internal_shape, 0))
-		{
-			err::fatalf("cannot assign data of incompatible shaped %s to "
-				"internal data of shape %s", data.shape_.to_string().c_str(),
-				internal_shape.to_string().c_str());
-		}
-		std::memcpy(&data_[0], data.data_, sizeof(T) * data.shape_.n_elems());
+		return bwd_(args, gradidx);
 	}
 
-	/// Implementation of iSource
-	const std::shared_ptr<ade::Tensor>& inner (void) const override
+	Tensorptr chain_grad (Tensorptr& wrt_child,
+		MappedTensor wrt_me) const override
 	{
-		return tensor_;
+		return mul(llo::get_node(wrt_child),
+			copy(llo::get_node(wrt_me), wrt_me.mapper_));
+	}
+
+	Tensorptr add_grads (ArgsT& grads) const override
+	{
+		std::vector<llo::NodeptrT> sum_arg;
+		std::transform(grads.begin(), grads.end(), std::back_inserter(sum_args),
+			[](ade::MappedTensor& mtens)
+			{
+				return copy(llo::get_node(mtens), mtens.mapper_);
+			});
+		return sum(sum_arg);
+	}
+
+	NodeptrT get_node (void) const
+	{
+		return node_.lock();
 	}
 
 private:
-	Source (std::shared_ptr<ade::Tensor>& tensor, std::vector<T>& data) :
-		tensor_(tensor), data_(data) {}
+	GradFunctorT bwd_;
 
-	Source (const Source<T>& other) :
-		tensor_(other.tensor_), data_(other.data_) {}
-
-	/// Tensor node of subgraph
-	std::shared_ptr<ade::Tensor> tensor_;
-
-	/// Tensor data
-	std::vector<T> data_;
+	NoderefT node_;
 };
 
-/// DataNode of a leaf that can be assignable by data vectors
-template <typename T>
-struct PlaceHolder final : public DataNode
+inline NodeptrT get_node (Tensorptr& tens)
 {
-	PlaceHolder (ade::Shape shape) :
-		DataNode(Source<T>::get(shape, std::vector<T>(shape.n_elems()))) {}
+	return static_cast<Operation*>(wrt_child->get_opcode().get())->get_node();
+}
 
-	PlaceHolder (const PlaceHolder&) = default;
-	PlaceHolder (PlaceHolder&&) = default;
-	PlaceHolder& operator = (const PlaceHolder&) = default;
-	PlaceHolder& operator = (PlaceHolder&&) = default;
-
-	/// Assign vectorized data to source
-	PlaceHolder& operator = (std::vector<T> data)
+template <OPCODE OP>
+struct DataNode : public iDataNode
+{
+	static NodePtrT get (GradFunctorT grad, ArgsT args)
 	{
-		auto key = static_cast<ade::Tensor*>(tensor_.get());
-		auto src = ctx_.srcs_[key];
-		GenericRef gdata((char*) &data[0], tensor_->shape(), get_type<T>());
-		src->reassign(gdata);
-		return *this;
+		DataNode<OP>* raw = new DataNode<OP>();
+		NodeptrT out(raw);
+		raw->func_ = ade::Functor::get(OpPtrT(new Operation(grad, out)), args);
+		return out;
 	}
+
+private:
+	std::weak_ptr<ade::Functor> func_;
 };
 
-/// Return source holding a scalar value extended to input shape
-template <typename T>
-DataNode shaped_scalar (T scalar, ade::Shape shape)
-{
-	DataNode snode = Source<double>::get_scalar(scalar);
-	return DataNode(snode.ctx_, ade::Functor::get(MAKE_CODE(age::COPY), {
-		{ade::extend(0, std::vector<ade::DimT>(shape.begin(), shape.end())),
-		snode.tensor_}}));
 }
-
-}
-
-#endif // LLO_NODE_HPP

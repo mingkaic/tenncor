@@ -5,10 +5,12 @@
 
 #include "err/log.hpp"
 
-#include "llo/api.hpp"
+#include "adhoc/llo/api.hpp"
 
 #include "pbm/graph.hpp"
 #include "pbm/source.hpp"
+
+#ifdef PBM_GRAPH_HPP
 
 static std::string make_uid (void* ptr, llo::EngineT& engine)
 {
@@ -154,7 +156,7 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Functor* func = pb_node->mutable_functor();
-		func->set_opname(f->get_code().to_string());
+		func->set_opname(f->get_opcode().name_);
 		const ade::ArgsT& children = f->get_children();
 		for (auto& child : children)
 		{
@@ -224,3 +226,5 @@ std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
 	}
 	return outvec;
 }
+
+#endif

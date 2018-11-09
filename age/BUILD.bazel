@@ -32,7 +32,18 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["//ade:ade"],
+    deps = [
+        "//err:err",
+        "@com_github_nlohmann_json//:json_parser",
+    ],
+)
+
+cc_binary(
+    name = "agen",
+    srcs = ["main.cpp"],
+    copts = ["-std=c++14"],
+    data = ["cfg/age.json"],
+    deps = ["//age:age"],
 )
 
 ######### TEST #########

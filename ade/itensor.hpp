@@ -45,9 +45,6 @@ struct iTensor
 	/// Return the shape held by this tensor
 	virtual const Shape& shape (void) const = 0;
 
-	/// Return the partial derivative of this with respect to input wrt
-	virtual Tensorptr gradient (const iTensor* wrt) = 0;
-
 	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;
 };

@@ -1,4 +1,4 @@
-#include "llo/api.hpp"
+#include "adhoc/llo/api.hpp"
 
 /// sigmoid function: f(x) = 1/(1+e^-x)
 llo::DataNode sigmoid (llo::DataNode x);

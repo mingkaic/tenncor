@@ -7,7 +7,6 @@
 ///
 
 #include <cmath>
-#include <memory>
 
 #include "err/log.hpp"
 
@@ -74,16 +73,6 @@ struct Tensor final : public iTensor
 	const Shape& shape (void) const override
 	{
 		return shape_;
-	}
-
-	/// Implementation of iTensor
-	Tensorptr gradient (const iTensor* wrt) override
-	{
-		if (this == wrt)
-		{
-			return Tensor::SYMBOLIC_ONE;
-		}
-		return Tensor::SYMBOLIC_ZERO;
 	}
 
 	/// Implementation of iTensor

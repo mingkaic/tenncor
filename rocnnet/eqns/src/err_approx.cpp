@@ -1,5 +1,5 @@
-#include "llo/api.hpp"
-#include "llo/shear.hpp"
+#include "adhoc/llo/api.hpp"
+#include "adhoc/llo/shear.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
 

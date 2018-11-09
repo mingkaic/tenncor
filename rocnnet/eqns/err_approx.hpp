@@ -1,6 +1,6 @@
 #include <unordered_map>
 
-#include "llo/node.hpp"
+#include "adhoc/llo/node.hpp"
 
 using DeltasT = std::unordered_map<llo::iSource*,llo::DataNode>;
 // approximate error of sources given error of root

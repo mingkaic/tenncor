@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
-#include <tuple>
 
 #ifndef ERR_STRING_HPP
 #define ERR_STRING_HPP

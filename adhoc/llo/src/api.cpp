@@ -1,6 +1,6 @@
-#include "age/grader.hpp"
+#include "adhoc/age/grader.hpp"
 
-#include "llo/api.hpp"
+#include "adhoc/llo/api.hpp"
 
 #ifdef LLO_API_HPP
 
@@ -14,68 +14,68 @@ DataNode one (ade::Shape shape)
 
 DataNode abs (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::ABS), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::ABS), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode neg (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::NEG), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::NEG), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode sin (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::SIN), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::SIN), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode cos (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::COS), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::COS), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode tan (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::TAN), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::TAN), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode exp (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::EXP), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::EXP), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode log (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::LOG), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::LOG), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode sqrt (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::SQRT), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::SQRT), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode round (DataNode arg)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::ROUND), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::ROUND), {
 		{ade::identity, arg.tensor_}}));
 }
 
 DataNode flip (DataNode arg, uint8_t dim)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::COPY), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::COPY), {
 		{ade::flip(dim), arg.tensor_}}));
 }
 
 DataNode pow (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::POW), {
+		ade::Functor::get(make_code(age::POW), {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -95,13 +95,13 @@ DataNode sum (std::vector<DataNode> args)
 		contexas.push_back(&arg.ctx_);
 		ade_args.push_back({ade::identity, arg.tensor_});
 	}
-	return DataNode(EvalCtx(contexas), ade::Functor::get(MAKE_CODE(age::ADD), ade_args));
+	return DataNode(EvalCtx(contexas), ade::Functor::get(make_code(age::ADD), ade_args));
 }
 
 DataNode sub (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::SUB), {
+		ade::Functor::get(make_code(age::SUB), {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -121,13 +121,13 @@ DataNode prod (std::vector<DataNode> args)
 		contexas.push_back(&arg.ctx_);
 		ade_args.push_back({ade::identity, arg.tensor_});
 	}
-	return DataNode(EvalCtx(contexas), ade::Functor::get(MAKE_CODE(age::MUL), ade_args));
+	return DataNode(EvalCtx(contexas), ade::Functor::get(make_code(age::MUL), ade_args));
 }
 
 DataNode div (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::DIV), {
+		ade::Functor::get(make_code(age::DIV), {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -136,7 +136,7 @@ DataNode div (DataNode a, DataNode b)
 DataNode eq (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::EQ), {
+		ade::Functor::get(make_code(age::EQ), {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -145,7 +145,7 @@ DataNode eq (DataNode a, DataNode b)
 DataNode neq (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::NE), {
+		ade::Functor::get(make_code(age::NE), {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -154,7 +154,7 @@ DataNode neq (DataNode a, DataNode b)
 DataNode lt (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::LT), {
+		ade::Functor::get(make_code(age::LT), {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -163,7 +163,7 @@ DataNode lt (DataNode a, DataNode b)
 DataNode gt (DataNode a, DataNode b)
 {
 	return DataNode(EvalCtx({&a.ctx_, &b.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::GT), {
+		ade::Functor::get(make_code(age::GT), {
 			{ade::identity, a.tensor_},
 			{ade::identity, b.tensor_}
 		}));
@@ -178,7 +178,7 @@ DataNode min (std::vector<DataNode> args)
 		contexas.push_back(&arg.ctx_);
 		ade_args.push_back({ade::identity, arg.tensor_});
 	}
-	return DataNode(EvalCtx(contexas), ade::Functor::get(MAKE_CODE(age::MIN), ade_args));
+	return DataNode(EvalCtx(contexas), ade::Functor::get(make_code(age::MIN), ade_args));
 }
 
 DataNode max (std::vector<DataNode> args)
@@ -190,7 +190,7 @@ DataNode max (std::vector<DataNode> args)
 		contexas.push_back(&arg.ctx_);
 		ade_args.push_back({ade::identity, arg.tensor_});
 	}
-	return DataNode(EvalCtx(contexas), ade::Functor::get(MAKE_CODE(age::MAX), ade_args));
+	return DataNode(EvalCtx(contexas), ade::Functor::get(make_code(age::MAX), ade_args));
 }
 
 DataNode clip (DataNode x, DataNode lo, DataNode hi)
@@ -201,7 +201,7 @@ DataNode clip (DataNode x, DataNode lo, DataNode hi)
 DataNode rand_binom (DataNode ntrials, DataNode prob)
 {
 	return DataNode(EvalCtx({&ntrials.ctx_, &prob.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::RAND_BINO), {
+		ade::Functor::get(make_code(age::RAND_BINO), {
 			{ade::identity, ntrials.tensor_},
 			{ade::identity, prob.tensor_}
 		}));
@@ -210,7 +210,7 @@ DataNode rand_binom (DataNode ntrials, DataNode prob)
 DataNode rand_uniform (DataNode lower, DataNode upper)
 {
 	return DataNode(EvalCtx({&lower.ctx_, &upper.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::RAND_UNIF), {
+		ade::Functor::get(make_code(age::RAND_UNIF), {
 			{ade::identity, lower.tensor_},
 			{ade::identity, upper.tensor_}
 		}));
@@ -219,7 +219,7 @@ DataNode rand_uniform (DataNode lower, DataNode upper)
 DataNode rand_normal (DataNode mean, DataNode stdev)
 {
 	return DataNode(EvalCtx({&mean.ctx_, &stdev.ctx_}),
-		ade::Functor::get(MAKE_CODE(age::RAND_NORM), {
+		ade::Functor::get(make_code(age::RAND_NORM), {
 			{ade::identity, mean.tensor_},
 			{ade::identity, stdev.tensor_}
 		}));
@@ -244,7 +244,7 @@ DataNode reduce_max (DataNode arg, uint8_t groupidx)
 {
 	const ade::Shape& shape = arg.tensor_->shape();
 	std::vector<ade::DimT> slist(shape.begin() + groupidx, shape.end());
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::MAX),
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::MAX),
 		{{ade::reduce(groupidx, slist), arg.tensor_}}));
 }
 
@@ -257,19 +257,19 @@ DataNode reduce_sum (DataNode arg, uint8_t groupidx)
 {
 	const ade::Shape& shape = arg.tensor_->shape();
 	std::vector<ade::DimT> slist(shape.begin() + groupidx, shape.end());
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::ADD), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::ADD), {
 		{ade::reduce(groupidx, slist), arg.tensor_}}));
 }
 
 DataNode permute (DataNode arg, std::vector<uint8_t> order)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::COPY), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::COPY), {
 		{ade::permute(order), arg.tensor_}}));
 }
 
 DataNode extend (DataNode arg, uint8_t after, std::vector<uint8_t> ext)
 {
-	return DataNode(arg.ctx_, ade::Functor::get(MAKE_CODE(age::COPY), {
+	return DataNode(arg.ctx_, ade::Functor::get(make_code(age::COPY), {
 		{ade::extend(after, ext), arg.tensor_}}));
 }
 
