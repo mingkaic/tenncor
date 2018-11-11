@@ -6,7 +6,9 @@
 /// Define functions for marshal and unmarshal equation graph
 ///
 
-#include "adhoc/llo/node.hpp"
+#include "llo/data.hpp"
+
+#include "age/runtime/grader.hpp"
 
 #include "pbm/graph.pb.h"
 
@@ -14,9 +16,9 @@
 #define PBM_GRAPH_HPP
 
 /// Marshal all equation graphs in roots vector to protobuf object
-void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots);
+void save_graph (tenncor::Graph& out, age::TensT& roots);
 
 /// Return all nodes in graph unmarshalled from protobuf object
-std::vector<llo::DataNode> load_graph (const tenncor::Graph& in);
+age::TensT load_graph (const tenncor::Graph& in);
 
 #endif // PBM_GRAPH_HPP

@@ -1,4 +1,9 @@
-#include "adhoc/llo/api.hpp"
+#include <memory>
+
+#include "llo/data.hpp"
+
+#ifndef LAYR_ILAYER_HPP
+#define LAYR_ILAYER_HPP
 
 struct iLayer
 {
@@ -6,7 +11,9 @@ struct iLayer
 
 	virtual ~iLayer (void) {}
 
-	virtual std::vector<llo::DataNode> get_variables (void) const = 0;
+	virtual std::vector<llo::VariableT<double>> get_variables (void) const = 0;
 
 	std::string label_;
 };
+
+#endif // LAYR_ILAYER_HPP

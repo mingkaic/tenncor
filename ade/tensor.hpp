@@ -48,21 +48,21 @@ struct MappedTensor final
 	Tensorptr tensor_;
 };
 
-/// Leaf of the graph commonly representing the variable in an equation
-struct Tensor final : public iTensor
+/// Interface for holding data when passing up the tensor graph
+struct iData
 {
-	/// Represent a scalar containing value one
-	static Tensorptr SYMBOLIC_ONE;
+	virtual ~iData (void) = default;
 
-	/// Represent a scalar containing value zero
-	static Tensorptr SYMBOLIC_ZERO;
+	virtual char* get (void) = 0;
 
-	/// Return a Tensor with input shape
-	static Tensor* get (Shape shape)
-	{
-		return new Tensor(shape);
-	}
+	virtual const char* get (void) const = 0;
 
+	virtual size_t type_code (void) const = 0;
+};
+
+/// Leaf of the graph commonly representing the variable in an equation
+struct Tensor : public iTensor
+{
 	/// Implementation of iTensor
 	void accept (iTraveler& visiter) override
 	{
@@ -81,7 +81,9 @@ struct Tensor final : public iTensor
 		return shape_.to_string();
 	}
 
-private:
+	virtual iData& data (void) = 0;
+
+protected:
 	Tensor (Shape shape) : shape_(shape) {}
 
 	/// Shape info of the tensor instance

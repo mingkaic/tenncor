@@ -19,5 +19,5 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["@com_github_mingkaic_tenncor//adhoc/llo:llo"],
+    deps = ["@com_github_mingkaic_tenncor//llo:llo"],
 )

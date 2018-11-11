@@ -1,4 +1,3 @@
-#include <iomanip>
 #include <sstream>
 #include <regex>
 
@@ -10,14 +9,29 @@
 
 #ifdef AGE_PARSER_HPP
 
-static const std::string derivative_name = "arg0";
-
-static const std::string special_repl = "$!";
-
 static const std::string opcode_enum = "_GENERATED_OPCODES";
 
-static const std::string grad_signature =
-	"ade::Tensorptr %s<%s> (ade::ArgsT args, size_t idx)";
+static const std::string data_signature = "template <typename T>"
+	"ade::Tensor* data (T scalar, ade::Shape shape)";
+
+static const std::string sum_opcode_signature =
+	"ade::Opcode sum_opcode (void)";
+
+static const std::string prod_opcode_signature =
+	"ade::Opcode prod_opcode (void)";
+
+static const std::string map_name = "code2name";
+
+static const std::string nameop_signature =
+	opcode_enum + " nameop (std::string name)";
+
+static const std::string namemap_call = map_name + ".find(name)->second";
+
+static const std::string opname_switches_signature =
+	"std::string opname (" + opcode_enum + " code)";
+
+static const std::string grad_switches_signature =
+	"ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx)";
 
 void find_replace (std::string& data,
 	std::string target, std::string replacement)
@@ -28,18 +42,14 @@ void find_replace (std::string& data,
 		// Replace this occurrence of Sub String
 		data.replace(pos, target.size(), replacement);
 		// Get the next occurrence from the current position
-		pos = data.find(target, pos + target.size());
+		pos = data.find(target, pos + replacement.size());
 	}
 }
 
-Func parse_derive (std::sring opcode, std::string derive)
+std::string parse_derive (std::string derive)
 {
-	find_replace(derive, special_repl, "idx");
 	find_replace(derive, "$@", "args");
-	std::regex_replace(derive, std::regex("\\$(\\d+)"), "args[$1]");
-	std::string signature = err::sprintf(grad_signature,
-		varname, opcode.c_str());
-	return Func{signature, derive};
+	return std::regex_replace(derive, std::regex("\\$(\\d+)"), "args[$1]");
 }
 
 std::string read (nlohmann::json::object_t refmap, nlohmann::json ref)
@@ -77,7 +87,8 @@ std::string read (nlohmann::json::object_t refmap, nlohmann::json ref)
 	return format;
 }
 
-void unmarshal_json (File& out, std::istream& jstr)
+void unmarshal_json (File& runtime_file, File& api_file,
+	std::istream& jstr)
 {
 	try
 	{
@@ -92,29 +103,75 @@ void unmarshal_json (File& out, std::istream& jstr)
 				ss.str().c_str());
 		}
 		// optionals
-		out.includes_ = json_rep.value("includes", out.includes_);
+		StringsT includes;
+		includes = json_rep.value("includes", includes);
 
 		nlohmann::json::object_t refs;
 		refs = json_rep.value("refs", refs);
 
-		// apis is manditory
-		nlohmann::json::object_t opcodes;
-		opcodes = json_rep.value("opcodes", opcodes);
+		// runtime implementation is manditory
+		runtime_file.includes_.insert(
+			runtime_file.includes_.end(),
+			includes.begin(), includes.end());
+		nlohmann::json::object_t runtime;
+		runtime = json_rep.value("runtime", runtime);
+
+		std::string data_ret = runtime.at("data");
+		std::string sum_opcode_ret = runtime.at("sum_opcode");
+		std::string prod_opcode_ret = runtime.at("prod_opcode");
+		runtime_file.funcs_.push_back(Func{
+			data_signature,
+			{ std::make_shared<ReturnStmt>(data_ret) }, true
+		});
+		runtime_file.funcs_.push_back(Func{
+			sum_opcode_signature,
+			{ std::make_shared<ReturnStmt>(sum_opcode_ret) },
+		});
+		runtime_file.funcs_.push_back(Func{
+			prod_opcode_signature,
+			{ std::make_shared<ReturnStmt>(prod_opcode_ret) },
+		});
+
+		nlohmann::json::object_t opcodes = runtime.at("opcodes");
 		StringsT opnum;
+		std::unordered_map<std::string,std::string> name_map;
+		auto grad_switches = new SwitchStmt("code");
+		auto opname_switches = new SwitchStmt("code");
 		for (auto& opcode : opcodes)
 		{
+			std::string opstr = "\"" + opcode.first + "\"";
 			opnum.push_back(opcode.first);
-			out.funcs_.push_back(
-				parse_derive(opcode.first, read(refs, opcode.second)));
+			name_map[opstr] = opcode.first;
+			grad_switches->cases_[opcode.first] =
+				std::make_shared<ReturnStmt>(parse_derive(opcode.second));
+			opname_switches->cases_[opcode.first] =
+				std::make_shared<ReturnStmt>(opstr);
 		}
-		out.enums_.push_back(Enum{opcode_enum, opnum});
+		runtime_file.maps_.push_back(MapRep{map_name, {"std::string", opcode_enum}, name_map, true});
+		runtime_file.enums_.push_back(Enum{opcode_enum, opnum});
+		runtime_file.funcs_.push_back(Func{
+			nameop_signature,
+			{ std::make_shared<ReturnStmt>(namemap_call) },
+		});
+		runtime_file.funcs_.push_back(Func{
+			opname_switches_signature,
+			{ StmtptrT(opname_switches) },
+		});
+		runtime_file.funcs_.push_back(Func{
+			grad_switches_signature,
+			{ StmtptrT(grad_switches) },
+		});
 
+		// apis implementation is manditory
+		api_file.includes_.insert(
+			api_file.includes_.end(),
+			includes.begin(), includes.end());
 		nlohmann::json::array_t apis = json_rep.at("apis");
 		for (nlohmann::json::object_t api : apis)
 		{
-			out.funcs_.push_back(Func{
+			api_file.funcs_.push_back(Func{
 				read(refs, api.at("io")),
-				read(refs, api.at("out")),
+				{ std::make_shared<ReturnStmt>(read(refs, api.at("out"))) },
 			});
 		}
 	}

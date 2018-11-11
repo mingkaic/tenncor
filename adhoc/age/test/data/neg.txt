@@ -1,7 +1,0 @@
-(MUL)
- `--(COPY)
- |   `--(COPY)
- |       `--([1]<SYMBOLIC_1>)
- `--(NEG)
- `--(COPY)
-     `--([1]<SYMBOLIC_1>)

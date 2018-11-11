@@ -1,24 +1,28 @@
 #include "rocnnet/eqns/activations.hpp"
 
-llo::DataNode sigmoid (llo::DataNode x)
+#ifdef EQNS_ACTIVATIONS_HPP
+
+ade::Tensorptr sigmoid (ade::Tensorptr x)
 {
-	ade::Shape shape = x.tensor_->shape();
-	auto denom = llo::add(llo::one(shape), llo::exp(llo::neg(x)));
-	return llo::div(llo::one(shape), denom);
+	ade::Shape shape = x->shape();
+	auto denom = age::add(age::data(1, shape), age::exp(age::neg(x)));
+	return age::div(age::data(1, shape), denom);
 }
 
-llo::DataNode tanh (llo::DataNode x)
+ade::Tensorptr tanh (ade::Tensorptr x)
 {
-	ade::Shape shape = x.tensor_->shape();
-	auto expxx = llo::exp(llo::add(x, x));
-	auto num = llo::add(expxx, llo::one(shape));
-	auto denom = llo::sub(expxx, llo::one(shape));
-	return llo::div(num, denom);
+	ade::Shape shape = x->shape();
+	auto expxx = age::exp(age::add(x, x));
+	auto num = age::add(expxx, age::data(1, shape));
+	auto denom = age::sub(expxx, age::data(1, shape));
+	return age::div(num, denom);
 }
 
-llo::DataNode softmax (llo::DataNode x)
+ade::Tensorptr softmax (ade::Tensorptr x)
 {
-	auto num = llo::exp(x);
-	auto denom = llo::reduce_sum(num);
-	return llo::div(num, denom);
+	auto num = age::exp(x);
+	auto denom = age::reduce_sum(num);
+	return age::div(num, denom);
 }
+
+#endif

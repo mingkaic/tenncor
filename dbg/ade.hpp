@@ -43,18 +43,7 @@ struct PrettyEquation final
 				{
 					out << it->second << "=";
 				}
-				if (root == ade::Tensor::SYMBOLIC_ONE.get())
-				{
-					out << "[1]<SYMBOLIC_1>";
-				}
-				else if (root == ade::Tensor::SYMBOLIC_ZERO.get())
-				{
-					out << "[1]<SYMBOLIC_0>";
-				}
-				else
-				{
-					out << root->to_string();
-				}
+				out << root->to_string();
 				if (showshape_ && nullptr != dynamic_cast<ade::iFunctor*>(root))
 				{
 					out << root->shape().to_string();

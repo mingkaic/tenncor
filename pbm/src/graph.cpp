@@ -5,7 +5,8 @@
 
 #include "err/log.hpp"
 
-#include "adhoc/llo/api.hpp"
+#include "llo/generated/api.hpp"
+#include "llo/operator.hpp"
 
 #include "pbm/graph.hpp"
 #include "pbm/source.hpp"
@@ -102,20 +103,16 @@ struct GraphDFSOrder final : public ade::iTraveler
 	std::unordered_set<ade::iTensor*> visited_;
 };
 
-void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
+void save_graph (tenncor::Graph& out, age::TensT& roots)
 {
 	ade::GraphStat stat;
 	GraphDFSOrder order;
 
-	std::vector<const llo::EvalCtx*> contexas(roots.size());
-	std::transform(roots.begin(), roots.end(), contexas.begin(),
-	[&](llo::DataNode& tptr)
+	for (ade::Tensorptr& tens : roots)
 	{
-		tptr.tensor_->accept(stat);
-		tptr.tensor_->accept(order);
-		return &tptr.ctx_;
-	});
-	llo::EvalCtx global_ctx(contexas);
+		tens->accept(stat);
+		tens->accept(order);
+	}
 
 	// sort functions from the root with the smallest subtree to the largest
 	// this ensures every children of a node appears before the parent,
@@ -128,26 +125,20 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 
 	std::vector<ade::iFunctor*> funcs(
 		order.funcs_.begin(), order.funcs_.end());
-	std::vector<ade::Tensor*> leaves;
-	std::copy_if(order.leaves_.begin(), order.leaves_.end(),
-		std::back_inserter(leaves),
-		[&](ade::Tensor* leaf)
-		{
-			return global_ctx.srcs_.end() != global_ctx.srcs_.find(leaf);
-		});
+	std::vector<ade::Tensor*> leaves(
+		order.leaves_.begin(), order.leaves_.end());
 
 	// all nodes in leaf appear before funcs
 	std::unordered_map<ade::iTensor*,size_t> ordermap;
 	size_t nleaves = leaves.size();
 	for (size_t i = 0; i < nleaves; ++i)
 	{
-		llo::iSource* source = global_ctx.srcs_[leaves[i]].get();
-		ade::Tensor* tens = source->inner().get();
+		ade::Tensor* tens = leaves[i];
 		ordermap[tens] = i;
 
 		tenncor::Node* pb_node = out.add_nodes();
 		tenncor::Source* src = pb_node->mutable_source();
-		save_data(src, source);
+		save_data(src, tens);
 	}
 	for (size_t i = 0, n = funcs.size(); i < n; ++i)
 	{
@@ -162,28 +153,17 @@ void save_graph (tenncor::Graph& out, std::vector<llo::DataNode>& roots)
 		{
 			tenncor::NodeArg* arg = func->add_args();
 			ade::iTensor* tens = child.tensor_.get();
-			if (tens == ade::Tensor::SYMBOLIC_ONE.get())
-			{
-				arg->set_idx(-2);
-			}
-			else if (tens == ade::Tensor::SYMBOLIC_ZERO.get())
-			{
-				arg->set_idx(-1);
-			}
-			else
-			{
-				arg->set_idx(ordermap[tens]);
-			}
+			arg->set_idx(ordermap[tens]);
 			save_coord(arg->mutable_coord(), child.mapper_);
 		}
 	}
 	out.set_id(make_uid(&out, llo::get_engine()));
 }
 
-std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
+age::TensT load_graph (const tenncor::Graph& in)
 {
 	auto nodes = in.nodes();
-	std::vector<llo::DataNode> outvec;
+	age::TensT outvec;
 	for (const tenncor::Node& node : nodes)
 	{
 		if (node.has_source())
@@ -196,32 +176,13 @@ std::vector<llo::DataNode> load_graph (const tenncor::Graph& in)
 			tenncor::Functor func = node.functor();
 			auto nodeargs = func.args();
 			ade::ArgsT args;
-			std::vector<const llo::EvalCtx*> contexas;
 			for (auto nodearg : nodeargs)
 			{
-				int32_t i = nodearg.idx();
 				ade::CoordPtrT coord = load_coord(nodearg.coord());
-				if (i >= 0)
-				{
-					args.push_back({coord, outvec[i].tensor_});
-					contexas.push_back(&outvec[i].ctx_);
-				}
-				else if (-2 == i)
-				{
-					args.push_back({coord, ade::Tensor::SYMBOLIC_ONE});
-				}
-				else if (-1 == i)
-				{
-					args.push_back({coord, ade::Tensor::SYMBOLIC_ZERO});
-				}
-				else
-				{
-					err::fatalf("cannot find tensor of index %d", i);
-				}
+				args.push_back({coord, outvec[nodearg.idx()]});
 			}
-			outvec.push_back(llo::DataNode{llo::EvalCtx(contexas),
-				ade::Functor::get(age::make_code(
-					age::name_op(func.opname())), args)});
+			outvec.push_back(ade::Functor::get(ade::Opcode{func.opname(),
+				age::nameop(func.opname())}, args));
 		}
 	}
 	return outvec;

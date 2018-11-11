@@ -1,4 +1,9 @@
+#include "llo/operator.hpp"
+
 #include "rocnnet/layr/ilayer.hpp"
+
+#ifndef LAYR_FC_LAYER_HPP
+#define LAYR_FC_LAYER_HPP
 
 struct FCLayer : public iLayer
 {
@@ -24,9 +29,10 @@ struct FCLayer : public iLayer
 			std::vector<double> data(ndata);
 			std::generate(data.begin(), data.end(), gen);
 
-			auto bias = llo::Source<double>::get(ade::Shape({n_output}),
-				std::vector<double>(n_output, 0));
-			auto weight = llo::Source<double>::get(shape, data);
+			llo::VariableT<double> weight(
+				llo::DataNode<double>::get(data, shape, "weight"));
+			llo::VariableT<double> bias(
+				llo::data<double>(0, ade::Shape({n_output}), "bias"));
 			weight_bias_.push_back({weight, bias});
 		}
 	}
@@ -65,26 +71,28 @@ struct FCLayer : public iLayer
 	}
 
 
-	llo::DataNode operator () (std::vector<llo::DataNode> inputs)
+	ade::Tensorptr operator () (age::TensT inputs)
 	{
 		size_t n = inputs.size();
 		if (n != weight_bias_.size())
 		{
 			err::fatalf("number of inputs must be exactly %d", n);
 		}
-		std::vector<llo::DataNode> args;
+		age::TensT args;
 		for (size_t i = 0; i < n; ++i)
 		{
-			ade::DimT cdim = inputs[i].tensor_->shape().at(1);
-			args.push_back(llo::matmul(inputs[i], weight_bias_[i].first));
-			args.push_back(llo::extend(weight_bias_[i].second, 1, {cdim}));
+			ade::DimT cdim = inputs[i]->shape().at(1);
+			args.push_back(age::matmul(inputs[i],
+				ade::Tensorptr(weight_bias_[i].first)));
+			args.push_back(age::extend(
+				ade::Tensorptr(weight_bias_[i].second), 1, {cdim}));
 		}
-		return llo::sum(args);
+		return age::sum(args);
 	}
 
-	std::vector<llo::DataNode> get_variables (void) const override
+	std::vector<llo::VariableT<double>> get_variables (void) const override
 	{
-		std::vector<llo::DataNode> out;
+		std::vector<llo::VariableT<double>> out;
 		for (const WbPairT& wb : weight_bias_)
 		{
 			out.push_back(wb.first);
@@ -94,7 +102,7 @@ struct FCLayer : public iLayer
 	}
 
 protected:
-	using WbPairT = std::pair<llo::DataNode,llo::DataNode>;
+	using WbPairT = std::pair<llo::VariableT<double>,llo::VariableT<double>>;
 
 	std::vector<WbPairT> weight_bias_;
 
@@ -104,12 +112,11 @@ private:
 		weight_bias_.clear();
 		for (const WbPairT& opair : other.weight_bias_)
 		{
-			llo::Source<double>* ow = static_cast<llo::Source<double>*>(
-				opair.first.source().get());
-			llo::Source<double>* ob = static_cast<llo::Source<double>*>(
-				opair.second.source().get());
-			weight_bias_.push_back({llo::Source<double>::copy(*ow),
-				llo::Source<double>::copy(*ob)});
+			llo::VariableT<double> ow(new llo::DataNode<double>(*opair.first));
+			llo::VariableT<double> ob(new llo::DataNode<double>(*opair.second));
+			weight_bias_.push_back({ow, ob});
 		}
 	}
 };
+
+#endif // LAYR_FC_LAYER_HPP

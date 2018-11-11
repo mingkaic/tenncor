@@ -10,6 +10,18 @@
 
 const char* program_name = "agen";
 
+const std::string runtime_name = "runtime";
+
+const std::string api_name = "api";
+
+const std::string hdr_postfix = ".hpp";
+
+const std::string src_postfix = ".cpp";
+
+static const std::string rt_macro = "_GENERATED_RT_HPP";
+
+static const std::string api_macro = "_GENERATED_API_HPP";
+
 std::regex re_flag("-(\\w+)");
 
 struct Flags
@@ -71,7 +83,8 @@ private:
 	bool is_flag (std::string& flag, char* arg) const
 	{
 		std::smatch matches;
-		bool matched = std::regex_match(flag, matches, re_flag);
+		std::string sarg(arg);
+		bool matched = std::regex_match(sarg, matches, re_flag);
 		if (matched)
 		{
 			flag = matches[1];
@@ -110,59 +123,72 @@ std::string strip_header (std::string header, std::string prefix)
 int main (int argc, char** argv)
 {
 	std::string cfgpath;
-	std::string headerpath;
-	std::string sourcepath;
+	std::string dirpath;
 	std::string strip_prefix;
 
 	Flags flags;
-	flags.parse("cfg", &cfgpath,
-		"path to configuration json file (default: read from stdin)");
-	flags.parse("hdr", &headerpath,
-		"path to header file to write (default: write to stdout)");
-	flags.parse("src", &sourcepath,
-		"path to source file to write (default: write to stdout)");
+	flags.parse("cfg", &cfgpath, "path of configuration json file "
+		"(default: read from stdin)");
+	flags.parse("out", &dirpath, "path of output directory to write "
+		"(default: write to current directory)");
 	flags.parse("strip_hdr", &strip_prefix,
-		"strip prefix from hdr to include in src (default: strip nothing)");
+		"strip prefix from hdr to include in src "
+		"(default: strip nothing)");
 	if (false == flags.process(argc, argv))
 	{
 		return 1;
 	}
 
-	std::ifstream instr(cfgpath);
+	std::string includepath = strip_header(dirpath, strip_prefix);
 
-	File file;
+	std::string api_hdr = includepath + "/" + api_name + hdr_postfix;
+	std::string runtime_hdr = includepath + "/" + runtime_name + hdr_postfix;
+
+	File runtime_file(rt_macro);
+	File api_file(api_macro, {"\"" + runtime_hdr + "\""});
+
+	std::ifstream instr(cfgpath);
 	if (instr.is_open())
 	{
-		unmarshal_json(file, instr);
+		unmarshal_json(runtime_file, api_file, instr);
 		instr.close();
 	}
 	else
 	{
-		unmarshal_json(file, std::cin);
+		unmarshal_json(runtime_file, api_file, std::cin);
 	}
 
-	std::ofstream header(headerpath);
-	if (header.is_open())
+	std::ofstream out(dirpath + "/" + runtime_name + hdr_postfix);
+	if (out.is_open())
 	{
-		file.decl(header);
-		header.close();
+		runtime_file.decl(out);
+		out.close();
+
+		out.open(dirpath + "/" + runtime_name + src_postfix);
+		out << "#include \"" << api_hdr << "\"\n\n";
+		runtime_file.defn(out);
+		out.close();
+
+		out.open(dirpath + "/" + api_name + hdr_postfix);
+		api_file.decl(out);
+		out.close();
+
+		out.open(dirpath + "/" + api_name + src_postfix);
+		out << "#include \"" << api_hdr << "\"\n\n";
+		api_file.defn(out);
+		out.close();
 	}
 	else
 	{
-		file.decl(std::cout);
-	}
+		runtime_file.decl(std::cout);
 
-	std::ofstream source(sourcepath);
-	std::string includepath = strip_header(headerpath, strip_prefix);
-	if (source.is_open())
-	{
-		source << "#include \"" << includepath << "\"\n\n";
-		file.defn(source);
-	}
-	else
-	{
-		std::cout << "#include \"" << includepath << "\"\n\n";
-		file.defn(std::cout);
+		std::cout << "#include \"" << api_hdr << "\"\n\n";
+		runtime_file.defn(std::cout);
+
+		api_file.decl(std::cout);
+
+		std::cout << "#include \"" << api_hdr << "\"\n\n";
+		api_file.defn(std::cout);
 	}
 
 	return 0;

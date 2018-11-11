@@ -1,0 +1,64 @@
+licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/**/*.hpp",
+        "test/**/*.cpp",
+    ]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "llo",
+    hdrs = glob([
+        "*.hpp",
+        "generated/*.hpp",
+    ]),
+    srcs = glob([
+        "src/*.cpp",
+        "generated/*.cpp", # todo: make rule for generation
+    ]),
+    copts = ["-std=c++14"],
+    deps = ["//age:age_runtime"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    size = "medium",
+    srcs = glob(["test/dynamic/*"]),
+    copts = ["-std=c++14"],
+    deps = [
+        "//llo:llo",
+        "//testutil:testutil",
+    ],
+    data = ["//:credentials"],
+)
+
+cc_test(
+    name = "test_regress",
+    size = "medium",
+    srcs = glob(["test/regress/*"]),
+    copts = ["-std=c++14"],
+    deps = [
+        "//llo:llo",
+        "//testutil:testutil",
+        "@com_github_mingkaic_testify//anteroc:anteroc",
+    ],
+    data = ["//:credentials"],
+)

@@ -38,11 +38,18 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "age_runtime",
+    hdrs = glob(["runtime/*.hpp"]),
+    srcs = glob(["runtime/*.cpp"]),
+    copts = ["-std=c++14"],
+    deps = ["//ade:ade"],
+)
+
 cc_binary(
     name = "agen",
     srcs = ["main.cpp"],
     copts = ["-std=c++14"],
-    data = ["cfg/age.json"],
     deps = ["//age:age"],
 )
 

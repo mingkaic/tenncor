@@ -3,7 +3,7 @@
 
 #include "rocnnet/layr/fc_layer.hpp"
 
-using HiddenFunc = std::function<llo::DataNode(llo::DataNode)>;
+using HiddenFunc = std::function<ade::Tensorptr(ade::Tensorptr)>;
 
 struct LayerInfo
 {
@@ -60,9 +60,9 @@ struct MLP
 	}
 
 
-	llo::DataNode operator () (llo::DataNode& input)
+	ade::Tensorptr operator () (ade::Tensorptr input)
 	{
-		llo::DataNode out = input;
+		ade::Tensorptr out = input;
 		for (Layer& layer : layers_)
 		{
 			out = layer(out);
@@ -70,9 +70,9 @@ struct MLP
 		return out;
 	}
 
-	std::vector<llo::DataNode> get_variables (void) const
+	std::vector<llo::VariableT<double>> get_variables (void) const
 	{
-		std::vector<llo::DataNode> out;
+		std::vector<llo::VariableT<double>> out;
 		for (const Layer& layer : layers_)
 		{
 			auto temp = layer.layer_->get_variables();
@@ -121,7 +121,7 @@ private:
 
 	struct Layer
 	{
-		llo::DataNode operator () (llo::DataNode& input)
+		ade::Tensorptr operator () (ade::Tensorptr& input)
 		{
 			auto hypothesis = (*layer_)({input});
 			return hidden_(hypothesis);

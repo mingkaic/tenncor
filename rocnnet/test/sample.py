@@ -13,21 +13,27 @@ sources = list(map(lambda node: node.source,
     graph.nodes)))
 
 eout = sources[0]
-tin = sources[1]
-# shp_eout = [ord(c) for c in eout.shape]
-# shp_tin = [ord(c) for c in tin.shape]
+tin = sources[5]
+# print(eout.label)
+# print(tin.label)
+shp_eout = [ord(c) for c in eout.shape]
+shp_tin = [ord(c) for c in tin.shape]
 # print(shp_eout, shp_tin)
 out_feed = np.array(eout.double_arrs.data).reshape([3, 5])
 train_feed = np.array(tin.double_arrs.data).reshape([3, 10])
 
-v3 = sources[2]
-v2 = sources[3]
-v1 = sources[4]
-v0 = sources[5]
-# shp3 = [ord(c) for c in v3.shape]
-# shp2 = [ord(c) for c in v2.shape]
-# shp1 = [ord(c) for c in v1.shape]
-# shp0 = [ord(c) for c in v0.shape]
+v3 = sources[6]
+v2 = sources[7]
+v1 = sources[8]
+v0 = sources[9]
+# print(v3.label)
+# print(v2.label)
+# print(v1.label)
+# print(v0.label)
+shp3 = [ord(c) for c in v3.shape]
+shp2 = [ord(c) for c in v2.shape]
+shp1 = [ord(c) for c in v1.shape]
+shp0 = [ord(c) for c in v0.shape]
 # print(shp3, shp2, shp1, shp0)
 data3 = np.array(v3.double_arrs.data).reshape([10, 9])
 data2 = np.array(v2.double_arrs.data).reshape([9])

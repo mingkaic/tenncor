@@ -1,3 +1,5 @@
+#include "llo/eval.hpp"
+
 #include "rocnnet/modl/mlp.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
@@ -8,12 +10,14 @@ struct GDTrainer
 	GDTrainer (MLP& brain, ApproxFuncT update,
 		uint8_t batch_size, std::string label) :
 		label_(label), brain_(&brain), batch_size_(batch_size),
-		train_in_(ade::Shape({brain.get_ninput(), batch_size})),
-		train_out_(brain(train_in_)),
-		expected_out_(ade::Shape({brain.get_noutput(), batch_size})),
+		train_in_(llo::data<double>(0,
+			ade::Shape({brain.get_ninput(), batch_size}), "train_in")),
+		train_out_(brain(ade::Tensorptr(train_in_))),
+		expected_out_(llo::data<double>(0,
+			ade::Shape({brain.get_noutput(), batch_size}), "expected_out")),
 		// todo: move error out of initializer list to avoid confusing order of init
-		error_(llo::pow(llo::sub(expected_out_, train_out_),
-			llo::shaped_scalar<double>(2, expected_out_.tensor_->shape())))
+		error_(age::pow(age::sub(ade::Tensorptr(expected_out_), train_out_),
+			age::data(2, expected_out_->shape())))
 	{
 		updates_ = update(error_, brain.get_variables());
 	}
@@ -33,27 +37,29 @@ struct GDTrainer
 			err::fatalf("expected output size (%d) does not match output size "
 				"(%d) * batchsize (%d)", expected_out.size(), outsize, batch_size_);
 		}
-		train_in_ = train_in;
+		*train_in_ = train_in;
+		*expected_out_ = expected_out;
 
-		expected_out_ = expected_out;
-		std::unordered_map<llo::iSource*,llo::GenericData> data;
+		std::unordered_map<llo::DataNode<double>*,llo::GenericData> data;
 		for (auto& varpair : updates_)
 		{
-			data[varpair.first] = varpair.second.data(llo::DOUBLE);
+			llo::Evaluator eval(llo::DOUBLE);
+			varpair.second->accept(eval);
+			data[varpair.first] = eval.out_;
 		}
 		for (auto& datapair : data)
 		{
-			datapair.first->reassign(datapair.second);
+			*datapair.first = llo::GenericRef(datapair.second);
 		}
 	}
 
 	std::string label_;
 	MLP* brain_ = nullptr; // do not own this
 	uint8_t batch_size_;
-	llo::PlaceHolder<double> train_in_;
-	llo::PlaceHolder<double> expected_out_;
-	llo::DataNode train_out_;
-	llo::DataNode error_;
+	llo::VariableT<double> train_in_;
+	ade::Tensorptr train_out_;
+	llo::VariableT<double> expected_out_;
+	ade::Tensorptr error_;
 
 	DeltasT updates_;
 };

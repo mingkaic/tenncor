@@ -46,6 +46,12 @@ COVERAGE_PIPE := ./scripts/merge_cov.sh $(COVERAGE_INFO_FILE)
 
 TMP_LOGFILE := /tmp/tenncor-test.log
 
+all: test
+
+
+build_agen:
+	bazel build //age:agen
+
 
 # all tests
 
@@ -143,7 +149,10 @@ cover_llo:
 cover_pbm:
 	$(COVER) --instrumentation_filter= $(PBM_TEST)
 
-# generate coverage.info
+# generate stuff
+
+gen_llo: build_agen
+	./bazel-bin/age/agen -cfg llo/cfg/llo.json -out llo/generated
 
 lcov_all: coverage
 	rm -f $(TMP_LOGFILE)

@@ -3,7 +3,7 @@
 
 #include "dbg/ade.hpp"
 
-#include "adhoc/llo/shear.hpp"
+#include "llo/shear.hpp"
 
 #include "pbm/graph.hpp"
 
@@ -28,7 +28,7 @@ int main (int argc, char** argv)
 	MLP brain(n_in, hiddens, "brain");
 
 	uint8_t n_batch = 3;
-	ApproxFuncT approx = [](llo::DataNode& root, std::vector<llo::DataNode> leaves)
+	ApproxFuncT approx = [](ade::Tensorptr& root, VariablesT leaves)
 	{
 		return sgd(root, leaves, 0.9); // learning rate = 0.9
 	};
@@ -39,23 +39,32 @@ int main (int argc, char** argv)
 	// 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 	// 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 	// 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-	llo::DataNode root = trainer.error_;
+	ade::Tensorptr root = trainer.error_;
 
 	for (auto var : vars)
 	{
-		auto der = root.derive(var);
-		llo::GenericData gdata = llo::zero_prune(der).data(llo::DOUBLE);
+		age::Grader grad(var.get());
+		root->accept(grad);
+		auto it = grad.derivatives_.find(root.get());
+
+		auto der = it->second;
+		auto pruned = llo::zero_prune(der);
+
+		llo::Evaluator eval(llo::DOUBLE);
+		pruned->accept(eval);
+		llo::GenericData& gdata = eval.out_;
 		double* gdptr = (double*) gdata.data_.get();
 		std::cout << err::to_string(gdptr, gdptr + gdata.shape_.n_elems()) << std::endl;
 	}
 
-	llo::GenericData data = root.data(llo::DOUBLE);
+	llo::Evaluator eval(llo::DOUBLE);
+	root->accept(eval);
+	llo::GenericData& data = eval.out_;
 	double* dptr = (double*) data.data_.get();
 	std::cout << err::to_string(dptr, dptr + data.shape_.n_elems()) << std::endl;
 
-
 	tenncor::Graph graph;
-	std::vector<llo::DataNode> roots = {trainer.error_};
+	std::vector<ade::Tensorptr> roots = {trainer.error_};
 	save_graph(graph, roots);
 	std::fstream outstr(serialpath, std::ios::out | std::ios::trunc | std::ios::binary);
 	if (!graph.SerializeToOstream(&outstr))

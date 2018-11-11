@@ -1,10 +1,15 @@
-#include "adhoc/llo/api.hpp"
+#include "llo/generated/api.hpp"
+
+#ifndef EQNS_ACTIVATIONS_HPP
+#define EQNS_ACTIVATIONS_HPP
 
 /// sigmoid function: f(x) = 1/(1+e^-x)
-llo::DataNode sigmoid (llo::DataNode x);
+ade::Tensorptr sigmoid (ade::Tensorptr x);
 
 /// tanh function: f(x) = (e^(2*x)+1)/(e^(2*x)-1)
-llo::DataNode tanh (llo::DataNode x);
+ade::Tensorptr tanh (ade::Tensorptr x);
 
 /// softmax function: f(x) = e^x / sum(e^x)
-llo::DataNode softmax (llo::DataNode x);
+ade::Tensorptr softmax (ade::Tensorptr x);
+
+#endif

@@ -1,17 +1,23 @@
 #include <unordered_map>
 
-#include "adhoc/llo/node.hpp"
+#include "llo/data.hpp"
 
-using DeltasT = std::unordered_map<llo::iSource*,llo::DataNode>;
+#ifndef EQNS_ERR_APPROX_HPP
+#define EQNS_ERR_APPROX_HPP
+
+using VariablesT = std::vector<llo::VariableT<double>>;
+
+using DeltasT = std::unordered_map<llo::DataNode<double>*,ade::Tensorptr>;
+
 // approximate error of sources given error of root
-using ApproxFuncT = std::function<DeltasT(llo::DataNode&,
-	std::vector<llo::DataNode>)>;
+using ApproxFuncT = std::function<DeltasT(ade::Tensorptr&,VariablesT)>;
 
 // Stochastic Gradient Descent Approximation
-DeltasT sgd (llo::DataNode& root, std::vector<llo::DataNode> leaves,
+DeltasT sgd (ade::Tensorptr& root, VariablesT leaves,
 	double learning_rate);
 
 // Momentum-based Root Mean Square Approximation
-DeltasT rms_momentum (llo::DataNode& root,
-	std::vector<llo::DataNode> leaves, double learning_rate,
-	double discount_factor, double epsilon);
+DeltasT rms_momentum (ade::Tensorptr& root, VariablesT leaves,
+	double learning_rate, double discount_factor, double epsilon);
+
+#endif // EQNS_ERR_APPROX_HPP

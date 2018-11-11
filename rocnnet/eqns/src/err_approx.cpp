@@ -1,67 +1,80 @@
-#include "adhoc/llo/api.hpp"
-#include "adhoc/llo/shear.hpp"
+#include "llo/generated/api.hpp"
+#include "llo/shear.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
 
-DeltasT sgd (llo::DataNode& root, std::vector<llo::DataNode> leaves,
+#ifdef EQNS_ERR_APPROX_HPP
+
+DeltasT sgd (ade::Tensorptr& root, VariablesT leaves,
 	double learning_rate)
 {
 	DeltasT errs;
-	for (llo::DataNode& leaf : leaves)
+	for (llo::VariableT<double>& leaf : leaves)
 	{
-		std::shared_ptr<llo::iSource> leafsrc = leaf.source();
-		if (nullptr == leafsrc)
+		age::Grader grad(leaf.get());
+		root->accept(grad);
+		auto it = grad.derivatives_.find(root.get());
+		if (grad.derivatives_.end() == it)
 		{
-			err::warnf("attempting to approximate error of root with respect "
-				"to context-less tensor %s... skipping",
-				leaf.tensor_->to_string().c_str());
-			continue;
+			err::fatalf("cannot find derivative of %s",
+				leaf->to_string().c_str());
 		}
-
 		// given root = f, err(x) ~ x - η * df(x), where η is the learning rate
-		llo::DataNode gres = llo::zero_prune(root.derive(leaf));
-		ade::Shape gshape = gres.tensor_->shape();
-		errs.emplace(leafsrc.get(), llo::sub(leaf,
-			llo::mul(gres, llo::shaped_scalar(learning_rate, gshape))));
+		ade::Tensorptr gres = llo::zero_prune(it->second);
+		ade::Shape gshape = gres->shape();
+		errs.emplace(leaf.get(),
+			age::sub(ade::Tensorptr(leaf),
+				age::mul(gres,
+					llo::data(learning_rate, gshape, "learning_rate"))
+			));
 	}
 	return errs;
 }
 
-DeltasT rms_momentum (llo::DataNode& root,
-	std::vector<llo::DataNode> leaves, double learning_rate,
-	double discount_factor, double epsilon)
+DeltasT rms_momentum (ade::Tensorptr& root, VariablesT leaves,
+	double learning_rate, double discount_factor, double epsilon)
 {
 	DeltasT errs;
-	for (llo::DataNode& leaf : leaves)
+	for (llo::VariableT<double>& leaf : leaves)
 	{
-		std::shared_ptr<llo::iSource> leafsrc = leaf.source();
-		if (nullptr == leafsrc)
+		age::Grader grad(leaf.get());
+		root->accept(grad);
+		auto it = grad.derivatives_.find(root.get());
+		if (grad.derivatives_.end() == it)
 		{
-			err::warnf("attempting to approximate error of root with respect "
-				"to context-less tensor %s... skipping",
-				leaf.tensor_->to_string().c_str());
-			continue;
+			err::fatalf("cannot find derivative of %s",
+				leaf->to_string().c_str());
 		}
 		// given root = f, err(x) ~ x - (η * df(x)) / (sqrt(ε + momentum)),
 		// where η is the learning rate, and ε is epsilon
-		auto gres = llo::zero_prune(root.derive(leaf));
+		ade::Tensorptr gres = llo::zero_prune(it->second);
 
 		// upkeep additional hidden variable momentum: starting with value 1
 		// given root = f, err(momentum) ~ χ * momentum + (1 - χ) * df(x) ^ 2,
 		// where χ is discount_factor
-		ade::Shape shape = leaf.tensor_->shape();
-		std::vector<double> wun(shape.n_elems(), 1);
-		llo::DataNode momentum = llo::Source<double>::get(shape, wun);
-		auto discount_node = llo::shaped_scalar(discount_factor, shape);
-		auto datcount_node = llo::shaped_scalar(1.0 - discount_factor, shape);
-		errs.insert({momentum.source().get(),
-			llo::add(llo::mul(discount_node, momentum),
-			llo::prod({datcount_node, gres, gres}))});
+		ade::Shape shape = leaf->shape();
+		llo::DataNode<double>* momentum = llo::data<double>(1, shape, "momentum");
+		ade::Tensorptr discount_node = llo::data(discount_factor, shape, "discount");
+		ade::Tensorptr datcount_node = llo::data(1.0 - discount_factor, shape, "1-discount");
 
-		errs.emplace(leafsrc.get(), llo::sub(leaf,
-			llo::div(llo::mul(gres, llo::shaped_scalar(learning_rate, shape)),
-			llo::add(llo::sqrt(momentum), llo::shaped_scalar(epsilon, shape)))
-		));
+		errs.emplace(momentum,
+			age::add(
+				age::mul(discount_node, momentum),
+				age::prod({datcount_node, gres, gres})
+			));
+
+		errs.emplace(leaf.get(),
+			age::sub(ade::Tensorptr(leaf),
+				age::div(
+					age::mul(
+						ade::Tensorptr(gres),
+						llo::data(learning_rate, shape, "learning_rate")
+					),
+					age::add(age::sqrt(momentum), llo::data(epsilon, shape, "epsilon"))
+				)
+			));
 	}
 	return errs;
 }
+
+#endif
