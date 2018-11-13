@@ -29,9 +29,9 @@ struct FCLayer : public iLayer
 			std::vector<double> data(ndata);
 			std::generate(data.begin(), data.end(), gen);
 
-			llo::VariableT<double> weight(
-				llo::DataNode<double>::get(data, shape, "weight"));
-			llo::VariableT<double> bias(
+			llo::VarptrT weight(
+				llo::get_variable(data, shape, "weight"));
+			llo::VarptrT bias(
 				llo::data<double>(0, ade::Shape({n_output}), "bias"));
 			weight_bias_.push_back({weight, bias});
 		}
@@ -90,9 +90,9 @@ struct FCLayer : public iLayer
 		return age::sum(args);
 	}
 
-	std::vector<llo::VariableT<double>> get_variables (void) const override
+	std::vector<llo::VarptrT> get_variables (void) const override
 	{
-		std::vector<llo::VariableT<double>> out;
+		std::vector<llo::VarptrT> out;
 		for (const WbPairT& wb : weight_bias_)
 		{
 			out.push_back(wb.first);
@@ -102,7 +102,7 @@ struct FCLayer : public iLayer
 	}
 
 protected:
-	using WbPairT = std::pair<llo::VariableT<double>,llo::VariableT<double>>;
+	using WbPairT = std::pair<llo::VarptrT,llo::VarptrT>;
 
 	std::vector<WbPairT> weight_bias_;
 
@@ -112,8 +112,8 @@ private:
 		weight_bias_.clear();
 		for (const WbPairT& opair : other.weight_bias_)
 		{
-			llo::VariableT<double> ow(new llo::DataNode<double>(*opair.first));
-			llo::VariableT<double> ob(new llo::DataNode<double>(*opair.second));
+			llo::VarptrT ow(new llo::Variable(*opair.first));
+			llo::VarptrT ob(new llo::Variable(*opair.second));
 			weight_bias_.push_back({ow, ob});
 		}
 	}

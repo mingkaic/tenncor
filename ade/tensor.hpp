@@ -48,46 +48,22 @@ struct MappedTensor final
 	Tensorptr tensor_;
 };
 
-/// Interface for holding data when passing up the tensor graph
-struct iData
-{
-	virtual ~iData (void) = default;
-
-	virtual char* get (void) = 0;
-
-	virtual const char* get (void) const = 0;
-
-	virtual size_t type_code (void) const = 0;
-};
-
 /// Leaf of the graph commonly representing the variable in an equation
 struct Tensor : public iTensor
 {
+	virtual ~Tensor (void) = default;
+
 	/// Implementation of iTensor
 	void accept (iTraveler& visiter) override
 	{
 		visiter.visit(this);
 	}
 
-	/// Implementation of iTensor
-	const Shape& shape (void) const override
-	{
-		return shape_;
-	}
+	virtual char* data (void) = 0;
 
-	/// Implementation of iTensor
-	std::string to_string (void) const override
-	{
-		return shape_.to_string();
-	}
+	virtual const char* data (void) const = 0;
 
-	virtual iData& data (void) = 0;
-
-protected:
-	Tensor (Shape shape) : shape_(shape) {}
-
-	/// Shape info of the tensor instance
-	Shape shape_;
+	virtual size_t type_code (void) const = 0;
 };
 
 }

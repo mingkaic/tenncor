@@ -25,9 +25,9 @@ struct ConvLayer : public iLayer
 		std::vector<double> data(ndata);
 		std::generate(data.begin(), data.end(), gen);
 
-		weight_ = llo::VariableT<double>(
-			llo::DataNode<double>::get(data, shape, "weight"));
-		bias_ = llo::VariableT<double>(
+		weight_ = llo::VarptrT(
+			llo::get_variable(data, shape, "weight"));
+		bias_ = llo::VarptrT(
 			llo::data<double>(0, ade::Shape({out_ncol}), "bias"));
 	}
 
@@ -39,15 +39,15 @@ struct ConvLayer : public iLayer
 			ade::Tensorptr(bias_));
 	}
 
-	std::vector<llo::VariableT<double>> get_variables (void) const override
+	std::vector<llo::VarptrT> get_variables (void) const override
 	{
 		return {weight_, bias_};
 	}
 
 protected:
-	llo::VariableT<double> weight_;
+	llo::VarptrT weight_;
 
-	llo::VariableT<double> bias_;
+	llo::VarptrT bias_;
 };
 
 #endif // LAYR_CONV_LAYER_HPP

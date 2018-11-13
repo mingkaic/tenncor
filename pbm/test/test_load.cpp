@@ -45,9 +45,9 @@ TEST(LOAD, LoadGraph)
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
 	}
 
-	std::vector<llo::DataNode> roots;
+	std::vector<llo::Variable> roots;
 	{
-		std::vector<llo::DataNode> nodes = load_graph(graph);
+		std::vector<llo::Variable> nodes = load_graph(graph);
 		std::unordered_set<ade::iTensor*> have_parents;
 		for (auto it = nodes.begin(), et = nodes.end(); et != it; ++it)
 		{
@@ -64,7 +64,7 @@ TEST(LOAD, LoadGraph)
 
 		// filter out nodes with parents to find roots
 		std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(roots),
-		[&](llo::DataNode& node)
+		[&](llo::Variable& node)
 		{
 			return have_parents.end() == have_parents.find(node.tensor_.get());
 		});
@@ -83,7 +83,7 @@ TEST(LOAD, LoadGraph)
 			expect += line + "\n";
 		}
 	}
-	for (llo::DataNode& root : roots)
+	for (llo::Variable& root : roots)
 	{
 		PrettyEquation artist;
 		std::stringstream gotstr;

@@ -24,7 +24,7 @@ ade::Tensorptr grad_max (size_t gradidx, age::TensT tens)
 ade::CoordPtrT reduce (uint8_t rank, const ade::Shape& shape)
 {
 	std::vector<ade::DimT> slist(shape.begin() + rank, shape.end());
-    return ade::reduce(rank, slist);
+	return ade::reduce(rank, slist);
 }
 
 }

@@ -11,7 +11,7 @@ struct iLayer
 
 	virtual ~iLayer (void) {}
 
-	virtual std::vector<llo::VariableT<double>> get_variables (void) const = 0;
+	virtual std::vector<llo::VarptrT> get_variables (void) const = 0;
 
 	std::string label_;
 };

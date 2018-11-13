@@ -11,28 +11,13 @@ namespace llo
 {
 
 /// GenericData for holding data when passing up the tensor graph
-struct GenericData final : public ade::iData
+struct GenericData final
 {
 	GenericData (void) = default;
 
-	GenericData (ade::Shape shape, DTYPE dtype, std::string label);
+	GenericData (ade::Shape shape, DTYPE dtype);
 
-	void take_astype (DTYPE outtype, const ade::iData& other);
-
-	char* get (void) override
-	{
-		return data_.get();
-	}
-
-	const char* get (void) const override
-	{
-		return data_.get();
-	}
-
-	size_t type_code (void) const override
-	{
-		return dtype_;
-	}
+	void copyover (const char* indata, DTYPE intype);
 
 	/// Smartpointer to a block of untyped data
 	std::shared_ptr<char> data_;
@@ -42,8 +27,6 @@ struct GenericData final : public ade::iData
 
 	/// Type encoding of data_
 	DTYPE dtype_;
-
-	std::string label_;
 };
 
 /// GenericRef for holding data
@@ -67,33 +50,54 @@ struct GenericRef
 	DTYPE dtype_;
 };
 
-template <typename T>
-struct DataNode final : public ade::Tensor
+struct Variable final : public ade::Tensor
 {
-	static DataNode<T>* get (std::vector<T> data, ade::Shape shape)
+	Variable (const char* data, DTYPE dtype,
+		ade::Shape shape, std::string label) :
+		label_(label), data_(shape, dtype)
 	{
-		return new DataNode<T>(data, shape, "unlabelled");
+		std::memcpy(data_.data_.get(), data, nbytes());
 	}
 
-	static DataNode<T>* get (std::vector<T> data, ade::Shape shape,
-		std::string label)
+	Variable (const Variable& other) :
+		label_(other.label_), data_(other.shape(), (DTYPE) other.type_code())
 	{
-		return new DataNode<T>(data, shape, label);
+		std::memcpy(data_.data_.get(), other.data(), nbytes());
 	}
 
-	DataNode (const DataNode&) = default;
-	DataNode (DataNode&&) = default;
-	DataNode& operator = (const DataNode&) = default;
-	DataNode& operator = (DataNode&&) = default;
+	Variable (Variable&& other) :
+		label_(std::move(other.label_)), data_(std::move(other.data_)) {}
+
+	Variable& operator = (const Variable& other)
+	{
+		if (this != &other)
+		{
+			label_ = other.label_;
+			data_ = GenericData(other.shape(), (DTYPE) other.type_code());
+			std::memcpy(data_.data_.get(), other.data(), nbytes());
+		}
+		return *this;
+	}
+
+	Variable& operator = (Variable&& other)
+	{
+		if (this != &other)
+		{
+			label_ = std::move(other.label_);
+			data_ = std::move(other.data_);
+		}
+		return *this;
+	}
 
 	/// Assign vectorized data to source
-	DataNode& operator = (std::vector<T> data)
+	template <typename T>
+	Variable& operator = (std::vector<T> data)
 	{
 		GenericRef ref((char*) &data[0], shape(), get_type<T>());
 		return operator = (ref);
 	}
 
-	DataNode& operator = (GenericRef data)
+	Variable& operator = (GenericRef data)
 	{
 		if (false == data.shape_.compatible_after(shape(), 0))
 		{
@@ -101,33 +105,66 @@ struct DataNode final : public ade::Tensor
 				"internal data of shape %s", data.shape_.to_string().c_str(),
 				shape().to_string().c_str());
 		}
-		std::memcpy(data_.data_.get(), data.data_,
-			sizeof(T) * data.shape_.n_elems());
+		if (data.dtype_ != data_.dtype_)
+		{
+			err::fatalf("cannot assign data of incompatible types %s "
+				"(external) and %s (internal)",
+				nametype(data.dtype_), nametype(data_.dtype_));
+		}
+		std::memcpy(data_.data_.get(), data.data_, nbytes());
 	}
 
-	ade::iData& data (void) override
+	/// Implementation of iTensor
+	const ade::Shape& shape (void) const override
 	{
-		return data_;
+		return data_.shape_;
 	}
+
+	/// Implementation of iTensor
+	std::string to_string (void) const override
+	{
+		return label_ + "(" + data_.shape_.to_string() + ")";
+	}
+
+	char* data (void) override
+	{
+		return data_.data_.get();
+	}
+
+	const char* data (void) const override
+	{
+		return data_.data_.get();
+	}
+
+	size_t type_code (void) const override
+	{
+		return data_.dtype_;
+	}
+
+	size_t nbytes (void) const
+	{
+		return type_size(data_.dtype_) * data_.shape_.n_elems();
+	}
+
+	std::string label_;
 
 private:
-	DataNode (std::vector<T> data, ade::Shape shape, std::string label) :
-		ade::Tensor(shape), data_(shape, get_type<T>(), label)
-	{
-		std::memcpy(data_.data_.get(),
-			&data[0], sizeof(T) * shape.n_elems());
-	}
-
 	GenericData data_;
 };
 
-template <typename T>
-using VariableT = std::shared_ptr<llo::DataNode<T>>;
+using VarptrT = std::shared_ptr<llo::Variable>;
 
 template <typename T>
-DataNode<T>* data (T scalar, ade::Shape shape, std::string label)
+Variable* get_variable (std::vector<T> data, ade::Shape shape,
+	std::string label = "")
 {
-	return llo::DataNode<T>::get(std::vector<T>(shape.n_elems(),scalar),
+	return new Variable((char*) &data[0], get_type<T>(), shape, label);
+}
+
+template <typename T>
+Variable* data (T scalar, ade::Shape shape, std::string label)
+{
+	return llo::get_variable(std::vector<T>(shape.n_elems(),scalar),
 		shape, label);
 }
 

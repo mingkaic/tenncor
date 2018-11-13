@@ -19,7 +19,7 @@ TEST(SAVE, SaveGraph)
 	std::string expect_pbfile = testdir + "/graph.pb";
 	std::string got_pbfile = "got_graph.pb";
 	tenncor::Graph graph;
-	std::vector<llo::DataNode> roots;
+	std::vector<llo::Variable> roots;
 
 	// subtree one
 	ade::Shape shape({3, 7});

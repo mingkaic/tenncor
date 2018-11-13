@@ -4,12 +4,12 @@
         "\"graders.hpp\""
     ],
     "refs": { // map of reference to long strings
-        "api-unary": "DataNode $API (DataNode arg1)",
-        "api-unary-int": "DataNode $API (DataNode arg1,uint8_t arg2)",
-        "api-nnary": "DataNode $API (std::vector<DataNode> arg1)",
-        "call-unary": "DataNode<$OPCODE>::get($!,{{ade::identity,arg1}})",
-        "call-nnary": "DataNode<$OPCODE>::get($!,assign_mapper(arg1,ade::identity))",
-        "call-reduce": "DataNode<$OPCODE>::get($!,{{reduce(arg2,arg1.shape()),arg1}})"
+        "api-unary": "Variable $API (Variable arg1)",
+        "api-unary-int": "Variable $API (Variable arg1,uint8_t arg2)",
+        "api-nnary": "Variable $API (std::vector<Variable> arg1)",
+        "call-unary": "Variable<$OPCODE>::get($!,{{ade::identity,arg1}})",
+        "call-nnary": "Variable<$OPCODE>::get($!,assign_mapper(arg1,ade::identity))",
+        "call-reduce": "Variable<$OPCODE>::get($!,{{reduce(arg2,arg1.shape()),arg1}})"
     },
     "opcodes": { // opcodes are enumerated and associated with gradient functions
         "ABS": "div($0,abs($0))", // ${number} references the args[{number}] in ade::iOperation::gradient parameters

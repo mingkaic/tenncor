@@ -140,7 +140,7 @@ int main (int argc, char** argv)
 	double trained_err = 0;
 	double pretrained_err = 0;
 
-	llo::DataNode<double>* testin = llo::DataNode<double>::get(
+	llo::Variable* testin = llo::get_variable(
 		std::vector<double>(n_in), ade::Shape({n_in}), "testin");
 	auto untrained_out = untrained_brain(testin);
 	auto trained_out = brain(testin);

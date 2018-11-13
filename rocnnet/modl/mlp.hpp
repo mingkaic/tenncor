@@ -70,9 +70,9 @@ struct MLP
 		return out;
 	}
 
-	std::vector<llo::VariableT<double>> get_variables (void) const
+	std::vector<llo::VarptrT> get_variables (void) const
 	{
-		std::vector<llo::VariableT<double>> out;
+		std::vector<llo::VarptrT> out;
 		for (const Layer& layer : layers_)
 		{
 			auto temp = layer.layer_->get_variables();

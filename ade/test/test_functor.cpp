@@ -12,36 +12,40 @@
 struct FUNCTOR : public simple::TestModel {};
 
 
-static ade::Tensorptr mock_back = ade::Tensor::get(ade::Shape());
-
-
-struct MockOpcode : public ade::iOperation
+struct MockTensor final : public ade::Tensor
 {
-	std::string to_string (void) const override
+	MockTensor (void) = default;
+
+	MockTensor (ade::Shape shape) : shape_(shape) {}
+
+	/// Implementation of iTensor
+	const ade::Shape& shape (void) const override
 	{
-		return "MOCK";
+		return shape_;
 	}
 
-	size_t opnum (void) const override
+	/// Implementation of iTensor
+	std::string to_string (void) const override
+	{
+		return shape_.to_string();
+	}
+
+	char* data (void) override
+	{
+		return nullptr;
+	}
+
+	const char* data (void) const override
+	{
+		return nullptr;
+	}
+
+	size_t type_code (void) const override
 	{
 		return 0;
 	}
 
-	ade::Tensorptr gradient (ade::ArgsT args, size_t gradidx) const override
-	{
-		return mock_back;
-	}
-
-	ade::Tensorptr chain_grad (ade::Tensorptr& wrt_child,
-		ade::MappedTensor wrt_me) const override
-	{
-		return wrt_child;
-	}
-
-	ade::Tensorptr add_grads (ade::ArgsT& grads) const override
-	{
-		return grads.front().tensor_;
-	}
+	ade::Shape shape_;
 };
 
 
@@ -49,10 +53,10 @@ TEST_F(FUNCTOR, Childrens)
 {
 	simple::SessionT sess = get_session("FUNCTOR::Childrens");
 
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
+	ade::Tensorptr leaf = new MockTensor();
+	ade::Tensorptr leaf1 = new MockTensor();
 
-	ade::Tensorptr func = ade::Functor::get(std::make_shared<MockOpcode>(),
+	ade::Tensorptr func = ade::Functor::get(ade::Opcode{"MOCK", 0},
 		{{ade::identity, leaf}, {ade::identity, leaf1}});
 
 	ASSERT_NE(nullptr, func.get());
@@ -69,11 +73,10 @@ TEST_F(FUNCTOR, ToString)
 {
 	simple::SessionT sess = get_session("FUNCTOR::ToString");
 
-	ade::Tensorptr leaf = ade::Tensor::get(ade::Shape());
-	ade::Tensorptr leaf1 = ade::Tensor::get(ade::Shape());
+	ade::Tensorptr leaf = new MockTensor();
+	ade::Tensorptr leaf1 = new MockTensor();
 
-	ade::Tensorptr func = ade::Functor::get(
-		std::move(std::make_unique<MockOpcode>()),
+	ade::Tensorptr func = ade::Functor::get(ade::Opcode{"MOCK", 0},
 		{{ade::identity, leaf}, {ade::identity, leaf1}});
 
 	ASSERT_NE(nullptr, func.get());

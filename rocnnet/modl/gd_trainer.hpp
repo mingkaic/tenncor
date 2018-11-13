@@ -40,7 +40,7 @@ struct GDTrainer
 		*train_in_ = train_in;
 		*expected_out_ = expected_out;
 
-		std::unordered_map<llo::DataNode<double>*,llo::GenericData> data;
+		std::unordered_map<llo::Variable*,llo::GenericData> data;
 		for (auto& varpair : updates_)
 		{
 			llo::Evaluator eval(llo::DOUBLE);
@@ -56,9 +56,9 @@ struct GDTrainer
 	std::string label_;
 	MLP* brain_ = nullptr; // do not own this
 	uint8_t batch_size_;
-	llo::VariableT<double> train_in_;
+	llo::VarptrT train_in_;
 	ade::Tensorptr train_out_;
-	llo::VariableT<double> expected_out_;
+	llo::VarptrT expected_out_;
 	ade::Tensorptr error_;
 
 	DeltasT updates_;

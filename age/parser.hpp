@@ -4,6 +4,6 @@
 #define AGE_PARSER_HPP
 
 void unmarshal_json (File& runtime_file, File& api_file,
-    std::istream& jstr);
+	std::istream& jstr);
 
 #endif // AGE_PARSER_HPP

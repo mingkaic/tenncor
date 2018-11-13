@@ -113,8 +113,7 @@ ade::Tensorptr zero_prune (ade::Tensorptr root)
 	root->accept(stat);
 	// grab the intersection of stat.funcs_ and pathmap
 	std::list<ade::iFunctor*> parents;
-	std::transform(pathmap.begin(), pathmap.end(),
-		std::back_inserter(parents),
+	std::transform(pathmap.begin(), pathmap.end(), std::back_inserter(parents),
 		[](std::pair<ade::iTensor*,std::unordered_set<size_t>> parent)
 		{
 			return static_cast<ade::iFunctor*>(parent.first);

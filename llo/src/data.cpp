@@ -13,9 +13,9 @@ struct CDeleter
 	}
 };
 
-GenericData::GenericData (ade::Shape shape, DTYPE dtype, std::string label) :
-    data_((char*) malloc(shape.n_elems() * type_size(dtype)),
-        CDeleter()), shape_(shape), dtype_(dtype), label_(label) {}
+GenericData::GenericData (ade::Shape shape, DTYPE dtype) :
+	data_((char*) malloc(shape.n_elems() * type_size(dtype)),
+		CDeleter()), shape_(shape), dtype_(dtype) {}
 
 #define COPYOVER(TYPE) { std::vector<TYPE> temp(indata, indata + n);\
 	std::memcpy(out, &temp[0], nbytes); } break;
@@ -44,16 +44,14 @@ void convert (char* out, DTYPE outtype, const T* indata, size_t n)
 #undef COPYOVER
 
 #define CONVERT(INTYPE)\
-convert<INTYPE>(data_.get(), outtype, (const INTYPE*) indata, n); break;
+convert<INTYPE>(data_.get(), dtype_, (const INTYPE*) indata, n); break;
 
-void GenericData::take_astype (DTYPE outtype, const ade::iData& other)
+void GenericData::copyover (const char* indata, DTYPE intype)
 {
 	size_t n = shape_.n_elems();
-	const char* indata = other.get();
-	DTYPE intype = (DTYPE) other.type_code();
-	if (outtype == intype)
+	if (dtype_ == intype)
 	{
-		std::memcpy(data_.get(), indata, type_size(outtype) * n);
+		std::memcpy(data_.get(), indata, type_size(dtype_) * n);
 	}
 	switch (intype)
 	{
@@ -70,7 +68,6 @@ void GenericData::take_astype (DTYPE outtype, const ade::iData& other)
 		default: err::fatalf("invalid input type %s",
 			nametype(intype).c_str());
 	}
-	dtype_ = outtype;
 }
 
 #undef CONVERT

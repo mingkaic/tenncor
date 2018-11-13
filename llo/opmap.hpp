@@ -9,15 +9,13 @@
 #include "llo/generated/runtime.hpp"
 
 #include "llo/data.hpp"
-#include "llo/operator.hpp"
+#include "llo/helper.hpp"
 
 #ifndef LLO_OPMAP_HPP
 #define LLO_OPMAP_HPP
 
 namespace llo
 {
-
-using DataArgsT = std::vector<std::pair<ade::CoordPtrT,GenericData>>;
 
 template <age::_GENERATED_OPCODES OP, typename T>
 struct Executer
@@ -29,10 +27,10 @@ struct Executer
 	}
 };
 
-#define UNARY(OP, METHOD)template <typename T>struct Executer<age::OP,T>{\
+#define UNARY(OP, METHOD)template <typename T>\
+struct Executer<age::OP,T>{\
 static void exec (GenericData& out, DataArgsT& data) {\
-METHOD((T*) out.data_.get(), VecRef<T>{data[0].first,\
-(T*) data[0].second.data_.get(), data[0].second.shape_}); } };
+METHOD((T*) out.data_.get(), to_ref<T>(data[0])); } };
 
 UNARY(ABS, abs)
 UNARY(NEG, neg)
@@ -46,11 +44,10 @@ UNARY(ROUND, round)
 
 #undef UNARY
 
-#define BINARY(OP, METHOD)template <typename T> struct Executer<age::OP,T>{\
+#define BINARY(OP, METHOD)template <typename T>\
+struct Executer<age::OP,T>{\
 static void exec (GenericData& out, DataArgsT& data) {\
-METHOD((T*) out.data_.get(), out.shape_, VecRef<T>{data[0].first,\
-(T*) data[0].second.data_.get(), data[0].second.shape_}, VecRef<T>{\
-data[1].first, (T*) data[1].second.data_.get(), data[1].second.shape_}); } };
+METHOD((T*) out.data_.get(), out.shape_, to_ref<T>(data[0]), to_ref<T>(data[1])); } };
 
 BINARY(POW, pow)
 BINARY(SUB, sub)
@@ -80,13 +77,10 @@ BINARY(RAND_NORM, rand_normal)
 
 #undef BINARY
 
-#define NARY(OP, METHOD)template <typename T> struct Executer<age::OP,T> {\
+#define NARY(OP, METHOD)template <typename T>\
+struct Executer<age::OP,T> {\
 static void exec (GenericData& out, DataArgsT& data){\
-std::vector<VecRef<T>> args(data.size());\
-std::transform(data.begin(), data.end(), args.begin(),\
-[](std::pair<ade::CoordPtrT,GenericData>& gd) { return VecRef<T>{gd.first,\
-(T*) gd.second.data_.get(), gd.second.shape_}; });\
-METHOD((T*) out.data_.get(), out.shape_, args); } };
+METHOD((T*) out.data_.get(), out.shape_, to_refs<T>(data)); } };
 
 NARY(SUM, add)
 NARY(PROD, mul)

@@ -33,12 +33,12 @@ struct Grader final : public ade::iTraveler
 		if (leaf == target_)
 		{
 			derivatives_.emplace(leaf,
-                data(1, target_->shape()));
+				data(1, target_->shape()));
 		}
 		else
 		{
 			derivatives_.emplace(leaf,
-                data(0, target_->shape()));
+				data(0, target_->shape()));
 		}
 	}
 
@@ -48,7 +48,7 @@ struct Grader final : public ade::iTraveler
 	/// Target of tensor all visited nodes are derived with respect to
 	const ade::iTensor* target_;
 
-    std::unordered_map<const ade::iTensor*,ade::Tensorptr> derivatives_;
+	std::unordered_map<const ade::iTensor*,ade::Tensorptr> derivatives_;
 };
 
 }

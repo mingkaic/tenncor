@@ -37,7 +37,7 @@ enum _GENERATED_OPCODES
 
 template <typename T>ade::Tensor* data (T scalar, ade::Shape shape)
 {
-	return llo::DataNode<T>::get(std::vector<T>(shape.n_elems(),scalar),shape,err::sprintf("%d",scalar));
+	return llo::get_variable(std::vector<T>(shape.n_elems(),scalar),shape,err::sprintf("%d",scalar));
 }
 
 ade::Opcode sum_opcode (void);
@@ -48,7 +48,7 @@ _GENERATED_OPCODES nameop (std::string name);
 
 std::string opname (_GENERATED_OPCODES code);
 
-ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx);
+ade::Tensorptr grad_rule (size_t code,TensT args,size_t idx);
 
 }
 

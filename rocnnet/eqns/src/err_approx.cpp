@@ -9,7 +9,7 @@ DeltasT sgd (ade::Tensorptr& root, VariablesT leaves,
 	double learning_rate)
 {
 	DeltasT errs;
-	for (llo::VariableT<double>& leaf : leaves)
+	for (llo::VarptrT& leaf : leaves)
 	{
 		age::Grader grad(leaf.get());
 		root->accept(grad);
@@ -35,7 +35,7 @@ DeltasT rms_momentum (ade::Tensorptr& root, VariablesT leaves,
 	double learning_rate, double discount_factor, double epsilon)
 {
 	DeltasT errs;
-	for (llo::VariableT<double>& leaf : leaves)
+	for (llo::VarptrT& leaf : leaves)
 	{
 		age::Grader grad(leaf.get());
 		root->accept(grad);
@@ -53,7 +53,7 @@ DeltasT rms_momentum (ade::Tensorptr& root, VariablesT leaves,
 		// given root = f, err(momentum) ~ χ * momentum + (1 - χ) * df(x) ^ 2,
 		// where χ is discount_factor
 		ade::Shape shape = leaf->shape();
-		llo::DataNode<double>* momentum = llo::data<double>(1, shape, "momentum");
+		llo::Variable* momentum = llo::data<double>(1, shape, "momentum");
 		ade::Tensorptr discount_node = llo::data(discount_factor, shape, "discount");
 		ade::Tensorptr datcount_node = llo::data(1.0 - discount_factor, shape, "1-discount");
 

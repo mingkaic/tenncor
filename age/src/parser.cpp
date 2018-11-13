@@ -31,7 +31,7 @@ static const std::string opname_switches_signature =
 	"std::string opname (" + opcode_enum + " code)";
 
 static const std::string grad_switches_signature =
-	"ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx)";
+	"ade::Tensorptr grad_rule (size_t code,TensT args,size_t idx)";
 
 void find_replace (std::string& data,
 	std::string target, std::string replacement)
@@ -132,20 +132,46 @@ void unmarshal_json (File& runtime_file, File& api_file,
 			{ std::make_shared<ReturnStmt>(prod_opcode_ret) },
 		});
 
+		nlohmann::json::object_t dtypes = runtime.at("dtypes");
+		// auto opname_switches = new SwitchStmt("out.dtype_");
+		// for (auto& dtype : dtypes)
+		// {
+		// 	exec_switches->cases_[dtype.first] = std::make_shared<ReturnStmt>(
+		// 		"Executer<OP," + dtype.second + ">::exec(out,data)");
+		// }
+		// runtime_file.funcs_.push_back(Func{
+		// 	"template <" + opcode_enum_ + " OP> void exec (GenericData& out, DataArgsT& data",
+		// 	{ std::make_shared<ReturnStmt>(namemap_call) },
+		// });
+
 		nlohmann::json::object_t opcodes = runtime.at("opcodes");
 		StringsT opnum;
 		std::unordered_map<std::string,std::string> name_map;
-		auto grad_switches = new SwitchStmt("code");
 		auto opname_switches = new SwitchStmt("code");
+		auto op_switches = new SwitchStmt("code");
+		auto grad_switches = new SwitchStmt("code");
 		for (auto& opcode : opcodes)
 		{
 			std::string opstr = "\"" + opcode.first + "\"";
 			opnum.push_back(opcode.first);
 			name_map[opstr] = opcode.first;
-			grad_switches->cases_[opcode.first] =
-				std::make_shared<ReturnStmt>(parse_derive(opcode.second));
 			opname_switches->cases_[opcode.first] =
 				std::make_shared<ReturnStmt>(opstr);
+			
+			nlohmann::json::object_t opmaps = opcode.second;
+			std::string op = read(refs, opmaps.at("operation"));
+			std::string der = read(refs, opmaps.at("derivative"));
+			// runtime_file.funcs_.push_back(StructRep{
+			// 	"Executer"
+			// 	{opcode_enum + " OP", "typename T"}
+			// 	{Func{"void exec(GenericData& out, DataArgsT& data)",
+			// 		{std::make_shared<ReturnStmt>(op)}
+			// 	}}
+			// });
+			// op_switches->cases_[opcode.first] =
+			// 	std::make_shared<ReturnStmt>(op);
+			grad_switches->cases_[opcode.first] =
+				std::make_shared<ReturnStmt>(parse_derive(der));
 		}
 		runtime_file.maps_.push_back(MapRep{map_name, {"std::string", opcode_enum}, name_map, true});
 		runtime_file.enums_.push_back(Enum{opcode_enum, opnum});
@@ -157,6 +183,10 @@ void unmarshal_json (File& runtime_file, File& api_file,
 			opname_switches_signature,
 			{ StmtptrT(opname_switches) },
 		});
+		// runtime_file.funcs_.push_back(Func{
+		// 	op_switches_signature,
+		// 	{ StmtptrT(op_switches) },
+		// });
 		runtime_file.funcs_.push_back(Func{
 			grad_switches_signature,
 			{ StmtptrT(grad_switches) },

@@ -16,20 +16,20 @@ namespace llo
 
 struct LabelFinder final : public ade::iTraveler
 {
-    /// Type for mapping function nodes in path to boolean vector
+	/// Type for mapping function nodes in path to boolean vector
 	using ParentMapT = std::unordered_map<ade::iTensor*,std::unordered_set<size_t>>;
 
 	LabelFinder (std::string label) : target_(label) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::Tensor* leaf) override
-    {
-        auto data = static_cast<GenericData*>(&leaf->data());
-        if (target_ == data->label_)
-        {
-            labelled_.emplace(leaf);
-        }
-    }
+	{
+		auto data = static_cast<Variable*>(leaf);
+		if (target_ == data->label_)
+		{
+			labelled_.emplace(leaf);
+		}
+	}
 
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
@@ -41,13 +41,13 @@ struct LabelFinder final : public ade::iTraveler
 			std::unordered_set<size_t> path;
 			for (size_t i = 0; i < n; ++i)
 			{
-                ade::Tensorptr tens = children[i].tensor_;
-                tens->accept(*this);
-                if (parents_.end() != parents_.find(tens.get()) ||
-                    labelled_.end() != labelled_.find(tens.get()))
-                {
-                    path.emplace(i);
-                }
+				ade::Tensorptr tens = children[i].tensor_;
+				tens->accept(*this);
+				if (parents_.end() != parents_.find(tens.get()) ||
+					labelled_.end() != labelled_.find(tens.get()))
+				{
+					path.emplace(i);
+				}
 			}
 			if (false == path.empty())
 			{
@@ -59,7 +59,7 @@ struct LabelFinder final : public ade::iTraveler
 	/// Target of label all paths are travelling to
 	std::string target_;
 
-    std::unordered_set<ade::iTensor*> labelled_;
+	std::unordered_set<ade::iTensor*> labelled_;
 
 	/// Map of parent nodes in path
 	ParentMapT parents_;

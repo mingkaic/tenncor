@@ -5,7 +5,7 @@
 #ifdef PBM_SOURCE_HPP
 
 #define PACK_DATA(TYPE)\
-TYPE* ptr = (TYPE*) data.get();\
+TYPE* ptr = (TYPE*) data;\
 google::protobuf::RepeatedField<TYPE> vec(ptr, ptr + nelems);\
 arr->mutable_data()->Swap(&vec);
 
@@ -13,9 +13,10 @@ void save_data (tenncor::Source* out, ade::Tensor* in)
 {
 	const ade::Shape& shape = in->shape();
 	out->set_shape(std::string(shape.begin(), shape.end()));
-	ade::iData& data = in->data();
+	char* data = in->data();
+	llo::DTYPE dtype = (llo::DTYPE) in->type_code();
 	size_t nelems = shape.n_elems();
-	switch (data.type_code())
+	switch (dtype)
 	{
 		case llo::DOUBLE:
 		{
@@ -32,21 +33,19 @@ void save_data (tenncor::Source* out, ade::Tensor* in)
 		case llo::INT8:
 		{
 			auto arr = out->mutable_sbyte_arrs();
-			char* ptr = data.get();
-			arr->set_data(std::string(ptr, ptr + nelems));
+			arr->set_data(std::string(data, data + nelems));
 		}
 		break;
 		case llo::UINT8:
 		{
 			auto arr = out->mutable_ubyte_arrs();
-			char* ptr = data.get();
-			arr->set_data(std::string(ptr, ptr + nelems));
+			arr->set_data(std::string(data, data + nelems));
 		}
 		break;
 		case llo::INT16:
 		{
 			auto arr = out->mutable_sshort_arrs();
-			int16_t* ptr = (int16_t*) data.get();
+			int16_t* ptr = (int16_t*) data;
 			std::vector<int16_t> temp(ptr, ptr + nelems);
 			google::protobuf::RepeatedField<int32_t> vec(
 				temp.begin(), temp.end());
@@ -68,7 +67,7 @@ void save_data (tenncor::Source* out, ade::Tensor* in)
 		case llo::UINT16:
 		{
 			auto arr = out->mutable_ushort_arrs();
-			uint16_t* ptr = (uint16_t*) data.get();
+			uint16_t* ptr = (uint16_t*) data;
 			std::vector<uint16_t> temp(ptr, ptr + nelems);
 			google::protobuf::RepeatedField<uint32_t> vec(
 				temp.begin(), temp.end());
@@ -90,15 +89,14 @@ void save_data (tenncor::Source* out, ade::Tensor* in)
 		default:
 			err::error("cannot serialize badly typed node... skipping");
 	}
-	out->set_label(static_cast<llo::GenericData*>(&data)->label_);
+	out->set_label(static_cast<llo::Variable*>(in)->label_);
 }
 
 #undef PACK_DATA
 
 #define UNPACK_SOURCE(TYPE)\
 auto vec = arr.data();\
-return llo::DataNode<TYPE>::get(\
-	std::vector<TYPE>(vec.begin(), vec.end()), shape);
+return llo::get_variable(std::vector<TYPE>(vec.begin(), vec.end()), shape);
 
 ade::Tensorptr load_source (const tenncor::Source& source)
 {

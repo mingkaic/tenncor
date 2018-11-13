@@ -5,9 +5,9 @@
 #ifndef EQNS_ERR_APPROX_HPP
 #define EQNS_ERR_APPROX_HPP
 
-using VariablesT = std::vector<llo::VariableT<double>>;
+using VariablesT = std::vector<llo::VarptrT>;
 
-using DeltasT = std::unordered_map<llo::DataNode<double>*,ade::Tensorptr>;
+using DeltasT = std::unordered_map<llo::Variable*,ade::Tensorptr>;
 
 // approximate error of sources given error of root
 using ApproxFuncT = std::function<DeltasT(ade::Tensorptr&,VariablesT)>;
