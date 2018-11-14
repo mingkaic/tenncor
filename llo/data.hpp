@@ -109,7 +109,7 @@ struct Variable final : public ade::Tensor
 		{
 			err::fatalf("cannot assign data of incompatible types %s "
 				"(external) and %s (internal)",
-				nametype(data.dtype_), nametype(data_.dtype_));
+				nametype(data.dtype_).c_str(), nametype(data_.dtype_).c_str());
 		}
 		std::memcpy(data_.data_.get(), data.data_, nbytes());
 	}

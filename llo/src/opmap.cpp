@@ -7,78 +7,40 @@ namespace llo
 
 void op_exec (age::_GENERATED_OPCODES opcode, GenericData& out, DataArgsT& data)
 {
-	switch (opcode)
+	switch (out.dtype_)
 	{
-		case age::ABS:
-			exec<age::ABS>(out, data);
+		case DOUBLE:
+			typed_exec<double>(opcode, out, data);
 		break;
-		case age::NEG:
-			exec<age::NEG>(out, data);
+		case FLOAT:
+			typed_exec<float>(opcode, out, data);
 		break;
-		case age::SIN:
-			exec<age::SIN>(out, data);
+		case INT8:
+			typed_exec<int8_t>(opcode, out, data);
 		break;
-		case age::COS:
-			exec<age::COS>(out, data);
+		case INT16:
+			typed_exec<int16_t>(opcode, out, data);
 		break;
-		case age::TAN:
-			exec<age::TAN>(out, data);
+		case INT32:
+			typed_exec<int32_t>(opcode, out, data);
 		break;
-		case age::EXP:
-			exec<age::EXP>(out, data);
+		case INT64:
+			typed_exec<int64_t>(opcode, out, data);
 		break;
-		case age::LOG:
-			exec<age::LOG>(out, data);
+		case UINT8:
+			typed_exec<uint8_t>(opcode, out, data);
 		break;
-		case age::SQRT:
-			exec<age::SQRT>(out, data);
+		case UINT16:
+			typed_exec<uint16_t>(opcode, out, data);
 		break;
-		case age::ROUND:
-			exec<age::ROUND>(out, data);
+		case UINT32:
+			typed_exec<uint32_t>(opcode, out, data);
 		break;
-		case age::POW:
-			exec<age::POW>(out, data);
+		case UINT64:
+			typed_exec<uint64_t>(opcode, out, data);
 		break;
-		case age::SUM:
-			exec<age::SUM>(out, data);
-		break;
-		case age::SUB:
-			exec<age::SUB>(out, data);
-		break;
-		case age::PROD:
-			exec<age::PROD>(out, data);
-		break;
-		case age::DIV:
-			exec<age::DIV>(out, data);
-		break;
-		case age::EQ:
-			exec<age::EQ>(out, data);
-		break;
-		case age::NEQ:
-			exec<age::NEQ>(out, data);
-		break;
-		case age::LT:
-			exec<age::LT>(out, data);
-		break;
-		case age::GT:
-			exec<age::GT>(out, data);
-		break;
-		case age::MIN:
-			exec<age::MIN>(out, data);
-		break;
-		case age::MAX:
-			exec<age::MAX>(out, data);
-		break;
-		case age::RAND_BINO:
-			exec<age::RAND_BINO>(out, data);
-		break;
-		case age::RAND_UNIF:
-			exec<age::RAND_UNIF>(out, data);
-		break;
-		case age::RAND_NORM:
-			exec<age::RAND_NORM>(out, data);
-		break;
-		default: err::fatal("unknown opcode");
+		default:
+			err::fatal("executing bad type");
 	}
 }
 
