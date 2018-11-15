@@ -1,6 +1,9 @@
+''' Generate glue layer '''
+
 import argparse
 import json
 import os.path
+import sys
 
 import age.templates.api_tmpl as api
 import age.templates.codes_tmpl as codes
@@ -59,6 +62,10 @@ def parse(cfg_str):
 
     if 'includes' in args:
         includes = args['includes']
+        if dict != type(includes):
+            raise Exception(\
+                "cannot read include of type {} as type dict".format(\
+                type(includes).__name__))
     else:
         includes = {}
     return root.unmarshal_json(args), includes

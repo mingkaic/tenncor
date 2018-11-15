@@ -27,8 +27,8 @@ ade::Tensorptr grad_rule (size_t code,TensT args,size_t idx)
 	switch (code)
 	{{
 {gradops}
-        default: err::fatal("no gradient rule for unknown opcode");
-    }}
+		default: err::fatal("no gradient rule for unknown opcode");
+	}}
 }}
 
 }}
@@ -37,4 +37,4 @@ ade::Tensorptr grad_rule (size_t code,TensT args,size_t idx)
 """)
 
 source.gradops = ("grads", lambda gradmap: '\n'.join(["\t\tcase {code}: return {retval};".format(\
-    code = code, retval = gradmap[code]) for code in gradmap]))
+	code = code, retval = gradmap[code]) for code in gradmap]))

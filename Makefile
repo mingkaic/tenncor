@@ -6,9 +6,9 @@ ERR_TEST := //err:test
 
 ADE_TEST := //ade:test
 
-AGE_DTEST := //adhoc/age:test_dynamic
+AGE_TEST := //age:test
 
-AGE_STEST := //adhoc/age:test_static
+AGE_RTEST := //age:test_runtime
 
 LLO_TEST := //adhoc/llo:test
 
@@ -63,13 +63,11 @@ test_err:
 test_ade:
 	$(GTEST) $(REP_BZL_FLAGS) $(ADE_TEST)
 
-test_age: test_age_dynamic test_age_static
+test_age:
+	$(TEST) $(AGE_TEST)
 
-test_age_dynamic:
-	$(GTEST) $(REP_BZL_FLAGS) $(AGE_DTEST)
-
-test_age_static:
-	$(GTEST) $(AGE_STEST)
+test_age_runtime:
+	$(GTEST) $(REP_BZL_FLAGS) $(AGE_RTEST)
 
 test_llo:
 	$(GTEST) $(REP_BZL_FLAGS) $(LLO_TEST)

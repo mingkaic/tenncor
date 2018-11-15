@@ -1,4 +1,6 @@
 correctness:
+P2 - test age_runtime
+P2 - test generated_llo
 P2 - test functor gradient without generated config
 P2 - test complicate equations
 P3 - test travelling, and pruning algorithms
@@ -13,6 +15,7 @@ P4 - refactor, and rename variables to improve readability
 P4 - investigate ade api
 
 structure:
+P2 - create bazel rule to link generated library dependencies without writing to workspace
 P2 - create cython interface for llo + examples
 P3 - restructure llo to separate glue and data operators
 
@@ -23,6 +26,5 @@ P4 - implement optimization options to decrease equation graph size
 P4 - implement optimization options to increase data accuracy
 
 features:
-P2 - invert age-llo relationship, age should depend on llo, top-level libraries should build graphs through age's api
 P2 - implement convolution
 P3 - implement deep copy

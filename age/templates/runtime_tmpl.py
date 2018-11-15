@@ -34,12 +34,12 @@ namespace age
 
 ade::Opcode sum_opcode (void)
 {{
-    return ade::Opcode{{"{sum}", {sum}}};
+	return ade::Opcode{{"{sum}", {sum}}};
 }}
 
 ade::Opcode prod_opcode (void)
 {{
-    return ade::Opcode{{"{prod}", {prod}}};
+	return ade::Opcode{{"{prod}", {prod}}};
 }}
 
 }}

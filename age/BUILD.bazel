@@ -14,26 +14,10 @@ filegroup(
 
 filegroup(
     name = "test_srcs",
-    srcs = glob([
-        "test/**/*.hpp",
-        "test/**/*.cpp",
-    ]),
-)
-
-filegroup(
-    name = "test_data",
-    srcs = glob(["test/data/*.txt"]),
+    srcs = glob(["test/*.py"]),
 )
 
 ######### LIBRARIES #########
-
-cc_library(
-    name = "age_runtime",
-    hdrs = glob(["runtime/*.hpp"]),
-    srcs = glob(["runtime/*.cpp"]),
-    copts = ["-std=c++14"],
-    deps = ["//ade:ade"],
-)
 
 py_library(
     name = "age_tmpl",
@@ -43,32 +27,30 @@ py_library(
 py_binary(
     name = "agen",
     srcs = ["agen.py"],
-    deps = [":age_tmpl"],
+    deps = ["//age:age_tmpl"],
+)
+
+cc_library(
+    name = "age_runtime",
+    hdrs = glob(["runtime/*.hpp"]),
+    srcs = glob(["runtime/*.cpp"]),
+    copts = ["-std=c++14"],
+    deps = ["//ade:ade"],
 )
 
 ######### TEST #########
 
-cc_test(
-    name = "test_dynamic",
-    size = "medium",
-    srcs = glob(["test/dynamic/*"]),
-    deps = [
-        "//age:age",
-        "//testutil:testutil",
-    ],
-    copts = ["-std=c++14"],
-    data = ["//:credentials"],
+py_test(
+    name = "test",
+    srcs = glob(["test.py"]),
+    deps = ["//age:age_tmpl"],
 )
 
 cc_test(
-    name = "test_static",
-    size = "small",
-    srcs = glob(["test/static/*"]),
+    name = "test_runtime",
+    srcs = glob(["test/*.cpp"]),
     deps = [
-        "//age:age",
-        "//dbg:dbg",
-        "@com_google_googletest//:gtest",
+        "//age:age_runtime",
+        "//testutil:testutil",
     ],
-    copts = ["-std=c++14"],
-    data = ["//age:test_data"],
 )

@@ -79,7 +79,7 @@ static std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
 {name2codes}
 }};
 
-const std::unordered_map<_GENERATED_DTYPE,std::string,EnumHash> type2name =
+static std::unordered_map<_GENERATED_DTYPE,std::string,EnumHash> type2name =
 {{
 {type2names}
 }};
