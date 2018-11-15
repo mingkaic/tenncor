@@ -1,4 +1,5 @@
 #include "llo/generated/api.hpp"
+#include "llo/helper.hpp"
 
 #ifdef LLO_HELPER_HPP
 

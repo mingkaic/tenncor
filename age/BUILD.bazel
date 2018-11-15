@@ -7,8 +7,8 @@ package(
 filegroup(
     name = "srcs",
     srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
+        "**/*.py",
+        "runtime/*",
     ]) + ["BUILD.bazel"],
 )
 
@@ -28,17 +28,6 @@ filegroup(
 ######### LIBRARIES #########
 
 cc_library(
-    name = "age",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
-    copts = ["-std=c++14"],
-    deps = [
-        "//err:err",
-        "@com_github_nlohmann_json//:json_parser",
-    ],
-)
-
-cc_library(
     name = "age_runtime",
     hdrs = glob(["runtime/*.hpp"]),
     srcs = glob(["runtime/*.cpp"]),
@@ -46,11 +35,15 @@ cc_library(
     deps = ["//ade:ade"],
 )
 
-cc_binary(
+py_library(
+    name = "age_tmpl",
+    srcs = glob(["templates/*.py"]),
+)
+
+py_binary(
     name = "agen",
-    srcs = ["main.cpp"],
-    copts = ["-std=c++14"],
-    deps = ["//age:age"],
+    srcs = ["agen.py"],
+    deps = [":age_tmpl"],
 )
 
 ######### TEST #########

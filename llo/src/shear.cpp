@@ -16,8 +16,8 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 	std::unordered_set<size_t> zeros, ade::ArgsT args)
 {
 	is_zero = false;
-	age::_GENERATED_OPCODES opcode =
-		(age::_GENERATED_OPCODES) func->get_opcode().code_;
+	age::_GENERATED_OPCODE opcode =
+		(age::_GENERATED_OPCODE) func->get_opcode().code_;
 	if (false == zeros.empty())
 	{
 		switch (opcode)
@@ -95,7 +95,7 @@ static ade::Tensorptr prune0 (bool& is_zero, ade::iFunctor* func,
 				err::fatal("cannot prune unknown opcode");
 		}
 	}
-	return ade::Functor::get(ade::Opcode{age::opname(opcode), opcode}, args);
+	return ade::Functor::get(ade::Opcode{age::name_op(opcode), opcode}, args);
 }
 
 ade::Tensorptr zero_prune (ade::Tensorptr root)

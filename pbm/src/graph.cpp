@@ -182,7 +182,7 @@ age::TensT load_graph (const tenncor::Graph& in)
 				args.push_back({coord, outvec[nodearg.idx()]});
 			}
 			outvec.push_back(ade::Functor::get(ade::Opcode{func.opname(),
-				age::nameop(func.opname())}, args));
+				age::get_op(func.opname())}, args));
 		}
 	}
 	return outvec;

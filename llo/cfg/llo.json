@@ -1,548 +1,302 @@
 {
-    "includes": [
-        "\"age/runtime/grader.hpp\"",
-        "\"llo/data.hpp\"",
-        "\"llo/helper.hpp\""
-    ],
-    "refs": {
-        "api-unary": "ade::Tensorptr $API (ade::Tensorptr arg1)",
-        "api-unary-int": "ade::Tensorptr $API (ade::Tensorptr arg1,uint8_t arg2)",
-        "api-unary-array": "ade::Tensorptr $API (ade::Tensorptr arg1,std::vector<uint8_t> arg2)",
-        "api-extend": "ade::Tensorptr $API (ade::Tensorptr arg1,uint8_t arg2,std::vector<uint8_t> arg3)",
-        "api-binary": "ade::Tensorptr $API (ade::Tensorptr arg1,ade::Tensorptr arg2)",
-        "api-nnary": "ade::Tensorptr $API (age::TensT arg1)",
-        "call-unary": "ade::Functor::get(ade::Opcode{\"$OPCODE\",$OPCODE},{{ade::identity,arg1}})",
-        "call-flip": "ade::Functor::get(ade::Opcode{\"$OPCODE\",$OPCODE},{{ade::flip(arg2),arg1}})",
-        "call-binary": "ade::Functor::get(ade::Opcode{\"$OPCODE\",$OPCODE},{{ade::identity,arg1},{ade::identity,arg2}})",
-        "call-nnary": "ade::Functor::get(ade::Opcode{\"$OPCODE\",$OPCODE},age::to_args(arg1))",
-        "call-reduce": "ade::Functor::get(ade::Opcode{\"$OPCODE\",$OPCODE},{{llo::reduce(arg2,arg1->shape()),arg1}})",
-        "call-permute": "ade::Functor::get(ade::Opcode{\"$OPCODE\",$OPCODE},{{ade::permute(arg2),arg1}})",
-        "call-extend": "ade::Functor::get(ade::Opcode{\"$OPCODE\",$OPCODE},{{ade::extend(arg2,arg3),arg1}})",
-        "op-unary": "$OP((T*)out.data_.get(),to_ref<T>(data[0]))",
-        "op-binary": "$OP((T*)out.data_.get(),out.shape_,to_ref<T>(data[0]),to_ref<T>(data[1]))",
-        "op-nnary": "$OP((T*)out.data_.get(),out.shape_,to_refs<T>(data))"
+    "includes": {
+        "grader.hpp": ["\"llo/helper.hpp\""],
+        "api.cpp": ["\"llo/helper.hpp\""],
+        "opmap.hpp": ["\"llo/data.hpp\""],
+        "runtime.hpp": ["\"llo/data.hpp\""]
     },
-    "runtime": {
-        "data": "llo::get_variable(std::vector<T>(shape.n_elems(),scalar),shape,err::sprintf(\"%d\",scalar))",
-        "sum_opcode": "ade::Opcode{\"SUM\",SUM}",
-        "prod_opcode": "ade::Opcode{\"PROD\",PROD}",
-        "dtypes": {
-            "DOUBLE": "double",
-            "FLOAT": "float",
-            "INT8": "int8_t",
-            "UINT8": "uint8_t",
-            "INT16": "int16_t",
-            "UINT16": "uint16_t",
-            "INT32": "int32_t",
-            "UINT32": "uint32_t",
-            "INT64": "int64_t",
-            "UINT64": "uint64_t"
+    "dtypes": {
+        "DOUBLE": "double",
+        "FLOAT": "float",
+        "INT8": "int8_t",
+        "UINT8": "uint8_t",
+        "INT16": "int16_t",
+        "UINT16": "uint16_t",
+        "INT32": "int32_t",
+        "UINT32": "uint32_t",
+        "INT64": "int64_t",
+        "UINT64": "uint64_t"
+    },
+    "data": {
+        "sum": "SUM",
+        "prod": "PROD",
+        "data_out": "char*",
+        "data_in": "llo::DataArgsT&",
+        "scalarize": "llo::get_variable(std::vector<T>(shape.n_elems(),scalar),shape,err::sprintf(\"%d\",scalar))"
+    },
+    "opcodes": {
+        "ABS": {
+            "operation": "llo::abs((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "div(args[0],abs(args[0]))"
         },
-        "opcodes": {
-            "ABS": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::abs"}
-                },
-                "derivative": "div($0,abs($0))"
-            },
-            "NEG": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::neg"}
-                },
-                "derivative": "neg(data(1,$0->shape()))"
-            },
-            "SIN": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::sin"}
-                },
-                "derivative": "cos($0)"
-            },
-            "COS": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::cos"}
-                },
-                "derivative": "neg(sin($0))"
-            },
-            "TAN": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::tan"}
-                },
-                "derivative": "div(data(1,$0->shape()),pow(cos($0),data(2,$0->shape())))"
-            },
-            "EXP": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::exp"}
-                },
-                "derivative": "exp($0)"
-            },
-            "LOG": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::log"}
-                },
-                "derivative": "div(data(1,$0->shape()),$0)"
-            },
-            "SQRT": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::sqrt"}
-                },
-                "derivative": "div(data(1,$0->shape()),mul(data(2,$0->shape()),sqrt($0)))"
-            },
-            "ROUND": {
-                "operation": {
-                    "format": {"ref": "op-unary"},
-                    "args": {"OP": "llo::round"}
-                },
-                "derivative": "data(1,$0->shape())"
-            },
-            "POW": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::pow"}
-                },
-                "derivative": "idx == 0 ? mul($1,pow($0,sub($1,data(1,$0->shape())))) : mul(log($0),pow($0,$1))"
-            },
-            "SUM": {
-                "operation": {
-                    "format": {"ref": "op-nnary"},
-                    "args": {"OP": "llo::add"}
-                },
-                "derivative": "data(1,$0->shape())"
-            },
-            "SUB": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::sub"}
-                },
-                "derivative": "idx == 0 ? data(1,$0->shape()) : neg(data(1,$0->shape()))"
-            },
-            "PROD": {
-                "operation": {
-                    "format": {"ref": "op-nnary"},
-                    "args": {"OP": "llo::mul"}
-                },
-                "derivative": "llo::grad_prod(idx,$@)"
-            },
-            "DIV": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::div"}
-                },
-                "derivative": "idx == 0 ? div(data(1,$0->shape()),$1) : div(neg($0),pow($1,data(2,$0->shape())))"
-            },
-            "MIN": {
-                "operation": {
-                    "format": {"ref": "op-nnary"},
-                    "args": {"OP": "llo::min"}
-                },
-                "derivative": "llo::grad_min(idx,$@)"
-            },
-            "MAX": {
-                "operation": {
-                    "format": {"ref": "op-nnary"},
-                    "args": {"OP": "llo::max"}
-                },
-                "derivative": "llo::grad_max(idx,$@)"
-            },
-            "EQ": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::eq"}
-                },
-                "derivative": "data(0,$0->shape())"
-            },
-            "NEQ": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::neq"}
-                },
-                "derivative": "data(0,$0->shape())"
-            },
-            "LT": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::lt"}
-                },
-                "derivative": "data(0,$0->shape())"
-            },
-            "GT": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::gt"}
-                },
-                "derivative": "data(0,$0->shape())"
-            },
-            "RAND_BINO": {
-                "operation": "rand_binom((T*)out.data_.get(),out.shape_,VecRef<T>{data[0].first,(T*)data[0].second.data_.get(),data[0].second.shape_},VecRef<double>{data[1].first,(double*)data[1].second.data_.get(),data[1].second.shape_})",
-                "derivative": "data(0,$0->shape())"
-            },
-            "RAND_UNIF": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::rand_uniform"}
-                },
-                "derivative": "data(0,$0->shape())"
-            },
-            "RAND_NORM": {
-                "operation": {
-                    "format": {"ref": "op-binary"},
-                    "args": {"OP": "llo::rand_normal"}
-                },
-                "derivative": "data(0,$0->shape())"
-            }
+        "NEG": {
+            "operation": "llo::neg((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "neg(data(1,args[0]->shape()))"
+        },
+        "SIN": {
+            "operation": "llo::sin((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "cos(args[0])"
+        },
+        "COS": {
+            "operation": "llo::cos((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "neg(sin(args[0]))"
+        },
+        "TAN": {
+            "operation": "llo::tan((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "div(data(1,args[0]->shape()),pow(cos(args[0]),data(2,args[0]->shape())))"
+        },
+        "EXP": {
+            "operation": "llo::exp((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "exp(args[0])"
+        },
+        "LOG": {
+            "operation": "llo::log((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "div(data(1,args[0]->shape()),args[0])"
+        },
+        "SQRT": {
+            "operation": "llo::sqrt((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "div(data(1,args[0]->shape()),mul(data(2,args[0]->shape()),sqrt(args[0])))"
+        },
+        "ROUND": {
+            "operation": "llo::round((T*)out,llo::to_ref<T>(in[0]))",
+            "derivative": "data(1,args[0]->shape())"
+        },
+        "POW": {
+            "operation": "llo::pow((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "idx == 0 ? mul(args[1],pow(args[0],sub(args[1],data(1,args[0]->shape())))) : mul(log(args[0]),pow(args[0],args[1]))"
+        },
+        "SUM": {
+            "operation": "llo::add((T*)out,shape,llo::to_refs<T>(in))",
+            "derivative": "data(1,args[0]->shape())"
+        },
+        "SUB": {
+            "operation": "llo::sub((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "idx == 0 ? data(1,args[0]->shape()) : neg(data(1,args[0]->shape()))"
+        },
+        "PROD": {
+            "operation": "llo::mul((T*)out,shape,llo::to_refs<T>(in))",
+            "derivative": "llo::grad_prod(idx,args)"
+        },
+        "DIV": {
+            "operation": "llo::div((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "idx == 0 ? div(data(1,args[0]->shape()),args[1]) : div(neg(args[0]),pow(args[1],data(2,args[0]->shape())))"
+        },
+        "MIN": {
+            "operation": "llo::min((T*)out,shape,llo::to_refs<T>(in))",
+            "derivative": "llo::grad_min(idx,args)"
+        },
+        "MAX": {
+            "operation": "llo::max((T*)out,shape,llo::to_refs<T>(in))",
+            "derivative": "llo::grad_max(idx,args)"
+        },
+        "EQ": {
+            "operation": "llo::eq((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "data(0,args[0]->shape())"
+        },
+        "NEQ": {
+            "operation": "llo::neq((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "data(0,args[0]->shape())"
+        },
+        "LT": {
+            "operation": "llo::lt((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "data(0,args[0]->shape())"
+        },
+        "GT": {
+            "operation": "llo::gt((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "data(0,args[0]->shape())"
+        },
+        "RAND_BINO": {
+            "operation": "llo::rand_binom((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<double>(in[1]))",
+            "derivative": "data(0,args[0]->shape())"
+        },
+        "RAND_UNIF": {
+            "operation": "llo::rand_uniform((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "data(0,args[0]->shape())"
+        },
+        "RAND_NORM": {
+            "operation": "llo::rand_normal((T*)out,shape,llo::to_ref<T>(in[0]),llo::to_ref<T>(in[1]))",
+            "derivative": "data(0,args[0]->shape())"
         }
     },
     "apis": [
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "abs"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "ABS"}
-            }
+            "name": "abs",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"ABS\",ABS},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "neg"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "NEG"}
-            }
+            "name": "neg",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"NEG\",NEG},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "sin"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "SIN"}
-            }
+            "name": "sin",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"SIN\",SIN},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "cos"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "COS"}
-            }
+            "name": "cos",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"COS\",COS},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "tan"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "TAN"}
-            }
+            "name": "tan",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"TAN\",TAN},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "exp"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "EXP"}
-            }
+            "name": "exp",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"EXP\",EXP},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "log"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "LOG"}
-            }
+            "name": "log",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"LOG\",LOG},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "sqrt"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "SQRT"}
-            }
+            "name": "sqrt",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"SQRT\",SQRT},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "round"}
-            },
-            "out": {
-                "format": {"ref": "call-unary"},
-                "args": {"OPCODE": "ROUND"}
-            }
+            "name": "round",
+            "args": ["ade::Tensorptr arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"ROUND\",ROUND},{{ade::identity,arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary-int"},
-                "args": {"API": "flip"}
-            },
-            "out": {
-                "format": {"ref": "call-flip"},
-                "args": {"OPCODE": "SUM"}
-            }
+            "name": "flip",
+            "args": ["ade::Tensorptr arg1", "uint8_t arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"SUM\",SUM},{{ade::flip(arg2),arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "pow"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "POW"}
-            }
+            "name": "pow",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"POW\",POW},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "add"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "SUM"}
-            }
+            "name": "add",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"SUM\",SUM},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "sub"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "SUB"}
-            }
+            "name": "sub",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"SUB\",SUB},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "mul"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "PROD"}
-            }
+            "name": "mul",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"PROD\",PROD},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "div"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "DIV"}
-            }
+            "name": "div",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"DIV\",DIV},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "eq"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "EQ"}
-            }
+            "name": "eq",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"EQ\",EQ},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "ne"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "NEQ"}
-            }
+            "name": "neq",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"NEQ\",NEQ},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "lt"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "LT"}
-            }
+            "name": "lt",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"LT\",LT},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "gt"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "GT"}
-            }
+            "name": "gt",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"GT\",GT},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "rand_bino"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "RAND_BINO"}
-            }
+            "name": "rand_bino",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"RAND_BINO\",RAND_BINO},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "rand_unif"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "RAND_UNIF"}
-            }
+            "name": "rand_unif",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"RAND_UNIF\",RAND_UNIF},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "rand_norm"}
-            },
-            "out": {
-                "format": {"ref": "call-binary"},
-                "args": {"OPCODE": "RAND_NORM"}
-            }
+            "name": "rand_norm",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"RAND_NORM\",RAND_NORM},{{ade::identity,arg1},{ade::identity,arg2}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-nnary"},
-                "args": {"API": "sum"}
-            },
-            "out": {
-                "format": {"ref": "call-nnary"},
-                "args": {"OPCODE": "SUM"}
-            }
+            "name": "sum",
+            "args": ["age::TensT arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"SUM\",SUM},age::to_args(arg1))"
         },
         {
-            "io": {
-                "format": {"ref": "api-nnary"},
-                "args": {"API": "prod"}
-            },
-            "out": {
-                "format": {"ref": "call-nnary"},
-                "args": {"OPCODE": "PROD"}
-            }
+            "name": "prod",
+            "args": ["age::TensT arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"PROD\",PROD},age::to_args(arg1))"
         },
         {
-            "io": {
-                "format": {"ref": "api-nnary"},
-                "args": {"API": "min"}
-            },
-            "out": {
-                "format": {"ref": "call-nnary"},
-                "args": {"OPCODE": "MIN"}
-            }
+            "name": "min",
+            "args": ["age::TensT arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"MIN\",MIN},age::to_args(arg1))"
         },
         {
-            "io": {
-                "format": {"ref": "api-nnary"},
-                "args": {"API": "max"}
-            },
-            "out": {
-                "format": {"ref": "call-nnary"},
-                "args": {"OPCODE": "MAX"}
-            }
+            "name": "max",
+            "args": ["age::TensT arg1"],
+            "out": "ade::Functor::get(ade::Opcode{\"MAX\",MAX},age::to_args(arg1))"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary-int"},
-                "args": {"API": "reduce_sum"}
-            },
-            "out": {
-                "format": {"ref": "call-reduce"},
-                "args": {"OPCODE": "SUM"}
-            }
+            "name": "reduce_sum",
+            "args": ["ade::Tensorptr arg1", "uint8_t arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"SUM\",SUM},{{llo::reduce(arg2,arg1->shape()),arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary-int"},
-                "args": {"API": "reduce_min"}
-            },
-            "out": {
-                "format": {"ref": "call-reduce"},
-                "args": {"OPCODE": "MIN"}
-            }
+            "name": "reduce_min",
+            "args": ["ade::Tensorptr arg1", "uint8_t arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"MIN\",MIN},{{llo::reduce(arg2,arg1->shape()),arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary-int"},
-                "args": {"API": "reduce_max"}
-            },
-            "out": {
-                "format": {"ref": "call-reduce"},
-                "args": {"OPCODE": "MAX"}
-            }
+            "name": "reduce_max",
+            "args": ["ade::Tensorptr arg1", "uint8_t arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"MAX\",MAX},{{llo::reduce(arg2,arg1->shape()),arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary-array"},
-                "args": {"API": "permute"}
-            },
-            "out": {
-                "format": {"ref": "call-permute"},
-                "args": {"OPCODE": "SUM"}
-            }
+            "name": "permute",
+            "args": ["ade::Tensorptr arg1", "std::vector<uint8_t> arg2"],
+            "out": "ade::Functor::get(ade::Opcode{\"SUM\",SUM},{{ade::permute(arg2),arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-extend"},
-                "args": {"API": "extend"}
-            },
-            "out": {
-                "format": {"ref": "call-extend"},
-                "args": {"OPCODE": "SUM"}
-            }
+            "name": "extend",
+            "args": ["ade::Tensorptr arg1", "uint8_t arg2", "std::vector<uint8_t> arg3"],
+            "out": "ade::Functor::get(ade::Opcode{\"SUM\",SUM},{{ade::extend(arg2,arg3),arg1}})"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "reduce_sum"}
-            },
+            "name": "reduce_sum",
+            "args": ["ade::Tensorptr arg1"],
             "out": "reduce_sum(arg1,0)"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "reduce_min"}
-            },
+            "name": "reduce_min",
+            "args": ["ade::Tensorptr arg1"],
             "out": "reduce_min(arg1,0)"
         },
         {
-            "io": {
-                "format": {"ref": "api-unary"},
-                "args": {"API": "reduce_max"}
-            },
+            "name": "reduce_max",
+            "args": ["ade::Tensorptr arg1"],
             "out": "reduce_max(arg1,0)"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "matmul"}
-            },
+            "name": "matmul",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
             "out": "reduce_sum(mul(permute(extend(arg1,2,{arg2->shape().at(0)}),{2,1,0}),permute(extend(arg2,2,{arg1->shape().at(1)}),{0,2,1})),2)"
         },
         {
-            "io": {
-                "format": {"ref": "api-binary"},
-                "args": {"API": "convolute"}
-            },
+            "name": "convolute",
+            "args": ["ade::Tensorptr arg1", "ade::Tensorptr arg2"],
             "out": "ade::Tensorptr(nullptr)"
         }
     ]

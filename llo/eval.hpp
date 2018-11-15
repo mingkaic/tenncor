@@ -1,6 +1,7 @@
 #include "ade/traveler.hpp"
 
-#include "llo/opmap.hpp"
+#include "llo/generated/opmap.hpp"
+
 #include "llo/data.hpp"
 
 #ifndef LLO_EVAL_HPP
@@ -16,13 +17,13 @@ namespace llo
 /// before checking native ade::Functor
 struct Evaluator final : public ade::iTraveler
 {
-	Evaluator (DTYPE dtype) : dtype_(dtype) {}
+	Evaluator (age::_GENERATED_DTYPE dtype) : dtype_(dtype) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::Tensor* leaf) override
 	{
 		const char* data = leaf->data();
-		DTYPE dtype = (DTYPE) leaf->type_code();
+		age::_GENERATED_DTYPE dtype = (age::_GENERATED_DTYPE) leaf->type_code();
 		const ade::Shape& shape = leaf->shape();
 		out_ = GenericData(shape, dtype_);
 		out_.copyover(data, dtype);
@@ -31,7 +32,7 @@ struct Evaluator final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		age::_GENERATED_OPCODES opcode = (age::_GENERATED_OPCODES)
+		age::_GENERATED_OPCODE opcode = (age::_GENERATED_OPCODE)
 			func->get_opcode().code_;
 		out_ = GenericData(func->shape(), dtype_);
 
@@ -47,11 +48,11 @@ struct Evaluator final : public ade::iTraveler
 			}
 			Evaluator left_eval(dtype_);
 			children[0].tensor_->accept(left_eval);
-			argdata[0] = {children[0].mapper_, left_eval.out_};
+			argdata[0] = {left_eval.out_.data_, left_eval.out_.shape_, children[0].mapper_};
 
-			Evaluator right_eval(DOUBLE);
+			Evaluator right_eval(age::DOUBLE);
 			children[1].tensor_->accept(right_eval);
-			argdata[1] = {children[0].mapper_, right_eval.out_};
+			argdata[1] = {right_eval.out_.data_, right_eval.out_.shape_, children[1].mapper_};
 		}
 		else
 		{
@@ -59,11 +60,11 @@ struct Evaluator final : public ade::iTraveler
 			{
 				Evaluator evaler(dtype_);
 				children[i].tensor_->accept(evaler);
-				argdata[i] = {children[i].mapper_, evaler.out_};
+				argdata[i] = {evaler.out_.data_, evaler.out_.shape_, children[i].mapper_};
 			}
 		}
 
-		op_exec(opcode, out_, argdata);
+		op_exec(opcode, out_.dtype_, out_.data_.get(), out_.shape_, argdata);
 	}
 
 	/// Output data evaluated upon visiting node
@@ -71,7 +72,7 @@ struct Evaluator final : public ade::iTraveler
 
 private:
 	/// Output type when evaluating data
-	DTYPE dtype_;
+	age::_GENERATED_DTYPE dtype_;
 };
 
 }

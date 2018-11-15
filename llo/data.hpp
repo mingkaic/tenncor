@@ -2,7 +2,9 @@
 
 #include "ade/tensor.hpp"
 
-#include "llo/dtype.hpp"
+#include "llo/generated/code.hpp"
+
+#include "llo/operator.hpp"
 
 #ifndef LLO_DATA_HPP
 #define LLO_DATA_HPP
@@ -15,9 +17,9 @@ struct GenericData final
 {
 	GenericData (void) = default;
 
-	GenericData (ade::Shape shape, DTYPE dtype);
+	GenericData (ade::Shape shape, age::_GENERATED_DTYPE dtype);
 
-	void copyover (const char* indata, DTYPE intype);
+	void copyover (const char* indata, age::_GENERATED_DTYPE intype);
 
 	/// Smartpointer to a block of untyped data
 	std::shared_ptr<char> data_;
@@ -26,14 +28,14 @@ struct GenericData final
 	ade::Shape shape_;
 
 	/// Type encoding of data_
-	DTYPE dtype_;
+	age::_GENERATED_DTYPE dtype_;
 };
 
 /// GenericRef for holding data
 /// Ref uses raw pointer instead of shared, so it's memory unsafe
 struct GenericRef
 {
-	GenericRef (char* data, ade::Shape shape, DTYPE dtype) :
+	GenericRef (char* data, ade::Shape shape, age::_GENERATED_DTYPE dtype) :
 		data_(data), shape_(shape), dtype_(dtype) {}
 
 	GenericRef (GenericData& generic) :
@@ -47,12 +49,12 @@ struct GenericRef
 	ade::Shape shape_;
 
 	/// Data type of data_
-	DTYPE dtype_;
+	age::_GENERATED_DTYPE dtype_;
 };
 
 struct Variable final : public ade::Tensor
 {
-	Variable (const char* data, DTYPE dtype,
+	Variable (const char* data, age::_GENERATED_DTYPE dtype,
 		ade::Shape shape, std::string label) :
 		label_(label), data_(shape, dtype)
 	{
@@ -60,7 +62,7 @@ struct Variable final : public ade::Tensor
 	}
 
 	Variable (const Variable& other) :
-		label_(other.label_), data_(other.shape(), (DTYPE) other.type_code())
+		label_(other.label_), data_(other.shape(), (age::_GENERATED_DTYPE) other.type_code())
 	{
 		std::memcpy(data_.data_.get(), other.data(), nbytes());
 	}
@@ -73,7 +75,7 @@ struct Variable final : public ade::Tensor
 		if (this != &other)
 		{
 			label_ = other.label_;
-			data_ = GenericData(other.shape(), (DTYPE) other.type_code());
+			data_ = GenericData(other.shape(), (age::_GENERATED_DTYPE) other.type_code());
 			std::memcpy(data_.data_.get(), other.data(), nbytes());
 		}
 		return *this;
@@ -93,7 +95,7 @@ struct Variable final : public ade::Tensor
 	template <typename T>
 	Variable& operator = (std::vector<T> data)
 	{
-		GenericRef ref((char*) &data[0], shape(), get_type<T>());
+		GenericRef ref((char*) &data[0], shape(), age::get_type<T>());
 		return operator = (ref);
 	}
 
@@ -109,7 +111,7 @@ struct Variable final : public ade::Tensor
 		{
 			err::fatalf("cannot assign data of incompatible types %s "
 				"(external) and %s (internal)",
-				nametype(data.dtype_).c_str(), nametype(data_.dtype_).c_str());
+				age::name_type(data.dtype_).c_str(), age::name_type(data_.dtype_).c_str());
 		}
 		std::memcpy(data_.data_.get(), data.data_, nbytes());
 	}
@@ -158,7 +160,7 @@ template <typename T>
 Variable* get_variable (std::vector<T> data, ade::Shape shape,
 	std::string label = "")
 {
-	return new Variable((char*) &data[0], get_type<T>(), shape, label);
+	return new Variable((char*) &data[0], age::get_type<T>(), shape, label);
 }
 
 template <typename T>
@@ -166,6 +168,39 @@ Variable* data (T scalar, ade::Shape shape, std::string label)
 {
 	return llo::get_variable(std::vector<T>(shape.n_elems(),scalar),
 		shape, label);
+}
+
+struct DataArg
+{
+    std::shared_ptr<char> data_;
+
+    ade::Shape shape_;
+
+    ade::CoordPtrT mapper_;
+};
+
+using DataArgsT = std::vector<DataArg>;
+
+template <typename T>
+VecRef<T> to_ref (DataArg& arg)
+{
+	return VecRef<T>{
+		(const T*) arg.data_.get(),
+		arg.shape_,
+		arg.mapper_,
+	};
+}
+
+template <typename T>
+std::vector<VecRef<T>> to_refs (DataArgsT& args)
+{
+	std::vector<VecRef<T>> out;
+	std::transform(args.begin(), args.end(), std::back_inserter(out),
+		[](DataArg& arg)
+		{
+			return to_ref<T>(arg);
+		});
+	return out;
 }
 
 }

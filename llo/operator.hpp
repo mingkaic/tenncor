@@ -31,9 +31,11 @@ EngineT& get_engine (void);
 template <typename T>
 struct VecRef
 {
-	ade::CoordPtrT mapper;
 	const T* data;
+
 	ade::Shape shape;
+
+	ade::CoordPtrT mapper;
 };
 
 /// Generic unary operation assuming identity mapping (bijective)

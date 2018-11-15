@@ -14,35 +14,35 @@ void save_data (tenncor::Source* out, ade::Tensor* in)
 	const ade::Shape& shape = in->shape();
 	out->set_shape(std::string(shape.begin(), shape.end()));
 	char* data = in->data();
-	llo::DTYPE dtype = (llo::DTYPE) in->type_code();
+	age::_GENERATED_DTYPE dtype = (age::_GENERATED_DTYPE) in->type_code();
 	size_t nelems = shape.n_elems();
 	switch (dtype)
 	{
-		case llo::DOUBLE:
+		case age::DOUBLE:
 		{
 			auto arr = out->mutable_double_arrs();
 			PACK_DATA(double)
 		}
 		break;
-		case llo::FLOAT:
+		case age::FLOAT:
 		{
 			auto arr = out->mutable_float_arrs();
 			PACK_DATA(float)
 		}
 		break;
-		case llo::INT8:
+		case age::INT8:
 		{
 			auto arr = out->mutable_sbyte_arrs();
 			arr->set_data(std::string(data, data + nelems));
 		}
 		break;
-		case llo::UINT8:
+		case age::UINT8:
 		{
 			auto arr = out->mutable_ubyte_arrs();
 			arr->set_data(std::string(data, data + nelems));
 		}
 		break;
-		case llo::INT16:
+		case age::INT16:
 		{
 			auto arr = out->mutable_sshort_arrs();
 			int16_t* ptr = (int16_t*) data;
@@ -52,19 +52,19 @@ void save_data (tenncor::Source* out, ade::Tensor* in)
 			arr->mutable_data()->Swap(&vec);
 		}
 		break;
-		case llo::INT32:
+		case age::INT32:
 		{
 			auto arr = out->mutable_sint_arrs();
 			PACK_DATA(int32_t)
 		}
 		break;
-		case llo::INT64:
+		case age::INT64:
 		{
 			auto arr = out->mutable_slong_arrs();
 			PACK_DATA(int64_t)
 		}
 		break;
-		case llo::UINT16:
+		case age::UINT16:
 		{
 			auto arr = out->mutable_ushort_arrs();
 			uint16_t* ptr = (uint16_t*) data;
@@ -74,13 +74,13 @@ void save_data (tenncor::Source* out, ade::Tensor* in)
 			arr->mutable_data()->Swap(&vec);
 		}
 		break;
-		case llo::UINT32:
+		case age::UINT32:
 		{
 			auto arr = out->mutable_uint_arrs();
 			PACK_DATA(uint32_t)
 		}
 		break;
-		case llo::UINT64:
+		case age::UINT64:
 		{
 			auto arr = out->mutable_ulong_arrs();
 			PACK_DATA(uint64_t)

@@ -152,7 +152,7 @@ cover_pbm:
 # generate stuff
 
 gen_llo: build_agen
-	./bazel-bin/age/agen -cfg llo/cfg/llo.json -out llo/generated
+	./bazel-bin/age/agen --cfg llo/cfg/llo.json --out llo/generated
 
 lcov_all: coverage
 	rm -f $(TMP_LOGFILE)
