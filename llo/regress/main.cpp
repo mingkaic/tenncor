@@ -4,7 +4,7 @@
 
 #include "anteroc/testcase.hpp"
 
-#include "llo/api.hpp"
+#include "llo/generated/api.hpp"
 
 
 void EXPECT_DATA_EQ (std::string name, std::vector<double> expect, std::vector<double> got)
@@ -75,7 +75,7 @@ static std::vector<double> get_output_data (testify::GeneratedCase& gcase, std::
 
 
 static void unary_op (antero::Testament* test, std::string tname,
-	std::function<llo::DataNode(llo::DataNode&)> op)
+	std::function<ade::Tensorptr(ade::Tensorptr&)> op)
 {
 	testify::GeneratedCase gcase = test->get("REGRESS::" + tname);
 	ade::Shape shape = get_shape(gcase);
@@ -83,12 +83,17 @@ static void unary_op (antero::Testament* test, std::string tname,
 	std::vector<double> resdata = get_output_data(gcase, "unary_out");
 	std::vector<double> gresdata = get_output_data(gcase, "unary_ga");
 
-	auto leaf = llo::Source<double>::get(shape, data);
-	auto res = op(leaf);
-	auto gres = res.derive(leaf);
+	ade::Tensorptr leaf = llo::get_variable<double>(data, shape);
+	ade::Tensorptr res = op(leaf);
+	ade::Tensorptr gres = age::derive(res, leaf.get());
 
-	llo::GenericData resgd = res.data(llo::DOUBLE);
-	llo::GenericData gresgd = gres.data(llo::DOUBLE);
+    llo::Evaluator fwd_eval(age::DOUBLE);
+    llo::Evaluator bwd_eval(age::DOUBLE);
+    res->accept(fwd_eval);
+    gres->accept(bwd_eval);
+
+	llo::GenericData resgd = fwd_eval.out_;
+	llo::GenericData gresgd = bwd_eval.out_;
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();
@@ -112,15 +117,22 @@ static void binary_op (antero::Testament* test, std::string tname,
 	std::vector<double> gresdata = get_output_data(gcase, "binary_ga");
 	std::vector<double> gresdata2 = get_output_data(gcase, "binary_gb");
 
-	auto leaf = llo::Source<double>::get(shape, data);
-	auto leaf2 = llo::Source<double>::get(shape, data2);
-	auto res = op(leaf, leaf2);
-	auto gres = res.derive(leaf);
-	auto gres2 = res.derive(leaf2);
+	ade::Tensorptr leaf = llo::get_variable<double>(data, shape);
+	ade::Tensorptr leaf2 = llo::get_variable<double>(data2, shape);
+	ade::Tensorptr res = op(leaf, leaf2);
+	ade::Tensorptr gres = age::derive(res, leaf);
+	ade::Tensorptr gres2 = age::derive(res, leaf2);
 
-	llo::GenericData resgd = res.data(llo::DOUBLE);
-	llo::GenericData gresgd = gres.data(llo::DOUBLE);
-	llo::GenericData gresgd2 = gres2.data(llo::DOUBLE);
+    llo::Evaluator fwd_eval(age::DOUBLE);
+    llo::Evaluator bwd_eval(age::DOUBLE);
+    llo::Evaluator bwd_eval2(age::DOUBLE);
+    res->accept(fwd_eval);
+    gres->accept(bwd_eval);
+    gres2->accept(bwd_eval2);
+
+	llo::GenericData resgd = fwd_eval.out_;
+	llo::GenericData gresgd = bwd_eval.out_;
+	llo::GenericData gresgd2 = bwd_eval2.out_;
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();
@@ -306,15 +318,22 @@ TEST_F(REGRESS, Matmul)
 	std::vector<double> gresdata = get_output_data(gcase, "matmul_ga");
 	std::vector<double> gresdata2 = get_output_data(gcase, "matmul_gb");
 
-	auto leaf = llo::Source<double>::get(ashape, data);
-	auto leaf2 = llo::Source<double>::get(bshape, data2);
-	auto res = llo::matmul(leaf, leaf2);
-	auto gres = res.derive(leaf);
-	auto gres2 = res.derive(leaf2);
+	ade::Tensorptr leaf = llo::get_variable<double>(data, shape);
+	ade::Tensorptr leaf2 = llo::get_variable<double>(data2, shape);
+	ade::Tensorptr res = llo::matmul(leaf, leaf2);
+	ade::Tensorptr gres = age::derive(res, leaf);
+	ade::Tensorptr gres2 = age::derive(res, leaf2);
 
-	llo::GenericData resgd = res.data(llo::DOUBLE);
-	llo::GenericData gresgd = gres.data(llo::DOUBLE);
-	llo::GenericData gresgd2 = gres2.data(llo::DOUBLE);
+    llo::Evaluator fwd_eval(age::DOUBLE);
+    llo::Evaluator bwd_eval(age::DOUBLE);
+    llo::Evaluator bwd_eval2(age::DOUBLE);
+    res->accept(fwd_eval);
+    gres->accept(bwd_eval);
+    gres2->accept(bwd_eval2);
+
+	llo::GenericData resgd = fwd_eval.out_;
+	llo::GenericData gresgd = bwd_eval.out_;
+	llo::GenericData gresgd2 = bwd_eval2.out_;
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();

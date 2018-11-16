@@ -12,27 +12,27 @@ namespace age
 template <typename T>
 ade::Tensor* data (T scalar, ade::Shape shape)
 {{
-	return {scalarize};
+    return {scalarize};
 }}
 
 struct RuleSet final : public iRuleSet
 {{
-	ade::Tensor* data (double scalar, ade::Shape shape) override
-	{{
-		return age::data(scalar, shape);
-	}}
+    ade::Tensor* data (double scalar, ade::Shape shape) override
+    {{
+        return age::data(scalar, shape);
+    }}
 
-	ade::Opcode sum_opcode (void) override
-	{{
-		return ade::Opcode{{"{sum}", {sum}}};
-	}}
+    ade::Opcode sum_opcode (void) override
+    {{
+        return ade::Opcode{{"{sum}", {sum}}};
+    }}
 
-	ade::Opcode prod_opcode (void) override
-	{{
-		return ade::Opcode{{"{prod}", {prod}}};
-	}}
+    ade::Opcode prod_opcode (void) override
+    {{
+        return ade::Opcode{{"{prod}", {prod}}};
+    }}
 
-	ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx) override;
+    ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx) override;
 }};
 
 }}
@@ -56,11 +56,11 @@ std::unique_ptr<iRuleSet> Grader::rules_ = std::make_unique<RuleSet>();
 
 ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 {{
-	switch (code)
-	{{
+    switch (code)
+    {{
 {gradops}
-		default: err::fatal("no gradient rule for unknown opcode");
-	}}
+        default: err::fatal("no gradient rule for unknown opcode");
+    }}
 }}
 
 }}
@@ -69,4 +69,4 @@ ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 """)
 
 source.gradops = ("grads", lambda gradmap: '\n'.join(["\t\tcase {code}: return {retval};".format(\
-	code = code, retval = gradmap[code]) for code in gradmap]))
+    code = code, retval = gradmap[code]) for code in gradmap]))
