@@ -1,5 +1,4 @@
 correctness:
-P2 - test llo
 P2 - test functor gradient without generated config
 P2 - test complicate equations
 P3 - test travelling, and pruning algorithms

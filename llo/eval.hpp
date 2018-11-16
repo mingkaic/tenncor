@@ -75,6 +75,8 @@ private:
 	age::_GENERATED_DTYPE dtype_;
 };
 
+GenericData eval (ade::Tensorptr tens, age::_GENERATED_DTYPE dtype);
+
 }
 
 #endif // LLO_EVAL_HPP

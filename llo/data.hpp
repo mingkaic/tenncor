@@ -160,7 +160,18 @@ template <typename T>
 Variable* get_variable (std::vector<T> data, ade::Shape shape,
 	std::string label = "")
 {
+	if (data.size() != shape.n_elems())
+	{
+		err::fatalf("cannot create variable with data size %d "
+			"against shape %s", data.size(), shape.to_string().c_str());
+	}
 	return new Variable((char*) &data[0], age::get_type<T>(), shape, label);
+}
+
+template <typename T>
+Variable* get_variable (ade::Shape shape, std::string label = "")
+{
+	return get_variable(std::vector<T>(shape.n_elems(), 0), shape, label);
 }
 
 template <typename T>

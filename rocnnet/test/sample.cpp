@@ -46,16 +46,12 @@ int main (int argc, char** argv)
 		auto der = age::derive(root, var.get());
 		auto pruned = llo::zero_prune(der);
 
-		llo::Evaluator eval(age::DOUBLE);
-		pruned->accept(eval);
-		llo::GenericData& gdata = eval.out_;
+		llo::GenericData gdata = llo::eval(pruned, age::DOUBLE);
 		double* gdptr = (double*) gdata.data_.get();
 		std::cout << err::to_string(gdptr, gdptr + gdata.shape_.n_elems()) << std::endl;
 	}
 
-	llo::Evaluator eval(age::DOUBLE);
-	root->accept(eval);
-	llo::GenericData& data = eval.out_;
+	llo::GenericData data = llo::eval(root, age::DOUBLE);
 	double* dptr = (double*) data.data_.get();
 	std::cout << err::to_string(dptr, dptr + data.shape_.n_elems()) << std::endl;
 

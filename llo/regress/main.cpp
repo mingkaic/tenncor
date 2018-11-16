@@ -87,13 +87,8 @@ static void unary_op (antero::Testament* test, std::string tname,
 	ade::Tensorptr res = op(leaf);
 	ade::Tensorptr gres = age::derive(res, leaf.get());
 
-    llo::Evaluator fwd_eval(age::DOUBLE);
-    llo::Evaluator bwd_eval(age::DOUBLE);
-    res->accept(fwd_eval);
-    gres->accept(bwd_eval);
-
-	llo::GenericData resgd = fwd_eval.out_;
-	llo::GenericData gresgd = bwd_eval.out_;
+	llo::GenericData resgd = llo::eval(res, age::DOUBLE);
+	llo::GenericData gresgd = llo::eval(gres, age::DOUBLE);
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();
@@ -123,16 +118,9 @@ static void binary_op (antero::Testament* test, std::string tname,
 	ade::Tensorptr gres = age::derive(res, leaf);
 	ade::Tensorptr gres2 = age::derive(res, leaf2);
 
-    llo::Evaluator fwd_eval(age::DOUBLE);
-    llo::Evaluator bwd_eval(age::DOUBLE);
-    llo::Evaluator bwd_eval2(age::DOUBLE);
-    res->accept(fwd_eval);
-    gres->accept(bwd_eval);
-    gres2->accept(bwd_eval2);
-
-	llo::GenericData resgd = fwd_eval.out_;
-	llo::GenericData gresgd = bwd_eval.out_;
-	llo::GenericData gresgd2 = bwd_eval2.out_;
+	llo::GenericData resgd = llo::eval(res, age::DOUBLE);
+	llo::GenericData gresgd = llo::eval(gres, age::DOUBLE);
+	llo::GenericData gresgd2 = llo::eval(gres2, age::DOUBLE);
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();
@@ -324,16 +312,9 @@ TEST_F(REGRESS, Matmul)
 	ade::Tensorptr gres = age::derive(res, leaf);
 	ade::Tensorptr gres2 = age::derive(res, leaf2);
 
-    llo::Evaluator fwd_eval(age::DOUBLE);
-    llo::Evaluator bwd_eval(age::DOUBLE);
-    llo::Evaluator bwd_eval2(age::DOUBLE);
-    res->accept(fwd_eval);
-    gres->accept(bwd_eval);
-    gres2->accept(bwd_eval2);
-
-	llo::GenericData resgd = fwd_eval.out_;
-	llo::GenericData gresgd = bwd_eval.out_;
-	llo::GenericData gresgd2 = bwd_eval2.out_;
+	llo::GenericData resgd = llo::eval(res, age::DOUBLE);
+	llo::GenericData gresgd = llo::eval(gres, age::DOUBLE);
+	llo::GenericData gresgd2 = llo::eval(gres2, age::DOUBLE);
 
 	double* resptr = (double*) resgd.data_.get();
 	double* gresptr = (double*) gresgd.data_.get();

@@ -119,9 +119,7 @@ int main (int argc, char** argv)
 	{
 		if (i % show_every_n == show_every_n-1)
 		{
-			llo::Evaluator eval(llo::DOUBLE);
-			trainer.error_->accept(eval);
-			llo::GenericData trained_derr = eval.out_;
+			llo::GenericData trained_derr = llo::eval(trainer.error_, age::DOUBLE);
 			double* trained_err_res = (double*) trained_derr.data_.get();
 			std::cout << "training " << i+1 << std::endl;
 			std::cout << "trained error: " << err::to_string(trained_err_res, trained_err_res + n_out) << std::endl;
@@ -155,13 +153,9 @@ int main (int argc, char** argv)
 		std::vector<double> batch_out = avgevry2(batch);
 		*testin = batch;
 
-		llo::Evaluator untrained_eval(llo::DOUBLE);
-		untrained_out->accept(untrained_eval);
-		llo::GenericData untrained_data = untrained_eval.out_;
-		llo::Evaluator trained_eval(llo::DOUBLE);
-		trained_out->accept(trained_eval);
-		llo::GenericData trained_data = trained_eval.out_;
-		// llo::GenericData pretrained_data = pretrained_out.data(llo::DOUBLE);
+		llo::GenericData untrained_data = llo::eval(untrained_out, age::DOUBLE);
+		llo::GenericData trained_data = llo::eval(trained_out, age::DOUBLE);
+		// llo::GenericData pretrained_data = llo::eval(pretrained_out, llo::DOUBLE);
 
 		double* untrained_res = (double*) untrained_data.data_.get();
 		double* trained_res = (double*) trained_data.data_.get();

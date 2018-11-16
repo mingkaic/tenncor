@@ -1,15 +1,15 @@
 
-#ifndef DISABLE_NODE_TEST
+#ifndef DISABLE_DATA_TEST
 
 
 #include "gtest/gtest.h"
 
 #include "testutil/common.hpp"
 
-#include "llo/node.hpp"
+#include "llo/data.hpp"
 
 
-struct NODE : public simple::TestModel
+struct DATA : public simple::TestModel
 {
 	virtual void TearDown (void)
 	{
@@ -20,33 +20,33 @@ struct NODE : public simple::TestModel
 };
 
 
-TEST_F(NODE, MismatchSource)
+TEST_F(DATA, MismatchSize)
 {
-	simple::SessionT sess = get_session("NODE::MismatchSource");
+	simple::SessionT sess = get_session("DATA::MismatchSize");
 
 	auto slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
 	std::vector<double> data = sess->get_double("data", shape.n_elems() - 1);
 
 	std::stringstream ss;
-	ss << "data size " << data.size() <<
-		" does not match shape " << shape.to_string();
-	EXPECT_FATAL(llo::Source<double>::get(shape, data), ss.str().c_str());
+	ss << "cannot create variable with data size " << data.size() <<
+		" against shape " << shape.to_string();
+	EXPECT_FATAL(llo::get_variable<double>(data, shape), ss.str().c_str());
 }
 
 
-TEST_F(NODE, SourceRetype)
+TEST_F(DATA, SourceRetype)
 {
-	simple::SessionT sess = get_session("NODE::SourceRetype");
+	simple::SessionT sess = get_session("DATA::SourceRetype");
 
 	auto slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
 
 	size_t n = shape.n_elems();
 	std::vector<double> data = sess->get_double("data", n);
-	llo::DataNode ptr = llo::Source<double>::get(shape, data);
+	ade::Tensorptr ptr = llo::get_variable<double>(data, shape);
 
-	llo::GenericData gd = ptr.data(llo::UINT16);
+	llo::GenericData gd = llo::eval(ptr, llo::UINT16);
 	ASSERT_EQ(llo::UINT16, gd.dtype_);
 	std::vector<ade::DimT> gotslist(gd.shape_.begin(), gd.shape_.end());
 	EXPECT_ARREQ(slist, gotslist);
@@ -59,16 +59,16 @@ TEST_F(NODE, SourceRetype)
 }
 
 
-TEST_F(NODE, PlaceHolder)
+TEST_F(DATA, PlaceHolder)
 {
-	simple::SessionT sess = get_session("NODE::Placeholder");
+	simple::SessionT sess = get_session("DATA::Placeholder");
 
 	auto slist = get_shape(sess, "slist");
 	ade::Shape shape(slist);
 	size_t n = shape.n_elems();
-	llo::PlaceHolder<double> pl(shape);
+	VarptrT pl = llo::get_variable(shape);
 
-	llo::GenericData uninit_gd = pl.data(llo::DOUBLE);
+	llo::GenericData uninit_gd = llo::eval(pl, llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, uninit_gd.dtype_);
 	std::vector<ade::DimT> uninit_slist(uninit_gd.shape_.begin(), uninit_gd.shape_.end());
 	EXPECT_ARREQ(slist, uninit_slist);
@@ -80,8 +80,8 @@ TEST_F(NODE, PlaceHolder)
 	}
 
 	std::vector<double> data = sess->get_double("data", n);
-	pl = data;
-	llo::GenericData gd = pl.data(llo::DOUBLE);
+	*pl = data;
+	llo::GenericData gd = llo::eval(pl, llo::DOUBLE);
 	ASSERT_EQ(llo::DOUBLE, gd.dtype_);
 	std::vector<ade::DimT> gotslist(gd.shape_.begin(), gd.shape_.end());
 	EXPECT_ARREQ(slist, gotslist);
@@ -94,4 +94,4 @@ TEST_F(NODE, PlaceHolder)
 }
 
 
-#endif // DISABLE_NODE_TEST
+#endif // DISABLE_DATA_TEST

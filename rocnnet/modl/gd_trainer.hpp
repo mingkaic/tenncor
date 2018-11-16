@@ -43,9 +43,7 @@ struct GDTrainer
 		std::unordered_map<llo::Variable*,llo::GenericData> data;
 		for (auto& varpair : updates_)
 		{
-			llo::Evaluator eval(age::DOUBLE);
-			varpair.second->accept(eval);
-			data[varpair.first] = eval.out_;
+			data[varpair.first] = llo::eval(varpair.second, age::DOUBLE);
 		}
 		for (auto& datapair : data)
 		{
