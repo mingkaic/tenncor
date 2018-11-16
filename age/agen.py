@@ -9,7 +9,6 @@ import age.templates.api_tmpl as api
 import age.templates.codes_tmpl as codes
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
-import age.templates.runtime_tmpl as runtime
 
 prog_description = 'Generate c++ glue layer mapping ADE and some data-processing library.'
 hdr_postfix = ".hpp"
@@ -85,48 +84,52 @@ def make_dir(fields, includes, includepath):
     codes_hdr_path = os.path.join(includepath, codes_header)
 
     codes_header_include = ["<string>"]
-    codes_source_include = ["<unordered_map>", '"err/log.hpp"', '"' + codes_hdr_path + '"']
+    codes_source_include = [
+        "<unordered_map>",
+        '"err/log.hpp"',
+        '"' + codes_hdr_path + '"',
+    ]
     if codes_header in includes:
         codes_header_include += includes[codes_header]
     if codes_source in includes:
         codes_source_include += includes[codes_source]
 
-    runtime_fields = {
-        "sum": fields["sum"],
-        "prod": fields["prod"],
-        "scalarize": fields["scalarize"],
-    }
-    runtime_header = runtime_filename + hdr_postfix
-    runtime_source = runtime_filename + src_postfix
-    runtime_hdr_path = os.path.join(includepath, runtime_header)
-
-    runtime_header_include = ['"age/runtime/grader.hpp"']
-    runtime_source_include = ['"' + codes_hdr_path + '"', '"' + runtime_hdr_path + '"']
-    if runtime_header in includes:
-        runtime_header_include += includes[runtime_header]
-    if runtime_source in includes:
-        runtime_source_include += includes[runtime_source]
-
     api_header = api_filename + hdr_postfix
     api_source = api_filename + src_postfix
     api_hdr_path = os.path.join(includepath, api_header)
 
-    api_header_include = ['"age/runtime/grader.hpp"', '"ade/functor.hpp"']
-    api_source_include = ['"' + codes_hdr_path + '"', '"' + api_hdr_path + '"']
+    api_header_include = [
+        '"age/runtime/grader.hpp"',
+        '"ade/functor.hpp"',
+    ]
+    api_source_include = [
+        '"' + codes_hdr_path + '"',
+        '"' + api_hdr_path + '"',
+    ]
     if api_header in includes:
         api_header_include += includes[api_header]
     if api_source in includes:
         api_source_include += includes[api_source]
 
     grader_fields = {
+        "sum": fields["sum"],
+        "prod": fields["prod"],
+        "scalarize": fields["scalarize"],
         "grads": {code: opcodes[code]["derivative"] for code in opcodes}
     }
     grader_header = grader_filename + hdr_postfix
     grader_source = grader_filename + src_postfix
     grader_hdr_path = os.path.join(includepath, grader_header)
 
-    grader_header_include = ['"age/runtime/grader.hpp"']
-    grader_source_include = ['"' + codes_hdr_path + '"', '"' + api_hdr_path + '"', '"' + grader_hdr_path + '"']
+    grader_header_include = [
+        '"age/runtime/grader.hpp"',
+        '"' + codes_hdr_path + '"',
+    ]
+    grader_source_include = [
+        '"' + codes_hdr_path + '"',
+        '"' + api_hdr_path + '"',
+        '"' + grader_hdr_path + '"',
+    ]
     if grader_header in includes:
         grader_header_include += includes[grader_header]
     if grader_source in includes:
@@ -142,7 +145,10 @@ def make_dir(fields, includes, includepath):
     opera_source = opera_filename + src_postfix
     opera_hdr_path = os.path.join(includepath, opera_header)
 
-    opera_header_include = ['"ade/functor.hpp"', '"' + codes_hdr_path + '"', ]
+    opera_header_include = [
+        '"ade/functor.hpp"',
+        '"' + codes_hdr_path + '"',
+    ]
     opera_source_include = ['"' + opera_hdr_path + '"']
     if opera_header in includes:
         opera_header_include += includes[opera_header]
@@ -166,10 +172,6 @@ def make_dir(fields, includes, includepath):
             format_include(opera_header_include) + opera.header.repr(opera_fields)),
         (opera_source,
             format_include(opera_source_include) + opera.source.repr(opera_fields)),
-        (runtime_header,
-            format_include(runtime_header_include) + runtime.header.repr(runtime_fields)),
-        (runtime_source,
-            format_include(runtime_source_include) + runtime.source.repr(runtime_fields)),
     }
 
 def main(cfgpath = None,
@@ -178,7 +180,7 @@ def main(cfgpath = None,
 
     includepath = outpath
     if includepath and includepath.startswith(strip_prefix):
-        includepath = includepath[len(strip_prefix):]
+        includepath = includepath[len(strip_prefix):].strip("/")
 
     if cfgpath:
         with open(str(cfgpath), 'r') as cfg:

@@ -10,35 +10,43 @@ namespace age
 
 using TensT = std::vector<ade::Tensorptr>;
 
-// get these implemented
-template <typename T>
-ade::Tensor* data (T scalar, ade::Shape shape);
+struct iRuleSet
+{
+	virtual ~iRuleSet (void) = default;
 
-ade::Opcode sum_opcode (void);
+	virtual ade::Tensor* data (double scalar, ade::Shape shape) = 0;
 
-ade::Opcode prod_opcode (void);
+	virtual ade::Opcode sum_opcode (void) = 0;
 
-ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx);
+	virtual ade::Opcode prod_opcode (void) = 0;
 
-// already implemented
-ade::ArgsT to_args (TensT tens);
+	virtual ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx) = 0;
+};
 
 struct Grader final : public ade::iTraveler
 {
+	// this wouldn't be initialized in runtime library
+	// (generator would initialize its custom ruleset)
+	static std::unique_ptr<iRuleSet> rules_;
+
 	Grader (const ade::iTensor* target) : target_(target) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::Tensor* leaf) override
 	{
+		if (rules_ == nullptr)
+		{
+			err::fatal("cannot derive without ruleset");
+		}
 		if (leaf == target_)
 		{
 			derivatives_.emplace(leaf,
-				data(1, target_->shape()));
+				rules_->data(1, target_->shape()));
 		}
 		else
 		{
 			derivatives_.emplace(leaf,
-				data(0, target_->shape()));
+				rules_->data(0, target_->shape()));
 		}
 	}
 
@@ -50,6 +58,10 @@ struct Grader final : public ade::iTraveler
 
 	std::unordered_map<const ade::iTensor*,ade::Tensorptr> derivatives_;
 };
+
+ade::ArgsT to_args (TensT tens);
+
+ade::Tensorptr derive (ade::Tensorptr& root, const ade::iTensor* wrt);
 
 }
 

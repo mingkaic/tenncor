@@ -43,11 +43,7 @@ int main (int argc, char** argv)
 
 	for (auto var : vars)
 	{
-		age::Grader grad(var.get());
-		root->accept(grad);
-		auto it = grad.derivatives_.find(root.get());
-
-		auto der = it->second;
+		auto der = age::derive(root, var.get());
 		auto pruned = llo::zero_prune(der);
 
 		llo::Evaluator eval(age::DOUBLE);

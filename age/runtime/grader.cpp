@@ -1,3 +1,4 @@
+#include <cassert>
 #include <list>
 
 #include "age/runtime/grader.hpp"
@@ -7,22 +8,15 @@
 namespace age
 {
 
-ade::ArgsT to_args (TensT tens)
-{
-	ade::ArgsT args;
-	std::transform(tens.begin(), tens.end(), std::back_inserter(args),
-		[](ade::Tensorptr& ten)
-		{
-			return ade::MappedTensor{ade::identity, ten};
-		});
-	return args;
-}
-
 void Grader::visit (ade::iFunctor* func)
 {
+	if (rules_ == nullptr)
+	{
+		err::fatal("cannot derive without ruleset");
+	}
 	if (func == target_)
 	{
-		derivatives_.emplace(func, data(
+		derivatives_.emplace(func, rules_->data(
 			1, target_->shape()));
 		return;
 	}
@@ -35,7 +29,7 @@ void Grader::visit (ade::iFunctor* func)
 	if (pathmap.empty())
 	{
 		derivatives_.emplace(func,
-			data(0, target_->shape()));
+			rules_->data(0, target_->shape()));
 		return;
 	}
 	// else there exists a path to wrt
@@ -57,14 +51,14 @@ void Grader::visit (ade::iFunctor* func)
 		});
 
 	std::unordered_map<const ade::iTensor*,TensT> grads = {
-		{func, {{data(1, func->shape())}}},
+		{func, {{rules_->data(1, func->shape())}}},
 	};
 	for (ade::iFunctor* parent : parents)
 	{
 		ade::Opcode opcode = parent->get_opcode();
 		TensT& gargs = grads[parent];
 		ade::Tensorptr bwd = gargs.size() > 1 ? gargs[0] :
-			ade::Functor::get(sum_opcode(), to_args(gargs));
+			ade::Functor::get(rules_->sum_opcode(), to_args(gargs));
 
 		auto& grad_indices = pathmap[parent];
 		ade::ArgsT children = parent->get_children();
@@ -86,24 +80,44 @@ void Grader::visit (ade::iFunctor* func)
 				{
 					ade::CoordPtrT toshape(
 						children[j].mapper_->forward(*mapper));
-					args.push_back(ade::Functor::get(sum_opcode(),
+					args.push_back(ade::Functor::get(rules_->sum_opcode(),
 						{{toshape, tens}}));
 				}
 			}
 			// pass down forward-gradient pair
-			ade::Tensorptr grad = grad_rule(opcode.code_, args, i);
+			ade::Tensorptr grad = rules_->grad_rule(opcode.code_, args, i);
 
 			// apply chain rule
 			grads[child.tensor_.get()].push_back(ade::Functor::get(
-			prod_opcode(), {
+			rules_->prod_opcode(), {
 				{ade::identity, grad},
-				{ade::identity, ade::Functor::get(sum_opcode(),
+				{ade::identity, ade::Functor::get(rules_->sum_opcode(),
 					{{mapper, bwd}})},
 			}));
 		}
 	}
-	derivatives_.emplace(func, ade::Functor::get(sum_opcode(),
+	derivatives_.emplace(func, ade::Functor::get(rules_->sum_opcode(),
 		to_args(grads[target_])));
+}
+
+ade::ArgsT to_args (TensT tens)
+{
+	ade::ArgsT args;
+	std::transform(tens.begin(), tens.end(), std::back_inserter(args),
+		[](ade::Tensorptr& ten)
+		{
+			return ade::MappedTensor{ade::identity, ten};
+		});
+	return args;
+}
+
+ade::Tensorptr derive (ade::Tensorptr& root, const ade::iTensor* wrt)
+{
+	Grader grader(wrt);
+	root->accept(grader);
+	auto it = grader.derivatives_.find(root.get());
+	assert(grader.derivatives_.end() != it);
+	return it->second;
 }
 
 }

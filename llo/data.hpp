@@ -172,11 +172,11 @@ Variable* data (T scalar, ade::Shape shape, std::string label)
 
 struct DataArg
 {
-    std::shared_ptr<char> data_;
+	std::shared_ptr<char> data_;
 
-    ade::Shape shape_;
+	ade::Shape shape_;
 
-    ade::CoordPtrT mapper_;
+	ade::CoordPtrT mapper_;
 };
 
 using DataArgsT = std::vector<DataArg>;

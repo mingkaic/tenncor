@@ -1,4 +1,5 @@
 #include "llo/generated/api.hpp"
+#include "llo/generated/grader.hpp"
 
 #ifndef EQNS_ACTIVATIONS_HPP
 #define EQNS_ACTIVATIONS_HPP

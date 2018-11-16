@@ -36,6 +36,7 @@ cc_library(
     srcs = glob(["runtime/*.cpp"]),
     copts = ["-std=c++14"],
     deps = ["//ade:ade"],
+    linkstatic = True,
 )
 
 ######### TEST #########
@@ -49,8 +50,10 @@ py_test(
 cc_test(
     name = "test_runtime",
     srcs = glob(["test/*.cpp"]),
+    copts = ["-std=c++14"],
     deps = [
+        "//dbg:dbg",
         "//age:age_runtime",
-        "//testutil:testutil",
+        "@com_google_googletest//:gtest",
     ],
 )

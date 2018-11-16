@@ -6,6 +6,9 @@
 ///	Define llo graph pruning functions
 ///
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include "llo/data.hpp"
 
 #ifndef LLO_SHEAR_HPP

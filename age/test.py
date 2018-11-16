@@ -4,7 +4,6 @@ import age.templates.api_tmpl as api
 import age.templates.codes_tmpl as codes
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
-import age.templates.runtime_tmpl as runtime
 
 api_fields = {"apis": [
 	{"name": "func1", "args": [], "out": "bar1()"},
@@ -22,11 +21,16 @@ codes_fields = {
 	}
 }
 
-grader_fields = {"grads": {
-	"FOO": "bwd_foo(args, idx)",
-	"BAR": "bwd_bar(args[0], idx)",
-	"BAR2": "foo(args[1])",
-}}
+grader_fields = {
+	"scalarize": "get_numba(12345)",
+	"sum": "ADDITION",
+	"prod": "MULTIPLICATION",
+	"grads": {
+		"FOO": "bwd_foo(args, idx)",
+		"BAR": "bwd_bar(args[0], idx)",
+		"BAR2": "foo(args[1])",
+	}
+}
 
 opera_fields = {
 	"data_in": "In_Type",
@@ -42,12 +46,6 @@ opera_fields = {
 		"ORANGE": "seed_t",
 		"LEMON": "slices_t"
 	}
-}
-
-runtime_fields = {
-	"scalarize": "get_numba(12345)",
-	"sum": "ADDITION",
-	"prod": "MULTIPLICATION"
 }
 
 api_header = """#ifndef _GENERATED_API_HPP
@@ -282,7 +280,31 @@ grader_header = """#ifndef _GENERATED_GRADER_HPP
 namespace age
 {
 
-ade::Tensorptr grad_rule (size_t code,TensT args,size_t idx);
+template <typename T>
+ade::Tensor* data (T scalar, ade::Shape shape)
+{
+	return get_numba(12345);
+}
+
+struct RuleSet final : public iRuleSet
+{
+	ade::Tensor* data (double scalar, ade::Shape shape) override
+	{
+		return age::data(scalar, shape);
+	}
+
+	ade::Opcode sum_opcode (void) override
+	{
+		return ade::Opcode{"ADDITION", ADDITION};
+	}
+
+	ade::Opcode prod_opcode (void) override
+	{
+		return ade::Opcode{"MULTIPLICATION", MULTIPLICATION};
+	}
+
+	ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx) override;
+};
 
 }
 
@@ -294,7 +316,9 @@ grader_source = """#ifdef _GENERATED_GRADER_HPP
 namespace age
 {
 
-ade::Tensorptr grad_rule (size_t code,TensT args,size_t idx)
+std::unique_ptr<iRuleSet> Grader::rules_ = std::make_unique<RuleSet>();
+
+ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 {
 	switch (code)
 	{
@@ -367,47 +391,6 @@ void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
 #endif
 """
 
-runtime_header = """#ifndef _GENERATED_RUNTIME_HPP
-#define _GENERATED_RUNTIME_HPP
-
-namespace age
-{
-
-template <typename T>
-ade::Tensor* data (T scalar, ade::Shape shape)
-{
-	return get_numba(12345);
-}
-
-ade::Opcode sum_opcode (void);
-
-ade::Opcode prod_opcode (void);
-
-}
-
-#endif // _GENERATED_RUNTIME_HPP
-"""
-
-runtime_source = """#ifdef _GENERATED_RUNTIME_HPP
-
-namespace age
-{
-
-ade::Opcode sum_opcode (void)
-{
-	return ade::Opcode{"ADDITION", ADDITION};
-}
-
-ade::Opcode prod_opcode (void)
-{
-	return ade::Opcode{"MULTIPLICATION", MULTIPLICATION};
-}
-
-}
-
-#endif
-"""
-
 class ClientTest(unittest.TestCase):
 	def test_api(self):
 		header = api.header.repr(api_fields)
@@ -432,12 +415,6 @@ class ClientTest(unittest.TestCase):
 		source = opera.source.repr(opera_fields)
 		self.assertEqual(opera_header, header)
 		self.assertEqual(opera_source, source)
-
-	def test_runtime(self):
-		header = runtime.header.repr(runtime_fields)
-		source = runtime.source.repr(runtime_fields)
-		self.assertEqual(runtime_header, header)
-		self.assertEqual(runtime_source, source)
 
 if __name__ == "__main__":
 	unittest.main()

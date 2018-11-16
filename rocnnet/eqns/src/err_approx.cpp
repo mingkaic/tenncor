@@ -11,16 +11,9 @@ DeltasT sgd (ade::Tensorptr& root, VariablesT leaves,
 	DeltasT errs;
 	for (llo::VarptrT& leaf : leaves)
 	{
-		age::Grader grad(leaf.get());
-		root->accept(grad);
-		auto it = grad.derivatives_.find(root.get());
-		if (grad.derivatives_.end() == it)
-		{
-			err::fatalf("cannot find derivative of %s",
-				leaf->to_string().c_str());
-		}
+		auto der = age::derive(root, leaf.get());
 		// given root = f, err(x) ~ x - η * df(x), where η is the learning rate
-		ade::Tensorptr gres = llo::zero_prune(it->second);
+		ade::Tensorptr gres = llo::zero_prune(der);
 		ade::Shape gshape = gres->shape();
 		errs.emplace(leaf.get(),
 			age::sub(ade::Tensorptr(leaf),
@@ -37,17 +30,10 @@ DeltasT rms_momentum (ade::Tensorptr& root, VariablesT leaves,
 	DeltasT errs;
 	for (llo::VarptrT& leaf : leaves)
 	{
-		age::Grader grad(leaf.get());
-		root->accept(grad);
-		auto it = grad.derivatives_.find(root.get());
-		if (grad.derivatives_.end() == it)
-		{
-			err::fatalf("cannot find derivative of %s",
-				leaf->to_string().c_str());
-		}
+		auto der = age::derive(root, leaf.get());
 		// given root = f, err(x) ~ x - (η * df(x)) / (sqrt(ε + momentum)),
 		// where η is the learning rate, and ε is epsilon
-		ade::Tensorptr gres = llo::zero_prune(it->second);
+		ade::Tensorptr gres = llo::zero_prune(der);
 
 		// upkeep additional hidden variable momentum: starting with value 1
 		// given root = f, err(momentum) ~ χ * momentum + (1 - χ) * df(x) ^ 2,
