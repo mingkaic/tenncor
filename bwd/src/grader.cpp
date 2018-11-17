@@ -3,7 +3,7 @@
 
 #include "bwd/grader.hpp"
 
-#ifdef AGE_GRADER_HPP
+#ifdef BWD_GRADER_HPP
 
 namespace age
 {

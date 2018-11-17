@@ -3,6 +3,6 @@
 
 ade::Tensorptr cooler (size_t bardock)
 {
-    return new MockTensor(bardock, ade::Shape(
-        std::vector<ade::DimT>{(ade::DimT) bardock}));
+	return new MockTensor(bardock, ade::Shape(
+		std::vector<ade::DimT>{(ade::DimT) bardock}));
 }

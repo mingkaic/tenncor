@@ -18,13 +18,11 @@ struct MockTensor final : public ade::Tensor
 
 	MockTensor (ade::Shape shape) : shape_(shape) {}
 
-	/// Implementation of iTensor
 	const ade::Shape& shape (void) const override
 	{
 		return shape_;
 	}
 
-	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
 		return shape_.to_string();

@@ -5,18 +5,18 @@
 
 struct Meat
 {
-    Meat (size_t idx) : num(idx), size(idx / 2) {}
+	Meat (size_t idx) : num(idx), size(idx / 2) {}
 
-    int64_t num;
-    uint64_t size;
+	int64_t num;
+	uint64_t size;
 };
 
 struct Fries
 {
-    Fries (size_t idx) : num(idx / 3), size(idx * 2) {}
+	Fries (size_t idx) : num(idx / 3), size(idx * 2) {}
 
-    double num;
-    char size;
+	double num;
+	char size;
 };
 
 ade::Tensorptr cooler (size_t bardock);
