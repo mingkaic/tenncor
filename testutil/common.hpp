@@ -55,9 +55,3 @@ std::vector<ade::DimT> get_longshape (simple::SessionT& sess, std::string label)
 
 std::vector<ade::DimT> get_incompatible (simple::SessionT& sess,
 	std::vector<ade::DimT> inshape, std::string label);
-
-void int_verify (simple::SessionT& sess, std::string key,
-	std::vector<int32_t> data, std::function<void()> verify);
-
-void double_verify (simple::SessionT& sess, std::string key,
-	std::vector<double> data, std::function<void()> verify);
