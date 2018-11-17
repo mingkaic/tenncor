@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['data',['data',['../structllo_1_1i_source.html#a90ea20f6def00bb4522a5c7baf27b8f6',1,'llo::iSource::data()'],['../structllo_1_1_data_node.html#a4772b4e9bd7253d02f5a89e57be1c386',1,'llo::DataNode::data()'],['../structllo_1_1_source.html#a33d7a472b44a4cde6c7d218818f57be1',1,'llo::Source::data()']]],
-  ['datanode',['DataNode',['../structllo_1_1_data_node.html#afdc532ff71063be67c2114ecc8d121d2',1,'llo::DataNode']]],
-  ['derive',['derive',['../structllo_1_1_data_node.html#affa0248c9c5c7fa4188d13b4b67c9e06',1,'llo::DataNode::derive(const ade::iTensor *wrt)'],['../structllo_1_1_data_node.html#a5098c8a0184b333b1acdeda02cdee3e2',1,'llo::DataNode::derive(DataNode &amp;wrt)']]],
-  ['div',['div',['../namespacello.html#ab035ae9901aba246c002cc2daee6d9f4',1,'llo::div(DataNode a, DataNode b)'],['../namespacello.html#a9b229ad91f79cdc35b02e9a833e6a7ae',1,'llo::div(T *out, ade::Shape &amp;outshape, VecRef&lt; T &gt; a, VecRef&lt; T &gt; b)']]]
+  ['compatible_5fafter',['compatible_after',['../structade_1_1_shape.html#a486f09d5fd8c99ac078e6ddf58797c96',1,'ade::Shape']]],
+  ['compatible_5fbefore',['compatible_before',['../structade_1_1_shape.html#ab80adb387453a25c3d22193308a512cf',1,'ade::Shape']]],
+  ['cooler',['cooler',['../codes__dep_8cpp.html#a6f209645b3788e544d71e5fb9f2d0dd6',1,'cooler(size_t bardock):&#160;codes_dep.cpp'],['../codes__dep_8hpp.html#a6f209645b3788e544d71e5fb9f2d0dd6',1,'cooler(size_t bardock):&#160;codes_dep.cpp']]],
+  ['coordinate',['coordinate',['../namespaceade.html#a785be8ee10cd4af039c458e057b32263',1,'ade']]],
+  ['coordmap',['CoordMap',['../structade_1_1_coord_map.html#afb5c1dcf8267026e74f1fe3b3997785f',1,'ade::CoordMap::CoordMap(std::function&lt; void(MatrixT)&gt; init)'],['../structade_1_1_coord_map.html#a2d0a0d6d4652a4fae7eb649059e26f78',1,'ade::CoordMap::CoordMap(const MatrixT fwd, const MatrixT bwd)']]]
 ];

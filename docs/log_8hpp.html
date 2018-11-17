@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Tenncor: ade/log/log.hpp File Reference</title>
+<title>Tenncor: err/log.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -61,13 +61,14 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_e27d2b201b2b67ab280cb2f6929c41a1.html">ade</a></li><li class="navelem"><a class="el" href="dir_6f6f00817578f9e8e4d44dd2c955420f.html">log</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_18cf7de2f2320a99e32b42c3a2d5eee4.html">err</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
@@ -76,63 +77,85 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
-<code>#include &quot;<a class="el" href="string_8hpp_source.html">ade/log/string.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="string_8hpp_source.html">err/string.hpp</a>&quot;</code><br />
 </div>
 <p><a href="log_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_logger.html">ade::iLogger</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface of logger used in ADE.  <a href="structade_1_1i_logger.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structerr_1_1i_logger.html">err::iLogger</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface of logger.  <a href="structerr_1_1i_logger.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_def_logger.html">ade::DefLogger</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default implementation of <a class="el" href="structade_1_1i_logger.html" title="Interface of logger used in ADE. ">iLogger</a> used in ADE.  <a href="structade_1_1_def_logger.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structerr_1_1_def_logger.html">err::DefLogger</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default implementation of <a class="el" href="structerr_1_1i_logger.html" title="Interface of logger. ">iLogger</a> used in ADE.  <a href="structerr_1_1_def_logger.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
-<tr class="memitem:namespaceade"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html">ade</a></td></tr>
+<tr class="memitem:namespaceerr"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceerr.html">err</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a787ef3c6f433baf13e162429f98fabc8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log_8hpp.html#a787ef3c6f433baf13e162429f98fabc8">ERR_LOG_HPP</a></td></tr>
+<tr class="separator:a787ef3c6f433baf13e162429f98fabc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:af247a5c3f8cc0572f7756a94f49ace26"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#af247a5c3f8cc0572f7756a94f49ace26">ade::set_logger</a> (std::shared_ptr&lt; iLogger &gt; logger)</td></tr>
-<tr class="memdesc:af247a5c3f8cc0572f7756a94f49ace26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set input logger for ADE global logger.  <a href="namespaceade.html#af247a5c3f8cc0572f7756a94f49ace26">More...</a><br /></td></tr>
-<tr class="separator:af247a5c3f8cc0572f7756a94f49ace26"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeac9c84fbc8ce71ca86397d050d0948c"><td class="memItemLeft" align="right" valign="top">const iLogger &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aeac9c84fbc8ce71ca86397d050d0948c">ade::get_logger</a> (void)</td></tr>
-<tr class="memdesc:aeac9c84fbc8ce71ca86397d050d0948c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reference to ADE global logger.  <a href="namespaceade.html#aeac9c84fbc8ce71ca86397d050d0948c">More...</a><br /></td></tr>
-<tr class="separator:aeac9c84fbc8ce71ca86397d050d0948c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a947ed7832b3fd461a41b28928e2aebbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a947ed7832b3fd461a41b28928e2aebbd">ade::warn</a> (std::string msg)</td></tr>
-<tr class="memdesc:a947ed7832b3fd461a41b28928e2aebbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Warn using global logger.  <a href="namespaceade.html#a947ed7832b3fd461a41b28928e2aebbd">More...</a><br /></td></tr>
-<tr class="separator:a947ed7832b3fd461a41b28928e2aebbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aceb07f5c4cd3b4b950d5413f37940008"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aceb07f5c4cd3b4b950d5413f37940008">ade::error</a> (std::string msg)</td></tr>
-<tr class="memdesc:aceb07f5c4cd3b4b950d5413f37940008"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error using global logger.  <a href="namespaceade.html#aceb07f5c4cd3b4b950d5413f37940008">More...</a><br /></td></tr>
-<tr class="separator:aceb07f5c4cd3b4b950d5413f37940008"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a905c54ebacff42db4f0d8087ff048a38"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a905c54ebacff42db4f0d8087ff048a38">ade::fatal</a> (std::string msg)</td></tr>
-<tr class="memdesc:a905c54ebacff42db4f0d8087ff048a38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fatal using global logger.  <a href="namespaceade.html#a905c54ebacff42db4f0d8087ff048a38">More...</a><br /></td></tr>
-<tr class="separator:a905c54ebacff42db4f0d8087ff048a38"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac8c5293665e9489b0ecb83a8b1a9f2c0"><td class="memTemplParams" colspan="2">template&lt;typename... ARGS&gt; </td></tr>
-<tr class="memitem:ac8c5293665e9489b0ecb83a8b1a9f2c0"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceade.html#ac8c5293665e9489b0ecb83a8b1a9f2c0">ade::warnf</a> (std::string format, ARGS... args)</td></tr>
-<tr class="memdesc:ac8c5293665e9489b0ecb83a8b1a9f2c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Warn using global logger with arguments.  <a href="namespaceade.html#ac8c5293665e9489b0ecb83a8b1a9f2c0">More...</a><br /></td></tr>
-<tr class="separator:ac8c5293665e9489b0ecb83a8b1a9f2c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5984b9b87d8b61be95b9b8b7993619c"><td class="memTemplParams" colspan="2">template&lt;typename... ARGS&gt; </td></tr>
-<tr class="memitem:ae5984b9b87d8b61be95b9b8b7993619c"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceade.html#ae5984b9b87d8b61be95b9b8b7993619c">ade::errorf</a> (std::string format, ARGS... args)</td></tr>
-<tr class="memdesc:ae5984b9b87d8b61be95b9b8b7993619c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error using global logger with arguments.  <a href="namespaceade.html#ae5984b9b87d8b61be95b9b8b7993619c">More...</a><br /></td></tr>
-<tr class="separator:ae5984b9b87d8b61be95b9b8b7993619c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35150767a59a9ede58773e4f732a5ec5"><td class="memTemplParams" colspan="2">template&lt;typename... ARGS&gt; </td></tr>
-<tr class="memitem:a35150767a59a9ede58773e4f732a5ec5"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceade.html#a35150767a59a9ede58773e4f732a5ec5">ade::fatalf</a> (std::string format, ARGS... args)</td></tr>
-<tr class="memdesc:a35150767a59a9ede58773e4f732a5ec5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fatal using global logger with arguments.  <a href="namespaceade.html#a35150767a59a9ede58773e4f732a5ec5">More...</a><br /></td></tr>
-<tr class="separator:a35150767a59a9ede58773e4f732a5ec5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4c1dc0838ea6989dd037ae8b89df6e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceerr.html#aa4c1dc0838ea6989dd037ae8b89df6e0">err::set_logger</a> (std::shared_ptr&lt; iLogger &gt; logger)</td></tr>
+<tr class="memdesc:aa4c1dc0838ea6989dd037ae8b89df6e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set input logger for ADE global logger.  <a href="namespaceerr.html#aa4c1dc0838ea6989dd037ae8b89df6e0">More...</a><br /></td></tr>
+<tr class="separator:aa4c1dc0838ea6989dd037ae8b89df6e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8615b22245b0723216b11c61550f0374"><td class="memItemLeft" align="right" valign="top">const iLogger &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceerr.html#a8615b22245b0723216b11c61550f0374">err::get_logger</a> (void)</td></tr>
+<tr class="memdesc:a8615b22245b0723216b11c61550f0374"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reference to ADE global logger.  <a href="namespaceerr.html#a8615b22245b0723216b11c61550f0374">More...</a><br /></td></tr>
+<tr class="separator:a8615b22245b0723216b11c61550f0374"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58dc074f29dba8e6cc470e6965ae3fd5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceerr.html#a58dc074f29dba8e6cc470e6965ae3fd5">err::warn</a> (std::string msg)</td></tr>
+<tr class="memdesc:a58dc074f29dba8e6cc470e6965ae3fd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Warn using global logger.  <a href="namespaceerr.html#a58dc074f29dba8e6cc470e6965ae3fd5">More...</a><br /></td></tr>
+<tr class="separator:a58dc074f29dba8e6cc470e6965ae3fd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50e6c534462fd63ba9a87bd0d8564958"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceerr.html#a50e6c534462fd63ba9a87bd0d8564958">err::error</a> (std::string msg)</td></tr>
+<tr class="memdesc:a50e6c534462fd63ba9a87bd0d8564958"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error using global logger.  <a href="namespaceerr.html#a50e6c534462fd63ba9a87bd0d8564958">More...</a><br /></td></tr>
+<tr class="separator:a50e6c534462fd63ba9a87bd0d8564958"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab00f4c041df5b4a31b8b31604adfc5df"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceerr.html#ab00f4c041df5b4a31b8b31604adfc5df">err::fatal</a> (std::string msg)</td></tr>
+<tr class="memdesc:ab00f4c041df5b4a31b8b31604adfc5df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fatal using global logger.  <a href="namespaceerr.html#ab00f4c041df5b4a31b8b31604adfc5df">More...</a><br /></td></tr>
+<tr class="separator:ab00f4c041df5b4a31b8b31604adfc5df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83c76b074d1d5f0749064600eeafd8d6"><td class="memTemplParams" colspan="2">template&lt;typename... ARGS&gt; </td></tr>
+<tr class="memitem:a83c76b074d1d5f0749064600eeafd8d6"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceerr.html#a83c76b074d1d5f0749064600eeafd8d6">err::warnf</a> (std::string format, ARGS... args)</td></tr>
+<tr class="memdesc:a83c76b074d1d5f0749064600eeafd8d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Warn using global logger with arguments.  <a href="namespaceerr.html#a83c76b074d1d5f0749064600eeafd8d6">More...</a><br /></td></tr>
+<tr class="separator:a83c76b074d1d5f0749064600eeafd8d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43b0a4b66b5206b86cb01a14d55538d1"><td class="memTemplParams" colspan="2">template&lt;typename... ARGS&gt; </td></tr>
+<tr class="memitem:a43b0a4b66b5206b86cb01a14d55538d1"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceerr.html#a43b0a4b66b5206b86cb01a14d55538d1">err::errorf</a> (std::string format, ARGS... args)</td></tr>
+<tr class="memdesc:a43b0a4b66b5206b86cb01a14d55538d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error using global logger with arguments.  <a href="namespaceerr.html#a43b0a4b66b5206b86cb01a14d55538d1">More...</a><br /></td></tr>
+<tr class="separator:a43b0a4b66b5206b86cb01a14d55538d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac162fd5465373883f80a4b22519a4bf0"><td class="memTemplParams" colspan="2">template&lt;typename... ARGS&gt; </td></tr>
+<tr class="memitem:ac162fd5465373883f80a4b22519a4bf0"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceerr.html#ac162fd5465373883f80a4b22519a4bf0">err::fatalf</a> (std::string format, ARGS... args)</td></tr>
+<tr class="memdesc:ac162fd5465373883f80a4b22519a4bf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fatal using global logger with arguments.  <a href="namespaceerr.html#ac162fd5465373883f80a4b22519a4bf0">More...</a><br /></td></tr>
+<tr class="separator:ac162fd5465373883f80a4b22519a4bf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a880e280affae2d0aa13b096dcf0232b6"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a880e280affae2d0aa13b096dcf0232b6">ade::warn_tag</a> = &quot;[WARNING]:&quot;</td></tr>
-<tr class="memdesc:a880e280affae2d0aa13b096dcf0232b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">String tagged prepending a warning message in default logger.  <a href="namespaceade.html#a880e280affae2d0aa13b096dcf0232b6">More...</a><br /></td></tr>
-<tr class="separator:a880e280affae2d0aa13b096dcf0232b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef738ac0191330e6ce356cf476bde3d1"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aef738ac0191330e6ce356cf476bde3d1">ade::err_tag</a> = &quot;[ERROR]:&quot;</td></tr>
-<tr class="memdesc:aef738ac0191330e6ce356cf476bde3d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">String tagged prepending an error message in default logger.  <a href="namespaceade.html#aef738ac0191330e6ce356cf476bde3d1">More...</a><br /></td></tr>
-<tr class="separator:aef738ac0191330e6ce356cf476bde3d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1779a6fb41e44644c418535c4c55212a"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceerr.html#a1779a6fb41e44644c418535c4c55212a">err::warn_tag</a> = &quot;[WARNING]:&quot;</td></tr>
+<tr class="memdesc:a1779a6fb41e44644c418535c4c55212a"><td class="mdescLeft">&#160;</td><td class="mdescRight">String tagged prepending a warning message in default logger.  <a href="namespaceerr.html#a1779a6fb41e44644c418535c4c55212a">More...</a><br /></td></tr>
+<tr class="separator:a1779a6fb41e44644c418535c4c55212a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cf6d165806fcc275c71457ed94dc58f"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceerr.html#a7cf6d165806fcc275c71457ed94dc58f">err::err_tag</a> = &quot;[ERROR]:&quot;</td></tr>
+<tr class="memdesc:a7cf6d165806fcc275c71457ed94dc58f"><td class="mdescLeft">&#160;</td><td class="mdescRight">String tagged prepending an error message in default logger.  <a href="namespaceerr.html#a7cf6d165806fcc275c71457ed94dc58f">More...</a><br /></td></tr>
+<tr class="separator:a7cf6d165806fcc275c71457ed94dc58f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a787ef3c6f433baf13e162429f98fabc8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a787ef3c6f433baf13e162429f98fabc8">&#9670;&nbsp;</a></span>ERR_LOG_HPP</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ERR_LOG_HPP</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p><a class="el" href="log_8hpp.html">log.hpp</a> err</p>
+<p>Purpose: Define log message handling interface </p>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

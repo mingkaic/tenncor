@@ -86,7 +86,7 @@ Inheritance diagram for ade::Functor:</div>
  <div class="center">
   <img src="structade_1_1_functor.png" usemap="#ade::Functor_map" alt=""/>
   <map id="ade::Functor_map" name="ade::Functor_map">
-<area href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. " alt="ade::iFunctor" shape="rect" coords="0,56,86,80"/>
+<area href="structade_1_1i_functor.html" title="Interface of iOperation-defined operation node. " alt="ade::iFunctor" shape="rect" coords="0,56,86,80"/>
 <area href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="ade::iTensor" shape="rect" coords="0,0,86,24"/>
 </map>
  </div></div>
@@ -96,17 +96,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a00c3cbc202d5c94ab9a2fa2270e3a688"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structade_1_1_shape.html">Shape</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a00c3cbc202d5c94ab9a2fa2270e3a688">shape</a> (void) const override</td></tr>
 <tr class="memdesc:a00c3cbc202d5c94ab9a2fa2270e3a688"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="#a00c3cbc202d5c94ab9a2fa2270e3a688">More...</a><br /></td></tr>
 <tr class="separator:a00c3cbc202d5c94ab9a2fa2270e3a688"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8a91aa5d7298a658d5b15167b8528ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#aa8a91aa5d7298a658d5b15167b8528ec">gradient</a> (const <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *wrt) override</td></tr>
-<tr class="memdesc:aa8a91aa5d7298a658d5b15167b8528ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="#aa8a91aa5d7298a658d5b15167b8528ec">More...</a><br /></td></tr>
-<tr class="separator:aa8a91aa5d7298a658d5b15167b8528ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4503e570f95a289825384be36689be9a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a4503e570f95a289825384be36689be9a">to_string</a> (void) const override</td></tr>
 <tr class="memdesc:a4503e570f95a289825384be36689be9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="#a4503e570f95a289825384be36689be9a">More...</a><br /></td></tr>
 <tr class="separator:a4503e570f95a289825384be36689be9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f11bd1d4f4ddc2ccdb7ab283c562b49"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">OPCODE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a7f11bd1d4f4ddc2ccdb7ab283c562b49">get_code</a> (void) const override</td></tr>
-<tr class="memdesc:a7f11bd1d4f4ddc2ccdb7ab283c562b49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. ">iFunctor</a>.  <a href="#a7f11bd1d4f4ddc2ccdb7ab283c562b49">More...</a><br /></td></tr>
-<tr class="separator:a7f11bd1d4f4ddc2ccdb7ab283c562b49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab15cc2bb1f427f25b16d78080f5a0572"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#ab15cc2bb1f427f25b16d78080f5a0572">get_children</a> (void) const override</td></tr>
-<tr class="memdesc:ab15cc2bb1f427f25b16d78080f5a0572"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. ">iFunctor</a>.  <a href="#ab15cc2bb1f427f25b16d78080f5a0572">More...</a><br /></td></tr>
+<tr class="memitem:a340d59fb5237a9f14ec907221f1c2d26"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_opcode.html">Opcode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a340d59fb5237a9f14ec907221f1c2d26">get_opcode</a> (void) const override</td></tr>
+<tr class="memdesc:a340d59fb5237a9f14ec907221f1c2d26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_functor.html" title="Interface of iOperation-defined operation node. ">iFunctor</a>.  <a href="#a340d59fb5237a9f14ec907221f1c2d26">More...</a><br /></td></tr>
+<tr class="separator:a340d59fb5237a9f14ec907221f1c2d26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab15cc2bb1f427f25b16d78080f5a0572"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ArgsT</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#ab15cc2bb1f427f25b16d78080f5a0572">get_children</a> (void) const override</td></tr>
+<tr class="memdesc:ab15cc2bb1f427f25b16d78080f5a0572"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_functor.html" title="Interface of iOperation-defined operation node. ">iFunctor</a>.  <a href="#ab15cc2bb1f427f25b16d78080f5a0572">More...</a><br /></td></tr>
 <tr class="separator:ab15cc2bb1f427f25b16d78080f5a0572"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structade_1_1i_functor"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structade_1_1i_functor')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structade_1_1i_functor.html">ade::iFunctor</a></td></tr>
 <tr class="memitem:a9f5aebb693faea7cc5a822ca403f40c0 inherit pub_methods_structade_1_1i_functor"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_functor.html#a9f5aebb693faea7cc5a822ca403f40c0">~iFunctor</a> (void)=default</td></tr>
@@ -120,32 +117,32 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:aa2292d9f235bc1ee0615a5ad4c88d8ba"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structade_1_1_functor.html">Functor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#aa2292d9f235bc1ee0615a5ad4c88d8ba">get</a> (<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">OPCODE</a> opcode, <a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a> args)</td></tr>
-<tr class="memdesc:aa2292d9f235bc1ee0615a5ad4c88d8ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a <a class="el" href="structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. ">Functor</a> with with input tensor and meta arguments.  <a href="#aa2292d9f235bc1ee0615a5ad4c88d8ba">More...</a><br /></td></tr>
-<tr class="separator:aa2292d9f235bc1ee0615a5ad4c88d8ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64dca909ffd6ddc578e352774a05e4da"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structade_1_1_functor.html">Functor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a64dca909ffd6ddc578e352774a05e4da">get</a> (<a class="el" href="structade_1_1_opcode.html">Opcode</a> opcode, <a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ArgsT</a> args)</td></tr>
+<tr class="memdesc:a64dca909ffd6ddc578e352774a05e4da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a <a class="el" href="structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. ">Functor</a> with with input tensor and meta arguments.  <a href="#a64dca909ffd6ddc578e352774a05e4da">More...</a><br /></td></tr>
+<tr class="separator:a64dca909ffd6ddc578e352774a05e4da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:a10f8297f3357a778a93b3c57167417a6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a10f8297f3357a778a93b3c57167417a6">Functor</a> (<a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">OPCODE</a> opcode, <a class="el" href="structade_1_1_shape.html">Shape</a> <a class="el" href="structade_1_1_functor.html#a00c3cbc202d5c94ab9a2fa2270e3a688">shape</a>, <a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a> args)</td></tr>
-<tr class="separator:a10f8297f3357a778a93b3c57167417a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50b66b702948e0c4f40acb4ab9dd623d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a50b66b702948e0c4f40acb4ab9dd623d">Functor</a> (<a class="el" href="structade_1_1_opcode.html">Opcode</a> opcode, <a class="el" href="structade_1_1_shape.html">Shape</a> <a class="el" href="structade_1_1_functor.html#a00c3cbc202d5c94ab9a2fa2270e3a688">shape</a>, <a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ArgsT</a> args)</td></tr>
+<tr class="separator:a50b66b702948e0c4f40acb4ab9dd623d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a2f5e5c19874c7b2671819ea05f2994b7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">OPCODE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a2f5e5c19874c7b2671819ea05f2994b7">opcode_</a></td></tr>
-<tr class="memdesc:a2f5e5c19874c7b2671819ea05f2994b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">OPCODE represented by functor.  <a href="#a2f5e5c19874c7b2671819ea05f2994b7">More...</a><br /></td></tr>
-<tr class="separator:a2f5e5c19874c7b2671819ea05f2994b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a510bd987710b9f124e178bd0e826ab6d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_opcode.html">Opcode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a510bd987710b9f124e178bd0e826ab6d">opcode_</a></td></tr>
+<tr class="memdesc:a510bd987710b9f124e178bd0e826ab6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operation encoding.  <a href="#a510bd987710b9f124e178bd0e826ab6d">More...</a><br /></td></tr>
+<tr class="separator:a510bd987710b9f124e178bd0e826ab6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99fbfe6298c8fea43e632ea75bf68973"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a99fbfe6298c8fea43e632ea75bf68973">shape_</a></td></tr>
 <tr class="memdesc:a99fbfe6298c8fea43e632ea75bf68973"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structade_1_1_shape.html">Shape</a> info built at construction time according to arguments.  <a href="#a99fbfe6298c8fea43e632ea75bf68973">More...</a><br /></td></tr>
 <tr class="separator:a99fbfe6298c8fea43e632ea75bf68973"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c261d16440fc9d99a95a7a95c0573ce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a2c261d16440fc9d99a95a7a95c0573ce">args_</a></td></tr>
+<tr class="memitem:a2c261d16440fc9d99a95a7a95c0573ce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ArgsT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_functor.html#a2c261d16440fc9d99a95a7a95c0573ce">args_</a></td></tr>
 <tr class="memdesc:a2c261d16440fc9d99a95a7a95c0573ce"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. ">Tensor</a> arguments (and children)  <a href="#a2c261d16440fc9d99a95a7a95c0573ce">More...</a><br /></td></tr>
 <tr class="separator:a2c261d16440fc9d99a95a7a95c0573ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. ">Functor</a> of the graph mapping to operators specified by opcode argument. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a10f8297f3357a778a93b3c57167417a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a10f8297f3357a778a93b3c57167417a6">&#9670;&nbsp;</a></span>Functor()</h2>
+<a id="a50b66b702948e0c4f40acb4ab9dd623d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50b66b702948e0c4f40acb4ab9dd623d">&#9670;&nbsp;</a></span>Functor()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -156,7 +153,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">ade::Functor::Functor </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">OPCODE</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="structade_1_1_opcode.html">Opcode</a>&#160;</td>
           <td class="paramname"><em>opcode</em>, </td>
         </tr>
         <tr>
@@ -168,7 +165,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ArgsT</a>&#160;</td>
           <td class="paramname"><em>args</em>&#160;</td>
         </tr>
         <tr>
@@ -187,8 +184,8 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa2292d9f235bc1ee0615a5ad4c88d8ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2292d9f235bc1ee0615a5ad4c88d8ba">&#9670;&nbsp;</a></span>get()</h2>
+<a id="a64dca909ffd6ddc578e352774a05e4da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64dca909ffd6ddc578e352774a05e4da">&#9670;&nbsp;</a></span>get()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -199,13 +196,13 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">static <a class="el" href="structade_1_1_functor.html">Functor</a>* ade::Functor::get </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">OPCODE</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="structade_1_1_opcode.html">Opcode</a>&#160;</td>
           <td class="paramname"><em>opcode</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ArgsT</a>&#160;</td>
           <td class="paramname"><em>args</em>&#160;</td>
         </tr>
         <tr>
@@ -235,7 +232,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a>&amp; ade::Functor::get_children </td>
+          <td class="memname">const <a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ArgsT</a>&amp; ade::Functor::get_children </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -249,14 +246,14 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implementation of <a class="el" href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. ">iFunctor</a>. </p>
+<p>Implementation of <a class="el" href="structade_1_1i_functor.html" title="Interface of iOperation-defined operation node. ">iFunctor</a>. </p>
 
 <p>Implements <a class="el" href="structade_1_1i_functor.html#a074e2f5304eb5d59e585e480d27f8953">ade::iFunctor</a>.</p>
 
 </div>
 </div>
-<a id="a7f11bd1d4f4ddc2ccdb7ab283c562b49"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f11bd1d4f4ddc2ccdb7ab283c562b49">&#9670;&nbsp;</a></span>get_code()</h2>
+<a id="a340d59fb5237a9f14ec907221f1c2d26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a340d59fb5237a9f14ec907221f1c2d26">&#9670;&nbsp;</a></span>get_opcode()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -265,7 +262,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">OPCODE</a> ade::Functor::get_code </td>
+          <td class="memname"><a class="el" href="structade_1_1_opcode.html">Opcode</a> ade::Functor::get_opcode </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -279,39 +276,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implementation of <a class="el" href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. ">iFunctor</a>. </p>
+<p>Implementation of <a class="el" href="structade_1_1i_functor.html" title="Interface of iOperation-defined operation node. ">iFunctor</a>. </p>
 
-<p>Implements <a class="el" href="structade_1_1i_functor.html#aa709a158c3e4df237b9fad463771487f">ade::iFunctor</a>.</p>
-
-</div>
-</div>
-<a id="aa8a91aa5d7298a658d5b15167b8528ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8a91aa5d7298a658d5b15167b8528ec">&#9670;&nbsp;</a></span>gradient()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a> ade::Functor::gradient </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *&#160;</td>
-          <td class="paramname"><em>wrt</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>. </p>
-
-<p>Implements <a class="el" href="structade_1_1i_tensor.html#a6ac779f81888c46b40804c9f716eaf10">ade::iTensor</a>.</p>
+<p>Implements <a class="el" href="structade_1_1i_functor.html#a7150b4b4697bd99719b6f424b1fd219c">ade::iFunctor</a>.</p>
 
 </div>
 </div>
@@ -386,7 +353,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a> ade::Functor::args_</td>
+          <td class="memname"><a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ArgsT</a> ade::Functor::args_</td>
         </tr>
       </table>
   </td>
@@ -400,8 +367,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a2f5e5c19874c7b2671819ea05f2994b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2f5e5c19874c7b2671819ea05f2994b7">&#9670;&nbsp;</a></span>opcode_</h2>
+<a id="a510bd987710b9f124e178bd0e826ab6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a510bd987710b9f124e178bd0e826ab6d">&#9670;&nbsp;</a></span>opcode_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -410,7 +377,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceade.html#a608b0009e35de2aa479a4fcae513b773">OPCODE</a> ade::Functor::opcode_</td>
+          <td class="memname"><a class="el" href="structade_1_1_opcode.html">Opcode</a> ade::Functor::opcode_</td>
         </tr>
       </table>
   </td>
@@ -420,7 +387,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>OPCODE represented by functor. </p>
+<p>Operation encoding. </p>
 
 </div>
 </div>

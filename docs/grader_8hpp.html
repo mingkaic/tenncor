@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Tenncor: ade/grader.hpp File Reference</title>
+<title>Tenncor: bwd/grader.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -61,69 +61,54 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_e27d2b201b2b67ab280cb2f6929c41a1.html">ade</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_97447f0c3e47aa62c3e09853de39881d.html">bwd</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">grader.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="opcode_8hpp_source.html">ade/opcode.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="tensor_8hpp_source.html">ade/tensor.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="coord_8hpp_source.html">ade/coord.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="tensor_8hpp_source.html">ade/tensor.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="traveler_8hpp_source.html">ade/traveler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="functor_8hpp_source.html">ade/functor.hpp</a>&quot;</code><br />
 </div>
 <p><a href="grader_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
-Namespaces</h2></td></tr>
-<tr class="memitem:namespaceade"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html">ade</a></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1i_rule_set.html">age::iRuleSet</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ruleset used by a <a class="el" href="structage_1_1_grader.html" title="Traveler to obtain derivative of accepted node with respect to target. ">Grader</a> traveler to derive equations.  <a href="structage_1_1i_rule_set.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1_grader.html">age::Grader</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Traveler to obtain derivative of accepted node with respect to target.  <a href="structage_1_1_grader.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:acb2a44ebd475812985843f8903e4f3a6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="grader_8hpp.html#acb2a44ebd475812985843f8903e4f3a6">GRAD_DECLARE</a>(CODE)</td></tr>
-<tr class="separator:acb2a44ebd475812985843f8903e4f3a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespaceage"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceage.html">age</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:af28393f7365a2b01ebee3cb9b4a5ec11"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ade::ArgsT</a> = std::vector&lt; std::pair&lt; CoordPtrT, Tensorptr &gt; &gt;</td></tr>
-<tr class="memdesc:af28393f7365a2b01ebee3cb9b4a5ec11"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of functor arguments.  <a href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">More...</a><br /></td></tr>
-<tr class="separator:af28393f7365a2b01ebee3cb9b4a5ec11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41e30ef84d495137d222125ba09462a4"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceage.html#a41e30ef84d495137d222125ba09462a4">age::TensT</a> = std::vector&lt; <a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a> &gt;</td></tr>
+<tr class="memdesc:a41e30ef84d495137d222125ba09462a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector representation of tensor pointers.  <a href="namespaceage.html#a41e30ef84d495137d222125ba09462a4">More...</a><br /></td></tr>
+<tr class="separator:a41e30ef84d495137d222125ba09462a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1f416c166cd10d1f7fd049d9f379be11"><td class="memTemplParams" colspan="2">template&lt;OPCODE OP&gt; </td></tr>
-<tr class="memitem:a1f416c166cd10d1f7fd049d9f379be11"><td class="memTemplItemLeft" align="right" valign="top">Tensorptr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceade.html#a1f416c166cd10d1f7fd049d9f379be11">ade::grader</a> (ArgsT &amp;args, ArgsT &amp;grads)</td></tr>
-<tr class="separator:a1f416c166cd10d1f7fd049d9f379be11"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a925a1c9fe2f12c3c0138376c1c0b74a3"><td class="memItemLeft" align="right" valign="top">Tensorptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a925a1c9fe2f12c3c0138376c1c0b74a3">ade::gradmap</a> (OPCODE op, ArgsT args, ArgsT &amp;grads)</td></tr>
-<tr class="separator:a925a1c9fe2f12c3c0138376c1c0b74a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcd027e02c955a45b931401f1f298913"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ad1f6c49ce371088f4e408e531c577b72">ade::ArgsT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceage.html#afcd027e02c955a45b931401f1f298913">age::to_args</a> (TensT tens)</td></tr>
+<tr class="memdesc:afcd027e02c955a45b931401f1f298913"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return ArgsT with each tensor in TensT attached to identity mapper.  <a href="namespaceage.html#afcd027e02c955a45b931401f1f298913">More...</a><br /></td></tr>
+<tr class="separator:afcd027e02c955a45b931401f1f298913"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad214d22d0559d428cd8f35dc8971a96"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceage.html#aad214d22d0559d428cd8f35dc8971a96">age::derive</a> (<a class="el" href="structade_1_1_tensorptr.html">ade::Tensorptr</a> &amp;root, const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *wrt)</td></tr>
+<tr class="memdesc:aad214d22d0559d428cd8f35dc8971a96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return derivative of root with respect to wrt using <a class="el" href="structage_1_1_grader.html" title="Traveler to obtain derivative of accepted node with respect to target. ">Grader</a>.  <a href="namespaceage.html#aad214d22d0559d428cd8f35dc8971a96">More...</a><br /></td></tr>
+<tr class="separator:aad214d22d0559d428cd8f35dc8971a96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="acb2a44ebd475812985843f8903e4f3a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb2a44ebd475812985843f8903e4f3a6">&#9670;&nbsp;</a></span>GRAD_DECLARE</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define GRAD_DECLARE</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">CODE</td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;&gt;\</div><div class="line">Tensorptr grader&lt;CODE&gt; (<a class="code" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a>&amp;,<a class="code" href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ArgsT</a>&amp;);</div><div class="ttc" id="namespaceade_html_af28393f7365a2b01ebee3cb9b4a5ec11"><div class="ttname"><a href="namespaceade.html#af28393f7365a2b01ebee3cb9b4a5ec11">ade::ArgsT</a></div><div class="ttdeci">std::vector&lt; std::pair&lt; CoordPtrT, Tensorptr &gt; &gt; ArgsT</div><div class="ttdoc">Type of functor arguments. </div><div class="ttdef"><b>Definition:</b> grader.hpp:22</div></div>
-</div><!-- fragment -->
-</div>
-</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

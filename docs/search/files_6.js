@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['log_2ecpp',['log.cpp',['../log_8cpp.html',1,'']]],
-  ['log_2ehpp',['log.hpp',['../log_8hpp.html',1,'']]]
+  ['main_2ecpp',['main.cpp',['../err_2test_2main_8cpp.html',1,'(Global Namespace)'],['../ade_2test_2main_8cpp.html',1,'(Global Namespace)'],['../age_2test_2main_8cpp.html',1,'(Global Namespace)'],['../bwd_2test_2main_8cpp.html',1,'(Global Namespace)']]],
+  ['matops_2ecpp',['matops.cpp',['../matops_8cpp.html',1,'']]],
+  ['matops_2ehpp',['matops.hpp',['../matops_8hpp.html',1,'']]]
 ];

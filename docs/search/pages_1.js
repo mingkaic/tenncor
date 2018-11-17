@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['llo_20_28low_2dlevel_20operators_29',['LLO (Low-Level Operators)',['../md_llo__r_e_a_d_m_e__l_l_o.html',1,'']]]
+  ['logger',['Logger',['../md_err__r_e_a_d_m_e__l_o_g.html',1,'']]]
 ];

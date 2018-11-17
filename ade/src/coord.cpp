@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "ade/log/log.hpp"
+#include "err/log.hpp"
 #include "ade/coord.hpp"
 
 #ifdef ADE_COORD_HPP
@@ -57,42 +57,23 @@ CoordPtrT identity(new CoordMap(
 		}
 	}));
 
-Shape map_shape (CoordPtrT& mapper, const Shape& shape)
-{
-	CoordT out;
-	CoordT in;
-	std::copy(shape.begin(), shape.end(), in.begin());
-	mapper->forward(out.begin(), in.begin());
-	std::vector<DimT> slist(rank_cap);
-	std::transform(out.begin(), out.end(), slist.begin(),
-		[](CDimT cd) -> DimT
-		{
-			if (cd < 0)
-			{
-				cd = -cd - 1;
-			}
-			return cd;
-		});
-	return Shape(slist);
-}
-
 CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 {
 	uint8_t n_red = red.size();
 	if (std::any_of(red.begin(), red.end(),
 		[](DimT& d) { return 0 == d; }))
 	{
-		fatalf("cannot reduce using zero dimensions %s",
-			to_string(red.begin(), red.end()).c_str());
+		err::fatalf("cannot reduce using zero dimensions %s",
+			err::to_string(red.begin(), red.end()).c_str());
 	}
 	if (rank + n_red > rank_cap)
 	{
-		fatalf("cannot reduce shape rank %d beyond rank_cap with n_red %d",
+		err::fatalf("cannot reduce shape rank %d beyond rank_cap with n_red %d",
 			rank, n_red);
 	}
 	if (0 == n_red)
 	{
-		warn("reducing with empty vector... will do nothing");
+		err::warn("reducing with empty vector... will do nothing");
 		return identity;
 	}
 
@@ -117,17 +98,17 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
 	if (std::any_of(ext.begin(), ext.end(),
 		[](DimT& d) { return 0 == d; }))
 	{
-		fatalf("cannot extend using zero dimensions %s",
-			to_string(ext.begin(), ext.end()).c_str());
+		err::fatalf("cannot extend using zero dimensions %s",
+			err::to_string(ext.begin(), ext.end()).c_str());
 	}
 	if (rank + n_ext > rank_cap)
 	{
-		fatalf("cannot extend shape rank %d beyond rank_cap with n_ext %d",
+		err::fatalf("cannot extend shape rank %d beyond rank_cap with n_ext %d",
 			rank, n_ext);
 	}
 	if (0 == n_ext)
 	{
-		warn("extending with empty vector... will do nothing");
+		err::warn("extending with empty vector... will do nothing");
 		return identity;
 	}
 
@@ -150,7 +131,7 @@ CoordPtrT permute (std::vector<uint8_t> dims)
 {
 	if (dims.size() == 0)
 	{
-		warn("permuting with same dimensions ... will do nothing");
+		err::warn("permuting with same dimensions ... will do nothing");
 		return identity;
 	}
 
@@ -182,7 +163,7 @@ CoordPtrT flip (uint8_t dim)
 {
 	if (dim >= rank_cap)
 	{
-		warn("flipping dimension out of rank_cap ... will do nothing");
+		err::warn("flipping dimension out of rank_cap ... will do nothing");
 		return identity;
 	}
 

@@ -67,13 +67,9 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
-<a href="#pri-methods">Private Member Functions</a> &#124;
-<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="structade_1_1_tensor-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">ade::Tensor Struct Reference<span class="mlabels"><span class="mlabel">final</span></span></div>  </div>
+<div class="title">ade::Tensor Struct Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -87,59 +83,44 @@ Inheritance diagram for ade::Tensor:</div>
  <div class="center">
   <img src="structade_1_1_tensor.png" usemap="#ade::Tensor_map" alt=""/>
   <map id="ade::Tensor_map" name="ade::Tensor_map">
-<area href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="ade::iTensor" shape="rect" coords="0,0,81,24"/>
+<area href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="ade::iTensor" shape="rect" coords="92,0,174,24"/>
+<area href="struct_mock_tensor.html" alt="MockTensor" shape="rect" coords="0,112,82,136"/>
+<area href="struct_mock_tensor.html" alt="MockTensor" shape="rect" coords="92,112,174,136"/>
+<area href="struct_mock_tensor.html" alt="MockTensor" shape="rect" coords="184,112,266,136"/>
 </map>
  </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:ad0c493c2caff91694ec2ea4c730bb81b"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#ad0c493c2caff91694ec2ea4c730bb81b">~Tensor</a> (void)=default</td></tr>
+<tr class="separator:ad0c493c2caff91694ec2ea4c730bb81b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae994443392939b32cf9ec98e91f7638a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#ae994443392939b32cf9ec98e91f7638a">accept</a> (<a class="el" href="structade_1_1i_traveler.html">iTraveler</a> &amp;visiter) override</td></tr>
 <tr class="memdesc:ae994443392939b32cf9ec98e91f7638a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="#ae994443392939b32cf9ec98e91f7638a">More...</a><br /></td></tr>
 <tr class="separator:ae994443392939b32cf9ec98e91f7638a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7460655c01d7be7fed376d30b8aa3804"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structade_1_1_shape.html">Shape</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#a7460655c01d7be7fed376d30b8aa3804">shape</a> (void) const override</td></tr>
-<tr class="memdesc:a7460655c01d7be7fed376d30b8aa3804"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="#a7460655c01d7be7fed376d30b8aa3804">More...</a><br /></td></tr>
-<tr class="separator:a7460655c01d7be7fed376d30b8aa3804"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00463a6a5011279d917bf08c7b45ea2b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#a00463a6a5011279d917bf08c7b45ea2b">gradient</a> (const <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *wrt) override</td></tr>
-<tr class="memdesc:a00463a6a5011279d917bf08c7b45ea2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="#a00463a6a5011279d917bf08c7b45ea2b">More...</a><br /></td></tr>
-<tr class="separator:a00463a6a5011279d917bf08c7b45ea2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac589897b8d4294ab3d272c1600bd4064"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#ac589897b8d4294ab3d272c1600bd4064">to_string</a> (void) const override</td></tr>
-<tr class="memdesc:ac589897b8d4294ab3d272c1600bd4064"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="#ac589897b8d4294ab3d272c1600bd4064">More...</a><br /></td></tr>
-<tr class="separator:ac589897b8d4294ab3d272c1600bd4064"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c73e2cf959d859aadc169ea78d84a3d"><td class="memItemLeft" align="right" valign="top">virtual void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#a0c73e2cf959d859aadc169ea78d84a3d">data</a> (void)=0</td></tr>
+<tr class="memdesc:a0c73e2cf959d859aadc169ea78d84a3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return pointer to internal data.  <a href="#a0c73e2cf959d859aadc169ea78d84a3d">More...</a><br /></td></tr>
+<tr class="separator:a0c73e2cf959d859aadc169ea78d84a3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa11a6eaef5b476d97e029f9fb441324c"><td class="memItemLeft" align="right" valign="top">virtual const void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#aa11a6eaef5b476d97e029f9fb441324c">data</a> (void) const =0</td></tr>
+<tr class="memdesc:aa11a6eaef5b476d97e029f9fb441324c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return const pointer to internal data.  <a href="#aa11a6eaef5b476d97e029f9fb441324c">More...</a><br /></td></tr>
+<tr class="separator:aa11a6eaef5b476d97e029f9fb441324c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4d1c09543049148be3ac375ad9d170c"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#ab4d1c09543049148be3ac375ad9d170c">type_code</a> (void) const =0</td></tr>
+<tr class="memdesc:ab4d1c09543049148be3ac375ad9d170c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return data type encoding.  <a href="#ab4d1c09543049148be3ac375ad9d170c">More...</a><br /></td></tr>
+<tr class="separator:ab4d1c09543049148be3ac375ad9d170c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structade_1_1i_tensor"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structade_1_1i_tensor')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a></td></tr>
 <tr class="memitem:a1eb974b967ef2da732ee074e73631342 inherit pub_methods_structade_1_1i_tensor"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a1eb974b967ef2da732ee074e73631342">~iTensor</a> (void)=default</td></tr>
 <tr class="separator:a1eb974b967ef2da732ee074e73631342 inherit pub_methods_structade_1_1i_tensor"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a12d316a94c3e1a766afa4df1c74970cf"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structade_1_1_tensor.html">Tensor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#a12d316a94c3e1a766afa4df1c74970cf">get</a> (<a class="el" href="structade_1_1_shape.html">Shape</a> <a class="el" href="structade_1_1_tensor.html#a7460655c01d7be7fed376d30b8aa3804">shape</a>)</td></tr>
-<tr class="memdesc:a12d316a94c3e1a766afa4df1c74970cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a <a class="el" href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. ">Tensor</a> with input shape.  <a href="#a12d316a94c3e1a766afa4df1c74970cf">More...</a><br /></td></tr>
-<tr class="separator:a12d316a94c3e1a766afa4df1c74970cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a21edc3441632e34df586632f813d2629"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#a21edc3441632e34df586632f813d2629">SYMBOLIC_ONE</a></td></tr>
-<tr class="memdesc:a21edc3441632e34df586632f813d2629"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represent a scalar containing value one.  <a href="#a21edc3441632e34df586632f813d2629">More...</a><br /></td></tr>
-<tr class="separator:a21edc3441632e34df586632f813d2629"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c62991c6440560181d34f8be02ee4f5"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#a8c62991c6440560181d34f8be02ee4f5">SYMBOLIC_ZERO</a></td></tr>
-<tr class="memdesc:a8c62991c6440560181d34f8be02ee4f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represent a scalar containing value zero.  <a href="#a8c62991c6440560181d34f8be02ee4f5">More...</a><br /></td></tr>
-<tr class="separator:a8c62991c6440560181d34f8be02ee4f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
-Private Member Functions</h2></td></tr>
-<tr class="memitem:ae6bba462f252fd2c8c4d50cca35f0b93"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#ae6bba462f252fd2c8c4d50cca35f0b93">Tensor</a> (<a class="el" href="structade_1_1_shape.html">Shape</a> <a class="el" href="structade_1_1_tensor.html#a7460655c01d7be7fed376d30b8aa3804">shape</a>)</td></tr>
-<tr class="separator:ae6bba462f252fd2c8c4d50cca35f0b93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
-Private Attributes</h2></td></tr>
-<tr class="memitem:af401269d959b23081bcdaea831d7bf0c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_tensor.html#af401269d959b23081bcdaea831d7bf0c">shape_</a></td></tr>
-<tr class="memdesc:af401269d959b23081bcdaea831d7bf0c"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structade_1_1_shape.html">Shape</a> info of the tensor instance.  <a href="#af401269d959b23081bcdaea831d7bf0c">More...</a><br /></td></tr>
-<tr class="separator:af401269d959b23081bcdaea831d7bf0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a782c626a29501f974532905657c8d66b inherit pub_methods_structade_1_1i_tensor"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="structade_1_1_shape.html">Shape</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a782c626a29501f974532905657c8d66b">shape</a> (void) const =0</td></tr>
+<tr class="memdesc:a782c626a29501f974532905657c8d66b inherit pub_methods_structade_1_1i_tensor"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the shape held by this tensor.  <a href="structade_1_1i_tensor.html#a782c626a29501f974532905657c8d66b">More...</a><br /></td></tr>
+<tr class="separator:a782c626a29501f974532905657c8d66b inherit pub_methods_structade_1_1i_tensor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a01138fc6bce780fcd4b4e495ca050fce inherit pub_methods_structade_1_1i_tensor"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a01138fc6bce780fcd4b4e495ca050fce">to_string</a> (void) const =0</td></tr>
+<tr class="memdesc:a01138fc6bce780fcd4b4e495ca050fce inherit pub_methods_structade_1_1i_tensor"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the string representation of the tensor.  <a href="structade_1_1i_tensor.html#a01138fc6bce780fcd4b4e495ca050fce">More...</a><br /></td></tr>
+<tr class="separator:a01138fc6bce780fcd4b4e495ca050fce inherit pub_methods_structade_1_1i_tensor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Leaf of the graph commonly representing the variable in an equation. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ae6bba462f252fd2c8c4d50cca35f0b93"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae6bba462f252fd2c8c4d50cca35f0b93">&#9670;&nbsp;</a></span>Tensor()</h2>
+<a id="ad0c493c2caff91694ec2ea4c730bb81b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0c493c2caff91694ec2ea4c730bb81b">&#9670;&nbsp;</a></span>~Tensor()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -148,16 +129,16 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">ade::Tensor::Tensor </td>
+          <td class="memname">virtual ade::Tensor::~Tensor </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td>
-          <td class="paramname"><em>shape</em></td><td>)</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">default</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -195,8 +176,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a12d316a94c3e1a766afa4df1c74970cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a12d316a94c3e1a766afa4df1c74970cf">&#9670;&nbsp;</a></span>get()</h2>
+<a id="a0c73e2cf959d859aadc169ea78d84a3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c73e2cf959d859aadc169ea78d84a3d">&#9670;&nbsp;</a></span>data() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -205,26 +186,28 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="structade_1_1_tensor.html">Tensor</a>* ade::Tensor::get </td>
+          <td class="memname">virtual void* ade::Tensor::data </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td>
-          <td class="paramname"><em>shape</em></td><td>)</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Return a <a class="el" href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. ">Tensor</a> with input shape. </p>
+<p>Return pointer to internal data. </p>
+
+<p>Implemented in <a class="el" href="struct_mock_tensor.html#a2cc4639e0c9cf3671fa0f4cf7d0d2732">MockTensor</a>, <a class="el" href="struct_mock_tensor.html#a2cc4639e0c9cf3671fa0f4cf7d0d2732">MockTensor</a>, and <a class="el" href="struct_mock_tensor.html#a2cc4639e0c9cf3671fa0f4cf7d0d2732">MockTensor</a>.</p>
 
 </div>
 </div>
-<a id="a00463a6a5011279d917bf08c7b45ea2b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00463a6a5011279d917bf08c7b45ea2b">&#9670;&nbsp;</a></span>gradient()</h2>
+<a id="aa11a6eaef5b476d97e029f9fb441324c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa11a6eaef5b476d97e029f9fb441324c">&#9670;&nbsp;</a></span>data() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -233,37 +216,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a> ade::Tensor::gradient </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *&#160;</td>
-          <td class="paramname"><em>wrt</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>. </p>
-
-<p>Implements <a class="el" href="structade_1_1i_tensor.html#a6ac779f81888c46b40804c9f716eaf10">ade::iTensor</a>.</p>
-
-</div>
-</div>
-<a id="a7460655c01d7be7fed376d30b8aa3804"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7460655c01d7be7fed376d30b8aa3804">&#9670;&nbsp;</a></span>shape()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="structade_1_1_shape.html">Shape</a>&amp; ade::Tensor::shape </td>
+          <td class="memname">virtual const void* ade::Tensor::data </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -272,19 +225,19 @@ Private Attributes</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>. </p>
+<p>Return const pointer to internal data. </p>
 
-<p>Implements <a class="el" href="structade_1_1i_tensor.html#a782c626a29501f974532905657c8d66b">ade::iTensor</a>.</p>
+<p>Implemented in <a class="el" href="struct_mock_tensor.html#aff0b358ef61bdd639327581993bb7f2b">MockTensor</a>, <a class="el" href="struct_mock_tensor.html#aff0b358ef61bdd639327581993bb7f2b">MockTensor</a>, and <a class="el" href="struct_mock_tensor.html#aff0b358ef61bdd639327581993bb7f2b">MockTensor</a>.</p>
 
 </div>
 </div>
-<a id="ac589897b8d4294ab3d272c1600bd4064"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac589897b8d4294ab3d272c1600bd4064">&#9670;&nbsp;</a></span>to_string()</h2>
+<a id="ab4d1c09543049148be3ac375ad9d170c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4d1c09543049148be3ac375ad9d170c">&#9670;&nbsp;</a></span>type_code()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -293,7 +246,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::string ade::Tensor::to_string </td>
+          <td class="memname">virtual size_t ade::Tensor::type_code </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -302,87 +255,14 @@ Private Attributes</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>. </p>
+<p>Return data type encoding. </p>
 
-<p>Implements <a class="el" href="structade_1_1i_tensor.html#a01138fc6bce780fcd4b4e495ca050fce">ade::iTensor</a>.</p>
-
-</div>
-</div>
-<h2 class="groupheader">Member Data Documentation</h2>
-<a id="af401269d959b23081bcdaea831d7bf0c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af401269d959b23081bcdaea831d7bf0c">&#9670;&nbsp;</a></span>shape_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structade_1_1_shape.html">Shape</a> ade::Tensor::shape_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p><a class="el" href="structade_1_1_shape.html">Shape</a> info of the tensor instance. </p>
-
-</div>
-</div>
-<a id="a21edc3441632e34df586632f813d2629"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a21edc3441632e34df586632f813d2629">&#9670;&nbsp;</a></span>SYMBOLIC_ONE</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a> ade::Tensor::SYMBOLIC_ONE</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Represent a scalar containing value one. </p>
-
-</div>
-</div>
-<a id="a8c62991c6440560181d34f8be02ee4f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c62991c6440560181d34f8be02ee4f5">&#9670;&nbsp;</a></span>SYMBOLIC_ZERO</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structade_1_1_tensorptr.html">Tensorptr</a> ade::Tensor::SYMBOLIC_ZERO</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Represent a scalar containing value zero. </p>
+<p>Implemented in <a class="el" href="struct_mock_tensor.html#ae0c7cdcdbd9b0ec187c50921effbb766">MockTensor</a>, <a class="el" href="struct_mock_tensor.html#ae0c7cdcdbd9b0ec187c50921effbb766">MockTensor</a>, and <a class="el" href="struct_mock_tensor.html#ae0c7cdcdbd9b0ec187c50921effbb766">MockTensor</a>.</p>
 
 </div>
 </div>

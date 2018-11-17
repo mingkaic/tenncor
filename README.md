@@ -14,14 +14,9 @@ A tensor is an N-dimensional container that organizes its content by some shape.
 This module supplies syntax tree for equation and generates derivative.
 Constraints to the equation is limited to each tensor's shape.
 
-- [LLO (Low Level Operators)](llo/README_LLO.md)
+- [AGE (ADE Generation Engine)](age/README_LLO.md)
 
-This module is a sample library of data operators mapped to the ADE opcodes.
-Expect this module to split when I decide to depend on external libraries (like eigen).
-
-- [PBM (Protobuf Marshaller)](pbm/README_PBM.md)
-
-This module marshals llo-extended ade graph
+This generator creates glue layer between ADE and data manipulation libraries as well as map operational codes to its respective chain rule. AGE also provides a runtime library to evaluate derivatives using the mapped chain rules.
 
 ## Tools and utility
 

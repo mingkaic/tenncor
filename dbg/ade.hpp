@@ -26,9 +26,9 @@ struct PrettyEquation final
 				auto& children = f->get_children();
 				std::vector<ade::iTensor*> tens(children.size());
 				std::transform(children.begin(), children.end(), tens.begin(),
-				[](const std::pair<ade::CoordPtrT,ade::Tensorptr>& child)
+				[](const ade::MappedTensor& child)
 				{
-					return child.second.get();
+					return child.tensor_.get();
 				});
 				return tens;
 			}
@@ -43,18 +43,7 @@ struct PrettyEquation final
 				{
 					out << it->second << "=";
 				}
-				if (root == ade::Tensor::SYMBOLIC_ONE.get())
-				{
-					out << "[1]<SYMBOLIC_1>";
-				}
-				else if (root == ade::Tensor::SYMBOLIC_ZERO.get())
-				{
-					out << "[1]<SYMBOLIC_0>";
-				}
-				else
-				{
-					out << root->to_string();
-				}
+				out << root->to_string();
 				if (showshape_ && nullptr != dynamic_cast<ade::iFunctor*>(root))
 				{
 					out << root->shape().to_string();

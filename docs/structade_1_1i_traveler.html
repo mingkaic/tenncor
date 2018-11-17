@@ -73,19 +73,19 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Interface to travel through graph, treating <a class="el" href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. ">Tensor</a> and <a class="el" href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. ">iFunctor</a> differently.  
+<p>Interface to travel through graph, treating <a class="el" href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. ">Tensor</a> and <a class="el" href="structade_1_1i_functor.html" title="Interface of iOperation-defined operation node. ">iFunctor</a> differently.  
  <a href="structade_1_1i_traveler.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="tensor_8hpp_source.html">tensor.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="itensor_8hpp_source.html">itensor.hpp</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for ade::iTraveler:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="structade_1_1i_traveler.png" usemap="#ade::iTraveler_map" alt=""/>
   <map id="ade::iTraveler_map" name="ade::iTraveler_map">
-<area href="structade_1_1_path_finder.html" alt="ade::PathFinder" shape="rect" coords="0,56,101,80"/>
-<area href="structllo_1_1_evaluator.html" alt="llo::Evaluator" shape="rect" coords="111,56,212,80"/>
-<area href="structllo_1_1_graph_stat.html" alt="llo::GraphStat" shape="rect" coords="222,56,323,80"/>
+<area href="structade_1_1_graph_stat.html" title="Traveler that maps each tensor to its subtree&#39;s maximum depth. " alt="ade::GraphStat" shape="rect" coords="0,56,101,80"/>
+<area href="structade_1_1_path_finder.html" alt="ade::PathFinder" shape="rect" coords="111,56,212,80"/>
+<area href="structage_1_1_grader.html" title="Traveler to obtain derivative of accepted node with respect to target. " alt="age::Grader" shape="rect" coords="222,56,323,80"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -101,7 +101,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6ae5c7df26de362b580a70928a3096dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Interface to travel through graph, treating <a class="el" href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. ">Tensor</a> and <a class="el" href="structade_1_1i_functor.html" title="Interface of OPCODE-defined operation node. ">iFunctor</a> differently. </p>
+<div class="textblock"><p>Interface to travel through graph, treating <a class="el" href="structade_1_1_tensor.html" title="Leaf of the graph commonly representing the variable in an equation. ">Tensor</a> and <a class="el" href="structade_1_1i_functor.html" title="Interface of iOperation-defined operation node. ">iFunctor</a> differently. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="af8279cb7fbe1363298287f4e2061254a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af8279cb7fbe1363298287f4e2061254a">&#9670;&nbsp;</a></span>~iTraveler()</h2>
@@ -156,7 +156,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Visit leaf node. </p>
 
-<p>Implemented in <a class="el" href="structllo_1_1_evaluator.html#a205b9f59926a92f905a5cf59cdc76910">llo::Evaluator</a>, <a class="el" href="structade_1_1_path_finder.html#abea2f985569ec7769f0ec82281248c7e">ade::PathFinder</a>, and <a class="el" href="structllo_1_1_graph_stat.html#a7d34acb63dc939892ddbb59243d8335a">llo::GraphStat</a>.</p>
+<p>Implemented in <a class="el" href="structade_1_1_path_finder.html#abea2f985569ec7769f0ec82281248c7e">ade::PathFinder</a>, <a class="el" href="structage_1_1_grader.html#aaf5e8dd4b0543bceff76d34c37056446">age::Grader</a>, and <a class="el" href="structade_1_1_graph_stat.html#ad3441823b045e455aacdca4aedad5e5b">ade::GraphStat</a>.</p>
 
 </div>
 </div>
@@ -186,12 +186,12 @@ Public Member Functions</h2></td></tr>
 
 <p>Visit functor node. </p>
 
-<p>Implemented in <a class="el" href="structllo_1_1_evaluator.html#a4c26da320010feab705f66f6f760a414">llo::Evaluator</a>, <a class="el" href="structllo_1_1_graph_stat.html#afdb73a1a0a23db4ef8e8e17487613834">llo::GraphStat</a>, and <a class="el" href="structade_1_1_path_finder.html#a57a63c9dcad0c13df7af259622c9350b">ade::PathFinder</a>.</p>
+<p>Implemented in <a class="el" href="structade_1_1_path_finder.html#a57a63c9dcad0c13df7af259622c9350b">ade::PathFinder</a>, <a class="el" href="structage_1_1_grader.html#ab7801ce5432bb20048f6e3f6c259bcce">age::Grader</a>, and <a class="el" href="structade_1_1_graph_stat.html#af8a2799b9d659d088ae7a32815dd15fb">ade::GraphStat</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>ade/<a class="el" href="tensor_8hpp_source.html">tensor.hpp</a></li>
+<li>ade/<a class="el" href="itensor_8hpp_source.html">itensor.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

@@ -66,22 +66,22 @@ bool gauss_jordan_elim (AugMatrixT mat)
 std::string to_string (const MatrixT& mat)
 {
 	std::stringstream ss;
-	ss << arr_begin;
+	ss << err::arr_begin;
 	for (uint8_t i = 0; i < mat_dim - 1; ++i)
 	{
-		ss << arr_begin << mat[i][0];
+		ss << err::arr_begin << mat[i][0];
 		for (uint8_t j = 1; j < mat_dim; ++j)
 		{
-			ss << arr_delim << mat[i][j];
+			ss << err::arr_delim << mat[i][j];
 		}
-		ss << arr_end << arr_delim << '\n';
+		ss << err::arr_end << err::arr_delim << '\n';
 	}
-	ss << arr_begin << mat[mat_dim - 1][0];
+	ss << err::arr_begin << mat[mat_dim - 1][0];
 	for (uint8_t j = 1; j < mat_dim; ++j)
 	{
-		ss << arr_delim << mat[mat_dim - 1][j];
+		ss << err::arr_delim << mat[mat_dim - 1][j];
 	}
-	ss << arr_end << arr_end;
+	ss << err::arr_end << err::arr_end;
 	return ss.str();
 }
 
@@ -98,12 +98,27 @@ void inverse (MatrixT out, const MatrixT& in)
 	}
 	if (false == gauss_jordan_elim(aug))
 	{
-		fatalf("cannot invert matrix:\n%s", to_string(in).c_str());
+		err::fatalf("cannot invert matrix:\n%s", to_string(in).c_str());
 	}
 	// remove identity matrix to left
 	for (uint8_t i = 0; i < mat_dim; ++i)
 	{
 		std::memcpy(out[i], aug[i] + mat_dim, rowbytes);
+	}
+}
+
+void matmul (MatrixT out, const MatrixT& lhs, const MatrixT& rhs)
+{
+	for (uint8_t i = 0; i < mat_dim; ++i)
+	{
+		for (uint8_t j = 0; j < mat_dim; ++j)
+		{
+			out[i][j] = 0;
+			for (uint8_t k = 0; k < mat_dim; ++k)
+			{
+				out[i][j] += lhs[i][k] * rhs[k][j];
+			}
+		}
 	}
 }
 

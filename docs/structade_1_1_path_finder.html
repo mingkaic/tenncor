@@ -75,7 +75,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="functor_8hpp_source.html">functor.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="traveler_8hpp_source.html">traveler.hpp</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for ade::PathFinder:</div>
 <div class="dyncontent">
@@ -88,9 +88,9 @@ Inheritance diagram for ade::PathFinder:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a087d42a0dfacb07420cb00602a7fa848"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_path_finder.html#a087d42a0dfacb07420cb00602a7fa848">ParentMapT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *, std::vector&lt; bool &gt; &gt;</td></tr>
-<tr class="memdesc:a087d42a0dfacb07420cb00602a7fa848"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type for mapping function nodes in path to boolean vector.  <a href="#a087d42a0dfacb07420cb00602a7fa848">More...</a><br /></td></tr>
-<tr class="separator:a087d42a0dfacb07420cb00602a7fa848"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a725a8d0eeaaf57b606e8149abe317616"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_path_finder.html#a725a8d0eeaaf57b606e8149abe317616">ParentMapT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *, std::unordered_set&lt; size_t &gt; &gt;</td></tr>
+<tr class="memdesc:a725a8d0eeaaf57b606e8149abe317616"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type for mapping function nodes in path to boolean vector.  <a href="#a725a8d0eeaaf57b606e8149abe317616">More...</a><br /></td></tr>
+<tr class="separator:a725a8d0eeaaf57b606e8149abe317616"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -111,21 +111,21 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ade3a284e63e52e2cf2ea395e9a512207"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_path_finder.html#ade3a284e63e52e2cf2ea395e9a512207">target_</a></td></tr>
 <tr class="memdesc:ade3a284e63e52e2cf2ea395e9a512207"><td class="mdescLeft">&#160;</td><td class="mdescRight">Target of tensor all paths are travelling to.  <a href="#ade3a284e63e52e2cf2ea395e9a512207">More...</a><br /></td></tr>
 <tr class="separator:ade3a284e63e52e2cf2ea395e9a512207"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7748417958bed305338af5e238dc5362"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_path_finder.html#a087d42a0dfacb07420cb00602a7fa848">ParentMapT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_path_finder.html#a7748417958bed305338af5e238dc5362">parents_</a></td></tr>
+<tr class="memitem:a7748417958bed305338af5e238dc5362"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_path_finder.html#a725a8d0eeaaf57b606e8149abe317616">ParentMapT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_path_finder.html#a7748417958bed305338af5e238dc5362">parents_</a></td></tr>
 <tr class="memdesc:a7748417958bed305338af5e238dc5362"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map of parent nodes in path.  <a href="#a7748417958bed305338af5e238dc5362">More...</a><br /></td></tr>
 <tr class="separator:a7748417958bed305338af5e238dc5362"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Traveler implementation that paints paths to a target tensor All nodes in the path are added as keys to the parents_ map with the values being a boolean vector denoting nodes leading to target For a boolean value x at index i in mapped vector, x is true if the ith child leads to target </p>
+<div class="textblock"><p>Traveler that paints paths to a target tensor All nodes in the path are added as keys to the parents_ map with the values being a boolean vector denoting nodes leading to target For a boolean value x at index i in mapped vector, x is true if the ith child leads to target </p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a087d42a0dfacb07420cb00602a7fa848"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a087d42a0dfacb07420cb00602a7fa848">&#9670;&nbsp;</a></span>ParentMapT</h2>
+<a id="a725a8d0eeaaf57b606e8149abe317616"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a725a8d0eeaaf57b606e8149abe317616">&#9670;&nbsp;</a></span>ParentMapT</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="structade_1_1_path_finder.html#a087d42a0dfacb07420cb00602a7fa848">ade::PathFinder::ParentMapT</a> =  std::unordered_map&lt;<a class="el" href="structade_1_1i_tensor.html">iTensor</a>*,std::vector&lt;bool&gt; &gt;</td>
+          <td class="memname">using <a class="el" href="structade_1_1_path_finder.html#a725a8d0eeaaf57b606e8149abe317616">ade::PathFinder::ParentMapT</a> =  std::unordered_map&lt;<a class="el" href="structade_1_1i_tensor.html">iTensor</a>*,std::unordered_set&lt;size_t&gt; &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -230,7 +230,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structade_1_1_path_finder.html#a087d42a0dfacb07420cb00602a7fa848">ParentMapT</a> ade::PathFinder::parents_</td>
+          <td class="memname"><a class="el" href="structade_1_1_path_finder.html#a725a8d0eeaaf57b606e8149abe317616">ParentMapT</a> ade::PathFinder::parents_</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -256,7 +256,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>ade/<a class="el" href="functor_8hpp_source.html">functor.hpp</a></li>
+<li>ade/<a class="el" href="traveler_8hpp_source.html">traveler.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

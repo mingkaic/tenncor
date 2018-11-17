@@ -1,7 +1,4 @@
 var searchData=
 [
-  ['latest_5ferror_5f',['latest_error_',['../struct_test_logger.html#af97eb348dbf90d477beb2a23063526c8',1,'TestLogger']]],
-  ['latest_5ffatal_5f',['latest_fatal_',['../struct_test_logger.html#a664a7f4e5b22548f90de016ed812afb4',1,'TestLogger']]],
-  ['latest_5fwarning_5f',['latest_warning_',['../struct_test_logger.html#ac1e539aa60f1ca70a1a9f8ed4e524dcf',1,'TestLogger']]],
-  ['leaves_5f',['leaves_',['../structllo_1_1_graph_stat.html#af7721cf0f9c857e03abacd3d49575765',1,'llo::GraphStat']]]
+  ['identity',['identity',['../namespaceade.html#a8e19aa78dafc96799e95e38b251a9f57',1,'ade']]]
 ];

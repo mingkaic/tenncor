@@ -6,10 +6,12 @@
 ///	Define interfaces and building blocks for an equation graph
 ///
 
-#include <memory>
+#include <cmath>
 
-#include "ade/log/log.hpp"
-#include "ade/shape.hpp"
+#include "err/log.hpp"
+
+#include "ade/itensor.hpp"
+#include "ade/coord.hpp"
 
 #ifndef ADE_TENSOR_HPP
 #define ADE_TENSOR_HPP
@@ -17,115 +19,44 @@
 namespace ade
 {
 
-struct Tensorptr;
-
-struct Tensor;
-
-struct iFunctor;
-
-/// Interface to travel through graph, treating Tensor and iFunctor differently
-struct iTraveler
+/// Coordinate mapper and tensor pair
+struct MappedTensor final
 {
-	virtual ~iTraveler (void) = default;
+	MappedTensor (CoordPtrT mapper, Tensorptr tensor) :
+		mapper_(mapper), tensor_(tensor) {}
 
-	/// Visit leaf node
-	virtual void visit (Tensor* leaf) = 0;
+	/// Return shape of tensor filtered through coordinate mapper
+	Shape shape (void) const
+	{
+		const Shape& shape = tensor_->shape();
+		CoordT out;
+		CoordT in;
+		std::copy(shape.begin(), shape.end(), in.begin());
+		mapper_->forward(out.begin(), in.begin());
+		std::vector<DimT> slist(rank_cap);
+		std::transform(out.begin(), out.end(), slist.begin(),
+			[](CDimT cd) -> DimT
+			{
+				if (cd < 0)
+				{
+					cd = -cd - 1;
+				}
+				return std::round(cd);
+			});
+		return Shape(slist);
+	}
 
-	/// Visit functor node
-	virtual void visit (iFunctor* func) = 0;
+	/// Coordinate mapper
+	CoordPtrT mapper_;
+
+	/// Tensor reference
+	Tensorptr tensor_;
 };
-
-/// Interface of traversible and differentiable nodes with shape information
-struct iTensor
-{
-	virtual ~iTensor (void) = default;
-
-	/// Obtain concrete information on either leaf or functor implementations
-	virtual void accept (iTraveler& visiter) = 0;
-
-	/// Return the shape held by this tensor
-	virtual const Shape& shape (void) const = 0;
-
-	/// Return the partial derivative of this with respect to input wrt
-	virtual Tensorptr gradient (const iTensor* wrt) = 0;
-
-	/// Return the string representation of the tensor
-	virtual std::string to_string (void) const = 0;
-};
-
-/// Smart pointer to iTensor ensuring non-null references
-struct Tensorptr
-{
-	Tensorptr (iTensor& tens) :
-		ptr_(&tens) {}
-
-	Tensorptr (iTensor* tens) :
-		ptr_(tens)
-	{
-		if (nullptr == tens)
-		{
-			fatal("cannot create nodeptr with nullptr");
-		}
-	}
-
-	Tensorptr (std::shared_ptr<iTensor> tens) :
-		ptr_(tens)
-	{
-		if (nullptr == tens)
-		{
-			fatal("cannot create nodeptr with nullptr");
-		}
-	}
-
-	virtual ~Tensorptr (void) = default;
-
-	iTensor* operator -> (void)
-	{
-		return ptr_.get();
-	}
-
-	const iTensor* operator -> (void) const
-	{
-		return ptr_.get();
-	}
-
-	/// Return the raw pointer
-	iTensor* get (void) const
-	{
-		return ptr_.get();
-	}
-
-	/// Return the weakptr reference
-	std::weak_ptr<iTensor> ref (void) const
-	{
-		return ptr_;
-	}
-
-protected:
-	/// Strong reference to iTensor
-	std::shared_ptr<iTensor> ptr_;
-};
-
-/// Return a Tensor::SYMBOLIC_ONE extended to input shape
-Tensorptr shaped_one (Shape shape);
-
-/// Return a Tensor::SYMBOLIC_ZERO extended to input shape
-Tensorptr shaped_zero (Shape shape);
 
 /// Leaf of the graph commonly representing the variable in an equation
-struct Tensor final : public iTensor
+struct Tensor : public iTensor
 {
-	/// Represent a scalar containing value one
-	static Tensorptr SYMBOLIC_ONE;
-
-	/// Represent a scalar containing value zero
-	static Tensorptr SYMBOLIC_ZERO;
-
-	/// Return a Tensor with input shape
-	static Tensor* get (Shape shape)
-	{
-		return new Tensor(shape);
-	}
+	virtual ~Tensor (void) = default;
 
 	/// Implementation of iTensor
 	void accept (iTraveler& visiter) override
@@ -133,33 +64,14 @@ struct Tensor final : public iTensor
 		visiter.visit(this);
 	}
 
-	/// Implementation of iTensor
-	const Shape& shape (void) const override
-	{
-		return shape_;
-	}
+	/// Return pointer to internal data
+	virtual void* data (void) = 0;
 
-	/// Implementation of iTensor
-	Tensorptr gradient (const iTensor* wrt) override
-	{
-		if (this == wrt)
-		{
-			return shaped_one(shape_);
-		}
-		return shaped_zero(wrt->shape());
-	}
+	/// Return const pointer to internal data
+	virtual const void* data (void) const = 0;
 
-	/// Implementation of iTensor
-	std::string to_string (void) const override
-	{
-		return shape_.to_string();
-	}
-
-private:
-	Tensor (Shape shape) : shape_(shape) {}
-
-	/// Shape info of the tensor instance
-	Shape shape_;
+	/// Return data type encoding
+	virtual size_t type_code (void) const = 0;
 };
 
 }

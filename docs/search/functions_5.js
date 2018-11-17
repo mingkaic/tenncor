@@ -1,10 +1,7 @@
 var searchData=
 [
-  ['fatal',['fatal',['../structade_1_1i_logger.html#a0410a8ec51f37b8f742b78ffd30237aa',1,'ade::iLogger::fatal()'],['../structade_1_1_def_logger.html#a40a4bc33563eaa415f1b929640e91157',1,'ade::DefLogger::fatal()'],['../struct_test_logger.html#abd50bacaa15f868caf73ad2195582177',1,'TestLogger::fatal()'],['../namespaceade.html#a905c54ebacff42db4f0d8087ff048a38',1,'ade::fatal()']]],
-  ['fatalf',['fatalf',['../namespaceade.html#a35150767a59a9ede58773e4f732a5ec5',1,'ade']]],
-  ['fill_5fone',['fill_one',['../namespacello.html#a1f4abb31b85db683c258eb9fef664dd9',1,'llo']]],
-  ['flip',['flip',['../namespaceade.html#aaff83dc21ff0e7b15ca19f1ccb726bea',1,'ade::flip()'],['../namespacello.html#a62db30d8fc22051ff8a997a6264ca6b3',1,'llo::flip()']]],
-  ['forward',['forward',['../structade_1_1i_coord_map.html#abc27f1c79994569812647d63401e208d',1,'ade::iCoordMap::forward()'],['../structade_1_1_coord_map.html#a179711b98f6980bd4e5e8f592fccb0c6',1,'ade::CoordMap::forward()']]],
-  ['freivald',['freivald',['../test__api_8cpp.html#a670fd79bcde3bae160f6ddd5d8f6d903',1,'test_api.cpp']]],
-  ['functor',['Functor',['../structade_1_1_functor.html#a10f8297f3357a778a93b3c57167417a6',1,'ade::Functor']]]
+  ['end',['end',['../structade_1_1_shape.html#a85700f185320892b5dde0474c88fd33c',1,'ade::Shape::end(void)'],['../structade_1_1_shape.html#a8df8b0d454942a59441c8adcebdc176a',1,'ade::Shape::end(void) const']]],
+  ['error',['error',['../structerr_1_1i_logger.html#a853c6a0fe7b0b76d0da081b202678dbd',1,'err::iLogger::error()'],['../structerr_1_1_def_logger.html#ac76eba180c0d1eb2176be7837d19c0d9',1,'err::DefLogger::error()'],['../struct_test_logger.html#a251edd0536f34a74c69f3cbecc1f022f',1,'TestLogger::error()'],['../namespaceerr.html#a50e6c534462fd63ba9a87bd0d8564958',1,'err::error()']]],
+  ['errorf',['errorf',['../namespaceerr.html#a43b0a4b66b5206b86cb01a14d55538d1',1,'err']]],
+  ['extend',['extend',['../namespaceade.html#a2e24a1916ee316af7fb7f14bef651051',1,'ade']]]
 ];

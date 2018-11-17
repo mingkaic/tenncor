@@ -8,12 +8,10 @@
 
 #include <algorithm>
 #include <array>
-#include <iterator>
 #include <numeric>
-#include <sstream>
 #include <vector>
 
-#include "ade/log/log.hpp"
+#include "err/log.hpp"
 
 #ifndef ADE_SHAPE_HPP
 #define ADE_SHAPE_HPP
@@ -25,7 +23,7 @@ namespace ade
 using DimT = uint8_t;
 
 /// Type used for coordinate dimensions
-using CDimT = int16_t;
+using CDimT = double;
 
 /// Type used for flattened index
 /// DimT having 8 bits and shape comprising of 8 DimT values means a maximum
@@ -98,8 +96,7 @@ struct Shape final
 	{
 		if (rank_cap <= idx)
 		{
-			throw std::out_of_range(
-				"accessing dimension out of allocated rank cap");
+			err::fatalf("cannot access out of bounds index %d", idx);
 		}
 		return dims_.at(idx);
 	}
@@ -137,7 +134,7 @@ struct Shape final
 	/// Return string representation of shape
 	std::string to_string (void) const
 	{
-		return ade::to_string(begin(), end());
+		return err::to_string(begin(), end());
 	}
 
 	// >>>> INTERNAL CONTROL <<<<
@@ -176,8 +173,8 @@ private:
 				return d == 0;
 			}))
 		{
-			fatalf("cannot create shape with vector containing zero: %s",
-				ade::to_string(dims.begin(), dims.end()).c_str());
+			err::fatalf("cannot create shape with vector containing zero: %s",
+				err::to_string(dims.begin(), dims.end()).c_str());
 		}
 		auto dest = dims_.begin();
 		uint8_t rank = std::min((size_t) rank_cap, dims.size());

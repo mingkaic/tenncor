@@ -94,6 +94,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:abc27f1c79994569812647d63401e208d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_coord_map.html#abc27f1c79994569812647d63401e208d">forward</a> (CoordT::iterator out, CoordT::const_iterator in) const =0</td></tr>
 <tr class="memdesc:abc27f1c79994569812647d63401e208d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward transform coordinates.  <a href="#abc27f1c79994569812647d63401e208d">More...</a><br /></td></tr>
 <tr class="separator:abc27f1c79994569812647d63401e208d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ec6fbe50ad69ccc8ca49b2d6ed876a6"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_coord_map.html#a1ec6fbe50ad69ccc8ca49b2d6ed876a6">forward</a> (const <a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a> &amp;rhs) const =0</td></tr>
+<tr class="memdesc:a1ec6fbe50ad69ccc8ca49b2d6ed876a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return matmul(this, rhs)  <a href="#a1ec6fbe50ad69ccc8ca49b2d6ed876a6">More...</a><br /></td></tr>
+<tr class="separator:a1ec6fbe50ad69ccc8ca49b2d6ed876a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad40fe274c62ad72e920c6496d0951ec1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_coord_map.html#ad40fe274c62ad72e920c6496d0951ec1">backward</a> (CoordT::iterator out, CoordT::const_iterator in) const =0</td></tr>
 <tr class="memdesc:ad40fe274c62ad72e920c6496d0951ec1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reverse transform coordinates.  <a href="#ad40fe274c62ad72e920c6496d0951ec1">More...</a><br /></td></tr>
 <tr class="separator:ad40fe274c62ad72e920c6496d0951ec1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -205,7 +208,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="abc27f1c79994569812647d63401e208d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abc27f1c79994569812647d63401e208d">&#9670;&nbsp;</a></span>forward()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#abc27f1c79994569812647d63401e208d">&#9670;&nbsp;</a></span>forward() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -241,6 +244,36 @@ Public Member Functions</h2></td></tr>
 <p>Forward transform coordinates. </p>
 
 <p>Implemented in <a class="el" href="structade_1_1_coord_map.html#a179711b98f6980bd4e5e8f592fccb0c6">ade::CoordMap</a>.</p>
+
+</div>
+</div>
+<a id="a1ec6fbe50ad69ccc8ca49b2d6ed876a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ec6fbe50ad69ccc8ca49b2d6ed876a6">&#9670;&nbsp;</a></span>forward() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a>* ade::iCoordMap::forward </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a> &amp;&#160;</td>
+          <td class="paramname"><em>rhs</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Return matmul(this, rhs) </p>
+
+<p>Implemented in <a class="el" href="structade_1_1_coord_map.html#af48fb9353f2a8653e8778c84e045bdd3">ade::CoordMap</a>.</p>
 
 </div>
 </div>

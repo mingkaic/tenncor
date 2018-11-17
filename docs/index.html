@@ -74,13 +74,9 @@ $(function() {
 </ul>
 <p>This module supplies syntax tree for equation and generates derivative. Constraints to the equation is limited to each tensor's shape.</p>
 <ul>
-<li><a class="el" href="md_llo__r_e_a_d_m_e__l_l_o.html">LLO (Low Level Operators)</a></li>
+<li>AGE (ADE Generation Engine)</li>
 </ul>
-<p>This module is a sample library of data operators mapped to the ADE opcodes. Expect this module to split when I decide to depend on external libraries (like eigen).</p>
-<ul>
-<li><a class="el" href="md_pbm__r_e_a_d_m_e__p_b_m.html">PBM (Protobuf Marshaller)</a></li>
-</ul>
-<p>This module marshals llo-extended ade graph</p>
+<p>This generator creates glue layer between ADE and data manipulation libraries as well as map operational codes to its respective chain rule. AGE also provides a runtime library to evaluate derivatives using the mapped chain rules.</p>
 <h2>Tools and utility</h2>
 <ul>
 <li>DBG (Debugger)</li>

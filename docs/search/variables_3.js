@@ -1,8 +1,11 @@
 var searchData=
 [
-  ['data',['data',['../structllo_1_1_vec_ref.html#aa983a78799dc41a8b51168b14b212d54',1,'llo::VecRef']]],
-  ['data_5f',['data_',['../structllo_1_1_generic_data.html#a6f12c56eaeb79cf14b926980a6203da1',1,'llo::GenericData::data_()'],['../structllo_1_1_generic_ref.html#a9d314ae707d61bd500586b25fc34bc76',1,'llo::GenericRef::data_()'],['../structllo_1_1_source.html#a59aacad93562a1b1601259655f707966',1,'llo::Source::data_()']]],
-  ['default_5frange',['default_range',['../test__api_8cpp.html#a5ef6340bc2e388db4b4318435dd76bae',1,'test_api.cpp']]],
+  ['data_5fin',['data_in',['../namespaceopera__tmpl.html#af038600e2d2feebeecbfb7c34221fbac',1,'opera_tmpl']]],
+  ['data_5fout',['data_out',['../namespaceopera__tmpl.html#a716dfac487087eae6edd5ed8883753d3',1,'opera_tmpl']]],
+  ['default',['default',['../namespaceagen.html#af2c2981726a852ad266a5daeadb1debf',1,'agen']]],
+  ['derivatives_5f',['derivatives_',['../structage_1_1_grader.html#a077d57b14f7d9126a36104f16e4c9d17',1,'age::Grader']]],
+  ['dest',['dest',['../namespaceagen.html#a956f7de58852c42242fb711a1ab242f1',1,'agen']]],
   ['dims_5f',['dims_',['../structade_1_1_shape.html#a0ed417376c158cf66d6803dd88262446',1,'ade::Shape']]],
-  ['dtype_5f',['dtype_',['../structllo_1_1_generic_data.html#a48c849e0c1e6a394859094a2e1c23d84',1,'llo::GenericData::dtype_()'],['../structllo_1_1_generic_ref.html#aab703bd680370c62004c94d89500db80',1,'llo::GenericRef::dtype_()'],['../structllo_1_1_evaluator.html#a22584dfbc04d95532eb71cb64c9319e8',1,'llo::Evaluator::dtype_()']]]
+  ['djidx',['djidx',['../opmap__dep_8hpp.html#ae11a3041a409f125001705e4b8554759',1,'opmap_dep.hpp']]],
+  ['dtypes',['dtypes',['../namespacecodes__tmpl.html#a9dcec086d7fa368218019c2e2bd2275c',1,'codes_tmpl']]]
 ];
