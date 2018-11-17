@@ -72,7 +72,7 @@ private:
 	Functor (Opcode opcode, Shape shape, ArgsT args) :
 		opcode_(opcode), shape_(shape), args_(args) {}
 
-	/// OPCODE to map identity this functor
+	/// Operation encoding
 	Opcode opcode_;
 
 	/// Shape info built at construction time according to arguments

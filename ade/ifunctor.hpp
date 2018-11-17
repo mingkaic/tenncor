@@ -17,9 +17,13 @@ namespace ade
 /// Type of functor arguments
 using ArgsT = std::vector<MappedTensor>;
 
+/// Encoding of operation
 struct Opcode final
 {
+	/// String representation of operation
 	std::string name_;
+
+	/// Numerical encoding of operation
 	size_t code_;
 };
 
@@ -34,7 +38,7 @@ struct iFunctor : public iTensor
 		visiter.visit(this);
 	}
 
-	/// Return OPCODE mapping to forward and gradient operators
+	/// Return operation encoding
 	virtual Opcode get_opcode (void) const = 0;
 
 	/// Return children nodes as a vector of raw pointers

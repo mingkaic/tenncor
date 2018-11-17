@@ -19,11 +19,13 @@
 namespace ade
 {
 
+/// Coordinate mapper and tensor pair
 struct MappedTensor final
 {
 	MappedTensor (CoordPtrT mapper, Tensorptr tensor) :
 		mapper_(mapper), tensor_(tensor) {}
 
+	/// Return shape of tensor filtered through coordinate mapper
 	Shape shape (void) const
 	{
 		const Shape& shape = tensor_->shape();
@@ -44,7 +46,10 @@ struct MappedTensor final
 		return Shape(slist);
 	}
 
+	/// Coordinate mapper
 	CoordPtrT mapper_;
+
+	/// Tensor reference
 	Tensorptr tensor_;
 };
 
@@ -59,10 +64,13 @@ struct Tensor : public iTensor
 		visiter.visit(this);
 	}
 
-	virtual char* data (void) = 0;
+	/// Return pointer to internal data
+	virtual void* data (void) = 0;
 
-	virtual const char* data (void) const = 0;
+	/// Return const pointer to internal data
+	virtual const void* data (void) const = 0;
 
+	/// Return data type encoding
 	virtual size_t type_code (void) const = 0;
 };
 

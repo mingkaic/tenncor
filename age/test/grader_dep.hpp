@@ -23,14 +23,14 @@ struct MockTensor : public ade::Tensor
         return "MockTensor";
     }
 
-	char* data (void) override
+	void* data (void) override
 	{
-        return (char*) &scalar_;
+        return &scalar_;
     }
 
-	const char* data (void) const override
+	const void* data (void) const override
 	{
-        return (const char*) &scalar_;
+        return &scalar_;
     }
 
 	size_t type_code (void) const override

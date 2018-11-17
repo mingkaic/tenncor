@@ -30,12 +30,12 @@ struct MockTensor final : public ade::Tensor
 		return shape_.to_string();
 	}
 
-	char* data (void) override
+	void* data (void) override
 	{
 		return nullptr;
 	}
 
-	const char* data (void) const override
+	const void* data (void) const override
 	{
 		return nullptr;
 	}
