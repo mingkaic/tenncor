@@ -1,9 +1,9 @@
 ///
-///	functor.hpp
+///	traveler.hpp
 ///	ade
 ///
 ///	Purpose:
-///	Define functor nodes of an equation graph
+///	Define common traveler implementations
 ///
 
 #include <unordered_set>

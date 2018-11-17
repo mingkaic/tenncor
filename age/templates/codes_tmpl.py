@@ -44,10 +44,10 @@ _GENERATED_DTYPE get_type (void)
 #endif // _GENERATED_CODES_HPP
 """)
 
-header.opcodes = ("opcodes", lambda opcodes: '\n'.join(["\t{code},".format(\
+header.opcodes = ("opcodes", lambda opcodes: '\n'.join(["    {code},".format(\
     code = code) for code in opcodes]))
 
-header.dtypes = ("dtypes", lambda dtypes: '\n'.join(["\t{dtype},".format(\
+header.dtypes = ("dtypes", lambda dtypes: '\n'.join(["    {dtype},".format(\
     dtype = dtype) for dtype in dtypes]))
 
 header.get_type_decls = ("dtypes", lambda dtypes: '\n\n'.join(["""template <>
@@ -145,19 +145,19 @@ uint8_t type_size (_GENERATED_DTYPE type)
 #endif
 """)
 
-source.code2names = ("opcodes", lambda opcodes: '\n'.join(['\t{{ {code}, "{code}" }},'.format(\
+source.code2names = ("opcodes", lambda opcodes: '\n'.join(['    {{ {code}, "{code}" }},'.format(\
     code = code) for code in opcodes]))
 
-source.name2codes = ("opcodes", lambda opcodes: '\n'.join(['\t{{ "{code}", {code} }},'.format(\
+source.name2codes = ("opcodes", lambda opcodes: '\n'.join(['    {{ "{code}", {code} }},'.format(\
     code = code) for code in opcodes]))
 
-source.type2names = ("dtypes", lambda dtypes: '\n'.join(['\t{{ {dtype}, "{dtype}" }},'.format(\
+source.type2names = ("dtypes", lambda dtypes: '\n'.join(['    {{ {dtype}, "{dtype}" }},'.format(\
     dtype = dtype) for dtype in dtypes]))
 
-source.name2types = ("dtypes", lambda dtypes: '\n'.join(['\t{{ "{dtype}", {dtype} }},'.format(\
+source.name2types = ("dtypes", lambda dtypes: '\n'.join(['    {{ "{dtype}", {dtype} }},'.format(\
     dtype = dtype) for dtype in dtypes]))
 
-source.type_sizes = ("dtypes", lambda dtypes: '\n'.join(["\t\tcase {dtype}: return sizeof({real_type});".format(\
+source.type_sizes = ("dtypes", lambda dtypes: '\n'.join(["        case {dtype}: return sizeof({real_type});".format(\
     dtype = dtype, real_type = dtypes[dtype]) for dtype in dtypes]))
 
 source.get_types = ("dtypes", lambda dtypes: '\n\n'.join(["""template <>

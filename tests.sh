@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
-TEST_OUT_FILE=bazel-out/k8-fastbuild/testlogs/tests/tenncor_all/test.log;
-COV_OUT_DIR=bazel-tenncor/_coverage/tests/tenncor_all/test/bazel-out/k8-fastbuild/bin/_objs;
 COV_FILE=$THIS_DIR/coverage.info;
 DOCS=$THIS_DIR/docs
 

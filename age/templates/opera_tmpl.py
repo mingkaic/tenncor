@@ -32,7 +32,7 @@ header.data_in = ("data_in", lambda data_in: data_in)
 
 header.data_out = ("data_out", lambda data_out: data_out)
 
-header.ops = ("ops", lambda ops: '\n'.join(["""    case {code}:
+header.ops = ("ops", lambda ops: '\n'.join(["""        case {code}:
             {retval}; break;""".format(\
     code = code, retval = ops[code]) for code in ops]))
 
@@ -61,6 +61,6 @@ source.data_in = ("data_in", lambda data_in: data_in)
 
 source.data_out = ("data_out", lambda data_out: data_out)
 
-source.types = ("types", lambda dtypes: '\n'.join(["""    case {dtype}:
+source.types = ("types", lambda dtypes: '\n'.join(["""        case {dtype}:
             typed_exec<{real_type}>(opcode, out, shape, in); break;""".format(\
     dtype = dtype, real_type = dtypes[dtype]) for dtype in dtypes]))

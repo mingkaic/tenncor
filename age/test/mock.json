@@ -1,0 +1,42 @@
+
+{
+    "includes": {
+        "codes.hpp": [
+            "\"age/test/codes_dep.hpp\""
+        ],
+        "grader.hpp": [
+            "\"age/test/grader_dep.hpp\""
+        ],
+        "opmap.hpp": [
+            "\"age/test/opmap_dep.hpp\""
+        ]
+    },
+    "dtypes": {
+        "SAUSAGES": "Meat",
+        "HASHBROWNS": "Fries"
+    },
+    "data": {
+        "sum": "EMINEM",
+        "prod": "KHALED",
+        "data_out": "SweetPotato&",
+        "data_in": "Pomegranate&",
+        "scalarize": "new MockTensor(scalar, shape)"
+    },
+    "opcodes": {
+        "EMINEM": {
+            "operation": "knees_weak<T>(in, shape, out)",
+            "derivative": "arms_heavy(idx, args)"
+        },
+        "KHALED": {
+            "operation": "another_one<T>(out, in, shape)",
+            "derivative": "dj_grad(args, idx)"
+        }
+    },
+    "apis": [
+        {
+            "name": "goku",
+            "args": ["size_t bardock"],
+            "out": "cooler(bardock)"
+        }
+    ]
+}

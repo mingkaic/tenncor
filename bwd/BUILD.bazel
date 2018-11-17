@@ -20,11 +20,12 @@ filegroup(
 ######### LIBRARIES #########
 
 cc_library(
-    name = "ade",
+    name = "bwd",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["//err:err"],
+    deps = ["//ade:ade"],
+    linkstatic = True,
     visibility = ["//visibility:public"],
 )
 
@@ -32,12 +33,11 @@ cc_library(
 
 cc_test(
     name = "test",
-    size = "medium",
     srcs = [":test_srcs"],
-    deps = [
-        "//ade:ade",
-        "//testutil:testutil",
-    ],
     copts = ["-std=c++14"],
-    data = ["//:credentials"],
+    deps = [
+        "//dbg:dbg",
+        "//bwd:bwd",
+        "@com_google_googletest//:gtest",
+    ],
 )

@@ -1,15 +1,12 @@
 licenses(["notice"])
 
-package(
-    default_visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "srcs",
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
     ]) + ["BUILD.bazel"],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -27,6 +24,7 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########

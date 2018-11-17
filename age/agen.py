@@ -15,7 +15,7 @@ hdr_postfix = ".hpp"
 src_postfix = ".cpp"
 
 api_filename = "api"
-codes_filename = "code"
+codes_filename = "codes"
 grader_filename = "grader"
 opera_filename = "opmap"
 runtime_filename = "runtime"
@@ -99,7 +99,7 @@ def make_dir(fields, includes, includepath):
     api_hdr_path = os.path.join(includepath, api_header)
 
     api_header_include = [
-        '"age/runtime/grader.hpp"',
+        '"bwd/grader.hpp"',
         '"ade/functor.hpp"',
     ]
     api_source_include = [
@@ -122,7 +122,7 @@ def make_dir(fields, includes, includepath):
     grader_hdr_path = os.path.join(includepath, grader_header)
 
     grader_header_include = [
-        '"age/runtime/grader.hpp"',
+        '"bwd/grader.hpp"',
         '"' + codes_hdr_path + '"',
     ]
     grader_source_include = [

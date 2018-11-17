@@ -68,5 +68,5 @@ ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 #endif
 """)
 
-source.gradops = ("grads", lambda gradmap: '\n'.join(["\t\tcase {code}: return {retval};".format(\
+source.gradops = ("grads", lambda gradmap: '\n'.join(["        case {code}: return {retval};".format(\
     code = code, retval = gradmap[code]) for code in gradmap]))

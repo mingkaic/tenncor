@@ -6,15 +6,11 @@ ERR_TEST := //err:test
 
 ADE_TEST := //ade:test
 
+BWD_TEST := //bwd:test
+
 AGE_TEST := //age:test
 
-AGE_RTEST := //age:test_runtime
-
-LLO_TEST := //llo:test
-
-REGRESS_TEST := //llo:test_regress
-
-PBM_TEST := //pbm:test
+AGE_CTEST := //age:ctest
 
 
 COMMON_BZL_FLAGS := --test_output=all --cache_test_results=no
@@ -50,7 +46,7 @@ all: test
 
 # all tests
 
-test: test_err test_ade test_age test_age_runtime test_llo test_pbm
+test: test_err test_ade test_age test_bwd test_cage
 
 test_err:
 	$(GTEST) $(ERR_TEST)
@@ -58,21 +54,18 @@ test_err:
 test_ade:
 	$(GTEST) $(REP_BZL_FLAGS) $(ADE_TEST)
 
+test_bwd:
+	$(GTEST) $(BWD_TEST)
+
 test_age:
 	$(TEST) $(AGE_TEST)
 
-test_age_runtime:
-	$(GTEST) $(AGE_RTEST)
-
-test_llo: gen_llo
-	$(GTEST) $(REP_BZL_FLAGS) $(LLO_TEST)
-
-test_pbm: gen_llo
-	$(GTEST) $(PBM_TEST)
+test_cage:
+	$(GTEST) $(AGE_CTEST)
 
 # valgrind unit tests
 
-valgrind: valgrind_err valgrind_ade valgrind_age_runtime valgrind_llo valgrind_pbm
+valgrind: valgrind_err valgrind_ade valgrind_bwd valgrind_cage
 
 valgrind_err:
 	$(GTEST) $(VAL_BZL_FLAGS) $(ERR_TEST)
@@ -80,18 +73,15 @@ valgrind_err:
 valgrind_ade:
 	$(GTEST) $(VAL_BZL_FLAGS) --action_env="GTEST_REPEAT=5" $(ADE_TEST)
 
-valgrind_age_runtime:
-	$(GTEST) $(VAL_BZL_FLAGS) $(AGE_RTEST)
+valgrind_bwd:
+	$(GTEST) $(VAL_BZL_FLAGS) $(BWD_TEST)
 
-valgrind_llo: gen_llo
-	$(GTEST) $(VAL_BZL_FLAGS) --action_env="GTEST_REPEAT=5" $(LLO_TEST)
-
-valgrind_pbm: gen_llo
-	$(GTEST) $(VAL_BZL_FLAGS) $(PBM_TEST)
+valgrind_cage:
+	$(GTEST) $(VAL_BZL_FLAGS) $(AGE_CTEST)
 
 # asan unit tests
 
-asan: asan_err asan_ade asan_age_runtime asan_llo asan_pbm
+asan: asan_err asan_ade asan_bwd asan_cage
 
 asan_err:
 	$(GTEST) $(ASAN_BZL_FLAGS) $(ERR_TEST)
@@ -99,18 +89,15 @@ asan_err:
 asan_ade:
 	$(GTEST) $(ASAN_BZL_FLAGS) $(REP_BZL_FLAGS) $(ADE_TEST)
 
-asan_age_runtime:
-	$(GTEST) $(ASAN_BZL_FLAGS) $(AGE_RTEST)
+asan_bwd:
+	$(GTEST) $(ASAN_BZL_FLAGS) $(BWD_TEST)
 
-asan_llo: gen_llo
-	$(GTEST) $(ASAN_BZL_FLAGS) $(REP_BZL_FLAGS) $(LLO_TEST)
-
-asan_pbm: gen_llo
-	$(GTEST) $(ASAN_BZL_FLAGS) $(PBM_TEST)
+asan_cage:
+	$(GTEST) $(ASAN_BZL_FLAGS) $(AGE_CTEST)
 
 # coverage unit tests
 
-coverage: cover_err cover_ade cover_age_runtime cover_llo cover_pbm
+coverage: cover_err cover_ade cover_bwd
 
 cover_err:
 	$(COVER) --instrumentation_filter= $(ERR_TEST)
@@ -118,14 +105,8 @@ cover_err:
 cover_ade:
 	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter= $(ADE_TEST)
 
-cover_age_runtime:
-	$(COVER) $(AGE_RTEST)
-
-cover_llo: gen_llo
-	$(COVER) $(REP_BZL_FLAGS) --instrumentation_filter= $(LLO_TEST)
-
-cover_pbm: gen_llo
-	$(COVER) --instrumentation_filter= $(PBM_TEST)
+cover_bwd:
+	$(COVER) $(BWD_TEST)
 
 # generated coverage files
 
@@ -133,9 +114,7 @@ lcov_all: coverage
 	rm -f $(TMP_LOGFILE)
 	cat bazel-testlogs/err/test/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test/test.log >> $(TMP_LOGFILE)
-	cat bazel-testlogs/age/test_runtime/test.log >> $(TMP_LOGFILE)
-	cat bazel-testlogs/llo/test/test.log >> $(TMP_LOGFILE)
-	cat bazel-testlogs/pbm/test/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/bwd/test/test.log >> $(TMP_LOGFILE)
 	cat $(TMP_LOGFILE) | $(COVERAGE_PIPE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
 	rm -f $(TMP_LOGFILE)
@@ -151,33 +130,12 @@ lcov_ade: cover_ade
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'log/*' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
-lcov_age: cover_age_runtime
+lcov_bwd: cover_bwd
 	rm -f $(TMP_LOGFILE)
-	cat bazel-testlogs/age/test_runtime/test.log | $(COVERAGE_PIPE)
+	cat bazel-testlogs/bwd/test/test.log | $(COVERAGE_PIPE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'log/*' 'ade/*' -o $(COVERAGE_INFO_FILE)
 	rm -f $(TMP_LOGFILE)
 	lcov --list $(COVERAGE_INFO_FILE)
-
-lcov_llo: cover_llo
-	cat bazel-testlogs/llo/test/test.log | $(COVERAGE_PIPE)
-	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'log/*' 'ade/*' 'age/*' -o $(COVERAGE_INFO_FILE)
-	lcov --list $(COVERAGE_INFO_FILE)
-
-lcov_pbm: cover_pbm
-	cat bazel-testlogs/pbm/test/test.log | $(COVERAGE_PIPE)
-	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'log/*' 'ade/*' 'age/*' 'llo/*' -o $(COVERAGE_INFO_FILE)
-	lcov --list $(COVERAGE_INFO_FILE)
-
-# test management
-
-dora_run:
-	./scripts/start_dora.sh ./certs
-
-gen_test: dora_run
-	bazel run //test_gen:tfgen
-
-test_regress: gen_test
-	$(GTEST) $(REGRESS_TEST)
 
 # deployment
 

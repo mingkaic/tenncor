@@ -1,20 +1,25 @@
 licenses(["notice"])
 
-package(
-    default_visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "srcs",
     srcs = glob([
         "**/*.py",
         "runtime/*",
     ]) + ["BUILD.bazel"],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
     name = "test_srcs",
-    srcs = glob(["test/*.py"]),
+    srcs = ["test.py"],
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
 )
 
 ######### LIBRARIES #########
@@ -24,36 +29,46 @@ py_library(
     srcs = glob(["templates/*.py"]),
 )
 
+######### GENERATOR #########
+
 py_binary(
     name = "agen",
     srcs = ["agen.py"],
     deps = ["//age:age_tmpl"],
-)
-
-cc_library(
-    name = "age_runtime",
-    hdrs = glob(["runtime/*.hpp"]),
-    srcs = glob(["runtime/*.cpp"]),
-    copts = ["-std=c++14"],
-    deps = ["//ade:ade"],
-    linkstatic = True,
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
 
 py_test(
     name = "test",
-    srcs = glob(["test.py"]),
+    srcs = [":test_srcs"],
     deps = ["//age:age_tmpl"],
 )
 
+genrule(
+    name = "generated_mock",
+    srcs = ["test/mock.json"],
+    outs = [
+        "generated/api.hpp",
+        "generated/api.cpp",
+        "generated/codes.hpp",
+        "generated/codes.cpp",
+        "generated/grader.hpp",
+        "generated/grader.cpp",
+        "generated/opmap.hpp",
+        "generated/opmap.cpp",
+    ],
+    tools = ["//age:agen"],
+    cmd = "$(location //age:agen) --cfg $(location :test/mock.json) --out $(@D)/generated --strip_prefix=$$(dirname $(@D))",
+)
+
 cc_test(
-    name = "test_runtime",
-    srcs = glob(["test/*.cpp"]),
+    name = "ctest",
+    srcs = [":ctest_srcs"] + [":generated_mock"],
     copts = ["-std=c++14"],
     deps = [
-        "//dbg:dbg",
-        "//age:age_runtime",
+        "//bwd:bwd",
         "@com_google_googletest//:gtest",
     ],
 )

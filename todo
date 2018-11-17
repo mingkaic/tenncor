@@ -1,28 +1,17 @@
 correctness:
-P2 - test functor gradient without generated config
-P2 - test complicate equations
-P3 - test travelling, and pruning algorithms
-P3 - verify rocnnet correctness using automated test
+P2 - test travelling algorithms
+P2 - maximize coverage
 P3 - implement better fallback strategy when test server is unavailable
 
 transparency:
 P4 - add more debugging tools
-P4 - investigate llo api: experiment with top-level code
 P4 - formalize codestyle
 P4 - refactor, and rename variables to improve readability
-P4 - investigate ade api
-
-structure:
-P2 - create cython interface for llo + examples
-P3 - restructure llo to separate glue and data operators
-P4 - conform to bazel conventions (or change to another build tool)
+P4 - conform to some bazel style/convention (or change to another build tool)
 
 performance:
 P2 - reduce shared_ptr overhead
-P3 - replace llo operators with external library
-P4 - implement optimization options to decrease equation graph size
-P4 - implement optimization options to increase data accuracy
 
 features:
-P2 - implement convolution
+P2 - implement convolution coordinate mapper
 P3 - implement deep copy
