@@ -27,6 +27,9 @@ struct iCoordMap
 	virtual void forward (CoordT::iterator out,
 		CoordT::const_iterator in) const = 0;
 
+	/// Return matmul(this, rhs)
+	virtual iCoordMap* forward (const iCoordMap& rhs) const = 0;
+
 	/// Reverse transform coordinates
 	virtual void backward (CoordT::iterator out,
 		CoordT::const_iterator in) const = 0;
@@ -58,6 +61,18 @@ struct CoordMap final : public iCoordMap
 	/// Implementation of iCoordMap
 	void forward (CoordT::iterator out,
 		CoordT::const_iterator in) const override;
+
+	/// Implementation of iCoordMap
+	iCoordMap* forward (const iCoordMap& rhs) const override
+	{
+		return new CoordMap([&](MatrixT out)
+		{
+			rhs.access([&](const MatrixT& in)
+			{
+				matmul(out, fwd_, in);
+			});
+		});
+	}
 
 	/// Implementation of iCoordMap
 	void backward (CoordT::iterator out,
@@ -100,9 +115,6 @@ using CoordPtrT = std::shared_ptr<iCoordMap>;
 
 /// Identity matrix instance
 extern CoordPtrT identity;
-
-/// Return transformed shape according to coordinate mapper on input shape
-Shape map_shape (CoordPtrT& mapper, const Shape& shape);
 
 /// Return coordinate mapper dividing dimensions after rank
 /// by values in red vector

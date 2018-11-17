@@ -1,3 +1,0 @@
-(COPY)
- `--(COPY)
-     `--([1]<SYMBOLIC_1>)
