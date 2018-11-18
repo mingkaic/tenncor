@@ -80,8 +80,8 @@ struct MockRuleSet final : public age::iRuleSet
 };
 
 
-std::unique_ptr<age::iRuleSet> age::Grader::rules_ =
-	std::make_unique<MockRuleSet>();
+std::shared_ptr<age::iRuleSet> age::Grader::default_rules =
+	std::make_shared<MockRuleSet>();
 
 
 static inline void ltrim(std::string &s)
@@ -112,7 +112,7 @@ static void TREE_EQ (std::istream& expectstr, ade::Tensorptr& root)
 	artist.print(gotstr, root);
 
 #if 0
-	std::cout << gotstr.str() << std::endl;
+	std::cout << gotstr.str() << "\n";
 #endif
 
 	std::string expect;
@@ -146,7 +146,7 @@ TEST(GRADER, SUM)
 	ade::Tensorptr leaf1 = new MockTensor(ade::Shape(slist));
 
 	ade::Tensorptr fwd = ade::Functor::get(
-		age::Grader::rules_->sum_opcode(), {
+		age::Grader::default_rules->sum_opcode(), {
 		{ade::identity, leaf},
 		{ade::identity, leaf1},
 	});
@@ -195,7 +195,7 @@ TEST(GRADER, PROD)
 	ade::Tensorptr leaf1 = new MockTensor(ade::Shape(slist));
 
 	ade::Tensorptr fwd = ade::Functor::get(
-		age::Grader::rules_->prod_opcode(), {
+		age::Grader::default_rules->prod_opcode(), {
 		{ade::identity, leaf},
 		{ade::identity, leaf1},
 	});

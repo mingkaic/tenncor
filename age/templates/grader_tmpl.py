@@ -52,7 +52,7 @@ source = repr.FILE_REPR("""#ifdef _GENERATED_GRADER_HPP
 namespace age
 {{
 
-std::unique_ptr<iRuleSet> Grader::rules_ = std::make_unique<RuleSet>();
+std::shared_ptr<iRuleSet> Grader::default_rules = std::make_shared<RuleSet>();
 
 ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 {{
