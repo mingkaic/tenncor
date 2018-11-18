@@ -1,6 +1,6 @@
 # Tenncor
 [![Build Status](https://travis-ci.org/mingkaic/tenncor.svg?branch=master)](https://travis-ci.org/mingkaic/tenncor)
-[![Coverage Status](https://coveralls.io/repos/github/mingkaic/tenncor/badge.svg)](https://coveralls.io/github/mingkaic/tenncor)
+[![Coverage Status](https://coveralls.io/repos/github/mingkaic/tenncor/badge.svg?branch=master)](https://coveralls.io/github/mingkaic/tenncor?branch=master)
 
 ## Synopsis
 

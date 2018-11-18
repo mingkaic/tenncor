@@ -9,9 +9,7 @@ set -e
 
 # ===== Run Gtest =====
 echo "===== TESTS =====";
-
 make
-make asan
 
 # ===== Check Docs Directory =====
 echo "===== CHECK DOCUMENT EXISTENCE =====";
