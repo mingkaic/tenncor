@@ -14,7 +14,7 @@ using AugMatrixT = double[mat_dim][mat_dim * 2];
 // return true if inversible
 // algorithm taken from
 // https://rosettacode.org/wiki/Gauss-Jordan_matrix_inversion#Go
-bool gauss_jordan_elim (AugMatrixT mat)
+static bool gauss_jordan_elim (AugMatrixT mat)
 {
 	uint8_t ncols = 2 * mat_dim;
 	for (uint8_t row = 0, col = 0;
