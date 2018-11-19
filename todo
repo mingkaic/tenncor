@@ -1,5 +1,4 @@
 correctness:
-P2 - test travelling algorithms
 P2 - maximize coverage
 P3 - implement better fallback strategy when test server is unavailable
 
