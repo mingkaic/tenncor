@@ -48,6 +48,10 @@ struct Grader final : public ade::iTraveler
 	Grader (const ade::iTensor* target, std::shared_ptr<iRuleSet> rules = default_rules) :
 		target_(target), rules_(rules)
 	{
+		if (target_ == nullptr)
+		{
+			err::fatal("cannot derive with respect to null");
+		}
 		if (rules_ == nullptr)
 		{
 			err::fatal("cannot derive without ruleset");

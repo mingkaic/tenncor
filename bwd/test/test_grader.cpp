@@ -6,6 +6,8 @@
 
 #include "gtest/gtest.h"
 
+#include "testutil/common.hpp"
+
 #include "dbg/ade.hpp"
 
 #include "bwd/grader.hpp"
@@ -15,8 +17,7 @@ struct MockTensor final : public ade::Tensor
 {
 	MockTensor (void) = default;
 
-	MockTensor (ade::Shape shape) :
-		str_(shape.n_elems(), 0), shape_(shape) {}
+	MockTensor (ade::Shape shape) : shape_(shape) {}
 
 	const ade::Shape& shape (void) const override
 	{
@@ -30,12 +31,12 @@ struct MockTensor final : public ade::Tensor
 
 	void* data (void) override
 	{
-		return &str_[0];
+		return &val_;
 	}
 
 	const void* data (void) const override
 	{
-		return str_.c_str();
+		return &val_;
 	}
 
 	size_t type_code (void) const override
@@ -43,7 +44,7 @@ struct MockTensor final : public ade::Tensor
 		return 0;
 	}
 
-	std::string str_;
+	double val_;
 
 	ade::Shape shape_;
 };
@@ -54,7 +55,7 @@ struct MockRuleSet final : public age::iRuleSet
 	ade::Tensor* data (double scalar, ade::Shape shape) override
 	{
 		auto out = new ::MockTensor(shape);
-		std::fill(out->str_.begin(), out->str_.end(), (int) scalar);
+		out->val_ = scalar;
 		return out;
 	}
 
@@ -138,7 +139,43 @@ static void TREE_EQ (std::istream& expectstr, ade::Tensorptr& root)
 }
 
 
-TEST(GRADER, SUM)
+TEST(GRADER, Ruleset)
+{
+	ade::Tensorptr tens = new MockTensor();
+	
+	EXPECT_FATAL(age::Grader(nullptr), "cannot derive with respect to null");
+	EXPECT_FATAL(age::Grader(tens.get(), nullptr), "cannot derive without ruleset");
+}
+
+
+TEST(GRADER, Leaf)
+{
+	std::vector<ade::DimT> slist = {2, 3};
+	ade::Tensorptr leaf = new MockTensor(ade::Shape(slist));
+	ade::Tensorptr leaf1 = new MockTensor(ade::Shape(slist));
+
+	ade::Tensorptr g1 = age::derive(leaf, leaf.get());
+	ade::Tensorptr g0 = age::derive(leaf, leaf1.get());
+	
+	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
+	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
+
+	EXPECT_NE(nullptr, mock1);
+	EXPECT_NE(nullptr, mock0);
+
+	EXPECT_EQ(1, mock1->val_);
+	EXPECT_EQ(0, mock0->val_);
+
+	std::stringstream sstr;
+	sstr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
+	TREE_EQ(sstr, g1);
+	sstr.clear();
+	sstr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
+	TREE_EQ(sstr, g0);
+}
+
+
+TEST(GRADER, Sum)
 {
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr outside = new MockTensor(ade::Shape({7}));
@@ -151,14 +188,26 @@ TEST(GRADER, SUM)
 		{ade::identity, leaf1},
 	});
 
+	ade::Tensorptr g1 = age::derive(fwd, fwd.get());
 	ade::Tensorptr g0 = age::derive(fwd, outside.get());
 	ade::Tensorptr gl = age::derive(fwd, leaf.get());
 	ade::Tensorptr gr = age::derive(fwd, leaf1.get());
+	
+	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
+	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
 
+	EXPECT_NE(nullptr, mock1);
+	EXPECT_NE(nullptr, mock0);
+
+	EXPECT_EQ(1, mock1->val_);
+	EXPECT_EQ(0, mock0->val_);
+
+	std::stringstream ostr;
 	std::stringstream zstr;
 	std::stringstream lstr;
 	std::stringstream rstr;
 
+	ostr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
 	lstr <<
 		"(+)\n" <<
@@ -181,13 +230,14 @@ TEST(GRADER, SUM)
 		"         `--(+)\n" <<
 		"             `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 
+	TREE_EQ(ostr, g1);
 	TREE_EQ(zstr, g0);
 	TREE_EQ(lstr, gl);
 	TREE_EQ(rstr, gr);
 }
 
 
-TEST(GRADER, PROD)
+TEST(GRADER, Prod)
 {
 	std::vector<ade::DimT> slist = {2, 3};
 	ade::Tensorptr outside = new MockTensor(ade::Shape({7}));
@@ -200,14 +250,26 @@ TEST(GRADER, PROD)
 		{ade::identity, leaf1},
 	});
 
+	ade::Tensorptr g1 = age::derive(fwd, fwd.get());
 	ade::Tensorptr g0 = age::derive(fwd, outside.get());
 	ade::Tensorptr gl = age::derive(fwd, leaf.get());
 	ade::Tensorptr gr = age::derive(fwd, leaf1.get());
+	
+	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
+	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
 
+	EXPECT_NE(nullptr, mock1);
+	EXPECT_NE(nullptr, mock0);
+
+	EXPECT_EQ(1, mock1->val_);
+	EXPECT_EQ(0, mock0->val_);
+
+	std::stringstream ostr;
 	std::stringstream zstr;
 	std::stringstream lstr;
 	std::stringstream rstr;
 
+	ostr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
 	lstr <<
 		"(+)\n" <<
@@ -230,6 +292,7 @@ TEST(GRADER, PROD)
 		"         `--(+)\n" <<
 		"             `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 
+	TREE_EQ(ostr, g1);
 	TREE_EQ(zstr, g0);
 	TREE_EQ(lstr, gl);
 	TREE_EQ(rstr, gr);

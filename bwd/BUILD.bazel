@@ -38,6 +38,6 @@ cc_test(
     deps = [
         "//dbg:dbg",
         "//bwd:bwd",
-        "@com_google_googletest//:gtest",
+        "//testutil:testutil",
     ],
 )
