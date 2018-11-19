@@ -55,8 +55,7 @@ struct Tensorptr
 	Tensorptr (iTensor& tens) :
 		ptr_(&tens) {}
 
-	Tensorptr (iTensor* tens) :
-		ptr_(tens)
+	Tensorptr (iTensor* tens) : ptr_(tens)
 	{
 		if (nullptr == tens)
 		{
@@ -64,8 +63,7 @@ struct Tensorptr
 		}
 	}
 
-	Tensorptr (std::shared_ptr<iTensor> tens) :
-		ptr_(tens)
+	Tensorptr (std::shared_ptr<iTensor> tens) : ptr_(tens)
 	{
 		if (nullptr == tens)
 		{

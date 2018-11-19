@@ -31,7 +31,7 @@ static bool gauss_jordan_elim (AugMatrixT mat)
 			}
 		}
 
-		if (col >= ncols)
+		if (col >= mat_dim)
 		{
 			return false; // reduced (although non-inversible)
 		}
