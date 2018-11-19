@@ -20,43 +20,110 @@ struct COORD : public simple::TestModel
 };
 
 
-TEST_F(COORD, Inverse)
+TEST_F(COORD, Forward)
 {
-	simple::SessionT sess = get_session("COORD::Inverse");
+	simple::SessionT sess = get_session("COORD::Forward");
 
-	ade::MatrixT out, in;
 	std::vector<double> indata = sess->get_double("indata",
 		ade::mat_dim * ade::mat_dim, {0.0001, 5});
+	std::vector<double> indata2 = sess->get_double("indata2",
+		ade::mat_dim * ade::mat_dim, {0.0001, 5});
+	ade::CoordMap lhs([&indata](ade::MatrixT m)
+		{
+			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			{
+				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				{
+					m[i][j] = indata[i * ade::mat_dim + j];
+				}
+			}
+		});
+	ade::CoordMap rhs([&indata2](ade::MatrixT m)
+		{
+			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			{
+				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				{
+					m[i][j] = indata2[i * ade::mat_dim + j];
+				}
+			}
+		});
+
+	
+	ade::MatrixT expected;
 	for (uint8_t i = 0; i < ade::mat_dim; ++i)
 	{
 		for (uint8_t j = 0; j < ade::mat_dim; ++j)
 		{
-			in[i][j] = indata[i * ade::mat_dim + j];
+			expected[i][j] = 0;
+			for (uint8_t k = 0; k < ade::mat_dim; ++k)
+			{
+				expected[i][j] += indata[i * ade::mat_dim + k] * indata2[k * ade::mat_dim + j];
+			}
 		}
 	}
 
-	ade::inverse(out, in);
+	ade::iCoordMap* res = lhs.forward(rhs);
+	res->access([&expected](const ade::MatrixT& m)
+		{
+			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			{
+				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				{
+					EXPECT_EQ(expected[i][j], m[i][j]);
+				}
+			}
+		});
 
+	delete res;
+}
+
+
+TEST_F(COORD, Reverse)
+{
+	simple::SessionT sess = get_session("COORD::Reverse");
+
+	std::vector<double> indata = sess->get_double("indata",
+		ade::mat_dim * ade::mat_dim, {0.0001, 5});
+	ade::CoordMap fwd([&indata](ade::MatrixT m)
+		{
+			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			{
+				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				{
+					m[i][j] = indata[i * ade::mat_dim + j];
+				}
+			}
+		});
+
+	ade::iCoordMap* rev = fwd.reverse();
+
+	ade::MatrixT out;
+	rev->access([&out, &fwd](const ade::MatrixT& bwd)
+		{
+			fwd.access([&out, &bwd](const ade::MatrixT& fwd)
+			{
+				ade::matmul(out, fwd, bwd);
+			});
+		});
+	
 	// expect matmul is identity
 	for (uint8_t i = 0; i < ade::mat_dim; ++i)
 	{
 		for (uint8_t j = 0; j < ade::mat_dim; ++j)
 		{
-			double val = 0;
-			for (uint8_t k = 0; k < ade::mat_dim; ++k)
-			{
-				val += out[i][k] * in[k][j];
-			}
 			if (i == j)
 			{
-				EXPECT_DOUBLE_EQ(1, std::round(val));
+				EXPECT_DOUBLE_EQ(1, std::round(out[i][j]));
 			}
 			else
 			{
-				EXPECT_DOUBLE_EQ(0, std::round(val));
+				EXPECT_DOUBLE_EQ(0, std::round(out[i][j]));
 			}
 		}
 	}
+
+	delete rev;
 }
 
 
@@ -136,6 +203,8 @@ TEST_F(COORD, Reduce)
 		"cannot reduce shape rank %d beyond rank_cap with n_red %d",
 		rank + 1, red.size());
 	EXPECT_FATAL(ade::reduce(rank + 1, dred), fatalmsg.c_str());
+
+	EXPECT_WARN(ade::reduce(0, {}), "reducing with empty vector ... will do nothing");
 }
 
 
@@ -179,6 +248,8 @@ TEST_F(COORD, Extend)
 		"cannot extend shape rank %d beyond rank_cap with n_ext %d",
 		rank + 1, ext.size());
 	EXPECT_FATAL(ade::extend(rank + 1, dext), fatalmsg.c_str());
+
+	EXPECT_WARN(ade::extend(0, {}), "extending with empty vector ... will do nothing");
 }
 
 
@@ -219,6 +290,8 @@ TEST_F(COORD, Permute)
 	{
 		EXPECT_EQ(icoord[i], bwd_out[perm[i]]);
 	}
+
+	EXPECT_WARN(ade::permute({}), "permuting with same dimensions ... will do nothing");
 }
 
 
@@ -255,6 +328,8 @@ TEST_F(COORD, Flip)
 	}
 
 	EXPECT_EQ(-icoord[dim]-1, bwd_out[dim]);
+
+	EXPECT_WARN(ade::flip(ade::rank_cap * 2), "flipping dimension out of rank_cap ... will do nothing");
 }
 
 

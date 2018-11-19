@@ -10,14 +10,9 @@ namespace age
 
 void Grader::visit (ade::iFunctor* func)
 {
-	if (rules_ == nullptr)
-	{
-		err::fatal("cannot derive without ruleset");
-	}
 	if (func == target_)
 	{
-		derivatives_.emplace(func, rules_->data(
-			1, target_->shape()));
+		derivatives_.emplace(func, rules_->data(1, target_->shape()));
 		return;
 	}
 
@@ -28,8 +23,7 @@ void Grader::visit (ade::iFunctor* func)
 	// no path to wrt
 	if (pathmap.empty())
 	{
-		derivatives_.emplace(func,
-			rules_->data(0, target_->shape()));
+		derivatives_.emplace(func, rules_->data(0, target_->shape()));
 		return;
 	}
 	// else there exists a path to wrt
@@ -89,11 +83,11 @@ void Grader::visit (ade::iFunctor* func)
 
 			// apply chain rule
 			grads[child.tensor_.get()].push_back(ade::Functor::get(
-			rules_->prod_opcode(), {
-				{ade::identity, grad},
-				{ade::identity, ade::Functor::get(rules_->sum_opcode(),
-					{{mapper, bwd}})},
-			}));
+				rules_->prod_opcode(), {
+					{ade::identity, grad},
+					{ade::identity, ade::Functor::get(rules_->sum_opcode(),
+						{{mapper, bwd}})},
+				}));
 		}
 	}
 	derivatives_.emplace(func, ade::Functor::get(rules_->sum_opcode(),

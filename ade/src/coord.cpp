@@ -73,7 +73,7 @@ CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 	}
 	if (0 == n_red)
 	{
-		err::warn("reducing with empty vector... will do nothing");
+		err::warn("reducing with empty vector ... will do nothing");
 		return identity;
 	}
 
@@ -108,7 +108,7 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
 	}
 	if (0 == n_ext)
 	{
-		err::warn("extending with empty vector... will do nothing");
+		err::warn("extending with empty vector ... will do nothing");
 		return identity;
 	}
 
