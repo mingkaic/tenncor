@@ -21,7 +21,7 @@ fi
 
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";
-make lcov_all
+make lcov
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	git rev-parse --abbrev-inode* HEAD;
