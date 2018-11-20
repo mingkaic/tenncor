@@ -49,7 +49,7 @@ TEST_F(COORD, Forward)
 			}
 		});
 
-	
+
 	ade::MatrixT expected;
 	for (uint8_t i = 0; i < ade::mat_dim; ++i)
 	{
@@ -106,7 +106,7 @@ TEST_F(COORD, Reverse)
 				ade::matmul(out, fwd, bwd);
 			});
 		});
-	
+
 	// expect matmul is identity
 	for (uint8_t i = 0; i < ade::mat_dim; ++i)
 	{

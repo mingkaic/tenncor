@@ -1,5 +1,4 @@
 correctness:
-P2 - maximize coverage
 P3 - implement better fallback strategy when test server is unavailable
 
 transparency:
@@ -12,5 +11,42 @@ performance:
 P2 - reduce shared_ptr overhead
 
 features:
-P2 - implement convolution coordinate mapper
 P3 - implement deep copy
+P4 - re-implement coordinate mappers using 3-d tensors (using subset of eigen library
+    needed operations: inversion along 3-D axis, 2-D matmul along 3-D axis, and copyover dimension extension along 3-D axis)
+P4 - implement convolution coordinate mapper (depends on tensor coordinate mappers):
+    allow many-to-many mapping by projecting output coordinates along a third dimension:
+
+    currently:
+    for coordinate mapper
+    [[m_0, m_1],
+     [m_2, m_3]]
+    x' = m_0 * x + m_1 * y
+    y' = m_2 * x + m_3 * y
+
+    where (x', y') is the output coordinate
+
+    proposed:
+    for coordinate mapper
+    [[[m_0, m_1],
+      [m_2, m_3]],
+     [[m_4, m_5],
+      [m_6, m_7]],
+     ...]
+    x_0' = m_0 * x + m_1 * y
+    x_1' = m_4 * x + m_5 * y
+    ...
+    x_i' = m_(i*4) * x + m_(i*4+1) * y
+
+    y_0' = m_2 * x + m_3 * y
+    y_1' = m_6 * x + m_7 * y
+    ...
+    y_i' = m_(i*4+2) * x + m_(i*4+3) * y
+
+    where (x_i', y_i') is one possible output coordinate, the number of possible output coordinates is proportional to size of the third dimension
+
+    weakness:
+    consider for convolution, the number of output coordinate is h * w where h and w are the height and width of the kernel (size of the kernel)
+    to combine coordinate mapping via matmul, we have to extend the mapper's third dimension for each consecutive n-n mapping.
+    e.g.: combining for convolution of convolution mapper, the output coordinate is s_0 * s_1 * ... * s_n where s_i are the size of kernel i
+    the upper bound size of the combined coordinate mapper will grow exponentially wrt number of convolution operations in series

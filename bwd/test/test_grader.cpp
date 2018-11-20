@@ -142,7 +142,7 @@ static void TREE_EQ (std::istream& expectstr, ade::Tensorptr& root)
 TEST(GRADER, Ruleset)
 {
 	ade::Tensorptr tens = new MockTensor();
-	
+
 	EXPECT_FATAL(age::Grader(nullptr), "cannot derive with respect to null");
 	EXPECT_FATAL(age::Grader(tens.get(), nullptr), "cannot derive without ruleset");
 }
@@ -156,7 +156,7 @@ TEST(GRADER, Leaf)
 
 	ade::Tensorptr g1 = age::derive(leaf, leaf.get());
 	ade::Tensorptr g0 = age::derive(leaf, leaf1.get());
-	
+
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
 
@@ -192,7 +192,7 @@ TEST(GRADER, Sum)
 	ade::Tensorptr g0 = age::derive(fwd, outside.get());
 	ade::Tensorptr gl = age::derive(fwd, leaf.get());
 	ade::Tensorptr gr = age::derive(fwd, leaf1.get());
-	
+
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
 
@@ -254,7 +254,7 @@ TEST(GRADER, Prod)
 	ade::Tensorptr g0 = age::derive(fwd, outside.get());
 	ade::Tensorptr gl = age::derive(fwd, leaf.get());
 	ade::Tensorptr gr = age::derive(fwd, leaf1.get());
-	
+
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
 
@@ -294,6 +294,77 @@ TEST(GRADER, Prod)
 
 	TREE_EQ(ostr, g1);
 	TREE_EQ(zstr, g0);
+	TREE_EQ(lstr, gl);
+	TREE_EQ(rstr, gr);
+}
+
+
+TEST(GRADER, SumProd)
+{
+	std::vector<ade::DimT> slist = {2, 3};
+	ade::Tensorptr outside = new MockTensor(ade::Shape({7}));
+	ade::Tensorptr leaf = new MockTensor(ade::Shape(slist));
+	ade::Tensorptr leaf1 = new MockTensor(ade::Shape(slist));
+
+	ade::Tensorptr prod = ade::Functor::get(
+		age::Grader::default_rules->prod_opcode(), {
+		{ade::identity, leaf},
+		{ade::identity, leaf1},
+	});
+
+	ade::Tensorptr sum = ade::Functor::get(
+		age::Grader::default_rules->sum_opcode(), {
+		{ade::identity, prod},
+		{ade::identity, prod},
+	});
+
+	ade::Tensorptr gl = age::derive(sum, leaf.get());
+	ade::Tensorptr gr = age::derive(sum, leaf1.get());
+
+	std::stringstream lstr;
+	std::stringstream rstr;
+
+	lstr <<
+		"(+)\n" <<
+		"`--(*)\n" <<
+		"    `--(+)\n" <<
+		"    |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"    |   `--(+)\n" <<
+		"    |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"    `--(+)\n" <<
+		"        `--(*)\n" <<
+		"            `--(*)\n" <<
+		"            |   `--(+)\n" <<
+		"            |   |   `--(*)\n" <<
+		"            |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   `--(*)\n" <<
+		"            |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            `--(+)\n" <<
+		"                `--(+)\n" <<
+		"                    `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
+	rstr <<
+		"(+)\n" <<
+		"`--(*)\n" <<
+		"    `--(+)\n" <<
+		"    |   `--(+)\n" <<
+		"    |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"    |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"    `--(+)\n" <<
+		"        `--(*)\n" <<
+		"            `--(*)\n" <<
+		"            |   `--(+)\n" <<
+		"            |   |   `--(*)\n" <<
+		"            |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   `--(*)\n" <<
+		"            |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            `--(+)\n" <<
+		"                `--(+)\n" <<
+		"                    `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
+
 	TREE_EQ(lstr, gl);
 	TREE_EQ(rstr, gr);
 }

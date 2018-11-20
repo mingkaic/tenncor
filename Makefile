@@ -55,7 +55,7 @@ cover_bwd:
 	$(COVER) $(C_FLAG) $(BWD_TEST)
 
 
-lcov_all: coverage
+lcov: coverage
 	rm -f $(TMP_LOGFILE)
 	cat bazel-testlogs/err/test/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test/test.log >> $(TMP_LOGFILE)

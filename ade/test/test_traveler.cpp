@@ -28,12 +28,12 @@ TEST_F(TRAVELER, GraphStat)
     ade::Tensorptr b = new MockTensor();
     ade::Tensorptr c = new MockTensor();
 
-    ade::Tensorptr f = ade::Functor::get(ade::Opcode("MOCK1", 1), {
+    ade::Tensorptr f = ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
         {ade::identity, a},
         {ade::identity, b},
     });
 
-    ade::Tensorptr g = ade::Functor::get(ade::Opcode("MOCK1", 1), {
+    ade::Tensorptr g = ade::Functor::get(ade::Opcode{"MOCK0", 0}, {
         {ade::identity, c},
         {ade::identity, f},
     });
@@ -54,27 +54,27 @@ TEST_F(TRAVELER, PathFinder)
     ade::Tensorptr b = new MockTensor();
     ade::Tensorptr c = new MockTensor();
 
-    ade::Tensorptr f = ade::Functor::get(ade::Opcode("MOCK1", 1), {
+    ade::Tensorptr f = ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
         {ade::identity, a},
         {ade::identity, b},
     });
 
-    ade::Tensorptr g = ade::Functor::get(ade::Opcode("MOCK1", 1), {
+    ade::Tensorptr g = ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
         {ade::identity, c},
         {ade::identity, f},
     });
 
-    ade::PathFinder finder(a);
+    ade::PathFinder finder(a.get());
     g->accept(finder);
 
     {
         auto it = finder.parents_.find(g.get());
         ASSERT_TRUE(finder.parents_.end() != it);
-        EXPECT_EQ(it->second.end() != it->second.find(1));
+        EXPECT_TRUE(it->second.end() != it->second.find(1));
 
         it = finder.parents_.find(f.get());
         ASSERT_TRUE(finder.parents_.end() != it);
-        EXPECT_EQ(it->second.end() != it->second.find(0));
+        EXPECT_TRUE(it->second.end() != it->second.find(0));
     }
 
     finder.parents_.clear();
@@ -85,23 +85,23 @@ TEST_F(TRAVELER, PathFinder)
 
         auto it = finder.parents_.find(f.get());
         ASSERT_TRUE(finder.parents_.end() != it);
-        EXPECT_EQ(it->second.end() != it->second.find(0));
+        EXPECT_TRUE(it->second.end() != it->second.find(0));
     }
 
-    ade::PathFinder finder2(c);
+    ade::PathFinder finder2(c.get());
     g->accept(finder2);
 
     {
-        auto it = finder.parents_.find(g.get());
-        ASSERT_TRUE(finder.parents_.end() != it);
-        EXPECT_EQ(it->second.end() != it->second.find(0));
+        auto it = finder2.parents_.find(g.get());
+        ASSERT_TRUE(finder2.parents_.end() != it);
+        EXPECT_TRUE(it->second.end() != it->second.find(0));
     }
 
     finder2.parents_.clear();
     f->accept(finder2);
 
-    ASSERT_TRUE(finder.parents_.end() == finder.parents_.find(f.get()));
-    EXPECT_EQ(0, finder.parent_.size());
+    ASSERT_TRUE(finder2.parents_.end() == finder2.parents_.find(f.get()));
+    EXPECT_EQ(0, finder2.parents_.size());
 }
 
 
