@@ -69,6 +69,7 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="structage_1_1_grader-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">age::Grader Struct Reference<span class="mlabels"><span class="mlabel">final</span></span></div>  </div>
@@ -91,8 +92,8 @@ Inheritance diagram for age::Grader:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a93a1702c82aaaa134a4349b5440680a9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1_grader.html#a93a1702c82aaaa134a4349b5440680a9">Grader</a> (const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *target)</td></tr>
-<tr class="separator:a93a1702c82aaaa134a4349b5440680a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c96706fec0bd723d5f230d54415e189"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1_grader.html#a9c96706fec0bd723d5f230d54415e189">Grader</a> (const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *target, std::shared_ptr&lt; <a class="el" href="structage_1_1i_rule_set.html">iRuleSet</a> &gt; rules=<a class="el" href="structage_1_1_grader.html#ae2f865f585ba28ae98720974f10bc21a">default_rules</a>)</td></tr>
+<tr class="separator:a9c96706fec0bd723d5f230d54415e189"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf5e8dd4b0543bceff76d34c37056446"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1_grader.html#aaf5e8dd4b0543bceff76d34c37056446">visit</a> (<a class="el" href="structade_1_1_tensor.html">ade::Tensor</a> *leaf) override</td></tr>
 <tr class="memdesc:aaf5e8dd4b0543bceff76d34c37056446"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of iTraveler.  <a href="#aaf5e8dd4b0543bceff76d34c37056446">More...</a><br /></td></tr>
 <tr class="separator:aaf5e8dd4b0543bceff76d34c37056446"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -114,14 +115,20 @@ Public Attributes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:adfb303b872cee2b88885657938215760"><td class="memItemLeft" align="right" valign="top">static std::unique_ptr&lt; <a class="el" href="structage_1_1i_rule_set.html">iRuleSet</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1_grader.html#adfb303b872cee2b88885657938215760">rules_</a></td></tr>
-<tr class="separator:adfb303b872cee2b88885657938215760"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2f865f585ba28ae98720974f10bc21a"><td class="memItemLeft" align="right" valign="top">static std::shared_ptr&lt; <a class="el" href="structage_1_1i_rule_set.html">iRuleSet</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1_grader.html#ae2f865f585ba28ae98720974f10bc21a">default_rules</a></td></tr>
+<tr class="separator:ae2f865f585ba28ae98720974f10bc21a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a7e90821b82e134be7a28b1488e935199"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structage_1_1i_rule_set.html">iRuleSet</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1_grader.html#a7e90821b82e134be7a28b1488e935199">rules_</a></td></tr>
+<tr class="memdesc:a7e90821b82e134be7a28b1488e935199"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ruleset used by this instance.  <a href="#a7e90821b82e134be7a28b1488e935199">More...</a><br /></td></tr>
+<tr class="separator:a7e90821b82e134be7a28b1488e935199"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Traveler to obtain derivative of accepted node with respect to target. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a93a1702c82aaaa134a4349b5440680a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a93a1702c82aaaa134a4349b5440680a9">&#9670;&nbsp;</a></span>Grader()</h2>
+<a id="a9c96706fec0bd723d5f230d54415e189"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c96706fec0bd723d5f230d54415e189">&#9670;&nbsp;</a></span>Grader()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -133,8 +140,18 @@ Static Public Attributes</h2></td></tr>
           <td class="memname">age::Grader::Grader </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&#160;</td>
-          <td class="paramname"><em>target</em></td><td>)</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="structage_1_1i_rule_set.html">iRuleSet</a> &gt;&#160;</td>
+          <td class="paramname"><em>rules</em> = <code><a class="el" href="structage_1_1_grader.html#ae2f865f585ba28ae98720974f10bc21a">default_rules</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -208,6 +225,28 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="ae2f865f585ba28ae98720974f10bc21a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2f865f585ba28ae98720974f10bc21a">&#9670;&nbsp;</a></span>default_rules</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="structage_1_1i_rule_set.html">age::iRuleSet</a> &gt; age::Grader::default_rules</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div><div class="line">    std::make_shared&lt;MockRuleSet&gt;()</div></div><!-- fragment -->
+</div>
+</div>
 <a id="a077d57b14f7d9126a36104f16e4c9d17"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a077d57b14f7d9126a36104f16e4c9d17">&#9670;&nbsp;</a></span>derivatives_</h2>
 
@@ -224,8 +263,8 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="adfb303b872cee2b88885657938215760"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adfb303b872cee2b88885657938215760">&#9670;&nbsp;</a></span>rules_</h2>
+<a id="a7e90821b82e134be7a28b1488e935199"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e90821b82e134be7a28b1488e935199">&#9670;&nbsp;</a></span>rules_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -234,16 +273,18 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::unique_ptr&lt; <a class="el" href="structage_1_1i_rule_set.html">age::iRuleSet</a> &gt; age::Grader::rules_</td>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="structage_1_1i_rule_set.html">iRuleSet</a>&gt; age::Grader::rules_</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div><div class="line">    std::make_unique&lt;MockRuleSet&gt;()</div></div><!-- fragment -->
+
+<p>Ruleset used by this instance. </p>
+
 </div>
 </div>
 <a id="aa18ea83d92bdfcb64268fc86c1385634"></a>

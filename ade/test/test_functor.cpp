@@ -8,49 +8,62 @@
 
 #include "testutil/common.hpp"
 
+#include "common.hpp"
+
 
 struct FUNCTOR : public simple::TestModel {};
 
 
-struct MockTensor final : public ade::Tensor
+TEST_F(FUNCTOR, Shapes)
 {
-	MockTensor (void) = default;
+	simple::SessionT sess = get_session("FUNCTOR::Shape");
 
-	MockTensor (ade::Shape shape) : shape_(shape) {}
+	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	std::vector<ade::DimT> bad = get_incompatible(sess, slist, "bad");
+	ade::Shape shape(slist);
+	ade::Shape badshape(bad);
 
-	const ade::Shape& shape (void) const override
-	{
-		return shape_;
-	}
+	ade::Tensorptr leaf = new MockTensor(shape);
+	ade::Tensorptr leaf1 = new MockTensor(shape);
+	ade::Tensorptr badleaf = new MockTensor(badshape);
 
-	std::string to_string (void) const override
-	{
-		return shape_.to_string();
-	}
+	ade::Tensorptr func = ade::Functor::get(ade::Opcode{"MOCK", 0},
+		{{ade::identity, leaf}, {ade::identity, leaf1}});
 
-	void* data (void) override
-	{
-		return nullptr;
-	}
+	ade::Shape gotshape = func->shape();
+	EXPECT_ARREQ(shape, gotshape);
 
-	const void* data (void) const override
-	{
-		return nullptr;
-	}
+	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {}),
+		"cannot perform MOCK with no arguments");
 
-	size_t type_code (void) const override
-	{
-		return 0;
-	}
+	std::string fatalmsg = err::sprintf("cannot perform MOCK with incompatible shapes %s and %s",
+		shape.to_string().c_str(), badshape.to_string().c_str());
+	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
+		{ade::identity, leaf}, {ade::identity, badleaf}}), fatalmsg.c_str());
+}
 
-	ade::Shape shape_;
-};
+
+TEST_F(FUNCTOR, Opcode)
+{
+	simple::SessionT sess = get_session("FUNCTOR::Opcode");
+
+	std::string mockname = sess->get_string("mockname", 10);
+	size_t mockcode = sess->get_int("mockcode", 1, {0, 1312})[0];
+	ade::Tensorptr leaf = new MockTensor();
+
+	ade::Functor* func = ade::Functor::get(ade::Opcode{mockname, mockcode},
+		{{ade::identity, leaf}});
+
+	ade::Opcode op = func->get_opcode();
+	EXPECT_STREQ(mockname.c_str(), op.name_.c_str());
+	EXPECT_EQ(mockcode, op.code_);
+
+	delete func;
+}
 
 
 TEST_F(FUNCTOR, Childrens)
 {
-	simple::SessionT sess = get_session("FUNCTOR::Childrens");
-
 	ade::Tensorptr leaf = new MockTensor();
 	ade::Tensorptr leaf1 = new MockTensor();
 

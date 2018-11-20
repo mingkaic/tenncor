@@ -42,8 +42,12 @@ const size_t nelem_limit = 32456;
 	EXPECT_TRUE(std::equal(ARR.begin(), ARR.end(), ARR2.begin())) <<\
 		"expect list " << arrs.str() << ", got " << arrs2.str() << " instead"; }
 
-#define EXPECT_FATAL(EVENT, MSG) try { EVENT; } catch (std::runtime_error& e) {\
-	EXPECT_STREQ(MSG, e.what()); }
+#define EXPECT_FATAL(EVENT, MSG) try { EVENT; FAIL() << "failed to throw something"; }\
+	catch (std::runtime_error& e) { EXPECT_STREQ(MSG, e.what()); }\
+	catch (std::exception& e) { FAIL() << "unexpected throw " << e.what(); }
+
+#define EXPECT_WARN(EVENT, MSG) EVENT;\
+	EXPECT_STREQ(MSG, TestLogger::latest_warning_.c_str());
 
 std::vector<ade::DimT> get_shape_n (simple::SessionT& sess, size_t n, std::string label);
 

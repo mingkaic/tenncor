@@ -9,9 +9,7 @@ set -e
 
 # ===== Run Gtest =====
 echo "===== TESTS =====";
-
 make
-make asan
 
 # ===== Check Docs Directory =====
 echo "===== CHECK DOCUMENT EXISTENCE =====";
@@ -23,7 +21,7 @@ fi
 
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";
-make lcov_all
+make lcov
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	git rev-parse --abbrev-inode* HEAD;

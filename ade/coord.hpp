@@ -41,7 +41,7 @@ struct iCoordMap
 	/// Return string representation of coordinate transformer
 	virtual std::string to_string (void) const = 0;
 
-	/// Access the matrix representation of transformer as a param to input
+	/// Access the forward matrix representation of transformer as a param to input
 	/// callback function cb
 	virtual void access (std::function<void(const MatrixT&)> cb) const = 0;
 };

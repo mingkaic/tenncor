@@ -1,6 +1,4 @@
 correctness:
-P2 - test travelling algorithms
-P2 - maximize coverage
 P3 - implement better fallback strategy when test server is unavailable
 
 transparency:
@@ -13,5 +11,4 @@ performance:
 P2 - reduce shared_ptr overhead
 
 features:
-P2 - implement convolution coordinate mapper
 P3 - implement deep copy

@@ -43,17 +43,24 @@ struct Grader final : public ade::iTraveler
 {
 	// this wouldn't be initialized in runtime library
 	// (generator would initialize its custom ruleset)
-	static std::unique_ptr<iRuleSet> rules_;
+	static std::shared_ptr<iRuleSet> default_rules;
 
-	Grader (const ade::iTensor* target) : target_(target) {}
-
-	/// Implementation of iTraveler
-	void visit (ade::Tensor* leaf) override
+	Grader (const ade::iTensor* target, std::shared_ptr<iRuleSet> rules = default_rules) :
+		target_(target), rules_(rules)
 	{
+		if (target_ == nullptr)
+		{
+			err::fatal("cannot derive with respect to null");
+		}
 		if (rules_ == nullptr)
 		{
 			err::fatal("cannot derive without ruleset");
 		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (ade::Tensor* leaf) override
+	{
 		if (leaf == target_)
 		{
 			derivatives_.emplace(leaf,
@@ -74,6 +81,10 @@ struct Grader final : public ade::iTraveler
 
 	/// Map forward root node to derivative root
 	std::unordered_map<const ade::iTensor*,ade::Tensorptr> derivatives_;
+
+private:
+	/// Ruleset used by this instance
+	std::shared_ptr<iRuleSet> rules_;
 };
 
 /// Return ArgsT with each tensor in TensT attached to identity mapper
