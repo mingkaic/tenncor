@@ -9,13 +9,13 @@ jobs:
       script:
         - git checkout ${TRAVIS_BRANCH}
         - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-        - docker build -t $DOCKER_USERNAME/tenncor-test:travis-latest .
+        - docker build -t $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT} .
         - docker images
-        - docker push $DOCKER_USERNAME/tenncor-test:travis-latest
+        - docker push $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT}
     - stage: test
       script:
         - docker run -e COVERALLS_TOKEN=${COVERALLS_TOKEN}
-          --rm $DOCKER_USERNAME/tenncor-test:travis-latest
+          --rm $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT}
 
 notifications:
   email: false
