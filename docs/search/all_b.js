@@ -6,6 +6,5 @@ var searchData=
   ['log',['LOG',['../struct_l_o_g.html',1,'']]],
   ['log_2ecpp',['log.cpp',['../log_8cpp.html',1,'']]],
   ['log_2ehpp',['log.hpp',['../log_8hpp.html',1,'']]],
-  ['ltrim',['ltrim',['../bwd_2test_2test__grader_8cpp.html#a47084ee818936eef3c48be492c0e860f',1,'test_grader.cpp']]],
-  ['logger',['Logger',['../md_err__r_e_a_d_m_e__l_o_g.html',1,'']]]
+  ['ltrim',['ltrim',['../bwd_2test_2test__grader_8cpp.html#a47084ee818936eef3c48be492c0e860f',1,'test_grader.cpp']]]
 ];
