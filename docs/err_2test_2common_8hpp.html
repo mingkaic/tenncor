@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Tenncor: err/test/main.cpp File Reference</title>
+<title>Tenncor: err/test/common.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -66,54 +66,26 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a> &#124;
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
-<div class="title">main.cpp File Reference</div>  </div>
+<div class="title">common.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;gtest/gtest.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="err_2test_2common_8hpp_source.html">err/test/common.hpp</a>&quot;</code><br />
-</div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="err_2test_2main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a> (int argc, char **argv)</td></tr>
-<tr class="separator:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<div class="textblock"><code>#include &quot;<a class="el" href="log_8hpp_source.html">err/log.hpp</a>&quot;</code><br />
+</div>
+<p><a href="err_2test_2common_8hpp_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_test_logger.html">TestLogger</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:aef40dbefb5f1f67b02b9d7b529c00a31"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="struct_test_logger.html">TestLogger</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="err_2test_2main_8cpp.html#aef40dbefb5f1f67b02b9d7b529c00a31">tlogger</a> = std::make_shared&lt;<a class="el" href="struct_test_logger.html">TestLogger</a>&gt;()</td></tr>
+<tr class="memitem:aef40dbefb5f1f67b02b9d7b529c00a31"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="struct_test_logger.html">TestLogger</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="err_2test_2common_8hpp.html#aef40dbefb5f1f67b02b9d7b529c00a31">tlogger</a></td></tr>
 <tr class="separator:aef40dbefb5f1f67b02b9d7b529c00a31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="a3c04138a5bfe5d72780bb7e82a18e627"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c04138a5bfe5d72780bb7e82a18e627">&#9670;&nbsp;</a></span>main()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int main </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>argc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char **&#160;</td>
-          <td class="paramname"><em>argv</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="aef40dbefb5f1f67b02b9d7b529c00a31"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aef40dbefb5f1f67b02b9d7b529c00a31">&#9670;&nbsp;</a></span>tlogger</h2>
@@ -122,7 +94,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="struct_test_logger.html">TestLogger</a>&gt; tlogger = std::make_shared&lt;<a class="el" href="struct_test_logger.html">TestLogger</a>&gt;()</td>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="struct_test_logger.html">TestLogger</a>&gt; tlogger</td>
         </tr>
       </table>
 </div><div class="memdoc">
