@@ -8,6 +8,7 @@ var searchData=
   ['mat_5fdim',['mat_dim',['../namespaceade.html#a5d20bdd43f50367b1d8780c145cfe0f3',1,'ade']]],
   ['mat_5fsize',['mat_size',['../namespaceade.html#a2510c0d77a622cfaa58a0865d86ce8d5',1,'ade']]],
   ['matmul',['matmul',['../namespaceade.html#ab6daf41b04bccd42950ae92db8a0439a',1,'ade']]],
+  ['matops',['MATOPS',['../struct_m_a_t_o_p_s.html',1,'']]],
   ['matops_2ecpp',['matops.cpp',['../matops_8cpp.html',1,'']]],
   ['matops_2ehpp',['matops.hpp',['../matops_8hpp.html',1,'']]],
   ['matrixt',['MatrixT',['../namespaceade.html#ae0f6687dd704fcf5c00f841da0509246',1,'ade']]],

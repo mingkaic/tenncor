@@ -68,6 +68,7 @@ $(function() {
 <div class="textblock"><p><a href="https://travis-ci.org/mingkaic/tenncor"></a> <a href="https://coveralls.io/github/mingkaic/tenncor?branch=master"></a></p>
 <h2>Synopsis</h2>
 <p>Tenncor libraries help developers build and evaluate tensor equations and its derivatives. A tensor is an N-dimensional container that organizes its content by some shape. An M by N matrix for instance, is a 2-dimensional tensor with a shape of [N, M] (according to Tenncor's x-y-z-... coordinate notation).</p>
+<p>This project aims for modularity. Everything (including this project) should be easily replaceable in any high-level system.</p>
 <h2>Components</h2>
 <ul>
 <li><a class="el" href="md_ade__r_e_a_d_m_e__a_d_e.html">ADE (Automatic Differentiation Engine)</a></li>
@@ -78,7 +79,7 @@ $(function() {
 </ul>
 <p>This generator creates glue layer between ADE and data manipulation libraries as well as map operational codes to its respective chain rule.</p>
 <ul>
-<li>BWD (Backward operations)</li>
+<li><a class="el" href="md_bwd__r_e_a_d_m_e__b_w_d.html">BWD (Backward operations)</a></li>
 </ul>
 <p>This library provides traveler for generating partial derivative equations using some set of chain rules.</p>
 <h2>Tools and utility</h2>

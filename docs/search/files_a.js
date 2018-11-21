@@ -8,8 +8,11 @@ var searchData=
   ['test_5ffunctor_2ecpp',['test_functor.cpp',['../test__functor_8cpp.html',1,'']]],
   ['test_5fgrader_2ecpp',['test_grader.cpp',['../age_2test_2test__grader_8cpp.html',1,'(Global Namespace)'],['../bwd_2test_2test__grader_8cpp.html',1,'(Global Namespace)']]],
   ['test_5flog_2ecpp',['test_log.cpp',['../test__log_8cpp.html',1,'']]],
+  ['test_5fmatops_2ecpp',['test_matops.cpp',['../test__matops_8cpp.html',1,'']]],
   ['test_5fopmap_2ecpp',['test_opmap.cpp',['../test__opmap_8cpp.html',1,'']]],
   ['test_5fshape_2ecpp',['test_shape.cpp',['../test__shape_8cpp.html',1,'']]],
   ['test_5fstring_2ecpp',['test_string.cpp',['../test__string_8cpp.html',1,'']]],
+  ['test_5ftensor_2ecpp',['test_tensor.cpp',['../test__tensor_8cpp.html',1,'']]],
+  ['test_5ftraveler_2ecpp',['test_traveler.cpp',['../test__traveler_8cpp.html',1,'']]],
   ['traveler_2ehpp',['traveler.hpp',['../traveler_8hpp.html',1,'']]]
 ];

@@ -7,6 +7,8 @@
 Tenncor libraries help developers build and evaluate tensor equations and its derivatives.
 A tensor is an N-dimensional container that organizes its content by some shape. An M by N matrix for instance, is a 2-dimensional tensor with a shape of [N, M] (according to Tenncor's x-y-z-... coordinate notation).
 
+This project aims for modularity. Everything (including this project) should be easily replaceable in any high-level system.
+
 ## Components
 
 - [ADE (Automatic Differentiation Engine)](ade/README_ADE.md)
