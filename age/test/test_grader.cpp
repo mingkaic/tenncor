@@ -11,8 +11,8 @@
 TEST(AGE, RulesData)
 {
 	age::RuleSet rule;
-	ade::iLeaf* data = rule.data(45, ade::Shape({4, 6}));
-	MockTensor* mockdata = dynamic_cast<MockTensor*>(data);
+	ade::LeafptrT data = rule.data(45, ade::Shape({4, 6}));
+	MockTensor* mockdata = dynamic_cast<MockTensor*>(data.get());
 	ASSERT_NE(nullptr, mockdata);
 
 	ade::Shape shape = mockdata->shape();
@@ -20,8 +20,6 @@ TEST(AGE, RulesData)
 	EXPECT_EQ(4, shape.at(0));
 	EXPECT_EQ(6, shape.at(1));
 	EXPECT_EQ(24, shape.n_elems());
-
-	delete data;
 }
 
 

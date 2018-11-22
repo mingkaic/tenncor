@@ -25,7 +25,7 @@ struct iRuleSet
 	virtual ~iRuleSet (void) = default;
 
 	/// Return tensor leaf containing scalar of specific shape
-	virtual ade::iLeaf* data (double scalar, ade::Shape shape) = 0;
+	virtual ade::LeafptrT data (double scalar, ade::Shape shape) = 0;
 
 	/// Return opcode representing nnary sum
 	virtual ade::Opcode sum_opcode (void) = 0;

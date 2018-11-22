@@ -10,14 +10,14 @@ namespace age
 {{
 
 template <typename T>
-ade::iLeaf* data (T scalar, ade::Shape shape)
+ade::LeafptrT data (T scalar, ade::Shape shape)
 {{
     return {scalarize};
 }}
 
 struct RuleSet final : public iRuleSet
 {{
-    ade::iLeaf* data (double scalar, ade::Shape shape) override
+    ade::LeafptrT data (double scalar, ade::Shape shape) override
     {{
         return age::data(scalar, shape);
     }}

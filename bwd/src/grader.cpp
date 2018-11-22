@@ -45,7 +45,7 @@ void Grader::visit (ade::iFunctor* func)
 		});
 
 	std::unordered_map<const ade::iTensor*,TensT> grads = {
-		{func, {{ade::TensptrT(rules_->data(1, func->shape()))}}},
+		{func, {rules_->data(1, func->shape())}},
 	};
 	for (ade::iFunctor* parent : parents)
 	{
@@ -58,7 +58,10 @@ void Grader::visit (ade::iFunctor* func)
 		ade::ArgsT children = parent->get_children();
 		size_t nchildren = children.size();
 		// for each painted child, calculate dThis/dChild
-		for (size_t i : grad_indices)
+		// go through grads in order
+		std::list<size_t> ordered(grad_indices.begin(), grad_indices.end());
+		ordered.sort();
+		for (size_t i : ordered)
 		{
 			TensT args;
 			ade::MappedTensor& child = children[i];
@@ -90,8 +93,9 @@ void Grader::visit (ade::iFunctor* func)
 				})));
 		}
 	}
-	derivatives_.emplace(func, ade::Functor::get(rules_->sum_opcode(),
-		to_args(grads[target_])));
+	derivatives_.emplace(func, ade::TensptrT(
+		ade::Functor::get(rules_->sum_opcode(),
+			to_args(grads[target_]))));
 }
 
 ade::ArgsT to_args (TensT tens)

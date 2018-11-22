@@ -52,11 +52,11 @@ struct MockTensor final : public ade::iLeaf
 
 struct MockRuleSet final : public age::iRuleSet
 {
-	ade::iLeaf* data (double scalar, ade::Shape shape) override
+	ade::LeafptrT data (double scalar, ade::Shape shape) override
 	{
 		auto out = new ::MockTensor(shape);
 		out->val_ = scalar;
-		return out;
+		return ade::LeafptrT(out);
 	}
 
 	ade::Opcode sum_opcode (void) override
