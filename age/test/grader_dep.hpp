@@ -1,4 +1,4 @@
-#include "ade/tensor.hpp"
+#include "ade/ileaf.hpp"
 #include "bwd/grader.hpp"
 
 #ifndef MOCK_GRADER_DEP_HPP
@@ -6,7 +6,7 @@
 
 const size_t khaled_constant = 45;
 
-struct MockTensor : public ade::Tensor
+struct MockTensor : public ade::iLeaf
 {
 	MockTensor (double scalar, ade::Shape shape) :
 		scalar_(scalar), shape_(shape) {}

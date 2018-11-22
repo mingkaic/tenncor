@@ -44,13 +44,13 @@ struct DefLogger final : public iLogger
 	/// Implementation of iLogger
 	void warn (std::string msg) const override
 	{
-		std::cerr << warn_tag << msg << "\n";
+		std::cerr << warn_tag << msg << '\n';
 	}
 
 	/// Implementation of iLogger
 	void error (std::string msg) const override
 	{
-		std::cerr << err_tag << msg << "\n";
+		std::cerr << err_tag << msg << '\n';
 	}
 
 	/// Implementation of iLogger

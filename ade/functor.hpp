@@ -8,7 +8,7 @@
 
 #include "err/string.hpp"
 
-#include "ade/tensor.hpp"
+#include "ade/ileaf.hpp"
 #include "ade/traveler.hpp"
 #include "ade/coord.hpp"
 
@@ -29,6 +29,15 @@ struct Functor final : public iFunctor
 			err::fatalf("cannot perform %s with no arguments",
 				opcode.name_.c_str());
 		}
+		// if (std::any_of(args.begin(), args.end(),
+		// 	[](MappedTensor& mten)
+		// 	{
+		// 		return mten.tensor_ == nullptr;
+		// 	}))
+		// {
+		// 	err::fatalf("cannot perform %s with null arguments",
+		// 		opcode.name_.c_str());
+		// }
 
 		Shape shape = args[0].shape();
 		for (size_t i = 1, n = args.size(); i < n; ++i)

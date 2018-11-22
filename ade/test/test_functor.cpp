@@ -11,15 +11,13 @@
 #include "common.hpp"
 
 
-struct FUNCTOR : public simple::TestModel {};
+struct FUNCTOR : public ::testing::Test {};
 
 
 TEST_F(FUNCTOR, Shapes)
 {
-	simple::SessionT sess = get_session("FUNCTOR::Shape");
-
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	std::vector<ade::DimT> bad = get_incompatible(sess, slist, "bad");
+	std::vector<ade::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
+	std::vector<ade::DimT> bad = {94, 78, 70, 82, 62, 22, 38};
 	ade::Shape shape(slist);
 	ade::Shape badshape(bad);
 
@@ -36,6 +34,10 @@ TEST_F(FUNCTOR, Shapes)
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {}),
 		"cannot perform MOCK with no arguments");
 
+	// EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0},
+	// 	{{ade::identity, leaf}, {ade::identity, nullptr}}),
+	// 	"cannot perform MOCK with null arguments");
+
 	std::string fatalmsg = err::sprintf("cannot perform MOCK with incompatible shapes %s and %s",
 		shape.to_string().c_str(), badshape.to_string().c_str());
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
@@ -45,10 +47,8 @@ TEST_F(FUNCTOR, Shapes)
 
 TEST_F(FUNCTOR, Opcode)
 {
-	simple::SessionT sess = get_session("FUNCTOR::Opcode");
-
-	std::string mockname = sess->get_string("mockname", 10);
-	size_t mockcode = sess->get_int("mockcode", 1, {0, 1312})[0];
+	std::string mockname = "asd123101ksq";
+	size_t mockcode = 3247;
 	ade::Tensorptr leaf = new MockTensor();
 
 	ade::Functor* func = ade::Functor::get(ade::Opcode{mockname, mockcode},
@@ -82,8 +82,6 @@ TEST_F(FUNCTOR, Childrens)
 
 TEST_F(FUNCTOR, ToString)
 {
-	simple::SessionT sess = get_session("FUNCTOR::ToString");
-
 	ade::Tensorptr leaf = new MockTensor();
 	ade::Tensorptr leaf1 = new MockTensor();
 

@@ -4,6 +4,7 @@
 
 #include "gtest/gtest.h"
 
+#include "ade/functor.hpp"
 #include "ade/traveler.hpp"
 
 #include "testutil/common.hpp"
@@ -11,11 +12,10 @@
 #include "common.hpp"
 
 
-struct TRAVELER : public simple::TestModel
+struct TRAVELER : public ::testing::Test
 {
 	virtual void TearDown (void)
 	{
-		simple::TestModel::TearDown();
 		TestLogger::latest_warning_ = "";
 		TestLogger::latest_error_ = "";
 	}

@@ -6,7 +6,7 @@
 ///	Define grader traveler to build partial derivative equations
 ///
 
-#include "ade/tensor.hpp"
+#include "ade/ileaf.hpp"
 #include "ade/traveler.hpp"
 #include "ade/functor.hpp"
 
@@ -25,7 +25,7 @@ struct iRuleSet
 	virtual ~iRuleSet (void) = default;
 
 	/// Return tensor leaf containing scalar of specific shape
-	virtual ade::Tensor* data (double scalar, ade::Shape shape) = 0;
+	virtual ade::iLeaf* data (double scalar, ade::Shape shape) = 0;
 
 	/// Return opcode representing nnary sum
 	virtual ade::Opcode sum_opcode (void) = 0;
@@ -41,11 +41,7 @@ struct iRuleSet
 /// Traveler to obtain derivative of accepted node with respect to target
 struct Grader final : public ade::iTraveler
 {
-	// this wouldn't be initialized in runtime library
-	// (generator would initialize its custom ruleset)
-	static std::shared_ptr<iRuleSet> default_rules;
-
-	Grader (const ade::iTensor* target, std::shared_ptr<iRuleSet> rules = default_rules) :
+	Grader (const ade::iTensor* target, std::shared_ptr<iRuleSet> rules) :
 		target_(target), rules_(rules)
 	{
 		if (target_ == nullptr)
@@ -59,7 +55,7 @@ struct Grader final : public ade::iTraveler
 	}
 
 	/// Implementation of iTraveler
-	void visit (ade::Tensor* leaf) override
+	void visit (ade::iLeaf* leaf) override
 	{
 		if (leaf == target_)
 		{
@@ -89,9 +85,6 @@ private:
 
 /// Return ArgsT with each tensor in TensT attached to identity mapper
 ade::ArgsT to_args (TensT tens);
-
-/// Return derivative of root with respect to wrt using Grader
-ade::Tensorptr derive (ade::Tensorptr& root, const ade::iTensor* wrt);
 
 }
 

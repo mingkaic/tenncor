@@ -39,5 +39,4 @@ cc_test(
         "//testutil:testutil",
     ],
     copts = ["-std=c++14"],
-    data = ["//:credentials"],
 )

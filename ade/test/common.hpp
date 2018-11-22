@@ -1,9 +1,9 @@
-#include "ade/tensor.hpp"
+#include "ade/ileaf.hpp"
 
 #ifndef ADE_TEST_COMMON_HPP
 #define ADE_TEST_COMMON_HPP
 
-struct MockTensor final : public ade::Tensor
+struct MockTensor final : public ade::iLeaf
 {
 	MockTensor (void) = default;
 

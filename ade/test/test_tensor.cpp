@@ -4,18 +4,17 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/tensor.hpp"
+#include "ade/ileaf.hpp"
 
 #include "testutil/common.hpp"
 
 #include "common.hpp"
 
 
-struct TENSOR : public simple::TestModel
+struct TENSOR : public ::testing::Test
 {
 	virtual void TearDown (void)
 	{
-		simple::TestModel::TearDown();
 		TestLogger::latest_warning_ = "";
 		TestLogger::latest_error_ = "";
 	}
@@ -26,7 +25,7 @@ TEST_F(TENSOR, Tensorptr)
 {
 	std::weak_ptr<ade::iTensor> weaks;
 	{
-		ade::Tensor* raw = new MockTensor();
+		ade::iLeaf* raw = new MockTensor();
 		std::shared_ptr<ade::iTensor> shared(new MockTensor());
 		ade::Tensorptr ptr(raw);
 		ade::Tensorptr sharedtens(shared);
@@ -49,13 +48,11 @@ TEST_F(TENSOR, Tensorptr)
 
 TEST_F(TENSOR, MappedTensor)
 {
-	simple::SessionT sess = get_session("TENSOR::MappedTensor");
+	std::vector<ade::DimT> slist = {2, 81};
 
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
-
-	size_t dim = sess->get_scalar("dim", {0, ade::rank_cap - 1});
+	size_t dim = 1;
 	ade::CoordPtrT flipper = ade::flip(dim);
-	
+
 	ade::Tensorptr tens(new MockTensor(ade::Shape(slist)));
 	ade::MappedTensor mt(flipper, tens);
 

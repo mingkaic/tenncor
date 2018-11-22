@@ -281,14 +281,14 @@ namespace age
 {
 
 template <typename T>
-ade::Tensor* data (T scalar, ade::Shape shape)
+ade::iLeaf* data (T scalar, ade::Shape shape)
 {
     return get_numba(12345);
 }
 
 struct RuleSet final : public iRuleSet
 {
-    ade::Tensor* data (double scalar, ade::Shape shape) override
+    ade::iLeaf* data (double scalar, ade::Shape shape) override
     {
         return age::data(scalar, shape);
     }
@@ -315,8 +315,6 @@ grader_source = """#ifdef _GENERATED_GRADER_HPP
 
 namespace age
 {
-
-std::shared_ptr<iRuleSet> Grader::default_rules = std::make_shared<RuleSet>();
 
 ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 {

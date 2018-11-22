@@ -11,7 +11,7 @@
 TEST(AGE, RulesData)
 {
 	age::RuleSet rule;
-	ade::Tensor* data = rule.data(45, ade::Shape({4, 6}));
+	ade::iLeaf* data = rule.data(45, ade::Shape({4, 6}));
 	MockTensor* mockdata = dynamic_cast<MockTensor*>(data);
 	ASSERT_NE(nullptr, mockdata);
 

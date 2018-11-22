@@ -105,15 +105,6 @@ ade::ArgsT to_args (TensT tens)
 	return args;
 }
 
-ade::Tensorptr derive (ade::Tensorptr& root, const ade::iTensor* wrt)
-{
-	Grader grader(wrt);
-	root->accept(grader);
-	auto it = grader.derivatives_.find(root.get());
-	assert(grader.derivatives_.end() != it);
-	return it->second;
-}
-
 }
 
 #endif
