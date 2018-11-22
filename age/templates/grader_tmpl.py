@@ -32,7 +32,7 @@ struct RuleSet final : public iRuleSet
         return ade::Opcode{{"{prod}", {prod}}};
     }}
 
-    ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx) override;
+    ade::TensptrT grad_rule (size_t code, TensT args, size_t idx) override;
 }};
 
 }}
@@ -52,7 +52,7 @@ source = repr.FILE_REPR("""#ifdef _GENERATED_GRADER_HPP
 namespace age
 {{
 
-ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
+ade::TensptrT RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 {{
     switch (code)
     {{

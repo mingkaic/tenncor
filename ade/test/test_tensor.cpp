@@ -21,31 +21,6 @@ struct TENSOR : public ::testing::Test
 };
 
 
-TEST_F(TENSOR, Tensorptr)
-{
-	std::weak_ptr<ade::iTensor> weaks;
-	{
-		ade::iLeaf* raw = new MockTensor();
-		std::shared_ptr<ade::iTensor> shared(new MockTensor());
-		ade::Tensorptr ptr(raw);
-		ade::Tensorptr sharedtens(shared);
-		{
-			ade::Tensorptr optr(ptr);
-			EXPECT_EQ(ptr.get(), optr.get());
-			weaks = optr.ref();
-		}
-		EXPECT_FALSE(weaks.expired());
-		EXPECT_EQ(raw, ptr.get());
-		EXPECT_EQ(shared.get(), sharedtens.get());
-	}
-	EXPECT_TRUE(weaks.expired());
-
-	EXPECT_FATAL(ade::Tensorptr(nullptr), "cannot create nodeptr with nullptr");
-	EXPECT_FATAL(ade::Tensorptr(std::shared_ptr<ade::iTensor>(nullptr)),
-		"cannot create nodeptr with nullptr");
-}
-
-
 TEST_F(TENSOR, MappedTensor)
 {
 	std::vector<ade::DimT> slist = {2, 81};
@@ -53,7 +28,7 @@ TEST_F(TENSOR, MappedTensor)
 	size_t dim = 1;
 	ade::CoordPtrT flipper = ade::flip(dim);
 
-	ade::Tensorptr tens(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT tens(new MockTensor(ade::Shape(slist)));
 	ade::MappedTensor mt(flipper, tens);
 
 	ade::Shape shape = mt.shape();
@@ -71,6 +46,9 @@ TEST_F(TENSOR, MappedTensor)
 
 	ade::Shape shape2 = mt.shape();
 	EXPECT_EQ(4 * slist[0], shape2.at(0));
+
+	EXPECT_FATAL(ade::MappedTensor(ade::identity, nullptr),
+		"cannot map a null tensor");
 }
 
 

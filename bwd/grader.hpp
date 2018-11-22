@@ -17,7 +17,7 @@ namespace age
 {
 
 /// Vector representation of tensor pointers
-using TensT = std::vector<ade::Tensorptr>;
+using TensT = std::vector<ade::TensptrT>;
 
 /// Ruleset used by a Grader traveler to derive equations
 struct iRuleSet
@@ -35,7 +35,7 @@ struct iRuleSet
 
 	/// Return chain rule of operation with respect to argument at idx
 	/// specified by code given args
-	virtual ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx) = 0;
+	virtual ade::TensptrT grad_rule (size_t code, TensT args, size_t idx) = 0;
 };
 
 /// Traveler to obtain derivative of accepted node with respect to target
@@ -76,7 +76,7 @@ struct Grader final : public ade::iTraveler
 	const ade::iTensor* target_;
 
 	/// Map forward root node to derivative root
-	std::unordered_map<const ade::iTensor*,ade::Tensorptr> derivatives_;
+	std::unordered_map<const ade::iTensor*,ade::TensptrT> derivatives_;
 
 private:
 	/// Ruleset used by this instance

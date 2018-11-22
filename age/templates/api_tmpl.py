@@ -16,7 +16,7 @@ namespace age
 #endif // _GENERATED_API_HPP
 """)
 
-header.api_decls = ("apis", lambda apis: '\n\n'.join(["ade::Tensorptr {api} ({args});".format(\
+header.api_decls = ("apis", lambda apis: '\n\n'.join(["ade::TensptrT {api} ({args});".format(\
     api = api["name"], args = ', '.join(api["args"])) for api in apis]))
 
 # EXPORT
@@ -32,7 +32,24 @@ namespace age
 #endif
 """)
 
-source.apis = ("apis", lambda apis: '\n\n'.join(["""ade::Tensorptr {api} ({args})
+def nullcheck(args):
+    vars = [arg.split(' ') for arg in args]
+    tens = list(filter(lambda vpair: vpair[0] == 'ade::TensptrT',\
+        [(var[0], var[-1]) for var in vars]))
+    if len(tens) == 0:
+        return "false"
+    varnames = [ten[-1] for ten in tens]
+    return " || ".join([varname + " == nullptr" for varname in varnames])
+
+source.apis = ("apis", lambda apis: '\n\n'.join(["""ade::TensptrT {api} ({args})
 {{
+    if ({null_check})
+    {{
+        err::fatal("cannot {api} with a null argument");
+    }}
     return {retval};
-}}""".format(api = api["name"], args = ', '.join(api["args"]), retval = api["out"]) for api in apis]))
+}}""".format(
+    api = api["name"],
+    args = ', '.join(api["args"]),
+    null_check = nullcheck(api["args"]),
+    retval = api["out"]) for api in apis]))

@@ -77,7 +77,7 @@ struct PathFinder final : public iTraveler
 			std::unordered_set<size_t> path;
 			for (size_t i = 0; i < n; ++i)
 			{
-				Tensorptr tens = children[i].tensor_;
+				TensptrT tens = children[i].tensor_;
 				if (tens.get() == target_)
 				{
 					path.emplace(i);

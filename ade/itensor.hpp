@@ -52,62 +52,17 @@ using TensptrT = std::shared_ptr<iTensor>;
 
 using TensrefT = std::weak_ptr<iTensor>;
 
-/// Smart pointer to iTensor ensuring non-null references
-struct Tensorptr
-{
-	Tensorptr (iTensor& tens) :
-		ptr_(&tens) {}
-
-	Tensorptr (iTensor* tens) : ptr_(tens)
-	{
-		if (nullptr == tens)
-		{
-			err::fatal("cannot create nodeptr with nullptr");
-		}
-	}
-
-	Tensorptr (TensptrT tens) : ptr_(tens)
-	{
-		if (nullptr == tens)
-		{
-			err::fatal("cannot create nodeptr with nullptr");
-		}
-	}
-
-	virtual ~Tensorptr (void) = default;
-
-	iTensor* operator -> (void)
-	{
-		return ptr_.get();
-	}
-
-	const iTensor* operator -> (void) const
-	{
-		return ptr_.get();
-	}
-
-	/// Return the raw pointer
-	iTensor* get (void) const
-	{
-		return ptr_.get();
-	}
-
-	/// Return the weakptr reference
-	std::weak_ptr<iTensor> ref (void) const
-	{
-		return ptr_;
-	}
-
-protected:
-	/// Strong reference to iTensor
-	std::shared_ptr<iTensor> ptr_;
-};
-
 /// Coordinate mapper and tensor pair
 struct MappedTensor final
 {
-	MappedTensor (CoordPtrT mapper, Tensorptr tensor) :
-		mapper_(mapper), tensor_(tensor) {}
+	MappedTensor (CoordPtrT mapper, TensptrT tensor) :
+		mapper_(mapper), tensor_(tensor)
+	{
+		if (tensor_ == nullptr)
+		{
+			err::fatal("cannot map a null tensor");
+		}
+	}
 
 	/// Return shape of tensor filtered through coordinate mapper
 	Shape shape (void) const
@@ -134,7 +89,7 @@ struct MappedTensor final
 	CoordPtrT mapper_;
 
 	/// Tensor reference
-	Tensorptr tensor_;
+	TensptrT tensor_;
 };
 
 }

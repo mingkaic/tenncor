@@ -10,7 +10,7 @@
 
 TEST(AGE, Api)
 {
-	ade::Tensorptr carrot = age::goku(16);
+	ade::TensptrT carrot(age::goku(16));
 	MockTensor* kakarot = dynamic_cast<MockTensor*>(carrot.get());
 	EXPECT_NE(nullptr, kakarot);
 	ade::Shape shape = kakarot->shape();

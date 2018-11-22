@@ -41,8 +41,8 @@ struct MockTensor : public ade::iLeaf
 	ade::Shape shape_;
 };
 
-ade::Tensorptr arms_heavy (size_t idx, age::TensT args);
+ade::TensptrT arms_heavy (size_t idx, age::TensT args);
 
-ade::Tensorptr dj_grad (age::TensT args, size_t idx);
+ade::TensptrT dj_grad (age::TensT args, size_t idx);
 
 #endif // MOCK_GRADER_DEP_HPP

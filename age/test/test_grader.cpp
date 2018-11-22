@@ -47,7 +47,7 @@ TEST(AGE, GraderEminem)
 {
 	age::RuleSet rule;
 	auto mock = new MockTensor(1, ade::Shape());
-	ade::Tensorptr arg = mock;
+	ade::TensptrT arg(mock);
 	size_t idx = 42;
 	rule.grad_rule(age::EMINEM, {arg}, idx);
 	EXPECT_EQ(idx, mock->scalar_);
@@ -58,7 +58,7 @@ TEST(AGE, GraderKhaled)
 {
 	age::RuleSet rule;
 	auto mock = new MockTensor(1, ade::Shape());
-	ade::Tensorptr arg = mock;
+	ade::TensptrT arg(mock);
 	size_t idx = 63;
 	rule.grad_rule(age::KHALED, {arg}, idx);
 	EXPECT_EQ(idx + khaled_constant, mock->scalar_);

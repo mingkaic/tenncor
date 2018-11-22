@@ -15,7 +15,7 @@
 #ifndef DBG_ADE_HPP
 #define DBG_ADE_HPP
 
-/// Use PrettyTree to render ade::Tensorptr graph as an ascii art
+/// Use PrettyTree to render ade::TensptrT graph as an ascii art
 struct PrettyEquation final
 {
 	PrettyEquation (void) : drawer_(
@@ -52,7 +52,7 @@ struct PrettyEquation final
 		}) {}
 
 	/// Stream equation of ptr to out
-	void print (std::ostream& out, ade::Tensorptr& ptr)
+	void print (std::ostream& out, ade::TensptrT& ptr)
 	{
 		drawer_.print(out, ptr.get());
 	}

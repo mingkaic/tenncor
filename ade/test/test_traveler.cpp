@@ -24,19 +24,19 @@ struct TRAVELER : public ::testing::Test
 
 TEST_F(TRAVELER, GraphStat)
 {
-    ade::Tensorptr a = new MockTensor();
-    ade::Tensorptr b = new MockTensor();
-    ade::Tensorptr c = new MockTensor();
+    ade::TensptrT a(new MockTensor());
+    ade::TensptrT b(new MockTensor());
+    ade::TensptrT c(new MockTensor());
 
-    ade::Tensorptr f = ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
+    ade::TensptrT f(ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
         {ade::identity, a},
         {ade::identity, b},
-    });
+    }));
 
-    ade::Tensorptr g = ade::Functor::get(ade::Opcode{"MOCK0", 0}, {
+    ade::TensptrT g(ade::Functor::get(ade::Opcode{"MOCK0", 0}, {
         {ade::identity, c},
         {ade::identity, f},
-    });
+    }));
 
     ade::GraphStat stat;
     g->accept(stat);
@@ -50,19 +50,19 @@ TEST_F(TRAVELER, GraphStat)
 
 TEST_F(TRAVELER, PathFinder)
 {
-    ade::Tensorptr a = new MockTensor();
-    ade::Tensorptr b = new MockTensor();
-    ade::Tensorptr c = new MockTensor();
+    ade::TensptrT a(new MockTensor());
+    ade::TensptrT b(new MockTensor());
+    ade::TensptrT c(new MockTensor());
 
-    ade::Tensorptr f = ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
+    ade::TensptrT f(ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
         {ade::identity, a},
         {ade::identity, b},
-    });
+    }));
 
-    ade::Tensorptr g = ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
+    ade::TensptrT g(ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
         {ade::identity, c},
         {ade::identity, f},
-    });
+    }));
 
     ade::PathFinder finder(a.get());
     g->accept(finder);
