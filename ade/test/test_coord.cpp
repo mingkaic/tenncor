@@ -2,8 +2,6 @@
 #ifndef DISABLE_COORD_TEST
 
 
-#include <cmath>
-
 #include "gtest/gtest.h"
 
 #include "ade/coord.hpp"

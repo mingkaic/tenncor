@@ -6,8 +6,8 @@
 ///	Define shapes models and coordinate to flattened index mapping
 ///
 
-#include <algorithm>
 #include <array>
+#include <cmath>
 #include <numeric>
 #include <vector>
 

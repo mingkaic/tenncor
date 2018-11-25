@@ -6,10 +6,6 @@
 ///	Define interfaces and building blocks for an equation graph
 ///
 
-#include <cmath>
-
-#include "err/log.hpp"
-
 #include "ade/itensor.hpp"
 
 #ifndef ADE_TENSOR_HPP

@@ -1,0 +1,4 @@
+<map id="ade::iFunctor" name="ade::iFunctor">
+<area shape="rect" id="node3" href="$structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. " alt="" coords="7,152,103,177"/>
+<area shape="rect" id="node2" href="$structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="8,5,102,31"/>
+</map>

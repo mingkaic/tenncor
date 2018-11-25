@@ -4,8 +4,6 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/ileaf.hpp"
-
 #include "testutil/common.hpp"
 
 #include "common.hpp"

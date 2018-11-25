@@ -1,6 +1,3 @@
-#include <cassert>
-#include <list>
-
 #include "bwd/grader.hpp"
 
 #ifdef BWD_GRADER_HPP

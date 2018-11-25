@@ -1,6 +1,3 @@
-#include <cmath>
-
-#include "err/log.hpp"
 #include "ade/coord.hpp"
 
 #ifdef ADE_COORD_HPP

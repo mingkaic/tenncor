@@ -53,10 +53,3 @@ lcov_bwd: cover_bwd
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'log/*' 'ade/*' -o $(COVERAGE_INFO_FILE)
 	rm -f $(TMP_LOGFILE)
 	lcov --list $(COVERAGE_INFO_FILE)
-
-
-docs:
-	rm -rf docs
-	doxygen
-	mv doxout/html docs
-	rm -rf doxout

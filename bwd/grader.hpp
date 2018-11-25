@@ -6,6 +6,8 @@
 ///	Define grader traveler to build partial derivative equations
 ///
 
+#include <list>
+
 #include "ade/ileaf.hpp"
 #include "ade/traveler.hpp"
 #include "ade/functor.hpp"

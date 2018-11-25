@@ -2,8 +2,6 @@
 #ifndef DISABLE_MATOPS_TEST
 
 
-#include <cmath>
-
 #include "gtest/gtest.h"
 
 #include "ade/matops.hpp"

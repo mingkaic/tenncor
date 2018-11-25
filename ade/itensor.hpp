@@ -6,9 +6,6 @@
 ///	Define interfaces and building blocks for an equation graph
 ///
 
-#include <memory>
-
-#include "ade/shape.hpp"
 #include "ade/coord.hpp"
 
 #ifndef ADE_INTERFACE_HPP
