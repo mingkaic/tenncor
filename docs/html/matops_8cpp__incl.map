@@ -1,6 +1,6 @@
 <map id="ade/src/matops.cpp" name="ade/src/matops.cpp">
-<area shape="rect" id="node2" href="$matops_8hpp.html" title="ade/matops.hpp" alt="" coords="138,79,255,104"/>
-<area shape="rect" id="node3" href="$shape_8hpp.html" title="ade/shape.hpp" alt="" coords="142,152,251,177"/>
-<area shape="rect" id="node8" href="$log_8hpp.html" title="err/log.hpp" alt="" coords="337,225,422,251"/>
-<area shape="rect" id="node11" href="$string_8hpp.html" title="err/string.hpp" alt="" coords="439,299,538,324"/>
+<area shape="rect" id="node2" href="$matops_8hpp.html" title="ade/matops.hpp" alt="" coords="66,79,183,104"/>
+<area shape="rect" id="node5" href="$shape_8hpp.html" title="ade/shape.hpp" alt="" coords="179,152,288,177"/>
+<area shape="rect" id="node10" href="$log_8hpp.html" title="err/log.hpp" alt="" coords="374,225,459,251"/>
+<area shape="rect" id="node13" href="$string_8hpp.html" title="err/string.hpp" alt="" coords="476,299,575,324"/>
 </map>
