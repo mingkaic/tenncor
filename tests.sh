@@ -9,7 +9,7 @@ set -e
 
 # ===== Run Gtest =====
 echo "===== TESTS =====";
-make
+bazel test --config asan --config gtest //...
 
 # ===== Check Docs Directory =====
 echo "===== CHECK DOCUMENT EXISTENCE =====";

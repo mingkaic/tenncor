@@ -7,8 +7,8 @@ import age.templates.opera_tmpl as opera
 
 api_fields = {"apis": [
     {"name": "func1", "args": [], "out": "bar1()"},
-    {"name": "func2", "args": ["Arg arg1"], "out": "bar2()"},
-    {"name": "func3", "args": ["Arg arg1", "Arg2 arg2"], "out": "bar3()"}
+    {"name": "func2", "args": ["ade::TensptrT arg", "Arg arg1"], "out": "bar2()"},
+    {"name": "func3", "args": ["ade::TensptrT arg", "Arg arg1", "ade::TensptrT arg2"], "out": "bar3()"}
 ]}
 
 codes_fields = {
@@ -54,11 +54,11 @@ api_header = """#ifndef _GENERATED_API_HPP
 namespace age
 {
 
-ade::Tensorptr func1 ();
+ade::TensptrT func1 ();
 
-ade::Tensorptr func2 (Arg arg1);
+ade::TensptrT func2 (ade::TensptrT arg, Arg arg1);
 
-ade::Tensorptr func3 (Arg arg1, Arg2 arg2);
+ade::TensptrT func3 (ade::TensptrT arg, Arg arg1, ade::TensptrT arg2);
 
 }
 
@@ -70,18 +70,30 @@ api_source = """#ifdef _GENERATED_API_HPP
 namespace age
 {
 
-ade::Tensorptr func1 ()
+ade::TensptrT func1 ()
 {
+    if (false)
+    {
+        err::fatal("cannot func1 with a null argument");
+    }
     return bar1();
 }
 
-ade::Tensorptr func2 (Arg arg1)
+ade::TensptrT func2 (ade::TensptrT arg, Arg arg1)
 {
+    if (arg == nullptr)
+    {
+        err::fatal("cannot func2 with a null argument");
+    }
     return bar2();
 }
 
-ade::Tensorptr func3 (Arg arg1, Arg2 arg2)
+ade::TensptrT func3 (ade::TensptrT arg, Arg arg1, ade::TensptrT arg2)
 {
+    if (arg == nullptr || arg2 == nullptr)
+    {
+        err::fatal("cannot func3 with a null argument");
+    }
     return bar3();
 }
 
@@ -281,14 +293,14 @@ namespace age
 {
 
 template <typename T>
-ade::Tensor* data (T scalar, ade::Shape shape)
+ade::LeafptrT data (T scalar, ade::Shape shape)
 {
     return get_numba(12345);
 }
 
 struct RuleSet final : public iRuleSet
 {
-    ade::Tensor* data (double scalar, ade::Shape shape) override
+    ade::LeafptrT data (double scalar, ade::Shape shape) override
     {
         return age::data(scalar, shape);
     }
@@ -303,7 +315,7 @@ struct RuleSet final : public iRuleSet
         return ade::Opcode{"MULTIPLICATION", MULTIPLICATION};
     }
 
-    ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx) override;
+    ade::TensptrT grad_rule (size_t code, TensT args, size_t idx) override;
 };
 
 }
@@ -316,9 +328,7 @@ grader_source = """#ifdef _GENERATED_GRADER_HPP
 namespace age
 {
 
-std::shared_ptr<iRuleSet> Grader::default_rules = std::make_shared<RuleSet>();
-
-ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
+ade::TensptrT RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 {
     switch (code)
     {

@@ -1,9 +1,5 @@
 #include "err/log.hpp"
 #include "err/string.hpp"
-#include "ade/shape.hpp"
-#include "ade/functor.hpp"
-
-#include "simple/jack.hpp"
 
 struct TestLogger : public err::iLogger
 {
@@ -48,14 +44,3 @@ const size_t nelem_limit = 32456;
 
 #define EXPECT_WARN(EVENT, MSG) EVENT;\
 	EXPECT_STREQ(MSG, TestLogger::latest_warning_.c_str());
-
-std::vector<ade::DimT> get_shape_n (simple::SessionT& sess, size_t n, std::string label);
-
-std::vector<ade::DimT> get_shape (simple::SessionT& sess, std::string label);
-
-std::vector<ade::DimT> get_zeroshape (simple::SessionT& sess, std::string label);
-
-std::vector<ade::DimT> get_longshape (simple::SessionT& sess, std::string label);
-
-std::vector<ade::DimT> get_incompatible (simple::SessionT& sess,
-	std::vector<ade::DimT> inshape, std::string label);

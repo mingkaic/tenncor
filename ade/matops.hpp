@@ -7,6 +7,9 @@
 /// This functions are here to avoid external dependencies in ADE
 ///
 
+#include <cassert>
+#include <cstring>
+
 #include "ade/shape.hpp"
 
 #ifndef ADE_MATOPS_HPP

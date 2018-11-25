@@ -1,14 +1,12 @@
 ///
-///	tensor.hpp
+///	itensor.hpp
 ///	ade
 ///
 ///	Purpose:
 ///	Define interfaces and building blocks for an equation graph
 ///
 
-#include <memory>
-
-#include "ade/shape.hpp"
+#include "ade/coord.hpp"
 
 #ifndef ADE_INTERFACE_HPP
 #define ADE_INTERFACE_HPP
@@ -16,19 +14,17 @@
 namespace ade
 {
 
-struct Tensorptr;
-
-struct Tensor;
+struct iLeaf;
 
 struct iFunctor;
 
-/// Interface to travel through graph, treating Tensor and iFunctor differently
+/// Interface to travel through graph, treating iLeaf and iFunctor differently
 struct iTraveler
 {
 	virtual ~iTraveler (void) = default;
 
 	/// Visit leaf node
-	virtual void visit (Tensor* leaf) = 0;
+	virtual void visit (iLeaf* leaf) = 0;
 
 	/// Visit functor node
 	virtual void visit (iFunctor* func) = 0;
@@ -49,55 +45,48 @@ struct iTensor
 	virtual std::string to_string (void) const = 0;
 };
 
-/// Smart pointer to iTensor ensuring non-null references
-struct Tensorptr
+using TensptrT = std::shared_ptr<iTensor>;
+
+using TensrefT = std::weak_ptr<iTensor>;
+
+/// Coordinate mapper and tensor pair
+struct MappedTensor final
 {
-	Tensorptr (iTensor& tens) :
-		ptr_(&tens) {}
-
-	Tensorptr (iTensor* tens) : ptr_(tens)
+	MappedTensor (CoordPtrT mapper, TensptrT tensor) :
+		mapper_(mapper), tensor_(tensor)
 	{
-		if (nullptr == tens)
+		if (tensor_ == nullptr)
 		{
-			err::fatal("cannot create nodeptr with nullptr");
+			err::fatal("cannot map a null tensor");
 		}
 	}
 
-	Tensorptr (std::shared_ptr<iTensor> tens) : ptr_(tens)
+	/// Return shape of tensor filtered through coordinate mapper
+	Shape shape (void) const
 	{
-		if (nullptr == tens)
-		{
-			err::fatal("cannot create nodeptr with nullptr");
-		}
+		const Shape& shape = tensor_->shape();
+		CoordT out;
+		CoordT in;
+		std::copy(shape.begin(), shape.end(), in.begin());
+		mapper_->forward(out.begin(), in.begin());
+		std::vector<DimT> slist(rank_cap);
+		std::transform(out.begin(), out.end(), slist.begin(),
+			[](CDimT cd) -> DimT
+			{
+				if (cd < 0)
+				{
+					cd = -cd - 1;
+				}
+				return std::round(cd);
+			});
+		return Shape(slist);
 	}
 
-	virtual ~Tensorptr (void) = default;
+	/// Coordinate mapper
+	CoordPtrT mapper_;
 
-	iTensor* operator -> (void)
-	{
-		return ptr_.get();
-	}
-
-	const iTensor* operator -> (void) const
-	{
-		return ptr_.get();
-	}
-
-	/// Return the raw pointer
-	iTensor* get (void) const
-	{
-		return ptr_.get();
-	}
-
-	/// Return the weakptr reference
-	std::weak_ptr<iTensor> ref (void) const
-	{
-		return ptr_;
-	}
-
-protected:
-	/// Strong reference to iTensor
-	std::shared_ptr<iTensor> ptr_;
+	/// Tensor reference
+	TensptrT tensor_;
 };
 
 }

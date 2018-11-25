@@ -6,10 +6,8 @@
 ///	Define shape/coordinate transformation functions
 ///
 
-#include <cstring>
 #include <functional>
 
-#include "ade/shape.hpp"
 #include "ade/matops.hpp"
 
 #ifndef ADE_COORD_HPP

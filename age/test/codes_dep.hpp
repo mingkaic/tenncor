@@ -1,4 +1,4 @@
-#include "ade/tensor.hpp"
+#include "ade/ileaf.hpp"
 
 #ifndef MOCK_CODES_DEP_HPP
 #define MOCK_CODES_DEP_HPP
@@ -19,6 +19,6 @@ struct Fries
 	char size;
 };
 
-ade::Tensorptr cooler (size_t bardock);
+ade::TensptrT cooler (size_t bardock);
 
 #endif // MOCK_CODES_DEP_HPP

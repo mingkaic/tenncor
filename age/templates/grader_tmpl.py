@@ -10,14 +10,14 @@ namespace age
 {{
 
 template <typename T>
-ade::Tensor* data (T scalar, ade::Shape shape)
+ade::LeafptrT data (T scalar, ade::Shape shape)
 {{
     return {scalarize};
 }}
 
 struct RuleSet final : public iRuleSet
 {{
-    ade::Tensor* data (double scalar, ade::Shape shape) override
+    ade::LeafptrT data (double scalar, ade::Shape shape) override
     {{
         return age::data(scalar, shape);
     }}
@@ -32,7 +32,7 @@ struct RuleSet final : public iRuleSet
         return ade::Opcode{{"{prod}", {prod}}};
     }}
 
-    ade::Tensorptr grad_rule (size_t code, TensT args, size_t idx) override;
+    ade::TensptrT grad_rule (size_t code, TensT args, size_t idx) override;
 }};
 
 }}
@@ -52,9 +52,7 @@ source = repr.FILE_REPR("""#ifdef _GENERATED_GRADER_HPP
 namespace age
 {{
 
-std::shared_ptr<iRuleSet> Grader::default_rules = std::make_shared<RuleSet>();
-
-ade::Tensorptr RuleSet::grad_rule (size_t code,TensT args,size_t idx)
+ade::TensptrT RuleSet::grad_rule (size_t code,TensT args,size_t idx)
 {{
     switch (code)
     {{

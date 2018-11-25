@@ -13,7 +13,7 @@
 #include "bwd/grader.hpp"
 
 
-struct MockTensor final : public ade::Tensor
+struct MockTensor final : public ade::iLeaf
 {
 	MockTensor (void) = default;
 
@@ -52,11 +52,11 @@ struct MockTensor final : public ade::Tensor
 
 struct MockRuleSet final : public age::iRuleSet
 {
-	ade::Tensor* data (double scalar, ade::Shape shape) override
+	ade::LeafptrT data (double scalar, ade::Shape shape) override
 	{
 		auto out = new ::MockTensor(shape);
 		out->val_ = scalar;
-		return out;
+		return ade::LeafptrT(out);
 	}
 
 	ade::Opcode sum_opcode (void) override
@@ -69,20 +69,30 @@ struct MockRuleSet final : public age::iRuleSet
 		return ade::Opcode{"*", 1};
 	}
 
-	ade::Tensorptr grad_rule (size_t code, age::TensT args, size_t idx) override
+	ade::TensptrT grad_rule (size_t code, age::TensT args, size_t idx) override
 	{
 		// grad of sum is prod and grad of prod is sum
 		if (code)
 		{
-			return ade::Functor::get(sum_opcode(), age::to_args(args));
+			return ade::TensptrT(ade::Functor::get(sum_opcode(), age::to_args(args)));
 		}
-		return ade::Functor::get(prod_opcode(), age::to_args(args));
+		return ade::TensptrT(ade::Functor::get(prod_opcode(), age::to_args(args)));
 	}
 };
 
 
-std::shared_ptr<age::iRuleSet> age::Grader::default_rules =
+static std::shared_ptr<age::iRuleSet> mock_rules =
 	std::make_shared<MockRuleSet>();
+
+
+ade::TensptrT derive (ade::TensptrT& root, const ade::iTensor* wrt)
+{
+	age::Grader grader(wrt, mock_rules);
+	root->accept(grader);
+	auto it = grader.derivatives_.find(root.get());
+	assert(grader.derivatives_.end() != it);
+	return it->second;
+}
 
 
 static inline void ltrim(std::string &s)
@@ -106,14 +116,14 @@ static inline void trim(std::string &s)
 }
 
 
-static void TREE_EQ (std::istream& expectstr, ade::Tensorptr& root)
+static void TREE_EQ (std::istream& expectstr, ade::TensptrT& root)
 {
 	PrettyEquation artist;
 	std::stringstream gotstr;
 	artist.print(gotstr, root);
 
 #if 0
-	std::cout << gotstr.str() << "\n";
+	std::cout << gotstr.str() << '\n';
 #endif
 
 	std::string expect;
@@ -141,9 +151,9 @@ static void TREE_EQ (std::istream& expectstr, ade::Tensorptr& root)
 
 TEST(GRADER, Ruleset)
 {
-	ade::Tensorptr tens = new MockTensor();
+	ade::TensptrT tens(new MockTensor());
 
-	EXPECT_FATAL(age::Grader(nullptr), "cannot derive with respect to null");
+	EXPECT_FATAL(age::Grader(nullptr, mock_rules), "cannot derive with respect to null");
 	EXPECT_FATAL(age::Grader(tens.get(), nullptr), "cannot derive without ruleset");
 }
 
@@ -151,11 +161,11 @@ TEST(GRADER, Ruleset)
 TEST(GRADER, Leaf)
 {
 	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr leaf = new MockTensor(ade::Shape(slist));
-	ade::Tensorptr leaf1 = new MockTensor(ade::Shape(slist));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist)));
 
-	ade::Tensorptr g1 = age::derive(leaf, leaf.get());
-	ade::Tensorptr g0 = age::derive(leaf, leaf1.get());
+	ade::TensptrT g1(derive(leaf, leaf.get()));
+	ade::TensptrT g0(derive(leaf, leaf1.get()));
 
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
@@ -178,20 +188,20 @@ TEST(GRADER, Leaf)
 TEST(GRADER, Sum)
 {
 	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr outside = new MockTensor(ade::Shape({7}));
-	ade::Tensorptr leaf = new MockTensor(ade::Shape(slist));
-	ade::Tensorptr leaf1 = new MockTensor(ade::Shape(slist));
+	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist)));
 
-	ade::Tensorptr fwd = ade::Functor::get(
-		age::Grader::default_rules->sum_opcode(), {
+	ade::TensptrT fwd(ade::Functor::get(
+		mock_rules->sum_opcode(), {
 		{ade::identity, leaf},
 		{ade::identity, leaf1},
-	});
+	}));
 
-	ade::Tensorptr g1 = age::derive(fwd, fwd.get());
-	ade::Tensorptr g0 = age::derive(fwd, outside.get());
-	ade::Tensorptr gl = age::derive(fwd, leaf.get());
-	ade::Tensorptr gr = age::derive(fwd, leaf1.get());
+	ade::TensptrT g1(derive(fwd, fwd.get()));
+	ade::TensptrT g0(derive(fwd, outside.get()));
+	ade::TensptrT gl(derive(fwd, leaf.get()));
+	ade::TensptrT gr(derive(fwd, leaf1.get()));
 
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
@@ -240,20 +250,20 @@ TEST(GRADER, Sum)
 TEST(GRADER, Prod)
 {
 	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr outside = new MockTensor(ade::Shape({7}));
-	ade::Tensorptr leaf = new MockTensor(ade::Shape(slist));
-	ade::Tensorptr leaf1 = new MockTensor(ade::Shape(slist));
+	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist)));
 
-	ade::Tensorptr fwd = ade::Functor::get(
-		age::Grader::default_rules->prod_opcode(), {
+	ade::TensptrT fwd(ade::Functor::get(
+		mock_rules->prod_opcode(), {
 		{ade::identity, leaf},
 		{ade::identity, leaf1},
-	});
+	}));
 
-	ade::Tensorptr g1 = age::derive(fwd, fwd.get());
-	ade::Tensorptr g0 = age::derive(fwd, outside.get());
-	ade::Tensorptr gl = age::derive(fwd, leaf.get());
-	ade::Tensorptr gr = age::derive(fwd, leaf1.get());
+	ade::TensptrT g1(derive(fwd, fwd.get()));
+	ade::TensptrT g0(derive(fwd, outside.get()));
+	ade::TensptrT gl(derive(fwd, leaf.get()));
+	ade::TensptrT gr(derive(fwd, leaf1.get()));
 
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
@@ -302,24 +312,24 @@ TEST(GRADER, Prod)
 TEST(GRADER, SumProd)
 {
 	std::vector<ade::DimT> slist = {2, 3};
-	ade::Tensorptr outside = new MockTensor(ade::Shape({7}));
-	ade::Tensorptr leaf = new MockTensor(ade::Shape(slist));
-	ade::Tensorptr leaf1 = new MockTensor(ade::Shape(slist));
+	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist)));
 
-	ade::Tensorptr prod = ade::Functor::get(
-		age::Grader::default_rules->prod_opcode(), {
+	ade::TensptrT prod(ade::Functor::get(
+		mock_rules->prod_opcode(), {
 		{ade::identity, leaf},
 		{ade::identity, leaf1},
-	});
+	}));
 
-	ade::Tensorptr sum = ade::Functor::get(
-		age::Grader::default_rules->sum_opcode(), {
+	ade::TensptrT sum(ade::Functor::get(
+		mock_rules->sum_opcode(), {
 		{ade::identity, prod},
 		{ade::identity, prod},
-	});
+	}));
 
-	ade::Tensorptr gl = age::derive(sum, leaf.get());
-	ade::Tensorptr gr = age::derive(sum, leaf1.get());
+	ade::TensptrT gl(derive(sum, leaf.get()));
+	ade::TensptrT gr(derive(sum, leaf1.get()));
 
 	std::stringstream lstr;
 	std::stringstream rstr;
@@ -334,13 +344,13 @@ TEST(GRADER, SumProd)
 		"    `--(+)\n" <<
 		"        `--(*)\n" <<
 		"            `--(*)\n" <<
-		"            |   `--(+)\n" <<
-		"            |   |   `--(*)\n" <<
-		"            |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"            |   `--(*)\n" <<
-		"            |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   `--(+)\n" <<
+		"            |       `--(*)\n" <<
+		"            |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"            `--(+)\n" <<
 		"                `--(+)\n" <<
 		"                    `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
@@ -354,13 +364,13 @@ TEST(GRADER, SumProd)
 		"    `--(+)\n" <<
 		"        `--(*)\n" <<
 		"            `--(*)\n" <<
-		"            |   `--(+)\n" <<
-		"            |   |   `--(*)\n" <<
-		"            |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"            |   `--(*)\n" <<
-		"            |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |   `--(+)\n" <<
+		"            |       `--(*)\n" <<
+		"            |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"            |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"            `--(+)\n" <<
 		"                `--(+)\n" <<
 		"                    `--([2\\3\\1\\1\\1\\1\\1\\1])\n";

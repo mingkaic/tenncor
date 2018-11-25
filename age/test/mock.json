@@ -20,7 +20,7 @@
         "prod": "KHALED",
         "data_out": "SweetPotato&",
         "data_in": "Pomegranate&",
-        "scalarize": "new MockTensor(scalar, shape)"
+        "scalarize": "ade::LeafptrT(new MockTensor(scalar, shape))"
     },
     "opcodes": {
         "EMINEM": {

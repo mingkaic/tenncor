@@ -11,24 +11,22 @@
 #include "common.hpp"
 
 
-struct FUNCTOR : public simple::TestModel {};
+struct FUNCTOR : public ::testing::Test {};
 
 
 TEST_F(FUNCTOR, Shapes)
 {
-	simple::SessionT sess = get_session("FUNCTOR::Shape");
-
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	std::vector<ade::DimT> bad = get_incompatible(sess, slist, "bad");
+	std::vector<ade::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
+	std::vector<ade::DimT> bad = {94, 78, 70, 82, 62, 22, 38};
 	ade::Shape shape(slist);
 	ade::Shape badshape(bad);
 
-	ade::Tensorptr leaf = new MockTensor(shape);
-	ade::Tensorptr leaf1 = new MockTensor(shape);
-	ade::Tensorptr badleaf = new MockTensor(badshape);
+	ade::TensptrT leaf(new MockTensor(shape));
+	ade::TensptrT leaf1(new MockTensor(shape));
+	ade::TensptrT badleaf(new MockTensor(badshape));
 
-	ade::Tensorptr func = ade::Functor::get(ade::Opcode{"MOCK", 0},
-		{{ade::identity, leaf}, {ade::identity, leaf1}});
+	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0},
+		{{ade::identity, leaf}, {ade::identity, leaf1}}));
 
 	ade::Shape gotshape = func->shape();
 	EXPECT_ARREQ(shape, gotshape);
@@ -45,11 +43,9 @@ TEST_F(FUNCTOR, Shapes)
 
 TEST_F(FUNCTOR, Opcode)
 {
-	simple::SessionT sess = get_session("FUNCTOR::Opcode");
-
-	std::string mockname = sess->get_string("mockname", 10);
-	size_t mockcode = sess->get_int("mockcode", 1, {0, 1312})[0];
-	ade::Tensorptr leaf = new MockTensor();
+	std::string mockname = "asd123101ksq";
+	size_t mockcode = 3247;
+	ade::TensptrT leaf(new MockTensor());
 
 	ade::Functor* func = ade::Functor::get(ade::Opcode{mockname, mockcode},
 		{{ade::identity, leaf}});
@@ -64,11 +60,11 @@ TEST_F(FUNCTOR, Opcode)
 
 TEST_F(FUNCTOR, Childrens)
 {
-	ade::Tensorptr leaf = new MockTensor();
-	ade::Tensorptr leaf1 = new MockTensor();
+	ade::TensptrT leaf(new MockTensor());
+	ade::TensptrT leaf1(new MockTensor());
 
-	ade::Tensorptr func = ade::Functor::get(ade::Opcode{"MOCK", 0},
-		{{ade::identity, leaf}, {ade::identity, leaf1}});
+	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0},
+		{{ade::identity, leaf}, {ade::identity, leaf1}}));
 
 	ASSERT_NE(nullptr, func.get());
 
@@ -82,13 +78,11 @@ TEST_F(FUNCTOR, Childrens)
 
 TEST_F(FUNCTOR, ToString)
 {
-	simple::SessionT sess = get_session("FUNCTOR::ToString");
+	ade::TensptrT leaf(new MockTensor());
+	ade::TensptrT leaf1(new MockTensor());
 
-	ade::Tensorptr leaf = new MockTensor();
-	ade::Tensorptr leaf1 = new MockTensor();
-
-	ade::Tensorptr func = ade::Functor::get(ade::Opcode{"MOCK", 0},
-		{{ade::identity, leaf}, {ade::identity, leaf1}});
+	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0},
+		{{ade::identity, leaf}, {ade::identity, leaf1}}));
 
 	ASSERT_NE(nullptr, func.get());
 

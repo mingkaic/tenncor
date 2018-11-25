@@ -11,8 +11,8 @@
 TEST(AGE, RulesData)
 {
 	age::RuleSet rule;
-	ade::Tensor* data = rule.data(45, ade::Shape({4, 6}));
-	MockTensor* mockdata = dynamic_cast<MockTensor*>(data);
+	ade::LeafptrT data = rule.data(45, ade::Shape({4, 6}));
+	MockTensor* mockdata = dynamic_cast<MockTensor*>(data.get());
 	ASSERT_NE(nullptr, mockdata);
 
 	ade::Shape shape = mockdata->shape();
@@ -20,8 +20,6 @@ TEST(AGE, RulesData)
 	EXPECT_EQ(4, shape.at(0));
 	EXPECT_EQ(6, shape.at(1));
 	EXPECT_EQ(24, shape.n_elems());
-
-	delete data;
 }
 
 
@@ -47,7 +45,7 @@ TEST(AGE, GraderEminem)
 {
 	age::RuleSet rule;
 	auto mock = new MockTensor(1, ade::Shape());
-	ade::Tensorptr arg = mock;
+	ade::TensptrT arg(mock);
 	size_t idx = 42;
 	rule.grad_rule(age::EMINEM, {arg}, idx);
 	EXPECT_EQ(idx, mock->scalar_);
@@ -58,7 +56,7 @@ TEST(AGE, GraderKhaled)
 {
 	age::RuleSet rule;
 	auto mock = new MockTensor(1, ade::Shape());
-	ade::Tensorptr arg = mock;
+	ade::TensptrT arg(mock);
 	size_t idx = 63;
 	rule.grad_rule(age::KHALED, {arg}, idx);
 	EXPECT_EQ(idx + khaled_constant, mock->scalar_);

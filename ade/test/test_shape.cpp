@@ -9,11 +9,10 @@
 #include "testutil/common.hpp"
 
 
-struct SHAPE : public simple::TestModel
+struct SHAPE : public ::testing::Test
 {
 	virtual void TearDown (void)
 	{
-		simple::TestModel::TearDown();
 		TestLogger::latest_warning_ = "";
 		TestLogger::latest_error_ = "";
 	}
@@ -22,18 +21,16 @@ struct SHAPE : public simple::TestModel
 
 TEST_F(SHAPE, Init)
 {
-	simple::SessionT sess = get_session("SHAPE::Init");
-
 	ade::Shape scalar;
 
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	std::vector<ade::DimT> slist = {12, 43, 56};
 	ade::Shape vec(slist);
 	uint8_t n = slist.size();
 
-	std::vector<ade::DimT> longlist = get_longshape(sess, "n_longlist");
+	std::vector<ade::DimT> longlist = {4, 23, 44, 52, 19, 92, 12, 2, 5};
 	ade::Shape lvec(longlist);
 
-	std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
+	std::vector<ade::DimT> zerolist = {43, 2, 5, 33, 0, 2, 7};
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		err::to_string(zerolist.begin(), zerolist.end());
 	EXPECT_FATAL(ade::Shape junk(zerolist), fatalmsg.c_str());
@@ -63,12 +60,10 @@ TEST_F(SHAPE, Init)
 
 
 TEST_F(SHAPE, VecAssign)
-{
-	simple::SessionT sess = get_session("SHAPE::VecAssign");
-
-	std::vector<ade::DimT> zerolist = get_zeroshape(sess, "zerolist");
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
-	std::vector<ade::DimT> junk = get_shape(sess, "junk");
+{\
+	std::vector<ade::DimT> zerolist = {3, 0, 11, 89};
+	std::vector<ade::DimT> slist = {52, 58, 35, 46, 77, 80};
+	std::vector<ade::DimT> junk = {7, 42};
 
 	ade::Shape vecassign;
 	ade::Shape vecassign2(junk);
@@ -89,10 +84,8 @@ TEST_F(SHAPE, VecAssign)
 
 TEST_F(SHAPE, Moves)
 {
-	simple::SessionT sess = get_session("SHAPE::Moves");
-
-	std::vector<ade::DimT> junk = get_shape(sess, "junk");
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	std::vector<ade::DimT> junk = {8, 51, 73};
+	std::vector<ade::DimT> slist = {24, 11, 12, 16};
 
 	ade::Shape mvassign;
 	ade::Shape mvassign2(junk);
@@ -126,38 +119,19 @@ TEST_F(SHAPE, Moves)
 
 TEST_F(SHAPE, NElems)
 {
-	simple::SessionT sess = get_session("SHAPE::NElems");
-
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	std::vector<ade::DimT> slist = {11, 12, 16};
 	ade::Shape shape(slist);
 
-	std::vector<ade::DimT> longlist = get_longshape(sess, "n_longlist");
-	ade::Shape lshape(longlist);
-
-	size_t expect_nelems = 1;
-	for (ade::DimT c : slist)
-	{
-		expect_nelems *= c;
-	}
-
-	size_t expect_long_nelems = 1;
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
-	{
-		expect_long_nelems *= longlist[i];
-	}
+	size_t expect_nelems = 11 * 12 * 16;
 
 	EXPECT_EQ(expect_nelems, shape.n_elems());
-	EXPECT_EQ(expect_long_nelems, lshape.n_elems());
 	std::vector<int32_t> gotnelems = {(int32_t) shape.n_elems()};
-	std::vector<int32_t> gotlnelems = {(int32_t) lshape.n_elems()};
 }
 
 
 TEST_F(SHAPE, Compatible)
 {
-	simple::SessionT sess = get_session("SHAPE::Compatible");
-
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	std::vector<ade::DimT> slist = {20, 48, 10, 27, 65, 74};
 	ade::Shape shape(slist);
 
 	// shape is compatible with itself regardless of after idx
@@ -168,8 +142,7 @@ TEST_F(SHAPE, Compatible)
 			" to be compatible with itself after idx " << unsigned(idx);
 	}
 
-	uint32_t insertion_pt = sess->get_scalar("insertion_pt",
-		{0, (int32_t) slist.size()});
+	uint32_t insertion_pt = 3;
 	std::vector<ade::DimT> ilist = slist;
 	ilist.insert(ilist.begin() + insertion_pt, 2);
 	ade::Shape ishape(ilist);
@@ -202,9 +175,7 @@ TEST_F(SHAPE, Compatible)
 
 TEST_F(SHAPE, Coordinates)
 {
-	simple::SessionT sess = get_session("SHAPE::ToString");
-
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	std::vector<ade::DimT> slist = {9, 3, 7, 8, 5};
 	ade::Shape shape(slist);
 	ade::CoordT coord;
 	for (ade::NElemT i = 0, n = shape.n_elems(); i < n; ++i)
@@ -235,18 +206,12 @@ TEST_F(SHAPE, Coordinates)
 
 TEST_F(SHAPE, ToString)
 {
-	simple::SessionT sess = get_session("SHAPE::ToString");
-
-	std::vector<ade::DimT> slist = get_shape(sess, "slist");
+	std::vector<ade::DimT> slist = {24, 11, 12, 16, 7, 71, 1, 1};
 	ade::Shape shape(slist);
 	std::string out = shape.to_string();
 
-	optional<std::string> expect_out = sess->expect_string("expect_out");
-	if (expect_out)
-	{
-		EXPECT_STREQ(expect_out->c_str(), out.c_str());
-	}
-	sess->store_string("expect_out", out);
+	const char* expect_out = "[24\\11\\12\\16\\7\\71\\1\\1]";
+	EXPECT_STREQ(expect_out, out.c_str());
 }
 
 

@@ -6,11 +6,7 @@
 ///	Define functor nodes of an equation graph
 ///
 
-#include "err/string.hpp"
-
-#include "ade/tensor.hpp"
-#include "ade/traveler.hpp"
-#include "ade/coord.hpp"
+#include "ade/ifunctor.hpp"
 
 #ifndef ADE_FUNCTOR_HPP
 #define ADE_FUNCTOR_HPP

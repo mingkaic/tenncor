@@ -1,0 +1,18 @@
+<map id="err/string.hpp" name="err/string.hpp">
+<area shape="rect" id="node2" href="$log_8hpp.html" title="err/log.hpp" alt="" coords="342,79,427,104"/>
+<area shape="rect" id="node17" href="$string_8cpp.html" title="err/src/string.cpp" alt="" coords="451,79,572,104"/>
+<area shape="rect" id="node3" href="$log_8cpp.html" title="err/src/log.cpp" alt="" coords="266,152,372,177"/>
+<area shape="rect" id="node4" href="$shape_8hpp.html" title="ade/shape.hpp" alt="" coords="397,152,506,177"/>
+<area shape="rect" id="node5" href="$matops_8hpp.html" title="ade/matops.hpp" alt="" coords="318,225,435,251"/>
+<area shape="rect" id="node16" href="$shape_8cpp.html" title="ade/src/shape.cpp" alt="" coords="459,225,590,251"/>
+<area shape="rect" id="node6" href="$coord_8hpp.html" title="ade/coord.hpp" alt="" coords="250,299,357,324"/>
+<area shape="rect" id="node15" href="$matops_8cpp.html" title="ade/src/matops.cpp" alt="" coords="381,299,519,324"/>
+<area shape="rect" id="node7" href="$itensor_8hpp.html" title="ade/itensor.hpp" alt="" coords="175,372,288,397"/>
+<area shape="rect" id="node14" href="$coord_8cpp.html" title="ade/src/coord.cpp" alt="" coords="312,372,439,397"/>
+<area shape="rect" id="node8" href="$ifunctor_8hpp.html" title="ade/ifunctor.hpp" alt="" coords="108,445,224,471"/>
+<area shape="rect" id="node13" href="$ileaf_8hpp.html" title="ade/ileaf.hpp" alt="" coords="248,445,345,471"/>
+<area shape="rect" id="node9" href="$functor_8hpp.html" title="ade/functor.hpp" alt="" coords="5,519,119,544"/>
+<area shape="rect" id="node12" href="$traveler_8hpp.html" title="ade/traveler.hpp" alt="" coords="142,519,259,544"/>
+<area shape="rect" id="node10" href="$grader_8hpp.html" title="bwd/grader.hpp" alt="" coords="144,592,257,617"/>
+<area shape="rect" id="node11" href="$grader_8cpp.html" title="bwd/src/grader.cpp" alt="" coords="134,665,268,691"/>
+</map>

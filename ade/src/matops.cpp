@@ -1,6 +1,3 @@
-#include <cassert>
-#include <cstring>
-
 #include "ade/matops.hpp"
 
 #ifdef ADE_MATOPS_HPP

@@ -1,5 +1,3 @@
-#include <cmath>
-
 #include "ade/shape.hpp"
 
 #ifdef ADE_SHAPE_HPP

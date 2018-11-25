@@ -58,7 +58,6 @@ build/
 cmake-build-*/
 shareds/
 bazel-*
-doxout
 
 **/*.csv
 **/*.pbx
