@@ -74,7 +74,7 @@ ade::TensptrT func1 ()
 {
     if (false)
     {
-        err::fatal("cannot func1 with a null argument");
+        logs::fatal("cannot func1 with a null argument");
     }
     return bar1();
 }
@@ -83,7 +83,7 @@ ade::TensptrT func2 (ade::TensptrT arg, Arg arg1)
 {
     if (arg == nullptr)
     {
-        err::fatal("cannot func2 with a null argument");
+        logs::fatal("cannot func2 with a null argument");
     }
     return bar2();
 }
@@ -92,7 +92,7 @@ ade::TensptrT func3 (ade::TensptrT arg, Arg arg1, ade::TensptrT arg2)
 {
     if (arg == nullptr || arg2 == nullptr)
     {
-        err::fatal("cannot func3 with a null argument");
+        logs::fatal("cannot func3 with a null argument");
     }
     return bar3();
 }
@@ -253,7 +253,7 @@ uint8_t type_size (_GENERATED_DTYPE type)
         case VRUM: return sizeof(float);
         case VROOM: return sizeof(double);
         case KAPOW: return sizeof(complex_t);
-        default: err::fatal("cannot get size of bad type");
+        default: logs::fatal("cannot get size of bad type");
     }
 }
 
@@ -335,7 +335,7 @@ ade::TensptrT RuleSet::grad_rule (size_t code,TensT args,size_t idx)
         case FOO: return bwd_foo(args, idx);
         case BAR: return bwd_bar(args[0], idx);
         case BAR2: return foo(args[1]);
-        default: err::fatal("no gradient rule for unknown opcode");
+        default: logs::fatal("no gradient rule for unknown opcode");
     }
 }
 
@@ -362,7 +362,7 @@ void typed_exec (_GENERATED_OPCODE opcode,
             bar1(out, shape, in); break;
         case OP:
             foo(out, shape); break;
-        default: err::fatal("unknown opcode");
+        default: logs::fatal("unknown opcode");
     }
 }
 
@@ -392,7 +392,7 @@ void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
             typed_exec<skin_t>(opcode, out, shape, in); break;
         case BANANA:
             typed_exec<peel_t>(opcode, out, shape, in); break;
-        default: err::fatal("executing bad type");
+        default: logs::fatal("executing bad type");
     }
 }
 

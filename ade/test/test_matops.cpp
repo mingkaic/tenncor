@@ -93,7 +93,7 @@ TEST_F(MATOPS, Inverse)
 	ade::inverse(out, in);
 	ade::inverse(zout, zin);
 
-	std::string fatalmsg = err::sprintf("cannot invert matrix:\n%s",
+	std::string fatalmsg = fmts::sprintf("cannot invert matrix:\n%s",
 		ade::to_string(badin).c_str());
 	EXPECT_FATAL(ade::inverse(badout, badin), fatalmsg.c_str());
 

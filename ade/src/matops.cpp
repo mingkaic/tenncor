@@ -63,22 +63,22 @@ static bool gauss_jordan_elim (AugMatrixT mat)
 std::string to_string (const MatrixT& mat)
 {
 	std::stringstream ss;
-	ss << err::arr_begin;
+	ss << fmts::arr_begin;
 	for (uint8_t i = 0; i < mat_dim - 1; ++i)
 	{
-		ss << err::arr_begin << mat[i][0];
+		ss << fmts::arr_begin << mat[i][0];
 		for (uint8_t j = 1; j < mat_dim; ++j)
 		{
-			ss << err::arr_delim << mat[i][j];
+			ss << fmts::arr_delim << mat[i][j];
 		}
-		ss << err::arr_end << err::arr_delim << '\n';
+		ss << fmts::arr_end << fmts::arr_delim << '\n';
 	}
-	ss << err::arr_begin << mat[mat_dim - 1][0];
+	ss << fmts::arr_begin << mat[mat_dim - 1][0];
 	for (uint8_t j = 1; j < mat_dim; ++j)
 	{
-		ss << err::arr_delim << mat[mat_dim - 1][j];
+		ss << fmts::arr_delim << mat[mat_dim - 1][j];
 	}
-	ss << err::arr_end << err::arr_end;
+	ss << fmts::arr_end << fmts::arr_end;
 	return ss.str();
 }
 
@@ -95,7 +95,7 @@ void inverse (MatrixT out, const MatrixT& in)
 	}
 	if (false == gauss_jordan_elim(aug))
 	{
-		err::fatalf("cannot invert matrix:\n%s", to_string(in).c_str());
+		logs::fatalf("cannot invert matrix:\n%s", to_string(in).c_str());
 	}
 	// remove identity matrix to left
 	for (uint8_t i = 0; i < mat_dim; ++i)

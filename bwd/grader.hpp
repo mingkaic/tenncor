@@ -48,11 +48,11 @@ struct Grader final : public ade::iTraveler
 	{
 		if (target_ == nullptr)
 		{
-			err::fatal("cannot derive with respect to null");
+			logs::fatal("cannot derive with respect to null");
 		}
 		if (rules_ == nullptr)
 		{
-			err::fatal("cannot derive without ruleset");
+			logs::fatal("cannot derive without ruleset");
 		}
 	}
 

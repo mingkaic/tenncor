@@ -57,7 +57,7 @@ struct MappedTensor final
 	{
 		if (tensor_ == nullptr)
 		{
-			err::fatal("cannot map a null tensor");
+			logs::fatal("cannot map a null tensor");
 		}
 	}
 

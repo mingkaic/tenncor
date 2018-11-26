@@ -6,7 +6,6 @@ var searchData=
   ['ifunctor_2ehpp',['ifunctor.hpp',['../ifunctor_8hpp.html',1,'']]],
   ['ileaf',['iLeaf',['../structade_1_1i_leaf.html',1,'ade']]],
   ['ileaf_2ehpp',['ileaf.hpp',['../ileaf_8hpp.html',1,'']]],
-  ['ilogger',['iLogger',['../structerr_1_1i_logger.html',1,'err']]],
   ['index',['index',['../namespaceade.html#ae4b0a59c967fe9699b5b66de3c8fab49',1,'ade']]],
   ['inverse',['inverse',['../namespaceade.html#ad9cbea696e35b2eca835de3a246409d0',1,'ade']]],
   ['iruleset',['iRuleSet',['../structage_1_1i_rule_set.html',1,'age']]],

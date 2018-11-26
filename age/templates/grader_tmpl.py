@@ -57,7 +57,7 @@ ade::TensptrT RuleSet::grad_rule (size_t code,TensT args,size_t idx)
     switch (code)
     {{
 {gradops}
-        default: err::fatal("no gradient rule for unknown opcode");
+        default: logs::fatal("no gradient rule for unknown opcode");
     }}
 }}
 

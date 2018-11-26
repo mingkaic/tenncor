@@ -9,7 +9,6 @@ package(
 filegroup(
     name = "srcs",
     srcs = [
-        "//err:srcs",
         "//ade:srcs",
         "//age:srcs",
         "//bwd:srcs",

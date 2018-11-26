@@ -11,7 +11,7 @@
 #include <numeric>
 #include <vector>
 
-#include "err/log.hpp"
+#include "logs/logs.hpp"
 
 #ifndef ADE_SHAPE_HPP
 #define ADE_SHAPE_HPP
@@ -96,7 +96,7 @@ struct Shape final
 	{
 		if (rank_cap <= idx)
 		{
-			err::fatalf("cannot access out of bounds index %d", idx);
+			logs::fatalf("cannot access out of bounds index %d", idx);
 		}
 		return dims_.at(idx);
 	}
@@ -134,7 +134,7 @@ struct Shape final
 	/// Return string representation of shape
 	std::string to_string (void) const
 	{
-		return err::to_string(begin(), end());
+		return fmts::to_string(begin(), end());
 	}
 
 	// >>>> INTERNAL CONTROL <<<<
@@ -173,8 +173,8 @@ private:
 				return d == 0;
 			}))
 		{
-			err::fatalf("cannot create shape with vector containing zero: %s",
-				err::to_string(dims.begin(), dims.end()).c_str());
+			logs::fatalf("cannot create shape with vector containing zero: %s",
+				fmts::to_string(dims.begin(), dims.end()).c_str());
 		}
 		auto dest = dims_.begin();
 		uint8_t rank = std::min((size_t) rank_cap, dims.size());

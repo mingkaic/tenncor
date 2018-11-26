@@ -191,7 +191,7 @@ TEST_F(COORD, Reduce)
 
 	EXPECT_FATAL(ade::reduce(rank, {0}), "cannot reduce using zero dimensions [0]");
 
-	std::string fatalmsg = err::sprintf(
+	std::string fatalmsg = fmts::sprintf(
 		"cannot reduce shape rank %d beyond rank_cap with n_red %d",
 		rank + 1, red.size());
 	EXPECT_FATAL(ade::reduce(rank + 1, dred), fatalmsg.c_str());
@@ -233,7 +233,7 @@ TEST_F(COORD, Extend)
 
 	EXPECT_FATAL(ade::extend(rank, {0}), "cannot extend using zero dimensions [0]");
 
-	std::string fatalmsg = err::sprintf(
+	std::string fatalmsg = fmts::sprintf(
 		"cannot extend shape rank %d beyond rank_cap with n_ext %d",
 		rank + 1, ext.size());
 	EXPECT_FATAL(ade::extend(rank + 1, dext), fatalmsg.c_str());

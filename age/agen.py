@@ -86,7 +86,7 @@ def make_dir(fields, includes, includepath):
     codes_header_include = ["<string>"]
     codes_source_include = [
         "<unordered_map>",
-        '"err/log.hpp"',
+        '"logs/logs.hpp"',
         '"' + codes_hdr_path + '"',
     ]
     if codes_header in includes:
