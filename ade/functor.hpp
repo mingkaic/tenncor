@@ -1,9 +1,9 @@
 ///
-///	functor.hpp
-///	ade
+/// functor.hpp
+/// ade
 ///
-///	Purpose:
-///	Define functor nodes of an equation graph
+/// Purpose:
+/// Define functor nodes of an equation graph
 ///
 
 #include "ade/ifunctor.hpp"

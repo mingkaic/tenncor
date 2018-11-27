@@ -1,9 +1,9 @@
 ///
-///	matops.hpp
-///	ade
+/// matops.hpp
+/// ade
 ///
-///	Purpose:
-///	Define matrix operations for coordinate transformation
+/// Purpose:
+/// Define matrix operations for coordinate transformation
 /// This functions are here to avoid external dependencies in ADE
 ///
 

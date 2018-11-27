@@ -1,9 +1,9 @@
 ///
-///	traveler.hpp
-///	ade
+/// traveler.hpp
+/// ade
 ///
-///	Purpose:
-///	Define common traveler implementations
+/// Purpose:
+/// Define common traveler implementations
 ///
 
 #include <unordered_set>

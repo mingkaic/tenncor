@@ -1,9 +1,9 @@
 ///
-///	grader.hpp
-///	bwd
+/// grader.hpp
+/// bwd
 ///
-///	Purpose:
-///	Define grader traveler to build partial derivative equations
+/// Purpose:
+/// Define grader traveler to build partial derivative equations
 ///
 
 #include <list>

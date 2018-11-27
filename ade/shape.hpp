@@ -1,9 +1,9 @@
 ///
-///	shape.hpp
-///	ade
+/// shape.hpp
+/// ade
 ///
-///	Purpose:
-///	Define shapes models and coordinate to flattened index mapping
+/// Purpose:
+/// Define shapes models and coordinate to flattened index mapping
 ///
 
 #include <array>
@@ -119,7 +119,7 @@ struct Shape final
 
 	/// Return true if this->dims_[idx:rank_cap) is
 	/// equal to other.dims_[idx:rank_cap), otherwise return false
-	///	Set idx to 0 to compare entire shape
+	/// Set idx to 0 to compare entire shape
 	bool compatible_after (const Shape& other, uint8_t idx) const
 	{
 		bool compatible = false;
@@ -193,7 +193,7 @@ private:
 };
 
 /// Return the flat index mapped by coord according to shape
-///	For example, 2-D tensor has indices in place of value as follows:
+/// For example, 2-D tensor has indices in place of value as follows:
 /// [[0, 1, ..., n-1], [n, n+1, ..., 2*n-1]]
 /// The index follows the equation: index = coord[0]+coord[1]*shape[0]+...
 /// Invalid coordinate where the coordinate value is beyond the dimension

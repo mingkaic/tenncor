@@ -1,9 +1,9 @@
 ///
-///	ade.hpp
-///	ade
+/// ade.hpp
+/// ade
 ///
-///	Purpose:
-///	Collectively include all ade header files
+/// Purpose:
+/// Collectively include all ade header files
 ///
 
 #include "ade/functor.hpp"

@@ -1,9 +1,9 @@
 ///
-///	ileaf.hpp
-///	ade
+/// ileaf.hpp
+/// ade
 ///
-///	Purpose:
-///	Define interfaces and building blocks for an equation graph
+/// Purpose:
+/// Define interfaces and building blocks for an equation graph
 ///
 
 #include "ade/itensor.hpp"

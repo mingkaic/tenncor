@@ -1,9 +1,9 @@
 ///
-///	coord.hpp
-///	ade
+/// coord.hpp
+/// ade
 ///
-///	Purpose:
-///	Define shape/coordinate transformation functions
+/// Purpose:
+/// Define shape/coordinate transformation functions
 ///
 
 #include <functional>
