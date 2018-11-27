@@ -8,9 +8,7 @@
 
 #include <list>
 
-#include "ade/ileaf.hpp"
-#include "ade/traveler.hpp"
-#include "ade/functor.hpp"
+#include "ade/ade.hpp"
 
 #ifndef BWD_GRADER_HPP
 #define BWD_GRADER_HPP

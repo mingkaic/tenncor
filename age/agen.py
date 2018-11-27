@@ -100,7 +100,6 @@ def make_dir(fields, includes, includepath):
 
     api_header_include = [
         '"bwd/grader.hpp"',
-        '"ade/functor.hpp"',
     ]
     api_source_include = [
         '"' + codes_hdr_path + '"',
