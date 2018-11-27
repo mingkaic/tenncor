@@ -16,7 +16,7 @@ void typed_exec (_GENERATED_OPCODE opcode,
     switch (opcode)
     {{
 {ops}
-        default: err::fatal("unknown opcode");
+        default: logs::fatal("unknown opcode");
     }}
 }}
 
@@ -48,7 +48,7 @@ void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
     switch (dtype)
     {{
 {types}
-        default: err::fatal("executing bad type");
+        default: logs::fatal("executing bad type");
     }}
 }}
 

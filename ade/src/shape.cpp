@@ -12,8 +12,8 @@ NElemT index (Shape shape, CoordT coord)
 		DimT limit = shape.at(i);
 		if (coord[i] >= limit)
 		{
-			err::fatalf("cannot get index of bad coordinate %s for shape %s",
-				err::to_string(coord.begin(), coord.end()).c_str(),
+			logs::fatalf("cannot get index of bad coordinate %s for shape %s",
+				fmts::to_string(coord.begin(), coord.end()).c_str(),
 				shape.to_string().c_str());
 		}
 		// account for negative coordinates by (limit + c) % limit
@@ -32,7 +32,7 @@ CoordT coordinate (Shape shape, NElemT idx)
 {
 	if (idx >= shape.n_elems())
 	{
-		err::fatalf("cannot get coordinate of index %d (>= shape %s nelems)",
+		logs::fatalf("cannot get coordinate of index %d (>= shape %s nelems)",
 			idx, shape.to_string().c_str());
 	}
 	CoordT coord;

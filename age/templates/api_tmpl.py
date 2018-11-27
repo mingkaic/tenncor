@@ -45,7 +45,7 @@ source.apis = ("apis", lambda apis: '\n\n'.join(["""ade::TensptrT {api} ({args})
 {{
     if ({null_check})
     {{
-        err::fatal("cannot {api} with a null argument");
+        logs::fatal("cannot {api} with a null argument");
     }}
     return {retval};
 }}""".format(

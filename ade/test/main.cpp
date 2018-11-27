@@ -5,7 +5,7 @@
 
 int main (int argc, char** argv)
 {
-	set_logger(std::static_pointer_cast<err::iLogger>(tlogger));
+	set_logger(std::static_pointer_cast<logs::iLogger>(tlogger));
 
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();

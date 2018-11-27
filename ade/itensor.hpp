@@ -1,9 +1,9 @@
 ///
-///	itensor.hpp
-///	ade
+/// itensor.hpp
+/// ade
 ///
-///	Purpose:
-///	Define interfaces and building blocks for an equation graph
+/// Purpose:
+/// Define interfaces and building blocks for an equation graph
 ///
 
 #include "ade/coord.hpp"
@@ -57,7 +57,7 @@ struct MappedTensor final
 	{
 		if (tensor_ == nullptr)
 		{
-			err::fatal("cannot map a null tensor");
+			logs::fatal("cannot map a null tensor");
 		}
 	}
 

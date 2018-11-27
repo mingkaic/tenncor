@@ -34,7 +34,7 @@ TEST_F(FUNCTOR, Shapes)
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {}),
 		"cannot perform MOCK with no arguments");
 
-	std::string fatalmsg = err::sprintf("cannot perform MOCK with incompatible shapes %s and %s",
+	std::string fatalmsg = fmts::sprintf("cannot perform MOCK with incompatible shapes %s and %s",
 		shape.to_string().c_str(), badshape.to_string().c_str());
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
 		{ade::identity, leaf}, {ade::identity, badleaf}}), fatalmsg.c_str());

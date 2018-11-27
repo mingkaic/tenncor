@@ -1,9 +1,9 @@
 ///
-///	shape.hpp
-///	ade
+/// shape.hpp
+/// ade
 ///
-///	Purpose:
-///	Define shapes models and coordinate to flattened index mapping
+/// Purpose:
+/// Define shapes models and coordinate to flattened index mapping
 ///
 
 #include <array>
@@ -11,7 +11,7 @@
 #include <numeric>
 #include <vector>
 
-#include "err/log.hpp"
+#include "logs/logs.hpp"
 
 #ifndef ADE_SHAPE_HPP
 #define ADE_SHAPE_HPP
@@ -96,7 +96,7 @@ struct Shape final
 	{
 		if (rank_cap <= idx)
 		{
-			err::fatalf("cannot access out of bounds index %d", idx);
+			logs::fatalf("cannot access out of bounds index %d", idx);
 		}
 		return dims_.at(idx);
 	}
@@ -119,7 +119,7 @@ struct Shape final
 
 	/// Return true if this->dims_[idx:rank_cap) is
 	/// equal to other.dims_[idx:rank_cap), otherwise return false
-	///	Set idx to 0 to compare entire shape
+	/// Set idx to 0 to compare entire shape
 	bool compatible_after (const Shape& other, uint8_t idx) const
 	{
 		bool compatible = false;
@@ -134,7 +134,7 @@ struct Shape final
 	/// Return string representation of shape
 	std::string to_string (void) const
 	{
-		return err::to_string(begin(), end());
+		return fmts::to_string(begin(), end());
 	}
 
 	// >>>> INTERNAL CONTROL <<<<
@@ -173,8 +173,8 @@ private:
 				return d == 0;
 			}))
 		{
-			err::fatalf("cannot create shape with vector containing zero: %s",
-				err::to_string(dims.begin(), dims.end()).c_str());
+			logs::fatalf("cannot create shape with vector containing zero: %s",
+				fmts::to_string(dims.begin(), dims.end()).c_str());
 		}
 		auto dest = dims_.begin();
 		uint8_t rank = std::min((size_t) rank_cap, dims.size());
@@ -193,7 +193,7 @@ private:
 };
 
 /// Return the flat index mapped by coord according to shape
-///	For example, 2-D tensor has indices in place of value as follows:
+/// For example, 2-D tensor has indices in place of value as follows:
 /// [[0, 1, ..., n-1], [n, n+1, ..., 2*n-1]]
 /// The index follows the equation: index = coord[0]+coord[1]*shape[0]+...
 /// Invalid coordinate where the coordinate value is beyond the dimension

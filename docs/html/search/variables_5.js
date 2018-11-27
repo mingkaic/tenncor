@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['fwd_5f',['fwd_',['../structade_1_1_coord_map.html#ad0bb539056fd8f8acce96109ff41f6da',1,'ade::CoordMap']]]
+  ['graphsize_5f',['graphsize_',['../structade_1_1_graph_stat.html#ae6ba17ac04500b63db74ebf4f45743a8',1,'ade::GraphStat']]]
 ];

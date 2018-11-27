@@ -60,17 +60,17 @@ CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 	if (std::any_of(red.begin(), red.end(),
 		[](DimT& d) { return 0 == d; }))
 	{
-		err::fatalf("cannot reduce using zero dimensions %s",
-			err::to_string(red.begin(), red.end()).c_str());
+		logs::fatalf("cannot reduce using zero dimensions %s",
+			fmts::to_string(red.begin(), red.end()).c_str());
 	}
 	if (rank + n_red > rank_cap)
 	{
-		err::fatalf("cannot reduce shape rank %d beyond rank_cap with n_red %d",
+		logs::fatalf("cannot reduce shape rank %d beyond rank_cap with n_red %d",
 			rank, n_red);
 	}
 	if (0 == n_red)
 	{
-		err::warn("reducing with empty vector ... will do nothing");
+		logs::warn("reducing with empty vector ... will do nothing");
 		return identity;
 	}
 
@@ -95,17 +95,17 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
 	if (std::any_of(ext.begin(), ext.end(),
 		[](DimT& d) { return 0 == d; }))
 	{
-		err::fatalf("cannot extend using zero dimensions %s",
-			err::to_string(ext.begin(), ext.end()).c_str());
+		logs::fatalf("cannot extend using zero dimensions %s",
+			fmts::to_string(ext.begin(), ext.end()).c_str());
 	}
 	if (rank + n_ext > rank_cap)
 	{
-		err::fatalf("cannot extend shape rank %d beyond rank_cap with n_ext %d",
+		logs::fatalf("cannot extend shape rank %d beyond rank_cap with n_ext %d",
 			rank, n_ext);
 	}
 	if (0 == n_ext)
 	{
-		err::warn("extending with empty vector ... will do nothing");
+		logs::warn("extending with empty vector ... will do nothing");
 		return identity;
 	}
 
@@ -128,7 +128,7 @@ CoordPtrT permute (std::vector<uint8_t> dims)
 {
 	if (dims.size() == 0)
 	{
-		err::warn("permuting with same dimensions ... will do nothing");
+		logs::warn("permuting with same dimensions ... will do nothing");
 		return identity;
 	}
 
@@ -160,7 +160,7 @@ CoordPtrT flip (uint8_t dim)
 {
 	if (dim >= rank_cap)
 	{
-		err::warn("flipping dimension out of rank_cap ... will do nothing");
+		logs::warn("flipping dimension out of rank_cap ... will do nothing");
 		return identity;
 	}
 

@@ -134,7 +134,7 @@ uint8_t type_size (_GENERATED_DTYPE type)
     switch (type)
     {{
 {type_sizes}
-        default: err::fatal("cannot get size of bad type");
+        default: logs::fatal("cannot get size of bad type");
     }}
 }}
 

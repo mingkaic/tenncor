@@ -1,16 +1,14 @@
 ///
-///	grader.hpp
-///	bwd
+/// grader.hpp
+/// bwd
 ///
-///	Purpose:
-///	Define grader traveler to build partial derivative equations
+/// Purpose:
+/// Define grader traveler to build partial derivative equations
 ///
 
 #include <list>
 
-#include "ade/ileaf.hpp"
-#include "ade/traveler.hpp"
-#include "ade/functor.hpp"
+#include "ade/ade.hpp"
 
 #ifndef BWD_GRADER_HPP
 #define BWD_GRADER_HPP
@@ -48,11 +46,11 @@ struct Grader final : public ade::iTraveler
 	{
 		if (target_ == nullptr)
 		{
-			err::fatal("cannot derive with respect to null");
+			logs::fatal("cannot derive with respect to null");
 		}
 		if (rules_ == nullptr)
 		{
-			err::fatal("cannot derive without ruleset");
+			logs::fatal("cannot derive without ruleset");
 		}
 	}
 
