@@ -1,6 +1,8 @@
 import unittest
+import difflib
 
 import age.templates.api_tmpl as api
+import age.templates.capi_tmpl as capi
 import age.templates.codes_tmpl as codes
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
@@ -97,6 +99,93 @@ ade::TensptrT func3 (ade::TensptrT arg, Arg arg1, ade::TensptrT arg2)
     return bar3();
 }
 
+}
+
+#endif
+"""
+
+capi_header = """#ifndef _GENERATED_CAPI_HPP
+#define _GENERATED_CAPI_HPP
+
+int64_t malloc_tens (void* ptr);
+
+void* get_ptr (int64_t id);
+
+extern void free_tens (int64_t id);
+
+extern void get_shape (int outshape[8], int64_t tens);
+
+extern int64_t func1 ();
+
+extern int64_t func2 (int64_t arg, Arg arg1);
+
+extern int64_t func3 (int64_t arg, Arg arg1, int64_t arg2);
+
+#endif // _GENERATED_CAPI_HPP
+"""
+
+capi_source = """#ifdef _GENERATED_CAPI_HPP
+
+static std::unordered_map<int64_t,ade::TensptrT> tens;
+
+inline ade::TensptrT get_tens (int64_t id)
+{
+    auto it = tens.find(id);
+    if (tens.end() == it)
+    {
+        return ade::TensptrT(nullptr);
+    }
+    return it->second;
+}
+
+int64_t malloc_tens (void* ptr)
+{
+    int64_t id = (int64_t) ptr;
+    tens.emplace(id, ade::TensptrT(static_cast<ade::iTensor*>(ptr)));
+    return id;
+}
+
+void* get_ptr (int64_t id)
+{
+    return get_tens(id).get();
+}
+
+void free_tens (int64_t id)
+{
+    tens.erase(id);
+}
+
+void get_shape (int outshape[8], int64_t id)
+{
+    const ade::Shape& shape = get_tens(id)->shape();
+    std::copy(shape.begin(), shape.end(), outshape);
+}
+
+int64_t func1 ()
+{
+    auto ptr = age::func1();
+    int64_t id = (int64_t) ptr.get();
+    tens.emplace(id, ptr);
+    return id;
+}
+
+int64_t func2 (int64_t arg, Arg arg1)
+{
+    ade::TensptrT arg_ptr = get_tens(arg);
+    auto ptr = age::func2(arg_ptr, arg1);
+    int64_t id = (int64_t) ptr.get();
+    tens.emplace(id, ptr);
+    return id;
+}
+
+int64_t func3 (int64_t arg, Arg arg1, int64_t arg2)
+{
+    ade::TensptrT arg_ptr = get_tens(arg);
+    ade::TensptrT arg2_ptr = get_tens(arg2);
+    auto ptr = age::func3(arg_ptr, arg1, arg2_ptr);
+    int64_t id = (int64_t) ptr.get();
+    tens.emplace(id, ptr);
+    return id;
 }
 
 #endif
@@ -401,28 +490,53 @@ void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
 #endif
 """
 
+def multiline_check(s1, s2):
+    arr1 = list(filter(lambda line: len(line) > 0, s1.splitlines()))
+    arr2 = list(filter(lambda line: len(line) > 0, s2.splitlines()))
+
+    diffstr = '\n'.join(difflib.unified_diff(arr1, arr2))
+    diffs = diffstr.splitlines()
+    if len(diffs) > 0:
+        print(diffstr)
+
 class ClientTest(unittest.TestCase):
     def test_api(self):
         header = api.header.repr(api_fields)
         source = api.source.repr(api_fields)
+        multiline_check(api_header, header)
+        multiline_check(api_source, source)
         self.assertEqual(api_header, header)
         self.assertEqual(api_source, source)
+
+    def test_capi(self):
+        header = capi.header.repr(api_fields)
+        source = capi.source.repr(api_fields)
+        multiline_check(capi_header, header)
+        multiline_check(capi_source, source)
+        self.assertEqual(capi_header, header)
+        self.assertEqual(capi_source, source)
 
     def test_codes(self):
         header = codes.header.repr(codes_fields)
         source = codes.source.repr(codes_fields)
+        multiline_check(codes_header, header)
+        multiline_check(codes_source, source)
         self.assertEqual(codes_header, header)
         self.assertEqual(codes_source, source)
 
     def test_grader(self):
         header = grader.header.repr(grader_fields)
         source = grader.source.repr(grader_fields)
+        multiline_check(grader_header, header)
+        multiline_check(grader_source, source)
         self.assertEqual(grader_header, header)
         self.assertEqual(grader_source, source)
 
     def test_opera(self):
         header = opera.header.repr(opera_fields)
         source = opera.source.repr(opera_fields)
+        multiline_check(opera_header, header)
+        multiline_check(opera_source, source)
         self.assertEqual(opera_header, header)
         self.assertEqual(opera_source, source)
 

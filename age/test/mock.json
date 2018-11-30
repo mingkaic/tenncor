@@ -37,6 +37,11 @@
             "name": "goku",
             "args": ["size_t bardock"],
             "out": "cooler(bardock)"
+        },
+        {
+            "name": "vegeta",
+            "args": ["ade::TensptrT arg1", "uint8_t bardock"],
+            "out": "freeza(arg1, bardock)"
         }
     ]
 }

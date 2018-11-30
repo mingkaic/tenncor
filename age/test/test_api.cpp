@@ -17,6 +17,16 @@ TEST(AGE, Api)
 	EXPECT_EQ(16, kakarot->scalar_);
 	EXPECT_EQ(16, shape.n_elems());
 	EXPECT_EQ(16, shape.at(0));
+
+	ade::TensptrT vegetable(
+		age::vegeta(ade::TensptrT(
+			new MockTensor(1, ade::Shape({1, 1, 31}))), 2));
+	MockTensor* planet = dynamic_cast<MockTensor*>(vegetable.get());
+	EXPECT_NE(nullptr, planet);
+	ade::Shape vshape = planet->shape();
+	EXPECT_EQ(2, planet->scalar_);
+	EXPECT_EQ(31, vshape.n_elems());
+	EXPECT_EQ(31, vshape.at(0));
 }
 
 

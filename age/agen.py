@@ -6,6 +6,7 @@ import os.path
 import sys
 
 import age.templates.api_tmpl as api
+import age.templates.capi_tmpl as capi
 import age.templates.codes_tmpl as codes
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
@@ -72,7 +73,7 @@ def parse(cfg_str):
 def format_include(includes):
     return '\n'.join(["#include " + include for include in includes]) + '\n\n'
 
-def make_dir(fields, includes, includepath):
+def make_dir(fields, includes, includepath, gen_capi):
     opcodes = fields["opcodes"]
 
     code_fields = {
@@ -154,7 +155,7 @@ def make_dir(fields, includes, includepath):
     if opera_source in includes:
         opera_source_include += includes[opera_source]
 
-    return {
+    out = [
         (api_header,
             format_include(api_header_include) + api.header.repr(fields)),
         (api_source,
@@ -171,11 +172,26 @@ def make_dir(fields, includes, includepath):
             format_include(opera_header_include) + opera.header.repr(opera_fields)),
         (opera_source,
             format_include(opera_source_include) + opera.source.repr(opera_fields)),
-    }
+    ]
+    if gen_capi:
+        capi_header = 'c' + api_header
+        capi_source = 'c' + api_source
+        capi_hdr_path = os.path.join(includepath, capi_header)
+        capi_source_include = [
+            '<unordered_map>',
+            '"' + api_hdr_path + '"',
+            '"' + capi_hdr_path + '"',
+        ]
+        out.append((capi_header, capi.header.repr(fields)))
+        out.append((capi_source,
+            format_include(capi_source_include) + capi.source.repr(fields)))
+
+    return out
 
 def main(cfgpath = None,
     outpath = None,
-    strip_prefix = ''):
+    strip_prefix = '',
+    gen_capi = False):
 
     includepath = outpath
     if includepath and includepath.startswith(strip_prefix):
@@ -190,7 +206,7 @@ def main(cfgpath = None,
         cfg_str = sys.stdin.read()
     fields, includes = parse(cfg_str)
 
-    directory = make_dir(fields, includes, includepath)
+    directory = make_dir(fields, includes, includepath, gen_capi)
 
     if outpath:
         for fname, content in directory:
@@ -201,6 +217,15 @@ def main(cfgpath = None,
             print("============== %s ==============" % fname)
             print(content)
 
+def str2bool(opt):
+    optstr = opt.lower()
+    if optstr in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif optstr in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 if '__main__' == __name__:
     parser = argparse.ArgumentParser(description=prog_description)
     parser.add_argument('--cfg', dest='cfgpath', nargs='?',
@@ -209,8 +234,12 @@ if '__main__' == __name__:
         help='Directory path to dump output files (default: write to stdin)')
     parser.add_argument('--strip_prefix', dest='strip_prefix', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
+    parser.add_argument('--gen_capi', dest='gen_capi',
+        type=str2bool, nargs='?', const=True, default=False,
+        help='Whether to generate C api or not (default: False)')
     args = parser.parse_args()
 
     main(cfgpath = args.cfgpath,
         outpath = args.outpath,
-        strip_prefix = args.strip_prefix)
+        strip_prefix = args.strip_prefix,
+        gen_capi = args.gen_capi)

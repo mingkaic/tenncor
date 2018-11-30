@@ -32,7 +32,7 @@ namespace age
 #endif
 """)
 
-def nullcheck(args):
+def _nullcheck(args):
     vars = [arg.split(' ') for arg in args]
     tens = list(filter(lambda vpair: vpair[0] == 'ade::TensptrT',\
         [(var[0], var[-1]) for var in vars]))
@@ -51,5 +51,5 @@ source.apis = ("apis", lambda apis: '\n\n'.join(["""ade::TensptrT {api} ({args})
 }}""".format(
     api = api["name"],
     args = ', '.join(api["args"]),
-    null_check = nullcheck(api["args"]),
+    null_check = _nullcheck(api["args"]),
     retval = api["out"]) for api in apis]))
