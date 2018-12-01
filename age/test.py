@@ -107,9 +107,11 @@ ade::TensptrT func3 (ade::TensptrT arg, Arg arg1, ade::TensptrT arg2)
 capi_header = """#ifndef _GENERATED_CAPI_HPP
 #define _GENERATED_CAPI_HPP
 
-int64_t malloc_tens (void* ptr);
+int64_t register_tens (ade::iTensor* ptr);
 
-void* get_ptr (int64_t id);
+int64_t register_tens (ade::TensptrT& ptr);
+
+ade::TensptrT get_tens (int64_t id);
 
 extern void free_tens (int64_t id);
 
@@ -128,7 +130,21 @@ capi_source = """#ifdef _GENERATED_CAPI_HPP
 
 static std::unordered_map<int64_t,ade::TensptrT> tens;
 
-inline ade::TensptrT get_tens (int64_t id)
+int64_t register_tens (ade::iTensor* ptr)
+{
+    int64_t id = (int64_t) ptr;
+    tens.emplace(id, ade::TensptrT(ptr));
+    return id;
+}
+
+int64_t register_tens (ade::TensptrT& ptr)
+{
+    int64_t id = (int64_t) ptr.get();
+    tens.emplace(id, ptr);
+    return id;
+}
+
+ade::TensptrT get_tens (int64_t id)
 {
     auto it = tens.find(id);
     if (tens.end() == it)
@@ -136,18 +152,6 @@ inline ade::TensptrT get_tens (int64_t id)
         return ade::TensptrT(nullptr);
     }
     return it->second;
-}
-
-int64_t malloc_tens (void* ptr)
-{
-    int64_t id = (int64_t) ptr;
-    tens.emplace(id, ade::TensptrT(static_cast<ade::iTensor*>(ptr)));
-    return id;
-}
-
-void* get_ptr (int64_t id)
-{
-    return get_tens(id).get();
 }
 
 void free_tens (int64_t id)
