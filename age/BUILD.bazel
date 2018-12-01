@@ -62,7 +62,9 @@ genrule(
         "generated/opmap.cpp",
     ],
     tools = ["//age:agen"],
-    cmd = "$(location //age:agen) --cfg $(location :test/mock.json) --out $(@D)/generated --strip_prefix=$$(dirname $(@D)) --gen_capi",
+    cmd = "$(location //age:agen) " +
+        "--cfg $(location :test/mock.json) --out $(@D)/generated " +
+        "--strip_prefix=$$(dirname $(@D)) --gen_capi",
 )
 
 cc_test(

@@ -23,8 +23,8 @@ extern void get_shape (int outshape[8], int64_t tens);
 """)
 
 header.api_decls = ("apis", lambda apis: '\n\n'.join([\
-    "extern int64_t {api} ({args});".format(\
-    api = api["name"], args = ', '.join([\
+    "extern int64_t age_{func} ({args});".format(\
+    func = api["name"], args = ', '.join([\
         arg.replace(_origtype, _repltype)\
         for arg in api["args"]])) for api in apis]))
 
@@ -71,7 +71,7 @@ void get_shape (int outshape[8], int64_t id)
 #endif
 """)
 
-_cfunc_fmt = """int64_t {func} ({params})
+_cfunc_fmt = """int64_t age_{func} ({params})
 {{
     {arg_decls}auto ptr = age::{func}({retargs});
     int64_t id = (int64_t) ptr.get();

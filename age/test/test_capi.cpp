@@ -12,7 +12,7 @@ TEST(AGE, CApi)
 {
 	// everything should be exactly the same as Api
 	// except inputs and output types are different
-	int64_t carrot = goku(16);
+	int64_t carrot = age_goku(16);
 	MockTensor* kakarot = dynamic_cast<MockTensor*>(
 		static_cast<ade::iTensor*>(get_ptr(carrot)));
 	EXPECT_NE(nullptr, kakarot);
@@ -22,7 +22,7 @@ TEST(AGE, CApi)
 	EXPECT_EQ(16, shape.at(0));
 
 	int64_t var = malloc_tens(new MockTensor(1, ade::Shape({1, 1, 31})));
-	int64_t vegetable = vegeta(var, 2);
+	int64_t vegetable = age_vegeta(var, 2);
 	MockTensor* planet = dynamic_cast<MockTensor*>(
 		static_cast<ade::iTensor*>(get_ptr(vegetable)));
 	EXPECT_NE(nullptr, planet);

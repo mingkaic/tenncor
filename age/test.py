@@ -115,11 +115,11 @@ extern void free_tens (int64_t id);
 
 extern void get_shape (int outshape[8], int64_t tens);
 
-extern int64_t func1 ();
+extern int64_t age_func1 ();
 
-extern int64_t func2 (int64_t arg, Arg arg1);
+extern int64_t age_func2 (int64_t arg, Arg arg1);
 
-extern int64_t func3 (int64_t arg, Arg arg1, int64_t arg2);
+extern int64_t age_func3 (int64_t arg, Arg arg1, int64_t arg2);
 
 #endif // _GENERATED_CAPI_HPP
 """
@@ -161,7 +161,7 @@ void get_shape (int outshape[8], int64_t id)
     std::copy(shape.begin(), shape.end(), outshape);
 }
 
-int64_t func1 ()
+int64_t age_func1 ()
 {
     auto ptr = age::func1();
     int64_t id = (int64_t) ptr.get();
@@ -169,7 +169,7 @@ int64_t func1 ()
     return id;
 }
 
-int64_t func2 (int64_t arg, Arg arg1)
+int64_t age_func2 (int64_t arg, Arg arg1)
 {
     ade::TensptrT arg_ptr = get_tens(arg);
     auto ptr = age::func2(arg_ptr, arg1);
@@ -178,7 +178,7 @@ int64_t func2 (int64_t arg, Arg arg1)
     return id;
 }
 
-int64_t func3 (int64_t arg, Arg arg1, int64_t arg2)
+int64_t age_func3 (int64_t arg, Arg arg1, int64_t arg2)
 {
     ade::TensptrT arg_ptr = get_tens(arg);
     ade::TensptrT arg2_ptr = get_tens(arg2);
