@@ -41,13 +41,13 @@ void Grader::visit (ade::iFunctor* func)
 			return stat.graphsize_[a] > stat.graphsize_[b];
 		});
 
-	std::unordered_map<const ade::iTensor*,TensT> grads = {
+	std::unordered_map<const ade::iTensor*,ade::TensT> grads = {
 		{func, {rules_->data(1, func->shape())}},
 	};
 	for (ade::iFunctor* parent : parents)
 	{
 		ade::Opcode opcode = parent->get_opcode();
-		TensT& gargs = grads[parent];
+		ade::TensT& gargs = grads[parent];
 		ade::TensptrT bwd(gargs.size() > 1 ? gargs[0] :
 			ade::TensptrT(ade::Functor::get(rules_->sum_opcode(), to_args(gargs))));
 
@@ -60,7 +60,7 @@ void Grader::visit (ade::iFunctor* func)
 		ordered.sort();
 		for (size_t i : ordered)
 		{
-			TensT args;
+			ade::TensT args;
 			ade::MappedTensor& child = children[i];
 			ade::CoordPtrT mapper(child.mapper_->reverse());
 			for (size_t j = 0; j < nchildren; ++j)
@@ -95,7 +95,7 @@ void Grader::visit (ade::iFunctor* func)
 			to_args(grads[target_]))));
 }
 
-ade::ArgsT to_args (TensT tens)
+ade::ArgsT to_args (ade::TensT tens)
 {
 	ade::ArgsT args;
 	std::transform(tens.begin(), tens.end(), std::back_inserter(args),

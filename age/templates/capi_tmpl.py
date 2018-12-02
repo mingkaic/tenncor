@@ -3,7 +3,13 @@
 import repr
 
 _origtype = 'ade::TensptrT'
+_origtypes = 'ade::TensT'
 _repltype = 'int64_t'
+_repltypes = 'std::vector<int64_t>'
+
+def replace_all(arg):
+    return arg.replace(_origtype, _repltype)\
+        .replace(_origtypes, _repltypes)
 
 def affix_apis(apis):
     names = [api['name'] for api in apis]
@@ -41,8 +47,8 @@ extern void get_shape (int outshape[8], int64_t tens);
 header.api_decls = ("apis", lambda apis: '\n\n'.join([\
     "extern int64_t age_{func} ({args});".format(\
     func = api["name"] + affix, args = ', '.join([\
-        arg.replace(_origtype, _repltype)\
-        for arg in api["args"]])) for api, affix in affix_apis(apis)]))
+        replace_all(arg) for arg in api["args"]]))\
+            for api, affix in affix_apis(apis)]))
 
 # EXPORT
 source = repr.FILE_REPR("""#ifdef _GENERATED_CAPI_HPP
@@ -97,6 +103,12 @@ _cfunc_fmt = """int64_t age_{ifunc} ({params})
     return id;
 }}"""
 
+_carr_decl = """
+    ade::TensT {name}_tens({name}.size());
+    std::transform({name}.begin(), {name}.end(), {name}_tens.begin(),
+        [](int64_t id){{ return get_tens(id); }});
+"""
+
 def _defn_func(api, affix):
     ifunc = api["name"] + affix
     vars = [arg.split(' ') for arg in api["args"]]
@@ -110,6 +122,10 @@ def _defn_func(api, affix):
             arg_decls.append('ade::TensptrT {name}_ptr = get_tens({name});'
                 .format(name=typevar[1]))
             args.append(typevar[1] + '_ptr')
+        elif typevar[0] == _origtypes:
+            params.append('std::vector<int64_t> {}'.format(typevar[1]))
+            arg_decls.append(_carr_decl.format(name=typevar[1]))
+            args.append(typevar[1] + '_tens')
         else:
             params.append(' '.join(typevar))
             args.append(typevar[1])

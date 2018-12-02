@@ -27,6 +27,16 @@ TEST(AGE, Api)
 	EXPECT_EQ(2, planet->scalar_);
 	EXPECT_EQ(31, vshape.n_elems());
 	EXPECT_EQ(31, vshape.at(0));
+
+	ade::TensptrT vegetable2(
+		age::vegeta(2, {ade::TensptrT(
+			new MockTensor(1, ade::Shape({1, 1, 31})))}));
+	MockTensor* planet2 = dynamic_cast<MockTensor*>(vegetable2.get());
+	EXPECT_NE(nullptr, planet2);
+	ade::Shape vshape2 = planet2->shape();
+	EXPECT_EQ(2, planet2->scalar_);
+	EXPECT_EQ(31, vshape2.n_elems());
+	EXPECT_EQ(31, vshape2.at(0));
 }
 
 
