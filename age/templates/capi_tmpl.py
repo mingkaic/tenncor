@@ -5,6 +5,20 @@ import repr
 _origtype = 'ade::TensptrT'
 _repltype = 'int64_t'
 
+def affix_apis(apis):
+    names = [api['name'] for api in apis]
+    affix_maps = {name: names.count(name) - 1 for name in names}
+    affixes = []
+    for api in apis:
+        nocc = affix_maps[api['name']]
+        if nocc > 0:
+            affix = '_' + str(nocc)
+            affix_maps[api['name']] = nocc - 1
+        else:
+            affix = ''
+        affixes.append((api, affix))
+    return affixes
+
 # EXPORT
 header = repr.FILE_REPR("""#ifndef _GENERATED_CAPI_HPP
 #define _GENERATED_CAPI_HPP
@@ -26,9 +40,9 @@ extern void get_shape (int outshape[8], int64_t tens);
 
 header.api_decls = ("apis", lambda apis: '\n\n'.join([\
     "extern int64_t age_{func} ({args});".format(\
-    func = api["name"], args = ', '.join([\
+    func = api["name"] + affix, args = ', '.join([\
         arg.replace(_origtype, _repltype)\
-        for arg in api["args"]])) for api in apis]))
+        for arg in api["args"]])) for api, affix in affix_apis(apis)]))
 
 # EXPORT
 source = repr.FILE_REPR("""#ifdef _GENERATED_CAPI_HPP
@@ -75,7 +89,7 @@ void get_shape (int outshape[8], int64_t id)
 #endif
 """)
 
-_cfunc_fmt = """int64_t age_{func} ({params})
+_cfunc_fmt = """int64_t age_{ifunc} ({params})
 {{
     {arg_decls}auto ptr = age::{func}({retargs});
     int64_t id = (int64_t) ptr.get();
@@ -83,8 +97,8 @@ _cfunc_fmt = """int64_t age_{func} ({params})
     return id;
 }}"""
 
-def _defn_func(api):
-    func = api["name"]
+def _defn_func(api, affix):
+    ifunc = api["name"] + affix
     vars = [arg.split(' ') for arg in api["args"]]
     typevars = [(var[0], var[-1]) for var in vars]
     params = []
@@ -103,9 +117,11 @@ def _defn_func(api):
     if len(arg_decls) > 0:
         arg_decls_str = arg_decls_str + '\n    '
     return _cfunc_fmt.format(
-        func = func,
+        ifunc = ifunc,
+        func = api["name"],
         params = ', '.join(params),
         arg_decls = arg_decls_str,
         retargs = ', '.join(args))
 
-source.apis = ("apis", lambda apis: '\n\n'.join([_defn_func(api) for api in apis]))
+source.apis = ("apis", lambda apis: '\n\n'.join([_defn_func(api, affix)\
+    for api, affix in affix_apis(apis)]))
