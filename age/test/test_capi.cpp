@@ -31,7 +31,8 @@ TEST(AGE, CApi)
 	EXPECT_EQ(31, vshape.n_elems());
 	EXPECT_EQ(31, vshape.at(0));
 
-	int64_t vegetable2 = age_vegeta(2, {var});
+	int64_t varr[1] = {var};
+	int64_t vegetable2 = age_vegeta(2, varr, 1);
 	MockTensor* planet2 = dynamic_cast<MockTensor*>(
 		get_tens(vegetable2).get());
 	EXPECT_NE(nullptr, planet2);

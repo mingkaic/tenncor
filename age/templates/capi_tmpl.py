@@ -3,13 +3,9 @@
 import repr
 
 _origtype = 'ade::TensptrT'
-_origtypes = 'ade::TensT'
 _repltype = 'int64_t'
-_repltypes = 'std::vector<int64_t>'
 
-def replace_all(arg):
-    return arg.replace(_origtype, _repltype)\
-        .replace(_origtypes, _repltypes)
+_origarrtype = 'ade::TensT'
 
 def affix_apis(apis):
     names = [api['name'] for api in apis]
@@ -24,6 +20,10 @@ def affix_apis(apis):
             affix = ''
         affixes.append((api, affix))
     return affixes
+
+def typesplit(args):
+    args = [arg.split(' ') for arg in args]
+    return [(arg[0], arg[-1]) for arg in args]
 
 # EXPORT
 header = repr.FILE_REPR("""#ifndef _GENERATED_CAPI_HPP
@@ -44,11 +44,24 @@ extern void get_shape (int outshape[8], int64_t tens);
 #endif // _GENERATED_CAPI_HPP
 """)
 
+_cfunc_sign_fmt = "int64_t age_{ifunc} ({params})"
+
+def _decl_func(api, affix):
+    args = typesplit(api["args"])
+    params = []
+    for dtype, argname in args:
+        if dtype == _origtype:
+            params.append(_repltype + ' ' + argname)
+        elif dtype == _origarrtype:
+            params.append('int64_t* ' + argname)
+            params.append('uint64_t n_' + argname)
+        else:
+            params.append(dtype + ' ' + argname)
+    return _cfunc_sign_fmt.format(ifunc = api["name"] + affix,
+        params = ', '.join(params))
+
 header.api_decls = ("apis", lambda apis: '\n\n'.join([\
-    "extern int64_t age_{func} ({args});".format(\
-    func = api["name"] + affix, args = ', '.join([\
-        replace_all(arg) for arg in api["args"]]))\
-            for api, affix in affix_apis(apis)]))
+    'extern ' + _decl_func(api, affix) + ';' for api, affix in affix_apis(apis)]))
 
 # EXPORT
 source = repr.FILE_REPR("""#ifdef _GENERATED_CAPI_HPP
@@ -95,49 +108,38 @@ void get_shape (int outshape[8], int64_t id)
 #endif
 """)
 
-_cfunc_fmt = """int64_t age_{ifunc} ({params})
-{{
-    {arg_decls}auto ptr = age::{func}({retargs});
+_cfunc_bloc_fmt = """
+{{{arg_decls}
+    auto ptr = age::{func}({params});
     int64_t id = (int64_t) ptr.get();
     tens.emplace(id, ptr);
     return id;
 }}"""
 
-_carr_decl = """
-    ade::TensT {name}_tens({name}.size());
-    std::transform({name}.begin(), {name}.end(), {name}_tens.begin(),
-        [](int64_t id){{ return get_tens(id); }});
-"""
-
 def _defn_func(api, affix):
-    ifunc = api["name"] + affix
-    vars = [arg.split(' ') for arg in api["args"]]
-    typevars = [(var[0], var[-1]) for var in vars]
+    args = typesplit(api["args"])
+    decls = []
     params = []
-    arg_decls = []
-    args = []
-    for typevar in typevars:
-        if typevar[0] == _origtype:
-            params.append('int64_t {}'.format(typevar[1]))
-            arg_decls.append('ade::TensptrT {name}_ptr = get_tens({name});'
-                .format(name=typevar[1]))
-            args.append(typevar[1] + '_ptr')
-        elif typevar[0] == _origtypes:
-            params.append('std::vector<int64_t> {}'.format(typevar[1]))
-            arg_decls.append(_carr_decl.format(name=typevar[1]))
-            args.append(typevar[1] + '_tens')
+    for dtype, argname in args:
+        if dtype == _origtype:
+            decls.append('ade::TensptrT {name}_ptr = get_tens({name});'
+                .format(name=argname))
+            params.append(argname + '_ptr')
+        elif dtype == _origarrtype:
+            decls.append('ade::TensT {name}_tens(n_{name});'.format(name=argname))
+            decls.append('std::transform({name}, {name} + n_{name}, {name}_tens.begin(),'.\
+                format(name=argname))
+            decls.append('    [](int64_t id){ return get_tens(id); });')
+            params.append(argname + '_tens')
         else:
-            params.append(' '.join(typevar))
-            args.append(typevar[1])
-    arg_decls_str = '\n    '.join(arg_decls)
+            params.append(argname)
+    arg_decls = '\n    '.join(decls)
     if len(arg_decls) > 0:
-        arg_decls_str = arg_decls_str + '\n    '
-    return _cfunc_fmt.format(
-        ifunc = ifunc,
+        arg_decls = '\n    ' + arg_decls
+    return _decl_func(api, affix) + _cfunc_bloc_fmt.format(
+        arg_decls = arg_decls,
         func = api["name"],
-        params = ', '.join(params),
-        arg_decls = arg_decls_str,
-        retargs = ', '.join(args))
+        params = ', '.join(params))
 
 source.apis = ("apis", lambda apis: '\n\n'.join([_defn_func(api, affix)\
     for api, affix in affix_apis(apis)]))

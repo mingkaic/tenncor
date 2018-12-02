@@ -178,6 +178,7 @@ def make_dir(fields, includes, includepath, gen_capi):
         capi_source = 'c' + api_source
         capi_hdr_path = os.path.join(includepath, capi_header)
         capi_source_include = [
+            '<algorithm>',
             '<unordered_map>',
             '"' + api_hdr_path + '"',
             '"' + capi_hdr_path + '"',

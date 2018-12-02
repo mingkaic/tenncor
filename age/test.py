@@ -10,7 +10,9 @@ import age.templates.opera_tmpl as opera
 api_fields = {"apis": [
     {"name": "func1", "args": [], "out": "bar1()"},
     {"name": "func2", "args": ["ade::TensptrT arg", "Arg arg1"], "out": "bar2()"},
-    {"name": "func3", "args": ["ade::TensptrT arg", "Arg arg1", "ade::TensptrT arg2"], "out": "bar3()"}
+    {"name": "func3", "args": [
+        "ade::TensptrT arg", "Arg arg1", "ade::TensptrT arg2"], "out": "bar3()"},
+    {"name": "func1", "args": ["ade::TensT arg", "Arg arg1"], "out": "bar4()"}
 ]}
 
 codes_fields = {
@@ -62,6 +64,8 @@ ade::TensptrT func2 (ade::TensptrT arg, Arg arg1);
 
 ade::TensptrT func3 (ade::TensptrT arg, Arg arg1, ade::TensptrT arg2);
 
+ade::TensptrT func1 (ade::TensT arg, Arg arg1);
+
 }
 
 #endif // _GENERATED_API_HPP
@@ -99,6 +103,15 @@ ade::TensptrT func3 (ade::TensptrT arg, Arg arg1, ade::TensptrT arg2)
     return bar3();
 }
 
+ade::TensptrT func1 (ade::TensT arg, Arg arg1)
+{
+    if (false)
+    {
+        logs::fatal("cannot func1 with a null argument");
+    }
+    return bar4();
+}
+
 }
 
 #endif
@@ -117,11 +130,13 @@ extern void free_tens (int64_t id);
 
 extern void get_shape (int outshape[8], int64_t tens);
 
-extern int64_t age_func1 ();
+extern int64_t age_func1_1 ();
 
 extern int64_t age_func2 (int64_t arg, Arg arg1);
 
 extern int64_t age_func3 (int64_t arg, Arg arg1, int64_t arg2);
+
+extern int64_t age_func1 (int64_t* arg, uint64_t n_arg, Arg arg1);
 
 #endif // _GENERATED_CAPI_HPP
 """
@@ -165,7 +180,7 @@ void get_shape (int outshape[8], int64_t id)
     std::copy(shape.begin(), shape.end(), outshape);
 }
 
-int64_t age_func1 ()
+int64_t age_func1_1 ()
 {
     auto ptr = age::func1();
     int64_t id = (int64_t) ptr.get();
@@ -187,6 +202,17 @@ int64_t age_func3 (int64_t arg, Arg arg1, int64_t arg2)
     ade::TensptrT arg_ptr = get_tens(arg);
     ade::TensptrT arg2_ptr = get_tens(arg2);
     auto ptr = age::func3(arg_ptr, arg1, arg2_ptr);
+    int64_t id = (int64_t) ptr.get();
+    tens.emplace(id, ptr);
+    return id;
+}
+
+int64_t age_func1 (int64_t* arg, uint64_t n_arg, Arg arg1)
+{
+    ade::TensT arg_tens(n_arg);
+    std::transform(arg, arg + n_arg, arg_tens.begin(),
+        [](int64_t id){ return get_tens(id); });
+    auto ptr = age::func1(arg_tens, arg1);
     int64_t id = (int64_t) ptr.get();
     tens.emplace(id, ptr);
     return id;
