@@ -21,10 +21,6 @@ def affix_apis(apis):
         affixes.append((api, affix))
     return affixes
 
-def typesplit(args):
-    args = [arg.split(' ') for arg in args]
-    return [(arg[0], arg[-1]) for arg in args]
-
 # EXPORT
 header = repr.FILE_REPR("""#ifndef _GENERATED_CAPI_HPP
 #define _GENERATED_CAPI_HPP
@@ -47,10 +43,14 @@ extern void get_shape (int outshape[8], int64_t tens);
 _cfunc_sign_fmt = "int64_t age_{ifunc} ({params})"
 
 def _decl_func(api, affix):
-    args = typesplit(api["args"])
     params = []
-    for dtype, argname in args:
-        if dtype == _origtype:
+    for arg in api["args"]:
+        dtype = arg["dtype"]
+        argname = arg["name"]
+        if 'c' in arg:
+            for cv in arg['c']['args']:
+                params.append(cv['dtype'] + ' ' + cv['name'])
+        elif dtype == _origtype:
             params.append(_repltype + ' ' + argname)
         elif dtype == _origarrtype:
             params.append('int64_t* ' + argname)
@@ -108,8 +108,7 @@ void get_shape (int outshape[8], int64_t id)
 #endif
 """)
 
-_cfunc_bloc_fmt = """
-{{{arg_decls}
+_cfunc_bloc_fmt = """{{{arg_decls}
     auto ptr = age::{func}({params});
     int64_t id = (int64_t) ptr.get();
     tens.emplace(id, ptr);
@@ -117,11 +116,14 @@ _cfunc_bloc_fmt = """
 }}"""
 
 def _defn_func(api, affix):
-    args = typesplit(api["args"])
     decls = []
     params = []
-    for dtype, argname in args:
-        if dtype == _origtype:
+    for arg in api["args"]:
+        dtype = arg["dtype"]
+        argname = arg["name"]
+        if 'c' in arg:
+            params.append(arg['c']['convert'])
+        elif dtype == _origtype:
             decls.append('ade::TensptrT {name}_ptr = get_tens({name});'
                 .format(name=argname))
             params.append(argname + '_ptr')
@@ -136,7 +138,7 @@ def _defn_func(api, affix):
     arg_decls = '\n    '.join(decls)
     if len(arg_decls) > 0:
         arg_decls = '\n    ' + arg_decls
-    return _decl_func(api, affix) + _cfunc_bloc_fmt.format(
+    return _decl_func(api, affix) + '\n' + _cfunc_bloc_fmt.format(
         arg_decls = arg_decls,
         func = api["name"],
         params = ', '.join(params))

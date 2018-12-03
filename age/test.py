@@ -9,10 +9,40 @@ import age.templates.opera_tmpl as opera
 
 api_fields = {"apis": [
     {"name": "func1", "args": [], "out": "bar1()"},
-    {"name": "func2", "args": ["ade::TensptrT arg", "Arg arg1"], "out": "bar2()"},
-    {"name": "func3", "args": [
-        "ade::TensptrT arg", "Arg arg1", "ade::TensptrT arg2"], "out": "bar3()"},
-    {"name": "func1", "args": ["ade::TensT arg", "Arg arg1"], "out": "bar4()"}
+    {"name": "func2", "args": [{
+        "dtype": "ade::TensptrT",
+        "name": "arg"
+    }, {
+        "dtype": "Arg",
+        "name": "arg1",
+        "c": {
+            "args": [{
+                "dtype": "int",
+                "name": "n_arg1"
+            }, {
+                "dtype": "float",
+                "name": "arg1_f"
+            }],
+            "convert": "Arg(arg1_f, n_arg1)"
+        }
+    }], "out": "bar2()"},
+    {"name": "func3", "args": [{
+        "dtype": "ade::TensptrT",
+        "name": "arg"
+    }, {
+        "dtype": "Arg",
+        "name": "arg1"
+    }, {
+        "dtype": "ade::TensptrT",
+        "name": "arg2"
+    }], "out": "bar3()"},
+    {"name": "func1", "args": [{
+        "dtype": "ade::TensT",
+        "name": "arg"
+    }, {
+        "dtype": "Arg",
+        "name": "arg1"
+    }], "out": "bar4()"}
 ]}
 
 codes_fields = {
@@ -132,7 +162,7 @@ extern void get_shape (int outshape[8], int64_t tens);
 
 extern int64_t age_func1_1 ();
 
-extern int64_t age_func2 (int64_t arg, Arg arg1);
+extern int64_t age_func2 (int64_t arg, int n_arg1, float arg1_f);
 
 extern int64_t age_func3 (int64_t arg, Arg arg1, int64_t arg2);
 
@@ -188,10 +218,10 @@ int64_t age_func1_1 ()
     return id;
 }
 
-int64_t age_func2 (int64_t arg, Arg arg1)
+int64_t age_func2 (int64_t arg, int n_arg1, float arg1_f)
 {
     ade::TensptrT arg_ptr = get_tens(arg);
-    auto ptr = age::func2(arg_ptr, arg1);
+    auto ptr = age::func2(arg_ptr, Arg(arg1_f, n_arg1));
     int64_t id = (int64_t) ptr.get();
     tens.emplace(id, ptr);
     return id;
