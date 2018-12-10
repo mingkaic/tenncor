@@ -189,35 +189,6 @@ def make_dir(fields, includes, includepath, gen_capi):
 
     return out
 
-def main(cfgpath = None,
-    outpath = None,
-    strip_prefix = '',
-    gen_capi = False):
-
-    includepath = outpath
-    if includepath and includepath.startswith(strip_prefix):
-        includepath = includepath[len(strip_prefix):].strip("/")
-
-    if cfgpath:
-        with open(str(cfgpath), 'r') as cfg:
-            cfg_str = cfg.read()
-        if cfg_str == None:
-            raise Exception("cannot read from cfg file {}".format(cfgpath))
-    else:
-        cfg_str = sys.stdin.read()
-    fields, includes = parse(cfg_str)
-
-    directory = make_dir(fields, includes, includepath, gen_capi)
-
-    if outpath:
-        for fname, content in directory:
-            with open(os.path.join(outpath, fname), 'w') as out:
-                out.write(content)
-    else:
-        for fname, content in directory:
-            print("============== %s ==============" % fname)
-            print(content)
-
 def str2bool(opt):
     optstr = opt.lower()
     if optstr in ('yes', 'true', 't', 'y', '1'):
@@ -227,7 +198,8 @@ def str2bool(opt):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-if '__main__' == __name__:
+def main(args):
+
     parser = argparse.ArgumentParser(description=prog_description)
     parser.add_argument('--cfg', dest='cfgpath', nargs='?',
         help='Configuration json file on mapping info (default: read from stdin)')
@@ -238,9 +210,35 @@ if '__main__' == __name__:
     parser.add_argument('--gen_capi', dest='gen_capi',
         type=str2bool, nargs='?', const=True, default=False,
         help='Whether to generate C api or not (default: False)')
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
-    main(cfgpath = args.cfgpath,
-        outpath = args.outpath,
-        strip_prefix = args.strip_prefix,
-        gen_capi = args.gen_capi)
+    outpath = args.outpath
+    strip_prefix = args.strip_prefix
+
+    includepath = outpath
+    if includepath and includepath.startswith(strip_prefix):
+        includepath = includepath[len(strip_prefix):].strip("/")
+
+    cfgpath = args.cfgpath
+    if cfgpath:
+        with open(str(cfgpath), 'r') as cfg:
+            cfg_str = cfg.read()
+        if cfg_str == None:
+            raise Exception("cannot read from cfg file {}".format(cfgpath))
+    else:
+        cfg_str = sys.stdin.read()
+    fields, includes = parse(cfg_str)
+
+    directory = make_dir(fields, includes, includepath, args.gen_capi)
+
+    if outpath:
+        for fname, content in directory:
+            with open(os.path.join(outpath, fname), 'w') as out:
+                out.write(content)
+    else:
+        for fname, content in directory:
+            print("============== %s ==============" % fname)
+            print(content)
+
+if '__main__' == __name__:
+    main(sys.argv[1:])
