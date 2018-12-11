@@ -35,7 +35,17 @@ The configuration script must be a json file in the following format:
     "apis": [
         {
             "name": "< function name >",
-            "args": ["< arg type > < arg name >", ...],
+            "args": [{
+                "dtype": "< arg type >",
+                "name": "< arg name >",
+                "c": { // this is optional
+                    "args": [{
+                        "dtype": "< c arg type >",
+                        "name": "< c arg name >"
+                    }, ...],
+                    "convert": "< combine args to c++ arg >"
+                }
+            }, ...],
             "out": "< output signature >"
         },
         ...

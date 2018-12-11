@@ -35,8 +35,33 @@
     "apis": [
         {
             "name": "goku",
-            "args": ["size_t bardock"],
+            "args": [{
+                "dtype": "size_t",
+                "name": "bardock"
+            }],
             "out": "cooler(bardock)"
+        },
+        {
+            "name": "vegeta",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "bardock"
+            }],
+            "out": "freeza(arg1, bardock)"
+        },
+        {
+            "name": "vegeta",
+            "args": [{
+                "dtype": "uint8_t",
+                "name": "bardock"
+            }, {
+                "dtype": "ade::TensT",
+                "name": "arrs"
+            }],
+            "out": "freeza(arrs[0], bardock)"
         }
     ]
 }

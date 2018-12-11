@@ -17,7 +17,8 @@ namespace age
 """)
 
 header.api_decls = ("apis", lambda apis: '\n\n'.join(["ade::TensptrT {api} ({args});".format(\
-    api = api["name"], args = ', '.join(api["args"])) for api in apis]))
+    api = api["name"], args = ', '.join([arg['dtype'] + ' ' + arg['name']\
+    for arg in api["args"]])) for api in apis]))
 
 # EXPORT
 source = repr.FILE_REPR("""#ifdef _GENERATED_API_HPP
@@ -32,13 +33,11 @@ namespace age
 #endif
 """)
 
-def nullcheck(args):
-    vars = [arg.split(' ') for arg in args]
-    tens = list(filter(lambda vpair: vpair[0] == 'ade::TensptrT',\
-        [(var[0], var[-1]) for var in vars]))
+def _nullcheck(args):
+    tens = list(filter(lambda arg: arg['dtype'] == 'ade::TensptrT', args))
     if len(tens) == 0:
         return "false"
-    varnames = [ten[-1] for ten in tens]
+    varnames = [ten['name'] for ten in tens]
     return " || ".join([varname + " == nullptr" for varname in varnames])
 
 source.apis = ("apis", lambda apis: '\n\n'.join(["""ade::TensptrT {api} ({args})
@@ -50,6 +49,7 @@ source.apis = ("apis", lambda apis: '\n\n'.join(["""ade::TensptrT {api} ({args})
     return {retval};
 }}""".format(
     api = api["name"],
-    args = ', '.join(api["args"]),
-    null_check = nullcheck(api["args"]),
+    args = ', '.join([arg['dtype'] + ' ' + arg['name']\
+        for arg in api["args"]]),
+    null_check = _nullcheck(api["args"]),
     retval = api["out"]) for api in apis]))

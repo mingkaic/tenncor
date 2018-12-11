@@ -21,4 +21,6 @@ struct Fries
 
 ade::TensptrT cooler (size_t bardock);
 
+ade::TensptrT freeza (ade::TensptrT a, uint8_t bardock);
+
 #endif // MOCK_CODES_DEP_HPP
