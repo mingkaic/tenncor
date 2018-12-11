@@ -73,6 +73,6 @@ cc_test(
     copts = ["-std=c++14"],
     deps = [
         "//bwd:bwd",
-        "@com_google_googletest//:gtest",
+        "@gtest//:gtest",
     ],
 )
