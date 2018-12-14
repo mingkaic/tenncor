@@ -33,6 +33,7 @@ py_library(
     name = "age_generator",
     srcs = glob(["generator/*.py"]),
     deps = ["//age:age_tmpl"],
+    visibility = ["//visibility:public"],
 )
 
 ######### GENERATOR #########
