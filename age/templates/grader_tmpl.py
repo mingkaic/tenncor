@@ -1,9 +1,17 @@
 ''' Representation of gradient mapping files '''
 
-import repr
+import template
+
+FILENAME = 'grader'
+
+def sortkey(dic):
+    arr = dic.keys()
+    arr.sort()
+    return arr
 
 # EXPORT
-header = repr.FILE_REPR("""#ifndef _GENERATED_GRADER_HPP
+header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
+'''#ifndef _GENERATED_GRADER_HPP
 #define _GENERATED_GRADER_HPP
 
 namespace age
@@ -38,16 +46,17 @@ struct RuleSet final : public iRuleSet
 }}
 
 #endif // _GENERATED_GRADER_HPP
-""")
+''')
 
-header.scalarize = ("scalarize", lambda scalarize: scalarize)
+header.scalarize = ('data.scalarize', lambda scalarize: scalarize)
 
-header.sum = ("sum", lambda sum: sum)
+header.sum = ('data.sum', lambda sum: sum)
 
-header.prod = ("prod", lambda prod: prod)
+header.prod = ('data.prod', lambda prod: prod)
 
 # EXPORT
-source = repr.FILE_REPR("""#ifdef _GENERATED_GRADER_HPP
+source = template.AGE_FILE(FILENAME, template.SOURCE_EXT,
+'''#ifdef _GENERATED_GRADER_HPP
 
 namespace age
 {{
@@ -64,7 +73,8 @@ ade::TensptrT RuleSet::grad_rule (size_t code, ade::TensT args, size_t idx)
 }}
 
 #endif
-""")
+''')
 
-source.gradops = ("grads", lambda gradmap: '\n'.join(["        case {code}: return {retval};".format(\
-    code = code, retval = gradmap[code]) for code in gradmap]))
+source.gradops = ('opcodes', lambda opcodes: '\n'.join([
+    '        case {code}: return {retval};'.format(\
+    code = code, retval = opcodes[code]['derivative']) for code in sortkey(opcodes)]))

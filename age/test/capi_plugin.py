@@ -1,11 +1,15 @@
-''' Representation of C API files '''
+''' Extension to generate C API files '''
 
-import repr
+import os
+
+import age.templates.template as template
 
 _origtype = 'ade::TensptrT'
 _repltype = 'int64_t'
 
 _origarrtype = 'ade::TensT'
+
+FILENAME = 'capi'
 
 def affix_apis(apis):
     names = [api['name'] for api in apis]
@@ -21,8 +25,8 @@ def affix_apis(apis):
         affixes.append((api, affix))
     return affixes
 
-# EXPORT
-header = repr.FILE_REPR("""#ifndef _GENERATED_CAPI_HPP
+header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
+'''#ifndef _GENERATED_CAPI_HPP
 #define _GENERATED_CAPI_HPP
 
 int64_t register_tens (ade::iTensor* ptr);
@@ -38,15 +42,15 @@ extern void get_shape (int outshape[8], int64_t tens);
 {api_decls}
 
 #endif // _GENERATED_CAPI_HPP
-""")
+''')
 
-_cfunc_sign_fmt = "int64_t age_{ifunc} ({params})"
+_cfunc_sign_fmt = 'int64_t age_{ifunc} ({params})'
 
 def _decl_func(api, affix):
     params = []
-    for arg in api["args"]:
-        dtype = arg["dtype"]
-        argname = arg["name"]
+    for arg in api['args']:
+        dtype = arg['dtype']
+        argname = arg['name']
         if 'c' in arg:
             for cv in arg['c']['args']:
                 params.append(cv['dtype'] + ' ' + cv['name'])
@@ -57,14 +61,14 @@ def _decl_func(api, affix):
             params.append('uint64_t n_' + argname)
         else:
             params.append(dtype + ' ' + argname)
-    return _cfunc_sign_fmt.format(ifunc = api["name"] + affix,
+    return _cfunc_sign_fmt.format(ifunc = api['name'] + affix,
         params = ', '.join(params))
 
-header.api_decls = ("apis", lambda apis: '\n\n'.join([\
+header.api_decls = ('apis', lambda apis: '\n\n'.join([\
     'extern ' + _decl_func(api, affix) + ';' for api, affix in affix_apis(apis)]))
 
-# EXPORT
-source = repr.FILE_REPR("""#ifdef _GENERATED_CAPI_HPP
+source = template.AGE_FILE(FILENAME, template.SOURCE_EXT,
+'''#ifdef _GENERATED_CAPI_HPP
 
 static std::unordered_map<int64_t,ade::TensptrT> tens;
 
@@ -106,21 +110,21 @@ void get_shape (int outshape[8], int64_t id)
 {apis}
 
 #endif
-""")
+''')
 
-_cfunc_bloc_fmt = """{{{arg_decls}
+_cfunc_bloc_fmt = '''{{{arg_decls}
     auto ptr = age::{func}({params});
     int64_t id = (int64_t) ptr.get();
     tens.emplace(id, ptr);
     return id;
-}}"""
+}}'''
 
 def _defn_func(api, affix):
     decls = []
     params = []
-    for arg in api["args"]:
-        dtype = arg["dtype"]
-        argname = arg["name"]
+    for arg in api['args']:
+        dtype = arg['dtype']
+        argname = arg['name']
         if 'c' in arg:
             params.append(arg['c']['convert'])
         elif dtype == _origtype:
@@ -140,8 +144,28 @@ def _defn_func(api, affix):
         arg_decls = '\n    ' + arg_decls
     return _decl_func(api, affix) + '\n' + _cfunc_bloc_fmt.format(
         arg_decls = arg_decls,
-        func = api["name"],
+        func = api['name'],
         params = ', '.join(params))
 
-source.apis = ("apis", lambda apis: '\n\n'.join([_defn_func(api, affix)\
+source.apis = ('apis', lambda apis: '\n\n'.join([_defn_func(api, affix)\
     for api, affix in affix_apis(apis)]))
+
+def process(directory, relpath, fields):
+
+    api_hdr_path = os.path.join(relpath, 'api.hpp')
+    capi_hdr_path = os.path.join(relpath, header.fpath)
+
+    source.includes = [
+        '<algorithm>',
+        '<unordered_map>',
+        '"' + api_hdr_path + '"',
+        '"' + capi_hdr_path + '"',
+    ]
+
+    directory['capi_hpp'] = header
+    directory['capi_src'] = source
+
+    header.process(fields)
+    source.process(fields)
+
+    return directory
