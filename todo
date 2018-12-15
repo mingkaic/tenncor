@@ -5,4 +5,4 @@ P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
 performance:
-P2 - reduce shared_ptr overhead
+P4 - performance test

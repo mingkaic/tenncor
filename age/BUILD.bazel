@@ -3,15 +3,11 @@ licenses(["notice"])
 filegroup(
     name = "srcs",
     srcs = glob([
-        "**/*.py",
-        "runtime/*",
+        "agen.py",
+        "generator/*.py",
+        "templates/*.py",
     ]) + ["BUILD.bazel"],
     visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "test_srcs",
-    srcs = ["test.py"],
 )
 
 filegroup(
@@ -19,6 +15,13 @@ filegroup(
     srcs = glob([
         "test/*.hpp",
         "test/*.cpp",
+    ]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
     ]),
 )
 
@@ -45,13 +48,7 @@ py_binary(
     visibility = ["//visibility:public"],
 )
 
-######### TEST #########
-
-py_test(
-    name = "test",
-    srcs = [":test_srcs"],
-    deps = ["//age:age_tmpl"],
-)
+######### TEST GEMERATPR #########
 
 py_binary(
     name = "cagen",
@@ -80,9 +77,20 @@ genrule(
         "--strip_prefix=$$(dirname $(@D))",
 )
 
+######### TEST #########
+
+py_test(
+    name = "ptest",
+    srcs = [":ptest_srcs"],
+    deps = ["//age:age_tmpl"],
+)
+
 cc_test(
     name = "ctest",
-    srcs = [":ctest_srcs"] + [":generated_mock"],
+    srcs = [
+        ":ctest_srcs",
+        ":generated_mock",
+    ],
     copts = ["-std=c++14"],
     deps = [
         "//bwd:bwd",
