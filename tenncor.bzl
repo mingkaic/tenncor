@@ -5,5 +5,5 @@ def dependencies():
         git_repository(
             name = "cppkg",
             remote = "https://github.com/mingkaic/cppkg",
-            commit = "699752065208a61375b261f2877ae8168dddaa52",
+            commit = "85d64ffeb46facc2d3f2348515f6babad503eff4",
         )
