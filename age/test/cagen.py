@@ -6,6 +6,8 @@ import os.path
 import sys
 
 import age.templates.template as template
+import age.generator.internal as internal_plugin
+import age.test.capi_plugin as capi_plugin
 from age.generator.generate import generate
 
 prog_description = 'Generate c++ glue layer mapping ADE and some data-processing library.'
@@ -40,7 +42,8 @@ def main(args):
     outpath = args.outpath
     strip_prefix = args.strip_prefix
 
-    generate(fields, outpath=outpath, strip_prefix=strip_prefix)
+    generate(fields, outpath=outpath, strip_prefix=strip_prefix,
+        plugins=[internal_plugin, capi_plugin])
 
 if '__main__' == __name__:
     main(sys.argv[1:])

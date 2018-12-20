@@ -3,15 +3,11 @@ licenses(["notice"])
 filegroup(
     name = "srcs",
     srcs = glob([
-        "**/*.py",
-        "runtime/*",
+        "agen.py",
+        "generator/*.py",
+        "templates/*.py",
     ]) + ["BUILD.bazel"],
     visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "test_srcs",
-    srcs = ["test.py"],
 )
 
 filegroup(
@@ -22,6 +18,13 @@ filegroup(
     ]),
 )
 
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
+    ]),
+)
+
 ######### LIBRARIES #########
 
 py_library(
@@ -29,21 +32,28 @@ py_library(
     srcs = glob(["templates/*.py"]),
 )
 
+py_library(
+    name = "age_generator",
+    srcs = glob(["generator/*.py"]),
+    deps = ["//age:age_tmpl"],
+    visibility = ["//visibility:public"],
+)
+
 ######### GENERATOR #########
 
 py_binary(
     name = "agen",
     srcs = ["agen.py"],
-    deps = ["//age:age_tmpl"],
+    deps = ["//age:age_generator"],
     visibility = ["//visibility:public"],
 )
 
-######### TEST #########
+######### TEST GEMERATPR #########
 
-py_test(
-    name = "test",
-    srcs = [":test_srcs"],
-    deps = ["//age:age_tmpl"],
+py_binary(
+    name = "cagen",
+    srcs = ["test/cagen.py", "test/capi_plugin.py"],
+    deps = ["//age:age_generator"],
 )
 
 genrule(
@@ -61,15 +71,26 @@ genrule(
         "generated/opmap.hpp",
         "generated/opmap.cpp",
     ],
-    tools = ["//age:agen"],
-    cmd = "$(location //age:agen) " +
+    tools = ["//age:cagen"],
+    cmd = "$(location //age:cagen) " +
         "--cfg $(location :test/mock.json) --out $(@D)/generated " +
-        "--strip_prefix=$$(dirname $(@D)) --gen_capi",
+        "--strip_prefix=$$(dirname $(@D))",
+)
+
+######### TEST #########
+
+py_test(
+    name = "ptest",
+    srcs = [":ptest_srcs"],
+    deps = ["//age:age_tmpl"],
 )
 
 cc_test(
     name = "ctest",
-    srcs = [":ctest_srcs"] + [":generated_mock"],
+    srcs = [
+        ":ctest_srcs",
+        ":generated_mock",
+    ],
     copts = ["-std=c++14"],
     deps = [
         "//bwd:bwd",

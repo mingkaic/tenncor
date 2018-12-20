@@ -2,84 +2,79 @@ import unittest
 import difflib
 
 import age.templates.api_tmpl as api
-import age.templates.capi_tmpl as capi
 import age.templates.codes_tmpl as codes
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
 
-api_fields = {"apis": [
-    {"name": "func1", "args": [], "out": "bar1()"},
-    {"name": "func2", "args": [{
-        "dtype": "ade::TensptrT",
-        "name": "arg"
-    }, {
-        "dtype": "Arg",
-        "name": "arg1",
-        "c": {
-            "args": [{
-                "dtype": "int",
-                "name": "n_arg1"
-            }, {
-                "dtype": "float",
-                "name": "arg1_f"
-            }],
-            "convert": "Arg(arg1_f, n_arg1)"
+fields = {
+    "opcodes": {
+        "OP": {
+            "operation": "foo(out, shape)",
+            "derivative": "bwd_foo(args, idx)"
+        },
+        "OP1": {
+            "operation": "bar1(out, shape, in)",
+            "derivative": "bwd_bar(args[0], idx)"
+        },
+        "OP2": {
+            "operation": "bar2(out, in[1])",
+            "derivative": "foo(args[1])"
+        },
+        "OP3": {
+            "operation": "bar2(out, in[0])",
+            "derivative": "foo(args[0])"
         }
-    }], "out": "bar2()"},
-    {"name": "func3", "args": [{
-        "dtype": "ade::TensptrT",
-        "name": "arg"
-    }, {
-        "dtype": "Arg",
-        "name": "arg1"
-    }, {
-        "dtype": "ade::TensptrT",
-        "name": "arg2"
-    }], "out": "bar3()"},
-    {"name": "func1", "args": [{
-        "dtype": "ade::TensT",
-        "name": "arg"
-    }, {
-        "dtype": "Arg",
-        "name": "arg1"
-    }], "out": "bar4()"}
-]}
-
-codes_fields = {
-    "opcodes": ["OP", "OP1", "OP2", "OP3"],
+    },
     "dtypes": {
         "CAR": "char",
         "VROOM": "double",
         "VRUM": "float",
         "KAPOW": "complex_t"
-    }
-}
-
-grader_fields = {
-    "scalarize": "get_numba(12345)",
-    "sum": "ADDITION",
-    "prod": "MULTIPLICATION",
-    "grads": {
-        "FOO": "bwd_foo(args, idx)",
-        "BAR": "bwd_bar(args[0], idx)",
-        "BAR2": "foo(args[1])",
-    }
-}
-
-opera_fields = {
-    "data_in": "In_Type",
-    "data_out": "Out_Type",
-    "ops": {
-        "OP": "foo(out, shape)",
-        "OP2": "bar1(out, shape, in)",
-        "FOO": "bar2(out, in[1])",
     },
-    "types": {
-        "APPLE": "skin_t",
-        "BANANA": "peel_t",
-        "ORANGE": "seed_t",
-        "LEMON": "slices_t"
-    }
+    "data": {
+        "scalarize": "get_numba(12345)",
+        "sum": "ADDITION",
+        "prod": "MULTIPLICATION",
+        "data_in": "In_Type",
+        "data_out": "Out_Type",
+    },
+    "apis": [
+        {"name": "func1", "args": [], "out": "bar1()"},
+        {"name": "func2", "args": [{
+            "dtype": "ade::TensptrT",
+            "name": "arg"
+        }, {
+            "dtype": "Arg",
+            "name": "arg1",
+            "c": {
+                "args": [{
+                    "dtype": "int",
+                    "name": "n_arg1"
+                }, {
+                    "dtype": "float",
+                    "name": "arg1_f"
+                }],
+                "convert": "Arg(arg1_f, n_arg1)"
+            }
+        }], "out": "bar2()"},
+        {"name": "func3", "args": [{
+            "dtype": "ade::TensptrT",
+            "name": "arg"
+        }, {
+            "dtype": "Arg",
+            "name": "arg1"
+        }, {
+            "dtype": "ade::TensptrT",
+            "name": "arg2"
+        }], "out": "bar3()"},
+        {"name": "func1", "args": [{
+            "dtype": "ade::TensT",
+            "name": "arg"
+        }, {
+            "dtype": "Arg",
+            "name": "arg1"
+        }], "out": "bar4()"}
+    ]
 }
 
 api_header = """#ifndef _GENERATED_API_HPP
@@ -147,110 +142,6 @@ ade::TensptrT func1 (ade::TensT arg, Arg arg1)
 #endif
 """
 
-capi_header = """#ifndef _GENERATED_CAPI_HPP
-#define _GENERATED_CAPI_HPP
-
-int64_t register_tens (ade::iTensor* ptr);
-
-int64_t register_tens (ade::TensptrT& ptr);
-
-ade::TensptrT get_tens (int64_t id);
-
-extern void free_tens (int64_t id);
-
-extern void get_shape (int outshape[8], int64_t tens);
-
-extern int64_t age_func1_1 ();
-
-extern int64_t age_func2 (int64_t arg, int n_arg1, float arg1_f);
-
-extern int64_t age_func3 (int64_t arg, Arg arg1, int64_t arg2);
-
-extern int64_t age_func1 (int64_t* arg, uint64_t n_arg, Arg arg1);
-
-#endif // _GENERATED_CAPI_HPP
-"""
-
-capi_source = """#ifdef _GENERATED_CAPI_HPP
-
-static std::unordered_map<int64_t,ade::TensptrT> tens;
-
-int64_t register_tens (ade::iTensor* ptr)
-{
-    int64_t id = (int64_t) ptr;
-    tens.emplace(id, ade::TensptrT(ptr));
-    return id;
-}
-
-int64_t register_tens (ade::TensptrT& ptr)
-{
-    int64_t id = (int64_t) ptr.get();
-    tens.emplace(id, ptr);
-    return id;
-}
-
-ade::TensptrT get_tens (int64_t id)
-{
-    auto it = tens.find(id);
-    if (tens.end() == it)
-    {
-        return ade::TensptrT(nullptr);
-    }
-    return it->second;
-}
-
-void free_tens (int64_t id)
-{
-    tens.erase(id);
-}
-
-void get_shape (int outshape[8], int64_t id)
-{
-    const ade::Shape& shape = get_tens(id)->shape();
-    std::copy(shape.begin(), shape.end(), outshape);
-}
-
-int64_t age_func1_1 ()
-{
-    auto ptr = age::func1();
-    int64_t id = (int64_t) ptr.get();
-    tens.emplace(id, ptr);
-    return id;
-}
-
-int64_t age_func2 (int64_t arg, int n_arg1, float arg1_f)
-{
-    ade::TensptrT arg_ptr = get_tens(arg);
-    auto ptr = age::func2(arg_ptr, Arg(arg1_f, n_arg1));
-    int64_t id = (int64_t) ptr.get();
-    tens.emplace(id, ptr);
-    return id;
-}
-
-int64_t age_func3 (int64_t arg, Arg arg1, int64_t arg2)
-{
-    ade::TensptrT arg_ptr = get_tens(arg);
-    ade::TensptrT arg2_ptr = get_tens(arg2);
-    auto ptr = age::func3(arg_ptr, arg1, arg2_ptr);
-    int64_t id = (int64_t) ptr.get();
-    tens.emplace(id, ptr);
-    return id;
-}
-
-int64_t age_func1 (int64_t* arg, uint64_t n_arg, Arg arg1)
-{
-    ade::TensT arg_tens(n_arg);
-    std::transform(arg, arg + n_arg, arg_tens.begin(),
-        [](int64_t id){ return get_tens(id); });
-    auto ptr = age::func1(arg_tens, arg1);
-    int64_t id = (int64_t) ptr.get();
-    tens.emplace(id, ptr);
-    return id;
-}
-
-#endif
-"""
-
 codes_header = """#ifndef _GENERATED_CODES_HPP
 #define _GENERATED_CODES_HPP
 
@@ -270,9 +161,9 @@ enum _GENERATED_DTYPE
 {
     BAD_TYPE = 0,
     CAR,
-    VRUM,
-    VROOM,
     KAPOW,
+    VROOM,
+    VRUM,
 };
 
 std::string name_op (_GENERATED_OPCODE code);
@@ -295,13 +186,13 @@ template <>
 _GENERATED_DTYPE get_type<char> (void);
 
 template <>
-_GENERATED_DTYPE get_type<float> (void);
+_GENERATED_DTYPE get_type<complex_t> (void);
 
 template <>
 _GENERATED_DTYPE get_type<double> (void);
 
 template <>
-_GENERATED_DTYPE get_type<complex_t> (void);
+_GENERATED_DTYPE get_type<float> (void);
 
 }
 
@@ -341,17 +232,17 @@ static std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
 static std::unordered_map<_GENERATED_DTYPE,std::string,EnumHash> type2name =
 {
     { CAR, "CAR" },
-    { VRUM, "VRUM" },
-    { VROOM, "VROOM" },
     { KAPOW, "KAPOW" },
+    { VROOM, "VROOM" },
+    { VRUM, "VRUM" },
 };
 
 static std::unordered_map<std::string,_GENERATED_DTYPE> name2type =
 {
     { "CAR", CAR },
-    { "VRUM", VRUM },
-    { "VROOM", VROOM },
     { "KAPOW", KAPOW },
+    { "VROOM", VROOM },
+    { "VRUM", VRUM },
 };
 
 std::string name_op (_GENERATED_OPCODE code)
@@ -399,9 +290,9 @@ uint8_t type_size (_GENERATED_DTYPE type)
     switch (type)
     {
         case CAR: return sizeof(char);
-        case VRUM: return sizeof(float);
-        case VROOM: return sizeof(double);
         case KAPOW: return sizeof(complex_t);
+        case VROOM: return sizeof(double);
+        case VRUM: return sizeof(float);
         default: logs::fatal("cannot get size of bad type");
     }
 }
@@ -413,9 +304,9 @@ _GENERATED_DTYPE get_type<char> (void)
 }
 
 template <>
-_GENERATED_DTYPE get_type<float> (void)
+_GENERATED_DTYPE get_type<complex_t> (void)
 {
-    return VRUM;
+    return KAPOW;
 }
 
 template <>
@@ -425,9 +316,9 @@ _GENERATED_DTYPE get_type<double> (void)
 }
 
 template <>
-_GENERATED_DTYPE get_type<complex_t> (void)
+_GENERATED_DTYPE get_type<float> (void)
 {
-    return KAPOW;
+    return VRUM;
 }
 
 }
@@ -481,9 +372,10 @@ ade::TensptrT RuleSet::grad_rule (size_t code, ade::TensT args, size_t idx)
 {
     switch (code)
     {
-        case FOO: return bwd_foo(args, idx);
-        case BAR: return bwd_bar(args[0], idx);
-        case BAR2: return foo(args[1]);
+        case OP: return bwd_foo(args, idx);
+        case OP1: return bwd_bar(args[0], idx);
+        case OP2: return foo(args[1]);
+        case OP3: return foo(args[0]);
         default: logs::fatal("no gradient rule for unknown opcode");
     }
 }
@@ -505,12 +397,14 @@ void typed_exec (_GENERATED_OPCODE opcode,
 {
     switch (opcode)
     {
-        case FOO:
-            bar2(out, in[1]); break;
-        case OP2:
-            bar1(out, shape, in); break;
         case OP:
             foo(out, shape); break;
+        case OP1:
+            bar1(out, shape, in); break;
+        case OP2:
+            bar2(out, in[1]); break;
+        case OP3:
+            bar2(out, in[0]); break;
         default: logs::fatal("unknown opcode");
     }
 }
@@ -533,14 +427,14 @@ void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
 {
     switch (dtype)
     {
-        case ORANGE:
-            typed_exec<seed_t>(opcode, out, shape, in); break;
-        case LEMON:
-            typed_exec<slices_t>(opcode, out, shape, in); break;
-        case APPLE:
-            typed_exec<skin_t>(opcode, out, shape, in); break;
-        case BANANA:
-            typed_exec<peel_t>(opcode, out, shape, in); break;
+        case CAR:
+            typed_exec<char>(opcode, out, shape, in); break;
+        case KAPOW:
+            typed_exec<complex_t>(opcode, out, shape, in); break;
+        case VROOM:
+            typed_exec<double>(opcode, out, shape, in); break;
+        case VRUM:
+            typed_exec<float>(opcode, out, shape, in); break;
         default: logs::fatal("executing bad type");
     }
 }
@@ -561,40 +455,32 @@ def multiline_check(s1, s2):
 
 class ClientTest(unittest.TestCase):
     def test_api(self):
-        header = api.header.repr(api_fields)
-        source = api.source.repr(api_fields)
+        header = str(api.header.process(fields))
+        source = str(api.source.process(fields))
         multiline_check(api_header, header)
         multiline_check(api_source, source)
         self.assertEqual(api_header, header)
         self.assertEqual(api_source, source)
 
-    def test_capi(self):
-        header = capi.header.repr(api_fields)
-        source = capi.source.repr(api_fields)
-        multiline_check(capi_header, header)
-        multiline_check(capi_source, source)
-        self.assertEqual(capi_header, header)
-        self.assertEqual(capi_source, source)
-
     def test_codes(self):
-        header = codes.header.repr(codes_fields)
-        source = codes.source.repr(codes_fields)
+        header = str(codes.header.process(fields))
+        source = str(codes.source.process(fields))
         multiline_check(codes_header, header)
         multiline_check(codes_source, source)
         self.assertEqual(codes_header, header)
         self.assertEqual(codes_source, source)
 
     def test_grader(self):
-        header = grader.header.repr(grader_fields)
-        source = grader.source.repr(grader_fields)
+        header = str(grader.header.process(fields))
+        source = str(grader.source.process(fields))
         multiline_check(grader_header, header)
         multiline_check(grader_source, source)
         self.assertEqual(grader_header, header)
         self.assertEqual(grader_source, source)
 
     def test_opera(self):
-        header = opera.header.repr(opera_fields)
-        source = opera.source.repr(opera_fields)
+        header = str(opera.header.process(fields))
+        source = str(opera.source.process(fields))
         multiline_check(opera_header, header)
         multiline_check(opera_source, source)
         self.assertEqual(opera_header, header)
