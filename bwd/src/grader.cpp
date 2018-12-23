@@ -46,7 +46,6 @@ void Grader::visit (ade::iFunctor* func)
 	};
 	for (ade::iFunctor* parent : parents)
 	{
-		ade::Opcode opcode = parent->get_opcode();
 		ade::TensT& gargs = grads[parent];
 		ade::TensptrT bwd(gargs.size() > 1 ? gargs[0] :
 			ade::TensptrT(ade::Functor::get(rules_->sum_opcode(), to_args(gargs))));
@@ -79,7 +78,7 @@ void Grader::visit (ade::iFunctor* func)
 				}
 			}
 			// pass down forward-gradient pair
-			ade::TensptrT grad(rules_->grad_rule(opcode.code_, args, i));
+			ade::TensptrT grad(rules_->grad_rule(parent, args, i));
 
 			// apply chain rule
 			grads[child.tensor_.get()].push_back(ade::TensptrT(ade::Functor::get(

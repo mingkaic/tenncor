@@ -40,7 +40,7 @@ struct RuleSet final : public iRuleSet
         return ade::Opcode{{"{prod}", {prod}}};
     }}
 
-    ade::TensptrT grad_rule (size_t code, ade::TensT args, size_t idx) override;
+    ade::TensptrT grad_rule (ade::iFunctor* fwd, ade::TensT args, size_t idx) override;
 }};
 
 }}
@@ -61,9 +61,9 @@ source = template.AGE_FILE(FILENAME, template.SOURCE_EXT,
 namespace age
 {{
 
-ade::TensptrT RuleSet::grad_rule (size_t code, ade::TensT args, size_t idx)
+ade::TensptrT RuleSet::grad_rule (ade::iFunctor* fwd, ade::TensT args, size_t idx)
 {{
-    switch (code)
+    switch (fwd->get_opcode().code_)
     {{
 {gradops}
         default: logs::fatal("no gradient rule for unknown opcode");

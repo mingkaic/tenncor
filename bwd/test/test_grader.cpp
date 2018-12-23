@@ -69,10 +69,10 @@ struct MockRuleSet final : public age::iRuleSet
 		return ade::Opcode{"*", 1};
 	}
 
-	ade::TensptrT grad_rule (size_t code, ade::TensT args, size_t idx) override
+	ade::TensptrT grad_rule (ade::iFunctor* fwd, ade::TensT args, size_t idx) override
 	{
 		// grad of sum is prod and grad of prod is sum
-		if (code)
+		if (fwd->get_opcode().code_)
 		{
 			return ade::TensptrT(ade::Functor::get(sum_opcode(), age::to_args(args)));
 		}

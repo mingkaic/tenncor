@@ -32,7 +32,7 @@ struct iRuleSet
 
 	/// Return chain rule of operation with respect to argument at idx
 	/// specified by code given args
-	virtual ade::TensptrT grad_rule (size_t code, ade::TensT args, size_t idx) = 0;
+	virtual ade::TensptrT grad_rule (ade::iFunctor* fwd, ade::TensT args, size_t idx) = 0;
 };
 
 /// Traveler to obtain derivative of accepted node with respect to target
