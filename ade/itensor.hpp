@@ -52,14 +52,17 @@ using TensrefT = std::weak_ptr<iTensor>;
 /// Coordinate mapper and tensor pair
 struct MappedTensor final
 {
-	MappedTensor (CoordPtrT mapper, TensptrT tensor) :
-		mapper_(mapper), tensor_(tensor)
+	MappedTensor (CoordPtrT shaper, CoordPtrT mapper, TensptrT tensor) :
+		mapper_(mapper), shaper_(shaper), tensor_(tensor)
 	{
 		if (tensor_ == nullptr)
 		{
 			logs::fatal("cannot map a null tensor");
 		}
 	}
+
+	MappedTensor (CoordPtrT mapper, TensptrT tensor) :
+		MappedTensor(mapper, mapper, tensor) {}
 
 	/// Return shape of tensor filtered through coordinate mapper
 	Shape shape (void) const
@@ -68,7 +71,7 @@ struct MappedTensor final
 		CoordT out;
 		CoordT in;
 		std::copy(shape.begin(), shape.end(), in.begin());
-		mapper_->forward(out.begin(), in.begin());
+		shaper_->forward(out.begin(), in.begin());
 		std::vector<DimT> slist(rank_cap);
 		std::transform(out.begin(), out.end(), slist.begin(),
 			[](CDimT cd) -> DimT
@@ -87,6 +90,10 @@ struct MappedTensor final
 
 	/// Tensor reference
 	TensptrT tensor_;
+
+private:
+	/// Shape mapper
+	CoordPtrT shaper_;
 };
 
 }
