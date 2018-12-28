@@ -47,7 +47,7 @@ TEST(AGE, GraderEminem)
 	auto mock = new MockTensor(1, ade::Shape());
 	ade::TensptrT arg(mock);
 	ade::Functor* fwd = ade::Functor::get(ade::Opcode{"EMINEM", age::EMINEM},
-		{ade::MappedTensor{ade::identity, arg}});
+		{ade::MappedTensor(arg, ade::identity)});
 	size_t idx = 42;
 	rule.grad_rule(fwd, {arg}, idx);
 	EXPECT_EQ(idx, mock->scalar_);
@@ -60,7 +60,7 @@ TEST(AGE, GraderKhaled)
 	auto mock = new MockTensor(1, ade::Shape());
 	ade::TensptrT arg(mock);
 	ade::Functor* fwd = ade::Functor::get(ade::Opcode{"KHALED", age::KHALED},
-		{ade::MappedTensor{ade::identity, arg}});
+		{ade::MappedTensor(arg, ade::identity)});
 	size_t idx = 63;
 	rule.grad_rule(fwd, {arg}, idx);
 	EXPECT_EQ(idx + khaled_constant, mock->scalar_);

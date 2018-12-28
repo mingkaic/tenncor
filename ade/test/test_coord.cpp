@@ -58,7 +58,7 @@ TEST_F(COORD, Forward)
 		}
 	}
 
-	ade::iCoordMap* res = lhs.forward(rhs);
+	ade::iCoordMap* res = lhs.connect(rhs);
 	res->access([&expected](const ade::MatrixT& m)
 		{
 			for (uint8_t i = 0; i < ade::mat_dim; ++i)
@@ -149,9 +149,6 @@ TEST_F(COORD, Identity)
 
 	ade::identity->forward(fwd_out.begin(), in.begin());
 	EXPECT_ARREQ(icoord, fwd_out);
-
-	ade::identity->backward(bwd_out.begin(), in.begin());
-	EXPECT_ARREQ(icoord, bwd_out);
 }
 
 
@@ -177,16 +174,6 @@ TEST_F(COORD, Reduce)
 	for (size_t i = rank; i < ade::rank_cap; ++i)
 	{
 		EXPECT_DOUBLE_EQ(icoord[i] / red[i - rank], fwd_out[i]) << "red=" << red[i - rank] << ",i=" << i;
-	}
-
-	reducer->backward(bwd_out.begin(), in.begin());
-	for (size_t i = 0; i < rank; ++i)
-	{
-		EXPECT_EQ(icoord[i], bwd_out[i]) << i;
-	}
-	for (size_t i = rank; i < ade::rank_cap; ++i)
-	{
-		EXPECT_DOUBLE_EQ(icoord[i] * red[i - rank], bwd_out[i]) << "red=" << red[i - rank] << ",i=" << i;
 	}
 
 	EXPECT_FATAL(ade::reduce(rank, {0}), "cannot reduce using zero dimensions [0]");
@@ -219,16 +206,6 @@ TEST_F(COORD, Extend)
 	for (size_t i = rank; i < ade::rank_cap; ++i)
 	{
 		EXPECT_DOUBLE_EQ(icoord[i] * ext[i - rank], fwd_out[i]) << "ext=" << ext[i - rank] << ",i=" << i;
-	}
-
-	extender->backward(bwd_out.begin(), in.begin());
-	for (size_t i = 0; i < rank; ++i)
-	{
-		EXPECT_EQ(icoord[i], bwd_out[i]) << i;
-	}
-	for (size_t i = rank; i < ade::rank_cap; ++i)
-	{
-		EXPECT_DOUBLE_EQ(icoord[i] / ext[i - rank], bwd_out[i]) << "ext=" << ext[i - rank] << ",i=" << i;
 	}
 
 	EXPECT_FATAL(ade::extend(rank, {0}), "cannot extend using zero dimensions [0]");
@@ -271,12 +248,6 @@ TEST_F(COORD, Permute)
 		EXPECT_EQ(icoord[perm[i]], fwd_out[i]);
 	}
 
-	permuter->backward(bwd_out.begin(), in.begin());
-	for (size_t i = 0; i < ade::rank_cap; ++i)
-	{
-		EXPECT_EQ(icoord[i], bwd_out[perm[i]]);
-	}
-
 	EXPECT_WARN(ade::permute({}), "permuting with same dimensions ... will do nothing");
 }
 
@@ -300,18 +271,6 @@ TEST_F(COORD, Flip)
 		EXPECT_EQ(icoord[i], fwd_out[i]) << i;
 	}
 	EXPECT_EQ(-icoord[dim]-1, fwd_out[dim]);
-
-	flipper->backward(bwd_out.begin(), in.begin());
-	for (size_t i = 0; i < dim; ++i)
-	{
-		EXPECT_EQ(icoord[i], bwd_out[i]) << i;
-	}
-	for (size_t i = dim + 1; i < ade::rank_cap; ++i)
-	{
-		EXPECT_EQ(icoord[i], bwd_out[i]) << i;
-	}
-
-	EXPECT_EQ(-icoord[dim]-1, bwd_out[dim]);
 
 	EXPECT_WARN(ade::flip(ade::rank_cap * 2), "flipping dimension out of rank_cap ... will do nothing");
 }

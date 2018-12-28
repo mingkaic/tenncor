@@ -194,8 +194,8 @@ TEST(GRADER, Sum)
 
 	ade::TensptrT fwd(ade::Functor::get(
 		mock_rules->sum_opcode(), {
-		{ade::identity, leaf},
-		{ade::identity, leaf1},
+		ade::MappedTensor(leaf, ade::identity),
+		ade::MappedTensor(leaf1, ade::identity),
 	}));
 
 	ade::TensptrT g1(derive(fwd, fwd.get()));
@@ -256,8 +256,8 @@ TEST(GRADER, Prod)
 
 	ade::TensptrT fwd(ade::Functor::get(
 		mock_rules->prod_opcode(), {
-		{ade::identity, leaf},
-		{ade::identity, leaf1},
+		ade::MappedTensor(leaf, ade::identity),
+		ade::MappedTensor(leaf1, ade::identity),
 	}));
 
 	ade::TensptrT g1(derive(fwd, fwd.get()));
@@ -318,14 +318,14 @@ TEST(GRADER, SumProd)
 
 	ade::TensptrT prod(ade::Functor::get(
 		mock_rules->prod_opcode(), {
-		{ade::identity, leaf},
-		{ade::identity, leaf1},
+		ade::MappedTensor(leaf, ade::identity),
+		ade::MappedTensor(leaf1, ade::identity),
 	}));
 
 	ade::TensptrT sum(ade::Functor::get(
 		mock_rules->sum_opcode(), {
-		{ade::identity, prod},
-		{ade::identity, prod},
+		ade::MappedTensor(prod, ade::identity),
+		ade::MappedTensor(prod, ade::identity),
 	}));
 
 	ade::TensptrT gl(derive(sum, leaf.get()));

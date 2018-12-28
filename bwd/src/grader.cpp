@@ -48,7 +48,8 @@ void Grader::visit (ade::iFunctor* func)
 	{
 		ade::TensT& gargs = grads[parent];
 		ade::TensptrT bwd(gargs.size() > 1 ? gargs[0] :
-			ade::TensptrT(ade::Functor::get(rules_->sum_opcode(), to_args(gargs))));
+			ade::TensptrT(ade::Functor::get(
+				rules_->sum_opcode(), to_args(gargs))));
 
 		auto& grad_indices = pathmap[parent];
 		ade::ArgsT children = parent->get_children();
@@ -61,7 +62,8 @@ void Grader::visit (ade::iFunctor* func)
 		{
 			ade::TensT args;
 			ade::MappedTensor& child = children[i];
-			ade::CoordPtrT mapper(child.mapper_->reverse());
+			ade::CoordPtrT bwd_shaper(child.shaper_->reverse());
+			ade::CoordPtrT bwd_mapper(child.mapper_->reverse());
 			for (size_t j = 0; j < nchildren; ++j)
 			{
 				ade::TensptrT& tens = children[j].tensor_;
@@ -71,21 +73,25 @@ void Grader::visit (ade::iFunctor* func)
 				}
 				else
 				{
-					ade::CoordPtrT toshape(
-						children[j].mapper_->forward(*mapper));
-					args.push_back(ade::TensptrT(ade::Functor::get(rules_->sum_opcode(),
-						{{toshape, tens}})));
+					// reverse children[j] to child's shape/coord space
+					args.push_back(ade::TensptrT(
+						ade::Functor::get(rules_->sum_opcode(),
+						{ade::MappedTensor(bwd_shaper, tens,
+						bwd_mapper, !child.fwd_)})));
 				}
 			}
 			// pass down forward-gradient pair
 			ade::TensptrT grad(rules_->grad_rule(parent, args, i));
 
 			// apply chain rule
-			grads[child.tensor_.get()].push_back(ade::TensptrT(ade::Functor::get(
+			grads[child.tensor_.get()].push_back(ade::TensptrT(
+				ade::Functor::get(
 				rules_->prod_opcode(), {
-					{ade::identity, grad},
-					{ade::identity, ade::TensptrT(ade::Functor::get(rules_->sum_opcode(),
-						{{mapper, bwd}}))},
+					ade::MappedTensor(grad, ade::identity),
+					ade::MappedTensor(ade::TensptrT(
+						ade::Functor::get(rules_->sum_opcode(), {
+							{bwd_shaper, bwd, bwd_mapper, !child.fwd_}
+						})), ade::identity),
 				})));
 		}
 	}
@@ -100,7 +106,7 @@ ade::ArgsT to_args (ade::TensT tens)
 	std::transform(tens.begin(), tens.end(), std::back_inserter(args),
 		[](ade::TensptrT& ten)
 		{
-			return ade::MappedTensor{ade::identity, ten};
+			return ade::MappedTensor(ten, ade::identity);
 		});
 	return args;
 }

@@ -35,16 +35,6 @@ void CoordMap::forward (CoordT::iterator out, CoordT::const_iterator in) const
 	}
 }
 
-void CoordMap::backward (CoordT::iterator out, CoordT::const_iterator in) const
-{
-	WorkArrT temp;
-	vecmul(temp, bwd_, in);
-	for (uint8_t i = 0; i < rank_cap; ++i)
-	{
-		out[i] = temp[i] / temp[rank_cap];
-	}
-}
-
 CoordPtrT identity(new CoordMap(
 	[](MatrixT fwd)
 	{

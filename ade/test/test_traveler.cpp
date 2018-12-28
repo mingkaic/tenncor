@@ -29,13 +29,13 @@ TEST_F(TRAVELER, GraphStat)
 	ade::TensptrT c(new MockTensor());
 
 	ade::TensptrT f(ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
-		{ade::identity, a},
-		{ade::identity, b},
+		{a, ade::identity},
+		{b, ade::identity},
 	}));
 
 	ade::TensptrT g(ade::Functor::get(ade::Opcode{"MOCK0", 0}, {
-		{ade::identity, c},
-		{ade::identity, f},
+		{c, ade::identity},
+		{f, ade::identity},
 	}));
 
 	ade::GraphStat stat;
@@ -55,13 +55,13 @@ TEST_F(TRAVELER, PathFinder)
 	ade::TensptrT c(new MockTensor());
 
 	ade::TensptrT f(ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
-		{ade::identity, a},
-		{ade::identity, b},
+		{a, ade::identity},
+		{b, ade::identity},
 	}));
 
 	ade::TensptrT g(ade::Functor::get(ade::Opcode{"MOCK1", 1}, {
-		{ade::identity, c},
-		{ade::identity, f},
+		{c, ade::identity},
+		{f, ade::identity},
 	}));
 
 	ade::PathFinder finder(a.get());

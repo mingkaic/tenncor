@@ -21,15 +21,11 @@ struct iCoordMap
 {
 	virtual ~iCoordMap (void) = default;
 
+	/// Return matmul(this, rhs)
+	virtual iCoordMap* connect (const iCoordMap& rhs) const = 0;
+
 	/// Forward transform coordinates
 	virtual void forward (CoordT::iterator out,
-		CoordT::const_iterator in) const = 0;
-
-	/// Return matmul(this, rhs)
-	virtual iCoordMap* forward (const iCoordMap& rhs) const = 0;
-
-	/// Reverse transform coordinates
-	virtual void backward (CoordT::iterator out,
 		CoordT::const_iterator in) const = 0;
 
 	/// Return coordinate transformation with its forward and backward
@@ -53,15 +49,10 @@ struct CoordMap final : public iCoordMap
 		std::memset(fwd_, 0, mat_size);
 		fwd_[rank_cap][rank_cap] = 1;
 		init(fwd_);
-		inverse(bwd_, fwd_);
 	}
 
 	/// Implementation of iCoordMap
-	void forward (CoordT::iterator out,
-		CoordT::const_iterator in) const override;
-
-	/// Implementation of iCoordMap
-	iCoordMap* forward (const iCoordMap& rhs) const override
+	iCoordMap* connect (const iCoordMap& rhs) const override
 	{
 		return new CoordMap([&](MatrixT out)
 		{
@@ -73,13 +64,16 @@ struct CoordMap final : public iCoordMap
 	}
 
 	/// Implementation of iCoordMap
-	void backward (CoordT::iterator out,
+	void forward (CoordT::iterator out,
 		CoordT::const_iterator in) const override;
 
 	/// Implementation of iCoordMap
 	iCoordMap* reverse (void) const override
 	{
-		return new CoordMap(bwd_, fwd_);
+		return new CoordMap([this](MatrixT m)
+		{
+			inverse(m, this->fwd_);
+		});
 	}
 
 	/// Implementation of iCoordMap
@@ -95,17 +89,8 @@ struct CoordMap final : public iCoordMap
 	}
 
 private:
-	CoordMap (const MatrixT fwd, const MatrixT bwd)
-	{
-		std::memcpy(fwd_, fwd, mat_size);
-		std::memcpy(bwd_, bwd, mat_size);
-	}
-
 	/// Forward transformation matrix
 	MatrixT fwd_;
-
-	/// Inverse of the forward transformation matrix
-	MatrixT bwd_;
 };
 
 /// Type of iCoordMap smartpointer

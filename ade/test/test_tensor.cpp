@@ -27,12 +27,12 @@ TEST_F(TENSOR, MappedTensor)
 	ade::CoordPtrT flipper = ade::flip(dim);
 
 	ade::TensptrT tens(new MockTensor(ade::Shape(slist)));
-	ade::MappedTensor mt(flipper, tens);
+	ade::MappedTensor mt(tens, flipper);
 
 	ade::Shape shape = mt.shape();
 	EXPECT_ARREQ(slist, shape);
 
-	mt.mapper_ = ade::CoordPtrT(new ade::CoordMap(
+	ade::MappedTensor mt2(tens, ade::CoordPtrT(new ade::CoordMap(
 		[](ade::MatrixT m)
 		{
 			for (size_t i = 0; i < ade::mat_dim; ++i)
@@ -40,12 +40,12 @@ TEST_F(TENSOR, MappedTensor)
 				m[i][i] = 1;
 			}
 			m[0][0] = 4;
-		}));
+		})));
 
-	ade::Shape shape2 = mt.shape();
+	ade::Shape shape2 = mt2.shape();
 	EXPECT_EQ(4 * slist[0], shape2.at(0));
 
-	EXPECT_FATAL(ade::MappedTensor(ade::identity, nullptr),
+	EXPECT_FATAL(ade::MappedTensor(nullptr, ade::identity),
 		"cannot map a null tensor");
 }
 

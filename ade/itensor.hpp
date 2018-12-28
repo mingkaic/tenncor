@@ -52,8 +52,9 @@ using TensrefT = std::weak_ptr<iTensor>;
 /// Coordinate mapper and tensor pair
 struct MappedTensor final
 {
-	MappedTensor (CoordPtrT shaper, CoordPtrT mapper, TensptrT tensor) :
-		mapper_(mapper), shaper_(shaper), tensor_(tensor)
+	MappedTensor (CoordPtrT shaper, TensptrT tensor,
+		CoordPtrT mapper, bool fwd = true) :
+		shaper_(shaper), mapper_(mapper), tensor_(tensor)
 	{
 		if (tensor_ == nullptr)
 		{
@@ -61,8 +62,8 @@ struct MappedTensor final
 		}
 	}
 
-	MappedTensor (CoordPtrT mapper, TensptrT tensor) :
-		MappedTensor(mapper, mapper, tensor) {}
+	MappedTensor (TensptrT tensor, CoordPtrT mapper, bool fwd = true) :
+		MappedTensor(mapper, tensor, mapper, fwd) {}
 
 	/// Return shape of tensor filtered through coordinate mapper
 	Shape shape (void) const
@@ -85,15 +86,18 @@ struct MappedTensor final
 		return Shape(slist);
 	}
 
+	/// Shape mapper
+	CoordPtrT shaper_;
+
 	/// Coordinate mapper
 	CoordPtrT mapper_;
 
 	/// Tensor reference
 	TensptrT tensor_;
 
-private:
-	/// Shape mapper
-	CoordPtrT shaper_;
+	/// True if mapper_ maps input coordinate to output
+	/// False if mapped from output coordinate to input
+	bool fwd_;
 };
 
 }
