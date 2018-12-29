@@ -149,6 +149,25 @@ static void TREE_EQ (std::istream& expectstr, ade::TensptrT& root)
 }
 
 
+static void COORD_EQ (ade::CoordPtrT expect, ade::CoordPtrT got)
+{
+	expect->access([&](const ade::MatrixT& expectm)
+	{
+		got->access([&](const ade::MatrixT& gotm)
+		{
+			for (size_t i = 0; i < ade::mat_dim; ++i)
+			{
+				for (size_t j = 0; j < ade::mat_dim; ++j)
+				{
+					EXPECT_EQ(expectm[i][j], gotm[i][j]) <<
+						"coord(" << i << "," << j << ")";
+				}
+			}
+		});
+	});
+}
+
+
 TEST(GRADER, Ruleset)
 {
 	ade::TensptrT tens(new MockTensor());
@@ -170,8 +189,8 @@ TEST(GRADER, Leaf)
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
 
-	EXPECT_NE(nullptr, mock1);
-	EXPECT_NE(nullptr, mock0);
+	ASSERT_NE(nullptr, mock1);
+	ASSERT_NE(nullptr, mock0);
 
 	EXPECT_EQ(1, mock1->val_);
 	EXPECT_EQ(0, mock0->val_);
@@ -206,8 +225,8 @@ TEST(GRADER, Sum)
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
 
-	EXPECT_NE(nullptr, mock1);
-	EXPECT_NE(nullptr, mock0);
+	ASSERT_NE(nullptr, mock1);
+	ASSERT_NE(nullptr, mock0);
 
 	EXPECT_EQ(1, mock1->val_);
 	EXPECT_EQ(0, mock0->val_);
@@ -220,25 +239,19 @@ TEST(GRADER, Sum)
 	ostr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
 	lstr <<
-		"(+)\n" <<
-		" `--(*)\n" <<
-		"     `--(*)\n" << // chain rule (derivative of SUM is PROD)
-		"     |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     |   `--(+)\n" <<
-		"     |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     `--(+)\n" << // derivative of leaf wrt leaf
-		"         `--(+)\n" <<
-		"             `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
+		"(*)\n" <<
+		" `--(*)\n" << // chain rule (derivative of SUM is PROD)
+		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--(+)\n" <<
+		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
 	rstr <<
-		"(+)\n" <<
-		" `--(*)\n" <<
-		"     `--(*)\n" << // chain rule
-		"     |   `--(+)\n" <<
-		"     |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     `--(+)\n" << // derivative of leaf wrt leaf
-		"         `--(+)\n" <<
-		"             `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
+		"(*)\n" <<
+		" `--(*)\n" << // chain rule
+		" |   `--(+)\n" <<
+		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
 
 	TREE_EQ(ostr, g1);
 	TREE_EQ(zstr, g0);
@@ -268,8 +281,8 @@ TEST(GRADER, Prod)
 	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
 	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
 
-	EXPECT_NE(nullptr, mock1);
-	EXPECT_NE(nullptr, mock0);
+	ASSERT_NE(nullptr, mock1);
+	ASSERT_NE(nullptr, mock0);
 
 	EXPECT_EQ(1, mock1->val_);
 	EXPECT_EQ(0, mock0->val_);
@@ -282,25 +295,19 @@ TEST(GRADER, Prod)
 	ostr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
 	lstr <<
-		"(+)\n" <<
-		" `--(*)\n" <<
-		"     `--(+)\n" << // chain rule (derivative of PROD is SUM)
-		"     |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     |   `--(+)\n" <<
-		"     |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     `--(+)\n" << // derivative of leaf wrt leaf
-		"         `--(+)\n" <<
-		"             `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
+		"(*)\n" <<
+		" `--(+)\n" << // chain rule (derivative of PROD is SUM)
+		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--(+)\n" <<
+		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
 	rstr <<
-		"(+)\n" <<
-		" `--(*)\n" <<
-		"     `--(+)\n" << // chain rule
-		"     |   `--(+)\n" <<
-		"     |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     `--(+)\n" << // derivative of leaf wrt leaf
-		"         `--(+)\n" <<
-		"             `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
+		"(*)\n" <<
+		" `--(+)\n" << // chain rule
+		" |   `--(+)\n" <<
+		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
 
 	TREE_EQ(ostr, g1);
 	TREE_EQ(zstr, g0);
@@ -335,48 +342,189 @@ TEST(GRADER, SumProd)
 	std::stringstream rstr;
 
 	lstr <<
-		"(+)\n" <<
-		"`--(*)\n" <<
-		"    `--(+)\n" <<
-		"    |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"    |   `--(+)\n" <<
-		"    |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"    `--(+)\n" <<
-		"        `--(*)\n" <<
-		"            `--(*)\n" <<
-		"            |   `--(*)\n" <<
-		"            |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |   `--(+)\n" <<
-		"            |       `--(*)\n" <<
-		"            |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            `--(+)\n" <<
-		"                `--(+)\n" <<
-		"                    `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
+		"(*)\n" <<
+		" `--(+)\n" <<
+		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--(+)\n" <<
+		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(+)\n" <<
+		"     `--(*)\n" <<
+		"     |   `--(*)\n" <<
+		"     |   |   `--(*)\n" <<
+		"     |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |   `--(+)\n" <<
+		"     |   |       `--(*)\n" <<
+		"     |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     `--(*)\n" <<
+		"         `--(*)\n" <<
+		"         |   `--(+)\n" <<
+		"         |   |   `--(*)\n" <<
+		"         |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   `--(*)\n" <<
+		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	rstr <<
-		"(+)\n" <<
-		"`--(*)\n" <<
-		"    `--(+)\n" <<
-		"    |   `--(+)\n" <<
-		"    |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"    |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"    `--(+)\n" <<
-		"        `--(*)\n" <<
-		"            `--(*)\n" <<
-		"            |   `--(*)\n" <<
-		"            |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |   `--(+)\n" <<
-		"            |       `--(*)\n" <<
-		"            |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"            `--(+)\n" <<
-		"                `--(+)\n" <<
-		"                    `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
+		"(*)\n" <<
+		" `--(+)\n" <<
+		" |   `--(+)\n" <<
+		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(+)\n" <<
+		"     `--(*)\n" <<
+		"     |   `--(*)\n" <<
+		"     |   |   `--(*)\n" <<
+		"     |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |   `--(+)\n" <<
+		"     |   |       `--(*)\n" <<
+		"     |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     `--(*)\n" <<
+		"         `--(*)\n" <<
+		"         |   `--(+)\n" <<
+		"         |   |   `--(*)\n" <<
+		"         |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   `--(*)\n" <<
+		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         `--([2\\3\\1\\1\\1\\1\\1\\1])\n";;
 
 	TREE_EQ(lstr, gl);
 	TREE_EQ(rstr, gr);
+}
+
+
+TEST(GRADER, Mapper)
+{
+	std::vector<ade::DimT> slist = {2, 3, 4};
+	std::vector<ade::DimT> slist1 = {2};
+	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist1)));
+
+	auto leftmapper = ade::reduce(2, {4});
+	auto rightmapper = ade::extend(1, {3});
+	ade::TensptrT fwd(ade::Functor::get(mock_rules->sum_opcode(), {
+		ade::MappedTensor(leaf, leftmapper, true),
+		ade::MappedTensor(leaf1, rightmapper, false),
+	}));
+
+	ade::CoordPtrT leftrev(leftmapper->reverse());
+	ade::CoordPtrT rightrev(rightmapper->reverse());
+
+	ade::TensptrT g1(derive(fwd, fwd.get()));
+	ade::TensptrT g0(derive(fwd, outside.get()));
+	ade::TensptrT gl(derive(fwd, leaf.get()));
+	ade::TensptrT gr(derive(fwd, leaf1.get()));
+
+	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
+	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
+
+	ASSERT_NE(nullptr, mock1);
+	ASSERT_NE(nullptr, mock0);
+
+	EXPECT_EQ(1, mock1->val_);
+	EXPECT_EQ(0, mock0->val_);
+
+	std::stringstream ostr;
+	std::stringstream zstr;
+	std::stringstream lstr;
+	std::stringstream rstr;
+
+	ostr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
+	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
+	lstr <<
+		"(*)\n" <<
+		" `--(*)\n" << // chain rule (derivative of SUM is PROD)
+		" |   `--([2\\3\\4\\1\\1\\1\\1\\1])\n" <<
+		" |   `--(+)\n" <<
+		" |       `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
+	rstr <<
+		"(*)\n" <<
+		" `--(*)\n" << // chain rule
+		" |   `--(+)\n" <<
+		" |   |   `--([2\\3\\4\\1\\1\\1\\1\\1])\n" <<
+		" |   `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
+
+	TREE_EQ(ostr, g1);
+	TREE_EQ(zstr, g0);
+	TREE_EQ(lstr, gl);
+	TREE_EQ(rstr, gr);
+
+	auto fl = dynamic_cast<ade::Functor*>(gl.get());
+	auto fr = dynamic_cast<ade::Functor*>(gr.get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	auto children = fl->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].shaper_);
+	EXPECT_EQ(ade::identity, children[0].mapper_);
+	EXPECT_FALSE(children[1].fwd_);
+	auto target_shaper = children[1].shaper_;
+	auto target_mapper = children[1].mapper_;
+	COORD_EQ(leftrev, target_shaper);
+	COORD_EQ(leftrev, target_mapper);
+	fl = dynamic_cast<ade::Functor*>(children[0].tensor_.get());
+
+	children = fr->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].shaper_);
+	EXPECT_EQ(ade::identity, children[0].mapper_);
+	EXPECT_TRUE(children[1].fwd_);
+	target_shaper = children[1].shaper_;
+	target_mapper = children[1].mapper_;
+	COORD_EQ(rightrev, target_shaper);
+	COORD_EQ(rightrev, target_mapper);
+	fr = dynamic_cast<ade::Functor*>(children[0].tensor_.get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	children = fl->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].shaper_);
+	EXPECT_EQ(ade::identity, children[0].mapper_);
+	EXPECT_EQ(ade::identity, children[1].shaper_);
+	EXPECT_EQ(ade::identity, children[1].mapper_);
+	fl = dynamic_cast<ade::Functor*>(children[1].tensor_.get());
+
+	children = fr->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].shaper_);
+	EXPECT_EQ(ade::identity, children[0].mapper_);
+	EXPECT_EQ(ade::identity, children[1].shaper_);
+	EXPECT_EQ(ade::identity, children[1].mapper_);
+	fr = dynamic_cast<ade::Functor*>(children[0].tensor_.get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	children = fl->get_children();
+	EXPECT_EQ(1, children.size());
+	target_shaper = children[0].shaper_;
+	target_mapper = children[0].mapper_;
+	ade::CoordPtrT right2left(rightmapper->connect(*leftrev));
+	COORD_EQ(right2left, target_shaper);
+	COORD_EQ(right2left, target_mapper);
+
+	children = fr->get_children();
+	EXPECT_EQ(1, children.size());
+	target_shaper = children[0].shaper_;
+	target_mapper = children[0].mapper_;
+	ade::CoordPtrT left2right(leftmapper->connect(*rightrev));
+	COORD_EQ(left2right, target_shaper);
+	COORD_EQ(left2right, target_mapper);
 }
 
 

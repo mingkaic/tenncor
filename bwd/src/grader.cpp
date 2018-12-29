@@ -47,9 +47,9 @@ void Grader::visit (ade::iFunctor* func)
 	for (ade::iFunctor* parent : parents)
 	{
 		ade::TensT& gargs = grads[parent];
-		ade::TensptrT bwd(gargs.size() > 1 ? gargs[0] :
-			ade::TensptrT(ade::Functor::get(
-				rules_->sum_opcode(), to_args(gargs))));
+		ade::TensptrT bwd = gargs.size() > 1 ? ade::TensptrT(
+			ade::Functor::get(rules_->sum_opcode(), to_args(gargs))) :
+			gargs[0];
 
 		auto& grad_indices = pathmap[parent];
 		ade::ArgsT children = parent->get_children();
@@ -66,18 +66,22 @@ void Grader::visit (ade::iFunctor* func)
 			ade::CoordPtrT bwd_mapper(child.mapper_->reverse());
 			for (size_t j = 0; j < nchildren; ++j)
 			{
-				ade::TensptrT& tens = children[j].tensor_;
+				ade::MappedTensor& kid = children[j];
+				ade::TensptrT& tens = kid.tensor_;
 				if (j == i)
 				{
 					args.push_back(tens);
 				}
 				else
 				{
+					ade::CoordPtrT shaper(kid.shaper_->connect(*bwd_shaper));
+					ade::CoordPtrT mapper(kid.mapper_->connect(*bwd_mapper));
 					// reverse children[j] to child's shape/coord space
 					args.push_back(ade::TensptrT(
-						ade::Functor::get(rules_->sum_opcode(),
-						{ade::MappedTensor(bwd_shaper, tens,
-						bwd_mapper, !child.fwd_)})));
+						ade::Functor::get(rules_->sum_opcode(), {
+							ade::MappedTensor(shaper, tens,
+								mapper, !child.fwd_),
+						})));
 				}
 			}
 			// pass down forward-gradient pair
@@ -85,19 +89,17 @@ void Grader::visit (ade::iFunctor* func)
 
 			// apply chain rule
 			grads[child.tensor_.get()].push_back(ade::TensptrT(
-				ade::Functor::get(
-				rules_->prod_opcode(), {
+				ade::Functor::get(rules_->prod_opcode(), {
 					ade::MappedTensor(grad, ade::identity),
-					ade::MappedTensor(ade::TensptrT(
-						ade::Functor::get(rules_->sum_opcode(), {
-							{bwd_shaper, bwd, bwd_mapper, !child.fwd_}
-						})), ade::identity),
+					ade::MappedTensor(bwd_shaper, bwd,
+						bwd_mapper, !child.fwd_),
 				})));
 		}
 	}
-	derivatives_.emplace(func, ade::TensptrT(
+	auto finalgargs = grads[target_];
+	derivatives_.emplace(func, finalgargs.size() > 1 ? ade::TensptrT(
 		ade::Functor::get(rules_->sum_opcode(),
-			to_args(grads[target_]))));
+			to_args(finalgargs))) : finalgargs[0]);
 }
 
 ade::ArgsT to_args (ade::TensT tens)
