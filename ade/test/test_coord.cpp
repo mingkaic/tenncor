@@ -154,7 +154,7 @@ TEST_F(COORD, Identity)
 	std::vector<int32_t> icoord = {
 		42, 12, 85, 7, 82, 91, 2, 34,
 	};
-	ade::CoordT fwd_out, bwd_out, in;
+	ade::CoordT fwd_out, in;
 	std::copy(icoord.begin(), icoord.end(), in.begin());
 
 	ade::identity->forward(fwd_out.begin(), in.begin());
@@ -173,7 +173,7 @@ TEST_F(COORD, Reduce)
 		211.6172349153, 3.6941314330, 3.3471187148, 24.3511302088,
 		17.8520169468, 99.9911659058, 7.2182000783, 6.4776819746
 	};
-	ade::CoordT fwd_out, bwd_out, in;
+	ade::CoordT fwd_out, in;
 	std::copy(icoord.begin(), icoord.end(), in.begin());
 
 	reducer->forward(fwd_out.begin(), in.begin());
@@ -205,7 +205,7 @@ TEST_F(COORD, Extend)
 	ade::CoordPtrT extender = ade::extend(rank, dext);
 
 	std::vector<double> icoord = {142.2, 42.17, 33.292, 33, 231.5, 2.33, 96.4, 1.23};
-	ade::CoordT fwd_out, bwd_out, in;
+	ade::CoordT fwd_out, in;
 	std::copy(icoord.begin(), icoord.end(), in.begin());
 
 	extender->forward(fwd_out.begin(), in.begin());
@@ -249,7 +249,7 @@ TEST_F(COORD, Permute)
 	}
 
 	std::vector<int32_t> icoord = {12, 82, 20, 31, 49, 1, 1, 1};
-	ade::CoordT fwd_out, bwd_out, in;
+	ade::CoordT fwd_out, in;
 	std::copy(icoord.begin(), icoord.end(), in.begin());
 
 	permuter->forward(fwd_out.begin(), in.begin());
@@ -268,7 +268,7 @@ TEST_F(COORD, Flip)
 	ade::CoordPtrT flipper = ade::flip(dim);
 
 	std::vector<int32_t> icoord = {23, 66, 72, 83, 91, 1, 31, 21};
-	ade::CoordT fwd_out, bwd_out, in;
+	ade::CoordT fwd_out, in;
 	std::copy(icoord.begin(), icoord.end(), in.begin());
 
 	flipper->forward(fwd_out.begin(), in.begin());

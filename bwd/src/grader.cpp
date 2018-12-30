@@ -76,6 +76,10 @@ void Grader::visit (ade::iFunctor* func)
 				{
 					ade::CoordPtrT shaper(kid.shaper_->connect(*bwd_shaper));
 					ade::CoordPtrT mapper(kid.mapper_->connect(*bwd_mapper));
+					if (child.fwd_)
+					{
+						mapper = ade::CoordPtrT(mapper->reverse());
+					}
 					// reverse children[j] to child's shape/coord space
 					args.push_back(ade::TensptrT(
 						ade::Functor::get(rules_->sum_opcode(), {
@@ -88,6 +92,10 @@ void Grader::visit (ade::iFunctor* func)
 			ade::TensptrT grad(rules_->grad_rule(parent, args, i));
 
 			// apply chain rule
+			if (child.fwd_)
+			{
+				bwd_mapper = child.mapper_;
+			}
 			grads[child.tensor_.get()].push_back(ade::TensptrT(
 				ade::Functor::get(rules_->prod_opcode(), {
 					ade::MappedTensor(grad, ade::identity),

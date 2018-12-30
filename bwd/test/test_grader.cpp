@@ -168,6 +168,12 @@ static void COORD_EQ (ade::CoordPtrT expect, ade::CoordPtrT got)
 }
 
 
+#define ARR_EQ(expect, gbegin, gend)\
+EXPECT_TRUE(std::equal(expect.begin(), expect.end(), gbegin)) <<\
+	fmts::to_string(expect.begin(), expect.end()) << " not equal to " <<\
+	fmts::to_string(gbegin, gend);
+
+
 TEST(GRADER, Ruleset)
 {
 	ade::TensptrT tens(new MockTensor());
@@ -473,8 +479,21 @@ TEST(GRADER, Mapper)
 	EXPECT_FALSE(children[1].fwd_);
 	auto target_shaper = children[1].shaper_;
 	auto target_mapper = children[1].mapper_;
+	{
+		std::vector<double> expectshape{2,3,4,1,1,1,1,1};
+		std::vector<double> expectcoord{2,3,1,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		// shaper is always input to output
+		ade::CDimT cin[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectshape, out, out + ade::rank_cap);
+		// simulate out to input
+		ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectcoord, out, out + ade::rank_cap);
+	}
 	COORD_EQ(leftrev, target_shaper);
-	COORD_EQ(leftrev, target_mapper);
+	COORD_EQ(leftmapper, target_mapper);
 	fl = dynamic_cast<ade::Functor*>(children[0].tensor_.get());
 
 	children = fr->get_children();
@@ -484,6 +503,17 @@ TEST(GRADER, Mapper)
 	EXPECT_TRUE(children[1].fwd_);
 	target_shaper = children[1].shaper_;
 	target_mapper = children[1].mapper_;
+	{
+		std::vector<double> expectout{2,1,1,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		ade::CDimT cin[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+		// simulate input to output
+		ade::CDimT cin2[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+	}
 	COORD_EQ(rightrev, target_shaper);
 	COORD_EQ(rightrev, target_mapper);
 	fr = dynamic_cast<ade::Functor*>(children[0].tensor_.get());
@@ -512,17 +542,44 @@ TEST(GRADER, Mapper)
 
 	children = fl->get_children();
 	EXPECT_EQ(1, children.size());
+	EXPECT_FALSE(children[0].fwd_);
 	target_shaper = children[0].shaper_;
 	target_mapper = children[0].mapper_;
 	ade::CoordPtrT right2left(rightmapper->connect(*leftrev));
+	{
+		std::vector<double> expectshape{2,3,4,1,1,1,1,1};
+		std::vector<double> expectcoord{2,1,1,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		// shaper is always input to output
+		ade::CDimT cin[ade::rank_cap] = {2,1,1,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectshape, out, out + ade::rank_cap);
+		// simulate out to input
+		ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectcoord, out, out + ade::rank_cap);
+	}
+	ade::CoordPtrT rev_r2l(right2left->reverse());
 	COORD_EQ(right2left, target_shaper);
-	COORD_EQ(right2left, target_mapper);
+	COORD_EQ(rev_r2l, target_mapper);
 
 	children = fr->get_children();
 	EXPECT_EQ(1, children.size());
+	EXPECT_TRUE(children[0].fwd_);
 	target_shaper = children[0].shaper_;
 	target_mapper = children[0].mapper_;
 	ade::CoordPtrT left2right(leftmapper->connect(*rightrev));
+	{
+		std::vector<double> expectout{2,1,1,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+		// simulate input to output
+		ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+	}
 	COORD_EQ(left2right, target_shaper);
 	COORD_EQ(left2right, target_mapper);
 }
