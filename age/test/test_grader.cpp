@@ -51,6 +51,7 @@ TEST(AGE, GraderEminem)
 	size_t idx = 42;
 	rule.grad_rule(fwd, {arg}, idx);
 	EXPECT_EQ(idx, mock->scalar_);
+	// delete fwd;
 }
 
 
@@ -64,6 +65,7 @@ TEST(AGE, GraderKhaled)
 	size_t idx = 63;
 	rule.grad_rule(fwd, {arg}, idx);
 	EXPECT_EQ(idx + khaled_constant, mock->scalar_);
+	delete fwd;
 }
 
 
