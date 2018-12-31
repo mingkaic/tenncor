@@ -87,7 +87,11 @@ void Grader::visit (ade::iFunctor* func)
 			grads[child.get_tensor().get()].push_back(ade::TensptrT(
 				ade::Functor::get(rules_->prod_opcode(), {
 					ade::identity_map(grad),
-					ade::MappedTensor(bwd, bwd_shaper),
+					ade::identity_map(ade::TensptrT(
+						ade::Functor::get(rules_->sum_opcode(), {
+							ade::MappedTensor(bwd, bwd_shaper),
+						})
+					)),
 				})));
 		}
 	}

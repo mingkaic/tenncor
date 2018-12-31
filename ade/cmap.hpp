@@ -101,10 +101,10 @@ private:
 MappedTensor identity_map (TensptrT tensor);
 
 MappedTensor reduce_map (TensptrT tensor,
-    uint8_t rank, std::vector<DimT> red);
+	uint8_t rank, std::vector<DimT> red);
 
 MappedTensor extend_map (TensptrT tensor,
-    uint8_t rank, std::vector<DimT> ext);
+	uint8_t rank, std::vector<DimT> ext);
 
 MappedTensor permute_map (TensptrT tensor, std::vector<uint8_t> order);
 
