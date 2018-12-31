@@ -67,7 +67,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="structade_1_1_mapped_tensor-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">ade::MappedTensor Struct Reference<span class="mlabels"><span class="mlabel">final</span></span></div>  </div>
@@ -77,30 +77,48 @@ $(function() {
 <p>Coordinate mapper and tensor pair.  
  <a href="structade_1_1_mapped_tensor.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="itensor_8hpp_source.html">itensor.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="cmap_8hpp_source.html">cmap.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ab1c37ddc3477dfcf8f9b09ca336e9b76"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#ab1c37ddc3477dfcf8f9b09ca336e9b76">MappedTensor</a> (<a class="el" href="namespaceade.html#a0ef5f1cbd91bffedaec8b24004b5597a">CoordPtrT</a> mapper, <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor)</td></tr>
-<tr class="separator:ab1c37ddc3477dfcf8f9b09ca336e9b76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfd65b950a3e142e4849c8a3828f66ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#abfd65b950a3e142e4849c8a3828f66ab">MappedTensor</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, <a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> shaper)</td></tr>
+<tr class="memdesc:abfd65b950a3e142e4849c8a3828f66ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> auto deducing coorder_ and map_io_ flag.  <a href="#abfd65b950a3e142e4849c8a3828f66ab">More...</a><br /></td></tr>
+<tr class="separator:abfd65b950a3e142e4849c8a3828f66ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a014493b15c4c06dcafdb9a9da4029080"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#a014493b15c4c06dcafdb9a9da4029080">MappedTensor</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, <a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> shaper, bool <a class="el" href="structade_1_1_mapped_tensor.html#aae6593688de1372a884bbfdfeb034eeb">map_io</a>, <a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> coorder)</td></tr>
+<tr class="memdesc:a014493b15c4c06dcafdb9a9da4029080"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> with specific coorder_ and map_io_ flag.  <a href="#a014493b15c4c06dcafdb9a9da4029080">More...</a><br /></td></tr>
+<tr class="separator:a014493b15c4c06dcafdb9a9da4029080"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b67df4b02a504ded28695ddd0e7f6e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#a3b67df4b02a504ded28695ddd0e7f6e0">shape</a> (void) const</td></tr>
 <tr class="memdesc:a3b67df4b02a504ded28695ddd0e7f6e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return shape of tensor filtered through coordinate mapper.  <a href="#a3b67df4b02a504ded28695ddd0e7f6e0">More...</a><br /></td></tr>
 <tr class="separator:a3b67df4b02a504ded28695ddd0e7f6e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc6b2b0c817ff938b2f0c53f599b2d9f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#afc6b2b0c817ff938b2f0c53f599b2d9f">get_tensor</a> (void) const</td></tr>
+<tr class="separator:afc6b2b0c817ff938b2f0c53f599b2d9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94f6f1aa67290130d44430715a89c5d2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#a94f6f1aa67290130d44430715a89c5d2">get_shaper</a> (void) const</td></tr>
+<tr class="separator:a94f6f1aa67290130d44430715a89c5d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae6593688de1372a884bbfdfeb034eeb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#aae6593688de1372a884bbfdfeb034eeb">map_io</a> (void) const</td></tr>
+<tr class="memdesc:aae6593688de1372a884bbfdfeb034eeb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return map_io_ flag.  <a href="#aae6593688de1372a884bbfdfeb034eeb">More...</a><br /></td></tr>
+<tr class="separator:aae6593688de1372a884bbfdfeb034eeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f6584f313e8d589a62dba101ddebe53"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#a1f6584f313e8d589a62dba101ddebe53">get_coorder</a> (void) const</td></tr>
+<tr class="separator:a1f6584f313e8d589a62dba101ddebe53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
-Public Attributes</h2></td></tr>
-<tr class="memitem:a53aa8ca47cc12eb998d9ce3d346f5f20"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a0ef5f1cbd91bffedaec8b24004b5597a">CoordPtrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#a53aa8ca47cc12eb998d9ce3d346f5f20">mapper_</a></td></tr>
-<tr class="memdesc:a53aa8ca47cc12eb998d9ce3d346f5f20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coordinate mapper.  <a href="#a53aa8ca47cc12eb998d9ce3d346f5f20">More...</a><br /></td></tr>
-<tr class="separator:a53aa8ca47cc12eb998d9ce3d346f5f20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
 <tr class="memitem:aabd63daa33eaff88d036361a7d6d0343"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#aabd63daa33eaff88d036361a7d6d0343">tensor_</a></td></tr>
 <tr class="memdesc:aabd63daa33eaff88d036361a7d6d0343"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tensor reference.  <a href="#aabd63daa33eaff88d036361a7d6d0343">More...</a><br /></td></tr>
 <tr class="separator:aabd63daa33eaff88d036361a7d6d0343"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c5ea396b2124e8ea874139300ebad64"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#a7c5ea396b2124e8ea874139300ebad64">shaper_</a></td></tr>
+<tr class="memdesc:a7c5ea396b2124e8ea874139300ebad64"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structade_1_1_shape.html">Shape</a> mapper.  <a href="#a7c5ea396b2124e8ea874139300ebad64">More...</a><br /></td></tr>
+<tr class="separator:a7c5ea396b2124e8ea874139300ebad64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a943aceb208f1134a975b6191becb662c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#a943aceb208f1134a975b6191becb662c">map_io_</a></td></tr>
+<tr class="separator:a943aceb208f1134a975b6191becb662c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa835e83b7003ddabb947253d00abddc8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_mapped_tensor.html#aa835e83b7003ddabb947253d00abddc8">coorder_</a></td></tr>
+<tr class="memdesc:aa835e83b7003ddabb947253d00abddc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coordinate mapper.  <a href="#aa835e83b7003ddabb947253d00abddc8">More...</a><br /></td></tr>
+<tr class="separator:aa835e83b7003ddabb947253d00abddc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Coordinate mapper and tensor pair. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ab1c37ddc3477dfcf8f9b09ca336e9b76"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab1c37ddc3477dfcf8f9b09ca336e9b76">&#9670;&nbsp;</a></span>MappedTensor()</h2>
+<a id="abfd65b950a3e142e4849c8a3828f66ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abfd65b950a3e142e4849c8a3828f66ab">&#9670;&nbsp;</a></span>MappedTensor() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -111,14 +129,14 @@ Public Attributes</h2></td></tr>
         <tr>
           <td class="memname">ade::MappedTensor::MappedTensor </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#a0ef5f1cbd91bffedaec8b24004b5597a">CoordPtrT</a>&#160;</td>
-          <td class="paramname"><em>mapper</em>, </td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a>&#160;</td>
+          <td class="paramname"><em>tensor</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a>&#160;</td>
-          <td class="paramname"><em>tensor</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td>
+          <td class="paramname"><em>shaper</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -133,9 +151,167 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Construct <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> auto deducing coorder_ and map_io_ flag. </p>
+
+</div>
+</div>
+<a id="a014493b15c4c06dcafdb9a9da4029080"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a014493b15c4c06dcafdb9a9da4029080">&#9670;&nbsp;</a></span>MappedTensor() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ade::MappedTensor::MappedTensor </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a>&#160;</td>
+          <td class="paramname"><em>tensor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td>
+          <td class="paramname"><em>shaper</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>map_io</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td>
+          <td class="paramname"><em>coorder</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Construct <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> with specific coorder_ and map_io_ flag. </p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a1f6584f313e8d589a62dba101ddebe53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f6584f313e8d589a62dba101ddebe53">&#9670;&nbsp;</a></span>get_coorder()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> ade::MappedTensor::get_coorder </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a94f6f1aa67290130d44430715a89c5d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94f6f1aa67290130d44430715a89c5d2">&#9670;&nbsp;</a></span>get_shaper()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> ade::MappedTensor::get_shaper </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afc6b2b0c817ff938b2f0c53f599b2d9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc6b2b0c817ff938b2f0c53f599b2d9f">&#9670;&nbsp;</a></span>get_tensor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> ade::MappedTensor::get_tensor </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aae6593688de1372a884bbfdfeb034eeb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae6593688de1372a884bbfdfeb034eeb">&#9670;&nbsp;</a></span>map_io()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ade::MappedTensor::map_io </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Return map_io_ flag. </p>
+
+</div>
+</div>
 <a id="a3b67df4b02a504ded28695ddd0e7f6e0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3b67df4b02a504ded28695ddd0e7f6e0">&#9670;&nbsp;</a></span>shape()</h2>
 
@@ -165,19 +341,74 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a53aa8ca47cc12eb998d9ce3d346f5f20"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53aa8ca47cc12eb998d9ce3d346f5f20">&#9670;&nbsp;</a></span>mapper_</h2>
+<a id="aa835e83b7003ddabb947253d00abddc8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa835e83b7003ddabb947253d00abddc8">&#9670;&nbsp;</a></span>coorder_</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceade.html#a0ef5f1cbd91bffedaec8b24004b5597a">CoordPtrT</a> ade::MappedTensor::mapper_</td>
+          <td class="memname"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> ade::MappedTensor::coorder_</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Coordinate mapper. </p>
+
+</div>
+</div>
+<a id="a943aceb208f1134a975b6191becb662c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a943aceb208f1134a975b6191becb662c">&#9670;&nbsp;</a></span>map_io_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ade::MappedTensor::map_io_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>True if map input coordinate to output, False otherwise (if n_elems of inputshape &gt; n_elems of outputshape) </p>
+
+</div>
+</div>
+<a id="a7c5ea396b2124e8ea874139300ebad64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c5ea396b2124e8ea874139300ebad64">&#9670;&nbsp;</a></span>shaper_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> ade::MappedTensor::shaper_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><a class="el" href="structade_1_1_shape.html">Shape</a> mapper. </p>
 
 </div>
 </div>
@@ -186,11 +417,19 @@ Public Attributes</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> ade::MappedTensor::tensor_</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Tensor reference. </p>
@@ -198,7 +437,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>ade/<a class="el" href="itensor_8hpp_source.html">itensor.hpp</a></li>
+<li>ade/<a class="el" href="cmap_8hpp_source.html">cmap.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

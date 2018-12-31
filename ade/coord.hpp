@@ -94,22 +94,22 @@ private:
 };
 
 /// Type of iCoordMap smartpointer
-using CoordPtrT = std::shared_ptr<iCoordMap>;
+using CoordptrT = std::shared_ptr<iCoordMap>;
 
 /// Identity matrix instance
-extern CoordPtrT identity;
+extern CoordptrT identity;
 
 /// Return coordinate mapper dividing dimensions after rank
 /// by values in red vector
 /// For example, given coordinate [2, 2, 6, 6], rank=2, and red=[3, 3],
 /// mapper forward transforms to coordinate [2, 2, 2, 2]
-CoordPtrT reduce (uint8_t rank, std::vector<DimT> red);
+CoordptrT reduce (uint8_t rank, std::vector<DimT> red);
 
 /// Return coordinate mapper multiplying dimensions after rank
 /// by values in ext vector
 /// For example, given coordinate [6, 6, 2, 2], rank=2, and ext=[3, 3],
 /// mapper forward transforms to coordinate [6, 6, 6, 6]
-CoordPtrT extend (uint8_t rank, std::vector<DimT> ext);
+CoordptrT extend (uint8_t rank, std::vector<DimT> ext);
 
 /// Return coordinate mapper permuting coordinate according to input order
 /// Order is a vector of indices of the dimensions to appear in order
@@ -119,12 +119,12 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext);
 /// mapper forward transforms to coordinate [2, 4, 1, 3]
 /// Returned coordinate mapper will be a CoordMap instance, so inversibility
 /// requires order indices be unique, otherwise throw fatal error
-CoordPtrT permute (std::vector<uint8_t> order);
+CoordptrT permute (std::vector<uint8_t> order);
 
 /// Return coordinate mapper flipping coordinate value at specified dimension
 /// Flipped dimension with original value x is represented as -x-1
 /// (see CoordT definition)
-CoordPtrT flip (uint8_t dim);
+CoordptrT flip (uint8_t dim);
 
 }
 

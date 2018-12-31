@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['graphsize_5f',['graphsize_',['../structade_1_1_graph_stat.html#ae6ba17ac04500b63db74ebf4f45743a8',1,'ade::GraphStat']]]
+  ['identity',['identity',['../namespaceade.html#a51de3f8cb4058a56fc0e51a7b7b564c3',1,'ade']]]
 ];

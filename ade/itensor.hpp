@@ -6,7 +6,7 @@
 /// Define interfaces and building blocks for an equation graph
 ///
 
-#include "ade/coord.hpp"
+#include "ade/shape.hpp"
 
 #ifndef ADE_INTERFACE_HPP
 #define ADE_INTERFACE_HPP
@@ -48,57 +48,6 @@ struct iTensor
 using TensptrT = std::shared_ptr<iTensor>;
 
 using TensrefT = std::weak_ptr<iTensor>;
-
-/// Coordinate mapper and tensor pair
-struct MappedTensor final
-{
-	MappedTensor (CoordPtrT shaper, TensptrT tensor,
-		CoordPtrT mapper, bool fwd = false) :
-		shaper_(shaper), mapper_(mapper), tensor_(tensor), fwd_(fwd)
-	{
-		if (tensor_ == nullptr)
-		{
-			logs::fatal("cannot map a null tensor");
-		}
-	}
-
-	MappedTensor (TensptrT tensor, CoordPtrT mapper, bool fwd = false) :
-		MappedTensor(mapper, tensor, mapper, fwd) {}
-
-	/// Return shape of tensor filtered through coordinate mapper
-	Shape shape (void) const
-	{
-		const Shape& shape = tensor_->shape();
-		CoordT out;
-		CoordT in;
-		std::copy(shape.begin(), shape.end(), in.begin());
-		shaper_->forward(out.begin(), in.begin());
-		std::vector<DimT> slist(rank_cap);
-		std::transform(out.begin(), out.end(), slist.begin(),
-			[](CDimT cd) -> DimT
-			{
-				if (cd < 0)
-				{
-					cd = -cd - 1;
-				}
-				return std::round(cd);
-			});
-		return Shape(slist);
-	}
-
-	/// Shape mapper
-	CoordPtrT shaper_;
-
-	/// Coordinate mapper
-	CoordPtrT mapper_;
-
-	/// Tensor reference
-	TensptrT tensor_;
-
-	/// True if mapper_ maps input coordinate to output
-	/// False if mapped from output coordinate to input
-	bool fwd_;
-};
 
 }
 

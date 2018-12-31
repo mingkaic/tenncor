@@ -35,7 +35,7 @@ void CoordMap::forward (CoordT::iterator out, CoordT::const_iterator in) const
 	}
 }
 
-CoordPtrT identity(new CoordMap(
+CoordptrT identity(new CoordMap(
 	[](MatrixT fwd)
 	{
 		for (uint8_t i = 0; i < rank_cap; ++i)
@@ -44,7 +44,7 @@ CoordPtrT identity(new CoordMap(
 		}
 	}));
 
-CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
+CoordptrT reduce (uint8_t rank, std::vector<DimT> red)
 {
 	uint8_t n_red = red.size();
 	if (std::any_of(red.begin(), red.end(),
@@ -64,7 +64,7 @@ CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 		return identity;
 	}
 
-	return CoordPtrT(new CoordMap(
+	return CoordptrT(new CoordMap(
 		[&](MatrixT fwd)
 		{
 			for (uint8_t i = 0; i < rank_cap; ++i)
@@ -79,7 +79,7 @@ CoordPtrT reduce (uint8_t rank, std::vector<DimT> red)
 		}));
 }
 
-CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
+CoordptrT extend (uint8_t rank, std::vector<DimT> ext)
 {
 	uint8_t n_ext = ext.size();
 	if (std::any_of(ext.begin(), ext.end(),
@@ -99,7 +99,7 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
 		return identity;
 	}
 
-	return CoordPtrT(new CoordMap(
+	return CoordptrT(new CoordMap(
 		[&](MatrixT fwd)
 		{
 			for (uint8_t i = 0; i < rank_cap; ++i)
@@ -114,7 +114,7 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext)
 		}));
 }
 
-CoordPtrT permute (std::vector<uint8_t> dims)
+CoordptrT permute (std::vector<uint8_t> dims)
 {
 	if (dims.size() == 0)
 	{
@@ -136,7 +136,7 @@ CoordPtrT permute (std::vector<uint8_t> dims)
 		}
 	}
 
-	return CoordPtrT(new CoordMap(
+	return CoordptrT(new CoordMap(
 		[&](MatrixT fwd)
 		{
 			for (uint8_t i = 0, n = dims.size(); i < n; ++i)
@@ -146,7 +146,7 @@ CoordPtrT permute (std::vector<uint8_t> dims)
 		}));
 }
 
-CoordPtrT flip (uint8_t dim)
+CoordptrT flip (uint8_t dim)
 {
 	if (dim >= rank_cap)
 	{
@@ -154,7 +154,7 @@ CoordPtrT flip (uint8_t dim)
 		return identity;
 	}
 
-	return CoordPtrT(new CoordMap(
+	return CoordptrT(new CoordMap(
 		[&](MatrixT fwd)
 		{
 			for (uint8_t i = 0; i < rank_cap; ++i)

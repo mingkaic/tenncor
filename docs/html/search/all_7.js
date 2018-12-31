@@ -1,7 +1,8 @@
 var searchData=
 [
   ['icoordmap',['iCoordMap',['../structade_1_1i_coord_map.html',1,'ade']]],
-  ['identity',['identity',['../namespaceade.html#a8e19aa78dafc96799e95e38b251a9f57',1,'ade']]],
+  ['identity',['identity',['../namespaceade.html#a51de3f8cb4058a56fc0e51a7b7b564c3',1,'ade']]],
+  ['identity_5fmap',['identity_map',['../namespaceade.html#a42312ef9e11389b95fe6f0301532f10c',1,'ade']]],
   ['ifunctor',['iFunctor',['../structade_1_1i_functor.html',1,'ade']]],
   ['ifunctor_2ehpp',['ifunctor.hpp',['../ifunctor_8hpp.html',1,'']]],
   ['ileaf',['iLeaf',['../structade_1_1i_leaf.html',1,'ade']]],

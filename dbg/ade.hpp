@@ -28,7 +28,7 @@ struct PrettyEquation final
 				std::transform(children.begin(), children.end(), tens.begin(),
 				[](const ade::MappedTensor& child)
 				{
-					return child.tensor_.get();
+					return child.get_tensor().get();
 				});
 				return tens;
 			}

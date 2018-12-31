@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['mappedtensor',['MappedTensor',['../structade_1_1_mapped_tensor.html',1,'ade::MappedTensor'],['../structade_1_1_mapped_tensor.html#ab1c37ddc3477dfcf8f9b09ca336e9b76',1,'ade::MappedTensor::MappedTensor()']]],
-  ['mapper_5f',['mapper_',['../structade_1_1_mapped_tensor.html#a53aa8ca47cc12eb998d9ce3d346f5f20',1,'ade::MappedTensor']]],
+  ['map_5fio',['map_io',['../structade_1_1_mapped_tensor.html#aae6593688de1372a884bbfdfeb034eeb',1,'ade::MappedTensor']]],
+  ['map_5fio_5f',['map_io_',['../structade_1_1_mapped_tensor.html#a943aceb208f1134a975b6191becb662c',1,'ade::MappedTensor']]],
+  ['mappedtensor',['MappedTensor',['../structade_1_1_mapped_tensor.html',1,'ade::MappedTensor'],['../structade_1_1_mapped_tensor.html#abfd65b950a3e142e4849c8a3828f66ab',1,'ade::MappedTensor::MappedTensor(TensptrT tensor, CoordptrT shaper)'],['../structade_1_1_mapped_tensor.html#a014493b15c4c06dcafdb9a9da4029080',1,'ade::MappedTensor::MappedTensor(TensptrT tensor, CoordptrT shaper, bool map_io, CoordptrT coorder)']]],
   ['mat_5fdim',['mat_dim',['../namespaceade.html#a5d20bdd43f50367b1d8780c145cfe0f3',1,'ade']]],
   ['mat_5fsize',['mat_size',['../namespaceade.html#a2510c0d77a622cfaa58a0865d86ce8d5',1,'ade']]],
   ['matmul',['matmul',['../namespaceade.html#ab6daf41b04bccd42950ae92db8a0439a',1,'ade']]],

@@ -167,7 +167,7 @@ TEST_F(COORD, Reduce)
 	size_t rank = 5;
 	std::vector<int32_t> red = {22, 32, 2};
 	std::vector<ade::DimT> dred(red.begin(), red.end());
-	ade::CoordPtrT reducer = ade::reduce(rank, dred);
+	ade::CoordptrT reducer = ade::reduce(rank, dred);
 
 	std::vector<double> icoord = {
 		211.6172349153, 3.6941314330, 3.3471187148, 24.3511302088,
@@ -202,7 +202,7 @@ TEST_F(COORD, Extend)
 	size_t rank = 3;
 	std::vector<int32_t> ext = {12, 21, 8, 4, 52};
 	std::vector<ade::DimT> dext(ext.begin(), ext.end());
-	ade::CoordPtrT extender = ade::extend(rank, dext);
+	ade::CoordptrT extender = ade::extend(rank, dext);
 
 	std::vector<double> icoord = {142.2, 42.17, 33.292, 33, 231.5, 2.33, 96.4, 1.23};
 	ade::CoordT fwd_out, in;
@@ -233,7 +233,7 @@ TEST_F(COORD, Permute)
 {
 	std::vector<uint64_t> perm = {4, 2, 3, 7, 0, 1};
 	std::vector<ade::DimT> dperm(perm.begin(), perm.end());
-	ade::CoordPtrT permuter = ade::permute(dperm);
+	ade::CoordptrT permuter = ade::permute(dperm);
 	std::array<bool,ade::rank_cap> permed;
 	permed.fill(false);
 	for (uint64_t p : perm)
@@ -265,7 +265,7 @@ TEST_F(COORD, Permute)
 TEST_F(COORD, Flip)
 {
 	size_t dim = 3;
-	ade::CoordPtrT flipper = ade::flip(dim);
+	ade::CoordptrT flipper = ade::flip(dim);
 
 	std::vector<int32_t> icoord = {23, 66, 72, 83, 91, 1, 31, 21};
 	ade::CoordT fwd_out, in;

@@ -119,6 +119,7 @@ static inline void trim(std::string &s)
 static void TREE_EQ (std::istream& expectstr, ade::TensptrT& root)
 {
 	PrettyEquation artist;
+	artist.showshape_ = true;
 	std::stringstream gotstr;
 	artist.print(gotstr, root);
 
@@ -149,7 +150,7 @@ static void TREE_EQ (std::istream& expectstr, ade::TensptrT& root)
 }
 
 
-static void COORD_EQ (ade::CoordPtrT expect, ade::CoordPtrT got)
+static void COORD_EQ (ade::CoordptrT expect, ade::CoordptrT got)
 {
 	expect->access([&](const ade::MatrixT& expectm)
 	{
@@ -219,8 +220,8 @@ TEST(GRADER, Sum)
 
 	ade::TensptrT fwd(ade::Functor::get(
 		mock_rules->sum_opcode(), {
-		ade::MappedTensor(leaf, ade::identity),
-		ade::MappedTensor(leaf1, ade::identity),
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
 	}));
 
 	ade::TensptrT g1(derive(fwd, fwd.get()));
@@ -245,16 +246,16 @@ TEST(GRADER, Sum)
 	ostr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
 	lstr <<
-		"(*)\n" <<
-		" `--(*)\n" << // chain rule (derivative of SUM is PROD)
+		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   `--(+)\n" <<
+		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
 	rstr <<
-		"(*)\n" <<
-		" `--(*)\n" << // chain rule
-		" |   `--(+)\n" <<
+		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule
+		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
@@ -275,8 +276,8 @@ TEST(GRADER, Prod)
 
 	ade::TensptrT fwd(ade::Functor::get(
 		mock_rules->prod_opcode(), {
-		ade::MappedTensor(leaf, ade::identity),
-		ade::MappedTensor(leaf1, ade::identity),
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
 	}));
 
 	ade::TensptrT g1(derive(fwd, fwd.get()));
@@ -301,16 +302,16 @@ TEST(GRADER, Prod)
 	ostr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
 	lstr <<
-		"(*)\n" <<
-		" `--(+)\n" << // chain rule (derivative of PROD is SUM)
+		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule (derivative of PROD is SUM)
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   `--(+)\n" <<
+		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
 	rstr <<
-		"(*)\n" <<
-		" `--(+)\n" << // chain rule
-		" |   `--(+)\n" <<
+		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule
+		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
@@ -331,14 +332,14 @@ TEST(GRADER, SumProd)
 
 	ade::TensptrT prod(ade::Functor::get(
 		mock_rules->prod_opcode(), {
-		ade::MappedTensor(leaf, ade::identity),
-		ade::MappedTensor(leaf1, ade::identity),
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
 	}));
 
 	ade::TensptrT sum(ade::Functor::get(
 		mock_rules->sum_opcode(), {
-		ade::MappedTensor(prod, ade::identity),
-		ade::MappedTensor(prod, ade::identity),
+		ade::identity_map(prod),
+		ade::identity_map(prod),
 	}));
 
 	ade::TensptrT gl(derive(sum, leaf.get()));
@@ -348,56 +349,56 @@ TEST(GRADER, SumProd)
 	std::stringstream rstr;
 
 	lstr <<
-		"(*)\n" <<
-		" `--(+)\n" <<
+		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   `--(+)\n" <<
+		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" `--(+)\n" <<
-		"     `--(*)\n" <<
-		"     |   `--(*)\n" <<
-		"     |   |   `--(*)\n" <<
+		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     |   |   `--(+)\n" <<
-		"     |   |       `--(*)\n" <<
+		"     |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |       `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     `--(*)\n" <<
-		"         `--(*)\n" <<
-		"         |   `--(+)\n" <<
-		"         |   |   `--(*)\n" <<
+		"     `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"         |   `--(*)\n" <<
+		"         |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	rstr <<
-		"(*)\n" <<
-		" `--(+)\n" <<
-		" |   `--(+)\n" <<
+		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" `--(+)\n" <<
-		"     `--(*)\n" <<
-		"     |   `--(*)\n" <<
-		"     |   |   `--(*)\n" <<
+		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     |   |   `--(+)\n" <<
-		"     |   |       `--(*)\n" <<
+		"     |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"     |   |       `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"     `--(*)\n" <<
-		"         `--(*)\n" <<
-		"         |   `--(+)\n" <<
-		"         |   |   `--(*)\n" <<
+		"     `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"         |   `--(*)\n" <<
+		"         |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         `--([2\\3\\1\\1\\1\\1\\1\\1])\n";;
@@ -407,7 +408,188 @@ TEST(GRADER, SumProd)
 }
 
 
-TEST(GRADER, Mapper)
+TEST(GRADER, Extend)
+{
+	std::vector<ade::DimT> slist = {2};
+	std::vector<ade::DimT> slist1 = {2, 3};
+	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist1)));
+
+	auto left = ade::extend_map(leaf, 1, {3, 4});
+	auto right = ade::extend_map(leaf1, 2, {4});
+	ade::TensptrT fwd(
+		ade::Functor::get(mock_rules->sum_opcode(), {left, right}));
+
+	ade::CoordptrT leftmapper = left.get_shaper();
+	ade::CoordptrT rightmapper = right.get_shaper();
+	ade::CoordptrT leftrev(leftmapper->reverse());
+	ade::CoordptrT rightrev(rightmapper->reverse());
+
+	COORD_EQ(leftrev, left.get_coorder());
+	COORD_EQ(rightrev, right.get_coorder());
+
+	ade::TensptrT g1(derive(fwd, fwd.get()));
+	ade::TensptrT g0(derive(fwd, outside.get()));
+	ade::TensptrT gl(derive(fwd, leaf.get()));
+	ade::TensptrT gr(derive(fwd, leaf1.get()));
+
+	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
+	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
+
+	ASSERT_NE(nullptr, mock1);
+	ASSERT_NE(nullptr, mock0);
+
+	EXPECT_EQ(1, mock1->val_);
+	EXPECT_EQ(0, mock0->val_);
+
+	std::stringstream ostr;
+	std::stringstream zstr;
+	std::stringstream lstr;
+	std::stringstream rstr;
+
+	ostr << "([2\\3\\4\\1\\1\\1\\1\\1])\n";
+	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
+	lstr <<
+		"(*[2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\1\\1\\1\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
+		" |   `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--(+[2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\4\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
+	rstr <<
+		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule
+		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\4\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
+
+	TREE_EQ(ostr, g1);
+	TREE_EQ(zstr, g0);
+	TREE_EQ(lstr, gl);
+	TREE_EQ(rstr, gr);
+
+	auto fl = dynamic_cast<ade::Functor*>(gl.get());
+	auto fr = dynamic_cast<ade::Functor*>(gr.get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	auto children = fl->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_TRUE(children[1].map_io());
+	auto target_shaper = children[1].get_shaper();
+	auto target_mapper = children[1].get_coorder();
+	{
+		std::vector<double> expectout{2,1,1,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		// shaper is always input to output
+		ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+		// simulate out to input
+		ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+	}
+	COORD_EQ(leftrev, target_shaper);
+	COORD_EQ(leftrev, target_mapper);
+	fl = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
+
+	children = fr->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_TRUE(children[1].map_io());
+	target_shaper = children[1].get_shaper();
+	target_mapper = children[1].get_coorder();
+	{
+		std::vector<double> expectout{2,3,1,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+		// simulate input to output
+		ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+	}
+	COORD_EQ(rightrev, target_shaper);
+	COORD_EQ(rightrev, target_mapper);
+	fr = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	children = fl->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_EQ(ade::identity, children[1].get_shaper());
+	EXPECT_EQ(ade::identity, children[1].get_coorder());
+	fl = dynamic_cast<ade::Functor*>(children[1].get_tensor().get());
+
+	children = fr->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_EQ(ade::identity, children[1].get_shaper());
+	EXPECT_EQ(ade::identity, children[1].get_coorder());
+	fr = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	children = fl->get_children();
+	EXPECT_EQ(1, children.size());
+	EXPECT_TRUE(children[0].map_io());
+	target_shaper = children[0].get_shaper();
+	target_mapper = children[0].get_coorder();
+	ade::CoordptrT right2left(rightmapper->connect(*leftrev));
+	{
+		std::vector<double> expectout{2,1,1,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		// shaper is always input to output
+		ade::CDimT cin[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+		// simulate out to input
+		ade::CDimT cin2[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+	}
+	COORD_EQ(right2left, target_shaper);
+	COORD_EQ(right2left, target_mapper);
+
+	children = fr->get_children();
+	EXPECT_EQ(1, children.size());
+	EXPECT_FALSE(children[0].map_io());
+	target_shaper = children[0].get_shaper();
+	target_mapper = children[0].get_coorder();
+	ade::CoordptrT left2right(leftmapper->connect(*rightrev));
+	{
+		std::vector<double> expectshape{2,3,1,1,1,1,1,1};
+		std::vector<double> expectcoord{2,1,1,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		// shaper is always input to output
+		ade::CDimT cin[ade::rank_cap] = {2,1,1,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectshape, out, out + ade::rank_cap);
+		// simulate out to input
+		ade::CDimT cin2[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectcoord, out, out + ade::rank_cap);
+	}
+	ade::CoordptrT rev_l2r(left2right->reverse());
+	COORD_EQ(left2right, target_shaper);
+	COORD_EQ(rev_l2r, target_mapper);
+}
+
+
+TEST(GRADER, ReduceExtend)
 {
 	std::vector<ade::DimT> slist = {2, 3, 4};
 	std::vector<ade::DimT> slist1 = {2};
@@ -415,15 +597,18 @@ TEST(GRADER, Mapper)
 	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
 	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist1)));
 
-	auto leftmapper = ade::reduce(2, {4});
-	auto rightmapper = ade::extend(1, {3});
-	ade::TensptrT fwd(ade::Functor::get(mock_rules->sum_opcode(), {
-		ade::MappedTensor(leaf, leftmapper, true),
-		ade::MappedTensor(leaf1, rightmapper, false),
-	}));
+	auto left = ade::reduce_map(leaf, 2, {4});
+	auto right = ade::extend_map(leaf1, 1, {3});
+	ade::TensptrT fwd(
+		ade::Functor::get(mock_rules->sum_opcode(), {left, right}));
 
-	ade::CoordPtrT leftrev(leftmapper->reverse());
-	ade::CoordPtrT rightrev(rightmapper->reverse());
+	ade::CoordptrT leftmapper = left.get_shaper();
+	ade::CoordptrT rightmapper = right.get_shaper();
+	ade::CoordptrT leftrev(leftmapper->reverse());
+	ade::CoordptrT rightrev(rightmapper->reverse());
+
+	COORD_EQ(leftmapper, left.get_coorder());
+	COORD_EQ(rightrev, right.get_coorder());
 
 	ade::TensptrT g1(derive(fwd, fwd.get()));
 	ade::TensptrT g0(derive(fwd, outside.get()));
@@ -447,16 +632,16 @@ TEST(GRADER, Mapper)
 	ostr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
 	lstr <<
-		"(*)\n" <<
-		" `--(*)\n" << // chain rule (derivative of SUM is PROD)
+		"(*[2\\3\\4\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\3\\4\\1\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
 		" |   `--([2\\3\\4\\1\\1\\1\\1\\1])\n" <<
-		" |   `--(+)\n" <<
+		" |   `--(+[2\\3\\4\\1\\1\\1\\1\\1])\n" <<
 		" |       `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
 	rstr <<
-		"(*)\n" <<
-		" `--(*)\n" << // chain rule
-		" |   `--(+)\n" <<
+		"(*[2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\1\\1\\1\\1\\1\\1\\1])\n" << // chain rule
+		" |   `--(+[2\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |   `--([2\\3\\4\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--([2\\3\\1\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
@@ -474,11 +659,11 @@ TEST(GRADER, Mapper)
 
 	auto children = fl->get_children();
 	EXPECT_EQ(2, children.size());
-	EXPECT_EQ(ade::identity, children[0].shaper_);
-	EXPECT_EQ(ade::identity, children[0].mapper_);
-	EXPECT_FALSE(children[1].fwd_);
-	auto target_shaper = children[1].shaper_;
-	auto target_mapper = children[1].mapper_;
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_FALSE(children[1].map_io());
+	auto target_shaper = children[1].get_shaper();
+	auto target_mapper = children[1].get_coorder();
 	{
 		std::vector<double> expectshape{2,3,4,1,1,1,1,1};
 		std::vector<double> expectcoord{2,3,1,1,1,1,1,1};
@@ -494,15 +679,15 @@ TEST(GRADER, Mapper)
 	}
 	COORD_EQ(leftrev, target_shaper);
 	COORD_EQ(leftmapper, target_mapper);
-	fl = dynamic_cast<ade::Functor*>(children[0].tensor_.get());
+	fl = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
 
 	children = fr->get_children();
 	EXPECT_EQ(2, children.size());
-	EXPECT_EQ(ade::identity, children[0].shaper_);
-	EXPECT_EQ(ade::identity, children[0].mapper_);
-	EXPECT_TRUE(children[1].fwd_);
-	target_shaper = children[1].shaper_;
-	target_mapper = children[1].mapper_;
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_TRUE(children[1].map_io());
+	target_shaper = children[1].get_shaper();
+	target_mapper = children[1].get_coorder();
 	{
 		std::vector<double> expectout{2,1,1,1,1,1,1,1};
 		ade::CDimT out[ade::rank_cap];
@@ -516,36 +701,36 @@ TEST(GRADER, Mapper)
 	}
 	COORD_EQ(rightrev, target_shaper);
 	COORD_EQ(rightrev, target_mapper);
-	fr = dynamic_cast<ade::Functor*>(children[0].tensor_.get());
+	fr = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
 
 	ASSERT_NE(nullptr, fl);
 	ASSERT_NE(nullptr, fr);
 
 	children = fl->get_children();
 	EXPECT_EQ(2, children.size());
-	EXPECT_EQ(ade::identity, children[0].shaper_);
-	EXPECT_EQ(ade::identity, children[0].mapper_);
-	EXPECT_EQ(ade::identity, children[1].shaper_);
-	EXPECT_EQ(ade::identity, children[1].mapper_);
-	fl = dynamic_cast<ade::Functor*>(children[1].tensor_.get());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_EQ(ade::identity, children[1].get_shaper());
+	EXPECT_EQ(ade::identity, children[1].get_coorder());
+	fl = dynamic_cast<ade::Functor*>(children[1].get_tensor().get());
 
 	children = fr->get_children();
 	EXPECT_EQ(2, children.size());
-	EXPECT_EQ(ade::identity, children[0].shaper_);
-	EXPECT_EQ(ade::identity, children[0].mapper_);
-	EXPECT_EQ(ade::identity, children[1].shaper_);
-	EXPECT_EQ(ade::identity, children[1].mapper_);
-	fr = dynamic_cast<ade::Functor*>(children[0].tensor_.get());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_EQ(ade::identity, children[1].get_shaper());
+	EXPECT_EQ(ade::identity, children[1].get_coorder());
+	fr = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
 
 	ASSERT_NE(nullptr, fl);
 	ASSERT_NE(nullptr, fr);
 
 	children = fl->get_children();
 	EXPECT_EQ(1, children.size());
-	EXPECT_FALSE(children[0].fwd_);
-	target_shaper = children[0].shaper_;
-	target_mapper = children[0].mapper_;
-	ade::CoordPtrT right2left(rightmapper->connect(*leftrev));
+	EXPECT_FALSE(children[0].map_io());
+	target_shaper = children[0].get_shaper();
+	target_mapper = children[0].get_coorder();
+	ade::CoordptrT right2left(rightmapper->connect(*leftrev));
 	{
 		std::vector<double> expectshape{2,3,4,1,1,1,1,1};
 		std::vector<double> expectcoord{2,1,1,1,1,1,1,1};
@@ -559,16 +744,16 @@ TEST(GRADER, Mapper)
 		target_mapper->forward(out, cin2);
 		ARR_EQ(expectcoord, out, out + ade::rank_cap);
 	}
-	ade::CoordPtrT rev_r2l(right2left->reverse());
+	ade::CoordptrT rev_r2l(right2left->reverse());
 	COORD_EQ(right2left, target_shaper);
 	COORD_EQ(rev_r2l, target_mapper);
 
 	children = fr->get_children();
 	EXPECT_EQ(1, children.size());
-	EXPECT_TRUE(children[0].fwd_);
-	target_shaper = children[0].shaper_;
-	target_mapper = children[0].mapper_;
-	ade::CoordPtrT left2right(leftmapper->connect(*rightrev));
+	EXPECT_TRUE(children[0].map_io());
+	target_shaper = children[0].get_shaper();
+	target_mapper = children[0].get_coorder();
+	ade::CoordptrT left2right(leftmapper->connect(*rightrev));
 	{
 		std::vector<double> expectout{2,1,1,1,1,1,1,1};
 		ade::CDimT out[ade::rank_cap];
@@ -582,6 +767,189 @@ TEST(GRADER, Mapper)
 	}
 	COORD_EQ(left2right, target_shaper);
 	COORD_EQ(left2right, target_mapper);
+}
+
+
+TEST(GRADER, PermuteReduce)
+{
+	std::vector<ade::DimT> slist = {3, 2, 1, 4};
+	std::vector<ade::DimT> slist1 = {2, 3, 4, 5};
+	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist1)));
+
+	auto left = ade::permute_map(leaf, {1, 0, 3});
+	auto right = ade::reduce_map(leaf1, 3, {5});
+	ade::TensptrT fwd(
+		ade::Functor::get(mock_rules->sum_opcode(), {left, right}));
+
+	ade::CoordptrT leftmapper = left.get_shaper();
+	ade::CoordptrT rightmapper = right.get_shaper();
+	ade::CoordptrT leftrev(leftmapper->reverse());
+	ade::CoordptrT rightrev(rightmapper->reverse());
+
+	COORD_EQ(leftrev, left.get_coorder());
+	COORD_EQ(rightmapper, right.get_coorder());
+
+	ade::TensptrT g1(derive(fwd, fwd.get()));
+	ade::TensptrT g0(derive(fwd, outside.get()));
+	ade::TensptrT gl(derive(fwd, leaf.get()));
+	ade::TensptrT gr(derive(fwd, leaf1.get()));
+
+	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
+	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
+
+	ASSERT_NE(nullptr, mock1);
+	ASSERT_NE(nullptr, mock0);
+
+	EXPECT_EQ(1, mock1->val_);
+	EXPECT_EQ(0, mock0->val_);
+
+	std::stringstream ostr;
+	std::stringstream zstr;
+	std::stringstream lstr;
+	std::stringstream rstr;
+
+	ostr << "([2\\3\\4\\1\\1\\1\\1\\1])\n";
+	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
+	lstr <<
+		"(*[3\\2\\1\\4\\1\\1\\1\\1])\n" <<
+		" `--(*[3\\2\\1\\4\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
+		" |   `--([3\\2\\1\\4\\1\\1\\1\\1])\n" <<
+		" |   `--(+[3\\2\\1\\4\\1\\1\\1\\1])\n" <<
+		" |       `--([2\\3\\4\\5\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\4\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
+	rstr <<
+		"(*[2\\3\\4\\5\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\3\\4\\5\\1\\1\\1\\1])\n" << // chain rule
+		" |   `--(+[2\\3\\4\\5\\1\\1\\1\\1])\n" <<
+		" |   |   `--([3\\2\\1\\4\\1\\1\\1\\1])\n" <<
+		" |   `--([2\\3\\4\\5\\1\\1\\1\\1])\n" <<
+		" `--([2\\3\\4\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
+
+	TREE_EQ(ostr, g1);
+	TREE_EQ(zstr, g0);
+	TREE_EQ(lstr, gl);
+	TREE_EQ(rstr, gr);
+
+	auto fl = dynamic_cast<ade::Functor*>(gl.get());
+	auto fr = dynamic_cast<ade::Functor*>(gr.get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	auto children = fl->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_FALSE(children[1].map_io());
+	auto target_shaper = children[1].get_shaper();
+	auto target_mapper = children[1].get_coorder();
+	{
+		std::vector<double> expectshape{3,2,1,4,1,1,1,1};
+		std::vector<double> expectcoord{2,3,4,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		// shaper is always input to output
+		ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectshape, out, out + ade::rank_cap);
+		// simulate out to input
+		ade::CDimT cin2[ade::rank_cap] = {3,2,1,4,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectcoord, out, out + ade::rank_cap);
+	}
+	COORD_EQ(leftrev, target_shaper);
+	COORD_EQ(leftmapper, target_mapper);
+	fl = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
+
+	children = fr->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_FALSE(children[1].map_io());
+	target_shaper = children[1].get_shaper();
+	target_mapper = children[1].get_coorder();
+	{
+		std::vector<double> expectshape{2,3,4,5,1,1,1,1};
+		std::vector<double> expectcoord{2,3,4,1,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectshape, out, out + ade::rank_cap);
+		// simulate input to output
+		ade::CDimT cin2[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectcoord, out, out + ade::rank_cap);
+	}
+	COORD_EQ(rightrev, target_shaper);
+	COORD_EQ(rightmapper, target_mapper);
+	fr = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	children = fl->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_EQ(ade::identity, children[1].get_shaper());
+	EXPECT_EQ(ade::identity, children[1].get_coorder());
+	fl = dynamic_cast<ade::Functor*>(children[1].get_tensor().get());
+
+	children = fr->get_children();
+	EXPECT_EQ(2, children.size());
+	EXPECT_EQ(ade::identity, children[0].get_shaper());
+	EXPECT_EQ(ade::identity, children[0].get_coorder());
+	EXPECT_EQ(ade::identity, children[1].get_shaper());
+	EXPECT_EQ(ade::identity, children[1].get_coorder());
+	fr = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
+
+	ASSERT_NE(nullptr, fl);
+	ASSERT_NE(nullptr, fr);
+
+	children = fl->get_children();
+	EXPECT_EQ(1, children.size());
+	EXPECT_TRUE(children[0].map_io());
+	target_shaper = children[0].get_shaper();
+	target_mapper = children[0].get_coorder();
+	ade::CoordptrT right2left(rightmapper->connect(*leftrev));
+	{
+		std::vector<double> expectout{3,2,1,4,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		// shaper is always input to output
+		ade::CDimT cin[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+		// simulate out to input
+		ade::CDimT cin2[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectout, out, out + ade::rank_cap);
+	}
+	COORD_EQ(right2left, target_shaper);
+	COORD_EQ(right2left, target_mapper);
+
+	children = fr->get_children();
+	EXPECT_EQ(1, children.size());
+	EXPECT_FALSE(children[0].map_io());
+	target_shaper = children[0].get_shaper();
+	target_mapper = children[0].get_coorder();
+	ade::CoordptrT left2right(leftmapper->connect(*rightrev));
+	{
+		std::vector<double> expectshape{2,3,4,5,1,1,1,1};
+		std::vector<double> expectcoord{3,2,1,4,1,1,1,1};
+		ade::CDimT out[ade::rank_cap];
+		// shaper is always input to output
+		ade::CDimT cin[ade::rank_cap] = {3,2,1,4,1,1,1,1};
+		target_shaper->forward(out, cin);
+		ARR_EQ(expectshape, out, out + ade::rank_cap);
+		// simulate out to input
+		ade::CDimT cin2[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+		target_mapper->forward(out, cin2);
+		ARR_EQ(expectcoord, out, out + ade::rank_cap);
+	}
+	ade::CoordptrT rev_l2r(left2right->reverse());
+	COORD_EQ(left2right, target_shaper);
+	COORD_EQ(rev_l2r, target_mapper);
 }
 
 

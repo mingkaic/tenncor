@@ -26,8 +26,8 @@ TEST_F(FUNCTOR, Shapes)
 	ade::TensptrT badleaf(new MockTensor(badshape));
 
 	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
-		ade::MappedTensor(leaf, ade::identity),
-		ade::MappedTensor(leaf1, ade::identity),
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
 	}));
 
 	ade::Shape gotshape = func->shape();
@@ -40,8 +40,8 @@ TEST_F(FUNCTOR, Shapes)
 		"cannot perform MOCK with incompatible shapes %s and %s",
 		shape.to_string().c_str(), badshape.to_string().c_str());
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
-		ade::MappedTensor(leaf, ade::identity),
-		ade::MappedTensor(badleaf, ade::identity),
+		ade::identity_map(leaf),
+		ade::identity_map(badleaf),
 	}), fatalmsg.c_str());
 }
 
@@ -53,7 +53,7 @@ TEST_F(FUNCTOR, Opcode)
 	ade::TensptrT leaf(new MockTensor());
 
 	ade::Functor* func = ade::Functor::get(ade::Opcode{mockname, mockcode}, {
-		ade::MappedTensor(leaf, ade::identity),
+		ade::identity_map(leaf),
 	});
 
 	ade::Opcode op = func->get_opcode();
@@ -70,8 +70,8 @@ TEST_F(FUNCTOR, Childrens)
 	ade::TensptrT leaf1(new MockTensor());
 
 	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
-		ade::MappedTensor(leaf, ade::identity),
-		ade::MappedTensor(leaf1, ade::identity),
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
 	}));
 
 	ASSERT_NE(nullptr, func.get());
@@ -79,8 +79,8 @@ TEST_F(FUNCTOR, Childrens)
 	ade::ArgsT refs = static_cast<ade::iFunctor*>(func.get())->get_children();
 
 	ASSERT_EQ(2, refs.size());
-	EXPECT_EQ(leaf.get(), refs[0].tensor_.get());
-	EXPECT_EQ(leaf1.get(), refs[1].tensor_.get());
+	EXPECT_EQ(leaf.get(), refs[0].get_tensor().get());
+	EXPECT_EQ(leaf1.get(), refs[1].get_tensor().get());
 }
 
 
@@ -90,8 +90,8 @@ TEST_F(FUNCTOR, ToString)
 	ade::TensptrT leaf1(new MockTensor());
 
 	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
-		ade::MappedTensor(leaf, ade::identity),
-		ade::MappedTensor(leaf1, ade::identity),
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
 	}));
 
 	ASSERT_NE(nullptr, func.get());

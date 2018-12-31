@@ -62,45 +62,32 @@ void Grader::visit (ade::iFunctor* func)
 		{
 			ade::TensT args;
 			ade::MappedTensor& child = children[i];
-			ade::CoordPtrT bwd_shaper(child.shaper_->reverse());
-			ade::CoordPtrT bwd_mapper(child.mapper_->reverse());
+			ade::CoordptrT bwd_shaper(child.get_shaper()->reverse());
 			for (size_t j = 0; j < nchildren; ++j)
 			{
 				ade::MappedTensor& kid = children[j];
-				ade::TensptrT& tens = kid.tensor_;
+				ade::TensptrT tens = kid.get_tensor();
 				if (j == i)
 				{
 					args.push_back(tens);
 				}
 				else
 				{
-					ade::CoordPtrT shaper(kid.shaper_->connect(*bwd_shaper));
-					ade::CoordPtrT mapper(kid.mapper_->connect(*bwd_mapper));
-					if (child.fwd_)
-					{
-						mapper = ade::CoordPtrT(mapper->reverse());
-					}
+					ade::CoordptrT shaper(kid.get_shaper()->connect(*bwd_shaper));
 					// reverse children[j] to child's shape/coord space
 					args.push_back(ade::TensptrT(
 						ade::Functor::get(rules_->sum_opcode(), {
-							ade::MappedTensor(shaper, tens,
-								mapper, !child.fwd_),
+							ade::MappedTensor(tens, shaper),
 						})));
 				}
 			}
 			// pass down forward-gradient pair
 			ade::TensptrT grad(rules_->grad_rule(parent, args, i));
 
-			// apply chain rule
-			if (child.fwd_)
-			{
-				bwd_mapper = child.mapper_;
-			}
-			grads[child.tensor_.get()].push_back(ade::TensptrT(
+			grads[child.get_tensor().get()].push_back(ade::TensptrT(
 				ade::Functor::get(rules_->prod_opcode(), {
-					ade::MappedTensor(grad, ade::identity),
-					ade::MappedTensor(bwd_shaper, bwd,
-						bwd_mapper, !child.fwd_),
+					ade::identity_map(grad),
+					ade::MappedTensor(bwd, bwd_shaper),
 				})));
 		}
 	}
@@ -116,7 +103,7 @@ ade::ArgsT to_args (ade::TensT tens)
 	std::transform(tens.begin(), tens.end(), std::back_inserter(args),
 		[](ade::TensptrT& ten)
 		{
-			return ade::MappedTensor(ten, ade::identity);
+			return ade::identity_map(ten);
 		});
 	return args;
 }

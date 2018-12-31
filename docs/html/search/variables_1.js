@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['bwd_5f',['bwd_',['../structade_1_1_coord_map.html#aad5c6a9ae3997e1db9dd73cb644bf985',1,'ade::CoordMap']]]
+  ['code_5f',['code_',['../structade_1_1_opcode.html#a37bc6502405df1638aa87ba8204f558f',1,'ade::Opcode']]],
+  ['coorder_5f',['coorder_',['../structade_1_1_mapped_tensor.html#aa835e83b7003ddabb947253d00abddc8',1,'ade::MappedTensor']]]
 ];
