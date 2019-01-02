@@ -250,14 +250,16 @@ TEST(GRADER, Sum)
 		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |       `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	rstr <<
 		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
@@ -308,14 +310,16 @@ TEST(GRADER, Prod)
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule (derivative of PROD is SUM)
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |       `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	rstr <<
 		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
@@ -357,7 +361,8 @@ TEST(GRADER, SumProd)
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |       `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
@@ -366,17 +371,19 @@ TEST(GRADER, SumProd)
 		"         |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"         |   |       `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"         |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"         |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |       `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |           `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |               `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |               `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"             |   |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"             |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"             |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"             |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"             |   |       `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"             |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"             |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
@@ -386,7 +393,8 @@ TEST(GRADER, SumProd)
 		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
@@ -396,17 +404,19 @@ TEST(GRADER, SumProd)
 		"         |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   |   |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"         |   |       `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"         |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"         |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |       `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |           `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |               `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"         |   |               `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"             |   |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"             |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		"             |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"             |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"             |   |       `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"             |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		"             |   |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"             |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
@@ -465,14 +475,16 @@ TEST(GRADER, Extend)
 		" `--(*[2\\1\\1\\1\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
 		" |   `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(+[2\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |       `--(+[2\\3\\4\\1\\1\\1\\1\\1])\n" <<
+		" |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\1\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n";
 	rstr <<
 		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // chain rule
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   |   `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[2\\3\\4\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n";
@@ -541,21 +553,20 @@ TEST(GRADER, Extend)
 				EXPECT_TRUE(ggchildren[0].map_io());
 				auto target_shaper = ggchildren[0].get_shaper();
 				auto target_mapper = ggchildren[0].get_coorder();
-				ade::CoordptrT right2left(rightmapper->connect(*leftrev));
 				{
 					std::vector<double> expectout{2,1,1,1,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
-					ade::CDimT cin[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 					target_shaper->forward(out, cin);
 					ARR_EQ(expectout, out, out + ade::rank_cap);
 					// simulate out to input
-					ade::CDimT cin2[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+					ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 					target_mapper->forward(out, cin2);
 					ARR_EQ(expectout, out, out + ade::rank_cap);
 				}
-				COORD_EQ(right2left, target_shaper);
-				COORD_EQ(right2left, target_mapper);
+				COORD_EQ(leftrev, target_shaper);
+				COORD_EQ(leftrev, target_mapper);
 			}
 		}
 	}
@@ -613,26 +624,23 @@ TEST(GRADER, Extend)
 
 				auto ggchildren = gchild->get_children();
 				EXPECT_EQ(1, ggchildren.size());
-				EXPECT_FALSE(ggchildren[0].map_io());
+				EXPECT_TRUE(ggchildren[0].map_io());
 				auto target_shaper = ggchildren[0].get_shaper();
 				auto target_mapper = ggchildren[0].get_coorder();
-				ade::CoordptrT left2right(leftmapper->connect(*rightrev));
 				{
-					std::vector<double> expectshape{2,3,1,1,1,1,1,1};
-					std::vector<double> expectcoord{2,1,1,1,1,1,1,1};
+					std::vector<double> expectout{2,3,1,1,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
-					ade::CDimT cin[ade::rank_cap] = {2,1,1,1,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 					target_shaper->forward(out, cin);
-					ARR_EQ(expectshape, out, out + ade::rank_cap);
+					ARR_EQ(expectout, out, out + ade::rank_cap);
 					// simulate out to input
-					ade::CDimT cin2[ade::rank_cap] = {2,3,1,1,1,1,1,1};
+					ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 					target_mapper->forward(out, cin2);
-					ARR_EQ(expectcoord, out, out + ade::rank_cap);
+					ARR_EQ(expectout, out, out + ade::rank_cap);
 				}
-				ade::CoordptrT rev_l2r(left2right->reverse());
-				COORD_EQ(left2right, target_shaper);
-				COORD_EQ(rev_l2r, target_mapper);
+				COORD_EQ(rightrev, target_shaper);
+				COORD_EQ(rightrev, target_mapper);
 			}
 		}
 	}
@@ -686,14 +694,16 @@ TEST(GRADER, ReduceExtend)
 		" `--(*[2\\3\\4\\1\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
 		" |   `--([2\\3\\4\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(+[2\\3\\4\\1\\1\\1\\1\\1])\n" <<
-		" |       `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |       `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |           `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\4\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	rstr <<
 		"(*[2\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(*[2\\1\\1\\1\\1\\1\\1\\1])\n" << // chain rule
 		" |   `--(+[2\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   |   `--([2\\3\\4\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--([2\\3\\4\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\1\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
@@ -761,13 +771,12 @@ TEST(GRADER, ReduceExtend)
 				EXPECT_FALSE(ggchildren[0].map_io());
 				auto target_shaper = ggchildren[0].get_shaper();
 				auto target_mapper = ggchildren[0].get_coorder();
-				ade::CoordptrT right2left(rightmapper->connect(*leftrev));
 				{
 					std::vector<double> expectshape{2,3,4,1,1,1,1,1};
-					std::vector<double> expectcoord{2,1,1,1,1,1,1,1};
+					std::vector<double> expectcoord{2,3,1,1,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
-					ade::CDimT cin[ade::rank_cap] = {2,1,1,1,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {2,3,1,1,1,1,1,1};
 					target_shaper->forward(out, cin);
 					ARR_EQ(expectshape, out, out + ade::rank_cap);
 					// simulate out to input
@@ -775,9 +784,8 @@ TEST(GRADER, ReduceExtend)
 					target_mapper->forward(out, cin2);
 					ARR_EQ(expectcoord, out, out + ade::rank_cap);
 				}
-				ade::CoordptrT rev_r2l(right2left->reverse());
-				COORD_EQ(right2left, target_shaper);
-				COORD_EQ(rev_r2l, target_mapper);
+				COORD_EQ(leftrev, target_shaper);
+				COORD_EQ(leftmapper, target_mapper);
 
 			}
 		}
@@ -838,20 +846,19 @@ TEST(GRADER, ReduceExtend)
 				EXPECT_TRUE(ggchildren[0].map_io());
 				auto target_shaper = ggchildren[0].get_shaper();
 				auto target_mapper = ggchildren[0].get_coorder();
-				ade::CoordptrT left2right(leftmapper->connect(*rightrev));
 				{
 					std::vector<double> expectout{2,1,1,1,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
-					ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {2,3,1,1,1,1,1,1};
 					target_shaper->forward(out, cin);
 					ARR_EQ(expectout, out, out + ade::rank_cap);
 					// simulate input to output
-					ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
+					ade::CDimT cin2[ade::rank_cap] = {2,3,1,1,1,1,1,1};
 					target_mapper->forward(out, cin2);
 					ARR_EQ(expectout, out, out + ade::rank_cap);
 				}
-				COORD_EQ(left2right, target_shaper);
-				COORD_EQ(left2right, target_mapper);
+				COORD_EQ(rightrev, target_shaper);
+				COORD_EQ(rightrev, target_mapper);
 			}
 		}
 	}
@@ -905,14 +912,16 @@ TEST(GRADER, PermuteReduce)
 		" `--(*[4\\2\\1\\3\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
 		" |   `--([4\\2\\1\\3\\1\\1\\1\\1])\n" <<
 		" |   `--(+[4\\2\\1\\3\\1\\1\\1\\1])\n" <<
-		" |       `--([2\\3\\4\\5\\1\\1\\1\\1])\n" <<
+		" |       `--(+[2\\3\\4\\1\\1\\1\\1\\1])\n" <<
+		" |           `--([2\\3\\4\\5\\1\\1\\1\\1])\n" <<
 		" `--(+[4\\2\\1\\3\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n";
 	rstr <<
 		"(*[2\\3\\4\\5\\1\\1\\1\\1])\n" <<
 		" `--(*[2\\3\\4\\5\\1\\1\\1\\1])\n" << // chain rule
 		" |   `--(+[2\\3\\4\\5\\1\\1\\1\\1])\n" <<
-		" |   |   `--([4\\2\\1\\3\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[2\\3\\4\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--([4\\2\\1\\3\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\4\\5\\1\\1\\1\\1])\n" <<
 		" `--(+[2\\3\\4\\5\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n";
@@ -979,21 +988,20 @@ TEST(GRADER, PermuteReduce)
 				EXPECT_TRUE(ggchildren[0].map_io());
 				auto target_shaper = ggchildren[0].get_shaper();
 				auto target_mapper = ggchildren[0].get_coorder();
-				ade::CoordptrT right2left(rightmapper->connect(*leftrev));
 				{
 					std::vector<double> expectout{4,2,1,3,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
-					ade::CDimT cin[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 					target_shaper->forward(out, cin);
 					ARR_EQ(expectout, out, out + ade::rank_cap);
 					// simulate out to input
-					ade::CDimT cin2[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+					ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 					target_mapper->forward(out, cin2);
 					ARR_EQ(expectout, out, out + ade::rank_cap);
 				}
-				COORD_EQ(right2left, target_shaper);
-				COORD_EQ(right2left, target_mapper);
+				COORD_EQ(leftrev, target_shaper);
+				COORD_EQ(leftrev, target_mapper);
 			}
 		}
 	}
@@ -1054,13 +1062,12 @@ TEST(GRADER, PermuteReduce)
 				EXPECT_FALSE(ggchildren[0].map_io());
 				auto target_shaper = ggchildren[0].get_shaper();
 				auto target_mapper = ggchildren[0].get_coorder();
-				ade::CoordptrT left2right(leftmapper->connect(*rightrev));
 				{
 					std::vector<double> expectshape{2,3,4,5,1,1,1,1};
-					std::vector<double> expectcoord{4,2,1,3,1,1,1,1};
+					std::vector<double> expectcoord{2,3,4,1,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
-					ade::CDimT cin[ade::rank_cap] = {4,2,1,3,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 					target_shaper->forward(out, cin);
 					ARR_EQ(expectshape, out, out + ade::rank_cap);
 					// simulate out to input
@@ -1068,9 +1075,8 @@ TEST(GRADER, PermuteReduce)
 					target_mapper->forward(out, cin2);
 					ARR_EQ(expectcoord, out, out + ade::rank_cap);
 				}
-				ade::CoordptrT rev_l2r(left2right->reverse());
-				COORD_EQ(left2right, target_shaper);
-				COORD_EQ(rev_l2r, target_mapper);
+				COORD_EQ(rightrev, target_shaper);
+				COORD_EQ(rightmapper, target_mapper);
 			}
 		}
 	}
@@ -1125,14 +1131,16 @@ TEST(GRADER, DiffShaperCoorder)
 		" `--(*[4\\4\\3\\3\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
 		" |   `--([4\\4\\3\\3\\1\\1\\1\\1])\n" <<
 		" |   `--(+[4\\4\\3\\3\\1\\1\\1\\1])\n" <<
-		" |       `--([3\\3\\4\\4\\1\\1\\1\\1])\n" <<
+		" |       `--(+[3\\4\\3\\4\\1\\1\\1\\1])\n" <<
+		" |           `--([3\\3\\4\\4\\1\\1\\1\\1])\n" <<
 		" `--(+[4\\4\\3\\3\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([3\\4\\3\\4\\1\\1\\1\\1])\n";
 	rstr <<
 		"(*[3\\3\\4\\4\\1\\1\\1\\1])\n" <<
 		" `--(*[3\\3\\4\\4\\1\\1\\1\\1])\n" << // chain rule
 		" |   `--(+[3\\3\\4\\4\\1\\1\\1\\1])\n" <<
-		" |   |   `--([4\\4\\3\\3\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[3\\4\\3\\4\\1\\1\\1\\1])\n" <<
+		" |   |       `--([4\\4\\3\\3\\1\\1\\1\\1])\n" <<
 		" |   `--([3\\3\\4\\4\\1\\1\\1\\1])\n" <<
 		" `--(+[3\\3\\4\\4\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([3\\4\\3\\4\\1\\1\\1\\1])\n";
@@ -1197,15 +1205,15 @@ TEST(GRADER, DiffShaperCoorder)
 
 				auto ggchildren = gchild->get_children();
 				EXPECT_EQ(1, ggchildren.size());
-				EXPECT_FALSE(ggchildren[0].map_io());
+				EXPECT_TRUE(ggchildren[0].map_io());
 				auto target_shaper = ggchildren[0].get_shaper();
 				auto target_mapper = ggchildren[0].get_coorder();
 				{
 					std::vector<double> expectshape{4,4,3,3,1,1,1,1};
-					std::vector<double> expectcoord{5,4,2,3,1,1,1,1};
+					std::vector<double> expectcoord{3,5,2,4,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
-					ade::CDimT cin[ade::rank_cap] = {3,3,4,4,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {3,4,3,4,1,1,1,1};
 					target_shaper->forward(out, cin);
 					ARR_EQ(expectshape, out, out + ade::rank_cap);
 					// simulate out to input
@@ -1213,10 +1221,8 @@ TEST(GRADER, DiffShaperCoorder)
 					target_mapper->forward(out, cin2);
 					ARR_EQ(expectcoord, out, out + ade::rank_cap);
 				}
-				ade::CoordptrT exshaper(rightshaper->connect(*leftshaperev));
-				COORD_EQ(exshaper, target_shaper);
-				ade::CoordptrT excoorder(leftcoordrev->connect(*rightcoordrev));
-				COORD_EQ(excoorder, target_mapper);
+				COORD_EQ(leftshaperev, target_shaper);
+				COORD_EQ(leftmapper, target_mapper);
 			}
 		}
 	}
@@ -1279,10 +1285,10 @@ TEST(GRADER, DiffShaperCoorder)
 				auto target_mapper = ggchildren[0].get_coorder();
 				{
 					std::vector<double> expectshape{3,3,4,4,1,1,1,1};
-					std::vector<double> expectcoord{4,5,3,2,1,1,1,1};
+					std::vector<double> expectcoord{3,4,2,5,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
-					ade::CDimT cin[ade::rank_cap] = {4,4,3,3,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {3,4,3,4,1,1,1,1};
 					target_shaper->forward(out, cin);
 					ARR_EQ(expectshape, out, out + ade::rank_cap);
 					// simulate out to input
@@ -1290,10 +1296,8 @@ TEST(GRADER, DiffShaperCoorder)
 					target_mapper->forward(out, cin2);
 					ARR_EQ(expectcoord, out, out + ade::rank_cap);
 				}
-				ade::CoordptrT exshaper(leftshaper->connect(*rightshaperev));
-				COORD_EQ(exshaper, target_shaper);
-				ade::CoordptrT excoorder(rightmapper->connect(*leftmapper));
-				COORD_EQ(excoorder, target_mapper);
+				COORD_EQ(rightshaperev, target_shaper);
+				COORD_EQ(rightmapper, target_mapper);
 			}
 		}
 	}

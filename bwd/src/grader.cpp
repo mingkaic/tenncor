@@ -7,6 +7,8 @@ namespace age
 
 void Grader::visit (ade::iFunctor* func)
 {
+	const ade::Opcode sum = rules_->sum_opcode();
+	const ade::Opcode prod = rules_->prod_opcode();
 	if (func == target_)
 	{
 		derivatives_.emplace(func, rules_->data(1, target_->shape()));
@@ -48,7 +50,7 @@ void Grader::visit (ade::iFunctor* func)
 	{
 		ade::TensT& gargs = grads[parent];
 		ade::TensptrT bwd = gargs.size() > 1 ? ade::TensptrT(
-			ade::Functor::get(rules_->sum_opcode(), to_args(gargs))) :
+			ade::Functor::get(sum, to_args(gargs))) :
 			gargs[0];
 
 		auto& grad_indices = pathmap[parent];
@@ -62,7 +64,9 @@ void Grader::visit (ade::iFunctor* func)
 		{
 			ade::TensT args;
 			ade::MappedTensor& child = children[i];
-			ade::MappedTensor mapped_bwd = child.reverse(bwd);
+			ade::CoordptrT revshaper(child.get_shaper()->reverse());
+			bool revmapper = !child.map_io();
+			ade::CoordptrT revcoorder = child.get_coorder();
 			for (size_t j = 0; j < nchildren; ++j)
 			{
 				ade::MappedTensor& kid = children[j];
@@ -74,19 +78,26 @@ void Grader::visit (ade::iFunctor* func)
 				else
 				{
 					// reverse children[j] to child's shape/coord space
-					args.push_back(ade::TensptrT(
-						ade::Functor::get(rules_->sum_opcode(), {
-							kid.connect(mapped_bwd)})));
+					args.push_back(ade::TensptrT(ade::Functor::get(sum, {
+						ade::MappedTensor(
+							ade::TensptrT(ade::Functor::get(sum, {kid})),
+							revshaper,
+							revmapper,
+							revcoorder)
+					})));
 				}
 			}
 			// pass down forward-gradient pair
 			ade::TensptrT grad(rules_->grad_rule(parent, args, i));
 
 			grads[child.get_tensor().get()].push_back(ade::TensptrT(
-				ade::Functor::get(rules_->prod_opcode(), {
+				ade::Functor::get(prod, {
 					ade::identity_map(grad),
 					ade::identity_map(ade::TensptrT(
-						ade::Functor::get(rules_->sum_opcode(), {mapped_bwd})
+						ade::Functor::get(sum, {
+							ade::MappedTensor(bwd, revshaper,
+								revmapper, revcoorder)
+						})
 					)),
 				})));
 		}
