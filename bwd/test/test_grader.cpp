@@ -860,13 +860,13 @@ TEST(GRADER, ReduceExtend)
 
 TEST(GRADER, PermuteReduce)
 {
-	std::vector<ade::DimT> slist = {3, 2, 1, 4};
+	std::vector<ade::DimT> slist = {4, 2, 1, 3};
 	std::vector<ade::DimT> slist1 = {2, 3, 4, 5};
 	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
 	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
 	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist1)));
 
-	auto left = ade::permute_map(leaf, {1, 0, 3});
+	auto left = ade::permute_map(leaf, {1, 3, 0});
 	auto right = ade::reduce_map(leaf1, 3, {5});
 	ade::TensptrT fwd(
 		ade::Functor::get(mock_rules->sum_opcode(), {left, right}));
@@ -901,21 +901,21 @@ TEST(GRADER, PermuteReduce)
 	ostr << "([2\\3\\4\\1\\1\\1\\1\\1])\n";
 	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
 	lstr <<
-		"(*[3\\2\\1\\4\\1\\1\\1\\1])\n" <<
-		" `--(*[3\\2\\1\\4\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
-		" |   `--([3\\2\\1\\4\\1\\1\\1\\1])\n" <<
-		" |   `--(+[3\\2\\1\\4\\1\\1\\1\\1])\n" <<
+		"(*[4\\2\\1\\3\\1\\1\\1\\1])\n" <<
+		" `--(*[4\\2\\1\\3\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
+		" |   `--([4\\2\\1\\3\\1\\1\\1\\1])\n" <<
+		" |   `--(+[4\\2\\1\\3\\1\\1\\1\\1])\n" <<
 		" |       `--([2\\3\\4\\5\\1\\1\\1\\1])\n" <<
-		" `--(+[3\\2\\1\\4\\1\\1\\1\\1])\n" <<
-		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
+		" `--(+[4\\2\\1\\3\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
+		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n";
 	rstr <<
 		"(*[2\\3\\4\\5\\1\\1\\1\\1])\n" <<
 		" `--(*[2\\3\\4\\5\\1\\1\\1\\1])\n" << // chain rule
 		" |   `--(+[2\\3\\4\\5\\1\\1\\1\\1])\n" <<
-		" |   |   `--([3\\2\\1\\4\\1\\1\\1\\1])\n" <<
+		" |   |   `--([4\\2\\1\\3\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\4\\5\\1\\1\\1\\1])\n" <<
-		" `--(+[2\\3\\4\\5\\1\\1\\1\\1])\n" <<
-		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n"; // derivative of leaf wrt leaf
+		" `--(+[2\\3\\4\\5\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
+		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n";
 
 	TREE_EQ(ostr, g1);
 	TREE_EQ(zstr, g0);
@@ -939,24 +939,23 @@ TEST(GRADER, PermuteReduce)
 			ASSERT_NE(nullptr, child);
 
 			auto gchildren = child->get_children();
-			EXPECT_FALSE(gchildren[0].map_io());
+			EXPECT_TRUE(gchildren[0].map_io());
 			auto target_shaper = gchildren[0].get_shaper();
 			auto target_mapper = gchildren[0].get_coorder();
 			{
-				std::vector<double> expectshape{3,2,1,4,1,1,1,1};
-				std::vector<double> expectcoord{2,3,4,1,1,1,1,1};
+				std::vector<double> expectout{4,2,1,3,1,1,1,1};
 				ade::CDimT out[ade::rank_cap];
 				// shaper is always input to output
 				ade::CDimT cin[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 				target_shaper->forward(out, cin);
-				ARR_EQ(expectshape, out, out + ade::rank_cap);
+				ARR_EQ(expectout, out, out + ade::rank_cap);
 				// simulate out to input
-				ade::CDimT cin2[ade::rank_cap] = {3,2,1,4,1,1,1,1};
+				ade::CDimT cin2[ade::rank_cap] = {2,3,4,1,1,1,1,1};
 				target_mapper->forward(out, cin2);
-				ARR_EQ(expectcoord, out, out + ade::rank_cap);
+				ARR_EQ(expectout, out, out + ade::rank_cap);
 			}
 			COORD_EQ(leftrev, target_shaper);
-			COORD_EQ(leftmapper, target_mapper);
+			COORD_EQ(leftrev, target_mapper);
 		}
 
 		{
@@ -982,7 +981,7 @@ TEST(GRADER, PermuteReduce)
 				auto target_mapper = ggchildren[0].get_coorder();
 				ade::CoordptrT right2left(rightmapper->connect(*leftrev));
 				{
-					std::vector<double> expectout{3,2,1,4,1,1,1,1};
+					std::vector<double> expectout{4,2,1,3,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
 					ade::CDimT cin[ade::rank_cap] = {2,3,4,5,1,1,1,1};
@@ -1058,10 +1057,10 @@ TEST(GRADER, PermuteReduce)
 				ade::CoordptrT left2right(leftmapper->connect(*rightrev));
 				{
 					std::vector<double> expectshape{2,3,4,5,1,1,1,1};
-					std::vector<double> expectcoord{3,2,1,4,1,1,1,1};
+					std::vector<double> expectcoord{4,2,1,3,1,1,1,1};
 					ade::CDimT out[ade::rank_cap];
 					// shaper is always input to output
-					ade::CDimT cin[ade::rank_cap] = {3,2,1,4,1,1,1,1};
+					ade::CDimT cin[ade::rank_cap] = {4,2,1,3,1,1,1,1};
 					target_shaper->forward(out, cin);
 					ARR_EQ(expectshape, out, out + ade::rank_cap);
 					// simulate out to input
@@ -1072,6 +1071,229 @@ TEST(GRADER, PermuteReduce)
 				ade::CoordptrT rev_l2r(left2right->reverse());
 				COORD_EQ(left2right, target_shaper);
 				COORD_EQ(rev_l2r, target_mapper);
+			}
+		}
+	}
+}
+
+
+TEST(GRADER, DiffShaperCoorder)
+{
+	std::vector<ade::DimT> slist = {4, 4, 3, 3};
+	std::vector<ade::DimT> slist1 = {3, 3, 4, 4};
+	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist1)));
+
+	ade::CoordptrT leftshaper = ade::permute({2, 1, 3, 0});
+	ade::CoordptrT rightshaper = ade::permute({0, 3, 1, 2});
+	ade::CoordptrT leftmapper = ade::permute({1, 3, 0, 2});
+	ade::CoordptrT rightmapper = ade::permute({1, 2, 0, 3});
+	ade::MappedTensor left(leaf, leftshaper, false, leftmapper);
+	ade::MappedTensor right(leaf1, rightshaper, true, rightmapper);
+	ade::TensptrT fwd(
+		ade::Functor::get(mock_rules->sum_opcode(), {left, right}));
+
+	ade::CoordptrT leftshaperev(leftshaper->reverse());
+	ade::CoordptrT rightshaperev(rightshaper->reverse());
+	ade::CoordptrT leftcoordrev(leftmapper->reverse());
+	ade::CoordptrT rightcoordrev(rightmapper->reverse());
+
+	ade::TensptrT g1(derive(fwd, fwd.get()));
+	ade::TensptrT g0(derive(fwd, outside.get()));
+	ade::TensptrT gl(derive(fwd, leaf.get()));
+	ade::TensptrT gr(derive(fwd, leaf1.get()));
+
+	auto mock1 = dynamic_cast<MockTensor*>(g1.get());
+	auto mock0 = dynamic_cast<MockTensor*>(g0.get());
+
+	ASSERT_NE(nullptr, mock1);
+	ASSERT_NE(nullptr, mock0);
+
+	EXPECT_EQ(1, mock1->val_);
+	EXPECT_EQ(0, mock0->val_);
+
+	std::stringstream ostr;
+	std::stringstream zstr;
+	std::stringstream lstr;
+	std::stringstream rstr;
+
+	ostr << "([3\\4\\3\\4\\1\\1\\1\\1])\n";
+	zstr << "([7\\1\\1\\1\\1\\1\\1\\1])\n";
+	lstr <<
+		"(*[4\\4\\3\\3\\1\\1\\1\\1])\n" <<
+		" `--(*[4\\4\\3\\3\\1\\1\\1\\1])\n" << // chain rule (derivative of SUM is PROD)
+		" |   `--([4\\4\\3\\3\\1\\1\\1\\1])\n" <<
+		" |   `--(+[4\\4\\3\\3\\1\\1\\1\\1])\n" <<
+		" |       `--([3\\3\\4\\4\\1\\1\\1\\1])\n" <<
+		" `--(+[4\\4\\3\\3\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
+		"     `--([3\\4\\3\\4\\1\\1\\1\\1])\n";
+	rstr <<
+		"(*[3\\3\\4\\4\\1\\1\\1\\1])\n" <<
+		" `--(*[3\\3\\4\\4\\1\\1\\1\\1])\n" << // chain rule
+		" |   `--(+[3\\3\\4\\4\\1\\1\\1\\1])\n" <<
+		" |   |   `--([4\\4\\3\\3\\1\\1\\1\\1])\n" <<
+		" |   `--([3\\3\\4\\4\\1\\1\\1\\1])\n" <<
+		" `--(+[3\\3\\4\\4\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
+		"     `--([3\\4\\3\\4\\1\\1\\1\\1])\n";
+
+	TREE_EQ(ostr, g1);
+	TREE_EQ(zstr, g0);
+	TREE_EQ(lstr, gl);
+	TREE_EQ(rstr, gr);
+
+	{
+		auto fl = dynamic_cast<ade::Functor*>(gl.get());
+		ASSERT_NE(nullptr, fl);
+
+		auto children = fl->get_children();
+		EXPECT_EQ(2, children.size());
+		EXPECT_EQ(ade::identity, children[0].get_shaper());
+		EXPECT_EQ(ade::identity, children[0].get_coorder());
+		EXPECT_EQ(ade::identity, children[1].get_shaper());
+		EXPECT_EQ(ade::identity, children[1].get_coorder());
+
+		{
+			auto child = dynamic_cast<ade::Functor*>(
+				children[1].get_tensor().get());
+			ASSERT_NE(nullptr, child);
+
+			auto gchildren = child->get_children();
+			EXPECT_TRUE(gchildren[0].map_io());
+			auto target_shaper = gchildren[0].get_shaper();
+			auto target_mapper = gchildren[0].get_coorder();
+			{
+				std::vector<double> expectshape{4,4,3,3,1,1,1,1};
+				std::vector<double> expectcoord{3,5,2,4,1,1,1,1};
+				ade::CDimT out[ade::rank_cap];
+				// shaper is always input to output
+				ade::CDimT cin[ade::rank_cap] = {3,4,3,4,1,1,1,1};
+				target_shaper->forward(out, cin);
+				ARR_EQ(expectshape, out, out + ade::rank_cap);
+				// simulate out to input
+				ade::CDimT cin2[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+				target_mapper->forward(out, cin2);
+				ARR_EQ(expectcoord, out, out + ade::rank_cap);
+			}
+			COORD_EQ(leftshaperev, target_shaper);
+			COORD_EQ(leftmapper, target_mapper);
+		}
+
+		{
+			auto child = dynamic_cast<ade::Functor*>(
+				children[0].get_tensor().get());
+			ASSERT_NE(nullptr, child);
+
+			auto gchildren = child->get_children();
+			EXPECT_EQ(2, gchildren.size());
+			EXPECT_EQ(ade::identity, gchildren[0].get_shaper());
+			EXPECT_EQ(ade::identity, gchildren[0].get_coorder());
+			EXPECT_EQ(ade::identity, gchildren[1].get_shaper());
+			EXPECT_EQ(ade::identity, gchildren[1].get_coorder());
+
+			{
+				auto gchild = dynamic_cast<ade::Functor*>(gchildren[1].get_tensor().get());
+				ASSERT_NE(nullptr, gchild);
+
+				auto ggchildren = gchild->get_children();
+				EXPECT_EQ(1, ggchildren.size());
+				EXPECT_FALSE(ggchildren[0].map_io());
+				auto target_shaper = ggchildren[0].get_shaper();
+				auto target_mapper = ggchildren[0].get_coorder();
+				{
+					std::vector<double> expectshape{4,4,3,3,1,1,1,1};
+					std::vector<double> expectcoord{5,4,2,3,1,1,1,1};
+					ade::CDimT out[ade::rank_cap];
+					// shaper is always input to output
+					ade::CDimT cin[ade::rank_cap] = {3,3,4,4,1,1,1,1};
+					target_shaper->forward(out, cin);
+					ARR_EQ(expectshape, out, out + ade::rank_cap);
+					// simulate out to input
+					ade::CDimT cin2[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+					target_mapper->forward(out, cin2);
+					ARR_EQ(expectcoord, out, out + ade::rank_cap);
+				}
+				ade::CoordptrT exshaper(rightshaper->connect(*leftshaperev));
+				COORD_EQ(exshaper, target_shaper);
+				ade::CoordptrT excoorder(leftcoordrev->connect(*rightcoordrev));
+				COORD_EQ(excoorder, target_mapper);
+			}
+		}
+	}
+
+	{
+		auto fr = dynamic_cast<ade::Functor*>(gr.get());
+		ASSERT_NE(nullptr, fr);
+
+		auto children = fr->get_children();
+		EXPECT_EQ(2, children.size());
+		EXPECT_EQ(ade::identity, children[0].get_shaper());
+		EXPECT_EQ(ade::identity, children[0].get_coorder());
+		EXPECT_EQ(ade::identity, children[1].get_shaper());
+		EXPECT_EQ(ade::identity, children[1].get_coorder());
+
+		{
+			auto child = dynamic_cast<ade::Functor*>(
+				children[1].get_tensor().get());
+			ASSERT_NE(nullptr, child);
+
+			auto gchildren = child->get_children();
+			EXPECT_FALSE(gchildren[0].map_io());
+			auto target_shaper = gchildren[0].get_shaper();
+			auto target_mapper = gchildren[0].get_coorder();
+			{
+				std::vector<double> expectshape{3,3,4,4,1,1,1,1};
+				std::vector<double> expectcoord{3,4,2,5,1,1,1,1};
+				ade::CDimT out[ade::rank_cap];
+				ade::CDimT cin[ade::rank_cap] = {3,4,3,4,1,1,1,1};
+				target_shaper->forward(out, cin);
+				ARR_EQ(expectshape, out, out + ade::rank_cap);
+				// simulate input to output
+				ade::CDimT cin2[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+				target_mapper->forward(out, cin2);
+				ARR_EQ(expectcoord, out, out + ade::rank_cap);
+			}
+			COORD_EQ(rightshaperev, target_shaper);
+			COORD_EQ(rightmapper, target_mapper);
+		}
+
+		{
+			auto child = dynamic_cast<ade::Functor*>(children[0].get_tensor().get());
+			ASSERT_NE(nullptr, child);
+
+			auto gchildren = child->get_children();
+			EXPECT_EQ(2, gchildren.size());
+			EXPECT_EQ(ade::identity, gchildren[0].get_shaper());
+			EXPECT_EQ(ade::identity, gchildren[0].get_coorder());
+			EXPECT_EQ(ade::identity, gchildren[1].get_shaper());
+			EXPECT_EQ(ade::identity, gchildren[1].get_coorder());
+
+			{
+				auto gchild = dynamic_cast<ade::Functor*>(gchildren[0].get_tensor().get());
+				ASSERT_NE(nullptr, gchild);
+
+				auto ggchildren = gchild->get_children();
+				EXPECT_EQ(1, ggchildren.size());
+				EXPECT_FALSE(ggchildren[0].map_io());
+				auto target_shaper = ggchildren[0].get_shaper();
+				auto target_mapper = ggchildren[0].get_coorder();
+				{
+					std::vector<double> expectshape{3,3,4,4,1,1,1,1};
+					std::vector<double> expectcoord{4,5,3,2,1,1,1,1};
+					ade::CDimT out[ade::rank_cap];
+					// shaper is always input to output
+					ade::CDimT cin[ade::rank_cap] = {4,4,3,3,1,1,1,1};
+					target_shaper->forward(out, cin);
+					ARR_EQ(expectshape, out, out + ade::rank_cap);
+					// simulate out to input
+					ade::CDimT cin2[ade::rank_cap] = {2,3,4,5,1,1,1,1};
+					target_mapper->forward(out, cin2);
+					ARR_EQ(expectcoord, out, out + ade::rank_cap);
+				}
+				ade::CoordptrT exshaper(leftshaper->connect(*rightshaperev));
+				COORD_EQ(exshaper, target_shaper);
+				ade::CoordptrT excoorder(rightmapper->connect(*leftmapper));
+				COORD_EQ(excoorder, target_mapper);
 			}
 		}
 	}

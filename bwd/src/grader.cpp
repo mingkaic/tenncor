@@ -62,7 +62,7 @@ void Grader::visit (ade::iFunctor* func)
 		{
 			ade::TensT args;
 			ade::MappedTensor& child = children[i];
-			ade::CoordptrT bwd_shaper(child.get_shaper()->reverse());
+			ade::MappedTensor mapped_bwd = child.reverse(bwd);
 			for (size_t j = 0; j < nchildren; ++j)
 			{
 				ade::MappedTensor& kid = children[j];
@@ -73,12 +73,10 @@ void Grader::visit (ade::iFunctor* func)
 				}
 				else
 				{
-					ade::CoordptrT shaper(kid.get_shaper()->connect(*bwd_shaper));
 					// reverse children[j] to child's shape/coord space
 					args.push_back(ade::TensptrT(
 						ade::Functor::get(rules_->sum_opcode(), {
-							ade::MappedTensor(tens, shaper),
-						})));
+							kid.connect(mapped_bwd)})));
 				}
 			}
 			// pass down forward-gradient pair
@@ -88,9 +86,7 @@ void Grader::visit (ade::iFunctor* func)
 				ade::Functor::get(rules_->prod_opcode(), {
 					ade::identity_map(grad),
 					ade::identity_map(ade::TensptrT(
-						ade::Functor::get(rules_->sum_opcode(), {
-							ade::MappedTensor(bwd, bwd_shaper),
-						})
+						ade::Functor::get(rules_->sum_opcode(), {mapped_bwd})
 					)),
 				})));
 		}

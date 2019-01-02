@@ -19,7 +19,7 @@ struct MappedTensor final
 			logs::fatal("cannot map a null tensor");
 		}
 		map_io_ = tensor_->shape().n_elems() > shape().n_elems();
-		if (shaper == ade::identity || map_io_)
+		if (shaper == identity || map_io_)
 		{
 			coorder_ = shaper;
 		}
@@ -42,25 +42,7 @@ struct MappedTensor final
 	}
 
 	/// Return shape of tensor filtered through coordinate mapper
-	Shape shape (void) const
-	{
-		const Shape& shape = tensor_->shape();
-		CoordT out;
-		CoordT in;
-		std::copy(shape.begin(), shape.end(), in.begin());
-		shaper_->forward(out.begin(), in.begin());
-		std::vector<DimT> slist(rank_cap);
-		std::transform(out.begin(), out.end(), slist.begin(),
-			[](CDimT cd) -> DimT
-			{
-				if (cd < 0)
-				{
-					cd = -cd - 1;
-				}
-				return std::round(cd);
-			});
-		return Shape(slist);
-	}
+	Shape shape (void) const;
 
 	TensptrT get_tensor (void) const
 	{
@@ -81,6 +63,18 @@ struct MappedTensor final
 	CoordptrT get_coorder (void) const
 	{
 		return coorder_;
+	}
+
+	/// Return MappedTesnor connecting this instance to lhs'
+	/// shaper and coorder info
+	MappedTensor connect (MappedTensor lhs) const;
+
+	/// Return MappedTensor taking input tens and reverse of
+	/// this instance's shaper and coorder info
+	MappedTensor reverse (TensptrT tens) const
+	{
+		return MappedTensor(tens, CoordptrT(shaper_->reverse()),
+			!map_io_, coorder_);
 	}
 
 private:
