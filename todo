@@ -1,3 +1,6 @@
+correction:
+P3 - reorient tests so that tests cover its own immediate module
+
 transparency:
 P4 - add more debugging tools
 P4 - formalize codestyle

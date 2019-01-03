@@ -47,6 +47,10 @@ TEST_F(TENSOR, MappedTensor)
 
 	EXPECT_FATAL(ade::identity_map(nullptr),
 		"cannot map a null tensor");
+
+	EXPECT_FATAL(ade::MappedTensor(nullptr, ade::reduce(3, {4}),
+		false, ade::extend(3, {4})),
+		"cannot map a null tensor");
 }
 
 
