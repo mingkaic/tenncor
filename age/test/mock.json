@@ -17,7 +17,6 @@
     },
     "data": {
         "sum": "EMINEM",
-        "prod": "KHALED",
         "data_out": "SweetPotato&",
         "data_in": "Pomegranate&",
         "scalarize": "ade::LeafptrT(new MockTensor(scalar, shape))"

@@ -35,7 +35,7 @@ struct GraphStat final : public iTraveler
 			size_t ngraph = 0;
 			for (auto& child : children)
 			{
-				iTensor* tens = child.tensor_.get();
+				iTensor* tens = child.get_tensor().get();
 				tens->accept(*this);
 				auto childinfo = graphsize_.find(tens);
 				if (graphsize_.end() != childinfo &&
@@ -77,7 +77,7 @@ struct PathFinder final : public iTraveler
 			std::unordered_set<size_t> path;
 			for (size_t i = 0; i < n; ++i)
 			{
-				TensptrT tens = children[i].tensor_;
+				TensptrT tens = children[i].get_tensor();
 				if (tens.get() == target_)
 				{
 					path.emplace(i);

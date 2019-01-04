@@ -32,23 +32,18 @@ TEST(AGE, RulesSum)
 }
 
 
-TEST(AGE, RulesProd)
-{
-	age::RuleSet rule;
-	auto code = rule.prod_opcode();
-	EXPECT_STREQ("KHALED", code.name_.c_str());
-	EXPECT_EQ(age::KHALED, code.code_);
-}
-
-
 TEST(AGE, GraderEminem)
 {
 	age::RuleSet rule;
 	auto mock = new MockTensor(1, ade::Shape());
 	ade::TensptrT arg(mock);
+	ade::Functor* fwd = ade::Functor::get(ade::Opcode{"EMINEM", age::EMINEM},
+		{ade::identity_map(arg)});
 	size_t idx = 42;
-	rule.grad_rule(age::EMINEM, {arg}, idx);
+	// bwd is never used so use whatever
+	rule.chain_rule(fwd, ade::identity_map(arg), {arg}, idx);
 	EXPECT_EQ(idx, mock->scalar_);
+	delete fwd;
 }
 
 
@@ -57,9 +52,13 @@ TEST(AGE, GraderKhaled)
 	age::RuleSet rule;
 	auto mock = new MockTensor(1, ade::Shape());
 	ade::TensptrT arg(mock);
+	ade::Functor* fwd = ade::Functor::get(ade::Opcode{"KHALED", age::KHALED},
+		{ade::identity_map(arg)});
 	size_t idx = 63;
-	rule.grad_rule(age::KHALED, {arg}, idx);
+	// bwd is never used so use whatever
+	rule.chain_rule(fwd, ade::identity_map(arg), {arg}, idx);
 	EXPECT_EQ(idx + khaled_constant, mock->scalar_);
+	delete fwd;
 }
 
 

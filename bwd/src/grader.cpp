@@ -7,6 +7,7 @@ namespace age
 
 void Grader::visit (ade::iFunctor* func)
 {
+	const ade::Opcode sum = rules_->sum_opcode();
 	if (func == target_)
 	{
 		derivatives_.emplace(func, rules_->data(1, target_->shape()));
@@ -46,10 +47,9 @@ void Grader::visit (ade::iFunctor* func)
 	};
 	for (ade::iFunctor* parent : parents)
 	{
-		ade::Opcode opcode = parent->get_opcode();
 		ade::TensT& gargs = grads[parent];
-		ade::TensptrT bwd(gargs.size() > 1 ? gargs[0] :
-			ade::TensptrT(ade::Functor::get(rules_->sum_opcode(), to_args(gargs))));
+		ade::TensptrT bwd = gargs.size() > 1 ? ade::TensptrT(
+			ade::Functor::get(sum, to_args(gargs))) : gargs[0];
 
 		auto& grad_indices = pathmap[parent];
 		ade::ArgsT children = parent->get_children();
@@ -62,37 +62,36 @@ void Grader::visit (ade::iFunctor* func)
 		{
 			ade::TensT args;
 			ade::MappedTensor& child = children[i];
-			ade::CoordPtrT mapper(child.mapper_->reverse());
+			ade::CoordptrT revshaper(child.get_shaper()->reverse());
+			bool revmapper = !child.map_io();
+			ade::CoordptrT revcoorder = child.get_coorder();
 			for (size_t j = 0; j < nchildren; ++j)
 			{
-				ade::TensptrT& tens = children[j].tensor_;
+				ade::MappedTensor& kid = children[j];
+				ade::TensptrT tens = kid.get_tensor();
 				if (j == i)
 				{
 					args.push_back(tens);
 				}
 				else
 				{
-					ade::CoordPtrT toshape(
-						children[j].mapper_->forward(*mapper));
-					args.push_back(ade::TensptrT(ade::Functor::get(rules_->sum_opcode(),
-						{{toshape, tens}})));
+					// reverse children[j] to child's shape/coord space
+					args.push_back(ade::TensptrT(ade::Functor::get(sum, {
+						ade::MappedTensor(
+							ade::TensptrT(ade::Functor::get(sum, {kid})),
+							revshaper, revmapper, revcoorder)
+					})));
 				}
 			}
-			// pass down forward-gradient pair
-			ade::TensptrT grad(rules_->grad_rule(opcode.code_, args, i));
 
-			// apply chain rule
-			grads[child.tensor_.get()].push_back(ade::TensptrT(ade::Functor::get(
-				rules_->prod_opcode(), {
-					{ade::identity, grad},
-					{ade::identity, ade::TensptrT(ade::Functor::get(rules_->sum_opcode(),
-						{{mapper, bwd}}))},
-				})));
+			ade::MappedTensor lhs(bwd, revshaper, revmapper, revcoorder);
+
+			grads[child.get_tensor().get()].push_back(rules_->chain_rule(parent, lhs, args, i));
 		}
 	}
-	derivatives_.emplace(func, ade::TensptrT(
-		ade::Functor::get(rules_->sum_opcode(),
-			to_args(grads[target_]))));
+	auto finalgargs = grads[target_];
+	derivatives_.emplace(func, finalgargs.size() > 1 ? ade::TensptrT(
+		ade::Functor::get(sum, to_args(finalgargs))) : finalgargs[0]);
 }
 
 ade::ArgsT to_args (ade::TensT tens)
@@ -101,7 +100,7 @@ ade::ArgsT to_args (ade::TensT tens)
 	std::transform(tens.begin(), tens.end(), std::back_inserter(args),
 		[](ade::TensptrT& ten)
 		{
-			return ade::MappedTensor{ade::identity, ten};
+			return ade::identity_map(ten);
 		});
 	return args;
 }

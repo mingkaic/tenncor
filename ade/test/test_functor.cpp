@@ -25,8 +25,10 @@ TEST_F(FUNCTOR, Shapes)
 	ade::TensptrT leaf1(new MockTensor(shape));
 	ade::TensptrT badleaf(new MockTensor(badshape));
 
-	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0},
-		{{ade::identity, leaf}, {ade::identity, leaf1}}));
+	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
+	}));
 
 	ade::Shape gotshape = func->shape();
 	EXPECT_ARREQ(shape, gotshape);
@@ -34,10 +36,13 @@ TEST_F(FUNCTOR, Shapes)
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {}),
 		"cannot perform MOCK with no arguments");
 
-	std::string fatalmsg = fmts::sprintf("cannot perform MOCK with incompatible shapes %s and %s",
+	std::string fatalmsg = fmts::sprintf(
+		"cannot perform MOCK with incompatible shapes %s and %s",
 		shape.to_string().c_str(), badshape.to_string().c_str());
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
-		{ade::identity, leaf}, {ade::identity, badleaf}}), fatalmsg.c_str());
+		ade::identity_map(leaf),
+		ade::identity_map(badleaf),
+	}), fatalmsg.c_str());
 }
 
 
@@ -47,8 +52,9 @@ TEST_F(FUNCTOR, Opcode)
 	size_t mockcode = 3247;
 	ade::TensptrT leaf(new MockTensor());
 
-	ade::Functor* func = ade::Functor::get(ade::Opcode{mockname, mockcode},
-		{{ade::identity, leaf}});
+	ade::Functor* func = ade::Functor::get(ade::Opcode{mockname, mockcode}, {
+		ade::identity_map(leaf),
+	});
 
 	ade::Opcode op = func->get_opcode();
 	EXPECT_STREQ(mockname.c_str(), op.name_.c_str());
@@ -63,16 +69,18 @@ TEST_F(FUNCTOR, Childrens)
 	ade::TensptrT leaf(new MockTensor());
 	ade::TensptrT leaf1(new MockTensor());
 
-	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0},
-		{{ade::identity, leaf}, {ade::identity, leaf1}}));
+	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
+	}));
 
 	ASSERT_NE(nullptr, func.get());
 
 	ade::ArgsT refs = static_cast<ade::iFunctor*>(func.get())->get_children();
 
 	ASSERT_EQ(2, refs.size());
-	EXPECT_EQ(leaf.get(), refs[0].tensor_.get());
-	EXPECT_EQ(leaf1.get(), refs[1].tensor_.get());
+	EXPECT_EQ(leaf.get(), refs[0].get_tensor().get());
+	EXPECT_EQ(leaf1.get(), refs[1].get_tensor().get());
 }
 
 
@@ -81,8 +89,10 @@ TEST_F(FUNCTOR, ToString)
 	ade::TensptrT leaf(new MockTensor());
 	ade::TensptrT leaf1(new MockTensor());
 
-	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0},
-		{{ade::identity, leaf}, {ade::identity, leaf1}}));
+	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
+	}));
 
 	ASSERT_NE(nullptr, func.get());
 

@@ -21,15 +21,11 @@ struct iCoordMap
 {
 	virtual ~iCoordMap (void) = default;
 
+	/// Return matmul(this, rhs)
+	virtual iCoordMap* connect (const iCoordMap& rhs) const = 0;
+
 	/// Forward transform coordinates
 	virtual void forward (CoordT::iterator out,
-		CoordT::const_iterator in) const = 0;
-
-	/// Return matmul(this, rhs)
-	virtual iCoordMap* forward (const iCoordMap& rhs) const = 0;
-
-	/// Reverse transform coordinates
-	virtual void backward (CoordT::iterator out,
 		CoordT::const_iterator in) const = 0;
 
 	/// Return coordinate transformation with its forward and backward
@@ -53,15 +49,10 @@ struct CoordMap final : public iCoordMap
 		std::memset(fwd_, 0, mat_size);
 		fwd_[rank_cap][rank_cap] = 1;
 		init(fwd_);
-		inverse(bwd_, fwd_);
 	}
 
 	/// Implementation of iCoordMap
-	void forward (CoordT::iterator out,
-		CoordT::const_iterator in) const override;
-
-	/// Implementation of iCoordMap
-	iCoordMap* forward (const iCoordMap& rhs) const override
+	iCoordMap* connect (const iCoordMap& rhs) const override
 	{
 		return new CoordMap([&](MatrixT out)
 		{
@@ -73,13 +64,16 @@ struct CoordMap final : public iCoordMap
 	}
 
 	/// Implementation of iCoordMap
-	void backward (CoordT::iterator out,
+	void forward (CoordT::iterator out,
 		CoordT::const_iterator in) const override;
 
 	/// Implementation of iCoordMap
 	iCoordMap* reverse (void) const override
 	{
-		return new CoordMap(bwd_, fwd_);
+		return new CoordMap([this](MatrixT m)
+		{
+			inverse(m, this->fwd_);
+		});
 	}
 
 	/// Implementation of iCoordMap
@@ -95,36 +89,27 @@ struct CoordMap final : public iCoordMap
 	}
 
 private:
-	CoordMap (const MatrixT fwd, const MatrixT bwd)
-	{
-		std::memcpy(fwd_, fwd, mat_size);
-		std::memcpy(bwd_, bwd, mat_size);
-	}
-
 	/// Forward transformation matrix
 	MatrixT fwd_;
-
-	/// Inverse of the forward transformation matrix
-	MatrixT bwd_;
 };
 
 /// Type of iCoordMap smartpointer
-using CoordPtrT = std::shared_ptr<iCoordMap>;
+using CoordptrT = std::shared_ptr<iCoordMap>;
 
 /// Identity matrix instance
-extern CoordPtrT identity;
+extern CoordptrT identity;
 
 /// Return coordinate mapper dividing dimensions after rank
 /// by values in red vector
 /// For example, given coordinate [2, 2, 6, 6], rank=2, and red=[3, 3],
 /// mapper forward transforms to coordinate [2, 2, 2, 2]
-CoordPtrT reduce (uint8_t rank, std::vector<DimT> red);
+CoordptrT reduce (uint8_t rank, std::vector<DimT> red);
 
 /// Return coordinate mapper multiplying dimensions after rank
 /// by values in ext vector
 /// For example, given coordinate [6, 6, 2, 2], rank=2, and ext=[3, 3],
 /// mapper forward transforms to coordinate [6, 6, 6, 6]
-CoordPtrT extend (uint8_t rank, std::vector<DimT> ext);
+CoordptrT extend (uint8_t rank, std::vector<DimT> ext);
 
 /// Return coordinate mapper permuting coordinate according to input order
 /// Order is a vector of indices of the dimensions to appear in order
@@ -134,12 +119,12 @@ CoordPtrT extend (uint8_t rank, std::vector<DimT> ext);
 /// mapper forward transforms to coordinate [2, 4, 1, 3]
 /// Returned coordinate mapper will be a CoordMap instance, so inversibility
 /// requires order indices be unique, otherwise throw fatal error
-CoordPtrT permute (std::vector<uint8_t> order);
+CoordptrT permute (std::vector<uint8_t> order);
 
 /// Return coordinate mapper flipping coordinate value at specified dimension
 /// Flipped dimension with original value x is represented as -x-1
 /// (see CoordT definition)
-CoordPtrT flip (uint8_t dim);
+CoordptrT flip (uint8_t dim);
 
 }
 

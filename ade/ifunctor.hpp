@@ -6,7 +6,7 @@
 /// Define functor nodes of an equation graph
 ///
 
-#include "ade/itensor.hpp"
+#include "ade/mtens.hpp"
 
 #ifndef ADE_IFUNCTOR_HPP
 #define ADE_IFUNCTOR_HPP
