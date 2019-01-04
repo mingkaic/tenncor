@@ -64,24 +64,39 @@ struct MockRuleSet final : public age::iRuleSet
 		return ade::Opcode{"+", 0};
 	}
 
-	ade::Opcode prod_opcode (void) override
+	ade::TensptrT chain_rule (ade::iFunctor* fwd,
+		ade::MappedTensor bwd, ade::TensT args, size_t idx) override
+	{
+		ade::Opcode outcode;
+		ade::Opcode fwd_opcode = fwd->get_opcode();
+		// grad of sum is prod and grad of prod is sum
+		if (fwd_opcode.code_)
+		{
+			outcode = sum_opcode();
+		}
+		else
+		{
+			outcode = prod_opcode();
+		}
+		return mul(ade::TensptrT(ade::Functor::get(outcode, age::to_args(args))),
+			ade::TensptrT(ade::Functor::get(fwd_opcode, {bwd})));
+	}
+
+	ade::Opcode prod_opcode (void)
 	{
 		return ade::Opcode{"*", 1};
 	}
 
-	ade::TensptrT grad_rule (ade::iFunctor* fwd, ade::TensT args, size_t idx) override
+	ade::TensptrT mul (ade::TensptrT a, ade::TensptrT b)
 	{
-		// grad of sum is prod and grad of prod is sum
-		if (fwd->get_opcode().code_)
-		{
-			return ade::TensptrT(ade::Functor::get(sum_opcode(), age::to_args(args)));
-		}
-		return ade::TensptrT(ade::Functor::get(prod_opcode(), age::to_args(args)));
+		return ade::TensptrT(ade::Functor::get(prod_opcode(), {
+			ade::identity_map(a), ade::identity_map(b),
+		}));
 	}
 };
 
 
-static std::shared_ptr<age::iRuleSet> mock_rules =
+static std::shared_ptr<MockRuleSet> mock_rules =
 	std::make_shared<MockRuleSet>();
 
 
@@ -116,56 +131,51 @@ static inline void trim(std::string &s)
 }
 
 
-static void TREE_EQ (std::istream& expectstr, ade::TensptrT& root)
-{
-	PrettyEquation artist;
-	artist.showshape_ = true;
-	std::stringstream gotstr;
-	artist.print(gotstr, root);
-
-#if 0
-	std::cout << gotstr.str() << '\n';
-#endif
-
-	std::string expect;
-	std::string got;
-	std::string line;
-	while (std::getline(expectstr, line))
-	{
-		trim(line);
-		if (line.size() > 0)
-		{
-			expect += line + "\n";
-		}
-	}
-	while (std::getline(gotstr, line))
-	{
-		trim(line);
-		if (line.size() > 0)
-		{
-			got += line + "\n";
-		}
-	}
-	EXPECT_STREQ(expect.c_str(), got.c_str());
+#define TREE_EQ(expectstr, root)\
+{\
+	PrettyEquation artist;\
+	artist.showshape_ = true;\
+	std::stringstream gotstr;\
+	artist.print(gotstr, root);\
+	std::string expect;\
+	std::string got;\
+	std::string line;\
+	while (std::getline(expectstr, line))\
+	{\
+		trim(line);\
+		if (line.size() > 0)\
+		{\
+			expect += line + "\n";\
+		}\
+	}\
+	while (std::getline(gotstr, line))\
+	{\
+		trim(line);\
+		if (line.size() > 0)\
+		{\
+			got += line + "\n";\
+		}\
+	}\
+	EXPECT_STREQ(expect.c_str(), got.c_str());\
 }
 
 
-static void COORD_EQ (ade::CoordptrT expect, ade::CoordptrT got)
-{
-	expect->access([&](const ade::MatrixT& expectm)
-	{
-		got->access([&](const ade::MatrixT& gotm)
-		{
-			for (size_t i = 0; i < ade::mat_dim; ++i)
-			{
-				for (size_t j = 0; j < ade::mat_dim; ++j)
-				{
-					EXPECT_EQ(expectm[i][j], gotm[i][j]) <<
-						"coord(" << i << "," << j << ")";
-				}
-			}
-		});
-	});
+#define COORD_EQ(expect, got)\
+{\
+	expect->access([&](const ade::MatrixT& expectm)\
+	{\
+		got->access([&](const ade::MatrixT& gotm)\
+		{\
+			for (size_t i = 0; i < ade::mat_dim; ++i)\
+			{\
+				for (size_t j = 0; j < ade::mat_dim; ++j)\
+				{\
+					EXPECT_EQ(expectm[i][j], gotm[i][j]) <<\
+						"coord(" << i << "," << j << ")";\
+				}\
+			}\
+		});\
+	});\
 }
 
 
@@ -312,7 +322,7 @@ TEST(GRADER, Prod)
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |       `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
+		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 	rstr <<
 		"(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
@@ -321,7 +331,7 @@ TEST(GRADER, Prod)
 		" |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
+		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 
 	TREE_EQ(ostr, g1);
@@ -363,7 +373,7 @@ TEST(GRADER, SumProd)
 		" |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |       `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |           `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
@@ -396,7 +406,7 @@ TEST(GRADER, SumProd)
 		" |   |   `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |       `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--([2\\3\\1\\1\\1\\1\\1\\1])\n" <<
-		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"     `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"         |   `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
@@ -1301,6 +1311,84 @@ TEST(GRADER, DiffShaperCoorder)
 			}
 		}
 	}
+}
+
+
+TEST(GRADER, NoMapAliasing)
+{
+	std::vector<ade::DimT> slist = {1, 2, 3, 4};
+	std::vector<ade::DimT> slist1 = {1, 2, 3};
+	ade::TensptrT outside(new MockTensor(ade::Shape({7})));
+	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
+	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist1)));
+
+	ade::MappedTensor left = reduce_map(leaf, 3, {4});
+	ade::MappedTensor right = ade::identity_map(leaf1);
+	ade::TensptrT fwd(
+		ade::Functor::get(mock_rules->prod_opcode(), {left, right}));
+	ade::TensptrT fwd2(
+		ade::Functor::get(mock_rules->prod_opcode(), {
+			ade::identity_map(ade::TensptrT(ade::Functor::get(
+				mock_rules->sum_opcode(), {left}))), right}));
+
+	ade::TensptrT gl(derive(fwd, leaf.get()));
+	ade::TensptrT gr(derive(fwd, leaf1.get()));
+	ade::TensptrT gl2(derive(fwd2, leaf.get()));
+	ade::TensptrT gr2(derive(fwd2, leaf1.get()));
+
+	std::stringstream lstr;
+	std::stringstream rstr;
+	std::stringstream lstr2;
+	std::stringstream rstr2;
+
+	lstr <<
+		"(*[1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" `--(+[1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" |   `--([1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" |   `--(+[1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" |       `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" |           `--([1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		"     `--([1\\2\\3\\1\\1\\1\\1\\1])\n";
+	rstr <<
+		"(*[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" |   `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--([1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" |   `--([1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"     `--([1\\2\\3\\1\\1\\1\\1\\1])\n";
+
+	lstr2 <<
+		"(*[1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" `--(*[1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" |   `--([1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" `--(+[1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		"     `--(*[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"         `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"         |   `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"         |   |   `--([1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		"         |   `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"         |       `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"         |           `--([1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"         `--(*[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"             `--([1\\2\\3\\1\\1\\1\\1\\1])\n";
+	rstr2 <<
+		"(*[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" |   `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--(+[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" |   |           `--([1\\2\\3\\4\\1\\1\\1\\1])\n" <<
+		" |   `--([1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		" `--(*[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
+		"     `--([1\\2\\3\\1\\1\\1\\1\\1])\n";
+
+	TREE_EQ(lstr, gl);
+	TREE_EQ(rstr, gr);
+	TREE_EQ(lstr2, gl2);
+	TREE_EQ(rstr2, gr2);
 }
 
 

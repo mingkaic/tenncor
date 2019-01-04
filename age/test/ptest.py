@@ -350,12 +350,8 @@ struct RuleSet final : public iRuleSet
         return ade::Opcode{"ADDITION", ADDITION};
     }
 
-    ade::Opcode prod_opcode (void) override
-    {
-        return ade::Opcode{"MULTIPLICATION", MULTIPLICATION};
-    }
-
-    ade::TensptrT grad_rule (ade::iFunctor* fwd, ade::TensT args, size_t idx) override;
+    ade::TensptrT chain_rule (ade::iFunctor* fwd,
+        ade::MappedTensor bwd, ade::TensT args, size_t idx) override;
 };
 
 }
@@ -368,7 +364,8 @@ grader_source = """#ifdef _GENERATED_GRADER_HPP
 namespace age
 {
 
-ade::TensptrT RuleSet::grad_rule (ade::iFunctor* fwd, ade::TensT args, size_t idx)
+ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
+    ade::MappedTensor bwd, ade::TensT args, size_t idx)
 {
     switch (fwd->get_opcode().code_)
     {
