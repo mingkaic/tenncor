@@ -88,11 +88,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5255c4569d7411f5b0f0b58cdc025541"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structade_1_1_opcode.html">ade::Opcode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1i_rule_set.html#a5255c4569d7411f5b0f0b58cdc025541">sum_opcode</a> (void)=0</td></tr>
 <tr class="memdesc:a5255c4569d7411f5b0f0b58cdc025541"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return opcode representing nnary sum.  <a href="#a5255c4569d7411f5b0f0b58cdc025541">More...</a><br /></td></tr>
 <tr class="separator:a5255c4569d7411f5b0f0b58cdc025541"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af43a3eeab29255116fa77be7cf04c07b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structade_1_1_opcode.html">ade::Opcode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1i_rule_set.html#af43a3eeab29255116fa77be7cf04c07b">prod_opcode</a> (void)=0</td></tr>
-<tr class="memdesc:af43a3eeab29255116fa77be7cf04c07b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return opcode representing binary multiplication.  <a href="#af43a3eeab29255116fa77be7cf04c07b">More...</a><br /></td></tr>
-<tr class="separator:af43a3eeab29255116fa77be7cf04c07b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac07a80a130672f11c733d2e5bcc6b2e9"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">ade::TensptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1i_rule_set.html#ac07a80a130672f11c733d2e5bcc6b2e9">grad_rule</a> (<a class="el" href="structade_1_1i_functor.html">ade::iFunctor</a> *fwd, <a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a> args, size_t idx)=0</td></tr>
-<tr class="separator:ac07a80a130672f11c733d2e5bcc6b2e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea13b52df044498a29e2be31f6122b7e"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">ade::TensptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structage_1_1i_rule_set.html#aea13b52df044498a29e2be31f6122b7e">chain_rule</a> (<a class="el" href="structade_1_1i_functor.html">ade::iFunctor</a> *fwd, <a class="el" href="structade_1_1_mapped_tensor.html">ade::MappedTensor</a> bwd, <a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a> args, size_t idx)=0</td></tr>
+<tr class="separator:aea13b52df044498a29e2be31f6122b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Ruleset used by a <a class="el" href="structage_1_1_grader.html" title="Traveler to obtain derivative of accepted node with respect to target. ">Grader</a> traveler to derive equations. </p>
@@ -124,6 +121,55 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="aea13b52df044498a29e2be31f6122b7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea13b52df044498a29e2be31f6122b7e">&#9670;&nbsp;</a></span>chain_rule()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">ade::TensptrT</a> age::iRuleSet::chain_rule </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structade_1_1i_functor.html">ade::iFunctor</a> *&#160;</td>
+          <td class="paramname"><em>fwd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structade_1_1_mapped_tensor.html">ade::MappedTensor</a>&#160;</td>
+          <td class="paramname"><em>bwd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a>&#160;</td>
+          <td class="paramname"><em>args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>idx</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Return d(fwd)/d(x) given: bwd = d(args[idx])/d(x) Generally, d(fwd)/d(x) = rule(fwd,args,idx) * reduction_consolidation(bwd) </p>
+
+</div>
+</div>
 <a id="a4e98d8f0dc9192d4ee86ff134bc1e3b3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4e98d8f0dc9192d4ee86ff134bc1e3b3">&#9670;&nbsp;</a></span>data()</h2>
 
@@ -159,77 +205,6 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Return tensor leaf containing scalar of specific shape. </p>
-
-</div>
-</div>
-<a id="ac07a80a130672f11c733d2e5bcc6b2e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac07a80a130672f11c733d2e5bcc6b2e9">&#9670;&nbsp;</a></span>grad_rule()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">ade::TensptrT</a> age::iRuleSet::grad_rule </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structade_1_1i_functor.html">ade::iFunctor</a> *&#160;</td>
-          <td class="paramname"><em>fwd</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a>&#160;</td>
-          <td class="paramname"><em>args</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>idx</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Return chain rule of operation with respect to argument at idx specified by code given args </p>
-
-</div>
-</div>
-<a id="af43a3eeab29255116fa77be7cf04c07b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af43a3eeab29255116fa77be7cf04c07b">&#9670;&nbsp;</a></span>prod_opcode()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual <a class="el" href="structade_1_1_opcode.html">ade::Opcode</a> age::iRuleSet::prod_opcode </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Return opcode representing binary multiplication. </p>
 
 </div>
 </div>

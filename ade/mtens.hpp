@@ -1,8 +1,8 @@
 #include "ade/itensor.hpp"
 #include "ade/coord.hpp"
 
-#ifndef ADE_CMAP_HPP
-#define ADE_CMAP_HPP
+#ifndef ADE_MTENS_HPP
+#define ADE_MTENS_HPP
 
 namespace ade
 {
@@ -62,22 +62,26 @@ struct MappedTensor final
 		return Shape(slist);
 	}
 
+	/// Return tensor being mapped
 	TensptrT get_tensor (void) const
 	{
 		return tensor_;
 	}
 
+	/// Return shaper coord map
 	CoordptrT get_shaper (void) const
 	{
 		return shaper_;
 	}
 
-	/// Return map_io_ flag
+	/// Return map_io_ flag, True if coorder accepts input coord
+	/// and generated output, False otherwise
 	bool map_io (void) const
 	{
 		return map_io_;
 	}
 
+	/// Return coord map for coordinates
 	CoordptrT get_coorder (void) const
 	{
 		return coorder_;
@@ -98,18 +102,25 @@ private:
 	CoordptrT coorder_;
 };
 
+/// Return MappedTensor that identity maps input tensor
 MappedTensor identity_map (TensptrT tensor);
 
+/// Return MappedTensor that reduces input tensor according to
+/// rank and reduction vector
 MappedTensor reduce_map (TensptrT tensor,
 	uint8_t rank, std::vector<DimT> red);
 
+/// Return MappedTensor that extends input tensor by
+/// rank and extension vector
 MappedTensor extend_map (TensptrT tensor,
 	uint8_t rank, std::vector<DimT> ext);
 
+/// Return MappedTensor that permutes input tensor by order
 MappedTensor permute_map (TensptrT tensor, std::vector<uint8_t> order);
 
+/// Return MappedTensor that flips input tensor along dimension
 MappedTensor flip_map (TensptrT tensor, uint8_t dim);
 
 }
 
-#endif // ADE_CMAP_HPP
+#endif // ADE_MTENS_HPP

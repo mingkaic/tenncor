@@ -8,7 +8,7 @@
 
 #include "common.hpp"
 
-#include "ade/cmap.hpp"
+#include "ade/mtens.hpp"
 
 
 struct TENSOR : public ::testing::Test

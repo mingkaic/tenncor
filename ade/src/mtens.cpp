@@ -1,6 +1,6 @@
-#include "ade/cmap.hpp"
+#include "ade/mtens.hpp"
 
-#ifdef ADE_CMAP_HPP
+#ifdef ADE_MTENS_HPP
 
 namespace ade
 {

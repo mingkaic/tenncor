@@ -143,16 +143,6 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a42312ef9e11389b95fe6f0301532f10c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a42312ef9e11389b95fe6f0301532f10c">identity_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor)</td></tr>
-<tr class="separator:a42312ef9e11389b95fe6f0301532f10c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d5140ce641256605e226cbb24a1239c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a8d5140ce641256605e226cbb24a1239c">reduce_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; red)</td></tr>
-<tr class="separator:a8d5140ce641256605e226cbb24a1239c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36f26c4f3b26313bbb1729e5bb3abd3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a36f26c4f3b26313bbb1729e5bb3abd3e">extend_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; ext)</td></tr>
-<tr class="separator:a36f26c4f3b26313bbb1729e5bb3abd3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9aa2d44fc01e6cc210c5933357b3cd5a">permute_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, std::vector&lt; uint8_t &gt; order)</td></tr>
-<tr class="separator:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9666cf98226493cfbdacbb2bd60f7f52"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9666cf98226493cfbdacbb2bd60f7f52">flip_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t dim)</td></tr>
-<tr class="separator:a9666cf98226493cfbdacbb2bd60f7f52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca905a7156b047e9e5e1df3fb4f62763"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aca905a7156b047e9e5e1df3fb4f62763">reduce</a> (uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; red)</td></tr>
 <tr class="separator:aca905a7156b047e9e5e1df3fb4f62763"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aacfce705e3e2105e824eb03f0d625491"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aacfce705e3e2105e824eb03f0d625491">extend</a> (uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; ext)</td></tr>
@@ -170,6 +160,19 @@ Functions</h2></td></tr>
 <tr class="memitem:ab6daf41b04bccd42950ae92db8a0439a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ab6daf41b04bccd42950ae92db8a0439a">matmul</a> (<a class="el" href="namespaceade.html#ae0f6687dd704fcf5c00f841da0509246">MatrixT</a> out, const <a class="el" href="namespaceade.html#ae0f6687dd704fcf5c00f841da0509246">MatrixT</a> &amp;lhs, const <a class="el" href="namespaceade.html#ae0f6687dd704fcf5c00f841da0509246">MatrixT</a> &amp;rhs)</td></tr>
 <tr class="memdesc:ab6daf41b04bccd42950ae92db8a0439a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply matrix multiplication for lhs and rhs to out matrix.  <a href="#ab6daf41b04bccd42950ae92db8a0439a">More...</a><br /></td></tr>
 <tr class="separator:ab6daf41b04bccd42950ae92db8a0439a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42312ef9e11389b95fe6f0301532f10c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a42312ef9e11389b95fe6f0301532f10c">identity_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor)</td></tr>
+<tr class="memdesc:a42312ef9e11389b95fe6f0301532f10c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that identity maps input tensor.  <a href="#a42312ef9e11389b95fe6f0301532f10c">More...</a><br /></td></tr>
+<tr class="separator:a42312ef9e11389b95fe6f0301532f10c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d5140ce641256605e226cbb24a1239c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a8d5140ce641256605e226cbb24a1239c">reduce_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; red)</td></tr>
+<tr class="separator:a8d5140ce641256605e226cbb24a1239c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36f26c4f3b26313bbb1729e5bb3abd3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a36f26c4f3b26313bbb1729e5bb3abd3e">extend_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; ext)</td></tr>
+<tr class="separator:a36f26c4f3b26313bbb1729e5bb3abd3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9aa2d44fc01e6cc210c5933357b3cd5a">permute_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, std::vector&lt; uint8_t &gt; order)</td></tr>
+<tr class="memdesc:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that permutes input tensor by order.  <a href="#a9aa2d44fc01e6cc210c5933357b3cd5a">More...</a><br /></td></tr>
+<tr class="separator:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9666cf98226493cfbdacbb2bd60f7f52"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9666cf98226493cfbdacbb2bd60f7f52">flip_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t dim)</td></tr>
+<tr class="memdesc:a9666cf98226493cfbdacbb2bd60f7f52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that flips input tensor along dimension.  <a href="#a9666cf98226493cfbdacbb2bd60f7f52">More...</a><br /></td></tr>
+<tr class="separator:a9666cf98226493cfbdacbb2bd60f7f52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae4b0a59c967fe9699b5b66de3c8fab49"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a2fba34a89f37ea9ee310914daefd880d">NElemT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ae4b0a59c967fe9699b5b66de3c8fab49">index</a> (<a class="el" href="structade_1_1_shape.html">Shape</a> shape, <a class="el" href="namespaceade.html#a2abdde771b6a0fd0afdafaed7ab00c48">CoordT</a> coord)</td></tr>
 <tr class="separator:ae4b0a59c967fe9699b5b66de3c8fab49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a785be8ee10cd4af039c458e057b32263"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a2abdde771b6a0fd0afdafaed7ab00c48">CoordT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a785be8ee10cd4af039c458e057b32263">coordinate</a> (<a class="el" href="structade_1_1_shape.html">Shape</a> shape, <a class="el" href="namespaceade.html#a2fba34a89f37ea9ee310914daefd880d">NElemT</a> idx)</td></tr>
@@ -482,6 +485,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that extends input tensor by rank and extension vector </p>
 
 </div>
 </div>
@@ -530,6 +534,8 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that flips input tensor along dimension. </p>
+
 </div>
 </div>
 <a id="a42312ef9e11389b95fe6f0301532f10c"></a>
@@ -547,6 +553,8 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that identity maps input tensor. </p>
 
 </div>
 </div>
@@ -690,6 +698,8 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that permutes input tensor by order. </p>
+
 </div>
 </div>
 <a id="aca905a7156b047e9e5e1df3fb4f62763"></a>
@@ -752,6 +762,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that reduces input tensor according to rank and reduction vector </p>
 
 </div>
 </div>

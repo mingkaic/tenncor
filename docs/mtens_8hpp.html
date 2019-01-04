@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Tenncor: ade/cmap.hpp File Reference</title>
+<title>Tenncor: ade/mtens.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -70,16 +70,16 @@ $(function() {
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">cmap.hpp File Reference</div>  </div>
+<div class="title">mtens.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="itensor_8hpp_source.html">ade/itensor.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="coord_8hpp_source.html">ade/coord.hpp</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
-Include dependency graph for cmap.hpp:</div>
+Include dependency graph for mtens.hpp:</div>
 <div class="dyncontent">
-<div class="center"><img src="cmap_8hpp__incl.png" border="0" usemap="#ade_2cmap_8hpp" alt=""/></div>
-<map name="ade_2cmap_8hpp" id="ade_2cmap_8hpp">
+<div class="center"><img src="mtens_8hpp__incl.png" border="0" usemap="#ade_2mtens_8hpp" alt=""/></div>
+<map name="ade_2mtens_8hpp" id="ade_2mtens_8hpp">
 <area shape="rect" id="node2" href="itensor_8hpp.html" title="ade/itensor.hpp" alt="" coords="98,79,210,104"/>
 <area shape="rect" id="node9" href="coord_8hpp.html" title="ade/coord.hpp" alt="" coords="234,79,340,104"/>
 <area shape="rect" id="node3" href="shape_8hpp.html" title="ade/shape.hpp" alt="" coords="142,225,251,251"/>
@@ -89,10 +89,10 @@ Include dependency graph for cmap.hpp:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><img src="cmap_8hpp__dep__incl.png" border="0" usemap="#ade_2cmap_8hppdep" alt=""/></div>
-<map name="ade_2cmap_8hppdep" id="ade_2cmap_8hppdep">
+<div class="center"><img src="mtens_8hpp__dep__incl.png" border="0" usemap="#ade_2mtens_8hppdep" alt=""/></div>
+<map name="ade_2mtens_8hppdep" id="ade_2mtens_8hppdep">
 <area shape="rect" id="node2" href="ifunctor_8hpp.html" title="ade/ifunctor.hpp" alt="" coords="73,79,189,104"/>
-<area shape="rect" id="node8" href="cmap_8cpp.html" title="ade/src/cmap.cpp" alt="" coords="213,79,340,104"/>
+<area shape="rect" id="node8" href="mtens_8cpp.html" title="ade/src/mtens.cpp" alt="" coords="213,79,343,104"/>
 <area shape="rect" id="node3" href="functor_8hpp.html" title="ade/functor.hpp" alt="" coords="5,152,119,177"/>
 <area shape="rect" id="node7" href="traveler_8hpp.html" title="ade/traveler.hpp" alt="" coords="142,152,259,177"/>
 <area shape="rect" id="node4" href="ade_8hpp.html" title="ade/ade.hpp" alt="" coords="84,225,179,251"/>
@@ -101,7 +101,7 @@ This graph shows which files directly or indirectly include this file:</div>
 </map>
 </div>
 </div>
-<p><a href="cmap_8hpp_source.html">Go to the source code of this file.</a></p>
+<p><a href="mtens_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -117,14 +117,17 @@ Namespaces</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a42312ef9e11389b95fe6f0301532f10c"><td class="memItemLeft" align="right" valign="top">MappedTensor&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a42312ef9e11389b95fe6f0301532f10c">ade::identity_map</a> (TensptrT tensor)</td></tr>
+<tr class="memdesc:a42312ef9e11389b95fe6f0301532f10c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that identity maps input tensor.  <a href="namespaceade.html#a42312ef9e11389b95fe6f0301532f10c">More...</a><br /></td></tr>
 <tr class="separator:a42312ef9e11389b95fe6f0301532f10c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d5140ce641256605e226cbb24a1239c"><td class="memItemLeft" align="right" valign="top">MappedTensor&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a8d5140ce641256605e226cbb24a1239c">ade::reduce_map</a> (TensptrT tensor, uint8_t rank, std::vector&lt; DimT &gt; red)</td></tr>
 <tr class="separator:a8d5140ce641256605e226cbb24a1239c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36f26c4f3b26313bbb1729e5bb3abd3e"><td class="memItemLeft" align="right" valign="top">MappedTensor&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a36f26c4f3b26313bbb1729e5bb3abd3e">ade::extend_map</a> (TensptrT tensor, uint8_t rank, std::vector&lt; DimT &gt; ext)</td></tr>
 <tr class="separator:a36f26c4f3b26313bbb1729e5bb3abd3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="memItemLeft" align="right" valign="top">MappedTensor&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9aa2d44fc01e6cc210c5933357b3cd5a">ade::permute_map</a> (TensptrT tensor, std::vector&lt; uint8_t &gt; order)</td></tr>
+<tr class="memdesc:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that permutes input tensor by order.  <a href="namespaceade.html#a9aa2d44fc01e6cc210c5933357b3cd5a">More...</a><br /></td></tr>
 <tr class="separator:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9666cf98226493cfbdacbb2bd60f7f52"><td class="memItemLeft" align="right" valign="top">MappedTensor&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9666cf98226493cfbdacbb2bd60f7f52">ade::flip_map</a> (TensptrT tensor, uint8_t dim)</td></tr>
+<tr class="memdesc:a9666cf98226493cfbdacbb2bd60f7f52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that flips input tensor along dimension.  <a href="namespaceade.html#a9666cf98226493cfbdacbb2bd60f7f52">More...</a><br /></td></tr>
 <tr class="separator:a9666cf98226493cfbdacbb2bd60f7f52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->

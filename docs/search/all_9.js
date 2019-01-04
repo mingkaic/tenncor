@@ -9,5 +9,7 @@ var searchData=
   ['matops_2ecpp',['matops.cpp',['../matops_8cpp.html',1,'']]],
   ['matops_2ehpp',['matops.hpp',['../matops_8hpp.html',1,'']]],
   ['matrixt',['MatrixT',['../namespaceade.html#ae0f6687dd704fcf5c00f841da0509246',1,'ade']]],
-  ['move_5fhelper',['move_helper',['../structade_1_1_shape.html#ae2cffe358880cabd1a4a06b56c15e2b5',1,'ade::Shape']]]
+  ['move_5fhelper',['move_helper',['../structade_1_1_shape.html#ae2cffe358880cabd1a4a06b56c15e2b5',1,'ade::Shape']]],
+  ['mtens_2ecpp',['mtens.cpp',['../mtens_8cpp.html',1,'']]],
+  ['mtens_2ehpp',['mtens.hpp',['../mtens_8hpp.html',1,'']]]
 ];
