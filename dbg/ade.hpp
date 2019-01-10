@@ -15,6 +15,8 @@
 #ifndef DBG_ADE_HPP
 #define DBG_ADE_HPP
 
+using LabelsMapT = std::unordered_map<ade::iTensor*,std::string>;
+
 /// Use PrettyTree to render ade::TensptrT graph as an ascii art
 struct PrettyEquation final
 {
@@ -63,7 +65,7 @@ struct PrettyEquation final
 	}
 
 	/// For every label associated with a tensor, show LABEL=value in the tree
-	std::unordered_map<ade::iTensor*,std::string> labels_;
+	LabelsMapT labels_;
 
 	bool showshape_ = false;
 
@@ -71,5 +73,9 @@ private:
 	/// Actual ascii renderer
 	PrettyTree<ade::iTensor*> drawer_;
 };
+
+std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
+	bool showshape = true,
+	LabelsMapT labels = {});
 
 #endif // DBG_ADE_HPP

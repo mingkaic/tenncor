@@ -24,7 +24,7 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["@cppkg//logs:logs"],
+    deps = ["@com_github_mingkaic_cppkg//logs:logs"],
     visibility = ["//visibility:public"],
 )
 

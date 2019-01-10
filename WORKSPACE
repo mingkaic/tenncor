@@ -7,5 +7,5 @@ dependencies()
 
 # test dependencies
 
-load("@cppkg//:gtest.bzl", "gtest_repository")
+load("@com_github_mingkaic_cppkg//:gtest.bzl", "gtest_repository")
 gtest_repository(name = "gtest")
