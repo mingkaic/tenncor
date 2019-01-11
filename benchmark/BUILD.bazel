@@ -1,0 +1,9 @@
+licenses(["notice"])
+
+cc_binary(
+    name = "benchmark",
+    srcs = ["main.cpp"],
+    copts = ["-std=c++14"],
+    deps = ["//ade:ade"],
+    visibility = ["//visibility:public"],
+)
