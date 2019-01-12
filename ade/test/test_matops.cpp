@@ -4,9 +4,9 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/matops.hpp"
-
 #include "testutil/common.hpp"
+
+#include "ade/matops.hpp"
 
 
 struct MATOPS : public ::testing::Test

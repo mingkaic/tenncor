@@ -33,7 +33,7 @@ cc_library(
 
 cc_test(
     name = "test",
-    srcs = [":test_srcs"],
+    srcs = ["//bwd:test_srcs"],
     copts = ["-std=c++14"],
     deps = [
         "//dbg:dbg",

@@ -4,9 +4,9 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/shape.hpp"
-
 #include "testutil/common.hpp"
+
+#include "ade/shape.hpp"
 
 
 struct SHAPE : public ::testing::Test

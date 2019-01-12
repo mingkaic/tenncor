@@ -17,6 +17,14 @@ filegroup(
     ]),
 )
 
+filegroup(
+    name = "benchmark_srcs",
+    srcs = glob([
+        "bm/*.hpp",
+        "bm/*.cpp",
+    ]),
+)
+
 ######### LIBRARIES #########
 
 cc_library(
@@ -33,10 +41,22 @@ cc_library(
 cc_test(
     name = "test",
     size = "medium",
-    srcs = [":test_srcs"],
+    srcs = ["//ade:test_srcs"],
     deps = [
         "//ade:ade",
         "//testutil:testutil",
+    ],
+    copts = ["-std=c++14"],
+)
+
+######### BENCHMARK #########
+
+cc_binary(
+    name = "benchmark",
+    srcs = ["//ade:benchmark_srcs"],
+    deps = [
+        "//ade:ade",
+        "@com_github_google_benchmark//:benchmark",
     ],
     copts = ["-std=c++14"],
 )
