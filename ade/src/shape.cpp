@@ -32,7 +32,7 @@ CoordT coordinate (Shape shape, NElemT idx)
 {
 	if (idx >= shape.n_elems())
 	{
-		logs::fatalf("cannot get coordinate of index %d (>= shape %s nelems)",
+		logs::fatalf("cannot get coordinate of index %d (>= shape %s)",
 			idx, shape.to_string().c_str());
 	}
 	CoordT coord;

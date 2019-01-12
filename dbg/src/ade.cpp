@@ -27,7 +27,7 @@ std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
 {
 	PrettyEquation artist;
 	artist.showshape_ = showshape;
-    artist.labels_ = labels;
+	artist.labels_ = labels;
 	std::stringstream gotstr;
 	artist.print(gotstr, root);
 	std::vector<std::string> expects;
