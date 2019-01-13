@@ -30,6 +30,8 @@ using MatrixT = double[mat_dim][mat_dim];
 /// Return the string representation of input matrix
 std::string to_string (const MatrixT& mat);
 
+double determinant (const MatrixT& mat);
+
 /// Inverse in matrix and dump to out matrix
 void inverse (MatrixT out, const MatrixT& in);
 

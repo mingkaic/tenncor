@@ -82,6 +82,67 @@ std::string to_string (const MatrixT& mat)
 	return ss.str();
 }
 
+// calculate determinant using LU triangulation
+// implementation taken from
+// https://rosettacode.org/wiki/Determinant_and_permanent#C
+double determinant (const MatrixT& mat)
+{
+	// copy mat over to temp array to allow row swapping
+	double temp[mat_dim * mat_dim];
+	std::memcpy(temp, mat, mat_size);
+	double* m[mat_dim];
+	m[0] = temp;
+	for (uint8_t i = 1; i < mat_dim; i++)
+	{
+		m[i] = m[i - 1] + mat_dim;
+	}
+
+	// triangulate and collect reduced diagonals
+	int sign = 1;
+	double det = 1;
+	for (uint8_t i = 0; i < mat_dim; i++)
+	{
+		uint8_t max_row = 0;
+		for (uint8_t row = i; row < mat_dim; row++)
+		{
+			if (std::fabs(m[row][i]) > std::fabs(m[max_row][i]))
+			{
+				max_row = row;
+			}
+		}
+
+		if (max_row > 0) // swap row
+		{
+			sign = -sign;
+			double* tmp = m[i];
+			m[i] = m[max_row];
+			m[max_row] = tmp;
+		}
+
+		if (0 == m[i][i])
+		{
+			return 0;
+		}
+		det *= m[i][i];
+
+		for (uint8_t row = i + 1; row < mat_dim; row++)
+		{
+			double r = m[row][i] / m[i][i];
+			if (0 == r)
+			{
+				continue;
+			}
+
+			for (uint8_t col = i; col < mat_dim; col ++)
+			{
+				m[row][col] -= m[i][col] * r;
+			}
+		}
+	}
+
+	return det * sign;
+}
+
 void inverse (MatrixT out, const MatrixT& in)
 {
 	size_t rowbytes = sizeof(double) * mat_dim;

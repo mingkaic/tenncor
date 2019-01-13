@@ -306,4 +306,13 @@ TEST_F(COORD, Flip)
 }
 
 
+TEST_F(COORD, Bijection)
+{
+	EXPECT_TRUE(ade::identity->is_bijective());
+
+	ade::CoordptrT reducer = ade::reduce(3, {2});
+	EXPECT_FALSE(reducer->is_bijective());
+}
+
+
 #endif // DISABLE_COORD_TEST

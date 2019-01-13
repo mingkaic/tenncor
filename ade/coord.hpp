@@ -38,6 +38,9 @@ struct iCoordMap
 	/// Access the forward matrix representation of transformer as a param to input
 	/// callback function cb
 	virtual void access (std::function<void(const MatrixT&)> cb) const = 0;
+
+	/// Return true if this instance maps coordinates/shapes bijectively
+	virtual bool is_bijective (void) const = 0;
 };
 
 /// Coordinate transformation implementation using homogeneous matrices
@@ -86,6 +89,12 @@ struct CoordMap final : public iCoordMap
 	void access (std::function<void(const MatrixT&)> cb) const override
 	{
 		cb(fwd_);
+	}
+
+	/// Implementation of iCoordMap
+	bool is_bijective (void) const override
+	{
+		return (int) determinant(fwd_) != 0;
 	}
 
 private:
