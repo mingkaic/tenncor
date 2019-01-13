@@ -105,6 +105,8 @@ private:
 /// Return MappedTensor that identity maps input tensor
 MappedTensor identity_map (TensptrT tensor);
 
+MappedTensor reduce_1d_map (TensptrT tensor, uint8_t rank);
+
 /// Return MappedTensor that reduces input tensor according to
 /// rank and reduction vector
 MappedTensor reduce_map (TensptrT tensor,
