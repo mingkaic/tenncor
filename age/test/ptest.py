@@ -62,7 +62,8 @@ fields = {
             "name": "arg"
         }, {
             "dtype": "Arg",
-            "name": "arg1"
+            "name": "arg1",
+            "default": "Arg(2.4, 20)"
         }, {
             "dtype": "ade::TensptrT",
             "name": "arg2"
@@ -73,7 +74,8 @@ fields = {
         }, {
             "dtype": "Arg",
             "name": "arg1"
-        }], "out": "bar4()"}
+        }], "out": "bar4()",
+        "description": "more complicated func1"}
     ]
 }
 
@@ -87,8 +89,11 @@ ade::TensptrT func1 ();
 
 ade::TensptrT func2 (ade::TensptrT arg, Arg arg1);
 
-ade::TensptrT func3 (ade::TensptrT arg, Arg arg1, ade::TensptrT arg2);
+ade::TensptrT func3 (ade::TensptrT arg, Arg arg1 = Arg(2.4, 20), ade::TensptrT arg2);
 
+/**
+more complicated func1
+**/
 ade::TensptrT func1 (ade::TensT arg, Arg arg1);
 
 }

@@ -47,7 +47,8 @@
                 "name": "arg1"
             }, {
                 "dtype": "uint8_t",
-                "name": "bardock"
+                "name": "bardock",
+                "default": "5"
             }],
             "out": "freeza(arg1, bardock)"
         },
