@@ -172,7 +172,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a36f26c4f3b26313bbb1729e5bb3abd3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a36f26c4f3b26313bbb1729e5bb3abd3e">extend_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; ext)</td></tr>
 <tr class="separator:a36f26c4f3b26313bbb1729e5bb3abd3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9aa2d44fc01e6cc210c5933357b3cd5a">permute_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, std::vector&lt; uint8_t &gt; order)</td></tr>
-<tr class="memdesc:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that permutes input tensor by order.  <a href="#a9aa2d44fc01e6cc210c5933357b3cd5a">More...</a><br /></td></tr>
 <tr class="separator:a9aa2d44fc01e6cc210c5933357b3cd5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9666cf98226493cfbdacbb2bd60f7f52"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_mapped_tensor.html">MappedTensor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9666cf98226493cfbdacbb2bd60f7f52">flip_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t dim)</td></tr>
 <tr class="memdesc:a9666cf98226493cfbdacbb2bd60f7f52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that flips input tensor along dimension.  <a href="#a9666cf98226493cfbdacbb2bd60f7f52">More...</a><br /></td></tr>
@@ -507,7 +506,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that extends input tensor by rank and extension vector </p>
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that extends input tensor by rank and extension vector E.g.: tensor w/ shape [2, 1, 1], rank = 1, red = [3, 4] gets mapped to [2, 3, 4] </p>
 
 </div>
 </div>
@@ -719,8 +718,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that permutes input tensor by order. </p>
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that permutes input tensor by order E.g.: tensor w/ shape [2, 3, 4], order = [1, 2, 0] gets mapped to [3, 4, 2] </p>
 
 </div>
 </div>
@@ -778,6 +776,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that reduces input tensor at rank then snip the dimension at rank E.g.: tensor w/ shape [2, 3, 4], rank = 1 gets mapped to [2, 4] </p>
 
 </div>
 </div>
@@ -812,7 +811,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that reduces input tensor according to rank and reduction vector </p>
+<p>Return <a class="el" href="structade_1_1_mapped_tensor.html" title="Coordinate mapper and tensor pair. ">MappedTensor</a> that reduces input tensor by units in reduction vector after specified rank E.g.: tensor w/ shape [2, 3, 4], rank = 0, red = [2, 3] gets mapped to [1, 1, 4] </p>
 
 </div>
 </div>

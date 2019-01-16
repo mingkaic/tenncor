@@ -171,13 +171,12 @@ TEST_F(COORD, Identity)
 		"[0\\0\\0\\0\\0\\0\\0\\0\\1]]", idstr.c_str());
 	EXPECT_STREQ(idstr.c_str(), idstr2.c_str());
 
-	std::vector<int32_t> icoord = {
+	ade::CoordT fwd_out;
+	ade::CoordT icoord = {
 		42, 12, 85, 7, 82, 91, 2, 34,
 	};
-	ade::CoordT fwd_out, in;
-	std::copy(icoord.begin(), icoord.end(), in.begin());
 
-	ade::identity->forward(fwd_out.begin(), in.begin());
+	ade::identity->forward(fwd_out.begin(), icoord.begin());
 	EXPECT_ARREQ(icoord, fwd_out);
 }
 
@@ -185,18 +184,16 @@ TEST_F(COORD, Identity)
 TEST_F(COORD, Reduce)
 {
 	size_t rank = 5;
-	std::vector<int32_t> red = {22, 32, 2};
-	std::vector<ade::DimT> dred(red.begin(), red.end());
-	ade::CoordptrT reducer = ade::reduce(rank, dred);
+	std::vector<ade::DimT> red = {22, 32, 2};
+	ade::CoordptrT reducer = ade::reduce(rank, red);
 
-	std::vector<double> icoord = {
+	ade::CoordT fwd_out;
+	ade::CoordT icoord = {
 		211.6172349153, 3.6941314330, 3.3471187148, 24.3511302088,
 		17.8520169468, 99.9911659058, 7.2182000783, 6.4776819746
 	};
-	ade::CoordT fwd_out, in;
-	std::copy(icoord.begin(), icoord.end(), in.begin());
 
-	reducer->forward(fwd_out.begin(), in.begin());
+	reducer->forward(fwd_out.begin(), icoord.begin());
 	for (size_t i = 0; i < rank; ++i)
 	{
 		EXPECT_EQ(icoord[i], fwd_out[i]) << i;
@@ -211,7 +208,7 @@ TEST_F(COORD, Reduce)
 	std::string fatalmsg = fmts::sprintf(
 		"cannot reduce shape rank %d beyond rank_cap with n_red %d",
 		rank + 1, red.size());
-	EXPECT_FATAL(ade::reduce(rank + 1, dred), fatalmsg.c_str());
+	EXPECT_FATAL(ade::reduce(rank + 1, red), fatalmsg.c_str());
 
 	EXPECT_WARN(ade::reduce(0, {}), "reducing with empty vector ... will do nothing");
 }
@@ -220,22 +217,20 @@ TEST_F(COORD, Reduce)
 TEST_F(COORD, Extend)
 {
 	size_t rank = 3;
-	std::vector<int32_t> ext = {12, 21, 8, 4, 52};
-	std::vector<ade::DimT> dext(ext.begin(), ext.end());
-	ade::CoordptrT extender = ade::extend(rank, dext);
+	std::vector<ade::DimT> ext = {12, 21, 8, 4, 52};
+	ade::CoordptrT extender = ade::extend(rank, ext);
 
-	std::vector<double> icoord = {142.2, 42.17, 33.292, 33, 231.5, 2.33, 96.4, 1.23};
-	ade::CoordT fwd_out, in;
-	std::copy(icoord.begin(), icoord.end(), in.begin());
+	ade::CoordT fwd_out;
+	ade::CoordT incoord = {142.2, 42.17, 33.292, 33, 231.5, 2.33, 96.4, 1.23};
 
-	extender->forward(fwd_out.begin(), in.begin());
+	extender->forward(fwd_out.begin(), incoord.begin());
 	for (size_t i = 0; i < rank; ++i)
 	{
-		EXPECT_EQ(icoord[i], fwd_out[i]) << i;
+		EXPECT_EQ(incoord[i], fwd_out[i]) << i;
 	}
 	for (size_t i = rank; i < ade::rank_cap; ++i)
 	{
-		EXPECT_DOUBLE_EQ(icoord[i] * ext[i - rank], fwd_out[i]) << "ext=" << ext[i - rank] << ",i=" << i;
+		EXPECT_DOUBLE_EQ(incoord[i] * ext[i - rank], fwd_out[i]) << "ext=" << ext[i - rank] << ",i=" << i;
 	}
 
 	EXPECT_FATAL(ade::extend(rank, {0}), "cannot extend using zero dimensions [0]");
@@ -243,7 +238,7 @@ TEST_F(COORD, Extend)
 	std::string fatalmsg = fmts::sprintf(
 		"cannot extend shape rank %d beyond rank_cap with n_ext %d",
 		rank + 1, ext.size());
-	EXPECT_FATAL(ade::extend(rank + 1, dext), fatalmsg.c_str());
+	EXPECT_FATAL(ade::extend(rank + 1, ext), fatalmsg.c_str());
 
 	EXPECT_WARN(ade::extend(0, {}), "extending with empty vector ... will do nothing");
 }
@@ -251,12 +246,11 @@ TEST_F(COORD, Extend)
 
 TEST_F(COORD, Permute)
 {
-	std::vector<uint64_t> perm = {4, 2, 3, 7, 0, 1};
-	std::vector<ade::DimT> dperm(perm.begin(), perm.end());
-	ade::CoordptrT permuter = ade::permute(dperm);
+	std::vector<ade::DimT> perm = {4, 2, 3, 7, 0, 1};
+	ade::CoordptrT permuter = ade::permute(perm);
 	std::array<bool,ade::rank_cap> permed;
 	permed.fill(false);
-	for (uint64_t p : perm)
+	for (ade::DimT p : perm)
 	{
 		permed[p] = true;
 	}
@@ -268,11 +262,10 @@ TEST_F(COORD, Permute)
 		}
 	}
 
-	std::vector<int32_t> icoord = {12, 82, 20, 31, 49, 1, 1, 1};
-	ade::CoordT fwd_out, in;
-	std::copy(icoord.begin(), icoord.end(), in.begin());
+	ade::CoordT fwd_out;
+	ade::CoordT icoord = {12, 82, 20, 31, 49, 1, 1, 1};
 
-	permuter->forward(fwd_out.begin(), in.begin());
+	permuter->forward(fwd_out.begin(), icoord.begin());
 	for (size_t i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(icoord[perm[i]], fwd_out[i]);
@@ -287,11 +280,10 @@ TEST_F(COORD, Flip)
 	size_t dim = 3;
 	ade::CoordptrT flipper = ade::flip(dim);
 
-	std::vector<int32_t> icoord = {23, 66, 72, 83, 91, 1, 31, 21};
-	ade::CoordT fwd_out, in;
-	std::copy(icoord.begin(), icoord.end(), in.begin());
+	ade::CoordT fwd_out;
+	ade::CoordT icoord = {23, 66, 72, 83, 91, 1, 31, 21};
 
-	flipper->forward(fwd_out.begin(), in.begin());
+	flipper->forward(fwd_out.begin(), icoord.begin());
 	for (size_t i = 0; i < dim; ++i)
 	{
 		EXPECT_EQ(icoord[i], fwd_out[i]) << i;
