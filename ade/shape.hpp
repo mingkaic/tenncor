@@ -105,7 +105,7 @@ struct Shape final
 	NElemT n_elems (void) const
 	{
 		auto it = dims_.begin();
-		return std::accumulate(it, it + rank_cap, 1,
+		return std::accumulate(it, it + rank_cap, (NElemT) 1,
 			std::multiplies<NElemT>());
 	}
 

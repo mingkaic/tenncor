@@ -19,9 +19,31 @@ namespace age
 #endif // _GENERATED_API_HPP
 ''')
 
-header.api_decls = ('apis', lambda apis: '\n\n'.join(['ade::TensptrT {api} ({args});'.format(\
-    api = api['name'], args = ', '.join([arg['dtype'] + ' ' + arg['name']\
-    for arg in api['args']])) for api in apis]))
+def parse_api(api):
+    def parse_header_args(arg):
+        if 'default' in arg:
+            defext = ' = {}'.format(arg['default'])
+        else:
+            defext = ''
+        return '{dtype} {name}{defext}'.format(
+            dtype = arg['dtype'],
+            name = arg['name'],
+            defext = defext)
+
+    if 'description' in api:
+        comment = '/**\n{}\n**/\n'.format(
+            api['description'])
+    else:
+        comment = ''
+    name = api['name']
+    args = ', '.join([parse_header_args(arg) for arg in api['args']])
+    return '{comment}ade::TensptrT {api} ({args});'.format(
+        comment = comment,
+        api = name,
+        args = args)
+
+header.api_decls = ('apis', lambda apis: '\n\n'.join([
+    parse_api(api) for api in apis]))
 
 # EXPORT
 source = template.AGE_FILE(FILENAME, template.SOURCE_EXT,

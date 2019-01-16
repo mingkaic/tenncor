@@ -4,9 +4,9 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/shape.hpp"
-
 #include "testutil/common.hpp"
+
+#include "ade/shape.hpp"
 
 
 struct SHAPE : public ::testing::Test
@@ -123,9 +123,17 @@ TEST_F(SHAPE, NElems)
 	ade::Shape shape(slist);
 
 	size_t expect_nelems = 11 * 12 * 16;
-
 	EXPECT_EQ(expect_nelems, shape.n_elems());
-	std::vector<int32_t> gotnelems = {(int32_t) shape.n_elems()};
+
+	std::vector<ade::DimT> biglist(8, 255);
+	ade::Shape bigshape(biglist);
+
+	size_t expect_bignelems = 17878103347812890625;
+	EXPECT_EQ(expect_bignelems, bigshape.n_elems());
+
+	// also check the bounds
+	EXPECT_GT(std::numeric_limits<ade::NElemT>::max(),
+		expect_bignelems);
 }
 
 
@@ -199,7 +207,7 @@ TEST_F(SHAPE, Coordinates)
 	EXPECT_FATAL(ade::index(shape, coord), fatalmsg.c_str());
 
 	std::string fatalmsg2 = fmts::sprintf("cannot get coordinate of index %d "
-		"(>= shape %s nelems)", shape.n_elems(), shapestr.c_str());
+		"(>= shape %s)", shape.n_elems(), shapestr.c_str());
 	EXPECT_FATAL(ade::coordinate(shape, shape.n_elems()), fatalmsg2.c_str());
 }
 

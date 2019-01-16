@@ -4,11 +4,11 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/functor.hpp"
-
 #include "testutil/common.hpp"
 
-#include "common.hpp"
+#include "ade/test/common.hpp"
+
+#include "ade/functor.hpp"
 
 
 struct FUNCTOR : public ::testing::Test {};

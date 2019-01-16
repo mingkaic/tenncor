@@ -8,7 +8,7 @@ filegroup(
     name = "srcs",
     srcs = glob([
         "*.hpp",
-        "*.cpp",
+        "src/*.cpp",
     ]) + ["BUILD.bazel"],
 )
 
@@ -17,7 +17,10 @@ filegroup(
 cc_library(
     name = "dbg",
     hdrs = glob(["*.hpp"]),
-    srcs = glob(["*.cpp"]),
+    srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++14"],
-    deps = ["//ade:ade"],
+    deps = [
+        "//ade:ade",
+        "@com_github_mingkaic_cppkg//diff:diff",
+    ],
 )

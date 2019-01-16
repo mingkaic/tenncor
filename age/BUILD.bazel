@@ -81,15 +81,15 @@ genrule(
 
 py_test(
     name = "ptest",
-    srcs = [":ptest_srcs"],
+    srcs = ["//age:ptest_srcs"],
     deps = ["//age:age_tmpl"],
 )
 
 cc_test(
     name = "ctest",
     srcs = [
-        ":ctest_srcs",
-        ":generated_mock",
+        "//age:ctest_srcs",
+        "//age:generated_mock",
     ],
     copts = ["-std=c++14"],
     deps = [

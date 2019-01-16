@@ -6,7 +6,7 @@
 
 #include "testutil/common.hpp"
 
-#include "common.hpp"
+#include "ade/test/common.hpp"
 
 #include "ade/mtens.hpp"
 

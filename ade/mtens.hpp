@@ -105,17 +105,28 @@ private:
 /// Return MappedTensor that identity maps input tensor
 MappedTensor identity_map (TensptrT tensor);
 
-/// Return MappedTensor that reduces input tensor according to
-/// rank and reduction vector
+/// Return MappedTensor that reduces input tensor at
+/// rank then snip the dimension at rank
+/// E.g.: tensor w/ shape [2, 3, 4], rank = 1 gets mapped to [2, 4]
+MappedTensor reduce_1d_map (TensptrT tensor, uint8_t rank);
+
+/// Return MappedTensor that reduces input tensor by
+/// units in reduction vector after specified rank
+/// E.g.: tensor w/ shape [2, 3, 4], rank = 0, red = [2, 3]
+/// gets mapped to [1, 1, 4]
 MappedTensor reduce_map (TensptrT tensor,
 	uint8_t rank, std::vector<DimT> red);
 
 /// Return MappedTensor that extends input tensor by
 /// rank and extension vector
+/// E.g.: tensor w/ shape [2, 1, 1], rank = 1, red = [3, 4]
+/// gets mapped to [2, 3, 4]
 MappedTensor extend_map (TensptrT tensor,
 	uint8_t rank, std::vector<DimT> ext);
 
 /// Return MappedTensor that permutes input tensor by order
+/// E.g.: tensor w/ shape [2, 3, 4], order = [1, 2, 0]
+/// gets mapped to [3, 4, 2]
 MappedTensor permute_map (TensptrT tensor, std::vector<uint8_t> order);
 
 /// Return MappedTensor that flips input tensor along dimension

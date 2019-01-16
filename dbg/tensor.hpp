@@ -58,7 +58,7 @@ private:
 		else
 		{
 			auto it = shape.begin();
-			size_t before = std::accumulate(it, it + rank, 1,
+			size_t before = std::accumulate(it, it + rank, (size_t) 1,
 				std::multiplies<size_t>());
 			print_helper(out, shape, arr, rank - 1);
 			for (uint16_t i = 1; i < n; ++i)

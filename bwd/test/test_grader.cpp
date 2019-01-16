@@ -110,56 +110,6 @@ ade::TensptrT derive (ade::TensptrT& root, const ade::iTensor* wrt)
 }
 
 
-static inline void ltrim(std::string &s)
-{
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-		std::not1(std::ptr_fun<int,int>(std::isspace))));
-}
-
-
-static inline void rtrim(std::string &s)
-{
-	s.erase(std::find_if(s.rbegin(), s.rend(),
-		std::not1(std::ptr_fun<int,int>(std::isspace))).base(), s.end());
-}
-
-
-static inline void trim(std::string &s)
-{
-	ltrim(s);
-	rtrim(s);
-}
-
-
-#define TREE_EQ(expectstr, root)\
-{\
-	PrettyEquation artist;\
-	artist.showshape_ = true;\
-	std::stringstream gotstr;\
-	artist.print(gotstr, root);\
-	std::string expect;\
-	std::string got;\
-	std::string line;\
-	while (std::getline(expectstr, line))\
-	{\
-		trim(line);\
-		if (line.size() > 0)\
-		{\
-			expect += line + "\n";\
-		}\
-	}\
-	while (std::getline(gotstr, line))\
-	{\
-		trim(line);\
-		if (line.size() > 0)\
-		{\
-			got += line + "\n";\
-		}\
-	}\
-	EXPECT_STREQ(expect.c_str(), got.c_str());\
-}
-
-
 #define COORD_EQ(expect, got)\
 {\
 	expect->access([&](const ade::MatrixT& expectm)\
@@ -214,10 +164,10 @@ TEST(GRADER, Leaf)
 
 	std::stringstream sstr;
 	sstr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
-	TREE_EQ(sstr, g1);
+	EXPECT_STREQ("", compare_graph(sstr, g1).c_str());
 	sstr.clear();
 	sstr << "([2\\3\\1\\1\\1\\1\\1\\1])\n";
-	TREE_EQ(sstr, g0);
+	EXPECT_STREQ("", compare_graph(sstr, g0).c_str());;
 }
 
 
@@ -274,10 +224,10 @@ TEST(GRADER, Sum)
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 
-	TREE_EQ(ostr, g1);
-	TREE_EQ(zstr, g0);
-	TREE_EQ(lstr, gl);
-	TREE_EQ(rstr, gr);
+	EXPECT_STREQ("", compare_graph(ostr, g1).c_str());;
+	EXPECT_STREQ("", compare_graph(zstr, g0).c_str());;
+	EXPECT_STREQ("", compare_graph(lstr, gl).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr, gr).c_str());;
 }
 
 
@@ -334,10 +284,10 @@ TEST(GRADER, Prod)
 		" `--(*[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 
-	TREE_EQ(ostr, g1);
-	TREE_EQ(zstr, g0);
-	TREE_EQ(lstr, gl);
-	TREE_EQ(rstr, gr);
+	EXPECT_STREQ("", compare_graph(ostr, g1).c_str());;
+	EXPECT_STREQ("", compare_graph(zstr, g0).c_str());;
+	EXPECT_STREQ("", compare_graph(lstr, gl).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr, gr).c_str());;
 }
 
 
@@ -433,8 +383,8 @@ TEST(GRADER, SumProd)
 		"             `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" <<
 		"                 `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 
-	TREE_EQ(lstr, gl);
-	TREE_EQ(rstr, gr);
+	EXPECT_STREQ("", compare_graph(lstr, gl).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr, gr).c_str());;
 }
 
 
@@ -499,10 +449,10 @@ TEST(GRADER, Extend)
 		" `--(+[2\\3\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n";
 
-	TREE_EQ(ostr, g1);
-	TREE_EQ(zstr, g0);
-	TREE_EQ(lstr, gl);
-	TREE_EQ(rstr, gr);
+	EXPECT_STREQ("", compare_graph(ostr, g1).c_str());;
+	EXPECT_STREQ("", compare_graph(zstr, g0).c_str());;
+	EXPECT_STREQ("", compare_graph(lstr, gl).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr, gr).c_str());;
 
 	{
 		auto fl = dynamic_cast<ade::Functor*>(gl.get());
@@ -718,10 +668,10 @@ TEST(GRADER, ReduceExtend)
 		" `--(+[2\\1\\1\\1\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\1\\1\\1\\1\\1\\1])\n";
 
-	TREE_EQ(ostr, g1);
-	TREE_EQ(zstr, g0);
-	TREE_EQ(lstr, gl);
-	TREE_EQ(rstr, gr);
+	EXPECT_STREQ("", compare_graph(ostr, g1).c_str());;
+	EXPECT_STREQ("", compare_graph(zstr, g0).c_str());;
+	EXPECT_STREQ("", compare_graph(lstr, gl).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr, gr).c_str());;
 
 	{
 		auto fl = dynamic_cast<ade::Functor*>(gl.get());
@@ -936,10 +886,10 @@ TEST(GRADER, PermuteReduce)
 		" `--(+[2\\3\\4\\5\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([2\\3\\4\\1\\1\\1\\1\\1])\n";
 
-	TREE_EQ(ostr, g1);
-	TREE_EQ(zstr, g0);
-	TREE_EQ(lstr, gl);
-	TREE_EQ(rstr, gr);
+	EXPECT_STREQ("", compare_graph(ostr, g1).c_str());;
+	EXPECT_STREQ("", compare_graph(zstr, g0).c_str());;
+	EXPECT_STREQ("", compare_graph(lstr, gl).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr, gr).c_str());;
 
 	{
 		auto fl = dynamic_cast<ade::Functor*>(gl.get());
@@ -1155,10 +1105,10 @@ TEST(GRADER, DiffShaperCoorder)
 		" `--(+[3\\3\\4\\4\\1\\1\\1\\1])\n" << // derivative of leaf wrt leaf
 		"     `--([3\\4\\3\\4\\1\\1\\1\\1])\n";
 
-	TREE_EQ(ostr, g1);
-	TREE_EQ(zstr, g0);
-	TREE_EQ(lstr, gl);
-	TREE_EQ(rstr, gr);
+	EXPECT_STREQ("", compare_graph(ostr, g1).c_str());;
+	EXPECT_STREQ("", compare_graph(zstr, g0).c_str());;
+	EXPECT_STREQ("", compare_graph(lstr, gl).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr, gr).c_str());;
 
 	{
 		auto fl = dynamic_cast<ade::Functor*>(gl.get());
@@ -1385,10 +1335,10 @@ TEST(GRADER, NoMapAliasing)
 		" `--(*[1\\2\\3\\1\\1\\1\\1\\1])\n" <<
 		"     `--([1\\2\\3\\1\\1\\1\\1\\1])\n";
 
-	TREE_EQ(lstr, gl);
-	TREE_EQ(rstr, gr);
-	TREE_EQ(lstr2, gl2);
-	TREE_EQ(rstr2, gr2);
+	EXPECT_STREQ("", compare_graph(lstr, gl).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr, gr).c_str());;
+	EXPECT_STREQ("", compare_graph(lstr2, gl2).c_str());;
+	EXPECT_STREQ("", compare_graph(rstr2, gr2).c_str());;
 }
 
 
