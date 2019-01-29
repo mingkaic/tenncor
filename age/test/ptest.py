@@ -356,7 +356,7 @@ struct RuleSet final : public iRuleSet
     }
 
     ade::TensptrT chain_rule (ade::iFunctor* fwd,
-        ade::MappedTensor bwd, ade::TensT args, size_t idx) override;
+        ade::FuncArg bwd, ade::TensT args, size_t idx) override;
 };
 
 }
@@ -370,7 +370,7 @@ namespace age
 {
 
 ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
-    ade::MappedTensor bwd, ade::TensT args, size_t idx)
+    ade::FuncArg bwd, ade::TensT args, size_t idx)
 {
     switch (fwd->get_opcode().code_)
     {

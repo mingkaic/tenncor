@@ -40,6 +40,20 @@ struct Functor final : public iFunctor
 		return new Functor(opcode, shape, args);
 	}
 
+	static Functor* get (const Functor& other)
+	{
+		return new Functor(other);
+	}
+
+	static Functor* get (Functor&& other)
+	{
+		return new Functor(std::move(other));
+	}
+
+	Functor& operator = (const Functor& other) = delete;
+
+	Functor& operator = (Functor&& other) = delete;
+
 	/// Implementation of iTensor
 	const Shape& shape (void) const override
 	{
@@ -67,6 +81,10 @@ struct Functor final : public iFunctor
 private:
 	Functor (Opcode opcode, Shape shape, ArgsT args) :
 		opcode_(opcode), shape_(shape), args_(args) {}
+
+	Functor (const Functor& other) = default;
+
+	Functor (Functor&& other) = default;
 
 	/// Operation encoding
 	Opcode opcode_;

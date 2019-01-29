@@ -8,7 +8,7 @@
 
 #include "ade/test/common.hpp"
 
-#include "ade/mtens.hpp"
+#include "ade/funcarg.hpp"
 
 
 struct TENSOR : public ::testing::Test
@@ -21,18 +21,18 @@ struct TENSOR : public ::testing::Test
 };
 
 
-TEST_F(TENSOR, MappedTensor)
+TEST_F(TENSOR, FuncArg)
 {
 	std::vector<ade::DimT> slist = {2, 81};
 
 	size_t dim = 1;
 	ade::TensptrT tens(new MockTensor(ade::Shape(slist)));
-	ade::MappedTensor mt = ade::flip_map(tens, dim);
+	ade::FuncArg mt = ade::flip_map(tens, dim);
 
 	ade::Shape shape = mt.shape();
 	EXPECT_ARREQ(slist, shape);
 
-	ade::MappedTensor mt2(tens, ade::CoordptrT(new ade::CoordMap(
+	ade::FuncArg mt2(tens, ade::CoordptrT(new ade::CoordMap(
 		[](ade::MatrixT m)
 		{
 			for (size_t i = 0; i < ade::mat_dim; ++i)
@@ -48,7 +48,7 @@ TEST_F(TENSOR, MappedTensor)
 	EXPECT_FATAL(ade::identity_map(nullptr),
 		"cannot map a null tensor");
 
-	EXPECT_FATAL(ade::MappedTensor(nullptr, ade::reduce(3, {4}),
+	EXPECT_FATAL(ade::FuncArg(nullptr, ade::reduce(3, {4}),
 		false, ade::extend(3, {4})),
 		"cannot map a null tensor");
 }
