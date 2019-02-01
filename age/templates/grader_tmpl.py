@@ -1,13 +1,8 @@
 ''' Representation of gradient mapping files '''
 
-import template
+import age.templates.template as template
 
 FILENAME = 'grader'
-
-def sortkey(dic):
-    arr = dic.keys()
-    arr.sort()
-    return arr
 
 # EXPORT
 header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
@@ -72,4 +67,4 @@ ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
 
 source.gradops = ('opcodes', lambda opcodes: '\n'.join([
     '        case {code}: return {retval};'.format(\
-    code = code, retval = opcodes[code]['derivative']) for code in sortkey(opcodes)]))
+    code = code, retval = opcodes[code]['derivative']) for code in template.sortkey(opcodes)]))

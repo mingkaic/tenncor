@@ -46,9 +46,6 @@ def process(directory, relpath, fields):
         '"ade/functor.hpp"',
         '"' + codes_hdr_path + '"',
     ]
-    opera.source.includes = [
-        '"' + opera_hdr_path + '"'
-    ]
 
     directory = {
         'api_hpp': api.header,
@@ -58,7 +55,6 @@ def process(directory, relpath, fields):
         'grader_hpp': grader.header,
         'grader_src': grader.source,
         'opera_hpp': opera.header,
-        'opera_src': opera.source,
     }
 
     for akey in directory:

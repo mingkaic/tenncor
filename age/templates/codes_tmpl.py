@@ -1,13 +1,8 @@
 ''' Representation of OPCODE and DTYPE definition files '''
 
-import template
+import age.templates.template as template
 
 FILENAME = 'codes'
-
-def sortkey(dic):
-    arr = dic.keys()
-    arr.sort()
-    return arr
 
 # EXPORT
 header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
@@ -53,14 +48,14 @@ _GENERATED_DTYPE get_type (void)
 ''')
 
 header.opcodes = ('opcodes', lambda opcodes: '\n'.join(['    {code},'.format(\
-    code = code) for code in sortkey(opcodes)]))
+    code = code) for code in template.sortkey(opcodes)]))
 
 header.dtypes = ('dtypes', lambda dtypes: '\n'.join(['    {dtype},'.format(\
-    dtype = dtype) for dtype in sortkey(dtypes)]))
+    dtype = dtype) for dtype in template.sortkey(dtypes)]))
 
 header.get_type_decls = ('dtypes', lambda dtypes: '\n\n'.join(['''template <>
 _GENERATED_DTYPE get_type<{real_type}> (void);'''.format(\
-    real_type = dtypes[dtype]) for dtype in sortkey(dtypes)]))
+    real_type = dtypes[dtype]) for dtype in template.sortkey(dtypes)]))
 
 # EXPORT
 source = template.AGE_FILE(FILENAME, template.SOURCE_EXT,
@@ -155,22 +150,22 @@ uint8_t type_size (_GENERATED_DTYPE type)
 ''')
 
 source.code2names = ('opcodes', lambda opcodes: '\n'.join(['    {{ {code}, "{code}" }},'.format(\
-    code = code) for code in sortkey(opcodes)]))
+    code = code) for code in template.sortkey(opcodes)]))
 
 source.name2codes = ('opcodes', lambda opcodes: '\n'.join(['    {{ "{code}", {code} }},'.format(\
-    code = code) for code in sortkey(opcodes)]))
+    code = code) for code in template.sortkey(opcodes)]))
 
 source.type2names = ('dtypes', lambda dtypes: '\n'.join(['    {{ {dtype}, "{dtype}" }},'.format(\
-    dtype = dtype) for dtype in sortkey(dtypes)]))
+    dtype = dtype) for dtype in template.sortkey(dtypes)]))
 
 source.name2types = ('dtypes', lambda dtypes: '\n'.join(['    {{ "{dtype}", {dtype} }},'.format(\
-    dtype = dtype) for dtype in sortkey(dtypes)]))
+    dtype = dtype) for dtype in template.sortkey(dtypes)]))
 
 source.type_sizes = ('dtypes', lambda dtypes: '\n'.join(['        case {dtype}: return sizeof({real_type});'.format(\
-    dtype = dtype, real_type = dtypes[dtype]) for dtype in sortkey(dtypes)]))
+    dtype = dtype, real_type = dtypes[dtype]) for dtype in template.sortkey(dtypes)]))
 
 source.get_types = ('dtypes', lambda dtypes: '\n\n'.join(['''template <>
 _GENERATED_DTYPE get_type<{real_type}> (void)
 {{
     return {dtype};
-}}'''.format(dtype = dtype, real_type = dtypes[dtype]) for dtype in sortkey(dtypes)]))
+}}'''.format(dtype = dtype, real_type = dtypes[dtype]) for dtype in template.sortkey(dtypes)]))

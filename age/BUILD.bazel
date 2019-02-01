@@ -69,7 +69,6 @@ genrule(
         "generated/grader.hpp",
         "generated/grader.cpp",
         "generated/opmap.hpp",
-        "generated/opmap.cpp",
     ],
     tools = ["//age:cagen"],
     cmd = "$(location //age:cagen) " +

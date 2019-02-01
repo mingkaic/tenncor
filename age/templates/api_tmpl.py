@@ -1,6 +1,6 @@
 ''' Representation of API files '''
 
-import template
+import age.templates.template as template
 
 FILENAME = 'api'
 
