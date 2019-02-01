@@ -1,6 +1,6 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structade_1_1i_traveler.html" title="Interface to travel through graph, treating iLeaf and iFunctor differently. " alt="" coords="5,55,108,80"/>
-<area shape="rect" id="node2" href="$structade_1_1_graph_stat.html" title="Traveler that maps each tensor to its subtree&#39;s maximum depth. " alt="" coords="158,5,270,31"/>
-<area shape="rect" id="node3" href="$structade_1_1_path_finder.html" title="ade::PathFinder" alt="" coords="156,55,272,80"/>
-<area shape="rect" id="node4" href="$structage_1_1_grader.html" title="Traveler to obtain derivative of accepted node with respect to target. " alt="" coords="168,104,260,129"/>
+<area shape="rect" id="node1" href="$structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="5,31,99,56"/>
+<area shape="rect" id="node2" href="$structade_1_1i_functor.html" title="Interface of iOperation&#45;defined operation node. " alt="" coords="147,5,246,31"/>
+<area shape="rect" id="node4" href="$structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="157,55,237,80"/>
+<area shape="rect" id="node3" href="$structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. " alt="" coords="294,5,391,31"/>
 </map>

@@ -1,8 +1,8 @@
 <map id="ade/coord.hpp" name="ade/coord.hpp">
-<area shape="rect" id="node2" href="$mtens_8hpp.html" title="ade/mtens.hpp" alt="" coords="150,79,259,104"/>
-<area shape="rect" id="node10" href="$coord_8cpp.html" title="ade/src/coord.cpp" alt="" coords="284,79,411,104"/>
+<area shape="rect" id="node2" href="$funcarg_8hpp.html" title="ade/funcarg.hpp" alt="" coords="147,79,265,104"/>
+<area shape="rect" id="node10" href="$coord_8cpp.html" title="ade/src/coord.cpp" alt="" coords="289,79,416,104"/>
 <area shape="rect" id="node3" href="$ifunctor_8hpp.html" title="ade/ifunctor.hpp" alt="" coords="73,152,189,177"/>
-<area shape="rect" id="node9" href="$mtens_8cpp.html" title="ade/src/mtens.cpp" alt="" coords="213,152,343,177"/>
+<area shape="rect" id="node9" href="$funcarg_8cpp.html" title="ade/src/funcarg.cpp" alt="" coords="213,152,351,177"/>
 <area shape="rect" id="node4" href="$functor_8hpp.html" title="ade/functor.hpp" alt="" coords="5,225,119,251"/>
 <area shape="rect" id="node8" href="$traveler_8hpp.html" title="ade/traveler.hpp" alt="" coords="142,225,259,251"/>
 <area shape="rect" id="node5" href="$ade_8hpp.html" title="ade/ade.hpp" alt="" coords="84,299,179,324"/>
