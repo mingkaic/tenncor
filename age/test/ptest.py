@@ -3,6 +3,7 @@ import difflib
 
 import age.templates.api_tmpl as api
 import age.templates.codes_tmpl as codes
+import age.templates.data_tmpl as data
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
 
@@ -331,6 +332,42 @@ _GENERATED_DTYPE get_type<float> (void)
 #endif
 """
 
+data_header = """#ifndef _GENERATED_DATA_HPP
+#define _GENERATED_DATA_HPP
+
+namespace age
+{
+
+// uses std containers for type conversion
+template <typename OUTTYPE>
+void type_convert (std::vector<OUTTYPE>& out, void* input,
+	age::_GENERATED_DTYPE intype, size_t nelems)
+{
+    switch (intype)
+	{
+        case CAR:
+			out = std::vector<OUTTYPE>((char*) input,
+                (char*) input + nelems); break;
+        case KAPOW:
+			out = std::vector<OUTTYPE>((complex_t*) input,
+                (complex_t*) input + nelems); break;
+        case VROOM:
+			out = std::vector<OUTTYPE>((double*) input,
+                (double*) input + nelems); break;
+        case VRUM:
+			out = std::vector<OUTTYPE>((float*) input,
+                (float*) input + nelems); break;
+		default:
+			logs::fatalf("invalid input type %s",
+				age::name_type(intype).c_str());
+	}
+}
+
+}
+
+#endif // _GENERATED_DATA_HPP
+"""
+
 grader_header = """#ifndef _GENERATED_GRADER_HPP
 #define _GENERATED_GRADER_HPP
 
@@ -356,7 +393,7 @@ struct RuleSet final : public iRuleSet
     }
 
     ade::TensptrT chain_rule (ade::iFunctor* fwd,
-        ade::MappedTensor bwd, ade::TensT args, size_t idx) override;
+        ade::FuncArg bwd, ade::TensT args, size_t idx) override;
 };
 
 }
@@ -370,7 +407,7 @@ namespace age
 {
 
 ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
-    ade::MappedTensor bwd, ade::TensT args, size_t idx)
+    ade::FuncArg bwd, ade::TensT args, size_t idx)
 {
     switch (fwd->get_opcode().code_)
     {
@@ -411,39 +448,23 @@ void typed_exec (_GENERATED_OPCODE opcode,
     }
 }
 
-void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
-    Out_Type out, ade::Shape shape, In_Type in);
+// GENERIC_MACRO must accept a real type as an argument.
+// e.g.:
+// #define GENERIC_MACRO(REAL_TYPE) run<REAL_TYPE>(args...);
+// ...
+// TYPE_LOOKUP(GENERIC_MACRO, type_code)
+#define TYPE_LOOKUP(GENERIC_MACRO, DTYPE)\\
+switch (DTYPE) {\\
+    case CAR: GENERIC_MACRO(char) break;\\
+    case KAPOW: GENERIC_MACRO(complex_t) break;\\
+    case VROOM: GENERIC_MACRO(double) break;\\
+    case VRUM: GENERIC_MACRO(float) break;\\
+    default: logs::fatal("executing bad type");\\
+}
 
 }
 
 #endif // _GENERATED_OPERA_HPP
-"""
-
-opera_source = """#ifdef _GENERATED_OPERA_HPP
-
-namespace age
-{
-
-void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
-    Out_Type out, ade::Shape shape, In_Type in)
-{
-    switch (dtype)
-    {
-        case CAR:
-            typed_exec<char>(opcode, out, shape, in); break;
-        case KAPOW:
-            typed_exec<complex_t>(opcode, out, shape, in); break;
-        case VROOM:
-            typed_exec<double>(opcode, out, shape, in); break;
-        case VRUM:
-            typed_exec<float>(opcode, out, shape, in); break;
-        default: logs::fatal("executing bad type");
-    }
-}
-
-}
-
-#endif
 """
 
 def multiline_check(s1, s2):
@@ -472,6 +493,11 @@ class ClientTest(unittest.TestCase):
         self.assertEqual(codes_header, header)
         self.assertEqual(codes_source, source)
 
+    def test_data(self):
+        header = str(data.header.process(fields))
+        multiline_check(data_header, header)
+        self.assertEqual(data_header, header)
+
     def test_grader(self):
         header = str(grader.header.process(fields))
         source = str(grader.source.process(fields))
@@ -482,11 +508,8 @@ class ClientTest(unittest.TestCase):
 
     def test_opera(self):
         header = str(opera.header.process(fields))
-        source = str(opera.source.process(fields))
         multiline_check(opera_header, header)
-        multiline_check(opera_source, source)
         self.assertEqual(opera_header, header)
-        self.assertEqual(opera_source, source)
 
 if __name__ == "__main__":
     unittest.main()

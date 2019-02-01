@@ -61,13 +61,13 @@ void Grader::visit (ade::iFunctor* func)
 		for (size_t i : ordered)
 		{
 			ade::TensT args;
-			ade::MappedTensor& child = children[i];
+			ade::FuncArg& child = children[i];
 			ade::CoordptrT revshaper(child.get_shaper()->reverse());
 			bool revmapper = !child.map_io();
 			ade::CoordptrT revcoorder = child.get_coorder();
 			for (size_t j = 0; j < nchildren; ++j)
 			{
-				ade::MappedTensor& kid = children[j];
+				ade::FuncArg& kid = children[j];
 				ade::TensptrT tens = kid.get_tensor();
 				if (j == i)
 				{
@@ -77,14 +77,14 @@ void Grader::visit (ade::iFunctor* func)
 				{
 					// reverse children[j] to child's shape/coord space
 					args.push_back(ade::TensptrT(ade::Functor::get(sum, {
-						ade::MappedTensor(
+						ade::FuncArg(
 							ade::TensptrT(ade::Functor::get(sum, {kid})),
 							revshaper, revmapper, revcoorder)
 					})));
 				}
 			}
 
-			ade::MappedTensor lhs(bwd, revshaper, revmapper, revcoorder);
+			ade::FuncArg lhs(bwd, revshaper, revmapper, revcoorder);
 
 			grads[child.get_tensor().get()].push_back(rules_->chain_rule(parent, lhs, args, i));
 		}

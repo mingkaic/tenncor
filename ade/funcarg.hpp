@@ -1,17 +1,25 @@
+///
+/// funcarg.hpp
+/// ade
+///
+/// Purpose:
+/// Define functor argument wrapper to carryover shape and coordinate mappers
+///
+
 #include "ade/itensor.hpp"
 #include "ade/coord.hpp"
 
-#ifndef ADE_MTENS_HPP
-#define ADE_MTENS_HPP
+#ifndef ADE_FUNCARG_HPP
+#define ADE_FUNCARG_HPP
 
 namespace ade
 {
 
 /// Coordinate mapper and tensor pair
-struct MappedTensor final
+struct FuncArg final
 {
-	/// Construct MappedTensor auto deducing coorder_ and map_io_ flag
-	MappedTensor (TensptrT tensor, CoordptrT shaper) :
+	/// Construct FuncArg auto deducing coorder_ and map_io_ flag
+	FuncArg (TensptrT tensor, CoordptrT shaper) :
 		tensor_(tensor), shaper_(shaper)
 	{
 		if (tensor_ == nullptr)
@@ -29,8 +37,8 @@ struct MappedTensor final
 		}
 	}
 
-	/// Construct MappedTensor with specific coorder_ and map_io_ flag
-	MappedTensor (TensptrT tensor, CoordptrT shaper,
+	/// Construct FuncArg with specific coorder_ and map_io_ flag
+	FuncArg (TensptrT tensor, CoordptrT shaper,
 		bool map_io, CoordptrT coorder) :
 		tensor_(tensor), shaper_(shaper),
 		map_io_(map_io), coorder_(coorder)
@@ -102,36 +110,36 @@ private:
 	CoordptrT coorder_;
 };
 
-/// Return MappedTensor that identity maps input tensor
-MappedTensor identity_map (TensptrT tensor);
+/// Return FuncArg that identity maps input tensor
+FuncArg identity_map (TensptrT tensor);
 
-/// Return MappedTensor that reduces input tensor at
+/// Return FuncArg that reduces input tensor at
 /// rank then snip the dimension at rank
 /// E.g.: tensor w/ shape [2, 3, 4], rank = 1 gets mapped to [2, 4]
-MappedTensor reduce_1d_map (TensptrT tensor, uint8_t rank);
+FuncArg reduce_1d_map (TensptrT tensor, uint8_t rank);
 
-/// Return MappedTensor that reduces input tensor by
+/// Return FuncArg that reduces input tensor by
 /// units in reduction vector after specified rank
 /// E.g.: tensor w/ shape [2, 3, 4], rank = 0, red = [2, 3]
 /// gets mapped to [1, 1, 4]
-MappedTensor reduce_map (TensptrT tensor,
+FuncArg reduce_map (TensptrT tensor,
 	uint8_t rank, std::vector<DimT> red);
 
-/// Return MappedTensor that extends input tensor by
+/// Return FuncArg that extends input tensor by
 /// rank and extension vector
 /// E.g.: tensor w/ shape [2, 1, 1], rank = 1, red = [3, 4]
 /// gets mapped to [2, 3, 4]
-MappedTensor extend_map (TensptrT tensor,
+FuncArg extend_map (TensptrT tensor,
 	uint8_t rank, std::vector<DimT> ext);
 
-/// Return MappedTensor that permutes input tensor by order
+/// Return FuncArg that permutes input tensor by order
 /// E.g.: tensor w/ shape [2, 3, 4], order = [1, 2, 0]
 /// gets mapped to [3, 4, 2]
-MappedTensor permute_map (TensptrT tensor, std::vector<uint8_t> order);
+FuncArg permute_map (TensptrT tensor, std::vector<uint8_t> order);
 
-/// Return MappedTensor that flips input tensor along dimension
-MappedTensor flip_map (TensptrT tensor, uint8_t dim);
+/// Return FuncArg that flips input tensor along dimension
+FuncArg flip_map (TensptrT tensor, uint8_t dim);
 
 }
 
-#endif // ADE_MTENS_HPP
+#endif // ADE_FUNCARG_HPP

@@ -6,7 +6,7 @@
 /// Define functor nodes of an equation graph
 ///
 
-#include "ade/mtens.hpp"
+#include "ade/funcarg.hpp"
 
 #ifndef ADE_IFUNCTOR_HPP
 #define ADE_IFUNCTOR_HPP
@@ -15,7 +15,7 @@ namespace ade
 {
 
 /// Type of functor arguments
-using ArgsT = std::vector<MappedTensor>;
+using ArgsT = std::vector<FuncArg>;
 
 /// Encoding of operation
 struct Opcode final

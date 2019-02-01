@@ -39,3 +39,8 @@ class AGE_FILE:
                 fmt[key] = func(lookup[akeys[-1]])
         self._repstr = self.template.format(**fmt)
         return self
+
+def sortkey(dic):
+    arr = list(dic.keys())
+    arr.sort()
+    return arr

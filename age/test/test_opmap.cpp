@@ -7,6 +7,22 @@
 #include "age/generated/opmap.hpp"
 
 
+namespace age
+{
+
+#define TYPE_EXEC_CALL(REAL_TYPE)typed_exec<REAL_TYPE>(opcode, out, shape, in);
+
+void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
+    SweetPotato& out, ade::Shape shape, Pomegranate& in)
+{
+	TYPE_LOOKUP(TYPE_EXEC_CALL, dtype);
+}
+
+#undef TYPE_EXEC_CALL
+
+}
+
+
 TEST(AGE, OpmapEminem)
 {
 	SweetPotato potato;

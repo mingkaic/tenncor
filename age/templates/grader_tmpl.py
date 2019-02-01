@@ -1,13 +1,8 @@
 ''' Representation of gradient mapping files '''
 
-import template
+import age.templates.template as template
 
 FILENAME = 'grader'
-
-def sortkey(dic):
-    arr = dic.keys()
-    arr.sort()
-    return arr
 
 # EXPORT
 header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
@@ -36,7 +31,7 @@ struct RuleSet final : public iRuleSet
     }}
 
     ade::TensptrT chain_rule (ade::iFunctor* fwd,
-        ade::MappedTensor bwd, ade::TensT args, size_t idx) override;
+        ade::FuncArg bwd, ade::TensT args, size_t idx) override;
 }};
 
 }}
@@ -56,7 +51,7 @@ namespace age
 {{
 
 ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
-    ade::MappedTensor bwd, ade::TensT args, size_t idx)
+    ade::FuncArg bwd, ade::TensT args, size_t idx)
 {{
     switch (fwd->get_opcode().code_)
     {{
@@ -72,4 +67,4 @@ ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
 
 source.gradops = ('opcodes', lambda opcodes: '\n'.join([
     '        case {code}: return {retval};'.format(\
-    code = code, retval = opcodes[code]['derivative']) for code in sortkey(opcodes)]))
+    code = code, retval = opcodes[code]['derivative']) for code in template.sortkey(opcodes)]))

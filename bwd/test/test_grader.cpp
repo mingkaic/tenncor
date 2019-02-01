@@ -65,7 +65,7 @@ struct MockRuleSet final : public age::iRuleSet
 	}
 
 	ade::TensptrT chain_rule (ade::iFunctor* fwd,
-		ade::MappedTensor bwd, ade::TensT args, size_t idx) override
+		ade::FuncArg bwd, ade::TensT args, size_t idx) override
 	{
 		ade::Opcode outcode;
 		ade::Opcode fwd_opcode = fwd->get_opcode();
@@ -1055,8 +1055,8 @@ TEST(GRADER, DiffShaperCoorder)
 	ade::CoordptrT rightshaper = ade::permute({0, 3, 1, 2});
 	ade::CoordptrT leftmapper = ade::permute({1, 3, 0, 2});
 	ade::CoordptrT rightmapper = ade::permute({1, 2, 0, 3});
-	ade::MappedTensor left(leaf, leftshaper, false, leftmapper);
-	ade::MappedTensor right(leaf1, rightshaper, true, rightmapper);
+	ade::FuncArg left(leaf, leftshaper, false, leftmapper);
+	ade::FuncArg right(leaf1, rightshaper, true, rightmapper);
 	ade::TensptrT fwd(
 		ade::Functor::get(mock_rules->sum_opcode(), {left, right}));
 
@@ -1272,8 +1272,8 @@ TEST(GRADER, NoMapAliasing)
 	ade::TensptrT leaf(new MockTensor(ade::Shape(slist)));
 	ade::TensptrT leaf1(new MockTensor(ade::Shape(slist1)));
 
-	ade::MappedTensor left = reduce_map(leaf, 3, {4});
-	ade::MappedTensor right = ade::identity_map(leaf1);
+	ade::FuncArg left = reduce_map(leaf, 3, {4});
+	ade::FuncArg right = ade::identity_map(leaf1);
 	ade::TensptrT fwd(
 		ade::Functor::get(mock_rules->prod_opcode(), {left, right}));
 	ade::TensptrT fwd2(

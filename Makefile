@@ -8,7 +8,7 @@ BWD_TEST := //bwd:test
 
 COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*'
 
-COVERAGE_PIPE := ./scripts/merge_cov.sh $(COVERAGE_INFO_FILE)
+COVERAGE_PIPE := ./bazel-bin/external/com_github_mingkaic_cppkg/merge_cov $(COVERAGE_INFO_FILE)
 
 TMP_LOGFILE := /tmp/tenncor-test.log
 
@@ -22,7 +22,10 @@ cover_bwd:
 	$(COVER) $(BWD_TEST)
 
 
-lcov: coverage
+merge_cov:
+	bazel build @com_github_mingkaic_cppkg//:merge_cov
+
+lcov: merge_cov coverage
 	rm -f $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/bwd/test/test.log >> $(TMP_LOGFILE)
@@ -31,12 +34,12 @@ lcov: coverage
 	rm -f $(TMP_LOGFILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
-lcov_ade: cover_ade
+lcov_ade: merge_cov cover_ade
 	cat bazel-testlogs/ade/test/test.log | $(COVERAGE_PIPE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
-lcov_bwd: cover_bwd
+lcov_bwd: merge_cov over_bwd
 	rm -f $(TMP_LOGFILE)
 	cat bazel-testlogs/bwd/test/test.log | $(COVERAGE_PIPE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'ade/*' -o $(COVERAGE_INFO_FILE)

@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_MTENS_TEST
+#ifndef DISABLE_FUNCARG_TEST
 
 
 #include "gtest/gtest.h"
@@ -8,10 +8,10 @@
 
 #include "ade/test/common.hpp"
 
-#include "ade/mtens.hpp"
+#include "ade/funcarg.hpp"
 
 
-struct MTENS : public ::testing::Test
+struct FUNCARG : public ::testing::Test
 {
 	virtual void TearDown (void)
 	{
@@ -21,7 +21,7 @@ struct MTENS : public ::testing::Test
 };
 
 
-TEST_F(MTENS, Reduce1d)
+TEST_F(FUNCARG, Reduce1d)
 {
 	size_t rank = 5;
 	ade::CoordT fwd_out;
@@ -32,7 +32,7 @@ TEST_F(MTENS, Reduce1d)
 	ade::Shape shape({223, 35, 7, 25, 19, 214, 72, 7});
 	ade::TensptrT tens = std::make_shared<MockTensor>(shape);
 
-	ade::MappedTensor redtens = ade::reduce_1d_map(tens, rank);
+	ade::FuncArg redtens = ade::reduce_1d_map(tens, rank);
 	ade::Shape rshaped = redtens.shape();
 
 	std::vector<ade::DimT> expect_shape = {223, 35, 7, 25,
@@ -53,4 +53,4 @@ TEST_F(MTENS, Reduce1d)
 }
 
 
-#endif // DISABLE_MTENS_TEST
+#endif // DISABLE_FUNCARG_TEST

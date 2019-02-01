@@ -32,7 +32,7 @@ struct iRuleSet
 	/// Generally,
 	/// d(fwd)/d(x) = rule(fwd,args,idx) * reduction_consolidation(bwd)
 	virtual ade::TensptrT chain_rule (ade::iFunctor* fwd,
-		ade::MappedTensor bwd, ade::TensT args, size_t idx) = 0;
+		ade::FuncArg bwd, ade::TensT args, size_t idx) = 0;
 };
 
 /// Traveler to obtain derivative of accepted node with respect to target
