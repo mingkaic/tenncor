@@ -3,6 +3,7 @@ import difflib
 
 import age.templates.api_tmpl as api
 import age.templates.codes_tmpl as codes
+import age.templates.data_tmpl as data
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
 
@@ -331,6 +332,42 @@ _GENERATED_DTYPE get_type<float> (void)
 #endif
 """
 
+data_header = """#ifndef _GENERATED_DATA_HPP
+#define _GENERATED_DATA_HPP
+
+namespace age
+{
+
+// uses std containers for type conversion
+template <typename OUTTYPE>
+void type_convert (std::vector<OUTTYPE>& out, void* input,
+	age::_GENERATED_DTYPE intype, size_t nelems)
+{
+    switch (intype)
+	{
+        case CAR:
+			out = std::vector<OUTTYPE>((char*) input,
+                (char*) input + nelems); break;
+        case KAPOW:
+			out = std::vector<OUTTYPE>((complex_t*) input,
+                (complex_t*) input + nelems); break;
+        case VROOM:
+			out = std::vector<OUTTYPE>((double*) input,
+                (double*) input + nelems); break;
+        case VRUM:
+			out = std::vector<OUTTYPE>((float*) input,
+                (float*) input + nelems); break;
+		default:
+			logs::fatalf("invalid input type %s",
+				age::name_type(intype).c_str());
+	}
+}
+
+}
+
+#endif // _GENERATED_DATA_HPP
+"""
+
 grader_header = """#ifndef _GENERATED_GRADER_HPP
 #define _GENERATED_GRADER_HPP
 
@@ -411,31 +448,6 @@ void typed_exec (_GENERATED_OPCODE opcode,
     }
 }
 
-// uses std containers for type conversion
-template <typename OUTTYPE>
-void type_convert (std::vector<OUTTYPE>& out, void* input,
-	age::_GENERATED_DTYPE intype, size_t nelems)
-{
-    switch (intype)
-	{
-        case CAR:
-			out = std::vector<OUTTYPE>((char*) input,
-                (char*) input + nelems); break;
-        case KAPOW:
-			out = std::vector<OUTTYPE>((complex_t*) input,
-                (complex_t*) input + nelems); break;
-        case VROOM:
-			out = std::vector<OUTTYPE>((double*) input,
-                (double*) input + nelems); break;
-        case VRUM:
-			out = std::vector<OUTTYPE>((float*) input,
-                (float*) input + nelems); break;
-		default:
-			logs::fatalf("invalid input type %s",
-				age::name_type(intype).c_str());
-	}
-}
-
 // GENERIC_MACRO must accept a real type as an argument.
 // e.g.:
 // #define GENERIC_MACRO(REAL_TYPE) run<REAL_TYPE>(args...);
@@ -480,6 +492,11 @@ class ClientTest(unittest.TestCase):
         multiline_check(codes_source, source)
         self.assertEqual(codes_header, header)
         self.assertEqual(codes_source, source)
+
+    def test_data(self):
+        header = str(data.header.process(fields))
+        multiline_check(data_header, header)
+        self.assertEqual(data_header, header)
 
     def test_grader(self):
         header = str(grader.header.process(fields))

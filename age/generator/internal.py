@@ -4,6 +4,7 @@ import os
 
 import age.templates.api_tmpl as api
 import age.templates.codes_tmpl as codes
+import age.templates.data_tmpl as data
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
 
@@ -12,7 +13,6 @@ def process(directory, relpath, fields):
     api_hdr_path = os.path.join(relpath, api.header.fpath)
     codes_hdr_path = os.path.join(relpath, codes.header.fpath)
     grader_hdr_path = os.path.join(relpath, grader.header.fpath)
-    opera_hdr_path = os.path.join(relpath, opera.header.fpath)
 
     # manitory headers
     api.header.includes = [
@@ -29,6 +29,10 @@ def process(directory, relpath, fields):
     codes.source.includes = [
         '<unordered_map>',
         '"logs/logs.hpp"',
+        '"' + codes_hdr_path + '"',
+    ]
+
+    data.header.includes = [
         '"' + codes_hdr_path + '"',
     ]
 
@@ -52,6 +56,7 @@ def process(directory, relpath, fields):
         'api_src': api.source,
         'codes_hpp': codes.header,
         'codes_src': codes.source,
+        'data_hpp': data.header,
         'grader_hpp': grader.header,
         'grader_src': grader.source,
         'opera_hpp': opera.header,

@@ -66,6 +66,7 @@ genrule(
         "generated/capi.cpp",
         "generated/codes.hpp",
         "generated/codes.cpp",
+        "generated/data.hpp",
         "generated/grader.hpp",
         "generated/grader.cpp",
         "generated/opmap.hpp",
