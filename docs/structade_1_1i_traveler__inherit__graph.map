@@ -1,5 +1,0 @@
-<map id="ade::iTraveler" name="ade::iTraveler">
-<area shape="rect" id="node2" href="$structade_1_1_graph_stat.html" title="Traveler that maps each tensor to its subtree&#39;s maximum depth. " alt="" coords="5,79,117,104"/>
-<area shape="rect" id="node3" href="$structade_1_1_path_finder.html" title="ade::PathFinder" alt="" coords="140,79,257,104"/>
-<area shape="rect" id="node4" href="$structage_1_1_grader.html" title="Traveler to obtain derivative of accepted node with respect to target. " alt="" coords="280,79,373,104"/>
-</map>

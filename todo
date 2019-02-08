@@ -1,5 +1,7 @@
 correction:
 P3 - reorient tests so that tests cover its own immediate module
+P3 - maximize coverage
+P4 - test complicate equations (generate random valid equations)
 
 transparency:
 P4 - add more debugging tools
@@ -8,4 +10,10 @@ P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
 performance:
+P2 - implement reduction using Eigen
+P3 - use Eigen::Matrix whenever possible
+P3 - use scalars whenever possible
+P4 - investigate operation shortcut detection
+P4 - implement convolution using Eigen
+P4 - implement optimization options to increase data accuracy
 P4 - performance test

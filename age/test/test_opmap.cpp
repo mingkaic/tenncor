@@ -10,10 +10,10 @@
 namespace age
 {
 
-#define TYPE_EXEC_CALL(REAL_TYPE)typed_exec<REAL_TYPE>(opcode, out, shape, in);
+#define TYPE_EXEC_CALL(REAL_TYPE)typed_exec<REAL_TYPE>(out, opcode, shape, in);
 
 void op_exec (_GENERATED_OPCODE opcode, _GENERATED_DTYPE dtype,
-    SweetPotato& out, ade::Shape shape, Pomegranate& in)
+	SweetPotato& out, ade::Shape shape, Pomegranate& in)
 {
 	TYPE_LOOKUP(TYPE_EXEC_CALL, dtype);
 }

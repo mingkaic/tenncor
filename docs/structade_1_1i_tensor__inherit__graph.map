@@ -1,5 +1,0 @@
-<map id="ade::iTensor" name="ade::iTensor">
-<area shape="rect" id="node2" href="$structade_1_1i_functor.html" title="Interface of iOperation&#45;defined operation node. " alt="" coords="5,79,104,104"/>
-<area shape="rect" id="node4" href="$structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="128,79,208,104"/>
-<area shape="rect" id="node3" href="$structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. " alt="" coords="7,152,103,177"/>
-</map>

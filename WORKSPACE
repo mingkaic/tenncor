@@ -2,8 +2,11 @@ workspace(name = "com_github_mingkaic_tenncor")
 
 # local dependencies
 
-load("//:tenncor.bzl", "dependencies")
+load("//:third_party/all.bzl", "dependencies")
 dependencies()
+
+load("@protobuf_rules//cpp:deps.bzl", "cpp_proto_library")
+cpp_proto_library()
 
 # test dependencies
 

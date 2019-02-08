@@ -431,8 +431,7 @@ namespace age
 {
 
 template <typename T>
-void typed_exec (_GENERATED_OPCODE opcode,
-    Out_Type out, ade::Shape shape, In_Type in)
+void typed_exec (Out_Type out, _GENERATED_OPCODE opcode, ade::Shape shape, In_Type in)
 {
     switch (opcode)
     {
@@ -455,10 +454,10 @@ void typed_exec (_GENERATED_OPCODE opcode,
 // TYPE_LOOKUP(GENERIC_MACRO, type_code)
 #define TYPE_LOOKUP(GENERIC_MACRO, DTYPE)\\
 switch (DTYPE) {\\
-    case CAR: GENERIC_MACRO(char) break;\\
-    case KAPOW: GENERIC_MACRO(complex_t) break;\\
-    case VROOM: GENERIC_MACRO(double) break;\\
-    case VRUM: GENERIC_MACRO(float) break;\\
+    case age::CAR: GENERIC_MACRO(char) break;\\
+    case age::KAPOW: GENERIC_MACRO(complex_t) break;\\
+    case age::VROOM: GENERIC_MACRO(double) break;\\
+    case age::VRUM: GENERIC_MACRO(float) break;\\
     default: logs::fatal("executing bad type");\\
 }
 

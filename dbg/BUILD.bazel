@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -23,4 +25,16 @@ cc_library(
         "//ade:ade",
         "@com_github_mingkaic_cppkg//diff:diff",
     ],
+)
+
+pybind_library(
+    name = "dbg_py",
+    cc_srcs = ["//dbg:python/dbg.cpp"],
+    cc_deps = ["//dbg:dbg"],
+)
+
+py_library(
+    name = "dbg_wrapper",
+    srcs = glob(["*.py"]),
+    deps = ["//dbg:dbg_py"],
 )
