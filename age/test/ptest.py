@@ -341,26 +341,26 @@ namespace age
 // uses std containers for type conversion
 template <typename OUTTYPE>
 void type_convert (std::vector<OUTTYPE>& out, void* input,
-	age::_GENERATED_DTYPE intype, size_t nelems)
+    age::_GENERATED_DTYPE intype, size_t nelems)
 {
     switch (intype)
-	{
+    {
         case CAR:
-			out = std::vector<OUTTYPE>((char*) input,
+            out = std::vector<OUTTYPE>((char*) input,
                 (char*) input + nelems); break;
         case KAPOW:
-			out = std::vector<OUTTYPE>((complex_t*) input,
+            out = std::vector<OUTTYPE>((complex_t*) input,
                 (complex_t*) input + nelems); break;
         case VROOM:
-			out = std::vector<OUTTYPE>((double*) input,
+            out = std::vector<OUTTYPE>((double*) input,
                 (double*) input + nelems); break;
         case VRUM:
-			out = std::vector<OUTTYPE>((float*) input,
+            out = std::vector<OUTTYPE>((float*) input,
                 (float*) input + nelems); break;
-		default:
-			logs::fatalf("invalid input type %s",
-				age::name_type(intype).c_str());
-	}
+        default:
+            logs::fatalf("invalid input type %s",
+                age::name_type(intype).c_str());
+    }
 }
 
 }
@@ -374,27 +374,8 @@ grader_header = """#ifndef _GENERATED_GRADER_HPP
 namespace age
 {
 
-template <typename T>
-ade::LeafptrT data (T scalar, ade::Shape shape)
-{
-    return get_numba(12345);
-}
-
-struct RuleSet final : public iRuleSet
-{
-    ade::LeafptrT data (double scalar, ade::Shape shape) override
-    {
-        return age::data(scalar, shape);
-    }
-
-    ade::Opcode sum_opcode (void) override
-    {
-        return ade::Opcode{"ADDITION", ADDITION};
-    }
-
-    ade::TensptrT chain_rule (ade::iFunctor* fwd,
-        ade::FuncArg bwd, ade::TensT args, size_t idx) override;
-};
+ade::TensptrT chain_rule (ade::iFunctor* fwd,
+    ade::FuncArg bwd, ade::TensT args, size_t idx);
 
 }
 
@@ -406,7 +387,7 @@ grader_source = """#ifdef _GENERATED_GRADER_HPP
 namespace age
 {
 
-ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
+ade::TensptrT chain_rule (ade::iFunctor* fwd,
     ade::FuncArg bwd, ade::TensT args, size_t idx)
 {
     switch (fwd->get_opcode().code_)

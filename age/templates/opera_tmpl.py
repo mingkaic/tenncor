@@ -4,6 +4,14 @@ import age.templates.template as template
 
 FILENAME = 'opmap'
 
+def _parse_signature(data_out):
+    fmt = ref_signature
+    if isinstance(data_out, dict):
+        if 'return' in data_out and data_out['return']:
+            fmt = ret_signature
+        data_out = data_out['type']
+    return fmt.format(data_out=data_out)
+
 # EXPORT
 header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
 '''#ifndef _GENERATED_OPERA_HPP
@@ -42,17 +50,9 @@ ref_signature = 'void typed_exec ({data_out} out, '
 
 ret_signature = '{data_out} typed_exec ('
 
-def parse_signature(data_out):
-    fmt = ref_signature
-    if isinstance(data_out, dict):
-        if 'return' in data_out and data_out['return']:
-            fmt = ret_signature
-        data_out = data_out['type']
-    return fmt.format(data_out=data_out)
-
 header.data_in = ('data.data_in', lambda data_in: data_in)
 
-header.signature = ('data.data_out', parse_signature)
+header.signature = ('data.data_out', _parse_signature)
 
 header.ops = ('opcodes', lambda opcodes: '\n'.join(['''        case {code}:
             {retval}; break;'''.format(\

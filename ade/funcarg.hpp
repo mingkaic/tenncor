@@ -110,6 +110,12 @@ private:
 	CoordptrT coorder_;
 };
 
+/// Type of functor arguments
+using ArgsT = std::vector<FuncArg>;
+
+/// Vector representation of ade tensor pointers
+using TensT = std::vector<TensptrT>;
+
 /// Return FuncArg that identity maps input tensor
 FuncArg identity_map (TensptrT tensor);
 
@@ -139,6 +145,9 @@ FuncArg permute_map (TensptrT tensor, std::vector<uint8_t> order);
 
 /// Return FuncArg that flips input tensor along dimension
 FuncArg flip_map (TensptrT tensor, uint8_t dim);
+
+/// Return ArgsT with each tensor in TensT attached to identity mapper
+ArgsT to_args (TensT tens);
 
 }
 

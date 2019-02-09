@@ -23,10 +23,8 @@
         "UINT64": "uint64_t"
     },
     "data": {
-        "sum": "SUM",
         "data_out": "llo::TensorT<T>&",
-        "data_in": "llo::DataArgsT<T>&",
-        "scalarize": "ade::LeafptrT(llo::Constant::get(scalar,shape))"
+        "data_in": "llo::DataArgsT<T>&"
     },
     "opcodes": {
         "ABS": {
@@ -352,7 +350,7 @@
                 "dtype": "ade::TensT",
                 "name": "arg1"
             }],
-            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUM\",SUM},age::to_args(arg1)))"
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUM\",SUM},ade::to_args(arg1)))"
         },
         {
             "name": "prod",
@@ -360,7 +358,7 @@
                 "dtype": "ade::TensT",
                 "name": "arg1"
             }],
-            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"PROD\",PROD},age::to_args(arg1)))"
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"PROD\",PROD},ade::to_args(arg1)))"
         },
         {
             "name": "min",
@@ -368,7 +366,7 @@
                 "dtype": "ade::TensT",
                 "name": "arg1"
             }],
-            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"MIN\",MIN},age::to_args(arg1)))"
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"MIN\",MIN},ade::to_args(arg1)))"
         },
         {
             "name": "max",
@@ -376,7 +374,7 @@
                 "dtype": "ade::TensT",
                 "name": "arg1"
             }],
-            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"MAX\",MAX},age::to_args(arg1)))"
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"MAX\",MAX},ade::to_args(arg1)))"
         },
         {
             "name": "reduce_sum_1d",

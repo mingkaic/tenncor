@@ -60,17 +60,17 @@ def mdef_apis(apis):
             name = arg['name'],
             defext = defext)
 
-    def parse_description(api):
-        if 'description' in api:
-            description = ': {}'.format(api['description'])
+    def parse_description(arg):
+        if 'description' in arg:
+            description = ': {}'.format(arg['description'])
         else:
             description = ''
         return '"ade::TensptrT {func} ({args}){description}"'.format(
-            func = api['name'],
-            args = ', '.join([parse_header_args(arg) for arg in api['args']]),
+            func = arg['name'],
+            args = ', '.join([parse_header_args(arg) for arg in arg['args']]),
             description = description)
 
-    def parse_pyargs(api):
+    def parse_pyargs(arg):
         if 'default' in arg:
             defext = ' = {}'.format(arg['default'])
         else:

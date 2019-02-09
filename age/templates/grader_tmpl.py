@@ -12,27 +12,8 @@ header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
 namespace age
 {{
 
-template <typename T>
-ade::LeafptrT data (T scalar, ade::Shape shape)
-{{
-    return {scalarize};
-}}
-
-struct RuleSet final : public iRuleSet
-{{
-    ade::LeafptrT data (double scalar, ade::Shape shape) override
-    {{
-        return age::data(scalar, shape);
-    }}
-
-    ade::Opcode sum_opcode (void) override
-    {{
-        return ade::Opcode{{"{sum}", {sum}}};
-    }}
-
-    ade::TensptrT chain_rule (ade::iFunctor* fwd,
-        ade::FuncArg bwd, ade::TensT args, size_t idx) override;
-}};
+ade::TensptrT chain_rule (ade::iFunctor* fwd,
+    ade::FuncArg bwd, ade::TensT args, size_t idx);
 
 }}
 
@@ -50,7 +31,7 @@ source = template.AGE_FILE(FILENAME, template.SOURCE_EXT,
 namespace age
 {{
 
-ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
+ade::TensptrT chain_rule (ade::iFunctor* fwd,
     ade::FuncArg bwd, ade::TensT args, size_t idx)
 {{
     switch (fwd->get_opcode().code_)

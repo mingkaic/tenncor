@@ -44,6 +44,17 @@ FuncArg flip_map (TensptrT tensor, uint8_t dim)
 	return FuncArg(tensor, flip(dim));
 }
 
+ArgsT to_args (TensT tens)
+{
+	ArgsT args;
+	std::transform(tens.begin(), tens.end(), std::back_inserter(args),
+		[](TensptrT& ten)
+		{
+			return identity_map(ten);
+		});
+	return args;
+}
+
 }
 
 #endif
