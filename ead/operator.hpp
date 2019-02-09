@@ -112,10 +112,6 @@ EigenptrT<T> extend (ade::Shape& outshape, const OpArg<T>& in)
 	assert(nullptr != in.coorder_);
 	ade::CoordT coord;
 	in.coorder_->forward(coord.begin(), coord.begin());
-	for (size_t i = 0; i < ade::rank_cap; ++i)
-	{
-		coord[i] *= in.shape_.at(i);
-	}
 	return make_tensop<T>(outshape, in.tensmap_->broadcast(coord));
 }
 

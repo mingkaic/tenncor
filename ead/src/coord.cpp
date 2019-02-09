@@ -88,7 +88,7 @@ ade::CoordptrT permute (std::vector<uint8_t> dims)
 	}
 
 	ade::CoordT order;
-	std::copy(order.begin(), order.end(), dims.begin());
+	std::copy(dims.begin(), dims.end(), order.begin());
 	return ade::CoordptrT(new CoordMap(order, true));
 }
 

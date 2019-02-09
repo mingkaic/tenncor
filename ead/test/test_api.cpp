@@ -882,7 +882,7 @@ TEST(API, Rmax)
 }
 
 
-TEST(API, DISABLED_Permute)
+TEST(API, Permute)
 {
 	std::vector<ade::DimT> slist = {4, 3, 2};
 	std::vector<uint8_t> pidx = {2, 0, 1};
@@ -931,7 +931,7 @@ TEST(API, DISABLED_Permute)
 }
 
 
-TEST(API, DISABLED_Extend)
+TEST(API, Extend)
 {
 	std::vector<ade::DimT> slist = {2, 5};
 	std::vector<ade::DimT> ext = {1, 3};
