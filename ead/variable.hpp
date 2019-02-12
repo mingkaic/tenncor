@@ -115,14 +115,57 @@ private:
 
 };
 
-/// Smart pointer for variable nodes
 template <typename T>
-using VarptrT = std::shared_ptr<Variable<T>>;
+struct VariableNode final : public iNode<T>
+{
+	VariableNode (std::shared_ptr<Variable<T>> var) : var_(var) {}
+
+	void update (void) override {}
+
+	TensMapT<T>* get_tensmap (void) override
+	{
+		return (TensMapT<T>*) var_->data();
+	}
+
+	ade::TensptrT get_tensor (void) override
+	{
+		return var_;
+	}
+
+	void assign (T* input, ade::Shape shape)
+	{
+		var_->assign(input, age::get_type<T>(), shape);
+	}
+
+private:
+	std::shared_ptr<Variable<T>> var_;
+};
 
 template <typename T>
-NodeptrT<T> to_node (VarptrT<T> vp)
+using VarptrT = std::shared_ptr<VariableNode<T>>;
+
+template <typename T>
+VarptrT<T> make_variable_scalar (T scalar, ade::Shape shape, std::string label = "")
 {
-	return std::make_shared<LeafNode<T>>(vp);
+	return std::make_shared<VariableNode<T>>(
+		std::shared_ptr<Variable<T>>(Variable<T>::get(scalar, shape, label))
+	);
+}
+
+template <typename T>
+VarptrT<T> make_variable (ade::Shape shape, std::string label = "")
+{
+	return std::make_shared<VariableNode<T>>(
+		std::shared_ptr<Variable<T>>(Variable<T>::get(shape, label))
+	);
+}
+
+template <typename T>
+VarptrT<T> make_variable (T* data, ade::Shape shape, std::string label = "")
+{
+	return std::make_shared<VariableNode<T>>(
+		std::shared_ptr<Variable<T>>(Variable<T>::get(data, shape, label))
+	);
 }
 
 }

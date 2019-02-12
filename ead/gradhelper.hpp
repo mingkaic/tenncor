@@ -19,14 +19,14 @@ NodeptrT<T> to_node (ade::TensptrT tens)
 	}
 	else if (auto cst = std::dynamic_pointer_cast<Constant<T>>(tens))
 	{
-		return std::make_shared<LeafNode<T>>(cst);
+		return std::make_shared<ConstantNode<T>>(cst);
 	}
 	// else
 	logs::fatal("unknown tensor type");
 }
 
 template <typename T>
-NodeptrT<T> reduce_all_grad (ade::iFunctor* fwd,
+NodeptrT<T> reduce_sum_grad (ade::iFunctor* fwd,
 	NodeptrT<T> bwd, ade::TensT args, size_t idx)
 {
 	const ade::Shape& shape = args[0]->shape();
@@ -57,6 +57,20 @@ NodeptrT<T> reduce_all_grad (ade::iFunctor* fwd,
 }
 
 template <typename T>
+NodeptrT<T> reduce_prod_grad (ade::iFunctor* fwd,
+	NodeptrT<T> bwd, ade::TensT args, size_t idx)
+{
+	const auto& child = fwd->get_children()[0];
+	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
+	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
+		{FuncArg<T>(childnode, child.get_shaper(),
+			child.map_io(), child.get_coorder())});
+	NodeptrT<T> rev_fwd = reduce_sum_grad(fwd, fwd_cpy, args, idx);
+	return age::mul(age::div(rev_fwd, childnode),
+		reduce_sum_grad(fwd, bwd, args, idx));
+}
+
+template <typename T>
 NodeptrT<T> reduce_comp_grad (ade::iFunctor* fwd,
 	NodeptrT<T> bwd, ade::TensT args, size_t idx)
 {
@@ -65,9 +79,9 @@ NodeptrT<T> reduce_comp_grad (ade::iFunctor* fwd,
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
 		{FuncArg<T>(childnode, child.get_shaper(),
 			child.map_io(), child.get_coorder())});
-	NodeptrT<T> rev_fwd = reduce_all_grad(fwd, fwd_cpy, args, idx);
+	NodeptrT<T> rev_fwd = reduce_sum_grad(fwd, fwd_cpy, args, idx);
 	return age::mul(age::eq(rev_fwd, childnode),
-		reduce_all_grad(fwd, bwd, args, idx));
+		reduce_sum_grad(fwd, bwd, args, idx));
 }
 
 template <typename T>

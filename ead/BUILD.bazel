@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+
 filegroup(
     name = "srcs",
     srcs = glob([
@@ -14,6 +16,13 @@ filegroup(
     srcs = glob([
         "test/*.hpp",
         "test/*.cpp",
+    ]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
     ]),
 )
 
@@ -62,6 +71,20 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+pybind_library(
+    name = "age_py",
+    cc_srcs = ["//ead:generated/pyapi.cpp"],
+    cc_deps = ["//ead:ead"],
+)
+
+pybind_library(
+    name = "ead_py",
+    cc_srcs = ["//ead:python/ead.cpp"],
+    cc_deps = ["//ead:ead"],
+    py_deps = ["//ead:age_py"],
+    visibility = ["//visibility:public"],
+)
+
 ######### TEST #########
 
 cc_test(
@@ -74,4 +97,10 @@ cc_test(
         "//testutil:testutil",
     ],
     linkstatic = True,
+)
+
+py_test(
+    name = "ptest",
+    srcs = ["//ead:ptest_srcs"],
+    deps = ["//ead:ead_py"],
 )

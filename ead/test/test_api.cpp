@@ -702,62 +702,6 @@ TEST(API, Rsum)
 }
 
 
-TEST(API, Rprod)
-{
-	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_prod(src); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>& data)
-		{
-			size_t n = ead::get_shape<double>(*out).n_elems();
-			{
-				ASSERT_EQ(1, n);
-			}
-			double got = *((double*) out->data());
-
-			double expect = std::accumulate(data.begin(), data.end(), 1.0, std::multiplies<double>());
-			EXPECT_DOUBLE_EQ(expect, got);
-		},
-		[](double* gout, std::vector<double>& og)
-		{
-			for (size_t i = 0, n = og.size(); i < n; ++i)
-			{
-				EXPECT_EQ(1, gout[i]);
-			}
-		});
-	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_prod(src, 1, 2); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>& data)
-		{
-			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
-			expect_list[1] = 1;
-			ade::Shape gotshape = ead::get_shape<double>(*out);
-			EXPECT_ARREQ(expect_list, gotshape);
-
-			ade::CoordT coord;
-			ade::DimT d = shape.at(1);
-			double* got = (double*) out->data();
-			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
-			{
-				coord = ade::coordinate(gotshape, i);
-				double acc = 1;
-				for (size_t j = 0; j < d; ++j)
-				{
-					coord[1] = j;
-					acc *= data[ade::index(shape, coord)];
-				}
-				EXPECT_DOUBLE_EQ(acc, got[i]);
-			}
-		},
-		[](double* gout, std::vector<double>& og)
-		{
-			for (size_t i = 0, n = og.size(); i < n; ++i)
-			{
-				EXPECT_EQ(1, gout[i]);
-			}
-		});
-}
-
-
 TEST(API, Rmin)
 {
 	unary_generic(

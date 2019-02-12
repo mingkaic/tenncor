@@ -8,7 +8,8 @@
             "\"llo/constant.hpp\"",
             "\"llo/helper.hpp\""
         ],
-        "opmap.hpp": ["\"llo/operator.hpp\""]
+        "opmap.hpp": ["\"llo/operator.hpp\""],
+        "pyapi.cpp": ["\"llo/generated/api.hpp\""]
     },
     "dtypes": {
         "DOUBLE": "double",

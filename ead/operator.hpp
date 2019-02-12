@@ -17,8 +17,11 @@ namespace ead
 {
 
 template <typename T>
-struct OpArg
+struct OpArg final
 {
+	OpArg (ade::Shape shape, TensMapT<T>* tensmap, CoordMap* coorder) :
+		shape_(shape), tensmap_(tensmap), coorder_(coorder) {}
+
 	ade::Shape shape_;
 
 	TensMapT<T>* tensmap_;

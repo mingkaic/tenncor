@@ -5,7 +5,8 @@
             "\"ead/constant.hpp\""
         ],
         "opmap.hpp": ["\"ead/operator.hpp\""],
-        "grader.hpp": ["\"ead/gradhelper.hpp\""]
+        "grader.hpp": ["\"ead/gradhelper.hpp\""],
+        "pyapi.cpp": ["\"ead/generated/api.hpp\""]
     },
     "dtypes": {
         "DOUBLE": "double",
@@ -120,11 +121,11 @@
         },
         "REDUCE_SUM": {
             "operation": "return ead::reduce_sum(shape,in[0])",
-            "derivative": "ead::reduce_all_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::reduce_sum_grad(fwd,bwd,args,idx)"
         },
         "REDUCE_PROD": {
             "operation": "return ead::reduce_prod(shape,in[0])",
-            "derivative": "ead::reduce_all_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::reduce_prod_grad(fwd,bwd,args,idx)"
         },
         "REDUCE_MIN": {
             "operation": "return ead::reduce_min(shape,in[0])",
@@ -161,7 +162,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"ABS\",ABS},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"ABS\",ABS},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -173,7 +174,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"NEG\",NEG},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"NEG\",NEG},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -185,7 +186,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"SIN\",SIN},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"SIN\",SIN},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -197,7 +198,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"COS\",COS},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"COS\",COS},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -209,7 +210,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"TAN\",TAN},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"TAN\",TAN},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -221,7 +222,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"EXP\",EXP},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"EXP\",EXP},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -233,7 +234,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"LOG\",LOG},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"LOG\",LOG},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -245,7 +246,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"SQRT\",SQRT},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"SQRT\",SQRT},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -257,7 +258,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"ROUND\",ROUND},{ead::identity_map(arg1)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"ROUND\",ROUND},{ead::identity_map(arg1)})"
             }
         },
         {
@@ -272,7 +273,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"POW\",POW},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"POW\",POW},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -287,7 +288,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"ADD\",ADD},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"ADD\",ADD},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -302,7 +303,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"SUB\",SUB},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"SUB\",SUB},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -317,7 +318,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"MUL\",MUL},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"MUL\",MUL},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -332,7 +333,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"DIV\",DIV},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"DIV\",DIV},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -347,7 +348,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"EQ\",EQ},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"EQ\",EQ},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -362,7 +363,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"NEQ\",NEQ},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"NEQ\",NEQ},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -377,7 +378,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"LT\",LT},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"LT\",LT},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -392,7 +393,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"GT\",GT},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"GT\",GT},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -407,7 +408,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"RAND_UNIF\",RAND_UNIF},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"RAND_UNIF\",RAND_UNIF},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -419,7 +420,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_constant_scalar<T>(arg->get_tensor()->shape().n_elems(), ade::Shape())"
+                "val": "ead::make_constant_scalar<T>(arg->get_tensor()->shape().n_elems(), ade::Shape())"
             }
         },
         {
@@ -434,7 +435,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_constant_scalar<T>(arg->get_tensor()->shape().at(rank), ade::Shape())"
+                "val": "ead::make_constant_scalar<T>(arg->get_tensor()->shape().at(rank), ade::Shape())"
             }
         },
         {
@@ -449,7 +450,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"MIN\",MIN},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"MIN\",MIN},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -464,7 +465,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"MAX\",MAX},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"MAX\",MAX},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         },
         {
@@ -563,7 +564,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"PERMUTE\",PERMUTE},{ead::permute_map(arg1,arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"PERMUTE\",PERMUTE},{ead::permute_map(arg1,arg2)})"
             }
         },
         {
@@ -581,7 +582,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"EXTEND\",EXTEND},{ead::extend_map(arg1,arg2,arg3)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"EXTEND\",EXTEND},{ead::extend_map(arg1,arg2,arg3)})"
             }
         },
         {
@@ -591,7 +592,10 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
             }],
-            "out": "permute<T>(arg1, {1, 0})"
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "permute<T>(arg1, {1, 0})"
+            }
         },
         {
             "template": "typename T",
@@ -600,7 +604,10 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
             }],
-            "out": "div<T>(reduce_sum<T>(arg1), n_elems<T>(arg1))"
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "div<T>(reduce_sum<T>(arg1), n_elems<T>(arg1))"
+            }
         },
         {
             "template": "typename T",
@@ -614,7 +621,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::get_matmul(arg1,arg2)"
+                "val": "ead::get_matmul(arg1,arg2)"
             }
         },
         {
@@ -629,7 +636,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_functor<T>(ade::Opcode{\"CONV\",CONV},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::make_functor<T>(ade::Opcode{\"CONV\",CONV},{ead::identity_map(arg1),ead::identity_map(arg2)})"
             }
         }
     ]

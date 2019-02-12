@@ -82,9 +82,9 @@ protected:
 };
 
 template <typename T>
-struct LeafNode final : public iNode<T>
+struct ConstantNode final : public iNode<T>
 {
-	LeafNode (std::shared_ptr<Constant<T>> cst) : cst_(cst) {}
+	ConstantNode (std::shared_ptr<Constant<T>> cst) : cst_(cst) {}
 
 	void update (void) override {}
 
@@ -105,7 +105,7 @@ private:
 template <typename T>
 NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)
 {
-	return std::make_shared<LeafNode<T>>(
+	return std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get(scalar, shape))
 	);
 }
@@ -113,7 +113,7 @@ NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)
 template <typename T>
 NodeptrT<T> make_constant (T* data, ade::Shape shape)
 {
-	return std::make_shared<LeafNode<T>>(
+	return std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get(data, shape))
 	);
 }
