@@ -79,7 +79,7 @@ static bool func_equals (ade::iFunctor* lhs, ade::iFunctor* rhs,
 		return lhs_children.size() == rhs_children.size() &&
 			std::equal(lhs_children.begin(), lhs_children.end(),
 			rhs_children.begin(),
-			[&replacements, &et](const ade::FuncArg& lhs,
+			[&replacements](const ade::FuncArg& lhs,
 				const ade::FuncArg& rhs)
 			{
 				auto lhs_tens = lhs.get_tensor().get();

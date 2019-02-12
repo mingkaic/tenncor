@@ -5,31 +5,26 @@
 namespace ead
 {
 
-ade::CoordptrT reduce (uint8_t rank, std::vector<uint8_t> red)
+ade::CoordptrT reduce (std::vector<uint8_t> red_dims)
 {
-	uint8_t n_red = red.size();
-	if (std::any_of(red.begin(), red.end(),
+	uint8_t n_red = red_dims.size();
+	if (std::any_of(red_dims.begin(), red_dims.end(),
 		[](ade::DimT& d) { return d >= ade::rank_cap; }))
 	{
 		logs::fatalf(
 			"cannot reduce using dimensions greater or equal to rank_cap: %s",
-			fmts::to_string(red.begin(), red.end()).c_str());
+			fmts::to_string(red_dims.begin(), red_dims.end()).c_str());
 	}
-	if (rank + n_red > ade::rank_cap)
+	if (n_red > ade::rank_cap)
 	{
-		logs::fatalf("cannot reduce shape rank %d beyond rank_cap with n_red %d",
-			rank, n_red);
-	}
-	if (0 == n_red)
-	{
-		logs::warn("reducing with empty vector ... will do nothing");
-		return nullptr;
+		logs::fatalf("cannot reduce %d rank when only ranks are capped at %d",
+			n_red, ade::rank_cap);
 	}
 
 	ade::CoordT rdims;
 	auto it = rdims.begin();
 	std::fill(it, rdims.end(), ade::rank_cap);
-	std::copy(red.begin(), red.end(), it + rank);
+	std::copy(red_dims.begin(), red_dims.end(), it);
 	return ade::CoordptrT(new CoordMap(rdims, false));
 }
 

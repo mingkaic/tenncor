@@ -4,7 +4,8 @@
             "\"ead/helper.hpp\"",
             "\"ead/constant.hpp\""
         ],
-        "opmap.hpp": ["\"ead/operator.hpp\""]
+        "opmap.hpp": ["\"ead/operator.hpp\""],
+        "grader.hpp": ["\"ead/gradhelper.hpp\""]
     },
     "dtypes": {
         "DOUBLE": "double",
@@ -18,129 +19,136 @@
         "INT64": "int64_t",
         "UINT64": "uint64_t"
     },
-    "data": {
-        "data_out": {
-            "type": "ead::EigenptrT<T>",
-            "return": true
+    "signatures": {
+        "data": {
+            "out": {
+                "type": "ead::EigenptrT<T>",
+                "return": true
+            },
+            "in": "std::vector<ead::OpArg<T>>&"
         },
-        "data_in": "std::vector<ead::OpArg<T>>&"
+        "grad": {
+            "template": "typename T",
+            "out": "ead::NodeptrT<T>",
+            "in": "ead::NodeptrT<T>"
+        }
     },
     "opcodes": {
         "ABS": {
             "operation": "return ead::abs(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(div(ead::to_node<T>(args[0]),abs(ead::to_node<T>(args[0]))),bwd)"
         },
         "NEG": {
             "operation": "return ead::neg(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(neg(ead::make_constant_scalar<T>(1,args[0]->shape())),bwd)"
         },
         "SIN": {
             "operation": "return ead::sin(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(cos(ead::to_node<T>(args[0])),bwd)"
         },
         "COS": {
             "operation": "return ead::cos(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(neg(sin(ead::to_node<T>(args[0]))),bwd)"
         },
         "TAN": {
             "operation": "return ead::tan(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),pow(cos(ead::to_node<T>(args[0])),ead::make_constant_scalar<T>(2,args[0]->shape()))),bwd)"
         },
         "EXP": {
             "operation": "return ead::exp(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(exp(ead::to_node<T>(args[0])),bwd)"
         },
         "LOG": {
             "operation": "return ead::log(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),ead::to_node<T>(args[0])),bwd)"
         },
         "SQRT": {
             "operation": "return ead::sqrt(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),mul(ead::make_constant_scalar<T>(2,args[0]->shape()),sqrt(ead::to_node<T>(args[0])))),bwd)"
         },
         "ROUND": {
             "operation": "return ead::round(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::make_constant_scalar<T>(1,args[0]->shape()),bwd)"
         },
         "POW": {
             "operation": "return ead::pow(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(idx==0?mul(ead::to_node<T>(args[1]),pow(ead::to_node<T>(args[0]),sub(ead::to_node<T>(args[1]),ead::make_constant_scalar<T>(1,args[0]->shape())))):mul(log(ead::to_node<T>(args[0])),pow(ead::to_node<T>(args[0]),ead::to_node<T>(args[1]))),bwd)"
         },
         "ADD": {
             "operation": "return ead::add(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::make_constant_scalar<T>(1,args[0]->shape()),bwd)"
         },
         "SUB": {
             "operation": "return ead::sub(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::make_constant_scalar<T>(idx==0?1:-1,args[0]->shape()),bwd)"
         },
         "MUL": {
             "operation": "return ead::mul(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::to_node<T>(args[(size_t)(idx==0)]),bwd)"
         },
         "DIV": {
             "operation": "return ead::div(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(idx==0?div(ead::make_constant_scalar<T>(1,args[0]->shape()),ead::to_node<T>(args[1])):div(div(neg(ead::to_node<T>(args[0])),ead::to_node<T>(args[1])),ead::to_node<T>(args[1])),bwd)"
         },
         "MIN": {
             "operation": "return ead::min(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(eq(min(ead::to_node<T>(args[0]),ead::to_node<T>(args[1])),ead::to_node<T>(args[idx])),bwd)"
         },
         "MAX": {
             "operation": "return ead::max(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(eq(max(ead::to_node<T>(args[0]),ead::to_node<T>(args[1])),ead::to_node<T>(args[idx])),bwd)"
         },
         "EQ": {
             "operation": "return ead::eq(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
         },
         "NEQ": {
             "operation": "return ead::neq(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
         },
         "LT": {
             "operation": "return ead::lt(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
         },
         "GT": {
             "operation": "return ead::gt(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
         },
         "RAND_UNIF": {
             "operation": "return ead::rand_uniform(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
         },
         "REDUCE_SUM": {
             "operation": "return ead::reduce_sum(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "ead::reduce_all_grad(fwd,bwd,args,idx)"
         },
         "REDUCE_PROD": {
             "operation": "return ead::reduce_prod(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "ead::reduce_all_grad(fwd,bwd,args,idx)"
         },
         "REDUCE_MIN": {
             "operation": "return ead::reduce_min(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "ead::reduce_comp_grad(fwd,bwd,args,idx)"
         },
         "REDUCE_MAX": {
             "operation": "return ead::reduce_max(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "ead::reduce_comp_grad(fwd,bwd,args,idx)"
         },
         "PERMUTE": {
             "operation": "return ead::permute(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "ead::permute_grad(fwd,bwd,args,idx)"
         },
         "EXTEND": {
             "operation": "return ead::extend(shape,in[0])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "ead::extend_grad(fwd,bwd,args,idx)"
         },
         "MATMUL": {
             "operation": "return ead::matmul(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "ead::matmul_grad(fwd,bwd,args,idx)"
         },
         "CONV": {
             "operation": "return ead::convolution(shape,in[0],in[1])",
-            "derivative": "bwd.get_tensor()"
+            "derivative": "bwd"
         }
     },
     "apis": [
@@ -411,7 +419,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_constant<T>(arg->get_tensor()->shape().n_elems(), ade::Shape())"
+                "val":"ead::make_constant_scalar<T>(arg->get_tensor()->shape().n_elems(), ade::Shape())"
             }
         },
         {
@@ -426,7 +434,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val":"ead::make_constant<T>(arg->get_tensor()->shape().at(rank), ade::Shape())"
+                "val":"ead::make_constant_scalar<T>(arg->get_tensor()->shape().at(rank), ade::Shape())"
             }
         },
         {

@@ -103,7 +103,7 @@ private:
 };
 
 template <typename T>
-NodeptrT<T> make_constant (T scalar, ade::Shape shape)
+NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)
 {
 	return std::make_shared<LeafNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get(scalar, shape))

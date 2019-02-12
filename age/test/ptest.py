@@ -32,12 +32,15 @@ fields = {
         "VRUM": "float",
         "KAPOW": "complex_t"
     },
-    "data": {
-        "scalarize": "get_numba(12345)",
-        "sum": "ADDITION",
-        "prod": "MULTIPLICATION",
-        "data_in": "In_Type",
-        "data_out": "Out_Type",
+    "signatures": {
+        "data": {
+            "in": "In_Type",
+            "out": "Out_Type"
+        },
+        "grad": {
+            "out": "ade::TensptrT",
+            "in": "ade::FuncArg"
+        }
     },
     "apis": [
         {"name": "func1", "args": [], "out": "bar1()"},
@@ -374,6 +377,12 @@ grader_header = """#ifndef _GENERATED_GRADER_HPP
 namespace age
 {
 
+#define _AGE_INTERNAL_GRADSWITCH()\\
+case OP: return bwd_foo(args, idx);\\
+case OP1: return bwd_bar(args[0], idx);\\
+case OP2: return foo(args[1]);\\
+case OP3: return foo(args[0]);
+
 ade::TensptrT chain_rule (ade::iFunctor* fwd,
     ade::FuncArg bwd, ade::TensT args, size_t idx);
 
@@ -392,10 +401,7 @@ ade::TensptrT chain_rule (ade::iFunctor* fwd,
 {
     switch (fwd->get_opcode().code_)
     {
-        case OP: return bwd_foo(args, idx);
-        case OP1: return bwd_bar(args[0], idx);
-        case OP2: return foo(args[1]);
-        case OP3: return foo(args[0]);
+        _AGE_INTERNAL_GRADSWITCH()
         default: logs::fatal("no gradient rule for unknown opcode");
     }
 }

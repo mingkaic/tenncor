@@ -22,9 +22,15 @@
         "INT64": "int64_t",
         "UINT64": "uint64_t"
     },
-    "data": {
-        "data_out": "llo::TensorT<T>&",
-        "data_in": "llo::DataArgsT<T>&"
+    "signatures": {
+        "data": {
+            "out": "llo::TensorT<T>&",
+            "in": "llo::DataArgsT<T>&"
+        },
+        "grad": {
+            "out": "ade::TensptrT",
+            "in": "ade::FuncArg"
+        }
     },
     "opcodes": {
         "ABS": {

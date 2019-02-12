@@ -6,11 +6,10 @@
 
 #include "testutil/common.hpp"
 
-// #include "bwd/grader.hpp"
-
 #include "ead/generated/api.hpp"
+#include "ead/session.hpp"
 #include "ead/variable.hpp"
-// #include "ead/opt/derive.hpp"
+#include "ead/grader.hpp"
 
 
 using UnaryDblF = std::function<double(double)>;
@@ -139,17 +138,17 @@ static void unary_generic (UnaryOpF<double> op,
 	dest->update();
 	verify(out, shape, data);
 
-	// ead::Session session;
+	ead::Session<double> session;
 
-	// ead::NodeptrT<double> gsrc = ead::derive(dest, src.get());
-	// auto gout = gsrc->get_tensmap();
-	// session.track(gsrc);
-	// session.update();
+	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
+	auto gout = gsrc->get_tensmap();
+	session.track(gsrc);
+	session.update();
 
-	// auto gotshape = gout->dimensions();
-	// ASSERT_ARREQ(slist, gotshape);
-	// double* goptr = (double*) gout->data();
-	// bwverify(goptr, data);
+	auto gotshape = gout->dimensions();
+	ASSERT_ARREQ(slist, gotshape);
+	double* goptr = (double*) gout->data();
+	bwverify(goptr, data);
 }
 
 
@@ -179,21 +178,22 @@ static void unary_elementary (UnaryOpF<double> op,
 		EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
 	}
 
-	// ead::Session session;
+	ead::Session<double> session;
 
-	// ead::NodeptrT<double> gsrc = ead::derive(dest, src.get());
-	// auto gout = gsrc->get_tensmap();
-	// session.track(gsrc);
-	// session.update();
-	// {
-	// 	auto gotshape = gout->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// double* goptr = (double*) gout->data();
-	// for (size_t i = 0; i < n; ++i)
-	// {
-	// 	EXPECT_DOUBLE_EQ(bwd(data[i]), goptr[i]);
-	// }
+	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
+
+	auto gout = gsrc->get_tensmap();
+	session.track(gsrc);
+	session.update();
+	{
+		auto gotshape = gout->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	double* goptr = (double*) gout->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(bwd(data[i]), goptr[i]);
+	}
 }
 
 
@@ -232,50 +232,50 @@ static void binary_elementary (BinaryOpF<double> op,
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	// ead::Session session;
+	ead::Session<double> session;
 
-	// ead::NodeptrT<double> dest2 = op(src, src);
-	// ead::NodeptrT<double> gsame = ead::derive(dest2, src.get());
-	// auto gout = gsame->get_tensmap();
-	// session.track(gsame);
-	// session.update();
-	// {
-	// 	auto gotshape = gout->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// double* goptr = (double*) gout->data();
-	// for (size_t i = 0; i < n; ++i)
-	// {
-	// 	EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
-	// }
+	ead::NodeptrT<double> dest2 = op(src, src);
+	ead::NodeptrT<double> gsame = ead::derive(dest2, src);
+	auto gout = gsame->get_tensmap();
+	session.track(gsame);
+	session.update();
+	{
+		auto gotshape = gout->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	double* goptr = (double*) gout->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
+	}
 
-	// ead::NodeptrT<double> gleft = ead::derive(dest, src.get());
-	// auto gout_left = gleft->get_tensmap();
-	// session.track(gout_left);
-	// session.update();
-	// {
-	// 	auto gotshape = gout_left->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// double* goptr2 = (double*) gout_left->data();
-	// for (size_t i = 0; i < n; ++i)
-	// {
-	// 	EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1.0, 0.0), goptr2[i]);
-	// }
+	ead::NodeptrT<double> gleft = ead::derive(dest, src);
+	auto gout_left = gleft->get_tensmap();
+	session.track(gleft);
+	session.update();
+	{
+		auto gotshape = gout_left->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	double* goptr2 = (double*) gout_left->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1.0, 0.0), goptr2[i]);
+	}
 
-	// ead::NodeptrT<double> gright = ead::derive(dest, src2.get());
-	// ead::NodeptrT<double> gout_right = gright->get_tensmap();
-	// session.track(gout_right);
-	// session.update();
-	// {
-	// 	auto gotshape = gout_right->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// double* goptr3 = (double*) gout_right->data();
-	// for (size_t i = 0; i < n; ++i)
-	// {
-	// 	EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
-	// }
+	ead::NodeptrT<double> gright = ead::derive(dest, src2);
+	auto gout_right = gright->get_tensmap();
+	session.track(gright);
+	session.update();
+	{
+		auto gotshape = gout_right->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	double* goptr3 = (double*) gout_right->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
+	}
 }
 
 
@@ -310,50 +310,50 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 		EXPECT_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	// ead::Session session;
+	ead::Session<int32_t> session;
 
-	// ead::NodeptrT<int32_t> dest2 = op(src, src);
-	// ead::NodeptrT<int32_t> gsame = ead::derive(dest2, src.get());
-	// auto gout = gsame->get_tensmap();
-	// session.track(gsame);
-	// session.update();
-	// {
-	// 	auto gotshape = gout->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// int32_t* goptr = (int32_t*) gout->data();
-	// for (size_t i = 0; i < n; ++i)
-	// {
-	// 	EXPECT_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
-	// }
+	ead::NodeptrT<int32_t> dest2 = op(src, src);
+	ead::NodeptrT<int32_t> gsame = ead::derive(dest2, src);
+	auto gout = gsame->get_tensmap();
+	session.track(gsame);
+	session.update();
+	{
+		auto gotshape = gout->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	int32_t* goptr = (int32_t*) gout->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
+	}
 
-	// ead::NodeptrT<int32_t> gleft = ead::derive(dest, src.get());
-	// auto gout_left = gleft->get_tensmap();
-	// session.track(gout_left);
-	// session.update();
-	// {
-	// 	auto gotshape = gout_left->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// int32_t* goptr2 = (int32_t*) gout_left->data();
-	// for (size_t i = 0; i < n; ++i)
-	// {
-	// 	EXPECT_EQ(bwd(data[i], data2[i], 1.0, 0.0), goptr2[i]);
-	// }
+	ead::NodeptrT<int32_t> gleft = ead::derive(dest, src);
+	auto gout_left = gleft->get_tensmap();
+	session.track(gleft);
+	session.update();
+	{
+		auto gotshape = gout_left->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	int32_t* goptr2 = (int32_t*) gout_left->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(bwd(data[i], data2[i], 1.0, 0.0), goptr2[i]);
+	}
 
-	// ead::NodeptrT<int32_t> gright = ead::derive(dest, src2.get());
-	// ead::NodeptrT<int32_t> gout_right = gright->get_tensmap();
-	// session.track(gout_right);
-	// session.update();
-	// {
-	// 	auto gotshape = gout_right->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// int32_t* goptr3 = (int32_t*) gout_right->data();
-	// for (size_t i = 0; i < n; ++i)
-	// {
-	// 	EXPECT_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
-	// }
+	ead::NodeptrT<int32_t> gright = ead::derive(dest, src2);
+	auto gout_right = gright->get_tensmap();
+	session.track(gright);
+	session.update();
+	{
+		auto gotshape = gout_right->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	int32_t* goptr3 = (int32_t*) gout_right->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
+	}
 }
 
 
@@ -812,10 +812,30 @@ TEST(API, Rmin)
 		},
 		[](double* gout, std::vector<double>& og)
 		{
-			for (size_t i = 0, n = og.size(); i < n; ++i)
+			ade::Shape inshape({2, 3, 4});
+			ade::Shape outshape({2, 1, 4});
+			ade::CoordT coord;
+			ade::DimT d = 3;
+			size_t m = og.size();
+			size_t n = outshape.n_elems();
+			std::vector<double> expect(m, 0);
+			for (size_t i = 0; i < n; ++i)
 			{
-				EXPECT_EQ(1, gout[i]);
+				coord = ade::coordinate(outshape, i);
+				size_t min_idx = ade::index(inshape, coord);
+				for (size_t j = 1; j < d; ++j)
+				{
+					coord[1] = j;
+					size_t idx = ade::index(inshape, coord);
+					if (og[min_idx] > og[idx])
+					{
+						min_idx = idx;
+					}
+				}
+				expect[min_idx] = 1;
 			}
+			std::vector<double> got(gout, gout + m);
+			EXPECT_ARREQ(expect, got);
 		});
 }
 
@@ -874,10 +894,30 @@ TEST(API, Rmax)
 		},
 		[](double* gout, std::vector<double>& og)
 		{
-			for (size_t i = 0, n = og.size(); i < n; ++i)
+			ade::Shape inshape({2, 3, 4});
+			ade::Shape outshape({2, 1, 4});
+			ade::CoordT coord;
+			ade::DimT d = 3;
+			size_t m = og.size();
+			size_t n = outshape.n_elems();
+			std::vector<double> expect(m, 0);
+			for (size_t i = 0; i < n; ++i)
 			{
-				EXPECT_EQ(1, gout[i]);
+				coord = ade::coordinate(outshape, i);
+				size_t max_idx = ade::index(inshape, coord);
+				for (size_t j = 1; j < d; ++j)
+				{
+					coord[1] = j;
+					size_t idx = ade::index(inshape, coord);
+					if (og[max_idx] < og[idx])
+					{
+						max_idx = idx;
+					}
+				}
+				expect[max_idx] = 1;
 			}
+			std::vector<double> got(gout, gout + m);
+			EXPECT_ARREQ(expect, got);
 		});
 }
 
@@ -913,21 +953,21 @@ TEST(API, Permute)
 		EXPECT_EQ(data[i], got[ade::index(ead::get_shape<double>(*out), coord)]);
 	}
 
-	// ead::Session session;
+	ead::Session<double> session;
 
-	// ead::NodeptrT<double> gsrc = ead::derive(dest, src.get());
-	// auto gout = gsrc->get_tensmap();
-	// session.track(gsrc);
-	// session.update();
-	// {
-	// 	auto gotshape = gout->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// double* goptr = (double*) gout->data();
-	// for (size_t i = 0, n = data.size(); i < n; ++i)
-	// {
-	// 	EXPECT_EQ(1, goptr[i]);
-	// }
+	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
+	auto gout = gsrc->get_tensmap();
+	session.track(gsrc);
+	session.update();
+	{
+		auto gotshape = gout->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	double* goptr = (double*) gout->data();
+	for (size_t i = 0, n = data.size(); i < n; ++i)
+	{
+		EXPECT_EQ(1, goptr[i]);
+	}
 }
 
 
@@ -958,21 +998,21 @@ TEST(API, Extend)
 		}
 	}
 
-	// ead::Session session;
+	ead::Session<double> session;
 
-	// ead::NodeptrT<double> gsrc = ead::derive(dest, src.get());
-	// auto gout = gsrc->get_tensmap();
-	// session.track(gsrc);
-	// session.update();
-	// {
-	// 	auto gotshape = gout->dimensions();
-	// 	ASSERT_ARREQ(slist, gotshape);
-	// }
-	// double* goptr = (double*) gout->data();
-	// for (size_t i = 0, n = data.size(); i < n; ++i)
-	// {
-	// 	EXPECT_EQ(ext_nelem, goptr[i]);
-	// }
+	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
+	auto gout = gsrc->get_tensmap();
+	session.track(gsrc);
+	session.update();
+	{
+		auto gotshape = gout->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	double* goptr = (double*) gout->data();
+	for (size_t i = 0, n = data.size(); i < n; ++i)
+	{
+		EXPECT_EQ(ext_nelem, goptr[i]);
+	}
 }
 
 
@@ -1028,47 +1068,47 @@ TEST(API, Matmul)
 	MatVecT ddc = create_2d(out);
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
-	// ead::Session session;
+	ead::Session<int32_t> session;
 
-	// ead::NodeptrT<int32_t> c = ead::make_constant<int32_t>(data3.data(), cshape);
-	// ead::NodeptrT<int32_t> dest2 = age::matmul(c, c);
-	// ead::NodeptrT<int32_t> gsame = llo::derive(dest2, c.get());
-	// auto gout = gsame->get_tensmap();
-	// session.track(gsame);
-	// session.update();
-	// ade::Shape gcshape = ead::get_shape<int32_t>(*gout);
-	// {
-	// 	std::vector<ade::DimT> glist(gcshape.begin(), gcshape.end());
-	// 	ASSERT_ARREQ(sqrlist, glist);
-	// }
+	ead::NodeptrT<int32_t> c = ead::make_constant<int32_t>(data3.data(), cshape);
+	ead::NodeptrT<int32_t> dest2 = age::matmul(c, c);
+	ead::NodeptrT<int32_t> gsame = ead::derive(dest2, c);
+	auto gout = gsame->get_tensmap();
+	session.track(gsame);
+	session.update();
+	ade::Shape gcshape = ead::get_shape<int32_t>(*gout);
+	{
+		std::vector<ade::DimT> glist(gcshape.begin(), gcshape.end());
+		ASSERT_ARREQ(sqrlist, glist);
+	}
 
-	// ead::NodeptrT<int32_t> gleft = llo::derive(dest, a.get());
-	// session.track(gleft);
-	// session.update();
-	// auto gout_left = gleft->get_tensmap();
-	// ade::Shape gashape = ead::get_shape<int32_t>(*gout_left);
-	// {
-	// 	std::vector<ade::DimT> glist(gashape.begin(), gashape.end());
-	// 	ASSERT_ARREQ(alist, glist);
-	// 	int32_t* ga = (int32_t*) gout_left->data();
-	// 	ASSERT_NE(nullptr, ga);
-	// 	std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
-	// 	ASSERT_ARREQ(expect_ga, ga_data);
-	// }
+	ead::NodeptrT<int32_t> gleft = ead::derive(dest, a);
+	session.track(gleft);
+	session.update();
+	auto gout_left = gleft->get_tensmap();
+	ade::Shape gashape = ead::get_shape<int32_t>(*gout_left);
+	{
+		std::vector<ade::DimT> glist(gashape.begin(), gashape.end());
+		ASSERT_ARREQ(alist, glist);
+		int32_t* ga = (int32_t*) gout_left->data();
+		ASSERT_NE(nullptr, ga);
+		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
+		ASSERT_ARREQ(expect_ga, ga_data);
+	}
 
-	// ead::NodeptrT<int32_t> gright = llo::derive(dest, b.get());
-	// session.track(gright);
-	// session.update();
-	// auto gout_right = gright->get_tensmap();
-	// ade::Shape gbshape = ead::get_shape<int32_t>(*gout_right);
-	// {
-	// 	std::vector<ade::DimT> glist(gbshape.begin(), gbshape.end());
-	// 	ASSERT_ARREQ(blist, glist);
-	// 	int32_t* gb = (int32_t*) gout_right->data();
-	// 	ASSERT_NE(nullptr, gb);
-	// 	std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
-	// 	ASSERT_ARREQ(expect_gb, gb_data);
-	// }
+	ead::NodeptrT<int32_t> gright = ead::derive(dest, b);
+	session.track(gright);
+	session.update();
+	auto gout_right = gright->get_tensmap();
+	ade::Shape gbshape = ead::get_shape<int32_t>(*gout_right);
+	{
+		std::vector<ade::DimT> glist(gbshape.begin(), gbshape.end());
+		ASSERT_ARREQ(blist, glist);
+		int32_t* gb = (int32_t*) gout_right->data();
+		ASSERT_NE(nullptr, gb);
+		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
+		ASSERT_ARREQ(expect_gb, gb_data);
+	}
 }
 
 
@@ -1079,8 +1119,8 @@ TEST(API, RandUniform)
 	double lo = 0.2547977589;
 	ade::Shape shape(slist);
 
-	ead::NodeptrT<double> src = ead::make_constant<double>(lo, shape);
-	ead::NodeptrT<double> src2 = ead::make_constant<double>(hi, shape);
+	ead::NodeptrT<double> src = ead::make_constant_scalar<double>(lo, shape);
+	ead::NodeptrT<double> src2 = ead::make_constant_scalar<double>(hi, shape);
 	ead::NodeptrT<double> dest = age::rand_unif(src, src2);
 
 	auto out = dest->get_tensmap();
@@ -1097,19 +1137,29 @@ TEST(API, RandUniform)
 		EXPECT_GT(hi, optr[i]);
 	}
 
-	// ead::Session session;
+	ead::Session<double> session;
 
-	// ead::NodeptrT<double> gleft = ead::derive(dest, src.get());
-	// auto gout_left = gleft->get_tensmap();
-	// ASSERT_EQ(1, ead::get_shape<double>(*gout_left).n_elems());
-	// double* goptr2 = (double*) gout_left->data();
-	// EXPECT_DOUBLE_EQ(0, goptr2[0]);
+	ead::NodeptrT<double> gleft = ead::derive(dest, src);
+	auto gout_left = gleft->get_tensmap();
+	session.track(gleft);
+	session.update();
+	{
+		auto gotshape = gout_left->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	double* goptr2 = (double*) gout_left->data();
+	EXPECT_DOUBLE_EQ(0, goptr2[0]);
 
-	// ead::NodeptrT<double> gright = ead::derive(dest, src.get());
-	// auto gout_right = gright->get_tensmap();
-	// ASSERT_EQ(1, ead::get_shape<double>(*gout_right).n_elems());
-	// double* goptr3 = (double*) gout_right->data();
-	// EXPECT_DOUBLE_EQ(0, goptr3[0]);
+	ead::NodeptrT<double> gright = ead::derive(dest, src);
+	auto gout_right = gright->get_tensmap();
+	session.track(gright);
+	session.update();
+	{
+		auto gotshape = gout_right->dimensions();
+		ASSERT_ARREQ(slist, gotshape);
+	}
+	double* goptr3 = (double*) gout_right->data();
+	EXPECT_DOUBLE_EQ(0, goptr3[0]);
 }
 
 
@@ -1183,7 +1233,7 @@ TEST(API, RandUniform)
 // 		ASSERT_ARREQ(expect_out, outdata);
 // 	}
 
-// 	ade::TensptrT gleft = llo::derive(dest, img.get());
+// 	ade::TensptrT gleft = llo::derive(dest, img);
 // 	ead::NodeptrT<double> gout_left = llo::eval<double>(gleft);
 // 	ade::Shape gashape = ead::get_shape<double>(*gout_left);
 // 	{
@@ -1194,7 +1244,7 @@ TEST(API, RandUniform)
 // 		ASSERT_ARREQ(expect_ga, ga_data);
 // 	}
 
-// 	ade::TensptrT gright = llo::derive(dest, kernel.get());
+// 	ade::TensptrT gright = llo::derive(dest, kernel);
 // 	ead::NodeptrT<double> gout_right = llo::eval<double>(gright);
 // 	ade::Shape gbshape = ead::get_shape<double>(*gout_right);
 // 	{

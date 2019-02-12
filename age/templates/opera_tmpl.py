@@ -4,13 +4,21 @@ import age.templates.template as template
 
 FILENAME = 'opmap'
 
-def _parse_signature(data_out):
-    fmt = ref_signature
+_common_in = '_GENERATED_OPCODE opcode, ade::Shape shape, {data_in} in)'
+
+_ref_signature = 'void typed_exec ({data_out} out, ' + _common_in
+
+_ret_signature = '{data_out} typed_exec (' + _common_in
+
+def _parse_signature(data):
+    data_out = data['out']
+    data_in = data['in']
+    fmt = _ref_signature
     if isinstance(data_out, dict):
         if 'return' in data_out and data_out['return']:
-            fmt = ret_signature
+            fmt = _ret_signature
         data_out = data_out['type']
-    return fmt.format(data_out=data_out)
+    return fmt.format(data_out=data_out, data_in=data_in)
 
 # EXPORT
 header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
@@ -21,7 +29,7 @@ namespace age
 {{
 
 template <typename T>
-{signature}_GENERATED_OPCODE opcode, ade::Shape shape, {data_in} in)
+{signature}
 {{
     switch (opcode)
     {{
@@ -46,13 +54,7 @@ switch (DTYPE) {{\\
 #endif // _GENERATED_OPERA_HPP
 ''')
 
-ref_signature = 'void typed_exec ({data_out} out, '
-
-ret_signature = '{data_out} typed_exec ('
-
-header.data_in = ('data.data_in', lambda data_in: data_in)
-
-header.signature = ('data.data_out', _parse_signature)
+header.signature = ('signatures.data', _parse_signature)
 
 header.ops = ('opcodes', lambda opcodes: '\n'.join(['''        case {code}:
             {retval}; break;'''.format(\

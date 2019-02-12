@@ -105,8 +105,7 @@ FuncArg<T> reduce_map (NodeptrT<T> node,
 		{
 			return shape.at(d);
 		});
-	return FuncArg<T>(node, ade::reduce(rank, slist), true,
-		reduce(rank, red));
+	return FuncArg<T>(node, ade::reduce(rank, slist), true, reduce(red));
 }
 
 template <typename T>

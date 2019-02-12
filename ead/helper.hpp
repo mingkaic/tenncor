@@ -1,6 +1,9 @@
 #include "ead/funcarg.hpp"
 #include "ead/functor.hpp"
 
+#ifndef EAD_HELPER_HPP
+#define EAD_HELPER_HPP
+
 namespace ead
 {
 
@@ -54,3 +57,5 @@ NodeptrT<T> get_matmul (NodeptrT<T> a, NodeptrT<T> b)
 }
 
 }
+
+#endif // EAD_HELPER_HPP

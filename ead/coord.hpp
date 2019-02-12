@@ -45,7 +45,7 @@ private:
 	bool bijective_;
 };
 
-ade::CoordptrT reduce (uint8_t rank, std::vector<uint8_t> red);
+ade::CoordptrT reduce (std::vector<uint8_t> red_dims);
 
 ade::CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext);
 
