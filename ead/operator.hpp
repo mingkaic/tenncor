@@ -217,6 +217,30 @@ EigenptrT<T> round (ade::Shape& outshape, const OpArg<T>& in)
 	return make_tensop<T>(outshape, in.tensmap_->round());
 }
 
+template <typename T>
+EigenptrT<T> sigmoid (ade::Shape& outshape, const OpArg<T>& in)
+{
+	return make_tensop<T>(outshape, in.tensmap_->sigmoid());
+}
+
+template <typename T>
+EigenptrT<T> tanh (ade::Shape& outshape, const OpArg<T>& in)
+{
+	return make_tensop<T>(outshape, in.tensmap_->tanh());
+}
+
+template <typename T>
+EigenptrT<T> square (ade::Shape& outshape, const OpArg<T>& in)
+{
+	return make_tensop<T>(outshape, in.tensmap_->square());
+}
+
+template <typename T>
+EigenptrT<T> cube (ade::Shape& outshape, const OpArg<T>& in)
+{
+	return make_tensop<T>(outshape, in.tensmap_->cube());
+}
+
 /// Given arguments a, and b, for every pair of mapped elements sharing the
 /// same index apply std::pow operator
 /// Only accept 2 arguments

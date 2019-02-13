@@ -91,6 +91,42 @@ class EADTest(unittest.TestCase):
         self._array_close(exdata, der)
         self._array_eq(data0, rej)
 
+    def _common_unary_tf(self, shape, api, tf_op):
+        data = np.random.rand(*shape)
+        var = ead.variable(data, 'var')
+        out = api(var)
+
+        tf_var = tf.Variable(data)
+        tf_out = tf_op(tf_var)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        fout = out.get()
+        real = tfsess.run(tf_out)
+        self._array_close(real, fout)
+
+        var2 = ead.variable(data, 'var2')
+        ex = ead.derive(out, var)
+        zero = ead.derive(out, var2)
+
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.track(zero)
+        sess.update()
+
+        data0 = np.zeros(shape, dtype=float)
+        der = ex.get()
+        rej = zero.get()
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, der)
+        self._array_eq(data0, rej)
+
     def _common_binary(self, shape, api, real, derive):
         data = np.random.rand(*shape)
         data2 = np.random.rand(*shape)
@@ -293,6 +329,22 @@ class EADTest(unittest.TestCase):
         shape = [3, 4, 5]
         data1 = np.ones(shape, dtype=float)
         self._common_unary(shape, age.round, np.round, lambda x: data1)
+
+    def test_sigmoid(self):
+        shape = [3, 4, 5]
+        self._common_unary_tf(shape, age.sigmoid, tf.sigmoid)
+
+    def test_tanh(self):
+        shape = [3, 4, 5]
+        self._common_unary_tf(shape, age.tanh, tf.tanh)
+
+    def test_square(self):
+        shape = [3, 4, 5]
+        self._common_unary_tf(shape, age.square, tf.square)
+
+    def test_cube(self):
+        shape = [3, 4, 5]
+        self._common_unary_tf(shape, age.cube, lambda x: tf.pow(x, 3))
 
     def test_pow(self):
         shape = [3, 4, 5]

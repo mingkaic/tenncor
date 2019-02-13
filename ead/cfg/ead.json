@@ -71,6 +71,22 @@
             "operation": "return ead::round(shape,in[0])",
             "derivative": "mul(ead::make_constant_scalar<T>(1,args[0]->shape()),bwd)"
         },
+        "SIGMOID": {
+            "operation": "return ead::sigmoid(shape,in[0])",
+            "derivative": "ead::sigmoid_grad(fwd,bwd,args,idx)"
+        },
+        "TANH": {
+            "operation": "return ead::tanh(shape,in[0])",
+            "derivative": "mul(sub(ead::make_constant_scalar<T>(1,args[0]->shape()),square(tanh(ead::to_node<T>(args[0])))),bwd)"
+        },
+        "SQUARE": {
+            "operation": "return ead::square(shape,in[0])",
+            "derivative": "mul(mul(ead::make_constant_scalar<T>(2,args[0]->shape()),ead::to_node<T>(args[0])),bwd)"
+        },
+        "CUBE": {
+            "operation": "return ead::cube(shape,in[0])",
+            "derivative": "mul(mul(ead::make_constant_scalar<T>(3,args[0]->shape()),square(ead::to_node<T>(args[0]))),bwd)"
+        },
         "POW": {
             "operation": "return ead::pow(shape,in[0],in[1])",
             "derivative": "mul(idx==0?mul(ead::to_node<T>(args[1]),pow(ead::to_node<T>(args[0]),sub(ead::to_node<T>(args[1]),ead::make_constant_scalar<T>(1,args[0]->shape())))):mul(log(ead::to_node<T>(args[0])),pow(ead::to_node<T>(args[0]),ead::to_node<T>(args[1]))),bwd)"
@@ -259,6 +275,54 @@
             "out": {
                 "type": "ead::NodeptrT<T>",
                 "val": "ead::make_functor<T>(ade::Opcode{\"ROUND\",ROUND},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "sigmoid",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SIGMOID\",SIGMOID},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "tanh",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"TANH\",TANH},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "square",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SQUARE\",SQUARE},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "cube",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"CUBE\",CUBE},{ead::identity_map(arg1)})"
             }
         },
         {

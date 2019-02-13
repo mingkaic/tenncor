@@ -176,6 +176,16 @@ NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
 			), perm), 2);
 }
 
+template <typename T>
+NodeptrT<T> sigmoid_grad (ade::iFunctor* fwd,
+	NodeptrT<T> bwd, ade::TensT args, size_t idx)
+{
+	auto fwd_cpy = age::sigmoid(to_node<T>(args[0]));
+	return age::mul(age::mul(age::sub(
+		make_constant_scalar<T>(1,args[0]->shape()),
+		fwd_cpy), fwd_cpy), bwd);
+}
+
 }
 
 #endif // EAD_GRADHELPER_HPP
