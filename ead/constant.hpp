@@ -42,13 +42,13 @@ struct Constant : public ade::iLeaf
 	/// Implementation of iLeaf
 	void* data (void) override
 	{
-		return &out_;
+		return data_.data();
 	}
 
 	/// Implementation of iLeaf
 	const void* data (void) const override
 	{
-		return &out_;
+		return data_.data();
 	}
 
 	/// Implementation of iLeaf
@@ -68,9 +68,14 @@ struct Constant : public ade::iLeaf
 		return true;
 	}
 
+	TensMapT<T>* get_tensmap (void)
+	{
+		return &out_;
+	}
+
 protected:
 	Constant (T* data, ade::Shape shape) :
-		data_(get_tensmap(data, shape)),
+		data_(ead::get_tensmap(data, shape)),
 		out_(tens_to_tensmap(data_)),
 		shape_(shape) {}
 
@@ -90,7 +95,7 @@ struct ConstantNode final : public iNode<T>
 
 	TensMapT<T>* get_tensmap (void) override
 	{
-		return (TensMapT<T>*) cst_->data();
+		return (TensMapT<T>*) cst_->get_tensmap();
 	}
 
 	ade::TensptrT get_tensor (void) override

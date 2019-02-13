@@ -124,7 +124,7 @@ struct VariableNode final : public iNode<T>
 
 	TensMapT<T>* get_tensmap (void) override
 	{
-		return (TensMapT<T>*) var_->data();
+		return (TensMapT<T>*) var_->get_tensmap();
 	}
 
 	ade::TensptrT get_tensor (void) override

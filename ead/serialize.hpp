@@ -1,25 +1,32 @@
 ///
 /// serialize.hpp
-/// llo
+/// ead
 ///
 /// Purpose:
 /// Define functions for marshal and unmarshal data sources
 ///
 
-#include "ade/functor.hpp"
-
 #include "pbm/data.hpp"
 
-#include "llo/generated/opmap.hpp"
+#include "ead/generated/opmap.hpp"
 
-#include "llo/variable.hpp"
-#include "llo/constant.hpp"
+#include "ead/coord.hpp"
+#include "ead/variable.hpp"
 
-#ifndef LLO_SERIALIZE_HPP
-#define LLO_SERIALIZE_HPP
+#ifndef EAD_SERIALIZE_HPP
+#define EAD_SERIALIZE_HPP
 
-namespace llo
+namespace ead
 {
+
+static std::unordered_set<size_t> non_bijectives =
+{
+	age::REDUCE_SUM,
+	age::REDUCE_PROD,
+	age::REDUCE_MIN,
+	age::REDUCE_MAX,
+	age::EXTEND,
+};
 
 static bool is_big_endian(void)
 {
@@ -32,12 +39,10 @@ static bool is_big_endian(void)
 	return twob.bytes[0] == 0;
 }
 
-struct LLOSaver : public pbm::iSaver
+struct EADSaver : public pbm::iSaver
 {
 	std::string save_leaf (bool& is_const, ade::iLeaf* leaf) override
 	{
-		is_const = nullptr != dynamic_cast<Constant*>(leaf);
-
 		char* data = (char*) leaf->data();
 		size_t nelems = leaf->shape().n_elems();
 		size_t nbytes = age::type_size((age::_GENERATED_DTYPE) leaf->type_code());
@@ -75,15 +80,18 @@ struct LLOSaver : public pbm::iSaver
 
 	std::vector<double> save_coorder (const ade::CoordptrT& mapper) override
 	{
-		return save_shaper(mapper);
+		ade::CoordT coord;
+		mapper->forward(coord.begin(), coord.begin());
+		return std::vector<double>(coord.begin(), coord.end());
 	}
 };
 
-#define RET_VAL(realtype)return ade::TensptrT(\
+#define RET_GENERIC(realtype)return ade::TensptrT(is_const?\
+Constant<realtype>::get((realtype*) pb, shape):\
 Variable<realtype>::get((realtype*) pb, shape, label));
 
 /// Unmarshal cortenn::Source as Variable containing context of source
-struct LLOLoader : public pbm::iLoader
+struct EADLoader : public pbm::iLoader
 {
 	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
 		size_t typecode, std::string label, bool is_const) override
@@ -100,18 +108,10 @@ struct LLOLoader : public pbm::iLoader
 				size_t outi = (elemi + 1) * nbytes - (i % nbytes);
 				out[outi] = pb[i];
 			}
-			if (is_const)
-			{
-				return ade::TensptrT(Constant::get(out.c_str(), gencode, shape));
-			}
 			pb = out.c_str();
-			TYPE_LOOKUP(RET_VAL, typecode)
+			TYPE_LOOKUP(RET_GENERIC, typecode)
 		}
-		if (is_const)
-		{
-			return ade::TensptrT(Constant::get(pb, gencode, shape));
-		}
-		TYPE_LOOKUP(RET_VAL, typecode)
+		TYPE_LOOKUP(RET_GENERIC, typecode)
 	}
 
 	ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) override
@@ -123,7 +123,7 @@ struct LLOLoader : public pbm::iLoader
 	{
 		if (ade::mat_dim * ade::mat_dim != coord.size())
 		{
-			logs::fatal("cannot deserialize non-matrix coordinate map");
+			logs::fatal("cannot deserialize non-matrix shape map");
 		}
 		return std::make_shared<ade::CoordMap>(
 			[&](ade::MatrixT fwd)
@@ -141,12 +141,19 @@ struct LLOLoader : public pbm::iLoader
 	ade::CoordptrT generate_coorder (
 		ade::Opcode opcode, std::vector<double> coord) override
 	{
-		return generate_shaper(coord);
+		if (ade::rank_cap != coord.size())
+		{
+			logs::fatal("cannot deserialize non-vector coordinate map");
+		}
+		bool is_bijective = non_bijectives.end() == non_bijectives.find(opcode.code_);
+		ade::CoordT indices;
+		std::copy(coord.begin(), coord.end(), indices.begin());
+		return std::make_shared<CoordMap>(coord, is_bijective);
 	}
 };
 
-#undef RET_VAL
+#undef RET_GENERIC
 
 }
 
-#endif // LLO_SERIALIZE_HPP
+#endif // EAD_SERIALIZE_HPP

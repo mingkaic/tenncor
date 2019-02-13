@@ -66,6 +66,7 @@ cc_library(
     copts = ["-std=c++14"],
     deps = [
         "//ade:ade",
+        "//pbm:pbm",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],

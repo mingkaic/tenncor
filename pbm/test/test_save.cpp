@@ -16,6 +16,37 @@
 const std::string testdir = "pbm/data";
 
 
+struct TestSaver : public pbm::iSaver
+{
+	std::string save_leaf (bool& is_const, ade::iLeaf* leaf) override
+	{
+		return std::string(leaf->shape().n_elems(), 0);
+	}
+
+	std::vector<double> save_shaper (const ade::CoordptrT& mapper) override
+	{
+		std::vector<double> out;
+		mapper->access(
+			[&out](const ade::MatrixT& mat)
+			{
+				for (uint8_t i = 0; i < ade::mat_dim; ++i)
+				{
+					for (uint8_t j = 0; j < ade::mat_dim; ++j)
+					{
+						out.push_back(mat[i][j]);
+					}
+				}
+			});
+		return out;
+	}
+
+	std::vector<double> save_coorder (const ade::CoordptrT& mapper) override
+	{
+		return save_shaper(mapper);
+	}
+};
+
+
 TEST(SAVE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/graph.pb";
@@ -95,11 +126,7 @@ TEST(SAVE, SaveGraph)
 		labels[dest] = {"subtree2", "dest"};
 	}
 
-	pbm::GraphSaver saver(
-		[](bool& is_const, ade::iLeaf* leaf)
-		{
-			return std::string(leaf->shape().n_elems(), 0);
-		});
+	pbm::GraphSaver<TestSaver> saver;
 	for (auto& root : roots)
 	{
 		root->accept(saver);

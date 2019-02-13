@@ -79,6 +79,7 @@ cc_library(
     deps = [
         "//opt:opt",
         "//bwd:bwd",
+        "//pbm:pbm",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],

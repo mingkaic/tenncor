@@ -37,6 +37,46 @@ static inline void trim(std::string &s)
 }
 
 
+struct TestLoader : public pbm::iLoader
+{
+	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
+		size_t typecode, std::string label, bool is_const) override
+	{
+		return ade::TensptrT(new MockTensor(shape));
+	}
+
+	ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) override
+	{
+		return ade::TensptrT(ade::Functor::get(opcode, args));
+	}
+
+	ade::CoordptrT generate_shaper (std::vector<double> coord) override
+	{
+		if (ade::mat_dim * ade::mat_dim != coord.size())
+		{
+			logs::fatal("cannot deserialize non-matrix coordinate map");
+		}
+		return std::make_shared<ade::CoordMap>(
+			[&](ade::MatrixT fwd)
+			{
+				for (uint8_t i = 0; i < ade::mat_dim; ++i)
+				{
+					for (uint8_t j = 0; j < ade::mat_dim; ++j)
+					{
+						fwd[i][j] = coord[i * ade::mat_dim + j];
+					}
+				}
+			});
+	}
+
+	ade::CoordptrT generate_coorder (
+		ade::Opcode opcode, std::vector<double> coord) override
+	{
+		return generate_shaper(coord);
+	}
+};
+
+
 TEST(LOAD, LoadGraph)
 {
 	cortenn::Graph graph;
@@ -48,12 +88,7 @@ TEST(LOAD, LoadGraph)
 	}
 
 	pbm::GraphInfo graphinfo;
-	pbm::load_graph(graphinfo, graph,
-		[](const char* pb, ade::Shape shape,
-			size_t typecode, std::string label, bool is_const)
-		{
-			return ade::TensptrT(new MockTensor(shape));
-		});
+	pbm::load_graph<TestLoader>(graphinfo, graph);
 
 	EXPECT_EQ(2, graphinfo.roots_.size());
 
