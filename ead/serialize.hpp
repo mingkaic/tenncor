@@ -80,6 +80,10 @@ struct EADSaver : public pbm::iSaver
 
 	std::vector<double> save_coorder (const ade::CoordptrT& mapper) override
 	{
+		if (nullptr == mapper)
+		{
+			return std::vector<double>();
+		}
 		ade::CoordT coord;
 		mapper->forward(coord.begin(), coord.begin());
 		return std::vector<double>(coord.begin(), coord.end());
@@ -141,6 +145,10 @@ struct EADLoader : public pbm::iLoader
 	ade::CoordptrT generate_coorder (
 		ade::Opcode opcode, std::vector<double> coord) override
 	{
+		if (0 == coord.size()) // is identity
+		{
+			return nullptr;
+		}
 		if (ade::rank_cap != coord.size())
 		{
 			logs::fatal("cannot deserialize non-vector coordinate map");
@@ -148,7 +156,7 @@ struct EADLoader : public pbm::iLoader
 		bool is_bijective = non_bijectives.end() == non_bijectives.find(opcode.code_);
 		ade::CoordT indices;
 		std::copy(coord.begin(), coord.end(), indices.begin());
-		return std::make_shared<CoordMap>(coord, is_bijective);
+		return std::make_shared<CoordMap>(indices, is_bijective);
 	}
 };
 

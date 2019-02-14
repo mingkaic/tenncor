@@ -18,3 +18,11 @@ git_repository(
     remote = "https://github.com/google/benchmark",
     commit = "e776aa0275e293707b6a0901e0e8d8a8a3679508",
 )
+
+# rocnnet dependencies
+
+load("@com_github_mingkaic_cppkg//:cppkg.bzl", "dependencies")
+dependencies()
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()

@@ -79,6 +79,7 @@ in.tensmap_->PROCESS(::ead::internal::dim_copy<N>(vdims)));
 	std::copy_if(coord.begin(), coord.end(), std::back_inserter(vdims),\
 		[](ade::DimT d) { return d < ade::rank_cap; });\
 	switch (vdims.size()) {\
+		_EAD_INTERNAL_V2A_CASE(0, PROCESS)\
 		_EAD_INTERNAL_V2A_CASE(1, PROCESS)\
 		_EAD_INTERNAL_V2A_CASE(2, PROCESS)\
 		_EAD_INTERNAL_V2A_CASE(3, PROCESS)\

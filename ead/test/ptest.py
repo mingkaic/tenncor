@@ -172,38 +172,6 @@ class EADTest(unittest.TestCase):
         self._array_close(exdata2, der2)
         self._array_close(exdata3, der3)
 
-    def _common_reduce_1d(self, dim_reduce, tf_reduce):
-        shape = [3, 4, 5]
-        data = np.random.rand(*shape)
-        var = ead.variable(data, 'var')
-        tf_var = tf.Variable(data)
-
-        sess = tf.Session()
-        sess.run(tf_var.initializer)
-
-        out = dim_reduce(var, 1)
-        tf_out = tf_reduce(tf_var, [1])
-
-        fout = out.evaluate(dtype=np.dtype(float))
-        tf_fout = sess.run(tf_out)
-
-        self._array_close(tf_fout, fout)
-
-        var2 = ead.variable(data, 'var2')
-        ex = ead.derive(out, var)
-        zero = ead.derive(out, var2)
-
-        tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        data0 = np.zeros(shape, dtype=float)
-        der = ex.evaluate()
-        rej = zero.evaluate()
-
-        exdata = sess.run(tf_grad)
-
-        self._array_close(exdata, der)
-        self._array_eq(data0, rej)
-
     def _common_reduce(self, all_reduce, dim_reduce, tf_reduce):
         shape = [3, 4, 5]
         # data = np.random.rand(*shape)

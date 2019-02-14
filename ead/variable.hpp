@@ -124,7 +124,7 @@ struct VariableNode final : public iNode<T>
 
 	TensMapT<T>* get_tensmap (void) override
 	{
-		return (TensMapT<T>*) var_->get_tensmap();
+		return var_->get_tensmap();
 	}
 
 	ade::TensptrT get_tensor (void) override
@@ -137,12 +137,28 @@ struct VariableNode final : public iNode<T>
 		var_->assign(input, age::get_type<T>(), shape);
 	}
 
+	void assign (ead::TensMapT<double>* tensmap)
+	{
+		var_->assign(tensmap->data(), age::get_type<T>(), get_shape(*tensmap));
+	}
+
+	std::string get_label (void) const
+	{
+		return var_->label_;
+	}
+
 private:
 	std::shared_ptr<Variable<T>> var_;
 };
 
 template <typename T>
 using VarptrT = std::shared_ptr<VariableNode<T>>;
+
+template <typename T>
+NodeptrT<T> convert_to_node (VarptrT<T> var)
+{
+	return std::static_pointer_cast<ead::iNode<double>>(var);
+}
 
 template <typename T>
 VarptrT<T> make_variable_scalar (T scalar, ade::Shape shape, std::string label = "")

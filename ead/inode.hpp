@@ -13,6 +13,11 @@ struct iNode
 {
 	virtual ~iNode (void) = default;
 
+	ade::Shape shape (void)
+	{
+		return get_tensor()->shape();
+	}
+
 	virtual void update (void) = 0;
 
 	virtual TensMapT<T>* get_tensmap (void) = 0;

@@ -182,6 +182,13 @@ ade::Shape get_shape (const TensorT<T>& tens)
 	return ade::Shape(std::vector<ade::DimT>(slist.begin(), slist.end()));
 }
 
+template <typename T>
+ade::Shape get_shape (const TensMapT<T>& tens)
+{
+	auto slist = tens.dimensions();
+	return ade::Shape(std::vector<ade::DimT>(slist.begin(), slist.end()));
+}
+
 }
 
 #endif // EAD_TENSOR_HPP

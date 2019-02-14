@@ -27,6 +27,22 @@ struct Constant : public ade::iLeaf
 
 	virtual ~Constant (void) = default;
 
+	Constant (Constant&& other) = default;
+
+	Constant& operator = (const Constant& other)
+	{
+		if (this != &other)
+		{
+			// out_ map must reference new copied data
+			data_ = other.data_; // Eigen supported deep copy
+			out_ = tens_to_tensmap(data_);
+			shape_ = shape_;
+		}
+		return *this;
+	}
+
+	Constant& operator = (Constant&& other) = default;
+
 	/// Implementation of iTensor
 	const ade::Shape& shape (void) const override
 	{
@@ -79,10 +95,19 @@ protected:
 		out_(tens_to_tensmap(data_)),
 		shape_(shape) {}
 
+	Constant (const Constant& other) :
+		data_(other.data_),
+		out_(tens_to_tensmap(data_)),
+		shape_(other.shape_) {}
+
+	/// Data Source
 	TensorT<T> data_;
 
+	// todo: get rid of this somehow
+	/// TensorMap is here for functor's iEigen to reference
 	TensMapT<T> out_;
 
+	/// Shape utility to avoid excessive conversion between data_.dimensions()
 	ade::Shape shape_;
 };
 
@@ -95,7 +120,7 @@ struct ConstantNode final : public iNode<T>
 
 	TensMapT<T>* get_tensmap (void) override
 	{
-		return (TensMapT<T>*) cst_->get_tensmap();
+		return cst_->get_tensmap();
 	}
 
 	ade::TensptrT get_tensor (void) override

@@ -3,6 +3,10 @@ P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage
 P4 - test complicate equations (generate random valid equations)
 
+structure:
+P3 - generalize grader and move to ade (otherwise ade does not fulfil its main purpose)
+    - alternatively, scrap ade (generality) and aim to maximize performance (restructure llo+ade as compile-based AD-engine)
+
 transparency:
 P4 - add more debugging tools
 P4 - formalize codestyle
@@ -17,3 +21,6 @@ P4 - investigate operation shortcut detection
 P4 - implement convolution using Eigen
 P4 - implement optimization options to increase data accuracy
 P4 - performance test
+
+features:
+P2 - implement convolution for ead
