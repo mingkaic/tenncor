@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 
 import ead.ead as ead
-import rocnnet.rocnnet.rocnnet as rcn
+import rocnnet.rocnnet as rcn
 
 prog_description = 'Demo mlp_trainer using sgd'
 
@@ -44,7 +44,7 @@ def main(args):
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
     parser.add_argument('--load', dest='load', nargs='?', default='rocnnet/pretrained/gdmodel.pbx',
-        help='Filename to load pretrained model (default: pretrained/gdmodel.pbx)')
+        help='Filename to load pretrained model (default: rocnnet/pretrained/gdmodel.pbx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -66,6 +66,7 @@ def main(args):
         with open(args.load, 'rb') as f:
             print('loading')
             pretrained_brain = brain.parse_from_string(f.read())
+            print('successfully loaded ' + args.load)
     except:
         pretrained_brain = brain.copy()
 
@@ -123,10 +124,9 @@ def main(args):
     print('pretrained mlp error rate: {}%'.format(pretrained_err * 100))
 
     try:
-        with open(args.save, 'wb') as f:
-            print('saving')
-            f.write(brain.serialize_to_string(trained_out))
-    except:
+        brain.serialize_to_file(trained_out, args.save)
+    except Exception as e:
+        print(e)
         print('failed to write to "{}"'.format(args.save))
 
 if '__main__' == __name__:

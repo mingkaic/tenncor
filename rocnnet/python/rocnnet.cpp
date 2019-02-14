@@ -280,6 +280,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// inlines
 	m.def("identity", [](ead::NodeptrT<double> x) { return x; });
 	m.def("sigmoid", &eqns::sigmoid);
+	m.def("slow_sigmoid", &eqns::slow_sigmoid);
 	m.def("tanh", &eqns::tanh);
 	m.def("softmax", &eqns::softmax);
 

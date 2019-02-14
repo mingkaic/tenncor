@@ -140,7 +140,19 @@ ade::TensptrT ops_merge_edit (bool& is_optimized,
 
 ade::TensT ops_merge (ade::TensT roots)
 {
-	return opt::graph_edit(roots, ops_merge_edit);
+	return opt::graph_edit(roots,
+		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+		{
+			bool is_optimized = false;
+			if (auto out = ops_merge_edit(is_optimized, opcode, args))
+			{
+				return out;
+			}
+			else if (changed || is_optimized)
+			{
+				return ade::TensptrT(ade::Functor::get(opcode, args));
+			}
+		});
 }
 
 }

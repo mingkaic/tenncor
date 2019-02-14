@@ -10,6 +10,12 @@ ead::NodeptrT<double> sigmoid (ead::NodeptrT<double> x)
 	return age::sigmoid(x);
 }
 
+ead::NodeptrT<double> slow_sigmoid (ead::NodeptrT<double> x)
+{
+	auto one = ead::make_constant_scalar<double>(1, x->shape());
+	return age::div(one, age::add(one, age::exp(age::neg(x))));
+}
+
 ead::NodeptrT<double> tanh (ead::NodeptrT<double> x)
 {
 	return age::tanh(x);

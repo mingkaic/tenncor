@@ -11,6 +11,8 @@ namespace eqns
 /// sigmoid function: f(x) = 1/(1+e^-x)
 ead::NodeptrT<double> sigmoid (ead::NodeptrT<double> x);
 
+ead::NodeptrT<double> slow_sigmoid (ead::NodeptrT<double> x);
+
 /// tanh function: f(x) = (e^(2*x)+1)/(e^(2*x)-1)
 ead::NodeptrT<double> tanh (ead::NodeptrT<double> x);
 

@@ -78,8 +78,7 @@ TEST(EDITOR, Prune)
 		}));
 
 	opt::EditFuncT pruner =
-		[&](bool& is_optimized,
-			ade::Opcode& opcode, ade::ArgsT& args) -> ade::TensptrT
+		[&](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			if (opcode.code_ < 2) // killable
 			{
@@ -94,10 +93,9 @@ TEST(EDITOR, Prune)
 				}
 				args = filtered;
 			}
-			if (args.size() > 0)
+			if (args.size() > 0 || changed)
 			{
-				is_optimized = true;
-				return nullptr;
+				return ade::TensptrT(ade::Functor::get(opcode, args));
 			}
 			return leaf;
 		};

@@ -56,8 +56,8 @@ def main(args):
         help='Number of steps per episodes (default: 100)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='pretrained/dqmodel.pbx',
-        help='Filename to load pretrained model (default: pretrained/dqmodel.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='rocnnet/pretrained/dqnmodel.pbx',
+        help='Filename to load pretrained model (default: rocnnet/pretrained/dqnmodel.pbx)')
     args = parser.parse_args(args)
 
     episode_count = args.n_episodes
@@ -82,6 +82,7 @@ def main(args):
         with open(args.load, 'rb') as f:
             print('loading')
             pretrained_brain = brain.parse_from_string(f.read())
+            print('successfully loaded ' + args.load)
     except:
         pretrained_brain = brain.copy()
 

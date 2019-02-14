@@ -1,37 +1,40 @@
-#include <list>
-#include <cassert>
+///
+///	one_prune.hpp
+///	ead
+///
+///	Purpose:
+///	Define ead one pruning functions
+///
 
-#include "ade/functor.hpp"
+#include "opt/graph_edit.hpp"
 
-#include "llo/opt/one_prune.hpp"
+#include "ead/variable.hpp"
 
-#include "llo/constant.hpp"
-#include "llo/eval.hpp"
+#ifndef EAD_ONE_PRUNE_HPP
+#define EAD_ONE_PRUNE_HPP
 
-#ifdef LLO_ONE_PRUNE_HPP
-
-namespace llo
+namespace ead
 {
 
-static bool const_is_one (Constant* cst)
+template <typename T>
+static bool const_is_one (Constant<T>* cst)
 {
-	Evaluator<double> eval;
-	cst->accept(eval);
-	double* ptr = eval.out_->data();
+	double* ptr = cst->get_tensmap()->data();
 	return std::all_of(ptr, ptr + cst->shape().n_elems(),
 		[](double d) { return 1 == d; });
 }
 
+template <typename T>
 ade::TensptrT one_prune_edit (bool& is_optimized,
-	ade::Opcode& opcode, ade::ArgsT& args)
+	ade::Opcode& opcode, ArgsT<T>& args)
 {
 	size_t n = args.size();
 	bool has_one = false;
 	std::vector<bool> is_one(n, false);
 	for (size_t i = 0; i < n; ++i)
 	{
-		auto cst = dynamic_cast<Constant*>(args[i].get_tensor().get());
-		is_one[i] = nullptr != cst && const_is_one(cst);
+		auto cst = dynamic_cast<Constant<T>*>(args[i].get_tensor().get());
+		is_one[i] = nullptr != cst && cst->is_const() && const_is_one(cst);
 		has_one = has_one || is_one[i];
 	}
 	if (has_one)
@@ -41,13 +44,13 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 			case age::ABS:
 			case age::SQRT:
 			case age::ROUND:
-				return ade::TensptrT(Constant::get(1, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
 			case age::LOG:
-				return ade::TensptrT(Constant::get(0, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get(0, args[0].shape()));
 			case age::POW:
 				if (is_one[0])
 				{
-					return ade::TensptrT(Constant::get(1, args[0].shape()));
+					return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
 				}
 				// else if is_one[1]
 				if (ade::identity == args[0].get_coorder())
@@ -70,7 +73,7 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 				}
 				if (filtered.empty())
 				{
-					return ade::TensptrT(Constant::get(1, args[0].shape()));
+					return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
 				}
 				is_optimized = true;
 				opcode = ade::Opcode{"PROD", age::PROD};
@@ -116,23 +119,28 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 	return nullptr;
 }
 
-ade::TensT one_prune (ade::TensT roots)
+/// Return tree that prunes one branches in input according to OPCODE
+/// For example, mul(x, 1) is converted to simply x, while abs(1) is 1
+template <typename T>
+NodesT<T> one_prune (NodesT<T> roots)
 {
-	return opt::graph_edit(roots,
+	return tens_to_nodes(opt::graph_edit(nodes_to_tens(roots),
 		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
 		{
 			bool is_optimized = false;
-			if (auto out = one_prune_edit(is_optimized, opcode, args))
+			ArgsT<T> ead_args = ade_to_ead_args(args);
+			if (auto out = one_prune_edit<T>(is_optimized, opcode, ead_args))
 			{
 				return out;
 			}
 			else if (changed || is_optimized)
 			{
-				return ade::TensptrT(ade::Functor::get(opcode, args));
+
+				return ade::TensptrT(Functor<T>::get(opcode, ead_args));
 			}
-		});
+		}));
 }
 
 }
 
-#endif
+#endif // EAD_ONE_PRUNE_HPP

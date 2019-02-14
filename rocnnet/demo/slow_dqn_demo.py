@@ -5,7 +5,7 @@ import argparse
 
 import numpy as np
 
-import llo.llo as llo
+import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
 prog_description = 'Demo dqn_trainer'
@@ -56,8 +56,8 @@ def main(args):
         help='Number of steps per episodes (default: 100)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='pretrained/dqmodel.pbx',
-        help='Filename to load pretrained model (default: pretrained/dqmodel.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='rocnnet/pretrained/slow_dqmodel.pbx',
+        help='Filename to load pretrained model (default: rocnnet/pretrained/slow_dqmodel.pbx)')
     args = parser.parse_args(args)
 
     episode_count = args.n_episodes
@@ -65,7 +65,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        llo.seed(args.seedval)
+        ead.seed(args.seedval)
         np.random.seed(args.seedval)
 
     n_observations = 32
@@ -95,9 +95,10 @@ def main(args):
         discount_rate = 0.99,
         exploration_period = 0.0)
 
-    untrained_dqn = rcn.DQNTrainer(untrained_brain, bgd, param)
-    trained_dqn = rcn.DQNTrainer(brain, bgd, param)
-    pretrained_dqn = rcn.DQNTrainer(pretrained_brain, bgd, param)
+    sess = ead.Session()
+    untrained_dqn = rcn.DQNTrainer(untrained_brain, sess, bgd, param)
+    trained_dqn = rcn.DQNTrainer(brain, sess, bgd, param)
+    pretrained_dqn = rcn.DQNTrainer(pretrained_brain, sess, bgd, param)
 
     err_msg = None
     err_queue_size = 10

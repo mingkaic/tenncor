@@ -5,9 +5,9 @@ load("//third_party/drake_rules:pybind.bzl", "pybind_library")
 filegroup(
     name = "srcs",
     srcs = glob(["demo/*.cpp", "demo/*.py"]) + [
-        "//eqns:srcs",
-        "//modl:srcs",
-        "//trainer:srcs",
+        "//rocnnet/eqns:srcs",
+        "//rocnnet/modl:srcs",
+        "//rocnnet/trainer:srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
@@ -55,12 +55,12 @@ py_binary(
     data = glob(["pretrained/*"]),
 )
 
-py_binary(
-    name = "rbm_demo",
-    srcs = glob(["demo/data/*.py"]) + ["demo/rbm_demo.py"],
-    deps = [":rocnnet_py"],
-    data = glob(["pretrained/*"]),
-)
+# py_binary(
+#     name = "rbm_demo",
+#     srcs = glob(["demo/data/*.py"]) + ["demo/rbm_demo.py"],
+#     deps = [":rocnnet_py"],
+#     data = glob(["pretrained/*"]),
+# )
 
 # cc_binary(
 #     name = "dbn_demo",
