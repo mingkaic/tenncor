@@ -1,29 +1,11 @@
+#include "llo/operator.hpp"
+
 #include "llo/opt/ops_merge.hpp"
 
 #ifdef LLO_OPS_MERGE_HPP
 
 namespace llo
 {
-
-static bool is_identity (ade::CoordptrT coorder)
-{
-	if (ade::identity == coorder)
-	{
-		return true;
-	}
-	bool id = true;
-	coorder->access([&id](const ade::MatrixT& m)
-	{
-		for (uint8_t i = 0; id && i < ade::mat_dim; ++i)
-		{
-			for (uint8_t j = 0; id && j < ade::mat_dim; ++j)
-			{
-				id = id && m[i][j] == (i == j);
-			}
-		}
-	});
-	return id;
-}
 
 static bool is_bijective (ade::CoordptrT coorder)
 {
@@ -141,17 +123,19 @@ ade::TensptrT ops_merge_edit (bool& is_optimized,
 ade::TensT ops_merge (ade::TensT roots)
 {
 	return opt::graph_edit(roots,
-		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+		[](ade::Opcode& opcode,
+			ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
 			if (auto out = ops_merge_edit(is_optimized, opcode, args))
 			{
 				return out;
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
 				return ade::TensptrT(ade::Functor::get(opcode, args));
 			}
+			return nullptr;
 		});
 }
 

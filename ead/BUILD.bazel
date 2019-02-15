@@ -51,7 +51,10 @@ genrule(
 
 cc_library(
     name = "ead",
-    hdrs = glob(["*.hpp"]) + [
+    hdrs = glob([
+        "*.hpp",
+        "opt/*.hpp",
+    ]) + [
         "//ead:generated/api.hpp",
         "//ead:generated/codes.hpp",
         "//ead:generated/data.hpp",

@@ -50,7 +50,7 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 					return ade::TensptrT(Constant::get(1, args[0].shape()));
 				}
 				// else if is_one[1]
-				if (ade::identity == args[0].get_coorder())
+				if (is_identity(args[0].get_coorder()))
 				{
 					return args[0].get_tensor();
 				}
@@ -80,7 +80,7 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 			case age::DIV:
 				if (is_one[1])
 				{
-					if (ade::identity == args[0].get_coorder())
+					if (is_identity(args[0].get_coorder()))
 					{
 						return args[0].get_tensor();
 					}
@@ -119,17 +119,19 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 ade::TensT one_prune (ade::TensT roots)
 {
 	return opt::graph_edit(roots,
-		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+		[](ade::Opcode& opcode,
+			ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
 			if (auto out = one_prune_edit(is_optimized, opcode, args))
 			{
 				return out;
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
 				return ade::TensptrT(ade::Functor::get(opcode, args));
 			}
+			return nullptr;
 		});
 }
 

@@ -10,7 +10,7 @@ namespace eqns
 ead::NodeptrT<double> one_binom (ead::NodeptrT<double> a);
 
 ead::NodeptrT<double> weighed_bias_add (ead::NodeptrT<double> weighed,
-    ead::NodeptrT<double> bias);
+	ead::NodeptrT<double> bias);
 
 }
 

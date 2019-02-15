@@ -10,6 +10,8 @@
 
 #include "ead/variable.hpp"
 
+#include "ead/opt/nodes.hpp"
+
 #ifndef EAD_ONE_PRUNE_HPP
 #define EAD_ONE_PRUNE_HPP
 
@@ -53,44 +55,18 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 					return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
 				}
 				// else if is_one[1]
-				if (ade::identity == args[0].get_coorder())
+				return args[0].get_tensor();
+			case age::MUL:
+				if (is_one[0])
 				{
-					return args[0].get_tensor();
+					return args[1].get_tensor();
 				}
-				is_optimized = true;
-				opcode = ade::Opcode{"SUM", age::SUM};
-				args = {args[0]};
-				return nullptr;
-			case age::PROD:
-			{
-				ade::ArgsT filtered;
-				for (size_t i = 0, n = args.size(); i < n; ++i)
-				{
-					if (false == is_one[i])
-					{
-						filtered.push_back(args[i]);
-					}
-				}
-				if (filtered.empty())
-				{
-					return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
-				}
-				is_optimized = true;
-				opcode = ade::Opcode{"PROD", age::PROD};
-				args = filtered;
-				return nullptr;
-			}
+				// else if is_one[1]
+				return args[0].get_tensor();
 			case age::DIV:
 				if (is_one[1])
 				{
-					if (ade::identity == args[0].get_coorder())
-					{
-						return args[0].get_tensor();
-					}
-					is_optimized = true;
-					opcode = ade::Opcode{"SUM", age::SUM};
-					args = {args[0]};
-					return nullptr;
+					return args[0].get_tensor();
 				}
 				// else if is_one[0]
 				break;
@@ -99,7 +75,7 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 			case age::COS:
 			case age::TAN:
 			case age::EXP:
-			case age::SUM:
+			case age::ADD:
 			case age::SUB:
 			case age::MIN:
 			case age::MAX:
@@ -108,7 +84,6 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 			case age::LT:
 			case age::GT:
 			case age::RAND_UNIF:
-			case age::RAND_NORM:
 			case age::MATMUL:
 				break;
 			default:
@@ -135,7 +110,6 @@ NodesT<T> one_prune (NodesT<T> roots)
 			}
 			else if (changed || is_optimized)
 			{
-
 				return ade::TensptrT(Functor<T>::get(opcode, ead_args));
 			}
 		}));

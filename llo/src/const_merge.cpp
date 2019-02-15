@@ -53,17 +53,19 @@ ade::TensptrT const_merge_edit (bool& is_optimized,
 ade::TensT const_merge (ade::TensT roots)
 {
 	return opt::graph_edit(roots,
-		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+		[](ade::Opcode& opcode,
+			ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
 			if (auto out = const_merge_edit(is_optimized, opcode, args))
 			{
 				return out;
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
 				return ade::TensptrT(ade::Functor::get(opcode, args));
 			}
+			return nullptr;
 		});
 }
 

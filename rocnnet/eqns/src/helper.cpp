@@ -15,7 +15,7 @@ ead::NodeptrT<double> one_binom (ead::NodeptrT<double> a)
 }
 
 ead::NodeptrT<double> weighed_bias_add (ead::NodeptrT<double> weighed,
-    ead::NodeptrT<double> bias)
+	ead::NodeptrT<double> bias)
 {
 	const ade::Shape& shape = weighed->get_tensor()->shape();
 	return age::add(weighed, age::extend(bias, 1, {shape.at(1)}));

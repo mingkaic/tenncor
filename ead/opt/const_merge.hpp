@@ -23,7 +23,7 @@ ade::TensptrT const_merge_edit (bool& is_optimized,
 		});
 	if (cargs.size() == args.size())
 	{
-		auto temp = Functor::get(opcode, cargs);
+		auto temp = Functor<T>::get(opcode, cargs);
 		temp->update();
 		auto tmap = temp->get_tensmap();
 		ade::TensptrT out(Constant<T>::get(tmap->data(), temp->shape()));

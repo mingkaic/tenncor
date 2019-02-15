@@ -120,17 +120,19 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 ade::TensT zero_prune (ade::TensT roots)
 {
 	return opt::graph_edit(roots,
-		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+		[](ade::Opcode& opcode,
+			ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
 			if (auto out = zero_prune_edit(is_optimized, opcode, args))
 			{
 				return out;
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
 				return ade::TensptrT(ade::Functor::get(opcode, args));
 			}
+			return nullptr;
 		});
 }
 

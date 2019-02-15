@@ -6,10 +6,11 @@ namespace llo
 {
 
 ade::TensT multi_optimize (ade::TensT roots,
-	std::vector<opt::EditFuncT> edits)
+	std::vector<EditFuncT> edits)
 {
 	return opt::graph_edit(roots,
-		[&edits](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+		[&edits](ade::Opcode& opcode,
+			ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
 			for (auto edit : edits)

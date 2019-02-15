@@ -45,7 +45,25 @@ using EngineT = std::default_random_engine;
 /// Return global random generator
 EngineT& get_engine (void);
 
-bool is_identity (ade::CoordptrT& coorder);
+inline bool is_identity (ade::CoordptrT coorder)
+{
+	if (ade::identity == coorder)
+	{
+		return true;
+	}
+	bool id = true;
+	coorder->access([&id](const ade::MatrixT& m)
+	{
+		for (uint8_t i = 0; id && i < ade::mat_dim; ++i)
+		{
+			for (uint8_t j = 0; id && j < ade::mat_dim; ++j)
+			{
+				id = id && m[i][j] == (i == j);
+			}
+		}
+	});
+	return id;
+}
 
 /// Generic unary operation assuming identity mapping
 template <typename T>

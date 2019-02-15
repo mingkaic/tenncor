@@ -24,3 +24,6 @@ P4 - performance test
 
 features:
 P2 - implement convolution for ead
+
+nitpicks:
+- remove unordered_map/unordered_set if we're not using them properly

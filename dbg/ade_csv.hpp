@@ -28,14 +28,24 @@ struct CSVEquation final : public ade::iTraveler
 
 	void visit (ade::iLeaf* leaf) override
 	{
+		if (visited_.end() != visited_.find(leaf))
+		{
+			return;
+		}
 		nodes_.emplace(leaf, Node{
 			leaf->to_string(),
 			VARIABLE,
+			nodes_.size(),
 		});
+		visited_.emplace(leaf);
 	}
 
 	void visit (ade::iFunctor* func) override
 	{
+		if (visited_.end() != visited_.find(func))
+		{
+			return;
+		}
 		std::string funcstr = func->to_string();
 		if (showshape_)
 		{
@@ -44,6 +54,7 @@ struct CSVEquation final : public ade::iTraveler
 		nodes_.emplace(func, Node{
 			funcstr,
 			get_ftype_(func),
+			nodes_.size(),
 		});
 		auto& children = func->get_children();
 		for (size_t i = 0, n = children.size(); i < n; ++i)
@@ -61,7 +72,7 @@ struct CSVEquation final : public ade::iTraveler
 				multiline_replace(coordstr);
 				coorders_.emplace(coorder, coordstr);
 			}
-			edges_.insert(Edge{
+			edges_.push_back(Edge{
 				func,
 				tens,
 				coorder,
@@ -69,45 +80,32 @@ struct CSVEquation final : public ade::iTraveler
 			});
 			tens->accept(*this);
 		}
+		visited_.emplace(func);
 	}
 
 	void to_stream (std::ostream& out)
 	{
-		std::vector<ade::iTensor*> vecnodes(nodes_.size());
-		std::transform(nodes_.begin(), nodes_.end(), vecnodes.begin(),
-			[](std::pair<ade::iTensor*,Node> nodepair)
-			{
-				return nodepair.first;
-			});
-
-		std::unordered_map<ade::iTensor*,size_t> nodeidces;
-
-		size_t nnodes = vecnodes.size();
-		for (size_t i = 0; i < nnodes; ++i)
+		size_t nnodes = nodes_.size();
+		for (size_t i = 0, nedges = edges_.size(); i < nedges; ++i)
 		{
-			nodeidces.emplace(vecnodes[i], i);
-		}
-
-		size_t i = 0;
-		for (auto it = edges_.begin(), et = edges_.end();
-			it != et; ++it, ++i)
-		{
-			const Edge& edge = *it;
-			std::string color = nodes_[edge.child_].ntype_ == CACHED_FUNC ?
+			const Edge& edge = edges_[i];
+			auto& parent_node = nodes_[edge.func_];
+			auto& child_node = nodes_[edge.child_];
+			std::string color = child_node.ntype_ == CACHED_FUNC ?
 				"red" : "white";
 			if (nullptr == edge.coorder_)
 			{
-				out << nodeidces[edge.func_] << label_delim
-					<< nodes_[edge.func_].label_ << ','
-					<< nodeidces[edge.child_] << label_delim
-					<< nodes_[edge.child_].label_ << ','
+				out << parent_node.id_ << label_delim
+					<< parent_node.label_ << ','
+					<< child_node.id_ << label_delim
+					<< child_node.label_ << ','
 					<< edge.child_idx_ << ','
 					<< color << '\n';
 			}
 			else
 			{
-				out << nodeidces[edge.func_] << label_delim
-					<< nodes_[edge.func_].label_ << ','
+				out << parent_node.id_ << label_delim
+					<< parent_node.label_ << ','
 					<< nnodes + i << label_delim
 					<< coorders_[edge.coorder_] << ','
 					<< edge.child_idx_ << ','
@@ -115,8 +113,8 @@ struct CSVEquation final : public ade::iTraveler
 
 				out << nnodes + i << label_delim
 					<< coorders_[edge.coorder_] << ','
-					<< nodeidces[edge.child_] << label_delim
-					<< nodes_[edge.child_].label_ << ','
+					<< child_node.id_ << label_delim
+					<< child_node.label_ << ','
 					<< edge.child_idx_ << ','
 					<< color << '\n';
 			}
@@ -128,23 +126,6 @@ struct CSVEquation final : public ade::iTraveler
 private:
 	struct Edge
 	{
-		Edge (ade::iFunctor* func,
-			ade::iTensor* child,
-			ade::iCoordMap* coorder,
-			size_t child_idx) :
-			func_(func),
-			child_(child),
-			coorder_(coorder),
-			child_idx_(child_idx) {}
-
-		bool operator == (const Edge& other) const
-		{
-			return func_ == other.func_
-				&& child_ == other.child_
-				&& coorder_ == other.coorder_
-				&& child_idx_ == other.child_idx_;
-		}
-
 		ade::iFunctor* func_;
 
 		ade::iTensor* child_;
@@ -159,27 +140,17 @@ private:
 		std::string label_;
 
 		NODE_TYPE ntype_;
+
+		size_t id_;
 	};
 
-	struct EdgeHash
-	{
-		size_t operator() (const Edge& edge) const
-		{
-			std::stringstream ss;
-			ss << std::hex
-				<< edge.func_
-				<< edge.child_
-				<< edge.coorder_
-				<< edge.child_idx_;
-			return std::hash<std::string>()(ss.str());
-		}
-	};
+	std::vector<Edge> edges_;
 
 	std::unordered_map<ade::iTensor*,Node> nodes_;
 
 	std::unordered_map<ade::iCoordMap*,std::string> coorders_;
 
-	std::unordered_set<Edge,EdgeHash> edges_;
+	std::unordered_set<ade::iTensor*> visited_;
 
 	GetTypeFuncT get_ftype_;
 };
