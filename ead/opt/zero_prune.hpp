@@ -35,9 +35,10 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 	std::vector<bool> is_zero(n, false);
 	for (size_t i = 0; i < n; ++i)
 	{
-		auto cst = dynamic_cast<Constant<T>*>(args[i].get_tensor().get());
+		auto cst = dynamic_cast<Constant<T>*>(
+			args[i].get_tensor().get());
 		is_zero[i] = nullptr != cst && cst->is_const() && const_is_zero(cst);
-		has_zero = has_zero || is_zero[i];
+		has_zero |= is_zero[i];
 	}
 	if (has_zero)
 	{
@@ -50,7 +51,7 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 			case age::SQRT:
 			case age::ROUND:
 			case age::MUL:
-				return ade::TensptrT(Constant<T>::get(0, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
 			case age::COS:
 			case age::EXP:
 				return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
@@ -59,7 +60,7 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 			case age::POW:
 				if (is_zero[0])
 				{
-					return ade::TensptrT(Constant<T>::get(0, args[0].shape()));
+					return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
 				}
 				// else if is_zero[1]
 				return ade::TensptrT(Constant<T>::get(1, args[1].shape()));
@@ -73,7 +74,7 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 			case age::SUB:
 				if (is_zero[0] && is_zero[1])
 				{
-					return ade::TensptrT(Constant<T>::get(0, args[0].shape()));
+					return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
 				}
 				else if (is_zero[0])
 				{
@@ -90,7 +91,7 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 					logs::fatal("cannot DIV by zero");
 				}
 				// else if is_zero[0]
-				return ade::TensptrT(Constant<T>::get(0, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
 			case age::MIN:
 			case age::MAX:
 			case age::EQ:
@@ -113,20 +114,21 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 template <typename T>
 NodesT<T> zero_prune (NodesT<T> roots)
 {
-	return tens_to_nodes(opt::graph_edit(nodes_to_tens(roots),
-		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+	return tens_to_nodes<T>(opt::graph_edit(nodes_to_tens<T>(roots),
+		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
-			ArgsT<T> ead_args = ade_to_ead_args(args);
+			ArgsT<T> ead_args = ade_to_ead_args<T>(args);
 			if (auto out = zero_prune_edit<T>(is_optimized, opcode, ead_args))
 			{
 				return out;
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
 
 				return ade::TensptrT(Functor<T>::get(opcode, ead_args));
 			}
+			return nullptr;
 		}));
 }
 

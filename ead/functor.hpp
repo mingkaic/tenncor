@@ -39,7 +39,7 @@ struct Functor final : public ade::iFunctor
 		std::vector<OpArg<T>> tmaps;
 		for (FuncArg<T>& arg : args)
 		{
-			NodeptrT<T> node = arg.get_tensor();
+			NodeptrT<T> node = arg.get_node();
 			ade::TensptrT tensor = node->get_tensor();
 			ade::CoordptrT coorder = arg.get_coorder();
 			input_args.push_back(ade::FuncArg(

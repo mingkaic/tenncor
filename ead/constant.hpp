@@ -52,7 +52,8 @@ struct Constant : public ade::iLeaf
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return shape().to_string();
+		return fmts::to_string(data_.data()[0]) +
+			"(" + shape().to_string() + ")";
 	}
 
 	/// Implementation of iLeaf

@@ -484,6 +484,11 @@ TEST(OPTIMIZATION, reuse_op_graph)
 	auto opt_splitroot = opts[2];
 	auto opt_copyroot = opts[3];
 
+	ASSERT_NE(nullptr, opt_subroot);
+	ASSERT_NE(nullptr, opt_root);
+	ASSERT_NE(nullptr, opt_splitroot);
+	ASSERT_NE(nullptr, opt_copyroot);
+
 	std::stringstream ss;
 	CSVEquation ceq;
 	opt_subroot->accept(ceq);
@@ -494,7 +499,7 @@ TEST(OPTIMIZATION, reuse_op_graph)
 
 	std::unordered_set<std::string> expectlines =
 	{
-        "0:PROD,1:COS,0,white",
+		"0:PROD,1:COS,0,white",
 		"1:COS,2:0([1\\1\\1\\1\\1\\1\\1\\1]),0,white",
 		"0:PROD,3:MAX,1,white",
 		"3:MAX,4:2([1\\1\\1\\1\\1\\1\\1\\1]),0,white",

@@ -14,7 +14,7 @@ static std::unordered_set<size_t> reductions =
 	age::REDUCE_MAX,
 	age::PERMUTE,
 	age::EXTEND,
-}
+};
 
 template <typename T>
 ade::TensptrT ops_prune_edit (bool& is_optimized,
@@ -74,20 +74,21 @@ ade::TensptrT ops_prune_edit (bool& is_optimized,
 template <typename T>
 NodesT<T> ops_prune (NodesT<T> roots)
 {
-	return tens_to_nodes(opt::graph_edit(nodes_to_tens(roots),
-		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+	return tens_to_nodes<T>(opt::graph_edit(nodes_to_tens<T>(roots),
+		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
-			ArgsT<T> ead_args = ade_to_ead_args(args);
+			ArgsT<T> ead_args = ade_to_ead_args<T>(args);
 			if (auto out = ops_prune_edit<T>(is_optimized, opcode, ead_args))
 			{
 				return out;
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
 
 				return ade::TensptrT(Functor<T>::get(opcode, ead_args));
 			}
+			return nullptr;
 		}));
 }
 

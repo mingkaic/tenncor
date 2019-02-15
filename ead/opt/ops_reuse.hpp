@@ -44,7 +44,7 @@ static bool coorder_equal (ade::CoordptrT lhs, ade::CoordptrT rhs)
 	else if (lhs == nullptr || rhs == nullptr)
 	{
 		// one is null, other is not
-		return false
+		return false;
 	}
 	ade::CoordT lhsc;
 	ade::CoordT rhsc;
@@ -120,7 +120,7 @@ NodesT<T> ops_reuse (NodesT<T> roots)
 	ade::GraphStat stat;
 	for (NodeptrT<T>& root : roots)
 	{
-		auto tens = root.get_tensor();
+		auto tens = root->get_tensor();
 		smart_map.emplace(tens.get(), root);
 		tens->accept(stat);
 	}
@@ -133,7 +133,7 @@ NodesT<T> ops_reuse (NodesT<T> roots)
 	for (NodeptrT<T>& root : roots)
 	{
 		max_graphsize = std::max(max_graphsize,
-			stat.graphsize_[root.get_tensor().get()] + 1);
+			stat.graphsize_[root->get_tensor().get()] + 1);
 	}
 
 	std::vector<std::list<ade::iTensor*>> tens(max_graphsize);
@@ -232,7 +232,7 @@ NodesT<T> ops_reuse (NodesT<T> roots)
 			{
 				auto func = static_cast<ade::iFunctor*>(ten);
 				bool changed = false;
-				ArgsT<T> children = func->get_children();
+				ArgsT<T> children = ade_to_ead_args<T>(func->get_children());
 				for (size_t i = 0, n = children.size(); i < n; ++i)
 				{
 					auto it = orig2new.find(children[i].get_tensor().get());
@@ -272,7 +272,7 @@ NodesT<T> ops_reuse (NodesT<T> roots)
 
 	for (auto& root : roots)
 	{
-		auto rit = orig2new.find(root.get());
+		auto rit = orig2new.find(root->get_tensor().get());
 		if (orig2new.end() != rit)
 		{
 			root = smart_map[rit->second];

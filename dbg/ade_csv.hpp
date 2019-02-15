@@ -9,7 +9,25 @@ const char label_delim = ':';
 
 void multiline_replace (std::string& multiline);
 
-bool is_identity (ade::iCoordMap* coorder);
+inline bool is_identity (ade::iCoordMap* coorder)
+{
+	if (ade::identity.get() == coorder || nullptr == coorder)
+	{
+		return true;
+	}
+	bool id = true;
+	coorder->access([&id](const ade::MatrixT& m)
+	{
+		for (uint8_t i = 0; id && i < ade::mat_dim; ++i)
+		{
+			for (uint8_t j = 0; id && j < ade::mat_dim; ++j)
+			{
+				id = id && m[i][j] == (i == j);
+			}
+		}
+	});
+	return id;
+}
 
 enum NODE_TYPE
 {

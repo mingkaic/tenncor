@@ -35,7 +35,8 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 	std::vector<bool> is_one(n, false);
 	for (size_t i = 0; i < n; ++i)
 	{
-		auto cst = dynamic_cast<Constant<T>*>(args[i].get_tensor().get());
+		auto cst = dynamic_cast<Constant<T>*>(
+			args[i].get_tensor().get());
 		is_one[i] = nullptr != cst && cst->is_const() && const_is_one(cst);
 		has_one = has_one || is_one[i];
 	}
@@ -48,7 +49,7 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 			case age::ROUND:
 				return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
 			case age::LOG:
-				return ade::TensptrT(Constant<T>::get(0, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
 			case age::POW:
 				if (is_one[0])
 				{
@@ -99,19 +100,21 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 template <typename T>
 NodesT<T> one_prune (NodesT<T> roots)
 {
-	return tens_to_nodes(opt::graph_edit(nodes_to_tens(roots),
-		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+	return tens_to_nodes<T>(opt::graph_edit(nodes_to_tens<T>(roots),
+		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
-			ArgsT<T> ead_args = ade_to_ead_args(args);
+			ArgsT<T> ead_args = ade_to_ead_args<T>(args);
 			if (auto out = one_prune_edit<T>(is_optimized, opcode, ead_args))
 			{
 				return out;
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
+
 				return ade::TensptrT(Functor<T>::get(opcode, ead_args));
 			}
+			return nullptr;
 		}));
 }
 

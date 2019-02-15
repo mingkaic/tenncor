@@ -16,9 +16,9 @@ ade::TensptrT const_merge_edit (bool& is_optimized,
 {
 	ArgsT<T> cargs;
 	std::copy_if(args.begin(), args.end(), std::back_inserter(cargs),
-		[](ade::FuncArg& arg)
+		[](FuncArg<T>& arg)
 		{
-			return nullptr != dynamic_cast<Constant*>(
+			return nullptr != dynamic_cast<Constant<T>*>(
 				arg.get_tensor().get());
 		});
 	if (cargs.size() == args.size())
@@ -36,20 +36,21 @@ ade::TensptrT const_merge_edit (bool& is_optimized,
 template <typename T>
 NodesT<T> const_merge (NodesT<T> roots)
 {
-	return tens_to_nodes(opt::graph_edit(nodes_to_tens(roots),
-		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+	return tens_to_nodes<T>(opt::graph_edit(nodes_to_tens<T>(roots),
+		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
-			ArgsT<T> ead_args = ade_to_ead_args(args);
+			ArgsT<T> ead_args = ade_to_ead_args<T>(args);
 			if (auto out = const_merge_edit<T>(is_optimized, opcode, ead_args))
 			{
 				return out;
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
 
 				return ade::TensptrT(Functor<T>::get(opcode, ead_args));
 			}
+			return nullptr;
 		}));
 }
 

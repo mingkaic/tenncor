@@ -46,7 +46,12 @@ struct FuncArg final
 	}
 
 	/// Return tensor being mapped
-	NodeptrT<T> get_tensor (void) const
+	ade::TensptrT get_tensor (void) const
+	{
+		return node_->get_tensor();
+	}
+
+	NodeptrT<T> get_node (void) const
 	{
 		return node_;
 	}

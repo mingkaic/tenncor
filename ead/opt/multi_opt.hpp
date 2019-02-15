@@ -22,11 +22,11 @@ NodesT<T> multi_optimize (NodesT<T> roots,
 		ops_merge_edit<T>,
 	})
 {
-	return tens_to_nodes(opt::graph_edit(nodes_to_tens(roots),
-		[&edits](ade::Opcode& opcode, ade::ArgsT& args, bool changed)
+	return tens_to_nodes<T>(opt::graph_edit(nodes_to_tens<T>(roots),
+		[&edits](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
-			ArgsT<T> ead_args = ade_to_ead_args(args);
+			ArgsT<T> ead_args = ade_to_ead_args<T>(args);
 			for (auto edit : edits)
 			{
 				if (auto out = edit(is_optimized, opcode, ead_args))
@@ -34,11 +34,12 @@ NodesT<T> multi_optimize (NodesT<T> roots,
 					return out;
 				}
 			}
-			else if (changed || is_optimized)
+			if (changed || is_optimized)
 			{
 
 				return ade::TensptrT(Functor<T>::get(opcode, ead_args));
 			}
+			return nullptr;
 		}));
 }
 

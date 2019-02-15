@@ -37,7 +37,7 @@ inline ArgsT<T> ade_to_ead_args (ade::ArgsT args)
 	std::transform(args.begin(), args.end(), std::back_inserter(ead_args),
 		[](ade::FuncArg& arg)
 		{
-			return FuncArg{
+			return FuncArg<T>{
 				to_node<T>(arg.get_tensor()),
 				arg.get_shaper(),
 				arg.map_io(),
