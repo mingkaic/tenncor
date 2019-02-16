@@ -172,6 +172,45 @@ class EADTest(unittest.TestCase):
         self._array_close(exdata2, der2)
         self._array_close(exdata3, der3)
 
+    def _common_reduce_1d(self, dim_reduce, tf_reduce):
+        shape = [3, 4, 5]
+        data = np.random.rand(*shape)
+        var = ead.variable(data, 'var')
+        tf_var = tf.Variable(data)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+
+        out = dim_reduce(var, 1)
+        tf_out = tf_reduce(tf_var, [1])
+
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        fout = out.get()
+        tf_fout = tfsess.run(tf_out)
+
+        self._array_close(tf_fout, fout)
+
+        var2 = ead.variable(data, 'var2')
+        ex = ead.derive(out, var)
+        zero = ead.derive(out, var2)
+        sess.track(ex)
+        sess.track(zero)
+        sess.update()
+
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        data0 = np.zeros(shape, dtype=float)
+        der = ex.get()
+        rej = zero.get()
+
+        exdata = tfsess.run(tf_grad)
+
+        self._array_close(exdata, der)
+        self._array_eq(data0, rej)
+
     def _common_reduce(self, all_reduce, dim_reduce, tf_reduce):
         shape = [3, 4, 5]
         # data = np.random.rand(*shape)
@@ -440,6 +479,18 @@ class EADTest(unittest.TestCase):
 
         der = ex.get()
         self._array_eq(np.array([3, 3]), der)
+
+    def test_rsum_1d(self):
+        self._common_reduce_1d(age.reduce_sum_1d, tf.reduce_sum)
+
+    def test_rprod_1d(self):
+        self._common_reduce_1d(age.reduce_prod_1d, tf.reduce_prod)
+
+    def test_rmin_1d(self):
+        self._common_reduce_1d(age.reduce_min_1d, tf.reduce_min)
+
+    def test_rmax_1d(self):
+        self._common_reduce_1d(age.reduce_max_1d, tf.reduce_max)
 
     def test_rsum(self):
         self._common_reduce(age.reduce_sum, age.reduce_sum, tf.reduce_sum)

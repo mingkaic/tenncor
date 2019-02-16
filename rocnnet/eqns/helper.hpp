@@ -1,4 +1,5 @@
 #include "ead/generated/api.hpp"
+#include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
 #ifndef EQNS_HELPER_HPP

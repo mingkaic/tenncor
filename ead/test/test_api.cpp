@@ -8,6 +8,7 @@
 
 #include "ead/generated/api.hpp"
 #include "ead/session.hpp"
+#include "ead/constant.hpp"
 #include "ead/variable.hpp"
 #include "ead/grader.hpp"
 

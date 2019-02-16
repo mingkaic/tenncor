@@ -1,3 +1,4 @@
+#include "ead/constant.hpp"
 #include "ead/variable.hpp"
 #include "ead/operator.hpp"
 #include "ead/generated/api.hpp"

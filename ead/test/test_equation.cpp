@@ -10,6 +10,7 @@
 
 #include "ead/session.hpp"
 #include "ead/grader.hpp"
+#include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
 

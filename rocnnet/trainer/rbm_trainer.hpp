@@ -163,7 +163,7 @@ private:
 			age::log(age::sub(ade::TensptrT(
 				ead::Constant::get(1, visible_dist->shape())), visible_dist)));
 		return age::reduce_mean(
-			age::reduce_sum(age::transpose(age::add(p_success, p_not)), 1));
+			age::reduce_sum_1d(age::transpose(age::add(p_success, p_not)), 1));
 	}
 
 	ade::TensptrT free_energy (ade::TensptrT sample)
@@ -173,11 +173,11 @@ private:
 		// <x, y> @ <z, x> + z -> <z, y>
 		ade::TensptrT weighed = age::matmul(sample, ade::TensptrT(weight_));
 		ade::TensptrT wx_b = eqns::weighed_bias_add(weighed, ade::TensptrT(hbias_));
-		ade::TensptrT hidden_term = age::reduce_sum(
+		ade::TensptrT hidden_term = age::reduce_sum_1d(
 			age::log(age::add(
 				ade::TensptrT(ead::Constant::get(1.0, wx_b->shape())),
 				age::exp(wx_b)
-			)), 0, 1);
+			)), 0);
 		return age::neg(age::add(hidden_term, vbias_term));
 	}
 

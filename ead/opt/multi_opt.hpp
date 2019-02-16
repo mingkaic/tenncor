@@ -1,5 +1,5 @@
 #include "ead/opt/const_merge.hpp"
-#include "ead/opt/ops_merge.hpp"
+#include "ead/opt/ops_prune.hpp"
 #include "ead/opt/one_prune.hpp"
 #include "ead/opt/zero_prune.hpp"
 #include "ead/opt/nodes.hpp"
@@ -19,7 +19,7 @@ NodesT<T> multi_optimize (NodesT<T> roots,
 		const_merge_edit<T>,
 		zero_prune_edit<T>,
 		one_prune_edit<T>,
-		ops_merge_edit<T>,
+		ops_prune_edit<T>,
 	})
 {
 	return tens_to_nodes<T>(opt::graph_edit(nodes_to_tens<T>(roots),

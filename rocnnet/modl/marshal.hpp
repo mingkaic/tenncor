@@ -4,6 +4,7 @@
 #include "pbm/load.hpp"
 
 #include "ead/gradhelper.hpp"
+#include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"

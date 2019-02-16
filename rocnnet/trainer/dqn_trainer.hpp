@@ -1,5 +1,9 @@
 #include "rocnnet/modl/mlp.hpp"
 
+#include <fstream>
+#include "dbg/ade.hpp"
+#include "dbg/ade_csv.hpp"
+
 struct DQNInfo
 {
 	DQNInfo (size_t train_interval = 5,
@@ -59,13 +63,13 @@ struct DQNTrainer
 		// forward action score computation
 		output_ = (*source_qnet_)(ead::convert_to_node<double>(input_));
 
-		train_output_ = (*source_qnet_)(ead::convert_to_node<double>(train_input_));
+		train_out_ = (*source_qnet_)(ead::convert_to_node<double>(train_input_));
 
 		// predicting target future rewards
 		next_output_ = (*target_qnet_)(ead::convert_to_node<double>(next_input_));
 
 		auto target_values = age::mul(
-			age::reduce_max(next_output_, 0),
+			age::reduce_max_1d(next_output_, 0),
 			ead::convert_to_node<double>(next_output_mask_));
 		future_reward_ = age::add(ead::convert_to_node<double>(reward_),
 			age::mul(
@@ -74,8 +78,8 @@ struct DQNTrainer
 				target_values)); // reward for each instance in batch
 
 		// prediction error
-		auto masked_output_score = age::reduce_sum(
-			age::mul(train_output_, ead::convert_to_node<double>(output_mask_)), 0);
+		auto masked_output_score = age::reduce_sum_1d(
+			age::mul(train_out_, ead::convert_to_node<double>(output_mask_)), 0);
 		auto temp_diff = age::sub(masked_output_score, future_reward_);
 		prediction_error_ = age::reduce_mean(age::pow(temp_diff,
 			ead::make_constant_scalar<double>(2, temp_diff->shape())));
@@ -113,7 +117,7 @@ struct DQNTrainer
 					std::make_shared<ead::VariableNode<double>>(var);
 			}
 		}
-		eqns::VarmapT target_connection;
+		eqns::AssignsT target_assigns;
 		for (size_t i = 0; i < nvars; i++)
 		{
 			// this is equivalent to target = (1-alpha) * target + alpha * source
@@ -125,20 +129,35 @@ struct DQNTrainer
 
 			auto target_next = age::sub(target, age::mul(
 				target_update_rate, diff));
-			updates_.upkeep_.push_back(target_next);
-			target_connection.emplace(target_vars[i], target_next);
+			target_assigns.push_back(eqns::VarAssign{target_vars[i], target_next});
 		}
-		updates_.actions_.push_back(
-			[target_connection](ead::Session<double>& sess)
-			{
-				eqns::assign_all(sess, target_connection);
-			});
-		for (ead::NodeptrT<double>& up : updates_.upkeep_)
+		updates_.push_back(target_assigns);
+
+		std::vector<ead::NodeptrT<double>*> to_optimize =
 		{
-			sess_->track(up);
+			&prediction_error_,
+			&train_out_,
+			&output_,
+		};
+		for (eqns::AssignsT& assigns : updates_)
+		{
+			for (eqns::VarAssign& assign : assigns)
+			{
+				to_optimize.push_back(&assign.source_);
+			}
 		}
-		sess_->track(train_output_);
-		sess_->track(output_);
+
+		size_t n_roots = to_optimize.size();
+		ead::NodesT<double> roots(n_roots);
+		std::transform(to_optimize.begin(), to_optimize.end(),
+			roots.begin(), [](ead::NodeptrT<double>* ptr) { return *ptr; });
+		roots = ead::ops_reuse<double>(ead::multi_optimize<double>(roots));
+
+		for (size_t i = 0; i < n_roots; ++i)
+		{
+			sess_->track(roots[i]);
+			*to_optimize[i] = roots[i];
+		}
 	}
 
 	uint8_t action (std::vector<double>& input)
@@ -238,7 +257,7 @@ struct DQNTrainer
 				next_output_mask_->get_tensor().get(),
 				reward_->get_tensor().get(),
 			});
-			updates_.assign(*sess_);
+			assign_groups(*sess_, updates_);
 			iteration_++;
 		}
 		n_train_called_++;
@@ -266,10 +285,10 @@ struct DQNTrainer
 	ead::VarptrT<double> train_input_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	ead::NodeptrT<double> train_output_ = nullptr;
+	ead::NodeptrT<double> train_out_ = nullptr;
 
 	// === updates && optimizer ===
-	eqns::Deltas updates_;
+	eqns::AssignGroupsT updates_;
 
 	ead::Session<double>* sess_;
 

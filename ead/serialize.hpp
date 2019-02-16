@@ -11,6 +11,7 @@
 #include "ead/generated/opmap.hpp"
 
 #include "ead/coord.hpp"
+#include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
 #ifndef EAD_SERIALIZE_HPP
@@ -90,9 +91,9 @@ struct EADSaver : public pbm::iSaver
 	}
 };
 
-#define RET_GENERIC(realtype)return ade::TensptrT(is_const?\
-Constant<realtype>::get((realtype*) pb, shape):\
-Variable<realtype>::get((realtype*) pb, shape, label));
+#define RET_GENERIC(realtype)return is_const?\
+ade::TensptrT(Constant<realtype>::get((realtype*) pb, shape)):\
+ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 
 /// Unmarshal cortenn::Source as Variable containing context of source
 struct EADLoader : public pbm::iLoader

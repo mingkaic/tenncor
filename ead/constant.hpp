@@ -1,6 +1,4 @@
-#include "ade/ileaf.hpp"
-
-#include "ead/tensor.hpp"
+#include "ead/ileaf.hpp"
 #include "ead/inode.hpp"
 
 #ifndef EAD_CONSTANT_HPP
@@ -10,7 +8,7 @@ namespace ead
 {
 
 template <typename T>
-struct Constant : public ade::iLeaf
+struct Constant final : public iLeaf<T>
 {
 	static Constant* get (T* data, ade::Shape shape)
 	{
@@ -25,91 +23,22 @@ struct Constant : public ade::iLeaf
 		return new Constant(buffer, shape);
 	}
 
-	virtual ~Constant (void) = default;
+	Constant (const Constant<T>& other) = delete;
 
-	Constant (Constant&& other) = default;
+	Constant (Constant<T>&& other) = delete;
 
-	Constant& operator = (const Constant& other)
-	{
-		if (this != &other)
-		{
-			// out_ map must reference new copied data
-			data_ = other.data_; // Eigen supported deep copy
-			out_ = tens_to_tensmap(data_);
-			shape_ = shape_;
-		}
-		return *this;
-	}
+	Constant<T>& operator = (const Constant<T>& other) = delete;
 
-	Constant& operator = (Constant&& other) = default;
+	Constant<T>& operator = (Constant<T>&& other) = delete;
 
-	/// Implementation of iTensor
-	const ade::Shape& shape (void) const override
-	{
-		return shape_;
-	}
-
-	/// Implementation of iTensor
-	std::string to_string (void) const override
-	{
-		return fmts::to_string(data_.data()[0]) +
-			"(" + shape().to_string() + ")";
-	}
-
-	/// Implementation of iLeaf
-	void* data (void) override
-	{
-		return data_.data();
-	}
-
-	/// Implementation of iLeaf
-	const void* data (void) const override
-	{
-		return data_.data();
-	}
-
-	/// Implementation of iLeaf
-	size_t type_code (void) const override
-	{
-		return age::get_type<T>();
-	}
-
-	/// Return number of bytes in data source
-	size_t nbytes (void) const
-	{
-		return sizeof(T) * shape_.n_elems();
-	}
-
-	virtual bool is_const (void) const
+	bool is_const (void) const override
 	{
 		return true;
 	}
 
-	TensMapT<T>* get_tensmap (void)
-	{
-		return &out_;
-	}
-
-protected:
+private:
 	Constant (T* data, ade::Shape shape) :
-		data_(ead::get_tensmap(data, shape)),
-		out_(tens_to_tensmap(data_)),
-		shape_(shape) {}
-
-	Constant (const Constant& other) :
-		data_(other.data_),
-		out_(tens_to_tensmap(data_)),
-		shape_(other.shape_) {}
-
-	/// Data Source
-	TensorT<T> data_;
-
-	// todo: get rid of this somehow
-	/// TensorMap is here for functor's iEigen to reference
-	TensMapT<T> out_;
-
-	/// Shape utility to avoid excessive conversion between data_.dimensions()
-	ade::Shape shape_;
+		iLeaf<T>(data, shape) {}
 };
 
 template <typename T>

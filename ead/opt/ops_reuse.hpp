@@ -159,9 +159,10 @@ NodesT<T> ops_reuse (NodesT<T> roots)
 		std::unordered_map<size_t,std::list<Constant<T>*>> hashs;
 		for (ade::iTensor* leaf : tens[0])
 		{
-			auto cst = static_cast<Constant<T>*>(leaf);
-			if (cst->is_const())
+			auto lfs = static_cast<iLeaf<T>*>(leaf);
+			if (lfs->is_const())
 			{
+				auto cst = static_cast<Constant<T>*>(lfs);
 				bool not_found = true;
 				auto& shape = cst->shape();
 				size_t hashidx = std::hash<std::string>()(

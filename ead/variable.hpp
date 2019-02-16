@@ -7,7 +7,8 @@
 ///	generalized and type-specific data
 ///
 
-#include "ead/constant.hpp"
+#include "ead/ileaf.hpp"
+#include "ead/inode.hpp"
 
 #ifndef EAD_VARIABLE_HPP
 #define EAD_VARIABLE_HPP
@@ -17,20 +18,20 @@ namespace ead
 
 /// Leaf node containing data
 template <typename T>
-struct Variable final : public Constant<T>
+struct Variable final : public iLeaf<T>
 {
-	static Variable* get (ade::Shape shape, std::string label = "")
+	static Variable<T>* get (ade::Shape shape, std::string label = "")
 	{
 		return Variable<T>::get(std::vector<T>(shape.n_elems(), 0),
 			shape, label);
 	}
 
-	static Variable* get (T* ptr, ade::Shape shape, std::string label = "")
+	static Variable<T>* get (T* ptr, ade::Shape shape, std::string label = "")
 	{
 		return new Variable<T>(ptr, shape, label);
 	}
 
-	static Variable* get (T scalar, ade::Shape shape, std::string label = "")
+	static Variable<T>* get (T scalar, ade::Shape shape, std::string label = "")
 	{
 		if (label.empty())
 		{
@@ -40,7 +41,7 @@ struct Variable final : public Constant<T>
 			shape, label);
 	}
 
-	static Variable* get (std::vector<T> data, ade::Shape shape,
+	static Variable<T>* get (std::vector<T> data, ade::Shape shape,
 		std::string label = "")
 	{
 		if (data.size() != shape.n_elems())
@@ -51,12 +52,12 @@ struct Variable final : public Constant<T>
 		return new Variable<T>(data.data(), shape, label);
 	}
 
-	static Variable* get (const Variable& other)
+	static Variable<T>* get (const Variable<T>& other)
 	{
 		return new Variable<T>(other);
 	}
 
-	static Variable* get (Variable&& other)
+	static Variable<T>* get (Variable<T>&& other)
 	{
 		return new Variable<T>(std::move(other));
 	}
@@ -107,7 +108,7 @@ struct Variable final : public Constant<T>
 
 private:
 	Variable (T* data, ade::Shape shape, std::string label) :
-		Constant<T>(data, shape), label_(label) {}
+		iLeaf<T>(data, shape), label_(label) {}
 
 	Variable (const Variable<T>& other) = default;
 

@@ -8,7 +8,7 @@
 
 #include "opt/graph_edit.hpp"
 
-#include "ead/variable.hpp"
+#include "ead/constant.hpp"
 
 #include "ead/opt/nodes.hpp"
 

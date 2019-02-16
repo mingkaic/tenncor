@@ -16,6 +16,27 @@ static std::unordered_set<size_t> reductions =
 	age::EXTEND,
 };
 
+inline bool is_identity (ade::CoordptrT coorder)
+{
+	if (ade::identity == coorder || nullptr == coorder)
+	{
+		return true;
+	}
+	bool id = false;
+	coorder->access([&id](const ade::MatrixT& m)
+	{
+		id = true;
+		for (uint8_t i = 0; id && i < ade::mat_dim; ++i)
+		{
+			for (uint8_t j = 0; id && j < ade::mat_dim; ++j)
+			{
+				id = id && m[i][j] == (i == j);
+			}
+		}
+	});
+	return id;
+}
+
 template <typename T>
 ade::TensptrT ops_prune_edit (bool& is_optimized,
 	ade::Opcode& opcode, ArgsT<T>& args)
@@ -27,13 +48,10 @@ ade::TensptrT ops_prune_edit (bool& is_optimized,
 		case age::REDUCE_MIN:
 		case age::REDUCE_MAX:
 		{
-			ade::CoordT coord;
-			args.get_coorder()->forward(coord.begin(), coord.begin());
-			if (std::all_of(coord.begin(), coord.end(),
-				[](ade::DimT d) { return d >= ade::rank_cap; }))
+			if (is_identity(args[0].get_shaper()))
 			{
 				// we are reducing 0 dimensions, so don't reduce
-				return args.get_tensor();
+				return args[0].get_tensor();
 			}
 			// continue reducing
 		}
@@ -41,12 +59,12 @@ ade::TensptrT ops_prune_edit (bool& is_optimized,
 		case age::PERMUTE:
 		{
 			ade::CoordT coord;
-			args.get_coorder()->forward(coord.begin(), coord.begin());
+			args[0].get_coorder()->forward(coord.begin(), coord.begin());
 			if (std::is_sorted(coord.begin(), coord.end()) &&
 				std::unique(coord.begin(), coord.end()))
 			{
 				// ordered and unique permutations mean no permutation
-				return args.get_tensor();
+				return args[0].get_tensor();
 			}
 			// continue permuting
 		}
@@ -54,12 +72,12 @@ ade::TensptrT ops_prune_edit (bool& is_optimized,
 		case age::EXTEND:
 		{
 			ade::CoordT coord;
-			args.get_coorder()->forward(coord.begin(), coord.begin());
+			args[0].get_coorder()->forward(coord.begin(), coord.begin());
 			if (std::all_of(coord.begin(), coord.end(),
 				[](ade::DimT d) { return d == 1; }))
 			{
 				// we are not extending
-				return args.get_tensor();
+				return args[0].get_tensor();
 			}
 			// continue extending
 		}

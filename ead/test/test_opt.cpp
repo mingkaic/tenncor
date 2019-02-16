@@ -1,6 +1,5 @@
 
 #ifndef DISABLE_OPTIMIZATION_TEST
-#include <fstream>
 
 #include "gtest/gtest.h"
 

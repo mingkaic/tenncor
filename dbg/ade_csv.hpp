@@ -15,9 +15,10 @@ inline bool is_identity (ade::iCoordMap* coorder)
 	{
 		return true;
 	}
-	bool id = true;
+	bool id = false;
 	coorder->access([&id](const ade::MatrixT& m)
 	{
+		id = true;
 		for (uint8_t i = 0; id && i < ade::mat_dim; ++i)
 		{
 			for (uint8_t j = 0; id && j < ade::mat_dim; ++j)

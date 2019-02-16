@@ -107,7 +107,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// py::class_<modl::DBN,modl::iMarshaler,modl::DBNptrT> dbn(m, "DBN");
 
 	// support classes
-	py::class_<eqns::Deltas> delta(m, "Deltas");
+	py::class_<eqns::VarAssign> assigns(m, "VarAssign");
 
 	py::class_<modl::LayerInfo> layerinfo(m, "LayerInfo");
 	py::class_<DQNInfo> dqninfo(m, "DQNInfo");
@@ -250,7 +250,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("ntrained", &DQNTrainer::get_numtrained, "get number of iterations trained")
 		.def("train_out", [](py::object self)
 		{
-			return self.cast<DQNTrainer*>()->train_output_;
+			return self.cast<DQNTrainer*>()->train_out_;
 		}, "get training node");
 
 	// // rbmtrainer

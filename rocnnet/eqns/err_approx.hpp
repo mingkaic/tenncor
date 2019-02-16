@@ -1,5 +1,6 @@
 #include <unordered_map>
 
+#include "ead/constant.hpp"
 #include "ead/variable.hpp"
 #include "ead/session.hpp"
 
@@ -9,44 +10,33 @@
 namespace eqns
 {
 
-using AssignFuncT = std::function<void(ead::Session<double>&)>;
-
 using VariablesT = std::vector<ead::VarptrT<double>>;
 
-struct Deltas
+struct VarAssign
 {
-	void assign (ead::Session<double>& sess)
-	{
-		for (auto& action : actions_)
-		{
-			action(sess);
-		}
-	}
+	ead::VarptrT<double> target_;
 
-	// steps to update
-	std::vector<AssignFuncT> actions_;
-
-	// nodes upkept by approximation process
-	std::vector<ead::NodeptrT<double>> upkeep_;
+	ead::NodeptrT<double> source_;
 };
 
+using AssignsT = std::list<VarAssign>;
+
+using AssignGroupsT = std::list<AssignsT>;
+
 // approximate error of sources given error of root
-using ApproxFuncT = std::function<Deltas(ead::NodeptrT<double>&,VariablesT)>;
-
-// todo: change from map to vector of pairs, since we never make use of varmap's constant-time access
-using VarmapT = std::unordered_map<ead::VarptrT<double>,ead::NodeptrT<double>>;
-
-inline void assign_all (ead::Session<double>& sess, VarmapT connection);
+using ApproxFuncT = std::function<AssignGroupsT(ead::NodeptrT<double>&,VariablesT)>;
 
 // Stochastic Gradient Descent Approximation
-Deltas sgd (ead::NodeptrT<double>& root, VariablesT leaves,
+AssignGroupsT sgd (ead::NodeptrT<double>& root, VariablesT leaves,
 	double learning_rate = 0.5);
 
 // Momentum-based Root Mean Square Approximation
-Deltas rms_momentum (ead::NodeptrT<double>& root, VariablesT leaves,
+AssignGroupsT rms_momentum (ead::NodeptrT<double>& root, VariablesT leaves,
 	double learning_rate = 0.5,
 	double discount_factor = 0.99,
 	double epsilon = std::numeric_limits<double>::epsilon());
+
+void assign_groups (ead::Session<double>& sess, AssignGroupsT& groups);
 
 }
 

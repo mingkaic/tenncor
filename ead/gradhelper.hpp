@@ -1,6 +1,7 @@
 #include "ead/generated/api.hpp"
 
 #include "ead/constant.hpp"
+#include "ead/variable.hpp"
 #include "ead/functor.hpp"
 #include "ead/funcarg.hpp"
 
@@ -20,6 +21,10 @@ NodeptrT<T> to_node (ade::TensptrT tens)
 	else if (auto cst = std::dynamic_pointer_cast<Constant<T>>(tens))
 	{
 		return std::make_shared<ConstantNode<T>>(cst);
+	}
+	else if (auto var = std::dynamic_pointer_cast<Variable<T>>(tens))
+	{
+		return std::make_shared<VariableNode<T>>(var);
 	}
 	// else
 	logs::fatal("unknown tensor type");

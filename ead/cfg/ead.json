@@ -618,6 +618,66 @@
         },
         {
             "template": "typename T",
+            "name": "reduce_sum_1d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_prod_1d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_min_1d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_max_1d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
             "name": "permute",
             "args": [{
                 "dtype": "ead::NodeptrT<T>",

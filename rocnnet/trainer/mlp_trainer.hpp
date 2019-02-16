@@ -1,3 +1,6 @@
+#include "ead/opt/multi_opt.hpp"
+#include "ead/opt/ops_reuse.hpp"
+
 #include "rocnnet/modl/mlp.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
@@ -33,12 +36,31 @@ struct MLPTrainer
 			}
 		}
 		updates_ = update(error_, vars);
-		for (ead::NodeptrT<double>& up : updates_.upkeep_)
+
+		std::vector<ead::NodeptrT<double>*> to_optimize =
 		{
-			sess_->track(up);
+			&train_out_,
+			&error_,
+		};
+		for (eqns::AssignsT& assigns : updates_)
+		{
+			for (eqns::VarAssign& assign : assigns)
+			{
+				to_optimize.push_back(&assign.source_);
+			}
 		}
-		sess_->track(train_out_);
-		sess_->track(error_);
+
+		size_t n_roots = to_optimize.size();
+		ead::NodesT<double> roots(n_roots);
+		std::transform(to_optimize.begin(), to_optimize.end(),
+			roots.begin(), [](ead::NodeptrT<double>* ptr) { return *ptr; });
+		roots = ead::ops_reuse<double>(ead::multi_optimize<double>(roots));
+
+		for (size_t i = 0; i < n_roots; ++i)
+		{
+			sess_->track(roots[i]);
+			*to_optimize[i] = roots[i];
+		}
 	}
 
 	void train (std::vector<double>& train_in,
@@ -65,7 +87,8 @@ struct MLPTrainer
 			train_in_->get_tensor().get(),
 			expected_out_->get_tensor().get(),
 		});
-		updates_.assign(*sess_);
+
+		assign_groups(*sess_, updates_);
 	}
 
 	uint8_t batch_size_;
@@ -75,7 +98,7 @@ struct MLPTrainer
 	ead::NodeptrT<double> train_out_;
 	ead::NodeptrT<double> error_;
 
-	eqns::Deltas updates_;
+	eqns::AssignGroupsT updates_;
 	ead::Session<double>* sess_;
 };
 

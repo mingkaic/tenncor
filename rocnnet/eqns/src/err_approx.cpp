@@ -9,24 +9,10 @@
 namespace eqns
 {
 
-void assign_all (ead::Session<double>& sess, VarmapT connection)
-{
-	std::unordered_set<ade::iTensor*> updates;
-	for (auto cpair : connection)
-	{
-		updates.emplace(cpair.first->get_tensor().get());
-		auto tmap = cpair.second->get_tensmap();
-		cpair.first->assign(tmap->data(),
-			cpair.second->shape());
-	}
-	sess.update(updates);
-}
-
-Deltas sgd (ead::NodeptrT<double>& root, VariablesT leaves,
+AssignGroupsT sgd (ead::NodeptrT<double>& root, VariablesT leaves,
 	double learning_rate)
 {
-	Deltas errs;
-	VarmapT connection;
+	AssignsT assignments;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
 		auto leaf_node = ead::convert_to_node(leaves[i]);
@@ -35,23 +21,17 @@ Deltas sgd (ead::NodeptrT<double>& root, VariablesT leaves,
 		ade::Shape gshape = grad->shape();
 		auto next = age::sub(leaf_node,
 			age::mul(grad, ead::make_constant_scalar<double>(learning_rate, gshape)));
-		errs.upkeep_.push_back(next);
-		connection.emplace(leaves[i], next);
+		assignments.push_back(VarAssign{leaves[i], next});
 	}
-	errs.actions_.push_back(
-		[connection](ead::Session<double>& sess)
-		{
-			assign_all(sess, connection);
-		});
-	return errs;
+	return {assignments};
 }
 
-Deltas rms_momentum (ead::NodeptrT<double>& root, VariablesT leaves,
+AssignGroupsT rms_momentum (ead::NodeptrT<double>& root, VariablesT leaves,
 	double learning_rate, double discount_factor, double epsilon)
 {
-	Deltas errs;
-	VarmapT momentum_connection;
-	VarmapT leaf_connection;
+	// assign momentums before leaves
+	AssignsT momentum_assigns;
+	AssignsT leaf_assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
 		auto leaf_node = ead::convert_to_node(leaves[i]);
@@ -80,23 +60,26 @@ Deltas rms_momentum (ead::NodeptrT<double>& root, VariablesT leaves,
 				age::add(age::sqrt(momentum_node),
 					ead::make_constant_scalar<double>(epsilon, gshape))
 			));
-		errs.upkeep_.push_back(momentum_node);
-		errs.upkeep_.push_back(momentum_next);
-		errs.upkeep_.push_back(leaf_next);
-		momentum_connection.emplace(momentum, momentum_next);
-		leaf_connection.emplace(leaves[i], leaf_next);
+		momentum_assigns.push_back(VarAssign{momentum, momentum_next});
+		leaf_assigns.push_back(VarAssign{leaves[i], leaf_next});
 	}
-	errs.actions_.push_back(
-		[momentum_connection](ead::Session<double>& sess)
+	return {momentum_assigns, leaf_assigns};
+}
+
+void assign_groups (ead::Session<double>& sess, AssignGroupsT& groups)
+{
+	for (AssignsT& group : groups)
+	{
+		std::unordered_set<ade::iTensor*> updated_var;
+		for (eqns::VarAssign& assign : group)
 		{
-			assign_all(sess, momentum_connection);
-		});
-	errs.actions_.push_back(
-		[leaf_connection](ead::Session<double>& sess)
-		{
-			assign_all(sess, leaf_connection);
-		});
-	return errs;
+			updated_var.emplace(assign.target_->get_tensor().get());
+			auto tmap = assign.source_->get_tensmap();
+			assign.target_->assign(tmap->data(),
+				assign.source_->shape());
+		}
+		sess.update(updated_var);
+	}
 }
 
 }

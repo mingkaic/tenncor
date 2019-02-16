@@ -13,6 +13,14 @@ COVERAGE_PIPE := ./bazel-bin/external/com_github_mingkaic_cppkg/merge_cov $(COVE
 TMP_LOGFILE := /tmp/tenncor-test.log
 
 
+rocnnet_py_build:
+	bazel build //rocnnet:rocnnet_py
+
+rocnnet_py_export: rocnnet_py_build
+	cp -f bazel-bin/rocnnet/*.so rocnnet/notebooks/rocnnet
+	cp -f bazel-bin/ead/*.so rocnnet/notebooks/ead
+
+
 coverage: cover_ade cover_bwd
 
 cover_ade:

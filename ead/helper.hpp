@@ -8,13 +8,30 @@ namespace ead
 {
 
 template <typename T>
-NodeptrT<T> reduce_help (ade::Opcode opcode, NodeptrT<T> tens,
-	uint8_t start, uint8_t end)
+NodeptrT<T> reduce_help (ade::Opcode opcode,
+	NodeptrT<T> tens, uint8_t start, uint8_t end)
 {
 	std::vector<ade::DimT> coords(end - start);
 	std::iota(coords.begin(), coords.end(), start);
 	return make_functor<T>(opcode, {
 		reduce_map(tens, start, coords)
+	});
+}
+
+template <typename T>
+NodeptrT<T> reduce_1d_helper (ade::Opcode opcode,
+	NodeptrT<T> tens, uint8_t dim)
+{
+	std::vector<ade::DimT> indices(ade::rank_cap);
+	auto bt = indices.begin();
+	auto it = bt + dim;
+	std::iota(bt, it, 0);
+	std::iota(it, indices.end(), dim + 1);
+	indices[ade::rank_cap - 1] = dim;
+	return make_functor<T>(ade::Opcode{"PERMUTE", age::PERMUTE}, {
+		permute_map(make_functor<T>(opcode, {
+			reduce_map(tens, dim, {dim})
+		}), indices)
 	});
 }
 
