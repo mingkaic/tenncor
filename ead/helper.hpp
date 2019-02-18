@@ -1,4 +1,3 @@
-#include "ead/funcarg.hpp"
 #include "ead/functor.hpp"
 
 #ifndef EAD_HELPER_HPP

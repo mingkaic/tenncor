@@ -3,7 +3,6 @@
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 #include "ead/functor.hpp"
-#include "ead/funcarg.hpp"
 
 #ifndef EAD_GRADHELPER_HPP
 #define EAD_GRADHELPER_HPP
