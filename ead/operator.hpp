@@ -7,7 +7,7 @@
 /// No function in this file makes any attempt to check for nullptrs
 ///
 
-#include "ead/eigen.hpp"
+#include "ead/tensor.hpp"
 #include "ead/coord.hpp"
 
 #ifndef EAD_OPERATOR_HPP

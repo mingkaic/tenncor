@@ -101,7 +101,7 @@ struct EigenTensOp final : public iEigen<T>
 };
 
 template <typename T, typename EigenSource>
-inline EigenptrT<T> make_tensop (ade::Shape shape, EigenSource source)
+inline EigenptrT<T> make_eigentensor (ade::Shape shape, EigenSource source)
 {
 	return std::make_shared<EigenTensOp<T,EigenSource>>(shape, source);
 }
@@ -131,7 +131,7 @@ struct EigenMatOp final : public iEigen<T>
 };
 
 template <typename T, typename EigenSource>
-inline EigenptrT<T> make_matop (ade::Shape shape, EigenSource source)
+inline EigenptrT<T> make_eigenmatrix (ade::Shape shape, EigenSource source)
 {
 	return std::make_shared<EigenMatOp<T,EigenSource>>(shape, source);
 }

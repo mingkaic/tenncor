@@ -2,7 +2,7 @@
 
 #include "benchmark/benchmark.h"
 
-#include "llo/llo.hpp"
+#include "ead/ead.hpp"
 
 
 static std::random_device rnd_device;
@@ -57,10 +57,13 @@ static void NAME(benchmark::State& state)\
 		state.PauseTiming();\
 		ade::Shape shape = rand_shape(n);\
 		std::vector<double> data = random_data(shape.n_elems(), -35, 35);\
-		llo::VarptrT<double> var(llo::Variable<double>::get(data, shape, "var"));\
-		ade::TensptrT out = FUNC(var);\
+		std::vector<T> convdata(data.begin(), data.end());\
+		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
+		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var));\
+		ead::Session<T> session;\
+		session.track(out);\
 		state.ResumeTiming();\
-		llo::eval<T>(out);\
+		session.update();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -76,10 +79,13 @@ static void NAME(benchmark::State& state)\
 		state.PauseTiming();\
 		ade::Shape shape = rand_shape(n);\
 		std::vector<double> data = random_data(shape.n_elems(), 0, 35);\
-		llo::VarptrT<double> var(llo::Variable<double>::get(data, shape, "var"));\
-		ade::TensptrT out = FUNC(var);\
+		std::vector<T> convdata(data.begin(), data.end());\
+		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
+		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var));\
+		ead::Session<T> session;\
+		session.track(out);\
 		state.ResumeTiming();\
-		llo::eval<T>(out);\
+		session.update();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -123,11 +129,15 @@ static void NAME(benchmark::State& state)\
 		ade::Shape shape = rand_shape(n);\
 		std::vector<double> data = random_data(shape.n_elems(), 1, 4);\
 		std::vector<double> data2 = random_data(shape.n_elems(), 1, 4);\
-		llo::VarptrT<double> var(llo::Variable<double>::get(data, shape, "var"));\
-		llo::VarptrT<double> var2(llo::Variable<double>::get(data2, shape, "var2"));\
-		ade::TensptrT out = FUNC(var, var2);\
+		std::vector<T> convdata(data.begin(), data.end());\
+		std::vector<T> convdata2(data2.begin(), data2.end());\
+		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
+		ead::VarptrT<T> var2 = ead::make_variable<T>(convdata2.data(), shape, "var2");\
+		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));\
+		ead::Session<T> session;\
+		session.track(out);\
 		state.ResumeTiming();\
-		llo::eval<T>(out);\
+		session.update();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -177,11 +187,15 @@ static void BM_Matmul(benchmark::State& state)
 		ade::Shape rightshape({right_dim, common_dim});
 		std::vector<double> data = random_data(leftshape.n_elems(), -35, 35);
 		std::vector<double> data2 = random_data(rightshape.n_elems(), -35, 35);
-		llo::VarptrT<double> var(llo::Variable<double>::get(data, leftshape, "var"));
-		llo::VarptrT<double> var2(llo::Variable<double>::get(data2, rightshape, "var2"));
-		ade::TensptrT out = age::fast_matmul(var, var2);
+		std::vector<T> convdata(data.begin(), data.end());
+		std::vector<T> convdata2(data2.begin(), data2.end());
+		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), leftshape, "var");
+		ead::VarptrT<T> var2 = ead::make_variable<T>(convdata2.data(), rightshape, "var2");
+		ead::NodeptrT<T> out = age::matmul(ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));
+		ead::Session<T> session;
+		session.track(out);
 		state.ResumeTiming();
-		llo::eval<T>(out);
+		session.update();
 	}
 	state.SetComplexityN(state.range(0));
 }
@@ -212,25 +226,26 @@ static void BM_MatmulComplex(benchmark::State& state)
 	ade::Shape bshape(blist);
 	ade::Shape cshape(clist);
 
-	llo::VarptrT<int32_t> a(llo::Variable<int32_t>::get(ashape));
-	llo::VarptrT<int32_t> b(llo::Variable<int32_t>::get(bshape));
-	llo::VarptrT<int32_t> c(llo::Variable<int32_t>::get(cshape));
+	ead::VarptrT<int32_t> a = ead::make_variable<int32_t>(ashape);
+	ead::VarptrT<int32_t> b = ead::make_variable<int32_t>(bshape);
+	ead::VarptrT<int32_t> c = ead::make_variable<int32_t>(cshape);
 
-	ade::TensptrT atens(a);
-	ade::TensptrT btens(b);
-	ade::TensptrT ctens(c);
+	ead::NodeptrT<int32_t> atens(a);
+	ead::NodeptrT<int32_t> btens(b);
+	ead::NodeptrT<int32_t> ctens(c);
 
-	auto d = age::fast_matmul(atens, btens);
-	auto e = age::fast_matmul(ctens, d);
-	auto f = age::fast_matmul(age::transpose(d), age::transpose(ctens));
-	auto dest = age::fast_matmul(e, f);
+	auto d = age::matmul(atens, btens);
+	auto e = age::matmul(ctens, d);
+	auto f = age::matmul(age::transpose(d), age::transpose(ctens));
+	auto dest = age::matmul(e, f);
 
-	ade::TensT ds = llo::multi_derive(dest, {
-		a.get(), b.get(), c.get()});
-
-	auto da = ds[0];
-	auto db = ds[1];
-	auto dc = ds[2];
+	ead::NodeptrT<int32_t> da = ead::derive(dest, atens);
+	ead::NodeptrT<int32_t> db = ead::derive(dest, btens);
+	ead::NodeptrT<int32_t> dc = ead::derive(dest, ctens);
+	ead::Session<int32_t> session;
+	session.track(da);
+	session.track(db);
+	session.track(dc);
 
 	for (auto _ : state)
 	{
@@ -242,12 +257,14 @@ static void BM_MatmulComplex(benchmark::State& state)
 		std::vector<int32_t> data2(ddata2.begin(), ddata2.end());
 		std::vector<int32_t> data3(ddata3.begin(), ddata3.end());
 		state.ResumeTiming();
-		*a = data;
-		*b = data2;
-		*c = data3;
-		llo::eval<int32_t>(da);
-		llo::eval<int32_t>(db);
-		llo::eval<int32_t>(dc);
+		a->assign(data.data(), a->shape());
+		b->assign(data2.data(), b->shape());
+		c->assign(data3.data(), c->shape());
+		session.update({
+			a->get_tensor().get(),
+			b->get_tensor().get(),
+			c->get_tensor().get(),
+		});
 	}
 }
 
@@ -263,40 +280,43 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	ade::Shape bias1_shape({5});
 	ade::Shape out_shape({5,3});
 
-	llo::VarptrT<double> in(llo::Variable<double>::get(in_shape));
-	llo::VarptrT<double> weight0(llo::Variable<double>::get(weight0_shape));
-	llo::VarptrT<double> bias0(llo::Variable<double>::get(bias0_shape));
-	llo::VarptrT<double> weight1(llo::Variable<double>::get(weight1_shape));
-	llo::VarptrT<double> bias1(llo::Variable<double>::get(bias1_shape));
-	llo::VarptrT<double> out(llo::Variable<double>::get(out_shape));
+	ead::VarptrT<double> in = ead::make_variable<double>(in_shape);
+	ead::VarptrT<double> weight0 = ead::make_variable<double>(weight0_shape);
+	ead::VarptrT<double> bias0 = ead::make_variable<double>(bias0_shape);
+	ead::VarptrT<double> weight1 = ead::make_variable<double>(weight1_shape);
+	ead::VarptrT<double> bias1 = ead::make_variable<double>(bias1_shape);
+	ead::VarptrT<double> out = ead::make_variable<double>(out_shape);
 
-	ade::TensptrT intens(in);
-	ade::TensptrT weight0tens(weight0);
-	ade::TensptrT bias0tens(bias0);
-	ade::TensptrT weight1tens(weight1);
-	ade::TensptrT bias1tens(bias1);
-	ade::TensptrT outtens(out);
+	ead::NodeptrT<double> intens(in);
+	ead::NodeptrT<double> weight0tens(weight0);
+	ead::NodeptrT<double> bias0tens(bias0);
+	ead::NodeptrT<double> weight1tens(weight1);
+	ead::NodeptrT<double> bias1tens(bias1);
+	ead::NodeptrT<double> outtens(out);
 
-	auto layer0 = age::add(age::fast_matmul(intens, weight0tens), age::extend(bias0tens, 1, {3}));
-	auto sig0 = age::div(ade::TensptrT(llo::Constant::get(1, ade::Shape({9, 3}))),
-		age::add(ade::TensptrT(llo::Constant::get(1, ade::Shape({9, 3}))),
+	auto layer0 = age::add(age::matmul(intens, weight0tens), age::extend(bias0tens, 1, {3}));
+	auto sig0 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+		age::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
 			age::exp(age::neg(layer0))));
 
-	auto layer1 = age::add(age::fast_matmul(sig0, weight1tens), age::extend(bias1tens, 1, {3}));
-	auto sig1 = age::div(ade::TensptrT(llo::Constant::get(1, ade::Shape({5, 3}))),
-		age::add(ade::TensptrT(llo::Constant::get(1, ade::Shape({5, 3}))),
+	auto layer1 = age::add(age::matmul(sig0, weight1tens), age::extend(bias1tens, 1, {3}));
+	auto sig1 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+		age::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
 			age::exp(age::neg(layer1))));
 
 	auto err = age::pow(age::sub(outtens, sig1),
-		ade::TensptrT(llo::Constant::get(2, out_shape)));
+		ead::make_constant_scalar<double>(2, out_shape));
 
-	ade::TensT ds = llo::multi_derive(err, {
-		weight0.get(), bias0.get(), weight1.get(), bias1.get()});
+	auto dw0 = ead::derive(err, weight0tens);
+	auto db0 = ead::derive(err, bias0tens);
+	auto dw1 = ead::derive(err, weight1tens);
+	auto db1 = ead::derive(err, bias1tens);
+	ead::Session<double> session;
+	session.track(dw0);
+	session.track(db0);
+	session.track(dw1);
+	session.track(db1);
 
-	auto dw0 = ds[0];
-	auto db0 = ds[1];
-	auto dw1 = ds[2];
-	auto db1 = ds[3];
 	for (auto _ : state)
 	{
 		state.PauseTiming();
@@ -307,16 +327,20 @@ static void BM_SigmoidMLP(benchmark::State& state)
 		std::vector<double> b1_data = random_data(bias1_shape.n_elems(), 0, 1);
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
 		state.ResumeTiming();
-		*in = in_data;
-		*out = out_data;
-		*weight0 = w0_data;
-		*bias0 = b0_data;
-		*weight1 = w1_data;
-		*bias1 = b1_data;
-		llo::eval<double>(dw0);
-		llo::eval<double>(db0);
-		llo::eval<double>(dw1);
-		llo::eval<double>(db1);
+		in->assign(in_data.data(), in->shape());
+		out->assign(out_data.data(), out->shape());
+		weight0->assign(w0_data.data(), weight0->shape());
+		bias0->assign(b0_data.data(), bias0->shape());
+		weight1->assign(w1_data.data(), weight1->shape());
+		bias1->assign(b1_data.data(), bias1->shape());
+		session.update({
+			in->get_tensor().get(),
+			out->get_tensor().get(),
+			weight0->get_tensor().get(),
+			bias0->get_tensor().get(),
+			weight1->get_tensor().get(),
+			bias1->get_tensor().get(),
+		});
 	}
 }
 

@@ -1,3 +1,5 @@
+#include <list>
+
 #include "ead/constant.hpp"
 #include "ead/functor.hpp"
 
@@ -16,103 +18,119 @@ struct Session final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (info_.end() == info_.find(leaf))
-		{
-			info_.emplace(leaf, TensInfo{ParentSetT<T>(), 0});
-		}
+		descendants_.emplace(leaf, std::unordered_set<ade::iTensor*>());
 	}
 
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (info_.end() == info_.find(func))
+		if (descendants_.end() == descendants_.find(func))
 		{
-			auto efunc = static_cast<Functor<T>*>(func);
 			const ade::ArgsT& args = func->get_children();
-			std::vector<size_t> arg_heights;
+			auto& desc_set = descendants_[func];
 			for (const ade::FuncArg& arg : args)
 			{
 				ade::iTensor* tens = arg.get_tensor().get();
 				tens->accept(*this);
-				info_[tens].parents_.emplace(efunc);
-				arg_heights.push_back(info_[tens].height_);
+				auto it = descendants_.find(tens);
+				if (descendants_.end() != it)
+				{
+					desc_set.insert(it->second.begin(), it->second.end());
+				}
+				desc_set.emplace(static_cast<ade::iLeaf*>(tens));
 			}
-			need_update_.emplace(efunc);
-			info_.emplace(func, TensInfo{ParentSetT<T>(),
-				*std::max_element(
-					arg_heights.begin(), arg_heights.end()) + 1});
+			need_update_.emplace(func);
 		}
 	}
 
 	void track (NodeptrT<T>& node)
 	{
-		node->get_tensor()->accept(*this);
+		auto tens = node->get_tensor();
+		tens->accept(*this);
+
+		auto& node_desc_set = descendants_[tens.get()];
+		std::remove_if(roots_.begin(), roots_.end(),
+			[&node_desc_set](ade::iTensor* root)
+			{
+				return node_desc_set.end() != node_desc_set.find(root);
+			});
+
+		if (std::all_of(roots_.begin(), roots_.end(),
+			[&](ade::iTensor* root)
+			{
+				auto& desc_set = descendants_[root];
+				return desc_set.end() == desc_set.find(tens.get());
+			}))
+		{
+			roots_.push_back(tens.get());
+		}
 	}
 
 	// mark every tensor in updates set as need_update
 	// update every functor up until reaching elements in stop_updating set
 	void update (std::unordered_set<ade::iTensor*> updates = {})
 	{
-		for (ade::iTensor* need : updates)
+		need_update_.insert(updates.begin(), updates.end());
+		UpdateSession sess(this);
+		for (auto root : roots_)
 		{
-			auto it = info_.find(need);
-			if (it != info_.end())
-			{
-				if (it->second.height_ > 0)
-				{
-					need_update_.emplace(static_cast<Functor<T>*>(need));
-				}
-				else
-				{
-					need_update_.insert(
-						it->second.parents_.begin(), it->second.parents_.end());
-				}
-			}
-			else
-			{
-				logs::warnf("cannot find tensor %s tracked in this session",
-					need->to_string().c_str());
-			}
+			root->accept(sess);
 		}
-
-		std::vector<Functor<T>*> update_heap(need_update_.begin(), need_update_.end());
-		// minimum heights at top of heap
-		auto minfunc_comp =
-			[this](Functor<T>* lhs, Functor<T>* rhs)
-			{
-				return this->info_[lhs].height_ > this->info_[rhs].height_;
-			};
-		std::make_heap(update_heap.begin(), update_heap.end(), minfunc_comp);
-		while (update_heap.size() > 0)
-		{
-			auto f = update_heap.front();
-			std::pop_heap(update_heap.begin(), update_heap.end(), minfunc_comp);
-			update_heap.pop_back();
-
-			f->update();
-			for (Functor<T>* fparent : info_[f].parents_)
-			{
-				if (need_update_.end() == need_update_.find(fparent))
-				{
-					update_heap.push_back(fparent);
-					std::push_heap(update_heap.begin(), update_heap.end(), minfunc_comp);
-					need_update_.emplace(fparent);
-				}
-			}
-		}
-		need_update_ = {};
 	}
 
 private:
-	struct TensInfo
+	struct UpdateSession final : public ade::iTraveler
 	{
-		ParentSetT<T> parents_;
-		size_t height_;
+		UpdateSession (Session<T>* sess) : sess_(sess) {}
+
+		/// Implementation of iTraveler
+		void visit (ade::iLeaf* leaf) override {}
+
+		/// Implementation of iTraveler
+		void visit (ade::iFunctor* func) override
+		{
+			if (visited_.end() == visited_.find(func))
+			{
+				auto& update_set = sess_->need_update_;
+				auto& desc_set = sess_->descendants_[func];
+				auto has_update =
+					[&update_set](ade::iTensor* tens)
+					{
+						return update_set.end() != update_set.find(tens);
+					};
+				if (update_set.end() != update_set.find(func) ||
+					std::any_of(desc_set.begin(), desc_set.end(), has_update))
+				{
+					const ade::ArgsT& args = func->get_children();
+					for (const ade::FuncArg& arg : args)
+					{
+						ade::iTensor* tens = arg.get_tensor().get();
+						auto& child_desc_set = sess_->descendants_[tens];
+						if (update_set.end() != update_set.find(tens) ||
+							std::any_of(child_desc_set.begin(),
+								child_desc_set.end(), has_update))
+						{
+							tens->accept(*this);
+						}
+					}
+					static_cast<Functor<T>*>(func)->update();
+				}
+				visited_.emplace(func);
+			}
+		}
+
+		std::unordered_set<ade::iTensor*> visited_;
+
+		Session<T>* sess_;
 	};
 
-	std::unordered_map<ade::iTensor*,TensInfo> info_;
+	std::list<ade::iTensor*> roots_;
 
-	std::unordered_set<Functor<T>*> need_update_;
+	std::unordered_set<ade::iTensor*> need_update_;
+
+	// maps functor to leaves
+	std::unordered_map<ade::iTensor*,
+		std::unordered_set<ade::iTensor*>> descendants_;
 };
 
 }

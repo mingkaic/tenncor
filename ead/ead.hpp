@@ -1,3 +1,5 @@
+#include "ead/generated/api.hpp"
+
 #include "ead/constant.hpp"
 #include "ead/functor.hpp"
 #include "ead/grader.hpp"
