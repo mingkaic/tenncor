@@ -1,9 +1,5 @@
 #include "rocnnet/modl/mlp.hpp"
 
-#include <fstream>
-#include "dbg/ade.hpp"
-#include "dbg/ade_csv.hpp"
-
 struct DQNInfo
 {
 	DQNInfo (size_t train_interval = 5,

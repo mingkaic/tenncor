@@ -24,3 +24,6 @@ P4 - performance test
 
 nitpicks:
 - remove unordered_map/unordered_set if we're not using them properly
+
+update:
+- update all fmts usages

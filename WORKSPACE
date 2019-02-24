@@ -16,8 +16,6 @@ gtest_repository(name = "gtest")
 load("//third_party/repos:benchmark.bzl", "benchmark_repository")
 benchmark_repository()
 
-# rocnnet dependencies
-
 load("@com_github_mingkaic_cppkg//:cppkg.bzl", "dependencies")
 dependencies()
 

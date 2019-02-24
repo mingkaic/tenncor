@@ -19,9 +19,6 @@
 namespace ead
 {
 
-template <typename T>
-using NodesT = std::vector<NodeptrT<T>>;
-
 /// Traveler to obtain derivative of accepted node with respect to target
 template <typename T>
 struct Grader final : public ade::iTraveler

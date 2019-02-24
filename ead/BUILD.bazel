@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_library")
+
 load("//third_party/drake_rules:pybind.bzl", "pybind_library")
 
 filegroup(
@@ -32,6 +34,19 @@ filegroup(
         "bm/*.hpp",
         "bm/*.cpp",
     ]),
+)
+
+filegroup(
+    name = "compile_runtime",
+    srcs = glob([
+        "compiler/plugins/*.hpp",
+        "compiler/runtime/*.hpp",
+    ]) + [
+        "eigen.hpp",
+        "@boost//:config_srcs",
+        "@com_github_eigenteam_eigen//:srcs",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 ######### LIBRARY #########
@@ -84,6 +99,21 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+# this plugin is slower... currently experimental
+cc_library(
+    name = "compiler",
+    hdrs = glob([
+        "compiler/*.hpp",
+        "compiler/plugins/*.hpp",
+    ]),
+    copts = ["-std=c++14"],
+    deps = [
+        "@boost//:dll",
+        "//ead:ead",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 pybind_library(
     name = "age_py",
     cc_srcs = ["//ead:generated/pyapi.cpp"],
@@ -122,10 +152,21 @@ py_test(
 
 cc_binary(
     name = "benchmark",
-    srcs = ["//ead:benchmark_srcs"],
+    srcs = ["bm/benchmark.cpp"],
     deps = [
         "//ead:ead",
         "@com_github_google_benchmark//:benchmark",
     ],
     copts = ["-std=c++14"],
+)
+
+cc_binary(
+    name = "benchmark_compiled",
+    srcs = ["bm/benchmark_compiled.cpp"],
+    deps = [
+        "//ead:compiler",
+        "@com_github_google_benchmark//:benchmark",
+    ],
+    copts = ["-std=c++14"],
+    data = ["//ead:compile_runtime"],
 )

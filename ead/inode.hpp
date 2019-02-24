@@ -28,6 +28,9 @@ struct iNode
 template <typename T>
 using NodeptrT = std::shared_ptr<iNode<T>>;
 
+template <typename T>
+using NodesT = std::vector<NodeptrT<T>>;
+
 }
 
 #endif // EAD_INODE_HPP

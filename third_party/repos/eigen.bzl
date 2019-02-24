@@ -15,9 +15,9 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
-cc_library(
-    name = "eigen",
-    hdrs = glob(
+filegroup(
+    name = "srcs",
+    srcs = glob(
         include = [
             "Eigen/*",
             "Eigen/**/*.h",
@@ -26,6 +26,11 @@ cc_library(
         ],
         exclude = ["**/CMakeLists.txt"],
     ),
+)
+
+cc_library(
+    name = "eigen",
+    hdrs = [":srcs"],
     defines = ["EIGEN_MPL2_ONLY"],
     includes = ["."],
 )

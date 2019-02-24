@@ -86,10 +86,11 @@ struct Variable final : public iLeaf<T>
 		return *this;
 	}
 
-	void assign (void* input,
-		age::_GENERATED_DTYPE dtype, ade::Shape shape)
+	void assign (void* input, age::_GENERATED_DTYPE dtype, ade::Shape shape)
 	{
-		this->data_ = *raw_to_tensorptr<T>(input, dtype, shape);
+		std::vector<T> data;
+		age::type_convert(data, input, dtype, shape.n_elems());
+		this->data_ = get_tensmap<T>(data.data(), shape);;
 	}
 
 	/// Implementation of iTensor

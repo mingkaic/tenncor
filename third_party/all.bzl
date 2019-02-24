@@ -19,7 +19,7 @@ def dependencies(excludes = []):
     if "protobuf_rules" not in ignores:
         protobuf_rules_repository(name = "protobuf_rules")
 
-    if "eigen" not in ignores:
+    if "com_github_eigenteam_eigen" not in ignores:
         eigen_repository(name = "com_github_eigenteam_eigen")
 
     if "com_github_mingkaic_cppkg" not in ignores:
