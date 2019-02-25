@@ -525,25 +525,6 @@ EigenptrT<T> max (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			make_tensmap(b.data_, b.shape_)});
 }
 
-template <typename T>
-EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
-{
-	return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
-		std::vector<MatMapT<T>>>(shape_convert(outshape),
-		[](std::vector<MatMapT<T>>& args)
-		{
-			return args[0] * args[1];
-		}, {
-			make_matmap(a.data_, a.shape_),
-			make_matmap(b.data_, b.shape_)});
-}
-
-template <typename T>
-EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
-{
-	throw std::bad_function_call(); // todo: implement
-}
-
 /// Given arguments a, and b, for every pair of mapped elements sharing the
 /// same index apply std::uniform_distributon function
 /// Only accept 2 arguments
@@ -561,6 +542,25 @@ EigenptrT<T> rand_uniform (ade::Shape& outshape, const OpArg<T>& a, const OpArg<
 		}, {
 			make_tensmap(a.data_, a.shape_),
 			make_tensmap(b.data_, b.shape_)});
+}
+
+template <typename T>
+EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
+{
+	return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
+		std::vector<MatMapT<T>>>(shape_convert(outshape),
+		[](std::vector<MatMapT<T>>& args)
+		{
+			return args[0] * args[1];
+		}, {
+			make_matmap(a.data_, a.shape_),
+			make_matmap(b.data_, b.shape_)});
+}
+
+template <typename T>
+EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
+{
+	throw std::bad_function_call(); // todo: implement
 }
 
 }

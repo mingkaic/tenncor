@@ -1,6 +1,3 @@
-#define IGNORE_COMPILE
-#ifdef IGNORE_COMPILE
-
 #include <fstream>
 
 #include <boost/dll/import.hpp>
@@ -526,5 +523,3 @@ UpdatersT<T> order_updates (compiler::CompiledOut<T>& compiled_out)
 }
 
 }
-
-#endif // IGNORE_COMPILE
