@@ -32,6 +32,12 @@ inline MatMapT<T> tens_to_matmap (TensorT<T>& tens)
 }
 
 template <typename T>
+inline MatMapT<T> mat_to_matmap (MatrixT<T>& mat)
+{
+	return MatMapT<T>(mat.data(), mat.rows(), mat.cols());
+}
+
+template <typename T>
 inline MatMapT<T> tensmap_to_matmap (TensMapT<T>& tens)
 {
 	return MatMapT<T>(tens.data(),
@@ -59,70 +65,75 @@ struct iEigen
 
 	virtual void assign (void) = 0;
 
-	virtual TensMapT<T>& get_out (void) = 0;
+	virtual T* get_ptr (void) = 0;
 };
 
 template <typename T>
 using EigenptrT = std::shared_ptr<iEigen<T>>;
 
-template <typename T, typename EigenSource>
+template <typename T, typename EigenSource, typename EigenArgs>
 struct EigenTensOp final : public iEigen<T>
 {
-	EigenTensOp (DimensionsT dims, EigenSource& base) :
-		tensorbase_(base), data_(dims),
-		out_(tens_to_tensmap(data_)) {}
+	EigenTensOp (DimensionsT dims,
+		std::function<EigenSource(EigenArgs&)> make_base, EigenArgs args) :
+		args_(args), tensorbase_(make_base(args_)), data_(dims) {}
 
 	void assign (void) override
 	{
 		data_ = tensorbase_.reshape(data_.dimensions());
 	}
 
-	TensMapT<T>& get_out (void) override
+	T* get_ptr (void) override
 	{
-		return out_;
+		return data_.data();
 	}
+
+	EigenArgs args_;
 
 	EigenSource tensorbase_;
 
 	TensorT<T> data_;
-
-	TensMapT<T> out_;
 };
 
-template <typename T, typename EigenSource>
+template <typename T, typename EigenSource, typename EigenArgs>
 struct EigenMatOp final : public iEigen<T>
 {
-	EigenMatOp (DimensionsT dims, EigenSource& base) :
-		matrixbase_(base), data_(dims.at(1), dims.at(0)),
-		out_(mat_to_tensmap(data_)) {}
+	EigenMatOp (DimensionsT dims,
+		std::function<EigenSource(EigenArgs&)> make_base, EigenArgs args) :
+		args_(args), matrixbase_(make_base(args_)),
+		data_(dims.at(1), dims.at(0)) {}
 
 	void assign (void) override
 	{
 		data_ = matrixbase_;
 	}
 
-	TensMapT<T>& get_out (void) override
+	T* get_ptr (void) override
 	{
-		return out_;
+		return data_.data();
 	}
+
+	EigenArgs args_;
 
 	EigenSource matrixbase_;
 
 	MatrixT<T> data_;
-
-	TensMapT<T> out_;
 };
 
-template <typename T, typename EigenSource>
-inline EigenptrT<T> make_eigentensor (DimensionsT dims, EigenSource source)
+template <typename T, typename EigenSource, typename EigenArgs>
+inline EigenptrT<T> make_eigentensor (DimensionsT dims,
+	std::function<EigenSource(EigenArgs&)> make_base, EigenArgs args)
 {
-	return std::make_shared<EigenTensOp<T,EigenSource>>(dims, source);
+	return std::make_shared<EigenTensOp<T,EigenSource,EigenArgs>>(
+		dims, make_base, args);
 }
 
-template <typename T, typename EigenSource>
-inline EigenptrT<T> make_eigenmatrix (DimensionsT dims, EigenSource source)
+template <typename T, typename EigenSource, typename EigenArgs>
+inline EigenptrT<T> make_eigenmatrix (DimensionsT dims,
+	std::function<EigenSource(EigenArgs&)> make_base, EigenArgs args)
 {
-	return std::make_shared<EigenMatOp<T,EigenSource>>(dims, source);
+	return std::make_shared<EigenMatOp<T,EigenSource,EigenArgs>>(
+		dims, make_base, args);
 }
 
 }

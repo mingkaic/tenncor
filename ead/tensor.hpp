@@ -12,7 +12,7 @@ namespace ead
 {
 
 template <typename T>
-inline TensorT<T> get_tensor (const ade::Shape& shape)
+inline TensorT<T> make_tensor (const ade::Shape& shape)
 {
 	std::array<Eigen::Index,ade::rank_cap> slist;
 	std::copy(shape.begin(), shape.end(), slist.begin());
@@ -22,7 +22,17 @@ inline TensorT<T> get_tensor (const ade::Shape& shape)
 }
 
 template <typename T>
-inline TensMapT<T> get_tensmap (T* data, const ade::Shape& shape)
+inline MatMapT<T> make_matmap (T* data, const ade::Shape& shape)
+{
+	if (nullptr == data)
+	{
+		logs::fatal("cannot get tensmap from nullptr");;
+	}
+	return MatMapT<T>(data, shape.at(1), shape.at(0));
+}
+
+template <typename T>
+inline TensMapT<T> make_tensmap (T* data, const ade::Shape& shape)
 {
 	std::array<Eigen::Index,ade::rank_cap> slist;
 	std::copy(shape.begin(), shape.end(), slist.begin());
@@ -30,7 +40,7 @@ inline TensMapT<T> get_tensmap (T* data, const ade::Shape& shape)
 	{
 		logs::fatal("cannot get tensmap from nullptr");;
 	}
-	return Eigen::TensorMap<TensorT<T>>(data, slist);
+	return TensMapT<T>(data, slist);
 }
 
 template <typename T>

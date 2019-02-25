@@ -46,12 +46,12 @@ struct ConstantNode final : public iNode<T>
 {
 	ConstantNode (std::shared_ptr<Constant<T>> cst) : cst_(cst) {}
 
-	void update (void) override {}
-
-	TensMapT<T>* get_tensmap (void) override
+	T* data (void) override
 	{
-		return cst_->get_tensmap();
+		return (T*) cst_->data();
 	}
+
+	void update (void) override {}
 
 	ade::TensptrT get_tensor (void) override
 	{

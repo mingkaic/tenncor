@@ -21,18 +21,6 @@ struct iLeaf : public ade::iLeaf
 {
 	virtual ~iLeaf (void) = default;
 
-	iLeaf<T>& operator = (const iLeaf<T>& other)
-	{
-		if (this != &other)
-		{
-			// out_ map must reference new copied data
-			data_ = other.data_; // Eigen supported deep copy
-			out_ = tens_to_tensmap(data_);
-			shape_ = shape_;
-		}
-		return *this;
-	}
-
 	/// Implementation of iTensor
 	const ade::Shape& shape (void) const override
 	{
@@ -70,30 +58,15 @@ struct iLeaf : public ade::iLeaf
 		return sizeof(T) * shape_.n_elems();
 	}
 
-	TensMapT<T>* get_tensmap (void)
-	{
-		return &out_;
-	}
-
 	virtual bool is_const (void) const = 0;
 
 protected:
 	iLeaf (T* data, ade::Shape shape) :
-		data_(ead::get_tensmap(data, shape)),
-		out_(tens_to_tensmap(data_)),
+		data_(make_tensmap(data, shape)),
 		shape_(shape) {}
-
-	iLeaf (const iLeaf<T>& other) :
-		data_(other.data_),
-		out_(tens_to_tensmap(data_)),
-		shape_(other.shape_) {}
 
 	/// Data Source
 	TensorT<T> data_;
-
-	// todo: get rid of this somehow
-	/// TensorMap is here for functor's iEigen to reference
-	TensMapT<T> out_;
 
 	/// Shape utility to avoid excessive conversion between data_.dimensions()
 	ade::Shape shape_;

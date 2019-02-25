@@ -18,9 +18,9 @@ struct iNode
 		return get_tensor()->shape();
 	}
 
-	virtual void update (void) = 0;
+	virtual T* data (void) = 0;
 
-	virtual TensMapT<T>* get_tensmap (void) = 0;
+	virtual void update (void) = 0;
 
 	virtual ade::TensptrT get_tensor (void) = 0;
 };

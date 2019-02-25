@@ -149,8 +149,8 @@ NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
 	const auto& children = fwd->get_children();
 	ade::TensptrT a = children[0].get_tensor();
 	ade::TensptrT b = children[1].get_tensor();
-	NodeptrT<T> lhs = ead::to_node<T>(a);
-	NodeptrT<T> rhs = ead::to_node<T>(b);
+	NodeptrT<T> lhs = to_node<T>(a);
+	NodeptrT<T> rhs = to_node<T>(b);
 
 	NodeptrT<T> ext_a = age::permute(
 		age::extend(lhs, 2, {b->shape().at(0)}), {2,1,0});

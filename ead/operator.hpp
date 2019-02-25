@@ -9,6 +9,7 @@
 
 #include "ead/tensor.hpp"
 #include "ead/coord.hpp"
+#include "ead/random.hpp"
 
 #ifndef EAD_OPERATOR_HPP
 #define EAD_OPERATOR_HPP
@@ -19,46 +20,19 @@ namespace ead
 template <typename T>
 struct OpArg final
 {
-	OpArg (ade::Shape shape, TensMapT<T>* tensmap, CoordMap* coorder) :
-		shape_(shape), tensmap_(tensmap), coorder_(coorder) {}
+	OpArg (T* data, ade::Shape shape, CoordMap* coorder) :
+		data_(data), shape_(shape), coorder_(coorder) {}
+
+	T* data_;
 
 	ade::Shape shape_;
-
-	TensMapT<T>* tensmap_;
 
 	CoordMap* coorder_ = nullptr;
 };
 
-/// RNG engine used
-using EngineT = std::default_random_engine;
-
-/// Return global random generator
-EngineT& get_engine (void);
-
-/// Given arguments a, and b, for every pair of mapped elements sharing the
-/// same index apply std::uniform_distributon function
-/// Only accept 2 arguments
-template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
-EigenptrT<T> rand_uniform (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
-{
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->binaryExpr(*b.tensmap_,
-		[](const T& a, const T& b) -> T
-		{
-			std::uniform_int_distribution<T> dist(a, b);
-			return dist(get_engine());
-		}));
-}
-
-template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
-EigenptrT<T> rand_uniform (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
-{
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->binaryExpr(*b.tensmap_,
-		[](const T& a, const T& b) -> T
-		{
-			std::uniform_real_distribution<T> dist(a, b);
-			return dist(get_engine());
-		}));
-}
+template <typename OP, size_t N, typename T>
+using ReduceOutT = Eigen::TensorReductionOp<OP,
+	const std::array<ade::DimT,N>,const TensMapT<T>>;
 
 namespace internal
 {
@@ -72,11 +46,13 @@ inline std::array<ade::DimT,N> dim_copy (std::vector<ade::DimT> d)
 	return out;
 }
 
-#define _EAD_INTERNAL_V2A_CASE(N, PROCESS)\
-case N: return make_eigentensor<T>(shape_convert(outshape),\
-in.tensmap_->PROCESS(::ead::internal::dim_copy<N>(vdims)));
+#define _EAD_INTERNAL_V2A_CASE(N, PROCESS, RED)\
+case N: return make_eigentensor<T,\
+ReduceOutT<RED,N,T>,std::vector<TensMapT<T>>>(\
+shape_convert(outshape),[vdims](std::vector<TensMapT<T>>& in) {\
+return in[0].PROCESS(ead::internal::dim_copy<N>(vdims)); }, {make_tensmap(in.data_, in.shape_)});
 
-#define _EAD_INTERNAL_V2A(PROCESS) {\
+#define _EAD_INTERNAL_V2A(PROCESS, RED) {\
 	assert(nullptr != in.coorder_);\
 	ade::CoordT coord;\
 	in.coorder_->forward(coord.begin(), coord.begin());\
@@ -84,36 +60,39 @@ in.tensmap_->PROCESS(::ead::internal::dim_copy<N>(vdims)));
 	std::copy_if(coord.begin(), coord.end(), std::back_inserter(vdims),\
 		[](ade::DimT d) { return d < ade::rank_cap; });\
 	switch (vdims.size()) {\
-		_EAD_INTERNAL_V2A_CASE(0, PROCESS)\
-		_EAD_INTERNAL_V2A_CASE(1, PROCESS)\
-		_EAD_INTERNAL_V2A_CASE(2, PROCESS)\
-		_EAD_INTERNAL_V2A_CASE(3, PROCESS)\
-		_EAD_INTERNAL_V2A_CASE(4, PROCESS)\
-		_EAD_INTERNAL_V2A_CASE(5, PROCESS)\
-		_EAD_INTERNAL_V2A_CASE(6, PROCESS)\
-		_EAD_INTERNAL_V2A_CASE(7, PROCESS)\
+		_EAD_INTERNAL_V2A_CASE(0, PROCESS, RED)\
+		_EAD_INTERNAL_V2A_CASE(1, PROCESS, RED)\
+		_EAD_INTERNAL_V2A_CASE(2, PROCESS, RED)\
+		_EAD_INTERNAL_V2A_CASE(3, PROCESS, RED)\
+		_EAD_INTERNAL_V2A_CASE(4, PROCESS, RED)\
+		_EAD_INTERNAL_V2A_CASE(5, PROCESS, RED)\
+		_EAD_INTERNAL_V2A_CASE(6, PROCESS, RED)\
+		_EAD_INTERNAL_V2A_CASE(7, PROCESS, RED)\
 		default: break;\
-	} return make_eigentensor<T>(shape_convert(outshape),\
-		in.tensmap_->PROCESS(::ead::internal::dim_copy<8>(vdims)));\
+	} return make_eigentensor<T,ReduceOutT<RED,8,T>,\
+		std::vector<TensMapT<T>>>(shape_convert(outshape),\
+		[vdims](std::vector<TensMapT<T>>& in) {\
+			return in[0].PROCESS(ead::internal::dim_copy<8>(vdims));\
+		}, {make_tensmap(in.data_, in.shape_)});\
 }
 
 }
 
 template <typename T>
 EigenptrT<T> reduce_sum (ade::Shape& outshape, const OpArg<T>& in)
-_EAD_INTERNAL_V2A(sum)
+_EAD_INTERNAL_V2A(sum, Eigen::internal::SumReducer<T>)
 
 template <typename T>
 EigenptrT<T> reduce_prod (ade::Shape& outshape, const OpArg<T>& in)
-_EAD_INTERNAL_V2A(prod)
+_EAD_INTERNAL_V2A(prod, Eigen::internal::ProdReducer<T>)
 
 template <typename T>
 EigenptrT<T> reduce_min (ade::Shape& outshape, const OpArg<T>& in)
-_EAD_INTERNAL_V2A(minimum)
+_EAD_INTERNAL_V2A(minimum, Eigen::internal::MinReducer<T>)
 
 template <typename T>
 EigenptrT<T> reduce_max (ade::Shape& outshape, const OpArg<T>& in)
-_EAD_INTERNAL_V2A(maximum)
+_EAD_INTERNAL_V2A(maximum, Eigen::internal::MaxReducer<T>)
 
 template <typename T>
 EigenptrT<T> extend (ade::Shape& outshape, const OpArg<T>& in)
@@ -121,7 +100,13 @@ EigenptrT<T> extend (ade::Shape& outshape, const OpArg<T>& in)
 	assert(nullptr != in.coorder_);
 	ade::CoordT coord;
 	in.coorder_->forward(coord.begin(), coord.begin());
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->broadcast(coord));
+	return make_eigentensor<T,Eigen::TensorBroadcastingOp<
+		const ade::CoordT,const TensMapT<T>>,std::vector<TensMapT<T>>>(
+		shape_convert(outshape),
+		[coord](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].broadcast(coord);
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 template <typename T>
@@ -130,7 +115,13 @@ EigenptrT<T> permute (ade::Shape& outshape, const OpArg<T>& in)
 	assert(nullptr != in.coorder_);
 	ade::CoordT reorder;
 	in.coorder_->forward(reorder.begin(), reorder.begin());
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->shuffle(reorder));
+	return make_eigentensor<T,Eigen::TensorShufflingOp<
+		const ade::CoordT,TensMapT<T>>,std::vector<TensMapT<T>>>(
+		shape_convert(outshape),
+		[reorder](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].shuffle(reorder);
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -138,7 +129,13 @@ EigenptrT<T> permute (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> abs (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->abs());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_abs_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].abs();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -146,7 +143,13 @@ EigenptrT<T> abs (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> neg (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), -(*in.tensmap_));
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_opposite_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return -in[0];
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -154,11 +157,17 @@ EigenptrT<T> neg (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->unaryExpr(
-		[](const T& a) -> T
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		std::function<T(const T&)>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
 		{
-			return std::sin(a);
-		}));
+			return in[0].unaryExpr(std::function<T(const T&)>(
+				[](const T& a) -> T
+				{
+					return std::sin(a);
+				}));
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -166,11 +175,17 @@ EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> cos (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->unaryExpr(
-		[](const T& a) -> T
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		std::function<T(const T&)>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
 		{
-			return std::cos(a);
-		}));
+			return in[0].unaryExpr(std::function<T(const T&)>(
+				[](const T& a) -> T
+				{
+					return std::cos(a);
+				}));
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -178,11 +193,17 @@ EigenptrT<T> cos (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> tan (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->unaryExpr(
-		[](const T& a) -> T
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		std::function<T(const T&)>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
 		{
-			return std::tan(a);
-		}));
+			return in[0].unaryExpr(std::function<T(const T&)>(
+				[](const T& a) -> T
+				{
+					return std::tan(a);
+				}));
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -190,7 +211,13 @@ EigenptrT<T> tan (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> exp (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->exp());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_exp_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].exp();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -198,7 +225,13 @@ EigenptrT<T> exp (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> log (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->log());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_log_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].log();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -206,7 +239,13 @@ EigenptrT<T> log (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> sqrt (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->sqrt());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_sqrt_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].sqrt();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given reference to output array, and input vector ref,
@@ -214,31 +253,61 @@ EigenptrT<T> sqrt (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> round (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->round());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_round_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].round();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 template <typename T>
 EigenptrT<T> sigmoid (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->sigmoid());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_sigmoid_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].sigmoid();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 template <typename T>
 EigenptrT<T> tanh (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->tanh());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_tanh_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].tanh();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 template <typename T>
 EigenptrT<T> square (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->square());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_square_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].square();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 template <typename T>
 EigenptrT<T> cube (ade::Shape& outshape, const OpArg<T>& in)
 {
-	return make_eigentensor<T>(shape_convert(outshape), in.tensmap_->cube());
+	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_cube_op<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& in)
+		{
+			return in[0].cube();
+		}, {make_tensmap(in.data_, in.shape_)});
 }
 
 /// Given arguments a, and b, for every pair of mapped elements sharing the
@@ -247,17 +316,36 @@ EigenptrT<T> cube (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> pow (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->binaryExpr(*b.tensmap_,
-		[](const T& a, const T& b) -> T
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		std::function<T(const T&,const T&)>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
 		{
-			return std::pow(a, b);
-		}));
+			return args[0].binaryExpr(args[1],
+				std::function<T(const T&,const T&)>(
+				[](const T& a, const T& b) -> T
+				{
+					return std::pow(a, b);
+				}));
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 template <typename T>
 EigenptrT<T> add (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), *a.tensmap_ + *b.tensmap_);
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_sum_op<T>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
+		{
+			return args[0] + args[1];
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Given arguments a, and b, for every pair of mapped elements sharing the
@@ -266,13 +354,31 @@ EigenptrT<T> add (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> sub (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), *a.tensmap_ - *b.tensmap_);
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_difference_op<T>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
+		{
+			return args[0] - args[1];
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 template <typename T>
 EigenptrT<T> mul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), *a.tensmap_ * *b.tensmap_);
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_product_op<T>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
+		{
+			return args[0] * args[1];
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Given arguments a, and b, for every pair of mapped elements sharing the
@@ -281,7 +387,16 @@ EigenptrT<T> mul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> div (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), *a.tensmap_ / *b.tensmap_);
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_quotient_op<T>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
+		{
+			return args[0] / args[1];
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Given arguments a, and b, for every pair of mapped elements sharing the
@@ -290,11 +405,21 @@ EigenptrT<T> div (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> eq (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->binaryExpr(*b.tensmap_,
-		[](const T& a, const T& b) -> T
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		std::function<T(const T&,const T&)>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
 		{
-			return a == b;
-		}));
+			return args[0].binaryExpr(args[1],
+				std::function<T(const T&,const T&)>(
+				[](const T& a, const T& b) -> T
+				{
+					return a == b;
+				}));
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Given arguments a, and b, for every pair of mapped elements sharing the
@@ -303,11 +428,21 @@ EigenptrT<T> eq (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> neq (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->binaryExpr(*b.tensmap_,
-		[](const T& a, const T& b) -> T
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		std::function<T(const T&,const T&)>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
 		{
-			return a != b;
-		}));
+			return args[0].binaryExpr(args[1],
+				std::function<T(const T&,const T&)>(
+				[](const T& a, const T& b) -> T
+				{
+					return a != b;
+				}));
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Given arguments a, and b, for every pair of mapped elements sharing the
@@ -316,11 +451,21 @@ EigenptrT<T> neq (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> lt (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->binaryExpr(*b.tensmap_,
-		[](const T& a, const T& b) -> T
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		std::function<T(const T&,const T&)>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
 		{
-			return a < b;
-		}));
+			return args[0].binaryExpr(args[1],
+				std::function<T(const T&,const T&)>(
+				[](const T& a, const T& b) -> T
+				{
+					return a < b;
+				}));
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Given arguments a, and b, for every pair of mapped elements sharing the
@@ -329,11 +474,21 @@ EigenptrT<T> lt (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> gt (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->binaryExpr(*b.tensmap_,
-		[](const T& a, const T& b) -> T
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		std::function<T(const T&,const T&)>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
 		{
-			return a > b;
-		}));
+			return args[0].binaryExpr(args[1],
+				std::function<T(const T&,const T&)>(
+				[](const T& a, const T& b) -> T
+				{
+					return a > b;
+				}));
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Given arguments, for every mapped index i in range [0:max_nelems],
@@ -341,7 +496,16 @@ EigenptrT<T> gt (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> min (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->cwiseMin(*b.tensmap_));
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_min_op<T>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
+		{
+			return args[0].cwiseMin(args[1]);
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Given arguments, for every mapped index i in range [0:max_nelems],
@@ -349,14 +513,29 @@ EigenptrT<T> min (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> max (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigentensor<T>(shape_convert(outshape), a.tensmap_->cwiseMax(*b.tensmap_));
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_max_op<T>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
+		{
+			return args[0].cwiseMax(args[1]);
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 template <typename T>
 EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	return make_eigenmatrix<T>(shape_convert(outshape),
-		tensmap_to_matmap(*a.tensmap_) * tensmap_to_matmap(*b.tensmap_));
+	return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
+		std::vector<MatMapT<T>>>(shape_convert(outshape),
+		[](std::vector<MatMapT<T>>& args)
+		{
+			return args[0] * args[1];
+		}, {
+			make_matmap(a.data_, a.shape_),
+			make_matmap(b.data_, b.shape_)});
 }
 
 template <typename T>
@@ -365,7 +544,24 @@ EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T
 	throw std::bad_function_call(); // todo: implement
 }
 
-// sigmoid
+/// Given arguments a, and b, for every pair of mapped elements sharing the
+/// same index apply std::uniform_distributon function
+/// Only accept 2 arguments
+template <typename T>
+EigenptrT<T> rand_uniform (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
+{
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		std::function<T(const T&,const T&)>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args)
+		{
+			return args[0].binaryExpr(args[1],
+				std::function<T(const T&,const T&)>(unif<T>));
+		}, {
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
+}
 
 }
 

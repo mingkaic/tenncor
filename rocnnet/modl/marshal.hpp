@@ -170,7 +170,7 @@ struct MarshalVar final : public iMarshaler
 		}
 		else
 		{
-			var_->assign(ead::to_node<double>(it->second)->get_tensmap());
+			var_->assign(ead::to_node<double>(it->second)->data(), it->second->shape());
 		}
 	}
 

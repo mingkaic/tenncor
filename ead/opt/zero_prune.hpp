@@ -21,7 +21,7 @@ namespace ead
 template <typename T>
 static bool const_is_zero (Constant<T>* cst)
 {
-	double* ptr = cst->get_tensmap()->data();
+	double* ptr = (double*) cst->data();
 	return std::all_of(ptr, ptr + cst->shape().n_elems(),
 		[](double d) { return 0 == d; });
 }

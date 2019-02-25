@@ -74,8 +74,7 @@ void assign_groups (ead::Session<double>& sess, AssignGroupsT& groups)
 		for (eqns::VarAssign& assign : group)
 		{
 			updated_var.emplace(assign.target_->get_tensor().get());
-			auto tmap = assign.source_->get_tensmap();
-			assign.target_->assign(tmap->data(),
+			assign.target_->assign(assign.source_->data(),
 				assign.source_->shape());
 		}
 		sess.update(updated_var);

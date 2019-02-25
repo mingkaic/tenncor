@@ -32,11 +32,11 @@ using MatVecT = std::vector<std::vector<int32_t>>;
 static const int FREIVALD_N = 10;
 
 
-MatVecT create_2d (ead::TensMapT<int32_t>* data)
+MatVecT create_2d (ead::NodeptrT<int32_t> data)
 {
 	int32_t* ptr = (int32_t*) data->data();
-	ade::DimT C = data->dimension(0);
-	ade::DimT R = data->dimension(1);
+	ade::DimT C = data->shape().at(0);
+	ade::DimT R = data->shape().at(1);
 	MatVecT res;
 
  	for (size_t y = 0; y < R; y++)
@@ -122,7 +122,7 @@ bool freivald (MatVecT a, MatVecT b, MatVecT c)
 
 
 static void unary_generic (UnaryOpF<double> op,
-	std::function<void(ead::TensMapT<double>*,ade::Shape&,std::vector<double>&)> verify,
+	std::function<void(ead::NodeptrT<double>,ade::Shape&,std::vector<double>&)> verify,
 	std::function<void(double*,std::vector<double>&)> bwverify)
 {
 	std::vector<ade::DimT> slist = {2, 3, 4};
@@ -135,20 +135,18 @@ static void unary_generic (UnaryOpF<double> op,
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
 	ead::NodeptrT<double> dest = op(src);
 
-	auto out = dest->get_tensmap();
 	dest->update();
-	verify(out, shape, data);
+	verify(dest, shape, data);
 
 	ead::Session<double> session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
-	auto gout = gsrc->get_tensmap();
 	session.track(gsrc);
 	session.update();
 
-	auto gotshape = gout->dimensions();
+	auto gotshape = gsrc->shape();
 	ASSERT_ARREQ(slist, gotshape);
-	double* goptr = (double*) gout->data();
+	double* goptr = (double*) gsrc->data();
 	bwverify(goptr, data);
 }
 
@@ -167,13 +165,12 @@ static void unary_elementary (UnaryOpF<double> op,
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
 	ead::NodeptrT<double> dest = op(src);
 
-	auto out = dest->get_tensmap();
 	dest->update();
 	{
-		auto gotshape = out->dimensions();
+		auto gotshape = dest->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* optr = (double*) out->data();
+	double* optr = (double*) dest->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
@@ -183,14 +180,13 @@ static void unary_elementary (UnaryOpF<double> op,
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
 
-	auto gout = gsrc->get_tensmap();
 	session.track(gsrc);
 	session.update();
 	{
-		auto gotshape = gout->dimensions();
+		auto gotshape = gsrc->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* goptr = (double*) gout->data();
+	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i]), goptr[i]);
@@ -221,13 +217,12 @@ static void binary_elementary (BinaryOpF<double> op,
 	ead::NodeptrT<double> src2 = ead::make_constant<double>(data2.data(), shape);
 	ead::NodeptrT<double> dest = op(src, src2);
 
-	auto out = dest->get_tensmap();
 	dest->update();
 	{
-		auto gotshape = out->dimensions();
+		auto gotshape = dest->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* optr = (double*) out->data();
+	double* optr = (double*) dest->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
@@ -237,42 +232,39 @@ static void binary_elementary (BinaryOpF<double> op,
 
 	ead::NodeptrT<double> dest2 = op(src, src);
 	ead::NodeptrT<double> gsame = ead::derive(dest2, src);
-	auto gout = gsame->get_tensmap();
 	session.track(gsame);
 	session.update();
 	{
-		auto gotshape = gout->dimensions();
+		auto gotshape = gsame->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* goptr = (double*) gout->data();
+	double* goptr = (double*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
 	}
 
 	ead::NodeptrT<double> gleft = ead::derive(dest, src);
-	auto gout_left = gleft->get_tensmap();
 	session.track(gleft);
 	session.update();
 	{
-		auto gotshape = gout_left->dimensions();
+		auto gotshape = gleft->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* goptr2 = (double*) gout_left->data();
+	double* goptr2 = (double*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1.0, 0.0), goptr2[i]);
 	}
 
 	ead::NodeptrT<double> gright = ead::derive(dest, src2);
-	auto gout_right = gright->get_tensmap();
 	session.track(gright);
 	session.update();
 	{
-		auto gotshape = gout_right->dimensions();
+		auto gotshape = gright->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* goptr3 = (double*) gout_right->data();
+	double* goptr3 = (double*) gright->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
@@ -299,13 +291,12 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 	ead::NodeptrT<int32_t> src2 = ead::make_constant<int32_t>(data2.data(), shape);
 	ead::NodeptrT<int32_t> dest = op(src, src2);
 
-	auto out = dest->get_tensmap();
 	dest->update();
 	{
-		auto gotshape = out->dimensions();
+		auto gotshape = dest->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	int32_t* optr = (int32_t*) out->data();
+	int32_t* optr = (int32_t*) dest->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(fwd(data[i], data2[i]), optr[i]);
@@ -315,42 +306,39 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 
 	ead::NodeptrT<int32_t> dest2 = op(src, src);
 	ead::NodeptrT<int32_t> gsame = ead::derive(dest2, src);
-	auto gout = gsame->get_tensmap();
 	session.track(gsame);
 	session.update();
 	{
-		auto gotshape = gout->dimensions();
+		auto gotshape = gsame->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	int32_t* goptr = (int32_t*) gout->data();
+	int32_t* goptr = (int32_t*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
 	}
 
 	ead::NodeptrT<int32_t> gleft = ead::derive(dest, src);
-	auto gout_left = gleft->get_tensmap();
 	session.track(gleft);
 	session.update();
 	{
-		auto gotshape = gout_left->dimensions();
+		auto gotshape = gleft->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	int32_t* goptr2 = (int32_t*) gout_left->data();
+	int32_t* goptr2 = (int32_t*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data2[i], 1.0, 0.0), goptr2[i]);
 	}
 
 	ead::NodeptrT<int32_t> gright = ead::derive(dest, src2);
-	auto gout_right = gright->get_tensmap();
 	session.track(gright);
 	session.update();
 	{
-		auto gotshape = gout_right->dimensions();
+		auto gotshape = gright->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	int32_t* goptr3 = (int32_t*) gout_right->data();
+	int32_t* goptr3 = (int32_t*) gright->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
@@ -608,9 +596,9 @@ TEST(API, NElems)
 {
 	unary_generic(
 		[](ead::NodeptrT<double>& src) { return age::n_elems(src); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>&)
+		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>&)
 		{
-			ASSERT_EQ(1, ead::get_shape<double>(*out).n_elems());
+			ASSERT_EQ(1, out->shape().n_elems());
 			double got = *((double*) out->data());
 
 			EXPECT_EQ(shape.n_elems(), got);
@@ -630,9 +618,9 @@ TEST(API, NDims)
 	uint8_t dim = 2;
 	unary_generic(
 		[dim](ead::NodeptrT<double>& src) { return age::n_dims(src, dim); },
-		[dim](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>&)
+		[dim](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>&)
 		{
-			ASSERT_EQ(1, ead::get_shape<double>(*out).n_elems());
+			ASSERT_EQ(1, out->shape().n_elems());
 			double got = *((double*) out->data());
 
 			EXPECT_EQ(shape.at(dim), got);
@@ -651,9 +639,9 @@ TEST(API, Rsum)
 {
 	unary_generic(
 		[](ead::NodeptrT<double>& src) { return age::reduce_sum(src); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>& data)
+		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
-			size_t n = ead::get_shape<double>(*out).n_elems();
+			size_t n = out->shape().n_elems();
 			{
 				ASSERT_EQ(1, n);
 			}
@@ -671,11 +659,11 @@ TEST(API, Rsum)
 		});
 	unary_generic(
 		[](ead::NodeptrT<double>& src) { return age::reduce_sum(src, 1, 2); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>& data)
+		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
-			ade::Shape gotshape = ead::get_shape<double>(*out);
+			ade::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
 
 			ade::CoordT coord;
@@ -707,9 +695,9 @@ TEST(API, Rmin)
 {
 	unary_generic(
 		[](ead::NodeptrT<double>& src) { return age::reduce_min(src); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>& data)
+		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
-			size_t n = ead::get_shape<double>(*out).n_elems();
+			size_t n = out->shape().n_elems();
 			ASSERT_EQ(1, n);
 			double got = *((double*) out->data());
 
@@ -733,11 +721,11 @@ TEST(API, Rmin)
 		});
 	unary_generic(
 		[](ead::NodeptrT<double>& src) { return age::reduce_min(src, 1, 2); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>& data)
+		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
-			ade::Shape gotshape = ead::get_shape<double>(*out);
+			ade::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
 
 			ade::CoordT coord;
@@ -789,9 +777,9 @@ TEST(API, Rmax)
 {
 	unary_generic(
 		[](ead::NodeptrT<double>& src) { return age::reduce_max(src); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>& data)
+		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
-			size_t n = ead::get_shape<double>(*out).n_elems();
+			size_t n = out->shape().n_elems();
 			ASSERT_EQ(1, n);
 			double got = *((double*) out->data());
 
@@ -815,11 +803,11 @@ TEST(API, Rmax)
 		});
 	unary_generic(
 		[](ead::NodeptrT<double>& src) { return age::reduce_max(src, 1, 2); },
-		[](ead::TensMapT<double>* out, ade::Shape& shape, std::vector<double>& data)
+		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
-			ade::Shape gotshape = ead::get_shape<double>(*out);
+			ade::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
 
 			ade::CoordT coord;
@@ -881,11 +869,10 @@ TEST(API, Permute)
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
 	ead::NodeptrT<double> dest = age::permute(src, pidx);
 
-	auto out = dest->get_tensmap();
 	dest->update();
-	size_t n = ead::get_shape<double>(*out).n_elems();
+	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem, n);
-	double* got = (double*) out->data();
+	double* got = (double*) dest->data();
 	ade::CoordT coord, temp;
 	for (size_t i = 0; i < n; ++i)
 	{
@@ -895,20 +882,19 @@ TEST(API, Permute)
 			coord[j] = temp[pidx[j]];
 		}
 
-		EXPECT_EQ(data[i], got[ade::index(ead::get_shape<double>(*out), coord)]);
+		EXPECT_EQ(data[i], got[ade::index(dest->shape(), coord)]);
 	}
 
 	ead::Session<double> session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
-	auto gout = gsrc->get_tensmap();
 	session.track(gsrc);
 	session.update();
 	{
-		auto gotshape = gout->dimensions();
+		auto gotshape = gsrc->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* goptr = (double*) gout->data();
+	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
 	{
 		EXPECT_EQ(1, goptr[i]);
@@ -929,12 +915,11 @@ TEST(API, Extend)
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
 	ead::NodeptrT<double> dest = age::extend(src, slist.size(), ext);
 
-	auto out = dest->get_tensmap();
 	dest->update();
 	size_t ext_nelem = ade::Shape(ext).n_elems();
-	size_t n = ead::get_shape<double>(*out).n_elems();
+	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem * ext_nelem, n);
-	double* got = (double*) out->data();
+	double* got = (double*) dest->data();
 	for (size_t i = 0; i < nelem; ++i)
 	{
 		for (size_t j = 0; j < ext_nelem; ++j)
@@ -946,14 +931,13 @@ TEST(API, Extend)
 	ead::Session<double> session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
-	auto gout = gsrc->get_tensmap();
 	session.track(gsrc);
 	session.update();
 	{
-		auto gotshape = gout->dimensions();
+		auto gotshape = gsrc->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* goptr = (double*) gout->data();
+	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
 	{
 		EXPECT_EQ(ext_nelem, goptr[i]);
@@ -998,19 +982,16 @@ TEST(API, Matmul)
 	ead::NodeptrT<int32_t> b = ead::make_constant<int32_t>(data2.data(), bshape);
 	ead::NodeptrT<int32_t> dest = age::matmul(a, b);
 
-	auto out = dest->get_tensmap();
 	dest->update();
-	ade::Shape gotshape = ead::get_shape<int32_t>(*out);
+	ade::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
-	int32_t* optr = (int32_t*) out->data();
+	int32_t* optr = (int32_t*) dest->data();
 	ASSERT_NE(nullptr, optr);
 
-	auto ad = a->get_tensmap();
-	auto bd = b->get_tensmap();
-	MatVecT dda = create_2d(ad);
-	MatVecT ddb = create_2d(bd);
-	MatVecT ddc = create_2d(out);
+	MatVecT dda = create_2d(a);
+	MatVecT ddb = create_2d(b);
+	MatVecT ddc = create_2d(dest);
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
 	ead::Session<int32_t> session;
@@ -1018,10 +999,9 @@ TEST(API, Matmul)
 	ead::NodeptrT<int32_t> c = ead::make_constant<int32_t>(data3.data(), cshape);
 	ead::NodeptrT<int32_t> dest2 = age::matmul(c, c);
 	ead::NodeptrT<int32_t> gsame = ead::derive(dest2, c);
-	auto gout = gsame->get_tensmap();
 	session.track(gsame);
 	session.update();
-	ade::Shape gcshape = ead::get_shape<int32_t>(*gout);
+	ade::Shape gcshape = gsame->shape();
 	{
 		std::vector<ade::DimT> glist(gcshape.begin(), gcshape.end());
 		ASSERT_ARREQ(sqrlist, glist);
@@ -1030,12 +1010,11 @@ TEST(API, Matmul)
 	ead::NodeptrT<int32_t> gleft = ead::derive(dest, a);
 	session.track(gleft);
 	session.update();
-	auto gout_left = gleft->get_tensmap();
-	ade::Shape gashape = ead::get_shape<int32_t>(*gout_left);
+	ade::Shape gashape = gleft->shape();
 	{
 		std::vector<ade::DimT> glist(gashape.begin(), gashape.end());
 		ASSERT_ARREQ(alist, glist);
-		int32_t* ga = (int32_t*) gout_left->data();
+		int32_t* ga = (int32_t*) gleft->data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
 		ASSERT_ARREQ(expect_ga, ga_data);
@@ -1044,12 +1023,11 @@ TEST(API, Matmul)
 	ead::NodeptrT<int32_t> gright = ead::derive(dest, b);
 	session.track(gright);
 	session.update();
-	auto gout_right = gright->get_tensmap();
-	ade::Shape gbshape = ead::get_shape<int32_t>(*gout_right);
+	ade::Shape gbshape = gright->shape();
 	{
 		std::vector<ade::DimT> glist(gbshape.begin(), gbshape.end());
 		ASSERT_ARREQ(blist, glist);
-		int32_t* gb = (int32_t*) gout_right->data();
+		int32_t* gb = (int32_t*) gright->data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_ARREQ(expect_gb, gb_data);
@@ -1068,14 +1046,13 @@ TEST(API, RandUniform)
 	ead::NodeptrT<double> src2 = ead::make_constant_scalar<double>(hi, shape);
 	ead::NodeptrT<double> dest = age::rand_unif(src, src2);
 
-	auto out = dest->get_tensmap();
 	dest->update();
 	{
-		auto gotshape = out->dimensions();
+		auto gotshape = dest->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* optr = (double*) out->data();
-	size_t nelems = ead::get_shape<double>(*out).n_elems();
+	double* optr = (double*) dest->data();
+	size_t nelems = dest->shape().n_elems();
 	for (size_t i = 0; i < nelems; ++i)
 	{
 		EXPECT_LT(lo, optr[i]);
@@ -1085,25 +1062,23 @@ TEST(API, RandUniform)
 	ead::Session<double> session;
 
 	ead::NodeptrT<double> gleft = ead::derive(dest, src);
-	auto gout_left = gleft->get_tensmap();
 	session.track(gleft);
 	session.update();
 	{
-		auto gotshape = gout_left->dimensions();
+		auto gotshape = gleft->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* goptr2 = (double*) gout_left->data();
+	double* goptr2 = (double*) gleft->data();
 	EXPECT_DOUBLE_EQ(0, goptr2[0]);
 
 	ead::NodeptrT<double> gright = ead::derive(dest, src);
-	auto gout_right = gright->get_tensmap();
 	session.track(gright);
 	session.update();
 	{
-		auto gotshape = gout_right->dimensions();
+		auto gotshape = gright->shape();
 		ASSERT_ARREQ(slist, gotshape);
 	}
-	double* goptr3 = (double*) gout_right->data();
+	double* goptr3 = (double*) gright->data();
 	EXPECT_DOUBLE_EQ(0, goptr3[0]);
 }
 
@@ -1168,7 +1143,7 @@ TEST(API, RandUniform)
 // 	ade::TensptrT dest = age::convolution(img, kernel);
 
 // 	ead::NodeptrT<double> out = llo::eval<double>(dest);
-// 	ade::Shape gotshape = ead::get_shape<double>(*out);
+// 	ade::Shape gotshape = dest->shape();
 // 	{
 // 		std::vector<ade::DimT> slist(gotshape.begin(), gotshape.end());
 // 		EXPECT_ARREQ(expectslist, slist);
@@ -1184,7 +1159,7 @@ TEST(API, RandUniform)
 // 	{
 // 		std::vector<ade::DimT> glist(gashape.begin(), gashape.end());
 // 		ASSERT_ARREQ(alist, glist);
-// 		double* ga = (double*) gout_left->data();
+// 		double* ga = (double*) gleft->data();
 // 		std::vector<double> ga_data(ga, ga + gashape.n_elems());
 // 		ASSERT_ARREQ(expect_ga, ga_data);
 // 	}
@@ -1195,7 +1170,7 @@ TEST(API, RandUniform)
 // 	{
 // 		std::vector<ade::DimT> glist(gbshape.begin(), gbshape.end());
 // 		ASSERT_ARREQ(blist, glist);
-// 		double* gb = (double*) gout_right->data();
+// 		double* gb = (double*) gright->data();
 // 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
 // 		ASSERT_ARREQ(expect_gb, gb_data);
 // 	}

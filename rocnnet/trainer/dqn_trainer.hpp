@@ -167,10 +167,9 @@ struct DQNTrainer
 		}
 		input_->assign(input.data(), input_->shape());
 		sess_->update({input_->get_tensor().get()});
-		ead::TensMapT<double>* doutput = output_->get_tensmap();
-		double* dptr = doutput->data();
+		double* dptr = output_->data();
 		uint8_t max_i = 0;
-		for (uint8_t i = 1, n = ead::get_shape(*doutput).n_elems(); i < n; ++i)
+		for (uint8_t i = 1, n = output_->shape().n_elems(); i < n; ++i)
 		{
 			if (dptr[max_i] < dptr[i])
 			{

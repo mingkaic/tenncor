@@ -1,26 +1,17 @@
-#include <cmath>
 #include <random>
 #include <type_traits>
 
-#include "Eigen/Core"
+#ifndef EAD_RANDOM_HPP
+#define EAD_RANDOM_HPP
 
-#include "ead/compiler/plugins/plugin.hpp"
-
-#ifndef PLUGIN_RUNTIME_HPP
-#define PLUGIN_RUNTIME_HPP
-
-namespace compiler
+namespace ead
 {
 
 /// RNG engine used
-using EngineT = std::random_device;
+using EngineT = std::default_random_engine;
 
 /// Return global random generator
-static EngineT& get_engine (void)
-{
-	static EngineT engine;
-	return engine;
-}
+EngineT& get_engine (void);
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
 T unif (const T& a, const T& b)
@@ -38,4 +29,4 @@ T unif (const T& a, const T& b)
 
 }
 
-#endif // PLUGIN_RUNTIME_HPP
+#endif // EAD_RANDOM_HPP

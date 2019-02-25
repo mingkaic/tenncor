@@ -7,7 +7,7 @@ namespace ead
 
 DimensionsT shape_convert (ade::Shape shape)
 {
-	ead::DimensionsT dims;
+	DimensionsT dims;
 	std::copy(shape.begin(), shape.end(), dims.begin());
 	return dims;
 }

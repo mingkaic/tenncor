@@ -13,6 +13,7 @@
 #include "ead/variable.hpp"
 #include "ead/functor.hpp"
 #include "ead/session.hpp"
+#include "ead/random.hpp"
 
 namespace py = pybind11;
 
@@ -37,26 +38,13 @@ std::vector<ade::DimT> c2pshape (const ade::Shape& cshape)
 	return std::vector<ade::DimT>(fwd.rbegin(), fwd.rend());
 }
 
-std::vector<ade::DimT> c2pshape (
-	const Eigen::DSizes<long,ade::rank_cap>& cshape)
-{
-	auto it = cshape.begin();
-	auto et = cshape.end();
-	while (it != et && *(et-1) == 1)
-	{
-		--et;
-	}
-	std::vector<ade::DimT> fwd(it, et);
-	return std::vector<ade::DimT>(fwd.rbegin(), fwd.rend());
-}
-
 template <typename T>
-py::array typedata_to_array (ead::TensMapT<T>& tdata, py::dtype dtype)
+py::array typedata_to_array (ead::iNode<double>* tnode, py::dtype dtype)
 {
-	auto pshape = pyead::c2pshape(tdata.dimensions());
+	auto pshape = pyead::c2pshape(tnode->shape());
 	return py::array(dtype,
 		py::array::ShapeContainer(pshape.begin(), pshape.end()),
-		tdata.data());
+		tnode->data());
 }
 
 std::vector<double> arr2vec (ade::Shape& outshape, py::array data)
@@ -145,8 +133,8 @@ PYBIND11_MODULE(ead, m)
 		[](py::object self)
 		{
 			auto dnode = self.cast<ead::iNode<double>*>();
-			auto tmap = dnode->get_tensmap();
-			return pyead::typedata_to_array<double>(*tmap, py::dtype::of<double>());
+			return pyead::typedata_to_array<double>(dnode,
+				py::dtype::of<double>());
 		});
 
 	// ==== session ====

@@ -1,11 +1,10 @@
-#include "ead/operator.hpp"
+#include "ead/random.hpp"
 
-#ifdef EAD_OPERATOR_HPP
+#ifdef EAD_RANDOM_HPP
 
 namespace ead
 {
 
-/// Return global random generator
 EngineT& get_engine (void)
 {
 	static EngineT engine;

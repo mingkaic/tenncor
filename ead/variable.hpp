@@ -90,7 +90,7 @@ struct Variable final : public iLeaf<T>
 	{
 		std::vector<T> data;
 		age::type_convert(data, input, dtype, shape.n_elems());
-		this->data_ = get_tensmap<T>(data.data(), shape);;
+		this->data_ = make_tensmap<T>(data.data(), shape);;
 	}
 
 	/// Implementation of iTensor
@@ -122,12 +122,12 @@ struct VariableNode final : public iNode<T>
 {
 	VariableNode (std::shared_ptr<Variable<T>> var) : var_(var) {}
 
-	void update (void) override {}
-
-	TensMapT<T>* get_tensmap (void) override
+	T* data (void) override
 	{
-		return var_->get_tensmap();
+		return (T*) var_->data();
 	}
+
+	void update (void) override {}
 
 	ade::TensptrT get_tensor (void) override
 	{
@@ -139,7 +139,7 @@ struct VariableNode final : public iNode<T>
 		var_->assign(input, age::get_type<T>(), shape);
 	}
 
-	void assign (ead::TensMapT<double>* tensmap)
+	void assign (TensMapT<double>* tensmap)
 	{
 		var_->assign(tensmap->data(), age::get_type<T>(), get_shape(*tensmap));
 	}
@@ -159,7 +159,7 @@ using VarptrT = std::shared_ptr<VariableNode<T>>;
 template <typename T>
 NodeptrT<T> convert_to_node (VarptrT<T> var)
 {
-	return std::static_pointer_cast<ead::iNode<double>>(var);
+	return std::static_pointer_cast<iNode<double>>(var);
 }
 
 template <typename T>

@@ -25,7 +25,7 @@ inline NodesT<T> tens_to_nodes (ade::TensT tens)
 	std::transform(tens.begin(), tens.end(), nodes.begin(),
 		[](ade::TensptrT& tens)
 		{
-			return ead::to_node<T>(tens);
+			return to_node<T>(tens);
 		});
 	return nodes;
 }

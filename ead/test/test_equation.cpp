@@ -74,32 +74,29 @@ TEST(EQUATION, MatmulComplex)
 	session.track(dc);
 	session.update();
 
-	auto ga = da->get_tensmap();
-	auto gb = db->get_tensmap();
-	auto gc = dc->get_tensmap();
 	{
-		auto gotshape = ga->dimensions();
+		auto gotshape = da->shape();
 		ASSERT_ARREQ(alist, gotshape);
 	}
-	int32_t* gaptr = (int32_t*) ga->data();
+	int32_t* gaptr = (int32_t*) da->data();
 	for (size_t i = 0, n = ashape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_ga[i], gaptr[i]);
 	}
 	{
-		auto gotshape = gb->dimensions();
+		auto gotshape = db->shape();
 		ASSERT_ARREQ(blist, gotshape);
 	}
-	int32_t* gbptr = (int32_t*) gb->data();
+	int32_t* gbptr = (int32_t*) db->data();
 	for (size_t i = 0, n = bshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gb[i], gbptr[i]);
 	}
 	{
-		auto gotshape = gc->dimensions();
+		auto gotshape = dc->shape();
 		ASSERT_ARREQ(clist, gotshape);
 	}
-	int32_t* gcptr = (int32_t*) gc->data();
+	int32_t* gcptr = (int32_t*) dc->data();
 	for (size_t i = 0, n = cshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gc[i], gcptr[i]);
@@ -286,43 +283,39 @@ TEST(EQUATION, SigmoidMLP_Precise)
 		0.0083642760546029649, 0.055794840260731907, 0.013998520595663564, 0.07944113167106924, 0.012580279526871407,
 	};
 
-	ead::TensMapT<double>* gw0 = dw0->get_tensmap();
-	ead::TensMapT<double>* gb0 = db0->get_tensmap();
-	ead::TensMapT<double>* gw1 = dw1->get_tensmap();
-	ead::TensMapT<double>* gb1 = db1->get_tensmap();
 	{
-		auto gotshape = gw0->dimensions();
+		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) gw0->data();
+	double* gw0ptr = (double*) dw0->data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
 	}
 	{
-		auto gotshape = gb0->dimensions();
+		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) gb0->data();
+	double* gb0ptr = (double*) db0->data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
 	}
 	{
-		auto gotshape = gw1->dimensions();
+		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 
-	double* gw1ptr = (double*) gw1->data();
+	double* gw1ptr = (double*) dw1->data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
 	}
 	{
-		auto gotshape = gb1->dimensions();
+		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) gb1->data();
+	double* gb1ptr = (double*) db1->data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);
@@ -505,43 +498,39 @@ TEST(EQUATION, DISABLED_SigmoidMLP_Fast)
 		0.0083642760546029649, 0.055794840260731907, 0.013998520595663564, 0.07944113167106924, 0.012580279526871407,
 	};
 
-	ead::TensMapT<double>* gw0 = dw0->get_tensmap();
-	ead::TensMapT<double>* gb0 = db0->get_tensmap();
-	ead::TensMapT<double>* gw1 = dw1->get_tensmap();
-	ead::TensMapT<double>* gb1 = db1->get_tensmap();
 	{
-		auto gotshape = gw0->dimensions();
+		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) gw0->data();
+	double* gw0ptr = (double*) dw0->data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
 	}
 	{
-		auto gotshape = gb0->dimensions();
+		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) gb0->data();
+	double* gb0ptr = (double*) db0->data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
 	}
 	{
-		auto gotshape = gw1->dimensions();
+		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 
-	double* gw1ptr = (double*) gw1->data();
+	double* gw1ptr = (double*) dw1->data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
 	}
 	{
-		auto gotshape = gb1->dimensions();
+		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) gb1->data();
+	double* gb1ptr = (double*) db1->data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);

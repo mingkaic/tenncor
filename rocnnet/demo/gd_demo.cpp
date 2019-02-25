@@ -115,8 +115,7 @@ int main (int argc, char** argv)
 	{
 		if (i % show_every_n == show_every_n - 1)
 		{
-			ead::TensMapT<double>* trained_derr = trainer.error_->get_tensmap();
-			double* trained_err_res = (double*) trained_derr->data();
+			double* trained_err_res = trainer.error_->data();
 			std::cout << "training " << i + 1 << '\n';
 			std::cout << "trained error: " <<
 				fmts::to_string(trained_err_res, trained_err_res + n_out) << '\n';
@@ -144,13 +143,9 @@ int main (int argc, char** argv)
 	sess.track(trained_out);
 	sess.track(pretrained_out);
 
-	ead::TensMapT<double>* untrained_data = untrained_out->get_tensmap();
-	ead::TensMapT<double>* trained_data = trained_out->get_tensmap();
-	ead::TensMapT<double>* pretrained_data = pretrained_out->get_tensmap();
-
-	double* untrained_res = (double*) untrained_data->data();
-	double* trained_res = (double*) trained_data->data();
-	double* pretrained_res = (double*) pretrained_data->data();
+	double* untrained_res = untrained_out->data();
+	double* trained_res = trained_out->data();
+	double* pretrained_res = pretrained_out->data();
 	for (size_t i = 0; i < n_test; i++)
 	{
 		if (i % show_every_n == show_every_n - 1)

@@ -48,8 +48,8 @@ struct Functor final : public ade::iFunctor
 				arg.map_io(),
 				coorder));
 			tmaps.push_back(OpArg<T>{
+				node->data(),
 				tensor->shape(),
-				node->get_tensmap(),
 				static_cast<CoordMap*>(coorder.get())
 			});
 		}
@@ -98,9 +98,9 @@ struct Functor final : public ade::iFunctor
 		return out_->assign();
 	}
 
-	TensMapT<T>* get_tensmap (void)
+	T* data (void)
 	{
-		return &out_->get_out();
+		return out_->get_ptr();
 	}
 
 private:
@@ -127,14 +127,14 @@ struct FuncNode final : public iNode<T>
 {
 	FuncNode (std::shared_ptr<Functor<T>> f) : func_(f) {}
 
+	T* data (void) override
+	{
+		return func_->data();
+	}
+
 	void update (void) override
 	{
 		func_->update();
-	}
-
-	TensMapT<T>* get_tensmap (void) override
-	{
-		return func_->get_tensmap();
 	}
 
 	ade::TensptrT get_tensor (void) override

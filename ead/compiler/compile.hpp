@@ -1,3 +1,6 @@
+#define IGNORE_COMPILE
+#ifdef IGNORE_COMPILE
+
 #include <fstream>
 
 #include <boost/dll/import.hpp>
@@ -19,7 +22,8 @@ namespace compiler
 const std::string impl_fmt =
 "#include <boost/config.hpp> // for BOOST_SYMBOL_EXPORT\n"
 "\n"
-"#include \"ead/compiler/runtime/runtime.hpp\"\n"
+"#include \"ead/compiler/plugins/plugin.hpp\"\n"
+"#include \"ead/random.hpp\"\n"
 "\n"
 "#ifndef PLUGIN_IMPL_HPP\n"
 "#define PLUGIN_IMPL_HPP\n"
@@ -407,7 +411,7 @@ CompiledOut<T> compile_roots (NodesT<T> roots)
 										return static_cast<ead::iLeaf<T>*>(
 											tens)->get_tensmap();
 									}
-									return &it->second->get_out();
+									return &it->second->get_tensmap();
 								});
 							return plugin->calculate(graph_id, leaf_refs);
 						});
@@ -433,7 +437,7 @@ CompiledOut<T> compile_roots (NodesT<T> roots)
 								return static_cast<ead::iLeaf<T>*>(
 									tens)->get_tensmap();
 							}
-							return &it->second->get_out();
+							return &it->second->get_tensmap();
 						});
 					return ead::make_eigenmatrix<T>(shape_convert(shape),
 						ead::tensmap_to_matmap(*leaf_refs[0]) *
@@ -462,7 +466,7 @@ CompiledOut<T> compile_roots (NodesT<T> roots)
 								return static_cast<ead::iLeaf<T>*>(
 									tens)->get_tensmap();
 							}
-							return &it->second->get_out();
+							return &it->second->get_tensmap();
 						});
 					return plugin->calculate(graph_id, leaf_refs);
 				});
@@ -522,3 +526,5 @@ UpdatersT<T> order_updates (compiler::CompiledOut<T>& compiled_out)
 }
 
 }
+
+#endif // IGNORE_COMPILE

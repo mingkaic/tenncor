@@ -40,9 +40,9 @@ filegroup(
     name = "compile_runtime",
     srcs = glob([
         "compiler/plugins/*.hpp",
-        "compiler/runtime/*.hpp",
     ]) + [
         "eigen.hpp",
+        "random.hpp",
         "@boost//:config_srcs",
         "@com_github_eigenteam_eigen//:srcs",
     ],
