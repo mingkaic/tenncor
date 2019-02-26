@@ -170,3 +170,15 @@ cc_binary(
 #     copts = ["-std=c++14"],
 #     data = ["//ead:compile_runtime"],
 # )
+
+######### DEBUG #########
+
+cc_binary(
+    name = "graph_performance",
+    srcs = ["bm/benchmark_graph.cpp"],
+    deps = [
+        "//ead:ead",
+        "//dbg:dbg",
+    ],
+    copts = ["-std=c++14"],
+)

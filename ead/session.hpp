@@ -15,6 +15,51 @@ using ParentSetT = std::unordered_set<Functor<T>*>;
 template <typename T>
 struct Session final : public ade::iTraveler
 {
+	struct UpdateSession final : public ade::iTraveler
+	{
+		UpdateSession (Session<T>* sess) : sess_(sess) {}
+
+		/// Implementation of iTraveler
+		void visit (ade::iLeaf* leaf) override {}
+
+		/// Implementation of iTraveler
+		void visit (ade::iFunctor* func) override
+		{
+			if (visited_.end() == visited_.find(func))
+			{
+				auto& update_set = sess_->need_update_;
+				auto& desc_set = sess_->descendants_[func];
+				auto has_update =
+					[&update_set](ade::iTensor* tens)
+					{
+						return update_set.end() != update_set.find(tens);
+					};
+				if (update_set.end() != update_set.find(func) ||
+					std::any_of(desc_set.begin(), desc_set.end(), has_update))
+				{
+					const ade::ArgsT& args = func->get_children();
+					for (const ade::FuncArg& arg : args)
+					{
+						ade::iTensor* tens = arg.get_tensor().get();
+						auto& child_desc_set = sess_->descendants_[tens];
+						if (update_set.end() != update_set.find(tens) ||
+							std::any_of(child_desc_set.begin(),
+								child_desc_set.end(), has_update))
+						{
+							tens->accept(*this);
+						}
+					}
+					static_cast<Functor<T>*>(func)->update();
+				}
+				visited_.emplace(func);
+			}
+		}
+
+		std::unordered_set<ade::iTensor*> visited_;
+
+		Session<T>* sess_;
+	};
+
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
@@ -68,61 +113,18 @@ struct Session final : public ade::iTraveler
 
 	// mark every tensor in updates set as need_update
 	// update every functor up until reaching elements in stop_updating set
-	void update (std::unordered_set<ade::iTensor*> updates = {})
+	template <typename USESS = UpdateSession, typename std::enable_if<
+		std::is_base_of<ade::iTraveler,USESS>::value>::type* = nullptr>
+	USESS update (std::unordered_set<ade::iTensor*> updates = {})
 	{
 		need_update_.insert(updates.begin(), updates.end());
-		UpdateSession sess(this);
+		USESS sess(this);
 		for (auto root : roots_)
 		{
 			root->accept(sess);
 		}
+		return sess;
 	}
-
-private:
-	struct UpdateSession final : public ade::iTraveler
-	{
-		UpdateSession (Session<T>* sess) : sess_(sess) {}
-
-		/// Implementation of iTraveler
-		void visit (ade::iLeaf* leaf) override {}
-
-		/// Implementation of iTraveler
-		void visit (ade::iFunctor* func) override
-		{
-			if (visited_.end() == visited_.find(func))
-			{
-				auto& update_set = sess_->need_update_;
-				auto& desc_set = sess_->descendants_[func];
-				auto has_update =
-					[&update_set](ade::iTensor* tens)
-					{
-						return update_set.end() != update_set.find(tens);
-					};
-				if (update_set.end() != update_set.find(func) ||
-					std::any_of(desc_set.begin(), desc_set.end(), has_update))
-				{
-					const ade::ArgsT& args = func->get_children();
-					for (const ade::FuncArg& arg : args)
-					{
-						ade::iTensor* tens = arg.get_tensor().get();
-						auto& child_desc_set = sess_->descendants_[tens];
-						if (update_set.end() != update_set.find(tens) ||
-							std::any_of(child_desc_set.begin(),
-								child_desc_set.end(), has_update))
-						{
-							tens->accept(*this);
-						}
-					}
-					static_cast<Functor<T>*>(func)->update();
-				}
-				visited_.emplace(func);
-			}
-		}
-
-		std::unordered_set<ade::iTensor*> visited_;
-
-		Session<T>* sess_;
-	};
 
 	std::list<ade::iTensor*> roots_;
 

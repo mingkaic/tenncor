@@ -59,14 +59,20 @@ def read_graph(lines):
     edges = defaultdict(list)
     for line in lines:
         cols = line.split(',')
-        if len(cols) != 4: # ignore ill-formatted lines
+        if len(cols) < 3: # ignore ill-formatted lines
             continue # todo: warn
-        observer, subject, order, color = tuple(col for col in cols)
+        observer, subject, order = tuple(cols[:3])
+        color = 'white'
+        if len(cols) > 3:
+            color = cols[3]
+        duration = None
+        if len(cols) > 4:
+            duration = cols[4].strip() + 'ns'
         obs = _str_clean(observer)
         sub = _str_clean(subject)
         nodes.add(obs)
         nodes.add(sub)
-        edges[obs].append((sub, order, color))
+        edges[obs].append((sub, order, color, duration))
     return (nodes, edges)
 
 def print_graph(callgraph, outname):
@@ -77,8 +83,11 @@ def print_graph(callgraph, outname):
         g1.node(node)
 
     for observer in edges:
-        for subject, idx, color in edges[observer]:
-            g1.edge(observer, subject, idx, color=color)
+        for subject, idx, color, duration in edges[observer]:
+            label = idx
+            if duration:
+                label += ' ' + duration
+            g1.edge(observer, subject, label, color=color)
 
     _apply_styles(g1, _styles)
     g1.render(outname, view=True)

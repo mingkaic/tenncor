@@ -142,7 +142,6 @@ struct CSVEquation final : public ade::iTraveler
 
 	bool showshape_ = false;
 
-private:
 	struct Edge
 	{
 		ade::iFunctor* func_;
