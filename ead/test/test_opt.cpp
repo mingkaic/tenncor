@@ -488,7 +488,7 @@ TEST(OPTIMIZATION, reuse_op_graph)
 	opt_copyroot->get_tensor()->accept(ceq);
 	ceq.to_stream(ss);
 
-	std::unordered_set<std::string> expectlines =
+	std::list<std::string> expectlines =
 	{
 		"0:MUL,1:COS,0,white",
 		"1:COS,2:0([1\\1\\1\\1\\1\\1\\1\\1]),0,white",
@@ -530,12 +530,14 @@ TEST(OPTIMIZATION, reuse_op_graph)
 		"22:MUL,21:DIV,0,white",
 		"22:MUL,14:ADD,1,white",
 	};
-	std::unordered_set<std::string> gotlines;
+	expectlines.sort();
+	std::list<std::string> gotlines;
 	std::string line;
 	while (std::getline(ss, line))
 	{
-		gotlines.emplace(line);
+		gotlines.push_back(line);
 	}
+	gotlines.sort();
 	std::vector<std::string> diffs;
 	std::set_difference(expectlines.begin(), expectlines.end(),
 		gotlines.begin(), gotlines.end(), std::back_inserter(diffs));
