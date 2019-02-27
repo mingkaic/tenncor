@@ -5,7 +5,7 @@
 namespace ead
 {
 
-ade::CoordptrT reduce (std::vector<uint8_t> red_dims)
+CoordptrT reduce (std::vector<uint8_t> red_dims)
 {
 	uint8_t n_red = red_dims.size();
 	if (std::any_of(red_dims.begin(), red_dims.end(),
@@ -25,10 +25,10 @@ ade::CoordptrT reduce (std::vector<uint8_t> red_dims)
 	auto it = rdims.begin();
 	std::fill(it, rdims.end(), ade::rank_cap);
 	std::copy(red_dims.begin(), red_dims.end(), it);
-	return ade::CoordptrT(new CoordMap(rdims, false));
+	return std::make_shared<CoordMap>(REDUCE, rdims, false);
 }
 
-ade::CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext)
+CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext)
 {
 	uint8_t n_ext = ext.size();
 	if (std::any_of(ext.begin(), ext.end(),
@@ -52,10 +52,10 @@ ade::CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext)
 	auto it = bcast.begin();
 	std::fill(it, bcast.end(), 1);
 	std::copy(ext.begin(), ext.end(), it + rank);
-	return ade::CoordptrT(new CoordMap(bcast, false));
+	return std::make_shared<CoordMap>(EXTEND, bcast, false);
 }
 
-ade::CoordptrT permute (std::vector<uint8_t> dims)
+CoordptrT permute (std::vector<uint8_t> dims)
 {
 	if (dims.size() == 0)
 	{
@@ -84,7 +84,7 @@ ade::CoordptrT permute (std::vector<uint8_t> dims)
 
 	ade::CoordT order;
 	std::copy(dims.begin(), dims.end(), order.begin());
-	return ade::CoordptrT(new CoordMap(order, true));
+	return std::make_shared<CoordMap>(PERMUTE, order, true);
 }
 
 }

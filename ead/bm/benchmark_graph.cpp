@@ -33,8 +33,7 @@ struct DebugUpdateSession final : public ade::iTraveler
     {
         if (nano_durs_.end() == nano_durs_.find(func))
         {
-            // start time
-            auto start = std::chrono::steady_clock::now();
+            size_t duration_ns = 0;
 
             auto& update_set = sess_->need_update_;
             auto& desc_set = sess_->descendants_[func];
@@ -58,12 +57,17 @@ struct DebugUpdateSession final : public ade::iTraveler
                         tens->accept(*this);
                     }
                 }
+                // start time
+                auto start = std::chrono::steady_clock::now();
+
                 static_cast<ead::Functor<T>*>(func)->update();
+
+                // end time
+                auto end = std::chrono::steady_clock::now();
+                duration_ns = std::chrono::duration_cast<
+                   std::chrono::nanoseconds>(end - start).count();
             }
-            // end time
-            auto end = std::chrono::steady_clock::now();
-            nano_durs_.emplace(func, std::chrono::duration_cast<
-                std::chrono::nanoseconds>(end - start).count());
+            nano_durs_.emplace(func, duration_ns);
         }
     }
 
@@ -142,6 +146,7 @@ int main (int argc, char** argv)
     });
 
     CSVEquation ceq;
+    ceq.showshape_ = true;
     dw0->get_tensor()->accept(ceq);
     db0->get_tensor()->accept(ceq);
     dw1->get_tensor()->accept(ceq);

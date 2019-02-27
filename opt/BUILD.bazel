@@ -23,7 +23,7 @@ cc_library(
     name = "opt",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = ["//ade:ade"],
     visibility = ["//visibility:public"],
 )
@@ -34,7 +34,7 @@ cc_test(
     name = "test",
     size = "small",
     srcs = ["//opt:test_srcs"],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = [
         "//opt:opt",
         "//dbg:dbg",

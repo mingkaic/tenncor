@@ -38,7 +38,7 @@ NodeptrT<T> reduce_sum_grad (ade::iFunctor* fwd,
 	const auto& child = fwd->get_children()[0];
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
 	auto revio = !child.map_io();
-	ade::CoordptrT revcoord;
+	CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);
@@ -53,9 +53,9 @@ NodeptrT<T> reduce_sum_grad (ade::iFunctor* fwd,
 				bcast[d] = shape.at(d);
 			}
 		}
-		revcoord = ade::CoordptrT(new CoordMap(bcast, false));
+		revcoord = std::make_shared<CoordMap>(EXTEND, bcast, false);
 	}
-	return make_functor<T>(ade::Opcode{"EXTEND",age::EXTEND},{
+	return make_functor<T>(ade::Opcode{"EXTEND",age::EXTEND}, {
 		FuncArg<T>(bwd, revshaper, revio, revcoord)
 	});
 }
@@ -67,8 +67,8 @@ NodeptrT<T> reduce_prod_grad (ade::iFunctor* fwd,
 	const auto& child = fwd->get_children()[0];
 	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
-		{FuncArg<T>(childnode, child.get_shaper(),
-			child.map_io(), child.get_coorder())});
+		{FuncArg<T>(childnode, child.get_shaper(), child.map_io(),
+			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
 	NodeptrT<T> rev_fwd = reduce_sum_grad(fwd, fwd_cpy, args, idx);
 	return age::mul(age::div(rev_fwd, childnode),
 		reduce_sum_grad(fwd, bwd, args, idx));
@@ -81,8 +81,8 @@ NodeptrT<T> reduce_comp_grad (ade::iFunctor* fwd,
 	const auto& child = fwd->get_children()[0];
 	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
-		{FuncArg<T>(childnode, child.get_shaper(),
-			child.map_io(), child.get_coorder())});
+		{FuncArg<T>(childnode, child.get_shaper(), child.map_io(),
+			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
 	NodeptrT<T> rev_fwd = reduce_sum_grad(fwd, fwd_cpy, args, idx);
 	return age::mul(age::eq(rev_fwd, childnode),
 		reduce_sum_grad(fwd, bwd, args, idx));
@@ -95,7 +95,7 @@ NodeptrT<T> permute_grad (ade::iFunctor* fwd,
 	const auto& child = fwd->get_children()[0];
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
 	auto revio = !child.map_io();
-	ade::CoordptrT revcoord;
+	CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);
@@ -107,7 +107,7 @@ NodeptrT<T> permute_grad (ade::iFunctor* fwd,
 		{
 			order[dims[i]] = i;
 		}
-		revcoord = ade::CoordptrT(new CoordMap(order, true));
+		revcoord = std::make_shared<CoordMap>(PERMUTE, order, true);
 	}
 	return make_functor<T>(ade::Opcode{"PERMUTE",age::PERMUTE},{
 		FuncArg<T>(bwd, revshaper, revio, revcoord)
@@ -121,7 +121,7 @@ NodeptrT<T> extend_grad (ade::iFunctor* fwd,
 	const auto& child = fwd->get_children()[0];
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
 	auto revio = !child.map_io();
-	ade::CoordptrT revcoord;
+	CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);

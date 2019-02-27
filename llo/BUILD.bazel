@@ -75,7 +75,7 @@ cc_library(
         "//llo:generated/codes.cpp",
         "//llo:generated/grader.cpp",
     ],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = [
         "//opt:opt",
         "//bwd:bwd",
@@ -104,7 +104,7 @@ pybind_library(
 cc_test(
     name = "ctest",
     srcs = ["//llo:ctest_srcs"],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = [
         "//llo:llo",
         "//dbg:dbg",
@@ -128,5 +128,5 @@ cc_binary(
         "//llo:llo",
         "@com_github_google_benchmark//:benchmark",
     ],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
 )

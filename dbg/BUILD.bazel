@@ -20,7 +20,7 @@ cc_library(
     name = "dbg",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = [
         "//ade:ade",
         "@com_github_mingkaic_cppkg//diff:diff",

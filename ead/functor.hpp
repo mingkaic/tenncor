@@ -41,7 +41,7 @@ struct Functor final : public ade::iFunctor
 		{
 			NodeptrT<T> node = arg.get_node();
 			ade::TensptrT tensor = node->get_tensor();
-			ade::CoordptrT coorder = arg.get_coorder();
+			CoordptrT coorder = arg.get_coorder();
 			input_args.push_back(ade::FuncArg(
 				tensor,
 				arg.get_shaper(),
@@ -50,12 +50,12 @@ struct Functor final : public ade::iFunctor
 			tmaps.push_back(OpArg<T>{
 				node->data(),
 				tensor->shape(),
-				static_cast<CoordMap*>(coorder.get())
+				coorder.get()
 			});
 		}
 		return new Functor<T>(age::typed_exec<T>(
 			(age::_GENERATED_OPCODE) opcode.code_, shape, tmaps),
-			opcode, shape, input_args);
+			opcode, shape, input_args);	
 	}
 
 	static Functor<T>* get (Functor<T>&& other)

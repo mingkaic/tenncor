@@ -41,7 +41,7 @@ inline ArgsT<T> ade_to_ead_args (ade::ArgsT args)
 				to_node<T>(arg.get_tensor()),
 				arg.get_shaper(),
 				arg.map_io(),
-				arg.get_coorder(),
+				std::static_pointer_cast<CoordMap>(arg.get_coorder()),
 			};
 		});
 	return ead_args;

@@ -14,7 +14,7 @@ struct FuncArg final
 {
 	/// Construct FuncArg with specific coorder_ and map_io_ flag
 	FuncArg (NodeptrT<T> node, ade::CoordptrT shaper,
-		bool map_io, ade::CoordptrT coorder) :
+		bool map_io, CoordptrT coorder) :
 		node_(node), shaper_(shaper),
 		map_io_(map_io), coorder_(coorder)
 	{
@@ -70,7 +70,7 @@ struct FuncArg final
 	}
 
 	/// Return coord map for coordinates
-	ade::CoordptrT get_coorder (void) const
+	CoordptrT get_coorder (void) const
 	{
 		return coorder_;
 	}
@@ -87,7 +87,7 @@ private:
 	bool map_io_;
 
 	/// Coordinate mapper
-	ade::CoordptrT coorder_;
+	CoordptrT coorder_;
 };
 
 template <typename T>

@@ -89,7 +89,7 @@ cc_library(
         "//ead:generated/codes.cpp",
         "//ead:generated/grader.cpp",
     ],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = [
         "//ade:ade",
         "//opt:opt",
@@ -106,7 +106,7 @@ cc_library(
 #         "compiler/*.hpp",
 #         "compiler/plugins/*.hpp",
 #     ]),
-#     copts = ["-std=c++14"],
+#     copts = ["-std=c++17"],
 #     deps = [
 #         "@boost//:dll",
 #         "//ead:ead",
@@ -133,7 +133,7 @@ pybind_library(
 cc_test(
     name = "ctest",
     srcs = ["//ead:ctest_srcs"],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17", "-ftemplate-backtrace-limit=0"],
     deps = [
         "//ead:ead",
         "//dbg:dbg",
@@ -157,7 +157,7 @@ cc_binary(
         "//ead:ead",
         "@com_github_google_benchmark//:benchmark",
     ],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
 )
 
 # cc_binary(
@@ -167,7 +167,7 @@ cc_binary(
 #         "//ead:compiler",
 #         "@com_github_google_benchmark//:benchmark",
 #     ],
-#     copts = ["-std=c++14"],
+#     copts = ["-std=c++17"],
 #     data = ["//ead:compile_runtime"],
 # )
 
@@ -180,5 +180,5 @@ cc_binary(
         "//ead:ead",
         "//dbg:dbg",
     ],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
 )

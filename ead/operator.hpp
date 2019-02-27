@@ -19,7 +19,7 @@
 namespace ead
 {
 
-static bool is_2d (ade::Shape shape)
+static inline bool is_2d (ade::Shape shape)
 {
 	return std::all_of(shape.begin() + 2, shape.end(),
 		[](ade::DimT dim) { return 1 == dim; });
@@ -186,16 +186,19 @@ EigenptrT<T> neg (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 {
-	if (is_2d(outshape))
+	if constexpr(!std::is_integral<T>::value)
 	{
-		// use matrix when possible
-		return make_eigenmatrix<T,
-			Eigen::MatrixFunctionReturnValue<MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
-			[](MatMapT<T>& in)
-			{
-				return in.sin();
-			}, make_matmap(in.data_, in.shape_));
+		if (is_2d(outshape))
+		{
+			// use matrix when possible
+			return make_eigenmatrix<T,
+				Eigen::MatrixFunctionReturnValue<MatMapT<T>>,
+				MatMapT<T>>(shape_convert(outshape),
+				[](MatMapT<T>& in)
+				{
+					return in.sin();
+				}, make_matmap(in.data_, in.shape_));
+		}
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		std::function<T(const T&)>,const TensMapT<T>>,
@@ -215,16 +218,19 @@ EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> cos (ade::Shape& outshape, const OpArg<T>& in)
 {
-	if (is_2d(outshape))
+	if constexpr(!std::is_integral<T>::value)
 	{
-		// use matrix when possible
-		return make_eigenmatrix<T,
-			Eigen::MatrixFunctionReturnValue<MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
-			[](MatMapT<T>& in)
-			{
-				return in.cos();
-			}, make_matmap(in.data_, in.shape_));
+		if (is_2d(outshape))
+		{
+			// use matrix when possible
+			return make_eigenmatrix<T,
+				Eigen::MatrixFunctionReturnValue<MatMapT<T>>,
+				MatMapT<T>>(shape_convert(outshape),
+				[](MatMapT<T>& in)
+				{
+					return in.cos();
+				}, make_matmap(in.data_, in.shape_));
+		}
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		std::function<T(const T&)>,const TensMapT<T>>,

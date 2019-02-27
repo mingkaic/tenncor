@@ -87,7 +87,9 @@ struct EADSaver : public pbm::iSaver
 		}
 		ade::CoordT coord;
 		mapper->forward(coord.begin(), coord.begin());
-		return std::vector<double>(coord.begin(), coord.end());
+		std::vector<double> out(coord.begin(), coord.end());
+		out.push_back(static_cast<CoordMap*>(mapper.get())->transcode());
+		return out;
 	}
 };
 
@@ -156,8 +158,11 @@ struct EADLoader : public pbm::iLoader
 		}
 		bool is_bijective = non_bijectives.end() == non_bijectives.find(opcode.code_);
 		ade::CoordT indices;
-		std::copy(coord.begin(), coord.end(), indices.begin());
-		return std::make_shared<CoordMap>(indices, is_bijective);
+		auto cit = coord.begin();
+		std::copy(cit, cit + ade::rank_cap, indices.begin());
+		assert(coord.size() > ade::rank_cap);
+		TransCode tcode = (TransCode) coord[ade::rank_cap];
+		return std::make_shared<CoordMap>(tcode, indices, is_bijective);
 	}
 };
 

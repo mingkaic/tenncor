@@ -49,7 +49,7 @@ const std::string impl_fmt =
 "#endif // PLUGIN_IMPL_HPP\n";
 
 const std::string compile_cmd =
-"g++ --std=c++14 -Iexternal/com_github_eigenteam_eigen "
+"g++ --std=c++17 -Iexternal/com_github_eigenteam_eigen "
 "-Iexternal/boost -I. %s -o %s -shared -fPIC";
 
 const std::unordered_map<size_t,std::string> op_fmt =
