@@ -133,7 +133,7 @@ pybind_library(
 cc_test(
     name = "ctest",
     srcs = ["//ead:ctest_srcs"],
-    copts = ["-std=c++17", "-ftemplate-backtrace-limit=0"],
+    copts = ["-std=c++17"],
     deps = [
         "//ead:ead",
         "//dbg:dbg",
@@ -180,5 +180,12 @@ cc_binary(
         "//ead:ead",
         "//dbg:dbg",
     ],
+    copts = ["-std=c++17"],
+)
+
+cc_binary(
+    name = "peak_performance", # this is what it looks like
+    srcs = ["bm/benchmark_peak.cpp"],
+    deps = ["//ead:ead"],
     copts = ["-std=c++17"],
 )

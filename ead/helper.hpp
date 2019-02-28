@@ -10,8 +10,15 @@ template <typename T>
 NodeptrT<T> reduce_help (ade::Opcode opcode,
 	NodeptrT<T> tens, uint8_t start, uint8_t end)
 {
-	std::vector<ade::DimT> coords(end - start);
-	std::iota(coords.begin(), coords.end(), start);
+	std::vector<ade::DimT> coords;
+	ade::Shape inshape = tens->shape();
+	for (size_t i = start; i < end; ++i)
+	{
+		if (inshape.at(i) > 1)
+		{
+			coords.push_back(i);
+		}
+	}
 	return make_functor<T>(opcode, {
 		reduce_map(tens, start, coords)
 	});

@@ -14,13 +14,12 @@ P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
 performance:
-P2 - avoid manually forward assigning each function (then get rid of TensorMap wrapping)
 P2 - implement convolution using Eigen
-P3 - use Eigen::Matrix whenever possible
+P3 - implement sub-graph recognition optimizations (recognize patterns such as X * Y * Z / Y = X * Z or 1 / (1 + - exp (X)) = sigmoid(X))
 P3 - use scalars whenever possible
 P4 - investigate operation shortcut detection
 P4 - implement optimization options to increase data accuracy
-P4 - performance test
+P4 - more performance test
 
 nitpicks:
 - remove unordered_map/unordered_set if we're not using them properly

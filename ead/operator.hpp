@@ -7,8 +7,6 @@
 /// No function in this file makes any attempt to check for nullptrs
 ///
 
-#include <unsupported/Eigen/MatrixFunctions>
-
 #include "ead/tensor.hpp"
 #include "ead/coord.hpp"
 #include "ead/random.hpp"

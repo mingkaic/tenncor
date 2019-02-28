@@ -67,7 +67,9 @@ def main(args):
             print('loading')
             pretrained_brain = brain.parse_from_string(f.read())
             print('successfully loaded ' + args.load)
-    except:
+    except Exception as e:
+        print(e)
+        print('failed to load from "{}"'.format(args.load))
         pretrained_brain = brain.copy()
 
     sess = ead.Session()
@@ -124,6 +126,7 @@ def main(args):
     print('pretrained mlp error rate: {}%'.format(pretrained_err * 100))
 
     try:
+        print('saving')
         brain.serialize_to_file(trained_out, args.save)
     except Exception as e:
         print(e)

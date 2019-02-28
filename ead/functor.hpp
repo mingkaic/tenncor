@@ -55,7 +55,7 @@ struct Functor final : public ade::iFunctor
 		}
 		return new Functor<T>(age::typed_exec<T>(
 			(age::_GENERATED_OPCODE) opcode.code_, shape, tmaps),
-			opcode, shape, input_args);	
+			opcode, shape, input_args);
 	}
 
 	static Functor<T>* get (Functor<T>&& other)

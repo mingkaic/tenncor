@@ -152,7 +152,7 @@ struct EADLoader : public pbm::iLoader
 		{
 			return nullptr;
 		}
-		if (ade::rank_cap != coord.size())
+		if (ade::rank_cap + 1 != coord.size())
 		{
 			logs::fatal("cannot deserialize non-vector coordinate map");
 		}
@@ -160,7 +160,6 @@ struct EADLoader : public pbm::iLoader
 		ade::CoordT indices;
 		auto cit = coord.begin();
 		std::copy(cit, cit + ade::rank_cap, indices.begin());
-		assert(coord.size() > ade::rank_cap);
 		TransCode tcode = (TransCode) coord[ade::rank_cap];
 		return std::make_shared<CoordMap>(tcode, indices, is_bijective);
 	}
