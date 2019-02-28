@@ -80,7 +80,6 @@ int main (int argc, char** argv)
 	auto dw1 = (four_three * two_three)
 		.sum(std::array<Eigen::Index,1>{1});
 
-
 	Eigen::Tensor<double,2> dw0_in(9, 10);
 	Eigen::Tensor<double,1> db0_in(9);
 	Eigen::Tensor<double,2> dw1_in(5, 9);

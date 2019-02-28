@@ -4,6 +4,9 @@
 
 #include "ead/ead.hpp"
 
+#include "ead/opt/multi_opt.hpp"
+#include "ead/opt/ops_reuse.hpp"
+
 
 static std::random_device rnd_device;
 static std::mt19937 mersenne_engine(rnd_device());
@@ -345,6 +348,86 @@ static void BM_SigmoidMLP(benchmark::State& state)
 }
 
 BENCHMARK(BM_SigmoidMLP);
+
+
+static void BM_OptimizedSigmoidMLP(benchmark::State& state)
+{
+	ade::Shape in_shape({10, 3});
+	ade::Shape weight0_shape({9, 10});
+	ade::Shape bias0_shape({9});
+	ade::Shape weight1_shape({5, 9});
+	ade::Shape bias1_shape({5});
+	ade::Shape out_shape({5,3});
+
+	ead::VarptrT<double> in = ead::make_variable<double>(in_shape);
+	ead::VarptrT<double> weight0 = ead::make_variable<double>(weight0_shape);
+	ead::VarptrT<double> bias0 = ead::make_variable<double>(bias0_shape);
+	ead::VarptrT<double> weight1 = ead::make_variable<double>(weight1_shape);
+	ead::VarptrT<double> bias1 = ead::make_variable<double>(bias1_shape);
+	ead::VarptrT<double> out = ead::make_variable<double>(out_shape);
+
+	ead::NodeptrT<double> intens(in);
+	ead::NodeptrT<double> weight0tens(weight0);
+	ead::NodeptrT<double> bias0tens(bias0);
+	ead::NodeptrT<double> weight1tens(weight1);
+	ead::NodeptrT<double> bias1tens(bias1);
+	ead::NodeptrT<double> outtens(out);
+
+	auto layer0 = age::add(age::matmul(intens, weight0tens), age::extend(bias0tens, 1, {3}));
+	auto sig0 = age::sigmoid(layer0);
+
+	auto layer1 = age::add(age::matmul(sig0, weight1tens), age::extend(bias1tens, 1, {3}));
+	auto sig1 = age::sigmoid(layer1);
+
+	auto err = age::pow(age::sub(outtens, sig1),
+		ead::make_constant_scalar<double>(2, out_shape));
+
+	auto dw0 = ead::derive(err, weight0tens);
+	auto db0 = ead::derive(err, bias0tens);
+	auto dw1 = ead::derive(err, weight1tens);
+	auto db1 = ead::derive(err, bias1tens);
+
+	// optimize
+	auto roots = ead::ops_reuse<double>(ead::multi_optimize<double>({dw0, db0, dw1, db1}));
+	dw0 = roots[0];
+	db0 = roots[1];
+	dw1 = roots[2];
+	db1 = roots[3];
+
+	ead::Session<double> session;
+	session.track(dw0);
+	session.track(db0);
+	session.track(dw1);
+	session.track(db1);
+
+	for (auto _ : state)
+	{
+		state.PauseTiming();
+		std::vector<double> in_data = random_data(in_shape.n_elems(), 0, 1);
+		std::vector<double> w0_data = random_data(weight0_shape.n_elems(), 0, 1);
+		std::vector<double> b0_data = random_data(bias0_shape.n_elems(), 0, 1);
+		std::vector<double> w1_data = random_data(weight1_shape.n_elems(), 0, 1);
+		std::vector<double> b1_data = random_data(bias1_shape.n_elems(), 0, 1);
+		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
+		state.ResumeTiming();
+		in->assign(in_data.data(), in->shape());
+		out->assign(out_data.data(), out->shape());
+		weight0->assign(w0_data.data(), weight0->shape());
+		bias0->assign(b0_data.data(), bias0->shape());
+		weight1->assign(w1_data.data(), weight1->shape());
+		bias1->assign(b1_data.data(), bias1->shape());
+		session.update({
+			in->get_tensor().get(),
+			out->get_tensor().get(),
+			weight0->get_tensor().get(),
+			bias0->get_tensor().get(),
+			weight1->get_tensor().get(),
+			bias1->get_tensor().get(),
+		});
+	}
+}
+
+BENCHMARK(BM_OptimizedSigmoidMLP);
 
 
 BENCHMARK_MAIN();
