@@ -77,8 +77,7 @@ struct DQNTrainer
 		auto masked_output_score = age::reduce_sum_1d(
 			age::mul(train_out_, ead::convert_to_node<double>(output_mask_)), 0);
 		auto temp_diff = age::sub(masked_output_score, future_reward_);
-		prediction_error_ = age::reduce_mean(age::pow(temp_diff,
-			ead::make_constant_scalar<double>(2, temp_diff->shape())));
+		prediction_error_ = age::reduce_mean(age::square(temp_diff));
 
 		// updates for source network
 		pbm::PathedMapT svmap = source_qnet_->list_bases();

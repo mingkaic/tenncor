@@ -190,11 +190,11 @@ EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 		{
 			// use matrix when possible
 			return make_eigenmatrix<T,
-				Eigen::MatrixFunctionReturnValue<MatMapT<T>>,
+				typename Eigen::ArrayWrapper<MatMapT<T>>::SinReturnType,
 				MatMapT<T>>(shape_convert(outshape),
 				[](MatMapT<T>& in)
 				{
-					return in.sin();
+					return in.array().sin();
 				}, make_matmap(in.data_, in.shape_));
 		}
 	}
@@ -222,11 +222,11 @@ EigenptrT<T> cos (ade::Shape& outshape, const OpArg<T>& in)
 		{
 			// use matrix when possible
 			return make_eigenmatrix<T,
-				Eigen::MatrixFunctionReturnValue<MatMapT<T>>,
+				typename Eigen::ArrayWrapper<MatMapT<T>>::CosReturnType,
 				MatMapT<T>>(shape_convert(outshape),
 				[](MatMapT<T>& in)
 				{
-					return in.cos();
+					return in.array().cos();
 				}, make_matmap(in.data_, in.shape_));
 		}
 	}
@@ -251,16 +251,12 @@ EigenptrT<T> tan (ade::Shape& outshape, const OpArg<T>& in)
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			std::function<T(const T&)>,const MatMapT<T>>,
+		return make_eigenmatrix<T,
+			typename Eigen::ArrayWrapper<MatMapT<T>>::TanReturnType,
 			MatMapT<T>>(shape_convert(outshape),
 			[](MatMapT<T>& in)
 			{
-				return in.unaryExpr(std::function<T(const T&)>(
-					[](const T& a) -> T
-					{
-						return std::tan(a);
-					}));
+				return in.array().tan();
 			}, make_matmap(in.data_, in.shape_));
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
@@ -284,12 +280,12 @@ EigenptrT<T> exp (ade::Shape& outshape, const OpArg<T>& in)
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_exp_op<T>,const MatMapT<T>>,
+		return make_eigenmatrix<T,
+			typename Eigen::ArrayWrapper<MatMapT<T>>::ExpReturnType,
 			MatMapT<T>>(shape_convert(outshape),
 			[](MatMapT<T>& in)
 			{
-				return in.unaryExpr(Eigen::internal::scalar_exp_op<T>());
+				return in.array().exp();
 			}, make_matmap(in.data_, in.shape_));
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
@@ -309,12 +305,12 @@ EigenptrT<T> log (ade::Shape& outshape, const OpArg<T>& in)
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_log_op<T>,const MatMapT<T>>,
+		return make_eigenmatrix<T,
+			typename Eigen::ArrayWrapper<MatMapT<T>>::LogReturnType,
 			MatMapT<T>>(shape_convert(outshape),
 			[](MatMapT<T>& in)
 			{
-				return in.unaryExpr(Eigen::internal::scalar_log_op<T>());
+				return in.array().log();
 			}, make_matmap(in.data_, in.shape_));
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
@@ -359,12 +355,12 @@ EigenptrT<T> round (ade::Shape& outshape, const OpArg<T>& in)
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_round_op<T>,const MatMapT<T>>,
+		return make_eigenmatrix<T,
+			typename Eigen::ArrayWrapper<MatMapT<T>>::RoundReturnType,
 			MatMapT<T>>(shape_convert(outshape),
 			[](MatMapT<T>& in)
 			{
-				return in.unaryExpr(Eigen::internal::scalar_round_op<T>());
+				return in.array().round();
 			}, make_matmap(in.data_, in.shape_));
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<

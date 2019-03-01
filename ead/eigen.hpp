@@ -1,6 +1,5 @@
 #include "Eigen/Core"
 #include "unsupported/Eigen/CXX11/Tensor"
-#include <unsupported/Eigen/MatrixFunctions>
 
 #ifndef EAD_EIGEN_HPP
 #define EAD_EIGEN_HPP

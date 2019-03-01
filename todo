@@ -14,15 +14,18 @@ P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
 performance:
-P2 - implement convolution using Eigen
 P3 - implement sub-graph recognition optimizations (recognize patterns such as X * Y * Z / Y = X * Z or 1 / (1 + - exp (X)) = sigmoid(X))
 P3 - use scalars whenever possible
 P4 - investigate operation shortcut detection
 P4 - implement optimization options to increase data accuracy
 P4 - more performance test
 
+feature:
+P2 - implement convolution using Eigen for ead and llo
+
 nitpicks:
 - remove unordered_map/unordered_set if we're not using them properly
 
 update:
 - update all fmts usages
+- remove ead compile (it's too slow)

@@ -1,0 +1,58 @@
+// -> denotes preference of form in the direction of arrow
+// = denotes equivalent preference
+
+// ========== communitatives rules ==========
+add(any:x,any:y) = add(any:y,any:x)
+mul(any:x,any:y) = mul(any:y,any:x)
+
+// ========== normalization rules (left leaning > rhs) ==========
+add(any:x,add(any:y,any:z)) -> add(add(any:x,any:y),any:z)
+mul(any:x,mul(any:y,any:z)) -> mul(mul(any:x,any:y),any:z)
+min(any:x,min(any:y,any:z)) -> min(min(any:x,any:y),any:z)
+max(any:x,max(any:y,any:z)) -> max(max(any:x,any:y),any:z)
+
+// ========== reduction rules ==========
+pow(scalar:1,variable:x) -> scalar:1
+pow(variable:x,scalar:1) -> variable:x
+mul(scalar:1,variable:x) -> variable:x
+div(variable:x,scalar:1) -> variable:x
+pow(scalar:0,variable:x) -> scalar:0
+pow(variable:x,scalar:0) -> scalar:1
+add(scalar:0,variable:x) -> variable:x
+sub(variable:x,scalar:0) -> variable:x
+sub(scalar:0,variable:x) -> neg(variable:x)
+div(scalar:0,variable:x) -> scalar:0
+div(variable:x,scalar:0) -> error
+sub(variable:x,variable:x) -> scalar:0
+add(variable:x,sub(variable:y,variable:x)) -> variable:y
+sub(variable:x,sub(variable:x,variable:y)) -> variable:y
+sub(sub(variable:x,variable:y),variable:x) -> neg(variable:y)
+add(neg(variable:x),variable:y) -> sub(variable:y,variable:x)
+sqrt(square(variable:x)) -> variable:x
+square(sqrt(variable:x)) -> variable:x
+exp(log(variable:x)) -> variable:x
+log(exp(variable:x)) -> variable:x
+// cubes and squares
+pow(variable:x,scalar:2) -> square(variable:x)
+mul(variable:x,variable:x) -> square(variable:x)
+pow(variable:x,scalar:3) -> cube(variable:x)
+mul(square(variable:x),variable:x) -> cube(variable:x)
+// division-multiplication interaction
+mul(div(variable:x,variable:y),variable:y) -> variable:x
+div(mul(variable:x,variable:y),variable:y) -> variable:x
+div(mul(variable:x,variable:y),variable:x) -> variable:y
+// negative transfer to constant
+neg(mul(constant:x,variable:y)) -> mul(neg(constant:x),variable:y)
+mul(constant:x,neg(variable:y)) -> mul(neg(constant:x),variable:y)
+// trig identities
+add(square(sin(variable:x)),square(cos(variable:x))) = scalar:1
+sub(square(sin(variable:x)),scalar:1) = square(cos(variable:x))
+sub(square(cos(variable:x)),scalar:1) = square(sin(variable:x))
+// sigmoid
+div(scalar:1,add(scalar:1,exp(neg(variable:x)))) -> sigmoid(variable:x)
+// linear properties
+add(mul(any:x,any:y),mul(any:x,any:z))) = mul(any:x,add(any:y,any:z))
+sub(mul(any:x,any:y),mul(any:x,any:z))) = mul(any:x,sub(any:y,any:z))
+add(div(any:y,any:x),div(any:z,any:x))) = div(add(any:y,any:z),any:x)
+sub(div(any:y,any:x),div(any:z,any:x))) = div(sub(any:y,any:z),any:x)
+mul(div(any:y,any:x),div(any:z,any:x))) = div(mul(any:y,any:z),any:x)

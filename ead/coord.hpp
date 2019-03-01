@@ -20,7 +20,7 @@ struct CoordMap final : public ade::iCoordMap
 
 	ade::iCoordMap* connect (const ade::iCoordMap& rhs) const override
 	{
-		return nullptr; // todo: implement
+		return nullptr;
 	}
 
 	void forward (ade::CoordT::iterator out,
@@ -31,7 +31,7 @@ struct CoordMap final : public ade::iCoordMap
 
 	iCoordMap* reverse (void) const override
 	{
-		return nullptr; // todo: implement
+		return nullptr;
 	}
 
 	std::string to_string (void) const override

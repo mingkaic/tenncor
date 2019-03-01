@@ -22,7 +22,6 @@ static bool const_is_zero (Constant* cst)
 		[](double d) { return 0 == d; });
 }
 
-// todo: change this to target fixed value instead of looking at label
 ade::TensptrT zero_prune_edit (bool& is_optimized,
 	ade::Opcode& opcode, ade::ArgsT& args)
 {
