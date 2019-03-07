@@ -13,15 +13,6 @@ namespace opt
 
 const std::regex comment_transform("([^\\\\]?//.*)");
 
-// todo: replace this with cppkg's trim
-static inline void trim(std::string& s)
-{
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-		[](char c) { return !std::isspace(c); }));
-	s.erase(std::find_if(s.rbegin(), s.rend(),
-		[](char c) { return !std::isspace(c); }).base(), s.end());
-}
-
 std::string strip_comment (std::string line)
 {
     std::smatch sm;
@@ -56,8 +47,8 @@ std::optional<Transform> parse (std::string line)
         ++transform.pheight_;
         i += line_delim.size();
     }
-    trim(transform_half);
-    trim(result_half);
+    fmts::trim(transform_half);
+    fmts::trim(result_half);
     transform.pattern_ = std::regex(transform_half);
     transform.simplification_ = result_half;
     out = transform;

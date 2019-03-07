@@ -1,6 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 def cppkg_repository():
+    # todo: remove once ead compile is removed
     if "com_github_nelhage_rules_boost" not in native.existing_rules():
         git_repository(
             name = "com_github_nelhage_rules_boost",
@@ -11,5 +12,5 @@ def cppkg_repository():
     git_repository(
         name = "com_github_mingkaic_cppkg",
         remote = "https://github.com/mingkaic/cppkg",
-        commit = "3ea2085a1d80a1120d87e16c6936037be0150197",
+        commit = "7ade14465dcbc02d88d1c788c69e53069c23bcf9",
     )

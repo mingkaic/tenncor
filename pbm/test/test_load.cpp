@@ -16,27 +16,6 @@
 const std::string testdir = "pbm/data";
 
 
-static inline void ltrim(std::string& s)
-{
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-		[](char c) { return !std::isspace(c); }));
-}
-
-
-static inline void rtrim(std::string& s)
-{
-	s.erase(std::find_if(s.rbegin(), s.rend(),
-		[](char c) { return !std::isspace(c); }).base(), s.end());
-}
-
-
-static inline void trim(std::string &s)
-{
-	ltrim(s);
-	rtrim(s);
-}
-
-
 struct TestLoader : public pbm::iLoader
 {
 	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
@@ -126,7 +105,7 @@ TEST(LOAD, LoadGraph)
 	ASSERT_TRUE(expectstr.is_open());
 	while (std::getline(expectstr, line))
 	{
-		trim(line);
+		fmts::trim(line);
 		if (line.size() > 0)
 		{
 			expect += line + '\n';
@@ -140,7 +119,7 @@ TEST(LOAD, LoadGraph)
 
 	while (std::getline(gotstr, line))
 	{
-		trim(line);
+		fmts::trim(line);
 		if (line.size() > 0)
 		{
 			got += line + '\n';

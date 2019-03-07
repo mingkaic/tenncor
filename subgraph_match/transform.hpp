@@ -45,25 +45,17 @@ DepthMatrixT simplify_depthmatrix (TransformsT& transforms, DepthMatrixT depthm)
         if (std::regex_match(serial, transform.pattern_))
         {
             std::string simplification = std::regex_replace(serial,
-                transform.pattern_, transform.simplification_) + line_delim;
+                transform.pattern_, transform.simplification_);
 
             DepthMatrixT simplem;
-            // todo: use fmts::split instead
-            size_t i = 0;
-            std::string levelstr;
-            while ((i = simplification.find(line_delim, 0)) != std::string::npos)
+            auto levels = fmts::split(simplification, line_delim);
+            for (std::string level : levels)
             {
-                levelstr = simplification.substr(0, i) + ",";
-                std::vector<std::string> level;
-                size_t j = 0;
-                std::string elemstr;
-                while ((j = levelstr.find(",", 0)) != std::string::npos)
+                fmts::trim(level);
+                if (level.size() > 0)
                 {
-                    level.push_back(levelstr.substr(0, j));
-                    levelstr = levelstr.substr(j + 1);
+                    simplem.push_back(fmts::split(level, ","));
                 }
-                simplem.push_back(level);
-                simplification = simplification.substr(i + line_delim.size());
             }
             return simplem;
         }
