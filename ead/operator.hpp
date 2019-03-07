@@ -184,6 +184,7 @@ EigenptrT<T> neg (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 {
+#ifdef __cpp_if_constexpr
 	if constexpr(!std::is_integral<T>::value)
 	{
 		if (is_2d(outshape))
@@ -198,6 +199,7 @@ EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 				}, make_matmap(in.data_, in.shape_));
 		}
 	}
+#endif
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		std::function<T(const T&)>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
@@ -216,6 +218,7 @@ EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> cos (ade::Shape& outshape, const OpArg<T>& in)
 {
+#ifdef __cpp_if_constexpr
 	if constexpr(!std::is_integral<T>::value)
 	{
 		if (is_2d(outshape))
@@ -230,6 +233,7 @@ EigenptrT<T> cos (ade::Shape& outshape, const OpArg<T>& in)
 				}, make_matmap(in.data_, in.shape_));
 		}
 	}
+#endif
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		std::function<T(const T&)>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),

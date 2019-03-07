@@ -27,6 +27,8 @@ def _defn_func(grad):
         _AGE_INTERNAL_GRADSWITCH()
         default: logs::fatal("no gradient rule for unknown opcode");
     }}
+    {grad_out} defval;
+    return defval;
 }}'''
     return fmt.format(template=template, grad_out=grad_out, grad_in=grad_in)
 

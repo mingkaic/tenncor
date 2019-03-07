@@ -304,6 +304,7 @@ uint8_t type_size (_GENERATED_DTYPE type)
         case VRUM: return sizeof(float);
         default: logs::fatal("cannot get size of bad type");
     }
+    return 0;
 }
 
 template <>
@@ -404,6 +405,8 @@ ade::TensptrT chain_rule (ade::iFunctor* fwd,
         _AGE_INTERNAL_GRADSWITCH()
         default: logs::fatal("no gradient rule for unknown opcode");
     }
+    ade::TensptrT defval;
+    return defval;
 }
 
 }

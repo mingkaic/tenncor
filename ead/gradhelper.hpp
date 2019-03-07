@@ -13,20 +13,24 @@ namespace ead
 template <typename T>
 NodeptrT<T> to_node (ade::TensptrT tens)
 {
+	NodeptrT<T> out;
 	if (auto func = std::dynamic_pointer_cast<Functor<T>>(tens))
 	{
-		return std::make_shared<FuncNode<T>>(func);
+		out = std::make_shared<FuncNode<T>>(func);
 	}
 	else if (auto cst = std::dynamic_pointer_cast<Constant<T>>(tens))
 	{
-		return std::make_shared<ConstantNode<T>>(cst);
+		out = std::make_shared<ConstantNode<T>>(cst);
 	}
 	else if (auto var = std::dynamic_pointer_cast<Variable<T>>(tens))
 	{
-		return std::make_shared<VariableNode<T>>(var);
+		out = std::make_shared<VariableNode<T>>(var);
 	}
-	// else
-	logs::fatal("unknown tensor type");
+	else
+	{
+		logs::fatal("unknown tensor type");
+	}
+	return out;
 }
 
 template <typename T>

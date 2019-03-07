@@ -76,7 +76,7 @@ std::string identify (ade::iTensor* tens)
     return fmts::to_string(iptr);
 }
 
-#define __TYPED_ENCODE(realtype)return typed_encode_leaf<realtype>(\
+#define __TYPED_ENCODE(realtype)out = typed_encode_leaf<realtype>(\
 static_cast<ead::iLeaf<realtype>*>(leaf));
 
 template <typename T>
@@ -98,7 +98,9 @@ std::string typed_encode_leaf (ead::iLeaf<T>* leaf)
 
 std::string encode_leaf (ade::iLeaf* leaf)
 {
+    std::string out;
     TYPE_LOOKUP(__TYPED_ENCODE, leaf->type_code())
+    return out;
 }
 
 #undef __TYPED_ENCODE

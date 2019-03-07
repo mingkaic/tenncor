@@ -28,4 +28,4 @@ nitpicks:
 update:
 - update all fmts usages
 - remove ead compile (it's too slow and not useful)
-- address warnings (use C++17 attribute to silence no returns common in switch functions)
+- address warnings
