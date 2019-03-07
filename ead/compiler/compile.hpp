@@ -130,12 +130,12 @@ inline std::string str_red_coord (const ade::FuncArg& arg)
 		fmts::join(",", vdims.begin(), vdims.end()) + "}";
 }
 
-#define _INTERNAL_NAME_TYPE(REALTYPE)return #REALTYPE;
+#define __INTERNAL_NAME_TYPE(REALTYPE)return #REALTYPE;
 
 template <typename T>
 std::string type_str (void)
 {
-	TYPE_LOOKUP(_INTERNAL_NAME_TYPE, age::get_type<T>())
+	TYPE_LOOKUP(__INTERNAL_NAME_TYPE, age::get_type<T>())
 }
 
 template <typename T>

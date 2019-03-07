@@ -1,7 +1,5 @@
 licenses(["notice"])
 
-load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_library")
-
 load("//third_party/drake_rules:pybind.bzl", "pybind_library")
 
 filegroup(

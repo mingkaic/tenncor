@@ -79,7 +79,7 @@ struct LLOSaver : public pbm::iSaver
 	}
 };
 
-#define RET_VAL(realtype)return ade::TensptrT(\
+#define __RET_VAL(realtype)return ade::TensptrT(\
 Variable<realtype>::get((realtype*) pb, shape, label));
 
 /// Unmarshal cortenn::Source as Variable containing context of source
@@ -105,13 +105,13 @@ struct LLOLoader : public pbm::iLoader
 				return ade::TensptrT(Constant::get(out.c_str(), gencode, shape));
 			}
 			pb = out.c_str();
-			TYPE_LOOKUP(RET_VAL, typecode)
+			TYPE_LOOKUP(__RET_VAL, typecode)
 		}
 		if (is_const)
 		{
 			return ade::TensptrT(Constant::get(pb, gencode, shape));
 		}
-		TYPE_LOOKUP(RET_VAL, typecode)
+		TYPE_LOOKUP(__RET_VAL, typecode)
 	}
 
 	ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) override
@@ -145,7 +145,7 @@ struct LLOLoader : public pbm::iLoader
 	}
 };
 
-#undef RET_VAL
+#undef __RET_VAL
 
 }
 

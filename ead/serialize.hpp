@@ -93,7 +93,7 @@ struct EADSaver : public pbm::iSaver
 	}
 };
 
-#define RET_GENERIC(realtype)return is_const?\
+#define __RET_GENERIC(realtype)return is_const?\
 ade::TensptrT(Constant<realtype>::get((realtype*) pb, shape)):\
 ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 
@@ -116,9 +116,9 @@ struct EADLoader : public pbm::iLoader
 				out[outi] = pb[i];
 			}
 			pb = out.c_str();
-			TYPE_LOOKUP(RET_GENERIC, typecode)
+			TYPE_LOOKUP(__RET_GENERIC, typecode)
 		}
-		TYPE_LOOKUP(RET_GENERIC, typecode)
+		TYPE_LOOKUP(__RET_GENERIC, typecode)
 	}
 
 	ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) override
@@ -165,7 +165,7 @@ struct EADLoader : public pbm::iLoader
 	}
 };
 
-#undef RET_GENERIC
+#undef __RET_GENERIC
 
 }
 

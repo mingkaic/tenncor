@@ -1,0 +1,45 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "match",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//ead:ead",
+        "@boost//:property_tree",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = ["//subgraph_match:test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//subgraph_match:match",
+        "//testutil:testutil",
+    ],
+    linkstatic = True,
+)
