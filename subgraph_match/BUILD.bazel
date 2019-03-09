@@ -38,6 +38,7 @@ cc_test(
     srcs = ["//subgraph_match:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        "//dbg:dbg",
         "//subgraph_match:match",
         "//testutil:testutil",
     ],

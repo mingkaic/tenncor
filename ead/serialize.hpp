@@ -93,7 +93,7 @@ struct EADSaver : public pbm::iSaver
 	}
 };
 
-#define __OUT_GENERIC(realtype)leaf = is_const?\
+#define _OUT_GENERIC(realtype)leaf = is_const?\
 ade::TensptrT(Constant<realtype>::get((realtype*) pb, shape)):\
 ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 
@@ -117,11 +117,11 @@ struct EADLoader : public pbm::iLoader
 				out[outi] = pb[i];
 			}
 			pb = out.c_str();
-			TYPE_LOOKUP(__OUT_GENERIC, typecode)
+			TYPE_LOOKUP(_OUT_GENERIC, typecode)
 		}
 		else
 		{
-			TYPE_LOOKUP(__OUT_GENERIC, typecode)
+			TYPE_LOOKUP(_OUT_GENERIC, typecode)
 		}
 		return leaf;
 	}
@@ -170,7 +170,7 @@ struct EADLoader : public pbm::iLoader
 	}
 };
 
-#undef __OUT_GENERIC
+#undef _OUT_GENERIC
 
 }
 

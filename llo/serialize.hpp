@@ -79,15 +79,17 @@ struct LLOSaver : public pbm::iSaver
 	}
 };
 
-#define __RET_VAL(realtype)return ade::TensptrT(\
-Variable<realtype>::get((realtype*) pb, shape, label));
-
 /// Unmarshal cortenn::Source as Variable containing context of source
 struct LLOLoader : public pbm::iLoader
 {
+
+#define _SET_VAL(realtype)out_tens = ade::TensptrT(\
+Variable<realtype>::get((realtype*) pb, shape, label));
+
 	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
 		size_t typecode, std::string label, bool is_const) override
 	{
+		ade::TensptrT out_tens;
 		age::_GENERATED_DTYPE gencode = (age::_GENERATED_DTYPE) typecode;
 		size_t nbytes = age::type_size(gencode);
 		if (is_big_endian() && nbytes > 1)
@@ -102,17 +104,26 @@ struct LLOLoader : public pbm::iLoader
 			}
 			if (is_const)
 			{
-				return ade::TensptrT(Constant::get(out.c_str(), gencode, shape));
+				out_tens = ade::TensptrT(Constant::get(out.c_str(), gencode, shape));
 			}
-			pb = out.c_str();
-			TYPE_LOOKUP(__RET_VAL, typecode)
+			else
+			{
+				pb = out.c_str();
+				TYPE_LOOKUP(_SET_VAL, typecode)
+			}
 		}
-		if (is_const)
+		else if (is_const)
 		{
-			return ade::TensptrT(Constant::get(pb, gencode, shape));
+			out_tens = ade::TensptrT(Constant::get(pb, gencode, shape));
 		}
-		TYPE_LOOKUP(__RET_VAL, typecode)
+		else
+		{
+			TYPE_LOOKUP(_SET_VAL, typecode)
+		}
+		return out_tens;
 	}
+
+#undef _SET_VAL
 
 	ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) override
 	{
@@ -144,8 +155,6 @@ struct LLOLoader : public pbm::iLoader
 		return generate_shaper(coord);
 	}
 };
-
-#undef __RET_VAL
 
 }
 

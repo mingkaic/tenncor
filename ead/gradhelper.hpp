@@ -41,7 +41,6 @@ NodeptrT<T> reduce_sum_grad (ade::iFunctor* fwd,
 	// assert shape == bwd->get_tensor()->shape()
 	const auto& child = fwd->get_children()[0];
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
-	auto revio = !child.map_io();
 	CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
@@ -60,7 +59,7 @@ NodeptrT<T> reduce_sum_grad (ade::iFunctor* fwd,
 		revcoord = std::make_shared<CoordMap>(EXTEND, bcast, false);
 	}
 	return make_functor<T>(ade::Opcode{"EXTEND",age::EXTEND}, {
-		FuncArg<T>(bwd, revshaper, revio, revcoord)
+		FuncArg<T>(bwd, revshaper, revcoord)
 	});
 }
 
@@ -71,7 +70,7 @@ NodeptrT<T> reduce_prod_grad (ade::iFunctor* fwd,
 	const auto& child = fwd->get_children()[0];
 	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
-		{FuncArg<T>(childnode, child.get_shaper(), child.map_io(),
+		{FuncArg<T>(childnode, child.get_shaper(),
 			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
 	NodeptrT<T> rev_fwd = reduce_sum_grad(fwd, fwd_cpy, args, idx);
 	return age::mul(age::div(rev_fwd, childnode),
@@ -85,7 +84,7 @@ NodeptrT<T> reduce_comp_grad (ade::iFunctor* fwd,
 	const auto& child = fwd->get_children()[0];
 	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
-		{FuncArg<T>(childnode, child.get_shaper(), child.map_io(),
+		{FuncArg<T>(childnode, child.get_shaper(),
 			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
 	NodeptrT<T> rev_fwd = reduce_sum_grad(fwd, fwd_cpy, args, idx);
 	return age::mul(age::eq(rev_fwd, childnode),
@@ -98,7 +97,6 @@ NodeptrT<T> permute_grad (ade::iFunctor* fwd,
 {
 	const auto& child = fwd->get_children()[0];
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
-	auto revio = !child.map_io();
 	CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
@@ -114,7 +112,7 @@ NodeptrT<T> permute_grad (ade::iFunctor* fwd,
 		revcoord = std::make_shared<CoordMap>(PERMUTE, order, true);
 	}
 	return make_functor<T>(ade::Opcode{"PERMUTE",age::PERMUTE},{
-		FuncArg<T>(bwd, revshaper, revio, revcoord)
+		FuncArg<T>(bwd, revshaper, revcoord)
 	});
 }
 
@@ -124,7 +122,6 @@ NodeptrT<T> extend_grad (ade::iFunctor* fwd,
 {
 	const auto& child = fwd->get_children()[0];
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
-	auto revio = !child.map_io();
 	CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
@@ -142,7 +139,7 @@ NodeptrT<T> extend_grad (ade::iFunctor* fwd,
 		revcoord = reduce(red_dims);
 	}
 	return make_functor<T>(ade::Opcode{"REDUCE_SUM",age::REDUCE_SUM},{
-		FuncArg<T>(bwd, revshaper, revio, revcoord)
+		FuncArg<T>(bwd, revshaper, revcoord)
 	});
 }
 

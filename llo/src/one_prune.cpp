@@ -50,7 +50,7 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 					return ade::TensptrT(Constant::get(1, args[0].shape()));
 				}
 				// else if is_one[1]
-				if (is_identity(args[0].get_coorder()))
+				if (ade::is_identity(args[0].get_coorder().get()))
 				{
 					return args[0].get_tensor();
 				}
@@ -80,7 +80,7 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 			case age::DIV:
 				if (is_one[1])
 				{
-					if (is_identity(args[0].get_coorder()))
+					if (ade::is_identity(args[0].get_coorder().get()))
 					{
 						return args[0].get_tensor();
 					}

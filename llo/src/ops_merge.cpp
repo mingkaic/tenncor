@@ -107,7 +107,7 @@ ade::TensptrT ops_merge_edit (bool& is_optimized,
 			}
 		}
 		if (1 == newchildren.size() &&
-			is_identity(newchildren[0].get_coorder()))
+			ade::is_identity(newchildren[0].get_coorder().get()))
 		{
 			return newchildren[0].get_tensor();
 		}

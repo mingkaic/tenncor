@@ -45,32 +45,12 @@ using EngineT = std::default_random_engine;
 /// Return global random generator
 EngineT& get_engine (void);
 
-inline bool is_identity (ade::CoordptrT coorder)
-{
-	if (ade::identity == coorder)
-	{
-		return true;
-	}
-	bool id = true;
-	coorder->access([&id](const ade::MatrixT& m)
-	{
-		for (uint8_t i = 0; id && i < ade::mat_dim; ++i)
-		{
-			for (uint8_t j = 0; id && j < ade::mat_dim; ++j)
-			{
-				id = id && m[i][j] == (i == j);
-			}
-		}
-	});
-	return id;
-}
-
 /// Generic unary operation assuming identity mapping
 template <typename T>
 inline void unary (TensorT<T>& out, DataArg<T> in,
 	std::function<void(TensorT<T>&,const TensorT<T>&)> f)
 {
-	if (is_identity(in.mapper_))
+	if (ade::is_identity(in.mapper_.get()))
 	{
 		f(out, *in.data_);
 	}
@@ -272,7 +252,7 @@ inline void binary (TensorT<T>& out, DataArg<T> a, DataArg<T> b,
 	TensorT<T>* lhs = nullptr;
 	TensorT<T>* rhs = nullptr;
 
-	if (is_identity(a.mapper_))
+	if (ade::is_identity(a.mapper_.get()))
 	{
 		lhs = a.data_.get();
 	}
@@ -306,7 +286,7 @@ inline void binary (TensorT<T>& out, DataArg<T> a, DataArg<T> b,
 		}
 	}
 
-	if (is_identity(b.mapper_))
+	if (ade::is_identity(b.mapper_.get()))
 	{
 		rhs = b.data_.get();
 	}
@@ -538,7 +518,7 @@ inline void nnary (TensorT<T>& out, DataArgsT<T> args,
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
 		auto& arg = args[i];
-		if (is_identity(arg.mapper_))
+		if (ade::is_identity(arg.mapper_.get()))
 		{
 			if (i == 0)
 			{

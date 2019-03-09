@@ -244,7 +244,6 @@ NodesT<T> ops_reuse (NodesT<T> roots)
 						{
 							smart_map[it->second],
 							children[i].get_shaper(),
-							children[i].map_io(),
 							children[i].get_coorder(),
 						};
 					}

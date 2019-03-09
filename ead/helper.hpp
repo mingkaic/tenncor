@@ -74,8 +74,8 @@ NodeptrT<T> get_matmul (NodeptrT<T> a, NodeptrT<T> b)
 		}
 	));
 	return make_functor<T>(ade::Opcode{"MATMUL", age::MATMUL}, {
-		FuncArg<T>(a, left_shaper, false, nullptr),
-		FuncArg<T>(b, right_shaper, false, nullptr)
+		FuncArg<T>(a, left_shaper, nullptr),
+		FuncArg<T>(b, right_shaper, nullptr)
 	});
 }
 

@@ -1,11 +1,4 @@
-#include <regex>
-
-#include "ade/ifunctor.hpp"
-
-#include "ead/generated/opmap.hpp"
-
-#include "ead/constant.hpp"
-#include "ead/variable.hpp"
+#include "subgraph_match/irep.hpp"
 
 #ifndef OPT_TRANSFORM_HPP
 #define OPT_TRANSFORM_HPP
@@ -13,102 +6,98 @@
 namespace opt
 {
 
-const std::string tuple_delim = "->";
-
-const std::string line_delim = ",,";
-
-using DepthMatrixT = std::vector<std::vector<std::string>>;
-
 struct Transform final
 {
-    size_t pheight_;
+	Transform (std::string stmt)
+	{
+		auto parts = fmts::split(stmt, tuple_delim);
+		if (parts.size() < 2)
+		{
+			logs::fatalf(
+				"statement must consist at least 2 parts delimited by %s: %s",
+				tuple_delim.c_str(), stmt.c_str());
+		}
+		stop_ = parts.size() == 2;
+		std::string transform_half = parts[0];
+		std::string result_half = parts[1];
+		fmts::trim(transform_half);
+		fmts::trim(result_half);
+		pattern_ = std::regex(transform_half);
+		simplification_ = result_half;
+		pheight_ = fmts::split(transform_half, line_delim).size();
+	}
 
-    std::regex pattern_;
+	bool simplify (TokenptrT& root, IdTokenMapT& token_map)
+	{
+		std::string serial = root->encode(pheight_);
+		bool matched = std::regex_match(serial, pattern_);
+		if (matched)
+		{
+			std::string replacement = std::regex_replace(
+				serial, pattern_, simplification_);
+			auto levels = fmts::split(std::regex_replace(serial, pattern_,
+				simplification_), line_delim);
 
-    std::string simplification_;
+			root = std::make_shared<TokenNode>(levels[0]);
+			std::list<TokenptrT> parents = {root};
+			for (size_t i = 1, n = levels.size(); i < n; ++i)
+			{
+				std::string level = levels[i];
+				fmts::trim(level);
+				std::vector<std::string> tokens = fmts::split(level, ",");
+				std::list<TokenptrT> new_parents;
+				for (std::string token : tokens)
+				{
+					fmts::trim(token);
+					if (token.empty())
+					{
+						continue;
+					}
+					auto it = parents.begin();
+					assert(parents.end() != it);
+					auto node = std::make_shared<TokenNode>(token);
+					if (nullptr == node)
+					{
+						logs::fatalf("failed to parse token: '%s'",
+							token.c_str());
+					}
+					TokenptrT parent = *it;
+					parent->children_.push_back(node);
+					if (parent->children_.size() == parent->nallowed_children_)
+					{
+						parents.pop_front();
+					}
+					if (node->nallowed_children_ > 0)
+					{
+						new_parents.push_back(node);
+					}
+				}
+				parents = new_parents;
+			}
+			for (TokenptrT& parent : parents)
+			{
+				auto it = token_map.find(parent->tens_id_);
+				if (token_map.end() == it)
+				{
+					logs::fatalf("cannot match unknown parent token %s",
+						parent->to_string().c_str());
+				}
+				parent->children_ = it->second->children_;
+			}
+		}
+		return matched && stop_;
+	}
+
+	bool stop_; // whether to stop if we hit something matches pattern
+
+	std::regex pattern_;
+
+	std::string simplification_;
+
+	size_t pheight_;
 };
 
 using TransformsT = std::vector<Transform>;
-
-DepthMatrixT simplify_depthmatrix (TransformsT& transforms, DepthMatrixT depthm)
-{
-    for (Transform& transform : transforms)
-    {
-        std::string serial = depthm[0][0];
-        for (size_t i = 1, n = std::min(depthm.size(), transform.pheight_);
-            i < n; ++i)
-        {
-            auto& idepthm = depthm[i];
-            serial += line_delim + fmts::join(",", idepthm.begin(), idepthm.end());
-        }
-
-        if (std::regex_match(serial, transform.pattern_))
-        {
-            std::string simplification = std::regex_replace(serial,
-                transform.pattern_, transform.simplification_);
-
-            DepthMatrixT simplem;
-            auto levels = fmts::split(simplification, line_delim);
-            for (std::string level : levels)
-            {
-                fmts::trim(level);
-                if (level.size() > 0)
-                {
-                    simplem.push_back(fmts::split(level, ","));
-                }
-            }
-            return simplem;
-        }
-    }
-    return depthm;
-}
-
-const std::string var_pattern = "variable(%s)";
-
-const std::string cst_pattern = "constant(%s)";
-
-const std::string scalar_fmt = "scalar(%s)";
-
-std::string identify (ade::iTensor* tens)
-{
-    // pointer to string
-    size_t iptr = (size_t) tens;
-    return fmts::to_string(iptr);
-}
-
-#define __TYPED_ENCODE(realtype)out = typed_encode_leaf<realtype>(\
-static_cast<ead::iLeaf<realtype>*>(leaf));
-
-template <typename T>
-std::string typed_encode_leaf (ead::iLeaf<T>* leaf)
-{
-    if (leaf->is_const())
-    {
-        T* begin = (T*) leaf->data();
-        T* end = begin + leaf->shape().n_elems();
-        if (std::adjacent_find(begin, end, std::not_equal_to<>()) == end)
-        {
-            return fmts::sprintf(scalar_fmt,
-                fmts::to_string(*begin).c_str());
-        }
-        return cst_pattern;
-    }
-    return var_pattern + identify(leaf);
-}
-
-std::string encode_leaf (ade::iLeaf* leaf)
-{
-    std::string out;
-    TYPE_LOOKUP(__TYPED_ENCODE, leaf->type_code())
-    return out;
-}
-
-#undef __TYPED_ENCODE
-
-std::string encode_func (ade::iFunctor* func)
-{
-    return func->get_opcode().name_ + "(" + identify(func) + ")";
-}
 
 }
 

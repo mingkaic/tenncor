@@ -6,27 +6,6 @@
 namespace ead
 {
 
-inline bool is_identity (ade::CoordptrT coorder)
-{
-	if (ade::identity == coorder || nullptr == coorder)
-	{
-		return true;
-	}
-	bool id = false;
-	coorder->access([&id](const ade::MatrixT& m)
-	{
-		id = true;
-		for (uint8_t i = 0; id && i < ade::mat_dim; ++i)
-		{
-			for (uint8_t j = 0; id && j < ade::mat_dim; ++j)
-			{
-				id = id && m[i][j] == (i == j);
-			}
-		}
-	});
-	return id;
-}
-
 template <typename T>
 ade::TensptrT ops_prune_edit (bool& is_optimized,
 	ade::Opcode& opcode, ArgsT<T>& args)
@@ -38,7 +17,7 @@ ade::TensptrT ops_prune_edit (bool& is_optimized,
 		case age::REDUCE_MIN:
 		case age::REDUCE_MAX:
 		{
-			if (is_identity(args[0].get_shaper()))
+			if (ade::is_identity(args[0].get_shaper().get()))
 			{
 				// we are reducing 0 dimensions, so don't reduce
 				return args[0].get_tensor();

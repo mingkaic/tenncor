@@ -9,27 +9,6 @@ const char label_delim = ':';
 
 void multiline_replace (std::string& multiline);
 
-inline bool is_identity (ade::iCoordMap* coorder)
-{
-	if (ade::identity.get() == coorder || nullptr == coorder)
-	{
-		return true;
-	}
-	bool id = false;
-	coorder->access([&id](const ade::MatrixT& m)
-	{
-		id = true;
-		for (uint8_t i = 0; id && i < ade::mat_dim; ++i)
-		{
-			for (uint8_t j = 0; id && j < ade::mat_dim; ++j)
-			{
-				id = id && m[i][j] == (i == j);
-			}
-		}
-	});
-	return id;
-}
-
 enum NODE_TYPE
 {
 	VARIABLE = 0,
@@ -81,7 +60,7 @@ struct CSVEquation final : public ade::iTraveler
 			const ade::FuncArg& child = children[i];
 			auto coorder = child.get_coorder().get();
 			auto tens = child.get_tensor().get();
-			if (is_identity(coorder))
+			if (ade::is_identity(coorder))
 			{
 				coorder = nullptr;
 			}
