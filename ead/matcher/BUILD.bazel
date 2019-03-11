@@ -20,14 +20,11 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "match",
+    name = "matcher",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
-    deps = [
-        "//ead:ead",
-        "@boost//:property_tree",
-    ],
+    deps = ["//ead:ead"],
     visibility = ["//visibility:public"],
 )
 
@@ -35,11 +32,11 @@ cc_library(
 
 cc_test(
     name = "test",
-    srcs = ["//subgraph_match:test_srcs"],
+    srcs = ["//ead/matcher:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//dbg:dbg",
-        "//subgraph_match:match",
+        "//ead/matcher:matcher",
         "//testutil:testutil",
     ],
     linkstatic = True,

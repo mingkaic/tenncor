@@ -33,8 +33,7 @@ static const std::string constname = "constant";
 static const std::string scalrname = "scalar";
 
 static const std::regex token_pattern(
-	"(?:(\\w+)\\((\\d*)\\)|(scalar)\\((\\d+(?:\\.\\d+)?)\\))"
-	"(<\\d+>)?(\\[\\d+\\])?");
+	"(?:(\\w+)\\((\\d*(?:\\.\\d+)?)\\))(?:<(\\d+)>)?(?:\\[(\\d+)\\])?");
 
 static const std::unordered_set<std::string> reserved_opnames = {
 	varname, constname, scalrname };
@@ -61,7 +60,7 @@ void rep_leaf (int& type, std::string& str_id,
 	{
 		T* begin = (T*) leaf->data();
 		T* end = begin + leaf->shape().n_elems();
-		if (std::adjacent_find(begin, end, std::not_equal_to<>()) == end)
+		if (std::adjacent_find(begin, end, std::not_equal_to<T>()) == end)
 		{
 			type = _OPT_SCALRTYPE;
 			str_id = fmts::to_string(*begin);
@@ -195,24 +194,9 @@ static_cast<ead::iLeaf<realtype>*>(leaf));
 			type_ = opcode;
 		}
 		tens_id_ = sm[2].str();
-		if (4 == sm.size())
-		{
-			std::string id = sm[3].str();
-			fmts::trim(id);
-			if (id[0] == '<') // is shaper
-			{
-				shaper_id_ = id.substr(1, id.size() - 2);
-			}
-			else // is coorder
-			{
-				coorder_id_ = id.substr(1, id.size() - 2);
-			}
-		}
-		else if (5 == sm.size())
-		{
-			shaper_id_ = sm[3].str().substr(1, sm[3].length() - 2);
-			coorder_id_ = sm[4].str().substr(1, sm[4].length() - 2);
-		}
+		shaper_id_ = sm[3].str();
+		coorder_id_ = sm[4].str();
+		changed_ = tens_id_.size() == 0;
 	}
 
 	std::string to_string (void) const
@@ -231,6 +215,7 @@ static_cast<ead::iLeaf<realtype>*>(leaf));
 				break;
 			default:
 				stype = age::name_op((age::_GENERATED_OPCODE) type_);
+				assert(reserved_opnames.end() == reserved_opnames.find(stype));
 		}
 		std::string token_rep = stype + "(" + tens_id_ + ")";
 		if (shaper_id_.size() > 0)
@@ -266,7 +251,7 @@ static_cast<ead::iLeaf<realtype>*>(leaf));
 			return ead::make_constant_scalar<T>((T) db, outshape);
 		}
 		auto tit = tensmap.find(tens_id_);
-		if (tensmap.end() != tit)
+		if (tensmap.end() != tit && false == changed_)
 		{
 			// tens already exists
 			// variables, constants, or non-modified functor
@@ -329,6 +314,8 @@ static_cast<ead::iLeaf<realtype>*>(leaf));
 	std::string tens_id_;
 
 	size_t nallowed_children_ = 0;
+
+	bool changed_ = false;
 
 	// No guarantee on valid (non-default) init in allocation
 	std::string shaper_id_;

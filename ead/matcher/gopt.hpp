@@ -1,6 +1,6 @@
 #include "ade/ade.hpp"
 
-#include "subgraph_match/transform.hpp"
+#include "ead/matcher/transform.hpp"
 
 #ifndef OPT_GOPT_HPP
 #define OPT_GOPT_HPP
@@ -50,6 +50,10 @@ struct GraphOpt final : ade::iTraveler
 				}
 				func_root->children_.push_back(child_root);
 				tens_map_.emplace(child_root->tens_id_, tens);
+				if (child_root->changed_)
+				{
+					func_root->changed_ = true;
+				}
 			}
 			// simplify and save
 			for (Transform& transform : transforms_)

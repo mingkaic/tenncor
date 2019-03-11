@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "subgraph_match/parse.hpp"
+#include "ead/matcher/parse.hpp"
 
 
 TEST(PARSE, TransformCreation)
@@ -23,7 +23,7 @@ TEST(PARSE, TransformCreation)
 		<< "([\\w\\(\\)\\[\\]<>]+),([\\w\\(\\)\\[\\]<>]+) -> $1(),,$1(),$5,,$2,$4,$3 "
 		<< "->// comment\n";
 
-	auto transforms = opt::parse_lines(ss);
+	auto transforms = opt::parse_stream(ss);
 
 	ASSERT_EQ(2, transforms.size());
 
@@ -51,7 +51,7 @@ TEST(PARSE, TransformWorks)
 		<< "(ADD|MUL|MIN|MAX)\\(\\d*\\),,([\\w\\(\\)\\[\\]<>]+),\\1\\(\\d*\\),,(.*),?"
 		<< "([\\w\\(\\)\\[\\]<>]+),([\\w\\(\\)\\[\\]<>]+) -> $1(),,$1(),$5,,$2,$4,$3\n";
 
-	auto transforms = opt::parse_lines(ss);
+	auto transforms = opt::parse_stream(ss);
 
 	ASSERT_EQ(3, transforms.size());
 

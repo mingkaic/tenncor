@@ -34,6 +34,12 @@ filegroup(
     ]),
 )
 
+filegroup(
+    name = "optimizations",
+    srcs = ["cfg/optimizations"],
+    visibility = ["//visibility:public"],
+)
+
 # filegroup(
 #     name = "compile_runtime",
 #     srcs = glob([

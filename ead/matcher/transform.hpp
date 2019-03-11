@@ -1,4 +1,4 @@
-#include "subgraph_match/irep.hpp"
+#include "ead/matcher/irep.hpp"
 
 #ifndef OPT_TRANSFORM_HPP
 #define OPT_TRANSFORM_HPP
@@ -39,17 +39,20 @@ struct Transform final
 				simplification_), line_delim);
 
 			root = std::make_shared<TokenNode>(levels[0]);
-			std::list<TokenptrT> parents = {root};
+			std::list<TokenptrT> parents;
+			if (root->type_ >= 0)
+			{
+				parents = {root};
+			}
 			for (size_t i = 1, n = levels.size(); i < n; ++i)
 			{
 				std::string level = levels[i];
-				fmts::trim(level);
 				std::vector<std::string> tokens = fmts::split(level, ",");
 				std::list<TokenptrT> new_parents;
 				for (std::string token : tokens)
 				{
 					fmts::trim(token);
-					if (token.empty())
+					if (0 == token.size())
 					{
 						continue;
 					}

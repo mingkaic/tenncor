@@ -31,28 +31,32 @@ cc_binary(
         "//rocnnet/trainer:trainer",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
-    data = glob(["pretrained/*"]),
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
 )
 
 py_binary(
     name = "gd_demo",
     srcs = ["demo/gd_demo.py"],
     deps = [":rocnnet_py"],
-    data = glob(["pretrained/*"]),
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
 )
 
 py_binary(
     name = "dqn_demo",
     srcs = ["demo/dqn_demo.py"],
     deps = [":rocnnet_py"],
-    data = glob(["pretrained/*"]),
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
 )
 
 py_binary(
     name = "slow_dqn_demo",
     srcs = ["demo/slow_dqn_demo.py"],
     deps = [":rocnnet_py"],
-    data = glob(["pretrained/*"]),
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
 )
 
 # py_binary(

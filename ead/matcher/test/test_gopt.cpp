@@ -9,7 +9,7 @@
 
 #include "ead/ead.hpp"
 
-#include "subgraph_match/gopt.hpp"
+#include "ead/matcher/gopt.hpp"
 
 
 TEST(GOPT, NormalizeGraph)

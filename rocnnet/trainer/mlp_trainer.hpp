@@ -1,6 +1,8 @@
 #include "ead/opt/multi_opt.hpp"
 #include "ead/opt/ops_reuse.hpp"
 
+#include "ead/matcher/matcher.hpp"
+
 #include "rocnnet/modl/mlp.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
@@ -50,11 +52,19 @@ struct MLPTrainer
 			}
 		}
 
+		opt::GraphOpt optimizer = opt::config_opt();
 		size_t n_roots = to_optimize.size();
 		ead::NodesT<double> roots(n_roots);
-		std::transform(to_optimize.begin(), to_optimize.end(),
-			roots.begin(), [](ead::NodeptrT<double>* ptr) { return *ptr; });
-		roots = ead::ops_reuse<double>(ead::multi_optimize<double>(roots));
+		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
+			[&optimizer](ead::NodeptrT<double>* ptr)
+			{
+				(*ptr)->get_tensor()->accept(optimizer);
+				return *ptr;
+			});
+		{
+			auto temp = optimizer.apply_optimization(roots);
+			roots = ead::ops_reuse<double>(ead::multi_optimize<double>(temp));
+		}
 
 		for (size_t i = 0; i < n_roots; ++i)
 		{
