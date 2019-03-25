@@ -1,8 +1,14 @@
 ''' Extension to generate Pybind11 API file '''
 
+import os
+
 import age.templates.template as template
 
 FILENAME = 'pyapi'
+
+_DEFAULT_PYBIND_TYPE = 'double'
+
+_PYBINDT = '<PybindT>'
 
 _func_fmt = '''{outtype} {funcname}_{idx} ({param_decl})
 {{
@@ -35,7 +41,7 @@ def _wrap_func(idx, api):
             for arg in api['args']]),
         args = ', '.join([arg['name'] for arg in api['args']]))
     for temp in templates:
-        out = out.replace('<{}>'.format(temp), '<double>')
+        out = out.replace('<{}>'.format(temp), _PYBINDT)
     return out
 
 _mdef_fmt = 'm.def("{pyfunc}", &pyage::{func}_{idx}, {description}, {pyargs});'
@@ -94,7 +100,7 @@ def _mdef_apis(apis):
         if isinstance(api['out'], dict) and 'type' in api['out']:
             outtype = api['out']['type']
             for temp in templates:
-                outtype = outtype.replace('<{}>'.format(temp), '<double>')
+                outtype = outtype.replace('<{}>'.format(temp), _PYBINDT)
             outtypes.add(outtype)
 
     class_defs = []
@@ -114,6 +120,15 @@ def _mdef_apis(apis):
         pyargs = ', '.join([parse_pyargs(arg) for arg in api['args']]))
         for i, api in enumerate(apis)])
 
+# EXPORT
+header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
+'''// type to replace template arguments in pybind
+using PybindT = {pybind_type};
+''')
+
+header.pybind_type = ('pybind_type', lambda pybind_type: pybind_type or _DEFAULT_PYBIND_TYPE)
+
+# EXPORT
 source = template.AGE_FILE(FILENAME, template.SOURCE_EXT,
 '''namespace py = pybind11;
 
@@ -139,15 +154,21 @@ source.unique_wrap = ('apis', lambda apis: '\n\n'.join([_wrap_func(i, api)
 
 source.defs = ('apis', _mdef_apis)
 
+# EXPORT
 def process(directory, relpath, fields):
+
+    pybind_hdr_path = os.path.join(relpath, header.fpath)
 
     source.includes = [
         '"pybind11/pybind11.h"',
         '"pybind11/stl.h"',
+        '"' + pybind_hdr_path + '"',
     ]
 
+    directory['pyapi_hpp'] = header
     directory['pyapi_src'] = source
 
+    header.process(fields)
     source.process(fields)
 
     if 'includes' in fields and source.fpath in fields['includes']:

@@ -49,6 +49,7 @@ genrule(
         "generated/grader.hpp",
         "generated/grader.cpp",
         "generated/opmap.hpp",
+        "generated/pyapi.hpp",
         "generated/pyapi.cpp",
     ],
     tools = ["//pybinder:pyagen"],
@@ -87,7 +88,10 @@ cc_library(
 
 pybind_library(
     name = "age_py",
-    cc_srcs = ["//llo:generated/pyapi.cpp"],
+    cc_srcs = [
+        "//llo:generated/pyapi.hpp",
+        "//llo:generated/pyapi.cpp",
+    ],
     cc_deps = ["//llo:llo"],
 )
 

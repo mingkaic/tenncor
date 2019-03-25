@@ -5,23 +5,12 @@
 namespace eqns
 {
 
-ead::NodeptrT<double> sigmoid (ead::NodeptrT<double> x)
+ead::NodeptrT<PybindT> identity (ead::NodeptrT<PybindT> x)
 {
-	return age::sigmoid(x);
+	return x;
 }
 
-ead::NodeptrT<double> slow_sigmoid (ead::NodeptrT<double> x)
-{
-	auto one = ead::make_constant_scalar<double>(1, x->shape());
-	return age::div(one, age::add(one, age::exp(age::neg(x))));
-}
-
-ead::NodeptrT<double> tanh (ead::NodeptrT<double> x)
-{
-	return age::tanh(x);
-}
-
-ead::NodeptrT<double> softmax (ead::NodeptrT<double> x)
+ead::NodeptrT<PybindT> softmax (ead::NodeptrT<PybindT> x)
 {
 	auto num = age::exp(x);
 	auto denom = age::reduce_sum(num);

@@ -5,6 +5,7 @@ import argparse
 
 import numpy as np
 
+import ead.age as age
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
@@ -72,8 +73,8 @@ def main(args):
     n_actions = 29
 
     hiddens = [
-        rcn.get_layer(rcn.tanh, 200),
-        rcn.get_layer(rcn.tanh, 200),
+        rcn.get_layer(age.tanh, 200),
+        rcn.get_layer(age.tanh, 200),
         rcn.get_layer(rcn.identity, n_actions)
     ]
 

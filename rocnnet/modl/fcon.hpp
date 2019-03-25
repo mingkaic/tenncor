@@ -1,4 +1,5 @@
 #include "ead/generated/api.hpp"
+
 #include "ead/grader.hpp"
 
 #include "rocnnet/eqns/helper.hpp"
@@ -29,18 +30,18 @@ struct FCon final : public iMarshalSet
 			ade::Shape shape({n_output, n_inputs[i]});
 			size_t ndata = shape.n_elems();
 
-			double bound = 1.0 / std::sqrt(n_inputs[i]);
-			std::uniform_real_distribution<double> dist(-bound, bound);
+			PybindT bound = 1.0 / std::sqrt(n_inputs[i]);
+			std::uniform_real_distribution<PybindT> dist(-bound, bound);
 			auto gen = [&dist]()
 			{
 				return dist(ead::get_engine());
 			};
-			std::vector<double> data(ndata);
+			std::vector<PybindT> data(ndata);
 			std::generate(data.begin(), data.end(), gen);
 
-			ead::VarptrT<double> weight = ead::make_variable<double>(
+			ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
 				data.data(), shape, fmts::sprintf(weight_fmt, i));
-			ead::VarptrT<double> bias = ead::make_variable_scalar<double>(
+			ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
 				0.0, ade::Shape({n_output}), fmts::sprintf(bias_fmt, i));
 			weight_bias_.push_back({
 				std::make_shared<MarshalVar>(weight),
@@ -69,14 +70,14 @@ struct FCon final : public iMarshalSet
 	FCon& operator = (FCon&& other) = default;
 
 
-	ead::NodeptrT<double> operator () (ead::NodesT<double> inputs)
+	ead::NodeptrT<PybindT> operator () (ead::NodesT<PybindT> inputs)
 	{
 		size_t n = inputs.size();
 		if (n != weight_bias_.size())
 		{
 			logs::fatalf("number of inputs must be exactly %d", n);
 		}
-		ead::NodeptrT<double> out = eqns::weighed_bias_add(
+		ead::NodeptrT<PybindT> out = eqns::weighed_bias_add(
 			age::matmul(inputs[0],
 				ead::convert_to_node(weight_bias_[0].weight_->var_)),
 			ead::convert_to_node(weight_bias_[0].bias_->var_));

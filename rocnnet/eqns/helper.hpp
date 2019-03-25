@@ -1,4 +1,6 @@
 #include "ead/generated/api.hpp"
+#include "ead/generated/pyapi.hpp"
+
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
@@ -8,10 +10,10 @@
 namespace eqns
 {
 
-ead::NodeptrT<double> one_binom (ead::NodeptrT<double> a);
+ead::NodeptrT<PybindT> one_binom (ead::NodeptrT<PybindT> a);
 
-ead::NodeptrT<double> weighed_bias_add (ead::NodeptrT<double> weighed,
-	ead::NodeptrT<double> bias);
+ead::NodeptrT<PybindT> weighed_bias_add (ead::NodeptrT<PybindT> weighed,
+	ead::NodeptrT<PybindT> bias);
 
 }
 

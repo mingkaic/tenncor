@@ -1,4 +1,5 @@
 #include "ead/generated/api.hpp"
+#include "ead/generated/pyapi.hpp"
 
 #include "ead/constant.hpp"
 
@@ -8,16 +9,11 @@
 namespace eqns
 {
 
-/// sigmoid function: f(x) = 1/(1+e^-x)
-ead::NodeptrT<double> sigmoid (ead::NodeptrT<double> x);
-
-ead::NodeptrT<double> slow_sigmoid (ead::NodeptrT<double> x);
-
-/// tanh function: f(x) = (e^(2*x)+1)/(e^(2*x)-1)
-ead::NodeptrT<double> tanh (ead::NodeptrT<double> x);
+/// do nothing
+ead::NodeptrT<PybindT> identity (ead::NodeptrT<PybindT> x);
 
 /// softmax function: f(x) = e^x / sum(e^x)
-ead::NodeptrT<double> softmax (ead::NodeptrT<double> x);
+ead::NodeptrT<PybindT> softmax (ead::NodeptrT<PybindT> x);
 
 }
 

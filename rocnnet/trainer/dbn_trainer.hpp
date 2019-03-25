@@ -6,15 +6,15 @@ struct DBNTrainer final
 {
 	DBNTrainer (modl::DBNptrT brain,
 		uint8_t batch_size,
-		double learning_rate = 1e-3,
+		PybindT learning_rate = 1e-3,
 		size_t n_cont_div = 10,
-		ead::VarptrT<double> train_in = nullptr) :
+		ead::VarptrT<PybindT> train_in = nullptr) :
 		brain_(brain),
 		caches_({})
 	{
 		if (nullptr == train_in)
 		{
-			train_in_ = ead::VarptrT<double>(ead::Variable<double>::get(
+			train_in_ = ead::VarptrT<PybindT>(ead::Variable<PybindT>::get(
 				0.0, ade::Shape({brain->get_ninput(), batch_size}), "train_in"));
 		}
 		else
@@ -48,7 +48,7 @@ struct DBNTrainer final
 	// todo: conform to a current trainer convention,
 	// or make all trainers functions instead of class bundles
 	std::pair<eqns::Deltas,ade::TensptrT> build_finetune_functions (
-		ead::VarptrT<double> train_out, double learning_rate = 1e-3)
+		ead::VarptrT<PybindT> train_out, PybindT learning_rate = 1e-3)
 	{
 		ade::TensptrT out_dist = (*brain_)(ade::TensptrT(train_in_));
 		ade::TensptrT finetune_cost = age::neg(
@@ -63,15 +63,15 @@ struct DBNTrainer final
 		eqns::VariablesT vars;
 		for (auto vpair : vmap)
 		{
-			if (ead::VarptrT<double> var = std::dynamic_pointer_cast<
-				ead::Variable<double>>(vpair.first))
+			if (ead::VarptrT<PybindT> var = std::dynamic_pointer_cast<
+				ead::Variable<PybindT>>(vpair.first))
 			{
 				vars.push_back(var);
 			}
 		}
 		eqns::Deltas errs;
 		eqns::VarmapT connection;
-		for (ead::VarptrT<double>& gp : vars)
+		for (ead::VarptrT<PybindT>& gp : vars)
 		{
 			auto next_gp = age::sub(ade::TensptrT(gp), age::mul(
 				ade::TensptrT(ead::Constant::get(learning_rate, gp->shape())),
@@ -82,7 +82,7 @@ struct DBNTrainer final
 		}
 
 		errs.actions_.push_back(
-			[connection](ead::CacheSpace<double>* caches)
+			[connection](ead::CacheSpace<PybindT>* caches)
 			{
 				eqns::assign_all(caches, connection);
 			});
@@ -90,7 +90,7 @@ struct DBNTrainer final
 		return {errs, error};
 	}
 
-	ead::VarptrT<double> train_in_;
+	ead::VarptrT<PybindT> train_in_;
 
 	ade::TensptrT train_out_;
 
@@ -98,5 +98,5 @@ struct DBNTrainer final
 
 	std::vector<RBMTrainer> rbm_trainers_;
 
-	ead::CacheSpace<double> caches_;
+	ead::CacheSpace<PybindT> caches_;
 };

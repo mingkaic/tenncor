@@ -5,6 +5,8 @@
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
 
+#include "ead/generated/pyapi.hpp"
+
 #include "rocnnet/eqns/activations.hpp"
 
 #include "rocnnet/modl/fcon.hpp"
@@ -29,10 +31,10 @@ modl::LayerInfo layerinfo_init (modl::HiddenFunc hidden, size_t n_out)
 }
 
 DQNInfo dqninfo_init (size_t train_interval = 5,
-	double rand_action_prob = 0.05,
-	double discount_rate = 0.95,
-	double target_update_rate = 0.01,
-	double exploration_period = 1000,
+	PybindT rand_action_prob = 0.05,
+	PybindT discount_rate = 0.95,
+	PybindT target_update_rate = 0.01,
+	PybindT exploration_period = 1000,
 	size_t store_interval = 5,
 	uint8_t mini_batch_size = 32,
 	size_t max_exp = 30000)
@@ -73,18 +75,18 @@ modl::MLPptrT mlp_init (size_t n_input, std::vector<modl::LayerInfo> layers,
 // 		std::vector<uint8_t>(n_hiddens.begin(), n_hiddens.end()), label);
 // }
 
-eqns::ApproxFuncT get_sgd (double learning_rate)
+eqns::ApproxFuncT get_sgd (PybindT learning_rate)
 {
-	return [=](ead::NodeptrT<double>& root, eqns::VariablesT leaves)
+	return [=](ead::NodeptrT<PybindT>& root, eqns::VariablesT leaves)
 	{
 		return eqns::sgd(root, leaves, learning_rate);
 	};
 }
 
-eqns::ApproxFuncT get_rms_momentum (double learning_rate,
-	double discount_factor, double epsilon)
+eqns::ApproxFuncT get_rms_momentum (PybindT learning_rate,
+	PybindT discount_factor, PybindT epsilon)
 {
-	return [=](ead::NodeptrT<double>& root, eqns::VariablesT leaves)
+	return [=](ead::NodeptrT<PybindT>& root, eqns::VariablesT leaves)
 	{
 		return eqns::rms_momentum(root, leaves, learning_rate,
 			discount_factor, epsilon);
@@ -117,7 +119,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// marshaler
 	marshaler
-		.def("serialize_to_file", [](py::object self, ead::NodeptrT<double> source,
+		.def("serialize_to_file", [](py::object self, ead::NodeptrT<PybindT> source,
 			std::string filename)
 		{
 			std::fstream output(filename,
@@ -128,7 +130,7 @@ PYBIND11_MODULE(rocnnet, m)
 				logs::errorf("cannot save to file %s", filename.c_str());
 			}
 		}, "load a version of this instance from a data")
-		.def("serialize_to_string", [](py::object self, ead::NodeptrT<double> source)
+		.def("serialize_to_string", [](py::object self, ead::NodeptrT<PybindT> source)
 		{
 			std::stringstream savestr;
 			modl::save(savestr, source->get_tensor(),
@@ -151,7 +153,7 @@ PYBIND11_MODULE(rocnnet, m)
 		{
 			return std::make_shared<modl::FCon>(*self.cast<modl::FCon*>());
 		}, "deep copy this instance")
-		.def("forward", [](py::object self, ead::NodesT<double> inputs)
+		.def("forward", [](py::object self, ead::NodesT<PybindT> inputs)
 		{
 			return (*self.cast<modl::FCon*>())(inputs);
 		}, "forward input tensor and returned connected output");
@@ -164,7 +166,7 @@ PYBIND11_MODULE(rocnnet, m)
 		{
 			return std::make_shared<modl::MLP>(*self.cast<modl::MLP*>());
 		}, "deep copy this instance")
-		.def("forward", [](py::object self, ead::NodeptrT<double> input)
+		.def("forward", [](py::object self, ead::NodeptrT<PybindT> input)
 		{
 			return (*self.cast<modl::MLP*>())(input);
 		}, "forward input tensor and returned connected output");
@@ -176,19 +178,19 @@ PYBIND11_MODULE(rocnnet, m)
 	// 	{
 	// 		return std::make_shared<modl::RBM>(*self.cast<modl::RBM*>());
 	// 	}, "deep copy this instance")
-	// 	.def("forward", [](py::object self, ead::NodeptrT<double> input)
+	// 	.def("forward", [](py::object self, ead::NodeptrT<PybindT> input)
 	// 	{
 	// 		return self.cast<modl::RBM*>()->prop_up(input);
 	// 	}, "forward input tensor and returned connected output")
-	// 	.def("backward", [](py::object self, ead::NodeptrT<double> hidden)
+	// 	.def("backward", [](py::object self, ead::NodeptrT<PybindT> hidden)
 	// 	{
 	// 		return self.cast<modl::RBM*>()->prop_down(hidden);
 	// 	}, "backward hidden tensor and returned connected output")
-	// 	.def("reconstruct_visible", [](py::object self, ead::NodeptrT<double> input)
+	// 	.def("reconstruct_visible", [](py::object self, ead::NodeptrT<PybindT> input)
 	// 	{
 	// 		return self.cast<modl::RBM*>()->reconstruct_visible(input);
 	// 	}, "reconstruct input")
-	// 	.def("reconstruct_hidden", [](py::object self, ead::NodeptrT<double> hidden)
+	// 	.def("reconstruct_hidden", [](py::object self, ead::NodeptrT<PybindT> hidden)
 	// 	{
 	// 		return self.cast<modl::RBM*>()->reconstruct_hidden(hidden);
 	// 	}, "reconstruct output");
@@ -200,7 +202,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// 	{
 	// 		return std::make_shared<modl::DBN>(*self.cast<modl::DBN*>());
 	// 	}, "deep copy this instance")
-	// 	.def("forward", [](py::object self, ead::NodeptrT<double> input)
+	// 	.def("forward", [](py::object self, ead::NodeptrT<PybindT> input)
 	// 	{
 	// 		return (*self.cast<modl::DBN*>())(input);
 	// 	}, "forward input tensor and returned connected output");
@@ -208,7 +210,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// mlptrainer
 	mlptrainer
-		.def(py::init<modl::MLPptrT,ead::Session<double>&,eqns::ApproxFuncT,uint8_t>())
+		.def(py::init<modl::MLPptrT,ead::Session<PybindT>&,eqns::ApproxFuncT,uint8_t>())
 		.def("train", &MLPTrainer::train, "train internal variables")
 		.def("train_in", [](py::object self)
 		{
@@ -242,7 +244,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("mini_batch_size") = 32,
 		py::arg("max_exp") = 30000);
 	dqntrainer
-		.def(py::init<modl::MLPptrT,ead::Session<double>&,eqns::ApproxFuncT,DQNInfo>())
+		.def(py::init<modl::MLPptrT,ead::Session<PybindT>&,eqns::ApproxFuncT,DQNInfo>())
 		.def("action", &DQNTrainer::action, "get next action")
 		.def("store", &DQNTrainer::store, "save observation, action, and reward")
 		.def("train", &DQNTrainer::train, "train qnets")
@@ -255,7 +257,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// // rbmtrainer
 	// rbmtrainer
-	// 	.def(py::init<modl::RBMptrT,llo::VarptrT<double>,uint8_t,double,size_t>(),
+	// 	.def(py::init<modl::RBMptrT,llo::VarptrT<PybindT>,uint8_t,PybindT,size_t>(),
 	// 		py::arg("brain"), py::arg("persistent"), py::arg("batch_size"),
 	// 		py::arg("learning_rate") = 1e-3, py::arg("n_cont_div") = 1)
 	// 	.def("train", &RBMTrainer::train, "train internal variables")
@@ -278,10 +280,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 
 	// inlines
-	m.def("identity", [](ead::NodeptrT<double> x) { return x; });
-	m.def("sigmoid", &eqns::sigmoid);
-	m.def("slow_sigmoid", &eqns::slow_sigmoid);
-	m.def("tanh", &eqns::tanh);
+	m.def("identity", &eqns::identity);
 	m.def("softmax", &eqns::softmax);
 
 	m.def("get_sgd", &pyrocnnet::get_sgd,
@@ -289,5 +288,5 @@ PYBIND11_MODULE(rocnnet, m)
 	m.def("get_rms_momentum", &pyrocnnet::get_rms_momentum,
 		py::arg("learning_rate") = 0.5,
 		py::arg("discount_factor") = 0.99,
-		py::arg("epsilon") = std::numeric_limits<double>::epsilon());
+		py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon());
 };

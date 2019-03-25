@@ -1,7 +1,6 @@
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 #include "ead/operator.hpp"
-#include "ead/generated/api.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
 
@@ -21,18 +20,18 @@ struct Conv final : public iMarshalSet
 		size_t ndata = shape.n_elems();
 
 		size_t input_size = filter_hw.first * filter_hw.second * in_ncol;
-		double bound = 1.0 / std::sqrt(input_size);
-		std::uniform_real_distribution<double> dist(-bound, bound);
+		PybindT bound = 1.0 / std::sqrt(input_size);
+		std::uniform_real_distribution<PybindT> dist(-bound, bound);
 		auto gen = [&dist]()
 		{
 			return dist(ead::get_engine());
 		};
-		std::vector<double> data(ndata);
+		std::vector<PybindT> data(ndata);
 		std::generate(data.begin(), data.end(), gen);
 
-		ead::VarptrT<double> weight = ead::make_variable<double>(
+		ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
 			data.data(), shape, "weight");
-		ead::VarptrT<double> bias = ead::make_variable_scalar<double>(
+		ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
 			0.0, ade::Shape({out_ncol}), "bias");
 		weight_ = std::make_shared<MarshalVar>(weight);
 		bias_ = std::make_shared<MarshalVar>(bias);
@@ -57,11 +56,11 @@ struct Conv final : public iMarshalSet
 
 	Conv& operator = (Conv&& other) = default;
 
-	ead::NodeptrT<double> operator () (ead::NodeptrT<double> input)
+	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
 	{
 		return age::add(age::convolution(input,
-			ead::convert_to_node<double>(weight_->var_)),
-			ead::convert_to_node<double>(bias_->var_));
+			ead::convert_to_node<PybindT>(weight_->var_)),
+			ead::convert_to_node<PybindT>(bias_->var_));
 	}
 
 	uint8_t get_ninput (void) const

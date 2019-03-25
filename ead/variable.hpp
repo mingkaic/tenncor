@@ -159,7 +159,7 @@ using VarptrT = std::shared_ptr<VariableNode<T>>;
 template <typename T>
 NodeptrT<T> convert_to_node (VarptrT<T> var)
 {
-	return std::static_pointer_cast<iNode<double>>(var);
+	return std::static_pointer_cast<iNode<T>>(var);
 }
 
 template <typename T>

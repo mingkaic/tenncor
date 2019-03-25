@@ -46,7 +46,7 @@ struct DBN final : public iMarshalSet
 	DBN& operator = (DBN&& other) = default;
 
 	// input of shape <n_input, n_batch>
-	ead::NodeptrT<double> operator () (ead::NodeptrT<double> input)
+	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
 	{
 		// sanity check
 		const ade::Shape& in_shape = input->shape();
@@ -56,7 +56,7 @@ struct DBN final : public iMarshalSet
 			logs::fatalf("cannot dbn with input shape %s against n_input %d",
 				in_shape.to_string().c_str(), ninput);
 		}
-		ead::NodeptrT<double> output = input;
+		ead::NodeptrT<PybindT> output = input;
 		for (RBMptrT& h : layers_)
 		{
 			output = h->prop_up(output);

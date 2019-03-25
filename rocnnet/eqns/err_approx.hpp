@@ -1,5 +1,7 @@
 #include <unordered_map>
 
+#include "ead/generated/pyapi.hpp"
+
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 #include "ead/session.hpp"
@@ -10,13 +12,13 @@
 namespace eqns
 {
 
-using VariablesT = std::vector<ead::VarptrT<double>>;
+using VariablesT = std::vector<ead::VarptrT<PybindT>>;
 
 struct VarAssign
 {
-	ead::VarptrT<double> target_;
+	ead::VarptrT<PybindT> target_;
 
-	ead::NodeptrT<double> source_;
+	ead::NodeptrT<PybindT> source_;
 };
 
 using AssignsT = std::list<VarAssign>;
@@ -24,19 +26,19 @@ using AssignsT = std::list<VarAssign>;
 using AssignGroupsT = std::list<AssignsT>;
 
 // approximate error of sources given error of root
-using ApproxFuncT = std::function<AssignGroupsT(ead::NodeptrT<double>&,VariablesT)>;
+using ApproxFuncT = std::function<AssignGroupsT(ead::NodeptrT<PybindT>&,VariablesT)>;
 
 // Stochastic Gradient Descent Approximation
-AssignGroupsT sgd (ead::NodeptrT<double>& root, VariablesT leaves,
-	double learning_rate = 0.5);
+AssignGroupsT sgd (ead::NodeptrT<PybindT>& root, VariablesT leaves,
+	PybindT learning_rate = 0.5);
 
 // Momentum-based Root Mean Square Approximation
-AssignGroupsT rms_momentum (ead::NodeptrT<double>& root, VariablesT leaves,
-	double learning_rate = 0.5,
-	double discount_factor = 0.99,
-	double epsilon = std::numeric_limits<double>::epsilon());
+AssignGroupsT rms_momentum (ead::NodeptrT<PybindT>& root, VariablesT leaves,
+	PybindT learning_rate = 0.5,
+	PybindT discount_factor = 0.99,
+	PybindT epsilon = std::numeric_limits<PybindT>::epsilon());
 
-void assign_groups (ead::Session<double>& sess, AssignGroupsT& groups);
+void assign_groups (ead::Session<PybindT>& sess, AssignGroupsT& groups);
 
 }
 

@@ -13,33 +13,33 @@
 // MLPTrainer does not own anything
 struct MLPTrainer
 {
-	MLPTrainer (modl::MLPptrT brain, ead::Session<double>& sess,
+	MLPTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
 		eqns::ApproxFuncT update, uint8_t batch_size) :
 		batch_size_(batch_size),
-		train_in_(ead::make_variable_scalar<double>(0.0,
+		train_in_(ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({brain->get_ninput(), batch_size}), "train_in")),
 		brain_(brain),
 		sess_(&sess)
 	{
-		train_out_ = (*brain_)(ead::convert_to_node<double>(train_in_));
-		expected_out_ = ead::make_variable_scalar<double>(0.0,
+		train_out_ = (*brain_)(ead::convert_to_node<PybindT>(train_in_));
+		expected_out_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({brain_->get_noutput(), batch_size}), "expected_out");
-		error_ = age::square(age::sub(ead::convert_to_node<double>(expected_out_), train_out_));
+		error_ = age::square(age::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
 
 		pbm::PathedMapT vmap = brain_->list_bases();
 		eqns::VariablesT vars;
 		for (auto vpair : vmap)
 		{
 			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<double>>(vpair.first))
+				ead::Variable<PybindT>>(vpair.first))
 			{
 				vars.push_back(
-					std::make_shared<ead::VariableNode<double>>(var));
+					std::make_shared<ead::VariableNode<PybindT>>(var));
 			}
 		}
 		updates_ = update(error_, vars);
 
-		std::vector<ead::NodeptrT<double>*> to_optimize =
+		std::vector<ead::NodeptrT<PybindT>*> to_optimize =
 		{
 			&train_out_,
 			&error_,
@@ -54,16 +54,16 @@ struct MLPTrainer
 
 		opt::GraphOpt optimizer = opt::config_opt();
 		size_t n_roots = to_optimize.size();
-		ead::NodesT<double> roots(n_roots);
+		ead::NodesT<PybindT> roots(n_roots);
 		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
-			[&optimizer](ead::NodeptrT<double>* ptr)
+			[&optimizer](ead::NodeptrT<PybindT>* ptr)
 			{
 				(*ptr)->get_tensor()->accept(optimizer);
 				return *ptr;
 			});
 		{
 			auto temp = optimizer.apply_optimization(roots);
-			roots = ead::ops_reuse<double>(ead::multi_optimize<double>(temp));
+			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(temp));
 		}
 
 		for (size_t i = 0; i < n_roots; ++i)
@@ -73,8 +73,8 @@ struct MLPTrainer
 		}
 	}
 
-	void train (std::vector<double>& train_in,
-		std::vector<double>& expected_out)
+	void train (std::vector<PybindT>& train_in,
+		std::vector<PybindT>& expected_out)
 	{
 		size_t insize = brain_->get_ninput();
 		size_t outsize = brain_->get_noutput();
@@ -102,14 +102,14 @@ struct MLPTrainer
 	}
 
 	uint8_t batch_size_;
-	ead::VarptrT<double> train_in_;
-	ead::VarptrT<double> expected_out_;
+	ead::VarptrT<PybindT> train_in_;
+	ead::VarptrT<PybindT> expected_out_;
 	modl::MLPptrT brain_;
-	ead::NodeptrT<double> train_out_;
-	ead::NodeptrT<double> error_;
+	ead::NodeptrT<PybindT> train_out_;
+	ead::NodeptrT<PybindT> error_;
 
 	eqns::AssignGroupsT updates_;
-	ead::Session<double>* sess_;
+	ead::Session<PybindT>* sess_;
 };
 
 #endif // MODL_mlp_trainer_HPP

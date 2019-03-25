@@ -5,6 +5,8 @@
 #include "ade/ileaf.hpp"
 #include "ade/ifunctor.hpp"
 
+#include "dbg/ade.hpp"
+
 const char label_delim = ':';
 
 void multiline_replace (std::string& multiline);
@@ -30,8 +32,15 @@ struct CSVEquation final : public ade::iTraveler
 		{
 			return;
 		}
+		std::string label;
+		auto it = labels_.find(leaf);
+		if (labels_.end() != it)
+		{
+			label = it->second + "=";
+		}
+		label += leaf->to_string();
 		nodes_.emplace(leaf, Node{
-			leaf->to_string(),
+			label,
 			VARIABLE,
 			nodes_.size(),
 		});
@@ -44,7 +53,13 @@ struct CSVEquation final : public ade::iTraveler
 		{
 			return;
 		}
-		std::string funcstr = func->to_string();
+		std::string funcstr;
+		auto it = labels_.find(func);
+		if (labels_.end() != it)
+		{
+			funcstr = it->second + "=";
+		}
+		funcstr += func->to_string();
 		if (showshape_)
 		{
 			funcstr += func->shape().to_string();
@@ -140,6 +155,9 @@ struct CSVEquation final : public ade::iTraveler
 
 		size_t id_;
 	};
+
+	/// For every label associated with a tensor, show LABEL=value in the tree
+	LabelsMapT labels_;
 
 	std::vector<Edge> edges_;
 

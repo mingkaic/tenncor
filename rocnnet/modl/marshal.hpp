@@ -122,7 +122,7 @@ struct iMarshalSet : public iMarshaler
 
 struct MarshalVar final : public iMarshaler
 {
-	MarshalVar (ead::VarptrT<double> var) : var_(var) {}
+	MarshalVar (ead::VarptrT<PybindT> var) : var_(var) {}
 
 	MarshalVar (const MarshalVar& other)
 	{
@@ -170,20 +170,20 @@ struct MarshalVar final : public iMarshaler
 		}
 		else
 		{
-			var_->assign(ead::to_node<double>(it->second)->data(), it->second->shape());
+			var_->assign(ead::to_node<PybindT>(it->second)->data(), it->second->shape());
 		}
 	}
 
-	ead::VarptrT<double> var_;
+	ead::VarptrT<PybindT> var_;
 
 private:
 	void copy_helper (const MarshalVar& other)
 	{
-		auto ov = static_cast<const ead::Variable<double>*>(
+		auto ov = static_cast<const ead::Variable<PybindT>*>(
 			other.var_->get_tensor().get());
-		var_ = std::make_shared<ead::VariableNode<double>>(
-			std::shared_ptr<ead::Variable<double>>(
-				ead::Variable<double>::get(*ov)));
+		var_ = std::make_shared<ead::VariableNode<PybindT>>(
+			std::shared_ptr<ead::Variable<PybindT>>(
+				ead::Variable<PybindT>::get(*ov)));
 	}
 
 	iMarshaler* clone_impl (void) const override

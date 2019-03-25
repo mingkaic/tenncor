@@ -36,7 +36,10 @@ class AGE_FILE:
                 else:
                     break
             if akeys[-1] in lookup:
-                fmt[key] = func(lookup[akeys[-1]])
+                entry = lookup[akeys[-1]]
+            else:
+                entry = None
+            fmt[key] = func(entry)
         self._repstr = self.template.format(**fmt)
         return self
 

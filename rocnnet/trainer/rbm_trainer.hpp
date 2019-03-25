@@ -8,12 +8,12 @@
 struct RBMTrainer
 {
 	RBMTrainer (modl::RBMptrT brain,
-		ead::Session<double>& sess,
-		ead::VarptrT<double> persistent,
+		ead::Session<PybindT>& sess,
+		ead::VarptrT<PybindT> persistent,
 		uint8_t batch_size,
-		double learning_rate = 1e-3,
+		PybindT learning_rate = 1e-3,
 		size_t n_cont_div = 1,
-		ade::NodeptrT<double> train_in = nullptr) :
+		ade::NodeptrT<PybindT> train_in = nullptr) :
 		batch_size_(batch_size),
 		brain_(brain),
 		weight_(brain->get_weight()),
@@ -23,7 +23,7 @@ struct RBMTrainer
 	{
 		if (nullptr == train_in)
 		{
-			train_in_ = ead::make_variable_scalar<double>(
+			train_in_ = ead::make_variable_scalar<PybindT>(
 				0.0, ade::Shape({brain->get_ninput(), batch_size}), "train_in"));
 		}
 		else
@@ -101,27 +101,27 @@ struct RBMTrainer
 		}
 
 		updates_.actions_.push_back(
-			[connection](ead::Session<double>& sess)
+			[connection](ead::Session<PybindT>& sess)
 			{
 				eqns::assign_all(sess, connection);
 			});
-		for (ead::NodeptrT<double>& up : updates_.upkeep_)
+		for (ead::NodeptrT<PybindT>& up : updates_.upkeep_)
 		{
 			sess_->track(up);
 		}
 	}
 
 	// input a 2-D vector of shape <n_input, n_batch> return monitor cost
-	double train (std::vector<double>& train_in)
+	PybindT train (std::vector<PybindT>& train_in)
 	{
-		if (auto var = dynamic_cast<ead::Variable<double>*>(train_in_.get()))
+		if (auto var = dynamic_cast<ead::Variable<PybindT>*>(train_in_.get()))
 		{
 			*var = ead::get_tensor(
 				train_in.data(), var->shape());
 			caches_.update({var});
 			updates_.assign(&caches_);
 
-			return *(ead::eval<double>(monitoring_cost_)->data()) / batch_size_;
+			return *(ead::eval<PybindT>(monitoring_cost_)->data()) / batch_size_;
 		}
 		logs::fatal("cannot train RBM with non-native input");
 	}
@@ -134,13 +134,13 @@ struct RBMTrainer
 	ade::TensptrT monitoring_cost_;
 	eqns::Deltas updates_;
 
-	ead::Session<double> sess_;
+	ead::Session<PybindT> sess_;
 
 private:
 	ade::TensptrT get_pseudo_likelihood_cost (ade::TensptrT input)
 	{
 		const ade::Shape& shape = input->shape();
-		std::vector<double> zeros(shape.n_elems(), 0);
+		std::vector<PybindT> zeros(shape.n_elems(), 0);
 		zeros[0] = 1;
 		ade::TensptrT one_i(ead::Constant::get(zeros, shape));
 
@@ -181,9 +181,9 @@ private:
 		return age::neg(age::add(hidden_term, vbias_term));
 	}
 
-	ead::VarptrT<double> weight_;
-	ead::VarptrT<double> hbias_;
-	ead::VarptrT<double> vbias_;
+	ead::VarptrT<PybindT> weight_;
+	ead::VarptrT<PybindT> hbias_;
+	ead::VarptrT<PybindT> vbias_;
 
 	ade::TensptrT persistent_;
 };

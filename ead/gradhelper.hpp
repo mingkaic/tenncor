@@ -28,7 +28,8 @@ NodeptrT<T> to_node (ade::TensptrT tens)
 	}
 	else
 	{
-		logs::fatal("unknown tensor type");
+		logs::fatalf("unknown tensor type with %s dtype",
+			age::name_type(age::get_type<T>()).c_str());
 	}
 	return out;
 }

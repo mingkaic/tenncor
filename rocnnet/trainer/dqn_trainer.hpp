@@ -1,12 +1,13 @@
 #include "rocnnet/modl/mlp.hpp"
 
+#include "ead/matcher/matcher.hpp"
 struct DQNInfo
 {
 	DQNInfo (size_t train_interval = 5,
-		double rand_action_prob = 0.05,
-		double discount_rate = 0.95,
-		double target_update_rate = 0.01,
-		double exploration_period = 1000,
+		PybindT rand_action_prob = 0.05,
+		PybindT discount_rate = 0.95,
+		PybindT target_update_rate = 0.01,
+		PybindT exploration_period = 1000,
 		size_t store_interval = 5,
 		uint8_t mini_batch_size = 32,
 		size_t max_exp = 30000) :
@@ -20,10 +21,10 @@ struct DQNInfo
 		max_exp_(max_exp) {}
 
 	size_t train_interval_ = 5;
-	double rand_action_prob_ = 0.05;
-	double discount_rate_ = 0.95;
-	double target_update_rate_ = 0.01;
-	double exploration_period_ = 1000;
+	PybindT rand_action_prob_ = 0.05;
+	PybindT discount_rate_ = 0.95;
+	PybindT target_update_rate_ = 0.01;
+	PybindT exploration_period_ = 1000;
 	// memory parameters
 	size_t store_interval_ = 5;
 	uint8_t mini_batch_size_ = 32;
@@ -32,50 +33,50 @@ struct DQNInfo
 
 struct DQNTrainer
 {
-	DQNTrainer (modl::MLPptrT brain, ead::Session<double>& sess,
+	DQNTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
 		eqns::ApproxFuncT update, DQNInfo param) :
 		sess_(&sess),
 		params_(param),
 		source_qnet_(brain),
 		target_qnet_(std::make_shared<modl::MLP>(*brain))
 	{
-		input_ = ead::make_variable_scalar<double>(0.0,
+		input_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({source_qnet_->get_ninput()}), "observation");
-		train_input_ = ead::make_variable_scalar<double>(0.0,
+		train_input_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({source_qnet_->get_ninput(),
 			params_.mini_batch_size_}), "train_observation");
-		next_input_ = ead::make_variable_scalar<double>(0.0,
+		next_input_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({source_qnet_->get_ninput(),
 			params_.mini_batch_size_}), "next_observation");
-		next_output_mask_ = ead::make_variable_scalar<double>(0.0,
+		next_output_mask_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({params_.mini_batch_size_}),
 			"next_observation_mask");
-		reward_ = ead::make_variable_scalar<double>(0.0,
+		reward_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({params_.mini_batch_size_}), "rewards");
-		output_mask_ = ead::make_variable_scalar<double>(0.0,
+		output_mask_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({source_qnet_->get_noutput(),
 			params_.mini_batch_size_}), "action_mask");
 
 		// forward action score computation
-		output_ = (*source_qnet_)(ead::convert_to_node<double>(input_));
+		output_ = (*source_qnet_)(ead::convert_to_node<PybindT>(input_));
 
-		train_out_ = (*source_qnet_)(ead::convert_to_node<double>(train_input_));
+		train_out_ = (*source_qnet_)(ead::convert_to_node<PybindT>(train_input_));
 
 		// predicting target future rewards
-		next_output_ = (*target_qnet_)(ead::convert_to_node<double>(next_input_));
+		next_output_ = (*target_qnet_)(ead::convert_to_node<PybindT>(next_input_));
 
 		auto target_values = age::mul(
 			age::reduce_max_1d(next_output_, 0),
-			ead::convert_to_node<double>(next_output_mask_));
-		future_reward_ = age::add(ead::convert_to_node<double>(reward_),
+			ead::convert_to_node<PybindT>(next_output_mask_));
+		future_reward_ = age::add(ead::convert_to_node<PybindT>(reward_),
 			age::mul(
-				ead::make_constant_scalar<double>(params_.discount_rate_,
+				ead::make_constant_scalar<PybindT>(params_.discount_rate_,
 					target_values->shape()),
 				target_values)); // reward for each instance in batch
 
 		// prediction error
 		auto masked_output_score = age::reduce_sum_1d(
-			age::mul(train_out_, ead::convert_to_node<double>(output_mask_)), 0);
+			age::mul(train_out_, ead::convert_to_node<PybindT>(output_mask_)), 0);
 		auto temp_diff = age::sub(masked_output_score, future_reward_);
 		prediction_error_ = age::reduce_mean(age::square(temp_diff));
 
@@ -86,13 +87,13 @@ struct DQNTrainer
 		for (auto vpair : svmap)
 		{
 			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<double>>(vpair.first))
+				ead::Variable<PybindT>>(vpair.first))
 			{
 				auto label = fmts::to_string(
 					vpair.second.begin(), vpair.second.end());
 				labelled_indices.emplace(label, source_vars.size());
 				source_vars.push_back(
-					std::make_shared<ead::VariableNode<double>>(var));
+					std::make_shared<ead::VariableNode<PybindT>>(var));
 			}
 		}
 		updates_ = update(prediction_error_, source_vars);
@@ -104,22 +105,22 @@ struct DQNTrainer
 		for (auto vpair : tvmap)
 		{
 			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<double>>(vpair.first))
+				ead::Variable<PybindT>>(vpair.first))
 			{
 				auto label = fmts::to_string(
 					vpair.second.begin(), vpair.second.end());
 				target_vars[labelled_indices[label]] =
-					std::make_shared<ead::VariableNode<double>>(var);
+					std::make_shared<ead::VariableNode<PybindT>>(var);
 			}
 		}
 		eqns::AssignsT target_assigns;
 		for (size_t i = 0; i < nvars; i++)
 		{
 			// this is equivalent to target = (1-alpha) * target + alpha * source
-			auto target = ead::convert_to_node<double>(target_vars[i]);
-			auto source = ead::convert_to_node<double>(source_vars[i]);
+			auto target = ead::convert_to_node<PybindT>(target_vars[i]);
+			auto source = ead::convert_to_node<PybindT>(source_vars[i]);
 			auto diff = age::sub(target, source);
-			auto target_update_rate = ead::make_constant_scalar<double>(
+			auto target_update_rate = ead::make_constant_scalar<PybindT>(
 				params_.target_update_rate_, diff->shape());
 
 			auto target_next = age::sub(target, age::mul(
@@ -128,7 +129,7 @@ struct DQNTrainer
 		}
 		updates_.push_back(target_assigns);
 
-		std::vector<ead::NodeptrT<double>*> to_optimize =
+		std::vector<ead::NodeptrT<PybindT>*> to_optimize =
 		{
 			&prediction_error_,
 			&train_out_,
@@ -142,11 +143,20 @@ struct DQNTrainer
 			}
 		}
 
+		opt::GraphOpt optimizer = opt::config_opt();
 		size_t n_roots = to_optimize.size();
-		ead::NodesT<double> roots(n_roots);
-		std::transform(to_optimize.begin(), to_optimize.end(),
-			roots.begin(), [](ead::NodeptrT<double>* ptr) { return *ptr; });
-		roots = ead::ops_reuse<double>(ead::multi_optimize<double>(roots));
+		ead::NodesT<PybindT> roots(n_roots);
+		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
+			[&optimizer](ead::NodeptrT<PybindT>* ptr)
+			{
+				(*ptr)->get_tensor()->accept(optimizer);
+				return *ptr;
+			});
+
+		{
+			auto temp = optimizer.apply_optimization(roots);
+			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(temp));
+		}
 
 		for (size_t i = 0; i < n_roots; ++i)
 		{
@@ -155,10 +165,10 @@ struct DQNTrainer
 		}
 	}
 
-	uint8_t action (std::vector<double>& input)
+	uint8_t action (std::vector<PybindT>& input)
 	{
 		actions_executed_++; // book keep
-		double exploration = linear_annealing(1.0);
+		PybindT exploration = linear_annealing(1.0);
 		// perform random exploration action
 		if (get_random() < exploration)
 		{
@@ -166,7 +176,7 @@ struct DQNTrainer
 		}
 		input_->assign(input.data(), input_->shape());
 		sess_->update({input_->get_tensor().get()});
-		double* dptr = output_->data();
+		PybindT* dptr = output_->data();
 		uint8_t max_i = 0;
 		for (uint8_t i = 1, n = output_->shape().n_elems(); i < n; ++i)
 		{
@@ -178,8 +188,8 @@ struct DQNTrainer
 		return max_i;
 	}
 
-	void store (std::vector<double> observation, size_t action_idx,
-		double reward, std::vector<double> new_obs)
+	void store (std::vector<PybindT> observation, size_t action_idx,
+		PybindT reward, std::vector<PybindT> new_obs)
 	{
 		if (0 == n_store_called_ % params_.store_interval_)
 		{
@@ -203,11 +213,11 @@ struct DQNTrainer
 			std::vector<ExpBatch> samples = random_sample();
 
 			// batch data process
-			std::vector<double> states; // <ninput, batchsize>
-			std::vector<double> new_states; // <ninput, batchsize>
-			std::vector<double> action_mask; // <noutput, batchsize>
-			std::vector<double> new_states_mask; // <batchsize>
-			std::vector<double> rewards; // <batchsize>
+			std::vector<PybindT> states; // <ninput, batchsize>
+			std::vector<PybindT> new_states; // <ninput, batchsize>
+			std::vector<PybindT> action_mask; // <noutput, batchsize>
+			std::vector<PybindT> new_states_mask; // <batchsize>
+			std::vector<PybindT> rewards; // <batchsize>
 
 			for (size_t i = 0, n = samples.size(); i < n; i++)
 			{
@@ -215,7 +225,7 @@ struct DQNTrainer
 				states.insert(states.end(),
 					batch.observation_.begin(), batch.observation_.end());
 				{
-					std::vector<double> local_act_mask(
+					std::vector<PybindT> local_act_mask(
 						source_qnet_->get_noutput(), 0);
 					local_act_mask[batch.action_idx_] = 1.0;
 					action_mask.insert(action_mask.end(),
@@ -257,7 +267,7 @@ struct DQNTrainer
 		n_train_called_++;
 	}
 
-	ead::NodeptrT<double> get_error (void) const
+	ead::NodeptrT<PybindT> get_error (void) const
 	{
 		return prediction_error_;
 	}
@@ -269,34 +279,34 @@ struct DQNTrainer
 
 	// === forward computation ===
 	// fanin: shape <ninput>
-	ead::VarptrT<double> input_ = nullptr;
+	ead::VarptrT<PybindT> input_ = nullptr;
 
 	// fanout: shape <noutput>
-	ead::NodeptrT<double> output_ = nullptr;
+	ead::NodeptrT<PybindT> output_ = nullptr;
 
 	// === backward computation ===
 	// train fanin: shape <ninput, batchsize>
-	ead::VarptrT<double> train_input_ = nullptr;
+	ead::VarptrT<PybindT> train_input_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	ead::NodeptrT<double> train_out_ = nullptr;
+	ead::NodeptrT<PybindT> train_out_ = nullptr;
 
 	// === updates && optimizer ===
 	eqns::AssignGroupsT updates_;
 
-	ead::Session<double>* sess_;
+	ead::Session<PybindT>* sess_;
 
 private:
 	// experience replay
 	struct ExpBatch
 	{
-		std::vector<double> observation_;
+		std::vector<PybindT> observation_;
 		size_t action_idx_;
-		double reward_;
-		std::vector<double> new_observation_;
+		PybindT reward_;
+		std::vector<PybindT> new_observation_;
 	};
 
-	double linear_annealing (double initial_prob) const
+	PybindT linear_annealing (PybindT initial_prob) const
 	{
 		if (actions_executed_ >= params_.exploration_period_)
 			return params_.rand_action_prob_;
@@ -304,7 +314,7 @@ private:
 			params_.rand_action_prob_) / params_.exploration_period_;
 	}
 
-	double get_random (void)
+	PybindT get_random (void)
 	{
 		return explore_(ead::get_engine());
 	}
@@ -335,29 +345,29 @@ private:
 
 	// === prediction computation ===
 	// train_fanin: shape <ninput, batchsize>
-	ead::VarptrT<double> next_input_ = nullptr;
+	ead::VarptrT<PybindT> next_input_ = nullptr;
 
 	// train mask: shape <batchsize>
-	ead::VarptrT<double> next_output_mask_ = nullptr;
+	ead::VarptrT<PybindT> next_output_mask_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	ead::NodeptrT<double> next_output_ = nullptr;
+	ead::NodeptrT<PybindT> next_output_ = nullptr;
 
 	// reward associated with next_output_: shape <batchsize>
-	ead::VarptrT<double> reward_ = nullptr;
+	ead::VarptrT<PybindT> reward_ = nullptr;
 
 	// future reward calculated from reward history: <1, batchsize>
-	ead::NodeptrT<double> future_reward_ = nullptr;
+	ead::NodeptrT<PybindT> future_reward_ = nullptr;
 
 	// === q-value computation ===
 	// weight output to get overall score: shape <noutput, batchsize>
-	ead::VarptrT<double> output_mask_ = nullptr;
+	ead::VarptrT<PybindT> output_mask_ = nullptr;
 
 	// overall score: shape <noutput>
-	ead::NodeptrT<double> score_ = nullptr;
+	ead::NodeptrT<PybindT> score_ = nullptr;
 
 	// future error that we want to minimize: scalar shape
-	ead::NodeptrT<double> prediction_error_ = nullptr;
+	ead::NodeptrT<PybindT> prediction_error_ = nullptr;
 
 	// states
 	size_t actions_executed_ = 0;
@@ -368,7 +378,7 @@ private:
 
 	size_t n_train_called_ = 0;
 
-	std::uniform_real_distribution<double> explore_;
+	std::uniform_real_distribution<PybindT> explore_;
 
 	std::vector<ExpBatch> experiences_;
 };

@@ -4,6 +4,7 @@ import argparse
 
 import numpy as np
 
+import ead.age as age
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
@@ -56,8 +57,8 @@ def main(args):
     n_out = n_in / 2
 
     hiddens = [
-        rcn.get_layer(rcn.sigmoid, 9),
-        rcn.get_layer(rcn.sigmoid, n_out)
+        rcn.get_layer(age.sigmoid, 9),
+        rcn.get_layer(age.sigmoid, n_out)
     ]
 
     brain = rcn.get_mlp(n_in, hiddens, 'brain')

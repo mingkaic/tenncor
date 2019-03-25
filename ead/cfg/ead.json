@@ -1,4 +1,5 @@
 {
+    "pybind_type": "float",
     "includes": {
         "api.hpp": [
             "\"ead/helper.hpp\"",

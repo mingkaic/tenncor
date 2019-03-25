@@ -19,20 +19,20 @@ struct RBM final : public iMarshalSet
 		ade::Shape shape({n_hidden, n_input});
 		size_t nw = shape.n_elems();
 
-		double bound = 4 * std::sqrt(6.0 / (n_hidden + n_input));
-		std::uniform_real_distribution<double> dist(-bound, bound);
+		PybindT bound = 4 * std::sqrt(6.0 / (n_hidden + n_input));
+		std::uniform_real_distribution<PybindT> dist(-bound, bound);
 		auto gen = [&dist]()
 		{
 			return dist(ead::get_engine());
 		};
-		std::vector<double> wdata(nw);
+		std::vector<PybindT> wdata(nw);
 		std::generate(wdata.begin(), wdata.end(), gen);
 
-		ead::VarptrT<double> weight = ead::make_variable<double>(
+		ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
 			wdata.data(), shape, "weight");
-		ead::VarptrT<double> hbias = ead::make_variable_scalar<double>(
+		ead::VarptrT<PybindT> hbias = ead::make_variable_scalar<PybindT>(
 			0.0, ade::Shape({n_hidden}), "hbias");
-		ead::VarptrT<double> vbias = ead::make_variable_scalar<double>(
+		ead::VarptrT<PybindT> vbias = ead::make_variable_scalar<PybindT>(
 			0.0, ade::Shape({n_input}), "vbias");
 		weight_ = std::make_shared<MarshalVar>(weight);
 		hbias_ = std::make_shared<MarshalVar>(hbias);
@@ -60,25 +60,25 @@ struct RBM final : public iMarshalSet
 
 
 	// input of shape <n_input, n_batch>
-	ead::NodeptrT<double> prop_up (ead::NodeptrT<double> input)
+	ead::NodeptrT<PybindT> prop_up (ead::NodeptrT<PybindT> input)
 	{
 		// prop forward
 		// weight is <n_hidden, n_input>
 		// in is <n_input, ?>
 		// out = in @ weight, so out is <n_hidden, ?>
-		ead::NodeptrT<double> pre_nl = eqns::weighed_bias_add(
+		ead::NodeptrT<PybindT> pre_nl = eqns::weighed_bias_add(
 			age::matmul(input, ead::convert_to_node(weight_->var_)),
 			ead::convert_to_node(hbias_->var_));
 		return eqns::sigmoid(pre_nl);
 	}
 
 	// input of shape <n_hidden, n_batch>
-	ead::NodeptrT<double> prop_down (ead::NodeptrT<double> hidden)
+	ead::NodeptrT<PybindT> prop_down (ead::NodeptrT<PybindT> hidden)
 	{
 		// weight is <n_hidden, n_input>
 		// in is <n_hidden, ?>
 		// out = in @ weight.T, so out is <n_input, ?>
-		ead::NodeptrT<double> pre_nl = eqns::weighed_bias_add(
+		ead::NodeptrT<PybindT> pre_nl = eqns::weighed_bias_add(
 			age::matmul(hidden,
 				age::transpose(ead::convert_to_node(weight_->var_))),
 			ead::convert_to_node(vbias_->var_));
@@ -87,17 +87,17 @@ struct RBM final : public iMarshalSet
 
 	// recreate input using hidden distribution
 	// output shape of input->shape()
-	ead::NodeptrT<double> reconstruct_visible (ead::NodeptrT<double> input)
+	ead::NodeptrT<PybindT> reconstruct_visible (ead::NodeptrT<PybindT> input)
 	{
-		ead::NodeptrT<double> hidden_dist = prop_up(input);
-		ead::NodeptrT<double> hidden_sample = eqns::one_binom(hidden_dist);
+		ead::NodeptrT<PybindT> hidden_dist = prop_up(input);
+		ead::NodeptrT<PybindT> hidden_sample = eqns::one_binom(hidden_dist);
 		return prop_down(hidden_sample);
 	}
 
-	ead::NodeptrT<double> reconstruct_hidden (ead::NodeptrT<double> hidden)
+	ead::NodeptrT<PybindT> reconstruct_hidden (ead::NodeptrT<PybindT> hidden)
 	{
-		ead::NodeptrT<double> visible_dist = prop_down(hidden);
-		ead::NodeptrT<double> visible_sample = eqns::one_binom(visible_dist);
+		ead::NodeptrT<PybindT> visible_dist = prop_down(hidden);
+		ead::NodeptrT<PybindT> visible_sample = eqns::one_binom(visible_dist);
 		return prop_up(visible_sample);
 	}
 
@@ -116,17 +116,17 @@ struct RBM final : public iMarshalSet
 		return {weight_, hbias_, vbias_};
 	}
 
-	ead::VarptrT<double> get_weight (void) const
+	ead::VarptrT<PybindT> get_weight (void) const
 	{
 		return weight_->var_;
 	}
 
-	ead::VarptrT<double> get_hbias (void) const
+	ead::VarptrT<PybindT> get_hbias (void) const
 	{
 		return hbias_->var_;
 	}
 
-	ead::VarptrT<double> get_vbias (void) const
+	ead::VarptrT<PybindT> get_vbias (void) const
 	{
 		return vbias_->var_;
 	}

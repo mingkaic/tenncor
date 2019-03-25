@@ -12,8 +12,8 @@
 
 struct TestParams
 {
-	double pretrain_lr = 0.01;
-	double training_lr = 0.1;
+	float pretrain_lr = 0.01;
+	float training_lr = 0.1;
 	size_t n_batch = 20;
 	std::vector<size_t> hiddens = { 1000, 1000, 1000 };
 
@@ -29,30 +29,30 @@ struct TestParams
 	std::string loadpath;
 };
 
-static std::vector<double> batch_generate (size_t n, size_t batchsize)
+static std::vector<float> batch_generate (size_t n, size_t batchsize)
 {
 	size_t total = n * batchsize;
 
 	// Specify the engine and distribution.
 	std::mt19937 mersenne_engine(llo::get_engine()());
-	std::uniform_real_distribution<double> dist(0, 1);
+	std::uniform_real_distribution<float> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
-	std::vector<double> vec(total);
+	std::vector<float> vec(total);
 	std::generate(std::begin(vec), std::end(vec), gen);
 	return vec;
 }
 
 static void pretrain (DBNTrainer& model, size_t n_input,
-	std::vector<double> data, TestParams params, std::string test_name)
+	std::vector<float> data, TestParams params, std::string test_name)
 {
 	std::string pretrain_path = params.pretrain_path;
 	size_t n_data = data.size() / n_input;
 	size_t n_train_batches = n_data / params.n_batch;
-	llo::VarptrT<double> pretrain_in = llo::get_variable(
-		std::vector<double>(n_input * params.n_batch),
+	llo::VarptrT<float> pretrain_in = llo::get_variable(
+		std::vector<float>(n_input * params.n_batch),
 		ade::Shape({n_input, params.n_batch}), "pretrain_in");
-	double inbatch = params.n_batch * n_input;
+	float inbatch = params.n_batch * n_input;
 
 	std::cout << "... getting the pretraining functions" << '\n';
 	PretrainsT pretrainers = model.pretraining_functions(
@@ -66,15 +66,15 @@ static void pretrain (DBNTrainer& model, size_t n_input,
 		ade::TensptrT cost = pretrainers[pidx].second;
 		for (size_t e = 0; e < params.pretrain_epochs; e++)
 		{
-			double mean_cost = 0;
+			float mean_cost = 0;
 			for (size_t i = 0; i < n_train_batches; i++)
 			{
-				std::vector<double> batch(it + i * inbatch, it + (i + 1) * inbatch);
+				std::vector<float> batch(it + i * inbatch, it + (i + 1) * inbatch);
 				pretrain_in = batch;
 				trainer(true);
 				std::cout << "layer " << pidx << " epoch " << e << " completed batch " << i << '\n';
 
-				llo::TypedData<double> gcost = llo::eval<double>(cost);
+				llo::TypedData<float> gcost = llo::eval<float>(cost);
 				mean_cost += *(gcost.data_.get());
 			}
 			std::cout << "pre-trained layer " << pidx << " epoch "
@@ -108,24 +108,24 @@ static void finetune (DBNTrainer& model, ImgPtrT train,
 {
 	size_t n_train_batches = train->shape_.first;
 
-	std::vector<double> training_data_x(train->data_x_.begin(), train->data_x_.end());
-	std::vector<double> training_data_y(train->data_y_.begin(), train->data_y_.end());
+	std::vector<float> training_data_x(train->data_x_.begin(), train->data_x_.end());
+	std::vector<float> training_data_y(train->data_y_.begin(), train->data_y_.end());
 
 	std::cout << "... getting the finetuning functions" << '\n';
-	nnet::placeholder<double> finetune_in(std::vector<size_t>{n_input, params.n_batch}, "finetune_in");
-	nnet::placeholder<double> finetune_out(std::vector<size_t>{n_output, params.n_batch}, "finetune_out");
+	nnet::placeholder<float> finetune_in(std::vector<size_t>{n_input, params.n_batch}, "finetune_in");
+	nnet::placeholder<float> finetune_out(std::vector<size_t>{n_output, params.n_batch}, "finetune_out");
 	rocnnet::update_cost_t tuner = model.build_finetune_functions(finetune_in, finetune_out, params.training_lr);
-	nnet::variable_updater<double> train_update = tuner.first;
-	nnet::varptr<double> train_cost = tuner.second;
-	nnet::varptr<double> train_loss = nnet::reduce_mean(train_cost);
+	nnet::variable_updater<float> train_update = tuner.first;
+	nnet::varptr<float> train_cost = tuner.second;
+	nnet::varptr<float> train_loss = nnet::reduce_mean(train_cost);
 
 	std::cout << "... finetuning the model" << '\n';
 	size_t patience = 4 * n_train_batches;
 	size_t patience_increase = 2;
 	size_t validation_frequency = std::min(n_train_batches, patience / 2);
-	double improvement_threshold = 0.995;
-	double best_validation_loss = std::numeric_limits<double>::infinity();
-	double test_score = 0;
+	float improvement_threshold = 0.995;
+	float best_validation_loss = std::numeric_limits<float>::infinity();
+	float test_score = 0;
 	bool keep_looping = true;
 	size_t best_iter = 0;
 
@@ -134,10 +134,10 @@ static void finetune (DBNTrainer& model, ImgPtrT train,
 	auto xit = training_data_x.begin();
 	auto yit = training_data_y.begin();
 
-	std::vector<double> valid_data_x(valid->data_x_.begin(), valid->data_x_.end());
-	std::vector<double> valid_data_y(valid->data_y_.begin(), valid->data_y_.end());
-	std::vector<double> test_data_x(test->data_x_.begin(), test->data_x_.end());
-	std::vector<double> test_data_y(test->data_y_.begin(), test->data_y_.end());
+	std::vector<float> valid_data_x(valid->data_x_.begin(), valid->data_x_.end());
+	std::vector<float> valid_data_y(valid->data_y_.begin(), valid->data_y_.end());
+	std::vector<float> test_data_x(test->data_x_.begin(), test->data_x_.end());
+	std::vector<float> test_data_y(test->data_y_.begin(), test->data_y_.end());
 	auto valid_xit = valid_data_x.begin();
 	auto valid_yit = valid_data_y.begin();
 	auto test_xit = test_data_x.begin();
@@ -147,8 +147,8 @@ static void finetune (DBNTrainer& model, ImgPtrT train,
 	{
 		for (size_t mb_idx = 0; mb_idx < n_train_batches; mb_idx++)
 		{
-			std::vector<double> xbatch(xit + mb_idx * inbatch, xit + (mb_idx + 1) * inbatch);
-			std::vector<double> ybatch(yit + mb_idx * outbatch, yit + (mb_idx + 1) * outbatch);
+			std::vector<float> xbatch(xit + mb_idx * inbatch, xit + (mb_idx + 1) * inbatch);
+			std::vector<float> ybatch(yit + mb_idx * outbatch, yit + (mb_idx + 1) * outbatch);
 			finetune_in = xbatch;
 			finetune_out = ybatch;
 			train_update(true);
@@ -157,12 +157,12 @@ static void finetune (DBNTrainer& model, ImgPtrT train,
 
 			if (((iter + 1) % validation_frequency) == 0)
 			{
-				std::vector<double> xbatch_valid(valid_xit + mb_idx * inbatch, valid_xit + (mb_idx + 1) * inbatch);
-				std::vector<double> ybatch_valid(valid_yit + mb_idx * outbatch, valid_yit + (mb_idx + 1) * outbatch);
+				std::vector<float> xbatch_valid(valid_xit + mb_idx * inbatch, valid_xit + (mb_idx + 1) * inbatch);
+				std::vector<float> ybatch_valid(valid_yit + mb_idx * outbatch, valid_yit + (mb_idx + 1) * outbatch);
 				finetune_in = xbatch_valid;
 				finetune_out = ybatch_valid;
 
-				double validate_loss = nnet::expose<double>(train_loss)[0];
+				float validate_loss = nnet::expose<float>(train_loss)[0];
 				std::cout << "epoch " << epoch << ", minibatch "
 					<< mb_idx + 1 << "/" << n_train_batches << ", validation error "
 					<< validate_loss << '\n';
@@ -178,12 +178,12 @@ static void finetune (DBNTrainer& model, ImgPtrT train,
 					best_validation_loss = validate_loss;
 					best_iter = iter;
 
-					std::vector<double> xbatch_test(test_xit + mb_idx * inbatch, test_xit + (mb_idx + 1) * inbatch);
-					std::vector<double> ybatch_test(test_yit + mb_idx * outbatch, test_yit + (mb_idx + 1) * outbatch);
+					std::vector<float> xbatch_test(test_xit + mb_idx * inbatch, test_xit + (mb_idx + 1) * inbatch);
+					std::vector<float> ybatch_test(test_yit + mb_idx * outbatch, test_yit + (mb_idx + 1) * outbatch);
 					finetune_in = xbatch_test;
 					finetune_out = ybatch_test;
 
-					double test_loss = nnet::expose<double>(train_loss)[0];
+					float test_loss = nnet::expose<float>(train_loss)[0];
 					std::cout << "\tepoch " << epoch << ", minibatch "
 						<< mb_idx + 1 << "/" << n_train_batches << ", test error of best model "
 						<< test_loss * 100.0 << '\n';
@@ -208,12 +208,12 @@ static void mnist_test (ImgPtrT train, ImgPtrT valid, ImgPtrT test, TestParams p
 {
 	std::string serialpath = params.savepath;
 
-	std::vector<double> training_data_x(train->data_x_.begin(), train->data_x_.end());
-	std::vector<double> training_data_y(train->data_y_.begin(), train->data_y_.end());
-	std::vector<double> valid_data_x(valid->data_x_.begin(), valid->data_x_.end());
-	std::vector<double> valid_data_y(valid->data_y_.begin(), valid->data_y_.end());
-	std::vector<double> test_data_x(test->data_x_.begin(), test->data_x_.end());
-	std::vector<double> test_data_y(test->data_y_.begin(), test->data_y_.end());
+	std::vector<float> training_data_x(train->data_x_.begin(), train->data_x_.end());
+	std::vector<float> training_data_y(train->data_y_.begin(), train->data_y_.end());
+	std::vector<float> valid_data_x(valid->data_x_.begin(), valid->data_x_.end());
+	std::vector<float> valid_data_y(valid->data_y_.begin(), valid->data_y_.end());
+	std::vector<float> test_data_x(test->data_x_.begin(), test->data_x_.end());
+	std::vector<float> test_data_y(test->data_y_.begin(), test->data_y_.end());
 
 	size_t n_input = train->shape_.first;
 	size_t n_output = 10;
@@ -238,9 +238,9 @@ static void mnist_test (ImgPtrT train, ImgPtrT valid, ImgPtrT test, TestParams p
 	model.save(serialpath, "dbn_mnist");
 }
 
-std::vector<double> simple_op (std::vector<double> input)
+std::vector<float> simple_op (std::vector<float> input)
 {
-	std::vector<double> output;
+	std::vector<float> output;
 	for (size_t i = 0, n = input.size() / 2; i < n; ++i)
 	{
 		output.push_back((input[i] + input[n + i]) / 2);
@@ -256,10 +256,10 @@ void simpler_test (size_t n_train_sample, size_t n_test_sample, size_t n_in, Tes
 	DBNTrainer model(n_in, params.hiddens, "dbn_simple_learner");
 
 	// generate test sample
-	std::vector<double> train_samples = batch_generate(n_train_sample, n_in);
-	std::vector<double> test_samples = batch_generate(n_test_sample, n_in);
-	std::vector<double> train_out = simple_op(train_samples);
-	std::vector<double> test_out = simple_op(test_samples);
+	std::vector<float> train_samples = batch_generate(n_train_sample, n_in);
+	std::vector<float> test_samples = batch_generate(n_test_sample, n_in);
+	std::vector<float> train_out = simple_op(train_samples);
+	std::vector<float> test_out = simple_op(test_samples);
 
 	if (params.train)
 	{
@@ -277,12 +277,12 @@ void simpler_test (size_t n_train_sample, size_t n_test_sample, size_t n_in, Tes
 		}
 
 		// finetune
-		double inbatch = params.n_batch * n_in;
-		double outbatch = inbatch / 2;
-		nnet::placeholder<double> finetune_in(std::vector<size_t>{n_in, params.n_batch}, "finetune_in");
-		nnet::placeholder<double> finetune_out(std::vector<size_t>{n_in / 2, params.n_batch}, "finetune_out");
+		float inbatch = params.n_batch * n_in;
+		float outbatch = inbatch / 2;
+		nnet::placeholder<float> finetune_in(std::vector<size_t>{n_in, params.n_batch}, "finetune_in");
+		nnet::placeholder<float> finetune_out(std::vector<size_t>{n_in / 2, params.n_batch}, "finetune_out");
 		rocnnet::update_cost_t tuner = model.build_finetune_functions(finetune_in, finetune_out, params.training_lr);
-		nnet::variable_updater<double> train_update = tuner.first;
+		nnet::variable_updater<float> train_update = tuner.first;
 		size_t n_train_batches = n_train_sample / params.n_batch;
 
 		auto xit = train_samples.begin();
@@ -292,8 +292,8 @@ void simpler_test (size_t n_train_sample, size_t n_test_sample, size_t n_in, Tes
 		{
 			for (size_t mb_idx = 0; mb_idx < n_train_batches; mb_idx++)
 			{
-				std::vector<double> xbatch(xit + mb_idx * inbatch, xit + (mb_idx + 1) * inbatch);
-				std::vector<double> ybatch(yit + mb_idx * outbatch, yit + (mb_idx + 1) * outbatch);
+				std::vector<float> xbatch(xit + mb_idx * inbatch, xit + (mb_idx + 1) * inbatch);
+				std::vector<float> ybatch(yit + mb_idx * outbatch, yit + (mb_idx + 1) * outbatch);
 				finetune_in = xbatch;
 				finetune_out = ybatch;
 				train_update(true);
@@ -309,22 +309,22 @@ void simpler_test (size_t n_train_sample, size_t n_test_sample, size_t n_in, Tes
 	}
 
 	// test
-	nnet::placeholder<double> test_in(std::vector<size_t>{n_in}, "test_in");
-	nnet::placeholder<double> expect_out(std::vector<size_t>{n_in / 2}, "expect_out");
-	nnet::varptr<double> test_res = model.prop_up(nnet::varptr<double>(&test_in));
-	nnet::varptr<double> test_error = nnet::reduce_mean(
-		nnet::sqrt<double>(nnet::varptr<double>(&expect_out) - test_res));
+	nnet::placeholder<float> test_in(std::vector<size_t>{n_in}, "test_in");
+	nnet::placeholder<float> expect_out(std::vector<size_t>{n_in / 2}, "expect_out");
+	nnet::varptr<float> test_res = model.prop_up(nnet::varptr<float>(&test_in));
+	nnet::varptr<float> test_error = nnet::reduce_mean(
+		nnet::sqrt<float>(nnet::varptr<float>(&expect_out) - test_res));
 	auto xit = test_samples.begin();
 	auto yit = test_out.begin();
-	double total_err = 0;
+	float total_err = 0;
 	for (size_t i = 0; i < n_test_sample; ++i)
 	{
-		std::vector<double> xbatch(xit + i * n_in, xit + (i + 1) * n_in);
-		std::vector<double> ybatch(yit + i * n_in / 2, yit + (i + 1) * n_in / 2);
+		std::vector<float> xbatch(xit + i * n_in, xit + (i + 1) * n_in);
+		std::vector<float> ybatch(yit + i * n_in / 2, yit + (i + 1) * n_in / 2);
 		test_in = xbatch;
 		expect_out = ybatch;
 
-		double test_err = nnet::expose<double>(test_error)[0];
+		float test_err = nnet::expose<float>(test_error)[0];
 		total_err += test_err;
 		std::cout << "test error at " << i << ": " << test_err << '\n';
 	}

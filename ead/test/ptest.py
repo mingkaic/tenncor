@@ -62,10 +62,10 @@ class EADTest(unittest.TestCase):
         avoidshape = 1 == prod(list(arr1.shape)) and\
             1 == prod(list(arr2.shape))
         s1, s2 = _normalize_shape(arr1, arr2)
-        self.assertTrue(np.allclose(arr1, arr2) and s1 == s2, msg)
+        self.assertTrue(np.allclose(arr1, arr2, atol=1e-05) and s1 == s2, msg)
 
     def _common_unary(self, shape, api, real, derive):
-        data = np.random.rand(*shape) * 234
+        data = np.random.rand(*shape) * 34
         var = ead.variable(data, 'var')
         out = api(var)
 
@@ -84,7 +84,7 @@ class EADTest(unittest.TestCase):
         sess.track(zero)
         sess.update()
 
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         der = ex.get()
         rej = zero.get()
         exdata = derive(data)
@@ -120,7 +120,7 @@ class EADTest(unittest.TestCase):
         sess.track(zero)
         sess.update()
 
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         der = ex.get()
         rej = zero.get()
         exdata = tfsess.run(tf_grad)
@@ -142,8 +142,8 @@ class EADTest(unittest.TestCase):
 
         fout = out.get()
         fboth = both.get()
-        self._array_eq(real(data, data2), fout)
-        self._array_eq(real(data, data), fboth)
+        self._array_close(real(data, data2), fout)
+        self._array_close(real(data, data), fboth)
 
         var3 = ead.variable(data, 'var3')
 
@@ -162,7 +162,7 @@ class EADTest(unittest.TestCase):
         der2 = ex2.get()
         der3 = ex3.get()
 
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         exdata = derive(0, (data, data2))
         exdata2 = derive(1, (data, data2))
         exdata3 = derive(0, (data, data)) + derive(1, (data, data))
@@ -202,7 +202,7 @@ class EADTest(unittest.TestCase):
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         der = ex.get()
         rej = zero.get()
 
@@ -215,9 +215,10 @@ class EADTest(unittest.TestCase):
         shape = [3, 4, 5]
         # data = np.random.rand(*shape)
         data = np.array([
-            [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 21, 22, 23], [24, 25, 26, 27, 28]],
+            [[ 1,  2,  3,  4,  5], [ 6,  7,  8,  9, 10], [11, 12, 21, 22, 23], [24, 25, 26, 27, 28]],
             [[29, 20, 31, 32, 31], [32, 33, 34, 35, 36], [37, 38, 39, 30, 41], [42, 41, 42, 43, 44]],
-            [[45, 46, 47, 48, 49], [40, 51, 52, 51, 52], [53, 54, 55, 56, 57], [58, 59, 50, 61, 62]]], dtype=float)
+            [[45, 46, 47, 48, 49], [40, 51, 52, 51, 52], [53, 54, 55, 56, 57], [58, 59, 50, 61, 62]]
+        ], dtype=np.float32)
         var = ead.variable(data, 'var')
         tf_var = tf.Variable(data)
 
@@ -254,7 +255,7 @@ class EADTest(unittest.TestCase):
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
         tf_grad2 = tf.gradients(tf_out2, [tf_var])[0]
 
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         der = ex.get()
         der2 = ex2.get()
         rej = zero.get()
@@ -268,8 +269,8 @@ class EADTest(unittest.TestCase):
 
     def test_variable(self):
         shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=float)
-        data0 = np.zeros(shape, dtype=float)
+        data1 = np.ones(shape, dtype=np.float32)
+        data0 = np.zeros(shape, dtype=np.float32)
         data = np.random.rand(3, 4, 5) * 234
         var = ead.variable(data, 'var')
 
@@ -279,7 +280,7 @@ class EADTest(unittest.TestCase):
         fout = var.get()
 
         self.assertEqual(tuple(shape), fout.shape)
-        self._array_eq(data, fout)
+        self._array_close(data, fout)
 
         var2 = ead.variable(data, 'var2')
         one = ead.derive(var, var)
@@ -302,7 +303,7 @@ class EADTest(unittest.TestCase):
 
     def test_neg(self):
         shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=float)
+        data1 = np.ones(shape, dtype=np.float32)
         self._common_unary(shape, age.neg, lambda a: -a,
             lambda data: -data1)
 
@@ -316,8 +317,7 @@ class EADTest(unittest.TestCase):
 
     def test_tan(self):
         shape = [3, 4, 5]
-        self._common_unary(shape, age.tan, np.tan,
-            lambda x: (1.0 / np.cos(x)) / np.cos(x))
+        self._common_unary_tf(shape, age.tan, tf.tan)
 
     def test_exp(self):
         shape = [3, 4, 5]
@@ -334,7 +334,7 @@ class EADTest(unittest.TestCase):
 
     def test_round(self):
         shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=float)
+        data1 = np.ones(shape, dtype=np.float32)
         self._common_unary(shape, age.round, np.round, lambda x: data1)
 
     def test_sigmoid(self):
@@ -364,13 +364,13 @@ class EADTest(unittest.TestCase):
 
     def test_add(self):
         shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=float)
+        data1 = np.ones(shape, dtype=np.float32)
         self._common_binary(shape, age.add, lambda x, y: x + y,
             lambda i, data: data1)
 
     def test_sub(self):
         shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=float)
+        data1 = np.ones(shape, dtype=np.float32)
         def sub_der(i, data):
             if i == 0:
                 return data1
@@ -414,7 +414,7 @@ class EADTest(unittest.TestCase):
 
     def test_eq(self):
         shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         self._common_binary(shape,
             lambda x, y: age.eq(age.round(x), age.round(y)),
             lambda x, y: np.round(x) == np.round(y),
@@ -422,7 +422,7 @@ class EADTest(unittest.TestCase):
 
     def test_neq(self):
         shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         self._common_binary(shape,
             lambda x, y: age.neq(age.round(x), age.round(y)),
             lambda x, y: np.round(x) != np.round(y),
@@ -430,7 +430,7 @@ class EADTest(unittest.TestCase):
 
     def test_lt(self):
         shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         self._common_binary(shape,
             lambda x, y: age.lt(age.round(x), age.round(y)),
             lambda x, y: np.round(x) < np.round(y),
@@ -438,7 +438,7 @@ class EADTest(unittest.TestCase):
 
     def test_gt(self):
         shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         self._common_binary(shape,
             lambda x, y: age.gt(age.round(x), age.round(y)),
             lambda x, y: np.round(x) > np.round(y),
@@ -446,14 +446,14 @@ class EADTest(unittest.TestCase):
 
     def test_nelems(self):
         shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         self._common_unary(shape, age.n_elems,
             lambda data: np.prod(data.shape),
             lambda data: data0)
 
     def test_ndims(self):
         shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         self._common_unary(shape,
             lambda x: age.n_dims(x, 0),
             lambda data: data.shape[2],
@@ -471,14 +471,14 @@ class EADTest(unittest.TestCase):
         sess.update()
 
         fout = out.get()
-        self._array_eq(expected_out, fout)
+        self._array_close(expected_out, fout)
 
         ex = ead.derive(out, var)
         sess.track(ex)
         sess.update()
 
         der = ex.get()
-        self._array_eq(np.array([3, 3]), der)
+        self._array_close(np.array([3, 3]), der)
 
     def test_rsum_1d(self):
         self._common_reduce_1d(age.reduce_sum_1d, tf.reduce_sum)
@@ -563,7 +563,7 @@ class EADTest(unittest.TestCase):
         der3 = ex3.get()
 
         # eval derivative of tensorflow matmul
-        data0 = np.zeros(shape, dtype=float)
+        data0 = np.zeros(shape, dtype=np.float32)
         tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_var2])
         tf_grad3 = tf.gradients(tf_both, [tf_var])[0]
 
@@ -618,7 +618,7 @@ class EADTest(unittest.TestCase):
     #         der = ex.evaluate()
     #         der2 = ex2.evaluate()
 
-    #         data0 = np.zeros(shape, dtype=float)
+    #         data0 = np.zeros(shape, dtype=np.float32)
     #         tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_kernel])
 
     #         exdata = sess.run(tf_grad)

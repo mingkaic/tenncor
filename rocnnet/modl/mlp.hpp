@@ -9,7 +9,7 @@
 namespace modl
 {
 
-using HiddenFunc = std::function<ead::NodeptrT<double>(ead::NodeptrT<double>)>;
+using HiddenFunc = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 
 const std::string hidden_fmt = "hidden_%d";
 
@@ -56,9 +56,9 @@ struct MLP final : public iMarshalSet
 	MLP& operator = (MLP&& other) = default;
 
 
-	ead::NodeptrT<double> operator () (ead::NodeptrT<double> input)
+	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
 	{
-		ead::NodeptrT<double> out = input;
+		ead::NodeptrT<PybindT> out = input;
 		for (HiddenLayer& layer : layers_)
 		{
 			auto hypothesis = (*layer.layer_)({out});
