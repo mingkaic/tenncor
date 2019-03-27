@@ -7,6 +7,9 @@
 
 #include "dbg/ade.hpp"
 
+#ifndef DBG_ADE_CSV_HPP
+#define DBG_ADE_CSV_HPP
+
 const char label_delim = ':';
 
 void multiline_replace (std::string& multiline);
@@ -169,3 +172,5 @@ struct CSVEquation final : public ade::iTraveler
 
 	GetTypeFuncT get_ftype_;
 };
+
+#endif // DBG_ADE_CSV_HPP

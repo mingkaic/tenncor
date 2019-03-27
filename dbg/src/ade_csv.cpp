@@ -1,5 +1,7 @@
 #include "dbg/ade_csv.hpp"
 
+#ifdef DBG_ADE_CSV_HPP
+
 void multiline_replace (std::string& multiline)
 {
 	size_t i = 0;
@@ -9,3 +11,5 @@ void multiline_replace (std::string& multiline)
 		multiline.replace(i, 1, "\\");
 	}
 }
+
+#endif

@@ -520,7 +520,7 @@ class EADTest(unittest.TestCase):
 
         # regular matmul
         out = age.matmul(var, var2)
-        both = age.matmul(var, var)\
+        both = age.matmul(var, var)
 
         # tensorflow matmul
         tf_out = tf.matmul(tf_var, tf_var2)

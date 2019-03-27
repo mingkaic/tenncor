@@ -144,7 +144,24 @@ PYBIND11_MODULE(rocnnet, m)
 			loadstr << data;
 			modl::load(loadstr, out.get());
 			return out;
-		}, "load a version of this instance from a data");
+		}, "load a version of this instance from a data")
+		.def("get_variables", [](py::object self)
+		{
+			std::unordered_map<std::string,ead::NodeptrT<PybindT>> out;
+			pbm::PathedMapT bases = self.cast<modl::iMarshaler*>()->list_bases();
+			for (auto bpair : bases)
+			{
+				if (auto var = std::dynamic_pointer_cast<
+					ead::Variable<PybindT>>(bpair.first))
+				{
+					std::string key = fmts::join("::",
+						bpair.second.begin(), bpair.second.end());
+					out.emplace(key,
+						std::make_shared<ead::VariableNode<PybindT>>(var));
+				}
+			}
+			return out;
+		}, "return variables dict in this marshaler");
 
 	// fcon
 	m.def("get_fcon", &pyrocnnet::fcon_init);

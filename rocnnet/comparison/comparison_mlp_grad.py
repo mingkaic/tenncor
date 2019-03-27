@@ -1,13 +1,22 @@
-import sys
 import time
-import argparse
 import math
 
 import numpy as np
-
+import matplotlib.pyplot as plt
 import tensorflow as tf
 
-prog_description = 'Demo mlp_trainer using sgd'
+import ead.age as age
+import ead.ead as ead
+import rocnnet.rocnnet as rcn
+
+matrix_dims = [
+    10,
+    50,
+    100,
+    150,
+    200,
+    250,
+]
 
 def batch_generate(n, batchsize):
     total = n * batchsize
@@ -15,15 +24,6 @@ def batch_generate(n, batchsize):
 
 def avgevry2(indata):
     return (indata[0::2] + indata[1::2]) / 2
-
-def str2bool(opt):
-    optstr = opt.lower()
-    if optstr in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif optstr in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def base_name(var):
     """Extracts value passed to name= when creating a variable"""
@@ -113,117 +113,98 @@ class MLP(object):
         return MLP(self.input_sizes, self.hiddens, nonlinearities, scope=scope,
                 given_layers=given_layers)
 
-def main(args):
+ead_durs = []
+tf_durs = []
+learning_rate = 0.9
 
-    default_ts = time.time()
-
-    parser = argparse.ArgumentParser(description=prog_description)
-    parser.add_argument('--seed', dest='seed',
-        type=str2bool, nargs='?', const=False, default=True,
-        help='Whether to seed or not (default: True)')
-    parser.add_argument('--seedval', dest='seedval', type=int, nargs='?', default=int(default_ts),
-        help='Random seed value (default: <current time>)')
-    parser.add_argument('--n_batch', dest='n_batch', type=int, nargs='?', default=3,
-        help='Batch size when training (default: 3)')
-    parser.add_argument('--n_train', dest='n_train', type=int, nargs='?', default=3000,
-        help='Number of times to train (default: 3000)')
-    parser.add_argument('--n_test', dest='n_test', type=int, nargs='?', default=500,
-        help='Number of times to test (default: 500)')
-    args = parser.parse_args(args)
-
-    if args.seed:
-        print('seeding {}'.format(args.seedval))
-        np.random.seed(args.seedval)
-
-    learning_rate = 0.9
-
-    n_in = 10
+for matrix_dim in matrix_dims:
+    n_in = matrix_dim
     n_out = n_in / 2
+    batch_size = 1
 
-    brain = MLP([n_in], [9, n_out], [tf.sigmoid, tf.sigmoid])
+    sess = ead.Session()
+    tfsess = tf.Session()
 
-    sess = tf.Session()
-    n_batch = args.n_batch
-    show_every_n = 500
 
-    trained_in = tf.placeholder(tf.float32, [None, n_in], name='trained_in')
-    trained_out = brain(trained_in)
-    expected_out = tf.placeholder(tf.float32, [n_batch, n_out], name='expected_out')
+    # regular mlp
+    hiddens = [
+        rcn.get_layer(age.sigmoid, matrix_dim),
+        rcn.get_layer(age.sigmoid, n_out)
+    ]
 
-    error = tf.square(expected_out - trained_out)
+    brain = rcn.get_mlp(n_in, hiddens, 'brain_' + str(matrix_dim))
 
-    layer0 = brain.input_layer
-    layer1 = brain.layers[0]
+    invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
+    out = brain.forward(invar)
+    expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
+    err = age.square(age.sub(expected_out, out))
 
-    w0 = layer0.Ws[0]
-    b0 = layer0.b
-    w1 = layer1.Ws[0]
-    b1 = layer1.b
+    trainer = rcn.MLPTrainer(brain, sess, rcn.get_sgd(learning_rate), batch_size)
 
-    dw0, db0, dw1, db1 = tf.gradients(error, [w0, b0, w1, b1])
+    # tensorflow mlp
+    tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))
 
-    w0_update = w0.assign_sub(learning_rate * dw0)
-    b0_update = b0.assign_sub(learning_rate * db0)
-    w1_update = w1.assign_sub(learning_rate * dw1)
-    b1_update = b1.assign_sub(learning_rate * db1)
+    tf_invar = tf.placeholder(tf.float32, [batch_size, n_in], name='tf_invar')
+    tf_out = tf_brain(tf_invar)
+    tf_expected_out = tf.placeholder(tf.float32, [batch_size, n_out], name='tf_expected_out')
+    tf_err = tf.square(tf_expected_out - tf_out)
+
+    layer0 = tf_brain.input_layer
+    layer1 = tf_brain.layers[0]
+
+    tf_w0 = layer0.Ws[0]
+    tf_b0 = layer0.b
+    tf_w1 = layer1.Ws[0]
+    tf_b1 = layer1.b
+
+    tf_dw0, tf_db0, tf_dw1, tf_db1 = tf.gradients(tf_err, [
+        tf_w0,
+        tf_b0,
+        tf_w1,
+        tf_b1,
+    ])
+    w0_update = tf_w0.assign_sub(learning_rate * tf_dw0)
+    b0_update = tf_b0.assign_sub(learning_rate * tf_db0)
+    w1_update = tf_w1.assign_sub(learning_rate * tf_dw1)
+    b1_update = tf_b1.assign_sub(learning_rate * tf_db1)
 
     def calculate_update(batch, batch_out):
-        out, _, _, _, _ = sess.run([
-            error,
+        out, _, _, _, _ = tfsess.run([
+            tf_err,
             w0_update,
             b0_update,
             w1_update,
             b1_update,
         ], {
-            trained_in: batch,
-            expected_out: batch_out,
+            tf_invar: batch,
+            tf_expected_out: batch_out,
         })
 
         return out
 
-    # optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
-    # gradients = optimizer.compute_gradients(error)
-    # train_op = optimizer.apply_gradients(gradients)
+    sess.track(err)
+    tfsess.run(tf.global_variables_initializer())
 
-    sess.run(tf.global_variables_initializer())
+
+    test_batch = batch_generate(n_in, batch_size)
+    test_batch_out = avgevry2(test_batch)
+    tf_test_batch = test_batch.reshape([batch_size, n_in])
+    tf_test_batch_out = test_batch_out.reshape([batch_size, n_out])
+
     start = time.time()
-    for i in range(args.n_train):
-        batch = batch_generate(n_in, n_batch)
-        batch_out = avgevry2(batch)
-        batch = batch.reshape([n_batch, n_in])
-        batch_out = batch_out.reshape([n_batch, n_out])
-        # trained_derr, _ = sess.run([
-        #     error,
-        #     train_op,
-        # ], {
-        #     trained_in: batch,
-        #     expected_out: batch_out
-        # })
-        trained_derr = calculate_update(batch, batch_out)
-        if i % show_every_n == show_every_n - 1:
-            print('training {}\ntraining error:\n{}'
-                .format(i + 1, trained_derr))
+    trainer.train(test_batch, test_batch_out)
+    ead_dur = time.time() - start
 
-    print('training time: {} seconds'.format(time.time() - start))
+    start = time.time()
+    calculate_update(tf_test_batch, tf_test_batch_out)
+    tf_dur = time.time() - start
 
-    trained_err = 0
-    for i in range(args.n_test):
-        if i % show_every_n == show_every_n - 1:
-            print('testing {}'.format(i + 1))
+    ead_durs.append(ead_dur)
+    tf_durs.append(tf_dur)
 
-        test_batch = batch_generate(n_in, 1)
-        test_batch_out = avgevry2(test_batch)
-        test_batch = test_batch.reshape([1, n_in])
-        test_batch_out = test_batch_out.reshape([1, n_out])
-
-        trained_data = sess.run(trained_out, {
-            trained_in: test_batch
-        })
-
-        trained_err += np.mean(abs(trained_data - test_batch_out))
-
-    trained_err /= args.n_test
-    print('trained mlp error rate: {}%'.format(trained_err * 100))
-
-if '__main__' == __name__:
-    main(sys.argv[1:])
+print('ead durations: ', ead_durs)
+print('tf durations: ', tf_durs)
+ead_line = plt.plot(matrix_dims, ead_durs, 'r--', label='ead durations')
+tf_line = plt.plot(matrix_dims, tf_durs, 'b--', label='tf durations')
+plt.legend()
+plt.show()

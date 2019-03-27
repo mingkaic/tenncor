@@ -21,6 +21,26 @@ pybind_library(
     visibility = ["//visibility:public"],
 )
 
+######### COMPARISONS #########
+
+py_binary(
+    name = "comparison_matmul",
+    srcs = ["comparison/comparison_matmul.py"],
+    deps = ["//ead:ead_py"],
+)
+
+py_binary(
+    name = "comparison_mlp",
+    srcs = ["comparison/comparison_mlp.py"],
+    deps = [":rocnnet_py"],
+)
+
+py_binary(
+    name = "comparison_mlp_grad",
+    srcs = ["comparison/comparison_mlp_grad.py"],
+    deps = [":rocnnet_py"],
+)
+
 ######### DEMOS #########
 
 cc_binary(
