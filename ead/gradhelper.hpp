@@ -161,25 +161,28 @@ NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
 
 	NodeptrT<T> ext;
 	std::vector<uint8_t> perm;
+	uint8_t reduce_dim = 0;
 	if (0 == idx)
 	{
 		ext = ext_a;
-		perm = {2, 1, 0};
+		perm = {1, 0};
+		reduce_dim = 0;
 	}
 	else
 	{
 		ext = ext_b;
-		perm = {0, 2, 1};
+		perm = {0, 1};
+		reduce_dim = 1;
 	}
 
 	NodeptrT<T> ext_bwd = age::extend(bwd, 2, {a->shape().at(0)});
 
-	return age::reduce_sum(
-		age::permute(
+	return age::permute(
+		age::reduce_sum_1d(
 			age::mul(
 				age::div(age::mul(ext_a, ext_b), ext),
 				ext_bwd
-			), perm), 2);
+			), reduce_dim), perm);
 }
 
 template <typename T>

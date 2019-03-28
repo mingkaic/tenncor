@@ -34,10 +34,14 @@ NodeptrT<T> reduce_1d_helper (ade::Opcode opcode,
 	std::iota(bt, it, 0);
 	std::iota(it, indices.end(), dim + 1);
 	indices[ade::rank_cap - 1] = dim;
-	return make_functor<T>(ade::Opcode{"PERMUTE", age::PERMUTE}, {
-		permute_map(make_functor<T>(opcode, {
-			reduce_map(tens, dim, {dim})
-		}), indices)
+
+	ade::Shape shape = tens->get_tensor()->shape();
+	std::vector<ade::DimT> slist = {shape.at(dim)};
+	ade::CoordptrT rshaper(ade::reduce(dim, slist)->connect(
+		*ade::permute(indices)));
+
+	return make_functor<T>(opcode, {
+		FuncArg<T>(tens, rshaper, reduce({dim}))
 	});
 }
 

@@ -21,9 +21,9 @@ namespace ead
 template <typename T>
 static bool const_is_one (Constant<T>* cst)
 {
-	double* ptr = (double*) cst->data();
+	T* ptr = (T*) cst->data();
 	return std::all_of(ptr, ptr + cst->shape().n_elems(),
-		[](double d) { return 1 == d; });
+		[](T d) { return 1 == d; });
 }
 
 template <typename T>

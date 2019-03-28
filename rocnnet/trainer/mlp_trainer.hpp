@@ -52,9 +52,9 @@ struct MLPTrainer
 			}
 		}
 
-		opt::GraphOpt optimizer = opt::config_opt();
 		size_t n_roots = to_optimize.size();
 		ead::NodesT<PybindT> roots(n_roots);
+		opt::GraphOpt optimizer = opt::config_opt();
 		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
 			[&optimizer](ead::NodeptrT<PybindT>* ptr)
 			{
@@ -62,8 +62,8 @@ struct MLPTrainer
 				return *ptr;
 			});
 		{
-			auto temp = optimizer.apply_optimization(roots);
-			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(temp));
+			// roots = optimizer.apply_optimization(roots);
+			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(roots));
 		}
 
 		for (size_t i = 0; i < n_roots; ++i)
