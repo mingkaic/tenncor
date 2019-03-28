@@ -14,6 +14,7 @@ P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
 performance:
+P2 - define session interface then improve session implementation
 P3 - implement sub-graph recognition optimizations (recognize patterns such as X * Y * Z / Y = X * Z or 1 / (1 + - exp (X)) = sigmoid(X))
 P3 - use scalars whenever possible
 P4 - implement optimization options to increase data accuracy
