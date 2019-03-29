@@ -130,17 +130,15 @@ struct Session final : public iSession<T>
 
 	// mark every tensor in updates set as need_update
 	// update every functor up until reaching elements in stop_updating set
-	template <typename USESS = SessionStep, typename std::enable_if<
-		std::is_base_of<ade::iTraveler,USESS>::value>::type* = nullptr>
-	USESS update (std::unordered_set<ade::iTensor*> updates = {})
+	SessionStep update (std::unordered_set<ade::iTensor*> updates = {})
 	{
 		sess_info_.need_update_.insert(updates.begin(), updates.end());
-		USESS sess(&sess_info_);
+		SessionStep step(&sess_info_);
 		for (auto root : roots_)
 		{
-			root->accept(sess);
+			root->accept(step);
 		}
-		return sess;
+		return step;
 	}
 
 	std::list<ade::iTensor*> roots_;

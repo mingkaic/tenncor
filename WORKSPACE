@@ -21,3 +21,11 @@ dependencies()
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
+
+# dev dependencies
+
+load("@protobuf_rules//cpp:deps.bzl", "cpp_grpc_library")
+cpp_grpc_library()
+
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+grpc_deps()

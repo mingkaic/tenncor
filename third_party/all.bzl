@@ -1,6 +1,7 @@
 load("//third_party/repos:eigen.bzl", "eigen_repository")
 load("//third_party/repos:numpy.bzl", "numpy_repository")
 load("//third_party/repos:protobuf.bzl", "protobuf_rules_repository")
+load("//third_party/repos:grpc.bzl", "grpc_rules_repository")
 load("//third_party/repos:pybind11.bzl", "pybind11_repository")
 load("//third_party/repos:python.bzl", "python_repository")
 load("//third_party/repos:cppkg.bzl", "cppkg_repository")
@@ -24,3 +25,6 @@ def dependencies(excludes = []):
 
     if "com_github_mingkaic_cppkg" not in ignores:
         cppkg_repository()
+
+    if "com_github_grpc_grpc" not in ignores:
+        grpc_rules_repository("com_github_grpc_grpc")
