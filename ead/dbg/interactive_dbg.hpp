@@ -20,17 +20,15 @@ const std::string invalid_break_signal_msg =
 
 struct Painter : public ade::iTraveler
 {
-    Painter (GraphCanvasT& canvas, std::string label, bool overwrite) :
-        canvas_(&canvas), label_(label), overwrite_(overwrite) {}
-
     /// Implementation of iTraveler
     void visit (ade::iLeaf* leaf) override
     {
         if (visited_.end() == visited_.find(leaf) &&
-            (canvas_->end() == canvas_->find(leaf) || overwrite_))
+            (canvas_.end() == canvas_.find(leaf)))
         {
             visited_.emplace(leaf);
-            canvas_->emplace(leaf, NodeMetadata{false, label_, std::weak_ptr<ade::iTensor>()});
+            canvas_.emplace(leaf, NodeMetadata{false, {},
+                std::weak_ptr<ade::iTensor>()});
         }
     }
 
@@ -38,45 +36,48 @@ struct Painter : public ade::iTraveler
     void visit (ade::iFunctor* func) override
     {
         if (visited_.end() == visited_.find(func) &&
-            (canvas_->end() == canvas_->find(func) || overwrite_))
+            (canvas_.end() == canvas_.find(func)))
         {
             visited_.emplace(func);
-            canvas_->emplace(func, NodeMetadata{true, label_, std::weak_ptr<ade::iTensor>()});
+            canvas_.emplace(func, NodeMetadata{true, {},
+                std::weak_ptr<ade::iTensor>()});
             auto children = func->get_children();
             for (auto& child : children)
             {
                 auto ctens = child.get_tensor();
                 ctens->accept(*this);
-                (*canvas_)[ctens.get()].ownership_ = ctens;
+                canvas_[ctens.get()].ownership_ = ctens;
             }
         }
     }
 
     std::unordered_set<ade::iTensor*> visited_;
 
-    GraphCanvasT* canvas_;
-
-    std::string label_;
-
-    bool overwrite_;
+    GraphCanvasT canvas_;
 };
 
 template <typename T>
 struct InteractiveDebugger
 {
-    void track_label (NodeptrT<T>& node, std::string label = default_label)
+    void track (NodeptrT<T>& node, std::string label = default_label)
     {
-        Painter painter(graph_canvas_, label, false);
+        Painter painter;
         auto root = node->get_tensor();
         root->accept(painter);
-        graph_canvas_[root.get()].ownership_ = root;
-    }
-
-    void track_overwrite_label (NodeptrT<T>& node, std::string label)
-    {
-        Painter painter(graph_canvas_, label, true);
-        auto root = node->get_tensor();
-        root->accept(painter);
+        for (auto& canvas_info : painter.canvas_)
+        {
+            auto tens = canvas_info.first;
+            auto it = graph_canvas_.find(tens);
+            if (graph_canvas_.end() == it)
+            {
+                canvas_info.second.labels_ = {label};
+                graph_canvas_.emplace(tens, canvas_info.second);
+            }
+            else
+            {
+                graph_canvas_[tens].labels_.emplace(label);
+            }
+        }
         graph_canvas_[root.get()].ownership_ = root;
     }
 
@@ -84,18 +85,7 @@ struct InteractiveDebugger
     void set_break (void)
     {
         // cleanup canvas
-        for (auto it = graph_canvas_.begin(), et = graph_canvas_.end(); it != et;)
-        {
-            auto& owner = it->second.ownership_;
-            if (owner.expired())
-            {
-                it = graph_canvas_.erase(it);
-            }
-            else
-            {
-                ++it;
-            }
-        }
+        clean_up();
 
         // update display
         GraphClient client(default_server);
@@ -120,6 +110,22 @@ struct InteractiveDebugger
                 logs::warn(invalid_break_signal_msg);
             }
             break_signal = "";
+        }
+    }
+
+    void clean_up (void)
+    {
+        for (auto it = graph_canvas_.begin(), et = graph_canvas_.end(); it != et;)
+        {
+            auto& owner = it->second.ownership_;
+            if (owner.expired())
+            {
+                it = graph_canvas_.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
         }
     }
 

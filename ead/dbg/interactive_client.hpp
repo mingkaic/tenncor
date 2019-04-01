@@ -18,7 +18,7 @@ struct NodeMetadata
 {
     bool is_func_;
 
-    std::string label_;
+    std::unordered_set<std::string> labels_;
 
     std::weak_ptr<ade::iTensor> ownership_;
 };
@@ -44,10 +44,13 @@ void set_transfer_request (idbg::GraphUpdateRequest& req, const GraphCanvasT& ca
         assert(nullptr != node);
         node->set_id(id);
         node->set_is_func(meta.is_func_);
-        node->set_label(meta.label_);
+        google::protobuf::RepeatedPtrField<std::string> temp(
+            meta.labels_.begin(), meta.labels_.end());
+        node->mutable_labels()->Swap(&temp);
 
-        if (auto f = dynamic_cast<ade::iFunctor*>(tens))
+        if (meta.is_func_)
         {
+            auto f = static_cast<ade::iFunctor*>(tens);
             funcs.push_back(f);
             node->set_repr(f->to_string() + f->shape().to_string());
         }
@@ -85,7 +88,7 @@ struct GraphClient
     {
         grpc::ClientContext context;
         auto deadline = std::chrono::system_clock::now() +
-            std::chrono::milliseconds(100);
+            std::chrono::seconds(3);
         context.set_deadline(deadline);
 
         idbg::GraphUpdateRequest req;

@@ -10,7 +10,7 @@ namespace eqns
 {
 
 AssignGroupsT sgd (ead::NodeptrT<PybindT>& root, VariablesT leaves,
-	PybindT learning_rate)
+	PybindT learning_rate, std::string root_label)
 {
 	AssignsT assignments;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
@@ -21,13 +21,16 @@ AssignGroupsT sgd (ead::NodeptrT<PybindT>& root, VariablesT leaves,
 		ade::Shape gshape = grad->shape();
 		auto next = age::sub(leaf_node,
 			age::mul(grad, ead::make_constant_scalar<PybindT>(learning_rate, gshape)));
-		assignments.push_back(VarAssign{leaves[i], next});
+		assignments.push_back(VarAssign{
+			fmts::sprintf("sgd::%s_grad_%s",
+				root_label.c_str(), leaves[i]->get_label().c_str()),
+			leaves[i], next});
 	}
 	return {assignments};
 }
 
 AssignGroupsT rms_momentum (ead::NodeptrT<PybindT>& root, VariablesT leaves,
-	PybindT learning_rate, PybindT discount_factor, PybindT epsilon)
+	PybindT learning_rate, PybindT discount_factor, PybindT epsilon, std::string root_label)
 {
 	// assign momentums before leaves
 	AssignsT momentum_assigns;
@@ -60,13 +63,19 @@ AssignGroupsT rms_momentum (ead::NodeptrT<PybindT>& root, VariablesT leaves,
 				age::add(age::sqrt(momentum_node),
 					ead::make_constant_scalar<PybindT>(epsilon, gshape))
 			));
-		momentum_assigns.push_back(VarAssign{momentum, momentum_next});
-		leaf_assigns.push_back(VarAssign{leaves[i], leaf_next});
+		momentum_assigns.push_back(VarAssign{
+			fmts::sprintf("rms_momentum::%s_momentum_%s",
+				root_label.c_str(), leaves[i]->get_label().c_str()),
+			momentum, momentum_next});
+		leaf_assigns.push_back(VarAssign{
+			fmts::sprintf("rms_momentum::%s_grad_%s",
+				root_label.c_str(), leaves[i]->get_label().c_str()),
+			leaves[i], leaf_next});
 	}
 	return {momentum_assigns, leaf_assigns};
 }
 
-void assign_groups (ead::Session<PybindT>& sess, AssignGroupsT& groups)
+void assign_groups (AssignGroupsT& groups, UpdateStepT update_step)
 {
 	for (AssignsT& group : groups)
 	{
@@ -77,7 +86,7 @@ void assign_groups (ead::Session<PybindT>& sess, AssignGroupsT& groups)
 			assign.target_->assign(assign.source_->data(),
 				assign.source_->shape());
 		}
-		sess.update(updated_var);
+		update_step(updated_var);
 	}
 }
 

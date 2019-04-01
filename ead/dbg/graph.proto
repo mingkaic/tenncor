@@ -5,7 +5,7 @@ package idbg;
 message Node {
     int32 id = 1;
 
-    string label = 2;
+    repeated string labels = 2;
 
     bool is_func = 3;
 

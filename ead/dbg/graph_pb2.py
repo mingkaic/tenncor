@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='idbg',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x0bgraph.proto\x12\x04idbg\"N\n\x04Node\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05label\x18\x02 \x01(\t\x12\x0f\n\x07is_func\x18\x03 \x01(\x08\x12\x0c\n\x04\x64\x61ta\x18\x04 \x03(\x01\x12\x0c\n\x04repr\x18\x05 \x01(\t\"4\n\x04\x45\x64ge\x12\x0e\n\x06parent\x18\x01 \x01(\x05\x12\r\n\x05\x63hild\x18\x02 \x01(\x05\x12\r\n\x05order\x18\x03 \x01(\x05\"=\n\x05Graph\x12\x19\n\x05nodes\x18\x01 \x03(\x0b\x32\n.idbg.Node\x12\x19\n\x05\x65\x64ges\x18\x02 \x03(\x0b\x32\n.idbg.Edge\"2\n\x12GraphUpdateRequest\x12\x1c\n\x07payload\x18\x01 \x01(\x0b\x32\x0b.idbg.Graph\"\x98\x01\n\x13GraphUpdateResponse\x12\x30\n\x06status\x18\x01 \x01(\x0e\x32 .idbg.GraphUpdateResponse.Status\x12\x0f\n\x07message\x18\x02 \x01(\t\">\n\x06Status\x12\x06\n\x02OK\x10\x00\x12\r\n\tBAD_INPUT\x10\x01\x12\x10\n\x0cINTERNAL_ERR\x10\x02\x12\x0b\n\x07UNKNOWN\x10\x03\x32X\n\x12InteractiveGrapher\x12\x42\n\x0bUpdateGraph\x12\x18.idbg.GraphUpdateRequest\x1a\x19.idbg.GraphUpdateResponseb\x06proto3')
+  serialized_pb=_b('\n\x0bgraph.proto\x12\x04idbg\"O\n\x04Node\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0e\n\x06labels\x18\x02 \x03(\t\x12\x0f\n\x07is_func\x18\x03 \x01(\x08\x12\x0c\n\x04\x64\x61ta\x18\x04 \x03(\x01\x12\x0c\n\x04repr\x18\x05 \x01(\t\"4\n\x04\x45\x64ge\x12\x0e\n\x06parent\x18\x01 \x01(\x05\x12\r\n\x05\x63hild\x18\x02 \x01(\x05\x12\r\n\x05order\x18\x03 \x01(\x05\"=\n\x05Graph\x12\x19\n\x05nodes\x18\x01 \x03(\x0b\x32\n.idbg.Node\x12\x19\n\x05\x65\x64ges\x18\x02 \x03(\x0b\x32\n.idbg.Edge\"2\n\x12GraphUpdateRequest\x12\x1c\n\x07payload\x18\x01 \x01(\x0b\x32\x0b.idbg.Graph\"\x98\x01\n\x13GraphUpdateResponse\x12\x30\n\x06status\x18\x01 \x01(\x0e\x32 .idbg.GraphUpdateResponse.Status\x12\x0f\n\x07message\x18\x02 \x01(\t\">\n\x06Status\x12\x06\n\x02OK\x10\x00\x12\r\n\tBAD_INPUT\x10\x01\x12\x10\n\x0cINTERNAL_ERR\x10\x02\x12\x0b\n\x07UNKNOWN\x10\x03\x32X\n\x12InteractiveGrapher\x12\x42\n\x0bUpdateGraph\x12\x18.idbg.GraphUpdateRequest\x1a\x19.idbg.GraphUpdateResponseb\x06proto3')
 )
 
 
@@ -49,8 +49,8 @@ _GRAPHUPDATERESPONSE_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=361,
-  serialized_end=423,
+  serialized_start=362,
+  serialized_end=424,
 )
 _sym_db.RegisterEnumDescriptor(_GRAPHUPDATERESPONSE_STATUS)
 
@@ -70,9 +70,9 @@ _NODE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='label', full_name='idbg.Node.label', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='labels', full_name='idbg.Node.labels', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -110,7 +110,7 @@ _NODE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=21,
-  serialized_end=99,
+  serialized_end=100,
 )
 
 
@@ -154,8 +154,8 @@ _EDGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=101,
-  serialized_end=153,
+  serialized_start=102,
+  serialized_end=154,
 )
 
 
@@ -192,8 +192,8 @@ _GRAPH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=155,
-  serialized_end=216,
+  serialized_start=156,
+  serialized_end=217,
 )
 
 
@@ -223,8 +223,8 @@ _GRAPHUPDATEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=218,
-  serialized_end=268,
+  serialized_start=219,
+  serialized_end=269,
 )
 
 
@@ -262,8 +262,8 @@ _GRAPHUPDATERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=271,
-  serialized_end=423,
+  serialized_start=272,
+  serialized_end=424,
 )
 
 _GRAPH.fields_by_name['nodes'].message_type = _NODE
@@ -321,8 +321,8 @@ _INTERACTIVEGRAPHER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=425,
-  serialized_end=513,
+  serialized_start=426,
+  serialized_end=514,
   methods=[
   _descriptor.MethodDescriptor(
     name='UpdateGraph',

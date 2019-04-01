@@ -150,8 +150,12 @@ struct MarshalVar final : public iMarshaler
 	pbm::PathedMapT list_bases (void) const override
 	{
 		auto var = var_->get_tensor();
-		return pbm::PathedMapT{std::pair<ade::TensptrT,pbm::StringsT>{var,
-			pbm::StringsT{var_->get_label()}}};
+		return pbm::PathedMapT{
+			std::pair<ade::TensptrT,pbm::StringsT>{
+				var,
+				pbm::StringsT{var_->get_label()}
+			}
+		};
 	}
 
 	pbm::PathedTens* get_variables (void) const override

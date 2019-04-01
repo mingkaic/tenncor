@@ -149,6 +149,11 @@ struct VariableNode final : public iNode<T>
 		return var_->label_;
 	}
 
+	void set_label (std::string label)
+	{
+		var_->label_ = label;
+	}
+
 private:
 	std::shared_ptr<Variable<T>> var_;
 };

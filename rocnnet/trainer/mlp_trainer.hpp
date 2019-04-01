@@ -24,7 +24,8 @@ struct MLPTrainer
 		train_out_ = (*brain_)(ead::convert_to_node<PybindT>(train_in_));
 		expected_out_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({brain_->get_noutput(), batch_size}), "expected_out");
-		error_ = age::square(age::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
+		error_ = age::square(
+			age::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
 
 		pbm::PathedMapT vmap = brain_->list_bases();
 		eqns::VariablesT vars;
@@ -33,8 +34,10 @@ struct MLPTrainer
 			if (auto var = std::dynamic_pointer_cast<
 				ead::Variable<PybindT>>(vpair.first))
 			{
-				vars.push_back(
-					std::make_shared<ead::VariableNode<PybindT>>(var));
+				auto vnode = std::make_shared<ead::VariableNode<PybindT>>(var);
+				vnode->set_label(fmts::join("::",
+					vpair.second.begin(), vpair.second.end()));
+				vars.push_back(vnode);
 			}
 		}
 		updates_ = update(error_, vars);
@@ -97,8 +100,11 @@ struct MLPTrainer
 			train_in_->get_tensor().get(),
 			expected_out_->get_tensor().get(),
 		});
-
-		assign_groups(*sess_, updates_);
+		assign_groups(updates_,
+			[this](std::unordered_set<ade::iTensor*>& updated)
+			{
+				this->sess_->update(updated);
+			});
 	}
 
 	uint8_t batch_size_;

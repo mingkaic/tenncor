@@ -89,11 +89,13 @@ struct DQNTrainer
 			if (auto var = std::dynamic_pointer_cast<
 				ead::Variable<PybindT>>(vpair.first))
 			{
-				auto label = fmts::to_string(
+				auto label = fmts::join("::",
 					vpair.second.begin(), vpair.second.end());
 				labelled_indices.emplace(label, source_vars.size());
-				source_vars.push_back(
-					std::make_shared<ead::VariableNode<PybindT>>(var));
+
+				auto vnode = std::make_shared<ead::VariableNode<PybindT>>(var);
+				vnode->set_label(label);
+				source_vars.push_back(vnode);
 			}
 		}
 		updates_ = update(prediction_error_, source_vars);
@@ -125,7 +127,10 @@ struct DQNTrainer
 
 			auto target_next = age::sub(target, age::mul(
 				target_update_rate, diff));
-			target_assigns.push_back(eqns::VarAssign{target_vars[i], target_next});
+			target_assigns.push_back(eqns::VarAssign{
+				fmts::sprintf("::target_grad_%s",
+					target_vars[i]->get_label().c_str()),
+				target_vars[i], target_next});
 		}
 		updates_.push_back(target_assigns);
 
@@ -261,7 +266,11 @@ struct DQNTrainer
 				next_output_mask_->get_tensor().get(),
 				reward_->get_tensor().get(),
 			});
-			assign_groups(*sess_, updates_);
+			assign_groups(updates_,
+				[this](std::unordered_set<ade::iTensor*>& updated)
+				{
+					this->sess_->update(updated);
+				});
 			iteration_++;
 		}
 		n_train_called_++;
