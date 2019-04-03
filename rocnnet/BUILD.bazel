@@ -98,3 +98,13 @@ py_binary(
 #     ],
 #     data = glob(["pretrained/*"]),
 # )
+
+cc_binary(
+    name = "experiment",
+    srcs = ["demo/grad_experiment.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//ead:dbg",
+        "//rocnnet/trainer:trainer",
+    ],
+)
