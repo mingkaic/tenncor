@@ -161,38 +161,25 @@ NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
 
 	NodeptrT<T> ext;
 	std::vector<uint8_t> perm;
-	uint8_t reduce_dim = 0;
 	if (0 == idx)
 	{
 		ext = ext_a;
-		perm = {1, 0};
-		reduce_dim = 0;
+		perm = {2, 1, 0};
 	}
 	else
 	{
 		ext = ext_b;
-		perm = {0, 1};
-		reduce_dim = 1;
+		perm = {0, 2, 1};
 	}
 
 	NodeptrT<T> ext_bwd = age::extend(bwd, 2, {a->shape().at(0)});
 
-	return age::permute(
-		age::reduce_sum_1d(
+	return age::reduce_sum(
+		age::permute(
 			age::mul(
 				age::div(age::mul(ext_a, ext_b), ext),
 				ext_bwd
-			), reduce_dim), perm);
-}
-
-template <typename T>
-NodeptrT<T> sigmoid_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, ade::TensT args, size_t idx)
-{
-	auto fwd_cpy = age::sigmoid(to_node<T>(args[0]));
-	return age::mul(age::mul(age::sub(
-		make_constant_scalar<T>(1,args[0]->shape()),
-		fwd_cpy), fwd_cpy), bwd);
+			), perm), 2);
 }
 
 }

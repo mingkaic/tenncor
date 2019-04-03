@@ -40,19 +40,6 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-# filegroup(
-#     name = "compile_runtime",
-#     srcs = glob([
-#         "compiler/plugins/*.hpp",
-#     ]) + [
-#         "eigen.hpp",
-#         "random.hpp",
-#         "@boost//:config_srcs",
-#         "@com_github_eigenteam_eigen//:srcs",
-#     ],
-#     visibility = ["//visibility:public"],
-# )
-
 ######### LIBRARY #########
 
 genrule(
@@ -105,21 +92,6 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-# # this plugin is slower... currently experimental
-# cc_library(
-#     name = "compiler",
-#     hdrs = glob([
-#         "compiler/*.hpp",
-#         "compiler/plugins/*.hpp",
-#     ]),
-#     copts = ["-std=c++17"],
-#     deps = [
-#         "@boost//:dll",
-#         "//ead:ead",
-#     ],
-#     visibility = ["//visibility:public"],
-# )
-
 pybind_library(
     name = "age_py",
     cc_srcs = ["//ead:generated/pyapi.cpp"],
@@ -163,36 +135,6 @@ cc_binary(
         "//ead:ead",
         "@com_github_google_benchmark//:benchmark",
     ],
-    copts = ["-std=c++17"],
-)
-
-# cc_binary(
-#     name = "benchmark_compiled",
-#     srcs = ["bm/benchmark_compiled.cpp"],
-#     deps = [
-#         "//ead:compiler",
-#         "@com_github_google_benchmark//:benchmark",
-#     ],
-#     copts = ["-std=c++17"],
-#     data = ["//ead:compile_runtime"],
-# )
-
-######### DEBUG #########
-
-cc_binary(
-    name = "graph_performance",
-    srcs = ["bm/benchmark_graph.cpp"],
-    deps = [
-        "//ead:ead",
-        "//dbg:dbg",
-    ],
-    copts = ["-std=c++17"],
-)
-
-cc_binary(
-    name = "peak_performance", # this is what it looks like
-    srcs = ["bm/benchmark_peak.cpp"],
-    deps = ["//ead:ead"],
     copts = ["-std=c++17"],
 )
 

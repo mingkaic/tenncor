@@ -33,7 +33,6 @@ colors = [
     'ivory3', 'khaki', 'lavender',
     'lavenderblush', 'lawngreen', 'lemonchiffon4',
     'lightblue2', 'lightcoral', 'lightcyan4',
-    'lightgoldenrod', 'lightgoldenrodyellow', 'lightgray',
     'lightgrey', 'lightpink', 'lightsalmon',
     'lightseagreen', 'lightskyblue', 'lightslateblue',
     'lightslategray', 'lightslategrey', 'lightsteelblue',
@@ -55,7 +54,7 @@ colors = [
     'turquoise', 'violet', 'violetred',
     'wheat', 'yellow', 'yellowgreen',
     'mistyrose', 'olivedrab', 'palegreen',
-    'palevioletred',
+    'lightgoldenrod', 'lightgray', 'palevioletred',
 ]
 
 random.seed(datetime.now())

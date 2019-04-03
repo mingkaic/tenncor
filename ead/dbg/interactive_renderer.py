@@ -39,7 +39,6 @@ def _str_clean(label):
         .replace('::', '.')\
         .replace(':', '=')\
         .replace(',,', '\\n')
-    print(label)
     return label
 
 def _apply_styles(graph, styles):
@@ -76,7 +75,7 @@ def print_graph(callgraph, outname):
         g1.node(_str_clean(label), fillcolor=color, shape='box')
     for label1, label2 in zip(labels[:-1], labels[1:]):
         g1.edge(_str_clean(label1), _str_clean(label2),
-            color='transparent')
+            style='invis')
 
     _apply_styles(g1, _styles)
     g1.render(outname, view=True)

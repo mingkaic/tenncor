@@ -74,7 +74,11 @@
         },
         "SIGMOID": {
             "operation": "return ead::sigmoid(shape,in[0])",
-            "derivative": "ead::sigmoid_grad(fwd,bwd,args,idx)"
+            "derivative": "age::mul(age::sigmoid_grad(ead::to_node<T>(args[0])),bwd)"
+        },
+        "SIGMOID_GRAD": {
+            "operation": "return ead::sigmoid_grad(shape,in[0])",
+            "derivative": "age::mul(age::mul(age::sigmoid_grad(ead::to_node<T>(args[0])),age::sub(ead::make_constant_scalar<T>(1,args[0]->shape()),age::mul(ead::make_constant_scalar<T>(2,args[0]->shape()),age::sigmoid(ead::to_node<T>(args[0]))))),bwd)"
         },
         "TANH": {
             "operation": "return ead::tanh(shape,in[0])",
@@ -288,6 +292,18 @@
             "out": {
                 "type": "ead::NodeptrT<T>",
                 "val": "ead::make_functor<T>(ade::Opcode{\"SIGMOID\",SIGMOID},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "sigmoid_grad",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SIGMOID_GRAD\",SIGMOID_GRAD},{ead::identity_map(arg1)})"
             }
         },
         {
