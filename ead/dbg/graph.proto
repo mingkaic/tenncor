@@ -19,7 +19,7 @@ message Edge {
 
     int32 child = 2;
 
-    int32 order = 3;
+    string label = 3;
 }
 
 message Graph {

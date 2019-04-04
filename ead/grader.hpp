@@ -12,12 +12,63 @@
 #include "ead/generated/grader.hpp"
 
 #include "ead/constant.hpp"
+#include "ead/edge.hpp"
 
 #ifndef EAD_GRADER_HPP
 #define EAD_GRADER_HPP
 
 namespace ead
 {
+
+// derive bottom-up
+template <typename T>
+NodeptrT<T> derive_bu (EdgesT& edges,
+	ade::TensptrT root, ade::TensptrT wrt) // todo: replace derive
+{
+	ade::PathFinder finder(wrt);
+	root->accept(finder);
+
+	auto& pathmap = finder.parents_;
+	// no path to wrt
+	if (pathmap.empty())
+	{
+		return make_constant_scalar((T) 0, wrt->shape());
+	}
+	// else there exists a path to wrt
+	// using pathfinder, breadth first traverse from this to wrt
+	ade::GraphStat stat;
+	ade::OwnerTracker tracker;
+	root->accept(stat);
+	root->accept(tracker);
+
+	std::list<ade::iFunctor*> parents;
+	std::transform(pathmap.begin(), pathmap.end(),
+		std::back_inserter(parents),
+		[](std::pair<ade::iTensor*,std::unordered_set<size_t>> parent)
+		{
+			return static_cast<ade::iFunctor*>(parent.first);
+		});
+	// parents go from wrt to root
+	parents.sort(
+		[&](ade::iFunctor* a, ade::iFunctor* b)
+		{
+			return stat.graphsize_[a] < stat.graphsize_[b];
+		});
+
+	// todo: reuse this
+	auto wrt_grad = make_constant_scalar((T) 1, wrt->shape());
+	std::unordered_map<const ade::iTensor*,NodeptrT<T>> jacobians =
+		{{wrt.get(), wrt_grad}};
+	edges.push_back(Edge{wrt, wrt_grad, ade::Opcode{"GRADIENT", GRADIENT}});
+
+	for (ade::iFunctor* parent : parents)
+	{
+		auto& child_indices = pathmap[parent];
+		// todo: implement
+	}
+
+	return jacobians[wrt.get()]; // root.get()];
+}
 
 /// Traveler to obtain derivative of accepted node with respect to target
 template <typename T>
@@ -105,8 +156,16 @@ struct Grader final : public ade::iTraveler
 			ordered.sort();
 			for (size_t i : ordered)
 			{
-				grads[args[i].get()].push_back(
-					age::chain_rule<T>(parent, bwd, args, i));
+				auto grad_step = age::chain_rule<T>(parent, bwd, args, i);
+				grads[args[i].get()].push_back(grad_step);
+				edges_.push_back(Edge{
+					args[i],
+					grad_step->get_tensor(),
+					ade::Opcode{
+						"GRADIENT",
+						GRADIENT
+					}
+				});
 			}
 		}
 		NodesT<T>& finalgargs = grads[target_];
@@ -117,6 +176,8 @@ struct Grader final : public ade::iTraveler
 		}
 		derivatives_.emplace(func, finalgarg);
 	}
+
+	EdgesT edges_;
 
 	/// Target of tensor all visited nodes are derived with respect to
 	const ade::iTensor* target_;
@@ -134,6 +195,20 @@ NodeptrT<T> derive (NodeptrT<T> root, NodeptrT<T> target)
 	rooten->accept(grader);
 	auto it = grader.derivatives_.find(rooten.get());
 	assert(grader.derivatives_.end() != it);
+	return it->second;
+}
+
+/// Derive root with respect to target and optimized
+template <typename T>
+NodeptrT<T> derive (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> target)
+{
+	auto rooten = root->get_tensor();
+	Grader<T> grader(target->get_tensor().get());
+	rooten->accept(grader);
+	auto it = grader.derivatives_.find(rooten.get());
+	assert(grader.derivatives_.end() != it);
+	edges.insert(edges.end(),
+		grader.edges_.begin(), grader.edges_.end());
 	return it->second;
 }
 

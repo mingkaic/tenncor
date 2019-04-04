@@ -8,6 +8,8 @@
 
 #include "ead/dbg/graph.grpc.pb.h"
 
+#include "ead/edge.hpp"
+
 #ifndef EAD_DBG_CLI_HPP
 #define EAD_DBG_CLI_HPP
 
@@ -25,7 +27,8 @@ struct NodeMetadata
 
 using GraphCanvasT = std::unordered_map<ade::iTensor*,NodeMetadata>;
 
-void set_transfer_request (idbg::GraphUpdateRequest& req, const GraphCanvasT& canvas)
+void set_transfer_request (idbg::GraphUpdateRequest& req,
+	const GraphCanvasT& canvas, const EdgesT& edges)
 {
 	auto graph = req.mutable_payload();
 	assert(nullptr != graph);
@@ -73,7 +76,20 @@ void set_transfer_request (idbg::GraphUpdateRequest& req, const GraphCanvasT& ca
 			idbg::Edge* edge = graph->add_edges();
 			edge->set_parent(id);
 			edge->set_child(child_id);
-			edge->set_order(i);
+			edge->set_label(fmts::to_string(i));
+		}
+	}
+	for (const Edge& labelled_edge : edges)
+	{
+		if (false == labelled_edge.parent_.expired() &&
+			false == labelled_edge.child_.expired())
+		{
+			idbg::Edge* edge = graph->add_edges();
+			edge->set_parent(
+				id_map[labelled_edge.parent_.lock().get()]);
+			edge->set_child(
+				id_map[labelled_edge.child_.lock().get()]);
+			edge->set_label(labelled_edge.edge_code_.name_);
 		}
 	}
 }
@@ -84,7 +100,7 @@ struct GraphClient
 		stub_(idbg::InteractiveGrapher::NewStub(
 			grpc::CreateChannel(host, grpc::InsecureChannelCredentials()))) {}
 
-	void send (GraphCanvasT& canvas)
+	void send (const GraphCanvasT& canvas, const EdgesT& edges)
 	{
 		grpc::ClientContext context;
 		auto deadline = std::chrono::system_clock::now() +
@@ -94,7 +110,7 @@ struct GraphClient
 		idbg::GraphUpdateRequest req;
 		idbg::GraphUpdateResponse res;
 
-		set_transfer_request(req, canvas);
+		set_transfer_request(req, canvas, edges);
 
 		grpc::Status status = stub_->UpdateGraph(&context, req, &res);
 		if (!status.ok())

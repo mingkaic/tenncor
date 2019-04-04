@@ -89,7 +89,7 @@ struct InteractiveDebugger
 
 		// update display
 		GraphClient client(default_server);
-		client.send(graph_canvas_);
+		client.send(graph_canvas_, edges_);
 
 		// handle signal
 		// todo: make more elegant and flexible
@@ -130,6 +130,8 @@ struct InteractiveDebugger
 	}
 
 	GraphCanvasT graph_canvas_;
+
+	EdgesT edges_;
 };
 
 }

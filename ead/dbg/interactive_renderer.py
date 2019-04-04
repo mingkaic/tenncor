@@ -62,10 +62,9 @@ def print_graph(callgraph, outname):
         g1.node(node, fillcolor=color)
 
     for observer in edges:
-        for subject, order in edges[observer]:
+        for subject, label in edges[observer]:
             observer = _str_clean(observer)
             subject = _str_clean(subject)
-            label = str(order)
             g1.edge(observer, subject, label)
 
     labels = legend.keys()

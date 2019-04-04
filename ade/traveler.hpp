@@ -105,6 +105,33 @@ struct PathFinder final : public iTraveler
 	ParentMapT parents_;
 };
 
+struct OwnerTracker final : public iTraveler
+{
+	/// Implementation of iTraveler
+	void visit (iLeaf* leaf) override {}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor* func) override
+	{
+		if (visited_.end() == visited_.find(func))
+		{
+			auto& children = func->get_children();
+			for (auto& child : children)
+			{
+				TensptrT tens = child.get_tensor();
+				tens->accept(*this);
+				owners_.emplace(tens.get(), tens);
+			}
+			visited_.emplace(func);
+		}
+	}
+
+	/// Map of parent nodes in path
+	std::unordered_set<iFunctor*> visited_;
+
+	std::unordered_map<iTensor*,TensptrT> owners_;
+}
+
 }
 
 #endif // ADE_TRAVELER_HPP

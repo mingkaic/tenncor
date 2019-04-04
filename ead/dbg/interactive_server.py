@@ -84,7 +84,7 @@ def transport_to_graph(graph):
 
     for edge in edges:
         parent = node_map[edge.parent]
-        child_tup = (node_map[edge.child], edge.order)
+        child_tup = (node_map[edge.child], edge.label)
         if parent in out_edge:
             out_edge[parent].append(child_tup)
         else:
@@ -96,7 +96,7 @@ class InteractiveGrapherServicer(graph_pb2_grpc.InteractiveGrapherServicer):
     def UpdateGraph(self, request, context):
         graph = request.payload
 
-        renderer.print_graph(transport_to_graph(graph), 'interactive_graph')
+        renderer.print_graph(transport_to_graph(graph), '/tmp/interactive_graph')
 
         return graph_pb2.GraphUpdateResponse(
             status=graph_pb2.GraphUpdateResponse.OK,
