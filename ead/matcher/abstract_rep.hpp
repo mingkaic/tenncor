@@ -13,7 +13,8 @@ namespace ead
 
 enum OP_CLASS
 {
-	LEAF = 0,
+	BAD_CLASS = 0,
+	LEAF,
 	UNARY, // unary op
 	BINARY, // binary and not commutative
 	NNARY, // nnary and commutative
@@ -24,6 +25,7 @@ enum OP_CLASS
 static std::unordered_map<
 	age::_GENERATED_OPCODE,OP_CLASS> op_classes =
 {
+	{age::BAD_OP, BAD_CLASS},
 	{age::ABS, UNARY},
 	{age::NEG, UNARY},
 	{age::SIN, UNARY},

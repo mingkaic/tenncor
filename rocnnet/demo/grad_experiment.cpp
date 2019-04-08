@@ -42,7 +42,7 @@ int main (int argc, char** argv)
 
 	// wrt to w0
 	ead::EdgesT edges;
-	auto derror_w0 = ead::derive<float>(edges, error, w0_node);
+	auto derror_w0 = ead::derive_with_edges<float>(edges, error, w0_node);
 	// auto dsig1_w0 = ead::derive<float>(sig1, w0_node);
 	// auto dlayer1_w0 = ead::derive<float>(layer1, w0_node);
 	// auto dsig0_matmul_w0 = ead::derive<float>(sig0_matmul, w0_node);

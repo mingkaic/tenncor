@@ -129,8 +129,8 @@ struct OwnerTracker final : public iTraveler
 	/// Map of parent nodes in path
 	std::unordered_set<iFunctor*> visited_;
 
-	std::unordered_map<iTensor*,TensptrT> owners_;
-}
+	std::unordered_map<iTensor*,TensrefT> owners_;
+};
 
 }
 

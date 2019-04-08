@@ -174,3 +174,15 @@ py_binary(
         "dbg/graph_pb2.py",
     ],
 )
+
+##### EXPERIMENT #####
+
+cc_binary(
+    name = "experiment",
+    srcs = ["experiment/derive_bu.cpp"],
+    deps = [
+        "//ead:dbg",
+        "//ead:ead",
+    ],
+    copts = ["-std=c++17"],
+)

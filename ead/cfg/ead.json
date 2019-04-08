@@ -74,11 +74,11 @@
         },
         "SIGMOID": {
             "operation": "return ead::sigmoid(shape,in[0])",
-            "derivative": "age::mul(age::sigmoid_grad(ead::to_node<T>(args[0])),bwd)"
+            "derivative": "mul(sigmoid_grad(ead::to_node<T>(args[0])),bwd)"
         },
         "SIGMOID_GRAD": {
             "operation": "return ead::sigmoid_grad(shape,in[0])",
-            "derivative": "age::mul(age::mul(age::sigmoid_grad(ead::to_node<T>(args[0])),age::sub(ead::make_constant_scalar<T>(1,args[0]->shape()),age::mul(ead::make_constant_scalar<T>(2,args[0]->shape()),age::sigmoid(ead::to_node<T>(args[0]))))),bwd)"
+            "derivative": "mul(mul(sigmoid_grad(ead::to_node<T>(args[0])),sub(ead::make_constant_scalar<T>(1,args[0]->shape()),mul(ead::make_constant_scalar<T>(2,args[0]->shape()),sigmoid(ead::to_node<T>(args[0]))))),bwd)"
         },
         "TANH": {
             "operation": "return ead::tanh(shape,in[0])",

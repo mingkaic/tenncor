@@ -10,6 +10,7 @@ namespace ead
 enum EDGE_CODE
 {
     GRADIENT = 0,
+    JACOBIAN, // gradient before reducing to wrt-shape
 };
 
 struct Edge final
