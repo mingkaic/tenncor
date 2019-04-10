@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include "ade/ileaf.hpp"
 #include "ade/ifunctor.hpp"
 
 #ifndef ADE_TRAVELER_HPP
@@ -44,7 +45,7 @@ struct GraphStat final : public iTraveler
 					ngraph = childinfo->second;
 				}
 			}
-			graphsize_[func] = ngraph + 1;
+			graphsize_.emplace(func, ngraph + 1);
 		}
 	}
 
@@ -105,32 +106,9 @@ struct PathFinder final : public iTraveler
 	ParentMapT parents_;
 };
 
-struct OwnerTracker final : public iTraveler
-{
-	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override {}
-
-	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
-	{
-		if (visited_.end() == visited_.find(func))
-		{
-			auto& children = func->get_children();
-			for (auto& child : children)
-			{
-				TensptrT tens = child.get_tensor();
-				tens->accept(*this);
-				owners_.emplace(tens.get(), tens);
-			}
-			visited_.emplace(func);
-		}
-	}
-
-	/// Map of parent nodes in path
-	std::unordered_set<iFunctor*> visited_;
-
-	std::unordered_map<iTensor*,TensrefT> owners_;
-};
+/// Travelers will lose smart pointer references,
+// this utility function will grab reference maps of root's subtree
+std::unordered_map<iTensor*,TensrefT> track_owners (TensptrT root);
 
 }
 

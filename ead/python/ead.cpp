@@ -245,7 +245,7 @@ PYBIND11_MODULE(ead, m)
 
 
 	m.def("derive", &ead::derive<PybindT>,
-	"Return derivative of first tensor with respect to second tensor");
+	"Return derivative of first tensor with respect to second tensor (deprecated)");
 
 	m.def("seed",
 	[](size_t seed)

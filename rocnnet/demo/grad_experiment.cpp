@@ -13,7 +13,7 @@
 
 #include "ead/dbg/interactive_dbg.hpp"
 
-#include "ead/matcher/abstract_rep.hpp"
+// #include "ead/matcher/abstract_rep.hpp"
 
 int main (int argc, char** argv)
 {
@@ -38,28 +38,31 @@ int main (int argc, char** argv)
 	auto sig0_matmul = age::matmul(sig0, w1_node);
 	auto layer1 = eqns::weighed_bias_add(sig0_matmul, b1_node);
 	auto sig1 = age::sigmoid(layer1);
-	auto error = age::square(age::sub(expect_out_node, sig1));
+	auto diff = age::sub(expect_out_node, sig1);
+	auto error = age::square(diff);
 
 	// wrt to w0
 	ead::EdgesT edges;
 	auto derror_w0 = ead::derive_with_edges<float>(edges, error, w0_node);
-	// auto dsig1_w0 = ead::derive<float>(sig1, w0_node);
-	// auto dlayer1_w0 = ead::derive<float>(layer1, w0_node);
-	// auto dsig0_matmul_w0 = ead::derive<float>(sig0_matmul, w0_node);
-	// auto dsig0_w0 = ead::derive<float>(sig0, w0_node);
-	// auto dlayer0_w0 = ead::derive<float>(layer0, w0_node);
-	// auto dinput_matmul_w0 = ead::derive<float>(input_matmul, w0_node);
+	auto ddiff_w0 = ead::derive_with_edges<float>(edges, diff, w0_node);
+	auto dsig1_w0 = ead::derive_with_edges<float>(edges, sig1, w0_node);
+	auto dlayer1_w0 = ead::derive_with_edges<float>(edges, layer1, w0_node);
+	auto dsig0_matmul_w0 = ead::derive_with_edges<float>(edges, sig0_matmul, w0_node);
+	auto dsig0_w0 = ead::derive_with_edges<float>(edges, sig0, w0_node);
+	auto dlayer0_w0 = ead::derive_with_edges<float>(edges, layer0, w0_node);
+	auto dinput_matmul_w0 = ead::derive_with_edges<float>(edges, input_matmul, w0_node);
 
-	// ead::NodesT<float> w0s = {
-	// 	derror_w0,
-	// 	dsig1_w0,
-	// 	dlayer1_w0,
-	// 	dsig0_matmul_w0,
-	// 	dsig0_w0,
-	// 	dlayer0_w0,
-	// 	dinput_matmul_w0,
-	// 	error,
-	// };
+	ead::NodesT<float> w0s = {
+		derror_w0,
+		ddiff_w0,
+		dsig1_w0,
+		dlayer1_w0,
+		dsig0_matmul_w0,
+		dsig0_w0,
+		dlayer0_w0,
+		dinput_matmul_w0,
+		error,
+	};
 
 	// ade::TensT tensors;
 	// tensors.reserve(w0s.size());
@@ -70,20 +73,156 @@ int main (int argc, char** argv)
 	// auto wrt_w0 = ead::ops_reuse<float>(
 	// 	ead::multi_optimize<float>(ead::ops_reuse<float>(tens_out)));
 
-	// // auto wrt_w0 = ead::ops_reuse<float>(ead::multi_optimize<float>(w0s));
+	auto wrt_w0 = ead::ops_reuse<float>(ead::multi_optimize<float>(w0s));
 
-	// derror_w0 = wrt_w0[0];
-	// dsig1_w0 = wrt_w0[1];
-	// dlayer1_w0 = wrt_w0[2];
-	// dsig0_matmul_w0 = wrt_w0[3];
-	// dsig0_w0 = wrt_w0[4];
-	// dlayer0_w0 = wrt_w0[5];
-	// dinput_matmul_w0 = wrt_w0[6];
-	// error = wrt_w0[7];
+	derror_w0 = wrt_w0[0];
+	ddiff_w0 = wrt_w0[1];
+	dsig1_w0 = wrt_w0[2];
+	dlayer1_w0 = wrt_w0[3];
+	dsig0_matmul_w0 = wrt_w0[4];
+	dsig0_w0 = wrt_w0[5];
+	dlayer0_w0 = wrt_w0[6];
+	dinput_matmul_w0 = wrt_w0[7];
+	error = wrt_w0[8];
 
 	ead::InteractiveDebugger<float> dbg;
 	dbg.track(error, "error");
-	dbg.edges_ = edges;
+	// dbg.edges_ = edges;
+	{
+		auto root = static_cast<ade::iFunctor*>(dinput_matmul_w0->get_tensor().get());
+		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+		dbg.edges_.push_back(
+			ead::Edge{
+				perm->get_children()[0].get_tensor(),
+				input_matmul->get_tensor(),
+				ade::Opcode{
+					"JACOBIAN_input_matmul",
+					ead::GRADIENT
+				}
+			}
+		);
+		dbg.edges_.push_back(
+			ead::Edge{
+				perm->get_children()[0].get_tensor(),
+				layer0->get_tensor(),
+				ade::Opcode{
+					"JACOBIAN_layer0_w0",
+					ead::GRADIENT
+				}
+			}
+		);
+	}
+	{
+		auto root = static_cast<ade::iFunctor*>(dsig0_w0->get_tensor().get());
+		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+		dbg.edges_.push_back(
+			ead::Edge{
+				ext->get_children()[0].get_tensor(),
+				sig0->get_tensor(),
+				ade::Opcode{
+					"JACOBIAN_sig0_w0",
+					ead::GRADIENT
+				}
+			}
+		);
+	}
+	{
+		auto root = static_cast<ade::iFunctor*>(dsig0_matmul_w0->get_tensor().get());
+		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+		auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
+		auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
+		auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
+		dbg.edges_.push_back(
+			ead::Edge{
+				perm2->get_children()[0].get_tensor(),
+				sig0_matmul->get_tensor(),
+				ade::Opcode{
+					"JACOBIAN_sig0_matmul_w0",
+					ead::GRADIENT
+				}
+			}
+		);
+		dbg.edges_.push_back(
+			ead::Edge{
+				perm2->get_children()[0].get_tensor(),
+				layer1->get_tensor(),
+				ade::Opcode{
+					"JACOBIAN_layer1_w0",
+					ead::GRADIENT
+				}
+			}
+		);
+	}
+	{
+		auto root = static_cast<ade::iFunctor*>(dsig1_w0->get_tensor().get());
+		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+		auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
+		auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
+		auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
+		auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
+		auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
+		dbg.edges_.push_back(
+			ead::Edge{
+				ext2->get_children()[0].get_tensor(),
+				sig1->get_tensor(),
+				ade::Opcode{
+					"JACOBIAN_sig1_w0",
+					ead::GRADIENT
+				}
+			}
+		);
+	}
+	{
+		auto root = static_cast<ade::iFunctor*>(ddiff_w0->get_tensor().get());
+		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+		auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
+		auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
+		auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
+		auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
+		auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
+		auto mul4 = static_cast<ade::iFunctor*>(ext2->get_children()[0].get_tensor().get());
+		dbg.edges_.push_back(
+			ead::Edge{
+				mul4->get_children()[1].get_tensor(),
+				diff->get_tensor(),
+				ade::Opcode{
+					"JACOBIAN_diff_w0",
+					ead::GRADIENT
+				}
+			}
+		);
+	}
+	{
+		auto root = static_cast<ade::iFunctor*>(derror_w0->get_tensor().get());
+		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+		auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
+		auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
+		auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
+		auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
+		auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
+		auto mul4 = static_cast<ade::iFunctor*>(ext2->get_children()[0].get_tensor().get());
+		auto mul5 = static_cast<ade::iFunctor*>(mul4->get_children()[1].get_tensor().get());
+		dbg.edges_.push_back(
+			ead::Edge{
+				mul5->get_children()[1].get_tensor(),
+				error->get_tensor(),
+				ade::Opcode{
+					"JACOBIAN_error_w0",
+					ead::GRADIENT
+				}
+			}
+		);
+	}
 
 	// dbg.track(dinput_matmul_w0, "dinput_matmul_w0");
 	// dbg.set_break();
@@ -96,6 +235,8 @@ int main (int argc, char** argv)
 	// dbg.track(dlayer1_w0, "dlayer1_w0");
 	// dbg.set_break();
 	// dbg.track(dsig1_w0, "dsig1_w0");
+	// dbg.set_break();
+	// dbg.track(ddiff_w0, "ddiff_w0");
 	// dbg.set_break();
 	dbg.track(derror_w0, "derror_w0");
 	dbg.set_break();

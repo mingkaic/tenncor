@@ -81,8 +81,7 @@ void set_transfer_request (idbg::GraphUpdateRequest& req,
 	}
 	for (const Edge& labelled_edge : edges)
 	{
-		if (false == labelled_edge.parent_.expired() &&
-			false == labelled_edge.child_.expired())
+		if (false == labelled_edge.expired())
 		{
 			idbg::Edge* edge = graph->add_edges();
 			edge->set_parent(

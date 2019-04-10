@@ -92,7 +92,7 @@ struct CSVEquation final : public ade::iTraveler
 				func,
 				tens,
 				coorder,
-				i
+				fmts::to_string(i),
 			});
 			tens->accept(*this);
 		}
@@ -115,7 +115,7 @@ struct CSVEquation final : public ade::iTraveler
 					<< parent_node.label_ << ','
 					<< child_node.id_ << label_delim
 					<< child_node.label_ << ','
-					<< edge.child_idx_ << ','
+					<< edge.edge_label_ << ','
 					<< color << '\n';
 			}
 			else
@@ -124,14 +124,14 @@ struct CSVEquation final : public ade::iTraveler
 					<< parent_node.label_ << ','
 					<< nnodes + i << label_delim
 					<< coorders_[edge.coorder_] << ','
-					<< edge.child_idx_ << ','
+					<< edge.edge_label_ << ','
 					<< color << '\n';
 
 				out << nnodes + i << label_delim
 					<< coorders_[edge.coorder_] << ','
 					<< child_node.id_ << label_delim
 					<< child_node.label_ << ','
-					<< edge.child_idx_ << ','
+					<< edge.edge_label_ << ','
 					<< color << '\n';
 			}
 		}
@@ -147,7 +147,7 @@ struct CSVEquation final : public ade::iTraveler
 
 		ade::iCoordMap* coorder_;
 
-		size_t child_idx_;
+		std::string edge_label_;
 	};
 
 	struct Node

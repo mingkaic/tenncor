@@ -151,6 +151,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         ex2 = ead.derive(out, var2)
         ex3 = ead.derive(both, var)
+
         sess.track(zero)
         sess.track(ex)
         sess.track(ex2)
@@ -622,6 +623,307 @@ class EADTest(unittest.TestCase):
     #         self._array_eq(data0, rej)
     #         self._array_close(exdata, der)
     #         self._array_close(exdata2, der2)
+
+    def test_grader_scenario1(self): # REDUCE -> MUL
+        data = np.random.rand(3,10)
+        data2 = np.random.rand(10)
+
+        var = ead.variable(data, 'var')
+        var2 = ead.variable(data2, 'var2')
+        tf_var = tf.Variable(data)
+        tf_var2 = tf.Variable(data2)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+        tfsess.run(tf_var2.initializer)
+
+        out = age.mul(age.reduce_sum(var, 1), var2)
+        tf_out = tf.multiply(tf.reduce_sum(tf_var, 0), tf_var2)
+
+        # evaluate regular matmul
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        # evaluate tensorflow matmul
+        tf_fout = tfsess.run(tf_out)
+
+        # check regular matmul
+        self._array_close(tf_fout, out.get())
+
+        ex = ead.derive(out, var)
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.update()
+
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, ex.get())
+
+    def test_grader_scenario2(self): # EXTEND -> MUL
+        data = np.random.rand(10)
+        data2 = np.random.rand(3,10)
+
+        var = ead.variable(data, 'var')
+        var2 = ead.variable(data2, 'var2')
+        tf_var = tf.Variable(data)
+        tf_var2 = tf.Variable(data2)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+        tfsess.run(tf_var2.initializer)
+
+        out = age.mul(age.extend(var, 1, [3]), var2)
+        tf_out = tf_var * tf_var2
+
+        # evaluate regular matmul
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        # evaluate tensorflow matmul
+        tf_fout = tfsess.run(tf_out)
+
+        # check regular matmul
+        self._array_close(tf_fout, out.get())
+
+        ex = ead.derive(out, var)
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.update()
+
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, ex.get())
+
+    def test_grader_scenario3(self): # PERMUTE -> MUL
+        data = np.random.rand(10,3)
+        data2 = np.random.rand(3,10)
+
+        var = ead.variable(data, 'var')
+        var2 = ead.variable(data2, 'var2')
+        tf_var = tf.Variable(data)
+        tf_var2 = tf.Variable(data2)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+        tfsess.run(tf_var2.initializer)
+
+        out = age.mul(age.permute(var, [1,0]), var2)
+        tf_out = tf.transpose(tf_var) * tf_var2
+
+        # evaluate regular matmul
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        # evaluate tensorflow matmul
+        tf_fout = tfsess.run(tf_out)
+
+        # check regular matmul
+        self._array_close(tf_fout, out.get())
+
+        ex = ead.derive(out, var)
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.update()
+
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, ex.get())
+
+    def test_grader_scenario4(self): # MATMUL -> MUL
+        data = np.random.rand(10,3)
+        data2 = np.random.rand(3,5)
+        data3 = np.random.rand(10,5)
+
+        var = ead.variable(data, 'var')
+        var2 = ead.variable(data2, 'var2')
+        var3 = ead.variable(data3, 'var3')
+        tf_var = tf.Variable(data)
+        tf_var2 = tf.Variable(data2)
+        tf_var3 = tf.Variable(data3)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+        tfsess.run(tf_var2.initializer)
+        tfsess.run(tf_var3.initializer)
+
+        out = age.mul(age.matmul(var, var2), var3)
+        tf_out = tf.multiply(tf.matmul(tf_var, tf_var2), tf_var3)
+
+        # evaluate regular matmul
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        # evaluate tensorflow matmul
+        tf_fout = tfsess.run(tf_out)
+
+        # check regular matmul
+        self._array_close(tf_fout, out.get())
+
+        ex = ead.derive(out, var)
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.update()
+
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, ex.get())
+
+    def test_grader_scenario5(self): # MATMUL -> MATMUL
+        data = np.random.rand(10,3)
+        data2 = np.random.rand(3,5)
+        data3 = np.random.rand(5,4)
+
+        var = ead.variable(data, 'var')
+        var2 = ead.variable(data2, 'var2')
+        var3 = ead.variable(data3, 'var3')
+        tf_var = tf.Variable(data)
+        tf_var2 = tf.Variable(data2)
+        tf_var3 = tf.Variable(data3)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+        tfsess.run(tf_var2.initializer)
+        tfsess.run(tf_var3.initializer)
+
+        out = age.matmul(age.matmul(var, var2), var3)
+        tf_out = tf.matmul(tf.matmul(tf_var, tf_var2), tf_var3)
+
+        # evaluate regular matmul
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        # evaluate tensorflow matmul
+        tf_fout = tfsess.run(tf_out)
+
+        # check regular matmul
+        self._array_close(tf_fout, out.get())
+
+        ex = ead.derive(out, var)
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.update()
+
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, ex.get())
+
+    def test_grader_scenario6(self): # REDUCE -> MATMUL
+        data = np.random.rand(4,10,3)
+        data2 = np.random.rand(3,5)
+
+        var = ead.variable(data, 'var')
+        var2 = ead.variable(data2, 'var2')
+        tf_var = tf.Variable(data)
+        tf_var2 = tf.Variable(data2)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+        tfsess.run(tf_var2.initializer)
+
+        out = age.matmul(age.reduce_sum(var, 2), var2)
+        tf_out = tf.matmul(tf.reduce_sum(tf_var, 0), tf_var2)
+
+        # evaluate regular matmul
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        # evaluate tensorflow matmul
+        tf_fout = tfsess.run(tf_out)
+
+        # check regular matmul
+        self._array_close(tf_fout, out.get())
+
+        ex = ead.derive(out, var)
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.update()
+
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, ex.get())
+
+    def test_grader_scenario7(self): # EXTEND -> MATMUL
+        data = np.random.rand(3)
+        data2 = np.random.rand(3,5)
+        ones = np.ones([10, 3])
+
+        var = ead.variable(data, 'var')
+        var2 = ead.variable(data2, 'var2')
+        tf_var = tf.Variable(data)
+        tf_var2 = tf.Variable(data2)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+        tfsess.run(tf_var2.initializer)
+
+        out = age.matmul(age.extend(var, 1, [10]), var2)
+        tf_out = tf.matmul(tf_var * ones, tf_var2)
+
+        # evaluate regular matmul
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        # evaluate tensorflow matmul
+        tf_fout = tfsess.run(tf_out)
+
+        # check regular matmul
+        self._array_close(tf_fout, out.get())
+
+        ex = ead.derive(out, var)
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.update()
+
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, ex.get())
+
+	# A<a> -> EXTEND -> B<a,b>
+	# A<a> -> EXTEND -> C<a,c> -> PERMUTE -> <c,a>
+	# B MATMUL C -> D<c,b>
+    def test_grader_scenario8(self):
+        data = np.random.rand(5)
+        ones = np.ones([10, 5])
+        ones2 = np.ones([3, 5])
+
+        var = ead.variable(data, 'var')
+        tf_var = tf.Variable(data)
+
+        tfsess = tf.Session()
+        tfsess.run(tf_var.initializer)
+
+        out = age.matmul(
+            age.extend(var, 1, [10]),
+            age.permute(age.extend(var, 1, [3]), [1, 0]))
+        tf_out = tf.matmul(tf_var * ones, tf.transpose(tf_var * ones2))
+
+        # evaluate regular matmul
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        # evaluate tensorflow matmul
+        tf_fout = tfsess.run(tf_out)
+
+        # check regular matmul
+        self._array_close(tf_fout, out.get())
+
+        ex = ead.derive(out, var)
+        tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+        sess.track(ex)
+        sess.update()
+
+        exdata = tfsess.run(tf_grad)
+        self._array_close(exdata, ex.get())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -10,11 +10,15 @@ namespace ead
 enum EDGE_CODE
 {
     GRADIENT = 0,
-    JACOBIAN, // gradient before reducing to wrt-shape
 };
 
 struct Edge final
 {
+    bool expired (void) const
+    {
+        return parent_.expired() || child_.expired();
+    }
+
     std::weak_ptr<ade::iTensor> parent_;
 
     std::weak_ptr<ade::iTensor> child_;
