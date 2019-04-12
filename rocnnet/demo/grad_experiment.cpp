@@ -64,10 +64,10 @@ int main (int argc, char** argv)
 		error,
 	};
 
-	// ade::TensT tensors;
-	// tensors.reserve(w0s.size());
-	// std::transform(w0s.begin(), w0s.end(), std::back_inserter(tensors),
-	// 	[](ead::NodeptrT<float>& node) { return node->get_tensor(); });
+	ade::TensT tensors;
+	tensors.reserve(w0s.size());
+	std::transform(w0s.begin(), w0s.end(), std::back_inserter(tensors),
+		[](ead::NodeptrT<float>& node) { return node->get_tensor(); });
 	// auto graph = ead::represent(tensors);
 	// auto tens_out = ead::actualize<float>(graph);
 	// auto wrt_w0 = ead::ops_reuse<float>(
@@ -75,154 +75,155 @@ int main (int argc, char** argv)
 
 	auto wrt_w0 = ead::ops_reuse<float>(ead::multi_optimize<float>(w0s));
 
-	derror_w0 = wrt_w0[0];
-	ddiff_w0 = wrt_w0[1];
-	dsig1_w0 = wrt_w0[2];
-	dlayer1_w0 = wrt_w0[3];
-	dsig0_matmul_w0 = wrt_w0[4];
-	dsig0_w0 = wrt_w0[5];
-	dlayer0_w0 = wrt_w0[6];
-	dinput_matmul_w0 = wrt_w0[7];
-	error = wrt_w0[8];
+	// derror_w0 = wrt_w0[0];
+	// ddiff_w0 = wrt_w0[1];
+	// dsig1_w0 = wrt_w0[2];
+	// dlayer1_w0 = wrt_w0[3];
+	// dsig0_matmul_w0 = wrt_w0[4];
+	// dsig0_w0 = wrt_w0[5];
+	// dlayer0_w0 = wrt_w0[6];
+	// dinput_matmul_w0 = wrt_w0[7];
+	// error = wrt_w0[8];
 
 	ead::InteractiveDebugger<float> dbg;
 	dbg.track(error, "error");
-	// dbg.edges_ = edges;
-	{
-		auto root = static_cast<ade::iFunctor*>(dinput_matmul_w0->get_tensor().get());
-		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
-		dbg.edges_.push_back(
-			ead::Edge{
-				perm->get_children()[0].get_tensor(),
-				input_matmul->get_tensor(),
-				ade::Opcode{
-					"JACOBIAN_input_matmul",
-					ead::GRADIENT
-				}
-			}
-		);
-		dbg.edges_.push_back(
-			ead::Edge{
-				perm->get_children()[0].get_tensor(),
-				layer0->get_tensor(),
-				ade::Opcode{
-					"JACOBIAN_layer0_w0",
-					ead::GRADIENT
-				}
-			}
-		);
-	}
-	{
-		auto root = static_cast<ade::iFunctor*>(dsig0_w0->get_tensor().get());
-		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
-		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
-		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
-		dbg.edges_.push_back(
-			ead::Edge{
-				ext->get_children()[0].get_tensor(),
-				sig0->get_tensor(),
-				ade::Opcode{
-					"JACOBIAN_sig0_w0",
-					ead::GRADIENT
-				}
-			}
-		);
-	}
-	{
-		auto root = static_cast<ade::iFunctor*>(dsig0_matmul_w0->get_tensor().get());
-		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
-		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
-		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
-		auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
-		auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
-		auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
-		dbg.edges_.push_back(
-			ead::Edge{
-				perm2->get_children()[0].get_tensor(),
-				sig0_matmul->get_tensor(),
-				ade::Opcode{
-					"JACOBIAN_sig0_matmul_w0",
-					ead::GRADIENT
-				}
-			}
-		);
-		dbg.edges_.push_back(
-			ead::Edge{
-				perm2->get_children()[0].get_tensor(),
-				layer1->get_tensor(),
-				ade::Opcode{
-					"JACOBIAN_layer1_w0",
-					ead::GRADIENT
-				}
-			}
-		);
-	}
-	{
-		auto root = static_cast<ade::iFunctor*>(dsig1_w0->get_tensor().get());
-		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
-		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
-		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
-		auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
-		auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
-		auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
-		auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
-		auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
-		dbg.edges_.push_back(
-			ead::Edge{
-				ext2->get_children()[0].get_tensor(),
-				sig1->get_tensor(),
-				ade::Opcode{
-					"JACOBIAN_sig1_w0",
-					ead::GRADIENT
-				}
-			}
-		);
-	}
-	{
-		auto root = static_cast<ade::iFunctor*>(ddiff_w0->get_tensor().get());
-		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
-		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
-		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
-		auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
-		auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
-		auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
-		auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
-		auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
-		auto mul4 = static_cast<ade::iFunctor*>(ext2->get_children()[0].get_tensor().get());
-		dbg.edges_.push_back(
-			ead::Edge{
-				mul4->get_children()[1].get_tensor(),
-				diff->get_tensor(),
-				ade::Opcode{
-					"JACOBIAN_diff_w0",
-					ead::GRADIENT
-				}
-			}
-		);
-	}
-	{
-		auto root = static_cast<ade::iFunctor*>(derror_w0->get_tensor().get());
-		auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
-		auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
-		auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
-		auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
-		auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
-		auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
-		auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
-		auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
-		auto mul4 = static_cast<ade::iFunctor*>(ext2->get_children()[0].get_tensor().get());
-		auto mul5 = static_cast<ade::iFunctor*>(mul4->get_children()[1].get_tensor().get());
-		dbg.edges_.push_back(
-			ead::Edge{
-				mul5->get_children()[1].get_tensor(),
-				error->get_tensor(),
-				ade::Opcode{
-					"JACOBIAN_error_w0",
-					ead::GRADIENT
-				}
-			}
-		);
-	}
+	dbg.edges_ = edges;
+
+	// {
+	// 	auto root = static_cast<ade::iFunctor*>(dinput_matmul_w0->get_tensor().get());
+	// 	auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+	// 	dbg.edges_.push_back(
+	// 		ead::Edge{
+	// 			perm->get_children()[0].get_tensor(),
+	// 			input_matmul->get_tensor(),
+	// 			ade::Opcode{
+	// 				"JACOBIAN_input_matmul",
+	// 				ead::GRADIENT
+	// 			}
+	// 		}
+	// 	);
+	// 	dbg.edges_.push_back(
+	// 		ead::Edge{
+	// 			perm->get_children()[0].get_tensor(),
+	// 			layer0->get_tensor(),
+	// 			ade::Opcode{
+	// 				"JACOBIAN_layer0_w0",
+	// 				ead::GRADIENT
+	// 			}
+	// 		}
+	// 	);
+	// }
+	// {
+	// 	auto root = static_cast<ade::iFunctor*>(dsig0_w0->get_tensor().get());
+	// 	auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+	// 	auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+	// 	auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+	// 	dbg.edges_.push_back(
+	// 		ead::Edge{
+	// 			ext->get_children()[0].get_tensor(),
+	// 			sig0->get_tensor(),
+	// 			ade::Opcode{
+	// 				"JACOBIAN_sig0_w0",
+	// 				ead::GRADIENT
+	// 			}
+	// 		}
+	// 	);
+	// }
+	// {
+	// 	auto root = static_cast<ade::iFunctor*>(dsig0_matmul_w0->get_tensor().get());
+	// 	auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+	// 	auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+	// 	auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+	// 	auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
+	// 	auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
+	// 	auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
+	// 	dbg.edges_.push_back(
+	// 		ead::Edge{
+	// 			perm2->get_children()[0].get_tensor(),
+	// 			sig0_matmul->get_tensor(),
+	// 			ade::Opcode{
+	// 				"JACOBIAN_sig0_matmul_w0",
+	// 				ead::GRADIENT
+	// 			}
+	// 		}
+	// 	);
+	// 	dbg.edges_.push_back(
+	// 		ead::Edge{
+	// 			perm2->get_children()[0].get_tensor(),
+	// 			layer1->get_tensor(),
+	// 			ade::Opcode{
+	// 				"JACOBIAN_layer1_w0",
+	// 				ead::GRADIENT
+	// 			}
+	// 		}
+	// 	);
+	// }
+	// {
+	// 	auto root = static_cast<ade::iFunctor*>(dsig1_w0->get_tensor().get());
+	// 	auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+	// 	auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+	// 	auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+	// 	auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
+	// 	auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
+	// 	auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
+	// 	auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
+	// 	auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
+	// 	dbg.edges_.push_back(
+	// 		ead::Edge{
+	// 			ext2->get_children()[0].get_tensor(),
+	// 			sig1->get_tensor(),
+	// 			ade::Opcode{
+	// 				"JACOBIAN_sig1_w0",
+	// 				ead::GRADIENT
+	// 			}
+	// 		}
+	// 	);
+	// }
+	// {
+	// 	auto root = static_cast<ade::iFunctor*>(ddiff_w0->get_tensor().get());
+	// 	auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+	// 	auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+	// 	auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+	// 	auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
+	// 	auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
+	// 	auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
+	// 	auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
+	// 	auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
+	// 	auto mul4 = static_cast<ade::iFunctor*>(ext2->get_children()[0].get_tensor().get());
+	// 	dbg.edges_.push_back(
+	// 		ead::Edge{
+	// 			mul4->get_children()[1].get_tensor(),
+	// 			diff->get_tensor(),
+	// 			ade::Opcode{
+	// 				"JACOBIAN_diff_w0",
+	// 				ead::GRADIENT
+	// 			}
+	// 		}
+	// 	);
+	// }
+	// {
+	// 	auto root = static_cast<ade::iFunctor*>(derror_w0->get_tensor().get());
+	// 	auto perm = static_cast<ade::iFunctor*>(root->get_children()[0].get_tensor().get());
+	// 	auto mul = static_cast<ade::iFunctor*>(perm->get_children()[0].get_tensor().get());
+	// 	auto ext = static_cast<ade::iFunctor*>(mul->get_children()[1].get_tensor().get());
+	// 	auto mul2 = static_cast<ade::iFunctor*>(ext->get_children()[0].get_tensor().get());
+	// 	auto red = static_cast<ade::iFunctor*>(mul2->get_children()[1].get_tensor().get());
+	// 	auto perm2 = static_cast<ade::iFunctor*>(red->get_children()[0].get_tensor().get());
+	// 	auto mul3 = static_cast<ade::iFunctor*>(perm2->get_children()[0].get_tensor().get());
+	// 	auto ext2 = static_cast<ade::iFunctor*>(mul3->get_children()[1].get_tensor().get());
+	// 	auto mul4 = static_cast<ade::iFunctor*>(ext2->get_children()[0].get_tensor().get());
+	// 	auto mul5 = static_cast<ade::iFunctor*>(mul4->get_children()[1].get_tensor().get());
+	// 	dbg.edges_.push_back(
+	// 		ead::Edge{
+	// 			mul5->get_children()[1].get_tensor(),
+	// 			error->get_tensor(),
+	// 			ade::Opcode{
+	// 				"JACOBIAN_error_w0",
+	// 				ead::GRADIENT
+	// 			}
+	// 		}
+	// 	);
+	// }
 
 	// dbg.track(dinput_matmul_w0, "dinput_matmul_w0");
 	// dbg.set_break();

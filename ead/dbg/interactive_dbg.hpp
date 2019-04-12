@@ -89,7 +89,23 @@ struct InteractiveDebugger
 
 		// update display
 		GraphClient client(default_server);
-		client.send(graph_canvas_, edges_);
+		EdgesT active_edges;
+		active_edges.reserve(edges_.size());
+		auto et = graph_canvas_.end();
+		std::copy_if(edges_.begin(), edges_.end(),
+			std::back_inserter(active_edges),
+			[&](Edge& edge)
+			{
+				if (edge.expired())
+				{
+					return false;
+				}
+				auto parent = edge.parent_.lock().get();
+				auto child = edge.child_.lock().get();
+				return et == graph_canvas_.find(parent) &&
+					et == graph_canvas_.find(child);
+			});
+		client.send(graph_canvas_, active_edges);
 
 		// handle signal
 		// todo: make more elegant and flexible

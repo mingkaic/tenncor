@@ -28,6 +28,240 @@ NodeptrT<T> derive (NodeptrT<T> root, NodeptrT<T> target)
 	return derive_with_edges(edges, root, target);
 }
 
+// ruler of chains
+template <typename T>
+struct ChainRuler
+{
+	// return orig derived with respect to args[idx]
+	NodeptrT<T> dlocal (ead::NodeptrT<T> orig, size_t idx)
+	{
+		auto f = static_cast<ade::iFunctor*>(orig->get_tensor().get());
+		const ade::ArgsT& args = f->get_children();
+		NodeptrT<T> out = nullptr;
+		switch ((age::_GENERATED_OPCODE) f->get_opcode().code_)
+		{
+			case age::ABS:
+				out = age::div(ead::to_node<T>(args[0].get_tensor()), orig);
+				break;
+			case age::NEG:
+				out = ead::make_constant_scalar<T>(-1, args[0].get_tensor()->shape());
+				break;
+			case age::SIN:
+				out = age::cos(ead::to_node<T>(args[0].get_tensor()));
+				break;
+			case age::COS:
+				out = age::neg(age::sin(ead::to_node<T>(args[0].get_tensor())));
+				break;
+			case age::TAN:
+				out = age::div(
+					ead::make_constant_scalar<T>(1,args[0].get_tensor()->shape()),
+					age::pow(
+						age::cos(ead::to_node<T>(args[0].get_tensor())),
+						ead::make_constant_scalar<T>(2, args[0].get_tensor()->shape())
+					)
+				);
+				break;
+			case age::EXP:
+				out = orig;
+				break;
+			case age::LOG:
+				out = age::div(
+					ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape()),
+					ead::to_node<T>(args[0].get_tensor())
+				);
+			case age::SQRT:
+				out = age::div(
+					ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape()),
+					age::mul(
+						ead::make_constant_scalar<T>(2,args[0].get_tensor()->shape()),
+						orig
+					)
+				);
+				break;
+			case age::SQUARE:
+				out = age::mul(
+					ead::make_constant_scalar<T>(2,args[0].get_tensor()->shape()),
+					ead::to_node<T>(args[0].get_tensor())
+				);
+				break;
+			case age::CUBE:
+				out = age::mul(
+					ead::make_constant_scalar<T>(3, args[0].get_tensor()->shape()),
+					age::square(ead::to_node<T>(args[0].get_tensor()))
+				);
+				break;
+			case age::ROUND:
+				out = ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape());
+				break;
+			case age::SIGMOID:
+				out = age::sigmoid_grad(ead::to_node<T>(args[0].get_tensor()));
+				break;
+			case age::SIGMOID_GRAD:
+				out = age::mul(
+					orig,
+					age::sub(
+						ead::make_constant_scalar<T>(1,args[0].get_tensor()->shape()),
+						age::mul(
+							ead::make_constant_scalar<T>(2, args[0].get_tensor()->shape()),
+							age::sigmoid(ead::to_node<T>(args[0].get_tensor()))
+						)
+					)
+				);
+				break;
+			case age::TANH:
+				out = age::sub(
+					ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape()),
+					age::square(orig)
+				);
+				break;
+			case age::ADD:
+				out = ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape());
+				break;
+			case age::MUL:
+				out = ead::to_node<T>(args[(size_t)(idx==0)].get_tensor());
+				break;
+			case age::MAX:
+			case age::MIN:
+				out = age::eq(orig, ead::to_node<T>(args[idx].get_tensor()));
+				break;
+			case age::POW:
+				out = idx==0 ?
+					age::mul(
+						ead::to_node<T>(args[1].get_tensor()),
+						age::pow(
+							ead::to_node<T>(args[0].get_tensor()),
+							age::sub(
+								ead::to_node<T>(args[1].get_tensor()),
+								ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape())
+							)
+						)
+					) :
+					age::mul(age::log(ead::to_node<T>(args[0].get_tensor())), orig);
+				break;
+			case age::SUB:
+				out = ead::make_constant_scalar<T>(idx == 0 ? 1 : -1, args[0].get_tensor()->shape());
+				break;
+			case age::DIV:
+			{
+				auto denom = ead::to_node<T>(args[1].get_tensor());
+				out = idx==0 ?
+					age::div(
+						ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape()),
+						denom
+					) :
+					age::div(
+						age::div(age::neg(ead::to_node<T>(args[0].get_tensor())), denom),
+						denom
+					);
+			}
+				break;
+			case age::EQ:
+			case age::NEQ:
+			case age::GT:
+			case age::LT:
+			case age::RAND_UNIF:
+				out = ead::make_constant_scalar<T>(0, args[0].get_tensor()->shape());
+				break;
+			case age::REDUCE_SUM:
+			case age::EXTEND:
+			case age::PERMUTE:
+				out = ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape());
+				break;
+			case age::REDUCE_PROD:
+				out = age::div(
+					reduce_grad(args[0], orig, idx),
+					to_node<T>(args[0].get_tensor())
+				);
+				break;
+			case age::REDUCE_MAX:
+			case age::REDUCE_MIN:
+				out = age::eq(
+					reduce_grad(args[0], orig, idx),
+					to_node<T>(args[0].get_tensor())
+				);
+				break;
+			case age::MATMUL:
+			{
+				NodeptrT<T> lhs = to_node<T>(args[0].get_tensor());
+				NodeptrT<T> rhs = to_node<T>(args[1].get_tensor());
+				out = 0 == idx ?
+					// ext_rhs
+					age::permute(age::extend(rhs, 2, {lhs->shape().at(1)}), {0,2,1}) :
+					// ext_lhs
+					age::permute(age::extend(lhs, 2, {rhs->shape().at(0)}), {2,1,0});
+			}
+				break;
+			case age::CONV:
+			default:
+				logs::fatal("Unknown op");
+		}
+		return out;
+	}
+
+	NodeptrT<T> chain (NodeptrT<T> local, ade::iFunctor* fwd, NodeptrT<T> bwd, size_t idx)
+	{
+		NodeptrT<T> out;
+		switch (fwd->get_opcode().code_)
+		{
+			case age::ABS:
+			case age::NEG:
+			case age::SIN:
+			case age::COS:
+			case age::TAN:
+			case age::EXP:
+			case age::LOG:
+			case age::SQRT:
+			case age::SQUARE:
+			case age::CUBE:
+			case age::ROUND:
+			case age::SIGMOID:
+			case age::SIGMOID_GRAD:
+			case age::TANH:
+			case age::ADD:
+			case age::MUL:
+			case age::MAX:
+			case age::MIN:
+			case age::POW:
+			case age::SUB:
+			case age::DIV:
+			case age::EQ:
+			case age::NEQ:
+			case age::GT:
+			case age::LT:
+			case age::RAND_UNIF:
+				out = age::mul(local, bwd);
+				break;
+			case age::REDUCE_MAX:
+			case age::REDUCE_MIN:
+			case age::REDUCE_PROD:
+			case age::REDUCE_SUM:
+				out = age::mul(local, reduce_grad(fwd->get_children()[0], bwd, idx));
+				break;
+			case age::EXTEND:
+				out = age::mul(local, extend_grad(fwd, bwd, idx));
+				break;
+			case age::PERMUTE:
+				out = age::mul(local, permute_grad(fwd, bwd, idx));
+				break;
+			case age::MATMUL:
+				out = age::reduce_sum(
+					age::permute(
+						age::mul(local,
+							age::extend(bwd, 2, {
+								fwd->get_children()[0].get_tensor()->shape().at(0)
+							})),
+						0 == idx ?
+							std::vector<uint8_t>{2, 1, 0} :
+							std::vector<uint8_t>{0, 2, 1}), 2);
+				break;
+			case age::CONV:
+			default:
+				logs::fatal("Unknown op");
+		}
+		return out;
+	}
+};
+
 /// Derive root with respect to target and optimized
 template <typename T>
 NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> target)
@@ -52,6 +286,7 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 	std::string source_str = root->get_tensor()->to_string();
 	ade::GraphStat stat;
 	root->get_tensor()->accept(stat);
+	auto owners = ade::track_owners(root->get_tensor());
 
 	std::list<ade::iFunctor*> parents;
 	std::transform(pathmap.begin(), pathmap.end(),
@@ -70,15 +305,7 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 	std::unordered_map<const ade::iTensor*,NodesT<T>> grads = {
 		{root->get_tensor().get(), {root_grad}}
 	};
-	edges.push_back(Edge{
-		root->get_tensor(),
-		root_grad->get_tensor(),
-		ade::Opcode{
-			fmts::sprintf("GRADIENT_%s_%s",
-				source_str.c_str(), source_str.c_str()),
-			GRADIENT
-		}
-	});
+	ChainRuler<T> ruler;
 	for (ade::iFunctor* parent : parents)
 	{
 		NodesT<T>& gargs = grads[parent];
@@ -87,6 +314,15 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 		{
 			bwd = age::add(bwd, gargs[i]);
 		}
+		edges.push_back(Edge{
+			bwd->get_tensor(),
+			owners[parent],
+			ade::Opcode{
+				fmts::sprintf("GRADIENT_%s_%s",
+					source_str.c_str(), parent->to_string().c_str()),
+				GRADIENT
+			}
+		});
 
 		auto& grad_indices = pathmap[parent];
 		ade::ArgsT children = parent->get_children();
@@ -105,18 +341,19 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 		ordered.sort();
 		for (size_t i : ordered)
 		{
-			auto grad_step = age::chain_rule<T>(parent, bwd, args, i);
-			grads[args[i].get()].push_back(grad_step);
+			auto local = ruler.dlocal(ead::to_node<T>(owners[parent].lock()), i);
 			edges.push_back(Edge{
-				args[i],
-				grad_step->get_tensor(),
+				local->get_tensor(),
+				owners[parent],
 				ade::Opcode{
 					fmts::sprintf("GRADIENT_%s_%s",
-						source_str.c_str(),
-						args[i]->to_string().c_str()),
+						parent->to_string().c_str(), args[i]->to_string().c_str()),
 					GRADIENT
 				}
 			});
+			auto grad_step = ruler.chain(local, parent, bwd, i);
+			// auto grad_step = age::chain_rule<T>(parent, bwd, args, i);
+			grads[args[i].get()].push_back(grad_step);
 		}
 	}
 	NodesT<T>& outargs = grads[target_tens];
@@ -125,6 +362,24 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 	{
 		out = age::add(out, outargs[i]);
 	}
+	std::string target_str;
+	if (auto target_v = dynamic_cast<Variable<T>*>(target_tens))
+	{
+		target_str = target_v->label_;
+	}
+	else
+	{
+		target_str = target_tens->to_string();
+	}
+	edges.push_back(Edge{
+		out->get_tensor(),
+		target->get_tensor(),
+		ade::Opcode{
+			fmts::sprintf("GRADIENT_%s_%s",
+				source_str.c_str(), target_str.c_str()),
+			GRADIENT
+		}
+	});
 	return out;
 }
 

@@ -35,12 +35,10 @@ NodeptrT<T> to_node (ade::TensptrT tens)
 }
 
 template <typename T>
-NodeptrT<T> reduce_sum_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, ade::TensT args, size_t idx)
+NodeptrT<T> reduce_grad (const ade::FuncArg& child,
+	NodeptrT<T> bwd, size_t idx)
 {
-	const ade::Shape& shape = args[0]->shape();
-	// assert shape == bwd->get_tensor()->shape()
-	const auto& child = fwd->get_children()[0];
+	const ade::Shape& shape = child.get_tensor()->shape();
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
 	CoordptrT revcoord;
 	{
@@ -66,35 +64,35 @@ NodeptrT<T> reduce_sum_grad (ade::iFunctor* fwd,
 
 template <typename T>
 NodeptrT<T> reduce_prod_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, ade::TensT args, size_t idx)
+	NodeptrT<T> bwd, size_t idx)
 {
 	const auto& child = fwd->get_children()[0];
 	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
 		{FuncArg<T>(childnode, child.get_shaper(),
 			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
-	NodeptrT<T> rev_fwd = reduce_sum_grad(fwd, fwd_cpy, args, idx);
+	NodeptrT<T> rev_fwd = reduce_grad(child, fwd_cpy, idx);
 	return age::mul(age::div(rev_fwd, childnode),
-		reduce_sum_grad(fwd, bwd, args, idx));
+		reduce_grad(child, bwd, idx));
 }
 
 template <typename T>
 NodeptrT<T> reduce_comp_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, ade::TensT args, size_t idx)
+	NodeptrT<T> bwd, size_t idx)
 {
 	const auto& child = fwd->get_children()[0];
 	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
 		{FuncArg<T>(childnode, child.get_shaper(),
 			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
-	NodeptrT<T> rev_fwd = reduce_sum_grad(fwd, fwd_cpy, args, idx);
+	NodeptrT<T> rev_fwd = reduce_grad(child, fwd_cpy, idx);
 	return age::mul(age::eq(rev_fwd, childnode),
-		reduce_sum_grad(fwd, bwd, args, idx));
+		reduce_grad(child, bwd, idx));
 }
 
 template <typename T>
 NodeptrT<T> permute_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, ade::TensT args, size_t idx)
+	NodeptrT<T> bwd, size_t idx)
 {
 	const auto& child = fwd->get_children()[0];
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
@@ -119,7 +117,7 @@ NodeptrT<T> permute_grad (ade::iFunctor* fwd,
 
 template <typename T>
 NodeptrT<T> extend_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, ade::TensT args, size_t idx)
+	NodeptrT<T> bwd, size_t idx)
 {
 	const auto& child = fwd->get_children()[0];
 	ade::CoordptrT revshaper(child.get_shaper()->reverse());
@@ -146,7 +144,7 @@ NodeptrT<T> extend_grad (ade::iFunctor* fwd,
 
 template <typename T>
 NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, ade::TensT args, size_t idx)
+	NodeptrT<T> bwd, size_t idx)
 {
 	const auto& children = fwd->get_children();
 	ade::TensptrT a = children[0].get_tensor();

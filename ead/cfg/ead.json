@@ -142,31 +142,31 @@
         },
         "REDUCE_SUM": {
             "operation": "return ead::reduce_sum(shape,in[0])",
-            "derivative": "ead::reduce_sum_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::reduce_grad(fwd->get_children()[0],bwd,idx)"
         },
         "REDUCE_PROD": {
             "operation": "return ead::reduce_prod(shape,in[0])",
-            "derivative": "ead::reduce_prod_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::reduce_prod_grad(fwd,bwd,idx)"
         },
         "REDUCE_MIN": {
             "operation": "return ead::reduce_min(shape,in[0])",
-            "derivative": "ead::reduce_comp_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::reduce_comp_grad(fwd,bwd,idx)"
         },
         "REDUCE_MAX": {
             "operation": "return ead::reduce_max(shape,in[0])",
-            "derivative": "ead::reduce_comp_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::reduce_comp_grad(fwd,bwd,idx)"
         },
         "PERMUTE": {
             "operation": "return ead::permute(shape,in[0])",
-            "derivative": "ead::permute_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::permute_grad(fwd,bwd,idx)"
         },
         "EXTEND": {
             "operation": "return ead::extend(shape,in[0])",
-            "derivative": "ead::extend_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::extend_grad(fwd,bwd,idx)"
         },
         "MATMUL": {
             "operation": "return ead::matmul(shape,in[0],in[1])",
-            "derivative": "ead::matmul_grad(fwd,bwd,args,idx)"
+            "derivative": "ead::matmul_grad(fwd,bwd,idx)"
         },
         "CONV": {
             "operation": "return ead::convolution(shape,in[0],in[1])",
