@@ -69,6 +69,7 @@ struct ChainRuler
 					ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape()),
 					ead::to_node<T>(args[0].get_tensor())
 				);
+				break;
 			case age::SQRT:
 				out = age::div(
 					ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape()),
@@ -341,7 +342,7 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 		ordered.sort();
 		for (size_t i : ordered)
 		{
-			auto local = ruler.dlocal(ead::to_node<T>(owners[parent].lock()), i);
+			auto local = ruler.dlocal(ead::to_node<T>(owners[parent].lock()), i); // todo: store this for reuse
 			edges.push_back(Edge{
 				local->get_tensor(),
 				owners[parent],

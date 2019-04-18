@@ -22,7 +22,7 @@ namespace pbm
 using TensT = std::vector<ade::TensptrT>;
 
 /// String list type used for paths
-using StringsT = std::list<std::string>;
+using StringsT = std::list<fmts::string>;
 
 struct iSaver
 {

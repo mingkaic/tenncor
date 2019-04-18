@@ -26,40 +26,40 @@ TEST(EQUATION, MatmulComplex)
 	ade::Shape bshape(blist);
 	ade::Shape cshape(clist);
 
-	std::vector<int32_t> data = {
+	std::vector<float> data = {
 		40, 1, 23,
 		18, 50, 77,
 	};
-	std::vector<int32_t> data2 = {
+	std::vector<float> data2 = {
 		62, 31, 90, 68,
 		68, 78, 55, 95,
 		16, 99, 97, 77,
 	};
-	std::vector<int32_t> data3 = {
+	std::vector<float> data3 = {
 		29, 75,
 		39, 67,
 		37, 57,
 		48, 42,
 	};
-	std::vector<int32_t> expect_ga = {
-		-154880684, -127906804, -105914132,
-		-206505460, -164002948, -131588540,
+	std::vector<float> expect_ga = {
+		245250818048, 287692324864, 309372977152,
+		386310078464, 453162401792, 487312949248,
 	};
-	std::vector<int32_t> expect_gb = {
-		-55352996, 20961008, -56860896, -29599272,
-		-58614174, 26705056, -60728512, -32475964,
-		-108808856, 47268840, -112469200, -59707840,
+	std::vector<float> expect_gb = {
+		38305898496, 72401903616, 78513586176, 74675994624,
+		44697542656, 84482736128, 91614191616, 87136280576,
+		80860676096, 152834621440, 165735874560, 157635035136,
 	};
-	std::vector<int32_t> expect_gc = {
-		152732, 4310652,
-		-73239126, -139902552,
-		-56297930, -101235528,
-		-79671648, -172118240,
+	std::vector<float> expect_gc = {
+		112505257984, 278567649280,
+		112505257984, 278567649280,
+		112505257984, 278567649280,
+		112505257984, 278567649280,
 	};
 
-	ead::NodeptrT<int32_t> a = ead::make_variable<int32_t>(data.data(), ashape);
-	ead::NodeptrT<int32_t> b = ead::make_variable<int32_t>(data2.data(), bshape);
-	ead::NodeptrT<int32_t> c = ead::make_variable<int32_t>(data3.data(), cshape);
+	ead::NodeptrT<float> a = ead::make_variable<float>(data.data(), ashape);
+	ead::NodeptrT<float> b = ead::make_variable<float>(data2.data(), bshape);
+	ead::NodeptrT<float> c = ead::make_variable<float>(data3.data(), cshape);
 
 	auto d = age::matmul(a, b);
 	auto e = age::matmul(c, d);
@@ -70,7 +70,7 @@ TEST(EQUATION, MatmulComplex)
 	auto db = ead::derive(dest, b);
 	auto dc = ead::derive(dest, c);
 
-	ead::Session<int32_t> session;
+	ead::Session<float> session;
 	session.track(dest);
 	session.track(da);
 	session.track(db);
@@ -81,25 +81,27 @@ TEST(EQUATION, MatmulComplex)
 		auto gotshape = da->shape();
 		ASSERT_ARREQ(alist, gotshape);
 	}
-	int32_t* gaptr = (int32_t*) da->data();
+	float* gaptr = (float*) da->data();
 	for (size_t i = 0, n = ashape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_ga[i], gaptr[i]);
 	}
+
 	{
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(blist, gotshape);
 	}
-	int32_t* gbptr = (int32_t*) db->data();
+	float* gbptr = (float*) db->data();
 	for (size_t i = 0, n = bshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gb[i], gbptr[i]);
 	}
+
 	{
 		auto gotshape = dc->shape();
 		ASSERT_ARREQ(clist, gotshape);
 	}
-	int32_t* gcptr = (int32_t*) dc->data();
+	float* gcptr = (float*) dc->data();
 	for (size_t i = 0, n = cshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gc[i], gcptr[i]);

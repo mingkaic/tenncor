@@ -924,6 +924,55 @@ class EADTest(unittest.TestCase):
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
 
+    def test_grader_scenario9(self):
+        ashape = [2, 3]
+        bshape = [3, 4]
+        cshape = [4, 2]
+
+        data = np.random.rand(*ashape)
+        data2 = np.random.rand(*bshape)
+        data3 = np.random.rand(*cshape)
+
+        a = ead.variable(data, 'a')
+        b = ead.variable(data2, 'b')
+        c = ead.variable(data3, 'c')
+        tf_a = tf.Variable(data)
+        tf_b = tf.Variable(data2)
+        tf_c = tf.Variable(data3)
+
+        d = age.matmul(a, b)
+        e = age.matmul(c, d)
+        f = age.matmul(age.transpose(d), age.transpose(c))
+        dest = age.matmul(e, f)
+
+        tf_d = tf.matmul(tf_a, tf_b)
+        tf_e = tf.matmul(tf_c, tf_d)
+        tf_f = tf.matmul(tf.transpose(tf_d), tf.transpose(tf_c))
+        tf_dest = tf.matmul(tf_e, tf_f)
+
+        da = ead.derive(dest, a)
+        db = ead.derive(dest, b)
+        dc = ead.derive(dest, c)
+        tf_da, tf_db, tf_dc = tf.gradients(tf_dest, [tf_a, tf_b, tf_c])
+
+        tfsess = tf.Session()
+        tfsess.run(tf_a.initializer)
+        tfsess.run(tf_b.initializer)
+        tfsess.run(tf_c.initializer)
+
+        sess = ead.Session()
+        sess.track(dest)
+        sess.track(da)
+        sess.track(db)
+        sess.track(dc)
+        sess.update()
+
+        exa = tfsess.run(tf_da)
+        exb = tfsess.run(tf_db)
+        exc = tfsess.run(tf_dc)
+        self._array_close(exa, da.get())
+        self._array_close(exb, db.get())
+        self._array_close(exc, dc.get())
 
 if __name__ == "__main__":
     unittest.main()

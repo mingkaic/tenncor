@@ -102,8 +102,8 @@ struct InteractiveDebugger
 				}
 				auto parent = edge.parent_.lock().get();
 				auto child = edge.child_.lock().get();
-				return et == graph_canvas_.find(parent) &&
-					et == graph_canvas_.find(child);
+				return et != graph_canvas_.find(parent) &&
+					et != graph_canvas_.find(child);
 			});
 		client.send(graph_canvas_, active_edges);
 
