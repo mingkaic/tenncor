@@ -1,9 +1,4 @@
-#include "ead/generated/codes.hpp"
-
-#include "ead/ead.hpp"
-#include "ead/coord.hpp"
-#include "ead/constant.hpp"
-#include "ead/variable.hpp"
+#include "ade/ifunctor.hpp"
 
 #ifndef EAD_REPRESENT_HPP
 #define EAD_REPRESENT_HPP
@@ -14,84 +9,106 @@ namespace ead
 namespace opt
 {
 
-struct Representation;
+struct RuleContext;
 
-using RepptrT = std::shared_ptr<Representation>;
+struct iReprNode;
 
-struct Representation
+using RepptrT = std::shared_ptr<iReprNode>;
+
+struct iRuleNode;
+
+using RuleptrT = std::shared_ptr<iRuleNode>;
+
+struct LeafRep;
+
+struct FuncRep;
+
+struct iReprNode
 {
-	virtual ~Representation (void) = default;
+	virtual ~iReprNode (void) = default;
 
-	virtual RepptrT rulify (size_t depth) const = 0;
+	virtual bool rulify (RuleContext& ctx, const RuleptrT& rule) = 0;
 };
 
-struct RuleLeafRep final : public Representation
+struct ReprArg final
 {
-	RuleLeafRep (Representation* rep) : rep_(rep) {}
-
-	RepptrT rulify (size_t depth) const override
+	ReprArg (RepptrT arg,
+		ade::CoordptrT shaper, ade::CoordptrT coorder) :
+		arg_(arg), shaper_(shaper), coorder_(coorder)
 	{
-		return rep_->rulify(depth);
+		if (nullptr == arg)
+		{
+			logs::fatal("created a representation argument with null argument");
+		}
 	}
 
-	Representation* rep_;
+	RepptrT arg_;
+
+	ade::CoordptrT shaper_;
+
+	ade::CoordptrT coorder_;
 };
 
-struct LeafRep final : public Representation
+using RepArgsT = std::vector<ReprArg>;
+
+struct iRuleNode
+{
+	virtual ~iRuleNode (void) = default;
+
+	virtual bool process (RuleContext& ctx, LeafRep* leaf) const = 0;
+
+	virtual bool process (RuleContext& ctx, FuncRep* func) const = 0;
+};
+
+struct RuleArg final
+{
+	RuleArg (RuleptrT arg,
+		ade::CoordptrT shaper, ade::CoordptrT coorder) :
+		arg_(arg), shaper_(shaper), coorder_(coorder)
+	{
+		if (nullptr == arg)
+		{
+			logs::fatal("created a rule argument with null argument");
+		}
+	}
+
+	RuleptrT arg_;
+
+	ade::CoordptrT shaper_;
+
+	ade::CoordptrT coorder_;
+};
+
+using RuleArgsT = std::vector<RuleArg>;
+
+struct LeafRep final : public iReprNode
 {
 	LeafRep (ade::iLeaf* leaf) : leaf_(leaf) {}
 
-	RepptrT rulify (size_t depth) const override
+	bool rulify (RuleContext& ctx, const RuleptrT& rule) override
 	{
-		if (depth < 1)
-		{
-			return std::make_shared<RuleLeafRep>(this);
-		}
-		return std::make_shared<LeafRep>(this->leaf_);
+		return rule.process(ctx, this);
 	}
 
-	ade::iLeaf leaf_;
+	ade::iLeaf* leaf_;
 };
 
 struct FuncRep final : public Representation
 {
-	struct FuncArg
-	{
-		RepptrT arg_;
-
-		ade::CoordptrT shaper_;
-
-		ade::CoordptrT coorder_;
-	};
-
-	FuncRep (ade::Opcode op, std::vector<FuncArg> args) :
+	FuncRep (ade::Opcode op, RepArgsT args) :
 		op_(op), args_(args) {}
 
-	RepptrT rulify (size_t depth) const override
+	bool rulify (RuleContext& ctx, const RuleptrT& rule) override
 	{
-		if (depth < 1)
-		{
-			return std::make_shared<RuleLeafRep>(this);
-		}
-		std::vector<FuncArg> fresh_args;
-		fresh_args.reserve(args_.size());
-		for (FuncArg arg : args_)
-		{
-			fresh_args.push_back(FuncArg{
-				arg.arg_->rulify(depth - 1),
-				arg.shaper_,
-				arg.coorder_,
-			});
-		}
-		return std::make_shared<FuncRep>(op_, fresh_args);
+		return rule.process(ctx, this);
 	}
 
 	ade::Opcode op_;
 
-	std::vector<FuncArg> args_;
+	RepArgsT args_;
 };
 
-struct Representer : public ade::iTraveler
+struct Representer final : public ade::iTraveler
 {
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
@@ -128,113 +145,27 @@ struct Representer : public ade::iTraveler
 	std::unordered_map<ade::iTensor*,RepptrT> reps_;
 };
 
-
-const std::string args_begin = "(";
-const std::string args_end = ")";
-const std::string args_delim = ",";
-const std::string shape_delim = "->";
-const std::string coord_delim = "_";
-
-std::string pid (const void* addr)
-{
-	std::stringstream ss;
-	ss << std::hex << (size_t) addr;
-	return ss.str();
-}
-
-template <typename GENERATOR>
-std::string uuid (GENERATOR& rgen, const void* addr)
-{
-	static std::uniform_int_distribution<size_t> tok_dist(0, 15);
-	auto now = std::chrono::system_clock::now();
-	std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-
-	std::stringstream ss;
-	ss << std::hex << now_c << (size_t) addr;
-
-	for (size_t i = 0; i < 16; i++)
-	{
-		size_t token = tok_dist(rgen);
-		ss << std::hex << token;
-	}
-	return ss.str();
-}
-
 template <typename T>
-struct Stringifier final : public ade::iTraveler
+struct GraphAbstracter final
 {
-	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
+	void abstracize (ead::NodeptrT<T>& node)
 	{
-		if (reps_.end() == reps_.find(leaf))
-		{
-			if (static_cast<iLeaf<T>*>(leaf)->is_const())
-			{
-				T* data = (T*) leaf->data();
-				size_t n = leaf->shape().n_elems();
-				if (std::all_of(data + 1, data + n,
-					[&data](T val) { return val == *data; }))
-				{
-					reps_.emplace(leaf, fmts::to_string(*data));
-					return;
-				}
-			}
-			reps_.emplace(leaf, pid(leaf));
-		}
+		auto tens = node->get_tensor();
+		tens->accept(representer_);
+		tens->accept(finder_);
+		tens->accept(ider_);
 	}
 
-	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
-	{
-		if (reps_.end() == reps_.find(func))
-		{
-			auto children = func->get_children();
-			std::vector<std::string> args;
-			args.reserve(children.size());
-			for (auto& child : children)
-			{
-				auto tens = child.get_tensor();
-				tens->accept(*this);
-				std::string arg_rep = reps_[tens.get()];
+	// merge duplicate nodes
 
-				auto shaper = child.get_shaper();
-				auto coorder = child.get_coorder();
-				if (false == ade::is_identity(shaper.get()) ||
-					false == ade::is_identity(coorder.get()))
-				{
-					arg_rep = trans_encode(
-						arg_rep, shaper, coorder);
-				}
-				args.push_back(arg_rep);
-			}
-			std::string opname = func->get_opcode().name_;
-			reps_.emplace(func, opname + args_begin +
-				fmts::join(args_delim, args.begin(), args.end()) + args_end);
-		}
-	}
+	// precalculate constants
 
-	std::string trans_encode (std::string arg_rep,
-		const ade::CoordptrT& shaper, const ade::CoordptrT& coorder)
-	{
-		std::string shaper_id = pid(shaper.get());
-		shapers_.emplace(shaper_id, shaper);
+private:
+	Representer representer_;
 
-		std::stringstream ss;
-		ss << arg_rep << shape_delim << shaper_id << coord_delim;
-		if (coorder)
-		{
-			ss << coorder->to_string();
-		}
-		else
-		{
-			ss << fmts::arr_begin + fmts::arr_end;
-		}
-		return ss.str();
-	}
+	DistanceFinder finder_;
 
-	std::unordered_map<ade::iTensor*,std::string> reps_;
-
-	std::unordered_map<std::string,ade::CoordptrT> shapers_;
+	Identifier<T> ider_;
 };
 
 }

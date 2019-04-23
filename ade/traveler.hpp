@@ -106,6 +106,51 @@ struct PathFinder final : public iTraveler
 	ParentMapT parents_;
 };
 
+using DistanceMapT = std::unordered_map<iTensor*,size_t>;
+
+using EdgeDistanceMapT = std::unordered_map<iTensor*,DistanceMapT>;
+
+struct DistanceFinder final : public iTraveler
+{
+	/// Implementation of iTraveler
+	void visit (iLeaf* leaf) override
+	{
+		if (distances_.end() == distances_.find(leaf))
+		{
+			distances_.emplace(leaf, {leaf, 0});
+		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor* func) override
+	{
+		if (distances_.end() == distances_.find(leaf))
+		{
+			DistanceMapT distmap = {{func, 0}};
+			auto& children = func->get_children();
+			for (auto& child : children)
+			{
+				auto tens = child.get_tensor();
+				tens->accept(*this);
+				DistanceMapT& subdistance = distances_[tens.get()];
+				for (auto distpair : subdistance)
+				{
+					size_t mindist = distpair.second;
+					auto it = distmap.find(distpair);
+					if (distmap.end() != it && it.second < distpair.second)
+					{
+						mindist = it.second;
+					}
+					distmap[distpair.first] = mindist;
+				}
+			}
+			distances_.emplace(func, distmap);
+		}
+	}
+
+	EdgeDistanceMapT distances_;
+};
+
 /// Travelers will lose smart pointer references,
 // this utility function will grab reference maps of root's subtree
 std::unordered_map<iTensor*,TensrefT> track_owners (TensptrT root);

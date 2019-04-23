@@ -9,21 +9,21 @@ namespace ead
 
 enum EDGE_CODE
 {
-    GRADIENT = 0,
+	GRADIENT = 0,
 };
 
 struct Edge final
 {
-    bool expired (void) const
-    {
-        return parent_.expired() || child_.expired();
-    }
+	bool expired (void) const
+	{
+		return parent_.expired() || child_.expired();
+	}
 
-    std::weak_ptr<ade::iTensor> parent_;
+	std::weak_ptr<ade::iTensor> parent_;
 
-    std::weak_ptr<ade::iTensor> child_;
+	std::weak_ptr<ade::iTensor> child_;
 
-    ade::Opcode edge_code_;
+	ade::Opcode edge_code_;
 };
 
 using EdgesT = std::vector<Edge>;

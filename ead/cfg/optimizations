@@ -1,74 +1,60 @@
-#define __ANY__ [\w\(\)\[\]<>\.]+
-#define __ANY_CONST__ constant\(\d+\)
-#define __ANY_SCALR__ scalar\(\d+(?:\.\d+)?\)
-#define __ZERO__ scalar\(0(?:\.0+)?\)
-#define __ONE__ scalar\(1(?:\.0+)?\)
-#define __TWO__ scalar\(2(?:\.0+)?\)
-#define __THREE__ scalar\(3(?:\.0+)?\)
+symbol X
+symbol Y
+symbol Z
 
-// -> denotes preference of form in the direction of arrow
-// = denotes equivalent preference
-// graph pattern uses level-order tree traversal
+precedence // 0
+ABS(NEG(X)) => ABS(X)
+POW(X,2) => SQUARE(X)
+POW(X,3) => CUBE(X)
+SUB(X,Y) => ADD(X,NEG(Y))
+NEG(ADD(X,Y)) => ADD(NEG(X),NEG(Y))
 
-// ========== normalization rules ==========
-// these rules always continue (second -> per line)
-// pool constants to the left
-(ADD|MUL|MIN|MAX)\(\d*\),,(__ANY__),(__ANY_CST__|__ANY_SCALR__) -> $1(),,$3,$2 -> // extra arrow (->) denotes continuation after match
-// left > right leaning
-(ADD|MUL|MIN|MAX)\(\d*\),,(__ANY__),\1\(\d*\),,(?:(.+),)?(__ANY__),(__ANY__) -> $1(),,$1(),$5,,$2,$4,$3 ->
+SQUARE(SQRT(X)) -> X
+SQRT(SQUARE(X)) -> X
 
-// ========== reduction rules ==========
-ABS\(\d*\),,NEG\(\d*\),,(__ANY__) -> ABS(),,$1
-POW\(\d*\),,(__ZERO__|__ONE__),__ANY__ -> $1
-POW\(\d*\),,__ANY__,__ZERO__ -> scalar(1)
-POW\(\d*\),,(__ANY__),__ONE__ -> $1
-ADD\(\d*\),,__ZERO__,(__ANY__) -> $1
-SUB\(\d*\),,(__ANY__),__ZERO__ -> $1
-SUB\(\d*\),,__ZERO__,(__ANY__) -> NEG,,$1
-MUL\(\d*\),,__ONE__,(__ANY__) -> $1
-DIV\(\d*\),,__ZERO__,__ANY__ -> scalar(0)
-DIV\(\d*\),,(__ANY__),__ONE__ -> $1
-SUB\(\d*\),,(__ANY__),\1 -> scalar(0)
-ADD\(\d*\),,(__ANY__),SUB\(\d*\),,(?:.+,)?(__ANY__),\1 -> $2
-ADD\(\d*\),,SUB\(\d*\),(__ANY__),,(__ANY__),\1,?.* -> $2
-SUB\(\d*\),,(__ANY__),SUB\(\d*\),,(?:.+,)?\1,(__ANY__) -> $2
-SUB\(\d*\),,SUB\(\d*\),(__ANY__),,\1,(__ANY__),?.* -> NEG(),,$2
-ADD\(\d*\),,NEG\(\d*\),(__ANY__),,(__ANY__),?.* -> SUB(),,$2,$1
-ADD\(\d*\),,(__ANY__),NEG\(\d*\),,(?:.+,)?(__ANY__) -> SUB(),,$1,$2
-SQRT\(\d*\),,SQUARE\(\d*\),,(__ANY__) -> $1
-SQUARE\(\d*\),,SQRT\(\d*\),,(__ANY__) -> $1
-EXP\(\d*\),,LOG\(\d*\),,(__ANY__) -> $1
-LOG\(\d*\),,EXP\(\d*\),,(__ANY__) -> $1
-// cubes and squares
-POW\(\d*\),,(__ANY__),__TWO__ -> SQUARE(),,$1
-MUL\(\d*\),,(__ANY__),\1 -> SQUARE(),,$1
-POW\(\d*\),,(__ANY__),__THREE__ -> CUBE(),,$1
-MUL\(\d*\),,SQUARE\(\d*\),(__ANY__),,\1,?.* -> CUBE(),,$1
-MUL\(\d*\),,(__ANY__),SQUARE\(\d*\),,(?:.+,)?\1 -> CUBE(),,$1
-// division-multiplication interaction
-MUL\(\d*\),,DIV\(\d*\),(__ANY__),,(__ANY__),\1,?.* -> $2
-MUL\(\d*\),,(__ANY__),DIV\(\d*\),,(?:.+,)?(__ANY__),\1 -> $2
-DIV\(\d*\),,MUL\(\d*\),(__ANY__),,(__ANY__),\1,?.* -> $2
-DIV\(\d*\),,MUL\(\d*\),(__ANY__),,\1,(__ANY__),?.* -> $2
-// transfer negatives to constant
-NEG\(\d*\),,MUL\(\d*\),,(__ANY_CST__|__ANY_SCALR__),(__ANY__),,(.*) -> MUL(),,NEG(),$2,,$1,$3
-MUL\(\d*\),,(__ANY_CST__|__ANY_SCALR__),NEG\(\d*\),,(__ANY__),,(.*) -> MUL(),,NEG(),$2,,$1,$3
-// trig identities
-ADD\(\d*\),,SQUARE\(\d*\),SQUARE\(\d*\),,SIN\(\d*\),COS\(\d*\),,(__ANY__),\1 -> scalar(1)
-SUB\(\d*\),,SQUARE\(\d*\),__ONE__,,SIN\(\d*\),,(__ANY__) -> SQUARE(),,COS(),,$1
-SUB\(\d*\),,SQUARE\(\d*\),__ONE__,,COS\(\d*\),,(__ANY__) -> SQUARE(),,SIN(),,$1
-// sigmoids
-DIV\(\d*\),,__ONE__,ADD\(\d*\),,__ONE__,EXP\(\d*\),,NEG\(\d*\),,(__ANY__) -> SIGMOID(),,$1
-DIV\(\d*\),,__ONE__,ADD\(\d*\),,EXP\(\d*\),__ONE__,,NEG\(\d*\),,(__ANY__) -> SIGMOID(),,$1
-// distributive properties
-ADD\(\d*\),,MUL\(\d*\),MUL\(\d*\),,(__ANY__),(__ANY__),\1,(__ANY__) -> MUL(),,ADD(),$1,,$2,$3
-ADD\(\d*\),,MUL\(\d*\),MUL\(\d*\),,(__ANY__),(__ANY__),(__ANY__),\1 -> MUL(),,ADD(),$1,,$2,$3
-ADD\(\d*\),,MUL\(\d*\),MUL\(\d*\),,(__ANY__),(__ANY__),\2,(__ANY__) -> MUL(),,ADD(),$2,,$1,$3
-ADD\(\d*\),,MUL\(\d*\),MUL\(\d*\),,(__ANY__),(__ANY__),(__ANY__),\2 -> MUL(),,ADD(),$2,,$1,$3
-SUB\(\d*\),,MUL\(\d*\),MUL\(\d*\),,(__ANY__),(__ANY__),\1,(__ANY__) -> MUL(),,SUB(),$1,,$2,$3
-SUB\(\d*\),,MUL\(\d*\),MUL\(\d*\),,(__ANY__),(__ANY__),(__ANY__),\1 -> MUL(),,SUB(),$1,,$2,$3
-SUB\(\d*\),,MUL\(\d*\),MUL\(\d*\),,(__ANY__),(__ANY__),\2,(__ANY__) -> MUL(),,SUB(),$2,,$1,$3
-SUB\(\d*\),,MUL\(\d*\),MUL\(\d*\),,(__ANY__),(__ANY__),(__ANY__),\2 -> MUL(),,SUB(),$2,,$1,$3
-ADD\(\d*\),,DIV\(\d*\),DIV\(\d*\),,(__ANY__),(__ANY__),(__ANY__),\2 -> DIV(),,ADD(),$2,,$1,$3
-SUB\(\d*\),,DIV\(\d*\),DIV\(\d*\),,(__ANY__),(__ANY__),(__ANY__),\2 -> DIV(),,SUB(),$2,,$1,$3
-MUL\(\d*\),,DIV\(\d*\),DIV\(\d*\),,(__ANY__),(__ANY__),(__ANY__),\2 -> DIV(),,MUL(),$2,,$1,$3
+EXP(LOG(X)) -> X
+LOG(EXP(X)) -> X
+
+precedence // 1
+ADD(X,0) => X
+MUL(X,0) => 0
+MUL(X,1) => X
+
+POW(0,X) => 0
+POW(1,X) => 1
+POW(X,0) => 1
+POW(X,1) => X
+DIV(0,X) => 0
+DIV(X,1) => X
+DIV(X,X) => 1
+
+// sigmoid
+DIV(1,ADD(1,NEG(EXP(NEG(X))))) -> SIGMOID(X)
+DIV(1,ADD(NEG(EXP(NEG(X)))),1) -> SIGMOID(X)
+
+precedence // 2
+ADD(ADD(..X),..Y) => ADD(..X,..Y)
+ADD(..X,ADD(..Y)) => ADD(..X,..Y)
+MUL(MUL(..X),..Y) => MUL(..X,..Y)
+MUL(..X,MUL(..Y)) => MUL(..X,..Y)
+
+// trig identities... low chance of these happening
+ADD(SQUARE(SIN(X)),SQUARE(COS(X)),..Z) -> ADD(1,..Z)
+ADD(SQUARE(COS(X)),SQUARE(SIN(X)),..Z) -> ADD(1,..Z)
+
+precedence // 3
+MUL(DIV(X,Y),Y,..Z) => MUL(X,..Z)
+MUL(Y,DIV(X,Y),..Z) => MUL(X,..Z)
+DIV(MUL(X,..Y),X) => MUL(..Y)
+
+precedence // 4
+ADD(X,NEG(X),..Y) => ADD(..Y)
+ADD(NEG(X),X,..Y) => ADD(..Y)
+MUL(X,X,X,..Y) => MUL(CUBE(X),..Y)
+MUL(X,X,..Y) => MUL(SQUARE(X),..Y)
+MUL(X,SQUARE(X),..Y) => MUL(CUBE(X),..Y)
+MUL(SQUARE(X),X,..Y) => MUL(CUBE(X),..Y)
+
+precedence // 5
+ADD(X,NEG(Y),..Z) => ADD(SUB(X,Y),..Z)
+ADD(NEG(X),Y,..Z) => ADD(SUB(Y,X),..Z)
