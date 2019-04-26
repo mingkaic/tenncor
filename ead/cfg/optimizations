@@ -34,9 +34,7 @@ DIV(1,ADD(NEG(EXP(NEG(X)))),1) -> SIGMOID(X)
 
 precedence // 2
 ADD(ADD(..X),..Y) => ADD(..X,..Y)
-ADD(..X,ADD(..Y)) => ADD(..X,..Y)
 MUL(MUL(..X),..Y) => MUL(..X,..Y)
-MUL(..X,MUL(..Y)) => MUL(..X,..Y)
 
 // trig identities... low chance of these happening
 ADD(SQUARE(SIN(X)),SQUARE(COS(X)),..Z) -> ADD(1,..Z)
@@ -44,17 +42,13 @@ ADD(SQUARE(COS(X)),SQUARE(SIN(X)),..Z) -> ADD(1,..Z)
 
 precedence // 3
 MUL(DIV(X,Y),Y,..Z) => MUL(X,..Z)
-MUL(Y,DIV(X,Y),..Z) => MUL(X,..Z)
 DIV(MUL(X,..Y),X) => MUL(..Y)
 
 precedence // 4
 ADD(X,NEG(X),..Y) => ADD(..Y)
-ADD(NEG(X),X,..Y) => ADD(..Y)
 MUL(X,X,X,..Y) => MUL(CUBE(X),..Y)
 MUL(X,X,..Y) => MUL(SQUARE(X),..Y)
 MUL(X,SQUARE(X),..Y) => MUL(CUBE(X),..Y)
-MUL(SQUARE(X),X,..Y) => MUL(CUBE(X),..Y)
 
 precedence // 5
 ADD(X,NEG(Y),..Z) => ADD(SUB(X,Y),..Z)
-ADD(NEG(X),Y,..Z) => ADD(SUB(Y,X),..Z)
