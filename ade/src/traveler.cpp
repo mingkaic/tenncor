@@ -29,10 +29,10 @@ struct OwnerTracker final : public iTraveler
 	/// Map of parent nodes in path
 	std::unordered_set<iFunctor*> visited_;
 
-	std::unordered_map<iTensor*,TensrefT> owners_;
+	OwnerMapT owners_;
 };
 
-std::unordered_map<iTensor*,TensrefT> track_owners (TensptrT root)
+OwnerMapT track_owners (TensptrT root)
 {
 	OwnerTracker tracker;
 	root->accept(tracker);

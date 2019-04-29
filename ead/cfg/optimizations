@@ -2,20 +2,18 @@ symbol X
 symbol Y
 symbol Z
 
-precedence // 0
 ABS(NEG(X)) => ABS(X)
 POW(X,2) => SQUARE(X)
 POW(X,3) => CUBE(X)
 SUB(X,Y) => ADD(X,NEG(Y))
 NEG(ADD(X,Y)) => ADD(NEG(X),NEG(Y))
 
-SQUARE(SQRT(X)) -> X
-SQRT(SQUARE(X)) -> X
+SQUARE(SQRT(X)) => X
+SQRT(SQUARE(X)) => X
 
-EXP(LOG(X)) -> X
-LOG(EXP(X)) -> X
+EXP(LOG(X)) => X
+LOG(EXP(X)) => X
 
-precedence // 1
 ADD(X,0) => X
 MUL(X,0) => 0
 MUL(X,1) => X
@@ -29,26 +27,22 @@ DIV(X,1) => X
 DIV(X,X) => 1
 
 // sigmoid
-DIV(1,ADD(1,NEG(EXP(NEG(X))))) -> SIGMOID(X)
-DIV(1,ADD(NEG(EXP(NEG(X)))),1) -> SIGMOID(X)
+DIV(1,ADD(1,NEG(EXP(NEG(X))))) => SIGMOID(X)
+DIV(1,ADD(NEG(EXP(NEG(X)))),1) => SIGMOID(X)
 
-precedence // 2
 ADD(ADD(..X),..Y) => ADD(..X,..Y)
 MUL(MUL(..X),..Y) => MUL(..X,..Y)
 
 // trig identities... low chance of these happening
-ADD(SQUARE(SIN(X)),SQUARE(COS(X)),..Z) -> ADD(1,..Z)
-ADD(SQUARE(COS(X)),SQUARE(SIN(X)),..Z) -> ADD(1,..Z)
+ADD(SQUARE(SIN(X)),SQUARE(COS(X)),..Z) => ADD(1,..Z)
+ADD(SQUARE(COS(X)),SQUARE(SIN(X)),..Z) => ADD(1,..Z)
 
-precedence // 3
 MUL(DIV(X,Y),Y,..Z) => MUL(X,..Z)
 DIV(MUL(X,..Y),X) => MUL(..Y)
 
-precedence // 4
 ADD(X,NEG(X),..Y) => ADD(..Y)
 MUL(X,X,X,..Y) => MUL(CUBE(X),..Y)
 MUL(X,X,..Y) => MUL(SQUARE(X),..Y)
 MUL(X,SQUARE(X),..Y) => MUL(CUBE(X),..Y)
 
-precedence // 5
 ADD(X,NEG(Y),..Z) => ADD(SUB(X,Y),..Z)

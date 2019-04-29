@@ -5,6 +5,29 @@
 namespace ade
 {
 
+Shape apply_shaper (const CoordptrT& shaper, Shape inshape)
+{
+	if (nullptr != shaper)
+	{
+		CoordT out;
+		CoordT in;
+		std::copy(inshape.begin(), inshape.end(), in.begin());
+		shaper->forward(out.begin(), in.begin());
+		std::vector<DimT> slist(rank_cap);
+		std::transform(out.begin(), out.end(), slist.begin(),
+			[](CDimT cd) -> DimT
+			{
+				if (cd < 0)
+				{
+					cd = -cd - 1;
+				}
+				return std::round(cd);
+			});
+		inshape = Shape(slist);
+	}
+	return inshape;
+}
+
 FuncArg identity_map (TensptrT tensor)
 {
 	return FuncArg(tensor, identity);

@@ -15,6 +15,8 @@
 namespace ade
 {
 
+Shape apply_shaper (const CoordptrT& shaper, Shape inshape);
+
 /// Coordinate mapper and tensor pair
 struct FuncArg final
 {
@@ -52,22 +54,7 @@ struct FuncArg final
 	/// Return shape of tensor filtered through coordinate mapper
 	Shape shape (void) const
 	{
-		ade::Shape shape = tensor_->shape();
-		CoordT out;
-		CoordT in;
-		std::copy(shape.begin(), shape.end(), in.begin());
-		shaper_->forward(out.begin(), in.begin());
-		std::vector<DimT> slist(rank_cap);
-		std::transform(out.begin(), out.end(), slist.begin(),
-			[](CDimT cd) -> DimT
-			{
-				if (cd < 0)
-				{
-					cd = -cd - 1;
-				}
-				return std::round(cd);
-			});
-		return Shape(slist);
+		return apply_shaper(shaper_, tensor_->shape());
 	}
 
 	/// Return tensor being mapped
