@@ -1,4 +1,4 @@
-#include "ade/ifunctor.hpp"
+#include "ade/opfunc.hpp"
 
 #include "ead/generated/opmap.hpp"
 
@@ -13,7 +13,7 @@ namespace ead
 {
 
 template <typename T>
-struct Functor final : public ade::iFunctor
+struct Functor final : public ade::iOperableFunc
 {
 	static Functor<T>* get (ade::Opcode opcode, ArgsT<T> args)
 	{
@@ -93,9 +93,16 @@ struct Functor final : public ade::iFunctor
 		return args_;
 	}
 
-	void update (void)
+	/// Implementation of iOperableFunc
+	void update (void) override
 	{
 		return out_->assign();
+	}
+
+	/// Implementation of iOperableFunc
+	void* raw_data (void) override
+	{
+		return out_->get_ptr();
 	}
 
 	T* data (void)

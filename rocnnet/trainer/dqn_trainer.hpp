@@ -1,6 +1,5 @@
 #include "rocnnet/modl/mlp.hpp"
 
-#include "ead/matcher/matcher.hpp"
 struct DQNInfo
 {
 	DQNInfo (size_t train_interval = 5,
@@ -148,19 +147,16 @@ struct DQNTrainer
 			}
 		}
 
-		opt::GraphOpt optimizer = opt::config_opt();
 		size_t n_roots = to_optimize.size();
 		ead::NodesT<PybindT> roots(n_roots);
 		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
-			[&optimizer](ead::NodeptrT<PybindT>* ptr)
+			[](ead::NodeptrT<PybindT>* ptr)
 			{
-				(*ptr)->get_tensor()->accept(optimizer);
 				return *ptr;
 			});
 
 		{
-			auto temp = optimizer.apply_optimization(roots);
-			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(temp));
+			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(roots));
 		}
 
 		for (size_t i = 0; i < n_roots; ++i)

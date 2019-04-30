@@ -1,8 +1,6 @@
 #include "ead/opt/multi_opt.hpp"
 #include "ead/opt/ops_reuse.hpp"
 
-#include "ead/matcher/matcher.hpp"
-
 #include "rocnnet/modl/mlp.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
@@ -57,15 +55,12 @@ struct MLPTrainer
 
 		size_t n_roots = to_optimize.size();
 		ead::NodesT<PybindT> roots(n_roots);
-		opt::GraphOpt optimizer = opt::config_opt();
 		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
-			[&optimizer](ead::NodeptrT<PybindT>* ptr)
+			[](ead::NodeptrT<PybindT>* ptr)
 			{
-				(*ptr)->get_tensor()->accept(optimizer);
 				return *ptr;
 			});
 		{
-			// roots = optimizer.apply_optimization(roots);
 			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(roots));
 		}
 

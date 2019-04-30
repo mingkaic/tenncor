@@ -68,6 +68,19 @@ struct LeafRep;
 template <typename T>
 struct FuncRep;
 
+template <typename T, typename = typename std::enable_if<
+	std::is_arithmetic<T>::value, T>::type>
+struct NumRange
+{
+	NumRange (T bound1, T bound2) :
+		lower_(std::min(bound1, bound2)),
+		upper_(std::max(bound1, bound2)) {}
+
+	T lower_;
+
+	T upper_;
+};
+
 template <typename T>
 struct iReprNode
 {
@@ -79,7 +92,7 @@ struct iReprNode
 
 	virtual bool is_constant (void) const = 0;
 
-	virtual size_t get_minheight (void) const = 0;
+	virtual NumRange<size_t> get_heights (void) const = 0;
 };
 
 template <typename T>
@@ -181,9 +194,9 @@ struct ConstRep final : public iReprNode<T>
 		return true;
 	}
 
-	size_t get_minheight (void) const override
+	NumRange<size_t> get_heights (void) const override
 	{
-		return 1;
+		return NumRange<size_t>{1, 1};
 	}
 
 	std::vector<T> data_;
@@ -197,8 +210,8 @@ private:
 template <typename T>
 struct LeafRep final : public iReprNode<T>
 {
-	LeafRep (ade::iLeaf* leaf) :
-		leaf_(leaf), identifier_(uuid()) {}
+	LeafRep (ade::iLeaf* leaf, size_t id) :
+		leaf_(leaf), identifier_(id) {}
 
 	bool rulify (RuleContext<T>& ctx, const RuleptrT<T>& rule) override
 	{
@@ -207,7 +220,7 @@ struct LeafRep final : public iReprNode<T>
 
 	std::string get_identifier (void) const override
 	{
-		return identifier_;
+		return fmts::to_string(identifier_);
 	}
 
 	bool is_constant (void) const override
@@ -215,15 +228,15 @@ struct LeafRep final : public iReprNode<T>
 		return false;
 	}
 
-	size_t get_minheight (void) const override
+	NumRange<size_t> get_heights (void) const override
 	{
-		return 1;
+		return NumRange<size_t>{1, 1};
 	}
 
 	ade::iLeaf* leaf_;
 
 private:
-	std::string identifier_;
+	size_t identifier_;
 };
 
 using ImprintMapT = std::unordered_map<std::string,std::string>;
@@ -231,11 +244,8 @@ using ImprintMapT = std::unordered_map<std::string,std::string>;
 template <typename T>
 struct FuncRep final : public iReprNode<T>
 {
-	FuncRep (ade::Opcode op, RepArgsT<T> args, ImprintMapT* imprinter) :
-		op_(op), imprinter_(imprinter), args_(args)
-	{
-		update();
-	}
+	FuncRep (ade::Opcode op, RepArgsT<T> args) :
+		op_(op), args_(args) {}
 
 	bool rulify (RuleContext<T>& ctx, const RuleptrT<T>& rule) override
 	{
@@ -243,54 +253,6 @@ struct FuncRep final : public iReprNode<T>
 	}
 
 	std::string get_identifier (void) const override
-	{
-		auto it = imprinter_->find(get_imprint());
-		assert(imprinter_->end() != it);
-		return it->second;
-	}
-
-	bool is_constant (void) const override
-	{
-		return std::all_of(args_.begin(), args_.end(),
-			[](const ReprArg<T>& arg)
-			{
-				return arg.arg_->is_constant();
-			});
-	}
-
-	size_t get_minheight (void) const override
-	{
-		std::vector<size_t> minheights;
-		minheights.reserve(args_.size());
-		std::transform(args_.begin(), args_.end(),
-			std::back_inserter(minheights),
-			[](const ReprArg<T>& arg)
-			{
-				return arg.arg_->get_minheight();
-			});
-		return *std::min_element(minheights.begin(), minheights.end()) + 1;
-	}
-
-	const RepArgsT<T>& get_args (void) const
-	{
-		return args_;
-	}
-
-	void set_arg (size_t arg_idx, RepptrT<T>& arg)
-	{
-		args_[arg_idx].arg_ = arg;
-		update();
-	}
-
-	ade::Opcode op_;
-
-private:
-	void update (void)
-	{
-		imprinter_->emplace(get_imprint(), uuid());
-	}
-
-	std::string get_imprint (void) const
 	{
 		std::vector<std::string> arg_ids;
 		arg_ids.reserve(args_.size());
@@ -299,7 +261,7 @@ private:
 			std::string id = arg.arg_->get_identifier();
 			auto& shaper = arg.shaper_;
 			auto& coorder = arg.coorder_;
-			if (nullptr != shaper)
+			if (false == ade::is_identity(shaper.get()))
 			{
 				// todo: make shaper encoding shorter
 				id += shaper->to_string();
@@ -320,8 +282,47 @@ private:
 			fmts::join(",", arg_ids.begin(), arg_ids.end());
 	}
 
-	ImprintMapT* imprinter_;
+	bool is_constant (void) const override
+	{
+		return std::all_of(args_.begin(), args_.end(),
+			[](const ReprArg<T>& arg)
+			{
+				return arg.arg_->is_constant();
+			});
+	}
 
+	NumRange<size_t> get_heights (void) const override
+	{
+		size_t min = std::numeric_limits<size_t>::max();
+		size_t max = 0;
+		for (const ReprArg<T>& arg : args_)
+		{
+			auto ranges = arg.arg_->get_heights();
+			if (min > ranges.lower_)
+			{
+				min = ranges.lower_;
+			}
+			if (max < ranges.upper_)
+			{
+				max = ranges.upper_;
+			}
+		}
+		return NumRange<size_t>{min + 1, max + 1};
+	}
+
+	const RepArgsT<T>& get_args (void) const
+	{
+		return args_;
+	}
+
+	void set_arg (size_t arg_idx, RepptrT<T>& arg)
+	{
+		args_[arg_idx].arg_ = arg;
+	}
+
+	ade::Opcode op_;
+
+private:
 	RepArgsT<T> args_;
 };
 
@@ -343,7 +344,8 @@ struct Representer final : public ade::iTraveler
 			}
 			else
 			{
-				reps_.emplace(leaf, std::make_shared<LeafRep<T>>(leaf));
+				reps_.emplace(leaf,
+					std::make_shared<LeafRep<T>>(leaf, reps_.size()));
 			}
 		}
 	}
@@ -387,7 +389,7 @@ struct Representer final : public ade::iTraveler
 
 	FuncRepptrT<T> make_func (ade::Opcode opcode, const RepArgsT<T>& args)
 	{
-		auto func_rep = std::make_shared<FuncRep<T>>(opcode, args, &imprints_);
+		auto func_rep = std::make_shared<FuncRep<T>>(opcode, args);
 		for (size_t i = 0, n = args.size(); i < n; ++i)
 		{
 			auto& arg = args[i];
@@ -420,10 +422,6 @@ struct Representer final : public ade::iTraveler
 
 	std::unordered_map<RepptrT<T>,std::vector<
 		std::pair<FuncRepptrT<T>,size_t>>> parents_;
-
-private:
-	// 1-to-1 map longer function imprint to a shorter id
-	ImprintMapT imprints_;
 };
 
 // todo: make this a visitor to avoid casting
@@ -439,8 +437,9 @@ void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
 	if (auto f = dynamic_cast<FuncRep<T>*>(rep.get()))
 	{
 		auto& func_args = f->get_args();
+		size_t nargs = func_args.size();
 		ArgsT<T> args;
-		args.reserve(func_args.size());
+		args.reserve(nargs);
 		for (auto& arg : func_args)
 		{
 			unravel(unravelled, arg.arg_, owners);
@@ -452,7 +451,24 @@ void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
 			args.push_back(FuncArg<T>(unravelled[arg.arg_],
 				arg.shaper_, coorder));
 		}
-		out = make_functor(f->op_, args);
+		if (nargs > 2)
+		{
+			FuncArg<T> left = args[0];
+			FuncArg<T> right = args[1];
+			for (size_t i = 2; i < nargs; ++i)
+			{
+				left = FuncArg<T>{
+					make_functor<T>(f->op_, {left, right}),
+					ade::identity, CoordptrT()
+				};
+				right = args[i];
+			}
+			out = make_functor<T>(f->op_, {left, right});
+		}
+		else
+		{
+			out = make_functor(f->op_, args);
+		}
 	}
 	else if (auto cst = dynamic_cast<ConstRep<T>*>(rep.get()))
 	{

@@ -44,6 +44,12 @@ struct RuleContext final
 		{
 			rule_vars_.emplace(rule_var);
 		}
+		for (auto vari_var : other.variadic_vars_)
+		{
+			auto& vari_vars = variadic_vars_[vari_var.first];
+			vari_vars.insert(vari_vars.end(),
+				vari_var.second.begin(), vari_var.second.end());
+		}
 		edges_.insert(edges_.end(), other.edges_.begin(), other.edges_.end());
 	}
 

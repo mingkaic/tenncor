@@ -20,7 +20,6 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//ead/matcher:matcher",
         "//rocnnet/modl:modl",
     ],
 )

@@ -154,19 +154,19 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 			}
 		}
 
-		std::unordered_map<RepptrT<T>,size_t> minheights;
+		std::unordered_map<RepptrT<T>,NumRange<size_t>> heights;
 		for (auto reppair : repr.reps_)
 		{
 			auto& tens = reppair.first;
 			auto& rep = reppair.second;
-			size_t minheight = rep->get_minheight();
-			minheights.emplace(rep, minheight);
+			NumRange<size_t> repheights = rep->get_heights();
+			heights.emplace(rep, repheights);
 			reverse_rep[rep].push_back(tens);
 			ownermap.emplace(rep.get(), rep);
 		}
-		for (auto reppair : minheights)
+		for (auto reppair : heights)
 		{
-			if (reppair.second >= rule_minheight)
+			if (reppair.second.lower_ >= rule_minheight)
 			{
 				bottom_up.push_back(reppair.first);
 			}
@@ -174,7 +174,7 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 		bottom_up.sort(
 			[&](RepptrT<T>& a, RepptrT<T>& b)
 			{
-				return minheights[a] < minheights[b];
+				return heights.at(a).upper_ < heights.at(b).upper_;
 			});
 	}
 
