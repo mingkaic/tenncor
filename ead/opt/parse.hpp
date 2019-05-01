@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "ead/opt/conversion.hpp"
 
 #ifndef EAD_PARSE_HPP
@@ -106,8 +108,7 @@ RuleptrT<T> make_rule (std::string source,
 	if (iss.eof() && !iss.fail())
 	{
 		// is a scalar
-		std::regex pattern(fmts::sprintf(".*_scalar_%f", num));
-		return std::make_shared<ConstRule<T>>(pattern);
+		return std::make_shared<ConstRule<T>>(".*_scalar_" + fmts::to_string(num));
 	}
 	logs::fatalf("unknown symbol %s", source.c_str());
 }
@@ -233,6 +234,7 @@ ConversionsT<T> parse (std::istream& is)
 			RuleptrT<T> rule_src = make_rule<T>(source, symbols);
 			RuleTargetptrT<T> rule_target = make_target<T>(dest, symbols);
 			conversions.push_back(RuleConversion<T>{
+				line,
 				rule_src,
 				rule_target,
 			});
@@ -248,11 +250,11 @@ ConversionsT<T> parse (std::istream& is)
 template <typename T>
 ConversionsT<T> get_configs (void)
 {
-	ConversionsT<float> rules;
-	std::ifstream config_stream("ead/cfg/optimizations");
+	ConversionsT<T> rules;
+	std::ifstream config_stream("ead/cfg/optimizations.rules");
 	if (config_stream.is_open())
 	{
-		rules = ead::opt::parse<float>(config_stream);
+		rules = ead::opt::parse<T>(config_stream);
 	}
 	else
 	{

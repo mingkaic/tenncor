@@ -1,5 +1,4 @@
-#include "ead/opt/multi_opt.hpp"
-#include "ead/opt/ops_reuse.hpp"
+#include "ead/opt/parse.hpp"
 
 #include "rocnnet/modl/mlp.hpp"
 
@@ -61,7 +60,8 @@ struct MLPTrainer
 				return *ptr;
 			});
 		{
-			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(roots));
+			auto rules = ead::opt::get_configs<PybindT>();
+			roots = ead::opt::optimize(roots, rules);
 		}
 
 		for (size_t i = 0; i < n_roots; ++i)

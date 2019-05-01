@@ -156,7 +156,8 @@ struct DQNTrainer
 			});
 
 		{
-			roots = ead::ops_reuse<PybindT>(ead::multi_optimize<PybindT>(roots));
+			auto rules = ead::opt::get_configs<PybindT>();
+			roots = ead::opt::optimize(roots, rules);
 		}
 
 		for (size_t i = 0; i < n_roots; ++i)

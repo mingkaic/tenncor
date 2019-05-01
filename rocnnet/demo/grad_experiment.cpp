@@ -15,6 +15,7 @@
 
 #include "ead/opt/parse.hpp"
 
+
 int main (int argc, char** argv)
 {
 	auto input = ead::make_variable_scalar<float>(0, ade::Shape({10, 3}), "input");

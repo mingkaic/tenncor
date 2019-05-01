@@ -36,7 +36,7 @@ filegroup(
 
 filegroup(
     name = "optimizations",
-    srcs = ["cfg/optimizations"],
+    srcs = ["cfg/optimizations.rules"],
     visibility = ["//visibility:public"],
 )
 
@@ -118,6 +118,7 @@ cc_test(
         "//testutil:testutil",
     ],
     linkstatic = True,
+    data = ["//ead:optimizations"],
 )
 
 py_test(

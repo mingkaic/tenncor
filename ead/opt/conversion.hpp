@@ -17,8 +17,10 @@ struct RuleTarget
 {
 	virtual ~RuleTarget (void) = default;
 
+	/// Return representation node defined by this target-rule
+	/// Can return nullptr if representation holds no value
 	virtual RepptrT<T> make_rep (Representer<T>& repr,
-		const RuleContext<T>& ctx, const OwnerMapT<T>& owners,
+		OwnerMapT<T>& owners, const RuleContext<T>& ctx,
 		ade::Shape shape) const = 0;
 };
 
@@ -44,10 +46,14 @@ struct VarTarget final : public RuleTarget<T>
 	VarTarget (size_t id) : id_(id) {}
 
 	RepptrT<T> make_rep (Representer<T>& repr,
-		const RuleContext<T>& ctx, const OwnerMapT<T>& owners,
+		OwnerMapT<T>& owners, const RuleContext<T>& ctx,
 		ade::Shape shape) const override
 	{
-		return owners.at(ctx.rule_vars_.at(id_));
+		auto var_it = ctx.rule_vars_.find(id_);
+		assert(ctx.rule_vars_.end() != var_it);
+		auto owner_it = owners.find(var_it->second);
+		assert(owners.end() != owner_it);
+		return owner_it->second;
 	}
 
 	size_t id_;
@@ -59,11 +65,13 @@ struct ScalarTarget final : public RuleTarget<T>
 	ScalarTarget (T scalar) : scalar_(scalar) {}
 
 	RepptrT<T> make_rep (Representer<T>& repr,
-		const RuleContext<T>& ctx, const OwnerMapT<T>& owners,
+		OwnerMapT<T>& owners, const RuleContext<T>& ctx,
 		ade::Shape shape) const override
 	{
 		std::vector<T> data(shape.n_elems(), scalar_);
-		return std::make_shared<ConstRep<T>>(data.data(), shape);
+		auto out = std::make_shared<ConstRep<T>>(data.data(), shape);
+		owners.emplace(out.get(), out);
+		return out;
 	}
 
 	T scalar_;
@@ -77,7 +85,7 @@ struct FuncTarget final : public RuleTarget<T>
 		args_(args), variadics_(variadics) {}
 
 	RepptrT<T> make_rep (Representer<T>& repr,
-		const RuleContext<T>& ctx, const OwnerMapT<T>& owners,
+		OwnerMapT<T>& owners, const RuleContext<T>& ctx,
 		ade::Shape shape) const override
 	{
 		RepArgsT<T> out_args;
@@ -91,22 +99,29 @@ struct FuncTarget final : public RuleTarget<T>
 				ade::CoordptrT revshaper(shaper->reverse());
 				arg_shape = apply_shaper(revshaper, shape);
 			}
-			out_args.push_back(ReprArg<T>{
-				arg.arg_->make_rep(repr, ctx, owners, arg_shape),
-				shaper, arg.coorder_,
-			});
+			auto arg_rep = arg.arg_->make_rep(repr, owners, ctx, arg_shape);
+			if (nullptr != arg_rep)
+			{
+				out_args.push_back(ReprArg<T>{arg_rep, shaper, arg.coorder_});
+			}
 		}
 		for (size_t variadic : variadics_)
 		{
 			auto it = ctx.variadic_vars_.find(variadic);
-			if (ctx.variadic_vars_.end() == it)
+			if (ctx.variadic_vars_.end() != it)
 			{
-				logs::fatalf("variadic id %d not found in context", variadic);
+				const RepArgsT<T>& variargs = it->second;
+				out_args.insert(out_args.end(), variargs.begin(), variargs.end());
 			}
-			const RepArgsT<T>& variargs = it->second;
-			out_args.insert(out_args.end(), variargs.begin(), variargs.end());
 		}
-		return repr.make_func(opcode_, out_args);
+		if (out_args.empty())
+		{
+			// holds no value
+			return RepptrT<T>(nullptr);
+		}
+		auto out = repr.make_func(opcode_, out_args);
+		owners.emplace(out.get(), out);
+		return out;
 	}
 
 	ade::Opcode opcode_;
@@ -119,6 +134,8 @@ struct FuncTarget final : public RuleTarget<T>
 template <typename T>
 struct RuleConversion final
 {
+	std::string str_form_;
+
 	RuleptrT<T> source_;
 
 	RuleTargetptrT<T> target_;
@@ -204,7 +221,13 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 			if (rep->rulify(ctx, conv.source_))
 			{
 				// match found, convert
-				rep = conv.target_->make_rep(repr, ctx, ownermap, exshape);
+				logs::debugf("applying conversion %s", conv.str_form_.c_str());
+				rep = conv.target_->make_rep(repr, ownermap, ctx, exshape);
+				if (nullptr == rep)
+				{
+					std::vector<T> zeros(exshape.n_elems(), 0);
+					rep = std::make_shared<ConstRep<T>>(zeros.data(), exshape);
+				}
 			}
 		}
 		// update repr after conversion
@@ -227,7 +250,6 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 			{
 				repr.replace_rep(tens, rep);
 			}
-			ownermap.emplace(rep.get(), rep);
 		}
 	}
 }

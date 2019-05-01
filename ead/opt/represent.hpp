@@ -168,13 +168,15 @@ struct ConstRep final : public iReprNode<T>
 		{
 			// is a scalar
 			std::stringstream ss;
-			ss << "_scalar_" << fmts::to_string(data[0]);
+			double scalar = data[0];
+			ss << "_scalar_" << fmts::to_string(scalar);
 			data_str = ss.str();
 		}
 		else
 		{
 			// todo: make encoding better so we don't lose precision
-			data_str = "_array_" + fmts::join("", data, data + n);
+			std::vector<double> ddata(data, data + n);
+			data_str = "_array_" + fmts::join("", ddata.begin(), ddata.end());
 		}
 		identifier_ = fmts::join("", shape.begin(), shape.end()) + data_str;
 	}
@@ -220,7 +222,7 @@ struct LeafRep final : public iReprNode<T>
 
 	std::string get_identifier (void) const override
 	{
-		return fmts::to_string(identifier_);
+		return fmts::sprintf("var_%d", identifier_);
 	}
 
 	bool is_constant (void) const override
@@ -278,8 +280,8 @@ struct FuncRep final : public iReprNode<T>
 		{
 			std::sort(arg_ids.begin(), arg_ids.end());
 		}
-		return op_.name_ + ":" +
-			fmts::join(",", arg_ids.begin(), arg_ids.end());
+		return op_.name_ + "(" +
+			fmts::join(",", arg_ids.begin(), arg_ids.end()) + ")";
 	}
 
 	bool is_constant (void) const override
@@ -451,7 +453,14 @@ void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
 			args.push_back(FuncArg<T>(unravelled[arg.arg_],
 				arg.shaper_, coorder));
 		}
-		if (nargs > 2)
+		if (is_commutative(f->op_.code_) && nargs == 1)
+		{
+			// todo: make this check somewhere else
+			assert(ade::is_identity(args[0].get_shaper().get()));
+			assert(nullptr == args[0].get_coorder());
+			out = args[0].get_node();
+		}
+		else if (nargs > 2)
 		{
 			FuncArg<T> left = args[0];
 			FuncArg<T> right = args[1];

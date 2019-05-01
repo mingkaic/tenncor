@@ -13,8 +13,7 @@
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
-#include "ead/opt/multi_opt.hpp"
-#include "ead/opt/ops_reuse.hpp"
+#include "ead/opt/parse.hpp"
 
 
 TEST(EQUATION, MatmulComplex)
@@ -440,7 +439,9 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	auto db1 = ead::derive(err, bias1);
 
 	// optimize
-	auto roots = ead::ops_reuse<double>(ead::multi_optimize<double>({dw0, db0, dw1, db1}));
+	auto rules = ead::opt::get_configs<double>();
+	ead::NodesT<double> nodes = {dw0, db0, dw1, db1};
+	auto roots = ead::opt::optimize(nodes, rules);
 	dw0 = roots[0];
 	db0 = roots[1];
 	dw1 = roots[2];
@@ -874,7 +875,9 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	auto db1 = ead::derive(err, bias1);
 
 	// optimize
-	auto roots = ead::ops_reuse<double>(ead::multi_optimize<double>({dw0, db0, dw1, db1}));
+	auto rules = ead::opt::get_configs<double>();
+	ead::NodesT<double> nodes = {dw0, db0, dw1, db1};
+	auto roots = ead::opt::optimize(nodes, rules);
 	dw0 = roots[0];
 	db0 = roots[1];
 	dw1 = roots[2];

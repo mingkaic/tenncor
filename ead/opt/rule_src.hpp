@@ -18,30 +18,38 @@ namespace opt
 template <typename T>
 struct RuleContext final
 {
+	/// Return true if id-rep pair does not conflict with existing pair,
+	/// otherwise return false
 	bool emplace_varpair (iReprNode<T>* rep, size_t id)
 	{
-		bool found = rule_vars_.end() != rule_vars_.find(id);
+		auto it = rule_vars_.find(id);
+		bool noconflict = rule_vars_.end() == it || it->second == rep;
 		rule_vars_.emplace(id, rep);
-		return found;
+		return noconflict;
 	}
 
-	bool insert_variadic (const ReprArg<T>& arg, size_t variadic_id)
+	/// Record arg under variadic_id bucket of all variadic_vars
+	void insert_variadic (const ReprArg<T>& arg, size_t variadic_id)
 	{
-		bool found = variadic_vars_.end() != variadic_vars_.find(variadic_id);
 		variadic_vars_[variadic_id].push_back(arg);
-		return found;
 	}
 
+	/// Record parent-argument edge
 	void emplace_edge (FuncRep<T>* parent, const ReprArg<T>& arg)
 	{
 		edges_.push_back(Edge{parent, arg});
 	}
 
-	// merge other's edges and varpairs into this
-	void merge (const RuleContext<T>& other)
+	/// Return true if successfully merge variables
+	/// and edges without conflicts, otherwise return false
+	bool merge (const RuleContext<T>& other)
 	{
+		bool noconflicts = true;
 		for (auto rule_var : other.rule_vars_)
 		{
+			auto it = rule_vars_.find(rule_var.first);
+			noconflicts = noconflicts && (rule_vars_.end() == it ||
+				it->second == rule_var.second);
 			rule_vars_.emplace(rule_var);
 		}
 		for (auto vari_var : other.variadic_vars_)
@@ -51,6 +59,7 @@ struct RuleContext final
 				vari_var.second.begin(), vari_var.second.end());
 		}
 		edges_.insert(edges_.end(), other.edges_.begin(), other.edges_.end());
+		return noconflicts;
 	}
 
 	std::unordered_map<size_t,iReprNode<T>*> rule_vars_;
@@ -72,11 +81,11 @@ private:
 template <typename T>
 struct ConstRule final : public iRuleNode<T>
 {
-	ConstRule (std::regex pattern) : pattern_(pattern) {}
+	ConstRule (std::string pattern) : pattern_(pattern) {}
 
 	bool process (RuleContext<T>& ctx, ConstRep<T>* leaf) const override
 	{
-		return std::regex_match(leaf->get_identifier(), pattern_);
+		return std::regex_match(leaf->get_identifier(), std::regex(pattern_));
 	}
 
 	bool process (RuleContext<T>& ctx, LeafRep<T>* leaf) const override
@@ -94,7 +103,7 @@ struct ConstRule final : public iRuleNode<T>
 		return 1;
 	}
 
-	std::regex pattern_;
+	std::string pattern_;
 };
 
 // e.g.: X
@@ -125,6 +134,44 @@ struct VarRule final : public iRuleNode<T>
 
 	size_t id_;
 };
+
+template <typename T>
+using CommCandsT = std::vector<std::pair<RuleContext<T>,std::vector<bool>>>;
+
+// todo: make this much more effcient (currently brute-force)
+template <typename T>
+static CommCandsT<T> communtative_rule_match (
+	const RepArgsT<T>& args, const RuleArgsT<T>& sub_rules)
+{
+	size_t nargs = args.size();
+	CommCandsT<T> candidates = {{
+		RuleContext<T>(), std::vector<bool>(nargs, false)
+	}};
+	for (auto& sub_rule : sub_rules)
+	{
+		CommCandsT<T> next_cands;
+		for (auto& cand_pair : candidates)
+		{
+			auto& field = cand_pair.second;
+			for (size_t j = 0; j < nargs; ++j)
+			{
+				if (field[j])
+				{
+					continue;
+				}
+				RuleContext<T> temp_ctx = cand_pair.first;
+				if (args[j].arg_->rulify(temp_ctx, sub_rule.arg_))
+				{
+					std::vector<bool> temp_field = field;
+					temp_field[j] = true;
+					next_cands.push_back({temp_ctx, temp_field});
+				}
+			}
+		}
+		candidates = next_cands;
+	}
+	return candidates;
+}
 
 // e.g.: SUB(X, X)
 template <typename T>
@@ -157,6 +204,21 @@ struct FuncRule final : public iRuleNode<T>
 			return false;
 		}
 
+		if (is_commutative(func->op_.code_))
+		{
+			CommCandsT<T> candidates = communtative_rule_match(args, sub_rules_);
+			if (candidates.empty()) // we've found no candidates
+			{
+				return false;
+			}
+			if (candidates.size() > 1)
+			{
+				// multiple candidates
+				logs::debugf("%d candidates found for func rule",
+					candidates.size());
+			}
+			return ctx.merge(candidates[0].first); // commit transaction
+		}
 		RuleContext<T> temp_ctx; // acts as a transaction
 		for (size_t i = 0; i < nargs; ++i)
 		{
@@ -167,8 +229,7 @@ struct FuncRule final : public iRuleNode<T>
 			}
 			temp_ctx.emplace_edge(func, args[i]);
 		}
-		ctx.merge(temp_ctx); // commit transaction
-		return true;
+		return ctx.merge(temp_ctx); // commit transaction
 	}
 
 	size_t get_minheight (void) const override
@@ -189,7 +250,7 @@ struct FuncRule final : public iRuleNode<T>
 	RuleArgsT<T> sub_rules_;
 };
 
-// e.g.: ADD(SQUARE(SIN(X)), SQUARE(COS(Y)), ..)
+// e.g.: ADD(SQUARE(SIN(X)),SQUARE(COS(Y)),..Z)
 template <typename T>
 struct VariadicFuncRule final : public iRuleNode<T>
 {
@@ -225,50 +286,26 @@ struct VariadicFuncRule final : public iRuleNode<T>
 			return false;
 		}
 
-		std::vector<std::pair<RuleContext<T>,std::vector<bool>>> candidates = {{
-			RuleContext<T>(), std::vector<bool>(nargs, false)
-		}};
-		for (auto& sub_rule : sub_rules_)
-		{
-			std::vector<std::pair<RuleContext<T>,std::vector<bool>>> next_cands;
-			for (auto& cand_pair : candidates)
-			{
-				auto& field = cand_pair.second;
-				for (size_t j = 0; j < nargs; ++j)
-				{
-					if (field[j])
-					{
-						continue;
-					}
-					RuleContext<T> temp_ctx = cand_pair.first;
-					if (args[j].arg_->rulify(temp_ctx, sub_rule.arg_))
-					{
-						auto temp_field = field;
-						temp_field[j] = true;
-						next_cands.push_back({temp_ctx, temp_field});
-					}
-				}
-			}
-			candidates = next_cands;
-		}
+		CommCandsT<T> candidates = communtative_rule_match(args, sub_rules_);
 		if (candidates.empty()) // we've found no candidates
 		{
 			return false;
 		}
 		if (candidates.size() > 1)
 		{
-			// log multiple candidates
+			// multiple candidates
+			logs::debugf("%d candidates found for variadic rule",
+				candidates.size());
 		}
-		ctx.merge(candidates[0].first); // commit transaction
 		auto& field = candidates[0].second;
 		for (size_t j = 0; j < nargs; ++j)
 		{
 			if (false == field[j])
 			{
-				ctx.insert_variadic(args[j], variadic_id_);
+				candidates[0].first.insert_variadic(args[j], variadic_id_);
 			}
 		}
-		return true;
+		return ctx.merge(candidates[0].first); // commit transaction
 	}
 
 	size_t get_minheight (void) const override
