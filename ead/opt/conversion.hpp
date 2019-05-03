@@ -254,8 +254,10 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 	}
 }
 
+// Optimize nodes while attempting to preserve edges using conversions
 template <typename T>
-NodesT<T> optimize (NodesT<T>& nodes, ConversionsT<T>& conversions)
+void optimize (NodesT<T>& nodes, EdgesT& edges,
+	const ConversionsT<T>& conversions)
 {
 	Representer<T> repr;
 	for (NodeptrT<T>& node : nodes)
@@ -284,7 +286,10 @@ NodesT<T> optimize (NodesT<T>& nodes, ConversionsT<T>& conversions)
 
 	apply_rules(repr, unique_tens, conversions);
 
-	return unrepresent(repr, nodes);
+	nodes = unrepresent(repr, edges, nodes);
+
+	std::unordered_set<Edge,EdgeHash> unique_edges(edges.begin(), edges.end());
+	edges = EdgesT(unique_edges.begin(), unique_edges.end());
 }
 
 }

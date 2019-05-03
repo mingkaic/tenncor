@@ -5,7 +5,6 @@ P4 - test complicate equations (generate random valid equations)
 
 structure:
 P3 - generalize grader and move to ade (otherwise ade does not fulfil its main purpose)
-    - alternatively, scrap ade (generality) and aim to maximize performance (restructure llo+ade as compile-based AD-engine)
 
 transparency:
 P4 - add more debugging tools
@@ -13,22 +12,21 @@ P4 - formalize codestyle
 P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
-performance:
-P1 - move extend, and permute down the graph (towards the leaves)
-    so the upper portion can be easily reused
-P2 - define session interface then improve session implementation
-P3 - implement sub-graph recognition optimizations (recognize patterns such as X * Y * Z / Y = X * Z or 1 / (1 + - exp (X)) = sigmoid(X))
-P3 - use scalars whenever possible
+--- performance:
+general perforamnce:
+- remove unordered_map/unordered_set if we're not using them properly
 P4 - implement optimization options to increase data accuracy
 P4 - more performance test
+
+run-time performance:
+P2 - define session interface then improve session implementation
+
+graph-setup performance:
+- improve optimization rule matching
 
 feature:
 P2 - implement convolution using Eigen for ead and llo
 
-nitpicks:
-- remove unordered_map/unordered_set if we're not using them properly
-
 update:
 - update all fmts usages
-- remove ead compile (it's too slow and not useful)
 - address warnings

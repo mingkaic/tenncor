@@ -71,17 +71,17 @@ int main (int argc, char** argv)
 		[](ead::NodeptrT<float>& node) { return node->get_tensor(); });
 
 	auto rules = ead::opt::get_configs<float>();
-	auto wrt_w0 = ead::opt::optimize(w0s, rules);
+	ead::opt::optimize(w0s, edges, rules);
 
-	derror_w0 = wrt_w0[0];
-	ddiff_w0 = wrt_w0[1];
-	dsig1_w0 = wrt_w0[2];
-	dlayer1_w0 = wrt_w0[3];
-	dsig0_matmul_w0 = wrt_w0[4];
-	dsig0_w0 = wrt_w0[5];
-	dlayer0_w0 = wrt_w0[6];
-	dinput_matmul_w0 = wrt_w0[7];
-	error = wrt_w0[8];
+	derror_w0 = w0s[0];
+	ddiff_w0 = w0s[1];
+	dsig1_w0 = w0s[2];
+	dlayer1_w0 = w0s[3];
+	dsig0_matmul_w0 = w0s[4];
+	dsig0_w0 = w0s[5];
+	dlayer0_w0 = w0s[6];
+	dinput_matmul_w0 = w0s[7];
+	error = w0s[8];
 
 	ead::InteractiveDebugger<float> dbg;
 	dbg.edges_ = edges;
