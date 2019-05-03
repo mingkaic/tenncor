@@ -22,7 +22,7 @@ NodesT<T> multi_optimize (NodesT<T> roots,
 		ops_prune_edit<T>,
 	})
 {
-	return tens_to_nodes<T>(opt::graph_edit(nodes_to_tens<T>(roots),
+	return tens_to_nodes<T>(::opt::graph_edit(nodes_to_tens<T>(roots),
 		[&edits](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;

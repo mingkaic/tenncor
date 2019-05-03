@@ -82,7 +82,12 @@ cc_library(
         "//ead:generated/grader.cpp",
         "//ead:generated/pyapi.hpp",
     ],
-    copts = ["-std=c++17"],
+    copts = [
+        "-march=native",
+        "-std=c++17",
+        "-openmp",
+        "-O3",
+    ],
     deps = [
         "//ade:ade",
         "//opt:opt",
@@ -156,11 +161,7 @@ cpp_grpc_library(
 
 cc_library(
     name = "dbg",
-    hdrs = glob([
-        # "dbg/*.h",
-        "dbg/*.hpp",
-    ]),
-    # srcs = glob(["dbg/*.cc"]),
+    hdrs = glob(["dbg/*.hpp"]),
     copts = ["-std=c++17"],
     deps = ["//ead:ead", "//ead:graph_cc_proto"],
     visibility = ["//visibility:public"],

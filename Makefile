@@ -12,9 +12,11 @@ COVERAGE_PIPE := ./bazel-bin/external/com_github_mingkaic_cppkg/merge_cov $(COVE
 
 TMP_LOGFILE := /tmp/tenncor-test.log
 
+EIGEN_OPT = --copt="-openmp" --copt="-march=native" --copt="-O3"
+
 
 rocnnet_py_build:
-	bazel build //rocnnet:rocnnet_py
+	bazel build $(EIGEN_OPT) //rocnnet:rocnnet_py
 
 rocnnet_py_export: rocnnet_py_build
 	cp -f bazel-bin/rocnnet/*.so rocnnet/notebooks/rocnnet
@@ -28,6 +30,17 @@ cover_ade:
 
 cover_bwd:
 	$(COVER) $(BWD_TEST)
+
+
+# optimized comparisons
+compare_matmul:
+	bazel run $(EIGEN_OPT) //rocnnet:comparison_matmul
+
+compare_mlp:
+	bazel run $(EIGEN_OPT) //rocnnet:comparison_mlp
+
+compare_mlp_grad:
+	bazel run $(EIGEN_OPT) //rocnnet:comparison_mlp_grad
 
 
 merge_cov:

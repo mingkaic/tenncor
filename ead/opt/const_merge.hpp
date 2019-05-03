@@ -35,7 +35,7 @@ ade::TensptrT const_merge_edit (bool& is_optimized,
 template <typename T>
 NodesT<T> const_merge (NodesT<T> roots)
 {
-	return tens_to_nodes<T>(opt::graph_edit(nodes_to_tens<T>(roots),
+	return tens_to_nodes<T>(::opt::graph_edit(nodes_to_tens<T>(roots),
 		[](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			bool is_optimized = false;
