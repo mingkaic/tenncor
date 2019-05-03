@@ -88,12 +88,12 @@ struct DQNTrainer
 			if (auto var = std::dynamic_pointer_cast<
 				ead::Variable<PybindT>>(vpair.first))
 			{
-				auto label = fmts::join("::",
+				auto label = fmts::to_string(
 					vpair.second.begin(), vpair.second.end());
 				labelled_indices.emplace(label, source_vars.size());
 
 				auto vnode = std::make_shared<ead::VariableNode<PybindT>>(var);
-				vnode->set_label(label);
+				// vnode->set_label(label);
 				source_vars.push_back(vnode);
 			}
 		}
@@ -114,6 +114,7 @@ struct DQNTrainer
 					std::make_shared<ead::VariableNode<PybindT>>(var);
 			}
 		}
+		// todo: refactor this variable association without relying on labels
 		eqns::AssignsT target_assigns;
 		for (size_t i = 0; i < nvars; i++)
 		{
@@ -127,8 +128,9 @@ struct DQNTrainer
 			auto target_next = age::sub(target, age::mul(
 				target_update_rate, diff));
 			target_assigns.push_back(eqns::VarAssign{
-				fmts::sprintf("::target_grad_%s",
-					target_vars[i]->get_label().c_str()),
+				// fmts::sprintf("::target_grad_%s",
+				// 	target_vars[i]->get_label().c_str()),
+				"",
 				target_vars[i], target_next});
 		}
 		updates_.push_back(target_assigns);
