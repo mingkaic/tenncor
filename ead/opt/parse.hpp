@@ -105,12 +105,12 @@ RuleptrT<T> make_rule (std::string source,
 	std::istringstream iss(source);
 	double num;
 	iss >> std::noskipws >> num;
-	if (iss.eof() && !iss.fail())
+	if (false == iss.eof() || iss.fail())
 	{
-		// is a scalar
-		return std::make_shared<ConstRule<T>>(".*_scalar_" + fmts::to_string(num));
+		logs::fatalf("unknown symbol %s", source.c_str());
 	}
-	logs::fatalf("unknown symbol %s", source.c_str());
+	// is a scalar
+	return std::make_shared<ConstRule<T>>(".*_scalar_" + fmts::to_string(num));
 }
 
 template <typename T>

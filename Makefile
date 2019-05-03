@@ -6,6 +6,14 @@ ADE_TEST := //ade:test
 
 BWD_TEST := //bwd:test
 
+LLO_CTEST := //llo:ctest
+
+LLO_PTEST := //llo:ptest
+
+OPT_TEST := //opt:test
+
+PBM_TEST := //pbm:test
+
 COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*'
 
 COVERAGE_PIPE := ./bazel-bin/external/com_github_mingkaic_cppkg/merge_cov $(COVERAGE_INFO_FILE)
@@ -23,13 +31,25 @@ rocnnet_py_export: rocnnet_py_build
 	cp -f bazel-bin/ead/*.so rocnnet/notebooks/ead
 
 
-coverage: cover_ade cover_bwd
+coverage: cover_ade cover_bwd cover_ead cover_opt cover_pbm
 
 cover_ade:
 	$(COVER) $(ADE_TEST)
 
 cover_bwd:
 	$(COVER) $(BWD_TEST)
+
+cover_llo:
+	$(COVER) $(LLO_CTEST)
+
+cover_ead:
+	$(COVER) $(EAD_CTEST)
+
+cover_opt:
+	$(COVER) $(OPT_TEST)
+
+cover_pbm:
+	$(COVER) $(PBM_TEST)
 
 
 # optimized comparisons
