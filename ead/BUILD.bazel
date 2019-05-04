@@ -82,12 +82,7 @@ cc_library(
         "//ead:generated/grader.cpp",
         "//ead:generated/pyapi.hpp",
     ],
-    copts = [
-        "-march=native",
-        "-std=c++17",
-        "-openmp",
-        "-O3",
-    ],
+    copts = ["-std=c++17"],
     deps = [
         "//ade:ade",
         "//opt:opt",

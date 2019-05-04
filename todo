@@ -1,32 +1,44 @@
-correction:
+**** LEGEND ****
+P1 = "blocker/fail to build"
+P2 = "todo"
+P3 = "want to have"
+P4 = "nice to have/need investigating"
+P5 = "get to it eventually"
+
+=== structure ===
+P2 - generalize grader and move to ade (otherwise ade does not fulfil its main purpose)
+P3 - generalize rule conversion feature for all implementations of ade nodes
+
+=== correction ===
 P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage
+P3 - test rule conversion
 P4 - test complicate equations (generate random valid equations)
 
-structure:
-P3 - generalize grader and move to ade (otherwise ade does not fulfil its main purpose)
-
-transparency:
-P4 - add more debugging tools
+=== transparency ===
+P4 - add even more debugging tools
 P4 - formalize codestyle
 P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
---- performance:
-general perforamnce:
-- remove unordered_map/unordered_set if we're not using them properly
-P4 - implement optimization options to increase data accuracy
+=== update ===
+P2 - update all fmts usages
+P3 - address warnings
+
+=== feature ===
+P2 - implement convolution using Eigen for ead and llo
+P3 - implement subgraph stand-in for rocnnet layers
+
+=== performance ===
+general performance:
+P4 - remove unordered_map/unordered_set if we're not using them properly
+P4 - define optimization conversion rules to increase data accuracy
 P4 - more performance test
 
 run-time performance:
 P2 - define session interface then improve session implementation
+P3 - define dataflow to take advantage of parallel processing at node-level
+P4 - investigate remote sessions for distributed processing
 
 graph-setup performance:
-- improve optimization rule matching
-
-feature:
-P2 - implement convolution using Eigen for ead and llo
-
-update:
-- update all fmts usages
-- address warnings
+P3 - improve optimization rule matching

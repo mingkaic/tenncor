@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['rand_5fnormal',['rand_normal',['../namespacello.html#a7b8a39ae05f5870bdf068ecb0df14cfb',1,'llo']]],
+  ['rand_5fnormal_3c_20double_20_3e',['rand_normal&lt; double &gt;',['../namespacello.html#aea89be880bf535deb25de53dbebbdf6d',1,'llo']]],
+  ['rand_5fnormal_3c_20float_20_3e',['rand_normal&lt; float &gt;',['../namespacello.html#a5854a331d52d5637c35f28b481337a8d',1,'llo']]],
+  ['rand_5funiform',['rand_uniform',['../namespaceead.html#a866f17bd3f6581a6bd17251b72a8dfe5',1,'ead::rand_uniform()'],['../namespacello.html#a8c69d68630c024d2e32e05572754a5a4',1,'llo::rand_uniform()']]],
+  ['rand_5funiform_3c_20double_20_3e',['rand_uniform&lt; double &gt;',['../namespacello.html#a9f653ea088f1ee0efea0e7e56cf3bbf2',1,'llo']]],
+  ['rand_5funiform_3c_20float_20_3e',['rand_uniform&lt; float &gt;',['../namespacello.html#abedcbf51d81da53872a7ecd972de8e0c',1,'llo']]],
+  ['raw_5fdata',['raw_data',['../structade_1_1i_operable_func.html#ad795a1468201cef12a1ec7b503cbfb1e',1,'ade::iOperableFunc::raw_data()'],['../structead_1_1_functor.html#ae2b6fd4d74354fbc5d62c38543369535',1,'ead::Functor::raw_data()']]],
+  ['raw_5fto_5ftensorptr',['raw_to_tensorptr',['../namespacello.html#a63bc089ce3a8444b7f2278e71361f5f4',1,'llo']]],
+  ['reduce',['reduce',['../namespaceade.html#aca905a7156b047e9e5e1df3fb4f62763',1,'ade::reduce()'],['../namespaceead.html#adb944e387eb61d5fddef14f7f69cd679',1,'ead::reduce()'],['../namespacello.html#abdf021d900da5a0822bcfb49315cc1a7',1,'llo::reduce()']]],
+  ['reduce_5f1d',['reduce_1d',['../namespacello.html#ae6906ba9944277db0c7a72cd803a7490',1,'llo']]],
+  ['reduce_5f1d_5fhelper',['reduce_1d_helper',['../namespaceead.html#a6d30a64ed0bd1c4601b70bdb8c856909',1,'ead']]],
+  ['reduce_5f1d_5fmap',['reduce_1d_map',['../namespaceade.html#a0d08b8d6acf70aacbb4ea067fed3a316',1,'ade']]],
+  ['reduce_5fcomp_5fgrad',['reduce_comp_grad',['../namespaceead.html#a441c37868046e1bc009fd9751bb6f614',1,'ead']]],
+  ['reduce_5fgrad',['reduce_grad',['../namespaceead.html#abac42b06ca349173da5340ad9c21d555',1,'ead']]],
+  ['reduce_5fhelp',['reduce_help',['../namespaceead.html#af94825452c692c1b2aaeaaac92c476f2',1,'ead']]],
+  ['reduce_5fmap',['reduce_map',['../namespaceade.html#acc064bc531d2ee6464f7f5b50d821216',1,'ade::reduce_map()'],['../namespaceead.html#ab4005facbe9562a684494f1bcd3fcce2',1,'ead::reduce_map()']]],
+  ['reduce_5fprod_5fgrad',['reduce_prod_grad',['../namespaceead.html#a1f556e70d8efb65ab5f216e542a7f24e',1,'ead']]],
+  ['reduce_5fsum',['reduce_sum',['../namespaceead.html#a0e94c6e046df21229ab894d41149cfa0',1,'ead']]],
+  ['replace_5frep',['replace_rep',['../structead_1_1opt_1_1_representer.html#a51968e2538fb11fed7c65439a198cb2a',1,'ead::opt::Representer']]],
+  ['reprarg',['ReprArg',['../structead_1_1opt_1_1_repr_arg.html#a99719222e23d7f0b60a2f95439f48f4b',1,'ead::opt::ReprArg']]],
+  ['reverse',['reverse',['../structade_1_1i_coord_map.html#aefa18191949c10d211e16c7d07957f88',1,'ade::iCoordMap::reverse()'],['../structade_1_1_coord_map.html#a729c3bc4daf89f8185d22c199dab88a4',1,'ade::CoordMap::reverse()'],['../structead_1_1_coord_map.html#a6115a4baee1592dae3eff57be0c92ea6',1,'ead::CoordMap::reverse()']]],
+  ['round',['round',['../namespaceead.html#adbfe0695708e636848909677a5730702',1,'ead::round()'],['../namespacello.html#a56abed2f8cc56d242f6555501f155fd0',1,'llo::round()']]],
+  ['rulearg',['RuleArg',['../structead_1_1opt_1_1_rule_arg.html#a6829b145bbf3d47644839319d6d26139',1,'ead::opt::RuleArg']]],
+  ['rulify',['rulify',['../structead_1_1opt_1_1i_repr_node.html#ab15fac795ad611acf47c8ed47c550118',1,'ead::opt::iReprNode::rulify()'],['../structead_1_1opt_1_1_const_rep.html#a31d97348311b99f2b7d547fb04b8bbac',1,'ead::opt::ConstRep::rulify()'],['../structead_1_1opt_1_1_leaf_rep.html#a67d88d6346d19207e72a8538b0d614bf',1,'ead::opt::LeafRep::rulify()'],['../structead_1_1opt_1_1_func_rep.html#a8707dcb9900f70b237b43828471447e1',1,'ead::opt::FuncRep::rulify()']]]
+];

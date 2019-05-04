@@ -8,7 +8,7 @@ BWD_TEST := //bwd:test
 
 LLO_CTEST := //llo:ctest
 
-LLO_PTEST := //llo:ptest
+EAD_CTEST := //ead:ctest
 
 OPT_TEST := //opt:test
 
@@ -20,11 +20,13 @@ COVERAGE_PIPE := ./bazel-bin/external/com_github_mingkaic_cppkg/merge_cov $(COVE
 
 TMP_LOGFILE := /tmp/tenncor-test.log
 
-EIGEN_OPT = --copt="-openmp" --copt="-march=native" --copt="-O3"
+CC := gcc
 
+print_vars:
+	@echo "CC: " $(CC)
 
 rocnnet_py_build:
-	bazel build $(EIGEN_OPT) //rocnnet:rocnnet_py
+	bazel build --config $(CC)_eigen_optimal //rocnnet:rocnnet_py
 
 rocnnet_py_export: rocnnet_py_build
 	cp -f bazel-bin/rocnnet/*.so rocnnet/notebooks/rocnnet
@@ -70,6 +72,9 @@ lcov: merge_cov coverage
 	rm -f $(TMP_LOGFILE)
 	cat bazel-testlogs/ade/test/test.log >> $(TMP_LOGFILE)
 	cat bazel-testlogs/bwd/test/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/opt/test/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/ead/ctest/test.log >> $(TMP_LOGFILE)
+	cat bazel-testlogs/pbm/test/test.log >> $(TMP_LOGFILE)
 	cat $(TMP_LOGFILE) | $(COVERAGE_PIPE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
 	rm -f $(TMP_LOGFILE)
@@ -85,4 +90,26 @@ lcov_bwd: merge_cov over_bwd
 	cat bazel-testlogs/bwd/test/test.log | $(COVERAGE_PIPE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'ade/*' -o $(COVERAGE_INFO_FILE)
 	rm -f $(TMP_LOGFILE)
+	lcov --list $(COVERAGE_INFO_FILE)
+
+lcov_opt: cover_opt
+	rm -f $(TMP_LOGFILE)
+	cat bazel-testlogs/opt/test/test.log | $(COVERAGE_PIPE)
+	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
+	rm -f $(TMP_LOGFILE)
+	lcov --list $(COVERAGE_INFO_FILE)
+
+lcov_llo: cover_llo
+	cat bazel-testlogs/llo/ctest/test.log | $(COVERAGE_PIPE)
+	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'opt/*' -o $(COVERAGE_INFO_FILE)
+	lcov --list $(COVERAGE_INFO_FILE)
+
+lcov_ead: cover_ead
+	cat bazel-testlogs/ead/ctest/test.log | $(COVERAGE_PIPE)
+	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'opt/*' -o $(COVERAGE_INFO_FILE)
+	lcov --list $(COVERAGE_INFO_FILE)
+
+lcov_pbm: cover_pbm
+	cat bazel-testlogs/pbm/test/test.log | $(COVERAGE_PIPE)
+	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)

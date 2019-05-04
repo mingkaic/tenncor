@@ -1,6 +1,6 @@
 workspace(name = "com_github_mingkaic_tenncor")
 
-# local dependencies
+# === local dependencies ===
 
 load("//:third_party/all.bzl", "dependencies")
 dependencies()
@@ -8,7 +8,7 @@ dependencies()
 load("@protobuf_rules//cpp:deps.bzl", "cpp_proto_library")
 cpp_proto_library()
 
-# test dependencies
+# === test dependencies ===
 
 load("@com_github_mingkaic_cppkg//:gtest.bzl", "gtest_repository")
 gtest_repository(name = "gtest")
@@ -22,7 +22,7 @@ dependencies()
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
 
-# dev dependencies
+# === dev dependencies ===
 
 load("@protobuf_rules//cpp:deps.bzl", "cpp_grpc_library")
 cpp_grpc_library()

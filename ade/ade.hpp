@@ -7,6 +7,5 @@
 ///
 
 #include "ade/functor.hpp"
-#include "ade/ileaf.hpp"
 #include "ade/traveler.hpp"
 #include "ade/opfunc.hpp"

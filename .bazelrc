@@ -6,6 +6,14 @@ build --incompatible_disallow_dict_plus=false
 test --incompatible_disallow_dict_plus=false
 coverage --incompatible_disallow_dict_plus=false
 
+# ------ OPTIMIZATION ------
+
+run:clang_eigen_optimal --copt="march=native" --copt="-openmp" --copt="-O3"
+build:clang_eigen_optimal --copt="march=native" --copt="-openmp" --copt="-O3"
+
+run:gcc_eigen_optimal --copt="march=native" --copt="-openmp" --copt="-O3"
+build:gcc_eigen_optimal --copt="march=native" --copt="-openmp" --copt="-O3"
+
 # ------ TEST SETTINGS ------
 
 # === ALL TESTS ===
