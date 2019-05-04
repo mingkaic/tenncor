@@ -11,7 +11,7 @@ var searchData=
   ['derive',['derive',['../namespaceead.html#a77639acd784f50c29e75e1ae93213bd0',1,'ead::derive()'],['../namespacello.html#a085b001fb98e1ae2f31926f84cac56a0',1,'llo::derive()']]],
   ['derive_2ecpp',['derive.cpp',['../derive_8cpp.html',1,'']]],
   ['derive_2ehpp',['derive.hpp',['../derive_8hpp.html',1,'']]],
-  ['derive_5fwith_5fedges',['derive_with_edges',['../namespaceead.html#a2ef30b0bb3d54f8f65d70217ccf1a88f',1,'ead']]],
+  ['derive_5fwith_5fedges',['derive_with_edges',['../namespaceead.html#a980bc94133cf31ae43b90dcfd06d683b',1,'ead']]],
   ['descendants_5f',['descendants_',['../structead_1_1_session_1_1_session_info.html#a22960fef15b211aeb24743deb097f6e7',1,'ead::Session::SessionInfo']]],
   ['descriptor',['DESCRIPTOR',['../namespacegraph__pb2.html#a21b919ce8d4283213f497511f83bb63d',1,'graph_pb2']]],
   ['determinant',['determinant',['../namespaceade.html#aecb7b9f5d18655665d51992ee73d3e43',1,'ade']]],

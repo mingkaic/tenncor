@@ -43,7 +43,7 @@ int main (int argc, char** argv)
 	auto error = age::square(diff);
 
 	// wrt to w0
-	ead::EdgesT edges;
+	ade::EdgesT edges;
 	auto derror_w0 = ead::derive_with_edges<float>(edges, error, w0_node);
 	auto ddiff_w0 = ead::derive_with_edges<float>(edges, diff, w0_node);
 	auto dsig1_w0 = ead::derive_with_edges<float>(edges, sig1, w0_node);

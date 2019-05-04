@@ -89,12 +89,12 @@ struct InteractiveDebugger
 
 		// update display
 		GraphClient client(default_server);
-		EdgesT active_edges;
+		ade::EdgesT active_edges;
 		active_edges.reserve(edges_.size());
 		auto et = graph_canvas_.end();
 		std::copy_if(edges_.begin(), edges_.end(),
 			std::back_inserter(active_edges),
-			[&](Edge& edge)
+			[&](ade::Edge& edge)
 			{
 				if (edge.expired())
 				{
@@ -147,7 +147,7 @@ struct InteractiveDebugger
 
 	GraphCanvasT graph_canvas_;
 
-	EdgesT edges_;
+	ade::EdgesT edges_;
 };
 
 }

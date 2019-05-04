@@ -68,33 +68,32 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">interactive_client.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="itensor_8hpp_source.html">ade/itensor.hpp</a>&quot;</code><br />
-<code>#include &lt;grpc/grpc.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;grpc/grpc.h&gt;</code><br />
 <code>#include &lt;grpcpp/channel.h&gt;</code><br />
 <code>#include &lt;grpcpp/client_context.h&gt;</code><br />
 <code>#include &lt;grpcpp/create_channel.h&gt;</code><br />
 <code>#include &lt;grpcpp/security/credentials.h&gt;</code><br />
+<code>#include &quot;<a class="el" href="itensor_8hpp_source.html">ade/itensor.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="edge_8hpp_source.html">ade/edge.hpp</a>&quot;</code><br />
 <code>#include &quot;ead/dbg/graph.grpc.pb.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="edge_8hpp_source.html">ead/edge.hpp</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for interactive_client.hpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="interactive__client_8hpp__incl.png" border="0" usemap="#ead_2dbg_2interactive__client_8hpp" alt=""/></div>
 <map name="ead_2dbg_2interactive__client_8hpp" id="ead_2dbg_2interactive__client_8hpp">
-<area shape="rect" id="node2" href="itensor_8hpp.html" title="ade/itensor.hpp" alt="" coords="219,312,331,337"/>
-<area shape="rect" id="node15" href="edge_8hpp.html" title="ead/edge.hpp" alt="" coords="80,92,183,117"/>
-<area shape="rect" id="node3" href="shape_8hpp.html" title="ade/shape.hpp" alt="" coords="220,459,330,484"/>
-<area shape="rect" id="node16" href="ade_2coord_8hpp.html" title="ade/coord.hpp" alt="" coords="59,312,166,337"/>
-<area shape="rect" id="node21" href="ifunctor_8hpp.html" title="ade/ifunctor.hpp" alt="" coords="121,165,237,191"/>
-<area shape="rect" id="node18" href="matops_8hpp.html" title="ade/matops.hpp" alt="" coords="107,385,224,411"/>
-<area shape="rect" id="node22" href="ade_2funcarg_8hpp.html" title="ade/funcarg.hpp" alt="" coords="120,239,238,264"/>
+<area shape="rect" id="node7" href="itensor_8hpp.html" title="ade/itensor.hpp" alt="" coords="812,312,924,337"/>
+<area shape="rect" id="node14" href="edge_8hpp.html" title="ade/edge.hpp" alt="" coords="906,92,1009,117"/>
+<area shape="rect" id="node8" href="shape_8hpp.html" title="ade/shape.hpp" alt="" coords="856,459,965,484"/>
+<area shape="rect" id="node15" href="ifunctor_8hpp.html" title="ade/ifunctor.hpp" alt="" coords="906,165,1022,191"/>
+<area shape="rect" id="node16" href="ade_2funcarg_8hpp.html" title="ade/funcarg.hpp" alt="" coords="905,239,1023,264"/>
+<area shape="rect" id="node17" href="ade_2coord_8hpp.html" title="ade/coord.hpp" alt="" coords="948,312,1055,337"/>
+<area shape="rect" id="node19" href="matops_8hpp.html" title="ade/matops.hpp" alt="" coords="1007,385,1124,411"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -120,11 +119,6 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceead"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html">ead</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:ac560f76acc41fb05730203f690e0b714"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interactive__client_8hpp.html#ac560f76acc41fb05730203f690e0b714">EAD_DBG_CLI_HPP</a></td></tr>
-<tr class="separator:ac560f76acc41fb05730203f690e0b714"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:aa87b9012a08615618cc454429425191a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#aa87b9012a08615618cc454429425191a">ead::GraphCanvasT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *, NodeMetadata &gt;</td></tr>
@@ -132,24 +126,9 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ac063f962fb7180dd165f8fe7d4bdb616"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#ac063f962fb7180dd165f8fe7d4bdb616">ead::set_transfer_request</a> (idbg::GraphUpdateRequest &amp;req, const GraphCanvasT &amp;canvas, const EdgesT &amp;edges)</td></tr>
-<tr class="separator:ac063f962fb7180dd165f8fe7d4bdb616"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a430e9ffe535dc9b63103a3e94a67ac75"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#a430e9ffe535dc9b63103a3e94a67ac75">ead::set_transfer_request</a> (idbg::GraphUpdateRequest &amp;req, const GraphCanvasT &amp;canvas, const <a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">ade::EdgesT</a> &amp;edges)</td></tr>
+<tr class="separator:a430e9ffe535dc9b63103a3e94a67ac75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="ac560f76acc41fb05730203f690e0b714"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac560f76acc41fb05730203f690e0b714">&#9670;&nbsp;</a></span>EAD_DBG_CLI_HPP</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define EAD_DBG_CLI_HPP</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

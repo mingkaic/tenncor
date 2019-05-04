@@ -61,7 +61,7 @@ struct MLPTrainer
 			});
 		{
 			auto rules = ead::opt::get_configs<PybindT>();
-			ead::EdgesT edges;
+			ade::EdgesT edges;
 			ead::opt::optimize(roots, edges, rules);
 		}
 

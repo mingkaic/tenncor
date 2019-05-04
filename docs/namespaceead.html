@@ -95,10 +95,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_e_a_d_saver.html">EADSaver</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_edge.html">Edge</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_edge_hash.html">EdgeHash</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_eigen_mat_op.html">EigenMatOp</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_eigen_tens_op.html">EigenTensOp</a></td></tr>
@@ -142,8 +138,6 @@ Typedefs</h2></td></tr>
 <tr class="separator:aac572ca05022d1196f622f6e652f404a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa87b9012a08615618cc454429425191a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#aa87b9012a08615618cc454429425191a">GraphCanvasT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *, <a class="el" href="structead_1_1_node_metadata.html">NodeMetadata</a> &gt;</td></tr>
 <tr class="separator:aa87b9012a08615618cc454429425191a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7cffc40fc2c77057d5457009b401f5a6"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#a7cffc40fc2c77057d5457009b401f5a6">EdgesT</a> = std::vector&lt; <a class="el" href="structead_1_1_edge.html">Edge</a> &gt;</td></tr>
-<tr class="separator:a7cffc40fc2c77057d5457009b401f5a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aafd88e301e71d371854132d1dd37f06a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#aafd88e301e71d371854132d1dd37f06a">DimensionsT</a> = std::array&lt; Eigen::Index, 8 &gt;</td></tr>
 <tr class="separator:aafd88e301e71d371854132d1dd37f06a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab361170f2d37b5e1dd1bbea416208d2c"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
@@ -211,10 +205,8 @@ Functions</h2></td></tr>
 <tr class="separator:a8866cf99e132f48af773543b33a510a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a693b5639da1812e5fb67ad7a9c444a95"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceead.html#aac572ca05022d1196f622f6e652f404a">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#a693b5639da1812e5fb67ad7a9c444a95">permute</a> (std::vector&lt; uint8_t &gt; dims)</td></tr>
 <tr class="separator:a693b5639da1812e5fb67ad7a9c444a95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac063f962fb7180dd165f8fe7d4bdb616"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#ac063f962fb7180dd165f8fe7d4bdb616">set_transfer_request</a> (idbg::GraphUpdateRequest &amp;req, const <a class="el" href="namespaceead.html#aa87b9012a08615618cc454429425191a">GraphCanvasT</a> &amp;canvas, const <a class="el" href="namespaceead.html#a7cffc40fc2c77057d5457009b401f5a6">EdgesT</a> &amp;edges)</td></tr>
-<tr class="separator:ac063f962fb7180dd165f8fe7d4bdb616"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57c0fee04917e7d358393495f412de0f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#a57c0fee04917e7d358393495f412de0f">operator==</a> (const <a class="el" href="structead_1_1_edge.html">Edge</a> &amp;lhs, const <a class="el" href="structead_1_1_edge.html">Edge</a> &amp;rhs)</td></tr>
-<tr class="separator:a57c0fee04917e7d358393495f412de0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a430e9ffe535dc9b63103a3e94a67ac75"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#a430e9ffe535dc9b63103a3e94a67ac75">set_transfer_request</a> (idbg::GraphUpdateRequest &amp;req, const <a class="el" href="namespaceead.html#aa87b9012a08615618cc454429425191a">GraphCanvasT</a> &amp;canvas, const <a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">ade::EdgesT</a> &amp;edges)</td></tr>
+<tr class="separator:a430e9ffe535dc9b63103a3e94a67ac75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:addf851de2d1ef37c044346e91d45b27e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:addf851de2d1ef37c044346e91d45b27e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceead.html#af90b24c9d423aacd2ba3862ad54f09e7">MatMapT</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceead.html#addf851de2d1ef37c044346e91d45b27e">tens_to_matmap</a> (<a class="el" href="namespaceead.html#a5ba9c7a56044f2edf8061bba74702e65">TensorT</a>&lt; T &gt; &amp;tens)</td></tr>
 <tr class="separator:addf851de2d1ef37c044346e91d45b27e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -255,10 +247,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a77639acd784f50c29e75e1ae93213bd0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceead.html#a77639acd784f50c29e75e1ae93213bd0">derive</a> (<a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt; root, <a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt; target)</td></tr>
 <tr class="memdesc:a77639acd784f50c29e75e1ae93213bd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derive root with respect to target and optimized.  <a href="#a77639acd784f50c29e75e1ae93213bd0">More...</a><br /></td></tr>
 <tr class="separator:a77639acd784f50c29e75e1ae93213bd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ef30b0bb3d54f8f65d70217ccf1a88f"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a2ef30b0bb3d54f8f65d70217ccf1a88f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceead.html#a2ef30b0bb3d54f8f65d70217ccf1a88f">derive_with_edges</a> (<a class="el" href="namespaceead.html#a7cffc40fc2c77057d5457009b401f5a6">EdgesT</a> &amp;edges, <a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt; root, <a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt; target)</td></tr>
-<tr class="memdesc:a2ef30b0bb3d54f8f65d70217ccf1a88f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derive root with respect to target and optimized.  <a href="#a2ef30b0bb3d54f8f65d70217ccf1a88f">More...</a><br /></td></tr>
-<tr class="separator:a2ef30b0bb3d54f8f65d70217ccf1a88f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a980bc94133cf31ae43b90dcfd06d683b"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a980bc94133cf31ae43b90dcfd06d683b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceead.html#a980bc94133cf31ae43b90dcfd06d683b">derive_with_edges</a> (<a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">ade::EdgesT</a> &amp;edges, <a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt; root, <a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt; target)</td></tr>
+<tr class="memdesc:a980bc94133cf31ae43b90dcfd06d683b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derive root with respect to target and optimized.  <a href="#a980bc94133cf31ae43b90dcfd06d683b">More...</a><br /></td></tr>
+<tr class="separator:a980bc94133cf31ae43b90dcfd06d683b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8bbd8afdf820a5e3125748cd310ae1e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ae8bbd8afdf820a5e3125748cd310ae1e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceead.html#ae8bbd8afdf820a5e3125748cd310ae1e">to_node</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">ade::TensptrT</a> tens)</td></tr>
 <tr class="separator:ae8bbd8afdf820a5e3125748cd310ae1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -542,20 +534,6 @@ template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="namespaceead.html#aafd88e301e71d371854132d1dd37f06a">ead::DimensionsT</a> = typedef std::array&lt;Eigen::Index,8&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7cffc40fc2c77057d5457009b401f5a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7cffc40fc2c77057d5457009b401f5a6">&#9670;&nbsp;</a></span>EdgesT</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="namespaceead.html#a7cffc40fc2c77057d5457009b401f5a6">ead::EdgesT</a> = typedef std::vector&lt;<a class="el" href="structead_1_1_edge.html">Edge</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1236,8 +1214,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a2ef30b0bb3d54f8f65d70217ccf1a88f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ef30b0bb3d54f8f65d70217ccf1a88f">&#9670;&nbsp;</a></span>derive_with_edges()</h2>
+<a id="a980bc94133cf31ae43b90dcfd06d683b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a980bc94133cf31ae43b90dcfd06d683b">&#9670;&nbsp;</a></span>derive_with_edges()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1247,7 +1225,7 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname"><a class="el" href="namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71">NodeptrT</a>&lt;T&gt; ead::derive_with_edges </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceead.html#a7cffc40fc2c77057d5457009b401f5a6">EdgesT</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">ade::EdgesT</a> &amp;&#160;</td>
           <td class="paramname"><em>edges</em>, </td>
         </tr>
         <tr>
@@ -2593,42 +2571,6 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a57c0fee04917e7d358393495f412de0f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57c0fee04917e7d358393495f412de0f">&#9670;&nbsp;</a></span>operator==()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool ead::operator== </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structead_1_1_edge.html">Edge</a> &amp;&#160;</td>
-          <td class="paramname"><em>lhs</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structead_1_1_edge.html">Edge</a> &amp;&#160;</td>
-          <td class="paramname"><em>rhs</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a1feb7e56172524f584f2c18a53825c86"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1feb7e56172524f584f2c18a53825c86">&#9670;&nbsp;</a></span>ops_prune()</h2>
 
@@ -3194,8 +3136,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="ac063f962fb7180dd165f8fe7d4bdb616"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac063f962fb7180dd165f8fe7d4bdb616">&#9670;&nbsp;</a></span>set_transfer_request()</h2>
+<a id="a430e9ffe535dc9b63103a3e94a67ac75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a430e9ffe535dc9b63103a3e94a67ac75">&#9670;&nbsp;</a></span>set_transfer_request()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3215,7 +3157,7 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="namespaceead.html#a7cffc40fc2c77057d5457009b401f5a6">EdgesT</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">ade::EdgesT</a> &amp;&#160;</td>
           <td class="paramname"><em>edges</em>&#160;</td>
         </tr>
         <tr>

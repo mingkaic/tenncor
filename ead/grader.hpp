@@ -8,11 +8,12 @@
 
 #include <list>
 
+#include "ade/edge.hpp"
+
 #include "ead/generated/api.hpp"
 #include "ead/generated/grader.hpp"
 
 #include "ead/constant.hpp"
-#include "ead/edge.hpp"
 
 #ifndef EAD_GRADER_HPP
 #define EAD_GRADER_HPP
@@ -20,11 +21,16 @@
 namespace ead
 {
 
+enum EDGE_CODE
+{
+	GRADIENT = 0,
+};
+
 /// Derive root with respect to target and optimized
 template <typename T>
 NodeptrT<T> derive (NodeptrT<T> root, NodeptrT<T> target)
 {
-	EdgesT edges;
+	ade::EdgesT edges;
 	return derive_with_edges(edges, root, target);
 }
 
@@ -265,7 +271,7 @@ struct ChainRuler
 
 /// Derive root with respect to target and optimized
 template <typename T>
-NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> target)
+NodeptrT<T> derive_with_edges (ade::EdgesT& edges, NodeptrT<T> root, NodeptrT<T> target)
 {
 	if (root->get_tensor() == target->get_tensor())
 	{
@@ -315,7 +321,7 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 		{
 			bwd = age::add(bwd, gargs[i]);
 		}
-		edges.push_back(Edge{
+		edges.push_back(ade::Edge{
 			bwd->get_tensor(),
 			owners[parent],
 			ade::Opcode{
@@ -343,7 +349,7 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 		for (size_t i : ordered)
 		{
 			auto local = ruler.dlocal(ead::to_node<T>(owners[parent].lock()), i); // todo: store this for reuse
-			edges.push_back(Edge{
+			edges.push_back(ade::Edge{
 				local->get_tensor(),
 				owners[parent],
 				ade::Opcode{
@@ -372,7 +378,7 @@ NodeptrT<T> derive_with_edges (EdgesT& edges, NodeptrT<T> root, NodeptrT<T> targ
 	{
 		target_str = target_tens->to_string();
 	}
-	edges.push_back(Edge{
+	edges.push_back(ade::Edge{
 		out->get_tensor(),
 		target->get_tensor(),
 		ade::Opcode{

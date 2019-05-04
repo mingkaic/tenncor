@@ -474,7 +474,7 @@ void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
 }
 
 template <typename T>
-NodesT<T> unrepresent (Representer<T>& repr, EdgesT& edges,
+NodesT<T> unrepresent (Representer<T>& repr, ade::EdgesT& edges,
 	const NodesT<T>& roots)
 {
 	NodesT<T> out;
@@ -488,7 +488,7 @@ NodesT<T> unrepresent (Representer<T>& repr, EdgesT& edges,
 		unravel(unravelled, rep, owners);
 		out.push_back(unravelled[rep]);
 	}
-	for (Edge& edge : edges)
+	for (ade::Edge& edge : edges)
 	{
 		if (false == edge.expired())
 		{

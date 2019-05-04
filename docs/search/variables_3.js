@@ -2,7 +2,7 @@ var searchData=
 [
   ['caches_5f',['caches_',['../structllo_1_1_cache_space.html#a0d380a204a5f14218bfd56e7164014b7',1,'llo::CacheSpace::caches_()'],['../structllo_1_1_evaluator.html#a856d7a7762aa325953a3e00a21a3a7b4',1,'llo::Evaluator::caches_()']]],
   ['canvas_5f',['canvas_',['../structead_1_1_painter.html#a557bd90d3ba13791ad4f2f2a6726a2bd',1,'ead::Painter']]],
-  ['child_5f',['child_',['../structead_1_1_edge.html#aed9241b10a3368e5afc080d707c5a63e',1,'ead::Edge']]],
+  ['child_5f',['child_',['../structade_1_1_edge.html#a65a8cbfcaffb72cb4dc05941fff2e5d2',1,'ade::Edge']]],
   ['children_5f',['children_',['../structpbm_1_1_pathed_tens.html#a4265e683cd1ffeab4b957a101bb93dfb',1,'pbm::PathedTens']]],
   ['code_5f',['code_',['../structade_1_1_opcode.html#a37bc6502405df1638aa87ba8204f558f',1,'ade::Opcode']]],
   ['colors',['colors',['../namespaceinteractive__server.html#a38272a44bf3fc129690ea2402372137a',1,'interactive_server']]],

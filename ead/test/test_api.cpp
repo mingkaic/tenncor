@@ -151,16 +151,13 @@ static void unary_generic (UnaryOpF<double> op,
 }
 
 
-static void unary_elementary (UnaryOpF<double> op,
-	UnaryDblF fwd, UnaryDblF bwd)
+static void unar_elem (std::vector<double> data,
+	std::vector<ade::DimT> shape_list,
+	UnaryOpF<double> op, UnaryDblF fwd, UnaryDblF bwd)
 {
-	std::vector<ade::DimT> slist = {2, 3, 4};
-	ade::Shape shape(slist);
+	ade::Shape shape(shape_list);
 	ade::NElemT n = shape.n_elems();
-	std::vector<double> data = {
-		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
-		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
-	};
+	assert(data.size() == n);
 
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
 	ead::NodeptrT<double> dest = op(src);
@@ -168,7 +165,7 @@ static void unary_elementary (UnaryOpF<double> op,
 	dest->update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -184,7 +181,7 @@ static void unary_elementary (UnaryOpF<double> op,
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0; i < n; ++i)
@@ -194,24 +191,36 @@ static void unary_elementary (UnaryOpF<double> op,
 }
 
 
-static void binary_elementary (BinaryOpF<double> op,
+static void unary_elementary (UnaryOpF<double> op,
+	UnaryDblF fwd, UnaryDblF bwd)
+{
+	// tensor operation
+	std::vector<ade::DimT> slist = {2, 3, 4};
+	std::vector<double> data = {
+		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
+		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
+	};
+	unar_elem(data, slist, op, fwd, bwd);
+
+	// matrix optimized operation
+	std::vector<ade::DimT> slist_2d = {2, 3};
+	std::vector<double> data_2d = {
+		59, 10, 28,
+		10, 67, 62,
+	};
+	unar_elem(data_2d, slist_2d, op, fwd, bwd);
+}
+
+
+static void binar_elem (std::vector<double> data, std::vector<double> data2,
+	std::vector<ade::DimT> shape_list, BinaryOpF<double> op,
 	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd)
 {
-	std::vector<ade::DimT> slist = {3, 2, 4};
-	ade::Shape shape(slist);
+	ade::Shape shape(shape_list);
 	ade::NElemT n = shape.n_elems();
-	std::vector<double> data = {
-		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
-		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
-		0.9664644529, 0.6152766955, 0.8795922916, 0.6384690466, 0.3922073677, 0.5979097486,
-		0.0425608731, 0.1178122813, 0.1594330664, 0.0926580999, 0.9309809737, 0.2119471989
-	};
-	std::vector<double> data2 = {
-		0.2547977589, 0.8808089905, 0.4323663340, 0.5710527217, 0.6207772267, 0.8574923091,
-		0.2315629833, 0.8740258926, 0.9239905856, 0.0346148639, 0.3255387878, 0.7443564112,
-		0.0930828560, 0.9324878301, 0.6552622891, 0.8305292319, 0.9515416240, 0.3653033185,
-		0.0504231590, 0.8494357051, 0.0908431573, 0.1567913571, 0.1211327459, 0.5269402648
-	};
+
+	assert(data.size() == n);
+	assert(data2.size() == n);
 
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
 	ead::NodeptrT<double> src2 = ead::make_constant<double>(data2.data(), shape);
@@ -220,7 +229,7 @@ static void binary_elementary (BinaryOpF<double> op,
 	dest->update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -236,7 +245,7 @@ static void binary_elementary (BinaryOpF<double> op,
 	session.update();
 	{
 		auto gotshape = gsame->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* goptr = (double*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
@@ -249,7 +258,7 @@ static void binary_elementary (BinaryOpF<double> op,
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* goptr2 = (double*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
@@ -262,7 +271,7 @@ static void binary_elementary (BinaryOpF<double> op,
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* goptr3 = (double*) gright->data();
 	for (size_t i = 0; i < n; ++i)
@@ -272,20 +281,46 @@ static void binary_elementary (BinaryOpF<double> op,
 }
 
 
-static void binary_elementary_int (BinaryOpF<int32_t> op,
+static void binary_elementary (BinaryOpF<double> op,
+	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd)
+{
+	// tensor operation
+	std::vector<ade::DimT> slist = {3, 2, 4};
+	std::vector<double> data = {
+		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
+		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
+		0.9664644529, 0.6152766955, 0.8795922916, 0.6384690466, 0.3922073677, 0.5979097486,
+		0.0425608731, 0.1178122813, 0.1594330664, 0.0926580999, 0.9309809737, 0.2119471989
+	};
+	std::vector<double> data2 = {
+		0.2547977589, 0.8808089905, 0.4323663340, 0.5710527217, 0.6207772267, 0.8574923091,
+		0.2315629833, 0.8740258926, 0.9239905856, 0.0346148639, 0.3255387878, 0.7443564112,
+		0.0930828560, 0.9324878301, 0.6552622891, 0.8305292319, 0.9515416240, 0.3653033185,
+		0.0504231590, 0.8494357051, 0.0908431573, 0.1567913571, 0.1211327459, 0.5269402648
+	};
+
+	binar_elem(data, data2, slist, op, fwd, bwd);
+
+	// matrix optimized operation
+	std::vector<ade::DimT> slist_2d = {3, 2};
+	std::vector<double> data_2d = {
+		0.0919361505, 0.5135099474, 0.3147548326,
+		0.0281299379, 0.3705218798, 0.6808164860,
+	};
+	std::vector<double> data2_2d = {
+		0.2547977589, 0.8808089905, 0.4323663340,
+		0.5710527217, 0.6207772267, 0.8574923091,
+	};
+	binar_elem(data_2d, data2_2d, slist_2d, op, fwd, bwd);
+}
+
+
+static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data2,
+	std::vector<ade::DimT> shape_list, BinaryOpF<int32_t> op,
 	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd)
 {
-	std::vector<ade::DimT> slist = {4, 3, 2};
-	ade::Shape shape(slist);
+	ade::Shape shape(shape_list);
 	ade::NElemT n = shape.n_elems();
-	std::vector<int32_t> data = {
-		1, 2, 3, 0, 1, 2, 2, 1, 1, 3, 3, 1,
-		2, 2, 3, 0, 1, 3, 3, 1, 2, 0, 0, 2
-	};
-	std::vector<int32_t> data2 = {
-		0, 0, 2, 1, 3, 3, 2, 2, 3, 1, 2, 3,
-		1, 3, 1, 3, 1, 0, 2, 1, 2, 2, 0, 1
-	};
 
 	ead::NodeptrT<int32_t> src = ead::make_constant<int32_t>(data.data(), shape);
 	ead::NodeptrT<int32_t> src2 = ead::make_constant<int32_t>(data2.data(), shape);
@@ -294,7 +329,7 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 	dest->update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	int32_t* optr = (int32_t*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -310,7 +345,7 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 	session.update();
 	{
 		auto gotshape = gsame->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	int32_t* goptr = (int32_t*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
@@ -323,7 +358,7 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	int32_t* goptr2 = (int32_t*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
@@ -336,13 +371,44 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	int32_t* goptr3 = (int32_t*) gright->data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
 	}
+}
+
+
+static void binary_elementary_int (BinaryOpF<int32_t> op,
+	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd)
+{
+	// tensor operation
+	std::vector<ade::DimT> slist = {4, 3, 2};
+	std::vector<int32_t> data = {
+		1, 2, 3, 0, 1, 2, 2, 1, 1, 3, 3, 1,
+		2, 2, 3, 0, 1, 3, 3, 1, 2, 0, 0, 2
+	};
+	std::vector<int32_t> data2 = {
+		0, 0, 2, 1, 3, 3, 2, 2, 3, 1, 2, 3,
+		1, 3, 1, 3, 1, 0, 2, 1, 2, 2, 0, 1
+	};
+
+	binar_elem_int(data, data2, slist, op, fwd, bwd);
+
+	// matrix optimized operation
+	std::vector<ade::DimT> slist_2d = {4, 2};
+	std::vector<int32_t> data_2d = {
+		1, 2, 3, 0,
+		1, 2, 2, 1,
+	};
+	std::vector<int32_t> data2_2d = {
+		0, 0, 2, 1,
+		3, 3, 2, 2,
+	};
+
+	binar_elem_int(data_2d, data2_2d, slist_2d, op, fwd, bwd);
 }
 
 
@@ -427,6 +493,73 @@ TEST(API, Round)
 		[](ead::NodeptrT<double>& a) { return age::round(a); },
 		[](double d) { return std::round(d); },
 		[](double d) { return 1.0; });
+}
+
+
+TEST(API, Sigmoid)
+{
+	unary_elementary(
+		[](ead::NodeptrT<double>& a) { return age::sigmoid(a); },
+		[](double d) { return 1 / (1 + std::exp(-d)); },
+		[](double d)
+		{
+			double sig = 1 / (1 + std::exp(-d));
+			return sig * (1 - sig);
+		});
+}
+
+
+TEST(API, SigmoidGrad)
+{
+	unary_elementary(
+		[](ead::NodeptrT<double>& a) { return age::sigmoid_grad(a); },
+		[](double d)
+		{
+			double sig = 1 / (1 + std::exp(-d));
+			return sig * (1 - sig);
+		},
+		[](double d)
+		{
+			double sig = 1 / (1 + std::exp(-d));
+			double sig_grad = sig * (1 - sig);
+			return sig_grad * (1 - 2 * sig);
+		});
+}
+
+
+TEST(API, Tanh)
+{
+	unary_elementary(
+		[](ead::NodeptrT<double>& a) { return age::tanh(a); },
+		[](double d)
+		{
+			double e2d = std::exp(2 * d);
+			return (e2d - 1) / (e2d + 1);
+		},
+		[](double d)
+		{
+			double e2d = std::exp(2 * d);
+			double tanh = (e2d - 1) / (e2d + 1);
+			return 1 - tanh * tanh;
+		});
+}
+
+
+TEST(API, Square)
+{
+	unary_elementary(
+		[](ead::NodeptrT<double>& a) { return age::square(a); },
+		[](double d) { return d * d; },
+		[](double d) { return 2 * d; });
+}
+
+
+TEST(API, Cube)
+{
+	unary_elementary(
+		[](ead::NodeptrT<double>& a) { return age::cube(a); },
+		[](double d) { return d * d * d; },
+		[](double d) { return 3 * d * d; });
 }
 
 
@@ -688,6 +821,109 @@ TEST(API, Rsum)
 				EXPECT_EQ(1, gout[i]);
 			}
 		});
+}
+
+
+TEST(API, Rprod)
+{
+	std::vector<ade::DimT> slist = {2, 2, 3};
+	ade::Shape shape(slist);
+	std::vector<size_t> data = {
+		2, 1,
+		7, 3,
+
+		6, 9,
+		6, 8,
+
+		9, 7,
+		7, 2,
+	};
+
+	ead::NodeptrT<size_t> src = ead::make_constant<size_t>(data.data(), shape);
+	ead::NodeptrT<size_t> dest = age::reduce_prod(src);
+	ead::NodeptrT<size_t> dest2 = age::reduce_prod(src, 1, 2);
+
+	dest->update();
+	{
+		size_t n = dest->shape().n_elems();
+		{
+			ASSERT_EQ(1, n);
+		}
+		size_t got = *((size_t*) dest->data());
+
+		size_t expect = std::accumulate(data.begin(), data.end(), 1, std::multiplies<size_t>());
+		EXPECT_EQ(expect, got);
+	}
+
+	dest2->update();
+	{
+		std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
+		expect_list[1] = 1;
+		ade::Shape gotshape = dest2->shape();
+		EXPECT_ARREQ(expect_list, gotshape);
+
+		ade::CoordT coord;
+		ade::DimT d = shape.at(1);
+		size_t* got = (size_t*) dest2->data();
+		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
+		{
+			coord = ade::coordinate(gotshape, i);
+			size_t acc = 1;
+			for (size_t j = 0; j < d; ++j)
+			{
+				coord[1] = j;
+				acc *= data[ade::index(shape, coord)];
+			}
+			EXPECT_EQ(acc, got[i]);
+		}
+	}
+
+	ead::Session<size_t> session;
+
+	ead::NodeptrT<size_t> gsrc = ead::derive(dest, src);
+	ead::NodeptrT<size_t> gsrc2 = ead::derive(dest2, src);
+	session.track(gsrc);
+	session.track(gsrc2);
+	session.update();
+
+	auto gotshape = gsrc->shape();
+	ASSERT_ARREQ(slist, gotshape);
+	size_t* goptr = (size_t*) gsrc->data();
+	{
+		size_t n = data.size();
+		std::vector<size_t> left(n, 1);
+		std::vector<size_t> right(n, 1);
+		for (size_t i = 1; i < n; ++i)
+		{
+			left[i] = data[i - 1] * left[i - 1];
+			right[n - i - 1] = data[n - i] * right[n - i];
+		}
+		for (size_t i = 0; i < n; ++i)
+		{
+			size_t expect = left[i] * right[i];
+			EXPECT_EQ(expect, goptr[i]);
+		}
+	}
+
+	std::vector<size_t> ex_grad = {
+		7, 3,
+		2, 1,
+
+		6, 8,
+		6, 9,
+
+		7, 2,
+		9, 7,
+	};
+	auto gotshape2 = gsrc2->shape();
+	ASSERT_ARREQ(slist, gotshape2);
+	size_t* goptr2 = (size_t*) gsrc2->data();
+	{
+		for (size_t i = 0, n = ex_grad.size(); i < n; ++i)
+		{
+			EXPECT_EQ(ex_grad[i], goptr2[i]);
+		}
+	}
 }
 
 
@@ -1035,12 +1271,11 @@ TEST(API, Matmul)
 }
 
 
-TEST(API, RandUniform)
+static void test_rand_unif (std::vector<ade::DimT> shape_list)
 {
-	std::vector<ade::DimT> slist = {31, 21, 14};
 	double hi = 3.2234;
 	double lo = 0.2547977589;
-	ade::Shape shape(slist);
+	ade::Shape shape(shape_list);
 
 	ead::NodeptrT<double> src = ead::make_constant_scalar<double>(lo, shape);
 	ead::NodeptrT<double> src2 = ead::make_constant_scalar<double>(hi, shape);
@@ -1049,7 +1284,7 @@ TEST(API, RandUniform)
 	dest->update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	size_t nelems = dest->shape().n_elems();
@@ -1066,7 +1301,7 @@ TEST(API, RandUniform)
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* goptr2 = (double*) gleft->data();
 	EXPECT_DOUBLE_EQ(0, goptr2[0]);
@@ -1076,10 +1311,22 @@ TEST(API, RandUniform)
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape_list, gotshape);
 	}
 	double* goptr3 = (double*) gright->data();
 	EXPECT_DOUBLE_EQ(0, goptr3[0]);
+}
+
+
+TEST(API, RandUniform)
+{
+	// tensor operation
+	std::vector<ade::DimT> slist = {31, 21, 14};
+	test_rand_unif(slist);
+
+	// matrix optimized operation
+	std::vector<ade::DimT> slist_2d = {31, 14};
+	test_rand_unif(slist_2d);
 }
 
 

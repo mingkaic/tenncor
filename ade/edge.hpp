@@ -1,17 +1,10 @@
-#include "ade/itensor.hpp"
-#include "ade/coord.hpp"
 #include "ade/ifunctor.hpp"
 
-#ifndef EAD_EDGE_HPP
-#define EAD_EDGE_HPP
+#ifndef ADE_EDGE_HPP
+#define ADE_EDGE_HPP
 
-namespace ead
+namespace ade
 {
-
-enum EDGE_CODE
-{
-	GRADIENT = 0,
-};
 
 struct Edge final
 {
@@ -20,11 +13,11 @@ struct Edge final
 		return parent_.expired() || child_.expired();
 	}
 
-	std::weak_ptr<ade::iTensor> parent_;
+	TensrefT parent_;
 
-	std::weak_ptr<ade::iTensor> child_;
+	TensrefT child_;
 
-	ade::Opcode edge_code_;
+	Opcode edge_code_;
 };
 
 using EdgesT = std::vector<Edge>;
@@ -53,4 +46,4 @@ inline bool operator == (const Edge& lhs, const Edge& rhs)
 
 }
 
-#endif // EAD_EDGE_HPP
+#endif // ADE_EDGE_HPP

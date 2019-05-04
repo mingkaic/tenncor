@@ -75,6 +75,10 @@ $(function() {
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_coord_map.html">CoordMap</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_edge.html">Edge</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_edge_hash.html">EdgeHash</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_func_arg.html">FuncArg</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coordinate mapper and tensor pair.  <a href="structade_1_1_func_arg.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -115,6 +119,8 @@ Typedefs</h2></td></tr>
 <tr class="memitem:ae79e5f62f19677e24148be5a1f8b1afd"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> = std::shared_ptr&lt; <a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a> &gt;</td></tr>
 <tr class="memdesc:ae79e5f62f19677e24148be5a1f8b1afd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of <a class="el" href="structade_1_1i_coord_map.html" title="Interface for transforming coordinates and reversing the coordinate. ">iCoordMap</a> smartpointer.  <a href="#ae79e5f62f19677e24148be5a1f8b1afd">More...</a><br /></td></tr>
 <tr class="separator:ae79e5f62f19677e24148be5a1f8b1afd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80f6054b60a558fbff9fe32ab55aab5d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">EdgesT</a> = std::vector&lt; <a class="el" href="structade_1_1_edge.html">Edge</a> &gt;</td></tr>
+<tr class="separator:a80f6054b60a558fbff9fe32ab55aab5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9db559f9967702ac0d7ce882e73e8f15"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9db559f9967702ac0d7ce882e73e8f15">ArgsT</a> = std::vector&lt; <a class="el" href="structade_1_1_func_arg.html">FuncArg</a> &gt;</td></tr>
 <tr class="memdesc:a9db559f9967702ac0d7ce882e73e8f15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of functor arguments.  <a href="#a9db559f9967702ac0d7ce882e73e8f15">More...</a><br /></td></tr>
 <tr class="separator:a9db559f9967702ac0d7ce882e73e8f15"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -158,6 +164,8 @@ Functions</h2></td></tr>
 <tr class="separator:a1ece18b7789f8563358c2f42611a23ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a158baaa8ac46385487e88f697c3c34cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a158baaa8ac46385487e88f697c3c34cf">flip</a> (uint8_t dim)</td></tr>
 <tr class="separator:a158baaa8ac46385487e88f697c3c34cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abef98c50997798fc66a300c8835e78d9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#abef98c50997798fc66a300c8835e78d9">operator==</a> (const <a class="el" href="structade_1_1_edge.html">Edge</a> &amp;lhs, const <a class="el" href="structade_1_1_edge.html">Edge</a> &amp;rhs)</td></tr>
+<tr class="separator:abef98c50997798fc66a300c8835e78d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca8ab70c54a4bdfb4e58b2a3155c7510"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aca8ab70c54a4bdfb4e58b2a3155c7510">apply_shaper</a> (const <a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> &amp;shaper, <a class="el" href="structade_1_1_shape.html">Shape</a> inshape)</td></tr>
 <tr class="separator:aca8ab70c54a4bdfb4e58b2a3155c7510"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a417f117d12812d13411a2e306c4a7f70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_func_arg.html">FuncArg</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a417f117d12812d13411a2e306c4a7f70">identity_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor)</td></tr>
@@ -305,6 +313,20 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Type used for shape dimension. </p>
+
+</div>
+</div>
+<a id="a80f6054b60a558fbff9fe32ab55aab5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80f6054b60a558fbff9fe32ab55aab5d">&#9670;&nbsp;</a></span>EdgesT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">ade::EdgesT</a> = typedef std::vector&lt;<a class="el" href="structade_1_1_edge.html">Edge</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -746,6 +768,42 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Apply matrix multiplication for lhs and rhs to out matrix. </p>
+
+</div>
+</div>
+<a id="abef98c50997798fc66a300c8835e78d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abef98c50997798fc66a300c8835e78d9">&#9670;&nbsp;</a></span>operator==()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ade::operator== </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structade_1_1_edge.html">Edge</a> &amp;&#160;</td>
+          <td class="paramname"><em>lhs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structade_1_1_edge.html">Edge</a> &amp;&#160;</td>
+          <td class="paramname"><em>rhs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

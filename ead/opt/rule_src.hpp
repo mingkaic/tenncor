@@ -37,7 +37,7 @@ struct RuleContext final
 	/// Record parent-argument edge
 	void emplace_edge (FuncRep<T>* parent, const ReprArg<T>& arg)
 	{
-		edges_.push_back(Edge{parent, arg});
+		edges_.push_back(ContextEdge{parent, arg});
 	}
 
 	/// Return true if successfully merge variables
@@ -67,14 +67,14 @@ struct RuleContext final
 	std::unordered_map<size_t,RepArgsT<T>> variadic_vars_;
 
 private:
-	struct Edge
+	struct ContextEdge
 	{
 		FuncRep<T>* parent_;
 
 		ReprArg<T> arg_;
 	};
 
-	std::vector<Edge> edges_;
+	std::vector<ContextEdge> edges_;
 };
 
 // e.g.: scalar_1.2

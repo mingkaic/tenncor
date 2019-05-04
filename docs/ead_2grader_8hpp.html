@@ -68,34 +68,35 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">grader.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;list&gt;</code><br />
+<code>#include &quot;<a class="el" href="edge_8hpp_source.html">ade/edge.hpp</a>&quot;</code><br />
 <code>#include &quot;ead/generated/api.hpp&quot;</code><br />
 <code>#include &quot;ead/generated/grader.hpp&quot;</code><br />
 <code>#include &quot;<a class="el" href="ead_2constant_8hpp_source.html">ead/constant.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="edge_8hpp_source.html">ead/edge.hpp</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for grader.hpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="ead_2grader_8hpp__incl.png" border="0" usemap="#ead_2grader_8hpp" alt=""/></div>
 <map name="ead_2grader_8hpp" id="ead_2grader_8hpp">
-<area shape="rect" id="node5" href="ead_2constant_8hpp.html" title="ead/constant.hpp" alt="" coords="447,79,570,104"/>
-<area shape="rect" id="node21" href="edge_8hpp.html" title="ead/edge.hpp" alt="" coords="619,79,721,104"/>
-<area shape="rect" id="node6" href="ead_2ileaf_8hpp.html" title="ead/ileaf.hpp" alt="" coords="334,152,432,177"/>
-<area shape="rect" id="node20" href="inode_8hpp.html" title="ead/inode.hpp" alt="" coords="456,152,562,177"/>
-<area shape="rect" id="node7" href="ade_2ileaf_8hpp.html" title="ade/ileaf.hpp" alt="" coords="413,225,511,251"/>
-<area shape="rect" id="node15" href="ead_2tensor_8hpp.html" title="ead/tensor.hpp" alt="" coords="279,225,389,251"/>
-<area shape="rect" id="node8" href="itensor_8hpp.html" title="ade/itensor.hpp" alt="" coords="498,299,610,324"/>
-<area shape="rect" id="node9" href="shape_8hpp.html" title="ade/shape.hpp" alt="" coords="471,459,581,484"/>
-<area shape="rect" id="node17" href="eigen_8hpp.html" title="ead/eigen.hpp" alt="" coords="281,299,387,324"/>
-<area shape="rect" id="node22" href="ade_2coord_8hpp.html" title="ade/coord.hpp" alt="" coords="673,299,779,324"/>
-<area shape="rect" id="node27" href="ifunctor_8hpp.html" title="ade/ifunctor.hpp" alt="" coords="637,152,753,177"/>
-<area shape="rect" id="node24" href="matops_8hpp.html" title="ade/matops.hpp" alt="" coords="577,379,694,404"/>
-<area shape="rect" id="node28" href="ade_2funcarg_8hpp.html" title="ade/funcarg.hpp" alt="" coords="636,225,754,251"/>
+<area shape="rect" id="node3" href="edge_8hpp.html" title="ade/edge.hpp" alt="" coords="89,79,192,104"/>
+<area shape="rect" id="node20" href="ead_2constant_8hpp.html" title="ead/constant.hpp" alt="" coords="216,79,339,104"/>
+<area shape="rect" id="node4" href="ifunctor_8hpp.html" title="ade/ifunctor.hpp" alt="" coords="82,152,198,177"/>
+<area shape="rect" id="node5" href="ade_2funcarg_8hpp.html" title="ade/funcarg.hpp" alt="" coords="81,225,199,251"/>
+<area shape="rect" id="node6" href="itensor_8hpp.html" title="ade/itensor.hpp" alt="" coords="200,299,312,324"/>
+<area shape="rect" id="node13" href="ade_2coord_8hpp.html" title="ade/coord.hpp" alt="" coords="70,299,176,324"/>
+<area shape="rect" id="node7" href="shape_8hpp.html" title="ade/shape.hpp" alt="" coords="223,459,332,484"/>
+<area shape="rect" id="node15" href="matops_8hpp.html" title="ade/matops.hpp" alt="" coords="22,379,139,404"/>
+<area shape="rect" id="node21" href="ead_2ileaf_8hpp.html" title="ead/ileaf.hpp" alt="" coords="353,152,450,177"/>
+<area shape="rect" id="node28" href="inode_8hpp.html" title="ead/inode.hpp" alt="" coords="223,152,329,177"/>
+<area shape="rect" id="node22" href="ade_2ileaf_8hpp.html" title="ade/ileaf.hpp" alt="" coords="291,225,389,251"/>
+<area shape="rect" id="node23" href="ead_2tensor_8hpp.html" title="ead/tensor.hpp" alt="" coords="413,225,523,251"/>
+<area shape="rect" id="node25" href="eigen_8hpp.html" title="ead/eigen.hpp" alt="" coords="574,299,680,324"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -129,16 +130,22 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceead"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html">ead</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a9d20086c26874422108552b802239120"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceead.html#a9d20086c26874422108552b802239120">ead::EDGE_CODE</a> { <a class="el" href="namespaceead.html#a9d20086c26874422108552b802239120ae7b319414c021c7f21f703c01f057c23">ead::GRADIENT</a> = 0
+ }</td></tr>
+<tr class="separator:a9d20086c26874422108552b802239120"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a77639acd784f50c29e75e1ae93213bd0"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a77639acd784f50c29e75e1ae93213bd0"><td class="memTemplItemLeft" align="right" valign="top">NodeptrT&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceead.html#a77639acd784f50c29e75e1ae93213bd0">ead::derive</a> (NodeptrT&lt; T &gt; root, NodeptrT&lt; T &gt; target)</td></tr>
 <tr class="memdesc:a77639acd784f50c29e75e1ae93213bd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derive root with respect to target and optimized.  <a href="namespaceead.html#a77639acd784f50c29e75e1ae93213bd0">More...</a><br /></td></tr>
 <tr class="separator:a77639acd784f50c29e75e1ae93213bd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ef30b0bb3d54f8f65d70217ccf1a88f"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a2ef30b0bb3d54f8f65d70217ccf1a88f"><td class="memTemplItemLeft" align="right" valign="top">NodeptrT&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceead.html#a2ef30b0bb3d54f8f65d70217ccf1a88f">ead::derive_with_edges</a> (EdgesT &amp;edges, NodeptrT&lt; T &gt; root, NodeptrT&lt; T &gt; target)</td></tr>
-<tr class="memdesc:a2ef30b0bb3d54f8f65d70217ccf1a88f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derive root with respect to target and optimized.  <a href="namespaceead.html#a2ef30b0bb3d54f8f65d70217ccf1a88f">More...</a><br /></td></tr>
-<tr class="separator:a2ef30b0bb3d54f8f65d70217ccf1a88f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a980bc94133cf31ae43b90dcfd06d683b"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a980bc94133cf31ae43b90dcfd06d683b"><td class="memTemplItemLeft" align="right" valign="top">NodeptrT&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceead.html#a980bc94133cf31ae43b90dcfd06d683b">ead::derive_with_edges</a> (<a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">ade::EdgesT</a> &amp;edges, NodeptrT&lt; T &gt; root, NodeptrT&lt; T &gt; target)</td></tr>
+<tr class="memdesc:a980bc94133cf31ae43b90dcfd06d683b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derive root with respect to target and optimized.  <a href="namespaceead.html#a980bc94133cf31ae43b90dcfd06d683b">More...</a><br /></td></tr>
+<tr class="separator:a980bc94133cf31ae43b90dcfd06d683b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->

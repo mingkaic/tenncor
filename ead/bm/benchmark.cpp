@@ -389,7 +389,7 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	// optimize
 	auto rules = ead::opt::get_configs<double>();
 	ead::NodesT<double> roots = {dw0, db0, dw1, db1};
-	ead::EdgesT edges;
+	ade::EdgesT edges;
 	ead::opt::optimize(roots, edges, rules);
 	dw0 = roots[0];
 	db0 = roots[1];
