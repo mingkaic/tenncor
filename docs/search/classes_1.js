@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['funcarg',['FuncArg',['../structade_1_1_func_arg.html',1,'ade']]],
-  ['functor',['Functor',['../structade_1_1_functor.html',1,'ade']]]
+  ['dataarg',['DataArg',['../structllo_1_1_data_arg.html',1,'llo']]]
 ];

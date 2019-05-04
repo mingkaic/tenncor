@@ -32,12 +32,15 @@ fields = {
         "VRUM": "float",
         "KAPOW": "complex_t"
     },
-    "data": {
-        "scalarize": "get_numba(12345)",
-        "sum": "ADDITION",
-        "prod": "MULTIPLICATION",
-        "data_in": "In_Type",
-        "data_out": "Out_Type",
+    "signatures": {
+        "data": {
+            "in": "In_Type",
+            "out": "Out_Type"
+        },
+        "grad": {
+            "out": "ade::TensptrT",
+            "in": "ade::FuncArg"
+        }
     },
     "apis": [
         {"name": "func1", "args": [], "out": "bar1()"},
@@ -301,6 +304,7 @@ uint8_t type_size (_GENERATED_DTYPE type)
         case VRUM: return sizeof(float);
         default: logs::fatal("cannot get size of bad type");
     }
+    return 0;
 }
 
 template <>
@@ -341,26 +345,26 @@ namespace age
 // uses std containers for type conversion
 template <typename OUTTYPE>
 void type_convert (std::vector<OUTTYPE>& out, void* input,
-	age::_GENERATED_DTYPE intype, size_t nelems)
+    age::_GENERATED_DTYPE intype, size_t nelems)
 {
     switch (intype)
-	{
+    {
         case CAR:
-			out = std::vector<OUTTYPE>((char*) input,
+            out = std::vector<OUTTYPE>((char*) input,
                 (char*) input + nelems); break;
         case KAPOW:
-			out = std::vector<OUTTYPE>((complex_t*) input,
+            out = std::vector<OUTTYPE>((complex_t*) input,
                 (complex_t*) input + nelems); break;
         case VROOM:
-			out = std::vector<OUTTYPE>((double*) input,
+            out = std::vector<OUTTYPE>((double*) input,
                 (double*) input + nelems); break;
         case VRUM:
-			out = std::vector<OUTTYPE>((float*) input,
+            out = std::vector<OUTTYPE>((float*) input,
                 (float*) input + nelems); break;
-		default:
-			logs::fatalf("invalid input type %s",
-				age::name_type(intype).c_str());
-	}
+        default:
+            logs::fatalf("invalid input type %s",
+                age::name_type(intype).c_str());
+    }
 }
 
 }
@@ -374,27 +378,14 @@ grader_header = """#ifndef _GENERATED_GRADER_HPP
 namespace age
 {
 
-template <typename T>
-ade::LeafptrT data (T scalar, ade::Shape shape)
-{
-    return get_numba(12345);
-}
+#define _AGE_INTERNAL_GRADSWITCH()\\
+case OP: return bwd_foo(args, idx);\\
+case OP1: return bwd_bar(args[0], idx);\\
+case OP2: return foo(args[1]);\\
+case OP3: return foo(args[0]);
 
-struct RuleSet final : public iRuleSet
-{
-    ade::LeafptrT data (double scalar, ade::Shape shape) override
-    {
-        return age::data(scalar, shape);
-    }
-
-    ade::Opcode sum_opcode (void) override
-    {
-        return ade::Opcode{"ADDITION", ADDITION};
-    }
-
-    ade::TensptrT chain_rule (ade::iFunctor* fwd,
-        ade::FuncArg bwd, ade::TensT args, size_t idx) override;
-};
+ade::TensptrT chain_rule (ade::iFunctor* fwd,
+    ade::FuncArg bwd, ade::TensT args, size_t idx);
 
 }
 
@@ -406,17 +397,16 @@ grader_source = """#ifdef _GENERATED_GRADER_HPP
 namespace age
 {
 
-ade::TensptrT RuleSet::chain_rule (ade::iFunctor* fwd,
+ade::TensptrT chain_rule (ade::iFunctor* fwd,
     ade::FuncArg bwd, ade::TensT args, size_t idx)
 {
     switch (fwd->get_opcode().code_)
     {
-        case OP: return bwd_foo(args, idx);
-        case OP1: return bwd_bar(args[0], idx);
-        case OP2: return foo(args[1]);
-        case OP3: return foo(args[0]);
+        _AGE_INTERNAL_GRADSWITCH()
         default: logs::fatal("no gradient rule for unknown opcode");
     }
+    ade::TensptrT defval;
+    return defval;
 }
 
 }
@@ -431,8 +421,7 @@ namespace age
 {
 
 template <typename T>
-void typed_exec (_GENERATED_OPCODE opcode,
-    Out_Type out, ade::Shape shape, In_Type in)
+void typed_exec (Out_Type out, _GENERATED_OPCODE opcode, ade::Shape shape, In_Type in)
 {
     switch (opcode)
     {
@@ -455,10 +444,10 @@ void typed_exec (_GENERATED_OPCODE opcode,
 // TYPE_LOOKUP(GENERIC_MACRO, type_code)
 #define TYPE_LOOKUP(GENERIC_MACRO, DTYPE)\\
 switch (DTYPE) {\\
-    case CAR: GENERIC_MACRO(char) break;\\
-    case KAPOW: GENERIC_MACRO(complex_t) break;\\
-    case VROOM: GENERIC_MACRO(double) break;\\
-    case VRUM: GENERIC_MACRO(float) break;\\
+    case age::CAR: GENERIC_MACRO(char) break;\\
+    case age::KAPOW: GENERIC_MACRO(complex_t) break;\\
+    case age::VROOM: GENERIC_MACRO(double) break;\\
+    case age::VRUM: GENERIC_MACRO(float) break;\\
     default: logs::fatal("executing bad type");\\
 }
 

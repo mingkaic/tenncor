@@ -93,6 +93,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_leaf.html">iLeaf</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leaf of the graph commonly representing the variable in an equation.  <a href="structade_1_1i_leaf.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_operable_func.html">iOperableFunc</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A functor node with direct access to evaluated data.  <a href="structade_1_1i_operable_func.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html">iTensor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface of traversible and differentiable nodes with shape information.  <a href="structade_1_1i_tensor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -109,15 +112,15 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">TensT</a> = std::vector&lt; <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> &gt;</td></tr>
-<tr class="memdesc:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector representation of ade tensor pointers.  <a href="#ab4db19108073a8a4dc5b8cb6aa85ad42">More...</a><br /></td></tr>
-<tr class="separator:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae79e5f62f19677e24148be5a1f8b1afd"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> = std::shared_ptr&lt; <a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a> &gt;</td></tr>
 <tr class="memdesc:ae79e5f62f19677e24148be5a1f8b1afd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of <a class="el" href="structade_1_1i_coord_map.html" title="Interface for transforming coordinates and reversing the coordinate. ">iCoordMap</a> smartpointer.  <a href="#ae79e5f62f19677e24148be5a1f8b1afd">More...</a><br /></td></tr>
 <tr class="separator:ae79e5f62f19677e24148be5a1f8b1afd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9db559f9967702ac0d7ce882e73e8f15"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9db559f9967702ac0d7ce882e73e8f15">ArgsT</a> = std::vector&lt; <a class="el" href="structade_1_1_func_arg.html">FuncArg</a> &gt;</td></tr>
 <tr class="memdesc:a9db559f9967702ac0d7ce882e73e8f15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of functor arguments.  <a href="#a9db559f9967702ac0d7ce882e73e8f15">More...</a><br /></td></tr>
 <tr class="separator:a9db559f9967702ac0d7ce882e73e8f15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">TensT</a> = std::vector&lt; <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> &gt;</td></tr>
+<tr class="memdesc:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector representation of ade tensor pointers.  <a href="#ab4db19108073a8a4dc5b8cb6aa85ad42">More...</a><br /></td></tr>
+<tr class="separator:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1bdf3657cc8a95dd974ad6aa36e2230f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a1bdf3657cc8a95dd974ad6aa36e2230f">LeafptrT</a> = std::shared_ptr&lt; <a class="el" href="structade_1_1i_leaf.html">iLeaf</a> &gt;</td></tr>
 <tr class="separator:a1bdf3657cc8a95dd974ad6aa36e2230f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aceac6eb9293c8b2001737f3b26667993"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> = std::shared_ptr&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> &gt;</td></tr>
@@ -140,9 +143,13 @@ Typedefs</h2></td></tr>
 <tr class="separator:ae85a1831aeb0b2b43c3730301cbaec30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2abdde771b6a0fd0afdafaed7ab00c48"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a2abdde771b6a0fd0afdafaed7ab00c48">CoordT</a> = std::array&lt; <a class="el" href="namespaceade.html#acdc2096f51fe9d232e19a346fc95d5e7">CDimT</a>, <a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">rank_cap</a> &gt;</td></tr>
 <tr class="separator:a2abdde771b6a0fd0afdafaed7ab00c48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a369d1a2ecdeeb7c71f87dc9d50575dc3"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a369d1a2ecdeeb7c71f87dc9d50575dc3">OwnerMapT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *, <a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">TensrefT</a> &gt;</td></tr>
+<tr class="separator:a369d1a2ecdeeb7c71f87dc9d50575dc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a6b6c4cd25145a806179fdf02a9402163"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a6b6c4cd25145a806179fdf02a9402163">is_identity</a> (<a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a> *coorder)</td></tr>
+<tr class="separator:a6b6c4cd25145a806179fdf02a9402163"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca905a7156b047e9e5e1df3fb4f62763"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aca905a7156b047e9e5e1df3fb4f62763">reduce</a> (uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; red)</td></tr>
 <tr class="separator:aca905a7156b047e9e5e1df3fb4f62763"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aacfce705e3e2105e824eb03f0d625491"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aacfce705e3e2105e824eb03f0d625491">extend</a> (uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; ext)</td></tr>
@@ -151,6 +158,8 @@ Functions</h2></td></tr>
 <tr class="separator:a1ece18b7789f8563358c2f42611a23ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a158baaa8ac46385487e88f697c3c34cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a158baaa8ac46385487e88f697c3c34cf">flip</a> (uint8_t dim)</td></tr>
 <tr class="separator:a158baaa8ac46385487e88f697c3c34cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca8ab70c54a4bdfb4e58b2a3155c7510"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aca8ab70c54a4bdfb4e58b2a3155c7510">apply_shaper</a> (const <a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> &amp;shaper, <a class="el" href="structade_1_1_shape.html">Shape</a> inshape)</td></tr>
+<tr class="separator:aca8ab70c54a4bdfb4e58b2a3155c7510"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a417f117d12812d13411a2e306c4a7f70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_func_arg.html">FuncArg</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a417f117d12812d13411a2e306c4a7f70">identity_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor)</td></tr>
 <tr class="memdesc:a417f117d12812d13411a2e306c4a7f70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_func_arg.html" title="Coordinate mapper and tensor pair. ">FuncArg</a> that identity maps input tensor.  <a href="#a417f117d12812d13411a2e306c4a7f70">More...</a><br /></td></tr>
 <tr class="separator:a417f117d12812d13411a2e306c4a7f70"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -165,6 +174,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a6a6aed8b5fce29a5214ec432bcfae53b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_func_arg.html">FuncArg</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a6a6aed8b5fce29a5214ec432bcfae53b">flip_map</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> tensor, uint8_t dim)</td></tr>
 <tr class="memdesc:a6a6aed8b5fce29a5214ec432bcfae53b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return <a class="el" href="structade_1_1_func_arg.html" title="Coordinate mapper and tensor pair. ">FuncArg</a> that flips input tensor along dimension.  <a href="#a6a6aed8b5fce29a5214ec432bcfae53b">More...</a><br /></td></tr>
 <tr class="separator:a6a6aed8b5fce29a5214ec432bcfae53b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d1ecf1bbfdd240df4b5b5f1f516a14b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a9db559f9967702ac0d7ce882e73e8f15">ArgsT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a5d1ecf1bbfdd240df4b5b5f1f516a14b">to_args</a> (<a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">TensT</a> tens)</td></tr>
+<tr class="memdesc:a5d1ecf1bbfdd240df4b5b5f1f516a14b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return ArgsT with each tensor in TensT attached to identity mapper.  <a href="#a5d1ecf1bbfdd240df4b5b5f1f516a14b">More...</a><br /></td></tr>
+<tr class="separator:a5d1ecf1bbfdd240df4b5b5f1f516a14b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf0ae4c17a6835d771a3e8e1502f9ad6"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#adf0ae4c17a6835d771a3e8e1502f9ad6">to_string</a> (const <a class="el" href="namespaceade.html#ae0f6687dd704fcf5c00f841da0509246">MatrixT</a> &amp;mat)</td></tr>
 <tr class="memdesc:adf0ae4c17a6835d771a3e8e1502f9ad6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the string representation of input matrix.  <a href="#adf0ae4c17a6835d771a3e8e1502f9ad6">More...</a><br /></td></tr>
 <tr class="separator:adf0ae4c17a6835d771a3e8e1502f9ad6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -180,6 +192,9 @@ Functions</h2></td></tr>
 <tr class="separator:ae4b0a59c967fe9699b5b66de3c8fab49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a785be8ee10cd4af039c458e057b32263"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a2abdde771b6a0fd0afdafaed7ab00c48">CoordT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a785be8ee10cd4af039c458e057b32263">coordinate</a> (<a class="el" href="structade_1_1_shape.html">Shape</a> shape, <a class="el" href="namespaceade.html#a2fba34a89f37ea9ee310914daefd880d">NElemT</a> idx)</td></tr>
 <tr class="separator:a785be8ee10cd4af039c458e057b32263"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50c0423bd9b0ee167f5bec286554ce26"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a369d1a2ecdeeb7c71f87dc9d50575dc3">OwnerMapT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a50c0423bd9b0ee167f5bec286554ce26">track_owners</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> root)</td></tr>
+<tr class="memdesc:a50c0423bd9b0ee167f5bec286554ce26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Travelers will lose smart pointer references,.  <a href="#a50c0423bd9b0ee167f5bec286554ce26">More...</a><br /></td></tr>
+<tr class="separator:a50c0423bd9b0ee167f5bec286554ce26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -197,15 +212,13 @@ Variables</h2></td></tr>
 <tr class="separator:abe7612b911dddb042aa394cc0125ea69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p><a class="el" href="ade_8hpp.html">ade.hpp</a> ade</p>
-<p>Purpose: Collectively include all ade header files</p>
-<p><a class="el" href="coord_8hpp.html">coord.hpp</a> ade</p>
+<div class="textblock"><p>coord.hpp ade</p>
 <p>Purpose: Define shape/coordinate transformation functions</p>
-<p><a class="el" href="funcarg_8hpp.html">funcarg.hpp</a> ade</p>
+<p>funcarg.hpp ade</p>
 <p>Purpose: Define functor argument wrapper to carryover shape and coordinate mappers</p>
-<p><a class="el" href="functor_8hpp.html">functor.hpp</a> ade</p>
+<p>functor.hpp ade</p>
 <p>Purpose: Define functor nodes of an equation graph</p>
-<p><a class="el" href="ileaf_8hpp.html">ileaf.hpp</a> ade</p>
+<p>ileaf.hpp ade</p>
 <p>Purpose: Define interfaces and building blocks for an equation graph</p>
 <p><a class="el" href="itensor_8hpp.html">itensor.hpp</a> ade</p>
 <p>Purpose: Define interfaces and building blocks for an equation graph</p>
@@ -340,6 +353,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a369d1a2ecdeeb7c71f87dc9d50575dc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a369d1a2ecdeeb7c71f87dc9d50575dc3">&#9670;&nbsp;</a></span>OwnerMapT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceade.html#a369d1a2ecdeeb7c71f87dc9d50575dc3">ade::OwnerMapT</a> = typedef std::unordered_map&lt;<a class="el" href="structade_1_1i_tensor.html">iTensor</a>*,<a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">TensrefT</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ae85a1831aeb0b2b43c3730301cbaec30"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae85a1831aeb0b2b43c3730301cbaec30">&#9670;&nbsp;</a></span>ShapeT</h2>
 
@@ -401,6 +428,34 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="aca8ab70c54a4bdfb4e58b2a3155c7510"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca8ab70c54a4bdfb4e58b2a3155c7510">&#9670;&nbsp;</a></span>apply_shaper()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structade_1_1_shape.html">Shape</a> ade::apply_shaper </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> &amp;&#160;</td>
+          <td class="paramname"><em>shaper</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td>
+          <td class="paramname"><em>inshape</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a785be8ee10cd4af039c458e057b32263"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a785be8ee10cd4af039c458e057b32263">&#9670;&nbsp;</a></span>coordinate()</h2>
 
@@ -640,6 +695,24 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a6b6c4cd25145a806179fdf02a9402163"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b6c4cd25145a806179fdf02a9402163">&#9670;&nbsp;</a></span>is_identity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ade::is_identity </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a> *&#160;</td>
+          <td class="paramname"><em>coorder</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab6daf41b04bccd42950ae92db8a0439a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab6daf41b04bccd42950ae92db8a0439a">&#9670;&nbsp;</a></span>matmul()</h2>
 
@@ -817,6 +890,26 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a5d1ecf1bbfdd240df4b5b5f1f516a14b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d1ecf1bbfdd240df4b5b5f1f516a14b">&#9670;&nbsp;</a></span>to_args()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceade.html#a9db559f9967702ac0d7ce882e73e8f15">ArgsT</a> ade::to_args </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">TensT</a>&#160;</td>
+          <td class="paramname"><em>tens</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return ArgsT with each tensor in TensT attached to identity mapper. </p>
+
+</div>
+</div>
 <a id="adf0ae4c17a6835d771a3e8e1502f9ad6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adf0ae4c17a6835d771a3e8e1502f9ad6">&#9670;&nbsp;</a></span>to_string()</h2>
 
@@ -834,6 +927,26 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Return the string representation of input matrix. </p>
+
+</div>
+</div>
+<a id="a50c0423bd9b0ee167f5bec286554ce26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50c0423bd9b0ee167f5bec286554ce26">&#9670;&nbsp;</a></span>track_owners()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceade.html#a369d1a2ecdeeb7c71f87dc9d50575dc3">OwnerMapT</a> ade::track_owners </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a>&#160;</td>
+          <td class="paramname"><em>root</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Travelers will lose smart pointer references,. </p>
 
 </div>
 </div>

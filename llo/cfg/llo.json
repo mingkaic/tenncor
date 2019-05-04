@@ -1,0 +1,573 @@
+{
+    "includes": {
+        "grader.hpp": [
+            "\"llo/constant.hpp\"",
+            "\"llo/helper.hpp\""
+        ],
+        "api.cpp": [
+            "\"llo/constant.hpp\"",
+            "\"llo/helper.hpp\""
+        ],
+        "opmap.hpp": ["\"llo/operator.hpp\""],
+        "pyapi.cpp": ["\"llo/generated/api.hpp\""]
+    },
+    "dtypes": {
+        "DOUBLE": "double",
+        "FLOAT": "float",
+        "INT8": "int8_t",
+        "UINT8": "uint8_t",
+        "INT16": "int16_t",
+        "UINT16": "uint16_t",
+        "INT32": "int32_t",
+        "UINT32": "uint32_t",
+        "INT64": "int64_t",
+        "UINT64": "uint64_t"
+    },
+    "signatures": {
+        "data": {
+            "out": "llo::TensorT<T>&",
+            "in": "llo::DataArgsT<T>&"
+        },
+        "grad": {
+            "out": "ade::TensptrT",
+            "in": "ade::FuncArg"
+        }
+    },
+    "opcodes": {
+        "ABS": {
+            "operation": "llo::abs(out,in[0])",
+            "derivative": "llo::mtens_mul(div(args[0],abs(args[0])),bwd)"
+        },
+        "NEG": {
+            "operation": "llo::neg(out,in[0])",
+            "derivative": "llo::mtens_mul(neg(ade::TensptrT(llo::Constant::get(1,args[0]->shape()))),bwd)"
+        },
+        "SIN": {
+            "operation": "llo::sin(out,in[0])",
+            "derivative": "llo::mtens_mul(cos(args[0]),bwd)"
+        },
+        "COS": {
+            "operation": "llo::cos(out,in[0])",
+            "derivative": "llo::mtens_mul(neg(sin(args[0])),bwd)"
+        },
+        "TAN": {
+            "operation": "llo::tan(out,in[0])",
+            "derivative": "llo::mtens_mul(div(ade::TensptrT(llo::Constant::get(1,args[0]->shape())),pow(cos(args[0]),ade::TensptrT(llo::Constant::get(2,args[0]->shape())))),bwd)"
+        },
+        "EXP": {
+            "operation": "llo::exp(out,in[0])",
+            "derivative": "llo::mtens_mul(exp(args[0]),bwd)"
+        },
+        "LOG": {
+            "operation": "llo::log(out,in[0])",
+            "derivative": "llo::mtens_mul(div(ade::TensptrT(llo::Constant::get(1,args[0]->shape())),args[0]),bwd)"
+        },
+        "SQRT": {
+            "operation": "llo::sqrt(out,in[0])",
+            "derivative": "llo::mtens_mul(div(ade::TensptrT(llo::Constant::get(1,args[0]->shape())),mul(ade::TensptrT(llo::Constant::get(2,args[0]->shape())),sqrt(args[0]))),bwd)"
+        },
+        "ROUND": {
+            "operation": "llo::round(out,in[0])",
+            "derivative": "llo::mtens_mul(ade::TensptrT(llo::Constant::get(1,args[0]->shape())),bwd)"
+        },
+        "POW": {
+            "operation": "llo::pow(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(idx == 0?mul(args[1],pow(args[0],sub(args[1],ade::TensptrT(llo::Constant::get(1,args[0]->shape()))))):mul(log(args[0]),pow(args[0],args[1])),bwd)"
+        },
+        "SUM": {
+            "operation": "llo::add(out,in)",
+            "derivative": "mul(ade::TensptrT(llo::Constant::get(1,args[0]->shape())),ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUM\",SUM},{bwd})))"
+        },
+        "SUB": {
+            "operation": "llo::sub(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(idx == 0?ade::TensptrT(llo::Constant::get(1,args[0]->shape())):ade::TensptrT(llo::Constant::get(-1,args[0]->shape())),bwd)"
+        },
+        "PROD": {
+            "operation": "llo::mul(out,in)",
+            "derivative": "mul(llo::grad_prod(fwd,idx,args),ade::TensptrT(ade::Functor::get(ade::Opcode{\"PROD\",PROD},{bwd})))"
+        },
+        "DIV": {
+            "operation": "llo::div(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(idx == 0?div(ade::TensptrT(llo::Constant::get(1,args[0]->shape())),args[1]):div(div(neg(args[0]),args[1]),args[1]),bwd)"
+        },
+        "MIN": {
+            "operation": "llo::min(out,in)",
+            "derivative": "llo::mtens_mul(llo::grad_min(fwd,idx,args),bwd)"
+        },
+        "MAX": {
+            "operation": "llo::max(out,in)",
+            "derivative": "llo::mtens_mul(llo::grad_max(fwd,idx,args),bwd)"
+        },
+        "EQ": {
+            "operation": "llo::eq(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(ade::TensptrT(llo::Constant::get(0,args[0]->shape())),bwd)"
+        },
+        "NEQ": {
+            "operation": "llo::neq(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(ade::TensptrT(llo::Constant::get(0,args[0]->shape())),bwd)"
+        },
+        "LT": {
+            "operation": "llo::lt(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(ade::TensptrT(llo::Constant::get(0,args[0]->shape())),bwd)"
+        },
+        "GT": {
+            "operation": "llo::gt(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(ade::TensptrT(llo::Constant::get(0,args[0]->shape())),bwd)"
+        },
+        "RAND_UNIF": {
+            "operation": "llo::rand_uniform(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(ade::TensptrT(llo::Constant::get(0,args[0]->shape())),bwd)"
+        },
+        "RAND_NORM": {
+            "operation": "llo::rand_normal(out,in[0],in[1])",
+            "derivative": "llo::mtens_mul(ade::TensptrT(llo::Constant::get(0,args[0]->shape())),bwd)"
+        },
+        "MATMUL": {
+            "operation": "llo::fast_matmul(out,in[0],in[1])",
+            "derivative": "llo::grad_matmul(fwd,bwd,idx)"
+        }
+    },
+    "apis": [
+        {
+            "name": "abs",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"ABS\",ABS},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "neg",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"NEG\",NEG},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "sin",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SIN\",SIN},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "cos",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"COS\",COS},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "tan",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"TAN\",TAN},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "exp",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"EXP\",EXP},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "log",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"LOG\",LOG},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "sqrt",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SQRT\",SQRT},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "round",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"ROUND\",ROUND},{ade::identity_map(arg1)}))"
+        },
+        {
+            "name": "flip",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUM\",SUM},{ade::flip_map(arg1,arg2)}))"
+        },
+        {
+            "name": "pow",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"POW\",POW},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "add",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUM\",SUM},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "sub",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUB\",SUB},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "mul",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"PROD\",PROD},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "div",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"DIV\",DIV},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "eq",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"EQ\",EQ},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "neq",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"NEQ\",NEQ},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "lt",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"LT\",LT},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "gt",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"GT\",GT},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "rand_unif",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"RAND_UNIF\",RAND_UNIF},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "rand_norm",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"RAND_NORM\",RAND_NORM},{ade::identity_map(arg1),ade::identity_map(arg2)}))"
+        },
+        {
+            "name": "n_elems",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg"
+            }],
+            "out": "ade::TensptrT(llo::Constant::get(arg->shape().n_elems(), ade::Shape()))"
+        },
+        {
+            "name": "n_dims",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg"
+            }, {
+                "dtype": "uint8_t",
+                "name": "rank"
+            }],
+            "out": "ade::TensptrT(llo::Constant::get(arg->shape().at(rank), ade::Shape()))"
+        },
+        {
+            "name": "sum",
+            "args": [{
+                "dtype": "ade::TensT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUM\",SUM},ade::to_args(arg1)))"
+        },
+        {
+            "name": "prod",
+            "args": [{
+                "dtype": "ade::TensT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"PROD\",PROD},ade::to_args(arg1)))"
+        },
+        {
+            "name": "min",
+            "args": [{
+                "dtype": "ade::TensT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"MIN\",MIN},ade::to_args(arg1)))"
+        },
+        {
+            "name": "max",
+            "args": [{
+                "dtype": "ade::TensT",
+                "name": "arg1"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"MAX\",MAX},ade::to_args(arg1)))"
+        },
+        {
+            "name": "reduce_sum_1d",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": "llo::reduce_1d(ade::Opcode{\"SUM\",SUM},arg1,arg2)"
+        },
+        {
+            "name": "reduce_prod_1d",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": "llo::reduce_1d(ade::Opcode{\"PROD\",PROD},arg1,arg2)"
+        },
+        {
+            "name": "reduce_min_1d",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": "llo::reduce_1d(ade::Opcode{\"MIN\",MIN},arg1,arg2)"
+        },
+        {
+            "name": "reduce_max_1d",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": "llo::reduce_1d(ade::Opcode{\"MAX\",MAX},arg1,arg2)"
+        },
+        {
+            "name": "reduce_sum",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "tens"
+            }, {
+                "dtype": "uint8_t",
+                "name": "start",
+                "default": "0"
+            }, {
+                "dtype": "uint8_t",
+                "name": "end",
+                "default": "ade::rank_cap"
+            }],
+            "out": "llo::reduce(ade::Opcode{\"SUM\",SUM},tens,start,end)",
+            "description": "sum values ignoring coordinate indices between start and end"
+        },
+        {
+            "name": "reduce_prod",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "tens"
+            }, {
+                "dtype": "uint8_t",
+                "name": "start",
+                "default": "0"
+            }, {
+                "dtype": "uint8_t",
+                "name": "end",
+                "default": "ade::rank_cap"
+            }],
+            "out": "llo::reduce(ade::Opcode{\"PROD\",PROD},tens,start,end)",
+            "description": "multiply values ignoring coordinate indices between start and end"
+        },
+        {
+            "name": "reduce_min",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "tens"
+            }, {
+                "dtype": "uint8_t",
+                "name": "start",
+                "default": "0"
+            }, {
+                "dtype": "uint8_t",
+                "name": "end",
+                "default": "ade::rank_cap"
+            }],
+            "out": "llo::reduce(ade::Opcode{\"MIN\",MIN},tens,start,end)",
+            "description": "min values ignoring coordinate indices between start and end"
+        },
+        {
+            "name": "reduce_max",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "tens"
+            }, {
+                "dtype": "uint8_t",
+                "name": "start",
+                "default": "0"
+            }, {
+                "dtype": "uint8_t",
+                "name": "end",
+                "default": "ade::rank_cap"
+            }],
+            "out": "llo::reduce(ade::Opcode{\"MAX\",MAX},tens,start,end)",
+            "description": "max values ignoring coordinate indices between start and end"
+        },
+        {
+            "name": "permute",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "std::vector<uint8_t>",
+                "name": "arg2"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUM\",SUM},{ade::permute_map(arg1,arg2)}))"
+        },
+        {
+            "name": "extend",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }, {
+                "dtype": "std::vector<uint8_t>",
+                "name": "arg3"
+            }],
+            "out": "ade::TensptrT(ade::Functor::get(ade::Opcode{\"SUM\",SUM},{ade::extend_map(arg1,arg2,arg3)}))"
+        },
+        {
+            "name": "transpose",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "permute(arg1, {1, 0})"
+        },
+        {
+            "name": "reduce_mean",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }],
+            "out": "div(reduce_sum(arg1), n_elems(arg1))"
+        },
+        {
+            "name": "matmul",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "llo::matmul(arg1, arg2)"
+        },
+        {
+            "name": "convolution",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "llo::convolution(arg1, arg2)"
+        },
+        {
+            "name": "fast_matmul",
+            "args": [{
+                "dtype": "ade::TensptrT",
+                "name": "arg1"
+            }, {
+                "dtype": "ade::TensptrT",
+                "name": "arg2"
+            }],
+            "out": "llo::get_fast_matmul(arg1, arg2)"
+        }
+    ]
+}

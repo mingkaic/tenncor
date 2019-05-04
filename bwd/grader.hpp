@@ -80,9 +80,6 @@ private:
 	std::shared_ptr<iRuleSet> rules_;
 };
 
-/// Return ArgsT with each tensor in TensT attached to identity mapper
-ade::ArgsT to_args (ade::TensT tens);
-
 }
 
 #endif // BWD_GRADER_HPP

@@ -75,3 +75,4 @@ CMakeFiles
 !.gitmodules
 !.astylerc
 !.bazelrc
+!rocnnet/pretrained/*.pbx

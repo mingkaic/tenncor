@@ -31,7 +31,7 @@ cc_library(
     name = "ade",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = ["@com_github_mingkaic_cppkg//logs:logs"],
     visibility = ["//visibility:public"],
 )
@@ -46,7 +46,7 @@ cc_test(
         "//ade:ade",
         "//testutil:testutil",
     ],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
 )
 
 ######### BENCHMARK #########
@@ -58,5 +58,5 @@ cc_binary(
         "//ade:ade",
         "@com_github_google_benchmark//:benchmark",
     ],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
 )

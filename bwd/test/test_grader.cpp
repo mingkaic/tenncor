@@ -78,7 +78,7 @@ struct MockRuleSet final : public age::iRuleSet
 		{
 			outcode = prod_opcode();
 		}
-		return mul(ade::TensptrT(ade::Functor::get(outcode, age::to_args(args))),
+		return mul(ade::TensptrT(ade::Functor::get(outcode, ade::to_args(args))),
 			ade::TensptrT(ade::Functor::get(fwd_opcode, {bwd})));
 	}
 

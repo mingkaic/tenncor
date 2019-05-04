@@ -15,11 +15,15 @@
         "SAUSAGES": "Meat",
         "HASHBROWNS": "Fries"
     },
-    "data": {
-        "sum": "EMINEM",
-        "data_out": "SweetPotato&",
-        "data_in": "Pomegranate&",
-        "scalarize": "ade::LeafptrT(new MockTensor(scalar, shape))"
+    "signatures": {
+        "data": {
+            "out": "SweetPotato&",
+            "in": "Pomegranate&"
+        },
+        "grad": {
+            "out": "ade::TensptrT",
+            "in": "ade::FuncArg"
+        }
     },
     "opcodes": {
         "EMINEM": {

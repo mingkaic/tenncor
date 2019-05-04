@@ -1,0 +1,111 @@
+licenses(["notice"])
+
+load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["demo/*.cpp", "demo/*.py"]) + [
+        "//rocnnet/eqns:srcs",
+        "//rocnnet/modl:srcs",
+        "//rocnnet/trainer:srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+pybind_library(
+    name = "rocnnet_py",
+    cc_srcs = glob(["python/*.cpp"]),
+    cc_deps = ["//rocnnet/trainer:trainer"],
+    py_deps = ["//ead:ead_py"],
+    visibility = ["//visibility:public"],
+)
+
+######### COMPARISONS #########
+
+py_binary(
+    name = "comparison_matmul",
+    srcs = ["comparison/comparison_matmul.py"],
+    deps = ["//ead:ead_py"],
+)
+
+py_binary(
+    name = "comparison_mlp",
+    srcs = ["comparison/comparison_mlp.py"],
+    deps = [":rocnnet_py"],
+)
+
+py_binary(
+    name = "comparison_mlp_grad",
+    srcs = ["comparison/comparison_mlp_grad.py"],
+    deps = [":rocnnet_py"],
+)
+
+######### DEMOS #########
+
+cc_binary(
+    name = "cgd_demo",
+    srcs = ["demo/gd_demo.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//rocnnet/trainer:trainer",
+        "@com_github_mingkaic_cppkg//flag:flag",
+    ],
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
+)
+
+py_binary(
+    name = "gd_demo",
+    srcs = ["demo/gd_demo.py"],
+    deps = [":rocnnet_py"],
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
+)
+
+py_binary(
+    name = "dqn_demo",
+    srcs = ["demo/dqn_demo.py"],
+    deps = [":rocnnet_py"],
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
+)
+
+py_binary(
+    name = "slow_dqn_demo",
+    srcs = ["demo/slow_dqn_demo.py"],
+    deps = [":rocnnet_py"],
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
+)
+
+# py_binary(
+#     name = "rbm_demo",
+#     srcs = glob(["demo/data/*.py"]) + ["demo/rbm_demo.py"],
+#     deps = [":rocnnet_py"],
+#     data = glob(["pretrained/*"]),
+# )
+
+# cc_binary(
+#     name = "dbn_demo",
+#     srcs = ["demo/dbn_demo.cpp"],
+#     copts = ["-std=c++17"],
+#     deps = [
+#         "//trainer:trainer",
+#         "//data:data",
+#         "@com_github_mingkaic_cppkg//flag:flag",
+#         "//dbg:dbg",
+#     ],
+#     data = glob(["pretrained/*"]),
+# )
+
+cc_binary(
+    name = "experiment",
+    srcs = ["demo/grad_experiment.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//ead:dbg",
+        "//rocnnet/trainer:trainer",
+    ],
+    data = ["//ead:optimizations"],
+)

@@ -1,26 +1,10 @@
+#include <cctype>
+
 #include "diff/msg.hpp"
 
 #include "dbg/ade.hpp"
 
 #ifdef DBG_ADE_HPP
-
-static inline void ltrim(std::string &s)
-{
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-		std::not1(std::ptr_fun<int,int>(std::isspace))));
-}
-
-static inline void rtrim(std::string &s)
-{
-	s.erase(std::find_if(s.rbegin(), s.rend(),
-		std::not1(std::ptr_fun<int,int>(std::isspace))).base(), s.end());
-}
-
-static inline void trim(std::string &s)
-{
-	ltrim(s);
-	rtrim(s);
-}
 
 std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
 	bool showshape, LabelsMapT labels)
@@ -35,7 +19,7 @@ std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
 	std::string line;
 	while (std::getline(expectstr, line))
 	{
-		trim(line);
+		fmts::trim(line);
 		if (line.size() > 0)
 		{
 			expects.push_back(line);
@@ -43,7 +27,7 @@ std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
 	}
 	while (std::getline(gotstr, line))
 	{
-		trim(line);
+		fmts::trim(line);
 		if (line.size() > 0)
 		{
 			gots.push_back(line);

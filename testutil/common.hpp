@@ -6,6 +6,38 @@ struct TestLogger : public logs::iLogger
 	static std::string latest_warning_;
 	static std::string latest_error_;
 
+	enum LOG_LEVEL
+	{
+		NO = 0,
+		YES,
+	};
+
+	void log (size_t log_level, std::string msg) const override
+	{
+		if (log_level <= log_level_)
+		{
+			switch (log_level_)
+			{
+				case NO:
+					warn(msg);
+					break;
+				case YES:
+				default:
+					std::cout << msg << '\n';
+			}
+		}
+	}
+
+	size_t get_log_level (void) const override
+	{
+		return log_level_;
+	}
+
+	void set_log_level (size_t log_level) override
+	{
+		log_level_ = (LOG_LEVEL) log_level;
+	}
+
 	void warn (std::string msg) const override
 	{
 		latest_warning_ = msg;
@@ -20,6 +52,8 @@ struct TestLogger : public logs::iLogger
 	{
 		throw std::runtime_error(msg);
 	}
+
+	LOG_LEVEL log_level_;
 };
 
 extern std::shared_ptr<TestLogger> tlogger;

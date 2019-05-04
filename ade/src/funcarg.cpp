@@ -5,6 +5,29 @@
 namespace ade
 {
 
+Shape apply_shaper (const CoordptrT& shaper, Shape inshape)
+{
+	if (nullptr != shaper)
+	{
+		CoordT out;
+		CoordT in;
+		std::copy(inshape.begin(), inshape.end(), in.begin());
+		shaper->forward(out.begin(), in.begin());
+		std::vector<DimT> slist(rank_cap);
+		std::transform(out.begin(), out.end(), slist.begin(),
+			[](CDimT cd) -> DimT
+			{
+				if (cd < 0)
+				{
+					cd = -cd - 1;
+				}
+				return std::round(cd);
+			});
+		inshape = Shape(slist);
+	}
+	return inshape;
+}
+
 FuncArg identity_map (TensptrT tensor)
 {
 	return FuncArg(tensor, identity);
@@ -42,6 +65,17 @@ FuncArg permute_map (TensptrT tensor, std::vector<uint8_t> order)
 FuncArg flip_map (TensptrT tensor, uint8_t dim)
 {
 	return FuncArg(tensor, flip(dim));
+}
+
+ArgsT to_args (TensT tens)
+{
+	ArgsT args;
+	std::transform(tens.begin(), tens.end(), std::back_inserter(args),
+		[](TensptrT& ten)
+		{
+			return identity_map(ten);
+		});
+	return args;
 }
 
 }
