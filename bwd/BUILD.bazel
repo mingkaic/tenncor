@@ -23,7 +23,7 @@ cc_library(
     name = "bwd",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = ["//ade:ade"],
     linkstatic = True,
     visibility = ["//visibility:public"],
@@ -34,7 +34,7 @@ cc_library(
 cc_test(
     name = "test",
     srcs = ["//bwd:test_srcs"],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
     deps = [
         "//dbg:dbg",
         "//bwd:bwd",

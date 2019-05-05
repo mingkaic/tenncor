@@ -128,7 +128,7 @@ TEST_F(SHAPE, NElems)
 	std::vector<ade::DimT> biglist(8, 255);
 	ade::Shape bigshape(biglist);
 
-	size_t expect_bignelems = 17878103347812890625;
+	size_t expect_bignelems = 17878103347812890625ul;
 	EXPECT_EQ(expect_bignelems, bigshape.n_elems());
 
 	// also check the bounds

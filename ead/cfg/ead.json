@@ -1,0 +1,784 @@
+{
+    "pybind_type": "float",
+    "includes": {
+        "api.hpp": [
+            "\"ead/helper.hpp\"",
+            "\"ead/constant.hpp\""
+        ],
+        "opmap.hpp": ["\"ead/operator.hpp\""],
+        "grader.hpp": ["\"ead/gradhelper.hpp\""],
+        "pyapi.cpp": ["\"ead/generated/api.hpp\""]
+    },
+    "dtypes": {
+        "DOUBLE": "double",
+        "FLOAT": "float",
+        "INT8": "int8_t",
+        "UINT8": "uint8_t",
+        "INT16": "int16_t",
+        "UINT16": "uint16_t",
+        "INT32": "int32_t",
+        "UINT32": "uint32_t",
+        "INT64": "int64_t",
+        "UINT64": "uint64_t"
+    },
+    "signatures": {
+        "data": {
+            "out": {
+                "type": "ead::EigenptrT<T>",
+                "return": true
+            },
+            "in": "std::vector<ead::OpArg<T>>&"
+        },
+        "grad": {
+            "template": "typename T",
+            "out": "ead::NodeptrT<T>",
+            "in": "ead::NodeptrT<T>"
+        }
+    },
+    "opcodes": {
+        "ABS": {
+            "operation": "return ead::abs(shape,in[0])",
+            "derivative": "mul(div(ead::to_node<T>(args[0]),abs(ead::to_node<T>(args[0]))),bwd)"
+        },
+        "NEG": {
+            "operation": "return ead::neg(shape,in[0])",
+            "derivative": "mul(neg(ead::make_constant_scalar<T>(1,args[0]->shape())),bwd)"
+        },
+        "SIN": {
+            "operation": "return ead::sin(shape,in[0])",
+            "derivative": "mul(cos(ead::to_node<T>(args[0])),bwd)"
+        },
+        "COS": {
+            "operation": "return ead::cos(shape,in[0])",
+            "derivative": "mul(neg(sin(ead::to_node<T>(args[0]))),bwd)"
+        },
+        "TAN": {
+            "operation": "return ead::tan(shape,in[0])",
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),pow(cos(ead::to_node<T>(args[0])),ead::make_constant_scalar<T>(2,args[0]->shape()))),bwd)"
+        },
+        "EXP": {
+            "operation": "return ead::exp(shape,in[0])",
+            "derivative": "mul(exp(ead::to_node<T>(args[0])),bwd)"
+        },
+        "LOG": {
+            "operation": "return ead::log(shape,in[0])",
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),ead::to_node<T>(args[0])),bwd)"
+        },
+        "SQRT": {
+            "operation": "return ead::sqrt(shape,in[0])",
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),mul(ead::make_constant_scalar<T>(2,args[0]->shape()),sqrt(ead::to_node<T>(args[0])))),bwd)"
+        },
+        "ROUND": {
+            "operation": "return ead::round(shape,in[0])",
+            "derivative": "mul(ead::make_constant_scalar<T>(1,args[0]->shape()),bwd)"
+        },
+        "SIGMOID": {
+            "operation": "return ead::sigmoid(shape,in[0])",
+            "derivative": "mul(sigmoid_grad(ead::to_node<T>(args[0])),bwd)"
+        },
+        "SIGMOID_GRAD": {
+            "operation": "return ead::sigmoid_grad(shape,in[0])",
+            "derivative": "mul(mul(sigmoid_grad(ead::to_node<T>(args[0])),sub(ead::make_constant_scalar<T>(1,args[0]->shape()),mul(ead::make_constant_scalar<T>(2,args[0]->shape()),sigmoid(ead::to_node<T>(args[0]))))),bwd)"
+        },
+        "TANH": {
+            "operation": "return ead::tanh(shape,in[0])",
+            "derivative": "mul(sub(ead::make_constant_scalar<T>(1,args[0]->shape()),square(tanh(ead::to_node<T>(args[0])))),bwd)"
+        },
+        "SQUARE": {
+            "operation": "return ead::square(shape,in[0])",
+            "derivative": "mul(mul(ead::make_constant_scalar<T>(2,args[0]->shape()),ead::to_node<T>(args[0])),bwd)"
+        },
+        "CUBE": {
+            "operation": "return ead::cube(shape,in[0])",
+            "derivative": "mul(mul(ead::make_constant_scalar<T>(3,args[0]->shape()),square(ead::to_node<T>(args[0]))),bwd)"
+        },
+        "POW": {
+            "operation": "return ead::pow(shape,in[0],in[1])",
+            "derivative": "mul(idx==0?mul(ead::to_node<T>(args[1]),pow(ead::to_node<T>(args[0]),sub(ead::to_node<T>(args[1]),ead::make_constant_scalar<T>(1,args[0]->shape())))):mul(log(ead::to_node<T>(args[0])),pow(ead::to_node<T>(args[0]),ead::to_node<T>(args[1]))),bwd)"
+        },
+        "ADD": {
+            "operation": "return ead::add(shape,in[0],in[1])",
+            "derivative": "mul(ead::make_constant_scalar<T>(1,args[0]->shape()),bwd)"
+        },
+        "SUB": {
+            "operation": "return ead::sub(shape,in[0],in[1])",
+            "derivative": "mul(ead::make_constant_scalar<T>(idx==0?1:-1,args[0]->shape()),bwd)"
+        },
+        "MUL": {
+            "operation": "return ead::mul(shape,in[0],in[1])",
+            "derivative": "mul(ead::to_node<T>(args[(size_t)(idx==0)]),bwd)"
+        },
+        "DIV": {
+            "operation": "return ead::div(shape,in[0],in[1])",
+            "derivative": "mul(idx==0?div(ead::make_constant_scalar<T>(1,args[0]->shape()),ead::to_node<T>(args[1])):div(div(neg(ead::to_node<T>(args[0])),ead::to_node<T>(args[1])),ead::to_node<T>(args[1])),bwd)"
+        },
+        "MIN": {
+            "operation": "return ead::min(shape,in[0],in[1])",
+            "derivative": "mul(eq(min(ead::to_node<T>(args[0]),ead::to_node<T>(args[1])),ead::to_node<T>(args[idx])),bwd)"
+        },
+        "MAX": {
+            "operation": "return ead::max(shape,in[0],in[1])",
+            "derivative": "mul(eq(max(ead::to_node<T>(args[0]),ead::to_node<T>(args[1])),ead::to_node<T>(args[idx])),bwd)"
+        },
+        "EQ": {
+            "operation": "return ead::eq(shape,in[0],in[1])",
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
+        },
+        "NEQ": {
+            "operation": "return ead::neq(shape,in[0],in[1])",
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
+        },
+        "LT": {
+            "operation": "return ead::lt(shape,in[0],in[1])",
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
+        },
+        "GT": {
+            "operation": "return ead::gt(shape,in[0],in[1])",
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
+        },
+        "RAND_UNIF": {
+            "operation": "return ead::rand_uniform(shape,in[0],in[1])",
+            "derivative": "mul(ead::make_constant_scalar<T>(0,args[0]->shape()),bwd)"
+        },
+        "REDUCE_SUM": {
+            "operation": "return ead::reduce_sum(shape,in[0])",
+            "derivative": "ead::reduce_grad(fwd->get_children()[0],bwd,idx)"
+        },
+        "REDUCE_PROD": {
+            "operation": "return ead::reduce_prod(shape,in[0])",
+            "derivative": "ead::reduce_prod_grad(fwd,bwd,idx)"
+        },
+        "REDUCE_MIN": {
+            "operation": "return ead::reduce_min(shape,in[0])",
+            "derivative": "ead::reduce_comp_grad(fwd,bwd,idx)"
+        },
+        "REDUCE_MAX": {
+            "operation": "return ead::reduce_max(shape,in[0])",
+            "derivative": "ead::reduce_comp_grad(fwd,bwd,idx)"
+        },
+        "PERMUTE": {
+            "operation": "return ead::permute(shape,in[0])",
+            "derivative": "ead::permute_grad(fwd,bwd,idx)"
+        },
+        "EXTEND": {
+            "operation": "return ead::extend(shape,in[0])",
+            "derivative": "ead::extend_grad(fwd,bwd,idx)"
+        },
+        "MATMUL": {
+            "operation": "return ead::matmul(shape,in[0],in[1])",
+            "derivative": "ead::matmul_grad(fwd,bwd,idx)"
+        },
+        "CONV": {
+            "operation": "return ead::convolution(shape,in[0],in[1])",
+            "derivative": "bwd"
+        }
+    },
+    "apis": [
+        {
+            "template": "typename T",
+            "name": "abs",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"ABS\",ABS},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "neg",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"NEG\",NEG},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "sin",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SIN\",SIN},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "cos",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"COS\",COS},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "tan",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"TAN\",TAN},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "exp",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"EXP\",EXP},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "log",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"LOG\",LOG},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "sqrt",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SQRT\",SQRT},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "round",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"ROUND\",ROUND},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "sigmoid",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SIGMOID\",SIGMOID},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "sigmoid_grad",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SIGMOID_GRAD\",SIGMOID_GRAD},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "tanh",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"TANH\",TANH},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "square",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SQUARE\",SQUARE},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "cube",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"CUBE\",CUBE},{ead::identity_map(arg1)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "pow",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"POW\",POW},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "add",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"ADD\",ADD},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "sub",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"SUB\",SUB},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "mul",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"MUL\",MUL},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "div",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"DIV\",DIV},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "eq",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"EQ\",EQ},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "neq",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"NEQ\",NEQ},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "lt",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"LT\",LT},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "gt",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"GT\",GT},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "rand_unif",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"RAND_UNIF\",RAND_UNIF},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "n_elems",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_constant_scalar<T>(arg->get_tensor()->shape().n_elems(), ade::Shape())"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "n_dims",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg"
+            }, {
+                "dtype": "uint8_t",
+                "name": "rank"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_constant_scalar<T>(arg->get_tensor()->shape().at(rank), ade::Shape())"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "min",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"MIN\",MIN},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "max",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"MAX\",MAX},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_sum",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "tens"
+            }, {
+                "dtype": "uint8_t",
+                "name": "start",
+                "default": "0"
+            }, {
+                "dtype": "uint8_t",
+                "name": "end",
+                "default": "ade::rank_cap"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_help<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},tens,start,end)"
+            },
+            "description": "sum values ignoring coordinate indices between start and end"
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_prod",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "tens"
+            }, {
+                "dtype": "uint8_t",
+                "name": "start",
+                "default": "0"
+            }, {
+                "dtype": "uint8_t",
+                "name": "end",
+                "default": "ade::rank_cap"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_help<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},tens,start,end)"
+            },
+            "description": "multiply values ignoring coordinate indices between start and end"
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_min",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "tens"
+            }, {
+                "dtype": "uint8_t",
+                "name": "start",
+                "default": "0"
+            }, {
+                "dtype": "uint8_t",
+                "name": "end",
+                "default": "ade::rank_cap"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_help<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},tens,start,end)"
+            },
+            "description": "min values ignoring coordinate indices between start and end"
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_max",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "tens"
+            }, {
+                "dtype": "uint8_t",
+                "name": "start",
+                "default": "0"
+            }, {
+                "dtype": "uint8_t",
+                "name": "end",
+                "default": "ade::rank_cap"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_help<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},tens,start,end)"
+            },
+            "description": "max values ignoring coordinate indices between start and end"
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_sum_1d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_prod_1d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_min_1d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_max_1d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "permute",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "std::vector<uint8_t>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"PERMUTE\",PERMUTE},{ead::permute_map(arg1,arg2)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "extend",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "uint8_t",
+                "name": "arg2"
+            }, {
+                "dtype": "std::vector<uint8_t>",
+                "name": "arg3"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"EXTEND\",EXTEND},{ead::extend_map(arg1,arg2,arg3)})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "transpose",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "permute<T>(arg1, {1, 0})"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "reduce_mean",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "div<T>(reduce_sum<T>(arg1), n_elems<T>(arg1))"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "matmul",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::get_matmul(arg1,arg2)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "convolution",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg2"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::make_functor<T>(ade::Opcode{\"CONV\",CONV},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+            }
+        }
+    ]
+}

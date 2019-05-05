@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['map_5fio_5f',['map_io_',['../structade_1_1_func_arg.html#a40ca3f8562d24fb00519d40e5a90308d',1,'ade::FuncArg']]],
-  ['mat_5fdim',['mat_dim',['../namespaceade.html#a5d20bdd43f50367b1d8780c145cfe0f3',1,'ade']]],
-  ['mat_5fsize',['mat_size',['../namespaceade.html#a2510c0d77a622cfaa58a0865d86ce8d5',1,'ade']]]
+  ['func_5f',['func_',['../structead_1_1_func_node.html#a0b511ec33b53a9dc1d1aa18157ae4cef',1,'ead::FuncNode']]],
+  ['funcs_5f',['funcs_',['../structpbm_1_1_graph_saver.html#a889b990b34164c5e058ed6dfe29435ac',1,'pbm::GraphSaver']]],
+  ['fwd_5f',['fwd_',['../structade_1_1_coord_map.html#ad0bb539056fd8f8acce96109ff41f6da',1,'ade::CoordMap']]]
 ];

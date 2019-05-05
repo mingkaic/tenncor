@@ -45,8 +45,10 @@ struct iTensor
 	virtual std::string to_string (void) const = 0;
 };
 
+/// Tensor smart pointer
 using TensptrT = std::shared_ptr<iTensor>;
 
+/// Tensor weak pointers
 using TensrefT = std::weak_ptr<iTensor>;
 
 }

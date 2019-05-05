@@ -1,6 +1,10 @@
 var searchData=
 [
-  ['end',['end',['../structade_1_1_shape.html#a85700f185320892b5dde0474c88fd33c',1,'ade::Shape::end(void)'],['../structade_1_1_shape.html#a8df8b0d454942a59441c8adcebdc176a',1,'ade::Shape::end(void) const']]],
-  ['extend',['extend',['../namespaceade.html#aacfce705e3e2105e824eb03f0d625491',1,'ade']]],
-  ['extend_5fmap',['extend_map',['../namespaceade.html#a1df292f0c7d5786c86102513fb4ec05f',1,'ade']]]
+  ['data',['data',['../structade_1_1i_leaf.html#a2cdd13939dab35d4b407388a8012bf33',1,'ade::iLeaf::data(void)=0'],['../structade_1_1i_leaf.html#ada4a67f53e43e7e57b548c350cdf14d8',1,'ade::iLeaf::data(void) const =0'],['../structage_1_1i_rule_set.html#a4e98d8f0dc9192d4ee86ff134bc1e3b3',1,'age::iRuleSet::data()'],['../structead_1_1_constant_node.html#aa012ca0866d2432410e63bfdcca6854d',1,'ead::ConstantNode::data()'],['../structead_1_1_functor.html#af5634e074d4a7496b3cee4febdebcb78',1,'ead::Functor::data()'],['../structead_1_1_func_node.html#a2ec69536aa32a43880b7b1f09e369d0f',1,'ead::FuncNode::data()'],['../structead_1_1i_leaf.html#a0d71e11f67386639f4f13c810092b05a',1,'ead::iLeaf::data(void) override'],['../structead_1_1i_leaf.html#a668fb373ad6399ddb7ccef7a7ea0aa51',1,'ead::iLeaf::data(void) const override'],['../structead_1_1i_node.html#ab98c0fac375371d64bf09947e526e848',1,'ead::iNode::data()'],['../structead_1_1_variable_node.html#abc21dc6e58adfdf155681a74a0a310c4',1,'ead::VariableNode::data()'],['../structllo_1_1_constant.html#ac878069e148c475bed1e5e7a145cc68f',1,'llo::Constant::data(void) override'],['../structllo_1_1_constant.html#af1d48bde9d37c459528bf6dfddf44c8f',1,'llo::Constant::data(void) const override'],['../structllo_1_1_variable.html#a76eaeddc728004ea26f40432335e5f28',1,'llo::Variable::data(void) override'],['../structllo_1_1_variable.html#abc913865227f1041c8faee54486c04e9',1,'llo::Variable::data(void) const override']]],
+  ['derive',['derive',['../namespaceead.html#a77639acd784f50c29e75e1ae93213bd0',1,'ead::derive()'],['../namespacello.html#a085b001fb98e1ae2f31926f84cac56a0',1,'llo::derive()']]],
+  ['derive_5fwith_5fedges',['derive_with_edges',['../namespaceead.html#a980bc94133cf31ae43b90dcfd06d683b',1,'ead']]],
+  ['determinant',['determinant',['../namespaceade.html#aecb7b9f5d18655665d51992ee73d3e43',1,'ade']]],
+  ['dim_5fcopy',['dim_copy',['../namespaceead_1_1internal.html#a38ffcdd04d5b7a9e9ae5bfc782daadfa',1,'ead::internal']]],
+  ['div',['div',['../namespaceead.html#a603649aa34499c5f571482150c38ee89',1,'ead::div()'],['../namespacello.html#a0cdb90048720de206cf8d48334fbc8e9',1,'llo::div()']]],
+  ['dlocal',['dlocal',['../structead_1_1_chain_ruler.html#a5c4fe7f716b877ee70b5fa61a669dec8',1,'ead::ChainRuler']]]
 ];

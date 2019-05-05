@@ -14,9 +14,6 @@
 namespace ade
 {
 
-/// Type of functor arguments
-using ArgsT = std::vector<FuncArg>;
-
 /// Encoding of operation
 struct Opcode final
 {

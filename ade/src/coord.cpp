@@ -13,7 +13,7 @@ static inline void vecmul (WorkArrT& out,
 	out.fill(0);
 	for (uint8_t i = 0; i < mat_dim; ++i)
 	{
-		ade::CDimT inv = 1;
+		CDimT inv = 1;
 		if (i < mat_dim - 1)
 		{
 			inv = *(in + i);
@@ -43,6 +43,27 @@ CoordptrT identity(new CoordMap(
 			fwd[i][i] = 1;
 		}
 	}));
+
+bool is_identity (iCoordMap* coorder)
+{
+	if (identity.get() == coorder || nullptr == coorder)
+	{
+		return true;
+	}
+	bool id = false;
+	coorder->access([&id](const MatrixT& m)
+	{
+		id = true;
+		for (uint8_t i = 0; id && i < mat_dim; ++i)
+		{
+			for (uint8_t j = 0; id && j < mat_dim; ++j)
+			{
+				id = id && m[i][j] == (i == j);
+			}
+		}
+	});
+	return id;
+}
 
 CoordptrT reduce (uint8_t rank, std::vector<DimT> red)
 {

@@ -8,40 +8,15 @@
 #include "age/generated/grader.hpp"
 
 
-TEST(AGE, RulesData)
-{
-	age::RuleSet rule;
-	ade::LeafptrT data = rule.data(45, ade::Shape({4, 6}));
-	MockTensor* mockdata = dynamic_cast<MockTensor*>(data.get());
-	ASSERT_NE(nullptr, mockdata);
-
-	ade::Shape shape = mockdata->shape();
-	EXPECT_EQ(45, mockdata->scalar_);
-	EXPECT_EQ(4, shape.at(0));
-	EXPECT_EQ(6, shape.at(1));
-	EXPECT_EQ(24, shape.n_elems());
-}
-
-
-TEST(AGE, RulesSum)
-{
-	age::RuleSet rule;
-	auto code = rule.sum_opcode();
-	EXPECT_STREQ("EMINEM", code.name_.c_str());
-	EXPECT_EQ(age::EMINEM, code.code_);
-}
-
-
 TEST(AGE, GraderEminem)
 {
-	age::RuleSet rule;
 	auto mock = new MockTensor(1, ade::Shape());
 	ade::TensptrT arg(mock);
 	ade::Functor* fwd = ade::Functor::get(ade::Opcode{"EMINEM", age::EMINEM},
 		{ade::identity_map(arg)});
 	size_t idx = 42;
 	// bwd is never used so use whatever
-	rule.chain_rule(fwd, ade::identity_map(arg), {arg}, idx);
+	age::chain_rule(fwd, ade::identity_map(arg), {arg}, idx);
 	EXPECT_EQ(idx, mock->scalar_);
 	delete fwd;
 }
@@ -49,14 +24,13 @@ TEST(AGE, GraderEminem)
 
 TEST(AGE, GraderKhaled)
 {
-	age::RuleSet rule;
 	auto mock = new MockTensor(1, ade::Shape());
 	ade::TensptrT arg(mock);
 	ade::Functor* fwd = ade::Functor::get(ade::Opcode{"KHALED", age::KHALED},
 		{ade::identity_map(arg)});
 	size_t idx = 63;
 	// bwd is never used so use whatever
-	rule.chain_rule(fwd, ade::identity_map(arg), {arg}, idx);
+	age::chain_rule(fwd, ade::identity_map(arg), {arg}, idx);
 	EXPECT_EQ(idx + khaled_constant, mock->scalar_);
 	delete fwd;
 }

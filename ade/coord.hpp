@@ -108,6 +108,9 @@ using CoordptrT = std::shared_ptr<iCoordMap>;
 /// Identity matrix instance
 extern CoordptrT identity;
 
+/// Checks if the coord mapper is an identity mapper
+bool is_identity (iCoordMap* coorder);
+
 /// Return coordinate mapper dividing dimensions after rank
 /// by values in red vector
 /// For example, given coordinate [2, 2, 6, 6], rank=2, and red=[3, 3],

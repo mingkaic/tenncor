@@ -14,5 +14,5 @@ cc_library(
         "//ade:ade",
         "@gtest//:gtest",
     ],
-    copts = ["-std=c++14"],
+    copts = ["-std=c++17"],
 )

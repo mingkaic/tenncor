@@ -16,7 +16,7 @@ def process(directory, relpath, fields):
 
     # manitory headers
     api.header.includes = [
-        '"bwd/grader.hpp"'
+        '"ade/ade.hpp"'
     ]
     api.source.includes = [
         '"' + codes_hdr_path + '"',
@@ -37,7 +37,7 @@ def process(directory, relpath, fields):
     ]
 
     grader.header.includes = [
-        '"bwd/grader.hpp"',
+        '"ade/ade.hpp"',
         '"' + codes_hdr_path + '"',
     ]
     grader.source.includes = [

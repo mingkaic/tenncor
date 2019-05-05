@@ -140,6 +140,7 @@ uint8_t type_size (_GENERATED_DTYPE type)
 {type_sizes}
         default: logs::fatal("cannot get size of bad type");
     }}
+    return 0;
 }}
 
 {get_types}

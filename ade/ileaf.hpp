@@ -35,6 +35,7 @@ struct iLeaf : public iTensor
 	virtual size_t type_code (void) const = 0;
 };
 
+/// Leaf smart pointer
 using LeafptrT = std::shared_ptr<iLeaf>;
 
 }

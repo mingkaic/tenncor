@@ -49,7 +49,7 @@ void Grader::visit (ade::iFunctor* func)
 	{
 		ade::TensT& gargs = grads[parent];
 		ade::TensptrT bwd = gargs.size() > 1 ? ade::TensptrT(
-			ade::Functor::get(sum, to_args(gargs))) : gargs[0];
+			ade::Functor::get(sum, ade::to_args(gargs))) : gargs[0];
 
 		auto& grad_indices = pathmap[parent];
 		ade::ArgsT children = parent->get_children();
@@ -91,18 +91,7 @@ void Grader::visit (ade::iFunctor* func)
 	}
 	auto finalgargs = grads[target_];
 	derivatives_.emplace(func, finalgargs.size() > 1 ? ade::TensptrT(
-		ade::Functor::get(sum, to_args(finalgargs))) : finalgargs[0]);
-}
-
-ade::ArgsT to_args (ade::TensT tens)
-{
-	ade::ArgsT args;
-	std::transform(tens.begin(), tens.end(), std::back_inserter(args),
-		[](ade::TensptrT& ten)
-		{
-			return ade::identity_map(ten);
-		});
-	return args;
+		ade::Functor::get(sum, ade::to_args(finalgargs))) : finalgargs[0]);
 }
 
 }

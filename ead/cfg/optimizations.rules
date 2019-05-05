@@ -1,0 +1,48 @@
+symbol X
+symbol Y
+symbol Z
+
+ABS(NEG(X)) => ABS(X)
+POW(X,2) => SQUARE(X)
+POW(X,3) => CUBE(X)
+SUB(X,Y) => ADD(X,NEG(Y))
+NEG(ADD(X,Y)) => ADD(NEG(X),NEG(Y))
+
+SQUARE(SQRT(X)) => X
+SQRT(SQUARE(X)) => X
+
+EXP(LOG(X)) => X
+LOG(EXP(X)) => X
+
+ADD(X,0) => X
+MUL(X,0) => 0
+MUL(X,1) => X
+
+POW(0,X) => 0
+POW(1,X) => 1
+POW(X,0) => 1
+POW(X,1) => X
+DIV(0,X) => 0
+DIV(X,1) => X
+DIV(X,X) => 1
+
+// sigmoid
+DIV(1,ADD(1,NEG(EXP(NEG(X))))) => SIGMOID(X)
+DIV(1,ADD(NEG(EXP(NEG(X)))),1) => SIGMOID(X)
+
+ADD(ADD(..X),..Y) => ADD(..X,..Y)
+MUL(MUL(..X),..Y) => MUL(..X,..Y)
+
+// trig identities... low chance of these happening
+ADD(SQUARE(SIN(X)),SQUARE(COS(X)),..Z) => ADD(1,..Z)
+ADD(SQUARE(COS(X)),SQUARE(SIN(X)),..Z) => ADD(1,..Z)
+
+MUL(DIV(X,Y),Y,..Z) => MUL(X,..Z)
+DIV(MUL(X,..Y),X) => MUL(..Y)
+
+ADD(X,NEG(X),..Y) => ADD(..Y)
+MUL(X,X,X,..Y) => MUL(CUBE(X),..Y)
+MUL(X,X,..Y) => MUL(SQUARE(X),..Y)
+MUL(X,SQUARE(X),..Y) => MUL(CUBE(X),..Y)
+
+ADD(X,NEG(Y),..Z) => ADD(SUB(X,Y),..Z)

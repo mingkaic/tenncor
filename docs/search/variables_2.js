@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['derivatives_5f',['derivatives_',['../structage_1_1_grader.html#ae08203140f987f3249debd36cdc1ad72',1,'age::Grader']]],
-  ['dims_5f',['dims_',['../structade_1_1_shape.html#a0ed417376c158cf66d6803dd88262446',1,'ade::Shape']]]
+  ['bijective_5f',['bijective_',['../structead_1_1_coord_map.html#a1eb46bf30055179d9a5b3a86d8ef48e5',1,'ead::CoordMap']]]
 ];

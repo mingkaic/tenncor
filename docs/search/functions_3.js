@@ -1,5 +1,30 @@
 var searchData=
 [
-  ['data',['data',['../structade_1_1i_leaf.html#a2cdd13939dab35d4b407388a8012bf33',1,'ade::iLeaf::data(void)=0'],['../structade_1_1i_leaf.html#ada4a67f53e43e7e57b548c350cdf14d8',1,'ade::iLeaf::data(void) const =0'],['../structage_1_1i_rule_set.html#a4e98d8f0dc9192d4ee86ff134bc1e3b3',1,'age::iRuleSet::data()']]],
-  ['determinant',['determinant',['../namespaceade.html#aecb7b9f5d18655665d51992ee73d3e43',1,'ade']]]
+  ['c2pshape',['c2pshape',['../namespacepyead.html#a2a71ae2a75ca20b0be914d1eeac5ab5c',1,'pyead::c2pshape()'],['../namespacepyllo.html#a3ae76c6893fa1d715ec3d77670ed3bb2',1,'pyllo::c2pshape(const ade::Shape &amp;cshape)'],['../namespacepyllo.html#a0501f82cca65e35216a3add29eace3dd',1,'pyllo::c2pshape(const Eigen::DSizes&lt; long, ade::rank_cap &gt; &amp;cshape)']]],
+  ['cachespace',['CacheSpace',['../structllo_1_1_cache_space.html#a83b910a32e85f3fe2c4390df564a3cd5',1,'llo::CacheSpace']]],
+  ['chain',['chain',['../structead_1_1_chain_ruler.html#addd684a0e9a4f686eb40cc185205616c',1,'ead::ChainRuler']]],
+  ['chain_5frule',['chain_rule',['../structage_1_1i_rule_set.html#aa79607e9b86f92bf2c32c4374ad73922',1,'age::iRuleSet']]],
+  ['clean_5fup',['clean_up',['../structead_1_1_interactive_debugger.html#a0540eb655d08b30b43565236e8def254',1,'ead::InteractiveDebugger']]],
+  ['comment_5fpattern',['comment_pattern',['../namespaceead_1_1opt.html#aff9f6a1e211152262892c8ce6489f224',1,'ead::opt']]],
+  ['communtative_5frule_5fmatch',['communtative_rule_match',['../namespaceead_1_1opt.html#abb91ae6b4fbf1f1377339674d89d1a5b',1,'ead::opt']]],
+  ['compatible_5fafter',['compatible_after',['../structade_1_1_shape.html#a486f09d5fd8c99ac078e6ddf58797c96',1,'ade::Shape']]],
+  ['compatible_5fbefore',['compatible_before',['../structade_1_1_shape.html#ab80adb387453a25c3d22193308a512cf',1,'ade::Shape']]],
+  ['connect',['connect',['../structade_1_1i_coord_map.html#a6ce3ec1fdf4f6a5d12e78a6877a873b7',1,'ade::iCoordMap::connect()'],['../structade_1_1_coord_map.html#aa713ce0d727e6b086ca279d13f401de0',1,'ade::CoordMap::connect()'],['../structead_1_1_coord_map.html#ac35de2d94759073abd83c53bc87c795f',1,'ead::CoordMap::connect()']]],
+  ['const_5fequals',['const_equals',['../namespaceead.html#ac15bf2a5d6ef80fce1af4e7a2b5e8f4a',1,'ead']]],
+  ['const_5fis_5fone',['const_is_one',['../namespaceead.html#ac5bf15d89b555c4cf9b2613af8c068a7',1,'ead']]],
+  ['const_5fis_5fzero',['const_is_zero',['../namespaceead.html#af39ffd55115d22a4fc5c4634d8b18109',1,'ead']]],
+  ['const_5fmerge',['const_merge',['../namespaceead.html#a11d4ef3bd46c5fe61c63639dd80d7be7',1,'ead::const_merge()'],['../namespacello.html#add86bace91fd43351d23633a4170f2ce',1,'llo::const_merge()']]],
+  ['const_5fmerge_5fedit',['const_merge_edit',['../namespaceead.html#ab775102eb3fb72f0e9273aa98f89053c',1,'ead::const_merge_edit()'],['../namespacello.html#ade63103cecf2330140492dec84ada411',1,'llo::const_merge_edit()']]],
+  ['constant',['Constant',['../structead_1_1_constant.html#a2151363638c275f18641490a7c0468fb',1,'ead::Constant::Constant(const Constant&lt; T &gt; &amp;other)=delete'],['../structead_1_1_constant.html#a104175b1a7a353fd1ac201f9770784ae',1,'ead::Constant::Constant(Constant&lt; T &gt; &amp;&amp;other)=delete'],['../structead_1_1_constant.html#aa6ebd289ee4324b77dcb9cb3857eff04',1,'ead::Constant::Constant(T *data, ade::Shape shape)'],['../structllo_1_1_constant.html#ac39f133a90cd047a1f28db1311831904',1,'llo::Constant::Constant(const Constant &amp;other)=delete'],['../structllo_1_1_constant.html#af7af5dc56855379dd0da19f1f158fef8',1,'llo::Constant::Constant(Constant &amp;&amp;other)=delete'],['../structllo_1_1_constant.html#a154e21783a14ed4bc2ebaed5751a26fd',1,'llo::Constant::Constant(const char *data, age::_GENERATED_DTYPE dtype, ade::Shape shape)']]],
+  ['constantnode',['ConstantNode',['../structead_1_1_constant_node.html#ad9576ce9a0380be496118bb00d6b046b',1,'ead::ConstantNode']]],
+  ['constrep',['ConstRep',['../structead_1_1opt_1_1_const_rep.html#a61b275326c51b23378c58a5df2cf8ade',1,'ead::opt::ConstRep']]],
+  ['construle',['ConstRule',['../structead_1_1opt_1_1_const_rule.html#a66559acc97c3f4ae8fb30ada9cda9ceb',1,'ead::opt::ConstRule']]],
+  ['conver_5fpattern',['conver_pattern',['../namespaceead_1_1opt.html#ab7387fe93af01d797e12f65c1e2070be',1,'ead::opt']]],
+  ['convert_5fto_5fnode',['convert_to_node',['../namespaceead.html#a39e1958b555bf0e45a6976002180bf1c',1,'ead']]],
+  ['convolution',['convolution',['../namespaceead.html#ae7079a0b54722801e4b8e5c19d8aef26',1,'ead::convolution()'],['../namespacello.html#a652364aa1f9f70a86b2fb805f055c7cc',1,'llo::convolution()']]],
+  ['coorder_5fequal',['coorder_equal',['../namespaceead.html#a685120df7f23d42063b2df1430fbf62a',1,'ead']]],
+  ['coordinate',['coordinate',['../namespaceade.html#a785be8ee10cd4af039c458e057b32263',1,'ade']]],
+  ['coordmap',['CoordMap',['../structade_1_1_coord_map.html#afb5c1dcf8267026e74f1fe3b3997785f',1,'ade::CoordMap::CoordMap()'],['../structead_1_1_coord_map.html#a0d1b08c750339ebca24c8b78a0c0c31d',1,'ead::CoordMap::CoordMap()']]],
+  ['cos',['cos',['../namespaceead.html#a193a7df66d2d2630b6643c69bc01ef4e',1,'ead::cos()'],['../namespacello.html#a2b2ed816266c3a85f5d1ea013ded16c2',1,'llo::cos()']]],
+  ['cube',['cube',['../namespaceead.html#ad05090f76cc3fc52d71f277d95a45f0f',1,'ead']]]
 ];

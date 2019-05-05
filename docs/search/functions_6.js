@@ -1,10 +1,15 @@
 var searchData=
 [
-  ['get',['get',['../structade_1_1_functor.html#a64dca909ffd6ddc578e352774a05e4da',1,'ade::Functor::get(Opcode opcode, ArgsT args)'],['../structade_1_1_functor.html#af4919bd1040571d3e95fe037366b1af5',1,'ade::Functor::get(const Functor &amp;other)'],['../structade_1_1_functor.html#a6b165cddd9747bb829009a12d4d2b8ef',1,'ade::Functor::get(Functor &amp;&amp;other)']]],
-  ['get_5fchildren',['get_children',['../structade_1_1_functor.html#ab15cc2bb1f427f25b16d78080f5a0572',1,'ade::Functor::get_children()'],['../structade_1_1i_functor.html#a074e2f5304eb5d59e585e480d27f8953',1,'ade::iFunctor::get_children()']]],
-  ['get_5fcoorder',['get_coorder',['../structade_1_1_func_arg.html#ab5c06f187d8cb2583b518ffda6365dc3',1,'ade::FuncArg']]],
-  ['get_5fopcode',['get_opcode',['../structade_1_1_functor.html#a340d59fb5237a9f14ec907221f1c2d26',1,'ade::Functor::get_opcode()'],['../structade_1_1i_functor.html#a7150b4b4697bd99719b6f424b1fd219c',1,'ade::iFunctor::get_opcode()']]],
-  ['get_5fshaper',['get_shaper',['../structade_1_1_func_arg.html#ab8ad50e0a9249daf935880482efbce6b',1,'ade::FuncArg']]],
-  ['get_5ftensor',['get_tensor',['../structade_1_1_func_arg.html#ac1b78c0db5f3415f7a2e92c6062342df',1,'ade::FuncArg']]],
-  ['grader',['Grader',['../structage_1_1_grader.html#a98e65180f965f57398ca98241442a6e5',1,'age::Grader']]]
+  ['fast_5fmatmul',['fast_matmul',['../namespacello.html#aaae8cde342855a200326d40483415c7c',1,'llo']]],
+  ['flip',['flip',['../namespaceade.html#a158baaa8ac46385487e88f697c3c34cf',1,'ade']]],
+  ['flip_5fmap',['flip_map',['../namespaceade.html#a6a6aed8b5fce29a5214ec432bcfae53b',1,'ade']]],
+  ['forward',['forward',['../structade_1_1i_coord_map.html#abc27f1c79994569812647d63401e208d',1,'ade::iCoordMap::forward()'],['../structade_1_1_coord_map.html#a179711b98f6980bd4e5e8f592fccb0c6',1,'ade::CoordMap::forward()'],['../structead_1_1_coord_map.html#a3b7c08ed2ff52929eb09af234686c8b8',1,'ead::CoordMap::forward()']]],
+  ['func_5fequals',['func_equals',['../namespaceead.html#ae216e386387084b1af9a529fcc6e7356',1,'ead']]],
+  ['func_5fpattern',['func_pattern',['../namespaceead_1_1opt.html#a210154dfb2464ae57c65c29b64ffa71c',1,'ead::opt']]],
+  ['funcarg',['FuncArg',['../structade_1_1_func_arg.html#a5b402e888ff1825d682239ab7b6881e7',1,'ade::FuncArg::FuncArg(TensptrT tensor, CoordptrT shaper)'],['../structade_1_1_func_arg.html#ae8a6b8bb1a4160cd56d09a040dcac22b',1,'ade::FuncArg::FuncArg(TensptrT tensor, CoordptrT shaper, bool map_io, CoordptrT coorder)'],['../structead_1_1_func_arg.html#a6f5807799eb69e654fb2e3af9a5e7fc4',1,'ead::FuncArg::FuncArg()']]],
+  ['funcnode',['FuncNode',['../structead_1_1_func_node.html#a74296567994b74da97c3ba9aaf08261e',1,'ead::FuncNode']]],
+  ['funcrep',['FuncRep',['../structead_1_1opt_1_1_func_rep.html#a6b088b189561aeed28c1791de2bd96e3',1,'ead::opt::FuncRep']]],
+  ['funcrule',['FuncRule',['../structead_1_1opt_1_1_func_rule.html#a2bfe7c066d4485ce4e043668123c2296',1,'ead::opt::FuncRule']]],
+  ['functarget',['FuncTarget',['../structead_1_1opt_1_1_func_target.html#ade84798f26f1745663ef0abf3b45ff06',1,'ead::opt::FuncTarget']]],
+  ['functor',['Functor',['../structade_1_1_functor.html#a50b66b702948e0c4f40acb4ab9dd623d',1,'ade::Functor::Functor(Opcode opcode, Shape shape, ArgsT args)'],['../structade_1_1_functor.html#af892aba37262c64ec01d6156f3342e38',1,'ade::Functor::Functor(const Functor &amp;other)=default'],['../structade_1_1_functor.html#a08759b547e2005ce0eb16c7ea488951f',1,'ade::Functor::Functor(Functor &amp;&amp;other)=default'],['../structead_1_1_functor.html#a0a07466c94b01bf43a46acf23097633c',1,'ead::Functor::Functor(const Functor&lt; T &gt; &amp;other)=delete'],['../structead_1_1_functor.html#a843bc4bfff9e85ea7adbf97f17b3848e',1,'ead::Functor::Functor(EigenptrT&lt; T &gt; out, ade::Opcode opcode, ade::Shape shape, ade::ArgsT args)'],['../structead_1_1_functor.html#a2a7f2dbee3eb9fb44e76526c173e80f2',1,'ead::Functor::Functor(Functor&lt; T &gt; &amp;&amp;other)=default']]]
 ];

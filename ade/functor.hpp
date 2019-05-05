@@ -96,6 +96,9 @@ private:
 	ArgsT args_;
 };
 
+/// Functor smart pointer
+using FuncptrT = std::shared_ptr<iFunctor>;
+
 }
 
 #endif // ADE_FUNCTOR_HPP
