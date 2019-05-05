@@ -21,7 +21,7 @@ struct iDeriver
 
 	/// Let op be functor F with arguments args
 	/// Return derivative of F wrt args[arg_idx]
-	virtual TensptrT local_derivative (std::shared_ptr<iFunctor> op,
+	virtual TensptrT local_derivative (FuncptrT op,
 		size_t arg_idx) const = 0;
 
 	/// Let op be functor F with arguments args, and
@@ -29,7 +29,7 @@ struct iDeriver
 	/// Let supcomp_grad be defined as dG/dF
 	///     where G is some super-functor using F
 	/// Return derivative G wrt to arg x by applying chain rule
-	virtual TensptrT chain_rule (std::shared_ptr<iFunctor> op,
+	virtual TensptrT chain_rule (FuncptrT op,
 		const TensptrT& local_der, TensptrT supcomp_grad) = 0;
 };
 

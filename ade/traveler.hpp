@@ -106,10 +106,11 @@ struct PathFinder final : public iTraveler
 	ParentMapT parents_;
 };
 
+/// Map between tensor and its corresponding smart pointer
 using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
 
 /// Travelers will lose smart pointer references,
-// this utility function will grab reference maps of root's subtree
+/// This utility function will grab reference maps of root's subtree
 OwnerMapT track_owners (TensptrT root);
 
 }

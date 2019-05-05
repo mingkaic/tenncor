@@ -76,8 +76,10 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_coord_map.html">CoordMap</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_edge.html">Edge</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structade_1_1_edge.html" title="Edge between parent and child tensor references and labelled with edge code. ">Edge</a> between parent and child tensor references and labelled with edge code.  <a href="structade_1_1_edge.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_edge_hash.html">EdgeHash</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structade_1_1_edge.html" title="Edge between parent and child tensor references and labelled with edge code. ">Edge</a> hasher.  <a href="structade_1_1_edge_hash.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1_func_arg.html">FuncArg</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coordinate mapper and tensor pair.  <a href="structade_1_1_func_arg.html#details">More...</a><br /></td></tr>
@@ -120,6 +122,7 @@ Typedefs</h2></td></tr>
 <tr class="memdesc:ae79e5f62f19677e24148be5a1f8b1afd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of <a class="el" href="structade_1_1i_coord_map.html" title="Interface for transforming coordinates and reversing the coordinate. ">iCoordMap</a> smartpointer.  <a href="#ae79e5f62f19677e24148be5a1f8b1afd">More...</a><br /></td></tr>
 <tr class="separator:ae79e5f62f19677e24148be5a1f8b1afd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80f6054b60a558fbff9fe32ab55aab5d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a80f6054b60a558fbff9fe32ab55aab5d">EdgesT</a> = std::vector&lt; <a class="el" href="structade_1_1_edge.html">Edge</a> &gt;</td></tr>
+<tr class="memdesc:a80f6054b60a558fbff9fe32ab55aab5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector of edges.  <a href="#a80f6054b60a558fbff9fe32ab55aab5d">More...</a><br /></td></tr>
 <tr class="separator:a80f6054b60a558fbff9fe32ab55aab5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9db559f9967702ac0d7ce882e73e8f15"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a9db559f9967702ac0d7ce882e73e8f15">ArgsT</a> = std::vector&lt; <a class="el" href="structade_1_1_func_arg.html">FuncArg</a> &gt;</td></tr>
 <tr class="memdesc:a9db559f9967702ac0d7ce882e73e8f15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of functor arguments.  <a href="#a9db559f9967702ac0d7ce882e73e8f15">More...</a><br /></td></tr>
@@ -127,11 +130,17 @@ Typedefs</h2></td></tr>
 <tr class="memitem:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">TensT</a> = std::vector&lt; <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> &gt;</td></tr>
 <tr class="memdesc:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector representation of ade tensor pointers.  <a href="#ab4db19108073a8a4dc5b8cb6aa85ad42">More...</a><br /></td></tr>
 <tr class="separator:ab4db19108073a8a4dc5b8cb6aa85ad42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a769e13e66ecc72f0d142a85dc7395591"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a769e13e66ecc72f0d142a85dc7395591">FuncptrT</a> = std::shared_ptr&lt; <a class="el" href="structade_1_1i_functor.html">iFunctor</a> &gt;</td></tr>
+<tr class="memdesc:a769e13e66ecc72f0d142a85dc7395591"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. ">Functor</a> smart pointer.  <a href="#a769e13e66ecc72f0d142a85dc7395591">More...</a><br /></td></tr>
+<tr class="separator:a769e13e66ecc72f0d142a85dc7395591"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1bdf3657cc8a95dd974ad6aa36e2230f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a1bdf3657cc8a95dd974ad6aa36e2230f">LeafptrT</a> = std::shared_ptr&lt; <a class="el" href="structade_1_1i_leaf.html">iLeaf</a> &gt;</td></tr>
+<tr class="memdesc:a1bdf3657cc8a95dd974ad6aa36e2230f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leaf smart pointer.  <a href="#a1bdf3657cc8a95dd974ad6aa36e2230f">More...</a><br /></td></tr>
 <tr class="separator:a1bdf3657cc8a95dd974ad6aa36e2230f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aceac6eb9293c8b2001737f3b26667993"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> = std::shared_ptr&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> &gt;</td></tr>
+<tr class="memdesc:aceac6eb9293c8b2001737f3b26667993"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tensor smart pointer.  <a href="#aceac6eb9293c8b2001737f3b26667993">More...</a><br /></td></tr>
 <tr class="separator:aceac6eb9293c8b2001737f3b26667993"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cd5d0a139b258e530ac3140bc7ccbb1"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">TensrefT</a> = std::weak_ptr&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> &gt;</td></tr>
+<tr class="memdesc:a0cd5d0a139b258e530ac3140bc7ccbb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tensor weak pointers.  <a href="#a0cd5d0a139b258e530ac3140bc7ccbb1">More...</a><br /></td></tr>
 <tr class="separator:a0cd5d0a139b258e530ac3140bc7ccbb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0f6687dd704fcf5c00f841da0509246"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#ae0f6687dd704fcf5c00f841da0509246">MatrixT</a> = double[<a class="el" href="namespaceade.html#a5d20bdd43f50367b1d8780c145cfe0f3">mat_dim</a>][<a class="el" href="namespaceade.html#a5d20bdd43f50367b1d8780c145cfe0f3">mat_dim</a>]</td></tr>
 <tr class="memdesc:ae0f6687dd704fcf5c00f841da0509246"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coordinate transformation matrix (using homogeneous)  <a href="#ae0f6687dd704fcf5c00f841da0509246">More...</a><br /></td></tr>
@@ -150,11 +159,13 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a2abdde771b6a0fd0afdafaed7ab00c48"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a2abdde771b6a0fd0afdafaed7ab00c48">CoordT</a> = std::array&lt; <a class="el" href="namespaceade.html#acdc2096f51fe9d232e19a346fc95d5e7">CDimT</a>, <a class="el" href="namespaceade.html#abe7612b911dddb042aa394cc0125ea69">rank_cap</a> &gt;</td></tr>
 <tr class="separator:a2abdde771b6a0fd0afdafaed7ab00c48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a369d1a2ecdeeb7c71f87dc9d50575dc3"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a369d1a2ecdeeb7c71f87dc9d50575dc3">OwnerMapT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">iTensor</a> *, <a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">TensrefT</a> &gt;</td></tr>
+<tr class="memdesc:a369d1a2ecdeeb7c71f87dc9d50575dc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map between tensor and its corresponding smart pointer.  <a href="#a369d1a2ecdeeb7c71f87dc9d50575dc3">More...</a><br /></td></tr>
 <tr class="separator:a369d1a2ecdeeb7c71f87dc9d50575dc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a6b6c4cd25145a806179fdf02a9402163"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a6b6c4cd25145a806179fdf02a9402163">is_identity</a> (<a class="el" href="structade_1_1i_coord_map.html">iCoordMap</a> *coorder)</td></tr>
+<tr class="memdesc:a6b6c4cd25145a806179fdf02a9402163"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the coord mapper is an identity mapper.  <a href="#a6b6c4cd25145a806179fdf02a9402163">More...</a><br /></td></tr>
 <tr class="separator:a6b6c4cd25145a806179fdf02a9402163"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca905a7156b047e9e5e1df3fb4f62763"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aca905a7156b047e9e5e1df3fb4f62763">reduce</a> (uint8_t rank, std::vector&lt; <a class="el" href="namespaceade.html#a127eeea15ccaee9ff162f34393f314c2">DimT</a> &gt; red)</td></tr>
 <tr class="separator:aca905a7156b047e9e5e1df3fb4f62763"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -165,6 +176,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a158baaa8ac46385487e88f697c3c34cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a158baaa8ac46385487e88f697c3c34cf">flip</a> (uint8_t dim)</td></tr>
 <tr class="separator:a158baaa8ac46385487e88f697c3c34cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abef98c50997798fc66a300c8835e78d9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#abef98c50997798fc66a300c8835e78d9">operator==</a> (const <a class="el" href="structade_1_1_edge.html">Edge</a> &amp;lhs, const <a class="el" href="structade_1_1_edge.html">Edge</a> &amp;rhs)</td></tr>
+<tr class="memdesc:abef98c50997798fc66a300c8835e78d9"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structade_1_1_edge.html" title="Edge between parent and child tensor references and labelled with edge code. ">Edge</a> equality comparator.  <a href="#abef98c50997798fc66a300c8835e78d9">More...</a><br /></td></tr>
 <tr class="separator:abef98c50997798fc66a300c8835e78d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca8ab70c54a4bdfb4e58b2a3155c7510"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structade_1_1_shape.html">Shape</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#aca8ab70c54a4bdfb4e58b2a3155c7510">apply_shaper</a> (const <a class="el" href="namespaceade.html#ae79e5f62f19677e24148be5a1f8b1afd">CoordptrT</a> &amp;shaper, <a class="el" href="structade_1_1_shape.html">Shape</a> inshape)</td></tr>
 <tr class="separator:aca8ab70c54a4bdfb4e58b2a3155c7510"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -201,7 +213,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a785be8ee10cd4af039c458e057b32263"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a2abdde771b6a0fd0afdafaed7ab00c48">CoordT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a785be8ee10cd4af039c458e057b32263">coordinate</a> (<a class="el" href="structade_1_1_shape.html">Shape</a> shape, <a class="el" href="namespaceade.html#a2fba34a89f37ea9ee310914daefd880d">NElemT</a> idx)</td></tr>
 <tr class="separator:a785be8ee10cd4af039c458e057b32263"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50c0423bd9b0ee167f5bec286554ce26"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceade.html#a369d1a2ecdeeb7c71f87dc9d50575dc3">OwnerMapT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceade.html#a50c0423bd9b0ee167f5bec286554ce26">track_owners</a> (<a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">TensptrT</a> root)</td></tr>
-<tr class="memdesc:a50c0423bd9b0ee167f5bec286554ce26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Travelers will lose smart pointer references,.  <a href="#a50c0423bd9b0ee167f5bec286554ce26">More...</a><br /></td></tr>
 <tr class="separator:a50c0423bd9b0ee167f5bec286554ce26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
@@ -222,6 +233,8 @@ Variables</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>coord.hpp ade</p>
 <p>Purpose: Define shape/coordinate transformation functions</p>
+<p><a class="el" href="ead_8hpp.html">ead.hpp</a> ade</p>
+<p>Purpose: Define non-operating edges between tensor nodes</p>
 <p>funcarg.hpp ade</p>
 <p>Purpose: Define functor argument wrapper to carryover shape and coordinate mappers</p>
 <p>functor.hpp ade</p>
@@ -232,6 +245,8 @@ Variables</h2></td></tr>
 <p>Purpose: Define interfaces and building blocks for an equation graph</p>
 <p><a class="el" href="matops_8hpp.html">matops.hpp</a> ade</p>
 <p>Purpose: Define matrix operations for coordinate transformation This functions are here to avoid external dependencies in ADE</p>
+<p><a class="el" href="opfunc_8hpp.html">opfunc.hpp</a> ade</p>
+<p>Purpose: Define functor nodes directly hold/manipulate data This differs from <a class="el" href="structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. ">Functor</a> which should not directly manipulate data</p>
 <p><a class="el" href="shape_8hpp.html">shape.hpp</a> ade</p>
 <p>Purpose: Define shapes models and coordinate to flattened index mapping</p>
 <p><a class="el" href="traveler_8hpp.html">traveler.hpp</a> ade</p>
@@ -328,6 +343,24 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Vector of edges. </p>
+
+</div>
+</div>
+<a id="a769e13e66ecc72f0d142a85dc7395591"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a769e13e66ecc72f0d142a85dc7395591">&#9670;&nbsp;</a></span>FuncptrT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceade.html#a769e13e66ecc72f0d142a85dc7395591">ade::FuncptrT</a> = typedef std::shared_ptr&lt;<a class="el" href="structade_1_1i_functor.html">iFunctor</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. ">Functor</a> smart pointer. </p>
+
 </div>
 </div>
 <a id="a1bdf3657cc8a95dd974ad6aa36e2230f"></a>
@@ -341,6 +374,8 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Leaf smart pointer. </p>
 
 </div>
 </div>
@@ -387,6 +422,8 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Map between tensor and its corresponding smart pointer. </p>
+
 </div>
 </div>
 <a id="ae85a1831aeb0b2b43c3730301cbaec30"></a>
@@ -417,6 +454,8 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Tensor smart pointer. </p>
+
 </div>
 </div>
 <a id="a0cd5d0a139b258e530ac3140bc7ccbb1"></a>
@@ -430,6 +469,8 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Tensor weak pointers. </p>
 
 </div>
 </div>
@@ -733,6 +774,8 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Checks if the coord mapper is an identity mapper. </p>
+
 </div>
 </div>
 <a id="ab6daf41b04bccd42950ae92db8a0439a"></a>
@@ -804,6 +847,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="structade_1_1_edge.html" title="Edge between parent and child tensor references and labelled with edge code. ">Edge</a> equality comparator. </p>
 
 </div>
 </div>
@@ -1003,8 +1048,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Travelers will lose smart pointer references,. </p>
+<p>Travelers will lose smart pointer references, This utility function will grab reference maps of root's subtree </p>
 
 </div>
 </div>

@@ -11,6 +11,7 @@ var searchData=
   ['funcarg_2ecpp',['funcarg.cpp',['../funcarg_8cpp.html',1,'']]],
   ['funcarg_2ehpp',['funcarg.hpp',['../ade_2funcarg_8hpp.html',1,'(Global Namespace)'],['../ead_2funcarg_8hpp.html',1,'(Global Namespace)']]],
   ['funcnode',['FuncNode',['../structead_1_1_func_node.html',1,'ead::FuncNode&lt; T &gt;'],['../structead_1_1_func_node.html#a74296567994b74da97c3ba9aaf08261e',1,'ead::FuncNode::FuncNode()']]],
+  ['funcptrt',['FuncptrT',['../namespaceade.html#a769e13e66ecc72f0d142a85dc7395591',1,'ade']]],
   ['funcrep',['FuncRep',['../structead_1_1opt_1_1_func_rep.html',1,'ead::opt::FuncRep&lt; T &gt;'],['../structead_1_1opt_1_1_func_rep.html#a6b088b189561aeed28c1791de2bd96e3',1,'ead::opt::FuncRep::FuncRep()']]],
   ['funcrepptrt',['FuncRepptrT',['../namespaceead_1_1opt.html#a67ef1559384b6c06b56027e63c970741',1,'ead::opt']]],
   ['funcrule',['FuncRule',['../structead_1_1opt_1_1_func_rule.html',1,'ead::opt::FuncRule&lt; T &gt;'],['../structead_1_1opt_1_1_func_rule.html#a2bfe7c066d4485ce4e043668123c2296',1,'ead::opt::FuncRule::FuncRule()']]],

@@ -65,12 +65,16 @@ TEST(EDGE, Equality)
 	ade::Edge edge3{parent2, child2, mock_code};
 	ade::Edge edge4{parent, child, mock_code2};
 
+	ade::Edge expired_edge;
+	ASSERT_TRUE(expired_edge.expired());
+
 	ade::Edge edge_eq{parent, child, mock_code};
 
 	EXPECT_FALSE(orig_edge == edge);
 	EXPECT_FALSE(orig_edge == edge2);
 	EXPECT_FALSE(orig_edge == edge3);
 	EXPECT_FALSE(orig_edge == edge4);
+	EXPECT_FALSE(orig_edge == expired_edge);
 	EXPECT_TRUE(orig_edge == edge_eq);
 }
 
@@ -87,6 +91,15 @@ TEST(EDGE, Hash)
 	ade::TensptrT child(new MockTensor(shape));
 	ade::TensptrT child2(new MockTensor(shape));
 
+	ade::Edge expired_edge;
+	ade::Edge expired_edge2 = {
+		ade::TensrefT(),
+		ade::TensrefT(),
+		ade::Opcode{"SOMETHING", 123},
+	};
+	ASSERT_TRUE(expired_edge.expired());
+	ASSERT_TRUE(expired_edge2.expired());
+
 	std::unordered_set<ade::Edge,ade::EdgeHash> edges = {
 		ade::Edge{parent, child, mock_code},
 		ade::Edge{parent2, child, mock_code},
@@ -94,9 +107,11 @@ TEST(EDGE, Hash)
 		ade::Edge{parent2, child2, mock_code},
 		ade::Edge{parent, child, mock_code2},
 		ade::Edge{parent, child, mock_code},
+		expired_edge,
+		expired_edge2,
 	};
 
-	EXPECT_EQ(5, edges.size());
+	EXPECT_EQ(6, edges.size());
 }
 
 
