@@ -1330,98 +1330,102 @@ TEST(API, RandUniform)
 }
 
 
-// TEST(API, DISABLED_Convolution)
-// {
-// 	std::vector<ade::DimT> alist = {2, 4, 3, 1};
-// 	std::vector<ade::DimT> blist = {1, 2, 3, 3};
-// 	ade::Shape shape(alist);
-// 	ade::Shape kshape(blist);
-// 	std::vector<ade::DimT> expectslist = {
-// 		1, 2, 1, 1, 1, 1, 1, 1,
-// 	};
+TEST(API, Convolution)
+{
+	std::vector<ade::DimT> alist = {2, 4, 3, 3};
+	std::vector<ade::DimT> blist = {1, 2, 2, 1};
+	ade::Shape shape(alist);
+	ade::Shape kshape(blist);
+	std::vector<ade::DimT> expectslist = {
+		2, 3, 2, 3, 1, 1, 1, 1,
+	};
 
-// 	std::vector<double> data = {
-// 		1,2,3,
-// 		4,5,6,
-// 		7,8,9,
-// 		10,11,12,
+	std::vector<double> data = {
+		37, 93, 33, 47, 87, 39, 69, 10,
+		74, 67, 32, 4, 99, 89, 85, 64,
+		49, 61, 27, 89, 100, 41, 52, 66,
 
-// 		13,14,15,
-// 		16,17,18,
-// 		19,20,21,
-// 		22,23,24,
-// 	};
-// 	std::vector<double> data2 = {
-// 		2,4,3,
-// 		2,4,3,
-// 		2,4,3,
+		71, 54, 7, 90, 8, 89, 20, 53,
+		59, 32, 66, 55, 71, 37, 7, 98,
+		48, 66, 58, 77, 61, 20, 48, 31,
 
-// 		3,3,3,
-// 		4,4,4,
-// 		2,2,2,
-// 	};
-// 	std::vector<double> expect_out = {
-// 		615,
-// 		723,
-// 	};
-// 	std::vector<double> expect_ga = {
-// 		2,4,5,
-// 		6,7,5,
-// 		4,3,2,
-// 		4,5,7,
+		71, 20, 30, 26, 48, 3, 15, 78,
+		70, 70, 58, 11, 58, 82, 57, 56,
+		39, 88, 58, 63, 35, 69, 35, 62
+	};
+	std::vector<double> data2 = {
+		2,3,
+		2,4,
+	};
+	std::vector<double> expect_out = {
+		449, 477, 787, 575, 919, 542,
+		450, 624, 815, 617, 861, 716,
 
-// 		6,6,3,
-// 		3,4,4,
-// 		8,6,6,
-// 		4,2,2,
-// 	};
-// 	std::vector<double> expect_gb = {
-// 		4,6,8,
-// 		10,12,14,
-// 		20,22,24,
+		545, 662, 454, 705, 246, 803,
+		644, 669, 705, 455, 477, 532,
 
-// 		26,28,30,
-// 		36,38,40,
-// 		42,44,46,
-// 	};
+		604, 302, 552, 411, 485, 628,
+		624, 601, 546, 670, 497, 718
+	};
+	std::vector<double> expect_ga = {
+		37, 93, 33, 47, 87, 39, 69, 10,
+		74, 67, 32, 4, 99, 89, 85, 64,
+		49, 61, 27, 89, 100, 41, 52, 66,
 
-// 	ade::TensptrT img(llo::Variable<double>::get(data, shape));
-// 	ade::TensptrT kernel(llo::Variable<double>::get(data2, kshape));
-// 	ade::TensptrT dest = age::convolution(img, kernel);
+		71, 54, 7, 90, 8, 89, 20, 53,
+		59, 32, 66, 55, 71, 37, 7, 98,
+		48, 66, 58, 77, 61, 20, 48, 31,
 
-// 	ead::NodeptrT<double> out = llo::eval<double>(dest);
-// 	ade::Shape gotshape = dest->shape();
-// 	{
-// 		std::vector<ade::DimT> slist(gotshape.begin(), gotshape.end());
-// 		EXPECT_ARREQ(expectslist, slist);
-// 		double* optr = (double*) out->data();
-// 		ASSERT_NE(nullptr, optr);
-// 		std::vector<double> outdata(optr, optr + gotshape.n_elems());
-// 		ASSERT_ARREQ(expect_out, outdata);
-// 	}
+		71, 20, 30, 26, 48, 3, 15, 78,
+		70, 70, 58, 11, 58, 82, 57, 56,
+		39, 88, 58, 63, 35, 69, 35, 62
+	};
+	std::vector<double> expect_gb = {
+		2,3,
+		2,4,
+	};
 
-// 	ade::TensptrT gleft = llo::derive(dest, img);
-// 	ead::NodeptrT<double> gout_left = llo::eval<double>(gleft);
-// 	ade::Shape gashape = ead::get_shape<double>(*gout_left);
-// 	{
-// 		std::vector<ade::DimT> glist(gashape.begin(), gashape.end());
-// 		ASSERT_ARREQ(alist, glist);
-// 		double* ga = (double*) gleft->data();
-// 		std::vector<double> ga_data(ga, ga + gashape.n_elems());
-// 		ASSERT_ARREQ(expect_ga, ga_data);
-// 	}
+	ead::NodeptrT<double> img = ead::make_constant<double>(data.data(), shape);
+	ead::NodeptrT<double> kernel = ead::make_constant<double>(data2.data(), kshape);
+	ead::NodeptrT<double> dest = age::convolution(img, kernel);
 
-// 	ade::TensptrT gright = llo::derive(dest, kernel);
-// 	ead::NodeptrT<double> gout_right = llo::eval<double>(gright);
-// 	ade::Shape gbshape = ead::get_shape<double>(*gout_right);
-// 	{
-// 		std::vector<ade::DimT> glist(gbshape.begin(), gbshape.end());
-// 		ASSERT_ARREQ(blist, glist);
-// 		double* gb = (double*) gright->data();
-// 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
-// 		ASSERT_ARREQ(expect_gb, gb_data);
-// 	}
-// }
+	dest->update();
+	{
+		auto gotshape = dest->shape();
+		ASSERT_ARREQ(expectslist, gotshape);
+
+		double* optr = (double*) dest->data();
+		ASSERT_NE(nullptr, optr);
+		std::vector<double> outdata(optr, optr + gotshape.n_elems());
+		ASSERT_ARREQ(expect_out, outdata);
+	}
+
+	ead::Session<double> session;
+
+	ead::NodeptrT<double> gleft = ead::derive(dest, img);
+	ASSERT_NE(nullptr, gleft);
+	session.track(gleft);
+	session.update();
+	{
+		auto gashape = gleft->shape();
+		ASSERT_ARREQ(alist, gashape);
+		double* ga = (double*) gleft->data();
+		std::vector<double> ga_data(ga, ga + gashape.n_elems());
+		ASSERT_ARREQ(expect_ga, ga_data);
+	}
+
+	ead::NodeptrT<double> gright = ead::derive(dest, kernel);
+	ASSERT_NE(nullptr, gright);
+	session.track(gright);
+	session.update();
+	{
+		auto gbshape = gright->shape();
+		ASSERT_ARREQ(blist, gbshape);
+		double* gb = (double*) gright->data();
+		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
+		ASSERT_ARREQ(expect_gb, gb_data);
+	}
+}
 
 
 #endif // DISABLE_API_TEST

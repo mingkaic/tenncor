@@ -199,6 +199,10 @@ struct ChainRuler
 			}
 				break;
 			case age::CONV:
+			{
+				//
+			}
+				// break;
 			default:
 				logs::fatal("Unknown op");
 		}
@@ -262,6 +266,10 @@ struct ChainRuler
 							std::vector<uint8_t>{0, 2, 1}), 2);
 				break;
 			case age::CONV:
+			{
+				//
+			}
+				// break;
 			default:
 				logs::fatal("Unknown op");
 		}

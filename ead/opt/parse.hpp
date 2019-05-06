@@ -189,12 +189,12 @@ RuleTargetptrT<T> make_target (std::string dest,
 	std::istringstream iss(dest);
 	double num;
 	iss >> std::noskipws >> num;
-	if (iss.eof() && !iss.fail())
+	if (false == iss.eof() || iss.fail())
 	{
-		// is a scalar
-		return std::make_shared<ScalarTarget<T>>(num);
+		logs::fatalf("unknown symbol %s", dest.c_str());
 	}
-	logs::fatalf("unknown symbol %s", dest.c_str());
+	// is a scalar
+	return std::make_shared<ScalarTarget<T>>(num);
 }
 
 static std::string strip_comment (std::string line)

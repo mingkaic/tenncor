@@ -170,7 +170,7 @@
         },
         "CONV": {
             "operation": "return ead::convolution(shape,in[0],in[1])",
-            "derivative": "bwd"
+            "derivative": "ead::convolve_grad(fwd,bwd,idx)"
         }
     },
     "apis": [
@@ -777,7 +777,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::make_functor<T>(ade::Opcode{\"CONV\",CONV},{ead::identity_map(arg1),ead::identity_map(arg2)})"
+                "val": "ead::get_convolve(arg1,arg2)"
             }
         }
     ]

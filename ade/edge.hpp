@@ -57,7 +57,7 @@ struct EdgeHash final
 inline bool operator == (const Edge& lhs, const Edge& rhs)
 {
 	EdgeHash hasher;
-    return hasher(lhs) == hasher(rhs);
+	return hasher(lhs) == hasher(rhs);
 }
 
 }

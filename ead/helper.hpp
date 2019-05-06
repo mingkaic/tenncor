@@ -80,6 +80,44 @@ NodeptrT<T> get_matmul (NodeptrT<T> a, NodeptrT<T> b)
 	});
 }
 
+template <typename T>
+NodeptrT<T> get_convolve (NodeptrT<T> input, NodeptrT<T> kernel)
+{
+	ade::Shape inshape = input->get_tensor()->shape();
+	ade::Shape kernelshape = kernel->get_tensor()->shape();
+	ade::CoordptrT input_shaper(new ade::CoordMap(
+		[&kernelshape](ade::MatrixT fwd)
+		{
+			for (uint8_t i = 0; i < ade::rank_cap; ++i)
+			{
+				fwd[i][i] = 1;
+			}
+			for (uint8_t i = 0; i < ade::rank_cap; ++i)
+			{
+				fwd[ade::rank_cap][i] = -kernelshape.at(i) + 1;
+			}
+		}
+	));
+
+	ade::CoordptrT kernel_shaper(new ade::CoordMap(
+		[&inshape](ade::MatrixT fwd)
+		{
+			for (uint8_t i = 0; i < ade::rank_cap; ++i)
+			{
+				fwd[i][i] = -1;
+			}
+			for (uint8_t i = 0; i < ade::rank_cap; ++i)
+			{
+				fwd[ade::rank_cap][i] = inshape.at(i) + 1;
+			}
+		}
+	));
+	return make_functor<T>(ade::Opcode{"CONV", age::CONV}, {
+		FuncArg<T>(input, input_shaper, nullptr),
+		FuncArg<T>(kernel, kernel_shaper, nullptr)
+	});
+}
+
 }
 
 #endif // EAD_HELPER_HPP

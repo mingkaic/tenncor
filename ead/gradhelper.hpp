@@ -180,6 +180,13 @@ NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
 			), perm), 2);
 }
 
+template <typename T>
+NodeptrT<T> convolve_grad (ade::iFunctor* fwd,
+	NodeptrT<T> bwd, size_t idx)
+{
+	return nullptr;
+}
+
 }
 
 #endif // EAD_GRADHELPER_HPP

@@ -5,6 +5,11 @@ P3 = "want to have"
 P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
+=== feature ===
+P2 - workout convolution grad in ead
+P3 - implement subgraph stand-in for rocnnet layers
+P4 - implement reduce_prod gradient using Eigen cumprod
+
 === structure ===
 P2 - generalize grader and move to ade (otherwise ade does not fulfil its main purpose)
 P3 - generalize rule conversion feature for all implementations of ade nodes
@@ -24,10 +29,6 @@ P4 - conform to some bazel style/convention (or change to another build tool)
 === update ===
 P2 - update all fmts usages
 P3 - address warnings
-
-=== feature ===
-P2 - implement convolution using Eigen for ead and llo
-P3 - implement subgraph stand-in for rocnnet layers
 
 === performance ===
 general performance:

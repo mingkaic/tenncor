@@ -949,9 +949,22 @@ EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 }
 
 template <typename T>
-EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
+EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& input, const OpArg<T>& kernel)
 {
-	throw std::bad_function_call(); // todo: implement
+	return make_eigentensor<T,Eigen::TensorConvolutionOp<
+		const Eigen::array<ptrdiff_t,ade::rank_cap>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args) -> Eigen::TensorConvolutionOp<
+			const Eigen::array<ptrdiff_t,ade::rank_cap>,
+			const TensMapT<T>,const TensMapT<T>>
+		{
+			Eigen::array<ptrdiff_t,ade::rank_cap> dims;
+			std::iota(dims.begin(), dims.end(), 0);
+			return args[0].convolve(args[1], dims);
+		}, {
+			make_tensmap(input.data_, input.shape_),
+			make_tensmap(kernel.data_, kernel.shape_)});
 }
 
 }
