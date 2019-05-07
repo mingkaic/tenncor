@@ -13,6 +13,7 @@ P4 - implement reduce_prod gradient using Eigen cumprod
 === structure ===
 P2 - generalize grader and move to ade (otherwise ade does not fulfil its main purpose)
 P3 - generalize rule conversion feature for all implementations of ade nodes
+P4 - move ead helper functions in ade
 
 === correction ===
 P3 - reorient tests so that tests cover its own immediate module

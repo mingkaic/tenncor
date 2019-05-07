@@ -25,22 +25,7 @@ struct FuncArg final
 	/// Return shape of tensor filtered through coordinate mapper
 	ade::Shape shape (void) const
 	{
-		ade::Shape shape = node_->get_tensor()->shape();
-		ade::CoordT out;
-		ade::CoordT in;
-		std::copy(shape.begin(), shape.end(), in.begin());
-		shaper_->forward(out.begin(), in.begin());
-		std::vector<ade::DimT> slist(ade::rank_cap);
-		std::transform(out.begin(), out.end(), slist.begin(),
-			[](ade::CDimT cd) -> ade::DimT
-			{
-				if (cd < 0)
-				{
-					cd = -cd - 1;
-				}
-				return std::round(cd);
-			});
-		return ade::Shape(slist);
+		return ade::apply_shaper(shaper_, node_->get_tensor()->shape());
 	}
 
 	/// Return tensor being mapped
