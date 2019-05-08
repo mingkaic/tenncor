@@ -1,7 +1,0 @@
-<map id="ead::Functor&lt; T &gt;" name="ead::Functor&lt; T &gt;">
-<area shape="rect" id="node2" href="$structade_1_1i_operable_func.html" title="A functor node with direct access to evaluated data. " alt="" coords="5,155,144,180"/>
-<area shape="rect" id="node3" href="$structade_1_1i_functor.html" title="Interface of iOperation&#45;defined operation node. " alt="" coords="25,80,124,105"/>
-<area shape="rect" id="node4" href="$structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="28,5,122,31"/>
-<area shape="rect" id="node5" href="$structade_1_1_opcode.html" title="Encoding of operation. " alt="" coords="168,155,266,180"/>
-<area shape="rect" id="node6" href="$structade_1_1_shape.html" title="ade::Shape" alt="" coords="290,155,379,180"/>
-</map>

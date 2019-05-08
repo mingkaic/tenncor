@@ -1,6 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structead_1_1opt_1_1_rule_target.html" title="ead::opt::RuleTarget\&lt; T \&gt;" alt="" coords="5,55,177,80"/>
-<area shape="rect" id="node2" href="$structead_1_1opt_1_1_func_target.html" title="ead::opt::FuncTarget\&lt; T \&gt;" alt="" coords="229,5,404,31"/>
-<area shape="rect" id="node3" href="$structead_1_1opt_1_1_scalar_target.html" title="ead::opt::ScalarTarget\&lt; T \&gt;" alt="" coords="225,55,408,80"/>
-<area shape="rect" id="node4" href="$structead_1_1opt_1_1_var_target.html" title="ead::opt::VarTarget\&lt; T \&gt;" alt="" coords="234,104,399,129"/>
-</map>
