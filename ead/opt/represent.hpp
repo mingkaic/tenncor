@@ -474,8 +474,7 @@ void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
 }
 
 template <typename T>
-NodesT<T> unrepresent (Representer<T>& repr, ade::EdgesT& edges,
-	const NodesT<T>& roots)
+NodesT<T> unrepresent (Representer<T>& repr, const NodesT<T>& roots)
 {
 	NodesT<T> out;
 	out.reserve(roots.size());
@@ -487,27 +486,6 @@ NodesT<T> unrepresent (Representer<T>& repr, ade::EdgesT& edges,
 		auto& rep = repr.reps_[tens.get()];
 		unravel(unravelled, rep, owners);
 		out.push_back(unravelled[rep]);
-	}
-	for (ade::Edge& edge : edges)
-	{
-		if (false == edge.expired())
-		{
-			auto parent_rep = repr.reps_.at(
-				edge.parent_.lock().get());
-			auto parent_it = unravelled.find(parent_rep);
-			if (unravelled.end() != parent_it)
-			{
-				edge.parent_ = parent_it->second->get_tensor();
-			}
-
-			auto child_rep = repr.reps_.at(
-				edge.child_.lock().get());
-			auto child_it = unravelled.find(child_rep);
-			if (unravelled.end() != child_it)
-			{
-				edge.child_ = child_it->second->get_tensor();
-			}
-		}
 	}
 	return out;
 }

@@ -1,3 +1,6 @@
+features:
+P2 - complete conv neural net implementation
+
 correctness:
 P2 - formalize tests for eqns, modl, and trainer
 P3 - verify rocnnet correctness using automated test
@@ -7,6 +10,3 @@ P3 - force dbn to conform to established trainer pattern
 
 performance:
 P4 - investigate benchmark options
-
-features:
-P2 - complete conv neural net implementation

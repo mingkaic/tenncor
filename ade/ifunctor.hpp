@@ -42,6 +42,9 @@ struct iFunctor : public iTensor
 	virtual const ArgsT& get_children (void) const = 0;
 };
 
+/// Functor smart pointer
+using FuncptrT = std::shared_ptr<iFunctor>;
+
 }
 
 #endif // ADE_IFUNCTOR_HPP

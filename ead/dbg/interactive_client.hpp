@@ -5,7 +5,6 @@
 #include <grpcpp/security/credentials.h>
 
 #include "ade/itensor.hpp"
-#include "ade/edge.hpp"
 
 #include "ead/dbg/graph.grpc.pb.h"
 
@@ -27,7 +26,7 @@ struct NodeMetadata
 using GraphCanvasT = std::unordered_map<ade::iTensor*,NodeMetadata>;
 
 void set_transfer_request (idbg::GraphUpdateRequest& req,
-	const GraphCanvasT& canvas, const ade::EdgesT& edges)
+	const GraphCanvasT& canvas)
 {
 	auto graph = req.mutable_payload();
 	assert(nullptr != graph);
@@ -78,18 +77,6 @@ void set_transfer_request (idbg::GraphUpdateRequest& req,
 			edge->set_label(fmts::to_string(i));
 		}
 	}
-	for (const ade::Edge& labelled_edge : edges)
-	{
-		if (false == labelled_edge.expired())
-		{
-			idbg::Edge* edge = graph->add_edges();
-			edge->set_parent(
-				id_map[labelled_edge.parent_.lock().get()]);
-			edge->set_child(
-				id_map[labelled_edge.child_.lock().get()]);
-			edge->set_label(labelled_edge.edge_code_.name_);
-		}
-	}
 }
 
 struct GraphClient
@@ -98,7 +85,7 @@ struct GraphClient
 		stub_(idbg::InteractiveGrapher::NewStub(
 			grpc::CreateChannel(host, grpc::InsecureChannelCredentials()))) {}
 
-	void send (const GraphCanvasT& canvas, const ade::EdgesT& edges)
+	void send (const GraphCanvasT& canvas)
 	{
 		grpc::ClientContext context;
 		auto deadline = std::chrono::system_clock::now() +
@@ -108,7 +95,7 @@ struct GraphClient
 		idbg::GraphUpdateRequest req;
 		idbg::GraphUpdateResponse res;
 
-		set_transfer_request(req, canvas, edges);
+		set_transfer_request(req, canvas);
 
 		grpc::Status status = stub_->UpdateGraph(&context, req, &res);
 		if (!status.ok())

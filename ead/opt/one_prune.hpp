@@ -47,13 +47,13 @@ ade::TensptrT one_prune_edit (bool& is_optimized,
 			case age::ABS:
 			case age::SQRT:
 			case age::ROUND:
-				return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get_scalar(1, args[0].shape()));
 			case age::LOG:
-				return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get_scalar((T) 0, args[0].shape()));
 			case age::POW:
 				if (is_one[0])
 				{
-					return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
+					return ade::TensptrT(Constant<T>::get_scalar(1, args[0].shape()));
 				}
 				// else if is_one[1]
 				return args[0].get_tensor();

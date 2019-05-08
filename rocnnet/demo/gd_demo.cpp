@@ -40,7 +40,7 @@ static std::vector<float> avgevry2 (std::vector<float>& in)
 	return out;
 }
 
-int main (int argc, char** argv)
+int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 

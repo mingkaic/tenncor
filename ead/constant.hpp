@@ -15,7 +15,7 @@ struct Constant final : public iLeaf<T>
 		return new Constant(data, shape);
 	}
 
-	static Constant* get (T scalar, ade::Shape shape)
+	static Constant* get_scalar (T scalar, ade::Shape shape)
 	{
 		size_t n = shape.n_elems();
 		T buffer[n];
@@ -66,7 +66,7 @@ template <typename T>
 NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)
 {
 	return std::make_shared<ConstantNode<T>>(
-		std::shared_ptr<Constant<T>>(Constant<T>::get(scalar, shape))
+		std::shared_ptr<Constant<T>>(Constant<T>::get_scalar(scalar, shape))
 	);
 }
 

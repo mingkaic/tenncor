@@ -51,19 +51,19 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 			case age::SQRT:
 			case age::ROUND:
 			case age::MUL:
-				return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get_scalar((T) 0, args[0].shape()));
 			case age::COS:
 			case age::EXP:
-				return ade::TensptrT(Constant<T>::get(1, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get_scalar(1, args[0].shape()));
 			case age::LOG:
 				logs::fatal("cannot LOG by zero");
 			case age::POW:
 				if (is_zero[0])
 				{
-					return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
+					return ade::TensptrT(Constant<T>::get_scalar((T) 0, args[0].shape()));
 				}
 				// else if is_zero[1]
-				return ade::TensptrT(Constant<T>::get(1, args[1].shape()));
+				return ade::TensptrT(Constant<T>::get_scalar(1, args[1].shape()));
 			case age::ADD:
 				if (is_zero[0])
 				{
@@ -74,7 +74,7 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 			case age::SUB:
 				if (is_zero[0] && is_zero[1])
 				{
-					return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
+					return ade::TensptrT(Constant<T>::get_scalar((T) 0, args[0].shape()));
 				}
 				else if (is_zero[0])
 				{
@@ -91,7 +91,7 @@ ade::TensptrT zero_prune_edit (bool& is_optimized,
 					logs::fatal("cannot DIV by zero");
 				}
 				// else if is_zero[0]
-				return ade::TensptrT(Constant<T>::get((T) 0, args[0].shape()));
+				return ade::TensptrT(Constant<T>::get_scalar((T) 0, args[0].shape()));
 			case age::MIN:
 			case age::MAX:
 			case age::EQ:

@@ -441,8 +441,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	// optimize
 	auto rules = ead::opt::get_configs<double>();
 	ead::NodesT<double> roots = {dw0, db0, dw1, db1};
-	ade::EdgesT edges;
-	ead::opt::optimize(roots, edges, rules);
+	ead::opt::optimize(roots, rules);
 	dw0 = roots[0];
 	db0 = roots[1];
 	dw1 = roots[2];
@@ -878,8 +877,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	// optimize
 	auto rules = ead::opt::get_configs<double>();
 	ead::NodesT<double> roots = {dw0, db0, dw1, db1};
-	ade::EdgesT edges;
-	ead::opt::optimize(roots, edges, rules);
+	ead::opt::optimize(roots, rules);
 	dw0 = roots[0];
 	db0 = roots[1];
 	dw1 = roots[2];

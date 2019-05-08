@@ -1,4 +1,5 @@
 #include "ead/opt/rule_src.hpp"
+#include "ead/opt/ops_prune.hpp" // todo: move functionality here
 
 #ifndef EAD_CONVERSION_HPP
 #define EAD_CONVERSION_HPP
@@ -256,8 +257,7 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 
 // Optimize nodes while attempting to preserve edges using conversions
 template <typename T>
-void optimize (NodesT<T>& nodes, ade::EdgesT& edges,
-	const ConversionsT<T>& conversions)
+void optimize (NodesT<T>& nodes, const ConversionsT<T>& conversions)
 {
 	Representer<T> repr;
 	for (NodeptrT<T>& node : nodes)
@@ -286,11 +286,8 @@ void optimize (NodesT<T>& nodes, ade::EdgesT& edges,
 
 	apply_rules(repr, unique_tens, conversions);
 
-	nodes = unrepresent(repr, edges, nodes);
-
-	std::unordered_set<ade::Edge,ade::EdgeHash> unique_edges(
-		edges.begin(), edges.end());
-	edges = ade::EdgesT(unique_edges.begin(), unique_edges.end());
+	nodes = unrepresent(repr, nodes);
+	nodes = ops_prune(nodes);
 }
 
 }
