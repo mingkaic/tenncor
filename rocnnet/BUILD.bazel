@@ -109,14 +109,3 @@ cc_binary(
     ],
     data = ["//ead:optimizations"],
 )
-
-cc_binary(
-    name = "experiment2",
-    srcs = ["demo/eigen_experiment.cpp"],
-    copts = ["-std=c++17"],
-    deps = [
-        "//ead:dbg",
-        "//rocnnet/trainer:trainer",
-    ],
-    data = ["//ead:optimizations"],
-)

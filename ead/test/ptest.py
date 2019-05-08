@@ -573,56 +573,71 @@ class EADTest(unittest.TestCase):
         self._array_close(exdata2, der2)
         self._array_close(exdata3, der3)
 
-    # def test_convolution(self):
-    #     padding = "VALID"
-    #     batchsize = 2
-    #     inchannel = 3
-    #     outchannel = 4
-    #     dims = 5
+    def test_convolution(self):
+        padding = "VALID"
+        shapes = [
+            ([3, 3], [3, 3]),
+            ([5, 5], [3, 3]),
+        ]
+        for shape, kernelshape in shapes:
+            tf_shape = [1, shape[0], shape[1], 1]
+            tf_kernelshape = [kernelshape[0], kernelshape[1], 1, 1]
 
-    #     shapes = [
-    #         ([1, 3, 3, 1], [3, 3, 1, 1]),
-    #         ([batchsize, dims, dims, inchannel], [3, 3, inchannel, outchannel]),
-    #     ]
-    #     for shape, kernelshape in shapes:
-    #         data = np.random.rand(*shape).astype(np.float32)
-    #         kernel = np.random.rand(*kernelshape).astype(np.float32)
+            data = np.random.rand(*shape).astype(np.float32)
+            kernel = np.random.rand(*kernelshape).astype(np.float32)
+            tf_data = data.reshape(tf_shape)
+            tf_kdata = kernel.reshape(tf_kernelshape)
 
-    #         var = ead.variable(data, 'var')
-    #         vkernel = ead.variable(kernel, 'vkernel')
-    #         tf_var = tf.Variable(data)
-    #         tf_kernel = tf.Variable(kernel)
+            var = ead.variable(data, 'var')
+            vkernel = ead.variable(kernel, 'vkernel')
 
-    #         sess = tf.Session()
-    #         sess.run(tf_var.initializer)
-    #         sess.run(tf_kernel.initializer)
+            tf_var = tf.Variable(tf_data)
+            tf_kernel = tf.Variable(tf_kdata)
 
-    #         out = age.convolution(var, vkernel)
-    #         tf_out = tf.nn.convolution(tf_var, tf_kernel, padding)
+            out = age.convolution(var, vkernel)
 
-    #         fout = out.evaluate(dtype=np.dtype(float))
-    #         tf_fout = sess.run(tf_out)
+            sess = ead.Session()
+            sess.track(out)
+            sess.update()
 
-    #         self._array_close(tf_fout, fout)
+            fout = out.get()
 
-    #         var2 = ead.variable(data, 'var2')
-    #         zero = ead.derive(out, var2)
-    #         ex = ead.derive(out, var)
-    #         ex2 = ead.derive(out, vkernel)
+            tfsess = tf.Session()
+            tfsess.run(tf_var.initializer)
+            tfsess.run(tf_kernel.initializer)
 
-    #         rej = zero.evaluate()
-    #         der = ex.evaluate()
-    #         der2 = ex2.evaluate()
+            tf_out = tf.nn.convolution(tf_var, tf_kernel, padding)
+            tf_fout = tfsess.run(tf_out)
 
-    #         data0 = np.zeros(shape, dtype=np.float32)
-    #         tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_kernel])
+            tf_fout = tf_fout.reshape([tf_fout.shape[1], tf_fout.shape[2]])
+            self._array_close(tf_fout, fout)
 
-    #         exdata = sess.run(tf_grad)
-    #         exdata2 = sess.run(tf_grad2)
+            var2 = ead.variable(data, 'var2')
+            zero = ead.derive(out, var2)
+            ex = ead.derive(out, var)
+            ex2 = ead.derive(out, vkernel)
 
-    #         self._array_eq(data0, rej)
-    #         self._array_close(exdata, der)
-    #         self._array_close(exdata2, der2)
+            sess.track(zero)
+            sess.track(ex)
+            sess.track(ex2)
+            sess.update()
+
+            rej = zero.get()
+            der = ex.get()
+            der2 = ex2.get()
+
+            data0 = np.zeros(shape, dtype=np.float32)
+            tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_kernel])
+
+            exdata = tfsess.run(tf_grad)
+            exdata2 = tfsess.run(tf_grad2)
+
+            exdata = exdata.reshape(shape)
+            exdata2 = exdata2.reshape(kernelshape)
+
+            self._array_eq(data0, rej)
+            self._array_close(exdata, der)
+            self._array_close(exdata2, der2)
 
     def test_grader_scenario1(self): # REDUCE -> MUL
         data = np.random.rand(3,10)

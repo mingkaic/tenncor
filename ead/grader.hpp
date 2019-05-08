@@ -125,6 +125,7 @@ struct ChainRuler
 				out = ead::make_constant_scalar<T>(1, args[0].get_tensor()->shape());
 				break;
 			case age::MUL:
+			case age::CONV:
 				out = ead::to_node<T>(args[(size_t)(idx==0)].get_tensor());
 				break;
 			case age::MAX:
@@ -198,11 +199,12 @@ struct ChainRuler
 					age::permute(age::extend(lhs, 2, {rhs->shape().at(0)}), {2,1,0});
 			}
 				break;
-			case age::CONV:
-			{
-				//
-			}
-				// break;
+			case age::CONV_IMG_GRAD:
+				logs::fatal("cannot derive CONV_IMG_GRAD");
+				break;
+			case age::CONV_KRN_GRAD:
+				logs::fatal("cannot derive CONV_KRN_GRAD");
+				break;
 			default:
 				logs::fatal("Unknown op");
 		}
@@ -267,9 +269,31 @@ struct ChainRuler
 				break;
 			case age::CONV:
 			{
-				//
+				ade::Opcode op;
+				auto args = fwd->get_children();
+				ade::CoordptrT fwd_shaper = args[(size_t)(0 == idx)].get_shaper();
+				ade::CoordptrT rev_shaper(args[idx].get_shaper()->reverse());
+				if (idx == 0)
+				{
+					op = ade::Opcode{"CONV_IMG_GRAD", age::CONV_IMG_GRAD};
+				}
+				else
+				{
+					op = ade::Opcode{"CONV_KRN_GRAD", age::CONV_KRN_GRAD};
+				}
+				ade::CoordptrT full_shaper(fwd_shaper->connect(*rev_shaper));
+				out = ead::make_functor<T>(op, {
+					ead::FuncArg<T>(local, full_shaper, nullptr),
+					ead::FuncArg<T>(bwd, rev_shaper, nullptr),
+				});
 			}
-				// break;
+				break;
+			case age::CONV_IMG_GRAD:
+				logs::fatal("cannot derive CONV_IMG_GRAD");
+				break;
+			case age::CONV_KRN_GRAD:
+				logs::fatal("cannot derive CONV_KRN_GRAD");
+				break;
 			default:
 				logs::fatal("Unknown op");
 		}

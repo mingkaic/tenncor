@@ -952,19 +952,131 @@ template <typename T>
 EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& input, const OpArg<T>& kernel)
 {
 	return make_eigentensor<T,Eigen::TensorConvolutionOp<
-		const Eigen::array<ptrdiff_t,ade::rank_cap>,
+		const ade::ShapeT,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape),
-		[](std::vector<TensMapT<T>>& args) -> Eigen::TensorConvolutionOp<
-			const Eigen::array<ptrdiff_t,ade::rank_cap>,
-			const TensMapT<T>,const TensMapT<T>>
+		[](std::vector<TensMapT<T>>& args)
 		{
-			Eigen::array<ptrdiff_t,ade::rank_cap> dims;
+			ade::ShapeT dims;
 			std::iota(dims.begin(), dims.end(), 0);
 			return args[0].convolve(args[1], dims);
 		}, {
 			make_tensmap(input.data_, input.shape_),
 			make_tensmap(kernel.data_, kernel.shape_)});
+}
+
+template <typename T>
+EigenptrT<T> convolution_image_grad (ade::Shape& imageshape,
+	const OpArg<T>& kernel, const OpArg<T>& super_composite)
+{
+	return make_eigentensor<T,
+		Eigen::TensorReductionOp<Eigen::internal::SumReducer<T>,
+			const ade::ShapeT,
+			const Eigen::TensorCwiseBinaryOp<
+				Eigen::internal::scalar_product_op<T,T>,
+				const Eigen::TensorBroadcastingOp<
+					const std::array<ade::DimT,ade::rank_cap+1>,
+					const Eigen::TensorReshapingOp<
+						const std::array<ade::DimT,ade::rank_cap+1>,
+						Eigen::TensorReverseOp<
+							const std::array<bool,ade::rank_cap>,
+							ead::TensMapT<T>
+						>
+					>
+				>,
+				const Eigen::TensorPatchOp<
+					const ade::ShapeT,
+					const Eigen::TensorPaddingOp<
+						const std::array<std::pair<int,int>,ade::rank_cap>,
+						const ead::TensMapT<T>
+					>
+				>
+			>
+		>,
+		std::vector<TensMapT<T>>>(shape_convert(imageshape),
+		[&](std::vector<TensMapT<T>>& args)
+		{
+			auto& outshape = super_composite.shape_;
+
+			ade::ShapeT patch_dims;
+			std::copy(outshape.begin(), outshape.end(), patch_dims.begin());
+			Eigen::array<std::pair<int,int>,ade::rank_cap> paddings;
+			for (uint8_t i = 0; i < ade::rank_cap; ++i)
+			{
+				int paddsize = outshape.at(i) - 1;
+				paddings[i] = std::make_pair(paddsize, paddsize);
+			}
+			auto patched = args[0].pad(paddings)
+				.extract_patches(patch_dims);
+
+			std::array<bool,ade::rank_cap> revflags;
+			std::fill(revflags.begin(), revflags.end(), true);
+			std::array<ade::DimT,ade::rank_cap+1> pshape;
+			std::copy(outshape.begin(), outshape.end(), pshape.begin());
+			pshape[ade::rank_cap] = 1;
+			std::array<ade::DimT,ade::rank_cap+1> expansion;
+			std::fill(expansion.begin(), expansion.end(), 1);
+			expansion[ade::rank_cap] = imageshape.n_elems();
+			auto partial = args[1]
+				.reverse(revflags)
+				.reshape(pshape)
+				.broadcast(expansion) * patched;
+
+			ade::ShapeT shapespace;
+			std::iota(shapespace.begin(), shapespace.end(), 0);
+			return partial.sum(shapespace);
+		}, {
+			make_tensmap(kernel.data_, kernel.shape_),
+			make_tensmap(super_composite.data_, super_composite.shape_)});
+}
+
+template <typename T>
+EigenptrT<T> convolution_kernel_grad (ade::Shape& kernelshape,
+	const OpArg<T>& image, const OpArg<T>& super_composite)
+{
+	return make_eigentensor<T,
+		Eigen::TensorReductionOp<Eigen::internal::SumReducer<T>,
+			const ade::ShapeT,
+			const Eigen::TensorCwiseBinaryOp<
+				Eigen::internal::scalar_product_op<T,T>,
+				const Eigen::TensorBroadcastingOp<
+					const std::array<ade::DimT,ade::rank_cap+1>,
+					const Eigen::TensorReshapingOp<
+						const std::array<ade::DimT,ade::rank_cap+1>,
+						ead::TensMapT<T>
+					>
+				>,
+				const Eigen::TensorPatchOp<
+					const ade::ShapeT,
+					const ead::TensMapT<T>
+				>
+			>
+		>,
+		std::vector<TensMapT<T>>>(shape_convert(kernelshape),
+		[&](std::vector<TensMapT<T>>& args)
+		{
+			auto& outshape = super_composite.shape_;
+
+			ade::ShapeT patch_dims;
+			std::copy(outshape.begin(), outshape.end(), patch_dims.begin());
+			auto patched = args[0].extract_patches(patch_dims);
+
+			std::array<ade::DimT,ade::rank_cap+1> pshape;
+			std::copy(outshape.begin(), outshape.end(), pshape.begin());
+			pshape[ade::rank_cap] = 1;
+			std::array<ade::DimT,ade::rank_cap+1> expansion;
+			std::fill(expansion.begin(), expansion.end(), 1);
+			expansion[ade::rank_cap] = kernelshape.n_elems();
+			auto partial = args[1]
+				.reshape(pshape)
+				.broadcast(expansion) * patched;
+
+			ade::ShapeT shapespace;
+			std::iota(shapespace.begin(), shapespace.end(), 0);
+			return partial.sum(shapespace);
+		}, {
+			make_tensmap(image.data_, image.shape_),
+			make_tensmap(super_composite.data_, super_composite.shape_)});
 }
 
 }

@@ -180,6 +180,7 @@ NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
 			), perm), 2);
 }
 
+// todo: deprecate this in favor of grader's local derivative + chain_rule method
 template <typename T>
 NodeptrT<T> convolve_grad (ade::iFunctor* fwd,
 	NodeptrT<T> bwd, size_t idx)

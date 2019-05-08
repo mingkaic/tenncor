@@ -171,6 +171,14 @@
         "CONV": {
             "operation": "return ead::convolution(shape,in[0],in[1])",
             "derivative": "ead::convolve_grad(fwd,bwd,idx)"
+        },
+        "CONV_IMG_GRAD": {
+            "operation": "return ead::convolution_image_grad(shape,in[0],in[1])",
+            "derivative": "logs::fatal(\"cannot derive CONV_IMG_GRAD\")"
+        },
+        "CONV_KRN_GRAD": {
+            "operation": "return ead::convolution_kernel_grad(shape,in[0],in[1])",
+            "derivative": "logs::fatal(\"cannot derive CONV_KRN_GRAD\")"
         }
     },
     "apis": [

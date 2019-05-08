@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P2 - workout convolution grad in ead
 P3 - implement subgraph stand-in for rocnnet layers
 P4 - implement reduce_prod gradient using Eigen cumprod
 
