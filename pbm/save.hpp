@@ -70,7 +70,7 @@ struct GraphSaver final : public ade::iTraveler
 		funcs_.sort(
 			[&](ade::iTensor* a, ade::iTensor* b)
 			{
-				return stat.graphsize_[a] < stat.graphsize_[b];
+				return stat.graphsize_[a].upper_ < stat.graphsize_[b].upper_;
 			});
 
 		std::vector<ade::iFunctor*> funcs(funcs_.begin(), funcs_.end());

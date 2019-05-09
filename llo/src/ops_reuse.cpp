@@ -134,14 +134,16 @@ ade::TensT ops_reuse (ade::TensT roots)
 	size_t max_graphsize = 0;
 	for (ade::TensptrT& root : roots)
 	{
-		max_graphsize = std::max(max_graphsize, stat.graphsize_[root.get()] + 1);
+		max_graphsize = std::max(max_graphsize,
+			stat.graphsize_[root.get()].upper_ + 1);
 	}
 
 	std::vector<std::list<ade::iTensor*>> tens(max_graphsize);
-	for (std::pair<ade::iTensor*,size_t> graphpair : stat.graphsize_)
+	for (std::pair<ade::iTensor*,ade::NumRange<size_t>> graphpair :
+		stat.graphsize_)
 	{
 		ade::iTensor* ten = graphpair.first;
-		size_t index = graphpair.second;
+		size_t index = graphpair.second.upper_;
 		if (smart_map.end() != smart_map.find(ten))
 		{
 			tens[index].push_front(ten);

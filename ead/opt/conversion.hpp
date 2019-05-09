@@ -172,12 +172,12 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 			}
 		}
 
-		std::unordered_map<RepptrT<T>,NumRange<size_t>> heights;
+		std::unordered_map<RepptrT<T>,ade::NumRange<size_t>> heights;
 		for (auto reppair : repr.reps_)
 		{
 			auto& tens = reppair.first;
 			auto& rep = reppair.second;
-			NumRange<size_t> repheights = rep->get_heights();
+			ade::NumRange<size_t> repheights = rep->get_heights();
 			heights.emplace(rep, repheights);
 			reverse_rep[rep].push_back(tens);
 			ownermap.emplace(rep.get(), rep);

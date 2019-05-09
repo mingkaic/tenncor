@@ -13,12 +13,15 @@ namespace modl
 {
 
 const std::string weight_fmt = "weight_%d";
-const std::string bias_fmt = "bias_%d";
+const std::string bias_fmt = "bias";
 
 struct FCon final : public iMarshalSet
 {
 	FCon (std::vector<uint8_t> n_inputs, uint8_t n_output,
-		std::string label) : iMarshalSet(label)
+		std::string label) : iMarshalSet(label),
+		bias_(std::make_shared<MarshalVar>(
+			ead::make_variable_scalar<PybindT>(
+			0.0, ade::Shape({n_output}), bias_fmt)))
 	{
 		size_t n = n_inputs.size();
 		if (n == 0)
@@ -41,12 +44,7 @@ struct FCon final : public iMarshalSet
 
 			ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
 				data.data(), shape, fmts::sprintf(weight_fmt, i));
-			ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
-				0.0, ade::Shape({n_output}), fmts::sprintf(bias_fmt, i));
-			weight_bias_.push_back({
-				std::make_shared<MarshalVar>(weight),
-				std::make_shared<MarshalVar>(bias),
-			});
+			weights_.push_back(std::make_shared<MarshalVar>(weight));
 		}
 	}
 
@@ -73,56 +71,52 @@ struct FCon final : public iMarshalSet
 	ead::NodeptrT<PybindT> operator () (ead::NodesT<PybindT> inputs)
 	{
 		size_t n = inputs.size();
-		if (n != weight_bias_.size())
+		if (n != weights_.size())
 		{
 			logs::fatalf("number of inputs must be exactly %d", n);
 		}
-		ead::NodeptrT<PybindT> out = eqns::weighed_bias_add(
-			age::matmul(inputs[0],
-				ead::convert_to_node(weight_bias_[0].weight_->var_)),
-			ead::convert_to_node(weight_bias_[0].bias_->var_));
+		ead::NodeptrT<PybindT> out = age::matmul(inputs[0],
+			ead::convert_to_node(weights_[0]->var_));
 		for (size_t i = 1; i < n; ++i)
 		{
-			out = eqns::weighed_bias_add(
-				age::matmul(inputs[i],
-					ead::convert_to_node(weight_bias_[i].weight_->var_)),
-				ead::convert_to_node(weight_bias_[i].bias_->var_));
+			out = age::add(age::matmul(inputs[i],
+				ead::convert_to_node(weights_[i]->var_)));
 		}
-		return out;
+		return eqns::weighed_bias_add(out,
+			ead::convert_to_node(bias_->var_));
 	}
 
 	uint8_t get_ninput (void) const
 	{
-		return weight_bias_[0].weight_->var_->shape().at(1);
+		return weights_[0]->var_->shape().at(1);
 	}
 
 	uint8_t get_noutput (void) const
 	{
-		return weight_bias_[0].weight_->var_->shape().at(0);
+		return weights_[0]->var_->shape().at(0);
 	}
 
 	MarsarrT get_subs (void) const override
 	{
 		MarsarrT out;
-		for (const BiasedLayer& wbpair : weight_bias_)
+		for (const MarVarsptrT& weight : weights_)
 		{
-			out.push_back(wbpair.weight_);
-			out.push_back(wbpair.bias_);
+			out.push_back(weight);
 		}
+		out.push_back(bias_);
 		return out;
 	}
 
 private:
 	void copy_helper (const FCon& other)
 	{
-		weight_bias_.clear();
-		for (const BiasedLayer& opair : other.weight_bias_)
+		weights_.clear();
+		for (const MarVarsptrT& weight : other.weights_)
 		{
-			weight_bias_.push_back({
-				std::make_shared<MarshalVar>(*opair.weight_),
-				std::make_shared<MarshalVar>(*opair.bias_),
-			});
+			weights_.push_back(
+				std::make_shared<MarshalVar>(*weight));
 		}
+		bias_ = std::make_shared<MarshalVar>(*other.bias_),
 	}
 
 	iMarshaler* clone_impl (void) const override
@@ -130,13 +124,9 @@ private:
 		return new FCon(*this);
 	}
 
-	struct BiasedLayer
-	{
-		MarVarsptrT weight_;
-		MarVarsptrT bias_;
-	};
+	std::vector<MarVarsptrT> weights_;
 
-	std::vector<BiasedLayer> weight_bias_;
+	MarVarsptrT bias_;
 };
 
 using FConptrT = std::shared_ptr<FCon>;

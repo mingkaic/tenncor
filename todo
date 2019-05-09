@@ -6,11 +6,12 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P3 - implement subgraph stand-in for rocnnet layers
+P2 - implement subgraph stand-in for rocnnet layers
+P2 - reimplement conv nn layer + dbn
+    P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === structure ===
-P2 - generalize grader and move to ade (otherwise ade does not fulfil its main purpose)
 P3 - generalize rule conversion feature for all implementations of ade nodes
 P4 - move ead helper functions in ade
 
@@ -18,6 +19,7 @@ P4 - move ead helper functions in ade
 P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage
 P3 - test rule conversion
+P3 - test rocnnet + eqns, modl, and trainer (or subgraph equivalent)
 P4 - test complicate equations (generate random valid equations)
 
 === transparency ===
@@ -32,6 +34,8 @@ P3 - address warnings
 
 === performance ===
 general performance:
+P3 - benchmark test rocnnet against various other frameworks (CPU only)
+P4 - implement GPU settings
 P4 - remove unordered_map/unordered_set if we're not using them properly
 P4 - define optimization conversion rules to increase data accuracy
 P4 - more performance test

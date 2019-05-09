@@ -3,7 +3,7 @@
 
 #include "ead/constant.hpp"
 
-#ifndef EQNS_ACTIVATIONS_HPP
+#ifndef EQNS_ACTIVATIONS_HPP // deprecated by prx
 #define EQNS_ACTIVATIONS_HPP
 
 namespace eqns

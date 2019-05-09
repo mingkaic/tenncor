@@ -16,12 +16,14 @@ enum _GENERATED_OPCODE
 {{
     BAD_OP = 0,
 {opcodes}
+    _N_GENERATED_OPCODES,
 }};
 
 enum _GENERATED_DTYPE
 {{
     BAD_TYPE = 0,
 {dtypes}
+    _N_GENERATED_DTYPES,
 }};
 
 std::string name_op (_GENERATED_OPCODE code);

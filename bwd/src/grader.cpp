@@ -39,7 +39,7 @@ void Grader::visit (ade::iFunctor* func)
 	parents.sort(
 		[&](ade::iFunctor* a, ade::iFunctor* b)
 		{
-			return stat.graphsize_[a] > stat.graphsize_[b];
+			return stat.graphsize_[a].upper_ > stat.graphsize_[b].upper_;
 		});
 
 	std::unordered_map<const ade::iTensor*,ade::TensT> grads = {

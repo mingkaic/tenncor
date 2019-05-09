@@ -50,19 +50,6 @@ struct LeafRep;
 template <typename T>
 struct FuncRep;
 
-template <typename T, typename = typename std::enable_if<
-	std::is_arithmetic<T>::value, T>::type>
-struct NumRange
-{
-	NumRange (T bound1, T bound2) :
-		lower_(std::min(bound1, bound2)),
-		upper_(std::max(bound1, bound2)) {}
-
-	T lower_;
-
-	T upper_;
-};
-
 template <typename T>
 struct iReprNode
 {
@@ -74,7 +61,7 @@ struct iReprNode
 
 	virtual bool is_constant (void) const = 0;
 
-	virtual NumRange<size_t> get_heights (void) const = 0;
+	virtual ade::NumRange<size_t> get_heights (void) const = 0;
 };
 
 template <typename T>
@@ -178,9 +165,9 @@ struct ConstRep final : public iReprNode<T>
 		return true;
 	}
 
-	NumRange<size_t> get_heights (void) const override
+	ade::NumRange<size_t> get_heights (void) const override
 	{
-		return NumRange<size_t>{1, 1};
+		return ade::NumRange<size_t>{1, 1};
 	}
 
 	std::vector<T> data_;
@@ -212,9 +199,9 @@ struct LeafRep final : public iReprNode<T>
 		return false;
 	}
 
-	NumRange<size_t> get_heights (void) const override
+	ade::NumRange<size_t> get_heights (void) const override
 	{
-		return NumRange<size_t>{1, 1};
+		return ade::NumRange<size_t>{1, 1};
 	}
 
 	ade::iLeaf* leaf_;
@@ -275,7 +262,7 @@ struct FuncRep final : public iReprNode<T>
 			});
 	}
 
-	NumRange<size_t> get_heights (void) const override
+	ade::NumRange<size_t> get_heights (void) const override
 	{
 		size_t min = std::numeric_limits<size_t>::max();
 		size_t max = 0;
@@ -291,7 +278,7 @@ struct FuncRep final : public iReprNode<T>
 				max = ranges.upper_;
 			}
 		}
-		return NumRange<size_t>{min + 1, max + 1};
+		return ade::NumRange<size_t>{min + 1, max + 1};
 	}
 
 	const RepArgsT<T>& get_args (void) const

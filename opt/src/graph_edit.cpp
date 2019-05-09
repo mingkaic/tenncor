@@ -18,24 +18,24 @@ ade::TensT graph_edit (ade::TensT roots, EditFuncT edit)
 	{
 		return roots;
 	}
-	std::unordered_map<ade::iTensor*,size_t> funcsize;
+	std::unordered_map<ade::iTensor*,ade::NumRange<size_t>> funcsize;
 	std::copy_if(stat.graphsize_.begin(), stat.graphsize_.end(),
 		std::inserter(funcsize, funcsize.end()),
-		[](std::pair<ade::iTensor*,size_t> graphpair)
+		[](std::pair<ade::iTensor*,ade::NumRange<size_t>> graphpair)
 		{
-			return graphpair.second > 0;
+			return graphpair.second.upper_ > 0;
 		});
 	std::list<ade::iFunctor*> parents;
 	std::transform(funcsize.begin(), funcsize.end(),
 		std::back_inserter(parents),
-		[](std::pair<ade::iTensor*,size_t> graphpair)
+		[](std::pair<ade::iTensor*,ade::NumRange<size_t>> graphpair)
 		{
 			return static_cast<ade::iFunctor*>(graphpair.first);
 		});
 	parents.sort(
 		[&](ade::iTensor* a, ade::iTensor* b)
 		{
-			return stat.graphsize_[a] < stat.graphsize_[b];
+			return stat.graphsize_[a].upper_ < stat.graphsize_[b].upper_;
 		});
 
 	std::unordered_map<ade::iTensor*,ade::TensptrT> opt_graph;

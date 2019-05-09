@@ -40,11 +40,11 @@ TEST_F(TRAVELER, GraphStat)
 
 	ade::GraphStat stat;
 	g->accept(stat);
-	EXPECT_EQ(2, stat.graphsize_[g.get()]);
-	EXPECT_EQ(1, stat.graphsize_[f.get()]);
-	EXPECT_EQ(0, stat.graphsize_[c.get()]);
-	EXPECT_EQ(0, stat.graphsize_[a.get()]);
-	EXPECT_EQ(0, stat.graphsize_[b.get()]);
+	EXPECT_EQ(2, stat.graphsize_[g.get()].upper_);
+	EXPECT_EQ(1, stat.graphsize_[f.get()].upper_);
+	EXPECT_EQ(0, stat.graphsize_[c.get()].upper_);
+	EXPECT_EQ(0, stat.graphsize_[a.get()].upper_);
+	EXPECT_EQ(0, stat.graphsize_[b.get()].upper_);
 }
 
 

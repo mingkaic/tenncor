@@ -18,13 +18,28 @@
 namespace ade
 {
 
+template <typename T, typename = typename std::enable_if<
+	std::is_arithmetic<T>::value, T>::type>
+struct NumRange final
+{
+	NumRange (void) : lower_(0), upper_(0) {}
+
+	NumRange (T bound1, T bound2) :
+		lower_(std::min(bound1, bound2)),
+		upper_(std::max(bound1, bound2)) {}
+
+	T lower_;
+
+	T upper_;
+};
+
 /// Traveler that maps each tensor to its subtree's maximum depth
 struct GraphStat final : public iTraveler
 {
 	/// Implementation of iTraveler
 	void visit (iLeaf* leaf) override
 	{
-		graphsize_.emplace(leaf, 0);
+		graphsize_.emplace(leaf, NumRange<size_t>(0, 0));
 	}
 
 	/// Implementation of iTraveler
@@ -33,24 +48,45 @@ struct GraphStat final : public iTraveler
 		if (graphsize_.end() == graphsize_.find(func))
 		{
 			ArgsT children = func->get_children();
-			size_t ngraph = 0;
+			size_t nchildren = children.size();
+			std::vector<size_t> max_heights;
+			std::vector<size_t> min_heights;
+			max_heights.reserve(nchildren);
+			min_heights.reserve(nchildren);
 			for (auto& child : children)
 			{
 				iTensor* tens = child.get_tensor().get();
 				tens->accept(*this);
 				auto childinfo = graphsize_.find(tens);
-				if (graphsize_.end() != childinfo &&
-					childinfo->second > ngraph)
+				if (graphsize_.end() == childinfo)
 				{
-					ngraph = childinfo->second;
+					logs::debugf(
+						"GraphStat failed to visit child `%s` of functor `%s`",
+						tens->to_string().c_str(), func->to_string().c_str());
 				}
+				max_heights.push_back(childinfo->second.upper_);
+				min_heights.push_back(childinfo->second.lower_);
 			}
-			graphsize_.emplace(func, ngraph + 1);
+			size_t max_height = 1;
+			size_t min_height = 1;
+			auto max_it = std::max_element(
+				max_heights.begin(), max_heights.end());
+			auto min_it = std::min_element(
+				min_heights.begin(), min_heights.end());
+			if (max_heights.end() != max_it)
+			{
+				max_height += *max_it;
+			}
+			if (min_heights.end() != max_it)
+			{
+				min_height += *min_it;
+			}
+			graphsize_.emplace(func, NumRange<size_t>(min_height, max_height));
 		}
 	}
 
 	// Maximum depth of the subtree of mapped tensors
-	std::unordered_map<iTensor*,size_t> graphsize_;
+	std::unordered_map<iTensor*,NumRange<size_t>> graphsize_;
 };
 
 /// Traveler that paints paths to a target tensor
