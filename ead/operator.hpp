@@ -129,6 +129,55 @@ EigenptrT<T> permute (ade::Shape& outshape, const OpArg<T>& in)
 		}, make_tensmap(in.data_, in.shape_));
 }
 
+template <typename T>
+EigenptrT<T> slice (ade::Shape& outshape, const OpArg<T>& in)
+{
+	assert(nullptr != in.coorder_);
+	ade::CoordT slicing;
+	in.coorder_->forward(slicing.begin(), slicing.begin());
+	ade::ShapeT offset;
+	ade::ShapeT extent;
+	std::fill(offset.begin(), offset.end(), 0);
+	std::copy(in.shape_.begin(), in.shape_.end(), extent.begin());
+	ade::DimT dimension = slicing[2];
+	offset[dimension] = slicing[0];
+	extent[dimension] = slicing[1];
+	return make_eigentensor<T,Eigen::TensorSlicingOp<
+			const ade::ShapeT, const ade::ShapeT,
+			ead::TensMapT<T>
+		>,
+		TensMapT<T>>(
+		shape_convert(outshape),
+		[&offset, &extent](TensMapT<T>& in)
+		{
+			return in.slice(offset, extent);
+		}, make_tensmap(in.data_, in.shape_));
+}
+
+template <typename T>
+EigenptrT<T> pad (ade::Shape& outshape, const OpArg<T>& in)
+{
+	assert(nullptr != in.coorder_);
+	ade::CoordT padding;
+	in.coorder_->forward(padding.begin(), padding.begin());
+	std::array<std::pair<ade::DimT,ade::DimT>,ade::rank_cap> paddings;
+	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	{
+		paddings[i] = std::make_pair(0, 0);
+	}
+	paddings[padding[2]] = std::make_pair(padding[0], padding[1]);
+	return make_eigentensor<T,Eigen::TensorPaddingOp<
+			const std::array<std::pair<ade::DimT,ade::DimT>,ade::rank_cap>,
+			const ead::TensMapT<T>
+		>,
+		TensMapT<T>>(
+		shape_convert(outshape),
+		[&paddings](TensMapT<T>& in)
+		{
+			return in.pad(paddings);
+		}, make_tensmap(in.data_, in.shape_));
+}
+
 /// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
 template <typename T>

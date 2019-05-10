@@ -85,7 +85,7 @@ CoordptrT reduce (uint8_t rank, std::vector<DimT> red)
 		return identity;
 	}
 
-	return CoordptrT(new CoordMap(
+	return std::make_shared<CoordMap>(
 		[&](MatrixT fwd)
 		{
 			for (uint8_t i = 0; i < rank_cap; ++i)
@@ -97,7 +97,7 @@ CoordptrT reduce (uint8_t rank, std::vector<DimT> red)
 				uint8_t outi = rank + i;
 				fwd[outi][outi] = 1.0 / red[i];
 			}
-		}));
+		});
 }
 
 CoordptrT extend (uint8_t rank, std::vector<DimT> ext)
@@ -120,7 +120,7 @@ CoordptrT extend (uint8_t rank, std::vector<DimT> ext)
 		return identity;
 	}
 
-	return CoordptrT(new CoordMap(
+	return std::make_shared<CoordMap>(
 		[&](MatrixT fwd)
 		{
 			for (uint8_t i = 0; i < rank_cap; ++i)
@@ -132,7 +132,7 @@ CoordptrT extend (uint8_t rank, std::vector<DimT> ext)
 				uint8_t outi = rank + i;
 				fwd[outi][outi] = ext[i];
 			}
-		}));
+		});
 }
 
 CoordptrT permute (std::vector<uint8_t> dims)
@@ -157,14 +157,14 @@ CoordptrT permute (std::vector<uint8_t> dims)
 		}
 	}
 
-	return CoordptrT(new CoordMap(
+	return std::make_shared<CoordMap>(
 		[&](MatrixT fwd)
 		{
 			for (uint8_t i = 0, n = dims.size(); i < n; ++i)
 			{
 				fwd[dims[i]][i] = 1;
 			}
-		}));
+		});
 }
 
 CoordptrT flip (uint8_t dim)
@@ -175,7 +175,7 @@ CoordptrT flip (uint8_t dim)
 		return identity;
 	}
 
-	return CoordptrT(new CoordMap(
+	return std::make_shared<CoordMap>(
 		[&](MatrixT fwd)
 		{
 			for (uint8_t i = 0; i < rank_cap; ++i)
@@ -184,7 +184,7 @@ CoordptrT flip (uint8_t dim)
 			}
 			fwd[dim][dim] = -1;
 			fwd[rank_cap][dim] = -1;
-		}));
+		});
 }
 
 }

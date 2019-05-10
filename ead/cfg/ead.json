@@ -170,7 +170,15 @@
         },
         "CONV": {
             "operation": "return ead::convolution(shape,in[0],in[1])",
-            "derivative": "ead::convolve_grad(fwd,bwd,idx)"
+            "derivative": "logs::fatal(\"not implemented\")"
+        },
+        "SLICE": {
+            "operation": "return ead::slice(shape,in[0])",
+            "derivative": "logs::fatal(\"not implemented\")"
+        },
+        "PAD": {
+            "operation": "return ead::pad(shape,in[0])",
+            "derivative": "logs::fatal(\"not implemented\")"
         },
         "CONV_IMG_GRAD": {
             "operation": "return ead::convolution_image_grad(shape,in[0],in[1])",
@@ -736,6 +744,45 @@
         },
         {
             "template": "typename T",
+            "name": "slice",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg"
+            }, {
+                "dtype": "ade::DimT",
+                "name": "offset"
+            }, {
+                "dtype": "ade::DimT",
+                "name": "extent"
+            }, {
+                "dtype": "ade::DimT",
+                "name": "dimension"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::build_slice<T>(arg, offset, extent, dimension)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "pad",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg"
+            }, {
+                "dtype": "std::pair<ade::DimT,ade::DimT>",
+                "name": "padding"
+            }, {
+                "dtype": "ade::DimT",
+                "name": "dimension"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "ead::build_pad<T>(arg, padding, dimension)"
+            }
+        },
+        {
+            "template": "typename T",
             "name": "transpose",
             "args": [{
                 "dtype": "ead::NodeptrT<T>",
@@ -782,10 +829,13 @@
             }, {
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg2"
+            }, {
+                "dtype": "std::vector<ade::DimT>",
+                "name": "dims"
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::get_convolve(arg1,arg2)"
+                "val": "ead::get_convolve(arg1,arg2,dims)"
             }
         }
     ]

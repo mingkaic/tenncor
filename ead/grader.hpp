@@ -116,6 +116,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			case age::EXTEND:
 			case age::PERMUTE:
 			case age::ADD:
+			case age::SLICE:
+			case age::PAD:
 				out = get_const_one(args[0].get_tensor()->shape());
 				break;
 			case age::MUL:
@@ -298,6 +300,35 @@ struct GradientBuilder final : public ade::iGradientBuilder
 					FuncArg<T>(to_node<T>(local_der), full_shaper, nullptr),
 					FuncArg<T>(to_node<T>(supcomp_grad), rev_shaper, nullptr),
 				});
+			}
+				break;
+			case age::SLICE:
+			{
+				ade::CoordT slicings;
+				auto& child = op->get_children()[0];
+				child.get_coorder()->forward(slicings.begin(), slicings.begin());
+				ade::DimT dimension = slicings[2];
+				ade::DimT dim = child.get_tensor()->shape().at(dimension);
+				ade::DimT left_pad = slicings[0];
+				ade::DimT right_pad = dim - (left_pad + slicings[1]) - 1;
+				out = age::mul(to_node<T>(local_der),
+					to_node<T>(supcomp_grad));
+				out = age::pad(out, std::pair<ade::DimT,ade::DimT>{
+					left_pad, right_pad}, dimension);
+			}
+				break;
+			case age::PAD:
+			{
+				ade::CoordT paddings;
+				auto& child = op->get_children()[0];
+				child.get_coorder()->forward(paddings.begin(), paddings.begin());
+				ade::DimT dimension = paddings[2];
+				ade::DimT dim = child.get_tensor()->shape().at(dimension);
+				ade::DimT offset = paddings[0];
+				ade::DimT extent = dim - paddings[1] - 1 - offset;
+				out = age::mul(to_node<T>(local_der),
+					to_node<T>(supcomp_grad));
+				out = age::slice(out, offset, extent, dimension);
 			}
 				break;
 			case age::CONV_IMG_GRAD:

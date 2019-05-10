@@ -81,7 +81,8 @@ NodeptrT<T> get_matmul (NodeptrT<T> a, NodeptrT<T> b)
 }
 
 template <typename T>
-NodeptrT<T> get_convolve (NodeptrT<T> input, NodeptrT<T> kernel)
+NodeptrT<T> get_convolve (NodeptrT<T> input,
+	NodeptrT<T> kernel, std::vector<ade::DimT> dims)
 {
 	ade::Shape inshape = input->get_tensor()->shape();
 	ade::Shape kernelshape = kernel->get_tensor()->shape();
@@ -115,6 +116,58 @@ NodeptrT<T> get_convolve (NodeptrT<T> input, NodeptrT<T> kernel)
 	return make_functor<T>(ade::Opcode{"CONV", age::CONV}, {
 		FuncArg<T>(input, input_shaper, nullptr),
 		FuncArg<T>(kernel, kernel_shaper, nullptr)
+	});
+}
+
+template <typename T>
+NodeptrT<T> build_slice (NodeptrT<T> arg,
+	ade::DimT offset, ade::DimT extent, ade::DimT dimension)
+{
+	ade::CoordT slicings;
+	std::fill(slicings.begin(), slicings.end(), ade::rank_cap);
+	slicings[0] = offset;
+	slicings[1] = extent;
+	slicings[2] = dimension;
+	return make_functor<T>(ade::Opcode{"SLICE", age::SLICE}, {
+		FuncArg<T>(arg,
+			std::make_shared<ade::CoordMap>(
+				[&](ade::MatrixT fwd)
+				{
+					for (uint8_t i = 0; i < ade::rank_cap; ++i)
+					{
+						fwd[i][i] = 1;
+					}
+					fwd[ade::rank_cap][dimension] =
+						extent - arg->shape().at(dimension);
+				}),
+			std::make_shared<CoordMap>(SLICE, slicings, false)
+		)
+	});
+}
+
+template <typename T>
+NodeptrT<T> build_pad (NodeptrT<T> arg,
+	std::pair<ade::DimT,ade::DimT> padding, ade::DimT dimension)
+{
+	ade::CoordT paddings;
+	std::fill(paddings.begin(), paddings.end(), ade::rank_cap);
+	paddings[0] = padding.first;
+	paddings[1] = padding.second;
+	paddings[2] = dimension;
+	return make_functor<T>(ade::Opcode{"PAD", age::PAD}, {
+		FuncArg<T>(arg,
+			std::make_shared<ade::CoordMap>(
+				[&](ade::MatrixT fwd)
+				{
+					for (uint8_t i = 0; i < ade::rank_cap; ++i)
+					{
+						fwd[i][i] = 1;
+					}
+					fwd[ade::rank_cap][dimension] =
+						padding.first + padding.second;
+				}),
+			std::make_shared<CoordMap>(PAD, paddings, false)
+		)
 	});
 }
 

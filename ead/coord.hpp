@@ -11,6 +11,8 @@ enum TransCode
 	EXTEND = 0,
 	PERMUTE,
 	REDUCE,
+	SLICE,
+	PAD,
 };
 
 struct CoordMap final : public ade::iCoordMap
