@@ -73,19 +73,12 @@ py_binary(
 )
 
 py_binary(
-    name = "slow_dqn_demo",
-    srcs = ["demo/slow_dqn_demo.py"],
+    name = "rbm_demo",
+    srcs = glob(["demo/data/*.py"]) +
+        ["demo/rbm_demo.py"],
     deps = [":rocnnet_py"],
-    data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+    data = glob(["pretrained/*"]),
 )
-
-# py_binary(
-#     name = "rbm_demo",
-#     srcs = glob(["demo/data/*.py"]) + ["demo/rbm_demo.py"],
-#     deps = [":rocnnet_py"],
-#     data = glob(["pretrained/*"]),
-# )
 
 # cc_binary(
 #     name = "dbn_demo",

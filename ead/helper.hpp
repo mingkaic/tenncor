@@ -7,6 +7,12 @@ namespace ead
 {
 
 template <typename T>
+std::vector<T> shape_to_vec (ade::Shape shape)
+{
+	return std::vector<T>(shape.begin(), shape.end());
+}
+
+template <typename T>
 NodeptrT<T> reduce_help (ade::Opcode opcode,
 	NodeptrT<T> tens, uint8_t start, uint8_t end)
 {

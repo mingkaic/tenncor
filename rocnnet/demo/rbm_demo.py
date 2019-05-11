@@ -4,7 +4,7 @@ import argparse
 
 import numpy as np
 
-import llo.llo as llo
+import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
 from demo.data.load_mnist import load_mnist
@@ -57,7 +57,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        llo.seed(args.seedval)
+        ead.seed(args.seedval)
         np.random.seed(args.seedval)
 
     (training_x, training_y), (valid_x, valid_y), (testing_x, testing_y) = load_mnist()
@@ -78,7 +78,7 @@ def main(args):
         n_data = training_x.shape[0]
         n_training_batches = n_data / args.n_batch
 
-        persistent = llo.variable(
+        persistent = ead.variable(
             np.zeros([args.n_batch, args.n_hidden], dtype=float), 'persistent')
         trainer = rcn.RBMTrainer(brain, persistent, args.n_batch,
             args.learning_rate, args.n_cont_div)
@@ -102,7 +102,7 @@ def main(args):
     def idx_generate():
         return np.random.randint(0, n_test_sample - args.n_test_chain)
 
-    testin = llo.variable(np.zeros([n_test_input, args.n_test_chain], dtype=float), "testin")
+    testin = ead.variable(np.zeros([n_test_input, args.n_test_chain], dtype=float), "testin")
     test_generated_in = brain.reconstruct_visible(testin)
 
     output_chains = []

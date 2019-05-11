@@ -6,9 +6,9 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P2 - implement subgraph stand-in for rocnnet layers
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
+P3 - implement grader extension for subgraphs
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === structure ===

@@ -837,6 +837,18 @@
                 "type": "ead::NodeptrT<T>",
                 "val": "ead::get_convolve(arg1,arg2,dims)"
             }
+        },
+        {
+            "template": "typename T",
+            "name": "softmax",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "arg1"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "div(exp(arg1),extend(reduce_sum(exp(arg1)),0,ead::shape_to_vec<uint8_t>(arg1->shape())))"
+            }
         }
     ]
 }

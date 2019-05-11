@@ -17,7 +17,7 @@ PYBIND11_MODULE(prx, m)
 	py::object node = (py::object)
 		py::module::import("ead.age").attr("NodeptrT<PybindT>");
 
-	m.def("fully_connected", &prx::fully_connected<PybindT>,
+	m.def("fully_connected", &prx::fully_connect<PybindT>,
 		"ead::NodeptrT<T> fully_connected (ead::NodesT<T> inputs, "
 		"ead::NodesT<T> weights, ead::NodeptrT<T> bias)",
 		py::arg("inputs"), py::arg("weights"), py::arg("bias"));
@@ -26,7 +26,4 @@ PYBIND11_MODULE(prx, m)
 		"ead::NodeptrT<T> conv2d (ead::NodeptrT<T> image, "
 		"ead::NodeptrT<T> kernel)",
 		py::arg("image"), py::arg("kernel"));
-
-		m.def("softmax", &prx::softmax<PybindT>,
-		"ead::NodeptrT<T> softmax (ead::NodeptrT<T> input)", py::arg("input"));
 }

@@ -1,6 +1,8 @@
 #include <functional>
 #include <memory>
 
+#include "prx/api.hpp"
+
 #include "rocnnet/eqns/helper.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
@@ -66,10 +68,9 @@ struct RBM final : public iMarshalSet
 		// weight is <n_hidden, n_input>
 		// in is <n_input, ?>
 		// out = in @ weight, so out is <n_hidden, ?>
-		ead::NodeptrT<PybindT> pre_nl = eqns::weighed_bias_add(
-			age::matmul(input, ead::convert_to_node(weight_->var_)),
-			ead::convert_to_node(hbias_->var_));
-		return eqns::sigmoid(pre_nl);
+		return age::sigmoid(prx::fully_connect({input},
+			{ead::convert_to_node(weight_->var_)},
+			ead::convert_to_node(hbias_->var_)));
 	}
 
 	// input of shape <n_hidden, n_batch>
@@ -78,11 +79,9 @@ struct RBM final : public iMarshalSet
 		// weight is <n_hidden, n_input>
 		// in is <n_hidden, ?>
 		// out = in @ weight.T, so out is <n_input, ?>
-		ead::NodeptrT<PybindT> pre_nl = eqns::weighed_bias_add(
-			age::matmul(hidden,
-				age::transpose(ead::convert_to_node(weight_->var_))),
-			ead::convert_to_node(vbias_->var_));
-		return eqns::sigmoid(pre_nl);
+		return age::sigmoid(prx::fully_connect({hidden},
+			{age::transpose(ead::convert_to_node(weight_->var_))},
+			ead::convert_to_node(vbias_->var_)));
 	}
 
 	// recreate input using hidden distribution

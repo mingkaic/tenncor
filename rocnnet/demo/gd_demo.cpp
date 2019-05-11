@@ -11,8 +11,6 @@
 
 #include "ead/ead.hpp"
 
-#include "rocnnet/eqns/activations.hpp"
-
 #include "rocnnet/trainer/mlp_trainer.hpp"
 
 static std::vector<float> batch_generate (size_t n, size_t batchsize)

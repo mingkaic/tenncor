@@ -20,14 +20,12 @@ static std::unordered_map<GRAPH_LAYER,std::string,EnumHash> layer2name =
 {
 	{ FULL_CONN, "FULL_CONN" },
 	{ CONV2D, "CONV2D" },
-	{ SOFT_MAX, "SOFT_MAX" },
 };
 
 static std::unordered_map<std::string,GRAPH_LAYER> name2layer =
 {
 	{ "FULL_CONN", FULL_CONN },
 	{ "CONV2D", CONV2D },
-	{ "SOFT_MAX", SOFT_MAX },
 };
 
 static std::unordered_map<GRAPH,std::string,EnumHash> graph2name =

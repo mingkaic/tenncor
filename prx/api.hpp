@@ -69,18 +69,6 @@ ead::NodeptrT<T> conv2d (ead::NodeptrT<T> image, ead::NodeptrT<T> kernel)
 	// 	out, {image, kernel});
 }
 
-template <typename T>
-ead::NodeptrT<T> softmax (ead::NodeptrT<T> input)
-{
-	auto num = age::exp(input);
-	auto denom = age::reduce_sum(num);
-	ade::Shape shape = input->shape();
-	auto out = age::div(num, age::extend(denom, 0,
-		std::vector<uint8_t>(shape.begin(), shape.end())));
-	return out;
-	// return make_subgraph(ade::Opcode{"SOFT_MAX", SOFT_MAX}, out, {input});
-}
-
 }
 
 #endif // PRX_API_HPP
