@@ -455,7 +455,7 @@ void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
 	else
 	{
 		auto lef = static_cast<LeafRep<T>*>(rep.get());
-		out = to_node<T>(owners.at(lef->leaf_).lock());
+		out = NodeConverters<T>::to_node(owners.at(lef->leaf_).lock());
 	}
 	unravelled.emplace(rep, out);
 }

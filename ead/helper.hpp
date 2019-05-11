@@ -113,9 +113,15 @@ NodeptrT<T> get_convolve (NodeptrT<T> input,
 			}
 		}
 	));
+
+	ade::CoordT kernel_dims;
+	auto it = kernel_dims.begin();
+	std::fill(it, kernel_dims.end(), ade::rank_cap);
+	std::copy(dims.begin(), dims.end(), it);
 	return make_functor<T>(ade::Opcode{"CONV", age::CONV}, {
 		FuncArg<T>(input, input_shaper, nullptr),
-		FuncArg<T>(kernel, kernel_shaper, nullptr)
+		FuncArg<T>(kernel, kernel_shaper, std::make_shared<CoordMap>(
+			CONV, kernel_dims, true)),
 	});
 }
 

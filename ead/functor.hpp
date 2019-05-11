@@ -15,48 +15,7 @@ namespace ead
 template <typename T>
 struct Functor final : public ade::iOperableFunc
 {
-	static Functor<T>* get (ade::Opcode opcode, ArgsT<T> args)
-	{
-		if (0 == args.size())
-		{
-			logs::fatalf("cannot perform %s with no arguments",
-				opcode.name_.c_str());
-		}
-
-		ade::Shape shape = args[0].shape();
-		for (size_t i = 1, n = args.size(); i < n; ++i)
-		{
-			ade::Shape ishape = args[i].shape();
-			if (false == ishape.compatible_after(shape, 0))
-			{
-				logs::fatalf("cannot perform %s with incompatible shapes %s "
-					"and %s", opcode.name_.c_str(), shape.to_string().c_str(),
-					ishape.to_string().c_str());
-			}
-		}
-
-		ade::ArgsT input_args;
-		std::vector<OpArg<T>> tmaps;
-		for (FuncArg<T>& arg : args)
-		{
-			NodeptrT<T> node = arg.get_node();
-			ade::TensptrT tensor = node->get_tensor();
-			CoordptrT coorder = arg.get_coorder();
-			input_args.push_back(ade::FuncArg(
-				tensor,
-				arg.get_shaper(),
-				arg.map_io(),
-				coorder));
-			tmaps.push_back(OpArg<T>{
-				node->data(),
-				tensor->shape(),
-				coorder.get()
-			});
-		}
-		return new Functor<T>(age::typed_exec<T>(
-			(age::_GENERATED_OPCODE) opcode.code_, shape, tmaps),
-			opcode, shape, input_args);
-	}
+	static Functor<T>* get (ade::Opcode opcode, ArgsT<T> args);
 
 	static Functor<T>* get (Functor<T>&& other)
 	{
@@ -152,6 +111,58 @@ struct FuncNode final : public iNode<T>
 private:
 	std::shared_ptr<Functor<T>> func_;
 };
+
+template <typename T>
+Functor<T>* Functor<T>::get (ade::Opcode opcode, ArgsT<T> args)
+{
+	static bool registered = register_builder<Functor<T>,T>(
+		[](ade::TensptrT tens)
+		{
+			return std::make_shared<FuncNode<T>>(
+				std::static_pointer_cast<Functor<T>>(tens));
+		});
+	assert(registered);
+
+	if (0 == args.size())
+	{
+		logs::fatalf("cannot perform %s with no arguments",
+			opcode.name_.c_str());
+	}
+
+	ade::Shape shape = args[0].shape();
+	for (size_t i = 1, n = args.size(); i < n; ++i)
+	{
+		ade::Shape ishape = args[i].shape();
+		if (false == ishape.compatible_after(shape, 0))
+		{
+			logs::fatalf("cannot perform %s with incompatible shapes %s "
+				"and %s", opcode.name_.c_str(), shape.to_string().c_str(),
+				ishape.to_string().c_str());
+		}
+	}
+
+	ade::ArgsT input_args;
+	std::vector<OpArg<T>> tmaps;
+	for (FuncArg<T>& arg : args)
+	{
+		NodeptrT<T> node = arg.get_node();
+		ade::TensptrT tensor = node->get_tensor();
+		CoordptrT coorder = arg.get_coorder();
+		input_args.push_back(ade::FuncArg(
+			tensor,
+			arg.get_shaper(),
+			arg.map_io(),
+			coorder));
+		tmaps.push_back(OpArg<T>{
+			node->data(),
+			tensor->shape(),
+			coorder.get()
+		});
+	}
+	return new Functor<T>(age::typed_exec<T>(
+		(age::_GENERATED_OPCODE) opcode.code_, shape, tmaps),
+		opcode, shape, input_args);
+}
 
 template <typename T>
 NodeptrT<T> make_functor (ade::Opcode opcode, ArgsT<T> args)

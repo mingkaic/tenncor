@@ -11,30 +11,6 @@ namespace ead
 {
 
 template <typename T>
-NodeptrT<T> to_node (ade::TensptrT tens)
-{
-	NodeptrT<T> out;
-	if (auto func = std::dynamic_pointer_cast<Functor<T>>(tens))
-	{
-		out = std::make_shared<FuncNode<T>>(func);
-	}
-	else if (auto cst = std::dynamic_pointer_cast<Constant<T>>(tens))
-	{
-		out = std::make_shared<ConstantNode<T>>(cst);
-	}
-	else if (auto var = std::dynamic_pointer_cast<Variable<T>>(tens))
-	{
-		out = std::make_shared<VariableNode<T>>(var);
-	}
-	else
-	{
-		logs::fatalf("unknown tensor type with %s dtype",
-			age::name_type(age::get_type<T>()).c_str());
-	}
-	return out;
-}
-
-template <typename T>
 NodeptrT<T> reduce_grad (const ade::FuncArg& child,
 	NodeptrT<T> bwd, size_t idx)
 {
@@ -67,7 +43,7 @@ NodeptrT<T> reduce_prod_grad (ade::iFunctor* fwd,
 	NodeptrT<T> bwd, size_t idx)
 {
 	const auto& child = fwd->get_children()[0];
-	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
+	NodeptrT<T> childnode = NodeConverters<T>::to_node(child.get_tensor());
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
 		{FuncArg<T>(childnode, child.get_shaper(),
 			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
@@ -81,7 +57,7 @@ NodeptrT<T> reduce_comp_grad (ade::iFunctor* fwd,
 	NodeptrT<T> bwd, size_t idx)
 {
 	const auto& child = fwd->get_children()[0];
-	NodeptrT<T> childnode = to_node<T>(child.get_tensor());
+	NodeptrT<T> childnode = NodeConverters<T>::to_node(child.get_tensor());
 	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
 		{FuncArg<T>(childnode, child.get_shaper(),
 			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
@@ -149,8 +125,8 @@ NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
 	const auto& children = fwd->get_children();
 	ade::TensptrT a = children[0].get_tensor();
 	ade::TensptrT b = children[1].get_tensor();
-	NodeptrT<T> lhs = to_node<T>(a);
-	NodeptrT<T> rhs = to_node<T>(b);
+	NodeptrT<T> lhs = NodeConverters<T>::to_node(a);
+	NodeptrT<T> rhs = NodeConverters<T>::to_node(b);
 
 	NodeptrT<T> ext_a = age::permute(
 		age::extend(lhs, 2, {b->shape().at(0)}), {2,1,0});

@@ -1,4 +1,5 @@
 #include <list>
+#include <unordered_set>
 
 #include "ead/constant.hpp"
 #include "ead/functor.hpp"
@@ -94,7 +95,7 @@ struct Session final : public iSession<T>
 							tens->accept(*this);
 						}
 					}
-					static_cast<Functor<T>*>(func)->update();
+					static_cast<ade::iOperableFunc*>(func)->update();
 				}
 				visited_.emplace(func);
 			}

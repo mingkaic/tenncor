@@ -10,17 +10,14 @@ namespace ead
 template <typename T>
 struct Constant final : public iLeaf<T>
 {
-	static Constant* get (T* data, ade::Shape shape)
-	{
-		return new Constant(data, shape);
-	}
+	static Constant<T>* get (T* data, ade::Shape shape);
 
-	static Constant* get_scalar (T scalar, ade::Shape shape)
+	static Constant<T>* get_scalar (T scalar, ade::Shape shape)
 	{
 		size_t n = shape.n_elems();
 		T buffer[n];
 		std::fill(buffer, buffer + n, scalar);
-		return new Constant(buffer, shape);
+		return Constant<T>::get(buffer, shape);
 	}
 
 	Constant (const Constant<T>& other) = delete;
@@ -61,6 +58,20 @@ struct ConstantNode final : public iNode<T>
 private:
 	std::shared_ptr<Constant<T>> cst_;
 };
+
+template <typename T>
+Constant<T>* Constant<T>::get (T* data, ade::Shape shape)
+{
+	static bool registered = register_builder<Constant<T>,T>(
+		[](ade::TensptrT tens)
+		{
+			return std::make_shared<ConstantNode<T>>(
+				std::static_pointer_cast<Constant<T>>(tens));
+		});
+	assert(registered);
+
+	return new Constant(data, shape);
+}
 
 template <typename T>
 NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)

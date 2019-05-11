@@ -164,6 +164,7 @@ enum _GENERATED_OPCODE
     OP1,
     OP2,
     OP3,
+    _N_GENERATED_OPCODES,
 };
 
 enum _GENERATED_DTYPE
@@ -173,6 +174,7 @@ enum _GENERATED_DTYPE
     KAPOW,
     VROOM,
     VRUM,
+    _N_GENERATED_DTYPES,
 };
 
 std::string name_op (_GENERATED_OPCODE code);

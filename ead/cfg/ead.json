@@ -38,7 +38,7 @@
     "opcodes": {
         "ABS": {
             "operation": "return ead::abs(shape,in[0])",
-            "derivative": "mul(div(ead::to_node<T>(args[0]),abs(ead::to_node<T>(args[0]))),bwd)"
+            "derivative": "mul(div(ead::NodeConverters<T>::to_node(args[0]),abs(ead::NodeConverters<T>::to_node(args[0]))),bwd)"
         },
         "NEG": {
             "operation": "return ead::neg(shape,in[0])",
@@ -46,27 +46,27 @@
         },
         "SIN": {
             "operation": "return ead::sin(shape,in[0])",
-            "derivative": "mul(cos(ead::to_node<T>(args[0])),bwd)"
+            "derivative": "mul(cos(ead::NodeConverters<T>::to_node(args[0])),bwd)"
         },
         "COS": {
             "operation": "return ead::cos(shape,in[0])",
-            "derivative": "mul(neg(sin(ead::to_node<T>(args[0]))),bwd)"
+            "derivative": "mul(neg(sin(ead::NodeConverters<T>::to_node(args[0]))),bwd)"
         },
         "TAN": {
             "operation": "return ead::tan(shape,in[0])",
-            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),pow(cos(ead::to_node<T>(args[0])),ead::make_constant_scalar<T>(2,args[0]->shape()))),bwd)"
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),pow(cos(ead::NodeConverters<T>::to_node(args[0])),ead::make_constant_scalar<T>(2,args[0]->shape()))),bwd)"
         },
         "EXP": {
             "operation": "return ead::exp(shape,in[0])",
-            "derivative": "mul(exp(ead::to_node<T>(args[0])),bwd)"
+            "derivative": "mul(exp(ead::NodeConverters<T>::to_node(args[0])),bwd)"
         },
         "LOG": {
             "operation": "return ead::log(shape,in[0])",
-            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),ead::to_node<T>(args[0])),bwd)"
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),ead::NodeConverters<T>::to_node(args[0])),bwd)"
         },
         "SQRT": {
             "operation": "return ead::sqrt(shape,in[0])",
-            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),mul(ead::make_constant_scalar<T>(2,args[0]->shape()),sqrt(ead::to_node<T>(args[0])))),bwd)"
+            "derivative": "mul(div(ead::make_constant_scalar<T>(1,args[0]->shape()),mul(ead::make_constant_scalar<T>(2,args[0]->shape()),sqrt(ead::NodeConverters<T>::to_node(args[0])))),bwd)"
         },
         "ROUND": {
             "operation": "return ead::round(shape,in[0])",
@@ -74,27 +74,27 @@
         },
         "SIGMOID": {
             "operation": "return ead::sigmoid(shape,in[0])",
-            "derivative": "mul(sigmoid_grad(ead::to_node<T>(args[0])),bwd)"
+            "derivative": "mul(sigmoid_grad(ead::NodeConverters<T>::to_node(args[0])),bwd)"
         },
         "SIGMOID_GRAD": {
             "operation": "return ead::sigmoid_grad(shape,in[0])",
-            "derivative": "mul(mul(sigmoid_grad(ead::to_node<T>(args[0])),sub(ead::make_constant_scalar<T>(1,args[0]->shape()),mul(ead::make_constant_scalar<T>(2,args[0]->shape()),sigmoid(ead::to_node<T>(args[0]))))),bwd)"
+            "derivative": "mul(mul(sigmoid_grad(ead::NodeConverters<T>::to_node(args[0])),sub(ead::make_constant_scalar<T>(1,args[0]->shape()),mul(ead::make_constant_scalar<T>(2,args[0]->shape()),sigmoid(ead::NodeConverters<T>::to_node(args[0]))))),bwd)"
         },
         "TANH": {
             "operation": "return ead::tanh(shape,in[0])",
-            "derivative": "mul(sub(ead::make_constant_scalar<T>(1,args[0]->shape()),square(tanh(ead::to_node<T>(args[0])))),bwd)"
+            "derivative": "mul(sub(ead::make_constant_scalar<T>(1,args[0]->shape()),square(tanh(ead::NodeConverters<T>::to_node(args[0])))),bwd)"
         },
         "SQUARE": {
             "operation": "return ead::square(shape,in[0])",
-            "derivative": "mul(mul(ead::make_constant_scalar<T>(2,args[0]->shape()),ead::to_node<T>(args[0])),bwd)"
+            "derivative": "mul(mul(ead::make_constant_scalar<T>(2,args[0]->shape()),ead::NodeConverters<T>::to_node(args[0])),bwd)"
         },
         "CUBE": {
             "operation": "return ead::cube(shape,in[0])",
-            "derivative": "mul(mul(ead::make_constant_scalar<T>(3,args[0]->shape()),square(ead::to_node<T>(args[0]))),bwd)"
+            "derivative": "mul(mul(ead::make_constant_scalar<T>(3,args[0]->shape()),square(ead::NodeConverters<T>::to_node(args[0]))),bwd)"
         },
         "POW": {
             "operation": "return ead::pow(shape,in[0],in[1])",
-            "derivative": "mul(idx==0?mul(ead::to_node<T>(args[1]),pow(ead::to_node<T>(args[0]),sub(ead::to_node<T>(args[1]),ead::make_constant_scalar<T>(1,args[0]->shape())))):mul(log(ead::to_node<T>(args[0])),pow(ead::to_node<T>(args[0]),ead::to_node<T>(args[1]))),bwd)"
+            "derivative": "mul(idx==0?mul(ead::NodeConverters<T>::to_node(args[1]),pow(ead::NodeConverters<T>::to_node(args[0]),sub(ead::NodeConverters<T>::to_node(args[1]),ead::make_constant_scalar<T>(1,args[0]->shape())))):mul(log(ead::NodeConverters<T>::to_node(args[0])),pow(ead::NodeConverters<T>::to_node(args[0]),ead::NodeConverters<T>::to_node(args[1]))),bwd)"
         },
         "ADD": {
             "operation": "return ead::add(shape,in[0],in[1])",
@@ -106,19 +106,19 @@
         },
         "MUL": {
             "operation": "return ead::mul(shape,in[0],in[1])",
-            "derivative": "mul(ead::to_node<T>(args[(size_t)(idx==0)]),bwd)"
+            "derivative": "mul(ead::NodeConverters<T>::to_node(args[(size_t)(idx==0)]),bwd)"
         },
         "DIV": {
             "operation": "return ead::div(shape,in[0],in[1])",
-            "derivative": "mul(idx==0?div(ead::make_constant_scalar<T>(1,args[0]->shape()),ead::to_node<T>(args[1])):div(div(neg(ead::to_node<T>(args[0])),ead::to_node<T>(args[1])),ead::to_node<T>(args[1])),bwd)"
+            "derivative": "mul(idx==0?div(ead::make_constant_scalar<T>(1,args[0]->shape()),ead::NodeConverters<T>::to_node(args[1])):div(div(neg(ead::NodeConverters<T>::to_node(args[0])),ead::NodeConverters<T>::to_node(args[1])),ead::NodeConverters<T>::to_node(args[1])),bwd)"
         },
         "MIN": {
             "operation": "return ead::min(shape,in[0],in[1])",
-            "derivative": "mul(eq(min(ead::to_node<T>(args[0]),ead::to_node<T>(args[1])),ead::to_node<T>(args[idx])),bwd)"
+            "derivative": "mul(eq(min(ead::NodeConverters<T>::to_node(args[0]),ead::NodeConverters<T>::to_node(args[1])),ead::NodeConverters<T>::to_node(args[idx])),bwd)"
         },
         "MAX": {
             "operation": "return ead::max(shape,in[0],in[1])",
-            "derivative": "mul(eq(max(ead::to_node<T>(args[0]),ead::to_node<T>(args[1])),ead::to_node<T>(args[idx])),bwd)"
+            "derivative": "mul(eq(max(ead::NodeConverters<T>::to_node(args[0]),ead::NodeConverters<T>::to_node(args[1])),ead::NodeConverters<T>::to_node(args[idx])),bwd)"
         },
         "EQ": {
             "operation": "return ead::eq(shape,in[0],in[1])",

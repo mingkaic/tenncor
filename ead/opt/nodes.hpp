@@ -25,7 +25,7 @@ inline NodesT<T> tens_to_nodes (ade::TensT tens)
 	std::transform(tens.begin(), tens.end(), nodes.begin(),
 		[](ade::TensptrT& tens)
 		{
-			return to_node<T>(tens);
+			return NodeConverters<T>::to_node(tens);
 		});
 	return nodes;
 }
@@ -38,7 +38,7 @@ inline ArgsT<T> ade_to_ead_args (ade::ArgsT args)
 		[](ade::FuncArg& arg)
 		{
 			return FuncArg<T>{
-				to_node<T>(arg.get_tensor()),
+				NodeConverters<T>::to_node(arg.get_tensor()),
 				arg.get_shaper(),
 				std::static_pointer_cast<CoordMap>(arg.get_coorder()),
 			};

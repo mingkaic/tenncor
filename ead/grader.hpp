@@ -30,28 +30,29 @@ struct GradientBuilder final : public ade::iGradientBuilder
 	{
 		const ade::ArgsT& args = op->get_children();
 		ade::TensptrT out;
-		switch ((age::_GENERATED_OPCODE) op->get_opcode().code_)
+		ade::Opcode opcode = op->get_opcode();
+		switch ((age::_GENERATED_OPCODE) opcode.code_)
 		{
 			case age::ABS:
-				out = age::div(to_node<T>(args[0].get_tensor()),
-					to_node<T>(op))->get_tensor();
+				out = age::div(NodeConverters<T>::to_node(args[0].get_tensor()),
+					NodeConverters<T>::to_node(op))->get_tensor();
 				break;
 			case age::NEG:
 				out = ade::TensptrT(Constant<T>::get_scalar(
 					-1, args[0].get_tensor()->shape()));
 				break;
 			case age::SIN:
-				out = age::cos(to_node<T>(args[0].get_tensor()))->get_tensor();
+				out = age::cos(NodeConverters<T>::to_node(args[0].get_tensor()))->get_tensor();
 				break;
 			case age::COS:
 				out = age::neg(age::sin(
-					to_node<T>(args[0].get_tensor())))->get_tensor();
+					NodeConverters<T>::to_node(args[0].get_tensor())))->get_tensor();
 				break;
 			case age::TAN:
 				out = age::div(make_constant_scalar<T>(1,
 					args[0].get_tensor()->shape()),
 					age::pow(
-						age::cos(to_node<T>(args[0].get_tensor())),
+						age::cos(NodeConverters<T>::to_node(args[0].get_tensor())),
 						make_constant_scalar<T>(2, args[0].get_tensor()->shape())
 					)
 				)->get_tensor();
@@ -62,7 +63,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			case age::LOG:
 				out = age::div(
 					make_constant_scalar<T>(1,args[0].get_tensor()->shape()),
-					to_node<T>(args[0].get_tensor())
+					NodeConverters<T>::to_node(args[0].get_tensor())
 				)->get_tensor();
 				break;
 			case age::SQRT:
@@ -71,36 +72,36 @@ struct GradientBuilder final : public ade::iGradientBuilder
 					age::mul(
 						make_constant_scalar<T>(2,
 							args[0].get_tensor()->shape()),
-						to_node<T>(op)
+						NodeConverters<T>::to_node(op)
 					)
 				)->get_tensor();
 				break;
 			case age::SQUARE:
 				out = age::mul(
 					make_constant_scalar<T>(2, args[0].get_tensor()->shape()),
-					to_node<T>(args[0].get_tensor())
+					NodeConverters<T>::to_node(args[0].get_tensor())
 				)->get_tensor();
 				break;
 			case age::CUBE:
 				out = age::mul(
 					make_constant_scalar<T>(3, args[0].get_tensor()->shape()),
-					age::square(to_node<T>(args[0].get_tensor()))
+					age::square(NodeConverters<T>::to_node(args[0].get_tensor()))
 				)->get_tensor();
 				break;
 			case age::SIGMOID:
 				out = age::sigmoid_grad(
-					to_node<T>(args[0].get_tensor()))->get_tensor();
+					NodeConverters<T>::to_node(args[0].get_tensor()))->get_tensor();
 				break;
 			case age::SIGMOID_GRAD:
 				out = age::mul(
-					to_node<T>(op),
+					NodeConverters<T>::to_node(op),
 					age::sub(
 						make_constant_scalar<T>(1,
 							args[0].get_tensor()->shape()),
 						age::mul(
 							make_constant_scalar<T>(2,
 								args[0].get_tensor()->shape()),
-							age::sigmoid(to_node<T>(args[0].get_tensor()))
+							age::sigmoid(NodeConverters<T>::to_node(args[0].get_tensor()))
 						)
 					)
 				)->get_tensor();
@@ -108,7 +109,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			case age::TANH:
 				out = age::sub(
 					make_constant_scalar<T>(1,args[0].get_tensor()->shape()),
-					age::square(to_node<T>(op))
+					age::square(NodeConverters<T>::to_node(op))
 				)->get_tensor();
 				break;
 			case age::ROUND:
@@ -126,24 +127,24 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				break;
 			case age::MAX:
 			case age::MIN:
-				out = age::eq(to_node<T>(op),
-					to_node<T>(args[arg_idx].get_tensor()))->get_tensor();;
+				out = age::eq(NodeConverters<T>::to_node(op),
+					NodeConverters<T>::to_node(args[arg_idx].get_tensor()))->get_tensor();;
 				break;
 			case age::POW:
 				out = (arg_idx==0 ?
 					age::mul(
-						to_node<T>(args[1].get_tensor()),
+						NodeConverters<T>::to_node(args[1].get_tensor()),
 						age::pow(
-							to_node<T>(args[0].get_tensor()),
+							NodeConverters<T>::to_node(args[0].get_tensor()),
 							age::sub(
-								to_node<T>(args[1].get_tensor()),
+								NodeConverters<T>::to_node(args[1].get_tensor()),
 								make_constant_scalar<T>(1,
 									args[0].get_tensor()->shape())
 							)
 						)
 					) :
-					age::mul(age::log(to_node<T>(args[0].get_tensor())),
-						to_node<T>(op))
+					age::mul(age::log(NodeConverters<T>::to_node(args[0].get_tensor())),
+						NodeConverters<T>::to_node(op))
 				)->get_tensor();;
 				break;
 			case age::SUB:
@@ -152,7 +153,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				break;
 			case age::DIV:
 			{
-				auto denom = to_node<T>(args[1].get_tensor());
+				auto denom = NodeConverters<T>::to_node(args[1].get_tensor());
 				out = (arg_idx==0 ?
 					age::div(
 						make_constant_scalar<T>(1,
@@ -161,7 +162,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 					) :
 					age::div(
 						age::div(
-							age::neg(to_node<T>(args[0].get_tensor())),
+							age::neg(NodeConverters<T>::to_node(args[0].get_tensor())),
 							denom),
 						denom
 					))->get_tensor();
@@ -176,21 +177,21 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				break;
 			case age::REDUCE_PROD:
 				out = age::div(
-					reduce_grad(args[0], to_node<T>(op), arg_idx),
-					to_node<T>(args[0].get_tensor())
+					reduce_grad(args[0], NodeConverters<T>::to_node(op), arg_idx),
+					NodeConverters<T>::to_node(args[0].get_tensor())
 				)->get_tensor();
 				break;
 			case age::REDUCE_MAX:
 			case age::REDUCE_MIN:
 				out = age::eq(
-					reduce_grad(args[0], to_node<T>(op), arg_idx),
-					to_node<T>(args[0].get_tensor())
+					reduce_grad(args[0], NodeConverters<T>::to_node(op), arg_idx),
+					NodeConverters<T>::to_node(args[0].get_tensor())
 				)->get_tensor();
 				break;
 			case age::MATMUL:
 			{
-				NodeptrT<T> lhs = to_node<T>(args[0].get_tensor());
-				NodeptrT<T> rhs = to_node<T>(args[1].get_tensor());
+				NodeptrT<T> lhs = NodeConverters<T>::to_node(args[0].get_tensor());
+				NodeptrT<T> rhs = NodeConverters<T>::to_node(args[1].get_tensor());
 				out = (0 == arg_idx ?
 					// ext_rhs
 					age::permute(age::extend(rhs, 2, {
@@ -208,7 +209,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				logs::fatal("cannot derive CONV_KRN_GRAD");
 				break;
 			default:
-				logs::fatal("Unknown op");
+				logs::fatalf("Unknown op %s", opcode.name_.c_str());
 		}
 		return out;
 	}
@@ -218,7 +219,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 		ade::TensptrT supcomp_grad, size_t arg_idx) const override
 	{
 		NodeptrT<T> out;
-		switch (op->get_opcode().code_)
+		ade::Opcode opcode = op->get_opcode();
+		switch (opcode.code_)
 		{
 			case age::ABS:
 			case age::NEG:
@@ -246,29 +248,29 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			case age::GT:
 			case age::LT:
 			case age::RAND_UNIF:
-				out = age::mul(to_node<T>(local_der),
-					to_node<T>(supcomp_grad));
+				out = age::mul(NodeConverters<T>::to_node(local_der),
+					NodeConverters<T>::to_node(supcomp_grad));
 				break;
 			case age::REDUCE_MAX:
 			case age::REDUCE_MIN:
 			case age::REDUCE_PROD:
 			case age::REDUCE_SUM:
-				out = age::mul(to_node<T>(local_der), reduce_grad(
-					op->get_children()[0], to_node<T>(supcomp_grad), arg_idx));
+				out = age::mul(NodeConverters<T>::to_node(local_der), reduce_grad(
+					op->get_children()[0], NodeConverters<T>::to_node(supcomp_grad), arg_idx));
 				break;
 			case age::EXTEND:
-				out = age::mul(to_node<T>(local_der), extend_grad(
-					op.get(), to_node<T>(supcomp_grad), arg_idx));
+				out = age::mul(NodeConverters<T>::to_node(local_der), extend_grad(
+					op.get(), NodeConverters<T>::to_node(supcomp_grad), arg_idx));
 				break;
 			case age::PERMUTE:
-				out = age::mul(to_node<T>(local_der), permute_grad(
-					op.get(), to_node<T>(supcomp_grad), arg_idx));
+				out = age::mul(NodeConverters<T>::to_node(local_der), permute_grad(
+					op.get(), NodeConverters<T>::to_node(supcomp_grad), arg_idx));
 				break;
 			case age::MATMUL:
 				out = age::reduce_sum(
 					age::permute(
-						age::mul(to_node<T>(local_der),
-							age::extend(to_node<T>(supcomp_grad), 2, {
+						age::mul(NodeConverters<T>::to_node(local_der),
+							age::extend(NodeConverters<T>::to_node(supcomp_grad), 2, {
 								op->get_children()[0].
 									get_tensor()->shape().at(0)
 							})),
@@ -297,8 +299,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				ade::CoordptrT full_shaper(
 					fwd_shaper->connect(*rev_shaper));
 				out = make_functor<T>(opcode, {
-					FuncArg<T>(to_node<T>(local_der), full_shaper, nullptr),
-					FuncArg<T>(to_node<T>(supcomp_grad), rev_shaper, nullptr),
+					FuncArg<T>(NodeConverters<T>::to_node(local_der), full_shaper, nullptr),
+					FuncArg<T>(NodeConverters<T>::to_node(supcomp_grad), rev_shaper, nullptr),
 				});
 			}
 				break;
@@ -310,11 +312,11 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				ade::DimT dimension = slicings[2];
 				ade::DimT dim = child.get_tensor()->shape().at(dimension);
 				ade::DimT left_pad = slicings[0];
-				ade::DimT right_pad = dim - (left_pad + slicings[1]) - 1;
-				out = age::mul(to_node<T>(local_der),
-					to_node<T>(supcomp_grad));
-				out = age::pad(out, std::pair<ade::DimT,ade::DimT>{
-					left_pad, right_pad}, dimension);
+				ade::DimT right_pad = dim - (left_pad + slicings[1]);
+				out = age::mul(NodeConverters<T>::to_node(local_der),
+					age::pad(NodeConverters<T>::to_node(supcomp_grad),
+						std::pair<ade::DimT,ade::DimT>{
+							left_pad, right_pad}, dimension));
 			}
 				break;
 			case age::PAD:
@@ -323,12 +325,12 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				auto& child = op->get_children()[0];
 				child.get_coorder()->forward(paddings.begin(), paddings.begin());
 				ade::DimT dimension = paddings[2];
-				ade::DimT dim = child.get_tensor()->shape().at(dimension);
+				ade::DimT dim = op->shape().at(dimension);
 				ade::DimT offset = paddings[0];
-				ade::DimT extent = dim - paddings[1] - 1 - offset;
-				out = age::mul(to_node<T>(local_der),
-					to_node<T>(supcomp_grad));
-				out = age::slice(out, offset, extent, dimension);
+				ade::DimT extent = dim - paddings[1] - offset;
+				out = age::mul(NodeConverters<T>::to_node(local_der),
+					age::slice(NodeConverters<T>::to_node(supcomp_grad),
+						offset, extent, dimension));
 			}
 				break;
 			case age::CONV_IMG_GRAD:
@@ -338,7 +340,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				logs::fatal("cannot derive CONV_KRN_GRAD");
 				break;
 			default:
-				logs::fatal("Unknown op");
+				logs::fatalf("Unknown op %s", opcode.name_.c_str());
 		}
 		return out->get_tensor();
 	}
@@ -359,8 +361,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 	ade::TensptrT add (ade::TensptrT& lhs, ade::TensptrT& rhs) const override
 	{
 		return ade::TensptrT(Functor<T>::get(ade::Opcode{"ADD", age::ADD}, {
-			identity_map(to_node<T>(lhs)),
-			identity_map(to_node<T>(rhs))
+			identity_map(NodeConverters<T>::to_node(lhs)),
+			identity_map(NodeConverters<T>::to_node(rhs))
 		}));
 	}
 };
@@ -372,7 +374,7 @@ NodeptrT<T> derive (NodeptrT<T> root, NodeptrT<T> target)
 	GradientBuilder<T> builder;
 	ade::TensptrT derivative = builder.derive(
 		root->get_tensor(), target->get_tensor());
-	return to_node<T>(derivative);
+	return NodeConverters<T>::to_node(derivative);
 }
 
 }

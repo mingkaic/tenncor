@@ -198,7 +198,7 @@ NodesT<T> ops_reuse (NodesT<T> roots)
 			for (auto& child : children)
 			{
 				auto smart = child.get_tensor();
-				smart_map[smart.get()] = to_node<T>(smart);
+				smart_map[smart.get()] = NodeConverters<T>::to_node(smart);
 			}
 
 			// find equalities
@@ -252,7 +252,7 @@ NodesT<T> ops_reuse (NodesT<T> roots)
 				if (changed)
 				{
 					auto f = Functor<T>::get(func->get_opcode(), children);
-					auto optimized = to_node<T>(ade::TensptrT(f));
+					auto optimized = NodeConverters<T>::to_node(ade::TensptrT(f));
 					// update smart and orig2new
 					smart_map.emplace(f, optimized);
 					auto it = new2origs.find(func);

@@ -79,7 +79,7 @@ struct FCon final : public iMarshalSet
 			ead::convert_to_node(weights_[0]->var_));
 		for (size_t i = 1; i < n; ++i)
 		{
-			out = age::add(age::matmul(inputs[i],
+			out = age::add(out, age::matmul(inputs[i],
 				ead::convert_to_node(weights_[i]->var_)));
 		}
 		return eqns::weighed_bias_add(out,
@@ -116,7 +116,7 @@ private:
 			weights_.push_back(
 				std::make_shared<MarshalVar>(*weight));
 		}
-		bias_ = std::make_shared<MarshalVar>(*other.bias_),
+		bias_ = std::make_shared<MarshalVar>(*other.bias_);
 	}
 
 	iMarshaler* clone_impl (void) const override

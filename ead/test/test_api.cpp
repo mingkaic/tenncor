@@ -32,7 +32,7 @@ using MatVecT = std::vector<std::vector<int32_t>>;
 static const int FREIVALD_N = 10;
 
 
-MatVecT create_2d (ead::NodeptrT<int32_t> data)
+static MatVecT create_2d (ead::NodeptrT<int32_t> data)
 {
 	int32_t* ptr = (int32_t*) data->data();
 	ade::DimT C = data->shape().at(0);
@@ -55,7 +55,7 @@ MatVecT create_2d (ead::NodeptrT<int32_t> data)
 }
 
 
-bool freivald (MatVecT a, MatVecT b, MatVecT c)
+static bool freivald (MatVecT a, MatVecT b, MatVecT c)
 {
 	uint8_t cdim = b.size();
 	uint8_t bdim = b[0].size();
@@ -1387,7 +1387,9 @@ TEST(API, Convolution)
 
 	ead::NodeptrT<double> img = ead::make_constant<double>(data.data(), shape);
 	ead::NodeptrT<double> kernel = ead::make_constant<double>(data2.data(), kshape);
-	ead::NodeptrT<double> dest = age::convolution(img, kernel);
+	std::vector<ade::DimT> dims(ade::rank_cap);
+	std::iota(dims.begin(), dims.end(), 0);
+	ead::NodeptrT<double> dest = age::convolution(img, kernel, dims);
 
 	dest->update();
 	{

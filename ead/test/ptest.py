@@ -594,7 +594,7 @@ class EADTest(unittest.TestCase):
             tf_var = tf.Variable(tf_data)
             tf_kernel = tf.Variable(tf_kdata)
 
-            out = age.convolution(var, vkernel)
+            out = age.convolution(var, vkernel, list(range(8)))
 
             sess = ead.Session()
             sess.track(out)

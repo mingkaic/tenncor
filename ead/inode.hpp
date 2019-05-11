@@ -1,3 +1,5 @@
+#include <unordered_map>
+
 #include "ade/itensor.hpp"
 
 #include "ead/tensor.hpp"
@@ -30,6 +32,41 @@ using NodeptrT = std::shared_ptr<iNode<T>>;
 
 template <typename T>
 using NodesT = std::vector<NodeptrT<T>>;
+
+template <typename T>
+using NodeBuilderT = std::function<NodeptrT<T>(ade::TensptrT)>;
+
+template <typename T>
+struct NodeConverters final
+{
+	static std::unordered_map<size_t,NodeBuilderT<T>> builders_;
+
+	static NodeptrT<T> to_node (ade::TensptrT tens)
+	{
+		const std::type_info& tp = typeid(*tens);
+		auto it = builders_.find(tp.hash_code());
+		if (builders_.end() == it)
+		{
+			logs::fatalf("unknown tensor type %s with %s dtype",
+				tp.name(),
+				age::name_type(age::get_type<T>()).c_str());
+		}
+		return it->second(tens);
+	}
+
+	NodeConverters (void) = delete;
+};
+
+template <typename T>
+std::unordered_map<size_t,NodeBuilderT<T>> NodeConverters<T>::builders_;
+
+template <typename TensType, typename T>
+bool register_builder (NodeBuilderT<T> builder)
+{
+	const std::type_info& tp = typeid(TensType);
+	return NodeConverters<T>::builders_.
+		emplace(tp.hash_code(), builder).second;
+}
 
 }
 

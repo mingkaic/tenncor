@@ -174,7 +174,7 @@ struct MarshalVar final : public iMarshaler
 		}
 		else
 		{
-			var_->assign(ead::to_node<PybindT>(it->second)->data(), it->second->shape());
+			var_->assign(ead::NodeConverters<PybindT>::to_node(it->second)->data(), it->second->shape());
 		}
 	}
 

@@ -1000,14 +1000,18 @@ EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& input, const OpArg<T>& kernel)
 {
+	assert(nullptr != kernel.coorder_);
+	ade::CoordT kernel_dims;
+	kernel.coorder_->forward(kernel_dims.begin(), kernel_dims.begin());
+	ade::ShapeT dims;
+	std::copy(kernel_dims.begin(), kernel_dims.end(), dims.begin());
+
 	return make_eigentensor<T,Eigen::TensorConvolutionOp<
 		const ade::ShapeT,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape),
-		[](std::vector<TensMapT<T>>& args)
+		[&](std::vector<TensMapT<T>>& args)
 		{
-			ade::ShapeT dims;
-			std::iota(dims.begin(), dims.end(), 0);
 			return args[0].convolve(args[1], dims);
 		}, {
 			make_tensmap(input.data_, input.shape_),

@@ -11,6 +11,7 @@ enum TransCode
 	EXTEND = 0,
 	PERMUTE,
 	REDUCE,
+	CONV,
 	SLICE,
 	PAD,
 };
