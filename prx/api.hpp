@@ -10,7 +10,7 @@ namespace prx
 {
 
 template <typename T>
-ead::NodeptrT<T> fully_connected (ead::NodesT<T> inputs,
+ead::NodeptrT<T> fully_connect (ead::NodesT<T> inputs,
 	ead::NodesT<T> weights, ead::NodeptrT<T> bias)
 {
 	if (weights.empty())
@@ -31,10 +31,11 @@ ead::NodeptrT<T> fully_connected (ead::NodesT<T> inputs,
 	}
 	const ade::Shape& shape = out->shape();
 	// expecting bias to be of shape <x,1,1,...,1>
-	inputs.insert(inputs.end(), weights.begin(), weights.end());
-	inputs.push_back(bias);
 	out = age::add(out, age::extend(bias, 1, {shape.at(1)}));
-	return make_subgraph(ade::Opcode{"FULL_CONN", FULL_CONN}, out, inputs);
+	return out;
+	// inputs.insert(inputs.end(), weights.begin(), weights.end());
+	// inputs.push_back(bias);
+	// return make_subgraph(ade::Opcode{"FULL_CONN", FULL_CONN}, out, inputs);
 }
 
 // image must be in form [in, width, height, batch]
@@ -76,7 +77,8 @@ ead::NodeptrT<T> softmax (ead::NodeptrT<T> input)
 	ade::Shape shape = input->shape();
 	auto out = age::div(num, age::extend(denom, 0,
 		std::vector<uint8_t>(shape.begin(), shape.end())));
-	return make_subgraph(ade::Opcode{"SOFT_MAX", SOFT_MAX}, out, {input});
+	return out;
+	// return make_subgraph(ade::Opcode{"SOFT_MAX", SOFT_MAX}, out, {input});
 }
 
 }

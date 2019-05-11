@@ -67,7 +67,7 @@ def main(args):
         with open(args.load, 'rb') as f:
             print('loading')
             pretrained_brain = brain.parse_from_string(f.read())
-            print('successfully loaded ' + args.load)
+            print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
@@ -128,7 +128,8 @@ def main(args):
 
     try:
         print('saving')
-        brain.serialize_to_file(trained_out, args.save)
+        if brain.serialize_to_file(trained_out, args.save):
+            print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)
         print('failed to write to "{}"'.format(args.save))

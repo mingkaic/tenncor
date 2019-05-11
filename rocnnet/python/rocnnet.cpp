@@ -7,9 +7,6 @@
 
 #include "ead/generated/pyapi.hpp"
 
-#include "rocnnet/eqns/activations.hpp"
-
-#include "rocnnet/modl/fcon.hpp"
 #include "rocnnet/modl/mlp.hpp"
 // #include "rocnnet/modl/rbm.hpp"
 // #include "rocnnet/modl/dbn.hpp"
@@ -25,7 +22,7 @@ namespace py = pybind11;
 namespace pyrocnnet
 {
 
-modl::LayerInfo layerinfo_init (modl::HiddenFunc hidden, size_t n_out)
+modl::LayerInfo layerinfo_init (modl::HiddenFunc hidden, ade::DimT n_out)
 {
 	return modl::LayerInfo{n_out, hidden};
 }
@@ -49,12 +46,6 @@ DQNInfo dqninfo_init (size_t train_interval = 5,
 		mini_batch_size,
 		max_exp
 	};
-}
-
-modl::FConptrT fcon_init (std::vector<uint8_t> n_inputs, size_t n_output,
-	std::string label)
-{
-	return std::make_shared<modl::FCon>(n_inputs, n_output, label);
 }
 
 modl::MLPptrT mlp_init (size_t n_input, std::vector<modl::LayerInfo> layers,
@@ -103,7 +94,6 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<modl::iMarshaler,modl::MarsptrT> marshaler(m, "Marshaler");
 
 	// models
-	py::class_<modl::FCon,modl::iMarshaler,modl::FConptrT> fcon(m, "FCon");
 	py::class_<modl::MLP,modl::iMarshaler,modl::MLPptrT> mlp(m, "MLP");
 	// py::class_<modl::RBM,modl::iMarshaler,modl::RBMptrT> rbm(m, "RBM");
 	// py::class_<modl::DBN,modl::iMarshaler,modl::DBNptrT> dbn(m, "DBN");
@@ -128,7 +118,9 @@ PYBIND11_MODULE(rocnnet, m)
 				self.cast<modl::iMarshaler*>()))
 			{
 				logs::errorf("cannot save to file %s", filename.c_str());
+				return false;
 			}
+			return true;
 		}, "load a version of this instance from a data")
 		.def("serialize_to_string", [](py::object self, ead::NodeptrT<PybindT> source)
 		{
@@ -162,18 +154,6 @@ PYBIND11_MODULE(rocnnet, m)
 			}
 			return out;
 		}, "return variables dict in this marshaler");
-
-	// fcon
-	m.def("get_fcon", &pyrocnnet::fcon_init);
-	fcon
-		.def("copy", [](py::object self)
-		{
-			return std::make_shared<modl::FCon>(*self.cast<modl::FCon*>());
-		}, "deep copy this instance")
-		.def("forward", [](py::object self, ead::NodesT<PybindT> inputs)
-		{
-			return (*self.cast<modl::FCon*>())(inputs);
-		}, "forward input tensor and returned connected output");
 
 	// mlp
 	m.def("get_layer", &pyrocnnet::layerinfo_init);
@@ -297,8 +277,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 
 	// inlines
-	m.def("identity", &eqns::identity);
-	m.def("softmax", &eqns::softmax);
+	m.def("identity", [](ead::NodeptrT<PybindT> in) { return in; });
 
 	m.def("get_sgd", &pyrocnnet::get_sgd,
 		py::arg("learning_rate") = 0.5);

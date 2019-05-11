@@ -92,9 +92,8 @@ struct DQNTrainer
 					vpair.second.begin(), vpair.second.end());
 				labelled_indices.emplace(label, source_vars.size());
 
-				auto vnode = std::make_shared<ead::VariableNode<PybindT>>(var);
-				// vnode->set_label(label);
-				source_vars.push_back(vnode);
+				source_vars.push_back(
+					std::make_shared<ead::VariableNode<PybindT>>(var));
 			}
 		}
 		updates_ = update(prediction_error_, source_vars);

@@ -24,7 +24,9 @@ namespace pbm
 using PathedMapT = std::unordered_map<ade::TensptrT,StringsT>;
 
 /// Graph serialization traveler
-template <typename SAVER, typename std::enable_if<std::is_base_of<iSaver,SAVER>::value>::type* = nullptr>
+template <typename SAVER,
+	typename std::enable_if<
+		std::is_base_of<iSaver,SAVER>::value>::type* = nullptr>
 struct GraphSaver final : public ade::iTraveler
 {
 	/// Implementation of iTraveler

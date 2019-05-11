@@ -31,10 +31,8 @@ struct MLPTrainer
 			if (auto var = std::dynamic_pointer_cast<
 				ead::Variable<PybindT>>(vpair.first))
 			{
-				auto vnode = std::make_shared<ead::VariableNode<PybindT>>(var);
-				vnode->set_label(fmts::join("::",
-					vpair.second.begin(), vpair.second.end()));
-				vars.push_back(vnode);
+				vars.push_back(
+					std::make_shared<ead::VariableNode<PybindT>>(var));
 			}
 		}
 		updates_ = update(error_, vars);

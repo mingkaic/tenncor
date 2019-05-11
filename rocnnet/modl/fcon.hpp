@@ -6,7 +6,7 @@
 
 #include "rocnnet/modl/marshal.hpp"
 
-#ifndef MODL_FCON_HPP
+#ifndef MODL_FCON_HPP // todo: deprecate
 #define MODL_FCON_HPP
 
 namespace modl

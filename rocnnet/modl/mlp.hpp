@@ -1,7 +1,8 @@
 #include <functional>
-#include <memory>
 
-#include "rocnnet/modl/fcon.hpp"
+#include "prx/api.hpp"
+
+#include "rocnnet/modl/marshal.hpp"
 
 #ifndef MODL_MLP_HPP
 #define MODL_MLP_HPP
@@ -11,26 +12,43 @@ namespace modl
 
 using HiddenFunc = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 
-const std::string hidden_fmt = "hidden_%d";
-
 struct LayerInfo
 {
-	size_t n_out_;
+	ade::DimT n_out_;
+
 	HiddenFunc hidden_;
 };
 
 struct MLP final : public iMarshalSet
 {
-	MLP (uint8_t n_input, std::vector<LayerInfo> layers, std::string label) :
+	MLP (ade::DimT n_input, std::vector<LayerInfo> layers, std::string label) :
 		iMarshalSet(label)
 	{
 		for (size_t i = 0, n = layers.size(); i < n; ++i)
 		{
-			size_t n_output = layers[i].n_out_;
+			ade::DimT n_output = layers[i].n_out_;
+			ade::Shape weight_shape({n_output, n_input});
+			ade::NElemT nweight = weight_shape.n_elems();
+
+			PybindT bound = 1.0 / std::sqrt(n_input);
+			std::uniform_real_distribution<PybindT> dist(-bound, bound);
+			auto gen = [&dist]()
+			{
+				return dist(ead::get_engine());
+			};
+			std::vector<PybindT> wdata(nweight);
+			std::generate(wdata.begin(), wdata.end(), gen);
+
+			ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
+				wdata.data(), weight_shape, fmts::sprintf("weight_%d", i));
+
+			ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
+				0.0, ade::Shape({n_output}), fmts::sprintf("bias_%d", i));
+
 			layers_.push_back(HiddenLayer{
-				std::make_shared<FCon>(std::vector<uint8_t>{n_input},
-					n_output, fmts::sprintf(hidden_fmt, i)),
-				layers[i].hidden_
+				std::make_shared<MarshalVar>(weight),
+				std::make_shared<MarshalVar>(bias),
+				layers[i].hidden_,
 			});
 			n_input = n_output;
 		}
@@ -61,30 +79,33 @@ struct MLP final : public iMarshalSet
 		ead::NodeptrT<PybindT> out = input;
 		for (HiddenLayer& layer : layers_)
 		{
-			auto hypothesis = (*layer.layer_)({out});
+			auto hypothesis = prx::fully_connect({out},
+				{ead::convert_to_node(layer.weight_->var_)},
+				ead::convert_to_node(layer.bias_->var_));
 			out = layer.hidden_(hypothesis);
 		}
 		return out;
 	}
 
-	uint8_t get_ninput (void) const
+	ade::DimT get_ninput (void) const
 	{
-		return layers_.front().layer_->get_ninput();
+		return layers_.front().weight_->var_->shape().at(1);
 	}
 
-	uint8_t get_noutput (void) const
+	ade::DimT get_noutput (void) const
 	{
-		return layers_.back().layer_->get_noutput();
+		return layers_.back().weight_->var_->shape().at(0);
 	}
 
 	MarsarrT get_subs (void) const override
 	{
-		MarsarrT out(layers_.size());
-		std::transform(layers_.begin(), layers_.end(), out.begin(),
-			[](const HiddenLayer& layer)
-			{
-				return layer.layer_;
-			});
+		MarsarrT out;
+		out.reserve(2 * layers_.size());
+		for (const HiddenLayer& layer : layers_)
+		{
+			out.push_back(layer.weight_);
+			out.push_back(layer.bias_);
+		}
 		return out;
 	}
 
@@ -95,7 +116,8 @@ private:
 		for (const HiddenLayer& olayer : other.layers_)
 		{
 			layers_.push_back(HiddenLayer{
-				std::make_shared<FCon>(*olayer.layer_),
+				std::make_shared<MarshalVar>(*olayer.weight_),
+				std::make_shared<MarshalVar>(*olayer.bias_),
 				olayer.hidden_
 			});
 		}
@@ -108,7 +130,10 @@ private:
 
 	struct HiddenLayer
 	{
-		FConptrT layer_;
+		MarVarsptrT weight_;
+
+		MarVarsptrT bias_;
+
 		HiddenFunc hidden_;
 	};
 
