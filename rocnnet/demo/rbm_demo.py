@@ -4,11 +4,12 @@ import argparse
 
 import numpy as np
 
+import ead.age as age
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
-from demo.data.load_mnist import load_mnist
-from demo.data.image_out import mnist_imageout
+from rocnnet.demo.data.load_mnist import load_mnist
+from rocnnet.demo.data.image_out import mnist_imageout
 
 prog_description = 'Demo rbm_trainer'
 n_sample = 10
@@ -65,7 +66,7 @@ def main(args):
     n_in = training_x.shape[1]
     n_hidden = args.n_hidden
 
-    brain = rcn.get_rbm(n_in, n_hidden, 'brain')
+    brain = rcn.get_rbm(n_in, [rcn.get_layer(age.sigmoid, n_hidden)], 'brain')
     try:
         with open(args.cache_file, 'rb') as f:
             print('loading')
@@ -74,13 +75,14 @@ def main(args):
         pass
 
     # train
+    sess = ead.Session()
     if args.train:
         n_data = training_x.shape[0]
         n_training_batches = n_data / args.n_batch
 
         persistent = ead.variable(
             np.zeros([args.n_batch, args.n_hidden], dtype=float), 'persistent')
-        trainer = rcn.RBMTrainer(brain, persistent, args.n_batch,
+        trainer = rcn.RBMTrainer(brain, sess, persistent, args.n_batch,
             args.learning_rate, args.n_cont_div)
 
         for i in range(args.n_train):

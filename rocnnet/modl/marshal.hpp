@@ -203,6 +203,15 @@ bool save (std::ostream& outs, ade::TensptrT source,
 
 void load (std::istream& ins, iMarshaler* target);
 
+using HiddenFunc = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
+
+struct LayerInfo
+{
+	ade::DimT n_out_;
+
+	HiddenFunc hidden_;
+};
+
 }
 
 #endif // MODL_MARSHAL_HPP

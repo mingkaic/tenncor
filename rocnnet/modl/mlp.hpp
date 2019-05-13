@@ -10,15 +10,6 @@
 namespace modl
 {
 
-using HiddenFunc = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
-
-struct LayerInfo
-{
-	ade::DimT n_out_;
-
-	HiddenFunc hidden_;
-};
-
 struct MLP final : public iMarshalSet
 {
 	MLP (ade::DimT n_input, std::vector<LayerInfo> layers, std::string label) :
@@ -109,6 +100,17 @@ struct MLP final : public iMarshalSet
 		return out;
 	}
 
+	struct HiddenLayer
+	{
+		MarVarsptrT weight_;
+
+		MarVarsptrT bias_;
+
+		HiddenFunc hidden_;
+	};
+
+	std::vector<HiddenLayer> layers_;
+
 private:
 	void copy_helper (const MLP& other)
 	{
@@ -127,17 +129,6 @@ private:
 	{
 		return new MLP(*this);
 	}
-
-	struct HiddenLayer
-	{
-		MarVarsptrT weight_;
-
-		MarVarsptrT bias_;
-
-		HiddenFunc hidden_;
-	};
-
-	std::vector<HiddenLayer> layers_;
 };
 
 using MLPptrT = std::shared_ptr<MLP>;

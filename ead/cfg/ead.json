@@ -582,7 +582,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::reduce_help<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},tens,start,end)"
+                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},tens,start,end)"
             },
             "description": "sum values ignoring coordinate indices between start and end"
         },
@@ -603,7 +603,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::reduce_help<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},tens,start,end)"
+                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},tens,start,end)"
             },
             "description": "multiply values ignoring coordinate indices between start and end"
         },
@@ -624,7 +624,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::reduce_help<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},tens,start,end)"
+                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},tens,start,end)"
             },
             "description": "min values ignoring coordinate indices between start and end"
         },
@@ -645,7 +645,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::reduce_help<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},tens,start,end)"
+                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},tens,start,end)"
             },
             "description": "max values ignoring coordinate indices between start and end"
         },
@@ -661,7 +661,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},arg1,arg2)"
+                "val": "ead::build_reduce_1d<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},arg1,arg2)"
             }
         },
         {
@@ -676,7 +676,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},arg1,arg2)"
+                "val": "ead::build_reduce_1d<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},arg1,arg2)"
             }
         },
         {
@@ -691,7 +691,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},arg1,arg2)"
+                "val": "ead::build_reduce_1d<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},arg1,arg2)"
             }
         },
         {
@@ -706,7 +706,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::reduce_1d_helper<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},arg1,arg2)"
+                "val": "ead::build_reduce_1d<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},arg1,arg2)"
             }
         },
         {
@@ -817,7 +817,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::get_matmul(arg1,arg2)"
+                "val": "ead::build_matmul(arg1,arg2)"
             }
         },
         {
@@ -835,7 +835,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::get_convolve(arg1,arg2,dims)"
+                "val": "ead::build_convolve(arg1,arg2,dims)"
             }
         },
         {

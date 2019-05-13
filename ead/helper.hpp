@@ -13,7 +13,7 @@ std::vector<T> shape_to_vec (ade::Shape shape)
 }
 
 template <typename T>
-NodeptrT<T> reduce_help (ade::Opcode opcode,
+NodeptrT<T> build_reduce (ade::Opcode opcode,
 	NodeptrT<T> tens, uint8_t start, uint8_t end)
 {
 	std::vector<ade::DimT> coords;
@@ -25,13 +25,18 @@ NodeptrT<T> reduce_help (ade::Opcode opcode,
 			coords.push_back(i);
 		}
 	}
+	ade::DimT rank = 0;
+	if (coords.size() > 0)
+	{
+		rank = coords.front();
+	}
 	return make_functor<T>(opcode, {
-		reduce_map(tens, start, coords)
+		reduce_map(tens, rank, coords)
 	});
 }
 
 template <typename T>
-NodeptrT<T> reduce_1d_helper (ade::Opcode opcode,
+NodeptrT<T> build_reduce_1d (ade::Opcode opcode,
 	NodeptrT<T> tens, uint8_t dim)
 {
 	std::vector<ade::DimT> indices(ade::rank_cap);
@@ -49,11 +54,18 @@ NodeptrT<T> reduce_1d_helper (ade::Opcode opcode,
 }
 
 template <typename T>
-NodeptrT<T> get_matmul (NodeptrT<T> a, NodeptrT<T> b)
+NodeptrT<T> build_matmul (NodeptrT<T> a, NodeptrT<T> b)
 {
-	ade::DimT ncommon = a->get_tensor()->shape().at(0);
-	ade::DimT nrow = a->get_tensor()->shape().at(1);
-	ade::DimT ncol = b->get_tensor()->shape().at(0);
+	ade::Shape ashape = a->get_tensor()->shape();
+	ade::Shape bshape = b->get_tensor()->shape();
+	ade::DimT ncommon = ashape.at(0);
+	ade::DimT nrow = ashape.at(1);
+	ade::DimT ncol = bshape.at(0);
+	if (ncommon != bshape.at(1))
+	{
+		logs::fatalf("invalid matmul shapes %s and %s",
+			ashape.to_string().c_str(), bshape.to_string().c_str());
+	}
 
 	ade::CoordptrT left_shaper(new ade::CoordMap(
 		[&](ade::MatrixT fwd)
@@ -87,7 +99,7 @@ NodeptrT<T> get_matmul (NodeptrT<T> a, NodeptrT<T> b)
 }
 
 template <typename T>
-NodeptrT<T> get_convolve (NodeptrT<T> input,
+NodeptrT<T> build_convolve (NodeptrT<T> input,
 	NodeptrT<T> kernel, std::vector<ade::DimT> dims)
 {
 	ade::Shape inshape = input->get_tensor()->shape();

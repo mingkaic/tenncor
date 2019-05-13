@@ -213,55 +213,59 @@ class EADTest(unittest.TestCase):
         self._array_eq(data0, rej)
 
     def _common_reduce(self, all_reduce, dim_reduce, tf_reduce):
-        shape = [3, 4, 5]
-        data = np.random.rand(*shape)
-        var = ead.variable(data, 'var')
-        tf_var = tf.Variable(data)
+        shapes = [
+            [3, 4, 5],
+            [1, 50, 1]
+        ]
+        for shape in shapes:
+            data = np.random.rand(*shape)
+            var = ead.variable(data, 'var')
+            tf_var = tf.Variable(data)
 
-        tfsess = tf.Session()
-        tfsess.run(tf_var.initializer)
+            tfsess = tf.Session()
+            tfsess.run(tf_var.initializer)
 
-        out = all_reduce(var)
-        out2 = dim_reduce(var, 1)
-        tf_out = tf_reduce(tf_var)
-        tf_out2 = tf_reduce(tf_var, [0, 1])
+            out = all_reduce(var)
+            out2 = dim_reduce(var, 1)
+            tf_out = tf_reduce(tf_var)
+            tf_out2 = tf_reduce(tf_var, [0, 1])
 
-        sess = ead.Session()
-        sess.track(out)
-        sess.track(out2)
-        sess.update()
+            sess = ead.Session()
+            sess.track(out)
+            sess.track(out2)
+            sess.update()
 
-        fout = out.get()
-        fout2 = out2.get()
-        tf_fout = np.array(tfsess.run(tf_out))
-        tf_fout2 = tfsess.run(tf_out2)
+            fout = out.get()
+            fout2 = out2.get()
+            tf_fout = np.array(tfsess.run(tf_out))
+            tf_fout2 = tfsess.run(tf_out2)
 
-        self._array_close(tf_fout, fout)
-        self._array_close(tf_fout2, fout2)
+            self._array_close(tf_fout, fout)
+            self._array_close(tf_fout2, fout2)
 
-        var2 = ead.variable(data, 'var2')
-        ex = ead.derive(out, var)
-        ex2 = ead.derive(out2, var)
-        zero = ead.derive(out, var2)
-        sess.track(ex)
-        sess.track(ex2)
-        sess.track(zero)
-        sess.update()
+            var2 = ead.variable(data, 'var2')
+            ex = ead.derive(out, var)
+            ex2 = ead.derive(out2, var)
+            zero = ead.derive(out, var2)
+            sess.track(ex)
+            sess.track(ex2)
+            sess.track(zero)
+            sess.update()
 
-        tf_grad = tf.gradients(tf_out, [tf_var])[0]
-        tf_grad2 = tf.gradients(tf_out2, [tf_var])[0]
+            tf_grad = tf.gradients(tf_out, [tf_var])[0]
+            tf_grad2 = tf.gradients(tf_out2, [tf_var])[0]
 
-        data0 = np.zeros(shape, dtype=np.float32)
-        der = ex.get()
-        der2 = ex2.get()
-        rej = zero.get()
+            data0 = np.zeros(shape, dtype=np.float32)
+            der = ex.get()
+            der2 = ex2.get()
+            rej = zero.get()
 
-        exdata = tfsess.run(tf_grad)
-        exdata2 = tfsess.run(tf_grad2)
+            exdata = tfsess.run(tf_grad)
+            exdata2 = tfsess.run(tf_grad2)
 
-        self._array_close(exdata, der)
-        self._array_close(exdata2, der2)
-        self._array_eq(data0, rej)
+            self._array_close(exdata, der)
+            self._array_close(exdata2, der2)
+            self._array_eq(data0, rej)
 
     def test_variable(self):
         shape = [3, 4, 5]
@@ -501,77 +505,101 @@ class EADTest(unittest.TestCase):
         self._common_reduce(age.reduce_max, age.reduce_max, tf.reduce_max)
 
     def test_matmul(self):
-        shape = [5, 5]
-        data = np.random.rand(*shape)
-        data2 = np.random.rand(*shape)
+        shapes = [
+            ([5, 5], [5, 5]),
+            ([50, 16], [16, 1])
+        ]
+        for lshape, rshape in shapes:
+            is_symmetric = lshape == rshape
+            if is_symmetric:
+                outshape = lshape
+            else:
+                outshape = [rshape[0], lshape[1]]
 
-        var = ead.variable(data, 'var')
-        var2 = ead.variable(data2, 'var2')
-        tf_var = tf.Variable(data)
-        tf_var2 = tf.Variable(data2)
+            shape = [5, 5]
+            data = np.random.rand(*lshape)
+            data2 = np.random.rand(*rshape)
 
-        tfsess = tf.Session()
-        tfsess.run(tf_var.initializer)
-        tfsess.run(tf_var2.initializer)
+            var = ead.variable(data, 'var')
+            var2 = ead.variable(data2, 'var2')
+            tf_var = tf.Variable(data)
+            tf_var2 = tf.Variable(data2)
 
-        # regular matmul
-        out = age.matmul(var, var2)
-        both = age.matmul(var, var)
+            tfsess = tf.Session()
+            tfsess.run(tf_var.initializer)
+            tfsess.run(tf_var2.initializer)
 
-        # tensorflow matmul
-        tf_out = tf.matmul(tf_var, tf_var2)
-        tf_both = tf.matmul(tf_var, tf_var)
+            # regular matmul
+            out = age.matmul(var, var2)
 
-        # evaluate regular matmul
-        sess = ead.Session()
-        sess.track(out)
-        sess.track(both)
-        sess.update()
+            # tensorflow matmul
+            tf_out = tf.matmul(tf_var, tf_var2)
 
-        fout = out.get()
-        fboth = both.get()
+            # evaluate regular matmul
+            sess = ead.Session()
+            sess.track(out)
+            sess.update()
+            fout = out.get()
 
-        # evaluate tensorflow matmul
-        tf_fout = tfsess.run(tf_out)
-        tf_fboth = tfsess.run(tf_both)
+            # evaluate tensorflow matmul
+            tf_fout = tfsess.run(tf_out)
 
-        # check regular matmul
-        self._array_close(tf_fout, fout)
-        self._array_close(tf_fboth, fboth)
+            # check regular matmul
+            self._array_close(tf_fout, fout)
 
-        var3 = ead.variable(data, 'var3')
+            var3 = ead.variable(data, 'var3')
 
-        zero = ead.derive(out, var3)
-        ex = ead.derive(out, var)
-        ex2 = ead.derive(out, var2)
-        ex3 = ead.derive(both, var)
+            zero = ead.derive(out, var3)
+            ex = ead.derive(out, var)
+            ex2 = ead.derive(out, var2)
 
-        sess.track(zero)
-        sess.track(ex)
-        sess.track(ex2)
-        sess.track(ex3)
-        sess.update()
+            sess.track(zero)
+            sess.track(ex)
+            sess.track(ex2)
+            sess.update()
 
-        # eval derivative of regular matmul
-        rej = zero.get()
-        der = ex.get()
-        der2 = ex2.get()
-        der3 = ex3.get()
+            # eval derivative of regular matmul
+            rej = zero.get()
+            der = ex.get()
+            der2 = ex2.get()
 
-        # eval derivative of tensorflow matmul
-        data0 = np.zeros(shape, dtype=np.float32)
-        tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_var2])
-        tf_grad3 = tf.gradients(tf_both, [tf_var])[0]
+            # eval derivative of tensorflow matmul
+            data0 = np.zeros(lshape, dtype=np.float32)
+            tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_var2])
 
-        exdata = tfsess.run(tf_grad)
-        exdata2 = tfsess.run(tf_grad2)
-        exdata3 = tfsess.run(tf_grad3)
+            exdata = tfsess.run(tf_grad)
+            exdata2 = tfsess.run(tf_grad2)
 
-        # check regular matmul
-        self._array_eq(data0, rej)
-        self._array_close(exdata, der)
-        self._array_close(exdata2, der2)
-        self._array_close(exdata3, der3)
+            # check regular matmul
+            self._array_eq(data0, rej)
+            self._array_close(exdata, der)
+            self._array_close(exdata2, der2)
+
+            if is_symmetric:
+                # test with symmetric property
+                both = age.matmul(var, var)
+
+                tf_both = tf.matmul(tf_var, tf_var)
+
+                sess.track(both)
+                sess.update()
+                fboth = both.get()
+
+                tf_fboth = tfsess.run(tf_both)
+
+                self._array_close(tf_fboth, fboth)
+
+                ex3 = ead.derive(both, var)
+                sess.track(ex3)
+                sess.update()
+
+                der3 = ex3.get()
+
+                tf_grad3 = tf.gradients(tf_both, [tf_var])[0]
+
+                exdata3 = tfsess.run(tf_grad3)
+
+                self._array_close(exdata3, der3)
 
     def test_convolution(self):
         padding = "VALID"

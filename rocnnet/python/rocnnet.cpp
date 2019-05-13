@@ -8,13 +8,13 @@
 #include "ead/generated/pyapi.hpp"
 
 #include "rocnnet/modl/mlp.hpp"
-// #include "rocnnet/modl/rbm.hpp"
+#include "rocnnet/modl/rbm.hpp"
 // #include "rocnnet/modl/dbn.hpp"
 // #include "rocnnet/modl/conv.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"
-// #include "rocnnet/trainer/rbm_trainer.hpp"
+#include "rocnnet/trainer/rbm_trainer.hpp"
 // #include "rocnnet/trainer/dbn_trainer.hpp"
 
 namespace py = pybind11;
@@ -54,10 +54,10 @@ modl::MLPptrT mlp_init (size_t n_input, std::vector<modl::LayerInfo> layers,
 	return std::make_shared<modl::MLP>(n_input, layers, label);
 }
 
-// modl::RBMptrT rbm_init (size_t n_input, size_t n_hidden, std::string label)
-// {
-// 	return std::make_shared<modl::RBM>(n_input, n_hidden, label);
-// }
+modl::RBMptrT rbm_init (size_t n_input, std::vector<modl::LayerInfo> layers, std::string label)
+{
+	return std::make_shared<modl::RBM>(n_input, layers, label);
+}
 
 // modl::DBNptrT dbn_init (size_t n_input, std::vector<size_t> n_hiddens,
 // 	std::string label)
@@ -95,7 +95,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// models
 	py::class_<modl::MLP,modl::iMarshaler,modl::MLPptrT> mlp(m, "MLP");
-	// py::class_<modl::RBM,modl::iMarshaler,modl::RBMptrT> rbm(m, "RBM");
+	py::class_<modl::RBM,modl::iMarshaler,modl::RBMptrT> rbm(m, "RBM");
 	// py::class_<modl::DBN,modl::iMarshaler,modl::DBNptrT> dbn(m, "DBN");
 
 	// support classes
@@ -105,7 +105,7 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<DQNInfo> dqninfo(m, "DQNInfo");
 	py::class_<MLPTrainer> mlptrainer(m, "MLPTrainer");
 	py::class_<DQNTrainer> dqntrainer(m, "DQNTrainer");
-	// py::class_<RBMTrainer> rbmtrainer(m, "RBMTrainer");
+	py::class_<RBMTrainer> rbmtrainer(m, "RBMTrainer");
 
 	// marshaler
 	marshaler
@@ -168,29 +168,29 @@ PYBIND11_MODULE(rocnnet, m)
 			return (*self.cast<modl::MLP*>())(input);
 		}, "forward input tensor and returned connected output");
 
-	// // rbm
-	// m.def("get_rbm", &pyrocnnet::rbm_init);
 	// rbm
-	// 	.def("copy", [](py::object self)
-	// 	{
-	// 		return std::make_shared<modl::RBM>(*self.cast<modl::RBM*>());
-	// 	}, "deep copy this instance")
-	// 	.def("forward", [](py::object self, ead::NodeptrT<PybindT> input)
-	// 	{
-	// 		return self.cast<modl::RBM*>()->prop_up(input);
-	// 	}, "forward input tensor and returned connected output")
-	// 	.def("backward", [](py::object self, ead::NodeptrT<PybindT> hidden)
-	// 	{
-	// 		return self.cast<modl::RBM*>()->prop_down(hidden);
-	// 	}, "backward hidden tensor and returned connected output")
-	// 	.def("reconstruct_visible", [](py::object self, ead::NodeptrT<PybindT> input)
-	// 	{
-	// 		return self.cast<modl::RBM*>()->reconstruct_visible(input);
-	// 	}, "reconstruct input")
-	// 	.def("reconstruct_hidden", [](py::object self, ead::NodeptrT<PybindT> hidden)
-	// 	{
-	// 		return self.cast<modl::RBM*>()->reconstruct_hidden(hidden);
-	// 	}, "reconstruct output");
+	m.def("get_rbm", &pyrocnnet::rbm_init);
+	rbm
+		.def("copy", [](py::object self)
+		{
+			return std::make_shared<modl::RBM>(*self.cast<modl::RBM*>());
+		}, "deep copy this instance")
+		.def("forward", [](py::object self, ead::NodeptrT<PybindT> input)
+		{
+			return (*self.cast<modl::RBM*>())(input);
+		}, "forward input tensor and returned connected output")
+		.def("backward", [](py::object self, ead::NodeptrT<PybindT> hidden)
+		{
+			return self.cast<modl::RBM*>()->prop_down(hidden);
+		}, "backward hidden tensor and returned connected output")
+		.def("reconstruct_visible", [](py::object self, ead::NodeptrT<PybindT> input)
+		{
+			return modl::reconstruct_visible(*self.cast<modl::RBM*>(), input);
+		}, "reconstruct input")
+		.def("reconstruct_hidden", [](py::object self, ead::NodeptrT<PybindT> hidden)
+		{
+			return modl::reconstruct_hidden(*self.cast<modl::RBM*>(), hidden);
+		}, "reconstruct output");
 
 	// // dbn
 	// m.def("get_dbn", &pyrocnnet::dbn_init);
@@ -252,28 +252,40 @@ PYBIND11_MODULE(rocnnet, m)
 			return self.cast<DQNTrainer*>()->train_out_;
 		}, "get training node");
 
-	// // rbmtrainer
 	// rbmtrainer
-	// 	.def(py::init<modl::RBMptrT,llo::VarptrT<PybindT>,uint8_t,PybindT,size_t>(),
-	// 		py::arg("brain"), py::arg("persistent"), py::arg("batch_size"),
-	// 		py::arg("learning_rate") = 1e-3, py::arg("n_cont_div") = 1)
-	// 	.def("train", &RBMTrainer::train, "train internal variables")
-	// 	.def("train_in", [](py::object self)
-	// 	{
-	// 		return self.cast<RBMTrainer*>()->train_in_;
-	// 	}, "get train_in variable")
-	// 	.def("cost", [](py::object self)
-	// 	{
-	// 		return self.cast<RBMTrainer*>()->cost_;
-	// 	}, "get cost node")
-	// 	.def("monitoring_cost", [](py::object self)
-	// 	{
-	// 		return self.cast<RBMTrainer*>()->monitoring_cost_;
-	// 	}, "get monitoring cost node")
-	// 	.def("brain", [](py::object self)
-	// 	{
-	// 		return self.cast<RBMTrainer*>()->brain_;
-	// 	}, "get rbm");
+	rbmtrainer
+		.def(py::init<
+			modl::RBMptrT,
+			ead::Session<PybindT>&,
+			ead::VarptrT<PybindT>,
+			uint8_t,
+			PybindT,
+			size_t,
+			ead::NodeptrT<PybindT>>(),
+			py::arg("brain"),
+			py::arg("sess"),
+			py::arg("persistent"),
+			py::arg("batch_size"),
+			py::arg("learning_rate") = 1e-3,
+			py::arg("n_cont_div") = 1,
+			py::arg("train_in") = nullptr)
+		.def("train", &RBMTrainer::train, "train internal variables")
+		.def("train_in", [](py::object self)
+		{
+			return self.cast<RBMTrainer*>()->train_in_;
+		}, "get train_in variable")
+		.def("cost", [](py::object self)
+		{
+			return self.cast<RBMTrainer*>()->cost_;
+		}, "get cost node")
+		.def("monitoring_cost", [](py::object self)
+		{
+			return self.cast<RBMTrainer*>()->monitoring_cost_;
+		}, "get monitoring cost node")
+		.def("brain", [](py::object self)
+		{
+			return self.cast<RBMTrainer*>()->brain_;
+		}, "get rbm");
 
 
 	// inlines
