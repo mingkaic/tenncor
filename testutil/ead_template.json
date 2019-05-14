@@ -1,0 +1,29 @@
+{
+    "config_pools": {
+        "narrow": {
+            "nprod": 666000,
+            "val_range": {
+                "min": 1,
+                "max": 5
+            }
+        },
+        "tight": {
+            "nprod": 666000,
+            "val_range": {
+                "min": 1,
+                "max": 255
+            }
+        },
+        "matrix": {
+            "length": 2
+        },
+        "vector": {
+            "length": 1
+        }
+    },
+    "test_cases": {
+        "elementary.shape": ["narrow", "tight"],
+        "matmul.shape_left": ["matrix"],
+        "matmul.shape_right": ["vector"]
+    }
+}
