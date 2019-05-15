@@ -22,7 +22,7 @@ namespace py = pybind11;
 namespace pyrocnnet
 {
 
-modl::LayerInfo layerinfo_init (modl::HiddenFunc hidden, ade::DimT n_out)
+modl::LayerInfo layerinfo_init (modl::NonLinearF hidden, ade::DimT n_out)
 {
 	return modl::LayerInfo{n_out, hidden};
 }

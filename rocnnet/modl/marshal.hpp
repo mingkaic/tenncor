@@ -217,13 +217,13 @@ bool save (std::ostream& outs, ade::TensptrT source,
 void load (std::istream& ins, iMarshaler* target,
 	iTrainingContext* tctx = nullptr);
 
-using HiddenFunc = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
+using NonLinearF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 
 struct LayerInfo
 {
 	ade::DimT n_out_;
 
-	HiddenFunc hidden_;
+	NonLinearF hidden_;
 };
 
 }

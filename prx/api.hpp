@@ -9,9 +9,13 @@
 namespace prx
 {
 
+// inputs must be of shapes [batch, x], 
+// weights have matching shapes [x, out]
+// bias has shape [out]
+// output has shape [batch, out]
 template <typename T>
 ead::NodeptrT<T> fully_connect (ead::NodesT<T> inputs,
-	ead::NodesT<T> weights, ead::NodeptrT<T> bias)
+	ead::NodesT<T> weights, ead::NodeptrT<T> bias = nullptr)
 {
 	if (weights.empty())
 	{
@@ -29,9 +33,11 @@ ead::NodeptrT<T> fully_connect (ead::NodesT<T> inputs,
 	{
 		out = age::add(out, age::matmul(inputs[i], weights[i]));
 	}
-	const ade::Shape& shape = out->shape();
-	// expecting bias to be of shape <x,1,1,...,1>
-	out = age::add(out, age::extend(bias, 1, {shape.at(1)}));
+	if (nullptr != bias)
+	{
+		const ade::Shape& shape = out->shape();
+		out = age::add(out, age::extend(bias, 1, {shape.at(1)}));
+	}
 	return out;
 	// inputs.insert(inputs.end(), weights.begin(), weights.end());
 	// inputs.push_back(bias);
@@ -41,8 +47,11 @@ ead::NodeptrT<T> fully_connect (ead::NodesT<T> inputs,
 // image must be in form [in, width, height, batch]
 // kernel must be in form [out, in, width, height]
 // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d specifications
+// bias has shape [out]
+// output has shape [out, width, height, batch]
 template <typename T>
-ead::NodeptrT<T> conv2d (ead::NodeptrT<T> image, ead::NodeptrT<T> kernel)
+ead::NodeptrT<T> conv2d (ead::NodeptrT<T> image, ead::NodeptrT<T> kernel,
+	ead::NodeptrT<T> bias = nullptr)
 {
 	ade::DimT nfilters = kernel->shape().at(0);
 	ead::NodesT<T> convolveds;
@@ -63,6 +72,13 @@ ead::NodeptrT<T> conv2d (ead::NodeptrT<T> image, ead::NodeptrT<T> kernel)
 	for (ade::DimT i = 1; i < nfilters; ++i)
 	{
 		out = age::add(out, convolveds[i]);
+	}
+	if (nullptr != bias)
+	{
+		const ade::Shape& shape = out->shape();
+		std::vector<ade::DimT> xlist(ade::rank_cap - 1);
+		std::copy(shape.begin() + 1, shape.end(), xlist.begin());
+		out = age::add(out, age::extend(bias, 1, xlist));
 	}
 	return out; // todo: implement subgraph gradebuilder
 	// return make_subgraph(ade::Opcode{"CONV2D", CONV2D},

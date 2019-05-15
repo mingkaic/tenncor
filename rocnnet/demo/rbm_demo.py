@@ -50,8 +50,8 @@ def main(args):
         help='Number of times to train (default: 10)')
     parser.add_argument('--n_sample', dest='n_sample', type=int, nargs='?', default=10,
         help='Number of times to sample (default: 10)')
-    parser.add_argument('--cache', dest='cache_file', nargs='?', default='pretrained/rbmcache.pbx',
-        help='Filename to cache model (default: pretrained/rbmcache.pbx')
+    parser.add_argument('--cache', dest='cache_file', nargs='?', default='/tmp/rbmcache.pbx',
+        help='Filename to cache model (default: /tmp/rbmcache.pbx')
     parser.add_argument('--imgdir', dest='outdir', nargs='?', default='',
         help='Directory to save output images (default: <blank>)')
     args = parser.parse_args(args)

@@ -1,6 +1,3 @@
-#include <functional>
-#include <memory>
-
 #include "prx/api.hpp"
 
 #include "rocnnet/eqns/helper.hpp"
@@ -152,7 +149,7 @@ struct RBM final : public iMarshalSet
 
 		MarVarsptrT vbias_;
 
-		HiddenFunc hidden_;
+		NonLinearF hidden_;
 	};
 
 	std::vector<HiddenLayer> layers_;

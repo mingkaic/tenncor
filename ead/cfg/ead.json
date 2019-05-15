@@ -527,7 +527,7 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "rank"
             }],
             "out": {
@@ -572,11 +572,11 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "tens"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "start",
                 "default": "0"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "end",
                 "default": "ade::rank_cap"
             }],
@@ -593,11 +593,11 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "tens"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "start",
                 "default": "0"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "end",
                 "default": "ade::rank_cap"
             }],
@@ -614,11 +614,11 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "tens"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "start",
                 "default": "0"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "end",
                 "default": "ade::rank_cap"
             }],
@@ -635,11 +635,11 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "tens"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "start",
                 "default": "0"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "end",
                 "default": "ade::rank_cap"
             }],
@@ -656,7 +656,7 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "arg2"
             }],
             "out": {
@@ -671,7 +671,7 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "arg2"
             }],
             "out": {
@@ -686,7 +686,7 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "arg2"
             }],
             "out": {
@@ -701,7 +701,7 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "arg2"
             }],
             "out": {
@@ -716,7 +716,7 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
             }, {
-                "dtype": "std::vector<uint8_t>",
+                "dtype": "std::vector<ade::DimT>",
                 "name": "arg2"
             }],
             "out": {
@@ -731,10 +731,10 @@
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
             }, {
-                "dtype": "uint8_t",
+                "dtype": "ade::DimT",
                 "name": "arg2"
             }, {
-                "dtype": "std::vector<uint8_t>",
+                "dtype": "std::vector<ade::DimT>",
                 "name": "arg3"
             }],
             "out": {
@@ -847,7 +847,7 @@
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "div(exp(arg1),extend(reduce_sum(exp(arg1)),0,ead::shape_to_vec<uint8_t>(arg1->shape())))"
+                "val": "div(exp(arg1),extend(reduce_sum(exp(arg1)),0,ead::shape_to_vec<ade::DimT>(arg1->shape())))"
             }
         }
     ]

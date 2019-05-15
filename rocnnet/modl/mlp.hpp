@@ -1,5 +1,3 @@
-#include <functional>
-
 #include "prx/api.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
@@ -106,7 +104,7 @@ struct MLP final : public iMarshalSet
 
 		MarVarsptrT bias_;
 
-		HiddenFunc hidden_;
+		NonLinearF hidden_;
 	};
 
 	std::vector<HiddenLayer> layers_;
