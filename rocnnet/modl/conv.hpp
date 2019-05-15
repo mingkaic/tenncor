@@ -58,7 +58,7 @@ struct Conv final : public iMarshalSet
 
 	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
 	{
-		return age::add(age::convolution(input,
+		return age::add(prx::conv2d(input,
 			ead::convert_to_node<PybindT>(weight_->var_)),
 			ead::convert_to_node<PybindT>(bias_->var_));
 	}

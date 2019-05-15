@@ -4,6 +4,11 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "ead_testcase_template",
+    srcs = ["ead_template.json"],
+)
+
 ######### LIBRARY #########
 
 cc_library(
@@ -15,4 +20,9 @@ cc_library(
         "@gtest//:gtest",
     ],
     copts = ["-std=c++17"],
+)
+
+py_library(
+    name = "pyunit_util",
+    srcs = ["generate_testcases.py"],
 )

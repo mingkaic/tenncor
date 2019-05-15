@@ -55,7 +55,6 @@ _default_constraints = {
 }
 
 def generate_testcases(test_template, constraint_cfgs,
-    outfile = _default_outfile,
     constraints = _default_constraints):
 
     # type check
@@ -140,8 +139,7 @@ def main():
 
     outdata = generate_testcases(
         test_template['test_cases'],
-        test_template['config_pools'],
-        outfile=outfile)
+        test_template['config_pools'])
 
     with open(outfile, 'w') as out:
         out.write(json.dumps(outdata))

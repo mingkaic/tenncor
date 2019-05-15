@@ -1,9 +1,15 @@
+import json
+import logging
 import unittest
 import numpy as np
 import tensorflow as tf
 
 import ead.age as age
 import ead.ead as ead
+
+from testutil.generate_testcases import generate_testcases
+
+_test_data = {}
 
 def _normalize_shape(arr1, arr2):
     if 'shape' in dir(arr1):
@@ -59,8 +65,6 @@ class EADTest(unittest.TestCase):
             arr1 = np.array([arr1])
         if isinstance(arr2, int):
             arr2 = np.array([arr2])
-        avoidshape = 1 == prod(list(arr1.shape)) and\
-            1 == prod(list(arr2.shape))
         s1, s2 = _normalize_shape(arr1, arr2)
         self.assertTrue(np.allclose(arr1, arr2, atol=1e-05) and s1 == s2, msg)
 
@@ -268,64 +272,88 @@ class EADTest(unittest.TestCase):
             self._array_eq(data0, rej)
 
     def test_variable(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        data0 = np.zeros(shape, dtype=np.float32)
-        data = np.random.rand(3, 4, 5) * 234
-        var = ead.variable(data, 'var')
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            data0 = np.zeros(shape, dtype=np.float32)
+            data = np.random.rand(*shape) * 234
+            var = ead.variable(data, 'var')
 
-        sess = ead.Session()
-        sess.track(var)
-        sess.update()
-        fout = var.get()
+            sess = ead.Session()
+            sess.track(var)
+            sess.update()
+            fout = var.get()
 
-        self.assertEqual(tuple(shape), fout.shape)
-        self._array_close(data, fout)
+            self.assertEqual(tuple(shape), fout.shape)
+            self._array_close(data, fout)
 
-        var2 = ead.variable(data, 'var2')
-        one = ead.derive(var, var)
-        zero = ead.derive(var, var2)
-        sess.track(one)
-        sess.track(zero)
-        sess.update()
+            var2 = ead.variable(data, 'var2')
+            one = ead.derive(var, var)
+            zero = ead.derive(var, var2)
+            sess.track(one)
+            sess.track(zero)
+            sess.update()
 
-        out1 = one.get()
-        out0 = zero.get()
-        self.assertEqual(tuple(shape), out1.shape)
-        self.assertEqual(tuple(shape), out0.shape)
-        self._array_eq(data1, out1)
-        self._array_eq(data0, out0)
+            out1 = one.get()
+            out0 = zero.get()
+            self.assertEqual(tuple(shape), out1.shape)
+            self.assertEqual(tuple(shape), out0.shape)
+            self._array_eq(data1, out1)
+            self._array_eq(data0, out0)
 
     def test_abs(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.abs, abs,
-            lambda data: data / abs(data))
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, age.abs, abs,
+                lambda data: data / abs(data))
 
     def test_neg(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        self._common_unary(shape, age.neg, lambda a: -a,
-            lambda data: -data1)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            self._common_unary(shape, age.neg, lambda a: -a,
+                lambda data: -data1)
 
     def test_sin(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.sin, np.sin, np.cos)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, age.sin, np.sin, np.cos)
 
     def test_cos(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.cos, np.cos, lambda x: -np.sin(x))
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, age.cos, np.cos, lambda x: -np.sin(x))
 
     def test_tan(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.tan, tf.tan)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, age.tan, tf.tan)
 
     def test_exp(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.exp, np.exp, np.exp)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, age.exp, np.exp, np.exp)
 
     def test_log(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.log, np.log, lambda x: 1.0 / x)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, age.log, np.log, lambda x: 1.0 / x)
 
     def test_sqrt(self):
         shape = [3, 4, 5]
@@ -333,131 +361,185 @@ class EADTest(unittest.TestCase):
             lambda x: 1.0 / (2.0 * np.sqrt(x)))
 
     def test_round(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        self._common_unary(shape, age.round, np.round, lambda x: data1)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            self._common_unary(shape, age.round, np.round, lambda x: data1)
 
     def test_sigmoid(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.sigmoid, tf.sigmoid)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, age.sigmoid, tf.sigmoid)
 
     def test_tanh(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.tanh, tf.tanh)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, age.tanh, tf.tanh)
 
     def test_square(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.square, tf.square)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, age.square, tf.square)
 
     def test_cube(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.cube, lambda x: tf.pow(x, 3))
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, age.cube, lambda x: tf.pow(x, 3))
 
     def test_pow(self):
-        shape = [3, 4, 5]
-        def pow_der(i, data):
-            a, b = data
-            if i == 0:
-                return b * a ** (b - 1)
-            return a ** b * np.log(a)
-        self._common_binary(shape, age.pow, lambda x, y: x ** y, pow_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def pow_der(i, data):
+                a, b = data
+                if i == 0:
+                    return b * a ** (b - 1)
+                return a ** b * np.log(a)
+            self._common_binary(shape, age.pow, lambda x, y: x ** y, pow_der)
 
     def test_add(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        self._common_binary(shape, age.add, lambda x, y: x + y,
-            lambda i, data: data1)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            self._common_binary(shape, age.add, lambda x, y: x + y,
+                lambda i, data: data1)
 
     def test_sub(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        def sub_der(i, data):
-            if i == 0:
-                return data1
-            return -data1
-        self._common_binary(shape, age.sub, lambda x, y: x - y, sub_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            def sub_der(i, data):
+                if i == 0:
+                    return data1
+                return -data1
+            self._common_binary(shape, age.sub, lambda x, y: x - y, sub_der)
 
     def test_mul(self):
-        shape = [3, 4, 5]
-        def mul_der(i, data):
-            if i == 0:
-                return data[1]
-            return data[0]
-        self._common_binary(shape, age.mul, lambda x, y: x * y, mul_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def mul_der(i, data):
+                if i == 0:
+                    return data[1]
+                return data[0]
+            self._common_binary(shape, age.mul, lambda x, y: x * y, mul_der)
 
     def test_div(self):
-        shape = [3, 4, 5]
-        def div_der(i, data):
-            a, b = data
-            if i == 0:
-                return 1 / b
-            return -a / (b * b)
-        self._common_binary(shape, age.div, lambda x, y: x / y, div_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def div_der(i, data):
+                a, b = data
+                if i == 0:
+                    return 1 / b
+                return -a / (b * b)
+            self._common_binary(shape, age.div, lambda x, y: x / y, div_der)
 
     def test_min(self):
-        shape = [3, 4, 5]
-        def min_der(i, data):
-            a, b = data
-            if i == 0:
-                return (a <= b).astype(float)
-            return (b <= a).astype(float)
-        self._common_binary(shape, age.min, np.minimum, min_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def min_der(i, data):
+                a, b = data
+                if i == 0:
+                    return (a <= b).astype(float)
+                return (b <= a).astype(float)
+            self._common_binary(shape, age.min, np.minimum, min_der)
 
     def test_max(self):
-        shape = [3, 4, 5]
-        def max_der(i, data):
-            a, b = data
-            if i == 0:
-                return (a >= b).astype(float)
-            return (b >= a).astype(float)
-        self._common_binary(shape, age.max, np.maximum, max_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def max_der(i, data):
+                a, b = data
+                if i == 0:
+                    return (a >= b).astype(float)
+                return (b >= a).astype(float)
+            self._common_binary(shape, age.max, np.maximum, max_der)
 
     def test_eq(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_binary(shape,
-            lambda x, y: age.eq(age.round(x), age.round(y)),
-            lambda x, y: np.round(x) == np.round(y),
-            lambda i, data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_binary(shape,
+                lambda x, y: age.eq(age.round(x), age.round(y)),
+                lambda x, y: np.round(x) == np.round(y),
+                lambda i, data: data0)
 
     def test_neq(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_binary(shape,
-            lambda x, y: age.neq(age.round(x), age.round(y)),
-            lambda x, y: np.round(x) != np.round(y),
-            lambda i, data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_binary(shape,
+                lambda x, y: age.neq(age.round(x), age.round(y)),
+                lambda x, y: np.round(x) != np.round(y),
+                lambda i, data: data0)
 
     def test_lt(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_binary(shape,
-            lambda x, y: age.lt(age.round(x), age.round(y)),
-            lambda x, y: np.round(x) < np.round(y),
-            lambda i, data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_binary(shape,
+                lambda x, y: age.lt(age.round(x), age.round(y)),
+                lambda x, y: np.round(x) < np.round(y),
+                lambda i, data: data0)
 
     def test_gt(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_binary(shape,
-            lambda x, y: age.gt(age.round(x), age.round(y)),
-            lambda x, y: np.round(x) > np.round(y),
-            lambda i, data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_binary(shape,
+                lambda x, y: age.gt(age.round(x), age.round(y)),
+                lambda x, y: np.round(x) > np.round(y),
+                lambda i, data: data0)
 
     def test_nelems(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_unary(shape, age.n_elems,
-            lambda data: np.prod(data.shape),
-            lambda data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_unary(shape, age.n_elems,
+                lambda data: np.prod(data.shape),
+                lambda data: data0)
 
     def test_ndims(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_unary(shape,
-            lambda x: age.n_dims(x, 0),
-            lambda data: data.shape[2],
-            lambda data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_unary(shape,
+                lambda x: age.n_dims(x, 0),
+                lambda data: data.shape[len(shape) - 1],
+                lambda data: data0)
 
     def test_extend(self):
         shape = [2]
@@ -509,6 +591,14 @@ class EADTest(unittest.TestCase):
             ([5, 5], [5, 5]),
             ([50, 16], [16, 1])
         ]
+
+        if 'matmul.shape_shape_left' in _test_data and\
+            'matmul.shape_shape_right' in _test_data:
+            lshape = _test_data['matmul.shape_shape_left'][0]
+            rshape = _test_data['matmul.shape_shape_right'][0]
+            rshape = [lshape[1]] + rshape
+            shapes += [(lshape, rshape)]
+
         for lshape, rshape in shapes:
             is_symmetric = lshape == rshape
             if is_symmetric:
@@ -1018,4 +1108,16 @@ class EADTest(unittest.TestCase):
         self._array_close(exc, dc.get())
 
 if __name__ == "__main__":
+    with open('testutil/ead_template.json') as json_data:
+        test_template = json.load(json_data)
+        assert 'test_cases' in test_template
+        assert 'config_pools' in test_template
+
+    # log to file
+    logging.basicConfig(filename='/tmp/ead_ptest.log',level=logging.DEBUG)
+
+    _test_data = generate_testcases(
+        test_template['test_cases'],
+        test_template['config_pools'])
+
     unittest.main()

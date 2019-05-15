@@ -15,6 +15,8 @@
 namespace modl
 {
 
+// iMarshaler is an interface for models to label
+// and serialize variables
 struct iMarshaler
 {
 	virtual ~iMarshaler (void) = default;
@@ -196,12 +198,24 @@ private:
 	}
 };
 
+// iTrainingContext is an interface describing how a model is trained
+// (e.g.: how many iterations/how large the batch is)
+struct iTrainingContext
+{
+	virtual ~iTrainingContext (void) = default;
+
+	virtual void marshal_layer (cortenn::Layer& out_layer) const = 0;
+
+	virtual void unmarshal_layer (const cortenn::Layer& in_layer) = 0;
+};
+
 using MarVarsptrT = std::shared_ptr<MarshalVar>;
 
 bool save (std::ostream& outs, ade::TensptrT source,
-	iMarshaler* source_graph);
+	iMarshaler* source_graph, iTrainingContext* tctx = nullptr);
 
-void load (std::istream& ins, iMarshaler* target);
+void load (std::istream& ins, iMarshaler* target,
+	iTrainingContext* tctx = nullptr);
 
 using HiddenFunc = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 

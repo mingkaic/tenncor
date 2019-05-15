@@ -67,11 +67,11 @@ class PRXTest(unittest.TestCase):
     def test_conv2d(self):
         # batch, height, width, in
         shape = [3, 3, 3, 2]
-        data = np.random.rand(*shape)
+        data = np.random.rand(*shape).astype(np.float32)
 
         # height, width, in, out
         kshape = [2, 2, 2, 4]
-        kdata = np.random.rand(*kshape)
+        kdata = np.random.rand(*kshape).astype(np.float32)
 
         image = ead.variable(data, 'image')
         kernel = ead.variable(kdata, 'vkernel')
