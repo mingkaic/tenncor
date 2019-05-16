@@ -4,19 +4,42 @@
 
 #include "rocnnet/eqns/err_approx.hpp"
 
-#ifndef MODL_mlp_trainer_HPP
-#define MODL_mlp_trainer_HPP
+#ifndef MODL_MLP_TRAINER_HPP
+#define MODL_MLP_TRAINER_HPP
+
+namespace trainer
+{
+
+// Normal default context that only stores the number of iterations
+struct TrainingContext final : public modl::iTrainingContext
+{
+	void marshal_layer (cortenn::Layer& out_layer) const override
+	{
+		cortenn::ItTrainerState* state = out_layer.mutable_it_ctx();
+		state->set_iterations(n_iterations_);
+	}
+
+	void unmarshal_layer (const cortenn::Layer& in_layer) override
+	{
+		const cortenn::ItTrainerState& state = in_layer.it_ctx();
+		n_iterations_ = state.iterations();
+	}
+
+	size_t n_iterations_;
+};
 
 // MLPTrainer does not own anything
 struct MLPTrainer
 {
 	MLPTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
-		eqns::ApproxFuncT update, uint8_t batch_size) :
+		eqns::ApproxFuncT update, uint8_t batch_size,
+		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
 		train_in_(ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({brain->get_ninput(), batch_size}), "train_in")),
 		brain_(brain),
-		sess_(&sess)
+		sess_(&sess),
+		ctx_(ctx)
 	{
 		train_out_ = (*brain_)(ead::convert_to_node<PybindT>(train_in_));
 		expected_out_ = ead::make_variable_scalar<PybindT>(0.0,
@@ -98,6 +121,13 @@ struct MLPTrainer
 			{
 				this->sess_->update(updated);
 			});
+		++ctx_.n_iterations_;
+	}
+
+	bool save (std::ostream& outs)
+	{
+		return modl::save(outs,
+			error_->get_tensor(), brain_.get(), &ctx_);
 	}
 
 	uint8_t batch_size_;
@@ -109,6 +139,10 @@ struct MLPTrainer
 
 	eqns::AssignGroupsT updates_;
 	ead::Session<PybindT>* sess_;
+
+	TrainingContext ctx_;
 };
 
-#endif // MODL_mlp_trainer_HPP
+}
+
+#endif // MODL_MLP_TRAINER_HPP

@@ -1,5 +1,11 @@
 #include "rocnnet/modl/mlp.hpp"
 
+#ifndef MODL_DQN_TRAINER_HPP
+#define MODL_DQN_TRAINER_HPP
+
+namespace trainer
+{
+
 struct DQNTrainingContext final : public modl::iTrainingContext
 {
 	void marshal_layer (cortenn::Layer& out_layer) const override
@@ -407,3 +413,7 @@ private:
 
 	DQNTrainingContext ctx_;
 };
+
+}
+
+#endif // MODL_DQN_TRAINER_HPP

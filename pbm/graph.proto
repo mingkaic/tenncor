@@ -38,6 +38,10 @@ message Graph {
 	repeated Node nodes = 2;
 }
 
+message ItTrainerState {
+    uint64 iterations = 1;
+}
+
 message DQTrainerState {
     Graph target_graph = 1;
 
@@ -53,6 +57,8 @@ message DQTrainerState {
 message Layer {
     Graph graph = 1;
     oneof layer_context {
+        ItTrainerState it_ctx = 19;
+
         // change to any once we have a lot of contexts
         DQTrainerState dqn_ctx = 20;
     }

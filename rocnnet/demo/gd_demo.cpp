@@ -92,12 +92,42 @@ int main (int argc, const char** argv)
 	};
 	auto brain = std::make_shared<modl::MLP>(n_in, hiddens, "brain");
 	auto untrained_brain = std::make_shared<modl::MLP>(*brain);
-	auto pretrained_brain = std::make_shared<modl::MLP>(*brain);
+	modl::MLPptrT pretrained_brain;
 	std::ifstream loadstr(loadpath);
 	if (loadstr.is_open())
 	{
-		modl::load(loadstr, pretrained_brain.get());
+		cortenn::Layer layer;
+		layer.ParseFromIstream(&loadstr);
+
+		// load graph to target
+		const cortenn::Graph& graph = layer.graph();
+		pbm::GraphInfo info;
+		pbm::load_graph<ead::EADLoader>(info, graph);
+
+		pretrained_brain = std::make_shared<modl::MLP>(info,
+			std::vector<modl::NonLinearF>{
+				age::sigmoid<float>,
+				age::sigmoid<float>
+			}, "pretrained");
+
+		logs::infof("model successfully loaded from file '%s'", loadpath.c_str());
+		if (cortenn::Layer::kItCtx != layer.layer_context_case())
+		{
+			logs::warn("missing training context");
+		}
+		else
+		{
+			auto& ctx = layer.it_ctx();
+			logs::infof("loaded model trained for %d iterations",
+				ctx.iterations());
+		}
+
 		loadstr.close();
+	}
+	else
+	{
+		logs::warnf("model failed to loaded from file '%s'", loadpath.c_str());
+		pretrained_brain = std::make_shared<modl::MLP>(*brain);
 	}
 
 	uint8_t n_batch = 3;
@@ -107,7 +137,7 @@ int main (int argc, const char** argv)
 		return eqns::sgd(root, leaves, 0.9); // learning rate = 0.9
 	};
 	ead::Session<float> sess;
-	MLPTrainer trainer(brain, sess, approx, n_batch);
+	trainer::MLPTrainer trainer(brain, sess, approx, n_batch);
 
 	// train mlp to output input
 	start = std::clock();
@@ -183,8 +213,15 @@ int main (int argc, const char** argv)
 		std::ofstream savestr(savepath);
 		if (savestr.is_open())
 		{
-			modl::save(savestr, trained_out->get_tensor(), brain.get());
+			if (trainer.save(savestr))
+			{
+				logs::infof("successfully saved model to '%s'", savepath.c_str());
+			}
 			savestr.close();
+		}
+		else
+		{
+			logs::warnf("failed to save model to '%s'", savepath.c_str());
 		}
 	}
 

@@ -8,6 +8,10 @@
 namespace modl
 {
 
+static const std::string weight_fmt = "weight_%d";
+
+static const std::string bias_fmt = "bias_%d";
+
 struct MLP final : public iMarshalSet
 {
 	MLP (ade::DimT n_input, std::vector<LayerInfo> layers, std::string label) :
@@ -29,10 +33,10 @@ struct MLP final : public iMarshalSet
 			std::generate(wdata.begin(), wdata.end(), gen);
 
 			ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
-				wdata.data(), weight_shape, fmts::sprintf("weight_%d", i));
+				wdata.data(), weight_shape, fmts::sprintf(weight_fmt, i));
 
 			ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
-				0.0, ade::Shape({n_output}), fmts::sprintf("bias_%d", i));
+				0.0, ade::Shape({n_output}), fmts::sprintf(bias_fmt, i));
 
 			layers_.push_back(HiddenLayer{
 				std::make_shared<MarshalVar>(weight),
@@ -40,6 +44,58 @@ struct MLP final : public iMarshalSet
 				layers[i].hidden_,
 			});
 			n_input = n_output;
+		}
+	}
+
+	MLP (const pbm::GraphInfo& graph,
+		std::vector<NonLinearF> hiddens, std::string label) :
+		iMarshalSet(label)
+	{
+		const auto& children = graph.tens_.children_;
+		size_t nlayers = children.size() / 2;
+		if (nlayers == 0)
+		{
+			logs::fatal("expecting at least one layer");
+		}
+		size_t nhiddens = hiddens.size();
+		if (nlayers != nhiddens)
+		{
+			logs::warnf("number of layers (%d) do not match "
+				"number of nonlinearities specified (%d)", nlayers, nhiddens);
+		}
+		for (size_t i = 0, n = std::min(nhiddens, nlayers); i < n; ++i)
+		{
+			std::string weight_label = fmts::sprintf(weight_fmt, i);
+			auto wmarsh_it = children.find(weight_label);
+			if (children.end() == wmarsh_it)
+			{
+				logs::fatalf("cannot find weight_%d variable marshaller", i);
+			}
+			auto weight_it = wmarsh_it->second->tens_.find(weight_label);
+			if (wmarsh_it->second->tens_.end() == weight_it)
+			{
+				logs::fatalf("cannot find weight_%d variable", i);
+			}
+			std::string bias_label = fmts::sprintf(bias_fmt, i);
+			auto bmarsh_it = children.find(bias_label);
+			if (children.end() == bmarsh_it)
+			{
+				logs::fatalf("cannot find bias_%d variable marshaller", i);
+			}
+			auto bias_it = bmarsh_it->second->tens_.find(bias_label);
+			if (bmarsh_it->second->tens_.end() == bias_it)
+			{
+				logs::fatalf("cannot find bias_%d variable", i);
+			}
+			layers_.push_back(HiddenLayer{
+				std::make_shared<MarshalVar>(
+					std::static_pointer_cast<ead::VariableNode<PybindT>>(
+					ead::NodeConverters<PybindT>::to_node(weight_it->second))),
+				std::make_shared<MarshalVar>(
+					std::static_pointer_cast<ead::VariableNode<PybindT>>(
+					ead::NodeConverters<PybindT>::to_node(bias_it->second))),
+				hiddens[i],
+			});
 		}
 	}
 
