@@ -276,7 +276,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 							})),
 						0 == arg_idx ?
 							std::vector<uint8_t>{2, 1, 0} :
-							std::vector<uint8_t>{0, 2, 1}), 2);
+							std::vector<uint8_t>{0, 2, 1}), 2, 1);
 				break;
 			case age::CONV:
 			{

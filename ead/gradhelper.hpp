@@ -153,7 +153,7 @@ NodeptrT<T> matmul_grad (ade::iFunctor* fwd,
 			age::mul(
 				age::div(age::mul(ext_a, ext_b), ext),
 				ext_bwd
-			), perm), 2);
+			), perm), 2, 1);
 }
 
 // todo: deprecate this in favor of grader's local derivative + chain_rule method

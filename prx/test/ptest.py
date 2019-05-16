@@ -75,11 +75,12 @@ class PRXTest(unittest.TestCase):
 
         image = ead.variable(data, 'image')
         kernel = ead.variable(kdata, 'vkernel')
+        zero = ead.scalar_constant(0, [4])
 
         tfimage = tf.Variable(data)
         tfkernel = tf.Variable(kdata)
 
-        out = prx.conv2d(image, kernel)
+        out = prx.conv2d(image, kernel, zero)
 
         sess = ead.Session()
         sess.track(out)

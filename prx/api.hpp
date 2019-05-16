@@ -9,13 +9,13 @@
 namespace prx
 {
 
-// inputs must be of shapes [batch, x], 
+// inputs must be of shapes [batch, x],
 // weights have matching shapes [x, out]
 // bias has shape [out]
 // output has shape [batch, out]
 template <typename T>
 ead::NodeptrT<T> fully_connect (ead::NodesT<T> inputs,
-	ead::NodesT<T> weights, ead::NodeptrT<T> bias = nullptr)
+	ead::NodesT<T> weights, ead::NodeptrT<T> bias)
 {
 	if (weights.empty())
 	{
@@ -44,35 +44,13 @@ ead::NodeptrT<T> fully_connect (ead::NodesT<T> inputs,
 	// return make_subgraph(ade::Opcode{"FULL_CONN", FULL_CONN}, out, inputs);
 }
 
-// image must be in form [in, width, height, batch]
-// kernel must be in form [out, in, width, height]
-// see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d specifications
 // bias has shape [out]
 // output has shape [out, width, height, batch]
 template <typename T>
 ead::NodeptrT<T> conv2d (ead::NodeptrT<T> image, ead::NodeptrT<T> kernel,
-	ead::NodeptrT<T> bias = nullptr)
+	ead::NodeptrT<T> bias)
 {
-	ade::DimT nfilters = kernel->shape().at(0);
-	ead::NodesT<T> convolveds;
-	convolveds.reserve(nfilters);
-	for (ade::DimT i = 0; i < nfilters; ++i)
-	{
-		auto filter = age::permute(
-			age::slice(kernel, i, 1, 0),
-			{1, 2, 3, 0});
-		auto conved = age::convolution(image, filter,
-			{0, 1, 2});
-		auto padded = age::pad(conved,
-			{i, nfilters - i - 1}, 0);
-		convolveds.push_back(padded);
-	}
-
-	auto out = convolveds[0];
-	for (ade::DimT i = 1; i < nfilters; ++i)
-	{
-		out = age::add(out, convolveds[i]);
-	}
+	auto out = age::conv2d(image, kernel);
 	if (nullptr != bias)
 	{
 		const ade::Shape& shape = out->shape();

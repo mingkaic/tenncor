@@ -39,11 +39,19 @@ message Graph {
 }
 
 message DQTrainerState {
-    //
+    Graph target_graph = 1;
+
+    uint64 actions_executed = 2;
+
+    uint64 trained_iteration = 3;
+
+    uint64 ntrained_called = 4;
+
+    uint64 nstored_called = 5;
 }
 
 message Layer {
-    cortenn.Graph graph = 1;
+    Graph graph = 1;
     oneof layer_context {
         // change to any once we have a lot of contexts
         DQTrainerState dqn_ctx = 20;

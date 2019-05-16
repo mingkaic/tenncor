@@ -1,5 +1,39 @@
 #include "rocnnet/modl/mlp.hpp"
 
+struct DQNTrainingContext final : public modl::iTrainingContext
+{
+	void marshal_layer (cortenn::Layer& out_layer) const override
+	{}
+
+	void unmarshal_layer (const cortenn::Layer& in_layer) override
+	{}
+
+	// experience replay
+	struct ExpBatch
+	{
+		std::vector<PybindT> observation_;
+		size_t action_idx_;
+		PybindT reward_;
+		std::vector<PybindT> new_observation_;
+	};
+
+	size_t actions_executed_ = 0;
+
+	size_t iteration_ = 0;
+
+	size_t n_store_called_ = 0;
+
+	size_t n_train_called_ = 0;
+
+	std::vector<ExpBatch> experiences_;
+
+	// target network
+	modl::MLPptrT target_qnet_ = nullptr;
+
+	// train fanout: shape <noutput, batchsize>
+	ead::NodeptrT<PybindT> next_output_ = nullptr;
+};
+
 struct DQNInfo
 {
 	DQNInfo (size_t train_interval = 5,
@@ -35,10 +69,11 @@ struct DQNTrainer
 	DQNTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
 		eqns::ApproxFuncT update, DQNInfo param) :
 		sess_(&sess),
-		params_(param),
-		source_qnet_(brain),
-		target_qnet_(std::make_shared<modl::MLP>(*brain))
+		params_(param)
 	{
+		ctx_.target_qnet_ = std::make_shared<modl::MLP>(*brain);
+		ctx_.target_qnet_->label_ += "_target";
+
 		input_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({source_qnet_->get_ninput()}), "observation");
 		train_input_ = ead::make_variable_scalar<PybindT>(0.0,
@@ -62,10 +97,10 @@ struct DQNTrainer
 		train_out_ = (*source_qnet_)(ead::convert_to_node<PybindT>(train_input_));
 
 		// predicting target future rewards
-		next_output_ = (*target_qnet_)(ead::convert_to_node<PybindT>(next_input_));
+		ctx_.next_output_ = (*ctx_.target_qnet_)(ead::convert_to_node<PybindT>(next_input_));
 
 		auto target_values = age::mul(
-			age::reduce_max_1d(next_output_, 0),
+			age::reduce_max_1d(ctx_.next_output_, 0),
 			ead::convert_to_node<PybindT>(next_output_mask_));
 		future_reward_ = age::add(ead::convert_to_node<PybindT>(reward_),
 			age::mul(
@@ -76,8 +111,8 @@ struct DQNTrainer
 		// prediction error
 		auto masked_output_score = age::reduce_sum_1d(
 			age::mul(train_out_, ead::convert_to_node<PybindT>(output_mask_)), 0);
-		auto temp_diff = age::sub(masked_output_score, future_reward_);
-		prediction_error_ = age::reduce_mean(age::square(temp_diff));
+		prediction_error_ = age::reduce_mean(age::square(
+			age::sub(masked_output_score, future_reward_)));
 
 		// updates for source network
 		pbm::PathedMapT svmap = source_qnet_->list_bases();
@@ -99,7 +134,7 @@ struct DQNTrainer
 		updates_ = update(prediction_error_, source_vars);
 
 		// update target network
-		pbm::PathedMapT tvmap = target_qnet_->list_bases();
+		pbm::PathedMapT tvmap = ctx_.target_qnet_->list_bases();
 		size_t nvars = source_vars.size();
 		eqns::VariablesT target_vars(nvars);
 		for (auto vpair : tvmap)
@@ -113,7 +148,6 @@ struct DQNTrainer
 					std::make_shared<ead::VariableNode<PybindT>>(var);
 			}
 		}
-		// todo: refactor this variable association without relying on labels
 		eqns::AssignsT target_assigns;
 		for (size_t i = 0; i < nvars; i++)
 		{
@@ -127,9 +161,8 @@ struct DQNTrainer
 			auto target_next = age::sub(target, age::mul(
 				target_update_rate, diff));
 			target_assigns.push_back(eqns::VarAssign{
-				// fmts::sprintf("::target_grad_%s",
-				// 	target_vars[i]->get_label().c_str()),
-				"",
+				fmts::sprintf("target_grad_%s",
+					target_vars[i]->get_label().c_str()),
 				target_vars[i], target_next});
 		}
 		updates_.push_back(target_assigns);
@@ -170,7 +203,7 @@ struct DQNTrainer
 
 	uint8_t action (std::vector<PybindT>& input)
 	{
-		actions_executed_++; // book keep
+		ctx_.actions_executed_++; // book keep
 		PybindT exploration = linear_annealing(1.0);
 		// perform random exploration action
 		if (get_random() < exploration)
@@ -194,26 +227,28 @@ struct DQNTrainer
 	void store (std::vector<PybindT> observation, size_t action_idx,
 		PybindT reward, std::vector<PybindT> new_obs)
 	{
-		if (0 == n_store_called_ % params_.store_interval_)
+		if (0 == ctx_.n_store_called_ % params_.store_interval_)
 		{
-			experiences_.push_back(ExpBatch{observation, action_idx, reward, new_obs});
-			if (experiences_.size() > params_.max_exp_)
+			ctx_.experiences_.push_back(DQNTrainingContext::ExpBatch{
+				observation, action_idx, reward, new_obs});
+			if (ctx_.experiences_.size() > params_.max_exp_)
 			{
-				experiences_.front() = std::move(experiences_.back());
-				experiences_.pop_back();
+				ctx_.experiences_.front() =
+					std::move(ctx_.experiences_.back());
+				ctx_.experiences_.pop_back();
 			}
 		}
-		n_store_called_++;
+		ctx_.n_store_called_++;
 	}
 
 	void train (void)
 	{
 		// extract mini_batch from buffer and backpropagate
-		if (0 == (n_train_called_ % params_.train_interval_))
+		if (0 == (ctx_.n_train_called_ % params_.train_interval_))
 		{
-			if (experiences_.size() < params_.mini_batch_size_) return;
+			if (ctx_.experiences_.size() < params_.mini_batch_size_) return;
 
-			std::vector<ExpBatch> samples = random_sample();
+			std::vector<DQNTrainingContext::ExpBatch> samples = random_sample();
 
 			// batch data process
 			std::vector<PybindT> states; // <ninput, batchsize>
@@ -224,7 +259,7 @@ struct DQNTrainer
 
 			for (size_t i = 0, n = samples.size(); i < n; i++)
 			{
-				ExpBatch batch = samples[i];
+				DQNTrainingContext::ExpBatch batch = samples[i];
 				states.insert(states.end(),
 					batch.observation_.begin(), batch.observation_.end());
 				{
@@ -269,9 +304,9 @@ struct DQNTrainer
 				{
 					this->sess_->update(updated);
 				});
-			iteration_++;
+			ctx_.iteration_++;
 		}
-		n_train_called_++;
+		ctx_.n_train_called_++;
 	}
 
 	ead::NodeptrT<PybindT> get_error (void) const
@@ -281,7 +316,13 @@ struct DQNTrainer
 
 	size_t get_numtrained (void) const
 	{
-		return iteration_;
+		return ctx_.iteration_;
+	}
+
+	bool save (std::ostream& outs)
+	{
+		return modl::save(outs,
+			output_->get_tensor(), source_qnet_.get(), &ctx_);
 	}
 
 	// === forward computation ===
@@ -304,20 +345,11 @@ struct DQNTrainer
 	ead::Session<PybindT>* sess_;
 
 private:
-	// experience replay
-	struct ExpBatch
-	{
-		std::vector<PybindT> observation_;
-		size_t action_idx_;
-		PybindT reward_;
-		std::vector<PybindT> new_observation_;
-	};
-
 	PybindT linear_annealing (PybindT initial_prob) const
 	{
-		if (actions_executed_ >= params_.exploration_period_)
+		if (ctx_.actions_executed_ >= params_.exploration_period_)
 			return params_.rand_action_prob_;
-		return initial_prob - actions_executed_ * (initial_prob -
+		return initial_prob - ctx_.actions_executed_ * (initial_prob -
 			params_.rand_action_prob_) / params_.exploration_period_;
 	}
 
@@ -326,16 +358,16 @@ private:
 		return explore_(ead::get_engine());
 	}
 
-	std::vector<ExpBatch> random_sample (void)
+	std::vector<DQNTrainingContext::ExpBatch> random_sample (void)
 	{
-		std::vector<size_t> indices(experiences_.size());
+		std::vector<size_t> indices(ctx_.experiences_.size());
 		std::iota(indices.begin(), indices.end(), 0);
 		std::random_shuffle(indices.begin(), indices.end());
-		std::vector<ExpBatch> res;
+		std::vector<DQNTrainingContext::ExpBatch> res;
 		for (size_t i = 0; i < params_.mini_batch_size_; i++)
 		{
 			size_t idx = indices[i];
-			res.push_back(experiences_[idx]);
+			res.push_back(ctx_.experiences_[idx]);
 		}
 		return res;
 	}
@@ -347,18 +379,12 @@ private:
 	// source network
 	modl::MLPptrT source_qnet_;
 
-	// target network
-	modl::MLPptrT target_qnet_;
-
 	// === prediction computation ===
 	// train_fanin: shape <ninput, batchsize>
 	ead::VarptrT<PybindT> next_input_ = nullptr;
 
 	// train mask: shape <batchsize>
 	ead::VarptrT<PybindT> next_output_mask_ = nullptr;
-
-	// train fanout: shape <noutput, batchsize>
-	ead::NodeptrT<PybindT> next_output_ = nullptr;
 
 	// reward associated with next_output_: shape <batchsize>
 	ead::VarptrT<PybindT> reward_ = nullptr;
@@ -377,15 +403,7 @@ private:
 	ead::NodeptrT<PybindT> prediction_error_ = nullptr;
 
 	// states
-	size_t actions_executed_ = 0;
-
-	size_t iteration_ = 0;
-
-	size_t n_store_called_ = 0;
-
-	size_t n_train_called_ = 0;
-
 	std::uniform_real_distribution<PybindT> explore_;
 
-	std::vector<ExpBatch> experiences_;
+	DQNTrainingContext ctx_;
 };

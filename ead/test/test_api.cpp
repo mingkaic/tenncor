@@ -791,7 +791,7 @@ TEST(API, Rsum)
 			}
 		});
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_sum(src, 1, 2); },
+		[](ead::NodeptrT<double>& src) { return age::reduce_sum(src, 1, 1); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
@@ -841,7 +841,7 @@ TEST(API, Rprod)
 
 	ead::NodeptrT<size_t> src = ead::make_constant<size_t>(data.data(), shape);
 	ead::NodeptrT<size_t> dest = age::reduce_prod(src);
-	ead::NodeptrT<size_t> dest2 = age::reduce_prod(src, 1, 2);
+	ead::NodeptrT<size_t> dest2 = age::reduce_prod(src, 1, 1);
 
 	dest->update();
 	{
@@ -956,7 +956,7 @@ TEST(API, Rmin)
 			}
 		});
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_min(src, 1, 2); },
+		[](ead::NodeptrT<double>& src) { return age::reduce_min(src, 1, 1); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
@@ -1038,7 +1038,7 @@ TEST(API, Rmax)
 			}
 		});
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_max(src, 1, 2); },
+		[](ead::NodeptrT<double>& src) { return age::reduce_max(src, 1, 1); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());

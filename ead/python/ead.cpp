@@ -216,7 +216,12 @@ PYBIND11_MODULE(ead, m)
 		"Assign numpy data array to variable");
 
 	// ==== inline functions ====
-	m.def("scalar_constant", &ead::make_constant_scalar<PybindT>,
+	m.def("scalar_constant",
+	[](PybindT scalar, std::vector<py::ssize_t> slist)
+	{
+		return ead::make_constant_scalar<PybindT>(scalar,
+			pyead::p2cshape(slist));
+	},
 	"Return scalar constant node");
 
 	m.def("constant",

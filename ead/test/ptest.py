@@ -230,7 +230,7 @@ class EADTest(unittest.TestCase):
             tfsess.run(tf_var.initializer)
 
             out = all_reduce(var)
-            out2 = dim_reduce(var, 1)
+            out2 = dim_reduce(var, offset=1)
             tf_out = tf_reduce(tf_var)
             tf_out2 = tf_reduce(tf_var, [0, 1])
 
@@ -286,7 +286,9 @@ class EADTest(unittest.TestCase):
             sess.update()
             fout = var.get()
 
-            self.assertEqual(tuple(shape), fout.shape)
+            pad_removed = len(shape) - len(fout.shape)
+            padding = [1] * pad_removed
+            self.assertEqual(shape, padding + list(fout.shape))
             self._array_close(data, fout)
 
             var2 = ead.variable(data, 'var2')
@@ -298,8 +300,8 @@ class EADTest(unittest.TestCase):
 
             out1 = one.get()
             out0 = zero.get()
-            self.assertEqual(tuple(shape), out1.shape)
-            self.assertEqual(tuple(shape), out0.shape)
+            self.assertEqual(shape, padding + list(out1.shape))
+            self.assertEqual(shape, padding + list(out0.shape))
             self._array_eq(data1, out1)
             self._array_eq(data0, out0)
 
@@ -381,6 +383,14 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             self._common_unary_tf(shape, age.tanh, tf.tanh)
+
+    def test_softmax(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, lambda arr: age.softmax(arr,
+                offset=0, ndims=1), tf.nn.softmax)
 
     def test_square(self):
         shapes = [[3, 4, 5]]
@@ -757,6 +767,61 @@ class EADTest(unittest.TestCase):
             self._array_close(exdata, der)
             self._array_close(exdata2, der2)
 
+    def test_conv2d(self):
+        # batch, height, width, in
+        shape = [3, 3, 3, 2]
+        data = np.random.rand(*shape).astype(np.float32)
+
+        # height, width, in, out
+        kshape = [2, 2, 2, 4]
+        kdata = np.random.rand(*kshape).astype(np.float32)
+
+        image = ead.variable(data, 'image')
+        kernel = ead.variable(kdata, 'vkernel')
+
+        tfimage = tf.Variable(data)
+        tfkernel = tf.Variable(kdata)
+
+        out = age.conv2d(image, kernel)
+
+        sess = ead.Session()
+        sess.track(out)
+        sess.update()
+
+        tfsess = tf.Session()
+
+        tfoutput = tf.nn.conv2d(tfimage, tfkernel, [1, 1, 1, 1], 'VALID')
+        tfsess.run(tfimage.initializer)
+        tfsess.run(tfkernel.initializer)
+
+        conv_output = out.get()
+        tfconv_output = tfsess.run(tfoutput)
+        self._array_close(tfconv_output, conv_output)
+
+        var2 = ead.variable(data, 'var2')
+        zero = ead.derive(out, var2)
+        ex = ead.derive(out, image)
+        ex2 = ead.derive(out, kernel)
+
+        sess.track(zero)
+        sess.track(ex)
+        sess.track(ex2)
+        sess.update()
+
+        rej = zero.get()
+        der = ex.get()
+        der2 = ex2.get()
+
+        data0 = np.zeros(shape, dtype=np.float32)
+        tf_grad, tf_grad2 = tf.gradients(tfoutput, [tfimage, tfkernel])
+
+        exdata = tfsess.run(tf_grad)
+        exdata2 = tfsess.run(tf_grad2)
+
+        self._array_eq(data0, rej)
+        self._array_close(exdata, der)
+        self._array_close(exdata2, der2)
+
     def test_grader_scenario1(self): # REDUCE -> MUL
         data = np.random.rand(3,10)
         data2 = np.random.rand(10)
@@ -770,7 +835,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.mul(age.reduce_sum(var, 1), var2)
+        out = age.mul(age.reduce_sum(var, offset=1, ndims=1), var2)
         tf_out = tf.multiply(tf.reduce_sum(tf_var, 0), tf_var2)
 
         # evaluate regular matmul
@@ -958,7 +1023,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.matmul(age.reduce_sum(var, 2), var2)
+        out = age.matmul(age.reduce_sum(var, offset=2, ndims=1), var2)
         tf_out = tf.matmul(tf.reduce_sum(tf_var, 0), tf_var2)
 
         # evaluate regular matmul
@@ -1018,9 +1083,9 @@ class EADTest(unittest.TestCase):
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
 
-	# A<a> -> EXTEND -> B<a,b>
-	# A<a> -> EXTEND -> C<a,c> -> PERMUTE -> <c,a>
-	# B MATMUL C -> D<c,b>
+    # A<a> -> EXTEND -> B<a,b>
+    # A<a> -> EXTEND -> C<a,c> -> PERMUTE -> <c,a>
+    # B MATMUL C -> D<c,b>
     def test_grader_scenario8(self):
         data = np.random.rand(5)
         ones = np.ones([10, 5])
@@ -1115,6 +1180,7 @@ if __name__ == "__main__":
 
     # log to file
     logging.basicConfig(filename='/tmp/ead_ptest.log',level=logging.DEBUG)
+    logging.info("running ptest for ead")
 
     _test_data = generate_testcases(
         test_template['test_cases'],

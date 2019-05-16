@@ -573,16 +573,16 @@
                 "name": "tens"
             }, {
                 "dtype": "ade::DimT",
-                "name": "start",
+                "name": "offset",
                 "default": "0"
             }, {
                 "dtype": "ade::DimT",
-                "name": "end",
+                "name": "ndims",
                 "default": "ade::rank_cap"
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},tens,start,end)"
+                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_SUM\",REDUCE_SUM},tens,offset,ndims)"
             },
             "description": "sum values ignoring coordinate indices between start and end"
         },
@@ -594,16 +594,16 @@
                 "name": "tens"
             }, {
                 "dtype": "ade::DimT",
-                "name": "start",
+                "name": "offset",
                 "default": "0"
             }, {
                 "dtype": "ade::DimT",
-                "name": "end",
+                "name": "ndims",
                 "default": "ade::rank_cap"
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},tens,start,end)"
+                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_PROD\",REDUCE_PROD},tens,offset,ndims)"
             },
             "description": "multiply values ignoring coordinate indices between start and end"
         },
@@ -615,16 +615,16 @@
                 "name": "tens"
             }, {
                 "dtype": "ade::DimT",
-                "name": "start",
+                "name": "offset",
                 "default": "0"
             }, {
                 "dtype": "ade::DimT",
-                "name": "end",
+                "name": "ndims",
                 "default": "ade::rank_cap"
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},tens,start,end)"
+                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_MIN\",REDUCE_MIN},tens,offset,ndims)"
             },
             "description": "min values ignoring coordinate indices between start and end"
         },
@@ -636,16 +636,16 @@
                 "name": "tens"
             }, {
                 "dtype": "ade::DimT",
-                "name": "start",
+                "name": "offset",
                 "default": "0"
             }, {
                 "dtype": "ade::DimT",
-                "name": "end",
+                "name": "ndims",
                 "default": "ade::rank_cap"
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},tens,start,end)"
+                "val": "ead::build_reduce<T>(ade::Opcode{\"REDUCE_MAX\",REDUCE_MAX},tens,offset,ndims)"
             },
             "description": "max values ignoring coordinate indices between start and end"
         },
@@ -844,10 +844,33 @@
             "args": [{
                 "dtype": "ead::NodeptrT<T>",
                 "name": "arg1"
+            }, {
+                "dtype": "ade::DimT",
+                "name": "offset",
+                "default": "0"
+            }, {
+                "dtype": "ade::DimT",
+                "name": "ndims",
+                "default": "ade::rank_cap"
             }],
             "out": {
                 "type": "ead::NodeptrT<T>",
-                "val": "div(exp(arg1),extend(reduce_sum(exp(arg1)),0,ead::shape_to_vec<ade::DimT>(arg1->shape())))"
+                "val": "BUILD_SOFTMAX_DEF(arg1)"
+            }
+        },
+        {
+            "template": "typename T",
+            "name": "conv2d",
+            "args": [{
+                "dtype": "ead::NodeptrT<T>",
+                "name": "image"
+            }, {
+                "dtype": "ead::NodeptrT<T>",
+                "name": "kernel"
+            }],
+            "out": {
+                "type": "ead::NodeptrT<T>",
+                "val": "BUILD_CONV2D_DEF(image, kernel)"
             }
         }
     ]

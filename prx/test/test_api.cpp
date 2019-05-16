@@ -165,8 +165,9 @@ TEST(API, Conv2d)
 
 	ead::NodeptrT<float> image = ead::make_constant<float>(data.data(), shape);
 	ead::NodeptrT<float> kernel = ead::make_constant<float>(kdata.data(), kshape);
+	ead::NodeptrT<float> bias = ead::make_constant_scalar<float>(0, ade::Shape({4}));
 
-	ead::NodeptrT<float> out = prx::conv2d(image, kernel);
+	ead::NodeptrT<float> out = prx::conv2d(image, kernel, bias);
 
 	ead::Session<float> session;
 	session.track(out);
