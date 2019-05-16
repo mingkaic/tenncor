@@ -13,6 +13,10 @@ namespace trainer
 // Normal default context that only stores the number of iterations
 struct TrainingContext final : public modl::iTrainingContext
 {
+	TrainingContext (void) {}
+
+	TrainingContext (size_t n_iterations) : n_iterations_(n_iterations) {}
+
 	void marshal_layer (cortenn::Layer& out_layer) const override
 	{
 		cortenn::ItTrainerState* state = out_layer.mutable_it_ctx();
@@ -25,7 +29,7 @@ struct TrainingContext final : public modl::iTrainingContext
 		n_iterations_ = state.iterations();
 	}
 
-	size_t n_iterations_;
+	size_t n_iterations_ = 0;
 };
 
 // MLPTrainer does not own anything

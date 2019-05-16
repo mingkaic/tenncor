@@ -128,7 +128,7 @@ def main(args):
 
     try:
         print('saving')
-        if brain.serialize_to_file(trained_out, args.save):
+        if trainer.serialize_to_file(args.save):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

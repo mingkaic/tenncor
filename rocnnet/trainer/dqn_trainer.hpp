@@ -73,6 +73,16 @@ struct DQNInfo
 struct DQNTrainer
 {
 	DQNTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
+		eqns::ApproxFuncT update, DQNInfo param,
+		DQNTrainingContext ctx) :
+		sess_(&sess),
+		params_(param),
+		ctx_(ctx)
+	{
+		initialize(update);
+	}
+
+	DQNTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
 		eqns::ApproxFuncT update, DQNInfo param) :
 		sess_(&sess),
 		params_(param)
@@ -80,131 +90,7 @@ struct DQNTrainer
 		ctx_.target_qnet_ = std::make_shared<modl::MLP>(*brain);
 		ctx_.target_qnet_->label_ += "_target";
 
-		input_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({source_qnet_->get_ninput()}), "observation");
-		train_input_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({source_qnet_->get_ninput(),
-			params_.mini_batch_size_}), "train_observation");
-		next_input_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({source_qnet_->get_ninput(),
-			params_.mini_batch_size_}), "next_observation");
-		next_output_mask_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({params_.mini_batch_size_}),
-			"next_observation_mask");
-		reward_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({params_.mini_batch_size_}), "rewards");
-		output_mask_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({source_qnet_->get_noutput(),
-			params_.mini_batch_size_}), "action_mask");
-
-		// forward action score computation
-		output_ = (*source_qnet_)(ead::convert_to_node<PybindT>(input_));
-
-		train_out_ = (*source_qnet_)(ead::convert_to_node<PybindT>(train_input_));
-
-		// predicting target future rewards
-		ctx_.next_output_ = (*ctx_.target_qnet_)(ead::convert_to_node<PybindT>(next_input_));
-
-		auto target_values = age::mul(
-			age::reduce_max_1d(ctx_.next_output_, 0),
-			ead::convert_to_node<PybindT>(next_output_mask_));
-		future_reward_ = age::add(ead::convert_to_node<PybindT>(reward_),
-			age::mul(
-				ead::make_constant_scalar<PybindT>(params_.discount_rate_,
-					target_values->shape()),
-				target_values)); // reward for each instance in batch
-
-		// prediction error
-		auto masked_output_score = age::reduce_sum_1d(
-			age::mul(train_out_, ead::convert_to_node<PybindT>(output_mask_)), 0);
-		prediction_error_ = age::reduce_mean(age::square(
-			age::sub(masked_output_score, future_reward_)));
-
-		// updates for source network
-		pbm::PathedMapT svmap = source_qnet_->list_bases();
-		std::unordered_map<std::string,size_t> labelled_indices;
-		eqns::VariablesT source_vars;
-		for (auto vpair : svmap)
-		{
-			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<PybindT>>(vpair.first))
-			{
-				auto label = fmts::to_string(
-					vpair.second.begin(), vpair.second.end());
-				labelled_indices.emplace(label, source_vars.size());
-
-				source_vars.push_back(
-					std::make_shared<ead::VariableNode<PybindT>>(var));
-			}
-		}
-		updates_ = update(prediction_error_, source_vars);
-
-		// update target network
-		pbm::PathedMapT tvmap = ctx_.target_qnet_->list_bases();
-		size_t nvars = source_vars.size();
-		eqns::VariablesT target_vars(nvars);
-		for (auto vpair : tvmap)
-		{
-			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<PybindT>>(vpair.first))
-			{
-				auto label = fmts::to_string(
-					vpair.second.begin(), vpair.second.end());
-				target_vars[labelled_indices[label]] =
-					std::make_shared<ead::VariableNode<PybindT>>(var);
-			}
-		}
-		eqns::AssignsT target_assigns;
-		for (size_t i = 0; i < nvars; i++)
-		{
-			// this is equivalent to target = (1-alpha) * target + alpha * source
-			auto target = ead::convert_to_node<PybindT>(target_vars[i]);
-			auto source = ead::convert_to_node<PybindT>(source_vars[i]);
-			auto diff = age::sub(target, source);
-			auto target_update_rate = ead::make_constant_scalar<PybindT>(
-				params_.target_update_rate_, diff->shape());
-
-			auto target_next = age::sub(target, age::mul(
-				target_update_rate, diff));
-			target_assigns.push_back(eqns::VarAssign{
-				fmts::sprintf("target_grad_%s",
-					target_vars[i]->get_label().c_str()),
-				target_vars[i], target_next});
-		}
-		updates_.push_back(target_assigns);
-
-		std::vector<ead::NodeptrT<PybindT>*> to_optimize =
-		{
-			&prediction_error_,
-			&train_out_,
-			&output_,
-		};
-		for (eqns::AssignsT& assigns : updates_)
-		{
-			for (eqns::VarAssign& assign : assigns)
-			{
-				to_optimize.push_back(&assign.source_);
-			}
-		}
-
-		size_t n_roots = to_optimize.size();
-		ead::NodesT<PybindT> roots(n_roots);
-		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
-			[](ead::NodeptrT<PybindT>* ptr)
-			{
-				return *ptr;
-			});
-
-		{
-			auto rules = ead::opt::get_configs<PybindT>();
-			ead::opt::optimize(roots, rules);
-		}
-
-		for (size_t i = 0; i < n_roots; ++i)
-		{
-			sess_->track(roots[i]);
-			*to_optimize[i] = roots[i];
-		}
+		initialize(update);
 	}
 
 	uint8_t action (std::vector<PybindT>& input)
@@ -351,6 +237,135 @@ struct DQNTrainer
 	ead::Session<PybindT>* sess_;
 
 private:
+	void initialize (eqns::ApproxFuncT update)
+	{
+		input_ = ead::make_variable_scalar<PybindT>(0.0,
+			ade::Shape({source_qnet_->get_ninput()}), "observation");
+		train_input_ = ead::make_variable_scalar<PybindT>(0.0,
+			ade::Shape({source_qnet_->get_ninput(),
+			params_.mini_batch_size_}), "train_observation");
+		next_input_ = ead::make_variable_scalar<PybindT>(0.0,
+			ade::Shape({source_qnet_->get_ninput(),
+			params_.mini_batch_size_}), "next_observation");
+		next_output_mask_ = ead::make_variable_scalar<PybindT>(0.0,
+			ade::Shape({params_.mini_batch_size_}),
+			"next_observation_mask");
+		reward_ = ead::make_variable_scalar<PybindT>(0.0,
+			ade::Shape({params_.mini_batch_size_}), "rewards");
+		output_mask_ = ead::make_variable_scalar<PybindT>(0.0,
+			ade::Shape({source_qnet_->get_noutput(),
+			params_.mini_batch_size_}), "action_mask");
+
+		// forward action score computation
+		output_ = (*source_qnet_)(ead::convert_to_node<PybindT>(input_));
+
+		train_out_ = (*source_qnet_)(ead::convert_to_node<PybindT>(train_input_));
+
+		// predicting target future rewards
+		ctx_.next_output_ = (*ctx_.target_qnet_)(ead::convert_to_node<PybindT>(next_input_));
+
+		auto target_values = age::mul(
+			age::reduce_max_1d(ctx_.next_output_, 0),
+			ead::convert_to_node<PybindT>(next_output_mask_));
+		future_reward_ = age::add(ead::convert_to_node<PybindT>(reward_),
+			age::mul(
+				ead::make_constant_scalar<PybindT>(params_.discount_rate_,
+					target_values->shape()),
+				target_values)); // reward for each instance in batch
+
+		// prediction error
+		auto masked_output_score = age::reduce_sum_1d(
+			age::mul(train_out_, ead::convert_to_node<PybindT>(output_mask_)), 0);
+		prediction_error_ = age::reduce_mean(age::square(
+			age::sub(masked_output_score, future_reward_)));
+
+		// updates for source network
+		pbm::PathedMapT svmap = source_qnet_->list_bases();
+		std::unordered_map<std::string,size_t> labelled_indices;
+		eqns::VariablesT source_vars;
+		for (auto vpair : svmap)
+		{
+			if (auto var = std::dynamic_pointer_cast<
+				ead::Variable<PybindT>>(vpair.first))
+			{
+				auto label = fmts::to_string(
+					vpair.second.begin(), vpair.second.end());
+				labelled_indices.emplace(label, source_vars.size());
+
+				source_vars.push_back(
+					std::make_shared<ead::VariableNode<PybindT>>(var));
+			}
+		}
+		updates_ = update(prediction_error_, source_vars);
+
+		// update target network
+		pbm::PathedMapT tvmap = ctx_.target_qnet_->list_bases();
+		size_t nvars = source_vars.size();
+		eqns::VariablesT target_vars(nvars);
+		for (auto vpair : tvmap)
+		{
+			if (auto var = std::dynamic_pointer_cast<
+				ead::Variable<PybindT>>(vpair.first))
+			{
+				auto label = fmts::to_string(
+					vpair.second.begin(), vpair.second.end());
+				target_vars[labelled_indices[label]] =
+					std::make_shared<ead::VariableNode<PybindT>>(var);
+			}
+		}
+		eqns::AssignsT target_assigns;
+		for (size_t i = 0; i < nvars; i++)
+		{
+			// this is equivalent to target = (1-alpha) * target + alpha * source
+			auto target = ead::convert_to_node<PybindT>(target_vars[i]);
+			auto source = ead::convert_to_node<PybindT>(source_vars[i]);
+			auto diff = age::sub(target, source);
+			auto target_update_rate = ead::make_constant_scalar<PybindT>(
+				params_.target_update_rate_, diff->shape());
+
+			auto target_next = age::sub(target, age::mul(
+				target_update_rate, diff));
+			target_assigns.push_back(eqns::VarAssign{
+				fmts::sprintf("target_grad_%s",
+					target_vars[i]->get_label().c_str()),
+				target_vars[i], target_next});
+		}
+		updates_.push_back(target_assigns);
+
+		std::vector<ead::NodeptrT<PybindT>*> to_optimize =
+		{
+			&prediction_error_,
+			&train_out_,
+			&output_,
+		};
+		for (eqns::AssignsT& assigns : updates_)
+		{
+			for (eqns::VarAssign& assign : assigns)
+			{
+				to_optimize.push_back(&assign.source_);
+			}
+		}
+
+		size_t n_roots = to_optimize.size();
+		ead::NodesT<PybindT> roots(n_roots);
+		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
+			[](ead::NodeptrT<PybindT>* ptr)
+			{
+				return *ptr;
+			});
+
+		{
+			auto rules = ead::opt::get_configs<PybindT>();
+			ead::opt::optimize(roots, rules);
+		}
+
+		for (size_t i = 0; i < n_roots; ++i)
+		{
+			sess_->track(roots[i]);
+			*to_optimize[i] = roots[i];
+		}
+	}
+
 	PybindT linear_annealing (PybindT initial_prob) const
 	{
 		if (ctx_.actions_executed_ >= params_.exploration_period_)
