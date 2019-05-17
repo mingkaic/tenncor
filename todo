@@ -6,6 +6,9 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
+P1 - add intermediate_process to err_approximation like in
+    https://github.com/mingkaic/rocnnet/blob/b0e6b9ef1b80ee3d33d68f48dd051a99c2df39ab/app/tenncor/src/utils/gd_utils.cpp
+    then add clip_by_norm to dqn intermediate process
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
 P3 - implement control nodes/edges for assignments

@@ -7,7 +7,7 @@
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
-#include "rocnnet/eqns/err_approx.hpp"
+#include "ead/generated/pyapi.hpp"
 
 #ifndef MODL_MARSHAL_HPP
 #define MODL_MARSHAL_HPP
@@ -219,12 +219,7 @@ void load (std::istream& ins, iMarshaler* target,
 
 using NonLinearF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 
-struct LayerInfo
-{
-	ade::DimT n_out_;
-
-	NonLinearF hidden_;
-};
+using NonLinearsT = std::vector<NonLinearF>;
 
 }
 

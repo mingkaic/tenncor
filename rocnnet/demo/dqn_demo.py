@@ -71,21 +71,12 @@ def main(args):
 
     n_observations = 10
     n_actions = 9
+    n_outs = [9, n_actions]
 
-    hiddens = [
-        rcn.get_layer(age.tanh, 9),
-        rcn.get_layer(rcn.identity, n_actions)
-    ]
+    nonlins = [age.tanh, rcn.identity]
 
-    brain = rcn.get_mlp(n_observations, hiddens, 'brain')
+    brain = rcn.get_mlp(n_observations, n_outs, 'brain')
     untrained_brain = brain.copy()
-    try:
-        with open(args.load, 'rb') as f:
-            print('loading')
-            pretrained_brain = brain.parse_from_string(f.read())
-            print('successfully loaded ' + args.load)
-    except:
-        pretrained_brain = brain.copy()
 
     bgd = rcn.get_rms_momentum(
         learning_rate = 0.1,
@@ -97,9 +88,21 @@ def main(args):
         exploration_period = 0.0)
 
     sess = ead.Session()
-    untrained_dqn = rcn.DQNTrainer(untrained_brain, sess, bgd, param)
-    trained_dqn = rcn.DQNTrainer(brain, sess, bgd, param)
-    pretrained_dqn = rcn.DQNTrainer(pretrained_brain, sess, bgd, param)
+
+    untrained_dqn = rcn.DQNTrainer(untrained_brain, nonlins, sess, bgd, param)
+    trained_dqn = rcn.DQNTrainer(brain, nonlins, sess, bgd, param)
+    try:
+        with open(args.load, 'rb') as f:
+            print('loading')
+            pretrained_dqn = rcn.load_dqntrainer(f.read(),
+                nonlins, sess, bgd, param)
+            print('successfully loaded from ' + args.load)
+    except Exception as e:
+        print(e)
+        print('failed to load from "{}"'.format(args.load))
+        pretrained_brain = brain.copy()
+        pretrained_dqn = rcn.DQNTrainer(pretrained_brain,
+            nonlins, sess, bgd, param)
 
     err_msg = None
     err_queue_size = 10
@@ -190,7 +193,13 @@ def main(args):
         err_msg = 'training error rate is wrong'
 
     if err_msg is None:
-        brain.serialize_to_file(trained_dqn.train_out(), args.save)
+        try:
+            print('saving')
+            if trained_dqn.serialize_to_file(args.save):
+                print('successfully saved to {}'.format(args.save))
+        except Exception as e:
+            print(e)
+            print('failed to write to "{}"'.format(args.save))
     else:
         print(err_msg)
 

@@ -66,7 +66,7 @@ def main(args):
     n_in = training_x.shape[1]
     n_hidden = args.n_hidden
 
-    brain = rcn.get_rbm(n_in, [rcn.get_layer(age.sigmoid, n_hidden)], 'brain')
+    brain = rcn.get_rbm(n_in, [n_hidden], 'brain')
     try:
         with open(args.cache_file, 'rb') as f:
             print('loading')
@@ -82,7 +82,7 @@ def main(args):
 
         persistent = ead.variable(
             np.zeros([args.n_batch, args.n_hidden], dtype=float), 'persistent')
-        trainer = rcn.RBMTrainer(brain, sess, persistent, args.n_batch,
+        trainer = rcn.RBMTrainer(brain, [age.sigmoid], sess, persistent, args.n_batch,
             args.learning_rate, args.n_cont_div)
 
         for i in range(args.n_train):
@@ -105,7 +105,7 @@ def main(args):
         return np.random.randint(0, n_test_sample - args.n_test_chain)
 
     testin = ead.variable(np.zeros([n_test_input, args.n_test_chain], dtype=float), "testin")
-    test_generated_in = brain.reconstruct_visible(testin)
+    test_generated_in = brain.reconstruct_visible(testin, [age.sigmoid])
 
     output_chains = []
     for i in range(args.n_sample):

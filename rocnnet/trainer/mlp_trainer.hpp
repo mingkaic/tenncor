@@ -13,10 +13,6 @@ namespace trainer
 // Normal default context that only stores the number of iterations
 struct TrainingContext final : public modl::iTrainingContext
 {
-	TrainingContext (void) {}
-
-	TrainingContext (size_t n_iterations) : n_iterations_(n_iterations) {}
-
 	void marshal_layer (cortenn::Layer& out_layer) const override
 	{
 		cortenn::ItTrainerState* state = out_layer.mutable_it_ctx();
@@ -35,7 +31,9 @@ struct TrainingContext final : public modl::iTrainingContext
 // MLPTrainer does not own anything
 struct MLPTrainer
 {
-	MLPTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
+	MLPTrainer (modl::MLPptrT brain,
+		modl::NonLinearsT nonlinearities,
+		ead::Session<PybindT>& sess,
 		eqns::ApproxFuncT update, uint8_t batch_size,
 		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
@@ -45,7 +43,8 @@ struct MLPTrainer
 		sess_(&sess),
 		ctx_(ctx)
 	{
-		train_out_ = (*brain_)(ead::convert_to_node<PybindT>(train_in_));
+		train_out_ = (*brain_)(
+			ead::convert_to_node<PybindT>(train_in_), nonlinearities);
 		expected_out_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({brain_->get_noutput(), batch_size}), "expected_out");
 		error_ = age::square(

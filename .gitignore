@@ -76,3 +76,4 @@ CMakeFiles
 !.astylerc
 !.bazelrc
 !rocnnet/pretrained/*.pbx
+!rocnnet/notebooks/*.pbx

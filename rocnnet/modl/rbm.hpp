@@ -1,7 +1,5 @@
 #include "prx/api.hpp"
 
-#include "rocnnet/eqns/helper.hpp"
-
 #include "rocnnet/modl/marshal.hpp"
 
 #ifndef MODL_RBM_HPP
@@ -12,17 +10,18 @@ namespace modl
 
 struct RBM final : public iMarshalSet
 {
-	RBM (ade::DimT n_input, std::vector<LayerInfo> layers, std::string label) :
+	RBM (ade::DimT n_input,
+		std::vector<ade::DimT> layer_outs, std::string label) :
 		iMarshalSet(label)
 	{
-		if (layers.empty())
+		if (layer_outs.empty())
 		{
 			logs::fatal("cannot create RBM with no layers specified");
 		}
 
-		for (size_t i = 0, n = layers.size(); i < n; ++i)
+		for (size_t i = 0, n = layer_outs.size(); i < n; ++i)
 		{
-			ade::DimT n_output = layers[i].n_out_;
+			ade::DimT n_output = layer_outs[i];
 			ade::Shape weight_shape({n_output, n_input});
 			ade::NElemT nweight = weight_shape.n_elems();
 
@@ -48,7 +47,6 @@ struct RBM final : public iMarshalSet
 				std::make_shared<MarshalVar>(weight),
 				std::make_shared<MarshalVar>(hbias),
 				std::make_shared<MarshalVar>(vbias),
-				layers[i].hidden_,
 			});
 			n_input = n_output;
 		}
@@ -76,44 +74,77 @@ struct RBM final : public iMarshalSet
 
 	// input of shape <n_input, n_batch>
 	// propagate upwards (towards visibleness)
-	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
+	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input,
+		NonLinearsT nonlinearities)
 	{
 		// sanity check
 		const ade::Shape& in_shape = input->shape();
 		uint8_t ninput = get_ninput();
 		if (in_shape.at(0) != ninput)
 		{
-			logs::fatalf("cannot dbn with input shape %s against n_input %d",
+			logs::fatalf(
+				"cannot generate rbm with input shape %s against n_input %d",
 				in_shape.to_string().c_str(), ninput);
 		}
 
+		size_t nlayers = layers_.size();
+		size_t nnlin = nonlinearities.size();
+		if (nnlin != nlayers)
+		{
+			logs::fatalf(
+				"cannot generate rbm of %d layers with %d nonlinearities",
+				nlayers, nnlin);
+		}
+
 		ead::NodeptrT<PybindT> out = input;
-		for (HiddenLayer& layer : layers_)
+		for (size_t i = 0; i < nlayers; ++i)
 		{
 			// weight is <n_hidden, n_input>
 			// in is <n_input, ?>
 			// out = in @ weight, so out is <n_hidden, ?>
 			auto hypothesis = prx::fully_connect({out},
-				{ead::convert_to_node(layer.weight_->var_)},
-				ead::convert_to_node(layer.hbias_->var_));
-			out = layer.hidden_(hypothesis);
+				{ead::convert_to_node(layers_[i].weight_->var_)},
+				ead::convert_to_node(layers_[i].hbias_->var_));
+			out = nonlinearities[i](hypothesis);
 		}
 		return out;
 	}
 
 	// input of shape <n_hidden, n_batch>
-	ead::NodeptrT<PybindT> prop_down (ead::NodeptrT<PybindT> hidden)
+	ead::NodeptrT<PybindT> prop_down (ead::NodeptrT<PybindT> hidden,
+		NonLinearsT nonlinearities)
 	{
-		ead::NodeptrT<PybindT> out = hidden;
-		for (HiddenLayer& layer : layers_)
+		// sanity check
+		const ade::Shape& out_shape = hidden->shape();
+		uint8_t noutput = get_noutput();
+		if (out_shape.at(0) != noutput)
 		{
+			logs::fatalf(
+				"cannot prop down rbm with output shape %s against n_output %d",
+				out_shape.to_string().c_str(), noutput);
+		}
+
+		size_t nlayers = layers_.size();
+		size_t nnlin = nonlinearities.size();
+		if (nnlin != nlayers)
+		{
+			logs::fatalf(
+				"cannot generate rbm of %d layers with %d nonlinearities",
+				nlayers, nnlin);
+		}
+
+		ead::NodeptrT<PybindT> out = hidden;
+		for (size_t i = 0; i < nlayers; ++i)
+		{
+			size_t index = nlayers - i - 1;
 			// weight is <n_hidden, n_input>
 			// in is <n_hidden, ?>
 			// out = in @ weight.T, so out is <n_input, ?>
 			auto hypothesis = prx::fully_connect({out},
-				{age::transpose(ead::convert_to_node(layer.weight_->var_))},
-				ead::convert_to_node(layer.vbias_->var_));
-			out = layer.hidden_(hypothesis);
+				{age::transpose(
+					ead::convert_to_node(layers_[index].weight_->var_))},
+				ead::convert_to_node(layers_[index].vbias_->var_));
+			out = nonlinearities[index](hypothesis);
 		}
 		return out;
 	}
@@ -148,8 +179,6 @@ struct RBM final : public iMarshalSet
 		MarVarsptrT hbias_;
 
 		MarVarsptrT vbias_;
-
-		NonLinearF hidden_;
 	};
 
 	std::vector<HiddenLayer> layers_;
@@ -164,7 +193,6 @@ private:
 				std::make_shared<MarshalVar>(*olayer.weight_),
 				std::make_shared<MarshalVar>(*olayer.hbias_),
 				std::make_shared<MarshalVar>(*olayer.vbias_),
-				olayer.hidden_
 			});
 		}
 	}
@@ -176,22 +204,6 @@ private:
 };
 
 using RBMptrT = std::shared_ptr<RBM>;
-
-// recreate input using hidden distribution
-// output shape of input->shape()
-ead::NodeptrT<PybindT> reconstruct_visible (RBM& rbm, ead::NodeptrT<PybindT> input)
-{
-	ead::NodeptrT<PybindT> hidden_dist = rbm(input);
-	ead::NodeptrT<PybindT> hidden_sample = eqns::one_binom(hidden_dist);
-	return rbm.prop_down(hidden_sample);
-}
-
-ead::NodeptrT<PybindT> reconstruct_hidden (RBM& rbm, ead::NodeptrT<PybindT> hidden)
-{
-	ead::NodeptrT<PybindT> visible_dist = rbm.prop_down(hidden);
-	ead::NodeptrT<PybindT> visible_sample = eqns::one_binom(visible_dist);
-	return rbm(visible_sample);
-}
 
 }
 

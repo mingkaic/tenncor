@@ -14,12 +14,18 @@ static const std::string bias_fmt = "bias_%d";
 
 struct MLP final : public iMarshalSet
 {
-	MLP (ade::DimT n_input, std::vector<LayerInfo> layers, std::string label) :
+	MLP (ade::DimT n_input,
+		std::vector<ade::DimT> layer_outs, std::string label) :
 		iMarshalSet(label)
 	{
-		for (size_t i = 0, n = layers.size(); i < n; ++i)
+		if (layer_outs.empty())
 		{
-			ade::DimT n_output = layers[i].n_out_;
+			logs::fatal("cannot create MLP with no layers specified");
+		}
+
+		for (size_t i = 0, n = layer_outs.size(); i < n; ++i)
+		{
+			ade::DimT n_output = layer_outs[i];
 			ade::Shape weight_shape({n_output, n_input});
 			ade::NElemT nweight = weight_shape.n_elems();
 
@@ -40,15 +46,13 @@ struct MLP final : public iMarshalSet
 
 			layers_.push_back(HiddenLayer{
 				std::make_shared<MarshalVar>(weight),
-				std::make_shared<MarshalVar>(bias),
-				layers[i].hidden_,
+				std::make_shared<MarshalVar>(bias)
 			});
 			n_input = n_output;
 		}
 	}
 
-	MLP (const pbm::GraphInfo& graph,
-		std::vector<NonLinearF> hiddens, std::string label) :
+	MLP (const pbm::GraphInfo& graph, std::string label) :
 		iMarshalSet(label)
 	{
 		const auto& children = graph.tens_.children_;
@@ -57,13 +61,7 @@ struct MLP final : public iMarshalSet
 		{
 			logs::fatal("expecting at least one layer");
 		}
-		size_t nhiddens = hiddens.size();
-		if (nlayers != nhiddens)
-		{
-			logs::warnf("number of layers (%d) do not match "
-				"number of nonlinearities specified (%d)", nlayers, nhiddens);
-		}
-		for (size_t i = 0, n = std::min(nhiddens, nlayers); i < n; ++i)
+		for (size_t i = 0; i < nlayers; ++i)
 		{
 			std::string weight_label = fmts::sprintf(weight_fmt, i);
 			auto wmarsh_it = children.find(weight_label);
@@ -94,7 +92,6 @@ struct MLP final : public iMarshalSet
 				std::make_shared<MarshalVar>(
 					std::static_pointer_cast<ead::VariableNode<PybindT>>(
 					ead::NodeConverters<PybindT>::to_node(bias_it->second))),
-				hiddens[i],
 			});
 		}
 	}
@@ -119,15 +116,34 @@ struct MLP final : public iMarshalSet
 	MLP& operator = (MLP&& other) = default;
 
 
-	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
+	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input,
+		NonLinearsT nonlinearities)
 	{
+		// sanity check
+		const ade::Shape& in_shape = input->shape();
+		uint8_t ninput = get_ninput();
+		if (in_shape.at(0) != ninput)
+		{
+			logs::fatalf("cannot generate mlp with input shape %s against n_input %d",
+				in_shape.to_string().c_str(), ninput);
+		}
+
+		size_t nlayers = layers_.size();
+		size_t nnlin = nonlinearities.size();
+		if (nnlin != nlayers)
+		{
+			logs::fatalf(
+				"cannot generate mlp of %d layers with %d nonlinearities",
+				nlayers, nnlin);
+		}
+
 		ead::NodeptrT<PybindT> out = input;
-		for (HiddenLayer& layer : layers_)
+		for (size_t i = 0; i < nlayers; ++i)
 		{
 			auto hypothesis = prx::fully_connect({out},
-				{ead::convert_to_node(layer.weight_->var_)},
-				ead::convert_to_node(layer.bias_->var_));
-			out = layer.hidden_(hypothesis);
+				{ead::convert_to_node(layers_[i].weight_->var_)},
+				ead::convert_to_node(layers_[i].bias_->var_));
+			out = nonlinearities[i](hypothesis);
 		}
 		return out;
 	}
@@ -159,8 +175,6 @@ struct MLP final : public iMarshalSet
 		MarVarsptrT weight_;
 
 		MarVarsptrT bias_;
-
-		NonLinearF hidden_;
 	};
 
 	std::vector<HiddenLayer> layers_;
@@ -174,7 +188,6 @@ private:
 			layers_.push_back(HiddenLayer{
 				std::make_shared<MarshalVar>(*olayer.weight_),
 				std::make_shared<MarshalVar>(*olayer.bias_),
-				olayer.hidden_
 			});
 		}
 	}

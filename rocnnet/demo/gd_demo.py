@@ -55,13 +55,11 @@ def main(args):
 
     n_in = 10
     n_out = n_in / 2
+    n_outs = [9, n_out]
 
-    hiddens = [
-        rcn.get_layer(age.sigmoid, 9),
-        rcn.get_layer(age.sigmoid, n_out)
-    ]
+    nonlins = [age.sigmoid, age.sigmoid]
 
-    brain = rcn.get_mlp(n_in, hiddens, 'brain')
+    brain = rcn.get_mlp(n_in, n_outs, 'brain')
     untrained_brain = brain.copy()
     try:
         with open(args.load, 'rb') as f:
@@ -76,7 +74,8 @@ def main(args):
     sess = ead.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    trainer = rcn.MLPTrainer(brain, sess, rcn.get_sgd(0.9), n_batch)
+    trainer = rcn.MLPTrainer(brain, nonlins, sess,
+        rcn.get_sgd(0.9), n_batch)
 
     start = time.time()
     for i in range(args.n_train):
@@ -95,9 +94,9 @@ def main(args):
     pretrained_err = 0
 
     testin = ead.variable(np.zeros([n_in], dtype=float), 'testin')
-    untrained_out = untrained_brain.forward(testin)
-    trained_out = brain.forward(testin)
-    pretrained_out = pretrained_brain.forward(testin)
+    untrained_out = untrained_brain.forward(testin, nonlins)
+    trained_out = brain.forward(testin, nonlins)
+    pretrained_out = pretrained_brain.forward(testin, nonlins)
     sess.track(untrained_out)
     sess.track(trained_out)
     sess.track(pretrained_out)

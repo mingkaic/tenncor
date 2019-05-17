@@ -9,10 +9,68 @@ namespace trainer
 struct DQNTrainingContext final : public modl::iTrainingContext
 {
 	void marshal_layer (cortenn::Layer& out_layer) const override
-	{}
+	{
+		assert(nullptr != next_output_);
+		cortenn::DQTrainerState* state = out_layer.mutable_dqn_ctx();
+
+		cortenn::Graph* target = state->mutable_target_graph();
+		pbm::GraphSaver<ead::EADSaver> saver;
+		next_output_->get_tensor()->accept(saver);
+		saver.save(*target, target_qnet_->list_bases());
+
+		state->set_actions_executed(actions_executed_);
+		state->set_trained_iteration(iteration_);
+		state->set_ntrained_called(n_train_called_);
+		state->set_nstored_called(n_store_called_);
+
+		for (const ExpBatch& exbatch : experiences_)
+		{
+			cortenn::DQTrainerState_ExpBatch* batch =
+				state->add_experiences();
+
+			google::protobuf::RepeatedField<float> obs(
+				exbatch.observation_.begin(), exbatch.observation_.end());
+			batch->mutable_observation()->Swap(&obs);
+
+			google::protobuf::RepeatedField<float> new_obs(
+				exbatch.new_observation_.begin(),
+				exbatch.new_observation_.end());
+			batch->mutable_new_observation()->Swap(&new_obs);
+
+			batch->set_action_idx(exbatch.action_idx_);
+			batch->set_reward(exbatch.reward_);
+		}
+	}
 
 	void unmarshal_layer (const cortenn::Layer& in_layer) override
-	{}
+	{
+		const cortenn::DQTrainerState& state = in_layer.dqn_ctx();
+
+		const cortenn::Graph& target_graph = state.target_graph();
+		pbm::GraphInfo info;
+		pbm::load_graph<ead::EADLoader>(info, target_graph);
+
+		target_qnet_ = std::make_shared<modl::MLP>(info, "target");
+
+		actions_executed_ = state.actions_executed();
+		iteration_ = state.trained_iteration();
+		n_train_called_ = state.ntrained_called();
+		n_store_called_ = state.nstored_called();
+
+		auto& exps = state.experiences();
+		for (const cortenn::DQTrainerState_ExpBatch& batch : exps)
+		{
+			auto obs = batch.observation();
+			auto new_obs = batch.new_observation();
+
+			experiences_.push_back(ExpBatch{
+				std::vector<PybindT>(obs.begin(), obs.end()),
+				batch.action_idx(),
+				batch.reward(),
+				std::vector<PybindT>(new_obs.begin(), new_obs.end()),
+			});
+		}
+	}
 
 	// experience replay
 	struct ExpBatch
@@ -27,9 +85,9 @@ struct DQNTrainingContext final : public modl::iTrainingContext
 
 	size_t iteration_ = 0;
 
-	size_t n_store_called_ = 0;
-
 	size_t n_train_called_ = 0;
+
+	size_t n_store_called_ = 0;
 
 	std::vector<ExpBatch> experiences_;
 
@@ -72,25 +130,31 @@ struct DQNInfo
 
 struct DQNTrainer
 {
-	DQNTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
+	DQNTrainer (modl::MLPptrT brain,
+		modl::NonLinearsT nonlinearities,
+		ead::Session<PybindT>& sess,
 		eqns::ApproxFuncT update, DQNInfo param,
 		DQNTrainingContext ctx) :
 		sess_(&sess),
 		params_(param),
-		ctx_(ctx)
+		ctx_(ctx),
+		source_qnet_(brain)
 	{
-		initialize(update);
+		initialize(nonlinearities, update);
 	}
 
-	DQNTrainer (modl::MLPptrT brain, ead::Session<PybindT>& sess,
+	DQNTrainer (modl::MLPptrT brain,
+		modl::NonLinearsT nonlinearities,
+		ead::Session<PybindT>& sess,
 		eqns::ApproxFuncT update, DQNInfo param) :
 		sess_(&sess),
-		params_(param)
+		params_(param),
+		source_qnet_(brain)
 	{
 		ctx_.target_qnet_ = std::make_shared<modl::MLP>(*brain);
 		ctx_.target_qnet_->label_ += "_target";
 
-		initialize(update);
+		initialize(nonlinearities, update);
 	}
 
 	uint8_t action (std::vector<PybindT>& input)
@@ -237,7 +301,8 @@ struct DQNTrainer
 	ead::Session<PybindT>* sess_;
 
 private:
-	void initialize (eqns::ApproxFuncT update)
+	void initialize (modl::NonLinearsT nonlinearities,
+		eqns::ApproxFuncT update)
 	{
 		input_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({source_qnet_->get_ninput()}), "observation");
@@ -257,12 +322,15 @@ private:
 			params_.mini_batch_size_}), "action_mask");
 
 		// forward action score computation
-		output_ = (*source_qnet_)(ead::convert_to_node<PybindT>(input_));
+		output_ = (*source_qnet_)(ead::convert_to_node<PybindT>(input_),
+			nonlinearities);
 
-		train_out_ = (*source_qnet_)(ead::convert_to_node<PybindT>(train_input_));
+		train_out_ = (*source_qnet_)(
+			ead::convert_to_node<PybindT>(train_input_), nonlinearities);
 
 		// predicting target future rewards
-		ctx_.next_output_ = (*ctx_.target_qnet_)(ead::convert_to_node<PybindT>(next_input_));
+		ctx_.next_output_ = (*ctx_.target_qnet_)(
+			ead::convert_to_node<PybindT>(next_input_), nonlinearities);
 
 		auto target_values = age::mul(
 			age::reduce_max_1d(ctx_.next_output_, 0),

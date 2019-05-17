@@ -1,13 +1,37 @@
 #include "ead/grader.hpp"
 
+#include "rocnnet/eqns/helper.hpp"
+
 #include "rocnnet/modl/rbm.hpp"
 
 #ifndef MODL_RBM_TRAINER_HPP
 #define MODL_RBM_TRAINER_HPP
 
+namespace trainer
+{
+
+// recreate input using hidden distribution
+// output shape of input->shape()
+ead::NodeptrT<PybindT> reconstruct_visible (modl::RBM& rbm,
+	ead::NodeptrT<PybindT> input, modl::NonLinearsT nonlins)
+{
+	ead::NodeptrT<PybindT> hidden_dist = rbm(input, nonlins);
+	ead::NodeptrT<PybindT> hidden_sample = eqns::one_binom(hidden_dist);
+	return rbm.prop_down(hidden_sample, nonlins);
+}
+
+ead::NodeptrT<PybindT> reconstruct_hidden (modl::RBM& rbm,
+	ead::NodeptrT<PybindT> hidden, modl::NonLinearsT nonlins)
+{
+	ead::NodeptrT<PybindT> visible_dist = rbm.prop_down(hidden, nonlins);
+	ead::NodeptrT<PybindT> visible_sample = eqns::one_binom(visible_dist);
+	return rbm(visible_sample, nonlins);
+}
+
 struct RBMTrainer
 {
 	RBMTrainer (modl::RBMptrT brain,
+		modl::NonLinearsT nonlinearities,
 		ead::Session<PybindT>& sess,
 		ead::VarptrT<PybindT> persistent,
 		uint8_t batch_size,
@@ -39,7 +63,7 @@ struct RBMTrainer
 		// if persistent not available use Contrastive Divergence (CD)
 		if (nullptr == persistent)
 		{
-			persistent_ = eqns::one_binom((*brain)(train_in_));
+			persistent_ = eqns::one_binom((*brain)(train_in_, nonlinearities));
 		}
 		// otherwise use Persistent CD
 		// (initialize from the old state of the chain)
@@ -49,11 +73,13 @@ struct RBMTrainer
 		}
 
 		// chain length is n_cont_div
-		auto chain_segment = eqns::one_binom(reconstruct_hidden(*brain, persistent_));
+		auto chain_segment = eqns::one_binom(
+			reconstruct_hidden(*brain, persistent_, nonlinearities));
 		assert(n_cont_div > 0);
 		for (size_t i = 0; i < n_cont_div - 1; ++i)
 		{
-			chain_segment = eqns::one_binom(reconstruct_hidden(*brain, chain_segment));
+			chain_segment = eqns::one_binom(
+				reconstruct_hidden(*brain, chain_segment, nonlinearities));
 		}
 
 		// use operational optimization to recover presig and vis nodes
@@ -98,7 +124,7 @@ struct RBMTrainer
 		{
 			// pseudo-likelihood
 			auto next_persistent = eqns::one_binom(
-				reconstruct_hidden(*brain, chain_segment));
+				reconstruct_hidden(*brain, chain_segment, nonlinearities));
 			assigns.push_back(
 				eqns::VarAssign{"", persistent, next_persistent});
 			sess_->track(next_persistent);
@@ -191,5 +217,7 @@ private:
 
 	ead::NodeptrT<PybindT> persistent_;
 };
+
+}
 
 #endif // MODL_RBM_TRAINER_HPP

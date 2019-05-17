@@ -43,6 +43,16 @@ message ItTrainerState {
 }
 
 message DQTrainerState {
+    message ExpBatch {
+        repeated float observation = 1;
+
+        repeated float new_observation = 2;
+
+        uint64 action_idx = 3;
+
+        float reward = 4;
+    }
+
     Graph target_graph = 1;
 
     uint64 actions_executed = 2;
@@ -52,6 +62,8 @@ message DQTrainerState {
     uint64 ntrained_called = 4;
 
     uint64 nstored_called = 5;
+
+    repeated ExpBatch experiences = 6;
 }
 
 message Layer {

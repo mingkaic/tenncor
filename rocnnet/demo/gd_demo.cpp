@@ -84,13 +84,10 @@ int main (int argc, const char** argv)
 
 	uint8_t n_in = 10;
 	uint8_t n_out = n_in / 2;
+	std::vector<ade::DimT> n_outs = {9, n_out};
+	modl::NonLinearsT nonlins = {age::sigmoid<float>, age::sigmoid<float>};
 
-	std::vector<modl::LayerInfo> hiddens = {
-		// use same sigmoid in static memory once models copy is established
-		modl::LayerInfo{9, age::sigmoid<float>},
-		modl::LayerInfo{n_out, age::sigmoid<float>},
-	};
-	auto brain = std::make_shared<modl::MLP>(n_in, hiddens, "brain");
+	auto brain = std::make_shared<modl::MLP>(n_in, n_outs, "brain");
 	auto untrained_brain = std::make_shared<modl::MLP>(*brain);
 	modl::MLPptrT pretrained_brain;
 	std::ifstream loadstr(loadpath);
@@ -104,11 +101,7 @@ int main (int argc, const char** argv)
 		pbm::GraphInfo info;
 		pbm::load_graph<ead::EADLoader>(info, graph);
 
-		pretrained_brain = std::make_shared<modl::MLP>(info,
-			std::vector<modl::NonLinearF>{
-				age::sigmoid<float>,
-				age::sigmoid<float>
-			}, "pretrained");
+		pretrained_brain = std::make_shared<modl::MLP>(info, "pretrained");
 
 		logs::infof("model successfully loaded from file '%s'", loadpath.c_str());
 		if (cortenn::Layer::kItCtx != layer.layer_context_case())
@@ -137,7 +130,7 @@ int main (int argc, const char** argv)
 		return eqns::sgd(root, leaves, 0.9); // learning rate = 0.9
 	};
 	ead::Session<float> sess;
-	trainer::MLPTrainer trainer(brain, sess, approx, n_batch);
+	trainer::MLPTrainer trainer(brain, nonlins, sess, approx, n_batch);
 
 	// train mlp to output input
 	start = std::clock();
@@ -166,9 +159,9 @@ int main (int argc, const char** argv)
 
 	ead::VarptrT<float> testin = ead::make_variable_scalar<float>(
 		0, ade::Shape({n_in}), "testin");
-	auto untrained_out = (*untrained_brain)(testin);
-	auto trained_out = (*brain)(testin);
-	auto pretrained_out = (*pretrained_brain)(testin);
+	auto untrained_out = (*untrained_brain)(testin, nonlins);
+	auto trained_out = (*brain)(testin, nonlins);
+	auto pretrained_out = (*pretrained_brain)(testin, nonlins);
 	sess.track(untrained_out);
 	sess.track(trained_out);
 	sess.track(pretrained_out);
