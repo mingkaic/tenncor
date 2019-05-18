@@ -72,6 +72,10 @@ const size_t nelem_limit = 32456;
 	EXPECT_TRUE(std::equal(ARR.begin(), ARR.end(), ARR2.begin())) <<\
 		"expect list " << arrs.str() << ", got " << arrs2.str() << " instead"; }
 
+#define EXPECT_HAS(SET, CONTENT)\
+	EXPECT_TRUE(SET.end() != SET.find(CONTENT)) <<\
+		"cannot find " << #CONTENT << " in " << #SET;
+
 #define EXPECT_FATAL(EVENT, MSG) try { EVENT; FAIL() << \
 	"did not expect " << #EVENT << " to succeed"; } \
 	catch (std::runtime_error& e) { EXPECT_STREQ(MSG, e.what()); }\

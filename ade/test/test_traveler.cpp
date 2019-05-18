@@ -105,4 +105,55 @@ TEST_F(TRAVELER, PathFinder)
 }
 
 
+TEST_F(TRAVELER, ReverseParentGraph)
+{
+	ade::TensptrT a(new MockTensor());
+	ade::TensptrT b(new MockTensor());
+	ade::TensptrT c(new MockTensor());
+
+	ade::TensptrT f(ade::Functor::get(ade::Opcode{"f", 1}, {
+		ade::identity_map(a),
+		ade::identity_map(b),
+	}));
+
+	ade::TensptrT g(ade::Functor::get(ade::Opcode{"g", 2}, {
+		ade::identity_map(f),
+		ade::identity_map(b),
+	}));
+
+	ade::TensptrT h(ade::Functor::get(ade::Opcode{"h", 3}, {
+		ade::identity_map(c),
+		ade::identity_map(f),
+		ade::identity_map(g),
+	}));
+
+	ade::ParentFinder finder;
+	h->accept(finder);
+
+	// expect: a -> [f], b -> [f, g], c -> [h], f -> [g, h], g -> [h], h -> []
+	auto& parents = finder.parents_;
+	auto aparents = parents[a.get()];
+	auto bparents = parents[b.get()];
+	auto cparents = parents[c.get()];
+	auto fparents = parents[f.get()];
+	auto gparents = parents[g.get()];
+	auto hparents = parents[h.get()];
+
+	EXPECT_EQ(1, aparents.size());
+	EXPECT_EQ(2, bparents.size());
+	EXPECT_EQ(1, cparents.size());
+	EXPECT_EQ(2, fparents.size());
+	EXPECT_EQ(1, gparents.size());
+	EXPECT_EQ(0, hparents.size());
+
+	EXPECT_HAS(aparents, f.get());
+	EXPECT_HAS(bparents, f.get());
+	EXPECT_HAS(bparents, g.get());
+	EXPECT_HAS(cparents, h.get());
+	EXPECT_HAS(fparents, g.get());
+	EXPECT_HAS(fparents, h.get());
+	EXPECT_HAS(gparents, h.get());
+}
+
+
 #endif // DISABLE_TRAVELER_TEST

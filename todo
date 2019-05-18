@@ -6,7 +6,8 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P1 - add intermediate_process to err_approximation like in
+P1 - implement interactive session to capture graph nodes at runtime
+P2 - add intermediate_process to err_approximation like in
     https://github.com/mingkaic/rocnnet/blob/b0e6b9ef1b80ee3d33d68f48dd051a99c2df39ab/app/tenncor/src/utils/gd_utils.cpp
     then add clip_by_norm to dqn intermediate process
 P2 - reimplement conv nn layer + dbn
@@ -48,7 +49,7 @@ P4 - define optimization conversion rules to increase data accuracy
 P4 - more performance test
 
 run-time performance:
-P2 - define session interface then improve session implementation
+P1 - improve session interface and implementation
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - investigate remote sessions for distributed processing
 

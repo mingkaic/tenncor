@@ -142,6 +142,37 @@ struct PathFinder final : public iTraveler
 	ParentMapT parents_;
 };
 
+/// Traveler that for each child tracks the relationship to all parents
+struct ParentFinder final : public ade::iTraveler
+{
+	using ParentSetT = std::unordered_set<ade::iTensor*>;
+
+	/// Implementation of iTraveler
+	void visit (ade::iLeaf* leaf) override
+	{
+		parents_.emplace(leaf, ParentSetT());
+	}
+
+	/// Implementation of iTraveler
+	void visit (ade::iFunctor* func) override
+	{
+		if (parents_.end() == parents_.find(func))
+		{
+			auto& children = func->get_children();
+			for (auto& child : children)
+			{
+				auto tens = child.get_tensor();
+				tens->accept(*this);
+				parents_[tens.get()].emplace(func);
+			}
+			parents_.emplace(func, ParentSetT());
+		}
+	}
+
+	/// Tracks child to parents relationship
+	std::unordered_map<ade::iTensor*,ParentSetT> parents_;
+};
+
 /// Map between tensor and its corresponding smart pointer
 using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
 
