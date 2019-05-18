@@ -66,7 +66,6 @@ for matrix_dim in matrix_dims:
     ead_durs.append(ead_dur)
     tf_durs.append(tf_dur)
 
-print('raw durations: ', raw_durs)
 print('numpy durations: ', np_durs)
 print('ead durations: ', ead_durs)
 print('tf durations: ', tf_durs)
