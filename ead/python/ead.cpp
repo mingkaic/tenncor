@@ -174,19 +174,19 @@ PYBIND11_MODULE(ead, m)
 		});
 
 	// ==== session ====
-	py::class_<ead::Session<PybindT>> session(m, "Session");
+	py::class_<ead::Session> session(m, "Session");
 	session
 		.def(py::init())
 		.def("track",
 		[](py::object self, ead::NodeptrT<PybindT> root)
 		{
-			auto sess = self.cast<ead::Session<PybindT>*>();
+			auto sess = self.cast<ead::Session*>();
 			sess->track(root->get_tensor().get());
 		}, "Track node")
 		.def("update",
 		[](py::object self, std::vector<ead::NodeptrT<PybindT>> nodes)
 		{
-			auto sess = self.cast<ead::Session<PybindT>*>();
+			auto sess = self.cast<ead::Session*>();
 			std::unordered_set<ade::iTensor*> updates;
 			for (ead::NodeptrT<PybindT>& node : nodes)
 			{

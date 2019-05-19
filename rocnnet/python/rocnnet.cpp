@@ -209,7 +209,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// mlptrainer
 	mlptrainer
 		.def(py::init<modl::MLPptrT,modl::NonLinearsT,
-			ead::Session<PybindT>&,eqns::ApproxFuncT,uint8_t>())
+			ead::Session&,eqns::ApproxFuncT,uint8_t>())
 		.def("train", &trainer::MLPTrainer::train, "train internal variables")
 		.def("serialize_to_file", [](py::object self, std::string filename)
 		{
@@ -253,7 +253,7 @@ PYBIND11_MODULE(rocnnet, m)
 			return self.cast<trainer::MLPTrainer*>()->brain_;
 		}, "get mlp");
 	m.def("load_mlptrainer", [](std::string data, modl::NonLinearsT nonlins,
-		ead::Session<PybindT>& sess, eqns::ApproxFuncT update,
+		ead::Session& sess, eqns::ApproxFuncT update,
 		uint8_t batch_size) -> trainer::MLPTrainer
 	{
 		cortenn::Layer layer;
@@ -291,7 +291,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("max_exp") = 30000);
 	dqntrainer
 		.def(py::init<modl::MLPptrT,modl::NonLinearsT,
-			ead::Session<PybindT>&,eqns::ApproxFuncT,trainer::DQNInfo>())
+			ead::Session&,eqns::ApproxFuncT,trainer::DQNInfo>())
 		.def("action", &trainer::DQNTrainer::action, "get next action")
 		.def("store", &trainer::DQNTrainer::store, "save observation, action, and reward")
 		.def("train", &trainer::DQNTrainer::train, "train qnets")
@@ -323,7 +323,7 @@ PYBIND11_MODULE(rocnnet, m)
 			return self.cast<trainer::DQNTrainer*>()->train_out_;
 		}, "get training node");
 	m.def("load_dqntrainer", [](std::string data, modl::NonLinearsT nonlins,
-		ead::Session<PybindT>& sess, eqns::ApproxFuncT update,
+		ead::Session& sess, eqns::ApproxFuncT update,
 		trainer::DQNInfo param) -> trainer::DQNTrainer
 	{
 		cortenn::Layer layer;
@@ -354,7 +354,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def(py::init<
 			modl::RBMptrT,
 			modl::NonLinearsT,
-			ead::Session<PybindT>&,
+			ead::Session&,
 			ead::VarptrT<PybindT>,
 			uint8_t,
 			PybindT,

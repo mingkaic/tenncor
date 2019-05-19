@@ -2,7 +2,7 @@
 
 #include "ade/itensor.hpp"
 
-#include "ead/tensor.hpp"
+#include "ead/eigen.hpp"
 
 #ifndef EAD_INODE_HPP
 #define EAD_INODE_HPP

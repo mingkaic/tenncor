@@ -7,7 +7,7 @@
 /// No function in this file makes any attempt to check for nullptrs
 ///
 
-#include "ead/tensor.hpp"
+#include "ead/eigen.hpp"
 #include "ead/coord.hpp"
 #include "ead/random.hpp"
 

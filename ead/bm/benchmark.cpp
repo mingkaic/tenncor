@@ -62,7 +62,7 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata(data.begin(), data.end());\
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
 		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var));\
-		ead::Session<T> session;\
+		ead::Session session;\
 		session.track(out->get_tensor().get());\
 		state.ResumeTiming();\
 		session.update();\
@@ -84,7 +84,7 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata(data.begin(), data.end());\
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
 		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var));\
-		ead::Session<T> session;\
+		ead::Session session;\
 		session.track(out->get_tensor().get());\
 		state.ResumeTiming();\
 		session.update();\
@@ -136,7 +136,7 @@ static void NAME(benchmark::State& state)\
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
 		ead::VarptrT<T> var2 = ead::make_variable<T>(convdata2.data(), shape, "var2");\
 		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));\
-		ead::Session<T> session;\
+		ead::Session session;\
 		session.track(out->get_tensor().get());\
 		state.ResumeTiming();\
 		session.update();\
@@ -194,7 +194,7 @@ static void BM_Matmul(benchmark::State& state)
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), leftshape, "var");
 		ead::VarptrT<T> var2 = ead::make_variable<T>(convdata2.data(), rightshape, "var2");
 		ead::NodeptrT<T> out = age::matmul(ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));
-		ead::Session<T> session;
+		ead::Session session;
 		session.track(out->get_tensor().get());
 		state.ResumeTiming();
 		session.update();
@@ -244,7 +244,7 @@ static void BM_MatmulComplex(benchmark::State& state)
 	ead::NodeptrT<int32_t> da = ead::derive(dest, atens);
 	ead::NodeptrT<int32_t> db = ead::derive(dest, btens);
 	ead::NodeptrT<int32_t> dc = ead::derive(dest, ctens);
-	ead::Session<int32_t> session;
+	ead::Session session;
 	session.track(da->get_tensor().get());
 	session.track(db->get_tensor().get());
 	session.track(dc->get_tensor().get());
@@ -313,7 +313,7 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	auto db0 = ead::derive(err, bias0tens);
 	auto dw1 = ead::derive(err, weight1tens);
 	auto db1 = ead::derive(err, bias1tens);
-	ead::Session<double> session;
+	ead::Session session;
 	session.track(dw0->get_tensor().get());
 	session.track(db0->get_tensor().get());
 	session.track(dw1->get_tensor().get());
@@ -395,7 +395,7 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	dw1 = roots[2];
 	db1 = roots[3];
 
-	ead::Session<double> session;
+	ead::Session session;
 	session.track(dw0->get_tensor().get());
 	session.track(db0->get_tensor().get());
 	session.track(dw1->get_tensor().get());

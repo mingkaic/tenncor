@@ -69,7 +69,7 @@ TEST(EQUATION, MatmulComplex)
 	auto db = ead::derive(dest, b);
 	auto dc = ead::derive(dest, c);
 
-	ead::Session<float> session;
+	ead::Session session;
 	session.track(dest->get_tensor().get());
 	session.track(da->get_tensor().get());
 	session.track(db->get_tensor().get());
@@ -219,7 +219,7 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	auto dw1 = ead::derive(err, weight1);
 	auto db1 = ead::derive(err, bias1);
 
-	ead::Session<double> session;
+	ead::Session session;
 	session.track(dw0->get_tensor().get());
 	session.track(db0->get_tensor().get());
 	session.track(dw1->get_tensor().get());
@@ -447,7 +447,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	dw1 = roots[2];
 	db1 = roots[3];
 
-	ead::Session<double> session;
+	ead::Session session;
 	session.track(dw0->get_tensor().get());
 	session.track(db0->get_tensor().get());
 	session.track(dw1->get_tensor().get());
@@ -662,7 +662,7 @@ TEST(EQUATION, SigmoidMLP_Fast)
 	auto dw1 = ead::derive(err, weight1);
 	auto db1 = ead::derive(err, bias1);
 
-	ead::Session<double> session;
+	ead::Session session;
 	session.track(dw0->get_tensor().get());
 	session.track(db0->get_tensor().get());
 	session.track(dw1->get_tensor().get());
@@ -883,7 +883,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	dw1 = roots[2];
 	db1 = roots[3];
 
-	ead::Session<double> session;
+	ead::Session session;
 	session.track(dw0->get_tensor().get());
 	session.track(db0->get_tensor().get());
 	session.track(dw1->get_tensor().get());

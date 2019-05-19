@@ -8,7 +8,7 @@
 
 #include "ade/ileaf.hpp"
 
-#include "ead/tensor.hpp"
+#include "ead/eigen.hpp"
 
 #ifndef EAD_ILEAF_HPP
 #define EAD_ILEAF_HPP

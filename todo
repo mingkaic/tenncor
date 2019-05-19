@@ -49,7 +49,7 @@ P4 - define optimization conversion rules to increase data accuracy
 P4 - more performance test
 
 run-time performance:
-P1 - improve session interface and implementation
+P3 - improve session implementation
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - investigate remote sessions for distributed processing
 

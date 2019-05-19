@@ -138,7 +138,7 @@ static void unary_generic (UnaryOpF<double> op,
 	dest->update();
 	verify(dest, shape, data);
 
-	ead::Session<double> session;
+	ead::Session session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
 	session.track(gsrc->get_tensor().get());
@@ -173,7 +173,7 @@ static void unar_elem (std::vector<double> data,
 		EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
 	}
 
-	ead::Session<double> session;
+	ead::Session session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
 
@@ -237,7 +237,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	ead::Session<double> session;
+	ead::Session session;
 
 	ead::NodeptrT<double> dest2 = op(src, src);
 	ead::NodeptrT<double> gsame = ead::derive(dest2, src);
@@ -337,7 +337,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	ead::Session<int32_t> session;
+	ead::Session session;
 
 	ead::NodeptrT<int32_t> dest2 = op(src, src);
 	ead::NodeptrT<int32_t> gsame = ead::derive(dest2, src);
@@ -878,7 +878,7 @@ TEST(API, Rprod)
 		}
 	}
 
-	ead::Session<size_t> session;
+	ead::Session session;
 
 	ead::NodeptrT<size_t> gsrc = ead::derive(dest, src);
 	ead::NodeptrT<size_t> gsrc2 = ead::derive(dest2, src);
@@ -1121,7 +1121,7 @@ TEST(API, Permute)
 		EXPECT_EQ(data[i], got[ade::index(dest->shape(), coord)]);
 	}
 
-	ead::Session<double> session;
+	ead::Session session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
 	session.track(gsrc->get_tensor().get());
@@ -1164,7 +1164,7 @@ TEST(API, Extend)
 		}
 	}
 
-	ead::Session<double> session;
+	ead::Session session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
 	session.track(gsrc->get_tensor().get());
@@ -1230,7 +1230,7 @@ TEST(API, Matmul)
 	MatVecT ddc = create_2d(dest);
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
-	ead::Session<int32_t> session;
+	ead::Session session;
 
 	ead::NodeptrT<int32_t> c = ead::make_constant<int32_t>(data3.data(), cshape);
 	ead::NodeptrT<int32_t> dest2 = age::matmul(c, c);
@@ -1294,7 +1294,7 @@ static void test_rand_unif (std::vector<ade::DimT> shape_list)
 		EXPECT_GT(hi, optr[i]);
 	}
 
-	ead::Session<double> session;
+	ead::Session session;
 
 	ead::NodeptrT<double> gleft = ead::derive(dest, src);
 	session.track(gleft->get_tensor().get());
@@ -1402,7 +1402,7 @@ TEST(API, Convolution)
 		ASSERT_ARREQ(expect_out, outdata);
 	}
 
-	ead::Session<double> session;
+	ead::Session session;
 
 	ead::NodeptrT<double> gleft = ead::derive(dest, img);
 	ASSERT_NE(nullptr, gleft);

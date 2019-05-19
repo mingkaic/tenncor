@@ -14,7 +14,6 @@ namespace ead
 
 using TensSetT = std::unordered_set<ade::iTensor*>;
 
-template <typename T>
 struct iSession
 {
 	virtual ~iSession (void) = default;
@@ -29,8 +28,7 @@ struct iSession
 
 // for each leaf node, iteratively update the parents
 // don't update parent node if it is part of ignored set
-template <typename T>
-struct Session final : public iSession<T>
+struct Session final : public iSession
 {
 	void track (ade::iTensor* root) override
 	{
@@ -52,10 +50,6 @@ struct Session final : public iSession<T>
 						statpair.first->to_string().c_str());
 				}
 				all_ops.push_back(op);
-			}
-			else
-			{
-				leaves_.emplace(statpair.first);
 			}
 		}
 		all_ops.sort(
@@ -121,14 +115,50 @@ struct Session final : public iSession<T>
 		}
 	}
 
-	TensSetT leaves_;
-
 	ade::GraphStat stat_;
 
 	std::unordered_map<ade::iTensor*,
 		std::unordered_set<ade::iOperableFunc*>> parents_;
 
-	std::vector<std::pair<ade::iOperableFunc*,size_t>> requirements_;
+	std::vector<std::pair<ade::iOperableFunc*,size_t>> requirements_; // todo: test minimal requirements
+};
+
+struct InteractiveSession final : public iSession
+{
+	void track (ade::iTensor* root) override
+	{
+		sess_.track(root);
+
+		// for (auto& statpair : stat_.graphsize_)
+		// {
+		// 	auto tens = statpair.first;
+		// 	if (node_ids_.emplace(tens, node_ids_.size().second))
+		// 	{
+		// 		// add to POST request
+		// 	}
+		// }
+
+		// for (auto ppair : parents_)
+		// {
+		// 	for (ade::iTensor* parent : ppair)
+		// 	{
+		// 		Edge edge{
+		// 			node_ids_[parent],
+		// 			node_ids_[ppair.first],
+		// 			"parent-child",
+		// 		};
+		// 	}
+		// }
+	}
+
+	void update (TensSetT updated = {}, TensSetT ignores = {}) override
+	{
+		//
+	}
+
+	Session sess_;
+
+	std::unordered_map<ade::iTensor*,size_t> node_ids_;
 };
 
 }

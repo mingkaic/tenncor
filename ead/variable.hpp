@@ -136,7 +136,7 @@ struct VariableNode final : public iNode<T>
 		var_->assign(input, age::get_type<T>(), shape);
 	}
 
-	void assign (TensMapT<double>* tensmap)
+	void assign (TensMapT<T>* tensmap)
 	{
 		var_->assign(tensmap->data(), age::get_type<T>(), get_shape(*tensmap));
 	}

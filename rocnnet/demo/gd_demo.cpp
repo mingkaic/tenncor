@@ -129,7 +129,7 @@ int main (int argc, const char** argv)
 	{
 		return eqns::sgd(root, leaves, 0.9); // learning rate = 0.9
 	};
-	ead::Session<float> sess;
+	ead::Session sess;
 	trainer::MLPTrainer trainer(brain, nonlins, sess, approx, n_batch);
 
 	// train mlp to output input

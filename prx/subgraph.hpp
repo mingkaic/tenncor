@@ -18,7 +18,6 @@ struct Subgraph final : public ade::iOperableFunc
 		return new Subgraph(graphcode, root, treat_asleaf);
 	}
 
-
 	/// Implementation of iTensor
 	const ade::Shape& shape (void) const override
 	{

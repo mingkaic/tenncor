@@ -349,7 +349,7 @@ struct Representer final : public ade::iTraveler
 				auto f = static_cast<Functor<T>*>(func);
 				f->update();
 				reps_[func] = std::make_shared<ConstRep<T>>(
-					f->data(), f->shape());
+					(T*) f->raw_data(), f->shape());
 			}
 			else
 			{

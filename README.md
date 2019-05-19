@@ -9,6 +9,8 @@ A tensor is an N-dimensional container that organizes its content by some shape.
 
 This project aims for modularity. Everything (including this project) should be easily replaceable in any high-level system.
 
+High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0lmFr5JGikGnU3gC/view?usp=sharing
+
 ## Components
 
 - [ADE (Automatic Differentiation Engine)](ade/README_ADE.md)

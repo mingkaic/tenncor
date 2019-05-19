@@ -64,11 +64,6 @@ struct Functor final : public ade::iOperableFunc
 		return out_->get_ptr();
 	}
 
-	T* data (void)
-	{
-		return out_->get_ptr();
-	}
-
 private:
 	Functor (EigenptrT<T> out,
 		ade::Opcode opcode, ade::Shape shape, ade::ArgsT args) :
@@ -89,13 +84,13 @@ private:
 };
 
 template <typename T>
-struct FuncNode final : public iNode<T>
+struct FunctorNode final : public iNode<T>
 {
-	FuncNode (std::shared_ptr<Functor<T>> f) : func_(f) {}
+	FunctorNode (std::shared_ptr<Functor<T>> f) : func_(f) {}
 
 	T* data (void) override
 	{
-		return func_->data();
+		return (T*) func_->raw_data();
 	}
 
 	void update (void) override
@@ -118,7 +113,7 @@ Functor<T>* Functor<T>::get (ade::Opcode opcode, ArgsT<T> args)
 	static bool registered = register_builder<Functor<T>,T>(
 		[](ade::TensptrT tens)
 		{
-			return std::make_shared<FuncNode<T>>(
+			return std::make_shared<FunctorNode<T>>(
 				std::static_pointer_cast<Functor<T>>(tens));
 		});
 	assert(registered);
@@ -167,7 +162,7 @@ Functor<T>* Functor<T>::get (ade::Opcode opcode, ArgsT<T> args)
 template <typename T>
 NodeptrT<T> make_functor (ade::Opcode opcode, ArgsT<T> args)
 {
-	return std::make_shared<FuncNode<T>>(
+	return std::make_shared<FunctorNode<T>>(
 		std::shared_ptr<Functor<T>>(Functor<T>::get(opcode, args))
 	);
 }

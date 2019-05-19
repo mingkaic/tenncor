@@ -169,7 +169,7 @@ TEST(API, Conv2d)
 
 	ead::NodeptrT<float> out = prx::conv2d(image, kernel, bias);
 
-	ead::Session<float> session;
+	ead::Session session;
 	session.track(out->get_tensor().get());
 	session.update();
 	ade::Shape conved_shape = out->shape();

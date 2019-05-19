@@ -1,6 +1,6 @@
-#include "ead/tensor.hpp"
+#include "ead/eigen.hpp"
 
-#ifdef EAD_TENSOR_HPP
+#ifdef EAD_EIGEN_HPP
 
 namespace ead
 {

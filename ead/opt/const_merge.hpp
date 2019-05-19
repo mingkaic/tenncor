@@ -25,7 +25,7 @@ ade::TensptrT const_merge_edit (bool& is_optimized,
 	{
 		auto temp = Functor<T>::get(opcode, cargs);
 		temp->update();
-		ade::TensptrT out(Constant<T>::get(temp->data(), temp->shape()));
+		ade::TensptrT out(Constant<T>::get((T*) temp->raw_data(), temp->shape()));
 		delete temp;
 		return out;
 	}
