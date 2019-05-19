@@ -162,9 +162,9 @@ int main (int argc, const char** argv)
 	auto untrained_out = (*untrained_brain)(testin, nonlins);
 	auto trained_out = (*brain)(testin, nonlins);
 	auto pretrained_out = (*pretrained_brain)(testin, nonlins);
-	sess.track(untrained_out);
-	sess.track(trained_out);
-	sess.track(pretrained_out);
+	sess.track(untrained_out->get_tensor().get());
+	sess.track(trained_out->get_tensor().get());
+	sess.track(pretrained_out->get_tensor().get());
 
 	float* untrained_res = untrained_out->data();
 	float* trained_res = trained_out->data();

@@ -110,9 +110,9 @@ struct RBMTrainer
 			eqns::VarAssign{"", hbias, next_hbias},
 			eqns::VarAssign{"", vbias, next_vbias},
 		};
-		sess_->track(next_weight);
-		sess_->track(next_hbias);
-		sess_->track(next_vbias);
+		sess_->track(next_weight->get_tensor().get());
+		sess_->track(next_hbias->get_tensor().get());
+		sess_->track(next_vbias->get_tensor().get());
 
 		if (nullptr == persistent)
 		{
@@ -127,7 +127,7 @@ struct RBMTrainer
 				reconstruct_hidden(*brain, chain_segment, nonlinearities));
 			assigns.push_back(
 				eqns::VarAssign{"", persistent, next_persistent});
-			sess_->track(next_persistent);
+			sess_->track(next_persistent->get_tensor().get());
 
 			monitoring_cost_ = get_pseudo_likelihood_cost(train_in_);
 		}

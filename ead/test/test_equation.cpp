@@ -70,10 +70,10 @@ TEST(EQUATION, MatmulComplex)
 	auto dc = ead::derive(dest, c);
 
 	ead::Session<float> session;
-	session.track(dest);
-	session.track(da);
-	session.track(db);
-	session.track(dc);
+	session.track(dest->get_tensor().get());
+	session.track(da->get_tensor().get());
+	session.track(db->get_tensor().get());
+	session.track(dc->get_tensor().get());
 	session.update();
 
 	{
@@ -220,10 +220,10 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	auto db1 = ead::derive(err, bias1);
 
 	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	session.track(dw0->get_tensor().get());
+	session.track(db0->get_tensor().get());
+	session.track(dw1->get_tensor().get());
+	session.track(db1->get_tensor().get());
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -448,10 +448,10 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	db1 = roots[3];
 
 	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	session.track(dw0->get_tensor().get());
+	session.track(db0->get_tensor().get());
+	session.track(dw1->get_tensor().get());
+	session.track(db1->get_tensor().get());
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -663,10 +663,10 @@ TEST(EQUATION, SigmoidMLP_Fast)
 	auto db1 = ead::derive(err, bias1);
 
 	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	session.track(dw0->get_tensor().get());
+	session.track(db0->get_tensor().get());
+	session.track(dw1->get_tensor().get());
+	session.track(db1->get_tensor().get());
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -884,10 +884,10 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	db1 = roots[3];
 
 	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	session.track(dw0->get_tensor().get());
+	session.track(db0->get_tensor().get());
+	session.track(dw1->get_tensor().get());
+	session.track(db1->get_tensor().get());
 	session.update();
 
 	std::vector<double> expect_gw0 = {

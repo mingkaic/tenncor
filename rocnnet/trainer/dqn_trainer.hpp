@@ -429,7 +429,7 @@ private:
 
 		for (size_t i = 0; i < n_roots; ++i)
 		{
-			sess_->track(roots[i]);
+			sess_->track(roots[i]->get_tensor().get());
 			*to_optimize[i] = roots[i];
 		}
 	}

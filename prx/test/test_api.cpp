@@ -170,7 +170,7 @@ TEST(API, Conv2d)
 	ead::NodeptrT<float> out = prx::conv2d(image, kernel, bias);
 
 	ead::Session<float> session;
-	session.track(out);
+	session.track(out->get_tensor().get());
 	session.update();
 	ade::Shape conved_shape = out->shape();
 	ASSERT_ARREQ(expected_shape, conved_shape);
@@ -184,8 +184,8 @@ TEST(API, Conv2d)
 
 	ead::NodeptrT<float> gimage = ead::derive(out, image);
 	ead::NodeptrT<float> gkernel = ead::derive(out, kernel);
-	session.track(gimage);
-	session.track(gkernel);
+	session.track(gimage->get_tensor().get());
+	session.track(gkernel->get_tensor().get());
 	session.update();
 
 	{
