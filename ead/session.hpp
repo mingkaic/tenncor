@@ -77,7 +77,8 @@ struct Session final : public iSession
 		{
 			for (ade::iTensor* parent : assocs.second)
 			{
-				parents_[assocs.first].emplace(static_cast<ade::iOperableFunc*>(parent));
+				parents_[assocs.first].emplace(
+					static_cast<ade::iOperableFunc*>(parent));
 			}
 		}
 	}
@@ -98,7 +99,7 @@ struct Session final : public iSession
 				++fulfilments[node_parent].d;
 			}
 		}
-		// assert: ignored nodes and its dependers will never fulfill requirement
+		// ignored nodes and its dependers will never fulfill requirement
 		for (auto& op : requirements_)
 		{
 			// fulfilled and not ignored
@@ -121,44 +122,6 @@ struct Session final : public iSession
 		std::unordered_set<ade::iOperableFunc*>> parents_;
 
 	std::vector<std::pair<ade::iOperableFunc*,size_t>> requirements_; // todo: test minimal requirements
-};
-
-struct InteractiveSession final : public iSession
-{
-	void track (ade::iTensor* root) override
-	{
-		sess_.track(root);
-
-		// for (auto& statpair : stat_.graphsize_)
-		// {
-		// 	auto tens = statpair.first;
-		// 	if (node_ids_.emplace(tens, node_ids_.size().second))
-		// 	{
-		// 		// add to POST request
-		// 	}
-		// }
-
-		// for (auto ppair : parents_)
-		// {
-		// 	for (ade::iTensor* parent : ppair)
-		// 	{
-		// 		Edge edge{
-		// 			node_ids_[parent],
-		// 			node_ids_[ppair.first],
-		// 			"parent-child",
-		// 		};
-		// 	}
-		// }
-	}
-
-	void update (TensSetT updated = {}, TensSetT ignores = {}) override
-	{
-		//
-	}
-
-	Session sess_;
-
-	std::unordered_map<ade::iTensor*,size_t> node_ids_;
 };
 
 }

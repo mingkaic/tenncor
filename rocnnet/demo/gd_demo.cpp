@@ -11,6 +11,8 @@
 
 #include "ead/ead.hpp"
 
+#include "dbg/grpc/session.hpp"
+
 #include "rocnnet/trainer/mlp_trainer.hpp"
 
 static std::vector<float> batch_generate (size_t n, size_t batchsize)
@@ -129,7 +131,7 @@ int main (int argc, const char** argv)
 	{
 		return eqns::sgd(root, leaves, 0.9); // learning rate = 0.9
 	};
-	ead::Session sess;
+	dbg::InteractiveSession sess("localhost:8080", 0);
 	trainer::MLPTrainer trainer(brain, nonlins, sess, approx, n_batch);
 
 	// train mlp to output input

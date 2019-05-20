@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dbg/ade.hpp"
+#include "dbg/stream/ade.hpp"
 
 #include "pbm/load.hpp"
 

@@ -12,7 +12,7 @@
 
 #include "prx/api.hpp"
 
-#include "dbg/tensor.hpp"
+#include "testutil/common.hpp"
 
 
 TEST(API, Conv2d)

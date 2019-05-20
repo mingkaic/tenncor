@@ -59,8 +59,7 @@ cc_test(
     srcs = ["//pbm:test_srcs"],
     deps = [
         "//pbm:pbm",
-        "//dbg:dbg",
-        "@gtest//:gtest",
+        "//testutil:testutil",
     ],
     copts = ["-std=c++17"],
     data = glob([

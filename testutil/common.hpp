@@ -1,5 +1,11 @@
 #include "logs/logs.hpp"
+
 #include "fmts/fmts.hpp"
+
+#include "dbg/stream/ade.hpp"
+
+#ifndef TESTUTIL_COMMON_HPP
+#define TESTUTIL_COMMON_HPP
 
 struct TestLogger : public logs::iLogger
 {
@@ -83,3 +89,9 @@ const size_t nelem_limit = 32456;
 
 #define EXPECT_WARN(EVENT, MSG) EVENT;\
 	EXPECT_STREQ(MSG, TestLogger::latest_warning_.c_str());
+
+std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
+	bool showshape = true,
+	LabelsMapT labels = {});
+
+#endif // TESTUTIL_COMMON_HPP

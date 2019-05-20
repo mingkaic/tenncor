@@ -36,7 +36,6 @@ cc_test(
     srcs = ["//bwd:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//dbg:dbg",
         "//bwd:bwd",
         "//testutil:testutil",
     ],

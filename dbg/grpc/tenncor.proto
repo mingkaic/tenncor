@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package tenncor;
+
+// ======== GENERAL MESSAGE OBJECTS ========
+
+message NodeInfo {
+    int32 id = 1;
+
+    repeated string labels = 2;
+
+    string repr = 3;
+
+    repeated uint32 shape = 4;
+}
+
+message EdgeInfo {
+    int32 parent = 1;
+
+    int32 child = 2;
+
+    string label = 3;
+}
+
+message GraphInfo {
+    int32 graph_id = 1;
+
+    repeated NodeInfo nodes = 2;
+
+    repeated EdgeInfo edges = 3;
+}
+
+message NodeData {
+    int32 id = 1;
+
+    repeated float data = 2;
+}
+
+enum Status {
+    OK = 0;
+    BAD_INPUT = 1; // basically 400's error
+    INTERNAL_ERR = 2; // basically 500's error
+    UNKNOWN = 3; // something bad
+}
+
+// ======== REQUEST + RESPONSE MESSAGES ========
+
+message CreateGraphRequest {
+    GraphInfo payload = 1;
+}
+
+message CreateGraphResponse {
+    Status status = 1;
+
+    string message = 2;
+}
+
+message UpdateNodeMetaRequest {
+    NodeInfo payload = 1;
+}
+
+message UpdateNodeMetaResponse {
+    Status status = 1;
+
+    string message = 2;
+}
+
+message UpdateNodeDataRequest {
+    NodeData payload = 1;
+}
+
+message UpdateNodeDataResponse {
+    Status status = 1;
+
+    string message = 2;
+}
+
+service GraphEmitter {
+    // Create or update listed nodes and edges
+    rpc CreateGraph (CreateGraphRequest) returns (CreateGraphResponse);
+
+    // Update metadata (shape, labels, and representation) of existing nodes
+    rpc UpdateNodeMeta (stream UpdateNodeMetaRequest) returns (UpdateNodeMetaResponse);
+
+    // Update data (tensor data) of existing nodes
+    rpc UpdateNodeData (stream UpdateNodeDataRequest) returns (UpdateNodeDataResponse);
+}

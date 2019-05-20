@@ -5,14 +5,22 @@
 #include "ade/ileaf.hpp"
 #include "ade/ifunctor.hpp"
 
-#include "dbg/ade.hpp"
+#include "dbg/stream/ade.hpp"
 
 #ifndef DBG_ADE_CSV_HPP
 #define DBG_ADE_CSV_HPP
 
 const char label_delim = ':';
 
-void multiline_replace (std::string& multiline);
+static void multiline_replace (std::string& multiline)
+{
+	size_t i = 0;
+	char nline = '\n';
+	while ((i = multiline.find(nline, i)) != std::string::npos)
+	{
+		multiline.replace(i, 1, "\\");
+	}
+}
 
 enum NODE_TYPE
 {
@@ -31,7 +39,7 @@ struct CSVEquation final : public ade::iTraveler
 
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (visited_.end() != visited_.find(leaf))
+		if (nodes_.end() != nodes_.find(leaf))
 		{
 			return;
 		}
@@ -47,12 +55,11 @@ struct CSVEquation final : public ade::iTraveler
 			VARIABLE,
 			nodes_.size(),
 		});
-		visited_.emplace(leaf);
 	}
 
 	void visit (ade::iFunctor* func) override
 	{
-		if (visited_.end() != visited_.find(func))
+		if (nodes_.end() != nodes_.find(func))
 		{
 			return;
 		}
@@ -96,7 +103,6 @@ struct CSVEquation final : public ade::iTraveler
 			});
 			tens->accept(*this);
 		}
-		visited_.emplace(func);
 	}
 
 	void to_stream (std::ostream& out)
@@ -167,8 +173,6 @@ struct CSVEquation final : public ade::iTraveler
 	std::unordered_map<ade::iTensor*,Node> nodes_;
 
 	std::unordered_map<ade::iCoordMap*,std::string> coorders_;
-
-	std::unordered_set<ade::iTensor*> visited_;
 
 	GetTypeFuncT get_ftype_;
 };

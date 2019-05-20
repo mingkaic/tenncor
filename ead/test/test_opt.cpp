@@ -3,8 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dbg/ade.hpp"
-#include "dbg/ade_csv.hpp"
+#include "dbg/stream/ade_csv.hpp"
 
 #include "testutil/common.hpp"
 

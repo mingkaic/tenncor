@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dbg/ade.hpp"
+#include "testutil/common.hpp"
 
 #include "opt/graph_edit.hpp"
 

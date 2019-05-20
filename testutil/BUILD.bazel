@@ -17,7 +17,9 @@ cc_library(
     srcs = ["common.cpp"],
     deps = [
         "//ade:ade",
+        "//dbg:stream_out",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
     ],
     copts = ["-std=c++17"],
 )

@@ -10,7 +10,7 @@
 
 #include "ade/functor.hpp"
 
-#include "dbg/tree.hpp"
+#include "dbg/stream/tree.hpp"
 
 #ifndef DBG_ADE_HPP
 #define DBG_ADE_HPP
@@ -73,9 +73,5 @@ private:
 	/// Actual ascii renderer
 	PrettyTree<ade::iTensor*> drawer_;
 };
-
-std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
-	bool showshape = true,
-	LabelsMapT labels = {});
 
 #endif // DBG_ADE_HPP

@@ -33,7 +33,7 @@ struct MLPTrainer
 {
 	MLPTrainer (modl::MLPptrT brain,
 		modl::NonLinearsT nonlinearities,
-		ead::Session& sess,
+		ead::iSession& sess,
 		eqns::ApproxFuncT update, uint8_t batch_size,
 		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
@@ -141,7 +141,7 @@ struct MLPTrainer
 	ead::NodeptrT<PybindT> error_;
 
 	eqns::AssignGroupsT updates_;
-	ead::Session* sess_;
+	ead::iSession* sess_;
 
 	TrainingContext ctx_;
 };

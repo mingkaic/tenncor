@@ -6,8 +6,8 @@
 
 #include "ade/ade.hpp"
 
-#include "dbg/ade.hpp"
-#include "dbg/ade_csv.hpp"
+#include "dbg/stream/ade.hpp"
+#include "dbg/stream/ade_csv.hpp"
 
 namespace py = pybind11;
 

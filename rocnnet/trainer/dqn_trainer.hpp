@@ -132,7 +132,7 @@ struct DQNTrainer
 {
 	DQNTrainer (modl::MLPptrT brain,
 		modl::NonLinearsT nonlinearities,
-		ead::Session& sess,
+		ead::iSession& sess,
 		eqns::ApproxFuncT update, DQNInfo param,
 		DQNTrainingContext ctx) :
 		sess_(&sess),
@@ -145,7 +145,7 @@ struct DQNTrainer
 
 	DQNTrainer (modl::MLPptrT brain,
 		modl::NonLinearsT nonlinearities,
-		ead::Session& sess,
+		ead::iSession& sess,
 		eqns::ApproxFuncT update, DQNInfo param) :
 		sess_(&sess),
 		params_(param),
@@ -298,7 +298,7 @@ struct DQNTrainer
 	// === updates && optimizer ===
 	eqns::AssignGroupsT updates_;
 
-	ead::Session* sess_;
+	ead::iSession* sess_;
 
 private:
 	void initialize (modl::NonLinearsT nonlinearities,

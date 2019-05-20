@@ -37,7 +37,6 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//opt:opt",
-        "//dbg:dbg",
-        "@gtest//:gtest",
+        "//testutil:testutil",
     ],
 )

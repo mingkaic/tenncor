@@ -114,7 +114,6 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//ead:ead",
-        "//dbg:dbg",
         "//testutil:testutil",
     ],
     linkstatic = True,
@@ -142,37 +141,4 @@ cc_binary(
     ],
     copts = ["-std=c++17"],
     data = ["//ead:optimizations"],
-)
-
-######### UTILITY #########
-
-load("@protobuf_rules//cpp:cpp_grpc_library.bzl", "cpp_grpc_library")
-
-proto_library(
-    name = "graph_proto",
-    srcs = ["dbg/graph.proto"],
-)
-
-cpp_grpc_library(
-    name = "graph_cc_proto",
-    deps = ["//ead:graph_proto"],
-    with_grpc = True,
-)
-
-cc_library(
-    name = "dbg",
-    hdrs = glob(["dbg/*.hpp"]),
-    copts = ["-std=c++17"],
-    deps = ["//ead:ead", "//ead:graph_cc_proto"],
-    visibility = ["//visibility:public"],
-)
-
-py_binary(
-    name = "interactive_server",
-    srcs = [
-        "dbg/interactive_renderer.py",
-        "dbg/interactive_server.py",
-        "dbg/graph_pb2_grpc.py",
-        "dbg/graph_pb2.py",
-    ],
 )

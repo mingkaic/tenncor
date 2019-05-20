@@ -32,7 +32,7 @@ struct RBMTrainer
 {
 	RBMTrainer (modl::RBMptrT brain,
 		modl::NonLinearsT nonlinearities,
-		ead::Session& sess,
+		ead::iSession& sess,
 		ead::VarptrT<PybindT> persistent,
 		uint8_t batch_size,
 		PybindT learning_rate = 1e-3,
@@ -160,7 +160,7 @@ struct RBMTrainer
 	ead::NodeptrT<PybindT> monitoring_cost_;
 
 	eqns::AssignGroupsT updates_;
-	ead::Session* sess_;
+	ead::iSession* sess_;
 
 private:
 	ead::NodeptrT<PybindT> get_pseudo_likelihood_cost (ead::NodeptrT<PybindT> input)
