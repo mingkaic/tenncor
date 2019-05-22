@@ -55,6 +55,7 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//ead:ead",
+        "@boost//:uuid",
         "//dbg:tenncor_cc_proto",
     ],
 )

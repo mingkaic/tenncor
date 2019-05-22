@@ -8,6 +8,10 @@
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 #include "dbg/grpc/tenncor.grpc.pb.h"
 
 #include "ead/session.hpp"
@@ -44,6 +48,8 @@ inline bool operator == (const EdgeInfo& lhs, const EdgeInfo& rhs)
 
 struct InteractiveSession final : public ead::iSession
 {
+	static boost::uuids::random_generator uuid_gen;
+
 	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
 		size_t graph_id) : stub_(tenncor::GraphEmitter::NewStub(channel)),
 			graph_id_(graph_id) {}
@@ -57,13 +63,13 @@ struct InteractiveSession final : public ead::iSession
 		// trigger all exit signals
 		for (auto& rjob : retry_jobs_)
 		{
-			rjob.second.set_value();
+			rjob.second.second.set_value();
 		}
 
 		// wait for termination
 		for (auto& rjob : retry_jobs_)
 		{
-			rjob.first.join();
+			rjob.second.first.join();
 		}
 	}
 
@@ -125,46 +131,51 @@ struct InteractiveSession final : public ead::iSession
 		{
 			logs::infof("CreateGraphRequest success: %s",
 				response.message().c_str());
+			return;
 		}
-		else
-		{
-			logs::errorf("CreateGraphRequest failure: %s",
-				status.error_message().c_str());
-			// attempt retry
-			std::promise<void> exit_signal;
-			std::future<void> future_obj = exit_signal.get_future();
+		std::stringstream uuid;
+		uuid << uuid_gen();
+		logs::errorf("%s: CreateGraphRequest failure: %s",
+			uuid.str().c_str(), status.error_message().c_str());
+		// attempt retry
+		std::promise<void> exit_signal;
+		std::future<void> future_obj = exit_signal.get_future();
 
-			std::thread thread(
-				[this](std::future<void> future_obj, tenncor::CreateGraphRequest request)
+		std::thread thread(
+			[this](std::future<void> future_obj,
+				tenncor::CreateGraphRequest request, std::string uuid)
+			{
+				size_t attempt = 1;
+				while (future_obj.wait_for(std::chrono::milliseconds(1)) ==
+					std::future_status::timeout)
 				{
-					size_t attempt = 1;
-					while (future_obj.wait_for(std::chrono::milliseconds(1)) ==
-						std::future_status::timeout)
-					{
-						grpc::ClientContext context;
-						tenncor::CreateGraphResponse response;
-						// set context deadline
-						std::chrono::time_point deadline = std::chrono::system_clock::now() +
-							std::chrono::milliseconds(100);
-						context.set_deadline(deadline);
+					grpc::ClientContext context;
+					tenncor::CreateGraphResponse response;
+					// set context deadline
+					std::chrono::time_point deadline = std::chrono::system_clock::now() +
+						std::chrono::milliseconds(100);
+					context.set_deadline(deadline);
 
-						grpc::Status status = this->stub_->CreateGraph(
-							&context, request, &response);
-						if (status.ok())
-						{
-							logs::infof("CreateGraphRequest success: %s",
-								response.message().c_str());
-							return;
-						}
-						logs::errorf("CreateGraphRequest attempt %d failure: %s",
-							attempt, status.error_message().c_str());
-						std::this_thread::sleep_for(std::chrono::milliseconds(attempt * 1000));
-						++attempt;
+					grpc::Status status = this->stub_->CreateGraph(
+						&context, request, &response);
+					if (status.ok())
+					{
+						logs::infof("%s: CreateGraphRequest success: %s",
+							uuid.c_str(), response.message().c_str());
+						this->retry_jobs_.erase(uuid); // cleanup
+						return;
 					}
-				}, std::move(future_obj), std::move(request));
-			retry_jobs_.push_back(std::pair<std::thread,std::promise<void>>{
-				std::move(thread), std::move(exit_signal)});
-		}
+					logs::errorf(
+						"%s: CreateGraphRequest attempt %d failure: %s",
+						uuid.c_str(), attempt,
+						status.error_message().c_str());
+					std::this_thread::sleep_for(
+						std::chrono::milliseconds(attempt * 1000));
+					++attempt;
+				}
+			}, std::move(future_obj), std::move(request), uuid.str());
+		retry_jobs_.emplace(uuid.str(), std::pair<std::thread,std::promise<void>>{
+			std::move(thread), std::move(exit_signal)});
 	}
 
 	void update (ead::TensSetT updated = {},
@@ -183,8 +194,11 @@ struct InteractiveSession final : public ead::iSession
 
 	std::unordered_set<EdgeInfo,EdgeInfoHash> edges_;
 
-	std::vector<std::pair<std::thread,std::promise<void>>> retry_jobs_;
+	std::unordered_map<std::string,
+		std::pair<std::thread,std::promise<void>>> retry_jobs_;
 };
+
+boost::uuids::random_generator InteractiveSession::uuid_gen;
 
 }
 
