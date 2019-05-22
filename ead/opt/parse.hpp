@@ -30,7 +30,7 @@ RuleptrT<T> make_rule (std::string source,
 	if (symbols.end() != it)
 	{
 		// is a variable
-		return std::make_shared<VarRule<T>>(it->second);
+		return std::make_shared<AnyRule<T>>(it->second);
 	}
 	std::smatch sm;
 	if (std::regex_match(source, sm, func_pattern))

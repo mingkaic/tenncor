@@ -6,8 +6,6 @@ ADE_TEST := //ade:test
 
 BWD_TEST := //bwd:test
 
-LLO_CTEST := //llo:ctest
-
 EAD_CTEST := //ead:ctest
 
 OPT_TEST := //opt:test
@@ -97,11 +95,6 @@ lcov_opt: cover_opt
 	cat bazel-testlogs/opt/test/test.log | $(COVERAGE_PIPE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o $(COVERAGE_INFO_FILE)
 	rm -f $(TMP_LOGFILE)
-	lcov --list $(COVERAGE_INFO_FILE)
-
-lcov_llo: cover_llo
-	cat bazel-testlogs/llo/ctest/test.log | $(COVERAGE_PIPE)
-	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) 'opt/*' -o $(COVERAGE_INFO_FILE)
 	lcov --list $(COVERAGE_INFO_FILE)
 
 lcov_ead: cover_ead

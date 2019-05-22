@@ -136,10 +136,15 @@ struct ConstRep final : public iReprNode<T>
 			[&](const T& e) { return e == data[0]; }))
 		{
 			// is a scalar
-			std::stringstream ss;
 			double scalar = data[0];
-			ss << "_scalar_" << fmts::to_string(scalar);
-			data_str = ss.str();
+			if (scalar == 0) // avoid -0
+			{
+				data_str = "_scalar_0";
+			}
+			else
+			{
+				data_str = "_scalar_" + fmts::to_string(scalar);
+			}
 		}
 		else
 		{
@@ -300,102 +305,9 @@ private:
 template <typename T>
 using FuncRepptrT = std::shared_ptr<FuncRep<T>>;
 
-template <typename T>
-struct Representer final : public ade::iTraveler
-{
-	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
-	{
-		if (reps_.end() == reps_.find(leaf))
-		{
-			if (static_cast<iLeaf<T>*>(leaf)->is_const())
-			{
-				reps_.emplace(leaf, std::make_shared<ConstRep<T>>(
-					(T*) leaf->data(), leaf->shape()));
-			}
-			else
-			{
-				reps_.emplace(leaf,
-					std::make_shared<LeafRep<T>>(leaf, reps_.size()));
-			}
-		}
-	}
-
-	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
-	{
-		if (reps_.end() == reps_.find(func))
-		{
-			auto& children = func->get_children();
-			RepArgsT<T> args;
-			args.reserve(children.size());
-			for (auto& child : children)
-			{
-				auto tens = child.get_tensor();
-				tens->accept(*this);
-				args.push_back(ReprArg<T>{
-					reps_[tens.get()],
-					child.get_shaper(),
-					child.get_coorder(),
-				});
-			}
-			// precalculate constants (todo: make this optional?)
-			if (std::all_of(args.begin(), args.end(),
-				[](const ReprArg<T>& arg)
-				{
-					return arg.arg_->is_constant();
-				}))
-			{
-				auto f = static_cast<Functor<T>*>(func);
-				f->update();
-				reps_[func] = std::make_shared<ConstRep<T>>(
-					(T*) f->raw_data(), f->shape());
-			}
-			else
-			{
-				reps_[func] = make_func(func->get_opcode(), args);
-			}
-		}
-	}
-
-	FuncRepptrT<T> make_func (ade::Opcode opcode, const RepArgsT<T>& args)
-	{
-		auto func_rep = std::make_shared<FuncRep<T>>(opcode, args);
-		for (size_t i = 0, n = args.size(); i < n; ++i)
-		{
-			auto& arg = args[i];
-			parents_[arg.arg_].push_back({func_rep, i});
-		}
-		return func_rep;
-	}
-
-	void replace_rep (ade::iTensor* orig, RepptrT<T> repl_rep)
-	{
-		auto it = reps_.find(orig);
-		if (reps_.end() == it || it->second == repl_rep)
-		{
-			return;
-		}
-		auto& orig_rep = it->second;
-		auto& repl_parents = parents_[repl_rep];
-		auto& orig_parents = parents_[orig_rep];
-		for (auto& orig_parent : orig_parents)
-		{
-			FuncRepptrT<T>& parent = orig_parent.first;
-			size_t arg_idx = orig_parent.second;
-			parent->set_arg(arg_idx, repl_rep);
-			repl_parents.push_back({parent, arg_idx});
-		}
-		reps_[orig] = repl_rep;
-	}
-
-	std::unordered_map<ade::iTensor*,RepptrT<T>> reps_;
-
-	std::unordered_map<RepptrT<T>,std::vector<
-		std::pair<FuncRepptrT<T>,size_t>>> parents_;
-};
-
 // todo: make this a visitor to avoid casting
+// output nodes from unravelled map instead of returning
+// to reuse nodes mapped to reps as often as possible
 template <typename T>
 void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
 	const RepptrT<T>& rep, const ade::OwnerMapT& owners)
@@ -459,6 +371,96 @@ void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
 	}
 	unravelled.emplace(rep, out);
 }
+
+template <typename T>
+struct Representer final : public ade::iTraveler
+{
+	/// Implementation of iTraveler
+	void visit (ade::iLeaf* leaf) override
+	{
+		if (reps_.end() == reps_.find(leaf))
+		{
+			if (static_cast<iLeaf<T>*>(leaf)->is_const())
+			{
+				reps_.emplace(leaf, std::make_shared<ConstRep<T>>(
+					(T*) leaf->data(), leaf->shape()));
+			}
+			else
+			{
+				reps_.emplace(leaf,
+					std::make_shared<LeafRep<T>>(leaf, reps_.size()));
+			}
+		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (ade::iFunctor* func) override
+	{
+		if (reps_.end() == reps_.find(func))
+		{
+			auto& children = func->get_children();
+			RepArgsT<T> args;
+			args.reserve(children.size());
+			for (auto& child : children)
+			{
+				auto tens = child.get_tensor();
+				tens->accept(*this);
+				args.push_back(ReprArg<T>{
+					reps_[tens.get()],
+					child.get_shaper(),
+					child.get_coorder(),
+				});
+			}
+			// precalculate constants (todo: make this optional?)
+			reps_[func] = make_func(func->get_opcode(), args);
+		}
+	}
+
+	RepptrT<T> make_func (ade::Opcode opcode, const RepArgsT<T>& args)
+	{
+		auto func_rep = std::make_shared<FuncRep<T>>(opcode, args);
+		for (size_t i = 0, n = args.size(); i < n; ++i)
+		{
+			auto& arg = args[i];
+			parents_[arg.arg_].push_back({func_rep, i});
+		}
+		if (func_rep->is_constant())
+		{
+			std::unordered_map<RepptrT<T>,NodeptrT<T>> unravelled;
+			ade::OwnerMapT owners;
+			unravel<T>(unravelled, func_rep, owners);
+			auto f = unravelled[func_rep];
+			f->update();
+			return std::make_shared<ConstRep<T>>(f->data(), f->shape());
+		}
+		return func_rep;
+	}
+
+	void replace_rep (ade::iTensor* orig, RepptrT<T> repl_rep)
+	{
+		auto it = reps_.find(orig);
+		if (reps_.end() == it || it->second == repl_rep)
+		{
+			return;
+		}
+		auto& orig_rep = it->second;
+		auto& repl_parents = parents_[repl_rep];
+		auto& orig_parents = parents_[orig_rep];
+		for (auto& orig_parent : orig_parents)
+		{
+			FuncRepptrT<T>& parent = orig_parent.first;
+			size_t arg_idx = orig_parent.second;
+			parent->set_arg(arg_idx, repl_rep);
+			repl_parents.push_back({parent, arg_idx});
+		}
+		reps_[orig] = repl_rep;
+	}
+
+	std::unordered_map<ade::iTensor*,RepptrT<T>> reps_;
+
+	std::unordered_map<RepptrT<T>,std::vector<
+		std::pair<FuncRepptrT<T>,size_t>>> parents_;
+};
 
 template <typename T>
 NodesT<T> unrepresent (Representer<T>& repr, const NodesT<T>& roots)

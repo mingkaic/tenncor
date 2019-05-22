@@ -7,8 +7,6 @@
 Tenncor libraries help developers build and evaluate tensor equations and its derivatives.
 A tensor is an N-dimensional container that organizes its content by some shape. An M by N matrix for instance, is a 2-dimensional tensor with a shape of [N, M] (according to Tenncor's x-y-z-... coordinate notation).
 
-This project aims for modularity. Everything (including this project) should be easily replaceable in any high-level system.
-
 High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0lmFr5JGikGnU3gC/view?usp=sharing
 
 ## Components
@@ -26,15 +24,10 @@ This generator creates glue layer between ADE and data manipulation libraries as
 
 This library provides traveler for generating partial derivative equations using some set of chain rules.
 
-- [LLO (Low Level Operators)](llo/README_LLO.md)
-
-This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder.
-Additionally, llo also defines data format and (de)serialization methods required by PBM.
-
 - [EAD (Eigen ADE Operators)](ead/README_EAD.md)
 
 This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder.
-Additionally, llo also defines data format and (de)serialization methods required by PBM.
+Additionally, ead also defines data format and (de)serialization methods required by PBM.
 
 - [OPT (Optimizer)](opt/README_OPT.md)
 

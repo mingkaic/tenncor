@@ -14,8 +14,6 @@ bazel test --config asan --config gtest //age:ctest
 bazel test --run_under='valgrind --leak-check=full' //age:ptest
 bazel test --config asan --config gtest //bwd:test
 bazel test --config asan --config gtest //opt:test
-# bazel test --config asan --config gtest //llo:ctest
-# bazel test --run_under='valgrind --leak-check=full' //llo:ptest
 bazel test --config asan --config gtest //ead:ctest
 # bazel test --run_under='valgrind --leak-check=full' //ead:ptest
 bazel test --config asan --config gtest //prx:ctest

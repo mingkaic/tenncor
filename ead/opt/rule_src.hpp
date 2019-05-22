@@ -108,13 +108,13 @@ struct ConstRule final : public iRuleNode<T>
 
 // e.g.: X
 template <typename T>
-struct VarRule final : public iRuleNode<T>
+struct AnyRule final : public iRuleNode<T>
 {
-	VarRule (size_t id) : id_(id) {}
+	AnyRule (size_t id) : id_(id) {}
 
 	bool process (RuleContext<T>& ctx, ConstRep<T>* leaf) const override
 	{
-		return false;
+		return ctx.emplace_varpair(leaf, id_);
 	}
 
 	bool process (RuleContext<T>& ctx, LeafRep<T>* leaf) const override
