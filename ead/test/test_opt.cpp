@@ -556,13 +556,9 @@ TEST(OPTIMIZE, DISABLED_ReuseOpGraph)
 		splitroot = age::mul(age::mul(got11, got1), age::mul(too, got3));
 	}
 
-	ead::opt::Representer<double> repr;
-	subroot->get_tensor()->accept(repr);
-	root->get_tensor()->accept(repr);
-	splitroot->get_tensor()->accept(repr);
-	copyroot->get_tensor()->accept(repr);
-	auto opts = ead::opt::unrepresent(repr,
-		{subroot, root, splitroot, copyroot});
+	ead::opt::ConversionsT<double> empty_rules;
+	ead::NodesT<double> opts = {subroot, root, splitroot, copyroot};
+	ead::opt::optimize(opts, empty_rules);
 	auto opt_subroot = opts[0];
 	auto opt_root = opts[1];
 	auto opt_splitroot = opts[2];
@@ -585,9 +581,6 @@ TEST(OPTIMIZE, DISABLED_ReuseOpGraph)
 	opt_splitroot->get_tensor()->accept(ceq);
 	opt_copyroot->get_tensor()->accept(ceq);
 	ceq.to_stream(ss);
-
-	std::cout << ceq.nodes_.size() << "\n";
-	std::cout << ss.str() << "\n\n";
 
 	std::list<std::string> expectlines =
 	{
