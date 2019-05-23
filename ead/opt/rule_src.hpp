@@ -16,11 +16,11 @@ namespace opt
 {
 
 template <typename T>
-struct RuleContext final
+struct RuleSession final
 {
 	/// Return true if id-rep pair does not conflict with existing pair,
 	/// otherwise return false
-	bool emplace_varpair (iReprNode<T>* rep, size_t id)
+	bool emplace_varpair (iRepNode<T>* rep, size_t id)
 	{
 		auto it = rule_vars_.find(id);
 		bool noconflict = rule_vars_.end() == it || it->second == rep;
@@ -37,12 +37,12 @@ struct RuleContext final
 	/// Record parent-argument edge
 	void emplace_edge (FuncRep<T>* parent, const ReprArg<T>& arg)
 	{
-		edges_.push_back(ContextEdge{parent, arg});
+		edges_.push_back(RuleEdge{parent, arg});
 	}
 
 	/// Return true if successfully merge variables
 	/// and edges without conflicts, otherwise return false
-	bool merge (const RuleContext<T>& other)
+	bool merge (const RuleSession<T>& other)
 	{
 		bool noconflicts = true;
 		for (auto rule_var : other.rule_vars_)
@@ -62,19 +62,19 @@ struct RuleContext final
 		return noconflicts;
 	}
 
-	std::unordered_map<size_t,iReprNode<T>*> rule_vars_;
+	std::unordered_map<size_t,iRepNode<T>*> rule_vars_;
 
 	std::unordered_map<size_t,RepArgsT<T>> variadic_vars_;
 
 private:
-	struct ContextEdge
+	struct RuleEdge
 	{
 		FuncRep<T>* parent_;
 
 		ReprArg<T> arg_;
 	};
 
-	std::vector<ContextEdge> edges_;
+	std::vector<RuleEdge> edges_;
 };
 
 // e.g.: scalar_1.2
@@ -83,17 +83,17 @@ struct ConstRule final : public iRuleNode<T>
 {
 	ConstRule (std::string pattern) : pattern_(pattern) {}
 
-	bool process (RuleContext<T>& ctx, ConstRep<T>* leaf) const override
+	bool process (RuleSession<T>& ctx, ConstRep<T>* leaf) const override
 	{
 		return std::regex_match(leaf->get_identifier(), std::regex(pattern_));
 	}
 
-	bool process (RuleContext<T>& ctx, LeafRep<T>* leaf) const override
+	bool process (RuleSession<T>& ctx, LeafRep<T>* leaf) const override
 	{
 		return false;
 	}
 
-	bool process (RuleContext<T>& ctx, FuncRep<T>* func) const override
+	bool process (RuleSession<T>& ctx, FuncRep<T>* func) const override
 	{
 		return false;
 	}
@@ -112,17 +112,17 @@ struct AnyRule final : public iRuleNode<T>
 {
 	AnyRule (size_t id) : id_(id) {}
 
-	bool process (RuleContext<T>& ctx, ConstRep<T>* leaf) const override
+	bool process (RuleSession<T>& ctx, ConstRep<T>* leaf) const override
 	{
 		return ctx.emplace_varpair(leaf, id_);
 	}
 
-	bool process (RuleContext<T>& ctx, LeafRep<T>* leaf) const override
+	bool process (RuleSession<T>& ctx, LeafRep<T>* leaf) const override
 	{
 		return ctx.emplace_varpair(leaf, id_);
 	}
 
-	bool process (RuleContext<T>& ctx, FuncRep<T>* func) const override
+	bool process (RuleSession<T>& ctx, FuncRep<T>* func) const override
 	{
 		return ctx.emplace_varpair(func, id_);
 	}
@@ -136,7 +136,7 @@ struct AnyRule final : public iRuleNode<T>
 };
 
 template <typename T>
-using CommCandsT = std::vector<std::pair<RuleContext<T>,std::vector<bool>>>;
+using CommCandsT = std::vector<std::pair<RuleSession<T>,std::vector<bool>>>;
 
 // todo: make this much more effcient (currently brute-force)
 template <typename T>
@@ -145,7 +145,7 @@ static CommCandsT<T> communtative_rule_match (
 {
 	size_t nargs = args.size();
 	CommCandsT<T> candidates = {{
-		RuleContext<T>(), std::vector<bool>(nargs, false)
+		RuleSession<T>(), std::vector<bool>(nargs, false)
 	}};
 	for (auto& sub_rule : sub_rules)
 	{
@@ -159,7 +159,7 @@ static CommCandsT<T> communtative_rule_match (
 				{
 					continue;
 				}
-				RuleContext<T> temp_ctx = cand_pair.first;
+				RuleSession<T> temp_ctx = cand_pair.first;
 				if (args[j].arg_->rulify(temp_ctx, sub_rule.arg_))
 				{
 					std::vector<bool> temp_field = field;
@@ -180,17 +180,17 @@ struct FuncRule final : public iRuleNode<T>
 	FuncRule (ade::Opcode op, RuleArgsT<T> sub_rules) :
 		op_(op), sub_rules_(sub_rules) {}
 
-	bool process (RuleContext<T>& ctx, ConstRep<T>* leaf) const override
+	bool process (RuleSession<T>& ctx, ConstRep<T>* leaf) const override
 	{
 		return false;
 	}
 
-	bool process (RuleContext<T>& ctx, LeafRep<T>* leaf) const override
+	bool process (RuleSession<T>& ctx, LeafRep<T>* leaf) const override
 	{
 		return false;
 	}
 
-	bool process (RuleContext<T>& ctx, FuncRep<T>* func) const override
+	bool process (RuleSession<T>& ctx, FuncRep<T>* func) const override
 	{
 		if (func->op_.code_ != op_.code_)
 		{
@@ -219,7 +219,7 @@ struct FuncRule final : public iRuleNode<T>
 			}
 			return ctx.merge(candidates[0].first); // commit transaction
 		}
-		RuleContext<T> temp_ctx; // acts as a transaction
+		RuleSession<T> temp_ctx; // acts as a transaction
 		for (size_t i = 0; i < nargs; ++i)
 		{
 			if (false == args[i].arg_->rulify(
@@ -261,17 +261,17 @@ struct VariadicFuncRule final : public iRuleNode<T>
 		assert(is_commutative(op.code_));
 	}
 
-	bool process (RuleContext<T>& ctx, ConstRep<T>* leaf) const override
+	bool process (RuleSession<T>& ctx, ConstRep<T>* leaf) const override
 	{
 		return false;
 	}
 
-	bool process (RuleContext<T>& ctx, LeafRep<T>* leaf) const override
+	bool process (RuleSession<T>& ctx, LeafRep<T>* leaf) const override
 	{
 		return false;
 	}
 
-	bool process (RuleContext<T>& ctx, FuncRep<T>* func) const override
+	bool process (RuleSession<T>& ctx, FuncRep<T>* func) const override
 	{
 		if (func->op_.code_ != op_.code_)
 		{

@@ -233,11 +233,11 @@ ConversionsT<T> parse (std::istream& is)
 			std::string dest = sm[2];
 			RuleptrT<T> rule_src = make_rule<T>(source, symbols);
 			RuleTargetptrT<T> rule_target = make_target<T>(dest, symbols);
-			conversions.push_back(RuleConversion<T>{
-				line,
-				rule_src,
-				rule_target,
-			});
+			conversions.push_back(
+				std::make_shared<RuleConversion<T>>(
+					line,
+					rule_src,
+					rule_target));
 		}
 		else
 		{
@@ -260,6 +260,7 @@ ConversionsT<T> get_configs (void)
 	{
 		logs::warn("optimization configuration not found");
 	}
+	rules.push_back(std::make_shared<CalcConstantConversion<T>>());
 	return rules;
 }
 

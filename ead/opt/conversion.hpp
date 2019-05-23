@@ -11,7 +11,7 @@ namespace opt
 {
 
 template <typename T>
-using OwnerMapT = std::unordered_map<iReprNode<T>*,RepptrT<T>>;
+using OwnerMapT = std::unordered_map<iRepNode<T>*,RepptrT<T>>;
 
 template <typename T>
 struct RuleTarget
@@ -20,8 +20,8 @@ struct RuleTarget
 
 	/// Return representation node defined by this target-rule
 	/// Can return nullptr if representation holds no value
-	virtual RepptrT<T> make_rep (Representer<T>& repr,
-		OwnerMapT<T>& owners, const RuleContext<T>& ctx,
+	virtual RepptrT<T> make_rep (Representer<T>& presenter,
+		OwnerMapT<T>& owners, const RuleSession<T>& ctx,
 		ade::Shape shape) const = 0;
 };
 
@@ -46,8 +46,8 @@ struct VarTarget final : public RuleTarget<T>
 {
 	VarTarget (size_t id) : id_(id) {}
 
-	RepptrT<T> make_rep (Representer<T>& repr,
-		OwnerMapT<T>& owners, const RuleContext<T>& ctx,
+	RepptrT<T> make_rep (Representer<T>& presenter,
+		OwnerMapT<T>& owners, const RuleSession<T>& ctx,
 		ade::Shape shape) const override
 	{
 		auto var_it = ctx.rule_vars_.find(id_);
@@ -65,8 +65,8 @@ struct ScalarTarget final : public RuleTarget<T>
 {
 	ScalarTarget (T scalar) : scalar_(scalar) {}
 
-	RepptrT<T> make_rep (Representer<T>& repr,
-		OwnerMapT<T>& owners, const RuleContext<T>& ctx,
+	RepptrT<T> make_rep (Representer<T>& presenter,
+		OwnerMapT<T>& owners, const RuleSession<T>& ctx,
 		ade::Shape shape) const override
 	{
 		std::vector<T> data(shape.n_elems(), scalar_);
@@ -85,8 +85,8 @@ struct FuncTarget final : public RuleTarget<T>
 		std::vector<size_t> variadics) : opcode_(opcode),
 		args_(args), variadics_(variadics) {}
 
-	RepptrT<T> make_rep (Representer<T>& repr,
-		OwnerMapT<T>& owners, const RuleContext<T>& ctx,
+	RepptrT<T> make_rep (Representer<T>& presenter,
+		OwnerMapT<T>& owners, const RuleSession<T>& ctx,
 		ade::Shape shape) const override
 	{
 		RepArgsT<T> out_args;
@@ -100,7 +100,7 @@ struct FuncTarget final : public RuleTarget<T>
 				ade::CoordptrT revshaper(shaper->reverse());
 				arg_shape = apply_shaper(revshaper, shape);
 			}
-			auto arg_rep = arg.arg_->make_rep(repr, owners, ctx, arg_shape);
+			auto arg_rep = arg.arg_->make_rep(presenter, owners, ctx, arg_shape);
 			if (nullptr != arg_rep)
 			{
 				out_args.push_back(ReprArg<T>{arg_rep, shaper, arg.coorder_});
@@ -120,7 +120,7 @@ struct FuncTarget final : public RuleTarget<T>
 			// holds no value
 			return RepptrT<T>(nullptr);
 		}
-		auto out = repr.make_func(opcode_, out_args);
+		auto out = presenter.make_func(opcode_, out_args);
 		owners.emplace(out.get(), out);
 		return out;
 	}
@@ -133,8 +133,52 @@ struct FuncTarget final : public RuleTarget<T>
 };
 
 template <typename T>
-struct RuleConversion final
+struct iRuleConversion
 {
+	virtual ~iRuleConversion (void) = default;
+
+	virtual bool valid (void) const = 0;
+
+	virtual RepptrT<T> convert (Representer<T>& presenter, RepptrT<T> rep,
+		OwnerMapT<T>& ownermap, ade::Shape exshape) const = 0;
+};
+
+template <typename T>
+using ConvertPtrT = std::shared_ptr<iRuleConversion<T>>;
+
+template <typename T>
+using ConversionsT = std::vector<ConvertPtrT<T>>;
+
+template <typename T>
+struct RuleConversion final : public iRuleConversion<T>
+{
+	RuleConversion(std::string label,
+		RuleptrT<T> source, RuleTargetptrT<T> target) :
+		str_form_(label), source_(source), target_(target) {}
+
+	bool valid (void) const override
+	{
+		return nullptr != target_ && nullptr != source_;
+	}
+
+	RepptrT<T> convert (Representer<T>& presenter, RepptrT<T> rep,
+		OwnerMapT<T>& ownermap, ade::Shape exshape) const override
+	{
+		RuleSession<T> ctx;
+		if (rep->rulify(ctx, source_))
+		{
+			// match found, convert
+			logs::debugf("applying conversion %s", str_form_.c_str());
+			rep = target_->make_rep(presenter, ownermap, ctx, exshape);
+			if (nullptr == rep)
+			{
+				std::vector<T> zeros(exshape.n_elems(), 0);
+				rep = std::make_shared<ConstRep<T>>(zeros.data(), exshape);
+			}
+		}
+		return rep;
+	}
+
 	std::string str_form_;
 
 	RuleptrT<T> source_;
@@ -143,12 +187,40 @@ struct RuleConversion final
 };
 
 template <typename T>
-using ConversionsT = std::vector<RuleConversion<T>>;
+struct CalcConstantConversion final : public iRuleConversion<T>
+{
+	bool valid (void) const override
+	{
+		return true;
+	}
+
+	RepptrT<T> convert (Representer<T>& presenter, RepptrT<T> rep,
+		OwnerMapT<T>& ownermap, ade::Shape exshape) const override
+	{
+		if (rep->is_constant())
+		{
+			logs::debug("converting to constant");
+			Rep2NodeT<T> unravelled;
+			ade::OwnerMapT owners;
+			rep->unravel(unravelled, owners);
+			auto f = unravelled[rep.get()];
+			f->update();
+			return std::make_shared<ConstRep<T>>(f->data(), f->shape());
+		}
+		return rep;
+	}
+
+	std::string str_form_;
+
+	RuleptrT<T> source_;
+
+	RuleTargetptrT<T> target_;
+};
 
 using UniqueTensT = std::unordered_map<std::string,ade::iTensor*>;
 
 template <typename T>
-void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
+void apply_rules (Representer<T>& presenter, UniqueTensT& unique_tens,
 	const ConversionsT<T>& conversions)
 {
 	OwnerMapT<T> ownermap;
@@ -159,12 +231,14 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 		{
 			std::vector<size_t> rule_minheights;
 			rule_minheights.reserve(conversions.size());
-			std::transform(conversions.begin(), conversions.end(),
-				std::back_inserter(rule_minheights),
-				[](const RuleConversion<T>& rule_convs)
+			for (const ConvertPtrT<T>& rule_convs : conversions)
+			{
+				if (auto conv = dynamic_cast<RuleConversion<T>*>(
+					rule_convs.get()))
 				{
-					return rule_convs.source_->get_minheight();
-				});
+					rule_minheights.push_back(conv->source_->get_minheight());
+				}
+			}
 			if (false == rule_minheights.empty())
 			{
 				rule_minheight = *std::min_element(
@@ -173,7 +247,7 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 		}
 
 		std::unordered_map<RepptrT<T>,ade::NumRange<size_t>> heights;
-		for (auto reppair : repr.reps_)
+		for (auto reppair : presenter.reps_)
 		{
 			auto& tens = reppair.first;
 			auto& rep = reppair.second;
@@ -200,9 +274,9 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 	valid_conversions.reserve(conversions.size());
 	std::copy_if(conversions.begin(), conversions.end(),
 		std::back_inserter(valid_conversions),
-		[](const RuleConversion<T>& conv)
+		[](const ConvertPtrT<T>& conv)
 		{
-			return nullptr != conv.target_ && nullptr != conv.source_;
+			return conv->valid();
 		});
 	if (valid_conversions.size() < conversions.size())
 	{
@@ -216,22 +290,11 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 		assert(tens_keys.size() > 0);
 		ade::Shape exshape = tens_keys[0]->shape();
 		std::string orig_id = rep->get_identifier();
-		for (const RuleConversion<T>& conv : valid_conversions)
+		for (const ConvertPtrT<T>& conv : valid_conversions)
 		{
-			RuleContext<T> ctx;
-			if (rep->rulify(ctx, conv.source_))
-			{
-				// match found, convert
-				logs::debugf("applying conversion %s", conv.str_form_.c_str());
-				rep = conv.target_->make_rep(repr, ownermap, ctx, exshape);
-				if (nullptr == rep)
-				{
-					std::vector<T> zeros(exshape.n_elems(), 0);
-					rep = std::make_shared<ConstRep<T>>(zeros.data(), exshape);
-				}
-			}
+			rep = conv->convert(presenter, rep, ownermap, exshape);
 		}
-		// update repr after conversion
+		// update presenter after conversion
 		std::string fresh_id = rep->get_identifier();
 		if (orig_id != fresh_id)
 		{
@@ -245,11 +308,11 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 			else
 			{
 				// found existing imprint of rep, use existing rep instead
-				rep = repr.reps_[it->second];
+				rep = presenter.reps_[it->second];
 			}
 			for (auto tens : tens_keys)
 			{
-				repr.replace_rep(tens, rep);
+				presenter.replace_rep(tens, rep);
 			}
 		}
 	}
@@ -259,16 +322,16 @@ void apply_rules (Representer<T>& repr, UniqueTensT& unique_tens,
 template <typename T>
 void optimize (NodesT<T>& nodes, const ConversionsT<T>& conversions)
 {
-	Representer<T> repr;
+	Representer<T> presenter;
 	for (NodeptrT<T>& node : nodes)
 	{
 		auto tens = node->get_tensor();
-		tens->accept(repr);
+		tens->accept(presenter);
 	}
 
 	// map identifier to rep to reuse nodes
 	UniqueTensT unique_tens;
-	for (auto& reppair : repr.reps_)
+	for (auto& reppair : presenter.reps_)
 	{
 		auto& tens = reppair.first;
 		auto& rep = reppair.second;
@@ -280,13 +343,13 @@ void optimize (NodesT<T>& nodes, const ConversionsT<T>& conversions)
 		}
 		else
 		{
-			repr.replace_rep(tens, repr.reps_[it->second]);
+			presenter.replace_rep(tens, presenter.reps_[it->second]);
 		}
 	}
 
-	apply_rules(repr, unique_tens, conversions);
+	apply_rules(presenter, unique_tens, conversions);
 
-	nodes = unrepresent(repr, nodes);
+	nodes = unrepresent(presenter, nodes);
 	nodes = ops_prune(nodes);
 }
 

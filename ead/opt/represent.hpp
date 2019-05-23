@@ -27,13 +27,16 @@ static bool is_commutative (size_t opcode)
 }
 
 template <typename T>
-struct RuleContext;
+struct RuleSession;
 
 template <typename T>
-struct iReprNode;
+struct iRepNode;
 
 template <typename T>
-using RepptrT = std::shared_ptr<iReprNode<T>>;
+using RepptrT = std::shared_ptr<iRepNode<T>>;
+
+template <typename T>
+using Rep2NodeT = std::unordered_map<iRepNode<T>*,NodeptrT<T>>;
 
 template <typename T>
 struct iRuleNode;
@@ -51,15 +54,20 @@ template <typename T>
 struct FuncRep;
 
 template <typename T>
-struct iReprNode
+struct iRepNode
 {
-	virtual ~iReprNode (void) = default;
+	virtual ~iRepNode (void) = default;
 
-	virtual bool rulify (RuleContext<T>& ctx, const RuleptrT<T>& rule) = 0;
+	virtual bool rulify (RuleSession<T>& ctx, const RuleptrT<T>& rule) = 0;
 
 	virtual std::string get_identifier (void) const = 0;
 
 	virtual bool is_constant (void) const = 0;
+
+	// output nodes from unravelled map instead of returning
+	// to reuse nodes mapped to reps as often as possible
+	virtual void unravel (Rep2NodeT<T>& unravelled,
+		const ade::OwnerMapT& owners) = 0;
 
 	virtual ade::NumRange<size_t> get_heights (void) const = 0;
 };
@@ -92,11 +100,11 @@ struct iRuleNode
 {
 	virtual ~iRuleNode (void) = default;
 
-	virtual bool process (RuleContext<T>& ctx, ConstRep<T>* leaf) const = 0;
+	virtual bool process (RuleSession<T>& ctx, ConstRep<T>* leaf) const = 0;
 
-	virtual bool process (RuleContext<T>& ctx, LeafRep<T>* leaf) const = 0;
+	virtual bool process (RuleSession<T>& ctx, LeafRep<T>* leaf) const = 0;
 
-	virtual bool process (RuleContext<T>& ctx, FuncRep<T>* func) const = 0;
+	virtual bool process (RuleSession<T>& ctx, FuncRep<T>* func) const = 0;
 
 	virtual size_t get_minheight (void) const = 0;
 };
@@ -125,7 +133,7 @@ template <typename T>
 using RuleArgsT = std::vector<RuleArg<T>>;
 
 template <typename T>
-struct ConstRep final : public iReprNode<T>
+struct ConstRep final : public iRepNode<T>
 {
 	ConstRep (T* data, ade::Shape shape) :
 		data_(data, data + shape.n_elems()), shape_(shape)
@@ -155,7 +163,7 @@ struct ConstRep final : public iReprNode<T>
 		identifier_ = fmts::join("", shape.begin(), shape.end()) + data_str;
 	}
 
-	bool rulify (RuleContext<T>& ctx, const RuleptrT<T>& rule) override
+	bool rulify (RuleSession<T>& ctx, const RuleptrT<T>& rule) override
 	{
 		return rule->process(ctx, this);
 	}
@@ -168,6 +176,15 @@ struct ConstRep final : public iReprNode<T>
 	bool is_constant (void) const override
 	{
 		return true;
+	}
+
+	void unravel (Rep2NodeT<T>& unravelled,
+		const ade::OwnerMapT& owners) override
+	{
+		if (unravelled.end() == unravelled.find(this))
+		{
+			unravelled.emplace(this, make_constant(data_.data(), shape_));
+		}
 	}
 
 	ade::NumRange<size_t> get_heights (void) const override
@@ -184,12 +201,12 @@ private:
 };
 
 template <typename T>
-struct LeafRep final : public iReprNode<T>
+struct LeafRep final : public iRepNode<T>
 {
 	LeafRep (ade::iLeaf* leaf, size_t id) :
 		leaf_(leaf), identifier_(id) {}
 
-	bool rulify (RuleContext<T>& ctx, const RuleptrT<T>& rule) override
+	bool rulify (RuleSession<T>& ctx, const RuleptrT<T>& rule) override
 	{
 		return rule->process(ctx, this);
 	}
@@ -202,6 +219,20 @@ struct LeafRep final : public iReprNode<T>
 	bool is_constant (void) const override
 	{
 		return false;
+	}
+
+	void unravel (Rep2NodeT<T>& unravelled,
+		const ade::OwnerMapT& owners) override
+	{
+		if (unravelled.end() == unravelled.find(this))
+		{
+			auto it = owners.find(leaf_);
+			if (owners.end() != it)
+			{
+				unravelled.emplace(this,
+					NodeConverters<T>::to_node(it->second.lock()));
+			}
+		}
 	}
 
 	ade::NumRange<size_t> get_heights (void) const override
@@ -218,12 +249,12 @@ private:
 using ImprintMapT = std::unordered_map<std::string,std::string>;
 
 template <typename T>
-struct FuncRep final : public iReprNode<T>
+struct FuncRep final : public iRepNode<T>
 {
 	FuncRep (ade::Opcode op, RepArgsT<T> args) :
 		op_(op), args_(args) {}
 
-	bool rulify (RuleContext<T>& ctx, const RuleptrT<T>& rule) override
+	bool rulify (RuleSession<T>& ctx, const RuleptrT<T>& rule) override
 	{
 		return rule->process(ctx, this);
 	}
@@ -267,6 +298,61 @@ struct FuncRep final : public iReprNode<T>
 			});
 	}
 
+	void unravel (Rep2NodeT<T>& unravelled,
+		const ade::OwnerMapT& owners) override
+	{
+		if (unravelled.end() != unravelled.find(this))
+		{
+			return;
+		}
+		NodeptrT<T> out;
+		size_t nargs = args_.size();
+		ArgsT<T> args;
+		args.reserve(nargs);
+		for (auto& arg : args_)
+		{
+			arg.arg_->unravel(unravelled, owners);
+			CoordptrT coorder;
+			if (arg.coorder_)
+			{
+				coorder = std::static_pointer_cast<CoordMap>(arg.coorder_);
+			}
+			auto it = unravelled.find(arg.arg_.get());
+			if (unravelled.end() == it)
+			{
+				return;
+			}
+			args.push_back(FuncArg<T>(it->second,
+				arg.shaper_, coorder));
+		}
+		if (is_commutative(op_.code_) && nargs == 1)
+		{
+			// todo: make this check somewhere else
+			assert(ade::is_identity(args[0].get_shaper().get()));
+			assert(nullptr == args[0].get_coorder());
+			out = args[0].get_node();
+		}
+		else if (nargs > 2)
+		{
+			FuncArg<T> left = args[0];
+			FuncArg<T> right = args[1];
+			for (size_t i = 2; i < nargs; ++i)
+			{
+				left = FuncArg<T>{
+					make_functor<T>(op_, {left, right}),
+					ade::identity, CoordptrT()
+				};
+				right = args[i];
+			}
+			out = make_functor<T>(op_, {left, right});
+		}
+		else
+		{
+			out = make_functor(op_, args);
+		}
+		unravelled.emplace(this, out);
+	}
+
 	ade::NumRange<size_t> get_heights (void) const override
 	{
 		size_t min = std::numeric_limits<size_t>::max();
@@ -304,73 +390,6 @@ private:
 
 template <typename T>
 using FuncRepptrT = std::shared_ptr<FuncRep<T>>;
-
-// todo: make this a visitor to avoid casting
-// output nodes from unravelled map instead of returning
-// to reuse nodes mapped to reps as often as possible
-template <typename T>
-void unravel (std::unordered_map<RepptrT<T>,NodeptrT<T>>& unravelled,
-	const RepptrT<T>& rep, const ade::OwnerMapT& owners)
-{
-	if (unravelled.end() != unravelled.find(rep))
-	{
-		return;
-	}
-	NodeptrT<T> out;
-	if (auto f = dynamic_cast<FuncRep<T>*>(rep.get()))
-	{
-		auto& func_args = f->get_args();
-		size_t nargs = func_args.size();
-		ArgsT<T> args;
-		args.reserve(nargs);
-		for (auto& arg : func_args)
-		{
-			unravel(unravelled, arg.arg_, owners);
-			CoordptrT coorder;
-			if (arg.coorder_)
-			{
-				coorder = std::static_pointer_cast<CoordMap>(arg.coorder_);
-			}
-			args.push_back(FuncArg<T>(unravelled[arg.arg_],
-				arg.shaper_, coorder));
-		}
-		if (is_commutative(f->op_.code_) && nargs == 1)
-		{
-			// todo: make this check somewhere else
-			assert(ade::is_identity(args[0].get_shaper().get()));
-			assert(nullptr == args[0].get_coorder());
-			out = args[0].get_node();
-		}
-		else if (nargs > 2)
-		{
-			FuncArg<T> left = args[0];
-			FuncArg<T> right = args[1];
-			for (size_t i = 2; i < nargs; ++i)
-			{
-				left = FuncArg<T>{
-					make_functor<T>(f->op_, {left, right}),
-					ade::identity, CoordptrT()
-				};
-				right = args[i];
-			}
-			out = make_functor<T>(f->op_, {left, right});
-		}
-		else
-		{
-			out = make_functor(f->op_, args);
-		}
-	}
-	else if (auto cst = dynamic_cast<ConstRep<T>*>(rep.get()))
-	{
-		out = make_constant(cst->data_.data(), cst->shape_);
-	}
-	else
-	{
-		auto lef = static_cast<LeafRep<T>*>(rep.get());
-		out = NodeConverters<T>::to_node(owners.at(lef->leaf_).lock());
-	}
-	unravelled.emplace(rep, out);
-}
 
 template <typename T>
 struct Representer final : public ade::iTraveler
@@ -411,7 +430,6 @@ struct Representer final : public ade::iTraveler
 					child.get_coorder(),
 				});
 			}
-			// precalculate constants (todo: make this optional?)
 			reps_[func] = make_func(func->get_opcode(), args);
 		}
 	}
@@ -424,12 +442,14 @@ struct Representer final : public ade::iTraveler
 			auto& arg = args[i];
 			parents_[arg.arg_].push_back({func_rep, i});
 		}
+		// todo: waive CalcConstantConversion with make_rep, then deprecate this
+		// CalcConstantConversion equivalent
 		if (func_rep->is_constant())
 		{
-			std::unordered_map<RepptrT<T>,NodeptrT<T>> unravelled;
+			Rep2NodeT<T> unravelled;
 			ade::OwnerMapT owners;
-			unravel<T>(unravelled, func_rep, owners);
-			auto f = unravelled[func_rep];
+			func_rep->unravel(unravelled, owners);
+			auto f = unravelled[func_rep.get()];
 			f->update();
 			return std::make_shared<ConstRep<T>>(f->data(), f->shape());
 		}
@@ -467,13 +487,13 @@ NodesT<T> unrepresent (Representer<T>& repr, const NodesT<T>& roots)
 {
 	NodesT<T> out;
 	out.reserve(roots.size());
-	std::unordered_map<RepptrT<T>,NodeptrT<T>> unravelled;
+	Rep2NodeT<T> unravelled;
 	for (auto& root : roots)
 	{
 		auto tens = root->get_tensor();
 		auto owners = ade::track_owners(tens);
-		auto& rep = repr.reps_[tens.get()];
-		unravel(unravelled, rep, owners);
+		auto rep = repr.reps_[tens.get()].get();
+		rep->unravel(unravelled, owners);
 		out.push_back(unravelled[rep]);
 	}
 	return out;

@@ -43,6 +43,7 @@ P3 - address warnings
 === performance ===
 general performance:
 P3 - benchmark test rocnnet against various other frameworks (CPU only)
+P3 - convert as many shared_ptr to unique_ptr
 P4 - implement GPU settings
 P4 - remove unordered_map/unordered_set if we're not using them properly
 P4 - define optimization conversion rules to increase data accuracy
