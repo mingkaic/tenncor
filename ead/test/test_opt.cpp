@@ -7,10 +7,6 @@
 
 #include "testutil/common.hpp"
 
-// #include "ead/opt/zero_prune.hpp"
-// #include "ead/opt/one_prune.hpp"
-// #include "ead/opt/const_merge.hpp"
-// #include "ead/opt/ops_reuse.hpp"
 #include "ead/opt/ops_prune.hpp"
 
 #include "ead/opt/conversion.hpp"
@@ -21,7 +17,7 @@
 #include "ead/constant.hpp"
 
 
-TEST(OPTIMIZE, PreCalcConstants)
+TEST(OPTIMIZE, CalcConstants)
 {
 	ead::NodeptrT<double> var = ead::convert_to_node(
 		ead::make_variable_scalar<double>(0, ade::Shape(),
@@ -84,7 +80,7 @@ TEST(OPTIMIZE, PreCalcConstants)
 }
 
 
-TEST(OPTIMIZE, PruneSinglesZeros)
+TEST(OPTIMIZE, PruneSingleZeros)
 {
 	ead::NodeptrT<double> var = ead::convert_to_node(
 		ead::make_variable_scalar<double>(0, ade::Shape(),
@@ -259,7 +255,7 @@ TEST(OPTIMIZE, PruneZeroGraph)
 }
 
 
-TEST(OPTIMIZE, PruneSinglesOnes)
+TEST(OPTIMIZE, PruneSingleOnes)
 {
 	ead::NodeptrT<double> var = ead::convert_to_node(
 		ead::make_variable_scalar<double>(0, ade::Shape(),
@@ -386,135 +382,127 @@ TEST(OPTIMIZE, PruneOneGraph)
 	EXPECT_EQ(0, compare_str.size()) << compare_str;
 }
 
-// // TEST(OPTIMIZATION, ops_prune_singles)
-// // {
-// // 	ead::NodeptrT<double> one = ead::make_constant_scalar<double>(1, ade::Shape());
-// // 	ead::NodeptrT<double> two = ead::make_constant_scalar<double>(2, ade::Shape());
-// // 	ead::NodeptrT<double> three = ead::make_constant_scalar<double>(3, ade::Shape());
+// TEST(OPTIMIZATION, ops_prune_singles)
+// {
+// 	ead::NodeptrT<double> one = ead::make_constant_scalar<double>(1, ade::Shape());
+// 	ead::NodeptrT<double> two = ead::make_constant_scalar<double>(2, ade::Shape());
+// 	ead::NodeptrT<double> three = ead::make_constant_scalar<double>(3, ade::Shape());
 
-// // 	// merge redundent double reduced argument
-// // 	auto got0 = ead::ops_prune({age::reduce_sum(age::reduce_sum(zero))})[0];
-// // 	{
-// // 		std::stringstream ss;
-// // 		ss <<
-// // 			"(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 			" `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n";
-// // 		auto compare_str = compare_graph(ss, got0);
-// // 		EXPECT_EQ(0, compare_str.size()) << compare_str;
-// // 	}
+// 	// merge redundent double reduced argument
+// 	auto got0 = ead::ops_prune({age::reduce_sum(age::reduce_sum(zero))})[0];
+// 	{
+// 		std::stringstream ss;
+// 		ss <<
+// 			"(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 			" `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n";
+// 		auto compare_str = compare_graph(ss, got0);
+// 		EXPECT_EQ(0, compare_str.size()) << compare_str;
+// 	}
 
-// // 	// don't merge non-redundent double reduced argument
-// // 	auto got_0 = ead::ops_prune({age::reduce_sum(age::reduce_sum(zero, 1), 0)})[0];
-// // 	{
-// // 		std::stringstream ss;
-// // 		ss <<
-// // 			"(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 			" `--(add[3\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 			"     `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n";
-// // 		auto compare_str = compare_graph(ss, got_0);
-// // 		EXPECT_EQ(0, compare_str.size()) << compare_str;
-// // 	}
+// 	// don't merge non-redundent double reduced argument
+// 	auto got_0 = ead::ops_prune({age::reduce_sum(age::reduce_sum(zero, 1), 0)})[0];
+// 	{
+// 		std::stringstream ss;
+// 		ss <<
+// 			"(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 			" `--(add[3\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 			"     `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n";
+// 		auto compare_str = compare_graph(ss, got_0);
+// 		EXPECT_EQ(0, compare_str.size()) << compare_str;
+// 	}
 
-// // 	// don't merge mul-reduced_add
-// // 	auto got_0_1 = ead::ops_prune({age::mul({age::reduce_sum(zero), one})})[0];
-// // 	{
-// // 		std::stringstream ss;
-// // 		ss <<
-// // 			"(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 			" `--(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 			" |   `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 			" `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n";
-// // 		auto compare_str = compare_graph(ss, got_0_1);
-// // 		EXPECT_EQ(0, compare_str.size()) << compare_str;
-// // 	}
-// // }
-
-
-// // TEST(OPTIMIZATION, ops_prune_graph)
-// // {
-// // 	ead::NodeptrT<double> zero(ead::Variable<double>::get(ade::Shape({3, 4}), "0"));
-// // 	ead::NodeptrT<double> one = ead::make_constant_scalar<double>(1, ade::Shape());
-// // 	ead::NodeptrT<double> two = ead::make_constant_scalar<double>(2, ade::Shape());
-// // 	ead::NodeptrT<double> three = ead::make_constant_scalar<double>(3, ade::Shape());
-
-// // 	auto got1 = age::cos(three);
-// // 	auto got3 = age::mul({one, three, two});
-// // 	auto gotn1 = age::sub(three, one);
-// // 	auto got2 = age::sub(two, three);
-// // 	auto got22 = age::min({two, three});
-
-// // 	auto too = age::mul(age::reduce_mul(age::reduce_mul_1d(zero, 0), 0),
-// // 		age::reduce_mul(age::mul({got1, got22})));
-// // 	auto got11 = age::pow(got2, three);
-
-// // 	auto m = age::min({got22, got1, too, got11});
-// // 	auto root = ead::ops_prune({age::sub(
-// // 		age::min({m, age::div(got3, gotn1)}), got2)})[0];
-
-// // 	std::stringstream ss;
-// // 	ss <<
-// // 		"(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   `--(COS[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   `--(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |   |   `--(mul[4\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |   |   |   `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   |   `--(COS[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |   |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |   |       `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   |       `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   `--(POW[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |   |   `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |   |   |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |       `--(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |       |   `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |       |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |       |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |       `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		" |           `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" |           `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		" `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// // 		"     `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// // 		"     `--(3([1\\1\\1\\1\\1\\1\\1\\1]))";
-// // 	auto compare_str = compare_graph(ss, root);
-// // 	EXPECT_EQ(0, compare_str.size()) << compare_str;
-// // }
+// 	// don't merge mul-reduced_add
+// 	auto got_0_1 = ead::ops_prune({age::mul({age::reduce_sum(zero), one})})[0];
+// 	{
+// 		std::stringstream ss;
+// 		ss <<
+// 			"(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 			" `--(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 			" |   `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n" <<
+// 			" `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n";
+// 		auto compare_str = compare_graph(ss, got_0_1);
+// 		EXPECT_EQ(0, compare_str.size()) << compare_str;
+// 	}
+// }
 
 
-TEST(OPTIMIZE, DISABLED_ReuseOpGraph)
+// TEST(OPTIMIZATION, ops_prune_graph)
+// {
+// 	ead::NodeptrT<double> zero(ead::Variable<double>::get(ade::Shape({3, 4}), "0"));
+// 	ead::NodeptrT<double> one = ead::make_constant_scalar<double>(1, ade::Shape());
+// 	ead::NodeptrT<double> two = ead::make_constant_scalar<double>(2, ade::Shape());
+// 	ead::NodeptrT<double> three = ead::make_constant_scalar<double>(3, ade::Shape());
+
+// 	auto got1 = age::cos(three);
+// 	auto got3 = age::mul({one, three, two});
+// 	auto gotn1 = age::sub(three, one);
+// 	auto got2 = age::sub(two, three);
+// 	auto got22 = age::min({two, three});
+
+// 	auto too = age::mul(age::reduce_mul(age::reduce_mul_1d(zero, 0), 0),
+// 		age::reduce_mul(age::mul({got1, got22})));
+// 	auto got11 = age::pow(got2, three);
+
+// 	auto m = age::min({got22, got1, too, got11});
+// 	auto root = ead::ops_prune({age::sub(
+// 		age::min({m, age::div(got3, gotn1)}), got2)})[0];
+
+// 	std::stringstream ss;
+// 	ss <<
+// 		"(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   `--(COS[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   `--(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |   `--(mul[4\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |   |   `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |   `--(COS[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |       `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |       `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   `--(POW[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |   `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |   |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |       `--(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |       |   `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |       |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |       |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |       `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |           `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |           `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		"     `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		"     `--(3([1\\1\\1\\1\\1\\1\\1\\1]))";
+// 	auto compare_str = compare_graph(ss, root);
+// 	EXPECT_EQ(0, compare_str.size()) << compare_str;
+// }
+
+
+TEST(OPTIMIZE, ReuseOpGraph)
 {
 	ead::NodeptrT<double> zero = ead::convert_to_node(
 		ead::make_variable_scalar<double>(0, ade::Shape()));
-	ead::NodeptrT<double> zero2 = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape()));
-	ead::NodeptrT<double> zero3 = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape()));
 	ead::NodeptrT<double> one = ead::convert_to_node(
 		ead::make_variable_scalar<double>(1, ade::Shape()));
-	ead::NodeptrT<double> one2 = ead::convert_to_node(
-		ead::make_variable_scalar<double>(1, ade::Shape()));
 	ead::NodeptrT<double> two = ead::convert_to_node(
-		ead::make_variable_scalar<double>(2, ade::Shape()));
-	ead::NodeptrT<double> two2 = ead::convert_to_node(
 		ead::make_variable_scalar<double>(2, ade::Shape()));
 
 	ead::NodeptrT<double> root;
 	{
 		auto got1 = age::cos(zero);
-		auto got3 = age::add(age::add(one, zero), two2);
-		auto gotn1 = age::sub(zero2, one2);
-		auto got2 = age::sub(two, zero3);
-		auto got22 = age::max(two, zero2);
+		auto got3 = age::add(age::add(one, zero), two);
+		auto gotn1 = age::sub(zero, one);
+		auto got2 = age::sub(two, zero);
+		auto got22 = age::max(two, zero);
 
 		auto too = age::add(zero, age::mul(got1, got22));
-		auto got11 = age::pow(got2, zero3);
+		auto got11 = age::pow(got2, zero);
 
 		auto m = age::min(age::min(got22, got1), age::min(too, got11));
 		root = age::sub(age::pow(m, age::div(got3, gotn1)), got2);
@@ -523,20 +511,20 @@ TEST(OPTIMIZE, DISABLED_ReuseOpGraph)
 	ead::NodeptrT<double> subroot;
 	{
 		auto other_got1 = age::cos(zero);
-		auto got22 = age::max(two2, zero3);
+		auto got22 = age::max(two, zero);
 		subroot = age::mul(other_got1, got22);
 	}
 
 	ead::NodeptrT<double> copyroot;
 	{
 		auto got1 = age::cos(zero);
-		auto got3 = age::add(age::add(one, zero), two2);
-		auto gotn1 = age::sub(zero2, one2);
-		auto got2 = age::sub(two, zero3);
-		auto got22 = age::max(two, zero2);
+		auto got3 = age::add(age::add(one, zero), two);
+		auto gotn1 = age::sub(zero, one);
+		auto got2 = age::sub(two, zero);
+		auto got22 = age::max(two, zero);
 
 		auto too = age::add(zero, age::mul(got1, got22));
-		auto got11 = age::pow(got2, zero3);
+		auto got11 = age::pow(got2, zero);
 
 		auto m = age::min(age::min(got22, got1), age::min(too, got11));
 		copyroot = age::sub(age::pow(m, age::div(got3, gotn1)), got2);
@@ -545,10 +533,10 @@ TEST(OPTIMIZE, DISABLED_ReuseOpGraph)
 	ead::NodeptrT<double> splitroot;
 	{
 		auto got1 = age::cos(zero);
-		auto got3 = age::add(age::add(one, zero), two2);
-		auto gotn1 = age::sub(zero2, one2);
-		auto got2 = age::sub(two, zero3);
-		auto got22 = age::max(two, zero2);
+		auto got3 = age::add(age::add(one, zero), two);
+		auto gotn1 = age::sub(zero, one);
+		auto got2 = age::sub(two, zero);
+		auto got22 = age::max(two, zero);
 
 		auto too = age::div(got2, age::mul(got1, got22));
 		auto got11 = age::eq(too, gotn1);

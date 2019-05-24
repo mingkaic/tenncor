@@ -2,10 +2,7 @@
 
 import os
 
-import age.templates.template as template
-
-from gen.plugin_base import PluginBase
-from gen.file_rep import FileRep
+import ead.generator.templates.template as template
 
 FILENAME = 'pyapi'
 
@@ -157,35 +154,24 @@ source.unique_wrap = ('apis', lambda apis: '\n\n'.join([_wrap_func(i, api)
 
 source.defs = ('apis', _mdef_apis)
 
-_plugin_id = 'PYBINDER'
-
 # EXPORT
-@PluginBase.register
-class PybinderPlugin:
+def process(directory, relpath, fields):
 
-    def plugin_id(self):
-        return _plugin_id
+    pybind_hdr_path = os.path.join(relpath, header.fpath)
 
-    def process(self, generated_files, arguments):
-        generated_files[header.fpath] = FileRep(
-            header.process(arguments),
-            user_includes=[],
-            internal_refs=[])
+    source.includes = [
+        '"pybind11/pybind11.h"',
+        '"pybind11/stl.h"',
+        '"' + pybind_hdr_path + '"',
+    ]
 
-        generated_files[source.fpath] = FileRep(
-            source.process(arguments),
-            user_includes=[
-                '"pybind11/pybind11.h"',
-                '"pybind11/stl.h"',
-            ],
-            internal_refs=[header.fpath])
+    directory['pyapi_hpp'] = header
+    directory['pyapi_src'] = source
 
-        for filename in [header.fpath, source.fpath]:
-            dfile = generated_files[filename]
-            include_key = '"' + dfile.fpath + '"'
+    header.process(fields)
+    source.process(fields)
 
-            if 'includes' in arguments and\
-                include_key in arguments['includes']:
-                dfile.includes += arguments['includes'][include_key]
+    if 'includes' in fields and source.fpath in fields['includes']:
+        source.includes += fields['includes'][source.fpath]
 
-        return generated_files
+    return directory

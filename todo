@@ -6,7 +6,9 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P1 - implement interactive session to capture graph nodes at runtime
+P1 - separate ead api into different namespaces
+P1 - implement node tagging to replace prx
+P2 - implement interactive session to capture graph nodes at runtime
 P2 - add intermediate_process to err_approximation like in
     https://github.com/mingkaic/rocnnet/blob/b0e6b9ef1b80ee3d33d68f48dd051a99c2df39ab/app/tenncor/src/utils/gd_utils.cpp
     then add clip_by_norm to dqn intermediate process
@@ -48,6 +50,7 @@ P4 - implement GPU settings
 P4 - remove unordered_map/unordered_set if we're not using them properly
 P4 - define optimization conversion rules to increase data accuracy
 P4 - more performance test
+P4 - improve ead opt module such that calculating functors as constants between rule conversions is configurable
 
 run-time performance:
 P3 - improve session implementation

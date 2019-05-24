@@ -73,13 +73,11 @@ cc_library(
         "//ead:generated/api.hpp",
         "//ead:generated/codes.hpp",
         "//ead:generated/data.hpp",
-        "//ead:generated/grader.hpp",
         "//ead:generated/opmap.hpp",
     ],
     srcs = glob(["src/*.cpp"]) + [
         "//ead:generated/api.cpp",
         "//ead:generated/codes.cpp",
-        "//ead:generated/grader.cpp",
         "//ead:generated/pyapi.hpp",
     ],
     copts = ["-std=c++17"],

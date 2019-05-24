@@ -1,0 +1,9 @@
+
+######### TEST_GENERATOR #########
+
+py_binary(
+    name = "agen",
+    srcs = glob(["*.py", "**/*.py"]),
+    deps = ["//gen:gen"],
+    visibility = ["//visibility:public"],
+)

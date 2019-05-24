@@ -22,6 +22,114 @@ namespace ead
 {
 
 template <typename T>
+NodeptrT<T> reduce_grad (const ade::FuncArg& child,
+	NodeptrT<T> bwd, size_t idx)
+{
+	const ade::Shape& shape = child.get_tensor()->shape();
+	ade::CoordptrT revshaper(child.get_shaper()->reverse());
+	CoordptrT revcoord;
+	{
+		auto coorder = child.get_coorder();
+		assert(nullptr != coorder);
+		ade::CoordT dims;
+		coorder->forward(dims.begin(), dims.begin());
+		ade::CoordT bcast;
+		std::fill(bcast.begin(), bcast.end(), 1);
+		for (uint8_t d : dims)
+		{
+			if (d < ade::rank_cap)
+			{
+				bcast[d] = shape.at(d);
+			}
+		}
+		revcoord = std::make_shared<CoordMap>(EXTEND, bcast, false);
+	}
+	return make_functor<T>(ade::Opcode{"EXTEND",age::EXTEND}, {
+		FuncArg<T>(bwd, revshaper, revcoord)
+	});
+}
+
+template <typename T>
+NodeptrT<T> reduce_prod_grad (ade::iFunctor* fwd,
+	NodeptrT<T> bwd, size_t idx)
+{
+	const auto& child = fwd->get_children()[0];
+	NodeptrT<T> childnode = NodeConverters<T>::to_node(child.get_tensor());
+	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
+		{FuncArg<T>(childnode, child.get_shaper(),
+			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
+	NodeptrT<T> rev_fwd = reduce_grad(child, fwd_cpy, idx);
+	return age::mul(age::div(rev_fwd, childnode),
+		reduce_grad(child, bwd, idx));
+}
+
+template <typename T>
+NodeptrT<T> reduce_comp_grad (ade::iFunctor* fwd,
+	NodeptrT<T> bwd, size_t idx)
+{
+	const auto& child = fwd->get_children()[0];
+	NodeptrT<T> childnode = NodeConverters<T>::to_node(child.get_tensor());
+	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
+		{FuncArg<T>(childnode, child.get_shaper(),
+			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
+	NodeptrT<T> rev_fwd = reduce_grad(child, fwd_cpy, idx);
+	return age::mul(age::eq(rev_fwd, childnode),
+		reduce_grad(child, bwd, idx));
+}
+
+template <typename T>
+NodeptrT<T> permute_grad (ade::iFunctor* fwd,
+	NodeptrT<T> bwd, size_t idx)
+{
+	const auto& child = fwd->get_children()[0];
+	ade::CoordptrT revshaper(child.get_shaper()->reverse());
+	CoordptrT revcoord;
+	{
+		auto coorder = child.get_coorder();
+		assert(nullptr != coorder);
+		ade::CoordT dims;
+		coorder->forward(dims.begin(), dims.begin());
+
+		ade::CoordT order;
+		for (uint8_t i = 0; i < ade::rank_cap; ++i)
+		{
+			order[dims[i]] = i;
+		}
+		revcoord = std::make_shared<CoordMap>(PERMUTE, order, true);
+	}
+	return make_functor<T>(ade::Opcode{"PERMUTE",age::PERMUTE},{
+		FuncArg<T>(bwd, revshaper, revcoord)
+	});
+}
+
+template <typename T>
+NodeptrT<T> extend_grad (ade::iFunctor* fwd,
+	NodeptrT<T> bwd, size_t idx)
+{
+	const auto& child = fwd->get_children()[0];
+	ade::CoordptrT revshaper(child.get_shaper()->reverse());
+	CoordptrT revcoord;
+	{
+		auto coorder = child.get_coorder();
+		assert(nullptr != coorder);
+		ade::CoordT dims;
+		coorder->forward(dims.begin(), dims.begin());
+		std::vector<uint8_t> red_dims;
+		for (uint8_t i = 0; i < ade::rank_cap; ++i)
+		{
+			if (dims[i] > 1)
+			{
+				red_dims.push_back(i);
+			}
+		}
+		revcoord = reduce(red_dims);
+	}
+	return make_functor<T>(ade::Opcode{"REDUCE_SUM",age::REDUCE_SUM},{
+		FuncArg<T>(bwd, revshaper, revcoord)
+	});
+}
+
+template <typename T>
 struct GradientBuilder final : public ade::iGradientBuilder
 {
 	/// Implementation of iGradientBuilder

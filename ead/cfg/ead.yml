@@ -1,0 +1,553 @@
+---
+dtype:
+  DOUBLE: double
+  FLOAT: float
+  INT8: int8_t
+  UINT8: uint8_t
+  INT16: int16_t
+  UINT16: uint16_t
+  INT32: int32_t
+  UINT32: uint32_t
+  INT64: int64_t
+  UINT64: uint64_t
+opcode:
+- operator_path: ead/operator.hpp
+- opcalls:
+    ABS: return ead::abs(shape,in[0])
+    NEG: return ead::neg(shape,in[0])
+    SIN: return ead::sin(shape,in[0])
+    COS: return ead::cos(shape,in[0])
+    TAN: return ead::tan(shape,in[0])
+    EXP: return ead::exp(shape,in[0])
+    LOG: return ead::log(shape,in[0])
+    SQRT: return ead::sqrt(shape,in[0])
+    ROUND: return ead::round(shape,in[0])
+    SIGMOID: return ead::sigmoid(shape,in[0])
+    SIGMOID_GRAD: return ead::sigmoid_grad(shape,in[0])
+    TANH: return ead::tanh(shape,in[0])
+    SQUARE: return ead::square(shape,in[0])
+    CUBE: return ead::cube(shape,in[0])
+    POW: return ead::pow(shape,in[0],in[1])
+    ADD: return ead::add(shape,in[0],in[1])
+    SUB: return ead::sub(shape,in[0],in[1])
+    MUL: return ead::mul(shape,in[0],in[1])
+    DIV: return ead::div(shape,in[0],in[1])
+    MIN: return ead::min(shape,in[0],in[1])
+    MAX: return ead::max(shape,in[0],in[1])
+    EQ: return ead::eq(shape,in[0],in[1])
+    NEQ: return ead::neq(shape,in[0],in[1])
+    LT: return ead::lt(shape,in[0],in[1])
+    GT: return ead::gt(shape,in[0],in[1])
+    RAND_UNIF: return ead::rand_uniform(shape,in[0],in[1])
+    REDUCE_SUM: return ead::reduce_sum(shape,in[0])
+    REDUCE_PROD: return ead::reduce_prod(shape,in[0])
+    REDUCE_MIN: return ead::reduce_min(shape,in[0])
+    REDUCE_MAX: return ead::reduce_max(shape,in[0])
+    PERMUTE: return ead::permute(shape,in[0])
+    EXTEND: return ead::extend(shape,in[0])
+    MATMUL: return ead::matmul(shape,in[0],in[1])
+    CONV: return ead::convolution(shape,in[0],in[1])
+    SLICE: return ead::slice(shape,in[0])
+    PAD: return ead::pad(shape,in[0])
+    CONV_IMG_GRAD: return ead::convolution_image_grad(shape,in[0],in[1])
+    CONV_KRN_GRAD: return ead::convolution_kernel_grad(shape,in[0],in[1])
+api:
+- pybind_type: float
+- includes:
+  - '"ead/helper.hpp"'
+  - '"ead/constant.hpp"'
+- definitions:
+  - template: typename T
+    name: abs
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"ABS",ABS},{ead::identity_map(arg1)})
+  - template: typename T
+    name: neg
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"NEG",NEG},{ead::identity_map(arg1)})
+  - template: typename T
+    name: sin
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"SIN",SIN},{ead::identity_map(arg1)})
+  - template: typename T
+    name: cos
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"COS",COS},{ead::identity_map(arg1)})
+  - template: typename T
+    name: tan
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"TAN",TAN},{ead::identity_map(arg1)})
+  - template: typename T
+    name: exp
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"EXP",EXP},{ead::identity_map(arg1)})
+  - template: typename T
+    name: log
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"LOG",LOG},{ead::identity_map(arg1)})
+  - template: typename T
+    name: sqrt
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"SQRT",SQRT},{ead::identity_map(arg1)})
+  - template: typename T
+    name: round
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"ROUND",ROUND},{ead::identity_map(arg1)})
+  - template: typename T
+    name: sigmoid
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"SIGMOID",SIGMOID},{ead::identity_map(arg1)})
+  - template: typename T
+    name: sigmoid_grad
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"SIGMOID_GRAD",SIGMOID_GRAD},{ead::identity_map(arg1)})
+  - template: typename T
+    name: tanh
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"TANH",TANH},{ead::identity_map(arg1)})
+  - template: typename T
+    name: square
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"SQUARE",SQUARE},{ead::identity_map(arg1)})
+  - template: typename T
+    name: cube
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"CUBE",CUBE},{ead::identity_map(arg1)})
+  - template: typename T
+    name: pow
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"POW",POW},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: add
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"ADD",ADD},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: sub
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"SUB",SUB},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: mul
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"MUL",MUL},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: div
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"DIV",DIV},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: eq
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"EQ",EQ},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: neq
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"NEQ",NEQ},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: lt
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"LT",LT},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: gt
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"GT",GT},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: rand_unif
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"RAND_UNIF",RAND_UNIF},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: n_elems
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_constant_scalar<T>(arg->get_tensor()->shape().n_elems(), ade::Shape())
+  - template: typename T
+    name: n_dims
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: ade::DimT
+      name: rank
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_constant_scalar<T>(arg->get_tensor()->shape().at(rank), ade::Shape())
+  - template: typename T
+    name: min
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"MIN",MIN},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: max
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"MAX",MAX},{ead::identity_map(arg1),ead::identity_map(arg2)})
+  - template: typename T
+    name: reduce_sum
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: tens
+    - dtype: ade::DimT
+      name: offset
+      default: '0'
+    - dtype: ade::DimT
+      name: ndims
+      default: ade::rank_cap
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_reduce<T>(ade::Opcode{"REDUCE_SUM",REDUCE_SUM},tens,offset,ndims)
+    description: sum values ignoring coordinate indices between start and end
+  - template: typename T
+    name: reduce_prod
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: tens
+    - dtype: ade::DimT
+      name: offset
+      default: '0'
+    - dtype: ade::DimT
+      name: ndims
+      default: ade::rank_cap
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_reduce<T>(ade::Opcode{"REDUCE_PROD",REDUCE_PROD},tens,offset,ndims)
+    description: multiply values ignoring coordinate indices between start and end
+  - template: typename T
+    name: reduce_min
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: tens
+    - dtype: ade::DimT
+      name: offset
+      default: '0'
+    - dtype: ade::DimT
+      name: ndims
+      default: ade::rank_cap
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_reduce<T>(ade::Opcode{"REDUCE_MIN",REDUCE_MIN},tens,offset,ndims)
+    description: min values ignoring coordinate indices between start and end
+  - template: typename T
+    name: reduce_max
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: tens
+    - dtype: ade::DimT
+      name: offset
+      default: '0'
+    - dtype: ade::DimT
+      name: ndims
+      default: ade::rank_cap
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_reduce<T>(ade::Opcode{"REDUCE_MAX",REDUCE_MAX},tens,offset,ndims)
+    description: max values ignoring coordinate indices between start and end
+  - template: typename T
+    name: reduce_sum_1d
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ade::DimT
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_SUM",REDUCE_SUM},arg1,arg2)
+  - template: typename T
+    name: reduce_prod_1d
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ade::DimT
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_PROD",REDUCE_PROD},arg1,arg2)
+  - template: typename T
+    name: reduce_min_1d
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ade::DimT
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_MIN",REDUCE_MIN},arg1,arg2)
+  - template: typename T
+    name: reduce_max_1d
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ade::DimT
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_MAX",REDUCE_MAX},arg1,arg2)
+  - template: typename T
+    name: permute
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: std::vector<ade::DimT>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"PERMUTE",PERMUTE},{ead::permute_map(arg1,arg2)})
+  - template: typename T
+    name: extend
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ade::DimT
+      name: arg2
+    - dtype: std::vector<ade::DimT>
+      name: arg3
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::make_functor<T>(ade::Opcode{"EXTEND",EXTEND},{ead::extend_map(arg1,arg2,arg3)})
+  - template: typename T
+    name: slice
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: ade::DimT
+      name: offset
+    - dtype: ade::DimT
+      name: extent
+    - dtype: ade::DimT
+      name: dimension
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_slice<T>(arg, offset, extent, dimension)
+  - template: typename T
+    name: pad
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: std::pair<ade::DimT,ade::DimT>
+      name: padding
+    - dtype: ade::DimT
+      name: dimension
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_pad<T>(arg, padding, dimension)
+  - template: typename T
+    name: transpose
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: permute<T>(arg1, {1, 0})
+  - template: typename T
+    name: reduce_mean
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    out:
+      type: ead::NodeptrT<T>
+      val: div<T>(reduce_sum<T>(arg1), n_elems<T>(arg1))
+  - template: typename T
+    name: matmul
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_matmul(arg1,arg2)
+  - template: typename T
+    name: convolution
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ead::NodeptrT<T>
+      name: arg2
+    - dtype: std::vector<ade::DimT>
+      name: dims
+    out:
+      type: ead::NodeptrT<T>
+      val: ead::build_convolve(arg1,arg2,dims)
+  - template: typename T
+    name: softmax
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg1
+    - dtype: ade::DimT
+      name: offset
+      default: '0'
+    - dtype: ade::DimT
+      name: ndims
+      default: ade::rank_cap
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          [&](){
+              auto exarg = exp(arg1);
+              ade::Shape shape = exarg->shape();
+              auto it = shape.begin() + offset;
+              std::vector<ade::DimT> xlist(it, it + ndims);
+              return div(exarg,
+                  extend(reduce_sum(exarg,offset,offset+ndims),
+                  offset, xlist));
+          }()
+  - template: typename T
+    name: conv2d
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: image
+    - dtype: ead::NodeptrT<T>
+      name: kernel
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          [&](){
+                  // image must be in form [in, width, height, batch]
+                  // kernel must be in form [out, in, width, height]
+                  // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d specifications
+                  ade::DimT nfilters = kernel->shape().at(0);
+                  ead::NodesT<T> convolveds;
+                  convolveds.reserve(nfilters);
+                  for (ade::DimT i = 0; i < nfilters; ++i)
+                  {
+                      auto filter = age::permute(
+                          age::slice(kernel, i, 1, 0),
+                          {1, 2, 3, 0});
+                      auto conved = age::convolution(image, filter,
+                          {0, 1, 2});
+                      auto padded = age::pad(conved,
+                          {i, nfilters - i - 1}, 0);
+                      convolveds.push_back(padded);
+                  }
+                  auto out = convolveds[0];
+                  for (ade::DimT i = 1; i < nfilters; ++i)
+                  {
+                      out = age::add(out, convolveds[i]);
+                  }
+                  return out;
+              }()

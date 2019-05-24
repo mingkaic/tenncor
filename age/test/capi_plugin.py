@@ -4,6 +4,9 @@ import os
 
 import age.templates.template as template
 
+from gen.plugin_base import PluginBase
+from gen.file_rep import FileRep
+
 _origtype = 'ade::TensptrT'
 _repltype = 'int64_t'
 
@@ -150,22 +153,29 @@ def _defn_func(api, affix):
 source.apis = ('apis', lambda apis: '\n\n'.join([_defn_func(api, affix)\
     for api, affix in affix_apis(apis)]))
 
-def process(directory, relpath, fields):
+_plugin_id = 'CAPI'
 
-    api_hdr_path = os.path.join(relpath, 'api.hpp')
-    capi_hdr_path = os.path.join(relpath, header.fpath)
+@PluginBase.register
+class CAPIPlugin:
 
-    source.includes = [
-        '<algorithm>',
-        '<unordered_map>',
-        '"' + api_hdr_path + '"',
-        '"' + capi_hdr_path + '"',
-    ]
+    def plugin_id(self):
+        return _plugin_id
 
-    directory['capi_hpp'] = header
-    directory['capi_src'] = source
+    def process(self, generated_files, arguments):
+        generated_files[header.fpath] = FileRep(
+            header.process(arguments),
+            user_includes=[],
+            internal_refs=[])
 
-    header.process(fields)
-    source.process(fields)
+        generated_files[source.fpath] = FileRep(
+            source.process(arguments),
+            user_includes=[
+                '<algorithm>',
+                '<unordered_map>',
+            ],
+            internal_refs=[
+                'api.hpp',
+                header.fpath,
+            ])
 
-    return directory
+        return generated_files

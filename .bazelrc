@@ -1,10 +1,10 @@
 
 # ------ ALL SETTINGS ------
 
-run --incompatible_disallow_dict_plus=false
-build --incompatible_disallow_dict_plus=false
-test --incompatible_disallow_dict_plus=false
-coverage --incompatible_disallow_dict_plus=false
+run --incompatible_disallow_dict_plus=false --python_top=//gen:python_runtime
+build --incompatible_disallow_dict_plus=false --python_top=//gen:python_runtime
+test --incompatible_disallow_dict_plus=false --python_top=//gen:python_runtime
+coverage --incompatible_disallow_dict_plus=false --python_top=//gen:python_runtime
 
 # ------ OPTIMIZATION ------
 

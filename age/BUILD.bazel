@@ -34,8 +34,8 @@ py_library(
 
 py_library(
     name = "age_generator",
-    srcs = glob(["generator/*.py"]),
-    deps = ["//age:age_tmpl"],
+    srcs = glob(["plugin/*.py"]),
+    deps = ["//age:age_tmpl", "//gen:gen2"],
     visibility = ["//visibility:public"],
 )
 
@@ -52,8 +52,12 @@ py_binary(
 
 py_binary(
     name = "cagen",
-    srcs = ["test/cagen.py", "test/capi_plugin.py"],
+    srcs = [
+        "test/cagen.py",
+        "test/capi_plugin.py",
+    ],
     deps = ["//age:age_generator"],
+    python_version = "PY3",
 )
 
 genrule(
@@ -73,8 +77,8 @@ genrule(
     ],
     tools = ["//age:cagen"],
     cmd = "$(location //age:cagen) " +
-        "--cfg $(location :test/mock.json) --out $(@D)/generated " +
-        "--strip_prefix=$$(dirname $(@D))",
+        "--cfg $(location :test/mock.json) " +
+        "--out $(@D)/generated",
 )
 
 ######### TEST #########

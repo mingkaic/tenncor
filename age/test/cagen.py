@@ -5,10 +5,10 @@ import json
 import os.path
 import sys
 
-import age.templates.template as template
-import age.generator.internal as internal_plugin
-import age.test.capi_plugin as capi_plugin
-from age.generator.generate import generate
+from age.plugin.internal import InternalPlugin
+from age.test.capi_plugin import CAPIPlugin
+
+from gen.generate import generate
 
 prog_description = 'Generate c++ glue layer mapping ADE and some data-processing library.'
 
@@ -25,8 +25,6 @@ def main(args):
         help='Configuration json file on mapping info (default: read from stdin)')
     parser.add_argument('--out', dest='outpath', nargs='?',
         help='Directory path to dump output files (default: write to stdin)')
-    parser.add_argument('--strip_prefix', dest='strip_prefix', nargs='?', default='',
-        help='Directory path to dump output files (default: write to stdin)')
     args = parser.parse_args(args)
 
     cfgpath = args.cfgpath
@@ -40,10 +38,9 @@ def main(args):
 
     fields = parse(cfg_str)
     outpath = args.outpath
-    strip_prefix = args.strip_prefix
 
-    generate(fields, outpath=outpath, strip_prefix=strip_prefix,
-        plugins=[internal_plugin, capi_plugin])
+    generate(fields, outpath=outpath,
+        plugins=[InternalPlugin(), CAPIPlugin()])
 
 if '__main__' == __name__:
     main(sys.argv[1:])
