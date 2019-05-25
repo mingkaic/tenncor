@@ -36,7 +36,7 @@ struct iSaver
 struct iLoader
 {
 	virtual ade::TensptrT generate_leaf (const char* data, ade::Shape shape,
-		size_t typecode, std::string label, bool is_const) = 0;
+		std::string typelabel, std::string label, bool is_const) = 0;
 
 	virtual ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) = 0;
 

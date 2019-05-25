@@ -112,7 +112,6 @@ struct GraphSaver final : public ade::iTraveler
 			cortenn::Functor* func = pb_node->mutable_functor();
 			ade::Opcode opcode = f->get_opcode();
 			func->set_opname(opcode.name_);
-			func->set_opcode(opcode.code_);
 			const ade::ArgsT& children = f->get_children();
 			for (auto& child : children)
 			{
@@ -150,11 +149,11 @@ private:
 	void save_data (cortenn::Source& out, ade::iLeaf* in)
 	{
 		const ade::Shape& shape = in->shape();
-		size_t tcode = in->type_code();
+		age::_GENERATED_DTYPE tcode = (age::_GENERATED_DTYPE) in->type_code();
 		bool is_const = false;
 		out.set_shape(std::string(shape.begin(), shape.end()));
 		out.set_data(saver_.save_leaf(is_const, in));
-		out.set_typecode(tcode);
+		out.set_typelabel(age::name_type(tcode));
 		out.set_is_const(is_const);
 	}
 

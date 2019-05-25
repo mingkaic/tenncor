@@ -170,7 +170,7 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 			ade::Shape shape(std::vector<ade::DimT>(sstr.begin(), sstr.end()));
 			std::string data = source.data();
 			ade::TensptrT leaf = loader.generate_leaf(data.c_str(),
-				shape, source.typecode(), src_label, source.is_const());
+				shape, source.typelabel(), src_label, source.is_const());
 			invec.push_back(leaf);
 			if (false == pb_labels.empty())
 			{
@@ -183,7 +183,8 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 		{
 			cortenn::Functor func = node.functor();
 			auto nodeargs = func.args();
-			ade::Opcode opcode{func.opname(), func.opcode()};
+			std::string opname = func.opname();
+			ade::Opcode opcode{opname, age::get_op(opname)};
 			ade::ArgsT args;
 			for (auto nodearg : nodeargs)
 			{

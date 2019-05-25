@@ -102,10 +102,10 @@ ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 struct EADLoader : public pbm::iLoader
 {
 	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
-		size_t typecode, std::string label, bool is_const) override
+		std::string typelabel, std::string label, bool is_const) override
 	{
 		ade::TensptrT leaf;
-		age::_GENERATED_DTYPE gencode = (age::_GENERATED_DTYPE) typecode;
+		age::_GENERATED_DTYPE gencode = age::get_type(typelabel);
 		size_t nbytes = age::type_size(gencode);
 		if (is_big_endian() && nbytes > 1)
 		{
@@ -118,11 +118,11 @@ struct EADLoader : public pbm::iLoader
 				out[outi] = pb[i];
 			}
 			pb = out.c_str();
-			TYPE_LOOKUP(_OUT_GENERIC, typecode)
+			TYPE_LOOKUP(_OUT_GENERIC, gencode)
 		}
 		else
 		{
-			TYPE_LOOKUP(_OUT_GENERIC, typecode)
+			TYPE_LOOKUP(_OUT_GENERIC, gencode)
 		}
 		return leaf;
 	}

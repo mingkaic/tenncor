@@ -137,8 +137,8 @@ struct DQNTrainer
 		DQNTrainingContext ctx) :
 		sess_(&sess),
 		params_(param),
-		ctx_(ctx),
-		source_qnet_(brain)
+		source_qnet_(brain),
+		ctx_(ctx)
 	{
 		initialize(nonlinearities, update);
 	}

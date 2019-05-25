@@ -19,7 +19,7 @@ const std::string testdir = "pbm/data";
 struct TestLoader : public pbm::iLoader
 {
 	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
-		size_t typecode, std::string label, bool is_const) override
+		std::string typelabel, std::string label, bool is_const) override
 	{
 		return ade::TensptrT(new MockTensor(shape));
 	}

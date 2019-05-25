@@ -7,7 +7,7 @@ package cortenn;
 message Source {
 	bytes shape = 1;
     bytes data = 2;
-    uint32 typecode = 3;
+    string typelabel = 3;
     bool is_const = 4;
 }
 
@@ -20,9 +20,8 @@ message NodeArg {
 
 message Functor {
     string opname = 1;
-    uint32 opcode = 2;
     // indices of args in graph
-    repeated NodeArg args = 3;
+    repeated NodeArg args = 2;
 }
 
 message Node {
