@@ -57,7 +57,6 @@ py_binary(
         "test/capi_plugin.py",
     ],
     deps = ["//age:age_generator"],
-    python_version = "PY3",
 )
 
 genrule(
@@ -78,7 +77,8 @@ genrule(
     tools = ["//age:cagen"],
     cmd = "$(location //age:cagen) " +
         "--cfg $(location :test/mock.json) " +
-        "--out $(@D)/generated",
+        "--out $(@D)/generated " +
+        "--strip_prefix=$$(dirname $(@D))",
 )
 
 ######### TEST #########

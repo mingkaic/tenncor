@@ -1,6 +1,6 @@
 #include "ade/opfunc.hpp"
 
-#include "ead/generated/opmap.hpp"
+#include "ead/generated/opcode.hpp"
 
 #include "ead/funcarg.hpp"
 #include "ead/constant.hpp"
@@ -154,8 +154,10 @@ Functor<T>* Functor<T>::get (ade::Opcode opcode, ArgsT<T> args)
 			coorder.get()
 		});
 	}
-	return new Functor<T>(age::typed_exec<T>(
-		(age::_GENERATED_OPCODE) opcode.code_, shape, tmaps),
+	EigenptrT<T> eigen;
+	age::typed_exec<T>((age::_GENERATED_OPCODE) opcode.code_,
+		shape, eigen, tmaps);
+	return new Functor<T>(eigen,
 		opcode, shape, input_args);
 }
 

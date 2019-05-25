@@ -7,21 +7,23 @@ import unittest
 from gen.generate import generate
 from gen.file_rep import FileRep
 from gen.plugin_base2 import PluginBase
+from gen.dump2 import GenDumpBase
 
-_test_generate_plugin_out = '''
-============== mock_b ==============
+_test_generate_plugin_a = '''
+#include "ma_name.hpp"
+#include "ya_name.h"
+#include <abc>
+
+abcde12345mock_content
+'''.strip()
+
+_test_generate_plugin_b = '''
 #include "his_name.hpp"
 #include "her_name.h"
 #include <xyz>
 #include "mock_a"
 
 fghij67890mock_content
-============== mock_a ==============
-#include "ma_name.hpp"
-#include "ya_name.h"
-#include <abc>
-
-abcde12345mock_content
 '''.strip()
 
 class MockLoggingHandler(logging.Handler):
@@ -44,12 +46,14 @@ class MockLoggingHandler(logging.Handler):
 _log_handler = MockLoggingHandler()
 
 class ClientTest(unittest.TestCase):
+    def setUp(self):
+        _log_handler.reset()
+
     def test_nonregistered_plugin(self):
         generate({'abc': 123}, plugins = ['abc'])
         messages = _log_handler.messages['warning']
         self.assertEqual(messages, [
             'plugin abc is not a registered plugin base:skipping plugin'])
-        _log_handler.reset()
 
     def test_empty_plugin(self):
         ''' This mock plugin returns no generated files '''
@@ -67,7 +71,6 @@ class ClientTest(unittest.TestCase):
         messages = _log_handler.messages['warning']
         self.assertEqual(messages, ['plugin empty failed '+\
             'to return dictionary of files:ignoring plugin output'])
-        _log_handler.reset()
 
     def test_faulty_plugin(self):
         ''' This mock plugin returns a dictionary of non-FileReps '''
@@ -86,9 +89,8 @@ class ClientTest(unittest.TestCase):
         generate({'abc': 123}, plugins = [FaultyPlugin()])
         messages = _log_handler.messages['warning']
         self.assertEqual(messages, ['generated representation '+\
-            '{\'a\': 1, \'3\': \'c\', \'@\': 2} '+\
+            '{\'a\': 1, \'@\': 2, \'3\': \'c\'} '+\
             'is not a FileRep:skipping file'])
-        _log_handler.reset()
 
     def test_generate_plugin(self):
         class Plugin:
@@ -107,13 +109,24 @@ class ClientTest(unittest.TestCase):
                 else:
                     refs = []
                 content = self.content + str(arguments)
-                return {
+                return generated_files.update({
                     self.outfile: FileRep(content,
                         user_includes=self.includes,
                         internal_refs=refs)
-                } + generated_files
+                })
 
         PluginBase.register(Plugin)
+
+        class MockDump:
+
+            def __init__(self):
+                self.files = {}
+
+            def write(self, filename, file):
+                out_content = file.generate('')
+                self.files[filename] = out_content
+
+        GenDumpBase.register(MockDump)
 
         a_file = 'mock_a'
         a_content = 'abcde12345'
@@ -127,11 +140,19 @@ class ClientTest(unittest.TestCase):
             Plugin(a_file, a_content, a_includes),
             Plugin(b_file, b_content, b_includes),
         ]
-        test_out = io.StringIO()
-        generate('mock_content', outpath=test_out, plugins = plugins)
-        self.assertEqual(_test_generate_plugin_out,
-            test_out.getvalue().strip())
-        _log_handler.reset()
+        test_out = MockDump()
+        generate('mock_content', out=test_out, plugins = plugins)
+
+        dump = test_out.files
+        self.assertTrue(a_file in dump,
+            '{} not found in {}'.format(a_file, dump))
+        self.assertTrue(b_file in dump,
+            '{} not found in {}'.format(b_file, dump))
+
+        self.assertEqual(_test_generate_plugin_a,
+            dump[a_file].strip())
+        self.assertEqual(_test_generate_plugin_b,
+            dump[b_file].strip())
 
 if __name__ == "__main__":
 

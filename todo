@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P1 - separate ead api into different namespaces
 P1 - implement node tagging to replace prx
 P2 - implement interactive session to capture graph nodes at runtime
 P2 - add intermediate_process to err_approximation like in
@@ -14,11 +13,14 @@ P2 - add intermediate_process to err_approximation like in
     then add clip_by_norm to dqn intermediate process
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
+P3 - separate ead api into different namespaces
 P3 - implement control nodes/edges for assignments
 P3 - implement grader extension for subgraphs
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === structure ===
+P1 - move age and pybinder to cortenn
+P2 - implement ops_pruning in optimization.rules then move opt to cortenn
 P3 - generalize rule conversion feature for all implementations of ade nodes
 P4 - move ead helper functions in ade
 

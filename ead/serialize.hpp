@@ -8,7 +8,8 @@
 
 #include "pbm/data.hpp"
 
-#include "ead/generated/opmap.hpp"
+#include "ead/generated/opcode.hpp"
+#include "ead/generated/dtype.hpp"
 
 #include "ead/coord.hpp"
 #include "ead/constant.hpp"

@@ -5,8 +5,10 @@ import json
 import os.path
 import sys
 
-import age.templates.template as template
-from age.generator.generate import generate
+from age.plugin.internal import InternalPlugin
+
+from gen.dump2 import PrintDump, FileDump
+from gen.generate import generate
 
 prog_description = 'Generate c++ glue layer mapping ADE and some data-processing library.'
 
@@ -21,7 +23,7 @@ def main(args):
     parser = argparse.ArgumentParser(description=prog_description)
     parser.add_argument('--cfg', dest='cfgpath', nargs='?',
         help='Configuration json file on mapping info (default: read from stdin)')
-    parser.add_argument('--out', dest='outpath', nargs='?',
+    parser.add_argument('--out', dest='outpath', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
     parser.add_argument('--strip_prefix', dest='strip_prefix', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
@@ -40,7 +42,14 @@ def main(args):
     outpath = args.outpath
     strip_prefix = args.strip_prefix
 
-    generate(fields, outpath=outpath, strip_prefix=strip_prefix)
+    if len(outpath) > 0:
+        includepath = outpath
+        if includepath and includepath.startswith(strip_prefix):
+            includepath = includepath[len(strip_prefix):].strip("/")
+        out = FileDump(outpath, includepath=includepath)
+    else:
+        out = PrintDump()
+    generate(fields, out=out, plugins=[InternalPlugin()])
 
 if '__main__' == __name__:
     main(sys.argv[1:])

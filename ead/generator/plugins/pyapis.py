@@ -1,28 +1,54 @@
-''' Extension to generate Pybind11 API file '''
+import logging
 
-import os
+from gen.plugin_base2 import PluginBase
+from gen.file_rep import FileRep
 
-import ead.generator.templates.template as template
-
-FILENAME = 'pyapi'
-
-_DEFAULT_PYBIND_TYPE = 'double'
+from ead.generator.plugins.template import build_template
+from ead.generator.plugins.apis import api_header
 
 _PYBINDT = '<PybindT>'
 
-_func_fmt = '''{outtype} {funcname}_{idx} ({param_decl})
-{{
-    return age::{funcname}({args});
-}}'''
+_header_template = '''
+// type to replace template arguments in pybind
+using PybindT = {pybind_type};
+//>>> ^ unique_wrap
+'''
 
-_template_prefixes = ['typename', 'class']
+_source_template = '''
+namespace py = pybind11;
+
+namespace pyage
+{{
+
+//>>> unique_wrap
+{unique_wrap}
+
+}}
+
+PYBIND11_MODULE(age, m)
+{{
+    m.doc() = "pybind ade generator";
+
+    py::class_<ade::iTensor,ade::TensptrT> tensor(m, "Tensor");
+
+    //>>> defs
+    {defs}
+}}
+'''
 
 def _strip_template_prefix(template):
+    _template_prefixes = ['typename', 'class']
     for template_prefix in _template_prefixes:
         if template.startswith(template_prefix):
             return template[len(template_prefix):].strip()
     return template
 
+_func_fmt = '''
+{outtype} {funcname}_{idx} ({param_decl})
+{{
+    return age::{funcname}({args});
+}}
+'''
 def _wrap_func(idx, api):
     if 'template' in api and len(api['template']) > 0:
         templates = [_strip_template_prefix(typenames)
@@ -44,9 +70,17 @@ def _wrap_func(idx, api):
         out = out.replace('<{}>'.format(temp), _PYBINDT)
     return out
 
-_mdef_fmt = 'm.def("{pyfunc}", &pyage::{func}_{idx}, {description}, {pyargs});'
+def _handle_pybind_type(pybind_type, apis):
+    return pybind_type
 
-def _mdef_apis(apis):
+def _handle_unique_wrap(pybind_type, apis):
+    return '\n\n'.join([
+        _wrap_func(i, api)
+        for i, api in enumerate(apis)]
+    )
+
+_mdef_fmt = 'm.def("{pyfunc}", &pyage::{func}_{idx}, {description}, {pyargs});'
+def _handle_defs(pybind_type, apis):
     cnames = {}
     def checkpy(cname):
         if cname in cnames:
@@ -120,58 +154,41 @@ def _mdef_apis(apis):
         pyargs = ', '.join([parse_pyargs(arg) for arg in api['args']]))
         for i, api in enumerate(apis)])
 
-# EXPORT
-header = template.AGE_FILE(FILENAME, template.HEADER_EXT,
-'''// type to replace template arguments in pybind
-using PybindT = {pybind_type};
-''')
+_plugin_id = 'PYBINDER'
 
-header.pybind_type = ('pybind_type', lambda pybind_type: pybind_type or _DEFAULT_PYBIND_TYPE)
+class PyAPIsPlugin:
 
-# EXPORT
-source = template.AGE_FILE(FILENAME, template.SOURCE_EXT,
-'''namespace py = pybind11;
+    def plugin_id(self):
+        return _plugin_id
 
-namespace pyage
-{{
+    def process(self, generated_files, arguments):
+        _hdr_file = 'pyapi.hpp'
+        _src_file = 'pyapi.cpp'
+        plugin_key = 'api'
+        if plugin_key not in arguments:
+            logging.warning(
+                'no relevant arguments found for plugin %s', _plugin_id)
+            return
 
-{unique_wrap}
+        module = globals()
+        api = arguments[plugin_key]
+        bindtype = api.get('pybind_type', 'double')
 
-}}
+        generated_files[_hdr_file] = FileRep(
+            build_template(_header_template, module,
+                bindtype, api['definitions']),
+            user_includes=[],
+            internal_refs=[])
 
-PYBIND11_MODULE(age, m)
-{{
-    m.doc() = "pybind ade generator";
+        generated_files[_src_file] = FileRep(
+            build_template(_source_template, module,
+                bindtype, api['definitions']),
+            user_includes=[
+                '"pybind11/pybind11.h"',
+                '"pybind11/stl.h"',
+            ],
+            internal_refs=[_hdr_file, api_header])
 
-    py::class_<ade::iTensor,ade::TensptrT> tensor(m, "Tensor");
+        return generated_files
 
-    {defs}
-}}
-''')
-
-source.unique_wrap = ('apis', lambda apis: '\n\n'.join([_wrap_func(i, api)
-    for i, api in enumerate(apis)]))
-
-source.defs = ('apis', _mdef_apis)
-
-# EXPORT
-def process(directory, relpath, fields):
-
-    pybind_hdr_path = os.path.join(relpath, header.fpath)
-
-    source.includes = [
-        '"pybind11/pybind11.h"',
-        '"pybind11/stl.h"',
-        '"' + pybind_hdr_path + '"',
-    ]
-
-    directory['pyapi_hpp'] = header
-    directory['pyapi_src'] = source
-
-    header.process(fields)
-    source.process(fields)
-
-    if 'includes' in fields and source.fpath in fields['includes']:
-        source.includes += fields['includes'][source.fpath]
-
-    return directory
+PluginBase.register(PyAPIsPlugin)

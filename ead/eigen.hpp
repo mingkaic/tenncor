@@ -3,7 +3,7 @@
 
 #include "ade/shape.hpp"
 
-#include "ead/generated/data.hpp"
+#include "ead/generated/dtype.hpp"
 
 #ifndef EAD_EIGEN_HPP
 #define EAD_EIGEN_HPP

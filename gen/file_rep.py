@@ -20,4 +20,4 @@ class FileRep:
         ]
 
         return '\n'.join(['#include {}'.format(include)
-            for include in includes]) + '\n\n' + self.content
+            for include in includes]) + '\n\n' + str(self.content)

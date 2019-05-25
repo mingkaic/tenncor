@@ -4,7 +4,7 @@ import os
 
 import age.templates.template as template
 
-from gen.plugin_base import PluginBase
+from gen.plugin_base2 import PluginBase
 from gen.file_rep import FileRep
 
 FILENAME = 'pyapi'
@@ -160,7 +160,6 @@ source.defs = ('apis', _mdef_apis)
 _plugin_id = 'PYBINDER'
 
 # EXPORT
-@PluginBase.register
 class PybinderPlugin:
 
     def plugin_id(self):
@@ -182,10 +181,11 @@ class PybinderPlugin:
 
         for filename in [header.fpath, source.fpath]:
             dfile = generated_files[filename]
-            include_key = '"' + dfile.fpath + '"'
 
             if 'includes' in arguments and\
-                include_key in arguments['includes']:
-                dfile.includes += arguments['includes'][include_key]
+                filename in arguments['includes']:
+                dfile.includes += arguments['includes'][filename]
 
         return generated_files
+
+PluginBase.register(PybinderPlugin)

@@ -4,12 +4,11 @@ import age.templates.data_tmpl as data
 import age.templates.grader_tmpl as grader
 import age.templates.opera_tmpl as opera
 
-from gen.plugin_base import PluginBase
+from gen.plugin_base2 import PluginBase
 from gen.file_rep import FileRep
 
 _plugin_id = 'INTERNAL'
 
-@PluginBase.register
 class InternalPlugin:
 
     def plugin_id(self):
@@ -59,7 +58,7 @@ class InternalPlugin:
                     grader.header.fpath,
                 ]),
             opera.header.fpath:
-                FileRep(data.header.process(arguments),
+                FileRep(opera.header.process(arguments),
                 user_includes=['"ade/functor.hpp"'],
                 internal_refs=[
                     codes.header.fpath,
@@ -68,10 +67,11 @@ class InternalPlugin:
 
         for filename in directory:
             dfile = directory[filename]
-            include_key = '"' + dfile.fpath + '"'
 
             if 'includes' in arguments and\
-                include_key in arguments['includes']:
-                dfile.includes += arguments['includes'][include_key]
+                filename in arguments['includes']:
+                dfile.includes += arguments['includes'][filename]
 
         return directory
+
+PluginBase.register(InternalPlugin)

@@ -1,6 +1,6 @@
 #include <regex>
 
-#include "ead/generated/codes.hpp"
+#include "ead/generated/opcode.hpp"
 
 #include "ead/ead.hpp"
 

@@ -7,21 +7,23 @@ import unittest
 from gen.generate import generate
 from gen.file_rep import FileRep
 from gen.plugin_base import PluginBase
+from gen.dump import GenDumpBase
 
-_test_generate_plugin_out = '''
-============== mock_b ==============
+_test_generate_plugin_a = '''
+#include "ma_name.hpp"
+#include "ya_name.h"
+#include <abc>
+
+abcde12345mock_content
+'''.strip()
+
+_test_generate_plugin_b = '''
 #include "his_name.hpp"
 #include "her_name.h"
 #include <xyz>
 #include "mock_a"
 
 fghij67890mock_content
-============== mock_a ==============
-#include "ma_name.hpp"
-#include "ya_name.h"
-#include <abc>
-
-abcde12345mock_content
 '''.strip()
 
 class ClientTest(unittest.TestCase):
@@ -87,8 +89,19 @@ class ClientTest(unittest.TestCase):
                 return {
                     self.outfile: FileRep(content,
                         user_includes=self.includes,
-                        internal_refs=refs)
-                } + generated_files
+                        internal_refs=refs),
+                    **generated_files
+                }
+
+        @GenDumpBase.register
+        class MockDump:
+
+            def __init__(self):
+                self.files = {}
+
+            def write(self, filename, file):
+                out_content = file.generate('')
+                self.files[filename] = out_content
 
         a_file = 'mock_a'
         a_content = 'abcde12345'
@@ -102,10 +115,19 @@ class ClientTest(unittest.TestCase):
             Plugin(a_file, a_content, a_includes),
             Plugin(b_file, b_content, b_includes),
         ]
-        test_out = io.StringIO()
-        generate('mock_content', outpath=test_out, plugins = plugins)
-        self.assertEqual(_test_generate_plugin_out,
-            test_out.getvalue().strip())
+        test_out = MockDump()
+        generate('mock_content', out=test_out, plugins = plugins)
+
+        dump = test_out.files
+        self.assertTrue(a_file in dump,
+            '{} not found in {}'.format(a_file, dump))
+        self.assertTrue(b_file in dump,
+            '{} not found in {}'.format(b_file, dump))
+
+        self.assertEqual(_test_generate_plugin_a,
+            dump[a_file].strip())
+        self.assertEqual(_test_generate_plugin_b,
+            dump[b_file].strip())
 
 if __name__ == "__main__":
     unittest.main()

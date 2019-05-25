@@ -1,4 +1,4 @@
-#include "ead/generated/codes.hpp"
+#include "ead/generated/opcode.hpp"
 
 #ifndef PRX_CODES_HPP
 #define PRX_CODES_HPP

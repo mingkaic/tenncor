@@ -9,6 +9,7 @@ from age.plugin.internal import InternalPlugin
 from age.test.capi_plugin import CAPIPlugin
 
 from gen.generate import generate
+from gen.dump2 import PrintDump, FileDump
 
 prog_description = 'Generate c++ glue layer mapping ADE and some data-processing library.'
 
@@ -23,7 +24,9 @@ def main(args):
     parser = argparse.ArgumentParser(description=prog_description)
     parser.add_argument('--cfg', dest='cfgpath', nargs='?',
         help='Configuration json file on mapping info (default: read from stdin)')
-    parser.add_argument('--out', dest='outpath', nargs='?',
+    parser.add_argument('--out', dest='outpath', nargs='?', default='',
+        help='Directory path to dump output files (default: write to stdin)')
+    parser.add_argument('--strip_prefix', dest='strip_prefix', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
     args = parser.parse_args(args)
 
@@ -38,8 +41,16 @@ def main(args):
 
     fields = parse(cfg_str)
     outpath = args.outpath
+    strip_prefix = args.strip_prefix
 
-    generate(fields, outpath=outpath,
+    if len(outpath) > 0:
+        includepath = outpath
+        if includepath and includepath.startswith(strip_prefix):
+            includepath = includepath[len(strip_prefix):].strip("/")
+        out = FileDump(outpath, includepath=includepath)
+    else:
+        out = PrintDump()
+    generate(fields, out=out,
         plugins=[InternalPlugin(), CAPIPlugin()])
 
 if '__main__' == __name__:

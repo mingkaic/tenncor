@@ -7,18 +7,19 @@ import abc
 class PluginBase(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def plugin_id(self):
-        """
+    def plugin_id(self) -> str:
+        '''
         Return plugin identifier
-        """
+        '''
 
     @abc.abstractmethod
-    def process(self, generated_files, arguments):
-        """
+    def process(self,
+        generated_files: dict, arguments: dict) -> dict:
+        '''
         Given
             output path
             dictionary of generated_files (
                 mapping filename to FileRep) and
             dictionary of arguments,
         Return {filename: FileRep}
-        """
+        '''

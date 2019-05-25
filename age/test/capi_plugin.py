@@ -4,7 +4,7 @@ import os
 
 import age.templates.template as template
 
-from gen.plugin_base import PluginBase
+from gen.plugin_base2 import PluginBase
 from gen.file_rep import FileRep
 
 _origtype = 'ade::TensptrT'
@@ -155,7 +155,6 @@ source.apis = ('apis', lambda apis: '\n\n'.join([_defn_func(api, affix)\
 
 _plugin_id = 'CAPI'
 
-@PluginBase.register
 class CAPIPlugin:
 
     def plugin_id(self):
@@ -178,4 +177,14 @@ class CAPIPlugin:
                 header.fpath,
             ])
 
+        if 'includes' in arguments and\
+            header.fpath in arguments['includes']:
+            generated_files[header.fpath] += arguments['includes'][header.fpath]
+
+        if 'includes' in arguments and\
+            source.fpath in arguments['includes']:
+            generated_files[source.fpath] += arguments['includes'][source.fpath]
+
         return generated_files
+
+PluginBase.register(CAPIPlugin)

@@ -8,15 +8,21 @@ import logging
 
 try: # this is a workaround (todo: remove)
     from gen.plugin_base import PluginBase
+    from gen.dump import GenDumpBase, PrintDump
 except:
     from gen.plugin_base2 import PluginBase
+    from gen.dump2 import GenDumpBase, PrintDump
 
 from gen.file_rep import FileRep
 
-def generate(fields, outpath = None, plugins = []):
+def generate(fields, out = PrintDump(), plugins = []):
+    if not isinstance(out, GenDumpBase):
+        logging.warning("unknown output dump %s: will not generate", out)
+        return
+
     generated_files = dict()
     for plugin in plugins:
-        if not issubclass(type(plugin), PluginBase):
+        if not isinstance(plugin, PluginBase):
             logging.warning('plugin %s is not a registered plugin base:'+\
                 'skipping plugin', plugin)
             continue
@@ -35,17 +41,4 @@ def generate(fields, outpath = None, plugins = []):
             logging.warning('generated representation %s is not a FileRep:'+\
                 'skipping file', file_rep)
             continue
-        if type(outpath) is str and len(outpath) > 0:
-            out_content = file_rep.generate(outpath)
-            filepath = os.path.join(outpath, filename)
-            logging.info('generating %s', filepath)
-            with open(filepath, 'w') as out:
-                out.write(out_content)
-        else:
-            out_content = file_rep.generate('')
-            file_out = '============== {} ==============\n'.format(
-                filename)+out_content+'\n'
-            if issubclass(type(outpath), io.IOBase) and outpath.writable():
-                outpath.write(file_out)
-            else:
-                print(file_out)
+        out.write(filename, file_rep)
