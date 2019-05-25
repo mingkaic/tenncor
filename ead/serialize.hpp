@@ -127,9 +127,9 @@ struct EADLoader : public pbm::iLoader
 		return leaf;
 	}
 
-	ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) override
+	ade::TensptrT generate_func (std::string opname, ade::ArgsT args) override
 	{
-		return ade::TensptrT(ade::Functor::get(opcode, args));
+		return ade::TensptrT(ade::Functor::get(ade::Opcode{opname, age::get_op(opname)}, args));
 	}
 
 	ade::CoordptrT generate_shaper (std::vector<double> coord) override
@@ -152,7 +152,7 @@ struct EADLoader : public pbm::iLoader
 	}
 
 	ade::CoordptrT generate_coorder (
-		ade::Opcode opcode, std::vector<double> coord) override
+		std::string opname, std::vector<double> coord) override
 	{
 		if (0 == coord.size()) // is identity
 		{
@@ -162,7 +162,7 @@ struct EADLoader : public pbm::iLoader
 		{
 			logs::fatal("cannot deserialize non-vector coordinate map");
 		}
-		bool is_bijective = non_bijectives.end() == non_bijectives.find(opcode.code_);
+		bool is_bijective = non_bijectives.end() == non_bijectives.find(age::get_op(opname));
 		ade::CoordT indices;
 		auto cit = coord.begin();
 		std::copy(cit, cit + ade::rank_cap, indices.begin());

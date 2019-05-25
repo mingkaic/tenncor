@@ -16,14 +16,6 @@ High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0
 This module supplies syntax tree for equation and generates derivative.
 Constraints to the equation is limited to each tensor's shape.
 
-- [AGE (ADE Generation Engine)](age/README_AGE.md)
-
-This generator creates glue layer between ADE and data manipulation libraries as well as map operational codes to its respective chain rule.
-
-- [BWD (Backward Operations)](bwd/README_BWD.md)
-
-This library provides traveler for generating partial derivative equations using some set of chain rules.
-
 - [EAD (Eigen ADE Operators)](ead/README_EAD.md)
 
 This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder.
@@ -36,10 +28,6 @@ This module specifies graph optimization through ADE's visitor pattern.
 - [PBM (Protobuf Marshaller)](pbm/README_PBM.md)
 
 This module marshals any ADE graph, but requires data serialization functors when saving and loading.
-
-- [Pybinder](pybinder/README_PY.md)
-
-This generator extends Tenncor's AGE generator. In this instance, on top of generating the ADE operators specified in LLO, pybinder generates pybind11 binding code.
 
 ## Tools and utility
 

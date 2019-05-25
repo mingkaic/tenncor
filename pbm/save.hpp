@@ -149,11 +149,10 @@ private:
 	void save_data (cortenn::Source& out, ade::iLeaf* in)
 	{
 		const ade::Shape& shape = in->shape();
-		age::_GENERATED_DTYPE tcode = (age::_GENERATED_DTYPE) in->type_code();
 		bool is_const = false;
 		out.set_shape(std::string(shape.begin(), shape.end()));
 		out.set_data(saver_.save_leaf(is_const, in));
-		out.set_typelabel(age::name_type(tcode));
+		out.set_typelabel(in->type_label());
 		out.set_is_const(is_const);
 	}
 

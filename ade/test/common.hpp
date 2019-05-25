@@ -34,6 +34,11 @@ struct MockTensor final : public ade::iLeaf
 		return 0;
 	}
 
+	std::string type_label (void) const override
+	{
+		return "";
+	}
+
 	ade::Shape shape_;
 };
 

@@ -10,8 +10,6 @@ filegroup(
     name = "srcs",
     srcs = [
         "//ade:srcs",
-        "//age:srcs",
-        "//bwd:srcs",
         "//dbg:srcs",
         "//ead:srcs",
         "//opt:srcs",

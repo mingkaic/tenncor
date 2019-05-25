@@ -52,6 +52,12 @@ struct iLeaf : public ade::iLeaf
 		return age::get_type<T>();
 	}
 
+	/// Implementation of iLeaf
+	std::string type_label (void) const override
+	{
+		return age::name_type(age::get_type<T>());
+	}
+
 	/// Return number of bytes in data source
 	size_t nbytes (void) const
 	{

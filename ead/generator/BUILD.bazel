@@ -1,9 +1,0 @@
-
-######### EXPERIMENTAL_GENERATOR #########
-
-py_binary(
-    name = "agen",
-    srcs = glob(["*.py", "**/*.py"]),
-    deps = ["//gen:gen2"],
-    visibility = ["//visibility:public"],
-)

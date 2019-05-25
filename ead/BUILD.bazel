@@ -42,6 +42,12 @@ filegroup(
 
 ######### LIBRARY #########
 
+py_binary(
+    name = "agen",
+    srcs = glob(["generator/agen.py", "generator/plugins/*.py"]),
+    deps = ["//gen:gen2"],
+)
+
 genrule(
     name = "generated_ead",
     srcs = ["cfg/ead.yml"],
@@ -55,8 +61,8 @@ genrule(
         "generated/pyapi.hpp",
         "generated/pyapi.cpp",
     ],
-    tools = ["//ead/generator:agen"],
-    cmd = "$(location //ead/generator:agen) " +
+    tools = ["//ead:agen"],
+    cmd = "$(location //ead:agen) " +
         "--cfg $(location :cfg/ead.yml) " +
         "--out $(@D)/generated " +
         "--strip_prefix=$$(dirname $(@D))",

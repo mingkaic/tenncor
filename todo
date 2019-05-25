@@ -6,7 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P1 - implement node tagging to replace prx
+P2 - implement node tagging to replace prx
 P2 - implement interactive session to capture graph nodes at runtime
 P2 - add intermediate_process to err_approximation like in
     https://github.com/mingkaic/rocnnet/blob/b0e6b9ef1b80ee3d33d68f48dd051a99c2df39ab/app/tenncor/src/utils/gd_utils.cpp
@@ -19,7 +19,6 @@ P3 - implement grader extension for subgraphs
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === structure ===
-P1 - move age and pybinder to cortenn
 P2 - implement ops_pruning in optimization.rules then move opt to cortenn
 P3 - generalize rule conversion feature for all implementations of ade nodes
 P4 - move ead helper functions in ade

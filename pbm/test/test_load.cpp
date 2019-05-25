@@ -24,9 +24,9 @@ struct TestLoader : public pbm::iLoader
 		return ade::TensptrT(new MockTensor(shape));
 	}
 
-	ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) override
+	ade::TensptrT generate_func (std::string opname, ade::ArgsT args) override
 	{
-		return ade::TensptrT(ade::Functor::get(opcode, args));
+		return ade::TensptrT(ade::Functor::get(ade::Opcode{opname, 0}, args));
 	}
 
 	ade::CoordptrT generate_shaper (std::vector<double> coord) override
@@ -49,7 +49,7 @@ struct TestLoader : public pbm::iLoader
 	}
 
 	ade::CoordptrT generate_coorder (
-		ade::Opcode opcode, std::vector<double> coord) override
+		std::string opname, std::vector<double> coord) override
 	{
 		return generate_shaper(coord);
 	}

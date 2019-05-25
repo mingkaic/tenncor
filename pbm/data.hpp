@@ -38,12 +38,12 @@ struct iLoader
 	virtual ade::TensptrT generate_leaf (const char* data, ade::Shape shape,
 		std::string typelabel, std::string label, bool is_const) = 0;
 
-	virtual ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) = 0;
+	virtual ade::TensptrT generate_func (std::string opname, ade::ArgsT args) = 0;
 
 	virtual ade::CoordptrT generate_shaper (std::vector<double> coord) = 0;
 
 	virtual ade::CoordptrT generate_coorder (
-		ade::Opcode opcode, std::vector<double> coord) = 0;
+		std::string opname, std::vector<double> coord) = 0;
 };
 
 }
