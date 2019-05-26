@@ -52,6 +52,7 @@ opcode:
     PAD: out = ead::pad(shape,in[0]);
     CONV_IMG_GRAD: out = ead::convolution_image_grad(shape,in[0],in[1]);
     CONV_KRN_GRAD: out = ead::convolution_kernel_grad(shape,in[0],in[1]);
+    SELECT: out = ead::select(shape, in[0], in[1], in[2]);
 api:
   pybind_type: float
   includes:
@@ -308,6 +309,24 @@ api:
     out:
       type: ead::NodeptrT<T>
       val: return ead::make_functor<T>(ade::Opcode{"MAX",MAX},{ead::identity_map(arg1),ead::identity_map(arg2)});
+  - template: typename T
+    name: if_then_else
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: condition
+    - dtype: ead::NodeptrT<T>
+      name: then
+    - dtype: ead::NodeptrT<T>
+      name: otherwise
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              return ead::make_functor<T>(ade::Opcode{"SELECT",SELECT},{
+                  ead::identity_map(condition),
+                  ead::identity_map(then),
+                  ead::identity_map(otherwise)
+              });
   - template: typename T
     name: reduce_sum
     args:
@@ -580,12 +599,8 @@ api:
               auto limit = ead::make_constant_scalar<T>(upper, shape);
               auto norm = extend(reduce_l2norm(arg), 0,
                   std::vector<ade::DimT>(shape.begin(), shape.end()));
-              auto keep_mask = lt(norm, limit);
-              auto clip_mask = gt(norm, limit);
-              return add(
-                  mul(keep_mask, arg),
-                  mul(clip_mask, div(mul(arg, limit), norm))
-              );
+              return if_then_else(lt(norm, limit),
+                  arg, div(mul(arg, limit), norm));
     description: 'clip by l2norm ((todo) allow l2norm to be configurable)'
   - template: typename T
     name: matmul

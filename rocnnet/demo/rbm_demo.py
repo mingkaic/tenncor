@@ -104,8 +104,9 @@ def main(args):
     def idx_generate():
         return np.random.randint(0, n_test_sample - args.n_test_chain)
 
-    testin = ead.variable(np.zeros([n_test_input, args.n_test_chain], dtype=float), "testin")
+    testin = ead.variable(np.zeros([args.n_test_chain, n_test_input], dtype=float), "testin")
     test_generated_in = brain.reconstruct_visible(testin, [age.sigmoid])
+    sess.track(test_generated_in)
 
     output_chains = []
     for i in range(args.n_sample):
@@ -114,7 +115,8 @@ def main(args):
         test_sample = testing_x[idx:idx + args.n_test_chain]
         for j in range(plot_every):
             testin.assign(test_sample)
-            test_sample = test_generated_in.evaluate()
+            sess.update([testin])
+            test_sample = test_generated_in.get()
 
         output_chains.append(test_sample)
 

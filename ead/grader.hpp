@@ -280,6 +280,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			case age::GT:
 			case age::LT:
 			case age::RAND_UNIF:
+			case age::SELECT:
 				out = get_const_zero(args[0].get_tensor()->shape());
 				break;
 			case age::REDUCE_PROD:
@@ -415,7 +416,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			{
 				ade::CoordT slicings;
 				auto& child = op->get_children()[0];
-				child.get_coorder()->forward(slicings.begin(), slicings.begin());
+				child.get_coorder()->forward(
+					slicings.begin(), slicings.begin());
 				ade::DimT dimension = slicings[2];
 				ade::DimT dim = child.get_tensor()->shape().at(dimension);
 				ade::DimT left_pad = slicings[0];
@@ -430,7 +432,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			{
 				ade::CoordT paddings;
 				auto& child = op->get_children()[0];
-				child.get_coorder()->forward(paddings.begin(), paddings.begin());
+				child.get_coorder()->forward(
+					paddings.begin(), paddings.begin());
 				ade::DimT dimension = paddings[2];
 				ade::DimT dim = op->shape().at(dimension);
 				ade::DimT offset = paddings[0];
@@ -438,6 +441,23 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				out = age::mul(NodeConverters<T>::to_node(local_der),
 					age::slice(NodeConverters<T>::to_node(supcomp_grad),
 						offset, extent, dimension));
+			}
+			case age::SELECT:
+			{
+				if (0 == arg_idx)
+				{
+					out = NodeConverters<T>::to_node(local_der);
+					break;
+				}
+				auto condition = NodeConverters<T>::to_node(
+					op->get_children()[0].get_tensor());
+				auto then = NodeConverters<T>::to_node(supcomp_grad);
+				auto otherwise = make_constant_scalar<T>(0, op->shape());
+				if (1 < arg_idx)
+				{
+					std::swap(then, otherwise);
+				}
+				out = age::if_then_else(condition, then, otherwise);
 			}
 				break;
 			case age::CONV_IMG_GRAD:

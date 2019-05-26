@@ -984,6 +984,38 @@ EigenptrT<T> rand_uniform (ade::Shape& outshape, const OpArg<T>& a, const OpArg<
 }
 
 template <typename T>
+EigenptrT<T> select (ade::Shape& outshape,
+	const OpArg<T>& condition,
+	const OpArg<T>& then, const OpArg<T>& otherwise)
+{
+	if (is_2d(outshape))
+	{
+		// use matrix when possible
+		return make_eigenmatrix<T,
+			Eigen::Select<MatMapT<T>,MatMapT<T>,MatMapT<T>>,
+			std::vector<MatMapT<T>>>(shape_convert(outshape),
+			[](std::vector<MatMapT<T>>& args) -> Eigen::Select<MatMapT<T>,MatMapT<T>,MatMapT<T>>
+			{
+				return args[0].select(args[1], args[2]);
+			}, {
+				make_matmap(condition.data_, condition.shape_),
+				make_matmap(then.data_, then.shape_),
+				make_matmap(otherwise.data_, otherwise.shape_)});
+	}
+	return make_eigentensor<T,
+		Eigen::TensorSelectOp<const TensMapT<T>,
+			const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args) -> Eigen::TensorSelectOp<const TensMapT<T>,const TensMapT<T>,const TensMapT<T>>
+		{
+			return args[0].select(args[1], args[2]);
+		}, {
+			make_tensmap(condition.data_, condition.shape_),
+			make_tensmap(then.data_, then.shape_),
+			make_tensmap(otherwise.data_, otherwise.shape_)});
+}
+
+template <typename T>
 EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
 	assert(is_2d(outshape));
