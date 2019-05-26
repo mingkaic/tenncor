@@ -283,7 +283,7 @@ api:
     args:
     - dtype: ead::NodeptrT<T>
       name: arg
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: rank
     out:
       type: ead::NodeptrT<T>
@@ -313,10 +313,10 @@ api:
     args:
     - dtype: ead::NodeptrT<T>
       name: tens
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: offset
       default: '0'
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: ndims
       default: ade::rank_cap
     out:
@@ -328,10 +328,10 @@ api:
     args:
     - dtype: ead::NodeptrT<T>
       name: tens
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: offset
       default: '0'
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: ndims
       default: ade::rank_cap
     out:
@@ -343,10 +343,10 @@ api:
     args:
     - dtype: ead::NodeptrT<T>
       name: tens
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: offset
       default: '0'
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: ndims
       default: ade::rank_cap
     out:
@@ -358,10 +358,10 @@ api:
     args:
     - dtype: ead::NodeptrT<T>
       name: tens
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: offset
       default: '0'
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: ndims
       default: ade::rank_cap
     out:
@@ -372,90 +372,64 @@ api:
     name: reduce_sum_1d
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
-    - dtype: ade::DimT
-      name: arg2
+      name: arg
+    - dtype: uint8_t
+      name: dimension
     out:
       type: ead::NodeptrT<T>
-      val: return ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_SUM",REDUCE_SUM},arg1,arg2);
+      val: return ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_SUM",REDUCE_SUM},arg,dimension);
   - template: typename T
     name: reduce_prod_1d
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
-    - dtype: ade::DimT
-      name: arg2
+      name: arg
+    - dtype: uint8_t
+      name: dimension
     out:
       type: ead::NodeptrT<T>
-      val: return ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_PROD",REDUCE_PROD},arg1,arg2);
+      val: return ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_PROD",REDUCE_PROD},arg,dimension);
   - template: typename T
     name: reduce_min_1d
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
-    - dtype: ade::DimT
-      name: arg2
+      name: arg
+    - dtype: uint8_t
+      name: dimension
     out:
       type: ead::NodeptrT<T>
-      val: return ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_MIN",REDUCE_MIN},arg1,arg2);
+      val: return ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_MIN",REDUCE_MIN},arg,dimension);
   - template: typename T
     name: reduce_max_1d
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
-    - dtype: ade::DimT
-      name: arg2
+      name: arg
+    - dtype: uint8_t
+      name: dimension
     out:
       type: ead::NodeptrT<T>
-      val: return ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_MAX",REDUCE_MAX},arg1,arg2);
+      val: return ead::build_reduce_1d<T>(ade::Opcode{"REDUCE_MAX",REDUCE_MAX},arg,dimension);
   - template: typename T
     name: permute
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     - dtype: std::vector<ade::DimT>
-      name: arg2
+      name: order
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"PERMUTE",PERMUTE},{ead::permute_map(arg1,arg2)});
+      val: return ead::make_functor<T>(ade::Opcode{"PERMUTE",PERMUTE},{ead::permute_map(arg,order)});
   - template: typename T
     name: extend
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
-    - dtype: ade::DimT
-      name: arg2
-    - dtype: std::vector<ade::DimT>
-      name: arg3
-    out:
-      type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"EXTEND",EXTEND},{ead::extend_map(arg1,arg2,arg3)});
-  - template: typename T
-    name: slice
-    args:
-    - dtype: ead::NodeptrT<T>
       name: arg
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: offset
-    - dtype: ade::DimT
-      name: extent
-    - dtype: ade::DimT
-      name: dimension
+    - dtype: std::vector<ade::DimT>
+      name: xlist
     out:
       type: ead::NodeptrT<T>
-      val: return ead::build_slice<T>(arg, offset, extent, dimension);
-  - template: typename T
-    name: pad
-    args:
-    - dtype: ead::NodeptrT<T>
-      name: arg
-    - dtype: std::pair<ade::DimT,ade::DimT>
-      name: padding
-    - dtype: ade::DimT
-      name: dimension
-    out:
-      type: ead::NodeptrT<T>
-      val: return ead::build_pad<T>(arg, padding, dimension);
+      val: return ead::make_functor<T>(ade::Opcode{"EXTEND",EXTEND},{ead::extend_map(arg,offset,xlist)});
   - template: typename T
     name: transpose
     args:
@@ -473,48 +447,272 @@ api:
       type: ead::NodeptrT<T>
       val: return div<T>(reduce_sum<T>(arg1), n_elems<T>(arg1));
   - template: typename T
+    name: reduce_l2norm
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: uint8_t
+      name: offset
+      default: '0'
+    - dtype: uint8_t
+      name: ndims
+      default: ade::rank_cap
+    out:
+      type: ead::NodeptrT<T>
+      val: return sqrt(reduce_sum(square(arg), offset, ndims));
+  - template: typename T
+    name: reduce_l2norm_1d
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: uint8_t
+      name: dimension
+    out:
+      type: ead::NodeptrT<T>
+      val: return sqrt(reduce_sum_1d(square(arg), dimension));
+  - template: typename T
+    name: slice
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: uint8_t
+      name: offset
+    - dtype: uint8_t
+      name: extent
+    - dtype: uint8_t
+      name: dimension
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              // (todo) report offset out of rank_cap
+              ade::CoordT slicings;
+              std::fill(slicings.begin(), slicings.end(), ade::rank_cap);
+              slicings[0] = offset;
+              slicings[1] = extent;
+              slicings[2] = dimension;
+              return ead::make_functor<T>(ade::Opcode{"SLICE", SLICE}, {
+                  ead::FuncArg<T>(arg,
+                      std::make_shared<ade::CoordMap>(
+                          [=](ade::MatrixT fwd)
+                          {
+                              for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                              {
+                                  fwd[i][i] = 1;
+                              }
+                              fwd[ade::rank_cap][dimension] =
+                                  extent - arg->shape().at(dimension);
+                          }),
+                      std::make_shared<ead::CoordMap>(ead::SLICE, slicings, false)
+                  )
+              });
+  - template: typename T
+    name: pad
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: std::pair<uint8_t,uint8_t>
+      name: padding
+    - dtype: uint8_t
+      name: dimension
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              // (todo) report if dimension out of rank_cap
+              ade::CoordT paddings;
+              std::fill(paddings.begin(), paddings.end(), ade::rank_cap);
+              paddings[0] = padding.first;
+              paddings[1] = padding.second;
+              paddings[2] = dimension;
+              return ead::make_functor<T>(ade::Opcode{"PAD", PAD}, {
+                  ead::FuncArg<T>(arg,
+                      std::make_shared<ade::CoordMap>(
+                          [=](ade::MatrixT fwd)
+                          {
+                              for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                              {
+                                  fwd[i][i] = 1;
+                              }
+                              fwd[ade::rank_cap][dimension] =
+                                  padding.first + padding.second;
+                          }),
+                      std::make_shared<ead::CoordMap>(ead::PAD, paddings, false)
+                  )
+              });
+  - template: typename T
+    name: clip_by_range
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: T
+      name: minval
+    - dtype: T
+      name: maxval
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (minval > maxval)
+              {
+                  logs::fatal("min value is below max");
+              }
+              ade::Shape shape = arg->shape();
+              auto lo = ead::make_constant_scalar<T>(minval, shape);
+              auto hi = ead::make_constant_scalar<T>(maxval, shape);
+              return max(min(arg, hi), lo);
+  - template: typename T
+    name: clip_by_l2norm
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: T
+      name: upper
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (upper == 0)
+              {
+                  logs::fatal("cannot clip_by_norm with a upper limit of 0");
+              }
+              ade::Shape shape = arg->shape();
+              auto limit = ead::make_constant_scalar<T>(upper, shape);
+              auto norm = extend(reduce_l2norm(arg), 0,
+                  std::vector<ade::DimT>(shape.begin(), shape.end()));
+              auto keep_mask = lt(norm, limit);
+              auto clip_mask = gt(norm, limit);
+              return add(
+                  mul(keep_mask, arg),
+                  mul(clip_mask, div(mul(arg, limit), norm))
+              );
+    description: 'clip by l2norm ((todo) allow l2norm to be configurable)'
+  - template: typename T
     name: matmul
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: a
     - dtype: ead::NodeptrT<T>
-      name: arg2
+      name: b
     out:
       type: ead::NodeptrT<T>
-      val: return ead::build_matmul(arg1,arg2);
+      val: |
+          //
+              ade::Shape ashape = a->get_tensor()->shape();
+              ade::Shape bshape = b->get_tensor()->shape();
+              ade::DimT ncommon = ashape.at(0);
+              ade::DimT nrow = ashape.at(1);
+              ade::DimT ncol = bshape.at(0);
+              if (ncommon != bshape.at(1))
+              {
+                  logs::fatalf("invalid matmul shapes %s and %s",
+                      ashape.to_string().c_str(), bshape.to_string().c_str());
+              }
+
+              ade::CoordptrT left_shaper(new ade::CoordMap(
+                  [=](ade::MatrixT fwd)
+                  {
+                      for (uint8_t i = 3; i < ade::mat_dim; ++i)
+                      {
+                          fwd[i][i] = 1;
+                      }
+                      fwd[2][0] = ncol;
+                      fwd[1][1] = 1;
+                      fwd[0][2] = 1.0 / ncommon;
+                  }
+              ));
+
+              ade::CoordptrT right_shaper(new ade::CoordMap(
+                  [=](ade::MatrixT fwd)
+                  {
+                      for (uint8_t i = 3; i < ade::mat_dim; ++i)
+                      {
+                          fwd[i][i] = 1;
+                      }
+                      fwd[0][0] = 1;
+                      fwd[2][1] = nrow;
+                      fwd[1][2] = 1.0 / ncommon;
+                  }
+              ));
+              return ead::make_functor<T>(ade::Opcode{"MATMUL", age::MATMUL}, {
+                  ead::FuncArg<T>(a, left_shaper, nullptr),
+                  ead::FuncArg<T>(b, right_shaper, nullptr)
+              });
   - template: typename T
     name: convolution
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: input
     - dtype: ead::NodeptrT<T>
-      name: arg2
+      name: kernel
     - dtype: std::vector<ade::DimT>
       name: dims
     out:
       type: ead::NodeptrT<T>
-      val: return ead::build_convolve(arg1,arg2,dims);
+      val: |
+          //
+              ade::Shape inshape = input->get_tensor()->shape();
+              ade::Shape kernelshape = kernel->get_tensor()->shape();
+              ade::CoordptrT input_shaper(new ade::CoordMap(
+                  [kernelshape](ade::MatrixT fwd)
+                  {
+                      for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                      {
+                          fwd[i][i] = 1;
+                      }
+                      for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                      {
+                          fwd[ade::rank_cap][i] = -kernelshape.at(i) + 1;
+                      }
+                  }
+              ));
+
+              ade::CoordptrT kernel_shaper(new ade::CoordMap(
+                  [inshape](ade::MatrixT fwd)
+                  {
+                      for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                      {
+                          fwd[i][i] = -1;
+                      }
+                      for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                      {
+                          fwd[ade::rank_cap][i] = inshape.at(i) + 1;
+                      }
+                  }
+              ));
+
+              ade::CoordT kernel_dims;
+              auto it = kernel_dims.begin();
+              std::fill(it, kernel_dims.end(), ade::rank_cap);
+              std::copy(dims.begin(), dims.end(), it);
+              return ead::make_functor<T>(ade::Opcode{"CONV", CONV}, {
+                  ead::FuncArg<T>(input, input_shaper, nullptr),
+                  ead::FuncArg<T>(kernel, kernel_shaper,
+                      std::make_shared<ead::CoordMap>(
+                          ead::CONV, kernel_dims, true)),
+              });
   - template: typename T
     name: softmax
     args:
     - dtype: ead::NodeptrT<T>
       name: arg1
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: offset
       default: '0'
-    - dtype: ade::DimT
+    - dtype: uint8_t
       name: ndims
       default: ade::rank_cap
     out:
       type: ead::NodeptrT<T>
       val: |
-          auto exarg = exp(arg1);
-          ade::Shape shape = exarg->shape();
-          auto it = shape.begin() + offset;
-          std::vector<ade::DimT> xlist(it, it + ndims);
-          return div(exarg,
-              extend(reduce_sum(exarg,offset,offset+ndims),
-              offset, xlist));
+          //
+              auto exarg = exp(arg1);
+              ade::Shape shape = exarg->shape();
+              auto it = shape.begin() + offset;
+              std::vector<ade::DimT> xlist(it, it + ndims);
+              return div(exarg,
+                  extend(reduce_sum(exarg,offset,offset+ndims),
+                  offset, xlist));
   - template: typename T
     name: conv2d
     args:
@@ -525,26 +723,27 @@ api:
     out:
       type: ead::NodeptrT<T>
       val: |
-          // image must be in form [in, width, height, batch]
-          // kernel must be in form [out, in, width, height]
-          // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d specifications
-          ade::DimT nfilters = kernel->shape().at(0);
-          ead::NodesT<T> convolveds;
-          convolveds.reserve(nfilters);
-          for (ade::DimT i = 0; i < nfilters; ++i)
-          {
-              auto filter = age::permute(
-                  age::slice(kernel, i, 1, 0),
-                  {1, 2, 3, 0});
-              auto conved = age::convolution(image, filter,
-                  {0, 1, 2});
-              auto padded = age::pad(conved,
-                  {i, nfilters - i - 1}, 0);
-              convolveds.push_back(padded);
-          }
-          auto out = convolveds[0];
-          for (ade::DimT i = 1; i < nfilters; ++i)
-          {
-              out = age::add(out, convolveds[i]);
-          }
-          return out;
+          //
+              // image must be in form [in, width, height, batch]
+              // kernel must be in form [out, in, width, height]
+              // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d specifications
+              ade::DimT nfilters = kernel->shape().at(0);
+              ead::NodesT<T> convolveds;
+              convolveds.reserve(nfilters);
+              for (ade::DimT i = 0; i < nfilters; ++i)
+              {
+                  auto filter = permute(
+                      slice(kernel, i, 1, 0),
+                      {1, 2, 3, 0});
+                  auto conved = convolution(image, filter,
+                      {0, 1, 2});
+                  auto padded = pad(conved,
+                      {i, nfilters - i - 1}, 0);
+                  convolveds.push_back(padded);
+              }
+              auto out = convolveds[0];
+              for (ade::DimT i = 1; i < nfilters; ++i)
+              {
+                  out = add(out, convolveds[i]);
+              }
+              return out;

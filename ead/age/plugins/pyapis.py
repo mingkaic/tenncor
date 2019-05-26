@@ -1,16 +1,17 @@
+import re
 import logging
 
 from gen.plugin_base2 import PluginBase
 from gen.file_rep import FileRep
 
-from ead.generator.plugins.template import build_template
-from ead.generator.plugins.apis import api_header
+from ead.age.plugins.template import build_template
+from ead.age.plugins.apis import api_header
 
-_PYBINDT = '<PybindT>'
+_pybindt = 'PybindT'
 
 _header_template = '''
 // type to replace template arguments in pybind
-using PybindT = {pybind_type};
+using {pybind} = {pybind_type};
 //>>> ^ unique_wrap
 '''
 
@@ -27,7 +28,7 @@ namespace pyage
 
 PYBIND11_MODULE(age, m)
 {{
-    m.doc() = "pybind ade generator";
+    m.doc() = "pybind ade age";
 
     py::class_<ade::iTensor,ade::TensptrT> tensor(m, "Tensor");
 
@@ -35,6 +36,11 @@ PYBIND11_MODULE(age, m)
     {defs}
 }}
 '''
+
+def _sub_pybind(stmt, source):
+    _type_pattern = '([^\w]){}([^\w])'.format(source)
+    _type_replace = '\\1{}\\2'.format(_pybindt)
+    return re.sub(_type_pattern, _type_replace, ' ' + stmt + ' ').strip()
 
 def _strip_template_prefix(template):
     _template_prefixes = ['typename', 'class']
@@ -67,8 +73,11 @@ def _wrap_func(idx, api):
             for arg in api['args']]),
         args = ', '.join([arg['name'] for arg in api['args']]))
     for temp in templates:
-        out = out.replace('<{}>'.format(temp), _PYBINDT)
+        out = _sub_pybind(out, temp)
     return out
+
+def _handle_pybind(pybind_type, apis):
+    return _pybindt
 
 def _handle_pybind_type(pybind_type, apis):
     return pybind_type
@@ -134,7 +143,7 @@ def _handle_defs(pybind_type, apis):
         if isinstance(api['out'], dict) and 'type' in api['out']:
             outtype = api['out']['type']
             for temp in templates:
-                outtype = outtype.replace('<{}>'.format(temp), _PYBINDT)
+                outtype = _sub_pybind(outtype, temp)
             outtypes.add(outtype)
 
     class_defs = []

@@ -3,7 +3,7 @@ import logging
 from gen.plugin_base2 import PluginBase
 from gen.file_rep import FileRep
 
-from ead.generator.plugins.template import build_template
+from ead.age.plugins.template import build_template
 
 _header_template = '''
 #ifndef _GENERATED_DTYPES_HPP

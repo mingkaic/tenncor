@@ -384,6 +384,24 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             self._common_unary_tf(shape, age.tanh, tf.tanh)
 
+    def test_clip_by_range(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape,
+                lambda x: age.clip_by_range(x, 0.3, 0.6),
+                lambda x: tf.clip_by_value(x, 0.3, 0.6))
+
+    def test_clip_by_l2norm(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape,
+                lambda x: age.clip_by_l2norm(x, 5),
+                lambda x: tf.clip_by_norm(x, 5))
+
     def test_softmax(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
@@ -595,6 +613,49 @@ class EADTest(unittest.TestCase):
 
     def test_rmax(self):
         self._common_reduce(age.reduce_max, age.reduce_max, tf.reduce_max)
+
+    def test_rl2norm(self):
+        shapes = [
+            [3, 4, 5],
+            [1, 50, 1]
+        ]
+        for shape in shapes:
+            data = np.random.rand(*shape)
+            var = ead.variable(data, 'var')
+            tf_var = tf.Variable(data)
+
+            tfsess = tf.Session()
+            tfsess.run(tf_var.initializer)
+
+            out = age.reduce_l2norm(var)
+            tf_out = tf.norm(tf_var)
+
+            sess = ead.Session()
+            sess.track(out)
+            sess.update()
+
+            fout = out.get()
+            tf_fout = np.array(tfsess.run(tf_out))
+
+            self._array_close(tf_fout, fout)
+
+            var2 = ead.variable(data, 'var2')
+            ex = ead.derive(out, var)
+            zero = ead.derive(out, var2)
+            sess.track(ex)
+            sess.track(zero)
+            sess.update()
+
+            tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+            data0 = np.zeros(shape, dtype=np.float32)
+            der = ex.get()
+            rej = zero.get()
+
+            exdata = tfsess.run(tf_grad)
+
+            self._array_close(exdata, der)
+            self._array_eq(data0, rej)
 
     def test_matmul(self):
         shapes = [

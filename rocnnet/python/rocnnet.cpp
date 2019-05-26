@@ -62,21 +62,21 @@ modl::RBMptrT rbm_init (size_t n_input, std::vector<ade::DimT> nouts,
 // 		std::vector<uint8_t>(n_hiddens.begin(), n_hiddens.end()), label);
 // }
 
-eqns::ApproxFuncT get_sgd (PybindT learning_rate)
+eqns::ApproxFuncT get_sgd (PybindT learning_rate, eqns::NodeUnarF gradprocess)
 {
 	return [=](ead::NodeptrT<PybindT>& root, eqns::VariablesT leaves)
 	{
-		return eqns::sgd(root, leaves, learning_rate);
+		return eqns::sgd(root, leaves, learning_rate, gradprocess);
 	};
 }
 
 eqns::ApproxFuncT get_rms_momentum (PybindT learning_rate,
-	PybindT discount_factor, PybindT epsilon)
+	PybindT discount_factor, PybindT epsilon, eqns::NodeUnarF gradprocess)
 {
 	return [=](ead::NodeptrT<PybindT>& root, eqns::VariablesT leaves)
 	{
 		return eqns::rms_momentum(root, leaves, learning_rate,
-			discount_factor, epsilon);
+			discount_factor, epsilon, gradprocess);
 	};
 }
 
@@ -388,12 +388,14 @@ PYBIND11_MODULE(rocnnet, m)
 
 
 	// inlines
-	m.def("identity", [](ead::NodeptrT<PybindT> in) { return in; });
+	m.def("identity", &eqns::identity);
 
 	m.def("get_sgd", &pyrocnnet::get_sgd,
-		py::arg("learning_rate") = 0.5);
+		py::arg("learning_rate") = 0.5,
+		py::arg("gradprocess") = eqns::NodeUnarF(eqns::identity));
 	m.def("get_rms_momentum", &pyrocnnet::get_rms_momentum,
 		py::arg("learning_rate") = 0.5,
 		py::arg("discount_factor") = 0.99,
-		py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon());
+		py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon(),
+		py::arg("gradprocess") = eqns::NodeUnarF(eqns::identity));
 };

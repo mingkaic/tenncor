@@ -6,10 +6,10 @@ import os.path
 import sys
 import logging
 
-from ead.generator.plugins.dtypes import DTypesPlugin
-from ead.generator.plugins.opcodes import OpcodesPlugin
-from ead.generator.plugins.apis import APIsPlugin
-from ead.generator.plugins.pyapis import PyAPIsPlugin
+from ead.age.plugins.dtypes import DTypesPlugin
+from ead.age.plugins.opcodes import OpcodesPlugin
+from ead.age.plugins.apis import APIsPlugin
+from ead.age.plugins.pyapis import PyAPIsPlugin
 
 from gen.dump2 import PrintDump, FileDump
 from gen.generate import generate

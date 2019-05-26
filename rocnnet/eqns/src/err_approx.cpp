@@ -9,8 +9,13 @@
 namespace eqns
 {
 
+ead::NodeptrT<PybindT> identity (ead::NodeptrT<PybindT> node)
+{
+	return node;
+}
+
 AssignGroupsT sgd (ead::NodeptrT<PybindT>& root, VariablesT leaves,
-	PybindT learning_rate, std::string root_label)
+	PybindT learning_rate, NodeUnarF gradprocess, std::string root_label)
 {
 	AssignsT assignments;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
@@ -20,7 +25,8 @@ AssignGroupsT sgd (ead::NodeptrT<PybindT>& root, VariablesT leaves,
 		// given root = f, err(x) ~ x - η * df(x), where η is the learning rate
 		ade::Shape gshape = grad->shape();
 		auto next = age::sub(leaf_node,
-			age::mul(grad, ead::make_constant_scalar<PybindT>(learning_rate, gshape)));
+			age::mul(gradprocess(grad),
+				ead::make_constant_scalar<PybindT>(learning_rate, gshape)));
 		assignments.push_back(VarAssign{
 			fmts::sprintf("sgd::%s_grad_%s",
 				root_label.c_str(), leaves[i]->get_label().c_str()),
@@ -30,7 +36,8 @@ AssignGroupsT sgd (ead::NodeptrT<PybindT>& root, VariablesT leaves,
 }
 
 AssignGroupsT rms_momentum (ead::NodeptrT<PybindT>& root, VariablesT leaves,
-	PybindT learning_rate, PybindT discount_factor, PybindT epsilon, std::string root_label)
+	PybindT learning_rate, PybindT discount_factor, PybindT epsilon,
+	NodeUnarF gradprocess, std::string root_label)
 {
 	// assign momentums before leaves
 	AssignsT momentum_assigns;
@@ -59,7 +66,8 @@ AssignGroupsT rms_momentum (ead::NodeptrT<PybindT>& root, VariablesT leaves,
 			);
 		auto leaf_next = age::sub(leaf_node,
 			age::div(
-				age::mul(grad, ead::make_constant_scalar<PybindT>(learning_rate, gshape)),
+				age::mul(gradprocess(grad),
+					ead::make_constant_scalar<PybindT>(learning_rate, gshape)),
 				age::add(age::sqrt(momentum_node),
 					ead::make_constant_scalar<PybindT>(epsilon, gshape))
 			));

@@ -80,7 +80,8 @@ def main(args):
 
     bgd = rcn.get_rms_momentum(
         learning_rate = 0.1,
-        discount_factor = 0.5)
+        discount_factor = 0.5,
+        gradprocess = lambda x: age.clip_by_l2norm(x, 5))
     param = rcn.get_dqninfo(
         mini_batch_size = 1,
         store_interval = 1,

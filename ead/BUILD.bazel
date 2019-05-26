@@ -44,7 +44,7 @@ filegroup(
 
 py_binary(
     name = "agen",
-    srcs = glob(["generator/agen.py", "generator/plugins/*.py"]),
+    srcs = glob(["age/agen.py", "age/plugins/*.py"]),
     deps = ["//gen:gen2"],
 )
 
