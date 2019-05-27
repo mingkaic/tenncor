@@ -120,7 +120,7 @@ def main(args):
 
         output_chains.append(test_sample)
 
-    mnist_imageout(arg.imgdir, output_chains, testin.shape(), args.n_test_chain, args.n_sample)
+    mnist_imageout(args.outdir, output_chains, testin.shape(), args.n_test_chain, args.n_sample)
 
 if '__main__' == __name__:
     main(sys.argv[1:])

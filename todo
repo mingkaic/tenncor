@@ -7,13 +7,20 @@ P5 = "get to it eventually"
 
 === feature ===
 P2 - implement node tagging to replace prx
-P2 - implement interactive session to capture graph nodes at runtime
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
 P3 - separate ead api into different namespaces
 P3 - implement control nodes/edges for assignments
 P3 - implement grader extension for subgraphs
 P4 - implement reduce_prod gradient using Eigen cumprod
+
+=== transparency ===
+P2 - implement interactive session to capture graph nodes at runtime
+P2 - provide graph-setup time summary when failing to match shapes
+P4 - add even more debugging tools
+P4 - formalize codestyle
+P4 - refactor, and rename variables to improve readability
+P4 - conform to some bazel style/convention (or change to another build tool)
 
 === structure ===
 P2 - implement ops_pruning in optimization.rules then move opt to cortenn
@@ -27,14 +34,6 @@ P3 - maximize coverage
 P3 - test rule conversion
 P3 - test rocnnet + eqns, modl, and trainer (or subgraph equivalent)
 P4 - test complicate equations (generate random valid equations)
-
-=== transparency ===
-P2 - provide graph-setup time summary when failing to match shapes
-P3 - improve interactive debugger with dashboard for inspecting tensors
-P4 - add even more debugging tools
-P4 - formalize codestyle
-P4 - refactor, and rename variables to improve readability
-P4 - conform to some bazel style/convention (or change to another build tool)
 
 === update ===
 P2 - update all fmts usages

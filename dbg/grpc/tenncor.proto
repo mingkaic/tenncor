@@ -23,7 +23,7 @@ message EdgeInfo {
 }
 
 message GraphInfo {
-    int32 graph_id = 1;
+    string graph_id = 1;
 
     repeated NodeInfo nodes = 2;
 

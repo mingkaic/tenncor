@@ -80,6 +80,7 @@ struct InteractiveSession final : public ead::iSession
 		// setup request
 		tenncor::CreateGraphRequest request;
 		auto payload = request.mutable_payload();
+		payload->set_graph_id(sess_id_);
 		for (auto& statpair : sess_.stat_.graphsize_)
 		{
 			auto tens = statpair.first;
@@ -90,7 +91,7 @@ struct InteractiveSession final : public ead::iSession
 				auto node = payload->add_nodes();
 				node->set_id(id);
 				node->set_repr(tens->to_string());
-				auto s = node->shape();
+				auto s = tens->shape();
 				google::protobuf::RepeatedField<uint32_t> shape(
 					s.begin(), s.end());
 				node->mutable_shape()->Swap(&shape);
@@ -133,17 +134,16 @@ struct InteractiveSession final : public ead::iSession
 				response.message().c_str());
 			return;
 		}
-		std::stringstream uuid;
-		uuid << uuid_gen();
+		std::string request_id = boost::uuids::to_string(uuid_gen());
 		logs::errorf("%s: CreateGraphRequest failure: %s",
-			uuid.str().c_str(), status.error_message().c_str());
+			request_id.c_str(), status.error_message().c_str());
 		// attempt retry
 		std::promise<void> exit_signal;
 		std::future<void> future_obj = exit_signal.get_future();
 
 		std::thread thread(
 			[this](std::future<void> future_obj,
-				tenncor::CreateGraphRequest request, std::string uuid)
+				tenncor::CreateGraphRequest request, std::string request_id)
 			{
 				size_t attempt = 1;
 				while (future_obj.wait_for(std::chrono::milliseconds(1)) ==
@@ -161,20 +161,20 @@ struct InteractiveSession final : public ead::iSession
 					if (status.ok())
 					{
 						logs::infof("%s: CreateGraphRequest success: %s",
-							uuid.c_str(), response.message().c_str());
-						this->retry_jobs_.erase(uuid); // cleanup
+							request_id.c_str(), response.message().c_str());
+						this->retry_jobs_.erase(request_id); // cleanup
 						return;
 					}
 					logs::errorf(
 						"%s: CreateGraphRequest attempt %d failure: %s",
-						uuid.c_str(), attempt,
+						request_id.c_str(), attempt,
 						status.error_message().c_str());
 					std::this_thread::sleep_for(
 						std::chrono::milliseconds(attempt * 1000));
 					++attempt;
 				}
-			}, std::move(future_obj), std::move(request), uuid.str());
-		retry_jobs_.emplace(uuid.str(), std::pair<std::thread,std::promise<void>>{
+			}, std::move(future_obj), std::move(request), request_id);
+		retry_jobs_.emplace(request_id, std::pair<std::thread,std::promise<void>>{
 			std::move(thread), std::move(exit_signal)});
 	}
 
@@ -196,6 +196,9 @@ struct InteractiveSession final : public ead::iSession
 
 	std::unordered_map<std::string,
 		std::pair<std::thread,std::promise<void>>> retry_jobs_;
+
+	std::string sess_id_ = boost::uuids::to_string(
+		InteractiveSession::uuid_gen());
 };
 
 boost::uuids::random_generator InteractiveSession::uuid_gen;
