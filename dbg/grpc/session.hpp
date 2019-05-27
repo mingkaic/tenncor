@@ -21,6 +21,8 @@
 namespace dbg
 {
 
+static const size_t max_attempts = 10;
+
 struct EdgeInfo
 {
 	size_t parent_;
@@ -48,11 +50,17 @@ inline bool operator == (const EdgeInfo& lhs, const EdgeInfo& rhs)
 
 struct InteractiveSession final : public ead::iSession
 {
-	static boost::uuids::random_generator uuid_gen;
+	static boost::uuids::random_generator uuid_gen_;
+
+	using JobT = std::pair<std::thread,std::promise<void>>;
 
 	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
-		size_t graph_id) : stub_(tenncor::GraphEmitter::NewStub(channel)),
-			graph_id_(graph_id) {}
+		size_t graph_id) :
+		stub_(tenncor::GraphEmitter::NewStub(channel)),
+		graph_id_(graph_id)
+	{
+		logs::infof("created session: %s", sess_id_.c_str());
+	}
 
 	InteractiveSession (std::string host, size_t graph_id) :
 		InteractiveSession(grpc::CreateChannel(host,
@@ -61,16 +69,15 @@ struct InteractiveSession final : public ead::iSession
 	~InteractiveSession (void)
 	{
 		// trigger all exit signals
-		for (auto& rjob : retry_jobs_)
+		job_mutex_.lock();
+		for (auto& sig : kill_sigs_)
 		{
-			rjob.second.second.set_value();
+			sig.second.set_value();
 		}
+		job_mutex_.unlock();
 
 		// wait for termination
-		for (auto& rjob : retry_jobs_)
-		{
-			rjob.second.first.join();
-		}
+		join();
 	}
 
 	void track (ade::iTensor* root) override
@@ -134,7 +141,7 @@ struct InteractiveSession final : public ead::iSession
 				response.message().c_str());
 			return;
 		}
-		std::string request_id = boost::uuids::to_string(uuid_gen());
+		std::string request_id = boost::uuids::to_string(uuid_gen_());
 		logs::errorf("%s: CreateGraphRequest failure: %s",
 			request_id.c_str(), status.error_message().c_str());
 		// attempt retry
@@ -145,9 +152,10 @@ struct InteractiveSession final : public ead::iSession
 			[this](std::future<void> future_obj,
 				tenncor::CreateGraphRequest request, std::string request_id)
 			{
+				auto id = std::this_thread::get_id();
 				size_t attempt = 1;
 				while (future_obj.wait_for(std::chrono::milliseconds(1)) ==
-					std::future_status::timeout)
+					std::future_status::timeout && attempt < max_attempts)
 				{
 					grpc::ClientContext context;
 					tenncor::CreateGraphResponse response;
@@ -162,7 +170,7 @@ struct InteractiveSession final : public ead::iSession
 					{
 						logs::infof("%s: CreateGraphRequest success: %s",
 							request_id.c_str(), response.message().c_str());
-						this->retry_jobs_.erase(request_id); // cleanup
+						this->remove_job(id);
 						return;
 					}
 					logs::errorf(
@@ -174,14 +182,83 @@ struct InteractiveSession final : public ead::iSession
 					++attempt;
 				}
 			}, std::move(future_obj), std::move(request), request_id);
-		retry_jobs_.emplace(request_id, std::pair<std::thread,std::promise<void>>{
-			std::move(thread), std::move(exit_signal)});
+
+		std::lock_guard<std::mutex> lock(job_mutex_);
+		retry_jobs_.push_back(std::move(thread));
+		kill_sigs_.emplace(thread.get_id(), std::move(exit_signal));
 	}
 
 	void update (ead::TensSetT updated = {},
 		ead::TensSetT ignores = {}) override
 	{
-		sess_.update(updated, ignores);
+		// basic copy over from session::update
+		std::unordered_map<ade::iOperableFunc*,ead::SizeT> fulfilments;
+		for (ade::iTensor* unodes : updated)
+		{
+			auto& node_parents = sess_.parents_[unodes];
+			for (auto& node_parent : node_parents)
+			{
+				++fulfilments[node_parent].d;
+			}
+		}
+		// ignored nodes and its dependers will never fulfill requirement
+		for (auto& op : sess_.requirements_)
+		{
+			// fulfilled and not ignored
+			if (fulfilments[op.first].d >= op.second &&
+				ignores.end() == ignores.find(op.first))
+			{
+				op.first->update();
+				auto& op_parents = sess_.parents_[op.first];
+				for (auto& op_parent : op_parents)
+				{
+					++fulfilments[op_parent].d;
+				}
+				// // mark update
+				// tenncor::UpdateNodeDataRequest request;
+			}
+		}
+	}
+
+	void join (void)
+	{
+		while (true)
+		{
+			{
+				std::lock_guard<std::mutex>(job_mutex_);
+				if (retry_jobs_.empty())
+				{
+					return;
+				}
+				auto& t = retry_jobs_.front();
+				if (false == t.joinable())
+				{
+					retry_jobs_.pop_front();
+				}
+			}
+
+			if (t.joinable())
+			{
+				t.join();
+			}
+		}
+	}
+
+	void remove_job (std::thread::id request_id)
+	{
+		std::lock_guard<std::mutex> lock(job_mutex_);
+		auto kit = kill_sigs_.find(request_id);
+		if (kill_sigs_.end() != kit)
+		{
+			kill_sigs_.erase(kit);
+		}
+
+		auto iter = std::find_if(retry_jobs_.begin(), retry_jobs_.end(),
+			[=](std::thread &t) { return t.get_id() == request_id; });
+		if (iter != retry_jobs_.end())
+		{
+			retry_jobs_.erase(iter);
+		}
 	}
 
 	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
@@ -194,14 +271,17 @@ struct InteractiveSession final : public ead::iSession
 
 	std::unordered_set<EdgeInfo,EdgeInfoHash> edges_;
 
-	std::unordered_map<std::string,
-		std::pair<std::thread,std::promise<void>>> retry_jobs_;
+	std::list<std::thread> retry_jobs_;
+
+	std::unordered_map<std::thread::id,std::promise<void>> kill_sigs_;
+
+	std::mutex job_mutex_;
 
 	std::string sess_id_ = boost::uuids::to_string(
-		InteractiveSession::uuid_gen());
+		InteractiveSession::uuid_gen_());
 };
 
-boost::uuids::random_generator InteractiveSession::uuid_gen;
+boost::uuids::random_generator InteractiveSession::uuid_gen_;
 
 }
 

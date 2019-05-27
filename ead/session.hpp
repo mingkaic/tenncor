@@ -26,6 +26,13 @@ struct iSession
 	virtual void update (TensSetT updated = {}, TensSetT ignores = {}) = 0;
 };
 
+struct SizeT
+{
+	size_t d = 0;
+
+	operator size_t() const { return d; }
+};
+
 // for each leaf node, iteratively update the parents
 // don't update parent node if it is part of ignored set
 struct Session final : public iSession
@@ -83,14 +90,9 @@ struct Session final : public iSession
 		}
 	}
 
-	struct SizeTDefaultZero
-	{
-		size_t d = 0;
-	};
-
 	void update (TensSetT updated = {}, TensSetT ignores = {}) override
 	{
-		std::unordered_map<ade::iOperableFunc*,SizeTDefaultZero> fulfilments;
+		std::unordered_map<ade::iOperableFunc*,SizeT> fulfilments;
 		for (ade::iTensor* unodes : updated)
 		{
 			auto& node_parents = parents_[unodes];

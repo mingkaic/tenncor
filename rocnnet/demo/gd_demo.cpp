@@ -219,6 +219,7 @@ int main (int argc, const char** argv)
 			logs::warnf("failed to save model to '%s'", savepath.c_str());
 		}
 	}
+	sess.join();
 
 	google::protobuf::ShutdownProtobufLibrary();
 
