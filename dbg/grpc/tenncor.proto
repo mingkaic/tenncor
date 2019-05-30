@@ -4,14 +4,22 @@ package tenncor;
 
 // ======== GENERAL MESSAGE OBJECTS ========
 
+message NodeLoc {
+    // maximum distance from a leaf node
+    uint32 maxheight = 1;
+
+    // minimum distance from a leaf node
+    uint32 minheight = 2;
+}
+
 message NodeInfo {
     int32 id = 1;
 
-    repeated string labels = 2;
+    repeated uint32 shape = 2;
 
-    string repr = 3;
+    map<string,string> tags = 3;
 
-    repeated uint32 shape = 4;
+    NodeLoc location = 4;
 }
 
 message EdgeInfo {
@@ -20,6 +28,10 @@ message EdgeInfo {
     int32 child = 2;
 
     string label = 3;
+
+    string shaper = 4;
+
+    string coorder = 5;
 }
 
 message GraphInfo {
@@ -34,6 +46,8 @@ message NodeData {
     int32 id = 1;
 
     repeated float data = 2;
+
+    uint64 update_order = 3;
 }
 
 enum Status {
@@ -44,6 +58,8 @@ enum Status {
 }
 
 // ======== REQUEST + RESPONSE MESSAGES ========
+
+message Empty {}
 
 message CreateGraphRequest {
     GraphInfo payload = 1;
@@ -76,6 +92,8 @@ message UpdateNodeDataResponse {
 }
 
 service GraphEmitter {
+    rpc HealthCheck (Empty) returns (Empty);
+
     // Create or update listed nodes and edges
     rpc CreateGraph (CreateGraphRequest) returns (CreateGraphResponse);
 

@@ -57,6 +57,12 @@ struct Subgraph final : public ade::iOperableFunc
 		return ops_.back()->raw_data();
 	}
 
+	/// Implementation of iOperableFunc
+	size_t type_code (void) const override
+	{
+		return ops_.back()->type_code();
+	}
+
 private:
 	Subgraph (ade::Opcode graphcode, ade::TensptrT root,
 		ade::TensT treat_asleaf) :

@@ -64,6 +64,12 @@ struct Functor final : public ade::iOperableFunc
 		return out_->get_ptr();
 	}
 
+	/// Implementation of iOperableFunc
+	size_t type_code (void) const override
+	{
+		return age::get_type<T>();
+	}
+
 private:
 	Functor (EigenptrT<T> out,
 		ade::Opcode opcode, ade::Shape shape, ade::ArgsT args) :

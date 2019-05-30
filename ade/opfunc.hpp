@@ -25,6 +25,9 @@ struct iOperableFunc : public iFunctor
 
 	/// Return data-cache raw pointer
 	virtual void* raw_data (void) = 0;
+
+	/// Return data type encoding
+	virtual size_t type_code (void) const = 0;
 };
 
 }

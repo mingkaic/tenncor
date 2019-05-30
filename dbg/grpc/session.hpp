@@ -1,6 +1,7 @@
 #include <chrono>
 #include <thread>
 #include <future>
+#include <mutex>
 
 #include <grpc/grpc.h>
 #include <grpcpp/channel.h>
@@ -22,6 +23,10 @@ namespace dbg
 {
 
 static const size_t max_attempts = 10;
+
+static const std::string tag_str_key = "name";
+
+static const std::string edge_label_fmt = "parent-child-%d";
 
 struct EdgeInfo
 {
@@ -48,31 +53,87 @@ inline bool operator == (const EdgeInfo& lhs, const EdgeInfo& rhs)
 	return hasher(lhs) == hasher(rhs);
 }
 
+template <typename ...ARGS>
+struct ManagedThread
+{
+	ManagedThread (std::function<void(std::future<void>,ARGS...)> job,
+		ARGS&&... args) :
+		job_(job, exit_signal_.get_future(), std::forward<ARGS>(args)...) {}
+
+	/// return thread id
+	std::thread::id get_id (void) const
+	{
+		return job_.get_id();
+	}
+
+	bool joinable (void) const
+	{
+		return job_.joinable();
+	}
+
+	/// join if joinable
+	void join (void)
+	{
+		if (job_.joinable())
+		{
+			job_.join();
+		}
+	}
+
+	/// stop the job_
+	void stop (void)
+	{
+		exit_signal_.set_value();
+	}
+
+private:
+	std::promise<void> exit_signal_;
+
+	std::thread job_;
+};
+
 struct InteractiveSession final : public ead::iSession
 {
 	static boost::uuids::random_generator uuid_gen_;
 
-	using JobT = std::pair<std::thread,std::promise<void>>;
-
-	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
-		size_t graph_id) :
+	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel) :
 		stub_(tenncor::GraphEmitter::NewStub(channel)),
-		graph_id_(graph_id)
+		health_checker_(
+			[this](std::future<void> future_obj)
+			{
+				tenncor::Empty empty;
+				do
+				{
+					grpc::ClientContext context;
+					tenncor::CreateGraphResponse response;
+					// set context deadline
+					std::chrono::time_point deadline = std::chrono::system_clock::now() +
+						std::chrono::milliseconds(1000);
+					context.set_deadline(deadline);
+					grpc::Status status = stub_->HealthCheck(&context, empty, &empty);
+					this->connected_ = status.ok();
+
+					std::this_thread::sleep_for(
+						std::chrono::milliseconds(1000));
+				}
+				while (future_obj.wait_for(std::chrono::milliseconds(1)) ==
+					std::future_status::timeout);
+			})
 	{
 		logs::infof("created session: %s", sess_id_.c_str());
 	}
 
-	InteractiveSession (std::string host, size_t graph_id) :
+	InteractiveSession (std::string host) :
 		InteractiveSession(grpc::CreateChannel(host,
-			grpc::InsecureChannelCredentials()), graph_id) {}
+			grpc::InsecureChannelCredentials())) {}
 
 	~InteractiveSession (void)
 	{
 		// trigger all exit signals
 		job_mutex_.lock();
-		for (auto& sig : kill_sigs_)
+		for (auto& job : retry_jobs_)
 		{
-			sig.second.set_value();
+			job.stop();
 		}
 		job_mutex_.unlock();
 
@@ -91,71 +152,215 @@ struct InteractiveSession final : public ead::iSession
 		for (auto& statpair : sess_.stat_.graphsize_)
 		{
 			auto tens = statpair.first;
+			auto& range = statpair.second;
 			size_t id = node_ids_.size();
 			if (node_ids_.emplace(tens, id).second)
 			{
 				// add to request
 				auto node = payload->add_nodes();
 				node->set_id(id);
-				node->set_repr(tens->to_string());
+				node->mutable_tags()->insert({tag_str_key, tens->to_string()});
 				auto s = tens->shape();
 				google::protobuf::RepeatedField<uint32_t> shape(
 					s.begin(), s.end());
 				node->mutable_shape()->Swap(&shape);
+				auto location = node->mutable_location();
+				location->set_maxheight(range.upper_);
+				location->set_minheight(range.lower_);
 			}
-		}
 
-		auto dest_edges = payload->mutable_edges();;
-		for (auto ppair : sess_.parents_)
-		{
-			for (ade::iOperableFunc* parent : ppair.second)
+			if (range.upper_ > 0)
 			{
-				if (edges_.emplace(EdgeInfo{
-						node_ids_[parent],
-						node_ids_[ppair.first],
-						"parent-child",
-					}).second)
+				auto f = static_cast<ade::iFunctor*>(tens);
+				auto& children = f->get_children();
+				for (size_t i = 0, n = children.size(); i < n; ++i)
 				{
-					// add to request
-					tenncor::EdgeInfo* edge = dest_edges->Add();
-					edge->set_parent(node_ids_[parent]);
-					edge->set_child(node_ids_[ppair.first]);
-					edge->set_label("parent-child");
+					auto& child = children[i];
+					auto child_tens = child.get_tensor().get();
+					auto shaper = child.get_shaper();
+					auto coorder = child.get_coorder();
+					std::string label = fmts::sprintf(edge_label_fmt, i);
+					if (edges_.emplace(EdgeInfo{
+						node_ids_[f],
+						node_ids_[child_tens],
+						label,
+					}).second)
+					{
+						// add to request
+						auto edge = payload->add_edges();
+						edge->set_parent(node_ids_[f]);
+						edge->set_child(node_ids_[child_tens]);
+						edge->set_label(label);
+						if (false == ade::is_identity(shaper.get()))
+						{
+							edge->set_shaper(shaper->to_string());
+						}
+						if (false == ade::is_identity(coorder.get()))
+						{
+							edge->set_coorder(coorder->to_string());
+						}
+					}
 				}
 			}
 		}
 
-		// send creation request
-		grpc::ClientContext context;
-		tenncor::CreateGraphResponse response;
-		// set context deadline
-		std::chrono::time_point deadline = std::chrono::system_clock::now() +
-			std::chrono::milliseconds(100);
-		context.set_deadline(deadline);
+		create_graph(request);
+	}
 
-		grpc::Status status = stub_->CreateGraph(
-			&context, request, &response);
-		if (status.ok())
+	void update (ead::TensSetT updated = {},
+		ead::TensSetT ignores = {}) override
+	{
+		++update_it_;
+		if (false == connected_)
 		{
-			logs::infof("CreateGraphRequest success: %s",
-				response.message().c_str());
+			sess_.update(updated, ignores);
 			return;
 		}
-		std::string request_id = boost::uuids::to_string(uuid_gen_());
-		logs::errorf("%s: CreateGraphRequest failure: %s",
-			request_id.c_str(), status.error_message().c_str());
-		// attempt retry
-		std::promise<void> exit_signal;
-		std::future<void> future_obj = exit_signal.get_future();
 
-		std::thread thread(
+		// basic copy over from session::update
+		std::unordered_map<ade::iOperableFunc*,ead::SizeT> fulfilments;
+		for (ade::iTensor* unodes : updated)
+		{
+			auto& node_parents = sess_.parents_[unodes];
+			for (auto& node_parent : node_parents)
+			{
+				++fulfilments[node_parent].d;
+			}
+		}
+
+		tenncor::UpdateNodeDataResponse response;
+		grpc::ClientContext context;
+		// set context deadline
+		std::chrono::time_point deadline = std::chrono::system_clock::now() +
+			std::chrono::milliseconds(500);
+		context.set_deadline(deadline);
+		std::unique_ptr<grpc::ClientWriterInterface<
+			tenncor::UpdateNodeDataRequest>> writer(
+			stub_->UpdateNodeData(&context, &response));
+		bool send_request = true;
+
+		// ignored nodes and its dependers will never fulfill requirement
+		for (auto& op : sess_.requirements_)
+		{
+			// fulfilled and not ignored
+			if (fulfilments[op.first].d >= op.second &&
+				ignores.end() == ignores.find(op.first))
+			{
+				op.first->update();
+				age::_GENERATED_DTYPE dtype =
+					(age::_GENERATED_DTYPE) op.first->type_code();
+				std::vector<float> data;
+				size_t nelems = op.first->shape().n_elems();
+				age::type_convert(data, op.first->raw_data(), dtype, nelems);
+				auto& op_parents = sess_.parents_[op.first];
+				for (auto& op_parent : op_parents)
+				{
+					++fulfilments[op_parent].d;
+				}
+
+				if (send_request)
+				{
+					// mark update
+					tenncor::UpdateNodeDataRequest request;
+					auto payload = request.mutable_payload();
+					payload->set_id(node_ids_[op.first]);
+					google::protobuf::RepeatedField<float> field(
+						data.begin(), data.end());
+					payload->mutable_data()->Swap(&field);
+					payload->set_update_order(update_it_);
+					if (false == writer->Write(request))
+					{
+						logs::errorf("failed to write update %d", update_it_);
+						send_request = false;
+						continue;
+					}
+				}
+			}
+		}
+
+		writer->WritesDone();
+
+		grpc::Status status = writer->Finish();
+		if (status.ok())
+		{
+			auto res_status = response.status();
+			if (tenncor::Status::OK != res_status)
+			{
+				logs::errorf("%s: %s",
+					tenncor::Status_Name(res_status).c_str(),
+					response.message().c_str());
+			}
+		}
+		else
+		{
+			logs::errorf(
+				"UpdateNodeData failure: %s",
+				status.error_message().c_str());
+		}
+	}
+
+	void join (void)
+	{
+		while (true)
+		{
+			ManagedThread<tenncor::CreateGraphRequest>* t = nullptr;
+			{
+				std::lock_guard<std::mutex> guard(job_mutex_);
+				if (retry_jobs_.empty())
+				{
+					return;
+				}
+				t = &retry_jobs_.front();
+				if (false == t->joinable())
+				{
+					retry_jobs_.pop_front();
+				}
+			}
+
+			if (nullptr != t && t->joinable())
+			{
+				t->join();
+			}
+		}
+	}
+
+	void remove_job (std::thread::id request_id)
+	{
+		std::lock_guard<std::mutex> lock(job_mutex_);
+		auto iter = std::find_if(retry_jobs_.begin(), retry_jobs_.end(),
+			[=](ManagedThread<tenncor::CreateGraphRequest> &t)
+			{ return t.get_id() == request_id; });
+		if (iter != retry_jobs_.end())
+		{
+			iter->stop();
+			retry_jobs_.erase(iter);
+		}
+	}
+
+	std::string get_session_id (void) const
+	{
+		return sess_id_;
+	}
+
+	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
+
+	ead::Session sess_;
+
+private:
+	void create_graph (tenncor::CreateGraphRequest& request)
+	{
+		// create a job that retries sending creation request
+		ManagedThread<tenncor::CreateGraphRequest> job(
 			[this](std::future<void> future_obj,
-				tenncor::CreateGraphRequest request, std::string request_id)
+				tenncor::CreateGraphRequest request)
 			{
 				auto id = std::this_thread::get_id();
-				size_t attempt = 1;
-				while (future_obj.wait_for(std::chrono::milliseconds(1)) ==
-					std::future_status::timeout && attempt < max_attempts)
+				std::stringstream sid;
+				sid << id;
+				for (size_t attempt = 1;
+					future_obj.wait_for(std::chrono::milliseconds(1)) ==
+					std::future_status::timeout && attempt < max_attempts;
+					++attempt)
 				{
 					grpc::ClientContext context;
 					tenncor::CreateGraphResponse response;
@@ -168,117 +373,53 @@ struct InteractiveSession final : public ead::iSession
 						&context, request, &response);
 					if (status.ok())
 					{
-						logs::infof("%s: CreateGraphRequest success: %s",
-							request_id.c_str(), response.message().c_str());
-						this->remove_job(id);
-						return;
+						auto res_status = response.status();
+						if (tenncor::Status::OK != res_status)
+						{
+							logs::errorf("%s: %s",
+								tenncor::Status_Name(res_status).c_str(),
+								response.message().c_str());
+						}
+						else
+						{
+							logs::infof("%s: CreateGraphRequest success: %s",
+								sid.str().c_str(), response.message().c_str());
+							this->remove_job(id);
+							return;
+						}
 					}
-					logs::errorf(
-						"%s: CreateGraphRequest attempt %d failure: %s",
-						request_id.c_str(), attempt,
-						status.error_message().c_str());
+					else
+					{
+						logs::errorf(
+							"%s: CreateGraphRequest attempt %d failure: %s",
+							sid.str().c_str(), attempt,
+							status.error_message().c_str());
+					}
 					std::this_thread::sleep_for(
 						std::chrono::milliseconds(attempt * 1000));
-					++attempt;
 				}
-			}, std::move(future_obj), std::move(request), request_id);
+			}, std::move(request));
 
 		std::lock_guard<std::mutex> lock(job_mutex_);
-		retry_jobs_.push_back(std::move(thread));
-		kill_sigs_.emplace(thread.get_id(), std::move(exit_signal));
+		retry_jobs_.push_back(std::move(job));
 	}
 
-	void update (ead::TensSetT updated = {},
-		ead::TensSetT ignores = {}) override
-	{
-		// basic copy over from session::update
-		std::unordered_map<ade::iOperableFunc*,ead::SizeT> fulfilments;
-		for (ade::iTensor* unodes : updated)
-		{
-			auto& node_parents = sess_.parents_[unodes];
-			for (auto& node_parent : node_parents)
-			{
-				++fulfilments[node_parent].d;
-			}
-		}
-		// ignored nodes and its dependers will never fulfill requirement
-		for (auto& op : sess_.requirements_)
-		{
-			// fulfilled and not ignored
-			if (fulfilments[op.first].d >= op.second &&
-				ignores.end() == ignores.find(op.first))
-			{
-				op.first->update();
-				auto& op_parents = sess_.parents_[op.first];
-				for (auto& op_parent : op_parents)
-				{
-					++fulfilments[op_parent].d;
-				}
-				// // mark update
-				// tenncor::UpdateNodeDataRequest request;
-			}
-		}
-	}
-
-	void join (void)
-	{
-		while (true)
-		{
-			{
-				std::lock_guard<std::mutex>(job_mutex_);
-				if (retry_jobs_.empty())
-				{
-					return;
-				}
-				auto& t = retry_jobs_.front();
-				if (false == t.joinable())
-				{
-					retry_jobs_.pop_front();
-				}
-			}
-
-			if (t.joinable())
-			{
-				t.join();
-			}
-		}
-	}
-
-	void remove_job (std::thread::id request_id)
-	{
-		std::lock_guard<std::mutex> lock(job_mutex_);
-		auto kit = kill_sigs_.find(request_id);
-		if (kill_sigs_.end() != kit)
-		{
-			kill_sigs_.erase(kit);
-		}
-
-		auto iter = std::find_if(retry_jobs_.begin(), retry_jobs_.end(),
-			[=](std::thread &t) { return t.get_id() == request_id; });
-		if (iter != retry_jobs_.end())
-		{
-			retry_jobs_.erase(iter);
-		}
-	}
-
-	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
-
-	size_t graph_id_;
-
-	ead::Session sess_;
+	std::string sess_id_ = boost::uuids::to_string(
+		InteractiveSession::uuid_gen_());
 
 	std::unordered_map<ade::iTensor*,size_t> node_ids_;
 
 	std::unordered_set<EdgeInfo,EdgeInfoHash> edges_;
 
-	std::list<std::thread> retry_jobs_;
-
-	std::unordered_map<std::thread::id,std::promise<void>> kill_sigs_;
+	std::list<ManagedThread<tenncor::CreateGraphRequest>> retry_jobs_;
 
 	std::mutex job_mutex_;
 
-	std::string sess_id_ = boost::uuids::to_string(
-		InteractiveSession::uuid_gen_());
+	size_t update_it_ = 0;
+
+	std::atomic<bool> connected_ = true;
+
+	ManagedThread<> health_checker_;
 };
 
 boost::uuids::random_generator InteractiveSession::uuid_gen_;
