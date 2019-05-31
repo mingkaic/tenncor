@@ -11,6 +11,7 @@ namespace ead
 namespace opt
 {
 
+// todo: add this as a property to be generated
 static bool is_commutative (size_t opcode)
 {
 	switch (opcode)
@@ -325,26 +326,30 @@ struct FuncRep final : public iRepNode<T>
 			args.push_back(FuncArg<T>(it->second,
 				arg.shaper_, coorder));
 		}
-		if (is_commutative(op_.code_) && nargs == 1)
+		if (is_commutative(op_.code_))
 		{
-			// todo: make this check somewhere else
-			assert(ade::is_identity(args[0].get_shaper().get()));
-			assert(nullptr == args[0].get_coorder());
-			out = args[0].get_node();
-		}
-		else if (nargs > 2)
-		{
-			FuncArg<T> left = args[0];
-			FuncArg<T> right = args[1];
-			for (size_t i = 2; i < nargs; ++i)
+			if (nargs == 1)
 			{
-				left = FuncArg<T>{
-					make_functor<T>(op_, {left, right}),
-					ade::identity, CoordptrT()
-				};
-				right = args[i];
+				// todo: make this check somewhere else
+				assert(ade::is_identity(args[0].get_shaper().get()));
+				assert(nullptr == args[0].get_coorder());
+				out = args[0].get_node();
 			}
-			out = make_functor<T>(op_, {left, right});
+			else
+			{
+				// generalize for nnary functions
+				FuncArg<T> left = args[0];
+				FuncArg<T> right = args[1];
+				for (size_t i = 2; i < nargs; ++i)
+				{
+					left = FuncArg<T>{
+						make_functor<T>(op_, {left, right}),
+						ade::identity, CoordptrT()
+					};
+					right = args[i];
+				}
+				out = make_functor<T>(op_, {left, right});
+			}
 		}
 		else
 		{

@@ -93,7 +93,7 @@ struct Variable final : public iLeaf<T>
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return label_ + "(" + this->shape_.to_string() + ")";
+		return "variable:" + label_;
 	}
 
 	bool is_const (void) const override

@@ -74,7 +74,6 @@ NodesT<T> ops_prune (NodesT<T> roots)
 			}
 			if (changed || is_optimized)
 			{
-
 				return ade::TensptrT(Functor<T>::get(opcode, ead_args));
 			}
 			return nullptr;

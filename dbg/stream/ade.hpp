@@ -46,7 +46,7 @@ struct PrettyEquation final
 					out << it->second << "=";
 				}
 				out << root->to_string();
-				if (showshape_ && nullptr != dynamic_cast<ade::iFunctor*>(root))
+				if (showshape_)
 				{
 					out << root->shape().to_string();
 				}

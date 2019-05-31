@@ -155,7 +155,7 @@ inline MatMapT<T> make_matmap (T* data, const ade::Shape& shape)
 {
 	if (nullptr == data)
 	{
-		logs::fatal("cannot get tensmap from nullptr");;
+		logs::fatal("cannot get matmap from nullptr");;
 	}
 	return MatMapT<T>(data, shape.at(1), shape.at(0));
 }

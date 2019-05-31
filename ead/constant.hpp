@@ -7,6 +7,8 @@
 namespace ead
 {
 
+static const size_t label_limit = 5;
+
 template <typename T>
 struct Constant final : public iLeaf<T>
 {
@@ -28,9 +30,35 @@ struct Constant final : public iLeaf<T>
 
 	Constant<T>& operator = (Constant<T>&& other) = delete;
 
+	/// Implementation of iTensor
+	std::string to_string (void) const override
+	{
+		const T* data = this->data_.data();
+		if (is_scalar())
+		{
+			return fmts::to_string(data[0]);
+		}
+		size_t nelems = this->shape_.n_elems();
+		auto out = fmts::to_string(data,
+			data + std::min(label_limit, nelems));
+		if (nelems > label_limit)
+		{
+			out += "...";
+		}
+		return out;
+	}
+
 	bool is_const (void) const override
 	{
 		return true;
+	}
+
+	bool is_scalar (void) const
+	{
+		const T* data = this->data_.data();
+		size_t nelems = this->shape_.n_elems();
+		return std::all_of(data + 1, data + nelems,
+			[&](const T& e) { return e == data[0]; });
 	}
 
 private:

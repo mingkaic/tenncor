@@ -42,7 +42,7 @@ TEST(OPTIMIZE, CalcConstants)
 		std::stringstream ss;
 		ss <<
 			"(SIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-			" `--(special_var([1\\1\\1\\1\\1\\1\\1\\1]))";
+			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])";
 		auto compare_str = compare_graph(ss, opt_vfunc->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 	}
@@ -55,7 +55,7 @@ TEST(OPTIMIZE, CalcConstants)
 		// expect sin(2) to equal opt_cfunc
 		std::stringstream ss;
 		ss <<
-			"(" << std::sin(2) << "([1\\1\\1\\1\\1\\1\\1\\1]))";
+			"(" << std::sin(2) << "[1\\1\\1\\1\\1\\1\\1\\1])";
 		auto compare_str = compare_graph(ss, opt_cfunc->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 	}
@@ -71,9 +71,9 @@ TEST(OPTIMIZE, CalcConstants)
 			"(MUL[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 			" `--(ADD[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 			" |   `--(SIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-			" |   |   `--(special_var([1\\1\\1\\1\\1\\1\\1\\1]))\n"
-			" |   `--(" << std::sin(2) << "([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-			" `--(" << std::pow(3, 4) << "([1\\1\\1\\1\\1\\1\\1\\1]))";
+			" |   |   `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])\n"
+			" |   `--(" << std::sin(2) << "[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+			" `--(" << std::pow(3, 4) << "[1\\1\\1\\1\\1\\1\\1\\1])";
 		auto compare_str = compare_graph(ss, opt_adv_func->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 	}
@@ -98,12 +98,12 @@ TEST(OPTIMIZE, PruneSingleZeros)
 		auto opt_wunfunc = opts[0];
 		auto opt_zrofunc = opts[1];
 		// expect both opt_wunfunc to be 1
-		std::istringstream ss("(1([1\\1\\1\\1\\1\\1\\1\\1]))");
+		std::istringstream ss("(1[1\\1\\1\\1\\1\\1\\1\\1])");
 		auto compare_str = compare_graph(ss, opt_wunfunc->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 
 		// expect both opt_zrofunc to be 0
-		std::istringstream ss2("(0([1\\1\\1\\1\\1\\1\\1\\1]))");
+		std::istringstream ss2("(0[1\\1\\1\\1\\1\\1\\1\\1])");
 		auto compare_str2 = compare_graph(ss2, opt_zrofunc->get_tensor());
 		EXPECT_EQ(0, compare_str2.size()) << compare_str2;
 	}
@@ -116,7 +116,7 @@ TEST(OPTIMIZE, PruneSingleZeros)
 		auto opt_lvfunc = opts[0];
 		auto opt_rvfunc = opts[1];
 		// expect both vfuncs to equal var
-		std::string expect = "(special_var([1\\1\\1\\1\\1\\1\\1\\1]))";
+		std::string expect = "(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])";
 
 		std::istringstream ss(expect);
 		auto compare_str = compare_graph(ss, opt_lvfunc->get_tensor());
@@ -135,7 +135,7 @@ TEST(OPTIMIZE, PruneSingleZeros)
 		auto opt_lzero = opts[0];
 		auto opt_rzero = opts[1];
 		// expect both zeros to equal 0
-		std::string expect = "(0([1\\1\\1\\1\\1\\1\\1\\1]))";
+		std::string expect = "(0[1\\1\\1\\1\\1\\1\\1\\1])";
 
 		std::istringstream ss(expect);
 		auto compare_str = compare_graph(ss, opt_lzero->get_tensor());
@@ -154,7 +154,7 @@ TEST(OPTIMIZE, PruneSingleZeros)
 		auto opt_posvar = opts[0];
 		auto opt_negvar = opts[1];
 		// expect opt_posvar to equal var
-		std::istringstream ss("(special_var([1\\1\\1\\1\\1\\1\\1\\1]))");
+		std::istringstream ss("(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])");
 		auto compare_str = compare_graph(ss, opt_posvar->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 
@@ -162,7 +162,7 @@ TEST(OPTIMIZE, PruneSingleZeros)
 		std::stringstream ss2;
 		ss2 <<
 			"(NEG[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-			" `--(special_var([1\\1\\1\\1\\1\\1\\1\\1]))";
+			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])";
 		auto compare_str2 = compare_graph(ss2, opt_negvar->get_tensor());
 		EXPECT_EQ(0, compare_str2.size()) << compare_str2;
 	}
@@ -173,7 +173,7 @@ TEST(OPTIMIZE, PruneSingleZeros)
 		ead::opt::optimize<double>(opts, rules);
 		auto opt_divz = opts[0];
 		// expect opt_divz to equal zero
-		std::istringstream ss("(0([1\\1\\1\\1\\1\\1\\1\\1]))");
+		std::istringstream ss("(0[1\\1\\1\\1\\1\\1\\1\\1])");
 		auto compare_str = compare_graph(ss, opt_divz->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 	}
@@ -187,8 +187,8 @@ TEST(OPTIMIZE, PruneSingleZeros)
 		std::stringstream ss;
 		ss <<
 			"(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-			" `--(0([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-			" `--(special_var([1\\1\\1\\1\\1\\1\\1\\1]))";
+			" `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])";
 		auto compare_str = compare_graph(ss, not_opt->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 	}
@@ -230,19 +230,19 @@ TEST(OPTIMIZE, PruneZeroGraph)
 		" |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |   `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |   |   `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   |   |   |   `--(var2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-		" |   |   |   |   `--(0([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-		" |   |   |   `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+		" |   |   |   |   `--(variable:var2[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |   |   |   `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |   |   `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |   `--(LT[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   |       `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   |       |   `--(var2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-		" |   |       |   `--(0([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-		" |   |       `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+		" |   |       |   `--(variable:var2[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |       |   `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |       `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |       `--(var2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+		" |       `--(variable:var2[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |       `--(NEG[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |           `--(var([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-		" `--(var2([1\\1\\1\\1\\1\\1\\1\\1]))";
+		" |           `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(variable:var2[1\\1\\1\\1\\1\\1\\1\\1])";
 	auto compare_str = compare_graph(ss, opt_nocascades->get_tensor());
 	EXPECT_EQ(0, compare_str.size()) << compare_str;
 
@@ -250,7 +250,7 @@ TEST(OPTIMIZE, PruneZeroGraph)
 	opts = {age::pow(nocascades, got0)};
 	ead::opt::optimize<double>(opts, rules);
 	auto opt_cascades = opts[0];
-	EXPECT_STREQ("1([1\\1\\1\\1\\1\\1\\1\\1])",
+	EXPECT_STREQ("1",
 		opt_cascades->get_tensor()->to_string().c_str());
 }
 
@@ -273,12 +273,12 @@ TEST(OPTIMIZE, PruneSingleOnes)
 		auto opt_vfunc = opts[0];
 		auto opt_wunfunc = opts[1];
 		// expect both opt_vfunc to be var
-		std::istringstream ss("(special_var([1\\1\\1\\1\\1\\1\\1\\1]))");
+		std::istringstream ss("(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])");
 		auto compare_str = compare_graph(ss, opt_vfunc->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 
 		// expect both opt_wunfunc to be 1
-		std::istringstream ss2("(1([1\\1\\1\\1\\1\\1\\1\\1]))");
+		std::istringstream ss2("(1[1\\1\\1\\1\\1\\1\\1\\1])");
 		auto compare_str2 = compare_graph(ss2, opt_wunfunc->get_tensor());
 		EXPECT_EQ(0, compare_str2.size()) << compare_str2;
 	}
@@ -291,7 +291,7 @@ TEST(OPTIMIZE, PruneSingleOnes)
 		auto opt_lvfunc = opts[0];
 		auto opt_rvfunc = opts[1];
 		// expect both vfuncs to equal var
-		std::string expect = "(special_var([1\\1\\1\\1\\1\\1\\1\\1]))";
+		std::string expect = "(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])";
 
 		std::istringstream ss(expect);
 		auto compare_str = compare_graph(ss, opt_lvfunc->get_tensor());
@@ -308,7 +308,7 @@ TEST(OPTIMIZE, PruneSingleOnes)
 		ead::opt::optimize<double>(opts, rules);
 		auto opt_nomer = opts[0];
 		// expect opt_divz to equal zero
-		std::istringstream ss("(special_var([1\\1\\1\\1\\1\\1\\1\\1]))");
+		std::istringstream ss("(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])");
 		auto compare_str = compare_graph(ss, opt_nomer->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 	}
@@ -318,7 +318,7 @@ TEST(OPTIMIZE, PruneSingleOnes)
 		ead::NodesT<double> opts = {wun};
 		ead::opt::optimize<double>(opts, rules);
 		auto opt_wun = opts[0];
-		std::istringstream ss("(1([1\\1\\1\\1\\1\\1\\1\\1]))");
+		std::istringstream ss("(1[1\\1\\1\\1\\1\\1\\1\\1])");
 		auto compare_str = compare_graph(ss, opt_wun->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 	}
@@ -332,8 +332,8 @@ TEST(OPTIMIZE, PruneSingleOnes)
 		std::stringstream ss;
 		ss <<
 			"(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-			" `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-			" `--(special_var([1\\1\\1\\1\\1\\1\\1\\1]))";
+			" `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])";
 		auto compare_str = compare_graph(ss, not_opt->get_tensor());
 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 	}
@@ -370,14 +370,14 @@ TEST(OPTIMIZE, PruneOneGraph)
 		"(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" `--(POW[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |   |   `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-		" |   |   `--(var([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+		" |   |   `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |   |   `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |       `--(var([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+		" |       `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 		" |       `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-		" |           `--(var([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-		" |           `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-		" `--(var([1\\1\\1\\1\\1\\1\\1\\1]))";
+		" |           `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" |           `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+		" `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])";
 	auto compare_str = compare_graph(ss, opt->get_tensor());
 	EXPECT_EQ(0, compare_str.size()) << compare_str;
 }
@@ -394,7 +394,7 @@ TEST(OPTIMIZE, PruneOneGraph)
 // 		std::stringstream ss;
 // 		ss <<
 // 			"(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 			" `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n";
+// 			" `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n";
 // 		auto compare_str = compare_graph(ss, got0);
 // 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 // 	}
@@ -406,7 +406,7 @@ TEST(OPTIMIZE, PruneOneGraph)
 // 		ss <<
 // 			"(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 			" `--(add[3\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 			"     `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n";
+// 			"     `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n";
 // 		auto compare_str = compare_graph(ss, got_0);
 // 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 // 	}
@@ -418,8 +418,8 @@ TEST(OPTIMIZE, PruneOneGraph)
 // 		ss <<
 // 			"(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 			" `--(add[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 			" |   `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n" <<
-// 			" `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n";
+// 			" |   `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 			" `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n";
 // 		auto compare_str = compare_graph(ss, got_0_1);
 // 		EXPECT_EQ(0, compare_str.size()) << compare_str;
 // 	}
@@ -451,34 +451,34 @@ TEST(OPTIMIZE, PruneOneGraph)
 // 	ss <<
 // 		"(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		" |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// 		" |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   `--(2[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   `--(3[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |   `--(COS[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		" |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |   `--(3[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |   `--(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |   |   `--(mul[4\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		" |   |   |   `--(0([3\\4\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |   |   `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |   |   `--(COS[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		" |   |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |   |   `--(3[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |   |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		" |   |       `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// 		" |   |       `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |       `--(2[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |       `--(3[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |   `--(POW[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |   |   `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		" |   |   |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// 		" |   |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// 		" |   |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |   |   |   `--(2[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |   |   `--(3[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |   |   `--(3[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |       `--(mul[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		" |       |   `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// 		" |       |   `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// 		" |       |   `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |       |   `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |       |   `--(3[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |       |   `--(2[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" |       `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		" |           `--(3([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// 		" |           `--(1([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
+// 		" |           `--(3[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		" |           `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
 // 		" `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
-// 		"     `--(2([1\\1\\1\\1\\1\\1\\1\\1]))\n" <<
-// 		"     `--(3([1\\1\\1\\1\\1\\1\\1\\1]))";
+// 		"     `--(2[1\\1\\1\\1\\1\\1\\1\\1])\n" <<
+// 		"     `--(3[1\\1\\1\\1\\1\\1\\1\\1])";
 // 	auto compare_str = compare_graph(ss, root);
 // 	EXPECT_EQ(0, compare_str.size()) << compare_str;
 // }
@@ -573,10 +573,10 @@ TEST(OPTIMIZE, ReuseOpGraph)
 	std::list<std::string> expectlines =
 	{
 		"0:MUL,1:COS,0,white",
-		"1:COS,2:0([1\\1\\1\\1\\1\\1\\1\\1]),0,white",
+		"1:COS,2:variable:0,0,white",
 		"0:MUL,3:MAX,1,white",
-		"3:MAX,4:2([1\\1\\1\\1\\1\\1\\1\\1]),0,white",
-		"3:MAX,2:0([1\\1\\1\\1\\1\\1\\1\\1]),1,white",
+		"3:MAX,4:variable:2,0,white",
+		"3:MAX,2:variable:0,1,white",
 		"5:SUB,6:POW,0,white",
 		"6:POW,7:MIN,0,white",
 		"7:MIN,8:MIN,0,white",
@@ -584,22 +584,22 @@ TEST(OPTIMIZE, ReuseOpGraph)
 		"8:MIN,1:COS,1,white",
 		"7:MIN,9:MIN,1,white",
 		"9:MIN,10:ADD,0,white",
-		"10:ADD,2:0([1\\1\\1\\1\\1\\1\\1\\1]),0,white",
+		"10:ADD,2:variable:0,0,white",
 		"10:ADD,0:MUL,1,white",
 		"9:MIN,11:POW,1,white",
 		"11:POW,12:SUB,0,white",
-		"12:SUB,4:2([1\\1\\1\\1\\1\\1\\1\\1]),0,white",
-		"12:SUB,2:0([1\\1\\1\\1\\1\\1\\1\\1]),1,white",
-		"11:POW,2:0([1\\1\\1\\1\\1\\1\\1\\1]),1,white",
+		"12:SUB,4:variable:2,0,white",
+		"12:SUB,2:variable:0,1,white",
+		"11:POW,2:variable:0,1,white",
 		"6:POW,13:DIV,1,white",
 		"13:DIV,14:ADD,0,white",
 		"14:ADD,15:ADD,0,white",
-		"15:ADD,16:1([1\\1\\1\\1\\1\\1\\1\\1]),0,white",
-		"15:ADD,2:0([1\\1\\1\\1\\1\\1\\1\\1]),1,white",
-		"14:ADD,4:2([1\\1\\1\\1\\1\\1\\1\\1]),1,white",
+		"15:ADD,16:variable:1,0,white",
+		"15:ADD,2:variable:0,1,white",
+		"14:ADD,4:variable:2,1,white",
 		"13:DIV,17:SUB,1,white",
-		"17:SUB,2:0([1\\1\\1\\1\\1\\1\\1\\1]),0,white",
-		"17:SUB,16:1([1\\1\\1\\1\\1\\1\\1\\1]),1,white",
+		"17:SUB,2:variable:0,0,white",
+		"17:SUB,16:variable:1,1,white",
 		"5:SUB,12:SUB,1,white",
 		"18:MUL,19:MUL,0,white",
 		"19:MUL,20:EQ,0,white",
@@ -621,7 +621,7 @@ TEST(OPTIMIZE, ReuseOpGraph)
 	}
 	gotlines.sort();
 	std::vector<std::string> diffs;
-	std::set_difference(expectlines.begin(), expectlines.end(),
+	std::set_symmetric_difference(expectlines.begin(), expectlines.end(),
 		gotlines.begin(), gotlines.end(), std::back_inserter(diffs));
 
 	std::stringstream diffstr;

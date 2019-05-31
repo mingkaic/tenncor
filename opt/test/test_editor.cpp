@@ -22,7 +22,7 @@ struct MockTensor final : public ade::iLeaf
 
 	std::string to_string (void) const override
 	{
-		return shape_.to_string();
+		return "";
 	}
 
 	void* data (void) override

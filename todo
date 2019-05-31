@@ -15,7 +15,6 @@ P3 - implement grader extension for subgraphs
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === transparency ===
-P2 - implement interactive session to capture graph nodes at runtime
 P2 - provide graph-setup time summary when failing to match shapes
 P4 - add even more debugging tools
 P4 - formalize codestyle

@@ -27,13 +27,6 @@ struct iLeaf : public ade::iLeaf
 		return shape_;
 	}
 
-	/// Implementation of iTensor
-	std::string to_string (void) const override
-	{
-		return fmts::to_string(data_.data()[0]) +
-			"(" + shape().to_string() + ")";
-	}
-
 	/// Implementation of iLeaf
 	void* data (void) override
 	{

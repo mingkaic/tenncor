@@ -50,6 +50,10 @@ struct CSVEquation final : public ade::iTraveler
 			label = it->second + "=";
 		}
 		label += leaf->to_string();
+		if (showshape_)
+		{
+			label += leaf->shape().to_string();
+		}
 		nodes_.emplace(leaf, Node{
 			label,
 			VARIABLE,
