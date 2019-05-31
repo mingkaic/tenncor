@@ -59,3 +59,9 @@ cc_library(
         "//dbg:tenncor_cc_proto",
     ],
 )
+
+cc_binary(
+    name = "mockserver",
+    srcs = ["mockserver/mockserver.cpp"],
+    deps = ["//dbg:tenncor_cc_proto"],
+)

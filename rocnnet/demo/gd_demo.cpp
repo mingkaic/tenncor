@@ -131,7 +131,7 @@ int main (int argc, const char** argv)
 	{
 		return eqns::sgd(root, leaves, 0.9); // learning rate = 0.9
 	};
-	dbg::InteractiveSession sess("localhost:8080");
+	dbg::InteractiveSession sess("localhost:50051");
 	trainer::MLPTrainer trainer(brain, nonlins, sess, approx, n_batch);
 
 	// train mlp to output input

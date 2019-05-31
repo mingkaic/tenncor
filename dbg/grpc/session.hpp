@@ -24,6 +24,8 @@ namespace dbg
 
 static const size_t max_attempts = 10;
 
+static const size_t data_sync_interval = 50;
+
 static const std::string tag_str_key = "name";
 
 static const std::string edge_label_fmt = "parent-child-%d";
@@ -59,6 +61,18 @@ struct ManagedThread
 	ManagedThread (std::function<void(std::future<void>,ARGS...)> job,
 		ARGS&&... args) :
 		job_(job, exit_signal_.get_future(), std::forward<ARGS>(args)...) {}
+
+	~ManagedThread (void)
+	{
+		job_.detach();
+		this->stop();
+	}
+
+	ManagedThread (const ManagedThread& thr) = delete;
+
+	ManagedThread (ManagedThread&& thr) :
+		exit_signal_(std::move(thr.exit_signal_)),
+		job_(std::move(thr.job_)) {}
 
 	/// return thread id
 	std::thread::id get_id (void) const
@@ -130,12 +144,13 @@ struct InteractiveSession final : public ead::iSession
 	~InteractiveSession (void)
 	{
 		// trigger all exit signals
-		job_mutex_.lock();
-		for (auto& job : retry_jobs_)
 		{
-			job.stop();
+			std::lock_guard<std::mutex> guard(job_mutex_);
+			for (auto& job : retry_jobs_)
+			{
+				job.stop();
+			}
 		}
-		job_mutex_.unlock();
 
 		// wait for termination
 		join();
@@ -210,8 +225,7 @@ struct InteractiveSession final : public ead::iSession
 	void update (ead::TensSetT updated = {},
 		ead::TensSetT ignores = {}) override
 	{
-		++update_it_;
-		if (false == connected_)
+		if (false == connected_ && 0 == update_it_ % data_sync_interval)
 		{
 			sess_.update(updated, ignores);
 			return;
@@ -228,6 +242,7 @@ struct InteractiveSession final : public ead::iSession
 			}
 		}
 
+		// todo: make this async to avoid write overhead
 		tenncor::UpdateNodeDataResponse response;
 		grpc::ClientContext context;
 		// set context deadline
@@ -297,6 +312,7 @@ struct InteractiveSession final : public ead::iSession
 				"UpdateNodeData failure: %s",
 				status.error_message().c_str());
 		}
+		++update_it_;
 	}
 
 	void join (void)
@@ -321,19 +337,6 @@ struct InteractiveSession final : public ead::iSession
 			{
 				t->join();
 			}
-		}
-	}
-
-	void remove_job (std::thread::id request_id)
-	{
-		std::lock_guard<std::mutex> lock(job_mutex_);
-		auto iter = std::find_if(retry_jobs_.begin(), retry_jobs_.end(),
-			[=](ManagedThread<tenncor::CreateGraphRequest> &t)
-			{ return t.get_id() == request_id; });
-		if (iter != retry_jobs_.end())
-		{
-			iter->stop();
-			retry_jobs_.erase(iter);
 		}
 	}
 
@@ -384,7 +387,10 @@ private:
 						{
 							logs::infof("%s: CreateGraphRequest success: %s",
 								sid.str().c_str(), response.message().c_str());
-							this->remove_job(id);
+							std::lock_guard<std::mutex> lock(job_mutex_);
+							retry_jobs_.remove_if(
+								[=](ManagedThread<tenncor::CreateGraphRequest> &t)
+								{ return t.get_id() == id; });
 							return;
 						}
 					}
