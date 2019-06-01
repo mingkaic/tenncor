@@ -1,7 +1,10 @@
 licenses(["notice"])
 
 load("//third_party/drake_rules:pybind.bzl", "pybind_library")
-load("@protobuf_rules//cpp:cpp_grpc_library.bzl", "cpp_grpc_library")
+load(
+    "@com_github_stackb_rules_proto//cpp:cpp_grpc_library.bzl",
+    "cpp_grpc_library"
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -55,9 +58,10 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//ead:ead",
-        "//job:job",
-        "@boost//:uuid",
         "//dbg:tenncor_cc_proto",
+        "@boost//:uuid",
+        "@com_github_mingkaic_cppkg//job:job",
+        # "//job:job",
     ],
 )
 

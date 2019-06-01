@@ -1,6 +1,9 @@
 licenses(["notice"])
 
-load("@protobuf_rules//cpp:cpp_proto_library.bzl", "cpp_proto_library")
+load(
+    "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
+    "cpp_proto_library"
+)
 
 package(
     default_visibility = ["//visibility:public"],

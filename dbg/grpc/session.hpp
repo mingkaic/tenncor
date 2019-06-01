@@ -1,11 +1,4 @@
-#include <chrono>
-#include <thread>
-#include <future>
-#include <mutex>
-
 #include <grpc/grpc.h>
-#include <grpcpp/channel.h>
-#include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
 
@@ -196,9 +189,33 @@ struct InteractiveSession final : public ead::iSession
 		client_.update_node_data(requests, update_it_);
 	}
 
+	// join indefinitely
 	void join (void)
 	{
 		client_.join();
+	}
+
+	// join until specified deadline, then terminate all jobs in the client
+	void join_then_stop (
+		const std::chrono::time_point<std::chrono::system_clock>& deadline)
+	{
+		std::condition_variable client_done;
+		std::thread timed_killer(
+		[&]()
+		{
+			std::mutex mtx;
+			std::unique_lock<std::mutex> lck(mtx);
+			client_done.wait_until(lck, deadline);
+			this->client_.clear();
+		});
+		client_.join();
+		client_done.notify_one();
+		timed_killer.join();
+	}
+
+	void stop (void)
+	{
+		client_.clear();
 	}
 
 	std::string get_session_id (void) const

@@ -219,7 +219,12 @@ int main (int argc, const char** argv)
 			logs::warnf("failed to save model to '%s'", savepath.c_str());
 		}
 	}
-	sess.join();
+
+	// 10 seconds
+	std::chrono::time_point deadline =
+		std::chrono::system_clock::now() +
+		std::chrono::seconds(10);
+	sess.join_then_stop(deadline);
 
 	google::protobuf::ShutdownProtobufLibrary();
 

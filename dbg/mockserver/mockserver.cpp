@@ -26,6 +26,52 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 		const google::protobuf::RepeatedPtrField<
 			tenncor::EdgeInfo>& edges = graph.edges();
 
+		std::cout << "storing for graph " << gid << std::endl;
+		if (gid_ != gid)
+		{
+			// reset node and edges (assume 1 client at a time)
+			gid_ = gid;
+			nodes_.clear();
+			edges_.clear();
+		}
+
+		for (const tenncor::NodeInfo& node : nodes)
+		{
+			auto shape = node.shape();
+			auto tags = node.tags();
+			auto loc = node.location();
+			nodes_.emplace(node.id(), Node{
+				std::vector<uint32_t>(shape.begin(), shape.end()),
+				std::unordered_map<std::string,std::string>(
+					tags.begin(), tags.end()),
+				loc.maxheight(),
+				loc.minheight(),
+			});
+		}
+
+		for (const tenncor::EdgeInfo& edge : edges)
+		{
+			auto parent = edge.parent();
+			auto child = edge.child();
+
+			auto pit = nodes_.find(parent);
+			auto cit = nodes_.find(child);
+			if (nodes_.end() == pit)
+			{
+				std::cerr << "for session " << gid << " parent node "
+					<< parent << " didn't arrive before the edge" << std::endl;
+			}
+			if (nodes_.end() == cit)
+			{
+				std::cerr << "for session " << gid << " child node "
+					<< child << " didn't arrive before the edge" << std::endl;
+			}
+
+			edges_.push_back(Edge{
+				parent, child, edge.label(), edge.shaper(), edge.coorder(),
+			});
+		}
+
 		response->set_status(tenncor::OK);
 		response->set_message("Created Graph");
 		return grpc::Status::OK;
@@ -36,16 +82,54 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 		grpc::ServerReader<tenncor::UpdateNodeDataRequest>* reader,
 		tenncor::UpdateNodeDataResponse* response) override
 	{
+		std::cout << "recording node for graph " << gid_ << std::endl;
 		tenncor::UpdateNodeDataRequest req;
 		while (reader->Read(&req))
 		{
-			//
+			auto node_data = req.payload();
+			auto id = node_data.id();
+			auto it = nodes_.find(id);
+			if (nodes_.end() == it)
+			{
+				std::cerr << "for session " << gid_ << " data node "
+					<< id << " didn't arrive before the data" << std::endl;
+			}
 		}
 
 		response->set_status(tenncor::OK);
 		response->set_message("Updated Node Data");
 		return grpc::Status::OK;
 	}
+
+	struct Node
+	{
+		std::vector<uint32_t> shape_;
+
+		std::unordered_map<std::string,std::string> tags_;
+
+		uint32_t max_height_;
+
+		uint32_t min_height_;
+	};
+
+	struct Edge
+	{
+		int32_t parent_id_;
+
+		int32_t child_id_;
+
+		std::string label_;
+
+		std::string shaper_;
+
+		std::string coorder_;
+	};
+
+	std::string gid_;
+
+	std::unordered_map<int32_t,Node> nodes_;
+
+	std::vector<Edge> edges_;
 };
 
 int main (int argc, char** argv)

@@ -189,6 +189,7 @@ def _impl(repository_ctx):
         executable = False,
     )
 
+# todo: consider bazel python rules once they stablize
 python_repository = repository_rule(
     _impl,
     environ = [

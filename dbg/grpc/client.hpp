@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include <grpc/grpc.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
@@ -22,7 +24,8 @@ struct GraphEmitterClient final
 	GraphEmitterClient (std::shared_ptr<grpc::ChannelInterface> channel) :
 		stub_(tenncor::GraphEmitter::NewStub(channel))
 	{
-		job::ManagedJob healthjob([this](std::future<void> stop_it)
+		job::ManagedJob healthjob(
+        [this](std::future<void> stop_it)
 		{
 			tenncor::Empty empty;
 			do
@@ -103,7 +106,7 @@ struct GraphEmitterClient final
                     std::chrono::milliseconds(attempt * 1000));
             }
             logs::warnf("%s: CreateGraphRequest terminating", sid.c_str());
-        }, request);
+        }, std::move(request));
 	}
 
 	/// Add job that streams UpdateNodeDataRequest
@@ -170,7 +173,7 @@ struct GraphEmitterClient final
                     status.error_message().c_str());
             }
             logs::warnf("%s: UpdateNodeData terminating", sid.c_str());
-        }, requests, update_it);
+        }, std::move(requests), std::move(update_it));
 	}
 
     bool is_connected (void)
@@ -182,6 +185,11 @@ struct GraphEmitterClient final
 	{
         sequential_jobs_.join();
 	}
+
+    void clear (void)
+    {
+        sequential_jobs_.stop();
+    }
 
 private:
 	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;

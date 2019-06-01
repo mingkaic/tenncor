@@ -21,7 +21,10 @@ boost_deps()
 
 # === local dependencies ===
 
-load("@protobuf_rules//cpp:deps.bzl", "cpp_proto_library", "cpp_grpc_library")
+load(
+    "@com_github_stackb_rules_proto//cpp:deps.bzl", "cpp_proto_library",
+    "cpp_grpc_library"
+)
 cpp_proto_library()
 cpp_grpc_library()
 
