@@ -43,9 +43,11 @@ message GraphInfo {
 }
 
 message NodeData {
-    int32 id = 1;
+    string graph_id = 1;
 
-    repeated float data = 2;
+    int32 node_id = 2;
+
+    repeated float data = 3;
 }
 
 enum Status {

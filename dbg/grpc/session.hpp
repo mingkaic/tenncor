@@ -178,7 +178,8 @@ struct InteractiveSession final : public ead::iSession
 				// create requests (bulk of the overhead)
 				tenncor::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
-				payload->set_id(node_ids_[op.first]);
+				payload->set_graph_id(sess_id_);
+				payload->set_node_id(node_ids_[op.first]);
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);

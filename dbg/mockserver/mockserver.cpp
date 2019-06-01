@@ -78,7 +78,7 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 	}
 
 	// Update data (tensor data) of existing nodes
-    grpc::Status UpdateNodeData(grpc::ServerContext* context,
+	grpc::Status UpdateNodeData(grpc::ServerContext* context,
 		grpc::ServerReader<tenncor::UpdateNodeDataRequest>* reader,
 		tenncor::UpdateNodeDataResponse* response) override
 	{
@@ -87,7 +87,12 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 		while (reader->Read(&req))
 		{
 			auto node_data = req.payload();
-			auto id = node_data.id();
+			auto gid = node_data.graph_id();
+			if (gid != gid_)
+			{
+				std::cout << "recording node meant for graph " << gid << std::endl;
+			}
+			auto id = node_data.node_id();
 			auto it = nodes_.find(id);
 			if (nodes_.end() == it)
 			{
