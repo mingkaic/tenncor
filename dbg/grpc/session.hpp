@@ -13,18 +13,20 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include "dbg/grpc/tenncor.grpc.pb.h"
+#include "job/scope_guard.hpp"
 
 #include "ead/session.hpp"
+
+#include "dbg/grpc/client.hpp"
 
 #ifndef DBG_SESSION_HPP
 
 namespace dbg
 {
 
-static const size_t max_attempts = 10;
+// static const size_t max_attempts = 10;
 
-static const size_t data_sync_interval = 50;
+// static const size_t data_sync_interval = 50;
 
 static const std::string tag_str_key = "name";
 
@@ -55,84 +57,12 @@ inline bool operator == (const EdgeInfo& lhs, const EdgeInfo& rhs)
 	return hasher(lhs) == hasher(rhs);
 }
 
-template <typename ...ARGS>
-struct ManagedThread
-{
-	ManagedThread (std::function<void(std::future<void>,ARGS...)> job,
-		ARGS&&... args) :
-		job_(job, exit_signal_.get_future(), std::forward<ARGS>(args)...) {}
-
-	~ManagedThread (void)
-	{
-		job_.detach();
-		this->stop();
-	}
-
-	ManagedThread (const ManagedThread& thr) = delete;
-
-	ManagedThread (ManagedThread&& thr) :
-		exit_signal_(std::move(thr.exit_signal_)),
-		job_(std::move(thr.job_)) {}
-
-	/// return thread id
-	std::thread::id get_id (void) const
-	{
-		return job_.get_id();
-	}
-
-	bool joinable (void) const
-	{
-		return job_.joinable();
-	}
-
-	/// join if joinable
-	void join (void)
-	{
-		if (job_.joinable())
-		{
-			job_.join();
-		}
-	}
-
-	/// stop the job_
-	void stop (void)
-	{
-		exit_signal_.set_value();
-	}
-
-private:
-	std::promise<void> exit_signal_;
-
-	std::thread job_;
-};
-
 struct InteractiveSession final : public ead::iSession
 {
 	static boost::uuids::random_generator uuid_gen_;
 
 	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel) :
-		stub_(tenncor::GraphEmitter::NewStub(channel)),
-		health_checker_(
-			[this](std::future<void> future_obj)
-			{
-				tenncor::Empty empty;
-				do
-				{
-					grpc::ClientContext context;
-					tenncor::CreateGraphResponse response;
-					// set context deadline
-					std::chrono::time_point deadline = std::chrono::system_clock::now() +
-						std::chrono::milliseconds(1000);
-					context.set_deadline(deadline);
-					grpc::Status status = stub_->HealthCheck(&context, empty, &empty);
-					this->connected_ = status.ok();
-
-					std::this_thread::sleep_for(
-						std::chrono::milliseconds(1000));
-				}
-				while (future_obj.wait_for(std::chrono::milliseconds(1)) ==
-					std::future_status::timeout);
-			})
+		client_(channel)
 	{
 		logs::infof("created session: %s", sess_id_.c_str());
 	}
@@ -140,21 +70,6 @@ struct InteractiveSession final : public ead::iSession
 	InteractiveSession (std::string host) :
 		InteractiveSession(grpc::CreateChannel(host,
 			grpc::InsecureChannelCredentials())) {}
-
-	~InteractiveSession (void)
-	{
-		// trigger all exit signals
-		{
-			std::lock_guard<std::mutex> guard(job_mutex_);
-			for (auto& job : retry_jobs_)
-			{
-				job.stop();
-			}
-		}
-
-		// wait for termination
-		join();
-	}
 
 	void track (ade::iTensor* root) override
 	{
@@ -219,13 +134,17 @@ struct InteractiveSession final : public ead::iSession
 			}
 		}
 
-		create_graph(request);
+		client_.create_graph(request);
 	}
 
 	void update (ead::TensSetT updated = {},
 		ead::TensSetT ignores = {}) override
 	{
-		if (false == connected_ && 0 == update_it_ % data_sync_interval)
+		job::ScopeGuard defer([this]() { ++this->update_it_; });
+
+		// ignore any node data updates when
+		// not connected or out of sync interval
+		if (false == client_.is_connected() || 0 < update_it_ % data_sync_interval)
 		{
 			sess_.update(updated, ignores);
 			return;
@@ -242,18 +161,8 @@ struct InteractiveSession final : public ead::iSession
 			}
 		}
 
-		// todo: make this async to avoid write overhead
-		tenncor::UpdateNodeDataResponse response;
-		grpc::ClientContext context;
-		// set context deadline
-		std::chrono::time_point deadline = std::chrono::system_clock::now() +
-			std::chrono::milliseconds(500);
-		context.set_deadline(deadline);
-		std::unique_ptr<grpc::ClientWriterInterface<
-			tenncor::UpdateNodeDataRequest>> writer(
-			stub_->UpdateNodeData(&context, &response));
-		bool send_request = true;
-
+		std::vector<tenncor::UpdateNodeDataRequest> requests;
+		requests.reserve(sess_.requirements_.size());
 		// ignored nodes and its dependers will never fulfill requirement
 		for (auto& op : sess_.requirements_)
 		{
@@ -273,71 +182,23 @@ struct InteractiveSession final : public ead::iSession
 					++fulfilments[op_parent].d;
 				}
 
-				if (send_request)
-				{
-					// mark update
-					tenncor::UpdateNodeDataRequest request;
-					auto payload = request.mutable_payload();
-					payload->set_id(node_ids_[op.first]);
-					google::protobuf::RepeatedField<float> field(
-						data.begin(), data.end());
-					payload->mutable_data()->Swap(&field);
-					payload->set_update_order(update_it_);
-					if (false == writer->Write(request))
-					{
-						logs::errorf("failed to write update %d", update_it_);
-						send_request = false;
-						continue;
-					}
-				}
+				// create requests (bulk of the overhead)
+				tenncor::UpdateNodeDataRequest request;
+				auto payload = request.mutable_payload();
+				payload->set_id(node_ids_[op.first]);
+				google::protobuf::RepeatedField<float> field(
+					data.begin(), data.end());
+				payload->mutable_data()->Swap(&field);
+				requests.push_back(request);
 			}
 		}
 
-		writer->WritesDone();
-
-		grpc::Status status = writer->Finish();
-		if (status.ok())
-		{
-			auto res_status = response.status();
-			if (tenncor::Status::OK != res_status)
-			{
-				logs::errorf("%s: %s",
-					tenncor::Status_Name(res_status).c_str(),
-					response.message().c_str());
-			}
-		}
-		else
-		{
-			logs::errorf(
-				"UpdateNodeData failure: %s",
-				status.error_message().c_str());
-		}
-		++update_it_;
+		client_.update_node_data(requests, update_it_);
 	}
 
 	void join (void)
 	{
-		while (true)
-		{
-			ManagedThread<tenncor::CreateGraphRequest>* t = nullptr;
-			{
-				std::lock_guard<std::mutex> guard(job_mutex_);
-				if (retry_jobs_.empty())
-				{
-					return;
-				}
-				t = &retry_jobs_.front();
-				if (false == t->joinable())
-				{
-					retry_jobs_.pop_front();
-				}
-			}
-
-			if (nullptr != t && t->joinable())
-			{
-				t->join();
-			}
-		}
+		client_.join();
 	}
 
 	std::string get_session_id (void) const
@@ -350,66 +211,6 @@ struct InteractiveSession final : public ead::iSession
 	ead::Session sess_;
 
 private:
-	void create_graph (tenncor::CreateGraphRequest& request)
-	{
-		// create a job that retries sending creation request
-		ManagedThread<tenncor::CreateGraphRequest> job(
-			[this](std::future<void> future_obj,
-				tenncor::CreateGraphRequest request)
-			{
-				auto id = std::this_thread::get_id();
-				std::stringstream sid;
-				sid << id;
-				for (size_t attempt = 1;
-					future_obj.wait_for(std::chrono::milliseconds(1)) ==
-					std::future_status::timeout && attempt < max_attempts;
-					++attempt)
-				{
-					grpc::ClientContext context;
-					tenncor::CreateGraphResponse response;
-					// set context deadline
-					std::chrono::time_point deadline = std::chrono::system_clock::now() +
-						std::chrono::milliseconds(100);
-					context.set_deadline(deadline);
-
-					grpc::Status status = this->stub_->CreateGraph(
-						&context, request, &response);
-					if (status.ok())
-					{
-						auto res_status = response.status();
-						if (tenncor::Status::OK != res_status)
-						{
-							logs::errorf("%s: %s",
-								tenncor::Status_Name(res_status).c_str(),
-								response.message().c_str());
-						}
-						else
-						{
-							logs::infof("%s: CreateGraphRequest success: %s",
-								sid.str().c_str(), response.message().c_str());
-							std::lock_guard<std::mutex> lock(job_mutex_);
-							retry_jobs_.remove_if(
-								[=](ManagedThread<tenncor::CreateGraphRequest> &t)
-								{ return t.get_id() == id; });
-							return;
-						}
-					}
-					else
-					{
-						logs::errorf(
-							"%s: CreateGraphRequest attempt %d failure: %s",
-							sid.str().c_str(), attempt,
-							status.error_message().c_str());
-					}
-					std::this_thread::sleep_for(
-						std::chrono::milliseconds(attempt * 1000));
-				}
-			}, std::move(request));
-
-		std::lock_guard<std::mutex> lock(job_mutex_);
-		retry_jobs_.push_back(std::move(job));
-	}
-
 	std::string sess_id_ = boost::uuids::to_string(
 		InteractiveSession::uuid_gen_());
 
@@ -417,15 +218,9 @@ private:
 
 	std::unordered_set<EdgeInfo,EdgeInfoHash> edges_;
 
-	std::list<ManagedThread<tenncor::CreateGraphRequest>> retry_jobs_;
-
-	std::mutex job_mutex_;
-
 	size_t update_it_ = 0;
 
-	std::atomic<bool> connected_ = true;
-
-	ManagedThread<> health_checker_;
+	GraphEmitterClient client_;
 };
 
 boost::uuids::random_generator InteractiveSession::uuid_gen_;

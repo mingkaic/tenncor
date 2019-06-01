@@ -31,22 +31,6 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 		return grpc::Status::OK;
 	}
 
-	// Update metadata (shape, labels, and representation) of existing nodes
-    grpc::Status UpdateNodeMeta(grpc::ServerContext* context,
-		grpc::ServerReader<tenncor::UpdateNodeMetaRequest>* reader,
-		tenncor::UpdateNodeMetaResponse* response) override
-	{
-		tenncor::UpdateNodeMetaRequest req;
-		while (reader->Read(&req))
-		{
-			//
-		}
-
-		response->set_status(tenncor::OK);
-		response->set_message("Updated Node Metadata");
-		return grpc::Status::OK;
-	}
-
 	// Update data (tensor data) of existing nodes
     grpc::Status UpdateNodeData(grpc::ServerContext* context,
 		grpc::ServerReader<tenncor::UpdateNodeDataRequest>* reader,

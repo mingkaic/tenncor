@@ -46,8 +46,6 @@ message NodeData {
     int32 id = 1;
 
     repeated float data = 2;
-
-    uint64 update_order = 3;
 }
 
 enum Status {
@@ -71,16 +69,6 @@ message CreateGraphResponse {
     string message = 2;
 }
 
-message UpdateNodeMetaRequest {
-    NodeInfo payload = 1;
-}
-
-message UpdateNodeMetaResponse {
-    Status status = 1;
-
-    string message = 2;
-}
-
 message UpdateNodeDataRequest {
     NodeData payload = 1;
 }
@@ -96,9 +84,6 @@ service GraphEmitter {
 
     // Create or update listed nodes and edges
     rpc CreateGraph (CreateGraphRequest) returns (CreateGraphResponse);
-
-    // Update metadata (shape, labels, and representation) of existing nodes
-    rpc UpdateNodeMeta (stream UpdateNodeMetaRequest) returns (UpdateNodeMetaResponse);
 
     // Update data (tensor data) of existing nodes
     rpc UpdateNodeData (stream UpdateNodeDataRequest) returns (UpdateNodeDataResponse);
