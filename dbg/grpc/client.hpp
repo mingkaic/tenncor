@@ -74,7 +74,7 @@ struct GraphEmitterClient final
 				// set context deadline
 				std::chrono::time_point deadline =
 					std::chrono::system_clock::now() +
-					std::chrono::milliseconds(100);
+					std::chrono::milliseconds(250);
 				context.set_deadline(deadline);
 
 				grpc::Status status = this->stub_->CreateGraph(
@@ -130,7 +130,7 @@ struct GraphEmitterClient final
 			// set context deadline
 			std::chrono::time_point deadline =
 				std::chrono::system_clock::now() +
-				std::chrono::milliseconds(500);
+				std::chrono::milliseconds(10000);
 			context.set_deadline(deadline);
 			std::unique_ptr<grpc::ClientWriterInterface<
 				tenncor::UpdateNodeDataRequest>> writer(

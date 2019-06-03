@@ -223,7 +223,7 @@ int main (int argc, const char** argv)
 	// 10 seconds
 	std::chrono::time_point deadline =
 		std::chrono::system_clock::now() +
-		std::chrono::seconds(10);
+		std::chrono::seconds(30);
 	sess.join_then_stop(deadline);
 
 	google::protobuf::ShutdownProtobufLibrary();
