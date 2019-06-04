@@ -76,7 +76,7 @@ struct InteractiveSession final : public ead::iSession
 		{
 			auto tens = statpair.first;
 			auto& range = statpair.second;
-			size_t id = node_ids_.size();
+			size_t id = node_ids_.size() + 1;
 			if (node_ids_.emplace(tens, id).second)
 			{
 				// add to request
@@ -91,7 +91,11 @@ struct InteractiveSession final : public ead::iSession
 				location->set_maxheight(range.upper_);
 				location->set_minheight(range.lower_);
 			}
-
+		}
+		for (auto& statpair : sess_.stat_.graphsize_)
+		{
+			auto tens = statpair.first;
+			auto& range = statpair.second;
 			if (range.upper_ > 0)
 			{
 				auto f = static_cast<ade::iFunctor*>(tens);
