@@ -174,7 +174,10 @@ PYBIND11_MODULE(ead, m)
 		});
 
 	// ==== session ====
-	py::class_<ead::Session> session(m, "Session");
+	py::class_<ead::iSession> isess(m, "iSession");
+	py::class_<ead::Session> session(m, "Session", isess);
+
+	py::implicitly_convertible<ead::iSession,ead::Session>();
 	session
 		.def(py::init())
 		.def("track",

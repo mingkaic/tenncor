@@ -77,7 +77,10 @@ py_binary(
     name = "rbm_demo",
     srcs = glob(["demo/data/*.py"]) +
         ["demo/rbm_demo.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        ":rocnnet_py",
+        "//dbg:grpc_dbg_py",
+    ],
     data = glob(["pretrained/*"]),
 )
 

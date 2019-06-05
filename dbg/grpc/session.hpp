@@ -17,11 +17,9 @@
 namespace dbg
 {
 
-// static const size_t max_attempts = 10;
-
-// static const size_t data_sync_interval = 50;
-
 static const std::string tag_str_key = "name";
+
+static const std::string tag_node_type = "node_type";
 
 static const std::string edge_label_fmt = "parent-child-%d";
 
@@ -54,15 +52,17 @@ struct InteractiveSession final : public ead::iSession
 {
 	static boost::uuids::random_generator uuid_gen_;
 
-	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel) :
-		client_(channel)
+	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
+		ClientConfig client_cfg = ClientConfig()) :
+		client_(channel, client_cfg)
 	{
 		logs::infof("created session: %s", sess_id_.c_str());
 	}
 
-	InteractiveSession (std::string host) :
+	InteractiveSession (std::string host,
+		ClientConfig client_cfg = ClientConfig()) :
 		InteractiveSession(grpc::CreateChannel(host,
-			grpc::InsecureChannelCredentials())) {}
+			grpc::InsecureChannelCredentials()), client_cfg) {}
 
 	void track (ade::iTensor* root) override
 	{
@@ -77,12 +77,24 @@ struct InteractiveSession final : public ead::iSession
 			auto tens = statpair.first;
 			auto& range = statpair.second;
 			size_t id = node_ids_.size() + 1;
-			if (node_ids_.emplace(tens, id).second)
+			if (node_ids_.end() == node_ids_.find(tens))
 			{
+				node_ids_.emplace(tens, id);
 				// add to request
 				auto node = payload->add_nodes();
 				node->set_id(id);
-				node->mutable_tags()->insert({tag_str_key, tens->to_string()});
+				auto tags = node->mutable_tags();
+				tags->insert({tag_str_key, tens->to_string()});
+				std::string node_type;
+				if (0 == range.upper_)
+				{
+					node_type = "leaf";
+				}
+				else
+				{
+					node_type = "functor";
+				}
+				tags->insert({tag_node_type, node_type});
 				auto s = tens->shape();
 				google::protobuf::RepeatedField<uint32_t> shape(
 					s.begin(), s.end());
@@ -107,12 +119,14 @@ struct InteractiveSession final : public ead::iSession
 					auto shaper = child.get_shaper();
 					auto coorder = child.get_coorder();
 					std::string label = fmts::sprintf(edge_label_fmt, i);
-					if (edges_.emplace(EdgeInfo{
+					EdgeInfo edgeinfo{
 						node_ids_[f],
 						node_ids_[child_tens],
 						label,
-					}).second)
+					};
+					if (edges_.end() == edges_.find(edgeinfo))
 					{
+						edges_.emplace(edgeinfo);
 						// add to request
 						auto edge = payload->add_edges();
 						edge->set_parent(node_ids_[f]);
@@ -160,6 +174,29 @@ struct InteractiveSession final : public ead::iSession
 
 		std::vector<tenncor::UpdateNodeDataRequest> requests;
 		requests.reserve(sess_.requirements_.size());
+
+		for (auto& statpair : sess_.stat_.graphsize_)
+		{
+			if (0 == statpair.second.upper_)
+			{
+				auto leaf = static_cast<ade::iLeaf*>(statpair.first);
+				age::_GENERATED_DTYPE dtype =
+					(age::_GENERATED_DTYPE) leaf->type_code();
+				std::vector<float> data;
+				size_t nelems = leaf->shape().n_elems();
+				age::type_convert(data, leaf->data(), dtype, nelems);
+
+				tenncor::UpdateNodeDataRequest request;
+				auto payload = request.mutable_payload();
+				payload->set_graph_id(sess_id_);
+				payload->set_node_id(node_ids_[leaf]);
+				google::protobuf::RepeatedField<float> field(
+					data.begin(), data.end());
+				payload->mutable_data()->Swap(&field);
+				requests.push_back(request);
+			}
+		}
+
 		// ignored nodes and its dependers will never fulfill requirement
 		for (auto& op : sess_.requirements_)
 		{

@@ -11,9 +11,9 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(dbg, m)
+PYBIND11_MODULE(stream_dbg, m)
 {
-	m.doc() = "dbg ade equation graphs";
+	m.doc() = "print ade equation graphs to stream";
 
 	// ==== to stdout functions ====
 	m.def("print_graph",

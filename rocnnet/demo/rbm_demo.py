@@ -7,6 +7,7 @@ import numpy as np
 import ead.age as age
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
+import dbg.grpc_dbg as dbg
 
 from rocnnet.demo.data.load_mnist import load_mnist
 from rocnnet.demo.data.image_out import mnist_imageout
@@ -75,7 +76,8 @@ def main(args):
         pass
 
     # train
-    sess = ead.Session()
+    # sess = ead.Session()
+    sess = dbg.get_isess(request_dur=5000, stream_dur=100000)
     if args.train:
         n_data = training_x.shape[0]
         n_training_batches = n_data / args.n_batch
@@ -91,6 +93,7 @@ def main(args):
                 batch = training_x[j:j+args.n_batch]
                 mean_cost = mean_cost + trainer.train(list(batch.flatten()))
                 print('completed batch {}'.format(j))
+                raw_input('paused... enter to continue')
 
             print("training epoch {}, cost is {}".format(i, mean_cost))
             # save in case of problems

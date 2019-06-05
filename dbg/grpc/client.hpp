@@ -19,10 +19,28 @@ static const size_t max_attempts = 10;
 
 static const size_t data_sync_interval = 50;
 
+struct ClientConfig
+{
+	ClientConfig (void) = default;
+
+	ClientConfig (std::chrono::duration<int64_t,std::milli> request_duration,
+		std::chrono::duration<int64_t,std::milli> stream_duration) :
+		request_duration_(request_duration), stream_duration_(stream_duration) {}
+
+	std::chrono::duration<int64_t,std::milli> request_duration_ =
+		std::chrono::milliseconds(250);
+
+	std::chrono::duration<int64_t,std::milli> stream_duration_ =
+		std::chrono::milliseconds(10000);
+};
+
 struct GraphEmitterClient final
 {
-	GraphEmitterClient (std::shared_ptr<grpc::ChannelInterface> channel) :
-		stub_(tenncor::GraphEmitter::NewStub(channel))
+	GraphEmitterClient (std::shared_ptr<grpc::ChannelInterface> channel,
+		ClientConfig cfg) :
+		stub_(tenncor::GraphEmitter::NewStub(channel)),
+		cfg_(cfg),
+		connected_(true)
 	{
 		job::ManagedJob healthjob(
 		[this](std::future<void> stop_it)
@@ -33,7 +51,7 @@ struct GraphEmitterClient final
 				grpc::ClientContext context;
 				tenncor::CreateGraphResponse response;
 				// set context deadline
-				std::chrono::time_point deadline =
+				std::chrono::time_point<std::chrono::system_clock> deadline =
 					std::chrono::system_clock::now() +
 					std::chrono::milliseconds(1000);
 				context.set_deadline(deadline);
@@ -72,9 +90,8 @@ struct GraphEmitterClient final
 				grpc::ClientContext context;
 				tenncor::CreateGraphResponse response;
 				// set context deadline
-				std::chrono::time_point deadline =
-					std::chrono::system_clock::now() +
-					std::chrono::milliseconds(250);
+				std::chrono::time_point<std::chrono::system_clock> deadline =
+					std::chrono::system_clock::now() + cfg_.request_duration_;
 				context.set_deadline(deadline);
 
 				grpc::Status status = this->stub_->CreateGraph(
@@ -128,9 +145,9 @@ struct GraphEmitterClient final
 			tenncor::UpdateNodeDataResponse response;
 			grpc::ClientContext context;
 			// set context deadline
-			std::chrono::time_point deadline =
+			std::chrono::time_point<std::chrono::system_clock> deadline =
 				std::chrono::system_clock::now() +
-				std::chrono::milliseconds(10000);
+				std::chrono::milliseconds(cfg_.stream_duration_);
 			context.set_deadline(deadline);
 			std::unique_ptr<grpc::ClientWriterInterface<
 				tenncor::UpdateNodeDataRequest>> writer(
@@ -194,11 +211,13 @@ struct GraphEmitterClient final
 private:
 	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
 
+	ClientConfig cfg_;
+
 	// every request from emitter has dependency on the previous request
 	job::Sequence sequential_jobs_;
 
 	// connection state
-	std::atomic<bool> connected_ = true;
+	std::atomic<bool> connected_;
 	job::ManagedJob health_checker_;
 };
 

@@ -29,7 +29,7 @@ cc_library(
 )
 
 pybind_library(
-    name = "stream_py",
+    name = "stream_dbg_py",
     cc_srcs = ["//dbg:python/stream.cpp"],
     cc_deps = ["//dbg:stream_out"],
 )
@@ -63,6 +63,13 @@ cc_library(
         "@com_github_mingkaic_cppkg//job:job",
         # "//job:job",
     ],
+)
+
+pybind_library(
+    name = "grpc_dbg_py",
+    cc_srcs = ["//dbg:python/grpc.cpp"],
+    cc_deps = ["//dbg:grpc_out"],
+    py_deps = ["//ead:ead_py"],
 )
 
 cc_binary(
