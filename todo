@@ -16,6 +16,7 @@ P4 - implement reduce_prod gradient using Eigen cumprod
 
 === transparency ===
 P2 - provide graph-setup time summary when failing to match shapes
+P2 - refactor/rework ead's opt (it's so hard to read)
 P4 - add even more debugging tools
 P4 - formalize codestyle
 P4 - refactor, and rename variables to improve readability
@@ -27,6 +28,7 @@ P3 - generalize rule conversion feature for all implementations of ade nodes
 P4 - move ead helper functions in ade
 
 === correction ===
+P2 - fix rbm demo converging to infinity problem
 P2 - bring back fuzz testing on graph structure
 P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage

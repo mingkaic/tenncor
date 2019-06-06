@@ -1,5 +1,3 @@
-#include "ead/grader.hpp"
-
 #include "rocnnet/eqns/helper.hpp"
 
 #include "rocnnet/modl/rbm.hpp"
@@ -110,9 +108,6 @@ struct RBMTrainer
 			eqns::VarAssign{"", hbias, next_hbias},
 			eqns::VarAssign{"", vbias, next_vbias},
 		};
-		sess_->track(next_weight->get_tensor().get());
-		sess_->track(next_hbias->get_tensor().get());
-		sess_->track(next_vbias->get_tensor().get());
 
 		if (nullptr == persistent)
 		{
@@ -127,9 +122,36 @@ struct RBMTrainer
 				reconstruct_hidden(*brain, chain_segment, nonlinearities));
 			assigns.push_back(
 				eqns::VarAssign{"", persistent, next_persistent});
-			sess_->track(next_persistent->get_tensor().get());
 
 			monitoring_cost_ = get_pseudo_likelihood_cost(train_in_);
+		}
+
+		std::vector<ead::NodeptrT<PybindT>*> to_optimize;
+		to_optimize.reserve(assigns.size());
+		std::transform(assigns.begin(), assigns.end(),
+			std::back_inserter(to_optimize),
+			[](eqns::VarAssign& assign)
+			{
+				return &assign.source_;
+			});
+
+		size_t n_roots = to_optimize.size();
+		ead::NodesT<PybindT> roots(n_roots);
+		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
+			[](ead::NodeptrT<PybindT>* ptr)
+			{
+				return *ptr;
+			});
+
+		{
+			auto rules = ead::opt::get_configs<PybindT>();
+			ead::opt::optimize(roots, rules);
+		}
+
+		for (size_t i = 0; i < n_roots; ++i)
+		{
+			sess_->track(roots[i]->get_tensor().get());
+			*to_optimize[i] = roots[i];
 		}
 
 		updates_.push_back(assigns);

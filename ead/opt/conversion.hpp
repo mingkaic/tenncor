@@ -53,7 +53,11 @@ struct VarTarget final : public RuleTarget<T>
 		auto var_it = ctx.rule_vars_.find(id_);
 		assert(ctx.rule_vars_.end() != var_it);
 		auto owner_it = owners.find(var_it->second);
-		assert(owners.end() != owner_it);
+		if (owners.end() == owner_it)
+		{
+			logs::fatalf("Variable representation %s has no associated tensor",
+				var_it->second->get_identifier().c_str());
+		}
 		return owner_it->second;
 	}
 
@@ -174,6 +178,7 @@ struct RuleConversion final : public iRuleConversion<T>
 			{
 				std::vector<T> zeros(exshape.n_elems(), 0);
 				rep = std::make_shared<ConstRep<T>>(zeros.data(), exshape);
+				ownermap.emplace(rep.get(), rep);
 			}
 		}
 		return rep;
@@ -205,7 +210,9 @@ struct CalcConstantConversion final : public iRuleConversion<T>
 			rep->unravel(unravelled, owners);
 			auto f = unravelled[rep.get()];
 			f->update();
-			return std::make_shared<ConstRep<T>>(f->data(), f->shape());
+			auto out = std::make_shared<ConstRep<T>>(f->data(), f->shape());
+			ownermap.emplace(out.get(), out);
+			return out;
 		}
 		return rep;
 	}

@@ -81,7 +81,8 @@ py_binary(
         ":rocnnet_py",
         "//dbg:grpc_dbg_py",
     ],
-    data = glob(["pretrained/*"]),
+    data = glob(["pretrained/*"]) +
+        ["//ead:optimizations"],
 )
 
 # cc_binary(
