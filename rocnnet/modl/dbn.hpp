@@ -57,7 +57,7 @@ struct DBN final : public iMarshalSet
 	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
 	{
 		ead::NodeptrT<PybindT> output = (*rbm_)(input);
-		return age::softmax(prx::fully_connect({output},
+		return age::softmax(age::fully_connect({output},
 			{ead::convert_to_node(log_weight_->var_)},
 			ead::convert_to_node(log_bias_->var_)));
 	}

@@ -28,7 +28,8 @@ struct TagCollective final
 	template <typename TAG>
 	static size_t register_tag (void)
 	{
-		static_assert(std::is_base_of<iTag,TAG>::value);
+		static_assert(std::is_base_of<iTag,TAG>::value,
+			"collective tags must inherit iTag");
 		const std::type_info& tp = typeid(TAG);
 		size_t code = tp.hash_code();
 		if (tag_types_.end() == tag_types_.find(code))

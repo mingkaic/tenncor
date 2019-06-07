@@ -1,4 +1,4 @@
-#include "prx/api.hpp"
+#include "ead/generated/api.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
 
@@ -140,7 +140,7 @@ struct MLP final : public iMarshalSet
 		ead::NodeptrT<PybindT> out = input;
 		for (size_t i = 0; i < nlayers; ++i)
 		{
-			auto hypothesis = prx::fully_connect({out},
+			auto hypothesis = age::fully_connect({out},
 				{ead::convert_to_node(layers_[i].weight_->var_)},
 				ead::convert_to_node(layers_[i].bias_->var_));
 			out = nonlinearities[i](hypothesis);

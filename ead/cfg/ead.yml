@@ -58,7 +58,7 @@ api:
   includes:
   - '"ead/helper.hpp"'
   - '"ead/constant.hpp"'
-  - '"tag/tag.hpp"'
+  - '"tag/groupy.hpp"'
   definitions:
   - template: typename T
     name: abs
@@ -193,26 +193,6 @@ api:
       type: ead::NodeptrT<T>
       val: return ead::make_functor<T>(ade::Opcode{"ADD",ADD},{ead::identity_map(arg1),ead::identity_map(arg2)});
   - template: typename T
-    name: sum
-    args:
-    - dtype: ead::NodesT<T>
-      name: args
-    out:
-      type: ead::NodeptrT<T>
-      val: |
-          //
-              if (args.empty())
-              {
-                  logs::fatal("cannot sum without arguments");
-              }
-              ead::NodeptrT<T> out = args[0];
-              for (size_t i = 1, n = args.size(); i < n; ++i)
-              {
-                  out = add(out, args[i]);
-                  tag::group_tag(out->get_tensor().get(), "sum");
-              }
-              return out;
-  - template: typename T
     name: sub
     args:
     - dtype: ead::NodeptrT<T>
@@ -232,26 +212,6 @@ api:
     out:
       type: ead::NodeptrT<T>
       val: return ead::make_functor<T>(ade::Opcode{"MUL",MUL},{ead::identity_map(arg1),ead::identity_map(arg2)});
-    - template: typename T
-    name: prod
-    args:
-    - dtype: ead::NodesT<T>
-      name: args
-    out:
-      type: ead::NodeptrT<T>
-      val: |
-          //
-              if (args.empty())
-              {
-                  logs::fatal("cannot sum without arguments");
-              }
-              ead::NodeptrT<T> out = args[0];
-              for (size_t i = 1, n = args.size(); i < n; ++i)
-              {
-                  out = mul(out, args[i]);
-                  tag::group_tag(out->get_tensor().get(), "prod");
-              }
-              return out;
   - template: typename T
     name: div
     args:
@@ -601,49 +561,6 @@ api:
                   )
               });
   - template: typename T
-    name: clip_by_range
-    args:
-    - dtype: ead::NodeptrT<T>
-      name: arg
-    - dtype: T
-      name: minval
-    - dtype: T
-      name: maxval
-    out:
-      type: ead::NodeptrT<T>
-      val: |
-          //
-              if (minval > maxval)
-              {
-                  logs::fatal("min value is below max");
-              }
-              ade::Shape shape = arg->shape();
-              auto lo = ead::make_constant_scalar<T>(minval, shape);
-              auto hi = ead::make_constant_scalar<T>(maxval, shape);
-              return max(min(arg, hi), lo);
-  - template: typename T
-    name: clip_by_l2norm
-    args:
-    - dtype: ead::NodeptrT<T>
-      name: arg
-    - dtype: T
-      name: upper
-    out:
-      type: ead::NodeptrT<T>
-      val: |
-          //
-              if (upper == 0)
-              {
-                  logs::fatal("cannot clip_by_norm with a upper limit of 0");
-              }
-              ade::Shape shape = arg->shape();
-              auto limit = ead::make_constant_scalar<T>(upper, shape);
-              auto norm = extend(reduce_l2norm(arg), 0,
-                  std::vector<ade::DimT>(shape.begin(), shape.end()));
-              return if_then_else(lt(norm, limit),
-                  arg, div(mul(arg, limit), norm));
-    description: 'clip by l2norm ((todo) allow l2norm to be configurable)'
-  - template: typename T
     name: matmul
     args:
     - dtype: ead::NodeptrT<T>
@@ -748,10 +665,99 @@ api:
                           ead::CONV, kernel_dims, true)),
               });
   - template: typename T
+    name: clip_by_range
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: T
+      name: minval
+    - dtype: T
+      name: maxval
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (minval > maxval)
+              {
+                  logs::fatal("min value is below max");
+              }
+              ade::Shape shape = arg->shape();
+              auto lo = ead::make_constant_scalar<T>(minval, shape);
+              auto hi = ead::make_constant_scalar<T>(maxval, shape);
+              auto out = max(min(arg, hi), lo);
+              tag::Grouper group("clip_by_range", {arg->get_tensor().get()});
+              out->get_tensor()->accept(group);
+              return out;
+  - template: typename T
+    name: clip_by_l2norm
+    args:
+    - dtype: ead::NodeptrT<T>
+      name: arg
+    - dtype: T
+      name: upper
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (upper == 0)
+              {
+                  logs::fatal("cannot clip_by_norm with a upper limit of 0");
+              }
+              ade::Shape shape = arg->shape();
+              auto limit = ead::make_constant_scalar<T>(upper, shape);
+              auto norm = extend(reduce_l2norm(arg), 0,
+                  std::vector<ade::DimT>(shape.begin(), shape.end()));
+              auto out = if_then_else(lt(norm, limit),
+                  arg, div(mul(arg, limit), norm));
+              tag::Grouper group("clip_by_l2norm", {arg->get_tensor().get()});
+              out->get_tensor()->accept(group);
+              return out;
+    description: 'clip by l2norm ((todo) allow l2norm to be configurable)'
+  - template: typename T
+    name: sum
+    args:
+    - dtype: ead::NodesT<T>
+      name: args
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (args.empty())
+              {
+                  logs::fatal("cannot sum without arguments");
+              }
+              ead::NodeptrT<T> out = args[0];
+              for (size_t i = 1, n = args.size(); i < n; ++i)
+              {
+                  out = add(out, args[i]);
+                  tag::group_tag(out->get_tensor().get(), "sum");
+              }
+              return out;
+  - template: typename T
+    name: prod
+    args:
+    - dtype: ead::NodesT<T>
+      name: args
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (args.empty())
+              {
+                  logs::fatal("cannot sum without arguments");
+              }
+              ead::NodeptrT<T> out = args[0];
+              for (size_t i = 1, n = args.size(); i < n; ++i)
+              {
+                  out = mul(out, args[i]);
+                  tag::group_tag(out->get_tensor().get(), "prod");
+              }
+              return out;
+  - template: typename T
     name: softmax
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     - dtype: uint8_t
       name: offset
       default: '0'
@@ -762,13 +768,16 @@ api:
       type: ead::NodeptrT<T>
       val: |
           //
-              auto exarg = exp(arg1);
+              auto exarg = exp(arg);
               ade::Shape shape = exarg->shape();
               auto it = shape.begin() + offset;
               std::vector<ade::DimT> xlist(it, it + ndims);
-              return div(exarg,
+              auto out = div(exarg,
                   extend(reduce_sum(exarg,offset,offset+ndims),
                   offset, xlist));
+              tag::Grouper group("softmax", {arg->get_tensor().get()});
+              out->get_tensor()->accept(group);
+              return out;
   - template: typename T
     name: conv2d
     args:
@@ -797,9 +806,54 @@ api:
                       {i, nfilters - i - 1}, 0);
                   convolveds.push_back(padded);
               }
-              auto out = convolveds[0];
-              for (ade::DimT i = 1; i < nfilters; ++i)
+              auto out = sum(convolveds);
+              tag::Grouper group("conv2d", {
+                  image->get_tensor().get(),
+                  kernel->get_tensor().get()
+              });
+              out->get_tensor()->accept(group);
+              return out;
+  - template: typename T
+    name: fully_connect
+    args:
+    - dtype: ead::NodesT<T>
+      name: inputs
+    - dtype: ead::NodesT<T>
+      name: weights
+    - dtype: ead::NodeptrT<T>
+      name: bias
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (weights.empty())
               {
-                  out = add(out, convolveds[i]);
+                  logs::fatal("cannot create a fully connected layer without weights");
               }
+              size_t n = inputs.size();
+              if (n != weights.size())
+              {
+                  logs::fatalf(
+                      "number of inputs (%d) must equal the number of weights (%d)",
+                      n, weights.size());
+              }
+              std::unordered_set<ade::iTensor*> ignores = {
+                  inputs[0]->get_tensor().get(),
+                  weights[0]->get_tensor().get()
+              };
+              auto out = age::matmul(inputs[0], weights[0]);
+              for (size_t i = 1; i < n; ++i)
+              {
+                  ignores.emplace(inputs[i]->get_tensor().get());
+                  ignores.emplace(weights[i]->get_tensor().get());
+                  out = age::add(out, age::matmul(inputs[i], weights[i]));
+              }
+              if (nullptr != bias)
+              {
+                  const ade::Shape& shape = out->shape();
+                  out = age::add(out, age::extend(bias, 1, {shape.at(1)}));
+                  ignores.emplace(bias);
+              }
+              tag::Grouper group("fully_connect", ignores);
+              out->get_tensor()->accept(group);
               return out;

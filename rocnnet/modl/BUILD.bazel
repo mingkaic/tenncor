@@ -19,5 +19,5 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
-    deps = ["//prx:prx"],
+    deps = ["//ead:ead"],
 )

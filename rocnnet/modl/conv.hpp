@@ -1,4 +1,4 @@
-#include "prx/api.hpp"
+#include "ead/generated/api.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
 
@@ -56,7 +56,7 @@ struct Conv final : public iMarshalSet
 
 	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
 	{
-		return prx::conv2d(input,
+		return age::conv2d(input,
 			ead::convert_to_node<PybindT>(weight_->var_),
 			ead::convert_to_node<PybindT>(bias_->var_));
 	}
