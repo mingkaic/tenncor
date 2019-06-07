@@ -852,7 +852,7 @@ api:
               {
                   const ade::Shape& shape = out->shape();
                   out = age::add(out, age::extend(bias, 1, {shape.at(1)}));
-                  ignores.emplace(bias);
+                  ignores.emplace(bias->get_tensor().get());
               }
               tag::Grouper group("fully_connect", ignores);
               out->get_tensor()->accept(group);
