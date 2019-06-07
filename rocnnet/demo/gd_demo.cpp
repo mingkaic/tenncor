@@ -127,7 +127,7 @@ int main (int argc, const char** argv)
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
-	eqns::ApproxFuncT approx = [](ead::NodeptrT<float>& root, eqns::VariablesT leaves)
+	eqns::ApproxF approx = [](ead::NodeptrT<float>& root, eqns::VariablesT leaves)
 	{
 		return eqns::sgd(root, leaves, 0.9); // learning rate = 0.9
 	};

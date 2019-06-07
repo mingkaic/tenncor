@@ -29,11 +29,11 @@ enum NODE_TYPE
 	CACHED_FUNC,
 };
 
-using GetTypeFuncT = std::function<NODE_TYPE(ade::iFunctor*)>;
+using GetTypeF = std::function<NODE_TYPE(ade::iFunctor*)>;
 
 struct CSVEquation final : public ade::iTraveler
 {
-	CSVEquation (GetTypeFuncT get_ftype =
+	CSVEquation (GetTypeF get_ftype =
 		[](ade::iFunctor* func) { return FUNCTOR; }) :
 		get_ftype_(get_ftype) {}
 
@@ -178,7 +178,7 @@ struct CSVEquation final : public ade::iTraveler
 
 	std::unordered_map<ade::iCoordMap*,std::string> coorders_;
 
-	GetTypeFuncT get_ftype_;
+	GetTypeF get_ftype_;
 };
 
 #endif // DBG_ADE_CSV_HPP

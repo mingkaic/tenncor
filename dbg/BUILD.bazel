@@ -37,7 +37,7 @@ pybind_library(
 py_library(
     name = "stream_wrapper",
     srcs = glob(["*.py"]),
-    deps = ["//dbg:stream_py"],
+    deps = ["//dbg:stream_dbg_py"],
 )
 
 proto_library(

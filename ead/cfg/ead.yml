@@ -58,6 +58,7 @@ api:
   includes:
   - '"ead/helper.hpp"'
   - '"ead/constant.hpp"'
+  - '"tag/tag.hpp"'
   definitions:
   - template: typename T
     name: abs
@@ -192,6 +193,26 @@ api:
       type: ead::NodeptrT<T>
       val: return ead::make_functor<T>(ade::Opcode{"ADD",ADD},{ead::identity_map(arg1),ead::identity_map(arg2)});
   - template: typename T
+    name: sum
+    args:
+    - dtype: ead::NodesT<T>
+      name: args
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (args.empty())
+              {
+                  logs::fatal("cannot sum without arguments");
+              }
+              ead::NodeptrT<T> out = args[0];
+              for (size_t i = 1, n = args.size(); i < n; ++i)
+              {
+                  out = add(out, args[i]);
+                  tag::group_tag(out->get_tensor().get(), "sum");
+              }
+              return out;
+  - template: typename T
     name: sub
     args:
     - dtype: ead::NodeptrT<T>
@@ -211,6 +232,26 @@ api:
     out:
       type: ead::NodeptrT<T>
       val: return ead::make_functor<T>(ade::Opcode{"MUL",MUL},{ead::identity_map(arg1),ead::identity_map(arg2)});
+    - template: typename T
+    name: prod
+    args:
+    - dtype: ead::NodesT<T>
+      name: args
+    out:
+      type: ead::NodeptrT<T>
+      val: |
+          //
+              if (args.empty())
+              {
+                  logs::fatal("cannot sum without arguments");
+              }
+              ead::NodeptrT<T> out = args[0];
+              for (size_t i = 1, n = args.size(); i < n; ++i)
+              {
+                  out = mul(out, args[i]);
+                  tag::group_tag(out->get_tensor().get(), "prod");
+              }
+              return out;
   - template: typename T
     name: div
     args:

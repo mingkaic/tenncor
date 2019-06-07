@@ -82,7 +82,7 @@ TEST(EDITOR, Prune)
 			ade::identity_map(binar2),
 		}));
 
-	opt::EditFuncT pruner =
+	opt::EditF pruner =
 		[&](ade::Opcode& opcode, ade::ArgsT& args, bool changed) -> ade::TensptrT
 		{
 			if (opcode.code_ < 2) // killable

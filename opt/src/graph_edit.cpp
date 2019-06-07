@@ -7,7 +7,7 @@
 namespace opt
 {
 
-ade::TensT graph_edit (ade::TensT roots, EditFuncT edit)
+ade::TensT graph_edit (ade::TensT roots, EditF edit)
 {
 	ade::GraphStat stat;
 	for (auto& root : roots)

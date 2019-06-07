@@ -54,14 +54,14 @@ PYBIND11_MODULE(grpc_dbg, m)
 		.def("join",
 		[](py::object self)
 		{
-            self.cast<dbg::InteractiveSession*>()->join();
+			self.cast<dbg::InteractiveSession*>()->join();
 		},
 		"Wait until session finishes sends all requests")
 		.def("stop",
 		[](py::object self)
 		{
-            self.cast<dbg::InteractiveSession*>()->stop();
+			self.cast<dbg::InteractiveSession*>()->stop();
 		},
 		"Inform session requests to stop their tasks "
-        "(requests will attempt to wrap up call before terminating)");
+		"(requests will attempt to wrap up call before terminating)");
 }

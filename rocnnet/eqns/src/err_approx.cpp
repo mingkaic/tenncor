@@ -83,7 +83,7 @@ AssignGroupsT rms_momentum (ead::NodeptrT<PybindT>& root, VariablesT leaves,
 	return {momentum_assigns, leaf_assigns};
 }
 
-void assign_groups (AssignGroupsT& groups, UpdateStepT update_step)
+void assign_groups (AssignGroupsT& groups, UpdateStepF update_step)
 {
 	for (AssignsT& group : groups)
 	{

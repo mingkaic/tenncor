@@ -133,7 +133,7 @@ struct DQNTrainer
 	DQNTrainer (modl::MLPptrT brain,
 		modl::NonLinearsT nonlinearities,
 		ead::iSession& sess,
-		eqns::ApproxFuncT update, DQNInfo param,
+		eqns::ApproxF update, DQNInfo param,
 		DQNTrainingContext ctx) :
 		sess_(&sess),
 		params_(param),
@@ -146,7 +146,7 @@ struct DQNTrainer
 	DQNTrainer (modl::MLPptrT brain,
 		modl::NonLinearsT nonlinearities,
 		ead::iSession& sess,
-		eqns::ApproxFuncT update, DQNInfo param) :
+		eqns::ApproxF update, DQNInfo param) :
 		sess_(&sess),
 		params_(param),
 		source_qnet_(brain)
@@ -302,7 +302,7 @@ struct DQNTrainer
 
 private:
 	void initialize (modl::NonLinearsT nonlinearities,
-		eqns::ApproxFuncT update)
+		eqns::ApproxF update)
 	{
 		input_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({source_qnet_->get_ninput()}), "observation");

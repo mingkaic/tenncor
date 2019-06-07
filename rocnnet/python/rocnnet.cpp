@@ -62,7 +62,7 @@ modl::RBMptrT rbm_init (size_t n_input, std::vector<ade::DimT> nouts,
 // 		std::vector<uint8_t>(n_hiddens.begin(), n_hiddens.end()), label);
 // }
 
-eqns::ApproxFuncT get_sgd (PybindT learning_rate, eqns::NodeUnarF gradprocess)
+eqns::ApproxF get_sgd (PybindT learning_rate, eqns::NodeUnarF gradprocess)
 {
 	return [=](ead::NodeptrT<PybindT>& root, eqns::VariablesT leaves)
 	{
@@ -70,7 +70,7 @@ eqns::ApproxFuncT get_sgd (PybindT learning_rate, eqns::NodeUnarF gradprocess)
 	};
 }
 
-eqns::ApproxFuncT get_rms_momentum (PybindT learning_rate,
+eqns::ApproxF get_rms_momentum (PybindT learning_rate,
 	PybindT discount_factor, PybindT epsilon, eqns::NodeUnarF gradprocess)
 {
 	return [=](ead::NodeptrT<PybindT>& root, eqns::VariablesT leaves)
@@ -209,7 +209,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// mlptrainer
 	mlptrainer
 		.def(py::init<modl::MLPptrT,modl::NonLinearsT,
-			ead::iSession&,eqns::ApproxFuncT,uint8_t>())
+			ead::iSession&,eqns::ApproxF,uint8_t>())
 		.def("train", &trainer::MLPTrainer::train, "train internal variables")
 		.def("serialize_to_file", [](py::object self, std::string filename)
 		{
@@ -253,7 +253,7 @@ PYBIND11_MODULE(rocnnet, m)
 			return self.cast<trainer::MLPTrainer*>()->brain_;
 		}, "get mlp");
 	m.def("load_mlptrainer", [](std::string data, modl::NonLinearsT nonlins,
-		ead::iSession& sess, eqns::ApproxFuncT update,
+		ead::iSession& sess, eqns::ApproxF update,
 		uint8_t batch_size) -> trainer::MLPTrainer
 	{
 		cortenn::Layer layer;
@@ -291,7 +291,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("max_exp") = 30000);
 	dqntrainer
 		.def(py::init<modl::MLPptrT,modl::NonLinearsT,
-			ead::iSession&,eqns::ApproxFuncT,trainer::DQNInfo>())
+			ead::iSession&,eqns::ApproxF,trainer::DQNInfo>())
 		.def("action", &trainer::DQNTrainer::action, "get next action")
 		.def("store", &trainer::DQNTrainer::store, "save observation, action, and reward")
 		.def("train", &trainer::DQNTrainer::train, "train qnets")
@@ -323,7 +323,7 @@ PYBIND11_MODULE(rocnnet, m)
 			return self.cast<trainer::DQNTrainer*>()->train_out_;
 		}, "get training node");
 	m.def("load_dqntrainer", [](std::string data, modl::NonLinearsT nonlins,
-		ead::iSession& sess, eqns::ApproxFuncT update,
+		ead::iSession& sess, eqns::ApproxF update,
 		trainer::DQNInfo param) -> trainer::DQNTrainer
 	{
 		cortenn::Layer layer;

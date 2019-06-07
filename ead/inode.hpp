@@ -34,12 +34,12 @@ template <typename T>
 using NodesT = std::vector<NodeptrT<T>>;
 
 template <typename T>
-using NodeBuilderT = std::function<NodeptrT<T>(ade::TensptrT)>;
+using NodeBuilderF = std::function<NodeptrT<T>(ade::TensptrT)>;
 
 template <typename T>
 struct NodeConverters final
 {
-	static std::unordered_map<size_t,NodeBuilderT<T>> builders_;
+	static std::unordered_map<size_t,NodeBuilderF<T>> builders_;
 
 	static NodeptrT<T> to_node (ade::TensptrT tens)
 	{
@@ -58,10 +58,10 @@ struct NodeConverters final
 };
 
 template <typename T>
-std::unordered_map<size_t,NodeBuilderT<T>> NodeConverters<T>::builders_;
+std::unordered_map<size_t,NodeBuilderF<T>> NodeConverters<T>::builders_;
 
 template <typename TensType, typename T>
-bool register_builder (NodeBuilderT<T> builder)
+bool register_builder (NodeBuilderF<T> builder)
 {
 	const std::type_info& tp = typeid(TensType);
 	return NodeConverters<T>::builders_.

@@ -34,7 +34,7 @@ struct MLPTrainer
 	MLPTrainer (modl::MLPptrT brain,
 		modl::NonLinearsT nonlinearities,
 		ead::iSession& sess,
-		eqns::ApproxFuncT update, uint8_t batch_size,
+		eqns::ApproxF update, uint8_t batch_size,
 		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
 		train_in_(ead::make_variable_scalar<PybindT>(0.0,

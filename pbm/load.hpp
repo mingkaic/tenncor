@@ -149,7 +149,8 @@ struct GraphInfo final
 };
 
 /// Return graph info through out available from in graph
-template <typename LOAD, typename std::enable_if<std::is_base_of<iLoader,LOAD>::value>::type* = nullptr>
+template <typename LOAD, typename std::enable_if<
+	std::is_base_of<iLoader,LOAD>::value>::type* = nullptr>
 void load_graph (GraphInfo& out, const cortenn::Graph& in)
 {
 	LOAD loader;
