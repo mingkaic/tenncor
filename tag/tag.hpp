@@ -1,3 +1,4 @@
+#include <map>
 #include <set>
 
 #include "ade/ade.hpp"
@@ -8,6 +9,8 @@
 namespace tag
 {
 
+using TagRepsT = std::map<std::string,std::string>;
+
 // each tag instance is a set of tags with particular properties
 // iTag is the interface for such instances
 struct iTag
@@ -17,6 +20,8 @@ struct iTag
 	virtual size_t tag_id (void) const = 0;
 
 	virtual void absorb (std::unique_ptr<iTag>&& other) = 0;
+
+	virtual TagRepsT get_tags (void) const = 0;
 };
 
 // TagCollective is a collective of generic iTag instances
@@ -54,13 +59,60 @@ struct TagCollective final
 		}
 	}
 
+	TagRepsT get_tags (void) const
+	{
+		TagRepsT tags;
+		for (auto& tpair : tags_)
+		{
+			auto temp = tpair.second->get_tags();
+			tags.insert(temp.begin(), temp.end());
+		}
+		return tags;
+	}
+
 private:
 	std::unordered_map<size_t,std::unique_ptr<iTag>> tags_;
 
 	static std::unordered_set<size_t> tag_types_;
 };
 
-using TensSetT = std::unordered_set<ade::iTensor*>;
+struct TensKey final
+{
+	TensKey (ade::TensrefT tens) : val_(tens.lock().get()), ref_(tens) {}
+
+	// used to match keys
+	TensKey (ade::iTensor* tens) : val_(tens) {}
+
+	operator ade::iTensor*() const
+	{
+		return val_;
+	}
+
+	bool expired (void) const
+	{
+		return ref_.expired();
+	}
+
+	ade::iTensor* val_;
+
+	ade::TensrefT ref_;
+};
+
+struct TensKeyHash final
+{
+	size_t operator() (const TensKey& key) const
+	{
+		return std::hash<void*>()(key.val_);
+	}
+};
+
+inline bool operator == (const TensKey& lhs, const TensKey& rhs)
+{
+	TensKeyHash hasher;
+	return hasher(lhs) == hasher(rhs);
+}
+
+using TensSetT = std::unordered_set<TensKey,TensKeyHash>;
 
 // groups are ordered:
 // meaning the first label appears before
@@ -86,13 +138,25 @@ struct GroupTag final : public iTag
 		other.release();
 	}
 
+	TagRepsT get_tags (void) const override
+	{
+		TagRepsT out;
+		for (std::string label : labels_)
+		{
+			out.emplace(label, "");
+		}
+		return out;
+	}
+
 private:
 	std::set<std::string> labels_;
 
 	static size_t tag_id_;
 };
 
-void group_tag (ade::iTensor* tens, std::string group);
+TagRepsT get_tags (ade::iTensor* tens);
+
+void group_tag (ade::TensrefT tens, std::string group);
 
 }
 

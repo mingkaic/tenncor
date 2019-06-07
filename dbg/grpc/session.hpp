@@ -10,6 +10,8 @@
 
 #include "ead/session.hpp"
 
+#include "tag/tag.hpp"
+
 #include "dbg/grpc/client.hpp"
 
 #ifndef DBG_SESSION_HPP
@@ -95,6 +97,8 @@ struct InteractiveSession final : public ead::iSession
 					node_type = "functor";
 				}
 				tags->insert({tag_node_type, node_type});
+				auto inner_tags = tag::get_tags(tens);
+				tags->insert(inner_tags.begin(), inner_tags.end());
 				auto s = tens->shape();
 				google::protobuf::RepeatedField<uint32_t> shape(
 					s.begin(), s.end());

@@ -61,7 +61,6 @@ cc_library(
         "//dbg:tenncor_cc_proto",
         "@boost//:uuid",
         "@com_github_mingkaic_cppkg//job:job",
-        # "//job:job",
     ],
 )
 

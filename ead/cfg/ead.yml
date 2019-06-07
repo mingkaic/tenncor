@@ -58,7 +58,7 @@ api:
   includes:
   - '"ead/helper.hpp"'
   - '"ead/constant.hpp"'
-  - '"tag/groupy.hpp"'
+  - '"tag/group.hpp"'
   definitions:
   - template: typename T
     name: abs
@@ -685,8 +685,8 @@ api:
               auto lo = ead::make_constant_scalar<T>(minval, shape);
               auto hi = ead::make_constant_scalar<T>(maxval, shape);
               auto out = max(min(arg, hi), lo);
-              tag::Grouper group("clip_by_range", {arg->get_tensor().get()});
-              out->get_tensor()->accept(group);
+              tag::recursive_group_tag(out->get_tensor(),
+                  "clip_by_range", {arg->get_tensor().get()});
               return out;
   - template: typename T
     name: clip_by_l2norm
@@ -709,8 +709,8 @@ api:
                   std::vector<ade::DimT>(shape.begin(), shape.end()));
               auto out = if_then_else(lt(norm, limit),
                   arg, div(mul(arg, limit), norm));
-              tag::Grouper group("clip_by_l2norm", {arg->get_tensor().get()});
-              out->get_tensor()->accept(group);
+              tag::recursive_group_tag(out->get_tensor(),
+                  "clip_by_l2norm", {arg->get_tensor().get()});
               return out;
     description: 'clip by l2norm ((todo) allow l2norm to be configurable)'
   - template: typename T
@@ -730,7 +730,7 @@ api:
               for (size_t i = 1, n = args.size(); i < n; ++i)
               {
                   out = add(out, args[i]);
-                  tag::group_tag(out->get_tensor().get(), "sum");
+                  tag::group_tag(out->get_tensor(), "sum");
               }
               return out;
   - template: typename T
@@ -750,7 +750,7 @@ api:
               for (size_t i = 1, n = args.size(); i < n; ++i)
               {
                   out = mul(out, args[i]);
-                  tag::group_tag(out->get_tensor().get(), "prod");
+                  tag::group_tag(out->get_tensor(), "prod");
               }
               return out;
   - template: typename T
@@ -775,8 +775,8 @@ api:
               auto out = div(exarg,
                   extend(reduce_sum(exarg,offset,offset+ndims),
                   offset, xlist));
-              tag::Grouper group("softmax", {arg->get_tensor().get()});
-              out->get_tensor()->accept(group);
+              tag::recursive_group_tag(out->get_tensor(), "softmax", {
+                  arg->get_tensor().get()});
               return out;
   - template: typename T
     name: conv2d
@@ -791,7 +791,7 @@ api:
           //
               // image must be in form [in, width, height, batch]
               // kernel must be in form [out, in, width, height]
-              // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d specifications
+              // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
               ade::DimT nfilters = kernel->shape().at(0);
               ead::NodesT<T> convolveds;
               convolveds.reserve(nfilters);
@@ -807,11 +807,10 @@ api:
                   convolveds.push_back(padded);
               }
               auto out = sum(convolveds);
-              tag::Grouper group("conv2d", {
+              tag::recursive_group_tag(out->get_tensor(), "conv2d", {
                   image->get_tensor().get(),
                   kernel->get_tensor().get()
               });
-              out->get_tensor()->accept(group);
               return out;
   - template: typename T
     name: fully_connect
@@ -854,6 +853,5 @@ api:
                   out = age::add(out, age::extend(bias, 1, {shape.at(1)}));
                   ignores.emplace(bias->get_tensor().get());
               }
-              tag::Grouper group("fully_connect", ignores);
-              out->get_tensor()->accept(group);
+              tag::recursive_group_tag(out->get_tensor(), "fully_connect", ignores);
               return out;
