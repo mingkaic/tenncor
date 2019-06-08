@@ -78,6 +78,12 @@ struct Functor final : public iFunctor
 		return args_;
 	}
 
+	/// Implementation of iFunctor
+	void update_child (FuncArg& arg, size_t index) override
+	{
+		logs::debug("ade::Functor does not allow editing of children");
+	}
+
 private:
 	Functor (Opcode opcode, Shape shape, ArgsT args) :
 		opcode_(opcode), shape_(shape), args_(args) {}

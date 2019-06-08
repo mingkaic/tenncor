@@ -1,3 +1,5 @@
+#include "tag/prop.hpp"
+
 #include "ead/ileaf.hpp"
 #include "ead/inode.hpp"
 
@@ -6,6 +8,8 @@
 
 namespace ead
 {
+
+const std::string immutable_tag = "immutable";
 
 static const size_t label_limit = 5;
 
@@ -104,17 +108,21 @@ Constant<T>* Constant<T>::get (T* data, ade::Shape shape)
 template <typename T>
 NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)
 {
-	return std::make_shared<ConstantNode<T>>(
+	auto out = std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get_scalar(scalar, shape))
 	);
+	tag::property_tag(out->get_tensor(), immutable_tag);
+	return out;
 }
 
 template <typename T>
 NodeptrT<T> make_constant (T* data, ade::Shape shape)
 {
-	return std::make_shared<ConstantNode<T>>(
+	auto out = std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get(data, shape))
 	);
+	tag::property_tag(out->get_tensor(), immutable_tag);
+	return out;
 }
 
 }

@@ -6,8 +6,7 @@
 /// Define common traveler implementations
 ///
 
-#include <unordered_set>
-#include <unordered_map>
+#include "stdutil/searchable.hpp"
 
 #include "ade/ileaf.hpp"
 #include "ade/ifunctor.hpp"
@@ -45,7 +44,7 @@ struct GraphStat final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iFunctor* func) override
 	{
-		if (graphsize_.end() == graphsize_.find(func))
+		if (false == util::has(graphsize_, func))
 		{
 			ArgsT children = func->get_children();
 			size_t nchildren = children.size();
@@ -107,7 +106,7 @@ struct PathFinder final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iFunctor* func) override
 	{
-		if (parents_.end() == parents_.find(func))
+		if (false == util::has(parents_, func))
 		{
 			auto& children = func->get_children();
 			size_t n = children.size();
@@ -122,7 +121,7 @@ struct PathFinder final : public iTraveler
 				else
 				{
 					tens->accept(*this);
-					if (parents_.end() != parents_.find(tens.get()))
+					if (util::has(parents_, tens.get()))
 					{
 						path.emplace(i);
 					}
@@ -145,32 +144,33 @@ struct PathFinder final : public iTraveler
 /// Traveler that for each child tracks the relationship to all parents
 struct ParentFinder final : public ade::iTraveler
 {
-	using ParentSetT = std::unordered_set<ade::iTensor*>;
+	using ParentMapT = std::unordered_map<ade::iTensor*,std::vector<size_t>>;
 
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		parents_.emplace(leaf, ParentSetT());
+		parents_.emplace(leaf, ParentMapT());
 	}
 
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (parents_.end() == parents_.find(func))
+		if (false == util::has(parents_, func))
 		{
 			auto& children = func->get_children();
-			for (auto& child : children)
+			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
+				auto& child = children[i];
 				auto tens = child.get_tensor();
 				tens->accept(*this);
-				parents_[tens.get()].emplace(func);
+				parents_[tens.get()][func].push_back(i);
 			}
-			parents_.emplace(func, ParentSetT());
+			parents_.emplace(func, ParentMapT());
 		}
 	}
 
 	/// Tracks child to parents relationship
-	std::unordered_map<ade::iTensor*,ParentSetT> parents_;
+	std::unordered_map<ade::iTensor*,ParentMapT> parents_;
 };
 
 /// Map between tensor and its corresponding smart pointer
@@ -178,7 +178,7 @@ using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
 
 /// Travelers will lose smart pointer references,
 /// This utility function will grab reference maps of root's subtree
-OwnerMapT track_owners (TensptrT root);
+OwnerMapT track_owners (TensT roots);
 
 }
 

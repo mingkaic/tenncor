@@ -145,8 +145,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 					NodeConverters<T>::to_node(op))->get_tensor();
 				break;
 			case age::NEG:
-				out = ade::TensptrT(Constant<T>::get_scalar(
-					-1, args[0].get_tensor()->shape()));
+				out = make_constant_scalar<T>(
+					-1, args[0].get_tensor()->shape())->get_tensor();
 				break;
 			case age::SIN:
 				out = age::cos(NodeConverters<T>::to_node(args[0].get_tensor()))->get_tensor();
@@ -255,8 +255,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 				)->get_tensor();;
 				break;
 			case age::SUB:
-				out = ade::TensptrT(Constant<T>::get_scalar(arg_idx == 0 ?
-					1 : -1, args[0].get_tensor()->shape()));
+				out = make_constant_scalar<T>(arg_idx == 0 ?
+					1 : -1, args[0].get_tensor()->shape())->get_tensor();
 				break;
 			case age::DIV:
 			{
@@ -475,13 +475,13 @@ struct GradientBuilder final : public ade::iGradientBuilder
 	/// Implementation of iGradientBuilder
 	ade::TensptrT get_const_one (ade::Shape shape) const override
 	{
-		return ade::TensptrT(Constant<T>::get_scalar(1, shape));
+		return make_constant_scalar<T>(1, shape)->get_tensor();
 	}
 
 	/// Implementation of iGradientBuilder
 	ade::TensptrT get_const_zero (ade::Shape shape) const override
 	{
-		return ade::TensptrT(Constant<T>::get_scalar(0, shape));
+		return make_constant_scalar<T>(0, shape)->get_tensor();
 	}
 
 	/// Implementation of iGradientBuilder

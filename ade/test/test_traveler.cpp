@@ -146,13 +146,13 @@ TEST_F(TRAVELER, ReverseParentGraph)
 	EXPECT_EQ(1, gparents.size());
 	EXPECT_EQ(0, hparents.size());
 
-	EXPECT_HAS(aparents, f.get());
-	EXPECT_HAS(bparents, f.get());
-	EXPECT_HAS(bparents, g.get());
-	EXPECT_HAS(cparents, h.get());
-	EXPECT_HAS(fparents, g.get());
-	EXPECT_HAS(fparents, h.get());
-	EXPECT_HAS(gparents, h.get());
+	EXPECT_TRUE(util::has(aparents, f.get()));
+	EXPECT_TRUE(util::has(bparents, f.get()));
+	EXPECT_TRUE(util::has(bparents, g.get()));
+	EXPECT_TRUE(util::has(cparents, h.get()));
+	EXPECT_TRUE(util::has(fparents, g.get()));
+	EXPECT_TRUE(util::has(fparents, h.get()));
+	EXPECT_TRUE(util::has(gparents, h.get()));
 }
 
 

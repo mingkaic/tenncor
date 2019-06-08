@@ -13,7 +13,7 @@ struct OwnerTracker final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iFunctor* func) override
 	{
-		if (visited_.end() == visited_.find(func))
+		if (false == util::has(visited_, func))
 		{
 			auto& children = func->get_children();
 			for (auto& child : children)
@@ -32,11 +32,14 @@ struct OwnerTracker final : public iTraveler
 	OwnerMapT owners_;
 };
 
-OwnerMapT track_owners (TensptrT root)
+OwnerMapT track_owners (TensT roots)
 {
 	OwnerTracker tracker;
-	root->accept(tracker);
-	tracker.owners_.emplace(root.get(), root);
+	for (auto root : roots)
+	{
+		root->accept(tracker);
+		tracker.owners_.emplace(root.get(), root);
+	}
 	return tracker.owners_;
 }
 

@@ -95,7 +95,7 @@ struct EADSaver : public pbm::iSaver
 };
 
 #define _OUT_GENERIC(realtype)leaf = is_const?\
-ade::TensptrT(Constant<realtype>::get((realtype*) pb, shape)):\
+make_constant<realtype>((realtype*) pb, shape)->get_tensor():\
 ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 
 /// Unmarshal cortenn::Source as Variable containing context of source
@@ -162,7 +162,7 @@ struct EADLoader : public pbm::iLoader
 		{
 			logs::fatal("cannot deserialize non-vector coordinate map");
 		}
-		bool is_bijective = non_bijectives.end() == non_bijectives.find(age::get_op(opname));
+		bool is_bijective = false == util::has(non_bijectives, age::get_op(opname));
 		ade::CoordT indices;
 		auto cit = coord.begin();
 		std::copy(cit, cit + ade::rank_cap, indices.begin());

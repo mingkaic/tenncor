@@ -5,6 +5,8 @@
 #include "ade/ileaf.hpp"
 #include "ade/ifunctor.hpp"
 
+#include "stdutil/searchable.hpp"
+
 #include "dbg/stream/ade.hpp"
 
 #ifndef DBG_ADE_CSV_HPP
@@ -39,7 +41,7 @@ struct CSVEquation final : public ade::iTraveler
 
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (nodes_.end() != nodes_.find(leaf))
+		if (util::has(nodes_, leaf))
 		{
 			return;
 		}
@@ -63,7 +65,7 @@ struct CSVEquation final : public ade::iTraveler
 
 	void visit (ade::iFunctor* func) override
 	{
-		if (nodes_.end() != nodes_.find(func))
+		if (util::has(nodes_, func))
 		{
 			return;
 		}

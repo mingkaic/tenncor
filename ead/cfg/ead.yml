@@ -59,119 +59,120 @@ api:
   - '"ead/helper.hpp"'
   - '"ead/constant.hpp"'
   - '"tag/group.hpp"'
+  - '"tag/prop.hpp"'
   definitions:
   - template: typename T
     name: abs
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"ABS",ABS},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"ABS",ABS},{ead::identity_map(arg)});
   - template: typename T
     name: neg
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"NEG",NEG},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"NEG",NEG},{ead::identity_map(arg)});
   - template: typename T
     name: sin
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"SIN",SIN},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"SIN",SIN},{ead::identity_map(arg)});
   - template: typename T
     name: cos
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"COS",COS},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"COS",COS},{ead::identity_map(arg)});
   - template: typename T
     name: tan
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"TAN",TAN},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"TAN",TAN},{ead::identity_map(arg)});
   - template: typename T
     name: exp
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"EXP",EXP},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"EXP",EXP},{ead::identity_map(arg)});
   - template: typename T
     name: log
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"LOG",LOG},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"LOG",LOG},{ead::identity_map(arg)});
   - template: typename T
     name: sqrt
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"SQRT",SQRT},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"SQRT",SQRT},{ead::identity_map(arg)});
   - template: typename T
     name: round
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"ROUND",ROUND},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"ROUND",ROUND},{ead::identity_map(arg)});
   - template: typename T
     name: sigmoid
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"SIGMOID",SIGMOID},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"SIGMOID",SIGMOID},{ead::identity_map(arg)});
   - template: typename T
     name: sigmoid_grad
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"SIGMOID_GRAD",SIGMOID_GRAD},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"SIGMOID_GRAD",SIGMOID_GRAD},{ead::identity_map(arg)});
   - template: typename T
     name: tanh
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"TANH",TANH},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"TANH",TANH},{ead::identity_map(arg)});
   - template: typename T
     name: square
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"SQUARE",SQUARE},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"SQUARE",SQUARE},{ead::identity_map(arg)});
   - template: typename T
     name: cube
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"CUBE",CUBE},{ead::identity_map(arg1)});
+      val: return ead::make_functor<T>(ade::Opcode{"CUBE",CUBE},{ead::identity_map(arg)});
   - template: typename T
     name: pow
     args:
@@ -191,7 +192,14 @@ api:
       name: arg2
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"ADD",ADD},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      val: |
+          //
+              auto out = ead::make_functor<T>(ade::Opcode{"ADD", ADD}, {
+                  ead::identity_map(arg1),
+                  ead::identity_map(arg2),
+              });
+              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              return out;
   - template: typename T
     name: sub
     args:
@@ -211,7 +219,14 @@ api:
       name: arg2
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"MUL",MUL},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      val: |
+          //
+              auto out = ead::make_functor<T>(ade::Opcode{"MUL", MUL}, {
+                  ead::identity_map(arg1),
+                  ead::identity_map(arg2),
+              });
+              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              return out;
   - template: typename T
     name: div
     args:
@@ -231,7 +246,14 @@ api:
       name: arg2
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"EQ",EQ},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      val: |
+          //
+              auto out = ead::make_functor<T>(ade::Opcode{"EQ", EQ}, {
+                  ead::identity_map(arg1),
+                  ead::identity_map(arg2),
+              });
+              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              return out;
   - template: typename T
     name: neq
     args:
@@ -241,7 +263,14 @@ api:
       name: arg2
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"NEQ",NEQ},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      val: |
+          //
+              auto out = ead::make_functor<T>(ade::Opcode{"NEQ", NEQ}, {
+                  ead::identity_map(arg1),
+                  ead::identity_map(arg2),
+              });
+              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              return out;
   - template: typename T
     name: lt
     args:
@@ -299,7 +328,14 @@ api:
       name: arg2
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"MIN",MIN},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      val: |
+          //
+              auto out = ead::make_functor<T>(ade::Opcode{"MIN", MIN}, {
+                  ead::identity_map(arg1),
+                  ead::identity_map(arg2),
+              });
+              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              return out;
   - template: typename T
     name: max
     args:
@@ -309,7 +345,14 @@ api:
       name: arg2
     out:
       type: ead::NodeptrT<T>
-      val: return ead::make_functor<T>(ade::Opcode{"MAX",MAX},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      val: |
+          //
+              auto out = ead::make_functor<T>(ade::Opcode{"MAX", MAX}, {
+                  ead::identity_map(arg1),
+                  ead::identity_map(arg2),
+              });
+              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              return out;
   - template: typename T
     name: if_then_else
     args:
@@ -454,18 +497,18 @@ api:
     name: transpose
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return permute<T>(arg1, {1, 0});
+      val: return permute<T>(arg, {1, 0});
   - template: typename T
     name: reduce_mean
     args:
     - dtype: ead::NodeptrT<T>
-      name: arg1
+      name: arg
     out:
       type: ead::NodeptrT<T>
-      val: return div<T>(reduce_sum<T>(arg1), n_elems<T>(arg1));
+      val: return div<T>(reduce_sum<T>(arg), n_elems<T>(arg));
   - template: typename T
     name: reduce_l2norm
     args:
@@ -685,8 +728,11 @@ api:
               auto lo = ead::make_constant_scalar<T>(minval, shape);
               auto hi = ead::make_constant_scalar<T>(maxval, shape);
               auto out = max(min(arg, hi), lo);
-              tag::recursive_group_tag(out->get_tensor(),
-                  "clip_by_range", {arg->get_tensor().get()});
+              tag::recursive_group_tag(out->get_tensor(), "clip_by_range", {
+                  arg->get_tensor().get(),
+                  lo->get_tensor().get(),
+                  hi->get_tensor().get(),
+              });
               return out;
   - template: typename T
     name: clip_by_l2norm
@@ -709,8 +755,10 @@ api:
                   std::vector<ade::DimT>(shape.begin(), shape.end()));
               auto out = if_then_else(lt(norm, limit),
                   arg, div(mul(arg, limit), norm));
-              tag::recursive_group_tag(out->get_tensor(),
-                  "clip_by_l2norm", {arg->get_tensor().get()});
+              tag::recursive_group_tag(out->get_tensor(), "clip_by_l2norm", {
+                  arg->get_tensor().get(),
+                  limit->get_tensor().get(),
+              });
               return out;
     description: 'clip by l2norm ((todo) allow l2norm to be configurable)'
   - template: typename T
@@ -773,7 +821,7 @@ api:
               auto it = shape.begin() + offset;
               std::vector<ade::DimT> xlist(it, it + ndims);
               auto out = div(exarg,
-                  extend(reduce_sum(exarg,offset,offset+ndims),
+                  extend(reduce_sum(exarg, offset, offset+ndims),
                   offset, xlist));
               tag::recursive_group_tag(out->get_tensor(), "softmax", {
                   arg->get_tensor().get()});
@@ -829,19 +877,19 @@ api:
               {
                   logs::fatal("cannot create a fully connected layer without weights");
               }
-              size_t n = inputs.size();
-              if (n != weights.size())
+              size_t ninputs = inputs.size();
+              if (ninputs != weights.size())
               {
                   logs::fatalf(
                       "number of inputs (%d) must equal the number of weights (%d)",
-                      n, weights.size());
+                      ninputs, weights.size());
               }
               std::unordered_set<ade::iTensor*> ignores = {
                   inputs[0]->get_tensor().get(),
                   weights[0]->get_tensor().get()
               };
               auto out = age::matmul(inputs[0], weights[0]);
-              for (size_t i = 1; i < n; ++i)
+              for (size_t i = 1; i < ninputs; ++i)
               {
                   ignores.emplace(inputs[i]->get_tensor().get());
                   ignores.emplace(weights[i]->get_tensor().get());

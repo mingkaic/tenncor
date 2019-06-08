@@ -57,6 +57,7 @@ struct iLeaf : public ade::iLeaf
 		return sizeof(T) * shape_.n_elems();
 	}
 
+	// todo: deprecate (with is_mutable)
 	virtual bool is_const (void) const = 0;
 
 protected:

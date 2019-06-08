@@ -182,7 +182,7 @@ struct ConstRep final : public iRepNode<T>
 	void unravel (Rep2NodeT<T>& unravelled,
 		const ade::OwnerMapT& owners) override
 	{
-		if (unravelled.end() == unravelled.find(this))
+		if (false == util::has(unravelled, this))
 		{
 			unravelled.emplace(this, make_constant(data_.data(), shape_));
 		}
@@ -225,7 +225,7 @@ struct LeafRep final : public iRepNode<T>
 	void unravel (Rep2NodeT<T>& unravelled,
 		const ade::OwnerMapT& owners) override
 	{
-		if (unravelled.end() == unravelled.find(this))
+		if (false == util::has(unravelled, this))
 		{
 			auto it = owners.find(leaf_);
 			if (owners.end() != it)
@@ -302,7 +302,7 @@ struct FuncRep final : public iRepNode<T>
 	void unravel (Rep2NodeT<T>& unravelled,
 		const ade::OwnerMapT& owners) override
 	{
-		if (unravelled.end() != unravelled.find(this))
+		if (util::has(unravelled, this))
 		{
 			return;
 		}
@@ -402,7 +402,7 @@ struct Representer final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (reps_.end() == reps_.find(leaf))
+		if (false == util::has(reps_, leaf))
 		{
 			if (static_cast<iLeaf<T>*>(leaf)->is_const())
 			{
@@ -420,7 +420,7 @@ struct Representer final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (reps_.end() == reps_.find(func))
+		if (false == util::has(reps_, func))
 		{
 			auto& children = func->get_children();
 			RepArgsT<T> args;
@@ -496,7 +496,7 @@ NodesT<T> unrepresent (Representer<T>& repr, const NodesT<T>& roots)
 	for (auto& root : roots)
 	{
 		auto tens = root->get_tensor();
-		auto owners = ade::track_owners(tens);
+		auto owners = ade::track_owners({tens});
 		auto rep = repr.reps_[tens.get()].get();
 		rep->unravel(unravelled, owners);
 		out.push_back(unravelled[rep]);

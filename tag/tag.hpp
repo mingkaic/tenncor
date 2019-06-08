@@ -9,7 +9,7 @@
 namespace tag
 {
 
-using TagRepsT = std::map<std::string,std::string>;
+using TagRepsT = std::map<std::string,std::vector<std::string>>;
 
 // each tag instance is a set of tags with particular properties
 // iTag is the interface for such instances
@@ -37,7 +37,7 @@ struct TagCollective final
 			"collective tags must inherit iTag");
 		const std::type_info& tp = typeid(TAG);
 		size_t code = tp.hash_code();
-		if (tag_types_.end() == tag_types_.find(code))
+		if (false == util::has(tag_types_, code))
 		{
 			tag_types_.emplace(code);
 			return tag_types_.size();
@@ -112,51 +112,17 @@ inline bool operator == (const TensKey& lhs, const TensKey& rhs)
 	return hasher(lhs) == hasher(rhs);
 }
 
-using TensSetT = std::unordered_set<TensKey,TensKeyHash>;
-
-// groups are ordered:
-// meaning the first label appears before
-// subsequent labels obtained from absorption
-// e.g.: given tensor X, tag X with A, then tag X wit B,
-// results in X having a collective [GroupTag:[A,B]]
-struct GroupTag final : public iTag
+// todo: move tag registry to some session that claims global context
+// instead of singleton
+struct Registry final
 {
-	static std::unordered_map<std::string,TensSetT> groups_;
+	static std::unordered_map<TensKey,TagCollective,
+		TensKeyHash> registry; // todo: make thread-safe
 
-	GroupTag (std::string init_label) : labels_({init_label}) {}
-
-	size_t tag_id (void) const override
-	{
-		return tag_id_;
-	}
-
-	void absorb (std::unique_ptr<iTag>&& other) override
-	{
-		std::set<std::string>& olabels =
-			static_cast<GroupTag*>(other.get())->labels_;
-		labels_.insert(olabels.begin(), olabels.end());
-		other.release();
-	}
-
-	TagRepsT get_tags (void) const override
-	{
-		TagRepsT out;
-		for (std::string label : labels_)
-		{
-			out.emplace(label, "");
-		}
-		return out;
-	}
-
-private:
-	std::set<std::string> labels_;
-
-	static size_t tag_id_;
+	Registry (void) = delete;
 };
 
 TagRepsT get_tags (ade::iTensor* tens);
-
-void group_tag (ade::TensrefT tens, std::string group);
 
 }
 

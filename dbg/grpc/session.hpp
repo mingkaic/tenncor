@@ -79,26 +79,57 @@ struct InteractiveSession final : public ead::iSession
 			auto tens = statpair.first;
 			auto& range = statpair.second;
 			size_t id = node_ids_.size() + 1;
-			if (node_ids_.end() == node_ids_.find(tens))
+			if (false == util::has(node_ids_, tens))
 			{
 				node_ids_.emplace(tens, id);
 				// add to request
 				auto node = payload->add_nodes();
 				node->set_id(id);
 				auto tags = node->mutable_tags();
-				tags->insert({tag_str_key, tens->to_string()});
-				std::string node_type;
-				if (0 == range.upper_)
 				{
-					node_type = "leaf";
+					// tenncor::Strings tag_str;
+					// tag_str.add_strings(tens->to_string());
+					std::string tag_str = tens->to_string();
+					tags->insert({tag_str_key, tag_str});
 				}
-				else
 				{
-					node_type = "functor";
+					// tenncor::Strings type_str;
+					// if (0 == range.upper_)
+					// {
+					// 	type_str.add_strings("leaf");
+					// }
+					// else
+					// {
+					// 	type_str.add_strings("functor");
+					// }
+					std::string type_str = 0 == range.upper_ ?
+						"leaf" : "functor";
+					tags->insert({tag_node_type, type_str});
 				}
-				tags->insert({tag_node_type, node_type});
-				auto inner_tags = tag::get_tags(tens);
-				tags->insert(inner_tags.begin(), inner_tags.end());
+				{
+					auto inner_tags = tag::get_tags(tens);
+					// std::map<std::string,tenncor::Strings> outer_tags;
+					// std::transform(inner_tags.begin(), inner_tags.end(),
+					// 	std::inserter(outer_tags, outer_tags.begin()),
+					// 	[](auto& itags)
+					// 	{
+					// 		google::protobuf::RepeatedPtrField<std::string>
+					// 		field(itags.second.begin(), itags.second.end());
+					// 		tenncor::Strings otags;
+					// 		otags.mutable_strings()->Swap(&field);
+					// 		return std::pair<std::string,tenncor::Strings>{
+					// 			itags.first,
+					// 			otags,
+					// 		};
+					// 	});
+					std::map<std::string,std::string> outer_tags;
+					for (auto& inner_tag : inner_tags)
+					{
+						outer_tags.emplace(inner_tag.first, fmts::to_string(
+							inner_tag.second.begin(), inner_tag.second.end()));
+					}
+					tags->insert(outer_tags.begin(), outer_tags.end());
+				}
 				auto s = tens->shape();
 				google::protobuf::RepeatedField<uint32_t> shape(
 					s.begin(), s.end());
@@ -128,7 +159,7 @@ struct InteractiveSession final : public ead::iSession
 						node_ids_[child_tens],
 						label,
 					};
-					if (edges_.end() == edges_.find(edgeinfo))
+					if (false == util::has(edges_, edgeinfo))
 					{
 						edges_.emplace(edgeinfo);
 						// add to request
@@ -206,7 +237,7 @@ struct InteractiveSession final : public ead::iSession
 		{
 			// fulfilled and not ignored
 			if (fulfilments[op.first].d >= op.second &&
-				ignores.end() == ignores.find(op.first))
+				false == util::has(ignores, op.first))
 			{
 				op.first->update();
 				age::_GENERATED_DTYPE dtype =

@@ -52,6 +52,20 @@ struct Functor final : public ade::iOperableFunc
 		return args_;
 	}
 
+	/// Implementation of iFunctor
+	void update_child (ade::FuncArg& arg, size_t index) override
+	{
+		ade::Shape arg_shape = arg.shape();
+		if (false == arg_shape.compatible_after(shape_, 0))
+		{
+			logs::fatalf("cannot update child %d to argument with "
+				"incompatible shape %s (requires shape %s)",
+				index, arg_shape.to_string().c_str(),
+				shape_.to_string().c_str());
+		}
+		args_[index] = arg;
+	}
+
 	/// Implementation of iOperableFunc
 	void update (void) override
 	{

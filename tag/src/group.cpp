@@ -7,6 +7,20 @@ namespace tag
 
 using RefMapT = std::unordered_map<ade::iTensor*,ade::TensrefT>;
 
+size_t GroupTag::tag_id_ = TagCollective::register_tag<GroupTag>();
+
+std::unordered_map<std::string,TensSetT> GroupTag::groups_;
+
+void group_tag (ade::TensrefT tens, std::string group)
+{
+	if (tens.expired())
+	{
+		logs::fatal("cannot group tag with expired tensor ref");
+	}
+	GroupTag::groups_[group].emplace(tens);
+	Registry::registry[tens].add(std::make_unique<tag::GroupTag>(group));
+}
+
 struct Grouper final : public ade::iTraveler
 {
 	Grouper (std::string group,
@@ -16,7 +30,7 @@ struct Grouper final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (stops_.end() == stops_.find(leaf))
+		if (false == util::has(stops_, leaf))
 		{
 			auto it = owners_.find(leaf);
 			if (owners_.end() == it)
@@ -30,7 +44,7 @@ struct Grouper final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (stops_.end() == stops_.find(func))
+		if (false == util::has(stops_, func))
 		{
 			auto it = owners_.find(func);
 			if (owners_.end() == it)

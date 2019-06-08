@@ -82,10 +82,10 @@ struct Session final : public iSession
 
 		for (auto& assocs : pfinder.parents_)
 		{
-			for (ade::iTensor* parent : assocs.second)
+			for (auto& parent_pair : assocs.second)
 			{
 				parents_[assocs.first].emplace(
-					static_cast<ade::iOperableFunc*>(parent));
+					static_cast<ade::iOperableFunc*>(parent_pair.first));
 			}
 		}
 	}
@@ -106,7 +106,7 @@ struct Session final : public iSession
 		{
 			// fulfilled and not ignored
 			if (fulfilments[op.first].d >= op.second &&
-				ignores.end() == ignores.find(op.first))
+				false == util::has(ignores, op.first))
 			{
 				op.first->update();
 				auto& op_parents = parents_[op.first];

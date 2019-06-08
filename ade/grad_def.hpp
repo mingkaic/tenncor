@@ -69,7 +69,7 @@ struct iGradientBuilder
 		// using pathfinder, breadth first traverse from this to wrt
 		GraphStat stat;
 		root->accept(stat);
-		auto owners = track_owners(root);
+		auto owners = track_owners({root});
 
 		std::list<iFunctor*> parents;
 		std::transform(pathmap.begin(), pathmap.end(),
