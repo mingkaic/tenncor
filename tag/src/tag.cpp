@@ -5,8 +5,6 @@
 namespace tag
 {
 
-std::unordered_set<size_t> TagCollective::tag_types_;
-
 std::unordered_map<TensKey,TagCollective,
 	TensKeyHash> Registry::registry; // todo: make thread-safe
 

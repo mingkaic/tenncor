@@ -221,7 +221,7 @@ int main (int argc, const char** argv)
 	}
 
 	// 10 seconds
-	std::chrono::time_point deadline =
+	std::chrono::time_point<std::chrono::system_clock> deadline =
 		std::chrono::system_clock::now() +
 		std::chrono::seconds(30);
 	sess.join_then_stop(deadline);

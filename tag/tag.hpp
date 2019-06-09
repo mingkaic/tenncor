@@ -37,10 +37,11 @@ struct TagCollective final
 			"collective tags must inherit iTag");
 		const std::type_info& tp = typeid(TAG);
 		size_t code = tp.hash_code();
-		if (false == util::has(tag_types_, code))
+		auto& tag_types = get_types();
+		if (false == util::has(tag_types, code))
 		{
-			tag_types_.emplace(code);
-			return tag_types_.size();
+			tag_types.emplace(code);
+			return tag_types.size();
 		}
 		return 0; // valid tag type ids are greater than 0
 	}
@@ -73,7 +74,11 @@ struct TagCollective final
 private:
 	std::unordered_map<size_t,std::unique_ptr<iTag>> tags_;
 
-	static std::unordered_set<size_t> tag_types_;
+	static std::unordered_set<size_t>& get_types (void)
+	{
+		static std::unordered_set<size_t> tag_types;
+		return tag_types;
+	};
 };
 
 struct TensKey final
