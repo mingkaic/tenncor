@@ -6,8 +6,6 @@
 namespace ead
 {
 
-const std::string commutative_tag = "commutative";
-
 template <typename T>
 NodeptrT<T> build_reduce (ade::Opcode opcode,
 	NodeptrT<T> tens, uint8_t offset, uint8_t ndims)

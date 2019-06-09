@@ -51,8 +51,8 @@ struct iLeaf : public ade::iLeaf
 		return age::name_type(age::get_type<T>());
 	}
 
-	/// Return number of bytes in data source
-	size_t nbytes (void) const
+	/// Implementation of iLeaf
+	size_t nbytes (void) const override
 	{
 		return sizeof(T) * shape_.n_elems();
 	}

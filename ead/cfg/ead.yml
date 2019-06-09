@@ -198,7 +198,7 @@ api:
                   ead::identity_map(arg1),
                   ead::identity_map(arg2),
               });
-              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              tag::property_tag(out->get_tensor(), tag::commutative_tag);
               return out;
   - template: typename T
     name: sub
@@ -225,7 +225,7 @@ api:
                   ead::identity_map(arg1),
                   ead::identity_map(arg2),
               });
-              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              tag::property_tag(out->get_tensor(), tag::commutative_tag);
               return out;
   - template: typename T
     name: div
@@ -252,7 +252,7 @@ api:
                   ead::identity_map(arg1),
                   ead::identity_map(arg2),
               });
-              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              tag::property_tag(out->get_tensor(), tag::commutative_tag);
               return out;
   - template: typename T
     name: neq
@@ -269,7 +269,7 @@ api:
                   ead::identity_map(arg1),
                   ead::identity_map(arg2),
               });
-              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              tag::property_tag(out->get_tensor(), tag::commutative_tag);
               return out;
   - template: typename T
     name: lt
@@ -334,7 +334,7 @@ api:
                   ead::identity_map(arg1),
                   ead::identity_map(arg2),
               });
-              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              tag::property_tag(out->get_tensor(), tag::commutative_tag);
               return out;
   - template: typename T
     name: max
@@ -351,7 +351,7 @@ api:
                   ead::identity_map(arg1),
                   ead::identity_map(arg2),
               });
-              tag::property_tag(out->get_tensor(), ead::commutative_tag);
+              tag::property_tag(out->get_tensor(), tag::commutative_tag);
               return out;
   - template: typename T
     name: if_then_else

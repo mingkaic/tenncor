@@ -36,6 +36,9 @@ struct iLeaf : public iTensor
 
 	/// Return data type label (for better readability)
 	virtual std::string type_label (void) const = 0;
+
+	/// Return number of bytes in the data
+	virtual size_t nbytes (void) const = 0;
 };
 
 /// Leaf smart pointer

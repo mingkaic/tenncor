@@ -87,46 +87,32 @@ struct InteractiveSession final : public ead::iSession
 				node->set_id(id);
 				auto tags = node->mutable_tags();
 				{
-					// tenncor::Strings tag_str;
-					// tag_str.add_strings(tens->to_string());
-					std::string tag_str = tens->to_string();
+					tenncor::Strings tag_str;
+					tag_str.add_strings(tens->to_string());
 					tags->insert({tag_str_key, tag_str});
 				}
 				{
-					// tenncor::Strings type_str;
-					// if (0 == range.upper_)
-					// {
-					// 	type_str.add_strings("leaf");
-					// }
-					// else
-					// {
-					// 	type_str.add_strings("functor");
-					// }
-					std::string type_str = 0 == range.upper_ ?
-						"leaf" : "functor";
+					tenncor::Strings type_str;
+					if (0 == range.upper_)
+					{
+						type_str.add_strings("leaf");
+					}
+					else
+					{
+						type_str.add_strings("functor");
+					}
 					tags->insert({tag_node_type, type_str});
 				}
 				{
 					auto inner_tags = tag::get_tags(tens);
-					// std::map<std::string,tenncor::Strings> outer_tags;
-					// std::transform(inner_tags.begin(), inner_tags.end(),
-					// 	std::inserter(outer_tags, outer_tags.begin()),
-					// 	[](auto& itags)
-					// 	{
-					// 		google::protobuf::RepeatedPtrField<std::string>
-					// 		field(itags.second.begin(), itags.second.end());
-					// 		tenncor::Strings otags;
-					// 		otags.mutable_strings()->Swap(&field);
-					// 		return std::pair<std::string,tenncor::Strings>{
-					// 			itags.first,
-					// 			otags,
-					// 		};
-					// 	});
-					std::map<std::string,std::string> outer_tags;
-					for (auto& inner_tag : inner_tags)
+					std::map<std::string,tenncor::Strings> outer_tags;
+					for (auto& itags : inner_tags)
 					{
-						outer_tags.emplace(inner_tag.first, fmts::to_string(
-							inner_tag.second.begin(), inner_tag.second.end()));
+						google::protobuf::RepeatedPtrField<std::string>
+						field(itags.second.begin(), itags.second.end());
+						tenncor::Strings otags;
+						otags.mutable_strings()->Swap(&field);
+						outer_tags.emplace(itags.first, otags);
 					}
 					tags->insert(outer_tags.begin(), outer_tags.end());
 				}

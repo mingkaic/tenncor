@@ -42,6 +42,13 @@ private:
 
 void property_tag (ade::TensrefT tens, std::string property);
 
+bool has_property (const ade::iTensor* tens, std::string property);
+
+// some property tags
+const std::string commutative_tag = "commutative";
+
+const std::string immutable_tag = "immutable";
+
 }
 
 #endif // TAG_PROP_HPP

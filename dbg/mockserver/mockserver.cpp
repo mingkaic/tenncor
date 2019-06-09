@@ -38,12 +38,22 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 		for (const tenncor::NodeInfo& node : nodes)
 		{
 			auto shape = node.shape();
-			auto tags = node.tags();
+			auto outer_tags = node.tags();
 			auto loc = node.location();
+			std::unordered_map<std::string,
+				std::vector<std::string>> inner_tags;
+			for (auto& out : outer_tags)
+			{
+				const std::string& key = out.first;
+				const tenncor::Strings& values = out.second;
+				auto& strs = values.strings();
+				inner_tags.emplace(key,
+					std::vector<std::string>(strs.begin(), strs.end()));
+			}
+
 			nodes_.emplace(node.id(), Node{
 				std::vector<uint32_t>(shape.begin(), shape.end()),
-				std::unordered_map<std::string,std::string>(
-					tags.begin(), tags.end()),
+				inner_tags,
 				loc.maxheight(),
 				loc.minheight(),
 			});
@@ -110,7 +120,8 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 	{
 		std::vector<uint32_t> shape_;
 
-		std::unordered_map<std::string,std::string> tags_;
+		std::unordered_map<std::string,
+			std::vector<std::string>> tags_;
 
 		uint32_t max_height_;
 

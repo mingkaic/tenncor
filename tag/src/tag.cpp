@@ -10,7 +10,7 @@ std::unordered_set<size_t> TagCollective::tag_types_;
 std::unordered_map<TensKey,TagCollective,
 	TensKeyHash> Registry::registry; // todo: make thread-safe
 
-TagRepsT get_tags (ade::iTensor* tens)
+TagRepsT get_tags (const ade::iTensor* tens)
 {
 	auto it = Registry::registry.find(TensKey(tens));
 	if (Registry::registry.end() == it || it->first.expired())

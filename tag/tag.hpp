@@ -83,7 +83,9 @@ struct TensKey final
 	// used to match keys
 	TensKey (ade::iTensor* tens) : val_(tens) {}
 
-	operator ade::iTensor*() const
+	TensKey (const ade::iTensor* tens) : val_(tens) {}
+
+	operator const ade::iTensor*() const
 	{
 		return val_;
 	}
@@ -93,7 +95,7 @@ struct TensKey final
 		return ref_.expired();
 	}
 
-	ade::iTensor* val_;
+	const ade::iTensor* val_;
 
 	ade::TensrefT ref_;
 };
@@ -102,7 +104,7 @@ struct TensKeyHash final
 {
 	size_t operator() (const TensKey& key) const
 	{
-		return std::hash<void*>()(key.val_);
+		return std::hash<const void*>()(key.val_);
 	}
 };
 
@@ -122,7 +124,7 @@ struct Registry final
 	Registry (void) = delete;
 };
 
-TagRepsT get_tags (ade::iTensor* tens);
+TagRepsT get_tags (const ade::iTensor* tens);
 
 }
 

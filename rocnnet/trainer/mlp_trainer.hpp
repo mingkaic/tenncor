@@ -1,5 +1,7 @@
 #include "ead/opt/parse.hpp"
 
+#include "ead/opt/experiment/optimize.hpp"
+
 #include "rocnnet/modl/mlp.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
@@ -63,35 +65,26 @@ struct MLPTrainer
 		}
 		updates_ = update(error_, vars);
 
-		std::vector<ead::NodeptrT<PybindT>*> to_optimize =
+		ade::TensT to_optimize =
 		{
-			&train_out_,
-			&error_,
+			train_out_->get_tensor(),
+			error_->get_tensor(),
 		};
 		for (eqns::AssignsT& assigns : updates_)
 		{
 			for (eqns::VarAssign& assign : assigns)
 			{
-				to_optimize.push_back(&assign.source_);
+				to_optimize.push_back(assign.source_->get_tensor());
 			}
 		}
-
-		size_t n_roots = to_optimize.size();
-		ead::NodesT<PybindT> roots(n_roots);
-		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
-			[](ead::NodeptrT<PybindT>* ptr)
-			{
-				return *ptr;
-			});
 		{
 			auto rules = ead::opt::get_configs<PybindT>();
-			ead::opt::optimize(roots, rules);
+			opt::experiment::optimize<PybindT>(to_optimize, rules);
 		}
 
-		for (size_t i = 0; i < n_roots; ++i)
+		for (auto& opt_node : to_optimize)
 		{
-			sess_->track(roots[i]->get_tensor().get());
-			*to_optimize[i] = roots[i];
+			sess_->track(opt_node.get());
 		}
 	}
 

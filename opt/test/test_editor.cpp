@@ -45,6 +45,11 @@ struct MockTensor final : public ade::iLeaf
 		return "";
 	}
 
+	size_t nbytes (void) const override
+	{
+		return sizeof(double);
+	}
+
 	double val_;
 
 	ade::Shape shape_;

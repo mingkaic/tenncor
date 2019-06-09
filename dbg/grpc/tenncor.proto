@@ -12,12 +12,16 @@ message NodeLoc {
     uint32 minheight = 2;
 }
 
+message Strings {
+    repeated string strings = 1;
+}
+
 message NodeInfo {
     int32 id = 1;
 
     repeated uint32 shape = 2;
 
-    map<string,string> tags = 3;
+    map<string,Strings> tags = 3;
 
     NodeLoc location = 4;
 }

@@ -9,8 +9,6 @@
 namespace ead
 {
 
-const std::string immutable_tag = "immutable";
-
 static const size_t label_limit = 5;
 
 template <typename T>
@@ -111,7 +109,7 @@ NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)
 	auto out = std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get_scalar(scalar, shape))
 	);
-	tag::property_tag(out->get_tensor(), immutable_tag);
+	tag::property_tag(out->get_tensor(), tag::immutable_tag);
 	return out;
 }
 
@@ -121,7 +119,7 @@ NodeptrT<T> make_constant (T* data, ade::Shape shape)
 	auto out = std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get(data, shape))
 	);
-	tag::property_tag(out->get_tensor(), immutable_tag);
+	tag::property_tag(out->get_tensor(), tag::immutable_tag);
 	return out;
 }
 

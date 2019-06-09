@@ -1,122 +1,77 @@
-#include <list>
+#include "ead/opt/experiment/compares.hpp"
 
-#include "ade/ade.hpp"
+#include "ead/opt/rule_src.hpp"
 
-#include "tag/prop.hpp"
+#ifndef OPT_OPTIMIZE_HPP
+#define OPT_OPTIMIZE_HPP
 
-#include "ead/constant.hpp" // to get immutable_tag
-#include "ead/helper.hpp" // to get commutative_tag
-
-bool is_immutable (const ade::iLeaf*& leaf)
+namespace opt
 {
-	auto reps = tag::get_tags(leaf);
-	auto it = reps.find(tag::props_key);
-	if (reps.end() == it)
+
+namespace experiment
+{
+
+template <typename T>
+void remove_duplicates (
+	std::unordered_set<ade::iTensor*> priorities, std::vector<T*> tens,
+	const ade::ParentFinder& pfinder, const ade::OwnerMapT& owners)
+{
+	if (tens.empty())
 	{
-		return false;
+		return;
 	}
-	return it->second.end() != std::find(
-		it->second.begin(), it->second.end(), ead::immutable_tag);
-}
-
-bool is_commutative (const ade::iFunctor*& func)
-{
-	auto reps = tag::get_tags(func);
-	auto it = reps.find(tag::props_key);
-	if (reps.end() == it)
+	std::sort(tens.begin(), tens.end(),
+		[&priorities](T* a, T* b) { return lt(priorities, a, b); });
+	ade::TensptrT last = nullptr;
+	auto it = tens.begin();
+	auto et = tens.end();
+	for (; it != et && nullptr == last; ++it)
 	{
-		return false;
-	}
-	return it->second.end() != std::find(
-		it->second.begin(), it->second.end(), ead::commutative_tag);
-}
-
-bool lt (const ade::FuncArg& a, const ade::FuncArg& b)
-{
-	auto atens = a.get_tensor().get();
-	auto btens = b.get_tensor().get();
-	if (atens == btens)
-	{
-		return std::hash(a.get_coorder()->to_string()) <
-			std::hash(b.get_coorder()->to_string());
-	}
-	return atens < btens;
-}
-
-bool lt (const ade::iLeaf*& a, const ade::iLeaf*& b)
-{
-	size_t atype = a->type_code();
-	size_t btype = b->type_code();
-	if (atype == btype)
-	{
-		std::string ashape = a->shape().to_string();
-		std::string bshape = b->shape().to_string();
-		if (ashape == bshape)
+		ade::TensrefT lastref = owners.at(*it);
+		if (false == lastref.expired())
 		{
-			char* adata = (char*) a->data();
-			char* bdata = (char*) b->data();
-			size_t nbytes = shape.n_elems() *
-				age::type_size((age::_GENERATED_DTYPE) dtype);
-			return std::equal(adata, adata + nbytes, bdata);
+			last = lastref.lock();
 		}
-		return std::hash(ashape) < std::hash(bshape);
 	}
-	return atype < btype;
-}
-
-bool is_equal (const ade::FuncArg& a, const ade::FuncArg& b)
-{
-	if (a.get_tensor().get() == b.get_tensor().get())
+	ade::iTensor* sample = last.get();
+	for (; it != et; ++it)
 	{
-		return a.get_coorder()->to_string() ==
-			b.get_coorder()->to_string();
-	}
-	return false;
-}
-
-// for any ileaf pair a-b, they are equivalent IFF they are both tagged immutable AND
-// share same shape and data values
-bool is_equal (const ade::iLeaf*& a, const ade::iLeaf*& b)
-{
-	ade::Shape shape = a->shape();
-	size_t dtype = a->type_code();
-	if (shape.compatible_after(b->shape(), 0) &&
-		dtype == b->type_code())
-	{
-		char* adata = (char*) a->data();
-		char* bdata = (char*) b->data();
-		size_t nbytes = shape.n_elems() *
-			age::type_size((age::_GENERATED_DTYPE) dtype);
-		return std::equal(adata, adata + nbytes, bdata);
-	}
-	return false;
-}
-
-// for any functors a-b, they are equivalent IFF a and b are the same opcode AND
-// share identical function arguments (same children, shapers, and coorders)
-// order matters UNLESS the op is tagged as commutative
-bool is_equal (const ade::iFunctor*& a, const ade::iFunctor*& b)
-{
-	if (a->get_opcode().code_ == b->get_opcode())
-	{
-		ade::Shape shape = a->shape();
-		if (shape.compatible_after(b->shape(), 0))
+		auto cur = *it;
+		ade::TensrefT ref = owners.at(cur);
+		if (ref.expired())
 		{
-			auto achildren = a->get_children();
-			auto bchildren = b->get_children();
-			if (is_commutative(a)) // order doesn't matter, so normalize
+			continue;
+		}
+		if (is_equal(static_cast<T*>(last.get()), cur))
+		{
+			// remove equivalent node
+			auto it = pfinder.parents_.find(cur);
+			if (pfinder.parents_.end() != it)
 			{
-				std::sort(achildren.begin(), achildren.end(), lt);
-				std::sort(bchildren.begin(), bchildren.end(), lt);
+				for (auto& parent_pair : it->second)
+				{
+					auto f = static_cast<ade::iFunctor*>(parent_pair.first);
+					auto& children = f->get_children();
+					for (size_t i : parent_pair.second)
+					{
+						ade::FuncArg arg(last,
+							children[i].get_shaper(),
+							children[i].map_io(),
+							children[i].get_coorder());
+						f->update_child(arg, i);
+					}
+				}
 			}
-			return std::equal(achildren.begin(), achildren.end(),
-				bchildren.begin(), is_equal);
+		}
+		else
+		{
+			last = ref.lock();
 		}
 	}
-	return false;
 }
 
-void optimize (ade::TensT roots)
+template <typename T>
+void optimize (ade::TensT roots, const ead::opt::ConversionsT<T>& conversions)
 {
 	if (roots.empty())
 	{
@@ -126,8 +81,10 @@ void optimize (ade::TensT roots)
 	ade::GraphStat stat;
 	ade::ParentFinder pfinder;
 	ade::OwnerMapT owners = ade::track_owners(roots);
+	std::unordered_set<ade::iTensor*> priorities;
 	for (ade::TensptrT& root : roots)
 	{
+		priorities.emplace(root.get());
 		root->accept(stat);
 		root->accept(pfinder);
 	}
@@ -177,79 +134,24 @@ void optimize (ade::TensT roots)
 	std::vector<ade::iLeaf*> immutables;
 	immutables.reserve(leaves.size());
 	std::copy_if(leaves.begin(), leaves.end(),
-		immutables.begin(), is_immutable);
-	if (false == immutables.empty())
-	{
-		std::sort(immutables.begin(), immutables.end(), lt);
-		ade::iLeaf* last = immutables[0];
-		for (size_t i = 1, n = immutables.size(); i < n; ++i)
-		{
-			auto cur = immutables[i];
-			if (is_equal(last, cur))
-			{
-				// remove equivalent node
-				auto& parents = pfinder.parents_[cur];
-				for (auto& parent_pair : parents)
-				{
-					auto f = static_cast<ade::iFunctor*>(parent_pair.first);
-					auto& children = f->get_children();
-					for (size_t j : parent_pair.second)
-					{
-						ade::FuncArg arg(owners(last),
-							children[j].get_shaper(),
-							children[j].map_io(),
-							children[j].get_coorder());
-						f->update_child(arg, j);
-					}
-				}
-			}
-			else
-			{
-				last = cur;
-			}
-		}
-	}
+		std::back_inserter(immutables), [](ade::iLeaf* leaf)
+		{ return tag::has_property(leaf, tag::immutable_tag); });
+	remove_duplicates(priorities, immutables, pfinder, owners);
 
 	for (size_t i = 1; i < maxheight; ++i)
 	{
 		std::vector<ade::iFunctor*>& funcs = functors[i - 1];
 		// remove equivalent nodes
-		if (funcs.empty())
-		{
-			// todo: warn
-			continue;
-		}
-		std::sort(funcs.begin(), funcs.end(), lt);
-		ade::iFunctor* last = funcs[0];
-		for (size_t i = 1, n = funcs.size(); i < n; ++i)
-		{
-			auto cur = funcs[i];
-			if (is_equal(last, cur))
-			{
-				// remove equivalent node
-				auto& parents = pfinder.parents_[cur];
-				for (auto& parent_pair : parents)
-				{
-					auto f = static_cast<ade::iFunctor*>(parent_pair.first);
-					auto& children = f->get_children();
-					for (size_t j : parent_pair.second)
-					{
-						ade::FuncArg arg(owners(last),
-							children[j].get_shaper(),
-							children[j].map_io(),
-							children[j].get_coorder());
-						f->update_child(arg, j);
-					}
-				}
-			}
-			else
-			{
-				last = cur;
-			}
-		}
+		remove_duplicates(priorities, funcs, pfinder, owners);
 
 		// apply rule conversion to uniques
 
 		// remove equivalent nodes in converted subgraph
 	}
 }
+
+}
+
+}
+
+#endif // OPT_OPTIMIZE_HPP
