@@ -53,7 +53,7 @@ struct Functor final : public ade::iOperableFunc
 	}
 
 	/// Implementation of iFunctor
-	void update_child (ade::FuncArg& arg, size_t index) override
+	void update_child (ade::FuncArg arg, size_t index) override
 	{
 		ade::Shape arg_shape = arg.shape();
 		if (false == arg_shape.compatible_after(shape_, 0))
@@ -64,17 +64,27 @@ struct Functor final : public ade::iOperableFunc
 				shape_.to_string().c_str());
 		}
 		args_[index] = arg;
+		uninitialize();
+		// warning: does not notify parents of data destruction
 	}
 
 	/// Implementation of iOperableFunc
 	void update (void) override
 	{
+		if (is_uninit())
+		{
+			initialize();
+		}
 		return out_->assign();
 	}
 
 	/// Implementation of iOperableFunc
 	void* raw_data (void) override
 	{
+		if (is_uninit())
+		{
+			initialize();
+		}
 		return out_->get_ptr();
 	}
 
@@ -84,14 +94,43 @@ struct Functor final : public ade::iOperableFunc
 		return age::get_type<T>();
 	}
 
+	bool is_uninit (void) const
+	{
+		return nullptr == out_;
+	}
+
+	void uninitialize (void)
+	{
+		out_ = nullptr;
+	}
+
+	void initialize (void)
+	{
+		std::vector<OpArg<T>> datamaps;
+		for (const ade::FuncArg& arg : args_)
+		{
+			auto tens = arg.get_tensor();
+			auto coorder = static_cast<CoordMap*>(arg.get_coorder().get());
+			datamaps.push_back(OpArg<T>{
+				NodeConverters<T>::to_node(tens)->data(),
+				tens->shape(),
+				coorder
+			});
+		}
+		age::typed_exec<T>((age::_GENERATED_OPCODE) opcode_.code_,
+			shape_, out_, datamaps);
+	}
+
 private:
-	Functor (EigenptrT<T> out,
-		ade::Opcode opcode, ade::Shape shape, ade::ArgsT args) :
-		out_(out), opcode_(opcode), shape_(shape), args_(args) {}
+	Functor (ade::Opcode opcode, ade::Shape shape, ade::ArgsT args) :
+		opcode_(opcode), shape_(shape), args_(args)
+	{
+		// initialize();
+	}
 
 	Functor (Functor<T>&& other) = default;
 
-	EigenptrT<T> out_;
+	EigenptrT<T> out_ = nullptr;
 
 	/// Operation encoding
 	ade::Opcode opcode_;
@@ -138,14 +177,15 @@ Functor<T>* Functor<T>::get (ade::Opcode opcode, ArgsT<T> args)
 		});
 	assert(registered);
 
-	if (0 == args.size())
+	size_t nargs = args.size();
+	if (0 == nargs)
 	{
 		logs::fatalf("cannot perform %s with no arguments",
 			opcode.name_.c_str());
 	}
 
 	ade::Shape shape = args[0].shape();
-	for (size_t i = 1, n = args.size(); i < n; ++i)
+	for (size_t i = 1, n = nargs; i < n; ++i)
 	{
 		ade::Shape ishape = args[i].shape();
 		if (false == ishape.compatible_after(shape, 0))
@@ -157,28 +197,18 @@ Functor<T>* Functor<T>::get (ade::Opcode opcode, ArgsT<T> args)
 	}
 
 	ade::ArgsT input_args;
-	std::vector<OpArg<T>> tmaps;
-	for (FuncArg<T>& arg : args)
-	{
-		NodeptrT<T> node = arg.get_node();
-		ade::TensptrT tensor = node->get_tensor();
-		CoordptrT coorder = arg.get_coorder();
-		input_args.push_back(ade::FuncArg(
-			tensor,
-			arg.get_shaper(),
-			arg.map_io(),
-			coorder));
-		tmaps.push_back(OpArg<T>{
-			node->data(),
-			tensor->shape(),
-			coorder.get()
+	input_args.reserve(nargs);
+	std::transform(args.begin(), args.end(),
+		std::back_inserter(input_args),
+		[](FuncArg<T>& arg)
+		{
+			return ade::FuncArg(
+				arg.get_tensor(),
+				arg.get_shaper(),
+				arg.map_io(),
+				arg.get_coorder());
 		});
-	}
-	EigenptrT<T> eigen;
-	age::typed_exec<T>((age::_GENERATED_OPCODE) opcode.code_,
-		shape, eigen, tmaps);
-	return new Functor<T>(eigen,
-		opcode, shape, input_args);
+	return new Functor<T>(opcode, shape, input_args);
 }
 
 template <typename T>

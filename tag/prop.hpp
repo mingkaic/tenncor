@@ -20,22 +20,22 @@ struct PropTag final : public iTag
 
 	void absorb (std::unique_ptr<iTag>&& other) override
 	{
-		std::vector<std::string>& olabels =
+		std::unordered_set<std::string>& olabels =
 			static_cast<PropTag*>(other.get())->labels_;
-		labels_.insert(labels_.end(),
-			olabels.begin(), olabels.end());
+		labels_.insert(olabels.begin(), olabels.end());
 		other.release();
 	}
 
 	TagRepsT get_tags (void) const override
 	{
 		TagRepsT out;
-		out.emplace(props_key, labels_);
+		out.emplace(props_key, std::vector<std::string>(
+			labels_.begin(), labels_.end()));
 		return out;
 	}
 
 private:
-	std::vector<std::string> labels_;
+	std::unordered_set<std::string> labels_;
 
 	static size_t tag_id_;
 };

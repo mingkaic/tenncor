@@ -14,10 +14,10 @@ namespace experiment
 bool lt (ade::FuncArg a, ade::FuncArg b);
 
 bool lt (std::unordered_set<ade::iTensor*> priorities,
-    ade::iLeaf* a, ade::iLeaf* b);
+	ade::iLeaf* a, ade::iLeaf* b);
 
 bool lt (std::unordered_set<ade::iTensor*> priorities,
-    ade::iFunctor* a, ade::iFunctor* b);
+	ade::iFunctor* a, ade::iFunctor* b);
 
 bool is_equal (ade::FuncArg a, ade::FuncArg b);
 

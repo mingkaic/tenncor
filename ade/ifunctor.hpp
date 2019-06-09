@@ -42,7 +42,7 @@ struct iFunctor : public iTensor
 	virtual const ArgsT& get_children (void) const = 0;
 
 	/// Update child at specified index
-	virtual void update_child (FuncArg& arg, size_t index) = 0;
+	virtual void update_child (FuncArg arg, size_t index) = 0;
 };
 
 /// Functor smart pointer

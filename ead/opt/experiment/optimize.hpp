@@ -33,7 +33,6 @@ void remove_duplicates (
 			last = lastref.lock();
 		}
 	}
-	ade::iTensor* sample = last.get();
 	for (; it != et; ++it)
 	{
 		auto cur = *it;
@@ -54,14 +53,20 @@ void remove_duplicates (
 					auto& children = f->get_children();
 					for (size_t i : parent_pair.second)
 					{
-						ade::FuncArg arg(last,
+						f->update_child({
+							last,
 							children[i].get_shaper(),
 							children[i].map_io(),
-							children[i].get_coorder());
-						f->update_child(arg, i);
+							children[i].get_coorder()
+						}, i);
 					}
 				}
 			}
+			// todo: mark parents as uninitialized, reinitialize entire graph, or uninitialize everything to begin with
+
+			// inherit tags
+			tag::move_tags(last.get(), cur);
+			tag::erase(cur);
 		}
 		else
 		{
@@ -113,7 +118,7 @@ void optimize (ade::TensT roots, const ead::opt::ConversionsT<T>& conversions)
 		root_heights.begin(), root_heights.end());
 
 	std::vector<ade::iLeaf*> leaves;
-	std::vector<std::vector<ade::iFunctor*>> functors(maxheight - 1);
+	std::vector<std::vector<ade::iFunctor*>> functors(maxheight);
 
 	for (auto& gpair : stat.graphsize_)
 	{

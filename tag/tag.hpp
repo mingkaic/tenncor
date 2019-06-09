@@ -46,6 +46,24 @@ struct TagCollective final
 		return 0; // valid tag type ids are greater than 0
 	}
 
+	void absorb (TagCollective&& other)
+	{
+		for (auto& tagpair : other.tags_)
+		{
+			size_t tid = tagpair.first;
+			auto it = tags_.find(tid);
+			if (tags_.end() == it)
+			{
+				tags_.emplace(tid, std::move(tagpair.second));
+			}
+			else
+			{
+				it->second->absorb(std::move(tagpair.second));
+			}
+		}
+		other.tags_.clear();
+	}
+
 	void add (std::unique_ptr<iTag> entry)
 	{
 		size_t tid = entry->tag_id();
@@ -130,6 +148,10 @@ struct Registry final
 };
 
 TagRepsT get_tags (const ade::iTensor* tens);
+
+void erase (const ade::iTensor* tens);
+
+void move_tags (const ade::iTensor* dest, const ade::iTensor* source);
 
 }
 

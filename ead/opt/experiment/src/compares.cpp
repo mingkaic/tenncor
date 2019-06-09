@@ -102,8 +102,17 @@ bool is_equal (ade::FuncArg a, ade::FuncArg b)
 {
 	if (a.get_tensor().get() == b.get_tensor().get())
 	{
-		return a.get_coorder()->to_string() ==
-			b.get_coorder()->to_string();
+		auto acoord = a.get_coorder();
+		auto bcoord = b.get_coorder();
+		if (acoord == bcoord)
+		{
+			return true;
+		}
+		if (nullptr != acoord && nullptr != bcoord)
+		{
+			return acoord->to_string() ==
+				bcoord->to_string();
+		}
 	}
 	return false;
 }
