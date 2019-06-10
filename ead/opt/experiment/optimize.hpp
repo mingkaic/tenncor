@@ -12,13 +12,13 @@ namespace experiment
 {
 
 template <typename T>
-void remove_duplicates (
+std::vector<T*> remove_duplicates (
 	std::unordered_set<ade::iTensor*> priorities, std::vector<T*> tens,
 	const ade::ParentFinder& pfinder, const ade::OwnerMapT& owners)
 {
 	if (tens.empty())
 	{
-		return;
+		return {};
 	}
 	std::sort(tens.begin(), tens.end(),
 		[&priorities](T* a, T* b) { return lt(priorities, a, b); });
@@ -33,6 +33,8 @@ void remove_duplicates (
 			last = lastref.lock();
 		}
 	}
+	std::vector<T*> uniques = {static_cast<T*>(last.get())};
+	uniques.reserve(tens.size() - 1);
 	for (; it != et; ++it)
 	{
 		auto cur = *it;
@@ -43,6 +45,7 @@ void remove_duplicates (
 		}
 		if (is_equal(static_cast<T*>(last.get()), cur))
 		{
+			logs::debugf("replacing %s", cur->to_string().c_str());
 			// remove equivalent node
 			auto it = pfinder.parents_.find(cur);
 			if (pfinder.parents_.end() != it)
@@ -70,9 +73,11 @@ void remove_duplicates (
 		}
 		else
 		{
+			uniques.push_back(cur);
 			last = ref.lock();
 		}
 	}
+	return uniques;
 }
 
 template <typename T>
@@ -145,9 +150,10 @@ void optimize (ade::TensT roots, const ead::opt::ConversionsT<T>& conversions)
 
 	for (size_t i = 1; i < maxheight; ++i)
 	{
-		std::vector<ade::iFunctor*>& funcs = functors[i - 1];
 		// remove equivalent nodes
-		remove_duplicates(priorities, funcs, pfinder, owners);
+		logs::debugf("removing duplicates for functors of height %d", i);
+		std::vector<ade::iFunctor*> funcs = remove_duplicates(
+			priorities, functors[i - 1], pfinder, owners);
 
 		// apply rule conversion to uniques
 
