@@ -30,7 +30,7 @@ struct Conversion final
 	ade::TensptrT convert (ade::TensptrT root) const
 	{
 		Report report;
-        reporter_->get_report(report, root.get());
+		reporter_->get_report(report, root.get());
 		if (report.success_)
 		{
 			// match found, convert

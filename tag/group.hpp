@@ -54,6 +54,9 @@ void group_tag (ade::TensrefT tens, std::string group);
 void recursive_group_tag (ade::TensrefT tens, std::string group,
 	std::unordered_set<ade::iTensor*> stops);
 
+std::unordered_set<ade::iTensor*> adjacent_group (
+	ade::iTensor* tens, std::string group);
+
 }
 
 #endif // TAG_GROUP_HPP

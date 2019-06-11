@@ -82,6 +82,70 @@ void recursive_group_tag (ade::TensrefT tens, std::string group,
 	tensor->accept(trav);
 }
 
+struct Adjacents final : public ade::iTraveler
+{
+	Adjacents (std::string group) : group_(group) {}
+
+	/// Implementation of iTraveler
+	void visit (ade::iLeaf* leaf) override
+	{
+		if (false == util::has(out_, leaf))
+		{
+			auto tags = Registry::registry[func].get_tags();
+			auto it = tags.find(groups_key);
+			if (tags.end() == it)
+			{
+				return;
+			}
+			if (it->second.end() == std::find(
+				it->second.begin(), it->second.end(),
+				[&](const std::string& k) { return k == group; }))
+			{
+				return;
+			}
+			out_.emplace(func);
+		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (ade::iFunctor* func) override
+	{
+		if (false == util::has(out_, func))
+		{
+			auto tags = Registry::registry[func].get_tags();
+			auto it = tags.find(groups_key);
+			if (tags.end() == it)
+			{
+				return;
+			}
+			if (it->second.end() == std::find(
+				it->second.begin(), it->second.end(),
+				[&](const std::string& k) { return k == group; }))
+			{
+				return;
+			}
+			auto& children = func->get_children();
+			for (auto& child : children)
+			{
+				child.get_tensor()->accept(*this);
+			}
+			out_.emplace(func);
+		}
+	}
+
+	std::string group_;
+
+	std::unordered_set<ade::iTensor*> out_;
+};
+
+std::unordered_set<ade::iTensor*> adjacent_group (
+	ade::iTensor* tens, std::string group)
+{
+	Adjacents adj(group);
+	tens->accept(adj);
+	return adj.out_;
+}
+
 }
 
 #endif

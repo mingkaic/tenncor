@@ -199,6 +199,7 @@ api:
                   ead::identity_map(arg2),
               });
               tag::property_tag(out->get_tensor(), tag::commutative_tag);
+              tag::group_tag(out->get_tensor(), "sum");
               return out;
   - template: typename T
     name: sub
@@ -226,6 +227,7 @@ api:
                   ead::identity_map(arg2),
               });
               tag::property_tag(out->get_tensor(), tag::commutative_tag);
+              tag::group_tag(out->get_tensor(), "prod");
               return out;
   - template: typename T
     name: div
@@ -778,7 +780,6 @@ api:
               for (size_t i = 1, n = args.size(); i < n; ++i)
               {
                   out = add(out, args[i]);
-                  tag::group_tag(out->get_tensor(), "sum");
               }
               return out;
   - template: typename T
@@ -798,7 +799,6 @@ api:
               for (size_t i = 1, n = args.size(); i < n; ++i)
               {
                   out = mul(out, args[i]);
-                  tag::group_tag(out->get_tensor(), "prod");
               }
               return out;
   - template: typename T
