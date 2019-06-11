@@ -73,7 +73,6 @@ cc_library(
     hdrs = glob([
         "*.hpp",
         "opt/*.hpp",
-        "opt/experiment/*.hpp",
     ]) + [
         "//ead:generated/api.hpp",
         "//ead:generated/opcode.hpp",
@@ -82,7 +81,6 @@ cc_library(
     ],
     srcs = glob([
         "src/*.cpp",
-        "opt/experiment/src/*.cpp",
     ]) + [
         "//ead:generated/api.cpp",
         "//ead:generated/opcode.cpp",

@@ -1,17 +1,27 @@
-#include "ade/itraveler.hpp"
+#include "ade/traveler.hpp"
+
+#ifndef OPT_RULE_HPP
+#define OPT_RULE_HPP
+
+namespace opt
+{
 
 namespace rule
 {
 
 struct Report
 {
+	Report (void) = default;
+
+	Report (bool success) : success_(success) {}
+
 	void merge (const Report& other)
 	{}
 
 	void report_any (ade::iTensor* tens, size_t any_id)
 	{}
 
-	void report_variadic (ade::FuncArg& arg, size_t variadic_id)
+	void report_variadic (const ade::FuncArg& arg, size_t variadic_id)
 	{}
 
 	bool success_ = false;
@@ -87,14 +97,14 @@ static CommCandsT communtative_rule_match (
 // e.g.: 1.2
 struct Scalar final : public iNode
 {
-	Scalar (std::string pattern) : pattern_(pattern), {}
+	Scalar (std::string pattern) : pattern_(pattern) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
 		if (tag::has_property(leaf, tag::immutable_tag))
 		{
-			ade::Shape shape = leaf->get_shape();
+			ade::Shape shape = leaf->shape();
 			age::_GENERATED_DTYPE dtype =
 				(age::_GENERATED_DTYPE) leaf->type_code();
 			std::vector<float> data;
@@ -141,8 +151,8 @@ struct Scalar final : public iNode
 
 	void get_report (Report& out, ade::iTensor* target)
 	{
-		report_ = &report;
-		target->visit(*this);
+		report_ = &out;
+		target->accept(*this);
 		report_ = nullptr;
 	}
 
@@ -172,8 +182,8 @@ struct Any final : public iNode
 
 	void get_report (Report& out, ade::iTensor* target)
 	{
-		report_ = &report;
-		target->visit(*this);
+		report_ = &out;
+		target->accept(*this);
 		report_ = nullptr;
 	}
 
@@ -216,7 +226,8 @@ struct Func final : public iNode
 			CommCandsT candidates = communtative_rule_match(args, sub_rules_);
 			if (candidates.empty()) // we've found no candidates
 			{
-				return false;
+				report_->success_ = false;
+				return;
 			}
 			if (candidates.size() > 1)
 			{
@@ -224,7 +235,7 @@ struct Func final : public iNode
 				logs::debugf("%d candidates found for func rule",
 					candidates.size());
 			}
-			report_.merge(candidates[0].first); // commit transaction
+			report_->merge(candidates[0].first); // commit transaction
 			return;
 		}
 		for (size_t i = 0; i < nargs; ++i)
@@ -241,8 +252,8 @@ struct Func final : public iNode
 
 	void get_report (Report& out, ade::iTensor* target)
 	{
-		report_ = &report;
-		target->visit(*this);
+		report_ = &out;
+		target->accept(*this);
 		report_ = nullptr;
 	}
 
@@ -286,7 +297,8 @@ struct VariadicFunc final : public iNode
 		CommCandsT candidates = communtative_rule_match(args, sub_rules_);
 		if (candidates.empty()) // we've found no candidates
 		{
-			return false;
+			report_->success_ = false;
+			return;
 		}
 		if (candidates.size() > 1)
 		{
@@ -299,16 +311,16 @@ struct VariadicFunc final : public iNode
 		{
 			if (false == field[j])
 			{
-				candidates[0].first->report_variadic(args[j], variadic_id_);
+				candidates[0].first.report_variadic(args[j], variadic_id_);
 			}
 		}
-		report_.merge(candidates[0].first); // commit transaction
+		report_->merge(candidates[0].first); // commit transaction
 	}
 
 	void get_report (Report& out, ade::iTensor* target)
 	{
-		report_ = &report;
-		target->visit(*this);
+		report_ = &out;
+		target->accept(*this);
 		report_ = nullptr;
 	}
 
@@ -322,3 +334,7 @@ struct VariadicFunc final : public iNode
 };
 
 }
+
+}
+
+#endif // OPT_RULE_HPP

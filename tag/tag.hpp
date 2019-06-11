@@ -38,12 +38,13 @@ struct TagCollective final
 		const std::type_info& tp = typeid(TAG);
 		size_t code = tp.hash_code();
 		auto& tag_types = get_types();
-		if (false == util::has(tag_types, code))
+		auto it = tag_types.find(code);
+		if (tag_types.end() == it)
 		{
 			tag_types.emplace(code);
 			return tag_types.size();
 		}
-		return 0; // valid tag type ids are greater than 0
+		return code;
 	}
 
 	void absorb (TagCollective&& other)

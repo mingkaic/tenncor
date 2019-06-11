@@ -1,4 +1,4 @@
-#include "ade/opfunc.hpp"
+#include "ade/iopfunc.hpp"
 
 #include "ead/generated/opcode.hpp"
 
@@ -78,8 +78,8 @@ struct Functor final : public ade::iOperableFunc
 		return out_->assign();
 	}
 
-	/// Implementation of iOperableFunc
-	void* raw_data (void) override
+	/// Implementation of iData
+	void* data (void) override
 	{
 		if (is_uninit())
 		{
@@ -88,10 +88,32 @@ struct Functor final : public ade::iOperableFunc
 		return out_->get_ptr();
 	}
 
-	/// Implementation of iOperableFunc
+	/// Implementation of iData
+	const void* data (void) const override
+	{
+		if (is_uninit())
+		{
+			logs::fatal("cannot get data of uninitialized functor");
+		}
+		return out_->get_ptr();
+	}
+
+	/// Implementation of iData
 	size_t type_code (void) const override
 	{
 		return age::get_type<T>();
+	}
+
+	/// Implementation of iData
+	std::string type_label (void) const override
+	{
+		return age::name_type(age::get_type<T>());
+	}
+
+	/// Implementation of iData
+	size_t nbytes (void) const override
+	{
+		return sizeof(T) * shape_.n_elems();
 	}
 
 	bool is_uninit (void) const
@@ -149,7 +171,7 @@ struct FunctorNode final : public iNode<T>
 
 	T* data (void) override
 	{
-		return (T*) func_->raw_data();
+		return (T*) func_->data();
 	}
 
 	void update (void) override

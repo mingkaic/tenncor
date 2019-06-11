@@ -1,6 +1,6 @@
 #include "ead/opt/parse.hpp"
 
-#include "ead/opt/experiment/optimize.hpp"
+#include "experimental/opt/optimize.hpp"
 
 #include "rocnnet/modl/mlp.hpp"
 
@@ -78,8 +78,8 @@ struct MLPTrainer
 			}
 		}
 		{
-			auto rules = ead::opt::get_configs<PybindT>();
-			opt::experiment::optimize<PybindT>(to_optimize, rules);
+			opt::rule::ConversionsT rules = {};
+			opt::optimize(to_optimize, rules);
 		}
 
 		for (auto& opt_node : to_optimize)

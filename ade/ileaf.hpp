@@ -3,19 +3,20 @@
 /// ade
 ///
 /// Purpose:
-/// Define interfaces and building blocks for an equation graph
+/// Define leafs for tensor equation graph
 ///
 
 #include "ade/itensor.hpp"
+#include "ade/idata.hpp"
 
-#ifndef ADE_TENSOR_HPP
-#define ADE_TENSOR_HPP
+#ifndef ADE_ILEAF_HPP
+#define ADE_ILEAF_HPP
 
 namespace ade
 {
 
 /// Leaf of the graph commonly representing the variable in an equation
-struct iLeaf : public iTensor
+struct iLeaf : public iTensor, public iData
 {
 	virtual ~iLeaf (void) = default;
 
@@ -24,21 +25,6 @@ struct iLeaf : public iTensor
 	{
 		visiter.visit(this);
 	}
-
-	/// Return pointer to internal data
-	virtual void* data (void) = 0;
-
-	/// Return const pointer to internal data
-	virtual const void* data (void) const = 0;
-
-	/// Return data type encoding
-	virtual size_t type_code (void) const = 0;
-
-	/// Return data type label (for better readability)
-	virtual std::string type_label (void) const = 0;
-
-	/// Return number of bytes in the data
-	virtual size_t nbytes (void) const = 0;
 };
 
 /// Leaf smart pointer
@@ -46,4 +32,4 @@ using LeafptrT = std::shared_ptr<iLeaf>;
 
 }
 
-#endif // ADE_TENSOR_HPP
+#endif // ADE_ILEAF_HPP

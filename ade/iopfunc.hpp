@@ -8,6 +8,7 @@
 ///
 
 #include "ade/ifunctor.hpp"
+#include "ade/idata.hpp"
 
 #ifndef ADE_OPFUNC_HPP
 #define ADE_OPFUNC_HPP
@@ -16,18 +17,12 @@ namespace ade
 {
 
 /// A functor node with direct access to evaluated data
-struct iOperableFunc : public iFunctor
+struct iOperableFunc : public iFunctor, public iData
 {
 	virtual ~iOperableFunc (void) = default;
 
 	/// Update local data-cache using this functor's operation
 	virtual void update (void) = 0;
-
-	/// Return data-cache raw pointer
-	virtual void* raw_data (void) = 0;
-
-	/// Return data type encoding
-	virtual size_t type_code (void) const = 0;
 };
 
 }

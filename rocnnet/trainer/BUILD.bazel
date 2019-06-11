@@ -22,5 +22,6 @@ cc_library(
     deps = [
         "//rocnnet/eqns:eqns",
         "//rocnnet/modl:modl",
+        "//experimental/opt:opt",
     ],
 )

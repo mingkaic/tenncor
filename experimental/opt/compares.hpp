@@ -8,9 +8,6 @@
 namespace opt
 {
 
-namespace experiment
-{
-
 bool lt (ade::FuncArg a, ade::FuncArg b);
 
 bool lt (std::unordered_set<ade::iTensor*> priorities,
@@ -29,8 +26,6 @@ bool is_equal (ade::iLeaf* a, ade::iLeaf* b);
 // share identical function arguments (same children, shapers, and coorders)
 // order matters UNLESS the op is tagged as commutative
 bool is_equal (ade::iFunctor* a, ade::iFunctor* b);
-
-}
 
 }
 

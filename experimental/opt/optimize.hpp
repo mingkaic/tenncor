@@ -1,4 +1,5 @@
-#include "ead/opt/experiment/compares.hpp"
+#include "experimental/opt/compares.hpp"
+#include "experimental/opt/rule/convert.hpp"
 
 #include "ead/opt/rule_src.hpp"
 
@@ -8,46 +9,29 @@
 namespace opt
 {
 
-namespace experiment
-{
-
 template <typename T>
-std::vector<T*> remove_duplicates (
-	std::unordered_set<ade::iTensor*> priorities, std::vector<T*> tens,
-	const ade::ParentFinder& pfinder, const ade::OwnerMapT& owners)
+std::vector<T> remove_duplicates (
+	std::unordered_set<ade::iTensor*> priorities,
+	std::vector<T> tens, const ade::ParentFinder& pfinder)
 {
 	if (tens.empty())
 	{
 		return {};
 	}
 	std::sort(tens.begin(), tens.end(),
-		[&priorities](T* a, T* b) { return lt(priorities, a, b); });
-	ade::TensptrT last = nullptr;
-	auto it = tens.begin();
-	auto et = tens.end();
-	for (; it != et && nullptr == last; ++it)
+		[&priorities](T& a, T& b) { return lt(priorities, a.get(), b.get()); });
+	T last = tens[0];
+	std::vector<T> uniques = {last};
+	size_t n = tens.size();
+	uniques.reserve(n - 1);
+	for (size_t i = 1; i < n; ++i)
 	{
-		ade::TensrefT lastref = owners.at(*it);
-		if (false == lastref.expired())
-		{
-			last = lastref.lock();
-		}
-	}
-	std::vector<T*> uniques = {static_cast<T*>(last.get())};
-	uniques.reserve(tens.size() - 1);
-	for (; it != et; ++it)
-	{
-		auto cur = *it;
-		ade::TensrefT ref = owners.at(cur);
-		if (ref.expired())
-		{
-			continue;
-		}
-		if (is_equal(static_cast<T*>(last.get()), cur))
+		T& cur = tens[i];
+		if (is_equal(last.get(), cur.get()))
 		{
 			logs::debugf("replacing %s", cur->to_string().c_str());
 			// remove equivalent node
-			auto it = pfinder.parents_.find(cur);
+			auto it = pfinder.parents_.find(cur.get());
 			if (pfinder.parents_.end() != it)
 			{
 				for (auto& parent_pair : it->second)
@@ -68,20 +52,19 @@ std::vector<T*> remove_duplicates (
 			// todo: mark parents as uninitialized, reinitialize entire graph, or uninitialize everything to begin with
 
 			// inherit tags
-			tag::move_tags(last.get(), cur);
-			tag::erase(cur);
+			tag::move_tags(last.get(), cur.get());
+			tag::erase(cur.get());
 		}
 		else
 		{
 			uniques.push_back(cur);
-			last = ref.lock();
+			last = cur;
 		}
 	}
 	return uniques;
 }
 
-template <typename T>
-void optimize (ade::TensT roots, const ead::opt::ConversionsT<T>& conversions)
+void optimize (ade::TensT roots, const rule::ConversionsT& conversions)
 {
 	if (roots.empty())
 	{
@@ -122,8 +105,8 @@ void optimize (ade::TensT roots, const ead::opt::ConversionsT<T>& conversions)
 	size_t maxheight = *std::max_element(
 		root_heights.begin(), root_heights.end());
 
-	std::vector<ade::iLeaf*> leaves;
-	std::vector<std::vector<ade::iFunctor*>> functors(maxheight);
+	std::vector<ade::LeafptrT> immutables;
+	std::vector<std::vector<ade::FuncptrT>> functors(maxheight);
 
 	for (auto& gpair : stat.graphsize_)
 	{
@@ -131,36 +114,36 @@ void optimize (ade::TensT roots, const ead::opt::ConversionsT<T>& conversions)
 		size_t height = gpair.second.upper_;
 		if (0 == height)
 		{
-			leaves.push_back(static_cast<ade::iLeaf*>(tens));
+			if (tag::has_property(tens, tag::immutable_tag))
+			{
+				immutables.push_back(
+					std::static_pointer_cast<ade::iLeaf>(
+						owners.at(tens).lock()));
+			}
 		}
 		else
 		{
-			functors[height - 1].push_back(static_cast<ade::iFunctor*>(tens));
+			functors[height - 1].push_back(
+				std::static_pointer_cast<ade::iFunctor>(
+					owners.at(tens).lock()));
 		}
 	}
 
 	// there are no conversions for leaves
 	// remove equivalent nodes
-	std::vector<ade::iLeaf*> immutables;
-	immutables.reserve(leaves.size());
-	std::copy_if(leaves.begin(), leaves.end(),
-		std::back_inserter(immutables), [](ade::iLeaf* leaf)
-		{ return tag::has_property(leaf, tag::immutable_tag); });
-	remove_duplicates(priorities, immutables, pfinder, owners);
+	remove_duplicates(priorities, immutables, pfinder);
 
 	for (size_t i = 1; i < maxheight; ++i)
 	{
 		// remove equivalent nodes
 		logs::debugf("removing duplicates for functors of height %d", i);
-		std::vector<ade::iFunctor*> funcs = remove_duplicates(
-			priorities, functors[i - 1], pfinder, owners);
+		std::vector<ade::FuncptrT> funcs = remove_duplicates(
+			priorities, functors[i - 1], pfinder);
 
 		// apply rule conversion to uniques
 
 		// remove equivalent nodes in converted subgraph
 	}
-}
-
 }
 
 }

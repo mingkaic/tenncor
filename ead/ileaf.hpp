@@ -27,31 +27,31 @@ struct iLeaf : public ade::iLeaf
 		return shape_;
 	}
 
-	/// Implementation of iLeaf
+	/// Implementation of iData
 	void* data (void) override
 	{
 		return data_.data();
 	}
 
-	/// Implementation of iLeaf
+	/// Implementation of iData
 	const void* data (void) const override
 	{
 		return data_.data();
 	}
 
-	/// Implementation of iLeaf
+	/// Implementation of iData
 	size_t type_code (void) const override
 	{
 		return age::get_type<T>();
 	}
 
-	/// Implementation of iLeaf
+	/// Implementation of iData
 	std::string type_label (void) const override
 	{
 		return age::name_type(age::get_type<T>());
 	}
 
-	/// Implementation of iLeaf
+	/// Implementation of iData
 	size_t nbytes (void) const override
 	{
 		return sizeof(T) * shape_.n_elems();

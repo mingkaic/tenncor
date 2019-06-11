@@ -1,11 +1,8 @@
-#include "ead/opt/experiment/compares.hpp"
+#include "experimental/opt/compares.hpp"
 
 #ifdef OPT_COMPARE_HPP
 
 namespace opt
-{
-
-namespace experiment
 {
 
 bool lt (ade::FuncArg a, ade::FuncArg b)
@@ -160,8 +157,6 @@ bool is_equal (ade::iFunctor* a, ade::iFunctor* b)
 		}
 	}
 	return false;
-}
-
 }
 
 }

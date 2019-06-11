@@ -230,7 +230,7 @@ struct InteractiveSession final : public ead::iSession
 					(age::_GENERATED_DTYPE) op.first->type_code();
 				std::vector<float> data;
 				size_t nelems = op.first->shape().n_elems();
-				age::type_convert(data, op.first->raw_data(), dtype, nelems);
+				age::type_convert(data, op.first->data(), dtype, nelems);
 				auto& op_parents = sess_.parents_[op.first];
 				for (auto& op_parent : op_parents)
 				{
