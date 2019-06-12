@@ -2,10 +2,13 @@ symbol X
 symbol Y
 symbol Z
 
+// --- node rules ---
+
 ABS(NEG(X)) => ABS(X)
 POW(X,2) => SQUARE(X)
 POW(X,3) => CUBE(X)
-SUB(X,Y) => group:sum(X,NEG(Y))
+// take advantage of group rules
+SUB(X,Y) => ADD(X,NEG(Y))
 NEG(ADD(X,Y)) => ADD(NEG(X),NEG(Y))
 
 SQUARE(SQRT(X)) => X
@@ -29,6 +32,8 @@ DIV(X,X) => 1
 // sigmoid
 DIV(1,ADD(1,NEG(EXP(NEG(X))))) => SIGMOID(X)
 DIV(1,ADD(NEG(EXP(NEG(X)))),1) => SIGMOID(X)
+
+// --- group rules ---
 
 // trig identities... low chance of these happening
 group:sum(SQUARE(SIN(X)),SQUARE(COS(X)),..Z) => group:sum(1,..Z)

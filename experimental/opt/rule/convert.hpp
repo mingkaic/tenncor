@@ -1,3 +1,5 @@
+#include "tag/group.hpp"
+
 #include "experimental/opt/rule/rule.hpp"
 
 namespace opt
@@ -27,7 +29,7 @@ struct Conversion final
 		return nullptr != reporter_ && nullptr != builder_;
 	}
 
-	ade::TensptrT convert (ade::TensptrT root) const
+	ade::TensptrT convert (tag::SubgraphsT& subs, ade::TensptrT root) const
 	{
 		Report report;
 		reporter_->get_report(report, root.get());
@@ -35,9 +37,9 @@ struct Conversion final
 		{
 			// match found, convert
 			logs::debugf("applying conversion %s", label_.c_str());
-			root = builder_->build(report);
+			return builder_->build(report);
 		}
-		return root;
+		return nullptr;
 	}
 
 	std::string label_;

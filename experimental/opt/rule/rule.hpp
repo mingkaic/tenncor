@@ -1,3 +1,5 @@
+#include <regex>
+
 #include "ade/traveler.hpp"
 
 #ifndef OPT_RULE_HPP
@@ -104,38 +106,37 @@ struct Scalar final : public iNode
 	{
 		if (tag::has_property(leaf, tag::immutable_tag))
 		{
-			ade::Shape shape = leaf->shape();
-			age::_GENERATED_DTYPE dtype =
-				(age::_GENERATED_DTYPE) leaf->type_code();
-			std::vector<float> data;
-			age::type_convert(data, leaf->data(), dtype, shape.n_elems());
+			// ade::Shape shape = leaf->shape();
+			// std::vector<float> data;
+			// age::type_convert(data, leaf->data(),
+			// 	(age::_GENERATED_DTYPE) leaf->type_code(), shape.n_elems());
 
-			std::string data_str;
-			size_t n = shape.n_elems();
-			if (std::all_of(data.begin() + 1, data.end(),
-				[&](const double& e) { return e == data[0]; }))
-			{
-				// is a scalar
-				double scalar = data[0];
-				if (scalar == 0) // avoid -0
-				{
-					data_str = "_scalar_0";
-				}
-				else
-				{
-					data_str = "_scalar_" + fmts::to_string(scalar);
-				}
-			}
-			else
-			{
-				// todo: make encoding better so we don't lose precision
-				data_str = "_array_" + fmts::join("",
-					data.begin(), data.end());
-			}
+			// std::string data_str;
+			// size_t n = shape.n_elems();
+			// if (std::all_of(data.begin() + 1, data.end(),
+			// 	[&](const double& e) { return e == data[0]; }))
+			// {
+			// 	// is a scalar
+			// 	double scalar = data[0];
+			// 	if (scalar == 0) // avoid -0
+			// 	{
+			// 		data_str = "_scalar_0";
+			// 	}
+			// 	else
+			// 	{
+			// 		data_str = "_scalar_" + fmts::to_string(scalar);
+			// 	}
+			// }
+			// else
+			// {
+			// 	// todo: make encoding better so we don't lose precision
+			// 	data_str = "_array_" + fmts::join("",
+			// 		data.begin(), data.end());
+			// }
 
-			report_->success_ = std::regex_match(
-				fmts::join("", shape.begin(), shape.end()) + data_str,
-				std::regex(pattern_));
+			// report_->success_ = std::regex_match(
+			// 	fmts::join("", shape.begin(), shape.end()) + data_str,
+			// 	std::regex(pattern_));
 		}
 		else
 		{

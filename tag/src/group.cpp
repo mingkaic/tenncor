@@ -82,68 +82,36 @@ void recursive_group_tag (ade::TensrefT tens, std::string group,
 	tensor->accept(trav);
 }
 
-struct Adjacents final : public ade::iTraveler
-{
-	Adjacents (std::string group) : group_(group) {}
+boost::uuids::random_generator AdjacentGroups::uuid_gen_;
 
-	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
+void beautify_groups (SubgraphsT& out, const AdjacentGroups& adjgroups)
+{
+	std::unordered_map<std::string,SgraphptrT> sgraphs;
+	for (auto& gpair : adjgroups.adjs_)
 	{
-		if (false == util::has(out_, leaf))
+		ade::iTensor* tens = gpair.first;
+		for (auto& idpair : gpair.second)
 		{
-			auto tags = Registry::registry[func].get_tags();
-			auto it = tags.find(groups_key);
-			if (tags.end() == it)
+			std::string group = idpair.first;
+			for (const std::string& gid : idpair.second)
 			{
-				return;
+				auto it = sgraphs.find(gid);
+				if (sgraphs.end() == it)
+				{
+					sgraphs.emplace(gid, std::make_shared<Subgraph>(group));
+				}
+				tens->accept(*sgraphs[gid]);
 			}
-			if (it->second.end() == std::find(
-				it->second.begin(), it->second.end(),
-				[&](const std::string& k) { return k == group; }))
-			{
-				return;
-			}
-			out_.emplace(func);
 		}
 	}
 
-	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
+	for (auto& sg : sgraphs)
 	{
-		if (false == util::has(out_, func))
+		for (ade::iTensor* content : sg.second->content_)
 		{
-			auto tags = Registry::registry[func].get_tags();
-			auto it = tags.find(groups_key);
-			if (tags.end() == it)
-			{
-				return;
-			}
-			if (it->second.end() == std::find(
-				it->second.begin(), it->second.end(),
-				[&](const std::string& k) { return k == group; }))
-			{
-				return;
-			}
-			auto& children = func->get_children();
-			for (auto& child : children)
-			{
-				child.get_tensor()->accept(*this);
-			}
-			out_.emplace(func);
+			out.emplace(content, sg.second);
 		}
 	}
-
-	std::string group_;
-
-	std::unordered_set<ade::iTensor*> out_;
-};
-
-std::unordered_set<ade::iTensor*> adjacent_group (
-	ade::iTensor* tens, std::string group)
-{
-	Adjacents adj(group);
-	tens->accept(adj);
-	return adj.out_;
 }
 
 }
