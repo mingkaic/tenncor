@@ -1,6 +1,9 @@
 #include "tag/group.hpp"
 
-#include "experimental/opt/rule/rule.hpp"
+#include "experimental/opt/rule/writer.hpp"
+
+#ifndef OPT_RULE_CONVERT_HPP
+#define OPT_RULE_CONVERT_HPP
 
 namespace opt
 {
@@ -20,7 +23,7 @@ using BuilderT = std::unique_ptr<TensBuilder>;
 struct Conversion final
 {
 	Conversion (std::string label,
-		NodeptrT reporter, BuilderT builder) :
+		WriterptrT reporter, BuilderT builder) :
 		label_(label), reporter_(reporter),
 		builder_(std::move(builder)) {}
 
@@ -32,8 +35,8 @@ struct Conversion final
 	ade::TensptrT convert (tag::SubgraphsT& subs, ade::TensptrT root) const
 	{
 		Report report;
-		reporter_->get_report(report, root.get());
-		if (report.success_)
+		reporter_->write(report, subs, root.get());
+		if (report.is_success())
 		{
 			// match found, convert
 			logs::debugf("applying conversion %s", label_.c_str());
@@ -44,7 +47,7 @@ struct Conversion final
 
 	std::string label_;
 
-	NodeptrT reporter_;
+	WriterptrT reporter_;
 
 	BuilderT builder_;
 };
@@ -54,3 +57,5 @@ using ConversionsT = std::vector<Conversion>;
 }
 
 }
+
+#endif // OPT_RULE_CONVERT_HPP

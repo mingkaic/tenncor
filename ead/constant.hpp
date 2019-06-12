@@ -38,6 +38,10 @@ struct Constant final : public iLeaf<T>
 		const T* data = this->data_.data();
 		if (is_scalar())
 		{
+			if (0 == data[0]) // prevent -0
+			{
+				return "0";
+			}
 			return fmts::to_string(data[0]);
 		}
 		size_t nelems = this->shape_.n_elems();

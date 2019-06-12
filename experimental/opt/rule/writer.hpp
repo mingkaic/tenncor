@@ -1,9 +1,7 @@
-#include <regex>
-
 #include "ade/traveler.hpp"
 
-#ifndef OPT_RULE_HPP
-#define OPT_RULE_HPP
+#ifndef OPT_RULE_WRITER_HPP
+#define OPT_RULE_WRITER_HPP
 
 namespace opt
 {
@@ -26,21 +24,34 @@ struct Report
 	void report_variadic (const ade::FuncArg& arg, size_t variadic_id)
 	{}
 
-	bool success_ = false;
+	// absense of failure is success
+	void fail (void)
+	{
+		success_ = false;
+	}
+
+	bool is_success (void) const
+	{
+		return success_;
+	}
+
+private:
+	bool success_ = true;
 };
 
-struct iNode : public ade::iTraveler
+struct iWriter : public ade::iTraveler
 {
-	virtual ~iNode (void) = default;
+	virtual ~iWriter (void) = default;
 
-	virtual void get_report (Report& out, ade::iTensor* target) = 0;
+	virtual void write (Report& out,
+		tag::SubgraphsT& subs, ade::iTensor* target) = 0;
 };
 
-using NodeptrT = std::shared_ptr<iNode>;
+using WriterptrT = std::shared_ptr<iWriter>;
 
-struct Arg final
+struct WriterArg final
 {
-	Arg (NodeptrT arg,
+	WriterArg (WriterptrT arg,
 		ade::CoordptrT shaper, ade::CoordptrT coorder) :
 		arg_(arg), shaper_(shaper), coorder_(coorder)
 	{
@@ -50,21 +61,21 @@ struct Arg final
 		}
 	}
 
-	NodeptrT arg_;
+	WriterptrT arg_;
 
 	ade::CoordptrT shaper_;
 
 	ade::CoordptrT coorder_;
 };
 
-using ArgsT = std::vector<Arg>;
+using WriterArgsT = std::vector<WriterArg>;
 
 using CommCandsT = std::vector<std::pair<Report,std::vector<bool>>>;
 
 // todo: make this much more effcient (currently brute-force)
 // consider sort then match (need to make rule nodes hashed similar to actual tensors)
-static CommCandsT communtative_rule_match (
-	const ade::ArgsT& args, const ArgsT& sub_rules)
+static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
+	const ade::ArgsT& args, const WriterArgsT& sub_rules)
 {
 	size_t nargs = args.size();
 	CommCandsT candidates = {{Report{true}, std::vector<bool>(nargs, false)}};
@@ -81,9 +92,9 @@ static CommCandsT communtative_rule_match (
 					continue;
 				}
 				Report& temp_ctx = cand_pair.first;
-				sub_rule.arg_->get_report(temp_ctx,
+				sub_rule.arg_->write(temp_ctx, subs,
 					args[j].get_tensor().get());
-				if (temp_ctx.success_)
+				if (temp_ctx.is_success())
 				{
 					std::vector<bool> temp_field = field;
 					temp_field[j] = true;
@@ -97,91 +108,94 @@ static CommCandsT communtative_rule_match (
 }
 
 // e.g.: 1.2
-struct Scalar final : public iNode
+struct Scalar final : public iWriter
 {
-	Scalar (std::string pattern) : pattern_(pattern) {}
+	Scalar (double scalar) : scalar_(scalar) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
+		if (nullptr == report_)
+		{
+			logs::fatal("attempting to match scalar leaf without reporter");
+		}
+
 		if (tag::has_property(leaf, tag::immutable_tag))
 		{
-			// ade::Shape shape = leaf->shape();
-			// std::vector<float> data;
-			// age::type_convert(data, leaf->data(),
-			// 	(age::_GENERATED_DTYPE) leaf->type_code(), shape.n_elems());
+			ade::Shape shape = leaf->shape();
+			char* data = (char*) leaf->data();
+			size_t n = shape.n_elems();
+			size_t perbytes = leaf->nbytes() / n;
+			for (size_t i = 1; i < n; ++i)
+			{
+				if (false == std::equal(data, data + perbytes,
+					data + i * perbytes))
+				{
+					// not scalar
+					report_->fail();
+					return;
+				}
+			}
 
-			// std::string data_str;
-			// size_t n = shape.n_elems();
-			// if (std::all_of(data.begin() + 1, data.end(),
-			// 	[&](const double& e) { return e == data[0]; }))
-			// {
-			// 	// is a scalar
-			// 	double scalar = data[0];
-			// 	if (scalar == 0) // avoid -0
-			// 	{
-			// 		data_str = "_scalar_0";
-			// 	}
-			// 	else
-			// 	{
-			// 		data_str = "_scalar_" + fmts::to_string(scalar);
-			// 	}
-			// }
-			// else
-			// {
-			// 	// todo: make encoding better so we don't lose precision
-			// 	data_str = "_array_" + fmts::join("",
-			// 		data.begin(), data.end());
-			// }
-
-			// report_->success_ = std::regex_match(
-			// 	fmts::join("", shape.begin(), shape.end()) + data_str,
-			// 	std::regex(pattern_));
+			if (fmts::to_string(scalar_) != leaf->to_string())
+			{
+				report_->fail();
+			}
 		}
 		else
 		{
-			report_->success_ = false;
+			report_->fail();
 		}
 	}
 
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		report_->success_ = false;
+		if (nullptr == report_)
+		{
+			logs::fatal("attempting to match scalar functor without reporter");
+		}
+		report_->fail();
 	}
 
-	void get_report (Report& out, ade::iTensor* target)
+	void write (Report& out, tag::SubgraphsT& subs, ade::iTensor* target)
 	{
 		report_ = &out;
 		target->accept(*this);
 		report_ = nullptr;
 	}
 
-	std::string pattern_;
+	double scalar_;
 
 	Report* report_ = nullptr;
 };
 
 // e.g.: X
-struct Any final : public iNode
+struct Any final : public iWriter
 {
 	Any (size_t id) : id_(id) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
+		if (nullptr == report_)
+		{
+			logs::fatal("attempting to match any leaf without reporter");
+		}
 		report_->report_any(leaf, id_);
-		report_->success_ = true;
 	}
 
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
+		if (nullptr == report_)
+		{
+			logs::fatal("attempting to match any functor without reporter");
+		}
 		report_->report_any(func, id_);
-		report_->success_ = true;
 	}
 
-	void get_report (Report& out, ade::iTensor* target)
+	void write (Report& out, tag::SubgraphsT& subs, ade::iTensor* target)
 	{
 		report_ = &out;
 		target->accept(*this);
@@ -194,23 +208,36 @@ struct Any final : public iNode
 };
 
 // e.g.: SUB(X, X)
-struct Func final : public iNode
+struct Func final : public iWriter
 {
-	Func (ade::Opcode op, ArgsT sub_rules) :
-		op_(op), sub_rules_(sub_rules) {}
+	Func (std::string op, WriterArgsT sub_rules) :
+		// todo: parse group
+		op_(ade::Opcode{op, 0}), sub_rules_(sub_rules) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		report_->success_ = false;
+		if (nullptr == report_)
+		{
+			logs::fatal("attempting to match func leaf without reporter");
+		}
+		report_->fail();
 	}
 
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
+		if (nullptr == report_)
+		{
+			logs::fatal("attempting to match func functor without reporter");
+		}
+		if (nullptr == subs_)
+		{
+			logs::fatal("attempting to match functor without subgraphs");
+		}
 		if (func->get_opcode().code_ != op_.code_)
 		{
-			report_->success_ = false;
+			report_->fail();
 			return;
 		}
 
@@ -218,16 +245,16 @@ struct Func final : public iNode
 		size_t nargs = args.size();
 		if (sub_rules_.size() != nargs)
 		{
-			report_->success_ = false;
+			report_->fail();
 			return;
 		}
 
 		if (tag::has_property(func, tag::commutative_tag))
 		{
-			CommCandsT candidates = communtative_rule_match(args, sub_rules_);
+			CommCandsT candidates = communtative_rule_match(*subs_, args, sub_rules_);
 			if (candidates.empty()) // we've found no candidates
 			{
-				report_->success_ = false;
+				report_->fail();
 				return;
 			}
 			if (candidates.size() > 1)
@@ -241,49 +268,65 @@ struct Func final : public iNode
 		}
 		for (size_t i = 0; i < nargs; ++i)
 		{
-			sub_rules_[i].arg_->get_report(
-				*report_, args[i].get_tensor().get());
-			if (false == report_->success_)
+			sub_rules_[i].arg_->write(
+				*report_, *subs_, args[i].get_tensor().get());
+			if (false == report_->is_success())
 			{
-				return; // failure
+				return; // failure. so shortcircuit
 			}
 		}
-		report_->success_ = true;
 	}
 
-	void get_report (Report& out, ade::iTensor* target)
+	void write (Report& out, tag::SubgraphsT& subs, ade::iTensor* target)
 	{
+		subs_ = &subs;
 		report_ = &out;
 		target->accept(*this);
+		subs_ = nullptr;
 		report_ = nullptr;
 	}
 
 	ade::Opcode op_;
 
-	ArgsT sub_rules_;
+	WriterArgsT sub_rules_;
+
+	tag::SubgraphsT* subs_ = nullptr;
 
 	Report* report_ = nullptr;
 };
 
 // e.g.: ADD(SQUARE(SIN(X)),SQUARE(COS(Y)),..Z)
-struct VariadicFunc final : public iNode
+struct VariadicFunc final : public iWriter
 {
-	VariadicFunc (ade::Opcode op,
-		ArgsT sub_rules, size_t variadic_id) :
-		op_(op), sub_rules_(sub_rules), variadic_id_(variadic_id) {}
+	VariadicFunc (std::string op,
+		WriterArgsT sub_rules, size_t variadic_id) :
+		// todo: parse group
+		op_(ade::Opcode{op, 0}), sub_rules_(sub_rules), variadic_id_(variadic_id) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		report_->success_ = false;
+		if (nullptr == report_)
+		{
+			logs::fatal("attempting to match variadic leaf without reporter");
+		}
+		report_->fail();
 	}
 
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
+		if (nullptr == report_)
+		{
+			logs::fatal("attempting to match variadic functor without reporter");
+		}
+		if (nullptr == subs_)
+		{
+			logs::fatal("attempting to match functor without subgraphs");
+		}
 		if (func->get_opcode().code_ != op_.code_)
 		{
-			report_->success_ = false;
+			report_->fail();
 			return;
 		}
 
@@ -291,14 +334,14 @@ struct VariadicFunc final : public iNode
 		size_t nargs = args.size();
 		if (sub_rules_.size() > nargs)
 		{
-			report_->success_ = false;
+			report_->fail();
 			return;
 		}
 
-		CommCandsT candidates = communtative_rule_match(args, sub_rules_);
+		CommCandsT candidates = communtative_rule_match(*subs_, args, sub_rules_);
 		if (candidates.empty()) // we've found no candidates
 		{
-			report_->success_ = false;
+			report_->fail();
 			return;
 		}
 		if (candidates.size() > 1)
@@ -318,18 +361,22 @@ struct VariadicFunc final : public iNode
 		report_->merge(candidates[0].first); // commit transaction
 	}
 
-	void get_report (Report& out, ade::iTensor* target)
+	void write (Report& out, tag::SubgraphsT& subs, ade::iTensor* target)
 	{
+		subs_ = &subs;
 		report_ = &out;
 		target->accept(*this);
+		subs_ = nullptr;
 		report_ = nullptr;
 	}
 
 	ade::Opcode op_;
 
-	ArgsT sub_rules_;
+	WriterArgsT sub_rules_;
 
 	size_t variadic_id_;
+
+	tag::SubgraphsT* subs_ = nullptr;
 
 	Report* report_ = nullptr;
 };
@@ -338,4 +385,4 @@ struct VariadicFunc final : public iNode
 
 }
 
-#endif // OPT_RULE_HPP
+#endif // OPT_RULE_WRITER_HPP
