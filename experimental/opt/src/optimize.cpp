@@ -131,10 +131,10 @@ void optimize (ade::TensT roots, const rule::ConversionsT& conversions)
 		}
 
 		// step 2:
-        size_t max_nodeheight = functors.size();
-        size_t min_nodeheight = max_nodeheight;
-        // calculate minimum height required for conversions
-        //
+		size_t max_nodeheight = functors.size();
+		size_t min_nodeheight = max_nodeheight;
+		// calculate minimum height required for conversions
+		//
 
 		// there are no conversions for leaves
 		ade::ParentFinder pfinder;
@@ -148,10 +148,10 @@ void optimize (ade::TensT roots, const rule::ConversionsT& conversions)
 		{
 			root->accept(adjgroups);
 		}
-        tag::SubgraphsT subs;
-        tag::beautify_groups(subs, adjgroups);
+		tag::SubgraphsT subs;
+		tag::beautify_groups(subs, adjgroups);
 
-        // only need to look at nodes at or above minimum height
+		// only need to look at nodes at or above minimum height
 		for (size_t i = min_nodeheight; i < max_nodeheight; ++i)
 		{
 			for (ade::FuncptrT func : functors[i])

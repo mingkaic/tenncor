@@ -1,6 +1,4 @@
-#include "tag/group.hpp"
-
-#include "experimental/opt/rule/writer.hpp"
+#include "experimental/opt/rule/builder.hpp"
 
 #ifndef OPT_RULE_CONVERT_HPP
 #define OPT_RULE_CONVERT_HPP
@@ -11,45 +9,31 @@ namespace opt
 namespace rule
 {
 
-struct TensBuilder
-{
-	virtual ~TensBuilder (void) = 0;
-
-	virtual ade::TensptrT build (Report& report) = 0;
-};
-
-using BuilderT = std::unique_ptr<TensBuilder>;
-
 struct Conversion final
 {
-	Conversion (std::string label,
-		WriterptrT reporter, BuilderT builder) :
-		label_(label), reporter_(reporter),
-		builder_(std::move(builder)) {}
+	Conversion (WriterptrT writer, BuilderptrT builder) :
+		writer_(writer), builder_(builder) {}
 
 	bool valid (void) const
 	{
-		return nullptr != reporter_ && nullptr != builder_;
+		return nullptr != writer_ && nullptr != builder_;
 	}
 
 	ade::TensptrT convert (tag::SubgraphsT& subs, ade::TensptrT root) const
 	{
 		Report report;
-		reporter_->write(report, subs, root.get());
+		writer_->write(report, subs, root.get());
 		if (report.is_success())
 		{
 			// match found, convert
-			logs::debugf("applying conversion %s", label_.c_str());
-			return builder_->build(report);
+			return builder_->build(report, subs);
 		}
 		return nullptr;
 	}
 
-	std::string label_;
+	WriterptrT writer_;
 
-	WriterptrT reporter_;
-
-	BuilderT builder_;
+	BuilderptrT builder_;
 };
 
 using ConversionsT = std::vector<Conversion>;

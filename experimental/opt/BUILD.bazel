@@ -10,6 +10,7 @@ cc_library(
     deps = [
         "//ade:ade",
         "//tag:tag",
+        "//experimental/opt/parse:parse",
     ],
     visibility = ["//visibility:public"],
 )

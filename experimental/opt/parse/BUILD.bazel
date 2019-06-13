@@ -1,0 +1,34 @@
+licenses(["notice"])
+
+load("//:third_party/yacc.bzl", "genyacc", "genlex")
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.h",
+        "*.c",
+    ]) + ["BUILD.bazel"],
+    visibility = ["//visibility:public"],
+)
+
+######### LIBRARY #########
+
+genyacc(
+    name = "yacc",
+    out_hdr = "rulecfg.yy.h",
+    out_src = "rulecfg.yy.c",
+    src = "rulecfg.yacc",
+)
+
+genlex(
+    name = "flex",
+    out = "rulecfg.lex.c",
+    src = "rulecfg.lex",
+)
+
+cc_library(
+    name = "parse",
+    hdrs = ["def.h", "rulecfg.yy.h", ],
+    srcs = ["def.c", "rulecfg.yy.c", "rulecfg.lex.c"],
+    visibility = ["//visibility:public"],
+)
