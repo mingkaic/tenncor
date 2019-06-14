@@ -15,7 +15,7 @@ struct iBuilder
 	virtual ~iBuilder (void) = 0;
 
 	virtual ade::TensptrT build (Report& report,
-		tag::SubgraphsT& subs) = 0;
+		ade::Shape outshape) = 0;
 };
 
 using BuilderptrT = std::shared_ptr<iBuilder>;

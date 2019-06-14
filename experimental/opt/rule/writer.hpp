@@ -1,7 +1,9 @@
+#include "ade/traveler.hpp"
+
 #include "tag/group.hpp"
 #include "tag/prop.hpp"
 
-#include "ade/traveler.hpp"
+#include "experimental/opt/compares.hpp"
 
 #ifndef OPT_RULE_WRITER_HPP
 #define OPT_RULE_WRITER_HPP
@@ -34,6 +36,14 @@ struct Report
 				return;
 			}
 		}
+		for (auto group : other.groups_)
+		{
+			report_group(group.second, group.first);
+			if (false == success_)
+			{
+				return;
+			}
+		}
 		for (auto ovari : other.variadics_)
 		{
 			auto& vari = variadics_[ovari.first];
@@ -44,7 +54,7 @@ struct Report
 
 	/// Succeed if any_id-tens pair does not conflict with existing pair,
 	/// otherwise Fail
-	void report_any (ade::iTensor* tens, size_t any_id)
+	void report_any (ade::TensptrT tens, size_t any_id)
 	{
 		auto it = bases_.find(any_id);
 		if (bases_.end() == it || it->second == tens)
@@ -57,7 +67,20 @@ struct Report
 		}
 	}
 
-	void report_variadic (ade::iTensor* arg, size_t variadic_id)
+	void report_group (tag::SgraphptrT sg, size_t group_id)
+	{
+		auto it = groups_.find(group_id);
+		if (groups_.end() == it || it->second == sg)
+		{
+			groups_.emplace(group_id, sg);
+		}
+		else
+		{
+			fail();
+		}
+	}
+
+	void report_variadic (ade::TensptrT arg, size_t variadic_id)
 	{
 		variadics_[variadic_id].push_back(arg);
 	}
@@ -73,9 +96,11 @@ struct Report
 		return success_;
 	}
 
-	std::unordered_map<size_t,ade::iTensor*> bases_;
+	std::unordered_map<size_t,ade::TensptrT> bases_;
 
-	std::unordered_map<size_t,std::vector<ade::iTensor*>> variadics_;
+	std::unordered_map<size_t,tag::SgraphptrT> groups_;
+
+	std::unordered_map<size_t,ade::TensT> variadics_;
 
 private:
 	bool success_ = true;
@@ -86,15 +111,14 @@ struct iWriter
 	virtual ~iWriter (void) = default;
 
 	virtual void write (Report& out,
-		tag::SubgraphsT& subs, ade::iTensor* target) = 0;
+		tag::SubgraphsT& subs, ade::TensptrT target) = 0;
 };
 
 using WriterptrT = std::shared_ptr<iWriter>;
 
 struct WriterArg final
 {
-	WriterArg (WriterptrT arg,
-		std::string shaper, std::string coorder) :
+	WriterArg (WriterptrT arg, ade::CoordptrT shaper, ade::CoordptrT coorder) :
 		arg_(arg), shaper_(shaper), coorder_(coorder)
 	{
 		if (nullptr == arg)
@@ -105,38 +129,14 @@ struct WriterArg final
 
 	WriterptrT arg_;
 
-	std::string shaper_;
+	ade::CoordptrT shaper_;
 
-	std::string coorder_;
+	ade::CoordptrT coorder_;
 };
 
 using WriterArgsT = std::vector<WriterArg>;
 
 using CommCandsT = std::vector<std::pair<Report,std::vector<bool>>>;
-
-static bool coord_equal (ade::CoordptrT coord, std::string sform)
-{
-	if (ade::is_identity(coord.get()))
-	{
-		return sform.empty();
-	}
-	std::string cstr = coord->to_string();
-	std::string simplified;
-	simplified.reserve(cstr.size()); // optional, avoids buffer reallocations in the loop
-	for(size_t i = 0; i < cstr.size(); ++i)
-	{
-		if (cstr[i] != fmts::arr_begin &&
-			cstr[i] != fmts::arr_end)
-		{
-			simplified += cstr[i];
-		}
-		else if (cstr[i] == fmts::arr_delim)
-		{
-			simplified += ',';
-		}
-	}
-	return simplified == sform;
-}
 
 // todo: make this much more effcient (currently brute-force)
 // consider sort then match (need to make rule nodes hashed similar to actual tensors)
@@ -158,18 +158,18 @@ static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
 				{
 					continue;
 				}
-				if (false == coord_equal(args[j].get_shaper(), sub_rule.shaper_))
+				if (false == ::opt::is_equal(args[j].get_shaper(), sub_rule.shaper_))
 				{
 					temp_ctx.fail();
 					break;
 				}
-				if (false == coord_equal(args[j].get_coorder(), sub_rule.coorder_))
+				if (false == ::opt::is_equal(args[j].get_coorder(), sub_rule.coorder_))
 				{
 					temp_ctx.fail();
 					break;
 				}
 				sub_rule.arg_->write(temp_ctx, subs,
-					args[j].get_tensor().get());
+					args[j].get_tensor());
 				if (temp_ctx.is_success())
 				{
 					std::vector<bool> temp_field = field;
@@ -188,7 +188,7 @@ static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
 }
 
 static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
-	const std::vector<ade::iTensor*>& args, const WriterArgsT& sub_rules)
+	const std::vector<ade::TensptrT>& args, const WriterArgsT& sub_rules)
 {
 	size_t nargs = args.size();
 	CommCandsT candidates = {{Report{true}, std::vector<bool>(nargs, false)}};
@@ -224,11 +224,11 @@ static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
 }
 
 // e.g.: 1.2
-struct Scalar final : public iWriter
+struct ScalarWriter final : public iWriter
 {
-	Scalar (double scalar) : scalar_(scalar) {}
+	ScalarWriter (double scalar) : scalar_(scalar) {}
 
-	void write (Report& out, tag::SubgraphsT& subs, ade::iTensor* target) override
+	void write (Report& out, tag::SubgraphsT& subs, ade::TensptrT target) override
 	{
 		ScalarVisitor visitor(out, scalar_);
 		target->accept(visitor);
@@ -292,55 +292,25 @@ private:
 };
 
 // e.g.: X
-struct Any final : public iWriter
+struct AnyWriter final : public iWriter
 {
-	Any (size_t id) : id_(id) {}
+	AnyWriter (size_t id) : id_(id) {}
 
-	void write (Report& out, tag::SubgraphsT& subs, ade::iTensor* target) override
+	void write (Report& out, tag::SubgraphsT& subs, ade::TensptrT target) override
 	{
-		AnyVisitor visitor(out, id_);
-		target->accept(visitor);
+		out.report_any(target, id_);
 	}
 
 	size_t id_;
-
-private:
-	struct AnyVisitor final : public ade::iTraveler
-	{
-		AnyVisitor (Report& report, size_t id) :
-			report_(&report), id_(id)
-		{
-			if (nullptr == report_)
-			{
-				logs::fatal("attempting to process any without reporter");
-			}
-		}
-
-		/// Implementation of iTraveler
-		void visit (ade::iLeaf* leaf) override
-		{
-			report_->report_any(leaf, id_);
-		}
-
-		/// Implementation of iTraveler
-		void visit (ade::iFunctor* func) override
-		{
-			report_->report_any(func, id_);
-		}
-
-		Report* report_ = nullptr;
-
-		size_t id_;
-	};
 };
 
 // e.g.: SUB(X, X)
-struct Func final : public iWriter
+struct FuncWriter final : public iWriter
 {
-	Func (std::string op, WriterArgsT sub_rules) :
+	FuncWriter (std::string op, WriterArgsT sub_rules) :
 		op_(op), sub_rules_(sub_rules) {}
 
-	void write (Report& out, tag::SubgraphsT& subs, ade::iTensor* target) override
+	void write (Report& out, tag::SubgraphsT& subs, ade::TensptrT target) override
 	{
 		FuncVisitor visitor(out, subs, op_, sub_rules_);
 		target->accept(visitor);
@@ -410,18 +380,18 @@ private:
 			}
 			for (size_t i = 0; i < nargs; ++i)
 			{
-				if (false == coord_equal(args[i].get_shaper(), sub_rules_[i].shaper_))
+				if (false == ::opt::is_equal(args[i].get_shaper(), sub_rules_[i].shaper_))
 				{
 					report_->fail();
 					return;
 				}
-				if (false == coord_equal(args[i].get_coorder(), sub_rules_[i].coorder_))
+				if (false == ::opt::is_equal(args[i].get_coorder(), sub_rules_[i].coorder_))
 				{
 					report_->fail();
 					return;
 				}
 				sub_rules_[i].arg_->write(
-					*report_, *subs_, args[i].get_tensor().get());
+					*report_, *subs_, args[i].get_tensor());
 				if (false == report_->is_success())
 				{
 					return; // failure. so shortcircuit
@@ -429,9 +399,9 @@ private:
 			}
 		}
 
-		tag::SubgraphsT* subs_ = nullptr;
-
 		Report* report_ = nullptr;
+
+		tag::SubgraphsT* subs_ = nullptr;
 
 		std::string op_;
 
@@ -440,18 +410,22 @@ private:
 };
 
 // e.g.: group:sum(SQUARE(SIN(X)),SQUARE(COS(Y)),..Z)
-struct Group final : public iWriter
+struct GroupWriter final : public iWriter
 {
-	Group (std::string group, WriterArgsT sub_rules, size_t variadic_id) :
-		group_(group), sub_rules_(sub_rules),
-		variadic_id_(variadic_id) {}
+	GroupWriter (size_t group_id, std::string group,
+		WriterArgsT sub_rules, size_t variadic_id) :
+		group_id_(group_id), group_(group),
+		sub_rules_(sub_rules), variadic_id_(variadic_id) {}
 
-	void write (Report& out, tag::SubgraphsT& subs, ade::iTensor* target) override
+	void write (Report& out,
+		tag::SubgraphsT& subs, ade::TensptrT target) override
 	{
-		GroupVisitor visitor(out, subs,
+		GroupVisitor visitor(out, subs, group_id_,
 			group_, sub_rules_, variadic_id_);
 		target->accept(visitor);
 	}
+
+	size_t group_id_;
 
 	std::string group_;
 
@@ -462,12 +436,10 @@ struct Group final : public iWriter
 private:
 	struct GroupVisitor final : public ade::iTraveler
 	{
-		GroupVisitor (Report& report, tag::SubgraphsT& subs,
-			std::string group, WriterArgsT sub_rules,
-			size_t variadic_id) :
-			report_(&report), subs_(&subs),
-			group_(group), sub_rules_(sub_rules),
-			variadic_id_(variadic_id)
+		GroupVisitor (Report& report, tag::SubgraphsT& subs, size_t group_id,
+			std::string group, WriterArgsT sub_rules, size_t variadic_id) :
+			report_(&report), subs_(&subs), group_id_(group_id),
+			group_(group), sub_rules_(sub_rules), variadic_id_(variadic_id)
 		{
 			if (nullptr == report_)
 			{
@@ -499,11 +471,11 @@ private:
 			std::unordered_map<ade::iTensor*,ade::TensptrT>&
 			children = sg->children_;
 			size_t nargs = children.size();
-			std::vector<ade::iTensor*> args;
+			std::vector<ade::TensptrT> args;
 			args.reserve(nargs);
 			for (auto cpair : children)
 			{
-				args.push_back(cpair.first);
+				args.push_back(cpair.second);
 			}
 			if (sub_rules_.size() > nargs)
 			{
@@ -541,11 +513,14 @@ private:
 				}
 			}
 			report_->merge(report); // commit transaction
+			report_->report_group(sg, group_id_);
 		}
+
+		Report* report_ = nullptr;
 
 		tag::SubgraphsT* subs_ = nullptr;
 
-		Report* report_ = nullptr;
+		size_t group_id_;
 
 		std::string group_;
 

@@ -1,3 +1,10 @@
+licenses(["notice"])
+
+filegroup(
+    name = "optimizations",
+    srcs = ["optimizations.rules"],
+    visibility = ["//visibility:public"],
+)
 
 cc_library(
     name = "opt",
@@ -10,7 +17,6 @@ cc_library(
     deps = [
         "//ade:ade",
         "//tag:tag",
-        "//experimental/opt/parse:parse",
     ],
     visibility = ["//visibility:public"],
 )

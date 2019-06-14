@@ -13,6 +13,12 @@ filegroup(
 
 ######### LIBRARY #########
 
+genlex(
+    name = "flex",
+    out = "rulecfg.lex.c",
+    src = "rulecfg.lex",
+)
+
 genyacc(
     name = "yacc",
     out_hdr = "rulecfg.yy.h",
@@ -20,15 +26,27 @@ genyacc(
     src = "rulecfg.yacc",
 )
 
-genlex(
-    name = "flex",
-    out = "rulecfg.lex.c",
-    src = "rulecfg.lex",
-)
-
 cc_library(
     name = "parse",
-    hdrs = ["def.h", "rulecfg.yy.h", ],
-    srcs = ["def.c", "rulecfg.yy.c", "rulecfg.lex.c"],
+    hdrs = glob(["*.h"]) + ["rulecfg.yy.h"],
+    srcs = glob(["*.c"]) + [
+        "rulecfg.yy.c",
+        "rulecfg.lex.c",
+    ],
+    copts = ["-std=c11"],
+    linkstatic = True,
     visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = ["test/main.cpp"],
+    deps = [
+        "//experimental/opt/parse:parse",
+        "@gtest//:gtest",
+    ],
+    data = ["//experimental/opt:optimizations"],
+    linkstatic = True,
 )

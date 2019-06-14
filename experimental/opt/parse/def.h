@@ -1,20 +1,12 @@
-#include <stdlib.h>
+#include "experimental/opt/parse/list.h"
 
-#ifndef PARSE_DEF_HPP
-#define PARSE_DEF_HPP
-
-struct NumList
-{
-	struct NumList* next_;
-	double val_;
-};
-
-struct ArgList;
+#ifndef PARSE_DEF_H
+#define PARSE_DEF_H
 
 struct Branch
 {
 	int is_group_;
-	struct ArgList* args_;
+	struct PtrList* args_;
 	char label_[32];
 	char variadic_[32];
 };
@@ -37,6 +29,8 @@ struct Subgraph
 	} val_;
 };
 
+void subgraph_recursive_free (void* ptr);
+
 struct Arg
 {
 	struct Subgraph* subgraph_;
@@ -44,11 +38,7 @@ struct Arg
 	struct NumList* coorder_;
 };
 
-struct ArgList
-{
-	struct ArgList* next_;
-	struct Arg* val_;
-};
+void arg_recursive_free (void* ptr);
 
 struct Conversion
 {
@@ -56,31 +46,46 @@ struct Conversion
 	struct Subgraph* dest_;
 };
 
+void conversion_recursive_free (void* ptr);
+
+struct Group
+{
+	char ref_[32];
+	char tag_[32];
+};
+
 enum STMT_TYPE
 {
 	SYMBOL_DEF = 0,
+	GROUP_DEF,
 	CONVERSION,
 };
 
-struct StmtList
+struct Statement
 {
-	struct StmtList* next_;
 	enum STMT_TYPE type_;
 	void* val_;
 };
 
-void list_recursive_free (struct NumList* list);
+enum PTR_TYPE
+{
+	STATEMENT = 0,
+	ARGUMENT,
+};
 
-void subgraph_recursive_free (struct Subgraph* sg);
+void statement_recursive_free (void* ptr);
 
-void arg_recursive_free (struct Arg* arg);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void arglist_recursive_free (struct ArgList* arglist);
+// wrapper around Statement recursive free
+extern void statements_free (struct PtrList* stmts);
 
-void conversion_recursive_free (struct Conversion* conv);
+extern int parse_rule (struct PtrList** stmts, const char* filename);
 
-extern void stmts_recursive_free (struct StmtList* stmts);
+#ifdef __cplusplus
+}
+#endif
 
-extern int parse_rule (struct StmtList** stmts, const char* filename);
-
-#endif // PARSE_DEF_HPP
+#endif // PARSE_DEF_H

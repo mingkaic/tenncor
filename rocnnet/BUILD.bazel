@@ -54,7 +54,7 @@ cc_binary(
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
     data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+        ["//experimental/opt:optimizations"],
 )
 
 py_binary(
@@ -62,7 +62,7 @@ py_binary(
     srcs = ["demo/gd_demo.py"],
     deps = [":rocnnet_py"],
     data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+        ["//experimental/opt:optimizations"],
 )
 
 py_binary(

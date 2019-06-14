@@ -92,6 +92,8 @@ cc_library(
         "//opt:opt",
         "//pbm:pbm",
         "//tag:tag",
+        "//experimental/opt:opt",
+        "//experimental/opt/parse:parse",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],

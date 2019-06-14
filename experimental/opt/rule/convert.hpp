@@ -22,11 +22,11 @@ struct Conversion final
 	ade::TensptrT convert (tag::SubgraphsT& subs, ade::TensptrT root) const
 	{
 		Report report;
-		writer_->write(report, subs, root.get());
+		writer_->write(report, subs, root);
 		if (report.is_success())
 		{
 			// match found, convert
-			return builder_->build(report, subs);
+			return builder_->build(report, root->shape());
 		}
 		return nullptr;
 	}

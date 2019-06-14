@@ -1,4 +1,4 @@
-#include "ead/opt/parse.hpp"
+#include "ead/parse.hpp"
 
 #include "experimental/opt/optimize.hpp"
 
@@ -78,7 +78,8 @@ struct MLPTrainer
 			}
 		}
 		{
-			opt::rule::ConversionsT rules = {};
+			opt::rule::ConversionsT rules = ead::parse<PybindT>(
+				"experimental/opt/optimizations.rules");
 			opt::optimize(to_optimize, rules);
 		}
 

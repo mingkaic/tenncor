@@ -1,23 +1,14 @@
 #include "experimental/opt/parse/def.h"
 
-#ifdef PARSE_DEF_HPP
+#ifdef PARSE_DEF_H
 
-void list_recursive_free (struct NumList* list)
+void subgraph_recursive_free (void* ptr)
 {
-	if (NULL == list)
+	if (NULL == ptr)
 	{
 		return;
 	}
-	list_recursive_free(list->next_);
-	free(list);
-}
-
-void subgraph_recursive_free (struct Subgraph* sg)
-{
-	if (NULL == sg)
-	{
-		return;
-	}
+	struct Subgraph* sg = (struct Subgraph*) ptr;
 	switch (sg->type_)
 	{
 		case SCALAR:
@@ -28,7 +19,7 @@ void subgraph_recursive_free (struct Subgraph* sg)
 		case BRANCH:
 		{
 			struct Branch* branch = sg->val_.branch_;
-			arglist_recursive_free(branch->args_);
+			ptrlist_free(branch->args_, &arg_recursive_free);
 			free(branch);
 		}
 			break;
@@ -36,62 +27,54 @@ void subgraph_recursive_free (struct Subgraph* sg)
 	free(sg);
 }
 
-void arg_recursive_free (struct Arg* arg)
+void arg_recursive_free (void* ptr)
 {
-	if (NULL == arg)
+	if (NULL == ptr)
 	{
 		return;
 	}
+	struct Arg* arg = (struct Arg*) ptr;
 	subgraph_recursive_free(arg->subgraph_);
-	list_recursive_free(arg->shaper_);
-	list_recursive_free(arg->coorder_);
+	numlist_free(arg->shaper_);
+	numlist_free(arg->coorder_);
 	free(arg);
 }
 
-void arglist_recursive_free (struct ArgList* arglist)
+void conversion_recursive_free (void* ptr)
 {
-	if (NULL == arglist)
+	if (NULL == ptr)
 	{
 		return;
 	}
-	arglist_recursive_free(arglist->next_);
-	arg_recursive_free(arglist->val_);
-}
-
-void conversion_recursive_free (struct Conversion* conv)
-{
-	if (NULL == conv)
-	{
-		return;
-	}
+	struct Conversion* conv = (struct Conversion*) ptr;
 	subgraph_recursive_free(conv->source_);
 	subgraph_recursive_free(conv->dest_);
 	free(conv);
 }
 
-void stmts_recursive_free (struct StmtList* stmts)
+void statement_recursive_free (void* ptr)
 {
-	if (NULL == stmts)
+	if (NULL == ptr)
 	{
 		return;
 	}
-	stmts_recursive_free(stmts->next_);
-	switch (stmts->type_)
+	struct Statement* stmt = (struct Statement*) ptr;
+	switch (stmt->type_)
 	{
 		case SYMBOL_DEF:
-		{
-			char* str = (char*) stmts->val_;
-			free(str);
-		}
+		case GROUP_DEF:
+			free(stmt->val_);
 			break;
 		case CONVERSION:
-		{
-			struct Conversion* conv = (struct Conversion*) stmts->val_;
-			conversion_recursive_free(conv);
-		}
+			conversion_recursive_free(stmt->val_);
 			break;
 	}
-	free(stmts);
+	free(stmt);
+}
+
+void statements_free (struct PtrList* stmts)
+{
+	ptrlist_free(stmts, statement_recursive_free);
 }
 
 #endif

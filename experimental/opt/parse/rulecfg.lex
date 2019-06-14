@@ -6,6 +6,9 @@
 
 %}
 
+%option nodefault
+%option noyywrap
+
 %%
 [\t\r\a\v\b ]					; // spaces
 
@@ -33,7 +36,9 @@ symbol							{ return SYMBOL; }
 
 \}								{ return RCB; }
 
-group							{ return GTAG; }
+groupdef						{ return GROUPDEF; }
+
+group							{ return GROUP; }
 
 shaper							{ return SHAPER; }
 

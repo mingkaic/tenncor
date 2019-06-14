@@ -95,23 +95,23 @@ bool lt (std::unordered_set<ade::iTensor*> priorities,
 	return acode < bcode;
 }
 
-bool is_equal (ade::FuncArg a, ade::FuncArg b)
+bool is_equal (ade::CoordptrT a, ade::CoordptrT b)
 {
-	if (a.get_tensor().get() == b.get_tensor().get())
+	if (a == b)
 	{
-		auto acoord = a.get_coorder();
-		auto bcoord = b.get_coorder();
-		if (acoord == bcoord)
-		{
-			return true;
-		}
-		if (nullptr != acoord && nullptr != bcoord)
-		{
-			return acoord->to_string() ==
-				bcoord->to_string();
-		}
+		return true;
+	}
+	if (nullptr != a && nullptr != b)
+	{
+		return a->to_string() == b->to_string();
 	}
 	return false;
+}
+
+bool is_equal (ade::FuncArg a, ade::FuncArg b)
+{
+	return a.get_tensor().get() == b.get_tensor().get() &&
+		is_equal(a.get_coorder(), b.get_coorder());
 }
 
 bool is_equal (ade::iLeaf* a, ade::iLeaf* b)

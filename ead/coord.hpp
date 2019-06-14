@@ -18,6 +18,10 @@ enum TransCode
 
 struct CoordMap final : public ade::iCoordMap
 {
+	CoordMap (ade::CoordT indices, bool bijective) :
+		indices_(indices), bijective_(bijective) {}
+
+	// todo: deprecate
 	CoordMap (TransCode transcode, ade::CoordT indices, bool bijective) :
 		transcode_(transcode), indices_(indices), bijective_(bijective) {}
 
