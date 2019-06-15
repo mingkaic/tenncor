@@ -12,10 +12,12 @@ namespace rule
 
 struct iBuilder
 {
-	virtual ~iBuilder (void) = 0;
+	virtual ~iBuilder (void) = default;
 
 	virtual ade::TensptrT build (Report& report,
 		ade::Shape outshape) = 0;
+
+	virtual std::string to_string (void) const = 0;
 };
 
 using BuilderptrT = std::shared_ptr<iBuilder>;

@@ -101,6 +101,10 @@ bool is_equal (ade::CoordptrT a, ade::CoordptrT b)
 	{
 		return true;
 	}
+	if (ade::is_identity(a.get()) && ade::is_identity(b.get()))
+	{
+		return true;
+	}
 	if (nullptr != a && nullptr != b)
 	{
 		return a->to_string() == b->to_string();

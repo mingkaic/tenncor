@@ -70,7 +70,7 @@ py_binary(
     srcs = ["demo/dqn_demo.py"],
     deps = [":rocnnet_py"],
     data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+        ["//experimental/opt:optimizations"],
 )
 
 py_binary(
@@ -82,7 +82,7 @@ py_binary(
         "//dbg:grpc_dbg_py",
     ],
     data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+        ["//experimental/opt:optimizations"],
 )
 
 # cc_binary(

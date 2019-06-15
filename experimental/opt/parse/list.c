@@ -1,5 +1,5 @@
 #include "experimental/opt/parse/list.h"
-#include <stdio.h>
+
 #ifdef PARSE_LIST_H
 
 struct NumList* new_numlist (void)
@@ -17,16 +17,13 @@ void numlist_clear (struct NumList* list)
 		return;
 	}
 	struct NumNode* it = list->head_;
-	struct NumNode* et = list->tail_;
-	// free every node up until tail
-	for (; it != et; it = it->next_)
+	struct NumNode* next;
+	// free every node
+	while (NULL != it)
 	{
+		next = it->next_;
 		free(it);
-	}
-	// free tail
-	if (NULL != it)
-	{
-		free(it);
+		it = next;
 	}
 	list->head_ = list->tail_ = NULL;
 }
@@ -79,24 +76,17 @@ void ptrlist_clear (struct PtrList* list, void (*val_mgr)(void*))
 	}
 	assert(NULL != list->head_ || list->head_ == list->tail_);
 	struct PtrNode* it = list->head_;
-	struct PtrNode* et = list->tail_;
-	// free every node up until tail
-	for (; it != et; it = it->next_)
+	struct PtrNode* next;
+	// free every node
+	while (NULL != it)
 	{
+		next = it->next_;
 		if (NULL != val_mgr)
 		{
 			val_mgr(it->val_);
 		}
 		free(it);
-	}
-	// free tail
-	if (NULL != it)
-	{
-		if (NULL != val_mgr)
-		{
-			val_mgr(it->val_);
-		}
-		free(it);
+		it = next;
 	}
 	list->head_ = list->tail_ = NULL;
 }

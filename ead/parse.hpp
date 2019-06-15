@@ -24,6 +24,11 @@ struct ScalarBuilder final : public opt::rule::iBuilder
 			outshape)->get_tensor();
 	}
 
+	std::string to_string (void) const override
+	{
+		return fmts::to_string(scalar_);
+	}
+
 	double scalar_;
 };
 
@@ -41,6 +46,11 @@ struct AnyBuilder final : public opt::rule::iBuilder
 			logs::fatalf("cannot find any id %d in conversion", any_id_);
 		}
 		return it->second;
+	}
+
+	std::string to_string (void) const override
+	{
+		return "id:" + fmts::to_string(any_id_);
 	}
 
 	size_t any_id_;
@@ -90,6 +100,20 @@ struct FuncBuilder final : public opt::rule::iBuilder
 				arg.shaper_, arg.coorder_));
 		}
 		return make_functor(opcode_, args)->get_tensor();
+	}
+
+	std::string to_string (void) const override
+	{
+		std::vector<std::string> args;
+		args.reserve(args_.size());
+		std::transform(args_.begin(), args_.end(),
+			std::back_inserter(args),
+			[](const BuilderArg& arg)
+			{
+				return arg.arg_->to_string();
+			});
+		return opcode_.name_ + fmts::sprintf("(%s)", fmts::join(",",
+			args.begin(), args.end()).c_str());
 	}
 
 	ade::Opcode opcode_;
@@ -148,6 +172,20 @@ struct GroupBuilder final : public opt::rule::iBuilder
 		return age::prod(outs)->get_tensor();
 	}
 
+	std::string to_string (void) const override
+	{
+		std::vector<std::string> args;
+		args.reserve(args_.size());
+		std::transform(args_.begin(), args_.end(),
+			std::back_inserter(args),
+			[](const BuilderArg& arg)
+			{
+				return arg.arg_->to_string();
+			});
+		return fmts::sprintf("group:%d(%s)", group_id_,
+			fmts::join(",", args.begin(), args.end()).c_str());
+	}
+
 	size_t group_id_;
 
 	BuilderArgsT args_;
@@ -200,14 +238,14 @@ opt::rule::BuilderptrT make_builder (
 		case BRANCH:
 		{
 			::Branch* branch = sg->val_.branch_;
-			if (NULL == branch)
+			if (nullptr == branch)
 			{
-				logs::fatal("subgraph ended at NULL branch");
+				logs::fatal("subgraph ended at nullptr branch");
 			}
 			BuilderArgsT args;
-			for (auto it = branch->args_; NULL != it; it = it->next_)
+			for (auto it = branch->args_->head_; nullptr != it; it = it->next_)
 			{
-				::Arg* arg = it->val_;
+				::Arg* arg = (::Arg*) it->val_;
 				opt::rule::BuilderptrT warg = make_builder<T>(arg->subgraph_, ctx);
 				ade::CoordptrT shaper = shaperize(arg->shaper_);
 				CoordptrT coorder = coorderize(arg->coorder_);
@@ -247,7 +285,7 @@ template <typename T>
 opt::rule::ConversionsT parse (std::string filename)
 {
 	opt::rule::ConversionsT conversions;
-	::StmtList* stmts = NULL;
+	::PtrList* stmts = nullptr;
 	int status = ::parse_rule(&stmts, filename.c_str());
 	if (status != 0)
 	{
@@ -255,15 +293,20 @@ opt::rule::ConversionsT parse (std::string filename)
 			filename.c_str(), status);
 		return conversions;
 	}
+	if (nullptr == stmts)
+	{
+		logs::fatal("rule parser produced null stmts");
+	}
 
 	RuleContext ctx;
-	for (auto it = stmts; it != NULL; it = it->next_)
+	for (auto it = stmts->head_; it != NULL; it = it->next_)
 	{
-		switch (stmts->type_)
+		::Statement* stmt = (::Statement*) it->val_;
+		switch (stmt->type_)
 		{
 			case SYMBOL_DEF:
 			{
-				std::string symbol = std::string((char*) stmts->val_);
+				std::string symbol = std::string((char*) stmt->val_);
 				if (util::has(ctx.symbols_, symbol))
 				{
 					logs::fatalf("redeclaration of symbol %s", symbol.c_str());
@@ -273,7 +316,7 @@ opt::rule::ConversionsT parse (std::string filename)
 				break;
 			case GROUP_DEF:
 			{
-				struct Group* group = (struct Group*) stmts->val_;
+				::Group* group = (::Group*) stmt->val_;
 				std::string ref = std::string(group->ref_);
 				if (util::has(ctx.group_refs_, ref))
 				{
@@ -285,18 +328,18 @@ opt::rule::ConversionsT parse (std::string filename)
 				break;
 			case CONVERSION:
 			{
-				::Conversion* conv = (::Conversion*) stmts->val_;
+				::Conversion* conv = (::Conversion*) stmt->val_;
 				opt::rule::WriterptrT writer = make_writer(conv->source_, ctx);
 				opt::rule::BuilderptrT builder = make_builder<T>(conv->dest_, ctx);
 				conversions.push_back(opt::rule::Conversion(writer, builder));
 			}
 				break;
 			default:
-				logs::errorf("unknown statement of type %d", stmts->val_);
+				logs::errorf("unknown statement of type %d", stmt->type_);
 				return conversions;
 		}
 	}
-	::stmts_recursive_free(stmts);
+	::statements_free(stmts);
 
 	return conversions;
 }

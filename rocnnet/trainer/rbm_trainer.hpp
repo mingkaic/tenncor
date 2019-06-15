@@ -126,32 +126,24 @@ struct RBMTrainer
 			monitoring_cost_ = get_pseudo_likelihood_cost(train_in_);
 		}
 
-		std::vector<ead::NodeptrT<PybindT>*> to_optimize;
+		ade::TensT to_optimize;
 		to_optimize.reserve(assigns.size());
 		std::transform(assigns.begin(), assigns.end(),
 			std::back_inserter(to_optimize),
 			[](eqns::VarAssign& assign)
 			{
-				return &assign.source_;
-			});
-
-		size_t n_roots = to_optimize.size();
-		ead::NodesT<PybindT> roots(n_roots);
-		std::transform(to_optimize.begin(), to_optimize.end(), roots.begin(),
-			[](ead::NodeptrT<PybindT>* ptr)
-			{
-				return *ptr;
+				return assign.source_->get_tensor();
 			});
 
 		{
-			auto rules = ead::opt::get_configs<PybindT>();
-			ead::opt::optimize(roots, rules);
+			opt::rule::ConversionsT rules = ead::parse<PybindT>(
+				"experimental/opt/optimizations.rules");
+			opt::optimize(to_optimize, rules);
 		}
 
-		for (size_t i = 0; i < n_roots; ++i)
+		for (auto& opt_node : to_optimize)
 		{
-			sess_->track(roots[i]->get_tensor().get());
-			*to_optimize[i] = roots[i];
+			sess_->track(opt_node.get());
 		}
 
 		updates_.push_back(assigns);

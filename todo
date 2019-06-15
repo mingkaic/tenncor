@@ -6,28 +6,28 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
+P2 - implement functors with only constants reduction in experimental/opt module
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
 P3 - separate ead api into different namespaces
 P3 - implement control nodes/edges for assignments
-P3 - implement grader extension for subgraphs
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === transparency ===
 P2 - provide graph-setup time summary when failing to match shapes
-P2 - refactor/rework ead's opt (it's so hard to read)
 P4 - add even more debugging tools
 P4 - formalize codestyle
 P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
 === structure ===
-P2 - implement ops_pruning in optimization.rules then move opt to cortenn
-P3 - generalize rule conversion feature for all implementations of ade nodes
-P4 - move ead helper functions in ade
+P2 - deprecate opt and ead/opt move experimental/opt to opt for replacement
+    - move opt to cortenn
+P4 - remove ead helper functions
 
 === correction ===
 P2 - fix rbm demo converging to infinity problem
+P2 - test experimental/opt module
 P2 - bring back fuzz testing on graph structure
 P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage
@@ -47,7 +47,6 @@ P4 - implement GPU settings
 P4 - remove unordered_map/unordered_set if we're not using them properly
 P4 - define optimization conversion rules to increase data accuracy
 P4 - more performance test
-P4 - improve ead opt module such that calculating functors as constants between rule conversions is configurable
 
 run-time performance:
 P3 - improve session implementation

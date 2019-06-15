@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "experimental/opt/parse/def.h"
 #include "experimental/opt/parse/rulecfg.yy.h"
 
 %}
@@ -46,16 +47,20 @@ coorder							{ return COORDER; }
 
 :								{ return COLON; }
 
-\.\.\.							{ return VARIADIC; }
+\.\.							{ return VARIADIC; }
 
 [a-zA-Z\_][a-zA-Z\_0-9]{0,31}	{
-	strncpy(yylval.str_type, yytext, 32);
+	strncpy(yylval.label, yytext, 32);
 	return EL;
 }
 
 (0|[1-9][0-9]*)(\.\d+)?			{
-	yylval.dec_type = atof(yytext);
+	yylval.number = atof(yytext);
 	return NUMBER;
+}
+
+.								{
+	fprintf(stderr, "unrecognized token %s", yytext);
 }
 
 %%

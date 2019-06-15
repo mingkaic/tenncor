@@ -112,6 +112,10 @@ struct iWriter
 
 	virtual void write (Report& out,
 		tag::SubgraphsT& subs, ade::TensptrT target) = 0;
+
+	virtual size_t get_maxheight (void) const = 0;
+
+	virtual std::string to_string (void) const = 0;
 };
 
 using WriterptrT = std::shared_ptr<iWriter>;
@@ -191,7 +195,9 @@ static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
 	const std::vector<ade::TensptrT>& args, const WriterArgsT& sub_rules)
 {
 	size_t nargs = args.size();
-	CommCandsT candidates = {{Report{true}, std::vector<bool>(nargs, false)}};
+	CommCandsT candidates = {
+		{Report{true}, std::vector<bool>(nargs, false)}
+	};
 	for (auto& sub_rule : sub_rules)
 	{
 		CommCandsT next_cands;
@@ -228,10 +234,21 @@ struct ScalarWriter final : public iWriter
 {
 	ScalarWriter (double scalar) : scalar_(scalar) {}
 
-	void write (Report& out, tag::SubgraphsT& subs, ade::TensptrT target) override
+	void write (Report& out,
+		tag::SubgraphsT& subs, ade::TensptrT target) override
 	{
 		ScalarVisitor visitor(out, scalar_);
 		target->accept(visitor);
+	}
+
+	size_t get_maxheight (void) const override
+	{
+		return 0;
+	}
+
+	std::string to_string (void) const override
+	{
+		return fmts::to_string(scalar_);
 	}
 
 	double scalar_;
@@ -296,9 +313,20 @@ struct AnyWriter final : public iWriter
 {
 	AnyWriter (size_t id) : id_(id) {}
 
-	void write (Report& out, tag::SubgraphsT& subs, ade::TensptrT target) override
+	void write (Report& out,
+		tag::SubgraphsT& subs, ade::TensptrT target) override
 	{
 		out.report_any(target, id_);
+	}
+
+	size_t get_maxheight (void) const override
+	{
+		return 0;
+	}
+
+	std::string to_string (void) const override
+	{
+		return "id:" + fmts::to_string(id_);
 	}
 
 	size_t id_;
@@ -310,10 +338,43 @@ struct FuncWriter final : public iWriter
 	FuncWriter (std::string op, WriterArgsT sub_rules) :
 		op_(op), sub_rules_(sub_rules) {}
 
-	void write (Report& out, tag::SubgraphsT& subs, ade::TensptrT target) override
+	void write (Report& out,
+		tag::SubgraphsT& subs, ade::TensptrT target) override
 	{
 		FuncVisitor visitor(out, subs, op_, sub_rules_);
 		target->accept(visitor);
+	}
+
+	size_t get_maxheight (void) const override
+	{
+		std::vector<size_t> maxheights;
+		maxheights.reserve(sub_rules_.size());
+		std::transform(sub_rules_.begin(), sub_rules_.end(),
+			std::back_inserter(maxheights),
+			[](const WriterArg& arg)
+			{
+				return arg.arg_->get_maxheight();
+			});
+		auto it = std::max_element(maxheights.begin(), maxheights.end());
+		if (maxheights.end() == it)
+		{
+			logs::fatal("function writer cannot have no sub rules");
+		}
+		return *it + 1;
+	}
+
+	std::string to_string (void) const override
+	{
+		std::vector<std::string> args;
+		args.reserve(sub_rules_.size());
+		std::transform(sub_rules_.begin(), sub_rules_.end(),
+			std::back_inserter(args),
+			[](const WriterArg& arg)
+			{
+				return arg.arg_->to_string();
+			});
+		return op_ + fmts::sprintf("(%s)", fmts::join(",",
+			args.begin(), args.end()).c_str());
 	}
 
 	std::string op_;
@@ -423,6 +484,42 @@ struct GroupWriter final : public iWriter
 		GroupVisitor visitor(out, subs, group_id_,
 			group_, sub_rules_, variadic_id_);
 		target->accept(visitor);
+	}
+
+	size_t get_maxheight (void) const override
+	{
+		std::vector<size_t> maxheights;
+		maxheights.reserve(sub_rules_.size());
+		std::transform(sub_rules_.begin(), sub_rules_.end(),
+			std::back_inserter(maxheights),
+			[](const WriterArg& arg)
+			{
+				return arg.arg_->get_maxheight();
+			});
+		auto it = std::max_element(maxheights.begin(), maxheights.end());
+		if (maxheights.end() == it)
+		{
+			return 1;
+		}
+		return *it + 1;
+	}
+
+	std::string to_string (void) const override
+	{
+		std::vector<std::string> args;
+		args.reserve(sub_rules_.size());
+		std::transform(sub_rules_.begin(), sub_rules_.end(),
+			std::back_inserter(args),
+			[](const WriterArg& arg)
+			{
+				return arg.arg_->to_string();
+			});
+		if (variadic_id_ != std::string::npos)
+		{
+			args.push_back(fmts::sprintf("..id:%d", variadic_id_));
+		}
+		return "group:" + group_ + fmts::sprintf("(%s)",
+			fmts::join(",", args.begin(), args.end()).c_str());
 	}
 
 	size_t group_id_;

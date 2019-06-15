@@ -8,7 +8,7 @@ namespace ead
 static void vectorize (std::vector<double>& arr, ::NumList* list)
 {
 	arr = {};
-	for (auto it = list; NULL != it; it = it->next_)
+	for (auto it = list->head_; nullptr != it; it = it->next_)
 	{
 		arr.push_back(it->val_);
 	}
@@ -17,6 +17,10 @@ static void vectorize (std::vector<double>& arr, ::NumList* list)
 ade::CoordptrT shaperize (::NumList* list)
 {
 	ade::CoordptrT out = nullptr;
+	if (nullptr == list)
+	{
+		return out;
+	}
 	std::vector<double> slist;
 	vectorize(slist, list);
 	if (slist.size() > 0)
@@ -43,6 +47,10 @@ ade::CoordptrT shaperize (::NumList* list)
 CoordptrT coorderize (::NumList* list)
 {
 	CoordptrT out = nullptr;
+	if (nullptr == list)
+	{
+		return out;
+	}
 	std::vector<double> clist;
 	vectorize(clist, list);
 	if (clist.size() > 0)
@@ -57,7 +65,7 @@ CoordptrT coorderize (::NumList* list)
 opt::rule::WriterptrT make_writer (
 	::Subgraph* sg, const RuleContext& ctx)
 {
-	if (NULL == sg)
+	if (nullptr == sg)
 	{
 		logs::fatal("cannot make writer with null subgraph");
 	}
@@ -81,14 +89,14 @@ opt::rule::WriterptrT make_writer (
 		case BRANCH:
 		{
 			::Branch* branch = sg->val_.branch_;
-			if (NULL == branch)
+			if (nullptr == branch)
 			{
-				logs::fatal("subgraph ended at NULL branch");
+				logs::fatal("subgraph ended at null branch");
 			}
 			opt::rule::WriterArgsT args;
-			for (auto it = branch->args_; NULL != it; it = it->next_)
+			for (auto it = branch->args_->head_; nullptr != it; it = it->next_)
 			{
-				::Arg* arg = it->val_;
+				::Arg* arg = (::Arg*) it->val_;
 				opt::rule::WriterptrT warg = make_writer(arg->subgraph_, ctx);
 				ade::CoordptrT shaper = shaperize(arg->shaper_);
 				ade::CoordptrT coorder = coorderize(arg->coorder_);

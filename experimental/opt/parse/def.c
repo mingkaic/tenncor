@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "experimental/opt/parse/def.h"
 
 #ifdef PARSE_DEF_H
@@ -23,6 +25,8 @@ void subgraph_recursive_free (void* ptr)
 			free(branch);
 		}
 			break;
+		default:
+			fprintf(stderr, "freeing unknown subgraph %d\n", sg->type_);
 	}
 	free(sg);
 }
@@ -68,6 +72,8 @@ void statement_recursive_free (void* ptr)
 		case CONVERSION:
 			conversion_recursive_free(stmt->val_);
 			break;
+		default:
+			fprintf(stderr, "freeing unknown statement type %d", stmt->type_);
 	}
 	free(stmt);
 }
