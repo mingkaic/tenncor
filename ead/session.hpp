@@ -3,6 +3,8 @@
 
 #include "ade/traveler.hpp"
 
+#include "experimental/opt/optimize.hpp"
+
 #include "ead/constant.hpp"
 #include "ead/functor.hpp"
 
@@ -18,7 +20,7 @@ struct iSession
 {
 	virtual ~iSession (void) = default;
 
-	virtual void track (ade::iTensor* root) = 0;
+	virtual void track (ade::TensT roots) = 0;
 
 	/// update all nodes related to updated, if updated set is empty
 	/// update all nodes related to the leaves (so everyone)
@@ -37,11 +39,15 @@ struct SizeT
 // don't update parent node if it is part of ignored set
 struct Session final : public iSession
 {
-	void track (ade::iTensor* root) override
+	void track (ade::TensT roots) override
 	{
+		tracked_.insert(roots.begin(), roots.end());
 		ade::ParentFinder pfinder;
-		root->accept(pfinder);
-		root->accept(stat_);
+		for (ade::TensptrT& root : roots)
+		{
+			root->accept(pfinder);
+			root->accept(stat_);
+		}
 		auto& statmap = stat_.graphsize_;
 
 		std::list<ade::iOperableFunc*> all_ops;
@@ -117,6 +123,17 @@ struct Session final : public iSession
 			}
 		}
 	}
+
+	void optimize (const opt::rule::ConversionsT& rules)
+	{
+		ade::TensT tracked(tracked_.begin(), tracked_.end());
+		opt::optimize(tracked, rules);
+		stat_.graphsize_.clear();
+		parents_.clear();
+		track(tracked);
+	}
+
+	std::unordered_set<ade::TensptrT> tracked_;
 
 	ade::GraphStat stat_;
 

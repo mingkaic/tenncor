@@ -28,6 +28,7 @@ LOG(EXP(X)) => X
 ADD(X,0) => X
 MUL(X,0) => 0
 MUL(X,1) => X
+MUL(X,-1) => NEG(X)
 
 POW(0,X) => 0
 POW(1,X) => 1

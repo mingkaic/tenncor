@@ -5,17 +5,26 @@
 namespace opt
 {
 
-bool lt (ade::FuncArg a, ade::FuncArg b)
+bool lt (ade::CoordptrT a, ade::CoordptrT b)
 {
-	auto atens = a.get_tensor().get();
-	auto btens = b.get_tensor().get();
-	if (atens == btens)
+	if (ade::is_identity(a.get()))
 	{
-		std::hash<std::string> shash;
-		return shash(a.get_coorder()->to_string()) <
-			shash(b.get_coorder()->to_string());
+		return false == ade::is_identity(b.get());
 	}
-	return atens < btens;
+	return a->to_string() < b->to_string();
+}
+
+bool lt (ade::FuncArg a, ade::FuncArg b,
+	std::function<bool(const ade::TensptrT&,const ade::TensptrT&)> teneq,
+	std::function<bool(const ade::TensptrT&,const ade::TensptrT&)> tencmp)
+{
+	auto atens = a.get_tensor();
+	auto btens = b.get_tensor();
+	if (teneq(atens, btens))
+	{
+		return lt(a.get_coorder(), b.get_coorder());
+	}
+	return tencmp(atens, btens);
 }
 
 bool lt (std::unordered_set<ade::iTensor*> priorities,

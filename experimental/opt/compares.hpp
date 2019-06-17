@@ -8,7 +8,19 @@
 namespace opt
 {
 
-bool lt (ade::FuncArg a, ade::FuncArg b);
+bool lt (ade::CoordptrT a, ade::CoordptrT b);
+
+bool lt (ade::FuncArg a, ade::FuncArg b,
+	std::function<bool(const ade::TensptrT&,const ade::TensptrT&)> teneq =
+	[](const ade::TensptrT& a, const ade::TensptrT& b)
+	{
+		return a.get() == b.get();
+	},
+	std::function<bool(const ade::TensptrT&,const ade::TensptrT&)> tencmp =
+	[](const ade::TensptrT& a, const ade::TensptrT& b)
+	{
+		return a.get() < b.get();
+	});
 
 bool lt (std::unordered_set<ade::iTensor*> priorities,
 	ade::iLeaf* a, ade::iLeaf* b);

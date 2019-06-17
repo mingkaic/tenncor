@@ -10,6 +10,7 @@
 #include "flag/flag.hpp"
 
 #include "ead/ead.hpp"
+#include "ead/parse.hpp"
 
 #include "dbg/grpc/session.hpp"
 
@@ -134,6 +135,21 @@ int main (int argc, const char** argv)
 	dbg::InteractiveSession sess("localhost:50051");
 	trainer::MLPTrainer trainer(brain, nonlins, sess, approx, n_batch);
 
+	ead::VarptrT<float> testin = ead::make_variable_scalar<float>(
+		0, ade::Shape({n_in}), "testin");
+	auto untrained_out = (*untrained_brain)(testin, nonlins);
+	auto trained_out = (*brain)(testin, nonlins);
+	auto pretrained_out = (*pretrained_brain)(testin, nonlins);
+	sess.track({
+		untrained_out->get_tensor(),
+		trained_out->get_tensor(),
+		pretrained_out->get_tensor(),
+	});
+
+	opt::rule::ConversionsT rules = ead::parse<PybindT>(
+		"experimental/opt/optimizations.rules");
+	sess.optimize(rules);
+
 	// train mlp to output input
 	start = std::clock();
 	for (size_t i = 0; i < n_train; i++)
@@ -158,15 +174,6 @@ int main (int argc, const char** argv)
 	float untrained_err = 0;
 	float trained_err = 0;
 	float pretrained_err = 0;
-
-	ead::VarptrT<float> testin = ead::make_variable_scalar<float>(
-		0, ade::Shape({n_in}), "testin");
-	auto untrained_out = (*untrained_brain)(testin, nonlins);
-	auto trained_out = (*brain)(testin, nonlins);
-	auto pretrained_out = (*pretrained_brain)(testin, nonlins);
-	sess.track(untrained_out->get_tensor().get());
-	sess.track(trained_out->get_tensor().get());
-	sess.track(pretrained_out->get_tensor().get());
 
 	float* untrained_res = untrained_out->data();
 	float* trained_res = trained_out->data();

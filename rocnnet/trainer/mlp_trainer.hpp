@@ -1,7 +1,3 @@
-#include "ead/parse.hpp"
-
-#include "experimental/opt/optimize.hpp"
-
 #include "rocnnet/modl/mlp.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
@@ -65,27 +61,16 @@ struct MLPTrainer
 		}
 		updates_ = update(error_, vars);
 
-		ade::TensT to_optimize =
-		{
+		sess_->track({
 			train_out_->get_tensor(),
 			error_->get_tensor(),
-		};
+		});
 		for (eqns::AssignsT& assigns : updates_)
 		{
 			for (eqns::VarAssign& assign : assigns)
 			{
-				to_optimize.push_back(assign.source_->get_tensor());
+				sess_->track({assign.source_->get_tensor()});
 			}
-		}
-		{
-			opt::rule::ConversionsT rules = ead::parse<PybindT>(
-				"experimental/opt/optimizations.rules");
-			opt::optimize(to_optimize, rules);
-		}
-
-		for (auto& opt_node : to_optimize)
-		{
-			sess_->track(opt_node.get());
 		}
 	}
 

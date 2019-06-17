@@ -66,9 +66,9 @@ struct InteractiveSession final : public ead::iSession
 		InteractiveSession(grpc::CreateChannel(host,
 			grpc::InsecureChannelCredentials()), client_cfg) {}
 
-	void track (ade::iTensor* root) override
+	void track (ade::TensT roots) override
 	{
-		sess_.track(root);
+		sess_.track(roots);
 
 		// setup request
 		tenncor::CreateGraphRequest request;
@@ -250,6 +250,119 @@ struct InteractiveSession final : public ead::iSession
 		}
 
 		client_.update_node_data(requests, update_it_);
+	}
+
+	void optimize (const opt::rule::ConversionsT& rules)
+	{
+		sess_.optimize(rules);
+
+		// update graph
+		// todo: implement update calls
+
+		node_ids_.clear();
+		edges_.clear();
+
+		// temporary workaround: reset everything and resend
+		sess_id_ = boost::uuids::to_string(InteractiveSession::uuid_gen_());
+		logs::infof("reset session as %s", sess_id_.c_str());
+
+		// setup request
+		tenncor::CreateGraphRequest request;
+		auto payload = request.mutable_payload();
+		payload->set_graph_id(sess_id_);
+		for (auto& statpair : sess_.stat_.graphsize_)
+		{
+			auto tens = statpair.first;
+			auto& range = statpair.second;
+			size_t id = node_ids_.size() + 1;
+			if (false == util::has(node_ids_, tens))
+			{
+				node_ids_.emplace(tens, id);
+				// add to request
+				auto node = payload->add_nodes();
+				node->set_id(id);
+				auto tags = node->mutable_tags();
+				{
+					tenncor::Strings tag_str;
+					tag_str.add_strings(tens->to_string());
+					tags->insert({tag_str_key, tag_str});
+				}
+				{
+					tenncor::Strings type_str;
+					if (0 == range.upper_)
+					{
+						type_str.add_strings("leaf");
+					}
+					else
+					{
+						type_str.add_strings("functor");
+					}
+					tags->insert({tag_node_type, type_str});
+				}
+				{
+					auto inner_tags = tag::get_tags(tens);
+					std::map<std::string,tenncor::Strings> outer_tags;
+					for (auto& itags : inner_tags)
+					{
+						google::protobuf::RepeatedPtrField<std::string>
+						field(itags.second.begin(), itags.second.end());
+						tenncor::Strings otags;
+						otags.mutable_strings()->Swap(&field);
+						outer_tags.emplace(itags.first, otags);
+					}
+					tags->insert(outer_tags.begin(), outer_tags.end());
+				}
+				auto s = tens->shape();
+				google::protobuf::RepeatedField<uint32_t> shape(
+					s.begin(), s.end());
+				node->mutable_shape()->Swap(&shape);
+				auto location = node->mutable_location();
+				location->set_maxheight(range.upper_);
+				location->set_minheight(range.lower_);
+			}
+		}
+		for (auto& statpair : sess_.stat_.graphsize_)
+		{
+			auto tens = statpair.first;
+			auto& range = statpair.second;
+			if (range.upper_ > 0)
+			{
+				auto f = static_cast<ade::iFunctor*>(tens);
+				auto& children = f->get_children();
+				for (size_t i = 0, n = children.size(); i < n; ++i)
+				{
+					auto& child = children[i];
+					auto child_tens = child.get_tensor().get();
+					auto shaper = child.get_shaper();
+					auto coorder = child.get_coorder();
+					std::string label = fmts::sprintf(edge_label_fmt, i);
+					EdgeInfo edgeinfo{
+						node_ids_[f],
+						node_ids_[child_tens],
+						label,
+					};
+					if (false == util::has(edges_, edgeinfo))
+					{
+						edges_.emplace(edgeinfo);
+						// add to request
+						auto edge = payload->add_edges();
+						edge->set_parent(node_ids_[f]);
+						edge->set_child(node_ids_[child_tens]);
+						edge->set_label(label);
+						if (false == ade::is_identity(shaper.get()))
+						{
+							edge->set_shaper(shaper->to_string());
+						}
+						if (false == ade::is_identity(coorder.get()))
+						{
+							edge->set_coorder(coorder->to_string());
+						}
+					}
+				}
+			}
+		}
+
+		client_.create_graph(request);
 	}
 
 	// join indefinitely

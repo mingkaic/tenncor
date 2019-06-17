@@ -131,25 +131,6 @@ void optimize (ade::TensT roots, const rule::ConversionsT& conversions)
 		}
 
 		// step 2:
-		size_t max_nodeheight = functors.size();
-		size_t min_nodeheight = max_nodeheight;
-		size_t nconversions = conversions.size();
-		std::vector<std::string> writer_labels;
-		std::vector<std::string> builder_labels;
-		writer_labels.reserve(nconversions);
-		builder_labels.reserve(nconversions);
-		// calculate minimum height required for conversions
-		for (const rule::Conversion& conversion : conversions)
-		{
-			size_t mheight = conversion.writer_->get_maxheight();
-			if (mheight < min_nodeheight)
-			{
-				min_nodeheight = mheight;
-			}
-			writer_labels.push_back(conversion.writer_->to_string());
-			builder_labels.push_back(conversion.builder_->to_string());
-		}
-
 		// there are no conversions for leaves
 		ade::ParentFinder pfinder;
 		for (ade::iTensor* root : rset)
@@ -166,21 +147,20 @@ void optimize (ade::TensT roots, const rule::ConversionsT& conversions)
 		tag::beautify_groups(subs, adjgroups);
 
 		// only need to look at nodes at or above minimum height
-		for (size_t i = min_nodeheight; i < max_nodeheight; ++i)
+		for (auto& funcs : functors)
 		{
-			for (ade::FuncptrT func : functors[i])
+			for (ade::FuncptrT func : funcs)
 			{
-				for (size_t j = 0; j < nconversions; ++j)
+				for (const rule::Conversion& conversion : conversions)
 				{
-					const rule::Conversion& conversion = conversions[j];
 					// todo: consider reducing functors with only constant arguments
 					if (auto conv = conversion.convert(subs, func))
 					{
 						// converted
-						logs::infof("recognized pattern %s",
-							writer_labels[j].c_str());
-						logs::infof("converting to %s",
-							builder_labels[j].c_str());
+						std::string conversion_label =
+							conversion.writer_->to_string() + "=>" +
+							conversion.builder_->to_string();
+						logs::infof("applying %s", conversion_label.c_str());
 						replace_parents(pfinder, func.get(), conv);
 					}
 				}

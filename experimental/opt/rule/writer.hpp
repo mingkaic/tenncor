@@ -113,8 +113,6 @@ struct iWriter
 	virtual void write (Report& out,
 		tag::SubgraphsT& subs, ade::TensptrT target) = 0;
 
-	virtual size_t get_maxheight (void) const = 0;
-
 	virtual std::string to_string (void) const = 0;
 };
 
@@ -138,97 +136,6 @@ struct WriterArg final
 	ade::CoordptrT coorder_;
 };
 
-using WriterArgsT = std::vector<WriterArg>;
-
-using CommCandsT = std::vector<std::pair<Report,std::vector<bool>>>;
-
-// todo: make this much more effcient (currently brute-force)
-// consider sort then match (need to make rule nodes hashed similar to actual tensors)
-static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
-	const ade::ArgsT& args, const WriterArgsT& sub_rules)
-{
-	size_t nargs = args.size();
-	CommCandsT candidates = {{Report{true}, std::vector<bool>(nargs, false)}};
-	for (auto& sub_rule : sub_rules)
-	{
-		CommCandsT next_cands;
-		for (auto& cand_pair : candidates)
-		{
-			Report& temp_ctx = cand_pair.first;
-			auto& field = cand_pair.second;
-			for (size_t j = 0; j < nargs; ++j)
-			{
-				if (field[j])
-				{
-					continue;
-				}
-				if (false == ::opt::is_equal(args[j].get_shaper(), sub_rule.shaper_))
-				{
-					temp_ctx.fail();
-					break;
-				}
-				if (false == ::opt::is_equal(args[j].get_coorder(), sub_rule.coorder_))
-				{
-					temp_ctx.fail();
-					break;
-				}
-				sub_rule.arg_->write(temp_ctx, subs,
-					args[j].get_tensor());
-				if (temp_ctx.is_success())
-				{
-					std::vector<bool> temp_field = field;
-					temp_field[j] = true;
-					next_cands.push_back({temp_ctx, temp_field});
-				}
-			}
-			if (false == temp_ctx.is_success())
-			{
-				break;
-			}
-		}
-		candidates = next_cands;
-	}
-	return candidates;
-}
-
-static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
-	const std::vector<ade::TensptrT>& args, const WriterArgsT& sub_rules)
-{
-	size_t nargs = args.size();
-	CommCandsT candidates = {
-		{Report{true}, std::vector<bool>(nargs, false)}
-	};
-	for (auto& sub_rule : sub_rules)
-	{
-		CommCandsT next_cands;
-		for (auto& cand_pair : candidates)
-		{
-			Report& temp_ctx = cand_pair.first;
-			auto& field = cand_pair.second;
-			for (size_t j = 0; j < nargs; ++j)
-			{
-				if (field[j])
-				{
-					continue;
-				}
-				sub_rule.arg_->write(temp_ctx, subs, args[j]);
-				if (temp_ctx.is_success())
-				{
-					std::vector<bool> temp_field = field;
-					temp_field[j] = true;
-					next_cands.push_back({temp_ctx, temp_field});
-				}
-			}
-			if (false == temp_ctx.is_success())
-			{
-				break;
-			}
-		}
-		candidates = next_cands;
-	}
-	return candidates;
-}
-
 // e.g.: 1.2
 struct ScalarWriter final : public iWriter
 {
@@ -239,11 +146,6 @@ struct ScalarWriter final : public iWriter
 	{
 		ScalarVisitor visitor(out, scalar_);
 		target->accept(visitor);
-	}
-
-	size_t get_maxheight (void) const override
-	{
-		return 0;
 	}
 
 	std::string to_string (void) const override
@@ -319,11 +221,6 @@ struct AnyWriter final : public iWriter
 		out.report_any(target, id_);
 	}
 
-	size_t get_maxheight (void) const override
-	{
-		return 0;
-	}
-
 	std::string to_string (void) const override
 	{
 		return "id:" + fmts::to_string(id_);
@@ -331,6 +228,57 @@ struct AnyWriter final : public iWriter
 
 	size_t id_;
 };
+
+using WriterArgsT = std::vector<WriterArg>;
+
+using CommCandsT = std::vector<std::pair<Report,std::vector<bool>>>;
+
+// sort arguments such that immutable leaf < functor < leaves
+// then according to compares.hpp
+void communtative_sort (ade::ArgsT& args);
+
+// similar to the other comm sort
+// sort arguments such that scalar < functor < group < any
+void communtative_sort (WriterArgsT& args);
+
+// todo: replace this with commutative sort as well
+static CommCandsT communtative_rule_match (tag::SubgraphsT& subs,
+	const std::vector<ade::TensptrT>& args, const WriterArgsT& sub_rules)
+{
+	size_t nargs = args.size();
+	CommCandsT candidates = {
+		{Report{true}, std::vector<bool>(nargs, false)}
+	};
+	for (auto& sub_rule : sub_rules)
+	{
+		CommCandsT next_cands;
+		for (auto& cand_pair : candidates)
+		{
+			Report& temp_ctx = cand_pair.first;
+			auto& field = cand_pair.second;
+			for (size_t j = 0; j < nargs; ++j)
+			{
+				if (field[j])
+				{
+					continue;
+				}
+				sub_rule.arg_->write(temp_ctx, subs, args[j]);
+				if (temp_ctx.is_success())
+				{
+					std::vector<bool> temp_field = field;
+					temp_field[j] = true;
+					next_cands.push_back({temp_ctx, temp_field});
+				}
+			}
+			if (false == temp_ctx.is_success())
+			{
+				break;
+			}
+		}
+		candidates = next_cands;
+	}
+	return candidates;
+}
 
 // e.g.: SUB(X, X)
 struct FuncWriter final : public iWriter
@@ -343,24 +291,6 @@ struct FuncWriter final : public iWriter
 	{
 		FuncVisitor visitor(out, subs, op_, sub_rules_);
 		target->accept(visitor);
-	}
-
-	size_t get_maxheight (void) const override
-	{
-		std::vector<size_t> maxheights;
-		maxheights.reserve(sub_rules_.size());
-		std::transform(sub_rules_.begin(), sub_rules_.end(),
-			std::back_inserter(maxheights),
-			[](const WriterArg& arg)
-			{
-				return arg.arg_->get_maxheight();
-			});
-		auto it = std::max_element(maxheights.begin(), maxheights.end());
-		if (maxheights.end() == it)
-		{
-			logs::fatal("function writer cannot have no sub rules");
-		}
-		return *it + 1;
 	}
 
 	std::string to_string (void) const override
@@ -414,9 +344,10 @@ private:
 				return;
 			}
 
-			auto& args = func->get_children();
+			ade::ArgsT args = func->get_children();
+			WriterArgsT subs = sub_rules_;
 			size_t nargs = args.size();
-			if (sub_rules_.size() != nargs)
+			if (subs.size() != nargs)
 			{
 				report_->fail();
 				return;
@@ -424,34 +355,22 @@ private:
 
 			if (tag::has_property(func, tag::commutative_tag))
 			{
-				CommCandsT candidates = communtative_rule_match(*subs_, args, sub_rules_);
-				if (candidates.empty()) // we've found no candidates
-				{
-					report_->fail();
-					return;
-				}
-				if (candidates.size() > 1)
-				{
-					// multiple candidates
-					logs::debugf("%d candidates found for func rule",
-						candidates.size());
-				}
-				report_->merge(candidates[0].first); // commit transaction
-				return;
+				communtative_sort(args);
+				communtative_sort(subs);
 			}
 			for (size_t i = 0; i < nargs; ++i)
 			{
-				if (false == ::opt::is_equal(args[i].get_shaper(), sub_rules_[i].shaper_))
+				if (false == ::opt::is_equal(args[i].get_shaper(), subs[i].shaper_))
 				{
 					report_->fail();
 					return;
 				}
-				if (false == ::opt::is_equal(args[i].get_coorder(), sub_rules_[i].coorder_))
+				if (false == ::opt::is_equal(args[i].get_coorder(), subs[i].coorder_))
 				{
 					report_->fail();
 					return;
 				}
-				sub_rules_[i].arg_->write(
+				subs[i].arg_->write(
 					*report_, *subs_, args[i].get_tensor());
 				if (false == report_->is_success())
 				{
@@ -484,24 +403,6 @@ struct GroupWriter final : public iWriter
 		GroupVisitor visitor(out, subs, group_id_,
 			group_, sub_rules_, variadic_id_);
 		target->accept(visitor);
-	}
-
-	size_t get_maxheight (void) const override
-	{
-		std::vector<size_t> maxheights;
-		maxheights.reserve(sub_rules_.size());
-		std::transform(sub_rules_.begin(), sub_rules_.end(),
-			std::back_inserter(maxheights),
-			[](const WriterArg& arg)
-			{
-				return arg.arg_->get_maxheight();
-			});
-		auto it = std::max_element(maxheights.begin(), maxheights.end());
-		if (maxheights.end() == it)
-		{
-			return 1;
-		}
-		return *it + 1;
 	}
 
 	std::string to_string (void) const override
