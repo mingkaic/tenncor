@@ -39,6 +39,8 @@ symbol							{ return SYMBOL; }
 
 groupdef						{ return GROUPDEF; }
 
+property						{ return PROPERTY; }
+
 group							{ return GROUP; }
 
 shaper							{ return SHAPER; }

@@ -1,0 +1,12 @@
+
+cc_library(
+    name = "match",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//ade:ade",
+        "//experimental/parse:parse",
+    ],
+    visibility = ["//visibility:public"],
+)
