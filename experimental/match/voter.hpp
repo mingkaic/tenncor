@@ -1,5 +1,5 @@
 extern "C" {
-#include "experimental/parse/def.h"
+#include "experimental/match/parse/def.h"
 }
 
 #include "experimental/match/stats.hpp"
@@ -18,7 +18,7 @@ struct VoterArg final
 {
     VoterArg (std::string label,
         ade::CoordptrT shaper,
-        CoordptrT coorder,
+        ade::CoordptrT coorder,
         SUBGRAPH_TYPE type) :
         label_(label),
         shaper_(shaper),
@@ -37,10 +37,10 @@ struct VoterArg final
         }
         switch (type_)
         {
-            case SCALAR:
+            case ::SUBGRAPH_TYPE::SCALAR:
                 // look for scalar candidate in arg.candidates
                 return util::has(arg.candidates_, Symbol{SCALAR, label_});
-            case BRANCH:
+            case ::SUBGRAPH_TYPE::BRANCH:
             {
                 // look for intermediate candidate in arg.candidates
                 auto it = arg.candidates_.find(Symbol{INTERM, label_});
@@ -48,18 +48,19 @@ struct VoterArg final
                 {
                     return false;
                 }
-                std::vector<const AnyMapT>& canys = it->second;
+                auto& canys = it->second;
                 for (const AnyMapT& cany : canys)
                 // this is a probabilistic approach. only takes first matching candidate any (todo: consider change)
                 {
                     // if the cany map and anys have a
                     // non-conflicting intersection, mark as matched
                     if (std::all_of(anys.begin(), anys.end(),
-                        [&](const AnyMapT::iterator& anypair)
+                        [&](const std::pair<std::string,
+                            ade::iTensor*>& anypair)
                         {
                             auto ait = cany.find(anypair.first);
                             return cany.end() == ait ||
-                                anypair.second == ait->second
+                                anypair.second == ait->second;
                         }))
                     {
                         // merge
@@ -70,7 +71,7 @@ struct VoterArg final
                 // failed to find one matching any map
                 return false;
             }
-            case ANY:
+            case ::SUBGRAPH_TYPE::ANY:
             {
                 auto it = anys.find(label_);
                 if (anys.end() == it)
@@ -126,20 +127,20 @@ void sort_vargs (VoterArgsT& args)
                 }
                 return lt(a.shaper_, b.shaper_);
             }
-            return a.label < b.label_;
+            return a.label_ < b.label_;
         });
 }
 
 struct OrdrHasher final
 {
-    size_t operator() (const VoterArgsT& args)
+    size_t operator() (const VoterArgsT& args) const
     {
         size_t seed = 0;
         hash_combine(seed, args);
         return seed;
     }
 
-    void hash_combine (size_t& seed, const VoterArgsT& args)
+    void hash_combine (size_t& seed, const VoterArgsT& args) const
     {
         for (const VoterArg& arg : args)
         {
@@ -150,15 +151,26 @@ struct OrdrHasher final
                 to_string(arg.coorder_),
                 arg.type_,
             };
-            boost::hash::hash_combine(seed, hash_target);
+            boost::hash_combine(seed, hash_target);
         }
-        return seed;
     }
 };
 
+inline bool operator == (const VoterArgsT& lhs, const VoterArgsT& rhs)
+{
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(),
+        [](const VoterArg& l, const VoterArg& r)
+        {
+            return l.label_ == r.label_ &&
+                is_equal(l.shaper_, r.shaper_) &&
+                is_equal(l.coorder_, r.coorder_) &&
+                l.type_ == r.type_;
+        });
+}
+
 struct CommHasher final
 {
-    size_t operator() (const SegVArgs& args)
+    size_t operator() (const SegVArgs& args) const
     {
         size_t seed = 0;
         hasher_.hash_combine(seed, args.scalars_);
@@ -170,12 +182,17 @@ struct CommHasher final
     OrdrHasher hasher_;
 };
 
+inline bool operator == (const SegVArgs& lhs, const SegVArgs& rhs)
+{
+	return lhs.scalars_ == rhs.scalars_ &&
+        lhs.branches_ == rhs.branches_ &&
+        lhs.anys_ == rhs.anys_;
+}
+
 // select candidates
 struct iVoter
 {
     virtual ~iVoter (void) = default;
-
-    virtual void emplace (VoterArgsT args) = 0;
 
     virtual void emplace (VoterArgsT args, Symbol cand) = 0;
 
@@ -193,9 +210,57 @@ struct VoterPool
     std::unordered_map<std::string,VotptrT> branches_;
 };
 
+struct OrdrVoter final : public iVoter
+{
+    OrdrVoter (std::string label) : label_(label) {}
+
+    void emplace (VoterArgsT args, Symbol sym) override
+    {
+        args_.emplace(args, sym);
+    }
+
+    CandsT inspect (const CandArgsT& args) const override
+    {
+        CandsT out;
+        out.reserve(args_.size());
+        for (const auto& vpair : args_)
+        {
+            AnyMapT anys;
+            const VoterArgsT& vargs = vpair.first;
+            if (vargs.size() != args.size())
+            {
+                continue;
+            }
+            if ([&]() -> bool
+                {
+                    for (size_t i = 0, n = args.size(); i < n; ++i)
+                    {
+                        if (false == vargs[i].match(anys, args[i]))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }())
+            {
+                // failure to match one of the arguments
+                continue;
+            }
+            out[vpair.second].push_back(anys);
+        }
+        return out;
+    }
+
+    std::string label_;
+
+    std::unordered_map<VoterArgsT,Symbol,OrdrHasher> args_;
+};
+
 // todo: ensure comm voters are inspected after all available ordr voters are inspected
 struct CommVoter final : public iVoter
 {
+    CommVoter (std::string label) : label_(label) {}
+
     void emplace (VoterArgsT args, Symbol sym) override
     {
         // sort args
@@ -204,13 +269,13 @@ struct CommVoter final : public iVoter
         {
             switch (arg.type_)
             {
-                case SCALAR:
+                case ::SUBGRAPH_TYPE::SCALAR:
                     segs.scalars_.push_back(arg);
                     break;
-                case BRANCH:
+                case ::SUBGRAPH_TYPE::BRANCH:
                     segs.branches_.push_back(arg);
                     break;
-                case ANY:
+                case ::SUBGRAPH_TYPE::ANY:
                 default:
                     segs.anys_.push_back(arg);
             }
@@ -219,7 +284,7 @@ struct CommVoter final : public iVoter
         {
             logs::fatal("implementation limit: "
                 "cannot have more than 1 operator as an argument of the "
-                "commutative operator for the source subgraph")
+                "commutative operator for the source subgraph");
         }
         sort_vargs(segs.scalars_);
         sort_vargs(segs.anys_);
@@ -232,7 +297,7 @@ struct CommVoter final : public iVoter
         out.reserve(args_.size());
         for (const auto& vpair : args_)
         {
-            const SegVArgs& vargs = vpair->first;
+            const SegVArgs& vargs = vpair.first;
             if (vargs.size() != args.size())
             {
                 continue;
@@ -263,7 +328,7 @@ struct CommVoter final : public iVoter
             // a scalar voter argument
             if (match_failed)
             {
-                break;
+                continue;
             }
 
             for (const VoterArg& barg : vargs.branches_)
@@ -288,7 +353,7 @@ struct CommVoter final : public iVoter
             // a branch voter argument
             if (match_failed)
             {
-                break;
+                continue;
             }
 
             VoterArgsT engaged;
@@ -297,11 +362,11 @@ struct CommVoter final : public iVoter
             {
                 if (util::has(anys, aarg.label_))
                 {
-                    engaged.push_back(arg);
+                    engaged.push_back(aarg);
                 }
                 else
                 {
-                    liberal.push_back(arg);
+                    liberal.push_back(aarg);
                 }
             }
             for (const VoterArg& aarg : engaged)
@@ -326,7 +391,7 @@ struct CommVoter final : public iVoter
             // one of the engaged any voter argument
             if (match_failed)
             {
-                break;
+                continue;
             }
 
             // create permutations of liberal matches
@@ -336,13 +401,19 @@ struct CommVoter final : public iVoter
             std::iota(indices.begin(), indices.end(), 0);
             do
             {
+                bool matched = true;
                 AnyMapT local_any = anys;
-                for (size_t i = 0; i < nremaining; ++i)
+                for (size_t i = 0; i < nremaining && matched; ++i)
                 {
                     // todo: this opens too much ambiguity, consider limiting
-                    liberal[i].match(local_any, remaining[indices[i]]);
+                    matched = liberal[i].match(local_any,
+                        remaining[indices[i]]);
                 }
-                out[vpair->second].push_back(local_any);
+                if (false == matched)
+                {
+                    break;
+                }
+                out[vpair.second].push_back(local_any);
             }
             while (std::next_permutation(indices.begin(), indices.end()));
         }
@@ -352,42 +423,6 @@ struct CommVoter final : public iVoter
     std::string label_;
 
     std::unordered_map<SegVArgs,Symbol,CommHasher> args_;
-};
-
-struct OrdrVoter final : public iVoter
-{
-    void emplace (VoterArgsT args, Symbol sym) override
-    {
-        args_.emplace(args, sym);
-    }
-
-    CandsT inspect (const CandArgsT& args) const override
-    {
-        CandsT out;
-        out.reserve(args_.size());
-        for (const auto& vpair : args_)
-        {
-            AnyMapT anys;
-            const VoterArgsT& vargs = vpair->first;
-            if (vargs.size() != args.size())
-            {
-                continue;
-            }
-            for (size_t i = 0, n = args.size(); i < n; ++i)
-            {
-                if (false == vargs[i].match(anys, args[i]))
-                {
-                    continue;
-                }
-            }
-            out.emplace(vpair->second, anys);
-        }
-        return out;
-    }
-
-    std::string label_;
-
-    std::unordered_map<VoterArgsT,Symbol,OrdrHasher> args_;
 };
 
 }

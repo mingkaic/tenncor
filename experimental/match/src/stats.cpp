@@ -25,6 +25,24 @@ bool is_scalar (ade::iLeaf* leaf)
     return true;
 }
 
+std::string to_string (ade::CoordptrT c)
+{
+    if (ade::is_identity(c.get()))
+    {
+        return "";
+    }
+    return c->to_string();
+}
+
+bool lt (ade::CoordptrT a, ade::CoordptrT b)
+{
+	if (ade::is_identity(a.get()))
+	{
+		return false == ade::is_identity(b.get());
+	}
+	return a->to_string() < b->to_string();
+}
+
 bool is_equal (ade::CoordptrT a, ade::CoordptrT b)
 {
 	if (a == b)

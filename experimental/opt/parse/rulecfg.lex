@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "experimental/match/parse/def.h"
-#include "experimental/match/parse/rulecfg.yy.h"
+#include "experimental/opt/parse/def.h"
+#include "experimental/opt/parse/rulecfg.yy.h"
 
 %}
 
@@ -11,13 +11,13 @@
 %option noyywrap
 
 %%
-[\t\r\a\v\b\n ]					; // spaces
+[\t\r\a\v\b ]					; // spaces
 
 \/\/.*							; // comments
 
 symbol							{ return SYMBOL; }
 
-;								{ return STMT_TERM; }
+\n								{ return NEWLINE; }
 
 =>								{ return ARROW; }
 
@@ -38,8 +38,6 @@ symbol							{ return SYMBOL; }
 \}								{ return RCB; }
 
 groupdef						{ return GROUPDEF; }
-
-property						{ return PROPERTY; }
 
 group							{ return GROUP; }
 

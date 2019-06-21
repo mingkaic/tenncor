@@ -141,12 +141,12 @@ std::string build_intermediate (
 				if (is_commutative(ctx, label))
 				{
 					voters.branches_.emplace(label,
-						std::make_unique<CommVoter>());
+						std::make_unique<CommVoter>(label));
 				}
 				else
 				{
 					voters.branches_.emplace(label,
-						std::make_unique<OrdrVoter>());
+						std::make_unique<OrdrVoter>(label));
 				}
 			}
 			std::string interm_id = boost::uuids::to_string(uuid_gen());
@@ -207,12 +207,12 @@ void build_conversion (VoterPool& voters,
 			if (is_commutative(ctx, label))
 			{
 				voters.branches_.emplace(label,
-					std::make_unique<CommVoter>());
+					std::make_unique<CommVoter>(label));
 			}
 			else
 			{
 				voters.branches_.emplace(label,
-					std::make_unique<OrdrVoter>());
+					std::make_unique<OrdrVoter>(label));
 			}
 		}
 		voters.branches_[label]->emplace(args, Symbol{
@@ -230,7 +230,13 @@ VoterPool parse (std::string filename)
 {
     VoterPool voters;
 	::PtrList* stmts = nullptr;
-	int status = ::parse_rule(&stmts, filename.c_str());
+    FILE* file = std::fopen(filename.c_str(), "r");
+	if (nullptr == file)
+	{
+		logs::errorf("failed to open file %s", filename.c_str());
+		return voters;
+	}
+	int status = ::parse_file(&stmts, file);
 	if (status != 0)
 	{
 		logs::errorf("failed to parse file %s: got %d status",

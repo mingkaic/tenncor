@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "experimental/match/parse/def.h"
+#include "experimental/opt/parse/def.h"
 
 #ifdef PARSE_DEF_H
 
@@ -67,7 +67,6 @@ void statement_recursive_free (void* ptr)
 	{
 		case SYMBOL_DEF:
 		case GROUP_DEF:
-		case PROPERTY_DEF:
 			free(stmt->val_);
 			break;
 		case CONVERSION:

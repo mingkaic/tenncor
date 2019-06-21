@@ -1,6 +1,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <boost/functional/hash.hpp>
+
 #include "ade/itensor.hpp"
 
 #ifndef OPT_MATCH_CAND_HPP
@@ -33,14 +35,19 @@ struct Symbol final
 
 struct SymbolHash final
 {
-    size_t operator() (const Symbol& sym)
+    size_t operator() (const Symbol& sym) const
     {
         size_t seed = 0;
-        boost::hash::hash_combine(seed, sym.type_);
-        boost::hash::hash_combine(seed, sym.reference_);
+        boost::hash_combine(seed, sym.type_);
+        boost::hash_combine(seed, sym.reference_);
         return seed;
     }
 };
+
+inline bool operator == (const Symbol& lhs, const Symbol& rhs)
+{
+    return lhs.type_ == rhs.type_ && lhs.reference_ == rhs.reference_;
+}
 
 using CandsT = std::unordered_map<Symbol,std::vector<AnyMapT>,SymbolHash>;
 

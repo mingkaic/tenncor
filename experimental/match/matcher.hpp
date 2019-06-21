@@ -30,35 +30,35 @@ namespace match
 //  The optimizer is responsible for selecting the best candidates
 struct Matcher final : public ade::iTraveler
 {
-    Matcher (VoterPool voters) : voters_(voters) {}
+    Matcher (const VoterPool& voters) : voters_(&voters) {}
 
     /// Implementation of iTraveler
     void visit (ade::iLeaf* leaf) override
     {
-        if (util::has(candidates_, leaf))
+        if (false == util::has(candidates_, leaf))
         {
             if (tag::has_property(leaf, tag::immutable_tag) &&
                 is_scalar(leaf))
             {
                 // match against scalar maps
                 std::string scalar_str = leaf->to_string();
-                auto it = voters_.immutables_->find(scalar_str);
-                if (voters_.immutables_->end() != it)
+                auto it = voters_->immutables_.find(scalar_str);
+                if (voters_->immutables_.end() != it)
                 {
-                    candidates_.emplace(leaf, {
+                    candidates_.emplace(leaf, CandsT{
                         {Symbol{SCALAR, scalar_str}, {}},
                     });
                     return;
                 }
             }
-            candidates_.emplace(leaf, {});
+            candidates_.emplace(leaf, CandsT{});
         }
     }
 
     /// Implementation of iTraveler
     void visit (ade::iFunctor* func) override
     {
-        if (util::has(candidates_, func))
+        if (false == util::has(candidates_, func))
         {
             auto& children = func->get_children();
             for (auto& child : children)
@@ -68,8 +68,8 @@ struct Matcher final : public ade::iTraveler
 
             // functor/group
             std::string opname = func->get_opcode().name_;
-            auto it = voters_.branches_->find(opname);
-            if (voters_.branches_->end() != it)
+            auto it = voters_->branches_.find(opname);
+            if (voters_->branches_.end() != it)
             {
                 CandArgsT args;
                 args.reserve(children.size());
@@ -87,13 +87,13 @@ struct Matcher final : public ade::iTraveler
             }
             else
             {
-                candidates_.emplace(leaf, {});
+                candidates_.emplace(func, CandsT{});
             }
         }
     }
 
     // created by parser
-    VoterPool voters_;
+    const VoterPool* voters_;
 
     // generated as visited
     std::unordered_map<ade::iTensor*,CandsT> candidates_;

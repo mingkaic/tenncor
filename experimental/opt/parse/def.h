@@ -1,4 +1,4 @@
-#include "experimental/match/parse/list.h"
+#include "experimental/opt/parse/list.h"
 
 #ifndef PARSE_DEF_H
 #define PARSE_DEF_H
@@ -54,18 +54,10 @@ struct Group
 	char tag_[32];
 };
 
-struct Property
-{
-	char label_[32];
-	char property_[32];
-	int is_group_;
-};
-
 enum STMT_TYPE
 {
 	SYMBOL_DEF = 0,
 	GROUP_DEF,
-	PROPERTY_DEF,
 	CONVERSION,
 };
 
@@ -90,9 +82,7 @@ extern "C" {
 // wrapper around Statement recursive free
 extern void statements_free (struct PtrList* stmts);
 
-extern int parse_str (struct PtrList** stmts, const char* str);
-
-extern int parse_file (struct PtrList** stmts, FILE* file);
+extern int parse_rule (struct PtrList** stmts, const char* filename);
 
 #ifdef __cplusplus
 }

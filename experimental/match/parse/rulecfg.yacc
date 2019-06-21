@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "experimental/opt/parse/def.h"
+#include "experimental/match/parse/def.h"
 
 extern FILE* yyin;
+extern int yyparse();
 
 %}
 
@@ -33,7 +34,7 @@ extern FILE* yyin;
 %type <stmt> 		symbol_def group_def prop_def conversion
 
 %token
-SYMBOL NEWLINE ARROW LPAREN RPAREN COMMA ASSIGN LSB RSB LCB RCB
+SYMBOL STMT_TERM ARROW LPAREN RPAREN COMMA ASSIGN LSB RSB LCB RCB
 GROUP GROUPDEF PROPERTY SHAPER COORDER COLON EL NUMBER VARIADIC
 
 %% /* beginning of rules section */
@@ -43,36 +44,31 @@ rules:		/* empty */
 				*stmts = new_ptrlist(STATEMENT);
 			}
 			|
-			rules NEWLINE
-			{
-				// empty line
-			}
-			|
-			rules symbol_def
+			rules symbol_def STMT_TERM
 			{
 				// declare symbol
 				ptrlist_pushback(*stmts, $2);
 			}
 			|
-			rules group_def
+			rules group_def STMT_TERM
 			{
 				// declare group
 				ptrlist_pushback(*stmts, $2);
 			}
 			|
-			rules prop_def
+			rules prop_def STMT_TERM
 			{
 				// declare property
 				ptrlist_pushback(*stmts, $2);
 			}
 			|
-			rules conversion
+			rules conversion STMT_TERM
 			{
 				// declare conversion
 				ptrlist_pushback(*stmts, $2);
 			}
 
-symbol_def: SYMBOL EL NEWLINE
+symbol_def: SYMBOL EL
 			{
 				char* str = malloc(sizeof($2));
 				memcpy(str, $2, sizeof($2));
@@ -83,11 +79,11 @@ symbol_def: SYMBOL EL NEWLINE
 				stmt->val_ = str;
 			}
 
-group_def: 	GROUPDEF COLON EL EL NEWLINE
+group_def: 	GROUPDEF EL EL
 			{
 				struct Group* group = malloc(sizeof(struct Group));
-				strncpy(group->ref_, $3, 32);
-				strncpy(group->tag_, $4, 32);
+				strncpy(group->ref_, $2, 32);
+				strncpy(group->tag_, $3, 32);
 
 				struct Statement* stmt = $$ =
 					malloc(sizeof(struct Statement));
@@ -95,12 +91,12 @@ group_def: 	GROUPDEF COLON EL EL NEWLINE
 				stmt->val_ = group;
 			}
 
-prop_def: 	PROPERTY EL EL NEWLINE
+prop_def: 	PROPERTY EL EL
 			{
 				struct Property* property = malloc(sizeof(struct Property));
 				strncpy(property->label_, $2, 32);
 				strncpy(property->property_, $3, 32);
-				property->is_group_ = false;
+				property->is_group_ = 0;
 
 				struct Statement* stmt = $$ =
 					malloc(sizeof(struct Statement));
@@ -108,12 +104,12 @@ prop_def: 	PROPERTY EL EL NEWLINE
 				stmt->val_ = property;
 			}
 			|
-			PROPERTY GROUP COLON EL EL NEWLINE
+			PROPERTY GROUP COLON EL EL
 			{
 				struct Property* property = malloc(sizeof(struct Property));
 				strncpy(property->label_, $4, 32);
 				strncpy(property->property_, $5, 32);
-				property->is_group_ = true;
+				property->is_group_ = 1;
 
 				struct Statement* stmt = $$ =
 					malloc(sizeof(struct Statement));
@@ -121,7 +117,7 @@ prop_def: 	PROPERTY EL EL NEWLINE
 				stmt->val_ = property;
 			}
 
-conversion:	subgraph ARROW subgraph NEWLINE
+conversion:	subgraph ARROW subgraph
 			{
 				struct Conversion* cv =
 					malloc(sizeof(struct Conversion));
@@ -154,7 +150,7 @@ subgraph:	NUMBER
 				memcpy(str, $1, sizeof($1));
 			}
 			|
-			GROUP EL LPAREN args RPAREN
+			GROUP COLON EL LPAREN args RPAREN
 			{
 				// a group
 				struct Subgraph* sg = $$ =
@@ -166,12 +162,12 @@ subgraph:	NUMBER
 					malloc(nbranchbytes);
 				memset(branch, 0, nbranchbytes);
 
-				strncpy(branch->label_, $2, 32);
+				strncpy(branch->label_, $3, 32);
 				branch->is_group_ = 1;
-				branch->args_ = $4;
+				branch->args_ = $5;
 			}
 			|
-			GROUP EL LPAREN args COMMA VARIADIC EL RPAREN
+			GROUP COLON EL LPAREN args COMMA VARIADIC EL RPAREN
 			{
 				// a group with variadic
 				struct Subgraph* sg = $$ =
@@ -181,13 +177,13 @@ subgraph:	NUMBER
 				struct Branch* branch = sg->val_.branch_ =
 					malloc(sizeof(struct Branch));
 
-				strncpy(branch->label_, $2, 32);
-				strncpy(branch->variadic_, $7, 32);
+				strncpy(branch->label_, $3, 32);
+				strncpy(branch->variadic_, $8, 32);
 				branch->is_group_ = 1;
-				branch->args_ = $4;
+				branch->args_ = $5;
 			}
 			|
-			GROUP EL LPAREN VARIADIC EL RPAREN
+			GROUP COLON EL LPAREN VARIADIC EL RPAREN
 			{
 				// a group with variadic without arguments
 				struct Subgraph* sg = $$ =
@@ -197,8 +193,8 @@ subgraph:	NUMBER
 				struct Branch* branch = sg->val_.branch_ =
 					malloc(sizeof(struct Branch));
 
-				strncpy(branch->label_, $2, 32);
-				strncpy(branch->variadic_, $5, 32);
+				strncpy(branch->label_, $3, 32);
+				strncpy(branch->variadic_, $6, 32);
 				branch->is_group_ = 1;
 				branch->args_ = new_ptrlist(ARGUMENT);
 			}
@@ -308,10 +304,22 @@ num_arr:	num_arr COMMA NUMBER
 
 %%
 
-int parse_rule (struct PtrList** stmts, const char* filename)
+int parse_str (struct PtrList** stmts, const char* str)
+{
+	FILE* tmp = tmpfile();
+    if (NULL == tmp)
+    {
+        puts("Unable to create temp file");
+        return 1;
+    }
+	fputs(str, tmp);
+	rewind(tmp);
+	return parse_file(stmts, tmp);
+}
+
+int parse_file (struct PtrList** stmts, FILE* file)
 {
 	int exit_status = 1;
-	FILE* file = fopen(filename, "r");
 	if (file)
 	{
 		yyin = file;

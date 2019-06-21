@@ -44,8 +44,9 @@ cc_test(
     name = "test",
     srcs = ["test/main.cpp"],
     deps = [
-        "//experimental/match/parse:parse",
+        "//experimental/opt/parse:parse",
         "@gtest//:gtest",
     ],
-    data = ["//experimental/match:optimizations"],
+    data = ["//experimental/opt:optimizations"],
+    linkstatic = True,
 )

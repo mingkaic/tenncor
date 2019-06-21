@@ -1,3 +1,12 @@
+licenses(["notice"])
+
+filegroup(
+    name = "optimizations",
+    srcs = ["optimizations.rules"],
+    visibility = ["//visibility:public"],
+)
+
+######### LIBRARY #########
 
 cc_library(
     name = "match",
@@ -6,7 +15,22 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//ade:ade",
-        "//experimental/parse:parse",
+        "//experimental/match/parse:parse",
+        "@boost//:functional",
+        "@boost//:uuid",
     ],
     visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = ["test/main.cpp"],
+    deps = [
+        ":match",
+        "//ead:ead",
+        "//testutil:testutil"
+    ],
+    copts = ["-std=c++17"],
 )

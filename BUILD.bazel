@@ -18,8 +18,3 @@ filegroup(
         "BUILD.bazel",
     ],
 )
-
-filegroup(
-    name = "scripts",
-    srcs = glob(["scripts/*"]),
-)
