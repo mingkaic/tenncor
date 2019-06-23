@@ -1,5 +1,7 @@
 #include "ade/traveler.hpp"
 
+#include "tag/group.hpp"
+
 #include "opt/ivoter.hpp"
 
 #ifndef OPT_MATCHER_HPP
@@ -7,6 +9,8 @@
 
 namespace opt
 {
+
+const std::string group_prefix = "group:";
 
 // approach: we have matcher, voters, and candidates
 //  - matchers map:
@@ -65,6 +69,7 @@ struct Matcher final : public ade::iTraveler
 				child.get_tensor()->accept(*this);
 			}
 
+			CandsT out_cands;
 			// functor
 			std::string opname = func->get_opcode().name_;
 			auto it = voters_.branches_.find(opname);
@@ -82,14 +87,36 @@ struct Matcher final : public ade::iTraveler
 						child.get_coorder(),
 					});
 				}
-				candidates_.emplace(func, it->second->inspect(args));
-			}
-			else
-			{
-				candidates_.emplace(func, CandsT{});
+				out_cands = it->second->inspect(args);
 			}
 
-			// todo: do the same for functors that are the "head" of groups
+			// do the same for functors that are the "head" of groups
+			auto git = group_head_.find(func);
+			if (group_head_.end() != git)
+			{
+				tag::SgraphptrT& sg = git->second;
+				auto bit = voters_.branches_.find(group_prefix + sg->group_);
+				if (voters_.branches_.end() != bit)
+				{
+					// todo: store sg->children_ as ade::ArgsT
+					CandArgsT args;
+					args.reserve(children.size());
+					for (auto& sgcpair : sg->children_)
+					{
+						auto ctens = sgcpair.second;
+						args.push_back(CandArg{
+							ctens,
+							candidates_[sgcpair.first],
+							ade::identity,
+							ade::CoordptrT(),
+						});
+					}
+					CandsT group_cands = bit->second->inspect(args);
+					out_cands.insert(group_cands.begin(), group_cands.end());
+				}
+			}
+
+			candidates_.emplace(func, out_cands);
 		}
 	}
 
@@ -98,6 +125,9 @@ struct Matcher final : public ade::iTraveler
 
 	// generated as visited
 	std::unordered_map<ade::iTensor*,CandsT> candidates_;
+
+	// heads for functors
+	tag::SubgraphsT group_head_;
 };
 
 }

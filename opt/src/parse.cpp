@@ -12,8 +12,6 @@ namespace opt
 
 static boost::uuids::random_generator uuid_gen;
 
-static const std::string group_prefix = "group:";
-
 // commutative label according to .rules configuration
 static const std::string commutative_prop = "commutative";
 

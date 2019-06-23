@@ -40,12 +40,44 @@ void optimize (ade::TensT roots, const OptCtx& opts)
 		}
 
 		// step 2:
+		ade::GraphStat stat;
 		ade::ParentFinder pfinder;
 		Matcher matcher(opts.voters_);
+		tag::AdjacentGroups adjgroups;
 		for (ade::iTensor* root : rset)
 		{
+			root->accept(stat);
 			root->accept(pfinder);
 			root->accept(matcher);
+			root->accept(adjgroups);
+		}
+
+		{
+			tag::SubgraphsT subgraphs;
+			tag::beautify_groups(subgraphs, adjgroups);
+			// filter subgraphs for "heads" to add to matcher.group_head_
+			std::unordered_map<tag::SgraphptrT,ade::iTensor*> revhead;
+			for (auto& sgpair : subgraphs)
+			{
+				if (util::has(revhead, sgpair.second))
+				{
+					ade::iTensor*& oldhead = revhead[sgpair.second];
+					if (stat.graphsize_[sgpair.first].upper_ >
+						stat.graphsize_[oldhead].upper_)
+					{
+						// add sgpair.first as head if it has greater maxheight
+						revhead[sgpair.second] = sgpair.first;
+					}
+				}
+				else
+				{
+					revhead.emplace(sgpair.second, sgpair.first);
+				}
+			}
+			for (auto& revpair : revhead)
+			{
+				matcher.group_head_[revpair.second] = revpair.first;
+			}
 		}
 
 		// there are no conversions for leaves
@@ -74,6 +106,8 @@ void optimize (ade::TensT roots, const OptCtx& opts)
 						}
 						const ConvptrT& conv = opts.converts_.at(
 							candpair.first.reference_);
+						logs::debugf("converting to %s",
+							conv->to_string().c_str());
 						converted = conv->build(ctx, shape);
 						break;
 					}
