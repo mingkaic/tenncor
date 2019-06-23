@@ -1,4 +1,4 @@
-
+#define DISABLE_OPTIMIZATION_TEST
 #ifndef DISABLE_OPTIMIZATION_TEST
 
 #include "gtest/gtest.h"
@@ -7,10 +7,7 @@
 
 #include "testutil/common.hpp"
 
-#include "ead/opt/ops_prune.hpp"
-
-#include "ead/opt/conversion.hpp"
-#include "ead/opt/parse.hpp"
+#include "ead/parse.hpp"
 
 #include "ead/generated/api.hpp"
 

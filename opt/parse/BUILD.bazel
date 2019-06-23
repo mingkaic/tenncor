@@ -1,0 +1,51 @@
+licenses(["notice"])
+
+load("//:third_party/yacc.bzl", "genyacc", "genlex")
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.h",
+        "*.c",
+    ]) + ["BUILD.bazel"],
+    visibility = ["//visibility:public"],
+)
+
+######### LIBRARY #########
+
+genlex(
+    name = "flex",
+    out = "rulecfg.lex.c",
+    src = "rulecfg.lex",
+)
+
+genyacc(
+    name = "yacc",
+    out_hdr = "rulecfg.yy.h",
+    out_src = "rulecfg.yy.c",
+    src = "rulecfg.yacc",
+)
+
+cc_library(
+    name = "parse",
+    hdrs = glob(["*.h"]) + ["rulecfg.yy.h"],
+    srcs = glob(["*.c"]) + [
+        "rulecfg.yy.c",
+        "rulecfg.lex.c",
+    ],
+    copts = ["-std=c11"],
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = ["test/main.cpp"],
+    deps = [
+        "//opt/parse:parse",
+        "@gtest//:gtest",
+    ],
+    data = ["//cfg:optimizations"],
+)

@@ -252,7 +252,7 @@ struct InteractiveSession final : public ead::iSession
 		client_.update_node_data(requests, update_it_);
 	}
 
-	void optimize (const opt::rule::ConversionsT& rules)
+	void optimize (const opt::OptCtx& rules)
 	{
 		sess_.optimize(rules);
 

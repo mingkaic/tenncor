@@ -13,7 +13,7 @@
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
-#include "ead/opt/parse.hpp"
+#include "ead/parse.hpp"
 
 
 TEST(EQUATION, MatmulComplex)
@@ -70,10 +70,12 @@ TEST(EQUATION, MatmulComplex)
 	auto dc = ead::derive(dest, c);
 
 	ead::Session session;
-	session.track(dest->get_tensor().get());
-	session.track(da->get_tensor().get());
-	session.track(db->get_tensor().get());
-	session.track(dc->get_tensor().get());
+	session.track({
+		dest->get_tensor(),
+		da->get_tensor(),
+		db->get_tensor(),
+		dc->get_tensor(),
+	});
 	session.update();
 
 	{
@@ -220,10 +222,12 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	auto db1 = ead::derive(err, bias1);
 
 	ead::Session session;
-	session.track(dw0->get_tensor().get());
-	session.track(db0->get_tensor().get());
-	session.track(dw1->get_tensor().get());
-	session.track(db1->get_tensor().get());
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -439,19 +443,22 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	auto db1 = ead::derive(err, bias1);
 
 	// optimize
-	auto rules = ead::opt::get_configs<double>();
-	ead::NodesT<double> roots = {dw0, db0, dw1, db1};
-	ead::opt::optimize(roots, rules);
-	dw0 = roots[0];
-	db0 = roots[1];
-	dw1 = roots[2];
-	db1 = roots[3];
+	auto rules = ead::parse_file<double>("cfg/optimizations.rules");
+	ade::TensT roots = {
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	};
+	opt::optimize(roots, rules);
 
 	ead::Session session;
-	session.track(dw0->get_tensor().get());
-	session.track(db0->get_tensor().get());
-	session.track(dw1->get_tensor().get());
-	session.track(db1->get_tensor().get());
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -663,10 +670,12 @@ TEST(EQUATION, SigmoidMLP_Fast)
 	auto db1 = ead::derive(err, bias1);
 
 	ead::Session session;
-	session.track(dw0->get_tensor().get());
-	session.track(db0->get_tensor().get());
-	session.track(dw1->get_tensor().get());
-	session.track(db1->get_tensor().get());
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -875,19 +884,22 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	auto db1 = ead::derive(err, bias1);
 
 	// optimize
-	auto rules = ead::opt::get_configs<double>();
-	ead::NodesT<double> roots = {dw0, db0, dw1, db1};
-	ead::opt::optimize(roots, rules);
-	dw0 = roots[0];
-	db0 = roots[1];
-	dw1 = roots[2];
-	db1 = roots[3];
+	auto rules = ead::parse_file<double>("cfg/optimizations.rules");
+	ade::TensT roots = {
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	};
+	opt::optimize(roots, rules);
 
 	ead::Session session;
-	session.track(dw0->get_tensor().get());
-	session.track(db0->get_tensor().get());
-	session.track(dw1->get_tensor().get());
-	session.track(db1->get_tensor().get());
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 	session.update();
 
 	std::vector<double> expect_gw0 = {

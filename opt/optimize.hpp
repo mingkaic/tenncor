@@ -1,0 +1,21 @@
+#include "opt/matcher.hpp"
+#include "opt/iconverter.hpp"
+
+#ifndef OPT_OPTIMIZE_HPP
+#define OPT_OPTIMIZE_HPP
+
+namespace opt
+{
+
+struct OptCtx
+{
+	VoterPool voters_;
+
+	std::unordered_map<std::string,ConvptrT> converts_;
+};
+
+void optimize (ade::TensT roots, const OptCtx& opts);
+
+}
+
+#endif // OPT_OPTIMIZE_HPP

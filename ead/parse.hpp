@@ -1,8 +1,4 @@
-#include "experimental/opt/rule/convert.hpp"
-
-extern "C" {
-#include "experimental/opt/parse/def.h"
-}
+#include "opt/parse.hpp"
 
 #include "ead/ead.hpp"
 
@@ -12,13 +8,40 @@ extern "C" {
 namespace ead
 {
 
-template <typename T>
-struct ScalarBuilder final : public opt::rule::iBuilder
+static std::vector<double> vectorize (::NumList* list)
 {
-	ScalarBuilder (double scalar) : scalar_(scalar) {}
+	std::vector<double> arr;
+	for (auto it = list->head_; nullptr != it; it = it->next_)
+	{
+		arr.push_back(it->val_);
+	}
+	return arr;
+}
 
-	ade::TensptrT build (opt::rule::Report& report,
-		ade::Shape outshape) override
+static CoordptrT coorderize (::NumList* list)
+{
+	CoordptrT out = nullptr;
+	if (nullptr == list)
+	{
+		return out;
+	}
+	std::vector<double> clist = vectorize(list);
+	if (clist.size() > 0)
+	{
+		ade::CoordT carr;
+		std::copy(clist.begin(), clist.end(), carr.begin());
+		out = std::make_shared<CoordMap>(carr, false); // todo: figure out bijectivity
+	}
+	return out;
+}
+
+template <typename T>
+struct ScalarConvr final : public opt::iConverter
+{
+	ScalarConvr (double scalar) : scalar_(scalar) {}
+
+	ade::TensptrT build (const opt::ContexT& ctx,
+		ade::Shape outshape) const override
 	{
 		return ead::make_constant_scalar((T) scalar_,
 			outshape)->get_tensor();
@@ -33,32 +56,38 @@ struct ScalarBuilder final : public opt::rule::iBuilder
 };
 
 template <typename T>
-struct AnyBuilder final : public opt::rule::iBuilder
+struct AnyConvr final : public opt::iConverter
 {
-	AnyBuilder (size_t any_id) : any_id_(any_id) {}
+	AnyConvr (std::string any_id) : any_id_(any_id) {}
 
-	ade::TensptrT build (opt::rule::Report& report,
-		ade::Shape outshape) override
+	ade::TensptrT build (const opt::ContexT& ctx,
+		ade::Shape outshape) const override
 	{
-		auto it = report.bases_.find(any_id_);
-		if (report.bases_.end() == it)
+		auto it = ctx.find(any_id_);
+		if (ctx.end() == it)
 		{
-			logs::fatalf("cannot find any id %d in conversion", any_id_);
+			logs::fatalf("cannot find any id %s in conversion",
+				any_id_.c_str());
 		}
-		return it->second;
+		const opt::CtxValT& val = it->second;
+		if (val.size() != 1)
+		{
+			logs::fatal("context value is not any");
+		}
+		return *(val.begin());
 	}
 
 	std::string to_string (void) const override
 	{
-		return "id:" + fmts::to_string(any_id_);
+		return any_id_;
 	}
 
-	size_t any_id_;
+	std::string any_id_;
 };
 
 struct BuilderArg final
 {
-	BuilderArg (opt::rule::BuilderptrT arg,
+	BuilderArg (opt::ConvptrT arg,
 		ade::CoordptrT shaper, CoordptrT coorder) :
 		arg_(arg), shaper_(shaper), coorder_(coorder)
 	{
@@ -68,7 +97,7 @@ struct BuilderArg final
 		}
 	}
 
-	opt::rule::BuilderptrT arg_;
+	opt::ConvptrT arg_;
 
 	ade::CoordptrT shaper_;
 
@@ -78,13 +107,13 @@ struct BuilderArg final
 using BuilderArgsT = std::vector<BuilderArg>;
 
 template <typename T>
-struct FuncBuilder final : public opt::rule::iBuilder
+struct FuncConvr final : public opt::iConverter
 {
-	FuncBuilder (std::string op, BuilderArgsT args) :
+	FuncConvr (std::string op, BuilderArgsT args) :
 		opcode_({op, age::get_op(op)}), args_(args) {}
 
-	ade::TensptrT build (opt::rule::Report& report,
-		ade::Shape outshape) override
+	ade::TensptrT build (const opt::ContexT& ctx,
+		ade::Shape outshape) const override
 	{
 		ArgsT<T> args;
 		for (auto& arg : args_)
@@ -94,7 +123,7 @@ struct FuncBuilder final : public opt::rule::iBuilder
 			{
 				childshape = ade::apply_shaper(arg.shaper_, childshape);
 			}
-			auto tens = arg.arg_->build(report, childshape);
+			auto tens = arg.arg_->build(ctx, childshape);
 			args.push_back(FuncArg<T>(
 				NodeConverters<T>::to_node(tens),
 				arg.shaper_, arg.coorder_));
@@ -122,21 +151,25 @@ struct FuncBuilder final : public opt::rule::iBuilder
 };
 
 template <typename T>
-struct GroupBuilder final : public opt::rule::iBuilder
+struct GroupConvr final : public opt::iConverter
 {
-	GroupBuilder (size_t group_id, BuilderArgsT args, size_t variadic) :
-		group_id_(group_id), args_(args), variadic_(variadic) {}
-
-	ade::TensptrT build (opt::rule::Report& report,
-		ade::Shape outshape) override
+	GroupConvr (std::string group_id, std::string group,
+		BuilderArgsT args, std::string variadic) :
+		group_id_(group_id), group_(group), args_(args), variadic_(variadic)
 	{
-		auto git = report.groups_.find(group_id_);
-		if (report.groups_.end() == git)
+		assert(group_ == "sum" || group_ == "prod"); // todo: generalize this for ordered-groups
+	}
+
+	ade::TensptrT build (const opt::ContexT& ctx,
+		ade::Shape outshape) const override
+	{
+		auto git = ctx.find(group_id_);
+		if (ctx.end() == git)
 		{
-			logs::fatalf("cannot find group id %s in conversion", group_id_);
+			logs::fatalf("cannot find group id %s in conversion",
+				group_id_.c_str());
 		}
-		tag::SgraphptrT sg = git->second;
-		assert(sg->group_ == "sum" || sg->group_ == "prod"); // todo: generalize this for ordered-groups
+		ade::TensptrT group_head = *(git->second.begin());
 
 		ade::TensT args;
 		for (auto& arg : args_)
@@ -146,12 +179,13 @@ struct GroupBuilder final : public opt::rule::iBuilder
 			{
 				childshape = ade::apply_shaper(arg.shaper_, childshape);
 			}
-			args.push_back(arg.arg_->build(report, childshape));
+			args.push_back(arg.arg_->build(ctx, childshape));
 		}
 
+		if (variadic_.size() > 0)
 		{
-			auto it = report.variadics_.find(variadic_);
-			if (report.variadics_.end() != it)
+			auto it = ctx.find(variadic_);
+			if (ctx.end() != it)
 			{
 				args.insert(args.end(),
 					it->second.begin(), it->second.end());
@@ -165,7 +199,7 @@ struct GroupBuilder final : public opt::rule::iBuilder
 			{
 				return NodeConverters<T>::to_node(tens);
 			});
-		if (sg->group_ == "sum")
+		if (group_ == "sum")
 		{
 			return age::sum(outs)->get_tensor();
 		}
@@ -182,166 +216,141 @@ struct GroupBuilder final : public opt::rule::iBuilder
 			{
 				return arg.arg_->to_string();
 			});
-		return fmts::sprintf("group:%d(%s)", group_id_,
+		if (variadic_.size() > 0)
+		{
+			args.push_back(".." + variadic_);
+		}
+		return fmts::sprintf("group:%s(%s)", group_id_.c_str(),
 			fmts::join(",", args.begin(), args.end()).c_str());
 	}
 
-	size_t group_id_;
+	std::string group_id_;
+
+	std::string group_;
 
 	BuilderArgsT args_;
 
-	size_t variadic_;
+	std::string variadic_;
 };
 
-struct RuleContext final
-{
-	// maps declared symbol to any id
-	std::unordered_map<std::string,size_t> symbols_;
-	// maps declared group reference to group id
-	std::unordered_map<std::string,size_t> group_refs_;
-	// maps declared group reference to group tag
-	std::unordered_map<std::string,std::string> group_tags_;
-};
-
-ade::CoordptrT shaperize (::NumList* list);
-
-CoordptrT coorderize (::NumList* list);
-
-opt::rule::WriterptrT make_writer (
-	::Subgraph* sg, const RuleContext& ctx);
-
 template <typename T>
-opt::rule::BuilderptrT make_builder (
-	::Subgraph* sg, const RuleContext& ctx)
+struct ConverterBuilder final : public opt::iConverterBuilder
 {
-	if (NULL == sg)
+	opt::ConvptrT build (::Subgraph* sg,
+		const opt::RulesContext& ctx) const override
 	{
-		logs::fatal("cannot make builder with null subgraph");
-	}
-	opt::rule::BuilderptrT out;
-	switch (sg->type_)
-	{
-		case SCALAR:
-			out = std::make_shared<ScalarBuilder<T>>(sg->val_.scalar_);
-			break;
-		case ANY:
+		if (NULL == sg)
 		{
-			std::string symbol(sg->val_.any_);
-			auto it = ctx.symbols_.find(symbol);
-			if (ctx.symbols_.end() == it)
-			{
-				logs::fatalf("undeclared symbol '%s'", symbol.c_str());
-			}
-			out = std::make_shared<AnyBuilder<T>>(it->second);
+			logs::fatal("cannot make builder with null subgraph");
 		}
-			break;
-		case BRANCH:
+		opt::ConvptrT out;
+		switch (sg->type_)
 		{
-			::Branch* branch = sg->val_.branch_;
-			if (nullptr == branch)
+			case SCALAR:
+				out = std::make_shared<ScalarConvr<T>>(sg->val_.scalar_);
+				break;
+			case ANY:
 			{
-				logs::fatal("subgraph ended at nullptr branch");
-			}
-			BuilderArgsT args;
-			for (auto it = branch->args_->head_; nullptr != it; it = it->next_)
-			{
-				::Arg* arg = (::Arg*) it->val_;
-				opt::rule::BuilderptrT warg = make_builder<T>(arg->subgraph_, ctx);
-				ade::CoordptrT shaper = shaperize(arg->shaper_);
-				CoordptrT coorder = coorderize(arg->coorder_);
-				args.push_back(BuilderArg(warg, shaper, coorder));
-			}
-			std::string label(branch->label_);
-			if (branch->is_group_)
-			{
-				size_t vid = std::string::npos;
-				std::string variadic(branch->variadic_);
-				auto vit = ctx.symbols_.find(variadic);
-				if (variadic.size() > 0 && ctx.symbols_.end() != vit)
+				std::string symbol(sg->val_.any_);
+				if (false == util::has(ctx.symbols_, symbol))
 				{
-					vid = vit->second;
+					logs::fatalf("undeclared symbol '%s'", symbol.c_str());
 				}
-				auto group_it = ctx.group_refs_.find(label);
-				if (ctx.group_refs_.end() == group_it)
-				{
-					logs::fatalf("cannot find ref %s", label.c_str());
-				}
-				out = std::make_shared<GroupBuilder<T>>(
-					group_it->second, args, vid);
-			}
-			else
-			{
-				out = std::make_shared<FuncBuilder<T>>(label, args);
-			}
-		}
-			break;
-		default:
-			logs::fatalf("unknown subgraph node type %d", sg->type_);
-	}
-	return out;
-}
-
-template <typename T>
-opt::rule::ConversionsT parse (std::string filename)
-{
-	opt::rule::ConversionsT conversions;
-	::PtrList* stmts = nullptr;
-	int status = ::parse_rule(&stmts, filename.c_str());
-	if (status != 0)
-	{
-		logs::errorf("failed to parse file %s: got %d status",
-			filename.c_str(), status);
-		return conversions;
-	}
-	if (nullptr == stmts)
-	{
-		logs::fatal("rule parser produced null stmts");
-	}
-
-	RuleContext ctx;
-	for (auto it = stmts->head_; it != NULL; it = it->next_)
-	{
-		::Statement* stmt = (::Statement*) it->val_;
-		switch (stmt->type_)
-		{
-			case SYMBOL_DEF:
-			{
-				std::string symbol = std::string((char*) stmt->val_);
-				if (util::has(ctx.symbols_, symbol))
-				{
-					logs::fatalf("redeclaration of symbol %s", symbol.c_str());
-				}
-				ctx.symbols_.emplace(symbol, ctx.symbols_.size());
+				out = std::make_shared<AnyConvr<T>>(symbol);
 			}
 				break;
-			case GROUP_DEF:
+			case BRANCH:
 			{
-				::Group* group = (::Group*) stmt->val_;
-				std::string ref = std::string(group->ref_);
-				if (util::has(ctx.group_refs_, ref))
+				::Branch* branch = sg->val_.branch_;
+				if (nullptr == branch)
 				{
-					logs::fatalf("redeclaration of group %s", ref.c_str());
+					logs::fatal("subgraph ended at nullptr branch");
 				}
-				ctx.group_refs_.emplace(ref, ctx.group_refs_.size());
-				ctx.group_tags_.emplace(ref, std::string(group->tag_));
-			}
-				break;
-			case CONVERSION:
-			{
-				::Conversion* conv = (::Conversion*) stmt->val_;
-				opt::rule::WriterptrT writer = make_writer(conv->source_, ctx);
-				opt::rule::BuilderptrT builder = make_builder<T>(conv->dest_, ctx);
-				conversions.push_back(opt::rule::Conversion(writer, builder));
+				BuilderArgsT args;
+				for (auto it = branch->args_->head_; nullptr != it; it = it->next_)
+				{
+					::Arg* arg = (::Arg*) it->val_;
+					opt::ConvptrT warg = build(arg->subgraph_, ctx);
+					ade::CoordptrT shaper = this->shaperize(arg->shaper_);
+					CoordptrT coorder = ead::coorderize(arg->coorder_);
+					args.push_back(BuilderArg(warg, shaper, coorder));
+				}
+				std::string label(branch->label_);
+				if (branch->is_group_)
+				{
+					std::string variadic(branch->variadic_);
+					if (variadic.size() > 0 && false == util::has(ctx.symbols_, variadic))
+					{
+						logs::warnf("unknown variadic %s", variadic.c_str());
+						variadic = "";
+					}
+					auto group_it = ctx.group_tags_.find(label);
+					if (ctx.group_tags_.end() == group_it)
+					{
+						logs::fatalf("cannot find ref %s", label.c_str());
+					}
+					out = std::make_shared<GroupConvr<T>>(
+						label, group_it->second, args, variadic);
+				}
+				else
+				{
+					out = std::make_shared<FuncConvr<T>>(label, args);
+				}
 			}
 				break;
 			default:
-				logs::errorf("unknown statement of type %d", stmt->type_);
-				return conversions;
+				logs::fatalf("unknown subgraph node type %d", sg->type_);
 		}
+		return out;
 	}
-	::statements_free(stmts);
 
-	return conversions;
+	ade::CoordptrT shaperize (::NumList* list) const override
+	{
+		ade::CoordptrT out = nullptr;
+		if (nullptr == list)
+		{
+			return out;
+		}
+		std::vector<double> slist = vectorize(list);
+		if (slist.size() > 0)
+		{
+			out = std::make_shared<ade::CoordMap>(
+			[&slist](ade::MatrixT m)
+			{
+				for (size_t i = 0; i < ade::mat_dim; ++i)
+				{
+					for (size_t j = 0; j < ade::mat_dim; ++j)
+					{
+						size_t index = i * ade::mat_dim + j;
+						if (index < slist.size())
+						{
+							m[i][j] = slist[index];
+						}
+					}
+				}
+			});
+		}
+		return out;
+	}
+
+	ade::CoordptrT coorderize (::NumList* list) const override
+	{
+		return ead::coorderize(list);
+	}
+};
+
+template <typename T>
+opt::OptCtx parse (std::string content)
+{
+	static ConverterBuilder<T> builder;
+	return opt::parse(content, builder);
+}
+
+template <typename T>
+opt::OptCtx parse_file (std::string filename)
+{
+	static ConverterBuilder<T> builder;
+	return opt::parse_file(filename, builder);
 }
 
 }

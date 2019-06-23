@@ -5,16 +5,11 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    ]) + [
+        "BUILD.bazel",
+        "//opt/parse:srcs",
+    ],
     visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "test_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
 )
 
 ######### LIBRARY #########
@@ -24,7 +19,13 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
-    deps = ["//ade:ade"],
+    deps = [
+        "//ade:ade",
+        "//tag:tag",
+        "//opt/parse:parse",
+        "@boost//:functional",
+        "@boost//:uuid",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -32,11 +33,11 @@ cc_library(
 
 cc_test(
     name = "test",
-    size = "small",
-    srcs = ["//opt:test_srcs"],
-    copts = ["-std=c++17"],
+    srcs = glob(["test/*.cpp"]),
     deps = [
         "//opt:opt",
-        "//testutil:testutil",
+        "//ead:ead",
+        "//testutil:testutil"
     ],
+    copts = ["-std=c++17"],
 )

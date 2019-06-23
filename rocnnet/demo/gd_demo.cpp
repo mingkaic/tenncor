@@ -146,8 +146,8 @@ int main (int argc, const char** argv)
 		pretrained_out->get_tensor(),
 	});
 
-	opt::rule::ConversionsT rules = ead::parse<PybindT>(
-		"experimental/opt/optimizations.rules");
+	opt::OptCtx rules = ead::parse<PybindT>(
+		"opt/optimizations.rules");
 	sess.optimize(rules);
 
 	// train mlp to output input

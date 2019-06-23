@@ -36,7 +36,7 @@ PYBIND11_MODULE(grpc_dbg, m)
 		[](py::object self, ead::NodeptrT<PybindT> root)
 		{
 			auto sess = self.cast<dbg::InteractiveSession*>();
-			sess->track(root->get_tensor().get());
+			sess->track({root->get_tensor()});
 		}, "Track node")
 		.def("update",
 		[](py::object self, std::vector<ead::NodeptrT<PybindT>> nodes)

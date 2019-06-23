@@ -184,7 +184,7 @@ PYBIND11_MODULE(ead, m)
 		[](py::object self, ead::NodeptrT<PybindT> root)
 		{
 			auto sess = self.cast<ead::Session*>();
-			sess->track(root->get_tensor().get());
+			sess->track({root->get_tensor()});
 		}, "Track node")
 		.def("update",
 		[](py::object self, std::vector<ead::NodeptrT<PybindT>> nodes)

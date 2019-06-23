@@ -1,5 +1,3 @@
-#include "ead/serialize.hpp"
-
 #include "rocnnet/modl/marshal.hpp"
 
 #ifdef MODL_MARSHAL_HPP

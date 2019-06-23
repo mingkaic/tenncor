@@ -1,3 +1,5 @@
+#include "ead/parse.hpp"
+
 #include "rocnnet/modl/mlp.hpp"
 
 #ifndef MODL_DQN_TRAINER_HPP
@@ -415,15 +417,12 @@ private:
 		}
 
 		{
-			opt::rule::ConversionsT rules = ead::parse<PybindT>(
-				"experimental/opt/optimizations.rules");
+			opt::OptCtx rules = ead::parse_file<PybindT>(
+				"opt/optimizations.rules");
 			opt::optimize(to_optimize, rules);
 		}
 
-		for (auto& opt_node : to_optimize)
-		{
-			sess_->track(opt_node.get());
-		}
+		sess_->track(to_optimize);
 	}
 
 	PybindT linear_annealing (PybindT initial_prob) const

@@ -1,0 +1,15 @@
+licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "ead",
+    srcs = ["ead.yml"],
+)
+
+filegroup(
+    name = "optimizations",
+    srcs = ["optimizations.rules"],
+)

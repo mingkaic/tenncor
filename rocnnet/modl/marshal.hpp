@@ -6,6 +6,8 @@
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
+#include "ead/serialize.hpp"
+
 #include "ead/generated/pyapi.hpp"
 
 #ifndef MODL_MARSHAL_HPP

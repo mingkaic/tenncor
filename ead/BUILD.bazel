@@ -34,12 +34,6 @@ filegroup(
     ]),
 )
 
-filegroup(
-    name = "optimizations",
-    srcs = ["cfg/optimizations.rules"],
-    visibility = ["//visibility:public"],
-)
-
 ######### LIBRARY #########
 
 py_binary(
@@ -50,7 +44,7 @@ py_binary(
 
 genrule(
     name = "generated_ead",
-    srcs = ["cfg/ead.yml"],
+    srcs = ["//cfg:ead"],
     outs = [
         "generated/api.hpp",
         "generated/api.cpp",
@@ -63,7 +57,7 @@ genrule(
     ],
     tools = ["//ead:agen"],
     cmd = "$(location //ead:agen) " +
-        "--cfg $(location :cfg/ead.yml) " +
+        "--cfg $(location //cfg:ead) " +
         "--out $(@D)/generated " +
         "--strip_prefix=$$(dirname $(@D))",
 )
@@ -89,11 +83,9 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//ade:ade",
-        "//opt:opt",
         "//pbm:pbm",
         "//tag:tag",
-        "//experimental/opt:opt",
-        "//experimental/opt/parse:parse",
+        "//opt:opt",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],
@@ -124,7 +116,7 @@ cc_test(
         "//testutil:testutil",
     ],
     linkstatic = True,
-    data = ["//ead:optimizations"],
+    data = ["//cfg:optimizations"],
 )
 
 py_test(
@@ -147,5 +139,5 @@ cc_binary(
         "@com_github_google_benchmark//:benchmark",
     ],
     copts = ["-std=c++17"],
-    data = ["//ead:optimizations"],
+    data = ["//cfg:optimizations"],
 )

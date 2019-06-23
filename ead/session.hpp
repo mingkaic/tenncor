@@ -3,7 +3,7 @@
 
 #include "ade/traveler.hpp"
 
-#include "experimental/opt/optimize.hpp"
+#include "opt/optimize.hpp"
 
 #include "ead/constant.hpp"
 #include "ead/functor.hpp"
@@ -124,7 +124,7 @@ struct Session final : public iSession
 		}
 	}
 
-	void optimize (const opt::rule::ConversionsT& rules)
+	void optimize (const opt::OptCtx& rules)
 	{
 		ade::TensT tracked(tracked_.begin(), tracked_.end());
 		opt::optimize(tracked, rules);

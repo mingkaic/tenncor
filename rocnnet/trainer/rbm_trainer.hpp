@@ -136,15 +136,12 @@ struct RBMTrainer
 			});
 
 		{
-			opt::rule::ConversionsT rules = ead::parse<PybindT>(
-				"experimental/opt/optimizations.rules");
+			opt::OptCtx rules = ead::parse<PybindT>(
+				"opt/optimizations.rules");
 			opt::optimize(to_optimize, rules);
 		}
 
-		for (auto& opt_node : to_optimize)
-		{
-			sess_->track(opt_node.get());
-		}
+		sess_->track(to_optimize);
 
 		updates_.push_back(assigns);
 	}

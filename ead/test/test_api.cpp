@@ -141,7 +141,7 @@ static void unary_generic (UnaryOpF<double> op,
 	ead::Session session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
-	session.track(gsrc->get_tensor().get());
+	session.track({gsrc->get_tensor()});
 	session.update();
 
 	auto gotshape = gsrc->shape();
@@ -177,7 +177,7 @@ static void unar_elem (std::vector<double> data,
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
 
-	session.track(gsrc->get_tensor().get());
+	session.track({gsrc->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
@@ -241,7 +241,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 
 	ead::NodeptrT<double> dest2 = op(src, src);
 	ead::NodeptrT<double> gsame = ead::derive(dest2, src);
-	session.track(gsame->get_tensor().get());
+	session.track({gsame->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gsame->shape();
@@ -254,7 +254,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	}
 
 	ead::NodeptrT<double> gleft = ead::derive(dest, src);
-	session.track(gleft->get_tensor().get());
+	session.track({gleft->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gleft->shape();
@@ -267,7 +267,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	}
 
 	ead::NodeptrT<double> gright = ead::derive(dest, src2);
-	session.track(gright->get_tensor().get());
+	session.track({gright->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gright->shape();
@@ -341,7 +341,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 
 	ead::NodeptrT<int32_t> dest2 = op(src, src);
 	ead::NodeptrT<int32_t> gsame = ead::derive(dest2, src);
-	session.track(gsame->get_tensor().get());
+	session.track({gsame->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gsame->shape();
@@ -354,7 +354,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	}
 
 	ead::NodeptrT<int32_t> gleft = ead::derive(dest, src);
-	session.track(gleft->get_tensor().get());
+	session.track({gleft->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gleft->shape();
@@ -367,7 +367,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	}
 
 	ead::NodeptrT<int32_t> gright = ead::derive(dest, src2);
-	session.track(gright->get_tensor().get());
+	session.track({gright->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gright->shape();
@@ -882,8 +882,10 @@ TEST(API, Rprod)
 
 	ead::NodeptrT<size_t> gsrc = ead::derive(dest, src);
 	ead::NodeptrT<size_t> gsrc2 = ead::derive(dest2, src);
-	session.track(gsrc->get_tensor().get());
-	session.track(gsrc2->get_tensor().get());
+	session.track({
+		gsrc->get_tensor(),
+		gsrc2->get_tensor(),
+	});
 	session.update();
 
 	auto gotshape = gsrc->shape();
@@ -1124,7 +1126,7 @@ TEST(API, Permute)
 	ead::Session session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
-	session.track(gsrc->get_tensor().get());
+	session.track({gsrc->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
@@ -1167,7 +1169,7 @@ TEST(API, Extend)
 	ead::Session session;
 
 	ead::NodeptrT<double> gsrc = ead::derive(dest, src);
-	session.track(gsrc->get_tensor().get());
+	session.track({gsrc->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
@@ -1235,7 +1237,7 @@ TEST(API, Matmul)
 	ead::NodeptrT<int32_t> c = ead::make_constant<int32_t>(data3.data(), cshape);
 	ead::NodeptrT<int32_t> dest2 = age::matmul(c, c);
 	ead::NodeptrT<int32_t> gsame = ead::derive(dest2, c);
-	session.track(gsame->get_tensor().get());
+	session.track({gsame->get_tensor()});
 	session.update();
 	ade::Shape gcshape = gsame->shape();
 	{
@@ -1244,7 +1246,7 @@ TEST(API, Matmul)
 	}
 
 	ead::NodeptrT<int32_t> gleft = ead::derive(dest, a);
-	session.track(gleft->get_tensor().get());
+	session.track({gleft->get_tensor()});
 	session.update();
 	ade::Shape gashape = gleft->shape();
 	{
@@ -1257,7 +1259,7 @@ TEST(API, Matmul)
 	}
 
 	ead::NodeptrT<int32_t> gright = ead::derive(dest, b);
-	session.track(gright->get_tensor().get());
+	session.track({gright->get_tensor()});
 	session.update();
 	ade::Shape gbshape = gright->shape();
 	{
@@ -1297,7 +1299,7 @@ static void test_rand_unif (std::vector<ade::DimT> shape_list)
 	ead::Session session;
 
 	ead::NodeptrT<double> gleft = ead::derive(dest, src);
-	session.track(gleft->get_tensor().get());
+	session.track({gleft->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gleft->shape();
@@ -1307,7 +1309,7 @@ static void test_rand_unif (std::vector<ade::DimT> shape_list)
 	EXPECT_DOUBLE_EQ(0, goptr2[0]);
 
 	ead::NodeptrT<double> gright = ead::derive(dest, src);
-	session.track(gright->get_tensor().get());
+	session.track({gright->get_tensor()});
 	session.update();
 	{
 		auto gotshape = gright->shape();
@@ -1406,7 +1408,7 @@ TEST(API, Convolution)
 
 	ead::NodeptrT<double> gleft = ead::derive(dest, img);
 	ASSERT_NE(nullptr, gleft);
-	session.track(gleft->get_tensor().get());
+	session.track({gleft->get_tensor()});
 	session.update();
 	{
 		auto gashape = gleft->shape();
@@ -1418,7 +1420,7 @@ TEST(API, Convolution)
 
 	ead::NodeptrT<double> gright = ead::derive(dest, kernel);
 	ASSERT_NE(nullptr, gright);
-	session.track(gright->get_tensor().get());
+	session.track({gright->get_tensor()});
 	session.update();
 	{
 		auto gbshape = gright->shape();

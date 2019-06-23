@@ -6,7 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P2 - implement functors with only constants reduction in experimental/opt module
+P2 - implement functors with only constants reduction in opt module
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
 P3 - separate ead api into different namespaces
@@ -21,13 +21,12 @@ P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 
 === structure ===
-P2 - deprecate opt and ead/opt move experimental/opt to opt for replacement
-    - move opt to cortenn
+- move opt_deprec to cortenn
 P4 - remove ead helper functions
 
 === correction ===
 P2 - fix rbm demo converging to infinity problem
-P2 - test experimental/opt module
+P2 - test opt module
 P2 - bring back fuzz testing on graph structure
 P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage
