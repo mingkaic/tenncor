@@ -68,6 +68,7 @@ struct ConstConvr final : public opt::iConverter
 		ade::TensptrT tens = *(ctx.begin()->second.begin());
 		if (auto f = static_cast<ade::iOperableFunc*>(tens.get()))
 		{
+			f->update();
 			T* data = (T*) f->data();
 			tens = ead::make_constant(data, outshape)->get_tensor();
 		}
