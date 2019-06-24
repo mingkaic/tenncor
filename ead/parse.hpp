@@ -56,6 +56,31 @@ struct ScalarConvr final : public opt::iConverter
 };
 
 template <typename T>
+struct ConstConvr final : public opt::iConverter
+{
+	ade::TensptrT build (const opt::ContexT& ctx,
+		ade::Shape outshape) const override
+	{
+		if (ctx.size() != 1)
+		{
+			logs::fatal("cannot build constant from multiple context");
+		}
+		ade::TensptrT tens = *(ctx.begin()->second.begin());
+		if (auto f = static_cast<ade::iOperableFunc*>(tens.get()))
+		{
+			T* data = (T*) f->data();
+			tens = ead::make_constant(data, outshape)->get_tensor();
+		}
+		return tens;
+	}
+
+	std::string to_string (void) const override
+	{
+		return "ConstConvr";
+	}
+};
+
+template <typename T>
 struct AnyConvr final : public opt::iConverter
 {
 	AnyConvr (std::string any_id) : any_id_(any_id) {}
@@ -236,6 +261,11 @@ struct GroupConvr final : public opt::iConverter
 template <typename T>
 struct ConverterBuilder final : public opt::iConverterBuilder
 {
+	opt::ConvptrT build_cconv (void) const override
+	{
+		return std::make_shared<ConstConvr<T>>();
+	}
+
 	opt::ConvptrT build (::Subgraph* sg,
 		const opt::RulesContext& ctx) const override
 	{

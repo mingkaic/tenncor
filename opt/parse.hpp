@@ -23,6 +23,9 @@ struct iConverterBuilder
 {
 	virtual ~iConverterBuilder (void) = default;
 
+	// return constant converter
+	virtual ConvptrT build_cconv (void) const = 0;
+
 	virtual ConvptrT build (::Subgraph* sg, const RulesContext& ctx) const = 0;
 
 	// extended interface to create shaper

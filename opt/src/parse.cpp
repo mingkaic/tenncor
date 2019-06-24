@@ -113,7 +113,7 @@ static std::string build_intermediate (VoterPool& voters, const ::Subgraph* sg,
 			std::string interm_id = boost::uuids::to_string(uuid_gen());
 			voters.branches_[label]->emplace(args,
 				Symbol{
-					INTERM,
+					CAND_TYPE::INTERM,
 					interm_id,
 				});
 			out = interm_id;
@@ -144,7 +144,7 @@ static void build_conversion (OptCtx& opts, const ::Conversion* conv,
 
 		opts.voters_.branches_[label]->emplace(args,
 			Symbol{
-				CONVRT,
+				CAND_TYPE::CONVRT,
 				conv_ref,
 			});
 	}
@@ -225,6 +225,7 @@ OptCtx process_stmts (::PtrList* stmts, const iConverterBuilder& builder)
 		}
 	}
 	::statements_free(stmts);
+	opts.const_conv_ = builder.build_cconv();
 	return opts;
 }
 

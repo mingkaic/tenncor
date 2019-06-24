@@ -20,6 +20,7 @@ using CtxsT = std::unordered_set<ContexT,boost::hash<ContexT>>;
 enum CAND_TYPE
 {
 	SCALAR = 0,
+	CONST,
 	INTERM,
 	CONVRT,
 };

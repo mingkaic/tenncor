@@ -40,21 +40,25 @@ struct Matcher final : public ade::iTraveler
 	{
 		if (false == util::has(candidates_, leaf))
 		{
-			if (tag::has_property(leaf, tag::immutable_tag) &&
-				is_scalar(leaf))
+			if (tag::has_property(leaf, tag::immutable_tag))
 			{
-				// match against scalar maps
-				std::string scalar_str = leaf->to_string();
-				auto it = voters_.immutables_.find(scalar_str);
-				if (voters_.immutables_.end() != it)
+				std::string const_str = leaf->to_string();
+				Symbol cand_key{CAND_TYPE::CONST, const_str};
+				CandsT cands = {{cand_key, CtxsT{}}};
+				if (is_scalar(leaf))
 				{
-					candidates_.emplace(leaf, CandsT{
-						{Symbol{SCALAR, scalar_str}, {}},
-					});
-					return;
+					// match against scalar maps
+					if (util::has(voters_.immutables_, const_str))
+					{
+						cands.emplace(cand_key, CtxsT{});
+					}
 				}
+				candidates_.emplace(leaf, cands);
 			}
-			candidates_.emplace(leaf, CandsT{});
+			else
+			{
+				candidates_.emplace(leaf, CandsT{});
+			}
 		}
 	}
 
@@ -67,6 +71,23 @@ struct Matcher final : public ade::iTraveler
 			for (auto& child : children)
 			{
 				child.get_tensor()->accept(*this);
+			}
+
+			if (std::all_of(children.begin(), children.end(),
+				[this](const ade::FuncArg& child) -> bool
+				{
+					auto ctens = child.get_tensor().get();
+					return util::has(this->candidates_[ctens],
+						Symbol{CAND_TYPE::CONST, ctens->to_string()});
+				}))
+			{
+				// all children are constants
+				// therefore mark this as constant
+				std::string const_str = func->to_string();
+				candidates_.emplace(func, CandsT{
+					{Symbol{CAND_TYPE::CONST, const_str}, CtxsT{}},
+				});
+				return;
 			}
 
 			CandsT out_cands;

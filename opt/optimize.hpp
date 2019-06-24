@@ -11,6 +11,8 @@ struct OptCtx
 {
 	VoterPool voters_;
 
+	ConvptrT const_conv_;
+
 	std::unordered_map<std::string,ConvptrT> converts_;
 };
 

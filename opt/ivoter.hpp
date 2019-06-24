@@ -36,11 +36,17 @@ struct VoterArg final
 		{
 			case ::SUBGRAPH_TYPE::SCALAR:
 				// look for scalar candidate in arg.candidates
-				return util::has(arg.candidates_, Symbol{SCALAR, label_});
+				return util::has(arg.candidates_, Symbol{
+					CAND_TYPE::SCALAR,
+					label_,
+				});
 			case ::SUBGRAPH_TYPE::BRANCH:
 			{
 				// look for intermediate candidate in arg.candidates
-				auto it = arg.candidates_.find(Symbol{INTERM, label_});
+				auto it = arg.candidates_.find(Symbol{
+					CAND_TYPE::INTERM,
+					label_,
+				});
 				if (arg.candidates_.end() == it)
 				{
 					return false;

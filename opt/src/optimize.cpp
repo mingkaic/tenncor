@@ -81,6 +81,7 @@ void optimize (ade::TensT roots, const OptCtx& opts)
 		}
 
 		// there are no conversions for leaves
+		const ConvptrT& const_conv = opts.const_conv_;
 		for (auto& funcs : functors)
 		{
 			for (ade::FuncptrT func : funcs)
@@ -109,6 +110,14 @@ void optimize (ade::TensT roots, const OptCtx& opts)
 						logs::debugf("converting to %s",
 							conv->to_string().c_str());
 						converted = conv->build(ctx, shape);
+						break;
+					}
+					else if (CAND_TYPE::CONST == candpair.first.type_)
+					{
+						ContexT ctx = {
+							{func->to_string(), {func}},
+						};
+						converted = const_conv->build(ctx, shape);
 						break;
 					}
 				}
