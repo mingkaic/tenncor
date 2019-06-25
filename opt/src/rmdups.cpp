@@ -72,12 +72,12 @@ void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
 	}
 }
 
-void remove_all_duplicates (ImmutablesT& immutables, HFunctorsT& functors,
-	const std::unordered_set<ade::iTensor*>& roots)
+void remove_all_duplicates (ade::TensT& roots,
+	ImmutablesT& immutables, HFunctorsT& functors)
 {
 	// remove equivalent nodes
 	ade::ParentFinder pfinder;
-	for (ade::iTensor* root : roots)
+	for (ade::TensptrT& root : roots)
 	{
 		root->accept(pfinder);
 	}

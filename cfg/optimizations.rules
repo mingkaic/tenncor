@@ -21,6 +21,9 @@ ABS(NEG(X)) => ABS(X);
 POW(X,2) => SQUARE(X);
 POW(X,3) => CUBE(X);
 
+SUB(X,0) => X;
+SUB(0,X) => NEG(X);
+
 SQUARE(SQRT(X)) => X;
 SQRT(SQUARE(X)) => X;
 

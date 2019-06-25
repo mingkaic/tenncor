@@ -43,14 +43,16 @@ struct Matcher final : public ade::iTraveler
 			if (tag::has_property(leaf, tag::immutable_tag))
 			{
 				std::string const_str = leaf->to_string();
-				Symbol cand_key{CAND_TYPE::CONST, const_str};
-				CandsT cands = {{cand_key, CtxsT{}}};
+				CandsT cands = {
+					{Symbol{CAND_TYPE::CONST, const_str}, CtxsT{}}
+				};
 				if (is_scalar(leaf))
 				{
 					// match against scalar maps
 					if (util::has(voters_.immutables_, const_str))
 					{
-						cands.emplace(cand_key, CtxsT{});
+						cands.emplace(
+							Symbol{CAND_TYPE::SCALAR, const_str}, CtxsT{});
 					}
 				}
 				candidates_.emplace(leaf, cands);

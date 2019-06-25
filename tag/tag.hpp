@@ -148,6 +148,8 @@ struct Registry final
 	Registry (void) = delete;
 };
 
+void add_tag (ade::TensrefT tens, iTag* tag);
+
 TagRepsT get_tags (const ade::iTensor* tens);
 
 void erase (const ade::iTensor* tens);

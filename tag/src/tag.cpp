@@ -18,6 +18,21 @@ TagRepsT get_tags (const ade::iTensor* tens)
 	return it->second.get_tags();
 }
 
+void add_tag (ade::TensrefT tens, iTag* tag)
+{
+	if (tens.expired())
+	{
+		logs::fatal("cannot tag with expired tensor ref");
+	}
+	auto it = Registry::registry.find(TensKey(tens));
+	// clear out previous entry that is expired
+	if (Registry::registry.end() != it && it->first.expired())
+	{
+		Registry::registry.erase(tens.lock().get());
+	}
+	Registry::registry[tens].add(std::unique_ptr<iTag>(tag));
+}
+
 void erase (const ade::iTensor* tens)
 {
 	Registry::registry.erase(TensKey(tens));

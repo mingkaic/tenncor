@@ -13,12 +13,7 @@ std::unordered_map<std::string,TensSetT> GroupTag::groups_;
 
 void group_tag (ade::TensrefT tens, std::string group)
 {
-	if (tens.expired())
-	{
-		logs::fatal("cannot group tag with expired tensor ref");
-	}
-	GroupTag::groups_[group].emplace(tens);
-	Registry::registry[tens].add(std::make_unique<tag::GroupTag>(group));
+	add_tag(tens, new GroupTag(group));
 }
 
 struct Grouper final : public ade::iTraveler
@@ -37,7 +32,7 @@ struct Grouper final : public ade::iTraveler
 			{
 				logs::fatal("failed to get reference to leaf in group traveler");
 			}
-			tag::group_tag(it->second, group_);
+			group_tag(it->second, group_);
 		}
 	}
 
@@ -58,7 +53,7 @@ struct Grouper final : public ade::iTraveler
 				owners_.emplace(tens.get(), tens);
 				tens->accept(*this);
 			}
-			tag::group_tag(it->second, group_);
+			group_tag(it->second, group_);
 		}
 	}
 

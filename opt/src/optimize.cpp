@@ -6,11 +6,11 @@
 namespace opt
 {
 
-void optimize (ade::TensT roots, const OptCtx& opts)
+ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 {
 	if (roots.empty())
 	{
-		return;
+		return roots;
 	}
 
 	// stat provides positional information:
@@ -23,20 +23,13 @@ void optimize (ade::TensT roots, const OptCtx& opts)
 	// 2. perform conversions
 	// 3. remove duplicates in the graph in case of duplicates in conversions
 
-	// preprocessing
-	std::unordered_set<ade::iTensor*> rset;
-	for (ade::TensptrT& root : roots)
-	{
-		rset.emplace(root.get());
-	}
-
 	{
 		HFunctorsT functors;
 		// step 1:
 		{
 			ImmutablesT immutables;
 			populate_graph(immutables, functors, roots);
-			remove_all_duplicates(immutables, functors, rset);
+			remove_all_duplicates(roots, immutables, functors);
 		}
 
 		// step 2:
@@ -44,12 +37,15 @@ void optimize (ade::TensT roots, const OptCtx& opts)
 		ade::ParentFinder pfinder;
 		Matcher matcher(opts.voters_);
 		tag::AdjacentGroups adjgroups;
-		for (ade::iTensor* root : rset)
+		std::unordered_map<ade::iTensor*,std::vector<size_t>> rindices;
+		for (size_t i = 0, n = roots.size(); i < n; ++i)
 		{
+			ade::TensptrT& root = roots[i];
 			root->accept(stat);
 			root->accept(pfinder);
 			root->accept(matcher);
 			root->accept(adjgroups);
+			rindices[root.get()].push_back(i);
 		}
 
 		{
@@ -125,6 +121,14 @@ void optimize (ade::TensT roots, const OptCtx& opts)
 				if (nullptr != converted)
 				{
 					replace_parents(pfinder, func.get(), converted);
+					auto it = rindices.find(func.get());
+					if (rindices.end() != it)
+					{
+						for (size_t ri : it->second)
+						{
+							roots[ri] = converted;
+						}
+					}
 				}
 			}
 		}
@@ -134,7 +138,9 @@ void optimize (ade::TensT roots, const OptCtx& opts)
 	HFunctorsT functors;
 	ImmutablesT immutables;
 	populate_graph(immutables, functors, roots);
-	remove_all_duplicates(immutables, functors, rset);
+	remove_all_duplicates(roots, immutables, functors);
+
+	return roots;
 }
 
 }
