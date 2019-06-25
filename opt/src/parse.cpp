@@ -133,20 +133,32 @@ static void build_conversion (OptCtx& opts, const ::Conversion* conv,
 		logs::fatal("cannot make matcher with null conversion");
 	}
 	std::string conv_ref = boost::uuids::to_string(uuid_gen());
-	opts.converts_.emplace(conv_ref, builder.build(conv->dest_, ctx));
 
-	const ::Subgraph* sg = conv->source_;
-	if (BRANCH == sg->type_)
+	const ::Subgraph* src_sg = conv->source_;
+	if (::SUBGRAPH_TYPE::BRANCH == src_sg->type_)
 	{
+		const ::Subgraph* dest_sg = conv->dest_;
+		opts.converts_.emplace(conv_ref, builder.build(dest_sg, ctx));
+
 		VoterArgsT args;
 		std::string label = build_args(
-			opts.voters_, args, sg->val_.branch_, ctx, builder);
+			opts.voters_, args, src_sg->val_.branch_, ctx, builder);
 
 		opts.voters_.branches_[label]->emplace(args,
 			Symbol{
 				CAND_TYPE::CONVRT,
 				conv_ref,
 			});
+
+		if (::SUBGRAPH_TYPE::SCALAR == dest_sg->type_)
+		{
+			std::string dest_label = fmts::to_string(dest_sg->val_.scalar_);
+			opts.voters_.immutables_.emplace(dest_label);
+			opts.voters_.branches_[label]->emplace(args, Symbol{
+				CAND_TYPE::SCALAR,
+				dest_label,
+			});
+		}
 	}
 	else
 	{

@@ -216,7 +216,7 @@ TEST(OPTIMIZE, PruneSingleZeros)
 }
 
 
-TEST(OPTIMIZE, DISABLED_PruneZeroGraph)
+TEST(OPTIMIZE, PruneZeroGraph)
 {
 	ead::NodeptrT<double> var = ead::convert_to_node(
 		ead::make_variable_scalar<double>(0, ade::Shape(), "var"));

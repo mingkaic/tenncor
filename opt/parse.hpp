@@ -26,7 +26,7 @@ struct iConverterBuilder
 	// return constant converter
 	virtual ConvptrT build_cconv (void) const = 0;
 
-	virtual ConvptrT build (::Subgraph* sg, const RulesContext& ctx) const = 0;
+	virtual ConvptrT build (const ::Subgraph* sg, const RulesContext& ctx) const = 0;
 
 	// extended interface to create shaper
 	virtual ade::CoordptrT shaperize (::NumList* list) const = 0;

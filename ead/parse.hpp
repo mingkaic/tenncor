@@ -267,7 +267,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 		return std::make_shared<ConstConvr<T>>();
 	}
 
-	opt::ConvptrT build (::Subgraph* sg,
+	opt::ConvptrT build (const ::Subgraph* sg,
 		const opt::RulesContext& ctx) const override
 	{
 		if (NULL == sg)
