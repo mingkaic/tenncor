@@ -168,7 +168,7 @@ struct CommVoter final : public iVoter
 				}
 				if (false == matched)
 				{
-					break;
+					continue;
 				}
 				out[vpair.second].insert(local_ctxs.begin(), local_ctxs.end());
 			}
@@ -303,7 +303,7 @@ struct VariadicVoter final : public iVoter
 				}
 				if (false == matched)
 				{
-					break;
+					continue;
 				}
 				CtxValT cvals;
 				for (size_t i = nanys; i < nremaining; ++i)
