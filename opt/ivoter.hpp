@@ -100,8 +100,7 @@ struct VoterArg final
 				for (ContexT ctx : ctxs)
 				{
 					auto it = ctx.find(label_);
-					if (ctx.end() == it ||
-						it->second.end() != it->second.find(arg.tensor_))
+					if (ctx.end() == it || util::has(it->second, arg.tensor_))
 					{
 						// matching ANY
 						ctx.emplace(label_, CtxValT{arg.tensor_});

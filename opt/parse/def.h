@@ -66,7 +66,6 @@ struct Property
 enum STMT_TYPE
 {
 	SYMBOL_DEF = 0,
-	GROUP_DEF,
 	PROPERTY_DEF,
 	CONVERSION,
 };

@@ -19,19 +19,20 @@ P4 - add even more debugging tools
 P4 - formalize codestyle
 P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
+P4 - investigate adopting more of boost in place of cppkg
 
 === structure ===
+P2 - create global context for all ade/ead/tag singletons, then make context configurable
 P4 - remove ead helper functions
 
 === correction ===
 P2 - fix rbm demo converging to infinity problem
 P2 - test opt module
-P2 - bring back fuzz testing on graph structure
+P2 - test tag module
+P3 - test complicate equations (generate random valid equations)
 P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage
-P3 - test rule conversion
 P3 - test rocnnet + eqns, modl, and trainer (or subgraph equivalent)
-P4 - test complicate equations (generate random valid equations)
 
 === update ===
 P2 - update all fmts usages
@@ -41,15 +42,12 @@ P3 - address warnings
 general performance:
 P3 - benchmark test rocnnet against various other frameworks (CPU only)
 P3 - convert as many shared_ptr to unique_ptr
-P4 - implement GPU settings
 P4 - remove unordered_map/unordered_set if we're not using them properly
 P4 - define optimization conversion rules to increase data accuracy
 P4 - more performance test
 
 run-time performance:
-P3 - improve session implementation
 P3 - define dataflow to take advantage of parallel processing at node-level
+P4 - implement GPU settings
+P4 - improve session implementation
 P4 - investigate remote sessions for distributed processing
-
-graph-setup performance:
-P3 - improve optimization rule matching

@@ -13,7 +13,16 @@ std::unordered_map<std::string,TensSetT> GroupTag::groups_;
 
 void group_tag (ade::TensrefT tens, std::string group)
 {
-	add_tag(tens, new GroupTag(group));
+	get_collective(tens).add(std::make_unique<GroupTag>(group));
+
+	auto& gtens = GroupTag::groups_[group];
+	auto it = gtens.find(TensKey(tens.lock().get()));
+	// clear out previous entry that is expired
+	if (gtens.end() != it && it->expired())
+	{
+		gtens.erase(tens.lock().get());
+	}
+	gtens.emplace(tens);
 }
 
 struct Grouper final : public ade::iTraveler
@@ -90,11 +99,8 @@ void beautify_groups (SubgraphsT& out, const AdjacentGroups& adjgroups)
 			std::string group = idpair.first;
 			for (const std::string& gid : idpair.second)
 			{
-				auto it = sgraphs.find(gid);
-				if (sgraphs.end() == it)
-				{
-					sgraphs.emplace(gid, std::make_shared<Subgraph>(group));
-				}
+				sgraphs.try_emplace(gid,
+					std::make_shared<Subgraph>(group));
 				tens->accept(*sgraphs[gid]);
 			}
 		}

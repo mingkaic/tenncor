@@ -31,11 +31,11 @@ extern int yyparse();
 %type <argument> 	arg edge_def key_val
 %type <arguments>	args
 %type <sg>			subgraph
-%type <stmt> 		symbol_def group_def prop_def conversion
+%type <stmt> 		symbol_def prop_def conversion
 
 %token
 SYMBOL STMT_TERM ARROW LPAREN RPAREN COMMA ASSIGN LSB RSB LCB RCB
-GROUP GROUPDEF PROPERTY SHAPER COORDER COLON EL NUMBER VARIADIC
+GROUP PROPERTY SHAPER COORDER COLON EL NUMBER VARIADIC
 
 %% /* beginning of rules section */
 
@@ -47,12 +47,6 @@ rules:		/* empty */
 			rules symbol_def STMT_TERM
 			{
 				// declare symbol
-				ptrlist_pushback(*stmts, $2);
-			}
-			|
-			rules group_def STMT_TERM
-			{
-				// declare group
 				ptrlist_pushback(*stmts, $2);
 			}
 			|
@@ -77,18 +71,6 @@ symbol_def: SYMBOL EL
 					malloc(sizeof(struct Statement));
 				stmt->type_ = SYMBOL_DEF;
 				stmt->val_ = str;
-			}
-
-group_def: 	GROUPDEF EL EL
-			{
-				struct Group* group = malloc(sizeof(struct Group));
-				strncpy(group->ref_, $2, 32);
-				strncpy(group->tag_, $3, 32);
-
-				struct Statement* stmt = $$ =
-					malloc(sizeof(struct Statement));
-				stmt->type_ = GROUP_DEF;
-				stmt->val_ = group;
 			}
 
 prop_def: 	PROPERTY EL EL

@@ -33,9 +33,24 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 		}
 
 		// step 2:
+		CstConvertF const_conv = opts.const_conv_;
+		Matcher matcher(opts.voters_);
+		matcher.scalarize_ =
+			[&const_conv](ade::iTensor* tens) -> std::string
+			{
+				std::string out;
+				if (auto cst = const_conv(tens))
+				{
+					out = cst->to_string();
+				}
+				else
+				{
+					out = tens->to_string();
+				}
+				return out;
+			};
 		ade::GraphStat stat;
 		ade::ParentFinder pfinder;
-		Matcher matcher(opts.voters_);
 		tag::AdjacentGroups adjgroups;
 		std::unordered_map<ade::iTensor*,std::vector<size_t>> rindices;
 		for (size_t i = 0, n = roots.size(); i < n; ++i)
@@ -43,7 +58,6 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 			ade::TensptrT& root = roots[i];
 			root->accept(stat);
 			root->accept(pfinder);
-			root->accept(matcher);
 			root->accept(adjgroups);
 			rindices[root.get()].push_back(i);
 		}
@@ -72,18 +86,20 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 			}
 			for (auto& revpair : revhead)
 			{
-				matcher.group_head_[revpair.second] = revpair.first;
+				matcher.group_head_.emplace(revpair.second, revpair.first);
 			}
 		}
 
 		// there are no conversions for leaves
-		const ConvptrT& const_conv = opts.const_conv_;
 		for (auto& funcs : functors)
 		{
 			for (ade::FuncptrT func : funcs)
 			{
+				// although matcher recursively applies to functor children,
+				// it's easier to evaluate near conversion to avoid tracking state changes
+				func->accept(matcher);
+
 				ade::TensptrT converted = nullptr;
-				ade::Shape shape = func->shape();
 				auto& cands = matcher.candidates_[func.get()];
 				// select the best candidate (smallest conversion)
 				// currently first come first serve (todo: implement)
@@ -105,15 +121,12 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 							candpair.first.reference_);
 						logs::debugf("converting to %s",
 							conv->to_string().c_str());
-						converted = conv->build(ctx, shape);
+						converted = conv->build(ctx, func->shape());
 						break;
 					}
 					else if (CAND_TYPE::CONST == candpair.first.type_)
 					{
-						ContexT ctx = {
-							{func->to_string(), {func}},
-						};
-						converted = const_conv->build(ctx, shape);
+						converted = const_conv(func.get());
 						break;
 					}
 				}

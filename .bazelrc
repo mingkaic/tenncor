@@ -27,6 +27,7 @@ coverage --instrumentation_filter=
 
 # === MEMORY ANALYSIS ===
 
+run:valgrind --run_under="valgrind --leak-check=full"
 test:valgrind --run_under="valgrind --leak-check=full"
 
 test:asan --linkopt -fsanitize=address

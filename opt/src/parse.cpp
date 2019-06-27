@@ -189,17 +189,6 @@ OptCtx process_stmts (::PtrList* stmts, const iConverterBuilder& builder)
 				ctx.symbols_.emplace(symbol);
 			}
 				break;
-			case GROUP_DEF:
-			{
-				::Group* group = (::Group*) stmt->val_;
-				std::string ref = std::string(group->ref_);
-				if (util::has(ctx.group_tags_, ref))
-				{
-					logs::fatalf("redeclaration of group %s", ref.c_str());
-				}
-				ctx.group_tags_.emplace(ref, std::string(group->tag_));
-			}
-				break;
 			case PROPERTY_DEF:
 			{
 				::Property* property = (::Property*) stmt->val_;

@@ -31,12 +31,11 @@ struct GroupTag final : public iTag
 		return tag_id_;
 	}
 
-	void absorb (std::unique_ptr<iTag>&& other) override
+	void absorb (TagptrT&& other) override
 	{
 		std::set<std::string>& olabels =
 			static_cast<GroupTag*>(other.get())->labels_;
 		labels_.insert(olabels.begin(), olabels.end());
-		other.release();
 	}
 
 	TagRepsT get_tags (void) const override
@@ -71,11 +70,11 @@ struct AdjacentGroups final : public ade::iTraveler
 		{
 			visited_.emplace(leaf);
 			auto tags = get_tags(leaf);
-			auto it = tags.find(groups_key);
-			if (tags.end() != it)
+			std::vector<std::string> groups;
+			if (util::get(groups, tags, groups_key))
 			{
 				auto& mygroups = adjs_[leaf];
-				for (std::string group : it->second)
+				for (std::string group : groups)
 				{
 					// set unique gids if there are no inherited groups
 					if (false == util::has(mygroups, group))
@@ -104,31 +103,28 @@ struct AdjacentGroups final : public ade::iTraveler
 				{
 					return arg.get_tensor().get();
 				});
-			auto tags = get_tags(func);
-			auto it = tags.find(groups_key);
-			if (tags.end() != it)
+			TagRepsT tags = get_tags(func);
+			std::vector<std::string> groups;
+			if (util::get(groups, tags, groups_key))
 			{
 				auto& mygroups = adjs_[func];
-				for (std::string group : it->second)
+				for (std::string group : groups)
 				{
 					// set or inherit from parent, the unique gid of func
-					auto it = mygroups.find(group);
 					std::unordered_set<std::string> gids;
-					if (mygroups.end() == it)
+					// try to inherit unique gid
+					if (false == util::get(gids, mygroups, group))
 					{
 						gids = {boost::uuids::to_string(uuid_gen_())};
 						mygroups.emplace(group, gids);
-					}
-					else // inherit unique gid
-					{
-						gids = it->second;
 					}
 
 					auto& same_group = GroupTag::groups_[group];
 					for (ade::iTensor* child : uchildren)
 					{
 						// propagate unique gid set to child of same group
-						if (util::has(same_group, TensKey(child)))
+						auto it = same_group.find(TensKey(child));
+						if (same_group.end() != it && false == it->expired())
 						{
 							adjs_[child][group].insert(gids.begin(), gids.end());
 						}
@@ -174,7 +170,10 @@ struct Subgraph final : public ade::iTraveler
 			for (auto& child : children)
 			{
 				auto tens = child.get_tensor();
-				children_.emplace(tens.get(), tens);
+				if (false == util::has(content_, tens.get()))
+				{
+					children_.emplace(tens.get(), tens);
+				}
 			}
 		}
 	}

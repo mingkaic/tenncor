@@ -26,22 +26,6 @@ Symbol declaration has the following syntax:
 symbol A // this declares A
 ```
 
-## Group Mapping
-
-A group is a collective of functors in an ADE graph.
-In conversions, group label associates the source subgraph to the target subgraph in the association when there are multiple groups. Additionally, group tag denotes the tag used to identify functors of the group in the ADE graph.
-Groups must be declared before they can be used in conversions.
-
-#### Syntax:
-
-Group declaration has the following syntax:
-```
-groupdef X group1 // this declares X label using tag group1
-groupdef Y group1
-
-group X(group Y(A,C),B) => group Y(group X(A,B),C) // Y group1 is now above X group1
-```
-
 ## Property Mapping
 
 ## Conversion

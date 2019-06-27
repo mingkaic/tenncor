@@ -67,11 +67,11 @@ TEST(MATCHER, OrdrAny)
 	EXPECT_EQ(1, f1cands.size());
 	EXPECT_EQ(2, f2cands.size());
 	EXPECT_EQ(2, f3cands.size());
-	EXPECT_TRUE(util::has(f1cands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f2cands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f3cands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f2cands, opt::Symbol{opt::INTERM, "same"}));
-	EXPECT_TRUE(util::has(f3cands, opt::Symbol{opt::INTERM, "same"}));
+	EXPECT_HAS(f1cands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f2cands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f3cands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f2cands, (opt::Symbol{opt::INTERM, "same"}));
+	EXPECT_HAS(f3cands, (opt::Symbol{opt::INTERM, "same"}));
 }
 
 
@@ -157,20 +157,20 @@ TEST(MATCHER, CommAny)
 	EXPECT_EQ(3, f5cands.size());
 	EXPECT_EQ(2, f6cands.size());
 
-	EXPECT_TRUE(util::has(f1cands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f2cands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f3cands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f4sublcands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f4subrcands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f5cands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f6cands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(f2cands, opt::Symbol{opt::INTERM, "same"}));
-	EXPECT_TRUE(util::has(f3cands, opt::Symbol{opt::INTERM, "same"}));
-	EXPECT_TRUE(util::has(f4sublcands, opt::Symbol{opt::SCALAR, "similar"}));
-	EXPECT_TRUE(util::has(f4subrcands, opt::Symbol{opt::SCALAR, "similar"}));
-	EXPECT_TRUE(util::has(f5cands, opt::Symbol{opt::SCALAR, "similar"}));
-	EXPECT_TRUE(util::has(f5cands, opt::Symbol{opt::SCALAR, "weird"}));
-	EXPECT_TRUE(util::has(f6cands, opt::Symbol{opt::SCALAR, "weird"}));
+	EXPECT_HAS(f1cands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f2cands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f3cands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f4sublcands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f4subrcands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f5cands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f6cands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(f2cands, (opt::Symbol{opt::INTERM, "same"}));
+	EXPECT_HAS(f3cands, (opt::Symbol{opt::INTERM, "same"}));
+	EXPECT_HAS(f4sublcands, (opt::Symbol{opt::SCALAR, "similar"}));
+	EXPECT_HAS(f4subrcands, (opt::Symbol{opt::SCALAR, "similar"}));
+	EXPECT_HAS(f5cands, (opt::Symbol{opt::SCALAR, "similar"}));
+	EXPECT_HAS(f5cands, (opt::Symbol{opt::SCALAR, "weird"}));
+	EXPECT_HAS(f6cands, (opt::Symbol{opt::SCALAR, "weird"}));
 }
 
 
@@ -227,12 +227,12 @@ TEST(MATCHER, Ambiguous_CommAny)
 	EXPECT_EQ(3, sublcands.size());
 	EXPECT_EQ(3, subrcands.size());
 
-	EXPECT_TRUE(util::has(sublcands, opt::Symbol{opt::SCALAR, "similar"}));
-	EXPECT_TRUE(util::has(subrcands, opt::Symbol{opt::SCALAR, "similar"}));
-	EXPECT_TRUE(util::has(sublcands, opt::Symbol{opt::SCALAR, "similar2"}));
-	EXPECT_TRUE(util::has(subrcands, opt::Symbol{opt::SCALAR, "similar2"}));
-	EXPECT_TRUE(util::has(sublcands, opt::Symbol{opt::INTERM, "diff"}));
-	EXPECT_TRUE(util::has(subrcands, opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(sublcands, (opt::Symbol{opt::SCALAR, "similar"}));
+	EXPECT_HAS(subrcands, (opt::Symbol{opt::SCALAR, "similar"}));
+	EXPECT_HAS(sublcands, (opt::Symbol{opt::SCALAR, "similar2"}));
+	EXPECT_HAS(subrcands, (opt::Symbol{opt::SCALAR, "similar2"}));
+	EXPECT_HAS(sublcands, (opt::Symbol{opt::INTERM, "diff"}));
+	EXPECT_HAS(subrcands, (opt::Symbol{opt::INTERM, "diff"}));
 }
 
 

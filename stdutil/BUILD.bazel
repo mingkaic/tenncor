@@ -17,4 +17,5 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
+    deps = ["@com_github_mingkaic_cppkg//logs:logs"],
 )

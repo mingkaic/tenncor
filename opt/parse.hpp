@@ -11,9 +11,6 @@ struct RulesContext final
 	// maps declared symbol to any id
 	std::unordered_set<std::string> symbols_;
 
-	// maps declared group reference to group tag
-	std::unordered_map<std::string,std::string> group_tags_;
-
 	// maps functor/group label to properties set
 	std::unordered_map<std::string,
 		std::unordered_set<std::string>> properties_;
@@ -24,7 +21,7 @@ struct iConverterBuilder
 	virtual ~iConverterBuilder (void) = default;
 
 	// return constant converter
-	virtual ConvptrT build_cconv (void) const = 0;
+	virtual CstConvertF build_cconv (void) const = 0;
 
 	virtual ConvptrT build (const ::Subgraph* sg, const RulesContext& ctx) const = 0;
 

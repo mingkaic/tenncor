@@ -7,11 +7,13 @@
 namespace opt
 {
 
+using CstConvertF = std::function<ade::TensptrT(ade::iTensor*)>;
+
 struct OptCtx
 {
 	VoterPool voters_;
 
-	ConvptrT const_conv_;
+	CstConvertF const_conv_;
 
 	std::unordered_map<std::string,ConvptrT> converts_;
 };

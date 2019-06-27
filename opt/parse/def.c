@@ -66,7 +66,6 @@ void statement_recursive_free (void* ptr)
 	switch (stmt->type_)
 	{
 		case SYMBOL_DEF:
-		case GROUP_DEF:
 		case PROPERTY_DEF:
 			free(stmt->val_);
 			break;

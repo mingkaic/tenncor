@@ -18,12 +18,11 @@ struct PropTag final : public iTag
 		return tag_id_;
 	}
 
-	void absorb (std::unique_ptr<iTag>&& other) override
+	void absorb (TagptrT&& other) override
 	{
 		std::unordered_set<std::string>& olabels =
 			static_cast<PropTag*>(other.get())->labels_;
 		labels_.insert(olabels.begin(), olabels.end());
-		other.release();
 	}
 
 	TagRepsT get_tags (void) const override

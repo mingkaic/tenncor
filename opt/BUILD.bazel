@@ -37,7 +37,7 @@ cc_test(
     deps = [
         "//opt:opt",
         "//ead:ead",
-        "//testutil:testutil"
+        "//testutil:testutil",
     ],
     copts = ["-std=c++17"],
 )

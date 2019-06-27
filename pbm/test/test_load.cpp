@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-#include "gtest/gtest.h"
+#include "testutil/common.hpp"
 
 #include "dbg/stream/ade.hpp"
 
@@ -74,23 +74,17 @@ TEST(LOAD, LoadGraph)
 	ASSERT_EQ(3, graphinfo.tens_.children_.size());
 	ASSERT_EQ(0, graphinfo.tens_.tens_.size());
 
-	auto global_it = graphinfo.tens_.children_.find("global");
-	auto subtree_it = graphinfo.tens_.children_.find("subtree");
-	auto subtree2_it = graphinfo.tens_.children_.find("subtree2");
+	ASSERT_HAS(graphinfo.tens_.children_, "global");
+	ASSERT_HAS(graphinfo.tens_.children_, "subtree");
+	ASSERT_HAS(graphinfo.tens_.children_, "subtree2");
 
-	ASSERT_NE(graphinfo.tens_.children_.end(), global_it) << "global namespace not found";
-	ASSERT_NE(graphinfo.tens_.children_.end(), subtree_it) << "subtree namespace not found";
-	ASSERT_NE(graphinfo.tens_.children_.end(), subtree2_it) << "subtree2 namespace not found";
-
-	auto subtree = subtree_it->second;
-	auto subtree2 = subtree2_it->second;
+	auto subtree = graphinfo.tens_.children_["subtree"];
+	auto subtree2 = graphinfo.tens_.children_["subtree2"];
 	ASSERT_EQ(3, subtree->tens_.size());
 	ASSERT_EQ(4, subtree2->tens_.size());
 
-	auto dest_it = subtree->tens_.find("dest");
-	auto dest2_it = subtree2->tens_.find("dest");
-	ASSERT_NE(subtree->tens_.end(), dest_it) << "{subtree, dest} not found";
-	ASSERT_NE(subtree2->tens_.end(), dest2_it) << "{subtree2, dest} not found";
+	ASSERT_HAS(subtree->tens_, "dest");
+	ASSERT_HAS(subtree2->tens_, "dest");
 
 	ade::TensptrT tree1 = graphinfo.tens_.get_labelled({"subtree", "dest"});
 	ade::TensptrT tree2 = graphinfo.tens_.get_labelled({"subtree2", "dest"});

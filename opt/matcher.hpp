@@ -89,6 +89,25 @@ struct Matcher final : public ade::iTraveler
 				candidates_.emplace(func, CandsT{
 					{Symbol{CAND_TYPE::CONST, const_str}, CtxsT{}},
 				});
+
+				// mark as scalar if func's children are scalar
+				// in order to propagate scalar info to parents
+				if (scalarize_)
+				{
+					if (std::all_of(children.begin(), children.end(),
+						[this](const ade::FuncArg& child) -> bool
+						{
+							auto ctens = child.get_tensor().get();
+							std::string scalar_str = scalarize_(ctens);
+							return util::has(this->candidates_[ctens],
+								Symbol{CAND_TYPE::SCALAR, scalar_str});
+						}))
+					{
+						std::string scalar_str = scalarize_(func);
+						candidates_[func].emplace(
+							Symbol{CAND_TYPE::SCALAR, scalar_str}, CtxsT{});
+					}
+				}
 				return;
 			}
 
@@ -114,10 +133,9 @@ struct Matcher final : public ade::iTraveler
 			}
 
 			// do the same for functors that are the "head" of groups
-			auto git = group_head_.find(func);
-			if (group_head_.end() != git)
+			tag::SgraphptrT sg;
+			if (util::get(sg, group_head_, func))
 			{
-				tag::SgraphptrT& sg = git->second;
 				auto bit = voters_.branches_.find(group_prefix + sg->group_);
 				if (voters_.branches_.end() != bit)
 				{
@@ -151,6 +169,9 @@ struct Matcher final : public ade::iTraveler
 
 	// heads for functors
 	tag::SubgraphsT group_head_;
+
+	// functor for returning constant representation of tensor
+	std::function<std::string(ade::iTensor*)> scalarize_;
 };
 
 }

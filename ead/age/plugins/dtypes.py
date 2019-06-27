@@ -97,22 +97,12 @@ static std::unordered_map<std::string,_GENERATED_DTYPE> name2type =
 
 std::string name_type (_GENERATED_DTYPE type)
 {{
-    auto it = type2name.find(type);
-    if (type2name.end() == it)
-    {{
-        return "BAD_TYPE";
-    }}
-    return it->second;
+    return util::try_get(type2name, type, "BAD_DTYPE");
 }}
 
 _GENERATED_DTYPE get_type (std::string name)
 {{
-    auto it = name2type.find(name);
-    if (name2type.end() == it)
-    {{
-        return BAD_TYPE;
-    }}
-    return it->second;
+    return util::try_get(name2type, name, BAD_TYPE);
 }}
 
 uint8_t type_size (_GENERATED_DTYPE type)
@@ -224,7 +214,7 @@ class DTypesPlugin:
 
         generated_files[_src_file] = FileRep(
             build_template(_source_template, module, dtypes),
-            user_includes=['<unordered_map>'],
+            user_includes=['"stdutil/searchable.hpp"'],
             internal_refs=[_hdr_file])
 
         return generated_files

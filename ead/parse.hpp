@@ -56,32 +56,6 @@ struct ScalarConvr final : public opt::iConverter
 };
 
 template <typename T>
-struct ConstConvr final : public opt::iConverter
-{
-	ade::TensptrT build (const opt::ContexT& ctx,
-		ade::Shape outshape) const override
-	{
-		if (ctx.size() != 1)
-		{
-			logs::fatal("cannot build constant from multiple context");
-		}
-		ade::TensptrT tens = *(ctx.begin()->second.begin());
-		if (auto f = static_cast<ade::iOperableFunc*>(tens.get()))
-		{
-			f->update();
-			T* data = (T*) f->data();
-			tens = ead::make_constant(data, outshape)->get_tensor();
-		}
-		return tens;
-	}
-
-	std::string to_string (void) const override
-	{
-		return "ConstConvr";
-	}
-};
-
-template <typename T>
 struct AnyConvr final : public opt::iConverter
 {
 	AnyConvr (std::string any_id) : any_id_(any_id) {}
@@ -89,13 +63,8 @@ struct AnyConvr final : public opt::iConverter
 	ade::TensptrT build (const opt::ContexT& ctx,
 		ade::Shape outshape) const override
 	{
-		auto it = ctx.find(any_id_);
-		if (ctx.end() == it)
-		{
-			logs::fatalf("cannot find any id %s in conversion",
-				any_id_.c_str());
-		}
-		const opt::CtxValT& val = it->second;
+		const opt::CtxValT& val = util::must_getf(ctx, any_id_,
+			"cannot find any id %s in conversion", any_id_.c_str());
 		if (val.size() != 1)
 		{
 			logs::fatal("context value is not any");
@@ -179,9 +148,8 @@ struct FuncConvr final : public opt::iConverter
 template <typename T>
 struct GroupConvr final : public opt::iConverter
 {
-	GroupConvr (std::string group_id, std::string group,
-		BuilderArgsT args, std::string variadic) :
-		group_id_(group_id), group_(group), args_(args), variadic_(variadic)
+	GroupConvr (std::string group, BuilderArgsT args, std::string variadic) :
+		group_(group), args_(args), variadic_(variadic)
 	{
 		assert(group_ == "sum" || group_ == "prod"); // todo: generalize this for ordered-groups
 	}
@@ -189,14 +157,6 @@ struct GroupConvr final : public opt::iConverter
 	ade::TensptrT build (const opt::ContexT& ctx,
 		ade::Shape outshape) const override
 	{
-		auto git = ctx.find(group_id_);
-		if (ctx.end() == git)
-		{
-			logs::fatalf("cannot find group id %s in conversion",
-				group_id_.c_str());
-		}
-		ade::TensptrT group_head = *(git->second.begin());
-
 		ade::TensT args;
 		for (auto& arg : args_)
 		{
@@ -210,12 +170,9 @@ struct GroupConvr final : public opt::iConverter
 
 		if (variadic_.size() > 0)
 		{
-			auto it = ctx.find(variadic_);
-			if (ctx.end() != it)
-			{
-				args.insert(args.end(),
-					it->second.begin(), it->second.end());
-			}
+			opt::CtxValT varargs = util::try_get(
+				ctx, variadic_, opt::CtxValT());
+			args.insert(args.end(), varargs.begin(), varargs.end());
 		}
 		ead::NodesT<T> outs;
 		outs.reserve(args.size());
@@ -246,11 +203,9 @@ struct GroupConvr final : public opt::iConverter
 		{
 			args.push_back(".." + variadic_);
 		}
-		return fmts::sprintf("group:%s(%s)", group_id_.c_str(),
+		return fmts::sprintf("group:%s(%s)", group_.c_str(),
 			fmts::join(",", args.begin(), args.end()).c_str());
 	}
-
-	std::string group_id_;
 
 	std::string group_;
 
@@ -262,9 +217,19 @@ struct GroupConvr final : public opt::iConverter
 template <typename T>
 struct ConverterBuilder final : public opt::iConverterBuilder
 {
-	opt::ConvptrT build_cconv (void) const override
+	opt::CstConvertF build_cconv (void) const override
 	{
-		return std::make_shared<ConstConvr<T>>();
+		return [](ade::iTensor* tens)
+		{
+			ade::TensptrT out = nullptr;
+			if (auto f = dynamic_cast<ade::iOperableFunc*>(tens))
+			{
+				f->update();
+				T* data = (T*) f->data();
+				out = ead::make_constant(data, tens->shape())->get_tensor();
+			}
+			return out;
+		};
 	}
 
 	opt::ConvptrT build (const ::Subgraph* sg,
@@ -315,13 +280,8 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 						logs::warnf("unknown variadic %s", variadic.c_str());
 						variadic = "";
 					}
-					auto group_it = ctx.group_tags_.find(label);
-					if (ctx.group_tags_.end() == group_it)
-					{
-						logs::fatalf("cannot find ref %s", label.c_str());
-					}
 					out = std::make_shared<GroupConvr<T>>(
-						label, group_it->second, args, variadic);
+						label, args, variadic);
 				}
 				else
 				{

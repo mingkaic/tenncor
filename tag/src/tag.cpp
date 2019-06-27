@@ -18,7 +18,7 @@ TagRepsT get_tags (const ade::iTensor* tens)
 	return it->second.get_tags();
 }
 
-void add_tag (ade::TensrefT tens, iTag* tag)
+TagCollective& get_collective (ade::TensrefT tens)
 {
 	if (tens.expired())
 	{
@@ -30,7 +30,7 @@ void add_tag (ade::TensrefT tens, iTag* tag)
 	{
 		Registry::registry.erase(tens.lock().get());
 	}
-	Registry::registry[tens].add(std::unique_ptr<iTag>(tag));
+	return Registry::registry[tens];
 }
 
 void erase (const ade::iTensor* tens)

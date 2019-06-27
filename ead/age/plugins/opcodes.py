@@ -70,22 +70,12 @@ static std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
 
 std::string name_op (_GENERATED_OPCODE code)
 {{
-    auto it = code2name.find(code);
-    if (code2name.end() == it)
-    {{
-        return "BAD_OP";
-    }}
-    return it->second;
+    return util::try_get(code2name, code, "BAD_OP");
 }}
 
 _GENERATED_OPCODE get_op (std::string name)
 {{
-    auto it = name2code.find(name);
-    if (name2code.end() == it)
-    {{
-        return BAD_OP;
-    }}
-    return it->second;
+    return util::try_get(name2code, name, BAD_OP);
 }}
 
 }}
@@ -161,7 +151,7 @@ class OpcodesPlugin:
         generated_files[_src_file] = FileRep(
             build_template(_source_template, module,
                 opcodes['params'], opcodes['opcalls']),
-            user_includes=['<unordered_map>'],
+            user_includes=['"stdutil/searchable.hpp"'],
             internal_refs=[_hdr_file])
 
         return generated_files

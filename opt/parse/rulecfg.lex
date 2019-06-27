@@ -37,8 +37,6 @@ symbol							{ return SYMBOL; }
 
 \}								{ return RCB; }
 
-groupdef						{ return GROUPDEF; }
-
 property						{ return PROPERTY; }
 
 group							{ return GROUP; }

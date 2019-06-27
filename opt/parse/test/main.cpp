@@ -53,45 +53,6 @@ TEST(PARSE, SymbolDef)
 }
 
 
-TEST(PARSE, GroupDef)
-{
-	const char* groups = "groupdef Linen flax;\n"
-		"groupdef Silk insect;groupdef Cotton stuffing;\n";
-
-	::PtrList* stmts = nullptr;
-	int status = ::parse_str(&stmts, groups);
-	EXPECT_EQ(0, status);
-
-	ASSERT_NE(nullptr, stmts);
-	EXPECT_EQ(::STATEMENT, stmts->type_);
-
-	auto vstmts = vectorize(stmts);
-	ASSERT_EQ(3, vstmts.size());
-
-	std::vector<const char*> refs;
-	std::vector<const char*> tags;
-	refs.reserve(3);
-	tags.reserve(3);
-	for (::Statement* stmt : vstmts)
-	{
-		ASSERT_EQ(::GROUP_DEF, stmt->type_);
-		auto group = (::Group*) stmt->val_;
-		refs.push_back(group->ref_);
-		tags.push_back(group->tag_);
-	}
-
-	EXPECT_STREQ("Linen", refs[0]);
-	EXPECT_STREQ("Silk", refs[1]);
-	EXPECT_STREQ("Cotton", refs[2]);
-
-	EXPECT_STREQ("flax", tags[0]);
-	EXPECT_STREQ("insect", tags[1]);
-	EXPECT_STREQ("stuffing", tags[2]);
-
-	::statements_free(stmts);
-}
-
-
 TEST(PARSE, PropertyDef)
 {
 	const char* groups = "property Owl spooky;\n"

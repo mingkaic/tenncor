@@ -24,6 +24,8 @@ struct iTag
 	virtual TagRepsT get_tags (void) const = 0;
 };
 
+using TagptrT = std::unique_ptr<iTag>;
+
 // TagCollective is a collective of generic iTag instances
 // only 1 instance of a particular type of iTag can be stored in an instance of
 // TagCollective, adding subsequent instances of the same type
@@ -65,7 +67,7 @@ struct TagCollective final
 		other.tags_.clear();
 	}
 
-	void add (std::unique_ptr<iTag> entry)
+	void add (TagptrT entry)
 	{
 		size_t tid = entry->tag_id();
 		auto it = tags_.find(tid);
@@ -91,7 +93,7 @@ struct TagCollective final
 	}
 
 private:
-	std::unordered_map<size_t,std::unique_ptr<iTag>> tags_;
+	std::unordered_map<size_t,TagptrT> tags_;
 
 	static std::unordered_set<size_t>& get_types (void)
 	{
@@ -148,7 +150,8 @@ struct Registry final
 	Registry (void) = delete;
 };
 
-void add_tag (ade::TensrefT tens, iTag* tag);
+// return collective referenced by tens
+TagCollective& get_collective (ade::TensrefT tens);
 
 TagRepsT get_tags (const ade::iTensor* tens);
 
