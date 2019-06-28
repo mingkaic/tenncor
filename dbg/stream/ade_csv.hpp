@@ -5,7 +5,7 @@
 #include "ade/ileaf.hpp"
 #include "ade/ifunctor.hpp"
 
-#include "stdutil/searchable.hpp"
+#include "estd/estd.hpp"
 
 #include "dbg/stream/ade.hpp"
 
@@ -41,7 +41,7 @@ struct CSVEquation final : public ade::iTraveler
 
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (util::has(nodes_, leaf))
+		if (estd::has(nodes_, leaf))
 		{
 			return;
 		}
@@ -65,7 +65,7 @@ struct CSVEquation final : public ade::iTraveler
 
 	void visit (ade::iFunctor* func) override
 	{
-		if (util::has(nodes_, func))
+		if (estd::has(nodes_, func))
 		{
 			return;
 		}

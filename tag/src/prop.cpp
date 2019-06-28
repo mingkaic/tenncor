@@ -20,7 +20,7 @@ bool has_property (const ade::iTensor* tens, std::string property)
 	{
 		return false;
 	}
-	return util::arr_has(it->second, property);
+	return estd::arr_has(it->second, property);
 }
 
 }

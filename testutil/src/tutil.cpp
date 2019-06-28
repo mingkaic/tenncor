@@ -1,13 +1,11 @@
 #include "diff/msg.hpp"
 
-#include "testutil/common.hpp"
+#include "testutil/tutil.hpp"
 
-#ifdef TESTUTIL_COMMON_HPP
+#ifdef TEST_TUTIL_HPP
 
-std::string TestLogger::latest_warning_;
-std::string TestLogger::latest_error_;
-
-std::shared_ptr<TestLogger> tlogger = std::make_shared<TestLogger>();
+namespace tutil
+{
 
 std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
 	bool showshape, LabelsMapT labels)
@@ -37,6 +35,8 @@ std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
 		}
 	}
 	return diff::diff_msg(expects, gots);
+}
+
 }
 
 #endif

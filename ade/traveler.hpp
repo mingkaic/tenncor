@@ -6,7 +6,7 @@
 /// Define common traveler implementations
 ///
 
-#include "stdutil/searchable.hpp"
+#include "estd/estd.hpp"
 
 #include "ade/ileaf.hpp"
 #include "ade/ifunctor.hpp"
@@ -45,7 +45,7 @@ struct GraphStat final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iFunctor* func) override
 	{
-		if (false == util::has(graphsize_, func))
+		if (false == estd::has(graphsize_, func))
 		{
 			ArgsT children = func->get_children();
 			size_t nchildren = children.size();
@@ -58,7 +58,7 @@ struct GraphStat final : public iTraveler
 				iTensor* tens = child.get_tensor().get();
 				tens->accept(*this);
 				NumRange<size_t> range;
-				if (false == util::get(range, graphsize_, tens))
+				if (false == estd::get(range, graphsize_, tens))
 				{
 					logs::debugf(
 						"GraphStat failed to visit child `%s` of functor `%s`",
@@ -107,7 +107,7 @@ struct PathFinder final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iFunctor* func) override
 	{
-		if (false == util::has(parents_, func))
+		if (false == estd::has(parents_, func))
 		{
 			auto& children = func->get_children();
 			size_t n = children.size();
@@ -122,7 +122,7 @@ struct PathFinder final : public iTraveler
 				else
 				{
 					tens->accept(*this);
-					if (util::has(parents_, tens.get()))
+					if (estd::has(parents_, tens.get()))
 					{
 						path.emplace(i);
 					}
@@ -156,7 +156,7 @@ struct ParentFinder final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (false == util::has(parents_, func))
+		if (false == estd::has(parents_, func))
 		{
 			auto& children = func->get_children();
 			for (size_t i = 0, n = children.size(); i < n; ++i)

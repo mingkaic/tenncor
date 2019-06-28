@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ead/generated/api.hpp"
 

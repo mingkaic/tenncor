@@ -32,7 +32,7 @@ struct GraphSaver final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (false == util::has(visited_, leaf))
+		if (false == estd::has(visited_, leaf))
 		{
 			leaf->accept(stat);
 			leaves_.push_back(leaf);
@@ -43,7 +43,7 @@ struct GraphSaver final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (false == util::has(visited_, func))
+		if (false == estd::has(visited_, func))
 		{
 			func->accept(stat);
 			funcs_.push_back(func);

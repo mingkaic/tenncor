@@ -4,22 +4,12 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/matops.hpp"
 
 
-struct MATOPS : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(MATOPS, ToString)
+TEST(MATOPS, ToString)
 {
 	std::string expected = "[[0\\1\\2\\3\\4\\5\\6\\7\\8]\\\n"
 		"[9\\10\\11\\12\\13\\14\\15\\16\\17]\\\n"
@@ -42,7 +32,7 @@ TEST_F(MATOPS, ToString)
 }
 
 
-TEST_F(MATOPS, Determinant)
+TEST(MATOPS, Determinant)
 {
 	ade::MatrixT indata = {
 		{0.6889268247, 0.5182375525, 0.8077819453, 0.6586822856, 0.1064583106, 0.5584794867, 0.7151236734, 0.6955541292, 0.5299556786},
@@ -74,7 +64,7 @@ TEST_F(MATOPS, Determinant)
 }
 
 
-TEST_F(MATOPS, Inverse)
+TEST(MATOPS, Inverse)
 {
 	ade::MatrixT out, in;
 	ade::MatrixT zout, zin;
@@ -156,7 +146,7 @@ TEST_F(MATOPS, Inverse)
 }
 
 
-TEST_F(MATOPS, Matmul)
+TEST(MATOPS, Matmul)
 {
 	ade::MatrixT expected, out, in, in2;
 	std::vector<double> indata = {

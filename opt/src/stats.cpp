@@ -80,7 +80,7 @@ bool lt (std::unordered_set<ade::iTensor*> priorities,
 				}
 			}
 			// a and b are equal, return true if a has priorities,
-			return util::has(priorities, a);
+			return estd::has(priorities, a);
 		}
 		std::hash<std::string> shash;
 		return shash(ashape) < shash(bshape);
@@ -153,7 +153,7 @@ bool lt (std::unordered_set<ade::iTensor*> priorities,
 					}
 				}
 				// a and b are equal, return true if a has priorities,
-				return util::has(priorities, a);
+				return estd::has(priorities, a);
 			}
 			return a_nchildren < b_nchildren;
 		}

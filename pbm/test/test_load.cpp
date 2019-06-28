@@ -4,7 +4,9 @@
 
 #include <fstream>
 
-#include "testutil/common.hpp"
+#include "gtest/gtest.h"
+
+#include "exam/exam.hpp"
 
 #include "dbg/stream/ade.hpp"
 

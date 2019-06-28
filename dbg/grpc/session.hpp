@@ -79,7 +79,7 @@ struct InteractiveSession final : public ead::iSession
 			auto tens = statpair.first;
 			auto& range = statpair.second;
 			size_t id = node_ids_.size() + 1;
-			if (false == util::has(node_ids_, tens))
+			if (false == estd::has(node_ids_, tens))
 			{
 				node_ids_.emplace(tens, id);
 				// add to request
@@ -145,7 +145,7 @@ struct InteractiveSession final : public ead::iSession
 						node_ids_[child_tens],
 						label,
 					};
-					if (false == util::has(edges_, edgeinfo))
+					if (false == estd::has(edges_, edgeinfo))
 					{
 						edges_.emplace(edgeinfo);
 						// add to request
@@ -223,7 +223,7 @@ struct InteractiveSession final : public ead::iSession
 		{
 			// fulfilled and not ignored
 			if (fulfilments[op.first].d >= op.second &&
-				false == util::has(ignores, op.first))
+				false == estd::has(ignores, op.first))
 			{
 				op.first->update();
 				age::_GENERATED_DTYPE dtype =
@@ -257,17 +257,11 @@ struct InteractiveSession final : public ead::iSession
 		sess_.optimize(rules);
 
 		// update graph
-		// todo: implement update calls
-
 		node_ids_.clear();
 		edges_.clear();
 
-		// temporary workaround: reset everything and resend
-		sess_id_ = boost::uuids::to_string(InteractiveSession::uuid_gen_());
-		logs::infof("reset session as %s", sess_id_.c_str());
-
 		// setup request
-		tenncor::CreateGraphRequest request;
+		tenncor::UpdateGraphRequest request;
 		auto payload = request.mutable_payload();
 		payload->set_graph_id(sess_id_);
 		for (auto& statpair : sess_.stat_.graphsize_)
@@ -275,7 +269,7 @@ struct InteractiveSession final : public ead::iSession
 			auto tens = statpair.first;
 			auto& range = statpair.second;
 			size_t id = node_ids_.size() + 1;
-			if (false == util::has(node_ids_, tens))
+			if (false == estd::has(node_ids_, tens))
 			{
 				node_ids_.emplace(tens, id);
 				// add to request
@@ -341,7 +335,7 @@ struct InteractiveSession final : public ead::iSession
 						node_ids_[child_tens],
 						label,
 					};
-					if (false == util::has(edges_, edgeinfo))
+					if (false == estd::has(edges_, edgeinfo))
 					{
 						edges_.emplace(edgeinfo);
 						// add to request
@@ -362,7 +356,7 @@ struct InteractiveSession final : public ead::iSession
 			}
 		}
 
-		client_.create_graph(request);
+		client_.update_graph(request);
 	}
 
 	// join indefinitely

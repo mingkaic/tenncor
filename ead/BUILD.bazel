@@ -113,7 +113,10 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//ead:ead",
-        "//testutil:testutil",
+        "//dbg:stream_out",
+        "//testutil:tutil",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,
     data = ["//cfg:optimizations"],

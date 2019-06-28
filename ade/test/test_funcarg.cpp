@@ -4,24 +4,14 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/test/common.hpp"
 
 #include "ade/funcarg.hpp"
 
 
-struct FUNCARG : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(FUNCARG, Reduce1d)
+TEST(FUNCARG, Reduce1d)
 {
 	size_t rank = 5;
 	ade::CoordT fwd_out;

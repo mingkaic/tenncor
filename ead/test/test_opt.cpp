@@ -1,16 +1,19 @@
 
 #ifndef DISABLE_OPTIMIZATION_TEST
 
+
+#include "gtest/gtest.h"
+
 #include "dbg/stream/ade_csv.hpp"
 
-#include "testutil/common.hpp"
+#include "testutil/tutil.hpp"
+
+#include "exam/exam.hpp"
 
 #include "opt/optimize.hpp"
 
-#include "ead/parse.hpp"
-
 #include "ead/generated/api.hpp"
-
+#include "ead/parse.hpp"
 #include "ead/constant.hpp"
 
 

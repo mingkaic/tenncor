@@ -4,22 +4,12 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/coord.hpp"
 
 
-struct COORD : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(COORD, Forward)
+TEST(COORD, Forward)
 {
 	std::vector<double> indata = {
 		0.0019825081, 0.3347071004, 0.0865707708, 0.5146660164, 0.2166590070, 0.5496622507, 0.5109064577, 0.3955951994, 0.3905624328,
@@ -94,7 +84,7 @@ TEST_F(COORD, Forward)
 }
 
 
-TEST_F(COORD, Reverse)
+TEST(COORD, Reverse)
 {
 	std::vector<double> indata = {
 		0.8156562350, 0.6115720004, 0.3259187100, 0.4587045151, 0.3708856605, 0.9116936271, 0.8506702867, 0.6005461299, 0.5781125392,
@@ -149,7 +139,7 @@ TEST_F(COORD, Reverse)
 }
 
 
-TEST_F(COORD, Identity)
+TEST(COORD, Identity)
 {
 	std::string idstr;
 	ade::identity->access(
@@ -181,7 +171,7 @@ TEST_F(COORD, Identity)
 }
 
 
-TEST_F(COORD, Reduce)
+TEST(COORD, Reduce)
 {
 	size_t rank = 5;
 	std::vector<ade::DimT> red = {22, 32, 2};
@@ -214,7 +204,7 @@ TEST_F(COORD, Reduce)
 }
 
 
-TEST_F(COORD, Extend)
+TEST(COORD, Extend)
 {
 	size_t rank = 3;
 	std::vector<ade::DimT> ext = {12, 21, 8, 4, 52};
@@ -244,7 +234,7 @@ TEST_F(COORD, Extend)
 }
 
 
-TEST_F(COORD, Permute)
+TEST(COORD, Permute)
 {
 	std::vector<ade::DimT> perm = {4, 2, 3, 7, 0, 1};
 	ade::CoordptrT permuter = ade::permute(perm);
@@ -275,7 +265,7 @@ TEST_F(COORD, Permute)
 }
 
 
-TEST_F(COORD, Flip)
+TEST(COORD, Flip)
 {
 	size_t dim = 3;
 	ade::CoordptrT flipper = ade::flip(dim);
@@ -298,7 +288,7 @@ TEST_F(COORD, Flip)
 }
 
 
-TEST_F(COORD, Bijection)
+TEST(COORD, Bijection)
 {
 	EXPECT_TRUE(ade::identity->is_bijective());
 

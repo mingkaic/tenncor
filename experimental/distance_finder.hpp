@@ -12,7 +12,7 @@ struct DistanceFinder final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (false == util::has(distances_, leaf))
+		if (false == estd::has(distances_, leaf))
 		{
 			distances_.emplace(leaf, DistanceMapT{{leaf, 0}});
 		}
@@ -21,7 +21,7 @@ struct DistanceFinder final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (false == util::has(distances_, func))
+		if (false == estd::has(distances_, func))
 		{
 			DistanceMapT distmap = {{func, 0}};
 			auto& children = func->get_children();

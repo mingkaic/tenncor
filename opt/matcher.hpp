@@ -38,7 +38,7 @@ struct Matcher final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (false == util::has(candidates_, leaf))
+		if (false == estd::has(candidates_, leaf))
 		{
 			if (tag::has_property(leaf, tag::immutable_tag))
 			{
@@ -49,7 +49,7 @@ struct Matcher final : public ade::iTraveler
 				if (is_scalar(leaf))
 				{
 					// match against scalar maps
-					if (util::has(voters_.immutables_, const_str))
+					if (estd::has(voters_.immutables_, const_str))
 					{
 						cands.emplace(
 							Symbol{CAND_TYPE::SCALAR, const_str}, CtxsT{});
@@ -67,7 +67,7 @@ struct Matcher final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (false == util::has(candidates_, func))
+		if (false == estd::has(candidates_, func))
 		{
 			auto& children = func->get_children();
 			for (auto& child : children)
@@ -79,7 +79,7 @@ struct Matcher final : public ade::iTraveler
 				[this](const ade::FuncArg& child) -> bool
 				{
 					auto ctens = child.get_tensor().get();
-					return util::has(this->candidates_[ctens],
+					return estd::has(this->candidates_[ctens],
 						Symbol{CAND_TYPE::CONST, ctens->to_string()});
 				}))
 			{
@@ -99,7 +99,7 @@ struct Matcher final : public ade::iTraveler
 						{
 							auto ctens = child.get_tensor().get();
 							std::string scalar_str = scalarize_(ctens);
-							return util::has(this->candidates_[ctens],
+							return estd::has(this->candidates_[ctens],
 								Symbol{CAND_TYPE::SCALAR, scalar_str});
 						}))
 					{
@@ -134,7 +134,7 @@ struct Matcher final : public ade::iTraveler
 
 			// do the same for functors that are the "head" of groups
 			tag::SgraphptrT sg;
-			if (util::get(sg, group_head_, func))
+			if (estd::get(sg, group_head_, func))
 			{
 				auto bit = voters_.branches_.find(group_prefix + sg->group_);
 				if (voters_.branches_.end() != bit)

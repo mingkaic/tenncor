@@ -62,7 +62,9 @@ cc_test(
     srcs = ["//pbm:test_srcs"],
     deps = [
         "//pbm:pbm",
-        "//testutil:testutil",
+        "//dbg:stream_out",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],
     data = glob([

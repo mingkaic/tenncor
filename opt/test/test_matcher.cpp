@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ead/ead.hpp"
 
@@ -48,11 +48,11 @@ TEST(MATCHER, OrdrAny)
 	f1tens->accept(matcher);
 	f3tens->accept(matcher);
 
-	ASSERT_TRUE(util::has(matcher.candidates_, atens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, btens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f1tens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f2tens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f3tens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, atens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, btens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f1tens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f2tens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f3tens.get()));
 
 	auto& acands = matcher.candidates_[atens.get()]; // expect empty
 	auto& bcands = matcher.candidates_[btens.get()]; // expect empty
@@ -125,15 +125,15 @@ TEST(MATCHER, CommAny)
 	f5tens->accept(matcher);
 	f6tens->accept(matcher);
 
-	ASSERT_TRUE(util::has(matcher.candidates_, atens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, btens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f1tens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f2tens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f3tens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f4_sub_ltens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f4_sub_rtens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f5tens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, f6tens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, atens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, btens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f1tens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f2tens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f3tens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f4_sub_ltens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f4_sub_rtens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f5tens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f6tens.get()));
 
 	auto& acands = matcher.candidates_[atens.get()]; // expect empty
 	auto& bcands = matcher.candidates_[btens.get()]; // expect empty
@@ -210,10 +210,10 @@ TEST(MATCHER, Ambiguous_CommAny)
 	sub_ltens->accept(matcher);
 	sub_rtens->accept(matcher);
 
-	ASSERT_TRUE(util::has(matcher.candidates_, atens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, btens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, sub_ltens.get()));
-	ASSERT_TRUE(util::has(matcher.candidates_, sub_rtens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, atens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, btens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, sub_ltens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, sub_rtens.get()));
 
 	auto& acands = matcher.candidates_[atens.get()]; // expect empty
 	auto& bcands = matcher.candidates_[btens.get()]; // expect empty

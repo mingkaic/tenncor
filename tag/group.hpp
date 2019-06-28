@@ -66,18 +66,18 @@ struct AdjacentGroups final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (false == util::has(visited_, leaf))
+		if (false == estd::has(visited_, leaf))
 		{
 			visited_.emplace(leaf);
 			auto tags = get_tags(leaf);
 			std::vector<std::string> groups;
-			if (util::get(groups, tags, groups_key))
+			if (estd::get(groups, tags, groups_key))
 			{
 				auto& mygroups = adjs_[leaf];
 				for (std::string group : groups)
 				{
 					// set unique gids if there are no inherited groups
-					if (false == util::has(mygroups, group))
+					if (false == estd::has(mygroups, group))
 					{
 						mygroups.emplace(group,
 							std::unordered_set<std::string>{
@@ -92,7 +92,7 @@ struct AdjacentGroups final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (false == util::has(visited_, func))
+		if (false == estd::has(visited_, func))
 		{
 			visited_.emplace(func);
 			auto& children = func->get_children();
@@ -105,7 +105,7 @@ struct AdjacentGroups final : public ade::iTraveler
 				});
 			TagRepsT tags = get_tags(func);
 			std::vector<std::string> groups;
-			if (util::get(groups, tags, groups_key))
+			if (estd::get(groups, tags, groups_key))
 			{
 				auto& mygroups = adjs_[func];
 				for (std::string group : groups)
@@ -113,7 +113,7 @@ struct AdjacentGroups final : public ade::iTraveler
 					// set or inherit from parent, the unique gid of func
 					std::unordered_set<std::string> gids;
 					// try to inherit unique gid
-					if (false == util::get(gids, mygroups, group))
+					if (false == estd::get(gids, mygroups, group))
 					{
 						gids = {boost::uuids::to_string(uuid_gen_())};
 						mygroups.emplace(group, gids);
@@ -151,7 +151,7 @@ struct Subgraph final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (false == util::has(content_, leaf))
+		if (false == estd::has(content_, leaf))
 		{
 			content_.emplace(leaf);
 			children_.erase(leaf);
@@ -161,7 +161,7 @@ struct Subgraph final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (false == util::has(content_, func))
+		if (false == estd::has(content_, func))
 		{
 			content_.emplace(func);
 			children_.erase(func);
@@ -170,7 +170,7 @@ struct Subgraph final : public ade::iTraveler
 			for (auto& child : children)
 			{
 				auto tens = child.get_tensor();
-				if (false == util::has(content_, tens.get()))
+				if (false == estd::has(content_, tens.get()))
 				{
 					children_.emplace(tens.get(), tens);
 				}

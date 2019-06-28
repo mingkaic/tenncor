@@ -69,7 +69,7 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 			std::unordered_map<tag::SgraphptrT,ade::iTensor*> revhead;
 			for (auto& sgpair : subgraphs)
 			{
-				if (util::has(revhead, sgpair.second))
+				if (estd::has(revhead, sgpair.second))
 				{
 					ade::iTensor*& oldhead = revhead[sgpair.second];
 					if (stat.graphsize_[sgpair.first].upper_ >

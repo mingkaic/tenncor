@@ -112,7 +112,7 @@ struct Session final : public iSession
 		{
 			// fulfilled and not ignored
 			if (fulfilments[op.first].d >= op.second &&
-				false == util::has(ignores, op.first))
+				false == estd::has(ignores, op.first))
 			{
 				op.first->update();
 				auto& op_parents = parents_[op.first];

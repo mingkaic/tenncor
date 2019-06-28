@@ -33,7 +33,7 @@ struct PathedTens final
 			std::vector<std::string> labels;
 			for (auto opair : other->tens_)
 			{
-				if (util::has(tens_, opair.first))
+				if (estd::has(tens_, opair.first))
 				{
 					labels.push_back(opair.first);
 				}

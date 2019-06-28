@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/test/common.hpp"
 
@@ -12,17 +12,7 @@
 #include "ade/traveler.hpp"
 
 
-struct TRAVELER : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(TRAVELER, GraphStat)
+TEST(TRAVELER, GraphStat)
 {
 	ade::TensptrT a(new MockTensor());
 	ade::TensptrT b(new MockTensor());
@@ -48,7 +38,7 @@ TEST_F(TRAVELER, GraphStat)
 }
 
 
-TEST_F(TRAVELER, PathFinder)
+TEST(TRAVELER, PathFinder)
 {
 	ade::TensptrT a(new MockTensor());
 	ade::TensptrT b(new MockTensor());
@@ -101,7 +91,7 @@ TEST_F(TRAVELER, PathFinder)
 }
 
 
-TEST_F(TRAVELER, ReverseParentGraph)
+TEST(TRAVELER, ReverseParentGraph)
 {
 	ade::TensptrT a(new MockTensor());
 	ade::TensptrT b(new MockTensor());

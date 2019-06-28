@@ -4,22 +4,12 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/shape.hpp"
 
 
-struct SHAPE : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(SHAPE, Init)
+TEST(SHAPE, Init)
 {
 	ade::Shape scalar;
 
@@ -59,7 +49,7 @@ TEST_F(SHAPE, Init)
 }
 
 
-TEST_F(SHAPE, VecAssign)
+TEST(SHAPE, VecAssign)
 {\
 	std::vector<ade::DimT> zerolist = {3, 0, 11, 89};
 	std::vector<ade::DimT> slist = {52, 58, 35, 46, 77, 80};
@@ -82,7 +72,7 @@ TEST_F(SHAPE, VecAssign)
 }
 
 
-TEST_F(SHAPE, Moves)
+TEST(SHAPE, Moves)
 {
 	std::vector<ade::DimT> junk = {8, 51, 73};
 	std::vector<ade::DimT> slist = {24, 11, 12, 16};
@@ -117,7 +107,7 @@ TEST_F(SHAPE, Moves)
 }
 
 
-TEST_F(SHAPE, NElems)
+TEST(SHAPE, NElems)
 {
 	std::vector<ade::DimT> slist = {11, 12, 16};
 	ade::Shape shape(slist);
@@ -137,7 +127,7 @@ TEST_F(SHAPE, NElems)
 }
 
 
-TEST_F(SHAPE, Compatible)
+TEST(SHAPE, Compatible)
 {
 	std::vector<ade::DimT> slist = {20, 48, 10, 27, 65, 74};
 	ade::Shape shape(slist);
@@ -181,7 +171,7 @@ TEST_F(SHAPE, Compatible)
 }
 
 
-TEST_F(SHAPE, Coordinates)
+TEST(SHAPE, Coordinates)
 {
 	std::vector<ade::DimT> slist = {9, 3, 7, 8, 5};
 	ade::Shape shape(slist);
@@ -212,7 +202,7 @@ TEST_F(SHAPE, Coordinates)
 }
 
 
-TEST_F(SHAPE, ToString)
+TEST(SHAPE, ToString)
 {
 	std::vector<ade::DimT> slist = {24, 11, 12, 16, 7, 71, 1, 1};
 	ade::Shape shape(slist);

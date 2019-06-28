@@ -34,7 +34,7 @@ struct Grouper final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (false == util::has(stops_, leaf))
+		if (false == estd::has(stops_, leaf))
 		{
 			auto it = owners_.find(leaf);
 			if (owners_.end() == it)
@@ -48,7 +48,7 @@ struct Grouper final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (false == util::has(stops_, func))
+		if (false == estd::has(stops_, func))
 		{
 			auto it = owners_.find(func);
 			if (owners_.end() == it)

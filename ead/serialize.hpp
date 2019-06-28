@@ -162,7 +162,7 @@ struct EADLoader : public pbm::iLoader
 		{
 			logs::fatal("cannot deserialize non-vector coordinate map");
 		}
-		bool is_bijective = false == util::has(non_bijectives, age::get_op(opname));
+		bool is_bijective = false == estd::has(non_bijectives, age::get_op(opname));
 		ade::CoordT indices;
 		auto cit = coord.begin();
 		std::copy(cit, cit + ade::rank_cap, indices.begin());

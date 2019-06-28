@@ -13,7 +13,7 @@ struct OwnerTracker final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iFunctor* func) override
 	{
-		if (false == util::has(visited_, func))
+		if (false == estd::has(visited_, func))
 		{
 			auto& children = func->get_children();
 			for (auto& child : children)

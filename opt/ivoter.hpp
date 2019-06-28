@@ -36,7 +36,7 @@ struct VoterArg final
 		{
 			case ::SUBGRAPH_TYPE::SCALAR:
 				// look for scalar candidate in arg.candidates
-				return util::has(arg.candidates_, Symbol{
+				return estd::has(arg.candidates_, Symbol{
 					CAND_TYPE::SCALAR,
 					label_,
 				});
@@ -100,7 +100,7 @@ struct VoterArg final
 				for (ContexT ctx : ctxs)
 				{
 					auto it = ctx.find(label_);
-					if (ctx.end() == it || util::has(it->second, arg.tensor_))
+					if (ctx.end() == it || estd::has(it->second, arg.tensor_))
 					{
 						// matching ANY
 						ctx.emplace(label_, CtxValT{arg.tensor_});

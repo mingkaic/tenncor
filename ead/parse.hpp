@@ -63,7 +63,7 @@ struct AnyConvr final : public opt::iConverter
 	ade::TensptrT build (const opt::ContexT& ctx,
 		ade::Shape outshape) const override
 	{
-		const opt::CtxValT& val = util::must_getf(ctx, any_id_,
+		const opt::CtxValT& val = estd::must_getf(ctx, any_id_,
 			"cannot find any id %s in conversion", any_id_.c_str());
 		if (val.size() != 1)
 		{
@@ -170,7 +170,7 @@ struct GroupConvr final : public opt::iConverter
 
 		if (variadic_.size() > 0)
 		{
-			opt::CtxValT varargs = util::try_get(
+			opt::CtxValT varargs = estd::try_get(
 				ctx, variadic_, opt::CtxValT());
 			args.insert(args.end(), varargs.begin(), varargs.end());
 		}
@@ -248,7 +248,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 			case ANY:
 			{
 				std::string symbol(sg->val_.any_);
-				if (false == util::has(ctx.symbols_, symbol))
+				if (false == estd::has(ctx.symbols_, symbol))
 				{
 					logs::fatalf("undeclared symbol '%s'", symbol.c_str());
 				}
@@ -275,7 +275,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 				if (branch->is_group_)
 				{
 					std::string variadic(branch->variadic_);
-					if (variadic.size() > 0 && false == util::has(ctx.symbols_, variadic))
+					if (variadic.size() > 0 && false == estd::has(ctx.symbols_, variadic))
 					{
 						logs::warnf("unknown variadic %s", variadic.c_str());
 						variadic = "";

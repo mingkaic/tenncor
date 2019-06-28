@@ -22,7 +22,7 @@ static bool is_commutative (const RulesContext& ctx, std::string label)
 	{
 		return false;
 	}
-	return util::has(it->second, commutative_prop);
+	return estd::has(it->second, commutative_prop);
 }
 
 static std::string build_intermediate (VoterPool& voters, const ::Subgraph* sg,
@@ -54,13 +54,13 @@ static std::string build_args (VoterPool& voters,
 			arg->subgraph_->type_,
 		});
 	}
-	if (false == util::has(voters.branches_, label))
+	if (false == estd::has(voters.branches_, label))
 	{
 		if (is_commutative(ctx, label))
 		{
 			std::string variadic(branch->variadic_);
 			if (variadic.size() > 0 && branch->is_group_ &&
-				util::has(ctx.symbols_, variadic))
+				estd::has(ctx.symbols_, variadic))
 			{
 				voters.branches_.emplace(label,
 					std::make_shared<VariadicVoter>(label, variadic));
@@ -97,7 +97,7 @@ static std::string build_intermediate (VoterPool& voters, const ::Subgraph* sg,
 		case ::SUBGRAPH_TYPE::ANY:
 		{
 			std::string symbol(sg->val_.any_);
-			if (false == util::has(ctx.symbols_, symbol))
+			if (false == estd::has(ctx.symbols_, symbol))
 			{
 				logs::fatalf("undeclared symbol '%s'", symbol.c_str());
 			}
@@ -182,7 +182,7 @@ OptCtx process_stmts (::PtrList* stmts, const iConverterBuilder& builder)
 			case SYMBOL_DEF:
 			{
 				std::string symbol = std::string((char*) stmt->val_);
-				if (util::has(ctx.symbols_, symbol))
+				if (estd::has(ctx.symbols_, symbol))
 				{
 					logs::fatalf("redeclaration of symbol %s", symbol.c_str());
 				}
@@ -204,7 +204,7 @@ OptCtx process_stmts (::PtrList* stmts, const iConverterBuilder& builder)
 					ctx.properties_.emplace(label,
 						std::unordered_set<std::string>{property_tag});
 				}
-				else if (util::has(it->second, property_tag))
+				else if (estd::has(it->second, property_tag))
 				{
 					logs::warnf("reassignment of property %s to %s",
 						property_tag.c_str(), label.c_str());

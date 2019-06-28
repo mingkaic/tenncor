@@ -136,8 +136,8 @@ struct RBMTrainer
 			});
 
 		{
-			opt::OptCtx rules = ead::parse<PybindT>(
-				"opt/optimizations.rules");
+			opt::OptCtx rules = ead::parse_file<PybindT>(
+				"cfg/optimizations.rules");
 			opt::optimize(to_optimize, rules);
 		}
 

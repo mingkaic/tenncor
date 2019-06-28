@@ -126,6 +126,64 @@ struct GraphEmitterClient final
 		}, std::move(request));
 	}
 
+	/// Add job that pass UpdateGraphRequest
+	void update_graph (tenncor::UpdateGraphRequest& request)
+	{
+		// retries sending creation request unless stop_it times out
+		sequential_jobs_.attach_job(
+		[this](std::future<void> dependency, std::future<void> stop_it,
+			tenncor::UpdateGraphRequest request)
+		{
+			if (dependency.valid())
+			{
+				dependency.get(); // wait for dependency completion
+			}
+			std::string sid = fmts::to_string(
+				std::this_thread::get_id());
+			for (size_t attempt = 0;
+				stop_it.wait_for(std::chrono::milliseconds(1)) ==
+				std::future_status::timeout && attempt < max_attempts;
+				++attempt)
+			{
+				grpc::ClientContext context;
+				tenncor::UpdateGraphResponse response;
+				// set context deadline
+				std::chrono::time_point<std::chrono::system_clock> deadline =
+					std::chrono::system_clock::now() + cfg_.request_duration_;
+				context.set_deadline(deadline);
+
+				grpc::Status status = this->stub_->UpdateGraph(
+					&context, request, &response);
+				if (status.ok())
+				{
+					auto res_status = response.status();
+					if (tenncor::Status::OK != res_status)
+					{
+						logs::errorf("%s: %s",
+							tenncor::Status_Name(res_status).c_str(),
+							response.message().c_str());
+					}
+					else
+					{
+						logs::infof("%s: UpdateGraphRequest success: %s",
+							sid.c_str(), response.message().c_str());
+						return;
+					}
+				}
+				else
+				{
+					logs::errorf(
+						"%s: UpdateGraphRequest attempt %d failure: %s",
+						sid.c_str(), attempt,
+						status.error_message().c_str());
+				}
+				std::this_thread::sleep_for(
+					std::chrono::milliseconds(attempt * 1000));
+			}
+			logs::warnf("%s: UpdateGraphRequest terminating", sid.c_str());
+		}, std::move(request));
+	}
+
 	/// Add job that streams UpdateNodeDataRequest
 	void update_node_data (
 		std::vector<tenncor::UpdateNodeDataRequest>& requests,

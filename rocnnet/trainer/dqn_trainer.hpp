@@ -418,7 +418,7 @@ private:
 
 		{
 			opt::OptCtx rules = ead::parse_file<PybindT>(
-				"opt/optimizations.rules");
+				"cfg/optimizations.rules");
 			opt::optimize(to_optimize, rules);
 		}
 

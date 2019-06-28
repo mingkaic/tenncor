@@ -87,6 +87,16 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 		return grpc::Status::OK;
 	}
 
+	// Wipe and reupdate entire graph with listed nodes and edges
+	grpc::Status UpdateGraph(grpc::ServerContext* context,
+		const tenncor::UpdateGraphRequest* request,
+		tenncor::UpdateGraphResponse* response) override
+	{
+		response->set_status(tenncor::OK);
+		response->set_message("Updated Graph");
+		return grpc::Status::OK;
+	}
+
 	// Update data (tensor data) of existing nodes
 	grpc::Status UpdateNodeData(grpc::ServerContext* context,
 		grpc::ServerReader<tenncor::UpdateNodeDataRequest>* reader,

@@ -12,13 +12,11 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "testutil",
-    hdrs = ["common.hpp"],
-    srcs = ["common.cpp"],
+    name = "tutil",
+    hdrs = ["tutil.hpp"],
+    srcs = ["src/tutil.cpp"],
     deps = [
-        "//ade:ade",
         "//dbg:stream_out",
-        "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
     ],
     copts = ["-std=c++17"],

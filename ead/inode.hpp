@@ -1,4 +1,4 @@
-#include "stdutil/searchable.hpp"
+#include "estd/estd.hpp"
 
 #include "ade/itensor.hpp"
 
@@ -44,7 +44,7 @@ struct NodeConverters final
 	static NodeptrT<T> to_node (ade::TensptrT tens)
 	{
 		const std::type_info& tp = typeid(*tens);
-		return util::must_getf(builders_, tp.hash_code(),
+		return estd::must_getf(builders_, tp.hash_code(),
 			"unknown tensor type %s with %s dtype",
 			tp.name(), age::name_type(age::get_type<T>()).c_str())(tens);
 	}
