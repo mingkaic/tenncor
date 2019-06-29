@@ -402,8 +402,7 @@ private:
 		}
 		updates_.push_back(target_assigns);
 
-		ade::TensT to_optimize =
-		{
+		ade::TensT track_batch = {
 			prediction_error_->get_tensor(),
 			train_out_->get_tensor(),
 			output_->get_tensor(),
@@ -412,17 +411,10 @@ private:
 		{
 			for (eqns::VarAssign& assign : assigns)
 			{
-				to_optimize.push_back(assign.source_->get_tensor());
+				track_batch.push_back(assign.source_->get_tensor());
 			}
 		}
-
-		{
-			opt::OptCtx rules = ead::parse_file<PybindT>(
-				"cfg/optimizations.rules");
-			opt::optimize(to_optimize, rules);
-		}
-
-		sess_->track(to_optimize);
+		sess_->track(track_batch);
 	}
 
 	PybindT linear_annealing (PybindT initial_prob) const

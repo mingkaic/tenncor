@@ -50,9 +50,10 @@ struct RBMTrainer
 		if (nullptr == train_in)
 		{
 			train_in_ = ead::convert_to_node(
-				ead::make_variable_scalar<PybindT>(
-					0.0, ade::Shape({brain->get_ninput(), batch_size}),
-						"train_in"));
+				ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
+					brain->get_ninput(),
+					batch_size,
+				}), "train_in"));
 		}
 		else
 		{
@@ -95,14 +96,14 @@ struct RBMTrainer
 		auto dvb = ead::derive(cost_, ead::convert_to_node(vbias));
 
 		auto next_weight = age::sub(ead::convert_to_node(weight),
-			age::mul(
-				ead::make_constant_scalar(learning_rate, dW->shape()), dW));
+			age::mul(ead::make_constant_scalar(
+				learning_rate, dW->shape()), dW));
 		auto next_hbias = age::sub(ead::convert_to_node(hbias),
-			age::mul(
-				ead::make_constant_scalar(learning_rate, dhb->shape()), dhb));
+			age::mul(ead::make_constant_scalar(
+				learning_rate, dhb->shape()), dhb));
 		auto next_vbias = age::sub(ead::convert_to_node(vbias),
-			age::mul(
-				ead::make_constant_scalar(learning_rate, dvb->shape()), dvb));
+			age::mul(ead::make_constant_scalar(
+				learning_rate, dvb->shape()), dvb));
 		eqns::AssignsT assigns = {
 			eqns::VarAssign{"", weight, next_weight},
 			eqns::VarAssign{"", hbias, next_hbias},
@@ -125,25 +126,17 @@ struct RBMTrainer
 
 			monitoring_cost_ = get_pseudo_likelihood_cost(train_in_);
 		}
+		updates_.push_back(assigns);
 
-		ade::TensT to_optimize;
-		to_optimize.reserve(assigns.size());
+		ade::TensT track_batch;
+		track_batch.reserve(assigns.size());
 		std::transform(assigns.begin(), assigns.end(),
-			std::back_inserter(to_optimize),
+			std::back_inserter(track_batch),
 			[](eqns::VarAssign& assign)
 			{
 				return assign.source_->get_tensor();
 			});
-
-		{
-			opt::OptCtx rules = ead::parse_file<PybindT>(
-				"cfg/optimizations.rules");
-			opt::optimize(to_optimize, rules);
-		}
-
-		sess_->track(to_optimize);
-
-		updates_.push_back(assigns);
+		sess_->track(track_batch);
 	}
 
 	// input a 2-D vector of shape <n_input, n_batch> return monitor cost

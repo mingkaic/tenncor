@@ -13,7 +13,7 @@ from rocnnet.demo.data.load_mnist import load_mnist
 from rocnnet.demo.data.image_out import mnist_imageout
 
 prog_description = 'Demo rbm_trainer'
-n_sample = 10
+default_n_sample = 10
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -49,8 +49,8 @@ def main(args):
         help='Size of test chain (default: 20)')
     parser.add_argument('--n_train', dest='n_train', type=int, nargs='?', default=10,
         help='Number of times to train (default: 10)')
-    parser.add_argument('--n_sample', dest='n_sample', type=int, nargs='?', default=10,
-        help='Number of times to sample (default: 10)')
+    parser.add_argument('--n_sample', dest='n_sample', type=int, nargs='?', default=default_n_sample,
+        help='Number of times to sample (default: {})'.format(default_n_sample))
     parser.add_argument('--cache', dest='cache_file', nargs='?', default='/tmp/rbmcache.pbx',
         help='Filename to cache model (default: /tmp/rbmcache.pbx')
     parser.add_argument('--imgdir', dest='outdir', nargs='?', default='',
@@ -75,9 +75,21 @@ def main(args):
     except:
         pass
 
+    # test
+    plot_every = 1000
+    n_test_input = testing_x.shape[1]
+    n_test_sample = testing_x.shape[0]
+    def idx_generate():
+        return np.random.randint(0, n_test_sample - args.n_test_chain)
+
     # train
-    # sess = ead.Session()
-    sess = dbg.get_isess(request_dur=5000, stream_dur=100000)
+    sess = ead.Session()
+    # sess = dbg.get_isess(request_dur=5000, stream_dur=100000)
+
+    testin = ead.variable(np.zeros([args.n_test_chain, n_test_input], dtype=float), "testin")
+    test_generated_in = brain.reconstruct_visible(testin, [age.sigmoid])
+    sess.track([test_generated_in])
+
     if args.train:
         n_data = training_x.shape[0]
         n_training_batches = n_data / args.n_batch
@@ -86,6 +98,7 @@ def main(args):
             np.zeros([args.n_batch, args.n_hidden], dtype=float), 'persistent')
         trainer = rcn.RBMTrainer(brain, [age.sigmoid], sess, persistent, args.n_batch,
             args.learning_rate, args.n_cont_div)
+        sess.optimize("cfg/optimizations.rules")
 
         for i in range(args.n_train):
             mean_cost = 0
@@ -93,23 +106,11 @@ def main(args):
                 batch = training_x[j:j+args.n_batch]
                 mean_cost = mean_cost + trainer.train(list(batch.flatten()))
                 print('completed batch {}'.format(j))
-                raw_input('paused... enter to continue')
 
             print("training epoch {}, cost is {}".format(i, mean_cost))
             # save in case of problems
             print('saving to cache')
             brain.serialize_to_file(trainer.cost(), args.cache_file)
-
-    # test
-    plot_every = 1000
-    n_test_input = testing_x.shape[1]
-    n_test_sample = testing_x.shape[0]
-    def idx_generate():
-        return np.random.randint(0, n_test_sample - args.n_test_chain)
-
-    testin = ead.variable(np.zeros([args.n_test_chain, n_test_input], dtype=float), "testin")
-    test_generated_in = brain.reconstruct_visible(testin, [age.sigmoid])
-    sess.track(test_generated_in)
 
     output_chains = []
     for i in range(args.n_sample):

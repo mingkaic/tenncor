@@ -61,17 +61,18 @@ struct MLPTrainer
 		}
 		updates_ = update(error_, vars);
 
-		sess_->track({
+		ade::TensT track_batch = {
 			train_out_->get_tensor(),
 			error_->get_tensor(),
-		});
+		};
 		for (eqns::AssignsT& assigns : updates_)
 		{
 			for (eqns::VarAssign& assign : assigns)
 			{
-				sess_->track({assign.source_->get_tensor()});
+				track_batch.push_back(assign.source_->get_tensor());
 			}
 		}
+		sess_->track(track_batch);
 	}
 
 	void train (std::vector<PybindT>& train_in,

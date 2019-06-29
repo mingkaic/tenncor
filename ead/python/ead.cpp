@@ -6,13 +6,13 @@
 
 #include "ead/generated/api.hpp"
 #include "ead/generated/pyapi.hpp"
-
 #include "ead/grader.hpp"
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 #include "ead/functor.hpp"
 #include "ead/session.hpp"
 #include "ead/random.hpp"
+#include "ead/parse.hpp"
 
 namespace py = pybind11;
 
@@ -181,11 +181,20 @@ PYBIND11_MODULE(ead, m)
 	session
 		.def(py::init())
 		.def("track",
-		[](py::object self, ead::NodeptrT<PybindT> root)
+		[](py::object self, ead::NodesT<PybindT> roots)
 		{
 			auto sess = self.cast<ead::Session*>();
-			sess->track({root->get_tensor()});
-		}, "Track node")
+			ade::TensT troots;
+			troots.reserve(roots.size());
+			std::transform(roots.begin(), roots.end(),
+				std::back_inserter(troots),
+				[](ead::NodeptrT<PybindT>& node)
+				{
+					return node->get_tensor();
+				});
+			sess->track(troots);
+		},
+		"Track node")
 		.def("update",
 		[](py::object self, std::vector<ead::NodeptrT<PybindT>> nodes)
 		{
@@ -198,7 +207,15 @@ PYBIND11_MODULE(ead, m)
 			sess->update(updates);
 		},
 		"Return calculated data",
-		py::arg("nodes") = std::vector<ead::NodeptrT<PybindT>>{});
+		py::arg("nodes") = std::vector<ead::NodeptrT<PybindT>>{})
+		.def("optimize",
+		[](py::object self, std::string filename)
+		{
+			auto sess = self.cast<ead::Session*>();
+			opt::OptCtx rules = ead::parse_file<PybindT>("cfg/optimizations.rules");
+			sess->optimize(rules);
+		},
+		"Optimize using rules for specified filename");
 
 	// ==== constant ====
 	py::class_<ead::ConstantNode<PybindT>,std::shared_ptr<ead::ConstantNode<PybindT>>> constant(

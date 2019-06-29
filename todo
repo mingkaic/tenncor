@@ -6,7 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P2 - make constant pre-calculation configuratable in opt module
+P2 - make constant pre-calculation configurable in opt module
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
 P3 - separate ead api into different namespaces

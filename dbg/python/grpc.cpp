@@ -1,8 +1,9 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "ead/ead.hpp"
 #include "ead/generated/pyapi.hpp"
+#include "ead/ead.hpp"
+#include "ead/parse.hpp"
 
 #include "dbg/grpc/session.hpp"
 
@@ -33,11 +34,20 @@ PYBIND11_MODULE(grpc_dbg, m)
 			py::arg("stream_dur") = 30000);
 	session
 		.def("track",
-		[](py::object self, ead::NodeptrT<PybindT> root)
+		[](py::object self, ead::NodesT<PybindT> roots)
 		{
 			auto sess = self.cast<dbg::InteractiveSession*>();
-			sess->track({root->get_tensor()});
-		}, "Track node")
+			ade::TensT troots;
+			troots.reserve(roots.size());
+			std::transform(roots.begin(), roots.end(),
+				std::back_inserter(troots),
+				[](ead::NodeptrT<PybindT>& node)
+				{
+					return node->get_tensor();
+				});
+			sess->track(troots);
+		},
+		"Track node")
 		.def("update",
 		[](py::object self, std::vector<ead::NodeptrT<PybindT>> nodes)
 		{
@@ -63,5 +73,13 @@ PYBIND11_MODULE(grpc_dbg, m)
 			self.cast<dbg::InteractiveSession*>()->stop();
 		},
 		"Inform session requests to stop their tasks "
-		"(requests will attempt to wrap up call before terminating)");
+		"(requests will attempt to wrap up call before terminating)")
+		.def("optimize",
+		[](py::object self, std::string filename)
+		{
+			auto sess = self.cast<dbg::InteractiveSession*>();
+			opt::OptCtx rules = ead::parse_file<PybindT>("cfg/optimizations.rules");
+			sess->optimize(rules);
+		},
+		"Optimize using rules for specified filename");
 }

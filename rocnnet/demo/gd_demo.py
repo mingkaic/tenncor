@@ -77,6 +77,17 @@ def main(args):
     trainer = rcn.MLPTrainer(brain, nonlins, sess,
         rcn.get_sgd(0.9), n_batch)
 
+    testin = ead.variable(np.zeros([n_in], dtype=float), 'testin')
+    untrained_out = untrained_brain.forward(testin, nonlins)
+    trained_out = brain.forward(testin, nonlins)
+    pretrained_out = pretrained_brain.forward(testin, nonlins)
+    sess.track([
+        untrained_out,
+        trained_out,
+        pretrained_out,
+    ])
+    sess.optimize("cfg/optimizations.rules")
+
     start = time.time()
     for i in range(args.n_train):
         if i % show_every_n == show_every_n - 1:
@@ -92,14 +103,6 @@ def main(args):
     untrained_err = 0
     trained_err = 0
     pretrained_err = 0
-
-    testin = ead.variable(np.zeros([n_in], dtype=float), 'testin')
-    untrained_out = untrained_brain.forward(testin, nonlins)
-    trained_out = brain.forward(testin, nonlins)
-    pretrained_out = pretrained_brain.forward(testin, nonlins)
-    sess.track(untrained_out)
-    sess.track(trained_out)
-    sess.track(pretrained_out)
 
     for i in range(args.n_test):
         if i % show_every_n == show_every_n - 1:

@@ -105,6 +105,8 @@ def main(args):
         pretrained_dqn = rcn.DQNTrainer(pretrained_brain,
             nonlins, sess, bgd, param)
 
+    sess.optimize("cfg/optimizations.rules")
+
     err_msg = None
     err_queue_size = 10
     action_dist = int(n_actions / 2)
