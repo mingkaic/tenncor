@@ -5,17 +5,23 @@ from gen.file_rep import FileRep
 
 from ead.age.plugins.template import build_template
 
+_ns_template = '''
+//>>> namespace
+namespace {namespace}
+{{
+
+//>>> funcs
+{funcs}
+
+}}
+'''
+
 _header_template = '''
 #ifndef _GENERATED_API_HPP
 #define _GENERATED_API_HPP
 
-namespace age
-{{
-
-//>>> api_header
-{api_header}
-
-}}
+//>>> hdr_namespaces
+{hdr_namespaces}
 
 #endif // _GENERATED_API_HPP
 '''
@@ -23,13 +29,8 @@ namespace age
 _source_template = '''
 #ifdef _GENERATED_API_HPP
 
-namespace age
-{{
-
-//>>> api_source
-{api_source}
-
-}}
+//>>> src_namespaces
+{src_namespaces}
 
 #endif
 '''
@@ -149,13 +150,30 @@ class APIsPlugin:
         module = globals()
         api = arguments[plugin_key]
 
+        hdr_namespaces = []
+        src_namespaces = []
+        for namespace in api['namespaces']:
+            definitions = api['namespaces'][namespace]
+            hdr_defs = _handle_api_header(definitions)
+            src_defs = _handle_api_source(definitions)
+            for ns in namespace.split('::')[::-1]:
+                if ns != '_' and ns != '':
+                    hdr_defs = _ns_template.format(
+                        namespace=ns,
+                        funcs=hdr_defs)
+                    src_defs = _ns_template.format(
+                        namespace=ns,
+                        funcs=src_defs)
+            hdr_namespaces.append(hdr_defs)
+            src_namespaces.append(src_defs)
+
         generated_files[api_header] = FileRep(
-            build_template(_header_template, module, api['definitions']),
+            _header_template.format(hdr_namespaces=''.join(hdr_namespaces)),
             user_includes=api.get('includes', []),
             internal_refs=[])
 
         generated_files[_src_file] = FileRep(
-            build_template(_source_template, module, api['definitions']),
+            _source_template.format(src_namespaces=''.join(src_namespaces)),
             user_includes=[],
             internal_refs=[api_header])
 

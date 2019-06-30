@@ -53,7 +53,7 @@ genrule(
         "generated/dtype.hpp",
         "generated/dtype.cpp",
         "generated/pyapi.hpp",
-        "generated/pyapi.cpp",
+        "generated/pyapi_age.cpp",
     ],
     tools = ["//ead:agen"],
     cmd = "$(location //ead:agen) " +
@@ -93,7 +93,7 @@ cc_library(
 
 pybind_library(
     name = "age_py",
-    cc_srcs = ["//ead:generated/pyapi.cpp"],
+    cc_srcs = ["//ead:generated/pyapi_age.cpp"],
     cc_deps = ["//ead:ead"],
 )
 

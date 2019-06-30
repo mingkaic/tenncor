@@ -12,7 +12,7 @@ _pybindt = 'PybindT'
 _header_template = '''
 // type to replace template arguments in pybind
 using {pybind} = {pybind_type};
-//>>> ^ unique_wrap
+//>>> ^ pybind, pybind_type
 '''
 
 _source_template = '''
@@ -26,11 +26,13 @@ namespace pyage
 
 }}
 
-PYBIND11_MODULE(age, m)
+//>>> modname
+PYBIND11_MODULE(age, m_{modname})
 {{
-    m.doc() = "pybind ade age";
+    m_{modname}.doc() = "pybind for {modname} api";
 
-    py::class_<ade::iTensor,ade::TensptrT> tensor(m, "Tensor");
+    //>>> modname
+    py::class_<ade::iTensor,ade::TensptrT> tensor(m_{modname}, "Tensor");
 
     //>>> defs
     {defs}
@@ -52,10 +54,10 @@ def _strip_template_prefix(template):
 _func_fmt = '''
 {outtype} {funcname}_{idx} ({param_decl})
 {{
-    return age::{funcname}({args});
+    return {namespace}::{funcname}({args});
 }}
 '''
-def _wrap_func(idx, api):
+def _wrap_func(idx, api, namespace):
     if 'template' in api and len(api['template']) > 0:
         templates = [_strip_template_prefix(typenames)
             for typenames in api['template'].split(',')]
@@ -67,29 +69,34 @@ def _wrap_func(idx, api):
 
     out = _func_fmt.format(
         outtype=outtype,
-        funcname = api['name'],
-        idx = idx,
-        param_decl = ', '.join([arg['dtype'] + ' ' + arg['name']
+        namespace=namespace,
+        funcname=api['name'],
+        idx=idx,
+        param_decl=', '.join([arg['dtype'] + ' ' + arg['name']
             for arg in api['args']]),
-        args = ', '.join([arg['name'] for arg in api['args']]))
+        args=', '.join([arg['name'] for arg in api['args']]))
     for temp in templates:
         out = _sub_pybind(out, temp)
     return out
 
-def _handle_pybind(pybind_type, apis):
+def _handle_pybind(pybind_type):
     return _pybindt
 
-def _handle_pybind_type(pybind_type, apis):
+def _handle_pybind_type(pybind_type):
     return pybind_type
 
-def _handle_unique_wrap(pybind_type, apis):
+def _handle_unique_wrap(pybind_type, apis, namespace):
     return '\n\n'.join([
-        _wrap_func(i, api)
+        _wrap_func(i, api, namespace)
         for i, api in enumerate(apis)]
     )
 
-_mdef_fmt = 'm.def("{pyfunc}", &pyage::{func}_{idx}, {description}, {pyargs});'
-def _handle_defs(pybind_type, apis):
+def _handle_defs(pybind_type, apis, module_name, is_submod):
+    _mdef_tmpl = 'm_{module_name}.def("{pyfunc}", '+\
+        '&pyage::{func}_{idx}, {description}, {pyargs});'
+
+    _class_def_tmpl = 'py::class_<std::remove_reference<decltype(*{outtype}())>::type,{outtype}>(m_{module_name}, "{name}");'
+
     cnames = {}
     def checkpy(cname):
         if cname in cnames:
@@ -147,20 +154,22 @@ def _handle_defs(pybind_type, apis):
             outtypes.add(outtype)
 
     class_defs = []
-    for outtype in outtypes:
-        if 'ade::TensptrT' == outtype:
-            continue
-        class_defs.append('py::class_<std::remove_reference<decltype(*{outtype}())>::type,{outtype}>(m, "{name}");'.format(
-            outtype=outtype,
-            name=outtype.split('::')[-1]))
+    if not is_submod:
+        for outtype in outtypes:
+            if 'ade::TensptrT' == outtype:
+                continue
+            class_defs.append(_class_def_tmpl.format(
+                module_name=module_name,
+                outtype=outtype,
+                name=outtype.split('::')[-1]))
 
     return '\n    '.join(class_defs) + '\n    ' +\
-        '\n    '.join([_mdef_fmt.format(
-        pyfunc = checkpy(api['name']),
-        func = api['name'],
-        idx = i,
-        description = parse_description(api),
-        pyargs = ', '.join([parse_pyargs(arg) for arg in api['args']]))
+        '\n    '.join([_mdef_tmpl.format(
+            module_name=module_name,
+            pyfunc=checkpy(api['name']),
+            func=api['name'], idx=i,
+            description=parse_description(api),
+            pyargs=', '.join([parse_pyargs(arg) for arg in api['args']]))
         for i, api in enumerate(apis)])
 
 _plugin_id = 'PYBINDER'
@@ -172,31 +181,63 @@ class PyAPIsPlugin:
 
     def process(self, generated_files, arguments):
         _hdr_file = 'pyapi.hpp'
-        _src_file = 'pyapi.cpp'
+        _submodule_def = '    py::module m_{name} = m_{prename}.def_submodule("{submod}", "A submodule of \'{prename}\'");\n'
+
         plugin_key = 'api'
         if plugin_key not in arguments:
             logging.warning(
                 'no relevant arguments found for plugin %s', _plugin_id)
             return
 
-        module = globals()
         api = arguments[plugin_key]
         bindtype = api.get('pybind_type', 'double')
 
         generated_files[_hdr_file] = FileRep(
-            build_template(_header_template, module,
-                bindtype, api['definitions']),
-            user_includes=[],
-            internal_refs=[])
+            _header_template.format(
+                pybind=_pybindt, pybind_type=bindtype),
+                user_includes=[], internal_refs=[])
 
-        generated_files[_src_file] = FileRep(
-            build_template(_source_template, module,
-                bindtype, api['definitions']),
-            user_includes=[
-                '"pybind11/pybind11.h"',
-                '"pybind11/stl.h"',
-            ],
-            internal_refs=[_hdr_file, api_header])
+        contents = {}
+        for namespace in api['namespaces']:
+            definitions = api['namespaces'][namespace]
+            if namespace == '' or namespace == '_':
+                module = 'age'
+                namespace = ''
+            else:
+                module = namespace
+            uwraps = _handle_unique_wrap(bindtype, definitions, namespace)
+
+            mods = module.split('::')
+            mod = mods[0]
+            modname = '_'.join(mods)
+            mod_def = ''
+            is_submod = len(mods) > 1
+            if is_submod:
+                mod_def = _submodule_def.format(
+                    name=modname, prename='_'.join(mods[:-1]), submod=mods[-1])
+            defs = mod_def + _handle_defs(bindtype, definitions, modname, is_submod)
+            if mod in contents:
+                existing_uwraps, existing_defs = contents[mod]
+                contents[mod] = (
+                    existing_uwraps + '\n\n' + uwraps,
+                    existing_defs + '\n\n' + defs)
+            else:
+                contents[mod] = (uwraps, defs)
+
+        src_file_tmpl = 'pyapi_{}.cpp'
+        for mod in contents:
+            unique_wrap, defs = contents[mod]
+            src_file = src_file_tmpl.format(mod)
+            generated_files[src_file] = FileRep(
+                _source_template.format(
+                    modname=mod,
+                    unique_wrap=''.join(unique_wrap),
+                    defs=''.join(defs)),
+                user_includes=[
+                    '"pybind11/pybind11.h"',
+                    '"pybind11/stl.h"',
+                ],
+                internal_refs=[_hdr_file, api_header])
 
         return generated_files
 

@@ -93,11 +93,11 @@ struct RNN final : public iMarshalSet
 
 		ead::NodesT<PybindT> outs;
 		outs.reserve(nins);
-		outs.push_back(nonlin_(age::fully_connect(
+		outs.push_back(nonlin_(age::nn::fully_connect(
 			{inputs[0]}, {weights_[0]}, bias_)));
 		for (uint8_t i = 1; i < ninput; ++i)
 		{
-			outs.push_back(nonlin(age::fully_connect(
+			outs.push_back(nonlin(age::nn::fully_connect(
 				{outs.back(), inputs[i]},
 				{weights_[i - 1], weights_[i]}, bias_)));
 		}

@@ -82,6 +82,12 @@ FuncArg<T> identity_map (NodeptrT<T> node)
 template <typename T>
 FuncArg<T> reduce_map (NodeptrT<T> node, uint8_t offset, uint8_t ndims)
 {
+	if (offset >= ade::rank_cap)
+	{
+		logs::fatalf("cannot dimensions [%d,...] greater or equal to %d",
+			offset, ade::rank_cap);
+	}
+
 	size_t n = std::min<ade::DimT>(offset + ndims, ade::rank_cap);
 	ade::Shape shape = node->get_tensor()->shape();
 	std::vector<uint8_t> dims; // dims are allowed to be non-contiguous

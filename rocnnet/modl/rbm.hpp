@@ -102,7 +102,7 @@ struct RBM final : public iMarshalSet
 			// weight is <n_hidden, n_input>
 			// in is <n_input, ?>
 			// out = in @ weight, so out is <n_hidden, ?>
-			auto hypothesis = age::fully_connect({out},
+			auto hypothesis = age::nn::fully_connect({out},
 				{ead::convert_to_node(layers_[i].weight_->var_)},
 				ead::convert_to_node(layers_[i].hbias_->var_));
 			out = nonlinearities[i](hypothesis);
@@ -140,7 +140,7 @@ struct RBM final : public iMarshalSet
 			// weight is <n_hidden, n_input>
 			// in is <n_hidden, ?>
 			// out = in @ weight.T, so out is <n_input, ?>
-			auto hypothesis = age::fully_connect({out},
+			auto hypothesis = age::nn::fully_connect({out},
 				{age::transpose(
 					ead::convert_to_node(layers_[index].weight_->var_))},
 				ead::convert_to_node(layers_[index].vbias_->var_));
