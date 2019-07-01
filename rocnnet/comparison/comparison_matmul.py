@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
 
 matrix_dims = [
@@ -39,7 +39,7 @@ for matrix_dim in matrix_dims:
     tfsess.run(tf_var2.initializer)
 
     # regular matmul
-    out = age.matmul(var, var2)
+    out = tc.matmul(var, var2)
 
     # tensorflow matmul
     tf_out = tf.matmul(tf_var, tf_var2)

@@ -88,7 +88,7 @@ int main (int argc, const char** argv)
 	uint8_t n_in = 10;
 	uint8_t n_out = n_in / 2;
 	std::vector<ade::DimT> n_outs = {9, n_out};
-	modl::NonLinearsT nonlins = {age::sigmoid<float>, age::sigmoid<float>};
+	modl::NonLinearsT nonlins = {tenncor::sigmoid<float>, tenncor::sigmoid<float>};
 
 	auto brain = std::make_shared<modl::MLP>(n_in, n_outs, "brain");
 	auto untrained_brain = std::make_shared<modl::MLP>(*brain);

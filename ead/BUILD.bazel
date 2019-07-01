@@ -53,7 +53,7 @@ genrule(
         "generated/dtype.hpp",
         "generated/dtype.cpp",
         "generated/pyapi.hpp",
-        "generated/pyapi_age.cpp",
+        "generated/pyapi_tenncor.cpp",
     ],
     tools = ["//ead:agen"],
     cmd = "$(location //ead:agen) " +
@@ -92,8 +92,8 @@ cc_library(
 )
 
 pybind_library(
-    name = "age_py",
-    cc_srcs = ["//ead:generated/pyapi_age.cpp"],
+    name = "tenncor_py",
+    cc_srcs = ["//ead:generated/pyapi_tenncor.cpp"],
     cc_deps = ["//ead:ead"],
 )
 
@@ -101,7 +101,7 @@ pybind_library(
     name = "ead_py",
     cc_srcs = ["//ead:python/ead.cpp"],
     cc_deps = ["//ead:ead"],
-    py_deps = ["//ead:age_py"],
+    py_deps = ["//ead:tenncor_py"],
     visibility = ["//visibility:public"],
 )
 

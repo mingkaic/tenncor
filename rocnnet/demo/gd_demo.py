@@ -4,7 +4,7 @@ import argparse
 
 import numpy as np
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
@@ -57,7 +57,7 @@ def main(args):
     n_out = n_in / 2
     n_outs = [9, n_out]
 
-    nonlins = [age.sigmoid, age.sigmoid]
+    nonlins = [tc.sigmoid, tc.sigmoid]
 
     brain = rcn.get_mlp(n_in, n_outs, 'brain')
     untrained_brain = brain.copy()

@@ -5,7 +5,7 @@ import argparse
 
 import numpy as np
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
@@ -73,7 +73,7 @@ def main(args):
     n_actions = 9
     n_outs = [9, n_actions]
 
-    nonlins = [age.tanh, rcn.identity]
+    nonlins = [tc.tanh, rcn.identity]
 
     brain = rcn.get_mlp(n_observations, n_outs, 'brain')
     untrained_brain = brain.copy()
@@ -81,7 +81,7 @@ def main(args):
     bgd = rcn.get_rms_momentum(
         learning_rate = 0.1,
         discount_factor = 0.5,
-        gradprocess = lambda x: age.clip_by_l2norm(x, 5))
+        gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
     param = rcn.get_dqninfo(
         mini_batch_size = 1,
         store_interval = 1,

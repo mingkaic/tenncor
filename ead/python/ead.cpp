@@ -121,7 +121,7 @@ PYBIND11_MODULE(ead, m)
 
 	// ==== node ====
 	py::object node = (py::object)
-		py::module::import("ead.age").attr("NodeptrT<PybindT>");
+		py::module::import("ead.tenncor").attr("NodeptrT<PybindT>");
 
 	((py::class_<ead::iNode<PybindT>,ead::NodeptrT<PybindT>>) node)
 		.def("__str__",

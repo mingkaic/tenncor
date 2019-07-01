@@ -93,31 +93,31 @@ static void NAME(benchmark::State& state)\
 }
 
 
-DEFN_BENCHMARK(BM_Abs, age::abs, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Abs, tenncor::abs, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Neg, age::neg, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Neg, tenncor::neg, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Sin, age::sin, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Sin, tenncor::sin, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Cos, age::cos, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Cos, tenncor::cos, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Tan, age::tan, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Tan, tenncor::tan, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Exp, age::exp, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Exp, tenncor::exp, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Log, age::log, DEFN_UNARY_POS)
+DEFN_BENCHMARK(BM_Log, tenncor::log, DEFN_UNARY_POS)
 
 
-DEFN_BENCHMARK(BM_Sqrt, age::sqrt, DEFN_UNARY_POS)
+DEFN_BENCHMARK(BM_Sqrt, tenncor::sqrt, DEFN_UNARY_POS)
 
 
-DEFN_BENCHMARK(BM_Round, age::round, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Round, tenncor::round, DEFN_UNARY)
 
 
 #define DEFN_BINARY(NAME, FUNC)\
@@ -145,31 +145,31 @@ static void NAME(benchmark::State& state)\
 }
 
 
-DEFN_BENCHMARK(BM_Pow, age::pow, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Pow, tenncor::pow, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Add, age::add, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Add, tenncor::add, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Sub, age::sub, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Sub, tenncor::sub, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Mul, age::mul, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Mul, tenncor::mul, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Div, age::div, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Div, tenncor::div, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Eq, age::eq, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Eq, tenncor::eq, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Ne, age::neq, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Ne, tenncor::neq, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Lt, age::lt, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Lt, tenncor::lt, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Gt, age::gt, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Gt, tenncor::gt, DEFN_BINARY)
 
 
 template <typename T>
@@ -193,7 +193,8 @@ static void BM_Matmul(benchmark::State& state)
 		std::vector<T> convdata2(data2.begin(), data2.end());
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), leftshape, "var");
 		ead::VarptrT<T> var2 = ead::make_variable<T>(convdata2.data(), rightshape, "var2");
-		ead::NodeptrT<T> out = age::matmul(ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));
+		ead::NodeptrT<T> out = tenncor::matmul(
+			ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));
 		ead::Session session;
 		session.track({out->get_tensor()});
 		state.ResumeTiming();
@@ -236,10 +237,10 @@ static void BM_MatmulComplex(benchmark::State& state)
 	ead::NodeptrT<int32_t> btens(b);
 	ead::NodeptrT<int32_t> ctens(c);
 
-	auto d = age::matmul(atens, btens);
-	auto e = age::matmul(ctens, d);
-	auto f = age::matmul(age::transpose(d), age::transpose(ctens));
-	auto dest = age::matmul(e, f);
+	auto d = tenncor::matmul(atens, btens);
+	auto e = tenncor::matmul(ctens, d);
+	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(ctens));
+	auto dest = tenncor::matmul(e, f);
 
 	ead::NodeptrT<int32_t> da = ead::derive(dest, atens);
 	ead::NodeptrT<int32_t> db = ead::derive(dest, btens);
@@ -298,17 +299,22 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	ead::NodeptrT<double> bias1tens(bias1);
 	ead::NodeptrT<double> outtens(out);
 
-	auto layer0 = age::add(age::matmul(intens, weight0tens), age::extend(bias0tens, 1, {3}));
-	auto sig0 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-			age::exp(age::neg(layer0))));
+	auto layer0 = tenncor::add(
+		tenncor::matmul(intens, weight0tens),
+		tenncor::extend(bias0tens, 1, {3}));
+	auto sig0 = tenncor::div(
+		ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+			tenncor::exp(tenncor::neg(layer0))));
 
-	auto layer1 = age::add(age::matmul(sig0, weight1tens), age::extend(bias1tens, 1, {3}));
-	auto sig1 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-			age::exp(age::neg(layer1))));
+	auto layer1 = tenncor::add(
+		tenncor::matmul(sig0, weight1tens),
+		tenncor::extend(bias1tens, 1, {3}));
+	auto sig1 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+			tenncor::exp(tenncor::neg(layer1))));
 
-	auto err = age::pow(age::sub(outtens, sig1),
+	auto err = tenncor::pow(tenncor::sub(outtens, sig1),
 		ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0tens);
@@ -376,13 +382,17 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	ead::NodeptrT<double> bias1tens(bias1);
 	ead::NodeptrT<double> outtens(out);
 
-	auto layer0 = age::add(age::matmul(intens, weight0tens), age::extend(bias0tens, 1, {3}));
-	auto sig0 = age::sigmoid(layer0);
+	auto layer0 = tenncor::add(
+		tenncor::matmul(intens, weight0tens),
+		tenncor::extend(bias0tens, 1, {3}));
+	auto sig0 = tenncor::sigmoid(layer0);
 
-	auto layer1 = age::add(age::matmul(sig0, weight1tens), age::extend(bias1tens, 1, {3}));
-	auto sig1 = age::sigmoid(layer1);
+	auto layer1 = tenncor::add(
+		tenncor::matmul(sig0, weight1tens),
+		tenncor::extend(bias1tens, 1, {3}));
+	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = age::pow(age::sub(outtens, sig1),
+	auto err = tenncor::pow(tenncor::sub(outtens, sig1),
 		ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0tens);

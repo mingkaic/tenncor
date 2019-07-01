@@ -60,10 +60,10 @@ TEST(EQUATION, MatmulComplex)
 	ead::NodeptrT<float> b = ead::make_variable<float>(data2.data(), bshape);
 	ead::NodeptrT<float> c = ead::make_variable<float>(data3.data(), cshape);
 
-	auto d = age::matmul(a, b);
-	auto e = age::matmul(c, d);
-	auto f = age::matmul(age::transpose(d), age::transpose(c));
-	auto dest = age::matmul(e, f);
+	auto d = tenncor::matmul(a, b);
+	auto e = tenncor::matmul(c, d);
+	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(c));
+	auto dest = tenncor::matmul(e, f);
 
 	auto da = ead::derive(dest, a);
 	auto db = ead::derive(dest, b);
@@ -204,17 +204,17 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = age::add(age::matmul(in, weight0), age::extend(bias0, 1, {3}));
-	auto sig0 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-			age::exp(age::neg(layer0))));
+	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto sig0 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+			tenncor::exp(tenncor::neg(layer0))));
 
-	auto layer1 = age::add(age::matmul(sig0, weight1), age::extend(bias1, 1, {3}));
-	auto sig1 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-			age::exp(age::neg(layer1))));
+	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto sig1 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+			tenncor::exp(tenncor::neg(layer1))));
 
-	auto err = age::pow(age::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0);
 	auto db0 = ead::derive(err, bias0);
@@ -425,17 +425,17 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = age::add(age::matmul(in, weight0), age::extend(bias0, 1, {3}));
-	auto sig0 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-			age::exp(age::neg(layer0))));
+	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto sig0 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+			tenncor::exp(tenncor::neg(layer0))));
 
-	auto layer1 = age::add(age::matmul(sig0, weight1), age::extend(bias1, 1, {3}));
-	auto sig1 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-			age::exp(age::neg(layer1))));
+	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto sig1 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+			tenncor::exp(tenncor::neg(layer1))));
 
-	auto err = age::pow(age::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0);
 	auto db0 = ead::derive(err, bias0);
@@ -656,13 +656,13 @@ TEST(EQUATION, SigmoidMLP_Fast)
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = age::add(age::matmul(in, weight0), age::extend(bias0, 1, {3}));
-	auto sig0 = age::sigmoid(layer0);
+	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto sig0 = tenncor::sigmoid(layer0);
 
-	auto layer1 = age::add(age::matmul(sig0, weight1), age::extend(bias1, 1, {3}));
-	auto sig1 = age::sigmoid(layer1);
+	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = age::pow(age::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0);
 	auto db0 = ead::derive(err, bias0);
@@ -870,13 +870,13 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = age::add(age::matmul(in, weight0), age::extend(bias0, 1, {3}));
-	auto sig0 = age::sigmoid(layer0);
+	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto sig0 = tenncor::sigmoid(layer0);
 
-	auto layer1 = age::add(age::matmul(sig0, weight1), age::extend(bias1, 1, {3}));
-	auto sig1 = age::sigmoid(layer1);
+	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = age::pow(age::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0);
 	auto db0 = ead::derive(err, bias0);

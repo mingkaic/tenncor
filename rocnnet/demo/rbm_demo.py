@@ -4,7 +4,7 @@ import argparse
 
 import numpy as np
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 import dbg.grpc_dbg as dbg
@@ -83,11 +83,11 @@ def main(args):
         return np.random.randint(0, n_test_sample - args.n_test_chain)
 
     # train
-    sess = ead.Session()
-    # sess = dbg.get_isess(request_dur=5000, stream_dur=100000)
+    # sess = ead.Session()
+    sess = dbg.get_isess(request_dur=5000, stream_dur=100000)
 
     testin = ead.variable(np.zeros([args.n_test_chain, n_test_input], dtype=float), "testin")
-    test_generated_in = brain.reconstruct_visible(testin, [age.sigmoid])
+    test_generated_in = brain.reconstruct_visible(testin, [tc.sigmoid])
     sess.track([test_generated_in])
 
     if args.train:
@@ -96,7 +96,7 @@ def main(args):
 
         persistent = ead.variable(
             np.zeros([args.n_batch, args.n_hidden], dtype=float), 'persistent')
-        trainer = rcn.RBMTrainer(brain, [age.sigmoid], sess, persistent, args.n_batch,
+        trainer = rcn.RBMTrainer(brain, [tc.sigmoid], sess, persistent, args.n_batch,
             args.learning_rate, args.n_cont_div)
         sess.optimize("cfg/optimizations.rules")
 
@@ -105,7 +105,7 @@ def main(args):
             for j in range(n_training_batches):
                 batch = training_x[j:j+args.n_batch]
                 mean_cost = mean_cost + trainer.train(list(batch.flatten()))
-                print('completed batch {}'.format(j))
+                print('completed batch {}, mean cost {}'.format(j, mean_cost))
 
             print("training epoch {}, cost is {}".format(i, mean_cost))
             # save in case of problems

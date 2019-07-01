@@ -184,9 +184,9 @@ struct GroupConvr final : public opt::iConverter
 			});
 		if (group_ == "sum")
 		{
-			return age::sum(outs)->get_tensor();
+			return tenncor::sum(outs)->get_tensor();
 		}
-		return age::prod(outs)->get_tensor();
+		return tenncor::prod(outs)->get_tensor();
 	}
 
 	std::string to_string (void) const override

@@ -334,20 +334,20 @@ private:
 		ctx_.next_output_ = (*ctx_.target_qnet_)(
 			ead::convert_to_node<PybindT>(next_input_), nonlinearities);
 
-		auto target_values = age::mul(
-			age::reduce_max_1d(ctx_.next_output_, 0),
+		auto target_values = tenncor::mul(
+			tenncor::reduce_max_1d(ctx_.next_output_, 0),
 			ead::convert_to_node<PybindT>(next_output_mask_));
-		future_reward_ = age::add(ead::convert_to_node<PybindT>(reward_),
-			age::mul(
+		future_reward_ = tenncor::add(ead::convert_to_node<PybindT>(reward_),
+			tenncor::mul(
 				ead::make_constant_scalar<PybindT>(params_.discount_rate_,
 					target_values->shape()),
 				target_values)); // reward for each instance in batch
 
 		// prediction error
-		auto masked_output_score = age::reduce_sum_1d(
-			age::mul(train_out_, ead::convert_to_node<PybindT>(output_mask_)), 0);
-		prediction_error_ = age::reduce_mean(age::square(
-			age::sub(masked_output_score, future_reward_)));
+		auto masked_output_score = tenncor::reduce_sum_1d(
+			tenncor::mul(train_out_, ead::convert_to_node<PybindT>(output_mask_)), 0);
+		prediction_error_ = tenncor::reduce_mean(tenncor::square(
+			tenncor::sub(masked_output_score, future_reward_)));
 
 		// updates for source network
 		pbm::PathedMapT svmap = source_qnet_->list_bases();
@@ -389,11 +389,11 @@ private:
 			// this is equivalent to target = (1-alpha) * target + alpha * source
 			auto target = ead::convert_to_node<PybindT>(target_vars[i]);
 			auto source = ead::convert_to_node<PybindT>(source_vars[i]);
-			auto diff = age::sub(target, source);
+			auto diff = tenncor::sub(target, source);
 			auto target_update_rate = ead::make_constant_scalar<PybindT>(
 				params_.target_update_rate_, diff->shape());
 
-			auto target_next = age::sub(target, age::mul(
+			auto target_next = tenncor::sub(target, tenncor::mul(
 				target_update_rate, diff));
 			target_assigns.push_back(eqns::VarAssign{
 				fmts::sprintf("target_grad_%s",

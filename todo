@@ -26,8 +26,9 @@ P4 - remove ead helper functions
 
 === correction ===
 P2 - fix rbm demo converging to infinity problem
-P2 - test opt module
 P2 - test tag module
+P2 - test dbg module
+P2 - test opt module more
 P3 - test complicate equations (generate random valid equations)
 P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage

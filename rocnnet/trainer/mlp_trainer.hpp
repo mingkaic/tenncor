@@ -45,8 +45,8 @@ struct MLPTrainer
 			ead::convert_to_node<PybindT>(train_in_), nonlinearities);
 		expected_out_ = ead::make_variable_scalar<PybindT>(0.0,
 			ade::Shape({brain_->get_noutput(), batch_size}), "expected_out");
-		error_ = age::square(
-			age::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
+		error_ = tenncor::square(
+			tenncor::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
 
 		pbm::PathedMapT vmap = brain_->list_bases();
 		eqns::VariablesT vars;

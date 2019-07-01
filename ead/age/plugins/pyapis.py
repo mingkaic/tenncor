@@ -27,7 +27,7 @@ namespace pyage
 }}
 
 //>>> modname
-PYBIND11_MODULE(age, m_{modname})
+PYBIND11_MODULE({modname}, m_{modname})
 {{
     m_{modname}.doc() = "pybind for {modname} api";
 
@@ -91,7 +91,7 @@ def _handle_unique_wrap(pybind_type, apis, namespace):
         for i, api in enumerate(apis)]
     )
 
-def _handle_defs(pybind_type, apis, module_name, is_submod):
+def _handle_defs(pybind_type, apis, module_name, first_module):
     _mdef_tmpl = 'm_{module_name}.def("{pyfunc}", '+\
         '&pyage::{func}_{idx}, {description}, {pyargs});'
 
@@ -154,7 +154,7 @@ def _handle_defs(pybind_type, apis, module_name, is_submod):
             outtypes.add(outtype)
 
     class_defs = []
-    if not is_submod:
+    if first_module:
         for outtype in outtypes:
             if 'ade::TensptrT' == outtype:
                 continue
@@ -211,11 +211,10 @@ class PyAPIsPlugin:
             mod = mods[0]
             modname = '_'.join(mods)
             mod_def = ''
-            is_submod = len(mods) > 1
-            if is_submod:
+            if len(mods) > 1:
                 mod_def = _submodule_def.format(
                     name=modname, prename='_'.join(mods[:-1]), submod=mods[-1])
-            defs = mod_def + _handle_defs(bindtype, definitions, modname, is_submod)
+            defs = mod_def + _handle_defs(bindtype, definitions, modname, mod not in contents)
             if mod in contents:
                 existing_uwraps, existing_defs = contents[mod]
                 contents[mod] = (

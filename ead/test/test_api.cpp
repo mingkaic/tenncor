@@ -415,7 +415,7 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 TEST(API, Abs)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::abs(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::abs(a); },
 		[](double d) { return std::abs(d); },
 		[](double d) { return d / std::abs(d); });
 }
@@ -424,7 +424,7 @@ TEST(API, Abs)
 TEST(API, Neg)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::neg(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::neg(a); },
 		[](double d) { return -d; },
 		[](double d) { return -1.0; });
 }
@@ -433,7 +433,7 @@ TEST(API, Neg)
 TEST(API, Sin)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::sin(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::sin(a); },
 		[](double d) { return std::sin(d); },
 		[](double d) { return std::cos(d); });
 }
@@ -442,7 +442,7 @@ TEST(API, Sin)
 TEST(API, Cos)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::cos(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::cos(a); },
 		[](double d) { return std::cos(d); },
 		[](double d) { return -std::sin(d); });
 }
@@ -451,7 +451,7 @@ TEST(API, Cos)
 TEST(API, Tan)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::tan(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::tan(a); },
 		[](double d) { return std::tan(d); },
 		[](double d) {
 			double denom = std::cos(d);
@@ -463,7 +463,7 @@ TEST(API, Tan)
 TEST(API, Exp)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::exp(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::exp(a); },
 		[](double d) { return std::exp(d); },
 		[](double d) { return std::exp(d); });
 }
@@ -472,7 +472,7 @@ TEST(API, Exp)
 TEST(API, Log)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::log(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::log(a); },
 		[](double d) { return std::log(d); },
 		[](double d) { return 1.0 / d; });
 }
@@ -481,7 +481,7 @@ TEST(API, Log)
 TEST(API, Sqrt)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::sqrt(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::sqrt(a); },
 		[](double d) { return std::sqrt(d); },
 		[](double d) { return 1.0 / (2 * std::sqrt(d)); });
 }
@@ -490,7 +490,7 @@ TEST(API, Sqrt)
 TEST(API, Round)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::round(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::round(a); },
 		[](double d) { return std::round(d); },
 		[](double d) { return 1.0; });
 }
@@ -499,7 +499,7 @@ TEST(API, Round)
 TEST(API, Sigmoid)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::sigmoid(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::sigmoid(a); },
 		[](double d) { return 1 / (1 + std::exp(-d)); },
 		[](double d)
 		{
@@ -512,7 +512,7 @@ TEST(API, Sigmoid)
 TEST(API, SigmoidGrad)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::sigmoid_grad(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::sigmoid_grad(a); },
 		[](double d)
 		{
 			double sig = 1 / (1 + std::exp(-d));
@@ -530,7 +530,7 @@ TEST(API, SigmoidGrad)
 TEST(API, Tanh)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::tanh(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::tanh(a); },
 		[](double d)
 		{
 			double e2d = std::exp(2 * d);
@@ -548,7 +548,7 @@ TEST(API, Tanh)
 TEST(API, Square)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::square(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::square(a); },
 		[](double d) { return d * d; },
 		[](double d) { return 2 * d; });
 }
@@ -557,7 +557,7 @@ TEST(API, Square)
 TEST(API, Cube)
 {
 	unary_elementary(
-		[](ead::NodeptrT<double>& a) { return age::cube(a); },
+		[](ead::NodeptrT<double>& a) { return tenncor::cube(a); },
 		[](double d) { return d * d * d; },
 		[](double d) { return 3 * d * d; });
 }
@@ -567,7 +567,7 @@ TEST(API, Pow)
 {
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
-		{ return age::pow(a, b); },
+		{ return tenncor::pow(a, b); },
 		[](double a, double b) { return std::pow(a, b); },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -581,7 +581,7 @@ TEST(API, Add)
 {
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
-		{ return age::add(a, b); },
+		{ return tenncor::add(a, b); },
 		[](double a, double b) { return a + b; },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -594,7 +594,7 @@ TEST(API, Sub)
 {
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
-		{ return age::sub(a, b); },
+		{ return tenncor::sub(a, b); },
 		[](double a, double b) { return a - b; },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -607,7 +607,7 @@ TEST(API, Mul)
 {
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
-		{ return age::mul(a, b); },
+		{ return tenncor::mul(a, b); },
 		[](double a, double b) { return a * b; },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -620,7 +620,7 @@ TEST(API, Div)
 {
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
-		{ return age::div(a, b); },
+		{ return tenncor::div(a, b); },
 		[](double a, double b) { return a / b; },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -633,7 +633,7 @@ TEST(API, Min)
 {
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
-		{ return age::min(a, b); },
+		{ return tenncor::min(a, b); },
 		[](double a, double b) { return std::min(a, b); },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -655,7 +655,7 @@ TEST(API, Max)
 {
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
-		{ return age::max(a, b); },
+		{ return tenncor::max(a, b); },
 		[](double a, double b) { return std::max(a, b); },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -677,7 +677,7 @@ TEST(API, Eq)
 {
 	binary_elementary_int(
 		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
-		{ return age::eq(a, b); },
+		{ return tenncor::eq(a, b); },
 		[](int32_t a, int32_t b) { return a == b; },
 		[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{
@@ -690,7 +690,7 @@ TEST(API, Neq)
 {
 	binary_elementary_int(
 		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
-		{ return age::neq(a, b); },
+		{ return tenncor::neq(a, b); },
 		[](int32_t a, int32_t b) { return a != b; },
 		[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{
@@ -703,7 +703,7 @@ TEST(API, Lt)
 {
 	binary_elementary_int(
 		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
-		{ return age::lt(a, b); },
+		{ return tenncor::lt(a, b); },
 		[](int32_t a, int32_t b) { return a < b; },
 		[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{
@@ -716,7 +716,7 @@ TEST(API, Gt)
 {
 	binary_elementary_int(
 		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
-		{ return age::gt(a, b); },
+		{ return tenncor::gt(a, b); },
 		[](int32_t a, int32_t b) { return a > b; },
 		[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{
@@ -728,7 +728,7 @@ TEST(API, Gt)
 TEST(API, NElems)
 {
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::n_elems(src); },
+		[](ead::NodeptrT<double>& src) { return tenncor::n_elems(src); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
@@ -750,7 +750,7 @@ TEST(API, NDims)
 {
 	uint8_t dim = 2;
 	unary_generic(
-		[dim](ead::NodeptrT<double>& src) { return age::n_dims(src, dim); },
+		[dim](ead::NodeptrT<double>& src) { return tenncor::n_dims(src, dim); },
 		[dim](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
@@ -771,7 +771,7 @@ TEST(API, NDims)
 TEST(API, Rsum)
 {
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_sum(src); },
+		[](ead::NodeptrT<double>& src) { return tenncor::reduce_sum(src); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
@@ -791,7 +791,7 @@ TEST(API, Rsum)
 			}
 		});
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_sum(src, 1, 1); },
+		[](ead::NodeptrT<double>& src) { return tenncor::reduce_sum(src, 1, 1); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
@@ -840,8 +840,8 @@ TEST(API, Rprod)
 	};
 
 	ead::NodeptrT<size_t> src = ead::make_constant<size_t>(data.data(), shape);
-	ead::NodeptrT<size_t> dest = age::reduce_prod(src);
-	ead::NodeptrT<size_t> dest2 = age::reduce_prod(src, 1, 1);
+	ead::NodeptrT<size_t> dest = tenncor::reduce_prod(src);
+	ead::NodeptrT<size_t> dest2 = tenncor::reduce_prod(src, 1, 1);
 
 	dest->update();
 	{
@@ -932,7 +932,7 @@ TEST(API, Rprod)
 TEST(API, Rmin)
 {
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_min(src); },
+		[](ead::NodeptrT<double>& src) { return tenncor::reduce_min(src); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
@@ -958,7 +958,7 @@ TEST(API, Rmin)
 			}
 		});
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_min(src, 1, 1); },
+		[](ead::NodeptrT<double>& src) { return tenncor::reduce_min(src, 1, 1); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
@@ -1014,7 +1014,7 @@ TEST(API, Rmin)
 TEST(API, Rmax)
 {
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_max(src); },
+		[](ead::NodeptrT<double>& src) { return tenncor::reduce_max(src); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
@@ -1040,7 +1040,7 @@ TEST(API, Rmax)
 			}
 		});
 	unary_generic(
-		[](ead::NodeptrT<double>& src) { return age::reduce_max(src, 1, 1); },
+		[](ead::NodeptrT<double>& src) { return tenncor::reduce_max(src, 1, 1); },
 		[](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<ade::DimT> expect_list(shape.begin(), shape.end());
@@ -1105,7 +1105,7 @@ TEST(API, Permute)
 	};
 
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
-	ead::NodeptrT<double> dest = age::permute(src, pidx);
+	ead::NodeptrT<double> dest = tenncor::permute(src, pidx);
 
 	dest->update();
 	size_t n = dest->shape().n_elems();
@@ -1151,7 +1151,7 @@ TEST(API, Extend)
 	};
 
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
-	ead::NodeptrT<double> dest = age::extend(src, slist.size(), ext);
+	ead::NodeptrT<double> dest = tenncor::extend(src, slist.size(), ext);
 
 	dest->update();
 	size_t ext_nelem = ade::Shape(ext).n_elems();
@@ -1218,7 +1218,7 @@ TEST(API, Matmul)
 
 	ead::NodeptrT<int32_t> a = ead::make_constant<int32_t>(data.data(), ashape);
 	ead::NodeptrT<int32_t> b = ead::make_constant<int32_t>(data2.data(), bshape);
-	ead::NodeptrT<int32_t> dest = age::matmul(a, b);
+	ead::NodeptrT<int32_t> dest = tenncor::matmul(a, b);
 
 	dest->update();
 	ade::Shape gotshape = dest->shape();
@@ -1235,7 +1235,7 @@ TEST(API, Matmul)
 	ead::Session session;
 
 	ead::NodeptrT<int32_t> c = ead::make_constant<int32_t>(data3.data(), cshape);
-	ead::NodeptrT<int32_t> dest2 = age::matmul(c, c);
+	ead::NodeptrT<int32_t> dest2 = tenncor::matmul(c, c);
 	ead::NodeptrT<int32_t> gsame = ead::derive(dest2, c);
 	session.track({gsame->get_tensor()});
 	session.update();
@@ -1281,7 +1281,7 @@ static void test_rand_unif (std::vector<ade::DimT> shape_list)
 
 	ead::NodeptrT<double> src = ead::make_constant_scalar<double>(lo, shape);
 	ead::NodeptrT<double> src2 = ead::make_constant_scalar<double>(hi, shape);
-	ead::NodeptrT<double> dest = age::rand_unif(src, src2);
+	ead::NodeptrT<double> dest = tenncor::random::rand_unif(src, src2);
 
 	dest->update();
 	{
@@ -1391,7 +1391,7 @@ TEST(API, Convolution)
 	ead::NodeptrT<double> kernel = ead::make_constant<double>(data2.data(), kshape);
 	std::vector<ade::DimT> dims(ade::rank_cap);
 	std::iota(dims.begin(), dims.end(), 0);
-	ead::NodeptrT<double> dest = age::convolution(img, kernel, dims);
+	ead::NodeptrT<double> dest = tenncor::convolution(img, kernel, dims);
 
 	dest->update();
 	{

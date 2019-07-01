@@ -57,11 +57,12 @@ api:
   pybind_type: float
   includes:
   - '"ead/constant.hpp"'
+  - '"ead/variable.hpp"'
   - '"ead/functor.hpp"'
   - '"tag/group.hpp"'
   - '"tag/prop.hpp"'
   namespaces:
-    age:
+    tenncor:
       - template: typename T
         name: abs
         args:
@@ -294,16 +295,6 @@ api:
         out:
           type: ead::NodeptrT<T>
           val: return ead::make_functor<T>(ade::Opcode{"GT",::age::GT},{ead::identity_map(arg1),ead::identity_map(arg2)});
-      - template: typename T
-        name: rand_unif
-        args:
-        - dtype: ead::NodeptrT<T>
-          name: arg1
-        - dtype: ead::NodeptrT<T>
-          name: arg2
-        out:
-          type: ead::NodeptrT<T>
-          val: return ead::make_functor<T>(ade::Opcode{"RAND_UNIF",::age::RAND_UNIF},{ead::identity_map(arg1),ead::identity_map(arg2)});
       - template: typename T
         name: min
         args:
@@ -641,7 +632,7 @@ api:
           type: ead::NodeptrT<T>
           val: |
               //
-                  auto red = reduce_sum(arg, dimension, 1);
+                  auto red = ::tenncor::reduce_sum(arg, dimension, 1);
 
                   std::vector<ade::DimT> indices(ade::rank_cap);
                   auto bt = indices.begin();
@@ -649,7 +640,7 @@ api:
                   std::iota(bt, it, 0);
                   std::iota(it, indices.end(), dimension + 1);
                   indices[ade::rank_cap - 1] = dimension;
-                  return permute(red, indices);
+                  return ::tenncor::permute(red, indices);
       - template: typename T
         name: reduce_prod_1d
         args:
@@ -661,7 +652,7 @@ api:
           type: ead::NodeptrT<T>
           val: |
               //
-                  auto red = reduce_prod(arg, dimension, 1);
+                  auto red = ::tenncor::reduce_prod(arg, dimension, 1);
 
                   std::vector<ade::DimT> indices(ade::rank_cap);
                   auto bt = indices.begin();
@@ -669,7 +660,7 @@ api:
                   std::iota(bt, it, 0);
                   std::iota(it, indices.end(), dimension + 1);
                   indices[ade::rank_cap - 1] = dimension;
-                  return permute(red, indices);
+                  return ::tenncor::permute(red, indices);
       - template: typename T
         name: reduce_min_1d
         args:
@@ -681,7 +672,7 @@ api:
           type: ead::NodeptrT<T>
           val: |
               //
-                  auto red = reduce_min(arg, dimension, 1);
+                  auto red = ::tenncor::reduce_min(arg, dimension, 1);
 
                   std::vector<ade::DimT> indices(ade::rank_cap);
                   auto bt = indices.begin();
@@ -689,7 +680,7 @@ api:
                   std::iota(bt, it, 0);
                   std::iota(it, indices.end(), dimension + 1);
                   indices[ade::rank_cap - 1] = dimension;
-                  return permute(red, indices);
+                  return ::tenncor::permute(red, indices);
       - template: typename T
         name: reduce_max_1d
         args:
@@ -701,7 +692,7 @@ api:
           type: ead::NodeptrT<T>
           val: |
               //
-                  auto red = reduce_max(arg, dimension, 1);
+                  auto red = ::tenncor::reduce_max(arg, dimension, 1);
 
                   std::vector<ade::DimT> indices(ade::rank_cap);
                   auto bt = indices.begin();
@@ -709,7 +700,7 @@ api:
                   std::iota(bt, it, 0);
                   std::iota(it, indices.end(), dimension + 1);
                   indices[ade::rank_cap - 1] = dimension;
-                  return permute(red, indices);
+                  return ::tenncor::permute(red, indices);
       - template: typename T
         name: transpose
         args:
@@ -717,7 +708,7 @@ api:
           name: arg
         out:
           type: ead::NodeptrT<T>
-          val: return permute<T>(arg, {1, 0});
+          val: return ::tenncor::permute(arg, {1, 0});
       - template: typename T
         name: reduce_mean
         args:
@@ -725,7 +716,7 @@ api:
           name: arg
         out:
           type: ead::NodeptrT<T>
-          val: return div<T>(reduce_sum<T>(arg), n_elems<T>(arg));
+          val: return ::tenncor::div(::tenncor::reduce_sum(arg), ::tenncor::n_elems(arg));
       - template: typename T
         name: reduce_l2norm
         args:
@@ -739,7 +730,7 @@ api:
           default: ade::rank_cap
         out:
           type: ead::NodeptrT<T>
-          val: return sqrt(reduce_sum(square(arg), offset, ndims));
+          val: return ::tenncor::sqrt(::tenncor::reduce_sum(::tenncor::square(arg), offset, ndims));
       - template: typename T
         name: reduce_l2norm_1d
         args:
@@ -749,7 +740,7 @@ api:
           name: dimension
         out:
           type: ead::NodeptrT<T>
-          val: return sqrt(reduce_sum_1d(square(arg), dimension));
+          val: return ::tenncor::sqrt(::tenncor::reduce_sum_1d(::tenncor::square(arg), dimension));
       - template: typename T
         name: clip_by_range
         args:
@@ -770,7 +761,7 @@ api:
                   ade::Shape shape = arg->shape();
                   auto lo = ead::make_constant_scalar<T>(minval, shape);
                   auto hi = ead::make_constant_scalar<T>(maxval, shape);
-                  auto out = max(min(arg, hi), lo);
+                  auto out = ::tenncor::max(::tenncor::min(arg, hi), lo);
                   tag::recursive_group_tag(out->get_tensor(), "clip_by_range", {
                       arg->get_tensor().get(),
                       lo->get_tensor().get(),
@@ -794,10 +785,10 @@ api:
                   }
                   ade::Shape shape = arg->shape();
                   auto limit = ead::make_constant_scalar<T>(upper, shape);
-                  auto norm = extend(reduce_l2norm(arg), 0,
+                  auto norm = ::tenncor::extend(::tenncor::reduce_l2norm(arg), 0,
                       std::vector<ade::DimT>(shape.begin(), shape.end()));
-                  auto out = if_then_else(lt(norm, limit),
-                      arg, div(mul(arg, limit), norm));
+                  auto out = ::tenncor::if_then_else(::tenncor::lt(norm, limit),
+                      arg, ::tenncor::div(::tenncor::mul(arg, limit), norm));
                   tag::recursive_group_tag(out->get_tensor(), "clip_by_l2norm", {
                       arg->get_tensor().get(),
                       limit->get_tensor().get(),
@@ -820,7 +811,7 @@ api:
                   ead::NodeptrT<T> out = args[0];
                   for (size_t i = 1, n = args.size(); i < n; ++i)
                   {
-                      out = add(out, args[i]);
+                      out = ::tenncor::add(out, args[i]);
                   }
                   return out;
       - template: typename T
@@ -839,7 +830,7 @@ api:
                   ead::NodeptrT<T> out = args[0];
                   for (size_t i = 1, n = args.size(); i < n; ++i)
                   {
-                      out = mul(out, args[i]);
+                      out = ::tenncor::mul(out, args[i]);
                   }
                   return out;
       - template: typename T
@@ -861,13 +852,44 @@ api:
                   ade::Shape shape = exarg->shape();
                   auto it = shape.begin() + offset;
                   std::vector<ade::DimT> xlist(it, it + ndims);
-                  auto out = div(exarg,
-                      extend(reduce_sum(exarg, offset, offset+ndims),
+                  auto out = ::tenncor::div(exarg,
+                      ::tenncor::extend(::tenncor::reduce_sum(exarg, offset, offset+ndims),
                       offset, xlist));
                   tag::recursive_group_tag(out->get_tensor(), "softmax", {
                       arg->get_tensor().get()});
                   return out;
-    age::nn:
+    tenncor::random:
+      - template: typename T
+        name: rand_unif
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: ead::NodeptrT<T>
+          name: arg2
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(
+                      ade::Opcode{"RAND_UNIF",::age::RAND_UNIF},{
+                          ead::identity_map(arg1),
+                          ead::identity_map(arg2)
+                      });
+      - template: typename T
+        name: rand_binom_one
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  const ade::Shape& shape = arg->get_tensor()->shape();
+                  auto trial = ::tenncor::random::rand_unif(
+                      ead::convert_to_node(ead::make_variable_scalar<T>((T) 0, shape)),
+                      ead::convert_to_node(ead::make_variable_scalar<T>((T) 1, shape)));
+                  return ::tenncor::lt(trial, arg);
+    tenncor::nn:
       - template: typename T
         name: conv2d
         args:
@@ -887,16 +909,16 @@ api:
                   convolveds.reserve(nfilters);
                   for (ade::DimT i = 0; i < nfilters; ++i)
                   {
-                      auto filter = permute(
-                          slice(kernel, i, 1, 0),
+                      auto filter = ::tenncor::permute(
+                          ::tenncor::slice(kernel, i, 1, 0),
                           {1, 2, 3, 0});
-                      auto conved = convolution(image, filter,
+                      auto conved = ::tenncor::convolution(image, filter,
                           {0, 1, 2});
-                      auto padded = pad(conved,
+                      auto padded = ::tenncor::pad(conved,
                           {i, nfilters - i - 1}, 0);
                       convolveds.push_back(padded);
                   }
-                  auto out = sum(convolveds);
+                  auto out = ::tenncor::sum(convolveds);
                   tag::recursive_group_tag(out->get_tensor(), "conv2d", {
                       image->get_tensor().get(),
                       kernel->get_tensor().get()
@@ -930,17 +952,17 @@ api:
                       inputs[0]->get_tensor().get(),
                       weights[0]->get_tensor().get()
                   };
-                  auto out = matmul(inputs[0], weights[0]);
+                  auto out = ::tenncor::matmul(inputs[0], weights[0]);
                   for (size_t i = 1; i < ninputs; ++i)
                   {
                       ignores.emplace(inputs[i]->get_tensor().get());
                       ignores.emplace(weights[i]->get_tensor().get());
-                      out = add(out, matmul(inputs[i], weights[i]));
+                      out = ::tenncor::add(out, ::tenncor::matmul(inputs[i], weights[i]));
                   }
                   if (nullptr != bias)
                   {
                       const ade::Shape& shape = out->shape();
-                      out = add(out, extend(bias, 1, {shape.at(1)}));
+                      out = ::tenncor::add(out, ::tenncor::extend(bias, 1, {shape.at(1)}));
                       ignores.emplace(bias->get_tensor().get());
                   }
                   tag::recursive_group_tag(out->get_tensor(), "fully_connect", ignores);

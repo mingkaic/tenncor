@@ -33,7 +33,7 @@ TEST(OPTIMIZE, CalcConstants)
 	opt::OptCtx empty_rules = ead::parse<double>("");
 
 	{
-		auto vfunc = age::sin(var);
+		auto vfunc = tenncor::sin(var);
 		auto opted = opt::optimize({vfunc->get_tensor()}, empty_rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized vfunc to remain the same
@@ -44,7 +44,7 @@ TEST(OPTIMIZE, CalcConstants)
 	}
 
 	{
-		auto cfunc = age::sin(two);
+		auto cfunc = tenncor::sin(two);
 		auto opted = opt::optimize({cfunc->get_tensor()}, empty_rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized cfunc to be sin(2)
@@ -54,9 +54,9 @@ TEST(OPTIMIZE, CalcConstants)
 	}
 
 	{
-		auto adv_func = age::mul(
-			age::add(age::sin(var), age::sin(two)),
-			age::pow(three, four));
+		auto adv_func = tenncor::mul(
+			tenncor::add(tenncor::sin(var), tenncor::sin(two)),
+			tenncor::pow(three, four));
 		auto opted = opt::optimize({adv_func->get_tensor()}, empty_rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized adv_func to be (sin(var) + sin(2)) * 81
@@ -98,8 +98,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
 
 	{
-		auto wunfunc = age::pow(var, zero);
-		auto zrofunc = age::pow(zero, var);
+		auto wunfunc = tenncor::pow(var, zero);
+		auto zrofunc = tenncor::pow(zero, var);
 		auto opted = opt::optimize({
 			wunfunc->get_tensor(),
 			zrofunc->get_tensor(),
@@ -113,8 +113,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto lvfunc = age::add(var, zero);
-		auto rvfunc = age::add(zero, var);
+		auto lvfunc = tenncor::add(var, zero);
+		auto rvfunc = tenncor::add(zero, var);
 		auto opted = opt::optimize({
 			lvfunc->get_tensor(),
 			rvfunc->get_tensor(),
@@ -127,8 +127,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto lzero = age::mul(var, zero);
-		auto rzero = age::mul(zero, var);
+		auto lzero = tenncor::mul(var, zero);
+		auto rzero = tenncor::mul(zero, var);
 		auto opted = opt::optimize({
 			lzero->get_tensor(),
 			rzero->get_tensor(),
@@ -141,8 +141,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto posvar = age::sub(var, zero);
-		auto negvar = age::sub(zero, var);
+		auto posvar = tenncor::sub(var, zero);
+		auto negvar = tenncor::sub(zero, var);
 		auto opted = opt::optimize({
 			posvar->get_tensor(),
 			negvar->get_tensor(),
@@ -159,7 +159,7 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto divz = age::div(zero, var);
+		auto divz = tenncor::div(zero, var);
 		auto opted = opt::optimize({divz->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized divz to be zero
@@ -167,7 +167,7 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto no_opt = age::max(zero, var);
+		auto no_opt = tenncor::max(zero, var);
 		auto opted = opt::optimize({no_opt->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized not_opt to remain the same
@@ -191,17 +191,17 @@ TEST(OPTIMIZE, PruneZeroGraph)
 
 	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
 
-	auto got1 = age::cos(zero);
-	auto got3 = age::add(zero, var2);
-	auto gotn1 = age::sub(zero, var);
-	auto got2 = age::sub(var2, zero);
-	auto got22 = age::max(var2, zero);
+	auto got1 = tenncor::cos(zero);
+	auto got3 = tenncor::add(zero, var2);
+	auto gotn1 = tenncor::sub(zero, var);
+	auto got2 = tenncor::sub(var2, zero);
+	auto got22 = tenncor::max(var2, zero);
 
-	auto too = age::add(zero, age::mul(got1, got22));
-	auto got11 = age::pow(got2, zero);
+	auto too = tenncor::add(zero, tenncor::mul(got1, got22));
+	auto got11 = tenncor::pow(got2, zero);
 
-	auto m = age::min(age::max(got22, got1), age::lt(too, got11));
-	auto nocascades = age::sub(age::pow(m, age::div(got3, gotn1)), got2);
+	auto m = tenncor::min(tenncor::max(got22, got1), tenncor::lt(too, got11));
+	auto nocascades = tenncor::sub(tenncor::pow(m, tenncor::div(got3, gotn1)), got2);
 
 	auto opted = opt::optimize({nocascades->get_tensor()}, rules);
 	ASSERT_EQ(1, opted.size());
@@ -224,8 +224,8 @@ TEST(OPTIMIZE, PruneZeroGraph)
 		" |           `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:var2[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 
-	auto got0 = age::tan(zero);
-	opted = opt::optimize({age::pow(nocascades, got0)->get_tensor()}, rules);
+	auto got0 = tenncor::tan(zero);
+	opted = opt::optimize({tenncor::pow(nocascades, got0)->get_tensor()}, rules);
 	ASSERT_EQ(1, opted.size());
 	EXPECT_GRAPHEQ("(1[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 }
@@ -243,8 +243,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
 
 	{
-		auto vfunc = age::pow(var, one);
-		auto wunfunc = age::pow(one, var);
+		auto vfunc = tenncor::pow(var, one);
+		auto wunfunc = tenncor::pow(one, var);
 		auto opted = opt::optimize({
 			vfunc->get_tensor(),
 			wunfunc->get_tensor(),
@@ -259,8 +259,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 	}
 
 	{
-		auto lvfunc = age::mul(var, one);
-		auto rvfunc = age::mul(one, var);
+		auto lvfunc = tenncor::mul(var, one);
+		auto rvfunc = tenncor::mul(one, var);
 		auto opted = opt::optimize({
 			lvfunc->get_tensor(),
 			rvfunc->get_tensor(),
@@ -273,7 +273,7 @@ TEST(OPTIMIZE, PruneOneSingles)
 	}
 
 	{
-		auto nomer = age::div(var, one);
+		auto nomer = tenncor::div(var, one);
 		auto opted = opt::optimize({nomer->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized nomer to be var
@@ -282,7 +282,7 @@ TEST(OPTIMIZE, PruneOneSingles)
 	}
 
 	{
-		auto wun = age::div(var, var);
+		auto wun = tenncor::div(var, var);
 		auto opted = opt::optimize({wun->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized wun to be 1
@@ -290,7 +290,7 @@ TEST(OPTIMIZE, PruneOneSingles)
 	}
 
 	{
-		auto no_opt = age::max(one, var);
+		auto no_opt = tenncor::max(one, var);
 		auto opted = opt::optimize({no_opt->get_tensor()}, rules);
 		// expect optimized no_opt to remain the same
 		EXPECT_GRAPHEQ(
@@ -312,17 +312,17 @@ TEST(OPTIMIZE, PruneOneGraph)
 
 	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
 
-	auto got0 = age::log(one);
-	auto got1 = age::sqrt(one);
-	auto got3 = age::mul(one, var);
-	auto got00 = age::pow(one, var);
-	auto got = age::max(var, one);
+	auto got0 = tenncor::log(one);
+	auto got1 = tenncor::sqrt(one);
+	auto got3 = tenncor::mul(one, var);
+	auto got00 = tenncor::pow(one, var);
+	auto got = tenncor::max(var, one);
 
-	auto too = age::add(got1, age::mul(got0, got00));
-	auto got11 = age::pow(var, one);
+	auto too = tenncor::add(got1, tenncor::mul(got0, got00));
+	auto got11 = tenncor::pow(var, one);
 
-	auto m = age::min(age::max(got1, too), got11);
-	auto root = age::sub(age::pow(m, age::div(got3, got)), var);
+	auto m = tenncor::min(tenncor::max(got1, too), got11);
+	auto root = tenncor::sub(tenncor::pow(m, tenncor::div(got3, got)), var);
 
 	auto opted = opt::optimize({root->get_tensor()}, rules);
 	ASSERT_EQ(1, opted.size());
@@ -353,7 +353,7 @@ TEST(OPTIMIZE, PruneOpSingles)
 	// merge redundent double reduced argument for empty shape
 	{
 		auto opted = opt::optimize({
-			age::reduce_sum(age::reduce_sum(zero))->get_tensor(),
+			tenncor::reduce_sum(tenncor::reduce_sum(zero))->get_tensor(),
 		}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ("(variable:special_var0[1\\1\\1\\1\\1\\1\\1\\1])",
@@ -363,7 +363,7 @@ TEST(OPTIMIZE, PruneOpSingles)
 	// merge redundent double reduced argument for non-empty shape
 	{
 		auto opted = opt::optimize({
-			age::reduce_sum(age::reduce_sum(one))->get_tensor(),
+			tenncor::reduce_sum(tenncor::reduce_sum(one))->get_tensor(),
 		}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ(
@@ -375,7 +375,7 @@ TEST(OPTIMIZE, PruneOpSingles)
 	// don't merge non-redundent double reduced argument
 	{
 		auto opted = opt::optimize({
-			age::reduce_sum(age::reduce_sum(one, 1), 0)->get_tensor(),
+			tenncor::reduce_sum(tenncor::reduce_sum(one, 1), 0)->get_tensor(),
 		}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ(
@@ -388,7 +388,7 @@ TEST(OPTIMIZE, PruneOpSingles)
 	// don't merge mul-reduced_add
 	{
 		auto opted = opt::optimize({
-			age::mul(age::reduce_sum(one), zero)->get_tensor(),
+			tenncor::mul(tenncor::reduce_sum(one), zero)->get_tensor(),
 		}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ(
@@ -412,22 +412,22 @@ TEST(OPTIMIZE, PruneOpGraph)
 	ead::NodeptrT<double> three = ead::convert_to_node(
 		ead::make_variable_scalar<double>(3, ade::Shape(), "special_var3"));
 
-	auto got1 = age::cos(three);
-	auto got3 = age::mul(age::mul(one, three), two);
-	auto gotn1 = age::sub(three, one);
-	auto got2 = age::sub(two, three);
-	auto got22 = age::min(two, three);
+	auto got1 = tenncor::cos(three);
+	auto got3 = tenncor::mul(tenncor::mul(one, three), two);
+	auto gotn1 = tenncor::sub(three, one);
+	auto got2 = tenncor::sub(two, three);
+	auto got22 = tenncor::min(two, three);
 
-	auto too = age::mul(age::reduce_prod(age::reduce_prod(zero, 0), 1),
-		age::reduce_prod(age::mul(got1, got22)));
-	auto got11 = age::pow(got2, three);
+	auto too = tenncor::mul(tenncor::reduce_prod(tenncor::reduce_prod(zero, 0), 1),
+		tenncor::reduce_prod(tenncor::mul(got1, got22)));
+	auto got11 = tenncor::pow(got2, three);
 
-	auto m = age::min(age::min(got22, got1), age::min(too, got11));
+	auto m = tenncor::min(tenncor::min(got22, got1), tenncor::min(too, got11));
 
 	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
 
 	auto opted = opt::optimize({
-		age::sub(age::min(m, age::div(got3, gotn1)), got2)->get_tensor(),
+		tenncor::sub(tenncor::min(m, tenncor::div(got3, gotn1)), got2)->get_tensor(),
 	}, rules);
 	ASSERT_EQ(1, opted.size());
 	auto root = opted[0];
@@ -485,7 +485,7 @@ TEST(OPTIMIZE, GroupSingles)
 	// mul and div and next to each level
 	{
 		auto opted = opt::optimize({
-			age::mul(age::div(one, two), two)->get_tensor(),
+			tenncor::mul(tenncor::div(one, two), two)->get_tensor(),
 		}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ("(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])",
@@ -495,7 +495,7 @@ TEST(OPTIMIZE, GroupSingles)
 	// mul and div are separated by a level
 	{
 		auto opted = opt::optimize({
-			age::mul(age::mul(age::div(one, two), one), two)->get_tensor(),
+			tenncor::mul(tenncor::mul(tenncor::div(one, two), one), two)->get_tensor(),
 		}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ(
@@ -518,53 +518,53 @@ TEST(OPTIMIZE, ReuseOpGraph)
 
 	ead::NodeptrT<double> root;
 	{
-		auto got1 = age::cos(zero);
-		auto got3 = age::add(age::add(one, zero), two);
-		auto gotn1 = age::sub(zero, one);
-		auto got2 = age::sub(two, zero);
-		auto got22 = age::max(two, zero);
+		auto got1 = tenncor::cos(zero);
+		auto got3 = tenncor::add(tenncor::add(one, zero), two);
+		auto gotn1 = tenncor::sub(zero, one);
+		auto got2 = tenncor::sub(two, zero);
+		auto got22 = tenncor::max(two, zero);
 
-		auto too = age::add(zero, age::mul(got1, got22));
-		auto got11 = age::pow(got2, zero);
+		auto too = tenncor::add(zero, tenncor::mul(got1, got22));
+		auto got11 = tenncor::pow(got2, zero);
 
-		auto m = age::min(age::min(got22, got1), age::min(too, got11));
-		root = age::sub(age::pow(m, age::div(got3, gotn1)), got2);
+		auto m = tenncor::min(tenncor::min(got22, got1), tenncor::min(too, got11));
+		root = tenncor::sub(tenncor::pow(m, tenncor::div(got3, gotn1)), got2);
 	}
 
 	ead::NodeptrT<double> subroot;
 	{
-		auto other_got1 = age::cos(zero);
-		auto got22 = age::max(two, zero);
-		subroot = age::mul(other_got1, got22);
+		auto other_got1 = tenncor::cos(zero);
+		auto got22 = tenncor::max(two, zero);
+		subroot = tenncor::mul(other_got1, got22);
 	}
 
 	ead::NodeptrT<double> copyroot;
 	{
-		auto got1 = age::cos(zero);
-		auto got3 = age::add(age::add(one, zero), two);
-		auto gotn1 = age::sub(zero, one);
-		auto got2 = age::sub(two, zero);
-		auto got22 = age::max(two, zero);
+		auto got1 = tenncor::cos(zero);
+		auto got3 = tenncor::add(tenncor::add(one, zero), two);
+		auto gotn1 = tenncor::sub(zero, one);
+		auto got2 = tenncor::sub(two, zero);
+		auto got22 = tenncor::max(two, zero);
 
-		auto too = age::add(zero, age::mul(got1, got22));
-		auto got11 = age::pow(got2, zero);
+		auto too = tenncor::add(zero, tenncor::mul(got1, got22));
+		auto got11 = tenncor::pow(got2, zero);
 
-		auto m = age::min(age::min(got22, got1), age::min(too, got11));
-		copyroot = age::sub(age::pow(m, age::div(got3, gotn1)), got2);
+		auto m = tenncor::min(tenncor::min(got22, got1), tenncor::min(too, got11));
+		copyroot = tenncor::sub(tenncor::pow(m, tenncor::div(got3, gotn1)), got2);
 	}
 
 	ead::NodeptrT<double> splitroot;
 	{
-		auto got1 = age::cos(zero);
-		auto got3 = age::add(age::add(one, zero), two);
-		auto gotn1 = age::sub(zero, one);
-		auto got2 = age::sub(two, zero);
-		auto got22 = age::max(two, zero);
+		auto got1 = tenncor::cos(zero);
+		auto got3 = tenncor::add(tenncor::add(one, zero), two);
+		auto gotn1 = tenncor::sub(zero, one);
+		auto got2 = tenncor::sub(two, zero);
+		auto got22 = tenncor::max(two, zero);
 
-		auto too = age::div(got2, age::mul(got1, got22));
-		auto got11 = age::eq(too, gotn1);
+		auto too = tenncor::div(got2, tenncor::mul(got1, got22));
+		auto got11 = tenncor::eq(too, gotn1);
 
-		splitroot = age::mul(age::mul(got11, got1), age::mul(too, got3));
+		splitroot = tenncor::mul(tenncor::mul(got11, got1), tenncor::mul(too, got3));
 	}
 
 	opt::OptCtx empty_rules = ead::parse<double>("");

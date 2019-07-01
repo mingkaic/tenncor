@@ -23,9 +23,9 @@ TEST(MATCHER, OrdrAny)
 	ead::NodeptrT<float> a = ead::make_variable_scalar<float>(2, shape);
 	ead::NodeptrT<float> b = ead::make_variable_scalar<float>(3, shape);
 
-	auto f1 = age::pow(a, b);
-	auto f2 = age::pow(a, a);
-	auto f3 = age::pow(b, b);
+	auto f1 = tenncor::pow(a, b);
+	auto f2 = tenncor::pow(a, a);
+	auto f3 = tenncor::pow(b, b);
 
 	opt::Matcher matcher;
 	{
@@ -82,15 +82,15 @@ TEST(MATCHER, CommAny)
 	ead::NodeptrT<float> a = ead::make_variable_scalar<float>(2, shape);
 	ead::NodeptrT<float> b = ead::make_variable_scalar<float>(3, shape);
 
-	auto f1 = age::mul(a, b);
-	auto f2 = age::mul(a, a);
-	auto f3 = age::mul(b, b);
+	auto f1 = tenncor::mul(a, b);
+	auto f2 = tenncor::mul(a, a);
+	auto f3 = tenncor::mul(b, b);
 
-	auto f4_sub_l = age::mul(f1, a); // match against similar
-	auto f4_sub_r = age::mul(f1, b); // match against similar
+	auto f4_sub_l = tenncor::mul(f1, a); // match against similar
+	auto f4_sub_r = tenncor::mul(f1, b); // match against similar
 
-	auto f5 = age::mul(f2, a); // match against everything except same
-	auto f6 = age::mul(f2, b); // match against weird
+	auto f5 = tenncor::mul(f2, a); // match against everything except same
+	auto f6 = tenncor::mul(f2, b); // match against weird
 
 	opt::Matcher matcher;
 	{
@@ -181,9 +181,9 @@ TEST(MATCHER, Ambiguous_CommAny)
 	ead::NodeptrT<float> a = ead::make_variable_scalar<float>(2, shape);
 	ead::NodeptrT<float> b = ead::make_variable_scalar<float>(3, shape);
 
-	auto same = age::mul(a, b);
-	auto sub_l = age::mul(same, a); // match against similar and similar2
-	auto sub_r = age::mul(same, b); // match against similar and similar2
+	auto same = tenncor::mul(a, b);
+	auto sub_l = tenncor::mul(same, a); // match against similar and similar2
+	auto sub_r = tenncor::mul(same, b); // match against similar and similar2
 
 	opt::Matcher matcher;
 	{

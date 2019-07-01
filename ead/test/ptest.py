@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
 
 from testutil.generate_testcases import generate_testcases
@@ -299,7 +299,7 @@ class EADTest(unittest.TestCase):
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, age.abs, abs,
+            self._common_unary(shape, tc.abs, abs,
                 lambda data: data / abs(data))
 
     def test_neg(self):
@@ -308,7 +308,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            self._common_unary(shape, age.neg, lambda a: -a,
+            self._common_unary(shape, tc.neg, lambda a: -a,
                 lambda data: -data1)
 
     def test_sin(self):
@@ -316,39 +316,39 @@ class EADTest(unittest.TestCase):
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, age.sin, np.sin, np.cos)
+            self._common_unary(shape, tc.sin, np.sin, np.cos)
 
     def test_cos(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, age.cos, np.cos, lambda x: -np.sin(x))
+            self._common_unary(shape, tc.cos, np.cos, lambda x: -np.sin(x))
 
     def test_tan(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, age.tan, tf.tan)
+            self._common_unary_tf(shape, tc.tan, tf.tan)
 
     def test_exp(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, age.exp, np.exp, np.exp)
+            self._common_unary(shape, tc.exp, np.exp, np.exp)
 
     def test_log(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, age.log, np.log, lambda x: 1.0 / x)
+            self._common_unary(shape, tc.log, np.log, lambda x: 1.0 / x)
 
     def test_sqrt(self):
         shape = [3, 4, 5]
-        self._common_unary(shape, age.sqrt, np.sqrt,
+        self._common_unary(shape, tc.sqrt, np.sqrt,
             lambda x: 1.0 / (2.0 * np.sqrt(x)))
 
     def test_round(self):
@@ -357,21 +357,21 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            self._common_unary(shape, age.round, np.round, lambda x: data1)
+            self._common_unary(shape, tc.round, np.round, lambda x: data1)
 
     def test_sigmoid(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, age.sigmoid, tf.sigmoid)
+            self._common_unary_tf(shape, tc.sigmoid, tf.sigmoid)
 
     def test_tanh(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, age.tanh, tf.tanh)
+            self._common_unary_tf(shape, tc.tanh, tf.tanh)
 
     def test_clip_by_range(self):
         shapes = [[3, 4, 5]]
@@ -379,7 +379,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             self._common_unary_tf(shape,
-                lambda x: age.clip_by_range(x, 0.3, 0.6),
+                lambda x: tc.clip_by_range(x, 0.3, 0.6),
                 lambda x: tf.clip_by_value(x, 0.3, 0.6))
 
     def test_clip_by_l2norm(self):
@@ -388,7 +388,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             self._common_unary_tf(shape,
-                lambda x: age.clip_by_l2norm(x, 5),
+                lambda x: tc.clip_by_l2norm(x, 5),
                 lambda x: tf.clip_by_norm(x, 5))
 
     def test_softmax(self):
@@ -396,7 +396,7 @@ class EADTest(unittest.TestCase):
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, lambda arr: age.softmax(arr,
+            self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
                 offset=0, ndims=1), tf.nn.softmax)
 
     def test_square(self):
@@ -404,14 +404,14 @@ class EADTest(unittest.TestCase):
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, age.square, tf.square)
+            self._common_unary_tf(shape, tc.square, tf.square)
 
     def test_cube(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, age.cube, lambda x: tf.pow(x, 3))
+            self._common_unary_tf(shape, tc.cube, lambda x: tf.pow(x, 3))
 
     def test_pow(self):
         shapes = [[3, 4, 5]]
@@ -423,7 +423,7 @@ class EADTest(unittest.TestCase):
                 if i == 0:
                     return b * a ** (b - 1)
                 return a ** b * np.log(a)
-            self._common_binary(shape, age.pow, lambda x, y: x ** y, pow_der)
+            self._common_binary(shape, tc.pow, lambda x, y: x ** y, pow_der)
 
     def test_add(self):
         shapes = [[3, 4, 5]]
@@ -431,7 +431,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            self._common_binary(shape, age.add, lambda x, y: x + y,
+            self._common_binary(shape, tc.add, lambda x, y: x + y,
                 lambda i, data: data1)
 
     def test_sub(self):
@@ -444,7 +444,7 @@ class EADTest(unittest.TestCase):
                 if i == 0:
                     return data1
                 return -data1
-            self._common_binary(shape, age.sub, lambda x, y: x - y, sub_der)
+            self._common_binary(shape, tc.sub, lambda x, y: x - y, sub_der)
 
     def test_mul(self):
         shapes = [[3, 4, 5]]
@@ -455,7 +455,7 @@ class EADTest(unittest.TestCase):
                 if i == 0:
                     return data[1]
                 return data[0]
-            self._common_binary(shape, age.mul, lambda x, y: x * y, mul_der)
+            self._common_binary(shape, tc.mul, lambda x, y: x * y, mul_der)
 
     def test_div(self):
         shapes = [[3, 4, 5]]
@@ -467,7 +467,7 @@ class EADTest(unittest.TestCase):
                 if i == 0:
                     return 1 / b
                 return -a / (b * b)
-            self._common_binary(shape, age.div, lambda x, y: x / y, div_der)
+            self._common_binary(shape, tc.div, lambda x, y: x / y, div_der)
 
     def test_min(self):
         shapes = [[3, 4, 5]]
@@ -479,7 +479,7 @@ class EADTest(unittest.TestCase):
                 if i == 0:
                     return (a <= b).astype(float)
                 return (b <= a).astype(float)
-            self._common_binary(shape, age.min, np.minimum, min_der)
+            self._common_binary(shape, tc.min, np.minimum, min_der)
 
     def test_max(self):
         shapes = [[3, 4, 5]]
@@ -491,7 +491,7 @@ class EADTest(unittest.TestCase):
                 if i == 0:
                     return (a >= b).astype(float)
                 return (b >= a).astype(float)
-            self._common_binary(shape, age.max, np.maximum, max_der)
+            self._common_binary(shape, tc.max, np.maximum, max_der)
 
     def test_eq(self):
         shapes = [[3, 4, 5]]
@@ -500,7 +500,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: age.eq(age.round(x), age.round(y)),
+                lambda x, y: tc.eq(tc.round(x), tc.round(y)),
                 lambda x, y: np.round(x) == np.round(y),
                 lambda i, data: data0)
 
@@ -511,7 +511,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: age.neq(age.round(x), age.round(y)),
+                lambda x, y: tc.neq(tc.round(x), tc.round(y)),
                 lambda x, y: np.round(x) != np.round(y),
                 lambda i, data: data0)
 
@@ -522,7 +522,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: age.lt(age.round(x), age.round(y)),
+                lambda x, y: tc.lt(tc.round(x), tc.round(y)),
                 lambda x, y: np.round(x) < np.round(y),
                 lambda i, data: data0)
 
@@ -533,7 +533,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: age.gt(age.round(x), age.round(y)),
+                lambda x, y: tc.gt(tc.round(x), tc.round(y)),
                 lambda x, y: np.round(x) > np.round(y),
                 lambda i, data: data0)
 
@@ -543,7 +543,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
-            self._common_unary(shape, age.n_elems,
+            self._common_unary(shape, tc.n_elems,
                 lambda data: np.prod(data.shape),
                 lambda data: data0)
 
@@ -554,7 +554,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_unary(shape,
-                lambda x: age.n_dims(x, 0),
+                lambda x: tc.n_dims(x, 0),
                 lambda data: data.shape[len(shape) - 1],
                 lambda data: data0)
 
@@ -564,7 +564,7 @@ class EADTest(unittest.TestCase):
         expected_out = np.array(list(data) * 3).reshape([3, 2])
         var = ead.variable(data, 'var')
 
-        out = age.extend(var, 1, [3])
+        out = tc.extend(var, 1, [3])
         sess = ead.Session()
         sess.track([out])
         sess.update()
@@ -580,28 +580,28 @@ class EADTest(unittest.TestCase):
         self._array_close(np.array([3, 3]), der)
 
     def test_rsum_1d(self):
-        self._common_reduce_1d(age.reduce_sum_1d, tf.reduce_sum)
+        self._common_reduce_1d(tc.reduce_sum_1d, tf.reduce_sum)
 
     def test_rprod_1d(self):
-        self._common_reduce_1d(age.reduce_prod_1d, tf.reduce_prod)
+        self._common_reduce_1d(tc.reduce_prod_1d, tf.reduce_prod)
 
     def test_rmin_1d(self):
-        self._common_reduce_1d(age.reduce_min_1d, tf.reduce_min)
+        self._common_reduce_1d(tc.reduce_min_1d, tf.reduce_min)
 
     def test_rmax_1d(self):
-        self._common_reduce_1d(age.reduce_max_1d, tf.reduce_max)
+        self._common_reduce_1d(tc.reduce_max_1d, tf.reduce_max)
 
     def test_rsum(self):
-        self._common_reduce(age.reduce_sum, age.reduce_sum, tf.reduce_sum)
+        self._common_reduce(tc.reduce_sum, tc.reduce_sum, tf.reduce_sum)
 
     def test_rprod(self):
-        self._common_reduce(age.reduce_prod, age.reduce_prod, tf.reduce_prod)
+        self._common_reduce(tc.reduce_prod, tc.reduce_prod, tf.reduce_prod)
 
     def test_rmin(self):
-        self._common_reduce(age.reduce_min, age.reduce_min, tf.reduce_min)
+        self._common_reduce(tc.reduce_min, tc.reduce_min, tf.reduce_min)
 
     def test_rmax(self):
-        self._common_reduce(age.reduce_max, age.reduce_max, tf.reduce_max)
+        self._common_reduce(tc.reduce_max, tc.reduce_max, tf.reduce_max)
 
     def test_rl2norm(self):
         shapes = [
@@ -616,7 +616,7 @@ class EADTest(unittest.TestCase):
             tfsess = tf.Session()
             tfsess.run(tf_var.initializer)
 
-            out = age.reduce_l2norm(var)
+            out = tc.reduce_l2norm(var)
             tf_out = tf.norm(tf_var)
 
             sess = ead.Session()
@@ -679,7 +679,7 @@ class EADTest(unittest.TestCase):
             tfsess.run(tf_var2.initializer)
 
             # regular matmul
-            out = age.matmul(var, var2)
+            out = tc.matmul(var, var2)
 
             # tensorflow matmul
             tf_out = tf.matmul(tf_var, tf_var2)
@@ -724,7 +724,7 @@ class EADTest(unittest.TestCase):
 
             if is_symmetric:
                 # test with symmetric property
-                both = age.matmul(var, var)
+                both = tc.matmul(var, var)
 
                 tf_both = tf.matmul(tf_var, tf_var)
 
@@ -769,7 +769,7 @@ class EADTest(unittest.TestCase):
             tf_var = tf.Variable(tf_data)
             tf_kernel = tf.Variable(tf_kdata)
 
-            out = age.convolution(var, vkernel, list(range(8)))
+            out = tc.convolution(var, vkernel, list(range(8)))
 
             sess = ead.Session()
             sess.track([out])
@@ -827,7 +827,7 @@ class EADTest(unittest.TestCase):
         tfimage = tf.Variable(data)
         tfkernel = tf.Variable(kdata)
 
-        out = age.nn.conv2d(image, kernel)
+        out = tc.nn.conv2d(image, kernel)
 
         sess = ead.Session()
         sess.track([out])
@@ -878,7 +878,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.mul(age.reduce_sum(var, offset=1, ndims=1), var2)
+        out = tc.mul(tc.reduce_sum(var, offset=1, ndims=1), var2)
         tf_out = tf.multiply(tf.reduce_sum(tf_var, 0), tf_var2)
 
         # evaluate regular matmul
@@ -914,7 +914,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.mul(age.extend(var, 1, [3]), var2)
+        out = tc.mul(tc.extend(var, 1, [3]), var2)
         tf_out = tf_var * tf_var2
 
         # evaluate regular matmul
@@ -950,7 +950,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.mul(age.permute(var, [1,0]), var2)
+        out = tc.mul(tc.permute(var, [1,0]), var2)
         tf_out = tf.transpose(tf_var) * tf_var2
 
         # evaluate regular matmul
@@ -990,7 +990,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
 
-        out = age.mul(age.matmul(var, var2), var3)
+        out = tc.mul(tc.matmul(var, var2), var3)
         tf_out = tf.multiply(tf.matmul(tf_var, tf_var2), tf_var3)
 
         # evaluate regular matmul
@@ -1030,7 +1030,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
 
-        out = age.matmul(age.matmul(var, var2), var3)
+        out = tc.matmul(tc.matmul(var, var2), var3)
         tf_out = tf.matmul(tf.matmul(tf_var, tf_var2), tf_var3)
 
         # evaluate regular matmul
@@ -1066,7 +1066,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.matmul(age.reduce_sum(var, offset=2, ndims=1), var2)
+        out = tc.matmul(tc.reduce_sum(var, offset=2, ndims=1), var2)
         tf_out = tf.matmul(tf.reduce_sum(tf_var, 0), tf_var2)
 
         # evaluate regular matmul
@@ -1103,7 +1103,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.matmul(age.extend(var, 1, [10]), var2)
+        out = tc.matmul(tc.extend(var, 1, [10]), var2)
         tf_out = tf.matmul(tf_var * ones, tf_var2)
 
         # evaluate regular matmul
@@ -1140,9 +1140,9 @@ class EADTest(unittest.TestCase):
         tfsess = tf.Session()
         tfsess.run(tf_var.initializer)
 
-        out = age.matmul(
-            age.extend(var, 1, [10]),
-            age.permute(age.extend(var, 1, [3]), [1, 0]))
+        out = tc.matmul(
+            tc.extend(var, 1, [10]),
+            tc.permute(tc.extend(var, 1, [3]), [1, 0]))
         tf_out = tf.matmul(tf_var * ones, tf.transpose(tf_var * ones2))
 
         # evaluate regular matmul
@@ -1181,10 +1181,10 @@ class EADTest(unittest.TestCase):
         tf_b = tf.Variable(data2)
         tf_c = tf.Variable(data3)
 
-        d = age.matmul(a, b)
-        e = age.matmul(c, d)
-        f = age.matmul(age.transpose(d), age.transpose(c))
-        dest = age.matmul(e, f)
+        d = tc.matmul(a, b)
+        e = tc.matmul(c, d)
+        f = tc.matmul(tc.transpose(d), tc.transpose(c))
+        dest = tc.matmul(e, f)
 
         tf_d = tf.matmul(tf_a, tf_b)
         tf_e = tf.matmul(tf_c, tf_d)
