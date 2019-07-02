@@ -26,6 +26,8 @@ struct iSession
 	/// update all nodes related to the leaves (so everyone)
 	/// ignore all nodes dependent on ignores including the ignored nodes
 	virtual void update (TensSetT updated = {}, TensSetT ignores = {}) = 0;
+
+	virtual void update_target (TensSetT target, TensSetT updated = {}) = 0;
 };
 
 struct SizeT
@@ -33,6 +35,32 @@ struct SizeT
 	size_t d = 0;
 
 	operator size_t() const { return d; }
+};
+
+// todo: give this more reasons for existence
+struct Traveler final : public ade::iTraveler
+{
+	/// Implementation of iTraveler
+	void visit (ade::iLeaf* leaf) override
+	{
+		visited_.emplace(leaf);
+	}
+
+	/// Implementation of iTraveler
+	void visit (ade::iFunctor* func) override
+	{
+		if (false == estd::has(visited_, func))
+		{
+			visited_.emplace(func);
+			auto& children = func->get_children();
+			for (auto& child : children)
+			{
+				child.get_tensor()->accept(*this);
+			}
+		}
+	}
+
+	TensSetT visited_;
 };
 
 // for each leaf node, iteratively update the parents
@@ -74,7 +102,7 @@ struct Session final : public iSession
 		for (ade::iOperableFunc* op : all_ops)
 		{
 			auto& args = op->get_children();
-			std::unordered_set<ade::iTensor*> unique_children;
+			TensSetT unique_children;
 			for (const ade::FuncArg& arg : args)
 			{
 				auto tens = arg.get_tensor().get();
@@ -113,6 +141,39 @@ struct Session final : public iSession
 			// fulfilled and not ignored
 			if (fulfilments[op.first].d >= op.second &&
 				false == estd::has(ignores, op.first))
+			{
+				op.first->update();
+				auto& op_parents = parents_[op.first];
+				for (auto& op_parent : op_parents)
+				{
+					++fulfilments[op_parent].d;
+				}
+			}
+		}
+	}
+
+	void update_target (TensSetT target, TensSetT updated = {}) override
+	{
+		Traveler targetted;
+		for (auto& tens : target)
+		{
+			tens->accept(targetted);
+		}
+		std::unordered_map<ade::iOperableFunc*,SizeT> fulfilments;
+		for (ade::iTensor* unodes : updated)
+		{
+			auto& node_parents = parents_[unodes];
+			for (auto& node_parent : node_parents)
+			{
+				++fulfilments[node_parent].d;
+			}
+		}
+		// ignored nodes and its dependers will never fulfill requirement
+		for (auto& op : requirements_)
+		{
+			// is relevant to target, is fulfilled and not ignored
+			if (estd::has(targetted.visited_, op.first) &&
+				fulfilments[op.first].d >= op.second)
 			{
 				op.first->update();
 				auto& op_parents = parents_[op.first];

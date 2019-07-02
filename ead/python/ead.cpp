@@ -206,8 +206,27 @@ PYBIND11_MODULE(ead, m)
 			}
 			sess->update(updates);
 		},
-		"Return calculated data",
+		"Calculate every node in the graph given list of updated data nodes",
 		py::arg("nodes") = std::vector<ead::NodeptrT<PybindT>>{})
+		.def("update_target",
+		[](py::object self, std::vector<ead::NodeptrT<PybindT>> targeted,
+			std::vector<ead::NodeptrT<PybindT>> updated)
+		{
+			auto sess = self.cast<ead::Session*>();
+			std::unordered_set<ade::iTensor*> targets;
+			std::unordered_set<ade::iTensor*> updates;
+			for (ead::NodeptrT<PybindT>& node : targeted)
+			{
+				targets.emplace(node->get_tensor().get());
+			}
+			for (ead::NodeptrT<PybindT>& node : updated)
+			{
+				updates.emplace(node->get_tensor().get());
+			}
+			sess->update_target(targets, updates);
+		},
+		"Calculate node relevant to targets in the graph given list of updated data",
+		py::arg("targets"), py::arg("updated") = std::vector<ead::NodeptrT<PybindT>>{})
 		.def("optimize",
 		[](py::object self, std::string filename)
 		{

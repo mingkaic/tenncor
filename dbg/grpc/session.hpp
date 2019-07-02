@@ -252,6 +252,95 @@ struct InteractiveSession final : public ead::iSession
 		client_.update_node_data(requests, update_it_);
 	}
 
+	void update_target (ead::TensSetT targeted,
+		ead::TensSetT updated = {}) override
+	{
+		job::ScopeGuard defer([this]() { ++this->update_it_; });
+
+		// ignore any node data updates when
+		// not connected or out of sync interval
+		if (false == client_.is_connected() || 0 < update_it_ % data_sync_interval)
+		{
+			sess_.update_target(targeted, updated);
+			return;
+		}
+
+		// basic copy over from session::update
+		ead::Traveler traveler;
+		for (auto& tens : targeted)
+		{
+			tens->accept(traveler);
+		}
+
+		std::unordered_map<ade::iOperableFunc*,ead::SizeT> fulfilments;
+		for (ade::iTensor* unodes : updated)
+		{
+			auto& node_parents = sess_.parents_[unodes];
+			for (auto& node_parent : node_parents)
+			{
+				++fulfilments[node_parent].d;
+			}
+		}
+
+		std::vector<tenncor::UpdateNodeDataRequest> requests;
+		requests.reserve(sess_.requirements_.size());
+
+		for (auto& statpair : sess_.stat_.graphsize_)
+		{
+			if (0 == statpair.second.upper_)
+			{
+				auto leaf = static_cast<ade::iLeaf*>(statpair.first);
+				age::_GENERATED_DTYPE dtype =
+					(age::_GENERATED_DTYPE) leaf->type_code();
+				std::vector<float> data;
+				size_t nelems = leaf->shape().n_elems();
+				age::type_convert(data, leaf->data(), dtype, nelems);
+
+				tenncor::UpdateNodeDataRequest request;
+				auto payload = request.mutable_payload();
+				payload->set_graph_id(sess_id_);
+				payload->set_node_id(node_ids_[leaf]);
+				google::protobuf::RepeatedField<float> field(
+					data.begin(), data.end());
+				payload->mutable_data()->Swap(&field);
+				requests.push_back(request);
+			}
+		}
+
+		// ignored nodes and its dependers will never fulfill requirement
+		for (auto& op : sess_.requirements_)
+		{
+			// fulfilled and not ignored
+			if (estd::has(traveler.visited_, op.first) &&
+				fulfilments[op.first].d >= op.second)
+			{
+				op.first->update();
+				age::_GENERATED_DTYPE dtype =
+					(age::_GENERATED_DTYPE) op.first->type_code();
+				std::vector<float> data;
+				size_t nelems = op.first->shape().n_elems();
+				age::type_convert(data, op.first->data(), dtype, nelems);
+				auto& op_parents = sess_.parents_[op.first];
+				for (auto& op_parent : op_parents)
+				{
+					++fulfilments[op_parent].d;
+				}
+
+				// create requests (bulk of the overhead)
+				tenncor::UpdateNodeDataRequest request;
+				auto payload = request.mutable_payload();
+				payload->set_graph_id(sess_id_);
+				payload->set_node_id(node_ids_[op.first]);
+				google::protobuf::RepeatedField<float> field(
+					data.begin(), data.end());
+				payload->mutable_data()->Swap(&field);
+				requests.push_back(request);
+			}
+		}
+
+		client_.update_node_data(requests, update_it_);
+	}
+
 	void optimize (const opt::OptCtx& rules)
 	{
 		sess_.optimize(rules);
