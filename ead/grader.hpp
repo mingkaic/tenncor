@@ -283,7 +283,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			case age::SELECT:
 				out = get_const_zero(args[0].get_tensor()->shape());
 				break;
-			case age::REDUCE_PROD:
+			case age::REDUCE_PROD: // todo: prevent divide by zero
 				out = tenncor::div(
 					reduce_grad(args[0], NodeConverters<T>::to_node(op), arg_idx),
 					NodeConverters<T>::to_node(args[0].get_tensor())

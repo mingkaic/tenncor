@@ -858,6 +858,14 @@ api:
                   tag::recursive_group_tag(out->get_tensor(), "softmax", {
                       arg->get_tensor().get()});
                   return out;
+      - template: typename T
+        name: sign
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: x
+        out:
+          type: ead::NodeptrT<T>
+          val: return ::tenncor::pow(x,ead::make_constant_scalar<T>(0,x->shape()));
     tenncor::random:
       - template: typename T
         name: rand_unif
@@ -890,6 +898,14 @@ api:
                       ead::convert_to_node(ead::make_variable_scalar<T>((T) 1, shape)));
                   return ::tenncor::lt(trial, arg);
     tenncor::nn:
+      - template: typename T
+        name: relu
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: x
+        out:
+          type: ead::NodeptrT<T>
+          val: return ::tenncor::max(x,ead::make_constant_scalar<T>(0,x->shape()));
       - template: typename T
         name: conv2d
         args:
