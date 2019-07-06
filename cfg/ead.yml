@@ -352,7 +352,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: std::vector<ade::DimT>
+        - dtype: std::vector<ade::RankT>
           name: order
         out:
           type: ead::NodeptrT<T>
@@ -626,7 +626,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: dimension
         out:
           type: ead::NodeptrT<T>
@@ -634,7 +634,7 @@ api:
               //
                   auto red = ::tenncor::reduce_sum(arg, dimension, 1);
 
-                  std::vector<ade::DimT> indices(ade::rank_cap);
+                  std::vector<ade::RankT> indices(ade::rank_cap);
                   auto bt = indices.begin();
                   auto it = bt + dimension;
                   std::iota(bt, it, 0);
@@ -646,7 +646,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: dimension
         out:
           type: ead::NodeptrT<T>
@@ -654,7 +654,7 @@ api:
               //
                   auto red = ::tenncor::reduce_prod(arg, dimension, 1);
 
-                  std::vector<ade::DimT> indices(ade::rank_cap);
+                  std::vector<ade::RankT> indices(ade::rank_cap);
                   auto bt = indices.begin();
                   auto it = bt + dimension;
                   std::iota(bt, it, 0);
@@ -666,7 +666,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: dimension
         out:
           type: ead::NodeptrT<T>
@@ -674,7 +674,7 @@ api:
               //
                   auto red = ::tenncor::reduce_min(arg, dimension, 1);
 
-                  std::vector<ade::DimT> indices(ade::rank_cap);
+                  std::vector<ade::RankT> indices(ade::rank_cap);
                   auto bt = indices.begin();
                   auto it = bt + dimension;
                   std::iota(bt, it, 0);
@@ -686,7 +686,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: dimension
         out:
           type: ead::NodeptrT<T>
@@ -694,7 +694,7 @@ api:
               //
                   auto red = ::tenncor::reduce_max(arg, dimension, 1);
 
-                  std::vector<ade::DimT> indices(ade::rank_cap);
+                  std::vector<ade::RankT> indices(ade::rank_cap);
                   auto bt = indices.begin();
                   auto it = bt + dimension;
                   std::iota(bt, it, 0);
@@ -717,6 +717,20 @@ api:
         out:
           type: ead::NodeptrT<T>
           val: return ::tenncor::div(::tenncor::reduce_sum(arg), ::tenncor::n_elems(arg));
+      - template: typename T
+        name: reduce_mean_1d
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg
+        - dtype: uint8_t
+          name: dimension
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto red = ::tenncor::reduce_sum_1d(arg, dimension);
+                  auto dim = ead::make_constant_scalar<T>(arg->shape().at(dimension), red->shape());
+                  return ::tenncor::div(red, dim);
       - template: typename T
         name: reduce_l2norm
         args:

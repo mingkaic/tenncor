@@ -90,7 +90,7 @@ FuncArg<T> reduce_map (NodeptrT<T> node, uint8_t offset, uint8_t ndims)
 
 	size_t n = std::min<ade::DimT>(offset + ndims, ade::rank_cap);
 	ade::Shape shape = node->get_tensor()->shape();
-	std::vector<uint8_t> dims; // dims are allowed to be non-contiguous
+	std::vector<ade::DimT> dims; // dims are allowed to be non-contiguous
 	std::vector<ade::DimT> slist;
 	dims.reserve(n);
 	slist.reserve(n);
@@ -115,7 +115,7 @@ FuncArg<T> extend_map (NodeptrT<T> node,
 }
 
 template <typename T>
-FuncArg<T> permute_map (NodeptrT<T> node, std::vector<ade::DimT> order)
+FuncArg<T> permute_map (NodeptrT<T> node, std::vector<uint8_t> order)
 {
 	return FuncArg<T>(node, ade::permute(order), permute(order));
 }

@@ -5,7 +5,7 @@
 namespace ead
 {
 
-CoordptrT reduce (std::vector<uint8_t> red_dims)
+CoordptrT reduce (std::vector<ade::DimT> red_dims)
 {
 	uint8_t n_red = red_dims.size();
 	if (std::any_of(red_dims.begin(), red_dims.end(),

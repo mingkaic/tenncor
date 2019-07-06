@@ -85,6 +85,17 @@ py_binary(
         ["//cfg:optimizations"],
 )
 
+py_binary(
+    name = "rbm_demo2",
+    srcs = glob(["demo/data/*.py"]) +
+        ["demo/rbm_demo2.py"],
+    deps = [
+        ":rocnnet_py",
+        "//dbg:grpc_dbg_py",
+    ],
+    data = glob(["demo/MNIST_data/*"]),
+)
+
 # cc_binary(
 #     name = "dbn_demo",
 #     srcs = ["demo/dbn_demo.cpp"],

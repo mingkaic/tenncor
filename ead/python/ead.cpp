@@ -276,9 +276,12 @@ PYBIND11_MODULE(ead, m)
 		return ead::make_constant(vec.data(), shape);
 	}, "Return constant node with data");
 
-	m.def("scalar_variable", &ead::make_variable_scalar<PybindT>,
+	m.def("scalar_variable", [](PybindT scalar, std::vector<py::ssize_t> slist, std::string label)
+	{
+		return ead::make_variable_scalar<PybindT>(scalar, pyead::p2cshape(slist), label);
+	},
 	"Return labelled variable containing numpy data array",
-	py::arg("scalar"), py::arg("shape"), py::arg("label") = "");
+	py::arg("scalar"), py::arg("slist"), py::arg("label") = "");
 
 	m.def("variable",
 	[](py::array data, std::string label)
@@ -289,7 +292,6 @@ PYBIND11_MODULE(ead, m)
 	},
 	"Return labelled variable containing numpy data array",
 	py::arg("data"), py::arg("label") = "");
-
 
 	m.def("derive", &ead::derive<PybindT>,
 	"Return derivative of first tensor with respect to second tensor (deprecated)");

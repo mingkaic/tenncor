@@ -19,8 +19,15 @@
 namespace ade
 {
 
+/// Type used for shape rank
+using RankT = uint8_t;
+
 /// Type used for shape dimension
-using DimT = uint8_t;
+// #ifdef SHAPE_D16
+using DimT = uint16_t;
+// #else
+// using DimT = uint8_t;
+// #endif
 
 /// Type used for coordinate dimensions
 using CDimT = double;
@@ -31,7 +38,7 @@ using CDimT = double;
 using NElemT = uint64_t;
 
 /// Number of dimsensions in a shape/coordinate
-const uint8_t rank_cap = 8;
+const RankT rank_cap = 8;
 
 /// Array type used to hold dimension info in Shape
 using ShapeT = std::array<DimT,rank_cap>;

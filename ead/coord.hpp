@@ -69,7 +69,7 @@ private:
 /// Type of iCoordMap smartpointer
 using CoordptrT = std::shared_ptr<CoordMap>;
 
-CoordptrT reduce (std::vector<uint8_t> red_dims);
+CoordptrT reduce (std::vector<ade::DimT> red_dims);
 
 CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext);
 

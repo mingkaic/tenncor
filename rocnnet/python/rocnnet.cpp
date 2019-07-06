@@ -7,6 +7,8 @@
 
 #include "ead/generated/pyapi.hpp"
 
+#include "rocnnet/eqns/init.hpp"
+
 #include "rocnnet/modl/mlp.hpp"
 #include "rocnnet/modl/rbm.hpp"
 // #include "rocnnet/modl/dbn.hpp"
@@ -21,6 +23,12 @@ namespace py = pybind11;
 
 namespace pyrocnnet
 {
+
+ade::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
+{
+	return ade::Shape(std::vector<ade::DimT>(
+		pyshape.rbegin(), pyshape.rend()));
+}
 
 trainer::DQNInfo dqninfo_init (size_t train_interval = 5,
 	PybindT rand_action_prob = 0.05,
@@ -85,6 +93,8 @@ eqns::ApproxF get_rms_momentum (PybindT learning_rate,
 PYBIND11_MODULE(rocnnet, m)
 {
 	m.doc() = "rocnnet api";
+
+	py::class_<ade::Shape> shape(m, "Shape");
 
 	// common parent
 	py::class_<modl::iMarshaler,modl::MarsptrT> marshaler(m, "Marshaler");
@@ -398,4 +408,27 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("discount_factor") = 0.99,
 		py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon(),
 		py::arg("gradprocess") = eqns::NodeUnarF(eqns::identity));
+
+	m.def("variable_from_init",
+	[](eqns::InitF<PybindT> init, std::vector<py::ssize_t> slist, std::string label)
+	{
+		return init(pyrocnnet::p2cshape(slist), label);
+	},
+	"Return labelled variable containing data created from initializer",
+	py::arg("init"), py::arg("slist"), py::arg("label") = "");
+
+	m.def("variance_scaling_init", [](PybindT factor)
+	{
+		return eqns::variance_scaling_init<PybindT>(factor);
+	},
+	"truncated_normal(shape, 0, sqrt(factor / ((fanin + fanout)/2))",
+	py::arg("factor"));
+
+	m.def("unif_xavier_init", &eqns::unif_xavier_init<PybindT>,
+	"uniform xavier initializer",
+	py::arg("factor") = 1);
+
+	m.def("norm_xavier_init", &eqns::norm_xavier_init<PybindT>,
+	"normal xavier initializer",
+	py::arg("factor") = 1);
 };

@@ -113,8 +113,8 @@ NodeptrT<T> extend_grad (ade::iFunctor* fwd,
 		assert(nullptr != coorder);
 		ade::CoordT dims;
 		coorder->forward(dims.begin(), dims.begin());
-		std::vector<uint8_t> red_dims;
-		for (uint8_t i = 0; i < ade::rank_cap; ++i)
+		std::vector<ade::DimT> red_dims;
+		for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 		{
 			if (dims[i] > 1)
 			{

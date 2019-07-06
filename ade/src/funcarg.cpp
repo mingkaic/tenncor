@@ -36,7 +36,7 @@ FuncArg identity_map (TensptrT tensor)
 FuncArg reduce_1d_map (TensptrT tensor, uint8_t rank)
 {
 	Shape shape = tensor->shape();
-	std::vector<DimT> indices(rank_cap);
+	std::vector<uint8_t> indices(rank_cap);
 	auto bt = indices.begin();
 	auto it = bt + rank;
 	std::iota(bt, it, 0);

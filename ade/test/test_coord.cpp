@@ -236,7 +236,7 @@ TEST(COORD, Extend)
 
 TEST(COORD, Permute)
 {
-	std::vector<ade::DimT> perm = {4, 2, 3, 7, 0, 1};
+	std::vector<uint8_t> perm = {4, 2, 3, 7, 0, 1};
 	ade::CoordptrT permuter = ade::permute(perm);
 	std::array<bool,ade::rank_cap> permed;
 	permed.fill(false);
