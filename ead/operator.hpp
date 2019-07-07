@@ -38,15 +38,15 @@ struct OpArg final
 
 template <typename OP, size_t N, typename T>
 using ReduceOutT = Eigen::TensorReductionOp<OP,
-	const std::array<ade::DimT,N>,const TensMapT<T>>;
+	const std::array<ade::RankT,N>,const TensMapT<T>>;
 
 namespace internal
 {
 
 template <size_t N>
-inline std::array<ade::DimT,N> dim_copy (std::vector<ade::DimT> d)
+inline std::array<ade::RankT,N> dim_copy (std::vector<ade::RankT> d)
 {
-	std::array<ade::DimT,N> out;
+	std::array<ade::RankT,N> out;
 	auto it = d.begin();
 	std::copy(it, it + N, out.begin());
 	return out;
@@ -62,9 +62,9 @@ make_tensmap(in.data_, in.shape_));
 	assert(nullptr != in.coorder_);\
 	ade::CoordT coord;\
 	in.coorder_->forward(coord.begin(), coord.begin());\
-	std::vector<ade::DimT> vdims;\
+	std::vector<ade::RankT> vdims;\
 	std::copy_if(coord.begin(), coord.end(), std::back_inserter(vdims),\
-		[](ade::DimT d) { return d < ade::rank_cap; });\
+		[](ade::RankT d) { return d < ade::rank_cap; });\
 	switch (vdims.size()) {\
 		_EAD_INTERNAL_V2A_CASE(0, PROCESS, RED)\
 		_EAD_INTERNAL_V2A_CASE(1, PROCESS, RED)\
@@ -139,7 +139,7 @@ EigenptrT<T> slice (ade::Shape& outshape, const OpArg<T>& in)
 	ade::ShapeT extent;
 	std::fill(offset.begin(), offset.end(), 0);
 	std::copy(in.shape_.begin(), in.shape_.end(), extent.begin());
-	ade::DimT dimension = slicing[2];
+	ade::RankT dimension = slicing[2];
 	offset[dimension] = slicing[0];
 	extent[dimension] = slicing[1];
 	return make_eigentensor<T,Eigen::TensorSlicingOp<
@@ -161,7 +161,7 @@ EigenptrT<T> pad (ade::Shape& outshape, const OpArg<T>& in)
 	ade::CoordT padding;
 	in.coorder_->forward(padding.begin(), padding.begin());
 	std::array<std::pair<ade::DimT,ade::DimT>,ade::rank_cap> paddings;
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		paddings[i] = std::make_pair(0, 0);
 	}
@@ -1086,7 +1086,7 @@ EigenptrT<T> convolution_image_grad (ade::Shape& imageshape,
 			ade::ShapeT patch_dims;
 			std::copy(outshape.begin(), outshape.end(), patch_dims.begin());
 			Eigen::array<std::pair<int,int>,ade::rank_cap> paddings;
-			for (uint8_t i = 0; i < ade::rank_cap; ++i)
+			for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 			{
 				int paddsize = outshape.at(i) - 1;
 				paddings[i] = std::make_pair(paddsize, paddsize);

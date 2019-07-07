@@ -13,12 +13,12 @@ using AugMatrixT = double[mat_dim][mat_dim * 2];
 // https://rosettacode.org/wiki/Gauss-Jordan_matrix_inversion#Go
 static bool gauss_jordan_elim (AugMatrixT mat)
 {
-	uint8_t ncols = 2 * mat_dim;
-	for (uint8_t row = 0, col = 0;
+	RankT ncols = 2 * mat_dim;
+	for (RankT row = 0, col = 0;
 		row < mat_dim && col < ncols; ++row, ++col)
 	{
 		// search in submatrix [row:][col:] for next leading entry
-		uint8_t next = row;
+		RankT next = row;
 		while (col < ncols && mat[next][col] == 0)
 		{
 			if (mat_dim <= ++next)
@@ -39,18 +39,18 @@ static bool gauss_jordan_elim (AugMatrixT mat)
 		assert(mat[row][col] != 0);
 		// row reduce by leading
 		double leading = mat[row][col];
-		for (uint8_t j = 0; j < ncols; ++j)
+		for (RankT j = 0; j < ncols; ++j)
 		{
 			mat[row][j] /= leading;
 		}
 
 		// eliminate other rows by multiples of row
-		for (uint8_t k = 0; k < mat_dim; ++k)
+		for (RankT k = 0; k < mat_dim; ++k)
 		{
 			if (k != row)
 			{
 				double mult = mat[k][col];
-				for (uint8_t j = 0; j < ncols; ++j)
+				for (RankT j = 0; j < ncols; ++j)
 				{
 					mat[k][j] -= mat[row][j] * mult;
 				}
@@ -64,17 +64,17 @@ std::string to_string (const MatrixT& mat)
 {
 	std::stringstream ss;
 	ss << fmts::arr_begin;
-	for (uint8_t i = 0; i < mat_dim - 1; ++i)
+	for (RankT i = 0; i < mat_dim - 1; ++i)
 	{
 		ss << fmts::arr_begin << mat[i][0];
-		for (uint8_t j = 1; j < mat_dim; ++j)
+		for (RankT j = 1; j < mat_dim; ++j)
 		{
 			ss << fmts::arr_delim << mat[i][j];
 		}
 		ss << fmts::arr_end << fmts::arr_delim << '\n';
 	}
 	ss << fmts::arr_begin << mat[mat_dim - 1][0];
-	for (uint8_t j = 1; j < mat_dim; ++j)
+	for (RankT j = 1; j < mat_dim; ++j)
 	{
 		ss << fmts::arr_delim << mat[mat_dim - 1][j];
 	}
@@ -92,7 +92,7 @@ double determinant (const MatrixT& mat)
 	std::memcpy(temp, mat, mat_size);
 	double* m[mat_dim];
 	m[0] = temp;
-	for (uint8_t i = 1; i < mat_dim; i++)
+	for (RankT i = 1; i < mat_dim; i++)
 	{
 		m[i] = m[i - 1] + mat_dim;
 	}
@@ -100,10 +100,10 @@ double determinant (const MatrixT& mat)
 	// triangulate and collect reduced diagonals
 	int sign = 1;
 	double det = 1;
-	for (uint8_t i = 0; i < mat_dim; i++)
+	for (RankT i = 0; i < mat_dim; i++)
 	{
-		uint8_t max_row = 0;
-		for (uint8_t row = i; row < mat_dim; row++)
+		RankT max_row = 0;
+		for (RankT row = i; row < mat_dim; row++)
 		{
 			if (std::fabs(m[row][i]) > std::fabs(m[max_row][i]))
 			{
@@ -125,7 +125,7 @@ double determinant (const MatrixT& mat)
 		}
 		det *= m[i][i];
 
-		for (uint8_t row = i + 1; row < mat_dim; row++)
+		for (RankT row = i + 1; row < mat_dim; row++)
 		{
 			double r = m[row][i] / m[i][i];
 			if (0 == r)
@@ -133,7 +133,7 @@ double determinant (const MatrixT& mat)
 				continue;
 			}
 
-			for (uint8_t col = i; col < mat_dim; col ++)
+			for (RankT col = i; col < mat_dim; col ++)
 			{
 				m[row][col] -= m[i][col] * r;
 			}
@@ -147,7 +147,7 @@ void inverse (MatrixT out, const MatrixT& in)
 {
 	size_t rowbytes = sizeof(double) * mat_dim;
 	AugMatrixT aug;
-	for (uint8_t i = 0; i < mat_dim; ++i)
+	for (RankT i = 0; i < mat_dim; ++i)
 	{
 		std::memcpy(aug[i], in[i], rowbytes);
 		std::memset(aug[i] + mat_dim, 0, rowbytes);
@@ -159,7 +159,7 @@ void inverse (MatrixT out, const MatrixT& in)
 		logs::fatalf("cannot invert matrix:\n%s", to_string(in).c_str());
 	}
 	// remove identity matrix to left
-	for (uint8_t i = 0; i < mat_dim; ++i)
+	for (RankT i = 0; i < mat_dim; ++i)
 	{
 		std::memcpy(out[i], aug[i] + mat_dim, rowbytes);
 	}
@@ -167,12 +167,12 @@ void inverse (MatrixT out, const MatrixT& in)
 
 void matmul (MatrixT out, const MatrixT& lhs, const MatrixT& rhs)
 {
-	for (uint8_t i = 0; i < mat_dim; ++i)
+	for (RankT i = 0; i < mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < mat_dim; ++j)
+		for (RankT j = 0; j < mat_dim; ++j)
 		{
 			out[i][j] = 0;
-			for (uint8_t k = 0; k < mat_dim; ++k)
+			for (RankT k = 0; k < mat_dim; ++k)
 			{
 				out[i][j] += lhs[i][k] * rhs[k][j];
 			}

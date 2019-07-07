@@ -36,7 +36,7 @@ TEST(FUNCARG, Reduce1d)
 		211.6172349153, 3.6941314330, 3.3471187148, 24.3511302088,
 		17.8520169468, 7.2182000783, 6.4776819746, (99.9911659058 / 214.0)
 	};
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_coord[i], fwd_out[i]);
 	}

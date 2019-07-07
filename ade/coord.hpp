@@ -115,13 +115,13 @@ bool is_identity (iCoordMap* coorder);
 /// by values in red vector
 /// For example, given coordinate [2, 2, 6, 6], rank=2, and red=[3, 3],
 /// mapper forward transforms to coordinate [2, 2, 2, 2]
-CoordptrT reduce (uint8_t rank, std::vector<DimT> red);
+CoordptrT reduce (RankT rank, std::vector<DimT> red);
 
 /// Return coordinate mapper multiplying dimensions after rank
 /// by values in ext vector
 /// For example, given coordinate [6, 6, 2, 2], rank=2, and ext=[3, 3],
 /// mapper forward transforms to coordinate [6, 6, 6, 6]
-CoordptrT extend (uint8_t rank, std::vector<DimT> ext);
+CoordptrT extend (RankT rank, std::vector<DimT> ext);
 
 /// Return coordinate mapper permuting coordinate according to input order
 /// Order is a vector of indices of the dimensions to appear in order
@@ -131,12 +131,12 @@ CoordptrT extend (uint8_t rank, std::vector<DimT> ext);
 /// mapper forward transforms to coordinate [2, 4, 1, 3]
 /// Returned coordinate mapper will be a CoordMap instance, so inversibility
 /// requires order indices be unique, otherwise throw fatal error
-CoordptrT permute (std::vector<uint8_t> order);
+CoordptrT permute (std::vector<RankT> order);
 
 /// Return coordinate mapper flipping coordinate value at specified dimension
 /// Flipped dimension with original value x is represented as -x-1
 /// (see CoordT definition)
-CoordptrT flip (uint8_t dim);
+CoordptrT flip (RankT dim);
 
 }
 

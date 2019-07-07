@@ -22,11 +22,15 @@ namespace ade
 /// Type used for shape rank
 using RankT = uint8_t;
 
-/// Type used for shape dimension
-// #ifdef SHAPE_D16
-using DimT = uint16_t;
-// #else
+// /// Type used for shape dimension
+// #if !defined(SDIM_BYTES) || SDIM_BYTES <= 1
 // using DimT = uint8_t;
+// #elif SDIM_BYTES <= 2
+using DimT = uint16_t;
+// #elif SDIM_BYTES <= 4
+// using DimT = uint32_t;
+// #else
+// using DimT = uint64_t;
 // #endif
 
 /// Type used for coordinate dimensions
@@ -99,7 +103,7 @@ struct Shape final
 	// >>>> ACCESSORS <<<<
 
 	/// Return DimT element at idx for any index in range [0:rank_cap)
-	DimT at (uint8_t idx) const
+	DimT at (RankT idx) const
 	{
 		if (rank_cap <= idx)
 		{
@@ -118,7 +122,7 @@ struct Shape final
 
 	/// Return true if this->dims_[0:idx) is equal to other.dims_[0:idx),
 	/// otherwise return false
-	bool compatible_before (const Shape& other, uint8_t idx) const
+	bool compatible_before (const Shape& other, RankT idx) const
 	{
 		auto it = dims_.begin();
 		return std::equal(it, it + std::min(idx, rank_cap), other.dims_.begin());
@@ -127,7 +131,7 @@ struct Shape final
 	/// Return true if this->dims_[idx:rank_cap) is
 	/// equal to other.dims_[idx:rank_cap), otherwise return false
 	/// Set idx to 0 to compare entire shape
-	bool compatible_after (const Shape& other, uint8_t idx) const
+	bool compatible_after (const Shape& other, RankT idx) const
 	{
 		bool compatible = false;
 		if (idx < rank_cap)
@@ -184,7 +188,7 @@ private:
 				fmts::to_string(dims.begin(), dims.end()).c_str());
 		}
 		auto dest = dims_.begin();
-		uint8_t rank = std::min((size_t) rank_cap, dims.size());
+		RankT rank = std::min((size_t) rank_cap, dims.size());
 		std::copy(src, src + rank, dest);
 		std::fill(dest + rank, dest + rank_cap, 1);
 	}

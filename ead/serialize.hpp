@@ -69,9 +69,9 @@ struct EADSaver : public pbm::iSaver
 		mapper->access(
 			[&out](const ade::MatrixT& mat)
 			{
-				for (uint8_t i = 0; i < ade::mat_dim; ++i)
+				for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 				{
-					for (uint8_t j = 0; j < ade::mat_dim; ++j)
+					for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 					{
 						out.push_back(mat[i][j]);
 					}
@@ -141,9 +141,9 @@ struct EADLoader : public pbm::iLoader
 		return std::make_shared<ade::CoordMap>(
 			[&](ade::MatrixT fwd)
 			{
-				for (uint8_t i = 0; i < ade::mat_dim; ++i)
+				for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 				{
-					for (uint8_t j = 0; j < ade::mat_dim; ++j)
+					for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 					{
 						fwd[i][j] = coord[i * ade::mat_dim + j];
 					}

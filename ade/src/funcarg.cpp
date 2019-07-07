@@ -33,10 +33,10 @@ FuncArg identity_map (TensptrT tensor)
 	return FuncArg(tensor, identity);
 }
 
-FuncArg reduce_1d_map (TensptrT tensor, uint8_t rank)
+FuncArg reduce_1d_map (TensptrT tensor, RankT rank)
 {
 	Shape shape = tensor->shape();
-	std::vector<uint8_t> indices(rank_cap);
+	std::vector<RankT> indices(rank_cap);
 	auto bt = indices.begin();
 	auto it = bt + rank;
 	std::iota(bt, it, 0);
@@ -47,22 +47,22 @@ FuncArg reduce_1d_map (TensptrT tensor, uint8_t rank)
 		connect(*permute(indices))));
 }
 
-FuncArg reduce_map (TensptrT tensor, uint8_t rank, std::vector<DimT> red)
+FuncArg reduce_map (TensptrT tensor, RankT rank, std::vector<DimT> red)
 {
 	return FuncArg(tensor, reduce(rank, red));
 }
 
-FuncArg extend_map (TensptrT tensor, uint8_t rank, std::vector<DimT> ext)
+FuncArg extend_map (TensptrT tensor, RankT rank, std::vector<DimT> ext)
 {
 	return FuncArg(tensor, extend(rank, ext));
 }
 
-FuncArg permute_map (TensptrT tensor, std::vector<uint8_t> order)
+FuncArg permute_map (TensptrT tensor, std::vector<RankT> order)
 {
 	return FuncArg(tensor, permute(order));
 }
 
-FuncArg flip_map (TensptrT tensor, uint8_t dim)
+FuncArg flip_map (TensptrT tensor, RankT dim)
 {
 	return FuncArg(tensor, flip(dim));
 }

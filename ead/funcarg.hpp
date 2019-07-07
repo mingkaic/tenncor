@@ -80,7 +80,7 @@ FuncArg<T> identity_map (NodeptrT<T> node)
 }
 
 template <typename T>
-FuncArg<T> reduce_map (NodeptrT<T> node, uint8_t offset, uint8_t ndims)
+FuncArg<T> reduce_map (NodeptrT<T> node, ade::RankT offset, ade::RankT ndims)
 {
 	if (offset >= ade::rank_cap)
 	{
@@ -88,14 +88,14 @@ FuncArg<T> reduce_map (NodeptrT<T> node, uint8_t offset, uint8_t ndims)
 			offset, ade::rank_cap);
 	}
 
-	size_t n = std::min<ade::DimT>(offset + ndims, ade::rank_cap);
+	ade::RankT n = std::min<ade::RankT>(offset + ndims, ade::rank_cap);
 	ade::Shape shape = node->get_tensor()->shape();
-	std::vector<ade::DimT> dims; // dims are allowed to be non-contiguous
+	std::vector<ade::RankT> dims; // dims are allowed to be non-contiguous
 	std::vector<ade::DimT> slist;
 	dims.reserve(n);
 	slist.reserve(n);
 
-	for (size_t i = offset; i < n; ++i)
+	for (ade::RankT i = offset; i < n; ++i)
 	{
 		if (shape.at(i) > 1)
 		{
@@ -109,13 +109,13 @@ FuncArg<T> reduce_map (NodeptrT<T> node, uint8_t offset, uint8_t ndims)
 
 template <typename T>
 FuncArg<T> extend_map (NodeptrT<T> node,
-	uint8_t rank, std::vector<ade::DimT> ext)
+	ade::RankT rank, std::vector<ade::DimT> ext)
 {
 	return FuncArg<T>(node, ade::extend(rank, ext), extend(rank, ext));
 }
 
 template <typename T>
-FuncArg<T> permute_map (NodeptrT<T> node, std::vector<uint8_t> order)
+FuncArg<T> permute_map (NodeptrT<T> node, std::vector<ade::RankT> order)
 {
 	return FuncArg<T>(node, ade::permute(order), permute(order));
 }

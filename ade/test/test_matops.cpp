@@ -21,9 +21,9 @@ TEST(MATOPS, ToString)
 		"[63\\64\\65\\66\\67\\68\\69\\70\\71]\\\n"
 		"[72\\73\\74\\75\\76\\77\\78\\79\\80]]";
 	ade::MatrixT mat;
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			mat[i][j] = i * ade::mat_dim + j;
 		}
@@ -102,9 +102,9 @@ TEST(MATOPS, Inverse)
 		0.2252390787, 0.3721492337, 0.2498504751, 0.3123788027, 0.5537316928, 0.5611137585, 0.2029485252, 0.8579680347, 0.0442760832,
 		0.3058592439, 0.9815336218, 0.3364270850, 0.1562163045, 0.5562589952, 0.3769814342, 0.4465301119, 0.6977257625, 0.7664397080
 	};
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			in[i][j] = indata[i * ade::mat_dim + j];
 			zin[i][j] = zdata[i * ade::mat_dim + j];
@@ -120,13 +120,13 @@ TEST(MATOPS, Inverse)
 	EXPECT_FATAL(ade::inverse(badout, badin), fatalmsg.c_str());
 
 	// expect matmul is identity
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			double val = 0;
 			double zval = 0;
-			for (uint8_t k = 0; k < ade::mat_dim; ++k)
+			for (ade::RankT k = 0; k < ade::mat_dim; ++k)
 			{
 				val += out[i][k] * in[k][j];
 				zval += zout[i][k] * zin[k][j];
@@ -171,14 +171,14 @@ TEST(MATOPS, Matmul)
 		0.2479436504, 0.1266563150, 0.5884766852, 0.5278691634, 0.8695170450, 0.6803630612, 0.0420603430, 0.3344162464, 0.8860979790,
 		0.8208910642, 0.2098140918, 0.3228215729, 0.7025393155, 0.8154172074, 0.4992314192, 0.3955948624, 0.0212939634, 0.1960803287
 	};
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			in[i][j] = indata[i * ade::mat_dim + j];
 			in2[i][j] = indata2[i * ade::mat_dim + j];
 			expected[i][j] = 0;
-			for (uint8_t k = 0; k < ade::mat_dim; ++k)
+			for (ade::RankT k = 0; k < ade::mat_dim; ++k)
 			{
 				expected[i][j] += indata[i * ade::mat_dim + k] * indata2[k * ade::mat_dim + j];
 			}
@@ -187,9 +187,9 @@ TEST(MATOPS, Matmul)
 
 	ade::matmul(out, in, in2);
 
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			EXPECT_EQ(expected[i][j], out[i][j]);
 		}

@@ -57,9 +57,9 @@ static MatVecT create_2d (ead::NodeptrT<int32_t> data)
 
 static bool freivald (MatVecT a, MatVecT b, MatVecT c)
 {
-	uint8_t cdim = b.size();
-	uint8_t bdim = b[0].size();
-	uint8_t adim = a.size();
+	ade::RankT cdim = b.size();
+	ade::RankT bdim = b[0].size();
+	ade::RankT adim = a.size();
 	// a has shape [cdim, adim]
 	// b has shape [bdim, cdim]
 	// c has shape [bdim, adim]
@@ -748,7 +748,7 @@ TEST(API, NElems)
 
 TEST(API, NDims)
 {
-	uint8_t dim = 2;
+	ade::RankT dim = 2;
 	unary_generic(
 		[dim](ead::NodeptrT<double>& src) { return tenncor::n_dims(src, dim); },
 		[dim](ead::NodeptrT<double> out, ade::Shape& shape, std::vector<double>&)
@@ -1096,7 +1096,7 @@ TEST(API, Rmax)
 TEST(API, Permute)
 {
 	std::vector<ade::DimT> slist = {4, 3, 2};
-	std::vector<uint8_t> pidx = {2, 0, 1};
+	std::vector<ade::RankT> pidx = {2, 0, 1};
 	ade::Shape shape(slist);
 	ade::NElemT nelem = shape.n_elems();
 	std::vector<double> data = {

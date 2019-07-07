@@ -35,7 +35,7 @@ static void BM_MakeReduce(benchmark::State& state)
 	{
 		state.PauseTiming();
 		slist = random_vector<ade::rank_cap>(1, 255);
-		uint8_t rank = random_bignum(0, ade::rank_cap - 1);
+		ade::RankT rank = random_bignum(0, ade::rank_cap - 1);
 		state.ResumeTiming();
 		ade::reduce(rank,
 			std::vector<ade::DimT>(slist.begin() + rank, slist.end()));
@@ -92,7 +92,7 @@ static void BM_CoordReduce(benchmark::State& state)
 		ade::Shape shape(slist);
 		ade::NElemT index = random_bignum(0, shape.n_elems());
 		coord = ade::coordinate(shape, index);
-		uint8_t rank = random_bignum(0, ade::rank_cap - 1);
+		ade::RankT rank = random_bignum(0, ade::rank_cap - 1);
 		auto reducer = ade::reduce(rank,
 			std::vector<ade::DimT>(slist.begin() + rank, slist.end()));
 		state.ResumeTiming();
@@ -110,7 +110,7 @@ static void BM_ReduceReverse(benchmark::State& state)
 	{
 		state.PauseTiming();
 		slist = random_vector<ade::rank_cap>(1, 255);
-		uint8_t rank = random_bignum(0, ade::rank_cap - 1);
+		ade::RankT rank = random_bignum(0, ade::rank_cap - 1);
 		auto reducer = ade::reduce(rank,
 			std::vector<ade::DimT>(slist.begin() + rank, slist.end()));
 		state.ResumeTiming();
@@ -128,8 +128,8 @@ static void BM_RedPermConnect(benchmark::State& state)
 	{
 		state.PauseTiming();
 		slist = random_vector<ade::rank_cap>(1, 255);
-		uint8_t rank = random_bignum(0, ade::rank_cap - 1);
-		std::vector<uint8_t> indices(ade::rank_cap);
+		ade::RankT rank = random_bignum(0, ade::rank_cap - 1);
+		std::vector<ade::RankT> indices(ade::rank_cap);
 		std::iota(indices.begin(), indices.end(), 0);
 		std::shuffle(indices.begin(), indices.end(), mersenne_engine);
 		auto permuter = ade::permute(indices);

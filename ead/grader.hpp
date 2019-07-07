@@ -34,7 +34,7 @@ NodeptrT<T> reduce_grad (const ade::FuncArg& child,
 		coorder->forward(dims.begin(), dims.begin());
 		ade::CoordT bcast;
 		std::fill(bcast.begin(), bcast.end(), 1);
-		for (uint8_t d : dims)
+		for (ade::RankT d : dims)
 		{
 			if (d < ade::rank_cap)
 			{
@@ -90,7 +90,7 @@ NodeptrT<T> permute_grad (ade::iFunctor* fwd,
 		coorder->forward(dims.begin(), dims.begin());
 
 		ade::CoordT order;
-		for (uint8_t i = 0; i < ade::rank_cap; ++i)
+		for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 		{
 			order[dims[i]] = i;
 		}
@@ -113,7 +113,7 @@ NodeptrT<T> extend_grad (ade::iFunctor* fwd,
 		assert(nullptr != coorder);
 		ade::CoordT dims;
 		coorder->forward(dims.begin(), dims.begin());
-		std::vector<ade::DimT> red_dims;
+		std::vector<ade::RankT> red_dims;
 		for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 		{
 			if (dims[i] > 1)
@@ -383,8 +383,8 @@ struct GradientBuilder final : public ade::iGradientBuilder
 									get_tensor()->shape().at(0)
 							})),
 						0 == arg_idx ?
-							std::vector<uint8_t>{2, 1, 0} :
-							std::vector<uint8_t>{0, 2, 1}), 2, 1);
+							std::vector<ade::RankT>{2, 1, 0} :
+							std::vector<ade::RankT>{0, 2, 1}), 2, 1);
 				break;
 			case age::CONV:
 			{

@@ -109,29 +109,29 @@ FuncArg identity_map (TensptrT tensor);
 /// Return FuncArg that reduces input tensor at
 /// rank then snip the dimension at rank
 /// E.g.: tensor w/ shape [2, 3, 4], rank = 1 gets mapped to [2, 4]
-FuncArg reduce_1d_map (TensptrT tensor, uint8_t rank);
+FuncArg reduce_1d_map (TensptrT tensor, RankT rank);
 
 /// Return FuncArg that reduces input tensor by
 /// units in reduction vector after specified rank
 /// E.g.: tensor w/ shape [2, 3, 4], rank = 0, red = [2, 3]
 /// gets mapped to [1, 1, 4]
 FuncArg reduce_map (TensptrT tensor,
-	uint8_t rank, std::vector<DimT> red);
+	RankT rank, std::vector<DimT> red);
 
 /// Return FuncArg that extends input tensor by
 /// rank and extension vector
 /// E.g.: tensor w/ shape [2, 1, 1], rank = 1, red = [3, 4]
 /// gets mapped to [2, 3, 4]
 FuncArg extend_map (TensptrT tensor,
-	uint8_t rank, std::vector<DimT> ext);
+	RankT rank, std::vector<DimT> ext);
 
 /// Return FuncArg that permutes input tensor by order
 /// E.g.: tensor w/ shape [2, 3, 4], order = [1, 2, 0]
 /// gets mapped to [3, 4, 2]
-FuncArg permute_map (TensptrT tensor, std::vector<uint8_t> order);
+FuncArg permute_map (TensptrT tensor, std::vector<RankT> order);
 
 /// Return FuncArg that flips input tensor along dimension
-FuncArg flip_map (TensptrT tensor, uint8_t dim);
+FuncArg flip_map (TensptrT tensor, RankT dim);
 
 /// Return ArgsT with each tensor in TensT attached to identity mapper
 ArgsT to_args (TensT tens);

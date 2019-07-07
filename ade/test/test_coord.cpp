@@ -35,9 +35,9 @@ TEST(COORD, Forward)
 	};
 	ade::CoordMap lhs([&indata](ade::MatrixT m)
 		{
-			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 			{
-				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 				{
 					m[i][j] = indata[i * ade::mat_dim + j];
 				}
@@ -45,9 +45,9 @@ TEST(COORD, Forward)
 		});
 	ade::CoordMap rhs([&indata2](ade::MatrixT m)
 		{
-			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 			{
-				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 				{
 					m[i][j] = indata2[i * ade::mat_dim + j];
 				}
@@ -56,12 +56,12 @@ TEST(COORD, Forward)
 
 
 	ade::MatrixT expected;
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			expected[i][j] = 0;
-			for (uint8_t k = 0; k < ade::mat_dim; ++k)
+			for (ade::RankT k = 0; k < ade::mat_dim; ++k)
 			{
 				expected[i][j] += indata[i * ade::mat_dim + k] * indata2[k * ade::mat_dim + j];
 			}
@@ -71,9 +71,9 @@ TEST(COORD, Forward)
 	ade::iCoordMap* res = lhs.connect(rhs);
 	res->access([&expected](const ade::MatrixT& m)
 		{
-			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 			{
-				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 				{
 					EXPECT_EQ(expected[i][j], m[i][j]);
 				}
@@ -99,9 +99,9 @@ TEST(COORD, Reverse)
 	};
 	ade::CoordMap fwd([&indata](ade::MatrixT m)
 		{
-			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 			{
-				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 				{
 					m[i][j] = indata[i * ade::mat_dim + j];
 				}
@@ -120,9 +120,9 @@ TEST(COORD, Reverse)
 		});
 
 	// expect matmul is identity
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			if (i == j)
 			{
@@ -236,7 +236,7 @@ TEST(COORD, Extend)
 
 TEST(COORD, Permute)
 {
-	std::vector<uint8_t> perm = {4, 2, 3, 7, 0, 1};
+	std::vector<ade::RankT> perm = {4, 2, 3, 7, 0, 1};
 	ade::CoordptrT permuter = ade::permute(perm);
 	std::array<bool,ade::rank_cap> permed;
 	permed.fill(false);

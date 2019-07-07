@@ -362,7 +362,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: offset
         - dtype: std::vector<ade::DimT>
           name: xlist
@@ -374,10 +374,10 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: tens
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: offset
           default: '0'
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: ndims
           default: ade::rank_cap
         out:
@@ -389,10 +389,10 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: tens
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: offset
           default: '0'
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: ndims
           default: ade::rank_cap
         out:
@@ -404,10 +404,10 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: tens
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: offset
           default: '0'
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: ndims
           default: ade::rank_cap
         out:
@@ -419,10 +419,10 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: tens
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: offset
           default: '0'
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: ndims
           default: ade::rank_cap
         out:
@@ -442,7 +442,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: rank
         out:
           type: ead::NodeptrT<T>
@@ -452,11 +452,11 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: offset
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: extent
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: dimension
         out:
           type: ead::NodeptrT<T>
@@ -473,7 +473,7 @@ api:
                           std::make_shared<ade::CoordMap>(
                               [=](ade::MatrixT fwd)
                               {
-                                  for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                                  for (ade::RankT i = 0; i < ade::rank_cap; ++i)
                                   {
                                       fwd[i][i] = 1;
                                   }
@@ -488,9 +488,9 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: std::pair<uint8_t,uint8_t>
+        - dtype: std::pair<ade::DimT,ade::DimT>
           name: padding
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: dimension
         out:
           type: ead::NodeptrT<T>
@@ -507,7 +507,7 @@ api:
                           std::make_shared<ade::CoordMap>(
                               [=](ade::MatrixT fwd)
                               {
-                                  for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                                  for (ade::RankT i = 0; i < ade::rank_cap; ++i)
                                   {
                                       fwd[i][i] = 1;
                                   }
@@ -542,7 +542,7 @@ api:
                   ade::CoordptrT left_shaper(new ade::CoordMap(
                       [=](ade::MatrixT fwd)
                       {
-                          for (uint8_t i = 3; i < ade::mat_dim; ++i)
+                          for (ade::RankT i = 3; i < ade::mat_dim; ++i)
                           {
                               fwd[i][i] = 1;
                           }
@@ -555,7 +555,7 @@ api:
                   ade::CoordptrT right_shaper(new ade::CoordMap(
                       [=](ade::MatrixT fwd)
                       {
-                          for (uint8_t i = 3; i < ade::mat_dim; ++i)
+                          for (ade::RankT i = 3; i < ade::mat_dim; ++i)
                           {
                               fwd[i][i] = 1;
                           }
@@ -586,11 +586,11 @@ api:
                   ade::CoordptrT input_shaper(new ade::CoordMap(
                       [kernelshape](ade::MatrixT fwd)
                       {
-                          for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                          for (ade::RankT i = 0; i < ade::rank_cap; ++i)
                           {
                               fwd[i][i] = 1;
                           }
-                          for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                          for (ade::RankT i = 0; i < ade::rank_cap; ++i)
                           {
                               fwd[ade::rank_cap][i] = -kernelshape.at(i) + 1;
                           }
@@ -600,11 +600,11 @@ api:
                   ade::CoordptrT kernel_shaper(new ade::CoordMap(
                       [inshape](ade::MatrixT fwd)
                       {
-                          for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                          for (ade::RankT i = 0; i < ade::rank_cap; ++i)
                           {
                               fwd[i][i] = -1;
                           }
-                          for (uint8_t i = 0; i < ade::rank_cap; ++i)
+                          for (ade::RankT i = 0; i < ade::rank_cap; ++i)
                           {
                               fwd[ade::rank_cap][i] = inshape.at(i) + 1;
                           }
@@ -722,7 +722,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: dimension
         out:
           type: ead::NodeptrT<T>
@@ -736,10 +736,10 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: offset
           default: '0'
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: ndims
           default: ade::rank_cap
         out:
@@ -750,7 +750,7 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: dimension
         out:
           type: ead::NodeptrT<T>
@@ -852,10 +852,10 @@ api:
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: offset
           default: '0'
-        - dtype: uint8_t
+        - dtype: ade::RankT
           name: ndims
           default: ade::rank_cap
         out:

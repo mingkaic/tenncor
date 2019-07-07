@@ -7,7 +7,7 @@ namespace ade
 
 NElemT index (Shape shape, CoordT coord)
 {
-	for (uint8_t i = 0; i < rank_cap; i++)
+	for (RankT i = 0; i < rank_cap; i++)
 	{
 		DimT limit = shape.at(i);
 		if (coord[i] >= limit)
@@ -20,7 +20,7 @@ NElemT index (Shape shape, CoordT coord)
 		coord[i] = std::fmod(limit + coord[i], limit);
 	}
 	NElemT index = 0;
-	for (uint8_t i = 1; i < rank_cap; i++)
+	for (RankT i = 1; i < rank_cap; i++)
 	{
 		index += coord[rank_cap - i];
 		index *= shape.at(rank_cap - i - 1);
@@ -38,7 +38,7 @@ CoordT coordinate (Shape shape, NElemT idx)
 	CoordT coord;
 	DimT xd;
 	auto it = shape.begin();
-	for (uint8_t i = 0; i < rank_cap; ++i)
+	for (RankT i = 0; i < rank_cap; ++i)
 	{
 		xd = idx % *(it + i);
 		coord[i] = xd;

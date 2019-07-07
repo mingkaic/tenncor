@@ -14,12 +14,12 @@ static std::mt19937 mersenne_engine(rnd_device());
 ade::Shape rand_shape (int n)
 {
 	std::vector<ade::DimT> slist;
-	uint8_t cap = (uint8_t) std::min(255, n);
-	for (uint8_t i = 0; i < ade::rank_cap && cap > 1;
-		++i, cap = (uint8_t) std::min(255, n))
+	ade::RankT cap = (ade::RankT) std::min(255, n);
+	for (ade::RankT i = 0; i < ade::rank_cap && cap > 1;
+		++i, cap = (ade::RankT) std::min(255, n))
 	{
-		std::uniform_int_distribution<> dist(1, cap);
-		uint8_t c = dist(mersenne_engine);
+		std::uniform_int_distribution<ade::RankT> dist(1, cap);
+		ade::RankT c = dist(mersenne_engine);
 		n /= c;
 		slist.push_back(c);
 	}

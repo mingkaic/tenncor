@@ -19,7 +19,7 @@ namespace ade
 {
 
 /// Number of rows and columns for the homogeneous matrix
-const uint8_t mat_dim = rank_cap + 1;
+const RankT mat_dim = rank_cap + 1;
 
 /// Number of bytes in a homogeneous matrix
 const size_t mat_size = sizeof(double) * mat_dim * mat_dim;

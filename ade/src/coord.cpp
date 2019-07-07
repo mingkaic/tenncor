@@ -11,14 +11,14 @@ static inline void vecmul (WorkArrT& out,
 	const MatrixT& mat, CoordT::const_iterator in)
 {
 	out.fill(0);
-	for (uint8_t i = 0; i < mat_dim; ++i)
+	for (RankT i = 0; i < mat_dim; ++i)
 	{
 		CDimT inv = 1;
 		if (i < mat_dim - 1)
 		{
 			inv = *(in + i);
 		}
-		for (uint8_t j = 0; j < mat_dim; ++j)
+		for (RankT j = 0; j < mat_dim; ++j)
 		{
 			out[j] += inv * mat[i][j];
 		}
@@ -29,7 +29,7 @@ void CoordMap::forward (CoordT::iterator out, CoordT::const_iterator in) const
 {
 	WorkArrT temp;
 	vecmul(temp, fwd_, in);
-	for (uint8_t i = 0; i < rank_cap; ++i)
+	for (RankT i = 0; i < rank_cap; ++i)
 	{
 		out[i] = temp[i] / temp[rank_cap];
 	}
@@ -38,7 +38,7 @@ void CoordMap::forward (CoordT::iterator out, CoordT::const_iterator in) const
 CoordptrT identity(new CoordMap(
 	[](MatrixT fwd)
 	{
-		for (uint8_t i = 0; i < rank_cap; ++i)
+		for (RankT i = 0; i < rank_cap; ++i)
 		{
 			fwd[i][i] = 1;
 		}
@@ -54,9 +54,9 @@ bool is_identity (iCoordMap* coorder)
 	coorder->access([&id](const MatrixT& m)
 	{
 		id = true;
-		for (uint8_t i = 0; id && i < mat_dim; ++i)
+		for (RankT i = 0; id && i < mat_dim; ++i)
 		{
-			for (uint8_t j = 0; id && j < mat_dim; ++j)
+			for (RankT j = 0; id && j < mat_dim; ++j)
 			{
 				id = id && m[i][j] == (i == j);
 			}
@@ -65,9 +65,9 @@ bool is_identity (iCoordMap* coorder)
 	return id;
 }
 
-CoordptrT reduce (uint8_t rank, std::vector<DimT> red)
+CoordptrT reduce (RankT rank, std::vector<DimT> red)
 {
-	uint8_t n_red = red.size();
+	RankT n_red = red.size();
 	if (std::any_of(red.begin(), red.end(),
 		[](DimT& d) { return 0 == d; }))
 	{
@@ -88,21 +88,21 @@ CoordptrT reduce (uint8_t rank, std::vector<DimT> red)
 	return std::make_shared<CoordMap>(
 		[&](MatrixT fwd)
 		{
-			for (uint8_t i = 0; i < rank_cap; ++i)
+			for (RankT i = 0; i < rank_cap; ++i)
 			{
 				fwd[i][i] = 1;
 			}
-			for (uint8_t i = 0; i < n_red; ++i)
+			for (RankT i = 0; i < n_red; ++i)
 			{
-				uint8_t outi = rank + i;
+				RankT outi = rank + i;
 				fwd[outi][outi] = 1.0 / red[i];
 			}
 		});
 }
 
-CoordptrT extend (uint8_t rank, std::vector<DimT> ext)
+CoordptrT extend (RankT rank, std::vector<DimT> ext)
 {
-	uint8_t n_ext = ext.size();
+	RankT n_ext = ext.size();
 	if (std::any_of(ext.begin(), ext.end(),
 		[](DimT& d) { return 0 == d; }))
 	{
@@ -123,19 +123,19 @@ CoordptrT extend (uint8_t rank, std::vector<DimT> ext)
 	return std::make_shared<CoordMap>(
 		[&](MatrixT fwd)
 		{
-			for (uint8_t i = 0; i < rank_cap; ++i)
+			for (RankT i = 0; i < rank_cap; ++i)
 			{
 				fwd[i][i] = 1;
 			}
-			for (uint8_t i = 0; i < n_ext; ++i)
+			for (RankT i = 0; i < n_ext; ++i)
 			{
-				uint8_t outi = rank + i;
+				RankT outi = rank + i;
 				fwd[outi][outi] = ext[i];
 			}
 		});
 }
 
-CoordptrT permute (std::vector<uint8_t> dims)
+CoordptrT permute (std::vector<RankT> dims)
 {
 	if (dims.size() == 0)
 	{
@@ -145,11 +145,11 @@ CoordptrT permute (std::vector<uint8_t> dims)
 
 	bool visited[rank_cap];
 	std::memset(visited, false, rank_cap);
-	for (uint8_t i = 0, n = dims.size(); i < n; ++i)
+	for (RankT i = 0, n = dims.size(); i < n; ++i)
 	{
 		visited[dims[i]] = true;
 	}
-	for (uint8_t i = 0; i < rank_cap; ++i)
+	for (RankT i = 0; i < rank_cap; ++i)
 	{
 		if (false == visited[i])
 		{
@@ -160,14 +160,14 @@ CoordptrT permute (std::vector<uint8_t> dims)
 	return std::make_shared<CoordMap>(
 		[&](MatrixT fwd)
 		{
-			for (uint8_t i = 0, n = dims.size(); i < n; ++i)
+			for (RankT i = 0, n = dims.size(); i < n; ++i)
 			{
 				fwd[dims[i]][i] = 1;
 			}
 		});
 }
 
-CoordptrT flip (uint8_t dim)
+CoordptrT flip (RankT dim)
 {
 	if (dim >= rank_cap)
 	{
@@ -178,7 +178,7 @@ CoordptrT flip (uint8_t dim)
 	return std::make_shared<CoordMap>(
 		[&](MatrixT fwd)
 		{
-			for (uint8_t i = 0; i < rank_cap; ++i)
+			for (RankT i = 0; i < rank_cap; ++i)
 			{
 				fwd[i][i] = 1;
 			}
