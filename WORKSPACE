@@ -5,6 +5,14 @@ workspace(name = "com_github_mingkaic_tenncor")
 load("//:third_party/all.bzl", "dependencies")
 dependencies()
 
+# == flex + bison rules ==
+load("@rules_m4//m4:m4.bzl", "m4_register_toolchains")
+m4_register_toolchains()
+load("@rules_flex//flex:flex.bzl", "flex_register_toolchains")
+flex_register_toolchains()
+load("@rules_bison//bison:bison.bzl", "bison_register_toolchains")
+bison_register_toolchains()
+
 # === test dependencies ===
 
 load("@com_github_mingkaic_cppkg//:gtest.bzl", "gtest_repository")

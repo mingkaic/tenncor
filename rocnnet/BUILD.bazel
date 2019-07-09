@@ -81,19 +81,20 @@ py_binary(
         ":rocnnet_py",
         "//dbg:grpc_dbg_py",
     ],
-    data = glob(["pretrained/*"]) +
+    data = glob(["pretrained/*", "demo/MNIST_data/*"]) +
         ["//cfg:optimizations"],
 )
 
 py_binary(
-    name = "rbm_demo2",
+    name = "raw_rbm_demo",
     srcs = glob(["demo/data/*.py"]) +
-        ["demo/rbm_demo2.py"],
+        ["demo/raw_rbm_demo.py"],
     deps = [
         ":rocnnet_py",
         "//dbg:grpc_dbg_py",
     ],
-    data = glob(["demo/MNIST_data/*"]),
+    data = glob(["pretrained/*", "demo/MNIST_data/*"]) +
+        ["//cfg:optimizations"],
 )
 
 # cc_binary(

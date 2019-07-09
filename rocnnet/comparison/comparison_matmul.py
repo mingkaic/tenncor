@@ -18,6 +18,9 @@ matrix_dims = [
     200,
     225,
     250,
+    500,
+    1000,
+    1500,
 ]
 
 np_durs = []
@@ -50,7 +53,7 @@ for matrix_dim in matrix_dims:
     np_dur = time.time() - start
 
     sess = ead.Session()
-    sess.track(out)
+    sess.track([out])
 
     start = time.time()
     sess.update()

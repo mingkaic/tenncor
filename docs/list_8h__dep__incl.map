@@ -1,0 +1,20 @@
+<map id="opt/parse/list.h" name="opt/parse/list.h">
+<area shape="rect" id="node2" href="$def_8h.html" title="opt/parse/def.h" alt="" coords="323,79,434,104"/>
+<area shape="rect" id="node19" href="$list_8c.html" title="opt/parse/list.c" alt="" coords="458,79,566,104"/>
+<area shape="rect" id="node3" href="$ivoter_8hpp.html" title="opt/ivoter.hpp" alt="" coords="175,152,276,177"/>
+<area shape="rect" id="node17" href="$iconverter_8hpp.html" title="opt/iconverter.hpp" alt="" coords="380,225,508,251"/>
+<area shape="rect" id="node18" href="$def_8c.html" title="opt/parse/def.c" alt="" coords="416,152,525,177"/>
+<area shape="rect" id="node4" href="$matcher_8hpp.html" title="opt/matcher.hpp" alt="" coords="239,225,356,251"/>
+<area shape="rect" id="node15" href="$ivoter_8cpp.html" title="opt/src/ivoter.cpp" alt="" coords="92,225,214,251"/>
+<area shape="rect" id="node16" href="$voter_8hpp.html" title="opt/voter.hpp" alt="" coords="5,299,104,324"/>
+<area shape="rect" id="node5" href="$optimize_8hpp.html" title="opt/optimize.hpp" alt="" coords="247,299,366,324"/>
+<area shape="rect" id="node6" href="$ead_2session_8hpp.html" title="ead/session.hpp" alt="" coords="385,372,503,397"/>
+<area shape="rect" id="node12" href="$opt_2parse_8hpp.html" title="opt/parse.hpp" alt="" coords="255,372,358,397"/>
+<area shape="rect" id="node14" href="$optimize_8cpp.html" title="opt/src/optimize.cpp" alt="" coords="91,372,231,397"/>
+<area shape="rect" id="node7" href="$dbg_2grpc_2session_8hpp.html" title="dbg/grpc/session.hpp" alt="" coords="574,519,722,544"/>
+<area shape="rect" id="node9" href="$ead_8hpp.html" title="ead/ead.hpp" alt="" coords="397,445,493,471"/>
+<area shape="rect" id="node11" href="$ead_8cpp.html" title="ead/python/ead.cpp" alt="" coords="295,592,433,617"/>
+<area shape="rect" id="node8" href="$grpc_8cpp.html" title="dbg/python/grpc.cpp" alt="" coords="465,592,607,617"/>
+<area shape="rect" id="node10" href="$ead_2parse_8hpp.html" title="ead/parse.hpp" alt="" coords="392,519,499,544"/>
+<area shape="rect" id="node13" href="$parse_8cpp.html" title="opt/src/parse.cpp" alt="" coords="70,445,194,471"/>
+</map>

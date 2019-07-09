@@ -16,6 +16,10 @@ High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0
 This module supplies syntax tree for equation and generates derivative.
 Constraints to the equation is limited to each tensor's shape.
 
+- [DBG (Debug)](ead/README_DBG.md)
+
+This module is contains debug libraries for ADE Graphs.
+
 - [EAD (Eigen ADE Operators)](ead/README_EAD.md)
 
 This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder.
@@ -29,12 +33,16 @@ This module specifies graph optimization through ADE's visitor pattern.
 
 This module marshals any ADE graph, but requires data serialization functors when saving and loading.
 
+- [TAG (Tagger)](tag/README_TAG.md)
+
+This module tags ADE tensors with labels.
+
 ## Tools and utility
 
 - DBG (Debugger)
 
 ## Building
 
-Tenncor uses bazel 0.15+.
+Tenncor uses bazel 0.24+.
 
 Download bazel: https://docs.bazel.build/versions/master/install.html

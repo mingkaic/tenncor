@@ -1,0 +1,6 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$structopt_1_1i_voter.html" title="opt::iVoter" alt="" coords="5,55,87,80"/>
+<area shape="rect" id="node2" href="$structopt_1_1_comm_voter.html" title="opt::CommVoter" alt="" coords="139,5,256,31"/>
+<area shape="rect" id="node3" href="$structopt_1_1_ordr_voter.html" title="opt::OrdrVoter" alt="" coords="145,55,250,80"/>
+<area shape="rect" id="node4" href="$structopt_1_1_variadic_voter.html" title="opt::VariadicVoter" alt="" coords="135,104,260,129"/>
+</map>

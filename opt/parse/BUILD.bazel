@@ -1,6 +1,7 @@
 licenses(["notice"])
 
-load("//:third_party/yacc.bzl", "genyacc", "genlex")
+load("@rules_flex//flex:flex.bzl", "flex")
+load("@rules_bison//bison:bison.bzl", "bison")
 
 filegroup(
     name = "srcs",
@@ -13,25 +14,22 @@ filegroup(
 
 ######### LIBRARY #########
 
-genlex(
-    name = "flex",
-    out = "rulecfg.lex.c",
-    src = "rulecfg.lex",
+flex(
+    name = "rulecfg_l",
+    src = "rulecfg.l",
 )
 
-genyacc(
-    name = "yacc",
-    out_hdr = "rulecfg.yy.h",
-    out_src = "rulecfg.yy.c",
-    src = "rulecfg.yacc",
+bison(
+    name = "rulecfg_y",
+    src = "rulecfg.y",
 )
 
 cc_library(
     name = "parse",
-    hdrs = glob(["*.h"]) + ["rulecfg.yy.h"],
+    hdrs = glob(["*.h"]) + ["//opt/parse:rulecfg_y"],
     srcs = glob(["*.c"]) + [
-        "rulecfg.yy.c",
-        "rulecfg.lex.c",
+        "//opt/parse:rulecfg_y",
+        "//opt/parse:rulecfg_l",
     ],
     copts = ["-std=c11"],
     linkstatic = True,

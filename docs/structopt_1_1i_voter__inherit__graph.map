@@ -1,0 +1,5 @@
+<map id="opt::iVoter" name="opt::iVoter">
+<area shape="rect" id="node2" href="$structopt_1_1_comm_voter.html" title="opt::CommVoter" alt="" coords="5,79,123,104"/>
+<area shape="rect" id="node3" href="$structopt_1_1_ordr_voter.html" title="opt::OrdrVoter" alt="" coords="148,79,253,104"/>
+<area shape="rect" id="node4" href="$structopt_1_1_variadic_voter.html" title="opt::VariadicVoter" alt="" coords="277,79,403,104"/>
+</map>
