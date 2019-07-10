@@ -7,5 +7,6 @@ WORKDIR $APP_DIR
 
 COPY . $APP_DIR
 RUN pip install -r requirements.txt
+RUN pip install tensorflow
 
 CMD [ "./tests.sh" ]
