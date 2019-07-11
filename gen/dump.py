@@ -30,11 +30,20 @@ class PrintDump:
 @GenDumpBase.register
 class FileDump:
 
-    def __init__(self, outpath):
+    '''
+    outpath specifies the file path to write to
+    includepath specifies the include path
+        used by the file when generating content
+    '''
+    def __init__(self, outpath, includepath=None):
         self.outpath = outpath
+        if includepath is None:
+            self.includepath = outpath
+        else:
+            self.includepath = includepath
 
     def write(self, filename, file):
-        out_content = file.generate(self.outpath)
+        out_content = file.generate(self.includepath)
         filepath = os.path.join(self.outpath, filename)
         logging.info('generating %s', filepath)
         with open(filepath, 'w') as outf:

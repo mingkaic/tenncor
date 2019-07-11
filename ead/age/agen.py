@@ -11,7 +11,11 @@ from ead.age.plugins.opcodes import OpcodesPlugin
 from ead.age.plugins.apis import APIsPlugin
 from ead.age.plugins.pyapis import PyAPIsPlugin
 
-from gen.dump2 import PrintDump, FileDump
+try:
+    from gen.dump import PrintDump, FileDump
+except:
+    from gen.dump2 import PrintDump, FileDump
+
 from gen.generate import generate
 
 prog_description = 'Generate c++ glue layer mapping ADE and some data-processing library.'

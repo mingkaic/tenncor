@@ -9,14 +9,14 @@ set -e
 
 # ===== Run Gtest =====
 echo "===== TESTS =====";
-bazel test --config asan --config gtest //ade:test
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ade:test
 bazel test --run_under='valgrind --leak-check=full' //ade:test
-bazel test --config asan --config gtest //opt:test
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //opt:test
 bazel test --run_under='valgrind --leak-check=full' //opt:test
-bazel test --config asan --config gtest //ead:ctest
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ead:ctest
 bazel test --run_under='valgrind --leak-check=full' //ead:ctest
 bazel test --run_under='valgrind --leak-check=full' //ead:ptest
-bazel test --config asan --config gtest //pbm:test
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //pbm:test
 bazel test --run_under='valgrind --leak-check=full' //pbm:test
 
 # ===== Check Docs Directory =====

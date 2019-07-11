@@ -39,7 +39,7 @@ filegroup(
 py_binary(
     name = "agen",
     srcs = glob(["age/agen.py", "age/plugins/*.py"]),
-    deps = ["//gen:gen2"],
+    deps = ["//gen:gen"],
 )
 
 genrule(

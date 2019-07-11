@@ -1,7 +1,7 @@
 load("//third_party/drake_rules:execute.bzl", "execute_or_fail", "which")
 load("//third_party/drake_rules:os.bzl", "determine_os")
 
-_BUILD_CONTENT_FMT = """licenses(["notice"])  # Python-2.0
+_BUILD_CONTENT_FMT = """licenses(["notice"])  # Python-3.0
 
 headers = glob(
     ["include/*/*"],
@@ -44,10 +44,10 @@ PYTHON_SITE_PACKAGES_RELPATH = "{site_packages_relpath}"
 """
 
 _VERSION_SUPPORT_MATRIX = {
-    "ubuntu:16.04": ["2.7"],
-    "ubuntu:18.04": ["2.7"],
-    "macos:10.13": ["2.7"],
-    "macos:10.14": ["2.7"],
+    "ubuntu:16.04": ["3.6"],
+    "ubuntu:18.04": ["3.6"],
+    "macos:10.13": ["3.6"],
+    "macos:10.14": ["3.6"],
 }
 
 def _repository_python_info(repository_ctx):

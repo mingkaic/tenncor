@@ -43,6 +43,6 @@ This module tags ADE tensors with labels.
 
 ## Building
 
-Tenncor uses bazel 0.24+.
+Tenncor uses bazel 0.28+.
 
 Download bazel: https://docs.bazel.build/versions/master/install.html
