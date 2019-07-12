@@ -64,23 +64,27 @@ TEST_F(FUNCTOR, Opcode)
 }
 
 
-TEST_F(FUNCTOR, Childrens)
+TEST_F(FUNCTOR, Children)
 {
 	ade::TensptrT leaf(new MockTensor());
 	ade::TensptrT leaf1(new MockTensor());
+	ade::TensptrT leaf2(new MockTensor());
 
-	ade::TensptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
+	ade::FuncptrT func(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
 		ade::identity_map(leaf),
 		ade::identity_map(leaf1),
 	}));
 
 	ASSERT_NE(nullptr, func.get());
 
-	ade::ArgsT refs = static_cast<ade::iFunctor*>(func.get())->get_children();
+	ade::ArgsT refs = func->get_children();
 
 	ASSERT_EQ(2, refs.size());
 	EXPECT_EQ(leaf.get(), refs[0].get_tensor().get());
 	EXPECT_EQ(leaf1.get(), refs[1].get_tensor().get());
+
+	EXPECT_WARN((func->update_child(ade::identity_map(leaf2), 1)),
+		"ade::Functor does not allow editing of children");
 }
 
 

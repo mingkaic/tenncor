@@ -297,4 +297,26 @@ TEST(COORD, Bijection)
 }
 
 
+TEST(COORD, IsIdentity)
+{
+	EXPECT_TRUE(ade::is_identity(nullptr));
+	EXPECT_TRUE(ade::is_identity(ade::identity.get()));
+
+	ade::CoordptrT sample_id = std::make_shared<ade::CoordMap>(
+		*static_cast<ade::CoordMap*>(ade::identity.get())); // deep copy
+	EXPECT_TRUE(ade::is_identity(sample_id.get()));
+
+	ade::CoordptrT bourne(new ade::CoordMap(
+		[](ade::MatrixT fwd)
+		{
+			// todo: we can randomize this so long as fwd is not identity
+			for (ade::RankT i = 0; i < ade::rank_cap; ++i)
+			{
+				fwd[i][i] = 2;
+			}
+		}));
+	EXPECT_FALSE(ade::is_identity(bourne.get()));
+}
+
+
 #endif // DISABLE_COORD_TEST

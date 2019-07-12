@@ -81,7 +81,7 @@ struct Functor final : public iFunctor
 	/// Implementation of iFunctor
 	void update_child (FuncArg arg, size_t index) override
 	{
-		logs::debug("ade::Functor does not allow editing of children");
+		logs::warn("ade::Functor does not allow editing of children");
 	}
 
 private:

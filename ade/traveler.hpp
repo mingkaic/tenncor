@@ -39,7 +39,7 @@ struct GraphStat final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iLeaf* leaf) override
 	{
-		graphsize_.emplace(leaf, NumRange<size_t>(0, 0));
+		graphsize_.emplace(leaf, NumRange<size_t>());
 	}
 
 	/// Implementation of iTraveler
@@ -57,13 +57,9 @@ struct GraphStat final : public iTraveler
 			{
 				iTensor* tens = child.get_tensor().get();
 				tens->accept(*this);
-				NumRange<size_t> range;
-				if (false == estd::get(range, graphsize_, tens))
-				{
-					logs::debugf(
-						"GraphStat failed to visit child `%s` of functor `%s`",
+				NumRange<size_t> range = estd::must_getf(graphsize_, tens,
+					"GraphStat failed to visit child `%s` of functor `%s`",
 						tens->to_string().c_str(), func->to_string().c_str());
-				}
 				max_heights.push_back(range.upper_);
 				min_heights.push_back(range.lower_);
 			}

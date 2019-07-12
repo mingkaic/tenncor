@@ -142,4 +142,58 @@ TEST(TRAVELER, ReverseParentGraph)
 }
 
 
+TEST(TRAVELER, Owners)
+{
+	ade::OwnerMapT owners;
+	ade::TensptrT a(new MockTensor());
+	ade::TensptrT b(new MockTensor());
+	ade::TensptrT c(new MockTensor());
+	ade::iTensor* fref;
+	ade::iTensor* gref;
+	{
+		ade::TensptrT f(ade::Functor::get(ade::Opcode{"f", 1}, {
+			ade::identity_map(a),
+			ade::identity_map(b),
+		}));
+
+		ade::TensptrT g(ade::Functor::get(ade::Opcode{"g", 2}, {
+			ade::identity_map(f),
+			ade::identity_map(c),
+		}));
+		fref = f.get();
+		gref = g.get();
+
+		owners = ade::track_owners({g});
+		ASSERT_HAS(owners, a.get());
+		ASSERT_HAS(owners, b.get());
+		ASSERT_HAS(owners, c.get());
+		ASSERT_HAS(owners, fref);
+		ASSERT_HAS(owners, gref);
+
+		EXPECT_FALSE(owners[a.get()].expired());
+		EXPECT_FALSE(owners[b.get()].expired());
+		EXPECT_FALSE(owners[c.get()].expired());
+		EXPECT_FALSE(owners[fref].expired());
+		EXPECT_FALSE(owners[gref].expired());
+
+		auto alocked = owners[a.get()].lock();
+		auto blocked = owners[b.get()].lock();
+		auto clocked = owners[c.get()].lock();
+		auto flocked = owners[fref].lock();
+		auto glocked = owners[gref].lock();
+		EXPECT_EQ(a.use_count(), alocked.use_count());
+		EXPECT_EQ(b.use_count(), blocked.use_count());
+		EXPECT_EQ(c.use_count(), clocked.use_count());
+		EXPECT_EQ(f.use_count(), flocked.use_count());
+		EXPECT_EQ(g.use_count(), glocked.use_count());
+	}
+
+	EXPECT_FALSE(owners[a.get()].expired());
+	EXPECT_FALSE(owners[b.get()].expired());
+	EXPECT_FALSE(owners[c.get()].expired());
+	EXPECT_TRUE(owners[fref].expired());
+	EXPECT_TRUE(owners[gref].expired());
+}
+
+
 #endif // DISABLE_TRAVELER_TEST

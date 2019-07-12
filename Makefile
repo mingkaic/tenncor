@@ -68,17 +68,21 @@ cov_clean: $(COVERAGE_INFO_FILE)
 	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o coverage.info
 	lcov --list coverage.info
 
+.PHONY: cov_genhtml
+cov_genhtml: coverage.info
+	genhtml -o html coverage.info
+
 .PHONY: lcov
-lcov: coverage cov_clean
+lcov: coverage cov_clean cov_genhtml
 
 .PHONY: lcov_ade
-lcov_ade: cover_ade cov_clean
+lcov_ade: cover_ade cov_clean cov_genhtml
 
 .PHONY: lcov_ead
-lcov_ead: cover_ead cov_clean
+lcov_ead: cover_ead cov_clean cov_genhtml
 
 .PHONY: lcov_opt
-lcov_opt: cover_opt cov_clean
+lcov_opt: cover_opt cov_clean cov_genhtml
 
 .PHONY: lcov_pbm
-lcov_pbm: cover_pbm cov_clean
+lcov_pbm: cover_pbm cov_clean cov_genhtml
