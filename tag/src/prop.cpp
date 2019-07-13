@@ -5,11 +5,11 @@
 namespace tag
 {
 
-size_t PropTag::tag_id_ = TagCollective::register_tag<PropTag>();
+size_t PropTag::tag_id_ = get_reg().register_tag<PropTag>();
 
 void property_tag (ade::TensrefT tens, std::string property)
 {
-	get_reg().get_collective(tens).add(std::make_unique<PropTag>(property));
+	get_reg().add_tag(tens, std::make_unique<PropTag>(property));
 }
 
 bool has_property (const ade::iTensor* tens, std::string property)

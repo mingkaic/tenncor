@@ -32,22 +32,6 @@ using TagptrT = std::unique_ptr<iTag>;
 // absorbs new instances into the collective
 struct TagCollective final
 {
-	template <typename TAG>
-	static size_t register_tag (void)
-	{
-		static_assert(std::is_base_of<iTag,TAG>::value,
-			"collective tags must inherit iTag");
-		const std::type_info& tp = typeid(TAG);
-		size_t code = tp.hash_code();
-		auto& tag_types = get_types();
-		auto it = tag_types.find(code);
-		if (tag_types.end() == it)
-		{
-			tag_types.emplace(code);
-		}
-		return code;
-	}
-
 	void absorb (TagCollective&& other)
 	{
 		for (auto& tagpair : other.tags_)
@@ -69,11 +53,6 @@ struct TagCollective final
 	void add (TagptrT entry)
 	{
 		size_t tid = entry->tag_id();
-		auto& tag_types = get_types();
-		if (false == estd::has(tag_types, tid))
-		{
-			logs::fatalf("cannot find tag type %d", tid);
-		}
 		auto it = tags_.find(tid);
 		if (tags_.end() == it)
 		{
@@ -98,12 +77,6 @@ struct TagCollective final
 
 private:
 	std::unordered_map<size_t,TagptrT> tags_;
-
-	static std::unordered_set<size_t>& get_types (void)
-	{
-		static std::unordered_set<size_t> tag_types;
-		return tag_types;
-	};
 };
 
 struct TensKey final
@@ -147,8 +120,22 @@ inline bool operator == (const TensKey& lhs, const TensKey& rhs)
 // todo: move tag registry to some session that claims global context
 struct TagRegistry final
 {
-	// return collective referenced by tens
-	TagCollective& get_collective (ade::TensrefT tens)
+	template <typename TAG>
+	size_t register_tag (void)
+	{
+		static_assert(std::is_base_of<iTag,TAG>::value,
+			"collective tags must inherit iTag");
+		const std::type_info& tp = typeid(TAG);
+		size_t code = tp.hash_code();
+		auto it = tag_types_.find(code);
+		if (tag_types_.end() == it)
+		{
+			tag_types_.emplace(code);
+		}
+		return code;
+	}
+
+	void add_tag (ade::TensrefT tens, TagptrT tag)
 	{
 		if (tens.expired())
 		{
@@ -160,7 +147,12 @@ struct TagRegistry final
 		{
 			registry_.erase(tens.lock().get());
 		}
-		return registry_[tens];
+		size_t tid = tag->tag_id();
+		if (false == estd::has(tag_types_, tid))
+		{
+			logs::fatalf("cannot find tag type %d", tid);
+		}
+		registry_[tens].add(std::move(tag));
 	}
 
 	TagRepsT get_tags (const ade::iTensor* tens)
@@ -173,7 +165,7 @@ struct TagRegistry final
 		return it->second.get_tags();
 	}
 
-	void erase (const ade::iTensor* tens)
+	void remove_tag (const ade::iTensor* tens)
 	{
 		registry_.erase(TensKey(tens));
 	}
@@ -192,6 +184,8 @@ struct TagRegistry final
 	}
 
 	std::unordered_map<TensKey,TagCollective,TensKeyHash> registry_;
+
+	std::unordered_set<size_t> tag_types_;
 };
 
 TagRegistry& get_reg (void);

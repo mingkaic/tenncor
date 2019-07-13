@@ -7,13 +7,13 @@ namespace tag
 
 using RefMapT = std::unordered_map<ade::iTensor*,ade::TensrefT>;
 
-size_t GroupTag::tag_id_ = TagCollective::register_tag<GroupTag>();
+size_t GroupTag::tag_id_ = get_reg().register_tag<GroupTag>();
 
 std::unordered_map<std::string,TensSetT> GroupTag::groups_;
 
 void group_tag (ade::TensrefT tens, std::string group)
 {
-	get_reg().get_collective(tens).add(std::make_unique<GroupTag>(group));
+	get_reg().add_tag(tens, std::make_unique<GroupTag>(group));
 
 	auto& gtens = GroupTag::groups_[group];
 	auto it = gtens.find(TensKey(tens.lock().get()));

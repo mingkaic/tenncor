@@ -55,7 +55,7 @@ std::vector<T> remove_duplicates (ade::TensT& roots,
 
 			// inherit tags
 			tag::get_reg().move_tags(last.get(), cur.get());
-			tag::get_reg().erase(cur.get());
+			tag::get_reg().remove_tag(cur.get());
 		}
 		else
 		{
