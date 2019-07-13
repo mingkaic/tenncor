@@ -13,7 +13,7 @@ std::unordered_map<std::string,TensSetT> GroupTag::groups_;
 
 void group_tag (ade::TensrefT tens, std::string group)
 {
-	get_collective(tens).add(std::make_unique<GroupTag>(group));
+	get_reg().get_collective(tens).add(std::make_unique<GroupTag>(group));
 
 	auto& gtens = GroupTag::groups_[group];
 	auto it = gtens.find(TensKey(tens.lock().get()));

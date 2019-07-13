@@ -44,7 +44,6 @@ struct TagCollective final
 		if (tag_types.end() == it)
 		{
 			tag_types.emplace(code);
-			return tag_types.size();
 		}
 		return code;
 	}
@@ -70,6 +69,11 @@ struct TagCollective final
 	void add (TagptrT entry)
 	{
 		size_t tid = entry->tag_id();
+		auto& tag_types = get_types();
+		if (false == estd::has(tag_types, tid))
+		{
+			logs::fatalf("cannot find tag type %d", tid);
+		}
 		auto it = tags_.find(tid);
 		if (tags_.end() == it)
 		{
@@ -141,23 +145,56 @@ inline bool operator == (const TensKey& lhs, const TensKey& rhs)
 }
 
 // todo: move tag registry to some session that claims global context
-// instead of singleton
-struct Registry final
+struct TagRegistry final
 {
-	static std::unordered_map<TensKey,TagCollective,
-		TensKeyHash> registry; // todo: make thread-safe
+	// return collective referenced by tens
+	TagCollective& get_collective (ade::TensrefT tens)
+	{
+		if (tens.expired())
+		{
+			logs::fatal("cannot tag with expired tensor ref");
+		}
+		auto it = registry_.find(TensKey(tens));
+		// clear out previous entry that is expired
+		if (registry_.end() != it && it->first.expired())
+		{
+			registry_.erase(tens.lock().get());
+		}
+		return registry_[tens];
+	}
 
-	Registry (void) = delete;
+	TagRepsT get_tags (const ade::iTensor* tens)
+	{
+		auto it = registry_.find(TensKey(tens));
+		if (registry_.end() == it || it->first.expired())
+		{
+			return {};
+		}
+		return it->second.get_tags();
+	}
+
+	void erase (const ade::iTensor* tens)
+	{
+		registry_.erase(TensKey(tens));
+	}
+
+	void move_tags (const ade::iTensor* dest, const ade::iTensor* source)
+	{
+		auto src_it = registry_.find(TensKey(source));
+		auto dest_it = registry_.find(TensKey(dest));
+		if (registry_.end() == src_it || src_it->first.expired() ||
+			registry_.end() == dest_it || dest_it->first.expired())
+		{
+			return;
+		}
+
+		dest_it->second.absorb(std::move(src_it->second));
+	}
+
+	std::unordered_map<TensKey,TagCollective,TensKeyHash> registry_;
 };
 
-// return collective referenced by tens
-TagCollective& get_collective (ade::TensrefT tens);
-
-TagRepsT get_tags (const ade::iTensor* tens);
-
-void erase (const ade::iTensor* tens);
-
-void move_tags (const ade::iTensor* dest, const ade::iTensor* source);
+TagRegistry& get_reg (void);
 
 }
 

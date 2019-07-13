@@ -1,11 +1,7 @@
 import re
 import logging
 
-try: # this is a workaround (todo: remove)
-    from gen.plugin_base import PluginBase
-except:
-    from gen.plugin_base2 import PluginBase
-
+from gen.plugin_base import PluginBase
 from gen.file_rep import FileRep
 
 from ead.age.plugins.template import build_template

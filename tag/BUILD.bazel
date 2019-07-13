@@ -30,3 +30,16 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
 )
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = glob(["test/*.cpp"]),
+    deps = [
+        "//tag:tag",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    copts = ["-std=c++17"],
+)

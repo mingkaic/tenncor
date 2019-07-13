@@ -6,13 +6,8 @@ import io
 import os
 import logging
 
-try: # this is a workaround (todo: remove)
-    from gen.plugin_base import PluginBase
-    from gen.dump import GenDumpBase, PrintDump
-except:
-    from gen.plugin_base2 import PluginBase
-    from gen.dump2 import GenDumpBase, PrintDump
-
+from gen.plugin_base import PluginBase
+from gen.dump import GenDumpBase, PrintDump
 from gen.file_rep import FileRep
 
 def generate(fields, out = PrintDump(), plugins = []):

@@ -169,4 +169,25 @@ TEST(FUNCARG, ShapeCoordDiff)
 }
 
 
+TEST(FUNCARG, ToArgs)
+{
+	ade::Shape shape({3, 2});
+	ade::TensptrT tens = std::make_shared<MockTensor>(shape);
+	ade::TensptrT tens2 = std::make_shared<MockTensor>(shape);
+	auto args = ade::to_args({tens, tens2});
+
+	ASSERT_EQ(2, args.size());
+
+	auto arg = args[0];
+	EXPECT_EQ(tens, arg.get_tensor());
+	EXPECT_EQ(ade::identity, arg.get_shaper());
+	EXPECT_EQ(ade::identity, arg.get_coorder());
+
+	auto arg2 = args[1];
+	EXPECT_EQ(tens2, arg2.get_tensor());
+	EXPECT_EQ(ade::identity, arg2.get_shaper());
+	EXPECT_EQ(ade::identity, arg2.get_coorder());
+}
+
+
 #endif // DISABLE_FUNCARG_TEST

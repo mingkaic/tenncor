@@ -24,18 +24,6 @@ py_library(
     visibility = ["//visibility:public"],
 )
 
-# # todo: remove when bazel gets fixed
-# py_library(
-#     name = "gen2",
-#     srcs = [
-#         "file_rep.py",
-#         "generate.py",
-#         "plugin_base2.py",
-#         "dump2.py",
-#     ],
-#     visibility = ["//visibility:public"],
-# )
-
 ######### TEST #########
 
 py_test(
@@ -44,10 +32,3 @@ py_test(
     deps = ["//gen:gen"],
     python_version = "PY3",
 )
-
-# py_test(
-#     name = "ptest2",
-#     srcs = ["//gen:test_srcs"],
-#     deps = ["//gen:gen2"],
-#     python_version = "PY2",
-# )

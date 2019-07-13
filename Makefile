@@ -6,11 +6,13 @@ CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0
 
 ADE_TEST := //ade:test
 
-EAD_CTEST := //ead:ctest
-
-OPT_TEST := //opt:test
+TAG_TEST := //tag:test
 
 PBM_TEST := //pbm:test
+
+OPT_TEST := //opt/...
+
+EAD_CTEST := //ead:ctest
 
 CC := gcc
 
@@ -36,17 +38,25 @@ coverage:
 cover_ade:
 	$(CCOVER) $(ADE_TEST)
 
-.PHONY: cover_ead
-cover_ead:
-	$(CCOVER) $(EAD_CTEST)
-
-.PHONY: cover_opt
-cover_opt:
-	$(CCOVER) $(OPT_TEST)
+.PHONY: cover_tag
+cover_tag:
+	$(CCOVER) $(TAG_TEST)
+	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*'
 
 .PHONY: cover_pbm
 cover_pbm:
 	$(CCOVER) $(PBM_TEST)
+	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*'
+
+.PHONY: cover_opt
+cover_opt:
+	$(CCOVER) $(OPT_TEST)
+	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'ead/*'
+
+.PHONY: cover_ead
+cover_ead:
+	$(CCOVER) $(EAD_CTEST)
+	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'opt/*'
 
 
 # optimized comparisons
@@ -78,11 +88,14 @@ lcov: coverage cov_clean cov_genhtml
 .PHONY: lcov_ade
 lcov_ade: cover_ade cov_clean cov_genhtml
 
-.PHONY: lcov_ead
-lcov_ead: cover_ead cov_clean cov_genhtml
+.PHONY: lcov_tag
+lcov_tag: cover_tag cov_clean cov_genhtml
+
+.PHONY: lcov_pbm
+lcov_pbm: cover_pbm cov_clean cov_genhtml
 
 .PHONY: lcov_opt
 lcov_opt: cover_opt cov_clean cov_genhtml
 
-.PHONY: lcov_pbm
-lcov_pbm: cover_pbm cov_clean cov_genhtml
+.PHONY: lcov_ead
+lcov_ead: cover_ead cov_clean cov_genhtml

@@ -15,6 +15,7 @@
 #include "dbg/grpc/client.hpp"
 
 #ifndef DBG_SESSION_HPP
+#define DBG_SESSION_HPP
 
 namespace dbg
 {
@@ -104,7 +105,7 @@ struct InteractiveSession final : public ead::iSession
 					tags->insert({tag_node_type, type_str});
 				}
 				{
-					auto inner_tags = tag::get_tags(tens);
+					auto inner_tags = tag::get_reg().get_tags(tens);
 					std::map<std::string,tenncor::Strings> outer_tags;
 					for (auto& itags : inner_tags)
 					{
@@ -383,7 +384,7 @@ struct InteractiveSession final : public ead::iSession
 					tags->insert({tag_node_type, type_str});
 				}
 				{
-					auto inner_tags = tag::get_tags(tens);
+					auto inner_tags = tag::get_reg().get_tags(tens);
 					std::map<std::string,tenncor::Strings> outer_tags;
 					for (auto& itags : inner_tags)
 					{

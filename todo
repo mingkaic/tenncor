@@ -22,16 +22,16 @@ P4 - conform to some bazel style/convention (or change to another build tool)
 P4 - investigate adopting more of boost in place of cppkg
 
 === structure ===
-P2 - create global context for all ade/ead/tag singletons, then make context configurable
 P4 - remove ead helper functions
 
 === correction ===
+P1 - create global session for all ade/ead/tag singletons, then make context configurable
+P2 - test tag module (need ^)
+P2 - reorient tests so that tests cover its own immediate module
 P2 - fix rbm demo converging to infinity problem
-P2 - test tag module
 P2 - test dbg module
 P2 - test opt module more
 P3 - test complicate equations (generate random valid equations)
-P3 - reorient tests so that tests cover its own immediate module
 P3 - maximize coverage
 P3 - test rocnnet + eqns, modl, and trainer (or subgraph equivalent)
 

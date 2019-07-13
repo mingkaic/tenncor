@@ -69,7 +69,7 @@ struct AdjacentGroups final : public ade::iTraveler
 		if (false == estd::has(visited_, leaf))
 		{
 			visited_.emplace(leaf);
-			auto tags = get_tags(leaf);
+			auto tags = get_reg().get_tags(leaf);
 			std::vector<std::string> groups;
 			if (estd::get(groups, tags, groups_key))
 			{
@@ -103,7 +103,7 @@ struct AdjacentGroups final : public ade::iTraveler
 				{
 					return arg.get_tensor().get();
 				});
-			TagRepsT tags = get_tags(func);
+			TagRepsT tags = get_reg().get_tags(func);
 			std::vector<std::string> groups;
 			if (estd::get(groups, tags, groups_key))
 			{
