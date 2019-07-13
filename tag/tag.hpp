@@ -118,23 +118,9 @@ inline bool operator == (const TensKey& lhs, const TensKey& rhs)
 }
 
 // todo: move tag registry to some session that claims global context
+// todo: make an interface for this
 struct TagRegistry final
 {
-	template <typename TAG>
-	size_t register_tag (void)
-	{
-		static_assert(std::is_base_of<iTag,TAG>::value,
-			"collective tags must inherit iTag");
-		const std::type_info& tp = typeid(TAG);
-		size_t code = tp.hash_code();
-		auto it = tag_types_.find(code);
-		if (tag_types_.end() == it)
-		{
-			tag_types_.emplace(code);
-		}
-		return code;
-	}
-
 	void add_tag (ade::TensrefT tens, TagptrT tag)
 	{
 		if (tens.expired())
@@ -146,11 +132,6 @@ struct TagRegistry final
 		if (registry_.end() != it && it->first.expired())
 		{
 			registry_.erase(tens.lock().get());
-		}
-		size_t tid = tag->tag_id();
-		if (false == estd::has(tag_types_, tid))
-		{
-			logs::fatalf("cannot find tag type %d", tid);
 		}
 		registry_[tens].add(std::move(tag));
 	}
@@ -184,8 +165,6 @@ struct TagRegistry final
 	}
 
 	std::unordered_map<TensKey,TagCollective,TensKeyHash> registry_;
-
-	std::unordered_set<size_t> tag_types_;
 };
 
 TagRegistry& get_reg (void);

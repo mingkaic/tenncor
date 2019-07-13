@@ -47,7 +47,7 @@ _VERSION_SUPPORT_MATRIX = {
     "ubuntu:16.04": ["3.6"],
     "ubuntu:18.04": ["3.6"],
     "macos:10.13": ["3.6"],
-    "macos:10.14": ["3.6"],
+    "macos:10.14": ["3.6", "3.7"],
 }
 
 def _repository_python_info(repository_ctx):
@@ -104,8 +104,8 @@ def _repository_python_info(repository_ctx):
     # Warn if we do not the correct platform support.
     if version not in versions_supported:
         print((
-            "\n\nWARNING: Python {} is not a supported / tested version for " +
-            "use with Drake.\n  Supported versions on {}: {}\n\n"
+            "\n\nWARNING: Python {} is not a supported / tested version.\n" +
+            "Supported versions on {}: {}\n\n"
         ).format(version, os_key, versions_supported))
 
     site_packages_relpath = "lib/python{}/site-packages".format(version)

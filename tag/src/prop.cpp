@@ -5,22 +5,12 @@
 namespace tag
 {
 
-size_t PropTag::tag_id_ = get_reg().register_tag<PropTag>();
+size_t PropTag::tag_id_ = typeid(PropTag).hash_code();
 
-void property_tag (ade::TensrefT tens, std::string property)
+PropertyRegistry& get_property_reg (void)
 {
-	get_reg().add_tag(tens, std::make_unique<PropTag>(property));
-}
-
-bool has_property (const ade::iTensor* tens, std::string property)
-{
-	auto reps = get_reg().get_tags(tens);
-	auto it = reps.find(props_key);
-	if (reps.end() == it)
-	{
-		return false;
-	}
-	return estd::arr_has(it->second, property);
+	static PropertyRegistry registry;
+	return registry;
 }
 
 }

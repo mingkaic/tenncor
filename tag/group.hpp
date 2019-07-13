@@ -22,8 +22,6 @@ const std::string groups_key = "groups";
 ///		ordered tag retains information that 'sum' is a subgraph of 'mlp'
 struct GroupTag final : public iTag
 {
-	static std::unordered_map<std::string,TensSetT> groups_;
-
 	GroupTag (std::string init_label) : labels_({init_label}) {}
 
 	size_t tag_id (void) const override
@@ -52,10 +50,34 @@ private:
 	static size_t tag_id_;
 };
 
-void group_tag (ade::TensrefT tens, std::string group);
+struct GroupRegistry final
+{
+	GroupRegistry (TagRegistry& registry = get_reg()) : tag_reg_(registry) {}
+
+	void group_tag (ade::TensrefT tens, std::string tag)
+	{
+		tag_reg_.add_tag(tens, TagptrT(new GroupTag(tag)));
+
+		auto& gtens = groups_[tag];
+		auto it = gtens.find(TensKey(tens.lock().get()));
+		// clear out previous entry that is expired
+		if (gtens.end() != it && it->expired())
+		{
+			gtens.erase(tens.lock().get());
+		}
+		gtens.emplace(tens);
+	}
+
+	std::unordered_map<std::string,TensSetT> groups_;
+
+	TagRegistry& tag_reg_;
+};
+
+GroupRegistry& get_group_reg (void);
 
 void recursive_group_tag (ade::TensrefT tens, std::string group,
-	std::unordered_set<ade::iTensor*> stops);
+	std::unordered_set<ade::iTensor*> stops,
+	GroupRegistry& registry = get_group_reg());
 
 using AGroupsT = std::map<std::string,std::unordered_set<std::string>>;
 
@@ -63,7 +85,8 @@ struct AdjacentGroups final : public ade::iTraveler
 {
 	static boost::uuids::random_generator uuid_gen_;
 
-	AdjacentGroups (TagRegistry& registry = get_reg()) : registry_(registry) {}
+	AdjacentGroups (GroupRegistry& registry = get_group_reg()) :
+		registry_(registry) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
@@ -71,7 +94,7 @@ struct AdjacentGroups final : public ade::iTraveler
 		if (false == estd::has(visited_, leaf))
 		{
 			visited_.emplace(leaf);
-			auto tags = registry_.get_tags(leaf);
+			auto tags = registry_.tag_reg_.get_tags(leaf);
 			std::vector<std::string> groups;
 			if (estd::get(groups, tags, groups_key))
 			{
@@ -105,7 +128,7 @@ struct AdjacentGroups final : public ade::iTraveler
 				{
 					return arg.get_tensor().get();
 				});
-			TagRepsT tags = registry_.get_tags(func);
+			TagRepsT tags = registry_.tag_reg_.get_tags(func);
 			std::vector<std::string> groups;
 			if (estd::get(groups, tags, groups_key))
 			{
@@ -121,7 +144,7 @@ struct AdjacentGroups final : public ade::iTraveler
 						mygroups.emplace(group, gids);
 					}
 
-					auto& same_group = GroupTag::groups_[group];
+					auto& same_group = registry_.groups_[group];
 					for (ade::iTensor* child : uchildren)
 					{
 						// propagate unique gid set to child of same group
@@ -145,7 +168,7 @@ struct AdjacentGroups final : public ade::iTraveler
 
 	std::unordered_map<ade::iTensor*,AGroupsT> adjs_;
 
-	TagRegistry& registry_;
+	GroupRegistry& registry_;
 };
 
 struct Subgraph final : public ade::iTraveler

@@ -7,29 +7,21 @@ namespace tag
 
 using RefMapT = std::unordered_map<ade::iTensor*,ade::TensrefT>;
 
-size_t GroupTag::tag_id_ = get_reg().register_tag<GroupTag>();
+size_t GroupTag::tag_id_ = typeid(GroupTag).hash_code();
 
-std::unordered_map<std::string,TensSetT> GroupTag::groups_;
-
-void group_tag (ade::TensrefT tens, std::string group)
+GroupRegistry& get_group_reg (void)
 {
-	get_reg().add_tag(tens, std::make_unique<GroupTag>(group));
-
-	auto& gtens = GroupTag::groups_[group];
-	auto it = gtens.find(TensKey(tens.lock().get()));
-	// clear out previous entry that is expired
-	if (gtens.end() != it && it->expired())
-	{
-		gtens.erase(tens.lock().get());
-	}
-	gtens.emplace(tens);
+	static GroupRegistry registry;
+	return registry;
 }
 
 struct Grouper final : public ade::iTraveler
 {
-	Grouper (std::string group,
-		std::unordered_set<ade::iTensor*> stops) :
-		group_(group), stops_(stops.begin(), stops.end()) {}
+	Grouper (std::string group, std::unordered_set<ade::iTensor*> stops,
+		GroupRegistry& registry) :
+		group_(group),
+		stops_(stops.begin(), stops.end()),
+		registry_(registry) {}
 
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
@@ -41,7 +33,7 @@ struct Grouper final : public ade::iTraveler
 			{
 				logs::fatal("failed to get reference to leaf in group traveler");
 			}
-			group_tag(it->second, group_);
+			registry_.group_tag(it->second, group_);
 		}
 	}
 
@@ -62,7 +54,7 @@ struct Grouper final : public ade::iTraveler
 				owners_.emplace(tens.get(), tens);
 				tens->accept(*this);
 			}
-			group_tag(it->second, group_);
+			registry_.group_tag(it->second, group_);
 		}
 	}
 
@@ -71,16 +63,18 @@ struct Grouper final : public ade::iTraveler
 	std::string group_;
 
 	std::unordered_set<ade::iTensor*> stops_;
+
+	GroupRegistry& registry_;
 };
 
 void recursive_group_tag (ade::TensrefT tens, std::string group,
-	std::unordered_set<ade::iTensor*> stops)
+	std::unordered_set<ade::iTensor*> stops, GroupRegistry& registry)
 {
 	if (tens.expired())
 	{
 		logs::fatal("cannot recursive group tag with expired tensor ref");
 	}
-	Grouper trav(group, stops);
+	Grouper trav(group, stops, registry);
 	auto tensor = tens.lock().get();
 	trav.owners_.emplace(tensor, tens);
 	tensor->accept(trav);

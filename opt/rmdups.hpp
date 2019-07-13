@@ -10,8 +10,9 @@ void replace_parents (const ade::ParentFinder& pfinder,
 	ade::iTensor* source, ade::TensptrT target);
 
 template <typename T>
-std::vector<T> remove_duplicates (ade::TensT& roots,
-	std::vector<T> tens, const ade::ParentFinder& pfinder)
+std::vector<T> remove_duplicates (ade::TensT& roots, std::vector<T> tens,
+	const ade::ParentFinder& pfinder,
+	tag::TagRegistry& registry = tag::get_reg())
 {
 	if (tens.empty())
 	{
@@ -54,8 +55,8 @@ std::vector<T> remove_duplicates (ade::TensT& roots,
 			// todo: mark parents as uninitialized, reinitialize entire graph, or uninitialize everything to begin with
 
 			// inherit tags
-			tag::get_reg().move_tags(last.get(), cur.get());
-			tag::get_reg().remove_tag(cur.get());
+			registry.move_tags(last.get(), cur.get());
+			registry.remove_tag(cur.get());
 		}
 		else
 		{

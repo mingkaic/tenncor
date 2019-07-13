@@ -8,6 +8,11 @@ namespace tag
 
 const std::string props_key = "properties";
 
+// some property tags
+const std::string commutative_tag = "commutative";
+
+const std::string immutable_tag = "immutable";
+
 /// PropTag (properties tag) define node properties
 struct PropTag final : public iTag
 {
@@ -39,14 +44,31 @@ private:
 	static size_t tag_id_;
 };
 
-void property_tag (ade::TensrefT tens, std::string property);
+struct PropertyRegistry final
+{
+	PropertyRegistry (TagRegistry& registry = get_reg()) :
+		tag_reg_(registry) {}
 
-bool has_property (const ade::iTensor* tens, std::string property);
+	void property_tag (ade::TensrefT tens, std::string property)
+	{
+		tag_reg_.add_tag(tens, TagptrT(new PropTag(property)));
+	}
 
-// some property tags
-const std::string commutative_tag = "commutative";
+	bool has_property (const ade::iTensor* tens, std::string property)
+	{
+		auto reps = tag_reg_.get_tags(tens);
+		auto it = reps.find(props_key);
+		if (reps.end() == it)
+		{
+			return false;
+		}
+		return estd::arr_has(it->second, property);
+	}
 
-const std::string immutable_tag = "immutable";
+	TagRegistry& tag_reg_;
+};
+
+PropertyRegistry& get_property_reg (void);
 
 }
 

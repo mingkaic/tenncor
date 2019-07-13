@@ -40,7 +40,7 @@ struct Matcher final : public ade::iTraveler
 	{
 		if (false == estd::has(candidates_, leaf))
 		{
-			if (tag::has_property(leaf, tag::immutable_tag))
+			if (tag::get_property_reg().has_property(leaf, tag::immutable_tag))
 			{
 				std::string const_str = leaf->to_string();
 				CandsT cands = {

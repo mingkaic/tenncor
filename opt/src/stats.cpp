@@ -121,7 +121,7 @@ bool lt (std::unordered_set<ade::iTensor*> priorities,
 			if (a_nchildren == b_nchildren)
 			{
 				// order doesn't matter, so normalize
-				if (tag::has_property(a, tag::commutative_tag))
+				if (tag::get_property_reg().has_property(a, tag::commutative_tag))
 				{
 					auto arg_lt =
 					[](ade::FuncArg a, ade::FuncArg b)
@@ -172,7 +172,8 @@ bool is_equal (ade::iFunctor* a, ade::iFunctor* b)
 		{
 			auto achildren = a->get_children();
 			auto bchildren = b->get_children();
-			if (tag::has_property(a, tag::commutative_tag)) // order doesn't matter, so normalize
+			// order doesn't matter, so normalize
+			if (tag::get_property_reg().has_property(a, tag::commutative_tag))
 			{
 				auto arg_lt =
 				[](ade::FuncArg a, ade::FuncArg b)

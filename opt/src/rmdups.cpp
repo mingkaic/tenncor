@@ -56,7 +56,7 @@ void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
 		size_t height = gpair.second.upper_;
 		if (0 == height)
 		{
-			if (tag::has_property(tens, tag::immutable_tag))
+			if (tag::get_property_reg().has_property(tens, tag::immutable_tag))
 			{
 				immutables.push_back(
 					std::static_pointer_cast<ade::iLeaf>(

@@ -56,8 +56,10 @@ struct InteractiveSession final : public ead::iSession
 	static boost::uuids::random_generator uuid_gen_;
 
 	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
-		ClientConfig client_cfg = ClientConfig()) :
-		client_(channel, client_cfg)
+		ClientConfig client_cfg = ClientConfig(),
+		tag::TagRegistry& registry = tag::get_reg()) :
+		client_(channel, client_cfg),
+		registry_(registry)
 	{
 		logs::infof("created session: %s", sess_id_.c_str());
 	}
@@ -105,7 +107,7 @@ struct InteractiveSession final : public ead::iSession
 					tags->insert({tag_node_type, type_str});
 				}
 				{
-					auto inner_tags = tag::get_reg().get_tags(tens);
+					auto inner_tags = registry_.get_tags(tens);
 					std::map<std::string,tenncor::Strings> outer_tags;
 					for (auto& itags : inner_tags)
 					{
@@ -384,7 +386,7 @@ struct InteractiveSession final : public ead::iSession
 					tags->insert({tag_node_type, type_str});
 				}
 				{
-					auto inner_tags = tag::get_reg().get_tags(tens);
+					auto inner_tags = registry_.get_tags(tens);
 					std::map<std::string,tenncor::Strings> outer_tags;
 					for (auto& itags : inner_tags)
 					{
@@ -486,6 +488,8 @@ struct InteractiveSession final : public ead::iSession
 	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
 
 	ead::Session sess_;
+
+	tag::TagRegistry& registry_;
 
 private:
 	std::string sess_id_ = boost::uuids::to_string(

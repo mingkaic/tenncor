@@ -113,7 +113,7 @@ NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)
 	auto out = std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get_scalar(scalar, shape))
 	);
-	tag::property_tag(out->get_tensor(), tag::immutable_tag);
+	tag::get_property_reg().property_tag(out->get_tensor(), tag::immutable_tag);
 	return out;
 }
 
@@ -123,7 +123,7 @@ NodeptrT<T> make_constant (T* data, ade::Shape shape)
 	auto out = std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get(data, shape))
 	);
-	tag::property_tag(out->get_tensor(), tag::immutable_tag);
+	tag::get_property_reg().property_tag(out->get_tensor(), tag::immutable_tag);
 	return out;
 }
 
