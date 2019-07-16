@@ -32,6 +32,19 @@ using TagptrT = std::unique_ptr<iTag>;
 // absorbs new instances into the collective
 struct TagCollective final
 {
+	TagCollective (void) = default;
+
+	TagCollective (TagCollective&& other) : tags_(std::move(other.tags_)) {}
+
+	TagCollective& operator = (TagCollective&& other)
+	{
+		if (this != &other)
+		{
+			tags_ = std::move(other.tags_);
+		}
+		return *this;
+	}
+
 	void absorb (TagCollective&& other)
 	{
 		for (auto& tagpair : other.tags_)
@@ -146,22 +159,28 @@ struct TagRegistry final
 		return it->second.get_tags();
 	}
 
-	void remove_tag (const ade::iTensor* tens)
+	void move_tags (ade::TensrefT dest, const ade::iTensor* source)
 	{
-		registry_.erase(TensKey(tens));
-	}
-
-	void move_tags (const ade::iTensor* dest, const ade::iTensor* source)
-	{
+		if (dest.expired())
+		{
+			logs::fatal("cannot move with expired destination tensor");
+		}
 		auto src_it = registry_.find(TensKey(source));
 		auto dest_it = registry_.find(TensKey(dest));
-		if (registry_.end() == src_it || src_it->first.expired() ||
-			registry_.end() == dest_it || dest_it->first.expired())
+		if (registry_.end() == src_it || src_it->first.expired())
 		{
 			return;
 		}
 
-		dest_it->second.absorb(std::move(src_it->second));
+		if (registry_.end() == dest_it || dest_it->first.expired())
+		{
+			registry_[dest] = std::move(src_it->second);
+		}
+		else
+		{
+			dest_it->second.absorb(std::move(src_it->second));
+		}
+		registry_.erase(TensKey(source));
 	}
 
 	std::unordered_map<TensKey,TagCollective,TensKeyHash> registry_;

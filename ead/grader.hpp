@@ -49,34 +49,6 @@ NodeptrT<T> reduce_grad (const ade::FuncArg& child,
 }
 
 template <typename T>
-NodeptrT<T> reduce_prod_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, size_t idx)
-{
-	const auto& child = fwd->get_children()[0];
-	NodeptrT<T> childnode = NodeConverters<T>::to_node(child.get_tensor());
-	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
-		{FuncArg<T>(childnode, child.get_shaper(),
-			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
-	NodeptrT<T> rev_fwd = reduce_grad(child, fwd_cpy, idx);
-	return tenncor::mul(tenncor::div(rev_fwd, childnode),
-		reduce_grad(child, bwd, idx));
-}
-
-template <typename T>
-NodeptrT<T> reduce_comp_grad (ade::iFunctor* fwd,
-	NodeptrT<T> bwd, size_t idx)
-{
-	const auto& child = fwd->get_children()[0];
-	NodeptrT<T> childnode = NodeConverters<T>::to_node(child.get_tensor());
-	NodeptrT<T> fwd_cpy = make_functor<T>(fwd->get_opcode(),
-		{FuncArg<T>(childnode, child.get_shaper(),
-			std::static_pointer_cast<CoordMap>(child.get_coorder()))});
-	NodeptrT<T> rev_fwd = reduce_grad(child, fwd_cpy, idx);
-	return tenncor::mul(tenncor::eq(rev_fwd, childnode),
-		reduce_grad(child, bwd, idx));
-}
-
-template <typename T>
 NodeptrT<T> permute_grad (ade::iFunctor* fwd,
 	NodeptrT<T> bwd, size_t idx)
 {

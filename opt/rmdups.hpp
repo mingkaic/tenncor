@@ -55,8 +55,7 @@ std::vector<T> remove_duplicates (ade::TensT& roots, std::vector<T> tens,
 			// todo: mark parents as uninitialized, reinitialize entire graph, or uninitialize everything to begin with
 
 			// inherit tags
-			registry.move_tags(last.get(), cur.get());
-			registry.remove_tag(cur.get());
+			registry.move_tags(last, cur.get());
 		}
 		else
 		{
