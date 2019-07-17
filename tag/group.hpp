@@ -128,6 +128,17 @@ struct AdjacentGroups final : public ade::iTraveler
 				{
 					return arg.get_tensor().get();
 				});
+			// overwrite children adjacency information, and rewrite.
+			// there is no guarantee caller will visit nodes in the right order (top-down),
+			// so accept the visitation scan of the tensor with the greatest height.
+			// assert that if code reaches this line, func has not been visited before
+			// and is therefore the tensor with greatest height
+			for (ade::iTensor* child : uchildren)
+			{
+				adjs_.erase(child);
+				visited_.erase(child);
+			}
+
 			TagRepsT tags = registry_.tag_reg_.get_tags(func);
 			std::vector<std::string> groups;
 			if (estd::get(groups, tags, groups_key))

@@ -34,11 +34,14 @@ cc_library(
 cc_test(
     name = "test",
     srcs = glob(["test/*.cpp"]),
+    copts = ["-std=c++17"],
     deps = [
         "//opt:opt",
         "//ead:ead",
+        "//testutil:tutil",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
-    copts = ["-std=c++17"],
+    linkstatic = True,
+    data = ["//cfg:optimizations"],
 )

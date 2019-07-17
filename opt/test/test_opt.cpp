@@ -10,11 +10,11 @@
 
 #include "exam/exam.hpp"
 
-#include "opt/optimize.hpp"
-
 #include "ead/generated/api.hpp"
 #include "ead/parse.hpp"
 #include "ead/constant.hpp"
+
+#include "opt/optimize.hpp"
 
 
 TEST(OPTIMIZE, CalcConstants)

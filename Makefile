@@ -37,26 +37,27 @@ coverage:
 .PHONY: cover_ade
 cover_ade:
 	$(CCOVER) $(ADE_TEST)
+	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
 .PHONY: cover_tag
 cover_tag:
 	$(CCOVER) $(TAG_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*'
+	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' -o coverage.info
 
 .PHONY: cover_pbm
 cover_pbm:
 	$(CCOVER) $(PBM_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*'
+	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' -o coverage.info
 
 .PHONY: cover_opt
 cover_opt:
 	$(CCOVER) $(OPT_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'ead/*'
+	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'ead/*' -o coverage.info
 
 .PHONY: cover_ead
 cover_ead:
 	$(CCOVER) $(EAD_CTEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'opt/*'
+	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'opt/*' -o coverage.info
 
 
 # optimized comparisons
@@ -74,8 +75,8 @@ compare_mlp_grad:
 
 
 .PHONY: cov_clean
-cov_clean: $(COVERAGE_INFO_FILE)
-	lcov --remove $(COVERAGE_INFO_FILE) $(COVERAGE_IGNORE) -o coverage.info
+cov_clean: coverage.info
+	lcov --remove coverage.info $(COVERAGE_IGNORE) -o coverage.info
 	lcov --list coverage.info
 
 .PHONY: cov_genhtml

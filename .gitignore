@@ -68,6 +68,8 @@ CMakeFiles
 **/lex.yy.c
 **/y.tab.*
 
+html/
+
 # whitelist
 !.gitignore
 !.travis.yml

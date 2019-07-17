@@ -45,5 +45,6 @@ cc_test(
         "//opt/parse:parse",
         "@gtest//:gtest",
     ],
+    linkstatic = True,
     data = ["//cfg:optimizations"],
 )

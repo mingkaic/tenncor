@@ -20,9 +20,14 @@ static size_t tid = 1234;
 
 struct MockTag final : public tag::iTag
 {
+	MockTag (void) = default;
+
+	MockTag (size_t tagid, std::string tagk) :
+		tid_(tagid), tag_key_(tagk) {}
+
 	size_t tag_id (void) const override
 	{
-		return tid;
+		return tid_;
 	}
 
 	void absorb (std::unique_ptr<tag::iTag>&& other) override
@@ -35,11 +40,15 @@ struct MockTag final : public tag::iTag
 		std::vector<std::string> tag_values_cpy = tag_values;
 		tag_values_cpy.push_back(fmts::to_string(add_count_));
 		return tag::TagRepsT({
-			{tag_key, tag_values_cpy},
+			{tag_key_, tag_values_cpy},
 		});
 	}
 
 	size_t add_count_ = 1;
+
+	size_t tid_ = tid;
+
+	std::string tag_key_ = tag_key;
 };
 
 
@@ -47,6 +56,7 @@ TEST(TAG, AddGet)
 {
 	tag::TagRegistry registry;
 	ade::iTensor* ptr;
+	ade::TensrefT ref;
 	{
 		ade::TensptrT tens = std::make_shared<MockTensor>();
 		registry.add_tag(tens, std::make_unique<MockTag>());
@@ -67,6 +77,7 @@ TEST(TAG, AddGet)
 		EXPECT_ARREQ(tag_values, reps[tag_key]);
 
 		ptr = tens.get();
+		ref = tens;
 	}
 	EXPECT_EQ(1, registry.registry_.size());
 	tag::TagRepsT reps = registry.get_tags(ptr);
@@ -74,6 +85,9 @@ TEST(TAG, AddGet)
 
 	auto it = registry.registry_.find(tag::TensKey(ptr));
 	EXPECT_TRUE(it->first.expired());
+
+	EXPECT_FATAL(registry.add_tag(ref, std::make_unique<MockTag>()),
+		"cannot tag with expired tensor ref");
 }
 
 
@@ -122,6 +136,21 @@ TEST(TAG, AddMove)
 			ASSERT_HAS(reps, tag_key);
 			expected_tag_values[expected_tag_values.size() - 1] = "2";
 			EXPECT_ARREQ(tag_values, reps[tag_key]);
+
+			std::string second_key = tag_key + "2";
+			registry.add_tag(tens, std::make_unique<MockTag>(tid + 1, second_key));
+			registry.move_tags(tens2, tens.get());
+			EXPECT_HASNOT(registry.registry_, tag::TensKey(tens.get()));
+			ASSERT_HAS(registry.registry_, tag::TensKey(tens2.get()));
+			reps = registry.get_tags(tens2.get());
+
+			ASSERT_HAS(reps, tag_key);
+			expected_tag_values[expected_tag_values.size() - 1] = "2";
+			EXPECT_ARREQ(tag_values, reps[tag_key]);
+
+			ASSERT_HAS(reps, second_key);
+			expected_tag_values[expected_tag_values.size() - 1] = "1";
+			EXPECT_ARREQ(tag_values, reps[second_key]);
 
 			ptr2 = tens2.get();
 		}
