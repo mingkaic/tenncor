@@ -12,7 +12,7 @@ PBM_TEST := //pbm:test
 
 OPT_TEST := //opt/...
 
-EAD_CTEST := //ead:ctest
+EAD_CTEST := //ead/ctest_api //ead/ctest_advance
 
 CC := gcc
 

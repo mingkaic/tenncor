@@ -108,8 +108,20 @@ pybind_library(
 ######### TEST #########
 
 cc_test(
-    name = "ctest",
-    srcs = ["//ead:ctest_srcs"],
+    name = "ctest_api",
+    srcs = ["test/main.cpp", "test/test_api.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//ead:ead",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+)
+
+cc_test(
+    name = "ctest_advance",
+    srcs = ["test/main.cpp", "test/test_equation.cpp"],
     copts = ["-std=c++17"],
     deps = [
         "//ead:ead",

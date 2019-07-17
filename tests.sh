@@ -24,8 +24,10 @@ bazel test --run_under='valgrind --leak-check=full' //opt:test
 
 bazel test --run_under='valgrind --leak-check=full' //gen:ptest
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ead:ctest
-bazel test --run_under='valgrind --leak-check=full' //ead:ctest
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ead:ctest_api
+bazel test --run_under='valgrind --leak-check=full' //ead:ctest_api
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ead:ctest_advance
+bazel test --run_under='valgrind --leak-check=full' //ead:ctest_advance
 bazel test --run_under='valgrind --leak-check=full' //ead:ptest
 
 # ===== Check Docs Directory =====
