@@ -824,7 +824,7 @@ TEST(API, Rsum)
 }
 
 
-TEST(API, DISABLED_Rprod)
+TEST(API, Rprod)
 {
 	std::vector<ade::DimT> slist = {2, 2, 3};
 	ade::Shape shape(slist);

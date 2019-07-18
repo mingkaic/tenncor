@@ -23,6 +23,9 @@ _header_template = '''
 //>>> hdr_namespaces
 {hdr_namespaces}
 
+//>>> template_namespaces
+{template_namespaces}
+
 #endif // _GENERATED_API_HPP
 '''
 
@@ -46,7 +49,9 @@ def _parse_args(arg, accept_def = True):
         defext = defext)
 
 def _nullcheck(args):
-    tens = list(filter(lambda arg: arg['dtype'] == 'ade::TensptrT', args))
+    tens = list(filter(lambda arg:
+        arg['dtype'] == 'ade::TensptrT' or
+        arg['dtype'] == 'ead::NodeptrT<T>', args))
     if len(tens) == 0:
         return 'false'
     varnames = [ten['name'] for ten in tens]
@@ -54,28 +59,68 @@ def _nullcheck(args):
 
 _decl_tmp = '''
 /// {comment}
-{outtype} {funcname} ({args});
+{template_prefix}{outtype} {funcname} ({args});
 '''
 def _decl_func(api):
     funcname = api['name']
     comment = api.get('description', funcname + ' ...')
+    template = api.get('template', '')
+
+    if template == '':
+        template_prefix = ''
+    else:
+        template_prefix = 'template <{}>\n'.format(template)
 
     outtype = 'ade::TensptrT'
     if isinstance(api['out'], dict) and 'type' in api['out']:
         outtype = api['out']['type']
 
     return _decl_tmp.format(
+        template_prefix=template_prefix,
         comment = comment,
         outtype = outtype,
         funcname = funcname,
         args = ', '.join([
-            _parse_args(arg)
+            _parse_args(arg, accept_def=True)
             for arg in api['args']
         ]))
 
+_template_defn_tmp = '''
+template <{template_args}>
+{outtype} {funcname} ({args})
+{{
+    if ({null_check})
+    {{
+        logs::fatal("cannot {funcname} with a null argument");
+    }}
+    {block}
+}}
+'''
+def _template_defn_func(api):
+    if 'template' not in api:
+        return None
+
+    outtype = 'ade::TensptrT'
+    if isinstance(api['out'], dict):
+        if 'type' in api['out']:
+            outtype = api['out']['type']
+        outval = api['out']['val']
+    else:
+        outval = api['out']
+
+    return _template_defn_tmp.format(
+        template_args = api['template'],
+        outtype = outtype,
+        funcname = api['name'],
+        args = ', '.join([
+            _parse_args(arg, accept_def=False)
+            for arg in api['args']
+        ]),
+        null_check = _nullcheck(api['args']),
+        block = outval)
+
 _defn_tmp = '''
-/// {comment}
-{template_prefix}{outtype} {funcname} ({args})
+{outtype} {funcname} ({args})
 {{
     if ({null_check})
     {{
@@ -85,17 +130,8 @@ _defn_tmp = '''
 }}
 '''
 def _defn_func(api):
-    funcname = api['name']
-    comment = api.get('description', funcname + ' ...')
-    template = api.get('template', '')
-
-    # treat as if header
-    if len(template) > 0:
-        template_prefix = 'template <{}>\n'.format(template)
-        args = [(arg, True) for arg in api['args']]
-    else:
-        template_prefix = ''
-        args = [(arg, False) for arg in api['args']]
+    if 'template' in api:
+        return None
 
     outtype = 'ade::TensptrT'
     if isinstance(api['out'], dict):
@@ -106,29 +142,29 @@ def _defn_func(api):
         outval = api['out']
 
     return _defn_tmp.format(
-        comment = comment,
-        template_prefix = template_prefix,
         outtype = outtype,
-        funcname = funcname,
+        funcname = api['name'],
         args = ', '.join([
-            _parse_args(*arg)
-            for arg in args
+            _parse_args(arg, accept_def=False)
+            for arg in api['args']
         ]),
         null_check = _nullcheck(api['args']),
         block = outval)
 
 def _handle_api_header(apis):
-    return '\n\n'.join([
-        _defn_func(api) if 'template' in api and len(api['template']) > 0
-        else _decl_func(api)
-        for api in apis
-    ])
+    return [_decl_func(api) for api in apis]
 
 def _handle_api_source(apis):
-    return '\n\n'.join([
-        _defn_func(api) for api in apis
-        if 'template' not in api or len(api['template']) == 0
-    ])
+    return [
+        defn for defn in [_defn_func(api)
+        for api in apis] if defn is not None
+    ]
+
+def _handle_api_templates(apis):
+    return [
+        defn for defn in [_template_defn_func(api)
+        for api in apis] if defn is not None
+    ]
 
 _plugin_id = "API"
 
@@ -152,23 +188,41 @@ class APIsPlugin:
 
         hdr_namespaces = []
         src_namespaces = []
+        template_namespaces = []
         for namespace in api['namespaces']:
             definitions = api['namespaces'][namespace]
-            hdr_defs = _handle_api_header(definitions)
-            src_defs = _handle_api_source(definitions)
-            for ns in namespace.split('::')[::-1]:
-                if ns != '_' and ns != '':
-                    hdr_defs = _ns_template.format(
-                        namespace=ns,
-                        funcs=hdr_defs)
-                    src_defs = _ns_template.format(
-                        namespace=ns,
-                        funcs=src_defs)
-            hdr_namespaces.append(hdr_defs)
-            src_namespaces.append(src_defs)
+            hdrs = _handle_api_header(definitions)
+            srcs = _handle_api_source(definitions)
+            templates = _handle_api_templates(definitions)
+
+            if len(hdrs) > 0:
+                hdr_defs = '\n'.join(hdrs)
+                for ns in namespace.split('::')[::-1]:
+                    if ns != '_' and ns != '':
+                        hdr_defs = _ns_template.format(
+                            namespace=ns, funcs=hdr_defs)
+                hdr_namespaces.append(hdr_defs)
+
+            if len(srcs) > 0:
+                src_defs = '\n'.join(srcs)
+                for ns in namespace.split('::')[::-1]:
+                    if ns != '_' and ns != '':
+                        src_defs = _ns_template.format(
+                            namespace=ns, funcs=src_defs)
+                src_namespaces.append(src_defs)
+
+            if len(templates) > 0:
+                template_defs = '\n'.join(templates)
+                for ns in namespace.split('::')[::-1]:
+                    if ns != '_' and ns != '':
+                        template_defs = _ns_template.format(
+                            namespace=ns, funcs=template_defs)
+                template_namespaces.append(template_defs)
 
         generated_files[api_header] = FileRep(
-            _header_template.format(hdr_namespaces=''.join(hdr_namespaces)),
+            _header_template.format(
+                hdr_namespaces=''.join(hdr_namespaces),
+                template_namespaces=''.join(template_namespaces)),
             user_includes=api.get('includes', []),
             internal_refs=[])
 
