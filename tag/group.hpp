@@ -226,9 +226,16 @@ struct Subgraph final : public ade::iTraveler
 
 using SgraphptrT = std::shared_ptr<Subgraph>;
 
-using SubgraphsT = std::unordered_map<ade::iTensor*,SgraphptrT>;
+using SubgraphsT = std::unordered_set<SgraphptrT>;
 
-void beautify_groups (SubgraphsT& out, const AdjacentGroups& adjgroups);
+using SubgraphAssocsT = std::unordered_map<ade::iTensor*,SubgraphsT>;
+
+void beautify_groups (SubgraphAssocsT& out, const AdjacentGroups& adjgroups);
+
+// look for associations where the tensor key is the
+// max height tensor of the mapped subgraph
+// dump filtered associations in out
+void filter_head (SubgraphAssocsT& out, const SubgraphAssocsT& assocs);
 
 }
 

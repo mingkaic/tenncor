@@ -82,7 +82,7 @@ void recursive_group_tag (ade::TensrefT tens, std::string group,
 
 boost::uuids::random_generator AdjacentGroups::uuid_gen_;
 
-void beautify_groups (SubgraphsT& out, const AdjacentGroups& adjgroups)
+void beautify_groups (SubgraphAssocsT& out, const AdjacentGroups& adjgroups)
 {
 	std::unordered_map<std::string,SgraphptrT> sgraphs;
 	for (auto& gpair : adjgroups.adjs_)
@@ -104,8 +104,44 @@ void beautify_groups (SubgraphsT& out, const AdjacentGroups& adjgroups)
 	{
 		for (ade::iTensor* content : sg.second->content_)
 		{
-			out.emplace(content, sg.second);
+			out[content].emplace(sg.second);
 		}
+	}
+}
+
+void filter_head (SubgraphAssocsT& out, const SubgraphAssocsT& assocs)
+{
+	ade::GraphStat stat;
+	for (auto& assoc_pair : assocs)
+	{
+		assoc_pair.first->accept(stat);
+	}
+	std::unordered_map<tag::SgraphptrT,ade::iTensor*> revhead;
+	for (auto& sgpair : assocs)
+	{
+		const SubgraphsT& subgraphs = sgpair.second;
+		for (const SgraphptrT& subgraph : subgraphs)
+		{
+			if (estd::has(revhead, subgraph))
+			{
+				ade::iTensor*& oldhead = revhead[subgraph];
+				if (stat.graphsize_[sgpair.first].upper_ >
+					stat.graphsize_[oldhead].upper_)
+				{
+					// add sgpair.first as head if it has greater maxheight
+					revhead[subgraph] = sgpair.first;
+				}
+			}
+			else
+			{
+				revhead.emplace(subgraph, sgpair.first);
+			}
+		}
+	}
+	out.clear();
+	for (auto& revpair : revhead)
+	{
+		out[revpair.second].emplace(revpair.first);
 	}
 }
 

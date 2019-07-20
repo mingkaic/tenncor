@@ -63,31 +63,9 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 		}
 
 		{
-			tag::SubgraphsT subgraphs;
+			tag::SubgraphAssocsT subgraphs;
 			tag::beautify_groups(subgraphs, adjgroups);
-			// filter subgraphs for "heads" to add to matcher.group_head_
-			std::unordered_map<tag::SgraphptrT,ade::iTensor*> revhead;
-			for (auto& sgpair : subgraphs)
-			{
-				if (estd::has(revhead, sgpair.second))
-				{
-					ade::iTensor*& oldhead = revhead[sgpair.second];
-					if (stat.graphsize_[sgpair.first].upper_ >
-						stat.graphsize_[oldhead].upper_)
-					{
-						// add sgpair.first as head if it has greater maxheight
-						revhead[sgpair.second] = sgpair.first;
-					}
-				}
-				else
-				{
-					revhead.emplace(sgpair.second, sgpair.first);
-				}
-			}
-			for (auto& revpair : revhead)
-			{
-				matcher.group_head_.emplace(revpair.second, revpair.first);
-			}
+			tag::filter_head(matcher.group_head_, subgraphs);
 		}
 
 		// there are no conversions for leaves

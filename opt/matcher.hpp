@@ -133,27 +133,33 @@ struct Matcher final : public ade::iTraveler
 			}
 
 			// do the same for functors that are the "head" of groups
-			tag::SgraphptrT sg;
-			if (estd::get(sg, group_head_, func))
+			tag::SubgraphsT sgs;
+			if (estd::get(sgs, group_head_, func))
 			{
-				auto bit = voters_.branches_.find(group_prefix + sg->group_);
-				if (voters_.branches_.end() != bit)
+				// look for candidates in each of the potential subgraphs
+				for (tag::SgraphptrT sg : sgs)
 				{
-					// todo: store sg->children_ as ade::ArgsT
-					CandArgsT args;
-					args.reserve(children.size());
-					for (auto& sgcpair : sg->children_)
+					auto bit = voters_.branches_.find(
+						group_prefix + sg->group_);
+					if (voters_.branches_.end() != bit)
 					{
-						auto ctens = sgcpair.second;
-						args.push_back(CandArg{
-							ctens,
-							candidates_[sgcpair.first],
-							ade::identity,
-							ade::CoordptrT(),
-						});
+						// todo: store sg->children_ as ade::ArgsT
+						CandArgsT args;
+						args.reserve(children.size());
+						for (auto& sgcpair : sg->children_)
+						{
+							auto ctens = sgcpair.second;
+							args.push_back(CandArg{
+								ctens,
+								candidates_[sgcpair.first],
+								ade::identity,
+								ade::CoordptrT(),
+							});
+						}
+						CandsT group_cands = bit->second->inspect(args);
+						out_cands.insert(
+							group_cands.begin(), group_cands.end());
 					}
-					CandsT group_cands = bit->second->inspect(args);
-					out_cands.insert(group_cands.begin(), group_cands.end());
 				}
 			}
 
@@ -168,7 +174,7 @@ struct Matcher final : public ade::iTraveler
 	std::unordered_map<ade::iTensor*,CandsT> candidates_;
 
 	// heads for functors
-	tag::SubgraphsT group_head_;
+	tag::SubgraphAssocsT group_head_;
 
 	// functor for returning constant representation of tensor
 	std::function<std::string(ade::iTensor*)> scalarize_;
