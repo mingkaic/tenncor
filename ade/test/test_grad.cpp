@@ -79,6 +79,40 @@ struct MockGradientBuilder final : public ade::iGradientBuilder
 };
 
 
+TEST(GRAD, OneZero)
+{
+	MockGradientBuilder builder;
+
+	std::vector<ade::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
+	ade::Shape shape(slist);
+
+	// standard v
+	ade::TensptrT leaf(new LabelledMockTensor("leaf", shape));
+	ade::TensptrT leaf1(new LabelledMockTensor("leaf2", shape));
+	ade::TensptrT leaf2(new LabelledMockTensor("leaf3", shape));
+	ade::TensptrT f(ade::Functor::get(ade::Opcode{"FUNC", 0}, {
+		ade::identity_map(leaf),
+		ade::identity_map(leaf1),
+	}));
+
+	auto wun = builder.derive(f, f);
+	auto wun2 = builder.derive(leaf, leaf);
+	auto wun3 = builder.derive(leaf2, leaf2);
+
+	EXPECT_STREQ("1", wun->to_string().c_str());
+	EXPECT_STREQ("1", wun2->to_string().c_str());
+	EXPECT_STREQ("1", wun3->to_string().c_str());
+
+	auto zro = builder.derive(leaf, leaf2);
+	auto zro2 = builder.derive(leaf2, leaf);
+	auto zro3 = builder.derive(f, leaf2);
+
+	EXPECT_STREQ("0", zro->to_string().c_str());
+	EXPECT_STREQ("0", zro2->to_string().c_str());
+	EXPECT_STREQ("0", zro3->to_string().c_str());
+}
+
+
 TEST(GRAD, BuilderStandardV)
 {
 	MockGradientBuilder builder;

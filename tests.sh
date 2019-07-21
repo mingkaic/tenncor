@@ -7,6 +7,9 @@ DOCS=$THIS_DIR/docs
 lcov --base-directory . --directory . --zerocounters;
 set -e
 
+echo "===== ENVIRONMENT =====";
+free -m;
+
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 

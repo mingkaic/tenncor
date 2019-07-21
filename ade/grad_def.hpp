@@ -83,7 +83,13 @@ struct iGradientBuilder
 		parents.sort(
 			[&](iFunctor* a, iFunctor* b)
 			{
-				return stat.graphsize_[a].upper_ > stat.graphsize_[b].upper_;
+				size_t aheight = stat.graphsize_[a].upper_;
+				size_t bheight = stat.graphsize_[b].upper_;
+				if (aheight == bheight) // make traversal more deterministic
+				{
+					return a->to_string() > b->to_string();
+				}
+				return aheight > bheight;
 			});
 
 		// map functor to its respective super composite derivative
