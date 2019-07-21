@@ -12,7 +12,7 @@ PBM_TEST := //pbm:test
 
 OPT_TEST := //opt/...
 
-EAD_CTEST := //ead/ctest
+EAD_CTEST := //ead:ctest
 
 CC := gcc
 
@@ -32,7 +32,8 @@ rocnnet_py_export: rocnnet_py_build
 
 .PHONY: coverage
 coverage:
-	$(CCOVER) //...
+	$(CCOVER) $(ADE_TEST) $(TAG_TEST) $(PBM_TEST) $(OPT_TEST) $(EAD_CTEST)
+	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
 .PHONY: cover_ade
 cover_ade:
@@ -84,19 +85,19 @@ cov_genhtml: coverage.info
 	genhtml -o html coverage.info
 
 .PHONY: lcov
-lcov: coverage cov_clean cov_genhtml
+lcov: coverage cov_clean
 
 .PHONY: lcov_ade
-lcov_ade: cover_ade cov_clean cov_genhtml
+lcov_ade: cover_ade cov_clean
 
 .PHONY: lcov_tag
-lcov_tag: cover_tag cov_clean cov_genhtml
+lcov_tag: cover_tag cov_clean
 
 .PHONY: lcov_pbm
-lcov_pbm: cover_pbm cov_clean cov_genhtml
+lcov_pbm: cover_pbm cov_clean
 
 .PHONY: lcov_opt
-lcov_opt: cover_opt cov_clean cov_genhtml
+lcov_opt: cover_opt cov_clean
 
 .PHONY: lcov_ead
-lcov_ead: cover_ead cov_clean cov_genhtml
+lcov_ead: cover_ead cov_clean

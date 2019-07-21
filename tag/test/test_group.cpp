@@ -32,18 +32,16 @@ TEST(GROUP, SingleTagAdjacency)
 
         registry.group_tag(f, "group1");
 
-        tag::AdjacentGroups adjer(registry);
-        tens->accept(adjer);
-        tens2->accept(adjer);
-        f->accept(adjer);
+        tag::AdjMapT adjs;
+        tag::adjacencies(adjs, {tens, tens2, f}, registry);
 
-        ASSERT_HAS(adjer.adjs_, tens.get());
-        ASSERT_HAS(adjer.adjs_, tens2.get());
-        ASSERT_HAS(adjer.adjs_, f.get());
+        ASSERT_HAS(adjs, tens.get());
+        ASSERT_HAS(adjs, tens2.get());
+        ASSERT_HAS(adjs, f.get());
 
-        auto& tgroups = adjer.adjs_[tens.get()];
-        auto& t2groups = adjer.adjs_[tens2.get()];
-        auto& fgroups = adjer.adjs_[f.get()];
+        auto& tgroups = adjs[tens.get()];
+        auto& t2groups = adjs[tens2.get()];
+        auto& fgroups = adjs[f.get()];
 
         // check groups are registered
         EXPECT_EQ(3, tgroups.size());
@@ -85,6 +83,10 @@ TEST(GROUP, RecursiveTagAdjacency)
             ade::identity_map(tens),
     		ade::identity_map(tens2),
         }));
+        ade::TensptrT f2(ade::Functor::get(ade::Opcode{"MOCK", 2}, {
+            ade::identity_map(tens),
+    		ade::identity_map(tens2),
+        }));
 
         tag::recursive_group_tag(tens, "group2",
             std::unordered_set<ade::iTensor*>{},
@@ -104,24 +106,27 @@ TEST(GROUP, RecursiveTagAdjacency)
         tag::recursive_group_tag(f, "group4",
             std::unordered_set<ade::iTensor*>{tens.get(), tens2.get()},
             registry);
+        tag::recursive_group_tag(f2, "group1",
+            std::unordered_set<ade::iTensor*>{},
+            registry);
 
-        tag::AdjacentGroups adjer(registry);
-        tens->accept(adjer);
-        tens2->accept(adjer);
-        f->accept(adjer);
+        tag::AdjMapT adjs;
+        tag::adjacencies(adjs, {tens, tens2, f, f2}, registry);
 
-        ASSERT_HAS(adjer.adjs_, tens.get());
-        ASSERT_HAS(adjer.adjs_, tens2.get());
-        ASSERT_HAS(adjer.adjs_, f.get());
+        ASSERT_HAS(adjs, tens.get());
+        ASSERT_HAS(adjs, tens2.get());
+        ASSERT_HAS(adjs, f.get());
 
-        auto& tgroups = adjer.adjs_[tens.get()];
-        auto& t2groups = adjer.adjs_[tens2.get()];
-        auto& fgroups = adjer.adjs_[f.get()];
+        auto& tgroups = adjs[tens.get()];
+        auto& t2groups = adjs[tens2.get()];
+        auto& fgroups = adjs[f.get()];
+        auto& f2groups = adjs[f2.get()];
 
         // check groups are registered
         EXPECT_EQ(3, tgroups.size());
         EXPECT_EQ(3, t2groups.size());
         EXPECT_EQ(3, fgroups.size());
+        EXPECT_EQ(1, f2groups.size());
 
         ASSERT_HAS(tgroups, "group7");
         ASSERT_HAS(tgroups, "group2");
@@ -135,9 +140,18 @@ TEST(GROUP, RecursiveTagAdjacency)
         ASSERT_HAS(fgroups, "group3");
         ASSERT_HAS(fgroups, "group4");
 
+        ASSERT_HAS(f2groups, "group1");
+
         // check for adjacency
         EXPECT_EQ(tgroups["group1"], t2groups["group1"]);
-        EXPECT_EQ(tgroups["group1"], fgroups["group1"]);
+        ASSERT_EQ(1, fgroups["group1"].size());
+        ASSERT_EQ(1, f2groups["group1"].size());
+        std::string fid = *fgroups["group1"].begin();
+        std::string f2id = *f2groups["group1"].begin();
+        EXPECT_NE(fid, f2id);
+        EXPECT_EQ(2, tgroups["group1"].size());
+        EXPECT_HAS(tgroups["group1"], fid);
+        EXPECT_HAS(tgroups["group1"], f2id);
 
         EXPECT_EQ(fgroups["group3"], t2groups["group3"]);
 
@@ -166,9 +180,8 @@ TEST(GROUP, Subgraph)
     		ade::identity_map(tens2),
         }));
 
-        tag::AdjacentGroups adjer(registry);
-        adjer.visited_ = {f.get(), tens.get(), tens2.get()};
-        adjer.adjs_ = std::unordered_map<ade::iTensor*,tag::AGroupsT>{
+        tag::AdjMapT adjs =
+        {
             std::pair<ade::iTensor*,tag::AGroupsT>{f.get(),
             tag::AGroupsT{
                 {"group1", {"lytening"}},
@@ -190,7 +203,7 @@ TEST(GROUP, Subgraph)
         };
 
         tag::SubgraphAssocsT assocs;
-        tag::beautify_groups(assocs, adjer);
+        tag::beautify_groups(assocs, adjs);
         tag::filter_head(assocs, assocs);
 
         EXPECT_EQ(3, assocs.size());

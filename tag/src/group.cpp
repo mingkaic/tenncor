@@ -80,12 +80,84 @@ void recursive_group_tag (ade::TensrefT tens, std::string group,
 	tensor->accept(trav);
 }
 
-boost::uuids::random_generator AdjacentGroups::uuid_gen_;
+void adjacencies (AdjMapT& out, ade::TensT roots,
+	GroupRegistry& registry)
+{
+	ade::HeightMatrix mat(roots);
 
-void beautify_groups (SubgraphAssocsT& out, const AdjacentGroups& adjgroups)
+	boost::uuids::random_generator uuid_gen;
+	for (auto it = mat.funcs_.rbegin(), et = mat.funcs_.rend();
+		it != et; ++it)
+	{
+		auto& funcs = *it;
+		for (ade::iFunctor* func : funcs)
+		{
+			TagRepsT tags = registry.tag_reg_.get_tags(func);
+			std::vector<std::string> groups;
+			if (estd::get(groups, tags, groups_key))
+			{
+				auto& children = func->get_children();
+				std::unordered_set<ade::iTensor*> uchildren;
+				std::transform(children.begin(), children.end(),
+					std::inserter(uchildren, uchildren.end()),
+					[](const ade::FuncArg& arg)
+					{
+						return arg.get_tensor().get();
+					});
+
+				auto& mygroups = out[func];
+				for (std::string group : groups)
+				{
+					// set or inherit from parent, the unique gid of func
+					std::unordered_set<std::string> gids;
+					// try to inherit unique gid
+					if (false == estd::get(gids, mygroups, group))
+					{
+						gids = {boost::uuids::to_string(uuid_gen())};
+						mygroups.emplace(group, gids);
+					}
+
+					auto& same_group = registry.groups_[group];
+					for (ade::iTensor* child : uchildren)
+					{
+						// propagate unique gid set to child of same group
+						auto it = same_group.find(TensKey(child));
+						if (same_group.end() != it && false == it->expired())
+						{
+							out[child][group].insert(gids.begin(), gids.end());
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for (ade::iLeaf* leaf : mat.leaves_)
+	{
+		auto tags = registry.tag_reg_.get_tags(leaf);
+		std::vector<std::string> groups;
+		if (estd::get(groups, tags, groups_key))
+		{
+			auto& mygroups = out[leaf];
+			for (std::string group : groups)
+			{
+				// set unique gids if there are no inherited groups
+				if (false == estd::has(mygroups, group))
+				{
+					mygroups.emplace(group,
+						std::unordered_set<std::string>{
+							boost::uuids::to_string(uuid_gen()),
+						});
+				}
+			}
+		}
+	}
+}
+
+void beautify_groups (SubgraphAssocsT& out, const AdjMapT& adjs)
 {
 	std::unordered_map<std::string,SgraphptrT> sgraphs;
-	for (auto& gpair : adjgroups.adjs_)
+	for (auto& gpair : adjs)
 	{
 		ade::iTensor* tens = gpair.first;
 		for (auto& idpair : gpair.second)

@@ -48,6 +48,6 @@ def _impl(repository_ctx):
 
 numpy_repository = repository_rule(
     _impl,
-    attrs = {"python_version": attr.string(default = "2")},
+    attrs = {"python_version": attr.string(default = "3")},
     local = True,
 )

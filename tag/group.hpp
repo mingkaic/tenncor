@@ -81,106 +81,10 @@ void recursive_group_tag (ade::TensrefT tens, std::string group,
 
 using AGroupsT = std::map<std::string,std::unordered_set<std::string>>;
 
-struct AdjacentGroups final : public ade::iTraveler
-{
-	static boost::uuids::random_generator uuid_gen_;
+using AdjMapT = std::unordered_map<ade::iTensor*,AGroupsT>;
 
-	AdjacentGroups (GroupRegistry& registry = get_group_reg()) :
-		registry_(registry) {}
-
-	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
-	{
-		if (false == estd::has(visited_, leaf))
-		{
-			visited_.emplace(leaf);
-			auto tags = registry_.tag_reg_.get_tags(leaf);
-			std::vector<std::string> groups;
-			if (estd::get(groups, tags, groups_key))
-			{
-				auto& mygroups = adjs_[leaf];
-				for (std::string group : groups)
-				{
-					// set unique gids if there are no inherited groups
-					if (false == estd::has(mygroups, group))
-					{
-						mygroups.emplace(group,
-							std::unordered_set<std::string>{
-								boost::uuids::to_string(uuid_gen_()),
-							});
-					}
-				}
-			}
-		}
-	}
-
-	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
-	{
-		if (false == estd::has(visited_, func))
-		{
-			visited_.emplace(func);
-			auto& children = func->get_children();
-			std::unordered_set<ade::iTensor*> uchildren;
-			std::transform(children.begin(), children.end(),
-				std::inserter(uchildren, uchildren.end()),
-				[](const ade::FuncArg& arg)
-				{
-					return arg.get_tensor().get();
-				});
-			// overwrite children adjacency information, and rewrite.
-			// there is no guarantee caller will visit nodes in the right order (top-down),
-			// so accept the visitation scan of the tensor with the greatest height.
-			// assert that if code reaches this line, func has not been visited before
-			// and is therefore the tensor with greatest height
-			for (ade::iTensor* child : uchildren)
-			{
-				adjs_.erase(child);
-				visited_.erase(child);
-			}
-
-			TagRepsT tags = registry_.tag_reg_.get_tags(func);
-			std::vector<std::string> groups;
-			if (estd::get(groups, tags, groups_key))
-			{
-				auto& mygroups = adjs_[func];
-				for (std::string group : groups)
-				{
-					// set or inherit from parent, the unique gid of func
-					std::unordered_set<std::string> gids;
-					// try to inherit unique gid
-					if (false == estd::get(gids, mygroups, group))
-					{
-						gids = {boost::uuids::to_string(uuid_gen_())};
-						mygroups.emplace(group, gids);
-					}
-
-					auto& same_group = registry_.groups_[group];
-					for (ade::iTensor* child : uchildren)
-					{
-						// propagate unique gid set to child of same group
-						auto it = same_group.find(TensKey(child));
-						if (same_group.end() != it && false == it->expired())
-						{
-							adjs_[child][group].insert(gids.begin(), gids.end());
-						}
-					}
-				}
-			}
-			// process children adjacency
-			for (ade::iTensor* child : uchildren)
-			{
-				child->accept(*this);
-			}
-		}
-	}
-
-	std::unordered_set<ade::iTensor*> visited_;
-
-	std::unordered_map<ade::iTensor*,AGroupsT> adjs_;
-
-	GroupRegistry& registry_;
-};
+void adjacencies (AdjMapT& out, ade::TensT roots,
+	GroupRegistry& registry = get_group_reg());
 
 struct Subgraph final : public ade::iTraveler
 {
@@ -230,7 +134,7 @@ using SubgraphsT = std::unordered_set<SgraphptrT>;
 
 using SubgraphAssocsT = std::unordered_map<ade::iTensor*,SubgraphsT>;
 
-void beautify_groups (SubgraphAssocsT& out, const AdjacentGroups& adjgroups);
+void beautify_groups (SubgraphAssocsT& out, const AdjMapT& adjs);
 
 // look for associations where the tensor key is the
 // max height tensor of the mapped subgraph

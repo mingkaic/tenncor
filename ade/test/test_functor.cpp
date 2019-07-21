@@ -11,10 +11,7 @@
 #include "ade/functor.hpp"
 
 
-struct FUNCTOR : public ::testing::Test {};
-
-
-TEST_F(FUNCTOR, Shapes)
+TEST(FUNCTOR, Shapes)
 {
 	std::vector<ade::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
 	std::vector<ade::DimT> bad = {94, 78, 70, 82, 62, 22, 38};
@@ -46,7 +43,7 @@ TEST_F(FUNCTOR, Shapes)
 }
 
 
-TEST_F(FUNCTOR, Opcode)
+TEST(FUNCTOR, Opcode)
 {
 	std::string mockname = "asd123101ksq";
 	size_t mockcode = 3247;
@@ -64,7 +61,7 @@ TEST_F(FUNCTOR, Opcode)
 }
 
 
-TEST_F(FUNCTOR, Children)
+TEST(FUNCTOR, Children)
 {
 	ade::TensptrT leaf(new MockTensor());
 	ade::TensptrT leaf1(new MockTensor());
@@ -88,7 +85,7 @@ TEST_F(FUNCTOR, Children)
 }
 
 
-TEST_F(FUNCTOR, ToString)
+TEST(FUNCTOR, ToString)
 {
 	ade::TensptrT leaf(new MockTensor());
 	ade::TensptrT leaf1(new MockTensor());

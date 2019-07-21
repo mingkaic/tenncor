@@ -3,6 +3,7 @@
 import io
 import logging
 import unittest
+import re
 
 from gen.generate import generate
 from gen.file_rep import FileRep
@@ -64,9 +65,16 @@ class ClientTest(unittest.TestCase):
 
         with self.assertLogs(level=logging.WARNING) as cm:
             generate({'abc': 123}, plugins = [FaultyPlugin()])
-            self.assertEqual(cm.output, ['WARNING:root:generated representation '+\
-                '{\'a\': 1, \'3\': \'c\', \'@\': 2} '+\
-                'is not a FileRep:skipping file'])
+            r = re.compile(
+                'WARNING:root:generated representation \{(.*)\} '+\
+                'is not a FileRep:skipping file')
+            z = r.match(cm.output[0])
+            self.assertTrue(z)
+            elems = z.groups()[0].split(', ')
+            expect_elems = ["'a': 1", "'3': 'c'", "'@': 2"]
+            elems.sort()
+            expect_elems.sort()
+            self.assertEqual(expect_elems, elems)
 
     def test_generate_plugin(self):
         @PluginBase.register

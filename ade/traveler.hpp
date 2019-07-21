@@ -33,6 +33,38 @@ struct NumRange final
 	T upper_;
 };
 
+struct OnceTraveler : public iTraveler
+{
+	virtual ~OnceTraveler (void) = default;
+
+	/// Implementation of iTraveler
+	void visit (iLeaf* leaf) override
+	{
+		if (false == estd::has(visited_, leaf))
+		{
+			visited_.emplace(leaf);
+			visit_leaf(leaf);
+		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor* func) override
+	{
+		if (false == estd::has(visited_, func))
+		{
+			visited_.emplace(func);
+			visit_func(func);
+		}
+	}
+
+protected:
+	virtual void visit_leaf (iLeaf* leaf) = 0;
+
+	virtual void visit_func (iFunctor* func) = 0;
+
+	std::unordered_set<iTensor*> visited_;
+};
+
 /// Traveler that maps each tensor to its subtree's maximum depth
 struct GraphStat final : public iTraveler
 {
@@ -139,18 +171,18 @@ struct PathFinder final : public iTraveler
 };
 
 /// Traveler that for each child tracks the relationship to all parents
-struct ParentFinder final : public ade::iTraveler
+struct ParentFinder final : public iTraveler
 {
-	using ParentMapT = std::unordered_map<ade::iTensor*,std::vector<size_t>>;
+	using ParentMapT = std::unordered_map<iTensor*,std::vector<size_t>>;
 
 	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
+	void visit (iLeaf* leaf) override
 	{
 		parents_.emplace(leaf, ParentMapT());
 	}
 
 	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
+	void visit (iFunctor* func) override
 	{
 		if (false == estd::has(parents_, func))
 		{
@@ -167,7 +199,7 @@ struct ParentFinder final : public ade::iTraveler
 	}
 
 	/// Tracks child to parents relationship
-	std::unordered_map<ade::iTensor*,ParentMapT> parents_;
+	std::unordered_map<iTensor*,ParentMapT> parents_;
 };
 
 /// Map between tensor and its corresponding smart pointer
@@ -176,6 +208,49 @@ using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
 /// Travelers will lose smart pointer references,
 /// This utility function will grab reference maps of root's subtree
 OwnerMapT track_owners (TensT roots);
+
+struct HeightMatrix
+{
+	HeightMatrix (const ade::TensT& roots)
+	{
+		ade::GraphStat stat;
+		for (ade::TensptrT root : roots)
+		{
+			root->accept(stat);
+		}
+
+		std::vector<size_t> root_heights;
+		root_heights.reserve(roots.size());
+		std::transform(roots.begin(), roots.end(),
+			std::back_inserter(root_heights),
+			[&stat](const ade::TensptrT& root)
+			{
+				return stat.graphsize_[root.get()].upper_;
+			});
+		// max of the maxheight of roots should be the maxheight of the whole graph
+		size_t maxheight = *std::max_element(
+			root_heights.begin(), root_heights.end());
+		funcs_ = std::vector<std::unordered_set<ade::iFunctor*>>(maxheight);
+
+		for (auto& gpair : stat.graphsize_)
+		{
+			auto tens = gpair.first;
+			size_t height = gpair.second.upper_;
+			if (0 == height)
+			{
+				leaves_.emplace(static_cast<ade::iLeaf*>(tens));
+			}
+			else
+			{
+				funcs_[height - 1].emplace(static_cast<ade::iFunctor*>(tens));
+			}
+		}
+	}
+
+	std::unordered_set<ade::iLeaf*> leaves_;
+
+	std::vector<std::unordered_set<ade::iFunctor*>> funcs_;
+};
 
 }
 

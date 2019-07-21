@@ -51,20 +51,21 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 			};
 		ade::GraphStat stat;
 		ade::ParentFinder pfinder;
-		tag::AdjacentGroups adjgroups;
 		std::unordered_map<ade::iTensor*,std::vector<size_t>> rindices;
 		for (size_t i = 0, n = roots.size(); i < n; ++i)
 		{
 			ade::TensptrT& root = roots[i];
 			root->accept(stat);
 			root->accept(pfinder);
-			root->accept(adjgroups);
 			rindices[root.get()].push_back(i);
 		}
 
 		{
+			tag::AdjMapT adjs;
+			tag::adjacencies(adjs, roots);
+
 			tag::SubgraphAssocsT subgraphs;
-			tag::beautify_groups(subgraphs, adjgroups);
+			tag::beautify_groups(subgraphs, adjs);
 			tag::filter_head(matcher.group_head_, subgraphs);
 		}
 

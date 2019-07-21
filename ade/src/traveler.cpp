@@ -5,31 +5,25 @@
 namespace ade
 {
 
-struct OwnerTracker final : public iTraveler
+struct OwnerTracker final : public OnceTraveler
 {
-	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override {}
+	OwnerMapT owners_;
 
-	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
+private:
+	/// Implementation of OnceTraveler
+	void visit_leaf (iLeaf* leaf) override {}
+
+	/// Implementation of OnceTraveler
+	void visit_func (iFunctor* func) override
 	{
-		if (false == estd::has(visited_, func))
+		auto& children = func->get_children();
+		for (auto& child : children)
 		{
-			auto& children = func->get_children();
-			for (auto& child : children)
-			{
-				TensptrT tens = child.get_tensor();
-				tens->accept(*this);
-				owners_.emplace(tens.get(), tens);
-			}
-			visited_.emplace(func);
+			TensptrT tens = child.get_tensor();
+			tens->accept(*this);
+			owners_.emplace(tens.get(), tens);
 		}
 	}
-
-	/// Map of parent nodes in path
-	std::unordered_set<iFunctor*> visited_;
-
-	OwnerMapT owners_;
 };
 
 OwnerMapT track_owners (TensT roots)

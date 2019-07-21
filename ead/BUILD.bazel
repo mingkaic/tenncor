@@ -109,7 +109,7 @@ pybind_library(
 
 cc_test(
     name = "ctest",
-    srcs = ["test/main.cpp", "test/test_api.cpp"],
+    srcs = ["//ead:ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//ead:ead",

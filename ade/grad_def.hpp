@@ -6,6 +6,8 @@
 /// Define gradient builder interface for building derivatives
 ///
 
+#include <list>
+
 #include "ade/traveler.hpp"
 
 #ifndef ADE_GRAD_DEF_HPP
