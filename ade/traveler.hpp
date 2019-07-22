@@ -7,6 +7,7 @@
 ///
 
 #include "estd/estd.hpp"
+#include "estd/range.hpp"
 
 #include "ade/ileaf.hpp"
 #include "ade/ifunctor.hpp"
@@ -16,22 +17,6 @@
 
 namespace ade
 {
-
-// todo: move to cppkg
-template <typename T, typename = typename std::enable_if<
-	std::is_arithmetic<T>::value, T>::type>
-struct NumRange final
-{
-	NumRange (void) : lower_(0), upper_(0) {}
-
-	NumRange (T bound1, T bound2) :
-		lower_(std::min(bound1, bound2)),
-		upper_(std::max(bound1, bound2)) {}
-
-	T lower_;
-
-	T upper_;
-};
 
 struct OnceTraveler : public iTraveler
 {
@@ -71,7 +56,7 @@ struct GraphStat final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iLeaf* leaf) override
 	{
-		graphsize_.emplace(leaf, NumRange<size_t>());
+		graphsize_.emplace(leaf, estd::NumRange<size_t>());
 	}
 
 	/// Implementation of iTraveler
@@ -89,7 +74,7 @@ struct GraphStat final : public iTraveler
 			{
 				iTensor* tens = child.get_tensor().get();
 				tens->accept(*this);
-				NumRange<size_t> range = estd::must_getf(graphsize_, tens,
+				estd::NumRange<size_t> range = estd::must_getf(graphsize_, tens,
 					"GraphStat failed to visit child `%s` of functor `%s`",
 						tens->to_string().c_str(), func->to_string().c_str());
 				max_heights.push_back(range.upper_);
@@ -109,12 +94,12 @@ struct GraphStat final : public iTraveler
 			{
 				min_height += *min_it;
 			}
-			graphsize_.emplace(func, NumRange<size_t>(min_height, max_height));
+			graphsize_.emplace(func, estd::NumRange<size_t>(min_height, max_height));
 		}
 	}
 
 	// Maximum depth of the subtree of mapped tensors
-	std::unordered_map<iTensor*,NumRange<size_t>> graphsize_;
+	std::unordered_map<iTensor*,estd::NumRange<size_t>> graphsize_;
 };
 
 /// Traveler that paints paths to a target tensor
