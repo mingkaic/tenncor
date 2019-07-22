@@ -1,6 +1,4 @@
-#include "ead/constant.hpp"
-#include "ead/variable.hpp"
-#include "ead/operator.hpp"
+#include "ead/generated/api.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
 
@@ -12,12 +10,12 @@ namespace modl
 
 struct Conv final : public iMarshalSet
 {
-	Conv (std::pair<uint8_t,uint8_t> filter_hw, uint8_t in_ncol,
-		uint8_t out_ncol, std::string label) : iMarshalSet(label)
+	Conv (std::pair<ade::DimT,ade::DimT> filter_hw, ade::DimT in_ncol,
+		uinade::DimT out_ncol, std::string label) : iMarshalSet(label)
 	{
-		ade::Shape shape({filter_hw.first,
-			filter_hw.second, in_ncol, out_ncol});
-		size_t ndata = shape.n_elems();
+		ade::Shape kernelshape({out_ncol, in_ncol,
+			filter_hw.second, filter_hw.first});
+		size_t ndata = kernelshape.n_elems();
 
 		size_t input_size = filter_hw.first * filter_hw.second * in_ncol;
 		PybindT bound = 1.0 / std::sqrt(input_size);
@@ -30,7 +28,7 @@ struct Conv final : public iMarshalSet
 		std::generate(data.begin(), data.end(), gen);
 
 		ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
-			data.data(), shape, "weight");
+			data.data(), kernelshape, "weight");
 		ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
 			0.0, ade::Shape({out_ncol}), "bias");
 		weight_ = std::make_shared<MarshalVar>(weight);
@@ -58,8 +56,8 @@ struct Conv final : public iMarshalSet
 
 	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
 	{
-		return age::add(age::convolution(input,
-			ead::convert_to_node<PybindT>(weight_->var_)),
+		return age::conv2d(input,
+			ead::convert_to_node<PybindT>(weight_->var_),
 			ead::convert_to_node<PybindT>(bias_->var_));
 	}
 
@@ -78,6 +76,10 @@ struct Conv final : public iMarshalSet
 		return {weight_, bias_};
 	}
 
+	MarVarsptrT weight_;
+
+	MarVarsptrT bias_;
+
 private:
 	void copy_helper (const Conv& other)
 	{
@@ -89,10 +91,6 @@ private:
 	{
 		return new Conv(*this);
 	}
-
-	MarVarsptrT weight_;
-
-	MarVarsptrT bias_;
 };
 
 }

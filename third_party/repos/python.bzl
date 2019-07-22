@@ -1,7 +1,7 @@
 load("//third_party/drake_rules:execute.bzl", "execute_or_fail", "which")
 load("//third_party/drake_rules:os.bzl", "determine_os")
 
-_BUILD_CONTENT_FMT = """licenses(["notice"])  # Python-2.0
+_BUILD_CONTENT_FMT = """licenses(["notice"])  # Python-3.0
 
 headers = glob(
     ["include/*/*"],
@@ -44,10 +44,10 @@ PYTHON_SITE_PACKAGES_RELPATH = "{site_packages_relpath}"
 """
 
 _VERSION_SUPPORT_MATRIX = {
-    "ubuntu:16.04": ["2.7"],
-    "ubuntu:18.04": ["2.7"],
-    "macos:10.13": ["2.7"],
-    "macos:10.14": ["2.7"],
+    "ubuntu:16.04": ["3.6"],
+    "ubuntu:18.04": ["3.6"],
+    "macos:10.13": ["3.6"],
+    "macos:10.14": ["3.6", "3.7"],
 }
 
 def _repository_python_info(repository_ctx):
@@ -104,8 +104,8 @@ def _repository_python_info(repository_ctx):
     # Warn if we do not the correct platform support.
     if version not in versions_supported:
         print((
-            "\n\nWARNING: Python {} is not a supported / tested version for " +
-            "use with Drake.\n  Supported versions on {}: {}\n\n"
+            "\n\nWARNING: Python {} is not a supported / tested version.\n" +
+            "Supported versions on {}: {}\n\n"
         ).format(version, os_key, versions_supported))
 
     site_packages_relpath = "lib/python{}/site-packages".format(version)
@@ -189,6 +189,7 @@ def _impl(repository_ctx):
         executable = False,
     )
 
+# todo: consider bazel python rules once they stablize
 python_repository = repository_rule(
     _impl,
     environ = [

@@ -1,6 +1,10 @@
 licenses(["notice"])
 
 load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+load(
+    "@com_github_stackb_rules_proto//cpp:cpp_grpc_library.bzl",
+    "cpp_grpc_library"
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -17,24 +21,58 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "dbg",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    name = "stream_out",
+    hdrs = glob(["stream/*.hpp"]),
+    srcs = glob(["stream/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = ["//ade:ade"],
+)
+
+pybind_library(
+    name = "stream_dbg_py",
+    cc_srcs = ["//dbg:python/stream.cpp"],
+    cc_deps = ["//dbg:stream_out"],
+)
+
+py_library(
+    name = "stream_wrapper",
+    srcs = glob(["*.py"]),
+    deps = ["//dbg:stream_dbg_py"],
+)
+
+proto_library(
+    name = "tenncor_proto",
+    srcs = ["grpc/tenncor.proto"],
+)
+
+cpp_grpc_library(
+    name = "tenncor_cc_proto",
+    deps = ["//dbg:tenncor_proto"],
+    with_grpc = True,
+)
+
+cc_library(
+    name = "grpc_out",
+    hdrs = glob(["grpc/*.hpp"]),
+    srcs = glob(["grpc/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//ade:ade",
-        "@com_github_mingkaic_cppkg//diff:diff",
+        "//ead:ead",
+        "//dbg:tenncor_cc_proto",
+        "@boost//:uuid",
+        "@com_github_mingkaic_cppkg//job:job",
     ],
 )
 
 pybind_library(
-    name = "dbg_py",
-    cc_srcs = ["//dbg:python/dbg.cpp"],
-    cc_deps = ["//dbg:dbg"],
+    name = "grpc_dbg_py",
+    cc_srcs = ["//dbg:python/grpc.cpp"],
+    cc_deps = ["//dbg:grpc_out"],
+    py_deps = ["//ead:ead_py"],
 )
 
-py_library(
-    name = "dbg_wrapper",
-    srcs = glob(["*.py"]),
-    deps = ["//dbg:dbg_py"],
+cc_binary(
+    name = "mockserver",
+    srcs = ["mockserver/mockserver.cpp"],
+    deps = ["//dbg:tenncor_cc_proto"],
 )

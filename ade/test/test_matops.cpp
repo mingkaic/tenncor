@@ -4,22 +4,12 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/matops.hpp"
 
 
-struct MATOPS : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(MATOPS, ToString)
+TEST(MATOPS, ToString)
 {
 	std::string expected = "[[0\\1\\2\\3\\4\\5\\6\\7\\8]\\\n"
 		"[9\\10\\11\\12\\13\\14\\15\\16\\17]\\\n"
@@ -31,9 +21,9 @@ TEST_F(MATOPS, ToString)
 		"[63\\64\\65\\66\\67\\68\\69\\70\\71]\\\n"
 		"[72\\73\\74\\75\\76\\77\\78\\79\\80]]";
 	ade::MatrixT mat;
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			mat[i][j] = i * ade::mat_dim + j;
 		}
@@ -42,7 +32,7 @@ TEST_F(MATOPS, ToString)
 }
 
 
-TEST_F(MATOPS, Determinant)
+TEST(MATOPS, Determinant)
 {
 	ade::MatrixT indata = {
 		{0.6889268247, 0.5182375525, 0.8077819453, 0.6586822856, 0.1064583106, 0.5584794867, 0.7151236734, 0.6955541292, 0.5299556786},
@@ -74,7 +64,7 @@ TEST_F(MATOPS, Determinant)
 }
 
 
-TEST_F(MATOPS, Inverse)
+TEST(MATOPS, Inverse)
 {
 	ade::MatrixT out, in;
 	ade::MatrixT zout, zin;
@@ -112,9 +102,9 @@ TEST_F(MATOPS, Inverse)
 		0.2252390787, 0.3721492337, 0.2498504751, 0.3123788027, 0.5537316928, 0.5611137585, 0.2029485252, 0.8579680347, 0.0442760832,
 		0.3058592439, 0.9815336218, 0.3364270850, 0.1562163045, 0.5562589952, 0.3769814342, 0.4465301119, 0.6977257625, 0.7664397080
 	};
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			in[i][j] = indata[i * ade::mat_dim + j];
 			zin[i][j] = zdata[i * ade::mat_dim + j];
@@ -130,13 +120,13 @@ TEST_F(MATOPS, Inverse)
 	EXPECT_FATAL(ade::inverse(badout, badin), fatalmsg.c_str());
 
 	// expect matmul is identity
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			double val = 0;
 			double zval = 0;
-			for (uint8_t k = 0; k < ade::mat_dim; ++k)
+			for (ade::RankT k = 0; k < ade::mat_dim; ++k)
 			{
 				val += out[i][k] * in[k][j];
 				zval += zout[i][k] * zin[k][j];
@@ -156,7 +146,7 @@ TEST_F(MATOPS, Inverse)
 }
 
 
-TEST_F(MATOPS, Matmul)
+TEST(MATOPS, Matmul)
 {
 	ade::MatrixT expected, out, in, in2;
 	std::vector<double> indata = {
@@ -181,14 +171,14 @@ TEST_F(MATOPS, Matmul)
 		0.2479436504, 0.1266563150, 0.5884766852, 0.5278691634, 0.8695170450, 0.6803630612, 0.0420603430, 0.3344162464, 0.8860979790,
 		0.8208910642, 0.2098140918, 0.3228215729, 0.7025393155, 0.8154172074, 0.4992314192, 0.3955948624, 0.0212939634, 0.1960803287
 	};
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			in[i][j] = indata[i * ade::mat_dim + j];
 			in2[i][j] = indata2[i * ade::mat_dim + j];
 			expected[i][j] = 0;
-			for (uint8_t k = 0; k < ade::mat_dim; ++k)
+			for (ade::RankT k = 0; k < ade::mat_dim; ++k)
 			{
 				expected[i][j] += indata[i * ade::mat_dim + k] * indata2[k * ade::mat_dim + j];
 			}
@@ -197,9 +187,9 @@ TEST_F(MATOPS, Matmul)
 
 	ade::matmul(out, in, in2);
 
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			EXPECT_EQ(expected[i][j], out[i][j]);
 		}

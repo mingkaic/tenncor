@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['dataarg',['DataArg',['../structllo_1_1_data_arg.html',1,'llo']]]
+  ['branch',['Branch',['../struct_branch.html',1,'']]],
+  ['builderarg',['BuilderArg',['../structead_1_1_builder_arg.html',1,'ead']]]
 ];

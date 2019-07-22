@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['edge_5fcode',['EDGE_CODE',['../namespaceead.html#a9d20086c26874422108552b802239120',1,'ead']]]
+  ['cand_5ftype',['CAND_TYPE',['../namespaceopt.html#a6367085ef73bbc00b9eab1bfffda5c75',1,'opt']]]
 ];

@@ -1,5 +1,3 @@
-#include <fstream>
-
 #include "pybind11/pybind11.h"
 #include "pybind11/numpy.h"
 #include "pybind11/stl.h"
@@ -8,13 +6,13 @@
 
 #include "ead/generated/api.hpp"
 #include "ead/generated/pyapi.hpp"
-
 #include "ead/grader.hpp"
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 #include "ead/functor.hpp"
 #include "ead/session.hpp"
 #include "ead/random.hpp"
+#include "ead/parse.hpp"
 
 namespace py = pybind11;
 
@@ -123,7 +121,7 @@ PYBIND11_MODULE(ead, m)
 
 	// ==== node ====
 	py::object node = (py::object)
-		py::module::import("ead.age").attr("NodeptrT<PybindT>");
+		py::module::import("ead.tenncor").attr("NodeptrT<PybindT>");
 
 	((py::class_<ead::iNode<PybindT>,ead::NodeptrT<PybindT>>) node)
 		.def("__str__",
@@ -176,14 +174,31 @@ PYBIND11_MODULE(ead, m)
 		});
 
 	// ==== session ====
-	py::class_<ead::Session<PybindT>> session(m, "Session");
+	py::class_<ead::iSession> isess(m, "iSession");
+	py::class_<ead::Session> session(m, "Session", isess);
+
+	py::implicitly_convertible<ead::iSession,ead::Session>();
 	session
 		.def(py::init())
-		.def("track", &ead::Session<PybindT>::track, "Track node")
+		.def("track",
+		[](py::object self, ead::NodesT<PybindT> roots)
+		{
+			auto sess = self.cast<ead::Session*>();
+			ade::TensT troots;
+			troots.reserve(roots.size());
+			std::transform(roots.begin(), roots.end(),
+				std::back_inserter(troots),
+				[](ead::NodeptrT<PybindT>& node)
+				{
+					return node->get_tensor();
+				});
+			sess->track(troots);
+		},
+		"Track node")
 		.def("update",
 		[](py::object self, std::vector<ead::NodeptrT<PybindT>> nodes)
 		{
-			auto sess = self.cast<ead::Session<PybindT>*>();
+			auto sess = self.cast<ead::Session*>();
 			std::unordered_set<ade::iTensor*> updates;
 			for (ead::NodeptrT<PybindT>& node : nodes)
 			{
@@ -191,8 +206,35 @@ PYBIND11_MODULE(ead, m)
 			}
 			sess->update(updates);
 		},
-		"Return calculated data",
-		py::arg("nodes") = std::vector<ead::NodeptrT<PybindT>>{});
+		"Calculate every node in the graph given list of updated data nodes",
+		py::arg("nodes") = std::vector<ead::NodeptrT<PybindT>>{})
+		.def("update_target",
+		[](py::object self, std::vector<ead::NodeptrT<PybindT>> targeted,
+			std::vector<ead::NodeptrT<PybindT>> updated)
+		{
+			auto sess = self.cast<ead::Session*>();
+			std::unordered_set<ade::iTensor*> targets;
+			std::unordered_set<ade::iTensor*> updates;
+			for (ead::NodeptrT<PybindT>& node : targeted)
+			{
+				targets.emplace(node->get_tensor().get());
+			}
+			for (ead::NodeptrT<PybindT>& node : updated)
+			{
+				updates.emplace(node->get_tensor().get());
+			}
+			sess->update_target(targets, updates);
+		},
+		"Calculate node relevant to targets in the graph given list of updated data",
+		py::arg("targets"), py::arg("updated") = std::vector<ead::NodeptrT<PybindT>>{})
+		.def("optimize",
+		[](py::object self, std::string filename)
+		{
+			auto sess = self.cast<ead::Session*>();
+			opt::OptCtx rules = ead::parse_file<PybindT>("cfg/optimizations.rules");
+			sess->optimize(rules);
+		},
+		"Optimize using rules for specified filename");
 
 	// ==== constant ====
 	py::class_<ead::ConstantNode<PybindT>,std::shared_ptr<ead::ConstantNode<PybindT>>> constant(
@@ -218,7 +260,12 @@ PYBIND11_MODULE(ead, m)
 		"Assign numpy data array to variable");
 
 	// ==== inline functions ====
-	m.def("scalar_constant", &ead::make_constant_scalar<PybindT>,
+	m.def("scalar_constant",
+	[](PybindT scalar, std::vector<py::ssize_t> slist)
+	{
+		return ead::make_constant_scalar<PybindT>(scalar,
+			pyead::p2cshape(slist));
+	},
 	"Return scalar constant node");
 
 	m.def("constant",
@@ -229,9 +276,12 @@ PYBIND11_MODULE(ead, m)
 		return ead::make_constant(vec.data(), shape);
 	}, "Return constant node with data");
 
-	m.def("scalar_variable", &ead::make_variable_scalar<PybindT>,
+	m.def("scalar_variable", [](PybindT scalar, std::vector<py::ssize_t> slist, std::string label)
+	{
+		return ead::make_variable_scalar<PybindT>(scalar, pyead::p2cshape(slist), label);
+	},
 	"Return labelled variable containing numpy data array",
-	py::arg("scalar"), py::arg("shape"), py::arg("label") = "");
+	py::arg("scalar"), py::arg("slist"), py::arg("label") = "");
 
 	m.def("variable",
 	[](py::array data, std::string label)
@@ -242,7 +292,6 @@ PYBIND11_MODULE(ead, m)
 	},
 	"Return labelled variable containing numpy data array",
 	py::arg("data"), py::arg("label") = "");
-
 
 	m.def("derive", &ead::derive<PybindT>,
 	"Return derivative of first tensor with respect to second tensor (deprecated)");

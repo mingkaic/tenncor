@@ -20,15 +20,12 @@ namespace ead
 template <typename T>
 struct Variable final : public iLeaf<T>
 {
+	static Variable<T>* get (T* ptr, ade::Shape shape, std::string label = "");
+
 	static Variable<T>* get (ade::Shape shape, std::string label = "")
 	{
 		return Variable<T>::get(std::vector<T>(shape.n_elems(), 0),
 			shape, label);
-	}
-
-	static Variable<T>* get (T* ptr, ade::Shape shape, std::string label = "")
-	{
-		return new Variable<T>(ptr, shape, label);
 	}
 
 	static Variable<T>* get (T scalar, ade::Shape shape, std::string label = "")
@@ -49,7 +46,7 @@ struct Variable final : public iLeaf<T>
 			logs::fatalf("cannot create variable with data size %d "
 				"against shape %s", data.size(), shape.to_string().c_str());
 		}
-		return new Variable<T>(data.data(), shape, label);
+		return Variable<T>::get(data.data(), shape, label);
 	}
 
 	static Variable<T>* get (const Variable<T>& other)
@@ -96,7 +93,7 @@ struct Variable final : public iLeaf<T>
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return label_ + "(" + this->shape_.to_string() + ")";
+		return "variable:" + label_;
 	}
 
 	bool is_const (void) const override
@@ -139,7 +136,7 @@ struct VariableNode final : public iNode<T>
 		var_->assign(input, age::get_type<T>(), shape);
 	}
 
-	void assign (TensMapT<double>* tensmap)
+	void assign (TensMapT<T>* tensmap)
 	{
 		var_->assign(tensmap->data(), age::get_type<T>(), get_shape(*tensmap));
 	}
@@ -149,14 +146,23 @@ struct VariableNode final : public iNode<T>
 		return var_->label_;
 	}
 
-	void set_label (std::string label)
-	{
-		var_->label_ = label;
-	}
-
 private:
 	std::shared_ptr<Variable<T>> var_;
 };
+
+template <typename T>
+Variable<T>* Variable<T>::get (T* ptr, ade::Shape shape, std::string label)
+{
+	static bool registered = register_builder<Variable<T>,T>(
+		[](ade::TensptrT tens)
+		{
+			return std::make_shared<VariableNode<T>>(
+				std::static_pointer_cast<Variable<T>>(tens));
+		});
+	assert(registered);
+
+	return new Variable<T>(ptr, shape, label);
+}
 
 template <typename T>
 using VarptrT = std::shared_ptr<VariableNode<T>>;

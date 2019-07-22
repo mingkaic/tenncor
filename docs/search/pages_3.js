@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['llo_20_28low_20level_20operators_29',['LLO (Low Level Operators)',['../md_llo__r_e_a_d_m_e__l_l_o.html',1,'']]]
+  ['optimization_20rules_20explained_20in_20natural_20language',['Optimization Rules Explained in Natural Language',['../md_opt_rules.html',1,'']]]
 ];

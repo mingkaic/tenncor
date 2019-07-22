@@ -79,15 +79,16 @@ $(function() {
 <p>Leaf node containing data.  
  <a href="structead_1_1_variable.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="ead_2variable_8hpp_source.html">variable.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="variable_8hpp_source.html">variable.hpp</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for ead::Variable&lt; T &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="structead_1_1_variable__inherit__graph.png" border="0" usemap="#ead_1_1_variable_3_01_t_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="ead_1_1_variable_3_01_t_01_4_inherit__map" id="ead_1_1_variable_3_01_t_01_4_inherit__map">
-<area shape="rect" id="node2" href="structead_1_1i_leaf.html" title="ead::iLeaf\&lt; T \&gt;" alt="" coords="15,152,125,177"/>
-<area shape="rect" id="node3" href="structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="30,79,110,104"/>
-<area shape="rect" id="node4" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="23,5,117,31"/>
+<area shape="rect" id="node2" href="structead_1_1i_leaf.html" title="ead::iLeaf\&lt; T \&gt;" alt="" coords="53,152,164,177"/>
+<area shape="rect" id="node3" href="structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="68,79,148,104"/>
+<area shape="rect" id="node4" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="5,5,99,31"/>
+<area shape="rect" id="node5" href="structade_1_1i_data.html" title="Interface for unveiling data. " alt="" coords="123,5,205,31"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
@@ -95,10 +96,11 @@ Collaboration diagram for ead::Variable&lt; T &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="structead_1_1_variable__coll__graph.png" border="0" usemap="#ead_1_1_variable_3_01_t_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="ead_1_1_variable_3_01_t_01_4_coll__map" id="ead_1_1_variable_3_01_t_01_4_coll__map">
-<area shape="rect" id="node2" href="structead_1_1i_leaf.html" title="ead::iLeaf\&lt; T \&gt;" alt="" coords="52,167,162,192"/>
-<area shape="rect" id="node3" href="structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="12,80,92,105"/>
+<area shape="rect" id="node2" href="structead_1_1i_leaf.html" title="ead::iLeaf\&lt; T \&gt;" alt="" coords="108,167,218,192"/>
+<area shape="rect" id="node3" href="structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="68,80,148,105"/>
 <area shape="rect" id="node4" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="5,5,99,31"/>
-<area shape="rect" id="node5" href="structade_1_1_shape.html" title="ade::Shape" alt="" coords="117,80,206,105"/>
+<area shape="rect" id="node5" href="structade_1_1i_data.html" title="Interface for unveiling data. " alt="" coords="123,5,205,31"/>
+<area shape="rect" id="node6" href="structade_1_1_shape.html" title="ade::Shape" alt="" coords="173,80,262,105"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -127,17 +129,20 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ad9b29c9c19aaa524def3e11b25d939db inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of iTensor.  <a href="structead_1_1i_leaf.html#ad9b29c9c19aaa524def3e11b25d939db">More...</a><br /></td></tr>
 <tr class="separator:ad9b29c9c19aaa524def3e11b25d939db inherit pub_methods_structead_1_1i_leaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d71e11f67386639f4f13c810092b05a inherit pub_methods_structead_1_1i_leaf"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1i_leaf.html#a0d71e11f67386639f4f13c810092b05a">data</a> (void) override</td></tr>
-<tr class="memdesc:a0d71e11f67386639f4f13c810092b05a inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structead_1_1i_leaf.html">iLeaf</a>.  <a href="structead_1_1i_leaf.html#a0d71e11f67386639f4f13c810092b05a">More...</a><br /></td></tr>
+<tr class="memdesc:a0d71e11f67386639f4f13c810092b05a inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of iData.  <a href="structead_1_1i_leaf.html#a0d71e11f67386639f4f13c810092b05a">More...</a><br /></td></tr>
 <tr class="separator:a0d71e11f67386639f4f13c810092b05a inherit pub_methods_structead_1_1i_leaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a668fb373ad6399ddb7ccef7a7ea0aa51 inherit pub_methods_structead_1_1i_leaf"><td class="memItemLeft" align="right" valign="top">const void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1i_leaf.html#a668fb373ad6399ddb7ccef7a7ea0aa51">data</a> (void) const override</td></tr>
-<tr class="memdesc:a668fb373ad6399ddb7ccef7a7ea0aa51 inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structead_1_1i_leaf.html">iLeaf</a>.  <a href="structead_1_1i_leaf.html#a668fb373ad6399ddb7ccef7a7ea0aa51">More...</a><br /></td></tr>
+<tr class="memdesc:a668fb373ad6399ddb7ccef7a7ea0aa51 inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of iData.  <a href="structead_1_1i_leaf.html#a668fb373ad6399ddb7ccef7a7ea0aa51">More...</a><br /></td></tr>
 <tr class="separator:a668fb373ad6399ddb7ccef7a7ea0aa51 inherit pub_methods_structead_1_1i_leaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a048e25c90ae0d58c897c7ac76fd03567 inherit pub_methods_structead_1_1i_leaf"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1i_leaf.html#a048e25c90ae0d58c897c7ac76fd03567">type_code</a> (void) const override</td></tr>
-<tr class="memdesc:a048e25c90ae0d58c897c7ac76fd03567 inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structead_1_1i_leaf.html">iLeaf</a>.  <a href="structead_1_1i_leaf.html#a048e25c90ae0d58c897c7ac76fd03567">More...</a><br /></td></tr>
+<tr class="memdesc:a048e25c90ae0d58c897c7ac76fd03567 inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of iData.  <a href="structead_1_1i_leaf.html#a048e25c90ae0d58c897c7ac76fd03567">More...</a><br /></td></tr>
 <tr class="separator:a048e25c90ae0d58c897c7ac76fd03567 inherit pub_methods_structead_1_1i_leaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9d9141e868eea124eb602168dc08060 inherit pub_methods_structead_1_1i_leaf"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1i_leaf.html#ad9d9141e868eea124eb602168dc08060">nbytes</a> (void) const</td></tr>
-<tr class="memdesc:ad9d9141e868eea124eb602168dc08060 inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return number of bytes in data source.  <a href="structead_1_1i_leaf.html#ad9d9141e868eea124eb602168dc08060">More...</a><br /></td></tr>
-<tr class="separator:ad9d9141e868eea124eb602168dc08060 inherit pub_methods_structead_1_1i_leaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4978cc829bbb88c1da4620f02598f16 inherit pub_methods_structead_1_1i_leaf"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1i_leaf.html#af4978cc829bbb88c1da4620f02598f16">type_label</a> (void) const override</td></tr>
+<tr class="memdesc:af4978cc829bbb88c1da4620f02598f16 inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of iData.  <a href="structead_1_1i_leaf.html#af4978cc829bbb88c1da4620f02598f16">More...</a><br /></td></tr>
+<tr class="separator:af4978cc829bbb88c1da4620f02598f16 inherit pub_methods_structead_1_1i_leaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d00313b1cf0d3005a7532da0e0d828b inherit pub_methods_structead_1_1i_leaf"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1i_leaf.html#a8d00313b1cf0d3005a7532da0e0d828b">nbytes</a> (void) const override</td></tr>
+<tr class="memdesc:a8d00313b1cf0d3005a7532da0e0d828b inherit pub_methods_structead_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of iData.  <a href="structead_1_1i_leaf.html#a8d00313b1cf0d3005a7532da0e0d828b">More...</a><br /></td></tr>
+<tr class="separator:a8d00313b1cf0d3005a7532da0e0d828b inherit pub_methods_structead_1_1i_leaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structade_1_1i_leaf"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structade_1_1i_leaf')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structade_1_1i_leaf.html">ade::iLeaf</a></td></tr>
 <tr class="memitem:aacdc7e234e8a75007f9610352c7ba43e inherit pub_methods_structade_1_1i_leaf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_leaf.html#aacdc7e234e8a75007f9610352c7ba43e">accept</a> (<a class="el" href="structade_1_1i_traveler.html">iTraveler</a> &amp;visiter) override</td></tr>
 <tr class="memdesc:aacdc7e234e8a75007f9610352c7ba43e inherit pub_methods_structade_1_1i_leaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implementation of <a class="el" href="structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. ">iTensor</a>.  <a href="structade_1_1i_leaf.html#aacdc7e234e8a75007f9610352c7ba43e">More...</a><br /></td></tr>
@@ -145,13 +150,16 @@ Public Member Functions</h2></td></tr>
 <tr class="inherit_header pub_methods_structade_1_1i_tensor"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structade_1_1i_tensor')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a></td></tr>
 <tr class="memitem:a1eb974b967ef2da732ee074e73631342 inherit pub_methods_structade_1_1i_tensor"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_tensor.html#a1eb974b967ef2da732ee074e73631342">~iTensor</a> (void)=default</td></tr>
 <tr class="separator:a1eb974b967ef2da732ee074e73631342 inherit pub_methods_structade_1_1i_tensor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_structade_1_1i_data"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structade_1_1i_data')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structade_1_1i_data.html">ade::iData</a></td></tr>
+<tr class="memitem:a066353626db599d549d0fb4d5ab7589d inherit pub_methods_structade_1_1i_data"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structade_1_1i_data.html#a066353626db599d549d0fb4d5ab7589d">~iData</a> (void)=default</td></tr>
+<tr class="separator:a066353626db599d549d0fb4d5ab7589d inherit pub_methods_structade_1_1i_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a318b7a02f8e4e9318bb595a406fcded0"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structead_1_1_variable.html">Variable</a>&lt; T &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_variable.html#a318b7a02f8e4e9318bb595a406fcded0">get</a> (T *ptr, <a class="el" href="structade_1_1_shape.html">ade::Shape</a> <a class="el" href="structead_1_1i_leaf.html#ad9b29c9c19aaa524def3e11b25d939db">shape</a>, std::string label=&quot;&quot;)</td></tr>
+<tr class="separator:a318b7a02f8e4e9318bb595a406fcded0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b66566e867b7b42f81a169e12f82ca9"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structead_1_1_variable.html">Variable</a>&lt; T &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_variable.html#a6b66566e867b7b42f81a169e12f82ca9">get</a> (<a class="el" href="structade_1_1_shape.html">ade::Shape</a> <a class="el" href="structead_1_1i_leaf.html#ad9b29c9c19aaa524def3e11b25d939db">shape</a>, std::string label=&quot;&quot;)</td></tr>
 <tr class="separator:a6b66566e867b7b42f81a169e12f82ca9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ea7ccaa0337024fed6f7a14036fc96e"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structead_1_1_variable.html">Variable</a>&lt; T &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_variable.html#a3ea7ccaa0337024fed6f7a14036fc96e">get</a> (T *ptr, <a class="el" href="structade_1_1_shape.html">ade::Shape</a> <a class="el" href="structead_1_1i_leaf.html#ad9b29c9c19aaa524def3e11b25d939db">shape</a>, std::string label=&quot;&quot;)</td></tr>
-<tr class="separator:a3ea7ccaa0337024fed6f7a14036fc96e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b51e33d72fd676e523d762211f35c63"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structead_1_1_variable.html">Variable</a>&lt; T &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_variable.html#a9b51e33d72fd676e523d762211f35c63">get</a> (T scalar, <a class="el" href="structade_1_1_shape.html">ade::Shape</a> <a class="el" href="structead_1_1i_leaf.html#ad9b29c9c19aaa524def3e11b25d939db">shape</a>, std::string label=&quot;&quot;)</td></tr>
 <tr class="separator:a9b51e33d72fd676e523d762211f35c63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff960098f751c21a02078c8dcd377e67"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structead_1_1_variable.html">Variable</a>&lt; T &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structead_1_1_variable.html#aff960098f751c21a02078c8dcd377e67">get</a> (std::vector&lt; T &gt; <a class="el" href="structead_1_1i_leaf.html#a0d71e11f67386639f4f13c810092b05a">data</a>, <a class="el" href="structade_1_1_shape.html">ade::Shape</a> <a class="el" href="structead_1_1i_leaf.html#ad9b29c9c19aaa524def3e11b25d939db">shape</a>, std::string label=&quot;&quot;)</td></tr>
@@ -340,20 +348,26 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
-<a id="a6b66566e867b7b42f81a169e12f82ca9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b66566e867b7b42f81a169e12f82ca9">&#9670;&nbsp;</a></span>get() <span class="overload">[1/6]</span></h2>
+<a id="a318b7a02f8e4e9318bb595a406fcded0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a318b7a02f8e4e9318bb595a406fcded0">&#9670;&nbsp;</a></span>get() <span class="overload">[1/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename T&gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="structead_1_1_variable.html">Variable</a>&lt;T&gt;* <a class="el" href="structead_1_1_variable.html">ead::Variable</a>&lt; T &gt;::get </td>
+          <td class="memname"><a class="el" href="structead_1_1_variable.html">Variable</a>&lt; T &gt; * <a class="el" href="structead_1_1_variable.html">ead::Variable</a>&lt; T &gt;::get </td>
           <td>(</td>
+          <td class="paramtype">T *&#160;</td>
+          <td class="paramname"><em>ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="structade_1_1_shape.html">ade::Shape</a>&#160;</td>
           <td class="paramname"><em>shape</em>, </td>
         </tr>
@@ -371,15 +385,15 @@ template&lt;typename T&gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a3ea7ccaa0337024fed6f7a14036fc96e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ea7ccaa0337024fed6f7a14036fc96e">&#9670;&nbsp;</a></span>get() <span class="overload">[2/6]</span></h2>
+<a id="a6b66566e867b7b42f81a169e12f82ca9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b66566e867b7b42f81a169e12f82ca9">&#9670;&nbsp;</a></span>get() <span class="overload">[2/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -392,12 +406,6 @@ template&lt;typename T&gt; </div>
         <tr>
           <td class="memname">static <a class="el" href="structead_1_1_variable.html">Variable</a>&lt;T&gt;* <a class="el" href="structead_1_1_variable.html">ead::Variable</a>&lt; T &gt;::get </td>
           <td>(</td>
-          <td class="paramtype">T *&#160;</td>
-          <td class="paramname"><em>ptr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype"><a class="el" href="structade_1_1_shape.html">ade::Shape</a>&#160;</td>
           <td class="paramname"><em>shape</em>, </td>
         </tr>
@@ -738,7 +746,7 @@ template&lt;typename T&gt; </div>
 
 <p>Implementation of iTensor. </p>
 
-<p>Reimplemented from <a class="el" href="structead_1_1i_leaf.html#ae7e0fc50c335977887132e25b6a57a98">ead::iLeaf&lt; T &gt;</a>.</p>
+<p>Implements <a class="el" href="structade_1_1i_tensor.html#a01138fc6bce780fcd4b4e495ca050fce">ade::iTensor</a>.</p>
 
 </div>
 </div>
@@ -762,7 +770,7 @@ template&lt;typename T&gt; </div>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>ead/<a class="el" href="ead_2variable_8hpp_source.html">variable.hpp</a></li>
+<li>ead/<a class="el" href="variable_8hpp_source.html">variable.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

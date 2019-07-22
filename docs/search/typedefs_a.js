@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['ownermapt',['OwnerMapT',['../namespaceade.html#a369d1a2ecdeeb7c71f87dc9d50575dc3',1,'ade::OwnerMapT()'],['../namespaceead_1_1opt.html#afffc18df640fb550a900c87e41af2112',1,'ead::opt::OwnerMapT()']]]
+  ['matmapt',['MatMapT',['../namespaceead.html#af90b24c9d423aacd2ba3862ad54f09e7',1,'ead']]],
+  ['matrixt',['MatrixT',['../namespaceade.html#ae0f6687dd704fcf5c00f841da0509246',1,'ade::MatrixT()'],['../namespaceead.html#ab361170f2d37b5e1dd1bbea416208d2c',1,'ead::MatrixT()']]]
 ];

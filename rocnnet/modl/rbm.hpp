@@ -1,7 +1,4 @@
-#include <functional>
-#include <memory>
-
-#include "rocnnet/eqns/helper.hpp"
+#include "ead/generated/api.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
 
@@ -13,30 +10,46 @@ namespace modl
 
 struct RBM final : public iMarshalSet
 {
-	RBM (uint8_t n_input, uint8_t n_hidden, std::string label) :
+	RBM (ade::DimT n_input,
+		std::vector<ade::DimT> layer_outs, std::string label) :
 		iMarshalSet(label)
 	{
-		ade::Shape shape({n_hidden, n_input});
-		size_t nw = shape.n_elems();
-
-		PybindT bound = 4 * std::sqrt(6.0 / (n_hidden + n_input));
-		std::uniform_real_distribution<PybindT> dist(-bound, bound);
-		auto gen = [&dist]()
+		if (layer_outs.empty())
 		{
-			return dist(ead::get_engine());
-		};
-		std::vector<PybindT> wdata(nw);
-		std::generate(wdata.begin(), wdata.end(), gen);
+			logs::fatal("cannot create RBM with no layers specified");
+		}
 
-		ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
-			wdata.data(), shape, "weight");
-		ead::VarptrT<PybindT> hbias = ead::make_variable_scalar<PybindT>(
-			0.0, ade::Shape({n_hidden}), "hbias");
-		ead::VarptrT<PybindT> vbias = ead::make_variable_scalar<PybindT>(
-			0.0, ade::Shape({n_input}), "vbias");
-		weight_ = std::make_shared<MarshalVar>(weight);
-		hbias_ = std::make_shared<MarshalVar>(hbias);
-		vbias_ = std::make_shared<MarshalVar>(vbias);
+		for (size_t i = 0, n = layer_outs.size(); i < n; ++i)
+		{
+			ade::DimT n_output = layer_outs[i];
+			ade::Shape weight_shape({n_output, n_input});
+			ade::NElemT nweight = weight_shape.n_elems();
+
+			PybindT bound = 4 * std::sqrt(6.0 / (n_output + n_input));
+			std::uniform_real_distribution<PybindT> dist(-bound, bound);
+			auto gen = [&dist]()
+			{
+				return dist(ead::get_engine());
+			};
+			std::vector<PybindT> wdata(nweight);
+			std::generate(wdata.begin(), wdata.end(), gen);
+
+			ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
+				wdata.data(), weight_shape, fmts::sprintf("weight_%d", i));
+
+			ead::VarptrT<PybindT> hbias = ead::make_variable_scalar<PybindT>(
+				0.0, ade::Shape({n_output}), fmts::sprintf("hbias_%d", i));
+
+			ead::VarptrT<PybindT> vbias = ead::make_variable_scalar<PybindT>(
+				0.0, ade::Shape({n_input}), fmts::sprintf("vbias_%d", i));
+
+			layers_.push_back(HiddenLayer{
+				std::make_shared<MarshalVar>(weight),
+				std::make_shared<MarshalVar>(hbias),
+				std::make_shared<MarshalVar>(vbias),
+			});
+			n_input = n_output;
+		}
 	}
 
 	RBM (const RBM& other) : iMarshalSet(other)
@@ -60,95 +73,134 @@ struct RBM final : public iMarshalSet
 
 
 	// input of shape <n_input, n_batch>
-	ead::NodeptrT<PybindT> prop_up (ead::NodeptrT<PybindT> input)
+	// propagate upwards (towards visibleness)
+	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input,
+		NonLinearsT nonlinearities)
 	{
-		// prop forward
-		// weight is <n_hidden, n_input>
-		// in is <n_input, ?>
-		// out = in @ weight, so out is <n_hidden, ?>
-		ead::NodeptrT<PybindT> pre_nl = eqns::weighed_bias_add(
-			age::matmul(input, ead::convert_to_node(weight_->var_)),
-			ead::convert_to_node(hbias_->var_));
-		return eqns::sigmoid(pre_nl);
+		// sanity check
+		const ade::Shape& in_shape = input->shape();
+		uint8_t ninput = get_ninput();
+		if (in_shape.at(0) != ninput)
+		{
+			logs::fatalf(
+				"cannot generate rbm with input shape %s against n_input %d",
+				in_shape.to_string().c_str(), ninput);
+		}
+
+		size_t nlayers = layers_.size();
+		size_t nnlin = nonlinearities.size();
+		if (nnlin != nlayers)
+		{
+			logs::fatalf(
+				"cannot generate rbm of %d layers with %d nonlinearities",
+				nlayers, nnlin);
+		}
+
+		ead::NodeptrT<PybindT> out = input;
+		for (size_t i = 0; i < nlayers; ++i)
+		{
+			// weight is <n_hidden, n_input>
+			// in is <n_input, ?>
+			// out = in @ weight, so out is <n_hidden, ?>
+			auto hypothesis = tenncor::nn::fully_connect({out},
+				{ead::convert_to_node(layers_[i].weight_->var_)},
+				ead::convert_to_node(layers_[i].hbias_->var_));
+			out = nonlinearities[i](hypothesis);
+		}
+		return out;
 	}
 
 	// input of shape <n_hidden, n_batch>
-	ead::NodeptrT<PybindT> prop_down (ead::NodeptrT<PybindT> hidden)
+	ead::NodeptrT<PybindT> prop_down (ead::NodeptrT<PybindT> hidden,
+		NonLinearsT nonlinearities)
 	{
-		// weight is <n_hidden, n_input>
-		// in is <n_hidden, ?>
-		// out = in @ weight.T, so out is <n_input, ?>
-		ead::NodeptrT<PybindT> pre_nl = eqns::weighed_bias_add(
-			age::matmul(hidden,
-				age::transpose(ead::convert_to_node(weight_->var_))),
-			ead::convert_to_node(vbias_->var_));
-		return eqns::sigmoid(pre_nl);
-	}
+		// sanity check
+		const ade::Shape& out_shape = hidden->shape();
+		uint8_t noutput = get_noutput();
+		if (out_shape.at(0) != noutput)
+		{
+			logs::fatalf(
+				"cannot prop down rbm with output shape %s against n_output %d",
+				out_shape.to_string().c_str(), noutput);
+		}
 
-	// recreate input using hidden distribution
-	// output shape of input->shape()
-	ead::NodeptrT<PybindT> reconstruct_visible (ead::NodeptrT<PybindT> input)
-	{
-		ead::NodeptrT<PybindT> hidden_dist = prop_up(input);
-		ead::NodeptrT<PybindT> hidden_sample = eqns::one_binom(hidden_dist);
-		return prop_down(hidden_sample);
-	}
+		size_t nlayers = layers_.size();
+		size_t nnlin = nonlinearities.size();
+		if (nnlin != nlayers)
+		{
+			logs::fatalf(
+				"cannot generate rbm of %d layers with %d nonlinearities",
+				nlayers, nnlin);
+		}
 
-	ead::NodeptrT<PybindT> reconstruct_hidden (ead::NodeptrT<PybindT> hidden)
-	{
-		ead::NodeptrT<PybindT> visible_dist = prop_down(hidden);
-		ead::NodeptrT<PybindT> visible_sample = eqns::one_binom(visible_dist);
-		return prop_up(visible_sample);
+		ead::NodeptrT<PybindT> out = hidden;
+		for (size_t i = 0; i < nlayers; ++i)
+		{
+			size_t index = nlayers - i - 1;
+			// weight is <n_hidden, n_input>
+			// in is <n_hidden, ?>
+			// out = in @ weight.T, so out is <n_input, ?>
+			auto hypothesis = tenncor::nn::fully_connect({out},
+				{tenncor::transpose(
+					ead::convert_to_node(layers_[index].weight_->var_))},
+				ead::convert_to_node(layers_[index].vbias_->var_));
+			out = nonlinearities[index](hypothesis);
+		}
+		return out;
 	}
 
 	uint8_t get_ninput (void) const
 	{
-		return weight_->var_->shape().at(1);
+		return layers_.front().weight_->var_->shape().at(1);
 	}
 
 	uint8_t get_noutput (void) const
 	{
-		return weight_->var_->shape().at(0);
+		return layers_.back().weight_->var_->shape().at(0);
 	}
 
 	MarsarrT get_subs (void) const override
 	{
-		return {weight_, hbias_, vbias_};
+		MarsarrT out;
+		out.reserve(3 * layers_.size());
+		for (const HiddenLayer& layer : layers_)
+		{
+			out.push_back(layer.weight_);
+			out.push_back(layer.hbias_);
+			out.push_back(layer.vbias_);
+		}
+		return out;
 	}
 
-	ead::VarptrT<PybindT> get_weight (void) const
+	struct HiddenLayer
 	{
-		return weight_->var_;
-	}
+		MarVarsptrT weight_;
 
-	ead::VarptrT<PybindT> get_hbias (void) const
-	{
-		return hbias_->var_;
-	}
+		MarVarsptrT hbias_;
 
-	ead::VarptrT<PybindT> get_vbias (void) const
-	{
-		return vbias_->var_;
-	}
+		MarVarsptrT vbias_;
+	};
+
+	std::vector<HiddenLayer> layers_;
 
 private:
 	void copy_helper (const RBM& other)
 	{
-		weight_ = std::make_shared<MarshalVar>(*other.weight_);
-		hbias_ = std::make_shared<MarshalVar>(*other.hbias_);
-		vbias_ = std::make_shared<MarshalVar>(*other.vbias_);
+		layers_.clear();
+		for (const HiddenLayer& olayer : other.layers_)
+		{
+			layers_.push_back(HiddenLayer{
+				std::make_shared<MarshalVar>(*olayer.weight_),
+				std::make_shared<MarshalVar>(*olayer.hbias_),
+				std::make_shared<MarshalVar>(*olayer.vbias_),
+			});
+		}
 	}
 
 	iMarshaler* clone_impl (void) const override
 	{
 		return new RBM(*this);
 	}
-
-	MarVarsptrT weight_;
-
-	MarVarsptrT hbias_;
-
-	MarVarsptrT vbias_;
 };
 
 using RBMptrT = std::shared_ptr<RBM>;

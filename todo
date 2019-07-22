@@ -5,40 +5,50 @@ P3 = "want to have"
 P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
-=== structure ===
-P2 - generalize grader and move to ade (otherwise ade does not fulfil its main purpose)
-P3 - generalize rule conversion feature for all implementations of ade nodes
-
-=== correction ===
-P3 - reorient tests so that tests cover its own immediate module
-P3 - maximize coverage
-P3 - test rule conversion
-P4 - test complicate equations (generate random valid equations)
+=== feature ===
+P1 - make shape dimension size configurable
+P2 - make constant pre-calculation configurable in opt module
+P2 - reimplement conv nn layer + dbn
+    P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
+P3 - implement control nodes/edges for assignments
+P4 - implement reduce_prod gradient using Eigen cumprod
 
 === transparency ===
+P2 - provide graph-setup time summary when failing to match shapes
 P4 - add even more debugging tools
 P4 - formalize codestyle
 P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
+P4 - investigate adopting more of boost in place of cppkg
+
+=== structure ===
+P4 - remove ead helper functions
+
+=== correction ===
+P1 - create global session for all ade/ead/tag singletons, then make context configurable
+P2 - test tag module (need ^)
+P2 - reorient tests so that tests cover its own immediate module
+P2 - fix rbm demo converging to infinity problem
+P2 - test dbg module
+P2 - test opt module more
+P3 - test complicate equations (generate random valid equations)
+P3 - maximize coverage
+P3 - test rocnnet + eqns, modl, and trainer (or subgraph equivalent)
 
 === update ===
 P2 - update all fmts usages
 P3 - address warnings
 
-=== feature ===
-P2 - implement convolution using Eigen for ead and llo
-P3 - implement subgraph stand-in for rocnnet layers
-
 === performance ===
 general performance:
+P3 - benchmark test rocnnet against various other frameworks (CPU only)
+P3 - convert as many shared_ptr to unique_ptr
 P4 - remove unordered_map/unordered_set if we're not using them properly
 P4 - define optimization conversion rules to increase data accuracy
 P4 - more performance test
 
 run-time performance:
-P2 - define session interface then improve session implementation
 P3 - define dataflow to take advantage of parallel processing at node-level
+P4 - implement GPU settings
+P4 - improve session implementation
 P4 - investigate remote sessions for distributed processing
-
-graph-setup performance:
-P3 - improve optimization rule matching

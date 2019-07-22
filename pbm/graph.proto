@@ -1,35 +1,30 @@
 syntax = "proto3";
 
-option go_package = "github.com/mingkaic/cortenn/pbm";
+option go_package = "github.com/mingkaic/tenncor/pbm";
 
 package cortenn;
 
-message Source
-{
+message Source {
 	bytes shape = 1;
     bytes data = 2;
-    uint32 typecode = 3;
+    string typelabel = 3;
     bool is_const = 4;
 }
 
-message NodeArg
-{
+message NodeArg {
     uint32 idx = 1;
     repeated double coord = 2 [packed = true];
     repeated double shaper = 3 [packed = true];
     bool fwd = 4;
 }
 
-message Functor
-{
+message Functor {
     string opname = 1;
-    uint32 opcode = 2;
     // indices of args in graph
-    repeated NodeArg args = 3;
+    repeated NodeArg args = 2;
 }
 
-message Node
-{
+message Node {
     repeated string labels = 1;
     oneof detail {
         Source source = 2;
@@ -37,8 +32,45 @@ message Node
     }
 }
 
-message Graph
-{
+message Graph {
 	string label = 1;
 	repeated Node nodes = 2;
+}
+
+message ItTrainerState {
+    uint64 iterations = 1;
+}
+
+message DQTrainerState {
+    message ExpBatch {
+        repeated float observation = 1;
+
+        repeated float new_observation = 2;
+
+        uint64 action_idx = 3;
+
+        float reward = 4;
+    }
+
+    Graph target_graph = 1;
+
+    uint64 actions_executed = 2;
+
+    uint64 trained_iteration = 3;
+
+    uint64 ntrained_called = 4;
+
+    uint64 nstored_called = 5;
+
+    repeated ExpBatch experiences = 6;
+}
+
+message Layer {
+    Graph graph = 1;
+    oneof layer_context {
+        ItTrainerState it_ctx = 19;
+
+        // change to any once we have a lot of contexts
+        DQTrainerState dqn_ctx = 20;
+    }
 }

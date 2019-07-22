@@ -11,10 +11,17 @@ enum TransCode
 	EXTEND = 0,
 	PERMUTE,
 	REDUCE,
+	CONV,
+	SLICE,
+	PAD,
 };
 
 struct CoordMap final : public ade::iCoordMap
 {
+	CoordMap (ade::CoordT indices, bool bijective) :
+		indices_(indices), bijective_(bijective) {}
+
+	// todo: deprecate
 	CoordMap (TransCode transcode, ade::CoordT indices, bool bijective) :
 		transcode_(transcode), indices_(indices), bijective_(bijective) {}
 
@@ -62,11 +69,11 @@ private:
 /// Type of iCoordMap smartpointer
 using CoordptrT = std::shared_ptr<CoordMap>;
 
-CoordptrT reduce (std::vector<uint8_t> red_dims);
+CoordptrT reduce (std::vector<ade::RankT> red_dims);
 
-CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext);
+CoordptrT extend (ade::RankT rank, std::vector<ade::DimT> ext);
 
-CoordptrT permute (std::vector<uint8_t> dims);
+CoordptrT permute (std::vector<ade::RankT> dims);
 
 }
 

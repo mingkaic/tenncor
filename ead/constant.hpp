@@ -1,3 +1,5 @@
+#include "tag/prop.hpp"
+
 #include "ead/ileaf.hpp"
 #include "ead/inode.hpp"
 
@@ -7,20 +9,19 @@
 namespace ead
 {
 
+static const size_t label_limit = 5;
+
 template <typename T>
 struct Constant final : public iLeaf<T>
 {
-	static Constant* get (T* data, ade::Shape shape)
-	{
-		return new Constant(data, shape);
-	}
+	static Constant<T>* get (T* data, ade::Shape shape);
 
-	static Constant* get (T scalar, ade::Shape shape)
+	static Constant<T>* get_scalar (T scalar, ade::Shape shape)
 	{
 		size_t n = shape.n_elems();
 		T buffer[n];
 		std::fill(buffer, buffer + n, scalar);
-		return new Constant(buffer, shape);
+		return Constant<T>::get(buffer, shape);
 	}
 
 	Constant (const Constant<T>& other) = delete;
@@ -31,9 +32,39 @@ struct Constant final : public iLeaf<T>
 
 	Constant<T>& operator = (Constant<T>&& other) = delete;
 
+	/// Implementation of iTensor
+	std::string to_string (void) const override
+	{
+		const T* data = this->data_.data();
+		if (is_scalar())
+		{
+			if (0 == data[0]) // prevent -0
+			{
+				return "0";
+			}
+			return fmts::to_string(data[0]);
+		}
+		size_t nelems = this->shape_.n_elems();
+		auto out = fmts::to_string(data,
+			data + std::min(label_limit, nelems));
+		if (nelems > label_limit)
+		{
+			out += "...";
+		}
+		return out;
+	}
+
 	bool is_const (void) const override
 	{
 		return true;
+	}
+
+	bool is_scalar (void) const
+	{
+		const T* data = this->data_.data();
+		size_t nelems = this->shape_.n_elems();
+		return std::all_of(data + 1, data + nelems,
+			[&](const T& e) { return e == data[0]; });
 	}
 
 private:
@@ -63,19 +94,37 @@ private:
 };
 
 template <typename T>
+Constant<T>* Constant<T>::get (T* data, ade::Shape shape)
+{
+	static bool registered = register_builder<Constant<T>,T>(
+		[](ade::TensptrT tens)
+		{
+			return std::make_shared<ConstantNode<T>>(
+				std::static_pointer_cast<Constant<T>>(tens));
+		});
+	assert(registered);
+
+	return new Constant(data, shape);
+}
+
+template <typename T>
 NodeptrT<T> make_constant_scalar (T scalar, ade::Shape shape)
 {
-	return std::make_shared<ConstantNode<T>>(
-		std::shared_ptr<Constant<T>>(Constant<T>::get(scalar, shape))
+	auto out = std::make_shared<ConstantNode<T>>(
+		std::shared_ptr<Constant<T>>(Constant<T>::get_scalar(scalar, shape))
 	);
+	tag::get_property_reg().property_tag(out->get_tensor(), tag::immutable_tag);
+	return out;
 }
 
 template <typename T>
 NodeptrT<T> make_constant (T* data, ade::Shape shape)
 {
-	return std::make_shared<ConstantNode<T>>(
+	auto out = std::make_shared<ConstantNode<T>>(
 		std::shared_ptr<Constant<T>>(Constant<T>::get(data, shape))
 	);
+	tag::get_property_reg().property_tag(out->get_tensor(), tag::immutable_tag);
+	return out;
 }
 
 }

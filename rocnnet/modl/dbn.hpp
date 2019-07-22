@@ -8,22 +8,30 @@ namespace modl
 
 struct DBN final : public iMarshalSet
 {
-	DBN (uint8_t n_input, std::vector<uint8_t> hiddens, std::string label) :
-		iMarshalSet(label),
-		log_layer_(std::make_shared<FCon>(std::vector<uint8_t>{n_input},
-			hiddens.back(), "logres"))
+	DBN (RBMptrT rbm, std::string label) :
+		iMarshalSet(label), rbm_(rbm)
 	{
-		if (hiddens.empty())
+		ade::DimT n_input = rbm_->get_ninput();
+		ade::Shape weight_shape({rbm_->get_noutput(), n_input});
+		ade::NElemT nweight = weight_shape.n_elems();
+
+		PybindT bound = 1.0 / std::sqrt(n_input);
+		std::uniform_real_distribution<PybindT> dist(-bound, bound);
+		auto gen = [&dist]()
 		{
-			logs::fatal("cannot db train with no hiddens");
-		}
-		for (size_t level = 0, n = hiddens.size(); level < n; ++level)
-		{
-			uint8_t n_output = hiddens[level];
-			layers_.push_back(std::make_shared<RBM>(n_input, n_output,
-				fmts::sprintf("rbm_%d", level)));
-			n_input = n_output;
-		}
+			return dist(ead::get_engine());
+		};
+		std::vector<PybindT> wdata(nweight);
+		std::generate(wdata.begin(), wdata.end(), gen);
+
+		ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
+				wdata.data(), weight_shape, "log_weight");
+
+		ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
+			0.0, ade::Shape({hiddens.back()}), "log_bias");
+
+		log_weight_ = std::make_shared<MarshalVar>(weight);
+		log_bias_ = std::make_shared<MarshalVar>(bias);
 	}
 
 	DBN (const DBN& other) : iMarshalSet(other)
@@ -48,64 +56,45 @@ struct DBN final : public iMarshalSet
 	// input of shape <n_input, n_batch>
 	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
 	{
-		// sanity check
-		const ade::Shape& in_shape = input->shape();
-		uint8_t ninput = get_ninput();
-		if (in_shape.at(0) != ninput)
-		{
-			logs::fatalf("cannot dbn with input shape %s against n_input %d",
-				in_shape.to_string().c_str(), ninput);
-		}
-		ead::NodeptrT<PybindT> output = input;
-		for (RBMptrT& h : layers_)
-		{
-			output = h->prop_up(output);
-		}
-		return eqns::softmax((*log_layer_)({output}));
+		ead::NodeptrT<PybindT> output = (*rbm_)(input);
+		return age::softmax(tenncor::nn::fully_connect({output},
+			{ead::convert_to_node(log_weight_->var_)},
+			ead::convert_to_node(log_bias_->var_)));
 	}
 
 	uint8_t get_ninput (void) const
 	{
-		return layers_.front()->get_ninput();
+		return rbm_->get_ninput();
 	}
 
 	uint8_t get_noutput (void) const
 	{
-		return log_layer_->get_noutput();
-	}
-
-	std::vector<RBMptrT> get_layers (void) const
-	{
-		return layers_;
+		return rbm_->get_noutput();
 	}
 
 	MarsarrT get_subs (void) const override
 	{
-		MarsarrT out(layers_.begin(), layers_.end());
-		out.push_back(log_layer_);
-		return out;
+		return {rbm_, log_weight_, log_bias_};
 	}
+
+	RBMptrT rbm_;
+
+	MarVarsptrT log_weight_;
+
+	MarVarsptrT log_bias_;
 
 private:
 	void copy_helper (const DBN& other)
 	{
-		layers_.clear();
-		for (const RBMptrT& olayer : other.layers_)
-		{
-			layers_.push_back(
-				std::make_shared<RBM>(*olayer));
-		}
-		log_layer_ = std::make_shared<FCon>(*other.log_layer_);
+		rbm_ = std::make_shared<RBM>(*other.rbm_);
+		log_weight_ = std::make_shared<MarVarsptrT>(*other.log_weight_);
+		log_bias_ = std::make_shared<MarVarsptrT>(*other.log_bias_);
 	}
 
 	iMarshaler* clone_impl (void) const override
 	{
 		return new DBN(*this);
 	}
-
-	std::vector<RBMptrT> layers_;
-
-	FConptrT log_layer_;
 };
 
 using DBNptrT = std::shared_ptr<DBN>;

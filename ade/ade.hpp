@@ -8,5 +8,4 @@
 
 #include "ade/functor.hpp"
 #include "ade/traveler.hpp"
-#include "ade/opfunc.hpp"
-#include "ade/edge.hpp"
+#include "ade/iopfunc.hpp"

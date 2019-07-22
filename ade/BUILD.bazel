@@ -31,8 +31,8 @@ cc_library(
     name = "ade",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
-    copts = ["-std=c++17"],
-    deps = ["@com_github_mingkaic_cppkg//logs:logs"],
+    copts = ["-std=c++17", "-DSDIM_BYTES=2"],
+    deps = ["@com_github_mingkaic_cppkg//estd:estd"],
     visibility = ["//visibility:public"],
 )
 
@@ -44,7 +44,9 @@ cc_test(
     srcs = ["//ade:test_srcs"],
     deps = [
         "//ade:ade",
-        "//testutil:testutil",
+        "//testutil:tutil",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],
 )

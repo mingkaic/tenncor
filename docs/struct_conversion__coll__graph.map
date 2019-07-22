@@ -1,0 +1,6 @@
+<map id="Conversion" name="Conversion">
+<area shape="rect" id="node2" href="$struct_subgraph.html" title="Subgraph" alt="" coords="10,279,89,304"/>
+<area shape="rect" id="node3" href="$struct_branch.html" title="Branch" alt="" coords="18,192,82,217"/>
+<area shape="rect" id="node4" href="$struct_ptr_list.html" title="PtrList" alt="" coords="20,105,79,131"/>
+<area shape="rect" id="node5" href="$struct_ptr_node.html" title="PtrNode" alt="" coords="15,5,85,31"/>
+</map>

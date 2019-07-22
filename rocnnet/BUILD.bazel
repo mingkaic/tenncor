@@ -39,6 +39,7 @@ py_binary(
     name = "comparison_mlp_grad",
     srcs = ["comparison/comparison_mlp_grad.py"],
     deps = [":rocnnet_py"],
+    data = ["//cfg:optimizations"],
 )
 
 ######### DEMOS #########
@@ -48,11 +49,12 @@ cc_binary(
     srcs = ["demo/gd_demo.cpp"],
     copts = ["-std=c++17"],
     deps = [
+        "//dbg:grpc_out",
         "//rocnnet/trainer:trainer",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
     data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+        ["//cfg:optimizations"],
 )
 
 py_binary(
@@ -60,7 +62,7 @@ py_binary(
     srcs = ["demo/gd_demo.py"],
     deps = [":rocnnet_py"],
     data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+        ["//cfg:optimizations"],
 )
 
 py_binary(
@@ -68,23 +70,32 @@ py_binary(
     srcs = ["demo/dqn_demo.py"],
     deps = [":rocnnet_py"],
     data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+        ["//cfg:optimizations"],
 )
 
 py_binary(
-    name = "slow_dqn_demo",
-    srcs = ["demo/slow_dqn_demo.py"],
-    deps = [":rocnnet_py"],
-    data = glob(["pretrained/*"]) +
-        ["//ead:optimizations"],
+    name = "rbm_demo",
+    srcs = glob(["demo/data/*.py"]) +
+        ["demo/rbm_demo.py"],
+    deps = [
+        ":rocnnet_py",
+        "//dbg:grpc_dbg_py",
+    ],
+    data = glob(["pretrained/*", "demo/MNIST_data/*"]) +
+        ["//cfg:optimizations"],
 )
 
-# py_binary(
-#     name = "rbm_demo",
-#     srcs = glob(["demo/data/*.py"]) + ["demo/rbm_demo.py"],
-#     deps = [":rocnnet_py"],
-#     data = glob(["pretrained/*"]),
-# )
+py_binary(
+    name = "raw_rbm_demo",
+    srcs = glob(["demo/data/*.py"]) +
+        ["demo/raw_rbm_demo.py"],
+    deps = [
+        ":rocnnet_py",
+        "//dbg:grpc_dbg_py",
+    ],
+    data = glob(["pretrained/*", "demo/MNIST_data/*"]) +
+        ["//cfg:optimizations"],
+)
 
 # cc_binary(
 #     name = "dbn_demo",
@@ -98,14 +109,3 @@ py_binary(
 #     ],
 #     data = glob(["pretrained/*"]),
 # )
-
-cc_binary(
-    name = "experiment",
-    srcs = ["demo/grad_experiment.cpp"],
-    copts = ["-std=c++17"],
-    deps = [
-        "//ead:dbg",
-        "//rocnnet/trainer:trainer",
-    ],
-    data = ["//ead:optimizations"],
-)

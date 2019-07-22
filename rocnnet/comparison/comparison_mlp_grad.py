@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
@@ -127,19 +127,17 @@ for matrix_dim in matrix_dims:
 
 
     # regular mlp
-    hiddens = [
-        rcn.get_layer(age.sigmoid, matrix_dim),
-        rcn.get_layer(age.sigmoid, n_out)
-    ]
+    nonlins = [tc.sigmoid, tc.sigmoid]
+    hiddens = [matrix_dim, n_out]
 
     brain = rcn.get_mlp(n_in, hiddens, 'brain_' + str(matrix_dim))
 
     invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
-    out = brain.forward(invar)
+    out = brain.forward(invar, nonlins)
     expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
-    err = age.square(age.sub(expected_out, out))
+    err = tc.square(tc.sub(expected_out, out))
 
-    trainer = rcn.MLPTrainer(brain, sess, rcn.get_sgd(learning_rate), batch_size)
+    trainer = rcn.MLPTrainer(brain, nonlins, sess, rcn.get_sgd(learning_rate), batch_size)
 
     # tensorflow mlp
     tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))

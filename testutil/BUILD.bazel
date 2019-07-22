@@ -4,15 +4,25 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "ead_testcase_template",
+    srcs = ["ead_template.json"],
+)
+
 ######### LIBRARY #########
 
 cc_library(
-    name = "testutil",
-    hdrs = ["common.hpp"],
-    srcs = ["common.cpp"],
+    name = "tutil",
+    hdrs = ["tutil.hpp"],
+    srcs = ["src/tutil.cpp"],
     deps = [
-        "//ade:ade",
-        "@gtest//:gtest",
+        "//dbg:stream_out",
+        "@com_github_mingkaic_cppkg//diff:diff",
     ],
     copts = ["-std=c++17"],
+)
+
+py_library(
+    name = "pyunit_util",
+    srcs = ["generate_testcases.py"],
 )

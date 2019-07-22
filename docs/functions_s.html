@@ -69,7 +69,6 @@ $(function() {
 </li>
 <li>save_coorder()
 : <a class="el" href="structead_1_1_e_a_d_saver.html#a280dae3aef034c38a35f26ec67a4c1dd">ead::EADSaver</a>
-, <a class="el" href="structllo_1_1_l_l_o_saver.html#ad2eca38b3d184b25106f9570160b415c">llo::LLOSaver</a>
 , <a class="el" href="structpbm_1_1i_saver.html#ada31f4e14147dc5ad211035d026d3017">pbm::iSaver</a>
 </li>
 <li>save_data()
@@ -77,43 +76,36 @@ $(function() {
 </li>
 <li>save_leaf()
 : <a class="el" href="structead_1_1_e_a_d_saver.html#ac512e1b9654cb224fe90fed667538ec9">ead::EADSaver</a>
-, <a class="el" href="structllo_1_1_l_l_o_saver.html#a728d164ce30743975e9db2d0d5cfe9e1">llo::LLOSaver</a>
 , <a class="el" href="structpbm_1_1i_saver.html#aaca6cba63f17eb3d8d687edd9811e3fa">pbm::iSaver</a>
 </li>
 <li>save_shaper()
 : <a class="el" href="structead_1_1_e_a_d_saver.html#a14a83536ef5cf15d8b9d63e8fa76615f">ead::EADSaver</a>
-, <a class="el" href="structllo_1_1_l_l_o_saver.html#ae107ef818ddb768192827ea697f87518">llo::LLOSaver</a>
 , <a class="el" href="structpbm_1_1i_saver.html#a1f8a32969dcb33173932b3966382c6f2">pbm::iSaver</a>
 </li>
 <li>saver_
 : <a class="el" href="structpbm_1_1_graph_saver.html#af810671efe6177d2e4fc27abed65813c">pbm::GraphSaver&lt; SAVER, &gt;</a>
 </li>
 <li>scalar_
-: <a class="el" href="structead_1_1opt_1_1_scalar_target.html#ac613e6a53395a70d37362edfee9ffdf9">ead::opt::ScalarTarget&lt; T &gt;</a>
+: <a class="el" href="structead_1_1_scalar_convr.html#a644e836b5eaf4c5e0ce7d3e439a6d8da">ead::ScalarConvr&lt; T &gt;</a>
+, <a class="el" href="struct_subgraph.html#a709ac00c627381823a8d5c6ce258fd74">Subgraph</a>
 </li>
-<li>ScalarTarget()
-: <a class="el" href="structead_1_1opt_1_1_scalar_target.html#a075f3cefdcc704f27b9338d220e79de3">ead::opt::ScalarTarget&lt; T &gt;</a>
+<li>ScalarConvr()
+: <a class="el" href="structead_1_1_scalar_convr.html#af641034f44c901e8d7428b3841448e14">ead::ScalarConvr&lt; T &gt;</a>
 </li>
-<li>send()
-: <a class="el" href="structead_1_1_graph_client.html#a06b11f4c1cd4405ef4418656cea4f1cf">ead::GraphClient</a>
+<li>scalarize_
+: <a class="el" href="structopt_1_1_matcher.html#a0d2a437469665ffaf52b234f8180d328">opt::Matcher</a>
 </li>
-<li>sess_info_
-: <a class="el" href="structead_1_1_session.html#aa7d3431dbb12f71909655df4840dfa80">ead::Session&lt; T &gt;</a>
+<li>scalars_
+: <a class="el" href="structopt_1_1_seg_v_args.html#a8eae2b4197d1d98b54a92315453b51de">opt::SegVArgs</a>
 </li>
-<li>SessionStep()
-: <a class="el" href="structead_1_1_session_1_1_session_step.html#a864bf535a3c6d3c064f7778a68ab8f7d">ead::Session&lt; T &gt;::SessionStep</a>
+<li>sequential_jobs_
+: <a class="el" href="structdbg_1_1_graph_emitter_client.html#afc14ef5f806b2d93923b4f22b97b06f4">dbg::GraphEmitterClient</a>
 </li>
-<li>set()
-: <a class="el" href="structllo_1_1_cache_space.html#ac9352f6d2e82b9bc2a35f196634fb200">llo::CacheSpace&lt; T &gt;</a>
+<li>sess_
+: <a class="el" href="structdbg_1_1_interactive_session.html#a260ec45d945c43d3d701e338b462e2ad">dbg::InteractiveSession</a>
 </li>
-<li>set_arg()
-: <a class="el" href="structead_1_1opt_1_1_func_rep.html#ac8d7131fc364f03b7c1a0ab56d8ec4c2">ead::opt::FuncRep&lt; T &gt;</a>
-</li>
-<li>set_break()
-: <a class="el" href="structead_1_1_interactive_debugger.html#aaf9a28bf2448b0ea7eddcc4099d56918">ead::InteractiveDebugger&lt; T &gt;</a>
-</li>
-<li>set_label()
-: <a class="el" href="structead_1_1_variable_node.html#afa8cd381b3a349019e2b01830f908662">ead::VariableNode&lt; T &gt;</a>
+<li>sess_id_
+: <a class="el" href="structdbg_1_1_interactive_session.html#ac2872b2785f43fb25e0300f68f25d922">dbg::InteractiveSession</a>
 </li>
 <li>set_labelled()
 : <a class="el" href="structpbm_1_1_pathed_tens.html#a2752eaf099d564b6fca95df9dfcda777">pbm::PathedTens</a>
@@ -131,43 +123,61 @@ $(function() {
 , <a class="el" href="structead_1_1_functor.html#a320d3e31eddb68598285b835dd177f31">ead::Functor&lt; T &gt;</a>
 , <a class="el" href="structead_1_1i_leaf.html#ad9b29c9c19aaa524def3e11b25d939db">ead::iLeaf&lt; T &gt;</a>
 , <a class="el" href="structead_1_1i_node.html#a87bb7df12b81a143fcc77544209dc011">ead::iNode&lt; T &gt;</a>
-, <a class="el" href="structllo_1_1_constant.html#a89e5a7316e33a1a87af266018c3a8ef5">llo::Constant</a>
-, <a class="el" href="structllo_1_1_variable.html#a6b78397a2a7cd0395cd91d798746d59b">llo::Variable&lt; T &gt;</a>
 </li>
 <li>shape_
 : <a class="el" href="structade_1_1_functor.html#a99fbfe6298c8fea43e632ea75bf68973">ade::Functor</a>
 , <a class="el" href="structead_1_1_functor.html#a08742ded550e11f608f810319132aa8c">ead::Functor&lt; T &gt;</a>
 , <a class="el" href="structead_1_1i_leaf.html#a57a3e92dd3c2097fae2bec09c0174182">ead::iLeaf&lt; T &gt;</a>
 , <a class="el" href="structead_1_1_op_arg.html#acd3c36ad5064ca4abc9920e9263ccf4e">ead::OpArg&lt; T &gt;</a>
-, <a class="el" href="structead_1_1opt_1_1_const_rep.html#a102eb455236ba371530cb48c3a01f1ec">ead::opt::ConstRep&lt; T &gt;</a>
-, <a class="el" href="structllo_1_1_constant.html#a9efd61bf402bbb1f92d897c3408aafcf">llo::Constant</a>
-, <a class="el" href="structllo_1_1_variable.html#a79fb0a289e801ade3ba6238d3af54ffc">llo::Variable&lt; T &gt;</a>
+, <a class="el" href="struct_graph_emitter_impl_1_1_node.html#a7697ceb4d9083b1355328bc7d1de5420">GraphEmitterImpl::Node</a>
 </li>
 <li>shaper_
 : <a class="el" href="structade_1_1_func_arg.html#ae6274a8217d8c583899d096731d44891">ade::FuncArg</a>
+, <a class="el" href="struct_arg.html#aae44ba002042e3fdd5cccb8b6711d596">Arg</a>
+, <a class="el" href="structead_1_1_builder_arg.html#a461db70893a0835236ebb94f48586298">ead::BuilderArg</a>
 , <a class="el" href="structead_1_1_func_arg.html#a12b0aef4de13a59a3a2575645e5546b5">ead::FuncArg&lt; T &gt;</a>
-, <a class="el" href="structead_1_1opt_1_1_repr_arg.html#ae6a8d2e8dfa9e95d2afa59fc151dff3f">ead::opt::ReprArg&lt; T &gt;</a>
-, <a class="el" href="structead_1_1opt_1_1_rule_arg.html#a0ee48479914b028001a5269804c9f08b">ead::opt::RuleArg&lt; T &gt;</a>
-, <a class="el" href="structead_1_1opt_1_1_target_arg.html#a290701bfc62e32df43083e683aa34166">ead::opt::TargetArg&lt; T &gt;</a>
+, <a class="el" href="struct_graph_emitter_impl_1_1_edge.html#a02b103e555a65a74ec5c8741c69fda83">GraphEmitterImpl::Edge</a>
+, <a class="el" href="structopt_1_1_cand_arg.html#ad14eac35a88e5bc96663ba76a5e42534">opt::CandArg</a>
+, <a class="el" href="structopt_1_1_voter_arg.html#a3994680773420f8948ba9f452178a52f">opt::VoterArg</a>
+</li>
+<li>shaperize()
+: <a class="el" href="structead_1_1_converter_builder.html#a836c7845f5a138ee6292e176d83adcb2">ead::ConverterBuilder&lt; T &gt;</a>
+, <a class="el" href="structopt_1_1i_converter_builder.html#a3529b654307e6971dc7cf91cac920890">opt::iConverterBuilder</a>
+</li>
+<li>showshape_
+: <a class="el" href="struct_c_s_v_equation.html#a7d8694b119898b5a1a41343a54457675">CSVEquation</a>
+, <a class="el" href="struct_pretty_equation.html#ad2a0130cedb1cddd2fecaaceaf332bf2">PrettyEquation</a>
+</li>
+<li>size()
+: <a class="el" href="structopt_1_1_seg_v_args.html#afd46de7c887464ecfb1a7482500c465d">opt::SegVArgs</a>
 </li>
 <li>source_
-: <a class="el" href="structead_1_1opt_1_1_rule_conversion.html#a0c0c188f71efb0f7fe3d213694e7d4c8">ead::opt::RuleConversion&lt; T &gt;</a>
+: <a class="el" href="struct_conversion.html#adaf67dbd28c968bde529a491ab8e2f15">Conversion</a>
 </li>
 <li>stat
 : <a class="el" href="structpbm_1_1_graph_saver.html#a332322e0e0bc21b3924b51ccfa490aed">pbm::GraphSaver&lt; SAVER, &gt;</a>
 </li>
-<li>str_form_
-: <a class="el" href="structead_1_1opt_1_1_rule_conversion.html#a4086d93c0614860c194b7518d21393eb">ead::opt::RuleConversion&lt; T &gt;</a>
+<li>stat_
+: <a class="el" href="structead_1_1_session.html#a3a0015ba5ec1b64074902c26fb2905c1">ead::Session</a>
+</li>
+<li>stop()
+: <a class="el" href="structdbg_1_1_interactive_session.html#aeba1a7f96134d320eda0aad9e9fa8827">dbg::InteractiveSession</a>
+</li>
+<li>stream_duration_
+: <a class="el" href="structdbg_1_1_client_config.html#abc7106be41bff8a0cd14060c6e728b77">dbg::ClientConfig</a>
 </li>
 <li>stub_
-: <a class="el" href="structead_1_1_graph_client.html#ab7955a80dc84efc63dd441f96bc5657b">ead::GraphClient</a>
+: <a class="el" href="structdbg_1_1_graph_emitter_client.html#a7419edf952445a577f4fc969c3cd3881">dbg::GraphEmitterClient</a>
+, <a class="el" href="structdbg_1_1_interactive_session.html#ae618f5fb29a0d401b83c8f1bbc4d6384">dbg::InteractiveSession</a>
 </li>
-<li>sub_rules_
-: <a class="el" href="structead_1_1opt_1_1_func_rule.html#a0f64d1d89d032a8d7f63027e80dcc1f5">ead::opt::FuncRule&lt; T &gt;</a>
-, <a class="el" href="structead_1_1opt_1_1_variadic_func_rule.html#a48369c15a41c517940410d47b7a584d2">ead::opt::VariadicFuncRule&lt; T &gt;</a>
+<li>Subgraph()
+: <a class="el" href="structtag_1_1_subgraph.html#a50654962fb29dfc2020671f8ed001532">tag::Subgraph</a>
 </li>
-<li>sum_opcode()
-: <a class="el" href="structage_1_1i_rule_set.html#a5255c4569d7411f5b0f0b58cdc025541">age::iRuleSet</a>
+<li>subgraph_
+: <a class="el" href="struct_arg.html#a9ec966245875382456e3963bbf832431">Arg</a>
+</li>
+<li>symbols_
+: <a class="el" href="structopt_1_1_rules_context.html#a42b1753f4ab513ad5a4032c0ab096448">opt::RulesContext</a>
 </li>
 </ul>
 </div><!-- contents -->

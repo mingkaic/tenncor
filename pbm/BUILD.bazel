@@ -1,6 +1,9 @@
 licenses(["notice"])
 
-load("@protobuf_rules//cpp:cpp_proto_library.bzl", "cpp_proto_library")
+load(
+    "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
+    "cpp_proto_library"
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -59,8 +62,9 @@ cc_test(
     srcs = ["//pbm:test_srcs"],
     deps = [
         "//pbm:pbm",
-        "//dbg:dbg",
+        "//dbg:stream_out",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],
     data = glob([

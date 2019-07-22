@@ -4,28 +4,18 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/shape.hpp"
 
 
-struct SHAPE : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(SHAPE, Init)
+TEST(SHAPE, Init)
 {
 	ade::Shape scalar;
 
 	std::vector<ade::DimT> slist = {12, 43, 56};
 	ade::Shape vec(slist);
-	uint8_t n = slist.size();
+	ade::RankT n = slist.size();
 
 	std::vector<ade::DimT> longlist = {4, 23, 44, 52, 19, 92, 12, 2, 5};
 	ade::Shape lvec(longlist);
@@ -35,21 +25,21 @@ TEST_F(SHAPE, Init)
 		fmts::to_string(zerolist.begin(), zerolist.end());
 	EXPECT_FATAL(ade::Shape junk(zerolist), fatalmsg.c_str());
 
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, scalar.at(i));
 	}
 
-	for (uint8_t i = 0; i < n; ++i)
+	for (ade::RankT i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(slist[i], vec.at(i));
 	}
-	for (uint8_t i = n; i < ade::rank_cap; ++i)
+	for (ade::RankT i = n; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, vec.at(i));
 	}
 
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(longlist[i], lvec.at(i));
 	}
@@ -59,7 +49,7 @@ TEST_F(SHAPE, Init)
 }
 
 
-TEST_F(SHAPE, VecAssign)
+TEST(SHAPE, VecAssign)
 {\
 	std::vector<ade::DimT> zerolist = {3, 0, 11, 89};
 	std::vector<ade::DimT> slist = {52, 58, 35, 46, 77, 80};
@@ -82,7 +72,7 @@ TEST_F(SHAPE, VecAssign)
 }
 
 
-TEST_F(SHAPE, Moves)
+TEST(SHAPE, Moves)
 {
 	std::vector<ade::DimT> junk = {8, 51, 73};
 	std::vector<ade::DimT> slist = {24, 11, 12, 16};
@@ -94,7 +84,7 @@ TEST_F(SHAPE, Moves)
 	ade::Shape mv(std::move(orig));
 	std::vector<ade::DimT> mlist(mv.begin(), mv.end());
 	EXPECT_ARREQ(slist, mlist);
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, orig.at(i));
 	}
@@ -102,7 +92,7 @@ TEST_F(SHAPE, Moves)
 	mvassign = std::move(mv);
 	std::vector<ade::DimT> alist(mvassign.begin(), mvassign.end());
 	EXPECT_ARREQ(slist, alist);
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, mv.at(i));
 	}
@@ -110,14 +100,14 @@ TEST_F(SHAPE, Moves)
 	mvassign2 = std::move(mvassign);
 	std::vector<ade::DimT> alist2(mvassign2.begin(), mvassign2.end());
 	EXPECT_ARREQ(slist, alist2);
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		EXPECT_EQ(1, mvassign.at(i));
 	}
 }
 
 
-TEST_F(SHAPE, NElems)
+TEST(SHAPE, NElems)
 {
 	std::vector<ade::DimT> slist = {11, 12, 16};
 	ade::Shape shape(slist);
@@ -137,13 +127,13 @@ TEST_F(SHAPE, NElems)
 }
 
 
-TEST_F(SHAPE, Compatible)
+TEST(SHAPE, Compatible)
 {
 	std::vector<ade::DimT> slist = {20, 48, 10, 27, 65, 74};
 	ade::Shape shape(slist);
 
 	// shape is compatible with itself regardless of after idx
-	for (uint8_t idx = 0; idx < ade::rank_cap; ++idx)
+	for (ade::RankT idx = 0; idx < ade::rank_cap; ++idx)
 	{
 		EXPECT_TRUE(shape.compatible_after(shape, idx)) <<
 			"expect " << shape.to_string() <<
@@ -154,7 +144,7 @@ TEST_F(SHAPE, Compatible)
 	std::vector<ade::DimT> ilist = slist;
 	ilist.insert(ilist.begin() + insertion_pt, 2);
 	ade::Shape ishape(ilist);
-	for (uint8_t idx = 0; idx < insertion_pt; ++idx)
+	for (ade::RankT idx = 0; idx < insertion_pt; ++idx)
 	{
 		EXPECT_FALSE(shape.compatible_after(ishape, idx)) <<
 			"expect " << shape.to_string() <<
@@ -164,14 +154,14 @@ TEST_F(SHAPE, Compatible)
 
 	ilist[insertion_pt] = 3;
 	ade::Shape ishape2(ilist);
-	for (uint8_t idx = 0; idx <= insertion_pt; ++idx)
+	for (ade::RankT idx = 0; idx <= insertion_pt; ++idx)
 	{
 		EXPECT_FALSE(ishape.compatible_after(ishape2, idx)) <<
 			"expect " << ishape.to_string() <<
 			" to be incompatible with " << ishape2.to_string() <<
 			" after idx " << unsigned(idx);
 	}
-	for (uint8_t idx = insertion_pt + 1; idx < ade::rank_cap; ++idx)
+	for (ade::RankT idx = insertion_pt + 1; idx < ade::rank_cap; ++idx)
 	{
 		EXPECT_TRUE(ishape.compatible_after(ishape2, idx)) <<
 			"shape " << ishape.to_string() <<
@@ -181,7 +171,7 @@ TEST_F(SHAPE, Compatible)
 }
 
 
-TEST_F(SHAPE, Coordinates)
+TEST(SHAPE, Coordinates)
 {
 	std::vector<ade::DimT> slist = {9, 3, 7, 8, 5};
 	ade::Shape shape(slist);
@@ -189,7 +179,7 @@ TEST_F(SHAPE, Coordinates)
 	for (ade::NElemT i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		coord = ade::coordinate(shape, i);
-		for (uint8_t i = 0; i < ade::rank_cap; ++i)
+		for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 		{
 			EXPECT_GT(shape.at(i), coord[i]);
 		}
@@ -197,7 +187,7 @@ TEST_F(SHAPE, Coordinates)
 		EXPECT_EQ(i, idx);
 	}
 
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		coord[i] = shape.at(i);
 	}
@@ -212,7 +202,7 @@ TEST_F(SHAPE, Coordinates)
 }
 
 
-TEST_F(SHAPE, ToString)
+TEST(SHAPE, ToString)
 {
 	std::vector<ade::DimT> slist = {24, 11, 12, 16, 7, 71, 1, 1};
 	ade::Shape shape(slist);

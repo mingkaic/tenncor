@@ -1,7 +1,6 @@
 # ADE (Automatic Differentiation Engine)
 
 Provides the framework for building tensor equations.
-Despite the name, the automatic differentiation logic is actually in the BWD module
 
 ## Components
 

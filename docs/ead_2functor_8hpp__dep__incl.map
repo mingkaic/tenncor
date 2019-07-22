@@ -1,11 +1,8 @@
 <map id="ead/functor.hpp" name="ead/functor.hpp">
-<area shape="rect" id="node2" href="$interactive__dbg_8hpp.html" title="ead/dbg/interactive\l_dbg.hpp" alt="" coords="5,79,139,117"/>
-<area shape="rect" id="node3" href="$gradhelper_8hpp.html" title="ead/gradhelper.hpp" alt="" coords="163,85,299,111"/>
-<area shape="rect" id="node8" href="$session_8hpp.html" title="ead/session.hpp" alt="" coords="324,85,442,111"/>
-<area shape="rect" id="node9" href="$ead_8cpp.html" title="ead/python/ead.cpp" alt="" coords="362,165,500,191"/>
-<area shape="rect" id="node10" href="$ead_2helper_8hpp.html" title="ead/helper.hpp" alt="" coords="516,85,626,111"/>
-<area shape="rect" id="node4" href="$ead_8hpp.html" title="ead/ead.hpp" alt="" coords="237,165,332,191"/>
-<area shape="rect" id="node5" href="$rule__src_8hpp.html" title="ead/opt/rule_src.hpp" alt="" coords="213,239,356,264"/>
-<area shape="rect" id="node6" href="$conversion_8hpp.html" title="ead/opt/conversion.hpp" alt="" coords="204,312,364,337"/>
-<area shape="rect" id="node7" href="$parse_8hpp.html" title="ead/opt/parse.hpp" alt="" coords="220,385,349,411"/>
+<area shape="rect" id="node2" href="$ead_2session_8hpp.html" title="ead/session.hpp" alt="" coords="245,79,364,104"/>
+<area shape="rect" id="node7" href="$ead_8cpp.html" title="ead/python/ead.cpp" alt="" coords="303,299,442,324"/>
+<area shape="rect" id="node3" href="$dbg_2grpc_2session_8hpp.html" title="dbg/grpc/session.hpp" alt="" coords="5,225,153,251"/>
+<area shape="rect" id="node5" href="$ead_8hpp.html" title="ead/ead.hpp" alt="" coords="234,152,330,177"/>
+<area shape="rect" id="node4" href="$grpc_8cpp.html" title="dbg/python/grpc.cpp" alt="" coords="120,299,262,324"/>
+<area shape="rect" id="node6" href="$ead_2parse_8hpp.html" title="ead/parse.hpp" alt="" coords="229,225,335,251"/>
 </map>

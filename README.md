@@ -7,7 +7,7 @@
 Tenncor libraries help developers build and evaluate tensor equations and its derivatives.
 A tensor is an N-dimensional container that organizes its content by some shape. An M by N matrix for instance, is a 2-dimensional tensor with a shape of [N, M] (according to Tenncor's x-y-z-... coordinate notation).
 
-This project aims for modularity. Everything (including this project) should be easily replaceable in any high-level system.
+High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0lmFr5JGikGnU3gC/view?usp=sharing
 
 ## Components
 
@@ -16,23 +16,14 @@ This project aims for modularity. Everything (including this project) should be 
 This module supplies syntax tree for equation and generates derivative.
 Constraints to the equation is limited to each tensor's shape.
 
-- [AGE (ADE Generation Engine)](age/README_AGE.md)
+- [DBG (Debug)](ead/README_DBG.md)
 
-This generator creates glue layer between ADE and data manipulation libraries as well as map operational codes to its respective chain rule.
-
-- [BWD (Backward Operations)](bwd/README_BWD.md)
-
-This library provides traveler for generating partial derivative equations using some set of chain rules.
-
-- [LLO (Low Level Operators)](llo/README_LLO.md)
-
-This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder.
-Additionally, llo also defines data format and (de)serialization methods required by PBM.
+This module is contains debug libraries for ADE Graphs.
 
 - [EAD (Eigen ADE Operators)](ead/README_EAD.md)
 
 This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder.
-Additionally, llo also defines data format and (de)serialization methods required by PBM.
+Additionally, ead also defines data format and (de)serialization methods required by PBM.
 
 - [OPT (Optimizer)](opt/README_OPT.md)
 
@@ -42,9 +33,9 @@ This module specifies graph optimization through ADE's visitor pattern.
 
 This module marshals any ADE graph, but requires data serialization functors when saving and loading.
 
-- [Pybinder](pybinder/README_PY.md)
+- [TAG (Tagger)](tag/README_TAG.md)
 
-This generator extends Tenncor's AGE generator. In this instance, on top of generating the ADE operators specified in LLO, pybinder generates pybind11 binding code.
+This module tags ADE tensors with labels.
 
 ## Tools and utility
 
@@ -52,6 +43,6 @@ This generator extends Tenncor's AGE generator. In this instance, on top of gene
 
 ## Building
 
-Tenncor uses bazel 0.15+.
+Tenncor uses bazel 0.28+.
 
 Download bazel: https://docs.bazel.build/versions/master/install.html

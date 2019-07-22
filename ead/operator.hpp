@@ -7,7 +7,7 @@
 /// No function in this file makes any attempt to check for nullptrs
 ///
 
-#include "ead/tensor.hpp"
+#include "ead/eigen.hpp"
 #include "ead/coord.hpp"
 #include "ead/random.hpp"
 
@@ -38,15 +38,15 @@ struct OpArg final
 
 template <typename OP, size_t N, typename T>
 using ReduceOutT = Eigen::TensorReductionOp<OP,
-	const std::array<ade::DimT,N>,const TensMapT<T>>;
+	const std::array<ade::RankT,N>,const TensMapT<T>>;
 
 namespace internal
 {
 
 template <size_t N>
-inline std::array<ade::DimT,N> dim_copy (std::vector<ade::DimT> d)
+inline std::array<ade::RankT,N> dim_copy (std::vector<ade::RankT> d)
 {
-	std::array<ade::DimT,N> out;
+	std::array<ade::RankT,N> out;
 	auto it = d.begin();
 	std::copy(it, it + N, out.begin());
 	return out;
@@ -62,9 +62,9 @@ make_tensmap(in.data_, in.shape_));
 	assert(nullptr != in.coorder_);\
 	ade::CoordT coord;\
 	in.coorder_->forward(coord.begin(), coord.begin());\
-	std::vector<ade::DimT> vdims;\
+	std::vector<ade::RankT> vdims;\
 	std::copy_if(coord.begin(), coord.end(), std::back_inserter(vdims),\
-		[](ade::DimT d) { return d < ade::rank_cap; });\
+		[](ade::RankT d) { return d < ade::rank_cap; });\
 	switch (vdims.size()) {\
 		_EAD_INTERNAL_V2A_CASE(0, PROCESS, RED)\
 		_EAD_INTERNAL_V2A_CASE(1, PROCESS, RED)\
@@ -126,6 +126,55 @@ EigenptrT<T> permute (ade::Shape& outshape, const OpArg<T>& in)
 		[reorder](TensMapT<T>& in)
 		{
 			return in.shuffle(reorder);
+		}, make_tensmap(in.data_, in.shape_));
+}
+
+template <typename T>
+EigenptrT<T> slice (ade::Shape& outshape, const OpArg<T>& in)
+{
+	assert(nullptr != in.coorder_);
+	ade::CoordT slicing;
+	in.coorder_->forward(slicing.begin(), slicing.begin());
+	ade::ShapeT offset;
+	ade::ShapeT extent;
+	std::fill(offset.begin(), offset.end(), 0);
+	std::copy(in.shape_.begin(), in.shape_.end(), extent.begin());
+	ade::RankT dimension = slicing[2];
+	offset[dimension] = slicing[0];
+	extent[dimension] = slicing[1];
+	return make_eigentensor<T,Eigen::TensorSlicingOp<
+			const ade::ShapeT, const ade::ShapeT,
+			ead::TensMapT<T>
+		>,
+		TensMapT<T>>(
+		shape_convert(outshape),
+		[&offset, &extent](TensMapT<T>& in)
+		{
+			return in.slice(offset, extent);
+		}, make_tensmap(in.data_, in.shape_));
+}
+
+template <typename T>
+EigenptrT<T> pad (ade::Shape& outshape, const OpArg<T>& in)
+{
+	assert(nullptr != in.coorder_);
+	ade::CoordT padding;
+	in.coorder_->forward(padding.begin(), padding.begin());
+	std::array<std::pair<ade::DimT,ade::DimT>,ade::rank_cap> paddings;
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
+	{
+		paddings[i] = std::make_pair(0, 0);
+	}
+	paddings[padding[2]] = std::make_pair(padding[0], padding[1]);
+	return make_eigentensor<T,Eigen::TensorPaddingOp<
+			const std::array<std::pair<ade::DimT,ade::DimT>,ade::rank_cap>,
+			const ead::TensMapT<T>
+		>,
+		TensMapT<T>>(
+		shape_convert(outshape),
+		[&paddings](TensMapT<T>& in)
+		{
+			return in.pad(paddings);
 		}, make_tensmap(in.data_, in.shape_));
 }
 
@@ -935,6 +984,38 @@ EigenptrT<T> rand_uniform (ade::Shape& outshape, const OpArg<T>& a, const OpArg<
 }
 
 template <typename T>
+EigenptrT<T> select (ade::Shape& outshape,
+	const OpArg<T>& condition,
+	const OpArg<T>& then, const OpArg<T>& otherwise)
+{
+	if (is_2d(outshape))
+	{
+		// use matrix when possible
+		return make_eigenmatrix<T,
+			Eigen::Select<MatMapT<T>,MatMapT<T>,MatMapT<T>>,
+			std::vector<MatMapT<T>>>(shape_convert(outshape),
+			[](std::vector<MatMapT<T>>& args) -> Eigen::Select<MatMapT<T>,MatMapT<T>,MatMapT<T>>
+			{
+				return args[0].select(args[1], args[2]);
+			}, {
+				make_matmap(condition.data_, condition.shape_),
+				make_matmap(then.data_, then.shape_),
+				make_matmap(otherwise.data_, otherwise.shape_)});
+	}
+	return make_eigentensor<T,
+		Eigen::TensorSelectOp<const TensMapT<T>,
+			const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[](std::vector<TensMapT<T>>& args) -> Eigen::TensorSelectOp<const TensMapT<T>,const TensMapT<T>,const TensMapT<T>>
+		{
+			return args[0].select(args[1], args[2]);
+		}, {
+			make_tensmap(condition.data_, condition.shape_),
+			make_tensmap(then.data_, then.shape_),
+			make_tensmap(otherwise.data_, otherwise.shape_)});
+}
+
+template <typename T>
 EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
 	assert(is_2d(outshape));
@@ -949,9 +1030,138 @@ EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 }
 
 template <typename T>
-EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
+EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& input, const OpArg<T>& kernel)
 {
-	throw std::bad_function_call(); // todo: implement
+	assert(nullptr != kernel.coorder_);
+	ade::CoordT kernel_dims;
+	kernel.coorder_->forward(kernel_dims.begin(), kernel_dims.begin());
+	ade::ShapeT dims;
+	std::copy(kernel_dims.begin(), kernel_dims.end(), dims.begin());
+
+	return make_eigentensor<T,Eigen::TensorConvolutionOp<
+		const ade::ShapeT,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape),
+		[&](std::vector<TensMapT<T>>& args)
+		{
+			return args[0].convolve(args[1], dims);
+		}, {
+			make_tensmap(input.data_, input.shape_),
+			make_tensmap(kernel.data_, kernel.shape_)});
+}
+
+template <typename T>
+EigenptrT<T> convolution_image_grad (ade::Shape& imageshape,
+	const OpArg<T>& kernel, const OpArg<T>& super_composite)
+{
+	return make_eigentensor<T,
+		Eigen::TensorReductionOp<Eigen::internal::SumReducer<T>,
+			const ade::ShapeT,
+			const Eigen::TensorCwiseBinaryOp<
+				Eigen::internal::scalar_product_op<T,T>,
+				const Eigen::TensorBroadcastingOp<
+					const std::array<ade::DimT,ade::rank_cap+1>,
+					const Eigen::TensorReshapingOp<
+						const std::array<ade::DimT,ade::rank_cap+1>,
+						Eigen::TensorReverseOp<
+							const std::array<bool,ade::rank_cap>,
+							ead::TensMapT<T>
+						>
+					>
+				>,
+				const Eigen::TensorPatchOp<
+					const ade::ShapeT,
+					const Eigen::TensorPaddingOp<
+						const std::array<std::pair<int,int>,ade::rank_cap>,
+						const ead::TensMapT<T>
+					>
+				>
+			>
+		>,
+		std::vector<TensMapT<T>>>(shape_convert(imageshape),
+		[&](std::vector<TensMapT<T>>& args)
+		{
+			auto& outshape = super_composite.shape_;
+
+			ade::ShapeT patch_dims;
+			std::copy(outshape.begin(), outshape.end(), patch_dims.begin());
+			Eigen::array<std::pair<int,int>,ade::rank_cap> paddings;
+			for (ade::RankT i = 0; i < ade::rank_cap; ++i)
+			{
+				int paddsize = outshape.at(i) - 1;
+				paddings[i] = std::make_pair(paddsize, paddsize);
+			}
+			auto patched = args[0].pad(paddings)
+				.extract_patches(patch_dims);
+
+			std::array<bool,ade::rank_cap> revflags;
+			std::fill(revflags.begin(), revflags.end(), true);
+			std::array<ade::DimT,ade::rank_cap+1> pshape;
+			std::copy(outshape.begin(), outshape.end(), pshape.begin());
+			pshape[ade::rank_cap] = 1;
+			std::array<ade::DimT,ade::rank_cap+1> expansion;
+			std::fill(expansion.begin(), expansion.end(), 1);
+			expansion[ade::rank_cap] = imageshape.n_elems();
+			auto partial = args[1]
+				.reverse(revflags)
+				.reshape(pshape)
+				.broadcast(expansion) * patched;
+
+			ade::ShapeT shapespace;
+			std::iota(shapespace.begin(), shapespace.end(), 0);
+			return partial.sum(shapespace);
+		}, {
+			make_tensmap(kernel.data_, kernel.shape_),
+			make_tensmap(super_composite.data_, super_composite.shape_)});
+}
+
+template <typename T>
+EigenptrT<T> convolution_kernel_grad (ade::Shape& kernelshape,
+	const OpArg<T>& image, const OpArg<T>& super_composite)
+{
+	return make_eigentensor<T,
+		Eigen::TensorReductionOp<Eigen::internal::SumReducer<T>,
+			const ade::ShapeT,
+			const Eigen::TensorCwiseBinaryOp<
+				Eigen::internal::scalar_product_op<T,T>,
+				const Eigen::TensorBroadcastingOp<
+					const std::array<ade::DimT,ade::rank_cap+1>,
+					const Eigen::TensorReshapingOp<
+						const std::array<ade::DimT,ade::rank_cap+1>,
+						ead::TensMapT<T>
+					>
+				>,
+				const Eigen::TensorPatchOp<
+					const ade::ShapeT,
+					const ead::TensMapT<T>
+				>
+			>
+		>,
+		std::vector<TensMapT<T>>>(shape_convert(kernelshape),
+		[&](std::vector<TensMapT<T>>& args)
+		{
+			auto& outshape = super_composite.shape_;
+
+			ade::ShapeT patch_dims;
+			std::copy(outshape.begin(), outshape.end(), patch_dims.begin());
+			auto patched = args[0].extract_patches(patch_dims);
+
+			std::array<ade::DimT,ade::rank_cap+1> pshape;
+			std::copy(outshape.begin(), outshape.end(), pshape.begin());
+			pshape[ade::rank_cap] = 1;
+			std::array<ade::DimT,ade::rank_cap+1> expansion;
+			std::fill(expansion.begin(), expansion.end(), 1);
+			expansion[ade::rank_cap] = kernelshape.n_elems();
+			auto partial = args[1]
+				.reshape(pshape)
+				.broadcast(expansion) * patched;
+
+			ade::ShapeT shapespace;
+			std::iota(shapespace.begin(), shapespace.end(), 0);
+			return partial.sum(shapespace);
+		}, {
+			make_tensmap(image.data_, image.shape_),
+			make_tensmap(super_composite.data_, super_composite.shape_)});
 }
 
 }

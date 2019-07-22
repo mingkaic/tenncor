@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/test/common.hpp"
 
@@ -12,17 +12,7 @@
 #include "ade/traveler.hpp"
 
 
-struct TRAVELER : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(TRAVELER, GraphStat)
+TEST(TRAVELER, GraphStat)
 {
 	ade::TensptrT a(new MockTensor());
 	ade::TensptrT b(new MockTensor());
@@ -40,15 +30,15 @@ TEST_F(TRAVELER, GraphStat)
 
 	ade::GraphStat stat;
 	g->accept(stat);
-	EXPECT_EQ(2, stat.graphsize_[g.get()]);
-	EXPECT_EQ(1, stat.graphsize_[f.get()]);
-	EXPECT_EQ(0, stat.graphsize_[c.get()]);
-	EXPECT_EQ(0, stat.graphsize_[a.get()]);
-	EXPECT_EQ(0, stat.graphsize_[b.get()]);
+	EXPECT_EQ(2, stat.graphsize_[g.get()].upper_);
+	EXPECT_EQ(1, stat.graphsize_[f.get()].upper_);
+	EXPECT_EQ(0, stat.graphsize_[c.get()].upper_);
+	EXPECT_EQ(0, stat.graphsize_[a.get()].upper_);
+	EXPECT_EQ(0, stat.graphsize_[b.get()].upper_);
 }
 
 
-TEST_F(TRAVELER, PathFinder)
+TEST(TRAVELER, PathFinder)
 {
 	ade::TensptrT a(new MockTensor());
 	ade::TensptrT b(new MockTensor());
@@ -68,40 +58,141 @@ TEST_F(TRAVELER, PathFinder)
 	g->accept(finder);
 
 	{
-		auto it = finder.parents_.find(g.get());
-		ASSERT_TRUE(finder.parents_.end() != it);
-		EXPECT_TRUE(it->second.end() != it->second.find(1));
+		ASSERT_HAS(finder.parents_, g.get());
+		EXPECT_HAS(finder.parents_[g.get()], 1);
 
-		it = finder.parents_.find(f.get());
-		ASSERT_TRUE(finder.parents_.end() != it);
-		EXPECT_TRUE(it->second.end() != it->second.find(0));
+		ASSERT_HAS(finder.parents_, f.get());
+		EXPECT_HAS(finder.parents_[f.get()], 0);
 	}
 
 	finder.parents_.clear();
 	f->accept(finder);
 
 	{
-		ASSERT_TRUE(finder.parents_.end() == finder.parents_.find(g.get()));
+		ASSERT_HASNOT(finder.parents_, g.get());
 
-		auto it = finder.parents_.find(f.get());
-		ASSERT_TRUE(finder.parents_.end() != it);
-		EXPECT_TRUE(it->second.end() != it->second.find(0));
+		ASSERT_HAS(finder.parents_, f.get());
+		EXPECT_HAS(finder.parents_[f.get()], 0);
 	}
 
 	ade::PathFinder finder2(c.get());
 	g->accept(finder2);
 
 	{
-		auto it = finder2.parents_.find(g.get());
-		ASSERT_TRUE(finder2.parents_.end() != it);
-		EXPECT_TRUE(it->second.end() != it->second.find(0));
+		ASSERT_HAS(finder2.parents_, g.get());
+		EXPECT_HAS(finder2.parents_[g.get()], 0);
 	}
 
 	finder2.parents_.clear();
 	f->accept(finder2);
 
-	ASSERT_TRUE(finder2.parents_.end() == finder2.parents_.find(f.get()));
+	EXPECT_HASNOT(finder2.parents_, f.get());
 	EXPECT_EQ(0, finder2.parents_.size());
+}
+
+
+TEST(TRAVELER, ReverseParentGraph)
+{
+	ade::TensptrT a(new MockTensor());
+	ade::TensptrT b(new MockTensor());
+	ade::TensptrT c(new MockTensor());
+
+	ade::TensptrT f(ade::Functor::get(ade::Opcode{"f", 1}, {
+		ade::identity_map(a),
+		ade::identity_map(b),
+	}));
+
+	ade::TensptrT g(ade::Functor::get(ade::Opcode{"g", 2}, {
+		ade::identity_map(f),
+		ade::identity_map(b),
+	}));
+
+	ade::TensptrT h(ade::Functor::get(ade::Opcode{"h", 3}, {
+		ade::identity_map(c),
+		ade::identity_map(f),
+		ade::identity_map(g),
+	}));
+
+	ade::ParentFinder finder;
+	h->accept(finder);
+
+	// expect: a -> [f], b -> [f, g], c -> [h], f -> [g, h], g -> [h], h -> []
+	auto& parents = finder.parents_;
+	auto aparents = parents[a.get()];
+	auto bparents = parents[b.get()];
+	auto cparents = parents[c.get()];
+	auto fparents = parents[f.get()];
+	auto gparents = parents[g.get()];
+	auto hparents = parents[h.get()];
+
+	EXPECT_EQ(1, aparents.size());
+	EXPECT_EQ(2, bparents.size());
+	EXPECT_EQ(1, cparents.size());
+	EXPECT_EQ(2, fparents.size());
+	EXPECT_EQ(1, gparents.size());
+	EXPECT_EQ(0, hparents.size());
+
+	EXPECT_HAS(aparents, f.get());
+	EXPECT_HAS(bparents, f.get());
+	EXPECT_HAS(bparents, g.get());
+	EXPECT_HAS(cparents, h.get());
+	EXPECT_HAS(fparents, g.get());
+	EXPECT_HAS(fparents, h.get());
+	EXPECT_HAS(gparents, h.get());
+}
+
+
+TEST(TRAVELER, Owners)
+{
+	ade::OwnerMapT owners;
+	ade::TensptrT a(new MockTensor());
+	ade::TensptrT b(new MockTensor());
+	ade::TensptrT c(new MockTensor());
+	ade::iTensor* fref;
+	ade::iTensor* gref;
+	{
+		ade::TensptrT f(ade::Functor::get(ade::Opcode{"f", 1}, {
+			ade::identity_map(a),
+			ade::identity_map(b),
+		}));
+
+		ade::TensptrT g(ade::Functor::get(ade::Opcode{"g", 2}, {
+			ade::identity_map(f),
+			ade::identity_map(c),
+		}));
+		fref = f.get();
+		gref = g.get();
+
+		owners = ade::track_owners({g});
+		ASSERT_HAS(owners, a.get());
+		ASSERT_HAS(owners, b.get());
+		ASSERT_HAS(owners, c.get());
+		ASSERT_HAS(owners, fref);
+		ASSERT_HAS(owners, gref);
+
+		EXPECT_FALSE(owners[a.get()].expired());
+		EXPECT_FALSE(owners[b.get()].expired());
+		EXPECT_FALSE(owners[c.get()].expired());
+		EXPECT_FALSE(owners[fref].expired());
+		EXPECT_FALSE(owners[gref].expired());
+
+		auto alocked = owners[a.get()].lock();
+		auto blocked = owners[b.get()].lock();
+		auto clocked = owners[c.get()].lock();
+		auto flocked = owners[fref].lock();
+		auto glocked = owners[gref].lock();
+		EXPECT_EQ(a.use_count(), alocked.use_count());
+		EXPECT_EQ(b.use_count(), blocked.use_count());
+		EXPECT_EQ(c.use_count(), clocked.use_count());
+		EXPECT_EQ(f.use_count(), flocked.use_count());
+		EXPECT_EQ(g.use_count(), glocked.use_count());
+	}
+
+	EXPECT_FALSE(owners[a.get()].expired());
+	EXPECT_FALSE(owners[b.get()].expired());
+	EXPECT_FALSE(owners[c.get()].expired());
+	EXPECT_TRUE(owners[fref].expired());
+	EXPECT_TRUE(owners[gref].expired());
 }
 
 
