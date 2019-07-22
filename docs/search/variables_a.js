@@ -4,6 +4,6 @@ var searchData=
   ['label_5fdelim',['label_delim',['../ade__csv_8hpp.html#abe66766bd31aecbdbde62e22f2e53b52',1,'ade_csv.hpp']]],
   ['label_5flimit',['label_limit',['../namespaceead.html#a26f3aaccd06e1e585408119bda2db44d',1,'ead']]],
   ['labels_5f',['labels_',['../struct_pretty_equation.html#a48e82321023511d6d996d143373d62e6',1,'PrettyEquation::labels_()'],['../struct_c_s_v_equation.html#a907bbbcee85d465621531ef43de20451',1,'CSVEquation::labels_()'],['../structtag_1_1_group_tag.html#a8e7be9cd8aad902769c68d61025b5a11',1,'tag::GroupTag::labels_()'],['../structtag_1_1_prop_tag.html#a4af44491ae89b354912d06c3ff184d7f',1,'tag::PropTag::labels_()']]],
-  ['leaves_5f',['leaves_',['../structpbm_1_1_graph_saver.html#a018275de799a0dffc764226e5cf01039',1,'pbm::GraphSaver']]],
+  ['leaves_5f',['leaves_',['../structade_1_1_height_matrix.html#a90ca063c213023ec930d9b5ea3824a7d',1,'ade::HeightMatrix::leaves_()'],['../structpbm_1_1_graph_saver.html#a018275de799a0dffc764226e5cf01039',1,'pbm::GraphSaver::leaves_()']]],
   ['lower_5f',['lower_',['../structade_1_1_num_range.html#aa95193c3d7f6816317d6c7b058180b64',1,'ade::NumRange']]]
 ];

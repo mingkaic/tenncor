@@ -20,7 +20,7 @@ var searchData=
   ['max',['max',['../namespaceead.html#a357e8fef2b64acf7c4a796fcf21412ab',1,'ead']]],
   ['min',['min',['../namespaceead.html#a656f837a1972833c7dabdb410ac6cc56',1,'ead']]],
   ['move_5fhelper',['move_helper',['../structade_1_1_shape.html#ae2cffe358880cabd1a4a06b56c15e2b5',1,'ade::Shape']]],
-  ['move_5ftags',['move_tags',['../namespacetag.html#a4ee7bc96e772081881d51e8dee7b5a16',1,'tag']]],
+  ['move_5ftags',['move_tags',['../structtag_1_1_tag_registry.html#a07de6ec00ff67e1bfa86781e9ae412fd',1,'tag::TagRegistry']]],
   ['mul',['mul',['../namespaceead.html#a24b2c4340e76ca66e27bbd5fb2037feb',1,'ead']]],
   ['multigraph_5fto_5fcsvimg',['multigraph_to_csvimg',['../namespacedbg__wrapper.html#a2a53b525d2282677b2ef3727387f3b27',1,'dbg_wrapper']]],
   ['multiline_5freplace',['multiline_replace',['../ade__csv_8hpp.html#a5b3fcd17e03950902721ad766466e955',1,'ade_csv.hpp']]]

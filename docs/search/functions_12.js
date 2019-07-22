@@ -1,6 +1,7 @@
 var searchData=
 [
   ['tag_5fid',['tag_id',['../structtag_1_1_group_tag.html#ab0e230388213b2894b67a1f17a2726d9',1,'tag::GroupTag::tag_id()'],['../structtag_1_1_prop_tag.html#a2e89ad78d0103508a1a22283c3757b3f',1,'tag::PropTag::tag_id()'],['../structtag_1_1i_tag.html#af374ac0bd33246450ba8b8fe029e8222',1,'tag::iTag::tag_id()']]],
+  ['tagcollective',['TagCollective',['../structtag_1_1_tag_collective.html#ae6e513a6b74bdccc23b100fa3f41e7c2',1,'tag::TagCollective::TagCollective(void)=default'],['../structtag_1_1_tag_collective.html#a0e09d7ef987552ddcf654a0432f3c02e',1,'tag::TagCollective::TagCollective(TagCollective &amp;&amp;other)']]],
   ['tan',['tan',['../namespaceead.html#a011a1b2f6656f2dc145aa7c761fa9c2d',1,'ead']]],
   ['tanh',['tanh',['../namespaceead.html#a2b1a3b72e262aecf6302d23147e225c3',1,'ead']]],
   ['tens_5fto_5fmatmap',['tens_to_matmap',['../namespaceead.html#addf851de2d1ef37c044346e91d45b27e',1,'ead']]],

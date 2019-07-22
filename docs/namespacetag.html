@@ -73,20 +73,22 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_adjacent_groups.html">AdjacentGroups</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_group_registry.html">GroupRegistry</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_group_tag.html">GroupTag</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1i_tag.html">iTag</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_property_registry.html">PropertyRegistry</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_prop_tag.html">PropTag</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structtag_1_1_prop_tag.html" title="PropTag (properties tag) define node properties. ">PropTag</a> (properties tag) define node properties.  <a href="structtag_1_1_prop_tag.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_registry.html">Registry</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_subgraph.html">Subgraph</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_tag_collective.html">TagCollective</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_tag_registry.html">TagRegistry</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtag_1_1_tens_key.html">TensKey</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -99,10 +101,14 @@ Typedefs</h2></td></tr>
 <tr class="separator:addf439ead4f6f407bc96336c93f7567c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc952604313a2e54d27b022e4334e420"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#adc952604313a2e54d27b022e4334e420">AGroupsT</a> = std::map&lt; std::string, std::unordered_set&lt; std::string &gt; &gt;</td></tr>
 <tr class="separator:adc952604313a2e54d27b022e4334e420"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cba46943ca1c23cb7f1c104a02ef2b5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a9cba46943ca1c23cb7f1c104a02ef2b5">AdjMapT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *, <a class="el" href="namespacetag.html#adc952604313a2e54d27b022e4334e420">AGroupsT</a> &gt;</td></tr>
+<tr class="separator:a9cba46943ca1c23cb7f1c104a02ef2b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a799daa4d02d6030d2815541ca8148442"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a799daa4d02d6030d2815541ca8148442">SgraphptrT</a> = std::shared_ptr&lt; <a class="el" href="structtag_1_1_subgraph.html">Subgraph</a> &gt;</td></tr>
 <tr class="separator:a799daa4d02d6030d2815541ca8148442"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6b2bb2596e8ead524b0b04aea7ca774"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#ad6b2bb2596e8ead524b0b04aea7ca774">SubgraphsT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *, <a class="el" href="namespacetag.html#a799daa4d02d6030d2815541ca8148442">SgraphptrT</a> &gt;</td></tr>
-<tr class="separator:ad6b2bb2596e8ead524b0b04aea7ca774"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33ee08663a9b9fd39bfc61dcf47604fa"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a33ee08663a9b9fd39bfc61dcf47604fa">SubgraphsT</a> = std::unordered_set&lt; <a class="el" href="namespacetag.html#a799daa4d02d6030d2815541ca8148442">SgraphptrT</a> &gt;</td></tr>
+<tr class="separator:a33ee08663a9b9fd39bfc61dcf47604fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2f24f29bddead334851d7de69798871"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#ac2f24f29bddead334851d7de69798871">SubgraphAssocsT</a> = std::unordered_map&lt; <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *, <a class="el" href="namespacetag.html#a33ee08663a9b9fd39bfc61dcf47604fa">SubgraphsT</a> &gt;</td></tr>
+<tr class="separator:ac2f24f29bddead334851d7de69798871"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac049e8dda273046c337417103805d260"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#ac049e8dda273046c337417103805d260">TagRepsT</a> = std::map&lt; std::string, std::vector&lt; std::string &gt; &gt;</td></tr>
 <tr class="separator:ac049e8dda273046c337417103805d260"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc9a6249e41256c44b77accfebc7b8d7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#afc9a6249e41256c44b77accfebc7b8d7">TagptrT</a> = std::unique_ptr&lt; <a class="el" href="structtag_1_1i_tag.html">iTag</a> &gt;</td></tr>
@@ -110,26 +116,22 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a16f65cacbc659d012362f02ad3762260"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a16f65cacbc659d012362f02ad3762260">group_tag</a> (<a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">ade::TensrefT</a> tens, std::string group)</td></tr>
-<tr class="separator:a16f65cacbc659d012362f02ad3762260"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8722a11a0c0683b61e72fd8f644f3422"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a8722a11a0c0683b61e72fd8f644f3422">recursive_group_tag</a> (<a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">ade::TensrefT</a> tens, std::string group, std::unordered_set&lt; <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&gt; stops)</td></tr>
-<tr class="separator:a8722a11a0c0683b61e72fd8f644f3422"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa9963312ce07bf792281db3a595a6426"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#aa9963312ce07bf792281db3a595a6426">beautify_groups</a> (<a class="el" href="namespacetag.html#ad6b2bb2596e8ead524b0b04aea7ca774">SubgraphsT</a> &amp;out, const <a class="el" href="structtag_1_1_adjacent_groups.html">AdjacentGroups</a> &amp;adjgroups)</td></tr>
-<tr class="separator:aa9963312ce07bf792281db3a595a6426"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a080214b6a7ca41522b266ce97650eb07"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a080214b6a7ca41522b266ce97650eb07">property_tag</a> (<a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">ade::TensrefT</a> tens, std::string property)</td></tr>
-<tr class="separator:a080214b6a7ca41522b266ce97650eb07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3a3028cddc0e30c31c77b3d1deaddd4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#ae3a3028cddc0e30c31c77b3d1deaddd4">has_property</a> (const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *tens, std::string property)</td></tr>
-<tr class="separator:ae3a3028cddc0e30c31c77b3d1deaddd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e04df7870f604a8504beb991ff14729"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtag_1_1_group_registry.html">GroupRegistry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a8e04df7870f604a8504beb991ff14729">get_group_reg</a> (void)</td></tr>
+<tr class="separator:a8e04df7870f604a8504beb991ff14729"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a190dd220f8248370fa8b2f492dce0ffe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a190dd220f8248370fa8b2f492dce0ffe">recursive_group_tag</a> (<a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">ade::TensrefT</a> tens, std::string group, std::unordered_set&lt; <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&gt; stops, <a class="el" href="structtag_1_1_group_registry.html">GroupRegistry</a> &amp;registry=<a class="el" href="namespacetag.html#a8e04df7870f604a8504beb991ff14729">get_group_reg</a>())</td></tr>
+<tr class="separator:a190dd220f8248370fa8b2f492dce0ffe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4b6ab2660636d5db56a3aa17e7b9d59"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#ab4b6ab2660636d5db56a3aa17e7b9d59">adjacencies</a> (<a class="el" href="namespacetag.html#a9cba46943ca1c23cb7f1c104a02ef2b5">AdjMapT</a> &amp;out, <a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a> roots, <a class="el" href="structtag_1_1_group_registry.html">GroupRegistry</a> &amp;registry=<a class="el" href="namespacetag.html#a8e04df7870f604a8504beb991ff14729">get_group_reg</a>())</td></tr>
+<tr class="separator:ab4b6ab2660636d5db56a3aa17e7b9d59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60139f3d71faad8153bf0a24f818c80e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a60139f3d71faad8153bf0a24f818c80e">beautify_groups</a> (<a class="el" href="namespacetag.html#ac2f24f29bddead334851d7de69798871">SubgraphAssocsT</a> &amp;out, const <a class="el" href="namespacetag.html#a9cba46943ca1c23cb7f1c104a02ef2b5">AdjMapT</a> &amp;adjs)</td></tr>
+<tr class="separator:a60139f3d71faad8153bf0a24f818c80e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad69a8c01b57b92a62b370bec143f106c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#ad69a8c01b57b92a62b370bec143f106c">filter_head</a> (<a class="el" href="namespacetag.html#ac2f24f29bddead334851d7de69798871">SubgraphAssocsT</a> &amp;out, const <a class="el" href="namespacetag.html#ac2f24f29bddead334851d7de69798871">SubgraphAssocsT</a> &amp;assocs)</td></tr>
+<tr class="separator:ad69a8c01b57b92a62b370bec143f106c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8645c33a6750979e7a7ee65821b58b63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtag_1_1_property_registry.html">PropertyRegistry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a8645c33a6750979e7a7ee65821b58b63">get_property_reg</a> (void)</td></tr>
+<tr class="separator:a8645c33a6750979e7a7ee65821b58b63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ebe3b9d6317d1950925dae1ef97bc41"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a7ebe3b9d6317d1950925dae1ef97bc41">operator==</a> (const <a class="el" href="structtag_1_1_tens_key.html">TensKey</a> &amp;lhs, const <a class="el" href="structtag_1_1_tens_key.html">TensKey</a> &amp;rhs)</td></tr>
 <tr class="separator:a7ebe3b9d6317d1950925dae1ef97bc41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3aa6aba143db4a76f0fe596162c8986"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtag_1_1_tag_collective.html">TagCollective</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#ad3aa6aba143db4a76f0fe596162c8986">get_collective</a> (<a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">ade::TensrefT</a> tens)</td></tr>
-<tr class="separator:ad3aa6aba143db4a76f0fe596162c8986"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acedea0296087b1621195f2c4956d2911"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetag.html#ac049e8dda273046c337417103805d260">TagRepsT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#acedea0296087b1621195f2c4956d2911">get_tags</a> (const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *tens)</td></tr>
-<tr class="separator:acedea0296087b1621195f2c4956d2911"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0dc64d26cb80976ee57c3441ef8ec58d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a0dc64d26cb80976ee57c3441ef8ec58d">erase</a> (const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *tens)</td></tr>
-<tr class="separator:a0dc64d26cb80976ee57c3441ef8ec58d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ee7bc96e772081881d51e8dee7b5a16"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#a4ee7bc96e772081881d51e8dee7b5a16">move_tags</a> (const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *dest, const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *source)</td></tr>
-<tr class="separator:a4ee7bc96e772081881d51e8dee7b5a16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad59098e3480c1d395b4b72098a6c0ab7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtag_1_1_tag_registry.html">TagRegistry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetag.html#ad59098e3480c1d395b4b72098a6c0ab7">get_reg</a> (void)</td></tr>
+<tr class="separator:ad59098e3480c1d395b4b72098a6c0ab7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -143,6 +145,20 @@ Variables</h2></td></tr>
 <tr class="separator:ad9cbcc3428600060081653e38c3c611a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
+<a id="a9cba46943ca1c23cb7f1c104a02ef2b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cba46943ca1c23cb7f1c104a02ef2b5">&#9670;&nbsp;</a></span>AdjMapT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacetag.html#a9cba46943ca1c23cb7f1c104a02ef2b5">tag::AdjMapT</a> = typedef std::unordered_map&lt;<a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a>*,<a class="el" href="namespacetag.html#adc952604313a2e54d27b022e4334e420">AGroupsT</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="adc952604313a2e54d27b022e4334e420"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adc952604313a2e54d27b022e4334e420">&#9670;&nbsp;</a></span>AGroupsT</h2>
 
@@ -171,14 +187,28 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="ad6b2bb2596e8ead524b0b04aea7ca774"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad6b2bb2596e8ead524b0b04aea7ca774">&#9670;&nbsp;</a></span>SubgraphsT</h2>
+<a id="ac2f24f29bddead334851d7de69798871"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2f24f29bddead334851d7de69798871">&#9670;&nbsp;</a></span>SubgraphAssocsT</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="namespacetag.html#ad6b2bb2596e8ead524b0b04aea7ca774">tag::SubgraphsT</a> = typedef std::unordered_map&lt;<a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a>*,<a class="el" href="namespacetag.html#a799daa4d02d6030d2815541ca8148442">SgraphptrT</a>&gt;</td>
+          <td class="memname">using <a class="el" href="namespacetag.html#ac2f24f29bddead334851d7de69798871">tag::SubgraphAssocsT</a> = typedef std::unordered_map&lt;<a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a>*,<a class="el" href="namespacetag.html#a33ee08663a9b9fd39bfc61dcf47604fa">SubgraphsT</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a33ee08663a9b9fd39bfc61dcf47604fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33ee08663a9b9fd39bfc61dcf47604fa">&#9670;&nbsp;</a></span>SubgraphsT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacetag.html#a33ee08663a9b9fd39bfc61dcf47604fa">tag::SubgraphsT</a> = typedef std::unordered_set&lt;<a class="el" href="namespacetag.html#a799daa4d02d6030d2815541ca8148442">SgraphptrT</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -228,8 +258,42 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="aa9963312ce07bf792281db3a595a6426"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9963312ce07bf792281db3a595a6426">&#9670;&nbsp;</a></span>beautify_groups()</h2>
+<a id="ab4b6ab2660636d5db56a3aa17e7b9d59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4b6ab2660636d5db56a3aa17e7b9d59">&#9670;&nbsp;</a></span>adjacencies()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void tag::adjacencies </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetag.html#a9cba46943ca1c23cb7f1c104a02ef2b5">AdjMapT</a> &amp;&#160;</td>
+          <td class="paramname"><em>out</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a>&#160;</td>
+          <td class="paramname"><em>roots</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtag_1_1_group_registry.html">GroupRegistry</a> &amp;&#160;</td>
+          <td class="paramname"><em>registry</em> = <code><a class="el" href="namespacetag.html#a8e04df7870f604a8504beb991ff14729">get_group_reg</a>()</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a60139f3d71faad8153bf0a24f818c80e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60139f3d71faad8153bf0a24f818c80e">&#9670;&nbsp;</a></span>beautify_groups()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -237,14 +301,14 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">void tag::beautify_groups </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetag.html#ad6b2bb2596e8ead524b0b04aea7ca774">SubgraphsT</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetag.html#ac2f24f29bddead334851d7de69798871">SubgraphAssocsT</a> &amp;&#160;</td>
           <td class="paramname"><em>out</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="structtag_1_1_adjacent_groups.html">AdjacentGroups</a> &amp;&#160;</td>
-          <td class="paramname"><em>adjgroups</em>&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetag.html#a9cba46943ca1c23cb7f1c104a02ef2b5">AdjMapT</a> &amp;&#160;</td>
+          <td class="paramname"><em>adjs</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -256,77 +320,23 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a0dc64d26cb80976ee57c3441ef8ec58d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0dc64d26cb80976ee57c3441ef8ec58d">&#9670;&nbsp;</a></span>erase()</h2>
+<a id="ad69a8c01b57b92a62b370bec143f106c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad69a8c01b57b92a62b370bec143f106c">&#9670;&nbsp;</a></span>filter_head()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void tag::erase </td>
+          <td class="memname">void tag::filter_head </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&#160;</td>
-          <td class="paramname"><em>tens</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad3aa6aba143db4a76f0fe596162c8986"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad3aa6aba143db4a76f0fe596162c8986">&#9670;&nbsp;</a></span>get_collective()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structtag_1_1_tag_collective.html">TagCollective</a>&amp; tag::get_collective </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">ade::TensrefT</a>&#160;</td>
-          <td class="paramname"><em>tens</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="acedea0296087b1621195f2c4956d2911"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acedea0296087b1621195f2c4956d2911">&#9670;&nbsp;</a></span>get_tags()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacetag.html#ac049e8dda273046c337417103805d260">TagRepsT</a> tag::get_tags </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&#160;</td>
-          <td class="paramname"><em>tens</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a16f65cacbc659d012362f02ad3762260"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a16f65cacbc659d012362f02ad3762260">&#9670;&nbsp;</a></span>group_tag()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void tag::group_tag </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">ade::TensrefT</a>&#160;</td>
-          <td class="paramname"><em>tens</em>, </td>
+          <td class="paramtype"><a class="el" href="namespacetag.html#ac2f24f29bddead334851d7de69798871">SubgraphAssocsT</a> &amp;&#160;</td>
+          <td class="paramname"><em>out</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>group</em>&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetag.html#ac2f24f29bddead334851d7de69798871">SubgraphAssocsT</a> &amp;&#160;</td>
+          <td class="paramname"><em>assocs</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -338,56 +348,54 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="ae3a3028cddc0e30c31c77b3d1deaddd4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae3a3028cddc0e30c31c77b3d1deaddd4">&#9670;&nbsp;</a></span>has_property()</h2>
+<a id="a8e04df7870f604a8504beb991ff14729"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e04df7870f604a8504beb991ff14729">&#9670;&nbsp;</a></span>get_group_reg()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool tag::has_property </td>
+          <td class="memname"><a class="el" href="structtag_1_1_group_registry.html">GroupRegistry</a>&amp; tag::get_group_reg </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&#160;</td>
-          <td class="paramname"><em>tens</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>property</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a4ee7bc96e772081881d51e8dee7b5a16"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ee7bc96e772081881d51e8dee7b5a16">&#9670;&nbsp;</a></span>move_tags()</h2>
+<a id="a8645c33a6750979e7a7ee65821b58b63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8645c33a6750979e7a7ee65821b58b63">&#9670;&nbsp;</a></span>get_property_reg()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void tag::move_tags </td>
+          <td class="memname"><a class="el" href="structtag_1_1_property_registry.html">PropertyRegistry</a>&amp; tag::get_property_reg </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&#160;</td>
-          <td class="paramname"><em>dest</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&#160;</td>
-          <td class="paramname"><em>source</em>&#160;</td>
         </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad59098e3480c1d395b4b72098a6c0ab7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad59098e3480c1d395b4b72098a6c0ab7">&#9670;&nbsp;</a></span>get_reg()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
         <tr>
+          <td class="memname"><a class="el" href="structtag_1_1_tag_registry.html">TagRegistry</a>&amp; tag::get_reg </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -430,36 +438,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a080214b6a7ca41522b266ce97650eb07"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a080214b6a7ca41522b266ce97650eb07">&#9670;&nbsp;</a></span>property_tag()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void tag::property_tag </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceade.html#a0cd5d0a139b258e530ac3140bc7ccbb1">ade::TensrefT</a>&#160;</td>
-          <td class="paramname"><em>tens</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>property</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a8722a11a0c0683b61e72fd8f644f3422"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8722a11a0c0683b61e72fd8f644f3422">&#9670;&nbsp;</a></span>recursive_group_tag()</h2>
+<a id="a190dd220f8248370fa8b2f492dce0ffe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a190dd220f8248370fa8b2f492dce0ffe">&#9670;&nbsp;</a></span>recursive_group_tag()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -480,7 +460,13 @@ Variables</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">std::unordered_set&lt; <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *&gt;&#160;</td>
-          <td class="paramname"><em>stops</em>&#160;</td>
+          <td class="paramname"><em>stops</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtag_1_1_group_registry.html">GroupRegistry</a> &amp;&#160;</td>
+          <td class="paramname"><em>registry</em> = <code><a class="el" href="namespacetag.html#a8e04df7870f604a8504beb991ff14729">get_group_reg</a>()</code>&#160;</td>
         </tr>
         <tr>
           <td></td>

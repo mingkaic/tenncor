@@ -91,18 +91,19 @@ Collaboration diagram for dbg::InteractiveSession:</div>
 <div class="center"><img src="structdbg_1_1_interactive_session__coll__graph.png" border="0" usemap="#dbg_1_1_interactive_session_coll__map" alt="Collaboration graph"/></div>
 <map name="dbg_1_1_interactive_session_coll__map" id="dbg_1_1_interactive_session_coll__map">
 <area shape="rect" id="node2" href="structead_1_1i_session.html" title="ead::iSession" alt="" coords="5,80,107,105"/>
-<area shape="rect" id="node5" href="structead_1_1_session.html" title="ead::Session" alt="" coords="112,167,211,192"/>
-<area shape="rect" id="node3" href="structdbg_1_1_graph_emitter_client.html" title="dbg::GraphEmitterClient" alt="" coords="242,167,406,192"/>
+<area shape="rect" id="node6" href="structead_1_1_session.html" title="ead::Session" alt="" coords="116,167,215,192"/>
+<area shape="rect" id="node3" href="structdbg_1_1_graph_emitter_client.html" title="dbg::GraphEmitterClient" alt="" coords="239,167,404,192"/>
 <area shape="rect" id="node4" href="structdbg_1_1_client_config.html" title="dbg::ClientConfig" alt="" coords="266,80,390,105"/>
-<area shape="rect" id="node6" href="structade_1_1_graph_stat.html" title="Traveler that maps each tensor to its subtree&#39;s maximum depth. " alt="" coords="131,80,243,105"/>
-<area shape="rect" id="node7" href="structade_1_1i_traveler.html" title="Interface to travel through graph, treating iLeaf and iFunctor differently. " alt="" coords="136,5,238,31"/>
+<area shape="rect" id="node5" href="structtag_1_1_tag_registry.html" title="tag::TagRegistry" alt="" coords="428,167,546,192"/>
+<area shape="rect" id="node7" href="structade_1_1_graph_stat.html" title="Traveler that maps each tensor to its subtree&#39;s maximum depth. " alt="" coords="131,80,243,105"/>
+<area shape="rect" id="node8" href="structade_1_1i_traveler.html" title="Interface to travel through graph, treating iLeaf and iFunctor differently. " alt="" coords="136,5,238,31"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:accebde04fb23fdc1f0e9d13bda1bcc5e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdbg_1_1_interactive_session.html#accebde04fb23fdc1f0e9d13bda1bcc5e">InteractiveSession</a> (std::shared_ptr&lt; grpc::ChannelInterface &gt; channel, <a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a> client_cfg=<a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a>())</td></tr>
-<tr class="separator:accebde04fb23fdc1f0e9d13bda1bcc5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f596deccf30ea9fcdb48fc74fd09092"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdbg_1_1_interactive_session.html#a0f596deccf30ea9fcdb48fc74fd09092">InteractiveSession</a> (std::shared_ptr&lt; grpc::ChannelInterface &gt; channel, <a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a> client_cfg=<a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a>(), <a class="el" href="structtag_1_1_tag_registry.html">tag::TagRegistry</a> &amp;registry=<a class="el" href="namespacetag.html#ad59098e3480c1d395b4b72098a6c0ab7">tag::get_reg</a>())</td></tr>
+<tr class="separator:a0f596deccf30ea9fcdb48fc74fd09092"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33604dc325cde2f7f21f547cafb16c18"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdbg_1_1_interactive_session.html#a33604dc325cde2f7f21f547cafb16c18">InteractiveSession</a> (std::string host, <a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a> client_cfg=<a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a>())</td></tr>
 <tr class="separator:a33604dc325cde2f7f21f547cafb16c18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe0a26dcce85231ed7b8dff50abf2cb4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdbg_1_1_interactive_session.html#afe0a26dcce85231ed7b8dff50abf2cb4">track</a> (<a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a> roots) override</td></tr>
@@ -131,6 +132,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ae618f5fb29a0d401b83c8f1bbc4d6384"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a260ec45d945c43d3d701e338b462e2ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structead_1_1_session.html">ead::Session</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdbg_1_1_interactive_session.html#a260ec45d945c43d3d701e338b462e2ad">sess_</a></td></tr>
 <tr class="separator:a260ec45d945c43d3d701e338b462e2ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f5715a68eb3f41223749c1ae8694101"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtag_1_1_tag_registry.html">tag::TagRegistry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdbg_1_1_interactive_session.html#a6f5715a68eb3f41223749c1ae8694101">registry_</a></td></tr>
+<tr class="separator:a6f5715a68eb3f41223749c1ae8694101"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -151,8 +154,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:af959894054e0f96ecc563795e9561792"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="accebde04fb23fdc1f0e9d13bda1bcc5e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#accebde04fb23fdc1f0e9d13bda1bcc5e">&#9670;&nbsp;</a></span>InteractiveSession() <span class="overload">[1/2]</span></h2>
+<a id="a0f596deccf30ea9fcdb48fc74fd09092"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f596deccf30ea9fcdb48fc74fd09092">&#9670;&nbsp;</a></span>InteractiveSession() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -170,7 +173,13 @@ Private Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a>&#160;</td>
-          <td class="paramname"><em>client_cfg</em> = <code><a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a>()</code>&#160;</td>
+          <td class="paramname"><em>client_cfg</em> = <code><a class="el" href="structdbg_1_1_client_config.html">ClientConfig</a>()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtag_1_1_tag_registry.html">tag::TagRegistry</a> &amp;&#160;</td>
+          <td class="paramname"><em>registry</em> = <code><a class="el" href="namespacetag.html#ad59098e3480c1d395b4b72098a6c0ab7">tag::get_reg</a>()</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -522,6 +531,20 @@ Private Attributes</h2></td></tr>
 <span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6f5715a68eb3f41223749c1ae8694101"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f5715a68eb3f41223749c1ae8694101">&#9670;&nbsp;</a></span>registry_</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structtag_1_1_tag_registry.html">tag::TagRegistry</a>&amp; dbg::InteractiveSession::registry_</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>

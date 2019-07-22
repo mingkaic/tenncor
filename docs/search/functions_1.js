@@ -5,6 +5,8 @@ var searchData=
   ['accept',['accept',['../structade_1_1i_functor.html#a66d87d6447e6d7336e2c118cc1e18a55',1,'ade::iFunctor::accept()'],['../structade_1_1i_leaf.html#aacdc7e234e8a75007f9610352c7ba43e',1,'ade::iLeaf::accept()'],['../structade_1_1i_tensor.html#aa7a69b3831cc43a6d173c08848662b24',1,'ade::iTensor::accept()']]],
   ['access',['access',['../structade_1_1i_coord_map.html#a180b66d9db3782b17d7507bfe6967236',1,'ade::iCoordMap::access()'],['../structade_1_1_coord_map.html#aa0509214368694f866addb0df5df784a',1,'ade::CoordMap::access()'],['../structead_1_1_coord_map.html#a8afe688ec42e555d696864627042c441',1,'ead::CoordMap::access()']]],
   ['add',['add',['../structade_1_1i_gradient_builder.html#a6450def2b42f1a6a23c0288c8f9d9f4a',1,'ade::iGradientBuilder::add()'],['../structead_1_1_gradient_builder.html#a27a929338ca7211bd735ef15cf6c7cbb',1,'ead::GradientBuilder::add()'],['../structtag_1_1_tag_collective.html#ad17d5481aa71b9f9c1046f8ea3b13c08',1,'tag::TagCollective::add()'],['../namespaceead.html#aa77a63938d5564b0ea2b811e74633095',1,'ead::add()']]],
+  ['add_5ftag',['add_tag',['../structtag_1_1_tag_registry.html#a7e7641626bfed3949f9ff756d0b376f3',1,'tag::TagRegistry']]],
+  ['adjacencies',['adjacencies',['../namespacetag.html#ab4b6ab2660636d5db56a3aa17e7b9d59',1,'tag']]],
   ['anyconvr',['AnyConvr',['../structead_1_1_any_convr.html#a36b5edb6e05b5e1d977a08541e1369b7',1,'ead::AnyConvr']]],
   ['apply_5fshaper',['apply_shaper',['../namespaceade.html#aca8ab70c54a4bdfb4e58b2a3155c7510',1,'ade']]],
   ['arg_5frecursive_5ffree',['arg_recursive_free',['../def_8h.html#a7ad5a8e7ad6cb90bf8674ee8cf842e41',1,'def.h']]],

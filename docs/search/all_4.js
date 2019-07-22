@@ -7,6 +7,7 @@ var searchData=
   ['data_5fsync_5finterval',['data_sync_interval',['../namespacedbg.html#a07f38263b65f2d0dc5c3e50acfedc71e',1,'dbg']]],
   ['datalimit_5f',['datalimit_',['../struct_pretty_tensor.html#aa9f13ddcae6a546c21a73fa636d5fc32',1,'PrettyTensor']]],
   ['dbg',['dbg',['../namespacedbg.html',1,'']]],
+  ['dbg_5fsession_5fhpp',['DBG_SESSION_HPP',['../dbg_2grpc_2session_8hpp.html#a6a6c4cb73d88d6cdf35289d7efad9e43',1,'session.hpp']]],
   ['dbg_5fwrapper',['dbg_wrapper',['../namespacedbg__wrapper.html',1,'']]],
   ['dbg_5fwrapper_2epy',['dbg_wrapper.py',['../dbg__wrapper_8py.html',1,'']]],
   ['def_2ec',['def.c',['../def_8c.html',1,'']]],

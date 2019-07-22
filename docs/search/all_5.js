@@ -20,7 +20,6 @@ var searchData=
   ['end',['end',['../structade_1_1_shape.html#a85700f185320892b5dde0474c88fd33c',1,'ade::Shape::end(void)'],['../structade_1_1_shape.html#a8df8b0d454942a59441c8adcebdc176a',1,'ade::Shape::end(void) const']]],
   ['enginet',['EngineT',['../namespaceead.html#aad5a8ad7506541238ad6a4a13ed9e5b9',1,'ead']]],
   ['eq',['eq',['../namespaceead.html#a2eba8cc1a701098927bb668fd923f553',1,'ead']]],
-  ['erase',['erase',['../namespacetag.html#a0dc64d26cb80976ee57c3441ef8ec58d',1,'tag']]],
   ['exp',['exp',['../namespaceead.html#aab849f4595164d20f014d4c1c177b052',1,'ead']]],
   ['expired',['expired',['../structtag_1_1_tens_key.html#a8d490729aad7574a4a590f4b376927bc',1,'tag::TensKey']]],
   ['extend',['EXTEND',['../namespaceead.html#a9dd1bbaf42a6ed9320e8b9a9d8f31928ab3a267ed60a1a54571170e92eba03cba',1,'ead::EXTEND()'],['../namespaceade.html#a81038de1791ea646379829c0b884e855',1,'ade::extend()'],['../namespaceead.html#a9c07ab787e2e6570d28f7c70bdbaaaa7',1,'ead::extend()']]],

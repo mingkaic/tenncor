@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['variable',['Variable',['../structead_1_1_variable.html',1,'ead']]],
-  ['variablenode',['VariableNode',['../structead_1_1_variable_node.html',1,'ead']]],
-  ['variadicvoter',['VariadicVoter',['../structopt_1_1_variadic_voter.html',1,'opt']]],
-  ['voterarg',['VoterArg',['../structopt_1_1_voter_arg.html',1,'opt']]],
-  ['voterpool',['VoterPool',['../structopt_1_1_voter_pool.html',1,'opt']]]
+  ['tagcollective',['TagCollective',['../structtag_1_1_tag_collective.html',1,'tag']]],
+  ['tagregistry',['TagRegistry',['../structtag_1_1_tag_registry.html',1,'tag']]],
+  ['tenskey',['TensKey',['../structtag_1_1_tens_key.html',1,'tag']]],
+  ['tenskeyhash',['TensKeyHash',['../structtag_1_1_tens_key_hash.html',1,'tag']]],
+  ['traveler',['Traveler',['../structead_1_1_traveler.html',1,'ead']]]
 ];

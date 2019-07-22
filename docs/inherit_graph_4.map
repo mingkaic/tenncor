@@ -1,12 +1,12 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structade_1_1i_traveler.html" title="Interface to travel through graph, treating iLeaf and iFunctor differently. " alt="" coords="5,203,108,228"/>
-<area shape="rect" id="node2" href="$structade_1_1_graph_stat.html" title="Traveler that maps each tensor to its subtree&#39;s maximum depth. " alt="" coords="199,5,310,31"/>
-<area shape="rect" id="node3" href="$structade_1_1_parent_finder.html" title="Traveler that for each child tracks the relationship to all parents. " alt="" coords="190,55,318,80"/>
-<area shape="rect" id="node4" href="$structade_1_1_path_finder.html" title="ade::PathFinder" alt="" coords="196,104,313,129"/>
-<area shape="rect" id="node5" href="$struct_c_s_v_equation.html" title="CSVEquation" alt="" coords="204,153,305,179"/>
-<area shape="rect" id="node6" href="$structead_1_1_traveler.html" title="ead::Traveler" alt="" coords="205,203,304,228"/>
-<area shape="rect" id="node7" href="$structopt_1_1_matcher.html" title="opt::Matcher" alt="" coords="207,252,302,277"/>
-<area shape="rect" id="node8" href="$structpbm_1_1_graph_saver.html" title="Graph serialization traveler. " alt="" coords="156,301,353,327"/>
-<area shape="rect" id="node9" href="$structtag_1_1_adjacent_groups.html" title="tag::AdjacentGroups" alt="" coords="183,351,326,376"/>
-<area shape="rect" id="node10" href="$structtag_1_1_subgraph.html" title="tag::Subgraph" alt="" coords="202,400,307,425"/>
+<area shape="rect" id="node1" href="$structade_1_1i_data.html" title="Interface for unveiling data. " alt="" coords="11,32,93,57"/>
+<area shape="rect" id="node2" href="$structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="157,56,237,81"/>
+<area shape="rect" id="node6" href="$structade_1_1i_operable_func.html" title="A functor node with direct access to evaluated data. " alt="" coords="294,5,433,31"/>
+<area shape="rect" id="node3" href="$structead_1_1i_leaf.html" title="ead::iLeaf\&lt; T \&gt;" alt="" coords="308,56,419,81"/>
+<area shape="rect" id="node4" href="$structead_1_1_constant.html" title="ead::Constant\&lt; T \&gt;" alt="" coords="481,104,616,129"/>
+<area shape="rect" id="node5" href="$structead_1_1_variable.html" title="Leaf node containing data. " alt="" coords="484,55,613,80"/>
+<area shape="rect" id="node7" href="$structead_1_1_functor.html" title="ead::Functor\&lt; T \&gt;" alt="" coords="485,5,612,31"/>
+<area shape="rect" id="node8" href="$structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="5,81,99,107"/>
+<area shape="rect" id="node9" href="$structade_1_1i_functor.html" title="Interface of iOperation&#45;defined operation node. " alt="" coords="147,105,246,131"/>
+<area shape="rect" id="node10" href="$structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. " alt="" coords="316,105,412,131"/>
 </map>

@@ -8,5 +8,6 @@ var searchData=
   ['graphstat',['GraphStat',['../structade_1_1_graph_stat.html',1,'ade']]],
   ['group',['Group',['../struct_group.html',1,'']]],
   ['groupconvr',['GroupConvr',['../structead_1_1_group_convr.html',1,'ead']]],
+  ['groupregistry',['GroupRegistry',['../structtag_1_1_group_registry.html',1,'tag']]],
   ['grouptag',['GroupTag',['../structtag_1_1_group_tag.html',1,'tag']]]
 ];

@@ -15,5 +15,6 @@ var searchData=
   ['_7eitensor',['~iTensor',['../structade_1_1i_tensor.html#a1eb974b967ef2da732ee074e73631342',1,'ade::iTensor']]],
   ['_7eitraveler',['~iTraveler',['../structade_1_1i_traveler.html#af8279cb7fbe1363298287f4e2061254a',1,'ade::iTraveler']]],
   ['_7eivoter',['~iVoter',['../structopt_1_1i_voter.html#aaf2505ff1b23f19eed593d721b73db36',1,'opt::iVoter']]],
+  ['_7eoncetraveler',['~OnceTraveler',['../structade_1_1_once_traveler.html#aae9cb5b0173743bafb69b142c81813dd',1,'ade::OnceTraveler']]],
   ['_7epathedtens',['~PathedTens',['../structpbm_1_1_pathed_tens.html#ae4d37d286dfcb6dc4891acab5166d740',1,'pbm::PathedTens']]]
 ];

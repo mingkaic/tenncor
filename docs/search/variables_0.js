@@ -10,5 +10,6 @@ var searchData=
   ['_5fplugin_5fid',['_plugin_id',['../namespaceapis.html#a2293308dacd433bfd5d478bd5b5d8987',1,'apis._plugin_id()'],['../namespacedtypes.html#a813f03b05838c10111a6e11cfab6423f',1,'dtypes._plugin_id()'],['../namespaceopcodes.html#aa8f338443e959cc7a2182f1d22584f03',1,'opcodes._plugin_id()'],['../namespacepyapis.html#adfa58074fd6c9997ddcce505689f923f',1,'pyapis._plugin_id()']]],
   ['_5fpybindt',['_pybindt',['../namespacepyapis.html#a77fcf3bc082bc4e8c80db1ba987dd7b0',1,'pyapis']]],
   ['_5fsource_5ftemplate',['_source_template',['../namespaceapis.html#a02903a1bbb93c82c7ff6c1c98d99c789',1,'apis._source_template()'],['../namespacedtypes.html#aff7a28ee6cb3b04b74b8ccb587316124',1,'dtypes._source_template()'],['../namespaceopcodes.html#a86f4ca2518f4b05594843ecfe1b51d96',1,'opcodes._source_template()'],['../namespacepyapis.html#af3b0115839e4736e8c47f924fee22cc2',1,'pyapis._source_template()']]],
-  ['_5fstyles',['_styles',['../namespacecsv__to__png.html#a7e0968f2662f00259b4669bd3d0c90cd',1,'csv_to_png']]]
+  ['_5fstyles',['_styles',['../namespacecsv__to__png.html#a7e0968f2662f00259b4669bd3d0c90cd',1,'csv_to_png']]],
+  ['_5ftemplate_5fdefn_5ftmp',['_template_defn_tmp',['../namespaceapis.html#a02e893e69fea4cc5e526ad3b742ccbe7',1,'apis']]]
 ];

@@ -64,9 +64,6 @@ $(function() {
 &#160;
 
 <h3><a id="index_a"></a>- a -</h3><ul>
-<li>adjs_
-: <a class="el" href="structtag_1_1_adjacent_groups.html#aa1c8dfb25e3543ac8e5b047110d5140d">tag::AdjacentGroups</a>
-</li>
 <li>any_
 : <a class="el" href="struct_subgraph.html#ab39420d626f1f5c81b14e736740aae70">Subgraph</a>
 </li>
@@ -214,7 +211,8 @@ $(function() {
 , <a class="el" href="structead_1_1_functor_node.html#aa77ef1d7341b2ae1165571370de66506">ead::FunctorNode&lt; T &gt;</a>
 </li>
 <li>funcs_
-: <a class="el" href="structpbm_1_1_graph_saver.html#a889b990b34164c5e058ed6dfe29435ac">pbm::GraphSaver&lt; SAVER, &gt;</a>
+: <a class="el" href="structade_1_1_height_matrix.html#a797c002d2a2ca416d923f22253494399">ade::HeightMatrix</a>
+, <a class="el" href="structpbm_1_1_graph_saver.html#a889b990b34164c5e058ed6dfe29435ac">pbm::GraphSaver&lt; SAVER, &gt;</a>
 </li>
 <li>fwd_
 : <a class="el" href="structade_1_1_coord_map.html#ad0bb539056fd8f8acce96109ff41f6da">ade::CoordMap</a>
@@ -237,10 +235,10 @@ $(function() {
 , <a class="el" href="structtag_1_1_subgraph.html#a8053868c95b7677366951278d483a5a5">tag::Subgraph</a>
 </li>
 <li>group_head_
-: <a class="el" href="structopt_1_1_matcher.html#a00387a766bf3659ca557dbfeed6b20be">opt::Matcher</a>
+: <a class="el" href="structopt_1_1_matcher.html#a3266c70735f4c4edb57e97f6d5c001e3">opt::Matcher</a>
 </li>
 <li>groups_
-: <a class="el" href="structtag_1_1_group_tag.html#a6b07cbefde570b4021f6ca8a6f096f42">tag::GroupTag</a>
+: <a class="el" href="structtag_1_1_group_registry.html#a2b24b3ab82c5ba9fd5f955c8b005b627">tag::GroupRegistry</a>
 </li>
 </ul>
 
@@ -296,7 +294,8 @@ $(function() {
 , <a class="el" href="structtag_1_1_prop_tag.html#a4af44491ae89b354912d06c3ff184d7f">tag::PropTag</a>
 </li>
 <li>leaves_
-: <a class="el" href="structpbm_1_1_graph_saver.html#a018275de799a0dffc764226e5cf01039">pbm::GraphSaver&lt; SAVER, &gt;</a>
+: <a class="el" href="structade_1_1_height_matrix.html#a90ca063c213023ec930d9b5ea3824a7d">ade::HeightMatrix</a>
+, <a class="el" href="structpbm_1_1_graph_saver.html#a018275de799a0dffc764226e5cf01039">pbm::GraphSaver&lt; SAVER, &gt;</a>
 </li>
 <li>lower_
 : <a class="el" href="structade_1_1_num_range.html#aa95193c3d7f6816317d6c7b058180b64">ade::NumRange&lt; T, typename &gt;</a>
@@ -364,7 +363,7 @@ $(function() {
 : <a class="el" href="struct_graph_emitter_impl_1_1_edge.html#a21fa95d236f1749eb653aec5d04be885">GraphEmitterImpl::Edge</a>
 </li>
 <li>parents_
-: <a class="el" href="structade_1_1_parent_finder.html#a153fa0f8074930c9ae9f6221777e4eab">ade::ParentFinder</a>
+: <a class="el" href="structade_1_1_parent_finder.html#a4dac2cea4ff6bff153debf4180cfaa0e">ade::ParentFinder</a>
 , <a class="el" href="structade_1_1_path_finder.html#a7748417958bed305338af5e238dc5362">ade::PathFinder</a>
 , <a class="el" href="structead_1_1_session.html#a49840f07b1679c9a4ae253cf85192fd6">ead::Session</a>
 </li>
@@ -385,8 +384,9 @@ $(function() {
 <li>reference_
 : <a class="el" href="structopt_1_1_symbol.html#a491d94ed5f671e365984012ce77a069c">opt::Symbol</a>
 </li>
-<li>registry
-: <a class="el" href="structtag_1_1_registry.html#a8cd9539f97dd2386ac22b11f874548bc">tag::Registry</a>
+<li>registry_
+: <a class="el" href="structdbg_1_1_interactive_session.html#a6f5715a68eb3f41223749c1ae8694101">dbg::InteractiveSession</a>
+, <a class="el" href="structtag_1_1_tag_registry.html#aa0a43a93779cb22de02053d3fa96b347">tag::TagRegistry</a>
 </li>
 <li>request_duration_
 : <a class="el" href="structdbg_1_1_client_config.html#a68d6885c4210cb28b00c455c91f8f909">dbg::ClientConfig</a>
@@ -476,6 +476,10 @@ $(function() {
 : <a class="el" href="structtag_1_1_group_tag.html#ade8a1254d6779558bb278b03996915c1">tag::GroupTag</a>
 , <a class="el" href="structtag_1_1_prop_tag.html#a9ded5999e8e7086ac0442548fda7c993">tag::PropTag</a>
 </li>
+<li>tag_reg_
+: <a class="el" href="structtag_1_1_group_registry.html#ac50eae63eb1cd6b49080477a5fcf2d0b">tag::GroupRegistry</a>
+, <a class="el" href="structtag_1_1_property_registry.html#ad419eafc76287387c7f4562ba184696d">tag::PropertyRegistry</a>
+</li>
 <li>tags_
 : <a class="el" href="struct_graph_emitter_impl_1_1_node.html#a35e1332a950243f603d5d25182cabc46">GraphEmitterImpl::Node</a>
 , <a class="el" href="structtag_1_1_tag_collective.html#a45f14552504d872c2f87586e50025a1e">tag::TagCollective</a>
@@ -529,7 +533,6 @@ $(function() {
 </li>
 <li>uuid_gen_
 : <a class="el" href="structdbg_1_1_interactive_session.html#ab18efc5b35ec80474398fc95e965fc38">dbg::InteractiveSession</a>
-, <a class="el" href="structtag_1_1_adjacent_groups.html#aa8f6307cd76511c9b40c42d9840be904">tag::AdjacentGroups</a>
 </li>
 </ul>
 
@@ -551,9 +554,9 @@ $(function() {
 , <a class="el" href="structopt_1_1_variadic_voter.html#ad1eab8226416d090526c5ae1f91bc648">opt::VariadicVoter</a>
 </li>
 <li>visited_
-: <a class="el" href="structead_1_1_traveler.html#ab6f6c2b9f0b02b561aee0f888f91b01f">ead::Traveler</a>
+: <a class="el" href="structade_1_1_once_traveler.html#af6782e674d9cf230b039d82e070d337e">ade::OnceTraveler</a>
+, <a class="el" href="structead_1_1_traveler.html#ab6f6c2b9f0b02b561aee0f888f91b01f">ead::Traveler</a>
 , <a class="el" href="structpbm_1_1_graph_saver.html#a1904087cc32f31e16619e6e1de8ca75f">pbm::GraphSaver&lt; SAVER, &gt;</a>
-, <a class="el" href="structtag_1_1_adjacent_groups.html#ad49c668c531da3ab4a138b7c67364941">tag::AdjacentGroups</a>
 </li>
 <li>voters_
 : <a class="el" href="structopt_1_1_matcher.html#ae942b0004f814490505906ca821a78f8">opt::Matcher</a>

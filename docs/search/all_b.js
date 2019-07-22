@@ -6,7 +6,7 @@ var searchData=
   ['labels_5f',['labels_',['../struct_pretty_equation.html#a48e82321023511d6d996d143373d62e6',1,'PrettyEquation::labels_()'],['../struct_c_s_v_equation.html#a907bbbcee85d465621531ef43de20451',1,'CSVEquation::labels_()'],['../structtag_1_1_group_tag.html#a8e7be9cd8aad902769c68d61025b5a11',1,'tag::GroupTag::labels_()'],['../structtag_1_1_prop_tag.html#a4af44491ae89b354912d06c3ff184d7f',1,'tag::PropTag::labels_()']]],
   ['labelsmapt',['LabelsMapT',['../dbg_2stream_2ade_8hpp.html#a7839363f7778d49f27d87010378e2050',1,'ade.hpp']]],
   ['leafptrt',['LeafptrT',['../namespaceade.html#a1bdf3657cc8a95dd974ad6aa36e2230f',1,'ade']]],
-  ['leaves_5f',['leaves_',['../structpbm_1_1_graph_saver.html#a018275de799a0dffc764226e5cf01039',1,'pbm::GraphSaver']]],
+  ['leaves_5f',['leaves_',['../structade_1_1_height_matrix.html#a90ca063c213023ec930d9b5ea3824a7d',1,'ade::HeightMatrix::leaves_()'],['../structpbm_1_1_graph_saver.html#a018275de799a0dffc764226e5cf01039',1,'pbm::GraphSaver::leaves_()']]],
   ['list_2ec',['list.c',['../list_8c.html',1,'']]],
   ['list_2eh',['list.h',['../list_8h.html',1,'']]],
   ['load_2ehpp',['load.hpp',['../load_8hpp.html',1,'']]],

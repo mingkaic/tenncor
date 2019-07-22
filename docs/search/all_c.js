@@ -33,7 +33,7 @@ var searchData=
   ['min_5fheight_5f',['min_height_',['../struct_graph_emitter_impl_1_1_node.html#aa854b489cc629baa6fab94adfa5edda6',1,'GraphEmitterImpl::Node']]],
   ['mockserver_2ecpp',['mockserver.cpp',['../mockserver_8cpp.html',1,'']]],
   ['move_5fhelper',['move_helper',['../structade_1_1_shape.html#ae2cffe358880cabd1a4a06b56c15e2b5',1,'ade::Shape']]],
-  ['move_5ftags',['move_tags',['../namespacetag.html#a4ee7bc96e772081881d51e8dee7b5a16',1,'tag']]],
+  ['move_5ftags',['move_tags',['../structtag_1_1_tag_registry.html#a07de6ec00ff67e1bfa86781e9ae412fd',1,'tag::TagRegistry']]],
   ['mul',['mul',['../namespaceead.html#a24b2c4340e76ca66e27bbd5fb2037feb',1,'ead']]],
   ['multigraph_5fto_5fcsvimg',['multigraph_to_csvimg',['../namespacedbg__wrapper.html#a2a53b525d2282677b2ef3727387f3b27',1,'dbg_wrapper']]],
   ['multiline_5freplace',['multiline_replace',['../ade__csv_8hpp.html#a5b3fcd17e03950902721ad766466e955',1,'ade_csv.hpp']]]

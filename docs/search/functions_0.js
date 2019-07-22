@@ -5,6 +5,7 @@ var searchData=
   ['_5fdefn_5ffunc',['_defn_func',['../namespaceapis.html#a17c0ec59cc3da40d742d6663955561da',1,'apis']]],
   ['_5fhandle_5fapi_5fheader',['_handle_api_header',['../namespaceapis.html#af86173c808ed77da53e37d4cd03b8094',1,'apis']]],
   ['_5fhandle_5fapi_5fsource',['_handle_api_source',['../namespaceapis.html#aba7642663c01a1b1a164ae7360b890da',1,'apis']]],
+  ['_5fhandle_5fapi_5ftemplates',['_handle_api_templates',['../namespaceapis.html#a8b241bdb2f87afcf9f16711bd2977c69',1,'apis']]],
   ['_5fhandle_5fcases',['_handle_cases',['../namespacedtypes.html#a59abb9b3a6af9014eb82ce4eb73be9aa',1,'dtypes']]],
   ['_5fhandle_5fcode2names',['_handle_code2names',['../namespaceopcodes.html#a953b248a8c756ad1023b141dcf9e29c0',1,'opcodes']]],
   ['_5fhandle_5fconversions',['_handle_conversions',['../namespacedtypes.html#acd10e772b3401d1a5660095120dac150',1,'dtypes']]],
@@ -27,5 +28,6 @@ var searchData=
   ['_5fstr_5fclean',['_str_clean',['../namespacecsv__to__png.html#aae6cf0944862b60f2cfc3ee2c2d96730',1,'csv_to_png']]],
   ['_5fstrip_5ftemplate_5fprefix',['_strip_template_prefix',['../namespacepyapis.html#acb0427e0309100c1e01b667299be08e8',1,'pyapis']]],
   ['_5fsub_5fpybind',['_sub_pybind',['../namespacepyapis.html#a7bdc64b92170f29fe2b1a29ba29e36ac',1,'pyapis']]],
+  ['_5ftemplate_5fdefn_5ffunc',['_template_defn_func',['../namespaceapis.html#a8d9ca43392e67c4f728dfa88458e378d',1,'apis']]],
   ['_5fwrap_5ffunc',['_wrap_func',['../namespacepyapis.html#a777c2746d7789dd51e925fd22f0bf6be',1,'pyapis']]]
 ];

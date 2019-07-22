@@ -161,9 +161,9 @@ Functions</h2></td></tr>
 <tr class="separator:adcc3a35d1f8bdea7ba10cdf2e5f47a4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b10340d6ebbd69f3014a844424ac688"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceopt.html#a5b10340d6ebbd69f3014a844424ac688">replace_parents</a> (const <a class="el" href="structade_1_1_parent_finder.html">ade::ParentFinder</a> &amp;pfinder, <a class="el" href="structade_1_1i_tensor.html">ade::iTensor</a> *source, <a class="el" href="namespaceade.html#aceac6eb9293c8b2001737f3b26667993">ade::TensptrT</a> target)</td></tr>
 <tr class="separator:a5b10340d6ebbd69f3014a844424ac688"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cc8c5fde4424219bd798dffd8dd8985"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a4cc8c5fde4424219bd798dffd8dd8985"><td class="memTemplItemLeft" align="right" valign="top">std::vector&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceopt.html#a4cc8c5fde4424219bd798dffd8dd8985">remove_duplicates</a> (<a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a> &amp;roots, std::vector&lt; T &gt; tens, const <a class="el" href="structade_1_1_parent_finder.html">ade::ParentFinder</a> &amp;pfinder)</td></tr>
-<tr class="separator:a4cc8c5fde4424219bd798dffd8dd8985"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcf72478749d57afeae94ebfde68814e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:adcf72478749d57afeae94ebfde68814e"><td class="memTemplItemLeft" align="right" valign="top">std::vector&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceopt.html#adcf72478749d57afeae94ebfde68814e">remove_duplicates</a> (<a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a> &amp;roots, std::vector&lt; T &gt; tens, const <a class="el" href="structade_1_1_parent_finder.html">ade::ParentFinder</a> &amp;pfinder, <a class="el" href="structtag_1_1_tag_registry.html">tag::TagRegistry</a> &amp;registry=<a class="el" href="namespacetag.html#ad59098e3480c1d395b4b72098a6c0ab7">tag::get_reg</a>())</td></tr>
+<tr class="separator:adcf72478749d57afeae94ebfde68814e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d4bdc20806df85595629e4f7801a26e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceopt.html#a1d4bdc20806df85595629e4f7801a26e">populate_graph</a> (<a class="el" href="namespaceopt.html#a2715f8fde83ed98c3c68c01981bd7c12">ImmutablesT</a> &amp;immutables, <a class="el" href="namespaceopt.html#a6f1d9ed513006bb76ffa455e79afdfc0">HFunctorsT</a> &amp;functors, const <a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a> &amp;roots)</td></tr>
 <tr class="separator:a1d4bdc20806df85595629e4f7801a26e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42486c385f72159c1411aeb991a0a47c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceopt.html#a42486c385f72159c1411aeb991a0a47c">remove_all_duplicates</a> (<a class="el" href="namespaceade.html#ab4db19108073a8a4dc5b8cb6aa85ad42">ade::TensT</a> &amp;roots, <a class="el" href="namespaceopt.html#a2715f8fde83ed98c3c68c01981bd7c12">ImmutablesT</a> &amp;immutables, <a class="el" href="namespaceopt.html#a6f1d9ed513006bb76ffa455e79afdfc0">HFunctorsT</a> &amp;functors)</td></tr>
@@ -825,8 +825,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a4cc8c5fde4424219bd798dffd8dd8985"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4cc8c5fde4424219bd798dffd8dd8985">&#9670;&nbsp;</a></span>remove_duplicates()</h2>
+<a id="adcf72478749d57afeae94ebfde68814e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcf72478749d57afeae94ebfde68814e">&#9670;&nbsp;</a></span>remove_duplicates()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -849,7 +849,13 @@ template&lt;typename T &gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="structade_1_1_parent_finder.html">ade::ParentFinder</a> &amp;&#160;</td>
-          <td class="paramname"><em>pfinder</em>&#160;</td>
+          <td class="paramname"><em>pfinder</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtag_1_1_tag_registry.html">tag::TagRegistry</a> &amp;&#160;</td>
+          <td class="paramname"><em>registry</em> = <code><a class="el" href="namespacetag.html#ad59098e3480c1d395b4b72098a6c0ab7">tag::get_reg</a>()</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
