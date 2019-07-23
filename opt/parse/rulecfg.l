@@ -54,7 +54,7 @@ coorder							{ return COORDER; }
 	return EL;
 }
 
--?(0|[1-9][0-9]*)(\.\d+)?			{
+-?(0|[1-9][0-9]*)(\.\d+)?		{
 	yylval.number = atof(yytext);
 	return NUMBER;
 }

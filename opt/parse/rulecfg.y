@@ -7,6 +7,7 @@
 
 extern FILE* yyin;
 extern int yyparse();
+extern YY_FLUSH_BUFFER;
 
 %}
 
@@ -289,11 +290,11 @@ num_arr:	num_arr COMMA NUMBER
 int parse_str (struct PtrList** stmts, const char* str)
 {
 	FILE* tmp = tmpfile();
-    if (NULL == tmp)
-    {
-        puts("Unable to create temp file");
-        return 1;
-    }
+	if (NULL == tmp)
+	{
+		puts("Unable to create temp file");
+		return 1;
+	}
 	fputs(str, tmp);
 	rewind(tmp);
 	return parse_file(stmts, tmp);
@@ -305,6 +306,8 @@ int parse_file (struct PtrList** stmts, FILE* file)
 	if (file)
 	{
 		yyin = file;
+		YY_FLUSH_BUFFER;
+		yyrestart(yyin);
 		exit_status = yyparse(stmts);
 		fclose(file);
 	}

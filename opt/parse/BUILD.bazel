@@ -44,6 +44,7 @@ cc_test(
     deps = [
         "//opt/parse:parse",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,
     data = ["//cfg:optimizations"],
