@@ -109,7 +109,6 @@ TEST(FUNCARG, Extend)
 
 TEST(FUNCARG, Permute)
 {
-	size_t rank = 5;
 	ade::CoordT fwd_out;
 	ade::CoordT icoord = {
 		211.6172349153, 3.6941314330, 3.3471187148, 24.3511302088,

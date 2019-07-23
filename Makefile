@@ -16,88 +16,77 @@ EAD_CTEST := //ead:ctest
 
 CC := gcc
 
-.PHONY: print_vars
+COVERAGE_PIPE := ./bazel-bin/external/com_github_mingkaic_cppkg/merge_cov $(COVERAGE_INFO_FILE)
+
+TMP_LOGFILE := /tmp/tenncor-test.log
+
 print_vars:
 	@echo "CC: " $(CC)
 
-.PHONY: rocnnet_py_build
 rocnnet_py_build:
 	bazel build --config $(CC)_eigen_optimal //rocnnet:rocnnet_py
 
-.PHONY: rocnnet_py_export
 rocnnet_py_export: rocnnet_py_build
 	cp -f bazel-bin/rocnnet/*.so rocnnet/notebooks/rocnnet
 	cp -f bazel-bin/ead/*.so rocnnet/notebooks/ead
 
 
-.PHONY: coverage
 coverage:
 	$(CCOVER) $(ADE_TEST) $(TAG_TEST) $(PBM_TEST) $(OPT_TEST) $(EAD_CTEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
-.PHONY: cover_ade
 cover_ade:
 	$(CCOVER) $(ADE_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
-.PHONY: cover_tag
 cover_tag:
 	$(CCOVER) $(TAG_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' -o coverage.info
 
-.PHONY: cover_pbm
 cover_pbm:
 	$(CCOVER) $(PBM_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' -o coverage.info
 
-.PHONY: cover_opt
 cover_opt:
 	$(CCOVER) $(OPT_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'ead/*' -o coverage.info
 
-.PHONY: cover_ead
 cover_ead:
 	$(CCOVER) $(EAD_CTEST)
 	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'opt/*' -o coverage.info
 
 
 # optimized comparisons
-.PHONY: compare_matmul
 compare_matmul:
 	bazel run $(EIGEN_OPT) //rocnnet:comparison_matmul
 
-.PHONY: compare_mlp
 compare_mlp:
 	bazel run $(EIGEN_OPT) //rocnnet:comparison_mlp
 
-.PHONY: compare_mlp_grad
 compare_mlp_grad:
 	bazel run $(EIGEN_OPT) //rocnnet:comparison_mlp_grad
 
 
-.PHONY: cov_clean
 cov_clean: coverage.info
 	lcov --remove coverage.info $(COVERAGE_IGNORE) -o coverage.info
 	lcov --list coverage.info
 
-.PHONY: cov_genhtml
 cov_genhtml: coverage.info
 	genhtml -o html coverage.info
 
-.PHONY: lcov
 lcov: coverage cov_clean
 
-.PHONY: lcov_ade
 lcov_ade: cover_ade cov_clean
 
-.PHONY: lcov_tag
 lcov_tag: cover_tag cov_clean
 
-.PHONY: lcov_pbm
 lcov_pbm: cover_pbm cov_clean
 
-.PHONY: lcov_opt
 lcov_opt: cover_opt cov_clean
 
-.PHONY: lcov_ead
 lcov_ead: cover_ead cov_clean
+
+.PHONY: print_vars rocnnet_py_build rocnnet_py_export
+.PHONY: coverage cover_ade cover_tag cover_tag cover_pbm cover_opt cover_ead
+.PHONY: compare_matmul compare_mlp compare_mlp_grad cov_clean cov_genhtml
+.PHONY: lcov lcov_ade lcov_tag lcov_pbm lcov_opt lcov_ead brief_lcov

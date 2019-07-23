@@ -4,8 +4,8 @@
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
 
-#include "job/managed_job.hpp"
-#include "job/sequence.hpp"
+#include "jobs/managed_job.hpp"
+#include "jobs/sequence.hpp"
 
 #include "dbg/grpc/tenncor.grpc.pb.h"
 
@@ -42,7 +42,7 @@ struct GraphEmitterClient final
 		cfg_(cfg),
 		connected_(true)
 	{
-		job::ManagedJob healthjob(
+		jobs::ManagedJob healthjob(
 		[this](std::future<void> stop_it)
 		{
 			tenncor::Empty empty;
@@ -272,11 +272,11 @@ private:
 	ClientConfig cfg_;
 
 	// every request from emitter has dependency on the previous request
-	job::Sequence sequential_jobs_;
+	jobs::Sequence sequential_jobs_;
 
 	// connection state
 	std::atomic<bool> connected_;
-	job::ManagedJob health_checker_;
+	jobs::ManagedJob health_checker_;
 };
 
 }

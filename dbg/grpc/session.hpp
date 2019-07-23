@@ -6,7 +6,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include "job/scope_guard.hpp"
+#include "jobs/scope_guard.hpp"
 
 #include "ead/session.hpp"
 
@@ -175,7 +175,7 @@ struct InteractiveSession final : public ead::iSession
 	void update (ead::TensSetT updated = {},
 		ead::TensSetT ignores = {}) override
 	{
-		job::ScopeGuard defer([this]() { ++this->update_it_; });
+		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
 		// ignore any node data updates when
 		// not connected or out of sync interval
@@ -258,7 +258,7 @@ struct InteractiveSession final : public ead::iSession
 	void update_target (ead::TensSetT targeted,
 		ead::TensSetT updated = {}) override
 	{
-		job::ScopeGuard defer([this]() { ++this->update_it_; });
+		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
 		// ignore any node data updates when
 		// not connected or out of sync interval

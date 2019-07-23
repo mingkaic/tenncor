@@ -41,7 +41,7 @@ fi
 
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";
-make lcov
+make lcov | grep -v '+' | grep -v 'Processing'
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	git rev-parse --abbrev-inode* HEAD;

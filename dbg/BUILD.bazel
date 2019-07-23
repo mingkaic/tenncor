@@ -60,7 +60,7 @@ cc_library(
         "//ead:ead",
         "//dbg:tenncor_cc_proto",
         "@boost//:uuid",
-        "@com_github_mingkaic_cppkg//job:job",
+        "@com_github_mingkaic_cppkg//jobs:jobs",
     ],
 )
 
