@@ -41,7 +41,7 @@ static bool is_big_endian(void)
 	return twob.bytes[0] == 0;
 }
 
-struct EADSaver : public pbm::iSaver
+struct EADSaver final : public pbm::iSaver
 {
 	std::string save_leaf (bool& is_const, ade::iLeaf* leaf) override
 	{
@@ -99,7 +99,7 @@ make_constant<realtype>((realtype*) pb, shape)->get_tensor():\
 ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 
 /// Unmarshal cortenn::Source as Variable containing context of source
-struct EADLoader : public pbm::iLoader
+struct EADLoader final : public pbm::iLoader
 {
 	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
 		std::string typelabel, std::string label, bool is_const) override

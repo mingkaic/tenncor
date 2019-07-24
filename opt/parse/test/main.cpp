@@ -207,11 +207,10 @@ TEST(PARSE, EdgeDef)
 	EXPECT_STREQ("X", arg->subgraph_->val_.any_);
 	ASSERT_NE(nullptr, arg->shaper_);
 	ASSERT_NE(nullptr, arg->coorder_);
-	// todo: fix this segfault issue
-	// shaper = vectorize(arg->shaper_);
-	// coorder = vectorize(arg->coorder_);
-	// EXPECT_ARREQ(expect_shaper, shaper);
-	// EXPECT_ARREQ(expect_coorder, coorder);
+	shaper = vectorize(arg->shaper_);
+	coorder = vectorize(arg->coorder_);
+	EXPECT_ARREQ(expect_shaper, shaper);
+	EXPECT_ARREQ(expect_coorder, coorder);
 }
 
 

@@ -244,6 +244,7 @@ edge_def:	key_val
 							"of shaper in edge def");
 					}
 					arg->shaper_ = other->shaper_;
+					other->shaper_ = NULL;
 				}
 				if (NULL != other->coorder_)
 				{
@@ -253,6 +254,7 @@ edge_def:	key_val
 							"of coorder in edge def");
 					}
 					arg->coorder_ = other->coorder_;
+					other->coorder_ = NULL;
 				}
 				arg_recursive_free(other);
 			}

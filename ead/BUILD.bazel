@@ -113,11 +113,15 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//ead:ead",
+        "//dbg:stream_out",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,
-    data = ["//cfg:optimizations"],
+    data = ["//cfg:optimizations"] + glob([
+        "data/*.pb",
+        "data/*.txt",
+    ]),
 )
 
 py_test(
