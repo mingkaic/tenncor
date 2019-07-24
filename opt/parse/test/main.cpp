@@ -37,10 +37,15 @@ static std::vector<double> vectorize (::NumList* lst)
 TEST(PARSE, SymbolFail)
 {
 	const char* symbs = "symbol Apple Banana;\nsymbol Citrus Zucchini;";
+	const char* long_symb = "symbol AppleBananaCitrusZucchiniLemonGrapefruit;";
 
 	::PtrList* stmts = nullptr;
 	int status = ::parse_str(&stmts, symbs);
 	EXPECT_EQ(1, status);
+
+	::PtrList* stmts2 = nullptr;
+	int status2 = ::parse_str(&stmts2, long_symb);
+	EXPECT_EQ(1, status2);
 }
 
 
@@ -143,6 +148,7 @@ TEST(PARSE, EdgeDef)
 	const char* shape_edge = "F(X={shaper:[4,5,6,7,8,9,10,11]})=>1;\n";
 	const char* coord_edge = "F(X={coorder:[8,8,8,8,8,8,8,8]})=>2;\n";
 	const char* both_edges = "F(X={coorder:[8,8,8,8,8,8,8,8],shaper:[4,5,6,7,8,9,10,11]})=>3;\n";
+	const char* both_edges2 = "F(X={shaper:[4,5,6,7,8,9,10,11],coorder:[8,8,8,8,8,8,8,8]})=>3;\n";
 	std::vector<double> expect_shaper = {4,5,6,7,8,9,10,11};
 	std::vector<double> expect_coorder = {8,8,8,8,8,8,8,8};
 
@@ -190,6 +196,29 @@ TEST(PARSE, EdgeDef)
 	EXPECT_ARREQ(expect_coorder, coorder);
 
 	ASSERT_EQ(0, ::parse_str(&stmts, both_edges));
+	EXPECT_EQ(nullptr, stmts->head_->next_);
+	stmt = (::Statement*) stmts->head_->val_;
+	ASSERT_EQ(::CONVERSION, stmt->type_);
+	conv = (::Conversion*) stmt->val_;
+	src = conv->source_;
+	dest = conv->dest_;
+	ASSERT_EQ(::SCALAR, dest->type_);
+	EXPECT_EQ(3, dest->val_.scalar_);
+	ASSERT_EQ(::BRANCH, src->type_);
+	branch = src->val_.branch_;
+	EXPECT_STREQ("F", branch->label_);
+	EXPECT_EQ(nullptr, branch->args_->head_->next_);
+	arg = (::Arg*) branch->args_->head_->val_;
+	ASSERT_EQ(::ANY, arg->subgraph_->type_);
+	EXPECT_STREQ("X", arg->subgraph_->val_.any_);
+	ASSERT_NE(nullptr, arg->shaper_);
+	ASSERT_NE(nullptr, arg->coorder_);
+	shaper = vectorize(arg->shaper_);
+	coorder = vectorize(arg->coorder_);
+	EXPECT_ARREQ(expect_shaper, shaper);
+	EXPECT_ARREQ(expect_coorder, coorder);
+
+	ASSERT_EQ(0, ::parse_str(&stmts, both_edges2));
 	EXPECT_EQ(nullptr, stmts->head_->next_);
 	stmt = (::Statement*) stmts->head_->val_;
 	ASSERT_EQ(::CONVERSION, stmt->type_);

@@ -6,24 +6,10 @@
 namespace ead
 {
 
-enum TransCode
-{
-	EXTEND = 0,
-	PERMUTE,
-	REDUCE,
-	CONV,
-	SLICE,
-	PAD,
-};
-
 struct CoordMap final : public ade::iCoordMap
 {
 	CoordMap (ade::CoordT indices, bool bijective) :
 		indices_(indices), bijective_(bijective) {}
-
-	// todo: deprecate
-	CoordMap (TransCode transcode, ade::CoordT indices, bool bijective) :
-		transcode_(transcode), indices_(indices), bijective_(bijective) {}
 
 	ade::iCoordMap* connect (const ade::iCoordMap& rhs) const override
 	{
@@ -53,14 +39,7 @@ struct CoordMap final : public ade::iCoordMap
 		return bijective_;
 	}
 
-	TransCode transcode (void) const
-	{
-		return transcode_;
-	}
-
 private:
-	TransCode transcode_;
-
 	ade::CoordT indices_;
 
 	bool bijective_;

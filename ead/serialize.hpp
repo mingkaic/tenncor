@@ -88,9 +88,7 @@ struct EADSaver final : public pbm::iSaver
 		}
 		ade::CoordT coord;
 		mapper->forward(coord.begin(), coord.begin());
-		std::vector<double> out(coord.begin(), coord.end());
-		out.push_back(static_cast<CoordMap*>(mapper.get())->transcode());
-		return out;
+		return std::vector<double>(coord.begin(), coord.end());
 	}
 };
 
@@ -158,7 +156,7 @@ struct EADLoader final : public pbm::iLoader
 		{
 			return nullptr;
 		}
-		if (ade::rank_cap + 1 != coord.size())
+		if (ade::rank_cap + 1 < coord.size())
 		{
 			logs::fatal("cannot deserialize non-vector coordinate map");
 		}
@@ -166,8 +164,7 @@ struct EADLoader final : public pbm::iLoader
 		ade::CoordT indices;
 		auto cit = coord.begin();
 		std::copy(cit, cit + ade::rank_cap, indices.begin());
-		TransCode tcode = (TransCode) coord[ade::rank_cap];
-		return std::make_shared<CoordMap>(tcode, indices, is_bijective);
+		return std::make_shared<CoordMap>(indices, is_bijective);
 	}
 };
 

@@ -269,7 +269,7 @@ struct InteractiveSession final : public ead::iSession
 		}
 
 		// basic copy over from session::update
-		ead::Traveler traveler;
+		ade::OnceTraveler traveler;
 		for (auto& tens : targeted)
 		{
 			tens->accept(traveler);

@@ -37,32 +37,6 @@ struct SizeT
 	operator size_t() const { return d; }
 };
 
-// todo: give this more reasons for existence
-struct Traveler final : public ade::iTraveler
-{
-	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
-	{
-		visited_.emplace(leaf);
-	}
-
-	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
-	{
-		if (false == estd::has(visited_, func))
-		{
-			visited_.emplace(func);
-			auto& children = func->get_children();
-			for (auto& child : children)
-			{
-				child.get_tensor()->accept(*this);
-			}
-		}
-	}
-
-	TensSetT visited_;
-};
-
 // for each leaf node, iteratively update the parents
 // don't update parent node if it is part of ignored set
 struct Session final : public iSession
@@ -154,7 +128,7 @@ struct Session final : public iSession
 
 	void update_target (TensSetT target, TensSetT updated = {}) override
 	{
-		Traveler targetted;
+		ade::OnceTraveler targetted;
 		for (auto& tens : target)
 		{
 			tens->accept(targetted);

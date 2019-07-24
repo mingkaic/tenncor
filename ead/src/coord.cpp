@@ -25,7 +25,7 @@ CoordptrT reduce (std::vector<ade::RankT> red_dims)
 	auto it = rdims.begin();
 	std::fill(it, rdims.end(), ade::rank_cap);
 	std::copy(red_dims.begin(), red_dims.end(), it);
-	return std::make_shared<CoordMap>(REDUCE, rdims, false);
+	return std::make_shared<CoordMap>(rdims, false);
 }
 
 CoordptrT extend (ade::RankT rank, std::vector<ade::DimT> ext)
@@ -52,7 +52,7 @@ CoordptrT extend (ade::RankT rank, std::vector<ade::DimT> ext)
 	auto it = bcast.begin();
 	std::fill(it, bcast.end(), 1);
 	std::copy(ext.begin(), ext.end(), it + rank);
-	return std::make_shared<CoordMap>(EXTEND, bcast, false);
+	return std::make_shared<CoordMap>(bcast, false);
 }
 
 CoordptrT permute (std::vector<ade::RankT> dims)
@@ -84,7 +84,7 @@ CoordptrT permute (std::vector<ade::RankT> dims)
 
 	ade::CoordT order;
 	std::copy(dims.begin(), dims.end(), order.begin());
-	return std::make_shared<CoordMap>(PERMUTE, order, true);
+	return std::make_shared<CoordMap>(order, true);
 }
 
 }

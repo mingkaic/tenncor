@@ -18,6 +18,7 @@
 namespace ade
 {
 
+/// Extremely generic traveler that visits every node in the graph once
 struct OnceTraveler : public iTraveler
 {
 	virtual ~OnceTraveler (void) = default;
@@ -42,10 +43,16 @@ struct OnceTraveler : public iTraveler
 		}
 	}
 
-protected:
-	virtual void visit_leaf (iLeaf* leaf) = 0;
+	virtual void visit_leaf (iLeaf* leaf) {} // do nothing
 
-	virtual void visit_func (iFunctor* func) = 0;
+	virtual void visit_func (iFunctor* func)
+	{
+		auto& children = func->get_children();
+		for (auto child : children)
+		{
+			child.get_tensor()->accept(*this);
+		}
+	}
 
 	std::unordered_set<iTensor*> visited_;
 };

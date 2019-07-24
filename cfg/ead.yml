@@ -480,7 +480,7 @@ api:
                                   fwd[ade::rank_cap][dimension] =
                                       extent - arg->shape().at(dimension);
                               }),
-                          std::make_shared<ead::CoordMap>(ead::SLICE, slicings, false)
+                          std::make_shared<ead::CoordMap>(slicings, false)
                       )
                   });
       - template: typename T
@@ -514,7 +514,7 @@ api:
                                   fwd[ade::rank_cap][dimension] =
                                       padding.first + padding.second;
                               }),
-                          std::make_shared<ead::CoordMap>(ead::PAD, paddings, false)
+                          std::make_shared<ead::CoordMap>(paddings, false)
                       )
                   });
       - template: typename T
@@ -618,8 +618,7 @@ api:
                   return ead::make_functor<T>(ade::Opcode{"CONV",::age::CONV}, {
                       ead::FuncArg<T>(input, input_shaper, nullptr),
                       ead::FuncArg<T>(kernel, kernel_shaper,
-                          std::make_shared<ead::CoordMap>(
-                              ead::CONV, kernel_dims, true)),
+                          std::make_shared<ead::CoordMap>(kernel_dims, true)),
                   });
       - template: typename T
         name: reduce_sum_1d

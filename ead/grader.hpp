@@ -41,7 +41,7 @@ NodeptrT<T> reduce_grad (const ade::FuncArg& child,
 				bcast[d] = shape.at(d);
 			}
 		}
-		revcoord = std::make_shared<CoordMap>(EXTEND, bcast, false);
+		revcoord = std::make_shared<CoordMap>(bcast, false);
 	}
 	return make_functor<T>(ade::Opcode{"EXTEND",age::EXTEND}, {
 		FuncArg<T>(bwd, revshaper, revcoord)
@@ -66,7 +66,7 @@ NodeptrT<T> permute_grad (ade::iFunctor* fwd,
 		{
 			order[dims[i]] = i;
 		}
-		revcoord = std::make_shared<CoordMap>(PERMUTE, order, true);
+		revcoord = std::make_shared<CoordMap>(order, true);
 	}
 	return make_functor<T>(ade::Opcode{"PERMUTE",age::PERMUTE},{
 		FuncArg<T>(bwd, revshaper, revcoord)
