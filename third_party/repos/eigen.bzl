@@ -45,9 +45,9 @@ install(
 )
 """
 
-def eigen_repository(name):
+def eigen_repository():
     new_git_repository(
-        name = name,
+        name = "com_github_eigenteam_eigen",
         remote = "https://github.com/eigenteam/eigen-git-mirror.git",
         tag = "3.3.7",
         build_file_content = _BUILD_CONTENT,

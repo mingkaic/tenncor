@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
 
 matrix_dims = [
@@ -18,6 +18,9 @@ matrix_dims = [
     200,
     225,
     250,
+    500,
+    1000,
+    1500,
 ]
 
 np_durs = []
@@ -39,7 +42,7 @@ for matrix_dim in matrix_dims:
     tfsess.run(tf_var2.initializer)
 
     # regular matmul
-    out = age.matmul(var, var2)
+    out = tc.matmul(var, var2)
 
     # tensorflow matmul
     tf_out = tf.matmul(tf_var, tf_var2)
@@ -50,7 +53,7 @@ for matrix_dim in matrix_dims:
     np_dur = time.time() - start
 
     sess = ead.Session()
-    sess.track(out)
+    sess.track([out])
 
     start = time.time()
     sess.update()
@@ -66,7 +69,6 @@ for matrix_dim in matrix_dims:
     ead_durs.append(ead_dur)
     tf_durs.append(tf_dur)
 
-print('raw durations: ', raw_durs)
 print('numpy durations: ', np_durs)
 print('ead durations: ', ead_durs)
 print('tf durations: ', tf_durs)

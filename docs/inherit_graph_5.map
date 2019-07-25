@@ -1,12 +1,11 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structade_1_1i_traveler.html" title="Interface to travel through graph, treating iLeaf and iFunctor differently. " alt="" coords="5,203,108,228"/>
+<area shape="rect" id="node1" href="$structade_1_1i_traveler.html" title="Interface to travel through graph, treating iLeaf and iFunctor differently. " alt="" coords="5,179,108,204"/>
 <area shape="rect" id="node2" href="$structade_1_1_graph_stat.html" title="Traveler that maps each tensor to its subtree&#39;s maximum depth. " alt="" coords="199,5,310,31"/>
-<area shape="rect" id="node3" href="$structade_1_1_path_finder.html" title="ade::PathFinder" alt="" coords="196,55,313,80"/>
-<area shape="rect" id="node4" href="$structage_1_1_grader.html" title="Traveler to obtain derivative of accepted node with respect to target. " alt="" coords="208,104,301,129"/>
-<area shape="rect" id="node5" href="$structead_1_1opt_1_1_representer.html" title="ead::opt::Representer\&lt; T \&gt;" alt="" coords="164,153,345,179"/>
-<area shape="rect" id="node6" href="$structead_1_1_painter.html" title="ead::Painter" alt="" coords="208,203,301,228"/>
-<area shape="rect" id="node7" href="$structead_1_1_session_1_1_session_info.html" title="ead::Session\&lt; T \&gt;::\lSessionInfo" alt="" coords="186,252,323,291"/>
-<area shape="rect" id="node8" href="$structead_1_1_session_1_1_session_step.html" title="ead::Session\&lt; T \&gt;::\lSessionStep" alt="" coords="186,315,323,353"/>
-<area shape="rect" id="node9" href="$structllo_1_1_evaluator.html" title="llo::Evaluator\&lt; T \&gt;" alt="" coords="190,377,319,403"/>
-<area shape="rect" id="node10" href="$structpbm_1_1_graph_saver.html" title="Graph serialization traveler. " alt="" coords="156,427,353,452"/>
+<area shape="rect" id="node3" href="$structade_1_1_once_traveler.html" title="Extremely generic traveler that visits every node in the graph once. " alt="" coords="189,55,320,80"/>
+<area shape="rect" id="node4" href="$structade_1_1_parent_finder.html" title="Traveler that for each child tracks the relationship to all parents. " alt="" coords="190,104,318,129"/>
+<area shape="rect" id="node5" href="$structade_1_1_path_finder.html" title="ade::PathFinder" alt="" coords="196,153,313,179"/>
+<area shape="rect" id="node6" href="$struct_c_s_v_equation.html" title="CSVEquation" alt="" coords="204,203,305,228"/>
+<area shape="rect" id="node7" href="$structopt_1_1_matcher.html" title="opt::Matcher" alt="" coords="207,252,302,277"/>
+<area shape="rect" id="node8" href="$structpbm_1_1_graph_saver.html" title="Graph serialization traveler. " alt="" coords="156,301,353,327"/>
+<area shape="rect" id="node9" href="$structtag_1_1_subgraph.html" title="tag::Subgraph" alt="" coords="202,351,307,376"/>
 </map>

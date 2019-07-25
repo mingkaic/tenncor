@@ -1,0 +1,8 @@
+<map id="Arg" name="Arg">
+<area shape="rect" id="node2" href="$struct_subgraph.html" title="Subgraph" alt="" coords="5,292,84,317"/>
+<area shape="rect" id="node3" href="$struct_branch.html" title="Branch" alt="" coords="13,192,77,217"/>
+<area shape="rect" id="node4" href="$struct_ptr_list.html" title="PtrList" alt="" coords="15,105,74,131"/>
+<area shape="rect" id="node5" href="$struct_ptr_node.html" title="PtrNode" alt="" coords="10,5,80,31"/>
+<area shape="rect" id="node6" href="$struct_num_list.html" title="NumList" alt="" coords="108,292,179,317"/>
+<area shape="rect" id="node7" href="$struct_num_node.html" title="NumNode" alt="" coords="103,192,184,217"/>
+</map>

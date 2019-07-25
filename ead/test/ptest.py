@@ -1,9 +1,15 @@
+import json
+import logging
 import unittest
 import numpy as np
 import tensorflow as tf
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
+
+from testutil.generate_testcases import generate_testcases
+
+_test_data = {}
 
 def _normalize_shape(arr1, arr2):
     if 'shape' in dir(arr1):
@@ -59,8 +65,6 @@ class EADTest(unittest.TestCase):
             arr1 = np.array([arr1])
         if isinstance(arr2, int):
             arr2 = np.array([arr2])
-        avoidshape = 1 == prod(list(arr1.shape)) and\
-            1 == prod(list(arr2.shape))
         s1, s2 = _normalize_shape(arr1, arr2)
         self.assertTrue(np.allclose(arr1, arr2, atol=1e-05) and s1 == s2, msg)
 
@@ -70,7 +74,7 @@ class EADTest(unittest.TestCase):
         out = api(var)
 
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         fout = out.get()
@@ -80,8 +84,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         zero = ead.derive(out, var2)
 
-        sess.track(ex)
-        sess.track(zero)
+        sess.track([ex, zero])
         sess.update()
 
         data0 = np.zeros(shape, dtype=np.float32)
@@ -103,7 +106,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
 
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         fout = out.get()
@@ -116,8 +119,7 @@ class EADTest(unittest.TestCase):
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
-        sess.track(zero)
+        sess.track([ex, zero])
         sess.update()
 
         data0 = np.zeros(shape, dtype=np.float32)
@@ -136,8 +138,7 @@ class EADTest(unittest.TestCase):
         both = api(var, var)
 
         sess = ead.Session()
-        sess.track(out)
-        sess.track(both)
+        sess.track([out, both])
         sess.update()
 
         fout = out.get()
@@ -152,10 +153,7 @@ class EADTest(unittest.TestCase):
         ex2 = ead.derive(out, var2)
         ex3 = ead.derive(both, var)
 
-        sess.track(zero)
-        sess.track(ex)
-        sess.track(ex2)
-        sess.track(ex3)
+        sess.track([zero, ex, ex2, ex3])
         sess.update()
 
         rej = zero.get()
@@ -186,7 +184,7 @@ class EADTest(unittest.TestCase):
         tf_out = tf_reduce(tf_var, [1])
 
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         fout = out.get()
@@ -197,8 +195,7 @@ class EADTest(unittest.TestCase):
         var2 = ead.variable(data, 'var2')
         ex = ead.derive(out, var)
         zero = ead.derive(out, var2)
-        sess.track(ex)
-        sess.track(zero)
+        sess.track([ex, zero])
         sess.update()
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
@@ -213,247 +210,353 @@ class EADTest(unittest.TestCase):
         self._array_eq(data0, rej)
 
     def _common_reduce(self, all_reduce, dim_reduce, tf_reduce):
-        shape = [3, 4, 5]
-        data = np.random.rand(*shape)
-        var = ead.variable(data, 'var')
-        tf_var = tf.Variable(data)
+        shapes = [
+            [3, 4, 5],
+            [1, 50, 1]
+        ]
+        for shape in shapes:
+            data = np.random.rand(*shape)
+            var = ead.variable(data, 'var')
+            tf_var = tf.Variable(data)
 
-        tfsess = tf.Session()
-        tfsess.run(tf_var.initializer)
+            tfsess = tf.Session()
+            tfsess.run(tf_var.initializer)
 
-        out = all_reduce(var)
-        out2 = dim_reduce(var, 1)
-        tf_out = tf_reduce(tf_var)
-        tf_out2 = tf_reduce(tf_var, [0, 1])
+            out = all_reduce(var)
+            out2 = dim_reduce(var, offset=1)
+            tf_out = tf_reduce(tf_var)
+            tf_out2 = tf_reduce(tf_var, [0, 1])
 
-        sess = ead.Session()
-        sess.track(out)
-        sess.track(out2)
-        sess.update()
+            sess = ead.Session()
+            sess.track([out, out2])
+            sess.update()
 
-        fout = out.get()
-        fout2 = out2.get()
-        tf_fout = np.array(tfsess.run(tf_out))
-        tf_fout2 = tfsess.run(tf_out2)
+            fout = out.get()
+            fout2 = out2.get()
+            tf_fout = np.array(tfsess.run(tf_out))
+            tf_fout2 = tfsess.run(tf_out2)
 
-        self._array_close(tf_fout, fout)
-        self._array_close(tf_fout2, fout2)
+            self._array_close(tf_fout, fout)
+            self._array_close(tf_fout2, fout2)
 
-        var2 = ead.variable(data, 'var2')
-        ex = ead.derive(out, var)
-        ex2 = ead.derive(out2, var)
-        zero = ead.derive(out, var2)
-        sess.track(ex)
-        sess.track(ex2)
-        sess.track(zero)
-        sess.update()
+            var2 = ead.variable(data, 'var2')
+            ex = ead.derive(out, var)
+            ex2 = ead.derive(out2, var)
+            zero = ead.derive(out, var2)
+            sess.track([ex, ex2, zero])
+            sess.update()
 
-        tf_grad = tf.gradients(tf_out, [tf_var])[0]
-        tf_grad2 = tf.gradients(tf_out2, [tf_var])[0]
+            tf_grad = tf.gradients(tf_out, [tf_var])[0]
+            tf_grad2 = tf.gradients(tf_out2, [tf_var])[0]
 
-        data0 = np.zeros(shape, dtype=np.float32)
-        der = ex.get()
-        der2 = ex2.get()
-        rej = zero.get()
+            data0 = np.zeros(shape, dtype=np.float32)
+            der = ex.get()
+            der2 = ex2.get()
+            rej = zero.get()
 
-        exdata = tfsess.run(tf_grad)
-        exdata2 = tfsess.run(tf_grad2)
+            exdata = tfsess.run(tf_grad)
+            exdata2 = tfsess.run(tf_grad2)
 
-        self._array_close(exdata, der)
-        self._array_close(exdata2, der2)
-        self._array_eq(data0, rej)
+            self._array_close(exdata, der)
+            self._array_close(exdata2, der2)
+            self._array_eq(data0, rej)
 
     def test_variable(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        data0 = np.zeros(shape, dtype=np.float32)
-        data = np.random.rand(3, 4, 5) * 234
-        var = ead.variable(data, 'var')
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            data0 = np.zeros(shape, dtype=np.float32)
+            data = np.random.rand(*shape) * 234
+            var = ead.variable(data, 'var')
 
-        sess = ead.Session()
-        sess.track(var)
-        sess.update()
-        fout = var.get()
+            sess = ead.Session()
+            sess.track([var])
+            sess.update()
+            fout = var.get()
 
-        self.assertEqual(tuple(shape), fout.shape)
-        self._array_close(data, fout)
+            pad_removed = len(shape) - len(fout.shape)
+            padding = [1] * pad_removed
+            self.assertEqual(shape, padding + list(fout.shape))
+            self._array_close(data, fout)
 
-        var2 = ead.variable(data, 'var2')
-        one = ead.derive(var, var)
-        zero = ead.derive(var, var2)
-        sess.track(one)
-        sess.track(zero)
-        sess.update()
+            var2 = ead.variable(data, 'var2')
+            one = ead.derive(var, var)
+            zero = ead.derive(var, var2)
+            sess.track([one, zero])
+            sess.update()
 
-        out1 = one.get()
-        out0 = zero.get()
-        self.assertEqual(tuple(shape), out1.shape)
-        self.assertEqual(tuple(shape), out0.shape)
-        self._array_eq(data1, out1)
-        self._array_eq(data0, out0)
+            out1 = one.get()
+            out0 = zero.get()
+            self.assertEqual(shape, padding + list(out1.shape))
+            self.assertEqual(shape, padding + list(out0.shape))
+            self._array_eq(data1, out1)
+            self._array_eq(data0, out0)
 
     def test_abs(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.abs, abs,
-            lambda data: data / abs(data))
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, tc.abs, abs,
+                lambda data: data / abs(data))
 
     def test_neg(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        self._common_unary(shape, age.neg, lambda a: -a,
-            lambda data: -data1)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            self._common_unary(shape, tc.neg, lambda a: -a,
+                lambda data: -data1)
 
     def test_sin(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.sin, np.sin, np.cos)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, tc.sin, np.sin, np.cos)
 
     def test_cos(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.cos, np.cos, lambda x: -np.sin(x))
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, tc.cos, np.cos, lambda x: -np.sin(x))
 
     def test_tan(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.tan, tf.tan)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, tc.tan, tf.tan)
 
     def test_exp(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.exp, np.exp, np.exp)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, tc.exp, np.exp, np.exp)
 
     def test_log(self):
-        shape = [3, 4, 5]
-        self._common_unary(shape, age.log, np.log, lambda x: 1.0 / x)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary(shape, tc.log, np.log, lambda x: 1.0 / x)
 
     def test_sqrt(self):
         shape = [3, 4, 5]
-        self._common_unary(shape, age.sqrt, np.sqrt,
+        self._common_unary(shape, tc.sqrt, np.sqrt,
             lambda x: 1.0 / (2.0 * np.sqrt(x)))
 
     def test_round(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        self._common_unary(shape, age.round, np.round, lambda x: data1)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            self._common_unary(shape, tc.round, np.round, lambda x: data1)
 
     def test_sigmoid(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.sigmoid, tf.sigmoid)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, tc.sigmoid, tf.sigmoid)
 
     def test_tanh(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.tanh, tf.tanh)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, tc.tanh, tf.tanh)
+
+    def test_clip_by_range(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape,
+                lambda x: tc.clip_by_range(x, 0.3, 0.6),
+                lambda x: tf.clip_by_value(x, 0.3, 0.6))
+
+    def test_clip_by_l2norm(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape,
+                lambda x: tc.clip_by_l2norm(x, 5),
+                lambda x: tf.clip_by_norm(x, 5))
+
+    def test_softmax(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
+                offset=0, ndims=1), tf.nn.softmax)
 
     def test_square(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.square, tf.square)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, tc.square, tf.square)
 
     def test_cube(self):
-        shape = [3, 4, 5]
-        self._common_unary_tf(shape, age.cube, lambda x: tf.pow(x, 3))
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, tc.cube, lambda x: tf.pow(x, 3))
 
     def test_pow(self):
-        shape = [3, 4, 5]
-        def pow_der(i, data):
-            a, b = data
-            if i == 0:
-                return b * a ** (b - 1)
-            return a ** b * np.log(a)
-        self._common_binary(shape, age.pow, lambda x, y: x ** y, pow_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def pow_der(i, data):
+                a, b = data
+                if i == 0:
+                    return b * a ** (b - 1)
+                return a ** b * np.log(a)
+            self._common_binary(shape, tc.pow, lambda x, y: x ** y, pow_der)
 
     def test_add(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        self._common_binary(shape, age.add, lambda x, y: x + y,
-            lambda i, data: data1)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            self._common_binary(shape, tc.add, lambda x, y: x + y,
+                lambda i, data: data1)
 
     def test_sub(self):
-        shape = [3, 4, 5]
-        data1 = np.ones(shape, dtype=np.float32)
-        def sub_der(i, data):
-            if i == 0:
-                return data1
-            return -data1
-        self._common_binary(shape, age.sub, lambda x, y: x - y, sub_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data1 = np.ones(shape, dtype=np.float32)
+            def sub_der(i, data):
+                if i == 0:
+                    return data1
+                return -data1
+            self._common_binary(shape, tc.sub, lambda x, y: x - y, sub_der)
 
     def test_mul(self):
-        shape = [3, 4, 5]
-        def mul_der(i, data):
-            if i == 0:
-                return data[1]
-            return data[0]
-        self._common_binary(shape, age.mul, lambda x, y: x * y, mul_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def mul_der(i, data):
+                if i == 0:
+                    return data[1]
+                return data[0]
+            self._common_binary(shape, tc.mul, lambda x, y: x * y, mul_der)
 
     def test_div(self):
-        shape = [3, 4, 5]
-        def div_der(i, data):
-            a, b = data
-            if i == 0:
-                return 1 / b
-            return -a / (b * b)
-        self._common_binary(shape, age.div, lambda x, y: x / y, div_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def div_der(i, data):
+                a, b = data
+                if i == 0:
+                    return 1 / b
+                return -a / (b * b)
+            self._common_binary(shape, tc.div, lambda x, y: x / y, div_der)
 
     def test_min(self):
-        shape = [3, 4, 5]
-        def min_der(i, data):
-            a, b = data
-            if i == 0:
-                return (a <= b).astype(float)
-            return (b <= a).astype(float)
-        self._common_binary(shape, age.min, np.minimum, min_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def min_der(i, data):
+                a, b = data
+                if i == 0:
+                    return (a <= b).astype(float)
+                return (b <= a).astype(float)
+            self._common_binary(shape, tc.min, np.minimum, min_der)
 
     def test_max(self):
-        shape = [3, 4, 5]
-        def max_der(i, data):
-            a, b = data
-            if i == 0:
-                return (a >= b).astype(float)
-            return (b >= a).astype(float)
-        self._common_binary(shape, age.max, np.maximum, max_der)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            def max_der(i, data):
+                a, b = data
+                if i == 0:
+                    return (a >= b).astype(float)
+                return (b >= a).astype(float)
+            self._common_binary(shape, tc.max, np.maximum, max_der)
 
     def test_eq(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_binary(shape,
-            lambda x, y: age.eq(age.round(x), age.round(y)),
-            lambda x, y: np.round(x) == np.round(y),
-            lambda i, data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_binary(shape,
+                lambda x, y: tc.eq(tc.round(x), tc.round(y)),
+                lambda x, y: np.round(x) == np.round(y),
+                lambda i, data: data0)
 
     def test_neq(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_binary(shape,
-            lambda x, y: age.neq(age.round(x), age.round(y)),
-            lambda x, y: np.round(x) != np.round(y),
-            lambda i, data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_binary(shape,
+                lambda x, y: tc.neq(tc.round(x), tc.round(y)),
+                lambda x, y: np.round(x) != np.round(y),
+                lambda i, data: data0)
 
     def test_lt(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_binary(shape,
-            lambda x, y: age.lt(age.round(x), age.round(y)),
-            lambda x, y: np.round(x) < np.round(y),
-            lambda i, data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_binary(shape,
+                lambda x, y: tc.lt(tc.round(x), tc.round(y)),
+                lambda x, y: np.round(x) < np.round(y),
+                lambda i, data: data0)
 
     def test_gt(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_binary(shape,
-            lambda x, y: age.gt(age.round(x), age.round(y)),
-            lambda x, y: np.round(x) > np.round(y),
-            lambda i, data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_binary(shape,
+                lambda x, y: tc.gt(tc.round(x), tc.round(y)),
+                lambda x, y: np.round(x) > np.round(y),
+                lambda i, data: data0)
 
     def test_nelems(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_unary(shape, age.n_elems,
-            lambda data: np.prod(data.shape),
-            lambda data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_unary(shape, tc.n_elems,
+                lambda data: np.prod(data.shape),
+                lambda data: data0)
 
     def test_ndims(self):
-        shape = [3, 4, 5]
-        data0 = np.zeros(shape, dtype=np.float32)
-        self._common_unary(shape,
-            lambda x: age.n_dims(x, 0),
-            lambda data: data.shape[2],
-            lambda data: data0)
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            data0 = np.zeros(shape, dtype=np.float32)
+            self._common_unary(shape,
+                lambda x: tc.n_dims(x, 0),
+                lambda data: data.shape[len(shape) - 1],
+                lambda data: data0)
 
     def test_extend(self):
         shape = [2]
@@ -461,168 +564,306 @@ class EADTest(unittest.TestCase):
         expected_out = np.array(list(data) * 3).reshape([3, 2])
         var = ead.variable(data, 'var')
 
-        out = age.extend(var, 1, [3])
+        out = tc.extend(var, 1, [3])
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         fout = out.get()
         self._array_close(expected_out, fout)
 
         ex = ead.derive(out, var)
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         der = ex.get()
         self._array_close(np.array([3, 3]), der)
 
     def test_rsum_1d(self):
-        self._common_reduce_1d(age.reduce_sum_1d, tf.reduce_sum)
+        self._common_reduce_1d(tc.reduce_sum_1d, tf.reduce_sum)
 
     def test_rprod_1d(self):
-        self._common_reduce_1d(age.reduce_prod_1d, tf.reduce_prod)
+        self._common_reduce_1d(tc.reduce_prod_1d, tf.reduce_prod)
 
     def test_rmin_1d(self):
-        self._common_reduce_1d(age.reduce_min_1d, tf.reduce_min)
+        self._common_reduce_1d(tc.reduce_min_1d, tf.reduce_min)
 
     def test_rmax_1d(self):
-        self._common_reduce_1d(age.reduce_max_1d, tf.reduce_max)
+        self._common_reduce_1d(tc.reduce_max_1d, tf.reduce_max)
 
     def test_rsum(self):
-        self._common_reduce(age.reduce_sum, age.reduce_sum, tf.reduce_sum)
+        self._common_reduce(tc.reduce_sum, tc.reduce_sum, tf.reduce_sum)
 
     def test_rprod(self):
-        self._common_reduce(age.reduce_prod, age.reduce_prod, tf.reduce_prod)
+        self._common_reduce(tc.reduce_prod, tc.reduce_prod, tf.reduce_prod)
 
     def test_rmin(self):
-        self._common_reduce(age.reduce_min, age.reduce_min, tf.reduce_min)
+        self._common_reduce(tc.reduce_min, tc.reduce_min, tf.reduce_min)
 
     def test_rmax(self):
-        self._common_reduce(age.reduce_max, age.reduce_max, tf.reduce_max)
+        self._common_reduce(tc.reduce_max, tc.reduce_max, tf.reduce_max)
+
+    def test_rl2norm(self):
+        shapes = [
+            [3, 4, 5],
+            [1, 50, 1]
+        ]
+        for shape in shapes:
+            data = np.random.rand(*shape)
+            var = ead.variable(data, 'var')
+            tf_var = tf.Variable(data)
+
+            tfsess = tf.Session()
+            tfsess.run(tf_var.initializer)
+
+            out = tc.reduce_l2norm(var)
+            tf_out = tf.norm(tf_var)
+
+            sess = ead.Session()
+            sess.track([out])
+            sess.update()
+
+            fout = out.get()
+            tf_fout = np.array(tfsess.run(tf_out))
+
+            self._array_close(tf_fout, fout)
+
+            var2 = ead.variable(data, 'var2')
+            ex = ead.derive(out, var)
+            zero = ead.derive(out, var2)
+            sess.track([ex, zero])
+            sess.update()
+
+            tf_grad = tf.gradients(tf_out, [tf_var])[0]
+
+            data0 = np.zeros(shape, dtype=np.float32)
+            der = ex.get()
+            rej = zero.get()
+
+            exdata = tfsess.run(tf_grad)
+
+            self._array_close(exdata, der)
+            self._array_eq(data0, rej)
 
     def test_matmul(self):
-        shape = [5, 5]
-        data = np.random.rand(*shape)
-        data2 = np.random.rand(*shape)
+        shapes = [
+            ([5, 5], [5, 5]),
+            ([50, 16], [16, 1])
+        ]
 
-        var = ead.variable(data, 'var')
-        var2 = ead.variable(data2, 'var2')
-        tf_var = tf.Variable(data)
-        tf_var2 = tf.Variable(data2)
+        if 'matmul.shape_shape_left' in _test_data and\
+            'matmul.shape_shape_right' in _test_data:
+            lshape = _test_data['matmul.shape_shape_left'][0]
+            rshape = _test_data['matmul.shape_shape_right'][0]
+            rshape = [lshape[1]] + rshape
+            shapes += [(lshape, rshape)]
+
+        for lshape, rshape in shapes:
+            is_symmetric = lshape == rshape
+            if is_symmetric:
+                outshape = lshape
+            else:
+                outshape = [rshape[0], lshape[1]]
+
+            shape = [5, 5]
+            data = np.random.rand(*lshape)
+            data2 = np.random.rand(*rshape)
+
+            var = ead.variable(data, 'var')
+            var2 = ead.variable(data2, 'var2')
+            tf_var = tf.Variable(data)
+            tf_var2 = tf.Variable(data2)
+
+            tfsess = tf.Session()
+            tfsess.run(tf_var.initializer)
+            tfsess.run(tf_var2.initializer)
+
+            # regular matmul
+            out = tc.matmul(var, var2)
+
+            # tensorflow matmul
+            tf_out = tf.matmul(tf_var, tf_var2)
+
+            # evaluate regular matmul
+            sess = ead.Session()
+            sess.track([out])
+            sess.update()
+            fout = out.get()
+
+            # evaluate tensorflow matmul
+            tf_fout = tfsess.run(tf_out)
+
+            # check regular matmul
+            self._array_close(tf_fout, fout)
+
+            var3 = ead.variable(data, 'var3')
+
+            zero = ead.derive(out, var3)
+            ex = ead.derive(out, var)
+            ex2 = ead.derive(out, var2)
+
+            sess.track([zero, ex, ex2])
+            sess.update()
+
+            # eval derivative of regular matmul
+            rej = zero.get()
+            der = ex.get()
+            der2 = ex2.get()
+
+            # eval derivative of tensorflow matmul
+            data0 = np.zeros(lshape, dtype=np.float32)
+            tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_var2])
+
+            exdata = tfsess.run(tf_grad)
+            exdata2 = tfsess.run(tf_grad2)
+
+            # check regular matmul
+            self._array_eq(data0, rej)
+            self._array_close(exdata, der)
+            self._array_close(exdata2, der2)
+
+            if is_symmetric:
+                # test with symmetric property
+                both = tc.matmul(var, var)
+
+                tf_both = tf.matmul(tf_var, tf_var)
+
+                sess.track([both])
+                sess.update()
+                fboth = both.get()
+
+                tf_fboth = tfsess.run(tf_both)
+
+                self._array_close(tf_fboth, fboth)
+
+                ex3 = ead.derive(both, var)
+                sess.track([ex3])
+                sess.update()
+
+                der3 = ex3.get()
+
+                tf_grad3 = tf.gradients(tf_both, [tf_var])[0]
+
+                exdata3 = tfsess.run(tf_grad3)
+
+                self._array_close(exdata3, der3)
+
+    def test_convolution(self):
+        padding = "VALID"
+        shapes = [
+            ([3, 3], [3, 3]),
+            ([5, 5], [3, 3]),
+        ]
+        for shape, kernelshape in shapes:
+            tf_shape = [1, shape[0], shape[1], 1]
+            tf_kernelshape = [kernelshape[0], kernelshape[1], 1, 1]
+
+            data = np.random.rand(*shape).astype(np.float32)
+            kernel = np.random.rand(*kernelshape).astype(np.float32)
+            tf_data = data.reshape(tf_shape)
+            tf_kdata = kernel.reshape(tf_kernelshape)
+
+            var = ead.variable(data, 'var')
+            vkernel = ead.variable(kernel, 'vkernel')
+
+            tf_var = tf.Variable(tf_data)
+            tf_kernel = tf.Variable(tf_kdata)
+
+            out = tc.convolution(var, vkernel, list(range(8)))
+
+            sess = ead.Session()
+            sess.track([out])
+            sess.update()
+
+            fout = out.get()
+
+            tfsess = tf.Session()
+            tfsess.run(tf_var.initializer)
+            tfsess.run(tf_kernel.initializer)
+
+            tf_out = tf.nn.convolution(tf_var, tf_kernel, padding)
+            tf_fout = tfsess.run(tf_out)
+
+            tf_fout = tf_fout.reshape([tf_fout.shape[1], tf_fout.shape[2]])
+            self._array_close(tf_fout, fout)
+
+            var2 = ead.variable(data, 'var2')
+            zero = ead.derive(out, var2)
+            ex = ead.derive(out, var)
+            ex2 = ead.derive(out, vkernel)
+
+            sess.track([zero, ex, ex2])
+            sess.update()
+
+            rej = zero.get()
+            der = ex.get()
+            der2 = ex2.get()
+
+            data0 = np.zeros(shape, dtype=np.float32)
+            tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_kernel])
+
+            exdata = tfsess.run(tf_grad)
+            exdata2 = tfsess.run(tf_grad2)
+
+            exdata = exdata.reshape(shape)
+            exdata2 = exdata2.reshape(kernelshape)
+
+            self._array_eq(data0, rej)
+            self._array_close(exdata, der)
+            self._array_close(exdata2, der2)
+
+    def test_conv2d(self):
+        # batch, height, width, in
+        shape = [3, 3, 3, 2]
+        data = np.random.rand(*shape).astype(np.float32)
+
+        # height, width, in, out
+        kshape = [2, 2, 2, 4]
+        kdata = np.random.rand(*kshape).astype(np.float32)
+
+        image = ead.variable(data, 'image')
+        kernel = ead.variable(kdata, 'vkernel')
+
+        tfimage = tf.Variable(data)
+        tfkernel = tf.Variable(kdata)
+
+        out = tc.nn.conv2d(image, kernel)
+
+        sess = ead.Session()
+        sess.track([out])
+        sess.update()
 
         tfsess = tf.Session()
-        tfsess.run(tf_var.initializer)
-        tfsess.run(tf_var2.initializer)
 
-        # regular matmul
-        out = age.matmul(var, var2)
-        both = age.matmul(var, var)
+        tfoutput = tf.nn.conv2d(tfimage, tfkernel, [1, 1, 1, 1], 'VALID')
+        tfsess.run(tfimage.initializer)
+        tfsess.run(tfkernel.initializer)
 
-        # tensorflow matmul
-        tf_out = tf.matmul(tf_var, tf_var2)
-        tf_both = tf.matmul(tf_var, tf_var)
+        conv_output = out.get()
+        tfconv_output = tfsess.run(tfoutput)
+        self._array_close(tfconv_output, conv_output)
 
-        # evaluate regular matmul
-        sess = ead.Session()
-        sess.track(out)
-        sess.track(both)
+        var2 = ead.variable(data, 'var2')
+        zero = ead.derive(out, var2)
+        ex = ead.derive(out, image)
+        ex2 = ead.derive(out, kernel)
+
+        sess.track([zero, ex, ex2])
         sess.update()
 
-        fout = out.get()
-        fboth = both.get()
-
-        # evaluate tensorflow matmul
-        tf_fout = tfsess.run(tf_out)
-        tf_fboth = tfsess.run(tf_both)
-
-        # check regular matmul
-        self._array_close(tf_fout, fout)
-        self._array_close(tf_fboth, fboth)
-
-        var3 = ead.variable(data, 'var3')
-
-        zero = ead.derive(out, var3)
-        ex = ead.derive(out, var)
-        ex2 = ead.derive(out, var2)
-        ex3 = ead.derive(both, var)
-
-        sess.track(zero)
-        sess.track(ex)
-        sess.track(ex2)
-        sess.track(ex3)
-        sess.update()
-
-        # eval derivative of regular matmul
         rej = zero.get()
         der = ex.get()
         der2 = ex2.get()
-        der3 = ex3.get()
 
-        # eval derivative of tensorflow matmul
         data0 = np.zeros(shape, dtype=np.float32)
-        tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_var2])
-        tf_grad3 = tf.gradients(tf_both, [tf_var])[0]
+        tf_grad, tf_grad2 = tf.gradients(tfoutput, [tfimage, tfkernel])
 
         exdata = tfsess.run(tf_grad)
         exdata2 = tfsess.run(tf_grad2)
-        exdata3 = tfsess.run(tf_grad3)
 
-        # check regular matmul
         self._array_eq(data0, rej)
         self._array_close(exdata, der)
         self._array_close(exdata2, der2)
-        self._array_close(exdata3, der3)
-
-    # def test_convolution(self):
-    #     padding = "VALID"
-    #     batchsize = 2
-    #     inchannel = 3
-    #     outchannel = 4
-    #     dims = 5
-
-    #     shapes = [
-    #         ([1, 3, 3, 1], [3, 3, 1, 1]),
-    #         ([batchsize, dims, dims, inchannel], [3, 3, inchannel, outchannel]),
-    #     ]
-    #     for shape, kernelshape in shapes:
-    #         data = np.random.rand(*shape).astype(np.float32)
-    #         kernel = np.random.rand(*kernelshape).astype(np.float32)
-
-    #         var = ead.variable(data, 'var')
-    #         vkernel = ead.variable(kernel, 'vkernel')
-    #         tf_var = tf.Variable(data)
-    #         tf_kernel = tf.Variable(kernel)
-
-    #         sess = tf.Session()
-    #         sess.run(tf_var.initializer)
-    #         sess.run(tf_kernel.initializer)
-
-    #         out = age.convolution(var, vkernel)
-    #         tf_out = tf.nn.convolution(tf_var, tf_kernel, padding)
-
-    #         fout = out.evaluate(dtype=np.dtype(float))
-    #         tf_fout = sess.run(tf_out)
-
-    #         self._array_close(tf_fout, fout)
-
-    #         var2 = ead.variable(data, 'var2')
-    #         zero = ead.derive(out, var2)
-    #         ex = ead.derive(out, var)
-    #         ex2 = ead.derive(out, vkernel)
-
-    #         rej = zero.evaluate()
-    #         der = ex.evaluate()
-    #         der2 = ex2.evaluate()
-
-    #         data0 = np.zeros(shape, dtype=np.float32)
-    #         tf_grad, tf_grad2 = tf.gradients(tf_out, [tf_var, tf_kernel])
-
-    #         exdata = sess.run(tf_grad)
-    #         exdata2 = sess.run(tf_grad2)
-
-    #         self._array_eq(data0, rej)
-    #         self._array_close(exdata, der)
-    #         self._array_close(exdata2, der2)
 
     def test_grader_scenario1(self): # REDUCE -> MUL
         data = np.random.rand(3,10)
@@ -637,12 +878,12 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.mul(age.reduce_sum(var, 1), var2)
+        out = tc.mul(tc.reduce_sum(var, offset=1, ndims=1), var2)
         tf_out = tf.multiply(tf.reduce_sum(tf_var, 0), tf_var2)
 
         # evaluate regular matmul
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         # evaluate tensorflow matmul
@@ -654,7 +895,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         exdata = tfsess.run(tf_grad)
@@ -673,12 +914,12 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.mul(age.extend(var, 1, [3]), var2)
+        out = tc.mul(tc.extend(var, 1, [3]), var2)
         tf_out = tf_var * tf_var2
 
         # evaluate regular matmul
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         # evaluate tensorflow matmul
@@ -690,7 +931,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         exdata = tfsess.run(tf_grad)
@@ -709,12 +950,12 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.mul(age.permute(var, [1,0]), var2)
+        out = tc.mul(tc.permute(var, [1,0]), var2)
         tf_out = tf.transpose(tf_var) * tf_var2
 
         # evaluate regular matmul
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         # evaluate tensorflow matmul
@@ -726,7 +967,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         exdata = tfsess.run(tf_grad)
@@ -749,12 +990,12 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
 
-        out = age.mul(age.matmul(var, var2), var3)
+        out = tc.mul(tc.matmul(var, var2), var3)
         tf_out = tf.multiply(tf.matmul(tf_var, tf_var2), tf_var3)
 
         # evaluate regular matmul
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         # evaluate tensorflow matmul
@@ -766,7 +1007,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         exdata = tfsess.run(tf_grad)
@@ -789,12 +1030,12 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
 
-        out = age.matmul(age.matmul(var, var2), var3)
+        out = tc.matmul(tc.matmul(var, var2), var3)
         tf_out = tf.matmul(tf.matmul(tf_var, tf_var2), tf_var3)
 
         # evaluate regular matmul
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         # evaluate tensorflow matmul
@@ -806,7 +1047,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         exdata = tfsess.run(tf_grad)
@@ -825,12 +1066,12 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.matmul(age.reduce_sum(var, 2), var2)
+        out = tc.matmul(tc.reduce_sum(var, offset=2, ndims=1), var2)
         tf_out = tf.matmul(tf.reduce_sum(tf_var, 0), tf_var2)
 
         # evaluate regular matmul
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         # evaluate tensorflow matmul
@@ -842,7 +1083,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         exdata = tfsess.run(tf_grad)
@@ -862,12 +1103,12 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = age.matmul(age.extend(var, 1, [10]), var2)
+        out = tc.matmul(tc.extend(var, 1, [10]), var2)
         tf_out = tf.matmul(tf_var * ones, tf_var2)
 
         # evaluate regular matmul
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         # evaluate tensorflow matmul
@@ -879,15 +1120,15 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
 
-	# A<a> -> EXTEND -> B<a,b>
-	# A<a> -> EXTEND -> C<a,c> -> PERMUTE -> <c,a>
-	# B MATMUL C -> D<c,b>
+    # A<a> -> EXTEND -> B<a,b>
+    # A<a> -> EXTEND -> C<a,c> -> PERMUTE -> <c,a>
+    # B MATMUL C -> D<c,b>
     def test_grader_scenario8(self):
         data = np.random.rand(5)
         ones = np.ones([10, 5])
@@ -899,14 +1140,14 @@ class EADTest(unittest.TestCase):
         tfsess = tf.Session()
         tfsess.run(tf_var.initializer)
 
-        out = age.matmul(
-            age.extend(var, 1, [10]),
-            age.permute(age.extend(var, 1, [3]), [1, 0]))
+        out = tc.matmul(
+            tc.extend(var, 1, [10]),
+            tc.permute(tc.extend(var, 1, [3]), [1, 0]))
         tf_out = tf.matmul(tf_var * ones, tf.transpose(tf_var * ones2))
 
         # evaluate regular matmul
         sess = ead.Session()
-        sess.track(out)
+        sess.track([out])
         sess.update()
 
         # evaluate tensorflow matmul
@@ -918,7 +1159,7 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
-        sess.track(ex)
+        sess.track([ex])
         sess.update()
 
         exdata = tfsess.run(tf_grad)
@@ -940,10 +1181,10 @@ class EADTest(unittest.TestCase):
         tf_b = tf.Variable(data2)
         tf_c = tf.Variable(data3)
 
-        d = age.matmul(a, b)
-        e = age.matmul(c, d)
-        f = age.matmul(age.transpose(d), age.transpose(c))
-        dest = age.matmul(e, f)
+        d = tc.matmul(a, b)
+        e = tc.matmul(c, d)
+        f = tc.matmul(tc.transpose(d), tc.transpose(c))
+        dest = tc.matmul(e, f)
 
         tf_d = tf.matmul(tf_a, tf_b)
         tf_e = tf.matmul(tf_c, tf_d)
@@ -961,10 +1202,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_c.initializer)
 
         sess = ead.Session()
-        sess.track(dest)
-        sess.track(da)
-        sess.track(db)
-        sess.track(dc)
+        sess.track([dest, da, db, dc])
         sess.update()
 
         exa = tfsess.run(tf_da)
@@ -975,4 +1213,17 @@ class EADTest(unittest.TestCase):
         self._array_close(exc, dc.get())
 
 if __name__ == "__main__":
+    with open('testutil/ead_template.json') as json_data:
+        test_template = json.load(json_data)
+        assert 'test_cases' in test_template
+        assert 'config_pools' in test_template
+
+    # log to file
+    logging.basicConfig(filename='/tmp/ead_ptest.log',level=logging.DEBUG)
+    logging.info("running ptest for ead")
+
+    _test_data = generate_testcases(
+        test_template['test_cases'],
+        test_template['config_pools'])
+
     unittest.main()

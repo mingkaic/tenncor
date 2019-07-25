@@ -8,7 +8,7 @@
 
 #include "ade/ileaf.hpp"
 
-#include "ead/tensor.hpp"
+#include "ead/eigen.hpp"
 
 #ifndef EAD_ILEAF_HPP
 #define EAD_ILEAF_HPP
@@ -27,37 +27,37 @@ struct iLeaf : public ade::iLeaf
 		return shape_;
 	}
 
-	/// Implementation of iTensor
-	std::string to_string (void) const override
-	{
-		return fmts::to_string(data_.data()[0]) +
-			"(" + shape().to_string() + ")";
-	}
-
-	/// Implementation of iLeaf
+	/// Implementation of iData
 	void* data (void) override
 	{
 		return data_.data();
 	}
 
-	/// Implementation of iLeaf
+	/// Implementation of iData
 	const void* data (void) const override
 	{
 		return data_.data();
 	}
 
-	/// Implementation of iLeaf
+	/// Implementation of iData
 	size_t type_code (void) const override
 	{
 		return age::get_type<T>();
 	}
 
-	/// Return number of bytes in data source
-	size_t nbytes (void) const
+	/// Implementation of iData
+	std::string type_label (void) const override
+	{
+		return age::name_type(age::get_type<T>());
+	}
+
+	/// Implementation of iData
+	size_t nbytes (void) const override
 	{
 		return sizeof(T) * shape_.n_elems();
 	}
 
+	// todo: deprecate (with is_mutable)
 	virtual bool is_const (void) const = 0;
 
 protected:

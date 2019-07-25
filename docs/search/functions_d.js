@@ -1,14 +1,14 @@
 var searchData=
 [
   ['n_5felems',['n_elems',['../structade_1_1_shape.html#a04fd9614b166a1519221441abeff050d',1,'ade::Shape']]],
-  ['nbytes',['nbytes',['../structead_1_1i_leaf.html#ad9d9141e868eea124eb602168dc08060',1,'ead::iLeaf::nbytes()'],['../structllo_1_1_variable.html#ac50a79df6f7688f202b5ab5381070065',1,'llo::Variable::nbytes()']]],
-  ['neg',['neg',['../namespaceead.html#a594cb007c9e08d47774b1b6d1589cb74',1,'ead::neg()'],['../namespacello.html#a08b1a3a42d568f558e9afaa2910643b3',1,'llo::neg()']]],
-  ['neg_3c_20uint16_5ft_20_3e',['neg&lt; uint16_t &gt;',['../namespacello.html#a68a7692b1e14c29c8b6cf404273f29d1',1,'llo']]],
-  ['neg_3c_20uint32_5ft_20_3e',['neg&lt; uint32_t &gt;',['../namespacello.html#af5073667f5e17c9876fce6234c83399d',1,'llo']]],
-  ['neg_3c_20uint64_5ft_20_3e',['neg&lt; uint64_t &gt;',['../namespacello.html#aeefa047287dcca2de1f09b1e0b029502',1,'llo']]],
-  ['neg_3c_20uint8_5ft_20_3e',['neg&lt; uint8_t &gt;',['../namespacello.html#a23b2a125b44e6638bfe2b3a6c4b5bdc6',1,'llo']]],
-  ['neq',['neq',['../namespaceead.html#ab80b55b7b91119935354e22c54b6de4e',1,'ead::neq()'],['../namespacello.html#af62fcaac1bb63f7e4f9b8086578650bb',1,'llo::neq()']]],
-  ['nnary',['nnary',['../namespacello.html#ac0deca0c30f8e3f30619de66ffd17ec0',1,'llo']]],
-  ['nodes_5fto_5ftens',['nodes_to_tens',['../namespaceead.html#ad7fc8c8c30ab0b1e9d707b617e87dbad',1,'ead']]],
-  ['numrange',['NumRange',['../structead_1_1opt_1_1_num_range.html#ac2b186b04700adbbf80e235845fa7a64',1,'ead::opt::NumRange']]]
+  ['nbytes',['nbytes',['../structade_1_1i_data.html#aa5c9f438f715fd2be98b436c93f964a9',1,'ade::iData::nbytes()'],['../structead_1_1_functor.html#a656345e1d19d64f653eb4a56a590a71e',1,'ead::Functor::nbytes()'],['../structead_1_1i_leaf.html#a8d00313b1cf0d3005a7532da0e0d828b',1,'ead::iLeaf::nbytes()']]],
+  ['neg',['neg',['../namespaceead.html#a594cb007c9e08d47774b1b6d1589cb74',1,'ead']]],
+  ['neq',['neq',['../namespaceead.html#ab80b55b7b91119935354e22c54b6de4e',1,'ead']]],
+  ['new_5fnumlist',['new_numlist',['../list_8h.html#a45c872863f6fb15f26a606f1a6f191dd',1,'list.h']]],
+  ['new_5fptrlist',['new_ptrlist',['../list_8h.html#a219b3ab0f2bb641cd8bc26b203abedcd',1,'list.h']]],
+  ['nodeconverters',['NodeConverters',['../structead_1_1_node_converters.html#a5e0ca8f459e03a5226ddd719fd08bbc9',1,'ead::NodeConverters']]],
+  ['norm_5fgen',['norm_gen',['../namespaceead.html#a803351e45c60fcb4f8722295acea1ec1',1,'ead']]],
+  ['numlist_5fclear',['numlist_clear',['../list_8h.html#a41fece6ae3d9653cb4fe2e79c7ce7ef7',1,'list.h']]],
+  ['numlist_5ffree',['numlist_free',['../list_8h.html#af96ead796d9fb132c38bed80dd7a4594',1,'list.h']]],
+  ['numlist_5fpushback',['numlist_pushback',['../list_8h.html#a18f16a97c039371fc4387f3cab379f92',1,'list.h']]]
 ];

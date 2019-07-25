@@ -1,6 +1,7 @@
 load("//third_party/drake_rules:execute.bzl", "which")
 
-_BUILD_CONTENT = """licenses([
+_BUILD_CONTENT = """
+licenses([
     "notice", # BSD-2-Clause AND BSD-3-Clause AND MIT AND Python-2.0
     "unencumbered", # Public-Domain
 ])
@@ -13,6 +14,7 @@ cc_library(
 )
 """
 
+# todo: consider bazel python rules once they stablize
 def _impl(repository_ctx):
     python = which(repository_ctx, "python{}".format(
         repository_ctx.attr.python_version,
@@ -46,6 +48,6 @@ def _impl(repository_ctx):
 
 numpy_repository = repository_rule(
     _impl,
-    attrs = {"python_version": attr.string(default = "2")},
+    attrs = {"python_version": attr.string(default = "3")},
     local = True,
 )

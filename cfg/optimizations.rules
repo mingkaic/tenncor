@@ -1,0 +1,56 @@
+symbol X;
+symbol Y;
+symbol Z;
+
+property ADD commutative;
+property MUL commutative;
+property group:sum commutative;
+property group:prod commutative;
+
+// coorder applied to X
+REDUCE_SUM(X={coorder:[8,8,8,8,8,8,8,8]}) => X;
+REDUCE_PROD(X={coorder:[8,8,8,8,8,8,8,8]}) => X;
+REDUCE_MIN(X={coorder:[8,8,8,8,8,8,8,8]}) => X;
+REDUCE_MAX(X={coorder:[8,8,8,8,8,8,8,8]}) => X;
+PERMUTE(X={coorder:[0,1,2,3,4,5,6,7]}) => X;
+EXTEND(X={coorder:[1,1,1,1,1,1,1,1]}) => X;
+
+ABS(NEG(X)) => ABS(X);
+POW(X,2) => SQUARE(X);
+POW(X,3) => CUBE(X);
+
+SUB(X,0) => X;
+SUB(0,X) => NEG(X);
+
+SQUARE(SQRT(X)) => X;
+SQRT(SQUARE(X)) => X;
+
+EXP(LOG(X)) => X;
+LOG(EXP(X)) => X;
+
+ADD(X,0) => X;
+MUL(X,0) => 0;
+MUL(X,1) => X;
+MUL(X,-1) => NEG(X);
+
+POW(0,X) => 0;
+POW(1,X) => 1;
+POW(X,0) => 1;
+POW(X,1) => X;
+DIV(0,X) => 0;
+DIV(X,1) => X;
+DIV(X,X) => 1;
+
+// sigmoid
+DIV(1,ADD(1,NEG(EXP(NEG(X))))) => SIGMOID(X);
+DIV(1,ADD(NEG(EXP(NEG(X)))),1) => SIGMOID(X);
+
+group:prod(DIV(X,Y),Y,..Z) => group:prod(X,..Z);
+DIV(group:prod(X,..Y),X) => group:prod(..Y);
+
+group:sum(X,NEG(X),..Y) => group:sum(..Y);
+group:prod(X,X,X,..Y) => group:prod(CUBE(X),..Y);
+group:prod(X,X,..Y) => group:prod(SQUARE(X),..Y);
+group:prod(X,SQUARE(X),..Y) => group:prod(CUBE(X),..Y);
+
+group:sum(X,NEG(Y),..Z) => group:sum(SUB(X,Y),..Z);

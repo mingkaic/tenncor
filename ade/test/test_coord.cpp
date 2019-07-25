@@ -4,22 +4,12 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/coord.hpp"
 
 
-struct COORD : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(COORD, Forward)
+TEST(COORD, Forward)
 {
 	std::vector<double> indata = {
 		0.0019825081, 0.3347071004, 0.0865707708, 0.5146660164, 0.2166590070, 0.5496622507, 0.5109064577, 0.3955951994, 0.3905624328,
@@ -45,9 +35,9 @@ TEST_F(COORD, Forward)
 	};
 	ade::CoordMap lhs([&indata](ade::MatrixT m)
 		{
-			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 			{
-				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 				{
 					m[i][j] = indata[i * ade::mat_dim + j];
 				}
@@ -55,9 +45,9 @@ TEST_F(COORD, Forward)
 		});
 	ade::CoordMap rhs([&indata2](ade::MatrixT m)
 		{
-			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 			{
-				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 				{
 					m[i][j] = indata2[i * ade::mat_dim + j];
 				}
@@ -66,12 +56,12 @@ TEST_F(COORD, Forward)
 
 
 	ade::MatrixT expected;
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			expected[i][j] = 0;
-			for (uint8_t k = 0; k < ade::mat_dim; ++k)
+			for (ade::RankT k = 0; k < ade::mat_dim; ++k)
 			{
 				expected[i][j] += indata[i * ade::mat_dim + k] * indata2[k * ade::mat_dim + j];
 			}
@@ -81,9 +71,9 @@ TEST_F(COORD, Forward)
 	ade::iCoordMap* res = lhs.connect(rhs);
 	res->access([&expected](const ade::MatrixT& m)
 		{
-			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 			{
-				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 				{
 					EXPECT_EQ(expected[i][j], m[i][j]);
 				}
@@ -94,7 +84,7 @@ TEST_F(COORD, Forward)
 }
 
 
-TEST_F(COORD, Reverse)
+TEST(COORD, Reverse)
 {
 	std::vector<double> indata = {
 		0.8156562350, 0.6115720004, 0.3259187100, 0.4587045151, 0.3708856605, 0.9116936271, 0.8506702867, 0.6005461299, 0.5781125392,
@@ -109,9 +99,9 @@ TEST_F(COORD, Reverse)
 	};
 	ade::CoordMap fwd([&indata](ade::MatrixT m)
 		{
-			for (uint8_t i = 0; i < ade::mat_dim; ++i)
+			for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 			{
-				for (uint8_t j = 0; j < ade::mat_dim; ++j)
+				for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 				{
 					m[i][j] = indata[i * ade::mat_dim + j];
 				}
@@ -130,9 +120,9 @@ TEST_F(COORD, Reverse)
 		});
 
 	// expect matmul is identity
-	for (uint8_t i = 0; i < ade::mat_dim; ++i)
+	for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 	{
-		for (uint8_t j = 0; j < ade::mat_dim; ++j)
+		for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 		{
 			if (i == j)
 			{
@@ -149,7 +139,7 @@ TEST_F(COORD, Reverse)
 }
 
 
-TEST_F(COORD, Identity)
+TEST(COORD, Identity)
 {
 	std::string idstr;
 	ade::identity->access(
@@ -181,7 +171,7 @@ TEST_F(COORD, Identity)
 }
 
 
-TEST_F(COORD, Reduce)
+TEST(COORD, Reduce)
 {
 	size_t rank = 5;
 	std::vector<ade::DimT> red = {22, 32, 2};
@@ -214,7 +204,7 @@ TEST_F(COORD, Reduce)
 }
 
 
-TEST_F(COORD, Extend)
+TEST(COORD, Extend)
 {
 	size_t rank = 3;
 	std::vector<ade::DimT> ext = {12, 21, 8, 4, 52};
@@ -244,9 +234,9 @@ TEST_F(COORD, Extend)
 }
 
 
-TEST_F(COORD, Permute)
+TEST(COORD, Permute)
 {
-	std::vector<ade::DimT> perm = {4, 2, 3, 7, 0, 1};
+	std::vector<ade::RankT> perm = {4, 2, 3, 7, 0, 1};
 	ade::CoordptrT permuter = ade::permute(perm);
 	std::array<bool,ade::rank_cap> permed;
 	permed.fill(false);
@@ -275,7 +265,7 @@ TEST_F(COORD, Permute)
 }
 
 
-TEST_F(COORD, Flip)
+TEST(COORD, Flip)
 {
 	size_t dim = 3;
 	ade::CoordptrT flipper = ade::flip(dim);
@@ -298,12 +288,34 @@ TEST_F(COORD, Flip)
 }
 
 
-TEST_F(COORD, Bijection)
+TEST(COORD, Bijection)
 {
 	EXPECT_TRUE(ade::identity->is_bijective());
 
 	ade::CoordptrT reducer = ade::reduce(3, {2});
 	EXPECT_FALSE(reducer->is_bijective());
+}
+
+
+TEST(COORD, IsIdentity)
+{
+	EXPECT_TRUE(ade::is_identity(nullptr));
+	EXPECT_TRUE(ade::is_identity(ade::identity.get()));
+
+	ade::CoordptrT sample_id = std::make_shared<ade::CoordMap>(
+		*static_cast<ade::CoordMap*>(ade::identity.get())); // deep copy
+	EXPECT_TRUE(ade::is_identity(sample_id.get()));
+
+	ade::CoordptrT bourne(new ade::CoordMap(
+		[](ade::MatrixT fwd)
+		{
+			// todo: we can randomize this so long as fwd is not identity
+			for (ade::RankT i = 0; i < ade::rank_cap; ++i)
+			{
+				fwd[i][i] = 2;
+			}
+		}));
+	EXPECT_FALSE(ade::is_identity(bourne.get()));
 }
 
 

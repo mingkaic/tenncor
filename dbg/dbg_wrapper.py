@@ -1,5 +1,5 @@
 from csv_to_png import csv_to_png
-from dbg import graph_to_csvstr, multigraph_to_csvstr
+from dbg.stream_dbg import graph_to_csvstr, multigraph_to_csvstr
 
 def graph_to_csvimg(root, outpath, showshape = False):
     lines = graph_to_csvstr(root, showshape).split('\n')

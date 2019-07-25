@@ -10,19 +10,11 @@ filegroup(
     name = "srcs",
     srcs = [
         "//ade:srcs",
-        "//age:srcs",
-        "//bwd:srcs",
         "//dbg:srcs",
         "//ead:srcs",
-        "//llo:srcs",
         "//opt:srcs",
         "//pbm:srcs",
         "//rocnnet:srcs",
         "BUILD.bazel",
     ],
-)
-
-filegroup(
-    name = "scripts",
-    srcs = glob(["scripts/*"]),
 )

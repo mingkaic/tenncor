@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['nelemt',['NElemT',['../namespaceade.html#a2fba34a89f37ea9ee310914daefd880d',1,'ade']]],
-  ['nodeptrt',['NodeptrT',['../namespaceead.html#ad55ede1032c27cdac013fd8c06e7ec71',1,'ead']]],
-  ['nodest',['NodesT',['../namespaceead.html#af5246577a59b718cb0315f0433c86b00',1,'ead']]]
+  ['labelsmapt',['LabelsMapT',['../dbg_2stream_2ade_8hpp.html#a7839363f7778d49f27d87010378e2050',1,'ade.hpp']]],
+  ['leafptrt',['LeafptrT',['../namespaceade.html#a1bdf3657cc8a95dd974ad6aa36e2230f',1,'ade']]]
 ];

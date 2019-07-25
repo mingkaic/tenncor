@@ -4,7 +4,7 @@ import argparse
 
 import numpy as np
 
-import ead.age as age
+import ead.tenncor as tc
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
@@ -55,19 +55,17 @@ def main(args):
 
     n_in = 10
     n_out = n_in / 2
+    n_outs = [9, n_out]
 
-    hiddens = [
-        rcn.get_layer(age.sigmoid, 9),
-        rcn.get_layer(age.sigmoid, n_out)
-    ]
+    nonlins = [tc.sigmoid, tc.sigmoid]
 
-    brain = rcn.get_mlp(n_in, hiddens, 'brain')
+    brain = rcn.get_mlp(n_in, n_outs, 'brain')
     untrained_brain = brain.copy()
     try:
         with open(args.load, 'rb') as f:
             print('loading')
             pretrained_brain = brain.parse_from_string(f.read())
-            print('successfully loaded ' + args.load)
+            print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
@@ -76,7 +74,19 @@ def main(args):
     sess = ead.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    trainer = rcn.MLPTrainer(brain, sess, rcn.get_sgd(0.9), n_batch)
+    trainer = rcn.MLPTrainer(brain, nonlins, sess,
+        rcn.get_sgd(0.9), n_batch)
+
+    testin = ead.variable(np.zeros([n_in], dtype=float), 'testin')
+    untrained_out = untrained_brain.forward(testin, nonlins)
+    trained_out = brain.forward(testin, nonlins)
+    pretrained_out = pretrained_brain.forward(testin, nonlins)
+    sess.track([
+        untrained_out,
+        trained_out,
+        pretrained_out,
+    ])
+    sess.optimize("cfg/optimizations.rules")
 
     start = time.time()
     for i in range(args.n_train):
@@ -93,14 +103,6 @@ def main(args):
     untrained_err = 0
     trained_err = 0
     pretrained_err = 0
-
-    testin = ead.variable(np.zeros([n_in], dtype=float), 'testin')
-    untrained_out = untrained_brain.forward(testin)
-    trained_out = brain.forward(testin)
-    pretrained_out = pretrained_brain.forward(testin)
-    sess.track(untrained_out)
-    sess.track(trained_out)
-    sess.track(pretrained_out)
 
     for i in range(args.n_test):
         if i % show_every_n == show_every_n - 1:
@@ -128,7 +130,8 @@ def main(args):
 
     try:
         print('saving')
-        brain.serialize_to_file(trained_out, args.save)
+        if trainer.serialize_to_file(args.save):
+            print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)
         print('failed to write to "{}"'.format(args.save))

@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ead/generated/api.hpp"
 
@@ -13,7 +13,7 @@
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
-#include "ead/opt/parse.hpp"
+#include "ead/parse.hpp"
 
 
 TEST(EQUATION, MatmulComplex)
@@ -60,20 +60,22 @@ TEST(EQUATION, MatmulComplex)
 	ead::NodeptrT<float> b = ead::make_variable<float>(data2.data(), bshape);
 	ead::NodeptrT<float> c = ead::make_variable<float>(data3.data(), cshape);
 
-	auto d = age::matmul(a, b);
-	auto e = age::matmul(c, d);
-	auto f = age::matmul(age::transpose(d), age::transpose(c));
-	auto dest = age::matmul(e, f);
+	auto d = tenncor::matmul(a, b);
+	auto e = tenncor::matmul(c, d);
+	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(c));
+	auto dest = tenncor::matmul(e, f);
 
 	auto da = ead::derive(dest, a);
 	auto db = ead::derive(dest, b);
 	auto dc = ead::derive(dest, c);
 
-	ead::Session<float> session;
-	session.track(dest);
-	session.track(da);
-	session.track(db);
-	session.track(dc);
+	ead::Session session;
+	session.track({
+		dest->get_tensor(),
+		da->get_tensor(),
+		db->get_tensor(),
+		dc->get_tensor(),
+	});
 	session.update();
 
 	{
@@ -202,28 +204,30 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = age::add(age::matmul(in, weight0), age::extend(bias0, 1, {3}));
-	auto sig0 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-			age::exp(age::neg(layer0))));
+	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto sig0 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+			tenncor::exp(tenncor::neg(layer0))));
 
-	auto layer1 = age::add(age::matmul(sig0, weight1), age::extend(bias1, 1, {3}));
-	auto sig1 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-			age::exp(age::neg(layer1))));
+	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto sig1 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+			tenncor::exp(tenncor::neg(layer1))));
 
-	auto err = age::pow(age::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0);
 	auto db0 = ead::derive(err, bias0);
 	auto dw1 = ead::derive(err, weight1);
 	auto db1 = ead::derive(err, bias1);
 
-	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	ead::Session session;
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -421,17 +425,17 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = age::add(age::matmul(in, weight0), age::extend(bias0, 1, {3}));
-	auto sig0 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-			age::exp(age::neg(layer0))));
+	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto sig0 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+			tenncor::exp(tenncor::neg(layer0))));
 
-	auto layer1 = age::add(age::matmul(sig0, weight1), age::extend(bias1, 1, {3}));
-	auto sig1 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-			age::exp(age::neg(layer1))));
+	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto sig1 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+			tenncor::exp(tenncor::neg(layer1))));
 
-	auto err = age::pow(age::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0);
 	auto db0 = ead::derive(err, bias0);
@@ -439,20 +443,22 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	auto db1 = ead::derive(err, bias1);
 
 	// optimize
-	auto rules = ead::opt::get_configs<double>();
-	ead::NodesT<double> roots = {dw0, db0, dw1, db1};
-	ade::EdgesT edges;
-	ead::opt::optimize(roots, edges, rules);
-	dw0 = roots[0];
-	db0 = roots[1];
-	dw1 = roots[2];
-	db1 = roots[3];
+	auto rules = ead::parse_file<double>("cfg/optimizations.rules");
+	ade::TensT roots = {
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	};
+	opt::optimize(roots, rules);
 
-	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	ead::Session session;
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -650,24 +656,26 @@ TEST(EQUATION, SigmoidMLP_Fast)
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = age::add(age::matmul(in, weight0), age::extend(bias0, 1, {3}));
-	auto sig0 = age::sigmoid(layer0);
+	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto sig0 = tenncor::sigmoid(layer0);
 
-	auto layer1 = age::add(age::matmul(sig0, weight1), age::extend(bias1, 1, {3}));
-	auto sig1 = age::sigmoid(layer1);
+	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = age::pow(age::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0);
 	auto db0 = ead::derive(err, bias0);
 	auto dw1 = ead::derive(err, weight1);
 	auto db1 = ead::derive(err, bias1);
 
-	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	ead::Session session;
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -862,13 +870,13 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = age::add(age::matmul(in, weight0), age::extend(bias0, 1, {3}));
-	auto sig0 = age::sigmoid(layer0);
+	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto sig0 = tenncor::sigmoid(layer0);
 
-	auto layer1 = age::add(age::matmul(sig0, weight1), age::extend(bias1, 1, {3}));
-	auto sig1 = age::sigmoid(layer1);
+	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = age::pow(age::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0);
 	auto db0 = ead::derive(err, bias0);
@@ -876,20 +884,22 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	auto db1 = ead::derive(err, bias1);
 
 	// optimize
-	auto rules = ead::opt::get_configs<double>();
-	ead::NodesT<double> roots = {dw0, db0, dw1, db1};
-	ade::EdgesT edges;
-	ead::opt::optimize(roots, edges, rules);
-	dw0 = roots[0];
-	db0 = roots[1];
-	dw1 = roots[2];
-	db1 = roots[3];
+	auto rules = ead::parse_file<double>("cfg/optimizations.rules");
+	ade::TensT roots = {
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	};
+	opt::optimize(roots, rules);
 
-	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	ead::Session session;
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 	session.update();
 
 	std::vector<double> expect_gw0 = {

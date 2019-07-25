@@ -6,17 +6,10 @@
 namespace ead
 {
 
-enum TransCode
-{
-	EXTEND = 0,
-	PERMUTE,
-	REDUCE,
-};
-
 struct CoordMap final : public ade::iCoordMap
 {
-	CoordMap (TransCode transcode, ade::CoordT indices, bool bijective) :
-		transcode_(transcode), indices_(indices), bijective_(bijective) {}
+	CoordMap (ade::CoordT indices, bool bijective) :
+		indices_(indices), bijective_(bijective) {}
 
 	ade::iCoordMap* connect (const ade::iCoordMap& rhs) const override
 	{
@@ -46,14 +39,7 @@ struct CoordMap final : public ade::iCoordMap
 		return bijective_;
 	}
 
-	TransCode transcode (void) const
-	{
-		return transcode_;
-	}
-
 private:
-	TransCode transcode_;
-
 	ade::CoordT indices_;
 
 	bool bijective_;
@@ -62,11 +48,11 @@ private:
 /// Type of iCoordMap smartpointer
 using CoordptrT = std::shared_ptr<CoordMap>;
 
-CoordptrT reduce (std::vector<uint8_t> red_dims);
+CoordptrT reduce (std::vector<ade::RankT> red_dims);
 
-CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext);
+CoordptrT extend (ade::RankT rank, std::vector<ade::DimT> ext);
 
-CoordptrT permute (std::vector<uint8_t> dims);
+CoordptrT permute (std::vector<ade::RankT> dims);
 
 }
 

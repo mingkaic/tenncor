@@ -8,7 +8,8 @@
 
 #include "pbm/data.hpp"
 
-#include "ead/generated/opmap.hpp"
+#include "ead/generated/opcode.hpp"
+#include "ead/generated/dtype.hpp"
 
 #include "ead/coord.hpp"
 #include "ead/constant.hpp"
@@ -40,7 +41,7 @@ static bool is_big_endian(void)
 	return twob.bytes[0] == 0;
 }
 
-struct EADSaver : public pbm::iSaver
+struct EADSaver final : public pbm::iSaver
 {
 	std::string save_leaf (bool& is_const, ade::iLeaf* leaf) override
 	{
@@ -68,9 +69,9 @@ struct EADSaver : public pbm::iSaver
 		mapper->access(
 			[&out](const ade::MatrixT& mat)
 			{
-				for (uint8_t i = 0; i < ade::mat_dim; ++i)
+				for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 				{
-					for (uint8_t j = 0; j < ade::mat_dim; ++j)
+					for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 					{
 						out.push_back(mat[i][j]);
 					}
@@ -87,24 +88,22 @@ struct EADSaver : public pbm::iSaver
 		}
 		ade::CoordT coord;
 		mapper->forward(coord.begin(), coord.begin());
-		std::vector<double> out(coord.begin(), coord.end());
-		out.push_back(static_cast<CoordMap*>(mapper.get())->transcode());
-		return out;
+		return std::vector<double>(coord.begin(), coord.end());
 	}
 };
 
 #define _OUT_GENERIC(realtype)leaf = is_const?\
-ade::TensptrT(Constant<realtype>::get((realtype*) pb, shape)):\
+make_constant<realtype>((realtype*) pb, shape)->get_tensor():\
 ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 
 /// Unmarshal cortenn::Source as Variable containing context of source
-struct EADLoader : public pbm::iLoader
+struct EADLoader final : public pbm::iLoader
 {
 	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
-		size_t typecode, std::string label, bool is_const) override
+		std::string typelabel, std::string label, bool is_const) override
 	{
 		ade::TensptrT leaf;
-		age::_GENERATED_DTYPE gencode = (age::_GENERATED_DTYPE) typecode;
+		age::_GENERATED_DTYPE gencode = age::get_type(typelabel);
 		size_t nbytes = age::type_size(gencode);
 		if (is_big_endian() && nbytes > 1)
 		{
@@ -117,18 +116,18 @@ struct EADLoader : public pbm::iLoader
 				out[outi] = pb[i];
 			}
 			pb = out.c_str();
-			TYPE_LOOKUP(_OUT_GENERIC, typecode)
+			TYPE_LOOKUP(_OUT_GENERIC, gencode)
 		}
 		else
 		{
-			TYPE_LOOKUP(_OUT_GENERIC, typecode)
+			TYPE_LOOKUP(_OUT_GENERIC, gencode)
 		}
 		return leaf;
 	}
 
-	ade::TensptrT generate_func (ade::Opcode opcode, ade::ArgsT args) override
+	ade::TensptrT generate_func (std::string opname, ade::ArgsT args) override
 	{
-		return ade::TensptrT(ade::Functor::get(opcode, args));
+		return ade::TensptrT(ade::Functor::get(ade::Opcode{opname, age::get_op(opname)}, args));
 	}
 
 	ade::CoordptrT generate_shaper (std::vector<double> coord) override
@@ -140,9 +139,9 @@ struct EADLoader : public pbm::iLoader
 		return std::make_shared<ade::CoordMap>(
 			[&](ade::MatrixT fwd)
 			{
-				for (uint8_t i = 0; i < ade::mat_dim; ++i)
+				for (ade::RankT i = 0; i < ade::mat_dim; ++i)
 				{
-					for (uint8_t j = 0; j < ade::mat_dim; ++j)
+					for (ade::RankT j = 0; j < ade::mat_dim; ++j)
 					{
 						fwd[i][j] = coord[i * ade::mat_dim + j];
 					}
@@ -151,22 +150,21 @@ struct EADLoader : public pbm::iLoader
 	}
 
 	ade::CoordptrT generate_coorder (
-		ade::Opcode opcode, std::vector<double> coord) override
+		std::string opname, std::vector<double> coord) override
 	{
 		if (0 == coord.size()) // is identity
 		{
 			return nullptr;
 		}
-		if (ade::rank_cap + 1 != coord.size())
+		if (ade::rank_cap + 1 < coord.size())
 		{
 			logs::fatal("cannot deserialize non-vector coordinate map");
 		}
-		bool is_bijective = non_bijectives.end() == non_bijectives.find(opcode.code_);
+		bool is_bijective = false == estd::has(non_bijectives, age::get_op(opname));
 		ade::CoordT indices;
 		auto cit = coord.begin();
 		std::copy(cit, cit + ade::rank_cap, indices.begin());
-		TransCode tcode = (TransCode) coord[ade::rank_cap];
-		return std::make_shared<CoordMap>(tcode, indices, is_bijective);
+		return std::make_shared<CoordMap>(indices, is_bijective);
 	}
 };
 

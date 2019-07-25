@@ -68,6 +68,8 @@ CMakeFiles
 **/lex.yy.c
 **/y.tab.*
 
+html/
+
 # whitelist
 !.gitignore
 !.travis.yml
@@ -76,3 +78,4 @@ CMakeFiles
 !.astylerc
 !.bazelrc
 !rocnnet/pretrained/*.pbx
+!rocnnet/notebooks/*.pbx

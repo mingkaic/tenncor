@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['pbm',['pbm',['../namespacepbm.html',1,'']]],
-  ['pyead',['pyead',['../namespacepyead.html',1,'']]],
-  ['pyllo',['pyllo',['../namespacepyllo.html',1,'']]]
+  ['tag',['tag',['../namespacetag.html',1,'']]],
+  ['template',['template',['../namespacetemplate.html',1,'']]]
 ];

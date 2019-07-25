@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['transcode',['TransCode',['../namespaceead.html#a9dd1bbaf42a6ed9320e8b9a9d8f31928',1,'ead']]]
+  ['node_5ftype',['NODE_TYPE',['../ade__csv_8hpp.html#a30b051839483744ae5b4557b82b3f398',1,'ade_csv.hpp']]]
 ];

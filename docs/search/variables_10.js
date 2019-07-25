@@ -1,8 +1,20 @@
 var searchData=
 [
-  ['target_5f',['target_',['../structade_1_1_path_finder.html#ade3a284e63e52e2cf2ea395e9a512207',1,'ade::PathFinder::target_()'],['../structage_1_1_grader.html#aa18ea83d92bdfcb64268fc86c1385634',1,'age::Grader::target_()'],['../structead_1_1opt_1_1_rule_conversion.html#a75ff87c28c9c1e0710d9ce1f8d45c51b',1,'ead::opt::RuleConversion::target_()']]],
-  ['tens_5f',['tens_',['../structpbm_1_1_pathed_tens.html#a637a31b5c0382eea4e431bc37765fcdc',1,'pbm::PathedTens::tens_()'],['../structpbm_1_1_graph_info.html#ab272d0e997a381b95f1988cbf6edac36',1,'pbm::GraphInfo::tens_()']]],
-  ['tensor_5f',['tensor_',['../structade_1_1_func_arg.html#a726efc0b14782597b951b54819c88d9b',1,'ade::FuncArg']]],
-  ['tensorbase_5f',['tensorbase_',['../structead_1_1_eigen_tens_op.html#a2cbd8821e76024dd8d7facb5c078d40e',1,'ead::EigenTensOp']]],
-  ['transcode_5f',['transcode_',['../structead_1_1_coord_map.html#a62f5c1a1b6b2c1f6504fe9715496fbe0',1,'ead::CoordMap']]]
+  ['saver_5f',['saver_',['../structpbm_1_1_graph_saver.html#af810671efe6177d2e4fc27abed65813c',1,'pbm::GraphSaver']]],
+  ['scalar_5f',['scalar_',['../structead_1_1_scalar_convr.html#a644e836b5eaf4c5e0ce7d3e439a6d8da',1,'ead::ScalarConvr::scalar_()'],['../struct_subgraph.html#a709ac00c627381823a8d5c6ce258fd74',1,'Subgraph::scalar_()']]],
+  ['scalarize_5f',['scalarize_',['../structopt_1_1_matcher.html#a0d2a437469665ffaf52b234f8180d328',1,'opt::Matcher']]],
+  ['scalars_5f',['scalars_',['../structopt_1_1_seg_v_args.html#a8eae2b4197d1d98b54a92315453b51de',1,'opt::SegVArgs']]],
+  ['sequential_5fjobs_5f',['sequential_jobs_',['../structdbg_1_1_graph_emitter_client.html#ae7fb55a3ddb3424f4ef80df766eddd6b',1,'dbg::GraphEmitterClient']]],
+  ['sess_5f',['sess_',['../structdbg_1_1_interactive_session.html#a260ec45d945c43d3d701e338b462e2ad',1,'dbg::InteractiveSession']]],
+  ['sess_5fid_5f',['sess_id_',['../structdbg_1_1_interactive_session.html#ac2872b2785f43fb25e0300f68f25d922',1,'dbg::InteractiveSession']]],
+  ['shape_5f',['shape_',['../structade_1_1_functor.html#a99fbfe6298c8fea43e632ea75bf68973',1,'ade::Functor::shape_()'],['../struct_graph_emitter_impl_1_1_node.html#a7697ceb4d9083b1355328bc7d1de5420',1,'GraphEmitterImpl::Node::shape_()'],['../structead_1_1_functor.html#a08742ded550e11f608f810319132aa8c',1,'ead::Functor::shape_()'],['../structead_1_1i_leaf.html#a57a3e92dd3c2097fae2bec09c0174182',1,'ead::iLeaf::shape_()'],['../structead_1_1_op_arg.html#acd3c36ad5064ca4abc9920e9263ccf4e',1,'ead::OpArg::shape_()']]],
+  ['shaper_5f',['shaper_',['../structade_1_1_func_arg.html#ae6274a8217d8c583899d096731d44891',1,'ade::FuncArg::shaper_()'],['../struct_graph_emitter_impl_1_1_edge.html#a02b103e555a65a74ec5c8741c69fda83',1,'GraphEmitterImpl::Edge::shaper_()'],['../structead_1_1_func_arg.html#a12b0aef4de13a59a3a2575645e5546b5',1,'ead::FuncArg::shaper_()'],['../structead_1_1_builder_arg.html#a461db70893a0835236ebb94f48586298',1,'ead::BuilderArg::shaper_()'],['../structopt_1_1_cand_arg.html#ad14eac35a88e5bc96663ba76a5e42534',1,'opt::CandArg::shaper_()'],['../structopt_1_1_voter_arg.html#a3994680773420f8948ba9f452178a52f',1,'opt::VoterArg::shaper_()'],['../struct_arg.html#aae44ba002042e3fdd5cccb8b6711d596',1,'Arg::shaper_()']]],
+  ['showshape_5f',['showshape_',['../struct_pretty_equation.html#ad2a0130cedb1cddd2fecaaceaf332bf2',1,'PrettyEquation::showshape_()'],['../struct_c_s_v_equation.html#a7d8694b119898b5a1a41343a54457675',1,'CSVEquation::showshape_()']]],
+  ['source_5f',['source_',['../struct_conversion.html#adaf67dbd28c968bde529a491ab8e2f15',1,'Conversion']]],
+  ['stat',['stat',['../structpbm_1_1_graph_saver.html#a332322e0e0bc21b3924b51ccfa490aed',1,'pbm::GraphSaver']]],
+  ['stat_5f',['stat_',['../structead_1_1_session.html#a3a0015ba5ec1b64074902c26fb2905c1',1,'ead::Session']]],
+  ['stream_5fduration_5f',['stream_duration_',['../structdbg_1_1_client_config.html#abc7106be41bff8a0cd14060c6e728b77',1,'dbg::ClientConfig']]],
+  ['stub_5f',['stub_',['../structdbg_1_1_graph_emitter_client.html#a7419edf952445a577f4fc969c3cd3881',1,'dbg::GraphEmitterClient::stub_()'],['../structdbg_1_1_interactive_session.html#ae618f5fb29a0d401b83c8f1bbc4d6384',1,'dbg::InteractiveSession::stub_()']]],
+  ['subgraph_5f',['subgraph_',['../struct_arg.html#a9ec966245875382456e3963bbf832431',1,'Arg']]],
+  ['symbols_5f',['symbols_',['../structopt_1_1_rules_context.html#a42b1753f4ab513ad5a4032c0ab096448',1,'opt::RulesContext']]]
 ];

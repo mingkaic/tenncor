@@ -1,23 +1,14 @@
 <map id="ead/inode.hpp" name="ead/inode.hpp">
-<area shape="rect" id="node2" href="$ead_2constant_8hpp.html" title="ead/constant.hpp" alt="" coords="696,79,819,104"/>
-<area shape="rect" id="node21" href="$ead_2funcarg_8hpp.html" title="ead/funcarg.hpp" alt="" coords="857,79,975,104"/>
-<area shape="rect" id="node22" href="$ead_2variable_8hpp.html" title="ead/variable.hpp" alt="" coords="1195,152,1315,177"/>
-<area shape="rect" id="node3" href="$interactive__dbg_8hpp.html" title="ead/dbg/interactive\l_dbg.hpp" alt="" coords="676,225,810,264"/>
-<area shape="rect" id="node4" href="$ead_2functor_8hpp.html" title="ead/functor.hpp" alt="" coords="859,152,973,177"/>
-<area shape="rect" id="node5" href="$gradhelper_8hpp.html" title="ead/gradhelper.hpp" alt="" coords="1160,232,1296,257"/>
-<area shape="rect" id="node10" href="$session_8hpp.html" title="ead/session.hpp" alt="" coords="884,232,1002,257"/>
-<area shape="rect" id="node11" href="$ead_8cpp.html" title="ead/python/ead.cpp" alt="" coords="806,312,944,337"/>
-<area shape="rect" id="node13" href="$ead_2grader_8hpp.html" title="ead/grader.hpp" alt="" coords="579,152,690,177"/>
-<area shape="rect" id="node17" href="$ead_2opt_2one__prune_8hpp.html" title="ead/opt/one_prune.hpp" alt="" coords="193,312,352,337"/>
-<area shape="rect" id="node18" href="$ead_2opt_2zero__prune_8hpp.html" title="ead/opt/zero_prune.hpp" alt="" coords="5,312,168,337"/>
-<area shape="rect" id="node20" href="$ead_2serialize_8hpp.html" title="ead/serialize.hpp" alt="" coords="1371,232,1493,257"/>
-<area shape="rect" id="node12" href="$ead_2helper_8hpp.html" title="ead/helper.hpp" alt="" coords="1027,232,1136,257"/>
-<area shape="rect" id="node6" href="$ead_8hpp.html" title="ead/ead.hpp" alt="" coords="1044,312,1140,337"/>
-<area shape="rect" id="node7" href="$rule__src_8hpp.html" title="ead/opt/rule_src.hpp" alt="" coords="1021,385,1164,411"/>
-<area shape="rect" id="node8" href="$conversion_8hpp.html" title="ead/opt/conversion.hpp" alt="" coords="1012,459,1172,484"/>
-<area shape="rect" id="node9" href="$parse_8hpp.html" title="ead/opt/parse.hpp" alt="" coords="1028,532,1157,557"/>
-<area shape="rect" id="node14" href="$nodes_8hpp.html" title="ead/opt/nodes.hpp" alt="" coords="369,232,501,257"/>
-<area shape="rect" id="node15" href="$ead_2opt_2const__merge_8hpp.html" title="ead/opt/const_merge.hpp" alt="" coords="609,312,781,337"/>
-<area shape="rect" id="node16" href="$ead_2opt_2multi__opt_8hpp.html" title="ead/opt/multi_opt.hpp" alt="" coords="347,385,496,411"/>
-<area shape="rect" id="node19" href="$ead_2opt_2ops__reuse_8hpp.html" title="ead/opt/ops_reuse.hpp" alt="" coords="376,312,534,337"/>
+<area shape="rect" id="node2" href="$constant_8hpp.html" title="ead/constant.hpp" alt="" coords="148,79,271,104"/>
+<area shape="rect" id="node12" href="$ead_2funcarg_8hpp.html" title="ead/funcarg.hpp" alt="" coords="5,79,123,104"/>
+<area shape="rect" id="node13" href="$variable_8hpp.html" title="ead/variable.hpp" alt="" coords="326,79,445,104"/>
+<area shape="rect" id="node3" href="$ead_2session_8hpp.html" title="ead/session.hpp" alt="" coords="288,225,406,251"/>
+<area shape="rect" id="node8" href="$ead_8cpp.html" title="ead/python/ead.cpp" alt="" coords="180,445,319,471"/>
+<area shape="rect" id="node9" href="$ead_2functor_8hpp.html" title="ead/functor.hpp" alt="" coords="8,152,121,177"/>
+<area shape="rect" id="node10" href="$grader_8hpp.html" title="ead/grader.hpp" alt="" coords="153,225,264,251"/>
+<area shape="rect" id="node11" href="$serialize_8hpp.html" title="ead/serialize.hpp" alt="" coords="324,152,447,177"/>
+<area shape="rect" id="node4" href="$dbg_2grpc_2session_8hpp.html" title="dbg/grpc/session.hpp" alt="" coords="578,372,726,397"/>
+<area shape="rect" id="node6" href="$ead_8hpp.html" title="ead/ead.hpp" alt="" coords="344,299,440,324"/>
+<area shape="rect" id="node5" href="$grpc_8cpp.html" title="dbg/python/grpc.cpp" alt="" coords="469,445,611,471"/>
+<area shape="rect" id="node7" href="$ead_2parse_8hpp.html" title="ead/parse.hpp" alt="" coords="339,372,445,397"/>
 </map>

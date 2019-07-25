@@ -25,22 +25,7 @@ struct FuncArg final
 	/// Return shape of tensor filtered through coordinate mapper
 	ade::Shape shape (void) const
 	{
-		ade::Shape shape = node_->get_tensor()->shape();
-		ade::CoordT out;
-		ade::CoordT in;
-		std::copy(shape.begin(), shape.end(), in.begin());
-		shaper_->forward(out.begin(), in.begin());
-		std::vector<ade::DimT> slist(ade::rank_cap);
-		std::transform(out.begin(), out.end(), slist.begin(),
-			[](ade::CDimT cd) -> ade::DimT
-			{
-				if (cd < 0)
-				{
-					cd = -cd - 1;
-				}
-				return std::round(cd);
-			});
-		return ade::Shape(slist);
+		return ade::apply_shaper(shaper_, node_->get_tensor()->shape());
 	}
 
 	/// Return tensor being mapped
@@ -95,28 +80,42 @@ FuncArg<T> identity_map (NodeptrT<T> node)
 }
 
 template <typename T>
-FuncArg<T> reduce_map (NodeptrT<T> node,
-	uint8_t rank, std::vector<uint8_t> red)
+FuncArg<T> reduce_map (NodeptrT<T> node, ade::RankT offset, ade::RankT ndims)
 {
+	if (offset >= ade::rank_cap)
+	{
+		logs::fatalf("cannot dimensions [%d,...] greater or equal to %d",
+			offset, ade::rank_cap);
+	}
+
+	ade::RankT n = std::min<ade::RankT>(offset + ndims, ade::rank_cap);
 	ade::Shape shape = node->get_tensor()->shape();
-	std::vector<ade::DimT> slist(red.size());
-	std::transform(red.begin(), red.end(), slist.begin(),
-		[&shape](uint8_t d)
+	std::vector<ade::RankT> dims; // dims are allowed to be non-contiguous
+	std::vector<ade::DimT> slist;
+	dims.reserve(n);
+	slist.reserve(n);
+
+	for (ade::RankT i = offset; i < n; ++i)
+	{
+		if (shape.at(i) > 1)
 		{
-			return shape.at(d);
-		});
-	return FuncArg<T>(node, ade::reduce(rank, slist), reduce(red));
+			dims.push_back(i);
+		}
+		slist.push_back(shape.at(i));
+	}
+
+	return FuncArg<T>(node, ade::reduce(offset, slist), reduce(dims));
 }
 
 template <typename T>
 FuncArg<T> extend_map (NodeptrT<T> node,
-	uint8_t rank, std::vector<ade::DimT> ext)
+	ade::RankT rank, std::vector<ade::DimT> ext)
 {
 	return FuncArg<T>(node, ade::extend(rank, ext), extend(rank, ext));
 }
 
 template <typename T>
-FuncArg<T> permute_map (NodeptrT<T> node, std::vector<uint8_t> order)
+FuncArg<T> permute_map (NodeptrT<T> node, std::vector<ade::RankT> order)
 {
 	return FuncArg<T>(node, ade::permute(order), permute(order));
 }

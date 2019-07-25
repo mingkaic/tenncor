@@ -33,7 +33,7 @@ struct PathedTens final
 			std::vector<std::string> labels;
 			for (auto opair : other->tens_)
 			{
-				if (tens_.end() != tens_.find(opair.first))
+				if (estd::has(tens_, opair.first))
 				{
 					labels.push_back(opair.first);
 				}
@@ -149,7 +149,8 @@ struct GraphInfo final
 };
 
 /// Return graph info through out available from in graph
-template <typename LOAD, typename std::enable_if<std::is_base_of<iLoader,LOAD>::value>::type* = nullptr>
+template <typename LOAD, typename std::enable_if<
+	std::is_base_of<iLoader,LOAD>::value>::type* = nullptr>
 void load_graph (GraphInfo& out, const cortenn::Graph& in)
 {
 	LOAD loader;
@@ -170,7 +171,7 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 			ade::Shape shape(std::vector<ade::DimT>(sstr.begin(), sstr.end()));
 			std::string data = source.data();
 			ade::TensptrT leaf = loader.generate_leaf(data.c_str(),
-				shape, source.typecode(), src_label, source.is_const());
+				shape, source.typelabel(), src_label, source.is_const());
 			invec.push_back(leaf);
 			if (false == pb_labels.empty())
 			{
@@ -183,7 +184,7 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 		{
 			cortenn::Functor func = node.functor();
 			auto nodeargs = func.args();
-			ade::Opcode opcode{func.opname(), func.opcode()};
+			std::string opname = func.opname();
 			ade::ArgsT args;
 			for (auto nodearg : nodeargs)
 			{
@@ -193,12 +194,12 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 				std::vector<double> shaper_vec(shaper_pb.begin(), shaper_pb.end());
 				std::vector<double> coord_vec(coorder_pb.begin(), coorder_pb.end());
 				ade::CoordptrT shaper = loader.generate_shaper(shaper_vec);
-				ade::CoordptrT coord = loader.generate_coorder(opcode, coord_vec);
+				ade::CoordptrT coord = loader.generate_coorder(opname, coord_vec);
 				args.push_back(
 					ade::FuncArg(arg, shaper, nodearg.fwd(), coord));
 				out.roots_.erase(invec[nodearg.idx()]);
 			}
-			ade::TensptrT f = loader.generate_func(opcode, args);
+			ade::TensptrT f = loader.generate_func(opname, args);
 			invec.push_back(f);
 			if (false == pb_labels.empty())
 			{

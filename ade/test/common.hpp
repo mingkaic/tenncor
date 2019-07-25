@@ -3,11 +3,13 @@
 #ifndef ADE_TEST_COMMON_HPP
 #define ADE_TEST_COMMON_HPP
 
-struct MockTensor final : public ade::iLeaf
+struct MockTensor : public ade::iLeaf
 {
 	MockTensor (void) = default;
 
 	MockTensor (ade::Shape shape) : shape_(shape) {}
+
+	virtual ~MockTensor (void) = default;
 
 	const ade::Shape& shape (void) const override
 	{
@@ -30,6 +32,16 @@ struct MockTensor final : public ade::iLeaf
 	}
 
 	size_t type_code (void) const override
+	{
+		return 0;
+	}
+
+	std::string type_label (void) const override
+	{
+		return "";
+	}
+
+	size_t nbytes (void) const override
 	{
 		return 0;
 	}

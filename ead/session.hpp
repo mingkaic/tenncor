@@ -1,4 +1,9 @@
 #include <list>
+#include <unordered_set>
+
+#include "ade/traveler.hpp"
+
+#include "opt/optimize.hpp"
 
 #include "ead/constant.hpp"
 #include "ead/functor.hpp"
@@ -9,141 +14,168 @@
 namespace ead
 {
 
-template <typename T>
-using ParentSetT = std::unordered_set<Functor<T>*>;
+using TensSetT = std::unordered_set<ade::iTensor*>;
 
-template <typename T>
 struct iSession
 {
 	virtual ~iSession (void) = default;
 
-	virtual void track (NodeptrT<T>& node) = 0;
+	virtual void track (ade::TensT roots) = 0;
+
+	/// update all nodes related to updated, if updated set is empty
+	/// update all nodes related to the leaves (so everyone)
+	/// ignore all nodes dependent on ignores including the ignored nodes
+	virtual void update (TensSetT updated = {}, TensSetT ignores = {}) = 0;
+
+	virtual void update_target (TensSetT target, TensSetT updated = {}) = 0;
 };
 
-template <typename T>
-struct Session final : public iSession<T>
+struct SizeT
 {
-	struct SessionInfo final : public ade::iTraveler
-	{
-		/// Implementation of iTraveler
-		void visit (ade::iLeaf* leaf) override
-		{
-			descendants_.emplace(leaf, std::unordered_set<ade::iTensor*>());
-		}
+	size_t d = 0;
 
-		/// Implementation of iTraveler
-		void visit (ade::iFunctor* func) override
+	operator size_t() const { return d; }
+};
+
+// for each leaf node, iteratively update the parents
+// don't update parent node if it is part of ignored set
+struct Session final : public iSession
+{
+	void track (ade::TensT roots) override
+	{
+		tracked_.insert(roots.begin(), roots.end());
+		ade::ParentFinder pfinder;
+		for (ade::TensptrT& root : roots)
 		{
-			if (descendants_.end() == descendants_.find(func))
+			root->accept(pfinder);
+			root->accept(stat_);
+		}
+		auto& statmap = stat_.graphsize_;
+
+		std::list<ade::iOperableFunc*> all_ops;
+		for (auto& statpair : statmap)
+		{
+			if (0 < statpair.second.upper_)
 			{
-				const ade::ArgsT& args = func->get_children();
-				auto& desc_set = descendants_[func];
-				for (const ade::FuncArg& arg : args)
+				// ensure we only track operable functors
+				auto op = dynamic_cast<ade::iOperableFunc*>(statpair.first);
+				if (nullptr == op)
 				{
-					ade::iTensor* tens = arg.get_tensor().get();
-					tens->accept(*this);
-					auto it = descendants_.find(tens);
-					if (descendants_.end() != it)
-					{
-						desc_set.insert(it->second.begin(), it->second.end());
-					}
-					desc_set.emplace(static_cast<ade::iLeaf*>(tens));
+					logs::fatalf("cannot track non-operable functor %s",
+						statpair.first->to_string().c_str());
 				}
-				need_update_.emplace(func);
+				all_ops.push_back(op);
 			}
 		}
-
-		std::unordered_set<ade::iTensor*> need_update_;
-
-		// maps functor to leaves
-		std::unordered_map<ade::iTensor*,
-			std::unordered_set<ade::iTensor*>> descendants_;
-	};
-
-	struct SessionStep final : public ade::iTraveler
-	{
-		SessionStep (SessionInfo* info) : info_(info) {}
-
-		/// Implementation of iTraveler
-		void visit (ade::iLeaf* leaf) override {}
-
-		/// Implementation of iTraveler
-		void visit (ade::iFunctor* func) override
-		{
-			if (visited_.end() == visited_.find(func))
+		all_ops.sort(
+			[&statmap](ade::iOperableFunc* a, ade::iOperableFunc* b)
 			{
-				auto& update_set = info_->need_update_;
-				auto& desc_set = info_->descendants_[func];
-				auto has_update =
-					[&update_set](ade::iTensor* tens)
-					{
-						return update_set.end() != update_set.find(tens);
-					};
-				if (update_set.end() != update_set.find(func) ||
-					std::any_of(desc_set.begin(), desc_set.end(), has_update))
-				{
-					const ade::ArgsT& args = func->get_children();
-					for (const ade::FuncArg& arg : args)
-					{
-						ade::iTensor* tens = arg.get_tensor().get();
-						auto& child_desc_set = info_->descendants_[tens];
-						if (update_set.end() != update_set.find(tens) ||
-							std::any_of(child_desc_set.begin(),
-								child_desc_set.end(), has_update))
-						{
-							tens->accept(*this);
-						}
-					}
-					static_cast<Functor<T>*>(func)->update();
-				}
-				visited_.emplace(func);
-			}
-		}
-
-		std::unordered_set<ade::iTensor*> visited_;
-
-		SessionInfo* info_;
-	};
-
-	void track (NodeptrT<T>& node) override
-	{
-		auto tens = node->get_tensor();
-		tens->accept(sess_info_);
-
-		auto& node_desc_set = sess_info_.descendants_[tens.get()];
-		std::remove_if(roots_.begin(), roots_.end(),
-			[&node_desc_set](ade::iTensor* root)
-			{
-				return node_desc_set.end() != node_desc_set.find(root);
+				return statmap[a].upper_ < statmap[b].upper_;
 			});
-
-		if (std::all_of(roots_.begin(), roots_.end(),
-			[&](ade::iTensor* root)
+		requirements_.clear();
+		for (ade::iOperableFunc* op : all_ops)
+		{
+			auto& args = op->get_children();
+			TensSetT unique_children;
+			for (const ade::FuncArg& arg : args)
 			{
-				auto& desc_set = sess_info_.descendants_[root];
-				return desc_set.end() == desc_set.find(tens.get());
-			}))
+				auto tens = arg.get_tensor().get();
+				if (0 < statmap[tens].upper_) // ignore leaves
+				{
+					unique_children.emplace(tens);
+				}
+			}
+			requirements_.push_back({op, unique_children.size()});
+		}
+
+		for (auto& assocs : pfinder.parents_)
 		{
-			roots_.push_back(tens.get());
+			for (auto& parent_pair : assocs.second)
+			{
+				parents_[assocs.first].emplace(
+					static_cast<ade::iOperableFunc*>(parent_pair.first));
+			}
 		}
 	}
 
-	// mark every tensor in updates set as need_update
-	// update every functor up until reaching elements in stop_updating set
-	SessionStep update (std::unordered_set<ade::iTensor*> updates = {})
+	void update (TensSetT updated = {}, TensSetT ignores = {}) override
 	{
-		sess_info_.need_update_.insert(updates.begin(), updates.end());
-		SessionStep step(&sess_info_);
-		for (auto root : roots_)
+		std::unordered_map<ade::iOperableFunc*,SizeT> fulfilments;
+		for (ade::iTensor* unodes : updated)
 		{
-			root->accept(step);
+			auto& node_parents = parents_[unodes];
+			for (auto& node_parent : node_parents)
+			{
+				++fulfilments[node_parent].d;
+			}
 		}
-		return step;
+		// ignored nodes and its dependers will never fulfill requirement
+		for (auto& op : requirements_)
+		{
+			// fulfilled and not ignored
+			if (fulfilments[op.first].d >= op.second &&
+				false == estd::has(ignores, op.first))
+			{
+				op.first->update();
+				auto& op_parents = parents_[op.first];
+				for (auto& op_parent : op_parents)
+				{
+					++fulfilments[op_parent].d;
+				}
+			}
+		}
 	}
 
-	std::list<ade::iTensor*> roots_;
+	void update_target (TensSetT target, TensSetT updated = {}) override
+	{
+		ade::OnceTraveler targetted;
+		for (auto& tens : target)
+		{
+			tens->accept(targetted);
+		}
+		std::unordered_map<ade::iOperableFunc*,SizeT> fulfilments;
+		for (ade::iTensor* unodes : updated)
+		{
+			auto& node_parents = parents_[unodes];
+			for (auto& node_parent : node_parents)
+			{
+				++fulfilments[node_parent].d;
+			}
+		}
+		// ignored nodes and its dependers will never fulfill requirement
+		for (auto& op : requirements_)
+		{
+			// is relevant to target, is fulfilled and not ignored
+			if (estd::has(targetted.visited_, op.first) &&
+				fulfilments[op.first].d >= op.second)
+			{
+				op.first->update();
+				auto& op_parents = parents_[op.first];
+				for (auto& op_parent : op_parents)
+				{
+					++fulfilments[op_parent].d;
+				}
+			}
+		}
+	}
 
-	SessionInfo sess_info_;
+	void optimize (const opt::OptCtx& rules)
+	{
+		ade::TensT tracked(tracked_.begin(), tracked_.end());
+		opt::optimize(tracked, rules);
+		stat_.graphsize_.clear();
+		parents_.clear();
+		track(tracked);
+	}
+
+	std::unordered_set<ade::TensptrT> tracked_;
+
+	ade::GraphStat stat_;
+
+	std::unordered_map<ade::iTensor*,
+		std::unordered_set<ade::iOperableFunc*>> parents_;
+
+	std::vector<std::pair<ade::iOperableFunc*,size_t>> requirements_; // todo: test minimal requirements
 };
 
 }

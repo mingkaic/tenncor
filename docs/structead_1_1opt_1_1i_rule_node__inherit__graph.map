@@ -1,6 +1,0 @@
-<map id="ead::opt::iRuleNode&lt; T &gt;" name="ead::opt::iRuleNode&lt; T &gt;">
-<area shape="rect" id="node2" href="$structead_1_1opt_1_1_const_rule.html" title="ead::opt::ConstRule\&lt; T \&gt;" alt="" coords="244,5,414,31"/>
-<area shape="rect" id="node3" href="$structead_1_1opt_1_1_func_rule.html" title="ead::opt::FuncRule\&lt; T \&gt;" alt="" coords="247,55,411,80"/>
-<area shape="rect" id="node4" href="$structead_1_1opt_1_1_variadic_func_rule.html" title="ead::opt::VariadicFuncRule\&lt; T \&gt;" alt="" coords="223,104,435,129"/>
-<area shape="rect" id="node5" href="$structead_1_1opt_1_1_var_rule.html" title="ead::opt::VarRule\&lt; T \&gt;" alt="" coords="252,153,406,179"/>
-</map>

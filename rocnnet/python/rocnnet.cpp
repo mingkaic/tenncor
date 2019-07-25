@@ -7,17 +7,16 @@
 
 #include "ead/generated/pyapi.hpp"
 
-#include "rocnnet/eqns/activations.hpp"
+#include "rocnnet/eqns/init.hpp"
 
-#include "rocnnet/modl/fcon.hpp"
 #include "rocnnet/modl/mlp.hpp"
-// #include "rocnnet/modl/rbm.hpp"
+#include "rocnnet/modl/rbm.hpp"
 // #include "rocnnet/modl/dbn.hpp"
 // #include "rocnnet/modl/conv.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"
-// #include "rocnnet/trainer/rbm_trainer.hpp"
+#include "rocnnet/trainer/rbm_trainer.hpp"
 // #include "rocnnet/trainer/dbn_trainer.hpp"
 
 namespace py = pybind11;
@@ -25,12 +24,13 @@ namespace py = pybind11;
 namespace pyrocnnet
 {
 
-modl::LayerInfo layerinfo_init (modl::HiddenFunc hidden, size_t n_out)
+ade::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
 {
-	return modl::LayerInfo{n_out, hidden};
+	return ade::Shape(std::vector<ade::DimT>(
+		pyshape.rbegin(), pyshape.rend()));
 }
 
-DQNInfo dqninfo_init (size_t train_interval = 5,
+trainer::DQNInfo dqninfo_init (size_t train_interval = 5,
 	PybindT rand_action_prob = 0.05,
 	PybindT discount_rate = 0.95,
 	PybindT target_update_rate = 0.01,
@@ -39,7 +39,7 @@ DQNInfo dqninfo_init (size_t train_interval = 5,
 	uint8_t mini_batch_size = 32,
 	size_t max_exp = 30000)
 {
-	return DQNInfo{
+	return trainer::DQNInfo{
 		train_interval,
 		rand_action_prob,
 		discount_rate,
@@ -47,26 +47,21 @@ DQNInfo dqninfo_init (size_t train_interval = 5,
 		exploration_period,
 		store_interval,
 		mini_batch_size,
-		max_exp
+		max_exp,
 	};
 }
 
-modl::FConptrT fcon_init (std::vector<uint8_t> n_inputs, size_t n_output,
+modl::MLPptrT mlp_init (size_t n_input, std::vector<ade::DimT> nouts,
 	std::string label)
 {
-	return std::make_shared<modl::FCon>(n_inputs, n_output, label);
+	return std::make_shared<modl::MLP>(n_input, nouts, label);
 }
 
-modl::MLPptrT mlp_init (size_t n_input, std::vector<modl::LayerInfo> layers,
+modl::RBMptrT rbm_init (size_t n_input, std::vector<ade::DimT> nouts,
 	std::string label)
 {
-	return std::make_shared<modl::MLP>(n_input, layers, label);
+	return std::make_shared<modl::RBM>(n_input, nouts, label);
 }
-
-// modl::RBMptrT rbm_init (size_t n_input, size_t n_hidden, std::string label)
-// {
-// 	return std::make_shared<modl::RBM>(n_input, n_hidden, label);
-// }
 
 // modl::DBNptrT dbn_init (size_t n_input, std::vector<size_t> n_hiddens,
 // 	std::string label)
@@ -75,21 +70,21 @@ modl::MLPptrT mlp_init (size_t n_input, std::vector<modl::LayerInfo> layers,
 // 		std::vector<uint8_t>(n_hiddens.begin(), n_hiddens.end()), label);
 // }
 
-eqns::ApproxFuncT get_sgd (PybindT learning_rate)
+eqns::ApproxF get_sgd (PybindT learning_rate, eqns::NodeUnarF gradprocess)
 {
 	return [=](ead::NodeptrT<PybindT>& root, eqns::VariablesT leaves)
 	{
-		return eqns::sgd(root, leaves, learning_rate);
+		return eqns::sgd(root, leaves, learning_rate, gradprocess);
 	};
 }
 
-eqns::ApproxFuncT get_rms_momentum (PybindT learning_rate,
-	PybindT discount_factor, PybindT epsilon)
+eqns::ApproxF get_rms_momentum (PybindT learning_rate,
+	PybindT discount_factor, PybindT epsilon, eqns::NodeUnarF gradprocess)
 {
 	return [=](ead::NodeptrT<PybindT>& root, eqns::VariablesT leaves)
 	{
 		return eqns::rms_momentum(root, leaves, learning_rate,
-			discount_factor, epsilon);
+			discount_factor, epsilon, gradprocess);
 	};
 }
 
@@ -99,23 +94,23 @@ PYBIND11_MODULE(rocnnet, m)
 {
 	m.doc() = "rocnnet api";
 
+	py::class_<ade::Shape> shape(m, "Shape");
+
 	// common parent
 	py::class_<modl::iMarshaler,modl::MarsptrT> marshaler(m, "Marshaler");
 
 	// models
-	py::class_<modl::FCon,modl::iMarshaler,modl::FConptrT> fcon(m, "FCon");
 	py::class_<modl::MLP,modl::iMarshaler,modl::MLPptrT> mlp(m, "MLP");
-	// py::class_<modl::RBM,modl::iMarshaler,modl::RBMptrT> rbm(m, "RBM");
+	py::class_<modl::RBM,modl::iMarshaler,modl::RBMptrT> rbm(m, "RBM");
 	// py::class_<modl::DBN,modl::iMarshaler,modl::DBNptrT> dbn(m, "DBN");
 
 	// support classes
 	py::class_<eqns::VarAssign> assigns(m, "VarAssign");
 
-	py::class_<modl::LayerInfo> layerinfo(m, "LayerInfo");
-	py::class_<DQNInfo> dqninfo(m, "DQNInfo");
-	py::class_<MLPTrainer> mlptrainer(m, "MLPTrainer");
-	py::class_<DQNTrainer> dqntrainer(m, "DQNTrainer");
-	// py::class_<RBMTrainer> rbmtrainer(m, "RBMTrainer");
+	py::class_<trainer::DQNInfo> dqninfo(m, "DQNInfo");
+	py::class_<trainer::MLPTrainer> mlptrainer(m, "MLPTrainer");
+	py::class_<trainer::DQNTrainer> dqntrainer(m, "DQNTrainer");
+	py::class_<trainer::RBMTrainer> rbmtrainer(m, "RBMTrainer");
 
 	// marshaler
 	marshaler
@@ -128,7 +123,9 @@ PYBIND11_MODULE(rocnnet, m)
 				self.cast<modl::iMarshaler*>()))
 			{
 				logs::errorf("cannot save to file %s", filename.c_str());
+				return false;
 			}
+			return true;
 		}, "load a version of this instance from a data")
 		.def("serialize_to_string", [](py::object self, ead::NodeptrT<PybindT> source)
 		{
@@ -163,54 +160,48 @@ PYBIND11_MODULE(rocnnet, m)
 			return out;
 		}, "return variables dict in this marshaler");
 
-	// fcon
-	m.def("get_fcon", &pyrocnnet::fcon_init);
-	fcon
-		.def("copy", [](py::object self)
-		{
-			return std::make_shared<modl::FCon>(*self.cast<modl::FCon*>());
-		}, "deep copy this instance")
-		.def("forward", [](py::object self, ead::NodesT<PybindT> inputs)
-		{
-			return (*self.cast<modl::FCon*>())(inputs);
-		}, "forward input tensor and returned connected output");
-
 	// mlp
-	m.def("get_layer", &pyrocnnet::layerinfo_init);
 	m.def("get_mlp", &pyrocnnet::mlp_init);
 	mlp
 		.def("copy", [](py::object self)
 		{
 			return std::make_shared<modl::MLP>(*self.cast<modl::MLP*>());
 		}, "deep copy this instance")
-		.def("forward", [](py::object self, ead::NodeptrT<PybindT> input)
+		.def("forward", [](py::object self, ead::NodeptrT<PybindT> input,
+			modl::NonLinearsT nonlins)
 		{
-			return (*self.cast<modl::MLP*>())(input);
+			return (*self.cast<modl::MLP*>())(input, nonlins);
 		}, "forward input tensor and returned connected output");
 
-	// // rbm
-	// m.def("get_rbm", &pyrocnnet::rbm_init);
 	// rbm
-	// 	.def("copy", [](py::object self)
-	// 	{
-	// 		return std::make_shared<modl::RBM>(*self.cast<modl::RBM*>());
-	// 	}, "deep copy this instance")
-	// 	.def("forward", [](py::object self, ead::NodeptrT<PybindT> input)
-	// 	{
-	// 		return self.cast<modl::RBM*>()->prop_up(input);
-	// 	}, "forward input tensor and returned connected output")
-	// 	.def("backward", [](py::object self, ead::NodeptrT<PybindT> hidden)
-	// 	{
-	// 		return self.cast<modl::RBM*>()->prop_down(hidden);
-	// 	}, "backward hidden tensor and returned connected output")
-	// 	.def("reconstruct_visible", [](py::object self, ead::NodeptrT<PybindT> input)
-	// 	{
-	// 		return self.cast<modl::RBM*>()->reconstruct_visible(input);
-	// 	}, "reconstruct input")
-	// 	.def("reconstruct_hidden", [](py::object self, ead::NodeptrT<PybindT> hidden)
-	// 	{
-	// 		return self.cast<modl::RBM*>()->reconstruct_hidden(hidden);
-	// 	}, "reconstruct output");
+	m.def("get_rbm", &pyrocnnet::rbm_init);
+	rbm
+		.def("copy", [](py::object self)
+		{
+			return std::make_shared<modl::RBM>(*self.cast<modl::RBM*>());
+		}, "deep copy this instance")
+		.def("forward", [](py::object self, ead::NodeptrT<PybindT> input,
+			modl::NonLinearsT nonlins)
+		{
+			return (*self.cast<modl::RBM*>())(input, nonlins);
+		}, "forward input tensor and returned connected output")
+		.def("backward", [](py::object self, ead::NodeptrT<PybindT> hidden,
+			modl::NonLinearsT nonlins)
+		{
+			return self.cast<modl::RBM*>()->prop_down(hidden, nonlins);
+		}, "backward hidden tensor and returned connected output")
+		.def("reconstruct_visible", [](py::object self,
+			ead::NodeptrT<PybindT> input, modl::NonLinearsT nonlins)
+		{
+			return trainer::reconstruct_visible(
+				*self.cast<modl::RBM*>(), input, nonlins);
+		}, "reconstruct input")
+		.def("reconstruct_hidden", [](py::object self,
+			ead::NodeptrT<PybindT> hidden, modl::NonLinearsT nonlins)
+		{
+			return trainer::reconstruct_hidden(
+				*self.cast<modl::RBM*>(), hidden, nonlins);
+		}, "reconstruct output");
 
 	// // dbn
 	// m.def("get_dbn", &pyrocnnet::dbn_init);
@@ -227,28 +218,76 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// mlptrainer
 	mlptrainer
-		.def(py::init<modl::MLPptrT,ead::Session<PybindT>&,eqns::ApproxFuncT,uint8_t>())
-		.def("train", &MLPTrainer::train, "train internal variables")
+		.def(py::init<modl::MLPptrT,modl::NonLinearsT,
+			ead::iSession&,eqns::ApproxF,uint8_t>())
+		.def("train", &trainer::MLPTrainer::train, "train internal variables")
+		.def("serialize_to_file", [](py::object self, std::string filename)
+		{
+			std::fstream output(filename,
+				std::ios::out | std::ios::trunc | std::ios::binary);
+			if (false == self.cast<trainer::MLPTrainer*>()->save(output))
+			{
+				logs::errorf("cannot save to file %s", filename.c_str());
+				return false;
+			}
+			return true;
+		}, "load a version of this instance from a data")
+		.def("serialize_to_string", [](py::object self,
+			ead::NodeptrT<PybindT> source) -> std::string
+		{
+			std::stringstream savestr;
+			if (self.cast<trainer::MLPTrainer*>()->save(savestr))
+			{
+				return savestr.str();
+			}
+			return "";
+		}, "load a version of this instance from a data")
 		.def("train_in", [](py::object self)
 		{
-			return self.cast<MLPTrainer*>()->train_in_;
+			return self.cast<trainer::MLPTrainer*>()->train_in_;
 		}, "get train_in variable")
 		.def("expected_out", [](py::object self)
 		{
-			return self.cast<MLPTrainer*>()->expected_out_;
+			return self.cast<trainer::MLPTrainer*>()->expected_out_;
 		}, "get expected_out variable")
 		.def("train_out", [](py::object self)
 		{
-			return self.cast<MLPTrainer*>()->train_out_;
+			return self.cast<trainer::MLPTrainer*>()->train_out_;
 		}, "get training node")
 		.def("error", [](py::object self)
 		{
-			return self.cast<MLPTrainer*>()->error_;
+			return self.cast<trainer::MLPTrainer*>()->error_;
 		}, "get error node")
 		.def("brain", [](py::object self)
 		{
-			return self.cast<MLPTrainer*>()->brain_;
+			return self.cast<trainer::MLPTrainer*>()->brain_;
 		}, "get mlp");
+	m.def("load_mlptrainer", [](std::string data, modl::NonLinearsT nonlins,
+		ead::iSession& sess, eqns::ApproxF update,
+		uint8_t batch_size) -> trainer::MLPTrainer
+	{
+		cortenn::Layer layer;
+		if (false == layer.ParseFromString(data))
+		{
+			logs::fatal("failed to parse string when loading mlptrainer");
+		}
+
+		// load graph to target
+		const cortenn::Graph& graph = layer.graph();
+		pbm::GraphInfo info;
+		pbm::load_graph<ead::EADLoader>(info, graph);
+
+		auto pretrained = std::make_shared<modl::MLP>(info, "pretrained");
+
+		if (cortenn::Layer::kItCtx != layer.layer_context_case())
+		{
+			logs::fatal("missing training context");
+		}
+		trainer::TrainingContext ctx;
+		ctx.unmarshal_layer(layer);
+		return trainer::MLPTrainer(pretrained, nonlins,
+			sess, update, batch_size, ctx);
+	});
 
 	// dqntrainer
 	m.def("get_dqninfo", &pyrocnnet::dqninfo_init,
@@ -261,49 +300,135 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("mini_batch_size") = 32,
 		py::arg("max_exp") = 30000);
 	dqntrainer
-		.def(py::init<modl::MLPptrT,ead::Session<PybindT>&,eqns::ApproxFuncT,DQNInfo>())
-		.def("action", &DQNTrainer::action, "get next action")
-		.def("store", &DQNTrainer::store, "save observation, action, and reward")
-		.def("train", &DQNTrainer::train, "train qnets")
-		.def("error", &DQNTrainer::get_error, "get prediction error")
-		.def("ntrained", &DQNTrainer::get_numtrained, "get number of iterations trained")
+		.def(py::init<modl::MLPptrT,modl::NonLinearsT,
+			ead::iSession&,eqns::ApproxF,trainer::DQNInfo>())
+		.def("action", &trainer::DQNTrainer::action, "get next action")
+		.def("store", &trainer::DQNTrainer::store, "save observation, action, and reward")
+		.def("train", &trainer::DQNTrainer::train, "train qnets")
+		.def("serialize_to_file", [](py::object self, std::string filename)
+		{
+			std::fstream output(filename,
+				std::ios::out | std::ios::trunc | std::ios::binary);
+			if (false == self.cast<trainer::DQNTrainer*>()->save(output))
+			{
+				logs::errorf("cannot save to file %s", filename.c_str());
+				return false;
+			}
+			return true;
+		}, "load a version of this instance from a data")
+		.def("serialize_to_string", [](py::object self,
+			ead::NodeptrT<PybindT> source) -> std::string
+		{
+			std::stringstream savestr;
+			if (self.cast<trainer::DQNTrainer*>()->save(savestr))
+			{
+				return savestr.str();
+			}
+			return "";
+		}, "load a version of this instance from a data")
+		.def("error", &trainer::DQNTrainer::get_error, "get prediction error")
+		.def("ntrained", &trainer::DQNTrainer::get_numtrained, "get number of iterations trained")
 		.def("train_out", [](py::object self)
 		{
-			return self.cast<DQNTrainer*>()->train_out_;
+			return self.cast<trainer::DQNTrainer*>()->train_out_;
 		}, "get training node");
+	m.def("load_dqntrainer", [](std::string data, modl::NonLinearsT nonlins,
+		ead::iSession& sess, eqns::ApproxF update,
+		trainer::DQNInfo param) -> trainer::DQNTrainer
+	{
+		cortenn::Layer layer;
+		if (false == layer.ParseFromString(data))
+		{
+			logs::fatal("failed to parse string when loading mlptrainer");
+		}
 
-	// // rbmtrainer
+		// load graph to target
+		const cortenn::Graph& graph = layer.graph();
+		pbm::GraphInfo info;
+		pbm::load_graph<ead::EADLoader>(info, graph);
+
+		auto pretrained = std::make_shared<modl::MLP>(info, "pretrained");
+
+		if (cortenn::Layer::kDqnCtx != layer.layer_context_case())
+		{
+			logs::fatal("missing training context");
+		}
+		trainer::DQNTrainingContext ctx;
+		ctx.unmarshal_layer(layer);
+		return trainer::DQNTrainer(pretrained, nonlins,
+			sess, update, param, ctx);
+	});
+
 	// rbmtrainer
-	// 	.def(py::init<modl::RBMptrT,llo::VarptrT<PybindT>,uint8_t,PybindT,size_t>(),
-	// 		py::arg("brain"), py::arg("persistent"), py::arg("batch_size"),
-	// 		py::arg("learning_rate") = 1e-3, py::arg("n_cont_div") = 1)
-	// 	.def("train", &RBMTrainer::train, "train internal variables")
-	// 	.def("train_in", [](py::object self)
-	// 	{
-	// 		return self.cast<RBMTrainer*>()->train_in_;
-	// 	}, "get train_in variable")
-	// 	.def("cost", [](py::object self)
-	// 	{
-	// 		return self.cast<RBMTrainer*>()->cost_;
-	// 	}, "get cost node")
-	// 	.def("monitoring_cost", [](py::object self)
-	// 	{
-	// 		return self.cast<RBMTrainer*>()->monitoring_cost_;
-	// 	}, "get monitoring cost node")
-	// 	.def("brain", [](py::object self)
-	// 	{
-	// 		return self.cast<RBMTrainer*>()->brain_;
-	// 	}, "get rbm");
+	rbmtrainer
+		.def(py::init<
+			modl::RBMptrT,
+			modl::NonLinearsT,
+			ead::iSession&,
+			ead::VarptrT<PybindT>,
+			uint8_t,
+			PybindT,
+			size_t,
+			ead::NodeptrT<PybindT>>(),
+			py::arg("brain"),
+			py::arg("nolins"),
+			py::arg("sess"),
+			py::arg("persistent"),
+			py::arg("batch_size"),
+			py::arg("learning_rate") = 1e-3,
+			py::arg("n_cont_div") = 1,
+			py::arg("train_in") = nullptr)
+		.def("train", &trainer::RBMTrainer::train, "train internal variables")
+		.def("train_in", [](py::object self)
+		{
+			return self.cast<trainer::RBMTrainer*>()->train_in_;
+		}, "get train_in variable")
+		.def("cost", [](py::object self)
+		{
+			return self.cast<trainer::RBMTrainer*>()->cost_;
+		}, "get cost node")
+		.def("monitoring_cost", [](py::object self)
+		{
+			return self.cast<trainer::RBMTrainer*>()->monitoring_cost_;
+		}, "get monitoring cost node")
+		.def("brain", [](py::object self)
+		{
+			return self.cast<trainer::RBMTrainer*>()->brain_;
+		}, "get rbm");
 
 
 	// inlines
 	m.def("identity", &eqns::identity);
-	m.def("softmax", &eqns::softmax);
 
 	m.def("get_sgd", &pyrocnnet::get_sgd,
-		py::arg("learning_rate") = 0.5);
+		py::arg("learning_rate") = 0.5,
+		py::arg("gradprocess") = eqns::NodeUnarF(eqns::identity));
 	m.def("get_rms_momentum", &pyrocnnet::get_rms_momentum,
 		py::arg("learning_rate") = 0.5,
 		py::arg("discount_factor") = 0.99,
-		py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon());
+		py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon(),
+		py::arg("gradprocess") = eqns::NodeUnarF(eqns::identity));
+
+	m.def("variable_from_init",
+	[](eqns::InitF<PybindT> init, std::vector<py::ssize_t> slist, std::string label)
+	{
+		return init(pyrocnnet::p2cshape(slist), label);
+	},
+	"Return labelled variable containing data created from initializer",
+	py::arg("init"), py::arg("slist"), py::arg("label") = "");
+
+	m.def("variance_scaling_init", [](PybindT factor)
+	{
+		return eqns::variance_scaling_init<PybindT>(factor);
+	},
+	"truncated_normal(shape, 0, sqrt(factor / ((fanin + fanout)/2))",
+	py::arg("factor"));
+
+	m.def("unif_xavier_init", &eqns::unif_xavier_init<PybindT>,
+	"uniform xavier initializer",
+	py::arg("factor") = 1);
+
+	m.def("norm_xavier_init", &eqns::norm_xavier_init<PybindT>,
+	"normal xavier initializer",
+	py::arg("factor") = 1);
 };

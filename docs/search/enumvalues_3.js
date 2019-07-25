@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['reduce',['REDUCE',['../namespaceead.html#a9dd1bbaf42a6ed9320e8b9a9d8f31928ad1eca75513e3dd5a7aef3232e55d569d',1,'ead']]]
+  ['functor',['FUNCTOR',['../ade__csv_8hpp.html#a30b051839483744ae5b4557b82b3f398a59318967319c9027fe12f098f854ef37',1,'ade_csv.hpp']]]
 ];

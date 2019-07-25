@@ -3,11 +3,12 @@
 #include "pbm/save.hpp"
 #include "pbm/load.hpp"
 
-#include "ead/gradhelper.hpp"
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
 
-#include "rocnnet/eqns/err_approx.hpp"
+#include "ead/serialize.hpp"
+
+#include "ead/generated/pyapi.hpp"
 
 #ifndef MODL_MARSHAL_HPP
 #define MODL_MARSHAL_HPP
@@ -15,6 +16,8 @@
 namespace modl
 {
 
+// iMarshaler is an interface for models to label
+// and serialize variables
 struct iMarshaler
 {
 	virtual ~iMarshaler (void) = default;
@@ -174,7 +177,7 @@ struct MarshalVar final : public iMarshaler
 		}
 		else
 		{
-			var_->assign(ead::to_node<PybindT>(it->second)->data(), it->second->shape());
+			var_->assign(ead::NodeConverters<PybindT>::to_node(it->second)->data(), it->second->shape());
 		}
 	}
 
@@ -196,12 +199,28 @@ private:
 	}
 };
 
+// iTrainingContext is an interface describing how a model is trained
+// (e.g.: how many iterations/how large the batch is)
+struct iTrainingContext
+{
+	virtual ~iTrainingContext (void) = default;
+
+	virtual void marshal_layer (cortenn::Layer& out_layer) const = 0;
+
+	virtual void unmarshal_layer (const cortenn::Layer& in_layer) = 0;
+};
+
 using MarVarsptrT = std::shared_ptr<MarshalVar>;
 
 bool save (std::ostream& outs, ade::TensptrT source,
-	iMarshaler* source_graph);
+	iMarshaler* source_graph, iTrainingContext* tctx = nullptr);
 
-void load (std::istream& ins, iMarshaler* target);
+void load (std::istream& ins, iMarshaler* target,
+	iTrainingContext* tctx = nullptr);
+
+using NonLinearF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
+
+using NonLinearsT = std::vector<NonLinearF>;
 
 }
 

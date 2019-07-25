@@ -5,11 +5,11 @@
 namespace ead
 {
 
-CoordptrT reduce (std::vector<uint8_t> red_dims)
+CoordptrT reduce (std::vector<ade::RankT> red_dims)
 {
-	uint8_t n_red = red_dims.size();
+	ade::RankT n_red = red_dims.size();
 	if (std::any_of(red_dims.begin(), red_dims.end(),
-		[](ade::DimT& d) { return d >= ade::rank_cap; }))
+		[](ade::RankT& d) { return d >= ade::rank_cap; }))
 	{
 		logs::fatalf(
 			"cannot reduce using dimensions greater or equal to rank_cap: %s",
@@ -25,12 +25,12 @@ CoordptrT reduce (std::vector<uint8_t> red_dims)
 	auto it = rdims.begin();
 	std::fill(it, rdims.end(), ade::rank_cap);
 	std::copy(red_dims.begin(), red_dims.end(), it);
-	return std::make_shared<CoordMap>(REDUCE, rdims, false);
+	return std::make_shared<CoordMap>(rdims, false);
 }
 
-CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext)
+CoordptrT extend (ade::RankT rank, std::vector<ade::DimT> ext)
 {
-	uint8_t n_ext = ext.size();
+	ade::RankT n_ext = ext.size();
 	if (std::any_of(ext.begin(), ext.end(),
 		[](ade::DimT& d) { return 0 == d; }))
 	{
@@ -52,10 +52,10 @@ CoordptrT extend (uint8_t rank, std::vector<ade::DimT> ext)
 	auto it = bcast.begin();
 	std::fill(it, bcast.end(), 1);
 	std::copy(ext.begin(), ext.end(), it + rank);
-	return std::make_shared<CoordMap>(EXTEND, bcast, false);
+	return std::make_shared<CoordMap>(bcast, false);
 }
 
-CoordptrT permute (std::vector<uint8_t> dims)
+CoordptrT permute (std::vector<ade::RankT> dims)
 {
 	if (dims.size() == 0)
 	{
@@ -65,7 +65,7 @@ CoordptrT permute (std::vector<uint8_t> dims)
 
 	bool visited[ade::rank_cap];
 	std::memset(visited, false, ade::rank_cap);
-	for (uint8_t i = 0, n = dims.size(); i < n; ++i)
+	for (ade::RankT i = 0, n = dims.size(); i < n; ++i)
 	{
 		if (visited[dims[i]])
 		{
@@ -74,7 +74,7 @@ CoordptrT permute (std::vector<uint8_t> dims)
 		}
 		visited[dims[i]] = true;
 	}
-	for (uint8_t i = 0; i < ade::rank_cap; ++i)
+	for (ade::RankT i = 0; i < ade::rank_cap; ++i)
 	{
 		if (false == visited[i])
 		{
@@ -84,7 +84,7 @@ CoordptrT permute (std::vector<uint8_t> dims)
 
 	ade::CoordT order;
 	std::copy(dims.begin(), dims.end(), order.begin());
-	return std::make_shared<CoordMap>(PERMUTE, order, true);
+	return std::make_shared<CoordMap>(order, true);
 }
 
 }

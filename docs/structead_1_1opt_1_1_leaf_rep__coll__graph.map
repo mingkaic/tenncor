@@ -1,5 +1,0 @@
-<map id="ead::opt::LeafRep&lt; T &gt;" name="ead::opt::LeafRep&lt; T &gt;">
-<area shape="rect" id="node2" href="$structead_1_1opt_1_1i_repr_node.html" title="ead::opt::iReprNode\&lt; T \&gt;" alt="" coords="5,80,177,105"/>
-<area shape="rect" id="node3" href="$structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="200,80,280,105"/>
-<area shape="rect" id="node4" href="$structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="193,5,287,31"/>
-</map>

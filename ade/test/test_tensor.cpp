@@ -4,24 +4,14 @@
 
 #include "gtest/gtest.h"
 
-#include "testutil/common.hpp"
+#include "exam/exam.hpp"
 
 #include "ade/test/common.hpp"
 
 #include "ade/funcarg.hpp"
 
 
-struct TENSOR : public ::testing::Test
-{
-	virtual void TearDown (void)
-	{
-		TestLogger::latest_warning_ = "";
-		TestLogger::latest_error_ = "";
-	}
-};
-
-
-TEST_F(TENSOR, FuncArg)
+TEST(TENSOR, FuncArg)
 {
 	std::vector<ade::DimT> slist = {2, 81};
 

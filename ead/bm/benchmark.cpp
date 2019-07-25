@@ -4,7 +4,7 @@
 
 #include "ead/ead.hpp"
 
-#include "ead/opt/parse.hpp"
+#include "ead/parse.hpp"
 
 
 static std::random_device rnd_device;
@@ -14,12 +14,12 @@ static std::mt19937 mersenne_engine(rnd_device());
 ade::Shape rand_shape (int n)
 {
 	std::vector<ade::DimT> slist;
-	uint8_t cap = (uint8_t) std::min(255, n);
-	for (uint8_t i = 0; i < ade::rank_cap && cap > 1;
-		++i, cap = (uint8_t) std::min(255, n))
+	ade::RankT cap = (ade::RankT) std::min(255, n);
+	for (ade::RankT i = 0; i < ade::rank_cap && cap > 1;
+		++i, cap = (ade::RankT) std::min(255, n))
 	{
-		std::uniform_int_distribution<> dist(1, cap);
-		uint8_t c = dist(mersenne_engine);
+		std::uniform_int_distribution<ade::RankT> dist(1, cap);
+		ade::RankT c = dist(mersenne_engine);
 		n /= c;
 		slist.push_back(c);
 	}
@@ -62,8 +62,8 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata(data.begin(), data.end());\
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
 		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var));\
-		ead::Session<T> session;\
-		session.track(out);\
+		ead::Session session;\
+		session.track({out->get_tensor()});\
 		state.ResumeTiming();\
 		session.update();\
 	}\
@@ -84,8 +84,8 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata(data.begin(), data.end());\
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
 		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var));\
-		ead::Session<T> session;\
-		session.track(out);\
+		ead::Session session;\
+		session.track({out->get_tensor()});\
 		state.ResumeTiming();\
 		session.update();\
 	}\
@@ -93,31 +93,31 @@ static void NAME(benchmark::State& state)\
 }
 
 
-DEFN_BENCHMARK(BM_Abs, age::abs, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Abs, tenncor::abs, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Neg, age::neg, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Neg, tenncor::neg, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Sin, age::sin, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Sin, tenncor::sin, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Cos, age::cos, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Cos, tenncor::cos, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Tan, age::tan, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Tan, tenncor::tan, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Exp, age::exp, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Exp, tenncor::exp, DEFN_UNARY)
 
 
-DEFN_BENCHMARK(BM_Log, age::log, DEFN_UNARY_POS)
+DEFN_BENCHMARK(BM_Log, tenncor::log, DEFN_UNARY_POS)
 
 
-DEFN_BENCHMARK(BM_Sqrt, age::sqrt, DEFN_UNARY_POS)
+DEFN_BENCHMARK(BM_Sqrt, tenncor::sqrt, DEFN_UNARY_POS)
 
 
-DEFN_BENCHMARK(BM_Round, age::round, DEFN_UNARY)
+DEFN_BENCHMARK(BM_Round, tenncor::round, DEFN_UNARY)
 
 
 #define DEFN_BINARY(NAME, FUNC)\
@@ -136,8 +136,8 @@ static void NAME(benchmark::State& state)\
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), shape, "var");\
 		ead::VarptrT<T> var2 = ead::make_variable<T>(convdata2.data(), shape, "var2");\
 		ead::NodeptrT<T> out = FUNC(ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));\
-		ead::Session<T> session;\
-		session.track(out);\
+		ead::Session session;\
+		session.track({out->get_tensor()});\
 		state.ResumeTiming();\
 		session.update();\
 	}\
@@ -145,31 +145,31 @@ static void NAME(benchmark::State& state)\
 }
 
 
-DEFN_BENCHMARK(BM_Pow, age::pow, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Pow, tenncor::pow, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Add, age::add, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Add, tenncor::add, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Sub, age::sub, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Sub, tenncor::sub, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Mul, age::mul, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Mul, tenncor::mul, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Div, age::div, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Div, tenncor::div, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Eq, age::eq, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Eq, tenncor::eq, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Ne, age::neq, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Ne, tenncor::neq, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Lt, age::lt, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Lt, tenncor::lt, DEFN_BINARY)
 
 
-DEFN_BENCHMARK(BM_Gt, age::gt, DEFN_BINARY)
+DEFN_BENCHMARK(BM_Gt, tenncor::gt, DEFN_BINARY)
 
 
 template <typename T>
@@ -193,9 +193,10 @@ static void BM_Matmul(benchmark::State& state)
 		std::vector<T> convdata2(data2.begin(), data2.end());
 		ead::VarptrT<T> var = ead::make_variable<T>(convdata.data(), leftshape, "var");
 		ead::VarptrT<T> var2 = ead::make_variable<T>(convdata2.data(), rightshape, "var2");
-		ead::NodeptrT<T> out = age::matmul(ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));
-		ead::Session<T> session;
-		session.track(out);
+		ead::NodeptrT<T> out = tenncor::matmul(
+			ead::NodeptrT<T>(var), ead::NodeptrT<T>(var2));
+		ead::Session session;
+		session.track({out->get_tensor()});
 		state.ResumeTiming();
 		session.update();
 	}
@@ -236,18 +237,20 @@ static void BM_MatmulComplex(benchmark::State& state)
 	ead::NodeptrT<int32_t> btens(b);
 	ead::NodeptrT<int32_t> ctens(c);
 
-	auto d = age::matmul(atens, btens);
-	auto e = age::matmul(ctens, d);
-	auto f = age::matmul(age::transpose(d), age::transpose(ctens));
-	auto dest = age::matmul(e, f);
+	auto d = tenncor::matmul(atens, btens);
+	auto e = tenncor::matmul(ctens, d);
+	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(ctens));
+	auto dest = tenncor::matmul(e, f);
 
 	ead::NodeptrT<int32_t> da = ead::derive(dest, atens);
 	ead::NodeptrT<int32_t> db = ead::derive(dest, btens);
 	ead::NodeptrT<int32_t> dc = ead::derive(dest, ctens);
-	ead::Session<int32_t> session;
-	session.track(da);
-	session.track(db);
-	session.track(dc);
+	ead::Session session;
+	session.track({
+		da->get_tensor(),
+		db->get_tensor(),
+		dc->get_tensor(),
+	});
 
 	for (auto _ : state)
 	{
@@ -296,28 +299,35 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	ead::NodeptrT<double> bias1tens(bias1);
 	ead::NodeptrT<double> outtens(out);
 
-	auto layer0 = age::add(age::matmul(intens, weight0tens), age::extend(bias0tens, 1, {3}));
-	auto sig0 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
-			age::exp(age::neg(layer0))));
+	auto layer0 = tenncor::add(
+		tenncor::matmul(intens, weight0tens),
+		tenncor::extend(bias0tens, 1, {3}));
+	auto sig0 = tenncor::div(
+		ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
+			tenncor::exp(tenncor::neg(layer0))));
 
-	auto layer1 = age::add(age::matmul(sig0, weight1tens), age::extend(bias1tens, 1, {3}));
-	auto sig1 = age::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-		age::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
-			age::exp(age::neg(layer1))));
+	auto layer1 = tenncor::add(
+		tenncor::matmul(sig0, weight1tens),
+		tenncor::extend(bias1tens, 1, {3}));
+	auto sig1 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+		tenncor::add(ead::make_constant_scalar<double>(1, ade::Shape({5, 3})),
+			tenncor::exp(tenncor::neg(layer1))));
 
-	auto err = age::pow(age::sub(outtens, sig1),
+	auto err = tenncor::pow(tenncor::sub(outtens, sig1),
 		ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0tens);
 	auto db0 = ead::derive(err, bias0tens);
 	auto dw1 = ead::derive(err, weight1tens);
 	auto db1 = ead::derive(err, bias1tens);
-	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	ead::Session session;
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 
 	for (auto _ : state)
 	{
@@ -372,13 +382,17 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	ead::NodeptrT<double> bias1tens(bias1);
 	ead::NodeptrT<double> outtens(out);
 
-	auto layer0 = age::add(age::matmul(intens, weight0tens), age::extend(bias0tens, 1, {3}));
-	auto sig0 = age::sigmoid(layer0);
+	auto layer0 = tenncor::add(
+		tenncor::matmul(intens, weight0tens),
+		tenncor::extend(bias0tens, 1, {3}));
+	auto sig0 = tenncor::sigmoid(layer0);
 
-	auto layer1 = age::add(age::matmul(sig0, weight1tens), age::extend(bias1tens, 1, {3}));
-	auto sig1 = age::sigmoid(layer1);
+	auto layer1 = tenncor::add(
+		tenncor::matmul(sig0, weight1tens),
+		tenncor::extend(bias1tens, 1, {3}));
+	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = age::pow(age::sub(outtens, sig1),
+	auto err = tenncor::pow(tenncor::sub(outtens, sig1),
 		ead::make_constant_scalar<double>(2, out_shape));
 
 	auto dw0 = ead::derive(err, weight0tens);
@@ -387,20 +401,22 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	auto db1 = ead::derive(err, bias1tens);
 
 	// optimize
-	auto rules = ead::opt::get_configs<double>();
-	ead::NodesT<double> roots = {dw0, db0, dw1, db1};
-	ade::EdgesT edges;
-	ead::opt::optimize(roots, edges, rules);
-	dw0 = roots[0];
-	db0 = roots[1];
-	dw1 = roots[2];
-	db1 = roots[3];
+	auto rules = ead::parse_file<double>("cfg/optimizations.rules");
+	ade::TensT roots = {
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	};
+	opt::optimize(roots, rules);
 
-	ead::Session<double> session;
-	session.track(dw0);
-	session.track(db0);
-	session.track(dw1);
-	session.track(db1);
+	ead::Session session;
+	session.track({
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	});
 
 	for (auto _ : state)
 	{

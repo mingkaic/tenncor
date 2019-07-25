@@ -68,30 +68,22 @@ $(function() {
 <div class="textblock"><p><a href="https://travis-ci.org/mingkaic/tenncor"></a> <a href="https://coveralls.io/github/mingkaic/tenncor?branch=master"></a></p>
 <h2>Synopsis</h2>
 <p>Tenncor libraries help developers build and evaluate tensor equations and its derivatives. A tensor is an N-dimensional container that organizes its content by some shape. An M by N matrix for instance, is a 2-dimensional tensor with a shape of [N, M] (according to Tenncor's x-y-z-... coordinate notation).</p>
-<p>This project aims for modularity. Everything (including this project) should be easily replaceable in any high-level system.</p>
+<p>High-level diagram available: <a href="https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0lmFr5JGikGnU3gC/view?usp=sharing">https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0lmFr5JGikGnU3gC/view?usp=sharing</a></p>
 <h2>Components</h2>
 <ul>
 <li><a class="el" href="md_ade__r_e_a_d_m_e__a_d_e.html">ADE (Automatic Differentiation Engine)</a></li>
 </ul>
 <p>This module supplies syntax tree for equation and generates derivative. Constraints to the equation is limited to each tensor's shape.</p>
 <ul>
-<li><a class="el" href="md_age__r_e_a_d_m_e__a_g_e.html">AGE (ADE Generation Engine)</a></li>
+<li>DBG (Debug)</li>
 </ul>
-<p>This generator creates glue layer between ADE and data manipulation libraries as well as map operational codes to its respective chain rule.</p>
-<ul>
-<li><a class="el" href="md_bwd__r_e_a_d_m_e__b_w_d.html">BWD (Backward Operations)</a></li>
-</ul>
-<p>This library provides traveler for generating partial derivative equations using some set of chain rules.</p>
-<ul>
-<li><a class="el" href="md_llo__r_e_a_d_m_e__l_l_o.html">LLO (Low Level Operators)</a></li>
-</ul>
-<p>This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder. Additionally, llo also defines data format and (de)serialization methods required by PBM.</p>
+<p>This module is contains debug libraries for ADE Graphs.</p>
 <ul>
 <li><a class="el" href="md_ead__r_e_a_d_m_e__e_a_d.html">EAD (Eigen ADE Operators)</a></li>
 </ul>
-<p>This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder. Additionally, llo also defines data format and (de)serialization methods required by PBM.</p>
+<p>This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder. Additionally, ead also defines data format and (de)serialization methods required by PBM.</p>
 <ul>
-<li><a class="el" href="md_opt__r_e_a_d_m_e__o_p_t.html">OPT (Optimizer)</a></li>
+<li>OPT (Optimizer)</li>
 </ul>
 <p>This module specifies graph optimization through ADE's visitor pattern.</p>
 <ul>
@@ -99,15 +91,15 @@ $(function() {
 </ul>
 <p>This module marshals any ADE graph, but requires data serialization functors when saving and loading.</p>
 <ul>
-<li><a class="el" href="md_pybinder__r_e_a_d_m_e__p_y.html">Pybinder</a></li>
+<li>TAG (Tagger)</li>
 </ul>
-<p>This generator extends Tenncor's AGE generator. In this instance, on top of generating the ADE operators specified in LLO, pybinder generates pybind11 binding code.</p>
+<p>This module tags ADE tensors with labels.</p>
 <h2>Tools and utility</h2>
 <ul>
 <li>DBG (Debugger)</li>
 </ul>
 <h2>Building</h2>
-<p>Tenncor uses bazel 0.15+.</p>
+<p>Tenncor uses bazel 0.28+.</p>
 <p>Download bazel: <a href="https://docs.bazel.build/versions/master/install.html">https://docs.bazel.build/versions/master/install.html</a> </p>
 </div></div><!-- contents -->
 <!-- start footer part -->

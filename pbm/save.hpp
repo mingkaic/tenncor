@@ -24,13 +24,15 @@ namespace pbm
 using PathedMapT = std::unordered_map<ade::TensptrT,StringsT>;
 
 /// Graph serialization traveler
-template <typename SAVER, typename std::enable_if<std::is_base_of<iSaver,SAVER>::value>::type* = nullptr>
+template <typename SAVER,
+	typename std::enable_if<
+		std::is_base_of<iSaver,SAVER>::value>::type* = nullptr>
 struct GraphSaver final : public ade::iTraveler
 {
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
-		if (visited_.end() == visited_.find(leaf))
+		if (false == estd::has(visited_, leaf))
 		{
 			leaf->accept(stat);
 			leaves_.push_back(leaf);
@@ -41,7 +43,7 @@ struct GraphSaver final : public ade::iTraveler
 	/// Implementation of iTraveler
 	void visit (ade::iFunctor* func) override
 	{
-		if (visited_.end() == visited_.find(func))
+		if (false == estd::has(visited_, func))
 		{
 			func->accept(stat);
 			funcs_.push_back(func);
@@ -70,7 +72,7 @@ struct GraphSaver final : public ade::iTraveler
 		funcs_.sort(
 			[&](ade::iTensor* a, ade::iTensor* b)
 			{
-				return stat.graphsize_[a] < stat.graphsize_[b];
+				return stat.graphsize_[a].upper_ < stat.graphsize_[b].upper_;
 			});
 
 		std::vector<ade::iFunctor*> funcs(funcs_.begin(), funcs_.end());
@@ -110,7 +112,6 @@ struct GraphSaver final : public ade::iTraveler
 			cortenn::Functor* func = pb_node->mutable_functor();
 			ade::Opcode opcode = f->get_opcode();
 			func->set_opname(opcode.name_);
-			func->set_opcode(opcode.code_);
 			const ade::ArgsT& children = f->get_children();
 			for (auto& child : children)
 			{
@@ -148,11 +149,10 @@ private:
 	void save_data (cortenn::Source& out, ade::iLeaf* in)
 	{
 		const ade::Shape& shape = in->shape();
-		size_t tcode = in->type_code();
 		bool is_const = false;
 		out.set_shape(std::string(shape.begin(), shape.end()));
 		out.set_data(saver_.save_leaf(is_const, in));
-		out.set_typecode(tcode);
+		out.set_typelabel(in->type_label());
 		out.set_is_const(is_const);
 	}
 

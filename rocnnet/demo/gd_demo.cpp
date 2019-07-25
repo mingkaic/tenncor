@@ -10,8 +10,9 @@
 #include "flag/flag.hpp"
 
 #include "ead/ead.hpp"
+#include "ead/parse.hpp"
 
-#include "rocnnet/eqns/activations.hpp"
+#include "dbg/grpc/session.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 
@@ -40,7 +41,7 @@ static std::vector<float> avgevry2 (std::vector<float>& in)
 	return out;
 }
 
-int main (int argc, char** argv)
+int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -86,30 +87,67 @@ int main (int argc, char** argv)
 
 	uint8_t n_in = 10;
 	uint8_t n_out = n_in / 2;
+	std::vector<ade::DimT> n_outs = {9, n_out};
+	modl::NonLinearsT nonlins = {tenncor::sigmoid<float>, tenncor::sigmoid<float>};
 
-	std::vector<modl::LayerInfo> hiddens = {
-		// use same sigmoid in static memory once models copy is established
-		modl::LayerInfo{9, age::sigmoid<float>},
-		modl::LayerInfo{n_out, age::sigmoid<float>},
-	};
-	auto brain = std::make_shared<modl::MLP>(n_in, hiddens, "brain");
+	auto brain = std::make_shared<modl::MLP>(n_in, n_outs, "brain");
 	auto untrained_brain = std::make_shared<modl::MLP>(*brain);
-	auto pretrained_brain = std::make_shared<modl::MLP>(*brain);
+	modl::MLPptrT pretrained_brain;
 	std::ifstream loadstr(loadpath);
 	if (loadstr.is_open())
 	{
-		modl::load(loadstr, pretrained_brain.get());
+		cortenn::Layer layer;
+		layer.ParseFromIstream(&loadstr);
+
+		// load graph to target
+		const cortenn::Graph& graph = layer.graph();
+		pbm::GraphInfo info;
+		pbm::load_graph<ead::EADLoader>(info, graph);
+
+		pretrained_brain = std::make_shared<modl::MLP>(info, "pretrained");
+
+		logs::infof("model successfully loaded from file '%s'", loadpath.c_str());
+		if (cortenn::Layer::kItCtx != layer.layer_context_case())
+		{
+			logs::warn("missing training context");
+		}
+		else
+		{
+			auto& ctx = layer.it_ctx();
+			logs::infof("loaded model trained for %d iterations",
+				ctx.iterations());
+		}
+
 		loadstr.close();
+	}
+	else
+	{
+		logs::warnf("model failed to loaded from file '%s'", loadpath.c_str());
+		pretrained_brain = std::make_shared<modl::MLP>(*brain);
 	}
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
-	eqns::ApproxFuncT approx = [](ead::NodeptrT<float>& root, eqns::VariablesT leaves)
+	eqns::ApproxF approx = [](ead::NodeptrT<float>& root, eqns::VariablesT leaves)
 	{
 		return eqns::sgd(root, leaves, 0.9); // learning rate = 0.9
 	};
-	ead::Session<float> sess;
-	MLPTrainer trainer(brain, sess, approx, n_batch);
+	dbg::InteractiveSession sess("localhost:50051");
+	trainer::MLPTrainer trainer(brain, nonlins, sess, approx, n_batch);
+
+	ead::VarptrT<float> testin = ead::make_variable_scalar<float>(
+		0, ade::Shape({n_in}), "testin");
+	auto untrained_out = (*untrained_brain)(testin, nonlins);
+	auto trained_out = (*brain)(testin, nonlins);
+	auto pretrained_out = (*pretrained_brain)(testin, nonlins);
+	sess.track({
+		untrained_out->get_tensor(),
+		trained_out->get_tensor(),
+		pretrained_out->get_tensor(),
+	});
+
+	opt::OptCtx rules = ead::parse_file<PybindT>("cfg/optimizations.rules");
+	sess.optimize(rules);
 
 	// train mlp to output input
 	start = std::clock();
@@ -135,15 +173,6 @@ int main (int argc, char** argv)
 	float untrained_err = 0;
 	float trained_err = 0;
 	float pretrained_err = 0;
-
-	ead::VarptrT<float> testin = ead::make_variable_scalar<float>(
-		0, ade::Shape({n_in}), "testin");
-	auto untrained_out = (*untrained_brain)(testin);
-	auto trained_out = (*brain)(testin);
-	auto pretrained_out = (*pretrained_brain)(testin);
-	sess.track(untrained_out);
-	sess.track(trained_out);
-	sess.track(pretrained_out);
 
 	float* untrained_res = untrained_out->data();
 	float* trained_res = trained_out->data();
@@ -185,10 +214,23 @@ int main (int argc, char** argv)
 		std::ofstream savestr(savepath);
 		if (savestr.is_open())
 		{
-			modl::save(savestr, trained_out->get_tensor(), brain.get());
+			if (trainer.save(savestr))
+			{
+				logs::infof("successfully saved model to '%s'", savepath.c_str());
+			}
 			savestr.close();
 		}
+		else
+		{
+			logs::warnf("failed to save model to '%s'", savepath.c_str());
+		}
 	}
+
+	// 10 seconds
+	std::chrono::time_point<std::chrono::system_clock> deadline =
+		std::chrono::system_clock::now() +
+		std::chrono::seconds(30);
+	sess.join_then_stop(deadline);
 
 	google::protobuf::ShutdownProtobufLibrary();
 
