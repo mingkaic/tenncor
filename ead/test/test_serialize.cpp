@@ -36,24 +36,24 @@ TEST(SERIALIZE, SaveGraph)
 	ade::Shape out_shape({5,3});
 
 	ead::NodeptrT<double> in = ead::make_variable<double>(
-        std::vector<double>(in_shape.n_elems()).data(), in_shape);
+		std::vector<double>(in_shape.n_elems()).data(), in_shape);
 	ead::NodeptrT<double> weight0 = ead::make_variable<double>(
-        std::vector<double>(weight0_shape.n_elems()).data(), weight0_shape);
+		std::vector<double>(weight0_shape.n_elems()).data(), weight0_shape);
 	ead::NodeptrT<double> bias0 = ead::make_variable<double>(
-        std::vector<double>(bias0_shape.n_elems()).data(), bias0_shape);
+		std::vector<double>(bias0_shape.n_elems()).data(), bias0_shape);
 	ead::NodeptrT<double> weight1 = ead::make_variable<double>(
-        std::vector<double>(weight1_shape.n_elems()).data(), weight1_shape);
+		std::vector<double>(weight1_shape.n_elems()).data(), weight1_shape);
 	ead::NodeptrT<double> bias1 = ead::make_variable<double>(
-        std::vector<double>(bias1_shape.n_elems()).data(), bias1_shape);
+		std::vector<double>(bias1_shape.n_elems()).data(), bias1_shape);
 	ead::NodeptrT<double> out = ead::make_variable<double>(
-        std::vector<double>(out_shape.n_elems()).data(), out_shape);
+		std::vector<double>(out_shape.n_elems()).data(), out_shape);
 
-    labels[in->get_tensor()] = {"global", "training", "in"};
-    labels[weight0->get_tensor()] = {"global", "storage", "weight0"};
-    labels[bias0->get_tensor()] = {"global", "storage", "bias0"};
-    labels[weight1->get_tensor()] = {"global", "storage", "weight1"};
-    labels[bias1->get_tensor()] = {"global", "storage", "bias1"};
-    labels[out->get_tensor()] = {"global", "training", "out"};
+	labels[in->get_tensor()] = {"global", "training", "in"};
+	labels[weight0->get_tensor()] = {"global", "storage", "weight0"};
+	labels[bias0->get_tensor()] = {"global", "storage", "bias0"};
+	labels[weight1->get_tensor()] = {"global", "storage", "weight1"};
+	labels[bias1->get_tensor()] = {"global", "storage", "bias1"};
+	labels[out->get_tensor()] = {"global", "training", "out"};
 
 	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
 	auto sig0 = tenncor::div(ead::make_constant_scalar<double>(1, ade::Shape({9, 3})),
@@ -72,16 +72,16 @@ TEST(SERIALIZE, SaveGraph)
 	auto dw1 = ead::derive(err, weight1);
 	auto db1 = ead::derive(err, bias1);
 
-    labels[dw0->get_tensor()] = {"global", "dw0"};
-    labels[db0->get_tensor()] = {"global", "db0"};
-    labels[dw1->get_tensor()] = {"global", "dw1"};
-    labels[db1->get_tensor()] = {"global", "db1"};
+	labels[dw0->get_tensor()] = {"global", "dw0"};
+	labels[db0->get_tensor()] = {"global", "db0"};
+	labels[dw1->get_tensor()] = {"global", "dw1"};
+	labels[db1->get_tensor()] = {"global", "db1"};
 
 	pbm::GraphSaver<ead::EADSaver> saver;
-    dw0->get_tensor()->accept(saver);
-    db0->get_tensor()->accept(saver);
-    dw1->get_tensor()->accept(saver);
-    db1->get_tensor()->accept(saver);
+	dw0->get_tensor()->accept(saver);
+	db0->get_tensor()->accept(saver);
+	dw1->get_tensor()->accept(saver);
+	db1->get_tensor()->accept(saver);
 
 	saver.save(graph, labels);
 
@@ -113,7 +113,7 @@ TEST(SERIALIZE, SaveGraph)
 
 TEST(SERIALIZE, LoadGraph)
 {
-    cortenn::Graph in;
+	cortenn::Graph in;
 	{
 		std::fstream inputstr(testdir + "/graph.pb",
 			std::ios::in | std::ios::binary);
@@ -121,8 +121,8 @@ TEST(SERIALIZE, LoadGraph)
 		ASSERT_TRUE(in.ParseFromIstream(&inputstr));
 	}
 
-    pbm::GraphInfo out;
-    pbm::load_graph<ead::EADLoader>(out, in);
+	pbm::GraphInfo out;
+	pbm::load_graph<ead::EADLoader>(out, in);
 
 	EXPECT_EQ(4, out.roots_.size());
 
@@ -140,28 +140,28 @@ TEST(SERIALIZE, LoadGraph)
 	ASSERT_HAS(global->tens_, "dw1");
 	ASSERT_HAS(global->tens_, "db1");
 
-    auto training = global->children_["training"];
-    auto storage = global->children_["storage"];
+	auto training = global->children_["training"];
+	auto storage = global->children_["storage"];
 	ASSERT_EQ(0, training->children_.size());
 	ASSERT_EQ(2, training->tens_.size());
 	ASSERT_EQ(0, storage->children_.size());
 	ASSERT_EQ(4, storage->tens_.size());
-    ASSERT_HAS(training->tens_, "in");
-    ASSERT_HAS(training->tens_, "out");
-    ASSERT_HAS(storage->tens_, "weight0");
-    ASSERT_HAS(storage->tens_, "bias0");
-    ASSERT_HAS(storage->tens_, "weight1");
-    ASSERT_HAS(storage->tens_, "bias1");
+	ASSERT_HAS(training->tens_, "in");
+	ASSERT_HAS(training->tens_, "out");
+	ASSERT_HAS(storage->tens_, "weight0");
+	ASSERT_HAS(storage->tens_, "bias0");
+	ASSERT_HAS(storage->tens_, "weight1");
+	ASSERT_HAS(storage->tens_, "bias1");
 
-    auto dw0 = global->tens_["dw0"];
-    auto db0 = global->tens_["db0"];
-    auto dw1 = global->tens_["dw1"];
-    auto db1 = global->tens_["db1"];
+	auto dw0 = global->tens_["dw0"];
+	auto db0 = global->tens_["db0"];
+	auto dw1 = global->tens_["dw1"];
+	auto db1 = global->tens_["db1"];
 
-    ASSERT_ARRHAS(out.roots_, dw0);
-    ASSERT_ARRHAS(out.roots_, db0);
-    ASSERT_ARRHAS(out.roots_, dw1);
-    ASSERT_ARRHAS(out.roots_, db1);
+	ASSERT_ARRHAS(out.roots_, dw0);
+	ASSERT_ARRHAS(out.roots_, db0);
+	ASSERT_ARRHAS(out.roots_, dw1);
+	ASSERT_ARRHAS(out.roots_, db1);
 
 	ASSERT_NE(nullptr, dw0);
 	ASSERT_NE(nullptr, db0);

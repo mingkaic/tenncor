@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['reduce',['REDUCE',['../namespaceead.html#a9dd1bbaf42a6ed9320e8b9a9d8f31928ad1eca75513e3dd5a7aef3232e55d569d',1,'ead']]]
+  ['variable',['VARIABLE',['../ade__csv_8hpp.html#a30b051839483744ae5b4557b82b3f398a39031ce5df6f91d3778590d6d644b9ea',1,'ade_csv.hpp']]]
 ];

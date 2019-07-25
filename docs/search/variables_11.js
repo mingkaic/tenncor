@@ -13,7 +13,6 @@ var searchData=
   ['tensorbase_5f',['tensorbase_',['../structead_1_1_eigen_tens_op.html#a2cbd8821e76024dd8d7facb5c078d40e',1,'ead::EigenTensOp']]],
   ['to_5fstream_5f',['to_stream_',['../struct_pretty_tree.html#ac5426949bc1f8afee0a52a80dd6cc8f2',1,'PrettyTree']]],
   ['tracked_5f',['tracked_',['../structead_1_1_session.html#a55f62907f74db7beb6ecd37549cb92d5',1,'ead::Session']]],
-  ['transcode_5f',['transcode_',['../structead_1_1_coord_map.html#a62f5c1a1b6b2c1f6504fe9715496fbe0',1,'ead::CoordMap']]],
   ['traverser_5f',['traverser_',['../struct_pretty_tree.html#a5d0af76976c4af9df6018337a25a949a',1,'PrettyTree']]],
   ['type_5f',['type_',['../structopt_1_1_symbol.html#a9c0cb2bfc96161b4bd27c66f2e86e12e',1,'opt::Symbol::type_()'],['../structopt_1_1_voter_arg.html#a9a4bf202dbc95cc72d403cd19cad4976',1,'opt::VoterArg::type_()'],['../struct_subgraph.html#a21ca32aa177d0d16e9715f928ae08a78',1,'Subgraph::type_()'],['../struct_statement.html#a852b46e62a7977a2dc0df63103da0d77',1,'Statement::type_()'],['../struct_ptr_list.html#ad1e31dd216f80ce8b055de2049f07ccf',1,'PtrList::type_()']]]
 ];

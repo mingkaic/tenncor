@@ -6,7 +6,7 @@ var searchData=
   ['shape',['Shape',['../structade_1_1_shape.html',1,'ade']]],
   ['sizet',['SizeT',['../structead_1_1_size_t.html',1,'ead']]],
   ['statement',['Statement',['../struct_statement.html',1,'']]],
-  ['subgraph',['Subgraph',['../structtag_1_1_subgraph.html',1,'tag::Subgraph'],['../struct_subgraph.html',1,'Subgraph']]],
+  ['subgraph',['Subgraph',['../struct_subgraph.html',1,'Subgraph'],['../structtag_1_1_subgraph.html',1,'tag::Subgraph']]],
   ['symbol',['Symbol',['../structopt_1_1_symbol.html',1,'opt']]],
   ['symbolhash',['SymbolHash',['../structopt_1_1_symbol_hash.html',1,'opt']]]
 ];

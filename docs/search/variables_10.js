@@ -4,7 +4,7 @@ var searchData=
   ['scalar_5f',['scalar_',['../structead_1_1_scalar_convr.html#a644e836b5eaf4c5e0ce7d3e439a6d8da',1,'ead::ScalarConvr::scalar_()'],['../struct_subgraph.html#a709ac00c627381823a8d5c6ce258fd74',1,'Subgraph::scalar_()']]],
   ['scalarize_5f',['scalarize_',['../structopt_1_1_matcher.html#a0d2a437469665ffaf52b234f8180d328',1,'opt::Matcher']]],
   ['scalars_5f',['scalars_',['../structopt_1_1_seg_v_args.html#a8eae2b4197d1d98b54a92315453b51de',1,'opt::SegVArgs']]],
-  ['sequential_5fjobs_5f',['sequential_jobs_',['../structdbg_1_1_graph_emitter_client.html#afc14ef5f806b2d93923b4f22b97b06f4',1,'dbg::GraphEmitterClient']]],
+  ['sequential_5fjobs_5f',['sequential_jobs_',['../structdbg_1_1_graph_emitter_client.html#ae7fb55a3ddb3424f4ef80df766eddd6b',1,'dbg::GraphEmitterClient']]],
   ['sess_5f',['sess_',['../structdbg_1_1_interactive_session.html#a260ec45d945c43d3d701e338b462e2ad',1,'dbg::InteractiveSession']]],
   ['sess_5fid_5f',['sess_id_',['../structdbg_1_1_interactive_session.html#ac2872b2785f43fb25e0300f68f25d922',1,'dbg::InteractiveSession']]],
   ['shape_5f',['shape_',['../structade_1_1_functor.html#a99fbfe6298c8fea43e632ea75bf68973',1,'ade::Functor::shape_()'],['../struct_graph_emitter_impl_1_1_node.html#a7697ceb4d9083b1355328bc7d1de5420',1,'GraphEmitterImpl::Node::shape_()'],['../structead_1_1_functor.html#a08742ded550e11f608f810319132aa8c',1,'ead::Functor::shape_()'],['../structead_1_1i_leaf.html#a57a3e92dd3c2097fae2bec09c0174182',1,'ead::iLeaf::shape_()'],['../structead_1_1_op_arg.html#acd3c36ad5064ca4abc9920e9263ccf4e',1,'ead::OpArg::shape_()']]],

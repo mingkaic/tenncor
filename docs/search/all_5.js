@@ -22,7 +22,7 @@ var searchData=
   ['eq',['eq',['../namespaceead.html#a2eba8cc1a701098927bb668fd923f553',1,'ead']]],
   ['exp',['exp',['../namespaceead.html#aab849f4595164d20f014d4c1c177b052',1,'ead']]],
   ['expired',['expired',['../structtag_1_1_tens_key.html#a8d490729aad7574a4a590f4b376927bc',1,'tag::TensKey']]],
-  ['extend',['EXTEND',['../namespaceead.html#a9dd1bbaf42a6ed9320e8b9a9d8f31928ab3a267ed60a1a54571170e92eba03cba',1,'ead::EXTEND()'],['../namespaceade.html#a81038de1791ea646379829c0b884e855',1,'ade::extend()'],['../namespaceead.html#a9c07ab787e2e6570d28f7c70bdbaaaa7',1,'ead::extend()']]],
+  ['extend',['extend',['../namespaceade.html#a81038de1791ea646379829c0b884e855',1,'ade::extend()'],['../namespaceead.html#a9c07ab787e2e6570d28f7c70bdbaaaa7',1,'ead::extend()']]],
   ['extend_5fgrad',['extend_grad',['../namespaceead.html#a7027ae743dfaf2faf4abb8180a19fa9f',1,'ead']]],
   ['extend_5fmap',['extend_map',['../namespaceade.html#a412292f5b0fc59e97067f20f7a3a7472',1,'ade::extend_map()'],['../namespaceead.html#a4c1bb3a6c6786d1848b6e5766b0b286f',1,'ead::extend_map()']]],
   ['internal',['internal',['../namespaceead_1_1internal.html',1,'ead']]],

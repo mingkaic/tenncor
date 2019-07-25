@@ -10,6 +10,5 @@ var searchData=
   ['norm_5fgen',['norm_gen',['../namespaceead.html#a803351e45c60fcb4f8722295acea1ec1',1,'ead']]],
   ['numlist_5fclear',['numlist_clear',['../list_8h.html#a41fece6ae3d9653cb4fe2e79c7ce7ef7',1,'list.h']]],
   ['numlist_5ffree',['numlist_free',['../list_8h.html#af96ead796d9fb132c38bed80dd7a4594',1,'list.h']]],
-  ['numlist_5fpushback',['numlist_pushback',['../list_8h.html#a18f16a97c039371fc4387f3cab379f92',1,'list.h']]],
-  ['numrange',['NumRange',['../structade_1_1_num_range.html#a9744b66977a338acf326dca92d2ab683',1,'ade::NumRange::NumRange(void)'],['../structade_1_1_num_range.html#af076027cfe889e31cc0e6c2ae8bbd707',1,'ade::NumRange::NumRange(T bound1, T bound2)']]]
+  ['numlist_5fpushback',['numlist_pushback',['../list_8h.html#a18f16a97c039371fc4387f3cab379f92',1,'list.h']]]
 ];

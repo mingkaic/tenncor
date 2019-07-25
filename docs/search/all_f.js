@@ -2,7 +2,7 @@ var searchData=
 [
   ['pbm_20_28protobuf_20marshaller_29',['PBM (Protobuf Marshaller)',['../md_pbm__r_e_a_d_m_e__p_b_m.html',1,'']]],
   ['p2cshape',['p2cshape',['../namespacepyead.html#a853f2acc2fa8cbf68397487433839de1',1,'pyead']]],
-  ['pad',['PAD',['../namespaceead.html#a9dd1bbaf42a6ed9320e8b9a9d8f31928a64b7f66ac38f7932f7ff3cddbeda33b1',1,'ead::PAD()'],['../namespaceead.html#ac8f10713ea022f31bf5397b6f77be7ae',1,'ead::pad(ade::Shape &amp;outshape, const OpArg&lt; T &gt; &amp;in)']]],
+  ['pad',['pad',['../namespaceead.html#ac8f10713ea022f31bf5397b6f77be7ae',1,'ead']]],
   ['parent_5f',['parent_',['../structdbg_1_1_edge_info.html#af3ad4365624eadf3ee34c9f9541bb765',1,'dbg::EdgeInfo']]],
   ['parent_5fid_5f',['parent_id_',['../struct_graph_emitter_impl_1_1_edge.html#a21fa95d236f1749eb653aec5d04be885',1,'GraphEmitterImpl::Edge']]],
   ['parentfinder',['ParentFinder',['../structade_1_1_parent_finder.html',1,'ade']]],
@@ -18,7 +18,7 @@ var searchData=
   ['pathedtens',['PathedTens',['../structpbm_1_1_pathed_tens.html',1,'pbm']]],
   ['pathfinder',['PathFinder',['../structade_1_1_path_finder.html',1,'ade::PathFinder'],['../structade_1_1_path_finder.html#a97e908678c6b0136bf6e0ccaaa1e5b4f',1,'ade::PathFinder::PathFinder()']]],
   ['pbm',['pbm',['../namespacepbm.html',1,'']]],
-  ['permute',['permute',['../namespaceade.html#a81f596fa172325f3aa53caf6c92a5c87',1,'ade::permute()'],['../namespaceead.html#a623f69139e520371dc27e37365b91f7b',1,'ead::permute(std::vector&lt; ade::RankT &gt; dims)'],['../namespaceead.html#a080552212655073b118b0b99f8a98d52',1,'ead::permute(ade::Shape &amp;outshape, const OpArg&lt; T &gt; &amp;in)'],['../namespaceead.html#a9dd1bbaf42a6ed9320e8b9a9d8f31928aab0e947d34dba28ac43fe452e486d480',1,'ead::PERMUTE()']]],
+  ['permute',['permute',['../namespaceade.html#a81f596fa172325f3aa53caf6c92a5c87',1,'ade::permute()'],['../namespaceead.html#a623f69139e520371dc27e37365b91f7b',1,'ead::permute(std::vector&lt; ade::RankT &gt; dims)'],['../namespaceead.html#a080552212655073b118b0b99f8a98d52',1,'ead::permute(ade::Shape &amp;outshape, const OpArg&lt; T &gt; &amp;in)']]],
   ['permute_5fgrad',['permute_grad',['../namespaceead.html#a826269f4ceddffd298a0918e7b5723bb',1,'ead']]],
   ['permute_5fmap',['permute_map',['../namespaceade.html#acdf6babf49e0003043b318fec81ed433',1,'ade::permute_map()'],['../namespaceead.html#ad9c98d8b498a20b74968a2276818c4d7',1,'ead::permute_map()']]],
   ['plugin_5fid',['plugin_id',['../classapis_1_1_a_p_is_plugin.html#a9fbbca2c905565577ca3738982a66496',1,'apis.APIsPlugin.plugin_id()'],['../classdtypes_1_1_d_types_plugin.html#af14ea0afa6ca5bab4b619a23e2dc55f1',1,'dtypes.DTypesPlugin.plugin_id()'],['../classopcodes_1_1_opcodes_plugin.html#a885db6bab70519af4059564a3f1d740d',1,'opcodes.OpcodesPlugin.plugin_id()'],['../classpyapis_1_1_py_a_p_is_plugin.html#aed74bc03e303049402290f2579250d8c',1,'pyapis.PyAPIsPlugin.plugin_id()']]],

@@ -8,8 +8,7 @@
 <area shape="rect" id="node8" href="$grad__def_8hpp.html" title="ade/grad_def.hpp" alt="" coords="201,372,327,397"/>
 <area shape="rect" id="node14" href="$constant_8hpp.html" title="ead/constant.hpp" alt="" coords="1202,372,1326,397"/>
 <area shape="rect" id="node9" href="$traveler_8hpp.html" title="ade/traveler.hpp" alt="" coords="944,665,1061,691"/>
-<area shape="rect" id="node11" href="$ade_2ileaf_8hpp.html" title="ade/ileaf.hpp" alt="" coords="818,739,916,764"/>
-<area shape="rect" id="node12" href="$ifunctor_8hpp.html" title="ade/ifunctor.hpp" alt="" coords="945,739,1061,764"/>
+<area shape="rect" id="node12" href="$ade_2ileaf_8hpp.html" title="ade/ileaf.hpp" alt="" coords="819,739,917,764"/>
 <area shape="rect" id="node15" href="$prop_8hpp.html" title="tag/prop.hpp" alt="" coords="1229,445,1326,471"/>
 <area shape="rect" id="node20" href="$ead_2ileaf_8hpp.html" title="ead/ileaf.hpp" alt="" coords="865,445,962,471"/>
 <area shape="rect" id="node21" href="$inode_8hpp.html" title="ead/inode.hpp" alt="" coords="1099,445,1205,471"/>
@@ -22,5 +21,5 @@
 <area shape="rect" id="node32" href="$optimize_8hpp.html" title="opt/optimize.hpp" alt="" coords="1401,299,1520,324"/>
 <area shape="rect" id="node33" href="$ead_2functor_8hpp.html" title="ead/functor.hpp" alt="" coords="1031,299,1145,324"/>
 <area shape="rect" id="node35" href="$opt_2parse_8hpp.html" title="opt/parse.hpp" alt="" coords="1359,152,1462,177"/>
-<area shape="rect" id="node44" href="$client_8hpp.html" title="dbg/grpc/client.hpp" alt="" coords="2605,225,2739,251"/>
+<area shape="rect" id="node44" href="$client_8hpp.html" title="dbg/grpc/client.hpp" alt="" coords="2612,225,2746,251"/>
 </map>

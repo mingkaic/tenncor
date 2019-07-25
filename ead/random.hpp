@@ -35,11 +35,7 @@ template <typename T, typename std::enable_if<std::is_integral<T>::value>::type*
 GenF<T> unif_gen (const T& a, const T& b)
 {
 	std::uniform_int_distribution<T> dist(a, b);
-	return
-	[dist]()
-	{
-		return dist(get_engine());
-	};
+	return std::bind(dist, get_engine());;
 }
 
 template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>

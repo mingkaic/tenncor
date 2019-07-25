@@ -12,7 +12,7 @@ var searchData=
   ['readme_5fead_2emd',['README_EAD.md',['../_r_e_a_d_m_e___e_a_d_8md.html',1,'']]],
   ['readme_5fpbm_2emd',['README_PBM.md',['../_r_e_a_d_m_e___p_b_m_8md.html',1,'']]],
   ['recursive_5fgroup_5ftag',['recursive_group_tag',['../namespacetag.html#a190dd220f8248370fa8b2f492dce0ffe',1,'tag']]],
-  ['reduce',['REDUCE',['../namespaceead.html#a9dd1bbaf42a6ed9320e8b9a9d8f31928ad1eca75513e3dd5a7aef3232e55d569d',1,'ead::REDUCE()'],['../namespaceade.html#a8266683bc19759b285aa18af454d6bbc',1,'ade::reduce()'],['../namespaceead.html#a275163a943d39158a31bb4d8756a51b9',1,'ead::reduce()']]],
+  ['reduce',['reduce',['../namespaceade.html#a8266683bc19759b285aa18af454d6bbc',1,'ade::reduce()'],['../namespaceead.html#a275163a943d39158a31bb4d8756a51b9',1,'ead::reduce()']]],
   ['reduce_5f1d_5fmap',['reduce_1d_map',['../namespaceade.html#a0ad993df72af5b4ebb660e32ccd5ee86',1,'ade']]],
   ['reduce_5fgrad',['reduce_grad',['../namespaceead.html#abac42b06ca349173da5340ad9c21d555',1,'ead']]],
   ['reduce_5fmap',['reduce_map',['../namespaceade.html#a1930fa4f380973154941ec6743c48ec5',1,'ade::reduce_map()'],['../namespaceead.html#a2a4ad670f80aa2d0f5ac7d6246fd6f2e',1,'ead::reduce_map()']]],

@@ -17,7 +17,7 @@ var searchData=
   ['convolution_5fkernel_5fgrad',['convolution_kernel_grad',['../namespaceead.html#a0f454f8d79227bae3a802d4ed6fa2141',1,'ead']]],
   ['coorderize',['coorderize',['../structead_1_1_converter_builder.html#a69684cd238de19ab3ee0bfbe35e1b87f',1,'ead::ConverterBuilder::coorderize()'],['../structopt_1_1i_converter_builder.html#ab3fd40706d6bb6a4ebc8cf2b7fe977a0',1,'opt::iConverterBuilder::coorderize()'],['../namespaceead.html#ae45d62ba20b2e27b42ba3d2b56eebedb',1,'ead::coorderize()']]],
   ['coordinate',['coordinate',['../namespaceade.html#a785be8ee10cd4af039c458e057b32263',1,'ade']]],
-  ['coordmap',['CoordMap',['../structade_1_1_coord_map.html#afb5c1dcf8267026e74f1fe3b3997785f',1,'ade::CoordMap::CoordMap()'],['../structead_1_1_coord_map.html#a60884e3a44dba7804524c1583f65b4b3',1,'ead::CoordMap::CoordMap(ade::CoordT indices, bool bijective)'],['../structead_1_1_coord_map.html#a0d1b08c750339ebca24c8b78a0c0c31d',1,'ead::CoordMap::CoordMap(TransCode transcode, ade::CoordT indices, bool bijective)']]],
+  ['coordmap',['CoordMap',['../structade_1_1_coord_map.html#afb5c1dcf8267026e74f1fe3b3997785f',1,'ade::CoordMap::CoordMap()'],['../structead_1_1_coord_map.html#a60884e3a44dba7804524c1583f65b4b3',1,'ead::CoordMap::CoordMap()']]],
   ['cos',['cos',['../namespaceead.html#a193a7df66d2d2630b6643c69bc01ef4e',1,'ead']]],
   ['create_5fgraph',['create_graph',['../structdbg_1_1_graph_emitter_client.html#a00e2a752fca0c627efcae184f73f07c0',1,'dbg::GraphEmitterClient']]],
   ['creategraph',['CreateGraph',['../struct_graph_emitter_impl.html#a3b92f029f9dbd09e2e2f9a823b669895',1,'GraphEmitterImpl']]],

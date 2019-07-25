@@ -26,6 +26,5 @@ var searchData=
   ['numlist_5fclear',['numlist_clear',['../list_8h.html#a41fece6ae3d9653cb4fe2e79c7ce7ef7',1,'list.h']]],
   ['numlist_5ffree',['numlist_free',['../list_8h.html#af96ead796d9fb132c38bed80dd7a4594',1,'list.h']]],
   ['numlist_5fpushback',['numlist_pushback',['../list_8h.html#a18f16a97c039371fc4387f3cab379f92',1,'list.h']]],
-  ['numnode',['NumNode',['../struct_num_node.html',1,'']]],
-  ['numrange',['NumRange',['../structade_1_1_num_range.html',1,'ade::NumRange&lt; T, typename &gt;'],['../structade_1_1_num_range.html#a9744b66977a338acf326dca92d2ab683',1,'ade::NumRange::NumRange(void)'],['../structade_1_1_num_range.html#af076027cfe889e31cc0e6c2ae8bbd707',1,'ade::NumRange::NumRange(T bound1, T bound2)']]]
+  ['numnode',['NumNode',['../struct_num_node.html',1,'']]]
 ];
