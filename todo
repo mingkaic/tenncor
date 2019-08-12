@@ -6,7 +6,8 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P1 - make shape dimension size configurable
+P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (denoted in python by None)
+P2 - make shape dimension size configurable
 P2 - make constant pre-calculation configurable in opt module
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
@@ -21,12 +22,8 @@ P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 P4 - investigate adopting more of boost in place of cppkg
 
-=== structure ===
-P4 - remove ead helper functions
-
 === correction ===
-P1 - create global session for all ade/ead/tag singletons, then make context configurable
-P2 - test tag module (need ^)
+P2 - centralize global context structures
 P2 - reorient tests so that tests cover its own immediate module
 P2 - fix rbm demo converging to infinity problem
 P2 - test dbg module
