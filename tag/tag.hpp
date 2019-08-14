@@ -139,9 +139,12 @@ struct TagRegistry final
 {
 	~TagRegistry (void)
 	{
-		std::ofstream outf("/tmp/performance.csv");
-		perf::global_record.to_csv(outf);
-		outf.flush();
+		if (false == perf::get_global_record().empty())
+		{
+			std::ofstream outf("/tmp/performance.csv");
+			perf::get_global_record().to_csv(outf);
+			outf.flush();
+		}
 	}
 
 	void add_tag (ade::TensrefT tens, TagptrT tag)
