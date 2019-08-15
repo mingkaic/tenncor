@@ -13,12 +13,25 @@ namespace perf
 
 using TimeT = std::chrono::high_resolution_clock::time_point;
 
-using DurationT = std::chrono::duration<long,std::milli>;
+using DurationT = std::chrono::duration<long,std::nano>;
 
 using MeanDurT = std::pair<DurationT,size_t>;
 
 struct PerfRecord final
 {
+	PerfRecord (void) = default;
+
+	// initialize with some function that is called upon deletion
+	PerfRecord (std::function<void(PerfRecord&)> term) : term_(term) {}
+
+	~PerfRecord (void)
+	{
+		if (term_)
+		{
+			term_(*this);
+		}
+	}
+
 	void to_csv (std::ostream& out) const
 	{
 		for (const auto& durs : durations_)
@@ -50,6 +63,8 @@ struct PerfRecord final
 
 private:
 	std::unordered_map<std::string,MeanDurT> durations_;
+
+	std::function<void(PerfRecord&)> term_;
 };
 
 struct MeasureScope final : public jobs::ScopeGuard
@@ -58,7 +73,7 @@ struct MeasureScope final : public jobs::ScopeGuard
 		jobs::ScopeGuard([this, fname]()
 		{
 			this->record_->record_duration(fname,
-				std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::duration_cast<std::chrono::nanoseconds>(
 					std::chrono::high_resolution_clock::now() -
 					this->measure_start_));
 		}),

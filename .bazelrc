@@ -31,6 +31,7 @@ coverage:cc_coverage --instrument_test_targets --experimental_cc_coverage --comb
 run:valgrind --run_under="valgrind --leak-check=full"
 test:valgrind --run_under="valgrind --leak-check=full"
 
+run:asan --linkopt -fsanitize=address
 test:asan --linkopt -fsanitize=address
 
 # === GTESTS ===
