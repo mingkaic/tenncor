@@ -86,6 +86,7 @@ cc_library(
         "//pbm:pbm",
         "//tag:tag",
         "//opt:opt",
+        "//perf:perf",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],
