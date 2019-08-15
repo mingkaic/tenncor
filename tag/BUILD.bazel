@@ -27,7 +27,6 @@ cc_library(
     deps = [
         "//ade:ade",
         "@boost//:uuid",
-        "//perf:perf",
     ],
     visibility = ["//visibility:public"],
 )

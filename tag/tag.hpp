@@ -1,9 +1,6 @@
 #include <map>
 #include <set>
 
-#include <fstream>
-#include "perf/measure.hpp"
-
 #include "ade/ade.hpp"
 
 #ifndef TAG_TAG_HPP
@@ -137,16 +134,6 @@ inline bool operator == (const TensKey& lhs, const TensKey& rhs)
 // todo: make an interface for this
 struct TagRegistry final
 {
-	~TagRegistry (void)
-	{
-		if (false == perf::get_global_record().empty())
-		{
-			std::ofstream outf("/tmp/performance.csv");
-			perf::get_global_record().to_csv(outf);
-			outf.flush();
-		}
-	}
-
 	void add_tag (ade::TensrefT tens, TagptrT tag)
 	{
 		if (tens.expired())

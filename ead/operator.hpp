@@ -7,8 +7,6 @@
 /// No function in this file makes any attempt to check for nullptrs
 ///
 
-#include "perf/measure.hpp"
-
 #include "ead/eigen.hpp"
 #include "ead/coord.hpp"
 #include "ead/random.hpp"
@@ -61,7 +59,6 @@ return in.PROCESS(ead::internal::dim_copy<N>(vdims)); },\
 make_tensmap(in.data_, in.shape_));
 
 #define _EAD_INTERNAL_V2A(PROCESS, RED) {\
-	MEASURE("reduce")\
 	assert(nullptr != in.coorder_);\
 	ade::CoordT coord;\
 	in.coorder_->forward(coord.begin(), coord.begin());\
@@ -105,7 +102,6 @@ _EAD_INTERNAL_V2A(maximum, Eigen::internal::MaxReducer<T>)
 template <typename T>
 EigenptrT<T> extend (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("extend")
 	assert(nullptr != in.coorder_);
 	ade::CoordT coord;
 	in.coorder_->forward(coord.begin(), coord.begin());
@@ -121,7 +117,6 @@ EigenptrT<T> extend (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> permute (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("permute")
 	assert(nullptr != in.coorder_);
 	ade::CoordT reorder;
 	in.coorder_->forward(reorder.begin(), reorder.begin());
@@ -137,7 +132,6 @@ EigenptrT<T> permute (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> slice (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("slice")
 	assert(nullptr != in.coorder_);
 	ade::CoordT slicing;
 	in.coorder_->forward(slicing.begin(), slicing.begin());
@@ -163,7 +157,6 @@ EigenptrT<T> slice (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> pad (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("pad")
 	assert(nullptr != in.coorder_);
 	ade::CoordT padding;
 	in.coorder_->forward(padding.begin(), padding.begin());
@@ -190,7 +183,6 @@ EigenptrT<T> pad (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> abs (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("abs")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -216,7 +208,6 @@ EigenptrT<T> abs (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> neg (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("neg")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -242,7 +233,6 @@ EigenptrT<T> neg (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("sin")
 #ifdef __cpp_if_constexpr
 	if constexpr(!std::is_integral<T>::value)
 	{
@@ -277,7 +267,6 @@ EigenptrT<T> sin (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> cos (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("cos")
 #ifdef __cpp_if_constexpr
 	if constexpr(!std::is_integral<T>::value)
 	{
@@ -312,7 +301,6 @@ EigenptrT<T> cos (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> tan (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("tan")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -342,7 +330,6 @@ EigenptrT<T> tan (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> exp (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("exp")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -368,7 +355,6 @@ EigenptrT<T> exp (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> log (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("log")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -394,7 +380,6 @@ EigenptrT<T> log (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> sqrt (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("sqrt")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -420,7 +405,6 @@ EigenptrT<T> sqrt (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> round (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("round")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -444,7 +428,6 @@ EigenptrT<T> round (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> sigmoid (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("sigmoid")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -468,7 +451,6 @@ EigenptrT<T> sigmoid (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> sigmoid_grad (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("sigmoid_grad")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -507,7 +489,6 @@ EigenptrT<T> sigmoid_grad (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> tanh (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("tanh")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -531,7 +512,6 @@ EigenptrT<T> tanh (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> square (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("square")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -555,7 +535,6 @@ EigenptrT<T> square (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> cube (ade::Shape& outshape, const OpArg<T>& in)
 {
-	MEASURE("cube")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -582,7 +561,6 @@ EigenptrT<T> cube (ade::Shape& outshape, const OpArg<T>& in)
 template <typename T>
 EigenptrT<T> pow (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("pow")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -622,7 +600,6 @@ EigenptrT<T> pow (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> add (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("add")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -655,7 +632,6 @@ EigenptrT<T> add (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> sub (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("sub")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -685,7 +661,6 @@ EigenptrT<T> sub (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> mul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("mul")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -718,7 +693,6 @@ EigenptrT<T> mul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> div (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("div")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -751,7 +725,6 @@ EigenptrT<T> div (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> eq (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("eq")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -794,7 +767,6 @@ EigenptrT<T> eq (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> neq (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("neq")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -837,7 +809,6 @@ EigenptrT<T> neq (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> lt (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("lt")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -880,7 +851,6 @@ EigenptrT<T> lt (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> gt (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("gt")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -922,7 +892,6 @@ EigenptrT<T> gt (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> min (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("min")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -954,7 +923,6 @@ EigenptrT<T> min (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> max (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("max")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -987,7 +955,6 @@ EigenptrT<T> max (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> rand_uniform (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("rand_uniform")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1021,7 +988,6 @@ EigenptrT<T> select (ade::Shape& outshape,
 	const OpArg<T>& condition,
 	const OpArg<T>& then, const OpArg<T>& otherwise)
 {
-	MEASURE("select")
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1052,7 +1018,6 @@ EigenptrT<T> select (ade::Shape& outshape,
 template <typename T>
 EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	MEASURE("matmul")
 	assert(is_2d(outshape));
 	return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
 		std::vector<MatMapT<T>>>(shape_convert(outshape),
@@ -1067,7 +1032,6 @@ EigenptrT<T> matmul (ade::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 template <typename T>
 EigenptrT<T> convolution (ade::Shape& outshape, const OpArg<T>& input, const OpArg<T>& kernel)
 {
-	MEASURE("convolution")
 	assert(nullptr != kernel.coorder_);
 	ade::CoordT kernel_dims;
 	kernel.coorder_->forward(kernel_dims.begin(), kernel_dims.begin());
@@ -1090,7 +1054,6 @@ template <typename T>
 EigenptrT<T> convolution_image_grad (ade::Shape& imageshape,
 	const OpArg<T>& kernel, const OpArg<T>& super_composite)
 {
-	MEASURE("convolution_image_grad")
 	return make_eigentensor<T,
 		Eigen::TensorReductionOp<Eigen::internal::SumReducer<T>,
 			const ade::ShapeT,
@@ -1156,7 +1119,6 @@ template <typename T>
 EigenptrT<T> convolution_kernel_grad (ade::Shape& kernelshape,
 	const OpArg<T>& image, const OpArg<T>& super_composite)
 {
-	MEASURE("convolution_kernel_grad")
 	return make_eigentensor<T,
 		Eigen::TensorReductionOp<Eigen::internal::SumReducer<T>,
 			const ade::ShapeT,
