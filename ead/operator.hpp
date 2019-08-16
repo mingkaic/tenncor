@@ -120,6 +120,17 @@ EigenptrT<T> permute (ade::Shape& outshape, const OpArg<T>& in)
 	assert(nullptr != in.coorder_);
 	ade::CoordT reorder;
 	in.coorder_->forward(reorder.begin(), reorder.begin());
+	if (is_2d(outshape) && reorder[0] == 1 && reorder[1] == 0)
+	{
+		// use matrix when possible
+		return make_eigenmatrix<T,Eigen::Transpose<MatMapT<T>>,
+			MatMapT<T>>(
+			shape_convert(outshape),
+			[](MatMapT<T>& in)
+			{
+				return in.transpose();
+			}, make_matmap(in.data_, in.shape_));
+	}
 	return make_eigentensor<T,Eigen::TensorShufflingOp<
 		const ade::CoordT,TensMapT<T>>,TensMapT<T>>(
 		shape_convert(outshape),

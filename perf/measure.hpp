@@ -34,10 +34,12 @@ struct PerfRecord final
 
 	void to_csv (std::ostream& out) const
 	{
+		out << "function,mean duration(ns),total duration(ns),n occurrences\n";
 		for (const auto& durs : durations_)
 		{
 			const auto& meandur = durs.second;
-			out << durs.first << "," << (meandur.first / meandur.second).count() << "\n";
+			out << durs.first << "," << (meandur.first / meandur.second).count() << ","
+				<< meandur.first.count() << "," << meandur.second << "\n";
 		}
 	}
 

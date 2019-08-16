@@ -1,8 +1,6 @@
 #include "Eigen/Core"
 #include "unsupported/Eigen/CXX11/Tensor"
 
-#include "perf/measure.hpp"
-
 #include "ade/shape.hpp"
 
 #include "ead/generated/dtype.hpp"
@@ -86,7 +84,6 @@ struct EigenTensOp final : public iEigen<T>
 
 	void assign (void) override
 	{
-		MEASURE(typeid(EigenSource).name())
 		data_ = tensorbase_.reshape(data_.dimensions());
 	}
 
@@ -112,7 +109,6 @@ struct EigenMatOp final : public iEigen<T>
 
 	void assign (void) override
 	{
-		MEASURE(typeid(EigenSource).name())
 		data_ = matrixbase_;
 	}
 
