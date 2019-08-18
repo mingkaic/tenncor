@@ -414,6 +414,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 					tenncor::slice(NodeConverters<T>::to_node(supcomp_grad),
 						offset, extent, dimension));
 			}
+				break;
 			case age::SELECT:
 			{
 				if (0 == arg_idx)
