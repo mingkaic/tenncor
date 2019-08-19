@@ -38,6 +38,7 @@ cc_test(
         "//perf:perf",
         "//dbg:stream_out",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//fmts:fmts",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,

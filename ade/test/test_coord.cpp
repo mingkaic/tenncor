@@ -200,7 +200,7 @@ TEST(COORD, Reduce)
 		rank + 1, red.size());
 	EXPECT_FATAL(ade::reduce(rank + 1, red), fatalmsg.c_str());
 
-	EXPECT_WARN(ade::reduce(0, {}), "reducing with empty vector ... will do nothing");
+	EXPECT_WARN(ade::reduce(0, {}), "reducing scalar ... will do nothing");
 }
 
 

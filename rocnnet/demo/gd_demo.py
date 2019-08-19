@@ -54,7 +54,7 @@ def main(args):
         np.random.seed(args.seedval)
 
     n_in = 10
-    n_out = n_in / 2
+    n_out = int(n_in / 2)
     n_outs = [9, n_out]
 
     nonlins = [tc.sigmoid, tc.sigmoid]

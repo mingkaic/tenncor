@@ -3,7 +3,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 def pb_rules_repository():
     http_archive(
         name = "com_github_stackb_rules_proto",
-        urls = ["https://github.com/stackb/rules_proto/archive/844077a71597f91c41b02d4509c5f79d51588552.tar.gz"],
-        sha256 = "867d09bf45515cb3ddeb06f7bdd2182eecf171ae3cd6b716b3b9d2fce50f292f",
-        strip_prefix = "rules_proto-844077a71597f91c41b02d4509c5f79d51588552",
+        urls = ["https://github.com/stackb/rules_proto/archive/b93b544f851fdcd3fc5c3d47aee3b7ca158a8841.tar.gz"],
+        sha256 = "c62f0b442e82a6152fcd5b1c0b7c4028233a9e314078952b6b04253421d56d61",
+        strip_prefix = "rules_proto-b93b544f851fdcd3fc5c3d47aee3b7ca158a8841",
     )

@@ -26,8 +26,8 @@ print_vars:
 rocnnet_py_build:
 	bazel build --config $(CC)_eigen_optimal //rocnnet:rocnnet_py
 
-rocnnet_py_export: rocnnet_py_build
-	cp -f bazel-bin/rocnnet/*.so rocnnet/notebooks/rocnnet
+rocnnet_py_export: bazel-bin/rocnnet/rocnnet.so bazel-bin/ead/tenncor.so bazel-bin/ead/ead.so
+	cp -f bazel-bin/rocnnet/rocnnet.so rocnnet/notebooks/rocnnet
 	cp -f bazel-bin/ead/*.so rocnnet/notebooks/ead
 
 
