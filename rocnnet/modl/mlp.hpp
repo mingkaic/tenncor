@@ -1,5 +1,7 @@
 #include "ead/generated/api.hpp"
 
+#include "rocnnet/eqns/init.hpp"
+
 #include "rocnnet/modl/marshal.hpp"
 
 #ifndef MODL_MLP_HPP
@@ -14,8 +16,8 @@ static const std::string bias_fmt = "bias_%d";
 
 struct MLP final : public iMarshalSet
 {
-	MLP (ade::DimT n_input,
-		std::vector<ade::DimT> layer_outs, std::string label) :
+	MLP (ade::DimT n_input, std::vector<ade::DimT> layer_outs,
+		eqns::InitF<PybindT> weight_init, std::string label) :
 		iMarshalSet(label)
 	{
 		if (layer_outs.empty())
@@ -29,18 +31,7 @@ struct MLP final : public iMarshalSet
 			ade::Shape weight_shape({n_output, n_input});
 			ade::NElemT nweight = weight_shape.n_elems();
 
-			PybindT bound = 1.0 / std::sqrt(n_input);
-			std::uniform_real_distribution<PybindT> dist(-bound, bound);
-			auto gen = [&dist]()
-			{
-				return dist(ead::get_engine());
-			};
-			std::vector<PybindT> wdata(nweight);
-			std::generate(wdata.begin(), wdata.end(), gen);
-
-			ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
-				wdata.data(), weight_shape, fmts::sprintf(weight_fmt, i));
-
+			ead::VarptrT<PybindT> weight = weight_init(weight_shape, fmts::sprintf(weight_fmt, i));
 			ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
 				0.0, ade::Shape({n_output}), fmts::sprintf(bias_fmt, i));
 
@@ -121,7 +112,7 @@ struct MLP final : public iMarshalSet
 	{
 		// sanity check
 		const ade::Shape& in_shape = input->shape();
-		uint8_t ninput = get_ninput();
+		ade::DimT ninput = get_ninput();
 		if (in_shape.at(0) != ninput)
 		{
 			logs::fatalf("cannot generate mlp with input shape %s against n_input %d",

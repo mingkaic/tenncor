@@ -59,7 +59,7 @@ def main(args):
 
     nonlins = [tc.sigmoid, tc.sigmoid]
 
-    brain = rcn.get_mlp(n_in, n_outs, 'brain')
+    brain = rcn.get_mlp(n_in, n_outs, rcn.unif_xavier_init(), 'brain')
     untrained_brain = brain.copy()
     try:
         with open(args.load, 'rb') as f:

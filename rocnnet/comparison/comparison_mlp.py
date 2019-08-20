@@ -125,7 +125,7 @@ for matrix_dim in matrix_dims:
     nonlins = [tc.sigmoid, tc.sigmoid]
     hiddens = [matrix_dim, n_out]
 
-    brain = rcn.get_mlp(n_in, hiddens, 'brain_' + str(matrix_dim))
+    brain = rcn.get_mlp(n_in, hiddens, rcn.unif_xavier_init(), 'brain_' + str(matrix_dim))
 
     invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.forward(invar, nonlins)

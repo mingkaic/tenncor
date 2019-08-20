@@ -16,6 +16,8 @@ matrix_dims = [
     150,
     200,
     250,
+    512,
+    1024,
 ]
 
 def batch_generate(n, batchsize):
@@ -119,7 +121,7 @@ learning_rate = 0.9
 
 for matrix_dim in matrix_dims:
     n_in = matrix_dim
-    n_out = n_in / 2
+    n_out = int(n_in / 2)
     batch_size = 1
 
     sess = ead.Session()
@@ -130,7 +132,7 @@ for matrix_dim in matrix_dims:
     nonlins = [tc.sigmoid, tc.sigmoid]
     hiddens = [matrix_dim, n_out]
 
-    brain = rcn.get_mlp(n_in, hiddens, 'brain_' + str(matrix_dim))
+    brain = rcn.get_mlp(n_in, hiddens, rcn.unif_xavier_init(), 'brain_' + str(matrix_dim))
 
     invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.forward(invar, nonlins)
@@ -180,7 +182,7 @@ for matrix_dim in matrix_dims:
 
         return out
 
-    sess.track(err)
+    sess.track([err])
     tfsess.run(tf.global_variables_initializer())
 
 

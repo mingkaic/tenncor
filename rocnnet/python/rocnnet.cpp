@@ -52,9 +52,9 @@ trainer::DQNInfo dqninfo_init (size_t train_interval = 5,
 }
 
 modl::MLPptrT mlp_init (size_t n_input, std::vector<ade::DimT> nouts,
-	std::string label)
+	eqns::InitF<PybindT> weight_init, std::string label)
 {
-	return std::make_shared<modl::MLP>(n_input, nouts, label);
+	return std::make_shared<modl::MLP>(n_input, nouts, weight_init, label);
 }
 
 modl::RBMptrT rbm_init (size_t n_input, std::vector<ade::DimT> nouts,

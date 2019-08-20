@@ -75,7 +75,7 @@ def main(args):
 
     nonlins = [tc.tanh, rcn.identity]
 
-    brain = rcn.get_mlp(n_observations, n_outs, 'brain')
+    brain = rcn.get_mlp(n_observations, n_outs, rcn.unif_xavier_init(), 'brain')
     untrained_brain = brain.copy()
 
     bgd = rcn.get_rms_momentum(

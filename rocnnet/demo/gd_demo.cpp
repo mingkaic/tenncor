@@ -90,7 +90,7 @@ int main (int argc, const char** argv)
 	std::vector<ade::DimT> n_outs = {9, n_out};
 	modl::NonLinearsT nonlins = {tenncor::sigmoid<float>, tenncor::sigmoid<float>};
 
-	auto brain = std::make_shared<modl::MLP>(n_in, n_outs, "brain");
+	auto brain = std::make_shared<modl::MLP>(n_in, n_outs, eqns::unif_xavier_init<PybindT>(1), "brain");
 	auto untrained_brain = std::make_shared<modl::MLP>(*brain);
 	modl::MLPptrT pretrained_brain;
 	std::ifstream loadstr(loadpath);
