@@ -188,6 +188,10 @@ struct TagRegistry final
 
 TagRegistry& get_reg (void);
 
+void recursive_tag (ade::TensptrT root,
+	std::unordered_set<ade::iTensor*> stops,
+	std::function<void(ade::TensrefT)> tag_op);
+
 }
 
 #endif // TAG_TAG_HPP

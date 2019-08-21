@@ -75,7 +75,7 @@ struct GroupRegistry final
 
 GroupRegistry& get_group_reg (void);
 
-void recursive_group_tag (ade::TensrefT tens, std::string group,
+void recursive_group_tag (ade::TensptrT tens, std::string group,
 	std::unordered_set<ade::iTensor*> stops,
 	GroupRegistry& registry = get_group_reg());
 

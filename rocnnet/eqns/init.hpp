@@ -59,6 +59,16 @@ void truncated_normal (std::vector<T>& out, ade::Shape shape, T mean, T stdev)
 }
 
 template <typename T>
+InitF<T> zero_init (void)
+{
+	return
+	[](ade::Shape shape, std::string label)
+	{
+		return ead::make_variable_scalar<T>(0, shape, label);
+	};
+}
+
+template <typename T>
 InitF<T> variance_scaling_init (T factor, ShapeFactorF<T> sfactor=fanavg<T>)
 {
 	return

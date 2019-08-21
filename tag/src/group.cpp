@@ -5,8 +5,6 @@
 namespace tag
 {
 
-using RefMapT = std::unordered_map<ade::iTensor*,ade::TensrefT>;
-
 size_t GroupTag::tag_id_ = typeid(GroupTag).hash_code();
 
 GroupRegistry& get_group_reg (void)
@@ -15,69 +13,14 @@ GroupRegistry& get_group_reg (void)
 	return registry;
 }
 
-struct Grouper final : public ade::iTraveler
-{
-	Grouper (std::string group, std::unordered_set<ade::iTensor*> stops,
-		GroupRegistry& registry) :
-		group_(group),
-		stops_(stops.begin(), stops.end()),
-		registry_(registry) {}
-
-	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
-	{
-		if (false == estd::has(stops_, leaf))
-		{
-			auto it = owners_.find(leaf);
-			if (owners_.end() == it)
-			{
-				logs::fatal("failed to get reference to leaf in group traveler");
-			}
-			registry_.group_tag(it->second, group_);
-		}
-	}
-
-	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
-	{
-		if (false == estd::has(stops_, func))
-		{
-			auto it = owners_.find(func);
-			if (owners_.end() == it)
-			{
-				logs::fatal("failed to get reference to leaf in group traveler");
-			}
-			auto& children = func->get_children();
-			for (auto& child : children)
-			{
-				ade::TensptrT tens = child.get_tensor();
-				owners_.emplace(tens.get(), tens);
-				tens->accept(*this);
-			}
-			registry_.group_tag(it->second, group_);
-		}
-	}
-
-	RefMapT owners_;
-
-	std::string group_;
-
-	std::unordered_set<ade::iTensor*> stops_;
-
-	GroupRegistry& registry_;
-};
-
-void recursive_group_tag (ade::TensrefT tens, std::string group,
+void recursive_group_tag (ade::TensptrT tens, std::string group,
 	std::unordered_set<ade::iTensor*> stops, GroupRegistry& registry)
 {
-	if (tens.expired())
-	{
-		logs::fatal("cannot recursive group tag with expired tensor ref");
-	}
-	Grouper trav(group, stops, registry);
-	auto tensor = tens.lock().get();
-	trav.owners_.emplace(tensor, tens);
-	tensor->accept(trav);
+	recursive_tag(tens, stops,
+		[&](ade::TensrefT ref)
+		{
+			registry.group_tag(ref, group);
+		});
 }
 
 void adjacencies (AdjMapT& out, ade::TensT roots,

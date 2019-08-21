@@ -14,6 +14,8 @@
 
 #include "dbg/grpc/session.hpp"
 
+#include "rocnnet/modl/model.hpp"
+
 #include "rocnnet/trainer/mlp_trainer.hpp"
 
 static std::vector<float> batch_generate (size_t n, size_t batchsize)
@@ -88,6 +90,16 @@ int main (int argc, const char** argv)
 	uint8_t n_in = 10;
 	uint8_t n_out = n_in / 2;
 	std::vector<ade::DimT> n_outs = {9, n_out};
+
+	modl::SequentialModel model("model");
+	model.push_back(std::make_shared<modl::Dense>(9, n_in, tenncor::sigmoid<float>,
+		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "0"));
+	model.push_back(std::make_shared<modl::Dense>(n_out, 9, tenncor::sigmoid<float>,
+		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "1"));
+
+	modl::SequentialModel untrained_model(model);
+	modl::ModelptrT trained_model = nullptr;
+
 	modl::NonLinearsT nonlins = {tenncor::sigmoid<float>, tenncor::sigmoid<float>};
 
 	auto brain = std::make_shared<modl::MLP>(n_in, n_outs, eqns::unif_xavier_init<PybindT>(1), "brain");
@@ -103,6 +115,8 @@ int main (int argc, const char** argv)
 		const cortenn::Graph& graph = layer.graph();
 		pbm::GraphInfo info;
 		pbm::load_graph<ead::EADLoader>(info, graph);
+
+		trained_model = modl::load_sequential(info, "pretrained_model");
 
 		pretrained_brain = std::make_shared<modl::MLP>(info, "pretrained");
 
