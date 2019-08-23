@@ -11,7 +11,7 @@ const std::string layers_key_prefix = "layer_";
 struct LayerTag final : public tag::iTag
 {
 	LayerTag (std::string layer_type, std::string name) :
-		reps_({{layers_key_prefix + layer_type, {name}}}) {}
+		reps_({{layer_type, {name}}}) {}
 
 	size_t tag_id (void) const override
 	{

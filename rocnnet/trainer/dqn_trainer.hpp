@@ -8,72 +8,8 @@
 namespace trainer
 {
 
-struct DQNTrainingContext final : public modl::iTrainingContext
+struct DQNTrainingContext final
 {
-	void marshal_layer (cortenn::Layer& out_layer) const override
-	{
-		assert(nullptr != next_output_);
-		cortenn::DQTrainerState* state = out_layer.mutable_dqn_ctx();
-
-		cortenn::Graph* target = state->mutable_target_graph();
-		pbm::GraphSaver<ead::EADSaver> saver;
-		next_output_->get_tensor()->accept(saver);
-		saver.save(*target, target_qnet_->list_bases());
-
-		state->set_actions_executed(actions_executed_);
-		state->set_trained_iteration(iteration_);
-		state->set_ntrained_called(n_train_called_);
-		state->set_nstored_called(n_store_called_);
-
-		for (const ExpBatch& exbatch : experiences_)
-		{
-			cortenn::DQTrainerState_ExpBatch* batch =
-				state->add_experiences();
-
-			google::protobuf::RepeatedField<float> obs(
-				exbatch.observation_.begin(), exbatch.observation_.end());
-			batch->mutable_observation()->Swap(&obs);
-
-			google::protobuf::RepeatedField<float> new_obs(
-				exbatch.new_observation_.begin(),
-				exbatch.new_observation_.end());
-			batch->mutable_new_observation()->Swap(&new_obs);
-
-			batch->set_action_idx(exbatch.action_idx_);
-			batch->set_reward(exbatch.reward_);
-		}
-	}
-
-	void unmarshal_layer (const cortenn::Layer& in_layer) override
-	{
-		const cortenn::DQTrainerState& state = in_layer.dqn_ctx();
-
-		const cortenn::Graph& target_graph = state.target_graph();
-		pbm::GraphInfo info;
-		pbm::load_graph<ead::EADLoader>(info, target_graph);
-
-		target_qnet_ = std::make_shared<modl::MLP>(info, "target");
-
-		actions_executed_ = state.actions_executed();
-		iteration_ = state.trained_iteration();
-		n_train_called_ = state.ntrained_called();
-		n_store_called_ = state.nstored_called();
-
-		auto& exps = state.experiences();
-		for (const cortenn::DQTrainerState_ExpBatch& batch : exps)
-		{
-			auto obs = batch.observation();
-			auto new_obs = batch.new_observation();
-
-			experiences_.push_back(ExpBatch{
-				std::vector<PybindT>(obs.begin(), obs.end()),
-				batch.action_idx(),
-				batch.reward(),
-				std::vector<PybindT>(new_obs.begin(), new_obs.end()),
-			});
-		}
-	}
-
 	// experience replay
 	struct ExpBatch
 	{
@@ -280,7 +216,7 @@ struct DQNTrainer
 	bool save (std::ostream& outs)
 	{
 		return modl::save(outs,
-			output_->get_tensor(), source_qnet_.get(), &ctx_);
+			output_->get_tensor(), source_qnet_.get());
 	}
 
 	// === forward computation ===

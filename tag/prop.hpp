@@ -6,8 +6,6 @@
 namespace tag
 {
 
-const std::string props_key = "properties";
-
 // some property tags
 const std::string commutative_tag = "commutative";
 
@@ -30,13 +28,7 @@ struct PropTag final : public iTag
 		labels_.insert(olabels.begin(), olabels.end());
 	}
 
-	TagRepsT get_tags (void) const override
-	{
-		TagRepsT out;
-		out.emplace(props_key, std::vector<std::string>(
-			labels_.begin(), labels_.end()));
-		return out;
-	}
+	TagRepsT get_tags (void) const override;
 
 private:
 	std::unordered_set<std::string> labels_;
@@ -54,21 +46,18 @@ struct PropertyRegistry final
 		tag_reg_.add_tag(tens, TagptrT(new PropTag(property)));
 	}
 
-	bool has_property (const ade::iTensor* tens, std::string property)
-	{
-		auto reps = tag_reg_.get_tags(tens);
-		auto it = reps.find(props_key);
-		if (reps.end() == it)
-		{
-			return false;
-		}
-		return estd::arr_has(it->second, property);
-	}
+	bool has_property (const ade::iTensor* tens, std::string property) const;
 
 	TagRegistry& tag_reg_;
 };
 
 PropertyRegistry& get_property_reg (void);
+
+const std::string props_key = get_reg().register_tagr("properties",
+[](ade::TensrefT ref, std::string property)
+{
+	get_property_reg().property_tag(ref, property);
+});
 
 }
 

@@ -22,16 +22,18 @@ namespace ade
 /// Type used for shape rank
 using RankT = uint8_t;
 
-// /// Type used for shape dimension
-// #if !defined(SDIM_BYTES) || SDIM_BYTES <= 1
-// using DimT = uint8_t;
-// #elif SDIM_BYTES <= 2
+#define SDIM_BYTES 2
+
+/// Type used for shape dimension
+#if !defined(SDIM_BYTES) || SDIM_BYTES <= 1
+using DimT = uint8_t;
+#elif SDIM_BYTES <= 2
 using DimT = uint16_t;
-// #elif SDIM_BYTES <= 4
-// using DimT = uint32_t;
-// #else
-// using DimT = uint64_t;
-// #endif
+#elif SDIM_BYTES <= 4
+using DimT = uint32_t;
+#else
+using DimT = uint64_t;
+#endif
 
 /// Type used for coordinate dimensions
 using CDimT = double;

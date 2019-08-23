@@ -79,6 +79,7 @@ struct GraphSaver final : public ade::iTraveler
 		std::vector<ade::iLeaf*> leaves(leaves_.begin(), leaves_.end());
 
 		// all nodes in leaf appear before funcs
+		tag::TagRegistry& registry = tag::get_reg();
 		std::unordered_map<ade::iTensor*,size_t> ordermap;
 		size_t nleaves = leaves.size();
 		for (size_t i = 0; i < nleaves; ++i)
@@ -87,6 +88,7 @@ struct GraphSaver final : public ade::iTraveler
 			ordermap[tens] = i;
 
 			cortenn::Node* pb_node = out.add_nodes();
+			tag_node(pb_node, tens, registry);
 			auto it = raw_labels.find(tens);
 			if (raw_labels.end() != it)
 			{
@@ -102,6 +104,7 @@ struct GraphSaver final : public ade::iTraveler
 			ordermap[f] = nleaves + i;
 
 			cortenn::Node* pb_node = out.add_nodes();
+			tag_node(pb_node, f, registry);
 			auto it = raw_labels.find(f);
 			if (raw_labels.end() != it)
 			{
@@ -154,6 +157,23 @@ private:
 		out.set_data(saver_.save_leaf(is_const, in));
 		out.set_typelabel(in->type_label());
 		out.set_is_const(is_const);
+	}
+
+	void tag_node (cortenn::Node* node,
+		ade::iTensor* tens, tag::TagRegistry& registry)
+	{
+		google::protobuf::Map<std::string,cortenn::Tag>* tags =
+			node->mutable_tags();
+		tag::TagRepsT reps = registry.get_tags(tens);
+		for (auto reppair : reps)
+		{
+			google::protobuf::RepeatedPtrField<std::string> labels(
+				reppair.second.begin(), reppair.second.end());
+			google::protobuf::MapPair<std::string,cortenn::Tag> tagpair(
+				reppair.first);
+			tagpair.second.mutable_labels()->Swap(&labels);
+			tags->insert(tagpair);
+		}
 	}
 
 	SAVER saver_;

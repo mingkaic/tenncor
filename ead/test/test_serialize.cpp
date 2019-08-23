@@ -97,16 +97,88 @@ TEST(SERIALIZE, SaveGraph)
 	ASSERT_TRUE(expect_ifs.is_open());
 	ASSERT_TRUE(got_ifs.is_open());
 
-	std::string expect;
-	std::string got;
-	// skip the first line (it contains timestamp)
-	expect_ifs >> expect;
-	got_ifs >> got;
-	for (size_t lineno = 1; expect_ifs && got_ifs; ++lineno)
 	{
-		expect_ifs >> expect;
-		got_ifs >> got;
-		EXPECT_STREQ(expect.c_str(), got.c_str()) << "line number " << lineno;
+		cortenn::Graph expect_graph;
+		cortenn::Graph got_graph;
+		ASSERT_TRUE(expect_graph.ParseFromIstream(&expect_ifs));
+		ASSERT_TRUE(got_graph.ParseFromIstream(&got_ifs));
+
+		auto& expect_nodes = expect_graph.nodes();
+		auto& got_nodes = got_graph.nodes();
+
+		size_t nexpect_nodes = expect_nodes.size();
+		ASSERT_EQ(nexpect_nodes, got_nodes.size());
+		for (size_t i = 0; i < nexpect_nodes; ++i)
+		{
+			const cortenn::Node& expect_node = expect_nodes[i];
+			const cortenn::Node& got_node = got_nodes[i];
+
+			// check details
+			if (expect_node.has_source())
+			{
+				const cortenn::Source& expect_source = expect_node.source();
+				const cortenn::Source& got_source = got_node.source();
+
+				std::string expect_shape = expect_source.shape();
+				std::string got_shape = got_source.shape();
+				EXPECT_STREQ(expect_shape.c_str(), got_shape.c_str());
+
+				std::string expect_data = expect_source.data();
+				std::string got_data = got_source.data();
+				EXPECT_STREQ(expect_data.c_str(), got_data.c_str());
+
+				std::string expect_type = expect_source.typelabel();
+				std::string got_type = got_source.typelabel();
+				EXPECT_STREQ(expect_type.c_str(), got_type.c_str());
+
+				bool expect_const = expect_source.is_const();
+				bool got_const = got_source.is_const();
+				EXPECT_EQ(expect_const, got_const);
+			}
+			else
+			{
+				const cortenn::Functor& expect_func = expect_node.functor();
+				const cortenn::Functor& got_func = got_node.functor();
+
+				std::string expect_op = expect_func.opname();
+				std::string got_op = got_func.opname();
+				EXPECT_STREQ(expect_op.c_str(), got_op.c_str());
+
+				auto& expect_args = expect_func.args();
+				auto& got_args = got_func.args();
+
+				size_t nexpect_args = expect_args.size();
+				ASSERT_EQ(nexpect_args, got_args.size());
+				for (size_t i = 0; i < nexpect_args; ++i)
+				{
+					auto& expect_arg = expect_args[i];
+					auto& got_arg = got_args[i];
+
+					auto& expect_shaper = expect_arg.shaper();
+					auto& got_shaper = got_arg.shaper();
+
+					auto& expect_coorder = expect_arg.coord();
+					auto& got_coorder = got_arg.coord();
+
+					EXPECT_EQ(expect_arg.idx(), got_arg.idx());
+					EXPECT_ARREQ(expect_shaper, got_shaper);
+					EXPECT_ARREQ(expect_coorder, got_coorder);
+					EXPECT_EQ(expect_arg.fwd(), got_arg.fwd());
+				}
+			}
+
+			// check tags
+			auto& expect_tags = expect_node.tags();
+			auto& got_tags = got_node.tags();
+			EXPECT_EQ(expect_tags.size(), got_tags.size());
+			for (auto& expectpair : expect_tags)
+			{
+				ASSERT_HAS(got_tags, expectpair.first);
+				auto& expect_labels = expectpair.second.labels();
+				auto& got_labels = got_tags.at(expectpair.first).labels();
+				EXPECT_ARREQ(expect_labels, got_labels);
+			}
+		}
 	}
 }
 

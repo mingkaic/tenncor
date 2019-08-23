@@ -7,6 +7,14 @@ namespace tag
 
 size_t GroupTag::tag_id_ = typeid(GroupTag).hash_code();
 
+TagRepsT GroupTag::get_tags (void) const
+{
+	TagRepsT out;
+	out.emplace(groups_key,
+		std::vector<std::string>(labels_.begin(), labels_.end()));
+	return out;
+}
+
 GroupRegistry& get_group_reg (void)
 {
 	static GroupRegistry registry;

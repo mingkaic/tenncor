@@ -173,11 +173,13 @@ struct MarshalVar final : public iMarshaler
 		auto it = storage->tens_.find(var_->get_label());
 		if (storage->tens_.end() == it)
 		{
-			logs::warnf("variable %s not found", var_->get_tensor()->to_string().c_str());
+			logs::warnf("variable %s not found",
+				var_->get_tensor()->to_string().c_str());
 		}
 		else
 		{
-			var_->assign(ead::NodeConverters<PybindT>::to_node(it->second)->data(), it->second->shape());
+			var_->assign(ead::NodeConverters<PybindT>::to_node(
+				it->second)->data(), it->second->shape());
 		}
 	}
 
@@ -199,24 +201,11 @@ private:
 	}
 };
 
-// iTrainingContext is an interface describing how a model is trained
-// (e.g.: how many iterations/how large the batch is)
-struct iTrainingContext
-{
-	virtual ~iTrainingContext (void) = default;
-
-	virtual void marshal_layer (cortenn::Layer& out_layer) const = 0;
-
-	virtual void unmarshal_layer (const cortenn::Layer& in_layer) = 0;
-};
-
 using MarVarsptrT = std::shared_ptr<MarshalVar>;
 
-bool save (std::ostream& outs, ade::TensptrT source,
-	iMarshaler* source_graph, iTrainingContext* tctx = nullptr);
+bool save (std::ostream& outs, ade::TensptrT source, iMarshaler* source_graph);
 
-void load (std::istream& ins, iMarshaler* target,
-	iTrainingContext* tctx = nullptr);
+void load (std::istream& ins, iMarshaler* target);
 
 using NonLinearF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 

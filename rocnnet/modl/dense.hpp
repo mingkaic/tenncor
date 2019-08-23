@@ -28,7 +28,12 @@ struct iLayer : public iMarshalSet
 
 using LayerptrT = std::shared_ptr<iLayer>;
 
-const std::string dense_type = "dense";
+const std::string dense_layer_key =
+tag::get_reg().register_tagr(layers_key_prefix + "dense",
+[](ade::TensrefT ref, std::string label)
+{
+	tag_layer(ref, dense_layer_key, label);
+});
 
 struct Dense final : public iLayer
 {
@@ -42,12 +47,12 @@ struct Dense final : public iLayer
 			weight_init(ade::Shape({nunits, indim}), label + ":weight"))),
 		activation_(activation)
 	{
-		tag_layer(weight_->var_->get_tensor(), dense_type, label);
+		tag_layer(weight_->var_->get_tensor(), dense_layer_key, label);
 		if (bias_init)
 		{
 			bias_ = std::make_shared<MarshalVar>(
 				bias_init(ade::Shape({nunits}), label + ":bias"));
-			tag_layer(bias_->var_->get_tensor(), dense_type, label);
+			tag_layer(bias_->var_->get_tensor(), dense_layer_key, label);
 		}
 	}
 
@@ -90,7 +95,7 @@ struct Dense final : public iLayer
 		{
 			out = activation_(out);
 		}
-		recursive_layer_tag(out->get_tensor(), dense_type, get_label(), {
+		recursive_layer_tag(out->get_tensor(), dense_layer_key, get_label(), {
 			input->get_tensor().get(),
 			weight_->var_->get_tensor().get(),
 			bias_->var_->get_tensor().get(),

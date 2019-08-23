@@ -10,6 +10,8 @@
 
 #include "ade/ade.hpp"
 
+#include "tag/tag.hpp"
+
 #include "pbm/graph.pb.h"
 
 #ifndef PBM_COMMON_HPP

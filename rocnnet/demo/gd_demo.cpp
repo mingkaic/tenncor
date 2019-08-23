@@ -108,11 +108,13 @@ int main (int argc, const char** argv)
 	std::ifstream loadstr(loadpath);
 	if (loadstr.is_open())
 	{
-		cortenn::Layer layer;
-		layer.ParseFromIstream(&loadstr);
-
 		// load graph to target
-		const cortenn::Graph& graph = layer.graph();
+		cortenn::Graph graph;
+		if (false == graph.ParseFromIstream(&loadstr))
+		{
+			logs::fatalf("failed to parse file %s when loading mlptrainer",
+				loadpath.c_str());
+		}
 		pbm::GraphInfo info;
 		pbm::load_graph<ead::EADLoader>(info, graph);
 
@@ -121,17 +123,6 @@ int main (int argc, const char** argv)
 		pretrained_brain = std::make_shared<modl::MLP>(info, "pretrained");
 
 		logs::infof("model successfully loaded from file '%s'", loadpath.c_str());
-		if (cortenn::Layer::kItCtx != layer.layer_context_case())
-		{
-			logs::warn("missing training context");
-		}
-		else
-		{
-			auto& ctx = layer.it_ctx();
-			logs::infof("loaded model trained for %d iterations",
-				ctx.iterations());
-		}
-
 		loadstr.close();
 	}
 	else

@@ -130,6 +130,8 @@ inline bool operator == (const TensKey& lhs, const TensKey& rhs)
 	return hasher(lhs) == hasher(rhs);
 }
 
+using TagrF = std::function<void(ade::TensrefT,std::string)>;
+
 // todo: move tag registry to some session that claims global context
 // todo: make an interface for this
 struct TagRegistry final
@@ -183,7 +185,23 @@ struct TagRegistry final
 		registry_.erase(TensKey(source));
 	}
 
+	/// Return tagger associated to TagRepsT key
+	TagrF tagr_by_key (std::string tag_key)
+	{
+		return estd::must_getf(key_tagr_assoc_, tag_key,
+			"cannot find tagr associated with %s", tag_key.c_str());
+	}
+
+	std::string register_tagr (std::string tag_key, TagrF tagr)
+	{
+		key_tagr_assoc_.emplace(tag_key, tagr);
+		return tag_key;
+	}
+
 	std::unordered_map<TensKey,TagCollective,TensKeyHash> registry_;
+
+private:
+	std::unordered_map<std::string,TagrF> key_tagr_assoc_;
 };
 
 TagRegistry& get_reg (void);

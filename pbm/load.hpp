@@ -158,6 +158,7 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 	TensT invec;
 	for (const cortenn::Node& node : nodes)
 	{
+		ade::TensptrT tens;
 		auto pb_labels = node.labels();
 		if (node.has_source())
 		{
@@ -178,7 +179,7 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 				StringsT labels(pb_labels.begin(), pb_labels.end());
 				out.tens_.set_labelled(labels.begin(), labels.end(), leaf);
 			}
-			out.roots_.emplace(leaf);
+			tens = leaf;
 		}
 		else
 		{
@@ -206,8 +207,20 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 				StringsT labels(pb_labels.begin(), pb_labels.end());
 				out.tens_.set_labelled(labels.begin(), labels.end(), f);
 			}
-			out.roots_.emplace(f);
+			tens = f;
 		}
+		auto& pb_tags = node.tags();
+		for (auto& tagpair : pb_tags)
+		{
+			const std::string& tagkey = tagpair.first;
+			auto& taglabels = tagpair.second.labels();
+			auto tagr = tag::get_reg().tagr_by_key(tagkey);
+			for (std::string taglabel : taglabels)
+			{
+				tagr(tens, taglabel);
+			}
+		}
+		out.roots_.emplace(tens);
 	}
 }
 

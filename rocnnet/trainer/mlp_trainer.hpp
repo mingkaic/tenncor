@@ -9,20 +9,8 @@ namespace trainer
 {
 
 // Normal default context that only stores the number of iterations
-struct TrainingContext final : public modl::iTrainingContext
+struct TrainingContext final
 {
-	void marshal_layer (cortenn::Layer& out_layer) const override
-	{
-		cortenn::ItTrainerState* state = out_layer.mutable_it_ctx();
-		state->set_iterations(n_iterations_);
-	}
-
-	void unmarshal_layer (const cortenn::Layer& in_layer) override
-	{
-		const cortenn::ItTrainerState& state = in_layer.it_ctx();
-		n_iterations_ = state.iterations();
-	}
-
 	size_t n_iterations_ = 0;
 };
 
@@ -110,7 +98,7 @@ struct MLPTrainer
 	bool save (std::ostream& outs)
 	{
 		return modl::save(outs,
-			error_->get_tensor(), brain_.get(), &ctx_);
+			error_->get_tensor(), brain_.get());
 	}
 
 	uint8_t batch_size_;

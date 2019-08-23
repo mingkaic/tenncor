@@ -266,27 +266,18 @@ PYBIND11_MODULE(rocnnet, m)
 		ead::iSession& sess, eqns::ApproxF update,
 		uint8_t batch_size) -> trainer::MLPTrainer
 	{
-		cortenn::Layer layer;
-		if (false == layer.ParseFromString(data))
+		// load graph to target
+		cortenn::Graph graph;
+		if (false == graph.ParseFromString(data))
 		{
 			logs::fatal("failed to parse string when loading mlptrainer");
 		}
-
-		// load graph to target
-		const cortenn::Graph& graph = layer.graph();
 		pbm::GraphInfo info;
 		pbm::load_graph<ead::EADLoader>(info, graph);
 
 		auto pretrained = std::make_shared<modl::MLP>(info, "pretrained");
-
-		if (cortenn::Layer::kItCtx != layer.layer_context_case())
-		{
-			logs::fatal("missing training context");
-		}
-		trainer::TrainingContext ctx;
-		ctx.unmarshal_layer(layer);
 		return trainer::MLPTrainer(pretrained, nonlins,
-			sess, update, batch_size, ctx);
+			sess, update, batch_size);
 	});
 
 	// dqntrainer
@@ -336,27 +327,18 @@ PYBIND11_MODULE(rocnnet, m)
 		ead::iSession& sess, eqns::ApproxF update,
 		trainer::DQNInfo param) -> trainer::DQNTrainer
 	{
-		cortenn::Layer layer;
-		if (false == layer.ParseFromString(data))
-		{
-			logs::fatal("failed to parse string when loading mlptrainer");
-		}
-
 		// load graph to target
-		const cortenn::Graph& graph = layer.graph();
+		cortenn::Graph graph;
+		if (false == graph.ParseFromString(data))
+		{
+			logs::fatal("failed to parse string when loading dqntrainer");
+		}
 		pbm::GraphInfo info;
 		pbm::load_graph<ead::EADLoader>(info, graph);
 
 		auto pretrained = std::make_shared<modl::MLP>(info, "pretrained");
-
-		if (cortenn::Layer::kDqnCtx != layer.layer_context_case())
-		{
-			logs::fatal("missing training context");
-		}
-		trainer::DQNTrainingContext ctx;
-		ctx.unmarshal_layer(layer);
 		return trainer::DQNTrainer(pretrained, nonlins,
-			sess, update, param, ctx);
+			sess, update, param);
 	});
 
 	// rbmtrainer
