@@ -15,6 +15,7 @@
 #include "dbg/grpc/session.hpp"
 
 #include "rocnnet/modl/model.hpp"
+#include "rocnnet/modl/activations.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 
@@ -91,14 +92,16 @@ int main (int argc, const char** argv)
 	uint8_t n_out = n_in / 2;
 	std::vector<ade::DimT> n_outs = {9, n_out};
 
-	modl::SequentialModel model("model");
-	model.push_back(std::make_shared<modl::Dense>(9, n_in, tenncor::sigmoid<float>,
+	modl::SequentialModel model("demo");
+	model.push_back(std::make_shared<modl::Dense>(9, n_in,
 		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "0"));
-	model.push_back(std::make_shared<modl::Dense>(n_out, 9, tenncor::sigmoid<float>,
+	model.push_back(modl::sigmoid("0"));
+	model.push_back(std::make_shared<modl::Dense>(n_out, 9,
 		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "1"));
+	model.push_back(modl::sigmoid("1"));
 
 	modl::SequentialModel untrained_model(model);
-	modl::ModelptrT trained_model = nullptr;
+	modl::SeqModelptrT trained_model = nullptr;
 
 	modl::NonLinearsT nonlins = {tenncor::sigmoid<float>, tenncor::sigmoid<float>};
 
@@ -118,16 +121,18 @@ int main (int argc, const char** argv)
 		pbm::GraphInfo info;
 		pbm::load_graph<ead::EADLoader>(info, graph);
 
-		trained_model = modl::load_sequential(info, "pretrained_model");
+		std::unordered_set<ade::iTensor*> trained_roots;
+		trained_model = std::static_pointer_cast<modl::SequentialModel>(
+			modl::load_layer(trained_roots, info, modl::seq_model_key, "demo"));
 
 		pretrained_brain = std::make_shared<modl::MLP>(info, "pretrained");
 
-		logs::infof("model successfully loaded from file '%s'", loadpath.c_str());
+		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
 	else
 	{
-		logs::warnf("model failed to loaded from file '%s'", loadpath.c_str());
+		logs::warnf("model failed to loaded from file `%s`", loadpath.c_str());
 		pretrained_brain = std::make_shared<modl::MLP>(*brain);
 	}
 
@@ -221,13 +226,13 @@ int main (int argc, const char** argv)
 		{
 			if (trainer.save(savestr))
 			{
-				logs::infof("successfully saved model to '%s'", savepath.c_str());
+				logs::infof("successfully saved model to `%s`", savepath.c_str());
 			}
 			savestr.close();
 		}
 		else
 		{
-			logs::warnf("failed to save model to '%s'", savepath.c_str());
+			logs::warnf("failed to save model to `%s`", savepath.c_str());
 		}
 	}
 

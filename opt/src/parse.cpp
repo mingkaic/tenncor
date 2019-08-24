@@ -99,7 +99,7 @@ static std::string build_intermediate (VoterPool& voters, const ::Subgraph* sg,
 			std::string symbol(sg->val_.any_);
 			if (false == estd::has(ctx.symbols_, symbol))
 			{
-				logs::fatalf("undeclared symbol '%s'", symbol.c_str());
+				logs::fatalf("undeclared symbol `%s`", symbol.c_str());
 			}
 			out = symbol;
 		}

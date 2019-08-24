@@ -45,7 +45,7 @@ struct NodeConverters final
 	{
 		const std::type_info& tp = typeid(*tens);
 		return estd::must_getf(builders_, tp.hash_code(),
-			"unknown tensor type %s with %s dtype",
+			"unknown tensor type `%s` with `%s` dtype",
 			tp.name(), age::name_type(age::get_type<T>()).c_str())(tens);
 	}
 
