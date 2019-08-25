@@ -53,9 +53,9 @@ const std::unordered_map<std::string,NonLinearF> activations =
 	{tanh_layer_key, tenncor::tanh<PybindT>},
 };
 
-struct ActivationLayer final : public iLayer
+struct Activation final : public iLayer
 {
-	ActivationLayer (std::string label, std::string act_type) :
+	Activation (const std::string& label, const std::string& act_type) :
 		label_(label),
 		act_type_(act_type),
 		activation_(estd::must_getf(activations, act_type,
@@ -65,9 +65,36 @@ struct ActivationLayer final : public iLayer
 		tag(placeholder_->get_tensor());
 	}
 
-	ActivationLayer* clone (void) const
+	Activation (const Activation& other,
+		std::string label_prefix = "") :
+		label_(label_prefix + other.get_label()),
+		activation_(other.activation_),
+		act_type_(other.act_type_),
+		placeholder_(ead::make_constant_scalar<PybindT>(0, {}))
 	{
-		return static_cast<ActivationLayer*>(this->clone_impl());
+		tag(placeholder_->get_tensor());
+	}
+
+	Activation& operator = (const Activation& other) = default;
+
+	Activation (Activation&& other) = default;
+
+	Activation& operator = (Activation&& other) = default;
+
+
+	Activation* clone (std::string label_prefix = "") const
+	{
+		return static_cast<Activation*>(this->clone_impl(label_prefix));
+	}
+
+	size_t get_ninput (void) const override
+	{
+		return 0;
+	}
+
+	size_t get_noutput (void) const override
+	{
+		return 0;
 	}
 
 	std::string get_ltype (void) const override
@@ -95,19 +122,21 @@ struct ActivationLayer final : public iLayer
 	}
 
 private:
-	iLayer* clone_impl (void) const override
+	iLayer* clone_impl (std::string label_prefix) const override
 	{
-		return new ActivationLayer(*this);
+		return new Activation(*this, label_prefix);
 	}
+
+	std::string label_;
 
 	ead::NodeptrT<PybindT> placeholder_;
 
 	NonLinearF activation_;
 
 	std::string act_type_;
-
-	std::string label_;
 };
+
+using ActivationptrT = std::shared_ptr<Activation>;
 
 LayerptrT sigmoid (std::string label = "sigmoid");
 

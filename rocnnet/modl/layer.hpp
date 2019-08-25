@@ -88,10 +88,14 @@ struct iLayer
 {
 	virtual ~iLayer (void) = default;
 
-	iLayer* clone (void) const
+	iLayer* clone (std::string label_prefix = "") const
 	{
-		return this->clone_impl();
+		return this->clone_impl(label_prefix);
 	}
+
+	virtual size_t get_ninput (void) const = 0;
+
+	virtual size_t get_noutput (void) const = 0;
 
 	virtual std::string get_ltype (void) const = 0;
 
@@ -103,7 +107,7 @@ struct iLayer
 	virtual ade::TensT get_contents (void) const = 0;
 
 protected:
-	virtual iLayer* clone_impl (void) const = 0;
+	virtual iLayer* clone_impl (std::string label_prefix) const = 0;
 
 	void tag (ade::TensptrT tensor, LayerId subs = LayerId()) const;
 

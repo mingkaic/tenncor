@@ -38,12 +38,13 @@ get_layer_reg().register_tagr(layers_key_prefix + "seqmodel",
 
 struct SequentialModel final : public iLayer
 {
-	SequentialModel (std::string label) :
+	SequentialModel (const std::string& label) :
 		label_(label) {}
 
-	SequentialModel (const SequentialModel& other)
+	SequentialModel (const SequentialModel& other,
+		std::string label_prefix = "")
 	{
-		copy_helper(other);
+		copy_helper(other, label_prefix);
 	}
 
 	SequentialModel& operator = (const SequentialModel& other)
@@ -59,9 +60,31 @@ struct SequentialModel final : public iLayer
 
 	SequentialModel& operator = (SequentialModel&& other) = default;
 
-	SequentialModel* clone (void) const
+	SequentialModel* clone (std::string label_prefix = "") const
 	{
-		return static_cast<SequentialModel*>(this->clone_impl());
+		return static_cast<SequentialModel*>(this->clone_impl(label_prefix));
+	}
+
+	size_t get_ninput (void) const override
+	{
+		size_t input = 0;
+		for (auto it = layers_.begin(), et = layers_.end();
+			it != et && 0 == input; ++it)
+		{
+			input = (*it)->get_ninput();
+		}
+		return input;
+	}
+
+	size_t get_noutput (void) const override
+	{
+		size_t output = 0;
+		for (auto it = layers_.rbegin(), et = layers_.rend();
+			it != et && 0 == output; ++it)
+		{
+			output = (*it)->get_noutput();
+		}
+		return output;
 	}
 
 	std::string get_ltype (void) const override
@@ -115,19 +138,19 @@ struct SequentialModel final : public iLayer
 	}
 
 private:
-	iLayer* clone_impl (void) const override
+	iLayer* clone_impl (std::string label_prefix) const override
 	{
-		return new SequentialModel(*this);
+		return new SequentialModel(*this, label_prefix);
 	}
 
-	void copy_helper (const SequentialModel& other)
+	void copy_helper (const SequentialModel& other, std::string label_prefix = "")
 	{
-		label_ = other.label_;
+		label_ = label_prefix + other.label_;
 		layers_.clear();
 		layers_.reserve(other.layers_.size());
 		for (LayerptrT olayer : other.layers_)
 		{
-			push_back(olayer);
+			push_back(LayerptrT(olayer->clone(label_prefix)));
 		}
 	}
 

@@ -66,7 +66,7 @@ struct Dense final : public iLayer
 	Dense (ade::DimT nunits, ade::DimT indim,
 		eqns::InitF<PybindT> weight_init,
 		eqns::InitF<PybindT> bias_init,
-		std::string label) :
+		const std::string& label) :
 		label_(label),
 		weight_(weight_init(ade::Shape({nunits, indim}), weight_key))
 	{
@@ -91,9 +91,10 @@ struct Dense final : public iLayer
 		}
 	}
 
-	Dense (const Dense& other)
+	Dense (const Dense& other,
+		std::string label_prefix = "")
 	{
-		copy_helper(other);
+		copy_helper(other, label_prefix);
 	}
 
 	Dense& operator = (const Dense& other)
@@ -109,9 +110,19 @@ struct Dense final : public iLayer
 
 	Dense& operator = (Dense&& other) = default;
 
-	Dense* clone (void) const
+	Dense* clone (std::string label_prefix = "") const
 	{
-		return static_cast<Dense*>(this->clone_impl());
+		return static_cast<Dense*>(this->clone_impl(label_prefix));
+	}
+
+	size_t get_ninput (void) const override
+	{
+		return weight_->shape().at(1);
+	}
+
+	size_t get_noutput (void) const override
+	{
+		return weight_->shape().at(0);
 	}
 
 	std::string get_ltype (void) const override
@@ -143,14 +154,14 @@ struct Dense final : public iLayer
 	}
 
 private:
-	iLayer* clone_impl (void) const override
+	iLayer* clone_impl (std::string label_prefix) const override
 	{
-		return new Dense(*this);
+		return new Dense(*this, label_prefix);
 	}
 
-	void copy_helper (const Dense& other)
+	void copy_helper (const Dense& other, std::string label_prefix = "")
 	{
-		label_ = other.label_;
+		label_ = label_prefix + other.label_;
 		weight_ = std::make_shared<ead::VariableNode<PybindT>>(
 			std::shared_ptr<ead::Variable<PybindT>>(
 				ead::Variable<PybindT>::get(
@@ -168,12 +179,14 @@ private:
 		}
 	}
 
+	std::string label_;
+
 	ead::VarptrT<PybindT> weight_;
 
 	ead::VarptrT<PybindT> bias_;
-
-	std::string label_;
 };
+
+using DenseptrT = std::shared_ptr<Dense>;
 
 }
 
