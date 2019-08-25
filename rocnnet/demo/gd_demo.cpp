@@ -5,8 +5,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "pbm/save.hpp"
-
 #include "flag/flag.hpp"
 
 #include "ead/ead.hpp"
@@ -95,10 +93,10 @@ int main (int argc, const char** argv)
 	modl::SequentialModel model("demo");
 	model.push_back(std::make_shared<modl::Dense>(9, n_in,
 		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "0"));
-	model.push_back(modl::sigmoid("0"));
+	model.push_back(modl::sigmoid());
 	model.push_back(std::make_shared<modl::Dense>(n_out, 9,
 		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "1"));
-	model.push_back(modl::sigmoid("1"));
+	model.push_back(modl::sigmoid());
 
 	modl::SequentialModel untrained_model(model);
 	modl::SeqModelptrT trained_model = nullptr;
@@ -107,33 +105,20 @@ int main (int argc, const char** argv)
 
 	auto brain = std::make_shared<modl::MLP>(n_in, n_outs, eqns::unif_xavier_init<PybindT>(1), "brain");
 	auto untrained_brain = std::make_shared<modl::MLP>(*brain);
-	modl::MLPptrT pretrained_brain;
+	modl::MLPptrT pretrained_brain = std::make_shared<modl::MLP>(*brain);
 	std::ifstream loadstr(loadpath);
 	if (loadstr.is_open())
 	{
-		// load graph to target
-		cortenn::Graph graph;
-		if (false == graph.ParseFromIstream(&loadstr))
-		{
-			logs::fatalf("failed to parse file %s when loading mlptrainer",
-				loadpath.c_str());
-		}
-		pbm::GraphInfo info;
-		pbm::load_graph<ead::EADLoader>(info, graph);
-
-		std::unordered_set<ade::iTensor*> trained_roots;
+		ade::TensT trained_roots;
 		trained_model = std::static_pointer_cast<modl::SequentialModel>(
-			modl::load_layer(trained_roots, info, modl::seq_model_key, "demo"));
-
-		pretrained_brain = std::make_shared<modl::MLP>(info, "pretrained");
-
+			modl::load_layer(loadstr, trained_roots, modl::seq_model_key, "demo"));
 		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
 	else
 	{
 		logs::warnf("model failed to loaded from file `%s`", loadpath.c_str());
-		pretrained_brain = std::make_shared<modl::MLP>(*brain);
+		trained_model = std::make_shared<modl::SequentialModel>(model);
 	}
 
 	uint8_t n_batch = 3;
@@ -224,7 +209,7 @@ int main (int argc, const char** argv)
 		std::ofstream savestr(savepath);
 		if (savestr.is_open())
 		{
-			if (trainer.save(savestr))
+			if (modl::save_layer(savestr, model, {}))
 			{
 				logs::infof("successfully saved model to `%s`", savepath.c_str());
 			}

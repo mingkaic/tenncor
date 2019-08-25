@@ -29,6 +29,9 @@ template <typename SAVER,
 		std::is_base_of<iSaver,SAVER>::value>::type* = nullptr>
 struct GraphSaver final : public ade::iTraveler
 {
+	GraphSaver (tag::TagRegistry& registry = tag::get_reg()) :
+		registry_(registry) {}
+
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
@@ -79,7 +82,6 @@ struct GraphSaver final : public ade::iTraveler
 		std::vector<ade::iLeaf*> leaves(leaves_.begin(), leaves_.end());
 
 		// all nodes in leaf appear before funcs
-		tag::TagRegistry& registry = tag::get_reg();
 		std::unordered_map<ade::iTensor*,size_t> ordermap;
 		size_t nleaves = leaves.size();
 		for (size_t i = 0; i < nleaves; ++i)
@@ -88,7 +90,7 @@ struct GraphSaver final : public ade::iTraveler
 			ordermap[tens] = i;
 
 			cortenn::Node* pb_node = out.add_nodes();
-			tag_node(pb_node, tens, registry);
+			tag_node(pb_node, tens, registry_);
 			auto it = raw_labels.find(tens);
 			if (raw_labels.end() != it)
 			{
@@ -104,7 +106,7 @@ struct GraphSaver final : public ade::iTraveler
 			ordermap[f] = nleaves + i;
 
 			cortenn::Node* pb_node = out.add_nodes();
-			tag_node(pb_node, f, registry);
+			tag_node(pb_node, f, registry_);
 			auto it = raw_labels.find(f);
 			if (raw_labels.end() != it)
 			{
@@ -177,6 +179,8 @@ private:
 	}
 
 	SAVER saver_;
+
+	tag::TagRegistry& registry_;
 };
 
 }

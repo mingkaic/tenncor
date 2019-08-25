@@ -202,7 +202,7 @@ Functor<T>* Functor<T>::get (ade::Opcode opcode, ArgsT<T> args)
 	size_t nargs = args.size();
 	if (0 == nargs)
 	{
-		logs::fatalf("cannot perform %s with no arguments",
+		logs::fatalf("cannot perform `%s` with no arguments",
 			opcode.name_.c_str());
 	}
 
@@ -212,7 +212,7 @@ Functor<T>* Functor<T>::get (ade::Opcode opcode, ArgsT<T> args)
 		ade::Shape ishape = args[i].shape();
 		if (false == ishape.compatible_after(shape, 0))
 		{
-			logs::fatalf("cannot perform %s with incompatible shapes %s "
+			logs::fatalf("cannot perform `%s` with incompatible shapes %s "
 				"and %s", opcode.name_.c_str(), shape.to_string().c_str(),
 				ishape.to_string().c_str());
 		}

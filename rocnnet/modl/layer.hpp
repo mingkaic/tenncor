@@ -41,8 +41,6 @@ struct LayerId final
 
 std::string layer_label_fmt (std::string label, LayerId subid);
 
-std::pair<std::string,LayerId> unpack_label (std::string label);
-
 std::unordered_map<std::string,LayerId> unpack_labels (
 	const std::vector<std::string>& labels);
 
@@ -86,22 +84,18 @@ private:
 	static size_t tag_id_;
 };
 
-struct iLayer : public iMarshalSet
+struct iLayer
 {
-	iLayer (std::string label) :
-		iMarshalSet(label)
-	{
-		validate_label(label);
-	}
-
 	virtual ~iLayer (void) = default;
 
 	iLayer* clone (void) const
 	{
-		return static_cast<iLayer*>(this->clone_impl());
+		return this->clone_impl();
 	}
 
 	virtual std::string get_ltype (void) const = 0;
+
+	virtual std::string get_label (void) const = 0;
 
 	virtual ead::NodeptrT<PybindT> connect (
 		ead::NodeptrT<PybindT> input) const = 0;
@@ -109,6 +103,8 @@ struct iLayer : public iMarshalSet
 	virtual ade::TensT get_contents (void) const = 0;
 
 protected:
+	virtual iLayer* clone_impl (void) const = 0;
+
 	void tag (ade::TensptrT tensor, LayerId subs = LayerId()) const;
 
 	void recursive_tag (ade::TensptrT root,
@@ -158,6 +154,11 @@ struct LayerRegistry final
 			"failed to find registered layer `%s`", layer_type.c_str());
 	}
 
+	tag::TagRegistry& get_tag_registry (void)
+	{
+		return tag_reg_;
+	}
+
 private:
 	std::unordered_map<std::string,LayerBuildF> lbuilders_;
 
@@ -170,8 +171,11 @@ void recursive_layer_tag (ade::TensptrT tens, std::string layer_type,
 	std::string name, std::unordered_set<ade::iTensor*> stops,
 	LayerRegistry& registry = get_layer_reg());
 
-LayerptrT load_layer (std::unordered_set<ade::iTensor*>& roots,
-	const pbm::GraphInfo& graph, std::string ltype, std::string label,
+LayerptrT load_layer (std::istream& ins, ade::TensT& roots,
+	std::string ltype, std::string label,
+	LayerRegistry& registry = get_layer_reg());
+
+bool save_layer (std::ostream& outs, const iLayer& layer, ade::TensT roots,
 	LayerRegistry& registry = get_layer_reg());
 
 }

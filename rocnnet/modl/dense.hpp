@@ -34,7 +34,7 @@ struct DenseBuilder final : public iLayerBuilder
 				return;
 			}
 		}
-		logs::warnf("attempt to create dense layer with unknown tensor %s",
+		logs::warnf("attempt to create dense layer with unknown tensor `%s`",
 			tens->to_string().c_str());
 	}
 
@@ -43,9 +43,9 @@ struct DenseBuilder final : public iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
-	ead::VarptrT<PybindT> weight_;
+	ead::VarptrT<PybindT> weight_ = nullptr;
 
-	ead::VarptrT<PybindT> bias_;
+	ead::VarptrT<PybindT> bias_ = nullptr;
 
 	std::string label_;
 };
@@ -67,34 +67,31 @@ struct Dense final : public iLayer
 		eqns::InitF<PybindT> weight_init,
 		eqns::InitF<PybindT> bias_init,
 		std::string label) :
-		iLayer(label),
-		weight_(std::make_shared<MarshalVar>(
-			weight_init(ade::Shape({nunits, indim}), weight_key)))
+		label_(label),
+		weight_(weight_init(ade::Shape({nunits, indim}), weight_key))
 	{
-		tag(weight_->var_->get_tensor());
+		tag(weight_->get_tensor());
 		if (bias_init)
 		{
-			bias_ = std::make_shared<MarshalVar>(
-				bias_init(ade::Shape({nunits}), bias_key));
-			tag(bias_->var_->get_tensor());
+			bias_ = bias_init(ade::Shape({nunits}), bias_key);
+			tag(bias_->get_tensor());
 		}
 	}
 
 	Dense (ead::VarptrT<PybindT> weight, ead::VarptrT<PybindT> bias,
 		std::string label) :
-		iLayer(label),
-		weight_(std::make_shared<MarshalVar>(weight)),
-		bias_(std::make_shared<MarshalVar>(bias))
+		label_(label),
+		weight_(weight),
+		bias_(bias)
 	{
-		tag(weight_->var_->get_tensor());
+		tag(weight_->get_tensor());
 		if (bias)
 		{
-			tag(bias_->var_->get_tensor());
+			tag(bias_->get_tensor());
 		}
 	}
 
-	Dense (const Dense& other) :
-		iLayer(other)
+	Dense (const Dense& other)
 	{
 		copy_helper(other);
 	}
@@ -122,49 +119,60 @@ struct Dense final : public iLayer
 		return dense_layer_key;
 	}
 
+	std::string get_label (void) const override
+	{
+		return label_;
+	}
+
 	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> input) const override
 	{
 		auto out = tenncor::nn::fully_connect({input},
-			{ead::convert_to_node(weight_->var_)},
-			ead::convert_to_node(bias_->var_));
+			{ead::convert_to_node(weight_)},
+			ead::convert_to_node(bias_));
 		recursive_tag(out->get_tensor(), {
 			input->get_tensor().get(),
-			weight_->var_->get_tensor().get(),
-			bias_->var_->get_tensor().get(),
+			weight_->get_tensor().get(),
+			bias_->get_tensor().get(),
 		});
 		return out;
 	}
 
 	ade::TensT get_contents (void) const override
 	{
-		return {weight_->var_->get_tensor(), bias_->var_->get_tensor()};
-	}
-
-	MarsarrT get_subs (void) const override
-	{
-		return MarsarrT{weight_, bias_};
+		return {weight_->get_tensor(), bias_->get_tensor()};
 	}
 
 private:
-	iMarshaler* clone_impl (void) const override
+	iLayer* clone_impl (void) const override
 	{
 		return new Dense(*this);
 	}
 
 	void copy_helper (const Dense& other)
 	{
-		weight_ = std::make_shared<MarshalVar>(*other.weight_);
-		bias_ = std::make_shared<MarshalVar>(*other.bias_);
-		tag(weight_->var_->get_tensor());
-		if (bias_->var_)
+		label_ = other.label_;
+		weight_ = std::make_shared<ead::VariableNode<PybindT>>(
+			std::shared_ptr<ead::Variable<PybindT>>(
+				ead::Variable<PybindT>::get(
+					*static_cast<ead::Variable<PybindT>*>(
+						other.weight_->get_tensor().get()))));
+		tag(weight_->get_tensor());
+		if (other.bias_)
 		{
-			tag(bias_->var_->get_tensor());
+			bias_ = std::make_shared<ead::VariableNode<PybindT>>(
+				std::shared_ptr<ead::Variable<PybindT>>(
+					ead::Variable<PybindT>::get(
+						*static_cast<ead::Variable<PybindT>*>(
+							other.bias_->get_tensor().get()))));
+			tag(bias_->get_tensor());
 		}
 	}
 
-	MarVarsptrT weight_;
+	ead::VarptrT<PybindT> weight_;
 
-	MarVarsptrT bias_;
+	ead::VarptrT<PybindT> bias_;
+
+	std::string label_;
 };
 
 }

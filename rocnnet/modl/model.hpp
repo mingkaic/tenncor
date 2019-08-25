@@ -39,10 +39,9 @@ get_layer_reg().register_tagr(layers_key_prefix + "seqmodel",
 struct SequentialModel final : public iLayer
 {
 	SequentialModel (std::string label) :
-		iLayer(label) {}
+		label_(label) {}
 
-	SequentialModel (const SequentialModel& other) :
-		iLayer(other)
+	SequentialModel (const SequentialModel& other)
 	{
 		copy_helper(other);
 	}
@@ -68,6 +67,11 @@ struct SequentialModel final : public iLayer
 	std::string get_ltype (void) const override
 	{
 		return seq_model_key;
+	}
+
+	std::string get_label (void) const override
+	{
+		return label_;
 	}
 
 	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> input) const override
@@ -110,26 +114,15 @@ struct SequentialModel final : public iLayer
 		layers_.push_back(layer);
 	}
 
-	MarsarrT get_subs (void) const override
-	{
-		MarsarrT out;
-		out.reserve(layers_.size());
-		for (auto& layer : layers_)
-		{
-			auto tmp = layer->get_subs();
-			out.insert(out.end(), tmp.begin(), tmp.end());
-		}
-		return out;
-	}
-
 private:
-	iMarshaler* clone_impl (void) const override
+	iLayer* clone_impl (void) const override
 	{
 		return new SequentialModel(*this);
 	}
 
 	void copy_helper (const SequentialModel& other)
 	{
+		label_ = other.label_;
 		layers_.clear();
 		layers_.reserve(other.layers_.size());
 		for (LayerptrT olayer : other.layers_)
@@ -137,6 +130,8 @@ private:
 			push_back(olayer);
 		}
 	}
+
+	std::string label_;
 
 	std::vector<LayerptrT> layers_;
 };

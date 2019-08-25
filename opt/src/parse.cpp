@@ -206,7 +206,7 @@ OptCtx process_stmts (::PtrList* stmts, const iConverterBuilder& builder)
 				}
 				else if (estd::has(it->second, property_tag))
 				{
-					logs::warnf("reassignment of property %s to %s",
+					logs::warnf("reassignment of property `%s` to `%s`",
 						property_tag.c_str(), label.c_str());
 				}
 				else

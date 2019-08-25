@@ -56,7 +56,8 @@ const std::unordered_map<std::string,NonLinearF> activations =
 struct ActivationLayer final : public iLayer
 {
 	ActivationLayer (std::string label, std::string act_type) :
-		iLayer(label), act_type_(act_type),
+		label_(label),
+		act_type_(act_type),
 		activation_(estd::must_getf(activations, act_type,
 			"failed to find activation `%s`", act_type.c_str())),
 		placeholder_(ead::make_constant_scalar<PybindT>(0, {}))
@@ -74,6 +75,11 @@ struct ActivationLayer final : public iLayer
 		return act_type_;
 	}
 
+	std::string get_label (void) const override
+	{
+		return label_;
+	}
+
 	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> input) const override
 	{
 		auto out = activation_(input);
@@ -88,13 +94,8 @@ struct ActivationLayer final : public iLayer
 		return {placeholder_->get_tensor()};
 	}
 
-	MarsarrT get_subs (void) const override
-	{
-		return MarsarrT{};
-	}
-
 private:
-	iMarshaler* clone_impl (void) const override
+	iLayer* clone_impl (void) const override
 	{
 		return new ActivationLayer(*this);
 	}
@@ -104,11 +105,13 @@ private:
 	NonLinearF activation_;
 
 	std::string act_type_;
+
+	std::string label_;
 };
 
-LayerptrT sigmoid (std::string label);
+LayerptrT sigmoid (std::string label = "sigmoid");
 
-LayerptrT tanh (std::string label);
+LayerptrT tanh (std::string label = "tanh");
 
 }
 

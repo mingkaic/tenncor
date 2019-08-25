@@ -54,6 +54,17 @@ cc_library(
     ],
 )
 
+cc_binary(
+    name = "inspector",
+    srcs = glob(["inspector.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//pbm:pbm_cc_proto",
+        "@com_github_mingkaic_cppkg//fmts:fmts",
+        "@com_github_mingkaic_cppkg//flag:flag",
+    ],
+)
+
 ######### TEST #########
 
 cc_test(
