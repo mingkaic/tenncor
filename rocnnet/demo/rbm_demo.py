@@ -41,26 +41,38 @@ class RBMInput:
 
 class RBMStorage:
     def __init__(self, config):
-        self.w = rcn.variable_from_init(
-            rcn.unif_xavier_init(config.xavier_const),
-            [config.n_visible, config.n_hidden])
-        self.visible_bias = ead.scalar_variable(0, [config.n_visible])
-        self.hidden_bias = ead.scalar_variable(0, [config.n_hidden])
+        hidden_layer = rcn.Dense(config.n_hidden, config.n_visible,
+            weight_init=rcn.unif_xavier_init(config.xavier_const),
+            bias_init=rcn.zero_init(), label="hidden_0")
+        weight, hbias = tuple(hidden_layer.get_contents())
+        visible_layer = rcn.create_dense(tf.transpose(weight),
+            bias=rcn.zero_init()(rcn.Shape([config.n_visible]), "bias"), label="visible_0")
+        _, vbias = tuple(visible_layer.get_contents())
+
+        self.hidden_model = rcn.SequentialModel('hidden')
+        self.hidden_model.add(hidden_layer)
+        self.hidden_model.add(rcn.sigmoid())
+
+        self.visible_model = rcn.SequentialModel('visible')
+        self.visible_model.add(visible_layer)
+        self.visible_model.add(rcn.sigmoid())
+
+        self.w = weight
+        self.visible_bias = vbias
+        self.hidden_bias = hbias
 
         self.delta_w = ead.scalar_variable(0, [config.n_visible, config.n_hidden])
         self.delta_visible_bias = ead.scalar_variable(0, [config.n_visible])
         self.delta_hidden_bias = ead.scalar_variable(0, [config.n_hidden])
 
 class RBMOutput:
-    def __init__(self, update_weights, update_deltas, compute_hidden, compute_visible, compute_visible_from_hidden, compute_err):
-        self.update_weights = update_weights
-        self.update_deltas = update_deltas
+    def __init__(self, assigns, compute_hidden, compute_visible, compute_visible_from_hidden, compute_err):
+        self.assigns = assigns
         self.compute_hidden = compute_hidden
         self.compute_visible = compute_visible
         self.compute_visible_from_hidden = compute_visible_from_hidden
         self.compute_err = compute_err
-        assert self.update_weights is not None
-        assert self.update_deltas is not None
+        assert self.assigns is not None
         assert self.compute_hidden is not None
         assert self.compute_visible is not None
         assert self.compute_visible_from_hidden is not None
@@ -70,24 +82,17 @@ def bb_init(rbm_in, rbm_storage, config):
     # hidden = sigmoid(X @ W + hB)
     # visible_rec = sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB)
     # hidden_rec = sigmoid(visible_rec @ W + hB)
-    hidden_p = tf.sigmoid(tf.nn.fully_connect(
-        [rbm_in.x], [rbm_storage.w],
-        rbm_storage.hidden_bias))
-    visible_recon_p = tf.sigmoid(tf.nn.fully_connect(
-        [tf.random.rand_binom_one(hidden_p)], [tf.transpose(rbm_storage.w)],
-        rbm_storage.visible_bias))
-    hidden_recon_p = tf.sigmoid(tf.nn.fully_connect(
-        [visible_recon_p], [rbm_storage.w],
-        rbm_storage.hidden_bias))
+    compute_hidden = rbm_storage.hidden_model.connect(rbm_in.x)
+    compute_visible = rbm_storage.visible_model.connect(
+        tf.random.rand_binom_one(compute_hidden))
+    compute_err = config.err_function(rbm_in.x, compute_visible)
+
+    hidden_recon_p = rbm_storage.hidden_model.connect(compute_visible)
 
     # X^T @ sigmoid(X @ W + hB) - sigmoid(tf.random.rand_binom_one(sigmoid(X @ W + hB)) @ W^T + vB)^T @ sigmoid(sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB) @ W + hB)
     grad = tf.sub(
-        tf.matmul(
-            tf.transpose(rbm_in.x),
-            hidden_p),
-        tf.matmul(
-            tf.transpose(visible_recon_p),
-            hidden_recon_p))
+        tf.matmul(tf.transpose(rbm_in.x), compute_hidden),
+        tf.matmul(tf.transpose(compute_visible), hidden_recon_p))
     # grad is derivative of ? with respect to rbm_in.w
 
     def f(x_old, x_new):
@@ -103,34 +108,27 @@ def bb_init(rbm_in, rbm_storage, config):
 
     # momentum
     delta_w_new = f(rbm_storage.delta_w, grad)
-    delta_visible_bias_new = f(rbm_storage.delta_visible_bias, tf.reduce_mean_1d(tf.sub(rbm_in.x, visible_recon_p), 1))
-    delta_hidden_bias_new = f(rbm_storage.delta_hidden_bias, tf.reduce_mean_1d(tf.sub(hidden_p, hidden_recon_p), 1))
+    delta_visible_bias_new = f(rbm_storage.delta_visible_bias, tf.reduce_mean_1d(tf.sub(rbm_in.x, compute_visible), 1))
+    delta_hidden_bias_new = f(rbm_storage.delta_hidden_bias, tf.reduce_mean_1d(tf.sub(compute_hidden, hidden_recon_p), 1))
 
     update_delta_w = (rbm_storage.delta_w, delta_w_new)
     update_delta_visible_bias = (rbm_storage.delta_visible_bias, delta_visible_bias_new)
     update_delta_hidden_bias = (rbm_storage.delta_hidden_bias, delta_hidden_bias_new)
-
     update_w = (rbm_storage.w, tf.add(rbm_storage.w, delta_w_new))
     update_visible_bias = (rbm_storage.visible_bias,
         tf.add(rbm_storage.visible_bias, delta_visible_bias_new))
     update_hidden_bias = (rbm_storage.hidden_bias,
         tf.add(rbm_storage.hidden_bias, delta_hidden_bias_new))
 
-    compute_hidden = tf.sigmoid(tf.nn.fully_connect(
-        [rbm_in.x], [rbm_storage.w],
-        rbm_storage.hidden_bias))
-    compute_visible = tf.sigmoid(tf.nn.fully_connect(
-        [compute_hidden], [tf.transpose(rbm_storage.w)],
-        rbm_storage.visible_bias))
     return RBMOutput(
-        update_deltas=[update_delta_w, update_delta_visible_bias, update_delta_hidden_bias],
-        update_weights=[update_w, update_visible_bias, update_hidden_bias],
+        assigns=[
+            update_delta_w, update_delta_visible_bias, update_delta_hidden_bias,
+            update_w, update_visible_bias, update_hidden_bias,
+        ],
         compute_hidden=compute_hidden,
         compute_visible=compute_visible,
-        compute_visible_from_hidden=tf.sigmoid(tf.nn.fully_connect(
-            [rbm_in.y], [tf.transpose(rbm_storage.w)],
-            rbm_storage.visible_bias)),
-        compute_err=config.err_function(rbm_in.x, compute_visible))
+        compute_visible_from_hidden=rbm_storage.visible_model.connect(rbm_in.y),
+        compute_err=compute_err)
 
 class RBM:
     def __init__(self, config, initialize):
@@ -149,7 +147,7 @@ class RBMTrainee:
         self.output = rbm(self.input)
         self.sess = sess
 
-        assigns = self.output.update_weights + self.output.update_deltas
+        assigns = self.output.assigns
         sess.track([
             self.output.compute_visible,
             self.output.compute_hidden,
@@ -176,7 +174,7 @@ class RBMTrainee:
             data_x_cpy = data_x
 
         errs = []
-        assigns = self.output.update_weights + self.output.update_deltas
+        assigns = self.output.assigns
 
         for e in range(n_epoches):
             epoch_errs = np.zeros((n_batches,))

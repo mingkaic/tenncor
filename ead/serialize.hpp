@@ -43,7 +43,7 @@ static bool is_big_endian(void)
 
 struct EADSaver final : public pbm::iSaver
 {
-	std::string save_leaf (bool& is_const, ade::iLeaf* leaf) override
+	std::string save_leaf (ade::iLeaf* leaf) override
 	{
 		char* data = (char*) leaf->data();
 		size_t nelems = leaf->shape().n_elems();

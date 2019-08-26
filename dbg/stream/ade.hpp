@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 
+#include "ade/ileaf.hpp"
 #include "ade/functor.hpp"
 
 #include "dbg/stream/tree.hpp"
@@ -44,6 +45,10 @@ struct PrettyEquation final
 				if (this->labels_.end() != it)
 				{
 					out << it->second << "=";
+				}
+				if (auto var = dynamic_cast<ade::iLeaf*>(root))
+				{
+					out << (var->is_const() ? "constant:" : "variable:");
 				}
 				out << root->to_string();
 				if (showshape_)

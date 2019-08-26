@@ -31,10 +31,10 @@ TEST(FUNCTOR, Shapes)
 	EXPECT_ARREQ(shape, gotshape);
 
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {}),
-		"cannot perform MOCK with no arguments");
+		"cannot perform `MOCK` with no arguments");
 
 	std::string fatalmsg = fmts::sprintf(
-		"cannot perform MOCK with incompatible shapes %s and %s",
+		"cannot perform `MOCK` with incompatible shapes %s and %s",
 		shape.to_string().c_str(), badshape.to_string().c_str());
 	EXPECT_FATAL(ade::Functor::get(ade::Opcode{"MOCK", 0}, {
 		ade::identity_map(leaf),

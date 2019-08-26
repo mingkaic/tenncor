@@ -168,8 +168,8 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 				src_label = *(pb_labels.rbegin());
 			}
 			const cortenn::Source& source = node.source();
-			std::string sstr = source.shape();
-			ade::Shape shape(std::vector<ade::DimT>(sstr.begin(), sstr.end()));
+			auto& slist = source.shape();
+			ade::Shape shape(std::vector<ade::DimT>(slist.begin(), slist.end()));
 			std::string data = source.data();
 			ade::TensptrT leaf = loader.generate_leaf(data.c_str(),
 				shape, source.typelabel(), src_label, source.is_const());

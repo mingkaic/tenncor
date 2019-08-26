@@ -71,10 +71,8 @@ PYBIND11_MODULE(rocnnet, m)
 
 	py::class_<ade::Shape> shape(m, "Shape");
 
-	// common parent
-	py::class_<modl::iLayer,modl::LayerptrT> layer(m, "Layer");
-
 	// layers
+	py::class_<modl::iLayer,modl::LayerptrT> layer(m, "Layer");
 	py::class_<modl::Activation,modl::ActivationptrT,modl::iLayer> activation(m, "Activation");
 	py::class_<modl::Dense,modl::DenseptrT,modl::iLayer> dense(m, "Dense");
 	py::class_<modl::SequentialModel,modl::SeqModelptrT,modl::iLayer> seqmodel(m, "SequentialModel");
@@ -87,6 +85,8 @@ PYBIND11_MODULE(rocnnet, m)
 	// supports
 	py::class_<trainer::DQNInfo> dqninfo(m, "DQNInfo");
 	py::class_<eqns::VarAssign> assigns(m, "VarAssign");
+
+	shape.def(py::init<std::vector<ade::DimT>>());
 
 	// layer
 	layer
@@ -132,6 +132,13 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("clone", &modl::Activation::clone, py::arg("prefix") = "");
 
 	// dense
+	m.def("create_dense",
+		[](ead::NodeptrT<PybindT> weight,
+			ead::NodeptrT<PybindT> bias,
+			std::string label)
+		{
+			return std::make_shared<modl::Dense>(weight, bias, label);
+		}, py::arg("weight"), py::arg("bias") = nullptr, py::arg("label"));
 	dense
 		.def(py::init<ade::DimT,ade::DimT,
 			eqns::InitF<PybindT>,eqns::InitF<PybindT>,const std::string&>(),

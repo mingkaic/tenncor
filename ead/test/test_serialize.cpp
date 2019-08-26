@@ -119,9 +119,9 @@ TEST(SERIALIZE, SaveGraph)
 				const cortenn::Source& expect_source = expect_node.source();
 				const cortenn::Source& got_source = got_node.source();
 
-				std::string expect_shape = expect_source.shape();
-				std::string got_shape = got_source.shape();
-				EXPECT_STREQ(expect_shape.c_str(), got_shape.c_str());
+				auto& expect_shape = expect_source.shape();
+				auto& got_shape = got_source.shape();
+				EXPECT_ARREQ(expect_shape, got_shape);
 
 				std::string expect_data = expect_source.data();
 				std::string got_data = got_source.data();

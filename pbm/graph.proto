@@ -5,14 +5,14 @@ option go_package = "github.com/mingkaic/tenncor/pbm";
 package cortenn;
 
 message Source {
-	bytes shape = 1;
+    repeated uint64 shape = 1 [packed = true];
     bytes data = 2;
     string typelabel = 3;
     bool is_const = 4;
 }
 
 message NodeArg {
-    uint32 idx = 1;
+    uint32 idx = 1; // todo: check if these are redundant
     repeated double coord = 2 [packed = true];
     repeated double shaper = 3 [packed = true];
     bool fwd = 4;

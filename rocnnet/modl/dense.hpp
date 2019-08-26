@@ -20,19 +20,15 @@ struct DenseBuilder final : public iLayerBuilder
 
 	void set_tensor (ade::TensptrT tens) override
 	{
-		auto node = ead::NodeConverters<PybindT>::to_node(tens);
-		if (auto var = std::dynamic_pointer_cast<ead::VariableNode<PybindT>>(node))
+		if (tens->to_string() == weight_key)
 		{
-			if (var->get_label() == weight_key)
-			{
-				weight_ = var;
-				return;
-			}
-			else if (var->get_label() == bias_key)
-			{
-				bias_ = var;
-				return;
-			}
+			weight_ = ead::NodeConverters<PybindT>::to_node(tens);
+			return;
+		}
+		else if (tens->to_string() == bias_key)
+		{
+			bias_ = ead::NodeConverters<PybindT>::to_node(tens);
+			return;
 		}
 		logs::warnf("attempt to create dense layer with unknown tensor `%s`",
 			tens->to_string().c_str());
@@ -43,9 +39,9 @@ struct DenseBuilder final : public iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
-	ead::VarptrT<PybindT> weight_ = nullptr;
+	ead::NodeptrT<PybindT> weight_ = nullptr;
 
-	ead::VarptrT<PybindT> bias_ = nullptr;
+	ead::NodeptrT<PybindT> bias_ = nullptr;
 
 	std::string label_;
 };
@@ -78,7 +74,8 @@ struct Dense final : public iLayer
 		}
 	}
 
-	Dense (ead::VarptrT<PybindT> weight, ead::VarptrT<PybindT> bias,
+	Dense (ead::NodeptrT<PybindT> weight,
+		ead::NodeptrT<PybindT> bias,
 		std::string label) :
 		label_(label),
 		weight_(weight),
@@ -137,9 +134,7 @@ struct Dense final : public iLayer
 
 	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> input) const override
 	{
-		auto out = tenncor::nn::fully_connect({input},
-			{ead::convert_to_node(weight_)},
-			ead::convert_to_node(bias_));
+		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
 		recursive_tag(out->get_tensor(), {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
@@ -181,9 +176,9 @@ private:
 
 	std::string label_;
 
-	ead::VarptrT<PybindT> weight_;
+	ead::NodeptrT<PybindT> weight_;
 
-	ead::VarptrT<PybindT> bias_;
+	ead::NodeptrT<PybindT> bias_;
 };
 
 using DenseptrT = std::shared_ptr<Dense>;

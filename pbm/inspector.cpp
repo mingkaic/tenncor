@@ -59,7 +59,44 @@ int main (int argc, const char** argv)
 					fmts::join(",", tag_label.begin(),
 						tag_label.end()).c_str());
 			}
-			std::cout << "\t\t\t}\n";
+			std::cout << "\t\t\t},\n";
+			if (node.has_source())
+			{
+				const cortenn::Source& source = node.source();
+				auto& shape = source.shape();
+				std::vector<size_t> slist(shape.begin(), shape.end());
+				std::string type = source.typelabel();
+				bool is_const = source.is_const();
+				std::cout << fmts::sprintf(
+					"\t\t\t\"source\":{\n"
+					"\t\t\t\t\"shape\": [%s],\n"
+					"\t\t\t\t\"type\": \"%s\",\n"
+					"\t\t\t\t\"is_const\": %d,\n"
+					"\t\t\t}\n",
+					fmts::join(",", slist.begin(), slist.end()).c_str(),
+					type.c_str(), is_const);
+			}
+			else
+			{
+				const cortenn::Functor& functor = node.functor();
+				auto opname = functor.opname();
+				auto args = functor.args();
+				std::vector<std::string> argstrs;
+				argstrs.reserve(args.size());
+				for (auto& arg : args)
+				{
+					argstrs.push_back(fmts::sprintf(
+						"\t\t\t\t\t%d", arg.idx()
+					));
+				}
+				std::cout << fmts::sprintf(
+					"\t\t\t\"functor\":{\n"
+					"\t\t\t\t\"opname\": \"%s\",\n"
+					"\t\t\t\t\"args\": [\n%s],\n"
+					"\t\t\t}\n",
+					opname.c_str(),
+					fmts::join(",\n", argstrs.begin(), argstrs.end()).c_str());
+			}
 
 			std::cout << "\t\t},\n";
 		}

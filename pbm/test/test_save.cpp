@@ -18,7 +18,7 @@ const std::string testdir = "pbm/data";
 
 struct TestSaver : public pbm::iSaver
 {
-	std::string save_leaf (bool& is_const, ade::iLeaf* leaf) override
+	std::string save_leaf (ade::iLeaf* leaf) override
 	{
 		return std::string(leaf->shape().n_elems(), 0);
 	}

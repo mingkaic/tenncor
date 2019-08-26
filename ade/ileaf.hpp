@@ -25,6 +25,9 @@ struct iLeaf : public iTensor, public iData
 	{
 		visiter.visit(this);
 	}
+
+	/// Return true if leaf is immutable, otherwise false
+	virtual bool is_const (void) const = 0;
 };
 
 /// Leaf smart pointer

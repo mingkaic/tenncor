@@ -254,9 +254,9 @@ bool save_layer (std::ostream& outs, const iLayer& layer, ade::TensT roots,
 	pbm::PathedMapT labels;
 	for (ade::iLeaf* leaf : saver.leaves_)
 	{
-		if (auto var = dynamic_cast<ead::Variable<PybindT>*>(leaf))
+		if (false == leaf->is_const())
 		{
-			labels.emplace(owners.at(var).lock(), pbm::StringsT{var->label_});
+			labels.emplace(owners.at(leaf).lock(), pbm::StringsT{leaf->to_string()});
 		}
 	}
 
