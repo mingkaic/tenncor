@@ -20,7 +20,7 @@ struct TrainingContext final
 struct MLPTrainer
 {
 	MLPTrainer (modl::SequentialModel& model,
-		ead::iSession& sess, eqns::ApproxF update, uint8_t batch_size,
+		ead::iSession& sess, eqns::ApproxF update, ade::DimT batch_size,
 		eqns::NodeUnarF gradprocess = eqns::NodeUnarF(eqns::identity),
 		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),

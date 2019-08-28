@@ -19,6 +19,7 @@ namespace py = pybind11;
 namespace pyead
 {
 
+// todo: move these to a common file
 ade::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
 {
 	return ade::Shape(std::vector<ade::DimT>(
@@ -40,7 +41,7 @@ std::vector<ade::DimT> c2pshape (const ade::Shape& cshape)
 template <typename T>
 py::array typedata_to_array (ead::iNode<PybindT>* tnode, py::dtype dtype)
 {
-	auto pshape = pyead::c2pshape(tnode->shape());
+	auto pshape = c2pshape(tnode->shape());
 	return py::array(dtype,
 		py::array::ShapeContainer(pshape.begin(), pshape.end()),
 		tnode->data());
@@ -49,7 +50,7 @@ py::array typedata_to_array (ead::iNode<PybindT>* tnode, py::dtype dtype)
 std::vector<PybindT> arr2vec (ade::Shape& outshape, py::array data)
 {
 	py::buffer_info info = data.request();
-	outshape = pyead::p2cshape(info.shape);
+	outshape = p2cshape(info.shape);
 	size_t n = outshape.n_elems();
 	auto dtype = data.dtype();
 	char kind = dtype.kind();

@@ -11,8 +11,8 @@ import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
 
-def mse_errfunc(x, compute_visible):
-    return tf.reduce_mean(tf.square(tf.sub(x, compute_visible)))
+def mse_errfunc(x, visible_sample_):
+    return tf.reduce_mean(tf.square(tf.sub(x, visible_sample_)))
 
 class RBMConfig:
     def __init__(self,
@@ -37,18 +37,18 @@ class RBMConfig:
 # next_momentum = prev_momentum * momentum +
 #                 learning_rate * (1 - momentum) * err
 # next = prev + next_momentum
-def bbernoulli_optimizer(varerrs):
+def bbernoulli_optimizer(varerrs, learning_rate, discount_factor):
     out = []
     for (var, err) in varerrs:
         momentum = ead.scalar_variable(0.0, err.shape(), label=str(var) + "_momentum")
         next_momentum = tf.add(
             tf.mul(
-                ead.scalar_constant(config.momentum, momentum.shape()),
+                ead.scalar_constant(discount_factor, momentum.shape()),
                 momentum
             ),
             tf.mul(
-                ead.scalar_constant(config.learning_rate *
-                    (1 - config.momentum) / err.shape()[0], err.shape()),
+                ead.scalar_constant(learning_rate *
+                    (1 - discount_factor) / err.shape()[0], err.shape()),
                 err
             ))
         next_var = tf.add(var, next_momentum)
@@ -57,136 +57,72 @@ def bbernoulli_optimizer(varerrs):
     return out
 
 class RBMOutput:
-    def __init__(self, assigns, compute_hidden, compute_visible, compute_visible_from_hidden, compute_err):
+    def __init__(self, assigns, hidden_sample_, visible_sample_, compute_visible_from_hidden, compute_err):
         self.assigns = assigns
-        self.compute_hidden = compute_hidden
-        self.compute_visible = compute_visible
+        self.hidden_sample_ = hidden_sample_
+        self.visible_sample_ = visible_sample_
         self.compute_visible_from_hidden = compute_visible_from_hidden
         self.compute_err = compute_err
         assert self.assigns is not None
-        assert self.compute_hidden is not None
-        assert self.compute_visible is not None
+        assert self.hidden_sample_ is not None
+        assert self.visible_sample_ is not None
         assert self.compute_visible_from_hidden is not None
         assert self.compute_err is not None
 
-def bb_init(x, y, rbm, err_function):
-    # hidden = sigmoid(X @ W + hB)
-    # visible_rec = sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB)
-    # hidden_rec = sigmoid(visible_rec @ W + hB)
-    compute_hidden = rbm.connect(x)
-    compute_visible = rbm.backward_connect(
-        tf.random.rand_binom_one(compute_hidden))
-    compute_err = err_function(x, compute_visible)
-
-    hidden_recon_p = rbm.connect(compute_visible)
-
-    # X^T @ sigmoid(X @ W + hB) - sigmoid(tf.random.rand_binom_one(sigmoid(X @ W + hB)) @ W^T + vB)^T @ sigmoid(sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB) @ W + hB)
-    grad_w = tf.sub(
-        tf.matmul(tf.transpose(x), compute_hidden),
-        tf.matmul(tf.transpose(compute_visible), hidden_recon_p))
-    grad_vb = tf.reduce_mean_1d(tf.sub(x, compute_visible), 1)
-    grad_hb = tf.reduce_mean_1d(tf.sub(compute_hidden, hidden_recon_p), 1)
-    # grad_w is derivative of ? with respect to rbm.w
-
-    (w, hbias, vbias) = tuple(rbm.get_contents())
-
-    return RBMOutput(
-        assigns=bbernoulli_optimizer([
-            (w, grad_w),
-            (hbias, grad_hb),
-            (vbias, grad_vb),
-        ]),
-        compute_hidden=compute_hidden,
-        compute_visible=compute_visible,
-        compute_visible_from_hidden=rbm.backward_connect(y),
-        compute_err=compute_err)
-
-class RBMTrainee:
-    def __init__(self, config, init, rbm, n_batch, sess):
-        self.config = config
+class BernoulliRBMTrainer:
+    def __init__(self, rbm, sess, batch_size,
+        learning_rate, momentum, err_function):
         self.rbm = rbm
-        self.n_batch = n_batch
-        self.x = ead.scalar_variable(0, [n_batch, config.n_visible])
-        self.y = ead.scalar_variable(0, [n_batch, config.n_hidden])
-        output = init(self.x, self.y, rbm, config.err_function)
+        self.batch_size = batch_size
+        self.visible_ = ead.scalar_variable(0, [batch_size, rbm.get_ninput()])
+        self.expect_hidden_ = ead.scalar_variable(0, [batch_size, rbm.get_noutput()])
+        # hidden = sigmoid(X @ W + hB)
+        # visible_rec = sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB)
+        # hidden_rec = sigmoid(visible_rec @ W + hB)
+        hidden_sample_ = rbm.connect(self.visible_)
+        visible_sample_ = rbm.backward_connect(
+            tf.random.rand_binom_one(hidden_sample_))
+
+        hidden_recon_p = rbm.connect(visible_sample_)
+
+        # X^T @ sigmoid(X @ W + hB) - sigmoid(tf.random.rand_binom_one(sigmoid(X @ W + hB)) @ W^T + vB)^T @ sigmoid(sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB) @ W + hB)
+        grad_w = tf.sub(
+            tf.matmul(tf.transpose(self.visible_), hidden_sample_),
+            tf.matmul(tf.transpose(visible_sample_), hidden_recon_p))
+        grad_hb = tf.reduce_mean_1d(tf.sub(hidden_sample_, hidden_recon_p), 1)
+        grad_vb = tf.reduce_mean_1d(tf.sub(self.visible_, visible_sample_), 1)
+        # grad_w is derivative of ? with respect to rbm.w
+
+        (w, hbias, vbias) = tuple(rbm.get_contents())
+
+        error_ = err_function(self.visible_, visible_sample_)
+        output = RBMOutput(
+            assigns=bbernoulli_optimizer([
+                (w, grad_w),
+                (hbias, grad_hb),
+                (vbias, grad_vb),
+            ], learning_rate, momentum),
+            hidden_sample_=hidden_sample_,
+            visible_sample_=visible_sample_,
+            compute_visible_from_hidden=rbm.backward_connect(self.expect_hidden_),
+            compute_err=error_)
         self.sess = sess
 
         self.assigns = output.assigns
         self.compute_err = output.compute_err
         sess.track([
-            output.compute_visible,
-            output.compute_hidden,
+            output.visible_sample_,
+            output.hidden_sample_,
             output.compute_err,
         ] + [src for _, src in self.assigns])
 
-    def fit(self,
-            data_x,
-            n_epoches=10,
-            shuffle=True,
-            verbose=True):
-        assert n_epoches > 0
-
-        n_data = data_x.shape[0]
-
-        if self.n_batch > 0:
-            n_batches = n_data // self.n_batch + (0 if n_data % self.n_batch == 0 else 1)
-        else:
-            n_batches = 1
-
-        if shuffle:
-            data_x_cpy = data_x.copy()
-            inds = np.arange(n_data)
-        else:
-            data_x_cpy = data_x
-
-        errs = []
-
-        for e in range(n_epoches):
-            epoch_errs = np.zeros((n_batches,))
-            epoch_errs_ptr = 0
-
-            if shuffle:
-                np.random.shuffle(inds)
-                data_x_cpy = data_x_cpy[inds]
-
-            r_batches = range(n_batches)
-
-            if verbose:
-                if self.config.tqdm is not None:
-                    r_batches = self.config.tqdm(r_batches,
-                        desc='Epoch: {:d}'.format(e),
-                        ascii=True,
-                        file=sys.stdout)
-                else:
-                    print('Epoch: {:d}'.format(e))
-
-            for b in r_batches:
-                batch_x = data_x_cpy[b * self.n_batch:(b + 1) * self.n_batch]
-
-                self.x.assign(batch_x)
-
-                self.sess.update_target([src for _, src in self.assigns], [self.x])
-                for dest, src in self.assigns:
-                    dest.assign(src.get())
-                self.sess.update_target([self.compute_err], [dest for dest, _ in self.assigns])
-                batch_err = self.compute_err.get()
-
-                epoch_errs[epoch_errs_ptr] = batch_err
-                epoch_errs_ptr += 1
-
-            if verbose:
-                err_mean = epoch_errs.mean()
-                if self.config.tqdm is not None:
-                    self.config.tqdm.write('Train error: {:.4f}'.format(err_mean))
-                    self.config.tqdm.write('')
-                else:
-                    print('Train error: {:.4f}'.format(err_mean))
-                    print('')
-                sys.stdout.flush()
-
-            errs = np.hstack([errs, epoch_errs])
-
-        return errs
+    def train(self, batch_x):
+        self.visible_.assign(batch_x)
+        self.sess.update_target([src for _, src in self.assigns], [self.visible_])
+        for dest, src in self.assigns:
+            dest.assign(src.get())
+        self.sess.update_target([self.compute_err], [dest for dest, _ in self.assigns])
+        return self.compute_err.get()
 
 # ==================== demo =======================
 from tqdm import tqdm
@@ -208,19 +144,85 @@ rbm = rcn.RBM(config.n_hidden, config.n_visible,
     label="demo")
 sess = ead.Session()
 
-padewan = RBMTrainee(config, init=bb_init, rbm=rbm, n_batch=10, sess=sess)
+batch_size = 10
 
-master_x = ead.scalar_variable(0, [1, config.n_visible])
-master_hidden = rbm.connect(master_x)
-master_visible = rbm.backward_connect(
-    tf.random.rand_binom_one(master_hidden))
+# padewan = BernoulliRBMTrainer(rbm=rbm, sess=sess,
+#     batch_size=batch_size,
+#     learning_rate=config.learning_rate,
+#     momentum=config.momentum,
+#     err_function=config.err_function)
+
+padewan = rcn.BernoulliRBMTrainer(
+    model=rbm,
+    sess=sess,
+    batch_size=batch_size,
+    learning_rate=config.learning_rate,
+    discount_factor=config.momentum,
+    err_func=config.err_function)
+
+x = ead.scalar_variable(0, [1, config.n_visible])
+genx = rbm.backward_connect(
+    tf.random.rand_binom_one(rbm.connect(x)))
 
 image = mnist_images[IMAGE]
-sess.track([master_visible])
+sess.track([genx])
 
 sess.optimize("cfg/optimizations.rules")
 
-errs = padewan.fit(mnist_images, n_epoches=30)
+n_epoches = 30
+shuffle = True
+verbose = True
+n_data = mnist_images.shape[0]
+
+if batch_size > 0:
+    n_batches = n_data // batch_size + (0 if n_data % batch_size == 0 else 1)
+else:
+    n_batches = 1
+
+if shuffle:
+    data_x_cpy = mnist_images.copy()
+    inds = np.arange(n_data)
+else:
+    data_x_cpy = mnist_images
+
+errs = []
+for e in range(n_epoches):
+    epoch_errs = np.zeros((n_batches,))
+    epoch_errs_ptr = 0
+
+    if shuffle:
+        np.random.shuffle(inds)
+        data_x_cpy = data_x_cpy[inds]
+
+    r_batches = range(n_batches)
+
+    if verbose:
+        if config.tqdm is not None:
+            r_batches = config.tqdm(r_batches,
+                desc='Epoch: {:d}'.format(e),
+                ascii=True,
+                file=sys.stdout)
+        else:
+            print('Epoch: {:d}'.format(e))
+
+    for b in r_batches:
+        batch_x = data_x_cpy[b * batch_size:(b + 1) * batch_size]
+
+        epoch_errs[epoch_errs_ptr] = padewan.train(batch_x)
+        epoch_errs_ptr += 1
+
+    if verbose:
+        err_mean = epoch_errs.mean()
+        if config.tqdm is not None:
+            config.tqdm.write('Train error: {:.4f}'.format(err_mean))
+            config.tqdm.write('')
+        else:
+            print('Train error: {:.4f}'.format(err_mean))
+            print('')
+        sys.stdout.flush()
+
+    errs = np.hstack([errs, epoch_errs])
+
 plt.plot(errs)
 plt.show()
 
@@ -228,9 +230,9 @@ def show_digit(x):
     plt.imshow(x.reshape((28, 28)), cmap=plt.cm.gray)
     plt.show()
 
-master_x.assign(image.reshape(1,-1))
-sess.update_target([master_visible], [master_x])
-image_rec = master_visible.get()
+x.assign(image.reshape(1,-1))
+sess.update_target([genx], [x])
+image_rec = genx.get()
 
 show_digit(image)
 show_digit(image_rec)

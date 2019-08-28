@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "pybind11/pybind11.h"
+#include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
 
@@ -18,7 +19,7 @@
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"
-// #include "rocnnet/trainer/rbm_trainer.hpp"
+#include "rocnnet/trainer/rbm_trainer.hpp"
 // #include "rocnnet/trainer/dbn_trainer.hpp"
 
 namespace py = pybind11;
@@ -30,6 +31,73 @@ ade::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
 {
 	return ade::Shape(std::vector<ade::DimT>(
 		pyshape.rbegin(), pyshape.rend()));
+}
+
+std::vector<PybindT> arr2vec (ade::Shape& outshape, py::array data)
+{
+	py::buffer_info info = data.request();
+	outshape = p2cshape(info.shape);
+	size_t n = outshape.n_elems();
+	auto dtype = data.dtype();
+	char kind = dtype.kind();
+	py::ssize_t tbytes = dtype.itemsize();
+	std::vector<PybindT> vec;
+	switch (kind)
+	{
+		case 'f':
+			switch (tbytes)
+			{
+				case 4: // float32
+				{
+					float* dptr = static_cast<float*>(info.ptr);
+					vec = std::vector<PybindT>(dptr, dptr + n);
+				}
+				break;
+				case 8: // float64
+				{
+					double* dptr = static_cast<double*>(info.ptr);
+					vec = std::vector<PybindT>(dptr, dptr + n);
+				}
+					break;
+				default:
+					logs::fatalf("unsupported float type with %d bytes", tbytes);
+			}
+			break;
+		case 'i':
+			switch (tbytes)
+			{
+				case 1: // int8
+				{
+					int8_t* dptr = static_cast<int8_t*>(info.ptr);
+					vec = std::vector<PybindT>(dptr, dptr + n);
+				}
+					break;
+				case 2: // int16
+				{
+					int16_t* dptr = static_cast<int16_t*>(info.ptr);
+					vec = std::vector<PybindT>(dptr, dptr + n);
+				}
+					break;
+				case 4: // int32
+				{
+					int32_t* dptr = static_cast<int32_t*>(info.ptr);
+					vec = std::vector<PybindT>(dptr, dptr + n);
+				}
+					break;
+				case 8: // int64
+				{
+					int64_t* dptr = static_cast<int64_t*>(info.ptr);
+					vec = std::vector<PybindT>(dptr, dptr + n);
+				}
+					break;
+				default:
+					logs::fatalf("unsupported integer type with %d bytes", tbytes);
+			}
+			break;
+		default:
+			logs::fatalf("unknown dtype %c", kind);
+	}
+	return vec;
 }
 
 // modl::DBNptrT dbn_init (size_t n_input, std::vector<size_t> n_hiddens,
@@ -75,7 +143,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// trainers
 	py::class_<trainer::MLPTrainer> mlptrainer(m, "MLPTrainer");
 	py::class_<trainer::DQNTrainer> dqntrainer(m, "DQNTrainer");
-	// py::class_<trainer::RBMTrainer> rbmtrainer(m, "RBMTrainer");
+	py::class_<trainer::BernoulliRBMTrainer> brbmtrainer(m, "BernoulliRBMTrainer");
 
 	// supports
 	py::class_<eqns::VarAssign> assigns(m, "VarAssign");
@@ -119,7 +187,9 @@ PYBIND11_MODULE(rocnnet, m)
 				std::stringstream savestr;
 				modl::save_layer(savestr, me, me.get_contents());
 				return savestr.str();
-			});
+			})
+		.def("get_ninput", &modl::iLayer::get_ninput)
+		.def("get_noutput", &modl::iLayer::get_noutput);
 
 	// activation
 	activation
@@ -202,7 +272,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// mlptrainer
 	mlptrainer
 		.def(py::init<modl::SequentialModel&,
-			ead::iSession&,eqns::ApproxF,uint8_t,
+			ead::iSession&,eqns::ApproxF,ade::DimT,
 			eqns::NodeUnarF,trainer::TrainingContext>(),
 			py::arg("model"), py::arg("sess"),
 			py::arg("update"), py::arg("batch_size"),
@@ -238,7 +308,7 @@ PYBIND11_MODULE(rocnnet, m)
 	dqninfo
 		.def(py::init<size_t,
 			PybindT, PybindT, PybindT, PybindT,
-			size_t, uint8_t, size_t>(),
+			size_t, ade::DimT, size_t>(),
 			py::arg("train_interval") = 5,
 			py::arg("rand_action_prob") = 0.05,
 			py::arg("discount_rate") = 0.95,
@@ -265,42 +335,29 @@ PYBIND11_MODULE(rocnnet, m)
 			return self.cast<trainer::DQNTrainer*>()->train_out_;
 		}, "get training node");
 
-	// // rbmtrainer
-	// rbmtrainer
-	// 	.def(py::init<
-	// 		modl::RBMptrT,
-	// 		modl::NonLinearsT,
-	// 		ead::iSession&,
-	// 		ead::VarptrT<PybindT>,
-	// 		uint8_t,
-	// 		PybindT,
-	// 		size_t,
-	// 		ead::NodeptrT<PybindT>>(),
-	// 		py::arg("brain"),
-	// 		py::arg("nolins"),
-	// 		py::arg("sess"),
-	// 		py::arg("persistent"),
-	// 		py::arg("batch_size"),
-	// 		py::arg("learning_rate") = 1e-3,
-	// 		py::arg("n_cont_div") = 1,
-	// 		py::arg("train_in") = nullptr)
-	// 	.def("train", &trainer::RBMTrainer::train, "train internal variables")
-	// 	.def("train_in", [](py::object self)
-	// 	{
-	// 		return self.cast<trainer::RBMTrainer*>()->train_in_;
-	// 	}, "get train_in variable")
-	// 	.def("cost", [](py::object self)
-	// 	{
-	// 		return self.cast<trainer::RBMTrainer*>()->cost_;
-	// 	}, "get cost node")
-	// 	.def("monitoring_cost", [](py::object self)
-	// 	{
-	// 		return self.cast<trainer::RBMTrainer*>()->monitoring_cost_;
-	// 	}, "get monitoring cost node")
-	// 	.def("brain", [](py::object self)
-	// 	{
-	// 		return self.cast<trainer::RBMTrainer*>()->brain_;
-	// 	}, "get rbm");
+	// brbmtrainer
+	brbmtrainer
+		.def(py::init<
+			modl::RBM&,
+			ead::iSession&,
+			ade::DimT,
+			PybindT,
+			PybindT,
+			trainer::ErrorF>(),
+			py::arg("model"),
+			py::arg("sess"),
+			py::arg("batch_size"),
+			py::arg("learning_rate"),
+			py::arg("discount_factor"),
+			py::arg("err_func"))
+		.def("train",
+			[](py::object self, py::array data)
+			{
+				auto trainer = self.cast<trainer::BernoulliRBMTrainer*>();
+				ade::Shape shape;
+				std::vector<PybindT> vec = pyrocnnet::arr2vec(shape, data);
+				return trainer->train(vec);
+			}, "train internal variables");
 
 	// inlines
 	m

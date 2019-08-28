@@ -45,7 +45,7 @@ struct DQNInfo
 		PybindT target_update_rate = 0.01,
 		PybindT exploration_period = 1000,
 		size_t store_interval = 5,
-		uint8_t mini_batch_size = 32,
+		ade::DimT mini_batch_size = 32,
 		size_t max_exp = 30000) :
 		train_interval_(train_interval),
 		rand_action_prob_(rand_action_prob),
@@ -63,7 +63,7 @@ struct DQNInfo
 	PybindT exploration_period_ = 1000;
 	// memory parameters
 	size_t store_interval_ = 5;
-	uint8_t mini_batch_size_ = 32;
+	ade::DimT mini_batch_size_ = 32;
 	size_t max_exp_ = 30000;
 };
 
