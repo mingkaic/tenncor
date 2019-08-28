@@ -153,24 +153,27 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// rbm
 	m.def("create_rbm",
-		[](ead::NodeptrT<PybindT> weight,
-			ead::NodeptrT<PybindT> hbias,
-			ead::NodeptrT<PybindT> vbias,
+		[](modl::DenseptrT hidden,
+			modl::DenseptrT visible,
+			modl::ActivationptrT activation,
 			std::string label)
 		{
-			return std::make_shared<modl::RBM>(weight, hbias, vbias, label);
+			return std::make_shared<modl::RBM>(
+				hidden, visible, activation, label);
 		},
-		py::arg("weight"),
-		py::arg("hidden_bias") = nullptr,
-		py::arg("visible_bias") = nullptr,
+		py::arg("hidden"),
+		py::arg("visible") = nullptr,
+		py::arg("activation") = nullptr,
 		py::arg("label"));
 	rbm
 		.def(py::init<ade::DimT,ade::DimT,
+			modl::ActivationptrT,
 			eqns::InitF<PybindT>,
 			eqns::InitF<PybindT>,
 			const std::string&>(),
 			py::arg("nhidden"),
 			py::arg("nvisible"),
+			py::arg("activation") = modl::sigmoid(),
 			py::arg("weight_init") = eqns::unif_xavier_init<PybindT>(1),
 			py::arg("bias_init") = eqns::zero_init<PybindT>(),
 			py::arg("label"))

@@ -7,11 +7,17 @@ namespace modl
 
 LayerptrT RBMBuilder::build (void) const
 {
-	if (nullptr == weight_)
+	if (3 != layers_.size())
 	{
-		logs::fatal("cannot build rbm with null weight");
+		logs::fatalf("cannot make rbm without hidden, visible, "
+			"and activation layer, got %d layers",
+			layers_.size());
 	}
-	return std::make_shared<RBM>(weight_, hbias_, vbias_, label_);
+	return std::make_shared<RBM>(
+		std::static_pointer_cast<Dense>(layers_[0]),
+		std::static_pointer_cast<Dense>(layers_[1]),
+		std::static_pointer_cast<Activation>(layers_[2]),
+		label_);
 }
 
 }

@@ -1,4 +1,5 @@
 #include "rocnnet/modl/dense.hpp"
+#include "rocnnet/modl/activations.hpp"
 
 #ifndef MODL_RBM_HPP
 #define MODL_RBM_HPP
@@ -14,37 +15,17 @@ struct RBMBuilder final : public iLayerBuilder
 {
 	RBMBuilder (std::string label) : label_(label) {}
 
-	void set_tensor (ade::TensptrT tens) override
-	{
-		if (tens->to_string() == weight_key)
-		{
-			weight_ = ead::NodeConverters<PybindT>::to_node(tens);
-			return;
-		}
-		else if (tens->to_string() == bias_key)
-		{
-			hbias_ = ead::NodeConverters<PybindT>::to_node(tens);
-			return;
-		}
-		else if (tens->to_string() == visible_key + "_" + bias_key)
-		{
-			vbias_ = ead::NodeConverters<PybindT>::to_node(tens);
-			return;
-		}
-		logs::warnf("attempt to create dense layer with unknown tensor `%s`",
-			tens->to_string().c_str());
-	}
+	void set_tensor (ade::TensptrT tens) override {} // rbm has no tensor
 
-	void set_sublayer (LayerptrT layer) override {} // dense has no sublayer
+	void set_sublayer (LayerptrT layer) override
+	{
+		layers_.push_back(layer);
+	}
 
 	LayerptrT build (void) const override;
 
 private:
-	ead::NodeptrT<PybindT> weight_ = nullptr;
-
-	ead::NodeptrT<PybindT> hbias_ = nullptr;
-
-	ead::NodeptrT<PybindT> vbias_ = nullptr;
+	std::vector<LayerptrT> layers_;
 
 	std::string label_;
 };
@@ -63,12 +44,14 @@ get_layer_reg().register_tagr(layers_key_prefix + "rbm",
 struct RBM final : public iLayer
 {
 	RBM (ade::DimT nhidden, ade::DimT nvisible,
+		ActivationptrT activation,
 		eqns::InitF<PybindT> weight_init,
 		eqns::InitF<PybindT> bias_init,
 		const std::string& label) :
 		label_(label),
 		hidden_(std::make_shared<Dense>(
-			nhidden, nvisible, weight_init, bias_init, hidden_key))
+			nhidden, nvisible, weight_init, bias_init, hidden_key)),
+		activation_(activation)
 	{
 		auto hidden_contents = hidden_->get_contents();
 		auto weight = hidden_contents[0];
@@ -82,22 +65,55 @@ struct RBM final : public iLayer
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
 			ead::NodeConverters<PybindT>::to_node(weight)), vbias, visible_key);
 
-		tag(weight);
-		tag(hbias);
-		tag(vbias->get_tensor());
+		auto hidden_subs = hidden_->get_contents();
+		for (auto& sub : hidden_subs)
+		{
+			tag(sub, LayerId(hidden_->get_ltype(),
+				hidden_->get_label(), 0));
+		}
+
+		auto visible_subs = visible_->get_contents();
+		for (auto& sub : visible_subs)
+		{
+			tag(sub, LayerId(visible_->get_ltype(),
+				visible_->get_label(), 1));
+		}
+
+		auto activation_subs = activation_->get_contents();
+		for (auto& sub : activation_subs)
+		{
+			tag(sub, LayerId(activation_->get_ltype(),
+				activation_->get_label(), 2));
+		}
 	}
 
-	RBM (ead::NodeptrT<PybindT> weight,
-		ead::NodeptrT<PybindT> hbias,
-		ead::NodeptrT<PybindT> vbias,
-		std::string label) :
+	RBM (DenseptrT hidden, DenseptrT visible,
+		ActivationptrT activation, std::string label) :
 		label_(label),
-		hidden_(std::make_shared<Dense>(weight, hbias, hidden_key)),
-		visible_(std::make_shared<Dense>(weight, vbias, visible_key))
+		hidden_(hidden),
+		visible_(visible),
+		activation_(activation)
 	{
-		tag(weight->get_tensor());
-		tag(hbias->get_tensor());
-		tag(vbias->get_tensor());
+		auto hidden_subs = hidden_->get_contents();
+		for (auto& sub : hidden_subs)
+		{
+			tag(sub, LayerId(hidden_->get_ltype(),
+				hidden_->get_label(), 0));
+		}
+
+		auto visible_subs = visible_->get_contents();
+		for (auto& sub : visible_subs)
+		{
+			tag(sub, LayerId(visible_->get_ltype(),
+				visible_->get_label(), 1));
+		}
+
+		auto activation_subs = activation_->get_contents();
+		for (auto& sub : activation_subs)
+		{
+			tag(sub, LayerId(activation_->get_ltype(),
+				activation_->get_label(), 2));
+		}
 	}
 
 	RBM (const RBM& other,
@@ -146,7 +162,7 @@ struct RBM final : public iLayer
 
 	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> visible) const override
 	{
-		return hidden_->connect(visible);
+		return activation_->connect(hidden_->connect(visible));
 	}
 
 	ade::TensT get_contents (void) const override
@@ -158,7 +174,7 @@ struct RBM final : public iLayer
 
 	ead::NodeptrT<PybindT> backward_connect (ead::NodeptrT<PybindT> hidden) const
 	{
-		return visible_->connect(hidden);
+		return activation_->connect(visible_->connect(hidden));
 	}
 
 private:
@@ -185,6 +201,8 @@ private:
 	DenseptrT hidden_;
 
 	DenseptrT visible_;
+
+	ActivationptrT activation_;
 };
 
 using RBMptrT = std::shared_ptr<RBM>;

@@ -21,10 +21,10 @@ void validate_label (const std::string& label)
 	}
 }
 
-std::unordered_map<std::string,LayerId> unpack_labels (
+std::unordered_map<std::string,LayerIdsT> unpack_labels (
 	const std::vector<std::string>& labels)
 {
-	std::unordered_map<std::string,LayerId> out;
+	std::unordered_map<std::string,LayerIdsT> out;
 	for (std::string label : labels)
 	{
 		auto parts = fmts::split(label, std::string(&llabel_sep, 1));
@@ -33,7 +33,7 @@ std::unordered_map<std::string,LayerId> unpack_labels (
 			logs::errorf("invalid layer label %s", label.c_str());
 			continue;
 		}
-		out.emplace(parts[0], LayerId(parts[1], parts[2], std::stoul(parts[3])));
+		out[parts[0]].push_back(LayerId(parts[1], parts[2], std::stoul(parts[3])));
 	}
 	return out;
 }
@@ -68,52 +68,71 @@ void recursive_layer_tag (ade::TensptrT tens, std::string layer_type,
 		});
 }
 
-using SublayersT = std::unordered_map<ade::iTensor*,std::list<LayerId>>;
+struct LayerNode;
+
+using LNodeptrT = std::shared_ptr<LayerNode>;
+
+struct LayerNode final
+{
+	LayerNode (const std::string& type, const std::string& label) :
+		type_(type), label_(label) {}
+
+	// Return generated leaves after adding branches to the subtree from tag reps
+	std::list<LNodeptrT> match_layer (const tag::TagRepsT& reps)
+	{
+		std::list<LNodeptrT> matches;
+		std::vector<std::string> labels;
+		if (estd::get(labels, reps, type_))
+		{
+			auto layer_info = unpack_labels(labels);
+			LayerIdsT subids;
+			if (estd::get(subids, layer_info, label_))
+			{
+				for (LayerId subid : subids)
+				{
+					size_t n = subs_.size();
+					if (subid.index_ >= n)
+					{
+						subs_.insert(subs_.end(), subid.index_ - n + 1, LNodeptrT());
+					}
+					auto& sub = subs_[subid.index_];
+					if (nullptr == sub)
+					{
+						sub = std::make_shared<LayerNode>(subid.type_, subid.label_);
+					}
+					auto tmp = sub->match_layer(reps);
+					matches.insert(matches.end(), tmp.begin(), tmp.end());
+				}
+			}
+		}
+		return matches;
+	}
+
+	std::string type_;
+
+	std::string label_;
+
+	std::vector<LNodeptrT> subs_;
+};
+
+using SublayersT = std::unordered_map<ade::iTensor*,std::list<LNodeptrT>>;
+
+using TensLayerMapT = std::unordered_map<LNodeptrT,ade::TensT>;
 
 struct LayerDeserializer final : public ade::OnceTraveler
 {
 	LayerDeserializer (std::string key, std::string val) :
-		key_(key), val_(val) {}
+		base_(std::make_shared<LayerNode>(key, val)) {}
 
 	/// Implementation of OnceTraveler
 	void visit_leaf (ade::iLeaf* leaf) override
 	{
 		tag::TagRepsT reps =
 			tag::get_reg().get_tags(leaf);
-		std::vector<std::string> labels;
-		if (estd::get(labels, reps, key_))
+		std::list<LNodeptrT> matches = base_->match_layer(reps);
+		if (false == matches.empty())
 		{
-			auto layer_info = unpack_labels(labels);
-			LayerId subid;
-			if (estd::get(subid, layer_info, val_))
-			{
-				roots_.emplace(leaf);
-				// gather all sublayer info
-				std::list<LayerId> sub_info;
-				while (false == subid.type_.empty())
-				{
-					sub_info.push_back(subid);
-					if (key_ == subid.type_)
-					{
-						subid = estd::must_getf(layer_info, subid.label_,
-							"cannot find label `%s` in leaf `%s` layer registry",
-							subid.label_.c_str(), leaf->to_string().c_str());
-					}
-					else
-					{
-						auto sublabels = estd::must_getf(reps, subid.type_,
-							"cannot find type `%s` in leaf `%s` layer registry",
-							subid.type_.c_str(), leaf->to_string().c_str());
-						auto sublayer_info = unpack_labels(sublabels);
-						subid = estd::must_getf(sublayer_info, subid.label_,
-							"cannot find label `%s` in leaf `%s` in %s",
-							subid.label_.c_str(), leaf->to_string().c_str(),
-							fmts::to_string(
-								sublabels.begin(), sublabels.end()).c_str());
-					}
-				}
-				layer_leaves_.emplace(leaf, sub_info);
-			}
+			layer_leaves_.emplace(leaf, matches);
 		}
 	}
 
@@ -129,11 +148,10 @@ struct LayerDeserializer final : public ade::OnceTraveler
 		tag::TagRepsT reps =
 			tag::get_reg().get_tags(func);
 		std::vector<std::string> labels;
-		if (estd::get(labels, reps, key_))
+		if (estd::get(labels, reps, base_->type_))
 		{
 			auto layer_info = unpack_labels(labels);
-			LayerId subid;
-			if (estd::get(subid, layer_info, val_))
+			if (estd::has(layer_info, base_->label_))
 			{
 				for (auto child : children)
 				{
@@ -144,65 +162,49 @@ struct LayerDeserializer final : public ade::OnceTraveler
 		}
 	}
 
-	SublayersT layer_leaves_;
+	LayerptrT build_layer (
+		LayerRegistry& registry, ade::OwnerMapT& owners) const
+	{
+		TensLayerMapT layer_tens;
+		for (auto& layer_leaf : layer_leaves_)
+		{
+			auto& tens = layer_leaf.first;
+			auto& nodes = layer_leaf.second;
+			for (auto& node : nodes)
+			{
+				layer_tens[node].push_back(owners.at(tens).lock());
+			}
+		}
+		return build_layer_helper(registry, layer_tens, base_);
+	}
 
 	std::unordered_set<ade::iTensor*> roots_;
 
 private:
-	std::string key_;
+	LayerptrT build_layer_helper (LayerRegistry& registry,
+		const TensLayerMapT& layer_tens, const LNodeptrT& lroot) const
+	{
+		auto builder = registry.get_builder(lroot->type_)(lroot->label_);
+		for (const LNodeptrT& sub : lroot->subs_)
+		{
+			builder->set_sublayer(build_layer_helper(
+				registry, layer_tens, sub));
+		}
+		ade::TensT tensors;
+		if (estd::get(tensors, layer_tens, lroot))
+		{
+			for (auto& tens : tensors)
+			{
+				builder->set_tensor(tens);
+			}
+		}
+		return builder->build();
+	}
 
-	std::string val_;
+	SublayersT layer_leaves_;
+
+	LNodeptrT base_;
 };
-
-void populate_builder (LBuilderptrT& builder,
-	const ade::OwnerMapT& owners, const SublayersT& sublayers,
-	LayerRegistry& registry)
-{
-	if (sublayers.empty())
-	{
-		return;
-	}
-	if (nullptr == builder)
-	{
-		logs::fatal("cannot populate null builder");
-	}
-
-	// group sublayers
-	std::vector<std::pair<LBuilderptrT,SublayersT>> grouped_layers;
-	for (auto llpair : sublayers)
-	{
-		if (llpair.second.empty())
-		{
-			// not a sublayer
-			builder->set_tensor(owners.at(llpair.first).lock());
-		}
-		else
-		{
-			// is a sublayer
-			auto id = llpair.second.front();
-			llpair.second.pop_front();
-			size_t n = grouped_layers.size();
-			if (id.index_ >= n)
-			{
-				grouped_layers.insert(grouped_layers.end(), id.index_ - n + 1,
-					std::pair<LBuilderptrT,SublayersT>{nullptr, SublayersT()});
-			}
-			if (nullptr == grouped_layers[id.index_].first)
-			{
-				grouped_layers[id.index_].first =
-					registry.get_builder(id.type_)(id.label_);
-			}
-			grouped_layers[id.index_].second.emplace(
-				llpair.first, llpair.second);
-		}
-	}
-	for (auto& grouped_layer : grouped_layers)
-	{
-		populate_builder(grouped_layer.first, owners,
-			grouped_layer.second, registry);
-		builder->set_sublayer(grouped_layer.first->build());
-	}
-}
 
 LayerptrT load_layer (std::istream& ins, ade::TensT& roots,
 	std::string ltype, std::string label,
@@ -232,9 +234,8 @@ LayerptrT load_layer (std::istream& ins, ade::TensT& roots,
 	{
 		roots.push_back(owners.at(root).lock());
 	}
-	auto root_builder = registry.get_builder(ltype)(label);
-	populate_builder(root_builder, owners, layd.layer_leaves_, registry);
-	return root_builder->build();
+
+	return layd.build_layer(registry, owners);
 }
 
 bool save_layer (std::ostream& outs, const iLayer& layer, ade::TensT roots,

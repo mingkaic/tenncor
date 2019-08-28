@@ -44,9 +44,11 @@ struct LayerId final
 	size_t index_;
 };
 
+using LayerIdsT = std::vector<LayerId>;
+
 std::string layer_label_fmt (std::string label, LayerId subid);
 
-std::unordered_map<std::string,LayerId> unpack_labels (
+std::unordered_map<std::string,LayerIdsT> unpack_labels (
 	const std::vector<std::string>& labels);
 
 struct LayerTag final : public tag::iTag
