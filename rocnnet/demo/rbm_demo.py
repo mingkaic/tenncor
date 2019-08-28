@@ -34,36 +34,27 @@ class RBMConfig:
         self.err_function=err_function
         self.tqdm=tqdm
 
-class RBMInput:
-    def __init__(self, n_visible, n_hidden, n_batch):
-        self.x = ead.scalar_variable(0, [n_batch, n_visible])
-        self.y = ead.scalar_variable(0, [n_batch, n_hidden])
-
-class RBMStorage:
-    def __init__(self, config):
-        hidden_layer = rcn.Dense(config.n_hidden, config.n_visible,
-            weight_init=rcn.unif_xavier_init(config.xavier_const),
-            bias_init=rcn.zero_init(), label="hidden_0")
-        weight, hbias = tuple(hidden_layer.get_contents())
-        visible_layer = rcn.create_dense(tf.transpose(weight),
-            bias=rcn.zero_init()(rcn.Shape([config.n_visible]), "bias"), label="visible_0")
-        _, vbias = tuple(visible_layer.get_contents())
-
-        self.hidden_model = rcn.SequentialModel('hidden')
-        self.hidden_model.add(hidden_layer)
-        self.hidden_model.add(rcn.sigmoid())
-
-        self.visible_model = rcn.SequentialModel('visible')
-        self.visible_model.add(visible_layer)
-        self.visible_model.add(rcn.sigmoid())
-
-        self.w = weight
-        self.visible_bias = vbias
-        self.hidden_bias = hbias
-
-        self.delta_w = ead.scalar_variable(0, [config.n_visible, config.n_hidden])
-        self.delta_visible_bias = ead.scalar_variable(0, [config.n_visible])
-        self.delta_hidden_bias = ead.scalar_variable(0, [config.n_hidden])
+# next_momentum = prev_momentum * momentum +
+#                 learning_rate * (1 - momentum) * err
+# next = prev + next_momentum
+def bbernoulli_optimizer(varerrs):
+    out = []
+    for (var, err) in varerrs:
+        momentum = ead.scalar_variable(0.0, err.shape(), label=str(var) + "_momentum")
+        next_momentum = tf.add(
+            tf.mul(
+                ead.scalar_constant(config.momentum, momentum.shape()),
+                momentum
+            ),
+            tf.mul(
+                ead.scalar_constant(config.learning_rate *
+                    (1 - config.momentum) / err.shape()[0], err.shape()),
+                err
+            ))
+        next_var = tf.add(var, next_momentum)
+        out.append((momentum, next_momentum))
+        out.append((var, next_var))
+    return out
 
 class RBMOutput:
     def __init__(self, assigns, compute_hidden, compute_visible, compute_visible_from_hidden, compute_err):
@@ -78,80 +69,55 @@ class RBMOutput:
         assert self.compute_visible_from_hidden is not None
         assert self.compute_err is not None
 
-def bb_init(rbm_in, rbm_storage, config):
+def bb_init(x, y, rbm, err_function):
     # hidden = sigmoid(X @ W + hB)
     # visible_rec = sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB)
     # hidden_rec = sigmoid(visible_rec @ W + hB)
-    compute_hidden = rbm_storage.hidden_model.connect(rbm_in.x)
-    compute_visible = rbm_storage.visible_model.connect(
+    compute_hidden = rbm.connect(x)
+    compute_visible = rbm.backward_connect(
         tf.random.rand_binom_one(compute_hidden))
-    compute_err = config.err_function(rbm_in.x, compute_visible)
+    compute_err = err_function(x, compute_visible)
 
-    hidden_recon_p = rbm_storage.hidden_model.connect(compute_visible)
+    hidden_recon_p = rbm.connect(compute_visible)
 
     # X^T @ sigmoid(X @ W + hB) - sigmoid(tf.random.rand_binom_one(sigmoid(X @ W + hB)) @ W^T + vB)^T @ sigmoid(sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB) @ W + hB)
-    grad = tf.sub(
-        tf.matmul(tf.transpose(rbm_in.x), compute_hidden),
+    grad_w = tf.sub(
+        tf.matmul(tf.transpose(x), compute_hidden),
         tf.matmul(tf.transpose(compute_visible), hidden_recon_p))
-    # grad is derivative of ? with respect to rbm_in.w
+    grad_vb = tf.reduce_mean_1d(tf.sub(x, compute_visible), 1)
+    grad_hb = tf.reduce_mean_1d(tf.sub(compute_hidden, hidden_recon_p), 1)
+    # grad_w is derivative of ? with respect to rbm.w
 
-    def f(x_old, x_new):
-        return tf.add(
-            tf.mul(
-                ead.scalar_constant(config.momentum, x_old.shape()),
-                x_old),
-            tf.prod([
-                ead.scalar_constant(config.learning_rate, x_new.shape()),
-                x_new,
-                ead.scalar_constant((1 - config.momentum) / x_new.shape()[0], x_new.shape())
-            ]))
-
-    # momentum
-    delta_w_new = f(rbm_storage.delta_w, grad)
-    delta_visible_bias_new = f(rbm_storage.delta_visible_bias, tf.reduce_mean_1d(tf.sub(rbm_in.x, compute_visible), 1))
-    delta_hidden_bias_new = f(rbm_storage.delta_hidden_bias, tf.reduce_mean_1d(tf.sub(compute_hidden, hidden_recon_p), 1))
-
-    update_delta_w = (rbm_storage.delta_w, delta_w_new)
-    update_delta_visible_bias = (rbm_storage.delta_visible_bias, delta_visible_bias_new)
-    update_delta_hidden_bias = (rbm_storage.delta_hidden_bias, delta_hidden_bias_new)
-    update_w = (rbm_storage.w, tf.add(rbm_storage.w, delta_w_new))
-    update_visible_bias = (rbm_storage.visible_bias,
-        tf.add(rbm_storage.visible_bias, delta_visible_bias_new))
-    update_hidden_bias = (rbm_storage.hidden_bias,
-        tf.add(rbm_storage.hidden_bias, delta_hidden_bias_new))
+    (w, hbias, vbias) = tuple(rbm.get_contents())
 
     return RBMOutput(
-        assigns=[
-            update_delta_w, update_delta_visible_bias, update_delta_hidden_bias,
-            update_w, update_visible_bias, update_hidden_bias,
-        ],
+        assigns=bbernoulli_optimizer([
+            (w, grad_w),
+            (hbias, grad_hb),
+            (vbias, grad_vb),
+        ]),
         compute_hidden=compute_hidden,
         compute_visible=compute_visible,
-        compute_visible_from_hidden=rbm_storage.visible_model.connect(rbm_in.y),
+        compute_visible_from_hidden=rbm.backward_connect(y),
         compute_err=compute_err)
 
-class RBM:
-    def __init__(self, config, initialize):
-        self.config = config
-        self.initialize = initialize
-        self.storage = RBMStorage(config)
-
-    def __call__(self, inputs):
-        return self.initialize(inputs, self.storage, self.config)
-
 class RBMTrainee:
-    def __init__(self, rbm, n_batch, sess):
+    def __init__(self, config, init, rbm, n_batch, sess):
+        self.config = config
         self.rbm = rbm
         self.n_batch = n_batch
-        self.input = RBMInput(config.n_visible, config.n_hidden, n_batch=n_batch)
-        self.output = rbm(self.input)
+        self.x = ead.scalar_variable(0, [n_batch, config.n_visible])
+        self.y = ead.scalar_variable(0, [n_batch, config.n_hidden])
+        output = init(self.x, self.y, rbm, config.err_function)
         self.sess = sess
 
-        assigns = self.output.assigns
+        self.assigns = output.assigns
+        self.compute_err = output.compute_err
         sess.track([
-            self.output.compute_visible,
-            self.output.compute_hidden,
-            self.output.compute_err] + [src for _, src in assigns])
+            output.compute_visible,
+            output.compute_hidden,
+            output.compute_err,
+        ] + [src for _, src in self.assigns])
 
     def fit(self,
             data_x,
@@ -174,7 +140,6 @@ class RBMTrainee:
             data_x_cpy = data_x
 
         errs = []
-        assigns = self.output.assigns
 
         for e in range(n_epoches):
             epoch_errs = np.zeros((n_batches,))
@@ -187,8 +152,8 @@ class RBMTrainee:
             r_batches = range(n_batches)
 
             if verbose:
-                if self.rbm.config.tqdm is not None:
-                    r_batches = self.rbm.config.tqdm(r_batches,
+                if self.config.tqdm is not None:
+                    r_batches = self.config.tqdm(r_batches,
                         desc='Epoch: {:d}'.format(e),
                         ascii=True,
                         file=sys.stdout)
@@ -198,22 +163,22 @@ class RBMTrainee:
             for b in r_batches:
                 batch_x = data_x_cpy[b * self.n_batch:(b + 1) * self.n_batch]
 
-                self.input.x.assign(batch_x)
+                self.x.assign(batch_x)
 
-                self.sess.update_target([src for _, src in assigns], [self.input.x])
-                for dest, src in assigns:
+                self.sess.update_target([src for _, src in self.assigns], [self.x])
+                for dest, src in self.assigns:
                     dest.assign(src.get())
-                self.sess.update_target([self.output.compute_err], [dest for dest, _ in assigns])
-                batch_err = self.output.compute_err.get()
+                self.sess.update_target([self.compute_err], [dest for dest, _ in self.assigns])
+                batch_err = self.compute_err.get()
 
                 epoch_errs[epoch_errs_ptr] = batch_err
                 epoch_errs_ptr += 1
 
             if verbose:
                 err_mean = epoch_errs.mean()
-                if self.rbm.config.tqdm is not None:
-                    self.rbm.config.tqdm.write('Train error: {:.4f}'.format(err_mean))
-                    self.rbm.config.tqdm.write('')
+                if self.config.tqdm is not None:
+                    self.config.tqdm.write('Train error: {:.4f}'.format(err_mean))
+                    self.config.tqdm.write('')
                 else:
                     print('Train error: {:.4f}'.format(err_mean))
                     print('')
@@ -237,15 +202,21 @@ config = RBMConfig(
     momentum=0.95,
     tqdm=tqdm)
 
-rbm = RBM(config, bb_init)
+rbm = rcn.RBM(config.n_hidden, config.n_visible,
+    weight_init=rcn.unif_xavier_init(config.xavier_const),
+    bias_init=rcn.zero_init(),
+    label="demo")
 sess = ead.Session()
 
-padewan = RBMTrainee(rbm=rbm, n_batch=10, sess=sess)
+padewan = RBMTrainee(config, init=bb_init, rbm=rbm, n_batch=10, sess=sess)
 
-master_inputs = RBMInput(config.n_visible, config.n_hidden, n_batch=1)
-master = rbm(master_inputs)
+master_x = ead.scalar_variable(0, [1, config.n_visible])
+master_hidden = rbm.connect(master_x)
+master_visible = rbm.backward_connect(
+    tf.random.rand_binom_one(master_hidden))
+
 image = mnist_images[IMAGE]
-sess.track([master.compute_visible])
+sess.track([master_visible])
 
 sess.optimize("cfg/optimizations.rules")
 
@@ -257,9 +228,9 @@ def show_digit(x):
     plt.imshow(x.reshape((28, 28)), cmap=plt.cm.gray)
     plt.show()
 
-master_inputs.x.assign(image.reshape(1,-1))
-sess.update_target([master.compute_visible], [master_inputs.x])
-image_rec = master.compute_visible.get()
+master_x.assign(image.reshape(1,-1))
+sess.update_target([master_visible], [master_x])
+image_rec = master_visible.get()
 
 show_digit(image)
 show_digit(image_rec)

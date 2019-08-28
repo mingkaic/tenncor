@@ -2,13 +2,18 @@
 
 #include "tag/tag.hpp"
 
-#include "rocnnet/modl/marshal.hpp"
+#include "ead/constant.hpp"
+#include "ead/variable.hpp"
+
+#include "ead/generated/pyapi.hpp"
 
 #ifndef MODL_LAYER_HPP
 #define MODL_LAYER_HPP
 
 namespace modl
 {
+
+using NonLinearF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 
 const std::string layers_key_prefix = "layer_";
 

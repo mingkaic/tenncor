@@ -1,6 +1,8 @@
 #include "pbm/save.hpp"
 #include "pbm/load.hpp"
 
+#include "ead/serialize.hpp"
+
 #include "rocnnet/modl/layer.hpp"
 
 #ifdef MODL_LAYER_HPP

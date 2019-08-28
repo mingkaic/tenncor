@@ -12,7 +12,7 @@
 namespace eqns
 {
 
-using VariablesT = std::vector<ead::VarptrT<PybindT>>;
+using VarErrsT = std::vector<std::pair<ead::VarptrT<PybindT>,ead::NodeptrT<PybindT>>>;
 
 struct VarAssign
 {
@@ -28,7 +28,7 @@ using AssignsT = std::list<VarAssign>;
 using AssignGroupsT = std::list<AssignsT>;
 
 // approximate error of sources given error of root
-using ApproxF = std::function<AssignGroupsT(ead::NodeptrT<PybindT>&,VariablesT)>;
+using ApproxF = std::function<AssignGroupsT(const VarErrsT&)>;
 
 using UpdateStepF = std::function<void(std::unordered_set<ade::iTensor*>&)>;
 
@@ -37,17 +37,21 @@ using NodeUnarF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 ead::NodeptrT<PybindT> identity (ead::NodeptrT<PybindT> node);
 
 // Stochastic Gradient Descent Approximation
-AssignGroupsT sgd (ead::NodeptrT<PybindT>& root, VariablesT leaves,
-	PybindT learning_rate = 0.5,
-	NodeUnarF gradprocess = identity,
-	std::string root_label = "");
+// for each (x, err) in leaves
+// x_next ~ x_curr - η * err, where η is the learning rate
+AssignGroupsT sgd (const VarErrsT& leaves,
+	PybindT learning_rate = 0.5, std::string root_label = "");
 
 // Momentum-based Root Mean Square Approximation
-AssignGroupsT rms_momentum (ead::NodeptrT<PybindT>& root, VariablesT leaves,
-	PybindT learning_rate = 0.5,
-	PybindT discount_factor = 0.99,
+// for each (x, err) in leaves
+// momentum_next ~ χ * momentum_prev + (1 - χ) * err ^ 2
+// next_x ~ x_curr - (η * err) / (sqrt(ε + momentum_next))
+//
+// where root = f, η is the learning rate, ε is epsilon,
+// and χ is discount_factor
+AssignGroupsT rms_momentum (const VarErrsT& leaves,
+	PybindT learning_rate = 0.5, PybindT discount_factor = 0.99,
 	PybindT epsilon = std::numeric_limits<PybindT>::epsilon(),
-	NodeUnarF gradprocess = identity,
 	std::string root_label = "");
 
 void assign_groups (AssignGroupsT& groups, UpdateStepF update_step);

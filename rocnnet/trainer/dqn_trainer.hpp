@@ -1,4 +1,5 @@
 #include "ead/parse.hpp"
+#include "ead/grader.hpp"
 
 #include "rocnnet/modl/model.hpp"
 
@@ -70,6 +71,7 @@ struct DQNTrainer
 {
 	DQNTrainer (modl::SequentialModel& model,
 		ead::iSession& sess, eqns::ApproxF update, DQNInfo param,
+		eqns::NodeUnarF gradprocess = eqns::NodeUnarF(eqns::identity),
 		DQNTrainingContext ctx = DQNTrainingContext()) :
 		sess_(&sess),
 		params_(param),
@@ -125,22 +127,25 @@ struct DQNTrainer
 
 		// updates for source network
 		ade::TensT source_contents = source_model_.get_contents();
-		eqns::VariablesT source_vars;
+		eqns::VarErrsT source_vars;
 		for (auto tens : source_contents)
 		{
 			if (auto var = std::dynamic_pointer_cast<
 				ead::Variable<PybindT>>(tens))
 			{
-				source_vars.push_back(
-					std::make_shared<ead::VariableNode<PybindT>>(var));
+				auto varnode = std::make_shared<ead::VariableNode<PybindT>>(var);
+				source_vars.push_back({
+					varnode,
+					gradprocess(ead::derive(prediction_error_, ead::convert_to_node(varnode)))
+				});
 			}
 		}
-		updates_ = update(prediction_error_, source_vars);
+		updates_ = update(source_vars);
 
 		// update target network
 		ade::TensT target_contents = ctx_.target_model_->get_contents();
 		size_t nvars = source_vars.size();
-		eqns::VariablesT target_vars;
+		std::vector<ead::VarptrT<PybindT>> target_vars;
 		target_vars.reserve(nvars);
 		for (auto tens : target_contents)
 		{
@@ -157,7 +162,7 @@ struct DQNTrainer
 		{
 			// this is equivalent to target = (1-alpha) * target + alpha * source
 			auto target = ead::convert_to_node<PybindT>(target_vars[i]);
-			auto source = ead::convert_to_node<PybindT>(source_vars[i]);
+			auto source = ead::convert_to_node<PybindT>(source_vars[i].first);
 			auto diff = tenncor::sub(target, source);
 			auto target_update_rate = ead::make_constant_scalar<PybindT>(
 				params_.target_update_rate_, diff->shape());

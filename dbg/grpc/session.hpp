@@ -58,8 +58,8 @@ struct InteractiveSession final : public ead::iSession
 	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
 		ClientConfig client_cfg = ClientConfig(),
 		tag::TagRegistry& registry = tag::get_reg()) :
-		client_(channel, client_cfg),
-		registry_(registry)
+		registry_(registry),
+		client_(channel, client_cfg)
 	{
 		logs::infof("created session: %s", sess_id_.c_str());
 	}

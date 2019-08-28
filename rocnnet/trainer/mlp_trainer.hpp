@@ -1,3 +1,5 @@
+#include "ead/grader.hpp"
+
 #include "rocnnet/modl/model.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
@@ -18,8 +20,9 @@ struct TrainingContext final
 struct MLPTrainer
 {
 	MLPTrainer (modl::SequentialModel& model,
-		ead::iSession& sess, eqns::ApproxF update,
-		uint8_t batch_size, TrainingContext ctx = TrainingContext()) :
+		ead::iSession& sess, eqns::ApproxF update, uint8_t batch_size,
+		eqns::NodeUnarF gradprocess = eqns::NodeUnarF(eqns::identity),
+		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
 		train_in_(ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
 			(ade::DimT) model.get_ninput(), batch_size}), "train_in")),
@@ -35,17 +38,20 @@ struct MLPTrainer
 			tenncor::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
 
 		auto contents = model_.get_contents();
-		eqns::VariablesT vars;
+		eqns::VarErrsT vars;
 		for (auto tens : contents)
 		{
 			if (auto var = std::dynamic_pointer_cast<
 				ead::Variable<PybindT>>(tens))
 			{
-				vars.push_back(
-					std::make_shared<ead::VariableNode<PybindT>>(var));
+				auto varnode = std::make_shared<ead::VariableNode<PybindT>>(var);
+				vars.push_back({
+					varnode,
+					gradprocess(ead::derive(error_, ead::convert_to_node(varnode)))
+				});
 			}
 		}
-		updates_ = update(error_, vars);
+		updates_ = update(vars);
 
 		ade::TensT track_batch = {
 			train_out_->get_tensor(),

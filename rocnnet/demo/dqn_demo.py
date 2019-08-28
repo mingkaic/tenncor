@@ -94,8 +94,7 @@ def main(args):
 
     bgd = rcn.get_rms_momentum(
         learning_rate = 0.1,
-        discount_factor = 0.5,
-        gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
+        discount_factor = 0.5)
     param = rcn.DQNInfo(
         mini_batch_size = 1,
         store_interval = 1,
@@ -105,7 +104,8 @@ def main(args):
     sess = ead.Session()
 
     untrained_dqn = rcn.DQNTrainer(untrained, sess, bgd, param)
-    trained_dqn = rcn.DQNTrainer(model, sess, bgd, param)
+    trained_dqn = rcn.DQNTrainer(model, sess, bgd, param,
+        gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
     pretrained_dqn = rcn.DQNTrainer(trained, sess, bgd, param)
 
     sess.optimize("cfg/optimizations.rules")
