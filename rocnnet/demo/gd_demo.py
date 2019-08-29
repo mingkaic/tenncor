@@ -55,7 +55,6 @@ def main(args):
 
     n_in = 10
     n_out = int(n_in / 2)
-    n_outs = [9, n_out]
 
     model = rcn.SequentialModel("demo")
     model.add(rcn.Dense(9, n_in,

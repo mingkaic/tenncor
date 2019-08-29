@@ -14,6 +14,7 @@
 #include "ead/coord.hpp"
 #include "ead/constant.hpp"
 #include "ead/variable.hpp"
+#include "ead/functor.hpp"
 
 #ifndef EAD_SERIALIZE_HPP
 #define EAD_SERIALIZE_HPP
@@ -92,9 +93,29 @@ struct EADSaver final : public pbm::iSaver
 	}
 };
 
+template <typename T>
+ead::ArgsT<T> to_eadargs (ade::ArgsT& args)
+{
+	ead::ArgsT<T> out;
+	out.reserve(args.size());
+	std::transform(args.begin(), args.end(), std::back_inserter(out),
+	[](ade::FuncArg arg)
+	{
+		return ead::FuncArg<T>(
+			ead::NodeConverters<T>::to_node(arg.get_tensor()),
+			arg.get_shaper(),
+			std::static_pointer_cast<ead::CoordMap>(arg.get_coorder()));
+	});
+	return out;
+}
+
 #define _OUT_GENERIC(realtype)leaf = is_const?\
 make_constant<realtype>((realtype*) pb, shape)->get_tensor():\
 ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
+
+#define _OUT_GENFUNC(realtype)func = ade::TensptrT(\
+ead::Functor<realtype>::get(ade::Opcode{opname, age::get_op(opname)},\
+to_eadargs<realtype>(args)));
 
 /// Unmarshal cortenn::Source as Variable containing context of source
 struct EADLoader final : public pbm::iLoader
@@ -127,7 +148,11 @@ struct EADLoader final : public pbm::iLoader
 
 	ade::TensptrT generate_func (std::string opname, ade::ArgsT args) override
 	{
-		return ade::TensptrT(ade::Functor::get(ade::Opcode{opname, age::get_op(opname)}, args));
+		age::_GENERATED_DTYPE gencode = (age::_GENERATED_DTYPE)
+			((ade::iData*) args[0].get_tensor().get())->type_code();
+		ade::TensptrT func;
+		TYPE_LOOKUP(_OUT_GENFUNC, gencode);
+		return func;
 	}
 
 	ade::CoordptrT generate_shaper (std::vector<double> coord) override

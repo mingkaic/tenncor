@@ -25,6 +25,8 @@ struct LayerId final
 {
 	LayerId (void) = default;
 
+	LayerId (std::string label) : label_(label) {}
+
 	LayerId (std::string type, std::string label, size_t index) :
 		type_(type), label_(label), index_(index) {}
 
@@ -41,7 +43,7 @@ struct LayerId final
 
 	std::string label_;
 
-	size_t index_;
+	size_t index_ = 0;
 };
 
 using LayerIdsT = std::vector<LayerId>;
@@ -116,10 +118,10 @@ struct iLayer
 protected:
 	virtual iLayer* clone_impl (std::string label_prefix) const = 0;
 
-	void tag (ade::TensptrT tensor, LayerId subs = LayerId()) const;
+	void tag (ade::TensptrT tensor, LayerId subs) const;
 
 	void recursive_tag (ade::TensptrT root,
-		std::unordered_set<ade::iTensor*> ignores, LayerId subs = LayerId()) const;
+		std::unordered_set<ade::iTensor*> ignores, LayerId subs) const;
 };
 
 using LayerptrT = std::shared_ptr<iLayer>;
@@ -128,7 +130,7 @@ struct iLayerBuilder
 {
 	virtual ~iLayerBuilder (void) = default;
 
-	virtual void set_tensor (ade::TensptrT tens) = 0;
+	virtual void set_tensor (ade::TensptrT tens, std::string target) = 0;
 
 	virtual void set_sublayer (LayerptrT layer) = 0;
 

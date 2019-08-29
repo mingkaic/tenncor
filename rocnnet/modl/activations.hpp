@@ -13,7 +13,7 @@ struct ActivationBuilder final : public iLayerBuilder
 	ActivationBuilder (std::string act_type, std::string label) :
 		act_type_(act_type), label_(label) {}
 
-	void set_tensor (ade::TensptrT tens) override {}
+	void set_tensor (ade::TensptrT tens, std::string target) override {}
 
 	void set_sublayer (LayerptrT layer) override {} // activation has no sublayer
 
@@ -62,7 +62,7 @@ struct Activation final : public iLayer
 			"failed to find activation `%s`", act_type.c_str())),
 		placeholder_(ead::make_constant_scalar<PybindT>(0, {}))
 	{
-		tag(placeholder_->get_tensor());
+		tag(placeholder_->get_tensor(), LayerId());
 	}
 
 	Activation (const Activation& other,
@@ -72,7 +72,7 @@ struct Activation final : public iLayer
 		act_type_(other.act_type_),
 		placeholder_(ead::make_constant_scalar<PybindT>(0, {}))
 	{
-		tag(placeholder_->get_tensor());
+		tag(placeholder_->get_tensor(), LayerId());
 	}
 
 	Activation& operator = (const Activation& other) = default;
@@ -112,7 +112,7 @@ struct Activation final : public iLayer
 		auto out = activation_(input);
 		recursive_tag(out->get_tensor(), {
 			input->get_tensor().get(),
-		});
+		}, LayerId());
 		return out;
 	}
 

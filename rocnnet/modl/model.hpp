@@ -10,7 +10,7 @@ struct SeqModelBuilder final : public iLayerBuilder
 {
 	SeqModelBuilder (std::string label) : label_(label) {}
 
-	void set_tensor (ade::TensptrT tens) override {} // seqmodel has no tensor
+	void set_tensor (ade::TensptrT tens, std::string target) override {} // seqmodel has no tensor
 
 	void set_sublayer (LayerptrT layer) override
 	{

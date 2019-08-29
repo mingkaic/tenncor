@@ -101,7 +101,7 @@ struct BernoulliRBMTrainer final
 		eqns::VarErrsT varerrs = {
 			{vars[0], grad_w},
 			{vars[1], grad_hb},
-			{vars[2], grad_vb},
+			{vars[3], grad_vb},
 		};
 
 		updates_ = bbernoulli_approx(varerrs, learning_rate, discount_factor);

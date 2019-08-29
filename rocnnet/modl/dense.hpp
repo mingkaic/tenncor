@@ -18,20 +18,21 @@ struct DenseBuilder final : public iLayerBuilder
 {
 	DenseBuilder (std::string label) : label_(label) {}
 
-	void set_tensor (ade::TensptrT tens) override
+	void set_tensor (ade::TensptrT tens, std::string target) override
 	{
-		if (tens->to_string() == weight_key)
+		if (target == weight_key)
 		{
 			weight_ = ead::NodeConverters<PybindT>::to_node(tens);
 			return;
 		}
-		else if (tens->to_string() == bias_key)
+		else if (target == bias_key)
 		{
 			bias_ = ead::NodeConverters<PybindT>::to_node(tens);
 			return;
 		}
-		logs::warnf("attempt to create dense layer with unknown tensor `%s`",
-			tens->to_string().c_str());
+		logs::warnf("attempt to create dense layer "
+			"with unknown tensor `%s` with label `%s`",
+			tens->to_string().c_str(), target.c_str());
 	}
 
 	void set_sublayer (LayerptrT layer) override {} // dense has no sublayer
@@ -66,11 +67,11 @@ struct Dense final : public iLayer
 		label_(label),
 		weight_(weight_init(ade::Shape({nunits, indim}), weight_key))
 	{
-		tag(weight_->get_tensor());
+		tag(weight_->get_tensor(), LayerId(weight_key));
 		if (bias_init)
 		{
 			bias_ = bias_init(ade::Shape({nunits}), bias_key);
-			tag(bias_->get_tensor());
+			tag(bias_->get_tensor(), LayerId(bias_key));
 		}
 	}
 
@@ -81,10 +82,10 @@ struct Dense final : public iLayer
 		weight_(weight),
 		bias_(bias)
 	{
-		tag(weight_->get_tensor());
+		tag(weight_->get_tensor(), LayerId(weight_key));
 		if (bias)
 		{
-			tag(bias_->get_tensor());
+			tag(bias_->get_tensor(), LayerId(bias_key));
 		}
 	}
 
@@ -139,13 +140,16 @@ struct Dense final : public iLayer
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
 			bias_->get_tensor().get(),
-		});
+		}, LayerId());
 		return out;
 	}
 
 	ade::TensT get_contents (void) const override
 	{
-		return {weight_->get_tensor(), bias_->get_tensor()};
+		return {
+			weight_->get_tensor(),
+			nullptr == bias_ ? nullptr : bias_->get_tensor(),
+		};
 	}
 
 private:
@@ -162,7 +166,7 @@ private:
 				ead::Variable<PybindT>::get(
 					*static_cast<ead::Variable<PybindT>*>(
 						other.weight_->get_tensor().get()))));
-		tag(weight_->get_tensor());
+		tag(weight_->get_tensor(), LayerId(weight_key));
 		if (other.bias_)
 		{
 			bias_ = std::make_shared<ead::VariableNode<PybindT>>(
@@ -170,7 +174,7 @@ private:
 					ead::Variable<PybindT>::get(
 						*static_cast<ead::Variable<PybindT>*>(
 							other.bias_->get_tensor().get()))));
-			tag(bias_->get_tensor());
+			tag(bias_->get_tensor(), LayerId(bias_key));
 		}
 	}
 

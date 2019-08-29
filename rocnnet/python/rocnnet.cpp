@@ -410,12 +410,16 @@ PYBIND11_MODULE(rocnnet, m)
 				return std::static_pointer_cast<modl::SequentialModel>(
 					modl::load_layer(input, trained_roots, modl::seq_model_key, layer_label));
 			})
-		.def("load_str_seqmodel",
-			[](std::string str, std::string layer_label) -> modl::LayerptrT
+		.def("load_file_rbmmodel",
+			[](std::string filename, std::string layer_label) -> modl::RBMptrT
 			{
-				std::istringstream input(str);
+				std::ifstream input(filename);
+				if (false == input.is_open())
+				{
+					logs::fatalf("file %s not found", filename.c_str());
+				}
 				ade::TensT trained_roots;
-				return std::static_pointer_cast<modl::SequentialModel>(
-					modl::load_layer(input, trained_roots, modl::seq_model_key, layer_label));
+				return std::static_pointer_cast<modl::RBM>(
+					modl::load_layer(input, trained_roots, modl::rbm_layer_key, layer_label));
 			});
 };

@@ -48,6 +48,7 @@ TEST(SERIALIZE, SaveGraph)
 	ead::NodeptrT<double> out = ead::make_variable<double>(
 		std::vector<double>(out_shape.n_elems()).data(), out_shape);
 
+	// todo: test with tag
 	labels[in->get_tensor()] = {"global", "training", "in"};
 	labels[weight0->get_tensor()] = {"global", "storage", "weight0"};
 	labels[bias0->get_tensor()] = {"global", "storage", "bias0"};

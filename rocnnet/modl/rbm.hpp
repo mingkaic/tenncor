@@ -15,7 +15,7 @@ struct RBMBuilder final : public iLayerBuilder
 {
 	RBMBuilder (std::string label) : label_(label) {}
 
-	void set_tensor (ade::TensptrT tens) override {} // rbm has no tensor
+	void set_tensor (ade::TensptrT tens, std::string target) override {} // rbm has no tensor
 
 	void set_sublayer (LayerptrT layer) override
 	{
@@ -60,31 +60,11 @@ struct RBM final : public iLayer
 
 		if (bias_init)
 		{
-			vbias = bias_init(ade::Shape({nvisible}), visible_key + "_" + bias_key);
+			vbias = bias_init(ade::Shape({nvisible}), bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
 			ead::NodeConverters<PybindT>::to_node(weight)), vbias, visible_key);
-
-		auto hidden_subs = hidden_->get_contents();
-		for (auto& sub : hidden_subs)
-		{
-			tag(sub, LayerId(hidden_->get_ltype(),
-				hidden_->get_label(), 0));
-		}
-
-		auto visible_subs = visible_->get_contents();
-		for (auto& sub : visible_subs)
-		{
-			tag(sub, LayerId(visible_->get_ltype(),
-				visible_->get_label(), 1));
-		}
-
-		auto activation_subs = activation_->get_contents();
-		for (auto& sub : activation_subs)
-		{
-			tag(sub, LayerId(activation_->get_ltype(),
-				activation_->get_label(), 2));
-		}
+		tag_sublayers();
 	}
 
 	RBM (DenseptrT hidden, DenseptrT visible,
@@ -94,26 +74,7 @@ struct RBM final : public iLayer
 		visible_(visible),
 		activation_(activation)
 	{
-		auto hidden_subs = hidden_->get_contents();
-		for (auto& sub : hidden_subs)
-		{
-			tag(sub, LayerId(hidden_->get_ltype(),
-				hidden_->get_label(), 0));
-		}
-
-		auto visible_subs = visible_->get_contents();
-		for (auto& sub : visible_subs)
-		{
-			tag(sub, LayerId(visible_->get_ltype(),
-				visible_->get_label(), 1));
-		}
-
-		auto activation_subs = activation_->get_contents();
-		for (auto& sub : activation_subs)
-		{
-			tag(sub, LayerId(activation_->get_ltype(),
-				activation_->get_label(), 2));
-		}
+		tag_sublayers();
 	}
 
 	RBM (const RBM& other,
@@ -168,7 +129,10 @@ struct RBM final : public iLayer
 	ade::TensT get_contents (void) const override
 	{
 		auto out = hidden_->get_contents();
-		out.push_back(visible_->get_contents()[1]);
+		auto vis_contents = visible_->get_contents();
+		auto act_contents = activation_->get_contents();
+		out.insert(out.end(), vis_contents.begin(), vis_contents.end());
+		out.insert(out.end(), act_contents.begin(), act_contents.end());
 		return out;
 	}
 
@@ -178,22 +142,53 @@ struct RBM final : public iLayer
 	}
 
 private:
-	RBM* clone_impl (std::string label_prefix) const override
+	iLayer* clone_impl (std::string label_prefix) const override
 	{
 		return new RBM(*this, label_prefix);
+	}
+
+	void tag_sublayers (void)
+	{
+		auto hidden_subs = hidden_->get_contents();
+		for (auto& sub : hidden_subs)
+		{
+			tag(sub, LayerId(hidden_->get_ltype(),
+				hidden_->get_label(), 0));
+		}
+
+		auto visible_subs = visible_->get_contents();
+		for (auto& sub : visible_subs)
+		{
+			tag(sub, LayerId(visible_->get_ltype(),
+				visible_->get_label(), 1));
+		}
+
+		auto activation_subs = activation_->get_contents();
+		for (auto& sub : activation_subs)
+		{
+			tag(sub, LayerId(activation_->get_ltype(),
+				activation_->get_label(), 2));
+		}
 	}
 
 	void copy_helper (const RBM& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
 		hidden_ = DenseptrT(other.hidden_->clone(label_prefix));
-		visible_ = DenseptrT(other.visible_->clone(label_prefix));
-
-		auto contents = get_contents();
-		for (auto content : contents)
+		auto hidden_contents = hidden_->get_contents();
+		auto vbias = other.visible_->get_contents()[1];
+		if (nullptr != vbias)
 		{
-			tag(content);
+			vbias = ade::TensptrT(ead::Variable<PybindT>::get(
+				*static_cast<ead::Variable<PybindT>*>(vbias.get())));
 		}
+		visible_ = std::make_shared<Dense>(tenncor::transpose(
+			ead::NodeConverters<PybindT>::to_node(hidden_contents[0])),
+			ead::NodeConverters<PybindT>::to_node(vbias),
+			label_prefix + visible_key);
+
+		activation_ = ActivationptrT(other.activation_->clone(label_prefix));
+		tag_sublayers();
 	}
 
 	std::string label_;
