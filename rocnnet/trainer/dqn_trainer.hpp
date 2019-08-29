@@ -37,7 +37,7 @@ struct DQNTrainingContext final
 	ead::NodeptrT<PybindT> next_output_ = nullptr;
 };
 
-struct DQNInfo
+struct DQNInfo final
 {
 	DQNInfo (size_t train_interval = 5,
 		PybindT rand_action_prob = 0.05,
@@ -67,7 +67,7 @@ struct DQNInfo
 	size_t max_exp_ = 30000;
 };
 
-struct DQNTrainer
+struct DQNTrainer final
 {
 	DQNTrainer (modl::SequentialModel& model,
 		ead::iSession& sess, eqns::ApproxF update, DQNInfo param,

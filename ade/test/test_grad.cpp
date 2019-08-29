@@ -42,7 +42,7 @@ struct MockGradientBuilder final : public ade::iGradientBuilder
 			return ade::TensptrT(ade::Functor::get(ade::Opcode{"FUNC4", 3},
 				{op->get_children()[arg_idx]}));
 		}
-		return ade::TensptrT(new LabelledMockTensor("other", op->shape()));;
+		return ade::TensptrT(new LabelledMockTensor("other", op->shape()));
 	}
 
 	ade::TensptrT chain_rule (ade::FuncptrT op, const ade::TensptrT& local_der,

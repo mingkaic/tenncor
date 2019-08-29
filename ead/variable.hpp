@@ -87,7 +87,7 @@ struct Variable final : public iLeaf<T>
 	{
 		std::vector<T> data;
 		age::type_convert(data, input, dtype, shape.n_elems());
-		this->data_ = make_tensmap<T>(data.data(), shape);;
+		this->data_ = make_tensmap<T>(data.data(), shape);
 	}
 
 	/// Implementation of iTensor

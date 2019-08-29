@@ -17,7 +17,7 @@ struct TrainingContext final
 };
 
 // MLPTrainer does not own anything
-struct MLPTrainer
+struct MLPTrainer final
 {
 	MLPTrainer (modl::SequentialModel& model,
 		ead::iSession& sess, eqns::ApproxF update, ade::DimT batch_size,

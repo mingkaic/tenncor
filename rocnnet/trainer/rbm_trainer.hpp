@@ -8,18 +8,31 @@
 namespace trainer
 {
 
+// Bernoulli RBM "error approximation"
+// for each (x, err) in leaves
+// momentum_next ~ χ * momentum_cur + η * (1 - χ) / err.shape[0] * err
+// x_next = x_curr + next_momentum
+//
+// where η is the learning rate, and χ is discount_factor
 eqns::AssignGroupsT bbernoulli_approx (const eqns::VarErrsT& leaves,
 	PybindT learning_rate, PybindT discount_factor,
 	std::string root_label = "")
 {
 	// assign momentums before leaves
-	eqns::AssignsT momentum_assigns;
-	eqns::AssignsT leaf_assigns;
+	eqns::AssignsT assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
 		auto leaf_node = ead::convert_to_node(leaves[i].first);
 		auto err = leaves[i].second;
 
+		auto shape = err->shape();
+		std::vector<ade::DimT> slist(shape.begin(), shape.end());
+		auto it = slist.rbegin(), et = slist.rend();
+		while (it != et && *it == 1)
+		{
+			++it;
+		}
+		ade::DimT shape_factor = it == et ? 1 : *it;
 		auto momentum = ead::make_variable_scalar<PybindT>(0,
 			err->shape(), leaves[i].first->get_label() + "_momentum");
 		auto momentum_next = tenncor::add(
@@ -28,20 +41,20 @@ eqns::AssignGroupsT bbernoulli_approx (const eqns::VarErrsT& leaves,
 				ead::convert_to_node(momentum)),
 			tenncor::mul(
 				ead::make_constant_scalar(learning_rate *
-					(1 - discount_factor) / err->shape().at(0), err->shape()),
+					(1 - discount_factor) / shape_factor, err->shape()),
 				err));
 		auto leaf_next = tenncor::add(leaf_node, momentum_next);
 
-		momentum_assigns.push_back(eqns::VarAssign{
+		assigns.push_back(eqns::VarAssign{
 			fmts::sprintf("bbernoulli_momentum::%s_momentum_%s",
 				root_label.c_str(), leaves[i].first->get_label().c_str()),
 			momentum, momentum_next});
-		leaf_assigns.push_back(eqns::VarAssign{
+		assigns.push_back(eqns::VarAssign{
 			fmts::sprintf("bbernoulli_momentum::%s_grad_%s",
 				root_label.c_str(), leaves[i].first->get_label().c_str()),
 			leaves[i].first, leaf_next});
 	}
-	return {momentum_assigns, leaf_assigns};
+	return {assigns};
 }
 
 using ErrorF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>,ead::NodeptrT<PybindT>)>;
@@ -58,8 +71,6 @@ struct BernoulliRBMTrainer final
 	{
 		visible_ = ead::make_variable_scalar<PybindT>(0,
 			ade::Shape({(ade::DimT) model.get_ninput(), batch_size}));
-		expect_hidden_ = ead::make_variable_scalar<PybindT>(0,
-			ade::Shape({(ade::DimT) model.get_noutput(), batch_size}));
 
 		hidden_sample_ = model.connect(visible_);
 		visible_sample_ = model.backward_connect(
@@ -70,7 +81,8 @@ struct BernoulliRBMTrainer final
 		auto grad_w = tenncor::sub(
 			tenncor::matmul(tenncor::transpose(
 				ead::convert_to_node(visible_)), hidden_sample_),
-			tenncor::matmul(tenncor::transpose(visible_sample_), hidden_reconp));
+			tenncor::matmul(tenncor::transpose(
+				visible_sample_), hidden_reconp));
 		auto grad_hb = tenncor::reduce_mean_1d(
 			tenncor::sub(hidden_sample_, hidden_reconp), 1);
 		auto grad_vb = tenncor::reduce_mean_1d(
@@ -93,18 +105,35 @@ struct BernoulliRBMTrainer final
 		};
 
 		updates_ = bbernoulli_approx(varerrs, learning_rate, discount_factor);
-		visible_from_hidden_ = model.backward_connect(expect_hidden_);
 
+		ade::TensT to_track = {
+			hidden_sample_->get_tensor(),
+			visible_sample_->get_tensor(),
+		};
+		to_track.reserve(updates_.size() + 1);
 		if (err_func)
 		{
 			error_ = err_func(ead::convert_to_node(visible_), visible_sample_);
+			to_track.push_back(error_->get_tensor());
 		}
+
+		for (auto& assigns : updates_)
+		{
+			for (auto& assign : assigns)
+			{
+				auto source = assign.source_->get_tensor();
+				assign_sources_.emplace(source.get());
+				to_track.push_back(source);
+			}
+		}
+		sess.track(to_track);
 	}
 
+	// Return error after training with train_in
+	// if error is set, otherwise -1
 	PybindT train (std::vector<PybindT>& train_in)
 	{
 		size_t insize = model_.get_ninput();
-		size_t outsize = model_.get_noutput();
 		if (train_in.size() != insize * batch_size_)
 		{
 			logs::fatalf("training vector size (%d) does not match "
@@ -113,36 +142,44 @@ struct BernoulliRBMTrainer final
 		}
 		visible_->assign(train_in.data(), visible_->shape());
 
-		sess_->update({
+		sess_->update_target(assign_sources_, {
 			visible_->get_tensor().get(),
 		});
-		assign_groups(updates_,
-			[this](std::unordered_set<ade::iTensor*>& updated)
-			{
-				this->sess_->update(updated);
-			});
 
 		if (nullptr == error_)
+		{
+			assign_groups(updates_,
+				[this](ead::TensSetT& updated)
+				{
+					this->sess_->update(updated);
+				});
 			return -1;
+		}
+
+		assign_groups(updates_,
+			[this](ead::TensSetT& updated)
+			{
+				this->sess_->update_target(
+					ead::TensSetT{this->error_->get_tensor().get()}, updated);
+			});
 		return error_->data()[0];
 	}
 
+private:
 	modl::RBM& model_;
 
 	ead::VarptrT<PybindT> visible_ = nullptr;
-
-	ead::VarptrT<PybindT> expect_hidden_ = nullptr;
 
 	ead::NodeptrT<PybindT> hidden_sample_ = nullptr;
 
 	ead::NodeptrT<PybindT> visible_sample_ = nullptr;
 
-	ead::NodeptrT<PybindT> visible_from_hidden_ = nullptr;
-
 	ead::NodeptrT<PybindT> error_ = nullptr;
 
 	// === updates && optimizer ===
 	eqns::AssignGroupsT updates_;
+
+	ead::TensSetT assign_sources_;
 
 	ead::iSession* sess_;
 

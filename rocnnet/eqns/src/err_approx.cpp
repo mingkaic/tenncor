@@ -78,7 +78,7 @@ void assign_groups (AssignGroupsT& groups, UpdateStepF update_step)
 {
 	for (AssignsT& group : groups)
 	{
-		std::unordered_set<ade::iTensor*> updated_var;
+		ead::TensSetT updated_var;
 		for (eqns::VarAssign& assign : group)
 		{
 			updated_var.emplace(assign.target_->get_tensor().get());

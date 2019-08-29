@@ -207,7 +207,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 			case age::MAX:
 			case age::MIN:
 				out = tenncor::eq(NodeConverters<T>::to_node(op),
-					NodeConverters<T>::to_node(args[arg_idx].get_tensor()))->get_tensor();;
+					NodeConverters<T>::to_node(args[arg_idx].get_tensor()))->get_tensor();
 				break;
 			case age::POW:
 				out = (arg_idx==0 ?
@@ -224,7 +224,7 @@ struct GradientBuilder final : public ade::iGradientBuilder
 					) :
 					tenncor::mul(tenncor::log(NodeConverters<T>::to_node(args[0].get_tensor())),
 						NodeConverters<T>::to_node(op))
-				)->get_tensor();;
+				)->get_tensor();
 				break;
 			case age::SUB:
 				out = make_constant_scalar<T>(arg_idx == 0 ?

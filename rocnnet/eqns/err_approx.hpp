@@ -30,7 +30,7 @@ using AssignGroupsT = std::list<AssignsT>;
 // approximate error of sources given error of root
 using ApproxF = std::function<AssignGroupsT(const VarErrsT&)>;
 
-using UpdateStepF = std::function<void(std::unordered_set<ade::iTensor*>&)>;
+using UpdateStepF = std::function<void(ead::TensSetT&)>;
 
 using NodeUnarF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
 
@@ -38,16 +38,18 @@ ead::NodeptrT<PybindT> identity (ead::NodeptrT<PybindT> node);
 
 // Stochastic Gradient Descent Approximation
 // for each (x, err) in leaves
-// x_next ~ x_curr - η * err, where η is the learning rate
+// x_next ~ x_curr - η * err,
+//
+// where η is the learning rate
 AssignGroupsT sgd (const VarErrsT& leaves,
 	PybindT learning_rate = 0.5, std::string root_label = "");
 
 // Momentum-based Root Mean Square Approximation
 // for each (x, err) in leaves
-// momentum_next ~ χ * momentum_prev + (1 - χ) * err ^ 2
-// next_x ~ x_curr - (η * err) / (sqrt(ε + momentum_next))
+// momentum_next ~ χ * momentum_cur + (1 - χ) * err ^ 2
+// x_next ~ x_curr - (η * err) / (sqrt(ε + momentum_next))
 //
-// where root = f, η is the learning rate, ε is epsilon,
+// where η is the learning rate, ε is epsilon,
 // and χ is discount_factor
 AssignGroupsT rms_momentum (const VarErrsT& leaves,
 	PybindT learning_rate = 0.5, PybindT discount_factor = 0.99,
