@@ -128,8 +128,9 @@ struct LayerNode final
 
 using SublayersT = std::unordered_map<ade::iTensor*,LMatchesT>;
 
-using TensLayerMapT = std::unordered_map<LayerNode*,
-	std::unordered_map<ade::TensptrT,std::string>>;
+using TensLablT = std::unordered_map<ade::TensptrT,std::string>;
+
+using TensLayerMapT = std::unordered_map<LayerNode*,TensLablT>;
 
 struct LayerDeserializer final : public ade::OnceTraveler
 {
@@ -205,7 +206,7 @@ private:
 			builder->set_sublayer(build_layer_helper(
 				registry, layer_tens, sub.get()));
 		}
-		std::unordered_map<ade::TensptrT,std::string> tenslabels;
+		TensLablT tenslabels;
 		if (estd::get(tenslabels, layer_tens, lroot))
 		{
 			for (auto& tenslabel : tenslabels)
