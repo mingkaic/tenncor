@@ -107,7 +107,7 @@ def main(args):
         tc.random.rand_binom_one(trained.connect(x)))
 
     image = random.choice(mnist_images)
-    sess.track([genx])
+    sess.track([genx, trained_genx, untrained_genx])
 
     sess.optimize("cfg/optimizations.rules")
 
@@ -169,7 +169,7 @@ def main(args):
     plt.show()
 
     x.assign(image.reshape(1,-1))
-    sess.update_target([genx, untrained_genx, trained_genx], [x])
+    sess.update_target([genx, trained_genx, untrained_genx], [x])
     image_rec = genx.get()
     image_rec_trained = trained_genx.get()
     image_rec_untrained = untrained_genx.get()

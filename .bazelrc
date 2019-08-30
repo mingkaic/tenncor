@@ -6,6 +6,13 @@ build --incompatible_depset_is_not_iterable=false
 test --incompatible_depset_is_not_iterable=false
 coverage --incompatible_depset_is_not_iterable=false
 
+# ------ HARDWARE LIMITATIONS ------
+
+run:mortal_hw --jobs=2
+build:mortal_hw --jobs=2
+test:mortal_hw --jobs=2
+coverage:mortal_hw --jobs=2
+
 # ------ OPTIMIZATION ------
 
 run:clang_eigen_optimal --copt="-march=native" --copt="-openmp" --copt="-O3"

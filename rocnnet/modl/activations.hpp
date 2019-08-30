@@ -129,11 +129,11 @@ private:
 
 	std::string label_;
 
-	ead::NodeptrT<PybindT> placeholder_;
+	std::string act_type_;
 
 	NonLinearF activation_;
 
-	std::string act_type_;
+	ead::NodeptrT<PybindT> placeholder_;
 };
 
 using ActivationptrT = std::shared_ptr<Activation>;

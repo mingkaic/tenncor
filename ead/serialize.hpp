@@ -93,29 +93,21 @@ struct EADSaver final : public pbm::iSaver
 	}
 };
 
-template <typename T>
-ead::ArgsT<T> to_eadargs (ade::ArgsT& args)
-{
-	ead::ArgsT<T> out;
-	out.reserve(args.size());
-	std::transform(args.begin(), args.end(), std::back_inserter(out),
-	[](ade::FuncArg arg)
-	{
-		return ead::FuncArg<T>(
-			ead::NodeConverters<T>::to_node(arg.get_tensor()),
-			arg.get_shaper(),
-			std::static_pointer_cast<ead::CoordMap>(arg.get_coorder()));
-	});
-	return out;
-}
-
 #define _OUT_GENERIC(realtype)leaf = is_const?\
-make_constant<realtype>((realtype*) pb, shape)->get_tensor():\
+ade::TensptrT(Constant<realtype>::get((realtype*) pb, shape)):\
 ade::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 
-#define _OUT_GENFUNC(realtype)func = ade::TensptrT(\
-ead::Functor<realtype>::get(ade::Opcode{opname, age::get_op(opname)},\
-to_eadargs<realtype>(args)));
+#define _OUT_GENFUNC(realtype){\
+ArgsT<realtype> eargs;eargs.reserve(args.size());\
+std::transform(args.begin(), args.end(), std::back_inserter(eargs),\
+[](ade::FuncArg arg){\
+	return FuncArg<realtype>(\
+		NodeConverters<realtype>::to_node(arg.get_tensor()),\
+		arg.get_shaper(),\
+		std::static_pointer_cast<CoordMap>(arg.get_coorder()));\
+});\
+func = ade::TensptrT(\
+Functor<realtype>::get(ade::Opcode{opname, age::get_op(opname)},eargs));}
 
 /// Unmarshal cortenn::Source as Variable containing context of source
 struct EADLoader final : public pbm::iLoader
@@ -148,10 +140,27 @@ struct EADLoader final : public pbm::iLoader
 
 	ade::TensptrT generate_func (std::string opname, ade::ArgsT args) override
 	{
-		age::_GENERATED_DTYPE gencode = (age::_GENERATED_DTYPE)
-			((ade::iData*) args[0].get_tensor().get())->type_code();
-		ade::TensptrT func;
-		TYPE_LOOKUP(_OUT_GENFUNC, gencode);
+		if (args.empty())
+		{
+			logs::fatalf("cannot generate func %s without args", opname.c_str());
+		}
+		size_t gencode = age::BAD_TYPE;
+		auto arg = args[0].get_tensor().get();
+		if (auto leaf = dynamic_cast<ade::iLeaf*>(arg))
+		{
+			gencode = leaf->type_code();
+		}
+		else if (auto func = dynamic_cast<ade::iOperableFunc*>(arg))
+		{
+			gencode = func->type_code();
+		}
+		else
+		{
+			logs::fatalf("cannot generate func from non-ead tensor arg %s",
+				arg->to_string().c_str());
+		}
+		ade::TensptrT func = nullptr;
+		TYPE_LOOKUP(_OUT_GENFUNC, (age::_GENERATED_DTYPE) gencode);
 		return func;
 	}
 
