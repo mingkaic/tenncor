@@ -59,7 +59,7 @@ struct PrettyEquation final
 		}) {}
 
 	/// Stream equation of ptr to out
-	void print (std::ostream& out, ade::TensptrT& ptr)
+	void print (std::ostream& out, const ade::TensptrT& ptr)
 	{
 		drawer_.print(out, ptr.get());
 	}

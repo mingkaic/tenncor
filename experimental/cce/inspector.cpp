@@ -5,7 +5,7 @@
 #include "flag/flag.hpp"
 #include "fmts/fmts.hpp"
 
-#include "pbm/graph.pb.h"
+#include "experimental/cce/weights.pb.h"
 
 int main (int argc, const char** argv)
 {
@@ -28,8 +28,8 @@ int main (int argc, const char** argv)
 	std::ifstream readstr(readpath);
 	if (readstr.is_open())
 	{
-		cortenn::Graph graph;
-		if (false == graph.ParseFromIstream(&readstr))
+		weights::OpWeights ops;
+		if (false == ops.ParseFromIstream(&readstr))
 		{
 			logs::fatalf("failed to parse from istream when read file %s",
 				readpath.c_str());
@@ -39,9 +39,9 @@ int main (int argc, const char** argv)
 		options.add_whitespace = true;
 		if (google::protobuf::util::Status::OK !=
 			google::protobuf::util::MessageToJsonString(
-				graph, &jsonstr, options))
+				ops, &jsonstr, options))
 		{
-			logs::fatal("failed to parse graph");
+			logs::fatal("failed to parse op weights");
 		}
 
 		std::ofstream writestr(writepath);

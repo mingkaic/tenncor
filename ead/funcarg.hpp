@@ -120,6 +120,63 @@ FuncArg<T> permute_map (NodeptrT<T> node, std::vector<ade::RankT> order)
 	return FuncArg<T>(node, ade::permute(order), permute(order));
 }
 
+template <typename T>
+FuncArg<T> slice_map (NodeptrT<T> node, ade::RankT offset, 
+	ade::RankT extent, ade::RankT dimension)
+{
+	if (dimension >= ade::rank_cap)
+	{
+		logs::fatalf("cannot slice dimension %d beyond rank_cap %d",
+			dimension, ade::rank_cap);
+	}
+	ade::CoordT slicings;
+	std::fill(slicings.begin(), slicings.end(), ade::rank_cap);
+	slicings[0] = offset;
+	slicings[1] = extent;
+	slicings[2] = dimension;
+	return FuncArg<T>(node,
+		std::make_shared<ade::CoordMap>(
+			[=](ade::MatrixT fwd)
+			{
+				for (ade::RankT i = 0; i < ade::rank_cap; ++i)
+				{
+					fwd[i][i] = 1;
+				}
+				fwd[ade::rank_cap][dimension] =
+					extent - node->shape().at(dimension);
+			}),
+		std::make_shared<CoordMap>(slicings, false));
+}
+
+template <typename T>
+FuncArg<T> pad_map (NodeptrT<T> node, 
+	const std::pair<ade::DimT,ade::DimT>& padding, 
+	ade::RankT dimension)
+{
+	if (dimension >= ade::rank_cap)
+	{
+		logs::fatalf("cannot pad dimension %d beyond rank_cap %d",
+			dimension, ade::rank_cap);
+	}
+	ade::CoordT paddings;
+	std::fill(paddings.begin(), paddings.end(), ade::rank_cap);
+	paddings[0] = padding.first;
+	paddings[1] = padding.second;
+	paddings[2] = dimension;
+	return FuncArg<T>(node,
+		std::make_shared<ade::CoordMap>(
+			[=](ade::MatrixT fwd)
+			{
+				for (ade::RankT i = 0; i < ade::rank_cap; ++i)
+				{
+					fwd[i][i] = 1;
+				}
+				fwd[ade::rank_cap][dimension] =
+					padding.first + padding.second;
+			}),
+		std::make_shared<CoordMap>(paddings, false));
+}
+
 }
 
 #endif // EAD_FUNCARG_HPP

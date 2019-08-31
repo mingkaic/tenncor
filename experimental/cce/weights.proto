@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option go_package = "github.com/mingkaic/tenncor/cce";
+
+package weights;
+
+message OpWeights
+{
+    string label = 1;
+    map<string,double> weights = 2;
+}

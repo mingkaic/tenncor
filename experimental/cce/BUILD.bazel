@@ -14,7 +14,7 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
-    ]) + ["//pbm:protos", "BUILD.bazel"],
+    ]) + ["BUILD.bazel"],
 )
 
 filegroup(
@@ -34,23 +34,26 @@ filegroup(
 ######### LIBRARY #########
 
 proto_library(
-    name = "pbm_proto",
-    srcs = ["//pbm:protos"],
+    name = "weight_proto",
+    srcs = ["//experimental/cce:protos"],
 )
 
 cpp_proto_library(
-    name = "pbm_cc_proto",
-    deps = ["//pbm:pbm_proto"],
+    name = "weight_cc_proto",
+    deps = ["//experimental/cce:weight_proto"],
 )
 
 cc_library(
-    name = "pbm",
-    hdrs = glob(["*.hpp"]),
+    name = "cce",
+    hdrs = [
+        "partition.hpp",
+        "async_session.hpp",
+    ],
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//tag:tag",
-        "//pbm:pbm_cc_proto",
+        "//ead:ead",
+        "@boost//:asio",
     ],
 )
 
@@ -61,7 +64,18 @@ cc_binary(
     srcs = glob(["inspector.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//pbm:pbm_cc_proto",
+        "//experimental/cce:weight_cc_proto",
+        "@com_github_mingkaic_cppkg//flag:flag",
+    ],
+)
+
+cc_binary(
+    name = "rt_anubis",
+    srcs = ["rtscale.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//ead:ead",
+        "//experimental/cce:weight_cc_proto",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
 )
@@ -70,17 +84,13 @@ cc_binary(
 
 cc_test(
     name = "test",
-    size = "small",
-    srcs = ["//pbm:test_srcs"],
+    srcs = ["//experimental/cce:test_srcs"],
+    copts = ["-std=c++17"],
     deps = [
-        "//pbm:pbm",
         "//dbg:stream_out",
+        "//experimental/cce:cce",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
-    copts = ["-std=c++17"],
-    data = glob([
-        "data/*.pb",
-        "data/*.txt",
-    ]),
+    linkstatic = True,
 )
