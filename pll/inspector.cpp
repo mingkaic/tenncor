@@ -5,7 +5,7 @@
 #include "flag/flag.hpp"
 #include "fmts/fmts.hpp"
 
-#include "experimental/cce/weights.pb.h"
+#include "pll/weights.pb.h"
 
 int main (int argc, const char** argv)
 {

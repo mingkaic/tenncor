@@ -3,7 +3,7 @@
 #ifndef CCE_PARTITION_HPP
 #define CCE_PARTITION_HPP
 
-namespace cce
+namespace pll
 {
 
 using PartGroupsT = std::vector<std::vector<ade::iFunctor*>>;

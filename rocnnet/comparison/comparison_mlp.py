@@ -7,15 +7,23 @@ import tensorflow as tf
 
 import ead.tenncor as tc
 import ead.ead as ead
+
 import rocnnet.rocnnet as rcn
 
 matrix_dims = [
-    10,
+    24,
     50,
+    74,
     100,
+    124,
     150,
+    174,
     200,
+    224,
     250,
+    512,
+    1024,
+    1500,
 ]
 
 def batch_generate(n, batchsize):
@@ -118,17 +126,22 @@ tf_durs = []
 
 for matrix_dim in matrix_dims:
     n_in = matrix_dim
-    n_out = n_in / 2
+    n_out = int(n_in / 2)
     batch_size = 1
 
     # regular mlp
-    nonlins = [tc.sigmoid, tc.sigmoid]
-    hiddens = [matrix_dim, n_out]
-
-    brain = rcn.get_mlp(n_in, hiddens, rcn.unif_xavier_init(), 'brain_' + str(matrix_dim))
+    brain = rcn.SequentialModel("comparison")
+    brain.add(rcn.Dense(matrix_dim, n_in,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="0"))
+    brain.add(rcn.sigmoid())
+    brain.add(rcn.Dense(n_out, matrix_dim,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="1"))
+    brain.add(rcn.sigmoid())
 
     invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
-    out = brain.forward(invar, nonlins)
+    out = brain.connect(invar)
     expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
     err = tc.square(tc.sub(expected_out, out))
 
@@ -141,9 +154,9 @@ for matrix_dim in matrix_dims:
     tf_err = tf.square(tf_expected_out - tf_out)
 
     sess = ead.Session()
-    sess.track(err)
+    sess.track([err])
 
-    tfsess = tf.Session()
+    tfsess = tf.compat.v1.Session()
     tfsess.run(tf.global_variables_initializer())
 
 

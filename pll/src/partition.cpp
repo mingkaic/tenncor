@@ -2,11 +2,11 @@
 
 #include "ade/iopfunc.hpp"
 
-#include "experimental/cce/partition.hpp"
+#include "pll/partition.hpp"
 
 #ifdef CCE_PARTITION_HPP
 
-namespace cce
+namespace pll
 {
 
 struct WeighedGroup final
@@ -60,7 +60,7 @@ PartGroupsT k_partition (ade::TensT roots, size_t k, OpWeightT weights)
 				}
 				weight_map.emplace(tens, weight);
 			}
-			ade::ParentFinder::ParentMapT parents;
+			ade::ParentMapT parents;
 			if (estd::get(parents, pfinder.parents_, tens))
 			{
 				for (auto& ppair : parents)

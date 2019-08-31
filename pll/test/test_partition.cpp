@@ -10,7 +10,7 @@
 
 #include "ead/ead.hpp"
 
-#include "experimental/cce/partition.hpp"
+#include "pll/partition.hpp"
 
 
 TEST(PARTITION, Kpartition)
@@ -120,7 +120,7 @@ TEST(PARTITION, Kpartition)
 	auto dw1 = ead::derive(err, weight1);
 	auto db1 = ead::derive(err, bias1);
 
-	auto groups = cce::k_partition({
+	auto groups = pll::k_partition({
 		dw0->get_tensor(),
 		db0->get_tensor(),
 		dw1->get_tensor(),

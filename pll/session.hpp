@@ -1,29 +1,30 @@
 #include <atomic>
 
 #include <boost/asio/thread_pool.hpp>
+#include <boost/asio/post.hpp>
 
 #include "ead/session.hpp"
 
-#include "experimental/cce/partition.hpp"
+#include "pll/partition.hpp"
 
 #ifndef CCE_ASESS_HPP
 #define CCE_ASESS_HPP
 
-namespace cce
+namespace pll
 {
 
-struct AtomicSizeT
+struct AtomicLongT
 {
-	std::atomic<size_t> d = 0;
+	std::atomic<long> d = 0;
 
 	operator size_t() const { return d; }
 };
 
 using SessReqsT = std::vector<std::pair<ade::iOperableFunc*,size_t>>;
 
-struct AsyncSession final : public ead::iSession
+struct Session final : public ead::iSession
 {
-	AsyncSession (size_t nthreads = 2, OpWeightT weights_ = OpWeightT()) :
+	Session (size_t nthreads = 2, OpWeightT weights = OpWeightT()) :
 		nthreads_(nthreads), weights_(weights) {}
 
 	std::unordered_set<ade::TensptrT> tracked_;
@@ -31,6 +32,18 @@ struct AsyncSession final : public ead::iSession
 	void track (ade::TensT roots) override
 	{
 		tracked_.insert(roots.begin(), roots.end());
+
+		ade::GraphStat stat;
+		for (auto& trac : tracked_)
+		{
+			trac->accept(stat);
+		}
+		ade::ParentFinder pfinder;
+		for (ade::TensptrT& root : roots)
+		{
+			root->accept(pfinder);
+		}
+
 		ade::TensT trackvecs(tracked_.begin(), tracked_.end());
 		PartGroupsT groups = k_partition(trackvecs, nthreads_, weights_);
 		requirements_.clear();
@@ -41,11 +54,11 @@ struct AsyncSession final : public ead::iSession
 			for (ade::iFunctor* func : group)
 			{
 				auto& args = func->get_children();
-				TensSetT unique_children;
+				ead::TensSetT unique_children;
 				for (const ade::FuncArg& arg : args)
 				{
 					auto tens = arg.get_tensor().get();
-					if (0 < statmap[tens].upper_) // ignore leaves
+					if (0 < stat.graphsize_[tens].upper_) // ignore leaves
 					{
 						unique_children.emplace(tens);
 					}
@@ -55,12 +68,7 @@ struct AsyncSession final : public ead::iSession
 					unique_children.size()
 				});
 			}
-		}
-
-		ade::ParentFinder pfinder;
-		for (ade::TensptrT& root : roots)
-		{
-			root->accept(pfinder);
+			requirements_.push_back(reqs);
 		}
 
 		for (auto& assocs : pfinder.parents_)
@@ -74,15 +82,18 @@ struct AsyncSession final : public ead::iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update (TensSetT updated = {}, TensSetT ignores = {}) override
+	void update (ead::TensSetT updated = {}, ead::TensSetT ignores = {}) override
 	{
-		std::unordered_map<ade::iOperableFunc*,AtomicSizeT> fulfilments;
+		std::unordered_map<ade::iOperableFunc*,AtomicLongT> fulfilments;
 		for (ade::iTensor* unodes : updated)
 		{
-			auto& node_parents = parents_[unodes];
-			for (auto& node_parent : node_parents)
+			if (dynamic_cast<ade::iFunctor*>(unodes))
 			{
-				++fulfilments[node_parent].d;
+				auto& node_parents = parents_[unodes];
+				for (auto& node_parent : node_parents)
+				{
+					++fulfilments[node_parent].d;
+				}
 			}
 		}
 		// for each req in requirements distribute to thread
@@ -91,21 +102,23 @@ struct AsyncSession final : public ead::iSession
 		{
 			// add thread
 			boost::asio::post(pool,
-			[&req, &fulfilments, &ignores]()
+			[this, &req, &fulfilments, &ignores]()
 			{
 				for (auto& op : req)
 				{
 					// fulfilled and not ignored
-					if (fulfilments[op.first].d >= op.second &&
+					if (fulfilments[op.first].d++ == op.second &&
 						false == estd::has(ignores, op.first))
 					{
 						op.first->update();
-						auto& op_parents = parents_[op.first];
+						auto& op_parents = this->parents_[op.first];
 						for (auto& op_parent : op_parents)
 						{
 							++fulfilments[op_parent].d;
 						}
+						++fulfilments[op.first].d;
 					}
+					--fulfilments[op.first].d;
 				}
 			});
 		}
@@ -113,20 +126,23 @@ struct AsyncSession final : public ead::iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update_target (TensSetT target, TensSetT updated = {}) override
+	void update_target (ead::TensSetT target, ead::TensSetT updated = {}) override
 	{
 		ade::OnceTraveler targetted;
 		for (auto& tens : target)
 		{
 			tens->accept(targetted);
 		}
-		std::unordered_map<ade::iOperableFunc*,AtomicSizeT> fulfilments;
+		std::unordered_map<ade::iOperableFunc*,AtomicLongT> fulfilments;
 		for (ade::iTensor* unodes : updated)
 		{
-			auto& node_parents = parents_[unodes];
-			for (auto& node_parent : node_parents)
+			if (dynamic_cast<ade::iFunctor*>(unodes))
 			{
-				++fulfilments[node_parent].d;
+				auto& node_parents = parents_[unodes];
+				for (auto& node_parent : node_parents)
+				{
+					++fulfilments[node_parent].d;
+				}
 			}
 		}
 		// for each req in requirements distribute to thread
@@ -135,23 +151,25 @@ struct AsyncSession final : public ead::iSession
 		{
 			// make thread
 			boost::asio::post(pool,
-			[&req, &fulfilments, &ignores]()
+			[this, &req, &fulfilments, &targetted]()
 			{
 				for (auto& op : req)
 				{
 					// is relevant to target, is fulfilled and not ignored
-					if (estd::has(targetted.visited_, op.first) &&
-						fulfilments[op.first].d >= op.second)
+					if (fulfilments[op.first].d++ == op.second &&
+						estd::has(targetted.visited_, op.first))
 					{
 						op.first->update();
-						auto& op_parents = parents_[op.first];
+						auto& op_parents = this->parents_[op.first];
 						for (auto& op_parent : op_parents)
 						{
 							++fulfilments[op_parent].d;
 						}
+						++fulfilments[op.first].d;
 					}
+					--fulfilments[op.first].d;
 				}
-			})
+			});
 		}
 		pool.join();
 	}

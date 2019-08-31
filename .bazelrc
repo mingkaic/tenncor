@@ -1,17 +1,10 @@
 
 # ------ ALL SETTINGS ------
 
-run --incompatible_depset_is_not_iterable=false
-build --incompatible_depset_is_not_iterable=false
-test --incompatible_depset_is_not_iterable=false
-coverage --incompatible_depset_is_not_iterable=false
-
-# ------ HARDWARE LIMITATIONS ------
-
-run:mortal_hw --jobs=2
-build:mortal_hw --jobs=2
-test:mortal_hw --jobs=2
-coverage:mortal_hw --jobs=2
+run --incompatible_depset_is_not_iterable=false --jobs=2
+build --incompatible_depset_is_not_iterable=false --jobs=2
+test --incompatible_depset_is_not_iterable=false --jobs=2
+coverage --incompatible_depset_is_not_iterable=false --jobs=2
 
 # ------ OPTIMIZATION ------
 

@@ -35,20 +35,17 @@ filegroup(
 
 proto_library(
     name = "weight_proto",
-    srcs = ["//experimental/cce:protos"],
+    srcs = ["//pll:protos"],
 )
 
 cpp_proto_library(
     name = "weight_cc_proto",
-    deps = ["//experimental/cce:weight_proto"],
+    deps = ["//pll:weight_proto"],
 )
 
 cc_library(
-    name = "cce",
-    hdrs = [
-        "partition.hpp",
-        "async_session.hpp",
-    ],
+    name = "pll",
+    hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
@@ -64,7 +61,7 @@ cc_binary(
     srcs = glob(["inspector.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//experimental/cce:weight_cc_proto",
+        "//pll:weight_cc_proto",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
 )
@@ -75,7 +72,7 @@ cc_binary(
     copts = ["-std=c++17"],
     deps = [
         "//ead:ead",
-        "//experimental/cce:weight_cc_proto",
+        "//pll:weight_cc_proto",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
 )
@@ -84,11 +81,11 @@ cc_binary(
 
 cc_test(
     name = "test",
-    srcs = ["//experimental/cce:test_srcs"],
+    srcs = ["//pll:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//dbg:stream_out",
-        "//experimental/cce:cce",
+        "//pll:pll",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

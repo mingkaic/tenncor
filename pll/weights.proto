@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/mingkaic/tenncor/cce";
+option go_package = "github.com/mingkaic/tenncor/pll";
 
 package weights;
 
