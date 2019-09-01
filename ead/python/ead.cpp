@@ -228,7 +228,7 @@ PYBIND11_MODULE(ead, m)
 			py::arg("updated") = std::vector<ead::NodeptrT<PybindT>>{});
 
 	py::implicitly_convertible<ead::iSession,ead::Session>();
-	session // todo: use isess for overridden functions
+	session
 		.def(py::init())
 		.def("optimize",
 			[](py::object self, std::string filename)

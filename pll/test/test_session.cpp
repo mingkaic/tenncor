@@ -120,7 +120,7 @@ TEST(SESSION, Update)
 	auto dw1 = ead::derive(err, weight1);
 	auto db1 = ead::derive(err, bias1);
 
-	pll::Session sess(2);;
+	pll::Session sess(4);
 	sess.track({
 		dw0->get_tensor(),
 		db0->get_tensor(),

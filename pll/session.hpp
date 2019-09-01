@@ -13,14 +13,10 @@
 namespace pll
 {
 
-struct AtomicLongT
-{
-	std::atomic<long> d = 0;
-
-	operator size_t() const { return d; }
-};
-
 using SessReqsT = std::vector<std::pair<ade::iOperableFunc*,size_t>>;
+
+using AtomicFulfilMapT = std::unordered_map<
+	ade::iOperableFunc*,std::atomic<long>>;
 
 struct Session final : public ead::iSession
 {
@@ -79,12 +75,25 @@ struct Session final : public ead::iSession
 					static_cast<ade::iOperableFunc*>(parent_pair.first));
 			}
 		}
+
+		ops_.clear();
+		for (auto& tpair : stat.graphsize_)
+		{
+			if (tpair.second.upper_ > 0)
+			{
+				ops_.emplace(static_cast<ade::iOperableFunc*>(tpair.first));
+			}
+		}
 	}
 
 	// this function is expected to be called repeatedly during runtime
 	void update (ead::TensSetT updated = {}, ead::TensSetT ignores = {}) override
 	{
-		std::unordered_map<ade::iOperableFunc*,AtomicLongT> fulfilments;
+		AtomicFulfilMapT fulfilments;
+		for (auto op : ops_)
+		{
+			fulfilments.emplace(op, 0);
+		}
 		for (ade::iTensor* unodes : updated)
 		{
 			if (dynamic_cast<ade::iFunctor*>(unodes))
@@ -92,7 +101,7 @@ struct Session final : public ead::iSession
 				auto& node_parents = parents_[unodes];
 				for (auto& node_parent : node_parents)
 				{
-					++fulfilments[node_parent].d;
+					++fulfilments[node_parent];
 				}
 			}
 		}
@@ -107,18 +116,23 @@ struct Session final : public ead::iSession
 				for (auto& op : req)
 				{
 					// fulfilled and not ignored
-					if (fulfilments[op.first].d++ == op.second &&
+					auto& ff = fulfilments.at(op.first);
+					if (ff++ == op.second &&
 						false == estd::has(ignores, op.first))
 					{
 						op.first->update();
-						auto& op_parents = this->parents_[op.first];
-						for (auto& op_parent : op_parents)
+						std::unordered_set<ade::iOperableFunc*> op_parents;
+						if (estd::get(op_parents,
+							this->parents_, op.first))
 						{
-							++fulfilments[op_parent].d;
+							for (auto& op_parent : op_parents)
+							{
+								++fulfilments.at(op_parent);
+							}
 						}
-						++fulfilments[op.first].d;
+						++ff;
 					}
-					--fulfilments[op.first].d;
+					--ff;
 				}
 			});
 		}
@@ -133,7 +147,11 @@ struct Session final : public ead::iSession
 		{
 			tens->accept(targetted);
 		}
-		std::unordered_map<ade::iOperableFunc*,AtomicLongT> fulfilments;
+		AtomicFulfilMapT fulfilments;
+		for (auto op : ops_)
+		{
+			fulfilments.emplace(op, 0);
+		}
 		for (ade::iTensor* unodes : updated)
 		{
 			if (dynamic_cast<ade::iFunctor*>(unodes))
@@ -141,7 +159,7 @@ struct Session final : public ead::iSession
 				auto& node_parents = parents_[unodes];
 				for (auto& node_parent : node_parents)
 				{
-					++fulfilments[node_parent].d;
+					++fulfilments[node_parent];
 				}
 			}
 		}
@@ -156,18 +174,23 @@ struct Session final : public ead::iSession
 				for (auto& op : req)
 				{
 					// is relevant to target, is fulfilled and not ignored
-					if (fulfilments[op.first].d++ == op.second &&
+					auto& ff = fulfilments.at(op.first);
+					if (ff++ == op.second &&
 						estd::has(targetted.visited_, op.first))
 					{
 						op.first->update();
-						auto& op_parents = this->parents_[op.first];
-						for (auto& op_parent : op_parents)
+						std::unordered_set<ade::iOperableFunc*> op_parents;
+						if (estd::get(op_parents,
+							this->parents_, op.first))
 						{
-							++fulfilments[op_parent].d;
+							for (auto& op_parent : op_parents)
+							{
+								++fulfilments.at(op_parent);
+							}
 						}
-						++fulfilments[op.first].d;
+						++ff;
 					}
-					--fulfilments[op.first].d;
+					--ff;
 				}
 			});
 		}
@@ -191,6 +214,8 @@ private:
 	size_t nthreads_;
 
 	OpWeightT weights_;
+
+	std::unordered_set<ade::iOperableFunc*> ops_;
 };
 
 }

@@ -5,6 +5,8 @@ load(
     "cpp_proto_library"
 )
 
+load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -52,6 +54,14 @@ cc_library(
         "//ead:ead",
         "@boost//:asio",
     ],
+)
+
+pybind_library(
+    name = "pll_py",
+    cc_srcs = ["//pll:python/pll.cpp"],
+    cc_deps = ["//pll:pll"],
+    py_deps = ["//ead:ead_py"],
+    visibility = ["//visibility:public"],
 )
 
 ######### TOOLS #########

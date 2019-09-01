@@ -30,7 +30,7 @@ struct iSession
 	virtual void update_target (TensSetT target, TensSetT updated = {}) = 0;
 };
 
-struct SizeT
+struct SizeT final
 {
 	size_t d = 0;
 

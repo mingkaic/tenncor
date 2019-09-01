@@ -8,6 +8,8 @@ import tensorflow as tf
 import ead.tenncor as tc
 import ead.ead as ead
 
+import pll.pll as pll
+
 import rocnnet.rocnnet as rcn
 
 matrix_dims = [
@@ -123,11 +125,15 @@ class MLP(object):
 
 ead_durs = []
 tf_durs = []
+learning_rate = 0.9
 
 for matrix_dim in matrix_dims:
     n_in = matrix_dim
     n_out = int(n_in / 2)
     batch_size = 1
+
+    sess = pll.Session(nthread=4)
+    tfsess = tf.compat.v1.Session()
 
     # regular mlp
     brain = rcn.SequentialModel("comparison")
@@ -145,6 +151,8 @@ for matrix_dim in matrix_dims:
     expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
     err = tc.square(tc.sub(expected_out, out))
 
+    trainer = rcn.MLPTrainer(brain, sess, rcn.get_sgd(learning_rate), batch_size)
+
     # tensorflow mlp
     tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))
 
@@ -153,32 +161,53 @@ for matrix_dim in matrix_dims:
     tf_expected_out = tf.compat.v1.placeholder(tf.float32, [batch_size, n_out], name='tf_expected_out')
     tf_err = tf.square(tf_expected_out - tf_out)
 
-    sess = ead.Session()
-    sess.track([err])
+    layer0 = tf_brain.input_layer
+    layer1 = tf_brain.layers[0]
 
-    tfsess = tf.compat.v1.Session()
+    tf_w0 = layer0.Ws[0]
+    tf_b0 = layer0.b
+    tf_w1 = layer1.Ws[0]
+    tf_b1 = layer1.b
+
+    tf_dw0, tf_db0, tf_dw1, tf_db1 = tf.gradients(tf_err, [
+        tf_w0,
+        tf_b0,
+        tf_w1,
+        tf_b1,
+    ])
+    w0_update = tf_w0.assign_sub(learning_rate * tf_dw0)
+    b0_update = tf_b0.assign_sub(learning_rate * tf_db0)
+    w1_update = tf_w1.assign_sub(learning_rate * tf_dw1)
+    b1_update = tf_b1.assign_sub(learning_rate * tf_db1)
+
+    def calculate_update(batch, batch_out):
+        out, _, _, _, _ = tfsess.run([
+            tf_err,
+            w0_update,
+            b0_update,
+            w1_update,
+            b1_update,
+        ], {
+            tf_invar: batch,
+            tf_expected_out: batch_out,
+        })
+
+        return out
+
+    sess.track([err])
     tfsess.run(tf.compat.v1.global_variables_initializer())
 
     test_batch = batch_generate(n_in, batch_size)
     test_batch_out = avgevry2(test_batch)
-    test_batch = test_batch.reshape([batch_size, n_in])
-    test_batch_out = test_batch_out.reshape([batch_size, n_out])
+    tf_test_batch = test_batch.reshape([batch_size, n_in])
+    tf_test_batch_out = test_batch_out.reshape([batch_size, n_out])
 
     start = time.time()
-
-    invar.assign(test_batch)
-    expected_out.assign(test_batch_out)
-    sess.update([invar, expected_out])
-
+    trainer.train(test_batch, test_batch_out)
     ead_dur = time.time() - start
 
     start = time.time()
-
-    tfsess.run(tf_err, {
-        tf_invar: test_batch,
-        tf_expected_out: test_batch_out
-    })
-
+    calculate_update(tf_test_batch, tf_test_batch_out)
     tf_dur = time.time() - start
 
     ead_durs.append(ead_dur)
