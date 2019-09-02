@@ -54,6 +54,7 @@ struct Constant final : public iLeaf<T>
 		return out;
 	}
 
+	/// Implementation of iLeaf
 	bool is_const (void) const override
 	{
 		return true;

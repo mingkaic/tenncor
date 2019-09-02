@@ -44,8 +44,8 @@ def main(args):
         help='Number of times to test (default: 500)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='rocnnet/pretrained/gdmodel.pbx',
-        help='Filename to load pretrained model (default: rocnnet/pretrained/gdmodel.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/gdmodel.pbx',
+        help='Filename to load pretrained model (default: models/gdmodel.pbx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -54,33 +54,38 @@ def main(args):
         np.random.seed(args.seedval)
 
     n_in = 10
-    n_out = n_in / 2
-    n_outs = [9, n_out]
+    n_out = int(n_in / 2)
 
-    nonlins = [tc.sigmoid, tc.sigmoid]
+    model = rcn.SequentialModel("demo")
+    model.add(rcn.Dense(9, n_in,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="0"))
+    model.add(rcn.sigmoid())
+    model.add(rcn.Dense(n_out, 9,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="1"))
+    model.add(rcn.sigmoid())
 
-    brain = rcn.get_mlp(n_in, n_outs, 'brain')
-    untrained_brain = brain.copy()
+    untrained = model.clone()
     try:
-        with open(args.load, 'rb') as f:
-            print('loading')
-            pretrained_brain = brain.parse_from_string(f.read())
-            print('successfully loaded from ' + args.load)
+        print('loading ' + args.load)
+        trained = rcn.load_file_seqmodel(args.load, "demo")
+        print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
-        pretrained_brain = brain.copy()
+        trained = model.clone()
 
     sess = ead.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    trainer = rcn.MLPTrainer(brain, nonlins, sess,
+    trainer = rcn.MLPTrainer(model, sess,
         rcn.get_sgd(0.9), n_batch)
 
     testin = ead.variable(np.zeros([n_in], dtype=float), 'testin')
-    untrained_out = untrained_brain.forward(testin, nonlins)
-    trained_out = brain.forward(testin, nonlins)
-    pretrained_out = pretrained_brain.forward(testin, nonlins)
+    untrained_out = untrained.connect(testin)
+    trained_out = model.connect(testin)
+    pretrained_out = trained.connect(testin)
     sess.track([
         untrained_out,
         trained_out,
@@ -130,7 +135,7 @@ def main(args):
 
     try:
         print('saving')
-        if trainer.serialize_to_file(args.save):
+        if model.save_file(args.save):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

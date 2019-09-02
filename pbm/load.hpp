@@ -158,27 +158,17 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 	TensT invec;
 	for (const cortenn::Node& node : nodes)
 	{
-		auto pb_labels = node.labels();
+		ade::TensptrT tens;
 		if (node.has_source())
 		{
-			std::string src_label;
-			if (pb_labels.size() > 0)
-			{
-				src_label = *(pb_labels.rbegin());
-			}
 			const cortenn::Source& source = node.source();
-			std::string sstr = source.shape();
-			ade::Shape shape(std::vector<ade::DimT>(sstr.begin(), sstr.end()));
+			auto& slist = source.shape();
+			ade::Shape shape(std::vector<ade::DimT>(slist.begin(), slist.end()));
 			std::string data = source.data();
 			ade::TensptrT leaf = loader.generate_leaf(data.c_str(),
-				shape, source.typelabel(), src_label, source.is_const());
+				shape, source.typelabel(), node.label(), source.is_const());
 			invec.push_back(leaf);
-			if (false == pb_labels.empty())
-			{
-				StringsT labels(pb_labels.begin(), pb_labels.end());
-				out.tens_.set_labelled(labels.begin(), labels.end(), leaf);
-			}
-			out.roots_.emplace(leaf);
+			tens = leaf;
 		}
 		else
 		{
@@ -201,13 +191,20 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 			}
 			ade::TensptrT f = loader.generate_func(opname, args);
 			invec.push_back(f);
-			if (false == pb_labels.empty())
-			{
-				StringsT labels(pb_labels.begin(), pb_labels.end());
-				out.tens_.set_labelled(labels.begin(), labels.end(), f);
-			}
-			out.roots_.emplace(f);
+			tens = f;
 		}
+		auto& pb_tags = node.tags();
+		for (auto& tagpair : pb_tags)
+		{
+			const std::string& tagkey = tagpair.first;
+			auto& taglabels = tagpair.second.labels();
+			auto tagr = tag::get_reg().tagr_by_key(tagkey);
+			for (std::string taglabel : taglabels)
+			{
+				tagr(tens, taglabel);
+			}
+		}
+		out.roots_.emplace(tens);
 	}
 }
 

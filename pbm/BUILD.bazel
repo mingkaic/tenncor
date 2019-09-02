@@ -49,8 +49,20 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//ade:ade",
+        "//tag:tag",
         "//pbm:pbm_cc_proto",
+    ],
+)
+
+######### TOOLS #########
+
+cc_binary(
+    name = "inspector",
+    srcs = glob(["inspector.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//pbm:pbm_cc_proto",
+        "@com_github_mingkaic_cppkg//flag:flag",
     ],
 )
 
@@ -67,8 +79,5 @@ cc_test(
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],
-    data = glob([
-        "data/*.pb",
-        "data/*.txt",
-    ]),
+    data = ["//:test_models"],
 )

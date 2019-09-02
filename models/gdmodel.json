@@ -1,0 +1,188 @@
+{
+ "nodes": [
+  {
+   "label": "weight",
+   "source": {
+    "shape": [
+     "9",
+     "10",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "u0GGv2yM774bza09kH3oPVHWqr8w0H6/Us4TP6WJeD5uX5m/JHoLvy1oE7/D+LM9QMQ5vehYkr93vZm/pSQ+P0uAtj4u/re/+dMcv7BG679HP4k+V7H3PoVDnz86uwy+dpxsvvRPcT2v3QE+gTHZvtbXyr+2y/I+QAzwPh3ipj/ojEG/qMS3vlan4DwMop8+OyGKvhAruL2GBcY/Lg3HvwOJnb31xiA/l5LRvs/o2D4DOkM9VWMRv66qgz3nXrM/ISfIv1QsEb3JSSA/YSwDv5jEqbx0gQ++8p8fvsOd5j7AClm/g7YjvttunT5hKZm+Oa6qv4Ozwj+b67m+wvv/voIT4z7R1We/EnxcvQzMUD78Www9asyuv0acsD/c98C+nyQ6v5ueDz/KAUO/seaCv8XgTj8Lokm/zyOOP+sDNb3t5lY/Dipuv/8frD7Xa1i/UfVpv34+Ij+Des293x2iP4Zfvj5PLHo/",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "0::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:0:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "9",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "StQXQBZ0lD8OYaq+xej9P9BeaL/80ng/FqgtPmLUDcBoV7M9",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "0::bias:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:0:0"
+     ]
+    }
+   }
+  },
+  {
+   "source": {
+    "shape": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAA==",
+    "typelabel": "FLOAT",
+    "isConst": true
+   },
+   "tags": {
+    "layer_sigmoid": {
+     "labels": [
+      "sigmoid:::0"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_sigmoid:sigmoid:1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "weight",
+   "source": {
+    "shape": [
+     "5",
+     "9",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "C8jlv2ZtlL+33Ui/aYF7v0bd3b+MzGW/yoJGwNAVjL25Y0E/08IwP4Sq7z5eW0I/rhAyQEeGyr8uNsC/U8QAPnYrTD91kkXA8BuzvmuSAMB3ofu/EV8UQNTU1DuyhvA+1zawP2TU5798CUe/i4wfP8mbyr48lGe/OA63P8kRAr8Kr0u/HgcpwLAlFkB95Yw/bKbOPgIvGD9SbCxAd9sEP5O2+L9NmcM+LCwzvun8Ib9ZPJ4/",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:1:2"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "1::weight:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "5",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "aKYAQPhQlT4iW9A+5zWVP6YWbr4=",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:1:2"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "1::bias:0"
+     ]
+    }
+   }
+  },
+  {
+   "source": {
+    "shape": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAA==",
+    "typelabel": "FLOAT",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_sigmoid:sigmoid:3"
+     ]
+    },
+    "layer_sigmoid": {
+     "labels": [
+      "sigmoid:::0"
+     ]
+    }
+   }
+  }
+ ]
+}

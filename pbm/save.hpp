@@ -29,6 +29,9 @@ template <typename SAVER,
 		std::is_base_of<iSaver,SAVER>::value>::type* = nullptr>
 struct GraphSaver final : public ade::iTraveler
 {
+	GraphSaver (tag::TagRegistry& registry = tag::get_reg()) :
+		registry_(registry) {}
+
 	/// Implementation of iTraveler
 	void visit (ade::iLeaf* leaf) override
 	{
@@ -60,12 +63,6 @@ struct GraphSaver final : public ade::iTraveler
 	/// Marshal all equation graphs in roots vector to protobuf object
 	void save (cortenn::Graph& out, PathedMapT labels = PathedMapT())
 	{
-		std::unordered_map<ade::iTensor*,StringsT> raw_labels;
-		for (auto lpair : labels)
-		{
-			raw_labels[lpair.first.get()] = lpair.second;
-		}
-
 		// sort functions from the root with the smallest subtree to the largest
 		// this ensures every children of a node appears before the parent,
 		// as is the order of node creations
@@ -87,13 +84,8 @@ struct GraphSaver final : public ade::iTraveler
 			ordermap[tens] = i;
 
 			cortenn::Node* pb_node = out.add_nodes();
-			auto it = raw_labels.find(tens);
-			if (raw_labels.end() != it)
-			{
-				google::protobuf::RepeatedPtrField<std::string> vec(
-					it->second.begin(), it->second.end());
-				pb_node->mutable_labels()->Swap(&vec);
-			}
+			pb_node->set_label(tens->to_string());
+			tag_node(pb_node, tens, registry_);
 			save_data(*pb_node->mutable_source(), tens);
 		}
 		for (size_t i = 0, n = funcs.size(); i < n; ++i)
@@ -102,13 +94,8 @@ struct GraphSaver final : public ade::iTraveler
 			ordermap[f] = nleaves + i;
 
 			cortenn::Node* pb_node = out.add_nodes();
-			auto it = raw_labels.find(f);
-			if (raw_labels.end() != it)
-			{
-				google::protobuf::RepeatedPtrField<std::string> vec(
-					it->second.begin(), it->second.end());
-				pb_node->mutable_labels()->Swap(&vec);
-			}
+			pb_node->set_label(f->to_string());
+			tag_node(pb_node, f, registry_);
 			cortenn::Functor* func = pb_node->mutable_functor();
 			ade::Opcode opcode = f->get_opcode();
 			func->set_opname(opcode.name_);
@@ -149,14 +136,34 @@ private:
 	void save_data (cortenn::Source& out, ade::iLeaf* in)
 	{
 		const ade::Shape& shape = in->shape();
-		bool is_const = false;
-		out.set_shape(std::string(shape.begin(), shape.end()));
-		out.set_data(saver_.save_leaf(is_const, in));
+		google::protobuf::RepeatedField<google::protobuf::uint64> slist(
+			shape.begin(), shape.end());
+		out.mutable_shape()->Swap(&slist);
+		out.set_data(saver_.save_leaf(in));
 		out.set_typelabel(in->type_label());
-		out.set_is_const(is_const);
+		out.set_is_const(in->is_const());
+	}
+
+	void tag_node (cortenn::Node* node,
+		ade::iTensor* tens, tag::TagRegistry& registry)
+	{
+		google::protobuf::Map<std::string,cortenn::Tag>* tags =
+			node->mutable_tags();
+		tag::TagRepsT reps = registry.get_tags(tens);
+		for (auto reppair : reps)
+		{
+			google::protobuf::RepeatedPtrField<std::string> labels(
+				reppair.second.begin(), reppair.second.end());
+			google::protobuf::MapPair<std::string,cortenn::Tag> tagpair(
+				reppair.first);
+			tagpair.second.mutable_labels()->Swap(&labels);
+			tags->insert(tagpair);
+		}
 	}
 
 	SAVER saver_;
+
+	tag::TagRegistry& registry_;
 };
 
 }

@@ -1,7 +1,0 @@
-<map id="ead::Variable&lt; T &gt;" name="ead::Variable&lt; T &gt;">
-<area shape="rect" id="node2" href="$structead_1_1i_leaf.html" title="ead::iLeaf\&lt; T \&gt;" alt="" coords="108,167,218,192"/>
-<area shape="rect" id="node3" href="$structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="68,80,148,105"/>
-<area shape="rect" id="node4" href="$structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="5,5,99,31"/>
-<area shape="rect" id="node5" href="$structade_1_1i_data.html" title="Interface for unveiling data. " alt="" coords="123,5,205,31"/>
-<area shape="rect" id="node6" href="$structade_1_1_shape.html" title="ade::Shape" alt="" coords="173,80,262,105"/>
-</map>

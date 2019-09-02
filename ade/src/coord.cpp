@@ -79,9 +79,10 @@ CoordptrT reduce (RankT rank, std::vector<DimT> red)
 		logs::fatalf("cannot reduce shape rank %d beyond rank_cap with n_red %d",
 			rank, n_red);
 	}
-	if (0 == n_red)
+	if (0 == n_red || std::all_of(red.begin(), red.end(),
+		[](DimT d) { return 1 == d; }))
 	{
-		logs::warn("reducing with empty vector ... will do nothing");
+		logs::warn("reducing scalar ... will do nothing");
 		return identity;
 	}
 

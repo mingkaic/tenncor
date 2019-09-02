@@ -64,7 +64,7 @@ struct AnyConvr final : public opt::iConverter
 		ade::Shape outshape) const override
 	{
 		const opt::CtxValT& val = estd::must_getf(ctx, any_id_,
-			"cannot find any id %s in conversion", any_id_.c_str());
+			"cannot find any id `%s` in conversion", any_id_.c_str());
 		if (val.size() != 1)
 		{
 			logs::fatal("context value is not any");
@@ -250,7 +250,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 				std::string symbol(sg->val_.any_);
 				if (false == estd::has(ctx.symbols_, symbol))
 				{
-					logs::fatalf("undeclared symbol '%s'", symbol.c_str());
+					logs::fatalf("undeclared symbol `%s`", symbol.c_str());
 				}
 				out = std::make_shared<AnyConvr<T>>(symbol);
 			}

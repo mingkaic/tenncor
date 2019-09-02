@@ -12,8 +12,6 @@ namespace tag
 
 using TensSetT = std::unordered_set<TensKey,TensKeyHash>;
 
-const std::string groups_key = "groups";
-
 /// GroupTag define subgraphs/groups of nodes with a structural significance
 /// Groups are ordered tags, subsequent group tags
 /// (obtained through absorption) often denote supergraphs of prior groups
@@ -36,13 +34,7 @@ struct GroupTag final : public iTag
 		labels_.insert(olabels.begin(), olabels.end());
 	}
 
-	TagRepsT get_tags (void) const override
-	{
-		TagRepsT out;
-		out.emplace(groups_key,
-			std::vector<std::string>(labels_.begin(), labels_.end()));
-		return out;
-	}
+	TagRepsT get_tags (void) const override;
 
 private:
 	std::set<std::string> labels_;
@@ -75,7 +67,13 @@ struct GroupRegistry final
 
 GroupRegistry& get_group_reg (void);
 
-void recursive_group_tag (ade::TensrefT tens, std::string group,
+const std::string groups_key = get_reg().register_tagr("groups",
+[](ade::TensrefT ref, std::string tag)
+{
+	get_group_reg().group_tag(ref, tag);
+});
+
+void recursive_group_tag (ade::TensptrT tens, std::string group,
 	std::unordered_set<ade::iTensor*> stops,
 	GroupRegistry& registry = get_group_reg());
 

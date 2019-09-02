@@ -10,6 +10,8 @@
 
 #include "ade/ade.hpp"
 
+#include "tag/tag.hpp"
+
 #include "pbm/graph.pb.h"
 
 #ifndef PBM_COMMON_HPP
@@ -26,7 +28,7 @@ using StringsT = std::list<fmts::string>;
 
 struct iSaver
 {
-	virtual std::string save_leaf (bool& is_const, ade::iLeaf* leaf) = 0;
+	virtual std::string save_leaf (ade::iLeaf* leaf) = 0;
 
 	virtual std::vector<double> save_shaper (const ade::CoordptrT& mapper) = 0;
 

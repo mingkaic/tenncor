@@ -57,8 +57,8 @@ def main(args):
         help='Number of steps per episodes (default: 100)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='rocnnet/pretrained/dqnmodel.pbx',
-        help='Filename to load pretrained model (default: rocnnet/pretrained/dqnmodel.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/dqnmodel.pbx',
+        help='Filename to load pretrained model (default: models/dqnmodel.pbx)')
     args = parser.parse_args(args)
 
     episode_count = args.n_episodes
@@ -71,18 +71,31 @@ def main(args):
 
     n_observations = 10
     n_actions = 9
-    n_outs = [9, n_actions]
 
-    nonlins = [tc.tanh, rcn.identity]
+    model = rcn.SequentialModel("demo")
+    model.add(rcn.Dense(9, n_observations,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="0"))
+    model.add(rcn.sigmoid())
+    model.add(rcn.Dense(n_actions, 9,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="1"))
+    model.add(rcn.sigmoid())
 
-    brain = rcn.get_mlp(n_observations, n_outs, 'brain')
-    untrained_brain = brain.copy()
+    untrained = model.clone()
+    try:
+        print('loading ' + args.load)
+        trained = rcn.load_file_seqmodel(args.load, "demo")
+        print('successfully loaded from ' + args.load)
+    except Exception as e:
+        print(e)
+        print('failed to load from "{}"'.format(args.load))
+        trained = model.clone()
 
     bgd = rcn.get_rms_momentum(
         learning_rate = 0.1,
-        discount_factor = 0.5,
-        gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
-    param = rcn.get_dqninfo(
+        discount_factor = 0.5)
+    param = rcn.DQNInfo(
         mini_batch_size = 1,
         store_interval = 1,
         discount_rate = 0.99,
@@ -90,20 +103,10 @@ def main(args):
 
     sess = ead.Session()
 
-    untrained_dqn = rcn.DQNTrainer(untrained_brain, nonlins, sess, bgd, param)
-    trained_dqn = rcn.DQNTrainer(brain, nonlins, sess, bgd, param)
-    try:
-        with open(args.load, 'rb') as f:
-            print('loading')
-            pretrained_dqn = rcn.load_dqntrainer(f.read(),
-                nonlins, sess, bgd, param)
-            print('successfully loaded from ' + args.load)
-    except Exception as e:
-        print(e)
-        print('failed to load from "{}"'.format(args.load))
-        pretrained_brain = brain.copy()
-        pretrained_dqn = rcn.DQNTrainer(pretrained_brain,
-            nonlins, sess, bgd, param)
+    untrained_dqn = rcn.DQNTrainer(untrained, sess, bgd, param)
+    trained_dqn = rcn.DQNTrainer(model, sess, bgd, param,
+        gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
+    pretrained_dqn = rcn.DQNTrainer(trained, sess, bgd, param)
 
     sess.optimize("cfg/optimizations.rules")
 
@@ -198,7 +201,7 @@ def main(args):
     if err_msg is None:
         try:
             print('saving')
-            if trained_dqn.serialize_to_file(args.save):
+            if model.save_file(args.save):
                 print('successfully saved to {}'.format(args.save))
         except Exception as e:
             print(e)

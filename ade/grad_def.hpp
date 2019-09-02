@@ -76,7 +76,7 @@ struct iGradientBuilder
 		std::list<iFunctor*> parents;
 		std::transform(pathmap.begin(), pathmap.end(),
 			std::back_inserter(parents),
-			[](std::pair<iTensor*,std::unordered_set<size_t>> parent)
+			[](std::pair<iTensor*,std::vector<size_t>> parent)
 			{
 				return static_cast<iFunctor*>(parent.first);
 			});
