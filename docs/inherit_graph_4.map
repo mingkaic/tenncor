@@ -1,0 +1,12 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$structade_1_1i_data.html" title="Interface for unveiling data. " alt="" coords="11,32,93,57"/>
+<area shape="rect" id="node2" href="$structade_1_1i_leaf.html" title="Leaf of the graph commonly representing the variable in an equation. " alt="" coords="157,56,237,81"/>
+<area shape="rect" id="node6" href="$structade_1_1i_operable_func.html" title="A functor node with direct access to evaluated data. " alt="" coords="294,5,433,31"/>
+<area shape="rect" id="node3" href="$structead_1_1i_leaf.html" title="ead::iLeaf\&lt; T \&gt;" alt="" coords="308,56,419,81"/>
+<area shape="rect" id="node4" href="$structead_1_1_constant.html" title="ead::Constant\&lt; T \&gt;" alt="" coords="481,104,616,129"/>
+<area shape="rect" id="node5" href="$structead_1_1_variable.html" title="Leaf node containing data. " alt="" coords="484,55,613,80"/>
+<area shape="rect" id="node7" href="$structead_1_1_functor.html" title="ead::Functor\&lt; T \&gt;" alt="" coords="485,5,612,31"/>
+<area shape="rect" id="node8" href="$structade_1_1i_tensor.html" title="Interface of traversible and differentiable nodes with shape information. " alt="" coords="5,81,99,107"/>
+<area shape="rect" id="node9" href="$structade_1_1i_functor.html" title="Interface of iOperation&#45;defined operation node. " alt="" coords="147,105,246,131"/>
+<area shape="rect" id="node10" href="$structade_1_1_functor.html" title="Functor of the graph mapping to operators specified by opcode argument. " alt="" coords="316,105,412,131"/>
+</map>

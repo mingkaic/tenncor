@@ -1,0 +1,5 @@
+<map id="pbm::GraphSaver&lt; SAVER, &gt;" name="pbm::GraphSaver&lt; SAVER, &gt;">
+<area shape="rect" id="node2" href="$structade_1_1i_traveler.html" title="Interface to travel through graph, treating iLeaf and iFunctor differently. " alt="" coords="5,5,108,31"/>
+<area shape="rect" id="node3" href="$structade_1_1_graph_stat.html" title="Traveler that maps each tensor to its subtree&#39;s maximum depth. " alt="" coords="78,80,190,105"/>
+<area shape="rect" id="node4" href="$structtag_1_1_tag_registry.html" title="tag::TagRegistry" alt="" coords="214,80,331,105"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="tag::Query" name="tag::Query">
+<area shape="rect" id="node2" href="$structade_1_1_once_traveler.html" title="Extremely generic traveler that visits every node in the graph once. " alt="" coords="5,80,137,105"/>
+<area shape="rect" id="node3" href="$structade_1_1i_traveler.html" title="Interface to travel through graph, treating iLeaf and iFunctor differently. " alt="" coords="20,5,122,31"/>
+<area shape="rect" id="node4" href="$structtag_1_1_tag_registry.html" title="tag::TagRegistry" alt="" coords="160,80,278,105"/>
+</map>
