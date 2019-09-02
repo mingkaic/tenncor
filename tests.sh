@@ -13,27 +13,22 @@ free -m;
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ade:test
-bazel test --run_under='valgrind --leak-check=full' //ade:test
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" --jobs=4 \
+//ade:test //tag:test //pbm:test //opt:... //ead:ctest //perf:test //pll:test
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //tag:test
-bazel test --run_under='valgrind --leak-check=full' //tag:test
-
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //pbm:test
-bazel test --run_under='valgrind --leak-check=full' //pbm:test
-
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //opt:test
-bazel test --run_under='valgrind --leak-check=full' //opt:test
-
-bazel test --run_under='valgrind --leak-check=full' //gen:ptest
-
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ead:ctest
-bazel test --run_under='valgrind --leak-check=full' //ead:ctest
-bazel test --run_under='valgrind --leak-check=full' //ead:ptest
+bazel test --run_under='valgrind --leak-check=full' --jobs=4 \
+//ade:test //gen:ptest //tag:test //pbm:test //opt:... //ead:ctest //ead:ptest //perf:test //pll:test
 
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";
-make lcov | grep -v '+' | grep -v 'Processing'
+bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" \
+--config gtest --config cc_coverage --jobs=4 \
+//ade:test //tag:test //pbm:test //opt:... //ead:ctest //perf:test //pll:test
+lcov --remove bazel-out/_coverage/_coverage_report.dat \
+'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*' \
+-o coverage.info
+lcov --list coverage.info | grep -v '+' | grep -v 'Processing'
+
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	git rev-parse --abbrev-inode* HEAD;
