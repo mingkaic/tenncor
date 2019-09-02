@@ -60,24 +60,21 @@ cc_binary(
         "//rocnnet/trainer:trainer",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
-    data = glob(["pretrained/*"]) +
-        ["//cfg:optimizations"],
+    data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "gd_demo",
     srcs = ["demo/gd_demo.py"],
     deps = [":rocnnet_py"],
-    data = glob(["pretrained/*"]) +
-        ["//cfg:optimizations"],
+    data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "dqn_demo",
     srcs = ["demo/dqn_demo.py"],
     deps = [":rocnnet_py"],
-    data = glob(["pretrained/*"]) +
-        ["//cfg:optimizations"],
+    data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
@@ -88,8 +85,8 @@ py_binary(
         ":rocnnet_py",
         "//dbg:grpc_dbg_py",
     ],
-    data = glob(["pretrained/*", "demo/MNIST_data/*"]) +
-        ["//cfg:optimizations"],
+    data = glob(["demo/MNIST_data/*"]) +
+        ["//:models", "//cfg:optimizations"],
 )
 
 # cc_binary(
@@ -102,5 +99,5 @@ py_binary(
 #         "@com_github_mingkaic_cppkg//flag:flag",
 #         "//dbg:dbg",
 #     ],
-#     data = glob(["pretrained/*"]),
+#     data = glob([]),
 # )

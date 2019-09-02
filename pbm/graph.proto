@@ -29,7 +29,7 @@ message Tag {
 }
 
 message Node {
-    repeated string labels = 1 [deprecated=true];
+    string label = 1;
     oneof detail {
         Source source = 2;
         Functor functor = 3;

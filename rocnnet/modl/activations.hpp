@@ -68,8 +68,8 @@ struct Activation final : public iLayer
 	Activation (const Activation& other,
 		std::string label_prefix = "") :
 		label_(label_prefix + other.get_label()),
-		activation_(other.activation_),
 		act_type_(other.act_type_),
+		activation_(other.activation_),
 		placeholder_(ead::make_constant_scalar<PybindT>(0, {}))
 	{
 		tag(placeholder_->get_tensor(), LayerId());

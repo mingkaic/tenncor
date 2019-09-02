@@ -115,13 +115,14 @@ cc_test(
         "//ead:ead",
         "//dbg:stream_out",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,
-    data = ["//cfg:optimizations"] + glob([
-        "data/*.pb",
-        "data/*.txt",
-    ]),
+    data = [
+        "//:test_models",
+        "//cfg:optimizations",
+    ],
 )
 
 py_test(

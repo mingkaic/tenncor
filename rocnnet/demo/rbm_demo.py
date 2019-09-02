@@ -48,8 +48,8 @@ def main(args):
         help='Whether to use tqdm (default: 100)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='rocnnet/pretrained/rbmmodel.pbx',
-        help='Filename to load pretrained model (default: rocnnet/pretrained/rbmmodel.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/rbmmodel.pbx',
+        help='Filename to load pretrained model (default: models/rbmmodel.pbx)')
     args = parser.parse_args(args)
 
     if args.seed:

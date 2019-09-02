@@ -63,12 +63,6 @@ struct GraphSaver final : public ade::iTraveler
 	/// Marshal all equation graphs in roots vector to protobuf object
 	void save (cortenn::Graph& out, PathedMapT labels = PathedMapT())
 	{
-		std::unordered_map<ade::iTensor*,StringsT> raw_labels;
-		for (auto lpair : labels)
-		{
-			raw_labels[lpair.first.get()] = lpair.second;
-		}
-
 		// sort functions from the root with the smallest subtree to the largest
 		// this ensures every children of a node appears before the parent,
 		// as is the order of node creations
@@ -90,14 +84,8 @@ struct GraphSaver final : public ade::iTraveler
 			ordermap[tens] = i;
 
 			cortenn::Node* pb_node = out.add_nodes();
+			pb_node->set_label(tens->to_string());
 			tag_node(pb_node, tens, registry_);
-			auto it = raw_labels.find(tens);
-			if (raw_labels.end() != it)
-			{
-				google::protobuf::RepeatedPtrField<std::string> vec(
-					it->second.begin(), it->second.end());
-				pb_node->mutable_labels()->Swap(&vec);
-			}
 			save_data(*pb_node->mutable_source(), tens);
 		}
 		for (size_t i = 0, n = funcs.size(); i < n; ++i)
@@ -106,14 +94,8 @@ struct GraphSaver final : public ade::iTraveler
 			ordermap[f] = nleaves + i;
 
 			cortenn::Node* pb_node = out.add_nodes();
+			pb_node->set_label(f->to_string());
 			tag_node(pb_node, f, registry_);
-			auto it = raw_labels.find(f);
-			if (raw_labels.end() != it)
-			{
-				google::protobuf::RepeatedPtrField<std::string> vec(
-					it->second.begin(), it->second.end());
-				pb_node->mutable_labels()->Swap(&vec);
-			}
 			cortenn::Functor* func = pb_node->mutable_functor();
 			ade::Opcode opcode = f->get_opcode();
 			func->set_opname(opcode.name_);

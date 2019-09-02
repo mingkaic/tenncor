@@ -10,12 +10,14 @@
 
 #include "dbg/stream/ade.hpp"
 
+#include "tag/prop.hpp"
+
 #include "pbm/load.hpp"
 
 #include "pbm/test/common.hpp"
 
 
-const std::string testdir = "pbm/data";
+const std::string testdir = "models/test";
 
 
 struct TestLoader : public pbm::iLoader
@@ -62,7 +64,7 @@ TEST(LOAD, LoadGraph)
 {
 	cortenn::Graph graph;
 	{
-		std::fstream inputstr(testdir + "/graph.pb",
+		std::fstream inputstr(testdir + "/pbm_test.pbx",
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE(inputstr.is_open());
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
@@ -70,26 +72,57 @@ TEST(LOAD, LoadGraph)
 
 	pbm::GraphInfo graphinfo;
 	pbm::load_graph<TestLoader>(graphinfo, graph);
-
 	EXPECT_EQ(2, graphinfo.roots_.size());
 
-	ASSERT_EQ(3, graphinfo.tens_.children_.size());
-	ASSERT_EQ(0, graphinfo.tens_.tens_.size());
+	auto& reg = tag::get_reg();
+	tag::Query q;
 
-	ASSERT_HAS(graphinfo.tens_.children_, "global");
-	ASSERT_HAS(graphinfo.tens_.children_, "subtree");
-	ASSERT_HAS(graphinfo.tens_.children_, "subtree2");
+	std::vector<std::string> root_props;
+	std::unordered_map<std::string,ade::TensptrT> propdtens;
+	for (auto tens : graphinfo.roots_)
+	{
+		tens->accept(q);
+		auto tags = reg.get_tags(tens.get());
+		ASSERT_HAS(tags, tag::props_key);
+		auto& props = tags[tag::props_key];
+		ASSERT_EQ(1, props.size());
+		propdtens.emplace(props[0], tens);
+		root_props.insert(root_props.end(), props.begin(), props.end());
+	}
+	EXPECT_ARRHAS(root_props, "subtree_dest");
+	EXPECT_ARRHAS(root_props, "subtree2_dest");
 
-	auto subtree = graphinfo.tens_.children_["subtree"];
-	auto subtree2 = graphinfo.tens_.children_["subtree2"];
-	ASSERT_EQ(3, subtree->tens_.size());
-	ASSERT_EQ(4, subtree2->tens_.size());
+	ASSERT_HAS(q.labels_, tag::props_key);
+	auto& props = q.labels_[tag::props_key];
 
-	ASSERT_HAS(subtree->tens_, "dest");
-	ASSERT_HAS(subtree2->tens_, "dest");
+	ASSERT_HAS(props, "subtree_src");
+	ASSERT_HAS(props, "subtree_src2");
+	ASSERT_HAS(props, "subtree2_src");
+	ASSERT_HAS(props, "subtree2_src2");
+	ASSERT_HAS(props, "subtree2_src3");
+	ASSERT_HAS(props, "osrc");
+	ASSERT_HAS(props, "osrc2");
 
-	ade::TensptrT tree1 = graphinfo.tens_.get_labelled({"subtree", "dest"});
-	ade::TensptrT tree2 = graphinfo.tens_.get_labelled({"subtree2", "dest"});
+	auto& sts = props["subtree_src"];
+	auto& sts2 = props["subtree_src2"];
+	auto& st2s = props["subtree2_src"];
+	auto& st2s2 = props["subtree2_src2"];
+	auto& st2s3 = props["subtree2_src3"];
+	auto& os = props["osrc"];
+	auto& os2 = props["osrc2"];
+
+	ASSERT_EQ(1, sts.size());
+	ASSERT_EQ(1, sts2.size());
+	ASSERT_EQ(1, st2s.size());
+	ASSERT_EQ(1, st2s2.size());
+	ASSERT_EQ(1, st2s3.size());
+	ASSERT_EQ(1, os.size());
+	ASSERT_EQ(1, os2.size());
+
+	ASSERT_HAS(propdtens, "subtree_dest");
+	ASSERT_HAS(propdtens, "subtree2_dest");
+	ade::TensptrT tree1 = propdtens["subtree_dest"];
+	ade::TensptrT tree2 = propdtens["subtree2_dest"];
 
 	ASSERT_NE(nullptr, tree1);
 	ASSERT_NE(nullptr, tree2);
@@ -97,7 +130,7 @@ TEST(LOAD, LoadGraph)
 	std::string expect;
 	std::string got;
 	std::string line;
-	std::ifstream expectstr(testdir + "/graph.txt");
+	std::ifstream expectstr(testdir + "/pbm_test.txt");
 	ASSERT_TRUE(expectstr.is_open());
 	while (std::getline(expectstr, line))
 	{

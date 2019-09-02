@@ -210,6 +210,50 @@ void recursive_tag (ade::TensptrT root,
 	std::unordered_set<ade::iTensor*> stops,
 	std::function<void(ade::TensrefT)> tag_op);
 
+using LTensT = std::unordered_map<std::string,std::vector<ade::iTensor*>>;
+
+using TTensT = std::unordered_map<std::string,LTensT>;
+
+struct Query final : public ade::OnceTraveler
+{
+	Query (TagRegistry& reg = get_reg()) : reg_(reg) {}
+
+	void visit_leaf (ade::iLeaf* leaf) override
+	{
+		auto tags = reg_.get_tags(leaf);
+		save_tags(tags, leaf);
+	}
+
+	void visit_func (ade::iFunctor* func) override
+	{
+		auto& children = func->get_children();
+		for (auto child : children)
+		{
+			child.get_tensor()->accept(*this);
+		}
+
+		auto tags = reg_.get_tags(func);
+		save_tags(tags, func);
+	}
+
+	TTensT labels_;
+
+	TagRegistry& reg_;
+
+private:
+	void save_tags (TagRepsT& tag, ade::iTensor* tens)
+	{
+		for (auto& tpair : tag)
+		{
+			auto& labs = labels_[tpair.first];
+			for (auto lpair : tpair.second)
+			{
+				labs[lpair].push_back(tens);
+			}
+		}
+	}
+};
+
 }
 
 #endif // TAG_TAG_HPP

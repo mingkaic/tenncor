@@ -79,8 +79,5 @@ cc_test(
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],
-    data = glob([
-        "data/*.pb",
-        "data/*.txt",
-    ]),
+    data = ["//:test_models"],
 )

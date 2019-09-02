@@ -69,7 +69,7 @@ int main (int argc, const char** argv)
 		("save", flag::opt::value<std::string>(&savepath)->default_value(""),
 			"filename to save model")
 		("load", flag::opt::value<std::string>(&loadpath)->default_value(
-			"rocnnet/pretrained/gdmodel.pbx"), "filename to load pretrained model");
+			"models/gdmodel.pbx"), "filename to load pretrained model");
 
 	int exit_status = 0;
 	std::clock_t start;
