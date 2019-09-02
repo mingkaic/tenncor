@@ -1,9 +1,0 @@
-<map id="ead/functor.hpp" name="ead/functor.hpp">
-<area shape="rect" id="node2" href="$ead_2session_8hpp.html" title="ead/session.hpp" alt="" coords="169,79,288,104"/>
-<area shape="rect" id="node7" href="$ead_8cpp.html" title="ead/python/ead.cpp" alt="" coords="271,299,410,324"/>
-<area shape="rect" id="node8" href="$serialize_8hpp.html" title="ead/serialize.hpp" alt="" coords="19,79,141,104"/>
-<area shape="rect" id="node3" href="$dbg_2grpc_2session_8hpp.html" title="dbg/grpc/session.hpp" alt="" coords="154,225,302,251"/>
-<area shape="rect" id="node5" href="$ead_8hpp.html" title="ead/ead.hpp" alt="" coords="30,152,125,177"/>
-<area shape="rect" id="node4" href="$grpc_8cpp.html" title="dbg/python/grpc.cpp" alt="" coords="5,299,147,324"/>
-<area shape="rect" id="node6" href="$ead_2parse_8hpp.html" title="ead/parse.hpp" alt="" coords="23,225,130,251"/>
-</map>

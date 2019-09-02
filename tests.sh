@@ -31,14 +31,6 @@ bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=
 bazel test --run_under='valgrind --leak-check=full' //ead:ctest
 bazel test --run_under='valgrind --leak-check=full' //ead:ptest
 
-# ===== Check Docs Directory =====
-echo "===== CHECK DOCUMENT EXISTENCE =====";
-if ! [ -d "$DOCS" ];
-then
-	echo "Documents not found. Please generate documents then try again"
-	exit 1;
-fi
-
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";
 make lcov | grep -v '+' | grep -v 'Processing'
