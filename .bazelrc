@@ -1,10 +1,10 @@
 
 # ------ ALL SETTINGS ------
 
-run --incompatible_disallow_dict_plus=false --incompatible_disable_deprecated_attr_params=false --incompatible_depset_is_not_iterable=false --incompatible_no_support_tools_in_action_inputs=false
-build --incompatible_disallow_dict_plus=false --incompatible_disable_deprecated_attr_params=false --incompatible_depset_is_not_iterable=false --incompatible_no_support_tools_in_action_inputs=false
-test --incompatible_disallow_dict_plus=false --incompatible_disable_deprecated_attr_params=false --incompatible_depset_is_not_iterable=false --incompatible_no_support_tools_in_action_inputs=false
-coverage --incompatible_disallow_dict_plus=false --incompatible_disable_deprecated_attr_params=false --incompatible_depset_is_not_iterable=false --incompatible_no_support_tools_in_action_inputs=false
+run --incompatible_depset_is_not_iterable=false --jobs=2
+build --incompatible_depset_is_not_iterable=false --jobs=2
+test --incompatible_depset_is_not_iterable=false --jobs=2
+coverage --incompatible_depset_is_not_iterable=false --jobs=2
 
 # ------ OPTIMIZATION ------
 
@@ -31,6 +31,7 @@ coverage:cc_coverage --instrument_test_targets --experimental_cc_coverage --comb
 run:valgrind --run_under="valgrind --leak-check=full"
 test:valgrind --run_under="valgrind --leak-check=full"
 
+run:asan --linkopt -fsanitize=address
 test:asan --linkopt -fsanitize=address
 
 # === GTESTS ===

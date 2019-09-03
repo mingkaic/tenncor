@@ -13,35 +13,16 @@ free -m;
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ade:test
-bazel test --run_under='valgrind --leak-check=full' //ade:test
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" --define EAD_CFG=MIN \
+//ade:test //tag:test //pbm:test //opt:test //opt/parse:test //ead:ctest //perf:test //pll:test
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //tag:test
-bazel test --run_under='valgrind --leak-check=full' //tag:test
-
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //pbm:test
-bazel test --run_under='valgrind --leak-check=full' //pbm:test
-
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //opt:test
-bazel test --run_under='valgrind --leak-check=full' //opt:test
-
-bazel test --run_under='valgrind --leak-check=full' //gen:ptest
-
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //ead:ctest
-bazel test --run_under='valgrind --leak-check=full' //ead:ctest
-bazel test --run_under='valgrind --leak-check=full' //ead:ptest
-
-# ===== Check Docs Directory =====
-echo "===== CHECK DOCUMENT EXISTENCE =====";
-if ! [ -d "$DOCS" ];
-then
-	echo "Documents not found. Please generate documents then try again"
-	exit 1;
-fi
+bazel test --run_under='valgrind --leak-check=full' --define EAD_CFG=MIN \
+//ade:test //gen:ptest //tag:test //pbm:test //opt:test //opt/parse:test //ead:ctest //ead:ptest //perf:test //pll:test
 
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";
 make lcov | grep -v '+' | grep -v 'Processing'
+
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	git rev-parse --abbrev-inode* HEAD;

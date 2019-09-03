@@ -30,7 +30,7 @@ struct iSession
 	virtual void update_target (TensSetT target, TensSetT updated = {}) = 0;
 };
 
-struct SizeT
+struct SizeT final
 {
 	size_t d = 0;
 
@@ -98,6 +98,7 @@ struct Session final : public iSession
 		}
 	}
 
+	// this function is expected to be called repeatedly during runtime
 	void update (TensSetT updated = {}, TensSetT ignores = {}) override
 	{
 		std::unordered_map<ade::iOperableFunc*,SizeT> fulfilments;
@@ -126,6 +127,7 @@ struct Session final : public iSession
 		}
 	}
 
+	// this function is expected to be called repeatedly during runtime
 	void update_target (TensSetT target, TensSetT updated = {}) override
 	{
 		ade::OnceTraveler targetted;
@@ -175,6 +177,7 @@ struct Session final : public iSession
 	std::unordered_map<ade::iTensor*,
 		std::unordered_set<ade::iOperableFunc*>> parents_;
 
+	// List of operatible nodes and its number of unique children ordered from leaf to root
 	std::vector<std::pair<ade::iOperableFunc*,size_t>> requirements_; // todo: test minimal requirements
 };
 

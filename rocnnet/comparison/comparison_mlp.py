@@ -7,15 +7,23 @@ import tensorflow as tf
 
 import ead.tenncor as tc
 import ead.ead as ead
+
 import rocnnet.rocnnet as rcn
 
 matrix_dims = [
-    10,
+    24,
     50,
+    74,
     100,
+    124,
     150,
+    174,
     200,
+    224,
     250,
+    512,
+    1024,
+    1500,
 ]
 
 def batch_generate(n, batchsize):
@@ -39,22 +47,22 @@ class Layer(object):
         self.output_size = output_size
         self.scope       = scope or "Layer"
 
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             self.Ws = []
             for input_idx, input_size in enumerate(input_sizes):
                 W_name = "W_%d" % (input_idx,)
                 W_initializer =  tf.random_uniform_initializer(
                         -1.0 / math.sqrt(input_size), 1.0 / math.sqrt(input_size))
-                W_var = tf.get_variable(W_name, (input_size, output_size), initializer=W_initializer)
+                W_var = tf.compat.v1.get_variable(W_name, (input_size, output_size), initializer=W_initializer)
                 self.Ws.append(W_var)
-            self.b = tf.get_variable("b", (output_size,), initializer=tf.constant_initializer(0))
+            self.b = tf.compat.v1.get_variable("b", (output_size,), initializer=tf.constant_initializer(0))
 
     def __call__(self, xs):
         if type(xs) != list:
             xs = [xs]
         assert len(xs) == len(self.Ws), \
                 "Expected %d input vectors, got %d" % (len(self.Ws), len(xs))
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             return sum([tf.matmul(x, W) for x, W in zip(xs, self.Ws)]) + self.b
 
     def variables(self):
@@ -63,9 +71,9 @@ class Layer(object):
     def copy(self, scope=None):
         scope = scope or self.scope + "_copy"
 
-        with tf.variable_scope(scope) as sc:
+        with tf.compat.v1.variable_scope(scope) as sc:
             for v in self.variables():
-                tf.get_variable(base_name(v), v.get_shape(),
+                tf.compat.v1.get_variable(base_name(v), v.get_shape(),
                         initializer=lambda x,dtype=tf.float32,partition_info=None: v.initialized_value())
             sc.reuse_variables()
             return Layer(self.input_sizes, self.output_size, scope=sc)
@@ -80,7 +88,7 @@ class MLP(object):
         assert len(hiddens) == len(nonlinearities), \
                 "Number of hiddens must be equal to number of nonlinearities"
 
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             if given_layers is not None:
                 self.input_layer = given_layers[0]
                 self.layers      = given_layers[1:]
@@ -94,7 +102,7 @@ class MLP(object):
     def __call__(self, xs):
         if type(xs) != list:
             xs = [xs]
-        with tf.variable_scope(self.scope):
+        with tf.compat.v1.variable_scope(self.scope):
             hidden = self.input_nonlinearity(self.input_layer(xs))
             for layer, nonlinearity in zip(self.layers, self.layer_nonlinearities):
                 hidden = nonlinearity(layer(hidden))
@@ -118,34 +126,38 @@ tf_durs = []
 
 for matrix_dim in matrix_dims:
     n_in = matrix_dim
-    n_out = n_in / 2
+    n_out = int(n_in / 2)
     batch_size = 1
 
     # regular mlp
-    nonlins = [tc.sigmoid, tc.sigmoid]
-    hiddens = [matrix_dim, n_out]
-
-    brain = rcn.get_mlp(n_in, hiddens, 'brain_' + str(matrix_dim))
+    brain = rcn.SequentialModel("comparison")
+    brain.add(rcn.Dense(matrix_dim, n_in,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="0"))
+    brain.add(rcn.sigmoid())
+    brain.add(rcn.Dense(n_out, matrix_dim,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="1"))
+    brain.add(rcn.sigmoid())
 
     invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
-    out = brain.forward(invar, nonlins)
+    out = brain.connect(invar)
     expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
     err = tc.square(tc.sub(expected_out, out))
 
     # tensorflow mlp
     tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))
 
-    tf_invar = tf.placeholder(tf.float32, [batch_size, n_in], name='tf_invar')
+    tf_invar = tf.compat.v1.placeholder(tf.float32, [batch_size, n_in], name='tf_invar')
     tf_out = tf_brain(tf_invar)
-    tf_expected_out = tf.placeholder(tf.float32, [batch_size, n_out], name='tf_expected_out')
+    tf_expected_out = tf.compat.v1.placeholder(tf.float32, [batch_size, n_out], name='tf_expected_out')
     tf_err = tf.square(tf_expected_out - tf_out)
 
     sess = ead.Session()
-    sess.track(err)
+    sess.track([err])
 
-    tfsess = tf.Session()
-    tfsess.run(tf.global_variables_initializer())
-
+    tfsess = tf.compat.v1.Session()
+    tfsess.run(tf.compat.v1.global_variables_initializer())
 
     test_batch = batch_generate(n_in, batch_size)
     test_batch_out = avgevry2(test_batch)

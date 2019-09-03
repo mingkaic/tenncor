@@ -44,6 +44,11 @@ struct MockTensor final : public ade::iLeaf
 		return 0;
 	}
 
+	bool is_const (void) const override
+	{
+		return true;
+	}
+
 	ade::Shape shape_;
 };
 

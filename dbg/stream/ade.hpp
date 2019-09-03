@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 
+#include "ade/ileaf.hpp"
 #include "ade/functor.hpp"
 
 #include "dbg/stream/tree.hpp"
@@ -45,6 +46,10 @@ struct PrettyEquation final
 				{
 					out << it->second << "=";
 				}
+				if (auto var = dynamic_cast<ade::iLeaf*>(root))
+				{
+					out << (var->is_const() ? "constant:" : "variable:");
+				}
 				out << root->to_string();
 				if (showshape_)
 				{
@@ -54,7 +59,7 @@ struct PrettyEquation final
 		}) {}
 
 	/// Stream equation of ptr to out
-	void print (std::ostream& out, ade::TensptrT& ptr)
+	void print (std::ostream& out, const ade::TensptrT& ptr)
 	{
 		drawer_.print(out, ptr.get());
 	}

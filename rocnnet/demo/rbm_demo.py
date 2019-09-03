@@ -1,267 +1,191 @@
-from __future__ import print_function
-
 import sys
+import time
+import random
+import argparse
 
+from tensorflow.examples.tutorials.mnist import input_data
 import matplotlib.pyplot as plt
 import numpy as np
-from tensorflow.examples.tutorials.mnist import input_data
 
-import ead.tenncor as tf
+import ead.tenncor as tc
 import ead.ead as ead
 import rocnnet.rocnnet as rcn
 
+prog_description = 'Demo rbm_trainer'
 
-def mse_errfunc(x, compute_visible):
-    return tf.reduce_mean(tf.square(tf.sub(x, compute_visible)))
-
-class RBMConfig:
-    def __init__(self,
-                 n_visible,
-                 n_hidden,
-                 learning_rate=0.01,
-                 momentum=0.95,
-                 xavier_const=1.0,
-                 err_function=mse_errfunc,
-                 tqdm=None):
-        if not 0.0 <= momentum <= 1.0:
-            raise ValueError('momentum should be in range [0, 1]')
-
-        self.n_visible = n_visible
-        self.n_hidden = n_hidden
-        self.learning_rate=learning_rate
-        self.momentum=momentum
-        self.xavier_const=xavier_const
-        self.err_function=err_function
-        self.tqdm=tqdm
-
-class RBMInput:
-    def __init__(self, n_visible, n_hidden, n_batch):
-        self.x = ead.scalar_variable(0, [n_batch, n_visible])
-        self.y = ead.scalar_variable(0, [n_batch, n_hidden])
-
-class RBMStorage:
-    def __init__(self, config):
-        self.w = rcn.variable_from_init(
-            rcn.unif_xavier_init(config.xavier_const),
-            [config.n_visible, config.n_hidden])
-        self.visible_bias = ead.scalar_variable(0, [config.n_visible])
-        self.hidden_bias = ead.scalar_variable(0, [config.n_hidden])
-
-        self.delta_w = ead.scalar_variable(0, [config.n_visible, config.n_hidden])
-        self.delta_visible_bias = ead.scalar_variable(0, [config.n_visible])
-        self.delta_hidden_bias = ead.scalar_variable(0, [config.n_hidden])
-
-class RBMOutput:
-    def __init__(self, update_weights, update_deltas, compute_hidden, compute_visible, compute_visible_from_hidden, compute_err):
-        self.update_weights = update_weights
-        self.update_deltas = update_deltas
-        self.compute_hidden = compute_hidden
-        self.compute_visible = compute_visible
-        self.compute_visible_from_hidden = compute_visible_from_hidden
-        self.compute_err = compute_err
-        assert self.update_weights is not None
-        assert self.update_deltas is not None
-        assert self.compute_hidden is not None
-        assert self.compute_visible is not None
-        assert self.compute_visible_from_hidden is not None
-        assert self.compute_err is not None
-
-def bb_init(rbm_in, rbm_storage, config):
-    # hidden = sigmoid(X @ W + hB)
-    # visible_rec = sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB)
-    # hidden_rec = sigmoid(visible_rec @ W + hB)
-    hidden_p = tf.sigmoid(tf.nn.fully_connect(
-        [rbm_in.x], [rbm_storage.w],
-        rbm_storage.hidden_bias))
-    visible_recon_p = tf.sigmoid(tf.nn.fully_connect(
-        [tf.random.rand_binom_one(hidden_p)], [tf.transpose(rbm_storage.w)],
-        rbm_storage.visible_bias))
-    hidden_recon_p = tf.sigmoid(tf.nn.fully_connect(
-        [visible_recon_p], [rbm_storage.w],
-        rbm_storage.hidden_bias))
-
-    # X^T @ sigmoid(X @ W + hB) - sigmoid(tf.random.rand_binom_one(sigmoid(X @ W + hB)) @ W^T + vB)^T @ sigmoid(sigmoid(tf.random.rand_binom_one(hidden) @ W^T + vB) @ W + hB)
-    grad = tf.sub(
-        tf.matmul(
-            tf.transpose(rbm_in.x),
-            hidden_p),
-        tf.matmul(
-            tf.transpose(visible_recon_p),
-            hidden_recon_p))
-    # grad is derivative of ? with respect to rbm_in.w
-
-    def f(x_old, x_new):
-        return tf.add(
-            tf.mul(
-                ead.scalar_constant(config.momentum, x_old.shape()),
-                x_old),
-            tf.prod([
-                ead.scalar_constant(config.learning_rate, x_new.shape()),
-                x_new,
-                ead.scalar_constant((1 - config.momentum) / x_new.shape()[0], x_new.shape())
-            ]))
-
-    # momentum
-    delta_w_new = f(rbm_storage.delta_w, grad)
-    delta_visible_bias_new = f(rbm_storage.delta_visible_bias, tf.reduce_mean_1d(tf.sub(rbm_in.x, visible_recon_p), 1))
-    delta_hidden_bias_new = f(rbm_storage.delta_hidden_bias, tf.reduce_mean_1d(tf.sub(hidden_p, hidden_recon_p), 1))
-
-    update_delta_w = (rbm_storage.delta_w, delta_w_new)
-    update_delta_visible_bias = (rbm_storage.delta_visible_bias, delta_visible_bias_new)
-    update_delta_hidden_bias = (rbm_storage.delta_hidden_bias, delta_hidden_bias_new)
-
-    update_w = (rbm_storage.w, tf.add(rbm_storage.w, delta_w_new))
-    update_visible_bias = (rbm_storage.visible_bias,
-        tf.add(rbm_storage.visible_bias, delta_visible_bias_new))
-    update_hidden_bias = (rbm_storage.hidden_bias,
-        tf.add(rbm_storage.hidden_bias, delta_hidden_bias_new))
-
-    compute_hidden = tf.sigmoid(tf.nn.fully_connect(
-        [rbm_in.x], [rbm_storage.w],
-        rbm_storage.hidden_bias))
-    compute_visible = tf.sigmoid(tf.nn.fully_connect(
-        [compute_hidden], [tf.transpose(rbm_storage.w)],
-        rbm_storage.visible_bias))
-    return RBMOutput(
-        update_deltas=[update_delta_w, update_delta_visible_bias, update_delta_hidden_bias],
-        update_weights=[update_w, update_visible_bias, update_hidden_bias],
-        compute_hidden=compute_hidden,
-        compute_visible=compute_visible,
-        compute_visible_from_hidden=tf.sigmoid(tf.nn.fully_connect(
-            [rbm_in.y], [tf.transpose(rbm_storage.w)],
-            rbm_storage.visible_bias)),
-        compute_err=config.err_function(rbm_in.x, compute_visible))
-
-class RBM:
-    def __init__(self, config, initialize):
-        self.config = config
-        self.initialize = initialize
-        self.storage = RBMStorage(config)
-
-    def __call__(self, inputs):
-        return self.initialize(inputs, self.storage, self.config)
-
-class RBMTrainee:
-    def __init__(self, rbm, n_batch, sess):
-        self.rbm = rbm
-        self.n_batch = n_batch
-        self.input = RBMInput(config.n_visible, config.n_hidden, n_batch=n_batch)
-        self.output = rbm(self.input)
-        self.sess = sess
-
-        assigns = self.output.update_weights + self.output.update_deltas
-        sess.track([
-            self.output.compute_visible,
-            self.output.compute_hidden,
-            self.output.compute_err] + [src for _, src in assigns])
-
-    def fit(self,
-            data_x,
-            n_epoches=10,
-            shuffle=True,
-            verbose=True):
-        assert n_epoches > 0
-
-        n_data = data_x.shape[0]
-
-        if self.n_batch > 0:
-            n_batches = n_data // self.n_batch + (0 if n_data % self.n_batch == 0 else 1)
-        else:
-            n_batches = 1
-
-        if shuffle:
-            data_x_cpy = data_x.copy()
-            inds = np.arange(n_data)
-        else:
-            data_x_cpy = data_x
-
-        errs = []
-        assigns = self.output.update_weights + self.output.update_deltas
-
-        for e in range(n_epoches):
-            epoch_errs = np.zeros((n_batches,))
-            epoch_errs_ptr = 0
-
-            if shuffle:
-                np.random.shuffle(inds)
-                data_x_cpy = data_x_cpy[inds]
-
-            r_batches = range(n_batches)
-
-            if verbose:
-                if self.rbm.config.tqdm is not None:
-                    r_batches = self.rbm.config.tqdm(r_batches,
-                        desc='Epoch: {:d}'.format(e),
-                        ascii=True,
-                        file=sys.stdout)
-                else:
-                    print('Epoch: {:d}'.format(e))
-
-            for b in r_batches:
-                batch_x = data_x_cpy[b * self.n_batch:(b + 1) * self.n_batch]
-
-                self.input.x.assign(batch_x)
-
-                self.sess.update_target([src for _, src in assigns], [self.input.x])
-                for dest, src in assigns:
-                    dest.assign(src.get())
-                self.sess.update_target([self.output.compute_err], [dest for dest, _ in assigns])
-                batch_err = self.output.compute_err.get()
-
-                epoch_errs[epoch_errs_ptr] = batch_err
-                epoch_errs_ptr += 1
-
-            if verbose:
-                err_mean = epoch_errs.mean()
-                if self.rbm.config.tqdm is not None:
-                    self.rbm.config.tqdm.write('Train error: {:.4f}'.format(err_mean))
-                    self.rbm.config.tqdm.write('')
-                else:
-                    print('Train error: {:.4f}'.format(err_mean))
-                    print('')
-                sys.stdout.flush()
-
-            errs = np.hstack([errs, epoch_errs])
-
-        return errs
-
-# ==================== demo =======================
-from tqdm import tqdm
 mnist = input_data.read_data_sets('MNIST_data/', one_hot=True)
-mnist_images = mnist.train.images
 
-IMAGE = 1
+def mse_errfunc(x, visible_sample_):
+    return tc.reduce_mean(tc.square(tc.sub(x, visible_sample_)))
 
-config = RBMConfig(
-    n_visible=784,
-    n_hidden=64,
-    learning_rate=0.01,
-    momentum=0.95,
-    tqdm=tqdm)
-
-rbm = RBM(config, bb_init)
-sess = ead.Session()
-
-padewan = RBMTrainee(rbm=rbm, n_batch=10, sess=sess)
-
-master_inputs = RBMInput(config.n_visible, config.n_hidden, n_batch=1)
-master = rbm(master_inputs)
-image = mnist_images[IMAGE]
-sess.track([master.compute_visible])
-
-sess.optimize("cfg/optimizations.rules")
-
-errs = padewan.fit(mnist_images, n_epoches=30)
-plt.plot(errs)
-plt.show()
-
-def show_digit(x):
+def show_digit(x, plt):
     plt.imshow(x.reshape((28, 28)), cmap=plt.cm.gray)
     plt.show()
 
-master_inputs.x.assign(image.reshape(1,-1))
-sess.update_target([master.compute_visible], [master_inputs.x])
-image_rec = master.compute_visible.get()
+def str2bool(opt):
+    optstr = opt.lower()
+    if optstr in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif optstr in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
-show_digit(image)
-show_digit(image_rec)
+def main(args):
+
+    default_ts = time.time()
+
+    parser = argparse.ArgumentParser(description=prog_description)
+    parser.add_argument('--seed', dest='seed',
+        type=str2bool, nargs='?', const=False, default=True,
+        help='Whether to seed or not (default: True)')
+    parser.add_argument('--seedval', dest='seedval', type=int, nargs='?', default=int(default_ts),
+        help='Random seed value (default: <current time>)')
+    parser.add_argument('--init_const', dest='xavier_const', type=float, nargs='?', default=1.0,
+        help='Xavier constant for initializing weight (default: 1.0)')
+    parser.add_argument('--use_tqdm', dest='use_tqdm',
+        type=str2bool, nargs='?', const=False, default=True,
+        help='Whether to use tqdm (default: 100)')
+    parser.add_argument('--save', dest='save', nargs='?', default='',
+        help='Filename to save model (default: <blank>)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/rbmmodel.pbx',
+        help='Filename to load pretrained model (default: models/rbmmodel.pbx)')
+    args = parser.parse_args(args)
+
+    if args.seed:
+        print('seeding {}'.format(args.seedval))
+        ead.seed(args.seedval)
+        np.random.seed(args.seedval)
+
+    if args.use_tqdm:
+        from tqdm import tqdm
+        tq = tqdm
+    else:
+        tq = None
+
+    mnist_images = mnist.train.images
+
+    n_visible = 784
+    n_hidden = 64
+    learning_rate = 0.01
+    momentum = 0.95
+
+    model = rcn.RBM(n_hidden, n_visible,
+        weight_init=rcn.unif_xavier_init(args.xavier_const),
+        bias_init=rcn.zero_init(),
+        label="demo")
+
+    untrained = model.clone()
+    try:
+        print('loading ' + args.load)
+        trained = rcn.load_file_rbmmodel(args.load, "demo")
+        print('successfully loaded from ' + args.load)
+    except Exception as e:
+        print(e)
+        print('failed to load from "{}"'.format(args.load))
+        trained = model.clone()
+
+    sess = ead.Session()
+    batch_size = 10
+
+    trainer = rcn.BernoulliRBMTrainer(
+        model=model,
+        sess=sess,
+        batch_size=batch_size,
+        learning_rate=learning_rate,
+        discount_factor=momentum,
+        err_func=mse_errfunc)
+
+    x = ead.scalar_variable(0, [1, n_visible])
+    genx = model.backward_connect(
+        tc.random.rand_binom_one(model.connect(x)))
+
+    untrained_genx = untrained.backward_connect(
+        tc.random.rand_binom_one(untrained.connect(x)))
+
+    trained_genx = trained.backward_connect(
+        tc.random.rand_binom_one(trained.connect(x)))
+
+    image = random.choice(mnist_images)
+    sess.track([genx, trained_genx, untrained_genx])
+
+    sess.optimize("cfg/optimizations.rules")
+
+    n_epoches = 30
+    shuffle = True
+    verbose = True
+    n_data = mnist_images.shape[0]
+
+    if batch_size > 0:
+        n_batches = n_data // batch_size + (0 if n_data % batch_size == 0 else 1)
+    else:
+        n_batches = 1
+
+    if shuffle:
+        data_x_cpy = mnist_images.copy()
+        inds = np.arange(n_data)
+    else:
+        data_x_cpy = mnist_images
+
+    errs = []
+    for e in range(n_epoches):
+        epoch_errs = np.zeros((n_batches,))
+        epoch_errs_ptr = 0
+
+        if shuffle:
+            np.random.shuffle(inds)
+            data_x_cpy = data_x_cpy[inds]
+
+        r_batches = range(n_batches)
+
+        if verbose:
+            if tq is not None:
+                r_batches = tq(r_batches,
+                    desc='Epoch: {:d}'.format(e),
+                    ascii=True,
+                    file=sys.stdout)
+            else:
+                print('Epoch: {:d}'.format(e))
+
+        for b in r_batches:
+            batch_x = data_x_cpy[b * batch_size:(b + 1) * batch_size]
+
+            epoch_errs[epoch_errs_ptr] = trainer.train(batch_x)
+            epoch_errs_ptr += 1
+
+        if verbose:
+            err_mean = epoch_errs.mean()
+            if tq is not None:
+                tq.write('Train error: {:.4f}'.format(err_mean))
+                tq.write('')
+            else:
+                print('Train error: {:.4f}'.format(err_mean))
+                print('')
+            sys.stdout.flush()
+
+        errs = np.hstack([errs, epoch_errs])
+
+    plt.plot(errs)
+    plt.show()
+
+    x.assign(image.reshape(1,-1))
+    sess.update_target([genx, trained_genx, untrained_genx], [x])
+    image_rec = genx.get()
+    image_rec_trained = trained_genx.get()
+    image_rec_untrained = untrained_genx.get()
+
+    show_digit(image, plt)
+    show_digit(image_rec, plt)
+    show_digit(image_rec_trained, plt)
+    show_digit(image_rec_untrained, plt)
+
+    try:
+        print('saving')
+        if model.save_file(args.save):
+            print('successfully saved to {}'.format(args.save))
+    except Exception as e:
+        print(e)
+        print('failed to write to "{}"'.format(args.save))
+
+if '__main__' == __name__:
+    main(sys.argv[1:])

@@ -92,7 +92,7 @@ PYBIND11_MODULE(stream_dbg, m)
 		}
 		else
 		{
-			logs::warnf("failed to print graph to file '%s'",
+			logs::warnf("failed to print graph to file `%s`",
 				filename.c_str());
 		}
 	},
@@ -112,7 +112,7 @@ PYBIND11_MODULE(stream_dbg, m)
 		}
 		else
 		{
-			logs::warnf("failed to write csv to file '%s'", filename.c_str());
+			logs::warnf("failed to write csv to file `%s`", filename.c_str());
 		}
 	},
 	"Stream csv of graph edges to file",
@@ -134,7 +134,7 @@ PYBIND11_MODULE(stream_dbg, m)
 		}
 		else
 		{
-			logs::warnf("failed to write csv to file '%s'", filename.c_str());
+			logs::warnf("failed to write csv to file `%s`", filename.c_str());
 		}
 	},
 	"Return csv of graph edges of multiple roots to file",

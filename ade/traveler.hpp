@@ -109,6 +109,8 @@ struct GraphStat final : public iTraveler
 	std::unordered_map<iTensor*,estd::NumRange<size_t>> graphsize_;
 };
 
+using ParentMapT = std::unordered_map<iTensor*,std::vector<size_t>>;
+
 /// Traveler that paints paths to a target tensor
 /// All nodes in the path are added as keys to the parents_ map with the values
 /// being a boolean vector denoting nodes leading to target
@@ -116,9 +118,6 @@ struct GraphStat final : public iTraveler
 /// x is true if the ith child leads to target
 struct PathFinder final : public iTraveler
 {
-	/// Type for mapping function nodes in path to boolean vector
-	using ParentMapT = std::unordered_map<iTensor*,std::unordered_set<size_t>>;
-
 	PathFinder (const iTensor* target) : target_(target) {}
 
 	/// Implementation of iTraveler
@@ -150,7 +149,7 @@ struct PathFinder final : public iTraveler
 			}
 			if (false == path.empty())
 			{
-				parents_[func] = path;
+				parents_[func] = std::vector<size_t>(path.begin(), path.end());
 			}
 		}
 	}
@@ -165,8 +164,6 @@ struct PathFinder final : public iTraveler
 /// Traveler that for each child tracks the relationship to all parents
 struct ParentFinder final : public iTraveler
 {
-	using ParentMapT = std::unordered_map<iTensor*,std::vector<size_t>>;
-
 	/// Implementation of iTraveler
 	void visit (iLeaf* leaf) override
 	{

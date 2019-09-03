@@ -42,9 +42,19 @@ py_binary(
     deps = ["//gen:gen"],
 )
 
+config_setting(
+    name = "fast_build",
+    values = {
+        "define": "EAD_CFG=MIN",
+    },
+)
+
 genrule(
     name = "generated_ead",
-    srcs = ["//cfg:ead"],
+    srcs = select({
+        "//conditions:default": ["//cfg:ead"],
+        ":fast_build": ["//cfg:ead_min"]
+    }),
     outs = [
         "generated/api.hpp",
         "generated/api.cpp",
@@ -56,10 +66,17 @@ genrule(
         "generated/pyapi_tenncor.cpp",
     ],
     tools = ["//ead:agen"],
-    cmd = "$(location //ead:agen) " +
+    cmd = select({
+        "//conditions:default": "$(location //ead:agen) " +
         "--cfg $(location //cfg:ead) " +
         "--out $(@D)/generated " +
         "--strip_prefix=$$(dirname $(@D))",
+
+        ":fast_build": "$(location //ead:agen) " +
+        "--cfg $(location //cfg:ead_min) " +
+        "--out $(@D)/generated " +
+        "--strip_prefix=$$(dirname $(@D))",
+    })
 )
 
 cc_library(
@@ -115,13 +132,14 @@ cc_test(
         "//ead:ead",
         "//dbg:stream_out",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,
-    data = ["//cfg:optimizations"] + glob([
-        "data/*.pb",
-        "data/*.txt",
-    ]),
+    data = [
+        "//:test_models",
+        "//cfg:optimizations",
+    ],
 )
 
 py_test(

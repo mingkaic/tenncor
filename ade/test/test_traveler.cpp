@@ -59,10 +59,10 @@ TEST(TRAVELER, PathFinder)
 
 	{
 		ASSERT_HAS(finder.parents_, g.get());
-		EXPECT_HAS(finder.parents_[g.get()], 1);
+		EXPECT_ARRHAS(finder.parents_[g.get()], 1);
 
 		ASSERT_HAS(finder.parents_, f.get());
-		EXPECT_HAS(finder.parents_[f.get()], 0);
+		EXPECT_ARRHAS(finder.parents_[f.get()], 0);
 	}
 
 	finder.parents_.clear();
@@ -72,7 +72,7 @@ TEST(TRAVELER, PathFinder)
 		ASSERT_HASNOT(finder.parents_, g.get());
 
 		ASSERT_HAS(finder.parents_, f.get());
-		EXPECT_HAS(finder.parents_[f.get()], 0);
+		EXPECT_ARRHAS(finder.parents_[f.get()], 0);
 	}
 
 	ade::PathFinder finder2(c.get());
@@ -80,7 +80,7 @@ TEST(TRAVELER, PathFinder)
 
 	{
 		ASSERT_HAS(finder2.parents_, g.get());
-		EXPECT_HAS(finder2.parents_[g.get()], 0);
+		EXPECT_ARRHAS(finder2.parents_[g.get()], 0);
 	}
 
 	finder2.parents_.clear();

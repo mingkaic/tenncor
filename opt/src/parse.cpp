@@ -99,7 +99,7 @@ static std::string build_intermediate (VoterPool& voters, const ::Subgraph* sg,
 			std::string symbol(sg->val_.any_);
 			if (false == estd::has(ctx.symbols_, symbol))
 			{
-				logs::fatalf("undeclared symbol '%s'", symbol.c_str());
+				logs::fatalf("undeclared symbol `%s`", symbol.c_str());
 			}
 			out = symbol;
 		}
@@ -206,7 +206,7 @@ OptCtx process_stmts (::PtrList* stmts, const iConverterBuilder& builder)
 				}
 				else if (estd::has(it->second, property_tag))
 				{
-					logs::warnf("reassignment of property %s to %s",
+					logs::warnf("reassignment of property `%s` to `%s`",
 						property_tag.c_str(), label.c_str());
 				}
 				else

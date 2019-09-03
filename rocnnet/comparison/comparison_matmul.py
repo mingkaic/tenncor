@@ -37,7 +37,7 @@ for matrix_dim in matrix_dims:
     tf_var = tf.Variable(data)
     tf_var2 = tf.Variable(data2)
 
-    tfsess = tf.Session()
+    tfsess = tf.compat.v1.Session()
     tfsess.run(tf_var.initializer)
     tfsess.run(tf_var2.initializer)
 

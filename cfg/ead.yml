@@ -462,27 +462,8 @@ api:
           type: ead::NodeptrT<T>
           val: |
               //
-                  // (todo) report offset out of rank_cap
-                  ade::CoordT slicings;
-                  std::fill(slicings.begin(), slicings.end(), ade::rank_cap);
-                  slicings[0] = offset;
-                  slicings[1] = extent;
-                  slicings[2] = dimension;
                   return ead::make_functor<T>(ade::Opcode{"SLICE",::age::SLICE}, {
-                      ead::FuncArg<T>(arg,
-                          std::make_shared<ade::CoordMap>(
-                              [=](ade::MatrixT fwd)
-                              {
-                                  for (ade::RankT i = 0; i < ade::rank_cap; ++i)
-                                  {
-                                      fwd[i][i] = 1;
-                                  }
-                                  fwd[ade::rank_cap][dimension] =
-                                      extent - arg->shape().at(dimension);
-                              }),
-                          std::make_shared<ead::CoordMap>(slicings, false)
-                      )
-                  });
+                      ead::slice_map<T>(arg, offset, extent, dimension)});
       - template: typename T
         name: pad
         args:
@@ -496,27 +477,8 @@ api:
           type: ead::NodeptrT<T>
           val: |
               //
-                  // (todo) report if dimension out of rank_cap
-                  ade::CoordT paddings;
-                  std::fill(paddings.begin(), paddings.end(), ade::rank_cap);
-                  paddings[0] = padding.first;
-                  paddings[1] = padding.second;
-                  paddings[2] = dimension;
                   return ead::make_functor<T>(ade::Opcode{"PAD",::age::PAD}, {
-                      ead::FuncArg<T>(arg,
-                          std::make_shared<ade::CoordMap>(
-                              [=](ade::MatrixT fwd)
-                              {
-                                  for (ade::RankT i = 0; i < ade::rank_cap; ++i)
-                                  {
-                                      fwd[i][i] = 1;
-                                  }
-                                  fwd[ade::rank_cap][dimension] =
-                                      padding.first + padding.second;
-                              }),
-                          std::make_shared<ead::CoordMap>(paddings, false)
-                      )
-                  });
+                      ead::pad_map<T>(arg, padding, dimension)});
       - template: typename T
         name: matmul
         args:

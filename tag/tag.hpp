@@ -130,6 +130,8 @@ inline bool operator == (const TensKey& lhs, const TensKey& rhs)
 	return hasher(lhs) == hasher(rhs);
 }
 
+using TagrF = std::function<void(ade::TensrefT,std::string)>;
+
 // todo: move tag registry to some session that claims global context
 // todo: make an interface for this
 struct TagRegistry final
@@ -183,10 +185,74 @@ struct TagRegistry final
 		registry_.erase(TensKey(source));
 	}
 
+	/// Return tagger associated to TagRepsT key
+	TagrF tagr_by_key (std::string tag_key)
+	{
+		return estd::must_getf(key_tagr_assoc_, tag_key,
+			"cannot find tagr associated with %s", tag_key.c_str());
+	}
+
+	std::string register_tagr (std::string tag_key, TagrF tagr)
+	{
+		key_tagr_assoc_.emplace(tag_key, tagr);
+		return tag_key;
+	}
+
 	std::unordered_map<TensKey,TagCollective,TensKeyHash> registry_;
+
+private:
+	std::unordered_map<std::string,TagrF> key_tagr_assoc_;
 };
 
 TagRegistry& get_reg (void);
+
+void recursive_tag (ade::TensptrT root,
+	std::unordered_set<ade::iTensor*> stops,
+	std::function<void(ade::TensrefT)> tag_op);
+
+using LTensT = std::unordered_map<std::string,std::vector<ade::iTensor*>>;
+
+using TTensT = std::unordered_map<std::string,LTensT>;
+
+struct Query final : public ade::OnceTraveler
+{
+	Query (TagRegistry& reg = get_reg()) : reg_(reg) {}
+
+	void visit_leaf (ade::iLeaf* leaf) override
+	{
+		auto tags = reg_.get_tags(leaf);
+		save_tags(tags, leaf);
+	}
+
+	void visit_func (ade::iFunctor* func) override
+	{
+		auto& children = func->get_children();
+		for (auto child : children)
+		{
+			child.get_tensor()->accept(*this);
+		}
+
+		auto tags = reg_.get_tags(func);
+		save_tags(tags, func);
+	}
+
+	TTensT labels_;
+
+	TagRegistry& reg_;
+
+private:
+	void save_tags (TagRepsT& tag, ade::iTensor* tens)
+	{
+		for (auto& tpair : tag)
+		{
+			auto& labs = labels_[tpair.first];
+			for (auto lpair : tpair.second)
+			{
+				labs[lpair].push_back(tens);
+			}
+		}
+	}
+};
 
 }
 

@@ -87,22 +87,23 @@ struct Variable final : public iLeaf<T>
 	{
 		std::vector<T> data;
 		age::type_convert(data, input, dtype, shape.n_elems());
-		this->data_ = make_tensmap<T>(data.data(), shape);;
+		this->data_ = make_tensmap<T>(data.data(), shape);
 	}
 
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return "variable:" + label_;
+		return label_;
 	}
 
+	/// Implementation of iLeaf
 	bool is_const (void) const override
 	{
 		return false;
 	}
 
 	/// Label for distinguishing variable nodes
-	std::string label_;
+	std::string label_; // todo: make private
 
 private:
 	Variable (T* data, ade::Shape shape, std::string label) :
@@ -143,7 +144,7 @@ struct VariableNode final : public iNode<T>
 
 	std::string get_label (void) const
 	{
-		return var_->label_;
+		return var_->to_string();
 	}
 
 private:

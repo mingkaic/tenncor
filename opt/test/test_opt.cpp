@@ -49,7 +49,7 @@ TEST(OPTIMIZE, CalcConstants)
 		ASSERT_EQ(1, opted.size());
 		// expect optimized cfunc to be sin(2)
 		EXPECT_GRAPHEQ(
-			(fmts::sprintf("(%f[1\\1\\1\\1\\1\\1\\1\\1])", std::sin(2))),
+			(fmts::sprintf("(constant:%f[1\\1\\1\\1\\1\\1\\1\\1])", std::sin(2))),
 			opted[0]);
 	}
 
@@ -66,8 +66,8 @@ TEST(OPTIMIZE, CalcConstants)
 				" `--(ADD[1\\1\\1\\1\\1\\1\\1\\1])\n"
 				" |   `--(SIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
 				" |   |   `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-				" |   `--(%g[1\\1\\1\\1\\1\\1\\1\\1])\n"
-				" `--(%g[1\\1\\1\\1\\1\\1\\1\\1])",
+				" |   `--(constant:%g[1\\1\\1\\1\\1\\1\\1\\1])\n"
+				" `--(constant:%g[1\\1\\1\\1\\1\\1\\1\\1])",
 				std::sin(2), std::pow(3, 4))),
 			opted[0]);
 
@@ -78,8 +78,8 @@ TEST(OPTIMIZE, CalcConstants)
 				" `--(ADD[1\\1\\1\\1\\1\\1\\1\\1])\n"
 				" |   `--(SIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
 				" |   |   `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-				" |   `--(%g[1\\1\\1\\1\\1\\1\\1\\1])\n"
-				" `--(%g[1\\1\\1\\1\\1\\1\\1\\1])",
+				" |   `--(constant:%g[1\\1\\1\\1\\1\\1\\1\\1])\n"
+				" `--(constant:%g[1\\1\\1\\1\\1\\1\\1\\1])",
 				std::sin(2), std::pow(3, 4))),
 			adv_func->get_tensor());
 	}
@@ -106,10 +106,10 @@ TEST(OPTIMIZE, PruneZeroSingles)
 		}, rules);
 		ASSERT_EQ(2, opted.size());
 		// expect both optimized wunfunc to be 1
-		EXPECT_GRAPHEQ("(1[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
+		EXPECT_GRAPHEQ("(constant:1[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 
 		// expect both optimized zrofunc to be 0
-		EXPECT_GRAPHEQ("(0[1\\1\\1\\1\\1\\1\\1\\1])", opted[1]);
+		EXPECT_GRAPHEQ("(constant:0[1\\1\\1\\1\\1\\1\\1\\1])", opted[1]);
 	}
 
 	{
@@ -135,7 +135,7 @@ TEST(OPTIMIZE, PruneZeroSingles)
 		}, rules);
 		ASSERT_EQ(2, opted.size());
 		// expect both optimized l and r zeros to be 0
-		std::string expect = "(0[1\\1\\1\\1\\1\\1\\1\\1])";
+		std::string expect = "(constant:0[1\\1\\1\\1\\1\\1\\1\\1])";
 		EXPECT_GRAPHEQ(expect, opted[0]);
 		EXPECT_GRAPHEQ(expect, opted[1]);
 	}
@@ -163,7 +163,7 @@ TEST(OPTIMIZE, PruneZeroSingles)
 		auto opted = opt::optimize({divz->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized divz to be zero
-		EXPECT_GRAPHEQ("(0[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
+		EXPECT_GRAPHEQ("(constant:0[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 	}
 
 	{
@@ -173,7 +173,7 @@ TEST(OPTIMIZE, PruneZeroSingles)
 		// expect optimized not_opt to remain the same
 		EXPECT_GRAPHEQ(
 			"(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
-			" `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n"
+			" `--(constant:0[1\\1\\1\\1\\1\\1\\1\\1])\n"
 			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 	}
 }
@@ -211,13 +211,13 @@ TEST(OPTIMIZE, PruneZeroGraph)
 		" |   |   `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   |   |   `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   |   |   |   `--(variable:var2[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		" |   |   |   |   `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		" |   |   |   `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   |   |   |   `--(constant:0[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   |   |   `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   |   `--(LT[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   |       `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   |       |   `--(variable:var2[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		" |   |       |   `--(0[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		" |   |       `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   |       |   `--(constant:0[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   |       `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |       `--(variable:var2[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |       `--(NEG[1\\1\\1\\1\\1\\1\\1\\1])\n"
@@ -227,7 +227,7 @@ TEST(OPTIMIZE, PruneZeroGraph)
 	auto got0 = tenncor::tan(zero);
 	opted = opt::optimize({tenncor::pow(nocascades, got0)->get_tensor()}, rules);
 	ASSERT_EQ(1, opted.size());
-	EXPECT_GRAPHEQ("(1[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
+	EXPECT_GRAPHEQ("(constant:1[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 }
 
 
@@ -255,7 +255,7 @@ TEST(OPTIMIZE, PruneOneSingles)
 			opted[0]);
 
 		// expect optimized wunfunc to be 1
-		EXPECT_GRAPHEQ("(1[1\\1\\1\\1\\1\\1\\1\\1])", opted[1]);
+		EXPECT_GRAPHEQ("(constant:1[1\\1\\1\\1\\1\\1\\1\\1])", opted[1]);
 	}
 
 	{
@@ -286,7 +286,7 @@ TEST(OPTIMIZE, PruneOneSingles)
 		auto opted = opt::optimize({wun->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized wun to be 1
-		EXPECT_GRAPHEQ("(1[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
+		EXPECT_GRAPHEQ("(constant:1[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 	}
 
 	{
@@ -295,7 +295,7 @@ TEST(OPTIMIZE, PruneOneSingles)
 		// expect optimized no_opt to remain the same
 		EXPECT_GRAPHEQ(
 			"(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
-			" `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n"
+			" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
 			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 	}
 }
@@ -330,13 +330,13 @@ TEST(OPTIMIZE, PruneOneGraph)
 		"(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" `--(POW[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		" |   |   `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   |   `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   |   `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |       `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |       `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |           `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		" |           `--(1[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |           `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
 }
 
@@ -596,44 +596,44 @@ TEST(OPTIMIZE, ReuseOpGraph)
 	std::list<std::string> expectlines =
 	{
 		"0:MUL,1:COS,0,white",
-		"1:COS,2:variable:0,0,white",
 		"0:MUL,3:MAX,1,white",
-		"3:MAX,4:variable:2,0,white",
-		"3:MAX,2:variable:0,1,white",
+		"10:ADD,0:MUL,1,white",
+		"10:ADD,2:0,0,white",
+		"11:POW,12:SUB,0,white",
+		"11:POW,2:0,1,white",
+		"12:SUB,2:0,1,white",
+		"12:SUB,4:2,0,white",
+		"13:DIV,14:ADD,0,white",
+		"13:DIV,17:SUB,1,white",
+		"14:ADD,15:ADD,0,white",
+		"14:ADD,4:2,1,white",
+		"15:ADD,16:1,0,white",
+		"15:ADD,2:0,1,white",
+		"17:SUB,16:1,1,white",
+		"17:SUB,2:0,0,white",
+		"18:MUL,19:MUL,0,white",
+		"18:MUL,22:MUL,1,white",
+		"19:MUL,1:COS,1,white",
+		"19:MUL,20:EQ,0,white",
+		"1:COS,2:0,0,white",
+		"20:EQ,17:SUB,1,white",
+		"20:EQ,21:DIV,0,white",
+		"21:DIV,0:MUL,1,white",
+		"21:DIV,12:SUB,0,white",
+		"22:MUL,14:ADD,1,white",
+		"22:MUL,21:DIV,0,white",
+		"3:MAX,2:0,1,white",
+		"3:MAX,4:2,0,white",
+		"5:SUB,12:SUB,1,white",
 		"5:SUB,6:POW,0,white",
+		"6:POW,13:DIV,1,white",
 		"6:POW,7:MIN,0,white",
 		"7:MIN,8:MIN,0,white",
-		"8:MIN,3:MAX,0,white",
-		"8:MIN,1:COS,1,white",
 		"7:MIN,9:MIN,1,white",
+		"8:MIN,1:COS,1,white",
+		"8:MIN,3:MAX,0,white",
 		"9:MIN,10:ADD,0,white",
-		"10:ADD,2:variable:0,0,white",
-		"10:ADD,0:MUL,1,white",
 		"9:MIN,11:POW,1,white",
-		"11:POW,12:SUB,0,white",
-		"12:SUB,4:variable:2,0,white",
-		"12:SUB,2:variable:0,1,white",
-		"11:POW,2:variable:0,1,white",
-		"6:POW,13:DIV,1,white",
-		"13:DIV,14:ADD,0,white",
-		"14:ADD,15:ADD,0,white",
-		"15:ADD,16:variable:1,0,white",
-		"15:ADD,2:variable:0,1,white",
-		"14:ADD,4:variable:2,1,white",
-		"13:DIV,17:SUB,1,white",
-		"17:SUB,2:variable:0,0,white",
-		"17:SUB,16:variable:1,1,white",
-		"5:SUB,12:SUB,1,white",
-		"18:MUL,19:MUL,0,white",
-		"19:MUL,20:EQ,0,white",
-		"20:EQ,21:DIV,0,white",
-		"21:DIV,12:SUB,0,white",
-		"21:DIV,0:MUL,1,white",
-		"20:EQ,17:SUB,1,white",
-		"19:MUL,1:COS,1,white",
-		"18:MUL,22:MUL,1,white",
-		"22:MUL,21:DIV,0,white",
-		"22:MUL,14:ADD,1,white",
 	};
 	expectlines.sort();
 	std::list<std::string> gotlines;

@@ -18,3 +18,20 @@ filegroup(
         "BUILD.bazel",
     ],
 )
+
+filegroup(
+    name = "test_models",
+    srcs = glob([
+        "models/test/*.pbx",
+        "models/test/*.txt",
+        "models/test/*.json",
+    ])
+)
+
+filegroup(
+    name = "models",
+    srcs = glob([
+        "models/*.pbx",
+        "models/*.json",
+    ])
+)

@@ -22,7 +22,7 @@ struct Functor final : public iFunctor
 	{
 		if (0 == args.size())
 		{
-			logs::fatalf("cannot perform %s with no arguments",
+			logs::fatalf("cannot perform `%s` with no arguments",
 				opcode.name_.c_str());
 		}
 
@@ -32,7 +32,7 @@ struct Functor final : public iFunctor
 			Shape ishape = args[i].shape();
 			if (false == ishape.compatible_after(shape, 0))
 			{
-				logs::fatalf("cannot perform %s with incompatible shapes %s "
+				logs::fatalf("cannot perform `%s` with incompatible shapes %s "
 					"and %s", opcode.name_.c_str(), shape.to_string().c_str(),
 					ishape.to_string().c_str());
 			}

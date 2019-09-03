@@ -6,41 +6,18 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P1 - make shape dimension size configurable
+P2 - update API to simplify operator with constants e.g.: X + 1 instead of explicitly creating constant 1
+P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (denoted in python by None)
+P2 - make shape dimension size configurable
 P2 - make constant pre-calculation configurable in opt module
 P2 - reimplement conv nn layer + dbn
     P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
 P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 
-=== transparency ===
-P2 - provide graph-setup time summary when failing to match shapes
-P4 - add even more debugging tools
-P4 - formalize codestyle
-P4 - refactor, and rename variables to improve readability
-P4 - conform to some bazel style/convention (or change to another build tool)
-P4 - investigate adopting more of boost in place of cppkg
-
-=== structure ===
-P4 - remove ead helper functions
-
-=== correction ===
-P1 - create global session for all ade/ead/tag singletons, then make context configurable
-P2 - test tag module (need ^)
-P2 - reorient tests so that tests cover its own immediate module
-P2 - fix rbm demo converging to infinity problem
-P2 - test dbg module
-P2 - test opt module more
-P3 - test complicate equations (generate random valid equations)
-P3 - maximize coverage
-P3 - test rocnnet + eqns, modl, and trainer (or subgraph equivalent)
-
-=== update ===
-P2 - update all fmts usages
-P3 - address warnings
-
 === performance ===
 general performance:
+P2 - ensure ade is thread-safe
 P3 - benchmark test rocnnet against various other frameworks (CPU only)
 P3 - convert as many shared_ptr to unique_ptr
 P4 - remove unordered_map/unordered_set if we're not using them properly
@@ -52,3 +29,25 @@ P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - implement GPU settings
 P4 - improve session implementation
 P4 - investigate remote sessions for distributed processing
+
+=== correction ===
+P2 - centralize global context structures
+P2 - reorient tests so that tests cover its own immediate module
+P2 - fix rbm demo converging to infinity problem
+P2 - test dbg module
+P2 - test opt module more
+P3 - test complicate equations (generate random valid equations)
+P3 - maximize coverage
+P3 - test rocnnet + eqns, modl, and trainer (or subgraph equivalent)
+
+=== transparency ===
+P2 - provide graph-setup time summary when failing to match shapes
+P4 - add even more debugging tools
+P4 - formalize codestyle
+P4 - refactor, and rename variables to improve readability
+P4 - conform to some bazel style/convention (or change to another build tool)
+P4 - investigate adopting more of boost in place of cppkg
+
+=== update ===
+P2 - update all fmts usages
+P3 - address warnings

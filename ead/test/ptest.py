@@ -102,7 +102,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_out = tf_op(tf_var)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
 
         sess = ead.Session()
@@ -177,7 +177,7 @@ class EADTest(unittest.TestCase):
         var = ead.variable(data, 'var')
         tf_var = tf.Variable(data)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
 
         out = dim_reduce(var, 1)
@@ -219,7 +219,7 @@ class EADTest(unittest.TestCase):
             var = ead.variable(data, 'var')
             tf_var = tf.Variable(data)
 
-            tfsess = tf.Session()
+            tfsess = tf.compat.v1.Session()
             tfsess.run(tf_var.initializer)
 
             out = all_reduce(var)
@@ -613,7 +613,7 @@ class EADTest(unittest.TestCase):
             var = ead.variable(data, 'var')
             tf_var = tf.Variable(data)
 
-            tfsess = tf.Session()
+            tfsess = tf.compat.v1.Session()
             tfsess.run(tf_var.initializer)
 
             out = tc.reduce_l2norm(var)
@@ -674,7 +674,7 @@ class EADTest(unittest.TestCase):
             tf_var = tf.Variable(data)
             tf_var2 = tf.Variable(data2)
 
-            tfsess = tf.Session()
+            tfsess = tf.compat.v1.Session()
             tfsess.run(tf_var.initializer)
             tfsess.run(tf_var2.initializer)
 
@@ -777,7 +777,7 @@ class EADTest(unittest.TestCase):
 
             fout = out.get()
 
-            tfsess = tf.Session()
+            tfsess = tf.compat.v1.Session()
             tfsess.run(tf_var.initializer)
             tfsess.run(tf_kernel.initializer)
 
@@ -833,7 +833,7 @@ class EADTest(unittest.TestCase):
         sess.track([out])
         sess.update()
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
 
         tfoutput = tf.nn.conv2d(tfimage, tfkernel, [1, 1, 1, 1], 'VALID')
         tfsess.run(tfimage.initializer)
@@ -874,7 +874,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -910,7 +910,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -946,7 +946,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -985,7 +985,7 @@ class EADTest(unittest.TestCase):
         tf_var2 = tf.Variable(data2)
         tf_var3 = tf.Variable(data3)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
@@ -1025,7 +1025,7 @@ class EADTest(unittest.TestCase):
         tf_var2 = tf.Variable(data2)
         tf_var3 = tf.Variable(data3)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
@@ -1062,7 +1062,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -1099,7 +1099,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -1137,7 +1137,7 @@ class EADTest(unittest.TestCase):
         var = ead.variable(data, 'var')
         tf_var = tf.Variable(data)
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_var.initializer)
 
         out = tc.matmul(
@@ -1196,7 +1196,7 @@ class EADTest(unittest.TestCase):
         dc = ead.derive(dest, c)
         tf_da, tf_db, tf_dc = tf.gradients(tf_dest, [tf_a, tf_b, tf_c])
 
-        tfsess = tf.Session()
+        tfsess = tf.compat.v1.Session()
         tfsess.run(tf_a.initializer)
         tfsess.run(tf_b.initializer)
         tfsess.run(tf_c.initializer)

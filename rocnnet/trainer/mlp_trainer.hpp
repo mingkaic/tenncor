@@ -1,4 +1,6 @@
-#include "rocnnet/modl/mlp.hpp"
+#include "ead/grader.hpp"
+
+#include "rocnnet/modl/model.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
 
@@ -9,57 +11,47 @@ namespace trainer
 {
 
 // Normal default context that only stores the number of iterations
-struct TrainingContext final : public modl::iTrainingContext
+struct TrainingContext final
 {
-	void marshal_layer (cortenn::Layer& out_layer) const override
-	{
-		cortenn::ItTrainerState* state = out_layer.mutable_it_ctx();
-		state->set_iterations(n_iterations_);
-	}
-
-	void unmarshal_layer (const cortenn::Layer& in_layer) override
-	{
-		const cortenn::ItTrainerState& state = in_layer.it_ctx();
-		n_iterations_ = state.iterations();
-	}
-
 	size_t n_iterations_ = 0;
 };
 
 // MLPTrainer does not own anything
-struct MLPTrainer
+struct MLPTrainer final
 {
-	MLPTrainer (modl::MLPptrT brain,
-		modl::NonLinearsT nonlinearities,
-		ead::iSession& sess,
-		eqns::ApproxF update, uint8_t batch_size,
+	MLPTrainer (modl::SequentialModel& model,
+		ead::iSession& sess, eqns::ApproxF update, ade::DimT batch_size,
+		eqns::NodeUnarF gradprocess = eqns::NodeUnarF(eqns::identity),
 		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
-		train_in_(ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({brain->get_ninput(), batch_size}), "train_in")),
-		brain_(brain),
+		train_in_(ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
+			(ade::DimT) model.get_ninput(), batch_size}), "train_in")),
+		model_(model),
 		sess_(&sess),
 		ctx_(ctx)
 	{
-		train_out_ = (*brain_)(
-			ead::convert_to_node<PybindT>(train_in_), nonlinearities);
-		expected_out_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({brain_->get_noutput(), batch_size}), "expected_out");
+		train_out_ = model_.connect(
+			ead::convert_to_node<PybindT>(train_in_));
+		expected_out_ = ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
+			(ade::DimT) model.get_noutput(), batch_size}), "expected_out");
 		error_ = tenncor::square(
 			tenncor::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
 
-		pbm::PathedMapT vmap = brain_->list_bases();
-		eqns::VariablesT vars;
-		for (auto vpair : vmap)
+		auto contents = model_.get_contents();
+		eqns::VarErrsT vars;
+		for (auto tens : contents)
 		{
 			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<PybindT>>(vpair.first))
+				ead::Variable<PybindT>>(tens))
 			{
-				vars.push_back(
-					std::make_shared<ead::VariableNode<PybindT>>(var));
+				auto varnode = std::make_shared<ead::VariableNode<PybindT>>(var);
+				vars.push_back({
+					varnode,
+					gradprocess(ead::derive(error_, ead::convert_to_node(varnode)))
+				});
 			}
 		}
-		updates_ = update(error_, vars);
+		updates_ = update(vars);
 
 		ade::TensT track_batch = {
 			train_out_->get_tensor(),
@@ -78,8 +70,8 @@ struct MLPTrainer
 	void train (std::vector<PybindT>& train_in,
 		std::vector<PybindT>& expected_out)
 	{
-		size_t insize = brain_->get_ninput();
-		size_t outsize = brain_->get_noutput();
+		size_t insize = model_.get_ninput();
+		size_t outsize = model_.get_noutput();
 		if (train_in.size() != insize * batch_size_)
 		{
 			logs::fatalf("training vector size (%d) does not match "
@@ -107,16 +99,11 @@ struct MLPTrainer
 		++ctx_.n_iterations_;
 	}
 
-	bool save (std::ostream& outs)
-	{
-		return modl::save(outs,
-			error_->get_tensor(), brain_.get(), &ctx_);
-	}
+	modl::SequentialModel& model_;
 
 	uint8_t batch_size_;
 	ead::VarptrT<PybindT> train_in_;
 	ead::VarptrT<PybindT> expected_out_;
-	modl::MLPptrT brain_;
 	ead::NodeptrT<PybindT> train_out_;
 	ead::NodeptrT<PybindT> error_;
 

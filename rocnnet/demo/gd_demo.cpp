@@ -5,14 +5,15 @@
 #include <iostream>
 #include <fstream>
 
-#include "pbm/save.hpp"
-
 #include "flag/flag.hpp"
 
 #include "ead/ead.hpp"
 #include "ead/parse.hpp"
 
 #include "dbg/grpc/session.hpp"
+
+#include "rocnnet/modl/model.hpp"
+#include "rocnnet/modl/activations.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 
@@ -68,7 +69,7 @@ int main (int argc, const char** argv)
 		("save", flag::opt::value<std::string>(&savepath)->default_value(""),
 			"filename to save model")
 		("load", flag::opt::value<std::string>(&loadpath)->default_value(
-			"rocnnet/pretrained/gdmodel.pbx"), "filename to load pretrained model");
+			"models/gdmodel.pbx"), "filename to load pretrained model");
 
 	int exit_status = 0;
 	std::clock_t start;
@@ -88,62 +89,51 @@ int main (int argc, const char** argv)
 	uint8_t n_in = 10;
 	uint8_t n_out = n_in / 2;
 	std::vector<ade::DimT> n_outs = {9, n_out};
-	modl::NonLinearsT nonlins = {tenncor::sigmoid<float>, tenncor::sigmoid<float>};
 
-	auto brain = std::make_shared<modl::MLP>(n_in, n_outs, "brain");
-	auto untrained_brain = std::make_shared<modl::MLP>(*brain);
-	modl::MLPptrT pretrained_brain;
+	modl::SequentialModel model("demo");
+	model.push_back(std::make_shared<modl::Dense>(9, n_in,
+		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "0"));
+	model.push_back(modl::sigmoid());
+	model.push_back(std::make_shared<modl::Dense>(n_out, 9,
+		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "1"));
+	model.push_back(modl::sigmoid());
+
+	modl::SequentialModel untrained_model(model);
+	modl::SeqModelptrT trained_model = nullptr;
+
 	std::ifstream loadstr(loadpath);
 	if (loadstr.is_open())
 	{
-		cortenn::Layer layer;
-		layer.ParseFromIstream(&loadstr);
-
-		// load graph to target
-		const cortenn::Graph& graph = layer.graph();
-		pbm::GraphInfo info;
-		pbm::load_graph<ead::EADLoader>(info, graph);
-
-		pretrained_brain = std::make_shared<modl::MLP>(info, "pretrained");
-
-		logs::infof("model successfully loaded from file '%s'", loadpath.c_str());
-		if (cortenn::Layer::kItCtx != layer.layer_context_case())
-		{
-			logs::warn("missing training context");
-		}
-		else
-		{
-			auto& ctx = layer.it_ctx();
-			logs::infof("loaded model trained for %d iterations",
-				ctx.iterations());
-		}
-
+		ade::TensT trained_roots;
+		trained_model = std::static_pointer_cast<modl::SequentialModel>(
+			modl::load_layer(loadstr, trained_roots, modl::seq_model_key, "demo"));
+		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
 	else
 	{
-		logs::warnf("model failed to loaded from file '%s'", loadpath.c_str());
-		pretrained_brain = std::make_shared<modl::MLP>(*brain);
+		logs::warnf("model failed to loaded from file `%s`", loadpath.c_str());
+		trained_model = std::make_shared<modl::SequentialModel>(model);
 	}
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
-	eqns::ApproxF approx = [](ead::NodeptrT<float>& root, eqns::VariablesT leaves)
+	eqns::ApproxF approx = [](const eqns::VarErrsT& leaves)
 	{
-		return eqns::sgd(root, leaves, 0.9); // learning rate = 0.9
+		return eqns::sgd(leaves, 0.9); // learning rate = 0.9
 	};
 	dbg::InteractiveSession sess("localhost:50051");
-	trainer::MLPTrainer trainer(brain, nonlins, sess, approx, n_batch);
+	trainer::MLPTrainer trainer(model, sess, approx, n_batch);
 
 	ead::VarptrT<float> testin = ead::make_variable_scalar<float>(
 		0, ade::Shape({n_in}), "testin");
-	auto untrained_out = (*untrained_brain)(testin, nonlins);
-	auto trained_out = (*brain)(testin, nonlins);
-	auto pretrained_out = (*pretrained_brain)(testin, nonlins);
+	auto untrained_out = untrained_model.connect(testin);
+	auto out = model.connect(testin);
+	auto trained_out = trained_model->connect(testin);
 	sess.track({
 		untrained_out->get_tensor(),
+		out->get_tensor(),
 		trained_out->get_tensor(),
-		pretrained_out->get_tensor(),
 	});
 
 	opt::OptCtx rules = ead::parse_file<PybindT>("cfg/optimizations.rules");
@@ -175,8 +165,8 @@ int main (int argc, const char** argv)
 	float pretrained_err = 0;
 
 	float* untrained_res = untrained_out->data();
-	float* trained_res = trained_out->data();
-	float* pretrained_res = pretrained_out->data();
+	float* trained_res = out->data();
+	float* pretrained_res = trained_out->data();
 	for (size_t i = 0; i < n_test; i++)
 	{
 		if (i % show_every_n == show_every_n - 1)
@@ -214,15 +204,15 @@ int main (int argc, const char** argv)
 		std::ofstream savestr(savepath);
 		if (savestr.is_open())
 		{
-			if (trainer.save(savestr))
+			if (modl::save_layer(savestr, model, {}))
 			{
-				logs::infof("successfully saved model to '%s'", savepath.c_str());
+				logs::infof("successfully saved model to `%s`", savepath.c_str());
 			}
 			savestr.close();
 		}
 		else
 		{
-			logs::warnf("failed to save model to '%s'", savepath.c_str());
+			logs::warnf("failed to save model to `%s`", savepath.c_str());
 		}
 	}
 
