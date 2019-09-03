@@ -4,26 +4,15 @@
 
 #include "flag/flag.hpp"
 #include "fmts/fmts.hpp"
+#include "estd/strs.hpp"
 
 #include "pbm/graph.pb.h"
 
 const std::string pbx_ext = ".pbx";
 
-bool has_affix (const std::string& str, const std::string& affix)
-{
-	size_t n = str.size();
-	size_t naffix = affix.size();
-	if (n < naffix)
-	{
-		return false;
-	}
-	return std::equal(str.begin() + n - naffix,
-		str.end(), affix.begin());
-}
-
 void write_json (std::string writepath, const std::string& jsonstr)
 {
-	if (has_affix(writepath, pbx_ext))
+	if (estd::has_affix(writepath, pbx_ext))
 	{
 		std::fstream writestr(writepath, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (writestr.is_open())
@@ -83,7 +72,7 @@ int main (int argc, const char** argv)
 	if (readstr.is_open())
 	{
 		std::string jsonstr;
-		if (has_affix(readpath, pbx_ext))
+		if (estd::has_affix(readpath, pbx_ext))
 		{
 			cortenn::Graph graph;
 			if (false == graph.ParseFromIstream(&readstr))
