@@ -21,13 +21,7 @@ bazel test --run_under='valgrind --leak-check=full' --define EAD_CFG=MIN \
 
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";
-bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --define EAD_CFG=MIN \
---config gtest --config cc_coverage \
-//ade:test //tag:test //pbm:test //opt:test //opt/parse:test //ead:ctest //perf:test //pll:test
-lcov --remove bazel-out/_coverage/_coverage_report.dat \
-'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*' \
--o coverage.info
-lcov --list coverage.info | grep -v '+' | grep -v 'Processing'
+make lcov | grep -v '+' | grep -v 'Processing'
 
 if ! [ -z "$COVERALLS_TOKEN" ];
 then

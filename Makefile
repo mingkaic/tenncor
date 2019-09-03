@@ -2,7 +2,7 @@ COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 
 COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*'
 
-CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
+CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage --define EAD_CFG=MIN
 
 ADE_TEST := //ade:test
 
