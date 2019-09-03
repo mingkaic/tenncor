@@ -10,6 +10,11 @@ filegroup(
 )
 
 filegroup(
+    name = "ead_min",
+    srcs = ["ead_min.yml"],
+)
+
+filegroup(
     name = "optimizations",
     srcs = ["optimizations.rules"],
 )
