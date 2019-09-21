@@ -1,4 +1,5 @@
 import json
+import random
 import logging
 import unittest
 import numpy as np
@@ -42,6 +43,11 @@ def _normalize_shape(arr1, arr2):
     normalized_s1 = list(shape1) + [1] * (maxn - n1)
     normalized_s2 = list(shape2) + [1] * (maxn - n2)
     return normalized_s1, normalized_s2
+
+def _round_helper(x):
+    if isinstance(x, float):
+        return round(x)
+    return tc.round(x)
 
 class EADTest(unittest.TestCase):
     def _array_eq(self, arr1, arr2):
@@ -134,17 +140,26 @@ class EADTest(unittest.TestCase):
         data2 = np.random.rand(*shape)
         var = ead.variable(data, 'var')
         var2 = ead.variable(data2, 'var2')
+        cst = random.uniform(0.5, 5)
+        cst2 = random.uniform(0.5, 5)
+
         out = api(var, var2)
         both = api(var, var)
+        clhs = api(var, cst)
+        crhs = api(cst2, var2)
 
         sess = ead.Session()
-        sess.track([out, both])
+        sess.track([out, both, clhs, crhs])
         sess.update()
 
         fout = out.get()
         fboth = both.get()
+        fclhs = clhs.get()
+        fcrhs = crhs.get()
         self._array_close(real(data, data2), fout)
         self._array_close(real(data, data), fboth)
+        self._array_close(real(data, cst), fclhs)
+        self._array_close(real(cst2, data2), fcrhs)
 
         var3 = ead.variable(data, 'var3')
 
@@ -152,24 +167,37 @@ class EADTest(unittest.TestCase):
         ex = ead.derive(out, var)
         ex2 = ead.derive(out, var2)
         ex3 = ead.derive(both, var)
+        ex4 = ead.derive(clhs, var)
+        ex5 = ead.derive(crhs, var2)
 
-        sess.track([zero, ex, ex2, ex3])
+        sess.track([zero, ex, ex2, ex3, ex4, ex5])
         sess.update()
 
         rej = zero.get()
         der = ex.get()
         der2 = ex2.get()
         der3 = ex3.get()
+        der4 = ex4.get()
+        der5 = ex5.get()
 
         data0 = np.zeros(shape, dtype=np.float32)
         exdata = derive(0, (data, data2))
         exdata2 = derive(1, (data, data2))
         exdata3 = derive(0, (data, data)) + derive(1, (data, data))
+        exdata4 = derive(0, (data, cst))
+        exdata5 = derive(1, (cst2, data2))
+
+        if isinstance(exdata4, float):
+            exdata4 = np.array([exdata4] * np.prod(shape)).reshape(shape)
+        if isinstance(exdata5, float):
+            exdata5 = np.array([exdata5] * np.prod(shape)).reshape(shape)
 
         self._array_eq(data0, rej)
         self._array_close(exdata, der)
         self._array_close(exdata2, der2)
         self._array_close(exdata3, der3)
+        self._array_close(exdata4, der4)
+        self._array_close(exdata5, der5)
 
     def _common_reduce_1d(self, dim_reduce, tf_reduce):
         shape = [3, 4, 5]
@@ -500,7 +528,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: tc.eq(tc.round(x), tc.round(y)),
+                lambda x, y: tc.eq(_round_helper(x), _round_helper(y)),
                 lambda x, y: np.round(x) == np.round(y),
                 lambda i, data: data0)
 
@@ -511,7 +539,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: tc.neq(tc.round(x), tc.round(y)),
+                lambda x, y: tc.neq(_round_helper(x), _round_helper(y)),
                 lambda x, y: np.round(x) != np.round(y),
                 lambda i, data: data0)
 
@@ -522,7 +550,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: tc.lt(tc.round(x), tc.round(y)),
+                lambda x, y: tc.lt(_round_helper(x), _round_helper(y)),
                 lambda x, y: np.round(x) < np.round(y),
                 lambda i, data: data0)
 
@@ -533,7 +561,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: tc.gt(tc.round(x), tc.round(y)),
+                lambda x, y: tc.gt(_round_helper(x), _round_helper(y)),
                 lambda x, y: np.round(x) > np.round(y),
                 lambda i, data: data0)
 

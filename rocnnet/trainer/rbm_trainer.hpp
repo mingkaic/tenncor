@@ -36,13 +36,9 @@ eqns::AssignGroupsT bbernoulli_approx (const eqns::VarErrsT& leaves,
 		auto momentum = ead::make_variable_scalar<PybindT>(0,
 			err->shape(), leaves[i].first->get_label() + "_momentum");
 		auto momentum_next = tenncor::add(
-			tenncor::mul(
-				ead::make_constant_scalar(discount_factor, momentum->shape()),
-				ead::convert_to_node(momentum)),
-			tenncor::mul(
-				ead::make_constant_scalar(learning_rate *
-					(1 - discount_factor) / shape_factor, err->shape()),
-				err));
+			tenncor::mul(discount_factor, ead::convert_to_node(momentum)),
+			tenncor::mul(learning_rate * (1 - discount_factor) /
+				shape_factor, err));
 		auto leaf_next = tenncor::add(leaf_node, momentum_next);
 
 		assigns.push_back(eqns::VarAssign{

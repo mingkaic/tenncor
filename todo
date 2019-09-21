@@ -6,7 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P2 - update API to simplify operator with constants e.g.: X + 1 instead of explicitly creating constant 1
+P2 - overload common operators in both C++ and Python API
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (denoted in python by None)
 P2 - make shape dimension size configurable
 P2 - make constant pre-calculation configurable in opt module

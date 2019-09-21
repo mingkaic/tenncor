@@ -186,6 +186,36 @@ api:
           type: ead::NodeptrT<T>
           val: return ead::make_functor<T>(ade::Opcode{"POW",::age::POW},{ead::identity_map(arg1),ead::identity_map(arg2)});
       - template: typename T
+        name: pow
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"POW",::age::POW},{
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+      - template: typename T
+        name: pow
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"POW",::age::POW},{
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                      ead::identity_map(arg1),
+                  });
+      - template: typename T
         name: add
         args:
         - dtype: ead::NodeptrT<T>
@@ -204,6 +234,42 @@ api:
                   tag::get_group_reg().group_tag(out->get_tensor(), "sum");
                   return out;
       - template: typename T
+        name: add
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"ADD",::age::ADD}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  tag::get_group_reg().group_tag(out->get_tensor(), "sum");
+                  return out;
+      - template: typename T
+        name: add
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"ADD",::age::ADD}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  tag::get_group_reg().group_tag(out->get_tensor(), "sum");
+                  return out;
+      - template: typename T
         name: sub
         args:
         - dtype: ead::NodeptrT<T>
@@ -213,6 +279,36 @@ api:
         out:
           type: ead::NodeptrT<T>
           val: return ead::make_functor<T>(ade::Opcode{"SUB",::age::SUB},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      - template: typename T
+        name: sub
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"SUB",::age::SUB},{
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+      - template: typename T
+        name: sub
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"SUB",::age::SUB},{
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                      ead::identity_map(arg1),
+                  });
       - template: typename T
         name: mul
         args:
@@ -232,6 +328,42 @@ api:
                   tag::get_group_reg().group_tag(out->get_tensor(), "prod");
                   return out;
       - template: typename T
+        name: mul
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"MUL",::age::MUL}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  tag::get_group_reg().group_tag(out->get_tensor(), "prod");
+                  return out;
+      - template: typename T
+        name: mul
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"MUL",::age::MUL}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  tag::get_group_reg().group_tag(out->get_tensor(), "prod");
+                  return out;
+      - template: typename T
         name: div
         args:
         - dtype: ead::NodeptrT<T>
@@ -241,6 +373,36 @@ api:
         out:
           type: ead::NodeptrT<T>
           val: return ead::make_functor<T>(ade::Opcode{"DIV",::age::DIV},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      - template: typename T
+        name: div
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"DIV",::age::DIV},{
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+      - template: typename T
+        name: div
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"DIV",::age::DIV},{
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                      ead::identity_map(arg1),
+                  });
       - template: typename T
         name: eq
         args:
@@ -255,6 +417,40 @@ api:
                   auto out = ead::make_functor<T>(ade::Opcode{"EQ",::age::EQ}, {
                       ead::identity_map(arg1),
                       ead::identity_map(arg2),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  return out;
+      - template: typename T
+        name: eq
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"EQ",::age::EQ}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  return out;
+      - template: typename T
+        name: eq
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"EQ",::age::EQ}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
                   });
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
@@ -276,6 +472,40 @@ api:
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
       - template: typename T
+        name: neq
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"NEQ",::age::NEQ}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  return out;
+      - template: typename T
+        name: neq
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"NEQ",::age::NEQ}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  return out;
+      - template: typename T
         name: lt
         args:
         - dtype: ead::NodeptrT<T>
@@ -286,6 +516,36 @@ api:
           type: ead::NodeptrT<T>
           val: return ead::make_functor<T>(ade::Opcode{"LT",::age::LT},{ead::identity_map(arg1),ead::identity_map(arg2)});
       - template: typename T
+        name: lt
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"LT",::age::LT},{
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+      - template: typename T
+        name: lt
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"LT",::age::LT},{
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                      ead::identity_map(arg1),
+                  });
+      - template: typename T
         name: gt
         args:
         - dtype: ead::NodeptrT<T>
@@ -295,6 +555,36 @@ api:
         out:
           type: ead::NodeptrT<T>
           val: return ead::make_functor<T>(ade::Opcode{"GT",::age::GT},{ead::identity_map(arg1),ead::identity_map(arg2)});
+      - template: typename T
+        name: gt
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"GT",::age::GT},{
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+      - template: typename T
+        name: gt
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  return ead::make_functor<T>(ade::Opcode{"GT",::age::GT},{
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                      ead::identity_map(arg1),
+                  });
       - template: typename T
         name: min
         args:
@@ -313,6 +603,40 @@ api:
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
       - template: typename T
+        name: min
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"MIN",::age::MIN}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  return out;
+      - template: typename T
+        name: min
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"MIN",::age::MIN}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  return out;
+      - template: typename T
         name: max
         args:
         - dtype: ead::NodeptrT<T>
@@ -326,6 +650,40 @@ api:
                   auto out = ead::make_functor<T>(ade::Opcode{"MAX",::age::MAX}, {
                       ead::identity_map(arg1),
                       ead::identity_map(arg2),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  return out;
+      - template: typename T
+        name: max
+        args:
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        - dtype: T
+          name: scalar
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"MAX",::age::MAX}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
+                  });
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  return out;
+      - template: typename T
+        name: max
+        args:
+        - dtype: T
+          name: scalar
+        - dtype: ead::NodeptrT<T>
+          name: arg1
+        out:
+          type: ead::NodeptrT<T>
+          val: |
+              //
+                  auto out = ead::make_functor<T>(ade::Opcode{"MAX",::age::MAX}, {
+                      ead::identity_map(arg1),
+                      ead::identity_map(ead::make_constant_scalar<T>(scalar, arg1->shape())),
                   });
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;

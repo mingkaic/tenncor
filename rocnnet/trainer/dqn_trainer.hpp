@@ -113,11 +113,9 @@ struct DQNTrainer final
 		auto target_values = tenncor::mul(
 			tenncor::reduce_max_1d(ctx_.next_output_, 0),
 			ead::convert_to_node<PybindT>(next_output_mask_));
+		// reward for each instance in batch
 		future_reward_ = tenncor::add(ead::convert_to_node<PybindT>(reward_),
-			tenncor::mul(
-				ead::make_constant_scalar<PybindT>(params_.discount_rate_,
-					target_values->shape()),
-				target_values)); // reward for each instance in batch
+			tenncor::mul(params_.discount_rate_, target_values));
 
 		// prediction error
 		auto masked_output_score = tenncor::reduce_sum_1d(
@@ -164,11 +162,9 @@ struct DQNTrainer final
 			auto target = ead::convert_to_node<PybindT>(target_vars[i]);
 			auto source = ead::convert_to_node<PybindT>(source_vars[i].first);
 			auto diff = tenncor::sub(target, source);
-			auto target_update_rate = ead::make_constant_scalar<PybindT>(
-				params_.target_update_rate_, diff->shape());
 
 			auto target_next = tenncor::sub(target, tenncor::mul(
-				target_update_rate, diff));
+				params_.target_update_rate_, diff));
 			target_assigns.push_back(eqns::VarAssign{
 				fmts::sprintf("target_grad_%s",
 					target_vars[i]->get_label().c_str()),

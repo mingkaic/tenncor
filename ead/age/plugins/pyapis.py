@@ -21,8 +21,8 @@ namespace py = pybind11;
 namespace pyage
 {{
 
-//>>> unique_wrap
-{unique_wrap}
+//>>> name_mangling
+{name_mangling}
 
 }}
 
@@ -40,7 +40,7 @@ PYBIND11_MODULE({modname}, m_{modname})
 '''
 
 def _sub_pybind(stmt, source):
-    _type_pattern = '([^\w]){}([^\w])'.format(source)
+    _type_pattern = '([^\\w]){}([^\\w])'.format(source)
     _type_replace = '\\1{}\\2'.format(_pybindt)
     return re.sub(_type_pattern, _type_replace, ' ' + stmt + ' ').strip()
 
@@ -49,6 +49,7 @@ def _strip_template_prefix(template):
     for template_prefix in _template_prefixes:
         if template.startswith(template_prefix):
             return template[len(template_prefix):].strip()
+    # todo: parse valued templates variable (e.g.: size_t N)
     return template
 
 _func_fmt = '''
@@ -57,12 +58,10 @@ _func_fmt = '''
     return {namespace}::{funcname}({args});
 }}
 '''
-def _wrap_func(idx, api, namespace):
-    if 'template' in api and len(api['template']) > 0:
-        templates = [_strip_template_prefix(typenames)
-            for typenames in api['template'].split(',')]
-    else:
-        templates = []
+def _mangle_func(idx, api, namespace):
+    templates = [_strip_template_prefix(typenames)
+        for typenames in api.get('template', '').split(',')]
+
     outtype = 'ade::TensptrT'
     if isinstance(api['out'], dict) and 'type' in api['out']:
         outtype = api['out']['type']
@@ -85,60 +84,50 @@ def _handle_pybind(pybind_type):
 def _handle_pybind_type(pybind_type):
     return pybind_type
 
-def _handle_unique_wrap(pybind_type, apis, namespace):
+def _handle_name_mangling(pybind_type, apis, namespace):
     return '\n\n'.join([
-        _wrap_func(i, api, namespace)
+        _mangle_func(i, api, namespace)
         for i, api in enumerate(apis)]
     )
 
+def _parse_header_args(arg):
+    if 'default' in arg:
+        defext = ' = {}'.format(arg['default'])
+    else:
+        defext = ''
+    return '{dtype} {name}{defext}'.format(
+        dtype = arg['dtype'],
+        name = arg['name'],
+        defext = defext)
+
+def _parse_description(arg):
+    if 'description' in arg:
+        description = ': {}'.format(arg['description'])
+    else:
+        description = ''
+    outtype = 'ade::TensptrT'
+    if isinstance(arg['out'], dict) and 'type' in arg['out']:
+        outtype = arg['out']['type']
+    return '"{outtype} {func} ({args}){description}"'.format(
+        outtype = outtype,
+        func = arg['name'],
+        args = ', '.join([_parse_header_args(arg) for arg in arg['args']]),
+        description = description)
+
+def _parse_pyargs(arg):
+    if 'default' in arg:
+        defext = ' = {}'.format(arg['default'])
+    else:
+        defext = ''
+    return 'py::arg("{name}"){defext}'.format(
+        name = arg['name'],
+        defext = defext)
+
 def _handle_defs(pybind_type, apis, module_name, first_module):
-    _mdef_tmpl = 'm_{module_name}.def("{pyfunc}", '+\
+    _mdef_tmpl = 'm_{module_name}.def("{func}", '+\
         '&pyage::{func}_{idx}, {description}, {pyargs});'
 
     _class_def_tmpl = 'py::class_<std::remove_reference<decltype(*{outtype}())>::type,{outtype}>(m_{module_name}, "{name}");'
-
-    cnames = {}
-    def checkpy(cname):
-        if cname in cnames:
-            out = cname + str(cnames[cname])
-            cnames[cname] = cnames[cname] + 1
-        else:
-            out = cname
-            cnames[cname] = 0
-        return out
-
-    def parse_header_args(arg):
-        if 'default' in arg:
-            defext = ' = {}'.format(arg['default'])
-        else:
-            defext = ''
-        return '{dtype} {name}{defext}'.format(
-            dtype = arg['dtype'],
-            name = arg['name'],
-            defext = defext)
-
-    def parse_description(arg):
-        if 'description' in arg:
-            description = ': {}'.format(arg['description'])
-        else:
-            description = ''
-        outtype = 'ade::TensptrT'
-        if isinstance(arg['out'], dict) and 'type' in arg['out']:
-            outtype = arg['out']['type']
-        return '"{outtype} {func} ({args}){description}"'.format(
-            outtype = outtype,
-            func = arg['name'],
-            args = ', '.join([parse_header_args(arg) for arg in arg['args']]),
-            description = description)
-
-    def parse_pyargs(arg):
-        if 'default' in arg:
-            defext = ' = {}'.format(arg['default'])
-        else:
-            defext = ''
-        return 'py::arg("{name}"){defext}'.format(
-            name = arg['name'],
-            defext = defext)
 
     outtypes = set()
     for api in apis:
@@ -163,13 +152,12 @@ def _handle_defs(pybind_type, apis, module_name, first_module):
                 outtype=outtype,
                 name=outtype.split('::')[-1]))
 
-    return '\n    '.join(class_defs) + '\n    ' +\
-        '\n    '.join([_mdef_tmpl.format(
+    return '\n    '.join(class_defs) +\
+        '\n\n    '.join([_mdef_tmpl.format(
             module_name=module_name,
-            pyfunc=checkpy(api['name']),
             func=api['name'], idx=i,
-            description=parse_description(api),
-            pyargs=', '.join([parse_pyargs(arg) for arg in api['args']]))
+            description=_parse_description(api),
+            pyargs=', '.join([_parse_pyargs(arg) for arg in api['args']]))
         for i, api in enumerate(apis)])
 
 _plugin_id = 'PYBINDER'
@@ -205,7 +193,7 @@ class PyAPIsPlugin:
                 namespace = ''
             else:
                 module = namespace
-            uwraps = _handle_unique_wrap(bindtype, definitions, namespace)
+            uwraps = _handle_name_mangling(bindtype, definitions, namespace)
 
             mods = module.split('::')
             mod = mods[0]
@@ -225,12 +213,12 @@ class PyAPIsPlugin:
 
         src_file_tmpl = 'pyapi_{}.cpp'
         for mod in contents:
-            unique_wrap, defs = contents[mod]
+            name_mangling, defs = contents[mod]
             src_file = src_file_tmpl.format(mod)
             generated_files[src_file] = FileRep(
                 _source_template.format(
                     modname=mod,
-                    unique_wrap=''.join(unique_wrap),
+                    name_mangling=''.join(name_mangling),
                     defs=''.join(defs)),
                 user_includes=[
                     '"pybind11/pybind11.h"',
