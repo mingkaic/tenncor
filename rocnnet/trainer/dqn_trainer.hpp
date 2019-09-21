@@ -110,18 +110,18 @@ struct DQNTrainer final
 		ctx_.next_output_ = ctx_.target_model_->connect(
 			ead::convert_to_node<PybindT>(next_input_));
 
-		auto target_values = tenncor::mul(
-			tenncor::reduce_max_1d(ctx_.next_output_, 0),
-			ead::convert_to_node<PybindT>(next_output_mask_));
+		auto target_values =
+			tenncor::reduce_max_1d(ctx_.next_output_, 0) *
+			ead::convert_to_node<PybindT>(next_output_mask_);
 		// reward for each instance in batch
-		future_reward_ = tenncor::add(ead::convert_to_node<PybindT>(reward_),
-			tenncor::mul(params_.discount_rate_, target_values));
+		future_reward_ = ead::convert_to_node<PybindT>(reward_) +
+			params_.discount_rate_ * target_values;
 
 		// prediction error
 		auto masked_output_score = tenncor::reduce_sum_1d(
-			tenncor::mul(train_out_, ead::convert_to_node<PybindT>(output_mask_)), 0);
+			train_out_ * ead::convert_to_node<PybindT>(output_mask_), 0);
 		prediction_error_ = tenncor::reduce_mean(tenncor::square(
-			tenncor::sub(masked_output_score, future_reward_)));
+			masked_output_score - future_reward_));
 
 		// updates for source network
 		ade::TensT source_contents = source_model_.get_contents();
@@ -161,10 +161,9 @@ struct DQNTrainer final
 			// this is equivalent to target = (1-alpha) * target + alpha * source
 			auto target = ead::convert_to_node<PybindT>(target_vars[i]);
 			auto source = ead::convert_to_node<PybindT>(source_vars[i].first);
-			auto diff = tenncor::sub(target, source);
+			auto diff = target - source;
 
-			auto target_next = tenncor::sub(target, tenncor::mul(
-				params_.target_update_rate_, diff));
+			auto target_next = target - params_.target_update_rate_ * diff;
 			target_assigns.push_back(eqns::VarAssign{
 				fmts::sprintf("target_grad_%s",
 					target_vars[i]->get_label().c_str()),

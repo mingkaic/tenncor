@@ -65,6 +65,7 @@ api:
           val: return ead::make_functor<T>(ade::Opcode{"ABS",::age::ABS},{ead::identity_map(arg)});
       - template: typename T
         name: neg
+        operator: "-"
         args:
         - dtype: ead::NodeptrT<T>
           name: arg
@@ -209,6 +210,7 @@ api:
                   });
       - template: typename T
         name: add
+        operator: +
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -227,6 +229,7 @@ api:
                   return out;
       - template: typename T
         name: add
+        operator: +
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -245,6 +248,7 @@ api:
                   return out;
       - template: typename T
         name: add
+        operator: +
         args:
         - dtype: T
           name: scalar
@@ -263,6 +267,7 @@ api:
                   return out;
       - template: typename T
         name: sub
+        operator: "-"
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -273,6 +278,7 @@ api:
           val: return ead::make_functor<T>(ade::Opcode{"SUB",::age::SUB},{ead::identity_map(arg1),ead::identity_map(arg2)});
       - template: typename T
         name: sub
+        operator: "-"
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -288,6 +294,7 @@ api:
                   });
       - template: typename T
         name: sub
+        operator: "-"
         args:
         - dtype: T
           name: scalar
@@ -303,6 +310,7 @@ api:
                   });
       - template: typename T
         name: mul
+        operator: "*"
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -321,6 +329,7 @@ api:
                   return out;
       - template: typename T
         name: mul
+        operator: "*"
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -339,6 +348,7 @@ api:
                   return out;
       - template: typename T
         name: mul
+        operator: "*"
         args:
         - dtype: T
           name: scalar
@@ -357,6 +367,7 @@ api:
                   return out;
       - template: typename T
         name: div
+        operator: /
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -367,6 +378,7 @@ api:
           val: return ead::make_functor<T>(ade::Opcode{"DIV",::age::DIV},{ead::identity_map(arg1),ead::identity_map(arg2)});
       - template: typename T
         name: div
+        operator: /
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -382,6 +394,7 @@ api:
                   });
       - template: typename T
         name: div
+        operator: /
         args:
         - dtype: T
           name: scalar
@@ -397,6 +410,7 @@ api:
                   });
       - template: typename T
         name: eq
+        operator: ==
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -414,6 +428,7 @@ api:
                   return out;
       - template: typename T
         name: eq
+        operator: ==
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -431,6 +446,7 @@ api:
                   return out;
       - template: typename T
         name: eq
+        operator: ==
         args:
         - dtype: T
           name: scalar
@@ -448,6 +464,7 @@ api:
                   return out;
       - template: typename T
         name: neq
+        operator: "!="
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -465,6 +482,7 @@ api:
                   return out;
       - template: typename T
         name: neq
+        operator: "!="
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -482,6 +500,7 @@ api:
                   return out;
       - template: typename T
         name: neq
+        operator: "!="
         args:
         - dtype: T
           name: scalar
@@ -499,6 +518,7 @@ api:
                   return out;
       - template: typename T
         name: lt
+        operator: <
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -509,6 +529,7 @@ api:
           val: return ead::make_functor<T>(ade::Opcode{"LT",::age::LT},{ead::identity_map(arg1),ead::identity_map(arg2)});
       - template: typename T
         name: lt
+        operator: <
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -524,6 +545,7 @@ api:
                   });
       - template: typename T
         name: lt
+        operator: <
         args:
         - dtype: T
           name: scalar
@@ -539,6 +561,7 @@ api:
                   });
       - template: typename T
         name: gt
+        operator: ">"
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -549,6 +572,7 @@ api:
           val: return ead::make_functor<T>(ade::Opcode{"GT",::age::GT},{ead::identity_map(arg1),ead::identity_map(arg2)});
       - template: typename T
         name: gt
+        operator: ">"
         args:
         - dtype: ead::NodeptrT<T>
           name: arg1
@@ -564,6 +588,7 @@ api:
                   });
       - template: typename T
         name: gt
+        operator: ">"
         args:
         - dtype: T
           name: scalar

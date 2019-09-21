@@ -169,7 +169,7 @@ class PyAPIsPlugin:
 
     def process(self, generated_files, arguments):
         _hdr_file = 'pyapi.hpp'
-        _submodule_def = '    py::module m_{name} = m_{prename}.def_submodule("{submod}", "A submodule of \'{prename}\'");\n'
+        _submodule_def = '    py::module m_{name} = m_{prename}.def_submodule("{submod}", "A submodule of \'{prename}\'");\n    '
 
         plugin_key = 'api'
         if plugin_key not in arguments:

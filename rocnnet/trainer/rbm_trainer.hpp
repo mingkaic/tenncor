@@ -35,11 +35,9 @@ eqns::AssignGroupsT bbernoulli_approx (const eqns::VarErrsT& leaves,
 		ade::DimT shape_factor = it == et ? 1 : *it;
 		auto momentum = ead::make_variable_scalar<PybindT>(0,
 			err->shape(), leaves[i].first->get_label() + "_momentum");
-		auto momentum_next = tenncor::add(
-			tenncor::mul(discount_factor, ead::convert_to_node(momentum)),
-			tenncor::mul(learning_rate * (1 - discount_factor) /
-				shape_factor, err));
-		auto leaf_next = tenncor::add(leaf_node, momentum_next);
+		auto momentum_next = discount_factor * ead::convert_to_node(momentum) +
+			(learning_rate * (1 - discount_factor) / shape_factor) * err;
+		auto leaf_next = leaf_node + momentum_next;
 
 		assigns.push_back(eqns::VarAssign{
 			fmts::sprintf("bbernoulli_momentum::%s_momentum_%s",
@@ -74,15 +72,15 @@ struct BernoulliRBMTrainer final
 
 		auto hidden_reconp = model.connect(visible_sample_);
 
-		auto grad_w = tenncor::sub(
+		auto grad_w =
 			tenncor::matmul(tenncor::transpose(
-				ead::convert_to_node(visible_)), hidden_sample_),
+				ead::convert_to_node(visible_)), hidden_sample_) -
 			tenncor::matmul(tenncor::transpose(
-				visible_sample_), hidden_reconp));
+				visible_sample_), hidden_reconp);
 		auto grad_hb = tenncor::reduce_mean_1d(
-			tenncor::sub(hidden_sample_, hidden_reconp), 1);
+			hidden_sample_ - hidden_reconp, 1);
 		auto grad_vb = tenncor::reduce_mean_1d(
-			tenncor::sub(ead::convert_to_node(visible_), visible_sample_), 1);
+			ead::convert_to_node(visible_) - visible_sample_, 1);
 
 		auto contents = model.get_contents();
 		std::vector<ead::VarptrT<PybindT>> vars;

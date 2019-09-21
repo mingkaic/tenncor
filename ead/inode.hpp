@@ -63,6 +63,8 @@ bool register_builder (NodeBuilderF<T> builder)
 		emplace(tp.hash_code(), builder).second;
 }
 
+#define TO_NODE(tens) NodeConverters<T>::to_node(tens)
+
 }
 
 #endif // EAD_INODE_HPP

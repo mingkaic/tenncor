@@ -21,8 +21,7 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 		auto leaf_node = ead::convert_to_node(leaves[i].first);
 		auto err = leaves[i].second;
 		ade::Shape eshape = err->shape();
-		auto next = tenncor::sub(leaf_node,
-			tenncor::mul(err, learning_rate));
+		auto next = leaf_node - err * learning_rate;
 		assignments.push_back(VarAssign{
 			fmts::sprintf("sgd::%s_grad_%s",
 				root_label.c_str(), leaves[i].first->get_label().c_str()),
@@ -46,15 +45,10 @@ AssignGroupsT rms_momentum (const VarErrsT& leaves, PybindT learning_rate,
 			ead::make_variable_scalar<PybindT>(1, eshape, "momentum");
 		auto momentum_node = ead::convert_to_node(momentum);
 
-		auto momentum_next = tenncor::add(
-				tenncor::mul(discount_factor, momentum_node),
-				tenncor::mul(PybindT(1.0 - discount_factor), tenncor::square(err))
-			);
-		auto leaf_next = tenncor::sub(leaf_node,
-			tenncor::div(
-				tenncor::mul(err, learning_rate),
-				tenncor::add(tenncor::sqrt(momentum_node), epsilon)
-			));
+		auto momentum_next = discount_factor * momentum_node +
+			PybindT(1.0 - discount_factor) * tenncor::square(err);
+		auto leaf_next = leaf_node - err * learning_rate /
+			(tenncor::sqrt(momentum_node) + epsilon);
 		momentum_assigns.push_back(VarAssign{
 			fmts::sprintf("rms_momentum::%s_momentum_%s",
 				root_label.c_str(), leaves[i].first->get_label().c_str()),

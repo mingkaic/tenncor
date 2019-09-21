@@ -134,7 +134,7 @@ struct Functor final : public ade::iOperableFunc
 			auto tens = arg.get_tensor();
 			auto coorder = static_cast<CoordMap*>(arg.get_coorder().get());
 			datamaps.push_back(OpArg<T>{
-				NodeConverters<T>::to_node(tens)->data(),
+				TO_NODE(tens)->data(),
 				tens->shape(),
 				coorder
 			});

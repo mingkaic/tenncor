@@ -26,6 +26,9 @@ _header_template = '''
 //>>> template_namespaces
 {template_namespaces}
 
+//>>> operators
+{operators}
+
 #endif // _GENERATED_API_HPP
 '''
 
@@ -34,6 +37,9 @@ _source_template = '''
 
 //>>> src_namespaces
 {src_namespaces}
+
+//>>> operators
+{operators}
 
 #endif
 '''
@@ -75,7 +81,7 @@ def _decl_func(api):
     if isinstance(api['out'], dict) and 'type' in api['out']:
         outtype = api['out']['type']
 
-    return _decl_tmp.format(
+    declaration = _decl_tmp.format(
         template_prefix=template_prefix,
         comment = comment,
         outtype = outtype,
@@ -84,6 +90,21 @@ def _decl_func(api):
             _parse_args(arg, accept_def=True)
             for arg in api['args']
         ]))
+
+    decl_operator = None
+    op = api.get('operator', '')
+    if len(op) > 0:
+        decl_operator = _decl_tmp.format(
+            template_prefix=template_prefix,
+            comment = comment,
+            outtype = outtype,
+            funcname = 'operator ' + op,
+            args = ', '.join([
+                _parse_args(arg, accept_def=True)
+                for arg in api['args']
+            ]))
+
+    return declaration, decl_operator
 
 _template_defn_tmp = '''
 template <{template_args}>
@@ -108,7 +129,7 @@ def _template_defn_func(api):
     else:
         outval = api['out']
 
-    return _template_defn_tmp.format(
+    temp_definition = _template_defn_tmp.format(
         template_args = api['template'],
         outtype = outtype,
         funcname = api['name'],
@@ -118,6 +139,22 @@ def _template_defn_func(api):
         ]),
         null_check = _nullcheck(api['args']),
         block = outval)
+
+    temp_operator = None
+    op = api.get('operator', '')
+    if len(op) > 0:
+        temp_operator = _template_defn_tmp.format(
+            template_args = api['template'],
+            outtype = outtype,
+            funcname = 'operator ' + op,
+            args = ', '.join([
+                _parse_args(arg, accept_def=False)
+                for arg in api['args']
+            ]),
+            null_check = _nullcheck(api['args']),
+            block = outval)
+
+    return temp_definition, temp_operator
 
 _defn_tmp = '''
 {outtype} {funcname} ({args})
@@ -141,7 +178,7 @@ def _defn_func(api):
     else:
         outval = api['out']
 
-    return _defn_tmp.format(
+    definition = _defn_tmp.format(
         outtype = outtype,
         funcname = api['name'],
         args = ', '.join([
@@ -151,20 +188,41 @@ def _defn_func(api):
         null_check = _nullcheck(api['args']),
         block = outval)
 
+    defn_operator = None
+    op = api.get('operator', '')
+    if len(op) > 0:
+        defn_operator = _defn_tmp.format(
+            outtype = outtype,
+            funcname = 'operator ' + op,
+            args = ', '.join([
+                _parse_args(arg, accept_def=False)
+                for arg in api['args']
+            ]),
+            null_check = _nullcheck(api['args']),
+            block = outval)
+
+    return definition, defn_operator
+
 def _handle_api_header(apis):
-    return [_decl_func(api) for api in apis]
+    decls = [_decl_func(api) for api in apis]
+    return [decl[0] for decl in decls], [
+        decl[1] for decl in decls if decl[1] is not None]
 
 def _handle_api_source(apis):
-    return [
+    defns = [
         defn for defn in [_defn_func(api)
         for api in apis] if defn is not None
     ]
+    return [defn[0] for defn in defns], [
+        defn[1] for defn in defns if defn[1] is not None]
 
 def _handle_api_templates(apis):
-    return [
+    temps = [
         defn for defn in [_template_defn_func(api)
         for api in apis] if defn is not None
     ]
+    return [defn[0] for defn in temps], [
+        defn[1] for defn in temps if defn[1] is not None]
 
 _plugin_id = "API"
 
@@ -183,17 +241,22 @@ class APIsPlugin:
                 'no relevant arguments found for plugin %s', _plugin_id)
             return
 
-        module = globals()
         api = arguments[plugin_key]
 
         hdr_namespaces = []
         src_namespaces = []
         template_namespaces = []
+        hdr_operators = []
+        src_operators = []
         for namespace in api['namespaces']:
             definitions = api['namespaces'][namespace]
-            hdrs = _handle_api_header(definitions)
-            srcs = _handle_api_source(definitions)
-            templates = _handle_api_templates(definitions)
+            hdrs, hdr_ops = _handle_api_header(definitions)
+            srcs, srcs_ops = _handle_api_source(definitions)
+            templates, temp_ops = _handle_api_templates(definitions)
+
+            hdr_operators += hdr_ops
+            hdr_operators += temp_ops
+            src_operators += srcs_ops
 
             if len(hdrs) > 0:
                 hdr_defs = '\n'.join(hdrs)
@@ -222,12 +285,15 @@ class APIsPlugin:
         generated_files[api_header] = FileRep(
             _header_template.format(
                 hdr_namespaces=''.join(hdr_namespaces),
-                template_namespaces=''.join(template_namespaces)),
+                template_namespaces=''.join(template_namespaces),
+                operators=''.join(hdr_operators)),
             user_includes=api.get('includes', []),
             internal_refs=[])
 
         generated_files[_src_file] = FileRep(
-            _source_template.format(src_namespaces=''.join(src_namespaces)),
+            _source_template.format(
+                src_namespaces=''.join(src_namespaces),
+                operators=''.join(src_operators)),
             user_includes=[],
             internal_refs=[api_header])
 

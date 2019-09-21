@@ -22,6 +22,12 @@ template <typename T>
 using BinaryOpF = std::function<ead::NodeptrT<T>(ead::NodeptrT<T>&,ead::NodeptrT<T>&)>;
 
 template <typename T>
+using LhsBinaryOpF = std::function<ead::NodeptrT<T>(ead::NodeptrT<T>&,T&)>;
+
+template <typename T>
+using RhsBinaryOpF = std::function<ead::NodeptrT<T>(T&,ead::NodeptrT<T>&)>;
+
+template <typename T>
 using BinaryFwdF = std::function<T(T,T)>;
 
 template <typename T>
@@ -214,7 +220,8 @@ static void unary_elementary (UnaryOpF<double> op,
 
 static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	std::vector<ade::DimT> shape_list, BinaryOpF<double> op,
-	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd)
+	LhsBinaryOpF<double> lhs_op, RhsBinaryOpF<double> rhs_op,
+	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd, double cst)
 {
 	ade::Shape shape(shape_list);
 	ade::NElemT n = shape.n_elems();
@@ -225,6 +232,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	ead::NodeptrT<double> src = ead::make_constant<double>(data.data(), shape);
 	ead::NodeptrT<double> src2 = ead::make_constant<double>(data2.data(), shape);
 	ead::NodeptrT<double> dest = op(src, src2);
+	ead::NodeptrT<double> clhs = lhs_op(src, cst);
+	ead::NodeptrT<double> crhs = rhs_op(cst, src2);
 
 	dest->update();
 	{
@@ -235,6 +244,27 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
+	}
+
+	clhs->update();
+	crhs->update();
+	{
+		auto gotshape = clhs->shape();
+		ASSERT_ARREQ(shape_list, gotshape);
+	}
+	{
+		auto gotshape = crhs->shape();
+		ASSERT_ARREQ(shape_list, gotshape);
+	}
+	double* lptr = (double*) clhs->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(fwd(data[i], cst), lptr[i]);
+	}
+	double* rptr = (double*) crhs->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
 	ead::Session session;
@@ -282,6 +312,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 
 
 static void binary_elementary (BinaryOpF<double> op,
+	LhsBinaryOpF<double> lhs_op, RhsBinaryOpF<double> rhs_op,
 	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd)
 {
 	// tensor operation
@@ -299,7 +330,9 @@ static void binary_elementary (BinaryOpF<double> op,
 		0.0504231590, 0.8494357051, 0.0908431573, 0.1567913571, 0.1211327459, 0.5269402648
 	};
 
-	binar_elem(data, data2, slist, op, fwd, bwd);
+	double cst = 0.7819955055;
+
+	binar_elem(data, data2, slist, op, lhs_op, rhs_op, fwd, bwd, cst);
 
 	// matrix optimized operation
 	std::vector<ade::DimT> slist_2d = {3, 2};
@@ -311,13 +344,14 @@ static void binary_elementary (BinaryOpF<double> op,
 		0.2547977589, 0.8808089905, 0.4323663340,
 		0.5710527217, 0.6207772267, 0.8574923091,
 	};
-	binar_elem(data_2d, data2_2d, slist_2d, op, fwd, bwd);
+	binar_elem(data_2d, data2_2d, slist_2d, op, lhs_op, rhs_op, fwd, bwd, cst);
 }
 
 
 static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data2,
 	std::vector<ade::DimT> shape_list, BinaryOpF<int32_t> op,
-	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd)
+	LhsBinaryOpF<int32_t> lhs_op, RhsBinaryOpF<int32_t> rhs_op,
+	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd, int32_t cst)
 {
 	ade::Shape shape(shape_list);
 	ade::NElemT n = shape.n_elems();
@@ -325,6 +359,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	ead::NodeptrT<int32_t> src = ead::make_constant<int32_t>(data.data(), shape);
 	ead::NodeptrT<int32_t> src2 = ead::make_constant<int32_t>(data2.data(), shape);
 	ead::NodeptrT<int32_t> dest = op(src, src2);
+	ead::NodeptrT<int32_t> clhs = lhs_op(src, cst);
+	ead::NodeptrT<int32_t> crhs = rhs_op(cst, src2);
 
 	dest->update();
 	{
@@ -335,6 +371,27 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(fwd(data[i], data2[i]), optr[i]);
+	}
+
+	clhs->update();
+	crhs->update();
+	{
+		auto gotshape = clhs->shape();
+		ASSERT_ARREQ(shape_list, gotshape);
+	}
+	{
+		auto gotshape = crhs->shape();
+		ASSERT_ARREQ(shape_list, gotshape);
+	}
+	int32_t* lptr = (int32_t*) clhs->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(fwd(data[i], cst), lptr[i]);
+	}
+	int32_t* rptr = (int32_t*) crhs->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
 	ead::Session session;
@@ -382,6 +439,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 
 
 static void binary_elementary_int (BinaryOpF<int32_t> op,
+	LhsBinaryOpF<int32_t> lhs_op, RhsBinaryOpF<int32_t> rhs_op,
 	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd)
 {
 	// tensor operation
@@ -395,7 +453,9 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 		1, 3, 1, 3, 1, 0, 2, 1, 2, 2, 0, 1
 	};
 
-	binar_elem_int(data, data2, slist, op, fwd, bwd);
+	int32_t cst = 2;
+
+	binar_elem_int(data, data2, slist, op, lhs_op, rhs_op, fwd, bwd, cst);
 
 	// matrix optimized operation
 	std::vector<ade::DimT> slist_2d = {4, 2};
@@ -408,7 +468,7 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 		3, 3, 2, 2,
 	};
 
-	binar_elem_int(data_2d, data2_2d, slist_2d, op, fwd, bwd);
+	binar_elem_int(data_2d, data2_2d, slist_2d, op, lhs_op, rhs_op, fwd, bwd, cst);
 }
 
 
@@ -423,10 +483,14 @@ TEST(API, Abs)
 
 TEST(API, Neg)
 {
+	auto fwd = [](double d) { return -d; };
+	auto bwd = [](double d) { return -1.0; };
 	unary_elementary(
 		[](ead::NodeptrT<double>& a) { return tenncor::neg(a); },
-		[](double d) { return -d; },
-		[](double d) { return -1.0; });
+		fwd, bwd);
+	unary_elementary(
+		[](ead::NodeptrT<double>& a) { return -a; },
+		fwd, bwd);
 }
 
 
@@ -568,6 +632,10 @@ TEST(API, Pow)
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
 		{ return tenncor::pow(a, b); },
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return tenncor::pow(a, b); },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return tenncor::pow(a, b); },
 		[](double a, double b) { return std::pow(a, b); },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -579,53 +647,101 @@ TEST(API, Pow)
 
 TEST(API, Add)
 {
+	auto fwd = [](double a, double b) { return a + b; };
+	auto bwd = [](double a, double b, double leftg, double rightg)
+		{ return leftg + rightg; };
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
 		{ return tenncor::add(a, b); },
-		[](double a, double b) { return a + b; },
-		[](double a, double b, double leftg, double rightg)
-		{
-			return leftg + rightg;
-		});
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return tenncor::add(a, b); },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return tenncor::add(a, b); },
+		fwd, bwd);
+	binary_elementary(
+		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
+		{ return a + b; },
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return a + b; },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return a + b; },
+		fwd, bwd);
 }
 
 
 TEST(API, Sub)
 {
+	auto fwd = [](double a, double b) { return a - b; };
+	auto bwd = [](double a, double b, double leftg, double rightg)
+		{ return leftg - rightg; };
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
 		{ return tenncor::sub(a, b); },
-		[](double a, double b) { return a - b; },
-		[](double a, double b, double leftg, double rightg)
-		{
-			return leftg - rightg;
-		});
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return tenncor::sub(a, b); },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return tenncor::sub(a, b); },
+		fwd, bwd);
+	binary_elementary(
+		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
+		{ return a - b; },
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return a - b; },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return a - b; },
+		fwd, bwd);
 }
 
 
 TEST(API, Mul)
 {
+	auto fwd = [](double a, double b) { return a * b; };
+	auto bwd = [](double a, double b, double leftg, double rightg)
+		{
+			return leftg * b + rightg * a;
+		};
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
 		{ return tenncor::mul(a, b); },
-		[](double a, double b) { return a * b; },
-		[](double a, double b, double leftg, double rightg)
-		{
-			return leftg * b + rightg * a;
-		});
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return tenncor::mul(a, b); },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return tenncor::mul(a, b); },
+		fwd, bwd);
+	binary_elementary(
+		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
+		{ return a * b; },
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return a * b; },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return a * b; },
+		fwd, bwd);
 }
 
 
 TEST(API, Div)
 {
+	auto fwd = [](double a, double b) { return a / b; };
+	auto bwd = [](double a, double b, double leftg, double rightg)
+		{
+			return (leftg * b - rightg * a) / (b * b);
+		};
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
 		{ return tenncor::div(a, b); },
-		[](double a, double b) { return a / b; },
-		[](double a, double b, double leftg, double rightg)
-		{
-			return (leftg * b - rightg * a) / (b * b);
-		});
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return tenncor::div(a, b); },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return tenncor::div(a, b); },
+		fwd, bwd);
+	binary_elementary(
+		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
+		{ return a / b; },
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return a / b; },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return a / b; },
+		fwd, bwd);
 }
 
 
@@ -633,6 +749,10 @@ TEST(API, Min)
 {
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
+		{ return tenncor::min(a, b); },
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return tenncor::min(a, b); },
+		[](double& a, ead::NodeptrT<double>& b)
 		{ return tenncor::min(a, b); },
 		[](double a, double b) { return std::min(a, b); },
 		[](double a, double b, double leftg, double rightg)
@@ -656,6 +776,10 @@ TEST(API, Max)
 	binary_elementary(
 		[](ead::NodeptrT<double>& a, ead::NodeptrT<double>& b)
 		{ return tenncor::max(a, b); },
+		[](ead::NodeptrT<double>& a, double& b)
+		{ return tenncor::max(a, b); },
+		[](double& a, ead::NodeptrT<double>& b)
+		{ return tenncor::max(a, b); },
 		[](double a, double b) { return std::max(a, b); },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -675,53 +799,97 @@ TEST(API, Max)
 
 TEST(API, Eq)
 {
+	auto fwd = [](int32_t a, int32_t b) { return a == b; };
+	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
+		{ return 0; };
 	binary_elementary_int(
 		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
 		{ return tenncor::eq(a, b); },
-		[](int32_t a, int32_t b) { return a == b; },
-		[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
-		{
-			return 0;
-		});
+		[](ead::NodeptrT<int32_t>& a, int32_t& b)
+		{ return tenncor::eq(a, b); },
+		[](int32_t& a, ead::NodeptrT<int32_t>& b)
+		{ return tenncor::eq(a, b); },
+		fwd, bwd);
+	binary_elementary_int(
+		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
+		{ return a == b; },
+		[](ead::NodeptrT<int32_t>& a, int32_t& b)
+		{ return a == b; },
+		[](int32_t& a, ead::NodeptrT<int32_t>& b)
+		{ return a == b; },
+		fwd, bwd);
 }
 
 
 TEST(API, Neq)
 {
+	auto fwd = [](int32_t a, int32_t b) { return a != b; };
+	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
+		{ return 0; };
 	binary_elementary_int(
 		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
 		{ return tenncor::neq(a, b); },
-		[](int32_t a, int32_t b) { return a != b; },
-		[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
-		{
-			return 0;
-		});
+		[](ead::NodeptrT<int32_t>& a, int32_t& b)
+		{ return tenncor::neq(a, b); },
+		[](int32_t& a, ead::NodeptrT<int32_t>& b)
+		{ return tenncor::neq(a, b); },
+		fwd, bwd);
+	binary_elementary_int(
+		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
+		{ return a != b; },
+		[](ead::NodeptrT<int32_t>& a, int32_t& b)
+		{ return a != b; },
+		[](int32_t& a, ead::NodeptrT<int32_t>& b)
+		{ return a != b; },
+		fwd, bwd);
 }
 
 
 TEST(API, Lt)
 {
+	auto fwd = [](int32_t a, int32_t b) { return a < b; };
+	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
+		{ return 0; };
 	binary_elementary_int(
 		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
 		{ return tenncor::lt(a, b); },
-		[](int32_t a, int32_t b) { return a < b; },
-		[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
-		{
-			return 0;
-		});
+		[](ead::NodeptrT<int32_t>& a, int32_t& b)
+		{ return tenncor::lt(a, b); },
+		[](int32_t& a, ead::NodeptrT<int32_t>& b)
+		{ return tenncor::lt(a, b); },
+		fwd, bwd);
+	binary_elementary_int(
+		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
+		{ return a < b; },
+		[](ead::NodeptrT<int32_t>& a, int32_t& b)
+		{ return a < b; },
+		[](int32_t& a, ead::NodeptrT<int32_t>& b)
+		{ return a < b; },
+		fwd, bwd);
 }
 
 
 TEST(API, Gt)
 {
+	auto fwd = [](int32_t a, int32_t b) { return a > b; };
+	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
+		{ return 0; };
 	binary_elementary_int(
 		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
 		{ return tenncor::gt(a, b); },
-		[](int32_t a, int32_t b) { return a > b; },
-		[](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
-		{
-			return 0;
-		});
+		[](ead::NodeptrT<int32_t>& a, int32_t& b)
+		{ return tenncor::gt(a, b); },
+		[](int32_t& a, ead::NodeptrT<int32_t>& b)
+		{ return tenncor::gt(a, b); },
+		fwd, bwd);
+	binary_elementary_int(
+		[](ead::NodeptrT<int32_t>& a, ead::NodeptrT<int32_t>& b)
+		{ return a > b; },
+		[](ead::NodeptrT<int32_t>& a, int32_t& b)
+		{ return a > b; },
+		[](int32_t& a, ead::NodeptrT<int32_t>& b)
+		{ return a > b; },
+		fwd, bwd);
 }
 
 

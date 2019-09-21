@@ -35,7 +35,7 @@ struct MLPTrainer final
 		expected_out_ = ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
 			(ade::DimT) model.get_noutput(), batch_size}), "expected_out");
 		error_ = tenncor::square(
-			tenncor::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
+			ead::convert_to_node<PybindT>(expected_out_) - train_out_);
 
 		auto contents = model_.get_contents();
 		eqns::VarErrsT vars;

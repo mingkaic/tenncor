@@ -120,7 +120,7 @@ struct FuncConvr final : public opt::iConverter
 			}
 			auto tens = arg.arg_->build(ctx, childshape);
 			args.push_back(FuncArg<T>(
-				NodeConverters<T>::to_node(tens),
+				TO_NODE(tens),
 				arg.shaper_, arg.coorder_));
 		}
 		return make_functor(opcode_, args)->get_tensor();
@@ -180,7 +180,7 @@ struct GroupConvr final : public opt::iConverter
 			std::back_inserter(outs),
 			[](ade::TensptrT tens)
 			{
-				return NodeConverters<T>::to_node(tens);
+				return TO_NODE(tens);
 			});
 		if (group_ == "sum")
 		{
