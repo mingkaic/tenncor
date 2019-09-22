@@ -100,7 +100,7 @@ def _decl_func(api):
             outtype = outtype,
             funcname = 'operator ' + op,
             args = ', '.join([
-                _parse_args(arg, accept_def=True)
+                _parse_args(arg, accept_def=False)
                 for arg in api['args']
             ]))
 

@@ -143,7 +143,7 @@ for matrix_dim in matrix_dims:
     invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)
     expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
-    err = tc.square(tc.sub(expected_out, out))
+    err = tc.square(expected_out - out)
 
     # tensorflow mlp
     tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))

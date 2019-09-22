@@ -149,7 +149,7 @@ for matrix_dim in matrix_dims:
     invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)
     expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
-    err = tc.square(tc.sub(expected_out, out))
+    err = tc.square(expected_out - out)
 
     trainer = rcn.MLPTrainer(brain, sess, rcn.get_sgd(learning_rate), batch_size)
 

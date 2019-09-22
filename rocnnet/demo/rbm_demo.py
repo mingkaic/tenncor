@@ -16,7 +16,7 @@ prog_description = 'Demo rbm_trainer'
 mnist = input_data.read_data_sets('MNIST_data/', one_hot=True)
 
 def mse_errfunc(x, visible_sample_):
-    return tc.reduce_mean(tc.square(tc.sub(x, visible_sample_)))
+    return tc.reduce_mean(tc.square(x - visible_sample_))
 
 def show_digit(x, plt):
     plt.imshow(x.reshape((28, 28)), cmap=plt.cm.gray)

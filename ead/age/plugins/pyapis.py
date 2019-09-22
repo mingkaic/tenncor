@@ -59,9 +59,6 @@ _func_fmt = '''
 }}
 '''
 def _mangle_func(idx, api, namespace):
-    templates = [_strip_template_prefix(typenames)
-        for typenames in api.get('template', '').split(',')]
-
     outtype = 'ade::TensptrT'
     if isinstance(api['out'], dict) and 'type' in api['out']:
         outtype = api['out']['type']
@@ -74,8 +71,9 @@ def _mangle_func(idx, api, namespace):
         param_decl=', '.join([arg['dtype'] + ' ' + arg['name']
             for arg in api['args']]),
         args=', '.join([arg['name'] for arg in api['args']]))
-    for temp in templates:
-        out = _sub_pybind(out, temp)
+
+    for typenames in api.get('template', '').split(','):
+        out = _sub_pybind(out, _strip_template_prefix(typenames))
     return out
 
 def _handle_pybind(pybind_type):
@@ -123,19 +121,80 @@ def _parse_pyargs(arg):
         name = arg['name'],
         defext = defext)
 
+_py_op = {
+    ('-', 1): '__neg__',
+    ('+', 2): '__add__',
+    ('*', 2): '__mul__',
+    ('-', 2): '__sub__',
+    ('/', 2): '__truediv__',
+    ('==', 2): '__eq__',
+    ('!=', 2): '__ne__',
+    ('<', 2): '__lt__',
+    ('>', 2): '__gt__',
+}
+
+__py_op_rev = {
+    '+': '__radd__',
+    '*': '__rmul__',
+    '-': '__rsub__',
+    '/': '__rtruediv__',
+}
+
+_def_op_tmpl = '{label}.def("{pyop}", []({params}){{ return {operator}; }}, py::is_operator());'
+
+def _def_op(t2labels, api):
+    templates = [_strip_template_prefix(typenames)
+        for typenames in api.get('template', '').split(',')]
+
+    rep_type = 'ade::TensptrT'
+    label = 'tensor'
+    if isinstance(api['out'], dict) and 'type' in api['out']:
+        rep_type = api['out']['type']
+        label_type = rep_type
+        for template in templates:
+            label_type = _sub_pybind(label_type, template)
+        label = t2labels.get(label_type, label)
+
+    op = api['operator']
+    args = [arg['name'] for arg in api['args']]
+    if len(args) == 1:
+        operator = op + args[0]
+    else:
+        operator = op.join(args)
+
+    outtype = 'ade::TensptrT'
+    if isinstance(api['out'], dict) and 'type' in api['out']:
+        outtype = api['out']['type']
+
+    params = [arg['dtype'] + ' ' + arg['name'] for arg in api['args']]
+    if len(api['args']) > 1 and\
+        api['args'][0]['dtype'] != outtype and op in __py_op_rev:
+        pyop = __py_op_rev[op]
+        params = params[::-1]
+    else:
+        pyop = _py_op[(op, len(api['args']))]
+
+    out = _def_op_tmpl.format(
+        label = label,
+        pyop = pyop,
+        params = ', '.join(params),
+        operator = operator,
+    )
+
+    for typenames in api.get('template', '').split(','):
+        out = _sub_pybind(out, _strip_template_prefix(typenames))
+    return out
+
 def _handle_defs(pybind_type, apis, module_name, first_module):
     _mdef_tmpl = 'm_{module_name}.def("{func}", '+\
         '&pyage::{func}_{idx}, {description}, {pyargs});'
 
-    _class_def_tmpl = 'py::class_<std::remove_reference<decltype(*{outtype}())>::type,{outtype}>(m_{module_name}, "{name}");'
+    _class_def_tmpl = 'py::class_<std::remove_reference<decltype(*{outtype}())>::type,{outtype}> {label}(m_{module_name}, "{name}");'
 
     outtypes = set()
     for api in apis:
-        if 'template' in api and len(api['template']) > 0:
-            templates = [_strip_template_prefix(typenames)
-                for typenames in api['template'].split(',')]
-        else:
-            templates = []
+        templates = [_strip_template_prefix(typenames)
+            for typenames in api.get('template', '').split(',')]
         if isinstance(api['out'], dict) and 'type' in api['out']:
             outtype = api['out']['type']
             for temp in templates:
@@ -143,22 +202,34 @@ def _handle_defs(pybind_type, apis, module_name, first_module):
             outtypes.add(outtype)
 
     class_defs = []
+    atype_labels = {}
     if first_module:
-        for outtype in outtypes:
+        for i, outtype in enumerate(outtypes):
             if 'ade::TensptrT' == outtype:
                 continue
+            label = 'class_{}'.format(i)
+            atype_labels[outtype] = label
             class_defs.append(_class_def_tmpl.format(
                 module_name=module_name,
                 outtype=outtype,
+                label=label,
                 name=outtype.split('::')[-1]))
 
-    return '\n    '.join(class_defs) +\
-        '\n\n    '.join([_mdef_tmpl.format(
+    func_defs = [_mdef_tmpl.format(
             module_name=module_name,
             func=api['name'], idx=i,
             description=_parse_description(api),
             pyargs=', '.join([_parse_pyargs(arg) for arg in api['args']]))
-        for i, api in enumerate(apis)])
+        for i, api in enumerate(apis)]
+
+    operator_defs = [_def_op(atype_labels, api) for api in apis if 'operator' in api]
+
+    defs = [
+        '\n    '.join(class_defs),
+        '\n\n    '.join(func_defs),
+        '\n\n    '.join(operator_defs),
+    ]
+    return '\n\n    '.join([d for d in defs if len(d) > 0])
 
 _plugin_id = 'PYBINDER'
 
@@ -223,6 +294,7 @@ class PyAPIsPlugin:
                 user_includes=[
                     '"pybind11/pybind11.h"',
                     '"pybind11/stl.h"',
+                    '"pybind11/operators.h"',
                 ],
                 internal_refs=[_hdr_file, api_header])
 

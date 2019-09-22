@@ -241,16 +241,12 @@ PYBIND11_MODULE(ead, m)
 			"Optimize using rules for specified filename");
 
 	// ==== constant ====
-	py::class_<ead::ConstantNode<PybindT>,std::shared_ptr<ead::ConstantNode<PybindT>>> constant(
-		m, "Constant", node);
-
-	py::implicitly_convertible<ead::iNode<PybindT>,ead::ConstantNode<PybindT>>();
+	py::class_<ead::ConstantNode<PybindT>,std::shared_ptr<ead::ConstantNode<PybindT>>,
+		ead::iNode<PybindT>> constant(m, "Constant");
 
 	// ==== variable ====
-	py::class_<ead::VariableNode<PybindT>,ead::VarptrT<PybindT>> variable(
-		m, "Variable", node);
-
-	py::implicitly_convertible<ead::iNode<PybindT>,ead::VariableNode<PybindT>>();
+	py::class_<ead::VariableNode<PybindT>,ead::VarptrT<PybindT>,
+		ead::iNode<PybindT>> variable(m, "Variable");
 
 	variable
 		.def("assign",

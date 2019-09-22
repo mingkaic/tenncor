@@ -445,125 +445,149 @@ class EADTest(unittest.TestCase):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        def pow_der(i, data):
+            a, b = data
+            if i == 0:
+                return b * a ** (b - 1)
+            return a ** b * np.log(a)
         for shape in shapes:
-            def pow_der(i, data):
-                a, b = data
-                if i == 0:
-                    return b * a ** (b - 1)
-                return a ** b * np.log(a)
             self._common_binary(shape, tc.pow, lambda x, y: x ** y, pow_der)
 
     def test_add(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        generic_add = lambda x, y: x + y
+        add_der = lambda i, data: data1
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            self._common_binary(shape, tc.add, lambda x, y: x + y,
-                lambda i, data: data1)
+            self._common_binary(shape, tc.add, generic_add, add_der)
+            self._common_binary(shape, generic_add, generic_add, add_der)
 
     def test_sub(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        generic_sub = lambda x, y: x - y
+        def sub_der(i, data):
+            if i == 0:
+                return data1
+            return -data1
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            def sub_der(i, data):
-                if i == 0:
-                    return data1
-                return -data1
-            self._common_binary(shape, tc.sub, lambda x, y: x - y, sub_der)
+            self._common_binary(shape, tc.sub, generic_sub, sub_der)
+            self._common_binary(shape, generic_sub, generic_sub, sub_der)
 
     def test_mul(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        generic_mul = lambda x, y: x * y
+        def mul_der(i, data):
+            if i == 0:
+                return data[1]
+            return data[0]
         for shape in shapes:
-            def mul_der(i, data):
-                if i == 0:
-                    return data[1]
-                return data[0]
-            self._common_binary(shape, tc.mul, lambda x, y: x * y, mul_der)
+            self._common_binary(shape, tc.mul, generic_mul, mul_der)
+            self._common_binary(shape, generic_mul, generic_mul, mul_der)
 
     def test_div(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        generic_div = lambda x, y: x / y
+        def div_der(i, data):
+            a, b = data
+            if i == 0:
+                return 1 / b
+            return -a / (b * b)
         for shape in shapes:
-            def div_der(i, data):
-                a, b = data
-                if i == 0:
-                    return 1 / b
-                return -a / (b * b)
-            self._common_binary(shape, tc.div, lambda x, y: x / y, div_der)
+            self._common_binary(shape, tc.div, generic_div, div_der)
+            self._common_binary(shape, generic_div, generic_div, div_der)
 
     def test_min(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        def min_der(i, data):
+            a, b = data
+            if i == 0:
+                return (a <= b).astype(float)
+            return (b <= a).astype(float)
         for shape in shapes:
-            def min_der(i, data):
-                a, b = data
-                if i == 0:
-                    return (a <= b).astype(float)
-                return (b <= a).astype(float)
             self._common_binary(shape, tc.min, np.minimum, min_der)
 
     def test_max(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        def max_der(i, data):
+            a, b = data
+            if i == 0:
+                return (a >= b).astype(float)
+            return (b >= a).astype(float)
         for shape in shapes:
-            def max_der(i, data):
-                a, b = data
-                if i == 0:
-                    return (a >= b).astype(float)
-                return (b >= a).astype(float)
             self._common_binary(shape, tc.max, np.maximum, max_der)
 
     def test_eq(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        np_eq = lambda x, y: np.round(x) == np.round(y)
+        eq_der = lambda i, data: data0
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
                 lambda x, y: tc.eq(_round_helper(x), _round_helper(y)),
-                lambda x, y: np.round(x) == np.round(y),
-                lambda i, data: data0)
+                np_eq, eq_der)
+            self._common_binary(shape,
+                lambda x, y: _round_helper(x) == _round_helper(y),
+                np_eq, eq_der)
 
     def test_neq(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        np_neq = lambda x, y: np.round(x) != np.round(y)
+        neq_der = lambda i, data: data0
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
                 lambda x, y: tc.neq(_round_helper(x), _round_helper(y)),
-                lambda x, y: np.round(x) != np.round(y),
-                lambda i, data: data0)
+                np_neq, neq_der)
+            self._common_binary(shape,
+                lambda x, y: _round_helper(x) != _round_helper(y),
+                np_neq, neq_der)
 
     def test_lt(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        np_lt = lambda x, y: np.round(x) < np.round(y)
+        lt_der = lambda i, data: data0
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
                 lambda x, y: tc.lt(_round_helper(x), _round_helper(y)),
-                lambda x, y: np.round(x) < np.round(y),
-                lambda i, data: data0)
+                np_lt, lt_der)
+            self._common_binary(shape,
+                lambda x, y: _round_helper(x) < _round_helper(y),
+                np_lt, lt_der)
 
     def test_gt(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
+        np_gt = lambda x, y: np.round(x) > np.round(y)
+        gt_der = lambda i, data: data0
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
                 lambda x, y: tc.gt(_round_helper(x), _round_helper(y)),
-                lambda x, y: np.round(x) > np.round(y),
-                lambda i, data: data0)
+                np_gt, gt_der)
+            self._common_binary(shape,
+                lambda x, y: _round_helper(x) > _round_helper(y),
+                np_gt, gt_der)
 
     def test_nelems(self):
         shapes = [[3, 4, 5]]
