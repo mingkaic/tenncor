@@ -8,7 +8,7 @@
 
 #include "exam/exam.hpp"
 
-#include "dbg/stream/ade.hpp"
+#include "dbg/stream/teq.hpp"
 
 #include "tag/prop.hpp"
 
@@ -22,37 +22,37 @@ const std::string testdir = "models/test";
 
 struct TestLoader : public pbm::iLoader
 {
-	ade::TensptrT generate_leaf (const char* pb, ade::Shape shape,
+	teq::TensptrT generate_leaf (const char* pb, teq::Shape shape,
 		std::string typelabel, std::string label, bool is_const) override
 	{
-		return ade::TensptrT(new MockTensor(shape));
+		return teq::TensptrT(new MockTensor(shape));
 	}
 
-	ade::TensptrT generate_func (std::string opname, ade::ArgsT args) override
+	teq::TensptrT generate_func (std::string opname, teq::ArgsT args) override
 	{
-		return ade::TensptrT(ade::Functor::get(ade::Opcode{opname, 0}, args));
+		return teq::TensptrT(teq::Functor::get(teq::Opcode{opname, 0}, args));
 	}
 
-	ade::CoordptrT generate_shaper (std::vector<double> coord) override
+	teq::CoordptrT generate_shaper (std::vector<double> coord) override
 	{
-		if (ade::mat_dim * ade::mat_dim != coord.size())
+		if (teq::mat_dim * teq::mat_dim != coord.size())
 		{
 			logs::fatal("cannot deserialize non-matrix coordinate map");
 		}
-		return std::make_shared<ade::CoordMap>(
-			[&](ade::MatrixT fwd)
+		return std::make_shared<teq::CoordMap>(
+			[&](teq::MatrixT fwd)
 			{
-				for (ade::RankT i = 0; i < ade::mat_dim; ++i)
+				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 				{
-					for (ade::RankT j = 0; j < ade::mat_dim; ++j)
+					for (teq::RankT j = 0; j < teq::mat_dim; ++j)
 					{
-						fwd[i][j] = coord[i * ade::mat_dim + j];
+						fwd[i][j] = coord[i * teq::mat_dim + j];
 					}
 				}
 			});
 	}
 
-	ade::CoordptrT generate_coorder (
+	teq::CoordptrT generate_coorder (
 		std::string opname, std::vector<double> coord) override
 	{
 		return generate_shaper(coord);
@@ -78,7 +78,7 @@ TEST(LOAD, LoadGraph)
 	tag::Query q;
 
 	std::vector<std::string> root_props;
-	std::unordered_map<std::string,ade::TensptrT> propdtens;
+	std::unordered_map<std::string,teq::TensptrT> propdtens;
 	for (auto tens : graphinfo.roots_)
 	{
 		tens->accept(q);
@@ -121,8 +121,8 @@ TEST(LOAD, LoadGraph)
 
 	ASSERT_HAS(propdtens, "subtree_dest");
 	ASSERT_HAS(propdtens, "subtree2_dest");
-	ade::TensptrT tree1 = propdtens["subtree_dest"];
-	ade::TensptrT tree2 = propdtens["subtree2_dest"];
+	teq::TensptrT tree1 = propdtens["subtree_dest"];
+	teq::TensptrT tree2 = propdtens["subtree2_dest"];
 
 	ASSERT_NE(nullptr, tree1);
 	ASSERT_NE(nullptr, tree2);

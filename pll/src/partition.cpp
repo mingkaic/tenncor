@@ -1,6 +1,6 @@
 #include <queue>
 
-#include "ade/iopfunc.hpp"
+#include "teq/iopfunc.hpp"
 
 #include "pll/partition.hpp"
 
@@ -11,19 +11,19 @@ namespace pll
 
 struct WeighedGroup final
 {
-	std::vector<ade::iFunctor*> reps_;
+	std::vector<teq::iFunctor*> reps_;
 
-	std::unordered_set<ade::iTensor*> ancestors_;
+	std::unordered_set<teq::iTensor*> ancestors_;
 
 	double weight_;
 };
 
-PartGroupsT k_partition (ade::TensT roots, size_t k, OpWeightT weights)
+PartGroupsT k_partition (teq::TensT roots, size_t k, OpWeightT weights)
 {
 	PartGroupsT groups;
 
-	ade::GraphStat stat;
-	ade::ParentFinder pfinder;
+	teq::GraphStat stat;
+	teq::ParentFinder pfinder;
 	for (auto root : roots)
 	{
 		root->accept(stat);
@@ -31,22 +31,22 @@ PartGroupsT k_partition (ade::TensT roots, size_t k, OpWeightT weights)
 	}
 
 	// partition by bases (the funcs right above variables)
-	std::vector<ade::iFunctor*> bases;
+	std::vector<teq::iFunctor*> bases;
 	for (auto& gpair : stat.graphsize_)
 	{
 		if (gpair.second.upper_ == 1)
 		{
-			bases.push_back(static_cast<ade::iFunctor*>(gpair.first));
+			bases.push_back(static_cast<teq::iFunctor*>(gpair.first));
 		}
 	}
 
 	// partition bases by number of ancestor
-	std::unordered_map<ade::iTensor*,double> weight_map;
-	std::unordered_map<ade::iFunctor*,
-		std::unordered_set<ade::iTensor*>> ancestors;
+	std::unordered_map<teq::iTensor*,double> weight_map;
+	std::unordered_map<teq::iFunctor*,
+		std::unordered_set<teq::iTensor*>> ancestors;
 	for (auto base : bases)
 	{
-		std::queue<ade::iTensor*> q;
+		std::queue<teq::iTensor*> q;
 		q.push(base);
 		while (false == q.empty())
 		{
@@ -54,13 +54,13 @@ PartGroupsT k_partition (ade::TensT roots, size_t k, OpWeightT weights)
 			if (false == estd::has(weight_map, tens))
 			{
 				double weight = 1;
-				if (auto op = dynamic_cast<ade::iOperableFunc*>(tens))
+				if (auto op = dynamic_cast<teq::iOperableFunc*>(tens))
 				{
 					weight = estd::try_get(weights, op->type_code(), 1);
 				}
 				weight_map.emplace(tens, weight);
 			}
-			ade::ParentMapT parents;
+			teq::ParentMapT parents;
 			if (estd::get(parents, pfinder.parents_, tens))
 			{
 				for (auto& ppair : parents)
@@ -86,7 +86,7 @@ PartGroupsT k_partition (ade::TensT roots, size_t k, OpWeightT weights)
 			group.push_back(bases[i]);
 			for (auto anc : ancs)
 			{
-				group.push_back(static_cast<ade::iFunctor*>(anc));
+				group.push_back(static_cast<teq::iFunctor*>(anc));
 			}
 		}
 	}
@@ -153,7 +153,7 @@ PartGroupsT k_partition (ade::TensT roots, size_t k, OpWeightT weights)
 		groups.reserve(nbases);
 		for (auto& kgroup : kgroups)
 		{
-			std::vector<ade::iFunctor*> group;
+			std::vector<teq::iFunctor*> group;
 			group.reserve(kgroup.reps_.size() + kgroup.ancestors_.size());
 			for (auto& rep : kgroup.reps_)
 			{
@@ -161,7 +161,7 @@ PartGroupsT k_partition (ade::TensT roots, size_t k, OpWeightT weights)
 			}
 			for (auto& anc : kgroup.ancestors_)
 			{
-				group.push_back(static_cast<ade::iFunctor*>(anc));
+				group.push_back(static_cast<teq::iFunctor*>(anc));
 			}
 			groups.push_back(group);
 		}
@@ -171,7 +171,7 @@ PartGroupsT k_partition (ade::TensT roots, size_t k, OpWeightT weights)
 	for (auto& group : groups)
 	{
 		std::sort(group.begin(), group.end(),
-			[&stat](ade::iTensor* a, ade::iTensor* b)
+			[&stat](teq::iTensor* a, teq::iTensor* b)
 			{
 				return stat.graphsize_[a].upper_ < stat.graphsize_[b].upper_;
 			});

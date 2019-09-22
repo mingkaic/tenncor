@@ -5,15 +5,15 @@
 namespace opt
 {
 
-void replace_parents (const ade::ParentFinder& pfinder,
-	ade::iTensor* source, ade::TensptrT target)
+void replace_parents (const teq::ParentFinder& pfinder,
+	teq::iTensor* source, teq::TensptrT target)
 {
 	auto it = pfinder.parents_.find(source);
 	if (pfinder.parents_.end() != it)
 	{
 		for (auto& parent_pair : it->second)
 		{
-			auto f = static_cast<ade::iFunctor*>(parent_pair.first);
+			auto f = static_cast<teq::iFunctor*>(parent_pair.first);
 			auto& children = f->get_children();
 			for (size_t i : parent_pair.second)
 			{
@@ -29,11 +29,11 @@ void replace_parents (const ade::ParentFinder& pfinder,
 }
 
 void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
-	const ade::TensT& roots)
+	const teq::TensT& roots)
 {
-	ade::OwnerMapT owners = ade::track_owners(roots);
-	ade::GraphStat stat;
-	for (ade::TensptrT root : roots)
+	teq::OwnerMapT owners = teq::track_owners(roots);
+	teq::GraphStat stat;
+	for (teq::TensptrT root : roots)
 	{
 		root->accept(stat);
 	}
@@ -42,7 +42,7 @@ void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
 	root_heights.reserve(roots.size());
 	std::transform(roots.begin(), roots.end(),
 		std::back_inserter(root_heights),
-		[&stat](const ade::TensptrT& root)
+		[&stat](const teq::TensptrT& root)
 		{
 			return stat.graphsize_[root.get()].upper_;
 		});
@@ -59,25 +59,25 @@ void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
 			if (tag::get_property_reg().has_property(tens, tag::immutable_tag))
 			{
 				immutables.push_back(
-					std::static_pointer_cast<ade::iLeaf>(
+					std::static_pointer_cast<teq::iLeaf>(
 						owners.at(tens).lock()));
 			}
 		}
 		else
 		{
 			functors[height - 1].push_back(
-				std::static_pointer_cast<ade::iFunctor>(
+				std::static_pointer_cast<teq::iFunctor>(
 					owners.at(tens).lock()));
 		}
 	}
 }
 
-void remove_all_duplicates (ade::TensT& roots,
+void remove_all_duplicates (teq::TensT& roots,
 	ImmutablesT& immutables, HFunctorsT& functors)
 {
 	// remove equivalent nodes
-	ade::ParentFinder pfinder;
-	for (ade::TensptrT& root : roots)
+	teq::ParentFinder pfinder;
+	for (teq::TensptrT& root : roots)
 	{
 		root->accept(pfinder);
 	}

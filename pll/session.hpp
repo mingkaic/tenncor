@@ -3,7 +3,7 @@
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/post.hpp>
 
-#include "ead/session.hpp"
+#include "eteq/session.hpp"
 
 #include "pll/partition.hpp"
 
@@ -13,45 +13,45 @@
 namespace pll
 {
 
-using SessReqsT = std::vector<std::pair<ade::iOperableFunc*,size_t>>;
+using SessReqsT = std::vector<std::pair<teq::iOperableFunc*,size_t>>;
 
 using AtomicFulfilMapT = std::unordered_map<
-	ade::iOperableFunc*,std::atomic<long>>;
+	teq::iOperableFunc*,std::atomic<long>>;
 
-struct Session final : public ead::iSession
+struct Session final : public eteq::iSession
 {
 	Session (size_t nthreads = 2, OpWeightT weights = OpWeightT()) :
 		nthreads_(nthreads), weights_(weights) {}
 
-	std::unordered_set<ade::TensptrT> tracked_;
+	std::unordered_set<teq::TensptrT> tracked_;
 
-	void track (ade::TensT roots) override
+	void track (teq::TensT roots) override
 	{
 		tracked_.insert(roots.begin(), roots.end());
 
-		ade::GraphStat stat;
+		teq::GraphStat stat;
 		for (auto& trac : tracked_)
 		{
 			trac->accept(stat);
 		}
-		ade::ParentFinder pfinder;
-		for (ade::TensptrT& root : roots)
+		teq::ParentFinder pfinder;
+		for (teq::TensptrT& root : roots)
 		{
 			root->accept(pfinder);
 		}
 
-		ade::TensT trackvecs(tracked_.begin(), tracked_.end());
+		teq::TensT trackvecs(tracked_.begin(), tracked_.end());
 		PartGroupsT groups = k_partition(trackvecs, nthreads_, weights_);
 		requirements_.clear();
 		for (auto& group : groups)
 		{
 			SessReqsT reqs;
 			reqs.reserve(group.size());
-			for (ade::iFunctor* func : group)
+			for (teq::iFunctor* func : group)
 			{
 				auto& args = func->get_children();
-				ead::TensSetT unique_children;
-				for (const ade::FuncArg& arg : args)
+				eteq::TensSetT unique_children;
+				for (const teq::FuncArg& arg : args)
 				{
 					auto tens = arg.get_tensor().get();
 					if (0 < stat.graphsize_[tens].upper_) // ignore leaves
@@ -60,7 +60,7 @@ struct Session final : public ead::iSession
 					}
 				}
 				reqs.push_back({
-					static_cast<ade::iOperableFunc*>(func),
+					static_cast<teq::iOperableFunc*>(func),
 					unique_children.size()
 				});
 			}
@@ -72,7 +72,7 @@ struct Session final : public ead::iSession
 			for (auto& parent_pair : assocs.second)
 			{
 				parents_[assocs.first].emplace(
-					static_cast<ade::iOperableFunc*>(parent_pair.first));
+					static_cast<teq::iOperableFunc*>(parent_pair.first));
 			}
 		}
 
@@ -81,22 +81,22 @@ struct Session final : public ead::iSession
 		{
 			if (tpair.second.upper_ > 0)
 			{
-				ops_.emplace(static_cast<ade::iOperableFunc*>(tpair.first));
+				ops_.emplace(static_cast<teq::iOperableFunc*>(tpair.first));
 			}
 		}
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update (ead::TensSetT updated = {}, ead::TensSetT ignores = {}) override
+	void update (eteq::TensSetT updated = {}, eteq::TensSetT ignores = {}) override
 	{
 		AtomicFulfilMapT fulfilments;
 		for (auto op : ops_)
 		{
 			fulfilments.emplace(op, 0);
 		}
-		for (ade::iTensor* unodes : updated)
+		for (teq::iTensor* unodes : updated)
 		{
-			if (dynamic_cast<ade::iFunctor*>(unodes))
+			if (dynamic_cast<teq::iFunctor*>(unodes))
 			{
 				auto& node_parents = parents_[unodes];
 				for (auto& node_parent : node_parents)
@@ -121,7 +121,7 @@ struct Session final : public ead::iSession
 						false == estd::has(ignores, op.first))
 					{
 						op.first->update();
-						std::unordered_set<ade::iOperableFunc*> op_parents;
+						std::unordered_set<teq::iOperableFunc*> op_parents;
 						if (estd::get(op_parents,
 							this->parents_, op.first))
 						{
@@ -140,9 +140,9 @@ struct Session final : public ead::iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update_target (ead::TensSetT target, ead::TensSetT updated = {}) override
+	void update_target (eteq::TensSetT target, eteq::TensSetT updated = {}) override
 	{
-		ade::OnceTraveler targetted;
+		teq::OnceTraveler targetted;
 		for (auto& tens : target)
 		{
 			tens->accept(targetted);
@@ -152,9 +152,9 @@ struct Session final : public ead::iSession
 		{
 			fulfilments.emplace(op, 0);
 		}
-		for (ade::iTensor* unodes : updated)
+		for (teq::iTensor* unodes : updated)
 		{
-			if (dynamic_cast<ade::iFunctor*>(unodes))
+			if (dynamic_cast<teq::iFunctor*>(unodes))
 			{
 				auto& node_parents = parents_[unodes];
 				for (auto& node_parent : node_parents)
@@ -179,7 +179,7 @@ struct Session final : public ead::iSession
 						estd::has(targetted.visited_, op.first))
 					{
 						op.first->update();
-						std::unordered_set<ade::iOperableFunc*> op_parents;
+						std::unordered_set<teq::iOperableFunc*> op_parents;
 						if (estd::get(op_parents,
 							this->parents_, op.first))
 						{
@@ -199,7 +199,7 @@ struct Session final : public ead::iSession
 
 	void optimize (const opt::OptCtx& rules)
 	{
-		ade::TensT tracked(tracked_.begin(), tracked_.end());
+		teq::TensT tracked(tracked_.begin(), tracked_.end());
 		opt::optimize(tracked, rules);
 		parents_.clear();
 		track(tracked);
@@ -207,15 +207,15 @@ struct Session final : public ead::iSession
 
 	std::vector<SessReqsT> requirements_;
 
-	std::unordered_map<ade::iTensor*,
-		std::unordered_set<ade::iOperableFunc*>> parents_;
+	std::unordered_map<teq::iTensor*,
+		std::unordered_set<teq::iOperableFunc*>> parents_;
 
 private:
 	size_t nthreads_;
 
 	OpWeightT weights_;
 
-	std::unordered_set<ade::iOperableFunc*> ops_;
+	std::unordered_set<teq::iOperableFunc*> ops_;
 };
 
 }

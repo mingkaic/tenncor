@@ -1,4 +1,4 @@
-#include "ead/generated/api.hpp"
+#include "eteq/generated/api.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
 
@@ -7,7 +7,7 @@
 namespace eqns
 {
 
-ead::NodeptrT<PybindT> identity (ead::NodeptrT<PybindT> node)
+eteq::NodeptrT<PybindT> identity (eteq::NodeptrT<PybindT> node)
 {
 	return node;
 }
@@ -18,9 +18,9 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 	AssignsT assignments;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = ead::convert_to_node(leaves[i].first);
+		auto leaf_node = eteq::convert_to_node(leaves[i].first);
 		auto err = leaves[i].second;
-		ade::Shape eshape = err->shape();
+		teq::Shape eshape = err->shape();
 		auto next = leaf_node - err * learning_rate;
 		assignments.push_back(VarAssign{
 			fmts::sprintf("sgd::%s_grad_%s",
@@ -38,12 +38,12 @@ AssignGroupsT rms_momentum (const VarErrsT& leaves, PybindT learning_rate,
 	AssignsT leaf_assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = ead::convert_to_node(leaves[i].first);
+		auto leaf_node = eteq::convert_to_node(leaves[i].first);
 		auto err = leaves[i].second;
-		ade::Shape eshape = err->shape();
-		ead::VarptrT<PybindT> momentum =
-			ead::make_variable_scalar<PybindT>(1, eshape, "momentum");
-		auto momentum_node = ead::convert_to_node(momentum);
+		teq::Shape eshape = err->shape();
+		eteq::VarptrT<PybindT> momentum =
+			eteq::make_variable_scalar<PybindT>(1, eshape, "momentum");
+		auto momentum_node = eteq::convert_to_node(momentum);
 
 		auto momentum_next = discount_factor * momentum_node +
 			PybindT(1.0 - discount_factor) * tenncor::square(err);
@@ -65,7 +65,7 @@ void assign_groups (AssignGroupsT& groups, UpdateStepF update_step)
 {
 	for (AssignsT& group : groups)
 	{
-		ead::TensSetT updated_var;
+		eteq::TensSetT updated_var;
 		for (eqns::VarAssign& assign : group)
 		{
 			updated_var.emplace(assign.target_->get_tensor().get());

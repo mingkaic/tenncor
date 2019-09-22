@@ -4,33 +4,33 @@
 
 #include "gtest/gtest.h"
 
-#include "dbg/stream/ade_csv.hpp"
+#include "dbg/stream/teq_csv.hpp"
 
 #include "testutil/tutil.hpp"
 
 #include "exam/exam.hpp"
 
-#include "ead/generated/api.hpp"
-#include "ead/parse.hpp"
-#include "ead/constant.hpp"
+#include "eteq/generated/api.hpp"
+#include "eteq/parse.hpp"
+#include "eteq/constant.hpp"
 
 #include "opt/optimize.hpp"
 
 
 TEST(OPTIMIZE, CalcConstants)
 {
-	ead::NodeptrT<double> var = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape(),
+	eteq::NodeptrT<double> var = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape(),
 		"special_var"));
 
-	ead::NodeptrT<double> two =
-		ead::make_constant_scalar<double>(2, ade::Shape());
-	ead::NodeptrT<double> three =
-		ead::make_constant_scalar<double>(3, ade::Shape());
-	ead::NodeptrT<double> four =
-		ead::make_constant_scalar<double>(4, ade::Shape());
+	eteq::NodeptrT<double> two =
+		eteq::make_constant_scalar<double>(2, teq::Shape());
+	eteq::NodeptrT<double> three =
+		eteq::make_constant_scalar<double>(3, teq::Shape());
+	eteq::NodeptrT<double> four =
+		eteq::make_constant_scalar<double>(4, teq::Shape());
 
-	opt::OptCtx empty_rules = ead::parse<double>("");
+	opt::OptCtx empty_rules = eteq::parse<double>("");
 
 	{
 		auto vfunc = tenncor::sin(var);
@@ -88,14 +88,14 @@ TEST(OPTIMIZE, CalcConstants)
 
 TEST(OPTIMIZE, PruneZeroSingles)
 {
-	ead::NodeptrT<double> var = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape(),
+	eteq::NodeptrT<double> var = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape(),
 		"special_var"));
 
-	ead::NodeptrT<double> zero =
-		ead::make_constant_scalar<double>(0, ade::Shape());
+	eteq::NodeptrT<double> zero =
+		eteq::make_constant_scalar<double>(0, teq::Shape());
 
-	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
+	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	{
 		auto wunfunc = tenncor::pow(var, zero);
@@ -181,15 +181,15 @@ TEST(OPTIMIZE, PruneZeroSingles)
 
 TEST(OPTIMIZE, PruneZeroGraph)
 {
-	ead::NodeptrT<double> var = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape(), "var"));
-	ead::NodeptrT<double> var2 = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape(), "var2"));
+	eteq::NodeptrT<double> var = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape(), "var"));
+	eteq::NodeptrT<double> var2 = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape(), "var2"));
 
-	ead::NodeptrT<double> zero =
-		ead::make_constant_scalar<double>(0, ade::Shape());
+	eteq::NodeptrT<double> zero =
+		eteq::make_constant_scalar<double>(0, teq::Shape());
 
-	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
+	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	auto got1 = tenncor::cos(zero);
 	auto got3 = tenncor::add(zero, var2);
@@ -233,14 +233,14 @@ TEST(OPTIMIZE, PruneZeroGraph)
 
 TEST(OPTIMIZE, PruneOneSingles)
 {
-	ead::NodeptrT<double> var = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape(),
+	eteq::NodeptrT<double> var = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape(),
 		"special_var"));
 
-	ead::NodeptrT<double> one =
-		ead::make_constant_scalar<double>(1, ade::Shape());
+	eteq::NodeptrT<double> one =
+		eteq::make_constant_scalar<double>(1, teq::Shape());
 
-	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
+	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	{
 		auto vfunc = tenncor::pow(var, one);
@@ -303,14 +303,14 @@ TEST(OPTIMIZE, PruneOneSingles)
 
 TEST(OPTIMIZE, PruneOneGraph)
 {
-	ead::NodeptrT<double> var = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape(),
+	eteq::NodeptrT<double> var = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape(),
 		"var"));
 
-	ead::NodeptrT<double> one =
-		ead::make_constant_scalar<double>(1, ade::Shape());
+	eteq::NodeptrT<double> one =
+		eteq::make_constant_scalar<double>(1, teq::Shape());
 
-	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
+	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	auto got0 = tenncor::log(one);
 	auto got1 = tenncor::sqrt(one);
@@ -343,12 +343,12 @@ TEST(OPTIMIZE, PruneOneGraph)
 
 TEST(OPTIMIZE, PruneOpSingles)
 {
-	ead::NodeptrT<double> zero = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape(), "special_var0"));
-	ead::NodeptrT<double> one = ead::convert_to_node(
-		ead::make_variable_scalar<double>(1, ade::Shape({2, 3}), "special_var"));
+	eteq::NodeptrT<double> zero = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape(), "special_var0"));
+	eteq::NodeptrT<double> one = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(1, teq::Shape({2, 3}), "special_var"));
 
-	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
+	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	// merge redundent double reduced argument for empty shape
 	{
@@ -403,14 +403,14 @@ TEST(OPTIMIZE, PruneOpSingles)
 
 TEST(OPTIMIZE, PruneOpGraph)
 {
-	ead::NodeptrT<double> zero = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape({3, 4}), "special_var0"));
-	ead::NodeptrT<double> one = ead::convert_to_node(
-		ead::make_variable_scalar<double>(1, ade::Shape(), "special_var"));
-	ead::NodeptrT<double> two = ead::convert_to_node(
-		ead::make_variable_scalar<double>(2, ade::Shape(), "special_var2"));
-	ead::NodeptrT<double> three = ead::convert_to_node(
-		ead::make_variable_scalar<double>(3, ade::Shape(), "special_var3"));
+	eteq::NodeptrT<double> zero = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape({3, 4}), "special_var0"));
+	eteq::NodeptrT<double> one = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(1, teq::Shape(), "special_var"));
+	eteq::NodeptrT<double> two = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(2, teq::Shape(), "special_var2"));
+	eteq::NodeptrT<double> three = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(3, teq::Shape(), "special_var3"));
 
 	auto got1 = tenncor::cos(three);
 	auto got3 = tenncor::mul(tenncor::mul(one, three), two);
@@ -424,7 +424,7 @@ TEST(OPTIMIZE, PruneOpGraph)
 
 	auto m = tenncor::min(tenncor::min(got22, got1), tenncor::min(too, got11));
 
-	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
+	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	auto opted = opt::optimize({
 		tenncor::sub(tenncor::min(m, tenncor::div(got3, gotn1)), got2)->get_tensor(),
@@ -475,12 +475,12 @@ TEST(OPTIMIZE, PruneOpGraph)
 
 TEST(OPTIMIZE, GroupSingles)
 {
-	ead::NodeptrT<double> one = ead::convert_to_node(
-		ead::make_variable_scalar<double>(1, ade::Shape(), "special_var"));
-	ead::NodeptrT<double> two = ead::convert_to_node(
-		ead::make_variable_scalar<double>(2, ade::Shape(), "special_var2"));
+	eteq::NodeptrT<double> one = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(1, teq::Shape(), "special_var"));
+	eteq::NodeptrT<double> two = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(2, teq::Shape(), "special_var2"));
 
-	opt::OptCtx rules = ead::parse_file<double>("cfg/optimizations.rules");
+	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	// mul and div and next to each level
 	{
@@ -509,14 +509,14 @@ TEST(OPTIMIZE, GroupSingles)
 
 TEST(OPTIMIZE, ReuseOpGraph)
 {
-	ead::NodeptrT<double> zero = ead::convert_to_node(
-		ead::make_variable_scalar<double>(0, ade::Shape()));
-	ead::NodeptrT<double> one = ead::convert_to_node(
-		ead::make_variable_scalar<double>(1, ade::Shape()));
-	ead::NodeptrT<double> two = ead::convert_to_node(
-		ead::make_variable_scalar<double>(2, ade::Shape()));
+	eteq::NodeptrT<double> zero = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(0, teq::Shape()));
+	eteq::NodeptrT<double> one = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(1, teq::Shape()));
+	eteq::NodeptrT<double> two = eteq::convert_to_node(
+		eteq::make_variable_scalar<double>(2, teq::Shape()));
 
-	ead::NodeptrT<double> root;
+	eteq::NodeptrT<double> root;
 	{
 		auto got1 = tenncor::cos(zero);
 		auto got3 = tenncor::add(tenncor::add(one, zero), two);
@@ -531,14 +531,14 @@ TEST(OPTIMIZE, ReuseOpGraph)
 		root = tenncor::sub(tenncor::pow(m, tenncor::div(got3, gotn1)), got2);
 	}
 
-	ead::NodeptrT<double> subroot;
+	eteq::NodeptrT<double> subroot;
 	{
 		auto other_got1 = tenncor::cos(zero);
 		auto got22 = tenncor::max(two, zero);
 		subroot = tenncor::mul(other_got1, got22);
 	}
 
-	ead::NodeptrT<double> copyroot;
+	eteq::NodeptrT<double> copyroot;
 	{
 		auto got1 = tenncor::cos(zero);
 		auto got3 = tenncor::add(tenncor::add(one, zero), two);
@@ -553,7 +553,7 @@ TEST(OPTIMIZE, ReuseOpGraph)
 		copyroot = tenncor::sub(tenncor::pow(m, tenncor::div(got3, gotn1)), got2);
 	}
 
-	ead::NodeptrT<double> splitroot;
+	eteq::NodeptrT<double> splitroot;
 	{
 		auto got1 = tenncor::cos(zero);
 		auto got3 = tenncor::add(tenncor::add(one, zero), two);
@@ -567,7 +567,7 @@ TEST(OPTIMIZE, ReuseOpGraph)
 		splitroot = tenncor::mul(tenncor::mul(got11, got1), tenncor::mul(too, got3));
 	}
 
-	opt::OptCtx empty_rules = ead::parse<double>("");
+	opt::OptCtx empty_rules = eteq::parse<double>("");
 
 	auto opted = opt::optimize({
 		subroot->get_tensor(),

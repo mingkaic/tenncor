@@ -1,7 +1,7 @@
 #include "pbm/save.hpp"
 #include "pbm/load.hpp"
 
-#include "ead/serialize.hpp"
+#include "eteq/serialize.hpp"
 
 #include "rocnnet/modl/layer.hpp"
 
@@ -38,14 +38,14 @@ std::unordered_map<std::string,LayerIdsT> unpack_labels (
 	return out;
 }
 
-void iLayer::tag (ade::TensptrT tensor, LayerId subs) const
+void iLayer::tag (teq::TensptrT tensor, LayerId subs) const
 {
 	get_layer_reg().layer_tag(tensor, get_ltype(),
 		subs.to_string(get_label()));
 }
 
-void iLayer::recursive_tag (ade::TensptrT root,
-	std::unordered_set<ade::iTensor*> ignores, LayerId subs) const
+void iLayer::recursive_tag (teq::TensptrT root,
+	std::unordered_set<teq::iTensor*> ignores, LayerId subs) const
 {
 	recursive_layer_tag(root, get_ltype(),
 		subs.to_string(get_label()), ignores);
@@ -57,12 +57,12 @@ LayerRegistry& get_layer_reg (void)
 	return registry;
 }
 
-void recursive_layer_tag (ade::TensptrT tens, std::string layer_type,
-	std::string name, std::unordered_set<ade::iTensor*> stops,
+void recursive_layer_tag (teq::TensptrT tens, std::string layer_type,
+	std::string name, std::unordered_set<teq::iTensor*> stops,
 	LayerRegistry& registry)
 {
 	tag::recursive_tag(tens, stops,
-		[&](ade::TensrefT ref)
+		[&](teq::TensrefT ref)
 		{
 			registry.layer_tag(ref, layer_type, name);
 		});
@@ -126,19 +126,19 @@ struct LayerNode final
 	std::vector<LNodeptrT> subs_;
 };
 
-using SublayersT = std::unordered_map<ade::iTensor*,LMatchesT>;
+using SublayersT = std::unordered_map<teq::iTensor*,LMatchesT>;
 
-using TensLablT = std::unordered_map<ade::TensptrT,std::string>;
+using TensLablT = std::unordered_map<teq::TensptrT,std::string>;
 
 using TensLayerMapT = std::unordered_map<LayerNode*,TensLablT>;
 
-struct LayerDeserializer final : public ade::OnceTraveler
+struct LayerDeserializer final : public teq::OnceTraveler
 {
 	LayerDeserializer (std::string key, std::string val) :
 		base_(std::make_shared<LayerNode>(key, val)) {}
 
 	/// Implementation of OnceTraveler
-	void visit_leaf (ade::iLeaf* leaf) override
+	void visit_leaf (teq::iLeaf* leaf) override
 	{
 		tag::TagRepsT reps =
 			tag::get_reg().get_tags(leaf);
@@ -151,7 +151,7 @@ struct LayerDeserializer final : public ade::OnceTraveler
 	}
 
 	/// Implementation of OnceTraveler
-	void visit_func (ade::iFunctor* func) override
+	void visit_func (teq::iFunctor* func) override
 	{
 		auto& children = func->get_children();
 		for (auto child : children)
@@ -174,7 +174,7 @@ struct LayerDeserializer final : public ade::OnceTraveler
 	}
 
 	LayerptrT build_layer (
-		LayerRegistry& registry, ade::OwnerMapT& owners) const
+		LayerRegistry& registry, teq::OwnerMapT& owners) const
 	{
 		TensLayerMapT layer_tens;
 		for (auto& sublayer : sublayers_)
@@ -190,7 +190,7 @@ struct LayerDeserializer final : public ade::OnceTraveler
 		return build_layer_helper(registry, layer_tens, base_.get());
 	}
 
-	std::unordered_set<ade::iTensor*> roots_;
+	std::unordered_set<teq::iTensor*> roots_;
 
 private:
 	LayerptrT build_layer_helper (LayerRegistry& registry,
@@ -222,7 +222,7 @@ private:
 	LNodeptrT base_;
 };
 
-LayerptrT load_layer (std::istream& ins, ade::TensT& roots,
+LayerptrT load_layer (std::istream& ins, teq::TensT& roots,
 	std::string ltype, std::string label,
 	LayerRegistry& registry)
 {
@@ -233,20 +233,20 @@ LayerptrT load_layer (std::istream& ins, ade::TensT& roots,
 			ltype.c_str());
 	}
 	pbm::GraphInfo info;
-	pbm::load_graph<ead::EADLoader>(info, graph);
+	pbm::load_graph<eteq::EADLoader>(info, graph);
 
-	ade::OwnerMapT owners = ade::track_owners(
-		ade::TensT(info.roots_.begin(), info.roots_.end()));
+	teq::OwnerMapT owners = teq::track_owners(
+		teq::TensT(info.roots_.begin(), info.roots_.end()));
 
 	LayerDeserializer layd(ltype, label);
 	// get all layer labelled nodes in graph
-	for (ade::TensptrT tens : info.roots_)
+	for (teq::TensptrT tens : info.roots_)
 	{
 		tens->accept(layd);
 	}
 
 	roots.reserve(layd.roots_.size());
-	for (ade::iTensor* root : layd.roots_)
+	for (teq::iTensor* root : layd.roots_)
 	{
 		roots.push_back(owners.at(root).lock());
 	}
@@ -254,24 +254,24 @@ LayerptrT load_layer (std::istream& ins, ade::TensT& roots,
 	return layd.build_layer(registry, owners);
 }
 
-bool save_layer (std::ostream& outs, const iLayer& layer, ade::TensT roots,
+bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensT roots,
 	LayerRegistry& registry)
 {
-	pbm::GraphSaver<ead::EADSaver> saver(registry.get_tag_registry());
+	pbm::GraphSaver<eteq::EADSaver> saver(registry.get_tag_registry());
 	for (auto& root : roots)
 	{
 		root->accept(saver);
 	}
 
 	auto contents = layer.get_contents();
-	auto owners = ade::track_owners(contents);
+	auto owners = teq::track_owners(contents);
 	for (auto tens : contents)
 	{
 		tens->accept(saver);
 	}
 
 	pbm::PathedMapT labels;
-	for (ade::iLeaf* leaf : saver.leaves_)
+	for (teq::iLeaf* leaf : saver.leaves_)
 	{
 		if (false == leaf->is_const())
 		{

@@ -41,12 +41,12 @@ struct PropertyRegistry final
 	PropertyRegistry (TagRegistry& registry = get_reg()) :
 		tag_reg_(registry) {}
 
-	void property_tag (ade::TensrefT tens, std::string property)
+	void property_tag (teq::TensrefT tens, std::string property)
 	{
 		tag_reg_.add_tag(tens, TagptrT(new PropTag(property)));
 	}
 
-	bool has_property (const ade::iTensor* tens, std::string property) const;
+	bool has_property (const teq::iTensor* tens, std::string property) const;
 
 	TagRegistry& tag_reg_;
 };
@@ -54,7 +54,7 @@ struct PropertyRegistry final
 PropertyRegistry& get_property_reg (void);
 
 const std::string props_key = get_reg().register_tagr("properties",
-[](ade::TensrefT ref, std::string property)
+[](teq::TensrefT ref, std::string property)
 {
 	get_property_reg().property_tag(ref, property);
 });

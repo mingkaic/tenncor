@@ -7,7 +7,7 @@
 namespace opt
 {
 
-using CstConvertF = std::function<ade::TensptrT(ade::iTensor*)>;
+using CstConvertF = std::function<teq::TensptrT(teq::iTensor*)>;
 
 struct OptCtx
 {
@@ -18,7 +18,7 @@ struct OptCtx
 	std::unordered_map<std::string,ConvptrT> converts_;
 };
 
-ade::TensT optimize (ade::TensT roots, const OptCtx& opts);
+teq::TensT optimize (teq::TensT roots, const OptCtx& opts);
 
 }
 

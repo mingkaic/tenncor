@@ -1,3 +1,3 @@
 # ParaLLel
 
-Implements a concurrent EAD session
+Implements a concurrent ETEQ session

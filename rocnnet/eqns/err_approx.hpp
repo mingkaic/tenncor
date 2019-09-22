@@ -1,10 +1,10 @@
 #include <unordered_map>
 
-#include "ead/generated/pyapi.hpp"
+#include "eteq/generated/pyapi.hpp"
 
-#include "ead/constant.hpp"
-#include "ead/variable.hpp"
-#include "ead/session.hpp"
+#include "eteq/constant.hpp"
+#include "eteq/variable.hpp"
+#include "eteq/session.hpp"
 
 #ifndef EQNS_ERR_APPROX_HPP
 #define EQNS_ERR_APPROX_HPP
@@ -12,15 +12,15 @@
 namespace eqns
 {
 
-using VarErrsT = std::vector<std::pair<ead::VarptrT<PybindT>,ead::NodeptrT<PybindT>>>;
+using VarErrsT = std::vector<std::pair<eteq::VarptrT<PybindT>,eteq::NodeptrT<PybindT>>>;
 
 struct VarAssign
 {
 	std::string label_;
 
-	ead::VarptrT<PybindT> target_;
+	eteq::VarptrT<PybindT> target_;
 
-	ead::NodeptrT<PybindT> source_;
+	eteq::NodeptrT<PybindT> source_;
 };
 
 using AssignsT = std::list<VarAssign>;
@@ -30,11 +30,11 @@ using AssignGroupsT = std::list<AssignsT>;
 // approximate error of sources given error of root
 using ApproxF = std::function<AssignGroupsT(const VarErrsT&)>;
 
-using UpdateStepF = std::function<void(ead::TensSetT&)>;
+using UpdateStepF = std::function<void(eteq::TensSetT&)>;
 
-using NodeUnarF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
+using NodeUnarF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
 
-ead::NodeptrT<PybindT> identity (ead::NodeptrT<PybindT> node);
+eteq::NodeptrT<PybindT> identity (eteq::NodeptrT<PybindT> node);
 
 // Stochastic Gradient Descent Approximation
 // for each (x, err) in leaves

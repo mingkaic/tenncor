@@ -8,19 +8,19 @@
 
 #include "exam/exam.hpp"
 
-#include "ead/ead.hpp"
+#include "eteq/eteq.hpp"
 
 #include "pll/partition.hpp"
 
 
 TEST(PARTITION, Kpartition)
 {
-	ade::Shape in_shape({10, 3});
-	ade::Shape weight0_shape({9, 10});
-	ade::Shape bias0_shape({9});
-	ade::Shape weight1_shape({5, 9});
-	ade::Shape bias1_shape({5});
-	ade::Shape out_shape({5,3});
+	teq::Shape in_shape({10, 3});
+	teq::Shape weight0_shape({9, 10});
+	teq::Shape bias0_shape({9});
+	teq::Shape weight1_shape({5, 9});
+	teq::Shape bias1_shape({5});
+	teq::Shape out_shape({5,3});
 
 	std::vector<double> in_data = {
 		0.8575073725, 0.0910915775, 0.9133499042,
@@ -100,12 +100,12 @@ TEST(PARTITION, Kpartition)
 		0.4350741570, 0.3949956178, 0.2341486792, 0.1348473539, 0.8681677362,
 	};
 
-	ead::NodeptrT<double> in = ead::make_variable<double>(in_data.data(), in_shape);
-	ead::NodeptrT<double> weight0 = ead::make_variable<double>(w0_data.data(), weight0_shape);
-	ead::NodeptrT<double> bias0 = ead::make_variable<double>(b0_data.data(), bias0_shape);
-	ead::NodeptrT<double> weight1 = ead::make_variable<double>(w1_data.data(), weight1_shape);
-	ead::NodeptrT<double> bias1 = ead::make_variable<double>(b1_data.data(), bias1_shape);
-	ead::NodeptrT<double> out = ead::make_variable<double>(out_data.data(), out_shape);
+	eteq::NodeptrT<double> in = eteq::make_variable<double>(in_data.data(), in_shape);
+	eteq::NodeptrT<double> weight0 = eteq::make_variable<double>(w0_data.data(), weight0_shape);
+	eteq::NodeptrT<double> bias0 = eteq::make_variable<double>(b0_data.data(), bias0_shape);
+	eteq::NodeptrT<double> weight1 = eteq::make_variable<double>(w1_data.data(), weight1_shape);
+	eteq::NodeptrT<double> bias1 = eteq::make_variable<double>(b1_data.data(), bias1_shape);
+	eteq::NodeptrT<double> out = eteq::make_variable<double>(out_data.data(), out_shape);
 
 	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
 	auto sig0 = tenncor::sigmoid(layer0);
@@ -113,12 +113,12 @@ TEST(PARTITION, Kpartition)
 	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
 	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = tenncor::pow(tenncor::sub(out, sig1), ead::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(tenncor::sub(out, sig1), eteq::make_constant_scalar<double>(2, out_shape));
 
-	auto dw0 = ead::derive(err, weight0);
-	auto db0 = ead::derive(err, bias0);
-	auto dw1 = ead::derive(err, weight1);
-	auto db1 = ead::derive(err, bias1);
+	auto dw0 = eteq::derive(err, weight0);
+	auto db0 = eteq::derive(err, bias0);
+	auto dw1 = eteq::derive(err, weight1);
+	auto db1 = eteq::derive(err, bias1);
 
 	auto groups = pll::k_partition({
 		dw0->get_tensor(),

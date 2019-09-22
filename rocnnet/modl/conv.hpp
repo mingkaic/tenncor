@@ -1,4 +1,4 @@
-#include "ead/generated/api.hpp"
+#include "eteq/generated/api.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
 
@@ -10,10 +10,10 @@ namespace modl
 
 struct Conv final : public iMarshalSet
 {
-	Conv (std::pair<ade::DimT,ade::DimT> filter_hw, ade::DimT in_ncol,
+	Conv (std::pair<teq::DimT,teq::DimT> filter_hw, teq::DimT in_ncol,
 		uinade::DimT out_ncol, std::string label) : iMarshalSet(label)
 	{
-		ade::Shape kernelshape({out_ncol, in_ncol,
+		teq::Shape kernelshape({out_ncol, in_ncol,
 			filter_hw.second, filter_hw.first});
 		size_t ndata = kernelshape.n_elems();
 
@@ -22,15 +22,15 @@ struct Conv final : public iMarshalSet
 		std::uniform_real_distribution<PybindT> dist(-bound, bound);
 		auto gen = [&dist]()
 		{
-			return dist(ead::get_engine());
+			return dist(eteq::get_engine());
 		};
 		std::vector<PybindT> data(ndata);
 		std::generate(data.begin(), data.end(), gen);
 
-		ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
+		eteq::VarptrT<PybindT> weight = eteq::make_variable<PybindT>(
 			data.data(), kernelshape, "weight");
-		ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
-			0.0, ade::Shape({out_ncol}), "bias");
+		eteq::VarptrT<PybindT> bias = eteq::make_variable_scalar<PybindT>(
+			0.0, teq::Shape({out_ncol}), "bias");
 		weight_ = std::make_shared<MarshalVar>(weight);
 		bias_ = std::make_shared<MarshalVar>(bias);
 	}
@@ -54,11 +54,11 @@ struct Conv final : public iMarshalSet
 
 	Conv& operator = (Conv&& other) = default;
 
-	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
+	eteq::NodeptrT<PybindT> operator () (eteq::NodeptrT<PybindT> input)
 	{
-		return age::conv2d(input,
-			ead::convert_to_node<PybindT>(weight_->var_),
-			ead::convert_to_node<PybindT>(bias_->var_));
+		return tenncor::nn::conv2d(input,
+			eteq::convert_to_node<PybindT>(weight_->var_),
+			eteq::convert_to_node<PybindT>(bias_->var_));
 	}
 
 	uint8_t get_ninput (void) const

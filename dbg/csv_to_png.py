@@ -1,4 +1,4 @@
-''' Conversion script for writing ade_csv format to png '''
+''' Conversion script for writing teq_csv format to png '''
 
 import sys
 from collections import defaultdict

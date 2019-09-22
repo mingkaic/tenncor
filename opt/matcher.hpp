@@ -1,4 +1,4 @@
-#include "ade/traveler.hpp"
+#include "teq/traveler.hpp"
 
 #include "tag/group.hpp"
 
@@ -29,14 +29,14 @@ const std::string group_prefix = "group:";
 //  Using the matcher, the optimizer makes a best attempt at
 //  mapping tensor to zero to many candidates.
 //  The optimizer is responsible for selecting the best candidates
-struct Matcher final : public ade::iTraveler
+struct Matcher final : public teq::iTraveler
 {
 	Matcher (void) = default;
 
 	Matcher (const VoterPool& voters) : voters_(voters) {}
 
 	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
+	void visit (teq::iLeaf* leaf) override
 	{
 		if (false == estd::has(candidates_, leaf))
 		{
@@ -65,7 +65,7 @@ struct Matcher final : public ade::iTraveler
 	}
 
 	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
+	void visit (teq::iFunctor* func) override
 	{
 		if (false == estd::has(candidates_, func))
 		{
@@ -76,7 +76,7 @@ struct Matcher final : public ade::iTraveler
 			}
 
 			if (std::all_of(children.begin(), children.end(),
-				[this](const ade::FuncArg& child) -> bool
+				[this](const teq::FuncArg& child) -> bool
 				{
 					auto ctens = child.get_tensor().get();
 					return estd::has(this->candidates_[ctens],
@@ -95,7 +95,7 @@ struct Matcher final : public ade::iTraveler
 				if (scalarize_)
 				{
 					if (std::all_of(children.begin(), children.end(),
-						[this](const ade::FuncArg& child) -> bool
+						[this](const teq::FuncArg& child) -> bool
 						{
 							auto ctens = child.get_tensor().get();
 							std::string scalar_str = scalarize_(ctens);
@@ -143,7 +143,7 @@ struct Matcher final : public ade::iTraveler
 						group_prefix + sg->group_);
 					if (voters_.branches_.end() != bit)
 					{
-						// todo: store sg->children_ as ade::ArgsT
+						// todo: store sg->children_ as teq::ArgsT
 						CandArgsT args;
 						args.reserve(children.size());
 						for (auto& sgcpair : sg->children_)
@@ -152,8 +152,8 @@ struct Matcher final : public ade::iTraveler
 							args.push_back(CandArg{
 								ctens,
 								candidates_[sgcpair.first],
-								ade::identity,
-								ade::CoordptrT(),
+								teq::identity,
+								teq::CoordptrT(),
 							});
 						}
 						CandsT group_cands = bit->second->inspect(args);
@@ -171,13 +171,13 @@ struct Matcher final : public ade::iTraveler
 	VoterPool voters_;
 
 	// generated as visited
-	std::unordered_map<ade::iTensor*,CandsT> candidates_;
+	std::unordered_map<teq::iTensor*,CandsT> candidates_;
 
 	// heads for functors
 	tag::SubgraphAssocsT group_head_;
 
 	// functor for returning constant representation of tensor
-	std::function<std::string(ade::iTensor*)> scalarize_;
+	std::function<std::string(teq::iTensor*)> scalarize_;
 };
 
 }

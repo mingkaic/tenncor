@@ -14,8 +14,8 @@ struct iConverter
 {
 	virtual ~iConverter (void) = default;
 
-	virtual ade::TensptrT build (
-		const ContexT& ctx, ade::Shape outshape) const = 0;
+	virtual teq::TensptrT build (
+		const ContexT& ctx, teq::Shape outshape) const = 0;
 
 	virtual std::string to_string (void) const = 0;
 };

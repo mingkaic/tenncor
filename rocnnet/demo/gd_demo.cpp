@@ -7,8 +7,8 @@
 
 #include "flag/flag.hpp"
 
-#include "ead/ead.hpp"
-#include "ead/parse.hpp"
+#include "eteq/eteq.hpp"
+#include "eteq/parse.hpp"
 
 #include "dbg/grpc/session.hpp"
 
@@ -22,7 +22,7 @@ static std::vector<float> batch_generate (size_t n, size_t batchsize)
 	size_t total = n * batchsize;
 
 	// Specify the engine and distribution.
-	std::mt19937 mersenne_engine(ead::get_engine()());
+	std::mt19937 mersenne_engine(eteq::get_engine()());
 	std::uniform_real_distribution<float> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
@@ -83,12 +83,12 @@ int main (int argc, const char** argv)
 	if (seed)
 	{
 		std::cout << "seeding " << seedval << '\n';
-		ead::get_engine().seed(seedval);
+		eteq::get_engine().seed(seedval);
 	}
 
 	uint8_t n_in = 10;
 	uint8_t n_out = n_in / 2;
-	std::vector<ade::DimT> n_outs = {9, n_out};
+	std::vector<teq::DimT> n_outs = {9, n_out};
 
 	modl::SequentialModel model("demo");
 	model.push_back(std::make_shared<modl::Dense>(9, n_in,
@@ -104,7 +104,7 @@ int main (int argc, const char** argv)
 	std::ifstream loadstr(loadpath);
 	if (loadstr.is_open())
 	{
-		ade::TensT trained_roots;
+		teq::TensT trained_roots;
 		trained_model = std::static_pointer_cast<modl::SequentialModel>(
 			modl::load_layer(loadstr, trained_roots, modl::seq_model_key, "demo"));
 		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
@@ -125,8 +125,8 @@ int main (int argc, const char** argv)
 	dbg::InteractiveSession sess("localhost:50051");
 	trainer::MLPTrainer trainer(model, sess, approx, n_batch);
 
-	ead::VarptrT<float> testin = ead::make_variable_scalar<float>(
-		0, ade::Shape({n_in}), "testin");
+	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
+		0, teq::Shape({n_in}), "testin");
 	auto untrained_out = untrained_model.connect(testin);
 	auto out = model.connect(testin);
 	auto trained_out = trained_model->connect(testin);
@@ -136,7 +136,7 @@ int main (int argc, const char** argv)
 		trained_out->get_tensor(),
 	});
 
-	opt::OptCtx rules = ead::parse_file<PybindT>("cfg/optimizations.rules");
+	opt::OptCtx rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
 	sess.optimize(rules);
 
 	// train mlp to output input

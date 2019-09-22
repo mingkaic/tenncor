@@ -1,4 +1,4 @@
-#include "ead/generated/api.hpp"
+#include "eteq/generated/api.hpp"
 
 #include "rocnnet/modl/layer.hpp"
 
@@ -13,7 +13,7 @@ struct ActivationBuilder final : public iLayerBuilder
 	ActivationBuilder (std::string act_type, std::string label) :
 		act_type_(act_type), label_(label) {}
 
-	void set_tensor (ade::TensptrT tens, std::string target) override {}
+	void set_tensor (teq::TensptrT tens, std::string target) override {}
 
 	void set_sublayer (LayerptrT layer) override {} // activation has no sublayer
 
@@ -27,7 +27,7 @@ private:
 
 const std::string sigmoid_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "sigmoid",
-[](ade::TensrefT ref, std::string label)
+[](teq::TensrefT ref, std::string label)
 {
 	get_layer_reg().layer_tag(ref, sigmoid_layer_key, label);
 },
@@ -38,7 +38,7 @@ get_layer_reg().register_tagr(layers_key_prefix + "sigmoid",
 
 const std::string tanh_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "tanh",
-[](ade::TensrefT ref, std::string label)
+[](teq::TensrefT ref, std::string label)
 {
 	get_layer_reg().layer_tag(ref, tanh_layer_key, label);
 },
@@ -60,7 +60,7 @@ struct Activation final : public iLayer
 		act_type_(act_type),
 		activation_(estd::must_getf(activations, act_type,
 			"failed to find activation `%s`", act_type.c_str())),
-		placeholder_(ead::make_constant_scalar<PybindT>(0, {}))
+		placeholder_(eteq::make_constant_scalar<PybindT>(0, {}))
 	{
 		tag(placeholder_->get_tensor(), LayerId());
 	}
@@ -70,7 +70,7 @@ struct Activation final : public iLayer
 		label_(label_prefix + other.get_label()),
 		act_type_(other.act_type_),
 		activation_(other.activation_),
-		placeholder_(ead::make_constant_scalar<PybindT>(0, {}))
+		placeholder_(eteq::make_constant_scalar<PybindT>(0, {}))
 	{
 		tag(placeholder_->get_tensor(), LayerId());
 	}
@@ -107,7 +107,7 @@ struct Activation final : public iLayer
 		return label_;
 	}
 
-	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> input) const override
+	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
 	{
 		auto out = activation_(input);
 		recursive_tag(out->get_tensor(), {
@@ -116,7 +116,7 @@ struct Activation final : public iLayer
 		return out;
 	}
 
-	ade::TensT get_contents (void) const override
+	teq::TensT get_contents (void) const override
 	{
 		return {placeholder_->get_tensor()};
 	}
@@ -133,7 +133,7 @@ private:
 
 	NonLinearF activation_;
 
-	ead::NodeptrT<PybindT> placeholder_;
+	eteq::NodeptrT<PybindT> placeholder_;
 };
 
 using ActivationptrT = std::shared_ptr<Activation>;

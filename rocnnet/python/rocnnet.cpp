@@ -6,7 +6,7 @@
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
 
-#include "ead/generated/pyapi.hpp"
+#include "eteq/generated/pyapi.hpp"
 
 #include "rocnnet/eqns/init.hpp"
 
@@ -27,13 +27,13 @@ namespace py = pybind11;
 namespace pyrocnnet
 {
 
-ade::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
+teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
 {
-	return ade::Shape(std::vector<ade::DimT>(
+	return teq::Shape(std::vector<teq::DimT>(
 		pyshape.rbegin(), pyshape.rend()));
 }
 
-std::vector<PybindT> arr2vec (ade::Shape& outshape, py::array data)
+std::vector<PybindT> arr2vec (teq::Shape& outshape, py::array data)
 {
 	py::buffer_info info = data.request();
 	outshape = p2cshape(info.shape);
@@ -131,7 +131,7 @@ PYBIND11_MODULE(rocnnet, m)
 {
 	m.doc() = "rocnnet api";
 
-	py::class_<ade::Shape> shape(m, "Shape");
+	py::class_<teq::Shape> shape(m, "Shape");
 
 	// layers
 	py::class_<modl::iLayer,modl::LayerptrT> layer(m, "Layer");
@@ -151,20 +151,20 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<trainer::TrainingContext> trainingctx(m, "TrainingContext");
 	py::class_<trainer::DQNTrainingContext> dqntrainingctx(m, "DQNTrainingContext");
 
-	shape.def(py::init<std::vector<ade::DimT>>());
+	shape.def(py::init<std::vector<teq::DimT>>());
 
 	// layer
 	layer
 		.def("connect", &modl::iLayer::connect)
 		.def("get_contents",
-			[](py::object self) -> ead::NodesT<PybindT>
+			[](py::object self) -> eteq::NodesT<PybindT>
 			{
-				ade::TensT contents = self.cast<modl::iLayer*>()->get_contents();
-				ead::NodesT<PybindT> nodes;
+				teq::TensT contents = self.cast<modl::iLayer*>()->get_contents();
+				eteq::NodesT<PybindT> nodes;
 				nodes.reserve(contents.size());
 				std::transform(contents.begin(), contents.end(),
 					std::back_inserter(nodes),
-					ead::NodeConverters<PybindT>::to_node);
+					eteq::NodeConverters<PybindT>::to_node);
 				return nodes;
 			})
 		.def("save_file",
@@ -200,8 +200,8 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// dense
 	m.def("create_dense",
-		[](ead::NodeptrT<PybindT> weight,
-			ead::NodeptrT<PybindT> bias,
+		[](eteq::NodeptrT<PybindT> weight,
+			eteq::NodeptrT<PybindT> bias,
 			std::string label)
 		{
 			return std::make_shared<modl::Dense>(weight, bias, label);
@@ -210,7 +210,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("bias") = nullptr,
 		py::arg("label"));
 	dense
-		.def(py::init<ade::DimT,ade::DimT,
+		.def(py::init<teq::DimT,teq::DimT,
 			eqns::InitF<PybindT>,
 			eqns::InitF<PybindT>,
 			const std::string&>(),
@@ -236,7 +236,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("activation") = nullptr,
 		py::arg("label"));
 	rbm
-		.def(py::init<ade::DimT,ade::DimT,
+		.def(py::init<teq::DimT,teq::DimT,
 			modl::ActivationptrT,
 			eqns::InitF<PybindT>,
 			eqns::InitF<PybindT>,
@@ -264,7 +264,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// 	{
 	// 		return std::make_shared<modl::DBN>(*self.cast<modl::DBN*>());
 	// 	}, "deep copy this instance")
-	// 	.def("forward", [](py::object self, ead::NodeptrT<PybindT> input)
+	// 	.def("forward", [](py::object self, eteq::NodeptrT<PybindT> input)
 	// 	{
 	// 		return (*self.cast<modl::DBN*>())(input);
 	// 	}, "forward input tensor and returned connected output");
@@ -272,7 +272,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// mlptrainer
 	mlptrainer
 		.def(py::init<modl::SequentialModel&,
-			ead::iSession&,eqns::ApproxF,ade::DimT,
+			eteq::iSession&,eqns::ApproxF,teq::DimT,
 			eqns::NodeUnarF,trainer::TrainingContext>(),
 			py::arg("model"), py::arg("sess"),
 			py::arg("update"), py::arg("batch_size"),
@@ -308,7 +308,7 @@ PYBIND11_MODULE(rocnnet, m)
 	dqninfo
 		.def(py::init<size_t,
 			PybindT, PybindT, PybindT, PybindT,
-			size_t, ade::DimT, size_t>(),
+			size_t, teq::DimT, size_t>(),
 			py::arg("train_interval") = 5,
 			py::arg("rand_action_prob") = 0.05,
 			py::arg("discount_rate") = 0.95,
@@ -318,7 +318,7 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("mini_batch_size") = 32,
 			py::arg("max_exp") = 30000);
 	dqntrainer
-		.def(py::init<modl::SequentialModel&,ead::iSession&,
+		.def(py::init<modl::SequentialModel&,eteq::iSession&,
 			eqns::ApproxF,trainer::DQNInfo,
 			eqns::NodeUnarF,trainer::DQNTrainingContext>(),
 			py::arg("model"), py::arg("sess"),
@@ -339,8 +339,8 @@ PYBIND11_MODULE(rocnnet, m)
 	brbmtrainer
 		.def(py::init<
 			modl::RBM&,
-			ead::iSession&,
-			ade::DimT,
+			eteq::iSession&,
+			teq::DimT,
 			PybindT,
 			PybindT,
 			trainer::ErrorF>(),
@@ -354,7 +354,7 @@ PYBIND11_MODULE(rocnnet, m)
 			[](py::object self, py::array data)
 			{
 				auto trainer = self.cast<trainer::BernoulliRBMTrainer*>();
-				ade::Shape shape;
+				teq::Shape shape;
 				std::vector<PybindT> vec = pyrocnnet::arr2vec(shape, data);
 				return trainer->train(vec);
 			}, "train internal variables");
@@ -406,7 +406,7 @@ PYBIND11_MODULE(rocnnet, m)
 				{
 					logs::fatalf("file %s not found", filename.c_str());
 				}
-				ade::TensT trained_roots;
+				teq::TensT trained_roots;
 				return std::static_pointer_cast<modl::SequentialModel>(
 					modl::load_layer(input, trained_roots, modl::seq_model_key, layer_label));
 			})
@@ -418,7 +418,7 @@ PYBIND11_MODULE(rocnnet, m)
 				{
 					logs::fatalf("file %s not found", filename.c_str());
 				}
-				ade::TensT trained_roots;
+				teq::TensT trained_roots;
 				return std::static_pointer_cast<modl::RBM>(
 					modl::load_layer(input, trained_roots, modl::rbm_layer_key, layer_label));
 			});

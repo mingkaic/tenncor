@@ -2,8 +2,8 @@
 #include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 
-#include "ead/generated/pyapi.hpp"
-#include "ead/parse.hpp"
+#include "eteq/generated/pyapi.hpp"
+#include "eteq/parse.hpp"
 
 #include "pll/session.hpp"
 
@@ -14,11 +14,11 @@ PYBIND11_MODULE(pll, m)
 	m.doc() = "pll session";
 
 	// ==== session ====
-	auto isess = (py::class_<ead::iSession>)
-		py::module::import("ead.ead").attr("iSession");
+	auto isess = (py::class_<eteq::iSession>)
+		py::module::import("eteq.eteq").attr("iSession");
 	py::class_<pll::Session> session(m, "Session", isess);
 
-	py::implicitly_convertible<ead::iSession,pll::Session>();
+	py::implicitly_convertible<eteq::iSession,pll::Session>();
 	session
 		.def(py::init<int,pll::OpWeightT>(),
 			py::arg("nthread") = 2,
@@ -27,7 +27,7 @@ PYBIND11_MODULE(pll, m)
 			[](py::object self, std::string filename)
 			{
 				auto sess = self.cast<pll::Session*>();
-				opt::OptCtx rules = ead::parse_file<PybindT>(filename);
+				opt::OptCtx rules = eteq::parse_file<PybindT>(filename);
 				sess->optimize(rules);
 			},
 			py::arg("filename") = "cfg/optimizations.rules",

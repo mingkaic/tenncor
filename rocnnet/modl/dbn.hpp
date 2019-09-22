@@ -11,24 +11,24 @@ struct DBN final : public iMarshalSet
 	DBN (RBMptrT rbm, std::string label) :
 		iMarshalSet(label), rbm_(rbm)
 	{
-		ade::DimT n_input = rbm_->get_ninput();
-		ade::Shape weight_shape({rbm_->get_noutput(), n_input});
-		ade::NElemT nweight = weight_shape.n_elems();
+		teq::DimT n_input = rbm_->get_ninput();
+		teq::Shape weight_shape({rbm_->get_noutput(), n_input});
+		teq::NElemT nweight = weight_shape.n_elems();
 
 		PybindT bound = 1.0 / std::sqrt(n_input);
 		std::uniform_real_distribution<PybindT> dist(-bound, bound);
 		auto gen = [&dist]()
 		{
-			return dist(ead::get_engine());
+			return dist(eteq::get_engine());
 		};
 		std::vector<PybindT> wdata(nweight);
 		std::generate(wdata.begin(), wdata.end(), gen);
 
-		ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
+		eteq::VarptrT<PybindT> weight = eteq::make_variable<PybindT>(
 				wdata.data(), weight_shape, "log_weight");
 
-		ead::VarptrT<PybindT> bias = ead::make_variable_scalar<PybindT>(
-			0.0, ade::Shape({hiddens.back()}), "log_bias");
+		eteq::VarptrT<PybindT> bias = eteq::make_variable_scalar<PybindT>(
+			0.0, teq::Shape({hiddens.back()}), "log_bias");
 
 		log_weight_ = std::make_shared<MarshalVar>(weight);
 		log_bias_ = std::make_shared<MarshalVar>(bias);
@@ -54,12 +54,12 @@ struct DBN final : public iMarshalSet
 	DBN& operator = (DBN&& other) = default;
 
 	// input of shape <n_input, n_batch>
-	ead::NodeptrT<PybindT> operator () (ead::NodeptrT<PybindT> input)
+	eteq::NodeptrT<PybindT> operator () (eteq::NodeptrT<PybindT> input)
 	{
-		ead::NodeptrT<PybindT> output = (*rbm_)(input);
-		return age::softmax(tenncor::nn::fully_connect({output},
-			{ead::convert_to_node(log_weight_->var_)},
-			ead::convert_to_node(log_bias_->var_)));
+		eteq::NodeptrT<PybindT> output = (*rbm_)(input);
+		return tenncor::softmax(tenncor::nn::fully_connect({output},
+			{eteq::convert_to_node(log_weight_->var_)},
+			eteq::convert_to_node(log_bias_->var_)));
 	}
 
 	uint8_t get_ninput (void) const

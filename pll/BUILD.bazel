@@ -51,7 +51,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//ead:ead",
+        "//eteq:eteq",
         "@boost//:asio",
     ],
 )
@@ -60,7 +60,7 @@ pybind_library(
     name = "pll_py",
     cc_srcs = ["//pll:python/pll.cpp"],
     cc_deps = ["//pll:pll"],
-    py_deps = ["//ead:ead_py"],
+    py_deps = ["//eteq:eteq_py"],
     visibility = ["//visibility:public"],
 )
 
@@ -81,7 +81,7 @@ cc_binary(
     srcs = ["rtscale.cpp"],
     copts = ["-std=c++17"],
     deps = [
-        "//ead:ead",
+        "//eteq:eteq",
         "//pll:weight_cc_proto",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],

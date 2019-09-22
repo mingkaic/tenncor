@@ -9,9 +9,9 @@ package(
 filegroup(
     name = "srcs",
     srcs = [
-        "//ade:srcs",
+        "//teq:srcs",
         "//dbg:srcs",
-        "//ead:srcs",
+        "//eteq:srcs",
         "//opt:srcs",
         "//pbm:srcs",
         "//rocnnet:srcs",

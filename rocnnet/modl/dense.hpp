@@ -1,4 +1,4 @@
-#include "ead/generated/api.hpp"
+#include "eteq/generated/api.hpp"
 
 #include "rocnnet/eqns/init.hpp"
 
@@ -18,16 +18,16 @@ struct DenseBuilder final : public iLayerBuilder
 {
 	DenseBuilder (std::string label) : label_(label) {}
 
-	void set_tensor (ade::TensptrT tens, std::string target) override
+	void set_tensor (teq::TensptrT tens, std::string target) override
 	{
 		if (target == weight_key)
 		{
-			weight_ = ead::NodeConverters<PybindT>::to_node(tens);
+			weight_ = eteq::NodeConverters<PybindT>::to_node(tens);
 			return;
 		}
 		else if (target == bias_key)
 		{
-			bias_ = ead::NodeConverters<PybindT>::to_node(tens);
+			bias_ = eteq::NodeConverters<PybindT>::to_node(tens);
 			return;
 		}
 		logs::warnf("attempt to create dense layer "
@@ -40,16 +40,16 @@ struct DenseBuilder final : public iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
-	ead::NodeptrT<PybindT> weight_ = nullptr;
+	eteq::NodeptrT<PybindT> weight_ = nullptr;
 
-	ead::NodeptrT<PybindT> bias_ = nullptr;
+	eteq::NodeptrT<PybindT> bias_ = nullptr;
 
 	std::string label_;
 };
 
 const std::string dense_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "dense",
-[](ade::TensrefT ref, std::string label)
+[](teq::TensrefT ref, std::string label)
 {
 	get_layer_reg().layer_tag(ref, dense_layer_key, label);
 },
@@ -60,23 +60,23 @@ get_layer_reg().register_tagr(layers_key_prefix + "dense",
 
 struct Dense final : public iLayer
 {
-	Dense (ade::DimT nunits, ade::DimT indim,
+	Dense (teq::DimT nunits, teq::DimT indim,
 		eqns::InitF<PybindT> weight_init,
 		eqns::InitF<PybindT> bias_init,
 		const std::string& label) :
 		label_(label),
-		weight_(weight_init(ade::Shape({nunits, indim}), weight_key))
+		weight_(weight_init(teq::Shape({nunits, indim}), weight_key))
 	{
 		tag(weight_->get_tensor(), LayerId(weight_key));
 		if (bias_init)
 		{
-			bias_ = bias_init(ade::Shape({nunits}), bias_key);
+			bias_ = bias_init(teq::Shape({nunits}), bias_key);
 			tag(bias_->get_tensor(), LayerId(bias_key));
 		}
 	}
 
-	Dense (ead::NodeptrT<PybindT> weight,
-		ead::NodeptrT<PybindT> bias,
+	Dense (eteq::NodeptrT<PybindT> weight,
+		eteq::NodeptrT<PybindT> bias,
 		std::string label) :
 		label_(label),
 		weight_(weight),
@@ -133,7 +133,7 @@ struct Dense final : public iLayer
 		return label_;
 	}
 
-	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> input) const override
+	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
 	{
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
 		recursive_tag(out->get_tensor(), {
@@ -144,7 +144,7 @@ struct Dense final : public iLayer
 		return out;
 	}
 
-	ade::TensT get_contents (void) const override
+	teq::TensT get_contents (void) const override
 	{
 		return {
 			weight_->get_tensor(),
@@ -161,18 +161,18 @@ private:
 	void copy_helper (const Dense& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
-		weight_ = std::make_shared<ead::VariableNode<PybindT>>(
-			std::shared_ptr<ead::Variable<PybindT>>(
-				ead::Variable<PybindT>::get(
-					*static_cast<ead::Variable<PybindT>*>(
+		weight_ = std::make_shared<eteq::VariableNode<PybindT>>(
+			std::shared_ptr<eteq::Variable<PybindT>>(
+				eteq::Variable<PybindT>::get(
+					*static_cast<eteq::Variable<PybindT>*>(
 						other.weight_->get_tensor().get()))));
 		tag(weight_->get_tensor(), LayerId(weight_key));
 		if (other.bias_)
 		{
-			bias_ = std::make_shared<ead::VariableNode<PybindT>>(
-				std::shared_ptr<ead::Variable<PybindT>>(
-					ead::Variable<PybindT>::get(
-						*static_cast<ead::Variable<PybindT>*>(
+			bias_ = std::make_shared<eteq::VariableNode<PybindT>>(
+				std::shared_ptr<eteq::Variable<PybindT>>(
+					eteq::Variable<PybindT>::get(
+						*static_cast<eteq::Variable<PybindT>*>(
 							other.bias_->get_tensor().get()))));
 			tag(bias_->get_tensor(), LayerId(bias_key));
 		}
@@ -180,9 +180,9 @@ private:
 
 	std::string label_;
 
-	ead::NodeptrT<PybindT> weight_;
+	eteq::NodeptrT<PybindT> weight_;
 
-	ead::NodeptrT<PybindT> bias_;
+	eteq::NodeptrT<PybindT> bias_;
 };
 
 using DenseptrT = std::shared_ptr<Dense>;

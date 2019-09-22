@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import ead.tenncor as tc
-import ead.ead as ead
+import eteq.tenncor as tc
+import eteq.eteq as eteq
 
 matrix_dims = [
     25,
@@ -32,8 +32,8 @@ for matrix_dim in matrix_dims:
     data = np.random.rand(*shape)
     data2 = np.random.rand(*shape)
 
-    var = ead.variable(data, 'var')
-    var2 = ead.variable(data2, 'var2')
+    var = eteq.variable(data, 'var')
+    var2 = eteq.variable(data2, 'var2')
     tf_var = tf.Variable(data)
     tf_var2 = tf.Variable(data2)
 
@@ -52,7 +52,7 @@ for matrix_dim in matrix_dims:
     print(data.dot(data2))
     np_dur = time.time() - start
 
-    sess = ead.Session()
+    sess = eteq.Session()
     sess.track([out])
 
     start = time.time()
@@ -70,9 +70,9 @@ for matrix_dim in matrix_dims:
     tf_durs.append(tf_dur)
 
 print('numpy durations: ', np_durs)
-print('ead durations: ', ead_durs)
+print('eteq durations: ', ead_durs)
 print('tf durations: ', tf_durs)
-ead_line = plt.plot(matrix_dims, ead_durs, 'r--', label='ead durations')
+ead_line = plt.plot(matrix_dims, ead_durs, 'r--', label='eteq durations')
 np_lines = plt.plot(matrix_dims, np_durs, 'g--', label='numpy durations')
 tf_line = plt.plot(matrix_dims, tf_durs, 'b--', label='tf durations')
 plt.legend()

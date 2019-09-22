@@ -1,7 +1,7 @@
 #include <map>
 #include <set>
 
-#include "ade/ade.hpp"
+#include "teq/teq.hpp"
 
 #ifndef TAG_TAG_HPP
 #define TAG_TAG_HPP
@@ -94,14 +94,14 @@ private:
 
 struct TensKey final
 {
-	TensKey (ade::TensrefT tens) : val_(tens.lock().get()), ref_(tens) {}
+	TensKey (teq::TensrefT tens) : val_(tens.lock().get()), ref_(tens) {}
 
 	// used to match keys
-	TensKey (ade::iTensor* tens) : val_(tens) {}
+	TensKey (teq::iTensor* tens) : val_(tens) {}
 
-	TensKey (const ade::iTensor* tens) : val_(tens) {}
+	TensKey (const teq::iTensor* tens) : val_(tens) {}
 
-	operator const ade::iTensor*() const
+	operator const teq::iTensor*() const
 	{
 		return val_;
 	}
@@ -111,9 +111,9 @@ struct TensKey final
 		return ref_.expired();
 	}
 
-	const ade::iTensor* val_;
+	const teq::iTensor* val_;
 
-	ade::TensrefT ref_;
+	teq::TensrefT ref_;
 };
 
 struct TensKeyHash final
@@ -130,13 +130,13 @@ inline bool operator == (const TensKey& lhs, const TensKey& rhs)
 	return hasher(lhs) == hasher(rhs);
 }
 
-using TagrF = std::function<void(ade::TensrefT,std::string)>;
+using TagrF = std::function<void(teq::TensrefT,std::string)>;
 
 // todo: move tag registry to some session that claims global context
 // todo: make an interface for this
 struct TagRegistry final
 {
-	void add_tag (ade::TensrefT tens, TagptrT tag)
+	void add_tag (teq::TensrefT tens, TagptrT tag)
 	{
 		if (tens.expired())
 		{
@@ -151,7 +151,7 @@ struct TagRegistry final
 		registry_[tens].add(std::move(tag));
 	}
 
-	TagRepsT get_tags (const ade::iTensor* tens)
+	TagRepsT get_tags (const teq::iTensor* tens)
 	{
 		auto it = registry_.find(TensKey(tens));
 		if (registry_.end() == it || it->first.expired())
@@ -161,7 +161,7 @@ struct TagRegistry final
 		return it->second.get_tags();
 	}
 
-	void move_tags (ade::TensrefT dest, const ade::iTensor* source)
+	void move_tags (teq::TensrefT dest, const teq::iTensor* source)
 	{
 		if (dest.expired())
 		{
@@ -206,25 +206,25 @@ private:
 
 TagRegistry& get_reg (void);
 
-void recursive_tag (ade::TensptrT root,
-	std::unordered_set<ade::iTensor*> stops,
-	std::function<void(ade::TensrefT)> tag_op);
+void recursive_tag (teq::TensptrT root,
+	std::unordered_set<teq::iTensor*> stops,
+	std::function<void(teq::TensrefT)> tag_op);
 
-using LTensT = std::unordered_map<std::string,std::vector<ade::iTensor*>>;
+using LTensT = std::unordered_map<std::string,std::vector<teq::iTensor*>>;
 
 using TTensT = std::unordered_map<std::string,LTensT>;
 
-struct Query final : public ade::OnceTraveler
+struct Query final : public teq::OnceTraveler
 {
 	Query (TagRegistry& reg = get_reg()) : reg_(reg) {}
 
-	void visit_leaf (ade::iLeaf* leaf) override
+	void visit_leaf (teq::iLeaf* leaf) override
 	{
 		auto tags = reg_.get_tags(leaf);
 		save_tags(tags, leaf);
 	}
 
-	void visit_func (ade::iFunctor* func) override
+	void visit_func (teq::iFunctor* func) override
 	{
 		auto& children = func->get_children();
 		for (auto child : children)
@@ -241,7 +241,7 @@ struct Query final : public ade::OnceTraveler
 	TagRegistry& reg_;
 
 private:
-	void save_tags (TagRepsT& tag, ade::iTensor* tens)
+	void save_tags (TagRepsT& tag, teq::iTensor* tens)
 	{
 		for (auto& tpair : tag)
 		{

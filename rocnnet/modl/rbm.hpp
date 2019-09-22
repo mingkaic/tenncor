@@ -15,7 +15,7 @@ struct RBMBuilder final : public iLayerBuilder
 {
 	RBMBuilder (std::string label) : label_(label) {}
 
-	void set_tensor (ade::TensptrT tens, std::string target) override {} // rbm has no tensor
+	void set_tensor (teq::TensptrT tens, std::string target) override {} // rbm has no tensor
 
 	void set_sublayer (LayerptrT layer) override
 	{
@@ -32,7 +32,7 @@ private:
 
 const std::string rbm_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "rbm",
-[](ade::TensrefT ref, std::string label)
+[](teq::TensrefT ref, std::string label)
 {
 	get_layer_reg().layer_tag(ref, rbm_layer_key, label);
 },
@@ -43,7 +43,7 @@ get_layer_reg().register_tagr(layers_key_prefix + "rbm",
 
 struct RBM final : public iLayer
 {
-	RBM (ade::DimT nhidden, ade::DimT nvisible,
+	RBM (teq::DimT nhidden, teq::DimT nvisible,
 		ActivationptrT activation,
 		eqns::InitF<PybindT> weight_init,
 		eqns::InitF<PybindT> bias_init,
@@ -56,14 +56,14 @@ struct RBM final : public iLayer
 		auto hidden_contents = hidden_->get_contents();
 		auto weight = hidden_contents[0];
 		auto hbias = hidden_contents[1];
-		ead::NodeptrT<PybindT> vbias = nullptr;
+		eteq::NodeptrT<PybindT> vbias = nullptr;
 
 		if (bias_init)
 		{
-			vbias = bias_init(ade::Shape({nvisible}), bias_key);
+			vbias = bias_init(teq::Shape({nvisible}), bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			ead::NodeConverters<PybindT>::to_node(weight)), vbias, visible_key);
+			eteq::NodeConverters<PybindT>::to_node(weight)), vbias, visible_key);
 		tag_sublayers();
 	}
 
@@ -121,12 +121,12 @@ struct RBM final : public iLayer
 		return label_;
 	}
 
-	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> visible) const override
+	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> visible) const override
 	{
 		return activation_->connect(hidden_->connect(visible));
 	}
 
-	ade::TensT get_contents (void) const override
+	teq::TensT get_contents (void) const override
 	{
 		auto out = hidden_->get_contents();
 		auto vis_contents = visible_->get_contents();
@@ -136,7 +136,7 @@ struct RBM final : public iLayer
 		return out;
 	}
 
-	ead::NodeptrT<PybindT> backward_connect (ead::NodeptrT<PybindT> hidden) const
+	eteq::NodeptrT<PybindT> backward_connect (eteq::NodeptrT<PybindT> hidden) const
 	{
 		return activation_->connect(visible_->connect(hidden));
 	}
@@ -179,12 +179,12 @@ private:
 		auto vbias = other.visible_->get_contents()[1];
 		if (nullptr != vbias)
 		{
-			vbias = ade::TensptrT(ead::Variable<PybindT>::get(
-				*static_cast<ead::Variable<PybindT>*>(vbias.get())));
+			vbias = teq::TensptrT(eteq::Variable<PybindT>::get(
+				*static_cast<eteq::Variable<PybindT>*>(vbias.get())));
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			ead::NodeConverters<PybindT>::to_node(hidden_contents[0])),
-			ead::NodeConverters<PybindT>::to_node(vbias),
+			eteq::NodeConverters<PybindT>::to_node(hidden_contents[0])),
+			eteq::NodeConverters<PybindT>::to_node(vbias),
 			label_prefix + visible_key);
 
 		activation_ = ActivationptrT(other.activation_->clone(label_prefix));

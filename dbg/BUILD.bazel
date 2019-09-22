@@ -25,7 +25,7 @@ cc_library(
     hdrs = glob(["stream/*.hpp"]),
     srcs = glob(["stream/*.cpp"]),
     copts = ["-std=c++17"],
-    deps = ["//ade:ade"],
+    deps = ["//teq:teq"],
 )
 
 pybind_library(
@@ -57,7 +57,7 @@ cc_library(
     srcs = glob(["grpc/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//ead:ead",
+        "//eteq:eteq",
         "//dbg:tenncor_cc_proto",
         "@boost//:uuid",
         "@com_github_mingkaic_cppkg//jobs:jobs",
@@ -68,7 +68,7 @@ pybind_library(
     name = "grpc_dbg_py",
     cc_srcs = ["//dbg:python/grpc.cpp"],
     cc_deps = ["//dbg:grpc_out"],
-    py_deps = ["//ead:ead_py"],
+    py_deps = ["//eteq:eteq_py"],
 )
 
 cc_binary(

@@ -5,9 +5,9 @@
 namespace opt
 {
 
-bool is_scalar (ade::iLeaf* leaf)
+bool is_scalar (teq::iLeaf* leaf)
 {
-	ade::Shape shape = leaf->shape();
+	teq::Shape shape = leaf->shape();
 	char* data = (char*) leaf->data();
 	size_t n = shape.n_elems();
 	size_t perbytes = leaf->nbytes() / n;
@@ -22,31 +22,31 @@ bool is_scalar (ade::iLeaf* leaf)
 	return true;
 }
 
-std::string to_string (ade::CoordptrT c)
+std::string to_string (teq::CoordptrT c)
 {
-	if (ade::is_identity(c.get()))
+	if (teq::is_identity(c.get()))
 	{
 		return "";
 	}
 	return c->to_string();
 }
 
-bool lt (ade::CoordptrT a, ade::CoordptrT b)
+bool lt (teq::CoordptrT a, teq::CoordptrT b)
 {
-	if (ade::is_identity(a.get()))
+	if (teq::is_identity(a.get()))
 	{
-		return false == ade::is_identity(b.get());
+		return false == teq::is_identity(b.get());
 	}
 	return a->to_string() < b->to_string();
 }
 
-bool is_equal (ade::CoordptrT a, ade::CoordptrT b)
+bool is_equal (teq::CoordptrT a, teq::CoordptrT b)
 {
 	if (a == b)
 	{
 		return true;
 	}
-	if (ade::is_identity(a.get()) && ade::is_identity(b.get()))
+	if (teq::is_identity(a.get()) && teq::is_identity(b.get()))
 	{
 		return true;
 	}
@@ -57,8 +57,8 @@ bool is_equal (ade::CoordptrT a, ade::CoordptrT b)
 	return false;
 }
 
-bool lt (std::unordered_set<ade::iTensor*> priorities,
-	ade::iLeaf* a, ade::iLeaf* b)
+bool lt (std::unordered_set<teq::iTensor*> priorities,
+	teq::iLeaf* a, teq::iLeaf* b)
 {
 	size_t atype = a->type_code();
 	size_t btype = b->type_code();
@@ -88,9 +88,9 @@ bool lt (std::unordered_set<ade::iTensor*> priorities,
 	return atype < btype;
 }
 
-bool is_equal (ade::iLeaf* a, ade::iLeaf* b)
+bool is_equal (teq::iLeaf* a, teq::iLeaf* b)
 {
-	ade::Shape shape = a->shape();
+	teq::Shape shape = a->shape();
 	size_t dtype = a->type_code();
 	if (shape.compatible_after(b->shape(), 0) &&
 		dtype == b->type_code())
@@ -103,8 +103,8 @@ bool is_equal (ade::iLeaf* a, ade::iLeaf* b)
 	return false;
 }
 
-bool lt (std::unordered_set<ade::iTensor*> priorities,
-	ade::iFunctor* a, ade::iFunctor* b)
+bool lt (std::unordered_set<teq::iTensor*> priorities,
+	teq::iFunctor* a, teq::iFunctor* b)
 {
 	size_t acode = a->get_opcode().code_;
 	size_t bcode = b->get_opcode().code_;
@@ -124,7 +124,7 @@ bool lt (std::unordered_set<ade::iTensor*> priorities,
 				if (tag::get_property_reg().has_property(a, tag::commutative_tag))
 				{
 					auto arg_lt =
-					[](ade::FuncArg a, ade::FuncArg b)
+					[](teq::FuncArg a, teq::FuncArg b)
 					{
 						auto atens = a.get_tensor().get();
 						auto btens = b.get_tensor().get();
@@ -163,11 +163,11 @@ bool lt (std::unordered_set<ade::iTensor*> priorities,
 	return acode < bcode;
 }
 
-bool is_equal (ade::iFunctor* a, ade::iFunctor* b)
+bool is_equal (teq::iFunctor* a, teq::iFunctor* b)
 {
 	if (a->get_opcode().code_ == b->get_opcode().code_)
 	{
-		ade::Shape shape = a->shape();
+		teq::Shape shape = a->shape();
 		if (shape.compatible_after(b->shape(), 0))
 		{
 			auto achildren = a->get_children();
@@ -176,7 +176,7 @@ bool is_equal (ade::iFunctor* a, ade::iFunctor* b)
 			if (tag::get_property_reg().has_property(a, tag::commutative_tag))
 			{
 				auto arg_lt =
-				[](ade::FuncArg a, ade::FuncArg b)
+				[](teq::FuncArg a, teq::FuncArg b)
 				{
 					auto atens = a.get_tensor().get();
 					auto btens = b.get_tensor().get();
@@ -191,7 +191,7 @@ bool is_equal (ade::iFunctor* a, ade::iFunctor* b)
 			}
 			return std::equal(achildren.begin(), achildren.end(),
 				bchildren.begin(),
-				[](const ade::FuncArg& a, const ade::FuncArg& b)
+				[](const teq::FuncArg& a, const teq::FuncArg& b)
 				{
 					return a.get_tensor().get() == b.get_tensor().get() &&
 						is_equal(a.get_coorder(), b.get_coorder());

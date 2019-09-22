@@ -15,7 +15,7 @@ TagRepsT PropTag::get_tags (void) const
 	return out;
 }
 
-bool PropertyRegistry::has_property (const ade::iTensor* tens, std::string property) const
+bool PropertyRegistry::has_property (const teq::iTensor* tens, std::string property) const
 {
 	auto reps = tag_reg_.get_tags(tens);
 	auto it = reps.find(props_key);

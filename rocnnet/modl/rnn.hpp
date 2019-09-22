@@ -1,4 +1,4 @@
-#include "ead/generated/api.hpp"
+#include "eteq/generated/api.hpp"
 
 #include "rocnnet/modl/marshal.hpp"
 
@@ -10,11 +10,11 @@ namespace modl
 
 struct RNN final : public iMarshalSet
 {
-	RNN (ade::DimT n_input, ade::DimT n_output, size_t timestep,
+	RNN (teq::DimT n_input, teq::DimT n_output, size_t timestep,
 		NonLinearF nonlin, std::string label) :
 		iMarshalSet(label), nonlin_(nonlin),
-		bias_(ead::make_variable_scalar<PybindT>(
-			0.0, ade::Shape({n_output}), "bias")
+		bias_(eteq::make_variable_scalar<PybindT>(
+			0.0, teq::Shape({n_output}), "bias")
 	{
 		assert(timestep > 0);
 		{
@@ -22,30 +22,30 @@ struct RNN final : public iMarshalSet
 			std::uniform_real_distribution<PybindT> dist(-bound, bound);
 			auto gen = [&dist]()
 			{
-				return dist(ead::get_engine());
+				return dist(eteq::get_engine());
 			};
 			std::vector<PybindT> wdata(n_output * n_input);
 			std::generate(wdata.begin(), wdata.end(), gen);
 
-			ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
-				wdata.data(), ade::Shape({n_output, n_input}), "weight_0");
+			eteq::VarptrT<PybindT> weight = eteq::make_variable<PybindT>(
+				wdata.data(), teq::Shape({n_output, n_input}), "weight_0");
 			layers_.push_back(std::make_shared<MarshalVar>(weight));
 		}
 		for (size_t i = 1; i < timestep; ++i)
 		{
-			ade::Shape weight_shape({n_output, n_output});
-			ade::NElemT nweight = weight_shape.n_elems();
+			teq::Shape weight_shape({n_output, n_output});
+			teq::NElemT nweight = weight_shape.n_elems();
 
 			PybindT bound = 1.0 / std::sqrt(n_output);
 			std::uniform_real_distribution<PybindT> dist(-bound, bound);
 			auto gen = [&dist]()
 			{
-				return dist(ead::get_engine());
+				return dist(eteq::get_engine());
 			};
 			std::vector<PybindT> wdata(nweight);
 			std::generate(wdata.begin(), wdata.end(), gen);
 
-			ead::VarptrT<PybindT> weight = ead::make_variable<PybindT>(
+			eteq::VarptrT<PybindT> weight = eteq::make_variable<PybindT>(
 				wdata.data(), weight_shape, fmts::sprintf("weight_%d", i));
 
 			layers_.push_back(std::make_shared<MarshalVar>(weight));
@@ -73,10 +73,10 @@ struct RNN final : public iMarshalSet
 
 
 	// expect all inputs of shape <n_input, n_batch>
-	ead::NodesT<PybindT> operator () (ead::NodesT<PybindT> inputs)
+	eteq::NodesT<PybindT> operator () (eteq::NodesT<PybindT> inputs)
 	{
 		// sanity check
-		const ade::Shape& in_shape = input->shape();
+		const teq::Shape& in_shape = input->shape();
 		uint8_t ninput = get_ninput();
 		if (in_shape.at(0) != ninput)
 		{
@@ -91,7 +91,7 @@ struct RNN final : public iMarshalSet
 				nins, weights_.size());
 		}
 
-		ead::NodesT<PybindT> outs;
+		eteq::NodesT<PybindT> outs;
 		outs.reserve(nins);
 		outs.push_back(nonlin_(tenncor::nn::fully_connect(
 			{inputs[0]}, {weights_[0]}, bias_)));
@@ -105,12 +105,12 @@ struct RNN final : public iMarshalSet
 		return outs;
 	}
 
-	ade::DimT get_ninput (void) const
+	teq::DimT get_ninput (void) const
 	{
 		return weights_.front()->var_->shape().at(1);
 	}
 
-	ade::DimT get_noutput (void) const
+	teq::DimT get_noutput (void) const
 	{
 		return weights_.back()->var_->shape().at(0);
 	}

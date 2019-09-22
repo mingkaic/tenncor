@@ -8,7 +8,7 @@
 
 #include "jobs/scope_guard.hpp"
 
-#include "ead/session.hpp"
+#include "eteq/session.hpp"
 
 #include "tag/tag.hpp"
 
@@ -51,7 +51,7 @@ inline bool operator == (const EdgeInfo& lhs, const EdgeInfo& rhs)
 	return hasher(lhs) == hasher(rhs);
 }
 
-struct InteractiveSession final : public ead::iSession
+struct InteractiveSession final : public eteq::iSession
 {
 	static boost::uuids::random_generator uuid_gen_;
 
@@ -69,7 +69,7 @@ struct InteractiveSession final : public ead::iSession
 		InteractiveSession(grpc::CreateChannel(host,
 			grpc::InsecureChannelCredentials()), client_cfg) {}
 
-	void track (ade::TensT roots) override
+	void track (teq::TensT roots) override
 	{
 		sess_.track(roots);
 
@@ -134,7 +134,7 @@ struct InteractiveSession final : public ead::iSession
 			auto& range = statpair.second;
 			if (range.upper_ > 0)
 			{
-				auto f = static_cast<ade::iFunctor*>(tens);
+				auto f = static_cast<teq::iFunctor*>(tens);
 				auto& children = f->get_children();
 				for (size_t i = 0, n = children.size(); i < n; ++i)
 				{
@@ -156,11 +156,11 @@ struct InteractiveSession final : public ead::iSession
 						edge->set_parent(node_ids_[f]);
 						edge->set_child(node_ids_[child_tens]);
 						edge->set_label(label);
-						if (false == ade::is_identity(shaper.get()))
+						if (false == teq::is_identity(shaper.get()))
 						{
 							edge->set_shaper(shaper->to_string());
 						}
-						if (false == ade::is_identity(coorder.get()))
+						if (false == teq::is_identity(coorder.get()))
 						{
 							edge->set_coorder(coorder->to_string());
 						}
@@ -172,8 +172,8 @@ struct InteractiveSession final : public ead::iSession
 		client_.create_graph(request);
 	}
 
-	void update (ead::TensSetT updated = {},
-		ead::TensSetT ignores = {}) override
+	void update (eteq::TensSetT updated = {},
+		eteq::TensSetT ignores = {}) override
 	{
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
@@ -186,8 +186,8 @@ struct InteractiveSession final : public ead::iSession
 		}
 
 		// basic copy over from session::update
-		std::unordered_map<ade::iOperableFunc*,ead::SizeT> fulfilments;
-		for (ade::iTensor* unodes : updated)
+		std::unordered_map<teq::iOperableFunc*,eteq::SizeT> fulfilments;
+		for (teq::iTensor* unodes : updated)
 		{
 			auto& node_parents = sess_.parents_[unodes];
 			for (auto& node_parent : node_parents)
@@ -203,12 +203,12 @@ struct InteractiveSession final : public ead::iSession
 		{
 			if (0 == statpair.second.upper_)
 			{
-				auto leaf = static_cast<ade::iLeaf*>(statpair.first);
-				age::_GENERATED_DTYPE dtype =
-					(age::_GENERATED_DTYPE) leaf->type_code();
+				auto leaf = static_cast<teq::iLeaf*>(statpair.first);
+				egen::_GENERATED_DTYPE dtype =
+					(egen::_GENERATED_DTYPE) leaf->type_code();
 				std::vector<float> data;
 				size_t nelems = leaf->shape().n_elems();
-				age::type_convert(data, leaf->data(), dtype, nelems);
+				egen::type_convert(data, leaf->data(), dtype, nelems);
 
 				tenncor::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
@@ -229,11 +229,11 @@ struct InteractiveSession final : public ead::iSession
 				false == estd::has(ignores, op.first))
 			{
 				op.first->update();
-				age::_GENERATED_DTYPE dtype =
-					(age::_GENERATED_DTYPE) op.first->type_code();
+				egen::_GENERATED_DTYPE dtype =
+					(egen::_GENERATED_DTYPE) op.first->type_code();
 				std::vector<float> data;
 				size_t nelems = op.first->shape().n_elems();
-				age::type_convert(data, op.first->data(), dtype, nelems);
+				egen::type_convert(data, op.first->data(), dtype, nelems);
 				auto& op_parents = sess_.parents_[op.first];
 				for (auto& op_parent : op_parents)
 				{
@@ -255,8 +255,8 @@ struct InteractiveSession final : public ead::iSession
 		client_.update_node_data(requests, update_it_);
 	}
 
-	void update_target (ead::TensSetT targeted,
-		ead::TensSetT updated = {}) override
+	void update_target (eteq::TensSetT targeted,
+		eteq::TensSetT updated = {}) override
 	{
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
@@ -269,14 +269,14 @@ struct InteractiveSession final : public ead::iSession
 		}
 
 		// basic copy over from session::update
-		ade::OnceTraveler traveler;
+		teq::OnceTraveler traveler;
 		for (auto& tens : targeted)
 		{
 			tens->accept(traveler);
 		}
 
-		std::unordered_map<ade::iOperableFunc*,ead::SizeT> fulfilments;
-		for (ade::iTensor* unodes : updated)
+		std::unordered_map<teq::iOperableFunc*,eteq::SizeT> fulfilments;
+		for (teq::iTensor* unodes : updated)
 		{
 			auto& node_parents = sess_.parents_[unodes];
 			for (auto& node_parent : node_parents)
@@ -292,12 +292,12 @@ struct InteractiveSession final : public ead::iSession
 		{
 			if (0 == statpair.second.upper_)
 			{
-				auto leaf = static_cast<ade::iLeaf*>(statpair.first);
-				age::_GENERATED_DTYPE dtype =
-					(age::_GENERATED_DTYPE) leaf->type_code();
+				auto leaf = static_cast<teq::iLeaf*>(statpair.first);
+				egen::_GENERATED_DTYPE dtype =
+					(egen::_GENERATED_DTYPE) leaf->type_code();
 				std::vector<float> data;
 				size_t nelems = leaf->shape().n_elems();
-				age::type_convert(data, leaf->data(), dtype, nelems);
+				egen::type_convert(data, leaf->data(), dtype, nelems);
 
 				tenncor::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
@@ -318,11 +318,11 @@ struct InteractiveSession final : public ead::iSession
 				fulfilments[op.first].d >= op.second)
 			{
 				op.first->update();
-				age::_GENERATED_DTYPE dtype =
-					(age::_GENERATED_DTYPE) op.first->type_code();
+				egen::_GENERATED_DTYPE dtype =
+					(egen::_GENERATED_DTYPE) op.first->type_code();
 				std::vector<float> data;
 				size_t nelems = op.first->shape().n_elems();
-				age::type_convert(data, op.first->data(), dtype, nelems);
+				egen::type_convert(data, op.first->data(), dtype, nelems);
 				auto& op_parents = sess_.parents_[op.first];
 				for (auto& op_parent : op_parents)
 				{
@@ -413,7 +413,7 @@ struct InteractiveSession final : public ead::iSession
 			auto& range = statpair.second;
 			if (range.upper_ > 0)
 			{
-				auto f = static_cast<ade::iFunctor*>(tens);
+				auto f = static_cast<teq::iFunctor*>(tens);
 				auto& children = f->get_children();
 				for (size_t i = 0, n = children.size(); i < n; ++i)
 				{
@@ -435,11 +435,11 @@ struct InteractiveSession final : public ead::iSession
 						edge->set_parent(node_ids_[f]);
 						edge->set_child(node_ids_[child_tens]);
 						edge->set_label(label);
-						if (false == ade::is_identity(shaper.get()))
+						if (false == teq::is_identity(shaper.get()))
 						{
 							edge->set_shaper(shaper->to_string());
 						}
-						if (false == ade::is_identity(coorder.get()))
+						if (false == teq::is_identity(coorder.get()))
 						{
 							edge->set_coorder(coorder->to_string());
 						}
@@ -487,7 +487,7 @@ struct InteractiveSession final : public ead::iSession
 
 	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
 
-	ead::Session sess_;
+	eteq::Session sess_;
 
 	tag::TagRegistry& registry_;
 
@@ -495,7 +495,7 @@ private:
 	std::string sess_id_ = boost::uuids::to_string(
 		InteractiveSession::uuid_gen_());
 
-	std::unordered_map<ade::iTensor*,size_t> node_ids_;
+	std::unordered_map<teq::iTensor*,size_t> node_ids_;
 
 	std::unordered_set<EdgeInfo,EdgeInfoHash> edges_;
 

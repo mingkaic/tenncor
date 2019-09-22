@@ -2,10 +2,10 @@
 
 #include "tag/tag.hpp"
 
-#include "ead/constant.hpp"
-#include "ead/variable.hpp"
+#include "eteq/constant.hpp"
+#include "eteq/variable.hpp"
 
-#include "ead/generated/pyapi.hpp"
+#include "eteq/generated/pyapi.hpp"
 
 #ifndef MODL_LAYER_HPP
 #define MODL_LAYER_HPP
@@ -13,7 +13,7 @@
 namespace modl
 {
 
-using NonLinearF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>)>;
+using NonLinearF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
 
 const std::string layers_key_prefix = "layer_";
 
@@ -110,18 +110,18 @@ struct iLayer
 
 	virtual std::string get_label (void) const = 0;
 
-	virtual ead::NodeptrT<PybindT> connect (
-		ead::NodeptrT<PybindT> input) const = 0;
+	virtual eteq::NodeptrT<PybindT> connect (
+		eteq::NodeptrT<PybindT> input) const = 0;
 
-	virtual ade::TensT get_contents (void) const = 0;
+	virtual teq::TensT get_contents (void) const = 0;
 
 protected:
 	virtual iLayer* clone_impl (std::string label_prefix) const = 0;
 
-	void tag (ade::TensptrT tensor, LayerId subs) const;
+	void tag (teq::TensptrT tensor, LayerId subs) const;
 
-	void recursive_tag (ade::TensptrT root,
-		std::unordered_set<ade::iTensor*> ignores, LayerId subs) const;
+	void recursive_tag (teq::TensptrT root,
+		std::unordered_set<teq::iTensor*> ignores, LayerId subs) const;
 };
 
 using LayerptrT = std::shared_ptr<iLayer>;
@@ -130,7 +130,7 @@ struct iLayerBuilder
 {
 	virtual ~iLayerBuilder (void) = default;
 
-	virtual void set_tensor (ade::TensptrT tens, std::string target) = 0;
+	virtual void set_tensor (teq::TensptrT tens, std::string target) = 0;
 
 	virtual void set_sublayer (LayerptrT layer) = 0;
 
@@ -145,7 +145,7 @@ struct LayerRegistry final
 {
 	LayerRegistry (tag::TagRegistry& registry = tag::get_reg()) : tag_reg_(registry) {}
 
-	void layer_tag (ade::TensrefT tens, std::string layer_type, std::string name)
+	void layer_tag (teq::TensrefT tens, std::string layer_type, std::string name)
 	{
 		tag_reg_.add_tag(tens, tag::TagptrT(new LayerTag(layer_type, name)));
 	}
@@ -155,7 +155,7 @@ struct LayerRegistry final
 		lbuilders_.emplace(key, builder);
 
 		return tag_reg_.register_tagr(key,
-		[this, key](ade::TensrefT ref, std::string label)
+		[this, key](teq::TensrefT ref, std::string label)
 		{
 			this->layer_tag(ref, key, label);
 		});
@@ -180,15 +180,15 @@ private:
 
 LayerRegistry& get_layer_reg (void);
 
-void recursive_layer_tag (ade::TensptrT tens, std::string layer_type,
-	std::string name, std::unordered_set<ade::iTensor*> stops,
+void recursive_layer_tag (teq::TensptrT tens, std::string layer_type,
+	std::string name, std::unordered_set<teq::iTensor*> stops,
 	LayerRegistry& registry = get_layer_reg());
 
-LayerptrT load_layer (std::istream& ins, ade::TensT& roots,
+LayerptrT load_layer (std::istream& ins, teq::TensT& roots,
 	std::string ltype, std::string label,
 	LayerRegistry& registry = get_layer_reg());
 
-bool save_layer (std::ostream& outs, const iLayer& layer, ade::TensT roots,
+bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensT roots,
 	LayerRegistry& registry = get_layer_reg());
 
 }

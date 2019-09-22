@@ -22,20 +22,20 @@ eqns::AssignGroupsT bbernoulli_approx (const eqns::VarErrsT& leaves,
 	eqns::AssignsT assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = ead::convert_to_node(leaves[i].first);
+		auto leaf_node = eteq::convert_to_node(leaves[i].first);
 		auto err = leaves[i].second;
 
 		auto shape = err->shape();
-		std::vector<ade::DimT> slist(shape.begin(), shape.end());
+		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		auto it = slist.rbegin(), et = slist.rend();
 		while (it != et && *it == 1)
 		{
 			++it;
 		}
-		ade::DimT shape_factor = it == et ? 1 : *it;
-		auto momentum = ead::make_variable_scalar<PybindT>(0,
+		teq::DimT shape_factor = it == et ? 1 : *it;
+		auto momentum = eteq::make_variable_scalar<PybindT>(0,
 			err->shape(), leaves[i].first->get_label() + "_momentum");
-		auto momentum_next = discount_factor * ead::convert_to_node(momentum) +
+		auto momentum_next = discount_factor * eteq::convert_to_node(momentum) +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 		auto leaf_next = leaf_node + momentum_next;
 
@@ -51,20 +51,20 @@ eqns::AssignGroupsT bbernoulli_approx (const eqns::VarErrsT& leaves,
 	return {assigns};
 }
 
-using ErrorF = std::function<ead::NodeptrT<PybindT>(ead::NodeptrT<PybindT>,ead::NodeptrT<PybindT>)>;
+using ErrorF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>,eteq::NodeptrT<PybindT>)>;
 
 struct BernoulliRBMTrainer final
 {
 	BernoulliRBMTrainer (modl::RBM& model,
-		ead::iSession& sess,
-		ade::DimT batch_size,
+		eteq::iSession& sess,
+		teq::DimT batch_size,
 		PybindT learning_rate,
 		PybindT discount_factor,
 		ErrorF err_func = ErrorF()) :
 		model_(model), sess_(&sess), batch_size_(batch_size)
 	{
-		visible_ = ead::make_variable_scalar<PybindT>(0,
-			ade::Shape({(ade::DimT) model.get_ninput(), batch_size}));
+		visible_ = eteq::make_variable_scalar<PybindT>(0,
+			teq::Shape({(teq::DimT) model.get_ninput(), batch_size}));
 
 		hidden_sample_ = model.connect(visible_);
 		visible_sample_ = model.backward_connect(
@@ -74,23 +74,23 @@ struct BernoulliRBMTrainer final
 
 		auto grad_w =
 			tenncor::matmul(tenncor::transpose(
-				ead::convert_to_node(visible_)), hidden_sample_) -
+				eteq::convert_to_node(visible_)), hidden_sample_) -
 			tenncor::matmul(tenncor::transpose(
 				visible_sample_), hidden_reconp);
 		auto grad_hb = tenncor::reduce_mean_1d(
 			hidden_sample_ - hidden_reconp, 1);
 		auto grad_vb = tenncor::reduce_mean_1d(
-			ead::convert_to_node(visible_) - visible_sample_, 1);
+			eteq::convert_to_node(visible_) - visible_sample_, 1);
 
 		auto contents = model.get_contents();
-		std::vector<ead::VarptrT<PybindT>> vars;
+		std::vector<eteq::VarptrT<PybindT>> vars;
 		vars.reserve(contents.size());
 		std::transform(contents.begin(), contents.end(),
 			std::back_inserter(vars),
-			[](ade::TensptrT tens)
+			[](teq::TensptrT tens)
 			{
-				return std::make_shared<ead::VariableNode<PybindT>>(
-					std::static_pointer_cast<ead::Variable<PybindT>>(tens));
+				return std::make_shared<eteq::VariableNode<PybindT>>(
+					std::static_pointer_cast<eteq::Variable<PybindT>>(tens));
 			});
 		eqns::VarErrsT varerrs = {
 			{vars[0], grad_w},
@@ -100,14 +100,14 @@ struct BernoulliRBMTrainer final
 
 		updates_ = bbernoulli_approx(varerrs, learning_rate, discount_factor);
 
-		ade::TensT to_track = {
+		teq::TensT to_track = {
 			hidden_sample_->get_tensor(),
 			visible_sample_->get_tensor(),
 		};
 		to_track.reserve(updates_.size() + 1);
 		if (err_func)
 		{
-			error_ = err_func(ead::convert_to_node(visible_), visible_sample_);
+			error_ = err_func(eteq::convert_to_node(visible_), visible_sample_);
 			to_track.push_back(error_->get_tensor());
 		}
 
@@ -143,7 +143,7 @@ struct BernoulliRBMTrainer final
 		if (nullptr == error_)
 		{
 			assign_groups(updates_,
-				[this](ead::TensSetT& updated)
+				[this](eteq::TensSetT& updated)
 				{
 					this->sess_->update(updated);
 				});
@@ -151,10 +151,10 @@ struct BernoulliRBMTrainer final
 		}
 
 		assign_groups(updates_,
-			[this](ead::TensSetT& updated)
+			[this](eteq::TensSetT& updated)
 			{
 				this->sess_->update_target(
-					ead::TensSetT{this->error_->get_tensor().get()}, updated);
+					eteq::TensSetT{this->error_->get_tensor().get()}, updated);
 			});
 		return error_->data()[0];
 	}
@@ -162,20 +162,20 @@ struct BernoulliRBMTrainer final
 private:
 	modl::RBM& model_;
 
-	ead::VarptrT<PybindT> visible_ = nullptr;
+	eteq::VarptrT<PybindT> visible_ = nullptr;
 
-	ead::NodeptrT<PybindT> hidden_sample_ = nullptr;
+	eteq::NodeptrT<PybindT> hidden_sample_ = nullptr;
 
-	ead::NodeptrT<PybindT> visible_sample_ = nullptr;
+	eteq::NodeptrT<PybindT> visible_sample_ = nullptr;
 
-	ead::NodeptrT<PybindT> error_ = nullptr;
+	eteq::NodeptrT<PybindT> error_ = nullptr;
 
 	// === updates && optimizer ===
 	eqns::AssignGroupsT updates_;
 
-	ead::TensSetT assign_sources_;
+	eteq::TensSetT assign_sources_;
 
-	ead::iSession* sess_;
+	eteq::iSession* sess_;
 
 	size_t batch_size_;
 };

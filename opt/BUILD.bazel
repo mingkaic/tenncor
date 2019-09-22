@@ -20,7 +20,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//ade:ade",
+        "//teq:teq",
         "//tag:tag",
         "//opt/parse:parse",
         "@boost//:functional",
@@ -37,7 +37,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//opt:opt",
-        "//ead:ead",
+        "//eteq:eteq",
         "//testutil:tutil",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",

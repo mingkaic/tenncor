@@ -10,7 +10,7 @@ struct SeqModelBuilder final : public iLayerBuilder
 {
 	SeqModelBuilder (std::string label) : label_(label) {}
 
-	void set_tensor (ade::TensptrT tens, std::string target) override {} // seqmodel has no tensor
+	void set_tensor (teq::TensptrT tens, std::string target) override {} // seqmodel has no tensor
 
 	void set_sublayer (LayerptrT layer) override
 	{
@@ -27,7 +27,7 @@ private:
 
 const std::string seq_model_key =
 get_layer_reg().register_tagr(layers_key_prefix + "seqmodel",
-[](ade::TensrefT ref, std::string label)
+[](teq::TensrefT ref, std::string label)
 {
 	get_layer_reg().layer_tag(ref, seq_model_key, label);
 },
@@ -97,9 +97,9 @@ struct SequentialModel final : public iLayer
 		return label_;
 	}
 
-	ead::NodeptrT<PybindT> connect (ead::NodeptrT<PybindT> input) const override
+	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
 	{
-		ead::NodeptrT<PybindT> out;
+		eteq::NodeptrT<PybindT> out;
 		for (size_t i = 0, n = layers_.size(); i < n; ++i)
 		{
 			auto& layer = layers_[i];
@@ -112,9 +112,9 @@ struct SequentialModel final : public iLayer
 		return out;
 	}
 
-	ade::TensT get_contents (void) const override
+	teq::TensT get_contents (void) const override
 	{
-		ade::TensT out;
+		teq::TensT out;
 		out.reserve(layers_.size());
 		for (auto& layer : layers_)
 		{

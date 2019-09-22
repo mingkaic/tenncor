@@ -21,37 +21,37 @@ GroupRegistry& get_group_reg (void)
 	return registry;
 }
 
-void recursive_group_tag (ade::TensptrT tens, std::string group,
-	std::unordered_set<ade::iTensor*> stops, GroupRegistry& registry)
+void recursive_group_tag (teq::TensptrT tens, std::string group,
+	std::unordered_set<teq::iTensor*> stops, GroupRegistry& registry)
 {
 	recursive_tag(tens, stops,
-		[&](ade::TensrefT ref)
+		[&](teq::TensrefT ref)
 		{
 			registry.group_tag(ref, group);
 		});
 }
 
-void adjacencies (AdjMapT& out, ade::TensT roots,
+void adjacencies (AdjMapT& out, teq::TensT roots,
 	GroupRegistry& registry)
 {
-	ade::HeightMatrix mat(roots);
+	teq::HeightMatrix mat(roots);
 
 	boost::uuids::random_generator uuid_gen;
 	for (auto it = mat.funcs_.rbegin(), et = mat.funcs_.rend();
 		it != et; ++it)
 	{
 		auto& funcs = *it;
-		for (ade::iFunctor* func : funcs)
+		for (teq::iFunctor* func : funcs)
 		{
 			TagRepsT tags = registry.tag_reg_.get_tags(func);
 			std::vector<std::string> groups;
 			if (estd::get(groups, tags, groups_key))
 			{
 				auto& children = func->get_children();
-				std::unordered_set<ade::iTensor*> uchildren;
+				std::unordered_set<teq::iTensor*> uchildren;
 				std::transform(children.begin(), children.end(),
 					std::inserter(uchildren, uchildren.end()),
-					[](const ade::FuncArg& arg)
+					[](const teq::FuncArg& arg)
 					{
 						return arg.get_tensor().get();
 					});
@@ -69,7 +69,7 @@ void adjacencies (AdjMapT& out, ade::TensT roots,
 					}
 
 					auto& same_group = registry.groups_[group];
-					for (ade::iTensor* child : uchildren)
+					for (teq::iTensor* child : uchildren)
 					{
 						// propagate unique gid set to child of same group
 						auto it = same_group.find(TensKey(child));
@@ -83,7 +83,7 @@ void adjacencies (AdjMapT& out, ade::TensT roots,
 		}
 	}
 
-	for (ade::iLeaf* leaf : mat.leaves_)
+	for (teq::iLeaf* leaf : mat.leaves_)
 	{
 		auto tags = registry.tag_reg_.get_tags(leaf);
 		std::vector<std::string> groups;
@@ -110,7 +110,7 @@ void beautify_groups (SubgraphAssocsT& out, const AdjMapT& adjs)
 	std::unordered_map<std::string,SgraphptrT> sgraphs;
 	for (auto& gpair : adjs)
 	{
-		ade::iTensor* tens = gpair.first;
+		teq::iTensor* tens = gpair.first;
 		for (auto& idpair : gpair.second)
 		{
 			std::string group = idpair.first;
@@ -125,7 +125,7 @@ void beautify_groups (SubgraphAssocsT& out, const AdjMapT& adjs)
 
 	for (auto& sg : sgraphs)
 	{
-		for (ade::iTensor* content : sg.second->content_)
+		for (teq::iTensor* content : sg.second->content_)
 		{
 			out[content].emplace(sg.second);
 		}
@@ -134,12 +134,12 @@ void beautify_groups (SubgraphAssocsT& out, const AdjMapT& adjs)
 
 void filter_head (SubgraphAssocsT& out, const SubgraphAssocsT& assocs)
 {
-	ade::GraphStat stat;
+	teq::GraphStat stat;
 	for (auto& assoc_pair : assocs)
 	{
 		assoc_pair.first->accept(stat);
 	}
-	std::unordered_map<tag::SgraphptrT,ade::iTensor*> revhead;
+	std::unordered_map<tag::SgraphptrT,teq::iTensor*> revhead;
 	for (auto& sgpair : assocs)
 	{
 		const SubgraphsT& subgraphs = sgpair.second;
@@ -147,7 +147,7 @@ void filter_head (SubgraphAssocsT& out, const SubgraphAssocsT& assocs)
 		{
 			if (estd::has(revhead, subgraph))
 			{
-				ade::iTensor*& oldhead = revhead[subgraph];
+				teq::iTensor*& oldhead = revhead[subgraph];
 				if (stat.graphsize_[sgpair.first].upper_ >
 					stat.graphsize_[oldhead].upper_)
 				{
