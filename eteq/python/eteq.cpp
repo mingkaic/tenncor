@@ -127,16 +127,16 @@ PYBIND11_MODULE(eteq, m)
 	node
 		.def("__str__",
 			[](py::object self)
-			{
-				auto dnode = self.cast<eteq::iNode<PybindT>*>();
-				return dnode->get_tensor()->to_string();
-			},
-			"Return string representation of this tensor instance")
+			{ return self.cast<eteq::iNode<PybindT>*>()->to_string(); },
+			"Return string representation of internal tensor")
+		.def("as_tens",
+			[](py::object self)
+			{ return self.cast<eteq::iNode<PybindT>*>()->get_tensor(); },
+			"Return internal tensor of this node instance")
 		.def("shape",
 			[](py::object self)
 			{
-				auto dnode = self.cast<eteq::iNode<PybindT>*>();
-				teq::Shape shape = dnode->shape();
+				teq::Shape shape = self.cast<eteq::iNode<PybindT>*>()->shape();
 				auto pshape = pyead::c2pshape(shape);
 				std::vector<int> ipshape(pshape.begin(), pshape.end());
 				return py::array(ipshape.size(), ipshape.data());
@@ -145,10 +145,9 @@ PYBIND11_MODULE(eteq, m)
 		.def("children",
 			[](py::object self)
 			{
-				auto dnode = self.cast<eteq::iNode<PybindT>*>();
 				std::vector<teq::TensptrT> tens;
 				if (auto f = dynamic_cast<teq::iFunctor*>(
-					dnode->get_tensor().get()))
+					self.cast<eteq::iNode<PybindT>*>()->get_tensor().get()))
 				{
 					auto args = f->get_children();
 					std::transform(args.begin(), args.end(),
@@ -160,17 +159,11 @@ PYBIND11_MODULE(eteq, m)
 				}
 				return tens;
 			})
-		.def("as_tens",
-			[](py::object self)
-			{
-				auto dnode = self.cast<eteq::iNode<PybindT>*>();
-				return dnode->get_tensor();
-			})
 		.def("get",
 			[](py::object self)
 			{
-				auto dnode = self.cast<eteq::iNode<PybindT>*>();
-				return pyead::typedata_to_array<PybindT>(dnode,
+				return pyead::typedata_to_array<PybindT>(
+					self.cast<eteq::iNode<PybindT>*>(),
 					py::dtype::of<PybindT>());
 			});
 

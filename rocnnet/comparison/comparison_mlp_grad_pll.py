@@ -8,7 +8,7 @@ import tensorflow as tf
 import eteq.tenncor as tc
 import eteq.eteq as eteq
 
-import pll.pll as pll
+import ccur.ccur as ccur
 
 import rocnnet.rocnnet as rcn
 
@@ -132,7 +132,7 @@ for matrix_dim in matrix_dims:
     n_out = int(n_in / 2)
     batch_size = 1
 
-    sess = pll.Session(nthread=4)
+    sess = ccur.Session(nthread=4)
     tfsess = tf.compat.v1.Session()
 
     # regular mlp

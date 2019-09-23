@@ -179,7 +179,7 @@ struct FunctorNode final : public iNode<T>
 		func_->update();
 	}
 
-	teq::TensptrT get_tensor (void) override
+	teq::TensptrT get_tensor (void) const override
 	{
 		return func_;
 	}

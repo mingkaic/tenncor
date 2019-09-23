@@ -1,4 +1,4 @@
-#include "rocnnet/modl/dbn.hpp"
+#include "modl/dbn.hpp"
 
 #include "rocnnet/trainer/rbm_trainer.hpp"
 

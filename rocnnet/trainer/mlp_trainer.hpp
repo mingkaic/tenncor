@@ -1,6 +1,6 @@
 #include "eteq/grader.hpp"
 
-#include "rocnnet/modl/model.hpp"
+#include "modl/model.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
 

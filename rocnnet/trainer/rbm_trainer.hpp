@@ -1,4 +1,4 @@
-#include "rocnnet/modl/rbm.hpp"
+#include "modl/rbm.hpp"
 
 #include "rocnnet/eqns/err_approx.hpp"
 

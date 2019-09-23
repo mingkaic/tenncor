@@ -1,4 +1,4 @@
-# PBM (Protobuf Marshaller)
+# PBM (ProtoBuf Marshaller)
 
 Serialize TEQ graphs created by top-level code in protobuf format.
 

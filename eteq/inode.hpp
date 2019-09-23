@@ -23,11 +23,16 @@ struct iNode
 		return get_tensor()->shape();
 	}
 
+	std::string to_string (void) const
+	{
+		return get_tensor()->to_string();
+	}
+
 	virtual T* data (void) = 0;
 
 	virtual void update (void) = 0;
 
-	virtual teq::TensptrT get_tensor (void) = 0;
+	virtual teq::TensptrT get_tensor (void) const = 0;
 };
 
 template <typename T>

@@ -10,12 +10,12 @@
 
 #include "rocnnet/eqns/init.hpp"
 
-#include "rocnnet/modl/activations.hpp"
-#include "rocnnet/modl/dense.hpp"
-#include "rocnnet/modl/rbm.hpp"
-#include "rocnnet/modl/model.hpp"
-// #include "rocnnet/modl/dbn.hpp"
-// #include "rocnnet/modl/conv.hpp"
+#include "modl/activations.hpp"
+#include "modl/dense.hpp"
+#include "modl/rbm.hpp"
+#include "modl/model.hpp"
+// #include "modl/dbn.hpp"
+// #include "modl/conv.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"

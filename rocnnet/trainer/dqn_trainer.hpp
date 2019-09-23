@@ -1,7 +1,7 @@
 #include "eteq/parse.hpp"
 #include "eteq/grader.hpp"
 
-#include "rocnnet/modl/model.hpp"
+#include "modl/model.hpp"
 
 #ifndef MODL_DQN_TRAINER_HPP
 #define MODL_DQN_TRAINER_HPP

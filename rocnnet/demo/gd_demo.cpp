@@ -12,8 +12,8 @@
 
 #include "dbg/grpc/session.hpp"
 
-#include "rocnnet/modl/model.hpp"
-#include "rocnnet/modl/activations.hpp"
+#include "modl/model.hpp"
+#include "modl/activations.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 

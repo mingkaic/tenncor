@@ -127,7 +127,7 @@ struct VariableNode final : public iNode<T>
 
 	void update (void) override {}
 
-	teq::TensptrT get_tensor (void) override
+	teq::TensptrT get_tensor (void) const override
 	{
 		return var_;
 	}
