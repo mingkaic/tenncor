@@ -6,10 +6,10 @@
 #include "eteq/variable.hpp"
 #include "eteq/session.hpp"
 
-#ifndef EQNS_ERR_APPROX_HPP
-#define EQNS_ERR_APPROX_HPP
+#ifndef LAYR_ERR_APPROX_HPP
+#define LAYR_ERR_APPROX_HPP
 
-namespace eqns
+namespace layr
 {
 
 using VarErrsT = std::vector<std::pair<eteq::VarptrT<PybindT>,eteq::NodeptrT<PybindT>>>;
@@ -60,4 +60,4 @@ void assign_groups (AssignGroupsT& groups, UpdateStepF update_step);
 
 }
 
-#endif // EQNS_ERR_APPROX_HPP
+#endif // LAYR_ERR_APPROX_HPP

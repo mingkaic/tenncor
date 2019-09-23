@@ -12,7 +12,7 @@
 
 #include "eteq/variable.hpp"
 
-#include "modl/err_approx.hpp"
+#include "layr/err_approx.hpp"
 
 
 TEST(APPROX, StochasticGD)
@@ -24,7 +24,7 @@ TEST(APPROX, StochasticGD)
 	auto root = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "root");
 
-	auto groups = eqns::sgd(eqns::VarErrsT{{leaf,
+	auto groups = layr::sgd(layr::VarErrsT{{leaf,
 		eteq::convert_to_node(root)}}, 0.67, "stuff");
 	ASSERT_EQ(1, groups.size());
 
@@ -53,7 +53,7 @@ TEST(APPROX, RMS_Momentum)
 	auto root = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "root");
 
-	auto groups = eqns::rms_momentum(eqns::VarErrsT{{leaf,
+	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
 		eteq::convert_to_node(root)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 	ASSERT_EQ(2, groups.size());

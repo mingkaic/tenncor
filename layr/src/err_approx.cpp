@@ -1,10 +1,10 @@
 #include "eteq/generated/api.hpp"
 
-#include "modl/err_approx.hpp"
+#include "layr/err_approx.hpp"
 
-#ifdef EQNS_ERR_APPROX_HPP
+#ifdef LAYR_ERR_APPROX_HPP
 
-namespace eqns
+namespace layr
 {
 
 eteq::NodeptrT<PybindT> identity (eteq::NodeptrT<PybindT> node)
@@ -66,7 +66,7 @@ void assign_groups (AssignGroupsT& groups, UpdateStepF update_step)
 	for (AssignsT& group : groups)
 	{
 		eteq::TensSetT updated_var;
-		for (eqns::VarAssign& assign : group)
+		for (layr::VarAssign& assign : group)
 		{
 			updated_var.emplace(assign.target_->get_tensor().get());
 			assign.target_->assign(assign.source_->data(),

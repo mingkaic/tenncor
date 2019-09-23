@@ -1,10 +1,10 @@
 #include "eteq/parse.hpp"
 #include "eteq/grader.hpp"
 
-#include "modl/model.hpp"
+#include "layr/model.hpp"
 
-#ifndef MODL_DQN_TRAINER_HPP
-#define MODL_DQN_TRAINER_HPP
+#ifndef LAYR_DQN_TRAINER_HPP
+#define LAYR_DQN_TRAINER_HPP
 
 namespace trainer
 {
@@ -31,7 +31,7 @@ struct DQNTrainingContext final
 	std::vector<ExpBatch> experiences_;
 
 	// target network
-	modl::SeqModelptrT target_model_ = nullptr;
+	layr::SeqModelptrT target_model_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
 	eteq::NodeptrT<PybindT> next_output_ = nullptr;
@@ -69,9 +69,9 @@ struct DQNInfo final
 
 struct DQNTrainer final
 {
-	DQNTrainer (modl::SequentialModel& model,
-		eteq::iSession& sess, eqns::ApproxF update, DQNInfo param,
-		eqns::NodeUnarF gradprocess = eqns::NodeUnarF(eqns::identity),
+	DQNTrainer (layr::SequentialModel& model,
+		eteq::iSession& sess, layr::ApproxF update, DQNInfo param,
+		layr::NodeUnarF gradprocess = layr::NodeUnarF(layr::identity),
 		DQNTrainingContext ctx = DQNTrainingContext()) :
 		sess_(&sess),
 		params_(param),
@@ -80,7 +80,7 @@ struct DQNTrainer final
 	{
 		if (nullptr == ctx_.target_model_)
 		{
-			ctx_.target_model_ = modl::SeqModelptrT(model.clone("target_"));
+			ctx_.target_model_ = layr::SeqModelptrT(model.clone("target_"));
 		}
 
 		input_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
@@ -125,7 +125,7 @@ struct DQNTrainer final
 
 		// updates for source network
 		teq::TensT source_contents = source_model_.get_contents();
-		eqns::VarErrsT source_vars;
+		layr::VarErrsT source_vars;
 		for (auto tens : source_contents)
 		{
 			if (auto var = std::dynamic_pointer_cast<
@@ -155,7 +155,7 @@ struct DQNTrainer final
 			}
 		}
 
-		eqns::AssignsT target_assigns;
+		layr::AssignsT target_assigns;
 		for (size_t i = 0; i < nvars; i++)
 		{
 			// this is equivalent to target = (1-alpha) * target + alpha * source
@@ -164,7 +164,7 @@ struct DQNTrainer final
 			auto diff = target - source;
 
 			auto target_next = target - params_.target_update_rate_ * diff;
-			target_assigns.push_back(eqns::VarAssign{
+			target_assigns.push_back(layr::VarAssign{
 				fmts::sprintf("target_grad_%s",
 					target_vars[i]->get_label().c_str()),
 				target_vars[i], target_next});
@@ -176,9 +176,9 @@ struct DQNTrainer final
 			train_out_->get_tensor(),
 			output_->get_tensor(),
 		};
-		for (eqns::AssignsT& assigns : updates_)
+		for (layr::AssignsT& assigns : updates_)
 		{
-			for (eqns::VarAssign& assign : assigns)
+			for (layr::VarAssign& assign : assigns)
 			{
 				track_batch.push_back(assign.source_->get_tensor());
 			}
@@ -319,7 +319,7 @@ struct DQNTrainer final
 	eteq::NodeptrT<PybindT> train_out_ = nullptr;
 
 	// === updates && optimizer ===
-	eqns::AssignGroupsT updates_;
+	layr::AssignGroupsT updates_;
 
 	eteq::iSession* sess_;
 
@@ -356,7 +356,7 @@ private:
 	DQNInfo params_;
 
 	// source network
-	modl::SequentialModel& source_model_;
+	layr::SequentialModel& source_model_;
 
 	// === prediction computation ===
 	// train_fanin: shape <ninput, batchsize>
@@ -389,4 +389,4 @@ private:
 
 }
 
-#endif // MODL_DQN_TRAINER_HPP
+#endif // LAYR_DQN_TRAINER_HPP

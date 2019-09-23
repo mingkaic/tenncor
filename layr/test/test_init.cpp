@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "modl/init.hpp"
+#include "layr/init.hpp"
 
 
 TEST(INIT, Zero)
@@ -14,7 +14,7 @@ TEST(INIT, Zero)
 	std::vector<teq::DimT> slist = {18, 9};
 	std::string label = "abc";
 
-	auto z = eqns::zero_init<double>()(teq::Shape(slist), label);
+	auto z = layr::zero_init<double>()(teq::Shape(slist), label);
 	auto shape = z->shape();
 	ASSERT_ARREQ(slist, shape);
 
@@ -34,9 +34,9 @@ TEST(INIT, VarianceScaling)
 	std::string label = "def";
 	double factor = 0.425;
 
-	auto v1 = eqns::variance_scaling_init<double>(factor)(
+	auto v1 = layr::variance_scaling_init<double>(factor)(
 		teq::Shape(slist), label);
-	auto v2 = eqns::variance_scaling_init<double>(factor,
+	auto v2 = layr::variance_scaling_init<double>(factor,
 		[](teq::Shape s){ return s.at(2); })(teq::Shape(slist), label);
 	{
 		auto shape = v1->shape();
@@ -81,7 +81,7 @@ TEST(INIT, UniformXavier)
 	std::string label = "ghi";
 	double factor = 0.712;
 
-	auto x = eqns::unif_xavier_init<double>(factor)(
+	auto x = layr::unif_xavier_init<double>(factor)(
 		teq::Shape(slist), label);
 
 	auto shape = x->shape();
@@ -106,7 +106,7 @@ TEST(INIT, UniformXavier)
 // 	std::string label = "jkl";
 // 	double factor = 0.172;
 
-// 	auto x = eqns::norm_xavier_init<double>(factor)(
+// 	auto x = layr::norm_xavier_init<double>(factor)(
 // 		teq::Shape(slist), label);
 
 // 	auto shape = x->shape();

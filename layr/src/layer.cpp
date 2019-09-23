@@ -3,11 +3,11 @@
 
 #include "eteq/serialize.hpp"
 
-#include "modl/layer.hpp"
+#include "layr/layer.hpp"
 
-#ifdef MODL_LAYER_HPP
+#ifdef LAYR_LAYER_HPP
 
-namespace modl
+namespace layr
 {
 
 size_t LayerTag::tag_id_ = typeid(LayerTag).hash_code();
@@ -287,4 +287,4 @@ bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensT roots,
 
 }
 
-#endif // MODL_LAYER_HPP
+#endif // LAYR_LAYER_HPP

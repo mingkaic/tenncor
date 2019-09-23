@@ -1,8 +1,8 @@
-#include "modl/rbm.hpp"
+#include "layr/rbm.hpp"
 
-#ifdef MODL_RBM_HPP
+#ifdef LAYR_RBM_HPP
 
-namespace modl
+namespace layr
 {
 
 LayerptrT RBMBuilder::build (void) const

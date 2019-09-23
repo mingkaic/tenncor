@@ -1,10 +1,10 @@
-#include "modl/dbn.hpp"
+#include "layr/dbn.hpp"
 
 #include "rocnnet/trainer/rbm_trainer.hpp"
 
 struct DBNTrainer final
 {
-	DBNTrainer (modl::DBNptrT brain,
+	DBNTrainer (layr::DBNptrT brain,
 		uint8_t batch_size,
 		PybindT learning_rate = 1e-3,
 		size_t n_cont_div = 10,
@@ -23,7 +23,7 @@ struct DBNTrainer final
 		}
 		train_out_ = train_in_;
 		auto layers = brain_->get_layers();
-		for (modl::RBMptrT& rbm : layers)
+		for (layr::RBMptrT& rbm : layers)
 		{
 			RBMTrainer trainer(rbm, nullptr,
 				batch_size, learning_rate,
@@ -33,9 +33,9 @@ struct DBNTrainer final
 		}
 	}
 
-	std::vector<eqns::Deltas> pretraining_functions (void) const
+	std::vector<layr::Deltas> pretraining_functions (void) const
 	{
-		std::vector<eqns::Deltas> pt_updates(rbm_trainers_.size());
+		std::vector<layr::Deltas> pt_updates(rbm_trainers_.size());
 		std::transform(rbm_trainers_.begin(), rbm_trainers_.end(),
 			pt_updates.begin(),
 			[](const RBMTrainer& trainer)
@@ -47,7 +47,7 @@ struct DBNTrainer final
 
 	// todo: conform to a current trainer convention,
 	// or make all trainers functions instead of class bundles
-	std::pair<eqns::Deltas,teq::TensptrT> build_finetune_functions (
+	std::pair<layr::Deltas,teq::TensptrT> build_finetune_functions (
 		eteq::VarptrT<PybindT> train_out, PybindT learning_rate = 1e-3)
 	{
 		teq::TensptrT out_dist = (*brain_)(teq::TensptrT(train_in_));
@@ -60,7 +60,7 @@ struct DBNTrainer final
 				teq::TensptrT(eteq::Constant::get(2, temp_diff->shape()))));
 
 		pbm::PathedMapT vmap = brain_->list_bases();
-		eqns::VariablesT vars;
+		layr::VariablesT vars;
 		for (auto vpair : vmap)
 		{
 			if (eteq::VarptrT<PybindT> var = std::dynamic_pointer_cast<
@@ -69,8 +69,8 @@ struct DBNTrainer final
 				vars.push_back(var);
 			}
 		}
-		eqns::Deltas errs;
-		eqns::VarmapT connection;
+		layr::Deltas errs;
+		layr::VarmapT connection;
 		for (eteq::VarptrT<PybindT>& gp : vars)
 		{
 			auto next_gp = egen::sub(teq::TensptrT(gp), egen::mul(
@@ -84,7 +84,7 @@ struct DBNTrainer final
 		errs.actions_.push_back(
 			[connection](eteq::CacheSpace<PybindT>* caches)
 			{
-				eqns::assign_all(caches, connection);
+				layr::assign_all(caches, connection);
 			});
 
 		return {errs, error};
@@ -94,7 +94,7 @@ struct DBNTrainer final
 
 	teq::TensptrT train_out_;
 
-	modl::DBNptrT brain_;
+	layr::DBNptrT brain_;
 
 	std::vector<RBMTrainer> rbm_trainers_;
 

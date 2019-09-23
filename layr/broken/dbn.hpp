@@ -1,9 +1,9 @@
-#include "modl/rbm.hpp"
+#include "layr/rbm.hpp"
 
-#ifndef MODL_DBN_HPP
-#define MODL_DBN_HPP
+#ifndef LAYR_DBN_HPP
+#define LAYR_DBN_HPP
 
-namespace modl
+namespace layr
 {
 
 struct DBN final : public iMarshalSet
@@ -101,4 +101,4 @@ using DBNptrT = std::shared_ptr<DBN>;
 
 }
 
-#endif // MODL_DBN_HPP
+#endif // LAYR_DBN_HPP

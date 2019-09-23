@@ -1,9 +1,9 @@
-#include "modl/rbm.hpp"
+#include "layr/rbm.hpp"
 
-#include "rocnnet/eqns/err_approx.hpp"
+#include "rocnnet/layr/err_approx.hpp"
 
-#ifndef MODL_RBM_TRAINER_HPP
-#define MODL_RBM_TRAINER_HPP
+#ifndef LAYR_RBM_TRAINER_HPP
+#define LAYR_RBM_TRAINER_HPP
 
 namespace trainer
 {
@@ -14,12 +14,12 @@ namespace trainer
 // x_next = x_curr + next_momentum
 //
 // where η is the learning rate, and χ is discount_factor
-eqns::AssignGroupsT bbernoulli_approx (const eqns::VarErrsT& leaves,
+layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 	PybindT learning_rate, PybindT discount_factor,
 	std::string root_label = "")
 {
 	// assign momentums before leaves
-	eqns::AssignsT assigns;
+	layr::AssignsT assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
 		auto leaf_node = eteq::convert_to_node(leaves[i].first);
@@ -39,11 +39,11 @@ eqns::AssignGroupsT bbernoulli_approx (const eqns::VarErrsT& leaves,
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 		auto leaf_next = leaf_node + momentum_next;
 
-		assigns.push_back(eqns::VarAssign{
+		assigns.push_back(layr::VarAssign{
 			fmts::sprintf("bbernoulli_momentum::%s_momentum_%s",
 				root_label.c_str(), leaves[i].first->get_label().c_str()),
 			momentum, momentum_next});
-		assigns.push_back(eqns::VarAssign{
+		assigns.push_back(layr::VarAssign{
 			fmts::sprintf("bbernoulli_momentum::%s_grad_%s",
 				root_label.c_str(), leaves[i].first->get_label().c_str()),
 			leaves[i].first, leaf_next});
@@ -55,7 +55,7 @@ using ErrorF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>,ete
 
 struct BernoulliRBMTrainer final
 {
-	BernoulliRBMTrainer (modl::RBM& model,
+	BernoulliRBMTrainer (layr::RBM& model,
 		eteq::iSession& sess,
 		teq::DimT batch_size,
 		PybindT learning_rate,
@@ -92,7 +92,7 @@ struct BernoulliRBMTrainer final
 				return std::make_shared<eteq::VariableNode<PybindT>>(
 					std::static_pointer_cast<eteq::Variable<PybindT>>(tens));
 			});
-		eqns::VarErrsT varerrs = {
+		layr::VarErrsT varerrs = {
 			{vars[0], grad_w},
 			{vars[1], grad_hb},
 			{vars[3], grad_vb},
@@ -160,7 +160,7 @@ struct BernoulliRBMTrainer final
 	}
 
 private:
-	modl::RBM& model_;
+	layr::RBM& model_;
 
 	eteq::VarptrT<PybindT> visible_ = nullptr;
 
@@ -171,7 +171,7 @@ private:
 	eteq::NodeptrT<PybindT> error_ = nullptr;
 
 	// === updates && optimizer ===
-	eqns::AssignGroupsT updates_;
+	layr::AssignGroupsT updates_;
 
 	eteq::TensSetT assign_sources_;
 
@@ -182,4 +182,4 @@ private:
 
 }
 
-#endif // MODL_RBM_TRAINER_HPP
+#endif // LAYR_RBM_TRAINER_HPP

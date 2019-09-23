@@ -8,7 +8,7 @@
 
 #include "data/mnist_data.hpp"
 
-#include "modl/db_trainer.hpp"
+#include "layr/db_trainer.hpp"
 
 struct TestParams
 {

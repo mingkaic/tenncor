@@ -1,8 +1,8 @@
-#include "modl/model.hpp"
+#include "layr/model.hpp"
 
-#ifdef MODL_MODEL_HPP
+#ifdef LAYR_MODEL_HPP
 
-namespace modl
+namespace layr
 {
 
 LayerptrT SeqModelBuilder::build (void) const

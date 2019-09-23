@@ -12,8 +12,8 @@
 
 #include "dbg/grpc/session.hpp"
 
-#include "modl/model.hpp"
-#include "modl/activations.hpp"
+#include "layr/model.hpp"
+#include "layr/activations.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 
@@ -90,37 +90,37 @@ int main (int argc, const char** argv)
 	uint8_t n_out = n_in / 2;
 	std::vector<teq::DimT> n_outs = {9, n_out};
 
-	modl::SequentialModel model("demo");
-	model.push_back(std::make_shared<modl::Dense>(9, n_in,
-		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "0"));
-	model.push_back(modl::sigmoid());
-	model.push_back(std::make_shared<modl::Dense>(n_out, 9,
-		eqns::unif_xavier_init<PybindT>(1), eqns::zero_init<PybindT>(), "1"));
-	model.push_back(modl::sigmoid());
+	layr::SequentialModel model("demo");
+	model.push_back(std::make_shared<layr::Dense>(9, n_in,
+		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>(), "0"));
+	model.push_back(layr::sigmoid());
+	model.push_back(std::make_shared<layr::Dense>(n_out, 9,
+		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>(), "1"));
+	model.push_back(layr::sigmoid());
 
-	modl::SequentialModel untrained_model(model);
-	modl::SeqModelptrT trained_model = nullptr;
+	layr::SequentialModel untrained_model(model);
+	layr::SeqModelptrT trained_model = nullptr;
 
 	std::ifstream loadstr(loadpath);
 	if (loadstr.is_open())
 	{
 		teq::TensT trained_roots;
-		trained_model = std::static_pointer_cast<modl::SequentialModel>(
-			modl::load_layer(loadstr, trained_roots, modl::seq_model_key, "demo"));
+		trained_model = std::static_pointer_cast<layr::SequentialModel>(
+			layr::load_layer(loadstr, trained_roots, layr::seq_model_key, "demo"));
 		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
 	else
 	{
 		logs::warnf("model failed to loaded from file `%s`", loadpath.c_str());
-		trained_model = std::make_shared<modl::SequentialModel>(model);
+		trained_model = std::make_shared<layr::SequentialModel>(model);
 	}
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
-	eqns::ApproxF approx = [](const eqns::VarErrsT& leaves)
+	layr::ApproxF approx = [](const layr::VarErrsT& leaves)
 	{
-		return eqns::sgd(leaves, 0.9); // learning rate = 0.9
+		return layr::sgd(leaves, 0.9); // learning rate = 0.9
 	};
 	dbg::InteractiveSession sess("localhost:50051");
 	trainer::MLPTrainer trainer(model, sess, approx, n_batch);
@@ -204,7 +204,7 @@ int main (int argc, const char** argv)
 		std::ofstream savestr(savepath);
 		if (savestr.is_open())
 		{
-			if (modl::save_layer(savestr, model, {}))
+			if (layr::save_layer(savestr, model, {}))
 			{
 				logs::infof("successfully saved model to `%s`", savepath.c_str());
 			}

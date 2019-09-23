@@ -1,11 +1,11 @@
 #include "eteq/grader.hpp"
 
-#include "modl/model.hpp"
+#include "layr/model.hpp"
 
-#include "rocnnet/eqns/err_approx.hpp"
+#include "rocnnet/layr/err_approx.hpp"
 
-#ifndef MODL_MLP_TRAINER_HPP
-#define MODL_MLP_TRAINER_HPP
+#ifndef LAYR_MLP_TRAINER_HPP
+#define LAYR_MLP_TRAINER_HPP
 
 namespace trainer
 {
@@ -19,9 +19,9 @@ struct TrainingContext final
 // MLPTrainer does not own anything
 struct MLPTrainer final
 {
-	MLPTrainer (modl::SequentialModel& model,
-		eteq::iSession& sess, eqns::ApproxF update, teq::DimT batch_size,
-		eqns::NodeUnarF gradprocess = eqns::NodeUnarF(eqns::identity),
+	MLPTrainer (layr::SequentialModel& model,
+		eteq::iSession& sess, layr::ApproxF update, teq::DimT batch_size,
+		layr::NodeUnarF gradprocess = layr::NodeUnarF(layr::identity),
 		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
 		train_in_(eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
@@ -38,7 +38,7 @@ struct MLPTrainer final
 			eteq::convert_to_node<PybindT>(expected_out_) - train_out_);
 
 		auto contents = model_.get_contents();
-		eqns::VarErrsT vars;
+		layr::VarErrsT vars;
 		for (auto tens : contents)
 		{
 			if (auto var = std::dynamic_pointer_cast<
@@ -57,9 +57,9 @@ struct MLPTrainer final
 			train_out_->get_tensor(),
 			error_->get_tensor(),
 		};
-		for (eqns::AssignsT& assigns : updates_)
+		for (layr::AssignsT& assigns : updates_)
 		{
-			for (eqns::VarAssign& assign : assigns)
+			for (layr::VarAssign& assign : assigns)
 			{
 				track_batch.push_back(assign.source_->get_tensor());
 			}
@@ -99,7 +99,7 @@ struct MLPTrainer final
 		++ctx_.n_iterations_;
 	}
 
-	modl::SequentialModel& model_;
+	layr::SequentialModel& model_;
 
 	uint8_t batch_size_;
 	eteq::VarptrT<PybindT> train_in_;
@@ -107,7 +107,7 @@ struct MLPTrainer final
 	eteq::NodeptrT<PybindT> train_out_;
 	eteq::NodeptrT<PybindT> error_;
 
-	eqns::AssignGroupsT updates_;
+	layr::AssignGroupsT updates_;
 	eteq::iSession* sess_;
 
 	TrainingContext ctx_;
@@ -115,4 +115,4 @@ struct MLPTrainer final
 
 }
 
-#endif // MODL_MLP_TRAINER_HPP
+#endif // LAYR_MLP_TRAINER_HPP

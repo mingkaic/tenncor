@@ -1,8 +1,8 @@
-#include "modl/activations.hpp"
+#include "layr/activations.hpp"
 
-#ifdef MODL_ACTIVATIONS_HPP
+#ifdef LAYR_ACTIVATIONS_HPP
 
-namespace modl
+namespace layr
 {
 
 LayerptrT ActivationBuilder::build (void) const

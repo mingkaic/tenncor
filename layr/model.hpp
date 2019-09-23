@@ -1,9 +1,9 @@
-#include "modl/dense.hpp"
+#include "layr/dense.hpp"
 
-#ifndef MODL_MODEL_HPP
-#define MODL_MODEL_HPP
+#ifndef LAYR_MODEL_HPP
+#define LAYR_MODEL_HPP
 
-namespace modl
+namespace layr
 {
 
 struct SeqModelBuilder final : public iLayerBuilder
@@ -138,7 +138,7 @@ struct SequentialModel final : public iLayer
 	}
 
 private:
-	iLayer* clone_impl (std::string label_prefix) const override
+	iLayer* clone_impl (const std::string& label_prefix) const override
 	{
 		return new SequentialModel(*this, label_prefix);
 	}
@@ -163,4 +163,4 @@ using SeqModelptrT = std::shared_ptr<SequentialModel>;
 
 }
 
-#endif // MODL_MODEL_HPP
+#endif // LAYR_MODEL_HPP

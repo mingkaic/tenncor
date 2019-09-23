@@ -1,7 +1,5 @@
 #include "eteq/generated/api.hpp"
 
-#include "modl/marshal.hpp"
-
 #ifndef MODL_RNN_HPP
 #define MODL_RNN_HPP
 

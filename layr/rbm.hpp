@@ -1,10 +1,10 @@
-#include "modl/dense.hpp"
-#include "modl/activations.hpp"
+#include "layr/dense.hpp"
+#include "layr/activations.hpp"
 
-#ifndef MODL_RBM_HPP
-#define MODL_RBM_HPP
+#ifndef LAYR_RBM_HPP
+#define LAYR_RBM_HPP
 
-namespace modl
+namespace layr
 {
 
 const std::string hidden_key = "hidden";
@@ -45,8 +45,8 @@ struct RBM final : public iLayer
 {
 	RBM (teq::DimT nhidden, teq::DimT nvisible,
 		ActivationptrT activation,
-		eqns::InitF<PybindT> weight_init,
-		eqns::InitF<PybindT> bias_init,
+		layr::InitF<PybindT> weight_init,
+		layr::InitF<PybindT> bias_init,
 		const std::string& label) :
 		label_(label),
 		hidden_(std::make_shared<Dense>(
@@ -142,7 +142,7 @@ struct RBM final : public iLayer
 	}
 
 private:
-	iLayer* clone_impl (std::string label_prefix) const override
+	iLayer* clone_impl (const std::string& label_prefix) const override
 	{
 		return new RBM(*this, label_prefix);
 	}
@@ -204,4 +204,4 @@ using RBMptrT = std::shared_ptr<RBM>;
 
 }
 
-#endif // MODL_RBM_HPP
+#endif // LAYR_RBM_HPP

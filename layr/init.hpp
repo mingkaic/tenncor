@@ -1,10 +1,10 @@
 #include "eteq/variable.hpp"
 #include "eteq/random.hpp"
 
-#ifndef EQNS_INIT_HPP
-#define EQNS_INIT_HPP
+#ifndef LAYR_INIT_HPP
+#define LAYR_INIT_HPP
 
-namespace eqns
+namespace layr
 {
 
 template <typename T>
@@ -109,4 +109,4 @@ InitF<T> norm_xavier_init (T factor = 1)
 
 }
 
-#endif // EQNS_INIT_HPP
+#endif // LAYR_INIT_HPP

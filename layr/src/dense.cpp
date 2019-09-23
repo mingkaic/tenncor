@@ -1,8 +1,8 @@
-#include "modl/dense.hpp"
+#include "layr/dense.hpp"
 
-#ifdef MODL_DENSE_HPP
+#ifdef LAYR_DENSE_HPP
 
-namespace modl
+namespace layr
 {
 
 LayerptrT DenseBuilder::build (void) const

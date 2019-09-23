@@ -1,12 +1,12 @@
 #include "eteq/generated/api.hpp"
 
-#include "modl/init.hpp"
-#include "modl/layer.hpp"
+#include "layr/init.hpp"
+#include "layr/layer.hpp"
 
-#ifndef MODL_DENSE_HPP
-#define MODL_DENSE_HPP
+#ifndef LAYR_DENSE_HPP
+#define LAYR_DENSE_HPP
 
-namespace modl
+namespace layr
 {
 
 const std::string weight_key = "weight";
@@ -60,8 +60,8 @@ get_layer_reg().register_tagr(layers_key_prefix + "dense",
 struct Dense final : public iLayer
 {
 	Dense (teq::DimT nunits, teq::DimT indim,
-		eqns::InitF<PybindT> weight_init,
-		eqns::InitF<PybindT> bias_init,
+		layr::InitF<PybindT> weight_init,
+		layr::InitF<PybindT> bias_init,
 		const std::string& label) :
 		label_(label),
 		weight_(weight_init(teq::Shape({nunits, indim}), weight_key))
@@ -135,11 +135,15 @@ struct Dense final : public iLayer
 	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
 	{
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
-		recursive_tag(out->get_tensor(), {
+		auto leaves = {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
-			bias_->get_tensor().get(),
-		}, LayerId());
+		};
+		if (bias)
+		{
+			leaves.push_back(bias_->get_tensor().get());
+		}
+		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;
 	}
 
@@ -152,7 +156,7 @@ struct Dense final : public iLayer
 	}
 
 private:
-	iLayer* clone_impl (std::string label_prefix) const override
+	iLayer* clone_impl (const std::string& label_prefix) const override
 	{
 		return new Dense(*this, label_prefix);
 	}
@@ -188,4 +192,4 @@ using DenseptrT = std::shared_ptr<Dense>;
 
 }
 
-#endif // MODL_DENSE_HPP
+#endif // LAYR_DENSE_HPP

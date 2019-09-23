@@ -7,10 +7,10 @@
 
 #include "eteq/generated/pyapi.hpp"
 
-#ifndef MODL_LAYER_HPP
-#define MODL_LAYER_HPP
+#ifndef LAYR_LAYER_HPP
+#define LAYR_LAYER_HPP
 
-namespace modl
+namespace layr
 {
 
 using NonLinearF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
@@ -116,7 +116,7 @@ struct iLayer
 	virtual teq::TensT get_contents (void) const = 0;
 
 protected:
-	virtual iLayer* clone_impl (std::string label_prefix) const = 0;
+	virtual iLayer* clone_impl (const std::string& label_prefix) const = 0;
 
 	void tag (teq::TensptrT tensor, LayerId subs) const;
 
@@ -193,4 +193,4 @@ bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensT roots,
 
 }
 
-#endif // MODL_LAYER_HPP
+#endif // LAYR_LAYER_HPP

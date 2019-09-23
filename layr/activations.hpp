@@ -1,11 +1,11 @@
 #include "eteq/generated/api.hpp"
 
-#include "modl/layer.hpp"
+#include "layr/layer.hpp"
 
-#ifndef MODL_ACTIVATIONS_HPP
-#define MODL_ACTIVATIONS_HPP
+#ifndef LAYR_ACTIVATIONS_HPP
+#define LAYR_ACTIVATIONS_HPP
 
-namespace modl
+namespace layr
 {
 
 struct ActivationBuilder final : public iLayerBuilder
@@ -122,7 +122,7 @@ struct Activation final : public iLayer
 	}
 
 private:
-	iLayer* clone_impl (std::string label_prefix) const override
+	iLayer* clone_impl (const std::string& label_prefix) const override
 	{
 		return new Activation(*this, label_prefix);
 	}
@@ -144,4 +144,4 @@ LayerptrT tanh (std::string label = "tanh");
 
 }
 
-#endif // MODL_ACTIVATIONS_HPP
+#endif // LAYR_ACTIVATIONS_HPP
