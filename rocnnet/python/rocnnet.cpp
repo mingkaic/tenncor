@@ -14,8 +14,8 @@
 #include "layr/dense.hpp"
 #include "layr/rbm.hpp"
 #include "layr/model.hpp"
-// #include "layr/dbn.hpp"
 // #include "layr/conv.hpp"
+// #include "layr/dbn.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"

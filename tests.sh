@@ -14,10 +14,25 @@ free -m;
 echo "===== TESTS =====";
 
 bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" --define ETEQ_CFG=MIN \
-//teq:test //tag:test //pbm:test //opt:test //opt/parse:test //eteq:ctest //perf:test //ccur:test
+//teq:test \
+//tag:test \
+//pbm:test \
+//opt:test //opt/parse:test \
+//eteq:ctest \
+//perf:test \
+//ccur:test \
+//layr:test
 
 bazel test --run_under='valgrind --leak-check=full' --define ETEQ_CFG=MIN \
-//teq:test //gen:ptest //tag:test //pbm:test //opt:test //opt/parse:test //eteq:ctest //eteq:ptest //perf:test //ccur:test
+//teq:test \
+//gen:ptest \
+//tag:test \
+//pbm:test \
+//opt:test //opt/parse:test \
+//eteq:ctest //eteq:ptest \
+//perf:test \
+//ccur:test \
+//layr:test
 
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";
