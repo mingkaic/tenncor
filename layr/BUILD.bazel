@@ -23,7 +23,7 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "modl",
+    name = "layr",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
@@ -34,10 +34,10 @@ cc_library(
 
 cc_test(
     name = "test",
-    srcs = ["//modl:test_srcs"],
+    srcs = ["//layr:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//modl:modl",
+        "//layr:layr",
         "//dbg:stream_out",
         "//testutil:tutil",
         "@gtest//:gtest",

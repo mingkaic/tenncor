@@ -7,53 +7,55 @@
 namespace trainer
 {
 
-static bool is_dbn (layr::SequentialModel& model)
+static bool is_dbn (layr::SequentialModel& model, layr::SequentialModel& rbms)
 {
 	auto layers = model.get_layers();
+	auto rbs = rbms.get_layers();
+
 	size_t n = layers.size();
-	if (1 < n)
+	// each layer with dbn should have activations,
+	// therefore n is a multiple of 2
+	if (1 == n % 2)
 	{
 		return false;
 	}
+
 	size_t i = 0;
-	// dbn can start with a series of dense layers
-	for (; i < n - 1; ++i)
+	// dbn can start with a series of dense/rbm layers with sigmoid activations
+	for (; i < n - 2; i += 2)
 	{
-		auto ltype = layers[i]->get_ltype();
-		if (ltype == layr::rbm_layer_key)
-		{
-			break;
-		}
-		if (ltype != layr::dense_layer_key)
-		{
-			return false;
-		}
-	}
-	// dbn must have at least 1 rbm layer
-	if (i >= n - 1)
-	{
-		return false;
-	}
-	for (; i < n - 1; ++i)
-	{
-		if (layers[i]->get_ltype() != layr::rbm_layer_key)
+		auto dense_ltype = layers[i]->get_ltype();
+		auto activation_ltype = layers[i + 1]->get_ltype();
+		if ((dense_ltype != layr::rbm_layer_key &&
+			dense_ltype != layr::dense_layer_key) ||
+			activation_ltype != layr::sigmoid_layer_key)
 		{
 			return false;
 		}
 	}
-	// dbn must end with a dense or rbm layer
-	auto ltype = layers[n - 1]->get_ltype();
-	if (ltype != layr::dense_layer_key &&
-		ltype != layr::rbm_layer_key)
+	// dbn must end with a dense or rbm layer with softmax activations
+	auto dense_ltype = layers[n - 2]->get_ltype();
+	auto activation_ltype = layers[n - 1]->get_ltype();
+	if ((dense_ltype != layr::dense_layer_key &&
+		dense_ltype != layr::rbm_layer_key) ||
+		activation_ltype != layr::softmax_layer_key)
 	{
 		return false;
+	}
+	for (auto rbm : rbs)
+	{
+		if (rbm->get_ltype() != layr::rbm_layer_key)
+		{
+			return false;
+		}
 	}
 	return true;
 }
 
 struct DBNTrainer final
 {
-	DBNTrainer (layr::DBNptrT brain,
+	DBNTrainer (layr::SequentialModel& model,
+		layr::SequentialModel& rbms,
 		uint8_t batch_size,
 		PybindT learning_rate = 1e-3,
 		size_t n_cont_div = 10,

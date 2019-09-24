@@ -38,7 +38,7 @@ P2 - test dbg module
 P2 - test opt module more
 P3 - test complicate equations (generate random valid equations)
 P3 - maximize coverage
-P3 - test rocnnet + eqns, modl, and trainer (or subgraph equivalent)
+P3 - test rocnnet, layr, and trainer (or subgraph equivalent)
 
 === transparency ===
 P2 - provide graph-setup time summary when failing to match shapes
