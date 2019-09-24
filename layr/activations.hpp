@@ -48,7 +48,7 @@ get_layer_reg().register_tagr(layers_key_prefix + "tanh",
 });
 
 const std::string softmax0_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "softmax",
+get_layer_reg().register_tagr(layers_key_prefix + "softmax0",
 [](teq::TensrefT ref, std::string label)
 {
 	get_layer_reg().layer_tag(ref, softmax0_layer_key, label);
