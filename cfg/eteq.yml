@@ -1206,12 +1206,18 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
+                  if (offset + ndims > teq::rank_cap)
+                  {
+                      logs::fatalf("cannot perform softmax on dimensions beyond %d",
+                          teq::rank_cap);
+                  }
                   auto exarg = exp(arg);
                   teq::Shape shape = exarg->shape();
                   auto it = shape.begin() + offset;
                   std::vector<teq::DimT> xlist(it, it + ndims);
                   auto out = ::tenncor::div(exarg,
-                      ::tenncor::extend(::tenncor::reduce_sum(exarg, offset, ndims),
+                      ::tenncor::extend(
+                          ::tenncor::reduce_sum(exarg, offset, ndims),
                       offset, xlist));
                   tag::recursive_group_tag(out->get_tensor(), "softmax", {
                       arg->get_tensor().get()});

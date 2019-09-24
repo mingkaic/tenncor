@@ -47,10 +47,23 @@ get_layer_reg().register_tagr(layers_key_prefix + "tanh",
 	return std::make_shared<ActivationBuilder>(tanh_layer_key, label);
 });
 
+const std::string softmax0_layer_key =
+get_layer_reg().register_tagr(layers_key_prefix + "softmax",
+[](teq::TensrefT ref, std::string label)
+{
+	get_layer_reg().layer_tag(ref, softmax0_layer_key, label);
+},
+[](std::string label) -> LBuilderptrT
+{
+	return std::make_shared<ActivationBuilder>(softmax0_layer_key, label);
+});
+
 const std::unordered_map<std::string,NonLinearF> activations =
 {
 	{sigmoid_layer_key, tenncor::sigmoid<PybindT>},
 	{tanh_layer_key, tenncor::tanh<PybindT>},
+	{softmax0_layer_key, [](eteq::NodeptrT<PybindT> input)
+		{ return tenncor::softmax<PybindT>(input, 0, 1); }},
 };
 
 struct Activation final : public iLayer

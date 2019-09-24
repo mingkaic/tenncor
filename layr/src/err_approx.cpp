@@ -20,7 +20,6 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 	{
 		auto leaf_node = eteq::convert_to_node(leaves[i].first);
 		auto err = leaves[i].second;
-		teq::Shape eshape = err->shape();
 		auto next = leaf_node - err * learning_rate;
 		assignments.push_back(VarAssign{
 			fmts::sprintf("sgd::%s_grad_%s",

@@ -427,7 +427,7 @@ class EADTest(unittest.TestCase):
             self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
                 offset=0, ndims=1), tf.nn.softmax)
             self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
-                offset=1, ndims=1), tf.nn.softmax)
+                offset=1, ndims=1), lambda arr: tf.nn.softmax(arr, axis=-2))
 
     def test_square(self):
         shapes = [[3, 4, 5]]

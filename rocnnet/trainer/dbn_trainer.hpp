@@ -38,7 +38,7 @@ static bool is_dbn (layr::SequentialModel& model, layr::SequentialModel& rbms)
 	auto activation_ltype = layers[n - 1]->get_ltype();
 	if ((dense_ltype != layr::dense_layer_key &&
 		dense_ltype != layr::rbm_layer_key) ||
-		activation_ltype != layr::softmax_layer_key)
+		activation_ltype != layr::softmax0_layer_key)
 	{
 		return false;
 	}
