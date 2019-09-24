@@ -124,6 +124,11 @@ struct SequentialModel final : public iLayer
 		return out;
 	}
 
+	std::vector<LayerptrT> get_layers (void) const
+	{
+		return layers_;
+	}
+
 	void push_back (LayerptrT layer)
 	{
 		// label layer content

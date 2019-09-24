@@ -1,6 +1,55 @@
-#include "layr/dbn.hpp"
+#include "layr/dense.hpp"
+#include "layr/rbm.hpp"
 
-#include "rocnnet/trainer/rbm_trainer.hpp"
+#ifndef RCN_DBN_TRAINER_HPP
+#define RCN_DBN_TRAINER_HPP
+
+namespace trainer
+{
+
+static bool is_dbn (layr::SequentialModel& model)
+{
+	auto layers = model.get_layers();
+	size_t n = layers.size();
+	if (1 < n)
+	{
+		return false;
+	}
+	size_t i = 0;
+	// dbn can start with a series of dense layers
+	for (; i < n - 1; ++i)
+	{
+		auto ltype = layers[i]->get_ltype();
+		if (ltype == layr::rbm_layer_key)
+		{
+			break;
+		}
+		if (ltype != layr::dense_layer_key)
+		{
+			return false;
+		}
+	}
+	// dbn must have at least 1 rbm layer
+	if (i >= n - 1)
+	{
+		return false;
+	}
+	for (; i < n - 1; ++i)
+	{
+		if (layers[i]->get_ltype() != layr::rbm_layer_key)
+		{
+			return false;
+		}
+	}
+	// dbn must end with a dense or rbm layer
+	auto ltype = layers[n - 1]->get_ltype();
+	if (ltype != layr::dense_layer_key &&
+		ltype != layr::rbm_layer_key)
+	{
+		return false;
+	}
+	return true;
+}
 
 struct DBNTrainer final
 {
@@ -100,3 +149,7 @@ struct DBNTrainer final
 
 	eteq::CacheSpace<PybindT> caches_;
 };
+
+}
+
+#endif // RCN_DBN_TRAINER_HPP

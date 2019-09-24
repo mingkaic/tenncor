@@ -2,10 +2,10 @@
 
 #include "layr/model.hpp"
 
-#include "rocnnet/layr/err_approx.hpp"
+#include "layr/err_approx.hpp"
 
-#ifndef LAYR_MLP_TRAINER_HPP
-#define LAYR_MLP_TRAINER_HPP
+#ifndef RCN_MLP_TRAINER_HPP
+#define RCN_MLP_TRAINER_HPP
 
 namespace trainer
 {
@@ -115,4 +115,4 @@ struct MLPTrainer final
 
 }
 
-#endif // LAYR_MLP_TRAINER_HPP
+#endif // RCN_MLP_TRAINER_HPP

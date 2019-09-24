@@ -1,9 +1,9 @@
 #include "layr/rbm.hpp"
 
-#include "rocnnet/layr/err_approx.hpp"
+#include "layr/err_approx.hpp"
 
-#ifndef LAYR_RBM_TRAINER_HPP
-#define LAYR_RBM_TRAINER_HPP
+#ifndef RCN_RBM_TRAINER_HPP
+#define RCN_RBM_TRAINER_HPP
 
 namespace trainer
 {
@@ -182,4 +182,4 @@ private:
 
 }
 
-#endif // LAYR_RBM_TRAINER_HPP
+#endif // RCN_RBM_TRAINER_HPP

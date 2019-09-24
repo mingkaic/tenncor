@@ -8,7 +8,7 @@
 
 #include "eteq/generated/pyapi.hpp"
 
-#include "rocnnet/layr/init.hpp"
+#include "layr/init.hpp"
 
 #include "layr/activations.hpp"
 #include "layr/dense.hpp"

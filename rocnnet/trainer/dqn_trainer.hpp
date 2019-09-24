@@ -3,8 +3,8 @@
 
 #include "layr/model.hpp"
 
-#ifndef LAYR_DQN_TRAINER_HPP
-#define LAYR_DQN_TRAINER_HPP
+#ifndef RCN_DQN_TRAINER_HPP
+#define RCN_DQN_TRAINER_HPP
 
 namespace trainer
 {
@@ -389,4 +389,4 @@ private:
 
 }
 
-#endif // LAYR_DQN_TRAINER_HPP
+#endif // RCN_DQN_TRAINER_HPP
