@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === feature ===
-P2 - update API to simplify operator with constants e.g.: X + 1 instead of explicitly creating constant 1
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (denoted in python by None)
 P2 - make shape dimension size configurable
 P2 - make constant pre-calculation configurable in opt module
@@ -17,7 +16,7 @@ P4 - implement reduce_prod gradient using Eigen cumprod
 
 === performance ===
 general performance:
-P2 - ensure ade is thread-safe
+P2 - ensure teq is thread-safe
 P3 - benchmark test rocnnet against various other frameworks (CPU only)
 P3 - convert as many shared_ptr to unique_ptr
 P4 - remove unordered_map/unordered_set if we're not using them properly

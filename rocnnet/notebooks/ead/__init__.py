@@ -1,1 +1,1 @@
-import ead
+import eteq

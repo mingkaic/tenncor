@@ -16,11 +16,11 @@ TEST(GROUP, SingleTagAdjacency)
 	tag::TagRegistry treg;
 	tag::GroupRegistry registry(treg);
 	{
-		ade::TensptrT tens = std::make_shared<MockTensor>();
-		ade::TensptrT tens2 = std::make_shared<MockTensor>();
-		ade::TensptrT f(ade::Functor::get(ade::Opcode{"MOCK", 2}, {
-			ade::identity_map(tens),
-			ade::identity_map(tens2),
+		teq::TensptrT tens = std::make_shared<MockTensor>();
+		teq::TensptrT tens2 = std::make_shared<MockTensor>();
+		teq::TensptrT f(teq::Functor::get(teq::Opcode{"MOCK", 2}, {
+			teq::identity_map(tens),
+			teq::identity_map(tens2),
 		}));
 
 		registry.group_tag(tens, "group2");
@@ -77,37 +77,37 @@ TEST(GROUP, RecursiveTagAdjacency)
 	tag::TagRegistry treg;
 	tag::GroupRegistry registry(treg);
 	{
-		ade::TensptrT tens = std::make_shared<MockTensor>();
-		ade::TensptrT tens2 = std::make_shared<MockTensor>();
-		ade::TensptrT f(ade::Functor::get(ade::Opcode{"MOCK", 2}, {
-			ade::identity_map(tens),
-			ade::identity_map(tens2),
+		teq::TensptrT tens = std::make_shared<MockTensor>();
+		teq::TensptrT tens2 = std::make_shared<MockTensor>();
+		teq::TensptrT f(teq::Functor::get(teq::Opcode{"MOCK", 2}, {
+			teq::identity_map(tens),
+			teq::identity_map(tens2),
 		}));
-		ade::TensptrT f2(ade::Functor::get(ade::Opcode{"MOCK", 2}, {
-			ade::identity_map(tens),
-			ade::identity_map(tens2),
+		teq::TensptrT f2(teq::Functor::get(teq::Opcode{"MOCK", 2}, {
+			teq::identity_map(tens),
+			teq::identity_map(tens2),
 		}));
 
 		tag::recursive_group_tag(tens, "group2",
-			std::unordered_set<ade::iTensor*>{},
+			std::unordered_set<teq::iTensor*>{},
 			registry);
 		tag::recursive_group_tag(tens2, "group2",
-			std::unordered_set<ade::iTensor*>{},
+			std::unordered_set<teq::iTensor*>{},
 			registry);
 		tag::recursive_group_tag(tens, "group7",
-			std::unordered_set<ade::iTensor*>{},
+			std::unordered_set<teq::iTensor*>{},
 			registry);
 		tag::recursive_group_tag(f, "group1",
-			std::unordered_set<ade::iTensor*>{},
+			std::unordered_set<teq::iTensor*>{},
 			registry);
 		tag::recursive_group_tag(f, "group3",
-			std::unordered_set<ade::iTensor*>{tens.get()},
+			std::unordered_set<teq::iTensor*>{tens.get()},
 			registry);
 		tag::recursive_group_tag(f, "group4",
-			std::unordered_set<ade::iTensor*>{tens.get(), tens2.get()},
+			std::unordered_set<teq::iTensor*>{tens.get(), tens2.get()},
 			registry);
 		tag::recursive_group_tag(f2, "group1",
-			std::unordered_set<ade::iTensor*>{},
+			std::unordered_set<teq::iTensor*>{},
 			registry);
 
 		tag::AdjMapT adjs;
@@ -173,28 +173,28 @@ TEST(GROUP, Subgraph)
 	tag::TagRegistry treg;
 	tag::GroupRegistry registry(treg);
 	{
-		ade::TensptrT tens = std::make_shared<MockTensor>();
-		ade::TensptrT tens2 = std::make_shared<MockTensor>();
-		ade::TensptrT f(ade::Functor::get(ade::Opcode{"MOCK", 2}, {
-			ade::identity_map(tens),
-			ade::identity_map(tens2),
+		teq::TensptrT tens = std::make_shared<MockTensor>();
+		teq::TensptrT tens2 = std::make_shared<MockTensor>();
+		teq::TensptrT f(teq::Functor::get(teq::Opcode{"MOCK", 2}, {
+			teq::identity_map(tens),
+			teq::identity_map(tens2),
 		}));
 
 		tag::AdjMapT adjs =
 		{
-			std::pair<ade::iTensor*,tag::AGroupsT>{f.get(),
+			std::pair<teq::iTensor*,tag::AGroupsT>{f.get(),
 			tag::AGroupsT{
 				{"group1", {"lytening"}},
 				{"group3", {"fyreball"}},
 				{"group4", {"frostbyte"}},
 			}},
-			std::pair<ade::iTensor*,tag::AGroupsT>{tens.get(),
+			std::pair<teq::iTensor*,tag::AGroupsT>{tens.get(),
 			tag::AGroupsT{
 				{"group7", {"kaostorm"}},
 				{"group2", {"mudslyde"}},
 				{"group1", {"lytening"}},
 			}},
-			std::pair<ade::iTensor*,tag::AGroupsT>{tens2.get(),
+			std::pair<teq::iTensor*,tag::AGroupsT>{tens2.get(),
 			tag::AGroupsT{
 				{"group2", {"sandstrum"}},
 				{"group1", {"lytening"}},

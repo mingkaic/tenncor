@@ -1,9 +1,9 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "ead/generated/pyapi.hpp"
-#include "ead/ead.hpp"
-#include "ead/parse.hpp"
+#include "eteq/generated/pyapi.hpp"
+#include "eteq/eteq.hpp"
+#include "eteq/parse.hpp"
 
 #include "dbg/grpc/session.hpp"
 
@@ -11,15 +11,15 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(grpc_dbg, m)
 {
-	m.doc() = "dbg ade equation graphs using interactive grpc session";
+	m.doc() = "dbg teq equation graphs using interactive grpc session";
 
 	py::object isess = (py::object)
-		py::module::import("ead.ead").attr("iSession");
+		py::module::import("eteq.eteq").attr("iSession");
 
 	py::class_<dbg::InteractiveSession,
 		std::shared_ptr<dbg::InteractiveSession>> session(
 			m, "InteractiveSession", isess);
-	py::implicitly_convertible<ead::iSession,dbg::InteractiveSession>();
+	py::implicitly_convertible<eteq::iSession,dbg::InteractiveSession>();
 
 	m.def("get_isess",
 		[](std::string host, size_t request_duration, size_t stream_duration)
@@ -34,14 +34,14 @@ PYBIND11_MODULE(grpc_dbg, m)
 			py::arg("stream_dur") = 30000);
 	session
 		.def("track",
-		[](py::object self, ead::NodesT<PybindT> roots)
+		[](py::object self, eteq::NodesT<PybindT> roots)
 		{
 			auto sess = self.cast<dbg::InteractiveSession*>();
-			ade::TensT troots;
+			teq::TensT troots;
 			troots.reserve(roots.size());
 			std::transform(roots.begin(), roots.end(),
 				std::back_inserter(troots),
-				[](ead::NodeptrT<PybindT>& node)
+				[](eteq::NodeptrT<PybindT>& node)
 				{
 					return node->get_tensor();
 				});
@@ -49,37 +49,37 @@ PYBIND11_MODULE(grpc_dbg, m)
 		},
 		"Track node")
 		.def("update",
-		[](py::object self, std::vector<ead::NodeptrT<PybindT>> nodes)
+		[](py::object self, std::vector<eteq::NodeptrT<PybindT>> nodes)
 		{
 			auto sess = self.cast<dbg::InteractiveSession*>();
-			std::unordered_set<ade::iTensor*> updates;
-			for (ead::NodeptrT<PybindT>& node : nodes)
+			std::unordered_set<teq::iTensor*> updates;
+			for (eteq::NodeptrT<PybindT>& node : nodes)
 			{
 				updates.emplace(node->get_tensor().get());
 			}
 			sess->update(updates);
 		},
 		"Return calculated data",
-		py::arg("nodes") = std::vector<ead::NodeptrT<PybindT>>{})
+		py::arg("nodes") = std::vector<eteq::NodeptrT<PybindT>>{})
 		.def("update_target",
-		[](py::object self, std::vector<ead::NodeptrT<PybindT>> targeted,
-			std::vector<ead::NodeptrT<PybindT>> updated)
+		[](py::object self, std::vector<eteq::NodeptrT<PybindT>> targeted,
+			std::vector<eteq::NodeptrT<PybindT>> updated)
 		{
 			auto sess = self.cast<dbg::InteractiveSession*>();
-			std::unordered_set<ade::iTensor*> targets;
-			std::unordered_set<ade::iTensor*> updates;
-			for (ead::NodeptrT<PybindT>& node : targeted)
+			std::unordered_set<teq::iTensor*> targets;
+			std::unordered_set<teq::iTensor*> updates;
+			for (eteq::NodeptrT<PybindT>& node : targeted)
 			{
 				targets.emplace(node->get_tensor().get());
 			}
-			for (ead::NodeptrT<PybindT>& node : updated)
+			for (eteq::NodeptrT<PybindT>& node : updated)
 			{
 				updates.emplace(node->get_tensor().get());
 			}
 			sess->update_target(targets, updates);
 		},
 		"Calculate node relevant to targets in the graph given list of updated data",
-		py::arg("targets"), py::arg("updated") = std::vector<ead::NodeptrT<PybindT>>{})
+		py::arg("targets"), py::arg("updated") = std::vector<eteq::NodeptrT<PybindT>>{})
 		.def("join",
 		[](py::object self)
 		{
@@ -97,7 +97,7 @@ PYBIND11_MODULE(grpc_dbg, m)
 		[](py::object self, std::string filename)
 		{
 			auto sess = self.cast<dbg::InteractiveSession*>();
-			opt::OptCtx rules = ead::parse_file<PybindT>("cfg/optimizations.rules");
+			opt::OptCtx rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
 			sess->optimize(rules);
 		},
 		"Optimize using rules for specified filename");

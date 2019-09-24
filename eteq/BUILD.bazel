@@ -1,0 +1,166 @@
+licenses(["notice"])
+
+load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
+    ]),
+)
+
+filegroup(
+    name = "benchmark_srcs",
+    srcs = glob([
+        "bm/*.hpp",
+        "bm/*.cpp",
+    ]),
+)
+
+######### LIBRARY #########
+
+py_binary(
+    name = "egen",
+    srcs = glob(["gen/egen.py", "gen/plugins/*.py"]),
+    deps = ["//gen:gen"],
+)
+
+config_setting(
+    name = "fast_build",
+    values = {
+        "define": "ETEQ_CFG=MIN",
+    },
+)
+
+genrule(
+    name = "generated_ead",
+    srcs = select({
+        "//conditions:default": ["//cfg:eteq"],
+        ":fast_build": ["//cfg:eteq_min"]
+    }),
+    outs = [
+        "generated/api.hpp",
+        "generated/api.cpp",
+        "generated/opcode.hpp",
+        "generated/opcode.cpp",
+        "generated/dtype.hpp",
+        "generated/dtype.cpp",
+        "generated/pyapi.hpp",
+        "generated/pyapi_tenncor.cpp",
+    ],
+    tools = ["//eteq:egen"],
+    cmd = select({
+        "//conditions:default": "$(location //eteq:egen) " +
+        "--cfg $(location //cfg:eteq) " +
+        "--out $(@D)/generated " +
+        "--strip_prefix=$$(dirname $(@D))",
+
+        ":fast_build": "$(location //eteq:egen) " +
+        "--cfg $(location //cfg:eteq_min) " +
+        "--out $(@D)/generated " +
+        "--strip_prefix=$$(dirname $(@D))",
+    })
+)
+
+cc_library(
+    name = "eteq",
+    hdrs = glob([
+        "*.hpp",
+        "opt/*.hpp",
+    ]) + [
+        "//eteq:generated/api.hpp",
+        "//eteq:generated/opcode.hpp",
+        "//eteq:generated/dtype.hpp",
+        "//eteq:generated/pyapi.hpp",
+    ],
+    srcs = glob([
+        "src/*.cpp",
+    ]) + [
+        "//eteq:generated/api.cpp",
+        "//eteq:generated/opcode.cpp",
+        "//eteq:generated/dtype.cpp",
+    ],
+    copts = ["-std=c++17"],
+    deps = [
+        "//teq:teq",
+        "//pbm:pbm",
+        "//tag:tag",
+        "//opt:opt",
+        "@com_github_eigenteam_eigen//:eigen",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+pybind_library(
+    name = "tenncor_py",
+    cc_srcs = ["//eteq:generated/pyapi_tenncor.cpp"],
+    cc_deps = ["//eteq:eteq"],
+)
+
+pybind_library(
+    name = "eteq_py",
+    cc_srcs = ["//eteq:python/eteq.cpp"],
+    cc_deps = ["//eteq:eteq"],
+    py_deps = ["//eteq:tenncor_py"],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = ["//eteq:ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//eteq:eteq",
+        "//dbg:stream_out",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+    data = [
+        "//:test_models",
+        "//cfg:optimizations",
+    ],
+)
+
+py_test(
+    name = "ptest",
+    srcs = ["//eteq:ptest_srcs"],
+    deps = [
+        "//eteq:eteq_py",
+        "//testutil:pyunit_util",
+    ],
+    data = ["//testutil:ead_testcase_template"],
+)
+
+######### BENCHMARK #########
+
+cc_binary(
+    name = "benchmark",
+    srcs = ["bm/benchmark.cpp"],
+    deps = [
+        "//eteq:eteq",
+        "@com_github_google_benchmark//:benchmark",
+    ],
+    copts = ["-std=c++17"],
+    data = ["//cfg:optimizations"],
+)

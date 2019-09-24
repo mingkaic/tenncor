@@ -46,7 +46,7 @@ struct GroupRegistry final
 {
 	GroupRegistry (TagRegistry& registry = get_reg()) : tag_reg_(registry) {}
 
-	void group_tag (ade::TensrefT tens, std::string tag)
+	void group_tag (teq::TensrefT tens, std::string tag)
 	{
 		tag_reg_.add_tag(tens, TagptrT(new GroupTag(tag)));
 
@@ -68,28 +68,28 @@ struct GroupRegistry final
 GroupRegistry& get_group_reg (void);
 
 const std::string groups_key = get_reg().register_tagr("groups",
-[](ade::TensrefT ref, std::string tag)
+[](teq::TensrefT ref, std::string tag)
 {
 	get_group_reg().group_tag(ref, tag);
 });
 
-void recursive_group_tag (ade::TensptrT tens, std::string group,
-	std::unordered_set<ade::iTensor*> stops,
+void recursive_group_tag (teq::TensptrT tens, std::string group,
+	std::unordered_set<teq::iTensor*> stops,
 	GroupRegistry& registry = get_group_reg());
 
 using AGroupsT = std::map<std::string,std::unordered_set<std::string>>;
 
-using AdjMapT = std::unordered_map<ade::iTensor*,AGroupsT>;
+using AdjMapT = std::unordered_map<teq::iTensor*,AGroupsT>;
 
-void adjacencies (AdjMapT& out, ade::TensT roots,
+void adjacencies (AdjMapT& out, teq::TensT roots,
 	GroupRegistry& registry = get_group_reg());
 
-struct Subgraph final : public ade::iTraveler
+struct Subgraph final : public teq::iTraveler
 {
 	Subgraph (std::string group) : group_(group) {}
 
 	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
+	void visit (teq::iLeaf* leaf) override
 	{
 		if (false == estd::has(content_, leaf))
 		{
@@ -99,7 +99,7 @@ struct Subgraph final : public ade::iTraveler
 	}
 
 	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
+	void visit (teq::iFunctor* func) override
 	{
 		if (false == estd::has(content_, func))
 		{
@@ -120,17 +120,17 @@ struct Subgraph final : public ade::iTraveler
 
 	std::string group_;
 
-	std::unordered_set<ade::iTensor*> content_;
+	std::unordered_set<teq::iTensor*> content_;
 
 	// todo: order subgraphs children somehow
-	std::unordered_map<ade::iTensor*,ade::TensptrT> children_;
+	std::unordered_map<teq::iTensor*,teq::TensptrT> children_;
 };
 
 using SgraphptrT = std::shared_ptr<Subgraph>;
 
 using SubgraphsT = std::unordered_set<SgraphptrT>;
 
-using SubgraphAssocsT = std::unordered_map<ade::iTensor*,SubgraphsT>;
+using SubgraphAssocsT = std::unordered_map<teq::iTensor*,SubgraphsT>;
 
 void beautify_groups (SubgraphAssocsT& out, const AdjMapT& adjs);
 

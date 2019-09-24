@@ -2,9 +2,9 @@ COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 
 COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*'
 
-CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage --define EAD_CFG=MIN
+CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage --define ETEQ_CFG=MIN
 
-ADE_TEST := //ade:test
+TEQ_TEST := //teq:test
 
 TAG_TEST := //tag:test
 
@@ -12,7 +12,7 @@ PBM_TEST := //pbm:test
 
 OPT_TEST := //opt/...
 
-EAD_CTEST := //ead:ctest
+ETEQ_CTEST := //eteq:ctest
 
 CC := gcc
 
@@ -26,34 +26,34 @@ print_vars:
 rocnnet_py_build:
 	bazel build --config $(CC)_eigen_optimal //rocnnet:rocnnet_py
 
-rocnnet_py_export: bazel-bin/rocnnet/rocnnet.so bazel-bin/ead/tenncor.so bazel-bin/ead/ead.so
+rocnnet_py_export: bazel-bin/rocnnet/rocnnet.so bazel-bin/eteq/tenncor.so bazel-bin/eteq/eteq.so
 	cp -f bazel-bin/rocnnet/rocnnet.so rocnnet/notebooks/rocnnet
-	cp -f bazel-bin/ead/*.so rocnnet/notebooks/ead
+	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
 
 
 coverage:
-	$(CCOVER) $(ADE_TEST) $(TAG_TEST) $(PBM_TEST) $(OPT_TEST) $(EAD_CTEST)
+	$(CCOVER) $(TEQ_TEST) $(TAG_TEST) $(PBM_TEST) $(OPT_TEST) $(ETEQ_CTEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
 cover_ade:
-	$(CCOVER) $(ADE_TEST)
+	$(CCOVER) $(TEQ_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
 cover_tag:
 	$(CCOVER) $(TAG_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' -o coverage.info
 
 cover_pbm:
 	$(CCOVER) $(PBM_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' -o coverage.info
 
 cover_opt:
 	$(CCOVER) $(OPT_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'ead/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'eteq/*' -o coverage.info
 
 cover_ead:
-	$(CCOVER) $(EAD_CTEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'ade/*' 'tag/*' 'opt/*' -o coverage.info
+	$(CCOVER) $(ETEQ_CTEST)
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' -o coverage.info
 
 
 # optimized comparisons

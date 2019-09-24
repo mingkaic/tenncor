@@ -6,22 +6,22 @@
 
 #include "exam/exam.hpp"
 
-#include "ead/ead.hpp"
+#include "eteq/eteq.hpp"
 
 #include "opt/voter.hpp"
 #include "opt/matcher.hpp"
 
 
 #define ELEMENTARY(LABEL, TYPE)opt::VoterArg{\
-	LABEL,ade::CoordptrT(),ade::CoordptrT(), TYPE}
+	LABEL,teq::CoordptrT(),teq::CoordptrT(), TYPE}
 
 
 TEST(MATCHER, OrdrAny)
 {
-	std::vector<ade::DimT> slist = {3, 2};
-	ade::Shape shape(slist);
-	ead::NodeptrT<float> a = ead::make_variable_scalar<float>(2, shape);
-	ead::NodeptrT<float> b = ead::make_variable_scalar<float>(3, shape);
+	std::vector<teq::DimT> slist = {3, 2};
+	teq::Shape shape(slist);
+	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto f1 = tenncor::pow(a, b);
 	auto f2 = tenncor::pow(a, a);
@@ -77,10 +77,10 @@ TEST(MATCHER, OrdrAny)
 
 TEST(MATCHER, CommAny)
 {
-	std::vector<ade::DimT> slist = {3, 2};
-	ade::Shape shape(slist);
-	ead::NodeptrT<float> a = ead::make_variable_scalar<float>(2, shape);
-	ead::NodeptrT<float> b = ead::make_variable_scalar<float>(3, shape);
+	std::vector<teq::DimT> slist = {3, 2};
+	teq::Shape shape(slist);
+	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto f1 = tenncor::mul(a, b);
 	auto f2 = tenncor::mul(a, a);
@@ -176,10 +176,10 @@ TEST(MATCHER, CommAny)
 
 TEST(MATCHER, Ambiguous_CommAny)
 {
-	std::vector<ade::DimT> slist = {3, 2};
-	ade::Shape shape(slist);
-	ead::NodeptrT<float> a = ead::make_variable_scalar<float>(2, shape);
-	ead::NodeptrT<float> b = ead::make_variable_scalar<float>(3, shape);
+	std::vector<teq::DimT> slist = {3, 2};
+	teq::Shape shape(slist);
+	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto same = tenncor::mul(a, b);
 	auto sub_l = tenncor::mul(same, a); // match against similar and similar2

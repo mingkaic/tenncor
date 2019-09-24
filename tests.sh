@@ -13,11 +13,11 @@ free -m;
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" --define EAD_CFG=MIN \
-//ade:test //tag:test //pbm:test //opt:test //opt/parse:test //ead:ctest //perf:test //pll:test
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" --define ETEQ_CFG=MIN \
+//teq:test //tag:test //pbm:test //opt:test //opt/parse:test //eteq:ctest //perf:test //ccur:test
 
-bazel test --run_under='valgrind --leak-check=full' --define EAD_CFG=MIN \
-//ade:test //gen:ptest //tag:test //pbm:test //opt:test //opt/parse:test //ead:ctest //ead:ptest //perf:test //pll:test
+bazel test --run_under='valgrind --leak-check=full' --define ETEQ_CFG=MIN \
+//teq:test //gen:ptest //tag:test //pbm:test //opt:test //opt/parse:test //eteq:ctest //eteq:ptest //perf:test //ccur:test
 
 # ===== Coverage Analysis ======
 echo "===== STARTING COVERAGE ANALYSIS =====";

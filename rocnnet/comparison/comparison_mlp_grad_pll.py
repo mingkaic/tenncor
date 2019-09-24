@@ -5,10 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import ead.tenncor as tc
-import ead.ead as ead
+import eteq.tenncor as tc
+import eteq.eteq as eteq
 
-import pll.pll as pll
+import ccur.ccur as ccur
 
 import rocnnet.rocnnet as rcn
 
@@ -132,7 +132,7 @@ for matrix_dim in matrix_dims:
     n_out = int(n_in / 2)
     batch_size = 1
 
-    sess = pll.Session(nthread=4)
+    sess = ccur.Session(nthread=4)
     tfsess = tf.compat.v1.Session()
 
     # regular mlp
@@ -146,10 +146,10 @@ for matrix_dim in matrix_dims:
         bias_init=rcn.zero_init(), label="1"))
     brain.add(rcn.sigmoid())
 
-    invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
+    invar = eteq.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)
-    expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
-    err = tc.square(tc.sub(expected_out, out))
+    expected_out = eteq.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
+    err = tc.square(expected_out - out)
 
     trainer = rcn.MLPTrainer(brain, sess, rcn.get_sgd(learning_rate), batch_size)
 
@@ -213,9 +213,9 @@ for matrix_dim in matrix_dims:
     ead_durs.append(ead_dur)
     tf_durs.append(tf_dur)
 
-print('ead durations: ', ead_durs)
+print('eteq durations: ', ead_durs)
 print('tf durations: ', tf_durs)
-ead_line = plt.plot(matrix_dims, ead_durs, 'r--', label='ead durations')
+ead_line = plt.plot(matrix_dims, ead_durs, 'r--', label='eteq durations')
 tf_line = plt.plot(matrix_dims, tf_durs, 'b--', label='tf durations')
 plt.legend()
 plt.show()

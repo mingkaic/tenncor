@@ -17,7 +17,7 @@ pybind_library(
     name = "rocnnet_py",
     cc_srcs = glob(["python/*.cpp"]),
     cc_deps = ["//rocnnet/trainer:trainer"],
-    py_deps = ["//ead:ead_py"],
+    py_deps = ["//eteq:eteq_py"],
     visibility = ["//visibility:public"],
 )
 
@@ -26,7 +26,7 @@ pybind_library(
 py_binary(
     name = "comparison_matmul",
     srcs = ["comparison/comparison_matmul.py"],
-    deps = ["//ead:ead_py"],
+    deps = ["//eteq:eteq_py"],
 )
 
 py_binary(
@@ -45,7 +45,7 @@ py_binary(
 py_binary(
     name = "comparison_mlp_grad_pll",
     srcs = ["comparison/comparison_mlp_grad_pll.py"],
-    deps = [":rocnnet_py", "//pll:pll_py"],
+    deps = [":rocnnet_py", "//ccur:ccur_py"],
     data = ["//cfg:optimizations"],
 )
 

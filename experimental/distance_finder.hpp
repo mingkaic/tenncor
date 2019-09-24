@@ -1,16 +1,16 @@
-#include "ade/ade.hpp"
+#include "teq/teq.hpp"
 
 namespace experimental
 {
 
-using DistanceMapT = std::unordered_map<ade::iTensor*,size_t>;
+using DistanceMapT = std::unordered_map<teq::iTensor*,size_t>;
 
-using EdgeDistanceMapT = std::unordered_map<ade::iTensor*,ade::DistanceMapT>;
+using EdgeDistanceMapT = std::unordered_map<teq::iTensor*,teq::DistanceMapT>;
 
-struct DistanceFinder final : public ade::iTraveler
+struct DistanceFinder final : public teq::iTraveler
 {
 	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
+	void visit (teq::iLeaf* leaf) override
 	{
 		if (false == estd::has(distances_, leaf))
 		{
@@ -19,7 +19,7 @@ struct DistanceFinder final : public ade::iTraveler
 	}
 
 	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
+	void visit (teq::iFunctor* func) override
 	{
 		if (false == estd::has(distances_, func))
 		{

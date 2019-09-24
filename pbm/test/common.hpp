@@ -1,15 +1,15 @@
-#include "ade/ileaf.hpp"
+#include "teq/ileaf.hpp"
 
-#ifndef ADE_TEST_COMMON_HPP
-#define ADE_TEST_COMMON_HPP
+#ifndef PBM_TEST_COMMON_HPP
+#define PBM_TEST_COMMON_HPP
 
-struct MockTensor final : public ade::iLeaf
+struct MockTensor final : public teq::iLeaf
 {
 	MockTensor (void) = default;
 
-	MockTensor (ade::Shape shape) : shape_(shape) {}
+	MockTensor (teq::Shape shape) : shape_(shape) {}
 
-	const ade::Shape& shape (void) const override
+	const teq::Shape& shape (void) const override
 	{
 		return shape_;
 	}
@@ -49,7 +49,7 @@ struct MockTensor final : public ade::iLeaf
 		return true;
 	}
 
-	ade::Shape shape_;
+	teq::Shape shape_;
 };
 
-#endif // ADE_TEST_COMMON_HPP
+#endif // PBM_TEST_COMMON_HPP

@@ -7,8 +7,8 @@ from tensorflow.examples.tutorials.mnist import input_data
 import matplotlib.pyplot as plt
 import numpy as np
 
-import ead.tenncor as tc
-import ead.ead as ead
+import eteq.tenncor as tc
+import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
 prog_description = 'Demo rbm_trainer'
@@ -16,7 +16,7 @@ prog_description = 'Demo rbm_trainer'
 mnist = input_data.read_data_sets('MNIST_data/', one_hot=True)
 
 def mse_errfunc(x, visible_sample_):
-    return tc.reduce_mean(tc.square(tc.sub(x, visible_sample_)))
+    return tc.reduce_mean(tc.square(x - visible_sample_))
 
 def show_digit(x, plt):
     plt.imshow(x.reshape((28, 28)), cmap=plt.cm.gray)
@@ -54,7 +54,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        ead.seed(args.seedval)
+        eteq.seed(args.seedval)
         np.random.seed(args.seedval)
 
     if args.use_tqdm:
@@ -85,7 +85,7 @@ def main(args):
         print('failed to load from "{}"'.format(args.load))
         trained = model.clone()
 
-    sess = ead.Session()
+    sess = eteq.Session()
     batch_size = 10
 
     trainer = rcn.BernoulliRBMTrainer(
@@ -96,7 +96,7 @@ def main(args):
         discount_factor=momentum,
         err_func=mse_errfunc)
 
-    x = ead.scalar_variable(0, [1, n_visible])
+    x = eteq.scalar_variable(0, [1, n_visible])
     genx = model.backward_connect(
         tc.random.rand_binom_one(model.connect(x)))
 

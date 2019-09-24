@@ -26,10 +26,10 @@ struct iConverterBuilder
 	virtual ConvptrT build (const ::Subgraph* sg, const RulesContext& ctx) const = 0;
 
 	// extended interface to create shaper
-	virtual ade::CoordptrT shaperize (::NumList* list) const = 0;
+	virtual teq::CoordptrT shaperize (::NumList* list) const = 0;
 
 	// extended interface to create coorder
-	virtual ade::CoordptrT coorderize (::NumList* list) const = 0;
+	virtual teq::CoordptrT coorderize (::NumList* list) const = 0;
 };
 
 OptCtx parse (std::string content, const iConverterBuilder& builder);

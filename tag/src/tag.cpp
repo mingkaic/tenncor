@@ -11,16 +11,16 @@ TagRegistry& get_reg (void)
 	return registry;
 }
 
-using RefMapT = std::unordered_map<ade::iTensor*,ade::TensrefT>;
+using RefMapT = std::unordered_map<teq::iTensor*,teq::TensrefT>;
 
-struct Tagger final : public ade::iTraveler
+struct Tagger final : public teq::iTraveler
 {
-	Tagger (std::unordered_set<ade::iTensor*> stops,
-		std::function<void(ade::TensrefT)> tag_op) :
+	Tagger (std::unordered_set<teq::iTensor*> stops,
+		std::function<void(teq::TensrefT)> tag_op) :
 		stops_(stops), tag_op_(tag_op) {}
 
 	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
+	void visit (teq::iLeaf* leaf) override
 	{
 		if (false == estd::has(stops_, leaf))
 		{
@@ -34,7 +34,7 @@ struct Tagger final : public ade::iTraveler
 	}
 
 	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
+	void visit (teq::iFunctor* func) override
 	{
 		if (false == estd::has(stops_, func))
 		{
@@ -46,7 +46,7 @@ struct Tagger final : public ade::iTraveler
 			auto& children = func->get_children();
 			for (auto& child : children)
 			{
-				ade::TensptrT tens = child.get_tensor();
+				teq::TensptrT tens = child.get_tensor();
 				owners_.emplace(tens.get(), tens);
 				tens->accept(*this);
 			}
@@ -56,14 +56,14 @@ struct Tagger final : public ade::iTraveler
 
 	RefMapT owners_;
 
-	std::unordered_set<ade::iTensor*> stops_;
+	std::unordered_set<teq::iTensor*> stops_;
 
-	std::function<void(ade::TensrefT)> tag_op_;
+	std::function<void(teq::TensrefT)> tag_op_;
 };
 
-void recursive_tag (ade::TensptrT root,
-	std::unordered_set<ade::iTensor*> stops,
-	std::function<void(ade::TensrefT)> tag_op)
+void recursive_tag (teq::TensptrT root,
+	std::unordered_set<teq::iTensor*> stops,
+	std::function<void(teq::TensrefT)> tag_op)
 {
 	Tagger tagger(stops, tag_op);
 	tagger.owners_.emplace(root.get(), root);

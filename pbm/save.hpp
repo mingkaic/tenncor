@@ -9,8 +9,8 @@
 #include <list>
 #include <unordered_set>
 
-#include "ade/traveler.hpp"
-#include "ade/functor.hpp"
+#include "teq/traveler.hpp"
+#include "teq/functor.hpp"
 
 #include "pbm/data.hpp"
 
@@ -21,19 +21,19 @@ namespace pbm
 {
 
 /// Map Tensptrs to a string path type
-using PathedMapT = std::unordered_map<ade::TensptrT,StringsT>;
+using PathedMapT = std::unordered_map<teq::TensptrT,StringsT>;
 
 /// Graph serialization traveler
 template <typename SAVER,
 	typename std::enable_if<
 		std::is_base_of<iSaver,SAVER>::value>::type* = nullptr>
-struct GraphSaver final : public ade::iTraveler
+struct GraphSaver final : public teq::iTraveler
 {
 	GraphSaver (tag::TagRegistry& registry = tag::get_reg()) :
 		registry_(registry) {}
 
 	/// Implementation of iTraveler
-	void visit (ade::iLeaf* leaf) override
+	void visit (teq::iLeaf* leaf) override
 	{
 		if (false == estd::has(visited_, leaf))
 		{
@@ -44,7 +44,7 @@ struct GraphSaver final : public ade::iTraveler
 	}
 
 	/// Implementation of iTraveler
-	void visit (ade::iFunctor* func) override
+	void visit (teq::iFunctor* func) override
 	{
 		if (false == estd::has(visited_, func))
 		{
@@ -52,7 +52,7 @@ struct GraphSaver final : public ade::iTraveler
 			funcs_.push_back(func);
 			visited_.emplace(func);
 
-			ade::ArgsT children = func->get_children();
+			teq::ArgsT children = func->get_children();
 			for (auto& child : children)
 			{
 				child.get_tensor()->accept(*this);
@@ -67,20 +67,20 @@ struct GraphSaver final : public ade::iTraveler
 		// this ensures every children of a node appears before the parent,
 		// as is the order of node creations
 		funcs_.sort(
-			[&](ade::iTensor* a, ade::iTensor* b)
+			[&](teq::iTensor* a, teq::iTensor* b)
 			{
 				return stat.graphsize_[a].upper_ < stat.graphsize_[b].upper_;
 			});
 
-		std::vector<ade::iFunctor*> funcs(funcs_.begin(), funcs_.end());
-		std::vector<ade::iLeaf*> leaves(leaves_.begin(), leaves_.end());
+		std::vector<teq::iFunctor*> funcs(funcs_.begin(), funcs_.end());
+		std::vector<teq::iLeaf*> leaves(leaves_.begin(), leaves_.end());
 
 		// all nodes in leaf appear before funcs
-		std::unordered_map<ade::iTensor*,size_t> ordermap;
+		std::unordered_map<teq::iTensor*,size_t> ordermap;
 		size_t nleaves = leaves.size();
 		for (size_t i = 0; i < nleaves; ++i)
 		{
-			ade::iLeaf* tens = leaves[i];
+			teq::iLeaf* tens = leaves[i];
 			ordermap[tens] = i;
 
 			cortenn::Node* pb_node = out.add_nodes();
@@ -90,20 +90,20 @@ struct GraphSaver final : public ade::iTraveler
 		}
 		for (size_t i = 0, n = funcs.size(); i < n; ++i)
 		{
-			ade::iFunctor* f = funcs[i];
+			teq::iFunctor* f = funcs[i];
 			ordermap[f] = nleaves + i;
 
 			cortenn::Node* pb_node = out.add_nodes();
 			pb_node->set_label(f->to_string());
 			tag_node(pb_node, f, registry_);
 			cortenn::Functor* func = pb_node->mutable_functor();
-			ade::Opcode opcode = f->get_opcode();
+			teq::Opcode opcode = f->get_opcode();
 			func->set_opname(opcode.name_);
-			const ade::ArgsT& children = f->get_children();
+			const teq::ArgsT& children = f->get_children();
 			for (auto& child : children)
 			{
 				cortenn::NodeArg* arg = func->add_args();
-				ade::iTensor* tens = child.get_tensor().get();
+				teq::iTensor* tens = child.get_tensor().get();
 				arg->set_idx(ordermap[tens]);
 				std::vector<double> shaper =
 					saver_.save_shaper(child.get_shaper());
@@ -121,21 +121,21 @@ struct GraphSaver final : public ade::iTraveler
 	}
 
 	/// List of leaves visited (left to right)
-	std::list<ade::iLeaf*> leaves_;
+	std::list<teq::iLeaf*> leaves_;
 
 	/// List of functions visited (by depth-first)
-	std::list<ade::iFunctor*> funcs_;
+	std::list<teq::iFunctor*> funcs_;
 
 	/// Visited nodes
-	std::unordered_set<ade::iTensor*> visited_;
+	std::unordered_set<teq::iTensor*> visited_;
 
 	/// Internal traveler
-	ade::GraphStat stat;
+	teq::GraphStat stat;
 
 private:
-	void save_data (cortenn::Source& out, ade::iLeaf* in)
+	void save_data (cortenn::Source& out, teq::iLeaf* in)
 	{
-		const ade::Shape& shape = in->shape();
+		const teq::Shape& shape = in->shape();
 		google::protobuf::RepeatedField<google::protobuf::uint64> slist(
 			shape.begin(), shape.end());
 		out.mutable_shape()->Swap(&slist);
@@ -145,7 +145,7 @@ private:
 	}
 
 	void tag_node (cortenn::Node* node,
-		ade::iTensor* tens, tag::TagRegistry& registry)
+		teq::iTensor* tens, tag::TagRegistry& registry)
 	{
 		google::protobuf::Map<std::string,cortenn::Tag>* tags =
 			node->mutable_tags();

@@ -1,10 +1,10 @@
-#include "ead/parse.hpp"
-#include "ead/grader.hpp"
+#include "eteq/parse.hpp"
+#include "eteq/grader.hpp"
 
-#include "rocnnet/modl/model.hpp"
+#include "layr/model.hpp"
 
-#ifndef MODL_DQN_TRAINER_HPP
-#define MODL_DQN_TRAINER_HPP
+#ifndef LAYR_DQN_TRAINER_HPP
+#define LAYR_DQN_TRAINER_HPP
 
 namespace trainer
 {
@@ -31,10 +31,10 @@ struct DQNTrainingContext final
 	std::vector<ExpBatch> experiences_;
 
 	// target network
-	modl::SeqModelptrT target_model_ = nullptr;
+	layr::SeqModelptrT target_model_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	ead::NodeptrT<PybindT> next_output_ = nullptr;
+	eteq::NodeptrT<PybindT> next_output_ = nullptr;
 };
 
 struct DQNInfo final
@@ -45,7 +45,7 @@ struct DQNInfo final
 		PybindT target_update_rate = 0.01,
 		PybindT exploration_period = 1000,
 		size_t store_interval = 5,
-		ade::DimT mini_batch_size = 32,
+		teq::DimT mini_batch_size = 32,
 		size_t max_exp = 30000) :
 		train_interval_(train_interval),
 		rand_action_prob_(rand_action_prob),
@@ -63,15 +63,15 @@ struct DQNInfo final
 	PybindT exploration_period_ = 1000;
 	// memory parameters
 	size_t store_interval_ = 5;
-	ade::DimT mini_batch_size_ = 32;
+	teq::DimT mini_batch_size_ = 32;
 	size_t max_exp_ = 30000;
 };
 
 struct DQNTrainer final
 {
-	DQNTrainer (modl::SequentialModel& model,
-		ead::iSession& sess, eqns::ApproxF update, DQNInfo param,
-		eqns::NodeUnarF gradprocess = eqns::NodeUnarF(eqns::identity),
+	DQNTrainer (layr::SequentialModel& model,
+		eteq::iSession& sess, layr::ApproxF update, DQNInfo param,
+		layr::NodeUnarF gradprocess = layr::NodeUnarF(layr::identity),
 		DQNTrainingContext ctx = DQNTrainingContext()) :
 		sess_(&sess),
 		params_(param),
@@ -80,110 +80,105 @@ struct DQNTrainer final
 	{
 		if (nullptr == ctx_.target_model_)
 		{
-			ctx_.target_model_ = modl::SeqModelptrT(model.clone("target_"));
+			ctx_.target_model_ = layr::SeqModelptrT(model.clone("target_"));
 		}
 
-		input_ = ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
-			(ade::DimT) source_model_.get_ninput()}), "observation");
-		train_input_ = ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
-			(ade::DimT) source_model_.get_ninput(),
+		input_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+			(teq::DimT) source_model_.get_ninput()}), "observation");
+		train_input_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+			(teq::DimT) source_model_.get_ninput(),
 			params_.mini_batch_size_}), "train_observation");
-		next_input_ = ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
-			(ade::DimT) source_model_.get_ninput(),
+		next_input_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+			(teq::DimT) source_model_.get_ninput(),
 			params_.mini_batch_size_}), "next_observation");
-		next_output_mask_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({params_.mini_batch_size_}),
+		next_output_mask_ = eteq::make_variable_scalar<PybindT>(0.0,
+			teq::Shape({params_.mini_batch_size_}),
 			"next_observation_mask");
-		reward_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({params_.mini_batch_size_}), "rewards");
-		output_mask_ = ead::make_variable_scalar<PybindT>(0.0,
-			ade::Shape({(ade::DimT) source_model_.get_noutput(),
+		reward_ = eteq::make_variable_scalar<PybindT>(0.0,
+			teq::Shape({params_.mini_batch_size_}), "rewards");
+		output_mask_ = eteq::make_variable_scalar<PybindT>(0.0,
+			teq::Shape({(teq::DimT) source_model_.get_noutput(),
 			params_.mini_batch_size_}), "action_mask");
 
 		// forward action score computation
-		output_ = source_model_.connect(ead::convert_to_node<PybindT>(input_));
+		output_ = source_model_.connect(eteq::convert_to_node<PybindT>(input_));
 
 		train_out_ = source_model_.connect(
-			ead::convert_to_node<PybindT>(train_input_));
+			eteq::convert_to_node<PybindT>(train_input_));
 
 		// predicting target future rewards
 		ctx_.next_output_ = ctx_.target_model_->connect(
-			ead::convert_to_node<PybindT>(next_input_));
+			eteq::convert_to_node<PybindT>(next_input_));
 
-		auto target_values = tenncor::mul(
-			tenncor::reduce_max_1d(ctx_.next_output_, 0),
-			ead::convert_to_node<PybindT>(next_output_mask_));
-		future_reward_ = tenncor::add(ead::convert_to_node<PybindT>(reward_),
-			tenncor::mul(
-				ead::make_constant_scalar<PybindT>(params_.discount_rate_,
-					target_values->shape()),
-				target_values)); // reward for each instance in batch
+		auto target_values =
+			tenncor::reduce_max_1d(ctx_.next_output_, 0) *
+			eteq::convert_to_node<PybindT>(next_output_mask_);
+		// reward for each instance in batch
+		future_reward_ = eteq::convert_to_node<PybindT>(reward_) +
+			params_.discount_rate_ * target_values;
 
 		// prediction error
 		auto masked_output_score = tenncor::reduce_sum_1d(
-			tenncor::mul(train_out_, ead::convert_to_node<PybindT>(output_mask_)), 0);
+			train_out_ * eteq::convert_to_node<PybindT>(output_mask_), 0);
 		prediction_error_ = tenncor::reduce_mean(tenncor::square(
-			tenncor::sub(masked_output_score, future_reward_)));
+			masked_output_score - future_reward_));
 
 		// updates for source network
-		ade::TensT source_contents = source_model_.get_contents();
-		eqns::VarErrsT source_vars;
+		teq::TensT source_contents = source_model_.get_contents();
+		layr::VarErrsT source_vars;
 		for (auto tens : source_contents)
 		{
 			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<PybindT>>(tens))
+				eteq::Variable<PybindT>>(tens))
 			{
-				auto varnode = std::make_shared<ead::VariableNode<PybindT>>(var);
+				auto varnode = std::make_shared<eteq::VariableNode<PybindT>>(var);
 				source_vars.push_back({
 					varnode,
-					gradprocess(ead::derive(prediction_error_, ead::convert_to_node(varnode)))
+					gradprocess(eteq::derive(prediction_error_, eteq::convert_to_node(varnode)))
 				});
 			}
 		}
 		updates_ = update(source_vars);
 
 		// update target network
-		ade::TensT target_contents = ctx_.target_model_->get_contents();
+		teq::TensT target_contents = ctx_.target_model_->get_contents();
 		size_t nvars = source_vars.size();
-		std::vector<ead::VarptrT<PybindT>> target_vars;
+		std::vector<eteq::VarptrT<PybindT>> target_vars;
 		target_vars.reserve(nvars);
 		for (auto tens : target_contents)
 		{
 			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<PybindT>>(tens))
+				eteq::Variable<PybindT>>(tens))
 			{
 				target_vars.push_back(
-					std::make_shared<ead::VariableNode<PybindT>>(var));
+					std::make_shared<eteq::VariableNode<PybindT>>(var));
 			}
 		}
 
-		eqns::AssignsT target_assigns;
+		layr::AssignsT target_assigns;
 		for (size_t i = 0; i < nvars; i++)
 		{
 			// this is equivalent to target = (1-alpha) * target + alpha * source
-			auto target = ead::convert_to_node<PybindT>(target_vars[i]);
-			auto source = ead::convert_to_node<PybindT>(source_vars[i].first);
-			auto diff = tenncor::sub(target, source);
-			auto target_update_rate = ead::make_constant_scalar<PybindT>(
-				params_.target_update_rate_, diff->shape());
+			auto target = eteq::convert_to_node<PybindT>(target_vars[i]);
+			auto source = eteq::convert_to_node<PybindT>(source_vars[i].first);
+			auto diff = target - source;
 
-			auto target_next = tenncor::sub(target, tenncor::mul(
-				target_update_rate, diff));
-			target_assigns.push_back(eqns::VarAssign{
+			auto target_next = target - params_.target_update_rate_ * diff;
+			target_assigns.push_back(layr::VarAssign{
 				fmts::sprintf("target_grad_%s",
 					target_vars[i]->get_label().c_str()),
 				target_vars[i], target_next});
 		}
 		updates_.push_back(target_assigns);
 
-		ade::TensT track_batch = {
+		teq::TensT track_batch = {
 			prediction_error_->get_tensor(),
 			train_out_->get_tensor(),
 			output_->get_tensor(),
 		};
-		for (eqns::AssignsT& assigns : updates_)
+		for (layr::AssignsT& assigns : updates_)
 		{
-			for (eqns::VarAssign& assign : assigns)
+			for (layr::VarAssign& assign : assigns)
 			{
 				track_batch.push_back(assign.source_->get_tensor());
 			}
@@ -290,7 +285,7 @@ struct DQNTrainer final
 				reward_->get_tensor().get(),
 			});
 			assign_groups(updates_,
-				[this](std::unordered_set<ade::iTensor*>& updated)
+				[this](std::unordered_set<teq::iTensor*>& updated)
 				{
 					this->sess_->update(updated);
 				});
@@ -299,7 +294,7 @@ struct DQNTrainer final
 		ctx_.n_train_called_++;
 	}
 
-	ead::NodeptrT<PybindT> get_error (void) const
+	eteq::NodeptrT<PybindT> get_error (void) const
 	{
 		return prediction_error_;
 	}
@@ -311,22 +306,22 @@ struct DQNTrainer final
 
 	// === forward computation ===
 	// fanin: shape <ninput>
-	ead::VarptrT<PybindT> input_ = nullptr;
+	eteq::VarptrT<PybindT> input_ = nullptr;
 
 	// fanout: shape <noutput>
-	ead::NodeptrT<PybindT> output_ = nullptr;
+	eteq::NodeptrT<PybindT> output_ = nullptr;
 
 	// === backward computation ===
 	// train fanin: shape <ninput, batchsize>
-	ead::VarptrT<PybindT> train_input_ = nullptr;
+	eteq::VarptrT<PybindT> train_input_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	ead::NodeptrT<PybindT> train_out_ = nullptr;
+	eteq::NodeptrT<PybindT> train_out_ = nullptr;
 
 	// === updates && optimizer ===
-	eqns::AssignGroupsT updates_;
+	layr::AssignGroupsT updates_;
 
-	ead::iSession* sess_;
+	eteq::iSession* sess_;
 
 private:
 	PybindT linear_annealing (PybindT initial_prob) const
@@ -339,7 +334,7 @@ private:
 
 	PybindT get_random (void)
 	{
-		return explore_(ead::get_engine());
+		return explore_(eteq::get_engine());
 	}
 
 	std::vector<DQNTrainingContext::ExpBatch> random_sample (void)
@@ -361,30 +356,30 @@ private:
 	DQNInfo params_;
 
 	// source network
-	modl::SequentialModel& source_model_;
+	layr::SequentialModel& source_model_;
 
 	// === prediction computation ===
 	// train_fanin: shape <ninput, batchsize>
-	ead::VarptrT<PybindT> next_input_ = nullptr;
+	eteq::VarptrT<PybindT> next_input_ = nullptr;
 
 	// train mask: shape <batchsize>
-	ead::VarptrT<PybindT> next_output_mask_ = nullptr;
+	eteq::VarptrT<PybindT> next_output_mask_ = nullptr;
 
 	// reward associated with next_output_: shape <batchsize>
-	ead::VarptrT<PybindT> reward_ = nullptr;
+	eteq::VarptrT<PybindT> reward_ = nullptr;
 
 	// future reward calculated from reward history: <1, batchsize>
-	ead::NodeptrT<PybindT> future_reward_ = nullptr;
+	eteq::NodeptrT<PybindT> future_reward_ = nullptr;
 
 	// === q-value computation ===
 	// weight output to get overall score: shape <noutput, batchsize>
-	ead::VarptrT<PybindT> output_mask_ = nullptr;
+	eteq::VarptrT<PybindT> output_mask_ = nullptr;
 
 	// overall score: shape <noutput>
-	ead::NodeptrT<PybindT> score_ = nullptr;
+	eteq::NodeptrT<PybindT> score_ = nullptr;
 
 	// future error that we want to minimize: scalar shape
-	ead::NodeptrT<PybindT> prediction_error_ = nullptr;
+	eteq::NodeptrT<PybindT> prediction_error_ = nullptr;
 
 	// states
 	std::uniform_real_distribution<PybindT> explore_;
@@ -394,4 +389,4 @@ private:
 
 }
 
-#endif // MODL_DQN_TRAINER_HPP
+#endif // LAYR_DQN_TRAINER_HPP
