@@ -77,12 +77,10 @@ struct Conv final : public iLayer
 		std::vector<PybindT> data(ndata);
 		std::generate(data.begin(), data.end(), gen);
 
-		eteq::VarptrT<PybindT> weight = eteq::make_variable<PybindT>(
+		weight_ = eteq::make_variable<PybindT>(
 			data.data(), kernelshape, "weight");
-		eteq::VarptrT<PybindT> bias = eteq::make_variable_scalar<PybindT>(
+		bias_ = eteq::make_variable_scalar<PybindT>(
 			0.0, teq::Shape({out_ncol}), "bias");
-		weight_ = std::make_shared<MarshalVar>(weight);
-		bias_ = std::make_shared<MarshalVar>(bias);
 	}
 
 	Conv (eteq::NodeptrT<PybindT> weight,
@@ -123,12 +121,12 @@ struct Conv final : public iLayer
 		return static_cast<Conv*>(this->clone_impl(label_prefix));
 	}
 
-	uint8_t get_ninput (void) const override
+	size_t get_ninput (void) const override
 	{
 		return weight_->shape().at(1);
 	}
 
-	uint8_t get_noutput (void) const override
+	size_t get_noutput (void) const override
 	{
 		return weight_->shape().at(0);
 	}
@@ -145,16 +143,15 @@ struct Conv final : public iLayer
 
 	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
 	{
-		auto out = tenncor::nn::conv2d(input,
-			eteq::convert_to_node<PybindT>(weight_),
-			eteq::convert_to_node<PybindT>(bias_));
-		auto leaves = {
+		auto out = tenncor::nn::conv2d(input, weight_);
+		std::unordered_set<teq::iTensor*> leaves = {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
 		};
-		if (bias)
+		if (bias_)
 		{
-			leaves.push_back(bias_->get_tensor().get());
+			out = out + bias_;
+			leaves.emplace(bias_->get_tensor().get());
 		}
 		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;

@@ -135,13 +135,13 @@ struct Dense final : public iLayer
 	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
 	{
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
-		auto leaves = {
+		std::unordered_set<teq::iTensor*> leaves = {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
 		};
-		if (bias)
+		if (bias_)
 		{
-			leaves.push_back(bias_->get_tensor().get());
+			leaves.emplace(bias_->get_tensor().get());
 		}
 		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;

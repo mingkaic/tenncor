@@ -421,11 +421,13 @@ class EADTest(unittest.TestCase):
 
     def test_softmax(self):
         shapes = [[3, 4, 5]]
-        if 'elementary.shape' in _test_data:
-            shapes += _test_data['elementary.shape']
+        if 'notvector.shape' in _test_data:
+            shapes += _test_data['notvector.shape']
         for shape in shapes:
             self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
                 offset=0, ndims=1), tf.nn.softmax)
+            self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
+                offset=1, ndims=1), tf.nn.softmax)
 
     def test_square(self):
         shapes = [[3, 4, 5]]

@@ -1211,7 +1211,7 @@ api:
                   auto it = shape.begin() + offset;
                   std::vector<teq::DimT> xlist(it, it + ndims);
                   auto out = ::tenncor::div(exarg,
-                      ::tenncor::extend(::tenncor::reduce_sum(exarg, offset, offset+ndims),
+                      ::tenncor::extend(::tenncor::reduce_sum(exarg, offset, ndims),
                       offset, xlist));
                   tag::recursive_group_tag(out->get_tensor(), "softmax", {
                       arg->get_tensor().get()});
