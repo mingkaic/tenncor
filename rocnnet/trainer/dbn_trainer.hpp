@@ -7,47 +7,28 @@
 namespace trainer
 {
 
-static bool is_dbn (layr::SequentialModel& model, layr::SequentialModel& rbms)
+static bool is_dbn (layr::SequentialModel& model)
 {
 	auto layers = model.get_layers();
-	auto rbs = rbms.get_layers();
 
 	size_t n = layers.size();
-	// each layer with dbn should have activations,
-	// therefore n is a multiple of 2
-	if (1 == n % 2)
-	{
-		return false;
-	}
-
 	size_t i = 0;
 	// dbn can start with a series of dense/rbm layers with sigmoid activations
-	for (; i < n - 2; i += 2)
+	for (; i < n - 2; ++i)
 	{
-		auto dense_ltype = layers[i]->get_ltype();
-		auto activation_ltype = layers[i + 1]->get_ltype();
-		if ((dense_ltype != layr::rbm_layer_key &&
-			dense_ltype != layr::dense_layer_key) ||
-			activation_ltype != layr::sigmoid_layer_key)
+		if (layers[i]->get_ltype() != layr::rbm_layer_key)
 		{
 			return false;
 		}
 	}
 	// dbn must end with a dense or rbm layer with softmax activations
-	auto dense_ltype = layers[n - 2]->get_ltype();
+	auto rbm_ltype = layers[n - 2]->get_ltype();
 	auto activation_ltype = layers[n - 1]->get_ltype();
-	if ((dense_ltype != layr::dense_layer_key &&
+	if ((rbm_ltype != layr::dense_layer_key &&
 		dense_ltype != layr::rbm_layer_key) ||
-		activation_ltype != layr::softmax0_layer_key)
+		activation_ltype != layr::softmax_layer_key)
 	{
 		return false;
-	}
-	for (auto rbm : rbs)
-	{
-		if (rbm->get_ltype() != layr::rbm_layer_key)
-		{
-			return false;
-		}
 	}
 	return true;
 }
@@ -55,7 +36,6 @@ static bool is_dbn (layr::SequentialModel& model, layr::SequentialModel& rbms)
 struct DBNTrainer final
 {
 	DBNTrainer (layr::SequentialModel& model,
-		layr::SequentialModel& rbms,
 		uint8_t batch_size,
 		PybindT learning_rate = 1e-3,
 		size_t n_cont_div = 10,

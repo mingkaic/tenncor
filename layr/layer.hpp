@@ -13,8 +13,6 @@
 namespace layr
 {
 
-using NonLinearF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
-
 const std::string layers_key_prefix = "layer_";
 
 const char llabel_sep = ':';

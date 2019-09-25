@@ -396,8 +396,9 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("factor") = 1)
 
 		// layer creation
-		.def("sigmoid", layr::sigmoid, py::arg("label") = "sigmoid")
-		.def("tanh", layr::tanh, py::arg("label") = "tanh")
+		.def("sigmoid", layr::sigmoid)
+		.def("tanh", layr::tanh)
+		.def("softmax", layr::softmax)
 		.def("load_file_seqmodel",
 			[](std::string filename, std::string layer_label) -> layr::SeqModelptrT
 			{

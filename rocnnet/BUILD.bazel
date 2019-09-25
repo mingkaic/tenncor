@@ -87,6 +87,18 @@ py_binary(
         ["//:models", "//cfg:optimizations"],
 )
 
+py_binary(
+    name = "dbn_demo",
+    srcs = glob(["demo/data/*.py"]) +
+        ["demo/dbn_demo.py"],
+    deps = [
+        ":rocnnet_py",
+        "//dbg:grpc_dbg_py",
+    ],
+    data = glob(["demo/MNIST_data/*"]) +
+        ["//:models", "//cfg:optimizations", "demo/data/dbn_record.txt"],
+)
+
 # cc_binary(
 #     name = "dbn_demo",
 #     srcs = ["demo/dbn_demo.cpp"],
