@@ -27,7 +27,9 @@ struct iSession
 	/// ignore all nodes dependent on ignores including the ignored nodes
 	virtual void update (TensSetT updated = {}, TensSetT ignores = {}) = 0;
 
-	virtual void update_target (TensSetT target, TensSetT updated = {}) = 0;
+	virtual void update_target (TensSetT target,
+		TensSetT updated = {},
+		TensSetT ignores = {}) = 0;
 };
 
 struct SizeT final
@@ -128,7 +130,8 @@ struct Session final : public iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update_target (TensSetT target, TensSetT updated = {}) override
+	void update_target (TensSetT target, TensSetT updated = {},
+		TensSetT ignores = {}) override
 	{
 		teq::OnceTraveler targetted;
 		for (auto& tens : target)
@@ -136,6 +139,7 @@ struct Session final : public iSession
 			tens->accept(targetted);
 		}
 		std::unordered_map<teq::iOperableFunc*,SizeT> fulfilments;
+		updated.insert(ignores.begin(), ignores.end());
 		for (teq::iTensor* unodes : updated)
 		{
 			auto& node_parents = parents_[unodes];
@@ -149,7 +153,8 @@ struct Session final : public iSession
 		{
 			// is relevant to target, is fulfilled and not ignored
 			if (estd::has(targetted.visited_, op.first) &&
-				fulfilments[op.first].d >= op.second)
+				fulfilments[op.first].d >= op.second &&
+				false == estd::has(ignores, op.first))
 			{
 				op.first->update();
 				auto& op_parents = parents_[op.first];

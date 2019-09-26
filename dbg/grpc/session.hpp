@@ -256,7 +256,8 @@ struct InteractiveSession final : public eteq::iSession
 	}
 
 	void update_target (eteq::TensSetT targeted,
-		eteq::TensSetT updated = {}) override
+		eteq::TensSetT updated = {},
+		eteq::TensSetT ignores = {}) override
 	{
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
@@ -276,6 +277,7 @@ struct InteractiveSession final : public eteq::iSession
 		}
 
 		std::unordered_map<teq::iOperableFunc*,eteq::SizeT> fulfilments;
+		updated.insert(ignores.begin(), ignores.end());
 		for (teq::iTensor* unodes : updated)
 		{
 			auto& node_parents = sess_.parents_[unodes];
@@ -315,7 +317,8 @@ struct InteractiveSession final : public eteq::iSession
 		{
 			// fulfilled and not ignored
 			if (estd::has(traveler.visited_, op.first) &&
-				fulfilments[op.first].d >= op.second)
+				fulfilments[op.first].d >= op.second &&
+				false == estd::has(ignores, op.first))
 			{
 				op.first->update();
 				egen::_GENERATED_DTYPE dtype =

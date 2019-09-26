@@ -140,7 +140,9 @@ struct Session final : public eteq::iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update_target (eteq::TensSetT target, eteq::TensSetT updated = {}) override
+	void update_target (eteq::TensSetT target,
+		eteq::TensSetT updated = {},
+		eteq::TensSetT ignores = {}) override
 	{
 		teq::OnceTraveler targetted;
 		for (auto& tens : target)
@@ -152,6 +154,7 @@ struct Session final : public eteq::iSession
 		{
 			fulfilments.emplace(op, 0);
 		}
+		updated.insert(ignores.begin(), ignores.end());
 		for (teq::iTensor* unodes : updated)
 		{
 			if (dynamic_cast<teq::iFunctor*>(unodes))
@@ -169,14 +172,15 @@ struct Session final : public eteq::iSession
 		{
 			// make thread
 			boost::asio::post(pool,
-			[this, &req, &fulfilments, &targetted]()
+			[this, &req, &fulfilments, &targetted, &ignores]()
 			{
 				for (auto& op : req)
 				{
 					// is relevant to target, is fulfilled and not ignored
 					auto& ff = fulfilments.at(op.first);
 					if (ff++ == op.second &&
-						estd::has(targetted.visited_, op.first))
+						estd::has(targetted.visited_, op.first) &&
+						false == estd::has(ignores, op.first))
 					{
 						op.first->update();
 						std::unordered_set<teq::iOperableFunc*> op_parents;

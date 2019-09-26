@@ -13,10 +13,8 @@ LayerptrT ActivationBuilder::build (void) const
 eteq::NodeptrT<PybindT> softmax_from_layer (const Activation& layer,
 	eteq::NodeptrT<PybindT> input)
 {
-	std::stringstream ss(layer.get_label());
-	teq::RankT dim;
-	ss >> dim;
-	return tenncor::softmax<PybindT>(input, dim, 1);
+	return tenncor::softmax<PybindT>(input,
+		std::stoi(layer.get_label()), 1);
 }
 
 LayerptrT sigmoid (void)
@@ -31,7 +29,7 @@ LayerptrT tanh (void)
 
 LayerptrT softmax (teq::RankT dim)
 {
-	return std::make_shared<Activation>(tanh_layer_key,
+	return std::make_shared<Activation>(softmax_layer_key,
 		fmts::sprintf("%d", dim));
 }
 

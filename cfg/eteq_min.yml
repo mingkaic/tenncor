@@ -752,7 +752,7 @@ api:
           name: tens
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -767,7 +767,7 @@ api:
           name: tens
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -782,7 +782,7 @@ api:
           name: tens
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -797,7 +797,7 @@ api:
           name: tens
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -1075,7 +1075,7 @@ api:
           name: arg
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -1191,7 +1191,7 @@ api:
           name: arg
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -1199,6 +1199,11 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
+                  if (offset + ndims > teq::rank_cap)
+                  {
+                      logs::fatalf("cannot perform softmax on dimensions beyond %d",
+                          teq::rank_cap);
+                  }
                   auto exarg = exp(arg);
                   teq::Shape shape = exarg->shape();
                   auto it = shape.begin() + offset;

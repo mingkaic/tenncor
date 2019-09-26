@@ -151,7 +151,11 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<trainer::TrainingContext> trainingctx(m, "TrainingContext");
 	py::class_<trainer::DQNTrainingContext> dqntrainingctx(m, "DQNTrainingContext");
 
-	shape.def(py::init<std::vector<teq::DimT>>());
+	shape
+		.def(py::init<std::vector<teq::DimT>>())
+		.def("__getitem__",
+			[](teq::Shape& shape, size_t idx) { return shape.at(idx); },
+			py::is_operator());
 
 	// layer
 	layer

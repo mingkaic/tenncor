@@ -94,9 +94,10 @@ py_binary(
     deps = [
         ":rocnnet_py",
         "//dbg:grpc_dbg_py",
+        "//dbg:eteq_mocker_py",
     ],
     data = glob(["demo/MNIST_data/*"]) +
-        ["//:models", "//cfg:optimizations", "demo/data/dbn_record.txt"],
+        ["//:models", "//cfg:optimizations"],
 )
 
 # cc_binary(
