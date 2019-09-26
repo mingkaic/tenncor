@@ -259,7 +259,8 @@ PYBIND11_MODULE(rocnnet, m)
 		.def(py::init<const std::string&>(),
 			py::arg("label"))
 		.def("clone", &layr::SequentialModel::clone, py::arg("prefix") = "")
-		.def("add", &layr::SequentialModel::push_back);
+		.def("add", &layr::SequentialModel::push_back)
+		.def("get_layers", &layr::SequentialModel::get_layers);
 
 	// // dbn
 	// m.def("get_dbn", &pyrocnnet::dbn_init);

@@ -21,30 +21,18 @@ def reconstruction_cost(rbm, x):
     vhv = rbm.backward_connect(rbm.connect(x))
     return -tc.reduce_mean(tc.reduce_sum_1d(x * tc.log(vhv) + (1 - x) * tc.log(1 - vhv), 0))
 
-class DBN(object):
-    def __init__(self, label=None, n_ins=2, hidden_layer_sizes=[3, 3], n_outs=2):
+class DBNTrainer(object):
+    def __init__(self, dbn):
 
-        self.rbm_layers = []
-        self.n_layers = len(hidden_layer_sizes)
+        layers = dbn.get_layers()
+        assert len(layers) > 2
 
-        assert self.n_layers > 0
+        self.rbm_layers = layers[:-2]
+        self.n_layers = len(self.rbm_layers)
 
-        # construct multi-layer
-        for i in range(self.n_layers):
-            # construct rbm_layer
-            rbm_layer = rcn.RBM(hidden_layer_sizes[i], n_ins,
-                weight_init=rcn.unif_xavier_init(),
-                bias_init=rcn.zero_init(), label="{}".format(i))
-            self.rbm_layers.append(rbm_layer)
-
-            n_ins = hidden_layer_sizes[i - 1]
-
-        # layer for output using Logistic Regression
-        self.log_layer = rcn.SequentialModel("final")
-        self.log_layer.add(rcn.Dense(n_outs, hidden_layer_sizes[-1],
-            weight_init=rcn.zero_init(),
-            bias_init=rcn.zero_init(), label="log_layer"))
-        self.log_layer.add(rcn.softmax(0))
+        self.log_layer = rcn.SequentialModel("training")
+        self.log_layer.add(layers[-2])
+        self.log_layer.add(layers[-1])
 
     def pretrain(self, x, sess, lr=0.1, k=1, epochs=100):
         # pre-train layer-wise
@@ -130,17 +118,12 @@ class DBN(object):
             if epoch % 100 == 0:
                 # log layer error
                 sess.update_target([cost], updated=[w, b], ignores=ignores)
-                self.finetune_cost = cost.get()
+                finetune_cost = cost.get()
 
-                eprint('Training epoch {}, cost is {}'.format(epoch, self.finetune_cost))
+                eprint('Training epoch {}, cost is {}'.format(epoch, finetune_cost))
 
             lr *= 0.95
             epoch += 1
-
-    def connect(self, x):
-        for i in range(self.n_layers):
-            x = self.rbm_layers[i].connect(x)
-        return self.log_layer.connect(x)
 
 pretrain_lr=0.1
 pretraining_epochs=1000
@@ -164,15 +147,27 @@ y = np.array([
     [0, 1]])
 
 # construct DBN
-dbn = DBN(n_ins=6, hidden_layer_sizes=[3, 3], n_outs=2)
+dbn = rcn.SequentialModel("dbn")
+dbn.add(rcn.RBM(3, 6,
+    weight_init=rcn.unif_xavier_init(),
+    bias_init=rcn.zero_init(), label="0"))
+dbn.add(rcn.RBM(3, 3,
+    weight_init=rcn.unif_xavier_init(),
+    bias_init=rcn.zero_init(), label="1"))
+dbn.add(rcn.Dense(2, 3,
+    weight_init=rcn.zero_init(),
+    bias_init=rcn.zero_init(), label="log_layer"))
+dbn.add(rcn.softmax(0))
+
+trainer = DBNTrainer(n_ins=6, hidden_layer_sizes=[3, 3], n_outs=2)
 
 # pre-training (TrainUnsupervisedDBN)
 pretraining_sess = eteq.Session()
-dbn.pretrain(trainingx, pretraining_sess, lr=pretrain_lr, k=1, epochs=pretraining_epochs)
+trainer.pretrain(trainingx, pretraining_sess, lr=pretrain_lr, k=1, epochs=pretraining_epochs)
 
 # fine-tuning (DBNSupervisedFineTuning)
 training_sess = eteq.Session()
-dbn.finetune(trainingx, y, training_sess, lr=finetune_lr, epochs=finetune_epochs)
+trainer.finetune(trainingx, y, training_sess, lr=finetune_lr, epochs=finetune_epochs)
 
 # test
 x = np.array([1, 1, 0, 0, 0, 0])
