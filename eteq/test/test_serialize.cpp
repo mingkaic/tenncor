@@ -29,7 +29,7 @@ const std::string testdir = "models/test";
 TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/eteq_test.pbx";
-	std::string got_pbfile = "got_ead_test.pbx";
+	std::string got_pbfile = "got_eteq_test.pbx";
 	cortenn::Graph graph;
 
 	teq::Shape in_shape({10, 3});

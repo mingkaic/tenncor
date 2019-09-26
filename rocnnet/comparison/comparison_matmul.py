@@ -24,8 +24,7 @@ matrix_dims = [
 ]
 
 np_durs = []
-llo_durs = []
-ead_durs = []
+eteq_durs = []
 tf_durs = []
 for matrix_dim in matrix_dims:
     shape = [matrix_dim, matrix_dim]
@@ -58,7 +57,7 @@ for matrix_dim in matrix_dims:
     start = time.time()
     sess.update()
     print(out.get())
-    ead_dur = time.time() - start
+    eteq_dur = time.time() - start
 
     start = time.time()
     tf_fout = tfsess.run(tf_out)
@@ -66,13 +65,13 @@ for matrix_dim in matrix_dims:
     tf_dur = time.time() - start
 
     np_durs.append(np_dur)
-    ead_durs.append(ead_dur)
+    eteq_durs.append(eteq_dur)
     tf_durs.append(tf_dur)
 
 print('numpy durations: ', np_durs)
-print('eteq durations: ', ead_durs)
+print('eteq durations: ', eteq_durs)
 print('tf durations: ', tf_durs)
-ead_line = plt.plot(matrix_dims, ead_durs, 'r--', label='eteq durations')
+ead_line = plt.plot(matrix_dims, eteq_durs, 'r--', label='eteq durations')
 np_lines = plt.plot(matrix_dims, np_durs, 'g--', label='numpy durations')
 tf_line = plt.plot(matrix_dims, tf_durs, 'b--', label='tf durations')
 plt.legend()

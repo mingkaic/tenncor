@@ -121,7 +121,7 @@ class MLP(object):
         return MLP(self.input_sizes, self.hiddens, nonlinearities, scope=scope,
                 given_layers=given_layers)
 
-ead_durs = []
+eteq_durs = []
 tf_durs = []
 learning_rate = 0.9
 
@@ -202,18 +202,18 @@ for matrix_dim in matrix_dims:
 
     start = time.time()
     trainer.train(test_batch, test_batch_out)
-    ead_dur = time.time() - start
+    eteq_dur = time.time() - start
 
     start = time.time()
     calculate_update(tf_test_batch, tf_test_batch_out)
     tf_dur = time.time() - start
 
-    ead_durs.append(ead_dur)
+    eteq_durs.append(eteq_dur)
     tf_durs.append(tf_dur)
 
-print('eteq durations: ', ead_durs)
+print('eteq durations: ', eteq_durs)
 print('tf durations: ', tf_durs)
-ead_line = plt.plot(matrix_dims, ead_durs, 'r--', label='eteq durations')
+ead_line = plt.plot(matrix_dims, eteq_durs, 'r--', label='eteq durations')
 tf_line = plt.plot(matrix_dims, tf_durs, 'b--', label='tf durations')
 plt.legend()
 plt.show()

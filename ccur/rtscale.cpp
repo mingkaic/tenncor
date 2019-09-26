@@ -206,7 +206,7 @@ int main (int argc, const char** argv)
 
 	// normalize stats by mean
 	weights::OpWeights opweights;
-	opweights.set_label("ead_weights");
+	opweights.set_label("eteq_weights");
 	::google::protobuf::Map< ::std::string,double>* weights =
 		opweights.mutable_weights();
 	for (auto& op : stats)
