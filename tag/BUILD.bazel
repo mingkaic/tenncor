@@ -25,7 +25,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//ade:ade",
+        "//teq:teq",
         "@boost//:uuid",
     ],
     visibility = ["//visibility:public"],

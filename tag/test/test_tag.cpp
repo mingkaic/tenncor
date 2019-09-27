@@ -55,10 +55,10 @@ struct MockTag final : public tag::iTag
 TEST(TAG, AddGet)
 {
 	tag::TagRegistry registry;
-	ade::iTensor* ptr;
-	ade::TensrefT ref;
+	teq::iTensor* ptr;
+	teq::TensrefT ref;
 	{
-		ade::TensptrT tens = std::make_shared<MockTensor>();
+		teq::TensptrT tens = std::make_shared<MockTensor>();
 		registry.add_tag(tens, std::make_unique<MockTag>());
 		EXPECT_EQ(1, registry.registry_.size());
 		tag::TagRepsT reps = registry.get_tags(tens.get());
@@ -94,13 +94,13 @@ TEST(TAG, AddGet)
 TEST(TAG, AddMove)
 {
 	tag::TagRegistry registry;
-	ade::TensrefT ref;
-	ade::iTensor* ptr;
-	ade::iTensor* ptr2;
+	teq::TensrefT ref;
+	teq::iTensor* ptr;
+	teq::iTensor* ptr2;
 	{
-		ade::TensptrT tens = std::make_shared<MockTensor>();
+		teq::TensptrT tens = std::make_shared<MockTensor>();
 		{
-			ade::TensptrT tens2 = std::make_shared<MockTensor>();
+			teq::TensptrT tens2 = std::make_shared<MockTensor>();
 
 			// move non tagged tens to non tagged tens
 			registry.move_tags(tens2, tens.get());

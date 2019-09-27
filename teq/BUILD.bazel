@@ -1,0 +1,64 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+filegroup(
+    name = "benchmark_srcs",
+    srcs = glob([
+        "bm/*.hpp",
+        "bm/*.cpp",
+    ]),
+)
+
+######### LIBRARIES #########
+
+cc_library(
+    name = "teq",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17", "-DSDIM_BYTES=2"],
+    deps = ["@com_github_mingkaic_cppkg//estd:estd"],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    size = "medium",
+    srcs = ["//teq:test_srcs"],
+    deps = [
+        "//teq:teq",
+        "//testutil:tutil",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    copts = ["-std=c++17"],
+)
+
+######### BENCHMARK #########
+
+cc_binary(
+    name = "benchmark",
+    srcs = ["//teq:benchmark_srcs"],
+    deps = [
+        "//teq:teq",
+        "@com_github_google_benchmark//:benchmark",
+    ],
+    copts = ["-std=c++17"],
+)

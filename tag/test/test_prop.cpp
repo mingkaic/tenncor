@@ -15,9 +15,9 @@ TEST(PROP, Tag)
 {
 	tag::TagRegistry treg;
 	tag::PropertyRegistry registry(treg);
-	ade::iTensor* ptr;
+	teq::iTensor* ptr;
 	{
-		ade::TensptrT tens = std::make_shared<MockTensor>();
+		teq::TensptrT tens = std::make_shared<MockTensor>();
 		registry.property_tag(tens, "property4");
 		registry.property_tag(tens, "property1");
 		registry.property_tag(tens, "property2");

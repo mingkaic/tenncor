@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 
-#include "ade/functor.hpp"
+#include "teq/functor.hpp"
 
 #include "pbm/save.hpp"
 
@@ -22,20 +22,20 @@ const std::string testdir = "models/test";
 
 struct TestSaver : public pbm::iSaver
 {
-	std::string save_leaf (ade::iLeaf* leaf) override
+	std::string save_leaf (teq::iLeaf* leaf) override
 	{
 		return std::string(leaf->shape().n_elems(), 0);
 	}
 
-	std::vector<double> save_shaper (const ade::CoordptrT& mapper) override
+	std::vector<double> save_shaper (const teq::CoordptrT& mapper) override
 	{
 		std::vector<double> out;
 		mapper->access(
-			[&out](const ade::MatrixT& mat)
+			[&out](const teq::MatrixT& mat)
 			{
-				for (ade::RankT i = 0; i < ade::mat_dim; ++i)
+				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 				{
-					for (ade::RankT j = 0; j < ade::mat_dim; ++j)
+					for (teq::RankT j = 0; j < teq::mat_dim; ++j)
 					{
 						out.push_back(mat[i][j]);
 					}
@@ -44,7 +44,7 @@ struct TestSaver : public pbm::iSaver
 		return out;
 	}
 
-	std::vector<double> save_coorder (const ade::CoordptrT& mapper) override
+	std::vector<double> save_coorder (const teq::CoordptrT& mapper) override
 	{
 		return save_shaper(mapper);
 	}
@@ -58,41 +58,41 @@ TEST(SAVE, SaveGraph)
 
 	{
 		cortenn::Graph graph;
-		std::vector<ade::TensptrT> roots;
+		std::vector<teq::TensptrT> roots;
 
 		// subtree one
-		ade::Shape shape({3, 7});
-		ade::TensptrT osrc(new MockTensor(shape));
+		teq::Shape shape({3, 7});
+		teq::TensptrT osrc(new MockTensor(shape));
 
-		ade::Shape shape2({7, 3});
-		ade::TensptrT osrc2(new MockTensor(shape2));
+		teq::Shape shape2({7, 3});
+		teq::TensptrT osrc2(new MockTensor(shape2));
 
 		auto& preg = tag::get_property_reg();
 		preg.property_tag(osrc, "osrc");
 		preg.property_tag(osrc2, "osrc2");
 
 		{
-			ade::TensptrT src(new MockTensor(shape));
+			teq::TensptrT src(new MockTensor(shape));
 
-			ade::Shape shape3({3, 1, 7});
-			ade::TensptrT src2(new MockTensor(shape3));
+			teq::Shape shape3({3, 1, 7});
+			teq::TensptrT src2(new MockTensor(shape3));
 
-			ade::TensptrT dest(ade::Functor::get(ade::Opcode{"-", 0}, {
-				{src2, ade::identity},
-				{ade::TensptrT(ade::Functor::get(ade::Opcode{"@", 1}, {
-					{ade::TensptrT(ade::Functor::get(ade::Opcode{"/", 2}, {
-						{ade::TensptrT(ade::Functor::get(ade::Opcode{"neg", 3}, {
-							{osrc, ade::identity},
-						})), ade::identity},
-						{ade::TensptrT(ade::Functor::get(ade::Opcode{"+", 4}, {
-							{ade::TensptrT(
-								ade::Functor::get(ade::Opcode{"sin", 5}, {
-								{src, ade::identity}})), ade::identity},
-							{src, ade::identity},
-						})), ade::identity}
-					})), ade::permute({1, 0})},
-					{osrc2, ade::identity}
-				})), ade::permute({1, 2, 0})},
+			teq::TensptrT dest(teq::Functor::get(teq::Opcode{"-", 0}, {
+				{src2, teq::identity},
+				{teq::TensptrT(teq::Functor::get(teq::Opcode{"@", 1}, {
+					{teq::TensptrT(teq::Functor::get(teq::Opcode{"/", 2}, {
+						{teq::TensptrT(teq::Functor::get(teq::Opcode{"neg", 3}, {
+							{osrc, teq::identity},
+						})), teq::identity},
+						{teq::TensptrT(teq::Functor::get(teq::Opcode{"+", 4}, {
+							{teq::TensptrT(
+								teq::Functor::get(teq::Opcode{"sin", 5}, {
+								{src, teq::identity}})), teq::identity},
+							{src, teq::identity},
+						})), teq::identity}
+					})), teq::permute({1, 0})},
+					{osrc2, teq::identity}
+				})), teq::permute({1, 2, 0})},
 			}));
 			roots.push_back(dest);
 
@@ -103,26 +103,26 @@ TEST(SAVE, SaveGraph)
 
 		// subtree two
 		{
-			ade::Shape mshape({3, 3});
-			ade::TensptrT src(new MockTensor(mshape));
+			teq::Shape mshape({3, 3});
+			teq::TensptrT src(new MockTensor(mshape));
 
-			ade::TensptrT src2(new MockTensor(mshape));
+			teq::TensptrT src2(new MockTensor(mshape));
 
-			ade::TensptrT src3(new MockTensor(mshape));
+			teq::TensptrT src3(new MockTensor(mshape));
 
-			ade::TensptrT dest(ade::Functor::get(ade::Opcode{"-", 0}, {
-				{src, ade::identity},
-				{ade::TensptrT(ade::Functor::get(ade::Opcode{"*", 6}, {
-					{ade::TensptrT(ade::Functor::get(ade::Opcode{"abs", 7}, {
-						{src, ade::identity},
-					})), ade::identity},
-					{ade::TensptrT(ade::Functor::get(ade::Opcode{"exp", 8}, {
-						{src2, ade::identity},
-					})), ade::identity},
-					{ade::TensptrT(ade::Functor::get(ade::Opcode{"neg", 3}, {
-						{src3, ade::identity},
-					})), ade::identity},
-				})), ade::identity},
+			teq::TensptrT dest(teq::Functor::get(teq::Opcode{"-", 0}, {
+				{src, teq::identity},
+				{teq::TensptrT(teq::Functor::get(teq::Opcode{"*", 6}, {
+					{teq::TensptrT(teq::Functor::get(teq::Opcode{"abs", 7}, {
+						{src, teq::identity},
+					})), teq::identity},
+					{teq::TensptrT(teq::Functor::get(teq::Opcode{"exp", 8}, {
+						{src2, teq::identity},
+					})), teq::identity},
+					{teq::TensptrT(teq::Functor::get(teq::Opcode{"neg", 3}, {
+						{src3, teq::identity},
+					})), teq::identity},
+				})), teq::identity},
 			}));
 			roots.push_back(dest);
 

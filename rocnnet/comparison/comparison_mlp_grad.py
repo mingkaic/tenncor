@@ -5,8 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import ead.tenncor as tc
-import ead.ead as ead
+import eteq.tenncor as tc
+import eteq.eteq as eteq
 
 import rocnnet.rocnnet as rcn
 
@@ -121,7 +121,7 @@ class MLP(object):
         return MLP(self.input_sizes, self.hiddens, nonlinearities, scope=scope,
                 given_layers=given_layers)
 
-ead_durs = []
+eteq_durs = []
 tf_durs = []
 learning_rate = 0.9
 
@@ -130,7 +130,7 @@ for matrix_dim in matrix_dims:
     n_out = int(n_in / 2)
     batch_size = 1
 
-    sess = ead.Session()
+    sess = eteq.Session()
     tfsess = tf.compat.v1.Session()
 
     # regular mlp
@@ -144,10 +144,10 @@ for matrix_dim in matrix_dims:
         bias_init=rcn.zero_init(), label="1"))
     brain.add(rcn.sigmoid())
 
-    invar = ead.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
+    invar = eteq.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)
-    expected_out = ead.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
-    err = tc.square(tc.sub(expected_out, out))
+    expected_out = eteq.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
+    err = tc.square(expected_out - out)
 
     trainer = rcn.MLPTrainer(brain, sess, rcn.get_sgd(learning_rate), batch_size)
 
@@ -202,18 +202,18 @@ for matrix_dim in matrix_dims:
 
     start = time.time()
     trainer.train(test_batch, test_batch_out)
-    ead_dur = time.time() - start
+    eteq_dur = time.time() - start
 
     start = time.time()
     calculate_update(tf_test_batch, tf_test_batch_out)
     tf_dur = time.time() - start
 
-    ead_durs.append(ead_dur)
+    eteq_durs.append(eteq_dur)
     tf_durs.append(tf_dur)
 
-print('ead durations: ', ead_durs)
+print('eteq durations: ', eteq_durs)
 print('tf durations: ', tf_durs)
-ead_line = plt.plot(matrix_dims, ead_durs, 'r--', label='ead durations')
+ead_line = plt.plot(matrix_dims, eteq_durs, 'r--', label='eteq durations')
 tf_line = plt.plot(matrix_dims, tf_durs, 'b--', label='tf durations')
 plt.legend()
 plt.show()

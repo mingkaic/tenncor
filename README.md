@@ -11,31 +11,31 @@ High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0
 
 ## Components
 
-- [ADE (Automatic Differentiation Engine)](ade/README_ADE.md)
+- [TEQ (Automatic Differentiation Engine)](teq/README_ADE.md)
 
 This module supplies syntax tree for equation and generates derivative.
 Constraints to the equation is limited to each tensor's shape.
 
-- [DBG (Debug)](ead/README_DBG.md)
+- [DBG (Debug)](eteq/README_DBG.md)
 
-This module is contains debug libraries for ADE Graphs.
+This module is contains debug libraries for TEQ Graphs.
 
-- [EAD (Eigen ADE Operators)](ead/README_EAD.md)
+- [ETEQ (Eigen TEQ Operators)](eteq/README_EAD.md)
 
-This module is implements basic operations for Tenncor's ADE Tensor objects generated through pybinder.
-Additionally, ead also defines data format and (de)serialization methods required by PBM.
+This module is implements basic operations for Tenncor's TEQ Tensor objects generated through pybinder.
+Additionally, ETEQ also defines data format and (de)serialization methods required by PBM.
 
 - [OPT (Optimizer)](opt/README_OPT.md)
 
-This module specifies graph optimization through ADE's visitor pattern.
+This module specifies graph optimization through TEQ's visitor pattern.
 
 - [PBM (Protobuf Marshaller)](pbm/README_PBM.md)
 
-This module marshals any ADE graph, but requires data serialization functors when saving and loading.
+This module marshals any TEQ graph, but requires data serialization functors when saving and loading.
 
 - [TAG (Tagger)](tag/README_TAG.md)
 
-This module tags ADE tensors with labels.
+This module tags TEQ tensors with labels.
 
 ## Tools and utility
 

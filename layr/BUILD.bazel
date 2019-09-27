@@ -1,0 +1,48 @@
+licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "layr",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = ["//eteq:eteq"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = ["//layr:test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//layr:layr",
+        "//dbg:stream_out",
+        "//testutil:tutil",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+)

@@ -5,8 +5,8 @@ import argparse
 
 import numpy as np
 
-import ead.tenncor as tc
-import ead.ead as ead
+import eteq.tenncor as tc
+import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
 prog_description = 'Demo dqn_trainer'
@@ -66,7 +66,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        ead.seed(args.seedval)
+        eteq.seed(args.seedval)
         np.random.seed(args.seedval)
 
     n_observations = 10
@@ -101,7 +101,7 @@ def main(args):
         discount_rate = 0.99,
         exploration_period = 0.0)
 
-    sess = ead.Session()
+    sess = eteq.Session()
 
     untrained_dqn = rcn.DQNTrainer(untrained, sess, bgd, param)
     trained_dqn = rcn.DQNTrainer(model, sess, bgd, param,

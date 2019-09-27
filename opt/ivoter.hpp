@@ -14,8 +14,8 @@ namespace opt
 struct VoterArg final
 {
 	VoterArg (std::string label,
-		ade::CoordptrT shaper,
-		ade::CoordptrT coorder,
+		teq::CoordptrT shaper,
+		teq::CoordptrT coorder,
 		SUBGRAPH_TYPE type) :
 		label_(label),
 		shaper_(shaper),
@@ -120,9 +120,9 @@ struct VoterArg final
 
 	std::string label_;
 
-	ade::CoordptrT shaper_;
+	teq::CoordptrT shaper_;
 
-	ade::CoordptrT coorder_;
+	teq::CoordptrT coorder_;
 
 	SUBGRAPH_TYPE type_;
 };

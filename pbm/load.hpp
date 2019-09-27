@@ -61,20 +61,20 @@ struct PathedTens final
 	}
 
 	/// Return tensor associated with input path if found otherwise nullptr
-	ade::TensptrT get_labelled (StringsT path) const
+	teq::TensptrT get_labelled (StringsT path) const
 	{
 		return get_labelled(path.begin(), path.end());
 	}
 
 	/// Set input path to reference tensor
-	void set_labelled (StringsT path, ade::TensptrT tens)
+	void set_labelled (StringsT path, teq::TensptrT tens)
 	{
 		set_labelled(path.begin(), path.end(), tens);
 	}
 
 	/// Return tensor associated with path between iterators begin and end
 	/// if found otherwise nullptr
-	ade::TensptrT get_labelled (
+	teq::TensptrT get_labelled (
 		StringsT::iterator path_begin,
 		StringsT::iterator path_end) const
 	{
@@ -104,7 +104,7 @@ struct PathedTens final
 
 	/// Set path between iterators begin and end to reference tensor
 	void set_labelled (StringsT::iterator path_begin,
-		StringsT::iterator path_end, ade::TensptrT tens)
+		StringsT::iterator path_end, teq::TensptrT tens)
 	{
 		if (path_begin == path_end)
 		{
@@ -135,14 +135,14 @@ struct PathedTens final
 	std::unordered_map<std::string,PathedTens*> children_;
 
 	/// Map of labels to tensor leaves
-	std::unordered_map<std::string,ade::TensptrT> tens_;
+	std::unordered_map<std::string,teq::TensptrT> tens_;
 };
 
-/// Contains all information necessary to recreate labelled ADE graph
+/// Contains all information necessary to recreate labelled TEQ graph
 struct GraphInfo final
 {
 	/// Set of all roots (Tensptrs without any parent)
-	std::unordered_set<ade::TensptrT> roots_;
+	std::unordered_set<teq::TensptrT> roots_;
 
 	/// Labelled tensors
 	PathedTens tens_;
@@ -158,14 +158,14 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 	TensT invec;
 	for (const cortenn::Node& node : nodes)
 	{
-		ade::TensptrT tens;
+		teq::TensptrT tens;
 		if (node.has_source())
 		{
 			const cortenn::Source& source = node.source();
 			auto& slist = source.shape();
-			ade::Shape shape(std::vector<ade::DimT>(slist.begin(), slist.end()));
+			teq::Shape shape(std::vector<teq::DimT>(slist.begin(), slist.end()));
 			std::string data = source.data();
-			ade::TensptrT leaf = loader.generate_leaf(data.c_str(),
+			teq::TensptrT leaf = loader.generate_leaf(data.c_str(),
 				shape, source.typelabel(), node.label(), source.is_const());
 			invec.push_back(leaf);
 			tens = leaf;
@@ -175,21 +175,21 @@ void load_graph (GraphInfo& out, const cortenn::Graph& in)
 			cortenn::Functor func = node.functor();
 			auto nodeargs = func.args();
 			std::string opname = func.opname();
-			ade::ArgsT args;
+			teq::ArgsT args;
 			for (auto nodearg : nodeargs)
 			{
-				ade::TensptrT arg = invec[nodearg.idx()];
+				teq::TensptrT arg = invec[nodearg.idx()];
 				auto shaper_pb = nodearg.shaper();
 				auto coorder_pb = nodearg.coord();
 				std::vector<double> shaper_vec(shaper_pb.begin(), shaper_pb.end());
 				std::vector<double> coord_vec(coorder_pb.begin(), coorder_pb.end());
-				ade::CoordptrT shaper = loader.generate_shaper(shaper_vec);
-				ade::CoordptrT coord = loader.generate_coorder(opname, coord_vec);
+				teq::CoordptrT shaper = loader.generate_shaper(shaper_vec);
+				teq::CoordptrT coord = loader.generate_coorder(opname, coord_vec);
 				args.push_back(
-					ade::FuncArg(arg, shaper, nodearg.fwd(), coord));
+					teq::FuncArg(arg, shaper, nodearg.fwd(), coord));
 				out.roots_.erase(invec[nodearg.idx()]);
 			}
-			ade::TensptrT f = loader.generate_func(opname, args);
+			teq::TensptrT f = loader.generate_func(opname, args);
 			invec.push_back(f);
 			tens = f;
 		}

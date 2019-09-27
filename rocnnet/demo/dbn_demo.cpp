@@ -8,7 +8,7 @@
 
 #include "data/mnist_data.hpp"
 
-#include "modl/db_trainer.hpp"
+#include "layr/db_trainer.hpp"
 
 struct TestParams
 {
@@ -51,7 +51,7 @@ static void pretrain (DBNTrainer& model, size_t n_input,
 	size_t n_train_batches = n_data / params.n_batch;
 	llo::VarptrT<float> pretrain_in = llo::get_variable(
 		std::vector<float>(n_input * params.n_batch),
-		ade::Shape({n_input, params.n_batch}), "pretrain_in");
+		teq::Shape({n_input, params.n_batch}), "pretrain_in");
 	float inbatch = params.n_batch * n_input;
 
 	std::cout << "... getting the pretraining functions" << '\n';
@@ -63,7 +63,7 @@ static void pretrain (DBNTrainer& model, size_t n_input,
 	for (size_t pidx = 0; pidx < pretrainers.size(); pidx++)
 	{
 		Deltas trainer = pretrainers[pidx].first;
-		ade::TensptrT cost = pretrainers[pidx].second;
+		teq::TensptrT cost = pretrainers[pidx].second;
 		for (size_t e = 0; e < params.pretrain_epochs; e++)
 		{
 			float mean_cost = 0;

@@ -7,7 +7,7 @@
 namespace tutil
 {
 
-std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
+std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
 	bool showshape, LabelsMapT labels)
 {
 	PrettyEquation artist;

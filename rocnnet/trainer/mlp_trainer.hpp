@@ -1,11 +1,11 @@
-#include "ead/grader.hpp"
+#include "eteq/grader.hpp"
 
-#include "rocnnet/modl/model.hpp"
+#include "layr/model.hpp"
 
-#include "rocnnet/eqns/err_approx.hpp"
+#include "layr/err_approx.hpp"
 
-#ifndef MODL_MLP_TRAINER_HPP
-#define MODL_MLP_TRAINER_HPP
+#ifndef RCN_MLP_TRAINER_HPP
+#define RCN_MLP_TRAINER_HPP
 
 namespace trainer
 {
@@ -19,47 +19,47 @@ struct TrainingContext final
 // MLPTrainer does not own anything
 struct MLPTrainer final
 {
-	MLPTrainer (modl::SequentialModel& model,
-		ead::iSession& sess, eqns::ApproxF update, ade::DimT batch_size,
-		eqns::NodeUnarF gradprocess = eqns::NodeUnarF(eqns::identity),
+	MLPTrainer (layr::SequentialModel& model,
+		eteq::iSession& sess, layr::ApproxF update, teq::DimT batch_size,
+		layr::NodeUnarF gradprocess = layr::NodeUnarF(layr::identity),
 		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
-		train_in_(ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
-			(ade::DimT) model.get_ninput(), batch_size}), "train_in")),
+		train_in_(eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+			(teq::DimT) model.get_ninput(), batch_size}), "train_in")),
 		model_(model),
 		sess_(&sess),
 		ctx_(ctx)
 	{
 		train_out_ = model_.connect(
-			ead::convert_to_node<PybindT>(train_in_));
-		expected_out_ = ead::make_variable_scalar<PybindT>(0.0, ade::Shape({
-			(ade::DimT) model.get_noutput(), batch_size}), "expected_out");
+			eteq::convert_to_node<PybindT>(train_in_));
+		expected_out_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+			(teq::DimT) model.get_noutput(), batch_size}), "expected_out");
 		error_ = tenncor::square(
-			tenncor::sub(ead::convert_to_node<PybindT>(expected_out_), train_out_));
+			eteq::convert_to_node<PybindT>(expected_out_) - train_out_);
 
 		auto contents = model_.get_contents();
-		eqns::VarErrsT vars;
+		layr::VarErrsT vars;
 		for (auto tens : contents)
 		{
 			if (auto var = std::dynamic_pointer_cast<
-				ead::Variable<PybindT>>(tens))
+				eteq::Variable<PybindT>>(tens))
 			{
-				auto varnode = std::make_shared<ead::VariableNode<PybindT>>(var);
+				auto varnode = std::make_shared<eteq::VariableNode<PybindT>>(var);
 				vars.push_back({
 					varnode,
-					gradprocess(ead::derive(error_, ead::convert_to_node(varnode)))
+					gradprocess(eteq::derive(error_, eteq::convert_to_node(varnode)))
 				});
 			}
 		}
 		updates_ = update(vars);
 
-		ade::TensT track_batch = {
+		teq::TensT track_batch = {
 			train_out_->get_tensor(),
 			error_->get_tensor(),
 		};
-		for (eqns::AssignsT& assigns : updates_)
+		for (layr::AssignsT& assigns : updates_)
 		{
-			for (eqns::VarAssign& assign : assigns)
+			for (layr::VarAssign& assign : assigns)
 			{
 				track_batch.push_back(assign.source_->get_tensor());
 			}
@@ -92,27 +92,27 @@ struct MLPTrainer final
 			expected_out_->get_tensor().get(),
 		});
 		assign_groups(updates_,
-			[this](std::unordered_set<ade::iTensor*>& updated)
+			[this](std::unordered_set<teq::iTensor*>& updated)
 			{
 				this->sess_->update(updated);
 			});
 		++ctx_.n_iterations_;
 	}
 
-	modl::SequentialModel& model_;
+	layr::SequentialModel& model_;
 
 	uint8_t batch_size_;
-	ead::VarptrT<PybindT> train_in_;
-	ead::VarptrT<PybindT> expected_out_;
-	ead::NodeptrT<PybindT> train_out_;
-	ead::NodeptrT<PybindT> error_;
+	eteq::VarptrT<PybindT> train_in_;
+	eteq::VarptrT<PybindT> expected_out_;
+	eteq::NodeptrT<PybindT> train_out_;
+	eteq::NodeptrT<PybindT> error_;
 
-	eqns::AssignGroupsT updates_;
-	ead::iSession* sess_;
+	layr::AssignGroupsT updates_;
+	eteq::iSession* sess_;
 
 	TrainingContext ctx_;
 };
 
 }
 
-#endif // MODL_MLP_TRAINER_HPP
+#endif // RCN_MLP_TRAINER_HPP

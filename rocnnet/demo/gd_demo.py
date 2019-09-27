@@ -4,8 +4,8 @@ import argparse
 
 import numpy as np
 
-import ead.tenncor as tc
-import ead.ead as ead
+import eteq.tenncor as tc
+import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
 prog_description = 'Demo mlp_trainer using sgd'
@@ -50,7 +50,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        ead.seed(args.seedval)
+        eteq.seed(args.seedval)
         np.random.seed(args.seedval)
 
     n_in = 10
@@ -76,13 +76,13 @@ def main(args):
         print('failed to load from "{}"'.format(args.load))
         trained = model.clone()
 
-    sess = ead.Session()
+    sess = eteq.Session()
     n_batch = args.n_batch
     show_every_n = 500
     trainer = rcn.MLPTrainer(model, sess,
         rcn.get_sgd(0.9), n_batch)
 
-    testin = ead.variable(np.zeros([n_in], dtype=float), 'testin')
+    testin = eteq.variable(np.zeros([n_in], dtype=float), 'testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)

@@ -5,13 +5,13 @@ package(
 )
 
 filegroup(
-    name = "ead",
-    srcs = ["ead.yml"],
+    name = "eteq",
+    srcs = ["eteq.yml"],
 )
 
 filegroup(
-    name = "ead_min",
-    srcs = ["ead_min.yml"],
+    name = "eteq_min",
+    srcs = ["eteq_min.yml"],
 )
 
 filegroup(

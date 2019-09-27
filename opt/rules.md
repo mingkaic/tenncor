@@ -15,7 +15,7 @@ There are 4 types of statements in .rules minilanguage:
 
 ## Symbol Declaration
 
-A symbol is a generic representation of any node in an ADE graph.
+A symbol is a generic representation of any node in an TEQ graph.
 In conversions, symbols can be used to represent "leaves" of subgraphs.
 Symbols must be declared before they can be used in conversions.
 
@@ -30,7 +30,7 @@ symbol A // this declares A
 
 ## Conversion
 
-A conversion identifies an ADE subgraph and defines a new subgraph to convert to given specied symbols and scalars.
+A conversion identifies an TEQ subgraph and defines a new subgraph to convert to given specied symbols and scalars.
 
 #### Syntax:
 

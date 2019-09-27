@@ -4,20 +4,20 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "ade/ade.hpp"
+#include "teq/teq.hpp"
 
-#include "dbg/stream/ade.hpp"
-#include "dbg/stream/ade_csv.hpp"
+#include "dbg/stream/teq.hpp"
+#include "dbg/stream/teq_csv.hpp"
 
 namespace py = pybind11;
 
 PYBIND11_MODULE(stream_dbg, m)
 {
-	m.doc() = "print ade equation graphs to stream";
+	m.doc() = "print teq equation graphs to stream";
 
 	// ==== to stdout functions ====
 	m.def("print_graph",
-	[](ade::TensptrT root, bool showshape)
+	[](teq::TensptrT root, bool showshape)
 	{
 		PrettyEquation peq;
 		peq.showshape_ = showshape;
@@ -27,7 +27,7 @@ PYBIND11_MODULE(stream_dbg, m)
 	py::arg("root"), py::arg("showshape") = false);
 
 	m.def("print_graphcsv",
-	[](ade::TensptrT root, bool showshape)
+	[](teq::TensptrT root, bool showshape)
 	{
 		CSVEquation ceq;
 		ceq.showshape_ = showshape;
@@ -39,7 +39,7 @@ PYBIND11_MODULE(stream_dbg, m)
 
 	// ==== to string functions ====
 	m.def("graph_to_str",
-	[](ade::TensptrT root, bool showshape)
+	[](teq::TensptrT root, bool showshape)
 	{
 		std::stringstream ss;
 		PrettyEquation peq;
@@ -51,7 +51,7 @@ PYBIND11_MODULE(stream_dbg, m)
 	py::arg("root"), py::arg("showshape") = false);
 
 	m.def("graph_to_csvstr",
-	[](ade::TensptrT root, bool showshape)
+	[](teq::TensptrT root, bool showshape)
 	{
 		std::stringstream ss;
 		CSVEquation ceq;
@@ -64,7 +64,7 @@ PYBIND11_MODULE(stream_dbg, m)
 	py::arg("root"), py::arg("showshape") = false);
 
 	m.def("multigraph_to_csvstr",
-	[](ade::TensT roots, bool showshape)
+	[](teq::TensT roots, bool showshape)
 	{
 		std::stringstream ss;
 		CSVEquation ceq;
@@ -81,7 +81,7 @@ PYBIND11_MODULE(stream_dbg, m)
 
 	// ==== to file functions ====
 	m.def("graph_to_file",
-	[](ade::TensptrT root, std::string filename, bool showshape)
+	[](teq::TensptrT root, std::string filename, bool showshape)
 	{
 		std::ofstream outstr(filename);
 		if (outstr.is_open())
@@ -100,7 +100,7 @@ PYBIND11_MODULE(stream_dbg, m)
 	py::arg("root"), py::arg("filename"), py::arg("showshape") = false);
 
 	m.def("graph_to_csvfile",
-	[](ade::TensptrT root, std::string filename, bool showshape)
+	[](teq::TensptrT root, std::string filename, bool showshape)
 	{
 		std::ofstream outstr(filename);
 		if (outstr.is_open())
@@ -119,7 +119,7 @@ PYBIND11_MODULE(stream_dbg, m)
 	py::arg("root"), py::arg("filename"), py::arg("showshape") = false);
 
 	m.def("multigraph_to_csvfile",
-	[](ade::TensT roots, std::string filename, bool showshape)
+	[](teq::TensT roots, std::string filename, bool showshape)
 	{
 		std::ofstream outstr(filename);
 		if (outstr.is_open())

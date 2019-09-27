@@ -6,7 +6,7 @@
 namespace opt
 {
 
-ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
+teq::TensT optimize (teq::TensT roots, const OptCtx& opts)
 {
 	if (roots.empty())
 	{
@@ -36,7 +36,7 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 		CstConvertF const_conv = opts.const_conv_;
 		Matcher matcher(opts.voters_);
 		matcher.scalarize_ =
-			[&const_conv](ade::iTensor* tens) -> std::string
+			[&const_conv](teq::iTensor* tens) -> std::string
 			{
 				std::string out;
 				if (auto cst = const_conv(tens))
@@ -49,12 +49,12 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 				}
 				return out;
 			};
-		ade::GraphStat stat;
-		ade::ParentFinder pfinder;
-		std::unordered_map<ade::iTensor*,std::vector<size_t>> rindices;
+		teq::GraphStat stat;
+		teq::ParentFinder pfinder;
+		std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
 		for (size_t i = 0, n = roots.size(); i < n; ++i)
 		{
-			ade::TensptrT& root = roots[i];
+			teq::TensptrT& root = roots[i];
 			root->accept(stat);
 			root->accept(pfinder);
 			rindices[root.get()].push_back(i);
@@ -72,13 +72,13 @@ ade::TensT optimize (ade::TensT roots, const OptCtx& opts)
 		// there are no conversions for leaves
 		for (auto& funcs : functors)
 		{
-			for (ade::FuncptrT func : funcs)
+			for (teq::FuncptrT func : funcs)
 			{
 				// although matcher recursively applies to functor children,
 				// it's easier to evaluate near conversion to avoid tracking state changes
 				func->accept(matcher);
 
-				ade::TensptrT converted = nullptr;
+				teq::TensptrT converted = nullptr;
 				auto& cands = matcher.candidates_[func.get()];
 				// select the best candidate (smallest conversion)
 				// currently first come first serve (todo: implement)

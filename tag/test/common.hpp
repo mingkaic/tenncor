@@ -1,15 +1,15 @@
-#include "ade/ileaf.hpp"
+#include "teq/ileaf.hpp"
 
 #ifndef TAG_TEST_COMMON_HPP
 #define TAG_TEST_COMMON_HPP
 
-struct MockTensor final : public ade::iLeaf
+struct MockTensor final : public teq::iLeaf
 {
 	MockTensor (void) = default;
 
-	MockTensor (ade::Shape shape) : shape_(shape) {}
+	MockTensor (teq::Shape shape) : shape_(shape) {}
 
-	const ade::Shape& shape (void) const override
+	const teq::Shape& shape (void) const override
 	{
 		return shape_;
 	}
@@ -49,7 +49,7 @@ struct MockTensor final : public ade::iLeaf
 		return true;
 	}
 
-	ade::Shape shape_;
+	teq::Shape shape_;
 };
 
 #endif // TAG_TEST_COMMON_HPP

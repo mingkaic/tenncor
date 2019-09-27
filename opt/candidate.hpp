@@ -3,7 +3,7 @@
 
 #include <boost/functional/hash.hpp>
 
-#include "ade/itensor.hpp"
+#include "teq/itensor.hpp"
 
 #ifndef OPT_CAND_HPP
 #define OPT_CAND_HPP
@@ -11,7 +11,7 @@
 namespace opt
 {
 
-using CtxValT = std::set<ade::TensptrT>;
+using CtxValT = std::set<teq::TensptrT>;
 
 using ContexT = std::map<std::string,CtxValT>;
 
@@ -55,13 +55,13 @@ using CandsT = std::unordered_map<Symbol,CtxsT,SymbolHash>;
 
 struct CandArg
 {
-	ade::TensptrT tensor_;
+	teq::TensptrT tensor_;
 
 	CandsT candidates_;
 
-	ade::CoordptrT shaper_;
+	teq::CoordptrT shaper_;
 
-	ade::CoordptrT coorder_;
+	teq::CoordptrT coorder_;
 };
 
 using CandArgsT = std::vector<CandArg>;

@@ -1,4 +1,4 @@
-#include "dbg/stream/ade.hpp"
+#include "dbg/stream/teq.hpp"
 
 #ifndef TEST_TUTIL_HPP
 #define TEST_TUTIL_HPP
@@ -6,7 +6,7 @@
 namespace tutil
 {
 
-std::string compare_graph (std::istream& expectstr, ade::TensptrT root,
+std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
 	bool showshape = true, LabelsMapT labels = {});
 
 #define EXPECT_GRAPHEQ(MSG, ROOT) {\

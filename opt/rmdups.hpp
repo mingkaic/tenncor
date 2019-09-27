@@ -6,12 +6,12 @@
 namespace opt
 {
 
-void replace_parents (const ade::ParentFinder& pfinder,
-	ade::iTensor* source, ade::TensptrT target);
+void replace_parents (const teq::ParentFinder& pfinder,
+	teq::iTensor* source, teq::TensptrT target);
 
 template <typename T>
-std::vector<T> remove_duplicates (ade::TensT& roots, std::vector<T> tens,
-	const ade::ParentFinder& pfinder,
+std::vector<T> remove_duplicates (teq::TensT& roots, std::vector<T> tens,
+	const teq::ParentFinder& pfinder,
 	tag::TagRegistry& registry = tag::get_reg())
 {
 	if (tens.empty())
@@ -19,11 +19,11 @@ std::vector<T> remove_duplicates (ade::TensT& roots, std::vector<T> tens,
 		return {};
 	}
 
-	std::unordered_set<ade::iTensor*> priorities;
-	std::unordered_map<ade::iTensor*,std::vector<size_t>> rindices;
+	std::unordered_set<teq::iTensor*> priorities;
+	std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
 	for (size_t i = 0, n = roots.size(); i < n; ++i)
 	{
-		ade::TensptrT& root = roots[i];
+		teq::TensptrT& root = roots[i];
 		priorities.emplace(root.get());
 		rindices[root.get()].push_back(i);
 	}
@@ -66,16 +66,16 @@ std::vector<T> remove_duplicates (ade::TensT& roots, std::vector<T> tens,
 	return uniques;
 }
 
-using ImmutablesT = std::vector<ade::LeafptrT>;
+using ImmutablesT = std::vector<teq::LeafptrT>;
 
-using HFunctorsT = std::vector<std::vector<ade::FuncptrT>>;
+using HFunctorsT = std::vector<std::vector<teq::FuncptrT>>;
 
 // identify immutable leaves and organize functors by maxheight
 void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
-	const ade::TensT& roots);
+	const teq::TensT& roots);
 
 // delete and update equivalent immutable leaves and functors
-void remove_all_duplicates (ade::TensT& roots,
+void remove_all_duplicates (teq::TensT& roots,
 	ImmutablesT& immutables, HFunctorsT& functors);
 
 }
