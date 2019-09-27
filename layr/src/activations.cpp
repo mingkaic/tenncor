@@ -7,7 +7,7 @@ namespace layr
 
 LayerptrT ActivationBuilder::build (void) const
 {
-	return std::make_shared<Activation>(label_, act_type_);
+	return std::make_shared<Activation>(act_type_, label_);
 }
 
 eteq::NodeptrT<PybindT> softmax_from_layer (const Activation& layer,

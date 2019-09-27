@@ -76,82 +76,88 @@ class DBNTrainer(object):
     def pretrain(self, x, sess, lr=0.1, k=1, epochs=100):
         # varx = self.sample_ins[0]
         # varx.assign(x.reshape(1, -1))
-        # for i, rbm, sample_in, assigns, rcost in enumerate(zip(
-        #     self.rbm_layers, self.sample_ins, self.rassigns, self.rcosts)):
-
-        #     self.pretrain_sess.update_target([sample_in], ignores=self.sample_ins[:i])
+        # for i, (rbm, sample_in, sample_out, assigns, rcost) in enumerate(zip(
+        #     self.rbm_layers, self.sample_ins, self.sample_outs, self.rassigns, self.rcosts)):
 
         #     w, hb, _, vb, _ = rbm.get_contents()
 
         #     for epoch in range(epochs):
-
-        #         self.pretrain_sess.update_target(assigns, updated=[sample_in], ignores=[varx])
+        #         self.pretrain_sess.update_target(assigns, ignored=[sample_in])
         #         w.make_var().assign(assigns[0].get())
         #         vb.make_var().assign(assigns[1].get())
         #         hb.make_var().assign(assigns[2].get())
 
         #         if epoch % 100 == 0:
         #             # reconstruction error
-        #             sess.update_target([rcost], ignores=[varx])
-        #             cost = rec_cost.get()
+        #             sess.update_target([rcost], ignored=[varx])
+        #             eprint('Pre-training layer {}, epoch {}, cost {}'.format(i, epoch, rcost.get()))
 
-        #             eprint('Pre-training layer {}, epoch {}, cost {}'.format(i, epoch, cost))
+        # self.pretrain_sess.update_target([sample_out], ignored=[sample_in])
 
         # pre-train layer-wise
-        rx = eteq.variable(x)
+        rxs = [eteq.variable(x)]
+        assigns = []
+        rcosts = []
         for i in range(self.n_layers):
             # train rbm layers (reconstruction) setup
-            if i > 0:
-                rx = sample_h_given_v(self.rbm_layers[i - 1], rx)
-                sess.track([rx])
-                sess.update_target([rx])
-
             rbm = self.rbm_layers[i]
-            ph_sample = sample_h_given_v(rbm, rx)
-            nh_samples = ph_sample
+            rx = rxs[i]
+            ry = sample_h_given_v(rbm, rx)
+            rxs.append(ry)
+
+            w, hb, _, vb, _ = rbm.get_contents()
+            nh_samples = ry
             for step in range(k):
                 nv_samples = sample_v_given_h(rbm, nh_samples)
                 nh_means = rbm.connect(nv_samples)
                 if step < k-1:
                     nh_samples = tc.random.rand_binom_one(nh_means)
+            assigns.append((
+                w + lr * (tc.matmul(tc.transpose(rx), ry) - tc.matmul(tc.transpose(nv_samples), nh_means)),
+                vb + lr * tc.reduce_mean_1d(rx - nv_samples, 1),
+                hb + lr * tc.reduce_mean_1d(ry - nh_means, 1),
+            ))
+
+            vhv = rbm.backward_connect(rbm.connect(rx))
+            rcosts.append(-tc.reduce_mean(
+                tc.reduce_sum_1d(rx * tc.log(vhv) + (1 - rx) * tc.log(1 - vhv), 0)))
+
+        sess.track(rxs + rcosts + [e for ass in assigns for e in ass])
+
+        for i in range(self.n_layers):
+            # train rbm layers (reconstruction) setup
+            rbm = self.rbm_layers[i]
+            rx = rxs[i]
+            ry = rxs[i + 1]
 
             w, hb, _, vb, _ = rbm.get_contents()
+            dw, dvb, dhb = assigns[i]
 
-            assigns = [
-                w + lr * (tc.matmul(tc.transpose(rx), ph_sample) - tc.matmul(tc.transpose(nv_samples), nh_means)),
-                vb + lr * tc.reduce_mean_1d(rx - nv_samples, 1),
-                hb + lr * tc.reduce_mean_1d(ph_sample - nh_means, 1),
-            ]
-            vhv = rbm.backward_connect(rbm.connect(rx))
-            rec_cost = -tc.reduce_mean(
-                tc.reduce_sum_1d(rx * tc.log(vhv) + (1 - rx) * tc.log(1 - vhv), 0))
-
-            sess.track(assigns + [rec_cost])
+            rcost = rcosts[i]
 
             for epoch in range(epochs):
-
                 # train rbm layers (reconstruction)
-                sess.update_target(assigns, updated=[w, vb, hb], ignores=[rx])
-                w.make_var().assign(assigns[0].get())
-                vb.make_var().assign(assigns[1].get())
-                hb.make_var().assign(assigns[2].get())
+                sess.update_target([dw, dvb, dhb], ignored=[rx])
+                w.make_var().assign(dw.get())
+                vb.make_var().assign(dvb.get())
+                hb.make_var().assign(dhb.get())
 
                 if epoch % 100 == 0:
                     # reconstruction error
-                    sess.update_target([rec_cost], ignores=[rx])
-                    cost = rec_cost.get()
+                    sess.update_target([rcost], ignored=[rx])
+                    eprint('Pre-training layer {}, epoch {}, cost {}'.format(i, epoch, rcost.get()))
 
-                    eprint('Pre-training layer {}, epoch {}, cost {}'.format(i, epoch, cost))
+            sess.update_target([ry], ignored=[rx])
 
     def finetune(self, x, y, sess, lr=0.1, L2_reg=0.0, epochs=100):
         # train log layer setup
         x_var = eteq.variable(x)
         y_var = eteq.variable(y)
 
-        ignores = []
+        ignored = []
         for rbm in self.rbm_layers:
             x_var = sample_h_given_v(rbm, x_var)
-            ignores.append(x_var)
+            ignored.append(x_var)
         sess.track([x_var])
         sess.update_target([x_var])
 
@@ -174,14 +180,14 @@ class DBNTrainer(object):
         while epoch < epochs:
 
             # train log layer
-            sess.update_target(assigns, ignores=ignores)
+            sess.update_target(assigns, ignored=ignored)
 
             w.make_var().assign(assigns[0].get())
             b.make_var().assign(assigns[1].get())
 
             if epoch % 100 == 0:
                 # log layer error
-                sess.update_target([cost], updated=[w, b], ignores=ignores)
+                sess.update_target([cost], ignored=ignored)
                 finetune_cost = cost.get()
 
                 eprint('Training epoch {}, cost is {}'.format(epoch, finetune_cost))
