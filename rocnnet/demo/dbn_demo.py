@@ -17,12 +17,11 @@ def sample_h_given_v(rbm, x):
 def sample_v_given_h(rbm, x):
     return tc.random.rand_binom_one(rbm.backward_connect(x))
 
-def reconstruction_cost(rbm, x):
-    vhv = rbm.backward_connect(rbm.connect(x))
-    return -tc.reduce_mean(tc.reduce_sum_1d(x * tc.log(vhv) + (1 - x) * tc.log(1 - vhv), 0))
-
 class DBNTrainer(object):
-    def __init__(self, dbn):
+    def __init__(self, dbn, nbatch,
+        pretrain_lr=0.1,
+        train_lr=0.1,
+        cdk=1):
 
         layers = dbn.get_layers()
         assert len(layers) > 2
@@ -34,7 +33,70 @@ class DBNTrainer(object):
         self.log_layer.add(layers[-2])
         self.log_layer.add(layers[-1])
 
+        # setups:
+        # general rbm sampling
+        self.sample_outs = []
+        trainx = eteq.scalar_variable(0, [dbn.get_ninput(), nbatch], "trainx")
+        xin = trainx
+        for rbm in self.rbm_layers:
+            xin = sample_h_given_v(rbm, xin)
+            self.sample_outs.append(xin)
+        self.sample_ins = [trainx] + self.sample_outs[:-1]
+
+        # layer-wise rbm reconstruction
+        self.pretrain_sess = eteq.Session()
+        self.rassigns = []
+        self.rcosts = []
+
+        for rbm, sample_in, sample_out in zip(self.rbm_layers, self.sample_ins, self.sample_outs):
+
+            w, hb, _, vb, _ = rbm.get_contents()
+
+            chain_it = sample_out
+            for _ in range(cdk-1):
+                chain_it = tc.random.rand_binom_one(rbm.connect(
+                    sample_v_given_h(rbm, chain_it)))
+            nv_samples = sample_v_given_h(rbm, chain_it)
+            nh_means = rbm.connect(nv_samples)
+
+            self.rassigns.append((
+                w + pretrain_lr * (tc.matmul(tc.transpose(sample_in), sample_out) - tc.matmul(tc.transpose(nv_samples), nh_means)),
+                vb + pretrain_lr * tc.reduce_mean_1d(sample_in - nv_samples, 1),
+                hb + pretrain_lr * tc.reduce_mean_1d(sample_out - nh_means, 1),
+            ))
+            vhv = rbm.backward_connect(rbm.connect(sample_in))
+            reconstruction_cost = -tc.reduce_mean(
+                tc.reduce_sum_1d(sample_in * tc.log(vhv) + (1 - sample_in) * tc.log(1 - vhv), 0))
+            self.rcosts.append(reconstruction_cost)
+
+        self.pretrain_sess.track([e for tup in self.rassigns for e in tup] + self.rcosts)
+
+        # logistic layer training
+
     def pretrain(self, x, sess, lr=0.1, k=1, epochs=100):
+        # varx = self.sample_ins[0]
+        # varx.assign(x.reshape(1, -1))
+        # for i, rbm, sample_in, assigns, rcost in enumerate(zip(
+        #     self.rbm_layers, self.sample_ins, self.rassigns, self.rcosts)):
+
+        #     self.pretrain_sess.update_target([sample_in], ignores=self.sample_ins[:i])
+
+        #     w, hb, _, vb, _ = rbm.get_contents()
+
+        #     for epoch in range(epochs):
+
+        #         self.pretrain_sess.update_target(assigns, updated=[sample_in], ignores=[varx])
+        #         w.make_var().assign(assigns[0].get())
+        #         vb.make_var().assign(assigns[1].get())
+        #         hb.make_var().assign(assigns[2].get())
+
+        #         if epoch % 100 == 0:
+        #             # reconstruction error
+        #             sess.update_target([rcost], ignores=[varx])
+        #             cost = rec_cost.get()
+
+        #             eprint('Pre-training layer {}, epoch {}, cost {}'.format(i, epoch, cost))
+
         # pre-train layer-wise
         rx = eteq.variable(x)
         for i in range(self.n_layers):
@@ -60,7 +122,9 @@ class DBNTrainer(object):
                 vb + lr * tc.reduce_mean_1d(rx - nv_samples, 1),
                 hb + lr * tc.reduce_mean_1d(ph_sample - nh_means, 1),
             ]
-            rec_cost = reconstruction_cost(rbm, rx)
+            vhv = rbm.backward_connect(rbm.connect(rx))
+            rec_cost = -tc.reduce_mean(
+                tc.reduce_sum_1d(rx * tc.log(vhv) + (1 - rx) * tc.log(1 - vhv), 0))
 
             sess.track(assigns + [rec_cost])
 
@@ -159,7 +223,10 @@ dbn.add(rcn.Dense(2, 3,
     bias_init=rcn.zero_init(), label="log_layer"))
 dbn.add(rcn.softmax(0))
 
-trainer = DBNTrainer(n_ins=6, hidden_layer_sizes=[3, 3], n_outs=2)
+trainer = DBNTrainer(dbn, trainingx.shape[1],
+    pretrain_lr=pretrain_lr,
+    train_lr=finetune_lr,
+    cdk=1)
 
 # pre-training (TrainUnsupervisedDBN)
 pretraining_sess = eteq.Session()

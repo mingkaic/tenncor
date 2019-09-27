@@ -12,11 +12,11 @@ struct RNN final : public iMarshalSet
 		NonLinearF nonlin, std::string label) :
 		iMarshalSet(label), nonlin_(nonlin),
 		bias_(eteq::make_variable_scalar<PybindT>(
-			0.0, teq::Shape({n_output}), "bias")
+			0., teq::Shape({n_output}), "bias")
 	{
 		assert(timestep > 0);
 		{
-			PybindT bound = 1.0 / std::sqrt(n_input);
+			PybindT bound = 1. / std::sqrt(n_input);
 			std::uniform_real_distribution<PybindT> dist(-bound, bound);
 			auto gen = [&dist]()
 			{
@@ -34,7 +34,7 @@ struct RNN final : public iMarshalSet
 			teq::Shape weight_shape({n_output, n_output});
 			teq::NElemT nweight = weight_shape.n_elems();
 
-			PybindT bound = 1.0 / std::sqrt(n_output);
+			PybindT bound = 1. / std::sqrt(n_output);
 			std::uniform_real_distribution<PybindT> dist(-bound, bound);
 			auto gen = [&dist]()
 			{

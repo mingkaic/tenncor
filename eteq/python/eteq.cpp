@@ -198,53 +198,39 @@ PYBIND11_MODULE(eteq, m)
 			})
 		.def("update",
 			[](py::object self,
-				std::vector<eteq::NodeptrT<PybindT>> updated,
-				std::vector<eteq::NodeptrT<PybindT>> ignores)
+				std::vector<eteq::NodeptrT<PybindT>> ignored)
 			{
 				auto sess = self.cast<eteq::iSession*>();
-				std::unordered_set<teq::iTensor*> updated_set;
 				std::unordered_set<teq::iTensor*> ignored_set;
-				for (eteq::NodeptrT<PybindT>& node : updated)
-				{
-					updated_set.emplace(node->get_tensor().get());
-				}
-				for (eteq::NodeptrT<PybindT>& node : ignores)
+				for (eteq::NodeptrT<PybindT>& node : ignored)
 				{
 					ignored_set.emplace(node->get_tensor().get());
 				}
-				sess->update(updated_set, ignored_set);
+				sess->update(ignored_set);
 			},
-			"Calculate every node in the graph given list of updated data nodes",
-			py::arg("updated") = std::vector<eteq::NodeptrT<PybindT>>{},
-			py::arg("ignores") = std::vector<eteq::NodeptrT<PybindT>>{})
+			"Calculate every node in the graph given list of nodes to ignore",
+			py::arg("ignored") = std::vector<eteq::NodeptrT<PybindT>>{})
 		.def("update_target",
 			[](py::object self,
 				std::vector<eteq::NodeptrT<PybindT>> targeted,
-				std::vector<eteq::NodeptrT<PybindT>> updated,
-				std::vector<eteq::NodeptrT<PybindT>> ignores)
+				std::vector<eteq::NodeptrT<PybindT>> ignored)
 			{
 				auto sess = self.cast<eteq::iSession*>();
 				std::unordered_set<teq::iTensor*> targeted_set;
-				std::unordered_set<teq::iTensor*> updated_set;
 				std::unordered_set<teq::iTensor*> ignored_set;
 				for (eteq::NodeptrT<PybindT>& node : targeted)
 				{
 					targeted_set.emplace(node->get_tensor().get());
 				}
-				for (eteq::NodeptrT<PybindT>& node : updated)
-				{
-					updated_set.emplace(node->get_tensor().get());
-				}
-				for (eteq::NodeptrT<PybindT>& node : ignores)
+				for (eteq::NodeptrT<PybindT>& node : ignored)
 				{
 					ignored_set.emplace(node->get_tensor().get());
 				}
-				sess->update_target(targeted_set, updated_set, ignored_set);
+				sess->update_target(targeted_set, ignored_set);
 			},
-			"Calculate node relevant to targets in the graph given list of updated data",
-			py::arg("targets"),
-			py::arg("updated") = std::vector<eteq::NodeptrT<PybindT>>{},
-			py::arg("ignores") = std::vector<eteq::NodeptrT<PybindT>>{});
+			"Calculate node relevant to targets in the graph given list of nodes to ignore",
+			py::arg("targeted"),
+			py::arg("ignored") = std::vector<eteq::NodeptrT<PybindT>>{});
 
 	py::implicitly_convertible<eteq::iSession,eteq::Session>();
 	session

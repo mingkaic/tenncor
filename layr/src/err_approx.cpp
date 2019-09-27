@@ -45,7 +45,7 @@ AssignGroupsT rms_momentum (const VarErrsT& leaves, PybindT learning_rate,
 		auto momentum_node = eteq::convert_to_node(momentum);
 
 		auto momentum_next = discount_factor * momentum_node +
-			PybindT(1.0 - discount_factor) * tenncor::square(err);
+			PybindT(1. - discount_factor) * tenncor::square(err);
 		auto leaf_next = leaf_node - err * learning_rate /
 			(tenncor::sqrt(momentum_node) + epsilon);
 		momentum_assigns.push_back(VarAssign{

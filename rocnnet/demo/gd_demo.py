@@ -116,7 +116,7 @@ def main(args):
         test_batch = batch_generate(n_in, 1)
         test_batch_out = avgevry2(test_batch)
         testin.assign(test_batch)
-        sess.update([testin])
+        sess.update()
 
         untrained_data = untrained_out.get()
         trained_data = trained_out.get()

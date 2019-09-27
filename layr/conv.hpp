@@ -68,7 +68,7 @@ struct Conv final : public iLayer
 		size_t ndata = kernelshape.n_elems();
 
 		size_t input_size = filter_hw.first * filter_hw.second * in_ncol;
-		PybindT bound = 1.0 / std::sqrt(input_size);
+		PybindT bound = 1. / std::sqrt(input_size);
 		std::uniform_real_distribution<PybindT> dist(-bound, bound);
 		auto gen = [&dist]()
 		{
@@ -80,7 +80,7 @@ struct Conv final : public iLayer
 		weight_ = eteq::make_variable<PybindT>(
 			data.data(), kernelshape, "weight");
 		bias_ = eteq::make_variable_scalar<PybindT>(
-			0.0, teq::Shape({out_ncol}), "bias");
+			0., teq::Shape({out_ncol}), "bias");
 	}
 
 	Conv (eteq::NodeptrT<PybindT> weight,

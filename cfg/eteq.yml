@@ -893,7 +893,7 @@ api:
                           }
                           fwd[2][0] = ncol;
                           fwd[1][1] = 1;
-                          fwd[0][2] = 1.0 / ncommon;
+                          fwd[0][2] = 1. / ncommon;
                       }
                   ));
 
@@ -906,7 +906,7 @@ api:
                           }
                           fwd[0][0] = 1;
                           fwd[2][1] = nrow;
-                          fwd[1][2] = 1.0 / ncommon;
+                          fwd[1][2] = 1. / ncommon;
                       }
                   ));
                   return eteq::make_functor<T>(teq::Opcode{"MATMUL",::egen::MATMUL}, {

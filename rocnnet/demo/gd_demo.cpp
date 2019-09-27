@@ -176,7 +176,7 @@ int main (int argc, const char** argv)
 		std::vector<float> batch = batch_generate(n_in, 1);
 		std::vector<float> batch_out = avgevry2(batch);
 		testin->assign(batch.data(), testin->shape());
-		sess.update({testin->get_tensor().get()});
+		sess.update();
 
 		float untrained_avgerr = 0;
 		float trained_avgerr = 0;

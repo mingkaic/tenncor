@@ -259,11 +259,7 @@ static void BM_MatmulComplex(benchmark::State& state)
 		a->assign(data.data(), a->shape());
 		b->assign(data2.data(), b->shape());
 		c->assign(data3.data(), c->shape());
-		session.update({
-			a->get_tensor().get(),
-			b->get_tensor().get(),
-			c->get_tensor().get(),
-		});
+		session.update();
 	}
 }
 
@@ -293,23 +289,17 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	eteq::NodeptrT<double> bias1tens(bias1);
 	eteq::NodeptrT<double> outtens(out);
 
-	auto layer0 = tenncor::add(
-		tenncor::matmul(intens, weight0tens),
-		tenncor::extend(bias0tens, 1, {3}));
-	auto sig0 = tenncor::div(
-		eteq::make_constant_scalar<double>(1, teq::Shape({9, 3})),
-		tenncor::add(eteq::make_constant_scalar<double>(1, teq::Shape({9, 3})),
-			tenncor::exp(tenncor::neg(layer0))));
+	auto layer0 =
+		tenncor::matmul(intens, weight0tens) +
+		tenncor::extend(bias0tens, 1, {3});
+	auto sig0 = 1. / (1. + tenncor::exp(-layer0));
 
-	auto layer1 = tenncor::add(
-		tenncor::matmul(sig0, weight1tens),
-		tenncor::extend(bias1tens, 1, {3}));
-	auto sig1 = tenncor::div(eteq::make_constant_scalar<double>(1, teq::Shape({5, 3})),
-		tenncor::add(eteq::make_constant_scalar<double>(1, teq::Shape({5, 3})),
-			tenncor::exp(tenncor::neg(layer1))));
+	auto layer1 =
+		tenncor::matmul(sig0, weight1tens) +
+		tenncor::extend(bias1tens, 1, {3});
+	auto sig1 = 1. / (1. + tenncor::exp(-layer1));
 
-	auto err = tenncor::pow(tenncor::sub(outtens, sig1),
-		eteq::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(outtens - sig1, 2.);
 
 	auto dw0 = eteq::derive(err, weight0tens);
 	auto db0 = eteq::derive(err, bias0tens);
@@ -339,14 +329,7 @@ static void BM_SigmoidMLP(benchmark::State& state)
 		bias0->assign(b0_data.data(), bias0->shape());
 		weight1->assign(w1_data.data(), weight1->shape());
 		bias1->assign(b1_data.data(), bias1->shape());
-		session.update({
-			in->get_tensor().get(),
-			out->get_tensor().get(),
-			weight0->get_tensor().get(),
-			bias0->get_tensor().get(),
-			weight1->get_tensor().get(),
-			bias1->get_tensor().get(),
-		});
+		session.update();
 	}
 }
 
@@ -376,18 +359,17 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	eteq::NodeptrT<double> bias1tens(bias1);
 	eteq::NodeptrT<double> outtens(out);
 
-	auto layer0 = tenncor::add(
-		tenncor::matmul(intens, weight0tens),
-		tenncor::extend(bias0tens, 1, {3}));
+	auto layer0 =
+		tenncor::matmul(intens, weight0tens) +
+		tenncor::extend(bias0tens, 1, {3});
 	auto sig0 = tenncor::sigmoid(layer0);
 
-	auto layer1 = tenncor::add(
-		tenncor::matmul(sig0, weight1tens),
-		tenncor::extend(bias1tens, 1, {3}));
+	auto layer1 =
+		tenncor::matmul(sig0, weight1tens) +
+		tenncor::extend(bias1tens, 1, {3});
 	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = tenncor::pow(tenncor::sub(outtens, sig1),
-		eteq::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(outtens - sig1, 2.);
 
 	auto dw0 = eteq::derive(err, weight0tens);
 	auto db0 = eteq::derive(err, bias0tens);
@@ -428,14 +410,7 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 		bias0->assign(b0_data.data(), bias0->shape());
 		weight1->assign(w1_data.data(), weight1->shape());
 		bias1->assign(b1_data.data(), bias1->shape());
-		session.update({
-			in->get_tensor().get(),
-			out->get_tensor().get(),
-			weight0->get_tensor().get(),
-			bias0->get_tensor().get(),
-			weight1->get_tensor().get(),
-			bias1->get_tensor().get(),
-		});
+		session.update();
 	}
 }
 

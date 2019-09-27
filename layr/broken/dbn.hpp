@@ -15,7 +15,7 @@ struct DBN final : public iMarshalSet
 		teq::Shape weight_shape({rbm_->get_noutput(), n_input});
 		teq::NElemT nweight = weight_shape.n_elems();
 
-		PybindT bound = 1.0 / std::sqrt(n_input);
+		PybindT bound = 1. / std::sqrt(n_input);
 		std::uniform_real_distribution<PybindT> dist(-bound, bound);
 		auto gen = [&dist]()
 		{
@@ -28,7 +28,7 @@ struct DBN final : public iMarshalSet
 				wdata.data(), weight_shape, "log_weight");
 
 		eteq::VarptrT<PybindT> bias = eteq::make_variable_scalar<PybindT>(
-			0.0, teq::Shape({hiddens.back()}), "log_bias");
+			0., teq::Shape({hiddens.back()}), "log_bias");
 
 		log_weight_ = std::make_shared<MarshalVar>(weight);
 		log_bias_ = std::make_shared<MarshalVar>(bias);

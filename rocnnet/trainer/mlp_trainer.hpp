@@ -24,7 +24,7 @@ struct MLPTrainer final
 		layr::NodeUnarF gradprocess = layr::NodeUnarF(layr::identity),
 		TrainingContext ctx = TrainingContext()) :
 		batch_size_(batch_size),
-		train_in_(eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+		train_in_(eteq::make_variable_scalar<PybindT>(0., teq::Shape({
 			(teq::DimT) model.get_ninput(), batch_size}), "train_in")),
 		model_(model),
 		sess_(&sess),
@@ -32,7 +32,7 @@ struct MLPTrainer final
 	{
 		train_out_ = model_.connect(
 			eteq::convert_to_node<PybindT>(train_in_));
-		expected_out_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+		expected_out_ = eteq::make_variable_scalar<PybindT>(0., teq::Shape({
 			(teq::DimT) model.get_noutput(), batch_size}), "expected_out");
 		error_ = tenncor::square(
 			eteq::convert_to_node<PybindT>(expected_out_) - train_out_);
@@ -87,14 +87,11 @@ struct MLPTrainer final
 		train_in_->assign(train_in.data(), train_in_->shape());
 		expected_out_->assign(expected_out.data(), expected_out_->shape());
 
-		sess_->update({
-			train_in_->get_tensor().get(),
-			expected_out_->get_tensor().get(),
-		});
+		sess_->update();
 		assign_groups(updates_,
 			[this](std::unordered_set<teq::iTensor*>& updated)
 			{
-				this->sess_->update(updated);
+				this->sess_->update();
 			});
 		++ctx_.n_iterations_;
 	}

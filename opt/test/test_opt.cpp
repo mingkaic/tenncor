@@ -54,9 +54,8 @@ TEST(OPTIMIZE, CalcConstants)
 	}
 
 	{
-		auto adv_func = tenncor::mul(
-			tenncor::add(tenncor::sin(var), tenncor::sin(two)),
-			tenncor::pow(three, four));
+		auto adv_func = (tenncor::sin(var) + tenncor::sin(two)) *
+			tenncor::pow(three, four);
 		auto opted = opt::optimize({adv_func->get_tensor()}, empty_rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized adv_func to be (sin(var) + sin(2)) * 81
@@ -113,8 +112,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto lvfunc = tenncor::add(var, zero);
-		auto rvfunc = tenncor::add(zero, var);
+		auto lvfunc = var + zero;
+		auto rvfunc = zero + var;
 		auto opted = opt::optimize({
 			lvfunc->get_tensor(),
 			rvfunc->get_tensor(),
@@ -127,8 +126,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto lzero = tenncor::mul(var, zero);
-		auto rzero = tenncor::mul(zero, var);
+		auto lzero = var * zero;
+		auto rzero = zero * var;
 		auto opted = opt::optimize({
 			lzero->get_tensor(),
 			rzero->get_tensor(),
@@ -141,8 +140,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto posvar = tenncor::sub(var, zero);
-		auto negvar = tenncor::sub(zero, var);
+		auto posvar = var - zero;
+		auto negvar = zero - var;
 		auto opted = opt::optimize({
 			posvar->get_tensor(),
 			negvar->get_tensor(),
@@ -159,7 +158,7 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	}
 
 	{
-		auto divz = tenncor::div(zero, var);
+		auto divz = zero / var;
 		auto opted = opt::optimize({divz->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized divz to be zero
@@ -192,16 +191,16 @@ TEST(OPTIMIZE, PruneZeroGraph)
 	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	auto got1 = tenncor::cos(zero);
-	auto got3 = tenncor::add(zero, var2);
-	auto gotn1 = tenncor::sub(zero, var);
-	auto got2 = tenncor::sub(var2, zero);
+	auto got3 = zero + var2;
+	auto gotn1 = zero - var;
+	auto got2 = var2 - zero;
 	auto got22 = tenncor::max(var2, zero);
 
-	auto too = tenncor::add(zero, tenncor::mul(got1, got22));
+	auto too = zero + got1 * got22;
 	auto got11 = tenncor::pow(got2, zero);
 
-	auto m = tenncor::min(tenncor::max(got22, got1), tenncor::lt(too, got11));
-	auto nocascades = tenncor::sub(tenncor::pow(m, tenncor::div(got3, gotn1)), got2);
+	auto m = tenncor::min(tenncor::max(got22, got1), too < got11);
+	auto nocascades = tenncor::pow(m, got3 / gotn1) - got2;
 
 	auto opted = opt::optimize({nocascades->get_tensor()}, rules);
 	ASSERT_EQ(1, opted.size());
@@ -259,8 +258,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 	}
 
 	{
-		auto lvfunc = tenncor::mul(var, one);
-		auto rvfunc = tenncor::mul(one, var);
+		auto lvfunc = var * one;
+		auto rvfunc = one * var;
 		auto opted = opt::optimize({
 			lvfunc->get_tensor(),
 			rvfunc->get_tensor(),
@@ -273,7 +272,7 @@ TEST(OPTIMIZE, PruneOneSingles)
 	}
 
 	{
-		auto nomer = tenncor::div(var, one);
+		auto nomer = var / one;
 		auto opted = opt::optimize({nomer->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized nomer to be var
@@ -282,7 +281,7 @@ TEST(OPTIMIZE, PruneOneSingles)
 	}
 
 	{
-		auto wun = tenncor::div(var, var);
+		auto wun = var / var;
 		auto opted = opt::optimize({wun->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		// expect optimized wun to be 1
@@ -314,15 +313,15 @@ TEST(OPTIMIZE, PruneOneGraph)
 
 	auto got0 = tenncor::log(one);
 	auto got1 = tenncor::sqrt(one);
-	auto got3 = tenncor::mul(one, var);
+	auto got3 = one * var;
 	auto got00 = tenncor::pow(one, var);
 	auto got = tenncor::max(var, one);
 
-	auto too = tenncor::add(got1, tenncor::mul(got0, got00));
+	auto too = got1 + got0 * got00;
 	auto got11 = tenncor::pow(var, one);
 
 	auto m = tenncor::min(tenncor::max(got1, too), got11);
-	auto root = tenncor::sub(tenncor::pow(m, tenncor::div(got3, got)), var);
+	auto root = tenncor::pow(m, got3 / got) - var;
 
 	auto opted = opt::optimize({root->get_tensor()}, rules);
 	ASSERT_EQ(1, opted.size());
@@ -388,7 +387,7 @@ TEST(OPTIMIZE, PruneOpSingles)
 	// don't merge mul-reduced_add
 	{
 		auto opted = opt::optimize({
-			tenncor::mul(tenncor::reduce_sum(one), zero)->get_tensor(),
+			(tenncor::reduce_sum(one) * zero)->get_tensor(),
 		}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ(
@@ -413,13 +412,14 @@ TEST(OPTIMIZE, PruneOpGraph)
 		eteq::make_variable_scalar<double>(3, teq::Shape(), "special_var3"));
 
 	auto got1 = tenncor::cos(three);
-	auto got3 = tenncor::mul(tenncor::mul(one, three), two);
-	auto gotn1 = tenncor::sub(three, one);
-	auto got2 = tenncor::sub(two, three);
+	auto got3 = (one * three) * two;
+	auto gotn1 = three - one;
+	auto got2 = two - three;
 	auto got22 = tenncor::min(two, three);
 
-	auto too = tenncor::mul(tenncor::reduce_prod(tenncor::reduce_prod(zero, 0), 1),
-		tenncor::reduce_prod(tenncor::mul(got1, got22)));
+	auto too =
+		tenncor::reduce_prod(tenncor::reduce_prod(zero, 0), 1) *
+		tenncor::reduce_prod(got1 * got22);
 	auto got11 = tenncor::pow(got2, three);
 
 	auto m = tenncor::min(tenncor::min(got22, got1), tenncor::min(too, got11));
@@ -427,7 +427,7 @@ TEST(OPTIMIZE, PruneOpGraph)
 	opt::OptCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
 
 	auto opted = opt::optimize({
-		tenncor::sub(tenncor::min(m, tenncor::div(got3, gotn1)), got2)->get_tensor(),
+		(tenncor::min(m, got3 / gotn1) - got2)->get_tensor(),
 	}, rules);
 	ASSERT_EQ(1, opted.size());
 	auto root = opted[0];
@@ -484,9 +484,7 @@ TEST(OPTIMIZE, GroupSingles)
 
 	// mul and div and next to each level
 	{
-		auto opted = opt::optimize({
-			tenncor::mul(tenncor::div(one, two), two)->get_tensor(),
-		}, rules);
+		auto opted = opt::optimize({((one / two) * two)->get_tensor()}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ("(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])",
 			opted[0]);
@@ -495,7 +493,7 @@ TEST(OPTIMIZE, GroupSingles)
 	// mul and div are separated by a level
 	{
 		auto opted = opt::optimize({
-			tenncor::mul(tenncor::mul(tenncor::div(one, two), one), two)->get_tensor(),
+			(((one / two) * one) * two)->get_tensor(),
 		}, rules);
 		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ(
@@ -519,52 +517,52 @@ TEST(OPTIMIZE, ReuseOpGraph)
 	eteq::NodeptrT<double> root;
 	{
 		auto got1 = tenncor::cos(zero);
-		auto got3 = tenncor::add(tenncor::add(one, zero), two);
-		auto gotn1 = tenncor::sub(zero, one);
-		auto got2 = tenncor::sub(two, zero);
+		auto got3 = (one + zero) + two;
+		auto gotn1 = zero - one;
+		auto got2 = two - zero;
 		auto got22 = tenncor::max(two, zero);
 
-		auto too = tenncor::add(zero, tenncor::mul(got1, got22));
+		auto too = zero + got1 * got22;
 		auto got11 = tenncor::pow(got2, zero);
 
 		auto m = tenncor::min(tenncor::min(got22, got1), tenncor::min(too, got11));
-		root = tenncor::sub(tenncor::pow(m, tenncor::div(got3, gotn1)), got2);
+		root = tenncor::pow(m, got3 / gotn1) - got2;
 	}
 
 	eteq::NodeptrT<double> subroot;
 	{
 		auto other_got1 = tenncor::cos(zero);
 		auto got22 = tenncor::max(two, zero);
-		subroot = tenncor::mul(other_got1, got22);
+		subroot = other_got1 * got22;
 	}
 
 	eteq::NodeptrT<double> copyroot;
 	{
 		auto got1 = tenncor::cos(zero);
-		auto got3 = tenncor::add(tenncor::add(one, zero), two);
-		auto gotn1 = tenncor::sub(zero, one);
-		auto got2 = tenncor::sub(two, zero);
+		auto got3 = (one + zero) + two;
+		auto gotn1 = zero - one;
+		auto got2 = two - zero;
 		auto got22 = tenncor::max(two, zero);
 
-		auto too = tenncor::add(zero, tenncor::mul(got1, got22));
+		auto too = zero + got1 * got22;
 		auto got11 = tenncor::pow(got2, zero);
 
 		auto m = tenncor::min(tenncor::min(got22, got1), tenncor::min(too, got11));
-		copyroot = tenncor::sub(tenncor::pow(m, tenncor::div(got3, gotn1)), got2);
+		copyroot = tenncor::pow(m, got3 / gotn1) - got2;
 	}
 
 	eteq::NodeptrT<double> splitroot;
 	{
 		auto got1 = tenncor::cos(zero);
-		auto got3 = tenncor::add(tenncor::add(one, zero), two);
-		auto gotn1 = tenncor::sub(zero, one);
-		auto got2 = tenncor::sub(two, zero);
+		auto got3 = (one + zero) + two;
+		auto gotn1 = zero - one;
+		auto got2 = two - zero;
 		auto got22 = tenncor::max(two, zero);
 
-		auto too = tenncor::div(got2, tenncor::mul(got1, got22));
-		auto got11 = tenncor::eq(too, gotn1);
+		auto too = got2 / (got1 * got22);
+		auto got11 = too == gotn1;
 
-		splitroot = tenncor::mul(tenncor::mul(got11, got1), tenncor::mul(too, got3));
+		splitroot = (got11 * got1) * (too * got3);
 	}
 
 	opt::OptCtx empty_rules = eteq::parse<double>("");

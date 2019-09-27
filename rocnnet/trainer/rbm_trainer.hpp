@@ -145,7 +145,7 @@ struct BernoulliRBMTrainer final
 			assign_groups(updates_,
 				[this](eteq::TensSetT& updated)
 				{
-					this->sess_->update(updated);
+					this->sess_->update();
 				});
 			return -1;
 		}
@@ -154,7 +154,7 @@ struct BernoulliRBMTrainer final
 			[this](eteq::TensSetT& updated)
 			{
 				this->sess_->update_target(
-					eteq::TensSetT{this->error_->get_tensor().get()}, updated);
+					eteq::TensSetT{this->error_->get_tensor().get()});
 			});
 		return error_->data()[0];
 	}

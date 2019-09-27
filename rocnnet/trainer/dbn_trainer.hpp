@@ -46,7 +46,7 @@ struct DBNTrainer final
 		if (nullptr == train_in)
 		{
 			train_in_ = eteq::VarptrT<PybindT>(eteq::Variable<PybindT>::get(
-				0.0, teq::Shape({brain->get_ninput(), batch_size}), "train_in"));
+				0., teq::Shape({brain->get_ninput(), batch_size}), "train_in"));
 		}
 		else
 		{
