@@ -15,12 +15,11 @@
 #include "layr/rbm.hpp"
 #include "layr/model.hpp"
 // #include "layr/conv.hpp"
-// #include "layr/dbn.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"
 #include "rocnnet/trainer/rbm_trainer.hpp"
-// #include "rocnnet/trainer/dbn_trainer.hpp"
+#include "rocnnet/trainer/dbn_trainer.hpp"
 
 namespace py = pybind11;
 
@@ -100,13 +99,6 @@ std::vector<PybindT> arr2vec (teq::Shape& outshape, py::array data)
 	return vec;
 }
 
-// layr::DBNptrT dbn_init (size_t n_input, std::vector<size_t> n_hiddens,
-// 	std::string label)
-// {
-// 	return std::make_shared<layr::DBN>(n_input,
-// 		std::vector<uint8_t>(n_hiddens.begin(), n_hiddens.end()), label);
-// }
-
 layr::ApproxF get_sgd (PybindT learning_rate)
 {
 	return [=](const layr::VarErrsT& leaves)
@@ -144,6 +136,7 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<trainer::MLPTrainer> mlptrainer(m, "MLPTrainer");
 	py::class_<trainer::DQNTrainer> dqntrainer(m, "DQNTrainer");
 	py::class_<trainer::BernoulliRBMTrainer> brbmtrainer(m, "BernoulliRBMTrainer");
+	py::class_<trainer::DBNTrainer> dbntrainer(m, "DBNTrainer");
 
 	// supports
 	py::class_<layr::VarAssign> assigns(m, "VarAssign");
@@ -262,18 +255,6 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("add", &layr::SequentialModel::push_back)
 		.def("get_layers", &layr::SequentialModel::get_layers);
 
-	// // dbn
-	// m.def("get_dbn", &pyrocnnet::dbn_init);
-	// dbn
-	// 	.def("copy", [](py::object self)
-	// 	{
-	// 		return std::make_shared<layr::DBN>(*self.cast<layr::DBN*>());
-	// 	}, "deep copy this instance")
-	// 	.def("forward", [](py::object self, eteq::NodeptrT<PybindT> input)
-	// 	{
-	// 		return (*self.cast<layr::DBN*>())(input);
-	// 	}, "forward input tensor and returned connected output");
-
 	// mlptrainer
 	mlptrainer
 		.def(py::init<layr::SequentialModel&,
@@ -283,7 +264,16 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("update"), py::arg("batch_size"),
 			py::arg("gradprocess") = layr::NodeUnarF(layr::identity),
 			py::arg("ctx") = trainer::TrainingContext())
-		.def("train", &trainer::MLPTrainer::train, "train internal variables")
+		.def("train",
+			[](py::object self, py::array train_in, py::array expected_out)
+			{
+				eteq::ShapedArr<PybindT> xarr;
+				eteq::ShapedArr<PybindT> yarr;
+				xarr.data_ = pyrocnnet::arr2vec(xarr.shape_, train_in);
+				yarr.data_ = pyrocnnet::arr2vec(yarr.shape_, expected_out);
+				self.cast<trainer::MLPTrainer*>()->train(xarr, yarr);
+			},
+			"train internal variables")
 		.def("train_in",
 			[](py::object self)
 			{
@@ -296,12 +286,6 @@ PYBIND11_MODULE(rocnnet, m)
 				return self.cast<trainer::MLPTrainer*>()->expected_out_;
 			},
 			"get expected_out variable")
-		.def("train_out",
-			[](py::object self)
-			{
-				return self.cast<trainer::MLPTrainer*>()->train_out_;
-			},
-			"get training node")
 		.def("error",
 			[](py::object self)
 			{
@@ -330,7 +314,14 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("update"), py::arg("param"),
 			py::arg("gradprocess") = layr::NodeUnarF(layr::identity),
 			py::arg("ctx") = trainer::DQNTrainingContext())
-		.def("action", &trainer::DQNTrainer::action, "get next action")
+		.def("action",
+			[](py::object self, py::array input)
+			{
+				eteq::ShapedArr<PybindT> arr;
+				arr.data_ = pyrocnnet::arr2vec(arr.shape_, input);
+				return self.cast<trainer::DQNTrainer*>()->action(arr);
+			},
+			"get next action")
 		.def("store", &trainer::DQNTrainer::store, "save observation, action, and reward")
 		.def("train", &trainer::DQNTrainer::train, "train qnets")
 		.def("error", &trainer::DQNTrainer::get_error, "get prediction error")
@@ -363,6 +354,44 @@ PYBIND11_MODULE(rocnnet, m)
 				std::vector<PybindT> vec = pyrocnnet::arr2vec(shape, data);
 				return trainer->train(vec);
 			}, "train internal variables");
+
+	// dbntrainer
+	dbntrainer
+		.def(py::init<
+			layr::SequentialModel& ,
+			uint8_t,PybindT,PybindT,
+			size_t,PybindT,PybindT>(),
+			py::arg("model"),
+			py::arg("batch_size"),
+			py::arg("pretrain_lr") = 0.1,
+			py::arg("train_lr") = 0.1,
+			py::arg("cdk") = 10,
+			py::arg("l2_reg") = 0.,
+			py::arg("lr_scaling") = 0.95)
+		.def("pretrain",
+			[](py::object self, py::array x, size_t nepochs)
+			{
+				auto trainer = self.cast<trainer::DBNTrainer*>();
+				teq::Shape shape;
+				std::vector<PybindT> vec = pyrocnnet::arr2vec(shape, x);
+				return trainer->pretrain(vec, nepochs);
+			},
+			py::arg("x"),
+			py::arg("nepochs") = 100,
+			"pretrain internal rbms")
+		.def("finetune",
+			[](py::object self, py::array x, py::array y, size_t nepochs)
+			{
+				auto trainer = self.cast<trainer::DBNTrainer*>();
+				teq::Shape shape;
+				std::vector<PybindT> xvec = pyrocnnet::arr2vec(shape, x);
+				std::vector<PybindT> yvec = pyrocnnet::arr2vec(shape, y);
+				return trainer->finetune(xvec, yvec, nepochs);
+			},
+			py::arg("x"),
+			py::arg("y"),
+			py::arg("nepochs") = 100,
+			"finetune internal dense layer");
 
 	// inlines
 	m

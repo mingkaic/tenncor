@@ -60,18 +60,36 @@ AssignGroupsT rms_momentum (const VarErrsT& leaves, PybindT learning_rate,
 	return {momentum_assigns, leaf_assigns};
 }
 
-void assign_groups (AssignGroupsT& groups, UpdateStepF update_step)
+void assign_groups (const AssignGroupsT& groups, UpdateStepF update_step)
 {
-	for (AssignsT& group : groups)
+	for (const AssignsT& group : groups)
 	{
 		eteq::TensSetT updated_var;
-		for (layr::VarAssign& assign : group)
+		for (const layr::VarAssign& assign : group)
 		{
 			updated_var.emplace(assign.target_->get_tensor().get());
 			assign.target_->assign(assign.source_->data(),
 				assign.source_->shape());
 		}
 		update_step(updated_var);
+	}
+}
+
+void assign_groups_preupdate (const AssignGroupsT& groups, UpdateStepF update_step)
+{
+	for (const AssignsT& group : groups)
+	{
+		eteq::TensSetT sources;
+		for (const layr::VarAssign& assign : group)
+		{
+			sources.emplace(assign.source_->get_tensor().get());
+		}
+		update_step(sources);
+		for (const layr::VarAssign& assign : group)
+		{
+			assign.target_->assign(assign.source_->data(),
+				assign.source_->shape());
+		}
 	}
 }
 

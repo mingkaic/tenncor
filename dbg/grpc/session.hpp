@@ -202,7 +202,7 @@ struct InteractiveSession final : public eteq::iSession
 
 		// basic copy over from session::update
 		std::list<teq::iOperableFunc*> reqs;
-		std::unordered_set<teq::iTensor*> acceptable;
+		eteq::TensSetT acceptable;
 		for (auto& root : sess_.tracked_)
 		{
 			acceptable.emplace(root.get());
@@ -291,7 +291,7 @@ struct InteractiveSession final : public eteq::iSession
 
 		// basic copy over from session::update_target
 		std::list<teq::iOperableFunc*> reqs;
-		std::unordered_set<teq::iTensor*> acceptable;
+		eteq::TensSetT acceptable;
 		for (auto& root : targeted)
 		{
 			acceptable.emplace(root);

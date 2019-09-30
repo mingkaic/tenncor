@@ -170,11 +170,12 @@ PYBIND11_MODULE(eteq, m)
 			[](py::object self)
 			{
 				auto node = self.cast<eteq::iNode<PybindT>*>();
-				if (auto var = dynamic_cast<eteq::VariableNode<PybindT>*>(node))
+				auto var = dynamic_cast<eteq::VariableNode<PybindT>*>(node);
+				if (nullptr == var)
 				{
-					return var;
+					logs::fatal("cannot make non-variable into variable");
 				}
-				logs::fatal("cannot make non-variable into variable");
+				return var;
 			});
 
 	// ==== session ====
@@ -201,7 +202,7 @@ PYBIND11_MODULE(eteq, m)
 				std::vector<eteq::NodeptrT<PybindT>> ignored)
 			{
 				auto sess = self.cast<eteq::iSession*>();
-				std::unordered_set<teq::iTensor*> ignored_set;
+				eteq::TensSetT ignored_set;
 				for (eteq::NodeptrT<PybindT>& node : ignored)
 				{
 					ignored_set.emplace(node->get_tensor().get());
@@ -216,8 +217,8 @@ PYBIND11_MODULE(eteq, m)
 				std::vector<eteq::NodeptrT<PybindT>> ignored)
 			{
 				auto sess = self.cast<eteq::iSession*>();
-				std::unordered_set<teq::iTensor*> targeted_set;
-				std::unordered_set<teq::iTensor*> ignored_set;
+				eteq::TensSetT targeted_set;
+				eteq::TensSetT ignored_set;
 				for (eteq::NodeptrT<PybindT>& node : targeted)
 				{
 					targeted_set.emplace(node->get_tensor().get());
@@ -258,9 +259,9 @@ PYBIND11_MODULE(eteq, m)
 			[](py::object self, py::array data)
 			{
 				auto var = self.cast<eteq::VariableNode<PybindT>*>();
-				teq::Shape shape;
-				std::vector<PybindT> vec = pyead::arr2vec(shape, data);
-				var->assign(vec.data(), shape);
+				eteq::ShapedArr<PybindT> arr;
+				arr.data_ = pyead::arr2vec(arr.shape_, data);
+				var->assign(arr);
 			},
 			"Assign numpy data array to variable");
 

@@ -46,9 +46,11 @@ struct Session final : public iSession
 		tracked_.insert(roots.begin(), roots.end());
 
 		teq::GraphStat stat;
+		teq::ParentFinder pfinder; // revert
 		for (teq::TensptrT& root : roots)
 		{
 			root->accept(stat);
+			root->accept(pfinder); // revert
 		}
 		auto& statmap = stat.graphsize_;
 
@@ -67,15 +69,34 @@ struct Session final : public iSession
 			}
 		}
 		std::sort(ops_.begin(), ops_.end(),
-			[&statmap](teq::iOperableFunc* a, teq::iOperableFunc* b)
-			{ return statmap[a].upper_ < statmap[b].upper_; });
+			[&statmap, &pfinder](teq::iOperableFunc* a, teq::iOperableFunc* b)
+			{
+				if (statmap[a].upper_ == statmap[b].upper_)
+				{
+					size_t aupper = 0, bupper = 0;
+					for (auto& pp : pfinder.parents_[a])
+					{
+						aupper = std::max(aupper, statmap[pp.first].upper_);
+					}
+					for (auto& pp : pfinder.parents_[b])
+					{
+						bupper = std::max(bupper, statmap[pp.first].upper_);
+					}
+					if (aupper == bupper)
+					{
+						return a->shape().n_elems() < b->shape().n_elems();
+					}
+					return aupper < bupper;
+				}
+				return statmap[a].upper_ < statmap[b].upper_;
+			}); // todo: revert this back
 	}
 
 	// this function is expected to be called repeatedly during runtime
 	void update (TensSetT ignored = {}) override
 	{
 		std::list<teq::iOperableFunc*> reqs;
-		std::unordered_set<teq::iTensor*> acceptable;
+		TensSetT acceptable;
 		for (auto& root : tracked_)
 		{
 			acceptable.emplace(root.get());
@@ -107,7 +128,7 @@ struct Session final : public iSession
 	void update_target (TensSetT target, TensSetT ignored = {}) override
 	{
 		std::list<teq::iOperableFunc*> reqs;
-		std::unordered_set<teq::iTensor*> acceptable;
+		TensSetT acceptable;
 		for (auto& root : target)
 		{
 			acceptable.emplace(root);

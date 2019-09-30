@@ -53,7 +53,7 @@ PYBIND11_MODULE(grpc_dbg, m)
 			[](py::object self, std::vector<eteq::NodeptrT<PybindT>> ignored)
 			{
 				auto sess = self.cast<dbg::InteractiveSession*>();
-				std::unordered_set<teq::iTensor*> ignored_set;
+				eteq::TensSetT ignored_set;
 				for (eteq::NodeptrT<PybindT>& node : ignored)
 				{
 					ignored_set.emplace(node->get_tensor().get());
@@ -67,8 +67,8 @@ PYBIND11_MODULE(grpc_dbg, m)
 				std::vector<eteq::NodeptrT<PybindT>> ignored)
 			{
 				auto sess = self.cast<dbg::InteractiveSession*>();
-				std::unordered_set<teq::iTensor*> targeted_set;
-				std::unordered_set<teq::iTensor*> ignored_set;
+				eteq::TensSetT targeted_set;
+				eteq::TensSetT ignored_set;
 				for (eteq::NodeptrT<PybindT>& node : targeted)
 				{
 					targeted_set.emplace(node->get_tensor().get());

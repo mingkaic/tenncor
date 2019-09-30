@@ -56,7 +56,9 @@ AssignGroupsT rms_momentum (const VarErrsT& leaves,
 	PybindT epsilon = std::numeric_limits<PybindT>::epsilon(),
 	std::string root_label = "");
 
-void assign_groups (AssignGroupsT& groups, UpdateStepF update_step);
+void assign_groups (const AssignGroupsT& groups, UpdateStepF update_step);
+
+void assign_groups_preupdate (const AssignGroupsT& groups, UpdateStepF update_step);
 
 }
 

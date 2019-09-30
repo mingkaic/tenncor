@@ -186,7 +186,7 @@ struct DQNTrainer final
 		sess_->track(track_batch);
 	}
 
-	uint8_t action (std::vector<PybindT>& input)
+	uint8_t action (const eteq::ShapedArr<PybindT>& input)
 	{
 		ctx_.actions_executed_++; // book keep
 		PybindT exploration = linear_annealing(1.);
@@ -195,7 +195,7 @@ struct DQNTrainer final
 		{
 			return std::floor(get_random() * source_model_.get_noutput());
 		}
-		input_->assign(input.data(), input_->shape());
+		input_->assign(input);
 		sess_->update();
 		PybindT* dptr = output_->data();
 		uint8_t max_i = 0;

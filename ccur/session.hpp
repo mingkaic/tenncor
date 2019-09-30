@@ -95,7 +95,7 @@ struct Session final : public eteq::iSession
 		{
 			auto& reqs = requirements_[i];
 			auto& indep_reqs = indep_requirements[i];
-			std::unordered_set<teq::iTensor*> acceptable;
+			eteq::TensSetT acceptable;
 			for (auto& root : tracked_)
 			{
 				acceptable.emplace(root.get());
@@ -179,7 +179,7 @@ struct Session final : public eteq::iSession
 		{
 			auto& reqs = requirements_[i];
 			auto& indep_reqs = indep_requirements[i];
-			std::unordered_set<teq::iTensor*> acceptable;
+			eteq::TensSetT acceptable;
 			for (auto& root : target)
 			{
 				acceptable.emplace(root);
