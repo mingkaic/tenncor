@@ -152,15 +152,21 @@ private:
 		auto hidden_subs = hidden_->get_contents();
 		for (auto& sub : hidden_subs)
 		{
-			tag(sub, LayerId(hidden_->get_ltype(),
-				hidden_->get_label(), 0));
+			if (sub)
+			{
+				tag(sub, LayerId(hidden_->get_ltype(),
+					hidden_->get_label(), 0));
+			}
 		}
 
 		auto visible_subs = visible_->get_contents();
 		for (auto& sub : visible_subs)
 		{
-			tag(sub, LayerId(visible_->get_ltype(),
-				visible_->get_label(), 1));
+			if (sub)
+			{
+				tag(sub, LayerId(visible_->get_ltype(),
+					visible_->get_label(), 1));
+			}
 		}
 
 		auto activation_subs = activation_->get_contents();

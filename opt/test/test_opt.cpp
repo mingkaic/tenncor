@@ -8,8 +8,6 @@
 
 #include "testutil/tutil.hpp"
 
-#include "exam/exam.hpp"
-
 #include "eteq/generated/api.hpp"
 #include "eteq/parse.hpp"
 #include "eteq/constant.hpp"

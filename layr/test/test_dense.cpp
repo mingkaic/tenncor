@@ -4,50 +4,9 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "layr/dense.hpp"
-
-
-TEST(DENSE, Connection)
-{
-	//
-}
-
-
-TEST(DENSE, Tagging)
-{
-	//
-}
-
-
-TEST(DENSE, Building)
-{
-	//
-}
-
-
-TEST(DENSE, ConnectionTagging)
-{
-	//
-}
-
-
-#define EXPECT_VAREQ(EXPECT, GOT)\
-{\
-	auto exvar = dynamic_cast<eteq::iLeaf<PybindT>*>(EXPECT);\
-	auto govar = dynamic_cast<eteq::iLeaf<PybindT>*>(GOT);\
-	ASSERT_NE(nullptr, exvar);\
-	ASSERT_NE(nullptr, govar);\
-	teq::Shape eshape = exvar->shape();\
-	teq::Shape gshape = govar->shape();\
-	ASSERT_ARREQ(eshape, gshape);\
-	PybindT* expect = (PybindT*) exvar->data();\
-	PybindT* got = (PybindT*) govar->data();\
-	std::vector<PybindT> expectv(expect, expect + eshape.n_elems());\
-	std::vector<PybindT> gotv(got, got + gshape.n_elems());\
-	EXPECT_ARREQ(expectv, gotv);\
-}
 
 
 TEST(DENSE, Copy)
@@ -103,21 +62,21 @@ TEST(DENSE, Copy)
 	ASSERT_NE(exdense[1], gotdense[1]);
 	EXPECT_STREQ("weight", gotdense[0]->to_string().c_str());
 	EXPECT_STREQ("bias", gotdense[1]->to_string().c_str());
-	EXPECT_VAREQ(exdense[0].get(), gotdense[0].get());
-	EXPECT_VAREQ(exdense[1].get(), gotdense[1].get());
+	EXPECT_TENSDATA(exdense[0].get(), gotdense[0].get(), PybindT);
+	EXPECT_TENSDATA(exdense[1].get(), gotdense[1].get(), PybindT);
 
 	ASSERT_NE(exrdense[0], gotrdense[0]);
 	ASSERT_NE(exrdense[1], gotrdense[1]);
 	EXPECT_STREQ("weight", gotrdense[0]->to_string().c_str());
 	EXPECT_STREQ("bias", gotrdense[1]->to_string().c_str());
-	EXPECT_VAREQ(exrdense[0].get(), gotrdense[0].get());
-	EXPECT_VAREQ(exrdense[1].get(), gotrdense[1].get());
+	EXPECT_TENSDATA(exrdense[0].get(), gotrdense[0].get(), PybindT);
+	EXPECT_TENSDATA(exrdense[1].get(), gotrdense[1].get(), PybindT);
 
 	ASSERT_NE(exnobias[0], gonobias[0]);
 	ASSERT_EQ(exnobias[1], gonobias[1]);
 	ASSERT_EQ(nullptr, gonobias[1]);
 	EXPECT_STREQ("weight", gonobias[0]->to_string().c_str());
-	EXPECT_VAREQ(exnobias[0].get(), gonobias[0].get());
+	EXPECT_TENSDATA(exnobias[0].get(), gonobias[0].get(), PybindT);
 }
 
 
@@ -214,6 +173,30 @@ TEST(DENSE, Move)
 	ASSERT_EQ(exnobias[0], gonobias[0]);
 	ASSERT_EQ(nullptr, exnobias[1]);
 	ASSERT_EQ(nullptr, gonobias[1]);
+}
+
+
+TEST(DENSE, Connection)
+{
+	//
+}
+
+
+TEST(DENSE, Tagging)
+{
+	//
+}
+
+
+TEST(DENSE, Building)
+{
+	//
+}
+
+
+TEST(DENSE, ConnectionTagging)
+{
+	//
 }
 
 

@@ -162,11 +162,11 @@ private:
 
 using ActivationptrT = std::shared_ptr<Activation>;
 
-LayerptrT sigmoid (void);
+ActivationptrT sigmoid (void);
 
-LayerptrT tanh (void);
+ActivationptrT tanh (void);
 
-LayerptrT softmax (teq::RankT dim);
+ActivationptrT softmax (teq::RankT dim);
 
 }
 

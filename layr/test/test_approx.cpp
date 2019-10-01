@@ -8,8 +8,6 @@
 
 #include "testutil/tutil.hpp"
 
-#include "exam/exam.hpp"
-
 #include "eteq/variable.hpp"
 
 #include "layr/err_approx.hpp"
