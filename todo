@@ -5,30 +5,38 @@ P3 = "want to have"
 P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
+=== usage ===
+P2 - implement pooling layer, dropout layer
+P2 - implement convolutional nn, recurrent nn
+P2 - implement attention mechanisms
+    - demo A3C, attention encoder+decoder
+    - implement models concerning visual and audio processing, and semantic data processing
+
 === feature ===
-P2 - update deep belief network, convolution neural network
-P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (denoted in python by None)
-P2 - make shape dimension size configurable
+P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
+    shape values denoted in python by None)
+P2 - make shape dimension size configurable (instead of fixed rank_cap)
 P2 - make constant pre-calculation configurable in opt module
-P2 - reimplement conv nn layer + dbn
-    P3 - force dbn to conform to established trainer pattern (if no subgraph yet)
 P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === performance ===
-general performance:
-P2 - ensure teq is thread-safe
-P3 - benchmark test rocnnet against various other frameworks (CPU only)
-P3 - convert as many shared_ptr to unique_ptr
-P4 - remove unordered_map/unordered_set if we're not using them properly
-P4 - define optimization conversion rules to increase data accuracy
-P4 - more performance test
-
 run-time performance:
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - implement GPU settings
 P4 - improve session implementation
 P4 - investigate remote sessions for distributed processing
+
+graph-construction-time performance:
+P4 - define optimization conversion rules to increase data accuracy
+
+compile-time performance:
+P3 - convert as many shared_ptr to unique_ptr
+P4 - remove unordered_map/unordered_set if we're not using them properly
+
+performance verification:
+P3 - benchmark test rocnnet against various other frameworks (CPU only)
+P4 - more performance test
 
 === correction ===
 P2 - centralize global context structures
@@ -38,16 +46,16 @@ P2 - test dbg module
 P2 - test opt module more
 P3 - test complicate equations (generate random valid equations)
 P3 - maximize coverage
-P3 - test rocnnet, layr, and trainer (or subgraph equivalent)
+P3 - test rocnnet, and trainer (or subgraph equivalent)
 
 === transparency ===
 P2 - provide graph-setup time summary when failing to match shapes
 P4 - add even more debugging tools
-P4 - formalize codestyle
-P4 - refactor, and rename variables to improve readability
 P4 - conform to some bazel style/convention (or change to another build tool)
 P4 - investigate adopting more of boost in place of cppkg
+P5 - refactor, and rename variables to improve readability
+P5 - formalize codestyle
 
 === update ===
-P2 - update all fmts usages
-P3 - address warnings
+P5 - update all fmts usages
+P5 - address warnings

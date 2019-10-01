@@ -45,6 +45,7 @@ eteq::NodeptrT<PybindT> sample_v_given_h (
 	return tenncor::random::rand_binom_one(rbm->backward_connect(x));
 }
 
+// implementation taken from https://gist.github.com/yusugomori/4509019
 struct DBNTrainer final
 {
 	DBNTrainer (layr::SequentialModel& model,
@@ -53,7 +54,10 @@ struct DBNTrainer final
 		PybindT train_lr = 0.1,
 		size_t cdk = 10,
 		PybindT l2_reg = 0.,
-		PybindT lr_scaling = 0.95)
+		PybindT lr_scaling = 0.95) :
+		input_size_(model.get_ninput()),
+		output_size_(model.get_noutput()),
+		batch_size_(batch_size)
 	{
 		if (false == is_dbn(model))
 		{
@@ -61,14 +65,11 @@ struct DBNTrainer final
 		}
 		auto layers = model.get_layers();
 
-		input_size_ = model.get_ninput();
-		output_size_ = model.get_noutput();
-		batch_size_ = batch_size;
 		trainx_ = eteq::make_variable_scalar<PybindT>(
-			0, teq::Shape({(teq::DimT) model.get_ninput(), batch_size}),
+			0, teq::Shape({(teq::DimT) input_size_, batch_size}),
 			"trainx");
 		trainy_ = eteq::make_variable_scalar<PybindT>(
-			0, teq::Shape({(teq::DimT) model.get_noutput(), batch_size}),
+			0, teq::Shape({(teq::DimT) output_size_, batch_size}),
 			"trainy");
 		nlayers_ = layers.size() - 2;
 
@@ -200,7 +201,9 @@ struct DBNTrainer final
 		});
 	}
 
-	void pretrain (std::vector<PybindT>& train_in, size_t nepochs = 100)
+	void pretrain (std::vector<PybindT>& train_in,
+		size_t nepochs = 100,
+		std::function<void(size_t,size_t)> logger = std::function<void(size_t,size_t)>())
 	{
 		if (train_in.size() != input_size_ * batch_size_)
 		{
@@ -215,7 +218,6 @@ struct DBNTrainer final
 			// train rbm layers (reconstruction) setup
 			auto to_ignore = sample_pipes_[i]->get_tensor().get();
 			auto& updates = rupdates_[i];
-			auto& rcost = rcosts_[i];
 
 			for (size_t epoch = 0; epoch < nepochs; ++epoch)
 			{
@@ -226,13 +228,9 @@ struct DBNTrainer final
 						pretrain_sess_.update_target(sources, {to_ignore});
 					});
 
-				if (0 == epoch % 100)
+				if (logger)
 				{
-					// reconstruction error
-					pretrain_sess_.update_target(
-						{rcost->get_tensor().get()}, {to_ignore});
-					logs::infof("Pre-training layer %d, epoch %d, cost %f",
-						i, epoch, *rcost->data());
+					logger(epoch, i);
 				}
 			}
 
@@ -248,7 +246,8 @@ struct DBNTrainer final
 	void finetune (
 		std::vector<PybindT>& train_in,
 		std::vector<PybindT>& train_out,
-		size_t nepochs = 100)
+		size_t nepochs = 100,
+		std::function<void(size_t)> logger = std::function<void(size_t)>())
 	{
 		if (train_in.size() != input_size_ * batch_size_)
 		{
@@ -267,8 +266,16 @@ struct DBNTrainer final
 
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
 		auto to_ignore = sample_pipes_.back()->get_tensor().get();
-		train_sess_.update_target({to_ignore},
-			{sample_pipes_[nlayers_ - 2]->get_tensor().get()});
+		auto prev_ignore = sample_pipes_[nlayers_ - 1]->get_tensor().get();
+		if (static_cast<eteq::Functor<PybindT>*>(prev_ignore)->is_uninit())
+		{
+			train_sess_.update_target({to_ignore}); // update everything
+		}
+		else
+		{
+			train_sess_.update_target({to_ignore},
+				{prev_ignore});
+		}
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
@@ -279,15 +286,28 @@ struct DBNTrainer final
 					train_sess_.update_target(sources, {to_ignore});
 				});
 
-			if (0 == epoch % 100)
+			if (logger)
 			{
-				// log layer error
-				train_sess_.update_target(
-					{tcost_->get_tensor().get()}, {to_ignore});
-				logs::infof("Training epoch %d, cost %f",
-					epoch, *tcost_->data());
+				logger(epoch);
 			}
 		}
+	}
+
+	PybindT reconstruction_cost (size_t layer)
+	{
+		auto rcost = rcosts_[layer];
+		pretrain_sess_.update_target(
+			{rcost->get_tensor().get()},
+			{sample_pipes_[layer]->get_tensor().get()});
+		return *rcost->data();
+	}
+
+	PybindT training_cost (void)
+	{
+		train_sess_.update_target(
+			{tcost_->get_tensor().get()},
+			{sample_pipes_.back()->get_tensor().get()});
+		return *tcost_->data();
 	}
 
 	size_t nlayers_;

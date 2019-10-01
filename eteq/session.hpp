@@ -46,11 +46,9 @@ struct Session final : public iSession
 		tracked_.insert(roots.begin(), roots.end());
 
 		teq::GraphStat stat;
-		teq::ParentFinder pfinder; // revert
 		for (teq::TensptrT& root : roots)
 		{
 			root->accept(stat);
-			root->accept(pfinder); // revert
 		}
 		auto& statmap = stat.graphsize_;
 
@@ -69,27 +67,8 @@ struct Session final : public iSession
 			}
 		}
 		std::sort(ops_.begin(), ops_.end(),
-			[&statmap, &pfinder](teq::iOperableFunc* a, teq::iOperableFunc* b)
-			{
-				if (statmap[a].upper_ == statmap[b].upper_)
-				{
-					size_t aupper = 0, bupper = 0;
-					for (auto& pp : pfinder.parents_[a])
-					{
-						aupper = std::max(aupper, statmap[pp.first].upper_);
-					}
-					for (auto& pp : pfinder.parents_[b])
-					{
-						bupper = std::max(bupper, statmap[pp.first].upper_);
-					}
-					if (aupper == bupper)
-					{
-						return a->shape().n_elems() < b->shape().n_elems();
-					}
-					return aupper < bupper;
-				}
-				return statmap[a].upper_ < statmap[b].upper_;
-			}); // todo: revert this back
+			[&statmap](teq::iOperableFunc* a, teq::iOperableFunc* b)
+			{ return statmap[a].upper_ < statmap[b].upper_; });
 	}
 
 	// this function is expected to be called repeatedly during runtime

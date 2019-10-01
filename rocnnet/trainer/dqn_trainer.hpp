@@ -1,7 +1,7 @@
 #include "eteq/parse.hpp"
 #include "eteq/grader.hpp"
 
-#include "layr/model.hpp"
+#include "layr/seqmodel.hpp"
 
 #ifndef RCN_DQN_TRAINER_HPP
 #define RCN_DQN_TRAINER_HPP

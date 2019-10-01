@@ -165,17 +165,6 @@ PYBIND11_MODULE(eteq, m)
 				return pyead::typedata_to_array<PybindT>(
 					self.cast<eteq::iNode<PybindT>*>(),
 					py::dtype::of<PybindT>());
-			})
-		.def("make_var", // todo: make this not so dangerous
-			[](py::object self)
-			{
-				auto node = self.cast<eteq::iNode<PybindT>*>();
-				auto var = dynamic_cast<eteq::VariableNode<PybindT>*>(node);
-				if (nullptr == var)
-				{
-					logs::fatal("cannot make non-variable into variable");
-				}
-				return var;
 			});
 
 	// ==== session ====

@@ -13,7 +13,7 @@
 #include "layr/activations.hpp"
 #include "layr/dense.hpp"
 #include "layr/rbm.hpp"
-#include "layr/model.hpp"
+#include "layr/seqmodel.hpp"
 // #include "layr/conv.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
@@ -369,29 +369,35 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("l2_reg") = 0.,
 			py::arg("lr_scaling") = 0.95)
 		.def("pretrain",
-			[](py::object self, py::array x, size_t nepochs)
+			[](py::object self, py::array x, size_t nepochs,
+				std::function<void(size_t,size_t)> logger)
 			{
 				auto trainer = self.cast<trainer::DBNTrainer*>();
 				teq::Shape shape;
 				std::vector<PybindT> vec = pyrocnnet::arr2vec(shape, x);
-				return trainer->pretrain(vec, nepochs);
+				return trainer->pretrain(vec, nepochs, logger);
 			},
 			py::arg("x"),
 			py::arg("nepochs") = 100,
+			py::arg("logger") = std::function<void(size_t,size_t)>(),
 			"pretrain internal rbms")
 		.def("finetune",
-			[](py::object self, py::array x, py::array y, size_t nepochs)
+			[](py::object self, py::array x, py::array y, size_t nepochs,
+				std::function<void(size_t)> logger)
 			{
 				auto trainer = self.cast<trainer::DBNTrainer*>();
 				teq::Shape shape;
 				std::vector<PybindT> xvec = pyrocnnet::arr2vec(shape, x);
 				std::vector<PybindT> yvec = pyrocnnet::arr2vec(shape, y);
-				return trainer->finetune(xvec, yvec, nepochs);
+				return trainer->finetune(xvec, yvec, nepochs, logger);
 			},
 			py::arg("x"),
 			py::arg("y"),
 			py::arg("nepochs") = 100,
-			"finetune internal dense layer");
+			py::arg("logger") = std::function<void(size_t)>(),
+			"finetune internal dense layer")
+		.def("reconstruction_cost", &trainer::DBNTrainer::reconstruction_cost)
+		.def("training_cost", &trainer::DBNTrainer::training_cost);
 
 	// inlines
 	m

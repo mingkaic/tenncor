@@ -1,6 +1,6 @@
 #include "eteq/grader.hpp"
 
-#include "layr/model.hpp"
+#include "layr/seqmodel.hpp"
 #include "layr/err_approx.hpp"
 
 #ifndef RCN_MLP_TRAINER_HPP
