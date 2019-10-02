@@ -87,7 +87,7 @@ TEST(INIT, UniformXavier)
 	auto shape = x->shape();
 	ASSERT_ARREQ(slist, shape);
 
-	double bound = factor * std::sqrt(6.0 / (shape.at(0) + shape.at(1)));
+	double bound = factor * std::sqrt(6. / (shape.at(0) + shape.at(1)));
 
 	double* d = x->data();
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
@@ -112,7 +112,7 @@ TEST(INIT, UniformXavier)
 // 	auto shape = x->shape();
 // 	ASSERT_ARREQ(slist, shape);
 
-// 	double stdev = factor * std::sqrt(2.0 / (shape.at(0) + shape.at(1)));
+// 	double stdev = factor * std::sqrt(2. / (shape.at(0) + shape.at(1)));
 
 // 	double* d = x->data();
 // 	size_t stdevs[3];

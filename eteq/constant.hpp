@@ -78,6 +78,11 @@ struct ConstantNode final : public iNode<T>
 {
 	ConstantNode (std::shared_ptr<Constant<T>> cst) : cst_(cst) {}
 
+	ConstantNode<T>* clone (void) const
+	{
+		return static_cast<ConstantNode<T>*>(clone_impl());
+	}
+
 	T* data (void) override
 	{
 		return (T*) cst_->data();
@@ -88,6 +93,16 @@ struct ConstantNode final : public iNode<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return cst_;
+	}
+
+protected:
+	iNode<T>* clone_impl (void) const override
+	{
+		teq::Shape shape = cst_->shape();
+		const T* d = (const T*) cst_->data();
+		std::vector<T> cpy(d, d + shape.n_elems());
+		return new ConstantNode(std::shared_ptr<Constant<T>>(
+			Constant<T>::get(cpy.data(), shape)));
 	}
 
 private:

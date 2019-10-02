@@ -17,7 +17,9 @@ cc_library(
     srcs = ["src/tutil.cpp"],
     deps = [
         "//dbg:stream_out",
+        "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],
 )

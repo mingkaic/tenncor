@@ -107,13 +107,13 @@ TEST(PARTITION, Kpartition)
 	eteq::NodeptrT<double> bias1 = eteq::make_variable<double>(b1_data.data(), bias1_shape);
 	eteq::NodeptrT<double> out = eteq::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
+	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
 	auto sig0 = tenncor::sigmoid(layer0);
 
-	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
+	auto layer1 = tenncor::matmul(sig0, weight1) + tenncor::extend(bias1, 1, {3});
 	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = tenncor::pow(tenncor::sub(out, sig1), eteq::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(out - sig1, 2.);
 
 	auto dw0 = eteq::derive(err, weight0);
 	auto db0 = eteq::derive(err, bias0);

@@ -1,7 +1,7 @@
 #include "layr/dense.hpp"
 
-#ifndef LAYR_MODEL_HPP
-#define LAYR_MODEL_HPP
+#ifndef LAYR_SEQMODEL_HPP
+#define LAYR_SEQMODEL_HPP
 
 namespace layr
 {
@@ -168,4 +168,4 @@ using SeqModelptrT = std::shared_ptr<SequentialModel>;
 
 }
 
-#endif // LAYR_MODEL_HPP
+#endif // LAYR_SEQMODEL_HPP

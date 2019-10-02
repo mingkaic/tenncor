@@ -73,11 +73,27 @@ struct InteractiveSession final : public eteq::iSession
 	{
 		sess_.track(roots);
 
+		teq::ParentFinder pfinder;
+		for (auto root : roots)
+		{
+			root->accept(stat_);
+			root->accept(pfinder);
+		}
+
+		for (auto& assocs : pfinder.parents_)
+		{
+			for (auto& parent_pair : assocs.second)
+			{
+				parents_[assocs.first].emplace(
+					static_cast<teq::iOperableFunc*>(parent_pair.first));
+			}
+		}
+
 		// setup request
 		tenncor::CreateGraphRequest request;
 		auto payload = request.mutable_payload();
 		payload->set_graph_id(sess_id_);
-		for (auto& statpair : sess_.stat_.graphsize_)
+		for (auto& statpair : stat_.graphsize_)
 		{
 			auto tens = statpair.first;
 			auto& range = statpair.second;
@@ -128,7 +144,7 @@ struct InteractiveSession final : public eteq::iSession
 				location->set_minheight(range.lower_);
 			}
 		}
-		for (auto& statpair : sess_.stat_.graphsize_)
+		for (auto& statpair : stat_.graphsize_)
 		{
 			auto tens = statpair.first;
 			auto& range = statpair.second;
@@ -172,8 +188,7 @@ struct InteractiveSession final : public eteq::iSession
 		client_.create_graph(request);
 	}
 
-	void update (eteq::TensSetT updated = {},
-		eteq::TensSetT ignores = {}) override
+	void update (eteq::TensSetT ignored = {}) override
 	{
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
@@ -181,25 +196,39 @@ struct InteractiveSession final : public eteq::iSession
 		// not connected or out of sync interval
 		if (false == client_.is_connected() || 0 < update_it_ % data_sync_interval)
 		{
-			sess_.update(updated, ignores);
+			sess_.update(ignored);
 			return;
 		}
 
 		// basic copy over from session::update
-		std::unordered_map<teq::iOperableFunc*,eteq::SizeT> fulfilments;
-		for (teq::iTensor* unodes : updated)
+		std::list<teq::iOperableFunc*> reqs;
+		eteq::TensSetT acceptable;
+		for (auto& root : sess_.tracked_)
 		{
-			auto& node_parents = sess_.parents_[unodes];
-			for (auto& node_parent : node_parents)
+			acceptable.emplace(root.get());
+		}
+		// ignored tensors will never populate reqs
+		for (auto rit = sess_.ops_.rbegin(),
+			ret = sess_.ops_.rend();
+			rit != ret; ++rit)
+		{
+			auto& op = *rit;
+			if (estd::has(acceptable, op) &&
+				false == estd::has(ignored, op))
 			{
-				++fulfilments[node_parent].d;
+				reqs.push_front(op);
+				auto& children = op->get_children();
+				for (auto& child : children)
+				{
+					acceptable.emplace(child.get_tensor().get());
+				}
 			}
 		}
 
 		std::vector<tenncor::UpdateNodeDataRequest> requests;
-		requests.reserve(sess_.requirements_.size());
+		requests.reserve(sess_.ops_.size());
 
-		for (auto& statpair : sess_.stat_.graphsize_)
+		for (auto& statpair : stat_.graphsize_)
 		{
 			if (0 == statpair.second.upper_)
 			{
@@ -222,41 +251,33 @@ struct InteractiveSession final : public eteq::iSession
 		}
 
 		// ignored nodes and its dependers will never fulfill requirement
-		for (auto& op : sess_.requirements_)
+		for (auto& op : reqs)
 		{
-			// fulfilled and not ignored
-			if (fulfilments[op.first].d >= op.second &&
-				false == estd::has(ignores, op.first))
-			{
-				op.first->update();
-				egen::_GENERATED_DTYPE dtype =
-					(egen::_GENERATED_DTYPE) op.first->type_code();
-				std::vector<float> data;
-				size_t nelems = op.first->shape().n_elems();
-				egen::type_convert(data, op.first->data(), dtype, nelems);
-				auto& op_parents = sess_.parents_[op.first];
-				for (auto& op_parent : op_parents)
-				{
-					++fulfilments[op_parent].d;
-				}
+			op->update();
+			egen::_GENERATED_DTYPE dtype =
+				(egen::_GENERATED_DTYPE) op->type_code();
+			std::vector<float> data;
+			size_t nelems = op->shape().n_elems();
+			egen::type_convert(data, op->data(), dtype, nelems);
+			auto& op_parents = parents_[op];
 
-				// create requests (bulk of the overhead)
-				tenncor::UpdateNodeDataRequest request;
-				auto payload = request.mutable_payload();
-				payload->set_graph_id(sess_id_);
-				payload->set_node_id(node_ids_[op.first]);
-				google::protobuf::RepeatedField<float> field(
-					data.begin(), data.end());
-				payload->mutable_data()->Swap(&field);
-				requests.push_back(request);
-			}
+			// create requests (bulk of the overhead)
+			tenncor::UpdateNodeDataRequest request;
+			auto payload = request.mutable_payload();
+			payload->set_graph_id(sess_id_);
+			payload->set_node_id(node_ids_[op]);
+			google::protobuf::RepeatedField<float> field(
+				data.begin(), data.end());
+			payload->mutable_data()->Swap(&field);
+			requests.push_back(request);
 		}
 
 		client_.update_node_data(requests, update_it_);
 	}
 
-	void update_target (eteq::TensSetT targeted,
-		eteq::TensSetT updated = {}) override
+	void update_target (
+		eteq::TensSetT targeted,
+		eteq::TensSetT ignored = {}) override
 	{
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
@@ -264,31 +285,38 @@ struct InteractiveSession final : public eteq::iSession
 		// not connected or out of sync interval
 		if (false == client_.is_connected() || 0 < update_it_ % data_sync_interval)
 		{
-			sess_.update_target(targeted, updated);
+			sess_.update_target(targeted, ignored);
 			return;
 		}
 
-		// basic copy over from session::update
-		teq::OnceTraveler traveler;
-		for (auto& tens : targeted)
+		// basic copy over from session::update_target
+		std::list<teq::iOperableFunc*> reqs;
+		eteq::TensSetT acceptable;
+		for (auto& root : targeted)
 		{
-			tens->accept(traveler);
+			acceptable.emplace(root);
 		}
-
-		std::unordered_map<teq::iOperableFunc*,eteq::SizeT> fulfilments;
-		for (teq::iTensor* unodes : updated)
+		// ignored tensors will never populate reqs
+		for (auto rit = sess_.ops_.rbegin(), ret = sess_.ops_.rend();
+			rit != ret; ++rit)
 		{
-			auto& node_parents = sess_.parents_[unodes];
-			for (auto& node_parent : node_parents)
+			auto& op = *rit;
+			if (estd::has(acceptable, op) &&
+				false == estd::has(ignored, op))
 			{
-				++fulfilments[node_parent].d;
+				reqs.push_front(op);
+				auto& children = op->get_children();
+				for (auto& child : children)
+				{
+					acceptable.emplace(child.get_tensor().get());
+				}
 			}
 		}
 
 		std::vector<tenncor::UpdateNodeDataRequest> requests;
-		requests.reserve(sess_.requirements_.size());
+		requests.reserve(reqs.size());
 
-		for (auto& statpair : sess_.stat_.graphsize_)
+		for (auto& statpair : stat_.graphsize_)
 		{
 			if (0 == statpair.second.upper_)
 			{
@@ -311,34 +339,24 @@ struct InteractiveSession final : public eteq::iSession
 		}
 
 		// ignored nodes and its dependers will never fulfill requirement
-		for (auto& op : sess_.requirements_)
+		for (auto& op : reqs)
 		{
-			// fulfilled and not ignored
-			if (estd::has(traveler.visited_, op.first) &&
-				fulfilments[op.first].d >= op.second)
-			{
-				op.first->update();
-				egen::_GENERATED_DTYPE dtype =
-					(egen::_GENERATED_DTYPE) op.first->type_code();
-				std::vector<float> data;
-				size_t nelems = op.first->shape().n_elems();
-				egen::type_convert(data, op.first->data(), dtype, nelems);
-				auto& op_parents = sess_.parents_[op.first];
-				for (auto& op_parent : op_parents)
-				{
-					++fulfilments[op_parent].d;
-				}
+			op->update();
+			egen::_GENERATED_DTYPE dtype =
+				(egen::_GENERATED_DTYPE) op->type_code();
+			std::vector<float> data;
+			size_t nelems = op->shape().n_elems();
+			egen::type_convert(data, op->data(), dtype, nelems);
 
-				// create requests (bulk of the overhead)
-				tenncor::UpdateNodeDataRequest request;
-				auto payload = request.mutable_payload();
-				payload->set_graph_id(sess_id_);
-				payload->set_node_id(node_ids_[op.first]);
-				google::protobuf::RepeatedField<float> field(
-					data.begin(), data.end());
-				payload->mutable_data()->Swap(&field);
-				requests.push_back(request);
-			}
+			// create requests (bulk of the overhead)
+			tenncor::UpdateNodeDataRequest request;
+			auto payload = request.mutable_payload();
+			payload->set_graph_id(sess_id_);
+			payload->set_node_id(node_ids_[op]);
+			google::protobuf::RepeatedField<float> field(
+				data.begin(), data.end());
+			payload->mutable_data()->Swap(&field);
+			requests.push_back(request);
 		}
 
 		client_.update_node_data(requests, update_it_);
@@ -352,11 +370,29 @@ struct InteractiveSession final : public eteq::iSession
 		node_ids_.clear();
 		edges_.clear();
 
+		stat_.graphsize_.clear();
+		parents_.clear();
+		teq::ParentFinder pfinder;
+		for (auto tr : sess_.tracked_)
+		{
+			tr->accept(stat_);
+			tr->accept(pfinder);
+		}
+
+		for (auto& assocs : pfinder.parents_)
+		{
+			for (auto& parent_pair : assocs.second)
+			{
+				parents_[assocs.first].emplace(
+					static_cast<teq::iOperableFunc*>(parent_pair.first));
+			}
+		}
+
 		// setup request
 		tenncor::UpdateGraphRequest request;
 		auto payload = request.mutable_payload();
 		payload->set_graph_id(sess_id_);
-		for (auto& statpair : sess_.stat_.graphsize_)
+		for (auto& statpair : stat_.graphsize_)
 		{
 			auto tens = statpair.first;
 			auto& range = statpair.second;
@@ -407,7 +443,7 @@ struct InteractiveSession final : public eteq::iSession
 				location->set_minheight(range.lower_);
 			}
 		}
-		for (auto& statpair : sess_.stat_.graphsize_)
+		for (auto& statpair : stat_.graphsize_)
 		{
 			auto tens = statpair.first;
 			auto& range = statpair.second;
@@ -502,6 +538,11 @@ private:
 	size_t update_it_ = 0;
 
 	GraphEmitterClient client_;
+
+	teq::GraphStat stat_;
+
+	std::unordered_map<teq::iTensor*,
+		std::unordered_set<teq::iOperableFunc*>> parents_;
 };
 
 boost::uuids::random_generator InteractiveSession::uuid_gen_;

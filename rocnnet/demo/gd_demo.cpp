@@ -12,32 +12,31 @@
 
 #include "dbg/grpc/session.hpp"
 
-#include "layr/model.hpp"
+#include "layr/seqmodel.hpp"
 #include "layr/activations.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 
-static std::vector<float> batch_generate (size_t n, size_t batchsize)
+static eteq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
-	size_t total = n * batchsize;
-
 	// Specify the engine and distribution.
 	std::mt19937 mersenne_engine(eteq::get_engine()());
 	std::uniform_real_distribution<float> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
-	std::vector<float> vec(total);
-	std::generate(std::begin(vec), std::end(vec), gen);
-	return vec;
+	eteq::ShapedArr<PybindT> out(teq::Shape({n, batchsize}));
+	std::generate(std::begin(out.data_), std::end(out.data_), gen);
+	return out;
 }
 
-static std::vector<float> avgevry2 (std::vector<float>& in)
+static eteq::ShapedArr<PybindT> avgevry2 (eteq::ShapedArr<PybindT>& in)
 {
-	std::vector<float> out;
-	for (size_t i = 0, n = in.size()/2; i < n; i++)
+	eteq::ShapedArr<PybindT> out(teq::Shape({
+		static_cast<teq::DimT>(in.shape_.at(0) / 2),
+		in.shape_.at(1)}));
+	for (size_t i = 0, n = in.data_.size() / 2; i < n; i++)
 	{
-		float val = (in.at(2*i) + in.at(2*i+1)) / 2;
-		out.push_back(val);
+		out.data_[i] = (in.data_.at(2*i) + in.data_.at(2*i+1)) / 2;
 	}
 	return out;
 }
@@ -150,8 +149,8 @@ int main (int argc, const char** argv)
 			std::cout << "trained error: " <<
 				fmts::to_string(trained_err_res, trained_err_res + n_out) << '\n';
 		}
-		std::vector<float> batch = batch_generate(n_in, n_batch);
-		std::vector<float> batch_out = avgevry2(batch);
+		eteq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
+		eteq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		trainer.train(batch, batch_out);
 	}
 	duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;
@@ -173,19 +172,19 @@ int main (int argc, const char** argv)
 		{
 			std::cout << "testing " << i + 1 << '\n';
 		}
-		std::vector<float> batch = batch_generate(n_in, 1);
-		std::vector<float> batch_out = avgevry2(batch);
-		testin->assign(batch.data(), testin->shape());
-		sess.update({testin->get_tensor().get()});
+		eteq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
+		eteq::ShapedArr<PybindT> batch_out = avgevry2(batch);
+		testin->assign(batch.data_.data(), batch.shape_);
+		sess.update();
 
 		float untrained_avgerr = 0;
 		float trained_avgerr = 0;
 		float pretrained_avgerr = 0;
 		for (size_t i = 0; i < n_out; i++)
 		{
-			untrained_avgerr += std::abs(untrained_res[i] - batch_out[i]);
-			trained_avgerr += std::abs(trained_res[i] - batch_out[i]);
-			pretrained_avgerr += std::abs(pretrained_res[i] - batch_out[i]);
+			untrained_avgerr += std::abs(untrained_res[i] - batch_out.data_[i]);
+			trained_avgerr += std::abs(trained_res[i] - batch_out.data_[i]);
+			pretrained_avgerr += std::abs(pretrained_res[i] - batch_out.data_[i]);
 		}
 		untrained_err += untrained_avgerr / n_out;
 		trained_err += trained_avgerr / n_out;

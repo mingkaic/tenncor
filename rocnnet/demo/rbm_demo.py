@@ -169,7 +169,7 @@ def main(args):
     plt.show()
 
     x.assign(image.reshape(1,-1))
-    sess.update_target([genx, trained_genx, untrained_genx], [x])
+    sess.update_target([genx, trained_genx, untrained_genx])
     image_rec = genx.get()
     image_rec_trained = trained_genx.get()
     image_rec_untrained = untrained_genx.get()

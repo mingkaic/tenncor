@@ -168,7 +168,7 @@ for matrix_dim in matrix_dims:
 
     invar.assign(test_batch)
     expected_out.assign(test_batch_out)
-    sess.update([invar, expected_out])
+    sess.update()
 
     eteq_dur = time.time() - start
 

@@ -84,7 +84,7 @@ FuncArg<T> reduce_map (NodeptrT<T> node, teq::RankT offset, teq::RankT ndims)
 {
 	if (offset >= teq::rank_cap)
 	{
-		logs::fatalf("cannot dimensions [%d,...] greater or equal to %d",
+		logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
 			offset, teq::rank_cap);
 	}
 

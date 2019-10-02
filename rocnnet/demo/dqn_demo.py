@@ -12,8 +12,7 @@ import rocnnet.rocnnet as rcn
 prog_description = 'Demo dqn_trainer'
 
 def batch_generate(n, batchsize):
-    total = n * batchsize
-    return np.random.rand(total)
+    return np.random.rand(n * batchsize)
 
 def observationfit(indata, n_actions):
     out = np.zeros(n_actions)

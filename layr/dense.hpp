@@ -39,9 +39,9 @@ struct DenseBuilder final : public iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
-	eteq::NodeptrT<PybindT> weight_ = nullptr;
+	NodeptrT weight_ = nullptr;
 
-	eteq::NodeptrT<PybindT> bias_ = nullptr;
+	NodeptrT bias_ = nullptr;
 
 	std::string label_;
 };
@@ -74,9 +74,7 @@ struct Dense final : public iLayer
 		}
 	}
 
-	Dense (eteq::NodeptrT<PybindT> weight,
-		eteq::NodeptrT<PybindT> bias,
-		std::string label) :
+	Dense (NodeptrT weight, NodeptrT bias, std::string label) :
 		label_(label),
 		weight_(weight),
 		bias_(bias)
@@ -132,7 +130,7 @@ struct Dense final : public iLayer
 		return label_;
 	}
 
-	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
+	NodeptrT connect (NodeptrT input) const override
 	{
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
 		std::unordered_set<teq::iTensor*> leaves = {
@@ -164,28 +162,20 @@ private:
 	void copy_helper (const Dense& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
-		weight_ = std::make_shared<eteq::VariableNode<PybindT>>(
-			std::shared_ptr<eteq::Variable<PybindT>>(
-				eteq::Variable<PybindT>::get(
-					*static_cast<eteq::Variable<PybindT>*>(
-						other.weight_->get_tensor().get()))));
+		weight_ = NodeptrT(other.weight_->clone());
 		tag(weight_->get_tensor(), LayerId(weight_key));
 		if (other.bias_)
 		{
-			bias_ = std::make_shared<eteq::VariableNode<PybindT>>(
-				std::shared_ptr<eteq::Variable<PybindT>>(
-					eteq::Variable<PybindT>::get(
-						*static_cast<eteq::Variable<PybindT>*>(
-							other.bias_->get_tensor().get()))));
+			bias_ = NodeptrT(other.bias_->clone());
 			tag(bias_->get_tensor(), LayerId(bias_key));
 		}
 	}
 
 	std::string label_;
 
-	eteq::NodeptrT<PybindT> weight_;
+	NodeptrT weight_;
 
-	eteq::NodeptrT<PybindT> bias_;
+	NodeptrT bias_;
 };
 
 using DenseptrT = std::shared_ptr<Dense>;

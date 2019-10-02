@@ -22,12 +22,11 @@ struct iSession
 
 	virtual void track (teq::TensT roots) = 0;
 
-	/// update all nodes related to updated, if updated set is empty
 	/// update all nodes related to the leaves (so everyone)
-	/// ignore all nodes dependent on ignores including the ignored nodes
-	virtual void update (TensSetT updated = {}, TensSetT ignores = {}) = 0;
+	/// ignore all nodes dependent on ignored including the ignored nodes
+	virtual void update (TensSetT ignored = {}) = 0;
 
-	virtual void update_target (TensSetT target, TensSetT updated = {}) = 0;
+	virtual void update_target (TensSetT target, TensSetT ignored = {}) = 0;
 };
 
 struct SizeT final
@@ -43,16 +42,16 @@ struct Session final : public iSession
 {
 	void track (teq::TensT roots) override
 	{
+		ops_.clear();
 		tracked_.insert(roots.begin(), roots.end());
-		teq::ParentFinder pfinder;
+
+		teq::GraphStat stat;
 		for (teq::TensptrT& root : roots)
 		{
-			root->accept(pfinder);
-			root->accept(stat_);
+			root->accept(stat);
 		}
-		auto& statmap = stat_.graphsize_;
+		auto& statmap = stat.graphsize_;
 
-		std::list<teq::iOperableFunc*> all_ops;
 		for (auto& statpair : statmap)
 		{
 			if (0 < statpair.second.upper_)
@@ -64,100 +63,75 @@ struct Session final : public iSession
 					logs::fatalf("cannot track non-operable functor %s",
 						statpair.first->to_string().c_str());
 				}
-				all_ops.push_back(op);
+				ops_.push_back(op);
 			}
 		}
-		all_ops.sort(
+		std::sort(ops_.begin(), ops_.end(),
 			[&statmap](teq::iOperableFunc* a, teq::iOperableFunc* b)
-			{
-				return statmap[a].upper_ < statmap[b].upper_;
-			});
-		requirements_.clear();
-		for (teq::iOperableFunc* op : all_ops)
+			{ return statmap[a].upper_ < statmap[b].upper_; });
+	}
+
+	// this function is expected to be called repeatedly during runtime
+	void update (TensSetT ignored = {}) override
+	{
+		std::list<teq::iOperableFunc*> reqs;
+		TensSetT acceptable;
+		for (auto& root : tracked_)
 		{
-			auto& args = op->get_children();
-			TensSetT unique_children;
-			for (const teq::FuncArg& arg : args)
+			acceptable.emplace(root.get());
+		}
+		// ignored tensors will never populate reqs
+		for (auto rit = ops_.rbegin(), ret = ops_.rend();
+			rit != ret; ++rit)
+		{
+			auto& op = *rit;
+			if (estd::has(acceptable, op) &&
+				false == estd::has(ignored, op))
 			{
-				auto tens = arg.get_tensor().get();
-				if (0 < statmap[tens].upper_) // ignore leaves
+				reqs.push_front(op);
+				auto& children = op->get_children();
+				for (auto& child : children)
 				{
-					unique_children.emplace(tens);
+					acceptable.emplace(child.get_tensor().get());
 				}
 			}
-			requirements_.push_back({op, unique_children.size()});
 		}
 
-		for (auto& assocs : pfinder.parents_)
+		for (auto& op : reqs)
 		{
-			for (auto& parent_pair : assocs.second)
-			{
-				parents_[assocs.first].emplace(
-					static_cast<teq::iOperableFunc*>(parent_pair.first));
-			}
+			op->update();
 		}
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update (TensSetT updated = {}, TensSetT ignores = {}) override
+	void update_target (TensSetT target, TensSetT ignored = {}) override
 	{
-		std::unordered_map<teq::iOperableFunc*,SizeT> fulfilments;
-		for (teq::iTensor* unodes : updated)
+		std::list<teq::iOperableFunc*> reqs;
+		TensSetT acceptable;
+		for (auto& root : target)
 		{
-			auto& node_parents = parents_[unodes];
-			for (auto& node_parent : node_parents)
-			{
-				++fulfilments[node_parent].d;
-			}
+			acceptable.emplace(root);
 		}
-		// ignored nodes and its dependers will never fulfill requirement
-		for (auto& op : requirements_)
+		// ignored tensors will never populate reqs
+		for (auto rit = ops_.rbegin(), ret = ops_.rend();
+			rit != ret; ++rit)
 		{
-			// fulfilled and not ignored
-			if (fulfilments[op.first].d >= op.second &&
-				false == estd::has(ignores, op.first))
+			auto& op = *rit;
+			if (estd::has(acceptable, op) &&
+				false == estd::has(ignored, op))
 			{
-				op.first->update();
-				auto& op_parents = parents_[op.first];
-				for (auto& op_parent : op_parents)
+				reqs.push_front(op);
+				auto& children = op->get_children();
+				for (auto& child : children)
 				{
-					++fulfilments[op_parent].d;
+					acceptable.emplace(child.get_tensor().get());
 				}
 			}
 		}
-	}
 
-	// this function is expected to be called repeatedly during runtime
-	void update_target (TensSetT target, TensSetT updated = {}) override
-	{
-		teq::OnceTraveler targetted;
-		for (auto& tens : target)
+		for (auto& op : reqs)
 		{
-			tens->accept(targetted);
-		}
-		std::unordered_map<teq::iOperableFunc*,SizeT> fulfilments;
-		for (teq::iTensor* unodes : updated)
-		{
-			auto& node_parents = parents_[unodes];
-			for (auto& node_parent : node_parents)
-			{
-				++fulfilments[node_parent].d;
-			}
-		}
-		// ignored nodes and its dependers will never fulfill requirement
-		for (auto& op : requirements_)
-		{
-			// is relevant to target, is fulfilled and not ignored
-			if (estd::has(targetted.visited_, op.first) &&
-				fulfilments[op.first].d >= op.second)
-			{
-				op.first->update();
-				auto& op_parents = parents_[op.first];
-				for (auto& op_parent : op_parents)
-				{
-					++fulfilments[op_parent].d;
-				}
-			}
+			op->update();
 		}
 	}
 
@@ -165,20 +139,12 @@ struct Session final : public iSession
 	{
 		teq::TensT tracked(tracked_.begin(), tracked_.end());
 		opt::optimize(tracked, rules);
-		stat_.graphsize_.clear();
-		parents_.clear();
 		track(tracked);
 	}
 
 	std::unordered_set<teq::TensptrT> tracked_;
 
-	teq::GraphStat stat_;
-
-	std::unordered_map<teq::iTensor*,
-		std::unordered_set<teq::iOperableFunc*>> parents_;
-
-	// List of operatible nodes and its number of unique children ordered from leaf to root
-	std::vector<std::pair<teq::iOperableFunc*,size_t>> requirements_; // todo: test minimal requirements
+	std::vector<teq::iOperableFunc*> ops_;
 };
 
 }
