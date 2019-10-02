@@ -17,7 +17,7 @@ PYBIND11_MODULE(eteq_mocker, m)
 	m.doc() = "mock eteq equation graphs";
 
 	m.def("custom_unary",
-		[](CustomUnaryF unary, eteq::NodeptrT<PybindT>& arg)
+		[](CustomUnaryF unary, NodeptrT& arg)
 		{
 			return dbg::make_functor<PybindT>(
 				[unary](eteq::TensorT<PybindT>& out, const dbg::DataMapT<PybindT>& args)

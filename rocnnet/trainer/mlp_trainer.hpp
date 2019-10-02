@@ -82,7 +82,7 @@ struct MLPTrainer final
 
 	eteq::VarptrT<PybindT> train_in_;
 	eteq::VarptrT<PybindT> expected_out_;
-	eteq::NodeptrT<PybindT> error_;
+	NodeptrT error_;
 
 	layr::AssignGroupsT updates_;
 	eteq::iSession* sess_;

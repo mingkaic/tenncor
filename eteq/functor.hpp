@@ -169,6 +169,11 @@ struct FunctorNode final : public iNode<T>
 {
 	FunctorNode (std::shared_ptr<Functor<T>> f) : func_(f) {}
 
+	FunctorNode<T>* clone (void) const
+	{
+		return static_cast<FunctorNode<T>*>(clone_impl());
+	}
+
 	T* data (void) override
 	{
 		return (T*) func_->data();
@@ -182,6 +187,24 @@ struct FunctorNode final : public iNode<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return func_;
+	}
+
+protected:
+	iNode<T>* clone_impl (void) const override
+	{
+		auto args = func_->get_children();
+		ArgsT<T> input_args;
+		input_args.reserve(args.size());
+		std::transform(args.begin(), args.end(),
+			std::back_inserter(input_args),
+			[](teq::FuncArg& arg)
+			{
+				return FuncArg<T>(
+					TO_NODE(arg.get_tensor()), arg.get_shaper(),
+					std::static_pointer_cast<CoordMap>(arg.get_coorder()));
+			});
+		return new FunctorNode(std::shared_ptr<Functor<T>>(
+			Functor<T>::get(func_->get_opcode(), input_args)));
 	}
 
 private:

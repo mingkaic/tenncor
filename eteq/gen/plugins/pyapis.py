@@ -13,6 +13,8 @@ _header_template = '''
 // type to replace template arguments in pybind
 using {pybind} = {pybind_type};
 //>>> ^ pybind, pybind_type
+
+using NodeptrT = eteq::NodeptrT<{pybind}>;
 '''
 
 _source_template = '''
@@ -254,7 +256,9 @@ class PyAPIsPlugin:
         generated_files[_hdr_file] = FileRep(
             _header_template.format(
                 pybind=_pybindt, pybind_type=bindtype),
-                user_includes=[], internal_refs=[])
+                user_includes=[
+                    '"eteq/inode.hpp"'
+                ], internal_refs=[])
 
         contents = {}
         for namespace in api['namespaces']:

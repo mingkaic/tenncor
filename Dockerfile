@@ -1,6 +1,6 @@
 FROM mkaichen/bazel_cpp:latest
 
-RUN pip3 install tensorflow
+RUN pip3 install tensorflow==1.14.0
 
 ENV APP_DIR /usr/src/tenncor
 

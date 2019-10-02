@@ -126,6 +126,11 @@ struct VariableNode final : public iNode<T>
 {
 	VariableNode (std::shared_ptr<Variable<T>> var) : var_(var) {}
 
+	VariableNode<T>* clone (void) const
+	{
+		return static_cast<VariableNode<T>*>(clone_impl());
+	}
+
 	T* data (void) override
 	{
 		return (T*) var_->data();
@@ -156,6 +161,13 @@ struct VariableNode final : public iNode<T>
 	std::string get_label (void) const
 	{
 		return var_->to_string();
+	}
+
+protected:
+	iNode<T>* clone_impl (void) const override
+	{
+		return new VariableNode(
+			std::shared_ptr<Variable<T>>(Variable<T>::get(*var_)));
 	}
 
 private:

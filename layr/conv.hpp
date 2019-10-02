@@ -38,9 +38,9 @@ struct ConvBuilder final : public iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
-	eteq::NodeptrT<PybindT> weight_ = nullptr;
+	NodeptrT weight_ = nullptr;
 
-	eteq::NodeptrT<PybindT> bias_ = nullptr;
+	NodeptrT bias_ = nullptr;
 
 	std::string label_;
 };
@@ -83,9 +83,7 @@ struct Conv final : public iLayer
 			0., teq::Shape({out_ncol}), "bias");
 	}
 
-	Conv (eteq::NodeptrT<PybindT> weight,
-		eteq::NodeptrT<PybindT> bias,
-		std::string label) :
+	Conv (NodeptrT weight, NodeptrT bias, std::string label) :
 		label_(label),
 		weight_(weight),
 		bias_(bias)
@@ -141,7 +139,7 @@ struct Conv final : public iLayer
 		return label_;
 	}
 
-	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
+	NodeptrT connect (NodeptrT input) const override
 	{
 		auto out = tenncor::nn::conv2d(input, weight_);
 		std::unordered_set<teq::iTensor*> leaves = {
@@ -174,28 +172,20 @@ private:
 	void copy_helper (const Conv& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
-		weight_ = std::make_shared<eteq::VariableNode<PybindT>>(
-			std::shared_ptr<eteq::Variable<PybindT>>(
-				eteq::Variable<PybindT>::get(
-					*static_cast<eteq::Variable<PybindT>*>(
-						other.weight_->get_tensor().get()))));
+		weight_ = NodeptrT(other.weight_->clone());
 		tag(weight_->get_tensor(), LayerId(conv_weight_key));
 		if (other.bias_)
 		{
-			bias_ = std::make_shared<eteq::VariableNode<PybindT>>(
-				std::shared_ptr<eteq::Variable<PybindT>>(
-					eteq::Variable<PybindT>::get(
-						*static_cast<eteq::Variable<PybindT>*>(
-							other.bias_->get_tensor().get()))));
+			bias_ = NodeptrT(other.bias_->clone());
 			tag(bias_->get_tensor(), LayerId(conv_bias_key));
 		}
 	}
 
 	std::string label_;
 
-	eteq::NodeptrT<PybindT> weight_;
+	NodeptrT weight_;
 
-	eteq::NodeptrT<PybindT> bias_ = nullptr;
+	NodeptrT bias_ = nullptr;
 };
 
 using ConvptrT = std::shared_ptr<Conv>;

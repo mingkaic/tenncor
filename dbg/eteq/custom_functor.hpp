@@ -23,12 +23,9 @@ struct CustomFunctor final : public teq::iOperableFunc
 {
 	static CustomFunctor<T>* get (CustomOpF<T> op, eteq::ArgsT<T> args);
 
-	static CustomFunctor<T>* get (CustomFunctor<T>&& other)
-	{
-		return new CustomFunctor<T>(std::move(other));
-	}
+	CustomFunctor (const CustomFunctor<T>& other) = default;
 
-	CustomFunctor (const CustomFunctor<T>& other) = delete;
+	CustomFunctor (CustomFunctor<T>&& other) = default;
 
 	CustomFunctor<T>& operator = (const CustomFunctor<T>& other) = delete;
 
@@ -116,8 +113,6 @@ private:
 		out_(eteq::shape_convert(shape)),
 		op_(op), shape_(shape), args_(args) {}
 
-	CustomFunctor (CustomFunctor<T>&& other) = default;
-
 	eteq::TensorT<T> out_;
 
 	CustomOpF<T> op_;
@@ -134,6 +129,11 @@ struct CustomFunctorNode final : public eteq::iNode<T>
 {
 	CustomFunctorNode (std::shared_ptr<CustomFunctor<T>> f) : func_(f) {}
 
+	CustomFunctorNode<T>* clone (void) const
+	{
+		return static_cast<CustomFunctorNode<T>*>(clone_impl());
+	}
+
 	T* data (void) override
 	{
 		return (T*) func_->data();
@@ -147,6 +147,13 @@ struct CustomFunctorNode final : public eteq::iNode<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return func_;
+	}
+
+protected:
+	eteq::iNode<T>* clone_impl (void) const override
+	{
+		return new CustomFunctorNode(
+			std::make_shared<CustomFunctor<T>>(*func_));
 	}
 
 private:

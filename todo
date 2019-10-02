@@ -13,6 +13,7 @@ P2 - implement attention mechanisms
     - implement models concerning visual and audio processing, and semantic data processing
 
 === feature ===
+   - attach onnx support to pbm (https://github.com/onnx/onnx)
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
 P2 - make shape dimension size configurable (instead of fixed rank_cap)

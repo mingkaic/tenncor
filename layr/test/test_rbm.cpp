@@ -9,7 +9,7 @@
 #include "layr/rbm.hpp"
 
 
-TEST(RBM, DISABLED_Copy)
+TEST(RBM, Copy)
 {
 	std::string label = "especially_restrictive";
 	std::string rlabel = "kinda_restrictive";
@@ -55,11 +55,11 @@ TEST(RBM, DISABLED_Copy)
 	auto gonobias = cpyn.get_contents();
 
 	ASSERT_EQ(exrbm.size(), gotrbm.size());
-	ASSERT_EQ(4, gotrbm.size());
+	ASSERT_EQ(5, gotrbm.size());
 	ASSERT_EQ(exrrbm.size(), gotrrbm.size());
-	ASSERT_EQ(4, gotrrbm.size());
+	ASSERT_EQ(5, gotrrbm.size());
 	ASSERT_EQ(exnobias.size(), gonobias.size());
-	ASSERT_EQ(4, gonobias.size());
+	ASSERT_EQ(5, gonobias.size());
 
 	ASSERT_NE(exrbm[0], gotrbm[0]);
 	ASSERT_NE(exrbm[1], gotrbm[1]);
@@ -91,7 +91,7 @@ TEST(RBM, DISABLED_Copy)
 }
 
 
-TEST(RBM, DISABLED_Clone)
+TEST(RBM, Clone)
 {
 	std::string label = "especially_restrictive";
 	std::string rlabel = "kinda_restrictive";
@@ -126,7 +126,7 @@ TEST(RBM, DISABLED_Clone)
 }
 
 
-TEST(RBM, DISABLED_Move)
+TEST(RBM, Move)
 {
 	std::string label = "especially_restrictive";
 	std::string rlabel = "kinda_restrictive";
@@ -175,11 +175,11 @@ TEST(RBM, DISABLED_Move)
 	auto gonobias = mvn.get_contents();
 
 	ASSERT_EQ(exrbm.size(), gotrbm.size());
-	ASSERT_EQ(4, gotrbm.size());
+	ASSERT_EQ(5, gotrbm.size());
 	ASSERT_EQ(exrrbm.size(), gotrrbm.size());
-	ASSERT_EQ(4, gotrrbm.size());
+	ASSERT_EQ(5, gotrrbm.size());
 	ASSERT_EQ(exnobias.size(), gonobias.size());
-	ASSERT_EQ(4, gonobias.size());
+	ASSERT_EQ(5, gonobias.size());
 
 	ASSERT_EQ(exrbm[0], gotrbm[0]);
 	ASSERT_EQ(exrbm[1], gotrbm[1]);
