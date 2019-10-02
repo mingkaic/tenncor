@@ -1,3 +1,12 @@
+///
+/// session.hpp
+/// dbg
+///
+/// Purpose:
+/// Implement session that runs functor updates and
+/// pass graph updates to GRPC server
+///
+
 #include <grpc/grpc.h>
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
@@ -26,6 +35,7 @@ static const std::string tag_node_type = "node_type";
 
 static const std::string edge_label_fmt = "parent-child-%d";
 
+/// Graph edge intermediate representation
 struct EdgeInfo
 {
 	size_t parent_;
@@ -33,6 +43,7 @@ struct EdgeInfo
 	std::string label_;
 };
 
+/// Graph edge hashing
 struct EdgeInfoHash final
 {
 	size_t operator() (const EdgeInfo& edge) const
@@ -45,14 +56,17 @@ struct EdgeInfoHash final
 	}
 };
 
+/// Graph edge equality
 inline bool operator == (const EdgeInfo& lhs, const EdgeInfo& rhs)
 {
 	EdgeInfoHash hasher;
 	return hasher(lhs) == hasher(rhs);
 }
 
+/// Session that makes GRPC client calls
 struct InteractiveSession final : public eteq::iSession
 {
+	/// UUID random generator
 	static boost::uuids::random_generator uuid_gen_;
 
 	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
@@ -69,6 +83,7 @@ struct InteractiveSession final : public eteq::iSession
 		InteractiveSession(grpc::CreateChannel(host,
 			grpc::InsecureChannelCredentials()), client_cfg) {}
 
+	/// Implementation of iSession
 	void track (teq::TensptrsT roots) override
 	{
 		sess_.track(roots);
@@ -188,6 +203,7 @@ struct InteractiveSession final : public eteq::iSession
 		client_.create_graph(request);
 	}
 
+	/// Implementation of iSession
 	void update (teq::TensSetT ignored = {}) override
 	{
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
@@ -275,6 +291,7 @@ struct InteractiveSession final : public eteq::iSession
 		client_.update_node_data(requests, update_it_);
 	}
 
+	/// Implementation of iSession
 	void update_target (
 		teq::TensSetT targeted,
 		teq::TensSetT ignored = {}) override
@@ -362,6 +379,7 @@ struct InteractiveSession final : public eteq::iSession
 		client_.update_node_data(requests, update_it_);
 	}
 
+	/// Apply input optimization rules using opt module, then re-track
 	void optimize (const opt::OptCtx& rules)
 	{
 		sess_.optimize(rules);
@@ -487,13 +505,13 @@ struct InteractiveSession final : public eteq::iSession
 		client_.update_graph(request);
 	}
 
-	// join indefinitely
+	/// Wait until client completes its request calls
 	void join (void)
 	{
 		client_.join();
 	}
 
-	// join until specified deadline, then terminate all jobs in the client
+	/// Wait until specified deadline, then terminate all jobs in the client
 	void join_then_stop (
 		const std::chrono::time_point<std::chrono::system_clock>& deadline)
 	{
@@ -511,20 +529,25 @@ struct InteractiveSession final : public eteq::iSession
 		timed_killer.join();
 	}
 
+	/// Kill all request jobs
 	void stop (void)
 	{
 		client_.clear();
 	}
 
+	/// Return session id
 	std::string get_session_id (void) const
 	{
 		return sess_id_;
 	}
 
+	/// GRPC Client
 	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
 
+	/// Session underneath
 	eteq::Session sess_;
 
+	/// Tag registry
 	tag::TagRegistry& registry_;
 
 private:

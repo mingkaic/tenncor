@@ -16,6 +16,7 @@
 namespace eteq
 {
 
+/// iLeaf extension of TEQ iLeaf containing Eigen data objects
 template <typename T>
 struct iLeaf : public teq::iLeaf
 {

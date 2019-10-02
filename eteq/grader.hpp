@@ -20,6 +20,7 @@
 namespace eteq
 {
 
+/// Return reduction operator gradient of reduced functor node (bwd)
 template <typename T>
 NodeptrT<T> reduce_grad (const teq::FuncArg& child,
 	NodeptrT<T> bwd, size_t idx)
@@ -48,6 +49,7 @@ NodeptrT<T> reduce_grad (const teq::FuncArg& child,
 	});
 }
 
+/// Return permutation gradient of permuted functor node (bwd)
 template <typename T>
 NodeptrT<T> permute_grad (teq::iFunctor* fwd,
 	NodeptrT<T> bwd, size_t idx)
@@ -73,6 +75,7 @@ NodeptrT<T> permute_grad (teq::iFunctor* fwd,
 	});
 }
 
+/// Return extension gradient of extended functor node (bwd)
 template <typename T>
 NodeptrT<T> extend_grad (teq::iFunctor* fwd,
 	NodeptrT<T> bwd, size_t idx)
@@ -100,6 +103,7 @@ NodeptrT<T> extend_grad (teq::iFunctor* fwd,
 	});
 }
 
+/// ETEQ implementation of TEQ's Backward Propagation Builder
 template <typename T>
 struct GradientBuilder final : public teq::iGradientBuilder
 {

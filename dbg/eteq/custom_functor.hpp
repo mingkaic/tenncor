@@ -1,3 +1,11 @@
+///
+/// custom_functor.hpp
+/// dbg
+///
+/// Purpose:
+/// Define custom functor version of eteq functor
+///
+
 #include "teq/iopfunc.hpp"
 
 #include "eteq/generated/opcode.hpp"
@@ -12,15 +20,19 @@
 namespace dbg
 {
 
+/// Arguments of raw data and shapes
 template <typename T>
 using DataMapT = std::vector<eteq::OpArg<T>>;
 
+/// Custom functor to assign DataMap to Eigen tensor output
 template <typename T>
 using CustomOpF = std::function<void(eteq::TensorT<T>&,const DataMapT<T>&)>;
 
+/// Functor that runs a custom functor instead of Eigen operators
 template <typename T>
 struct CustomFunctor final : public teq::iOperableFunc
 {
+	/// Return a CustomFunctor with input function and meta arguments
 	static CustomFunctor<T>* get (CustomOpF<T> op, eteq::ArgsT<T> args);
 
 	CustomFunctor (const CustomFunctor<T>& other) = default;
@@ -124,26 +136,31 @@ private:
 	teq::ArgsT args_;
 };
 
+/// CustomFunctor's node wrapper
 template <typename T>
 struct CustomFunctorNode final : public eteq::iNode<T>
 {
 	CustomFunctorNode (std::shared_ptr<CustomFunctor<T>> f) : func_(f) {}
 
+	/// Return deep copy of this instance (with a copied functor)
 	CustomFunctorNode<T>* clone (void) const
 	{
 		return static_cast<CustomFunctorNode<T>*>(clone_impl());
 	}
 
+	/// Implementation of iNode<T>
 	T* data (void) override
 	{
 		return (T*) func_->data();
 	}
 
+	/// Implementation of iNode<T>
 	void update (void) override
 	{
 		func_->update();
 	}
 
+	/// Implementation of iNode<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return func_;
@@ -205,6 +222,7 @@ CustomFunctor<T>* CustomFunctor<T>::get (CustomOpF<T> op, eteq::ArgsT<T> args)
 	return new CustomFunctor<T>(op, shape, input_args);
 }
 
+/// Return custom functor node given custom function and arguments
 template <typename T>
 eteq::NodeptrT<T> make_functor (CustomOpF<T> op, eteq::ArgsT<T> args)
 {

@@ -42,8 +42,10 @@ static bool is_big_endian(void)
 	return twob.bytes[0] == 0;
 }
 
+/// PBM Marshaller implementation for saving ETEQ Nodes
 struct EADSaver final : public pbm::iSaver
 {
+	/// Implementation of iSaver
 	std::string save_leaf (teq::iLeaf* leaf) override
 	{
 		char* data = (char*) leaf->data();
@@ -64,6 +66,7 @@ struct EADSaver final : public pbm::iSaver
 		return std::string(data, nelems * nbytes);
 	}
 
+	/// Implementation of iSaver
 	std::vector<double> save_shaper (const teq::CoordptrT& mapper) override
 	{
 		std::vector<double> out;
@@ -81,6 +84,7 @@ struct EADSaver final : public pbm::iSaver
 		return out;
 	}
 
+	/// Implementation of iSaver
 	std::vector<double> save_coorder (const teq::CoordptrT& mapper) override
 	{
 		if (nullptr == mapper)
@@ -109,9 +113,10 @@ std::transform(args.begin(), args.end(), std::back_inserter(eargs),\
 func = teq::TensptrT(\
 Functor<realtype>::get(teq::Opcode{opname, egen::get_op(opname)},eargs));}
 
-/// Unmarshal cortenn::Source as Variable containing context of source
+/// PBM Unmarshaller implementation for loading ETEQ Nodes
 struct EADLoader final : public pbm::iLoader
 {
+	/// Implementation of iLoader
 	teq::TensptrT generate_leaf (const char* pb, teq::Shape shape,
 		std::string typelabel, std::string label, bool is_const) override
 	{
@@ -138,6 +143,7 @@ struct EADLoader final : public pbm::iLoader
 		return leaf;
 	}
 
+	/// Implementation of iLoader
 	teq::TensptrT generate_func (std::string opname, teq::ArgsT args) override
 	{
 		if (args.empty())
@@ -164,6 +170,7 @@ struct EADLoader final : public pbm::iLoader
 		return func;
 	}
 
+	/// Implementation of iLoader
 	teq::CoordptrT generate_shaper (std::vector<double> coord) override
 	{
 		if (teq::mat_dim * teq::mat_dim != coord.size())
@@ -183,6 +190,7 @@ struct EADLoader final : public pbm::iLoader
 			});
 	}
 
+	/// Implementation of iLoader
 	teq::CoordptrT generate_coorder (
 		std::string opname, std::vector<double> coord) override
 	{
