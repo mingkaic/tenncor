@@ -9,6 +9,8 @@
 namespace trainer
 {
 
+using NodeUnarF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
+
 // Normal default context that only stores the number of iterations
 struct TrainingContext final
 {
@@ -20,7 +22,7 @@ struct MLPTrainer final
 {
 	MLPTrainer (layr::SequentialModel& model,
 		eteq::iSession& sess, layr::ApproxF update, teq::DimT batch_size,
-		layr::NodeUnarF gradprocess = layr::NodeUnarF(layr::identity),
+		NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; },
 		TrainingContext ctx = TrainingContext()) :
 		train_in_(eteq::make_variable_scalar<PybindT>(0., teq::Shape({
 			(teq::DimT) model.get_ninput(), batch_size}), "train_in")),

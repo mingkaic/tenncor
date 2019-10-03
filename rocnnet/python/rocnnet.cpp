@@ -259,10 +259,10 @@ PYBIND11_MODULE(rocnnet, m)
 	mlptrainer
 		.def(py::init<layr::SequentialModel&,
 			eteq::iSession&,layr::ApproxF,teq::DimT,
-			layr::NodeUnarF,trainer::TrainingContext>(),
+			trainer::NodeUnarF,trainer::TrainingContext>(),
 			py::arg("model"), py::arg("sess"),
 			py::arg("update"), py::arg("batch_size"),
-			py::arg("gradprocess") = layr::NodeUnarF(layr::identity),
+			py::arg("gradprocess") = [](eteq::NodeptrT<PybindT> in){ return in; },
 			py::arg("ctx") = trainer::TrainingContext())
 		.def("train",
 			[](py::object self, py::array train_in, py::array expected_out)
@@ -309,10 +309,10 @@ PYBIND11_MODULE(rocnnet, m)
 	dqntrainer
 		.def(py::init<layr::SequentialModel&,eteq::iSession&,
 			layr::ApproxF,trainer::DQNInfo,
-			layr::NodeUnarF,trainer::DQNTrainingContext>(),
+			trainer::NodeUnarF,trainer::DQNTrainingContext>(),
 			py::arg("model"), py::arg("sess"),
 			py::arg("update"), py::arg("param"),
-			py::arg("gradprocess") = layr::NodeUnarF(layr::identity),
+			py::arg("gradprocess") = [](eteq::NodeptrT<PybindT> in){ return in; },
 			py::arg("ctx") = trainer::DQNTrainingContext())
 		.def("action",
 			[](py::object self, py::array input)
@@ -402,7 +402,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// inlines
 	m
 		// activations (no longer useful)
-		.def("identity", &layr::identity)
+		.def("identity", [](eteq::NodeptrT<PybindT> in){ return in; })
 
 		// optimizations
 		.def("get_sgd", &pyrocnnet::get_sgd,
