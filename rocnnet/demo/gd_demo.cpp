@@ -103,7 +103,7 @@ int main (int argc, const char** argv)
 	std::ifstream loadstr(loadpath);
 	if (loadstr.is_open())
 	{
-		teq::TensT trained_roots;
+		teq::TensptrsT trained_roots;
 		trained_model = std::static_pointer_cast<layr::SequentialModel>(
 			layr::load_layer(loadstr, trained_roots, layr::seq_model_key, "demo"));
 		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());

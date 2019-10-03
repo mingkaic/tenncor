@@ -29,7 +29,7 @@ void replace_parents (const teq::ParentFinder& pfinder,
 }
 
 void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
-	const teq::TensT& roots)
+	const teq::TensptrsT& roots)
 {
 	teq::OwnerMapT owners = teq::track_owners(roots);
 	teq::GraphStat stat;
@@ -72,7 +72,7 @@ void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
 	}
 }
 
-void remove_all_duplicates (teq::TensT& roots,
+void remove_all_duplicates (teq::TensptrsT& roots,
 	ImmutablesT& immutables, HFunctorsT& functors)
 {
 	// remove equivalent nodes

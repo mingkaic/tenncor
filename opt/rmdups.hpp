@@ -10,7 +10,7 @@ void replace_parents (const teq::ParentFinder& pfinder,
 	teq::iTensor* source, teq::TensptrT target);
 
 template <typename T>
-std::vector<T> remove_duplicates (teq::TensT& roots, std::vector<T> tens,
+std::vector<T> remove_duplicates (teq::TensptrsT& roots, std::vector<T> tens,
 	const teq::ParentFinder& pfinder,
 	tag::TagRegistry& registry = tag::get_reg())
 {
@@ -19,7 +19,7 @@ std::vector<T> remove_duplicates (teq::TensT& roots, std::vector<T> tens,
 		return {};
 	}
 
-	std::unordered_set<teq::iTensor*> priorities;
+	teq::TensSetT priorities;
 	std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
 	for (size_t i = 0, n = roots.size(); i < n; ++i)
 	{
@@ -72,10 +72,10 @@ using HFunctorsT = std::vector<std::vector<teq::FuncptrT>>;
 
 // identify immutable leaves and organize functors by maxheight
 void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
-	const teq::TensT& roots);
+	const teq::TensptrsT& roots);
 
 // delete and update equivalent immutable leaves and functors
-void remove_all_duplicates (teq::TensT& roots,
+void remove_all_duplicates (teq::TensptrsT& roots,
 	ImmutablesT& immutables, HFunctorsT& functors);
 
 }

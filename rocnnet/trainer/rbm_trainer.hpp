@@ -51,7 +51,7 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 	return {assigns};
 }
 
-using ErrorF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>,eteq::NodeptrT<PybindT>)>;
+using ErrorF = std::function<NodeptrT(NodeptrT,NodeptrT)>;
 
 struct BernoulliRBMTrainer final
 {
@@ -100,7 +100,7 @@ struct BernoulliRBMTrainer final
 
 		updates_ = bbernoulli_approx(varerrs, learning_rate, discount_factor);
 
-		teq::TensT to_track = {
+		teq::TensptrsT to_track = {
 			hidden_sample_->get_tensor(),
 			visible_sample_->get_tensor(),
 		};
@@ -143,7 +143,7 @@ struct BernoulliRBMTrainer final
 		if (nullptr == error_)
 		{
 			assign_groups(updates_,
-				[this](eteq::TensSetT& updated)
+				[this](teq::TensSetT& updated)
 				{
 					this->sess_->update();
 				});
@@ -151,10 +151,10 @@ struct BernoulliRBMTrainer final
 		}
 
 		assign_groups(updates_,
-			[this](eteq::TensSetT& updated)
+			[this](teq::TensSetT& updated)
 			{
 				this->sess_->update_target(
-					eteq::TensSetT{this->error_->get_tensor().get()});
+					teq::TensSetT{this->error_->get_tensor().get()});
 			});
 		return error_->data()[0];
 	}
@@ -164,16 +164,16 @@ private:
 
 	eteq::VarptrT<PybindT> visible_ = nullptr;
 
-	eteq::NodeptrT<PybindT> hidden_sample_ = nullptr;
+	NodeptrT hidden_sample_ = nullptr;
 
-	eteq::NodeptrT<PybindT> visible_sample_ = nullptr;
+	NodeptrT visible_sample_ = nullptr;
 
-	eteq::NodeptrT<PybindT> error_ = nullptr;
+	NodeptrT error_ = nullptr;
 
 	// === updates && optimizer ===
 	layr::AssignGroupsT updates_;
 
-	eteq::TensSetT assign_sources_;
+	teq::TensSetT assign_sources_;
 
 	eteq::iSession* sess_;
 

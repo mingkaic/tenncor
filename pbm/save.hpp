@@ -127,7 +127,7 @@ struct GraphSaver final : public teq::iTraveler
 	std::list<teq::iFunctor*> funcs_;
 
 	/// Visited nodes
-	std::unordered_set<teq::iTensor*> visited_;
+	teq::TensSetT visited_;
 
 	/// Internal traveler
 	teq::GraphStat stat;

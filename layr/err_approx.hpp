@@ -12,7 +12,7 @@
 namespace layr
 {
 
-using VarErrsT = std::vector<std::pair<eteq::VarptrT<PybindT>,eteq::NodeptrT<PybindT>>>;
+using VarErrsT = std::vector<std::pair<eteq::VarptrT<PybindT>,NodeptrT>>;
 
 struct VarAssign
 {
@@ -20,7 +20,7 @@ struct VarAssign
 
 	eteq::VarptrT<PybindT> target_;
 
-	eteq::NodeptrT<PybindT> source_;
+	NodeptrT source_;
 };
 
 using AssignsT = std::vector<VarAssign>;
@@ -30,11 +30,11 @@ using AssignGroupsT = std::vector<AssignsT>;
 // approximate error of sources given error of root
 using ApproxF = std::function<AssignGroupsT(const VarErrsT&)>;
 
-using UpdateStepF = std::function<void(eteq::TensSetT&)>;
+using UpdateStepF = std::function<void(teq::TensSetT&)>;
 
-using NodeUnarF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
+using NodeUnarF = std::function<NodeptrT(NodeptrT)>;
 
-eteq::NodeptrT<PybindT> identity (eteq::NodeptrT<PybindT> node);
+NodeptrT identity (NodeptrT node);
 
 // Stochastic Gradient Descent Approximation
 // for each (x, err) in leaves
@@ -51,6 +51,7 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 //
 // where η is the learning rate, ε is epsilon,
 // and χ is discount_factor
+// initial momentum is 1
 AssignGroupsT rms_momentum (const VarErrsT& leaves,
 	PybindT learning_rate = 0.5, PybindT discount_factor = 0.99,
 	PybindT epsilon = std::numeric_limits<PybindT>::epsilon(),

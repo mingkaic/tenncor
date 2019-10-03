@@ -22,7 +22,7 @@ GroupRegistry& get_group_reg (void)
 }
 
 void recursive_group_tag (teq::TensptrT tens, std::string group,
-	std::unordered_set<teq::iTensor*> stops, GroupRegistry& registry)
+	teq::TensSetT stops, GroupRegistry& registry)
 {
 	recursive_tag(tens, stops,
 		[&](teq::TensrefT ref)
@@ -31,7 +31,7 @@ void recursive_group_tag (teq::TensptrT tens, std::string group,
 		});
 }
 
-void adjacencies (AdjMapT& out, teq::TensT roots,
+void adjacencies (AdjMapT& out, teq::TensptrsT roots,
 	GroupRegistry& registry)
 {
 	teq::HeightMatrix mat(roots);
@@ -48,7 +48,7 @@ void adjacencies (AdjMapT& out, teq::TensT roots,
 			if (estd::get(groups, tags, groups_key))
 			{
 				auto& children = func->get_children();
-				std::unordered_set<teq::iTensor*> uchildren;
+				teq::TensSetT uchildren;
 				std::transform(children.begin(), children.end(),
 					std::inserter(uchildren, uchildren.end()),
 					[](const teq::FuncArg& arg)

@@ -275,7 +275,7 @@ TEST(SESSION, TargetedUpdate)
 
 	double d = 2;
 	a->assign(&d, shape);
-	session.update_target(eteq::TensSetT{x->get_tensor().get()});
+	session.update_target(teq::TensSetT{x->get_tensor().get()});
 
 	// expected state:
 	// * (target) = 4

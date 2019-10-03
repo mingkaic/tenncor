@@ -10,8 +10,8 @@ namespace layr
 
 struct Activation;
 
-using NonLinearF = std::function<eteq::NodeptrT<PybindT>(
-	const Activation&,eteq::NodeptrT<PybindT>)>;
+using NonLinearF = std::function<NodeptrT(
+	const Activation&,NodeptrT)>;
 
 struct ActivationBuilder final : public iLayerBuilder
 {
@@ -63,16 +63,16 @@ get_layer_reg().register_tagr(layers_key_prefix + "softmax",
 	return std::make_shared<ActivationBuilder>(softmax_layer_key, extra_info);
 });
 
-eteq::NodeptrT<PybindT> softmax_from_layer (const Activation& layer,
-	eteq::NodeptrT<PybindT> input);
+NodeptrT softmax_from_layer (const Activation& layer,
+	NodeptrT input);
 
 const std::unordered_map<std::string,NonLinearF> activations =
 {
 	{sigmoid_layer_key,
-		[](const Activation& layer, eteq::NodeptrT<PybindT> input)
+		[](const Activation& layer, NodeptrT input)
 		{ return tenncor::sigmoid<PybindT>(input); }},
 	{tanh_layer_key,
-		[](const Activation& layer, eteq::NodeptrT<PybindT> input)
+		[](const Activation& layer, NodeptrT input)
 		{ return tenncor::tanh<PybindT>(input); }},
 	{softmax_layer_key, softmax_from_layer},
 };
@@ -131,7 +131,7 @@ struct Activation final : public iLayer
 		return label_;
 	}
 
-	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
+	NodeptrT connect (NodeptrT input) const override
 	{
 		auto out = activation_(*this, input);
 		recursive_tag(out->get_tensor(), {
@@ -140,7 +140,7 @@ struct Activation final : public iLayer
 		return out;
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
 		return {placeholder_->get_tensor()};
 	}
@@ -157,7 +157,7 @@ private:
 
 	NonLinearF activation_;
 
-	eteq::NodeptrT<PybindT> placeholder_;
+	NodeptrT placeholder_;
 };
 
 using ActivationptrT = std::shared_ptr<Activation>;

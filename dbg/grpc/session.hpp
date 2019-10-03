@@ -69,7 +69,7 @@ struct InteractiveSession final : public eteq::iSession
 		InteractiveSession(grpc::CreateChannel(host,
 			grpc::InsecureChannelCredentials()), client_cfg) {}
 
-	void track (teq::TensT roots) override
+	void track (teq::TensptrsT roots) override
 	{
 		sess_.track(roots);
 
@@ -188,7 +188,7 @@ struct InteractiveSession final : public eteq::iSession
 		client_.create_graph(request);
 	}
 
-	void update (eteq::TensSetT ignored = {}) override
+	void update (teq::TensSetT ignored = {}) override
 	{
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
@@ -202,7 +202,7 @@ struct InteractiveSession final : public eteq::iSession
 
 		// basic copy over from session::update
 		std::list<teq::iOperableFunc*> reqs;
-		eteq::TensSetT acceptable;
+		teq::TensSetT acceptable;
 		for (auto& root : sess_.tracked_)
 		{
 			acceptable.emplace(root.get());
@@ -276,8 +276,8 @@ struct InteractiveSession final : public eteq::iSession
 	}
 
 	void update_target (
-		eteq::TensSetT targeted,
-		eteq::TensSetT ignored = {}) override
+		teq::TensSetT targeted,
+		teq::TensSetT ignored = {}) override
 	{
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
@@ -291,7 +291,7 @@ struct InteractiveSession final : public eteq::iSession
 
 		// basic copy over from session::update_target
 		std::list<teq::iOperableFunc*> reqs;
-		eteq::TensSetT acceptable;
+		teq::TensSetT acceptable;
 		for (auto& root : targeted)
 		{
 			acceptable.emplace(root);

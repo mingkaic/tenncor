@@ -9,9 +9,9 @@
 namespace layr
 {
 
-const std::string weight_key = "weight";
+const std::string dense_weight_key = "weight";
 
-const std::string bias_key = "bias";
+const std::string dense_bias_key = "bias";
 
 struct DenseBuilder final : public iLayerBuilder
 {
@@ -19,12 +19,12 @@ struct DenseBuilder final : public iLayerBuilder
 
 	void set_tensor (teq::TensptrT tens, std::string target) override
 	{
-		if (target == weight_key)
+		if (target == dense_weight_key)
 		{
 			weight_ = eteq::NodeConverters<PybindT>::to_node(tens);
 			return;
 		}
-		else if (target == bias_key)
+		else if (target == dense_bias_key)
 		{
 			bias_ = eteq::NodeConverters<PybindT>::to_node(tens);
 			return;
@@ -64,13 +64,13 @@ struct Dense final : public iLayer
 		layr::InitF<PybindT> bias_init,
 		const std::string& label) :
 		label_(label),
-		weight_(weight_init(teq::Shape({nunits, indim}), weight_key))
+		weight_(weight_init(teq::Shape({nunits, indim}), dense_weight_key))
 	{
-		tag(weight_->get_tensor(), LayerId(weight_key));
+		tag(weight_->get_tensor(), LayerId(dense_weight_key));
 		if (bias_init)
 		{
-			bias_ = bias_init(teq::Shape({nunits}), bias_key);
-			tag(bias_->get_tensor(), LayerId(bias_key));
+			bias_ = bias_init(teq::Shape({nunits}), dense_bias_key);
+			tag(bias_->get_tensor(), LayerId(dense_bias_key));
 		}
 	}
 
@@ -79,10 +79,10 @@ struct Dense final : public iLayer
 		weight_(weight),
 		bias_(bias)
 	{
-		tag(weight_->get_tensor(), LayerId(weight_key));
+		tag(weight_->get_tensor(), LayerId(dense_weight_key));
 		if (bias)
 		{
-			tag(bias_->get_tensor(), LayerId(bias_key));
+			tag(bias_->get_tensor(), LayerId(dense_bias_key));
 		}
 	}
 
@@ -133,7 +133,7 @@ struct Dense final : public iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
-		std::unordered_set<teq::iTensor*> leaves = {
+		teq::TensSetT leaves = {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
 		};
@@ -145,7 +145,7 @@ struct Dense final : public iLayer
 		return out;
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
 		return {
 			weight_->get_tensor(),
@@ -163,11 +163,11 @@ private:
 	{
 		label_ = label_prefix + other.label_;
 		weight_ = NodeptrT(other.weight_->clone());
-		tag(weight_->get_tensor(), LayerId(weight_key));
+		tag(weight_->get_tensor(), LayerId(dense_weight_key));
 		if (other.bias_)
 		{
 			bias_ = NodeptrT(other.bias_->clone());
-			tag(bias_->get_tensor(), LayerId(bias_key));
+			tag(bias_->get_tensor(), LayerId(dense_bias_key));
 		}
 	}
 

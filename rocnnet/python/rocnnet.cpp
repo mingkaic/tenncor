@@ -156,7 +156,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("get_contents",
 			[](py::object self) -> eteq::NodesT<PybindT>
 			{
-				teq::TensT contents = self.cast<layr::iLayer*>()->get_contents();
+				teq::TensptrsT contents = self.cast<layr::iLayer*>()->get_contents();
 				eteq::NodesT<PybindT> nodes;
 				nodes.reserve(contents.size());
 				std::transform(contents.begin(), contents.end(),
@@ -197,8 +197,8 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// dense
 	m.def("create_dense",
-		[](eteq::NodeptrT<PybindT> weight,
-			eteq::NodeptrT<PybindT> bias,
+		[](NodeptrT weight,
+			NodeptrT bias,
 			std::string label)
 		{
 			return std::make_shared<layr::Dense>(weight, bias, label);
@@ -447,7 +447,7 @@ PYBIND11_MODULE(rocnnet, m)
 				{
 					logs::fatalf("file %s not found", filename.c_str());
 				}
-				teq::TensT trained_roots;
+				teq::TensptrsT trained_roots;
 				return std::static_pointer_cast<layr::SequentialModel>(
 					layr::load_layer(input, trained_roots, layr::seq_model_key, layer_label));
 			})
@@ -459,7 +459,7 @@ PYBIND11_MODULE(rocnnet, m)
 				{
 					logs::fatalf("file %s not found", filename.c_str());
 				}
-				teq::TensT trained_roots;
+				teq::TensptrsT trained_roots;
 				return std::static_pointer_cast<layr::RBM>(
 					layr::load_layer(input, trained_roots, layr::rbm_layer_key, layer_label));
 			});

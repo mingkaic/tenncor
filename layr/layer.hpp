@@ -108,10 +108,10 @@ struct iLayer
 
 	virtual std::string get_label (void) const = 0;
 
-	virtual eteq::NodeptrT<PybindT> connect (
-		eteq::NodeptrT<PybindT> input) const = 0;
+	virtual NodeptrT connect (
+		NodeptrT input) const = 0;
 
-	virtual teq::TensT get_contents (void) const = 0;
+	virtual teq::TensptrsT get_contents (void) const = 0;
 
 protected:
 	virtual iLayer* clone_impl (const std::string& label_prefix) const = 0;
@@ -119,7 +119,7 @@ protected:
 	void tag (teq::TensptrT tensor, LayerId subs) const;
 
 	void recursive_tag (teq::TensptrT root,
-		std::unordered_set<teq::iTensor*> ignores, LayerId subs) const;
+		teq::TensSetT ignores, LayerId subs) const;
 };
 
 using LayerptrT = std::shared_ptr<iLayer>;
@@ -179,14 +179,14 @@ private:
 LayerRegistry& get_layer_reg (void);
 
 void recursive_layer_tag (teq::TensptrT tens, std::string layer_type,
-	std::string name, std::unordered_set<teq::iTensor*> stops,
+	std::string name, teq::TensSetT stops,
 	LayerRegistry& registry = get_layer_reg());
 
-LayerptrT load_layer (std::istream& ins, teq::TensT& roots,
+LayerptrT load_layer (std::istream& ins, teq::TensptrsT& roots,
 	std::string ltype, std::string label,
 	LayerRegistry& registry = get_layer_reg());
 
-bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensT roots,
+bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensptrsT roots,
 	LayerRegistry& registry = get_layer_reg());
 
 }

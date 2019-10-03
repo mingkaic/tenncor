@@ -20,7 +20,7 @@ bool is_equal (teq::CoordptrT a, teq::CoordptrT b);
 
 // ==== Leaf comparators
 
-bool lt (std::unordered_set<teq::iTensor*> priorities,
+bool lt (teq::TensSetT priorities,
 	teq::iLeaf* a, teq::iLeaf* b);
 
 // for any ileaf pair a-b, they are equivalent IFF they are both tagged immutable AND
@@ -29,7 +29,7 @@ bool is_equal (teq::iLeaf* a, teq::iLeaf* b);
 
 // ==== Functor comparators
 
-bool lt (std::unordered_set<teq::iTensor*> priorities,
+bool lt (teq::TensSetT priorities,
 	teq::iFunctor* a, teq::iFunctor* b);
 
 // for any functors a-b, they are equivalent IFF a and b are the same opcode AND

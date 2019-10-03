@@ -7,7 +7,7 @@
 namespace layr
 {
 
-eteq::NodeptrT<PybindT> identity (eteq::NodeptrT<PybindT> node)
+NodeptrT identity (NodeptrT node)
 {
 	return node;
 }
@@ -64,7 +64,7 @@ void assign_groups (const AssignGroupsT& groups, UpdateStepF update_step)
 {
 	for (const AssignsT& group : groups)
 	{
-		eteq::TensSetT updated_var;
+		teq::TensSetT updated_var;
 		for (const layr::VarAssign& assign : group)
 		{
 			updated_var.emplace(assign.target_->get_tensor().get());
@@ -79,7 +79,7 @@ void assign_groups_preupdate (const AssignGroupsT& groups, UpdateStepF update_st
 {
 	for (const AssignsT& group : groups)
 	{
-		eteq::TensSetT sources;
+		teq::TensSetT sources;
 		for (const layr::VarAssign& assign : group)
 		{
 			sources.emplace(assign.source_->get_tensor().get());

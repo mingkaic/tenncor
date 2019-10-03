@@ -444,7 +444,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 
 	// optimize
 	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
-	teq::TensT roots = {
+	teq::TensptrsT roots = {
 		dw0->get_tensor(),
 		db0->get_tensor(),
 		dw1->get_tensor(),
@@ -885,7 +885,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 
 	// optimize
 	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
-	teq::TensT roots = {
+	teq::TensptrsT roots = {
 		dw0->get_tensor(),
 		db0->get_tensor(),
 		dw1->get_tensor(),

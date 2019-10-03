@@ -67,7 +67,7 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("root"),
 			py::arg("showshape") = false)
 		.def("multigraph_to_csvstr",
-			[](teq::TensT roots, bool showshape)
+			[](teq::TensptrsT roots, bool showshape)
 			{
 				std::stringstream ss;
 				CSVEquation ceq;
@@ -126,7 +126,7 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("filename"),
 			py::arg("showshape") = false)
 		.def("multigraph_to_csvfile",
-			[](teq::TensT roots, std::string filename, bool showshape)
+			[](teq::TensptrsT roots, std::string filename, bool showshape)
 			{
 				std::ofstream outstr(filename);
 				if (outstr.is_open())

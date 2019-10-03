@@ -33,14 +33,12 @@ static bool is_dbn (layr::SequentialModel& model)
 	return true;
 }
 
-eteq::NodeptrT<PybindT> sample_h_given_v (
-	layr::RBMptrT& rbm, eteq::NodeptrT<PybindT>& x)
+NodeptrT sample_h_given_v (layr::RBMptrT& rbm, NodeptrT& x)
 {
 	return tenncor::random::rand_binom_one(rbm->connect(x));
 }
 
-eteq::NodeptrT<PybindT> sample_v_given_h (
-	layr::RBMptrT& rbm, eteq::NodeptrT<PybindT>& x)
+NodeptrT sample_v_given_h (layr::RBMptrT& rbm, NodeptrT& x)
 {
 	return tenncor::random::rand_binom_one(rbm->backward_connect(x));
 }
@@ -93,7 +91,7 @@ struct DBNTrainer final
 		}
 
 		// layer-wise rbm reconstruction
-		teq::TensT to_track;
+		teq::TensptrsT to_track;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			auto& rbm = rbm_layers[i];
@@ -223,7 +221,7 @@ struct DBNTrainer final
 			{
 				// train rbm layers (reconstruction)
 				layr::assign_groups_preupdate({updates},
-					[&](eteq::TensSetT& sources)
+					[&](teq::TensSetT& sources)
 					{
 						pretrain_sess_.update_target(sources, {to_ignore});
 					});
@@ -281,7 +279,7 @@ struct DBNTrainer final
 		{
 			// train log layer
 			layr::assign_groups_preupdate(tupdates_,
-				[&](eteq::TensSetT& sources)
+				[&](teq::TensSetT& sources)
 				{
 					train_sess_.update_target(sources, {to_ignore});
 				});
@@ -322,15 +320,15 @@ struct DBNTrainer final
 
 	eteq::VarptrT<PybindT> trainy_;
 
-	std::vector<eteq::NodeptrT<PybindT>> sample_pipes_;
+	std::vector<NodeptrT> sample_pipes_;
 
 	layr::AssignGroupsT rupdates_;
 
 	layr::AssignGroupsT tupdates_;
 
-	std::vector<eteq::NodeptrT<PybindT>> rcosts_;
+	std::vector<NodeptrT> rcosts_;
 
-	eteq::NodeptrT<PybindT> tcost_;
+	NodeptrT tcost_;
 
 	eteq::Session pretrain_sess_;
 

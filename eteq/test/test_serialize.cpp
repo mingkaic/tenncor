@@ -133,16 +133,16 @@ TEST(SERIALIZE, LoadGraph)
 		ASSERT_TRUE(in.ParseFromIstream(&inputstr));
 	}
 
-	pbm::GraphInfo out;
+	teq::TensptrSetT out;
 	pbm::load_graph<eteq::EADLoader>(out, in);
-	EXPECT_EQ(4, out.roots_.size());
+	EXPECT_EQ(4, out.size());
 
 	auto& reg = tag::get_reg();
 	tag::Query q;
 
 	std::vector<std::string> root_props;
 	std::unordered_map<std::string,teq::TensptrT> propdtens;
-	for (auto tens : out.roots_)
+	for (auto tens : out)
 	{
 		tens->accept(q);
 		auto tags = reg.get_tags(tens.get());

@@ -60,7 +60,7 @@ struct RBM final : public iLayer
 
 		if (bias_init)
 		{
-			vbias = bias_init(teq::Shape({nvisible}), bias_key);
+			vbias = bias_init(teq::Shape({nvisible}), dense_bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
 			eteq::NodeConverters<PybindT>::to_node(weight)), vbias, visible_key);
@@ -126,7 +126,7 @@ struct RBM final : public iLayer
 		return activation_->connect(hidden_->connect(visible));
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
 		auto out = hidden_->get_contents();
 		auto vis_contents = visible_->get_contents();

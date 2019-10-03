@@ -41,15 +41,15 @@ TEST(CONV, Copy)
 
 	ASSERT_NE(exconv[0], gotconv[0]);
 	ASSERT_NE(exconv[1], gotconv[1]);
-	EXPECT_STREQ("weight", gotconv[0]->to_string().c_str());
-	EXPECT_STREQ("bias", gotconv[1]->to_string().c_str());
+	EXPECT_STREQ(layr::conv_weight_key.c_str(), gotconv[0]->to_string().c_str());
+	EXPECT_STREQ(layr::conv_bias_key.c_str(), gotconv[1]->to_string().c_str());
 	EXPECT_TENSDATA(exconv[0].get(), gotconv[0].get(), PybindT);
 	EXPECT_TENSDATA(exconv[1].get(), gotconv[1].get(), PybindT);
 
 	ASSERT_NE(exrconv[0], gotrconv[0]);
 	ASSERT_NE(exrconv[1], gotrconv[1]);
-	EXPECT_STREQ("weight", gotrconv[0]->to_string().c_str());
-	EXPECT_STREQ("bias", gotrconv[1]->to_string().c_str());
+	EXPECT_STREQ(layr::conv_weight_key.c_str(), gotrconv[0]->to_string().c_str());
+	EXPECT_STREQ(layr::conv_bias_key.c_str(), gotrconv[1]->to_string().c_str());
 	EXPECT_TENSDATA(exrconv[0].get(), gotrconv[0].get(), PybindT);
 	EXPECT_TENSDATA(exrconv[1].get(), gotrconv[1].get(), PybindT);
 }
@@ -110,6 +110,72 @@ TEST(CONV, Move)
 
 	ASSERT_EQ(exrconv[0], gotrconv[0]);
 	ASSERT_EQ(exrconv[1], gotrconv[1]);
+}
+
+
+TEST(CONV, Connection)
+{
+	std::string label = "especially_convoluted";
+	layr::Conv conv({6, 5}, 4, 3, label);
+
+	auto x = eteq::make_variable_scalar<PybindT>(
+		0, teq::Shape({4, 10, 9, 2}), "x");
+	auto y = conv.connect(x);
+
+	EXPECT_GRAPHEQ(
+		"(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		" `--(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		" |   `--(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		" |   |   `--(PAD[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		" |   |   |   `--(CONV[1\\6\\4\\2\\1\\1\\1\\1])\n"
+		" |   |   |       `--(variable:x[4\\10\\9\\2\\1\\1\\1\\1])\n"
+		" |   |   |       `--(PERMUTE[4\\5\\6\\1\\1\\1\\1\\1])\n"
+		" |   |   |           `--(SLICE[1\\4\\5\\6\\1\\1\\1\\1])\n"
+		" |   |   |               `--(variable:weight[3\\4\\5\\6\\1\\1\\1\\1])\n"
+		" |   |   `--(PAD[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		" |   |       `--(CONV[1\\6\\4\\2\\1\\1\\1\\1])\n"
+		" |   |           `--(variable:x[4\\10\\9\\2\\1\\1\\1\\1])\n"
+		" |   |           `--(PERMUTE[4\\5\\6\\1\\1\\1\\1\\1])\n"
+		" |   |               `--(SLICE[1\\4\\5\\6\\1\\1\\1\\1])\n"
+		" |   |                   `--(variable:weight[3\\4\\5\\6\\1\\1\\1\\1])\n"
+		" |   `--(PAD[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		" |       `--(CONV[1\\6\\4\\2\\1\\1\\1\\1])\n"
+		" |           `--(variable:x[4\\10\\9\\2\\1\\1\\1\\1])\n"
+		" |           `--(PERMUTE[4\\5\\6\\1\\1\\1\\1\\1])\n"
+		" |               `--(SLICE[1\\4\\5\\6\\1\\1\\1\\1])\n"
+		" |                   `--(variable:weight[3\\4\\5\\6\\1\\1\\1\\1])\n"
+		" `--(EXTEND[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		"     `--(variable:bias[3\\1\\1\\1\\1\\1\\1\\1])",
+		y->get_tensor());
+}
+
+
+TEST(CONV, Tagging)
+{
+	std::string label = "very_convoluted";
+	layr::Conv conv({4, 5}, 6, 7, label);
+
+	auto contents = conv.get_contents();
+	// expect contents to be tagged
+	ASSERT_EQ(2, contents.size());
+
+	auto& reg = tag::get_reg();
+	auto weight_tags = reg.get_tags(contents[0].get());
+	auto bias_tags = reg.get_tags(contents[1].get());
+
+	EXPECT_EQ(1, weight_tags.size());
+	EXPECT_EQ(1, bias_tags.size());
+
+	ASSERT_HAS(weight_tags, layr::conv_layer_key);
+	ASSERT_HAS(bias_tags, layr::conv_layer_key);
+
+	auto weight_labels = weight_tags[layr::conv_layer_key];
+	auto bias_labels = bias_tags[layr::conv_layer_key];
+
+	ASSERT_EQ(1, weight_labels.size());
+	ASSERT_EQ(1, bias_labels.size());
+	EXPECT_STREQ("very_convoluted::weight:0", weight_labels[0].c_str());
+	EXPECT_STREQ("very_convoluted::bias:0", bias_labels[0].c_str());
 }
 
 

@@ -6,6 +6,8 @@
 /// Define interfaces and building blocks for an equation graph
 ///
 
+#include <unordered_set>
+
 #include "teq/shape.hpp"
 
 #ifndef TEQ_INTERFACE_HPP
@@ -50,6 +52,18 @@ using TensptrT = std::shared_ptr<iTensor>;
 
 /// Tensor weak pointers
 using TensrefT = std::weak_ptr<iTensor>;
+
+/// Vector of raw tensor pointers
+using TensT = std::vector<iTensor*>;
+
+/// Vector of tensor smart pointers
+using TensptrsT = std::vector<TensptrT>;
+
+/// Hash set of raw tensor pointers
+using TensSetT = std::unordered_set<teq::iTensor*>;
+
+/// Hash set of tensor smart pointers
+using TensptrSetT = std::unordered_set<teq::TensptrT>;
 
 }
 

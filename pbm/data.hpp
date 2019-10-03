@@ -21,7 +21,7 @@ namespace pbm
 {
 
 /// Tensptr vector type
-using TensT = std::vector<teq::TensptrT>;
+using TensptrsT = std::vector<teq::TensptrT>;
 
 /// String list type used for paths
 using StringsT = std::list<fmts::string>;

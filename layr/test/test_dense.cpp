@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 
+#include "dbg/stream/teq_csv.hpp"
+
 #include "testutil/tutil.hpp"
 
 #include "layr/dense.hpp"
@@ -60,22 +62,32 @@ TEST(DENSE, Copy)
 
 	ASSERT_NE(exdense[0], gotdense[0]);
 	ASSERT_NE(exdense[1], gotdense[1]);
-	EXPECT_STREQ("weight", gotdense[0]->to_string().c_str());
-	EXPECT_STREQ("bias", gotdense[1]->to_string().c_str());
+	EXPECT_STREQ(
+		layr::dense_weight_key.c_str(),
+		gotdense[0]->to_string().c_str());
+	EXPECT_STREQ(
+		layr::dense_bias_key.c_str(),
+		gotdense[1]->to_string().c_str());
 	EXPECT_TENSDATA(exdense[0].get(), gotdense[0].get(), PybindT);
 	EXPECT_TENSDATA(exdense[1].get(), gotdense[1].get(), PybindT);
 
 	ASSERT_NE(exrdense[0], gotrdense[0]);
 	ASSERT_NE(exrdense[1], gotrdense[1]);
-	EXPECT_STREQ("weight", gotrdense[0]->to_string().c_str());
-	EXPECT_STREQ("bias", gotrdense[1]->to_string().c_str());
+	EXPECT_STREQ(
+		layr::dense_weight_key.c_str(),
+		gotrdense[0]->to_string().c_str());
+	EXPECT_STREQ(
+		layr::dense_bias_key.c_str(),
+		gotrdense[1]->to_string().c_str());
 	EXPECT_TENSDATA(exrdense[0].get(), gotrdense[0].get(), PybindT);
 	EXPECT_TENSDATA(exrdense[1].get(), gotrdense[1].get(), PybindT);
 
 	ASSERT_NE(exnobias[0], gonobias[0]);
 	ASSERT_EQ(exnobias[1], gonobias[1]);
 	ASSERT_EQ(nullptr, gonobias[1]);
-	EXPECT_STREQ("weight", gonobias[0]->to_string().c_str());
+	EXPECT_STREQ(
+		layr::dense_weight_key.c_str(),
+		gonobias[0]->to_string().c_str());
 	EXPECT_TENSDATA(exnobias[0].get(), gonobias[0].get(), PybindT);
 }
 
@@ -178,23 +190,80 @@ TEST(DENSE, Move)
 
 TEST(DENSE, Connection)
 {
-	//
+	std::string rlabel = "kinda_dense";
+	std::string nb_label = "fake_news";
+	layr::Dense rdense(5, 6,
+		layr::unif_xavier_init<PybindT>(2),
+		layr::unif_xavier_init<PybindT>(4),
+		rlabel);
+	layr::Dense nobias(6, 7,
+		layr::unif_xavier_init<PybindT>(3),
+		layr::InitF<PybindT>(),
+		nb_label);
+
+	auto x = eteq::make_variable_scalar<PybindT>(
+		0, teq::Shape({6, 2}), "x");
+	auto x2 = eteq::make_variable_scalar<PybindT>(
+		0, teq::Shape({7, 2}), "x2");
+	auto biasedy = rdense.connect(x);
+	auto y = nobias.connect(x2);
+
+	EXPECT_GRAPHEQ(
+		"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
+		" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
+		biasedy->get_tensor());
+
+	EXPECT_GRAPHEQ(
+		"(MATMUL[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(variable:x2[7\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(variable:weight[6\\7\\1\\1\\1\\1\\1\\1])",
+		y->get_tensor());
 }
 
 
 TEST(DENSE, Tagging)
+{
+	std::string label = "very_dense";
+	layr::Dense dense(5, 6,
+		layr::unif_xavier_init<PybindT>(2),
+		layr::unif_xavier_init<PybindT>(4),
+		label);
+
+	auto contents = dense.get_contents();
+	// expect contents to be tagged
+	ASSERT_EQ(2, contents.size());
+
+	auto& reg = tag::get_reg();
+	auto weight_tags = reg.get_tags(contents[0].get());
+	auto bias_tags = reg.get_tags(contents[1].get());
+
+	EXPECT_EQ(1, weight_tags.size());
+	EXPECT_EQ(1, bias_tags.size());
+
+	ASSERT_HAS(weight_tags, layr::dense_layer_key);
+	ASSERT_HAS(bias_tags, layr::dense_layer_key);
+
+	auto weight_labels = weight_tags[layr::dense_layer_key];
+	auto bias_labels = bias_tags[layr::dense_layer_key];
+
+	ASSERT_EQ(1, weight_labels.size());
+	ASSERT_EQ(1, bias_labels.size());
+	EXPECT_STREQ("very_dense::weight:0", weight_labels[0].c_str());
+	EXPECT_STREQ("very_dense::bias:0", bias_labels[0].c_str());
+}
+
+
+TEST(DENSE, ConnectionTagging)
 {
 	//
 }
 
 
 TEST(DENSE, Building)
-{
-	//
-}
-
-
-TEST(DENSE, ConnectionTagging)
 {
 	//
 }

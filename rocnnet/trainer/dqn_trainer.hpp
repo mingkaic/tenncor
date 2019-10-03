@@ -34,7 +34,7 @@ struct DQNTrainingContext final
 	layr::SeqModelptrT target_model_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	eteq::NodeptrT<PybindT> next_output_ = nullptr;
+	NodeptrT next_output_ = nullptr;
 };
 
 struct DQNInfo final
@@ -124,7 +124,7 @@ struct DQNTrainer final
 			masked_output_score - future_reward_));
 
 		// updates for source network
-		teq::TensT source_contents = source_model_.get_contents();
+		teq::TensptrsT source_contents = source_model_.get_contents();
 		layr::VarErrsT source_vars;
 		for (auto tens : source_contents)
 		{
@@ -141,7 +141,7 @@ struct DQNTrainer final
 		updates_ = update(source_vars);
 
 		// update target network
-		teq::TensT target_contents = ctx_.target_model_->get_contents();
+		teq::TensptrsT target_contents = ctx_.target_model_->get_contents();
 		size_t nvars = source_vars.size();
 		std::vector<eteq::VarptrT<PybindT>> target_vars;
 		target_vars.reserve(nvars);
@@ -171,7 +171,7 @@ struct DQNTrainer final
 		}
 		updates_.push_back(target_assigns);
 
-		teq::TensT track_batch = {
+		teq::TensptrsT track_batch = {
 			prediction_error_->get_tensor(),
 			train_out_->get_tensor(),
 			output_->get_tensor(),
@@ -279,7 +279,7 @@ struct DQNTrainer final
 
 			sess_->update();
 			assign_groups(updates_,
-				[this](std::unordered_set<teq::iTensor*>& updated)
+				[this](teq::TensSetT& updated)
 				{
 					this->sess_->update();
 				});
@@ -288,7 +288,7 @@ struct DQNTrainer final
 		ctx_.n_train_called_++;
 	}
 
-	eteq::NodeptrT<PybindT> get_error (void) const
+	NodeptrT get_error (void) const
 	{
 		return prediction_error_;
 	}
@@ -303,14 +303,14 @@ struct DQNTrainer final
 	eteq::VarptrT<PybindT> input_ = nullptr;
 
 	// fanout: shape <noutput>
-	eteq::NodeptrT<PybindT> output_ = nullptr;
+	NodeptrT output_ = nullptr;
 
 	// === backward computation ===
 	// train fanin: shape <ninput, batchsize>
 	eteq::VarptrT<PybindT> train_input_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	eteq::NodeptrT<PybindT> train_out_ = nullptr;
+	NodeptrT train_out_ = nullptr;
 
 	// === updates && optimizer ===
 	layr::AssignGroupsT updates_;
@@ -363,17 +363,17 @@ private:
 	eteq::VarptrT<PybindT> reward_ = nullptr;
 
 	// future reward calculated from reward history: <1, batchsize>
-	eteq::NodeptrT<PybindT> future_reward_ = nullptr;
+	NodeptrT future_reward_ = nullptr;
 
 	// === q-value computation ===
 	// weight output to get overall score: shape <noutput, batchsize>
 	eteq::VarptrT<PybindT> output_mask_ = nullptr;
 
 	// overall score: shape <noutput>
-	eteq::NodeptrT<PybindT> score_ = nullptr;
+	NodeptrT score_ = nullptr;
 
 	// future error that we want to minimize: scalar shape
-	eteq::NodeptrT<PybindT> prediction_error_ = nullptr;
+	NodeptrT prediction_error_ = nullptr;
 
 	// states
 	std::uniform_real_distribution<PybindT> explore_;

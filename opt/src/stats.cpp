@@ -57,7 +57,7 @@ bool is_equal (teq::CoordptrT a, teq::CoordptrT b)
 	return false;
 }
 
-bool lt (std::unordered_set<teq::iTensor*> priorities,
+bool lt (teq::TensSetT priorities,
 	teq::iLeaf* a, teq::iLeaf* b)
 {
 	size_t atype = a->type_code();
@@ -103,7 +103,7 @@ bool is_equal (teq::iLeaf* a, teq::iLeaf* b)
 	return false;
 }
 
-bool lt (std::unordered_set<teq::iTensor*> priorities,
+bool lt (teq::TensSetT priorities,
 	teq::iFunctor* a, teq::iFunctor* b)
 {
 	size_t acode = a->get_opcode().code_;

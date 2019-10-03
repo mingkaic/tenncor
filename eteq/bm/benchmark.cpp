@@ -378,7 +378,7 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 
 	// optimize
 	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
-	teq::TensT roots = {
+	teq::TensptrsT roots = {
 		dw0->get_tensor(),
 		db0->get_tensor(),
 		dw1->get_tensor(),

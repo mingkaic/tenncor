@@ -10,8 +10,8 @@ LayerptrT ActivationBuilder::build (void) const
 	return std::make_shared<Activation>(act_type_, label_);
 }
 
-eteq::NodeptrT<PybindT> softmax_from_layer (const Activation& layer,
-	eteq::NodeptrT<PybindT> input)
+NodeptrT softmax_from_layer (const Activation& layer,
+	NodeptrT input)
 {
 	return tenncor::softmax<PybindT>(input,
 		std::stoi(layer.get_label()), 1);

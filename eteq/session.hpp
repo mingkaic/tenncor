@@ -14,19 +14,17 @@
 namespace eteq
 {
 
-using TensSetT = std::unordered_set<teq::iTensor*>;
-
 struct iSession
 {
 	virtual ~iSession (void) = default;
 
-	virtual void track (teq::TensT roots) = 0;
+	virtual void track (teq::TensptrsT roots) = 0;
 
 	/// update all nodes related to the leaves (so everyone)
 	/// ignore all nodes dependent on ignored including the ignored nodes
-	virtual void update (TensSetT ignored = {}) = 0;
+	virtual void update (teq::TensSetT ignored = {}) = 0;
 
-	virtual void update_target (TensSetT target, TensSetT ignored = {}) = 0;
+	virtual void update_target (teq::TensSetT target, teq::TensSetT ignored = {}) = 0;
 };
 
 struct SizeT final
@@ -40,7 +38,7 @@ struct SizeT final
 // don't update parent node if it is part of ignored set
 struct Session final : public iSession
 {
-	void track (teq::TensT roots) override
+	void track (teq::TensptrsT roots) override
 	{
 		ops_.clear();
 		tracked_.insert(roots.begin(), roots.end());
@@ -72,10 +70,10 @@ struct Session final : public iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update (TensSetT ignored = {}) override
+	void update (teq::TensSetT ignored = {}) override
 	{
 		std::list<teq::iOperableFunc*> reqs;
-		TensSetT acceptable;
+		teq::TensSetT acceptable;
 		for (auto& root : tracked_)
 		{
 			acceptable.emplace(root.get());
@@ -104,10 +102,10 @@ struct Session final : public iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update_target (TensSetT target, TensSetT ignored = {}) override
+	void update_target (teq::TensSetT target, teq::TensSetT ignored = {}) override
 	{
 		std::list<teq::iOperableFunc*> reqs;
-		TensSetT acceptable;
+		teq::TensSetT acceptable;
 		for (auto& root : target)
 		{
 			acceptable.emplace(root);
@@ -137,12 +135,12 @@ struct Session final : public iSession
 
 	void optimize (const opt::OptCtx& rules)
 	{
-		teq::TensT tracked(tracked_.begin(), tracked_.end());
+		teq::TensptrsT tracked(tracked_.begin(), tracked_.end());
 		opt::optimize(tracked, rules);
 		track(tracked);
 	}
 
-	std::unordered_set<teq::TensptrT> tracked_;
+	teq::TensptrSetT tracked_;
 
 	std::vector<teq::iOperableFunc*> ops_;
 };

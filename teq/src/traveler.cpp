@@ -26,7 +26,7 @@ private:
 	}
 };
 
-OwnerMapT track_owners (TensT roots)
+OwnerMapT track_owners (TensptrsT roots)
 {
 	OwnerTracker tracker;
 	for (auto root : roots)

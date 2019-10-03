@@ -78,9 +78,11 @@ struct Conv final : public iLayer
 		std::generate(data.begin(), data.end(), gen);
 
 		weight_ = eteq::make_variable<PybindT>(
-			data.data(), kernelshape, "weight");
+			data.data(), kernelshape, conv_weight_key);
 		bias_ = eteq::make_variable_scalar<PybindT>(
-			0., teq::Shape({out_ncol}), "bias");
+			0., teq::Shape({out_ncol}), conv_bias_key);
+		tag(weight_->get_tensor(), LayerId(conv_weight_key));
+		tag(bias_->get_tensor(), LayerId(conv_bias_key));
 	}
 
 	Conv (NodeptrT weight, NodeptrT bias, std::string label) :
@@ -142,20 +144,22 @@ struct Conv final : public iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
 		auto out = tenncor::nn::conv2d(input, weight_);
-		std::unordered_set<teq::iTensor*> leaves = {
+		teq::TensSetT leaves = {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
 		};
 		if (bias_)
 		{
-			out = out + bias_;
+			teq::Shape outshape = out->shape();
+			out = out + tenncor::extend(bias_, 1, {
+				outshape.at(1), outshape.at(2), outshape.at(3)});
 			leaves.emplace(bias_->get_tensor().get());
 		}
 		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
 		return {
 			weight_->get_tensor(),

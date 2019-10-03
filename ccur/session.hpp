@@ -25,7 +25,7 @@ struct Session final : public eteq::iSession
 	Session (size_t nthreads = 2, OpWeightT weights = OpWeightT()) :
 		nthreads_(nthreads), weights_(weights) {}
 
-	void track (teq::TensT roots) override
+	void track (teq::TensptrsT roots) override
 	{
 		tracked_.insert(roots.begin(), roots.end());
 
@@ -40,7 +40,7 @@ struct Session final : public eteq::iSession
 			root->accept(pfinder);
 		}
 
-		teq::TensT trackvecs(tracked_.begin(), tracked_.end());
+		teq::TensptrsT trackvecs(tracked_.begin(), tracked_.end());
 		PartGroupsT groups = k_partition(trackvecs, nthreads_, weights_);
 		requirements_.clear();
 		for (auto& group : groups)
@@ -50,7 +50,7 @@ struct Session final : public eteq::iSession
 			for (teq::iFunctor* func : group)
 			{
 				auto& args = func->get_children();
-				eteq::TensSetT unique_children;
+				teq::TensSetT unique_children;
 				for (const teq::FuncArg& arg : args)
 				{
 					auto tens = arg.get_tensor().get();
@@ -87,7 +87,7 @@ struct Session final : public eteq::iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update (eteq::TensSetT ignored = {}) override
+	void update (teq::TensSetT ignored = {}) override
 	{
 		size_t nthreads = requirements_.size();
 		std::vector<LSessReqsT> indep_requirements(nthreads);
@@ -95,7 +95,7 @@ struct Session final : public eteq::iSession
 		{
 			auto& reqs = requirements_[i];
 			auto& indep_reqs = indep_requirements[i];
-			eteq::TensSetT acceptable;
+			teq::TensSetT acceptable;
 			for (auto& root : tracked_)
 			{
 				acceptable.emplace(root.get());
@@ -170,8 +170,8 @@ struct Session final : public eteq::iSession
 	}
 
 	// this function is expected to be called repeatedly during runtime
-	void update_target (eteq::TensSetT target,
-		eteq::TensSetT ignored = {}) override
+	void update_target (teq::TensSetT target,
+		teq::TensSetT ignored = {}) override
 	{
 		size_t nthreads = requirements_.size();
 		std::vector<LSessReqsT> indep_requirements(nthreads);
@@ -179,7 +179,7 @@ struct Session final : public eteq::iSession
 		{
 			auto& reqs = requirements_[i];
 			auto& indep_reqs = indep_requirements[i];
-			eteq::TensSetT acceptable;
+			teq::TensSetT acceptable;
 			for (auto& root : target)
 			{
 				acceptable.emplace(root);
@@ -255,13 +255,13 @@ struct Session final : public eteq::iSession
 
 	void optimize (const opt::OptCtx& rules)
 	{
-		teq::TensT tracked(tracked_.begin(), tracked_.end());
+		teq::TensptrsT tracked(tracked_.begin(), tracked_.end());
 		opt::optimize(tracked, rules);
 		parents_.clear();
 		track(tracked);
 	}
 
-	std::unordered_set<teq::TensptrT> tracked_;
+	teq::TensptrSetT tracked_;
 
 	std::unordered_map<teq::iTensor*,
 		std::unordered_set<teq::iOperableFunc*>> parents_;

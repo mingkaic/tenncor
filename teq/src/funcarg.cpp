@@ -67,7 +67,7 @@ FuncArg flip_map (TensptrT tensor, RankT dim)
 	return FuncArg(tensor, flip(dim));
 }
 
-ArgsT to_args (TensT tens)
+ArgsT to_args (TensptrsT tens)
 {
 	ArgsT args;
 	std::transform(tens.begin(), tens.end(), std::back_inserter(args),

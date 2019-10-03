@@ -97,9 +97,9 @@ struct SequentialModel final : public iLayer
 		return label_;
 	}
 
-	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
+	NodeptrT connect (NodeptrT input) const override
 	{
-		eteq::NodeptrT<PybindT> out;
+		NodeptrT out;
 		for (size_t i = 0, n = layers_.size(); i < n; ++i)
 		{
 			auto& layer = layers_[i];
@@ -112,9 +112,9 @@ struct SequentialModel final : public iLayer
 		return out;
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
-		teq::TensT out;
+		teq::TensptrsT out;
 		out.reserve(layers_.size());
 		for (auto& layer : layers_)
 		{

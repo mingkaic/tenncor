@@ -50,7 +50,7 @@ struct MLPTrainer final
 		}
 		updates_ = update(vars);
 
-		teq::TensT track_batch = {
+		teq::TensptrsT track_batch = {
 			train_out->get_tensor(),
 			error_->get_tensor(),
 		};
@@ -73,7 +73,7 @@ struct MLPTrainer final
 
 		sess_->update();
 		assign_groups(updates_,
-			[this](std::unordered_set<teq::iTensor*>& updated)
+			[this](teq::TensSetT& updated)
 			{
 				this->sess_->update();
 			});

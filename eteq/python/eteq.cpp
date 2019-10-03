@@ -121,7 +121,7 @@ PYBIND11_MODULE(eteq, m)
 	m.doc() = "eteq variables";
 
 	// ==== node ====
-	auto node = (py::class_<eteq::iNode<PybindT>,eteq::NodeptrT<PybindT>>)
+	auto node = (py::class_<eteq::iNode<PybindT>,NodeptrT>)
 		py::module::import("eteq.tenncor").attr("NodeptrT<PybindT>");
 
 	node
@@ -176,11 +176,11 @@ PYBIND11_MODULE(eteq, m)
 			[](py::object self, eteq::NodesT<PybindT> roots)
 			{
 				auto sess = self.cast<eteq::iSession*>();
-				teq::TensT troots;
+				teq::TensptrsT troots;
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
 					std::back_inserter(troots),
-					[](eteq::NodeptrT<PybindT>& node)
+					[](NodeptrT& node)
 					{
 						return node->get_tensor();
 					});
@@ -188,31 +188,31 @@ PYBIND11_MODULE(eteq, m)
 			})
 		.def("update",
 			[](py::object self,
-				std::vector<eteq::NodeptrT<PybindT>> ignored)
+				std::vector<NodeptrT> ignored)
 			{
 				auto sess = self.cast<eteq::iSession*>();
-				eteq::TensSetT ignored_set;
-				for (eteq::NodeptrT<PybindT>& node : ignored)
+				teq::TensSetT ignored_set;
+				for (NodeptrT& node : ignored)
 				{
 					ignored_set.emplace(node->get_tensor().get());
 				}
 				sess->update(ignored_set);
 			},
 			"Calculate every node in the graph given list of nodes to ignore",
-			py::arg("ignored") = std::vector<eteq::NodeptrT<PybindT>>{})
+			py::arg("ignored") = std::vector<NodeptrT>{})
 		.def("update_target",
 			[](py::object self,
-				std::vector<eteq::NodeptrT<PybindT>> targeted,
-				std::vector<eteq::NodeptrT<PybindT>> ignored)
+				std::vector<NodeptrT> targeted,
+				std::vector<NodeptrT> ignored)
 			{
 				auto sess = self.cast<eteq::iSession*>();
-				eteq::TensSetT targeted_set;
-				eteq::TensSetT ignored_set;
-				for (eteq::NodeptrT<PybindT>& node : targeted)
+				teq::TensSetT targeted_set;
+				teq::TensSetT ignored_set;
+				for (NodeptrT& node : targeted)
 				{
 					targeted_set.emplace(node->get_tensor().get());
 				}
-				for (eteq::NodeptrT<PybindT>& node : ignored)
+				for (NodeptrT& node : ignored)
 				{
 					ignored_set.emplace(node->get_tensor().get());
 				}
@@ -220,7 +220,7 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Calculate node relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<eteq::NodeptrT<PybindT>>{});
+			py::arg("ignored") = std::vector<NodeptrT>{});
 
 	py::implicitly_convertible<eteq::iSession,eteq::Session>();
 	session

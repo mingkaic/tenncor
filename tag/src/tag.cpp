@@ -15,7 +15,7 @@ using RefMapT = std::unordered_map<teq::iTensor*,teq::TensrefT>;
 
 struct Tagger final : public teq::iTraveler
 {
-	Tagger (std::unordered_set<teq::iTensor*> stops,
+	Tagger (teq::TensSetT stops,
 		std::function<void(teq::TensrefT)> tag_op) :
 		stops_(stops), tag_op_(tag_op) {}
 
@@ -56,13 +56,13 @@ struct Tagger final : public teq::iTraveler
 
 	RefMapT owners_;
 
-	std::unordered_set<teq::iTensor*> stops_;
+	teq::TensSetT stops_;
 
 	std::function<void(teq::TensrefT)> tag_op_;
 };
 
 void recursive_tag (teq::TensptrT root,
-	std::unordered_set<teq::iTensor*> stops,
+	teq::TensSetT stops,
 	std::function<void(teq::TensrefT)> tag_op)
 {
 	Tagger tagger(stops, tag_op);
