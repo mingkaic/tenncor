@@ -73,6 +73,7 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 ///
 /// where η is the learning rate, ε is epsilon,
 /// and χ is discount_factor
+/// initial momentum is 1
 AssignGroupsT rms_momentum (const VarErrsT& leaves,
 	PybindT learning_rate = 0.5, PybindT discount_factor = 0.99,
 	PybindT epsilon = std::numeric_limits<PybindT>::epsilon(),
