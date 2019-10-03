@@ -1,3 +1,11 @@
+///
+/// ivoter.hpp
+/// opt
+///
+/// Purpose:
+/// Define rule voter to identify graph nodes
+///
+
 extern "C" {
 #include "opt/parse/def.h"
 }
@@ -11,6 +19,7 @@ extern "C" {
 namespace opt
 {
 
+/// Argument voter for functors
 struct VoterArg final
 {
 	VoterArg (std::string label,
@@ -22,8 +31,7 @@ struct VoterArg final
 		coorder_(coorder),
 		type_(type) {}
 
-	// return true if arg matches this
-	// only add to ctxs if matches
+	/// Return true if arg matches this only add to ctxs if matches
 	bool match (CtxsT& ctxs, const CandArg& arg) const
 	{
 		// match arg.shaper_ and arg.coorder_
