@@ -45,7 +45,7 @@ void iLayer::tag (teq::TensptrT tensor, LayerId subs) const
 }
 
 void iLayer::recursive_tag (teq::TensptrT root,
-	std::unordered_set<teq::iTensor*> ignores, LayerId subs) const
+	teq::TensSetT ignores, LayerId subs) const
 {
 	recursive_layer_tag(root, get_ltype(),
 		subs.to_string(get_label()), ignores);
@@ -58,7 +58,7 @@ LayerRegistry& get_layer_reg (void)
 }
 
 void recursive_layer_tag (teq::TensptrT tens, std::string layer_type,
-	std::string name, std::unordered_set<teq::iTensor*> stops,
+	std::string name, teq::TensSetT stops,
 	LayerRegistry& registry)
 {
 	tag::recursive_tag(tens, stops,
@@ -190,7 +190,7 @@ struct LayerDeserializer final : public teq::OnceTraveler
 		return build_layer_helper(registry, layer_tens, base_.get());
 	}
 
-	std::unordered_set<teq::iTensor*> roots_;
+	teq::TensSetT roots_;
 
 private:
 	LayerptrT build_layer_helper (LayerRegistry& registry,
@@ -222,7 +222,7 @@ private:
 	LNodeptrT base_;
 };
 
-LayerptrT load_layer (std::istream& ins, teq::TensT& roots,
+LayerptrT load_layer (std::istream& ins, teq::TensptrsT& roots,
 	std::string ltype, std::string label,
 	LayerRegistry& registry)
 {
@@ -232,15 +232,15 @@ LayerptrT load_layer (std::istream& ins, teq::TensT& roots,
 		logs::fatalf("failed to parse from istream when loading %s",
 			ltype.c_str());
 	}
-	pbm::GraphInfo info;
+	teq::TensptrSetT info;
 	pbm::load_graph<eteq::EADLoader>(info, graph);
 
 	teq::OwnerMapT owners = teq::track_owners(
-		teq::TensT(info.roots_.begin(), info.roots_.end()));
+		teq::TensptrsT(info.begin(), info.end()));
 
 	LayerDeserializer layd(ltype, label);
 	// get all layer labelled nodes in graph
-	for (teq::TensptrT tens : info.roots_)
+	for (teq::TensptrT tens : info)
 	{
 		tens->accept(layd);
 	}
@@ -254,7 +254,7 @@ LayerptrT load_layer (std::istream& ins, teq::TensT& roots,
 	return layd.build_layer(registry, owners);
 }
 
-bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensT roots,
+bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensptrsT roots,
 	LayerRegistry& registry)
 {
 	pbm::GraphSaver<eteq::EADSaver> saver(registry.get_tag_registry());

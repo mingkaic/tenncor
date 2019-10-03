@@ -82,9 +82,9 @@ TEST(RANDOM, UniformGenInt)
 // 			++stdevs[2];
 // 		}
 // 	}
-// 	double want_68 = (double) stdevs[0] / 1000.0;
-// 	double want_95 = (double) stdevs[1] / 1000.0;
-// 	double want_99 = (double) stdevs[2] / 1000.0;
+// 	double want_68 = (double) stdevs[0] / 1000.;
+// 	double want_95 = (double) stdevs[1] / 1000.;
+// 	double want_99 = (double) stdevs[2] / 1000.;
 // 	EXPECT_LT(60, want_68);
 // 	EXPECT_GT(75, want_68);
 // 	EXPECT_LT(90, want_95);

@@ -89,25 +89,25 @@ TEST(GROUP, RecursiveTagAdjacency)
 		}));
 
 		tag::recursive_group_tag(tens, "group2",
-			std::unordered_set<teq::iTensor*>{},
+			teq::TensSetT{},
 			registry);
 		tag::recursive_group_tag(tens2, "group2",
-			std::unordered_set<teq::iTensor*>{},
+			teq::TensSetT{},
 			registry);
 		tag::recursive_group_tag(tens, "group7",
-			std::unordered_set<teq::iTensor*>{},
+			teq::TensSetT{},
 			registry);
 		tag::recursive_group_tag(f, "group1",
-			std::unordered_set<teq::iTensor*>{},
+			teq::TensSetT{},
 			registry);
 		tag::recursive_group_tag(f, "group3",
-			std::unordered_set<teq::iTensor*>{tens.get()},
+			teq::TensSetT{tens.get()},
 			registry);
 		tag::recursive_group_tag(f, "group4",
-			std::unordered_set<teq::iTensor*>{tens.get(), tens2.get()},
+			teq::TensSetT{tens.get(), tens2.get()},
 			registry);
 		tag::recursive_group_tag(f2, "group1",
-			std::unordered_set<teq::iTensor*>{},
+			teq::TensSetT{},
 			registry);
 
 		tag::AdjMapT adjs;

@@ -9,9 +9,9 @@
 namespace layr
 {
 
-const std::string weight_key = "weight";
+const std::string dense_weight_key = "weight";
 
-const std::string bias_key = "bias";
+const std::string dense_bias_key = "bias";
 
 struct DenseBuilder final : public iLayerBuilder
 {
@@ -19,12 +19,12 @@ struct DenseBuilder final : public iLayerBuilder
 
 	void set_tensor (teq::TensptrT tens, std::string target) override
 	{
-		if (target == weight_key)
+		if (target == dense_weight_key)
 		{
 			weight_ = eteq::NodeConverters<PybindT>::to_node(tens);
 			return;
 		}
-		else if (target == bias_key)
+		else if (target == dense_bias_key)
 		{
 			bias_ = eteq::NodeConverters<PybindT>::to_node(tens);
 			return;
@@ -39,9 +39,9 @@ struct DenseBuilder final : public iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
-	eteq::NodeptrT<PybindT> weight_ = nullptr;
+	NodeptrT weight_ = nullptr;
 
-	eteq::NodeptrT<PybindT> bias_ = nullptr;
+	NodeptrT bias_ = nullptr;
 
 	std::string label_;
 };
@@ -64,27 +64,25 @@ struct Dense final : public iLayer
 		layr::InitF<PybindT> bias_init,
 		const std::string& label) :
 		label_(label),
-		weight_(weight_init(teq::Shape({nunits, indim}), weight_key))
+		weight_(weight_init(teq::Shape({nunits, indim}), dense_weight_key))
 	{
-		tag(weight_->get_tensor(), LayerId(weight_key));
+		tag(weight_->get_tensor(), LayerId(dense_weight_key));
 		if (bias_init)
 		{
-			bias_ = bias_init(teq::Shape({nunits}), bias_key);
-			tag(bias_->get_tensor(), LayerId(bias_key));
+			bias_ = bias_init(teq::Shape({nunits}), dense_bias_key);
+			tag(bias_->get_tensor(), LayerId(dense_bias_key));
 		}
 	}
 
-	Dense (eteq::NodeptrT<PybindT> weight,
-		eteq::NodeptrT<PybindT> bias,
-		std::string label) :
+	Dense (NodeptrT weight, NodeptrT bias, std::string label) :
 		label_(label),
 		weight_(weight),
 		bias_(bias)
 	{
-		tag(weight_->get_tensor(), LayerId(weight_key));
+		tag(weight_->get_tensor(), LayerId(dense_weight_key));
 		if (bias)
 		{
-			tag(bias_->get_tensor(), LayerId(bias_key));
+			tag(bias_->get_tensor(), LayerId(dense_bias_key));
 		}
 	}
 
@@ -132,10 +130,10 @@ struct Dense final : public iLayer
 		return label_;
 	}
 
-	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
+	NodeptrT connect (NodeptrT input) const override
 	{
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
-		std::unordered_set<teq::iTensor*> leaves = {
+		teq::TensSetT leaves = {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
 		};
@@ -147,7 +145,7 @@ struct Dense final : public iLayer
 		return out;
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
 		return {
 			weight_->get_tensor(),
@@ -164,28 +162,20 @@ private:
 	void copy_helper (const Dense& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
-		weight_ = std::make_shared<eteq::VariableNode<PybindT>>(
-			std::shared_ptr<eteq::Variable<PybindT>>(
-				eteq::Variable<PybindT>::get(
-					*static_cast<eteq::Variable<PybindT>*>(
-						other.weight_->get_tensor().get()))));
-		tag(weight_->get_tensor(), LayerId(weight_key));
+		weight_ = NodeptrT(other.weight_->clone());
+		tag(weight_->get_tensor(), LayerId(dense_weight_key));
 		if (other.bias_)
 		{
-			bias_ = std::make_shared<eteq::VariableNode<PybindT>>(
-				std::shared_ptr<eteq::Variable<PybindT>>(
-					eteq::Variable<PybindT>::get(
-						*static_cast<eteq::Variable<PybindT>*>(
-							other.bias_->get_tensor().get()))));
-			tag(bias_->get_tensor(), LayerId(bias_key));
+			bias_ = NodeptrT(other.bias_->clone());
+			tag(bias_->get_tensor(), LayerId(dense_bias_key));
 		}
 	}
 
 	std::string label_;
 
-	eteq::NodeptrT<PybindT> weight_;
+	NodeptrT weight_;
 
-	eteq::NodeptrT<PybindT> bias_;
+	NodeptrT bias_;
 };
 
 using DenseptrT = std::shared_ptr<Dense>;

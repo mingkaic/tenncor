@@ -96,7 +96,7 @@ CoordptrT reduce (RankT rank, std::vector<DimT> red)
 			for (RankT i = 0; i < n_red; ++i)
 			{
 				RankT outi = rank + i;
-				fwd[outi][outi] = 1.0 / red[i];
+				fwd[outi][outi] = 1. / red[i];
 			}
 		});
 }

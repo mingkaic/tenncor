@@ -11,7 +11,7 @@ High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0
 
 ## Components
 
-- [TEQ (Automatic Differentiation Engine)](teq/README_ADE.md)
+- [TEQ (Tensor EQuations)](teq/README_ADE.md)
 
 This module supplies syntax tree for equation and generates derivative.
 Constraints to the equation is limited to each tensor's shape.
@@ -20,20 +20,20 @@ Constraints to the equation is limited to each tensor's shape.
 
 This module is contains debug libraries for TEQ Graphs.
 
-- [ETEQ (Eigen TEQ Operators)](eteq/README_EAD.md)
+- [ETEQ (Eigen TEQ)](eteq/README_EAD.md)
 
 This module is implements basic operations for Tenncor's TEQ Tensor objects generated through pybinder.
 Additionally, ETEQ also defines data format and (de)serialization methods required by PBM.
 
-- [OPT (Optimizer)](opt/README_OPT.md)
+- [OPT (OPTimizer)](opt/README_OPT.md)
 
 This module specifies graph optimization through TEQ's visitor pattern.
 
-- [PBM (Protobuf Marshaller)](pbm/README_PBM.md)
+- [PBM (ProtoBuf Marshaller)](pbm/README_PBM.md)
 
 This module marshals any TEQ graph, but requires data serialization functors when saving and loading.
 
-- [TAG (Tagger)](tag/README_TAG.md)
+- [TAG (TAGger)](tag/README_TAG.md)
 
 This module tags TEQ tensors with labels.
 

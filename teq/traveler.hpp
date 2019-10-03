@@ -43,16 +43,9 @@ struct OnceTraveler : public iTraveler
 		}
 	}
 
-	virtual void visit_leaf (iLeaf* leaf) {} // do nothing
+	virtual void visit_leaf (iLeaf* leaf) = 0;
 
-	virtual void visit_func (iFunctor* func)
-	{
-		auto& children = func->get_children();
-		for (auto child : children)
-		{
-			child.get_tensor()->accept(*this);
-		}
-	}
+	virtual void visit_func (iFunctor* func) = 0;
 
 	std::unordered_set<iTensor*> visited_;
 };
@@ -196,11 +189,11 @@ using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
 
 /// Travelers will lose smart pointer references,
 /// This utility function will grab reference maps of root's subtree
-OwnerMapT track_owners (TensT roots);
+OwnerMapT track_owners (TensptrsT roots);
 
 struct HeightMatrix
 {
-	HeightMatrix (const TensT& roots)
+	HeightMatrix (const TensptrsT& roots)
 	{
 		GraphStat stat;
 		for (TensptrT root : roots)

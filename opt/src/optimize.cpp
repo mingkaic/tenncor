@@ -6,7 +6,7 @@
 namespace opt
 {
 
-teq::TensT optimize (teq::TensT roots, const OptCtx& opts)
+teq::TensptrsT optimize (teq::TensptrsT roots, const OptCtx& opts)
 {
 	if (roots.empty())
 	{

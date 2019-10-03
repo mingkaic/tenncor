@@ -9,6 +9,7 @@
 
 #include "eteq/ileaf.hpp"
 #include "eteq/inode.hpp"
+#include "eteq/shaped_arr.hpp"
 
 #ifndef ETEQ_VARIABLE_HPP
 #define ETEQ_VARIABLE_HPP
@@ -83,8 +84,13 @@ struct Variable final : public iLeaf<T>
 		return *this;
 	}
 
-	void assign (void* input, egen::_GENERATED_DTYPE dtype, teq::Shape shape)
+	void assign (const void* input, egen::_GENERATED_DTYPE dtype, teq::Shape shape)
 	{
+		if (false == shape.compatible_after(this->shape_, 0))
+		{
+			logs::fatalf("assigning data shaped %s to tensor %s",
+				shape.to_string().c_str(), this->shape_.to_string().c_str());
+		}
 		std::vector<T> data;
 		egen::type_convert(data, input, dtype, shape.n_elems());
 		this->data_ = make_tensmap<T>(data.data(), shape);
@@ -120,6 +126,11 @@ struct VariableNode final : public iNode<T>
 {
 	VariableNode (std::shared_ptr<Variable<T>> var) : var_(var) {}
 
+	VariableNode<T>* clone (void) const
+	{
+		return static_cast<VariableNode<T>*>(clone_impl());
+	}
+
 	T* data (void) override
 	{
 		return (T*) var_->data();
@@ -132,19 +143,31 @@ struct VariableNode final : public iNode<T>
 		return var_;
 	}
 
-	void assign (T* input, teq::Shape shape)
+	void assign (const T* input, teq::Shape shape)
 	{
 		var_->assign(input, egen::get_type<T>(), shape);
 	}
 
-	void assign (TensMapT<T>* tensmap)
+	void assign (const TensMapT<T>* tensmap)
 	{
 		var_->assign(tensmap->data(), egen::get_type<T>(), get_shape(*tensmap));
+	}
+
+	void assign (const ShapedArr<T>& arr)
+	{
+		var_->assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
 	}
 
 	std::string get_label (void) const
 	{
 		return var_->to_string();
+	}
+
+protected:
+	iNode<T>* clone_impl (void) const override
+	{
+		return new VariableNode(
+			std::shared_ptr<Variable<T>>(Variable<T>::get(*var_)));
 	}
 
 private:

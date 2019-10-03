@@ -45,7 +45,7 @@ struct TypeInfo
 
 // uses std containers for type conversion
 template <typename OUTTYPE>
-void type_convert (std::vector<OUTTYPE>& out, void* input,
+void type_convert (std::vector<OUTTYPE>& out, const void* input,
     _GENERATED_DTYPE intype, size_t nelems)
 {{
     switch (intype)

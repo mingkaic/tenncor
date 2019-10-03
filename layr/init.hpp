@@ -88,7 +88,7 @@ InitF<T> unif_xavier_init (T factor = 1)
 	[factor](teq::Shape shape, std::string label)
 	{
 		std::vector<T> vec(shape.n_elems());
-		T bound = factor * std::sqrt(6.0 / fanio<T>(shape));
+		T bound = factor * std::sqrt(6. / fanio<T>(shape));
 		std::generate(vec.begin(), vec.end(), eteq::unif_gen<T>(-bound, bound));
 		return eteq::make_variable(vec.data(), shape, label);
 	};
@@ -101,8 +101,8 @@ InitF<T> norm_xavier_init (T factor = 1)
 	[factor](teq::Shape shape, std::string label)
 	{
 		std::vector<T> vec(shape.n_elems());
-		T stdev = factor * std::sqrt(2.0 / fanio<T>(shape));
-		std::generate(vec.begin(), vec.end(), eteq::norm_gen<T>(0.0, stdev));
+		T stdev = factor * std::sqrt(2. / fanio<T>(shape));
+		std::generate(vec.begin(), vec.end(), eteq::norm_gen<T>(0., stdev));
 		return eteq::make_variable(vec.data(), shape, label);
 	};
 }

@@ -39,8 +39,6 @@ cc_test(
         "//opt:opt",
         "//eteq:eteq",
         "//testutil:tutil",
-        "@gtest//:gtest",
-        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,
     data = ["//cfg:optimizations"],

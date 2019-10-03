@@ -280,7 +280,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	double* goptr = (double*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
 	{
-		EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
+		EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
 	}
 
 	eteq::NodeptrT<double> gleft = eteq::derive(dest, src);
@@ -293,7 +293,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	double* goptr2 = (double*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
 	{
-		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1.0, 0.0), goptr2[i]);
+		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
 	}
 
 	eteq::NodeptrT<double> gright = eteq::derive(dest, src2);
@@ -306,7 +306,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	double* goptr3 = (double*) gright->data();
 	for (size_t i = 0; i < n; ++i)
 	{
-		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
+		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0., 1.), goptr3[i]);
 	}
 }
 
@@ -407,7 +407,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	int32_t* goptr = (int32_t*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
 	{
-		EXPECT_EQ(bwd(data[i], data[i], 1.0, 1.0), goptr[i]);
+		EXPECT_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
 	}
 
 	eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, src);
@@ -420,7 +420,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	int32_t* goptr2 = (int32_t*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
 	{
-		EXPECT_EQ(bwd(data[i], data2[i], 1.0, 0.0), goptr2[i]);
+		EXPECT_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
 	}
 
 	eteq::NodeptrT<int32_t> gright = eteq::derive(dest, src2);
@@ -433,7 +433,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	int32_t* goptr3 = (int32_t*) gright->data();
 	for (size_t i = 0; i < n; ++i)
 	{
-		EXPECT_EQ(bwd(data[i], data2[i], 0.0, 1.0), goptr3[i]);
+		EXPECT_EQ(bwd(data[i], data2[i], 0., 1.), goptr3[i]);
 	}
 }
 
@@ -484,7 +484,7 @@ TEST(API, Abs)
 TEST(API, Neg)
 {
 	auto fwd = [](double d) { return -d; };
-	auto bwd = [](double d) { return -1.0; };
+	auto bwd = [](double d) { return -1.; };
 	unary_elementary(
 		[](eteq::NodeptrT<double>& a) { return tenncor::neg(a); },
 		fwd, bwd);
@@ -519,7 +519,7 @@ TEST(API, Tan)
 		[](double d) { return std::tan(d); },
 		[](double d) {
 			double denom = std::cos(d);
-			return 1.0 / denom / denom;
+			return 1. / denom / denom;
 		});
 }
 
@@ -538,7 +538,7 @@ TEST(API, Log)
 	unary_elementary(
 		[](eteq::NodeptrT<double>& a) { return tenncor::log(a); },
 		[](double d) { return std::log(d); },
-		[](double d) { return 1.0 / d; });
+		[](double d) { return 1. / d; });
 }
 
 
@@ -547,7 +547,7 @@ TEST(API, Sqrt)
 	unary_elementary(
 		[](eteq::NodeptrT<double>& a) { return tenncor::sqrt(a); },
 		[](double d) { return std::sqrt(d); },
-		[](double d) { return 1.0 / (2 * std::sqrt(d)); });
+		[](double d) { return 1. / (2 * std::sqrt(d)); });
 }
 
 
@@ -556,7 +556,7 @@ TEST(API, Round)
 	unary_elementary(
 		[](eteq::NodeptrT<double>& a) { return tenncor::round(a); },
 		[](double d) { return std::round(d); },
-		[](double d) { return 1.0; });
+		[](double d) { return 1.; });
 }
 
 
@@ -948,7 +948,7 @@ TEST(API, Rsum)
 			}
 			double got = *((double*) out->data());
 
-			double expect = std::accumulate(data.begin(), data.end(), 0.0);
+			double expect = std::accumulate(data.begin(), data.end(), 0.);
 			EXPECT_DOUBLE_EQ(expect, got);
 		},
 		[](double* gout, std::vector<double>& og)

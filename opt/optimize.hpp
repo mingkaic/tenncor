@@ -18,7 +18,7 @@ struct OptCtx
 	std::unordered_map<std::string,ConvptrT> converts_;
 };
 
-teq::TensT optimize (teq::TensT roots, const OptCtx& opts);
+teq::TensptrsT optimize (teq::TensptrsT roots, const OptCtx& opts);
 
 }
 

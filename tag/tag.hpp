@@ -207,7 +207,7 @@ private:
 TagRegistry& get_reg (void);
 
 void recursive_tag (teq::TensptrT root,
-	std::unordered_set<teq::iTensor*> stops,
+	teq::TensSetT stops,
 	std::function<void(teq::TensrefT)> tag_op);
 
 using LTensT = std::unordered_map<std::string,std::vector<teq::iTensor*>>;

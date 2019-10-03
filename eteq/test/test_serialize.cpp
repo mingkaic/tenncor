@@ -66,17 +66,17 @@ TEST(SERIALIZE, SaveGraph)
 	preg.property_tag(bias1->get_tensor(), "storage_bias1");
 	preg.property_tag(out->get_tensor(), "training_out");
 
-	auto layer0 = tenncor::add(tenncor::matmul(in, weight0), tenncor::extend(bias0, 1, {3}));
-	auto sig0 = tenncor::div(eteq::make_constant_scalar<double>(1, teq::Shape({9, 3})),
-		tenncor::add(eteq::make_constant_scalar<double>(1, teq::Shape({9, 3})),
-			tenncor::exp(tenncor::neg(layer0))));
+	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
+	auto sig0 = 1. / (
+		eteq::make_constant_scalar<double>(1, teq::Shape({9, 3})) +
+		tenncor::exp(-layer0));
 
-	auto layer1 = tenncor::add(tenncor::matmul(sig0, weight1), tenncor::extend(bias1, 1, {3}));
-	auto sig1 = tenncor::div(eteq::make_constant_scalar<double>(1, teq::Shape({5, 3})),
-		tenncor::add(eteq::make_constant_scalar<double>(1, teq::Shape({5, 3})),
-			tenncor::exp(tenncor::neg(layer1))));
+	auto layer1 = tenncor::matmul(sig0, weight1) + tenncor::extend(bias1, 1, {3});
+	auto sig1 = 1. / (
+		eteq::make_constant_scalar<double>(1, teq::Shape({5, 3})) +
+		tenncor::exp(-layer1));
 
-	auto err = tenncor::pow(tenncor::sub(out, sig1), eteq::make_constant_scalar<double>(2, out_shape));
+	auto err = tenncor::pow(out - sig1, 2.);
 
 	auto dw0 = eteq::derive(err, weight0);
 	auto db0 = eteq::derive(err, bias0);
@@ -133,16 +133,16 @@ TEST(SERIALIZE, LoadGraph)
 		ASSERT_TRUE(in.ParseFromIstream(&inputstr));
 	}
 
-	pbm::GraphInfo out;
+	teq::TensptrSetT out;
 	pbm::load_graph<eteq::EADLoader>(out, in);
-	EXPECT_EQ(4, out.roots_.size());
+	EXPECT_EQ(4, out.size());
 
 	auto& reg = tag::get_reg();
 	tag::Query q;
 
 	std::vector<std::string> root_props;
 	std::unordered_map<std::string,teq::TensptrT> propdtens;
-	for (auto tens : out.roots_)
+	for (auto tens : out)
 	{
 		tens->accept(q);
 		auto tags = reg.get_tags(tens.get());

@@ -156,7 +156,7 @@ struct GroupConvr final : public opt::iConverter
 	teq::TensptrT build (const opt::ContexT& ctx,
 		teq::Shape outshape) const override
 	{
-		teq::TensT args;
+		teq::TensptrsT args;
 		for (auto& arg : args_)
 		{
 			teq::Shape childshape = outshape;

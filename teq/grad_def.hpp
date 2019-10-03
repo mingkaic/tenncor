@@ -94,12 +94,12 @@ struct iGradientBuilder
 
 		// map functor to its respective super composite derivative
 		// let L = root, F = key functor, value of F in grads is dL/dF
-		std::unordered_map<const iTensor*,TensT> grads = {
+		std::unordered_map<const iTensor*,TensptrsT> grads = {
 			{root.get(), {get_const_one(root->shape())}}
 		};
 		for (iFunctor* parent : parents)
 		{
-			TensT& gargs = grads[parent];
+			TensptrsT& gargs = grads[parent];
 			TensptrT bwd = gargs[0];
 			for (size_t i = 1, n = gargs.size(); i < n; ++i)
 			{
@@ -111,7 +111,7 @@ struct iGradientBuilder
 			size_t nchildren = children.size();
 			// assert: all nnary-children use identity mapping,
 			// so no children-arg is direct mapping
-			TensT args(nchildren);
+			TensptrsT args(nchildren);
 			std::transform(children.begin(), children.end(), args.begin(),
 				[](FuncArg& arg)
 				{
@@ -130,7 +130,7 @@ struct iGradientBuilder
 				grads[args[i].get()].push_back(grad_step);
 			}
 		}
-		TensT& outargs = grads[target.get()];
+		TensptrsT& outargs = grads[target.get()];
 		TensptrT out = outargs[0];
 		for (size_t i = 1, n = outargs.size(); i < n; ++i)
 		{

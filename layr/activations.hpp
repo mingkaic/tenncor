@@ -8,6 +8,11 @@
 namespace layr
 {
 
+struct Activation;
+
+using NonLinearF = std::function<NodeptrT(
+	const Activation&,NodeptrT)>;
+
 struct ActivationBuilder final : public iLayerBuilder
 {
 	ActivationBuilder (std::string act_type, std::string label) :
@@ -29,47 +34,53 @@ const std::string sigmoid_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "sigmoid",
 [](teq::TensrefT ref, std::string label)
 {
-	get_layer_reg().layer_tag(ref, sigmoid_layer_key, label);
+	get_layer_reg().layer_tag(ref, sigmoid_layer_key, "");
 },
-[](std::string label) -> LBuilderptrT
+[](std::string extra_info) -> LBuilderptrT
 {
-	return std::make_shared<ActivationBuilder>(sigmoid_layer_key, label);
+	return std::make_shared<ActivationBuilder>(sigmoid_layer_key, "");
 });
 
 const std::string tanh_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "tanh",
 [](teq::TensrefT ref, std::string label)
 {
-	get_layer_reg().layer_tag(ref, tanh_layer_key, label);
+	get_layer_reg().layer_tag(ref, tanh_layer_key, "");
 },
-[](std::string label) -> LBuilderptrT
+[](std::string extra_info) -> LBuilderptrT
 {
-	return std::make_shared<ActivationBuilder>(tanh_layer_key, label);
+	return std::make_shared<ActivationBuilder>(tanh_layer_key, "");
 });
 
-const std::string softmax0_layer_key =
+const std::string softmax_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "softmax",
 [](teq::TensrefT ref, std::string label)
 {
-	get_layer_reg().layer_tag(ref, softmax0_layer_key, label);
+	get_layer_reg().layer_tag(ref, softmax_layer_key, label);
 },
-[](std::string label) -> LBuilderptrT
+[](std::string extra_info) -> LBuilderptrT
 {
-	return std::make_shared<ActivationBuilder>(softmax0_layer_key, label);
+	return std::make_shared<ActivationBuilder>(softmax_layer_key, extra_info);
 });
+
+NodeptrT softmax_from_layer (const Activation& layer,
+	NodeptrT input);
 
 const std::unordered_map<std::string,NonLinearF> activations =
 {
-	{sigmoid_layer_key, tenncor::sigmoid<PybindT>},
-	{tanh_layer_key, tenncor::tanh<PybindT>},
-	{softmax0_layer_key, [](eteq::NodeptrT<PybindT> input)
-		{ return tenncor::softmax<PybindT>(input, 0, 1); }},
+	{sigmoid_layer_key,
+		[](const Activation& layer, NodeptrT input)
+		{ return tenncor::sigmoid<PybindT>(input); }},
+	{tanh_layer_key,
+		[](const Activation& layer, NodeptrT input)
+		{ return tenncor::tanh<PybindT>(input); }},
+	{softmax_layer_key, softmax_from_layer},
 };
 
 struct Activation final : public iLayer
 {
-	Activation (const std::string& label, const std::string& act_type) :
-		label_(label),
+	Activation (const std::string& act_type, const std::string& extra_info = "") :
+		label_(extra_info),
 		act_type_(act_type),
 		activation_(estd::must_getf(activations, act_type,
 			"failed to find activation `%s`", act_type.c_str())),
@@ -120,16 +131,16 @@ struct Activation final : public iLayer
 		return label_;
 	}
 
-	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
+	NodeptrT connect (NodeptrT input) const override
 	{
-		auto out = activation_(input);
+		auto out = activation_(*this, input);
 		recursive_tag(out->get_tensor(), {
 			input->get_tensor().get(),
 		}, LayerId());
 		return out;
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
 		return {placeholder_->get_tensor()};
 	}
@@ -146,14 +157,16 @@ private:
 
 	NonLinearF activation_;
 
-	eteq::NodeptrT<PybindT> placeholder_;
+	NodeptrT placeholder_;
 };
 
 using ActivationptrT = std::shared_ptr<Activation>;
 
-LayerptrT sigmoid (std::string label = "sigmoid");
+ActivationptrT sigmoid (void);
 
-LayerptrT tanh (std::string label = "tanh");
+ActivationptrT tanh (void);
+
+ActivationptrT softmax (teq::RankT dim);
 
 }
 

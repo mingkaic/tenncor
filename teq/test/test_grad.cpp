@@ -4,14 +4,12 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "teq/test/common.hpp"
 
 #include "teq/grad_def.hpp"
 #include "teq/functor.hpp"
-
-#include "testutil/tutil.hpp"
 
 
 struct LabelledMockTensor final : public MockTensor

@@ -10,7 +10,7 @@ using PartGroupsT = std::vector<std::vector<teq::iFunctor*>>;
 
 using OpWeightT = std::unordered_map<size_t,double>;
 
-PartGroupsT k_partition (teq::TensT roots, size_t k, OpWeightT weights = OpWeightT());
+PartGroupsT k_partition (teq::TensptrsT roots, size_t k, OpWeightT weights = OpWeightT());
 
 }
 

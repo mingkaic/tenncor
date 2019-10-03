@@ -56,11 +56,11 @@ struct RBM final : public iLayer
 		auto hidden_contents = hidden_->get_contents();
 		auto weight = hidden_contents[0];
 		auto hbias = hidden_contents[1];
-		eteq::NodeptrT<PybindT> vbias = nullptr;
+		NodeptrT vbias = nullptr;
 
 		if (bias_init)
 		{
-			vbias = bias_init(teq::Shape({nvisible}), bias_key);
+			vbias = bias_init(teq::Shape({nvisible}), dense_bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
 			eteq::NodeConverters<PybindT>::to_node(weight)), vbias, visible_key);
@@ -121,12 +121,12 @@ struct RBM final : public iLayer
 		return label_;
 	}
 
-	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> visible) const override
+	NodeptrT connect (NodeptrT visible) const override
 	{
 		return activation_->connect(hidden_->connect(visible));
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
 		auto out = hidden_->get_contents();
 		auto vis_contents = visible_->get_contents();
@@ -136,7 +136,7 @@ struct RBM final : public iLayer
 		return out;
 	}
 
-	eteq::NodeptrT<PybindT> backward_connect (eteq::NodeptrT<PybindT> hidden) const
+	NodeptrT backward_connect (NodeptrT hidden) const
 	{
 		return activation_->connect(visible_->connect(hidden));
 	}
@@ -152,15 +152,21 @@ private:
 		auto hidden_subs = hidden_->get_contents();
 		for (auto& sub : hidden_subs)
 		{
-			tag(sub, LayerId(hidden_->get_ltype(),
-				hidden_->get_label(), 0));
+			if (sub)
+			{
+				tag(sub, LayerId(hidden_->get_ltype(),
+					hidden_->get_label(), 0));
+			}
 		}
 
 		auto visible_subs = visible_->get_contents();
 		for (auto& sub : visible_subs)
 		{
-			tag(sub, LayerId(visible_->get_ltype(),
-				visible_->get_label(), 1));
+			if (sub)
+			{
+				tag(sub, LayerId(visible_->get_ltype(),
+					visible_->get_label(), 1));
+			}
 		}
 
 		auto activation_subs = activation_->get_contents();
@@ -176,16 +182,15 @@ private:
 		label_ = label_prefix + other.label_;
 		hidden_ = DenseptrT(other.hidden_->clone(label_prefix));
 		auto hidden_contents = hidden_->get_contents();
-		auto vbias = other.visible_->get_contents()[1];
-		if (nullptr != vbias)
+		NodeptrT vbias_node = nullptr;
+		if (auto vbias = other.visible_->get_contents()[1])
 		{
-			vbias = teq::TensptrT(eteq::Variable<PybindT>::get(
-				*static_cast<eteq::Variable<PybindT>*>(vbias.get())));
+			vbias_node = NodeptrT(eteq::NodeConverters<PybindT>::to_node(
+				vbias)->clone());
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
 			eteq::NodeConverters<PybindT>::to_node(hidden_contents[0])),
-			eteq::NodeConverters<PybindT>::to_node(vbias),
-			label_prefix + visible_key);
+			vbias_node, label_prefix + visible_key);
 
 		activation_ = ActivationptrT(other.activation_->clone(label_prefix));
 		tag_sublayers();

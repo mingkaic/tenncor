@@ -1,7 +1,7 @@
 #include "eteq/parse.hpp"
 #include "eteq/grader.hpp"
 
-#include "layr/model.hpp"
+#include "layr/seqmodel.hpp"
 
 #ifndef RCN_DQN_TRAINER_HPP
 #define RCN_DQN_TRAINER_HPP
@@ -34,7 +34,7 @@ struct DQNTrainingContext final
 	layr::SeqModelptrT target_model_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	eteq::NodeptrT<PybindT> next_output_ = nullptr;
+	NodeptrT next_output_ = nullptr;
 };
 
 struct DQNInfo final
@@ -83,20 +83,20 @@ struct DQNTrainer final
 			ctx_.target_model_ = layr::SeqModelptrT(model.clone("target_"));
 		}
 
-		input_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+		input_ = eteq::make_variable_scalar<PybindT>(0., teq::Shape({
 			(teq::DimT) source_model_.get_ninput()}), "observation");
-		train_input_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+		train_input_ = eteq::make_variable_scalar<PybindT>(0., teq::Shape({
 			(teq::DimT) source_model_.get_ninput(),
 			params_.mini_batch_size_}), "train_observation");
-		next_input_ = eteq::make_variable_scalar<PybindT>(0.0, teq::Shape({
+		next_input_ = eteq::make_variable_scalar<PybindT>(0., teq::Shape({
 			(teq::DimT) source_model_.get_ninput(),
 			params_.mini_batch_size_}), "next_observation");
-		next_output_mask_ = eteq::make_variable_scalar<PybindT>(0.0,
+		next_output_mask_ = eteq::make_variable_scalar<PybindT>(0.,
 			teq::Shape({params_.mini_batch_size_}),
 			"next_observation_mask");
-		reward_ = eteq::make_variable_scalar<PybindT>(0.0,
+		reward_ = eteq::make_variable_scalar<PybindT>(0.,
 			teq::Shape({params_.mini_batch_size_}), "rewards");
-		output_mask_ = eteq::make_variable_scalar<PybindT>(0.0,
+		output_mask_ = eteq::make_variable_scalar<PybindT>(0.,
 			teq::Shape({(teq::DimT) source_model_.get_noutput(),
 			params_.mini_batch_size_}), "action_mask");
 
@@ -124,7 +124,7 @@ struct DQNTrainer final
 			masked_output_score - future_reward_));
 
 		// updates for source network
-		teq::TensT source_contents = source_model_.get_contents();
+		teq::TensptrsT source_contents = source_model_.get_contents();
 		layr::VarErrsT source_vars;
 		for (auto tens : source_contents)
 		{
@@ -141,7 +141,7 @@ struct DQNTrainer final
 		updates_ = update(source_vars);
 
 		// update target network
-		teq::TensT target_contents = ctx_.target_model_->get_contents();
+		teq::TensptrsT target_contents = ctx_.target_model_->get_contents();
 		size_t nvars = source_vars.size();
 		std::vector<eteq::VarptrT<PybindT>> target_vars;
 		target_vars.reserve(nvars);
@@ -171,7 +171,7 @@ struct DQNTrainer final
 		}
 		updates_.push_back(target_assigns);
 
-		teq::TensT track_batch = {
+		teq::TensptrsT track_batch = {
 			prediction_error_->get_tensor(),
 			train_out_->get_tensor(),
 			output_->get_tensor(),
@@ -186,17 +186,17 @@ struct DQNTrainer final
 		sess_->track(track_batch);
 	}
 
-	uint8_t action (std::vector<PybindT>& input)
+	uint8_t action (const eteq::ShapedArr<PybindT>& input)
 	{
 		ctx_.actions_executed_++; // book keep
-		PybindT exploration = linear_annealing(1.0);
+		PybindT exploration = linear_annealing(1.);
 		// perform random exploration action
 		if (get_random() < exploration)
 		{
 			return std::floor(get_random() * source_model_.get_noutput());
 		}
-		input_->assign(input.data(), input_->shape());
-		sess_->update({input_->get_tensor().get()});
+		input_->assign(input);
+		sess_->update();
 		PybindT* dptr = output_->data();
 		uint8_t max_i = 0;
 		for (uint8_t i = 1, n = output_->shape().n_elems(); i < n; ++i)
@@ -250,7 +250,7 @@ struct DQNTrainer final
 				{
 					std::vector<PybindT> local_act_mask(
 						source_model_.get_noutput(), 0);
-					local_act_mask[batch.action_idx_] = 1.0;
+					local_act_mask[batch.action_idx_] = 1.;
 					action_mask.insert(action_mask.end(),
 						local_act_mask.begin(), local_act_mask.end());
 				}
@@ -277,24 +277,18 @@ struct DQNTrainer final
 			next_output_mask_->assign(new_states_mask.data(), next_output_mask_->shape());
 			reward_->assign(rewards.data(), reward_->shape());
 
-			sess_->update({
-				train_input_->get_tensor().get(),
-				output_mask_->get_tensor().get(),
-				next_input_->get_tensor().get(),
-				next_output_mask_->get_tensor().get(),
-				reward_->get_tensor().get(),
-			});
+			sess_->update();
 			assign_groups(updates_,
-				[this](std::unordered_set<teq::iTensor*>& updated)
+				[this](teq::TensSetT& updated)
 				{
-					this->sess_->update(updated);
+					this->sess_->update();
 				});
 			ctx_.iteration_++;
 		}
 		ctx_.n_train_called_++;
 	}
 
-	eteq::NodeptrT<PybindT> get_error (void) const
+	NodeptrT get_error (void) const
 	{
 		return prediction_error_;
 	}
@@ -309,14 +303,14 @@ struct DQNTrainer final
 	eteq::VarptrT<PybindT> input_ = nullptr;
 
 	// fanout: shape <noutput>
-	eteq::NodeptrT<PybindT> output_ = nullptr;
+	NodeptrT output_ = nullptr;
 
 	// === backward computation ===
 	// train fanin: shape <ninput, batchsize>
 	eteq::VarptrT<PybindT> train_input_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	eteq::NodeptrT<PybindT> train_out_ = nullptr;
+	NodeptrT train_out_ = nullptr;
 
 	// === updates && optimizer ===
 	layr::AssignGroupsT updates_;
@@ -369,17 +363,17 @@ private:
 	eteq::VarptrT<PybindT> reward_ = nullptr;
 
 	// future reward calculated from reward history: <1, batchsize>
-	eteq::NodeptrT<PybindT> future_reward_ = nullptr;
+	NodeptrT future_reward_ = nullptr;
 
 	// === q-value computation ===
 	// weight output to get overall score: shape <noutput, batchsize>
 	eteq::VarptrT<PybindT> output_mask_ = nullptr;
 
 	// overall score: shape <noutput>
-	eteq::NodeptrT<PybindT> score_ = nullptr;
+	NodeptrT score_ = nullptr;
 
 	// future error that we want to minimize: scalar shape
-	eteq::NodeptrT<PybindT> prediction_error_ = nullptr;
+	NodeptrT prediction_error_ = nullptr;
 
 	// states
 	std::uniform_real_distribution<PybindT> explore_;

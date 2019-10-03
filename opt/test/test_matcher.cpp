@@ -82,15 +82,15 @@ TEST(MATCHER, CommAny)
 	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
 	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
 
-	auto f1 = tenncor::mul(a, b);
-	auto f2 = tenncor::mul(a, a);
-	auto f3 = tenncor::mul(b, b);
+	auto f1 = a * b;
+	auto f2 = a * a;
+	auto f3 = b * b;
 
-	auto f4_sub_l = tenncor::mul(f1, a); // match against similar
-	auto f4_sub_r = tenncor::mul(f1, b); // match against similar
+	auto f4_sub_l = f1 * a; // match against similar
+	auto f4_sub_r = f1 * b; // match against similar
 
-	auto f5 = tenncor::mul(f2, a); // match against everything except same
-	auto f6 = tenncor::mul(f2, b); // match against weird
+	auto f5 = f2 * a; // match against everything except same
+	auto f6 = f2 * b; // match against weird
 
 	opt::Matcher matcher;
 	{
@@ -181,9 +181,9 @@ TEST(MATCHER, Ambiguous_CommAny)
 	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
 	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
 
-	auto same = tenncor::mul(a, b);
-	auto sub_l = tenncor::mul(same, a); // match against similar and similar2
-	auto sub_r = tenncor::mul(same, b); // match against similar and similar2
+	auto same = a * b;
+	auto sub_l = same * a; // match against similar and similar2
+	auto sub_r = same * b; // match against similar and similar2
 
 	opt::Matcher matcher;
 	{

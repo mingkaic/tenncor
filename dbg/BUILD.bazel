@@ -21,6 +21,21 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
+    name = "eteq_mocker",
+    hdrs = glob(["eteq/*.hpp"]),
+    srcs = glob(["eteq/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = ["//eteq:eteq"],
+)
+
+pybind_library(
+    name = "eteq_mocker_py",
+    cc_srcs = ["//dbg:python/eteq.cpp"],
+    cc_deps = ["//dbg:eteq_mocker"],
+    py_deps = ["//eteq:eteq_py"],
+)
+
+cc_library(
     name = "stream_out",
     hdrs = glob(["stream/*.hpp"]),
     srcs = glob(["stream/*.cpp"]),

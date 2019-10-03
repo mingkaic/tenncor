@@ -13,12 +13,12 @@ struct WeighedGroup final
 {
 	std::vector<teq::iFunctor*> reps_;
 
-	std::unordered_set<teq::iTensor*> ancestors_;
+	teq::TensSetT ancestors_;
 
 	double weight_;
 };
 
-PartGroupsT k_partition (teq::TensT roots, size_t k, OpWeightT weights)
+PartGroupsT k_partition (teq::TensptrsT roots, size_t k, OpWeightT weights)
 {
 	PartGroupsT groups;
 
@@ -43,7 +43,7 @@ PartGroupsT k_partition (teq::TensT roots, size_t k, OpWeightT weights)
 	// partition bases by number of ancestor
 	std::unordered_map<teq::iTensor*,double> weight_map;
 	std::unordered_map<teq::iFunctor*,
-		std::unordered_set<teq::iTensor*>> ancestors;
+		teq::TensSetT> ancestors;
 	for (auto base : bases)
 	{
 		std::queue<teq::iTensor*> q;

@@ -752,7 +752,7 @@ api:
           name: tens
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -767,7 +767,7 @@ api:
           name: tens
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -782,7 +782,7 @@ api:
           name: tens
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -797,7 +797,7 @@ api:
           name: tens
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -886,7 +886,7 @@ api:
                           }
                           fwd[2][0] = ncol;
                           fwd[1][1] = 1;
-                          fwd[0][2] = 1.0 / ncommon;
+                          fwd[0][2] = 1. / ncommon;
                       }
                   ));
 
@@ -899,7 +899,7 @@ api:
                           }
                           fwd[0][0] = 1;
                           fwd[2][1] = nrow;
-                          fwd[1][2] = 1.0 / ncommon;
+                          fwd[1][2] = 1. / ncommon;
                       }
                   ));
                   return eteq::make_functor<T>(teq::Opcode{"MATMUL",::egen::MATMUL}, {
@@ -1075,7 +1075,7 @@ api:
           name: arg
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -1191,7 +1191,7 @@ api:
           name: arg
         - dtype: teq::RankT
           name: offset
-          default: '0'
+          default: "0"
         - dtype: teq::RankT
           name: ndims
           default: teq::rank_cap
@@ -1199,6 +1199,11 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
+                  if (offset + ndims > teq::rank_cap)
+                  {
+                      logs::fatalf("cannot perform softmax on dimensions beyond %d",
+                          teq::rank_cap);
+                  }
                   auto exarg = exp(arg);
                   teq::Shape shape = exarg->shape();
                   auto it = shape.begin() + offset;
@@ -1270,19 +1275,25 @@ api:
               //
                   // image must be in form [in, width, height, batch]
                   // kernel must be in form [out, in, width, height]
+                  // expect output shape of [
+                  //    out,
+                  //    image.width-kernel.width+1,
+                  //    image.height-kernel.height+1,
+                  //    batch,
+                  // ]
                   // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
-                  teq::DimT nfilters = kernel->shape().at(0);
+                  teq::DimT nfilters = kernel->shape().at(0); // out
                   eteq::NodesT<T> convolveds;
                   convolveds.reserve(nfilters);
                   for (teq::DimT i = 0; i < nfilters; ++i)
                   {
                       auto filter = ::tenncor::permute(
-                          ::tenncor::slice(kernel, i, 1, 0),
-                          {1, 2, 3, 0});
+                          ::tenncor::slice(kernel, i, 1, 0), // [1, in, width, height]
+                          {1, 2, 3, 0}); // [in, width, height, 1]
                       auto conved = ::tenncor::convolution(image, filter,
-                          {0, 1, 2});
+                          {0, 1, 2}); // [1, image.width-kernel.width+1, image.height-kernel.height+1, batch]
                       auto padded = ::tenncor::pad(conved,
-                          {i, nfilters - i - 1}, 0);
+                          {i, nfilters - i - 1}, 0); // outshape
                       convolveds.push_back(padded);
                   }
                   auto out = ::tenncor::sum(convolveds);
@@ -1300,6 +1311,7 @@ api:
           name: weights
         - dtype: eteq::NodeptrT<T>
           name: bias
+          check_null: false
         out:
           type: eteq::NodeptrT<T>
           val: |
@@ -1315,7 +1327,7 @@ api:
                           "number of inputs (%d) must equal the number of weights (%d)",
                           ninputs, weights.size());
                   }
-                  std::unordered_set<teq::iTensor*> ignores = {
+                  teq::TensSetT ignores = {
                       inputs[0]->get_tensor().get(),
                       weights[0]->get_tensor().get()
                   };

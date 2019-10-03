@@ -11,11 +11,9 @@ import rocnnet.rocnnet as rcn
 prog_description = 'Demo mlp_trainer using sgd'
 
 def batch_generate(n, batchsize):
-    total = n * batchsize
-    return np.random.rand(total)
-
-def avgevry2(indata):
-    return (indata[0::2] + indata[1::2]) / 2
+    inbatch = np.random.rand(batchsize * n)
+    outbatch = (inbatch[0::2] + inbatch[1::2]) / 2
+    return inbatch, outbatch
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -99,9 +97,10 @@ def main(args):
             trained_derr = trainer.error().get()
             print('training {}\ntraining error:\n{}'
                 .format(i + 1, trained_derr))
-        batch = batch_generate(n_in, n_batch)
-        batch_out = avgevry2(batch)
-        trainer.train(batch, batch_out)
+        batch, batch_out = batch_generate(n_in, n_batch)
+        trainer.train(
+            batch.reshape(n_batch, n_in),
+            batch_out.reshape(n_batch, n_out))
 
     print('training time: {} seconds'.format(time.time() - start))
 
@@ -113,10 +112,9 @@ def main(args):
         if i % show_every_n == show_every_n - 1:
             print('testing {}'.format(i + 1))
 
-        test_batch = batch_generate(n_in, 1)
-        test_batch_out = avgevry2(test_batch)
+        test_batch, test_batch_out = batch_generate(n_in, 1)
         testin.assign(test_batch)
-        sess.update([testin])
+        sess.update()
 
         untrained_data = untrained_out.get()
         trained_data = trained_out.get()

@@ -74,14 +74,14 @@ const std::string groups_key = get_reg().register_tagr("groups",
 });
 
 void recursive_group_tag (teq::TensptrT tens, std::string group,
-	std::unordered_set<teq::iTensor*> stops,
+	teq::TensSetT stops,
 	GroupRegistry& registry = get_group_reg());
 
 using AGroupsT = std::map<std::string,std::unordered_set<std::string>>;
 
 using AdjMapT = std::unordered_map<teq::iTensor*,AGroupsT>;
 
-void adjacencies (AdjMapT& out, teq::TensT roots,
+void adjacencies (AdjMapT& out, teq::TensptrsT roots,
 	GroupRegistry& registry = get_group_reg());
 
 struct Subgraph final : public teq::iTraveler
@@ -120,7 +120,7 @@ struct Subgraph final : public teq::iTraveler
 
 	std::string group_;
 
-	std::unordered_set<teq::iTensor*> content_;
+	teq::TensSetT content_;
 
 	// todo: order subgraphs children somehow
 	std::unordered_map<teq::iTensor*,teq::TensptrT> children_;

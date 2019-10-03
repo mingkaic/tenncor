@@ -18,6 +18,11 @@ struct iNode
 
 	virtual ~iNode (void) = default;
 
+	iNode<T>* clone (void) const
+	{
+		return this->clone_impl();
+	}
+
 	teq::Shape shape (void)
 	{
 		return get_tensor()->shape();
@@ -33,6 +38,9 @@ struct iNode
 	virtual void update (void) = 0;
 
 	virtual teq::TensptrT get_tensor (void) const = 0;
+
+protected:
+	virtual iNode<T>* clone_impl (void) const = 0;
 };
 
 template <typename T>

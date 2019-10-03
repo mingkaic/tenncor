@@ -1,6 +1,6 @@
-#include "layr/model.hpp"
+#include "layr/seqmodel.hpp"
 
-#ifdef LAYR_MODEL_HPP
+#ifdef LAYR_SEQMODEL_HPP
 
 namespace layr
 {

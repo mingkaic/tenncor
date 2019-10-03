@@ -70,16 +70,16 @@ TEST(LOAD, LoadGraph)
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
 	}
 
-	pbm::GraphInfo graphinfo;
+	teq::TensptrSetT graphinfo;
 	pbm::load_graph<TestLoader>(graphinfo, graph);
-	EXPECT_EQ(2, graphinfo.roots_.size());
+	EXPECT_EQ(2, graphinfo.size());
 
 	auto& reg = tag::get_reg();
 	tag::Query q;
 
 	std::vector<std::string> root_props;
 	std::unordered_map<std::string,teq::TensptrT> propdtens;
-	for (auto tens : graphinfo.roots_)
+	for (auto tens : graphinfo)
 	{
 		tens->accept(q);
 		auto tags = reg.get_tags(tens.get());

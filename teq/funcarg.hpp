@@ -100,9 +100,6 @@ private:
 /// Type of functor arguments
 using ArgsT = std::vector<FuncArg>;
 
-/// Vector representation of teq tensor pointers
-using TensT = std::vector<TensptrT>;
-
 /// Return FuncArg that identity maps input tensor
 FuncArg identity_map (TensptrT tensor);
 
@@ -133,8 +130,8 @@ FuncArg permute_map (TensptrT tensor, std::vector<RankT> order);
 /// Return FuncArg that flips input tensor along dimension
 FuncArg flip_map (TensptrT tensor, RankT dim);
 
-/// Return ArgsT with each tensor in TensT attached to identity mapper
-ArgsT to_args (TensT tens);
+/// Return ArgsT with each tensor in TensptrsT attached to identity mapper
+ArgsT to_args (TensptrsT tens);
 
 }
 

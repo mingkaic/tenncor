@@ -1,7 +1,7 @@
 #include "layr/dense.hpp"
 
-#ifndef LAYR_MODEL_HPP
-#define LAYR_MODEL_HPP
+#ifndef LAYR_SEQMODEL_HPP
+#define LAYR_SEQMODEL_HPP
 
 namespace layr
 {
@@ -97,9 +97,9 @@ struct SequentialModel final : public iLayer
 		return label_;
 	}
 
-	eteq::NodeptrT<PybindT> connect (eteq::NodeptrT<PybindT> input) const override
+	NodeptrT connect (NodeptrT input) const override
 	{
-		eteq::NodeptrT<PybindT> out;
+		NodeptrT out;
 		for (size_t i = 0, n = layers_.size(); i < n; ++i)
 		{
 			auto& layer = layers_[i];
@@ -112,9 +112,9 @@ struct SequentialModel final : public iLayer
 		return out;
 	}
 
-	teq::TensT get_contents (void) const override
+	teq::TensptrsT get_contents (void) const override
 	{
-		teq::TensT out;
+		teq::TensptrsT out;
 		out.reserve(layers_.size());
 		for (auto& layer : layers_)
 		{
@@ -168,4 +168,4 @@ using SeqModelptrT = std::shared_ptr<SequentialModel>;
 
 }
 
-#endif // LAYR_MODEL_HPP
+#endif // LAYR_SEQMODEL_HPP
