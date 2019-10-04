@@ -7,11 +7,6 @@
 namespace layr
 {
 
-NodeptrT identity (NodeptrT node)
-{
-	return node;
-}
-
 AssignGroupsT sgd (const VarErrsT& leaves,
 	PybindT learning_rate, std::string root_label)
 {

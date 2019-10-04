@@ -1,3 +1,11 @@
+///
+/// teq_csv.hpp
+/// dbg
+///
+/// Purpose:
+/// Draw an equation graph edges in CSV format
+///
+
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -12,6 +20,7 @@
 #ifndef DBG_TEQ_CSV_HPP
 #define DBG_TEQ_CSV_HPP
 
+/// CSV delimiter
 const char label_delim = ':';
 
 static void multiline_replace (std::string& multiline)
@@ -24,6 +33,7 @@ static void multiline_replace (std::string& multiline)
 	}
 }
 
+/// Type of the tensors
 enum NODE_TYPE
 {
 	VARIABLE = 0,
@@ -31,14 +41,17 @@ enum NODE_TYPE
 	CACHED_FUNC,
 };
 
+/// Function that identify functors by NODE_TYPE
 using GetTypeF = std::function<NODE_TYPE(teq::iFunctor*)>;
 
+/// Use CSVEquation to render teq::TensptrT graph to output csv edges
 struct CSVEquation final : public teq::iTraveler
 {
 	CSVEquation (GetTypeF get_ftype =
 		[](teq::iFunctor* func) { return FUNCTOR; }) :
 		get_ftype_(get_ftype) {}
 
+	/// Implementation of iTraveler
 	void visit (teq::iLeaf* leaf) override
 	{
 		if (estd::has(nodes_, leaf))
@@ -63,6 +76,7 @@ struct CSVEquation final : public teq::iTraveler
 		});
 	}
 
+	/// Implementation of iTraveler
 	void visit (teq::iFunctor* func) override
 	{
 		if (estd::has(nodes_, func))
@@ -111,6 +125,7 @@ struct CSVEquation final : public teq::iTraveler
 		}
 	}
 
+	/// Stream visited graphs to out
 	void to_stream (std::ostream& out)
 	{
 		size_t nnodes = nodes_.size();
@@ -149,8 +164,13 @@ struct CSVEquation final : public teq::iTraveler
 		}
 	}
 
+	/// Print every tensor's shape if true, otherwise don't
 	bool showshape_ = false;
 
+	/// For every label associated with a tensor, show LABEL=value in the tree
+	LabelsMapT labels_;
+
+private:
 	struct Edge
 	{
 		teq::iFunctor* func_;
@@ -170,9 +190,6 @@ struct CSVEquation final : public teq::iTraveler
 
 		size_t id_;
 	};
-
-	/// For every label associated with a tensor, show LABEL=value in the tree
-	LabelsMapT labels_;
 
 	std::vector<Edge> edges_;
 

@@ -13,16 +13,6 @@
 #include "layr/err_approx.hpp"
 
 
-TEST(APPROX, Identity)
-{
-	std::vector<teq::DimT> slist = {18, 9, 3};
-	auto leaf = eteq::make_variable_scalar<PybindT>(
-		0, teq::Shape(slist), "leaf");
-	auto out = layr::identity(leaf);
-	EXPECT_EQ(leaf, out);
-}
-
-
 TEST(APPROX, StochasticGD)
 {
 	std::vector<teq::DimT> slist = {18, 9, 3};

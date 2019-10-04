@@ -4,7 +4,7 @@
 
 #include "ccur/partition.hpp"
 
-#ifdef CCE_PARTITION_HPP
+#ifdef CCUR_PARTITION_HPP
 
 namespace ccur
 {

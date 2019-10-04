@@ -4,13 +4,12 @@
 
 #ifdef PARSE_DEF_H
 
-void subgraph_recursive_free (void* ptr)
+void subgraph_recursive_free (struct Subgraph* sg)
 {
-	if (NULL == ptr)
+	if (NULL == sg)
 	{
 		return;
 	}
-	struct Subgraph* sg = (struct Subgraph*) ptr;
 	switch (sg->type_)
 	{
 		case SCALAR:
@@ -31,26 +30,24 @@ void subgraph_recursive_free (void* ptr)
 	free(sg);
 }
 
-void arg_recursive_free (void* ptr)
+void arg_recursive_free (struct Arg* arg)
 {
-	if (NULL == ptr)
+	if (NULL == arg)
 	{
 		return;
 	}
-	struct Arg* arg = (struct Arg*) ptr;
 	subgraph_recursive_free(arg->subgraph_);
 	numlist_free(arg->shaper_);
 	numlist_free(arg->coorder_);
 	free(arg);
 }
 
-void conversion_recursive_free (void* ptr)
+void conversion_recursive_free (struct Conversion* conv)
 {
-	if (NULL == ptr)
+	if (NULL == conv)
 	{
 		return;
 	}
-	struct Conversion* conv = (struct Conversion*) ptr;
 	subgraph_recursive_free(conv->source_);
 	subgraph_recursive_free(conv->dest_);
 	free(conv);
@@ -70,7 +67,7 @@ void statement_recursive_free (void* ptr)
 			free(stmt->val_);
 			break;
 		case CONVERSION:
-			conversion_recursive_free(stmt->val_);
+			conversion_recursive_free((struct Conversion*) stmt->val_);
 			break;
 		default:
 			fprintf(stderr, "freeing unknown statement type %d", stmt->type_);

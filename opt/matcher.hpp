@@ -1,3 +1,12 @@
+///
+/// matcher.hpp
+/// opt
+///
+/// Purpose:
+/// Implement matcher traveler for gathering
+/// conversion candidates from a TEQ graph
+///
+
 #include "teq/traveler.hpp"
 
 #include "tag/group.hpp"
@@ -10,25 +19,26 @@
 namespace opt
 {
 
+/// String to prefix group types
 const std::string group_prefix = "group:";
 
-// approach: we have matcher, voters, and candidates
-//  - matchers map:
-//      - functors to voters (by functor's opname)
-//      - leaves to ScalarCand (if it is immutable and scalar)
-//      - anything that is not matched to a voter or candidate has no
-//        candidate and marked as ANY
-//  - voters are created by the parser, and only accept functor arguments
-//      voters generate a list of candidates based on the arguments,
-//      the list of candidates can be empty and marked as ANY
-//  - candidates can be a scalar, an intermediate candidate,
-//    or a convertible candidate. when built:
-//      - scalar candidates take a constant scalar node
-//      - convertible candidates take on it's converted subgraph
-//      - intermediate candidates do nothing
-//  Using the matcher, the optimizer makes a best attempt at
-//  mapping tensor to zero to many candidates.
-//  The optimizer is responsible for selecting the best candidates
+///	Approach: we have matcher, voters, and candidates
+///	- matchers map:
+///		- functors to voters (by functor's opname)
+///		- leaves to ScalarCand (if it is immutable and scalar)
+///		- anything that is not matched to a voter or candidate has no
+///		  candidate and marked as ANY
+///	- voters are created by the parser, and only accept functor arguments
+///		voters generate a list of candidates based on the arguments,
+///		the list of candidates can be empty and marked as ANY
+///	- candidates can be a scalar, an intermediate candidate,
+///	  or a convertible candidate. when built:
+///		- scalar candidates take a constant scalar node
+///		- convertible candidates take on it's converted subgraph
+///		- intermediate candidates do nothing
+///	Using the matcher, the optimizer makes a best attempt at
+///	mapping tensor to zero to many candidates.
+///	The optimizer is responsible for selecting the best candidates
 struct Matcher final : public teq::iTraveler
 {
 	Matcher (void) = default;
@@ -167,16 +177,16 @@ struct Matcher final : public teq::iTraveler
 		}
 	}
 
-	// created by parser
+	/// Conversion voters to identify candidates
 	VoterPool voters_;
 
-	// generated as visited
+	/// Map real TEQ tensors to candidates identified as TEQ graph is visited
 	std::unordered_map<teq::iTensor*,CandsT> candidates_;
 
-	// heads for functors
+	/// Root of grouped subgraphs
 	tag::SubgraphAssocsT group_head_;
 
-	// functor for returning constant representation of tensor
+	/// Function that returns constant representation of tensor
 	std::function<std::string(teq::iTensor*)> scalarize_;
 };
 

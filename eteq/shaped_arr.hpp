@@ -1,3 +1,11 @@
+///
+/// shaped_arr.hpp
+/// eteq
+///
+/// Purpose:
+/// Define a data-shape representation to feed in to the variable
+///
+
 #include "teq/shape.hpp"
 
 #include "eteq/generated/pyapi.hpp"
@@ -8,6 +16,7 @@
 namespace eteq
 {
 
+/// Shaped array wraps around a vector and shape
 template <typename T>
 struct ShapedArr final
 {
@@ -16,8 +25,10 @@ struct ShapedArr final
 	ShapedArr (teq::Shape shape, T data = 0) :
 		data_(shape.n_elems(), data), shape_(shape) {}
 
+	/// Vector of size equal to shape_.n_elems()
 	std::vector<T> data_;
 
+	/// Tensor shape of data_
 	teq::Shape shape_;
 };
 

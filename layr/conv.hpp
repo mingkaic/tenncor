@@ -1,3 +1,11 @@
+///
+/// conv.hpp
+/// layr
+///
+/// Purpose:
+/// Implement convolutional layer
+///
+
 #include "eteq/generated/api.hpp"
 
 #include "layr/layer.hpp"
@@ -8,14 +16,18 @@
 namespace layr
 {
 
+/// Convolutional weight label
 const std::string conv_weight_key = "weight";
 
+/// Convolutional bias label
 const std::string conv_bias_key = "bias";
 
+/// Builder implementation for convolution layer
 struct ConvBuilder final : public iLayerBuilder
 {
 	ConvBuilder (std::string label) : label_(label) {}
 
+	/// Implementation of iLayerBuilder
 	void set_tensor (teq::TensptrT tens, std::string target) override
 	{
 		if (target == conv_weight_key)
@@ -33,8 +45,10 @@ struct ConvBuilder final : public iLayerBuilder
 			tens->to_string().c_str(), target.c_str());
 	}
 
+	/// Implementation of iLayerBuilder
 	void set_sublayer (LayerptrT layer) override {} // dense has no sublayer
 
+	/// Implementation of iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
@@ -45,17 +59,15 @@ private:
 	std::string label_;
 };
 
+/// Identifier for convolutional layer
 const std::string conv_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "conv",
-[](teq::TensrefT ref, std::string label)
-{
-	get_layer_reg().layer_tag(ref, conv_layer_key, label);
-},
 [](std::string label) -> LBuilderptrT
 {
 	return std::make_shared<ConvBuilder>(label);
 });
 
+/// Layer implementation to apply conv2d functions to weight and optional bias
 struct Conv final : public iLayer
 {
 	Conv (std::pair<teq::DimT,teq::DimT> filter_hw,
@@ -116,31 +128,46 @@ struct Conv final : public iLayer
 
 	Conv& operator = (Conv&& other) = default;
 
+	/// Return deep copy of this layer with prefixed label
 	Conv* clone (std::string label_prefix = "") const
 	{
 		return static_cast<Conv*>(this->clone_impl(label_prefix));
 	}
 
+	/// Implementation of iLayer
 	size_t get_ninput (void) const override
 	{
 		return weight_->shape().at(1);
 	}
 
+	/// Implementation of iLayer
 	size_t get_noutput (void) const override
 	{
 		return weight_->shape().at(0);
 	}
 
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return conv_layer_key;
 	}
 
+	/// Implementation of iLayer
 	std::string get_label (void) const override
 	{
 		return label_;
 	}
 
+	/// Implementation of iLayer
+	teq::TensptrsT get_contents (void) const override
+	{
+		return {
+			weight_->get_tensor(),
+			nullptr == bias_ ? nullptr : bias_->get_tensor(),
+		};
+	}
+
+	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
 		auto out = tenncor::nn::conv2d(input, weight_);
@@ -157,14 +184,6 @@ struct Conv final : public iLayer
 		}
 		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;
-	}
-
-	teq::TensptrsT get_contents (void) const override
-	{
-		return {
-			weight_->get_tensor(),
-			nullptr == bias_ ? nullptr : bias_->get_tensor(),
-		};
 	}
 
 private:
@@ -192,6 +211,7 @@ private:
 	NodeptrT bias_ = nullptr;
 };
 
+/// Smart pointer of convolutional layer
 using ConvptrT = std::shared_ptr<Conv>;
 
 }

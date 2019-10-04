@@ -23,19 +23,24 @@ static inline bool is_2d (teq::Shape shape)
 		[](teq::DimT dim) { return 1 == dim; });
 }
 
+/// Raw data, shape, and transformation argument struct
 template <typename T>
 struct OpArg final
 {
 	OpArg (T* data, teq::Shape shape, CoordMap* coorder) :
 		data_(data), shape_(shape), coorder_(coorder) {}
 
+	/// Raw data argument
 	T* data_;
 
+	/// Shape of the data
 	teq::Shape shape_;
 
+	/// Transformation argument, null denotes no argument
 	CoordMap* coorder_ = nullptr;
 };
 
+/// Generic Eigen reduction operator
 template <typename OP, size_t N, typename T>
 using ReduceOutT = Eigen::TensorReductionOp<OP,
 	const std::array<teq::RankT,N>,const TensMapT<T>>;
@@ -43,6 +48,7 @@ using ReduceOutT = Eigen::TensorReductionOp<OP,
 namespace internal
 {
 
+/// Return array of input vector
 template <size_t N>
 inline std::array<teq::RankT,N> dim_copy (std::vector<teq::RankT> d)
 {
@@ -83,22 +89,27 @@ make_tensmap(in.data_, in.shape_));
 
 }
 
+/// Return Eigen data object representing reduction where aggregation is sum
 template <typename T>
 EigenptrT<T> reduce_sum (teq::Shape& outshape, const OpArg<T>& in)
 _ETEQ_INTERNAL_V2A(sum, Eigen::internal::SumReducer<T>)
 
+/// Return Eigen data object representing reduction where aggregation is prod
 template <typename T>
 EigenptrT<T> reduce_prod (teq::Shape& outshape, const OpArg<T>& in)
 _ETEQ_INTERNAL_V2A(prod, Eigen::internal::ProdReducer<T>)
 
+/// Return Eigen data object representing reduction where aggregation is min
 template <typename T>
 EigenptrT<T> reduce_min (teq::Shape& outshape, const OpArg<T>& in)
 _ETEQ_INTERNAL_V2A(minimum, Eigen::internal::MinReducer<T>)
 
+/// Return Eigen data object representing reduction where aggregation is max
 template <typename T>
 EigenptrT<T> reduce_max (teq::Shape& outshape, const OpArg<T>& in)
 _ETEQ_INTERNAL_V2A(maximum, Eigen::internal::MaxReducer<T>)
 
+/// Return Eigen data object representing data broadcast across dimensions
 template <typename T>
 EigenptrT<T> extend (teq::Shape& outshape, const OpArg<T>& in)
 {
@@ -114,6 +125,7 @@ EigenptrT<T> extend (teq::Shape& outshape, const OpArg<T>& in)
 		}, make_tensmap(in.data_, in.shape_));
 }
 
+/// Return Eigen data object representing transpose and permutation
 template <typename T>
 EigenptrT<T> permute (teq::Shape& outshape, const OpArg<T>& in)
 {
@@ -140,6 +152,7 @@ EigenptrT<T> permute (teq::Shape& outshape, const OpArg<T>& in)
 		}, make_tensmap(in.data_, in.shape_));
 }
 
+/// Return Eigen data object representing data slicing of dimensions
 template <typename T>
 EigenptrT<T> slice (teq::Shape& outshape, const OpArg<T>& in)
 {
@@ -165,6 +178,7 @@ EigenptrT<T> slice (teq::Shape& outshape, const OpArg<T>& in)
 		}, make_tensmap(in.data_, in.shape_));
 }
 
+/// Return Eigen data object representing data zero padding
 template <typename T>
 EigenptrT<T> pad (teq::Shape& outshape, const OpArg<T>& in)
 {
@@ -994,6 +1008,9 @@ EigenptrT<T> rand_uniform (teq::Shape& outshape, const OpArg<T>& a, const OpArg<
 			make_tensmap(b.data_, b.shape_)});
 }
 
+/// Given a condition, then values and otherwise
+/// apply corresponding then value if condition is non-zero
+/// otherwise apply otherwise value
 template <typename T>
 EigenptrT<T> select (teq::Shape& outshape,
 	const OpArg<T>& condition,
@@ -1026,6 +1043,8 @@ EigenptrT<T> select (teq::Shape& outshape,
 			make_tensmap(otherwise.data_, otherwise.shape_)});
 }
 
+/// Only applies to 2-d tensors
+/// Apply matrix multiplication of a and b
 template <typename T>
 EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
@@ -1040,6 +1059,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			make_matmap(b.data_, b.shape_)});
 }
 
+/// Apply convolution of kernel across input
 template <typename T>
 EigenptrT<T> convolution (teq::Shape& outshape, const OpArg<T>& input, const OpArg<T>& kernel)
 {
@@ -1061,6 +1081,7 @@ EigenptrT<T> convolution (teq::Shape& outshape, const OpArg<T>& input, const OpA
 			make_tensmap(kernel.data_, kernel.shape_)});
 }
 
+/// Applies the gradient of convolution with respect to image
 template <typename T>
 EigenptrT<T> convolution_image_grad (teq::Shape& imageshape,
 	const OpArg<T>& kernel, const OpArg<T>& super_composite)
@@ -1126,6 +1147,7 @@ EigenptrT<T> convolution_image_grad (teq::Shape& imageshape,
 			make_tensmap(super_composite.data_, super_composite.shape_)});
 }
 
+/// Applies the gradient of convolution with respect to kernel
 template <typename T>
 EigenptrT<T> convolution_kernel_grad (teq::Shape& kernelshape,
 	const OpArg<T>& image, const OpArg<T>& super_composite)

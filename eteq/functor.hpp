@@ -1,3 +1,11 @@
+//
+/// functor.hpp
+/// eteq
+///
+/// Purpose:
+/// Eigen functor implementation of operable func
+///
+
 #include "teq/iopfunc.hpp"
 
 #include "eteq/generated/opcode.hpp"
@@ -12,11 +20,14 @@
 namespace eteq
 {
 
+/// Functor implementation of operable functor of Eigen operators
 template <typename T>
 struct Functor final : public teq::iOperableFunc
 {
+	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	static Functor<T>* get (teq::Opcode opcode, ArgsT<T> args);
 
+	/// Return Functor move of other
 	static Functor<T>* get (Functor<T>&& other)
 	{
 		return new Functor<T>(std::move(other));
@@ -116,16 +127,20 @@ struct Functor final : public teq::iOperableFunc
 		return sizeof(T) * shape_.n_elems();
 	}
 
+	/// Return true if functor has never been initialized or
+	/// was uninitialized, otherwise functor can return data
 	bool is_uninit (void) const
 	{
 		return nullptr == out_;
 	}
 
+	/// Removes internal Eigen data object
 	void uninitialize (void)
 	{
 		out_ = nullptr;
 	}
 
+	/// Populate internal Eigen data object
 	void initialize (void)
 	{
 		std::vector<OpArg<T>> datamaps;
@@ -145,10 +160,7 @@ struct Functor final : public teq::iOperableFunc
 
 private:
 	Functor (teq::Opcode opcode, teq::Shape shape, teq::ArgsT args) :
-		opcode_(opcode), shape_(shape), args_(args)
-	{
-		// initialize();
-	}
+		opcode_(opcode), shape_(shape), args_(args) {}
 
 	Functor (Functor<T>&& other) = default;
 
@@ -164,26 +176,31 @@ private:
 	teq::ArgsT args_;
 };
 
+/// Functor's node wrapper
 template <typename T>
 struct FunctorNode final : public iNode<T>
 {
 	FunctorNode (std::shared_ptr<Functor<T>> f) : func_(f) {}
 
+	/// Return deep copy of this instance (with a copied functor)
 	FunctorNode<T>* clone (void) const
 	{
 		return static_cast<FunctorNode<T>*>(clone_impl());
 	}
 
+	/// Implementation of iNode<T>
 	T* data (void) override
 	{
 		return (T*) func_->data();
 	}
 
+	/// Implementation of iNode<T>
 	void update (void) override
 	{
 		func_->update();
 	}
 
+	/// Implementation of iNode<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return func_;
@@ -256,6 +273,7 @@ Functor<T>* Functor<T>::get (teq::Opcode opcode, ArgsT<T> args)
 	return new Functor<T>(opcode, shape, input_args);
 }
 
+/// Return functor node given opcode and node arguments
 template <typename T>
 NodeptrT<T> make_functor (teq::Opcode opcode, ArgsT<T> args)
 {

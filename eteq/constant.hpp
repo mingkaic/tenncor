@@ -1,3 +1,11 @@
+///
+/// constant.hpp
+/// eteq
+///
+/// Purpose:
+/// Implement constant leaf tensor
+///
+
 #include "tag/prop.hpp"
 
 #include "eteq/ileaf.hpp"
@@ -11,11 +19,15 @@ namespace eteq
 
 static const size_t label_limit = 5;
 
+/// Constant implementation of Eigen leaf tensor
 template <typename T>
 struct Constant final : public iLeaf<T>
 {
+	/// Return Constant tensor containing first
+	/// shape.n_elems() values of data pointer
 	static Constant<T>* get (T* data, teq::Shape shape);
 
+	/// Return Constant tensor containing scalar expanded to fill shape
 	static Constant<T>* get_scalar (T scalar, teq::Shape shape)
 	{
 		size_t n = shape.n_elems();
@@ -60,6 +72,7 @@ struct Constant final : public iLeaf<T>
 		return true;
 	}
 
+	/// Return true if constant data values are all the same, otherwise false
 	bool is_scalar (void) const
 	{
 		const T* data = this->data_.data();
@@ -73,23 +86,28 @@ private:
 		iLeaf<T>(data, shape) {}
 };
 
+/// Constant's node wrapper
 template <typename T>
 struct ConstantNode final : public iNode<T>
 {
 	ConstantNode (std::shared_ptr<Constant<T>> cst) : cst_(cst) {}
 
+	/// Return deep copy of this instance (with a copied constant)
 	ConstantNode<T>* clone (void) const
 	{
 		return static_cast<ConstantNode<T>*>(clone_impl());
 	}
 
+	/// Implementation of iNode<T>
 	T* data (void) override
 	{
 		return (T*) cst_->data();
 	}
 
+	/// Implementation of iNode<T>
 	void update (void) override {}
 
+	/// Implementation of iNode<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return cst_;
@@ -123,6 +141,7 @@ Constant<T>* Constant<T>::get (T* data, teq::Shape shape)
 	return new Constant(data, shape);
 }
 
+/// Return constant node given scalar and shape
 template <typename T>
 NodeptrT<T> make_constant_scalar (T scalar, teq::Shape shape)
 {
@@ -133,6 +152,7 @@ NodeptrT<T> make_constant_scalar (T scalar, teq::Shape shape)
 	return out;
 }
 
+/// Return constant node given raw array and shape
 template <typename T>
 NodeptrT<T> make_constant (T* data, teq::Shape shape)
 {

@@ -1,3 +1,11 @@
+///
+/// ivoter.hpp
+/// opt
+///
+/// Purpose:
+/// Define rule voter interface to identify graph nodes
+///
+
 extern "C" {
 #include "opt/parse/def.h"
 }
@@ -11,6 +19,7 @@ extern "C" {
 namespace opt
 {
 
+/// Argument voter for functors
 struct VoterArg final
 {
 	VoterArg (std::string label,
@@ -22,8 +31,7 @@ struct VoterArg final
 		coorder_(coorder),
 		type_(type) {}
 
-	// return true if arg matches this
-	// only add to ctxs if matches
+	/// Return true if arg matches this only add to ctxs if matches
 	bool match (CtxsT& ctxs, const CandArg& arg) const
 	{
 		// match arg.shaper_ and arg.coorder_
@@ -118,17 +126,23 @@ struct VoterArg final
 		return true;
 	}
 
+	/// Argument node identifier
 	std::string label_;
 
+	/// Converted shape mapper
 	teq::CoordptrT shaper_;
 
+	/// Converted coordinate mapping meta-structure
 	teq::CoordptrT coorder_;
 
+	/// Subgraph type of the argument
 	SUBGRAPH_TYPE type_;
 };
 
+/// Vector of voter arguments for branching nodes
 using VoterArgsT = std::vector<VoterArg>;
 
+/// Variadic/communtative branch voter arguments
 struct SegVArgs
 {
 	size_t size (void) const
@@ -136,17 +150,23 @@ struct SegVArgs
 		return scalars_.size() + branches_.size() + anys_.size();
 	}
 
+	/// Scalar-typed arguments
 	VoterArgsT scalars_;
 
+	/// Branch-typed arguments (functors/groups)
 	VoterArgsT branches_;
 
+	/// Any-typed leaf arguments
 	VoterArgsT anys_;
 };
 
+/// Normalize voter arguments to facilitate matching
 void sort_vargs (VoterArgsT& args);
 
+/// Hash voter arguments while preserving order of arguments
 struct OrdrHasher final
 {
+	/// Return hash of arguments
 	size_t operator() (const VoterArgsT& args) const
 	{
 		size_t seed = 0;
@@ -154,6 +174,7 @@ struct OrdrHasher final
 		return seed;
 	}
 
+	/// Apply boost::hash_combine for each argument
 	void hash_combine (size_t& seed, const VoterArgsT& args) const
 	{
 		for (const VoterArg& arg : args)
@@ -170,6 +191,7 @@ struct OrdrHasher final
 	}
 };
 
+/// Compare equality of ordered voter arguments
 inline bool operator == (const VoterArgsT& lhs, const VoterArgsT& rhs)
 {
 	return lhs.size() == rhs.size() &&
@@ -183,8 +205,10 @@ inline bool operator == (const VoterArgsT& lhs, const VoterArgsT& rhs)
 		});
 }
 
+/// Hash variadic/commutative arguments that ignores order
 struct CommHasher final
 {
+	/// Return hash of arguments
 	size_t operator() (const SegVArgs& args) const
 	{
 		size_t seed = 0;
@@ -194,9 +218,11 @@ struct CommHasher final
 		return seed;
 	}
 
+	/// Internal ordered hasher used against normalized commutative args
 	OrdrHasher hasher_;
 };
 
+/// Compare equality of commutative arguments
 inline bool operator == (const SegVArgs& lhs, const SegVArgs& rhs)
 {
 	return lhs.scalars_ == rhs.scalars_ &&
@@ -204,22 +230,29 @@ inline bool operator == (const SegVArgs& lhs, const SegVArgs& rhs)
 		lhs.anys_ == rhs.anys_;
 }
 
-// select candidates
+/// Rule tree node that identify and selects matching candidates
 struct iVoter
 {
 	virtual ~iVoter (void) = default;
 
+	/// Match argument and node symbol against this node
+	/// Store argument and symbol if it's a candidate
 	virtual void emplace (VoterArgsT args, Symbol cand) = 0;
 
+	/// Return virtual node graph candidates given candidate arguments
 	virtual CandsT inspect (const CandArgsT& args) const = 0;
 };
 
+/// Smart pointer of rule tree
 using VotptrT = std::shared_ptr<iVoter>;
 
+/// Parsed representation of a rule tree
 struct VoterPool
 {
+	/// Set of immutable ids under rule tree
 	std::unordered_set<std::string> immutables_;
 
+	/// Map voter identifier to associated branch voters
 	std::unordered_map<std::string,VotptrT> branches_;
 };
 

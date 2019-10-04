@@ -71,7 +71,7 @@ struct DQNTrainer final
 {
 	DQNTrainer (layr::SequentialModel& model,
 		eteq::iSession& sess, layr::ApproxF update, DQNInfo param,
-		layr::NodeUnarF gradprocess = layr::NodeUnarF(layr::identity),
+		NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; },
 		DQNTrainingContext ctx = DQNTrainingContext()) :
 		sess_(&sess),
 		params_(param),

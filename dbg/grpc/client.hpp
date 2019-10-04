@@ -1,3 +1,11 @@
+///
+/// client.hpp
+/// dbg
+///
+/// Purpose:
+/// Implement grpc client that create and update graphs
+///
+
 #include <chrono>
 
 #include <grpc/grpc.h>
@@ -19,6 +27,7 @@ static const size_t max_attempts = 10;
 
 static const size_t data_sync_interval = 50;
 
+/// Configuration wrapper for creating the client
 struct ClientConfig
 {
 	ClientConfig (void) = default;
@@ -27,13 +36,16 @@ struct ClientConfig
 		std::chrono::duration<int64_t,std::milli> stream_duration) :
 		request_duration_(request_duration), stream_duration_(stream_duration) {}
 
+	/// Request timeout
 	std::chrono::duration<int64_t,std::milli> request_duration_ =
 		std::chrono::milliseconds(250);
 
+	/// Stream timeout
 	std::chrono::duration<int64_t,std::milli> stream_duration_ =
 		std::chrono::milliseconds(10000);
 };
 
+/// GRPC client that checks for server health and make graph creation and update calls
 struct GraphEmitterClient final
 {
 	GraphEmitterClient (std::shared_ptr<grpc::ChannelInterface> channel,
@@ -251,16 +263,19 @@ struct GraphEmitterClient final
 		}, std::move(requests), std::move(update_it));
 	}
 
+	/// Return true if the client is connected to the server
 	bool is_connected (void)
 	{
 		return connected_;
 	}
 
+	/// Wait until all request jobs are complete
 	void join (void)
 	{
 		sequential_jobs_.join();
 	}
 
+	/// Kill all request jobs
 	void clear (void)
 	{
 		sequential_jobs_.stop();

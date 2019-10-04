@@ -1,3 +1,12 @@
+///
+/// session.hpp
+/// eteq
+///
+/// Purpose:
+/// Define and implement session that tracks subgraphs and
+/// rapidly updates the tracked graph or a portion of tracked graph
+///
+
 #include <list>
 #include <unordered_set>
 
@@ -14,30 +23,30 @@
 namespace eteq
 {
 
+/// Session interface that tracks and rapidly updates subgraphs
 struct iSession
 {
 	virtual ~iSession (void) = default;
 
+	/// Record subgraphs of roots
 	virtual void track (teq::TensptrsT roots) = 0;
 
-	/// update all nodes related to the leaves (so everyone)
-	/// ignore all nodes dependent on ignored including the ignored nodes
+	/// Update every node under the subgraph except
+	/// for the subgraphs of ignored
+	/// this function is expected to be called repeatedly during runtime
 	virtual void update (teq::TensSetT ignored = {}) = 0;
 
+	/// Update every node under the target roots that are expected to be
+	/// under the tracked subgraphs ignoring the subgraphs of ignored
+	/// this function is expected to be called repeatedly during runtime
 	virtual void update_target (teq::TensSetT target, teq::TensSetT ignored = {}) = 0;
 };
 
-struct SizeT final
-{
-	size_t d = 0;
-
-	operator size_t() const { return d; }
-};
-
-// for each leaf node, iteratively update the parents
-// don't update parent node if it is part of ignored set
+/// iSession implementation that tracks subgraphs by ordering operable functors
+/// in a vector such that parents are visited after children
 struct Session final : public iSession
 {
+	/// Implementation of iSession
 	void track (teq::TensptrsT roots) override
 	{
 		ops_.clear();
@@ -69,7 +78,7 @@ struct Session final : public iSession
 			{ return statmap[a].upper_ < statmap[b].upper_; });
 	}
 
-	// this function is expected to be called repeatedly during runtime
+	/// Implementation of iSession
 	void update (teq::TensSetT ignored = {}) override
 	{
 		std::list<teq::iOperableFunc*> reqs;
@@ -101,7 +110,7 @@ struct Session final : public iSession
 		}
 	}
 
-	// this function is expected to be called repeatedly during runtime
+	/// Implementation of iSession
 	void update_target (teq::TensSetT target, teq::TensSetT ignored = {}) override
 	{
 		std::list<teq::iOperableFunc*> reqs;
@@ -133,6 +142,7 @@ struct Session final : public iSession
 		}
 	}
 
+	/// Apply input optimization rules using opt module, then re-track
 	void optimize (const opt::OptCtx& rules)
 	{
 		teq::TensptrsT tracked(tracked_.begin(), tracked_.end());
@@ -140,8 +150,11 @@ struct Session final : public iSession
 		track(tracked);
 	}
 
+	/// Set of all tensors input through tracked function
+	/// The set of roots of all session graphs is a possible subset
 	teq::TensptrSetT tracked_;
 
+	/// Operable functors ordered by height in the tracked graph
 	std::vector<teq::iOperableFunc*> ops_;
 };
 
