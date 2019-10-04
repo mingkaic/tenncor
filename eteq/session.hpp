@@ -22,6 +22,8 @@
 
 namespace eteq
 {
+
+/// Session interface that tracks and rapidly updates subgraphs
 struct iSession
 {
 	virtual ~iSession (void) = default;

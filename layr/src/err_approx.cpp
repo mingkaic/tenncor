@@ -6,6 +6,7 @@
 
 namespace layr
 {
+
 AssignGroupsT sgd (const VarErrsT& leaves,
 	PybindT learning_rate, std::string root_label)
 {
