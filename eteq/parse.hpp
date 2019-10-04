@@ -1,3 +1,10 @@
+/// parse.hpp
+/// eteq
+///
+/// Purpose:
+/// Extend optimization module by defining ETEQ node parsing
+///
+
 #include "opt/parse.hpp"
 
 #include "eteq/eteq.hpp"
@@ -35,30 +42,36 @@ static CoordptrT coorderize (::NumList* list)
 	return out;
 }
 
+/// Implementation of optimization converter that represents and builds scalar constants
 template <typename T>
 struct ScalarConvr final : public opt::iConverter
 {
 	ScalarConvr (double scalar) : scalar_(scalar) {}
 
+	/// Implementation of iConverter
 	teq::TensptrT build (const opt::ContexT& ctx,
 		teq::Shape outshape) const override
 	{
 		return make_constant_scalar((T) scalar_, outshape)->get_tensor();
 	}
 
+	/// Implementation of iConverter
 	std::string to_string (void) const override
 	{
 		return fmts::to_string(scalar_);
 	}
 
+	/// Scalar represented
 	double scalar_;
 };
 
+/// Implementation of optimization converter that represents any node
 template <typename T>
 struct AnyConvr final : public opt::iConverter
 {
 	AnyConvr (std::string any_id) : any_id_(any_id) {}
 
+	/// Implementation of iConverter
 	teq::TensptrT build (const opt::ContexT& ctx,
 		teq::Shape outshape) const override
 	{
@@ -71,14 +84,17 @@ struct AnyConvr final : public opt::iConverter
 		return *(val.begin());
 	}
 
+	/// Implementation of iConverter
 	std::string to_string (void) const override
 	{
 		return any_id_;
 	}
 
+	/// String id of the any node
 	std::string any_id_;
 };
 
+/// FuncArg equivalent for optimizer's IR of functor
 struct BuilderArg final
 {
 	BuilderArg (opt::ConvptrT arg,
@@ -91,21 +107,27 @@ struct BuilderArg final
 		}
 	}
 
+	/// Optimization IR node
 	opt::ConvptrT arg_;
 
+	/// Argument shaper
 	teq::CoordptrT shaper_;
 
+	/// Argument coordinate transformation data
 	CoordptrT coorder_;
 };
 
+/// Vector of FuncArg
 using BuilderArgsT = std::vector<BuilderArg>;
 
+/// Implementation of optimization converter that represents and builds functors
 template <typename T>
 struct FuncConvr final : public opt::iConverter
 {
 	FuncConvr (std::string op, BuilderArgsT args) :
 		opcode_({op, egen::get_op(op)}), args_(args) {}
 
+	/// Implementation of iConverter
 	teq::TensptrT build (const opt::ContexT& ctx,
 		teq::Shape outshape) const override
 	{
@@ -125,6 +147,7 @@ struct FuncConvr final : public opt::iConverter
 		return make_functor(opcode_, args)->get_tensor();
 	}
 
+	/// Implementation of iConverter
 	std::string to_string (void) const override
 	{
 		std::vector<std::string> args;
@@ -139,11 +162,14 @@ struct FuncConvr final : public opt::iConverter
 			args.begin(), args.end()).c_str());
 	}
 
+	/// Operator being represented
 	teq::Opcode opcode_;
 
+	/// Arguments of the functor
 	BuilderArgsT args_;
 };
 
+/// Implementation of optimization converter that represents and builds subgraphs of specific types
 template <typename T>
 struct GroupConvr final : public opt::iConverter
 {
@@ -153,6 +179,7 @@ struct GroupConvr final : public opt::iConverter
 		assert(group_ == "sum" || group_ == "prod"); // todo: generalize this for ordered-groups
 	}
 
+	/// Implementation of iConverter
 	teq::TensptrT build (const opt::ContexT& ctx,
 		teq::Shape outshape) const override
 	{
@@ -188,6 +215,7 @@ struct GroupConvr final : public opt::iConverter
 		return tenncor::prod(outs)->get_tensor();
 	}
 
+	/// Implementation of iConverter
 	std::string to_string (void) const override
 	{
 		std::vector<std::string> args;
@@ -206,16 +234,21 @@ struct GroupConvr final : public opt::iConverter
 			fmts::join(",", args.begin(), args.end()).c_str());
 	}
 
+	/// Group name
 	std::string group_;
 
+	/// Arguments of the group
 	BuilderArgsT args_;
 
+	/// Variadic Any id
 	std::string variadic_;
 };
 
+/// Optimization builder's implementation for building ETEQ nodes
 template <typename T>
 struct ConverterBuilder final : public opt::iConverterBuilder
 {
+	/// Implementation of iConverterBuilder
 	opt::CstConvertF build_cconv (void) const override
 	{
 		return [](teq::iTensor* tens)
@@ -231,6 +264,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 		};
 	}
 
+	/// Implementation of iConverterBuilder
 	opt::ConvptrT build (const ::Subgraph* sg,
 		const opt::RulesContext& ctx) const override
 	{
@@ -294,6 +328,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 		return out;
 	}
 
+	/// Implementation of iConverterBuilder
 	teq::CoordptrT shaperize (::NumList* list) const override
 	{
 		teq::CoordptrT out = nullptr;
@@ -323,12 +358,14 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 		return out;
 	}
 
+	/// Implementation of iConverterBuilder
 	teq::CoordptrT coorderize (::NumList* list) const override
 	{
 		return eteq::coorderize(list);
 	}
 };
 
+/// Return optimization rules tied to ETEQ Builder specified in content
 template <typename T>
 opt::OptCtx parse (std::string content)
 {
@@ -336,6 +373,7 @@ opt::OptCtx parse (std::string content)
 	return opt::parse(content, builder);
 }
 
+/// Return optimization rules tied to ETEQ Builder specified in file
 template <typename T>
 opt::OptCtx parse_file (std::string filename)
 {

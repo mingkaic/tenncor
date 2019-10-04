@@ -1,3 +1,10 @@
+/// random.hpp
+/// eteq
+///
+/// Purpose:
+/// Define randomization functions used in Eigen operators
+///
+
 #include <random>
 #include <type_traits>
 #include <functional>
@@ -11,12 +18,14 @@ namespace eteq
 /// RNG engine used
 using EngineT = std::default_random_engine;
 
+/// Function that returns a generated number
 template <typename T>
 using GenF = std::function<T()>;
 
 /// Return global random generator
 EngineT& get_engine (void);
 
+/// Return uniformly generated number between a and b (integers only)
 template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
 T unif (const T& a, const T& b)
 {
@@ -24,6 +33,7 @@ T unif (const T& a, const T& b)
 	return dist(get_engine());
 }
 
+/// Return uniformly generate number between a and b (decimals only)
 template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
 T unif (const T& a, const T& b)
 {
@@ -31,6 +41,7 @@ T unif (const T& a, const T& b)
 	return dist(get_engine());
 }
 
+/// Return uniformly generator function that produces numbers between a and b (integers only)
 template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
 GenF<T> unif_gen (const T& a, const T& b)
 {
@@ -38,6 +49,7 @@ GenF<T> unif_gen (const T& a, const T& b)
 	return std::bind(dist, get_engine());
 }
 
+/// Return uniformly generator function that produces numbers between a and b (decimals only)
 template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
 GenF<T> unif_gen (T a, T b)
 {
@@ -45,6 +57,7 @@ GenF<T> unif_gen (T a, T b)
 	return std::bind(dist, get_engine());
 }
 
+/// Return normally generator function that produces numbers with mean and stdev (decimals only)
 template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
 GenF<T> norm_gen (T mean, T stdev)
 {

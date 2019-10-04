@@ -1,3 +1,11 @@
+///
+/// dense.hpp
+/// layr
+///
+/// Purpose:
+/// Implement fully connected layer
+///
+
 #include "eteq/generated/api.hpp"
 
 #include "layr/init.hpp"
@@ -9,14 +17,18 @@
 namespace layr
 {
 
+/// Fully connected weight label
 const std::string dense_weight_key = "weight";
 
+/// Fully connected bias label
 const std::string dense_bias_key = "bias";
 
+/// Builder implementation for fully connected layer
 struct DenseBuilder final : public iLayerBuilder
 {
 	DenseBuilder (std::string label) : label_(label) {}
 
+	/// Implementation of iLayerBuilder
 	void set_tensor (teq::TensptrT tens, std::string target) override
 	{
 		if (target == dense_weight_key)
@@ -34,8 +46,10 @@ struct DenseBuilder final : public iLayerBuilder
 			tens->to_string().c_str(), target.c_str());
 	}
 
+	/// Implementation of iLayerBuilder
 	void set_sublayer (LayerptrT layer) override {} // dense has no sublayer
 
+	/// Implementation of iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
@@ -46,17 +60,15 @@ private:
 	std::string label_;
 };
 
+/// Identifier for fully connected layer
 const std::string dense_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "dense",
-[](teq::TensrefT ref, std::string label)
-{
-	get_layer_reg().layer_tag(ref, dense_layer_key, label);
-},
 [](std::string label) -> LBuilderptrT
 {
 	return std::make_shared<DenseBuilder>(label);
 });
 
+/// Layer implementation to apply fully_connect functions to weight and optional bias
 struct Dense final : public iLayer
 {
 	Dense (teq::DimT nunits, teq::DimT indim,
@@ -105,31 +117,46 @@ struct Dense final : public iLayer
 
 	Dense& operator = (Dense&& other) = default;
 
+	/// Return deep copy of this layer with prefixed label
 	Dense* clone (std::string label_prefix = "") const
 	{
 		return static_cast<Dense*>(this->clone_impl(label_prefix));
 	}
 
+	/// Implementation of iLayer
 	size_t get_ninput (void) const override
 	{
 		return weight_->shape().at(1);
 	}
 
+	/// Implementation of iLayer
 	size_t get_noutput (void) const override
 	{
 		return weight_->shape().at(0);
 	}
 
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return dense_layer_key;
 	}
 
+	/// Implementation of iLayer
 	std::string get_label (void) const override
 	{
 		return label_;
 	}
 
+	/// Implementation of iLayer
+	teq::TensptrsT get_contents (void) const override
+	{
+		return {
+			weight_->get_tensor(),
+			nullptr == bias_ ? nullptr : bias_->get_tensor(),
+		};
+	}
+
+	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
@@ -143,14 +170,6 @@ struct Dense final : public iLayer
 		}
 		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;
-	}
-
-	teq::TensptrsT get_contents (void) const override
-	{
-		return {
-			weight_->get_tensor(),
-			nullptr == bias_ ? nullptr : bias_->get_tensor(),
-		};
 	}
 
 private:
@@ -178,6 +197,7 @@ private:
 	NodeptrT bias_;
 };
 
+/// Smart pointer of fully connected layer
 using DenseptrT = std::shared_ptr<Dense>;
 
 }

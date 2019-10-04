@@ -1,3 +1,11 @@
+///
+/// voter.hpp
+/// opt
+///
+/// Purpose:
+/// Implement rule voter to identify functor types
+///
+
 #include "opt/ivoter.hpp"
 
 #ifndef OPT_VOTER_HPP
@@ -6,15 +14,18 @@
 namespace opt
 {
 
+/// Implement voter for ordered (non-commutative) functors
 struct OrdrVoter final : public iVoter
 {
 	OrdrVoter (std::string label) : label_(label) {}
 
+	/// Implementation of iVoter
 	void emplace (VoterArgsT args, Symbol sym) override
 	{
 		args_.emplace(args, sym);
 	}
 
+	/// Implementation of iVoter
 	CandsT inspect (const CandArgsT& args) const override
 	{
 		CandsT out;
@@ -47,16 +58,20 @@ struct OrdrVoter final : public iVoter
 		return out;
 	}
 
+	/// Label type of the functor
 	std::string label_;
 
+	/// Map functor arguments to emplaced symbols
 	std::unordered_map<VoterArgsT,Symbol,OrdrHasher> args_;
 };
 
 // todo: ensure comm voters are inspected after all available ordr voters are inspected (optimization)
+/// Implement voter for commutative functors
 struct CommVoter final : public iVoter
 {
 	CommVoter (std::string label) : label_(label) {}
 
+	/// Implementation of iVoter
 	void emplace (VoterArgsT args, Symbol sym) override
 	{
 		// sort args
@@ -87,6 +102,7 @@ struct CommVoter final : public iVoter
 		args_.emplace(segs, sym);
 	}
 
+	/// Implementation of iVoter
 	CandsT inspect (const CandArgsT& args) const override
 	{
 		CandsT out;
@@ -177,16 +193,20 @@ struct CommVoter final : public iVoter
 		return out;
 	}
 
+	/// Label type of the functor
 	std::string label_;
 
+	/// Map functor arguments to emplaced symbols
 	std::unordered_map<SegVArgs,Symbol,CommHasher> args_;
 };
 
+/// Implement voter for variadic groups
 struct VariadicVoter final : public iVoter
 {
 	VariadicVoter (std::string label, std::string variadic) :
 		label_(label), variadic_(variadic) {}
 
+	/// Implementation of iVoter
 	void emplace (VoterArgsT args, Symbol sym) override
 	{
 		// sort args
@@ -217,6 +237,7 @@ struct VariadicVoter final : public iVoter
 		args_.emplace(segs, sym);
 	}
 
+	/// Implementation of iVoter
 	CandsT inspect (const CandArgsT& args) const override
 	{
 		CandsT out;
@@ -323,10 +344,13 @@ struct VariadicVoter final : public iVoter
 		return out;
 	}
 
+	/// Label type of group
 	std::string label_;
 
+	/// Symbol of variadic argument
 	std::string variadic_;
 
+	/// Map functor arguments to emplaced symbols
 	std::unordered_map<SegVArgs,Symbol,CommHasher> args_;
 };
 

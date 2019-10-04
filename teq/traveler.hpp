@@ -43,10 +43,13 @@ struct OnceTraveler : public iTraveler
 		}
 	}
 
+	/// Do something during unique visit to leaf
 	virtual void visit_leaf (iLeaf* leaf) = 0;
 
+	/// Do something during unique visit to functor
 	virtual void visit_func (iFunctor* func) = 0;
 
+	/// Set of tensors visited
 	std::unordered_set<iTensor*> visited_;
 };
 
@@ -102,6 +105,7 @@ struct GraphStat final : public iTraveler
 	std::unordered_map<iTensor*,estd::NumRange<size_t>> graphsize_;
 };
 
+/// Map tensors to indices of children
 using ParentMapT = std::unordered_map<iTensor*,std::vector<size_t>>;
 
 /// Traveler that paints paths to a target tensor
@@ -150,7 +154,7 @@ struct PathFinder final : public iTraveler
 	/// Target of tensor all paths are travelling to
 	const iTensor* target_;
 
-	/// Map of parent nodes in path
+	/// Map of parent to child indices that lead to target tensor
 	ParentMapT parents_;
 };
 
@@ -181,6 +185,7 @@ struct ParentFinder final : public iTraveler
 	}
 
 	/// Tracks child to parents relationship
+	/// Maps child tensor to parent mapping to indices that point to child
 	std::unordered_map<iTensor*,ParentMapT> parents_;
 };
 
@@ -191,9 +196,10 @@ using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
 /// This utility function will grab reference maps of root's subtree
 OwnerMapT track_owners (TensptrsT roots);
 
+/// Leaves set and sets of functors ordered by height (by ascending order)
 struct HeightMatrix
 {
-	HeightMatrix (const TensptrsT& roots)
+	HeightMatrix (const TensptrsT& roots) // todo: make this a function
 	{
 		GraphStat stat;
 		for (TensptrT root : roots)
@@ -229,8 +235,10 @@ struct HeightMatrix
 		}
 	}
 
+	/// Leaves of specified subroot
 	std::unordered_set<iLeaf*> leaves_;
 
+	/// Functors of subgraph ordered by ascending maximum height
 	std::vector<std::unordered_set<iFunctor*>> funcs_;
 };
 

@@ -1,3 +1,11 @@
+///
+/// rmdups.hpp
+/// opt
+///
+/// Purpose:
+/// Define TEQ functor duplication removal algorithm
+///
+
 #include "opt/stats.hpp"
 
 #ifndef OPT_RMDUPS_HPP
@@ -6,9 +14,18 @@
 namespace opt
 {
 
+/// Replace source tensor's position with target's position
+/// in the sense that all parents of source (found in pfinder)
+/// take on target as the new child in place of source's
 void replace_parents (const teq::ParentFinder& pfinder,
 	teq::iTensor* source, teq::TensptrT target);
 
+/// Return non-duplicate nodes of a HeightMatrix row (tens)
+/// If T is a functor, a functor X is duplicate if their any of their child
+/// have another parent of the same opcode as X that has identical arguments
+/// as X (order matters if X is non-commutative)
+/// If T is a leaf, a leaf X is duplicate if the leaf is a constant and there
+/// exists another constant that has the same shape and data
 template <typename T>
 std::vector<T> remove_duplicates (teq::TensptrsT& roots, std::vector<T> tens,
 	const teq::ParentFinder& pfinder,
@@ -66,15 +83,19 @@ std::vector<T> remove_duplicates (teq::TensptrsT& roots, std::vector<T> tens,
 	return uniques;
 }
 
+/// Vector of presumably immutable leaves
 using ImmutablesT = std::vector<teq::LeafptrT>;
 
+/// Matrix of functors
 using HFunctorsT = std::vector<std::vector<teq::FuncptrT>>;
 
-// identify immutable leaves and organize functors by maxheight
+/// Populate immutables with immutable leaves and functors with functors
+/// ordered by functor max height in ascending order
 void populate_graph (ImmutablesT& immutables, HFunctorsT& functors,
 	const teq::TensptrsT& roots);
 
-// delete and update equivalent immutable leaves and functors
+/// Delete and update equivalent immutable leaves and functors
+/// according to remove_duplicates
 void remove_all_duplicates (teq::TensptrsT& roots,
 	ImmutablesT& immutables, HFunctorsT& functors);
 

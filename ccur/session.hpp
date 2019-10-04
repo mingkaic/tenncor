@@ -1,3 +1,11 @@
+///
+/// session.hpp
+/// ccur
+///
+/// Purpose:
+/// Implement session that runs functor updates concurrently
+///
+
 #include <atomic>
 
 #include <boost/asio/thread_pool.hpp>
@@ -7,24 +15,33 @@
 
 #include "ccur/partition.hpp"
 
-#ifndef CCE_ASESS_HPP
-#define CCE_ASESS_HPP
+#ifndef CCUR_SESS_HPP
+#define CCUR_SESS_HPP
 
 namespace ccur
 {
 
-using LSessReqsT = std::list<std::pair<teq::iOperableFunc*,size_t>>;
-
+/// Vector of operable functors and number of unique non-leaf children
+/// Functors are ordered by dependency,
+/// such that parents of any node always appears after the node in this vector
 using SessReqsT = std::vector<std::pair<teq::iOperableFunc*,size_t>>;
 
+/// Same as SessReqsT except as a list
+using LSessReqsT = std::list<std::pair<teq::iOperableFunc*,size_t>>;
+
+/// Map operable functors to the number of children updated in
+/// any update/update_target call
 using AtomicFulfilMapT = std::unordered_map<
 	teq::iOperableFunc*,std::atomic<long>>;
 
+/// Session that updates operable functors concurrently
+/// across specified a number of jobs
 struct Session final : public eteq::iSession
 {
 	Session (size_t nthreads = 2, OpWeightT weights = OpWeightT()) :
 		nthreads_(nthreads), weights_(weights) {}
 
+	/// Implementation of iSession
 	void track (teq::TensptrsT roots) override
 	{
 		tracked_.insert(roots.begin(), roots.end());
@@ -86,7 +103,7 @@ struct Session final : public eteq::iSession
 		}
 	}
 
-	// this function is expected to be called repeatedly during runtime
+	/// Implementation of iSession
 	void update (teq::TensSetT ignored = {}) override
 	{
 		size_t nthreads = requirements_.size();
@@ -169,7 +186,7 @@ struct Session final : public eteq::iSession
 		pool.join();
 	}
 
-	// this function is expected to be called repeatedly during runtime
+	/// Implementation of iSession
 	void update_target (teq::TensSetT target,
 		teq::TensSetT ignored = {}) override
 	{
@@ -253,6 +270,7 @@ struct Session final : public eteq::iSession
 		pool.join();
 	}
 
+	/// Apply input optimization rules using opt module, then re-track
 	void optimize (const opt::OptCtx& rules)
 	{
 		teq::TensptrsT tracked(tracked_.begin(), tracked_.end());
@@ -261,11 +279,16 @@ struct Session final : public eteq::iSession
 		track(tracked);
 	}
 
+	/// Set of all tensors input through tracked function
+	/// The set of roots of all session graphs is a possible subset
 	teq::TensptrSetT tracked_;
 
+	/// Map of tensor to the set of the tensor's parents
 	std::unordered_map<teq::iTensor*,
 		std::unordered_set<teq::iOperableFunc*>> parents_;
 
+	/// Vector of vectors of operable functors specific to each job
+	/// See SessReqsT
 	std::vector<SessReqsT> requirements_;
 
 private:
@@ -278,4 +301,4 @@ private:
 
 }
 
-#endif // CCE_ASESS_HPP
+#endif // CCUR_SESS_HPP

@@ -37,9 +37,17 @@ This module marshals any TEQ graph, but requires data serialization functors whe
 
 This module tags TEQ tensors with labels.
 
+- [CCUR (ConCURrent session)](ccur/README_CCUR.md)
+
+This module implements session that updates graph nodes concurrently
+
+- [LAYR (LAYeR models)](layr/README_LAYR.md)
+
+This module implements common machine learning models
+
 ## Tools and utility
 
-- DBG (Debugger)
+- DBG (DeBuGger)
 
 ## Building
 

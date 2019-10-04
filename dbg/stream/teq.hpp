@@ -16,6 +16,7 @@
 #ifndef DBG_TEQ_HPP
 #define DBG_TEQ_HPP
 
+/// Map tensor to label
 using LabelsMapT = std::unordered_map<teq::iTensor*,std::string>;
 
 /// Use PrettyTree to render teq::TensptrT graph as an ascii art
@@ -64,6 +65,7 @@ struct PrettyEquation final
 		drawer_.print(out, ptr.get());
 	}
 
+	/// Stream equation of raw ptr to out
 	void print (std::ostream& out, teq::iTensor* ptr)
 	{
 		drawer_.print(out, ptr);
@@ -72,6 +74,7 @@ struct PrettyEquation final
 	/// For every label associated with a tensor, show LABEL=value in the tree
 	LabelsMapT labels_;
 
+	/// Print every tensor's shape if true, otherwise don't
 	bool showshape_ = false;
 
 private:

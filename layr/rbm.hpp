@@ -1,3 +1,11 @@
+///
+/// rbm.hpp
+/// layr
+///
+/// Purpose:
+/// Implement restricted boltzmann layer
+///
+
 #include "layr/dense.hpp"
 #include "layr/activations.hpp"
 
@@ -7,21 +15,27 @@
 namespace layr
 {
 
+/// Hidden fully connected layer label
 const std::string hidden_key = "hidden";
 
+/// Visible fully connected layer label
 const std::string visible_key = "visible";
 
+/// Builder implementation for restricted boltzmann layer
 struct RBMBuilder final : public iLayerBuilder
 {
 	RBMBuilder (std::string label) : label_(label) {}
 
+	/// Implementation of iLayerBuilder
 	void set_tensor (teq::TensptrT tens, std::string target) override {} // rbm has no tensor
 
+	/// Implementation of iLayerBuilder
 	void set_sublayer (LayerptrT layer) override
 	{
 		layers_.push_back(layer);
 	}
 
+	/// Implementation of iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
@@ -30,17 +44,16 @@ private:
 	std::string label_;
 };
 
+/// Identifier for restricted boltzmann machine
 const std::string rbm_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "rbm",
-[](teq::TensrefT ref, std::string label)
-{
-	get_layer_reg().layer_tag(ref, rbm_layer_key, label);
-},
 [](std::string label) -> LBuilderptrT
 {
 	return std::make_shared<RBMBuilder>(label);
 });
 
+/// Layer implemnetation that connects forward and backward 
+/// through 2 Dense layers sharing a weight
 struct RBM final : public iLayer
 {
 	RBM (teq::DimT nhidden, teq::DimT nvisible,
@@ -96,36 +109,37 @@ struct RBM final : public iLayer
 
 	RBM& operator = (RBM&& other) = default;
 
+	/// Return deep copy of this layer with prefixed label
 	RBM* clone (std::string label_prefix = "") const
 	{
 		return static_cast<RBM*>(this->clone_impl(label_prefix));
 	}
 
+	/// Implementation of iLayer
 	size_t get_ninput (void) const override
 	{
 		return hidden_->get_ninput();
 	}
 
+	/// Implementation of iLayer
 	size_t get_noutput (void) const override
 	{
 		return hidden_->get_noutput();
 	}
 
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return rbm_layer_key;
 	}
 
+	/// Implementation of iLayer
 	std::string get_label (void) const override
 	{
 		return label_;
 	}
 
-	NodeptrT connect (NodeptrT visible) const override
-	{
-		return activation_->connect(hidden_->connect(visible));
-	}
-
+	/// Implementation of iLayer
 	teq::TensptrsT get_contents (void) const override
 	{
 		auto out = hidden_->get_contents();
@@ -136,6 +150,13 @@ struct RBM final : public iLayer
 		return out;
 	}
 
+	/// Implementation of iLayer
+	NodeptrT connect (NodeptrT visible) const override
+	{
+		return activation_->connect(hidden_->connect(visible));
+	}
+
+	/// Return visible reconstruction from hidden
 	NodeptrT backward_connect (NodeptrT hidden) const
 	{
 		return activation_->connect(visible_->connect(hidden));
@@ -205,6 +226,7 @@ private:
 	ActivationptrT activation_;
 };
 
+/// Smart pointer of RBM layer
 using RBMptrT = std::shared_ptr<RBM>;
 
 }
