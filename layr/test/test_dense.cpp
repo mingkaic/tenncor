@@ -342,7 +342,67 @@ TEST(DENSE, ConnectionTagging)
 
 TEST(DENSE, Building)
 {
-	//
+	std::stringstream ss;
+	std::string label = "very_dense";
+	teq::DimT ninput = 6, noutput = 5;
+	std::vector<PybindT> weight_data;
+	std::vector<PybindT> bias_data;
+	{
+		// save
+		layr::Dense dense(noutput, ninput,
+			layr::unif_xavier_init<PybindT>(2),
+			layr::unif_xavier_init<PybindT>(4),
+			label);
+
+		auto contents = dense.get_contents();
+		auto weight = contents[0];
+		auto bias = contents[1];
+		PybindT* w = eteq::NodeConverters<PybindT>::to_node(weight)->data();
+		PybindT* b = eteq::NodeConverters<PybindT>::to_node(bias)->data();
+		weight_data = std::vector<PybindT>(w, w + weight->shape().n_elems());
+		bias_data = std::vector<PybindT>(b, b + bias->shape().n_elems());
+
+		auto x = eteq::make_variable_scalar<PybindT>(
+			0, teq::Shape({6, 2}), "x");
+		auto y = dense.connect(x);
+
+		layr::save_layer(ss, dense, {y->get_tensor()});
+	}
+	ASSERT_EQ(noutput * ninput, weight_data.size());
+	ASSERT_EQ(noutput, bias_data.size());
+	{
+		// load
+		teq::TensptrsT roots;
+		auto dense = layr::load_layer(ss, roots,
+			layr::dense_layer_key, label);
+
+		// verify layer
+		auto contents = dense->get_contents();
+		auto weight = contents[0];
+		auto bias = contents[0];
+		teq::Shape exwshape({noutput, ninput});
+		teq::Shape exbshape({noutput});
+		auto wshape = weight->shape();
+		auto bshape = bias->shape();
+		ASSERT_ARREQ(exwshape, wshape);
+		ASSERT_ARREQ(exbshape, bshape);
+		PybindT* w = eteq::NodeConverters<PybindT>::to_node(weight)->data();
+		PybindT* b = eteq::NodeConverters<PybindT>::to_node(bias)->data();
+		std::vector<PybindT> gotw(w, w + weight->shape().n_elems());
+		std::vector<PybindT> gotb(b, b + bias->shape().n_elems());
+		EXPECT_ARREQ(weight_data, gotw);
+		EXPECT_ARREQ(bias_data, gotb);
+
+		// verify root
+		ASSERT_EQ(1, roots.size());
+		EXPECT_GRAPHEQ(
+			"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+			" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
+			" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", roots[0]);
+	}
 }
 
 

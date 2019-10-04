@@ -94,8 +94,7 @@ TEST(SERIALIZE, SaveGraph)
 	dw1->get_tensor()->accept(saver);
 	db1->get_tensor()->accept(saver);
 
-	pbm::PathedMapT labels; // todo: deprecate labels
-	saver.save(graph, labels);
+	saver.save(graph);
 
 	{
 		std::fstream gotstr(got_pbfile,
