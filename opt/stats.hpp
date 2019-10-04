@@ -1,3 +1,12 @@
+///
+/// stats.hpp
+/// opt
+///
+/// Purpose:
+/// Define comparator and conversion for TEQ objects
+/// for OPT normalization and logging
+///
+
 #include "teq/teq.hpp"
 
 #include "tag/prop.hpp"
@@ -8,33 +17,44 @@
 namespace opt
 {
 
+/// Return true if leaf contains a scalar
 bool is_scalar (teq::iLeaf* leaf);
 
 // ==== CoordptrT stringification + comparators
 
+/// Return brief hashable string representation of coordinate mapper
 std::string to_string (teq::CoordptrT c);
 
+/// Return true if a < b according to some internal ordinal rule
 bool lt (teq::CoordptrT a, teq::CoordptrT b);
 
+/// Return true if a is equal to b
 bool is_equal (teq::CoordptrT a, teq::CoordptrT b);
 
 // ==== Leaf comparators
 
+/// Return true if a.type_code < b.type_code or a.shape < b.shape
+/// if all above properties are equal,
+/// return true if a is in priorities otherwise false
 bool lt (teq::TensSetT priorities,
 	teq::iLeaf* a, teq::iLeaf* b);
 
-// for any ileaf pair a-b, they are equivalent IFF they are both tagged immutable AND
-// share same shape and data values
+/// Return true if a and b are both tagged immutable and
+/// share the same shape and data values
 bool is_equal (teq::iLeaf* a, teq::iLeaf* b);
 
 // ==== Functor comparators
 
+/// Return true if a.opcode < b.opcode or
+/// a.shape < b.shape or a.nchildren < b.nchildren
+/// if all above properties are equal,
+/// return true if a is in priorities otherwise false
 bool lt (teq::TensSetT priorities,
 	teq::iFunctor* a, teq::iFunctor* b);
 
-// for any functors a-b, they are equivalent IFF a and b are the same opcode AND
-// share identical function arguments (same children, shapers, and coorders)
-// order matters UNLESS the op is tagged as commutative
+/// Return true if a and b are the same opcode and
+/// have identical function arguments (same children, shapers, and coorders)
+/// Argument order matters unless the op is tagged as commutative
 bool is_equal (teq::iFunctor* a, teq::iFunctor* b);
 
 }
