@@ -259,7 +259,84 @@ TEST(DENSE, Tagging)
 
 TEST(DENSE, ConnectionTagging)
 {
-	//
+	std::string label = "very_dense";
+	layr::Dense dense(5, 6,
+		layr::unif_xavier_init<PybindT>(2),
+		layr::unif_xavier_init<PybindT>(4),
+		label);
+
+	auto x = eteq::make_variable_scalar<PybindT>(
+		0, teq::Shape({6, 2}), "x");
+	auto y = dense.connect(x);
+
+	auto contents = dense.get_contents();
+
+	tag::Query q;
+	y->get_tensor()->accept(q);
+
+	EXPECT_EQ(3, q.labels_.size());
+	ASSERT_HAS(q.labels_, layr::dense_layer_key);
+	ASSERT_HAS(q.labels_, tag::groups_key);
+	ASSERT_HAS(q.labels_, tag::props_key);
+	auto denses = q.labels_[layr::dense_layer_key];
+	auto groups = q.labels_[tag::groups_key];
+	auto props = q.labels_[tag::props_key];
+
+	EXPECT_EQ(3, denses.size());
+	ASSERT_HAS(denses, "very_dense::weight:0");
+	ASSERT_HAS(denses, "very_dense::bias:0");
+	ASSERT_HAS(denses, "very_dense:::0");
+	auto weights = denses["very_dense::weight:0"];
+	auto biases = denses["very_dense::bias:0"];
+	auto funcs = denses["very_dense:::0"];
+
+	ASSERT_EQ(1, weights.size());
+	ASSERT_EQ(1, biases.size());
+	EXPECT_EQ(3, funcs.size());
+
+	EXPECT_EQ(contents[0].get(), weights[0]);
+	EXPECT_EQ(contents[1].get(), biases[0]);
+
+	std::unordered_set<std::string> funcstrs;
+	std::transform(funcs.begin(), funcs.end(),
+		std::inserter(funcstrs, funcstrs.begin()),
+		[](teq::iTensor* tens)
+		{
+			return tens->to_string();
+		});
+	EXPECT_HAS(funcstrs, "MATMUL");
+	EXPECT_HAS(funcstrs, "ADD");
+	EXPECT_HAS(funcstrs, "EXTEND");
+
+	EXPECT_EQ(2, groups.size());
+	ASSERT_HAS(groups, "fully_connect");
+	ASSERT_HAS(groups, "sum");
+	auto fcon_group = groups["fully_connect"];
+	auto sum_group = groups["sum"];
+
+	EXPECT_EQ(3, fcon_group.size());
+	ASSERT_EQ(1, sum_group.size());
+
+	std::unordered_set<std::string> fconstrs;
+	std::transform(fcon_group.begin(), fcon_group.end(),
+		std::inserter(fconstrs, fconstrs.begin()),
+		[](teq::iTensor* tens)
+		{
+			return tens->to_string();
+		});
+	EXPECT_HAS(fconstrs, "MATMUL");
+	EXPECT_HAS(fconstrs, "ADD");
+	EXPECT_HAS(fconstrs, "EXTEND");
+
+	EXPECT_STREQ("ADD", sum_group[0]->to_string().c_str());
+
+	EXPECT_EQ(1, props.size());
+	ASSERT_HAS(props, tag::commutative_tag);
+	auto commies = props[tag::commutative_tag];
+
+	ASSERT_EQ(1, commies.size());
+
+	EXPECT_STREQ("ADD", commies[0]->to_string().c_str());
 }
 
 
