@@ -16,7 +16,7 @@ LayerptrT RBMBuilder::build (void) const
 	return std::make_shared<RBM>(
 		std::static_pointer_cast<Dense>(layers_[0]),
 		std::static_pointer_cast<Dense>(layers_[1]),
-		std::static_pointer_cast<Activation>(layers_[2]),
+		std::static_pointer_cast<ULayer>(layers_[2]),
 		label_);
 }
 

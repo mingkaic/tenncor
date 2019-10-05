@@ -207,6 +207,37 @@ FuncArg<T> pad_map (NodeptrT<T> node,
 		std::make_shared<CoordMap>(paddings, false));
 }
 
+/// Return FuncArg<T> that takes elements of 
+/// specific increments across dimensions starting from 0
+/// E.g.: tensor w/ shape [2, 3, 4], incrs = {1, 2, 2}
+/// gets mapped to [2, 2, 2] where 
+/// output[:,0,0] takes on input[:,0,0]
+/// output[:,1,0] takes on input[:,2,0]
+/// output[:,0,1] takes on input[:,0,2]
+/// output[:,1,1] takes on input[:,2,2]
+template <typename T>
+FuncArg<T> stride_map (NodeptrT<T> node,
+	const std::vector<teq::DimT>& incrs)
+{
+	teq::CoordT strides;
+	std::fill(strides.begin(), strides.end(), 1);
+	std::copy(incrs.begin(), incrs.end(), strides.begin());
+	return FuncArg<T>(node,
+		std::make_shared<teq::CoordMap>(
+			[=](teq::MatrixT fwd)
+			{
+				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+				{
+					// ceil(in_dim / stride) =
+					// round(in_dim / stride + 0.5 - <smol num>)
+					fwd[i][i] = 1. / strides[i];
+					fwd[teq::rank_cap][i] = 0.5 - 
+						1. / std::numeric_limits<teq::DimT>::max();
+				}
+			}),
+		std::make_shared<CoordMap>(strides, false));
+}
+
 }
 
 #endif // ETEQ_FUNCARG_HPP

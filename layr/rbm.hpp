@@ -7,7 +7,7 @@
 ///
 
 #include "layr/dense.hpp"
-#include "layr/activations.hpp"
+#include "layr/ulayer.hpp"
 
 #ifndef LAYR_RBM_HPP
 #define LAYR_RBM_HPP
@@ -52,12 +52,12 @@ get_layer_reg().register_tagr(layers_key_prefix + "rbm",
 	return std::make_shared<RBMBuilder>(label);
 });
 
-/// Layer implemnetation that connects forward and backward 
+/// Layer implemnetation that connects forward and backward
 /// through 2 Dense layers sharing a weight
 struct RBM final : public iLayer
 {
 	RBM (teq::DimT nhidden, teq::DimT nvisible,
-		ActivationptrT activation,
+		UnaryptrT activation,
 		layr::InitF<PybindT> weight_init,
 		layr::InitF<PybindT> bias_init,
 		const std::string& label) :
@@ -81,7 +81,7 @@ struct RBM final : public iLayer
 	}
 
 	RBM (DenseptrT hidden, DenseptrT visible,
-		ActivationptrT activation, std::string label) :
+		UnaryptrT activation, std::string label) :
 		label_(label),
 		hidden_(hidden),
 		visible_(visible),
@@ -213,7 +213,7 @@ private:
 			eteq::NodeConverters<PybindT>::to_node(hidden_contents[0])),
 			vbias_node, label_prefix + visible_key);
 
-		activation_ = ActivationptrT(other.activation_->clone(label_prefix));
+		activation_ = UnaryptrT(other.activation_->clone(label_prefix));
 		tag_sublayers();
 	}
 
@@ -223,7 +223,7 @@ private:
 
 	DenseptrT visible_;
 
-	ActivationptrT activation_;
+	UnaryptrT activation_;
 };
 
 /// Smart pointer of RBM layer

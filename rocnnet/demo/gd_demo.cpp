@@ -13,7 +13,7 @@
 #include "dbg/grpc/session.hpp"
 
 #include "layr/seqmodel.hpp"
-#include "layr/activations.hpp"
+#include "layr/ulayer.hpp"
 
 #include "rocnnet/trainer/mlp_trainer.hpp"
 

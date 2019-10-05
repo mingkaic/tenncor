@@ -166,6 +166,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::ADD:
 			case egen::SLICE:
 			case egen::PAD:
+			case egen::STRIDE: // todo: figure out if this belongs here
 				out = make_constant_scalar<T>(1, args[0].get_tensor()->shape());
 				break;
 			case egen::MUL:
@@ -387,6 +388,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::CONV_KRN_GRAD:
 				logs::fatal("cannot derive CONV_KRN_GRAD");
 				break;
+			case egen::STRIDE: // todo: implement
 			default:
 				logs::fatalf("Unknown op %s", opcode.name_.c_str());
 		}

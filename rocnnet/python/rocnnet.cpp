@@ -10,7 +10,7 @@
 
 #include "layr/init.hpp"
 
-#include "layr/activations.hpp"
+#include "layr/ulayer.hpp"
 #include "layr/dense.hpp"
 #include "layr/rbm.hpp"
 #include "layr/seqmodel.hpp"
@@ -127,7 +127,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// layers
 	py::class_<layr::iLayer,layr::LayerptrT> layer(m, "Layer");
-	py::class_<layr::Activation,layr::ActivationptrT,layr::iLayer> activation(m, "Activation");
+	py::class_<layr::ULayer,layr::UnaryptrT,layr::iLayer> ulayer(m, "ULayer");
 	py::class_<layr::Dense,layr::DenseptrT,layr::iLayer> dense(m, "Dense");
 	py::class_<layr::RBM,layr::RBMptrT,layr::iLayer> rbm(m, "RBM");
 	py::class_<layr::SequentialModel,layr::SeqModelptrT,layr::iLayer> seqmodel(m, "SequentialModel");
@@ -188,12 +188,12 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("get_ninput", &layr::iLayer::get_ninput)
 		.def("get_noutput", &layr::iLayer::get_noutput);
 
-	// activation
-	activation
+	// ulayer
+	ulayer
 		.def(py::init<const std::string&,const std::string&>(),
 			py::arg("label"),
-			py::arg("activation_type") = "sigmoid")
-		.def("clone", &layr::Activation::clone, py::arg("prefix") = "");
+			py::arg("ulayer_type") = "sigmoid")
+		.def("clone", &layr::ULayer::clone, py::arg("prefix") = "");
 
 	// dense
 	m.def("create_dense",
@@ -222,7 +222,7 @@ PYBIND11_MODULE(rocnnet, m)
 	m.def("create_rbm",
 		[](layr::DenseptrT hidden,
 			layr::DenseptrT visible,
-			layr::ActivationptrT activation,
+			layr::UnaryptrT activation,
 			std::string label)
 		{
 			return std::make_shared<layr::RBM>(
@@ -234,7 +234,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("label"));
 	rbm
 		.def(py::init<teq::DimT,teq::DimT,
-			layr::ActivationptrT,
+			layr::UnaryptrT,
 			layr::InitF<PybindT>,
 			layr::InitF<PybindT>,
 			const std::string&>(),
@@ -401,9 +401,6 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// inlines
 	m
-		// activations (no longer useful)
-		.def("identity", [](eteq::NodeptrT<PybindT> in){ return in; })
-
 		// optimizations
 		.def("get_sgd", &pyrocnnet::get_sgd,
 			py::arg("learning_rate") = 0.5)

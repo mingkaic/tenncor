@@ -355,6 +355,7 @@ TEST(DENSE, Building)
 			label);
 
 		auto contents = dense.get_contents();
+		ASSERT_EQ(2, contents.size());
 		auto weight = contents[0];
 		auto bias = contents[1];
 		PybindT* w = eteq::NodeConverters<PybindT>::to_node(weight)->data();
@@ -378,8 +379,9 @@ TEST(DENSE, Building)
 
 		// verify layer
 		auto contents = dense->get_contents();
+		ASSERT_EQ(2, contents.size());
 		auto weight = contents[0];
-		auto bias = contents[0];
+		auto bias = contents[1];
 		teq::Shape exwshape({noutput, ninput});
 		teq::Shape exbshape({noutput});
 		auto wshape = weight->shape();

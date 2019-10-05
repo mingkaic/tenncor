@@ -203,6 +203,27 @@ EigenptrT<T> pad (teq::Shape& outshape, const OpArg<T>& in)
 		}, make_tensmap(in.data_, in.shape_));
 }
 
+/// Return Eigen data object representing strided view of in
+template <typename T>
+EigenptrT<T> stride (teq::Shape& outshape, const OpArg<T>& in)
+{
+	assert(nullptr != in.coorder_);
+	teq::CoordT incrs_tmp;
+	in.coorder_->forward(incrs_tmp.begin(), incrs_tmp.end());
+	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
+	std::copy(incrs_tmp.begin(), incrs_tmp.end(), incrs.begin());
+	return make_eigentensor<T,Eigen::TensorStridingOp<
+			const Eigen::array<Eigen::DenseIndex,teq::rank_cap>,
+			TensMapT<T>
+		>,
+		TensMapT<T>>(
+		shape_convert(outshape),
+		[&incrs](TensMapT<T>& in)
+		{
+			return in.stride(incrs);
+		}, make_tensmap(in.data_, in.shape_));
+}
+
 /// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
 template <typename T>

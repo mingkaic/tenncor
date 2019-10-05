@@ -6,7 +6,8 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === usage ===
-P2 - implement pooling layer, dropout layer
+P2 - implement and test pooling gradient
+P2 - implement dropout layer
 P2 - implement convolutional nn, recurrent nn
 P2 - implement attention mechanisms
     - demo A3C, attention encoder+decoder

@@ -41,7 +41,7 @@ struct ConvBuilder final : public iLayerBuilder
 			return;
 		}
 		logs::warnf("attempt to create convolution layer "
-			"with unknown tensor `%s` with label `%s`",
+			"with unknown tensor `%s` of label `%s`",
 			tens->to_string().c_str(), target.c_str());
 	}
 
