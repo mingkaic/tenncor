@@ -11,16 +11,16 @@ High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0
 
 ## Components
 
-- [TEQ (Tensor EQuations)](teq/README_ADE.md)
+- [TEQ (Tensor EQuations)](teq/README_TEQ.md)
 
 This module supplies syntax tree for equation and generates derivative.
 Constraints to the equation is limited to each tensor's shape.
 
-- [DBG (Debug)](eteq/README_DBG.md)
+- [DBG (Debug)](dbg/README_DBG.md)
 
 This module is contains debug libraries for TEQ Graphs.
 
-- [ETEQ (Eigen TEQ)](eteq/README_EAD.md)
+- [ETEQ (Eigen TEQ)](eteq/README_ETEQ.md)
 
 This module is implements basic operations for Tenncor's TEQ Tensor objects generated through pybinder.
 Additionally, ETEQ also defines data format and (de)serialization methods required by PBM.

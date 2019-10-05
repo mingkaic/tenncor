@@ -34,20 +34,24 @@ def main(args):
     root.addHandler(handler)
 
     parser = argparse.ArgumentParser(description=prog_description)
-    parser.add_argument('--cfg', dest='cfgpath', nargs='?',
-        help='Configuration json file on mapping info (default: read from stdin)')
+    parser.add_argument('--cfgs', dest='cfgpaths', nargs='+',
+        help='Configuration json files on mapping info (default: read from stdin)')
     parser.add_argument('--out', dest='outpath', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
     parser.add_argument('--strip_prefix', dest='strip_prefix', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
     args = parser.parse_args(args)
 
-    cfgpath = args.cfgpath
-    if cfgpath:
-        with open(str(cfgpath), 'r') as cfg:
-            cfg_str = cfg.read()
-        if cfg_str == None:
-            raise Exception("cannot read from cfg file {}".format(cfgpath))
+    cfgpaths = args.cfgpaths
+    if cfgpaths and len(cfgpaths) > 0:
+        cfg_strs = []
+        for cfgpath in cfgpaths:
+            with open(str(cfgpath), 'r') as cfg:
+                cfg_str = cfg.read()
+            if cfg_str == None:
+                raise Exception("cannot read from cfg file {}".format(cfgpath))
+            cfg_strs.append(cfg_str)
+        cfg_str = '\n'.join(cfg_strs)
     else:
         cfg_str = sys.stdin.read()
 

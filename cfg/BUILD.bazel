@@ -6,12 +6,12 @@ package(
 
 filegroup(
     name = "eteq",
-    srcs = ["eteq.yml"],
+    srcs = ["eteq.yml", "fulltype.yml"],
 )
 
 filegroup(
     name = "eteq_min",
-    srcs = ["eteq_min.yml"],
+    srcs = ["eteq.yml", "mintype.yml"],
 )
 
 filegroup(
