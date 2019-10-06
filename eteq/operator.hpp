@@ -66,11 +66,13 @@ make_tensmap(in.data_, in.shape_));
 
 #define _ETEQ_INTERNAL_V2A(PROCESS, RED) {\
 	assert(nullptr != in.coorder_);\
-	teq::CoordT coord;\
-	in.coorder_->forward(coord.begin(), coord.begin());\
 	std::vector<teq::RankT> vdims;\
-	std::copy_if(coord.begin(), coord.end(), std::back_inserter(vdims),\
-		[](teq::RankT d) { return d < teq::rank_cap; });\
+	vdims.reserve(teq::rank_cap);\
+	in.coorder_->access([&](const teq::MatrixT& args){\
+		for (teq::RankT i = 0; i < teq::rank_cap &&\
+			args[0][i] < teq::rank_cap; ++i)\
+		{ vdims.push_back(args[0][i]); }\
+	});\
 	switch (vdims.size()) {\
 		_ETEQ_INTERNAL_V2A_CASE(0, PROCESS, RED)\
 		_ETEQ_INTERNAL_V2A_CASE(1, PROCESS, RED)\
@@ -115,7 +117,14 @@ EigenptrT<T> extend (teq::Shape& outshape, const OpArg<T>& in)
 {
 	assert(nullptr != in.coorder_);
 	teq::CoordT coord;
-	in.coorder_->forward(coord.begin(), coord.begin());
+	in.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				coord[i] = args[0][i];
+			}
+		});
 	return make_eigentensor<T,Eigen::TensorBroadcastingOp<
 		const teq::CoordT,const TensMapT<T>>,TensMapT<T>>(
 		shape_convert(outshape),
@@ -131,7 +140,14 @@ EigenptrT<T> permute (teq::Shape& outshape, const OpArg<T>& in)
 {
 	assert(nullptr != in.coorder_);
 	teq::CoordT reorder;
-	in.coorder_->forward(reorder.begin(), reorder.begin());
+	in.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				reorder[i] = args[0][i];
+			}
+		});
 	if (is_2d(outshape) && reorder[0] == 1 && reorder[1] == 0)
 	{
 		// use matrix when possible
@@ -157,24 +173,23 @@ template <typename T>
 EigenptrT<T> slice (teq::Shape& outshape, const OpArg<T>& in)
 {
 	assert(nullptr != in.coorder_);
-	teq::CoordT slicing;
-	in.coorder_->forward(slicing.begin(), slicing.begin());
-	teq::ShapeT offset;
-	teq::ShapeT extent;
-	std::fill(offset.begin(), offset.end(), 0);
-	std::copy(in.shape_.begin(), in.shape_.end(), extent.begin());
-	teq::RankT dimension = slicing[2];
-	offset[dimension] = slicing[0];
-	extent[dimension] = slicing[1];
+	teq::ShapeT offsets;
+	teq::ShapeT extents;
+	in.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			std::copy(args[0], args[0] + teq::rank_cap, offsets.begin());
+			std::copy(args[1], args[1] + teq::rank_cap, extents.begin());
+		});
 	return make_eigentensor<T,Eigen::TensorSlicingOp<
 			const teq::ShapeT, const teq::ShapeT,
 			TensMapT<T>
 		>,
 		TensMapT<T>>(
 		shape_convert(outshape),
-		[&offset, &extent](TensMapT<T>& in)
+		[&offsets, &extents](TensMapT<T>& in)
 		{
-			return in.slice(offset, extent);
+			return in.slice(offsets, extents);
 		}, make_tensmap(in.data_, in.shape_));
 }
 
@@ -183,14 +198,15 @@ template <typename T>
 EigenptrT<T> pad (teq::Shape& outshape, const OpArg<T>& in)
 {
 	assert(nullptr != in.coorder_);
-	teq::CoordT padding;
-	in.coorder_->forward(padding.begin(), padding.begin());
 	std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap> paddings;
-	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-	{
-		paddings[i] = std::make_pair(0, 0);
-	}
-	paddings[padding[2]] = std::make_pair(padding[0], padding[1]);
+	in.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				paddings[i] = {args[0][i], args[1][i]};
+			}
+		});
 	return make_eigentensor<T,Eigen::TensorPaddingOp<
 			const std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap>,
 			const TensMapT<T>
@@ -208,10 +224,15 @@ template <typename T>
 EigenptrT<T> stride (teq::Shape& outshape, const OpArg<T>& in)
 {
 	assert(nullptr != in.coorder_);
-	teq::CoordT incrs_tmp;
-	in.coorder_->forward(incrs_tmp.begin(), incrs_tmp.end());
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
-	std::copy(incrs_tmp.begin(), incrs_tmp.end(), incrs.begin());
+	in.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				incrs[i] = args[0][i];
+			}
+		});
 	return make_eigentensor<T,Eigen::TensorStridingOp<
 			const Eigen::array<Eigen::DenseIndex,teq::rank_cap>,
 			TensMapT<T>
@@ -1085,10 +1106,15 @@ template <typename T>
 EigenptrT<T> convolution (teq::Shape& outshape, const OpArg<T>& input, const OpArg<T>& kernel)
 {
 	assert(nullptr != kernel.coorder_);
-	teq::CoordT kernel_dims;
-	kernel.coorder_->forward(kernel_dims.begin(), kernel_dims.begin());
 	teq::ShapeT dims;
-	std::copy(kernel_dims.begin(), kernel_dims.end(), dims.begin());
+	kernel.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				dims[i] = args[0][i];
+			}
+		});
 
 	return make_eigentensor<T,Eigen::TensorConvolutionOp<
 		const teq::ShapeT,

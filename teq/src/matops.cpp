@@ -88,8 +88,8 @@ std::string to_string (const MatrixT& mat)
 double determinant (const MatrixT& mat)
 {
 	// copy mat over to temp array to allow row swapping
-	double temp[mat_dim * mat_dim];
-	std::memcpy(temp, mat, mat_size);
+	double temp[mat_size];
+	std::copy(mat[0], mat[0] + mat_size, temp);
 	double* m[mat_dim];
 	m[0] = temp;
 	for (RankT i = 1; i < mat_dim; i++)
@@ -145,12 +145,12 @@ double determinant (const MatrixT& mat)
 
 void inverse (MatrixT out, const MatrixT& in)
 {
-	size_t rowbytes = sizeof(double) * mat_dim;
 	AugMatrixT aug;
 	for (RankT i = 0; i < mat_dim; ++i)
 	{
-		std::memcpy(aug[i], in[i], rowbytes);
-		std::memset(aug[i] + mat_dim, 0, rowbytes);
+		std::copy(in[i], in[i] + mat_dim, aug[i]);
+		auto aptr = aug[i] + mat_dim;
+		std::fill(aptr, aptr + mat_dim, 0);
 		// augment by identity matrix to right
 		aug[i][mat_dim + i] = 1;
 	}
@@ -161,7 +161,8 @@ void inverse (MatrixT out, const MatrixT& in)
 	// remove identity matrix to left
 	for (RankT i = 0; i < mat_dim; ++i)
 	{
-		std::memcpy(out[i], aug[i] + mat_dim, rowbytes);
+		auto aptr = aug[i] + mat_dim;
+		std::copy(aptr, aptr + mat_dim, out[i]);
 	}
 }
 

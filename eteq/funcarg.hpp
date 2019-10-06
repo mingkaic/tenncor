@@ -142,24 +142,34 @@ FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 	return FuncArg<T>(node, teq::permute(order), permute(order));
 }
 
-/// Return FuncArg<T> that takes specific slice of tensor
+template <typename T>
+using PairVecT = std::vector<std::pair<T,T>>;
+
+/// Return FuncArg<T> that takes specific slice of tensor according to
+/// vector of offset, extent pairs
 /// E.g.: tensor w/ shape [2, 3, 4], offset = 1, extent = 2, and dimension = 2
 /// gets mapped to [3, 4, 2] that references [:,:,1:3]
 /// (second and third slices of the 3rd dimension)
 template <typename T>
-FuncArg<T> slice_map (NodeptrT<T> node, teq::RankT offset,
-	teq::RankT extent, teq::RankT dimension)
+FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 {
-	if (dimension >= teq::rank_cap)
+	if (extents.size() > teq::rank_cap)
 	{
-		logs::fatalf("cannot slice dimension %d beyond rank_cap %d",
-			dimension, teq::rank_cap);
+		logs::fatalf(
+			"cannot slice dimensions beyond rank_cap %d: using extent %s",
+			teq::rank_cap,
+			fmts::to_string(extents.begin(), extents.end()).c_str());
 	}
-	teq::CoordT slicings;
-	std::fill(slicings.begin(), slicings.end(), teq::rank_cap);
-	slicings[0] = offset;
-	slicings[1] = extent;
-	slicings[2] = dimension;
+	teq::Shape shape = node->shape();
+	teq::CoordT offsets;
+	teq::CoordT ns;
+	for (size_t i = 0, n = extents.size(); i < n; ++i)
+	{
+		auto& ex = extents[i];
+		teq::DimT offset = std::min(ex.first, shape.at(i));
+		offsets[i] = offset;
+		ns[i] = std::min(ex.second, (teq::DimT) (shape.at(i) - offset));
+	}
 	return FuncArg<T>(node,
 		std::make_shared<teq::CoordMap>(
 			[=](teq::MatrixT fwd)
@@ -167,32 +177,34 @@ FuncArg<T> slice_map (NodeptrT<T> node, teq::RankT offset,
 				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 				{
 					fwd[i][i] = 1;
+					fwd[teq::rank_cap][i] = ns[i] - shape.at(i);
 				}
-				fwd[teq::rank_cap][dimension] =
-					extent - node->shape().at(dimension);
 			}),
-		std::make_shared<CoordMap>(slicings, false));
+		std::make_shared<CoordMap>(
+			[&](teq::MatrixT args)
+			{
+				for (size_t i = 0; i < teq::rank_cap; ++i)
+				{
+					args[0][i] = offsets[i];
+					args[1][i] = ns[i];
+				}
+			}));
 }
 
-/// Return FuncArg<T> that pads tensor with 0s across specified dimension
+/// Return FuncArg<T> that pads tensor with 0s across specified dimensions
 /// E.g.: tensor w/ shape [2, 3, 4], padding = {2,1}, dimension = 0
 /// gets mapped to [5, 3, 4] where [0,:,:] and [3:5,:,:] are 0
 /// (first, fourth, and fifth slices of the 1st dimension are 0)
 template <typename T>
-FuncArg<T> pad_map (NodeptrT<T> node,
-	const std::pair<teq::DimT,teq::DimT>& padding,
-	teq::RankT dimension)
+FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 {
-	if (dimension >= teq::rank_cap)
+	if (paddings.size() > teq::rank_cap)
 	{
-		logs::fatalf("cannot pad dimension %d beyond rank_cap %d",
-			dimension, teq::rank_cap);
+		logs::fatalf(
+			"cannot pad dimensions beyond rank_cap %d: using paddings %s",
+			teq::rank_cap,
+			fmts::to_string(paddings.begin(), paddings.end()).c_str());
 	}
-	teq::CoordT paddings;
-	std::fill(paddings.begin(), paddings.end(), teq::rank_cap);
-	paddings[0] = padding.first;
-	paddings[1] = padding.second;
-	paddings[2] = dimension;
 	return FuncArg<T>(node,
 		std::make_shared<teq::CoordMap>(
 			[=](teq::MatrixT fwd)
@@ -200,17 +212,25 @@ FuncArg<T> pad_map (NodeptrT<T> node,
 				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 				{
 					fwd[i][i] = 1;
+					fwd[teq::rank_cap][i] =
+						paddings[i].first + paddings[i].second;
 				}
-				fwd[teq::rank_cap][dimension] =
-					padding.first + padding.second;
 			}),
-		std::make_shared<CoordMap>(paddings, false));
+		std::make_shared<CoordMap>(
+			[&](teq::MatrixT args)
+			{
+				for (size_t i = 0; i < teq::rank_cap; ++i)
+				{
+					args[0][i] = paddings[i].first;
+					args[1][i] = paddings[i].second;
+				}
+			}));
 }
 
-/// Return FuncArg<T> that takes elements of 
+/// Return FuncArg<T> that takes elements of
 /// specific increments across dimensions starting from 0
 /// E.g.: tensor w/ shape [2, 3, 4], incrs = {1, 2, 2}
-/// gets mapped to [2, 2, 2] where 
+/// gets mapped to [2, 2, 2] where
 /// output[:,0,0] takes on input[:,0,0]
 /// output[:,1,0] takes on input[:,2,0]
 /// output[:,0,1] takes on input[:,0,2]
@@ -219,9 +239,12 @@ template <typename T>
 FuncArg<T> stride_map (NodeptrT<T> node,
 	const std::vector<teq::DimT>& incrs)
 {
-	teq::CoordT strides;
-	std::fill(strides.begin(), strides.end(), 1);
-	std::copy(incrs.begin(), incrs.end(), strides.begin());
+	if (incrs.size() > teq::rank_cap)
+	{
+		logs::warnf("trying to stride in dimensions beyond rank_cap %d: "
+			"using strides %s (will ignore those dimensions)", teq::rank_cap,
+			fmts::to_string(incrs.begin(), incrs.end()).c_str());
+	}
 	return FuncArg<T>(node,
 		std::make_shared<teq::CoordMap>(
 			[=](teq::MatrixT fwd)
@@ -230,12 +253,19 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 				{
 					// ceil(in_dim / stride) =
 					// round(in_dim / stride + 0.5 - <smol num>)
-					fwd[i][i] = 1. / strides[i];
-					fwd[teq::rank_cap][i] = 0.5 - 
+					fwd[i][i] = 1. / incrs[i];
+					fwd[teq::rank_cap][i] = 0.5 -
 						1. / std::numeric_limits<teq::DimT>::max();
 				}
 			}),
-		std::make_shared<CoordMap>(strides, false));
+		std::make_shared<CoordMap>(
+			[&](teq::MatrixT args)
+			{
+				for (size_t i = 0; i < teq::rank_cap; ++i)
+				{
+					args[0][i] = incrs[i];
+				}
+			}));
 }
 
 }

@@ -31,17 +31,20 @@ NodeptrT<T> reduce_grad (const teq::FuncArg& child,
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);
-		teq::CoordT dims;
-		coorder->forward(dims.begin(), dims.begin());
 		teq::CoordT bcast;
 		std::fill(bcast.begin(), bcast.end(), 1);
-		for (teq::RankT d : dims)
-		{
-			if (d < teq::rank_cap)
+		coorder->access(
+			[&](const teq::MatrixT& args)
 			{
-				bcast[d] = shape.at(d);
-			}
-		}
+				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+				{
+					auto d = args[0][i];
+					if (d < teq::rank_cap)
+					{
+						bcast[d] = shape.at(d);
+					}
+				}
+			});
 		revcoord = std::make_shared<CoordMap>(bcast, false);
 	}
 	return make_functor<T>(teq::Opcode{"EXTEND",egen::EXTEND}, {
@@ -60,14 +63,15 @@ NodeptrT<T> permute_grad (teq::iFunctor* fwd,
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);
-		teq::CoordT dims;
-		coorder->forward(dims.begin(), dims.begin());
-
 		teq::CoordT order;
-		for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-		{
-			order[dims[i]] = i;
-		}
+		coorder->access(
+			[&](const teq::MatrixT& args)
+			{
+				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+				{
+					order[args[0][i]] = i;
+				}
+			});
 		revcoord = std::make_shared<CoordMap>(order, true);
 	}
 	return make_functor<T>(teq::Opcode{"PERMUTE",egen::PERMUTE},{
@@ -86,16 +90,18 @@ NodeptrT<T> extend_grad (teq::iFunctor* fwd,
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);
-		teq::CoordT dims;
-		coorder->forward(dims.begin(), dims.begin());
 		std::vector<teq::RankT> red_dims;
-		for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-		{
-			if (dims[i] > 1)
+		coorder->access(
+			[&](const teq::MatrixT& args)
 			{
-				red_dims.push_back(i);
-			}
-		}
+				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+				{
+					if (args[0][i] > 1)
+					{
+						red_dims.push_back(i);
+					}
+				}
+			});
 		revcoord = reduce(red_dims);
 	}
 	return make_functor<T>(teq::Opcode{"REDUCE_SUM",egen::REDUCE_SUM},{
@@ -335,33 +341,51 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::SLICE:
 			{
-				teq::CoordT slicings;
 				auto& child = op->get_children()[0];
-				child.get_coorder()->forward(
-					slicings.begin(), slicings.begin());
-				teq::DimT dimension = slicings[2];
-				teq::DimT dim = child.get_tensor()->shape().at(dimension);
-				teq::DimT left_pad = slicings[0];
-				teq::DimT right_pad = dim - (left_pad + slicings[1]);
+				teq::ShapeT offsets;
+				teq::ShapeT extents;
+				child.get_coorder()->access(
+					[&](const teq::MatrixT& args)
+					{
+						std::copy(args[0], args[0] + teq::rank_cap, offsets.begin());
+						std::copy(args[1], args[1] + teq::rank_cap, extents.begin());
+					});
+				teq::Shape cshape = child.get_tensor()->shape();
+				eteq::PairVecT<teq::DimT> paddings;
+				paddings.reserve(teq::rank_cap);
+				for (size_t i = 0; i < teq::rank_cap; ++i)
+				{
+					teq::DimT leftpad = offsets[i];
+					paddings.push_back({leftpad,
+						cshape.at(i) - (leftpad + extents[i])});
+				}
 				out = TO_NODE(local_der) *
-					tenncor::pad(TO_NODE(supcomp_grad),
-						std::pair<teq::DimT,teq::DimT>{
-							left_pad, right_pad}, dimension);
+					tenncor::pad(TO_NODE(supcomp_grad), paddings);
 			}
 				break;
 			case egen::PAD:
 			{
 				teq::CoordT paddings;
 				auto& child = op->get_children()[0];
-				child.get_coorder()->forward(
-					paddings.begin(), paddings.begin());
-				teq::DimT dimension = paddings[2];
-				teq::DimT dim = op->shape().at(dimension);
-				teq::DimT offset = paddings[0];
-				teq::DimT extent = dim - paddings[1] - offset;
+				teq::ShapeT leftpad;
+				teq::ShapeT rightpad;
+				child.get_coorder()->access(
+					[&](const teq::MatrixT& args)
+					{
+						std::copy(args[0], args[0] + teq::rank_cap, leftpad.begin());
+						std::copy(args[1], args[1] + teq::rank_cap, rightpad.begin());
+					});
+				teq::Shape oshape = op->shape();
+				eteq::PairVecT<teq::DimT> extents;
+				extents.reserve(teq::rank_cap);
+				for (size_t i = 0; i < teq::rank_cap; ++i)
+				{
+					teq::DimT offset = leftpad[i];
+					extents.push_back({offset,
+						oshape.at(i) - rightpad[i] - offset});
+				}
 				out = TO_NODE(local_der) *
-					tenncor::slice(TO_NODE(supcomp_grad),
-						offset, extent, dimension);
+					tenncor::slice(TO_NODE(supcomp_grad), extents);
 			}
 				break;
 			case egen::SELECT:

@@ -80,7 +80,8 @@ struct Variable final : public iLeaf<T>
 				"internal data of shape %s", ninput,
 				this->shape_.to_string().c_str());
 		}
-		std::memcpy(this->data_.data(), input.data(), ninput * sizeof(T));
+		T* indata = input.data();
+		std::copy(indata, indata + ninput, this->data_.data());
 		return *this;
 	}
 

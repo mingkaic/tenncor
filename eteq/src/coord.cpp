@@ -64,7 +64,7 @@ CoordptrT permute (std::vector<teq::RankT> dims)
 	}
 
 	bool visited[teq::rank_cap];
-	std::memset(visited, false, teq::rank_cap);
+	std::fill(visited, visited + teq::rank_cap, false);
 	for (teq::RankT i = 0, n = dims.size(); i < n; ++i)
 	{
 		if (visited[dims[i]])

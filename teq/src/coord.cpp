@@ -145,7 +145,7 @@ CoordptrT permute (std::vector<RankT> dims)
 	}
 
 	bool visited[rank_cap];
-	std::memset(visited, false, rank_cap);
+	std::fill(visited, visited + rank_cap, false);
 	for (RankT i = 0, n = dims.size(); i < n; ++i)
 	{
 		visited[dims[i]] = true;

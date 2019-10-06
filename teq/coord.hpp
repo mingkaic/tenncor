@@ -43,13 +43,15 @@ struct iCoordMap
 	virtual bool is_bijective (void) const = 0;
 };
 
+using MatInitF = std::function<void(MatrixT)>;
+
 /// Coordinate transformation implementation using homogeneous matrices
 /// The transformation matrix must be inversible otherwise fatal on creation
 struct CoordMap final : public iCoordMap
 {
-	CoordMap (std::function<void(MatrixT)> init)
+	CoordMap (MatInitF init)
 	{
-		std::memset(fwd_, 0, mat_size);
+		std::fill(fwd_[0], fwd_[0] + mat_size, 0);
 		fwd_[rank_cap][rank_cap] = 1;
 		init(fwd_);
 	}
@@ -82,7 +84,7 @@ struct CoordMap final : public iCoordMap
 	/// Implementation of iCoordMap
 	std::string to_string (void) const override
 	{
-		return teq::to_string(fwd_);
+		return ::teq::to_string(fwd_);
 	}
 
 	/// Implementation of iCoordMap

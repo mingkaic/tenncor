@@ -29,7 +29,8 @@ PYBIND11_MODULE(eteq_mocker, m)
 					auto& slist = out.dimensions();
 					teq::Shape shape(std::vector<teq::DimT>(
 						slist.begin(), slist.end()));
-					memcpy(out.data(), output.data(), sizeof(PybindT) * shape.n_elems());
+					PybindT* outptr = output.data();
+					std::copy(outptr, outptr + shape.n_elems(), out.data());
 				},
 				{eteq::identity_map(arg)});
 		});

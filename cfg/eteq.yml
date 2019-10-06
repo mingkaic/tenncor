@@ -643,7 +643,8 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"EXTEND",::egen::EXTEND},{eteq::extend_map(arg,offset,xlist)});
-      - template: typename T
+      - description: sum values ignoring coordinate indices between start and end
+        template: typename T
         name: reduce_sum
         args:
         - dtype: eteq::NodeptrT<T>
@@ -657,8 +658,8 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_SUM",::egen::REDUCE_SUM},{eteq::reduce_map(tens,offset,ndims)});
-        description: sum values ignoring coordinate indices between start and end
-      - template: typename T
+      - description: multiply values ignoring coordinate indices between start and end
+        template: typename T
         name: reduce_prod
         args:
         - dtype: eteq::NodeptrT<T>
@@ -672,8 +673,8 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_PROD",::egen::REDUCE_PROD},{eteq::reduce_map(tens,offset,ndims)});
-        description: multiply values ignoring coordinate indices between start and end
-      - template: typename T
+      - description: min values ignoring coordinate indices between start and end
+        template: typename T
         name: reduce_min
         args:
         - dtype: eteq::NodeptrT<T>
@@ -687,8 +688,8 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_MIN",::egen::REDUCE_MIN},{eteq::reduce_map(tens,offset,ndims)});
-        description: min values ignoring coordinate indices between start and end
-      - template: typename T
+      - description: max values ignoring coordinate indices between start and end
+        template: typename T
         name: reduce_max
         args:
         - dtype: eteq::NodeptrT<T>
@@ -702,7 +703,6 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_MAX",::egen::REDUCE_MAX},{eteq::reduce_map(tens,offset,ndims)});
-        description: max values ignoring coordinate indices between start and end
       - template: typename T
         name: n_elems
         args:
@@ -721,14 +721,25 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_constant_scalar<T>(arg->get_tensor()->shape().at(rank), teq::Shape());
+      - description: extents vector consists of pairs offset and extent for each dimension
+        template: typename T
+        name: slice
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: eteq::PairVecT<teq::DimT>
+          name: extents
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"SLICE",::egen::SLICE}, {eteq::slice_map<T>(arg, extents)});
       - template: typename T
         name: slice
         args:
         - dtype: eteq::NodeptrT<T>
           name: arg
-        - dtype: teq::RankT
+        - dtype: teq::DimT
           name: offset
-        - dtype: teq::RankT
+        - dtype: teq::DimT
           name: extent
         - dtype: teq::RankT
           name: dimension
@@ -736,8 +747,21 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  return eteq::make_functor<T>(teq::Opcode{"SLICE",::egen::SLICE}, {
-                      eteq::slice_map<T>(arg, offset, extent, dimension)});
+                  std::vector<std::pair<teq::DimT,teq::DimT>> extents(
+                      std::max(teq::rank_cap, dimension),
+                      {0,std::numeric_limits<teq::DimT>::max()});
+                  extents[dimension] = {offset, extent};
+                  return ::tenncor::slice(arg, extents);
+      - template: typename T
+        name: pad
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: eteq::PairVecT<teq::DimT>
+          name: paddings
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"PAD",::egen::PAD}, {eteq::pad_map<T>(arg, paddings)});
       - template: typename T
         name: pad
         args:
@@ -751,8 +775,10 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  return eteq::make_functor<T>(teq::Opcode{"PAD",::egen::PAD}, {
-                      eteq::pad_map<T>(arg, padding, dimension)});
+                  std::vector<std::pair<teq::DimT,teq::DimT>> paddings(
+                      std::max(teq::rank_cap, dimension), {0,0});
+                  paddings[dimension] = padding;
+                  return ::tenncor::pad(arg, paddings);
       - template: typename T
         name: stride
         args:
@@ -1030,7 +1056,8 @@ api:
                       hi->get_tensor().get(),
                   });
                   return out;
-      - template: typename T
+      - description: clip by l2norm
+        template: typename T
         name: clip_by_l2norm
         args:
         - dtype: eteq::NodeptrT<T>
@@ -1041,7 +1068,7 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  //todo: allow l2norm offset and ndims to be configurable
+                  // todo: allow l2norm offset and ndims to be configurable
                   if (upper == 0)
                   {
                       logs::fatal("cannot clip_by_norm with a upper limit of 0");
@@ -1057,7 +1084,6 @@ api:
                       limit->get_tensor().get(),
                   });
                   return out;
-        description: 'clip by l2norm'
       - template: typename T
         name: sum
         args:
@@ -1247,11 +1273,9 @@ api:
                   convolveds.reserve(nfilters);
                   if (zero_padding.first > 0 || zero_padding.second > 0)
                   {
-                      // todo: improve pad
-                      image = ::tenncor::pad(
-                          ::tenncor::pad(image,
-                              {zero_padding.first,zero_padding.first}, 1),
-                          {zero_padding.second,zero_padding.second}, 2);
+                      image = ::tenncor::pad(image, {{0, 0},
+                          {zero_padding.first, zero_padding.first},
+                          {zero_padding.second, zero_padding.second}});
                   }
                   for (teq::DimT i = 0; i < nfilters; ++i)
                   {
@@ -1291,11 +1315,12 @@ api:
                       ::tenncor::slice(arg, 1, xextent, dims.first), strider);
                   auto bot_left = ::tenncor::stride(
                       ::tenncor::slice(arg, 1, yextent, dims.second), strider);
-                  // todo: improve slicing
+                  eteq::PairVecT<teq::DimT> pvec(teq::rank_cap,
+                      {0, std::numeric_limits<teq::DimT>::max()});
+                  pvec[dims.first] = {1, xextent};
+                  pvec[dims.second] = {1, yextent};
                   auto bot_right = ::tenncor::stride(
-                      ::tenncor::slice(
-                          ::tenncor::slice(arg, 1, xextent, dims.first),
-                          1, yextent, dims.second), strider);
+                      ::tenncor::slice(arg, pvec), strider);
 
                   // todo: tag this maybe?
                   return ::tenncor::div(::tenncor::sum(eteq::NodesT<T>{
@@ -1321,11 +1346,12 @@ api:
                       ::tenncor::slice(arg, 1, xextent, dims.first), strider);
                   auto bot_left = ::tenncor::stride(
                       ::tenncor::slice(arg, 1, yextent, dims.second), strider);
-                  // todo: improve slicing
+                  eteq::PairVecT<teq::DimT> pvec(teq::rank_cap,
+                      {0, std::numeric_limits<teq::DimT>::max()});
+                  pvec[dims.first] = {1, xextent};
+                  pvec[dims.second] = {1, yextent};
                   auto bot_right = ::tenncor::stride(
-                      ::tenncor::slice(
-                          ::tenncor::slice(arg, 1, xextent, dims.first),
-                          1, yextent, dims.second), strider);
+                      ::tenncor::slice(arg, pvec), strider);
 
                   // todo: tag this maybe?
                   return ::tenncor::max(eteq::NodesT<T>{

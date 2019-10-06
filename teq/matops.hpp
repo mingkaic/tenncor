@@ -22,7 +22,7 @@ namespace teq
 const RankT mat_dim = rank_cap + 1;
 
 /// Number of bytes in a homogeneous matrix
-const size_t mat_size = sizeof(double) * mat_dim * mat_dim;
+const size_t mat_size = mat_dim * mat_dim;
 
 /// Coordinate transformation matrix (using homogeneous)
 using MatrixT = double[mat_dim][mat_dim];
