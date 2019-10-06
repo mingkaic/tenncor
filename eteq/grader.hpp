@@ -172,7 +172,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::ADD:
 			case egen::SLICE:
 			case egen::PAD:
-			case egen::STRIDE: // todo: figure out if this belongs here
+			case egen::STRIDE:
+			case egen::SCATTER:
 				out = make_constant_scalar<T>(1, args[0].get_tensor()->shape());
 				break;
 			case egen::MUL:
@@ -365,15 +366,16 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::PAD:
 			{
-				teq::CoordT paddings;
 				auto& child = op->get_children()[0];
 				teq::ShapeT leftpad;
 				teq::ShapeT rightpad;
 				child.get_coorder()->access(
 					[&](const teq::MatrixT& args)
 					{
-						std::copy(args[0], args[0] + teq::rank_cap, leftpad.begin());
-						std::copy(args[1], args[1] + teq::rank_cap, rightpad.begin());
+						std::copy(args[0], args[0] + teq::rank_cap,
+							leftpad.begin());
+						std::copy(args[1], args[1] + teq::rank_cap,
+							rightpad.begin());
 					});
 				teq::Shape oshape = op->shape();
 				eteq::PairVecT<teq::DimT> extents;
@@ -386,6 +388,63 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				}
 				out = TO_NODE(local_der) *
 					tenncor::slice(TO_NODE(supcomp_grad), extents);
+			}
+				break;
+			case egen::STRIDE:
+			{
+				auto& child = op->get_children()[0];
+				teq::CoordT strides;
+				child.get_coorder()->access(
+					[&](const teq::MatrixT& args)
+					{
+						std::copy(args[0], args[0] + teq::rank_cap,
+							strides.begin());
+					});
+				teq::Shape origshape = child.get_tensor()->shape();
+				out = TO_NODE(local_der) *
+					eteq::make_functor<T>(teq::Opcode{"SCATTER",::egen::SCATTER}, {
+						FuncArg<T>(TO_NODE(supcomp_grad),
+							std::make_shared<teq::CoordMap>(
+								[origshape,strides](teq::MatrixT fwd)
+								{
+									for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+									{
+										if (strides[i] == 1)
+										{
+											fwd[i][i] = 1;
+										}
+										else
+										{
+											// shape can't be trivially reconstructed
+											fwd[teq::rank_cap][i] = origshape.at(i);
+										}
+									}
+								}),
+							std::make_shared<CoordMap>(
+								[&](teq::MatrixT args)
+								{
+									for (size_t i = 0; i < teq::rank_cap; ++i)
+									{
+										args[0][i] = strides[i];
+									}
+								})
+						)
+					});
+			}
+				break;
+			case egen::SCATTER:
+			{
+				auto& child = op->get_children()[0];
+				std::vector<teq::DimT> strides;
+				strides.reserve(teq::rank_cap);
+				child.get_coorder()->access(
+					[&](const teq::MatrixT& args)
+					{
+						std::copy(args[0], args[0] + teq::rank_cap,
+							std::back_inserter(strides));
+					});
+				out = TO_NODE(local_der) *
+					tenncor::stride(TO_NODE(supcomp_grad), strides);
 			}
 				break;
 			case egen::SELECT:
@@ -412,7 +471,6 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::CONV_KRN_GRAD:
 				logs::fatal("cannot derive CONV_KRN_GRAD");
 				break;
-			case egen::STRIDE: // todo: implement
 			default:
 				logs::fatalf("Unknown op %s", opcode.name_.c_str());
 		}

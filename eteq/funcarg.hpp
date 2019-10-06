@@ -183,6 +183,7 @@ FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 		std::make_shared<CoordMap>(
 			[&](teq::MatrixT args)
 			{
+				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan
 				for (size_t i = 0; i < teq::rank_cap; ++i)
 				{
 					args[0][i] = offsets[i];
@@ -219,6 +220,7 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 		std::make_shared<CoordMap>(
 			[&](teq::MatrixT args)
 			{
+				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan
 				for (size_t i = 0; i < teq::rank_cap; ++i)
 				{
 					args[0][i] = paddings[i].first;
@@ -242,7 +244,7 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 	if (incrs.size() > teq::rank_cap)
 	{
 		logs::warnf("trying to stride in dimensions beyond rank_cap %d: "
-			"using strides %s (will ignore those dimensions)", teq::rank_cap,
+			"using increments %s (will ignore those dimensions)", teq::rank_cap,
 			fmts::to_string(incrs.begin(), incrs.end()).c_str());
 	}
 	return FuncArg<T>(node,

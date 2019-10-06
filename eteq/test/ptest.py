@@ -935,28 +935,27 @@ class EADTest(unittest.TestCase):
         tfimage = tf.Variable(data)
         tfout = tf.nn.avg_pool2d(tfimage, [2, 2], [2, 2], padding='VALID')
         tfsess.run(tfimage.initializer)
-        tf_output = tfsess.run(tfout)
+        tfoutput = tfsess.run(tfout)
 
-        self._array_close(tf_output, output)
+        self._array_close(tfoutput, output)
 
-        # var2 = eteq.variable(data, 'var2')
-        # zero = eteq.derive(out, var2)
-        # ex = eteq.derive(out, image)
+        var2 = eteq.variable(data, 'var2')
+        zero = eteq.derive(out, var2)
+        ex = eteq.derive(out, image)
 
-        # sess.track([zero, ex])
-        # sess.update()
+        sess.track([zero, ex])
+        sess.update()
 
-        # rej = zero.get()
-        # der = ex.get()
+        rej = zero.get()
+        der = ex.get()
 
-        # data0 = np.zeros(shape, dtype=np.float32)
-        # tf_grad, tf_grad2 = tf.gradients(tfoutput, [tfimage, tfkernel])
+        data0 = np.zeros(shape, dtype=np.float32)
+        tf_grad = tf.gradients(tfout, [tfimage])
 
-        # exdata = tfsess.run(tf_grad)
-        # exdata2 = tfsess.run(tf_grad2)
+        exdata = tfsess.run(tf_grad)
 
-        # self._array_eq(data0, rej)
-        # self._array_close(exdata, der)
+        self._array_eq(data0, rej)
+        self._array_close(exdata[0], der)
 
     def test_maxpool(self):
         shape = [3, 8, 8, 2]
@@ -973,28 +972,27 @@ class EADTest(unittest.TestCase):
         tfimage = tf.Variable(data)
         tfout = tf.nn.max_pool2d(tfimage, [2, 2], [2, 2], padding='VALID')
         tfsess.run(tfimage.initializer)
-        tf_output = tfsess.run(tfout)
+        tfoutput = tfsess.run(tfout)
 
-        self._array_close(tf_output, output)
+        self._array_close(tfoutput, output)
 
-        # var2 = eteq.variable(data, 'var2')
-        # zero = eteq.derive(out, var2)
-        # ex = eteq.derive(out, image)
+        var2 = eteq.variable(data, 'var2')
+        zero = eteq.derive(out, var2)
+        ex = eteq.derive(out, image)
 
-        # sess.track([zero, ex])
-        # sess.update()
+        sess.track([zero, ex])
+        sess.update()
 
-        # rej = zero.get()
-        # der = ex.get()
+        rej = zero.get()
+        der = ex.get()
 
-        # data0 = np.zeros(shape, dtype=np.float32)
-        # tf_grad, tf_grad2 = tf.gradients(tfoutput, [tfimage, tfkernel])
+        data0 = np.zeros(shape, dtype=np.float32)
+        tf_grad = tf.gradients(tfout, [tfimage])
 
-        # exdata = tfsess.run(tf_grad)
-        # exdata2 = tfsess.run(tf_grad2)
+        exdata = tfsess.run(tf_grad)
 
-        # self._array_eq(data0, rej)
-        # self._array_close(exdata, der)
+        self._array_eq(data0, rej)
+        self._array_close(exdata[0], der)
 
     def test_grader_scenario1(self): # REDUCE -> MUL
         data = np.random.rand(3,10)

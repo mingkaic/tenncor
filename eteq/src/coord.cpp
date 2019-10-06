@@ -25,7 +25,7 @@ CoordptrT reduce (std::vector<teq::RankT> red_dims)
 	auto it = rdims.begin();
 	std::fill(it, rdims.end(), teq::rank_cap);
 	std::copy(red_dims.begin(), red_dims.end(), it);
-	return std::make_shared<CoordMap>(rdims, false);
+	return std::make_shared<CoordMap>(rdims);
 }
 
 CoordptrT extend (teq::RankT rank, std::vector<teq::DimT> ext)
@@ -52,7 +52,7 @@ CoordptrT extend (teq::RankT rank, std::vector<teq::DimT> ext)
 	auto it = bcast.begin();
 	std::fill(it, bcast.end(), 1);
 	std::copy(ext.begin(), ext.end(), it + rank);
-	return std::make_shared<CoordMap>(bcast, false);
+	return std::make_shared<CoordMap>(bcast);
 }
 
 CoordptrT permute (std::vector<teq::RankT> dims)

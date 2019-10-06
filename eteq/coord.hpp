@@ -15,6 +15,7 @@ namespace eteq
 {
 
 /// Eigen transformation wrapper implementation of iCoordMap
+// todo: replace this with teq::CoordMap
 struct CoordMap final : public teq::iCoordMap
 {
 	CoordMap (teq::CoordT indices, bool bijective = false) :
@@ -27,6 +28,7 @@ struct CoordMap final : public teq::iCoordMap
 		}
 	}
 
+	// todo: make init safer (values between rows are nan)
 	CoordMap (teq::MatInitF init, bool bijective = false) :
 		bijective_(bijective)
 	{

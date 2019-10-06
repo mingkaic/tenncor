@@ -123,6 +123,40 @@ struct EigenTensOp final : public iEigen<T>
 	TensorT<T> data_;
 };
 
+/// Implementation of iEigen that assigns TensorMap to Tensor object
+/// using some custom assignment
+template <typename T>
+struct EigenAssignTens final : public iEigen<T>
+{
+	EigenAssignTens (DimensionsT dims, TensMapT<T> arg,
+		std::function<void(TensorT<T>&,const TensMapT<T>&)> assign) :
+		arg_(arg), assign_(assign), data_(dims)
+	{
+		data_.setZero();
+	}
+
+	/// Implementation of iEigen<T>
+	void assign (void) override
+	{
+		assign_(data_, arg_);
+	}
+
+	/// Implementation of iEigen<T>
+	T* get_ptr (void) override
+	{
+		return data_.data();
+	}
+
+	/// Tensor operator arguments
+	TensMapT<T> arg_;
+
+	/// Tensor assignment
+	std::function<void(TensorT<T>&,const TensMapT<T>&)> assign_;
+
+	/// Output tensor data object
+	TensorT<T> data_;
+};
+
 /// Implementation of iEigen that assigns Matrix operator to Matrix object
 template <typename T, typename EigenSource, typename EigenArgs>
 struct EigenMatOp final : public iEigen<T>

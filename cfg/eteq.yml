@@ -39,6 +39,7 @@ opcode:
     SLICE: out = eteq::slice(shape,in[0]);
     PAD: out = eteq::pad(shape,in[0]);
     STRIDE: out = eteq::stride(shape,in[0]);
+    SCATTER: out = eteq::scatter(shape,in[0]);
     CONV_IMG_GRAD: out = eteq::convolution_image_grad(shape,in[0],in[1]);
     CONV_KRN_GRAD: out = eteq::convolution_kernel_grad(shape,in[0],in[1]);
     SELECT: out = eteq::select(shape, in[0], in[1], in[2]);

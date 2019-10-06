@@ -245,6 +245,30 @@ EigenptrT<T> stride (teq::Shape& outshape, const OpArg<T>& in)
 		}, make_tensmap(in.data_, in.shape_));
 }
 
+/// Return Eigen data object that scatters data in
+/// specific increments across dimensions
+/// This function is the reverse of stride
+template <typename T>
+EigenptrT<T> scatter (teq::Shape& outshape, const OpArg<T>& in)
+{
+	assert(nullptr != in.coorder_);
+	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
+	in.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				incrs[i] = args[0][i];
+			}
+		});
+	return std::make_shared<EigenAssignTens<T>>(shape_convert(outshape),
+		make_tensmap(in.data_, in.shape_),
+		[incrs](TensorT<T>& out, const TensMapT<T>& in)
+		{
+			out.stride(incrs) = in;
+		});
+}
+
 /// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
 template <typename T>
