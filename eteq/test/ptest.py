@@ -429,6 +429,13 @@ class EADTest(unittest.TestCase):
             self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
                 offset=1, ndims=1), lambda arr: tf.nn.softmax(arr, axis=len(shape)-2))
 
+    def test_relu(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_unary_tf(shape, tc.nn.relu, tf.nn.relu)
+
     def test_square(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:

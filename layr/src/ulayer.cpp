@@ -50,6 +50,11 @@ UnaryptrT tanh (void)
 	return std::make_shared<ULayer>(tanh_layer_key);
 }
 
+UnaryptrT relu (void)
+{
+	return std::make_shared<ULayer>(relu_layer_key);
+}
+
 UnaryptrT softmax (teq::RankT dim)
 {
 	return std::make_shared<ULayer>(softmax_layer_key,

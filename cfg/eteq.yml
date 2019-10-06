@@ -1154,6 +1154,19 @@ api:
                       arg->get_tensor().get()});
                   return out;
       - template: typename T
+        name: relu
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  auto out = ::tenncor::log(::tenncor::add((T) 1, ::tenncor::exp(arg)));
+                  tag::recursive_group_tag(out->get_tensor(), "relu", {
+                      arg->get_tensor().get()});
+                  return out;
+      - template: typename T
         name: sign
         args:
         - dtype: eteq::NodeptrT<T>

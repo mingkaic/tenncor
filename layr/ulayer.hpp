@@ -60,6 +60,14 @@ get_layer_reg().register_tagr(layers_key_prefix + "tanh",
 	return std::make_shared<ULayerBuilder>(tanh_layer_key, "");
 });
 
+/// Identifier for relu activation layer
+const std::string relu_layer_key =
+get_layer_reg().register_tagr(layers_key_prefix + "relu",
+[](std::string extra_info) -> LBuilderptrT
+{
+	return std::make_shared<ULayerBuilder>(relu_layer_key, "");
+});
+
 /// Identifier for softmax activation layer
 const std::string softmax_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "softmax",
@@ -101,6 +109,9 @@ const std::unordered_map<std::string,UnaryF> unaries =
 	{tanh_layer_key,
 		[](const ULayer& layer, NodeptrT input)
 		{ return tenncor::tanh<PybindT>(input); }},
+	{relu_layer_key,
+		[](const ULayer& layer, NodeptrT input)
+		{ return tenncor::relu<PybindT>(input); }},
 	{softmax_layer_key, softmax_from_layer},
 	{maxpool2d_layer_key, maxpool_from_layer},
 	{meanpool2d_layer_key, meanpool_from_layer},
@@ -204,6 +215,9 @@ UnaryptrT sigmoid (void);
 
 /// Return activation layer using tanh
 UnaryptrT tanh (void);
+
+/// Return activation layer using relu
+UnaryptrT relu (void);
 
 /// Return activation layer using softmax of specified dimension
 UnaryptrT softmax (teq::RankT dim);
