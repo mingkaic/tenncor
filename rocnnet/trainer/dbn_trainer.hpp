@@ -44,6 +44,7 @@ NodeptrT sample_v_given_h (layr::RBMptrT& rbm, NodeptrT& x)
 }
 
 // implementation taken from https://gist.github.com/yusugomori/4509019
+// todo: add optimization options
 struct DBNTrainer final
 {
 	DBNTrainer (layr::SequentialModel& model,

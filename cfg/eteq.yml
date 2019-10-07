@@ -34,6 +34,7 @@ opcode:
     REDUCE_MAX: out = eteq::reduce_max(shape,in[0]);
     PERMUTE: out = eteq::permute(shape,in[0]);
     EXTEND: out = eteq::extend(shape,in[0]);
+    RESHAPE: out = eteq::reshape(shape,in[0]);
     MATMUL: out = eteq::matmul(shape,in[0],in[1]);
     CONV: out = eteq::convolution(shape,in[0],in[1]);
     SLICE: out = eteq::slice(shape,in[0]);
@@ -644,6 +645,16 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"EXTEND",::egen::EXTEND},{eteq::extend_map(arg,offset,xlist)});
+      - template: typename T
+        name: reshape
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: std::vector<teq::DimT>
+          name: slist
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"RESHAPE",::egen::RESHAPE},{eteq::reshape_map(arg,slist)});
       - description: sum values ignoring coordinate indices between start and end
         template: typename T
         name: reduce_sum

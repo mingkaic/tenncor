@@ -169,6 +169,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::REDUCE_SUM:
 			case egen::EXTEND:
 			case egen::PERMUTE:
+			case egen::RESHAPE:
 			case egen::ADD:
 			case egen::SLICE:
 			case egen::PAD:
@@ -302,6 +303,14 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				out = TO_NODE(local_der) * permute_grad(
 					op.get(), TO_NODE(supcomp_grad), arg_idx);
 				break;
+			case egen::RESHAPE:
+			{
+				auto& child = op->get_children()[0];
+				teq::Shape origshape = child.get_tensor()->shape();
+				std::vector<teq::DimT> slist(origshape.begin(), origshape.end());
+				out = TO_NODE(local_der) * tenncor::reshape(TO_NODE(supcomp_grad), slist);
+			}
+				break;
 			case egen::MATMUL:
 				out = tenncor::reduce_sum(
 					tenncor::permute(
@@ -407,7 +416,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 							std::make_shared<teq::CoordMap>(
 								[origshape,strides](teq::MatrixT fwd)
 								{
-									for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+									teq::RankT n = std::min(
+										(teq::RankT) strides.size(), teq::rank_cap);
+									for (teq::RankT i = 0; i < n; ++i)
 									{
 										if (strides[i] == 1)
 										{
@@ -418,6 +429,10 @@ struct GradientBuilder final : public teq::iGradientBuilder
 											// shape can't be trivially reconstructed
 											fwd[teq::rank_cap][i] = origshape.at(i);
 										}
+									}
+									for (teq::RankT i = n; i < teq::rank_cap; ++i)
+									{
+										fwd[i][i] = 1;
 									}
 								}),
 							std::make_shared<CoordMap>(

@@ -143,6 +143,25 @@ FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 }
 
 template <typename T>
+FuncArg<T> reshape_map (NodeptrT<T> node, std::vector<teq::DimT> slist)
+{
+	return FuncArg<T>(node,
+		std::make_shared<teq::CoordMap>(
+			[=](teq::MatrixT fwd)
+			{
+				teq::RankT n = std::min((teq::RankT) slist.size(), teq::rank_cap);
+				for (teq::RankT i = 0; i < n; ++i)
+				{
+					fwd[teq::rank_cap][i] = slist[i];
+				}
+				for (teq::RankT i = n; i < teq::rank_cap; ++i)
+				{
+					fwd[teq::rank_cap][i] = 1;
+				}
+			}), nullptr);
+}
+
+template <typename T>
 using PairVecT = std::vector<std::pair<T,T>>;
 
 /// Return FuncArg<T> that takes specific slice of tensor according to
@@ -210,11 +229,16 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 		std::make_shared<teq::CoordMap>(
 			[=](teq::MatrixT fwd)
 			{
-				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+				teq::RankT n = std::min((teq::RankT) paddings.size(), teq::rank_cap);
+				for (teq::RankT i = 0; i < n; ++i)
 				{
 					fwd[i][i] = 1;
 					fwd[teq::rank_cap][i] =
 						paddings[i].first + paddings[i].second;
+				}
+				for (teq::RankT i = n; i < teq::rank_cap; ++i)
+				{
+					fwd[i][i] = 1;
 				}
 			}),
 		std::make_shared<CoordMap>(
@@ -251,13 +275,18 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 		std::make_shared<teq::CoordMap>(
 			[=](teq::MatrixT fwd)
 			{
-				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+				teq::RankT n = std::min((teq::RankT) incrs.size(), teq::rank_cap);
+				for (teq::RankT i = 0; i < n; ++i)
 				{
 					// ceil(in_dim / stride) =
 					// round(in_dim / stride + 0.5 - <smol num>)
 					fwd[i][i] = 1. / incrs[i];
 					fwd[teq::rank_cap][i] = 0.5 -
 						1. / std::numeric_limits<teq::DimT>::max();
+				}
+				for (teq::RankT i = n; i < teq::rank_cap; ++i)
+				{
+					fwd[i][i] = 1;
 				}
 			}),
 		std::make_shared<CoordMap>(

@@ -41,6 +41,7 @@ P3 - benchmark test rocnnet against various other frameworks (CPU only)
 P4 - more performance test
 
 === correction ===
+   - test eteq funcarg
 P2 - centralize global context structures
 P2 - reorient tests so that tests cover its own immediate module
 P2 - fix rbm demo converging to infinity problem

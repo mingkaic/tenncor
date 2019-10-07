@@ -159,6 +159,26 @@ struct Dense final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
+		// expect input to be <input dimensions...,nbatch dimensions...>
+		teq::Shape inshape = input->shape();
+		teq::DimT ninput = get_ninput();
+		teq::DimT nbatch = inshape.n_elems() / ninput;
+		size_t i = 1;
+		for (teq::DimT accs = inshape.at(0);
+			accs < ninput && i < teq::rank_cap; ++i)
+		{
+			accs *= inshape.at(i);
+		}
+		for (teq::DimT accs = inshape.at(i++);
+			accs < nbatch && i < teq::rank_cap; ++i)
+		{
+			accs *= inshape.at(i);
+		}
+		if (i > 2)
+		{
+			// reshape input to fit weight
+			input = tenncor::reshape(input, {ninput, nbatch});
+		}
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
 		teq::TensSetT leaves = {
 			input->get_tensor().get(),

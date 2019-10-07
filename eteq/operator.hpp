@@ -168,6 +168,14 @@ EigenptrT<T> permute (teq::Shape& outshape, const OpArg<T>& in)
 		}, make_tensmap(in.data_, in.shape_));
 }
 
+/// Return Eigen data object that reshapes
+template <typename T>
+EigenptrT<T> reshape (teq::Shape& outshape, const OpArg<T>& in)
+{
+	return make_eigentensor<T,TensMapT<T>,TensMapT<T>>(shape_convert(outshape),
+		[](TensMapT<T>& in){ return in; }, make_tensmap(in.data_, in.shape_));
+}
+
 /// Return Eigen data object representing data slicing of dimensions
 template <typename T>
 EigenptrT<T> slice (teq::Shape& outshape, const OpArg<T>& in)

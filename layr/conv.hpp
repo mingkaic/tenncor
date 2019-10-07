@@ -16,11 +16,20 @@
 namespace layr
 {
 
+#ifdef FULLTYPE
+using DArgT = teq::DimT;
+#else
+using DArgT = PybindT;
+#endif
+
 /// Convolutional weight label
 const std::string conv_weight_key = "weight";
 
 /// Convolutional bias label
 const std::string conv_bias_key = "bias";
+
+/// Argument when convolving label
+const std::string conv_arg_key = "args";
 
 /// Builder implementation for convolution layer
 struct ConvBuilder final : public iLayerBuilder
@@ -40,6 +49,10 @@ struct ConvBuilder final : public iLayerBuilder
 			bias_ = eteq::NodeConverters<PybindT>::to_node(tens);
 			return;
 		}
+		else if (target == conv_arg_key)
+		{
+			arg_ = eteq::NodeConverters<DArgT>::to_node(tens);
+		}
 		logs::warnf("attempt to create convolution layer "
 			"with unknown tensor `%s` of label `%s`",
 			tens->to_string().c_str(), target.c_str());
@@ -55,6 +68,8 @@ private:
 	NodeptrT weight_ = nullptr;
 
 	NodeptrT bias_ = nullptr;
+
+	eteq::NodeptrT<DArgT> arg_ = nullptr;
 
 	std::string label_;
 };
@@ -72,7 +87,8 @@ struct Conv final : public iLayer
 {
 	Conv (std::pair<teq::DimT,teq::DimT> filter_hw,
 		teq::DimT in_ncol, teq::DimT out_ncol,
-		const std::string& label) :
+		const std::string& label,
+		std::pair<teq::DimT,teq::DimT> zero_padding = {0, 0}) :
 		label_(label)
 	{
 		teq::Shape kernelshape({out_ncol, in_ncol,
@@ -95,17 +111,31 @@ struct Conv final : public iLayer
 			0., teq::Shape({out_ncol}), conv_bias_key);
 		tag(weight_->get_tensor(), LayerId(conv_weight_key));
 		tag(bias_->get_tensor(), LayerId(conv_bias_key));
+		if (zero_padding.first > 0 || zero_padding.second > 0)
+		{
+			std::vector<DArgT> buffer = {
+				(DArgT) zero_padding.first, (DArgT) zero_padding.second};
+			arg_ = eteq::make_constant<DArgT>(
+				buffer.data(), teq::Shape({2}));
+			tag(arg_->get_tensor(), LayerId(conv_arg_key));
+		}
 	}
 
-	Conv (NodeptrT weight, NodeptrT bias, std::string label) :
+	Conv (NodeptrT weight, NodeptrT bias,
+		eteq::NodeptrT<DArgT> arg, std::string label) :
 		label_(label),
 		weight_(weight),
-		bias_(bias)
+		bias_(bias),
+		arg_(arg)
 	{
 		tag(weight_->get_tensor(), LayerId(conv_weight_key));
 		if (bias)
 		{
 			tag(bias_->get_tensor(), LayerId(conv_bias_key));
+		}
+		if (arg)
+		{
+			tag(arg_->get_tensor(), LayerId(conv_arg_key));
 		}
 	}
 
@@ -170,7 +200,7 @@ struct Conv final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-		auto out = tenncor::nn::conv2d(input, weight_);
+		auto out = tenncor::nn::conv2d(input, weight_, get_padding());
 		teq::TensSetT leaves = {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
@@ -184,6 +214,16 @@ struct Conv final : public iLayer
 		}
 		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;
+	}
+
+	std::pair<teq::DimT,teq::DimT> get_padding (void) const
+	{
+		if (arg_)
+		{
+			DArgT* adata = arg_->data();
+			return {adata[0], adata[1]};
+		}
+		return {0, 0};
 	}
 
 private:
@@ -202,6 +242,11 @@ private:
 			bias_ = NodeptrT(other.bias_->clone());
 			tag(bias_->get_tensor(), LayerId(conv_bias_key));
 		}
+		if (other.arg_)
+		{
+			arg_ = eteq::NodeptrT<DArgT>(other.arg_->clone());
+			tag(arg_->get_tensor(), LayerId(conv_arg_key));
+		}
 	}
 
 	std::string label_;
@@ -209,6 +254,8 @@ private:
 	NodeptrT weight_;
 
 	NodeptrT bias_ = nullptr;
+
+	eteq::NodeptrT<DArgT> arg_ = nullptr;
 };
 
 /// Smart pointer of convolutional layer

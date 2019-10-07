@@ -1,0 +1,586 @@
+{
+ "nodes": [
+  {
+   "label": "weight",
+   "source": {
+    "shape": [
+     "3",
+     "6",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "j3PJPZBOxkBzyMHA5RG7vwl1LEDti4rATnG6QCxbtz/aV5g/CHORP2l55sCYs59Aaud1v6LbiMCxAs8/0uDuv81YgcBeiJM/",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "hidden::weight:0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "0:layer_dense:hidden:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:0:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "otbkPkzcNr7ntrO9",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "hidden::bias:0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "0:layer_dense:hidden:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:0:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "6",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "mA5qvBZf8b6cJEk/JUkSviFJEr9O8RW/",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "visible::bias:0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "0:layer_dense:visible:1"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:0:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "0",
+   "source": {
+    "shape": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAA==",
+    "typelabel": "FLOAT",
+    "isConst": true
+   },
+   "tags": {
+    "layer_sigmoid": {
+     "labels": [
+      ":::0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "1:layer_sigmoid::2",
+      "0:layer_sigmoid::2"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1",
+      "demo:layer_rbm:0:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "weight",
+   "source": {
+    "shape": [
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "D8ayPquucD9CruJAJXTSQKKwhkAQqIfADynywMqSmsDx27dA",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "hidden::weight:0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "1:layer_dense:hidden:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "yrD4vkhvvL6+AQ8/",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "hidden::bias:0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "1:layer_dense:hidden:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "0syMP3FmZr912zY/",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "visible::bias:0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "1:layer_dense:visible:1"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "weight",
+   "source": {
+    "shape": [
+     "2",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "V2N9P1hjfb9XY30/WGN9v/AQy7/7stO+",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "log_layer::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:log_layer:2"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "2",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "VxNoviDxcb0=",
+    "typelabel": "FLOAT"
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "log_layer::bias:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:log_layer:2"
+     ]
+    }
+   }
+  },
+  {
+   "label": "0",
+   "source": {
+    "shape": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAA==",
+    "typelabel": "FLOAT",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_softmax:0:3"
+     ]
+    },
+    "layer_softmax": {
+     "labels": [
+      "0:::0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "coord": [
+       1,
+       0,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7
+      ],
+      "shaper": [
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1
+      ],
+      "fwd": true
+     }
+    ]
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "visible::weight:0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "0:layer_dense:visible:1"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:0:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 4,
+      "coord": [
+       1,
+       0,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7
+      ],
+      "shaper": [
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1
+      ],
+      "fwd": true
+     }
+    ]
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "visible::weight:0"
+     ]
+    },
+    "layer_rbm": {
+     "labels": [
+      "1:layer_dense:visible:1"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1"
+     ]
+    }
+   }
+  }
+ ]
+}
