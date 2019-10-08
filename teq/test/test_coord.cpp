@@ -33,7 +33,7 @@ TEST(COORD, Forward)
 		0.2458311259, 0.6726336808, 0.8680681183, 0.2344609279, 0.2667416547, 0.7905403230, 0.1139956031, 0.7112792746, 0.5421166290,
 		0.6555476101, 0.7982603464, 0.9427891524, 0.5630265226, 0.0529621550, 0.0767490955, 0.9764540804, 0.0229466953, 0.0357362313,
 	};
-	teq::CoordMap lhs([&indata](teq::MatrixT m)
+	teq::CoordMap lhs([&indata](teq::MatrixT& m)
 		{
 			for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 			{
@@ -43,7 +43,7 @@ TEST(COORD, Forward)
 				}
 			}
 		});
-	teq::CoordMap rhs([&indata2](teq::MatrixT m)
+	teq::CoordMap rhs([&indata2](teq::MatrixT& m)
 		{
 			for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 			{
@@ -97,7 +97,7 @@ TEST(COORD, Reverse)
 		0.2815274054, 0.4986186274, 0.4177728965, 0.5379782806, 0.9728425173, 0.8384357553, 0.1148654580, 0.6567525656, 0.4295099714,
 		0.7243125736, 0.5892803635, 0.2597629537, 0.8375568398, 0.8496011347, 0.2944557711, 0.6930016846, 0.7247803680, 0.4856868442,
 	};
-	teq::CoordMap fwd([&indata](teq::MatrixT m)
+	teq::CoordMap fwd([&indata](teq::MatrixT& m)
 		{
 			for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 			{
@@ -307,7 +307,7 @@ TEST(COORD, IsIdentity)
 	EXPECT_TRUE(teq::is_identity(sample_id.get()));
 
 	teq::CoordptrT bourne(new teq::CoordMap(
-		[](teq::MatrixT fwd)
+		[](teq::MatrixT& fwd)
 		{
 			// todo: we can randomize this so long as fwd is not identity
 			for (teq::RankT i = 0; i < teq::rank_cap; ++i)

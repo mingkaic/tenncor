@@ -20,14 +20,12 @@ struct TrainingContext final
 // MLPTrainer does not own anything
 struct MLPTrainer final
 {
-	MLPTrainer (layr::SequentialModel& model,
-		eteq::iSession& sess, layr::ApproxF update, teq::DimT batch_size,
+	MLPTrainer (layr::SequentialModel& model, eteq::iSession& sess,
+		layr::ApproxF update, teq::Shape inshape, teq::Shape outshape,
 		NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; },
 		TrainingContext ctx = TrainingContext()) :
-		train_in_(eteq::make_variable_scalar<PybindT>(0., teq::Shape({
-			(teq::DimT) model.get_ninput(), batch_size}), "train_in")),
-		expected_out_(eteq::make_variable_scalar<PybindT>(0., teq::Shape({
-			(teq::DimT) model.get_noutput(), batch_size}), "expected_out")),
+		train_in_(eteq::make_variable_scalar<PybindT>(0., inshape, "train_in")),
+		expected_out_(eteq::make_variable_scalar<PybindT>(0., outshape, "expected_out")),
 		sess_(&sess),
 		ctx_(ctx)
 	{

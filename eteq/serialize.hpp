@@ -190,7 +190,7 @@ struct EADLoader final : public pbm::iLoader
 			logs::fatal("cannot deserialize non-matrix shape map");
 		}
 		return std::make_shared<teq::CoordMap>(
-			[&](teq::MatrixT fwd)
+			[&](teq::MatrixT& fwd)
 			{
 				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 				{
@@ -214,7 +214,7 @@ struct EADLoader final : public pbm::iLoader
 		auto cit = coord.begin();
 		auto cet = coord.end();
 		return std::make_shared<CoordMap>(
-			[&](teq::MatrixT args)
+			[&](teq::MatrixT& args)
 			{
 				for (teq::RankT i = 0; i < teq::mat_dim && cit != cet; ++i)
 				{

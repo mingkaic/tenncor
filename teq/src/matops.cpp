@@ -143,7 +143,7 @@ double determinant (const MatrixT& mat)
 	return det * sign;
 }
 
-void inverse (MatrixT out, const MatrixT& in)
+void inverse (MatrixT& out, const MatrixT& in)
 {
 	AugMatrixT aug;
 	for (RankT i = 0; i < mat_dim; ++i)
@@ -166,7 +166,7 @@ void inverse (MatrixT out, const MatrixT& in)
 	}
 }
 
-void matmul (MatrixT out, const MatrixT& lhs, const MatrixT& rhs)
+void matmul (MatrixT& out, const MatrixT& lhs, const MatrixT& rhs)
 {
 	for (RankT i = 0; i < mat_dim; ++i)
 	{

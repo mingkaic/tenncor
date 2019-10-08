@@ -827,7 +827,7 @@ api:
                   }
 
                   teq::CoordptrT left_shaper(new teq::CoordMap(
-                      [=](teq::MatrixT fwd)
+                      [=](teq::MatrixT& fwd)
                       {
                           for (teq::RankT i = 3; i < teq::mat_dim; ++i)
                           {
@@ -840,7 +840,7 @@ api:
                   ));
 
                   teq::CoordptrT right_shaper(new teq::CoordMap(
-                      [=](teq::MatrixT fwd)
+                      [=](teq::MatrixT& fwd)
                       {
                           for (teq::RankT i = 3; i < teq::mat_dim; ++i)
                           {
@@ -862,7 +862,7 @@ api:
           name: input
         - dtype: eteq::NodeptrT<T>
           name: kernel
-        - dtype: std::vector<teq::DimT>
+        - dtype: std::vector<teq::RankT>
           name: dims
         out:
           type: eteq::NodeptrT<T>
@@ -871,29 +871,52 @@ api:
                   teq::Shape inshape = input->get_tensor()->shape();
                   teq::Shape kernelshape = kernel->get_tensor()->shape();
                   teq::CoordptrT input_shaper(new teq::CoordMap(
-                      [kernelshape](teq::MatrixT fwd)
+                      [kernelshape,dims](teq::MatrixT& fwd)
                       {
                           for (teq::RankT i = 0; i < teq::rank_cap; ++i)
                           {
                               fwd[i][i] = 1;
                           }
-                          for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+                          teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
+                          for (teq::RankT i = 0; i < n; ++i)
                           {
-                              fwd[teq::rank_cap][i] = -kernelshape.at(i) + 1;
+                              fwd[teq::rank_cap][dims[i]] = -kernelshape.at(i) + 1;
+                          }
+                          if (std::any_of(kernelshape.begin() + n, kernelshape.end(),
+                              [](teq::DimT d)
+                              {
+                                  return d > 1;
+                              }))
+                          {
+                              logs::fatalf("invalid kernelshape %s does not solely match dimensions %s",
+                                  kernelshape.to_string().c_str(),
+                                  fmts::to_string(dims.begin(), dims.end()).c_str());
                           }
                       }
                   ));
 
                   teq::CoordptrT kernel_shaper(new teq::CoordMap(
-                      [inshape](teq::MatrixT fwd)
+                      [inshape,dims](teq::MatrixT& fwd)
                       {
+                          teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
+                          std::array<bool,teq::rank_cap> missing;
+                          std::fill(missing.begin(), missing.end(), true);
+                          for (teq::RankT i = 0; i < n; ++i)
+                          {
+                              missing[dims[i]] = false;
+                          }
+                          std::vector<teq::RankT> refd = dims;
                           for (teq::RankT i = 0; i < teq::rank_cap; ++i)
                           {
-                              fwd[i][i] = -1;
+                              if (missing[i])
+                              {
+                                  refd.push_back(i);
+                              }
                           }
                           for (teq::RankT i = 0; i < teq::rank_cap; ++i)
                           {
-                              fwd[teq::rank_cap][i] = inshape.at(i) + 1;
+                              fwd[i][refd[i]] = -1;
+                              fwd[teq::rank_cap][refd[i]] = inshape.at(i) + 1;
                           }
                       }
                   ));

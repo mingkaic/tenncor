@@ -340,7 +340,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 		if (slist.size() > 0)
 		{
 			out = std::make_shared<teq::CoordMap>(
-			[&slist](teq::MatrixT m)
+			[&slist](teq::MatrixT& m)
 			{
 				for (size_t i = 0; i < teq::mat_dim; ++i)
 				{

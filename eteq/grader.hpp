@@ -414,7 +414,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					eteq::make_functor<T>(teq::Opcode{"SCATTER",::egen::SCATTER}, {
 						FuncArg<T>(TO_NODE(supcomp_grad),
 							std::make_shared<teq::CoordMap>(
-								[origshape,strides](teq::MatrixT fwd)
+								[origshape,strides](teq::MatrixT& fwd)
 								{
 									teq::RankT n = std::min(
 										(teq::RankT) strides.size(), teq::rank_cap);
@@ -436,7 +436,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 									}
 								}),
 							std::make_shared<CoordMap>(
-								[&](teq::MatrixT args)
+								[&](teq::MatrixT& args)
 								{
 									for (size_t i = 0; i < teq::rank_cap; ++i)
 									{

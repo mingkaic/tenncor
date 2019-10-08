@@ -24,7 +24,8 @@ momentum = 0.9
 weight_decay = 0.0001
 
 # batch, height, width, in
-shape=[nbatch, 32, 32, 3]
+train_inshape = rcn.Shape([3, 32, 32, nbatch])
+train_outshape = rcn.Shape([10, nbatch])
 
 # construct CNN
 model = rcn.SequentialModel("demo")
@@ -46,6 +47,19 @@ model.add(rcn.Dense(10, 320,
     bias_init=rcn.zero_init(), label="fc")) # outputs [nbatch, 10]
 model.add(rcn.softmax(0))
 
-var = eteq.scalar_variable(0, shape, "var")
-out = model.connect(var)
-print(out.shape())
+sess = eteq.Session()
+trainer = rcn.MLPTrainer(model, sess, rcn.get_sgd(0.9),
+    train_inshape, train_outshape)
+
+test_inshape = [1, 32, 32, 3]
+
+testin = eteq.scalar_variable(0, test_inshape, "testin")
+testout = model.connect(testin)
+sess.track([
+    testout,
+])
+sess.optimize("cfg/optimizations.rules")
+
+# train
+
+# test

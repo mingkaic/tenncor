@@ -23,7 +23,7 @@ TEST(TENSOR, FuncArg)
 	EXPECT_ARREQ(slist, shape);
 
 	teq::FuncArg mt2(tens, teq::CoordptrT(new teq::CoordMap(
-		[](teq::MatrixT m)
+		[](teq::MatrixT& m)
 		{
 			for (size_t i = 0; i < teq::mat_dim; ++i)
 			{

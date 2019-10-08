@@ -122,7 +122,9 @@ int main (int argc, const char** argv)
 		return layr::sgd(leaves, 0.9); // learning rate = 0.9
 	};
 	dbg::InteractiveSession sess("localhost:50051");
-	trainer::MLPTrainer trainer(model, sess, approx, n_batch);
+	trainer::MLPTrainer trainer(model, sess, approx,
+		teq::Shape({n_in, n_batch}),
+		teq::Shape({n_out, n_batch}));
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");

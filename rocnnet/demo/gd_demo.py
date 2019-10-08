@@ -77,8 +77,8 @@ def main(args):
     sess = eteq.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    trainer = rcn.MLPTrainer(model, sess,
-        rcn.get_sgd(0.9), n_batch)
+    trainer = rcn.MLPTrainer(model, sess, rcn.get_sgd(0.9),
+        rcn.Shape([n_in, n_batch]), rcn.Shape([n_out, n_batch]))
 
     testin = eteq.variable(np.zeros([n_in], dtype=float), 'testin')
     untrained_out = untrained.connect(testin)

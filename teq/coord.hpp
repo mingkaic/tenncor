@@ -43,7 +43,7 @@ struct iCoordMap
 	virtual bool is_bijective (void) const = 0;
 };
 
-using MatInitF = std::function<void(MatrixT)>;
+using MatInitF = std::function<void(MatrixT&)>;
 
 /// Coordinate transformation implementation using homogeneous matrices
 /// The transformation matrix must be inversible otherwise fatal on creation
@@ -59,7 +59,7 @@ struct CoordMap final : public iCoordMap
 	/// Implementation of iCoordMap
 	iCoordMap* connect (const iCoordMap& rhs) const override
 	{
-		return new CoordMap([&](MatrixT out)
+		return new CoordMap([&](MatrixT& out)
 		{
 			rhs.access([&](const MatrixT& in)
 			{
@@ -75,7 +75,7 @@ struct CoordMap final : public iCoordMap
 	/// Implementation of iCoordMap
 	iCoordMap* reverse (void) const override
 	{
-		return new CoordMap([this](MatrixT m)
+		return new CoordMap([this](MatrixT& m)
 		{
 			inverse(m, this->fwd_);
 		});

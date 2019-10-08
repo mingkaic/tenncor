@@ -34,10 +34,10 @@ std::string to_string (const MatrixT& mat);
 double determinant (const MatrixT& mat);
 
 /// Inverse in matrix and dump to out matrix
-void inverse (MatrixT out, const MatrixT& in);
+void inverse (MatrixT& out, const MatrixT& in);
 
 /// Apply matrix multiplication for lhs and rhs to out matrix
-void matmul (MatrixT out, const MatrixT& lhs, const MatrixT& rhs);
+void matmul (MatrixT& out, const MatrixT& lhs, const MatrixT& rhs);
 
 }
 

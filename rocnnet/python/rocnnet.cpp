@@ -287,10 +287,11 @@ PYBIND11_MODULE(rocnnet, m)
 	// mlptrainer
 	mlptrainer
 		.def(py::init<layr::SequentialModel&,
-			eteq::iSession&,layr::ApproxF,teq::DimT,
+			eteq::iSession&,layr::ApproxF,
+			teq::Shape,teq::Shape,
 			trainer::NodeUnarF,trainer::TrainingContext>(),
-			py::arg("model"), py::arg("sess"),
-			py::arg("update"), py::arg("batch_size"),
+			py::arg("model"), py::arg("sess"), py::arg("update"),
+			py::arg("inshape"), py::arg("outshape"),
 			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity),
 			py::arg("ctx") = trainer::TrainingContext())
 		.def("train",
