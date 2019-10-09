@@ -23,9 +23,9 @@ using TensSetT = std::unordered_set<TensKey,TensKeyHash>;
 /// GroupTag define subgraphs/groups of nodes with a structural significance
 /// Groups are ordered tags, subsequent group tags
 /// (obtained through absorption) often denote supergraphs of prior groups
-///		e.g.: given tensor X, tag X with 'sum', then tag X with 'mlp',
-///		results in X having a collective [GroupTag:['sum','mlp']]
-///		ordered tag retains information that 'sum' is a subgraph of 'mlp'
+///		e.g.: given tensor X, tag X with 'sum', then tag X with 'prod',
+///		results in X having a collective [GroupTag:['sum','prod']]
+///		ordered tag retains information that 'sum' is a subgraph of 'prod'
 struct GroupTag final : public iTag
 {
 	GroupTag (std::string init_label) : labels_({init_label}) {}
@@ -53,7 +53,7 @@ private:
 	static size_t tag_id_;
 };
 
-/// TagRegistry wrapper to tag tensors groups and 
+/// TagRegistry wrapper to tag tensors groups and
 /// store reverse group-tensor association
 struct GroupRegistry final
 {
@@ -97,14 +97,14 @@ void recursive_group_tag (teq::TensptrT tens, std::string group,
 	teq::TensSetT stops,
 	GroupRegistry& registry = get_group_reg());
 
-/// Map group label to unique ids specifying different 
+/// Map group label to unique ids specifying different
 /// adjacent groups of the same label
 using AGroupsT = std::map<std::string,std::unordered_set<std::string>>;
 
 /// Map tensors to groups
 using AdjMapT = std::unordered_map<teq::iTensor*,AGroupsT>;
 
-/// Populate out with every grouped-node under roots subgraphs 
+/// Populate out with every grouped-node under roots subgraphs
 /// and associate to unique adjacent groups
 void adjacencies (AdjMapT& out, teq::TensptrsT roots,
 	GroupRegistry& registry = get_group_reg());
@@ -165,7 +165,7 @@ using SubgraphsT = std::unordered_set<SgraphptrT>;
 using SubgraphAssocsT = std::unordered_map<teq::iTensor*,SubgraphsT>;
 
 /// Populate subgraph associations using adjacency output
-/// out associates every tensor under an adjacent group 
+/// out associates every tensor under an adjacent group
 /// to its subgraph representations
 void beautify_groups (SubgraphAssocsT& out, const AdjMapT& adjs);
 

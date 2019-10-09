@@ -16,7 +16,7 @@
 #include "layr/seqmodel.hpp"
 #include "layr/conv.hpp"
 
-#include "rocnnet/trainer/mlp_trainer.hpp"
+#include "rocnnet/trainer/sgd_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"
 #include "rocnnet/trainer/rbm_trainer.hpp"
 #include "rocnnet/trainer/dbn_trainer.hpp"
@@ -26,6 +26,7 @@ namespace py = pybind11;
 namespace pyrocnnet
 {
 
+// todo: move these utility functions somewhere common
 std::vector<teq::DimT> c2pshape (const teq::Shape& cshape)
 {
 	auto it = cshape.begin();
@@ -160,7 +161,6 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// trainers
 	py::class_<trainer::DQNTrainer> dqntrainer(m, "DQNTrainer");
-	py::class_<trainer::BernoulliRBMTrainer> brbmtrainer(m, "BernoulliRBMTrainer");
 	py::class_<trainer::DBNTrainer> dbntrainer(m, "DBNTrainer");
 
 	// supports
@@ -199,12 +199,14 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("get_contents",
 			[](py::object self) -> eteq::NodesT<PybindT>
 			{
-				teq::TensptrsT contents = self.cast<layr::iLayer*>()->get_contents();
+				teq::TensptrsT contents =
+					self.cast<layr::iLayer*>()->get_contents();
 				eteq::NodesT<PybindT> nodes;
 				nodes.reserve(contents.size());
 				std::transform(contents.begin(), contents.end(),
 					std::back_inserter(nodes),
-					eteq::NodeConverters<PybindT>::to_node);
+					[](teq::TensptrT tens)
+					{ return eteq::to_node<PybindT>(tens); });
 				return nodes;
 			})
 		.def("save_file",
@@ -363,30 +365,6 @@ PYBIND11_MODULE(rocnnet, m)
 				return self.cast<trainer::DQNTrainer*>()->train_out_;
 			}, "get training node");
 
-	// brbmtrainer
-	brbmtrainer
-		.def(py::init<
-			layr::RBM&,
-			eteq::iSession&,
-			teq::DimT,
-			PybindT,
-			PybindT,
-			trainer::ErrorF>(),
-			py::arg("model"),
-			py::arg("sess"),
-			py::arg("batch_size"),
-			py::arg("learning_rate"),
-			py::arg("discount_factor"),
-			py::arg("err_func"))
-		.def("train",
-			[](py::object self, py::array data)
-			{
-				auto trainer = self.cast<trainer::BernoulliRBMTrainer*>();
-				eteq::ShapedArr<PybindT> a;
-				pyrocnnet::arr2shapedarr(a, data);
-				return trainer->train(a);
-			}, "train internal variables");
-
 	// dbntrainer
 	dbntrainer
 		.def(py::init<
@@ -501,8 +479,12 @@ PYBIND11_MODULE(rocnnet, m)
 			})
 
 		// trainers
-		.def("mlp_train", &trainer::mlp_train,
+		.def("sgd_train", &trainer::sgd_train,
 			py::arg("model"), py::arg("sess"),
 			py::arg("train_in"), py::arg("expected_out"), py::arg("update"),
-			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity));
+			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity))
+		.def("brbm_train", &trainer::bernoulli_rbm_train,
+			py::arg("model"), py::arg("sess"),
+			py::arg("visible"), py::arg("learning_rate"),
+			py::arg("discount_factor"), py::arg("err_func"));
 };

@@ -15,7 +15,7 @@
 #include "layr/seqmodel.hpp"
 #include "layr/ulayer.hpp"
 
-#include "rocnnet/trainer/mlp_trainer.hpp"
+#include "rocnnet/trainer/sgd_trainer.hpp"
 
 static eteq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
@@ -125,7 +125,7 @@ int main (int argc, const char** argv)
 
     auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
     auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto trainer = trainer::mlp_train(model, sess,
+	auto train = trainer::sgd_train(model, sess,
 		eteq::convert_to_node(train_input), eteq::convert_to_node(train_output), approx);
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
@@ -150,7 +150,7 @@ int main (int argc, const char** argv)
 		eteq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		train_input->assign(batch);
 		train_output->assign(batch_out);
-		auto err = trainer();
+		auto err = train();
 		if (i % show_every_n == show_every_n - 1)
 		{
 			std::cout << "training " << i + 1 << '\n';

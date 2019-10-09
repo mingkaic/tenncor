@@ -84,10 +84,8 @@ def main(args):
     sess = eteq.Session()
     batch_size = 10
 
-    trainer = rcn.BernoulliRBMTrainer(
-        model=model,
-        sess=sess,
-        batch_size=batch_size,
+    train_input = eteq.Variable([batch_size, n_visible])
+    train = rcn.brbm_train(model, sess, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
@@ -144,8 +142,8 @@ def main(args):
 
         for b in r_batches:
             batch_x = mnist_images[b * batch_size:(b + 1) * batch_size]
-
-            epoch_errs[epoch_errs_ptr] = trainer.train(batch_x)
+            train_input.assign(batch_x)
+            epoch_errs[epoch_errs_ptr] = train().as_numpy()[0]
             epoch_errs_ptr += 1
 
         if verbose:

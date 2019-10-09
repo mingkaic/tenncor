@@ -1,21 +1,13 @@
-#include "eteq/grader.hpp"
+#include "rocnnet/trainer/sgd_trainer.hpp"
 
-#include "layr/seqmodel.hpp"
-#include "layr/err_approx.hpp"
-
-#ifndef RCN_MLP_TRAINER_HPP
-#define RCN_MLP_TRAINER_HPP
+#ifdef RCN_SGD_TRAINER_HPP
 
 namespace trainer
 {
 
-using NodeUnarF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
-
-using MLPTrainF = std::function<eteq::ShapedArr<PybindT>(void)>;
-
-MLPTrainF mlp_train (layr::SequentialModel& model, eteq::iSession& sess,
+TrainErrF sgd_train (layr::SequentialModel& model, eteq::iSession& sess,
 	NodeptrT train_in, NodeptrT expected_out, layr::ApproxF update,
-	NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; })
+	NodeUnarF gradprocess)
 {
 	auto train_out = model.connect(train_in);
 	auto error = tenncor::square(expected_out - train_out);
@@ -67,4 +59,4 @@ MLPTrainF mlp_train (layr::SequentialModel& model, eteq::iSession& sess,
 
 }
 
-#endif // RCN_MLP_TRAINER_HPP
+#endif

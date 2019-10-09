@@ -52,7 +52,7 @@ model.add(rcn.softmax(0))
 sess = eteq.Session()
 train_input = eteq.Variable(train_inshape)
 train_output = eteq.Variable(train_outshape)
-trainer = rcn.mlp_train(model, sess,
+train = rcn.sgd_train(model, sess,
     train_input, train_output, rcn.get_sgd(0.9))
 
 test_inshape = [1, 32, 32, 3]
@@ -71,7 +71,7 @@ def preprocess(image, klas):
 
 # train_input.assign(image_batch)
 # train_output.assign(klas_batch)
-# trainer()
+# train()
 
 # test
 print(testout.shape())
