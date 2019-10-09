@@ -34,6 +34,6 @@ def pybind11_repository():
     new_git_repository(
         name = "com_github_pybind_pybind11",
         remote = "https://github.com/pybind/pybind11.git",
-        tag = "v2.2.4",
+        tag = "v2.4.2",
         build_file_content = _BUILD_CONTENT,
     )

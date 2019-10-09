@@ -112,12 +112,12 @@ struct DBNTrainer final
 			auto nv_samples = sample_v_given_h(rbm, chain_it);
 			auto nh_means = rbm->connect(nv_samples);
 
-			auto dw = eteq::NodeConverters<PybindT>::to_node(w) + pretrain_lr * (
+			auto dw = TO_NODE_T(w, PybindT) + pretrain_lr * (
 				tenncor::matmul(tenncor::transpose(rx), ry) -
 				tenncor::matmul(tenncor::transpose(nv_samples), nh_means));
-			auto dhb = eteq::NodeConverters<PybindT>::to_node(hb) + pretrain_lr *
+			auto dhb = TO_NODE_T(hb, PybindT) + pretrain_lr *
 				tenncor::reduce_mean_1d(ry - nh_means, 1);
-			auto dvb = eteq::NodeConverters<PybindT>::to_node(vb) + pretrain_lr *
+			auto dvb = TO_NODE_T(vb, PybindT) + pretrain_lr *
 				tenncor::reduce_mean_1d(rx - nv_samples, 1);
 
 			rupdates_.push_back(layr::AssignsT{
@@ -160,18 +160,17 @@ struct DBNTrainer final
 		auto final_out = softmax_layer->connect(dense_layer->connect(sample_pipes_.back()));
 		auto diff = eteq::convert_to_node(trainy_) - final_out;
 		auto l2_regularized = tenncor::matmul(tenncor::transpose(
-			sample_pipes_.back()), diff) -
-			l2_reg * eteq::NodeConverters<PybindT>::to_node(w);
+			sample_pipes_.back()), diff) - l2_reg * TO_NODE_T(w, PybindT);
 
 		auto wshape = w->shape();
 		auto bshape = b->shape();
 		auto tlr_placeholder = eteq::make_variable_scalar<PybindT>(
 			train_lr, teq::Shape(), "learning_rate");
-		auto dw = eteq::NodeConverters<PybindT>::to_node(w) +
+		auto dw = TO_NODE_T(w, PybindT) +
 			tenncor::extend(eteq::convert_to_node(tlr_placeholder), 0,
 				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
 			l2_regularized;
-		auto db = eteq::NodeConverters<PybindT>::to_node(b) +
+		auto db = TO_NODE_T(b, PybindT) +
 			tenncor::extend(eteq::convert_to_node(tlr_placeholder), 0,
 				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
 			tenncor::reduce_mean_1d(diff, 1);
@@ -200,17 +199,11 @@ struct DBNTrainer final
 		});
 	}
 
-	void pretrain (std::vector<PybindT>& train_in,
+	void pretrain (eteq::ShapedArr<PybindT>& train_in,
 		size_t nepochs = 100,
 		std::function<void(size_t,size_t)> logger = std::function<void(size_t,size_t)>())
 	{
-		if (train_in.size() != input_size_ * batch_size_)
-		{
-			logs::fatalf("training vector size (%d) does not match "
-				"input size (%d) * batchsize (%d)", train_in.size(),
-				input_size_, batch_size_);
-		}
-		trainx_->assign(train_in.data(), trainx_->shape());
+		trainx_->assign(train_in);
 
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
@@ -243,25 +236,13 @@ struct DBNTrainer final
 	}
 
 	void finetune (
-		std::vector<PybindT>& train_in,
-		std::vector<PybindT>& train_out,
+		eteq::ShapedArr<PybindT>& train_in,
+		eteq::ShapedArr<PybindT>& train_out,
 		size_t nepochs = 100,
 		std::function<void(size_t)> logger = std::function<void(size_t)>())
 	{
-		if (train_in.size() != input_size_ * batch_size_)
-		{
-			logs::fatalf("training vector size (%d) does not match "
-				"input size (%d) * batchsize (%d)", train_in.size(),
-				input_size_, batch_size_);
-		}
-		if (train_out.size() != output_size_ * batch_size_)
-		{
-			logs::fatalf("training vector size (%d) does not match "
-				"output size (%d) * batchsize (%d)", train_in.size(),
-				output_size_, batch_size_);
-		}
-		trainx_->assign(train_in.data(), trainx_->shape());
-		trainy_->assign(train_out.data(), trainy_->shape());
+		trainx_->assign(train_in);
+		trainy_->assign(train_out);
 
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
 		auto to_ignore = sample_pipes_.back()->get_tensor().get();

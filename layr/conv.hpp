@@ -41,17 +41,17 @@ struct ConvBuilder final : public iLayerBuilder
 	{
 		if (target == conv_weight_key)
 		{
-			weight_ = eteq::NodeConverters<PybindT>::to_node(tens);
+			weight_ = TO_NODE_T(tens, PybindT);
 			return;
 		}
 		else if (target == conv_bias_key)
 		{
-			bias_ = eteq::NodeConverters<PybindT>::to_node(tens);
+			bias_ = TO_NODE_T(tens, PybindT);
 			return;
 		}
 		else if (target == conv_arg_key)
 		{
-			arg_ = eteq::NodeConverters<DArgT>::to_node(tens);
+			arg_ = TO_NODE_T(tens, DArgT);
 		}
 		logs::warnf("attempt to create convolution layer "
 			"with unknown tensor `%s` of label `%s`",

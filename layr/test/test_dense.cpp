@@ -358,8 +358,8 @@ TEST(DENSE, Building)
 		ASSERT_EQ(2, contents.size());
 		auto weight = contents[0];
 		auto bias = contents[1];
-		PybindT* w = eteq::NodeConverters<PybindT>::to_node(weight)->data();
-		PybindT* b = eteq::NodeConverters<PybindT>::to_node(bias)->data();
+		PybindT* w = TO_NODE_T(weight, PybindT)->data();
+		PybindT* b = TO_NODE_T(bias, PybindT)->data();
 		weight_data = std::vector<PybindT>(w, w + weight->shape().n_elems());
 		bias_data = std::vector<PybindT>(b, b + bias->shape().n_elems());
 
@@ -388,8 +388,8 @@ TEST(DENSE, Building)
 		auto bshape = bias->shape();
 		ASSERT_ARREQ(exwshape, wshape);
 		ASSERT_ARREQ(exbshape, bshape);
-		PybindT* w = eteq::NodeConverters<PybindT>::to_node(weight)->data();
-		PybindT* b = eteq::NodeConverters<PybindT>::to_node(bias)->data();
+		PybindT* w = TO_NODE_T(weight, PybindT)->data();
+		PybindT* b = TO_NODE_T(bias, PybindT)->data();
 		std::vector<PybindT> gotw(w, w + weight->shape().n_elems());
 		std::vector<PybindT> gotb(b, b + bias->shape().n_elems());
 		EXPECT_ARREQ(weight_data, gotw);

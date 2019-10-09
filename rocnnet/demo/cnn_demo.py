@@ -1,4 +1,4 @@
-# source: https://cs.stanford.edu/people/karpathy/convnetjs/demo/cifar10.html
+# source: https://cs.stanford.edu/people/karpathy/convnetjs/demo/cifar10.html (warning: disable javascript)
 # layer_defs = [];
 # layer_defs.push({type:'input', out_sx:32, out_sy:32, out_depth:3});
 # layer_defs.push({type:'conv', sx:5, filters:16, stride:1, pad:2, activation:'relu'});
@@ -18,14 +18,16 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
+import tensorflow_datasets as tfds
+
 nbatch = 4
 learning_rate = 0.01
 momentum = 0.9
 weight_decay = 0.0001
 
 # batch, height, width, in
-train_inshape = rcn.Shape([3, 32, 32, nbatch])
-train_outshape = rcn.Shape([10, nbatch])
+train_inshape = [nbatch, 32, 32, 3]
+train_outshape = [nbatch, 10]
 
 # construct CNN
 model = rcn.SequentialModel("demo")
@@ -48,12 +50,14 @@ model.add(rcn.Dense(10, 320,
 model.add(rcn.softmax(0))
 
 sess = eteq.Session()
-trainer = rcn.MLPTrainer(model, sess, rcn.get_sgd(0.9),
-    train_inshape, train_outshape)
+train_input = eteq.Variable(train_inshape)
+train_output = eteq.Variable(train_outshape)
+trainer = rcn.mlp_train(model, sess,
+    train_input, train_output, rcn.get_sgd(0.9))
 
 test_inshape = [1, 32, 32, 3]
 
-testin = eteq.scalar_variable(0, test_inshape, "testin")
+testin = eteq.Variable(test_inshape, label="testin")
 testout = model.connect(testin)
 sess.track([
     testout,
@@ -62,4 +66,12 @@ sess.optimize("cfg/optimizations.rules")
 
 # train
 
+def preprocess(image, klas):
+    pass
+
+# train_input.assign(image_batch)
+# train_output.assign(klas_batch)
+# trainer()
+
 # test
+print(testout.shape())

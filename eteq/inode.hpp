@@ -103,7 +103,9 @@ bool register_builder (NodeBuilderF<T> builder)
 }
 
 /// Macro for converting tensor to node
-#define TO_NODE(tens) NodeConverters<T>::to_node(tens)
+#define TO_NODE(tens) ::eteq::NodeConverters<T>::to_node(tens)
+
+#define TO_NODE_T(tens, type) ::eteq::NodeConverters<type>::to_node(tens)
 
 }
 

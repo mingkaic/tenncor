@@ -11,84 +11,59 @@ namespace trainer
 
 using NodeUnarF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
 
-// Normal default context that only stores the number of iterations
-struct TrainingContext final
+using MLPTrainF = std::function<eteq::ShapedArr<PybindT>(void)>;
+
+MLPTrainF mlp_train (layr::SequentialModel& model, eteq::iSession& sess,
+	NodeptrT train_in, NodeptrT expected_out, layr::ApproxF update,
+	NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; })
 {
-	size_t n_iterations_ = 0;
-};
+	auto train_out = model.connect(train_in);
+	auto error = tenncor::square(expected_out - train_out);
 
-// MLPTrainer does not own anything
-struct MLPTrainer final
-{
-	MLPTrainer (layr::SequentialModel& model, eteq::iSession& sess,
-		layr::ApproxF update, teq::Shape inshape, teq::Shape outshape,
-		NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; },
-		TrainingContext ctx = TrainingContext()) :
-		train_in_(eteq::make_variable_scalar<PybindT>(0., inshape, "train_in")),
-		expected_out_(eteq::make_variable_scalar<PybindT>(0., outshape, "expected_out")),
-		sess_(&sess),
-		ctx_(ctx)
+	auto contents = model.get_contents();
+	layr::VarErrsT vars;
+	for (auto tens : contents)
 	{
-		auto train_out = model.connect(
-			eteq::convert_to_node<PybindT>(train_in_));
-		error_ = tenncor::square(
-			eteq::convert_to_node<PybindT>(expected_out_) - train_out);
-
-		auto contents = model.get_contents();
-		layr::VarErrsT vars;
-		for (auto tens : contents)
+		if (auto var = std::dynamic_pointer_cast<
+			eteq::Variable<PybindT>>(tens))
 		{
-			if (auto var = std::dynamic_pointer_cast<
-				eteq::Variable<PybindT>>(tens))
-			{
-				auto varnode = std::make_shared<eteq::VariableNode<PybindT>>(var);
-				vars.push_back({
-					varnode,
-					gradprocess(eteq::derive(error_, eteq::convert_to_node(varnode)))
-				});
-			}
-		}
-		updates_ = update(vars);
-
-		teq::TensptrsT track_batch = {
-			train_out->get_tensor(),
-			error_->get_tensor(),
-		};
-		for (layr::AssignsT& assigns : updates_)
-		{
-			for (layr::VarAssign& assign : assigns)
-			{
-				track_batch.push_back(assign.source_->get_tensor());
-			}
-		}
-		sess_->track(track_batch);
-	}
-
-	void train (
-		const eteq::ShapedArr<PybindT>& train_in,
-		const eteq::ShapedArr<PybindT>& expected_out)
-	{
-		train_in_->assign(train_in);
-		expected_out_->assign(expected_out);
-
-		sess_->update();
-		assign_groups(updates_,
-			[this](teq::TensSetT& updated)
-			{
-				this->sess_->update();
+			auto varnode = std::make_shared<eteq::VariableNode<PybindT>>(var);
+			vars.push_back({
+				varnode,
+				gradprocess(eteq::derive(error, eteq::convert_to_node(varnode)))
 			});
-		++ctx_.n_iterations_;
+		}
 	}
+	auto updates = update(vars);
 
-	eteq::VarptrT<PybindT> train_in_;
-	eteq::VarptrT<PybindT> expected_out_;
-	NodeptrT error_;
+	teq::TensptrsT track_batch = {
+		train_out->get_tensor(),
+		error->get_tensor(),
+	};
+	for (layr::AssignsT& assigns : updates)
+	{
+		for (layr::VarAssign& assign : assigns)
+		{
+			track_batch.push_back(assign.source_->get_tensor());
+		}
+	}
+	sess.track(track_batch);
 
-	layr::AssignGroupsT updates_;
-	eteq::iSession* sess_;
-
-	TrainingContext ctx_;
-};
+	return [&sess, updates, error](void)
+	{
+		assign_groups_preupdate(updates,
+			[&](teq::TensSetT& sources)
+			{
+				sess.update_target(sources);
+			});
+		sess.update_target({error->get_tensor().get()});
+		PybindT* data = error->data();
+		teq::Shape shape = error->shape();
+		return eteq::ShapedArr<PybindT>{shape,
+			std::vector<PybindT>(data, data + shape.n_elems()),
+		};
+	};
+}
 
 }
 

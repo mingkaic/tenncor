@@ -13,8 +13,6 @@ import rocnnet.rocnnet as rcn
 
 prog_description = 'Demo rbm_trainer'
 
-mnist = input_data.read_data_sets('MNIST_data/', one_hot=True)
-
 def mse_errfunc(x, visible_sample_):
     return tc.reduce_mean(tc.square(x - visible_sample_))
 
@@ -63,8 +61,6 @@ def main(args):
     else:
         tq = None
 
-    mnist_images = mnist.train.images
-
     n_visible = 784
     n_hidden = 64
     learning_rate = 0.01
@@ -106,6 +102,8 @@ def main(args):
     trained_genx = trained.backward_connect(
         tc.random.rand_binom_one(trained.connect(x)))
 
+    mnist_images = input_data.read_data_sets('MNIST_data/', one_hot=True).train.images
+
     image = random.choice(mnist_images)
     sess.track([genx, trained_genx, untrained_genx])
 
@@ -122,10 +120,7 @@ def main(args):
         n_batches = 1
 
     if shuffle:
-        data_x_cpy = mnist_images.copy()
         inds = np.arange(n_data)
-    else:
-        data_x_cpy = mnist_images
 
     errs = []
     for e in range(n_epoches):
@@ -134,7 +129,7 @@ def main(args):
 
         if shuffle:
             np.random.shuffle(inds)
-            data_x_cpy = data_x_cpy[inds]
+            mnist_images = mnist_images[inds]
 
         r_batches = range(n_batches)
 
@@ -148,7 +143,7 @@ def main(args):
                 print('Epoch: {:d}'.format(e))
 
         for b in r_batches:
-            batch_x = data_x_cpy[b * batch_size:(b + 1) * batch_size]
+            batch_x = mnist_images[b * batch_size:(b + 1) * batch_size]
 
             epoch_errs[epoch_errs_ptr] = trainer.train(batch_x)
             epoch_errs_ptr += 1

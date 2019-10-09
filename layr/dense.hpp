@@ -33,12 +33,12 @@ struct DenseBuilder final : public iLayerBuilder
 	{
 		if (target == dense_weight_key)
 		{
-			weight_ = eteq::NodeConverters<PybindT>::to_node(tens);
+			weight_ = TO_NODE_T(tens, PybindT);
 			return;
 		}
 		else if (target == dense_bias_key)
 		{
-			bias_ = eteq::NodeConverters<PybindT>::to_node(tens);
+			bias_ = TO_NODE_T(tens, PybindT);
 			return;
 		}
 		logs::warnf("attempt to create dense layer "

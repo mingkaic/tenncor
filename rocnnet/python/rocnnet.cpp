@@ -26,21 +26,42 @@ namespace py = pybind11;
 namespace pyrocnnet
 {
 
+std::vector<teq::DimT> c2pshape (const teq::Shape& cshape)
+{
+	auto it = cshape.begin();
+	auto et = cshape.end();
+	while (it != et && *(et-1) == 1)
+	{
+		--et;
+	}
+	std::vector<teq::DimT> fwd(it, et);
+	return std::vector<teq::DimT>(fwd.rbegin(), fwd.rend());
+}
+
 teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
 {
 	return teq::Shape(std::vector<teq::DimT>(
 		pyshape.rbegin(), pyshape.rend()));
 }
 
-std::vector<PybindT> arr2vec (teq::Shape& outshape, py::array data)
+template <typename T>
+py::array shapedarr2arr (const eteq::ShapedArr<T>& sarr)
+{
+	auto pshape = c2pshape(sarr.shape_);
+	return py::array(
+		py::array::ShapeContainer(pshape.begin(), pshape.end()),
+		sarr.data_.data());
+}
+
+template <typename T>
+void arr2shapedarr (eteq::ShapedArr<T>& out, py::array& data)
 {
 	py::buffer_info info = data.request();
-	outshape = p2cshape(info.shape);
-	size_t n = outshape.n_elems();
+	out.shape_ = p2cshape(info.shape);
+	size_t n = out.shape_.n_elems();
 	auto dtype = data.dtype();
 	char kind = dtype.kind();
 	py::ssize_t tbytes = dtype.itemsize();
-	std::vector<PybindT> vec;
 	switch (kind)
 	{
 		case 'f':
@@ -49,13 +70,13 @@ std::vector<PybindT> arr2vec (teq::Shape& outshape, py::array data)
 				case 4: // float32
 				{
 					float* dptr = static_cast<float*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
+					out.data_ = std::vector<T>(dptr, dptr + n);
 				}
 				break;
 				case 8: // float64
 				{
 					double* dptr = static_cast<double*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
+					out.data_ = std::vector<T>(dptr, dptr + n);
 				}
 					break;
 				default:
@@ -68,25 +89,25 @@ std::vector<PybindT> arr2vec (teq::Shape& outshape, py::array data)
 				case 1: // int8
 				{
 					int8_t* dptr = static_cast<int8_t*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
+					out.data_ = std::vector<T>(dptr, dptr + n);
 				}
 					break;
 				case 2: // int16
 				{
 					int16_t* dptr = static_cast<int16_t*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
+					out.data_ = std::vector<T>(dptr, dptr + n);
 				}
 					break;
 				case 4: // int32
 				{
 					int32_t* dptr = static_cast<int32_t*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
+					out.data_ = std::vector<T>(dptr, dptr + n);
 				}
 					break;
 				case 8: // int64
 				{
 					int64_t* dptr = static_cast<int64_t*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
+					out.data_ = std::vector<T>(dptr, dptr + n);
 				}
 					break;
 				default:
@@ -96,7 +117,6 @@ std::vector<PybindT> arr2vec (teq::Shape& outshape, py::array data)
 		default:
 			logs::fatalf("unknown dtype %c", kind);
 	}
-	return vec;
 }
 
 layr::ApproxF get_sgd (PybindT learning_rate)
@@ -126,7 +146,9 @@ PYBIND11_MODULE(rocnnet, m)
 {
 	m.doc() = "rocnnet api";
 
+	// utility data
 	py::class_<teq::Shape> shape(m, "Shape");
+	py::class_<eteq::ShapedArr<PybindT>> sarr(m, "ShapedArr");
 
 	// layers
 	py::class_<layr::iLayer,layr::LayerptrT> layer(m, "Layer");
@@ -137,7 +159,6 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<layr::SequentialModel,layr::SeqModelptrT,layr::iLayer> seqmodel(m, "SequentialModel");
 
 	// trainers
-	py::class_<trainer::MLPTrainer> mlptrainer(m, "MLPTrainer");
 	py::class_<trainer::DQNTrainer> dqntrainer(m, "DQNTrainer");
 	py::class_<trainer::BernoulliRBMTrainer> brbmtrainer(m, "BernoulliRBMTrainer");
 	py::class_<trainer::DBNTrainer> dbntrainer(m, "DBNTrainer");
@@ -145,14 +166,32 @@ PYBIND11_MODULE(rocnnet, m)
 	// supports
 	py::class_<layr::VarAssign> assigns(m, "VarAssign");
 	py::class_<trainer::DQNInfo> dqninfo(m, "DQNInfo");
-	py::class_<trainer::TrainingContext> trainingctx(m, "TrainingContext");
 	py::class_<trainer::DQNTrainingContext> dqntrainingctx(m, "DQNTrainingContext");
 
 	shape
-		.def(py::init<std::vector<teq::DimT>>())
+		.def(py::init(
+			[](std::vector<py::ssize_t> dims)
+			{
+				return pyrocnnet::p2cshape(dims);
+			}))
 		.def("__getitem__",
 			[](teq::Shape& shape, size_t idx) { return shape.at(idx); },
 			py::is_operator());
+
+	sarr
+		.def(py::init(
+			[](py::array ar)
+			{
+				eteq::ShapedArr<PybindT> a;
+				pyrocnnet::arr2shapedarr(a, ar);
+				return a;
+			}))
+		.def("as_numpy",
+			[](py::object self) -> py::array
+			{
+				return pyrocnnet::shapedarr2arr<PybindT>(
+					*self.cast<eteq::ShapedArr<PybindT>*>());
+			});
 
 	// layer
 	layer
@@ -284,44 +323,6 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("add", &layr::SequentialModel::push_back)
 		.def("get_layers", &layr::SequentialModel::get_layers);
 
-	// mlptrainer
-	mlptrainer
-		.def(py::init<layr::SequentialModel&,
-			eteq::iSession&,layr::ApproxF,
-			teq::Shape,teq::Shape,
-			trainer::NodeUnarF,trainer::TrainingContext>(),
-			py::arg("model"), py::arg("sess"), py::arg("update"),
-			py::arg("inshape"), py::arg("outshape"),
-			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity),
-			py::arg("ctx") = trainer::TrainingContext())
-		.def("train",
-			[](py::object self, py::array train_in, py::array expected_out)
-			{
-				eteq::ShapedArr<PybindT> xarr;
-				eteq::ShapedArr<PybindT> yarr;
-				xarr.data_ = pyrocnnet::arr2vec(xarr.shape_, train_in);
-				yarr.data_ = pyrocnnet::arr2vec(yarr.shape_, expected_out);
-				self.cast<trainer::MLPTrainer*>()->train(xarr, yarr);
-			},
-			"train internal variables")
-		.def("train_in",
-			[](py::object self)
-			{
-				return self.cast<trainer::MLPTrainer*>()->train_in_;
-			},
-			"get train_in variable")
-		.def("expected_out",
-			[](py::object self)
-			{
-				return self.cast<trainer::MLPTrainer*>()->expected_out_;
-			},
-			"get expected_out variable")
-		.def("error",
-			[](py::object self)
-			{
-				return self.cast<trainer::MLPTrainer*>()->error_;
-			},
-			"get error node");
 
 	// dqntrainer
 	dqninfo
@@ -347,9 +348,9 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("action",
 			[](py::object self, py::array input)
 			{
-				eteq::ShapedArr<PybindT> arr;
-				arr.data_ = pyrocnnet::arr2vec(arr.shape_, input);
-				return self.cast<trainer::DQNTrainer*>()->action(arr);
+				eteq::ShapedArr<PybindT> a;
+				pyrocnnet::arr2shapedarr(a, input);
+				return self.cast<trainer::DQNTrainer*>()->action(a);
 			},
 			"get next action")
 		.def("store", &trainer::DQNTrainer::store, "save observation, action, and reward")
@@ -381,9 +382,9 @@ PYBIND11_MODULE(rocnnet, m)
 			[](py::object self, py::array data)
 			{
 				auto trainer = self.cast<trainer::BernoulliRBMTrainer*>();
-				teq::Shape shape;
-				std::vector<PybindT> vec = pyrocnnet::arr2vec(shape, data);
-				return trainer->train(vec);
+				eteq::ShapedArr<PybindT> a;
+				pyrocnnet::arr2shapedarr(a, data);
+				return trainer->train(a);
 			}, "train internal variables");
 
 	// dbntrainer
@@ -404,9 +405,9 @@ PYBIND11_MODULE(rocnnet, m)
 				std::function<void(size_t,size_t)> logger)
 			{
 				auto trainer = self.cast<trainer::DBNTrainer*>();
-				teq::Shape shape;
-				std::vector<PybindT> vec = pyrocnnet::arr2vec(shape, x);
-				return trainer->pretrain(vec, nepochs, logger);
+				eteq::ShapedArr<PybindT> xa;
+				pyrocnnet::arr2shapedarr(xa, x);
+				return trainer->pretrain(xa, nepochs, logger);
 			},
 			py::arg("x"),
 			py::arg("nepochs") = 100,
@@ -418,9 +419,11 @@ PYBIND11_MODULE(rocnnet, m)
 			{
 				auto trainer = self.cast<trainer::DBNTrainer*>();
 				teq::Shape shape;
-				std::vector<PybindT> xvec = pyrocnnet::arr2vec(shape, x);
-				std::vector<PybindT> yvec = pyrocnnet::arr2vec(shape, y);
-				return trainer->finetune(xvec, yvec, nepochs, logger);
+				eteq::ShapedArr<PybindT> xa;
+				eteq::ShapedArr<PybindT> ya;
+				pyrocnnet::arr2shapedarr(xa, x);
+				pyrocnnet::arr2shapedarr(ya, y);
+				return trainer->finetune(xa, ya, nepochs, logger);
 			},
 			py::arg("x"),
 			py::arg("y"),
@@ -495,5 +498,11 @@ PYBIND11_MODULE(rocnnet, m)
 				teq::TensptrsT trained_roots;
 				return std::static_pointer_cast<layr::RBM>(
 					layr::load_layer(input, trained_roots, layr::rbm_layer_key, layer_label));
-			});
+			})
+
+		// trainers
+		.def("mlp_train", &trainer::mlp_train,
+			py::arg("model"), py::arg("sess"),
+			py::arg("train_in"), py::arg("expected_out"), py::arg("update"),
+			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity));
 };

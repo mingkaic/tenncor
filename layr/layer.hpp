@@ -128,6 +128,7 @@ struct iLayer
 		return this->clone_impl(label_prefix);
 	}
 
+	// todo: replace this to return with shaped information
 	/// Return input value of the expected input (first dimension)
 	virtual size_t get_ninput (void) const = 0;
 

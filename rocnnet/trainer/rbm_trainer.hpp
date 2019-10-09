@@ -125,16 +125,9 @@ struct BernoulliRBMTrainer final
 
 	// Return error after training with train_in
 	// if error is set, otherwise -1
-	PybindT train (std::vector<PybindT>& train_in)
+	PybindT train (eteq::ShapedArr<PybindT>& train_in)
 	{
-		size_t insize = model_.get_ninput();
-		if (train_in.size() != insize * batch_size_)
-		{
-			logs::fatalf("training vector size (%d) does not match "
-				"input size (%d) * batchsize (%d)", train_in.size(),
-				insize, batch_size_);
-		}
-		visible_->assign(train_in.data(), visible_->shape());
+		visible_->assign(train_in);
 
 		sess_->update_target(assign_sources_, {
 			visible_->get_tensor().get(),
