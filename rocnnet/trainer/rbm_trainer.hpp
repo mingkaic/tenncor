@@ -17,8 +17,8 @@ NodeptrT sample_h2v (const layr::RBM& model, NodeptrT h);
 
 NodeptrT gibbs_hvh (const layr::RBM& model, NodeptrT h);
 
-layr::VarErrsT cd_grad_approx (layr::RBM& model, NodeptrT visible,
-	size_t cdk = 1, eteq::VarptrT<PybindT> persistent = nullptr);
+// source for below algorithms:
+// https://github.com/meownoid/tensorfow-rbm/blob/master/tfrbm/bbrbm.py
 
 // Bernoulli RBM "error approximation"
 // for each (x, err) in leaves
@@ -30,8 +30,26 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 	PybindT learning_rate, PybindT discount_factor,
 	std::string root_label = "");
 
-// source: https://github.com/meownoid/tensorfow-rbm/blob/master/tfrbm/bbrbm.py
-TrainErrF bernoulli_rbm_train (layr::RBM& model, eteq::iSession& sess,
+struct CDChainIO
+{
+	CDChainIO (NodeptrT visible) : visible_(visible) {}
+
+	CDChainIO (NodeptrT visible, NodeptrT hidden) :
+		visible_(visible), hidden_(hidden) {}
+
+	NodeptrT visible_;
+
+	NodeptrT hidden_ = nullptr;
+
+	NodeptrT visible_mean_ = nullptr;
+
+	NodeptrT hidden_mean_ = nullptr;
+};
+
+layr::VarErrsT cd_grad_approx (CDChainIO& io,const layr::RBM& model,
+	size_t cdk = 1, eteq::VarptrT<PybindT> persistent = nullptr);
+
+TrainErrF rbm_train (layr::RBM& model, eteq::iSession& sess,
 	NodeptrT visible, PybindT learning_rate, PybindT discount_factor,
 	ErrorF err_func = ErrorF(), size_t cdk = 1);
 

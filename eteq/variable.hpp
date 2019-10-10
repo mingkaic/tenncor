@@ -175,12 +175,6 @@ struct VariableNode final : public iNode<T>
 		var_->assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
 	}
 
-	/// Return string representation of internal variable
-	std::string get_label (void) const
-	{
-		return var_->to_string();
-	}
-
 protected:
 	iNode<T>* clone_impl (void) const override
 	{

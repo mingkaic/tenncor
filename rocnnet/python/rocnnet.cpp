@@ -483,7 +483,7 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("model"), py::arg("sess"),
 			py::arg("train_in"), py::arg("expected_out"), py::arg("update"),
 			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity))
-		.def("brbm_train", &trainer::bernoulli_rbm_train,
+		.def("rbm_train", &trainer::rbm_train,
 			py::arg("model"), py::arg("sess"),
 			py::arg("visible"), py::arg("learning_rate"),
 			py::arg("discount_factor"), py::arg("err_func"),

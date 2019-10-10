@@ -89,7 +89,7 @@ def main(args):
     # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=batch_size)
 
     train_input = eteq.Variable([batch_size, n_visible])
-    train = rcn.brbm_train(model, sess, train_input,
+    train = rcn.rbm_train(model, sess, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)

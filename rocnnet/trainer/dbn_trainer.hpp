@@ -88,59 +88,39 @@ struct DBNTrainer final
 		teq::TensptrsT to_track;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
-			// --- todo: replace this whole section with cd_grad_approx
 			auto& rbm = rbm_layers[i];
 			auto& rx = sample_pipes_[i];
 			auto& ry = sample_pipes_[i + 1];
-
 			auto contents = rbm->get_contents();
-			auto& w = contents[0];
-			auto& hb = contents[1];
-			auto& vb = contents[3];
-			auto chain_it = ry; // add persistent here for pcd
-			for (size_t i = 0; i < cdk - 1; ++i)
+			teq::TensSetT to_learn = {
+				contents[0].get(),
+				contents[1].get(),
+				contents[3].get(),
+			};
+			CDChainIO io(rx, ry);
+			layr::VarErrsT varerrs = cd_grad_approx(io, *rbm, cdk); // todo: add persistent option
+			layr::AssignsT assigns;
+			for (auto varerr : varerrs)
 			{
-				chain_it = gibbs_hvh(*rbm, chain_it);
+				// if var is a weight or bias add assign with learning rate
+				// otherwise assign directly
+				auto next_var = estd::has(to_learn, varerr.first->get_tensor().get()) ?
+					eteq::convert_to_node<PybindT>(varerr.first) +
+					pretrain_lr * varerr.second : varerr.second;
+				assigns.push_back(layr::VarAssign{
+					fmts::sprintf("rbm_d%s_%d",
+						varerr.first->to_string().c_str(), i),
+					varerr.first, next_var
+				});
+				to_track.push_back(next_var->get_tensor());
 			}
-			auto nv_samples = sample_h2v(*rbm, chain_it);
-			auto nh_means = rbm->connect(nv_samples);
-
-			auto dw = eteq::to_node<PybindT>(w) + pretrain_lr * (
-				tenncor::matmul(tenncor::transpose(rx), ry) -
-				tenncor::matmul(tenncor::transpose(nv_samples), nh_means));
-			auto dhb = eteq::to_node<PybindT>(hb) + pretrain_lr *
-				tenncor::reduce_mean_1d(ry - nh_means, 1);
-			auto dvb = eteq::to_node<PybindT>(vb) + pretrain_lr *
-				tenncor::reduce_mean_1d(rx - nv_samples, 1);
-			// --- end
-
-			rupdates_.push_back(layr::AssignsT{
-				layr::VarAssign{
-					fmts::sprintf("rbm_dw_%d", i),
-					std::make_shared<eteq::VariableNode<PybindT>>(
-						std::static_pointer_cast<eteq::Variable<PybindT>>(w)),
-					dw},
-				layr::VarAssign{
-					fmts::sprintf("rbm_dhb_%d", i),
-					std::make_shared<eteq::VariableNode<PybindT>>(
-						std::static_pointer_cast<eteq::Variable<PybindT>>(hb)),
-					dhb},
-				layr::VarAssign{
-					fmts::sprintf("rbm_dvb_%d", i),
-					std::make_shared<eteq::VariableNode<PybindT>>(
-						std::static_pointer_cast<eteq::Variable<PybindT>>(vb)),
-					dvb},
-			});
+			rupdates_.push_back(assigns);
 
 			auto vhv = rbm->backward_connect(rbm->connect(rx));
 			auto rcost = -tenncor::reduce_mean(
 				tenncor::reduce_sum_1d(rx * tenncor::log(vhv) +
 					(1.f - rx) * tenncor::log(1.f - vhv), 0));
 			rcosts_.push_back(rcost);
-
-			to_track.push_back(dw->get_tensor());
-			to_track.push_back(dhb->get_tensor());
-			to_track.push_back(dvb->get_tensor());
 			to_track.push_back(rcost->get_tensor());
 		}
 		to_track.push_back(sample_pipes_.back()->get_tensor());
