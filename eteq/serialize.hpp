@@ -118,7 +118,7 @@ ArgsT<realtype> eargs;eargs.reserve(args.size());\
 std::transform(args.begin(), args.end(), std::back_inserter(eargs),\
 [](teq::FuncArg arg){\
 	return FuncArg<realtype>(\
-		NodeConverters<realtype>::to_node(arg.get_tensor()),\
+		to_node<realtype>(arg.get_tensor()),\
 		arg.get_shaper(),\
 		std::static_pointer_cast<CoordMap>(arg.get_coorder()));\
 });\

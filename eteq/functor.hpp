@@ -149,7 +149,7 @@ struct Functor final : public teq::iOperableFunc
 			auto tens = arg.get_tensor();
 			auto coorder = static_cast<CoordMap*>(arg.get_coorder().get());
 			datamaps.push_back(OpArg<T>{
-				TO_NODE(tens)->data(),
+				to_node<T>(tens)->data(),
 				tens->shape(),
 				coorder
 			});
@@ -217,7 +217,7 @@ protected:
 			[](teq::FuncArg& arg)
 			{
 				return FuncArg<T>(
-					TO_NODE(arg.get_tensor()), arg.get_shaper(),
+					to_node<T>(arg.get_tensor()), arg.get_shaper(),
 					std::static_pointer_cast<CoordMap>(arg.get_coorder()));
 			});
 		return new FunctorNode(std::shared_ptr<Functor<T>>(

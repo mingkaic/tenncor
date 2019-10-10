@@ -650,11 +650,11 @@ api:
         args:
         - dtype: eteq::NodeptrT<T>
           name: arg
-        - dtype: std::vector<teq::DimT>
-          name: slist
+        - dtype: teq::Shape
+          name: shape
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"RESHAPE",::egen::RESHAPE},{eteq::reshape_map(arg,slist)});
+          val: return eteq::make_functor<T>(teq::Opcode{"RESHAPE",::egen::RESHAPE},{eteq::reshape_map(arg,shape)});
       - description: sum values ignoring coordinate indices between start and end
         template: typename T
         name: reduce_sum

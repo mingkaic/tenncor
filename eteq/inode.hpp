@@ -74,11 +74,8 @@ using NodeBuilderF = std::function<NodeptrT<T>(teq::TensptrT)>;
 template <typename T>
 struct NodeConverters final
 {
-	/// Map tensor type to node creation function
-	static std::unordered_map<size_t,NodeBuilderF<T>> builders_;
-
 	/// Return node associated with tensor type
-	static NodeptrT<T> to_node (teq::TensptrT tens)
+	NodeptrT<T> to_node (teq::TensptrT tens)
 	{
 		const std::type_info& tp = typeid(*tens);
 		return estd::must_getf(builders_, tp.hash_code(),
@@ -86,11 +83,25 @@ struct NodeConverters final
 			tp.name(), egen::name_type(egen::get_type<T>()).c_str())(tens);
 	}
 
-	NodeConverters (void) = delete;
+	/// Map tensor type to node creation function
+	std::unordered_map<size_t,NodeBuilderF<T>> builders_;
 };
 
+/// Return global node converter of specified type
 template <typename T>
-std::unordered_map<size_t,NodeBuilderF<T>> NodeConverters<T>::builders_;
+NodeConverters<T>& get_converter (void)
+{
+	static NodeConverters<T> converter;
+	return converter;
+}
+
+/// Return node of tens according to builders in specified converter
+template <typename T>
+NodeptrT<T> to_node (teq::TensptrT tens,
+	NodeConverters<T>& converter = get_converter<T>())
+{
+	return converter.to_node(tens);
+}
 
 /// Return true if tensor type successfully registers and maps to node builder,
 ///	otherwise false
@@ -98,14 +109,9 @@ template <typename TensType, typename T>
 bool register_builder (NodeBuilderF<T> builder)
 {
 	const std::type_info& tp = typeid(TensType);
-	return NodeConverters<T>::builders_.
+	return get_converter<T>().builders_.
 		emplace(tp.hash_code(), builder).second;
 }
-
-/// Macro for converting tensor to node
-#define TO_NODE(tens) ::eteq::NodeConverters<T>::to_node(tens)
-
-#define TO_NODE_T(tens, type) ::eteq::NodeConverters<type>::to_node(tens)
 
 }
 

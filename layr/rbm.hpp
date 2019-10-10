@@ -76,7 +76,7 @@ struct RBM final : public iLayer
 			vbias = bias_init(teq::Shape({nvisible}), dense_bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			TO_NODE_T(weight, PybindT)), vbias, visible_key);
+			eteq::to_node<PybindT>(weight)), vbias, visible_key);
 		tag_sublayers();
 	}
 
@@ -206,10 +206,10 @@ private:
 		NodeptrT vbias_node = nullptr;
 		if (auto vbias = other.visible_->get_contents()[1])
 		{
-			vbias_node = NodeptrT(TO_NODE_T(vbias, PybindT)->clone());
+			vbias_node = NodeptrT(eteq::to_node<PybindT>(vbias)->clone());
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			TO_NODE_T(hidden_contents[0], PybindT)),
+			eteq::to_node<PybindT>(hidden_contents[0])),
 			vbias_node, label_prefix + visible_key);
 
 		activation_ = UnaryptrT(other.activation_->clone(label_prefix));

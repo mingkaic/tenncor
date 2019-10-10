@@ -1,12 +1,15 @@
 #include "layr/dense.hpp"
 #include "layr/rbm.hpp"
 
+#include "rocnnet/trainer/rbm_trainer.hpp"
+
 #ifndef RCN_DBN_TRAINER_HPP
 #define RCN_DBN_TRAINER_HPP
 
 namespace trainer
 {
 
+// todo: only a portion of the sequential model needs to conform to these parameter (cover this case)
 static bool is_dbn (layr::SequentialModel& model)
 {
 	auto layers = model.get_layers();
@@ -33,17 +36,7 @@ static bool is_dbn (layr::SequentialModel& model)
 	return true;
 }
 
-NodeptrT sample_h_given_v (layr::RBMptrT& rbm, NodeptrT& x)
-{
-	return tenncor::random::rand_binom_one(rbm->connect(x));
-}
-
-NodeptrT sample_v_given_h (layr::RBMptrT& rbm, NodeptrT& x)
-{
-	return tenncor::random::rand_binom_one(rbm->backward_connect(x));
-}
-
-// implementation taken from https://gist.github.com/yusugomori/4509019
+// source: https://gist.github.com/yusugomori/4509019
 // todo: add optimization options
 struct DBNTrainer final
 {
@@ -87,14 +80,15 @@ struct DBNTrainer final
 		sample_pipes_.push_back(convert_to_node(trainx_));
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
-			sample_pipes_.push_back(sample_h_given_v(
-				rbm_layers[i], sample_pipes_[i]));
+			sample_pipes_.push_back(sample_v2h(
+				*rbm_layers[i], sample_pipes_[i]));
 		}
 
 		// layer-wise rbm reconstruction
 		teq::TensptrsT to_track;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
+			// --- todo: replace this whole section with cd_grad_approx
 			auto& rbm = rbm_layers[i];
 			auto& rx = sample_pipes_[i];
 			auto& ry = sample_pipes_[i + 1];
@@ -103,22 +97,22 @@ struct DBNTrainer final
 			auto& w = contents[0];
 			auto& hb = contents[1];
 			auto& vb = contents[3];
-			auto chain_it = ry;
+			auto chain_it = ry; // add persistent here for pcd
 			for (size_t i = 0; i < cdk - 1; ++i)
 			{
-				chain_it = tenncor::random::rand_binom_one(rbm->connect(
-					sample_v_given_h(rbm, chain_it)));
+				chain_it = gibbs_hvh(*rbm, chain_it);
 			}
-			auto nv_samples = sample_v_given_h(rbm, chain_it);
+			auto nv_samples = sample_h2v(*rbm, chain_it);
 			auto nh_means = rbm->connect(nv_samples);
 
-			auto dw = TO_NODE_T(w, PybindT) + pretrain_lr * (
+			auto dw = eteq::to_node<PybindT>(w) + pretrain_lr * (
 				tenncor::matmul(tenncor::transpose(rx), ry) -
 				tenncor::matmul(tenncor::transpose(nv_samples), nh_means));
-			auto dhb = TO_NODE_T(hb, PybindT) + pretrain_lr *
+			auto dhb = eteq::to_node<PybindT>(hb) + pretrain_lr *
 				tenncor::reduce_mean_1d(ry - nh_means, 1);
-			auto dvb = TO_NODE_T(vb, PybindT) + pretrain_lr *
+			auto dvb = eteq::to_node<PybindT>(vb) + pretrain_lr *
 				tenncor::reduce_mean_1d(rx - nv_samples, 1);
+			// --- end
 
 			rupdates_.push_back(layr::AssignsT{
 				layr::VarAssign{
@@ -160,17 +154,17 @@ struct DBNTrainer final
 		auto final_out = softmax_layer->connect(dense_layer->connect(sample_pipes_.back()));
 		auto diff = eteq::convert_to_node(trainy_) - final_out;
 		auto l2_regularized = tenncor::matmul(tenncor::transpose(
-			sample_pipes_.back()), diff) - l2_reg * TO_NODE_T(w, PybindT);
+			sample_pipes_.back()), diff) - l2_reg * eteq::to_node<PybindT>(w);
 
 		auto wshape = w->shape();
 		auto bshape = b->shape();
 		auto tlr_placeholder = eteq::make_variable_scalar<PybindT>(
 			train_lr, teq::Shape(), "learning_rate");
-		auto dw = TO_NODE_T(w, PybindT) +
+		auto dw = eteq::to_node<PybindT>(w) +
 			tenncor::extend(eteq::convert_to_node(tlr_placeholder), 0,
 				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
 			l2_regularized;
-		auto db = TO_NODE_T(b, PybindT) +
+		auto db = eteq::to_node<PybindT>(b) +
 			tenncor::extend(eteq::convert_to_node(tlr_placeholder), 0,
 				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
 			tenncor::reduce_mean_1d(diff, 1);

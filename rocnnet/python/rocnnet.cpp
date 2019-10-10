@@ -486,5 +486,6 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("brbm_train", &trainer::bernoulli_rbm_train,
 			py::arg("model"), py::arg("sess"),
 			py::arg("visible"), py::arg("learning_rate"),
-			py::arg("discount_factor"), py::arg("err_func"));
+			py::arg("discount_factor"), py::arg("err_func"),
+			py::arg("cdk") = 1);
 };

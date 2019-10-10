@@ -142,21 +142,17 @@ FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 	return FuncArg<T>(node, teq::permute(order), permute(order));
 }
 
+/// Return FuncArg<T> that reshapes node to specified shape
 template <typename T>
-FuncArg<T> reshape_map (NodeptrT<T> node, std::vector<teq::DimT> slist)
+FuncArg<T> reshape_map (NodeptrT<T> node, const teq::Shape& shape)
 {
 	return FuncArg<T>(node,
 		std::make_shared<teq::CoordMap>(
 			[=](teq::MatrixT& fwd)
 			{
-				teq::RankT n = std::min((teq::RankT) slist.size(), teq::rank_cap);
-				for (teq::RankT i = 0; i < n; ++i)
+				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 				{
-					fwd[teq::rank_cap][i] = slist[i];
-				}
-				for (teq::RankT i = n; i < teq::rank_cap; ++i)
-				{
-					fwd[teq::rank_cap][i] = 1;
+					fwd[teq::rank_cap][i] = shape.at(i);
 				}
 			}), nullptr);
 }

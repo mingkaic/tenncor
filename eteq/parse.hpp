@@ -15,7 +15,7 @@
 namespace eteq
 {
 
-static std::vector<double> vectorize (::NumList* list)
+static inline std::vector<double> vectorize (::NumList* list)
 {
 	std::vector<double> arr;
 	for (auto it = list->head_; nullptr != it; it = it->next_)
@@ -25,7 +25,7 @@ static std::vector<double> vectorize (::NumList* list)
 	return arr;
 }
 
-static CoordptrT coorderize (::NumList* list)
+static inline CoordptrT coorderize (::NumList* list)
 {
 	CoordptrT out = nullptr;
 	if (nullptr == list)
@@ -141,7 +141,7 @@ struct FuncConvr final : public opt::iConverter
 			}
 			auto tens = arg.arg_->build(ctx, childshape);
 			args.push_back(FuncArg<T>(
-				TO_NODE(tens),
+				to_node<T>(tens),
 				arg.shaper_, arg.coorder_));
 		}
 		return make_functor(opcode_, args)->get_tensor();
@@ -206,7 +206,7 @@ struct GroupConvr final : public opt::iConverter
 			std::back_inserter(outs),
 			[](teq::TensptrT tens)
 			{
-				return TO_NODE(tens);
+				return to_node<T>(tens);
 			});
 		if (group_ == "sum")
 		{

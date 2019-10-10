@@ -123,47 +123,47 @@ struct GradientBuilder final : public teq::iGradientBuilder
 		switch ((egen::_GENERATED_OPCODE) opcode.code_)
 		{
 			case egen::ABS:
-				out = TO_NODE(args[0].get_tensor()) / TO_NODE(op);
+				out = to_node<T>(args[0].get_tensor()) / to_node<T>(op);
 				break;
 			case egen::NEG:
 				out = make_constant_scalar<T>(
 					-1, args[0].get_tensor()->shape());
 				break;
 			case egen::SIN:
-				out = tenncor::cos(TO_NODE(args[0].get_tensor()));
+				out = tenncor::cos(to_node<T>(args[0].get_tensor()));
 				break;
 			case egen::COS:
-				out = -tenncor::sin(TO_NODE(args[0].get_tensor()));
+				out = -tenncor::sin(to_node<T>(args[0].get_tensor()));
 				break;
 			case egen::TAN:
 				out = (T) 1 / tenncor::pow(
-					tenncor::cos(TO_NODE(args[0].get_tensor())), (T) 2);
+					tenncor::cos(to_node<T>(args[0].get_tensor())), (T) 2);
 				break;
 			case egen::EXP:
-				out = TO_NODE(op);
+				out = to_node<T>(op);
 				break;
 			case egen::LOG:
-				out = (T) 1 / TO_NODE(args[0].get_tensor());
+				out = (T) 1 / to_node<T>(args[0].get_tensor());
 				break;
 			case egen::SQRT:
-				out = (T) 1 / ((T) 2 * TO_NODE(op));
+				out = (T) 1 / ((T) 2 * to_node<T>(op));
 				break;
 			case egen::SQUARE:
-				out = (T) 2 * TO_NODE(args[0].get_tensor());
+				out = (T) 2 * to_node<T>(args[0].get_tensor());
 				break;
 			case egen::CUBE:
-				out = (T) 3 * tenncor::square(TO_NODE(args[0].get_tensor()));
+				out = (T) 3 * tenncor::square(to_node<T>(args[0].get_tensor()));
 				break;
 			case egen::SIGMOID:
 				out = tenncor::sigmoid_grad(
-					TO_NODE(args[0].get_tensor()));
+					to_node<T>(args[0].get_tensor()));
 				break;
 			case egen::SIGMOID_GRAD:
-				out = TO_NODE(op) * ((T) 1 - (T) 2 *
-					tenncor::sigmoid(TO_NODE(args[0].get_tensor())));
+				out = to_node<T>(op) * ((T) 1 - (T) 2 *
+					tenncor::sigmoid(to_node<T>(args[0].get_tensor())));
 				break;
 			case egen::TANH:
-				out = (T) 1 - tenncor::square(TO_NODE(op));
+				out = (T) 1 - tenncor::square(to_node<T>(op));
 				break;
 			case egen::ROUND:
 			case egen::REDUCE_SUM:
@@ -179,21 +179,21 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::MUL:
 			case egen::CONV:
-				out = TO_NODE(args[(size_t)(arg_idx==0)].get_tensor());
+				out = to_node<T>(args[(size_t)(arg_idx==0)].get_tensor());
 				break;
 			case egen::MAX:
 			case egen::MIN:
-				out = TO_NODE(op) == TO_NODE(args[arg_idx].get_tensor());
+				out = to_node<T>(op) == to_node<T>(args[arg_idx].get_tensor());
 				break;
 			case egen::POW:
 				out = arg_idx==0 ?
-					TO_NODE(args[1].get_tensor()) *
+					to_node<T>(args[1].get_tensor()) *
 					tenncor::pow(
-						TO_NODE(args[0].get_tensor()),
-						TO_NODE(args[1].get_tensor()) - (T) 1
+						to_node<T>(args[0].get_tensor()),
+						to_node<T>(args[1].get_tensor()) - (T) 1
 					) :
-					tenncor::log(TO_NODE(args[0].get_tensor())) *
-						TO_NODE(op);
+					tenncor::log(to_node<T>(args[0].get_tensor())) *
+						to_node<T>(op);
 				break;
 			case egen::SUB:
 				out = make_constant_scalar<T>(arg_idx == 0 ?
@@ -201,10 +201,10 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::DIV:
 			{
-				auto denom = TO_NODE(args[1].get_tensor());
+				auto denom = to_node<T>(args[1].get_tensor());
 				out = arg_idx==0 ?
 					(T) 1 / denom :
-					-TO_NODE(args[0].get_tensor()) / denom / denom;
+					-to_node<T>(args[0].get_tensor()) / denom / denom;
 			}
 				break;
 			case egen::EQ:
@@ -217,19 +217,19 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::REDUCE_PROD: // todo: prevent divide by zero
 				out =
-					reduce_grad(args[0], TO_NODE(op), arg_idx) /
-					TO_NODE(args[0].get_tensor());
+					reduce_grad(args[0], to_node<T>(op), arg_idx) /
+					to_node<T>(args[0].get_tensor());
 				break;
 			case egen::REDUCE_MAX:
 			case egen::REDUCE_MIN:
 				out =
-					reduce_grad(args[0], TO_NODE(op), arg_idx) ==
-					TO_NODE(args[0].get_tensor());
+					reduce_grad(args[0], to_node<T>(op), arg_idx) ==
+					to_node<T>(args[0].get_tensor());
 				break;
 			case egen::MATMUL:
 			{
-				NodeptrT<T> lhs = TO_NODE(args[0].get_tensor());
-				NodeptrT<T> rhs = TO_NODE(args[1].get_tensor());
+				NodeptrT<T> lhs = to_node<T>(args[0].get_tensor());
+				NodeptrT<T> rhs = to_node<T>(args[1].get_tensor());
 				out = 0 == arg_idx ?
 					// ext_rhs
 					tenncor::permute(tenncor::extend(rhs, 2, {
@@ -285,37 +285,36 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::GT:
 			case egen::LT:
 			case egen::RAND_UNIF:
-				out = TO_NODE(local_der) *
-					TO_NODE(supcomp_grad);
+				out = to_node<T>(local_der) *
+					to_node<T>(supcomp_grad);
 				break;
 			case egen::REDUCE_MAX:
 			case egen::REDUCE_MIN:
 			case egen::REDUCE_PROD:
 			case egen::REDUCE_SUM:
-				out = TO_NODE(local_der) * reduce_grad(
-					op->get_children()[0], TO_NODE(supcomp_grad), arg_idx);
+				out = to_node<T>(local_der) * reduce_grad(
+					op->get_children()[0], to_node<T>(supcomp_grad), arg_idx);
 				break;
 			case egen::EXTEND:
-				out = TO_NODE(local_der) * extend_grad(
-					op.get(), TO_NODE(supcomp_grad), arg_idx);
+				out = to_node<T>(local_der) * extend_grad(
+					op.get(), to_node<T>(supcomp_grad), arg_idx);
 				break;
 			case egen::PERMUTE:
-				out = TO_NODE(local_der) * permute_grad(
-					op.get(), TO_NODE(supcomp_grad), arg_idx);
+				out = to_node<T>(local_der) * permute_grad(
+					op.get(), to_node<T>(supcomp_grad), arg_idx);
 				break;
 			case egen::RESHAPE:
 			{
 				auto& child = op->get_children()[0];
-				teq::Shape origshape = child.get_tensor()->shape();
-				std::vector<teq::DimT> slist(origshape.begin(), origshape.end());
-				out = TO_NODE(local_der) * tenncor::reshape(TO_NODE(supcomp_grad), slist);
+				out = to_node<T>(local_der) * tenncor::reshape(
+					to_node<T>(supcomp_grad), child.get_tensor()->shape());
 			}
 				break;
 			case egen::MATMUL:
 				out = tenncor::reduce_sum(
 					tenncor::permute(
-						TO_NODE(local_der) *
-							tenncor::extend(TO_NODE(supcomp_grad), 2, {
+						to_node<T>(local_der) *
+							tenncor::extend(to_node<T>(supcomp_grad), 2, {
 								op->get_children()[0].
 									get_tensor()->shape().at(0)
 							}),
@@ -344,8 +343,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				teq::CoordptrT full_shaper(
 					fwd_shaper->connect(*rev_shaper));
 				out = make_functor<T>(opcode, {
-					FuncArg<T>(TO_NODE(local_der), full_shaper, nullptr),
-					FuncArg<T>(TO_NODE(supcomp_grad), rev_shaper, nullptr),
+					FuncArg<T>(to_node<T>(local_der), full_shaper, nullptr),
+					FuncArg<T>(to_node<T>(supcomp_grad), rev_shaper, nullptr),
 				});
 			}
 				break;
@@ -369,8 +368,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					paddings.push_back({leftpad,
 						cshape.at(i) - (leftpad + extents[i])});
 				}
-				out = TO_NODE(local_der) *
-					tenncor::pad(TO_NODE(supcomp_grad), paddings);
+				out = to_node<T>(local_der) *
+					tenncor::pad(to_node<T>(supcomp_grad), paddings);
 			}
 				break;
 			case egen::PAD:
@@ -395,8 +394,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					extents.push_back({offset,
 						oshape.at(i) - rightpad[i] - offset});
 				}
-				out = TO_NODE(local_der) *
-					tenncor::slice(TO_NODE(supcomp_grad), extents);
+				out = to_node<T>(local_der) *
+					tenncor::slice(to_node<T>(supcomp_grad), extents);
 			}
 				break;
 			case egen::STRIDE:
@@ -410,9 +409,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 							strides.begin());
 					});
 				teq::Shape origshape = child.get_tensor()->shape();
-				out = TO_NODE(local_der) *
+				out = to_node<T>(local_der) *
 					eteq::make_functor<T>(teq::Opcode{"SCATTER",::egen::SCATTER}, {
-						FuncArg<T>(TO_NODE(supcomp_grad),
+						FuncArg<T>(to_node<T>(supcomp_grad),
 							std::make_shared<teq::CoordMap>(
 								[origshape,strides](teq::MatrixT& fwd)
 								{
@@ -458,20 +457,20 @@ struct GradientBuilder final : public teq::iGradientBuilder
 						std::copy(args[0], args[0] + teq::rank_cap,
 							std::back_inserter(strides));
 					});
-				out = TO_NODE(local_der) *
-					tenncor::stride(TO_NODE(supcomp_grad), strides);
+				out = to_node<T>(local_der) *
+					tenncor::stride(to_node<T>(supcomp_grad), strides);
 			}
 				break;
 			case egen::SELECT:
 			{
 				if (0 == arg_idx)
 				{
-					out = TO_NODE(local_der);
+					out = to_node<T>(local_der);
 					break;
 				}
-				auto condition = TO_NODE(
+				auto condition = to_node<T>(
 					op->get_children()[0].get_tensor());
-				auto then = TO_NODE(supcomp_grad);
+				auto then = to_node<T>(supcomp_grad);
 				auto otherwise = make_constant_scalar<T>(0, op->shape());
 				if (1 < arg_idx)
 				{
@@ -508,8 +507,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 	teq::TensptrT add (teq::TensptrT& lhs, teq::TensptrT& rhs) const override
 	{
 		return teq::TensptrT(Functor<T>::get(teq::Opcode{"ADD", egen::ADD}, {
-			identity_map(TO_NODE(lhs)),
-			identity_map(TO_NODE(rhs))
+			identity_map(to_node<T>(lhs)),
+			identity_map(to_node<T>(rhs))
 		}));
 	}
 };
@@ -521,7 +520,7 @@ NodeptrT<T> derive (NodeptrT<T> root, NodeptrT<T> target)
 	GradientBuilder<T> builder;
 	teq::TensptrT derivative = builder.derive(
 		root->get_tensor(), target->get_tensor());
-	return TO_NODE(derivative);
+	return to_node<T>(derivative);
 }
 
 }

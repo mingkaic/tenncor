@@ -95,8 +95,7 @@ py_binary(
 
 py_binary(
     name = "cnn_demo",
-    srcs = glob(["demo/data/*.py"]) +
-        ["demo/cnn_demo.py"],
+    srcs = ["demo/cnn_demo.py"],
     deps = [
         ":rocnnet_py",
         "//dbg:grpc_dbg_py",

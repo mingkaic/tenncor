@@ -33,12 +33,12 @@ struct DenseBuilder final : public iLayerBuilder
 	{
 		if (target == dense_weight_key)
 		{
-			weight_ = TO_NODE_T(tens, PybindT);
+			weight_ = eteq::to_node<PybindT>(tens);
 			return;
 		}
 		else if (target == dense_bias_key)
 		{
-			bias_ = TO_NODE_T(tens, PybindT);
+			bias_ = eteq::to_node<PybindT>(tens);
 			return;
 		}
 		logs::warnf("attempt to create dense layer "
@@ -177,7 +177,7 @@ struct Dense final : public iLayer
 		if (i > 2)
 		{
 			// reshape input to fit weight
-			input = tenncor::reshape(input, {ninput, nbatch});
+			input = tenncor::reshape(input, teq::Shape({ninput, nbatch}));
 		}
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
 		teq::TensSetT leaves = {

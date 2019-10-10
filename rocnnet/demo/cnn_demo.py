@@ -66,11 +66,11 @@ sess.optimize("cfg/optimizations.rules")
 
 # train
 
-def preprocess(image, klas):
+def preprocess(image, label):
     pass
 
 # train_input.assign(image_batch)
-# train_output.assign(klas_batch)
+# train_output.assign(label_batch)
 # train()
 
 # test

@@ -3,9 +3,11 @@ import time
 import random
 import argparse
 
-from tensorflow.examples.tutorials.mnist import input_data
 import matplotlib.pyplot as plt
 import numpy as np
+
+from tensorflow.examples.tutorials.mnist import input_data
+# import tensorflow_datasets as tfds
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
@@ -84,6 +86,8 @@ def main(args):
     sess = eteq.Session()
     batch_size = 10
 
+    # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=batch_size)
+
     train_input = eteq.Variable([batch_size, n_visible])
     train = rcn.brbm_train(model, sess, train_input,
         learning_rate=learning_rate,
@@ -122,12 +126,13 @@ def main(args):
 
     errs = []
     for e in range(n_epoches):
-        epoch_errs = np.zeros((n_batches,))
-        epoch_errs_ptr = 0
+        epoch_errs = []
 
         if shuffle:
             np.random.shuffle(inds)
             mnist_images = mnist_images[inds]
+
+        # ds = tfds.load('mnist', split=tfds.Split.TRAIN, shuffle_files=True, batch_size=10)
 
         r_batches = range(n_batches)
 
@@ -143,9 +148,10 @@ def main(args):
         for b in r_batches:
             batch_x = mnist_images[b * batch_size:(b + 1) * batch_size]
             train_input.assign(batch_x)
-            epoch_errs[epoch_errs_ptr] = train().as_numpy()[0]
-            epoch_errs_ptr += 1
+            err = train().as_numpy()
+            epoch_errs.append(err)
 
+        epoch_errs = np.array(epoch_errs)
         if verbose:
             err_mean = epoch_errs.mean()
             if tq is not None:
