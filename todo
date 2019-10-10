@@ -6,7 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === usage ===
-P2 - implement convolutional nn
+P2 - demo convolutional nn
 P2 - implement recurrent nn
 P2 - implement dropout layer
 P2 - implement attention mechanisms

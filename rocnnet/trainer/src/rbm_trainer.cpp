@@ -59,16 +59,16 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 layr::VarErrsT cd_grad_approx (layr::RBM& model, NodeptrT visible,
 	size_t cdk, eteq::VarptrT<PybindT> persistent)
 {
-	auto hidden_sample = sample_v2h(model, visible);
+	auto hidden = sample_v2h(model, visible);
 	auto chain_it = nullptr == persistent ?
-		hidden_sample : eteq::convert_to_node(persistent);
+		hidden : eteq::convert_to_node(persistent);
 	for (size_t i = 0; i < cdk - 1; ++i)
 	{
 		chain_it = gibbs_hvh(model, chain_it);
 	}
 
-	auto visible_sample = sample_h2v(model, chain_it);
-	auto hidden_reconp = model.connect(visible_sample);
+	auto visible_mean = model.backward_connect(chain_it);
+	auto hidden_mean = model.connect(visible_mean);
 
 	auto contents = model.get_contents();
 	std::vector<eteq::VarptrT<PybindT>> vars;
@@ -86,26 +86,25 @@ layr::VarErrsT cd_grad_approx (layr::RBM& model, NodeptrT visible,
 		});
 
 	auto grad_w =
-		tenncor::matmul(tenncor::transpose(visible), hidden_sample) -
-		tenncor::matmul(tenncor::transpose(visible_sample), hidden_reconp);
+		tenncor::matmul(tenncor::transpose(visible), hidden) -
+		tenncor::matmul(tenncor::transpose(visible_mean), hidden_mean);
 	layr::VarErrsT varerrs = {
 		{vars[0], grad_w},
 	};
 
 	if (nullptr != vars[1])
 	{
-		auto grad_hb = tenncor::reduce_mean_1d(hidden_sample - hidden_reconp, 1);
+		auto grad_hb = tenncor::reduce_mean_1d(hidden - hidden_mean, 1);
 		varerrs.push_back({vars[1], grad_hb});
 	}
 	if (nullptr != vars[3])
 	{
-		auto grad_vb = tenncor::reduce_mean_1d(visible - visible_sample, 1);
+		auto grad_vb = tenncor::reduce_mean_1d(visible - visible_mean, 1);
 		varerrs.push_back({vars[3], grad_vb});
 	}
 	if (nullptr != persistent)
 	{
-		varerrs.push_back({persistent,
-			sample_v2h(model, visible_sample)});
+		varerrs.push_back({persistent, gibbs_hvh(model, chain_it)});
 	}
 	return varerrs;
 }
@@ -115,21 +114,22 @@ TrainErrF bernoulli_rbm_train (layr::RBM& model, eteq::iSession& sess,
 	ErrorF err_func, size_t cdk)
 {
 	// --- todo: replace this whole section with cd_grad_approx
-	auto hidden_sample = sample_v2h(model, visible);
-	auto chain_it = hidden_sample; // add persistent here for pcd
+	// layr::VarErrsT varerrs = cd_grad_approx(model, visible, cdk);
+	auto hidden = sample_v2h(model, visible);
+	auto chain_it = hidden; // add persistent here for pcd
 	for (size_t i = 0; i < cdk - 1; ++i)
 	{
 		chain_it = gibbs_hvh(model, chain_it);
 	}
 
-	auto visible_sample = sample_h2v(model, chain_it);
-	auto hidden_reconp = model.connect(visible_sample);
+	auto visible_mean = model.backward_connect(chain_it);
+	auto hidden_mean = model.connect(visible_mean);
 
 	auto grad_w =
-		tenncor::matmul(tenncor::transpose(visible), hidden_sample) -
-		tenncor::matmul(tenncor::transpose(visible_sample), hidden_reconp);
-	auto grad_hb = tenncor::reduce_mean_1d(hidden_sample - hidden_reconp, 1);
-	auto grad_vb = tenncor::reduce_mean_1d(visible - visible_sample, 1);
+		tenncor::matmul(tenncor::transpose(visible), hidden) -
+		tenncor::matmul(tenncor::transpose(visible_mean), hidden_mean);
+	auto grad_hb = tenncor::reduce_mean_1d(hidden - hidden_mean, 1);
+	auto grad_vb = tenncor::reduce_mean_1d(visible - visible_mean, 1);
 
 	auto contents = model.get_contents();
 	std::vector<eteq::VarptrT<PybindT>> vars;
@@ -141,24 +141,17 @@ TrainErrF bernoulli_rbm_train (layr::RBM& model, eteq::iSession& sess,
 			return std::make_shared<eteq::VariableNode<PybindT>>(
 				std::static_pointer_cast<eteq::Variable<PybindT>>(tens));
 		});
-	layr::VarErrsT varerrs = {
-		{vars[0], grad_w},
-		{vars[1], grad_hb},
-		{vars[3], grad_vb},
-	};
+	layr::VarErrsT varerrs = cd_grad_approx(model, visible, cdk);
 	// --- end
 
 	auto updates = bbernoulli_approx(varerrs, learning_rate, discount_factor);
 
-	teq::TensptrsT to_track = {
-		hidden_sample->get_tensor(),
-		visible_sample->get_tensor(),
-	};
+	teq::TensptrsT to_track;
 	to_track.reserve(updates.size() + 1);
 	NodeptrT error = nullptr;
 	if (err_func)
 	{
-		error = err_func(visible, visible_sample);
+		error = err_func(visible, visible_mean);
 		to_track.push_back(error->get_tensor());
 	}
 
