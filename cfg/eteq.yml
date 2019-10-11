@@ -32,6 +32,7 @@ opcode:
     REDUCE_PROD: out = eteq::reduce_prod(shape,in[0]);
     REDUCE_MIN: out = eteq::reduce_min(shape,in[0]);
     REDUCE_MAX: out = eteq::reduce_max(shape,in[0]);
+    ARGMAX: out = eteq::argmax(shape,in[0]);
     PERMUTE: out = eteq::permute(shape,in[0]);
     EXTEND: out = eteq::extend(shape,in[0]);
     RESHAPE: out = eteq::reshape(shape,in[0]);
@@ -715,6 +716,17 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_MAX",::egen::REDUCE_MAX},{eteq::reduce_map(tens,offset,ndims)});
+      - template: typename T
+        name: argmax
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: tens
+        - dtype: teq::RankT
+          name: return_dim
+          default: "8"
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"ARGMAX",::egen::ARGMAX},{eteq::argreduce_map(tens,return_dim)});
       - template: typename T
         name: n_elems
         args:

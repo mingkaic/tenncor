@@ -6,13 +6,16 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === usage ===
-P2 - demo convolutional nn
 P2 - implement recurrent nn
 P2 - implement dropout layer
 P2 - implement attention mechanisms
-    - demo A3C, attention encoder+decoder
-    - implement models concerning visual and audio processing, and semantic data processing
-    - separate supervised and unsupervised trainers (since they have different statefulness)
+   - demo A3C, attention encoder+decoder
+   - implement models concerning visual and audio processing, and semantic data processing
+   - separate supervised and unsupervised trainers (since they have different statefulness)
+
+=== demos ===
+P2 - demo convolutional nn
+   - switch rbm and dbn demos to use tensorflow datasets
 
 === feature ===
 P2 - attach onnx support to pbm (https://github.com/onnx/onnx)

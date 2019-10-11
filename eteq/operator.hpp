@@ -111,6 +111,46 @@ template <typename T>
 EigenptrT<T> reduce_max (teq::Shape& outshape, const OpArg<T>& in)
 _ETEQ_INTERNAL_V2A(maximum, Eigen::internal::MaxReducer<T>)
 
+/// Return Eigen data object that argmax in tensor at return_dim
+template <typename T>
+EigenptrT<T> argmax (teq::Shape& outshape, const OpArg<T>& in)
+{
+	assert(nullptr != in.coorder_);
+	teq::RankT return_dim;
+	in.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			return_dim = args[0][0];
+		});
+	if (return_dim >= teq::rank_cap)
+	{
+		return make_eigentensor<T,Eigen::TensorConversionOp<T,
+			const Eigen::TensorTupleReducerOp<
+				Eigen::internal::ArgMaxTupleReducer<
+					Eigen::Tuple<Eigen::Index,T>>,
+				const Eigen::array<Eigen::Index,teq::rank_cap>,
+				const TensMapT<T>>>,
+			TensMapT<T>>(
+			shape_convert(outshape),
+			[](TensMapT<T>& in)
+			{
+				return in.argmax().template cast<T>();
+			}, make_tensmap(in.data_, in.shape_));
+	}
+	return make_eigentensor<T,Eigen::TensorConversionOp<T,
+			const Eigen::TensorTupleReducerOp<
+				Eigen::internal::ArgMaxTupleReducer<
+					Eigen::Tuple<Eigen::Index,T>>,
+				const Eigen::array<Eigen::Index,1>,
+				const TensMapT<T>>>,
+			TensMapT<T>>(
+		shape_convert(outshape),
+		[return_dim](TensMapT<T>& in)
+		{
+			return in.argmax(return_dim).template cast<T>();
+		}, make_tensmap(in.data_, in.shape_));
+}
+
 /// Return Eigen data object representing data broadcast across dimensions
 template <typename T>
 EigenptrT<T> extend (teq::Shape& outshape, const OpArg<T>& in)

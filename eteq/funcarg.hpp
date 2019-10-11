@@ -122,6 +122,33 @@ FuncArg<T> reduce_map (NodeptrT<T> node, teq::RankT offset, teq::RankT ndims)
 	return FuncArg<T>(node, teq::reduce(offset, slist), reduce(dims));
 }
 
+/// Return FuncArg<T> that reduce tensor by argument index
+/// return_dim greater than rank_cap looks across all dimensions
+template <typename T>
+FuncArg<T> argreduce_map (NodeptrT<T> node, teq::RankT return_dim)
+{
+	teq::Shape shape = node->shape();
+	teq::RankT offset;
+	std::vector<teq::DimT> slist;
+	if (return_dim >= teq::rank_cap)
+	{
+		offset = 0;
+		slist = std::vector<teq::DimT>(shape.begin(), shape.end());
+	}
+	else
+	{
+		offset = return_dim;
+		slist = {shape.at(offset)};
+	}
+
+	return FuncArg<T>(node, teq::reduce(offset, slist),
+		std::make_shared<CoordMap>(
+			[&](teq::MatrixT& args)
+			{
+				args[0][0] = return_dim;
+			}));
+}
+
 /// Return FuncArg<T> that extends input tensor by
 /// rank and extension vector
 /// E.g.: tensor w/ shape [2, 1, 1], rank = 1, ext = [3, 4]

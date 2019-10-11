@@ -240,10 +240,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			}
 				break;
 			case egen::CONV_IMG_GRAD:
-				logs::fatal("cannot derive CONV_IMG_GRAD");
-				break;
 			case egen::CONV_KRN_GRAD:
-				logs::fatal("cannot derive CONV_KRN_GRAD");
+			case egen::ARGMAX:
+				logs::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
 			default:
 				logs::fatalf("Unknown op %s", opcode.name_.c_str());
@@ -360,7 +359,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 						std::copy(args[1], args[1] + teq::rank_cap, extents.begin());
 					});
 				teq::Shape cshape = child.get_tensor()->shape();
-				eteq::PairVecT<teq::DimT> paddings;
+				PairVecT<teq::DimT> paddings;
 				paddings.reserve(teq::rank_cap);
 				for (size_t i = 0; i < teq::rank_cap; ++i)
 				{
@@ -386,7 +385,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 							rightpad.begin());
 					});
 				teq::Shape oshape = op->shape();
-				eteq::PairVecT<teq::DimT> extents;
+				PairVecT<teq::DimT> extents;
 				extents.reserve(teq::rank_cap);
 				for (size_t i = 0; i < teq::rank_cap; ++i)
 				{
@@ -410,7 +409,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					});
 				teq::Shape origshape = child.get_tensor()->shape();
 				out = to_node<T>(local_der) *
-					eteq::make_functor<T>(teq::Opcode{"SCATTER",::egen::SCATTER}, {
+					make_functor<T>(teq::Opcode{"SCATTER",::egen::SCATTER}, {
 						FuncArg<T>(to_node<T>(supcomp_grad),
 							std::make_shared<teq::CoordMap>(
 								[origshape,strides](teq::MatrixT& fwd)
@@ -480,10 +479,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			}
 				break;
 			case egen::CONV_IMG_GRAD:
-				logs::fatal("cannot derive CONV_IMG_GRAD");
-				break;
 			case egen::CONV_KRN_GRAD:
-				logs::fatal("cannot derive CONV_KRN_GRAD");
+			case egen::ARGMAX:
+				logs::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
 			default:
 				logs::fatalf("Unknown op %s", opcode.name_.c_str());

@@ -20,13 +20,21 @@ import rocnnet.rocnnet as rcn
 
 import tensorflow_datasets as tfds
 
+cifar_name = 'cifar10'
+assert cifar_name in tfds.list_builders()
+
 nbatch = 4
 learning_rate = 0.01
 momentum = 0.9
 weight_decay = 0.0001
+show_every_n = 500
+
+ds = tfds.load('cifar10', split=tfds.Split.TRAIN, batch_size=nbatch)
+cifar = tfds.as_numpy(ds)
+train_inshape = [dim.value for dim in ds.output_shapes['image']]
 
 # batch, height, width, in
-train_inshape = [nbatch, 32, 32, 3]
+train_inshape[0] = nbatch
 train_outshape = [nbatch, 10]
 
 # construct CNN
@@ -65,13 +73,17 @@ sess.track([
 sess.optimize("cfg/optimizations.rules")
 
 # train
-
-def preprocess(image, label):
-    pass
-
-# train_input.assign(image_batch)
-# train_output.assign(label_batch)
-# train()
+for data in cifar:
+    labels = np.zeros((nbatch, 10))
+    for i, label in enumerate(data['label']):
+        labels[i][label] = 1
+    train_input.assign(data['image'])
+    train_output.assign(labels)
+    trained_err = train()
+    if i % show_every_n == show_every_n - 1:
+        err = trained_err.as_numpy()
+        print('training {}\ntraining error:\n{}'
+            .format(i + 1, err))
 
 # test
 print(testout.shape())

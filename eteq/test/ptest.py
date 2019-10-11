@@ -12,37 +12,11 @@ from testutil.generate_testcases import generate_testcases
 
 _test_data = {}
 
-def _normalize_shape(arr1, arr2):
-    if 'shape' in dir(arr1):
-        shape1 = arr1.shape
-        if not isinstance(shape1, tuple):
-            shape1 = []
-    else:
-        shape1 = []
-    if 'shape' in dir(arr2):
-        shape2 = arr2.shape
-        if not isinstance(shape2, tuple):
-            shape2 = []
-    else:
-        shape2 = []
-
-    n1 = len(shape1)
-    n2 = len(shape2)
-    i = 0
-    while i < n1 and shape1[i] == 1:
-        i = i + 1
-    shape1 = shape1[i:]
-    i = 0
-    while i < n2 and shape2[i] == 1:
-        i = i + 1
-    shape2 = shape2[i:]
-
-    n1 = len(shape1)
-    n2 = len(shape2)
-    maxn = max(n1, n2)
-    normalized_s1 = list(shape1) + [1] * (maxn - n1)
-    normalized_s2 = list(shape2) + [1] * (maxn - n2)
-    return normalized_s1, normalized_s2
+def _normalize_shape(arr):
+    shape = np.trim_zeros(np.array(arr.shape) - 1) + 1
+    if len(shape) > 0:
+        return arr.reshape(*shape)
+    return arr
 
 def _round_helper(x):
     if isinstance(x, float):
@@ -51,28 +25,16 @@ def _round_helper(x):
 
 class EADTest(unittest.TestCase):
     def _array_eq(self, arr1, arr2):
+        arr1 = _normalize_shape(np.array(arr1))
+        arr2 = _normalize_shape(np.array(arr2))
         msg = 'diff arrays:\n{}\n{}'.format(arr1, arr2)
-        s1, s2 = _normalize_shape(arr1, arr2)
-        if 'shape' in dir(arr1):
-            arr1 = arr1.reshape(s1)
-        else:
-            arr1 = np.array(arr1).reshape(s1)
-        if 'shape' in dir(arr2):
-            arr2 = arr2.reshape(s2)
-        else:
-            arr2 = np.array(arr2).reshape(s2)
         self.assertTrue(np.array_equal(arr1, arr2), msg)
 
     def _array_close(self, arr1, arr2):
-        def prod(arr):
-            return reduce(lambda acc, s: acc * s, arr + [1])
+        arr1 = _normalize_shape(np.array(arr1))
+        arr2 = _normalize_shape(np.array(arr2))
         msg = 'vastly diff arrays:\n{}\n{}'.format(arr1, arr2)
-        if isinstance(arr1, int):
-            arr1 = np.array([arr1])
-        if isinstance(arr2, int):
-            arr2 = np.array([arr2])
-        s1, s2 = _normalize_shape(arr1, arr2)
-        self.assertTrue(np.allclose(arr1, arr2, atol=1e-05) and s1 == s2, msg)
+        self.assertTrue(np.allclose(arr1, arr2, atol=1e-05), msg)
 
     def _common_unary(self, shape, api, real, derive):
         data = np.random.rand(*shape) * 34
@@ -288,6 +250,33 @@ class EADTest(unittest.TestCase):
             self._array_close(exdata, der)
             self._array_close(exdata2, der2)
             self._array_eq(data0, rej)
+
+    def _common_argreduce(self, dim_reduce, tf_reduce):
+        shapes = [
+            [3, 4, 5],
+            [1, 50, 1]
+        ]
+        for shape in shapes:
+            data = np.random.rand(*shape)
+            var = eteq.variable(data, 'var')
+            tf_var = tf.Variable(data)
+
+            tfsess = tf.compat.v1.Session()
+            tfsess.run(tf_var.initializer)
+
+            out = tc.permute(dim_reduce(var,
+                return_dim=1), [0, 2, 1])
+            tf_out = tf_reduce(tf_var, 1)
+
+            sess = eteq.Session()
+            sess.track([out])
+            sess.update()
+
+            fout = out.get()
+            tf_fout = tfsess.run(tf_out)
+
+            self._array_close(tf_fout, fout)
+            # arg reduce has no derivatives
 
     def test_variable(self):
         shapes = [[3, 4, 5]]
@@ -663,6 +652,9 @@ class EADTest(unittest.TestCase):
 
     def test_rmax(self):
         self._common_reduce(tc.reduce_max, tc.reduce_max, tf.reduce_max)
+
+    def test_argmax(self):
+        self._common_argreduce(tc.argmax, tf.argmax)
 
     def test_rl2norm(self):
         shapes = [
