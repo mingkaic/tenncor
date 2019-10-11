@@ -19,6 +19,7 @@ import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
 import tensorflow_datasets as tfds
+import numpy as np
 
 cifar_name = 'cifar10'
 assert cifar_name in tfds.list_builders()
@@ -29,12 +30,16 @@ momentum = 0.9
 weight_decay = 0.0001
 show_every_n = 500
 
-ds = tfds.load('cifar10', split=tfds.Split.TRAIN, batch_size=nbatch)
+ds = tfds.load('cifar10', 
+    split=tfds.Split.TRAIN, 
+    batch_size=nbatch, 
+    shuffle_files=True)
 cifar = tfds.as_numpy(ds)
-train_inshape = [dim.value for dim in ds.output_shapes['image']]
+raw_inshape = [dim.value for dim in ds.output_shapes['image']]
 
 # batch, height, width, in
-train_inshape[0] = nbatch
+raw_inshape[0] = nbatch
+train_inshape = raw_inshape
 train_outshape = [nbatch, 10]
 
 # construct CNN
@@ -63,7 +68,8 @@ train_output = eteq.Variable(train_outshape)
 train = rcn.sgd_train(model, sess,
     train_input, train_output, rcn.get_sgd(0.9))
 
-test_inshape = [1, 32, 32, 3]
+raw_inshape[0] = 1
+test_inshape = raw_inshape
 
 testin = eteq.Variable(test_inshape, label="testin")
 testout = model.connect(testin)
@@ -73,12 +79,12 @@ sess.track([
 sess.optimize("cfg/optimizations.rules")
 
 # train
-for data in cifar:
+for i, data in enumerate(cifar):
     labels = np.zeros((nbatch, 10))
-    for i, label in enumerate(data['label']):
-        labels[i][label] = 1
-    train_input.assign(data['image'])
-    train_output.assign(labels)
+    for j, label in enumerate(data['label']):
+        labels[j][label] = 1
+    train_input.assign(data['image'].astype(np.float))
+    train_output.assign(labels.astype(np.float))
     trained_err = train()
     if i % show_every_n == show_every_n - 1:
         err = trained_err.as_numpy()

@@ -226,15 +226,10 @@ FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 		std::make_shared<teq::CoordMap>(
 			[=](teq::MatrixT& fwd)
 			{
-				teq::RankT n = std::min((teq::RankT) extents.size(), teq::rank_cap);
-				for (teq::RankT i = 0; i < n; ++i)
+				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 				{
 					fwd[i][i] = 1;
 					fwd[teq::rank_cap][i] = ns[i] - shape.at(i);
-				}
-				for (teq::RankT i = n; i < teq::rank_cap; ++i)
-				{
-					fwd[i][i] = 1;
 				}
 			}),
 		std::make_shared<CoordMap>(
@@ -283,10 +278,16 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 			[&](teq::MatrixT& args)
 			{
 				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan
-				for (size_t i = 0; i < teq::rank_cap; ++i)
+				teq::RankT n = std::min((teq::RankT) paddings.size(), teq::rank_cap);
+				for (size_t i = 0; i < n; ++i)
 				{
 					args[0][i] = paddings[i].first;
 					args[1][i] = paddings[i].second;
+				}
+				for (size_t i = n; i < teq::rank_cap; ++i)
+				{
+					args[0][i] = 0;
+					args[1][i] = 0;
 				}
 			}));
 }
@@ -330,9 +331,14 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 		std::make_shared<CoordMap>(
 			[&](teq::MatrixT& args)
 			{
-				for (size_t i = 0; i < teq::rank_cap; ++i)
+				teq::RankT n = std::min((teq::RankT) incrs.size(), teq::rank_cap);
+				for (size_t i = 0; i < n; ++i)
 				{
 					args[0][i] = incrs[i];
+				}
+				for (teq::RankT i = n; i < teq::rank_cap; ++i)
+				{
+					args[0][i] = 1;
 				}
 			}));
 }
