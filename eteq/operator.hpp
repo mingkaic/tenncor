@@ -317,6 +317,35 @@ EigenptrT<T> scatter (teq::Shape& outshape, const OpArg<T>& in)
 		});
 }
 
+template <typename T>
+EigenptrT<T> reverse (teq::Shape& outshape, const OpArg<T>& in)
+{
+	assert(nullptr != in.coorder_);
+	std::array<bool,teq::rank_cap> do_reverse;
+	std::fill(do_reverse.begin(), do_reverse.end(), false);
+	in.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				if (false == std::isnan(args[0][i]))
+				{
+					do_reverse[args[0][i]] = true;
+				}
+			}
+		});
+	return make_eigentensor<T,Eigen::TensorReverseOp<
+			const std::array<bool,teq::rank_cap>,
+			TensMapT<T>
+		>,
+		TensMapT<T>>(
+		shape_convert(outshape),
+		[&do_reverse](TensMapT<T>& in)
+		{
+			return in.reverse(do_reverse);
+		}, make_tensmap(in.data_, in.shape_));
+}
+
 /// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
 template <typename T>
@@ -1198,122 +1227,6 @@ EigenptrT<T> convolution (teq::Shape& outshape, const OpArg<T>& input, const OpA
 		}, {
 			make_tensmap(input.data_, input.shape_),
 			make_tensmap(kernel.data_, kernel.shape_)});
-}
-
-/// Applies the gradient of convolution with respect to image
-template <typename T>
-EigenptrT<T> convolution_image_grad (teq::Shape& imageshape,
-	const OpArg<T>& kernel, const OpArg<T>& super_composite)
-{
-	return make_eigentensor<T,
-		Eigen::TensorReductionOp<Eigen::internal::SumReducer<T>,
-			const teq::ShapeT,
-			const Eigen::TensorCwiseBinaryOp<
-				Eigen::internal::scalar_product_op<T,T>,
-				const Eigen::TensorBroadcastingOp<
-					const std::array<teq::DimT,teq::rank_cap+1>,
-					const Eigen::TensorReshapingOp<
-						const std::array<teq::DimT,teq::rank_cap+1>,
-						Eigen::TensorReverseOp<
-							const std::array<bool,teq::rank_cap>,
-							TensMapT<T>
-						>
-					>
-				>,
-				const Eigen::TensorPatchOp<
-					const teq::ShapeT,
-					const Eigen::TensorPaddingOp<
-						const std::array<std::pair<int,int>,teq::rank_cap>,
-						const TensMapT<T>
-					>
-				>
-			>
-		>,
-		std::vector<TensMapT<T>>>(shape_convert(imageshape),
-		[&](std::vector<TensMapT<T>>& args)
-		{
-			auto& outshape = super_composite.shape_;
-
-			teq::ShapeT patch_dims;
-			std::copy(outshape.begin(), outshape.end(), patch_dims.begin());
-			Eigen::array<std::pair<int,int>,teq::rank_cap> paddings;
-			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-			{
-				int paddsize = outshape.at(i) - 1;
-				paddings[i] = std::make_pair(paddsize, paddsize);
-			}
-			auto patched = args[0].pad(paddings)
-				.extract_patches(patch_dims);
-
-			std::array<bool,teq::rank_cap> revflags;
-			std::fill(revflags.begin(), revflags.end(), true);
-			std::array<teq::DimT,teq::rank_cap+1> pshape;
-			std::copy(outshape.begin(), outshape.end(), pshape.begin());
-			pshape[teq::rank_cap] = 1;
-			std::array<teq::DimT,teq::rank_cap+1> expansion;
-			std::fill(expansion.begin(), expansion.end(), 1);
-			expansion[teq::rank_cap] = imageshape.n_elems();
-			auto partial = args[1]
-				.reverse(revflags)
-				.reshape(pshape)
-				.broadcast(expansion) * patched;
-
-			teq::ShapeT shapespace;
-			std::iota(shapespace.begin(), shapespace.end(), 0);
-			return partial.sum(shapespace);
-		}, {
-			make_tensmap(kernel.data_, kernel.shape_),
-			make_tensmap(super_composite.data_, super_composite.shape_)});
-}
-
-/// Applies the gradient of convolution with respect to kernel
-template <typename T>
-EigenptrT<T> convolution_kernel_grad (teq::Shape& kernelshape,
-	const OpArg<T>& image, const OpArg<T>& super_composite)
-{
-	return make_eigentensor<T,
-		Eigen::TensorReductionOp<Eigen::internal::SumReducer<T>,
-			const teq::ShapeT,
-			const Eigen::TensorCwiseBinaryOp<
-				Eigen::internal::scalar_product_op<T,T>,
-				const Eigen::TensorBroadcastingOp<
-					const std::array<teq::DimT,teq::rank_cap+1>,
-					const Eigen::TensorReshapingOp<
-						const std::array<teq::DimT,teq::rank_cap+1>,
-						TensMapT<T>
-					>
-				>,
-				const Eigen::TensorPatchOp<
-					const teq::ShapeT,
-					const TensMapT<T>
-				>
-			>
-		>,
-		std::vector<TensMapT<T>>>(shape_convert(kernelshape),
-		[&](std::vector<TensMapT<T>>& args)
-		{
-			auto& outshape = super_composite.shape_;
-
-			teq::ShapeT patch_dims;
-			std::copy(outshape.begin(), outshape.end(), patch_dims.begin());
-			auto patched = args[0].extract_patches(patch_dims);
-
-			std::array<teq::DimT,teq::rank_cap+1> pshape;
-			std::copy(outshape.begin(), outshape.end(), pshape.begin());
-			pshape[teq::rank_cap] = 1;
-			std::array<teq::DimT,teq::rank_cap+1> expansion;
-			std::fill(expansion.begin(), expansion.end(), 1);
-			expansion[teq::rank_cap] = kernelshape.n_elems();
-			auto partial = args[1]
-				.reshape(pshape)
-				.broadcast(expansion) * patched;
-
-			teq::ShapeT shapespace;
-			std::iota(shapespace.begin(), shapespace.end(), 0);
-			return partial.sum(shapespace);
-		}, {
-			make_tensmap(image.data_, image.shape_),
-			make_tensmap(super_composite.data_, super_composite.shape_)});
 }
 
 }

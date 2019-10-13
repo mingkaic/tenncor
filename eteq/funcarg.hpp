@@ -343,6 +343,74 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 			}));
 }
 
+template <typename T>
+ArgsT<T> convolve_map (NodeptrT<T> image, NodeptrT<T> kernel,
+	const std::vector<teq::RankT>& dims)
+{
+	teq::Shape inshape = image->get_tensor()->shape();
+	teq::Shape kernelshape = kernel->get_tensor()->shape();
+	teq::CoordptrT input_shaper(new teq::CoordMap(
+		[kernelshape,dims](teq::MatrixT& fwd)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				fwd[i][i] = 1;
+			}
+			teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
+			for (teq::RankT i = 0; i < n; ++i)
+			{
+				fwd[teq::rank_cap][dims[i]] = -kernelshape.at(i) + 1;
+			}
+			if (std::any_of(kernelshape.begin() + n, kernelshape.end(),
+				[](teq::DimT d)
+				{
+					return d > 1;
+				}))
+			{
+				logs::fatalf("invalid kernelshape %s does not solely match dimensions %s",
+					kernelshape.to_string().c_str(),
+					fmts::to_string(dims.begin(), dims.end()).c_str());
+			}
+		}
+	));
+
+	teq::CoordptrT kernel_shaper(new teq::CoordMap(
+		[inshape,dims](teq::MatrixT& fwd)
+		{
+			teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
+			std::array<bool,teq::rank_cap> missing;
+			std::fill(missing.begin(), missing.end(), true);
+			for (teq::RankT i = 0; i < n; ++i)
+			{
+				missing[dims[i]] = false;
+			}
+			std::vector<teq::RankT> refd = dims;
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				if (missing[i])
+				{
+					refd.push_back(i);
+				}
+			}
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				fwd[i][refd[i]] = -1;
+				fwd[teq::rank_cap][refd[i]] = inshape.at(refd[i]) + 1;
+			}
+		}
+	));
+
+	teq::CoordT kernel_dims;
+	auto it = kernel_dims.begin();
+	std::fill(it, kernel_dims.end(), teq::rank_cap);
+	std::copy(dims.begin(), dims.end(), it);
+	return {
+		FuncArg<T>(image, input_shaper, nullptr),
+		FuncArg<T>(kernel, kernel_shaper,
+			std::make_shared<CoordMap>(kernel_dims)),
+	};
+}
+
 }
 
 #endif // ETEQ_FUNCARG_HPP

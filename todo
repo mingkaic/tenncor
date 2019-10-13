@@ -36,6 +36,8 @@ P5 - refactor, and rename variables to improve readability
 P5 - formalize codestyle
 
 === performance ===
+P3 - improve ccur module
+
 run-time performance:
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - implement GPU settings

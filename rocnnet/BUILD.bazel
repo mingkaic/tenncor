@@ -101,6 +101,5 @@ py_binary(
         "//dbg:grpc_dbg_py",
         "//dbg:eteq_mocker_py",
     ],
-    data = glob(["demo/MNIST_data/*"]) +
-        ["//:models", "//cfg:optimizations"],
+    data = ["//:models", "//cfg:optimizations"],
 )

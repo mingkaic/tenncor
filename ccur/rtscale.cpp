@@ -190,9 +190,6 @@ int main (int argc, const char** argv)
 				TIME(f->update())
 			}
 				break;
-
-			case egen::CONV_IMG_GRAD:
-			case egen::CONV_KRN_GRAD:
 			default:
 				continue;
 		}

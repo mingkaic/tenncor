@@ -28,6 +28,7 @@ opcode:
     LT: out = eteq::lt(shape,in[0],in[1]);
     GT: out = eteq::gt(shape,in[0],in[1]);
     RAND_UNIF: out = eteq::rand_uniform(shape,in[0],in[1]);
+    REVERSE: out = eteq::reverse(shape, in[0]);
     REDUCE_SUM: out = eteq::reduce_sum(shape,in[0]);
     REDUCE_PROD: out = eteq::reduce_prod(shape,in[0]);
     REDUCE_MIN: out = eteq::reduce_min(shape,in[0]);
@@ -42,8 +43,6 @@ opcode:
     PAD: out = eteq::pad(shape,in[0]);
     STRIDE: out = eteq::stride(shape,in[0]);
     SCATTER: out = eteq::scatter(shape,in[0]);
-    CONV_IMG_GRAD: out = eteq::convolution_image_grad(shape,in[0],in[1]);
-    CONV_KRN_GRAD: out = eteq::convolution_kernel_grad(shape,in[0],in[1]);
     SELECT: out = eteq::select(shape, in[0], in[1], in[2]);
 api:
   pybind_type: float
@@ -625,6 +624,27 @@ api:
                       eteq::identity_map(otherwise)
                   });
       - template: typename T
+        name: reverse
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: std::vector<teq::RankT>
+          name: dims
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  return eteq::make_functor<T>(teq::Opcode{"REVERSE",::egen::REVERSE},{
+                      eteq::FuncArg<T>(arg,teq::identity,
+                          std::make_shared<eteq::CoordMap>(
+                              [&](teq::MatrixT& args){
+                                  for (teq::RankT i = 0, n = dims.size(); i < n; ++i)
+                                  {
+                                      args[0][i] = dims[i];
+                                  }
+                              }))
+                  });
+      - template: typename T
         name: permute
         args:
         - dtype: eteq::NodeptrT<T>
@@ -771,7 +791,7 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  std::vector<std::pair<teq::DimT,teq::DimT>> extents(
+                  eteq::PairVecT<teq::DimT> extents(
                       std::max(teq::rank_cap, dimension),
                       {0,std::numeric_limits<teq::DimT>::max()});
                   extents[dimension] = {offset, extent};
@@ -799,7 +819,7 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  std::vector<std::pair<teq::DimT,teq::DimT>> paddings(
+                  eteq::PairVecT<teq::DimT> paddings(
                       std::max(teq::rank_cap, dimension), {0,0});
                   paddings[dimension] = padding;
                   return ::tenncor::pad(arg, paddings);
@@ -878,70 +898,7 @@ api:
           name: dims
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  teq::Shape inshape = input->get_tensor()->shape();
-                  teq::Shape kernelshape = kernel->get_tensor()->shape();
-                  teq::CoordptrT input_shaper(new teq::CoordMap(
-                      [kernelshape,dims](teq::MatrixT& fwd)
-                      {
-                          for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-                          {
-                              fwd[i][i] = 1;
-                          }
-                          teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
-                          for (teq::RankT i = 0; i < n; ++i)
-                          {
-                              fwd[teq::rank_cap][dims[i]] = -kernelshape.at(i) + 1;
-                          }
-                          if (std::any_of(kernelshape.begin() + n, kernelshape.end(),
-                              [](teq::DimT d)
-                              {
-                                  return d > 1;
-                              }))
-                          {
-                              logs::fatalf("invalid kernelshape %s does not solely match dimensions %s",
-                                  kernelshape.to_string().c_str(),
-                                  fmts::to_string(dims.begin(), dims.end()).c_str());
-                          }
-                      }
-                  ));
-
-                  teq::CoordptrT kernel_shaper(new teq::CoordMap(
-                      [inshape,dims](teq::MatrixT& fwd)
-                      {
-                          teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
-                          std::array<bool,teq::rank_cap> missing;
-                          std::fill(missing.begin(), missing.end(), true);
-                          for (teq::RankT i = 0; i < n; ++i)
-                          {
-                              missing[dims[i]] = false;
-                          }
-                          std::vector<teq::RankT> refd = dims;
-                          for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-                          {
-                              if (missing[i])
-                              {
-                                  refd.push_back(i);
-                              }
-                          }
-                          for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-                          {
-                              fwd[i][refd[i]] = -1;
-                              fwd[teq::rank_cap][refd[i]] = inshape.at(i) + 1;
-                          }
-                      }
-                  ));
-
-                  teq::CoordT kernel_dims;
-                  auto it = kernel_dims.begin();
-                  std::fill(it, kernel_dims.end(), teq::rank_cap);
-                  std::copy(dims.begin(), dims.end(), it);
-                  return eteq::make_functor<T>(teq::Opcode{"CONV",::egen::CONV}, {
-                      eteq::FuncArg<T>(input, input_shaper, nullptr),
-                      eteq::FuncArg<T>(kernel, kernel_shaper,
-                          std::make_shared<eteq::CoordMap>(kernel_dims, true)),
-                  });
+          val: return eteq::make_functor<T>(teq::Opcode{"CONV",::egen::CONV},eteq::convolve_map(input, kernel, dims));
       - template: typename T
         name: reduce_sum_1d
         args:
@@ -1328,27 +1285,21 @@ api:
                   // ]
                   // zero_padding apply symmetrical padding for dimensions 1 and 2 to image before convolution
                   // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
-                  teq::DimT nfilters = kernel->shape().at(0); // out
-                  eteq::NodesT<T> convolveds;
-                  convolveds.reserve(nfilters);
                   if (zero_padding.first > 0 || zero_padding.second > 0)
                   {
                       image = ::tenncor::pad(image, {{0, 0},
                           {zero_padding.first, zero_padding.first},
                           {zero_padding.second, zero_padding.second}});
                   }
-                  for (teq::DimT i = 0; i < nfilters; ++i)
-                  {
-                      auto filter = ::tenncor::permute(
-                          ::tenncor::slice(kernel, i, 1, 0), // [1, in, width, height]
-                          {1, 2, 3, 0}); // [in, width, height, 1]
-                      auto conved = ::tenncor::convolution(image, filter,
-                          {0, 1, 2}); // [1, image.width-kernel.width+1, image.height-kernel.height+1, batch]
-                      auto padded = ::tenncor::pad(conved,
-                          {i, nfilters - i - 1}, 0); // outshape
-                      convolveds.push_back(padded);
-                  }
-                  auto out = ::tenncor::sum(convolveds);
+
+                  teq::DimT img_pad = kernel->shape().at(0) - 1; // out
+                  image = ::tenncor::pad(image,
+                      std::pair<teq::DimT,teq::DimT>{img_pad, img_pad}, 4);
+                  kernel = ::tenncor::reverse(kernel, {0});
+
+                  auto out = ::tenncor::permute(
+                      ::tenncor::convolution(image, kernel,
+                          {4, 0, 1, 2}), {4, 1, 2, 3});
                   tag::recursive_group_tag(out->get_tensor(), "conv2d", {
                       image->get_tensor().get(),
                       kernel->get_tensor().get()

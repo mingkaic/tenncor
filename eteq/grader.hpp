@@ -175,10 +175,11 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::PAD:
 			case egen::STRIDE:
 			case egen::SCATTER:
+			case egen::REVERSE:
+			case egen::CONV:
 				out = make_constant_scalar<T>(1, args[0].get_tensor()->shape());
 				break;
 			case egen::MUL:
-			case egen::CONV:
 				out = to_node<T>(args[(size_t)(arg_idx==0)].get_tensor());
 				break;
 			case egen::MAX:
@@ -239,8 +240,6 @@ struct GradientBuilder final : public teq::iGradientBuilder
 						rhs->shape().at(0)}), {2,1,0});
 			}
 				break;
-			case egen::CONV_IMG_GRAD:
-			case egen::CONV_KRN_GRAD:
 			case egen::ARGMAX:
 				logs::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
@@ -323,28 +322,49 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::CONV:
 			{
-				teq::Opcode opcode;
+				// for convolution(X, Y) = C
 				auto args = op->get_children();
-				teq::CoordptrT fwd_shaper =
-					args[(size_t)(0 == arg_idx)].get_shaper();
-				teq::CoordptrT rev_shaper(
-					args[arg_idx].get_shaper()->reverse());
+				std::vector<teq::RankT> dims;
+				auto coorder = args[1].get_coorder();
+				assert(nullptr != coorder);
+				coorder->access(
+					[&](const teq::MatrixT& args)
+					{
+						for (teq::RankT i = 0; i < teq::rank_cap &&
+							args[0][i] < teq::rank_cap; ++i)
+						{
+							dims.push_back(args[0][i]);
+						}
+					});
 				if (arg_idx == 0)
 				{
-					opcode = teq::Opcode{"CONV_IMG_GRAD",
-						egen::CONV_IMG_GRAD};
+					// convolve(pad(C_grad_sup, Y.shape[dims]-1), reverse(Y))
+					teq::RankT ndims = dims.size();
+					teq::Shape kernshape = args[1].get_tensor()->shape();
+					eteq::PairVecT<teq::DimT> paddings(teq::rank_cap, {0, 0});
+					for (teq::RankT i = 0; i < ndims; ++i)
+					{
+						teq::DimT kpad = kernshape.at(i) - 1;
+						paddings[dims[i]] = {kpad, kpad};
+					}
+					std::vector<teq::RankT> revdims(ndims);
+					std::iota(revdims.begin(), revdims.end(), 0);
+					out = tenncor::convolution(tenncor::pad(
+						to_node<T>(supcomp_grad), paddings),
+						tenncor::reverse(
+							to_node<T>(args[1].get_tensor()), revdims), dims);
 				}
 				else
 				{
-					opcode = teq::Opcode{"CONV_KRN_GRAD",
-						egen::CONV_KRN_GRAD};
+					// convolve(X, C_grad_sup)
+					std::vector<teq::RankT> indices(teq::rank_cap);
+					std::iota(indices.begin(), indices.end(), 0);
+					out = tenncor::permute(
+						tenncor::convolution(
+							to_node<T>(args[0].get_tensor()),
+							to_node<T>(supcomp_grad),
+							indices), dims);
 				}
-				teq::CoordptrT full_shaper(
-					fwd_shaper->connect(*rev_shaper));
-				out = make_functor<T>(opcode, {
-					FuncArg<T>(to_node<T>(local_der), full_shaper, nullptr),
-					FuncArg<T>(to_node<T>(supcomp_grad), rev_shaper, nullptr),
-				});
 			}
 				break;
 			case egen::SLICE:
@@ -460,6 +480,17 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					tenncor::stride(to_node<T>(supcomp_grad), strides);
 			}
 				break;
+			case egen::REVERSE:
+				out = to_node<T>(local_der) * make_functor<T>(
+					teq::Opcode{"REVERSE",egen::REVERSE}, {
+						FuncArg<T>(
+							to_node<T>(supcomp_grad),
+							teq::identity,
+							std::static_pointer_cast<CoordMap>(
+								op->get_children()[0].get_coorder())
+						),
+					});
+				break;
 			case egen::SELECT:
 			{
 				if (0 == arg_idx)
@@ -478,8 +509,6 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				out = tenncor::if_then_else(condition, then, otherwise);
 			}
 				break;
-			case egen::CONV_IMG_GRAD:
-			case egen::CONV_KRN_GRAD:
 			case egen::ARGMAX:
 				logs::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
