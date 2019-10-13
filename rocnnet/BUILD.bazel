@@ -85,21 +85,13 @@ py_binary(
 py_binary(
     name = "dbn_demo",
     srcs = ["demo/dbn_demo.py"],
-    deps = [
-        ":rocnnet_py",
-        "//dbg:grpc_dbg_py",
-        "//dbg:eteq_mocker_py",
-    ],
+    deps = [":rocnnet_py"],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "cnn_demo",
     srcs = ["demo/cnn_demo.py"],
-    deps = [
-        ":rocnnet_py",
-        "//dbg:grpc_dbg_py",
-        "//dbg:eteq_mocker_py",
-    ],
+    deps = [":rocnnet_py"],
     data = ["//:models", "//cfg:optimizations"],
 )

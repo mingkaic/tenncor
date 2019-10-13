@@ -123,8 +123,8 @@ int main (int argc, const char** argv)
 	};
 	dbg::InteractiveSession sess("localhost:50051");
 
-    auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
-    auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
+	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
+	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
 	auto train = trainer::sgd_train(model, sess,
 		eteq::convert_to_node(train_input), eteq::convert_to_node(train_output), approx);
 
