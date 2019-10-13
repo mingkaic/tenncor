@@ -20,9 +20,6 @@
 namespace pbm
 {
 
-/// Map Tensptrs to a string path type
-using PathedMapT = std::unordered_map<teq::TensptrT,StringsT>;
-
 /// Graph serialization traveler
 template <typename SAVER,
 	typename std::enable_if<
@@ -61,7 +58,7 @@ struct GraphSaver final : public teq::iTraveler
 	}
 
 	/// Marshal all equation graphs in roots vector to protobuf object
-	void save (cortenn::Graph& out, PathedMapT labels = PathedMapT())
+	void save (cortenn::Graph& out)
 	{
 		// sort functions from the root with the smallest subtree to the largest
 		// this ensures every children of a node appears before the parent,

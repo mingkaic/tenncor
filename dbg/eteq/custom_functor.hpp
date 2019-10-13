@@ -82,7 +82,7 @@ struct CustomFunctor final : public teq::iOperableFunc
 			auto tens = arg.get_tensor();
 			auto coorder = static_cast<eteq::CoordMap*>(arg.get_coorder().get());
 			datamaps.push_back(eteq::OpArg<T>{
-				eteq::TO_NODE(tens)->data(),
+				eteq::to_node<T>(tens)->data(),
 				tens->shape(),
 				coorder
 			});

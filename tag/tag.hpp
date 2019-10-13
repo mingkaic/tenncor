@@ -20,7 +20,7 @@ namespace tag
 /// Map tag key to a series of labels
 using TagRepsT = std::map<std::string,std::vector<std::string>>;
 
-/// Interface for tag instances of particular property that 
+/// Interface for tag instances of particular property that
 /// store key and labels
 struct iTag
 {
@@ -40,8 +40,8 @@ struct iTag
 using TagptrT = std::unique_ptr<iTag>;
 
 /// Collective of generic iTag instances
-//// only one instance of a particular type of iTag 
-/// can be stored in an instance of TagCollective, 
+//// only one instance of a particular type of iTag
+/// can be stored in an instance of TagCollective,
 /// adding subsequent instances of the same type
 /// absorbs new instances into the collective
 struct TagCollective final
@@ -78,7 +78,7 @@ struct TagCollective final
 		other.tags_.clear();
 	}
 
-	/// Add new iTag if the entry is not in the collective, 
+	/// Add new iTag if the entry is not in the collective,
 	/// otherwise absorb the entry
 	void add (TagptrT entry)
 	{
@@ -132,7 +132,7 @@ struct TensKey final
 		return ref_.expired();
 	}
 
-	/// Raw tensor pointer for hashing 
+	/// Raw tensor pointer for hashing
 	/// (val_ can be nullptr or point to deleted tensor)
 	const teq::iTensor* val_;
 
@@ -191,9 +191,9 @@ struct TagRegistry final
 		return it->second.get_tags();
 	}
 
-	/// Move all key-labels under collective associated with source 
+	/// Move all key-labels under collective associated with source
 	/// to collective associated with dest
-	/// If source did not have an associated collective, 
+	/// If source did not have an associated collective,
 	/// just create a new collective under dest
 	/// Dest must not be expired, but source can be expired
 	void move_tags (teq::TensrefT dest, const teq::iTensor* source)
@@ -257,7 +257,7 @@ using LTensT = std::unordered_map<std::string,std::vector<teq::iTensor*>>;
 /// Map tag key to label-tensor association
 using TTensT = std::unordered_map<std::string,LTensT>;
 
-/// Implement traveler that gathers the tag-key+label to tensor 
+/// Implement traveler that gathers the tag-key+label to tensor
 /// associations of visited subgraphs
 struct Query final : public teq::OnceTraveler
 {

@@ -36,7 +36,7 @@ void CoordMap::forward (CoordT::iterator out, CoordT::const_iterator in) const
 }
 
 CoordptrT identity(new CoordMap(
-	[](MatrixT fwd)
+	[](MatrixT& fwd)
 	{
 		for (RankT i = 0; i < rank_cap; ++i)
 		{
@@ -87,7 +87,7 @@ CoordptrT reduce (RankT rank, std::vector<DimT> red)
 	}
 
 	return std::make_shared<CoordMap>(
-		[&](MatrixT fwd)
+		[&](MatrixT& fwd)
 		{
 			for (RankT i = 0; i < rank_cap; ++i)
 			{
@@ -122,7 +122,7 @@ CoordptrT extend (RankT rank, std::vector<DimT> ext)
 	}
 
 	return std::make_shared<CoordMap>(
-		[&](MatrixT fwd)
+		[&](MatrixT& fwd)
 		{
 			for (RankT i = 0; i < rank_cap; ++i)
 			{
@@ -145,7 +145,7 @@ CoordptrT permute (std::vector<RankT> dims)
 	}
 
 	bool visited[rank_cap];
-	std::memset(visited, false, rank_cap);
+	std::fill(visited, visited + rank_cap, false);
 	for (RankT i = 0, n = dims.size(); i < n; ++i)
 	{
 		visited[dims[i]] = true;
@@ -159,7 +159,7 @@ CoordptrT permute (std::vector<RankT> dims)
 	}
 
 	return std::make_shared<CoordMap>(
-		[&](MatrixT fwd)
+		[&](MatrixT& fwd)
 		{
 			for (RankT i = 0, n = dims.size(); i < n; ++i)
 			{
@@ -177,7 +177,7 @@ CoordptrT flip (RankT dim)
 	}
 
 	return std::make_shared<CoordMap>(
-		[&](MatrixT fwd)
+		[&](MatrixT& fwd)
 		{
 			for (RankT i = 0; i < rank_cap; ++i)
 			{

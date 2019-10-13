@@ -27,7 +27,7 @@ const std::string layers_key_prefix = "layer_";
 /// Layer label separator to divide each element in the LayerId
 const char llabel_sep = ':';
 
-/// Check if the raw label does not contain llabel_sep 
+/// Check if the raw label does not contain llabel_sep
 /// as to not clash with LayerId representation
 void validate_label (const std::string& label);
 
@@ -116,7 +116,7 @@ private:
 	static size_t tag_id_;
 };
 
-/// Layer interface defining io, content and metadata getters 
+/// Layer interface defining io, content and metadata getters
 /// as well as the connector
 struct iLayer
 {
@@ -128,6 +128,7 @@ struct iLayer
 		return this->clone_impl(label_prefix);
 	}
 
+	// todo: replace this to return with shaped information
 	/// Return input value of the expected input (first dimension)
 	virtual size_t get_ninput (void) const = 0;
 
@@ -158,8 +159,8 @@ protected:
 /// Smart pointer of layer
 using LayerptrT = std::shared_ptr<iLayer>;
 
-/// Layer builder interface defining internal tensor 
-/// and sublayer setting and layer building 
+/// Layer builder interface defining internal tensor
+/// and sublayer setting and layer building
 /// (like a poor-man's dependency injector interface)
 struct iLayerBuilder
 {
@@ -193,7 +194,7 @@ struct LayerRegistry final
 		tag_reg_.add_tag(tens, tag::TagptrT(new LayerTag(layer_type, name)));
 	}
 
-	/// Return key (layer type) that is associated with builder 
+	/// Return key (layer type) that is associated with builder
 	/// and registered in tag registry
 	std::string register_tagr (std::string key, LayerBuildF builder)
 	{
@@ -228,19 +229,19 @@ private:
 /// Return global layer registry reference
 LayerRegistry& get_layer_reg (void);
 
-/// Recursively tag tensor subgraph with specified layer type, and label 
+/// Recursively tag tensor subgraph with specified layer type, and label
 /// only ignoring subgraphs of tensors in stops set
 void recursive_layer_tag (teq::TensptrT tens, std::string layer_type,
 	std::string name, teq::TensSetT stops,
 	LayerRegistry& registry = get_layer_reg());
 
-/// Return a rebuilt layer from protobuf in stream (ins) a bunch of subgraph roots 
+/// Return a rebuilt layer from protobuf in stream (ins) a bunch of subgraph roots
 /// and the output layer's type and label
 LayerptrT load_layer (std::istream& ins, teq::TensptrsT& roots,
 	std::string ltype, std::string label,
 	LayerRegistry& registry = get_layer_reg());
 
-/// Return true if specified layer and root subgraphs are 
+/// Return true if specified layer and root subgraphs are
 /// saved to protobuf out stream (outs)
 bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensptrsT roots,
 	LayerRegistry& registry = get_layer_reg());

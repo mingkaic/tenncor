@@ -136,7 +136,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = eteq::make_functor<float>(op, {
-					eteq::slice_map(var, 2, 2, 2)});
+					eteq::slice_map(var, {{0,1234},{0,1234},{2,2}})});
 				TIME(f->update())
 			}
 				break;
@@ -168,7 +168,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = eteq::make_functor<float>(op, {
-					eteq::pad_map(var, {3, 4}, 2)});
+					eteq::pad_map(var, {{0, 0}, {0, 0}, {3, 4}})});
 				TIME(f->update())
 			}
 				break;
@@ -190,9 +190,6 @@ int main (int argc, const char** argv)
 				TIME(f->update())
 			}
 				break;
-
-			case egen::CONV_IMG_GRAD:
-			case egen::CONV_KRN_GRAD:
 			default:
 				continue;
 		}

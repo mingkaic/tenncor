@@ -13,9 +13,9 @@
 #include "dbg/grpc/session.hpp"
 
 #include "layr/seqmodel.hpp"
-#include "layr/activations.hpp"
+#include "layr/ulayer.hpp"
 
-#include "rocnnet/trainer/mlp_trainer.hpp"
+#include "rocnnet/trainer/sgd_trainer.hpp"
 
 static eteq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
@@ -122,7 +122,11 @@ int main (int argc, const char** argv)
 		return layr::sgd(leaves, 0.9); // learning rate = 0.9
 	};
 	dbg::InteractiveSession sess("localhost:50051");
-	trainer::MLPTrainer trainer(model, sess, approx, n_batch);
+
+	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
+	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
+	auto train = trainer::sgd_train(model, sess,
+		eteq::convert_to_node(train_input), eteq::convert_to_node(train_output), approx);
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
@@ -142,16 +146,17 @@ int main (int argc, const char** argv)
 	start = std::clock();
 	for (size_t i = 0; i < n_train; i++)
 	{
-		if (i % show_every_n == show_every_n - 1)
-		{
-			float* trained_err_res = trainer.error_->data();
-			std::cout << "training " << i + 1 << '\n';
-			std::cout << "trained error: " <<
-				fmts::to_string(trained_err_res, trained_err_res + n_out) << '\n';
-		}
 		eteq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		eteq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		trainer.train(batch, batch_out);
+		train_input->assign(batch);
+		train_output->assign(batch_out);
+		auto err = train();
+		if (i % show_every_n == show_every_n - 1)
+		{
+			std::cout << "training " << i + 1 << '\n';
+			std::cout << "trained error: " <<
+				fmts::to_string(err.data_.begin(), err.data_.end()) << '\n';
+		}
 	}
 	duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;
 	std::cout << "training time: " << duration << " seconds" << '\n';

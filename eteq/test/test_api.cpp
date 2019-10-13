@@ -1557,7 +1557,7 @@ TEST(API, Convolution)
 
 	eteq::NodeptrT<double> img = eteq::make_constant<double>(data.data(), shape);
 	eteq::NodeptrT<double> kernel = eteq::make_constant<double>(data2.data(), kshape);
-	std::vector<teq::DimT> dims(teq::rank_cap);
+	std::vector<teq::RankT> dims(teq::rank_cap);
 	std::iota(dims.begin(), dims.end(), 0);
 	eteq::NodeptrT<double> dest = tenncor::convolution(img, kernel, dims);
 

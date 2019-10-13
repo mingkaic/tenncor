@@ -40,7 +40,7 @@ struct TestLoader : public pbm::iLoader
 			logs::fatal("cannot deserialize non-matrix coordinate map");
 		}
 		return std::make_shared<teq::CoordMap>(
-			[&](teq::MatrixT fwd)
+			[&](teq::MatrixT& fwd)
 			{
 				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 				{

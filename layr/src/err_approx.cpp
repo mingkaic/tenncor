@@ -18,7 +18,7 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 		auto next = leaf_node - err * learning_rate;
 		assignments.push_back(VarAssign{
 			fmts::sprintf("sgd::%s_grad_%s",
-				root_label.c_str(), leaves[i].first->get_label().c_str()),
+				root_label.c_str(), leaves[i].first->to_string().c_str()),
 			leaves[i].first, next});
 	}
 	return {assignments};
@@ -45,11 +45,11 @@ AssignGroupsT rms_momentum (const VarErrsT& leaves, PybindT learning_rate,
 			(tenncor::sqrt(momentum_node) + epsilon);
 		momentum_assigns.push_back(VarAssign{
 			fmts::sprintf("rms_momentum::%s_momentum_%s",
-				root_label.c_str(), leaves[i].first->get_label().c_str()),
+				root_label.c_str(), leaves[i].first->to_string().c_str()),
 			momentum, momentum_next});
 		leaf_assigns.push_back(VarAssign{
 			fmts::sprintf("rms_momentum::%s_grad_%s",
-				root_label.c_str(), leaves[i].first->get_label().c_str()),
+				root_label.c_str(), leaves[i].first->to_string().c_str()),
 			leaves[i].first, leaf_next});
 	}
 	return {momentum_assigns, leaf_assigns};

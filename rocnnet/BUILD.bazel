@@ -77,35 +77,21 @@ py_binary(
 
 py_binary(
     name = "rbm_demo",
-    srcs = glob(["demo/data/*.py"]) +
-        ["demo/rbm_demo.py"],
+    srcs = ["demo/rbm_demo.py"],
     deps = [":rocnnet_py"],
-    data = glob(["demo/MNIST_data/*"]) +
-        ["//:models", "//cfg:optimizations"],
+    data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "dbn_demo",
-    srcs = glob(["demo/data/*.py"]) +
-        ["demo/dbn_demo.py"],
-    deps = [
-        ":rocnnet_py",
-        "//dbg:grpc_dbg_py",
-        "//dbg:eteq_mocker_py",
-    ],
-    data = glob(["demo/MNIST_data/*"]) +
-        ["//:models", "//cfg:optimizations"],
+    srcs = ["demo/dbn_demo.py"],
+    deps = [":rocnnet_py"],
+    data = ["//:models", "//cfg:optimizations"],
 )
 
-# cc_binary(
-#     name = "dbn_demo",
-#     srcs = ["demo/dbn_demo.cpp"],
-#     copts = ["-std=c++17"],
-#     deps = [
-#         "//trainer:trainer",
-#         "//data:data",
-#         "@com_github_mingkaic_cppkg//flag:flag",
-#         "//dbg:dbg",
-#     ],
-#     data = glob([]),
-# )
+py_binary(
+    name = "cnn_demo",
+    srcs = ["demo/cnn_demo.py"],
+    deps = [":rocnnet_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)

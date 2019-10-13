@@ -1,15 +1,3 @@
----
-dtype:
-  DOUBLE: double
-  FLOAT: float
-  INT8: int8_t
-  UINT8: uint8_t
-  INT16: int16_t
-  UINT16: uint16_t
-  INT32: int32_t
-  UINT32: uint32_t
-  INT64: int64_t
-  UINT64: uint64_t
 opcode:
   operator_path: eteq/operator.hpp
   params: teq::Shape shape, eteq::EigenptrT<T>& out, std::vector<eteq::OpArg<T>>& in
@@ -40,18 +28,21 @@ opcode:
     LT: out = eteq::lt(shape,in[0],in[1]);
     GT: out = eteq::gt(shape,in[0],in[1]);
     RAND_UNIF: out = eteq::rand_uniform(shape,in[0],in[1]);
+    REVERSE: out = eteq::reverse(shape, in[0]);
     REDUCE_SUM: out = eteq::reduce_sum(shape,in[0]);
     REDUCE_PROD: out = eteq::reduce_prod(shape,in[0]);
     REDUCE_MIN: out = eteq::reduce_min(shape,in[0]);
     REDUCE_MAX: out = eteq::reduce_max(shape,in[0]);
+    ARGMAX: out = eteq::argmax(shape,in[0]);
     PERMUTE: out = eteq::permute(shape,in[0]);
     EXTEND: out = eteq::extend(shape,in[0]);
+    RESHAPE: out = eteq::reshape(shape,in[0]);
     MATMUL: out = eteq::matmul(shape,in[0],in[1]);
     CONV: out = eteq::convolution(shape,in[0],in[1]);
     SLICE: out = eteq::slice(shape,in[0]);
     PAD: out = eteq::pad(shape,in[0]);
-    CONV_IMG_GRAD: out = eteq::convolution_image_grad(shape,in[0],in[1]);
-    CONV_KRN_GRAD: out = eteq::convolution_kernel_grad(shape,in[0],in[1]);
+    STRIDE: out = eteq::stride(shape,in[0]);
+    SCATTER: out = eteq::scatter(shape,in[0]);
     SELECT: out = eteq::select(shape, in[0], in[1], in[2]);
 api:
   pybind_type: float
@@ -195,12 +186,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"POW",::egen::POW},{
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
+          val: return ::tenncor::pow(arg1, eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: pow
         args:
@@ -210,12 +196,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"POW",::egen::POW},{
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                      eteq::identity_map(arg1),
-                  });
+          val: return ::tenncor::pow(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: add
         operator: +
@@ -245,15 +226,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"ADD",::egen::ADD}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  tag::get_group_reg().group_tag(out->get_tensor(), "sum");
-                  return out;
+          val: return ::tenncor::add(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: add
         operator: +
@@ -264,15 +237,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"ADD",::egen::ADD}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  tag::get_group_reg().group_tag(out->get_tensor(), "sum");
-                  return out;
+          val: return ::tenncor::add(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: sub
         operator: "-"
@@ -294,12 +259,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"SUB",::egen::SUB},{
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
+          val: return ::tenncor::sub(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: sub
         operator: "-"
@@ -310,12 +270,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"SUB",::egen::SUB},{
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                      eteq::identity_map(arg1),
-                  });
+          val: return ::tenncor::sub(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: mul
         operator: "*"
@@ -345,15 +300,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MUL",::egen::MUL}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  tag::get_group_reg().group_tag(out->get_tensor(), "prod");
-                  return out;
+          val: return ::tenncor::mul(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: mul
         operator: "*"
@@ -364,15 +311,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MUL",::egen::MUL}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  tag::get_group_reg().group_tag(out->get_tensor(), "prod");
-                  return out;
+          val: return ::tenncor::mul(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: div
         operator: /
@@ -394,12 +333,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"DIV",::egen::DIV},{
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
+          val: return ::tenncor::div(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: div
         operator: /
@@ -410,12 +344,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"DIV",::egen::DIV},{
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                      eteq::identity_map(arg1),
-                  });
+          val: return ::tenncor::div(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: eq
         operator: ==
@@ -444,14 +373,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"EQ",::egen::EQ}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return ::tenncor::eq(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: eq
         operator: ==
@@ -462,14 +384,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"EQ",::egen::EQ}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return ::tenncor::eq(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: neq
         operator: "!="
@@ -498,14 +413,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"NEQ",::egen::NEQ}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return ::tenncor::neq(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: neq
         operator: "!="
@@ -516,14 +424,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"NEQ",::egen::NEQ}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return ::tenncor::neq(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: lt
         operator: <
@@ -545,12 +446,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"LT",::egen::LT},{
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
+          val: return ::tenncor::lt(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: lt
         operator: <
@@ -561,12 +457,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"LT",::egen::LT},{
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                      eteq::identity_map(arg1),
-                  });
+          val: return ::tenncor::lt(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: gt
         operator: ">"
@@ -588,12 +479,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"GT",::egen::GT},{
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
+          val: return ::tenncor::gt(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: gt
         operator: ">"
@@ -604,12 +490,7 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"GT",::egen::GT},{
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                      eteq::identity_map(arg1),
-                  });
+          val: return ::tenncor::gt(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
       - template: typename T
         name: min
         args:
@@ -625,6 +506,7 @@ api:
                       eteq::identity_map(arg1),
                       eteq::identity_map(arg2),
                   });
+                  // todo: tag min with a group?
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
       - template: typename T
@@ -636,14 +518,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MIN",::egen::MIN}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return ::tenncor::min(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: min
         args:
@@ -653,13 +528,25 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
+          val: return ::tenncor::min(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+      - template: typename T
+        name: min
+        args:
+        - dtype: eteq::NodesT<T>
+          name: args
+        out:
+          type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MIN",::egen::MIN}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  if (args.empty())
+                  {
+                      logs::fatal("cannot min without arguments");
+                  }
+                  eteq::NodeptrT<T> out = args[0];
+                  for (size_t i = 1, n = args.size(); i < n; ++i)
+                  {
+                      out = ::tenncor::min(out, args[i]);
+                  }
                   return out;
       - template: typename T
         name: max
@@ -676,6 +563,7 @@ api:
                       eteq::identity_map(arg1),
                       eteq::identity_map(arg2),
                   });
+                  // todo: tag max with a group?
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
       - template: typename T
@@ -687,14 +575,7 @@ api:
           name: scalar
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MAX",::egen::MAX}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return ::tenncor::max(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
       - template: typename T
         name: max
         args:
@@ -704,13 +585,25 @@ api:
           name: arg1
         out:
           type: eteq::NodeptrT<T>
+          val: return ::tenncor::max(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+      - template: typename T
+        name: max
+        args:
+        - dtype: eteq::NodesT<T>
+          name: args
+        out:
+          type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MAX",::egen::MAX}, {
-                      eteq::identity_map(arg1),
-                      eteq::identity_map(eteq::make_constant_scalar<T>(scalar, arg1->shape())),
-                  });
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  if (args.empty())
+                  {
+                      logs::fatal("cannot max without arguments");
+                  }
+                  eteq::NodeptrT<T> out = args[0];
+                  for (size_t i = 1, n = args.size(); i < n; ++i)
+                  {
+                      out = ::tenncor::max(out, args[i]);
+                  }
                   return out;
       - template: typename T
         name: if_then_else
@@ -729,6 +622,27 @@ api:
                       eteq::identity_map(condition),
                       eteq::identity_map(then),
                       eteq::identity_map(otherwise)
+                  });
+      - template: typename T
+        name: reverse
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: std::vector<teq::RankT>
+          name: dims
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  return eteq::make_functor<T>(teq::Opcode{"REVERSE",::egen::REVERSE},{
+                      eteq::FuncArg<T>(arg,teq::identity,
+                          std::make_shared<eteq::CoordMap>(
+                              [&](teq::MatrixT& args){
+                                  for (teq::RankT i = 0, n = dims.size(); i < n; ++i)
+                                  {
+                                      args[0][i] = dims[i];
+                                  }
+                              }))
                   });
       - template: typename T
         name: permute
@@ -753,6 +667,17 @@ api:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"EXTEND",::egen::EXTEND},{eteq::extend_map(arg,offset,xlist)});
       - template: typename T
+        name: reshape
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: teq::Shape
+          name: shape
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"RESHAPE",::egen::RESHAPE},{eteq::reshape_map(arg,shape)});
+      - description: sum values ignoring coordinate indices between start and end
+        template: typename T
         name: reduce_sum
         args:
         - dtype: eteq::NodeptrT<T>
@@ -766,8 +691,8 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_SUM",::egen::REDUCE_SUM},{eteq::reduce_map(tens,offset,ndims)});
-        description: sum values ignoring coordinate indices between start and end
-      - template: typename T
+      - description: multiply values ignoring coordinate indices between start and end
+        template: typename T
         name: reduce_prod
         args:
         - dtype: eteq::NodeptrT<T>
@@ -781,8 +706,8 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_PROD",::egen::REDUCE_PROD},{eteq::reduce_map(tens,offset,ndims)});
-        description: multiply values ignoring coordinate indices between start and end
-      - template: typename T
+      - description: min values ignoring coordinate indices between start and end
+        template: typename T
         name: reduce_min
         args:
         - dtype: eteq::NodeptrT<T>
@@ -796,8 +721,8 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_MIN",::egen::REDUCE_MIN},{eteq::reduce_map(tens,offset,ndims)});
-        description: min values ignoring coordinate indices between start and end
-      - template: typename T
+      - description: max values ignoring coordinate indices between start and end
+        template: typename T
         name: reduce_max
         args:
         - dtype: eteq::NodeptrT<T>
@@ -811,7 +736,17 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_MAX",::egen::REDUCE_MAX},{eteq::reduce_map(tens,offset,ndims)});
-        description: max values ignoring coordinate indices between start and end
+      - template: typename T
+        name: argmax
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: tens
+        - dtype: teq::RankT
+          name: return_dim
+          default: "8"
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"ARGMAX",::egen::ARGMAX},{eteq::argreduce_map(tens,return_dim)});
       - template: typename T
         name: n_elems
         args:
@@ -830,14 +765,25 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_constant_scalar<T>(arg->get_tensor()->shape().at(rank), teq::Shape());
+      - description: extents vector consists of pairs offset and extent for each dimension
+        template: typename T
+        name: slice
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: eteq::PairVecT<teq::DimT>
+          name: extents
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"SLICE",::egen::SLICE}, {eteq::slice_map<T>(arg, extents)});
       - template: typename T
         name: slice
         args:
         - dtype: eteq::NodeptrT<T>
           name: arg
-        - dtype: teq::RankT
+        - dtype: teq::DimT
           name: offset
-        - dtype: teq::RankT
+        - dtype: teq::DimT
           name: extent
         - dtype: teq::RankT
           name: dimension
@@ -845,8 +791,21 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  return eteq::make_functor<T>(teq::Opcode{"SLICE",::egen::SLICE}, {
-                      eteq::slice_map<T>(arg, offset, extent, dimension)});
+                  eteq::PairVecT<teq::DimT> extents(
+                      std::max(teq::rank_cap, dimension),
+                      {0,std::numeric_limits<teq::DimT>::max()});
+                  extents[dimension] = {offset, extent};
+                  return ::tenncor::slice(arg, extents);
+      - template: typename T
+        name: pad
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: eteq::PairVecT<teq::DimT>
+          name: paddings
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"PAD",::egen::PAD}, {eteq::pad_map<T>(arg, paddings)});
       - template: typename T
         name: pad
         args:
@@ -860,8 +819,23 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  return eteq::make_functor<T>(teq::Opcode{"PAD",::egen::PAD}, {
-                      eteq::pad_map<T>(arg, padding, dimension)});
+                  eteq::PairVecT<teq::DimT> paddings(
+                      std::max(teq::rank_cap, dimension), {0,0});
+                  paddings[dimension] = padding;
+                  return ::tenncor::pad(arg, paddings);
+      - template: typename T
+        name: stride
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: std::vector<teq::DimT>
+          name: incrs
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  return eteq::make_functor<T>(teq::Opcode{"STRIDE",::egen::STRIDE}, {
+                      eteq::stride_map(arg, incrs)});
       - template: typename T
         name: matmul
         args:
@@ -885,7 +859,7 @@ api:
                   }
 
                   teq::CoordptrT left_shaper(new teq::CoordMap(
-                      [=](teq::MatrixT fwd)
+                      [=](teq::MatrixT& fwd)
                       {
                           for (teq::RankT i = 3; i < teq::mat_dim; ++i)
                           {
@@ -898,7 +872,7 @@ api:
                   ));
 
                   teq::CoordptrT right_shaper(new teq::CoordMap(
-                      [=](teq::MatrixT fwd)
+                      [=](teq::MatrixT& fwd)
                       {
                           for (teq::RankT i = 3; i < teq::mat_dim; ++i)
                           {
@@ -920,51 +894,11 @@ api:
           name: input
         - dtype: eteq::NodeptrT<T>
           name: kernel
-        - dtype: std::vector<teq::DimT>
+        - dtype: std::vector<teq::RankT>
           name: dims
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  teq::Shape inshape = input->get_tensor()->shape();
-                  teq::Shape kernelshape = kernel->get_tensor()->shape();
-                  teq::CoordptrT input_shaper(new teq::CoordMap(
-                      [kernelshape](teq::MatrixT fwd)
-                      {
-                          for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-                          {
-                              fwd[i][i] = 1;
-                          }
-                          for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-                          {
-                              fwd[teq::rank_cap][i] = -kernelshape.at(i) + 1;
-                          }
-                      }
-                  ));
-
-                  teq::CoordptrT kernel_shaper(new teq::CoordMap(
-                      [inshape](teq::MatrixT fwd)
-                      {
-                          for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-                          {
-                              fwd[i][i] = -1;
-                          }
-                          for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-                          {
-                              fwd[teq::rank_cap][i] = inshape.at(i) + 1;
-                          }
-                      }
-                  ));
-
-                  teq::CoordT kernel_dims;
-                  auto it = kernel_dims.begin();
-                  std::fill(it, kernel_dims.end(), teq::rank_cap);
-                  std::copy(dims.begin(), dims.end(), it);
-                  return eteq::make_functor<T>(teq::Opcode{"CONV",::egen::CONV}, {
-                      eteq::FuncArg<T>(input, input_shaper, nullptr),
-                      eteq::FuncArg<T>(kernel, kernel_shaper,
-                          std::make_shared<eteq::CoordMap>(kernel_dims, true)),
-                  });
+          val: return eteq::make_functor<T>(teq::Opcode{"CONV",::egen::CONV},eteq::convolve_map(input, kernel, dims));
       - template: typename T
         name: reduce_sum_1d
         args:
@@ -1126,7 +1060,8 @@ api:
                       hi->get_tensor().get(),
                   });
                   return out;
-      - template: typename T
+      - description: clip by l2norm
+        template: typename T
         name: clip_by_l2norm
         args:
         - dtype: eteq::NodeptrT<T>
@@ -1137,6 +1072,7 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
+                  // todo: allow l2norm offset and ndims to be configurable
                   if (upper == 0)
                   {
                       logs::fatal("cannot clip_by_norm with a upper limit of 0");
@@ -1152,7 +1088,6 @@ api:
                       limit->get_tensor().get(),
                   });
                   return out;
-        description: 'clip by l2norm ((todo) allow l2norm to be configurable)'
       - template: typename T
         name: sum
         args:
@@ -1222,6 +1157,19 @@ api:
                       arg->get_tensor().get()});
                   return out;
       - template: typename T
+        name: relu
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  auto out = ::tenncor::log(::tenncor::add((T) 1, ::tenncor::exp(arg)));
+                  tag::recursive_group_tag(out->get_tensor(), "relu", {
+                      arg->get_tensor().get()});
+                  return out;
+      - template: typename T
         name: sign
         args:
         - dtype: eteq::NodeptrT<T>
@@ -1270,46 +1218,6 @@ api:
           type: eteq::NodeptrT<T>
           val: return ::tenncor::max(x,eteq::make_constant_scalar<T>(0,x->shape()));
       - template: typename T
-        name: conv2d
-        args:
-        - dtype: eteq::NodeptrT<T>
-          name: image
-        - dtype: eteq::NodeptrT<T>
-          name: kernel
-        out:
-          type: eteq::NodeptrT<T>
-          val: |
-              //
-                  // image must be in form [in, width, height, batch]
-                  // kernel must be in form [out, in, width, height]
-                  // expect output shape of [
-                  //    out,
-                  //    image.width-kernel.width+1,
-                  //    image.height-kernel.height+1,
-                  //    batch,
-                  // ]
-                  // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
-                  teq::DimT nfilters = kernel->shape().at(0); // out
-                  eteq::NodesT<T> convolveds;
-                  convolveds.reserve(nfilters);
-                  for (teq::DimT i = 0; i < nfilters; ++i)
-                  {
-                      auto filter = ::tenncor::permute(
-                          ::tenncor::slice(kernel, i, 1, 0), // [1, in, width, height]
-                          {1, 2, 3, 0}); // [in, width, height, 1]
-                      auto conved = ::tenncor::convolution(image, filter,
-                          {0, 1, 2}); // [1, image.width-kernel.width+1, image.height-kernel.height+1, batch]
-                      auto padded = ::tenncor::pad(conved,
-                          {i, nfilters - i - 1}, 0); // outshape
-                      convolveds.push_back(padded);
-                  }
-                  auto out = ::tenncor::sum(convolveds);
-                  tag::recursive_group_tag(out->get_tensor(), "conv2d", {
-                      image->get_tensor().get(),
-                      kernel->get_tensor().get()
-                  });
-                  return out;
-      - template: typename T
         name: fully_connect
         args:
         - dtype: eteq::NodesT<T>
@@ -1353,3 +1261,109 @@ api:
                   }
                   tag::recursive_group_tag(out->get_tensor(), "fully_connect", ignores);
                   return out;
+      - template: typename T
+        name: conv2d
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: image
+        - dtype: eteq::NodeptrT<T>
+          name: kernel
+        - dtype: std::pair<teq::DimT,teq::DimT>
+          name: zero_padding
+          default: "std::pair<teq::DimT,teq::DimT>{0,0}"
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  // image must be in form [in, width, height, batch]
+                  // kernel must be in form [out, in, width, height]
+                  // expect output shape of [
+                  //    out,
+                  //    image.width-kernel.width+1+2*zero_padding.first,
+                  //    image.height-kernel.height+1+2*zero_padding.second,
+                  //    batch,
+                  // ]
+                  // zero_padding apply symmetrical padding for dimensions 1 and 2 to image before convolution
+                  // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
+                  if (zero_padding.first > 0 || zero_padding.second > 0)
+                  {
+                      image = ::tenncor::pad(image, {{0, 0},
+                          {zero_padding.first, zero_padding.first},
+                          {zero_padding.second, zero_padding.second}});
+                  }
+
+                  teq::DimT img_pad = kernel->shape().at(0) - 1; // out
+                  image = ::tenncor::pad(image,
+                      std::pair<teq::DimT,teq::DimT>{img_pad, img_pad}, 4);
+                  kernel = ::tenncor::reverse(kernel, {0});
+
+                  auto out = ::tenncor::permute(
+                      ::tenncor::convolution(image, kernel,
+                          {4, 0, 1, 2}), {4, 1, 2, 3});
+                  tag::recursive_group_tag(out->get_tensor(), "conv2d", {
+                      image->get_tensor().get(),
+                      kernel->get_tensor().get()
+                  });
+                  return out;
+      - template: typename T
+        name: mean_pool2d
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: std::pair<teq::RankT,teq::RankT>
+          name: dims
+          default: "std::pair<teq::RankT,teq::RankT>{0, 1}"
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  teq::DimT xextent = arg->shape().at(dims.first) - 1;
+                  teq::DimT yextent = arg->shape().at(dims.second) - 1;
+                  std::vector<teq::DimT> strider(teq::rank_cap, 1);
+                  strider[dims.first] = strider[dims.second] = 2;
+                  auto top_left = ::tenncor::stride(arg, strider);
+                  auto top_right = ::tenncor::stride(
+                      ::tenncor::slice(arg, 1, xextent, dims.first), strider);
+                  auto bot_left = ::tenncor::stride(
+                      ::tenncor::slice(arg, 1, yextent, dims.second), strider);
+                  eteq::PairVecT<teq::DimT> pvec(teq::rank_cap,
+                      {0, std::numeric_limits<teq::DimT>::max()});
+                  pvec[dims.first] = {1, xextent};
+                  pvec[dims.second] = {1, yextent};
+                  auto bot_right = ::tenncor::stride(
+                      ::tenncor::slice(arg, pvec), strider);
+
+                  // todo: tag this maybe?
+                  return ::tenncor::div(::tenncor::sum(eteq::NodesT<T>{
+                      top_left, top_right, bot_left, bot_right}), (T) 4);
+      - template: typename T
+        name: max_pool2d
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: std::pair<teq::RankT,teq::RankT>
+          name: dims
+          default: "std::pair<teq::RankT,teq::RankT>{0, 1}"
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  teq::DimT xextent = arg->shape().at(dims.first) - 1;
+                  teq::DimT yextent = arg->shape().at(dims.second) - 1;
+                  std::vector<teq::DimT> strider(teq::rank_cap, 1);
+                  strider[dims.first] = strider[dims.second] = 2;
+                  auto top_left = ::tenncor::stride(arg, strider);
+                  auto top_right = ::tenncor::stride(
+                      ::tenncor::slice(arg, 1, xextent, dims.first), strider);
+                  auto bot_left = ::tenncor::stride(
+                      ::tenncor::slice(arg, 1, yextent, dims.second), strider);
+                  eteq::PairVecT<teq::DimT> pvec(teq::rank_cap,
+                      {0, std::numeric_limits<teq::DimT>::max()});
+                  pvec[dims.first] = {1, xextent};
+                  pvec[dims.second] = {1, yextent};
+                  auto bot_right = ::tenncor::stride(
+                      ::tenncor::slice(arg, pvec), strider);
+
+                  // todo: tag this maybe?
+                  return ::tenncor::max(eteq::NodesT<T>{
+                      top_left, top_right, bot_left, bot_right});

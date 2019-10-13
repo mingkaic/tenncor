@@ -22,14 +22,28 @@ TEST(COORD, Forward)
 	teq::CoordT expect_a = {1, 2, 3, 4, 5, 6, 7, 8};
 	teq::CoordT expect_b = {9, 8, 7, 6, 5, 4, 3, 2};
 
-	eteq::CoordMap a(expect_a, false);
+	eteq::CoordMap a(expect_a);
 	eteq::CoordMap b(expect_b, true);
 
 	teq::CoordT out;
-	a.forward(out.begin(), out.begin());
+	a.access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				out[i] = args[0][i];
+			}
+		});
 	EXPECT_ARREQ(expect_a, out);
 
-	b.forward(out.begin(), out.begin());
+	b.access(
+		[&](const teq::MatrixT& args)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				out[i] = args[0][i];
+			}
+		});
 	EXPECT_ARREQ(expect_b, out);
 }
 
