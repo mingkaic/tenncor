@@ -423,7 +423,7 @@ class EADTest(unittest.TestCase):
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, tc.nn.relu, tf.nn.relu)
+            self._common_unary_tf(shape, tc.relu, tf.nn.relu)
 
     def test_square(self):
         shapes = [[3, 4, 5]]

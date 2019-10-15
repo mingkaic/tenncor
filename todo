@@ -14,7 +14,7 @@ P2 - implement attention mechanisms
    - separate supervised and unsupervised trainers (since they have different statefulness)
 
 === demos ===
-P2 - demo convolutional nn
+P2 - improve convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
 
 === feature ===
@@ -44,8 +44,8 @@ P4 - implement GPU settings
 P4 - improve session implementation
 P4 - investigate remote sessions for distributed processing
 
-graph-construction-time performance:
-P4 - define optimization conversion rules to increase data accuracy
+stability:
+P3 - define optimization conversion rules to increase data stability
 
 compile-time performance:
 P3 - convert as many shared_ptr to unique_ptr

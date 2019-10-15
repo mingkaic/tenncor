@@ -86,7 +86,7 @@ struct Functor final : public teq::iOperableFunc
 		{
 			initialize();
 		}
-		return out_->assign();
+		out_->assign();
 	}
 
 	/// Implementation of iData

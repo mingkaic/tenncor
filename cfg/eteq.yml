@@ -1146,13 +1146,18 @@ api:
                       logs::fatalf("cannot perform softmax on dimensions beyond %d",
                           teq::rank_cap);
                   }
-                  auto exarg = exp(arg);
-                  teq::Shape shape = exarg->shape();
+                  teq::Shape shape = arg->shape();
+                  auto overflow_preventer = ::tenncor::extend(
+                      ::tenncor::reduce_max(arg), 0,
+                          std::vector<teq::DimT>(shape.begin(), shape.end()));
+                  auto exarg = ::tenncor::exp(::tenncor::sub(arg, overflow_preventer));
                   auto it = shape.begin() + offset;
                   std::vector<teq::DimT> xlist(it, it + ndims);
                   auto out = ::tenncor::div(exarg,
-                      ::tenncor::extend(::tenncor::reduce_sum(exarg, offset, ndims),
-                      offset, xlist));
+                      ::tenncor::extend(::tenncor::add(
+                          ::tenncor::reduce_sum(exarg, offset, ndims),
+                          std::numeric_limits<T>::epsilon()),
+                          offset, xlist));
                   tag::recursive_group_tag(out->get_tensor(), "softmax", {
                       arg->get_tensor().get()});
                   return out;
@@ -1165,8 +1170,21 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = ::tenncor::log(::tenncor::add((T) 1, ::tenncor::exp(arg)));
+                  auto out = ::tenncor::max(arg, (T) 0);
                   tag::recursive_group_tag(out->get_tensor(), "relu", {
+                      arg->get_tensor().get()});
+                  return out;
+      - template: typename T
+        name: softplus
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  auto out = ::tenncor::log(::tenncor::add((T) 1, ::tenncor::exp(arg)));
+                  tag::recursive_group_tag(out->get_tensor(), "softplus", {
                       arg->get_tensor().get()});
                   return out;
       - template: typename T
@@ -1209,14 +1227,6 @@ api:
                       eteq::convert_to_node(eteq::make_variable_scalar<T>((T) 1, shape)));
                   return ::tenncor::lt(trial, arg);
     tenncor::nn:
-      - template: typename T
-        name: relu
-        args:
-        - dtype: eteq::NodeptrT<T>
-          name: x
-        out:
-          type: eteq::NodeptrT<T>
-          val: return ::tenncor::max(x,eteq::make_constant_scalar<T>(0,x->shape()));
       - template: typename T
         name: fully_connect
         args:
