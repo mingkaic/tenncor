@@ -86,7 +86,7 @@ struct Dense final : public iLayer
 		}
 	}
 
-	Dense (NodeptrT weight, NodeptrT bias, std::string label) :
+	Dense (NodeptrT weight, NodeptrT bias, const std::string& label) :
 		label_(label),
 		weight_(weight),
 		bias_(bias)
@@ -98,8 +98,7 @@ struct Dense final : public iLayer
 		}
 	}
 
-	Dense (const Dense& other,
-		std::string label_prefix = "")
+	Dense (const Dense& other, std::string label_prefix = "")
 	{
 		copy_helper(other, label_prefix);
 	}

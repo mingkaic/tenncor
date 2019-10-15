@@ -57,6 +57,7 @@ P4 - more performance test
 
 === correction ===
 P2 - test eteq funcarg
+P2 - test dropout layer
 P2 - centralize global context structures
 P2 - reorient tests so that tests cover its own immediate module
 P2 - fix rbm demo converging to infinity problem

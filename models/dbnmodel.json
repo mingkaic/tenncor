@@ -1,4 +1,5 @@
 {
+ "label": "",
  "nodes": [
   {
    "label": "weight",
@@ -14,14 +15,10 @@
      "1"
     ],
     "data": "j3PJPZBOxkBzyMHA5RG7vwl1LEDti4rATnG6QCxbtz/aV5g/CHORP2l55sCYs59Aaud1v6LbiMCxAs8/0uDuv81YgcBeiJM/",
-    "typelabel": "FLOAT"
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "hidden::weight:0"
-     ]
-    },
     "layer_rbm": {
      "labels": [
       "0:layer_dense:hidden:0"
@@ -30,6 +27,11 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:0:0"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "hidden::weight:0"
      ]
     }
    }
@@ -48,9 +50,15 @@
      "1"
     ],
     "data": "otbkPkzcNr7ntrO9",
-    "typelabel": "FLOAT"
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:0:0"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "hidden::bias:0"
@@ -59,11 +67,6 @@
     "layer_rbm": {
      "labels": [
       "0:layer_dense:hidden:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:0:0"
      ]
     }
    }
@@ -82,9 +85,15 @@
      "1"
     ],
     "data": "mA5qvBZf8b6cJEk/JUkSviFJEr9O8RW/",
-    "typelabel": "FLOAT"
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:0:0"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "visible::bias:0"
@@ -93,11 +102,6 @@
     "layer_rbm": {
      "labels": [
       "0:layer_dense:visible:1"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:0:0"
      ]
     }
    }
@@ -120,6 +124,12 @@
     "isConst": true
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1",
+      "demo:layer_rbm:0:0"
+     ]
+    },
     "layer_sigmoid": {
      "labels": [
       ":::0"
@@ -134,12 +144,6 @@
     "properties": {
      "labels": [
       "immutable"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1",
-      "demo:layer_rbm:0:0"
      ]
     }
    }
@@ -158,7 +162,8 @@
      "1"
     ],
     "data": "D8ayPquucD9CruJAJXTSQKKwhkAQqIfADynywMqSmsDx27dA",
-    "typelabel": "FLOAT"
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -192,7 +197,8 @@
      "1"
     ],
     "data": "yrD4vkhvvL6+AQ8/",
-    "typelabel": "FLOAT"
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -226,7 +232,8 @@
      "1"
     ],
     "data": "0syMP3FmZr912zY/",
-    "typelabel": "FLOAT"
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -260,7 +267,8 @@
      "1"
     ],
     "data": "V2N9P1hjfb9XY30/WGN9v/AQy7/7stO+",
-    "typelabel": "FLOAT"
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -289,7 +297,8 @@
      "1"
     ],
     "data": "VxNoviDxcb0=",
-    "typelabel": "FLOAT"
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -345,6 +354,7 @@
     "opname": "PERMUTE",
     "args": [
      {
+      "idx": 0,
       "coord": [
        1,
        0,
@@ -443,11 +453,6 @@
     ]
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "visible::weight:0"
-     ]
-    },
     "layer_rbm": {
      "labels": [
       "0:layer_dense:visible:1"
@@ -456,6 +461,11 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:0:0"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "visible::weight:0"
      ]
     }
    }
