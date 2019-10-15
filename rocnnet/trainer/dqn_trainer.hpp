@@ -166,7 +166,7 @@ struct DQNTrainer final
 			auto target_next = target - params_.target_update_rate_ * diff;
 			target_assigns.push_back(layr::VarAssign{
 				fmts::sprintf("target_grad_%s",
-					target_vars[i]->get_label().c_str()),
+					target_vars[i]->to_string().c_str()),
 				target_vars[i], target_next});
 		}
 		updates_.push_back(target_assigns);

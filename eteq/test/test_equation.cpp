@@ -205,14 +205,10 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	eteq::NodeptrT<double> out = eteq::make_variable<double>(out_data.data(), out_shape);
 
 	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
-	auto sig0 = 1. / (
-		eteq::make_constant_scalar<double>(1, teq::Shape({9, 3})) +
-		tenncor::exp(-layer0));
+	auto sig0 = 1. / (1. + tenncor::exp(-layer0));
 
 	auto layer1 = tenncor::matmul(sig0, weight1) + tenncor::extend(bias1, 1, {3});
-	auto sig1 = 1. / (
-		eteq::make_constant_scalar<double>(1, teq::Shape({5, 3})) +
-		tenncor::exp(-layer1));
+	auto sig1 = 1. / (1. + tenncor::exp(-layer1));
 
 	auto err = tenncor::pow(out - sig1, 2.);
 
@@ -426,14 +422,10 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	eteq::NodeptrT<double> out = eteq::make_variable<double>(out_data.data(), out_shape);
 
 	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
-	auto sig0 = 1. / (
-		eteq::make_constant_scalar<double>(1, teq::Shape({9, 3})) +
-		tenncor::exp(-layer0));
+	auto sig0 = 1. / (1. + tenncor::exp(-layer0));
 
 	auto layer1 = tenncor::matmul(sig0, weight1) + tenncor::extend(bias1, 1, {3});
-	auto sig1 = 1. / (
-		eteq::make_constant_scalar<double>(1, teq::Shape({5, 3})) +
-		tenncor::exp(-layer1));
+	auto sig1 = 1. / (1. + tenncor::exp(-layer1));
 
 	auto err = tenncor::pow(out - sig1, 2.);
 

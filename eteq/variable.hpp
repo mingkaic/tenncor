@@ -80,7 +80,8 @@ struct Variable final : public iLeaf<T>
 				"internal data of shape %s", ninput,
 				this->shape_.to_string().c_str());
 		}
-		std::memcpy(this->data_.data(), input.data(), ninput * sizeof(T));
+		T* indata = input.data();
+		std::copy(indata, indata + ninput, this->data_.data());
 		return *this;
 	}
 
@@ -172,12 +173,6 @@ struct VariableNode final : public iNode<T>
 	void assign (const ShapedArr<T>& arr)
 	{
 		var_->assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
-	}
-
-	/// Return string representation of internal variable
-	std::string get_label (void) const
-	{
-		return var_->to_string();
 	}
 
 protected:

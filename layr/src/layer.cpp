@@ -40,6 +40,7 @@ std::unordered_map<std::string,LayerIdsT> unpack_labels (
 
 void iLayer::tag (teq::TensptrT tensor, LayerId subs) const
 {
+	// todo: allow pass layer registry through parameter
 	get_layer_reg().layer_tag(tensor, get_ltype(),
 		subs.to_string(get_label()));
 }
@@ -47,6 +48,7 @@ void iLayer::tag (teq::TensptrT tensor, LayerId subs) const
 void iLayer::recursive_tag (teq::TensptrT root,
 	teq::TensSetT ignores, LayerId subs) const
 {
+	// todo: allow pass layer registry through parameter
 	recursive_layer_tag(root, get_ltype(),
 		subs.to_string(get_label()), ignores);
 }
@@ -270,18 +272,9 @@ bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensptrsT roots,
 		tens->accept(saver);
 	}
 
-	pbm::PathedMapT labels;
-	for (teq::iLeaf* leaf : saver.leaves_)
-	{
-		if (false == leaf->is_const())
-		{
-			labels.emplace(owners.at(leaf).lock(), pbm::StringsT{leaf->to_string()});
-		}
-	}
-
 	// save graph from source
 	cortenn::Graph graph;
-	saver.save(graph, labels);
+	saver.save(graph);
 	return graph.SerializeToOstream(&outs);
 }
 

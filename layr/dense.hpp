@@ -33,16 +33,16 @@ struct DenseBuilder final : public iLayerBuilder
 	{
 		if (target == dense_weight_key)
 		{
-			weight_ = eteq::NodeConverters<PybindT>::to_node(tens);
+			weight_ = eteq::to_node<PybindT>(tens);
 			return;
 		}
 		else if (target == dense_bias_key)
 		{
-			bias_ = eteq::NodeConverters<PybindT>::to_node(tens);
+			bias_ = eteq::to_node<PybindT>(tens);
 			return;
 		}
 		logs::warnf("attempt to create dense layer "
-			"with unknown tensor `%s` with label `%s`",
+			"with unknown tensor `%s` of label `%s`",
 			tens->to_string().c_str(), target.c_str());
 	}
 
@@ -159,6 +159,26 @@ struct Dense final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
+		// expect input to be <input dimensions...,nbatch dimensions...>
+		teq::Shape inshape = input->shape();
+		teq::DimT ninput = get_ninput();
+		teq::DimT nbatch = inshape.n_elems() / ninput;
+		size_t i = 1;
+		for (teq::DimT accs = inshape.at(0);
+			accs < ninput && i < teq::rank_cap; ++i)
+		{
+			accs *= inshape.at(i);
+		}
+		for (teq::DimT accs = inshape.at(i++);
+			accs < nbatch && i < teq::rank_cap; ++i)
+		{
+			accs *= inshape.at(i);
+		}
+		if (i > 2)
+		{
+			// reshape input to fit weight
+			input = tenncor::reshape(input, teq::Shape({ninput, nbatch}));
+		}
 		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_);
 		teq::TensSetT leaves = {
 			input->get_tensor().get(),

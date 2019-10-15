@@ -154,4 +154,157 @@ TEST(SEQMODEL, Move)
 }
 
 
+TEST(SEQMODEL, Tagging)
+{
+	std::string dlabel = "especially_dense";
+	std::string rlabel = "kinda_restrictive";
+	std::string clabel = "maybe_convoluted";
+	std::string label = "serious_series";
+	layr::SequentialModel model(label);
+
+	model.push_back(std::make_shared<layr::Dense>(4, 5,
+		layr::zero_init<PybindT>(),
+		layr::zero_init<PybindT>(),
+		dlabel));
+	model.push_back(std::make_shared<layr::RBM>(6, 4,
+		layr::sigmoid(),
+		layr::zero_init<PybindT>(),
+		layr::zero_init<PybindT>(),
+		rlabel));
+	model.push_back(std::make_shared<layr::Conv>(
+		std::pair<teq::DimT,teq::DimT>{3, 4}, 6, 7, clabel));
+
+	auto contents = model.get_contents();
+	// expect contents to be tagged
+	ASSERT_EQ(9, contents.size());
+
+	auto& reg = tag::get_reg();
+	auto dense_weight_tags = reg.get_tags(contents[0].get());
+	auto dense_bias_tags = reg.get_tags(contents[1].get());
+	auto rbm_weight_tags = reg.get_tags(contents[2].get());
+	auto rbm_hbias_tags = reg.get_tags(contents[3].get());
+	auto rbm_perm_tags = reg.get_tags(contents[4].get());
+	auto rbm_vbias_tags = reg.get_tags(contents[5].get());
+	auto rbm_sig_tags = reg.get_tags(contents[6].get());
+	auto conv_weight_tags = reg.get_tags(contents[7].get());
+	auto conv_bias_tags = reg.get_tags(contents[8].get());
+
+	EXPECT_EQ(2, dense_weight_tags.size());
+	EXPECT_EQ(2, dense_bias_tags.size());
+	EXPECT_EQ(3, rbm_weight_tags.size());
+	EXPECT_EQ(3, rbm_hbias_tags.size());
+	EXPECT_EQ(3, rbm_perm_tags.size());
+	EXPECT_EQ(3, rbm_vbias_tags.size());
+	EXPECT_EQ(4, rbm_sig_tags.size());
+	EXPECT_EQ(2, conv_weight_tags.size());
+	EXPECT_EQ(2, conv_bias_tags.size());
+
+	ASSERT_HAS(dense_weight_tags, layr::seq_model_key);
+	ASSERT_HAS(dense_bias_tags, layr::seq_model_key);
+	ASSERT_HAS(rbm_weight_tags, layr::seq_model_key);
+	ASSERT_HAS(rbm_hbias_tags, layr::seq_model_key);
+	ASSERT_HAS(rbm_perm_tags, layr::seq_model_key);
+	ASSERT_HAS(rbm_vbias_tags, layr::seq_model_key);
+	ASSERT_HAS(rbm_sig_tags, layr::seq_model_key);
+	ASSERT_HAS(conv_weight_tags, layr::seq_model_key);
+	ASSERT_HAS(conv_bias_tags, layr::seq_model_key);
+
+	auto seq_dense_weight_labels = dense_weight_tags[layr::seq_model_key];
+	auto seq_dense_bias_labels = dense_bias_tags[layr::seq_model_key];
+	auto seq_rbm_weight_labels = rbm_weight_tags[layr::seq_model_key];
+	auto seq_rbm_hbias_labels = rbm_hbias_tags[layr::seq_model_key];
+	auto seq_rbm_perm_labels = rbm_perm_tags[layr::seq_model_key];
+	auto seq_rbm_vbias_labels = rbm_vbias_tags[layr::seq_model_key];
+	auto seq_rbm_sig_labels = rbm_sig_tags[layr::seq_model_key];
+	auto seq_conv_weight_labels = conv_weight_tags[layr::seq_model_key];
+	auto seq_conv_bias_labels = conv_bias_tags[layr::seq_model_key];
+
+	ASSERT_EQ(1, seq_dense_weight_labels.size());
+	ASSERT_EQ(1, seq_dense_bias_labels.size());
+	ASSERT_EQ(1, seq_rbm_weight_labels.size());
+	ASSERT_EQ(1, seq_rbm_hbias_labels.size());
+	ASSERT_EQ(1, seq_rbm_perm_labels.size());
+	ASSERT_EQ(1, seq_rbm_vbias_labels.size());
+	ASSERT_EQ(1, seq_rbm_sig_labels.size());
+	ASSERT_EQ(1, seq_conv_weight_labels.size());
+	ASSERT_EQ(1, seq_conv_bias_labels.size());
+	EXPECT_STREQ("serious_series:layer_dense:especially_dense:0", seq_dense_weight_labels[0].c_str());
+	EXPECT_STREQ("serious_series:layer_dense:especially_dense:0", seq_dense_bias_labels[0].c_str());
+	EXPECT_STREQ("serious_series:layer_rbm:kinda_restrictive:1", seq_rbm_weight_labels[0].c_str());
+	EXPECT_STREQ("serious_series:layer_rbm:kinda_restrictive:1", seq_rbm_hbias_labels[0].c_str());
+	EXPECT_STREQ("serious_series:layer_rbm:kinda_restrictive:1", seq_rbm_perm_labels[0].c_str());
+	EXPECT_STREQ("serious_series:layer_rbm:kinda_restrictive:1", seq_rbm_vbias_labels[0].c_str());
+	EXPECT_STREQ("serious_series:layer_rbm:kinda_restrictive:1", seq_rbm_sig_labels[0].c_str());
+	EXPECT_STREQ("serious_series:layer_conv:maybe_convoluted:2", seq_conv_weight_labels[0].c_str());
+	EXPECT_STREQ("serious_series:layer_conv:maybe_convoluted:2", seq_conv_bias_labels[0].c_str());
+
+	ASSERT_HAS(dense_weight_tags, layr::dense_layer_key);
+	ASSERT_HAS(dense_bias_tags, layr::dense_layer_key);
+
+	auto dense_weight_labels = dense_weight_tags[layr::dense_layer_key];
+	auto dense_bias_labels = dense_bias_tags[layr::dense_layer_key];
+	ASSERT_EQ(1, dense_weight_labels.size());
+	ASSERT_EQ(1, dense_bias_labels.size());
+	EXPECT_STREQ("especially_dense::weight:0", dense_weight_labels[0].c_str());
+	EXPECT_STREQ("especially_dense::bias:0", dense_bias_labels[0].c_str());
+
+	ASSERT_HAS(rbm_weight_tags, layr::rbm_layer_key);
+	ASSERT_HAS(rbm_hbias_tags, layr::rbm_layer_key);
+	ASSERT_HAS(rbm_perm_tags, layr::rbm_layer_key);
+	ASSERT_HAS(rbm_vbias_tags, layr::rbm_layer_key);
+	ASSERT_HAS(rbm_sig_tags, layr::rbm_layer_key);
+	ASSERT_HAS(rbm_weight_tags, layr::dense_layer_key);
+	ASSERT_HAS(rbm_hbias_tags, layr::dense_layer_key);
+	ASSERT_HAS(rbm_perm_tags, layr::dense_layer_key);
+	ASSERT_HAS(rbm_vbias_tags, layr::dense_layer_key);
+	ASSERT_HAS(rbm_sig_tags, layr::sigmoid_layer_key);
+	ASSERT_HAS(rbm_sig_tags, tag::props_key);
+
+	auto rbm_weight_labels = rbm_weight_tags[layr::rbm_layer_key];
+	auto rbm_hbias_labels = rbm_hbias_tags[layr::rbm_layer_key];
+	auto rbm_perm_labels = rbm_perm_tags[layr::rbm_layer_key];
+	auto rbm_vbias_labels = rbm_vbias_tags[layr::rbm_layer_key];
+	auto rbm_sig_labels = rbm_sig_tags[layr::rbm_layer_key];
+	ASSERT_EQ(1, rbm_weight_labels.size());
+	ASSERT_EQ(1, rbm_hbias_labels.size());
+	ASSERT_EQ(1, rbm_perm_labels.size());
+	ASSERT_EQ(1, rbm_vbias_labels.size());
+	ASSERT_EQ(1, rbm_sig_labels.size());
+	EXPECT_STREQ("kinda_restrictive:layer_dense:hidden:0", rbm_weight_labels[0].c_str());
+	EXPECT_STREQ("kinda_restrictive:layer_dense:hidden:0", rbm_hbias_labels[0].c_str());
+	EXPECT_STREQ("kinda_restrictive:layer_dense:visible:1", rbm_perm_labels[0].c_str());
+	EXPECT_STREQ("kinda_restrictive:layer_dense:visible:1", rbm_vbias_labels[0].c_str());
+	EXPECT_STREQ("kinda_restrictive:layer_sigmoid::2", rbm_sig_labels[0].c_str());
+
+	auto rbm_dense_weight_labels = rbm_weight_tags[layr::dense_layer_key];
+	auto rbm_dense_hbias_labels = rbm_hbias_tags[layr::dense_layer_key];
+	auto rbm_dense_perm_labels = rbm_perm_tags[layr::dense_layer_key];
+	auto rbm_dense_vbias_labels = rbm_vbias_tags[layr::dense_layer_key];
+	auto rbm_dense_sig_labels = rbm_sig_tags[layr::sigmoid_layer_key];
+	auto sig_properties = rbm_sig_tags[tag::props_key];
+	ASSERT_EQ(1, rbm_dense_weight_labels.size());
+	ASSERT_EQ(1, rbm_dense_hbias_labels.size());
+	ASSERT_EQ(1, rbm_dense_perm_labels.size());
+	ASSERT_EQ(1, rbm_dense_vbias_labels.size());
+	ASSERT_EQ(1, rbm_dense_sig_labels.size());
+	ASSERT_EQ(1, sig_properties.size());
+	EXPECT_STREQ("hidden::weight:0", rbm_dense_weight_labels[0].c_str());
+	EXPECT_STREQ("hidden::bias:0", rbm_dense_hbias_labels[0].c_str());
+	EXPECT_STREQ("visible::weight:0", rbm_dense_perm_labels[0].c_str());
+	EXPECT_STREQ("visible::bias:0", rbm_dense_vbias_labels[0].c_str());
+	EXPECT_STREQ(":::0", rbm_dense_sig_labels[0].c_str());
+	EXPECT_STREQ(tag::immutable_tag.c_str(), sig_properties[0].c_str());
+
+	ASSERT_HAS(conv_weight_tags, layr::conv_layer_key);
+	ASSERT_HAS(conv_bias_tags, layr::conv_layer_key);
+
+	auto conv_weight_labels = conv_weight_tags[layr::conv_layer_key];
+	auto conv_bias_labels = conv_bias_tags[layr::conv_layer_key];
+	ASSERT_EQ(1, conv_weight_labels.size());
+	ASSERT_EQ(1, conv_bias_labels.size());
+	EXPECT_STREQ("maybe_convoluted::weight:0", conv_weight_labels[0].c_str());
+	EXPECT_STREQ("maybe_convoluted::bias:0", conv_bias_labels[0].c_str());
+}
+
+
 #endif // DISABLE_SEQMODEL_TEST

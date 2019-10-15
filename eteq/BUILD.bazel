@@ -68,14 +68,14 @@ genrule(
     tools = ["//eteq:egen"],
     cmd = select({
         "//conditions:default": "$(location //eteq:egen) " +
-        "--cfg $(location //cfg:eteq) " +
         "--out $(@D)/generated " +
-        "--strip_prefix=$$(dirname $(@D))",
+        "--strip_prefix=$$(dirname $(@D)) " +
+        "--cfgs $(locations //cfg:eteq)",
 
         ":fast_build": "$(location //eteq:egen) " +
-        "--cfg $(location //cfg:eteq_min) " +
         "--out $(@D)/generated " +
-        "--strip_prefix=$$(dirname $(@D))",
+        "--strip_prefix=$$(dirname $(@D)) " +
+        "--cfgs $(locations //cfg:eteq_min)",
     })
 )
 

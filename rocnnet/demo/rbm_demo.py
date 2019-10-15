@@ -3,17 +3,17 @@ import time
 import random
 import argparse
 
-from tensorflow.examples.tutorials.mnist import input_data
 import matplotlib.pyplot as plt
 import numpy as np
+
+from tensorflow.examples.tutorials.mnist import input_data
+# import tensorflow_datasets as tfds
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
 prog_description = 'Demo rbm_trainer'
-
-mnist = input_data.read_data_sets('MNIST_data/', one_hot=True)
 
 def mse_errfunc(x, visible_sample_):
     return tc.reduce_mean(tc.square(x - visible_sample_))
@@ -63,8 +63,6 @@ def main(args):
     else:
         tq = None
 
-    mnist_images = mnist.train.images
-
     n_visible = 784
     n_hidden = 64
     learning_rate = 0.01
@@ -88,10 +86,10 @@ def main(args):
     sess = eteq.Session()
     batch_size = 10
 
-    trainer = rcn.BernoulliRBMTrainer(
-        model=model,
-        sess=sess,
-        batch_size=batch_size,
+    # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=batch_size)
+
+    train_input = eteq.Variable([batch_size, n_visible])
+    train = rcn.rbm_train(model, sess, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
@@ -105,6 +103,8 @@ def main(args):
 
     trained_genx = trained.backward_connect(
         tc.random.rand_binom_one(trained.connect(x)))
+
+    mnist_images = input_data.read_data_sets('MNIST_data/', one_hot=True).train.images
 
     image = random.choice(mnist_images)
     sess.track([genx, trained_genx, untrained_genx])
@@ -122,19 +122,17 @@ def main(args):
         n_batches = 1
 
     if shuffle:
-        data_x_cpy = mnist_images.copy()
         inds = np.arange(n_data)
-    else:
-        data_x_cpy = mnist_images
 
     errs = []
     for e in range(n_epoches):
-        epoch_errs = np.zeros((n_batches,))
-        epoch_errs_ptr = 0
+        epoch_errs = []
 
         if shuffle:
             np.random.shuffle(inds)
-            data_x_cpy = data_x_cpy[inds]
+            mnist_images = mnist_images[inds]
+
+        # ds = tfds.load('mnist', split=tfds.Split.TRAIN, shuffle_files=True, batch_size=10)
 
         r_batches = range(n_batches)
 
@@ -148,11 +146,12 @@ def main(args):
                 print('Epoch: {:d}'.format(e))
 
         for b in r_batches:
-            batch_x = data_x_cpy[b * batch_size:(b + 1) * batch_size]
+            batch_x = mnist_images[b * batch_size:(b + 1) * batch_size]
+            train_input.assign(batch_x)
+            err = train().as_numpy()
+            epoch_errs.append(err)
 
-            epoch_errs[epoch_errs_ptr] = trainer.train(batch_x)
-            epoch_errs_ptr += 1
-
+        epoch_errs = np.array(epoch_errs)
         if verbose:
             err_mean = epoch_errs.mean()
             if tq is not None:

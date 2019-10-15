@@ -138,8 +138,7 @@ TEST(SAVE, SaveGraph)
 			root->accept(saver);
 		}
 
-		pbm::PathedMapT labels;
-		saver.save(graph, labels);
+		saver.save(graph);
 
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);

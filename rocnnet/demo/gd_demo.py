@@ -8,7 +8,7 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
-prog_description = 'Demo mlp_trainer using sgd'
+prog_description = 'Demo sgd_trainer'
 
 def batch_generate(n, batchsize):
     inbatch = np.random.rand(batchsize * n)
@@ -77,10 +77,11 @@ def main(args):
     sess = eteq.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    trainer = rcn.MLPTrainer(model, sess,
-        rcn.get_sgd(0.9), n_batch)
+    train_input = eteq.Variable([n_batch, n_in])
+    train_output = eteq.Variable([n_batch, n_out])
+    train = rcn.sgd_train(model, sess, train_input, train_output, rcn.get_sgd(0.9))
 
-    testin = eteq.variable(np.zeros([n_in], dtype=float), 'testin')
+    testin = eteq.Variable([n_in], label='testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)
@@ -93,14 +94,14 @@ def main(args):
 
     start = time.time()
     for i in range(args.n_train):
-        if i % show_every_n == show_every_n - 1:
-            trained_derr = trainer.error().get()
-            print('training {}\ntraining error:\n{}'
-                .format(i + 1, trained_derr))
         batch, batch_out = batch_generate(n_in, n_batch)
-        trainer.train(
-            batch.reshape(n_batch, n_in),
-            batch_out.reshape(n_batch, n_out))
+        train_input.assign(batch.reshape(n_batch, n_in))
+        train_output.assign(batch_out.reshape(n_batch, n_out))
+        trained_err = train()
+        if i % show_every_n == show_every_n - 1:
+            err = trained_err.as_numpy()
+            print('training {}\ntraining error:\n{}'
+                .format(i + 1, err))
 
     print('training time: {} seconds'.format(time.time() - start))
 

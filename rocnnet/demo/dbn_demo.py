@@ -1,75 +1,133 @@
-import numpy as np
+import sys
 import time
+import argparse
+
+import numpy as np
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
-pretrain_lr=0.1
-pretraining_epochs=1000
-k=1
-finetune_lr=0.1
-finetune_epochs=200
+prog_description = 'Demo dbn_trainer'
 
-x = np.array([
-    [1,1,1,0,0,0],
-    [1,0,1,0,0,0],
-    [1,1,1,0,0,0],
-    [0,0,1,1,1,0],
-    [0,0,1,1,0,0],
-    [0,0,1,1,1,0],
-    [0,0,1,1,0,1]])
-y = np.array([
-    [1, 0],
-    [1, 0],
-    [1, 0],
-    [0, 1],
-    [0, 1],
-    [0, 1],
-    [0, 0]])
+def str2bool(opt):
+    optstr = opt.lower()
+    if optstr in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif optstr in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
-eteq.seed(int(time.time()))
+def main(args):
 
-# construct DBN
-dbn = rcn.SequentialModel("dbn")
-dbn.add(rcn.RBM(3, 6,
-    weight_init=rcn.unif_xavier_init(),
-    bias_init=rcn.zero_init(), label="0"))
-dbn.add(rcn.RBM(3, 3,
-    weight_init=rcn.unif_xavier_init(),
-    bias_init=rcn.zero_init(), label="1"))
-dbn.add(rcn.Dense(2, 3,
-    weight_init=rcn.zero_init(),
-    bias_init=rcn.zero_init(), label="log_layer"))
-dbn.add(rcn.softmax(0))
+    default_ts = time.time()
 
-trainer = rcn.DBNTrainer(dbn, x.shape[0],
-    pretrain_lr=pretrain_lr,
-    train_lr=finetune_lr,
-    cdk=k)
+    parser = argparse.ArgumentParser(description=prog_description)
+    parser.add_argument('--seed', dest='seed',
+        type=str2bool, nargs='?', const=False, default=True,
+        help='Whether to seed or not (default: True)')
+    parser.add_argument('--seedval', dest='seedval', type=int, nargs='?', default=int(default_ts),
+        help='Random seed value (default: <current time>)')
+    parser.add_argument('--pre_nepoch', dest='pretrain_epochs', type=int, nargs='?', default=1000,
+        help='Number of epochs when pretraining (default: 1000)')
+    parser.add_argument('--nepochs', dest='finetune_epochs', type=int, nargs='?', default=200,
+        help='Number of epochs when finetuning (default: 200)')
+    parser.add_argument('--cdk', dest='cdk', type=int, nargs='?', default=1,
+        help='Length of the Contrastive divergence chain (default: 1)')
+    parser.add_argument('--save', dest='save', nargs='?', default='',
+        help='Filename to save model (default: <blank>)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/dbnmodel.pbx',
+        help='Filename to load pretrained model (default: models/dbnmodel.pbx)')
+    args = parser.parse_args(args)
 
-def pretrain_log(epoch, layer):
-    if epoch % 100 == 0:
-        print('Pre-training layer {}, epoch {}, cost {}'.format(
-            layer, epoch, trainer.reconstruction_cost(layer)))
+    if args.seed:
+        print('seeding {}'.format(args.seedval))
+        eteq.seed(args.seedval)
+        np.random.seed(args.seedval)
 
-# pre-training (TrainUnsupervisedDBN)
-trainer.pretrain(x, nepochs=pretraining_epochs, logger=pretrain_log)
+    x = np.array([
+        [1,1,1,0,0,0],
+        [1,0,1,0,0,0],
+        [1,1,1,0,0,0],
+        [0,0,1,1,1,0],
+        [0,0,1,1,0,0],
+        [0,0,1,1,1,0],
+        [0,0,1,1,0,1]])
+    y = np.array([
+        [1, 0],
+        [1, 0],
+        [1, 0],
+        [0, 1],
+        [0, 1],
+        [0, 1],
+        [0, 0]])
 
-def finetune_log(epoch):
-    if epoch % 100 == 0:
-        print('Training epoch {}, cost {}'.format(
-            epoch, trainer.training_cost()))
+    # construct DBN
+    model = rcn.SequentialModel("demo")
+    model.add(rcn.RBM(3, 6,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="0"))
+    model.add(rcn.RBM(3, 3,
+        weight_init=rcn.unif_xavier_init(),
+        bias_init=rcn.zero_init(), label="1"))
+    model.add(rcn.Dense(2, 3,
+        weight_init=rcn.zero_init(),
+        bias_init=rcn.zero_init(), label="log_layer"))
+    model.add(rcn.softmax(0))
 
-# fine-tuning (DBNSupervisedFineTuning)
-trainer.finetune(x, y, nepochs=finetune_epochs, logger=finetune_log)
+    untrained = model.clone()
+    try:
+        print('loading ' + args.load)
+        trained = rcn.load_file_seqmodel(args.load, "demo")
+        print('successfully loaded from ' + args.load)
+    except Exception as e:
+        print(e)
+        print('failed to load from "{}"'.format(args.load))
+        trained = model.clone()
 
-# test
-x = np.array([1, 1, 0, 0, 0, 0])
-sess = eteq.Session()
-var = eteq.variable(x)
-out = dbn.connect(var)
-sess.track([out])
-sess.update_target([out])
-# since x is similar to first 3 rows of x, expect results simlar to first 3 rows of y [1, 0]
-print(out.get())
+    trainer = rcn.DBNTrainer(model, x.shape[0],
+        pretrain_lr = 0.1,
+        train_lr = 0.1,
+        cdk = args.cdk)
+
+    def pretrain_log(epoch, layer):
+        if epoch % 100 == 0:
+            print('Pre-training layer {}, epoch {}, cost {}'.format(
+                layer, epoch, trainer.reconstruction_cost(layer)))
+
+    def finetune_log(epoch):
+        if epoch % 100 == 0:
+            print('Training epoch {}, cost {}'.format(
+                epoch, trainer.training_cost()))
+
+    # pre-training (TrainUnsupervisedDBN)
+    trainer.pretrain(x, nepochs=args.pretrain_epochs, logger=pretrain_log)
+
+    # fine-tuning (DBNSupervisedFineTuning)
+    trainer.finetune(x, y, nepochs=args.finetune_epochs, logger=finetune_log)
+
+    # test
+    x = np.array([1, 1, 0, 0, 0, 0])
+    sess = eteq.Session()
+    var = eteq.variable(x)
+    untrained_out = untrained.connect(var)
+    out = model.connect(var)
+    trained_out = trained.connect(var)
+    sess.track([untrained_out, out, trained_out])
+    sess.update_target([untrained_out, out, trained_out])
+    # since x is similar to first 3 rows of x, expect results simlar to first 3 rows of y [1, 0]
+    print('untrained_out: ', untrained_out.get())
+    print('out: ', out.get())
+    print('trained_out: ', trained_out.get())
+
+    try:
+        print('saving')
+        if model.save_file(args.save):
+            print('successfully saved to {}'.format(args.save))
+    except Exception as e:
+        print(e)
+        print('failed to write to "{}"'.format(args.save))
+
+if '__main__' == __name__:
+    main(sys.argv[1:])

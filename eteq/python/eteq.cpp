@@ -244,6 +244,14 @@ PYBIND11_MODULE(eteq, m)
 		eteq::iNode<PybindT>> variable(m, "Variable");
 
 	variable
+		.def(py::init(
+			[](std::vector<py::ssize_t> slist, PybindT scalar, std::string label)
+			{
+				return eteq::make_variable_scalar<PybindT>(scalar, pyead::p2cshape(slist), label);
+			}),
+			py::arg("shape"),
+			py::arg("scalar") = 0,
+			py::arg("label") = "")
 		.def("assign",
 			[](py::object self, py::array data)
 			{

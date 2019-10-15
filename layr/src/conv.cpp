@@ -11,7 +11,7 @@ LayerptrT ConvBuilder::build (void) const
 	{
 		logs::fatal("cannot build conv with null weight");
 	}
-	return std::make_shared<Conv>(weight_, bias_, label_);
+	return std::make_shared<Conv>(weight_, bias_, arg_, label_);
 }
 
 }

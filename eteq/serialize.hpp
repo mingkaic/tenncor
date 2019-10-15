@@ -91,9 +91,21 @@ struct EADSaver final : public pbm::iSaver
 		{
 			return std::vector<double>();
 		}
-		teq::CoordT coord;
-		mapper->forward(coord.begin(), coord.begin());
-		return std::vector<double>(coord.begin(), coord.end());
+		std::vector<double> out;
+		mapper->access(
+			[&out](const teq::MatrixT& mat)
+			{
+				for (teq::RankT i = 0; i < teq::mat_dim &&
+					false == std::isnan(mat[i][0]); ++i)
+				{
+					for (teq::RankT j = 0; j < teq::mat_dim &&
+						false == std::isnan(mat[i][j]); ++j)
+					{
+						out.push_back(mat[i][j]);
+					}
+				}
+			});
+		return out;
 	}
 };
 
@@ -106,7 +118,7 @@ ArgsT<realtype> eargs;eargs.reserve(args.size());\
 std::transform(args.begin(), args.end(), std::back_inserter(eargs),\
 [](teq::FuncArg arg){\
 	return FuncArg<realtype>(\
-		NodeConverters<realtype>::to_node(arg.get_tensor()),\
+		to_node<realtype>(arg.get_tensor()),\
 		arg.get_shaper(),\
 		std::static_pointer_cast<CoordMap>(arg.get_coorder()));\
 });\
@@ -178,7 +190,7 @@ struct EADLoader final : public pbm::iLoader
 			logs::fatal("cannot deserialize non-matrix shape map");
 		}
 		return std::make_shared<teq::CoordMap>(
-			[&](teq::MatrixT fwd)
+			[&](teq::MatrixT& fwd)
 			{
 				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 				{
@@ -198,15 +210,21 @@ struct EADLoader final : public pbm::iLoader
 		{
 			return nullptr;
 		}
-		if (teq::rank_cap + 1 < coord.size())
-		{
-			logs::fatal("cannot deserialize non-vector coordinate map");
-		}
 		bool is_bijective = false == estd::has(non_bijectives, egen::get_op(opname));
-		teq::CoordT indices;
 		auto cit = coord.begin();
-		std::copy(cit, cit + teq::rank_cap, indices.begin());
-		return std::make_shared<CoordMap>(indices, is_bijective);
+		auto cet = coord.end();
+		return std::make_shared<CoordMap>(
+			[&](teq::MatrixT& args)
+			{
+				for (teq::RankT i = 0; i < teq::mat_dim && cit != cet; ++i)
+				{
+					for (teq::RankT j = 0; j < teq::mat_dim && cit != cet; ++j)
+					{
+						args[i][j] = *cit;
+						++cit;
+					}
+				}
+			}, is_bijective);
 	}
 };
 
