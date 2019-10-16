@@ -95,3 +95,10 @@ py_binary(
     deps = [":rocnnet_py"],
     data = ["//:models", "//cfg:optimizations"],
 )
+
+py_binary(
+    name = "rnn_demo",
+    srcs = ["demo/rnn_demo.py"],
+    deps = [":rocnnet_py", "//dbg:stream_dbg_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)

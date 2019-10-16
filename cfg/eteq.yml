@@ -1194,7 +1194,7 @@ api:
           name: x
         out:
           type: eteq::NodeptrT<T>
-          val: return ::tenncor::pow(x,eteq::make_constant_scalar<T>(0,x->shape()));
+          val: return ::tenncor::add(::tenncor::mul((T)-2,::tenncor::lt(x,(T)0)),(T)1);
     tenncor::random:
       - template: typename T
         name: rand_unif

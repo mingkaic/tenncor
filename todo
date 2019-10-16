@@ -6,9 +6,10 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === usage ===
-P2 - implement recurrent nn
-P2 - implement dropout layer
-P2 - implement attention mechanisms
+   - implement fully recurrent
+P2 - implement GRU
+P2 - implement LSTM
+P2 - implement attention transformer
    - demo A3C, attention encoder+decoder
    - implement models concerning visual and audio processing, and semantic data processing
    - separate supervised and unsupervised trainers (since they have different statefulness)

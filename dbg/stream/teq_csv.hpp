@@ -83,6 +83,20 @@ struct CSVEquation final : public teq::iTraveler
 		{
 			return;
 		}
+		std::string abbrev;
+		if (estd::get(abbrev, abbreviate_, func))
+		{
+			if (showshape_)
+			{
+				abbrev += func->shape().to_string();
+			}
+			nodes_.emplace(func, Node{
+				abbrev,
+				VARIABLE,
+				nodes_.size(),
+			});
+			return;
+		}
 		std::string funcstr;
 		auto it = labels_.find(func);
 		if (labels_.end() != it)
@@ -166,6 +180,8 @@ struct CSVEquation final : public teq::iTraveler
 
 	/// Print every tensor's shape if true, otherwise don't
 	bool showshape_ = false;
+
+	std::unordered_map<teq::iTensor*,std::string> abbreviate_;
 
 	/// For every label associated with a tensor, show LABEL=value in the tree
 	LabelsMapT labels_;
