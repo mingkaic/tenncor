@@ -117,7 +117,7 @@ pybind_library(
 pybind_library(
     name = "eteq_py",
     cc_srcs = ["//eteq:python/eteq.cpp"],
-    cc_deps = ["//eteq:eteq"],
+    cc_deps = ["//eteq:eteq", "//pyutils:pyutils"],
     py_deps = ["//eteq:tenncor_py"],
     visibility = ["//visibility:public"],
 )

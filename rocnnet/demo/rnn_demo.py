@@ -1,18 +1,15 @@
-# source: http://peterroelants.github.io/posts/rnn-implementation-part01/
-# Imports
+# source: https://peterroelants.github.io/posts/rnn-implementation-part01/
+# source: https://peterroelants.github.io/posts/rnn-implementation-part02/
 import sys
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
-import dbg.stream_dbg as dbg
-
 import numpy as np  # Matrix and vector computation package
 
 # Set the seed for reproducability
 np.random.seed(seed=1)
-#
 
 # equivalent to [xweight, sweight] @ concat([[inputs...], [states...]])
 def connect(xweight, sweight, xs, activation = None):
@@ -27,7 +24,6 @@ def connect(xweight, sweight, xs, activation = None):
         states.append(step)
     return states
 
-
 np.random.seed(seed=1)
 
 nb_of_samples = 20
@@ -35,7 +31,7 @@ sequence_len = 10
 # Create the sequences
 X = np.zeros((nb_of_samples, sequence_len))
 for row_idx in range(nb_of_samples):
-    X[row_idx,:] = np.around(np.random.rand(sequence_len)).astype(int)
+    X[row_idx,:] = np.around(np.random.rand(sequence_len)).astype(np.float)
 # Create the targets for each sequence
 t = np.sum(X, axis=1)
 
@@ -50,13 +46,14 @@ W_delta = [0.001, 0.001]  # Update values (Delta) for W
 
 xweight = eteq.Variable([1], label='xweight', scalar=W[0])
 sweight = eteq.Variable([1], label='sweight', scalar=W[1])
+xwmomentum = eteq.Variable([1], label='xwmomentum', scalar=W_delta[0])
+swmomentum = eteq.Variable([1], label='swmomentum', scalar=W_delta[1])
 xs = [eteq.Variable([nb_of_samples], label='x_{}'.format(i)) for i in range(sequence_len)]
 expectFinal = eteq.Variable([nb_of_samples], label='expect')
 
 for i, x in enumerate(xs):
-    x.assign(X[:,i])
+    x.assign(np.array([X[:,i]]))
 expectFinal.assign(t)
-
 
 states = connect(xweight, sweight, xs)
 lossed = tc.reduce_mean(tc.pow(states[-1] - expectFinal, 2))
@@ -69,51 +66,44 @@ prev_xsign = eteq.Variable([1], label='xsign')
 prev_ssign = eteq.Variable([1], label='ssign')
 xsign = tc.sign(grad_xweight)
 ssign = tc.sign(grad_sweight)
-next_xweight = xweight - W_delta[0] * xsign * \
+next_xwmomentum = xwmomentum * \
     tc.if_then_else(xsign == prev_xsign,
     eteq.scalar_constant(eta_p, []),
     eteq.scalar_constant(eta_n, []))
-next_sweight = sweight - W_delta[1] * ssign * \
+next_swmomentum = swmomentum * \
     tc.if_then_else(ssign == prev_ssign,
     eteq.scalar_constant(eta_p, []),
     eteq.scalar_constant(eta_n, []))
+next_xweight = xweight - next_xwmomentum * xsign
+next_sweight = sweight - next_swmomentum * ssign
 
 def train(sess):
     sess.update_target([next_xweight, next_sweight])
-    print(grad_xweight.get())
-    print(xsign.get())
-    print(next_xweight.get())
-    print(grad_sweight.get())
-    print(ssign.get())
-    print(next_sweight.get())
     xweight.assign(next_xweight.get())
     sweight.assign(next_sweight.get())
+    xwmomentum.assign(next_xwmomentum.get())
+    swmomentum.assign(next_swmomentum.get())
     prev_xsign.assign(xsign.get())
     prev_ssign.assign(ssign.get())
-    raise Exception('ok')
 
 sess = eteq.Session()
 sess.track([next_xweight, next_sweight])
 sess.optimize("cfg/optimizations.rules")
 
-abbrevs = dict()
-for i, state in enumerate(states):
-    abbrevs[state.as_tens()] = 'state_{}'.format(i)
-dbg.multigraph_to_csvfile(
-    [grad_xweight.as_tens(), grad_sweight.as_tens()],
-    '/tmp/rnn_graph.csv', abbrevs=abbrevs)
-
 for i in range(500):
     train(sess)
 
 
-xin = np.asmatrix([[0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1]])
-test_input = eteq.Variable([12], label='x')
-test_output = connect(xweight, sweight, [test_input])[0]
-test_input.assign(xin)
+xin = np.array([0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1])
+test_inputs = [eteq.Variable([1], label='x_{}'.format(i)) for i in range(len(xin))]
+for i, test_input in enumerate(test_inputs):
+    test_input.assign(np.array([xin[i]]))
+test_output = connect(xweight, sweight, test_inputs)[-1]
 sess.track([test_output])
 sess.update_target([test_output])
 
 sum_test_input = xin.sum()
+print(('Final weights are: wx = {},  '+\
+    'wRec = {}').format(xweight.get(), sweight.get()))
 print('Target output: {} vs Model output: {}'.format(
     sum_test_input, test_output.get()))

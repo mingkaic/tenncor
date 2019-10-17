@@ -157,6 +157,10 @@ template <typename T>
 FuncArg<T> extend_map (NodeptrT<T> node,
 	teq::RankT rank, std::vector<teq::DimT> ext)
 {
+	if (0 == ext.size())
+	{
+		logs::fatalf("cannot extend with empty vector");
+	}
 	return FuncArg<T>(node, teq::extend(rank, ext), extend(rank, ext));
 }
 

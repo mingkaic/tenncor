@@ -19,6 +19,7 @@ P2 - improve convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
 
 === feature ===
+   - use https://github.com/pybind/pybind11_bazel
 P2 - attach onnx support to pbm (https://github.com/onnx/onnx)
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)

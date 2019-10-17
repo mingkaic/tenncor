@@ -665,7 +665,15 @@ api:
           name: xlist
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"EXTEND",::egen::EXTEND},{eteq::extend_map(arg,offset,xlist)});
+          val: |
+              //
+                  if (xlist.empty()){
+                      logs::warn("extending with empty vector ... will do nothing");
+                      return arg; // identity
+                  }
+                  return eteq::make_functor<T>(teq::Opcode{"EXTEND",::egen::EXTEND},{
+                      eteq::extend_map(arg,offset,xlist)
+                  });
       - template: typename T
         name: reshape
         args:

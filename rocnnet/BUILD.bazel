@@ -14,7 +14,7 @@ filegroup(
 pybind_library(
     name = "rocnnet_py",
     cc_srcs = glob(["python/*.cpp"]),
-    cc_deps = ["//rocnnet/trainer:trainer"],
+    cc_deps = ["//rocnnet/trainer:trainer", "//pyutils:pyutils"],
     py_deps = ["//eteq:eteq_py"],
     visibility = ["//visibility:public"],
 )

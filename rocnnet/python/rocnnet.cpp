@@ -6,6 +6,8 @@
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
 
+#include "pyutils/convert.hpp"
+
 #include "eteq/generated/pyapi.hpp"
 
 #include "layr/init.hpp"
@@ -25,100 +27,6 @@ namespace py = pybind11;
 
 namespace pyrocnnet
 {
-
-// todo: move these utility functions somewhere common
-std::vector<teq::DimT> c2pshape (const teq::Shape& cshape)
-{
-	auto it = cshape.begin();
-	auto et = cshape.end();
-	while (it != et && *(et-1) == 1)
-	{
-		--et;
-	}
-	std::vector<teq::DimT> fwd(it, et);
-	return std::vector<teq::DimT>(fwd.rbegin(), fwd.rend());
-}
-
-teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
-{
-	return teq::Shape(std::vector<teq::DimT>(
-		pyshape.rbegin(), pyshape.rend()));
-}
-
-template <typename T>
-py::array shapedarr2arr (const eteq::ShapedArr<T>& sarr)
-{
-	auto pshape = c2pshape(sarr.shape_);
-	return py::array(
-		py::array::ShapeContainer(pshape.begin(), pshape.end()),
-		sarr.data_.data());
-}
-
-template <typename T>
-void arr2shapedarr (eteq::ShapedArr<T>& out, py::array& data)
-{
-	py::buffer_info info = data.request();
-	out.shape_ = p2cshape(info.shape);
-	size_t n = out.shape_.n_elems();
-	auto dtype = data.dtype();
-	char kind = dtype.kind();
-	py::ssize_t tbytes = dtype.itemsize();
-	switch (kind)
-	{
-		case 'f':
-			switch (tbytes)
-			{
-				case 4: // float32
-				{
-					float* dptr = static_cast<float*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-				break;
-				case 8: // float64
-				{
-					double* dptr = static_cast<double*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				default:
-					logs::fatalf("unsupported float type with %d bytes", tbytes);
-			}
-			break;
-		case 'i':
-			switch (tbytes)
-			{
-				case 1: // int8
-				{
-					int8_t* dptr = static_cast<int8_t*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				case 2: // int16
-				{
-					int16_t* dptr = static_cast<int16_t*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				case 4: // int32
-				{
-					int32_t* dptr = static_cast<int32_t*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				case 8: // int64
-				{
-					int64_t* dptr = static_cast<int64_t*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				default:
-					logs::fatalf("unsupported integer type with %d bytes", tbytes);
-			}
-			break;
-		default:
-			logs::fatalf("unknown dtype %c", kind);
-	}
-}
 
 layr::ApproxF get_sgd (PybindT learning_rate)
 {
@@ -172,7 +80,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def(py::init(
 			[](std::vector<py::ssize_t> dims)
 			{
-				return pyrocnnet::p2cshape(dims);
+				return pyutils::p2cshape(dims);
 			}))
 		.def("__getitem__",
 			[](teq::Shape& shape, size_t idx) { return shape.at(idx); },
@@ -183,13 +91,13 @@ PYBIND11_MODULE(rocnnet, m)
 			[](py::array ar)
 			{
 				eteq::ShapedArr<PybindT> a;
-				pyrocnnet::arr2shapedarr(a, ar);
+				pyutils::arr2shapedarr(a, ar);
 				return a;
 			}))
 		.def("as_numpy",
 			[](py::object self) -> py::array
 			{
-				return pyrocnnet::shapedarr2arr<PybindT>(
+				return pyutils::shapedarr2arr<PybindT>(
 					*self.cast<eteq::ShapedArr<PybindT>*>());
 			});
 
@@ -351,7 +259,7 @@ PYBIND11_MODULE(rocnnet, m)
 			[](py::object self, py::array input)
 			{
 				eteq::ShapedArr<PybindT> a;
-				pyrocnnet::arr2shapedarr(a, input);
+				pyutils::arr2shapedarr(a, input);
 				return self.cast<trainer::DQNTrainer*>()->action(a);
 			},
 			"get next action")
@@ -384,7 +292,7 @@ PYBIND11_MODULE(rocnnet, m)
 			{
 				auto trainer = self.cast<trainer::DBNTrainer*>();
 				eteq::ShapedArr<PybindT> xa;
-				pyrocnnet::arr2shapedarr(xa, x);
+				pyutils::arr2shapedarr(xa, x);
 				return trainer->pretrain(xa, nepochs, logger);
 			},
 			py::arg("x"),
@@ -399,8 +307,8 @@ PYBIND11_MODULE(rocnnet, m)
 				teq::Shape shape;
 				eteq::ShapedArr<PybindT> xa;
 				eteq::ShapedArr<PybindT> ya;
-				pyrocnnet::arr2shapedarr(xa, x);
-				pyrocnnet::arr2shapedarr(ya, y);
+				pyutils::arr2shapedarr(xa, x);
+				pyutils::arr2shapedarr(ya, y);
 				return trainer->finetune(xa, ya, nepochs, logger);
 			},
 			py::arg("x"),
@@ -425,7 +333,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("variable_from_init",
 			[](layr::InitF<PybindT> init, std::vector<py::ssize_t> slist, std::string label)
 			{
-				return init(pyrocnnet::p2cshape(slist), label);
+				return init(pyutils::p2cshape(slist), label);
 			},
 			"Return labelled variable containing data created from initializer",
 			py::arg("init"), py::arg("slist"), py::arg("label") = "")

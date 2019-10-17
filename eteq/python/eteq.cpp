@@ -2,7 +2,7 @@
 #include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 
-#include "teq/teq.hpp"
+#include "pyutils/convert.hpp"
 
 #include "eteq/generated/api.hpp"
 #include "eteq/generated/pyapi.hpp"
@@ -19,99 +19,13 @@ namespace py = pybind11;
 namespace pyead
 {
 
-// todo: move these to a common file
-teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
-{
-	return teq::Shape(std::vector<teq::DimT>(
-		pyshape.rbegin(), pyshape.rend()));
-}
-
-std::vector<teq::DimT> c2pshape (const teq::Shape& cshape)
-{
-	auto it = cshape.begin();
-	auto et = cshape.end();
-	while (it != et && *(et-1) == 1)
-	{
-		--et;
-	}
-	std::vector<teq::DimT> fwd(it, et);
-	return std::vector<teq::DimT>(fwd.rbegin(), fwd.rend());
-}
-
 template <typename T>
 py::array typedata_to_array (eteq::iNode<PybindT>* tnode, py::dtype dtype)
 {
-	auto pshape = c2pshape(tnode->shape());
+	auto pshape = pyutils::c2pshape(tnode->shape());
 	return py::array(dtype,
 		py::array::ShapeContainer(pshape.begin(), pshape.end()),
 		tnode->data());
-}
-
-std::vector<PybindT> arr2vec (teq::Shape& outshape, py::array data)
-{
-	py::buffer_info info = data.request();
-	outshape = p2cshape(info.shape);
-	size_t n = outshape.n_elems();
-	auto dtype = data.dtype();
-	char kind = dtype.kind();
-	py::ssize_t tbytes = dtype.itemsize();
-	std::vector<PybindT> vec;
-	switch (kind)
-	{
-		case 'f':
-			switch (tbytes)
-			{
-				case 4: // float32
-				{
-					float* dptr = static_cast<float*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
-				}
-				break;
-				case 8: // float64
-				{
-					double* dptr = static_cast<double*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
-				}
-					break;
-				default:
-					logs::fatalf("unsupported float type with %d bytes", tbytes);
-			}
-			break;
-		case 'i':
-			switch (tbytes)
-			{
-				case 1: // int8
-				{
-					int8_t* dptr = static_cast<int8_t*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
-				}
-					break;
-				case 2: // int16
-				{
-					int16_t* dptr = static_cast<int16_t*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
-				}
-					break;
-				case 4: // int32
-				{
-					int32_t* dptr = static_cast<int32_t*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
-				}
-					break;
-				case 8: // int64
-				{
-					int64_t* dptr = static_cast<int64_t*>(info.ptr);
-					vec = std::vector<PybindT>(dptr, dptr + n);
-				}
-					break;
-				default:
-					logs::fatalf("unsupported integer type with %d bytes", tbytes);
-			}
-			break;
-		default:
-			logs::fatalf("unknown dtype %c", kind);
-	}
-	return vec;
 }
 
 }
@@ -137,7 +51,7 @@ PYBIND11_MODULE(eteq, m)
 			[](py::object self)
 			{
 				teq::Shape shape = self.cast<eteq::iNode<PybindT>*>()->shape();
-				auto pshape = pyead::c2pshape(shape);
+				auto pshape = pyutils::c2pshape(shape);
 				std::vector<int> ipshape(pshape.begin(), pshape.end());
 				return py::array(ipshape.size(), ipshape.data());
 			},
@@ -247,7 +161,7 @@ PYBIND11_MODULE(eteq, m)
 		.def(py::init(
 			[](std::vector<py::ssize_t> slist, PybindT scalar, std::string label)
 			{
-				return eteq::make_variable_scalar<PybindT>(scalar, pyead::p2cshape(slist), label);
+				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
 			}),
 			py::arg("shape"),
 			py::arg("scalar") = 0,
@@ -257,7 +171,7 @@ PYBIND11_MODULE(eteq, m)
 			{
 				auto var = self.cast<eteq::VariableNode<PybindT>*>();
 				eteq::ShapedArr<PybindT> arr;
-				arr.data_ = pyead::arr2vec(arr.shape_, data);
+				pyutils::arr2shapedarr(arr, data);
 				var->assign(arr);
 			},
 			"Assign numpy data array to variable");
@@ -269,22 +183,22 @@ PYBIND11_MODULE(eteq, m)
 			[](PybindT scalar, std::vector<py::ssize_t> slist)
 			{
 				return eteq::make_constant_scalar<PybindT>(scalar,
-					pyead::p2cshape(slist));
+					pyutils::p2cshape(slist));
 			},
 			"Return scalar constant node")
 		.def("constant",
 			[](py::array data)
 			{
-				teq::Shape shape;
-				std::vector<PybindT> vec = pyead::arr2vec(shape, data);
-				return eteq::make_constant(vec.data(), shape);
+				eteq::ShapedArr<PybindT> arr;
+				pyutils::arr2shapedarr(arr, data);
+				return eteq::make_constant(arr.data_.data(), arr.shape_);
 			}, "Return constant node with data")
 
 		// variable creation
 		.def("scalar_variable",
 			[](PybindT scalar, std::vector<py::ssize_t> slist, std::string label)
 			{
-				return eteq::make_variable_scalar<PybindT>(scalar, pyead::p2cshape(slist), label);
+				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
 			},
 			"Return labelled variable containing numpy data array",
 			py::arg("scalar"),
@@ -293,9 +207,9 @@ PYBIND11_MODULE(eteq, m)
 		.def("variable",
 			[](py::array data, std::string label)
 			{
-				teq::Shape shape;
-				std::vector<PybindT> vec = pyead::arr2vec(shape, data);
-				return eteq::make_variable(vec.data(), shape, label);
+				eteq::ShapedArr<PybindT> arr;
+				pyutils::arr2shapedarr(arr, data);
+				return eteq::make_variable(arr.data_.data(), arr.shape_, label);
 			},
 			"Return labelled variable containing numpy data array",
 			py::arg("data"),
