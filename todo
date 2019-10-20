@@ -29,6 +29,7 @@ P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === transparency/code readability ===
+   - remove sigmoid_grad from non-compound operations
 P2 - unify pybind11 utility functions
 P2 - provide graph-setup time summary when failing to match shapes
 P4 - add even more debugging tools
