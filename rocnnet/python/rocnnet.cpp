@@ -158,7 +158,7 @@ PYBIND11_MODULE(rocnnet, m)
 		},
 		py::arg("weight"),
 		py::arg("bias") = nullptr,
-		py::arg("label"));
+		py::arg("label") = "");
 	dense
 		.def(py::init<teq::DimT,teq::DimT,
 			layr::InitF<PybindT>,
@@ -168,7 +168,7 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("indim"),
 			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
 			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("label"))
+			py::arg("label") = "")
 		.def("clone", &layr::Dense::clone, py::arg("prefix") = "");
 
 	// rbm
@@ -184,7 +184,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("hidden"),
 		py::arg("visible") = nullptr,
 		py::arg("activation") = nullptr,
-		py::arg("label"));
+		py::arg("label") = "");
 	rbm
 		.def(py::init<teq::DimT,teq::DimT,
 			layr::UnaryptrT,
@@ -196,7 +196,7 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("activation") = layr::sigmoid(),
 			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
 			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("label"))
+			py::arg("label") = "")
 		.def("clone", &layr::RBM::clone, py::arg("prefix") = "")
 		.def("backward_connect", &layr::RBM::backward_connect);
 

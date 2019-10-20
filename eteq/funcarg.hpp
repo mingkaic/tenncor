@@ -159,7 +159,7 @@ FuncArg<T> extend_map (NodeptrT<T> node,
 {
 	if (0 == ext.size())
 	{
-		logs::fatalf("cannot extend with empty vector");
+		logs::fatal("cannot extend with empty vector");
 	}
 	return FuncArg<T>(node, teq::extend(rank, ext), extend(rank, ext));
 }
@@ -412,6 +412,42 @@ ArgsT<T> convolve_map (NodeptrT<T> image, NodeptrT<T> kernel,
 		FuncArg<T>(image, input_shaper, nullptr),
 		FuncArg<T>(kernel, kernel_shaper,
 			std::make_shared<CoordMap>(kernel_dims)),
+	};
+}
+
+template <typename T>
+ArgsT<T> concat_map (NodeptrT<T> left, NodeptrT<T> right, teq::RankT axis)
+{
+	teq::Shape leftshape = left->shape();
+	teq::Shape rightshape = right->shape();
+	teq::CoordptrT left_shaper(new teq::CoordMap(
+		[axis, rightshape](teq::MatrixT& fwd)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				fwd[i][i] = 1;
+			}
+			fwd[teq::rank_cap][axis] = rightshape.at(axis);
+		}
+	));
+	teq::CoordptrT right_shaper(new teq::CoordMap(
+		[axis, leftshape](teq::MatrixT& fwd)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				fwd[i][i] = 1;
+			}
+			fwd[teq::rank_cap][axis] = leftshape.at(axis);
+		}
+	));
+
+	return {
+		FuncArg<T>(left, left_shaper, std::make_shared<CoordMap>(
+			[axis](teq::MatrixT& args)
+			{
+				args[0][0] = axis;
+			})),
+		FuncArg<T>(right, right_shaper, nullptr),
 	};
 }
 

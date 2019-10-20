@@ -346,6 +346,28 @@ EigenptrT<T> reverse (teq::Shape& outshape, const OpArg<T>& in)
 		}, make_tensmap(in.data_, in.shape_));
 }
 
+template <typename T>
+EigenptrT<T> concat (teq::Shape& outshape, const OpArg<T>& left, const OpArg<T>& right)
+{
+	assert(nullptr != left.coorder_);
+	teq::RankT axis;
+	left.coorder_->access(
+		[&](const teq::MatrixT& args)
+		{
+			axis = args[0][0];
+		});
+	return make_eigentensor<T,
+		Eigen::TensorConcatenationOp<const teq::RankT,TensMapT<T>,TensMapT<T>>,
+		std::vector<TensMapT<T>>>(
+		shape_convert(outshape),
+		[axis](std::vector<TensMapT<T>>& args)
+		{
+			return args[0].concatenate(args[1], axis);
+		}, {
+			make_tensmap(left.data_, left.shape_),
+			make_tensmap(right.data_, right.shape_)});
+}
+
 /// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
 template <typename T>

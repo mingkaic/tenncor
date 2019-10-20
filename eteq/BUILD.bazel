@@ -49,11 +49,19 @@ config_setting(
     },
 )
 
+config_setting(
+    name = "full_build",
+    values = {
+        "define": "ETEQ_CFG=FULL",
+    },
+)
+
 genrule(
     name = "generated_ead",
     srcs = select({
-        "//conditions:default": ["//cfg:eteq"],
-        ":fast_build": ["//cfg:eteq_min"]
+        "//conditions:default": ["//cfg:eteq_min"],
+        ":fast_build": ["//cfg:eteq_min"],
+        ":full_build": ["//cfg:eteq"]
     }),
     outs = [
         "generated/api.hpp",
@@ -70,12 +78,17 @@ genrule(
         "//conditions:default": "$(location //eteq:egen) " +
         "--out $(@D)/generated " +
         "--strip_prefix=$$(dirname $(@D)) " +
-        "--cfgs $(locations //cfg:eteq)",
+        "--cfgs $(locations //cfg:eteq_min)",
 
         ":fast_build": "$(location //eteq:egen) " +
         "--out $(@D)/generated " +
         "--strip_prefix=$$(dirname $(@D)) " +
         "--cfgs $(locations //cfg:eteq_min)",
+
+        ":full_build": "$(location //eteq:egen) " +
+        "--out $(@D)/generated " +
+        "--strip_prefix=$$(dirname $(@D)) " +
+        "--cfgs $(locations //cfg:eteq)",
     })
 )
 
