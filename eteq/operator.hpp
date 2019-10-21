@@ -59,9 +59,10 @@ inline std::array<teq::RankT,N> dim_copy (std::vector<teq::RankT> d)
 }
 
 #define _ETEQ_INTERNAL_V2A_CASE(N, PROCESS, RED)\
-case N: return make_eigentensor<T,ReduceOutT<RED,N,T>,TensMapT<T>>(\
-shape_convert(outshape), [vdims](TensMapT<T>& in) {\
-return in.PROCESS(::eteq::internal::dim_copy<N>(vdims)); },\
+case N: return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<RED,N,T>>,TensMapT<T>>(\
+outdims, [vdims, &outdims](TensMapT<T>& in) {\
+return in.PROCESS(::eteq::internal::dim_copy<N>(vdims)).reshape(outdims); },\
 make_tensmap(in.data_, in.shape_));
 
 #define _ETEQ_INTERNAL_V2A(PROCESS, RED) {\
@@ -73,6 +74,7 @@ make_tensmap(in.data_, in.shape_));
 			args[0][i] < teq::rank_cap; ++i)\
 		{ vdims.push_back(args[0][i]); }\
 	});\
+	DimensionsT outdims = shape_convert(outshape);\
 	switch (vdims.size()) {\
 		_ETEQ_INTERNAL_V2A_CASE(0, PROCESS, RED)\
 		_ETEQ_INTERNAL_V2A_CASE(1, PROCESS, RED)\
@@ -83,9 +85,10 @@ make_tensmap(in.data_, in.shape_));
 		_ETEQ_INTERNAL_V2A_CASE(6, PROCESS, RED)\
 		_ETEQ_INTERNAL_V2A_CASE(7, PROCESS, RED)\
 		default: break;\
-	} return make_eigentensor<T,ReduceOutT<RED,8,T>,TensMapT<T>>(\
-		shape_convert(outshape), [vdims](TensMapT<T>& in) {\
-			return in.PROCESS(::eteq::internal::dim_copy<8>(vdims));\
+	} return make_eigentensor<T,Eigen::TensorReshapingOp<\
+		const DimensionsT,const ReduceOutT<RED,8,T>>,TensMapT<T>>(\
+		outdims, [vdims, &outdims](TensMapT<T>& in) {\
+			return in.PROCESS(::eteq::internal::dim_copy<8>(vdims)).reshape(outdims);\
 		}, make_tensmap(in.data_, in.shape_));\
 }
 
@@ -122,32 +125,37 @@ EigenptrT<T> argmax (teq::Shape& outshape, const OpArg<T>& in)
 		{
 			return_dim = args[0][0];
 		});
+	DimensionsT outdims = shape_convert(outshape);
 	if (return_dim >= teq::rank_cap)
 	{
-		return make_eigentensor<T,Eigen::TensorConversionOp<T,
-			const Eigen::TensorTupleReducerOp<
-				Eigen::internal::ArgMaxTupleReducer<
-					Eigen::Tuple<Eigen::Index,T>>,
-				const Eigen::array<Eigen::Index,teq::rank_cap>,
-				const TensMapT<T>>>,
+		return make_eigentensor<T,Eigen::TensorReshapingOp<
+			const DimensionsT,
+			const Eigen::TensorConversionOp<T,
+				const Eigen::TensorTupleReducerOp<
+					Eigen::internal::ArgMaxTupleReducer<
+						Eigen::Tuple<Eigen::Index,T>>,
+					const Eigen::array<Eigen::Index,teq::rank_cap>,
+					const TensMapT<T>>>>,
 			TensMapT<T>>(
-			shape_convert(outshape),
-			[](TensMapT<T>& in)
+			outdims,
+			[&outdims](TensMapT<T>& in)
 			{
-				return in.argmax().template cast<T>();
+				return in.argmax().template cast<T>().reshape(outdims);
 			}, make_tensmap(in.data_, in.shape_));
 	}
-	return make_eigentensor<T,Eigen::TensorConversionOp<T,
+	return make_eigentensor<T,Eigen::TensorReshapingOp<
+		const DimensionsT,
+		const Eigen::TensorConversionOp<T,
 			const Eigen::TensorTupleReducerOp<
 				Eigen::internal::ArgMaxTupleReducer<
 					Eigen::Tuple<Eigen::Index,T>>,
 				const Eigen::array<Eigen::Index,1>,
-				const TensMapT<T>>>,
-			TensMapT<T>>(
-		shape_convert(outshape),
-		[return_dim](TensMapT<T>& in)
+				const TensMapT<T>>>>,
+		TensMapT<T>>(
+		outdims,
+		[return_dim, &outdims](TensMapT<T>& in)
 		{
-			return in.argmax(return_dim).template cast<T>();
+			return in.argmax(return_dim).template cast<T>().reshape(outdims);
 		}, make_tensmap(in.data_, in.shape_));
 }
 
@@ -229,15 +237,17 @@ EigenptrT<T> slice (teq::Shape& outshape, const OpArg<T>& in)
 			std::copy(args[0], args[0] + teq::rank_cap, offsets.begin());
 			std::copy(args[1], args[1] + teq::rank_cap, extents.begin());
 		});
-	return make_eigentensor<T,Eigen::TensorSlicingOp<
-			const teq::ShapeT, const teq::ShapeT,
-			TensMapT<T>
-		>,
+	DimensionsT outdims = shape_convert(outshape);
+	return make_eigentensor<T,Eigen::TensorReshapingOp<
+			const DimensionsT,
+			Eigen::TensorSlicingOp<
+				const teq::ShapeT, const teq::ShapeT,
+				TensMapT<T>>>,
 		TensMapT<T>>(
-		shape_convert(outshape),
-		[&offsets, &extents](TensMapT<T>& in)
+		outdims,
+		[&offsets, &extents, &outdims](TensMapT<T>& in)
 		{
-			return in.slice(offsets, extents);
+			return in.slice(offsets, extents).reshape(outdims);
 		}, make_tensmap(in.data_, in.shape_));
 }
 
@@ -1187,7 +1197,7 @@ EigenptrT<T> select (teq::Shape& outshape,
 		return make_eigenmatrix<T,
 			Eigen::Select<MatMapT<T>,MatMapT<T>,MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape),
-			[](std::vector<MatMapT<T>>& args) -> Eigen::Select<MatMapT<T>,MatMapT<T>,MatMapT<T>>
+			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].select(args[1], args[2]);
 			}, {
@@ -1199,7 +1209,7 @@ EigenptrT<T> select (teq::Shape& outshape,
 		Eigen::TensorSelectOp<const TensMapT<T>,
 			const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape),
-		[](std::vector<TensMapT<T>>& args) -> Eigen::TensorSelectOp<const TensMapT<T>,const TensMapT<T>,const TensMapT<T>>
+		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].select(args[1], args[2]);
 		}, {

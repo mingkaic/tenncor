@@ -104,7 +104,7 @@ struct EigenTensOp final : public iEigen<T>
 	/// Implementation of iEigen<T>
 	void assign (void) override
 	{
-		data_ = tensorbase_.reshape(data_.dimensions());
+		data_ = tensorbase_;
 	}
 
 	/// Implementation of iEigen<T>
