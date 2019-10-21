@@ -177,7 +177,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::SCATTER:
 			case egen::REVERSE:
 			case egen::CONV:
-				out = make_constant_scalar<T>(1, args[0].get_tensor()->shape());
+			case egen::CONCAT:
+				out = make_constant_scalar<T>(1, args[arg_idx].get_tensor()->shape());
 				break;
 			case egen::MUL:
 				out = to_node<T>(args[(size_t)(arg_idx==0)].get_tensor());
@@ -415,6 +416,31 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				}
 				out = to_node<T>(local_der) *
 					tenncor::slice(to_node<T>(supcomp_grad), extents);
+			}
+				break;
+			case egen::CONCAT:
+			{
+				auto& fchild = op->get_children()[0];
+				teq::Shape cshape = op->get_children()[arg_idx].
+					get_tensor()->shape();
+				auto coorder = fchild.get_coorder();
+				assert(nullptr != coorder);
+				teq::RankT axis;
+				coorder->access(
+					[&](const teq::MatrixT& args)
+					{
+						axis = args[0][0];
+					});
+				teq::DimT offset = 0;
+				teq::DimT extent = cshape.at(axis);
+				if (arg_idx)
+				{
+					teq::Shape first_shape = fchild.get_tensor()->shape();
+
+					offset = first_shape.at(axis);
+				}
+				out = to_node<T>(local_der) *
+					tenncor::slice(to_node<T>(supcomp_grad), offset, extent, axis);
 			}
 				break;
 			case egen::STRIDE:

@@ -1,6 +1,6 @@
 # source: https://peterroelants.github.io/posts/rnn-implementation-part02/
 import sys
-import itertools
+import functools
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
@@ -19,8 +19,9 @@ nb_train = 2000  # Number of training samples
 sequence_len = 7  # Length of the binary sequence
 
 def loss(Ys, Ts):
-    Y = tc.concat(Ys)
-    T = tc.concat(Ts)
+    concat = lambda left, right: tc.concat(left, right, 0)
+    Y = functools.reduce(concat, Ys)
+    T = functools.reduce(concat, Ts)
     return -tc.reduce_mean(T * tc.log(Y) + (1-T) * tc.log(1-Y))
 
 # Create a list of minibatch losses to be plotted
