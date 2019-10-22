@@ -19,7 +19,6 @@ P2 - improve convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
 
 === feature ===
-   - use https://github.com/pybind/pybind11_bazel
 P2 - attach onnx support to pbm (https://github.com/onnx/onnx)
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
@@ -29,6 +28,9 @@ P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === transparency/code readability ===
+   - create global context for setting local logger
+   - fix variable assignment in pybind11 code sections to error if py::array is not numpy
+   - use https://github.com/pybind/pybind11_bazel
    - remove sigmoid_grad from non-compound operations
 P2 - unify pybind11 utility functions
 P2 - provide graph-setup time summary when failing to match shapes

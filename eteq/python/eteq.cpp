@@ -16,6 +16,15 @@
 
 namespace py = pybind11;
 
+static const std::unordered_map<std::string,logs::LOG_LEVEL> name2loglevel = {
+	{"FATAL", logs::FATAL},
+	{"ERROR", logs::ERROR},
+	{"WARN", logs::WARN},
+	{"INFO", logs::INFO},
+	{"DEBUG", logs::DEBUG},
+	{"TRACE", logs::TRACE},
+};
+
 namespace pyead
 {
 

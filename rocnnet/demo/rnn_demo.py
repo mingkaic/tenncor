@@ -13,11 +13,6 @@ import matplotlib.pyplot as plt  # Plotting library
 # Set the seed for reproducability
 np.random.seed(seed=1)
 
-# Create dataset
-nb_train = 2000  # Number of training samples
-# Addition of 2 n-bit numbers can result in a n+1 bit number
-sequence_len = 7  # Length of the binary sequence
-
 def loss(Ys, Ts):
     concat = lambda left, right: tc.concat(left, right, 0)
     Y = functools.reduce(concat, Ys)
@@ -27,7 +22,7 @@ def loss(Ys, Ts):
 # Create a list of minibatch losses to be plotted
 def batch_assign(vars, data):
     for var, d in zip(vars, [data[:,i,:] for i in range(data.shape[1])]):
-        var.assign(d)
+        var.assign(np.array(d))
 
 # Show an example input and target
 def printSample(x1, x2, t, y=None):
@@ -75,11 +70,6 @@ def create_dataset(nb_samples, sequence_len):
             reversed([int(b) for b in format_str.format(nb1+nb2)]))
     return X, T
 
-# Create training samples
-X_train, T_train = create_dataset(nb_train, sequence_len)
-print(f'X_train tensor shape: {X_train.shape}')
-print(f'T_train tensor shape: {T_train.shape}')
-
 # Define layer that unfolds the states over time
 class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
     """Unfold the recurrent states."""
@@ -98,13 +88,13 @@ class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
 
     def connect(self, Xs):
         """Iteratively apply forward step to all states."""
+        assert len(Xs) > 0
         # State tensor
-        states = [self.state0]
+        nbStates = self.linear.get_ninput()
+        states = [tc.best_extend(self.state0, [nbStates, Xs[0].shape()[0]])]
         for X in Xs:
             # Update the states iteratively
-            states.append(self.tanh.connect(X + \
-                tc.best_extend(self.linear.connect(states[-1]),
-                    X.shape()[::-1])))
+            states.append(self.tanh.connect(X + self.linear.connect(states[-1])))
         return states
 
     def get_contents(self):
@@ -170,8 +160,8 @@ class RnnTrainer(object):
         self.assignments = ([], [])
         to_track = [self.err]
         for target, source in initAssignments:
-            movingAverage = eteq.Variable(target.shape(), scalar=0)
             momentum = eteq.Variable(target.shape(), scalar=0)
+            movingAverage = eteq.Variable(target.shape(), scalar=0)
 
             # group 1
             momentum_incr = momentum * momentum_term
@@ -181,9 +171,9 @@ class RnnTrainer(object):
 
             # group 2
             nextMovingAverage = lmbd * movingAverage + (1-lmbd) * tc.pow(source, 2)
-            pGradNorm = ((learning_rate * source) / tc.sqrt(nextMovingAverage) + eps)
+            pGradNorm = (learning_rate * source) / tc.sqrt(nextMovingAverage) + eps
             next_momentum = momentum_incr - pGradNorm
-            nextTarget = target + pGradNorm
+            nextTarget = target - pGradNorm
 
             self.assignments[1].append((movingAverage, nextMovingAverage))
             self.assignments[1].append((momentum, next_momentum))
@@ -198,7 +188,19 @@ class RnnTrainer(object):
             sess.update_target(sources)
 
             for target, source in group:
+                # print(source.get())
                 target.assign(source.get())
+            # raise Exception('ok')
+
+# Create dataset
+nb_train = 2000  # Number of training samples
+# Addition of 2 n-bit numbers can result in a n+1 bit number
+sequence_len = 7  # Length of the binary sequence
+
+# Create training samples
+X_train, T_train = create_dataset(nb_train, sequence_len)
+print(f'X_train tensor shape: {X_train.shape}')
+print(f'T_train tensor shape: {T_train.shape}')
 
 # Set hyper-parameters
 lmbd = 0.5  # Rmsprop lambda
@@ -233,7 +235,6 @@ sess.optimize("cfg/optimizations.rules")
 
 sess.update_target([trainer.err])
 ls_of_loss = [trainer.err.get()]
-print(ls_of_loss[0])
 # Iterate over some iterations
 for i in range(5):
     # Iterate over all the minibatches
@@ -259,9 +260,12 @@ plt.show()
 
 # Create test samples
 Xtest, Ttest = create_dataset(nb_test, sequence_len)
+batch_assign(test_Xs, Xtest)
 # Push test data through network
 sess.update_target(Yfs)
-Y = np.array([tc.round(Yf).get() for Yf in Yfs])
+Y = np.zeros([5, 7, 1])
+for i, Yf in enumerate(Yfs):
+    Y[:,i,:] = np.round(Yf.get())
 
 # Print out all test examples
 for i in range(Xtest.shape[0]):

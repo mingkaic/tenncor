@@ -251,34 +251,12 @@ class RnnBinaryAdder(object):
         """Get the binary output of input X."""
         return np.around(self.getOutput(X))
 
-    def getParamGrads(self, X, T):
+    def getGrads(self, X, T):
         """Return the gradients with respect to input X and
         target T as a list. The list has the same order as the
         get_params_iter iterator."""
         recIn, S, Z, Y = self.forward(X)
-        gWout, gBout, gWrec, gBrec, gWin, gBin, gS0 = self.backward(
-            X, Y, recIn, S, T)
-        return [g for g in itertools.chain(
-                np.nditer(gS0),
-                np.nditer(gWin),
-                np.nditer(gBin),
-                np.nditer(gWrec),
-                np.nditer(gBrec),
-                np.nditer(gWout),
-                np.nditer(gBout))]
-
-    def get_params_iter(self):
-        """Return an iterator over the parameters.
-        The iterator has the same order as get_params_grad.
-        The elements returned by the iterator are editable in-place."""
-        return itertools.chain(
-            np.nditer(self.rnnUnfold.S0, op_flags=['readwrite']),
-            np.nditer(self.tensorInput.W, op_flags=['readwrite']),
-            np.nditer(self.tensorInput.b, op_flags=['readwrite']),
-            np.nditer(self.rnnUnfold.W, op_flags=['readwrite']),
-            np.nditer(self.rnnUnfold.b, op_flags=['readwrite']),
-            np.nditer(self.tensorOutput.W, op_flags=['readwrite']),
-            np.nditer(self.tensorOutput.b, op_flags=['readwrite']))
+        return self.backward(X, Y, recIn, S, T)
 
 # Set hyper-parameters
 lmbd = 0.5  # Rmsprop lambda
@@ -290,42 +268,59 @@ mb_size = 100  # Size of the minibatches (number of samples)
 # Create the network
 nb_of_states = 3  # Number of states in the recurrent layer
 RNN = RnnBinaryAdder(2, 1, nb_of_states, sequence_len)
-# Set the initial parameters
-# Number of parameters in the network
-nbParameters =  sum(1 for _ in RNN.get_params_iter())
-# Rmsprop moving average
-maSquare = [0.0 for _ in range(nbParameters)]
-Vs = np.array([0.0 for _ in range(nbParameters)])  # Momentum
+
+vars = [
+    RNN.tensorOutput.W,
+    RNN.tensorOutput.b,
+    RNN.rnnUnfold.W,
+    RNN.rnnUnfold.b,
+    RNN.tensorInput.W,
+    RNN.tensorInput.b,
+    RNN.rnnUnfold.S0,
+]
+momentums = [np.zeros(v.shape) for v in vars]
+movingAvgSqr = [np.zeros(v.shape) for v in vars]
 
 # Create a list of minibatch losses to be plotted
 ls_of_loss = [
-    loss(RNN.getOutput(X_train[0:100,:,:]), T_train[0:100,:,:])]
-print(ls_of_loss[0])
+    loss(RNN.getOutput(X_train[0:mb_size,:,:]), T_train[0:mb_size,:,:])]
 # Iterate over some iterations
 for i in range(5):
     # Iterate over all the minibatches
     for mb in range(nb_train // mb_size):
         X_mb = X_train[mb:mb+mb_size,:,:]  # Input minibatch
         T_mb = T_train[mb:mb+mb_size,:,:]  # Target minibatch
-        V_tmp = momentum_term * Vs
-        # Update each parameters according to previous gradient
-        for pIdx, P in enumerate(RNN.get_params_iter()):
-            P += V_tmp[pIdx]
-        # Get gradients after following old velocity
-        # Get the parameter gradients
-        backprop_grads = RNN.getParamGrads(X_mb, T_mb)
-        # Update each parameter seperately
-        for pIdx, P in enumerate(RNN.get_params_iter()):
-            # Update the Rmsprop moving averages
-            maSquare[pIdx] = lmbd * maSquare[pIdx] + (
-                1-lmbd) * backprop_grads[pIdx]**2
-            # Calculate the Rmsprop normalised gradient
-            pGradNorm = ((
-                learning_rate * backprop_grads[pIdx]) / np.sqrt(
-                maSquare[pIdx]) + eps)
-            # Update the momentum
-            Vs[pIdx] = V_tmp[pIdx] - pGradNorm
-            P -= pGradNorm   # Update the parameter
+
+        momentum_tmp = [v * momentum_term for v in momentums]
+        RNN.tensorOutput.W += momentum_tmp[0]
+        RNN.tensorOutput.b += momentum_tmp[1]
+        RNN.rnnUnfold.W += momentum_tmp[2]
+        RNN.rnnUnfold.b += momentum_tmp[3]
+        RNN.tensorInput.W += momentum_tmp[4]
+        RNN.tensorInput.b += momentum_tmp[5]
+        RNN.rnnUnfold.S0 += momentum_tmp[6]
+
+        grads = RNN.getGrads(X_mb, T_mb)
+        gWout, gBout, gWrec, gBrec, gWin, gBin, gS0 = grads
+        # update moving average
+        for i in range(len(vars)):
+            movingAvgSqr[i] = lmbd * movingAvgSqr[i] + (1-lmbd) * grads[i]**2
+
+        pGradNorms = [(learning_rate * grad) / np.sqrt(mvsqr) + eps
+            for grad, mvsqr in zip(grads, movingAvgSqr)]
+
+        # update momentums
+        for i in range(len(vars)):
+            momentums[i] = momentum_tmp[i] - pGradNorms[i]
+
+        RNN.tensorOutput.W -= pGradNorms[0]
+        RNN.tensorOutput.b -= pGradNorms[1]
+        RNN.rnnUnfold.W -= pGradNorms[2]
+        RNN.rnnUnfold.b -= pGradNorms[3]
+        RNN.tensorInput.W -= pGradNorms[4]
+        RNN.tensorInput.b -= pGradNorms[5]
+        RNN.rnnUnfold.S0 -= pGradNorms[6]
+
         # Add loss to list to plot
         ls_of_loss.append(loss(RNN.getOutput(X_mb), T_mb))
 
@@ -344,7 +339,6 @@ nb_test = 5
 Xtest, Ttest = create_dataset(nb_test, sequence_len)
 # Push test data through network
 Y = RNN.getBinaryOutput(Xtest)
-Yf = RNN.getOutput(Xtest)
 
 # Print out all test examples
 for i in range(Xtest.shape[0]):
