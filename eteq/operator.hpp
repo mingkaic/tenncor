@@ -49,10 +49,10 @@ namespace internal
 {
 
 /// Return array of input vector
-template <size_t N>
-inline std::array<teq::RankT,N> dim_copy (std::vector<teq::RankT> d)
+template <size_t N, typename T=teq::RankT>
+inline std::array<T,N> dim_copy (std::vector<T> d)
 {
-	std::array<teq::RankT,N> out;
+	std::array<T,N> out;
 	auto it = d.begin();
 	std::copy(it, it + N, out.begin());
 	return out;
@@ -1218,20 +1218,113 @@ EigenptrT<T> select (teq::Shape& outshape,
 			make_tensmap(otherwise.data_, otherwise.shape_)});
 }
 
+template <size_t N, typename T>
+using ContractionRetT = Eigen::TensorReshapingOp<
+	const DimensionsT,
+	const Eigen::TensorContractionOp<
+		const std::array<std::pair<teq::RankT,teq::RankT>,N>,
+		const TensMapT<T>,const TensMapT<T>>>;
+
 /// Only applies to 2-d tensors
 /// Apply matrix multiplication of a and b
 template <typename T>
 EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	assert(is_2d(outshape));
-	return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
-		std::vector<MatMapT<T>>>(shape_convert(outshape),
-		[](std::vector<MatMapT<T>>& args)
+	if (is_2d(outshape))
+	{
+		return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
+			std::vector<MatMapT<T>>>(shape_convert(outshape),
+			[](std::vector<MatMapT<T>>& args)
+			{
+				return args[0] * args[1];
+			}, {
+				make_matmap(a.data_, a.shape_),
+				make_matmap(b.data_, b.shape_)});
+	}
+	assert(nullptr != a.coorder_);
+	std::vector<std::pair<teq::RankT,teq::RankT>> dims;
+	a.coorder_->access(
+		[&](const teq::MatrixT& args)
 		{
-			return args[0] * args[1];
+			for (teq::RankT i = 0; i < teq::rank_cap &&
+				args[0][i] < teq::rank_cap; ++i)
+			{
+				dims.push_back({args[0][i], args[1][i]});
+			}
+		});
+	if (dims.empty())
+	{
+		logs::fatal("cannot contract tensors without specified dimensions");
+	}
+	DimensionsT outdims = shape_convert(outshape);
+	switch (dims.size())
+	{
+		case 1:
+			return make_eigentensor<T,ContractionRetT<1,T>,std::vector<TensMapT<T>>>(outdims,
+				[&](std::vector<TensMapT<T>>& args)
+				{
+					return args[0].contract(args[1], internal::dim_copy<1>(dims)).reshape(outdims);
+				}, {
+					make_tensmap(a.data_, a.shape_),
+					make_tensmap(b.data_, b.shape_)});
+		case 2:
+			return make_eigentensor<T,ContractionRetT<2,T>,std::vector<TensMapT<T>>>(outdims,
+				[&](std::vector<TensMapT<T>>& args)
+				{
+					return args[0].contract(args[1], internal::dim_copy<2>(dims)).reshape(outdims);
+				}, {
+					make_tensmap(a.data_, a.shape_),
+					make_tensmap(b.data_, b.shape_)});
+		case 3:
+			return make_eigentensor<T,ContractionRetT<3,T>,std::vector<TensMapT<T>>>(outdims,
+				[&](std::vector<TensMapT<T>>& args)
+				{
+					return args[0].contract(args[1], internal::dim_copy<3>(dims)).reshape(outdims);
+				}, {
+					make_tensmap(a.data_, a.shape_),
+					make_tensmap(b.data_, b.shape_)});
+		case 4:
+			return make_eigentensor<T,ContractionRetT<4,T>,std::vector<TensMapT<T>>>(outdims,
+				[&](std::vector<TensMapT<T>>& args)
+				{
+					return args[0].contract(args[1], internal::dim_copy<4>(dims)).reshape(outdims);
+				}, {
+					make_tensmap(a.data_, a.shape_),
+					make_tensmap(b.data_, b.shape_)});
+		case 5:
+			return make_eigentensor<T,ContractionRetT<5,T>,std::vector<TensMapT<T>>>(outdims,
+				[&](std::vector<TensMapT<T>>& args)
+				{
+					return args[0].contract(args[1], internal::dim_copy<5>(dims)).reshape(outdims);
+				}, {
+					make_tensmap(a.data_, a.shape_),
+					make_tensmap(b.data_, b.shape_)});
+		case 6:
+			return make_eigentensor<T,ContractionRetT<6,T>,std::vector<TensMapT<T>>>(outdims,
+				[&](std::vector<TensMapT<T>>& args)
+				{
+					return args[0].contract(args[1], internal::dim_copy<6>(dims)).reshape(outdims);
+				}, {
+					make_tensmap(a.data_, a.shape_),
+					make_tensmap(b.data_, b.shape_)});
+		case 7:
+			return make_eigentensor<T,ContractionRetT<7,T>,std::vector<TensMapT<T>>>(outdims,
+				[&](std::vector<TensMapT<T>>& args)
+				{
+					return args[0].contract(args[1], internal::dim_copy<7>(dims)).reshape(outdims);
+				}, {
+					make_tensmap(a.data_, a.shape_),
+					make_tensmap(b.data_, b.shape_)});
+		default:
+			break;
+	}
+	return make_eigentensor<T,ContractionRetT<teq::rank_cap,T>,std::vector<TensMapT<T>>>(outdims,
+		[&](std::vector<TensMapT<T>>& args)
+		{
+			return args[0].contract(args[1], internal::dim_copy<teq::rank_cap>(dims)).reshape(outdims);
 		}, {
-			make_matmap(a.data_, a.shape_),
-			make_matmap(b.data_, b.shape_)});
+			make_tensmap(a.data_, a.shape_),
+			make_tensmap(b.data_, b.shape_)});
 }
 
 /// Apply convolution of kernel across input

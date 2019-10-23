@@ -290,8 +290,7 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 				}
 				for (size_t i = n; i < teq::rank_cap; ++i)
 				{
-					args[0][i] = 0;
-					args[1][i] = 0;
+					args[0][i] = args[1][i] = 0;
 				}
 			}));
 }
@@ -448,6 +447,104 @@ ArgsT<T> concat_map (NodeptrT<T> left, NodeptrT<T> right, teq::RankT axis)
 				args[0][0] = axis;
 			})),
 		FuncArg<T>(right, right_shaper, nullptr),
+	};
+}
+
+template <typename T>
+ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
+{
+	teq::Shape ashape = a->get_tensor()->shape();
+	teq::Shape bshape = b->get_tensor()->shape();
+	// check common dimensions
+	std::array<bool,teq::rank_cap> avisit;
+	std::array<bool,teq::rank_cap> bvisit;
+	std::fill(avisit.begin(), avisit.end(), false);
+	std::fill(bvisit.begin(), bvisit.end(), false);
+	for (std::pair<teq::RankT,teq::RankT>& coms : dims)
+	{
+		if (ashape.at(coms.first) != bshape.at(coms.second))
+		{
+			logs::fatalf("invalid shapes %s and %s do not match common dimensions %s",
+				ashape.to_string().c_str(), bshape.to_string().c_str(),
+				fmts::to_string(dims.begin(), dims.end()).c_str());
+		}
+		if (avisit[coms.first] || bvisit[coms.second])
+		{
+			logs::fatalf("contraction dimensions %s must be unique for each side",
+				fmts::to_string(dims.begin(), dims.end()).c_str());
+		}
+		avisit[coms.first] = bvisit[coms.second] = true;
+	}
+	teq::RankT arank = teq::rank_cap;
+	while (arank > 0 && 1 == ashape.at(arank - 1))
+	{
+		--arank;
+	}
+	teq::RankT brank = teq::rank_cap;
+	while (brank > 0 && 1 == bshape.at(brank - 1))
+	{
+		--brank;
+	}
+	std::vector<teq::RankT> outlist;
+	outlist.reserve(teq::rank_cap);
+	for (teq::RankT i = 0; i < brank; ++i)
+	{
+		if (false == bvisit[i])
+		{
+			outlist.push_back(bshape.at(i));
+		}
+	}
+	for (teq::RankT i = 0; i < arank; ++i)
+	{
+		if (false == avisit[i])
+		{
+			outlist.push_back(ashape.at(i));
+		}
+	}
+	if (teq::rank_cap > outlist.size())
+	{
+		outlist.insert(outlist.end(), teq::rank_cap - outlist.size(), 1);
+	}
+
+	teq::CoordptrT left_shaper(new teq::CoordMap(
+		[&](teq::MatrixT& fwd)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				fwd[i][i] = outlist[i] != ashape.at(i) ?
+					(double) outlist[i] / ashape.at(i) : 1.;
+			}
+		}
+	));
+
+	teq::CoordptrT right_shaper(new teq::CoordMap(
+		[&](teq::MatrixT& fwd)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				fwd[i][i] = outlist[i] != bshape.at(i) ?
+					(double) outlist[i] / bshape.at(i) : 1;
+			}
+		}
+	));
+
+	return {
+		eteq::FuncArg<T>(a, left_shaper, std::make_shared<CoordMap>(
+			[&dims](teq::MatrixT& args)
+			{
+				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan
+				teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
+				for (size_t i = 0; i < n; ++i)
+				{
+					args[0][i] = dims[i].first;
+					args[1][i] = dims[i].second;
+				}
+				for (size_t i = n; i < teq::rank_cap; ++i)
+				{
+					args[0][i] = args[1][i] = teq::rank_cap;
+				}
+			})),
+		eteq::FuncArg<T>(b, right_shaper, nullptr),
 	};
 }
 

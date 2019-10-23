@@ -903,10 +903,20 @@ api:
           name: incrs
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"STRIDE",::egen::STRIDE}, {
-                      eteq::stride_map(arg, incrs)});
+          val: return eteq::make_functor<T>(teq::Opcode{"STRIDE",::egen::STRIDE}, {eteq::stride_map(arg, incrs)});
+      - template: typename T
+        name: contract
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: a
+        - dtype: eteq::NodeptrT<T>
+          name: b
+        - dtype: eteq::PairVecT<teq::RankT>
+          name: dims
+          default: eteq::PairVecT<teq::RankT>{{0, 1}}
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"MATMUL",::egen::MATMUL}, eteq::contract_map(a, b, dims));
       - template: typename T
         name: matmul
         args:
@@ -916,48 +926,7 @@ api:
           name: b
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  teq::Shape ashape = a->get_tensor()->shape();
-                  teq::Shape bshape = b->get_tensor()->shape();
-                  teq::DimT ncommon = ashape.at(0);
-                  teq::DimT nrow = ashape.at(1);
-                  teq::DimT ncol = bshape.at(0);
-                  if (ncommon != bshape.at(1))
-                  {
-                      logs::fatalf("invalid matmul shapes %s and %s",
-                          ashape.to_string().c_str(), bshape.to_string().c_str());
-                  }
-
-                  teq::CoordptrT left_shaper(new teq::CoordMap(
-                      [=](teq::MatrixT& fwd)
-                      {
-                          for (teq::RankT i = 3; i < teq::mat_dim; ++i)
-                          {
-                              fwd[i][i] = 1;
-                          }
-                          fwd[2][0] = ncol;
-                          fwd[1][1] = 1;
-                          fwd[0][2] = 1. / ncommon;
-                      }
-                  ));
-
-                  teq::CoordptrT right_shaper(new teq::CoordMap(
-                      [=](teq::MatrixT& fwd)
-                      {
-                          for (teq::RankT i = 3; i < teq::mat_dim; ++i)
-                          {
-                              fwd[i][i] = 1;
-                          }
-                          fwd[0][0] = 1;
-                          fwd[2][1] = nrow;
-                          fwd[1][2] = 1. / ncommon;
-                      }
-                  ));
-                  return eteq::make_functor<T>(teq::Opcode{"MATMUL",::egen::MATMUL}, {
-                      eteq::FuncArg<T>(a, left_shaper, nullptr),
-                      eteq::FuncArg<T>(b, right_shaper, nullptr)
-                  });
+          val: return ::tenncor::contract(a, b);
       - template: typename T
         name: convolution
         args:
