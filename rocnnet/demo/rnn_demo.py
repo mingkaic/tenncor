@@ -13,16 +13,11 @@ import matplotlib.pyplot as plt  # Plotting library
 # Set the seed for reproducability
 np.random.seed(seed=1)
 
-def loss(Ys, Ts):
-    concat = lambda left, right: tc.concat(left, right, 0)
-    Y = functools.reduce(concat, Ys)
-    T = functools.reduce(concat, Ts)
-    return -tc.reduce_mean(T * tc.log(Y) + (1-T) * tc.log(1-Y))
+def cross_entropy_loss(Y, T):
+    return -(T * tc.log(Y) + (1-T) * tc.log(1-Y))
 
-# Create a list of minibatch losses to be plotted
-def batch_assign(vars, data):
-    for var, d in zip(vars, [data[:,i,:] for i in range(data.shape[1])]):
-        var.assign(np.array(d))
+def loss(Y, T):
+    return tc.reduce_mean(cross_entropy_loss(Y, T))
 
 # Show an example input and target
 def printSample(x1, x2, t, y=None):
@@ -70,6 +65,22 @@ def create_dataset(nb_samples, sequence_len):
             reversed([int(b) for b in format_str.format(nb1+nb2)]))
     return X, T
 
+class Dense(object):
+    def __init__(self, weight, bias):
+        self.weight = weight
+        self.bias = bias
+
+    def connect(self, X):
+        out = tc.contract(X, self.weight)
+        out = tc.best_extend(out, out.shape()[::-1])
+        return out
+
+    def get_contents(self):
+        return [self.weight, self.bias]
+
+    def get_ninput(self):
+        return self.weight.shape()[0]
+
 # Define layer that unfolds the states over time
 class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
     """Unfold the recurrent states."""
@@ -82,20 +93,22 @@ class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
             [-0.31242379,  0.53945069,  0.60573297],
             [-0.15088018, -0.591755,   -0.86582108]]), 'weight')
         bias = eteq.variable(np.array([0., 0., 0.]), 'bias')
-        self.linear = rcn.create_dense(weight, bias)
+        self.linear = Dense(weight, bias)
+        # self.linear = rcn.create_dense(weight, bias)
         # self.linear = rcn.Dense(nbStates, nbStates)
         self.tanh = rcn.tanh()
 
-    def connect(self, Xs):
+    def connect(self, X):
         """Iteratively apply forward step to all states."""
-        assert len(Xs) > 0
         # State tensor
         nbStates = self.linear.get_ninput()
-        states = [tc.best_extend(self.state0, [nbStates, Xs[0].shape()[0]])]
-        for X in Xs:
+        states = [tc.best_extend(self.state0, [nbStates, 1, X.shape()[0]])]
+        for i in range(X.shape()[1]):
             # Update the states iteratively
-            states.append(self.tanh.connect(X + self.linear.connect(states[-1])))
-        return states
+            Xslice = tc.slice(X, i, 1, 1)
+            fwd_state = self.linear.connect(states[-1])
+            states.append(self.tanh.connect(Xslice + fwd_state))
+        return functools.reduce(lambda l, r: tc.concat(l, r, 1), states[1:])
 
     def get_contents(self):
         return [self.state0] + self.linear.get_contents() + self.tanh.get_contents()
@@ -108,14 +121,16 @@ class RnnBinaryAdder(object): # !new layer: horizontal model
             [ 0.16865001,  0.82243552,  0.23785496],
             [-0.54408659, -0.44665696,  0.07212971]]), 'weight')
         biasInput = eteq.variable(np.array([0., 0., 0.]), 'bias')
-        self.tensorInput = rcn.create_dense(weightInput, biasInput)
+        # self.tensorInput = rcn.create_dense(weightInput, biasInput)
+        self.tensorInput = Dense(weightInput, biasInput)
 
         weightOutput = eteq.variable(np.array([
             [-0.73815799],
             [-0.55750178],
             [ 0.24198244]]), 'weight')
         biasOutput = eteq.variable(np.array([0.]), 'bias')
-        self.tensorOutput = rcn.create_dense(weightOutput, biasOutput)
+        # self.tensorOutput = rcn.create_dense(weightOutput, biasOutput)
+        self.tensorOutput = Dense(weightOutput, biasOutput)
 
         # self.tensorInput = rcn.Dense(nb_of_states, nb_of_inputs)
         # Recurrent layer
@@ -124,14 +139,15 @@ class RnnBinaryAdder(object): # !new layer: horizontal model
         # self.tensorOutput = rcn.Dense(nb_of_outputs, nb_of_states)
         self.classifier = rcn.sigmoid()  # Classification output
 
-    def connect(self, Xs):
+    def connect(self, X):
+        recIn = self.tensorInput.connect(X)
+
         # Linear input transformation
-        recIn = [self.tensorInput.connect(X) for X in Xs]
+        # recIn = [self.tensorInput.connect(X) for X in Xs]
         # Forward propagate through time and return states
         states = self.rnnUnfold.connect(recIn)
         # Linear output transformation
-        return [self.classifier.connect(self.tensorOutput.connect(state))
-            for state in states[1:]]
+        return self.classifier.connect(self.tensorOutput.connect(states))
 
     def get_contents(self):
         return self.tensorInput.get_contents() +\
@@ -147,7 +163,7 @@ class RnnTrainer(object):
         s0, ufW, ufb, _,\
         oW, ob, _ = tuple(rnn.get_contents())
 
-        initAssignments =  [
+        vargrad =  [
             (s0, eteq.derive(self.err, s0)),
             (iW, eteq.derive(self.err, iW)),
             (ib, eteq.derive(self.err, ib)),
@@ -159,7 +175,7 @@ class RnnTrainer(object):
         # apply rms prop optimization
         self.assignments = ([], [])
         to_track = [self.err]
-        for target, source in initAssignments:
+        for target, grad in vargrad:
             momentum = eteq.Variable(target.shape(), scalar=0)
             movingAverage = eteq.Variable(target.shape(), scalar=0)
 
@@ -170,8 +186,8 @@ class RnnTrainer(object):
             self.assignments[0].append((target, target_incr))
 
             # group 2
-            nextMovingAverage = lmbd * movingAverage + (1-lmbd) * tc.pow(source, 2)
-            pGradNorm = (learning_rate * source) / tc.sqrt(nextMovingAverage) + eps
+            nextMovingAverage = lmbd * movingAverage + (1-lmbd) * tc.pow(grad, 2)
+            pGradNorm = (learning_rate * grad) / tc.sqrt(nextMovingAverage) + eps
             next_momentum = momentum_incr - pGradNorm
             nextTarget = target - pGradNorm
 
@@ -188,9 +204,7 @@ class RnnTrainer(object):
             sess.update_target(sources)
 
             for target, source in group:
-                # print(source.get())
                 target.assign(source.get())
-            # raise Exception('ok')
 
 # Create dataset
 nb_train = 2000  # Number of training samples
@@ -218,18 +232,19 @@ nb_test = 5
 
 sess = eteq.Session()
 
-train_Xs = [eteq.Variable([mb_size, 2]) for _ in range(sequence_len)]
-train_Ys = [eteq.Variable([mb_size, 1]) for _ in range(sequence_len)]
+train_Xs = eteq.Variable([mb_size, sequence_len, 2])
+train_Ys = eteq.Variable([mb_size, sequence_len, 1])
 
-batch_assign(train_Xs, X_train[0:100,:,:])
-batch_assign(train_Ys, T_train[0:100,:,:])
+train_Xs.assign(X_train[0:mb_size,:,:])
+train_Ys.assign(T_train[0:mb_size,:,:])
 
 trainer = RnnTrainer(RNN, sess, train_Xs, train_Ys,
     learning_rate, momentum_term, lmbd)
 
-test_Xs = [eteq.Variable([nb_test, 2]) for _ in range(sequence_len)]
-Yfs = RNN.connect(test_Xs)
-sess.track(Yfs)
+test_Xs = eteq.Variable([nb_test, sequence_len, 2])
+test_Ys = RNN.connect(test_Xs)
+test_Ys = tc.round(test_Ys)
+sess.track([test_Ys])
 
 sess.optimize("cfg/optimizations.rules")
 
@@ -239,8 +254,8 @@ ls_of_loss = [trainer.err.get()]
 for i in range(5):
     # Iterate over all the minibatches
     for mb in range(nb_train // mb_size):
-        batch_assign(train_Xs, X_train[mb:mb+mb_size,:,:])
-        batch_assign(train_Ys, T_train[mb:mb+mb_size,:,:])
+        train_Xs.assign(X_train[mb:mb+mb_size,:,:])
+        train_Ys.assign(T_train[mb:mb+mb_size,:,:])
 
         trainer.train(sess)
 
@@ -260,12 +275,10 @@ plt.show()
 
 # Create test samples
 Xtest, Ttest = create_dataset(nb_test, sequence_len)
-batch_assign(test_Xs, Xtest)
+test_Xs.assign(Xtest)
 # Push test data through network
-sess.update_target(Yfs)
-Y = np.zeros([5, 7, 1])
-for i, Yf in enumerate(Yfs):
-    Y[:,i,:] = np.round(Yf.get())
+sess.update_target([test_Ys])
+Y = test_Ys.get()
 
 # Print out all test examples
 for i in range(Xtest.shape[0]):
