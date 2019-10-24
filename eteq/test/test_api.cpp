@@ -1496,40 +1496,40 @@ TEST(API, Contract)
 
 	eteq::NodeptrT<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
 	eteq::NodeptrT<int32_t> dest2 = tenncor::contract(c, c, {{0, 0}});
-	// eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, c);
-	// session.track({gsame->get_tensor()});
-	// session.update();
-	// teq::Shape gcshape = gsame->shape();
-	// {
-	// 	std::vector<teq::DimT> glist(gcshape.begin(), gcshape.end());
-	// 	ASSERT_ARREQ(sqrlist, glist);
-	// }
+	eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, c);
+	session.track({gsame->get_tensor()});
+	session.update();
+	teq::Shape gcshape = gsame->shape();
+	{
+		std::vector<teq::DimT> glist(gcshape.begin(), gcshape.end());
+		ASSERT_ARREQ(sqrlist, glist);
+	}
 
-	// eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, a);
-	// session.track({gleft->get_tensor()});
-	// session.update();
-	// teq::Shape gashape = gleft->shape();
-	// {
-	// 	std::vector<teq::DimT> glist(gashape.begin(), gashape.end());
-	// 	ASSERT_ARREQ(alist, glist);
-	// 	int32_t* ga = (int32_t*) gleft->data();
-	// 	ASSERT_NE(nullptr, ga);
-	// 	std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
-	// 	ASSERT_ARREQ(expect_ga, ga_data);
-	// }
+	eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, a);
+	session.track({gleft->get_tensor()});
+	session.update();
+	teq::Shape gashape = gleft->shape();
+	{
+		std::vector<teq::DimT> glist(gashape.begin(), gashape.end());
+		ASSERT_ARREQ(alist, glist);
+		int32_t* ga = (int32_t*) gleft->data();
+		ASSERT_NE(nullptr, ga);
+		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
+		ASSERT_ARREQ(expect_ga, ga_data);
+	}
 
-	// eteq::NodeptrT<int32_t> gright = eteq::derive(dest, b);
-	// session.track({gright->get_tensor()});
-	// session.update();
-	// teq::Shape gbshape = gright->shape();
-	// {
-	// 	std::vector<teq::DimT> glist(gbshape.begin(), gbshape.end());
-	// 	ASSERT_ARREQ(blist, glist);
-	// 	int32_t* gb = (int32_t*) gright->data();
-	// 	ASSERT_NE(nullptr, gb);
-	// 	std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
-	// 	ASSERT_ARREQ(expect_gb, gb_data);
-	// }
+	eteq::NodeptrT<int32_t> gright = eteq::derive(dest, b);
+	session.track({gright->get_tensor()});
+	session.update();
+	teq::Shape gbshape = gright->shape();
+	{
+		std::vector<teq::DimT> glist(gbshape.begin(), gbshape.end());
+		ASSERT_ARREQ(blist, glist);
+		int32_t* gb = (int32_t*) gright->data();
+		ASSERT_NE(nullptr, gb);
+		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
+		ASSERT_ARREQ(expect_gb, gb_data);
+	}
 }
 
 

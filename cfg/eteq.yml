@@ -904,7 +904,8 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"STRIDE",::egen::STRIDE}, {eteq::stride_map(arg, incrs)});
-      - template: typename T
+      - description: multiple values across specify dimensions pairs before summing all products (generalization of matrix product), defaults to matrix product
+        template: typename T
         name: contract
         args:
         - dtype: eteq::NodeptrT<T>

@@ -1249,7 +1249,8 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			for (teq::RankT i = 0; i < teq::rank_cap &&
 				args[0][i] < teq::rank_cap; ++i)
 			{
-				dims.push_back({args[0][i], args[1][i]});
+				// eigen contract apparently reverses left-right relationship
+				dims.push_back({args[1][i], args[0][i]});
 			}
 		});
 	if (dims.empty())
@@ -1263,7 +1264,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			return make_eigentensor<T,ContractionRetT<1,T>,std::vector<TensMapT<T>>>(outdims,
 				[&](std::vector<TensMapT<T>>& args)
 				{
-					return args[0].contract(args[1], internal::dim_copy<1>(dims)).reshape(outdims);
+					return args[1].contract(args[0], internal::dim_copy<1>(dims)).reshape(outdims);
 				}, {
 					make_tensmap(a.data_, a.shape_),
 					make_tensmap(b.data_, b.shape_)});
@@ -1271,7 +1272,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			return make_eigentensor<T,ContractionRetT<2,T>,std::vector<TensMapT<T>>>(outdims,
 				[&](std::vector<TensMapT<T>>& args)
 				{
-					return args[0].contract(args[1], internal::dim_copy<2>(dims)).reshape(outdims);
+					return args[1].contract(args[0], internal::dim_copy<2>(dims)).reshape(outdims);
 				}, {
 					make_tensmap(a.data_, a.shape_),
 					make_tensmap(b.data_, b.shape_)});
@@ -1279,7 +1280,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			return make_eigentensor<T,ContractionRetT<3,T>,std::vector<TensMapT<T>>>(outdims,
 				[&](std::vector<TensMapT<T>>& args)
 				{
-					return args[0].contract(args[1], internal::dim_copy<3>(dims)).reshape(outdims);
+					return args[1].contract(args[0], internal::dim_copy<3>(dims)).reshape(outdims);
 				}, {
 					make_tensmap(a.data_, a.shape_),
 					make_tensmap(b.data_, b.shape_)});
@@ -1287,7 +1288,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			return make_eigentensor<T,ContractionRetT<4,T>,std::vector<TensMapT<T>>>(outdims,
 				[&](std::vector<TensMapT<T>>& args)
 				{
-					return args[0].contract(args[1], internal::dim_copy<4>(dims)).reshape(outdims);
+					return args[1].contract(args[0], internal::dim_copy<4>(dims)).reshape(outdims);
 				}, {
 					make_tensmap(a.data_, a.shape_),
 					make_tensmap(b.data_, b.shape_)});
@@ -1295,7 +1296,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			return make_eigentensor<T,ContractionRetT<5,T>,std::vector<TensMapT<T>>>(outdims,
 				[&](std::vector<TensMapT<T>>& args)
 				{
-					return args[0].contract(args[1], internal::dim_copy<5>(dims)).reshape(outdims);
+					return args[1].contract(args[0], internal::dim_copy<5>(dims)).reshape(outdims);
 				}, {
 					make_tensmap(a.data_, a.shape_),
 					make_tensmap(b.data_, b.shape_)});
@@ -1303,7 +1304,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			return make_eigentensor<T,ContractionRetT<6,T>,std::vector<TensMapT<T>>>(outdims,
 				[&](std::vector<TensMapT<T>>& args)
 				{
-					return args[0].contract(args[1], internal::dim_copy<6>(dims)).reshape(outdims);
+					return args[1].contract(args[0], internal::dim_copy<6>(dims)).reshape(outdims);
 				}, {
 					make_tensmap(a.data_, a.shape_),
 					make_tensmap(b.data_, b.shape_)});
@@ -1311,7 +1312,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 			return make_eigentensor<T,ContractionRetT<7,T>,std::vector<TensMapT<T>>>(outdims,
 				[&](std::vector<TensMapT<T>>& args)
 				{
-					return args[0].contract(args[1], internal::dim_copy<7>(dims)).reshape(outdims);
+					return args[1].contract(args[0], internal::dim_copy<7>(dims)).reshape(outdims);
 				}, {
 					make_tensmap(a.data_, a.shape_),
 					make_tensmap(b.data_, b.shape_)});
@@ -1321,7 +1322,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 	return make_eigentensor<T,ContractionRetT<teq::rank_cap,T>,std::vector<TensMapT<T>>>(outdims,
 		[&](std::vector<TensMapT<T>>& args)
 		{
-			return args[0].contract(args[1], internal::dim_copy<teq::rank_cap>(dims)).reshape(outdims);
+			return args[1].contract(args[0], internal::dim_copy<teq::rank_cap>(dims)).reshape(outdims);
 		}, {
 			make_tensmap(a.data_, a.shape_),
 			make_tensmap(b.data_, b.shape_)});

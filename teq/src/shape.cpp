@@ -5,7 +5,7 @@
 namespace teq
 {
 
-NElemT index (Shape shape, CoordT coord)
+NElemT index (const Shape& shape, CoordT coord)
 {
 	for (RankT i = 0; i < rank_cap; i++)
 	{
@@ -28,7 +28,7 @@ NElemT index (Shape shape, CoordT coord)
 	return index + coord[0];
 }
 
-CoordT coordinate (Shape shape, NElemT idx)
+CoordT coordinate (const Shape& shape, NElemT idx)
 {
 	if (idx >= shape.n_elems())
 	{
@@ -45,6 +45,16 @@ CoordT coordinate (Shape shape, NElemT idx)
 		idx = (idx - xd) / *(it + i);
 	}
 	return coord;
+}
+
+std::vector<DimT> narrow_shape (const Shape& shape)
+{
+	auto it = shape.begin(), et = shape.end();
+	while (it != et && *(et - 1) == 1)
+	{
+		--et;
+	}
+	return std::vector<DimT>(it, et);
 }
 
 }

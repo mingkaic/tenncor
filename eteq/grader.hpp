@@ -230,15 +230,105 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::MATMUL:
 			{
+				auto coorder = args[0].get_coorder();
 				NodeptrT<T> lhs = to_node<T>(args[0].get_tensor());
 				NodeptrT<T> rhs = to_node<T>(args[1].get_tensor());
-				out = 0 == arg_idx ?
-					// ext_rhs
-					tenncor::permute(tenncor::extend(rhs, 2, {
-						lhs->shape().at(1)}), {0,2,1}) :
-					// ext_lhs
-					tenncor::permute(tenncor::extend(lhs, 2, {
-						rhs->shape().at(0)}), {2,1,0});
+				assert(nullptr != coorder);
+				PairVecT<teq::RankT> dims;
+				coorder->access(
+					[&](const teq::MatrixT& args)
+					{
+						for (teq::RankT i = 0; i < teq::rank_cap &&
+							args[0][i] < teq::rank_cap; ++i)
+						{
+							dims.push_back({args[0][i], args[1][i]});
+						}
+					});
+				std::vector<teq::DimT> llist = teq::narrow_shape(lhs->shape());
+				std::vector<teq::DimT> rlist = teq::narrow_shape(rhs->shape());
+				std::array<bool,teq::rank_cap> avisit;
+				std::array<bool,teq::rank_cap> bvisit;
+				std::fill(avisit.begin(), avisit.end(), false);
+				std::fill(bvisit.begin(), bvisit.end(), false);
+				for (auto coms : dims)
+				{
+					teq::RankT ldim = coms.first;
+					teq::RankT rdim = coms.second;
+					avisit[ldim] = true;
+					bvisit[rdim] = true;
+					// append 1s for mapped common dimensions
+					if (ldim > llist.size())
+					{
+						llist.insert(llist.end(), ldim - llist.size(), 1);
+					}
+					if (rdim > rlist.size())
+					{
+						rlist.insert(rlist.end(), rdim - rlist.size(), 1);
+					}
+				}
+				std::vector<teq::RankT> lcommon, luncommon, rcommon, runcommon;
+				for (teq::RankT i = 0, n = llist.size(); i < n; ++i)
+				{
+					(avisit[i] ? &lcommon : &luncommon)->push_back(i);
+				}
+				for (teq::RankT i = 0, n = rlist.size(); i < n; ++i)
+				{
+					(bvisit[i] ? &rcommon : &runcommon)->push_back(i);
+				}
+
+				// desired shape as follows:
+				// uncommon dimensions go in front ordered by <right uncommon><left uncommon><common>
+				NodeptrT<T> ext;
+				std::vector<teq::RankT> permlist;
+				if (0 == arg_idx)
+				{
+					// extend rhs to fit before reduce summation to op:
+					// rshape contains: <right uncommon + common>, so extend with <left uncommon>
+					// <right uncommon + common><left uncommon> permute to desired shape
+
+					std::vector<teq::DimT> luncom_dims;
+					luncom_dims.reserve(luncommon.size());
+					std::transform(luncommon.begin(), luncommon.end(),
+						std::back_inserter(luncom_dims),
+						[&llist](teq::RankT i)
+						{
+							return llist.at(i);
+						});
+					teq::RankT roffset = rlist.size();
+					ext = tenncor::extend(rhs, roffset, luncom_dims);
+					permlist = runcommon;
+					permlist.reserve(luncommon.size());
+					for (teq::RankT i = 0, n = luncommon.size(); i < n; ++i)
+					{
+						permlist.push_back(i + roffset);
+					}
+					permlist.insert(permlist.end(), rcommon.begin(), rcommon.end());
+				}
+				else
+				{
+					// extend rhs to fit before reduce summation to op:
+					// lshape contains: <left uncommon + common>, so extend with <right uncommon>
+					// <left uncommon + common><right uncommon> permute to desired shape
+
+					std::vector<teq::DimT> runcom_dims;
+					runcom_dims.reserve(runcommon.size());
+					std::transform(runcommon.begin(), runcommon.end(),
+						std::back_inserter(runcom_dims),
+						[&rlist](teq::RankT i)
+						{
+							return rlist.at(i);
+						});
+					teq::RankT loffset = llist.size();
+					ext = tenncor::extend(lhs, loffset, runcom_dims);
+					permlist.reserve(runcommon.size());
+					for (teq::RankT i = 0, n = runcommon.size(); i < n; ++i)
+					{
+						permlist.push_back(i + loffset);
+					}
+					permlist.insert(permlist.end(), luncommon.begin(), luncommon.end());
+					permlist.insert(permlist.end(), lcommon.begin(), lcommon.end());
+				}
+				out = tenncor::permute(ext, permlist);
 			}
 				break;
 			case egen::ARGMAX:
@@ -310,16 +400,117 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			}
 				break;
 			case egen::MATMUL:
+			{
+				auto& args = op->get_children();
+				auto coorder = args[0].get_coorder();
+				assert(nullptr != coorder);
+				PairVecT<teq::RankT> dims;
+				coorder->access(
+					[&](const teq::MatrixT& args)
+					{
+						for (teq::RankT i = 0; i < teq::rank_cap &&
+							args[0][i] < teq::rank_cap; ++i)
+						{
+							dims.push_back({args[0][i], args[1][i]});
+						}
+					});
+
+				std::vector<teq::DimT> llist = teq::narrow_shape(args[0].get_tensor()->shape());
+				std::vector<teq::DimT> rlist = teq::narrow_shape(args[1].get_tensor()->shape());
+				std::array<bool,teq::rank_cap> avisit;
+				std::array<bool,teq::rank_cap> bvisit;
+				std::fill(avisit.begin(), avisit.end(), false);
+				std::fill(bvisit.begin(), bvisit.end(), false);
+				for (auto coms : dims)
+				{
+					teq::RankT ldim = coms.first;
+					teq::RankT rdim = coms.second;
+					avisit[ldim] = true;
+					bvisit[rdim] = true;
+					// append 1s for mapped common dimensions
+					if (ldim > llist.size())
+					{
+						llist.insert(llist.end(), ldim - llist.size(), 1);
+					}
+					if (rdim > rlist.size())
+					{
+						rlist.insert(rlist.end(), rdim - rlist.size(), 1);
+					}
+				}
+				std::vector<teq::RankT> lcommon, luncommon, rcommon, runcommon;
+				for (teq::RankT i = 0, n = llist.size(); i < n; ++i)
+				{
+					(avisit[i] ? &lcommon : &luncommon)->push_back(i);
+				}
+				for (teq::RankT i = 0, n = rlist.size(); i < n; ++i)
+				{
+					(bvisit[i] ? &rcommon : &runcommon)->push_back(i);
+				}
+
+				std::vector<teq::DimT> extlist;
+				if (0 == arg_idx)
+				{
+					extlist.reserve(lcommon.size());
+					for (teq::RankT l : lcommon)
+					{
+						extlist.push_back(llist.at(l));
+					}
+				}
+				else
+				{
+					extlist.reserve(rcommon.size());
+					for (teq::RankT r : rcommon)
+					{
+						extlist.push_back(rlist.at(r));
+					}
+				}
+
+				// desired shape as follows:
+				// uncommon dimensions go in front ordered by <supcomp_grad shape><common of arg_idx>
+				// <supcomp_grad shape> = <right uncommon><left uncommon>
+				auto ext = tenncor::extend(to_node<T>(supcomp_grad),
+					luncommon.size() + runcommon.size(), extlist);
+
+				// todo: apply dims
+				teq::RankT arg_rank;
+				std::vector<teq::RankT> fwdperm;
+				if (0 == arg_idx)
+				{
+					// currently: <right uncommon><left uncommon><left common>
+					// permute such that shape = <left shape><uncommon right>
+					arg_rank = llist.size();
+					for (teq::RankT i = 0, n = runcommon.size(); i < n; ++i)
+					{
+						fwdperm.push_back(arg_rank + i);
+					}
+					fwdperm.insert(fwdperm.end(), luncommon.begin(), luncommon.end());
+					fwdperm.insert(fwdperm.end(), lcommon.begin(), lcommon.end());
+				}
+				else
+				{
+					// currently: <right uncommon><left uncommon><right common>
+					// permute such that shape = <right shape><uncommon left>
+					arg_rank = rlist.size();
+					fwdperm = runcommon;
+					for (teq::RankT i = 0, n = luncommon.size(); i < n; ++i)
+					{
+						fwdperm.push_back(arg_rank + i);
+					}
+					fwdperm.insert(fwdperm.end(), rcommon.begin(), rcommon.end());
+				}
+				// reverse fwdperm
+				teq::RankT nperms = fwdperm.size();
+				std::vector<teq::RankT> permlist(nperms);
+				for (teq::RankT i = 0; i < nperms; ++i)
+				{
+					permlist[fwdperm[i]] = i;
+				}
+
+				// reduce <uncommon not arg_idx> such that shape = <arg_idx shape>
 				out = tenncor::reduce_sum(
-					tenncor::permute(
-						to_node<T>(local_der) *
-							tenncor::extend(to_node<T>(supcomp_grad), 2, {
-								op->get_children()[0].
-									get_tensor()->shape().at(0)
-							}),
-						0 == arg_idx ?
-							std::vector<teq::RankT>{2, 1, 0} :
-							std::vector<teq::RankT>{0, 2, 1}), 2, 1);
+					tenncor::permute(to_node<T>(local_der) * ext, permlist),
+					arg_rank, teq::rank_cap - arg_rank);
+			}
 				break;
 			case egen::CONV:
 			{

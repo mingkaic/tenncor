@@ -28,6 +28,7 @@ P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === transparency/code readability ===
+   - upgrade pygen to support multiline comments in API
    - create global context for setting local logger
    - fix variable assignment in pybind11 code sections to error if py::array is not numpy
    - use https://github.com/pybind/pybind11_bazel
@@ -44,6 +45,7 @@ P5 - formalize codestyle
 P3 - improve ccur module
 
 run-time performance:
+   - make eigen device configurable
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - implement GPU settings
 P4 - improve session implementation

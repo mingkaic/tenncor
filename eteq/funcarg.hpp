@@ -83,6 +83,9 @@ private:
 template <typename T>
 using ArgsT = std::vector<FuncArg<T>>;
 
+template <typename T>
+using PairVecT = std::vector<std::pair<T,T>>;
+
 /// Return FuncArg<T> that identity maps input tensor
 template <typename T>
 FuncArg<T> identity_map (NodeptrT<T> node)
@@ -187,9 +190,6 @@ FuncArg<T> reshape_map (NodeptrT<T> node, const teq::Shape& shape)
 				}
 			}), nullptr);
 }
-
-template <typename T>
-using PairVecT = std::vector<std::pair<T,T>>;
 
 /// Return FuncArg<T> that takes specific slice of tensor according to
 /// vector of offset, extent pairs
@@ -475,30 +475,22 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 		}
 		avisit[coms.first] = bvisit[coms.second] = true;
 	}
-	teq::RankT arank = teq::rank_cap;
-	while (arank > 0 && 1 == ashape.at(arank - 1))
-	{
-		--arank;
-	}
-	teq::RankT brank = teq::rank_cap;
-	while (brank > 0 && 1 == bshape.at(brank - 1))
-	{
-		--brank;
-	}
-	std::vector<teq::RankT> outlist;
+	std::vector<teq::DimT> alist = teq::narrow_shape(ashape);
+	std::vector<teq::DimT> blist = teq::narrow_shape(bshape);
+	std::vector<teq::DimT> outlist;
 	outlist.reserve(teq::rank_cap);
-	for (teq::RankT i = 0; i < brank; ++i)
+	for (teq::RankT i = 0, n = blist.size(); i < n; ++i)
 	{
 		if (false == bvisit[i])
 		{
-			outlist.push_back(bshape.at(i));
+			outlist.push_back(blist.at(i));
 		}
 	}
-	for (teq::RankT i = 0; i < arank; ++i)
+	for (teq::RankT i = 0, n = alist.size(); i < n; ++i)
 	{
 		if (false == avisit[i])
 		{
-			outlist.push_back(ashape.at(i));
+			outlist.push_back(alist.at(i));
 		}
 	}
 	if (teq::rank_cap > outlist.size())
