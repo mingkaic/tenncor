@@ -15,7 +15,10 @@ import matplotlib.pyplot as plt  # Plotting library
 np.random.seed(seed=1)
 
 def cross_entropy_loss(Y, T):
-    return -(T * tc.log(Y) + (1-T) * tc.log(1-Y))
+    epsilon = 1e-5
+    leftY = Y + epsilon
+    rightT = 1 - Y + epsilon
+    return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
 
 def loss(Y, T):
     return tc.reduce_mean(cross_entropy_loss(Y, T))
@@ -92,6 +95,12 @@ class Dense(object):
         gX = np.tensordot(gY, self.weight.get().T, axes=((-1),(0)))
         return gX, gW, gB
 
+    def backward_connect(self, X, gY):
+        gW = tc.contract(X, gY, [(1, 1), (2, 2)])
+        gB = tc.reduce_sum(gY, 1, 2)
+        gX = tc.contract(gY, tc.transpose(self.weight))
+        return gX, gW, gB
+
 # Define layer that unfolds the states over time
 class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
     """Unfold the recurrent states."""
@@ -113,10 +122,7 @@ class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
             Xslice = tc.slice(X, i, 1, 1)
             fwd_state = self.linear.connect(states[-1])
             states.append(self.tanh.connect(Xslice + fwd_state))
-        out = states[1]
-        for state in states[2:]:
-            out = tc.concat(out, state, 1)
-        return out
+        return tc.concat(states[1:], 1)
 
     def get_contents(self):
         return [self.state0] + self.linear.get_contents() + self.tanh.get_contents()
@@ -145,6 +151,33 @@ class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
         gS0 = np.sum(gSk, axis=0)
         return gZ, gWSum, gBSum, gS0
 
+    def backward_connect(self, X, S, gY):
+        # Initialise gradient of state outputs
+        nbTimesteps = X.shape()[1]
+        # Initialse gradient tensor for state inputs
+        gZ = [None] * nbTimesteps
+        yslice = gY.shape()
+        yslice[1] = 1
+        gSk = eteq.scalar_constant(0, yslice)
+        gWSum = eteq.scalar_constant(0, self.linear.weight.shape())  # Initialise weight gradients
+        gBSum = eteq.scalar_constant(0, self.linear.bias.shape())  # Initialse bias gradients
+
+        # Propagate the gradients iteratively
+        for k in range(nbTimesteps-1, -1, -1):
+            # Gradient at state output is gradient from previous state
+            #  plus gradient from output
+            gSk = gSk + tc.slice(gY, k, 1, 1)
+            # Propgate the gradient back through one state
+
+            gZ_tmp = (1.0 - tc.pow(tc.slice(S, k+1, 1, 1), 2)) * gSk
+            gSk, gW, gB = self.linear.backward_connect(tc.slice(S, k, 1, 1), gZ_tmp)
+            gZ[k] = gZ_tmp
+            gWSum = gWSum + gW  # Update total weight gradient
+            gBSum = gBSum + gB  # Update total bias gradient
+        # Get gradient of initial state over all samples
+        gS0 = tc.reduce_sum(gSk, 2)
+        return tc.concat(gZ, 1), gWSum, gBSum, gS0
+
 # Define the full network
 class RnnBinaryAdder(object): # !new layer: horizontal model
     """RNN to perform binary addition of 2 numbers."""
@@ -159,7 +192,7 @@ class RnnBinaryAdder(object): # !new layer: horizontal model
         self.classifier = rcn.sigmoid()  # Classification output
 
     def connect(self, X):
-        _, _, _, Y = self.full_connect(X)
+        _, _, Y = self.full_connect(X)
         return Y
 
     def full_connect(self, X):
@@ -168,19 +201,28 @@ class RnnBinaryAdder(object): # !new layer: horizontal model
         # Forward propagate through time and return states
         states = self.rnnUnfold.connect(recIn)
         # Linear output transformation
-        Z = self.tensorOutput.connect(states)
-        Y = self.classifier.connect(Z)
-        return recIn, states, Z, Y
+        Y = self.classifier.connect(self.tensorOutput.connect(states))
+        return recIn, states, Y
 
     def backward(self, X, Y, recIn, S, T):
         sequence_len = X.shape[1]
-        gZ = (Y - T) / (Y.shape[0] * Y.shape[1])
+        gError = (Y - T) / (Y.shape[0] * Y.shape[1])
+
         gRecOut, gWout, gBout = self.tensorOutput.backward(
-            S[:,1:sequence_len+1,:], gZ)
+            S[:,1:sequence_len+1,:], gError)
         # Propagate gradient backwards through time
         gRnnIn, gWrec, gBrec, gS0 = self.rnnUnfold.backward(
             recIn, S, gRecOut)
         _, gWin, gBin = self.tensorInput.backward(X, gRnnIn)
+        return gWout, gBout, gWrec, gBrec, gWin, gBin, gS0
+
+    def backward_connect(self, X, gotResult, recIn, state0, S, expectResult):
+        gError = (gotResult - expectResult) / np.prod(gotResult.shape())
+        gRecOut, gWout, gBout = self.tensorOutput.backward_connect(S, gError)
+        States = tc.concat(tc.best_extend(state0, [3, 1, X.shape()[0]]), S, 1)
+        gRnnIn, gWrec, gBrec, gS0 = self.rnnUnfold.backward_connect(
+            recIn, States, gRecOut)
+        _, gWin, gBin = self.tensorInput.backward_connect(X, gRnnIn)
         return gWout, gBout, gWrec, gBrec, gWin, gBin, gS0
 
     def get_contents(self):
@@ -261,8 +303,14 @@ class RnnTrainer2(object):
         self.sess = eteq.Session()
         self.inputX = eteq.Variable(Xshape)
         self.expectY = eteq.Variable(Yshape)
-        self.recIn, self.S, _, self.Y = self.rnn.full_connect(self.inputX)
+        self.recIn, self.S, self.Y = self.rnn.full_connect(self.inputX)
         self.sess.track([self.recIn, self.S, self.Y])
+
+        self.grads = self.rnn.backward_connect(self.inputX, self.Y, self.recIn, self.rnn.rnnUnfold.state0, self.S, self.expectY)
+        self.sess.track(self.grads)
+
+        self.error = loss(self.Y, self.expectY)
+        self.sess.track([self.error])
 
     def train(self, X, T):
         learning_rate, momentum_term, lmbd, eps = self.params
@@ -272,11 +320,14 @@ class RnnTrainer2(object):
             var.assign(np.array(var.get() + mom_tmp))
 
         self.inputX.assign(X)
+        self.expectY.assign(T)
         self.sess.update_target([self.recIn, self.S, self.Y])
         States = np.zeros([100, 8, 3])
         States[:,0,:] = self.rnn.rnnUnfold.state0.get()
         States[:,1:,:] = self.S.get()
         grads = self.rnn.backward(X, self.Y.get(), self.recIn.get(), States, T)
+        # self.sess.update_target(self.grads)
+        # grads = [grad.get() for grad in self.grads]
 
         # update moving average
         for i in range(len(self.vars)):
@@ -291,6 +342,10 @@ class RnnTrainer2(object):
 
         for var, pgrad_norm in zip(self.vars, pGradNorms):
             var.assign(np.array(var.get() - pgrad_norm))
+
+    def get_error(self):
+        self.sess.update_target([self.error])
+        return self.error.get()
 
 # Create dataset
 nb_train = 2000  # Number of training samples
@@ -326,9 +381,6 @@ sess = eteq.Session()
 train_Xs = eteq.Variable([mb_size, sequence_len, 2])
 train_Ys = eteq.Variable([mb_size, sequence_len, 1])
 
-train_Xs.assign(X_train[0:mb_size,:,:])
-train_Ys.assign(T_train[0:mb_size,:,:])
-
 trainer_bad = RnnTrainer(RNN, sess, train_Xs, train_Ys,
     learning_rate, momentum_term, lmbd)
 trainer = RnnTrainer2(RNN, train_Xs.shape(), train_Ys.shape(),
@@ -339,10 +391,11 @@ test_Ys = RNN.connect(test_Xs)
 test_Ys = tc.round(test_Ys)
 sess.track([test_Ys])
 
-sess.optimize("cfg/optimizations.rules")
+# sess.optimize("cfg/optimizations.rules")
 
-sess.update_target([trainer_bad.err])
-ls_of_loss = [trainer_bad.err.get()]
+trainer.inputX.assign(X_train[0:mb_size,:,:])
+trainer.expectY.assign(T_train[0:mb_size,:,:])
+ls_of_loss = [trainer.get_error()]
 # Iterate over some iterations
 start = time.time()
 for i in range(5):
@@ -358,8 +411,7 @@ for i in range(5):
         trainer.train(X_mb, T_mb)
 
         # Add loss to list to plot
-        sess.update_target([trainer_bad.err])
-        ls_of_loss.append(trainer_bad.err.get())
+        ls_of_loss.append(trainer.get_error())
 print('training time: {} seconds'.format(time.time() - start))
 
 # Plot the loss over the iterations

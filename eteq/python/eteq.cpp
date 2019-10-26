@@ -43,34 +43,64 @@ PYBIND11_MODULE(eteq, m)
 {
 	m.doc() = "eteq variables";
 
+	// ==== data and shape ====
+	py::class_<teq::Shape> shape(m, "Shape");
+	py::class_<eteq::ShapedArr<PybindT>> sarr(m, "ShapedArr");
+
+	shape
+		.def(py::init(
+			[](std::vector<py::ssize_t> dims)
+			{
+				return pyutils::p2cshape(dims);
+			}))
+		.def("__getitem__",
+			[](teq::Shape& shape, size_t idx) { return shape.at(idx); },
+			py::is_operator())
+		.def("n_elems",
+			[](teq::Shape& shape) { return shape.n_elems(); });
+
+	sarr
+		.def(py::init(
+			[](py::array ar)
+			{
+				eteq::ShapedArr<PybindT> a;
+				pyutils::arr2shapedarr(a, ar);
+				return a;
+			}))
+		.def("as_numpy",
+			[](eteq::ShapedArr<PybindT>* self) -> py::array
+			{
+				return pyutils::shapedarr2arr<PybindT>(*self);
+			});
+
 	// ==== node ====
 	auto node = (py::class_<eteq::iNode<PybindT>,NodeptrT>)
 		py::module::import("eteq.tenncor").attr("NodeptrT<PybindT>");
 
 	node
 		.def("__str__",
-			[](py::object self)
-			{ return self.cast<eteq::iNode<PybindT>*>()->to_string(); },
+			[](eteq::iNode<PybindT>* self)
+			{ return self->to_string(); },
 			"Return string representation of internal tensor")
 		.def("as_tens",
-			[](py::object self)
-			{ return self.cast<eteq::iNode<PybindT>*>()->get_tensor(); },
+			[](eteq::iNode<PybindT>* self)
+			{ return self->get_tensor(); },
 			"Return internal tensor of this node instance")
 		.def("shape",
-			[](py::object self)
+			[](eteq::iNode<PybindT>* self)
 			{
-				teq::Shape shape = self.cast<eteq::iNode<PybindT>*>()->shape();
+				teq::Shape shape = self->shape();
 				auto pshape = pyutils::c2pshape(shape);
 				std::vector<int> ipshape(pshape.begin(), pshape.end());
 				return py::array(ipshape.size(), ipshape.data());
 			},
 			"Return this instance's shape")
 		.def("children",
-			[](py::object self)
+			[](eteq::iNode<PybindT>* self)
 			{
 				std::vector<teq::TensptrT> tens;
 				if (auto f = dynamic_cast<teq::iFunctor*>(
-					self.cast<eteq::iNode<PybindT>*>()->get_tensor().get()))
+					self->get_tensor().get()))
 				{
 					auto args = f->get_children();
 					std::transform(args.begin(), args.end(),
@@ -83,11 +113,10 @@ PYBIND11_MODULE(eteq, m)
 				return tens;
 			})
 		.def("get",
-			[](py::object self)
+			[](eteq::iNode<PybindT>* self)
 			{
 				return pyead::typedata_to_array<PybindT>(
-					self.cast<eteq::iNode<PybindT>*>(),
-					py::dtype::of<PybindT>());
+					self, py::dtype::of<PybindT>());
 			});
 
 	// ==== session ====
@@ -96,9 +125,8 @@ PYBIND11_MODULE(eteq, m)
 
 	isess
 		.def("track",
-			[](py::object self, eteq::NodesT<PybindT> roots)
+			[](eteq::iSession* self, eteq::NodesT<PybindT> roots)
 			{
-				auto sess = self.cast<eteq::iSession*>();
 				teq::TensptrsT troots;
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
@@ -107,28 +135,26 @@ PYBIND11_MODULE(eteq, m)
 					{
 						return node->get_tensor();
 					});
-				sess->track(troots);
+				self->track(troots);
 			})
 		.def("update",
-			[](py::object self,
+			[](eteq::iSession* self,
 				std::vector<NodeptrT> ignored)
 			{
-				auto sess = self.cast<eteq::iSession*>();
 				teq::TensSetT ignored_set;
 				for (NodeptrT& node : ignored)
 				{
 					ignored_set.emplace(node->get_tensor().get());
 				}
-				sess->update(ignored_set);
+				self->update(ignored_set);
 			},
 			"Calculate every node in the graph given list of nodes to ignore",
 			py::arg("ignored") = std::vector<NodeptrT>{})
 		.def("update_target",
-			[](py::object self,
+			[](eteq::iSession* self,
 				std::vector<NodeptrT> targeted,
 				std::vector<NodeptrT> ignored)
 			{
-				auto sess = self.cast<eteq::iSession*>();
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
 				for (NodeptrT& node : targeted)
@@ -139,7 +165,7 @@ PYBIND11_MODULE(eteq, m)
 				{
 					ignored_set.emplace(node->get_tensor().get());
 				}
-				sess->update_target(targeted_set, ignored_set);
+				self->update_target(targeted_set, ignored_set);
 			},
 			"Calculate node relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
@@ -149,11 +175,10 @@ PYBIND11_MODULE(eteq, m)
 	session
 		.def(py::init())
 		.def("optimize",
-			[](py::object self, std::string filename)
+			[](eteq::Session* self, std::string filename)
 			{
-				auto sess = self.cast<eteq::Session*>();
 				opt::OptCtx rules = eteq::parse_file<PybindT>(filename);
-				sess->optimize(rules);
+				self->optimize(rules);
 			},
 			py::arg("filename") = "cfg/optimizations.rules",
 			"Optimize using rules for specified filename");
@@ -176,12 +201,11 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("scalar") = 0,
 			py::arg("label") = "")
 		.def("assign",
-			[](py::object self, py::array data)
+			[](eteq::VariableNode<PybindT>* self, py::array data)
 			{
-				auto var = self.cast<eteq::VariableNode<PybindT>*>();
 				eteq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
-				var->assign(arr);
+				self->assign(arr);
 			},
 			"Assign numpy data array to variable");
 

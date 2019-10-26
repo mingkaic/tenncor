@@ -45,6 +45,7 @@ opcode:
     SCATTER: out = eteq::scatter(shape,in[0]);
     SELECT: out = eteq::select(shape, in[0], in[1], in[2]);
     CONCAT: out = eteq::concat(shape, in[0], in[1]);
+    GROUP_CONCAT: out = eteq::group_concat(shape, in);
 api:
   pybind_type: float
   includes:
@@ -687,6 +688,23 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"CONCAT",::egen::CONCAT},eteq::concat_map(left,right,axis));
+      - template: typename T
+        name: concat
+        args:
+        - dtype: eteq::NodesT<T>
+          name: args
+        - dtype: teq::RankT
+          name: axis
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  if (args.size() == 1)
+                  {
+                      return args[0];
+                  }
+                  return eteq::make_functor<T>(teq::Opcode{"GROUP_CONCAT",::egen::GROUP_CONCAT},
+                      eteq::group_concat_map(args,axis));
       - description: Return extended arg so that output shape matches slist exactly
         template: typename T
         name: best_extend

@@ -55,10 +55,6 @@ PYBIND11_MODULE(rocnnet, m)
 {
 	m.doc() = "rocnnet api";
 
-	// utility data
-	py::class_<teq::Shape> shape(m, "Shape");
-	py::class_<eteq::ShapedArr<PybindT>> sarr(m, "ShapedArr");
-
 	// layers
 	py::class_<layr::iLayer,layr::LayerptrT> layer(m, "Layer");
 	py::class_<layr::ULayer,layr::UnaryptrT,layr::iLayer> ulayer(m, "ULayer");
@@ -76,41 +72,13 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<trainer::DQNInfo> dqninfo(m, "DQNInfo");
 	py::class_<trainer::DQNTrainingContext> dqntrainingctx(m, "DQNTrainingContext");
 
-	shape
-		.def(py::init(
-			[](std::vector<py::ssize_t> dims)
-			{
-				return pyutils::p2cshape(dims);
-			}))
-		.def("__getitem__",
-			[](teq::Shape& shape, size_t idx) { return shape.at(idx); },
-			py::is_operator())
-		.def("n_elems",
-			[](teq::Shape& shape) { return shape.n_elems(); });
-
-	sarr
-		.def(py::init(
-			[](py::array ar)
-			{
-				eteq::ShapedArr<PybindT> a;
-				pyutils::arr2shapedarr(a, ar);
-				return a;
-			}))
-		.def("as_numpy",
-			[](py::object self) -> py::array
-			{
-				return pyutils::shapedarr2arr<PybindT>(
-					*self.cast<eteq::ShapedArr<PybindT>*>());
-			});
-
 	// layer
 	layer
 		.def("connect", &layr::iLayer::connect)
 		.def("get_contents",
-			[](py::object self) -> eteq::NodesT<PybindT>
+			[](layr::iLayer* self) -> eteq::NodesT<PybindT>
 			{
-				teq::TensptrsT contents =
-					self.cast<layr::iLayer*>()->get_contents();
+				teq::TensptrsT contents = self->get_contents();
 				eteq::NodesT<PybindT> nodes;
 				nodes.reserve(contents.size());
 				std::transform(contents.begin(), contents.end(),
@@ -120,12 +88,11 @@ PYBIND11_MODULE(rocnnet, m)
 				return nodes;
 			})
 		.def("save_file",
-			[](py::object self, std::string filename) -> bool
+			[](layr::iLayer* self, std::string filename) -> bool
 			{
-				layr::iLayer& me = *self.cast<layr::iLayer*>();
 				std::fstream output(filename,
 					std::ios::out | std::ios::trunc | std::ios::binary);
-				if (false == layr::save_layer(output, me, me.get_contents()))
+				if (false == layr::save_layer(output, *self, self->get_contents()))
 				{
 					logs::errorf("cannot save to file %s", filename.c_str());
 					return false;
@@ -133,11 +100,10 @@ PYBIND11_MODULE(rocnnet, m)
 				return true;
 			})
 		.def("save_string",
-			[](py::object self) -> std::string
+			[](layr::iLayer* self) -> std::string
 			{
-				layr::iLayer& me = *self.cast<layr::iLayer*>();
 				std::stringstream savestr;
-				layr::save_layer(savestr, me, me.get_contents());
+				layr::save_layer(savestr, *self, self->get_contents());
 				return savestr.str();
 			})
 		.def("get_ninput", &layr::iLayer::get_ninput)
@@ -258,11 +224,11 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity),
 			py::arg("ctx") = trainer::DQNTrainingContext())
 		.def("action",
-			[](py::object self, py::array input)
+			[](trainer::DQNTrainer* self, py::array input)
 			{
 				eteq::ShapedArr<PybindT> a;
 				pyutils::arr2shapedarr(a, input);
-				return self.cast<trainer::DQNTrainer*>()->action(a);
+				return self->action(a);
 			},
 			"get next action")
 		.def("store", &trainer::DQNTrainer::store, "save observation, action, and reward")
@@ -270,9 +236,9 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("error", &trainer::DQNTrainer::get_error, "get prediction error")
 		.def("ntrained", &trainer::DQNTrainer::get_numtrained, "get number of iterations trained")
 		.def("train_out",
-			[](py::object self)
+			[](trainer::DQNTrainer* self)
 			{
-				return self.cast<trainer::DQNTrainer*>()->train_out_;
+				return self->train_out_;
 			}, "get training node");
 
 	// dbntrainer
@@ -289,29 +255,27 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("l2_reg") = 0.,
 			py::arg("lr_scaling") = 0.95)
 		.def("pretrain",
-			[](py::object self, py::array x, size_t nepochs,
+			[](trainer::DBNTrainer* self, py::array x, size_t nepochs,
 				std::function<void(size_t,size_t)> logger)
 			{
-				auto trainer = self.cast<trainer::DBNTrainer*>();
 				eteq::ShapedArr<PybindT> xa;
 				pyutils::arr2shapedarr(xa, x);
-				return trainer->pretrain(xa, nepochs, logger);
+				return self->pretrain(xa, nepochs, logger);
 			},
 			py::arg("x"),
 			py::arg("nepochs") = 100,
 			py::arg("logger") = std::function<void(size_t,size_t)>(),
 			"pretrain internal rbms")
 		.def("finetune",
-			[](py::object self, py::array x, py::array y, size_t nepochs,
+			[](trainer::DBNTrainer* self, py::array x, py::array y, size_t nepochs,
 				std::function<void(size_t)> logger)
 			{
-				auto trainer = self.cast<trainer::DBNTrainer*>();
 				teq::Shape shape;
 				eteq::ShapedArr<PybindT> xa;
 				eteq::ShapedArr<PybindT> ya;
 				pyutils::arr2shapedarr(xa, x);
 				pyutils::arr2shapedarr(ya, y);
-				return trainer->finetune(xa, ya, nepochs, logger);
+				return self->finetune(xa, ya, nepochs, logger);
 			},
 			py::arg("x"),
 			py::arg("y"),

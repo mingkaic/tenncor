@@ -451,6 +451,44 @@ ArgsT<T> concat_map (NodeptrT<T> left, NodeptrT<T> right, teq::RankT axis)
 }
 
 template <typename T>
+ArgsT<T> group_concat_map (NodesT<T> args, teq::RankT axis)
+{
+	if (args.size() < 2)
+	{
+		logs::fatal("cannot group concat less than 2 arguments");
+	}
+	if (std::any_of(args.begin(), args.end(),
+		[](NodeptrT<T> arg) { return nullptr == arg; }))
+	{
+		logs::fatal("cannot group concat with null argument");
+	}
+	teq::DimT nargs = args.size();
+	teq::CoordptrT shaper(new teq::CoordMap(
+		[axis, nargs](teq::MatrixT& fwd)
+		{
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				fwd[i][i] = 1;
+			}
+			fwd[teq::rank_cap][axis] = nargs - 1;
+		}
+	));
+	ArgsT<T> out;
+	out.reserve(nargs);
+	out.push_back(FuncArg<T>(args[0], shaper, std::make_shared<CoordMap>(
+		[axis](teq::MatrixT& args)
+		{
+			args[0][0] = axis;
+		})));
+	std::transform(args.begin() + 1, args.end(), std::back_inserter(out),
+		[&](NodeptrT<T> arg)
+		{
+			return FuncArg<T>(arg, shaper, nullptr);
+		});
+	return out;
+}
+
+template <typename T>
 ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 {
 	teq::Shape ashape = a->get_tensor()->shape();

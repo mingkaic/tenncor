@@ -13,7 +13,7 @@ PYBIND11_MODULE(grpc_dbg, m)
 {
 	m.doc() = "dbg teq equation graphs using interactive grpc session";
 
-	py::object isess = (py::object)
+	auto isess = (py::class_<eteq::iSession>)
 		py::module::import("eteq.eteq").attr("iSession");
 
 	py::class_<dbg::InteractiveSession,
@@ -35,9 +35,8 @@ PYBIND11_MODULE(grpc_dbg, m)
 			py::arg("stream_dur") = 30000);
 	session
 		.def("track",
-			[](py::object self, eteq::NodesT<PybindT> roots)
+			[](dbg::InteractiveSession* self, eteq::NodesT<PybindT> roots)
 			{
-				auto sess = self.cast<dbg::InteractiveSession*>();
 				teq::TensptrsT troots;
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
@@ -46,27 +45,25 @@ PYBIND11_MODULE(grpc_dbg, m)
 					{
 						return node->get_tensor();
 					});
-				sess->track(troots);
+				self->track(troots);
 			},
 			"Track node")
 		.def("update",
-			[](py::object self, std::vector<NodeptrT> ignored)
+			[](dbg::InteractiveSession* self, std::vector<NodeptrT> ignored)
 			{
-				auto sess = self.cast<dbg::InteractiveSession*>();
 				teq::TensSetT ignored_set;
 				for (NodeptrT& node : ignored)
 				{
 					ignored_set.emplace(node->get_tensor().get());
 				}
-				sess->update(ignored_set);
+				self->update(ignored_set);
 			},
 			"Return calculated data",
 			py::arg("ignored") = std::vector<NodeptrT>{})
 		.def("update_target",
-			[](py::object self, std::vector<NodeptrT> targeted,
+			[](dbg::InteractiveSession* self, std::vector<NodeptrT> targeted,
 				std::vector<NodeptrT> ignored)
 			{
-				auto sess = self.cast<dbg::InteractiveSession*>();
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
 				for (NodeptrT& node : targeted)
@@ -77,30 +74,29 @@ PYBIND11_MODULE(grpc_dbg, m)
 				{
 					ignored_set.emplace(node->get_tensor().get());
 				}
-				sess->update_target(targeted_set, ignored_set);
+				self->update_target(targeted_set, ignored_set);
 			},
 			"Calculate node relevant to targets in the graph given list of updated data",
 			py::arg("targeted"),
 			py::arg("ignored") = std::vector<NodeptrT>{})
 		.def("join",
-			[](py::object self)
+			[](dbg::InteractiveSession* self)
 			{
-				self.cast<dbg::InteractiveSession*>()->join();
+				self->join();
 			},
 			"Wait until session finishes sends all requests")
 		.def("stop",
-			[](py::object self)
+			[](dbg::InteractiveSession* self)
 			{
-				self.cast<dbg::InteractiveSession*>()->stop();
+				self->stop();
 			},
 			"Inform session requests to stop their tasks "
 			"(requests will attempt to wrap up call before terminating)")
 		.def("optimize",
-			[](py::object self, std::string filename)
+			[](dbg::InteractiveSession* self, std::string filename)
 			{
-				auto sess = self.cast<dbg::InteractiveSession*>();
 				opt::OptCtx rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
-				sess->optimize(rules);
+				self->optimize(rules);
 			},
 			"Optimize using rules for specified filename");
 }

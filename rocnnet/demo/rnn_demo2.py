@@ -15,7 +15,7 @@ sequence_len = 7  # Length of the binary sequence
 
 def loss(Y, T):
     """Compute the loss at the output."""
-    return -np.mean((T * np.log(Y)) + ((1-T) * np.log(1-Y)))
+    return -np.mean(T * np.log(Y) + (1-T) * np.log(1-Y))
 
 # Show an example input and target
 def printSample(x1, x2, t, y=None):

@@ -20,7 +20,7 @@ namespace eteq
 {
 
 /// Eigen shape
-using DimensionsT = std::array<Eigen::Index,8>;
+using DimensionsT = std::array<Eigen::Index,teq::rank_cap>;
 
 /// Eigen Matrix
 template <typename T>
@@ -97,8 +97,8 @@ using EigenptrT = std::shared_ptr<iEigen<T>>;
 template <typename T, typename EigenSource, typename EigenArgs>
 struct EigenTensOp final : public iEigen<T>
 {
-	EigenTensOp (DimensionsT dims,
-		std::function<EigenSource(EigenArgs&)> make_base, EigenArgs args) :
+	EigenTensOp (DimensionsT dims, EigenArgs args,
+		std::function<EigenSource(EigenArgs&)> make_base) :
 		args_(args), tensorbase_(make_base(args_)), data_(dims) {}
 
 	/// Implementation of iEigen<T>
@@ -125,12 +125,12 @@ struct EigenTensOp final : public iEigen<T>
 
 /// Implementation of iEigen that assigns TensorMap to Tensor object
 /// using some custom assignment
-template <typename T>
+template <typename T, typename EigenArgs>
 struct EigenAssignTens final : public iEigen<T>
 {
-	EigenAssignTens (DimensionsT dims, TensMapT<T> arg,
-		std::function<void(TensorT<T>&,const TensMapT<T>&)> assign) :
-		arg_(arg), assign_(assign), data_(dims)
+	EigenAssignTens (DimensionsT dims, EigenArgs args,
+		std::function<void(TensorT<T>&,const EigenArgs&)> assign) :
+		args_(args), assign_(assign), data_(dims)
 	{
 		data_.setZero();
 	}
@@ -138,7 +138,7 @@ struct EigenAssignTens final : public iEigen<T>
 	/// Implementation of iEigen<T>
 	void assign (void) override
 	{
-		assign_(data_, arg_);
+		assign_(data_, args_);
 	}
 
 	/// Implementation of iEigen<T>
@@ -148,10 +148,10 @@ struct EigenAssignTens final : public iEigen<T>
 	}
 
 	/// Tensor operator arguments
-	TensMapT<T> arg_;
+	EigenArgs args_;
 
 	/// Tensor assignment
-	std::function<void(TensorT<T>&,const TensMapT<T>&)> assign_;
+	std::function<void(TensorT<T>&,const EigenArgs&)> assign_;
 
 	/// Output tensor data object
 	TensorT<T> data_;
@@ -161,8 +161,8 @@ struct EigenAssignTens final : public iEigen<T>
 template <typename T, typename EigenSource, typename EigenArgs>
 struct EigenMatOp final : public iEigen<T>
 {
-	EigenMatOp (DimensionsT dims,
-		std::function<EigenSource(EigenArgs&)> make_base, EigenArgs args) :
+	EigenMatOp (DimensionsT dims, EigenArgs args,
+		std::function<EigenSource(EigenArgs&)> make_base) :
 		args_(args), matrixbase_(make_base(args_)),
 		data_(dims.at(1), dims.at(0)) {}
 
@@ -191,21 +191,21 @@ struct EigenMatOp final : public iEigen<T>
 /// Return Eigen Tensor wrapper given output shape,
 /// and Eigen operator creation and arguments
 template <typename T, typename EigenSource, typename EigenArgs>
-inline EigenptrT<T> make_eigentensor (DimensionsT dims,
-	std::function<EigenSource(EigenArgs&)> make_base, EigenArgs args)
+inline EigenptrT<T> make_eigentensor (DimensionsT dims, EigenArgs args,
+	std::function<EigenSource(EigenArgs&)> make_base)
 {
 	return std::make_shared<EigenTensOp<T,EigenSource,EigenArgs>>(
-		dims, make_base, args);
+		dims, args, make_base);
 }
 
 /// Return Eigen Matrix wrapper given output shape,
 /// and Eigen operator creation and arguments
 template <typename T, typename EigenSource, typename EigenArgs>
-inline EigenptrT<T> make_eigenmatrix (DimensionsT dims,
-	std::function<EigenSource(EigenArgs&)> make_base, EigenArgs args)
+inline EigenptrT<T> make_eigenmatrix (DimensionsT dims, EigenArgs args,
+	std::function<EigenSource(EigenArgs&)> make_base)
 {
 	return std::make_shared<EigenMatOp<T,EigenSource,EigenArgs>>(
-		dims, make_base, args);
+		dims, args, make_base);
 }
 
 /// Return Eigen Tensor filled with 0s given teq Shape

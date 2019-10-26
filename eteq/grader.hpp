@@ -178,6 +178,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::REVERSE:
 			case egen::CONV:
 			case egen::CONCAT:
+			case egen::GROUP_CONCAT:
 				out = make_constant_scalar<T>(1, args[arg_idx].get_tensor()->shape());
 				break;
 			case egen::MUL:
@@ -632,6 +633,23 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				}
 				out = to_node<T>(local_der) *
 					tenncor::slice(to_node<T>(supcomp_grad), offset, extent, axis);
+			}
+				break;
+			case egen::GROUP_CONCAT: // todo: combine concat and group_concat
+			{
+				auto& fchild = op->get_children()[0];
+				teq::Shape cshape = op->get_children()[arg_idx].
+					get_tensor()->shape();
+				auto coorder = fchild.get_coorder();
+				assert(nullptr != coorder);
+				teq::RankT axis;
+				coorder->access(
+					[&](const teq::MatrixT& args)
+					{
+						axis = args[0][0];
+					});
+				out = to_node<T>(local_der) *
+					tenncor::slice(to_node<T>(supcomp_grad), arg_idx, 1, axis);
 			}
 				break;
 			case egen::STRIDE:

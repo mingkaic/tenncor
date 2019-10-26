@@ -24,11 +24,10 @@ PYBIND11_MODULE(ccur, m)
 			py::arg("nthread") = 2,
 			py::arg("weights") = ccur::OpWeightT())
 		.def("optimize",
-			[](py::object self, std::string filename)
+			[](ccur::Session* self, std::string filename)
 			{
-				auto sess = self.cast<ccur::Session*>();
 				opt::OptCtx rules = eteq::parse_file<PybindT>(filename);
-				sess->optimize(rules);
+				self->optimize(rules);
 			},
 			py::arg("filename") = "cfg/optimizations.rules",
 			"Optimize using rules for specified filename");
