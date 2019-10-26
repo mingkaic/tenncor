@@ -3,6 +3,7 @@ import itertools
 import numpy as np  # Matrix and vector computation package
 import matplotlib
 import matplotlib.pyplot as plt  # Plotting library
+import time
 
 # Set the seed for reproducability
 np.random.seed(seed=1)
@@ -68,21 +69,20 @@ print(f'X_train tensor shape: {X_train.shape}')
 print(f'T_train tensor shape: {T_train.shape}')
 
 # Define the linear tensor transformation layer
-class TensorLinear(object): # same thing as dense
+class Dense(object): # same thing as dense
     """The linear tensor layer applies a linear tensor dot product
     and a bias to its input."""
-    def __init__(self, n_in, n_out, tensor_order, W=None, b=None):
+    def __init__(self, n_in, n_out, tensor_order):
         """Initialse the weight W and bias b parameters."""
         a = np.sqrt(6.0 / (n_in + n_out))
-        self.W = (np.random.uniform(-a, a, (n_in, n_out))
-                  if W is None else W)
-        self.b = (np.zeros((n_out)) if b is None else b)
+        self.W = (np.random.uniform(-a, a, (n_in, n_out)))
+        self.b = (np.zeros((n_out)))
 
         # Axes summed over in backprop
         self.bpAxes = tuple(range(tensor_order-1))
 
-    def forward(self, X):
-        """Perform forward step transformation with the help
+    def connect(self, X):
+        """Perform connect step transformation with the help
         of a tensor product."""
         # Same as: Y[i,j,:] = np.dot(X[i,j,:], self.W) + self.b
         #          (for i,j in X.shape[0:1])
@@ -103,95 +103,47 @@ class TensorLinear(object): # same thing as dense
         gX = np.tensordot(gY, self.W.T, axes=((-1),(0)))
         return gX, gW, gB
 
-# Define the logistic classifier layer
-class LogisticClassifier(object): # same thing as activation_sigmoid
-    """The logistic layer applies the logistic function to its
-    inputs."""
-
-    def forward(self, X):
-        """Perform the forward step transformation."""
-        return 1. / (1. + np.exp(-X))
-
-    def backward(self, Y, T):
-        """Return the gradient with respect to the loss function
-        at the inputs of this layer."""
-        # Average by the number of samples and sequence length.
-        return (Y - T) / (Y.shape[0] * Y.shape[1])
-
-# Define tanh layer
-class TanH(object): # same thing as activation_tanh
-    """TanH applies the tanh function to its inputs."""
-
-    def forward(self, X):
-        """Perform the forward step transformation."""
-        return np.tanh(X)
-
-    def backward(self, Y, output_grad):
-        """Return the gradient at the inputs of this layer."""
-        gTanh = 1.0 - (Y**2)
-        return (gTanh * output_grad)
-
-# Define internal state update layer
-class RecurrentStateUpdate(object): # dense -> activation_tanh
-    """Update a given state."""
-    def __init__(self, nbStates, W, b):
-        """Initialse the linear transformation and tanh transfer
-        function."""
-        self.linear = TensorLinear(nbStates, nbStates, 2, W, b)
-        self.tanh = TanH()
-
-    def forward(self, Xk, Sk):
-        """Return state k+1 from input and state k."""
-        return self.tanh.forward(Xk + self.linear.forward(Sk))
-
-    def backward(self, Sk0, Sk1, output_grad):
-        """Return the gradient of the parmeters and the inputs of
-        this layer."""
-        gZ = self.tanh.backward(Sk1, output_grad)
-        gSk0, gW, gB = self.linear.backward(Sk0, gZ)
-        return gZ, gSk0, gW, gB
-
 # Define layer that unfolds the states over time
 class RecurrentStateUnfold(object): # dense -> activation_tanh
     """Unfold the recurrent states."""
-    def __init__(self, nbStates, nbTimesteps):
+    def __init__(self, nbStates):
         """Initialse the shared parameters, the inital state and
         state update function."""
         a = np.sqrt(6. / (nbStates * 2))
-        self.W = np.random.uniform(-a, a, (nbStates, nbStates))
-        self.b = np.zeros((self.W.shape[0]))  # Shared bias
         self.S0 = np.zeros(nbStates)  # Initial state
-        self.nbTimesteps = nbTimesteps  # Timesteps to unfold
-        self.stateUpdate = RecurrentStateUpdate(
-            nbStates, self.W, self.b)  # State update function
+        self.linear = Dense(nbStates, nbStates, 2)
 
-    def forward(self, X):
-        """Iteratively apply forward step to all states."""
+    def connect(self, X):
+        """Iteratively apply connect step to all states."""
         # State tensor
-        S = np.zeros((X.shape[0], X.shape[1]+1, self.W.shape[0]))
+        S = np.zeros((X.shape[0], X.shape[1]+1, self.linear.W.shape[0]))
         S[:,0,:] = self.S0  # Set initial state
-        for k in range(self.nbTimesteps):
+        nbTimesteps = X.shape[1]
+        for k in range(nbTimesteps):
             # Update the states iteratively
-            S[:,k+1,:] = self.stateUpdate.forward(X[:,k,:], S[:,k,:])
+            S[:,k+1,:] = np.tanh(X[:,k,:] + self.linear.connect(S[:,k,:]))
         return S
 
     def backward(self, X, S, gY):
         """Return the gradient of the parmeters and the inputs of
         this layer."""
         # Initialise gradient of state outputs
-        gSk = np.zeros_like(gY[:,self.nbTimesteps-1,:])
+        nbTimesteps = X.shape[1]
+        gSk = np.zeros_like(gY[:,0,:])
         # Initialse gradient tensor for state inputs
         gZ = np.zeros_like(X)
-        gWSum = np.zeros_like(self.W)  # Initialise weight gradients
-        gBSum = np.zeros_like(self.b)  # Initialse bias gradients
+        gWSum = np.zeros_like(self.linear.W)  # Initialise weight gradients
+        gBSum = np.zeros_like(self.linear.b)  # Initialse bias gradients
         # Propagate the gradients iteratively
-        for k in range(self.nbTimesteps-1, -1, -1):
+        for k in range(nbTimesteps-1, -1, -1):
             # Gradient at state output is gradient from previous state
             #  plus gradient from output
             gSk += gY[:,k,:]
             # Propgate the gradient back through one state
-            gZ[:,k,:], gSk, gW, gB = self.stateUpdate.backward(
-                S[:,k,:], S[:,k+1,:], gSk)
+
+            gZ_tmp = (1.0 - (S[:,k+1,:]**2)) * gSk
+            gSk, gW, gB = self.linear.backward(S[:,k,:], gZ_tmp)
+            gZ[:,k,:] = gZ_tmp
             gWSum += gW  # Update total weight gradient
             gBSum += gB  # Update total bias gradient
         # Get gradient of initial state over all samples
@@ -201,62 +153,105 @@ class RecurrentStateUnfold(object): # dense -> activation_tanh
 # Define the full network
 class RnnBinaryAdder(object):
     """RNN to perform binary addition of 2 numbers."""
-    def __init__(self, nb_of_inputs, nb_of_outputs, nb_of_states,
-                 sequence_len):
+    def __init__(self, nb_of_inputs, nb_of_outputs, nb_of_states):
         """Initialse the network layers."""
         # Input layer
-        self.tensorInput = TensorLinear(nb_of_inputs, nb_of_states, 3)
+        self.tensorInput = Dense(nb_of_inputs, nb_of_states, 3)
         # Recurrent layer
-        self.rnnUnfold = RecurrentStateUnfold(nb_of_states, sequence_len)
+        self.rnnUnfold = RecurrentStateUnfold(nb_of_states)
         # Linear output transform
-        self.tensorOutput = TensorLinear(nb_of_states, nb_of_outputs, 3)
-        self.classifier = LogisticClassifier()  # Classification output
+        self.tensorOutput = Dense(nb_of_states, nb_of_outputs, 3)
 
-    def forward(self, X):
-        """Perform the forward propagation of input X through all
+    def connect(self, X):
+        """Get the output probabilities of input X."""
+        _, _, _, Y = self.full_connect(X)
+        return Y
+
+    def full_connect(self, X):
+        """Perform the connect propagation of input X through all
         layers."""
         # Linear input transformation
-        recIn = self.tensorInput.forward(X)
-        # Forward propagate through time and return states
-        S = self.rnnUnfold.forward(recIn)
+        recIn = self.tensorInput.connect(X)
+        # connect propagate through time and return states
+        S = self.rnnUnfold.connect(recIn)
         # Linear output transformation
-        Z = self.tensorOutput.forward(S[:,1:sequence_len+1,:])
-        Y = self.classifier.forward(Z)  # Classification probabilities
-        # Return: input to recurrent layer, states, input to classifier,
-        #  output
+        Z = self.tensorOutput.connect(S[:,1:,:])
+        Y = 1. / (1. + np.exp(-Z))
         return recIn, S, Z, Y
 
     def backward(self, X, Y, recIn, S, T):
         """Perform the backward propagation through all layers.
         Input: input samples, network output, intput to recurrent
         layer, states, targets."""
-        gZ = self.classifier.backward(Y, T)  # Get output gradient
+        sequence_len = X.shape[1]
+        gZ = (Y - T) / (Y.shape[0] * Y.shape[1])
         gRecOut, gWout, gBout = self.tensorOutput.backward(
             S[:,1:sequence_len+1,:], gZ)
         # Propagate gradient backwards through time
         gRnnIn, gWrec, gBrec, gS0 = self.rnnUnfold.backward(
             recIn, S, gRecOut)
-        gX, gWin, gBin = self.tensorInput.backward(X, gRnnIn)
+        _, gWin, gBin = self.tensorInput.backward(X, gRnnIn)
         # Return the parameter gradients of: linear output weights,
         #  linear output bias, recursive weights, recursive bias, #
         #  linear input weights, linear input bias, initial state.
         return gWout, gBout, gWrec, gBrec, gWin, gBin, gS0
 
-    def getOutput(self, X):
-        """Get the output probabilities of input X."""
-        recIn, S, Z, Y = self.forward(X)
-        return Y
+class RnnTrainer(object):
+    def __init__(self, rnn, learning_rate, momentum_term, lmbd, eps):
+        self.rnn = rnn
 
-    def getBinaryOutput(self, X):
-        """Get the binary output of input X."""
-        return np.around(self.getOutput(X))
+        self.vars = [
+            rnn.tensorOutput.W,
+            rnn.tensorOutput.b,
+            rnn.rnnUnfold.linear.W,
+            rnn.rnnUnfold.linear.b,
+            rnn.tensorInput.W,
+            rnn.tensorInput.b,
+            rnn.rnnUnfold.S0,
+        ]
+        self.momentums = [np.zeros(v.shape) for v in self.vars]
+        self.movingAvgSqr = [np.zeros(v.shape) for v in self.vars]
 
-    def getGrads(self, X, T):
-        """Return the gradients with respect to input X and
-        target T as a list. The list has the same order as the
-        get_params_iter iterator."""
-        recIn, S, Z, Y = self.forward(X)
-        return self.backward(X, Y, recIn, S, T)
+        self.params = (learning_rate, momentum_term, lmbd, eps)
+
+    def train(self, X, T):
+        learning_rate, momentum_term, lmbd, eps = self.params
+
+        momentum_tmp = [v * momentum_term for v in self.momentums]
+        self.rnn.tensorOutput.W += momentum_tmp[0]
+        self.rnn.tensorOutput.b += momentum_tmp[1]
+        self.rnn.rnnUnfold.linear.W += momentum_tmp[2]
+        self.rnn.rnnUnfold.linear.b += momentum_tmp[3]
+        self.rnn.tensorInput.W += momentum_tmp[4]
+        self.rnn.tensorInput.b += momentum_tmp[5]
+        self.rnn.rnnUnfold.S0 += momentum_tmp[6]
+
+        recIn, S, _, Y = self.rnn.full_connect(X)
+        grads = self.rnn.backward(X, Y, recIn, S, T)
+
+        # update moving average
+        for i in range(len(self.vars)):
+            self.movingAvgSqr[i] = lmbd * self.movingAvgSqr[i] + (1-lmbd) * grads[i]**2
+
+        pGradNorms = [(learning_rate * grad) / np.sqrt(mvsqr) + eps
+            for grad, mvsqr in zip(grads, self.movingAvgSqr)]
+
+        # update momentums
+        for i in range(len(self.vars)):
+            self.momentums[i] = momentum_tmp[i] - pGradNorms[i]
+
+        self.rnn.tensorOutput.W -= pGradNorms[0]
+        self.rnn.tensorOutput.b -= pGradNorms[1]
+        self.rnn.rnnUnfold.linear.W -= pGradNorms[2]
+        self.rnn.rnnUnfold.linear.b -= pGradNorms[3]
+        self.rnn.tensorInput.W -= pGradNorms[4]
+        self.rnn.tensorInput.b -= pGradNorms[5]
+        self.rnn.rnnUnfold.S0 -= pGradNorms[6]
+
+# keep this here to get nice weights
+Dense(2, 3, 3)
+RecurrentStateUnfold(3)
+Dense(3, 1, 3)
 
 # Set hyper-parameters
 lmbd = 0.5  # Rmsprop lambda
@@ -267,62 +262,26 @@ mb_size = 100  # Size of the minibatches (number of samples)
 
 # Create the network
 nb_of_states = 3  # Number of states in the recurrent layer
-RNN = RnnBinaryAdder(2, 1, nb_of_states, sequence_len)
+RNN = RnnBinaryAdder(2, 1, nb_of_states)
 
-vars = [
-    RNN.tensorOutput.W,
-    RNN.tensorOutput.b,
-    RNN.rnnUnfold.W,
-    RNN.rnnUnfold.b,
-    RNN.tensorInput.W,
-    RNN.tensorInput.b,
-    RNN.rnnUnfold.S0,
-]
-momentums = [np.zeros(v.shape) for v in vars]
-movingAvgSqr = [np.zeros(v.shape) for v in vars]
+trainer = RnnTrainer(RNN, learning_rate, momentum_term, lmbd, eps)
 
 # Create a list of minibatch losses to be plotted
 ls_of_loss = [
-    loss(RNN.getOutput(X_train[0:mb_size,:,:]), T_train[0:mb_size,:,:])]
+    loss(RNN.connect(X_train[0:mb_size,:,:]), T_train[0:mb_size,:,:])]
 # Iterate over some iterations
+start = time.time()
 for i in range(5):
     # Iterate over all the minibatches
     for mb in range(nb_train // mb_size):
         X_mb = X_train[mb:mb+mb_size,:,:]  # Input minibatch
         T_mb = T_train[mb:mb+mb_size,:,:]  # Target minibatch
 
-        momentum_tmp = [v * momentum_term for v in momentums]
-        RNN.tensorOutput.W += momentum_tmp[0]
-        RNN.tensorOutput.b += momentum_tmp[1]
-        RNN.rnnUnfold.W += momentum_tmp[2]
-        RNN.rnnUnfold.b += momentum_tmp[3]
-        RNN.tensorInput.W += momentum_tmp[4]
-        RNN.tensorInput.b += momentum_tmp[5]
-        RNN.rnnUnfold.S0 += momentum_tmp[6]
-
-        grads = RNN.getGrads(X_mb, T_mb)
-        gWout, gBout, gWrec, gBrec, gWin, gBin, gS0 = grads
-        # update moving average
-        for i in range(len(vars)):
-            movingAvgSqr[i] = lmbd * movingAvgSqr[i] + (1-lmbd) * grads[i]**2
-
-        pGradNorms = [(learning_rate * grad) / np.sqrt(mvsqr) + eps
-            for grad, mvsqr in zip(grads, movingAvgSqr)]
-
-        # update momentums
-        for i in range(len(vars)):
-            momentums[i] = momentum_tmp[i] - pGradNorms[i]
-
-        RNN.tensorOutput.W -= pGradNorms[0]
-        RNN.tensorOutput.b -= pGradNorms[1]
-        RNN.rnnUnfold.W -= pGradNorms[2]
-        RNN.rnnUnfold.b -= pGradNorms[3]
-        RNN.tensorInput.W -= pGradNorms[4]
-        RNN.tensorInput.b -= pGradNorms[5]
-        RNN.rnnUnfold.S0 -= pGradNorms[6]
+        trainer.train(X_mb, T_mb)
 
         # Add loss to list to plot
-        ls_of_loss.append(loss(RNN.getOutput(X_mb), T_mb))
+        ls_of_loss.append(loss(RNN.connect(X_mb), T_mb))
+print('training time: {} seconds'.format(time.time() - start))
 
 # Plot the loss over the iterations
 fig = plt.figure(figsize=(5, 3))
@@ -338,7 +297,7 @@ plt.show()
 nb_test = 5
 Xtest, Ttest = create_dataset(nb_test, sequence_len)
 # Push test data through network
-Y = RNN.getBinaryOutput(Xtest)
+Y = np.around(RNN.connect(Xtest))
 
 # Print out all test examples
 for i in range(Xtest.shape[0]):

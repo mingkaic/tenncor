@@ -119,7 +119,7 @@ struct DBNTrainer final
 			auto vhv = rbm->backward_connect(rbm->connect(rx));
 			auto rcost = -tenncor::reduce_mean(
 				tenncor::reduce_sum_1d(rx * tenncor::log(vhv) +
-					(1.f - rx) * tenncor::log(1.f - vhv), 0));
+					((PybindT) 1 - rx) * tenncor::log((PybindT) 1 - vhv), 0));
 			rcosts_.push_back(rcost);
 			to_track.push_back(rcost->get_tensor());
 		}
@@ -162,7 +162,7 @@ struct DBNTrainer final
 		};
 		tcost_ = -tenncor::reduce_mean(tenncor::reduce_sum_1d(
 			eteq::convert_to_node(trainy_) * tenncor::log(final_out) +
-			(1.f - eteq::convert_to_node(trainy_)) * tenncor::log(1.f - final_out), 0));
+			((PybindT) 1 - eteq::convert_to_node(trainy_)) * tenncor::log((PybindT) 1 - final_out), 0));
 
 		train_sess_.track({
 			sample_pipes_.back()->get_tensor(),
