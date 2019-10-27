@@ -574,24 +574,6 @@ TEST(API, Sigmoid)
 }
 
 
-TEST(API, SigmoidGrad)
-{
-	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::sigmoid_grad(a); },
-		[](double d)
-		{
-			double sig = 1 / (1 + std::exp(-d));
-			return sig * (1 - sig);
-		},
-		[](double d)
-		{
-			double sig = 1 / (1 + std::exp(-d));
-			double sig_grad = sig * (1 - sig);
-			return sig_grad * (1 - 2 * sig);
-		});
-}
-
-
 TEST(API, Tanh)
 {
 	unary_elementary(

@@ -12,7 +12,6 @@ opcode:
     SQRT: out = eteq::sqrt(shape,in[0]);
     ROUND: out = eteq::round(shape,in[0]);
     SIGMOID: out = eteq::sigmoid(shape,in[0]);
-    SIGMOID_GRAD: out = eteq::sigmoid_grad(shape,in[0]);
     TANH: out = eteq::tanh(shape,in[0]);
     SQUARE: out = eteq::square(shape,in[0]);
     CUBE: out = eteq::cube(shape,in[0]);
@@ -137,14 +136,6 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"SIGMOID",::egen::SIGMOID},{eteq::identity_map(arg)});
-      - template: typename T
-        name: sigmoid_grad
-        args:
-        - dtype: eteq::NodeptrT<T>
-          name: arg
-        out:
-          type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"SIGMOID_GRAD",::egen::SIGMOID_GRAD},{eteq::identity_map(arg)});
       - template: typename T
         name: tanh
         args:

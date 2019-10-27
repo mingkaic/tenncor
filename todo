@@ -32,7 +32,6 @@ P4 - implement reduce_prod gradient using Eigen cumprod
    - create global context for setting local logger
    - fix variable assignment in pybind11 code sections to error if py::array is not numpy
    - use https://github.com/pybind/pybind11_bazel
-   - remove sigmoid_grad from non-compound operations
 P2 - unify pybind11 utility functions
 P2 - provide graph-setup time summary when failing to match shapes
 P4 - add even more debugging tools

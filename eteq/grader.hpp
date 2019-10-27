@@ -155,12 +155,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				out = (T) 3 * tenncor::square(to_node<T>(args[0].get_tensor()));
 				break;
 			case egen::SIGMOID:
-				out = tenncor::sigmoid_grad(
-					to_node<T>(args[0].get_tensor()));
-				break;
-			case egen::SIGMOID_GRAD:
-				out = to_node<T>(op) * ((T) 1 - (T) 2 *
-					tenncor::sigmoid(to_node<T>(args[0].get_tensor())));
+				out = to_node<T>(op) * ((T) 1 - to_node<T>(op));
 				break;
 			case egen::TANH:
 				out = (T) 1 - tenncor::square(to_node<T>(op));
@@ -361,7 +356,6 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::CUBE:
 			case egen::ROUND:
 			case egen::SIGMOID:
-			case egen::SIGMOID_GRAD:
 			case egen::TANH:
 			case egen::ADD:
 			case egen::MUL:

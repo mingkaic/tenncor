@@ -706,46 +706,6 @@ EigenptrT<T> sigmoid (teq::Shape& outshape, const OpArg<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> sigmoid_grad (teq::Shape& outshape, const OpArg<T>& in)
-{
-	if (is_2d(outshape))
-	{
-		// use matrix when possible
-		return make_eigenmatrix<T,
-			Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<T>,
-				const Eigen::CwiseUnaryOp<Eigen::internal::scalar_logistic_op<T>,
-					const MatMapT<T>>,
-				const Eigen::CwiseUnaryOp<Eigen::internal::bind1st_op<
-					Eigen::internal::scalar_difference_op<T>>,
-					const Eigen::CwiseUnaryOp<Eigen::internal::scalar_logistic_op<T>,
-						const MatMapT<T>>>>,
-			MatMapT<T>>(shape_convert(outshape),
-			make_matmap(in.data_, in.shape_),
-			[](MatMapT<T>& in)
-			{
-				auto out = in.unaryExpr(Eigen::internal::scalar_logistic_op<T>());
-				return out.cwiseProduct(out.unaryExpr(
-					Eigen::internal::bind1st_op<Eigen::internal::scalar_difference_op<T>>(1)));
-			});
-	}
-	return make_eigentensor<T,
-		Eigen::TensorCwiseBinaryOp<Eigen::internal::scalar_product_op<T>,
-			const Eigen::TensorCwiseUnaryOp<Eigen::internal::scalar_logistic_op<T>,
-				const TensMapT<T>>,
-			const Eigen::TensorCwiseUnaryOp<Eigen::internal::bind1st_op<
-				Eigen::internal::scalar_difference_op<T>>,
-				const Eigen::TensorCwiseUnaryOp<Eigen::internal::scalar_logistic_op<T>,
-					const TensMapT<T>>>>,
-		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap(in.data_, in.shape_),
-		[](TensMapT<T>& in)
-		{
-			auto out = in.sigmoid();
-			return out * (1 - out);
-		});
-}
-
-template <typename T>
 EigenptrT<T> tanh (teq::Shape& outshape, const OpArg<T>& in)
 {
 	if (is_2d(outshape))
