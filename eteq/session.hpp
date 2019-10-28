@@ -53,7 +53,7 @@ struct Session final : public iSession
 		tracked_.insert(roots.begin(), roots.end());
 
 		teq::GraphStat stat;
-		for (teq::TensptrT& root : roots)
+		for (const teq::TensptrT& root : tracked_)
 		{
 			root->accept(stat);
 		}
