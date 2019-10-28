@@ -303,14 +303,12 @@ class RnnTrainer2(object):
         self.sess = eteq.Session()
         self.inputX = eteq.Variable(Xshape)
         self.expectY = eteq.Variable(Yshape)
-        self.recIn, self.S, self.Y = self.rnn.full_connect(self.inputX)
-        self.sess.track([self.recIn, self.S, self.Y])
-
-        self.grads = self.rnn.backward_connect(self.inputX, self.Y, self.recIn, self.rnn.rnnUnfold.state0, self.S, self.expectY)
-        self.sess.track(self.grads)
+        recIn, S, self.Y = self.rnn.full_connect(self.inputX)
+        self.grads = self.rnn.backward_connect(self.inputX, self.Y,
+            recIn, self.rnn.rnnUnfold.state0, S, self.expectY)
 
         self.error = loss(self.Y, self.expectY)
-        self.sess.track([self.error])
+        self.sess.track(list(self.grads) + [self.error])
 
     def train(self, X, T):
         learning_rate, momentum_term, lmbd, eps = self.params
@@ -321,13 +319,8 @@ class RnnTrainer2(object):
 
         self.inputX.assign(X)
         self.expectY.assign(T)
-        self.sess.update_target([self.recIn, self.S, self.Y])
-        States = np.zeros([100, 8, 3])
-        States[:,0,:] = self.rnn.rnnUnfold.state0.get()
-        States[:,1:,:] = self.S.get()
-        grads = self.rnn.backward(X, self.Y.get(), self.recIn.get(), States, T)
-        # self.sess.update_target(self.grads)
-        # grads = [grad.get() for grad in self.grads]
+        self.sess.update_target(self.grads)
+        grads = [grad.get() for grad in self.grads]
 
         # update moving average
         for i in range(len(self.vars)):
