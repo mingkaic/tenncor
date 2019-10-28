@@ -528,7 +528,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					// convolve(pad(C_grad_sup, Y.shape[dims]-1), reverse(Y))
 					teq::RankT ndims = dims.size();
 					teq::Shape kernshape = args[1].get_tensor()->shape();
-					eteq::PairVecT<teq::DimT> paddings(teq::rank_cap, {0, 0});
+					PairVecT<teq::DimT> paddings(teq::rank_cap, {0, 0});
 					for (teq::RankT i = 0; i < ndims; ++i)
 					{
 						teq::DimT kpad = kernshape.at(i) - 1;

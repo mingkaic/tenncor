@@ -1255,17 +1255,6 @@ using ContractionRetT = Eigen::TensorReshapingOp<
 template <typename T>
 EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 {
-	if (is_2d(outshape))
-	{
-		return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap(a.data_, a.shape_),
-				make_matmap(b.data_, b.shape_)},
-			[](std::vector<MatMapT<T>>& args)
-			{
-				return args[0] * args[1];
-			});
-	}
 	assert(nullptr != a.coorder_);
 	std::vector<std::pair<teq::RankT,teq::RankT>> dims;
 	a.coorder_->access(
@@ -1281,6 +1270,18 @@ EigenptrT<T> matmul (teq::Shape& outshape, const OpArg<T>& a, const OpArg<T>& b)
 	if (dims.empty())
 	{
 		logs::fatal("cannot contract tensors without specified dimensions");
+	}
+	if (is_2d(a.shape_) && is_2d(b.shape_) &&
+		dims.size() == 1 && dims[0].first == 1 && dims[0].second == 0)
+	{
+		return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
+			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+				make_matmap(a.data_, a.shape_),
+				make_matmap(b.data_, b.shape_)},
+			[](std::vector<MatMapT<T>>& args)
+			{
+				return args[0] * args[1];
+			});
 	}
 	DimensionsT outdims = shape_convert(outshape);
 	std::vector<TensMapT<T>> args = {
