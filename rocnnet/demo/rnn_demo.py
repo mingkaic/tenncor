@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt  # Plotting library
 np.random.seed(seed=1)
 
 def cross_entropy_loss(Y, T):
-    epsilon = 1e-5
+    epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq
     leftY = Y + epsilon
     rightT = 1 - Y + epsilon
     return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
@@ -232,57 +232,6 @@ class RnnBinaryAdder(object): # !new layer: horizontal model
             self.classifier.get_contents()\
 
 class RnnTrainer(object):
-    def __init__(self, rnn, sess, Xs, Ys, learning_rate, momentum_term, lmbd):
-        self.err = loss(rnn.connect(Xs), Ys)
-
-        iW, ib,\
-        s0, ufW, ufb, _,\
-        oW, ob, _ = tuple(rnn.get_contents())
-
-        vargrad =  [
-            (s0, eteq.derive(self.err, s0)),
-            (iW, eteq.derive(self.err, iW)),
-            (ib, eteq.derive(self.err, ib)),
-            (ufW, eteq.derive(self.err, ufW)),
-            (ufb, eteq.derive(self.err, ufb)),
-            (oW, eteq.derive(self.err, oW)),
-            (ob, eteq.derive(self.err, ob))]
-
-        # apply rms prop optimization
-        self.assignments = ([], [])
-        to_track = [self.err]
-        for target, grad in vargrad:
-            momentum = eteq.Variable(target.shape(), scalar=0)
-            movingAverage = eteq.Variable(target.shape(), scalar=0)
-
-            # group 1
-            momentum_incr = momentum * momentum_term
-
-            target_incr = target + momentum_incr
-            self.assignments[0].append((target, target_incr))
-
-            # group 2
-            nextMovingAverage = lmbd * movingAverage + (1-lmbd) * tc.pow(grad, 2)
-            pGradNorm = (learning_rate * grad) / tc.sqrt(nextMovingAverage) + eps
-            next_momentum = momentum_incr - pGradNorm
-            nextTarget = target - pGradNorm
-
-            self.assignments[1].append((movingAverage, nextMovingAverage))
-            self.assignments[1].append((momentum, next_momentum))
-            self.assignments[1].append((target, nextTarget))
-            to_track += [target_incr, nextMovingAverage, next_momentum, nextTarget]
-
-        sess.track(to_track)
-
-    def train(self, sess):
-        for group in self.assignments:
-            sources = [source for _, source in group]
-            sess.update_target(sources)
-
-            for target, source in group:
-                target.assign(source.get())
-
-class RnnTrainer2(object):
     def __init__(self, rnn, Xshape, Yshape, learning_rate, momentum_term, lmbd, eps):
         self.rnn = rnn
 
@@ -303,12 +252,17 @@ class RnnTrainer2(object):
         self.sess = eteq.Session()
         self.inputX = eteq.Variable(Xshape)
         self.expectY = eteq.Variable(Yshape)
-        recIn, S, self.Y = self.rnn.full_connect(self.inputX)
-        self.grads = self.rnn.backward_connect(self.inputX, self.Y,
-            recIn, self.rnn.rnnUnfold.state0, S, self.expectY)
 
-        self.error = loss(self.Y, self.expectY)
+        # recIn, S, self.Y = self.rnn.full_connect(self.inputX)
+        # self.grads = self.rnn.backward_connect(self.inputX, self.Y,
+        #     recIn, self.rnn.rnnUnfold.state0, S, self.expectY)
+
+        _, _, Y = self.rnn.full_connect(self.inputX)
+        self.error = loss(Y, self.expectY)
+        self.grads =  [eteq.derive(self.error, var) for var in self.vars]
+
         self.sess.track(list(self.grads) + [self.error])
+        self.sess.optimize("cfg/optimizations.rules")
 
     def train(self, X, T):
         learning_rate, momentum_term, lmbd, eps = self.params
@@ -322,6 +276,7 @@ class RnnTrainer2(object):
         self.sess.update_target(self.grads)
         grads = [grad.get() for grad in self.grads]
 
+        # apply rms prop optimization
         # update moving average
         for i in range(len(self.vars)):
             self.movingAvgSqr[i] = lmbd * self.movingAvgSqr[i] + (1-lmbd) * grads[i]**2
@@ -374,9 +329,7 @@ sess = eteq.Session()
 train_Xs = eteq.Variable([mb_size, sequence_len, 2])
 train_Ys = eteq.Variable([mb_size, sequence_len, 1])
 
-trainer_bad = RnnTrainer(RNN, sess, train_Xs, train_Ys,
-    learning_rate, momentum_term, lmbd)
-trainer = RnnTrainer2(RNN, train_Xs.shape(), train_Ys.shape(),
+trainer = RnnTrainer(RNN, train_Xs.shape(), train_Ys.shape(),
     learning_rate, momentum_term, lmbd, eps)
 
 test_Xs = eteq.Variable([nb_test, sequence_len, 2])
