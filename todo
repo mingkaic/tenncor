@@ -19,6 +19,8 @@ P2 - improve convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
 
 === feature ===
+P1 - improve layr parameter serialization
+   - make dense contract dimensions configurable
 P2 - attach onnx support to pbm (https://github.com/onnx/onnx)
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
@@ -42,6 +44,9 @@ P4 - conform to some bazel style/convention (or change to another build tool)
 P4 - investigate adopting more of boost in place of cppkg
 P5 - refactor, and rename variables to improve readability
 P5 - formalize codestyle
+
+=== bug fix ===
+   - optimization fails when functor is initialized on construction
 
 === performance ===
 P3 - improve ccur module

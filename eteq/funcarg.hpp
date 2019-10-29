@@ -201,10 +201,11 @@ FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 {
 	if (extents.size() > teq::rank_cap)
 	{
+		PairVecT<int> readable_extents(extents.begin(), extents.end());
 		logs::fatalf(
 			"cannot slice dimensions beyond rank_cap %d: using extent %s",
 			teq::rank_cap,
-			fmts::to_string(extents.begin(), extents.end()).c_str());
+			fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
 	}
 	teq::Shape shape = node->shape();
 	teq::CoordT offsets;
@@ -215,8 +216,9 @@ FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 		auto& ex = extents[i];
 		if (ex.second < 1)
 		{
+			PairVecT<int> readable_extents(extents.begin(), extents.end());
 			logs::fatalf("cannot extend zero slices: extents %s",
-				fmts::to_string(extents.begin(), extents.end()).c_str());
+				fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
 		}
 		teq::DimT offset = std::min(ex.first, (teq::DimT) (shape.at(i) - 1));
 		offsets[i] = offset;
@@ -257,10 +259,11 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 {
 	if (paddings.size() > teq::rank_cap)
 	{
+		PairVecT<int> readable_paddings(paddings.begin(), paddings.end());
 		logs::fatalf(
 			"cannot pad dimensions beyond rank_cap %d: using paddings %s",
 			teq::rank_cap,
-			fmts::to_string(paddings.begin(), paddings.end()).c_str());
+			fmts::to_string(readable_paddings.begin(), readable_paddings.end()).c_str());
 	}
 	return FuncArg<T>(node,
 		std::make_shared<teq::CoordMap>(
@@ -502,14 +505,16 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 	{
 		if (ashape.at(coms.first) != bshape.at(coms.second))
 		{
+			PairVecT<int> readable_dims(dims.begin(), dims.end());
 			logs::fatalf("invalid shapes %s and %s do not match common dimensions %s",
 				ashape.to_string().c_str(), bshape.to_string().c_str(),
-				fmts::to_string(dims.begin(), dims.end()).c_str());
+				fmts::to_string(readable_dims.begin(), readable_dims.end()).c_str());
 		}
 		if (avisit[coms.first] || bvisit[coms.second])
 		{
+			PairVecT<int> readable_dims(dims.begin(), dims.end());
 			logs::fatalf("contraction dimensions %s must be unique for each side",
-				fmts::to_string(dims.begin(), dims.end()).c_str());
+				fmts::to_string(readable_dims.begin(), readable_dims.end()).c_str());
 		}
 		avisit[coms.first] = bvisit[coms.second] = true;
 	}
