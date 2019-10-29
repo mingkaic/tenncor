@@ -28,6 +28,9 @@ P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === transparency/code readability ===
+   - generate value-range graph to automatically detect erroneous operators
+      - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
+      - this graph can help developers quickly identifies unstable nodes
    - upgrade pygen to support multiline comments in API
    - create global context for setting local logger
    - fix variable assignment in pybind11 code sections to error if py::array is not numpy
@@ -44,6 +47,7 @@ P5 - formalize codestyle
 P3 - improve ccur module
 
 run-time performance:
+   - implement group sum and group prod using EigenAssignTens
    - make eigen device configurable
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - implement GPU settings

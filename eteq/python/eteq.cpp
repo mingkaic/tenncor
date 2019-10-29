@@ -57,7 +57,9 @@ PYBIND11_MODULE(eteq, m)
 			[](teq::Shape& shape, size_t idx) { return shape.at(idx); },
 			py::is_operator())
 		.def("n_elems",
-			[](teq::Shape& shape) { return shape.n_elems(); });
+			[](teq::Shape& shape) { return shape.n_elems(); })
+		.def("as_list",
+			[](teq::Shape& shape) { return pyutils::c2pshape(shape); });
 
 	sarr
 		.def(py::init(
