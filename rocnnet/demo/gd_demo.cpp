@@ -91,10 +91,12 @@ int main (int argc, const char** argv)
 
 	layr::SequentialModel model("demo");
 	model.push_back(std::make_shared<layr::Dense>(9, n_in,
-		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>(), "0"));
+		layr::unif_xavier_init<PybindT>(1),
+		layr::zero_init<PybindT>(), nullptr, "0"));
 	model.push_back(layr::sigmoid());
 	model.push_back(std::make_shared<layr::Dense>(n_out, 9,
-		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>(), "1"));
+		layr::unif_xavier_init<PybindT>(1),
+		layr::zero_init<PybindT>(), nullptr, "1"));
 	model.push_back(layr::sigmoid());
 
 	layr::SequentialModel untrained_model(model);

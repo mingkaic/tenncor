@@ -63,7 +63,7 @@ struct RBM final : public iLayer
 		const std::string& label) :
 		label_(label),
 		hidden_(std::make_shared<Dense>(
-			nhidden, nvisible, weight_init, bias_init, hidden_key)),
+			nhidden, nvisible, weight_init, bias_init, nullptr, hidden_key)),
 		activation_(activation)
 	{
 		auto hidden_contents = hidden_->get_contents();
@@ -76,7 +76,7 @@ struct RBM final : public iLayer
 			vbias = bias_init(teq::Shape({nvisible}), dense_bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			eteq::to_node<PybindT>(weight)), vbias, visible_key);
+			eteq::to_node<PybindT>(weight)), vbias, nullptr, visible_key);
 		tag_sublayers();
 	}
 
@@ -204,13 +204,16 @@ private:
 		hidden_ = DenseptrT(other.hidden_->clone(label_prefix));
 		auto hidden_contents = hidden_->get_contents();
 		NodeptrT vbias_node = nullptr;
-		if (auto vbias = other.visible_->get_contents()[1])
+		auto other_vis_contents = other.visible_->get_contents();
+		if (auto vbias = other_vis_contents[1])
 		{
 			vbias_node = NodeptrT(eteq::to_node<PybindT>(vbias)->clone());
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
 			eteq::to_node<PybindT>(hidden_contents[0])),
-			vbias_node, label_prefix + visible_key);
+			vbias_node, NodeptrT(other_vis_contents[2] == nullptr ? nullptr :
+				eteq::to_node<PybindT>(other_vis_contents[2])->clone()),
+			label_prefix + visible_key);
 
 		activation_ = UnaryptrT(other.activation_->clone(label_prefix));
 		tag_sublayers();

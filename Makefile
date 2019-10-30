@@ -35,6 +35,25 @@ rocnnet_py_export: bazel-bin/rocnnet/rocnnet.so bazel-bin/eteq/tenncor.so bazel-
 	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
 
 
+model_jsonupdate: model_jsongd model_jsondqn model_jsonrbm model_jsondbn
+
+model_jsongd: models/gdmodel.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/gdmodel.pbx --write /tmp/gdmodel.json
+	mv /tmp/gdmodel.json models
+
+model_jsondqn: models/dqnmodel.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/dqnmodel.pbx --write /tmp/dqnmodel.json
+	mv /tmp/dqnmodel.json models
+
+model_jsonrbm: models/rbmmodel.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/rbmmodel.pbx --write /tmp/rbmmodel.json
+	mv /tmp/rbmmodel.json models
+
+model_jsondbn: models/dbnmodel.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/dbnmodel.pbx --write /tmp/dbnmodel.json
+	mv /tmp/dbnmodel.json models
+
+
 coverage:
 	$(CCOVER) $(TEQ_TEST) $(TAG_TEST) $(PBM_TEST) $(OPT_TEST) $(ETEQ_CTEST) $(CCUR_TEST) $(LAYR_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
@@ -107,3 +126,4 @@ lcov_teq: cover_teq cov_clean
 .PHONY: coverage cover_ccur cover_eteq cover_layr cover_opt cover_pbm cover_tag cover_teq
 .PHONY: compare_matmul compare_mlp compare_mlp_grad cov_clean cov_genhtml
 .PHONY: lcov lcov_ccur lcov_eteq lcov_layr lcov_opt lcov_pbm lcov_tag lcov_teq
+.PHONY: model_jsonupdate model_jsongd model_jsondqn model_jsonrbm model_jsondbn

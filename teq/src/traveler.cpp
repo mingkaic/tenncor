@@ -31,8 +31,11 @@ OwnerMapT track_owners (TensptrsT roots)
 	OwnerTracker tracker;
 	for (auto root : roots)
 	{
-		root->accept(tracker);
-		tracker.owners_.emplace(root.get(), root);
+		if (nullptr != root)
+		{
+			root->accept(tracker);
+			tracker.owners_.emplace(root.get(), root);
+		}
 	}
 	return tracker.owners_;
 }

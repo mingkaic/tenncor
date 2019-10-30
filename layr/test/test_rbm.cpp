@@ -55,15 +55,15 @@ TEST(RBM, Copy)
 	auto gonobias = cpyn.get_contents();
 
 	ASSERT_EQ(exrbm.size(), gotrbm.size());
-	ASSERT_EQ(5, gotrbm.size());
+	ASSERT_EQ(7, gotrbm.size());
 	ASSERT_EQ(exrrbm.size(), gotrrbm.size());
-	ASSERT_EQ(5, gotrrbm.size());
+	ASSERT_EQ(7, gotrrbm.size());
 	ASSERT_EQ(exnobias.size(), gonobias.size());
-	ASSERT_EQ(5, gonobias.size());
+	ASSERT_EQ(7, gonobias.size());
 
 	ASSERT_NE(exrbm[0], gotrbm[0]);
 	ASSERT_NE(exrbm[1], gotrbm[1]);
-	ASSERT_NE(exrbm[3], gotrbm[3]);
+	ASSERT_NE(exrbm[4], gotrbm[4]);
 	EXPECT_STREQ(
 		layr::dense_weight_key.c_str(),
 		gotrbm[0]->to_string().c_str());
@@ -72,14 +72,14 @@ TEST(RBM, Copy)
 		gotrbm[1]->to_string().c_str());
 	EXPECT_STREQ(
 		layr::dense_bias_key.c_str(),
-		gotrbm[3]->to_string().c_str());
+		gotrbm[4]->to_string().c_str());
 	EXPECT_TENSDATA(exrbm[0].get(), gotrbm[0].get(), PybindT);
 	EXPECT_TENSDATA(exrbm[1].get(), gotrbm[1].get(), PybindT);
-	EXPECT_TENSDATA(exrbm[3].get(), gotrbm[3].get(), PybindT);
+	EXPECT_TENSDATA(exrbm[4].get(), gotrbm[4].get(), PybindT);
 
 	ASSERT_NE(exrrbm[0], gotrrbm[0]);
 	ASSERT_NE(exrrbm[1], gotrrbm[1]);
-	ASSERT_NE(exrrbm[3], gotrrbm[3]);
+	ASSERT_NE(exrrbm[4], gotrrbm[4]);
 	EXPECT_STREQ(
 		layr::dense_weight_key.c_str(),
 		gotrrbm[0]->to_string().c_str());
@@ -88,16 +88,16 @@ TEST(RBM, Copy)
 		gotrrbm[1]->to_string().c_str());
 	EXPECT_STREQ(
 		layr::dense_bias_key.c_str(),
-		gotrrbm[3]->to_string().c_str());
+		gotrrbm[4]->to_string().c_str());
 	EXPECT_TENSDATA(exrrbm[0].get(), gotrrbm[0].get(), PybindT);
 	EXPECT_TENSDATA(exrrbm[1].get(), gotrrbm[1].get(), PybindT);
-	EXPECT_TENSDATA(exrrbm[3].get(), gotrrbm[3].get(), PybindT);
+	EXPECT_TENSDATA(exrrbm[4].get(), gotrrbm[4].get(), PybindT);
 
 	ASSERT_NE(exnobias[0], gonobias[0]);
 	ASSERT_EQ(exnobias[1], gonobias[1]);
-	ASSERT_EQ(exnobias[3], gonobias[3]);
+	ASSERT_EQ(exnobias[4], gonobias[4]);
 	ASSERT_EQ(nullptr, gonobias[1]);
-	ASSERT_EQ(nullptr, gonobias[3]);
+	ASSERT_EQ(nullptr, gonobias[4]);
 	EXPECT_STREQ(
 		layr::dense_weight_key.c_str(),
 		gonobias[0]->to_string().c_str());
@@ -189,25 +189,25 @@ TEST(RBM, Move)
 	auto gonobias = mvn.get_contents();
 
 	ASSERT_EQ(exrbm.size(), gotrbm.size());
-	ASSERT_EQ(5, gotrbm.size());
+	ASSERT_EQ(7, gotrbm.size());
 	ASSERT_EQ(exrrbm.size(), gotrrbm.size());
-	ASSERT_EQ(5, gotrrbm.size());
+	ASSERT_EQ(7, gotrrbm.size());
 	ASSERT_EQ(exnobias.size(), gonobias.size());
-	ASSERT_EQ(5, gonobias.size());
+	ASSERT_EQ(7, gonobias.size());
 
 	ASSERT_EQ(exrbm[0], gotrbm[0]);
 	ASSERT_EQ(exrbm[1], gotrbm[1]);
-	ASSERT_EQ(exrbm[3], gotrbm[3]);
+	ASSERT_EQ(exrbm[4], gotrbm[4]);
 
 	ASSERT_EQ(exrrbm[0], gotrrbm[0]);
 	ASSERT_EQ(exrrbm[1], gotrrbm[1]);
-	ASSERT_EQ(exrrbm[3], gotrrbm[3]);
+	ASSERT_EQ(exrrbm[4], gotrrbm[4]);
 
 	ASSERT_EQ(exnobias[0], gonobias[0]);
 	ASSERT_EQ(nullptr, exnobias[1]);
 	ASSERT_EQ(nullptr, gonobias[1]);
-	ASSERT_EQ(nullptr, exnobias[3]);
-	ASSERT_EQ(nullptr, gonobias[3]);
+	ASSERT_EQ(nullptr, exnobias[4]);
+	ASSERT_EQ(nullptr, gonobias[4]);
 }
 
 
@@ -306,10 +306,10 @@ TEST(RBM, Tagging)
 
 	auto contents = rbm.get_contents();
 	// expect contents to be tagged
-	ASSERT_EQ(5, contents.size());
+	ASSERT_EQ(7, contents.size());
 
 	auto& reg = tag::get_reg();
-	auto perm = contents[2];
+	auto perm = contents[3];
 	EXPECT_GRAPHEQ(
 		"(PERMUTE[6\\5\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])",
@@ -317,8 +317,8 @@ TEST(RBM, Tagging)
 	auto weight_tags = reg.get_tags(contents[0].get());
 	auto hbias_tags = reg.get_tags(contents[1].get());
 	auto perm_tags = reg.get_tags(perm.get());
-	auto vbias_tags = reg.get_tags(contents[3].get());
-	auto sig_tags = reg.get_tags(contents[4].get());
+	auto vbias_tags = reg.get_tags(contents[4].get());
+	auto sig_tags = reg.get_tags(contents[6].get());
 
 	EXPECT_EQ(2, weight_tags.size());
 	EXPECT_EQ(2, hbias_tags.size());
@@ -370,7 +370,7 @@ TEST(RBM, Tagging)
 	EXPECT_STREQ("hidden::bias:0", hbias_labels[0].c_str());
 	EXPECT_STREQ("visible::weight:0", perm_labels[0].c_str());
 	EXPECT_STREQ("visible::bias:0", vbias_labels[0].c_str());
-	EXPECT_STREQ(":::0", sig_labels[0].c_str());
+	EXPECT_STREQ("::uparam:0", sig_labels[0].c_str());
 
 	auto sig_properties = sig_tags[tag::props_key];
 	ASSERT_EQ(1, sig_properties.size());

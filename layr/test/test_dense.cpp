@@ -19,14 +19,17 @@ TEST(DENSE, Copy)
 	layr::Dense dense(4, 5,
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
+		nullptr,
 		label);
 	layr::Dense rdense(5, 6,
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
+		nullptr,
 		rlabel);
 	layr::Dense nobias(6, 7,
 		layr::unif_xavier_init<PybindT>(3),
 		layr::InitF<PybindT>(),
+		nullptr,
 		nb_label);
 
 	auto exdense = dense.get_contents();
@@ -54,14 +57,16 @@ TEST(DENSE, Copy)
 	auto gonobias = cpyn.get_contents();
 
 	ASSERT_EQ(exdense.size(), gotdense.size());
-	ASSERT_EQ(2, gotdense.size());
+	ASSERT_EQ(3, gotdense.size());
 	ASSERT_EQ(exrdense.size(), gotrdense.size());
-	ASSERT_EQ(2, gotrdense.size());
+	ASSERT_EQ(3, gotrdense.size());
 	ASSERT_EQ(exnobias.size(), gonobias.size());
-	ASSERT_EQ(2, gonobias.size());
+	ASSERT_EQ(3, gonobias.size());
 
 	ASSERT_NE(exdense[0], gotdense[0]);
 	ASSERT_NE(exdense[1], gotdense[1]);
+	EXPECT_EQ(exdense[2], gotdense[2]);
+	EXPECT_EQ(nullptr, gotdense[2]);
 	EXPECT_STREQ(
 		layr::dense_weight_key.c_str(),
 		gotdense[0]->to_string().c_str());
@@ -73,6 +78,8 @@ TEST(DENSE, Copy)
 
 	ASSERT_NE(exrdense[0], gotrdense[0]);
 	ASSERT_NE(exrdense[1], gotrdense[1]);
+	EXPECT_EQ(exrdense[2], gotrdense[2]);
+	EXPECT_EQ(nullptr, gotrdense[2]);
 	EXPECT_STREQ(
 		layr::dense_weight_key.c_str(),
 		gotrdense[0]->to_string().c_str());
@@ -84,7 +91,9 @@ TEST(DENSE, Copy)
 
 	ASSERT_NE(exnobias[0], gonobias[0]);
 	ASSERT_EQ(exnobias[1], gonobias[1]);
+	EXPECT_EQ(gonobias[2], gonobias[2]);
 	ASSERT_EQ(nullptr, gonobias[1]);
+	EXPECT_EQ(nullptr, gonobias[2]);
 	EXPECT_STREQ(
 		layr::dense_weight_key.c_str(),
 		gonobias[0]->to_string().c_str());
@@ -100,14 +109,17 @@ TEST(DENSE, Clone)
 	layr::Dense dense(4, 5,
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
+		nullptr,
 		label);
 	layr::Dense rdense(5, 6,
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
+		nullptr,
 		rlabel);
 	layr::Dense nobias(6, 7,
 		layr::unif_xavier_init<PybindT>(3),
 		layr::InitF<PybindT>(),
+		nullptr,
 		nb_label);
 
 	layr::Dense* cpyd = dense.clone("ghi");
@@ -132,14 +144,17 @@ TEST(DENSE, Move)
 	layr::Dense dense(4, 5,
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
+		nullptr,
 		label);
 	layr::Dense rdense(5, 6,
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
+		nullptr,
 		rlabel);
 	layr::Dense nobias(6, 7,
 		layr::unif_xavier_init<PybindT>(3),
 		layr::InitF<PybindT>(),
+		nullptr,
 		nb_label);
 
 	auto exdense = dense.get_contents();
@@ -170,21 +185,25 @@ TEST(DENSE, Move)
 	auto gonobias = mvn.get_contents();
 
 	ASSERT_EQ(exdense.size(), gotdense.size());
-	ASSERT_EQ(2, gotdense.size());
+	ASSERT_EQ(3, gotdense.size());
 	ASSERT_EQ(exrdense.size(), gotrdense.size());
-	ASSERT_EQ(2, gotrdense.size());
+	ASSERT_EQ(3, gotrdense.size());
 	ASSERT_EQ(exnobias.size(), gonobias.size());
-	ASSERT_EQ(2, gonobias.size());
+	ASSERT_EQ(3, gonobias.size());
 
 	ASSERT_EQ(exdense[0], gotdense[0]);
 	ASSERT_EQ(exdense[1], gotdense[1]);
+	EXPECT_EQ(exdense[2], gotdense[2]);
 
 	ASSERT_EQ(exrdense[0], gotrdense[0]);
 	ASSERT_EQ(exrdense[1], gotrdense[1]);
+	EXPECT_EQ(exrdense[2], gotrdense[2]);
 
 	ASSERT_EQ(exnobias[0], gonobias[0]);
 	ASSERT_EQ(nullptr, exnobias[1]);
 	ASSERT_EQ(nullptr, gonobias[1]);
+	EXPECT_EQ(nullptr, exnobias[2]);
+	EXPECT_EQ(nullptr, gonobias[2]);
 }
 
 
@@ -195,10 +214,12 @@ TEST(DENSE, Connection)
 	layr::Dense rdense(5, 6,
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
+		nullptr,
 		rlabel);
 	layr::Dense nobias(6, 7,
 		layr::unif_xavier_init<PybindT>(3),
 		layr::InitF<PybindT>(),
+		nullptr,
 		nb_label);
 
 	auto x = eteq::make_variable_scalar<PybindT>(
@@ -231,11 +252,12 @@ TEST(DENSE, Tagging)
 	layr::Dense dense(5, 6,
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
+		nullptr,
 		label);
 
 	auto contents = dense.get_contents();
 	// expect contents to be tagged
-	ASSERT_EQ(2, contents.size());
+	ASSERT_EQ(3, contents.size());
 
 	auto& reg = tag::get_reg();
 	auto weight_tags = reg.get_tags(contents[0].get());
@@ -263,6 +285,7 @@ TEST(DENSE, ConnectionTagging)
 	layr::Dense dense(5, 6,
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
+		nullptr,
 		label);
 
 	auto x = eteq::make_variable_scalar<PybindT>(
@@ -352,12 +375,15 @@ TEST(DENSE, Building)
 		layr::Dense dense(noutput, ninput,
 			layr::unif_xavier_init<PybindT>(2),
 			layr::unif_xavier_init<PybindT>(4),
+			nullptr,
 			label);
 
 		auto contents = dense.get_contents();
-		ASSERT_EQ(2, contents.size());
+		ASSERT_EQ(3, contents.size());
 		auto weight = contents[0];
 		auto bias = contents[1];
+		auto params = contents[2];
+		ASSERT_EQ(nullptr, params);
 		PybindT* w = eteq::to_node<PybindT>(weight)->data();
 		PybindT* b = eteq::to_node<PybindT>(bias)->data();
 		weight_data = std::vector<PybindT>(w, w + weight->shape().n_elems());
@@ -379,7 +405,7 @@ TEST(DENSE, Building)
 
 		// verify layer
 		auto contents = dense->get_contents();
-		ASSERT_EQ(2, contents.size());
+		ASSERT_EQ(3, contents.size());
 		auto weight = contents[0];
 		auto bias = contents[1];
 		teq::Shape exwshape({noutput, ninput});

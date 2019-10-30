@@ -45,10 +45,11 @@ struct LayerId final
 	/// <raw label>:<sublayer type>:<sublayer label>:<sublayer index>
 	std::string to_string (std::string label) const
 	{
-		return fmts::sprintf("%s%c%s%c%s%c%d",
-			label.c_str(), llabel_sep,
-			type_.c_str(), llabel_sep,
-			label_.c_str(), llabel_sep,
+		return fmts::sprintf("%2$s%1$c%3$s%1$c%4$s%1$c%5$d",
+			llabel_sep,
+			label.c_str(),
+			type_.c_str(),
+			label_.c_str(),
 			index_);
 	}
 

@@ -154,8 +154,11 @@ struct SequentialModel final : public iLayer
 		auto subs = layer->get_contents();
 		for (auto& sub : subs)
 		{
-			tag(sub, LayerId(layer->get_ltype(),
-				layer->get_label(), layers_.size()));
+			if (nullptr != sub)
+			{
+				tag(sub, LayerId(layer->get_ltype(),
+					layer->get_label(), layers_.size()));
+			}
 		}
 
 		layers_.push_back(layer);

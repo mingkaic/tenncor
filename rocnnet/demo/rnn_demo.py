@@ -97,7 +97,8 @@ class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
         return tc.concat(states[1:], 1)
 
     def get_contents(self):
-        return [self.state0] + self.linear.get_contents() + self.tanh.get_contents()
+        w, b, _ = tuple(self.linear.get_contents())
+        return [self.state0] + [w, b] + self.tanh.get_contents()
 
 # Define the full network
 class RnnBinaryAdder(object): # !new layer: horizontal model
@@ -120,20 +121,21 @@ class RnnBinaryAdder(object): # !new layer: horizontal model
         return Y
 
     def get_contents(self):
-        return self.tensorInput.get_contents() +\
+        winp, binp, _ = tuple(self.tensorInput.get_contents())
+        wout, bout, _ = tuple(self.tensorOutput.get_contents())
+        return [winp, binp] +\
             self.rnnUnfold.get_contents() +\
-            self.tensorOutput.get_contents() +\
+            [wout, bout] +\
             self.classifier.get_contents()\
 
 class RnnTrainer(object):
     def __init__(self, rnn, Xshape, Yshape, learning_rate, momentum_term, lmbd, eps):
         self.rnn = rnn
 
-        self.vars = rnn.tensorOutput.get_contents() + \
-            rnn.rnnUnfold.linear.get_contents() + \
-            rnn.tensorInput.get_contents() + [
-            rnn.rnnUnfold.state0,
-        ]
+        winp, binp, _ = tuple(rnn.tensorInput.get_contents())
+        wout, bout, _ = tuple(rnn.tensorOutput.get_contents())
+        w, b, _ = tuple(rnn.rnnUnfold.linear.get_contents())
+        self.vars = [wout, bout, w, b, winp, binp, rnn.rnnUnfold.state0]
         self.momentums = [np.zeros(v.shape()) for v in self.vars]
         self.moving_avg_sqr = [np.zeros(v.shape()) for v in self.vars]
 

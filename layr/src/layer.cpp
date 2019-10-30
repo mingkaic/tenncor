@@ -262,14 +262,20 @@ bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensptrsT roots,
 	pbm::GraphSaver<eteq::EADSaver> saver(registry.get_tag_registry());
 	for (auto& root : roots)
 	{
-		root->accept(saver);
+		if (nullptr != root)
+		{
+			root->accept(saver);
+		}
 	}
 
 	auto contents = layer.get_contents();
 	auto owners = teq::track_owners(contents);
 	for (auto tens : contents)
 	{
-		tens->accept(saver);
+		if (nullptr != tens)
+		{
+			tens->accept(saver);
+		}
 	}
 
 	// save graph from source

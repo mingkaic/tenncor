@@ -111,31 +111,36 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// ulayer
 	ulayer
-		.def(py::init<const std::string&,const std::string&>(),
-			py::arg("label"),
-			py::arg("ulayer_type") = "sigmoid")
+		.def(py::init<const std::string&,NodeptrT,const std::string&>(),
+			py::arg("ulayer_type"),
+			py::arg("params"),
+			py::arg("label"))
 		.def("clone", &layr::ULayer::clone, py::arg("prefix") = "");
 
 	// dense
 	m.def("create_dense",
 		[](NodeptrT weight,
 			NodeptrT bias,
+			NodeptrT params,
 			std::string label)
 		{
-			return std::make_shared<layr::Dense>(weight, bias, label);
+			return std::make_shared<layr::Dense>(weight, bias, params, label);
 		},
 		py::arg("weight"),
 		py::arg("bias") = nullptr,
+		py::arg("params") = nullptr,
 		py::arg("label") = "");
 	dense
 		.def(py::init<teq::DimT,teq::DimT,
 			layr::InitF<PybindT>,
 			layr::InitF<PybindT>,
+			NodeptrT,
 			const std::string&>(),
 			py::arg("nunits"),
 			py::arg("indim"),
 			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
 			py::arg("bias_init") = layr::zero_init<PybindT>(),
+			py::arg("params") = nullptr,
 			py::arg("label") = "")
 		.def("clone", &layr::Dense::clone, py::arg("prefix") = "");
 
@@ -319,14 +324,18 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("factor") = 1)
 
 		// layer creation
-		.def("sigmoid", layr::sigmoid)
-		.def("tanh", layr::tanh)
-		.def("relu", layr::relu)
-		.def("softmax", layr::softmax)
+		.def("sigmoid", layr::sigmoid, py::arg("label") = "")
+		.def("tanh", layr::tanh, py::arg("label") = "")
+		.def("relu", layr::relu, py::arg("label") = "")
+		.def("softmax", layr::softmax,
+			py::arg("dim"),
+			py::arg("label") = "")
 		.def("maxpool2d", layr::maxpool2d,
-			py::arg("dims") = std::pair<teq::DimT,teq::DimT>{0, 1})
+			py::arg("dims") = std::pair<teq::DimT,teq::DimT>{0, 1},
+			py::arg("label") = "")
 		.def("meanpool2d", layr::meanpool2d,
-			py::arg("dims") = std::pair<teq::DimT,teq::DimT>{0, 1})
+			py::arg("dims") = std::pair<teq::DimT,teq::DimT>{0, 1},
+			py::arg("label") = "")
 		.def("load_file_seqmodel",
 			[](std::string filename, std::string layer_label) -> layr::SeqModelptrT
 			{

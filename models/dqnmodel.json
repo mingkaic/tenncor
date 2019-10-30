@@ -1,4 +1,5 @@
 {
+ "label": "",
  "nodes": [
   {
    "label": "weight",
@@ -13,18 +14,19 @@
      "1",
      "1"
     ],
-    "data": "tsT1vlSvqD+qrIm+BhD5Px1aDj+g7TU/ATuUP9q/zj9HWJw/sdjQP4j0xj8DEwy/oiEgQHahaD0o72k/4zv5P7T0uD+E/TU/4pp+PyUivD/AyS6/S5MLQGhihT+U79Q/Jwj0P+jisT/vw/0+BdWSP2sM7D+05mq+k2AhQPppnz+5knc/Gp63P0mxuj9Qs30/mwuHP8R/H0A5uRe+DEMBQEN/aT8dpLE/DFwLQLFw1T98Wps/d6G3P3dxDEAMjpO8LpLqP38Plj993/Y/AbYVQJRcnT9j8eM/fuVCPwxY4j+/iTG/01obQLaQ1j8T3/Y+Hs8QQGIttD/IFqk/GgqIP/oeK0CHUxa+z6EAQLbn/D4m99s/eUYEQKn2jT8SnsI/LkcaPxB85j8Liru+l0ikP/enwT8sMwY/DYXnP7Qv7D9Hsu0/8aREP/iq8D88Xo6+UCs2QND5rj+R9AVANDsdQJ+hB0BCmwxA",
-    "typelabel": "FLOAT"
+    "data": "yWEMwBv6FD5WqXq+WMrEP+WquD9prZ4/HE4YwNL4mD+OoNA/ubBuv8ek5j4w/SI+hnHPP3sbkj8qtsQ/Jrrzv5WXvj+tc/I/czpGv6Vqyj92EeM9mzujP6/enT/JF9A/vFSzv/qvzD/Rp1A/nLnjvglT6z+obzQ+eoIPQJ6adj+JLs0/H6PNv1r8jj9dbRZA0J2Iv9gYST+xNBE/OWI4P6dsaT8gkKA/EAHlvw/i3j9cpbg/PRh9vzFFbz5dT3a+iRIpP2cwsz/xXHo/ORE1wM/irj8pGN8/ZqNsv1XiRD8FSe49HgulP5Vrzj/NIRRANdzKv6PeeD+FpwFARdYhv3lDnD/47EI+Th6gP1le/T7uFKI/JwPwv0VZmz/7z4M/Ylw3vojG9z+6gZc9KzA4P6tW9j8hHOg/ZSTWv+zWuT875whAHfUBv5HIAj+zFj8/CUq8PzDRJz9SwbI/rdmtv/LQDj8P5Lo/",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "0::weight:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_dense:0:0"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "0::weight:0"
      ]
     }
    }
@@ -42,8 +44,9 @@
      "1",
      "1"
     ],
-    "data": "4hp0P1oP9z8Li/u+6O0NQEgpeT+lu7Y/23H5P2lZyz/euKM/",
-    "typelabel": "FLOAT"
+    "data": "kXNyv6BOoj+SvhE/xXi/P+tTrz91ivs/GfLgv33ptT+8N/4/",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_seqmodel": {
@@ -59,6 +62,7 @@
    }
   },
   {
+   "label": "0",
    "source": {
     "shape": [
      "1",
@@ -77,7 +81,7 @@
    "tags": {
     "layer_sigmoid": {
      "labels": [
-      "sigmoid:::0"
+      "::uparam:0"
      ]
     },
     "properties": {
@@ -87,7 +91,7 @@
     },
     "layer_seqmodel": {
      "labels": [
-      "demo:layer_sigmoid:sigmoid:1"
+      "demo:layer_sigmoid::1"
      ]
     }
    }
@@ -105,18 +109,19 @@
      "1",
      "1"
     ],
-    "data": "tZO7Pxn5tz8dqQZAEHTcvCRWnr9YXO2/VdNovynS+z5URKw/IkEjQF/H3T/iavc/1FPOPkUU6L9c+gLAEpy0vi4d9z4M/hE/tW/cPylYmT/XZN4/QXRzPiOKkr/jjmW/6JOBPJhUpD4SZis/EpMOQJwe5D8LaBBAKj79PvkReb9gEee/TKVpv1TADj9qvnA/fpgMQCnqCkDSnyVAueUJvlqYyL8TGHm/p6EHvrTbEz/jJ6g/vbrGP+tDAUBADCBAxW13vgGorL+5bZy/KZvUvjjuibwT/2A/3ELzP4Rpvj8WO7c/v8H1PuqcTb/4cwLAUqqgPU6elD7OKpQ/sb7rP11lHEAdBQFAuTF/voDF378CxIG/GOFhvyRZkj7TooA/zz/lPz1rFkBPpAZAyMalvL4zRL9vOQPACE6xvZDWGD9KNsI/",
-    "typelabel": "FLOAT"
+    "data": "Dl2ePwiCqz/Vlpk/k5ESP7nyCb8SeO2/NO7PvrCoPr040Y0/dftHQGhS5z8nrYk/uvr8PX5Lcb8uytG/kVPSvp7H/D7qyds/4PktQAnbM0CYKzY/DtegvfIeMr8hRZy/CBwhPTpdCz8HiHs/hL5TQPMXMECOlkQ/OT4IP4BauL+izvu/RHLQvkwtfb07P70/9OFGQNVJFUDGZY4/jJXhvoJ0p7+/KOm/mGWevhYV6j5JSpE/QTJIQEO/5D/dVyY/h8qTvuaQg7+8Fw7AWdJKv1VoRD4sH54/K0c8QIuvuj85LJQ/qIicPXHgQr9f+Vm/07iHvnMXDb47BsM/J7EIQOXBDkC7MgQ/1M/JvgoE4L8NR+a/4Wd1v+xigj2Hz40/NOk0QFjlHkAoHQk/ek/xvg4gd7//xu+/AwJIv7Axp76dNNY/",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_dense:1:2"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "1::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:1:2"
      ]
     }
    }
@@ -134,23 +139,25 @@
      "1",
      "1"
     ],
-    "data": "xjIDQHt28j8GIQFASIOqPNtJo7+H9cO/P+3HvuLtkT5awpE/",
-    "typelabel": "FLOAT"
+    "data": "RtMyQJsHEkBdvIA/oLboPN9pu7/sgd+/SkDZvihFcT0eaZI/",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_dense:1:2"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "1::bias:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:1:2"
      ]
     }
    }
   },
   {
+   "label": "0",
    "source": {
     "shape": [
      "1",
@@ -169,7 +176,7 @@
    "tags": {
     "layer_sigmoid": {
      "labels": [
-      "sigmoid:::0"
+      "::uparam:0"
      ]
     },
     "properties": {
@@ -179,7 +186,7 @@
     },
     "layer_seqmodel": {
      "labels": [
-      "demo:layer_sigmoid:sigmoid:3"
+      "demo:layer_sigmoid::3"
      ]
     }
    }

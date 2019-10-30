@@ -21,15 +21,16 @@ P2 - improve convolutional nn demo
 === feature ===
 P1 - improve layr parameter serialization
    - make dense contract dimensions configurable
-P2 - attach onnx support to pbm (https://github.com/onnx/onnx)
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
 P2 - make shape dimension size configurable (instead of fixed rank_cap)
 P2 - make constant pre-calculation configurable in opt module
 P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
+P5 - implement onnx support (https://github.com/onnx/onnx)
 
 === transparency/code readability ===
+   - layr get_contents needs to return context for output tensors
    - generate value-range graph to automatically detect erroneous operators
       - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
       - this graph can help developers quickly identifies unstable nodes
@@ -44,9 +45,6 @@ P4 - conform to some bazel style/convention (or change to another build tool)
 P4 - investigate adopting more of boost in place of cppkg
 P5 - refactor, and rename variables to improve readability
 P5 - formalize codestyle
-
-=== bug fix ===
-   - optimization fails when functor is initialized on construction
 
 === performance ===
 P3 - improve ccur module
@@ -71,6 +69,7 @@ P3 - benchmark test rocnnet against various other frameworks (CPU only)
 P4 - more performance test
 
 === correction ===
+   - optimization fails when functor is initialized on construction
 P2 - test eteq funcarg
 P2 - test dropout layer
 P2 - centralize global context structures

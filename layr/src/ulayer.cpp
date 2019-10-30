@@ -7,70 +7,88 @@ namespace layr
 
 LayerptrT ULayerBuilder::build (void) const
 {
-	return std::make_shared<ULayer>(utype_, label_);
+	return std::make_shared<ULayer>(utype_, params_, label_);
 }
 
-NodeptrT softmax_from_layer (const ULayer& layer, NodeptrT input)
+NodeptrT softmax_from_param (NodeptrT input, NodeptrT params)
 {
-	return tenncor::softmax<PybindT>(input,
-		std::stoi(layer.get_label()), 1);
-}
-
-NodeptrT maxpool_from_layer (const ULayer& layer, NodeptrT input)
-{
-	auto parts = fmts::split(layer.get_label(), ",");
-	if (parts.size() != 2)
+	if (false == params->shape().compatible_after(teq::Shape{}, 0))
 	{
-		logs::fatalf("failed to get maxpool dimensions from %s",
-			layer.get_label().c_str());
+		logs::fatalf("Unknown softmax layer parameter %s of shape %s",
+			params->to_string().c_str(),
+			params->shape().to_string().c_str());
 	}
+	teq::RankT dim = *((PybindT*) params->data());
+	return tenncor::softmax<PybindT>(input, dim, 1);
+}
+
+NodeptrT maxpool_from_param (NodeptrT input, NodeptrT params)
+{
+	if (false == params->shape().compatible_after(teq::Shape({2}), 0))
+	{
+		logs::fatalf("Unknown maxpool layer parameter %s of shape %s",
+			params->to_string().c_str(),
+			params->shape().to_string().c_str());
+	}
+	auto raw_params = (PybindT*) params->data();
 	return tenncor::nn::max_pool2d<PybindT>(input,
-		{std::stoi(parts[0]), std::stoi(parts[1])});
+		{(teq::RankT) raw_params[0], (teq::RankT) raw_params[1]});
 }
 
-NodeptrT meanpool_from_layer (const ULayer& layer, NodeptrT input)
+NodeptrT meanpool_from_param (NodeptrT input, NodeptrT params)
 {
-	auto parts = fmts::split(layer.get_label(), ",");
-	if (parts.size() != 2)
+	if (false == params->shape().compatible_after(teq::Shape({2}), 0))
 	{
-		logs::fatalf("failed to get maxpool dimensions from %s",
-			layer.get_label().c_str());
+		logs::fatalf("Unknown meanpool layer parameter %s of shape %s",
+			params->to_string().c_str(),
+			params->shape().to_string().c_str());
 	}
+	auto raw_params = (PybindT*) params->data();
 	return tenncor::nn::mean_pool2d<PybindT>(input,
-		{std::stoi(parts[0]), std::stoi(parts[1])});
+		{(teq::RankT) raw_params[0], (teq::RankT) raw_params[1]});
 }
 
-UnaryptrT sigmoid (void)
+UnaryptrT sigmoid (std::string label)
 {
-	return std::make_shared<ULayer>(sigmoid_layer_key);
+	return std::make_shared<ULayer>(sigmoid_layer_key, nullptr, label);
 }
 
-UnaryptrT tanh (void)
+UnaryptrT tanh (std::string label)
 {
-	return std::make_shared<ULayer>(tanh_layer_key);
+	return std::make_shared<ULayer>(tanh_layer_key, nullptr, label);
 }
 
-UnaryptrT relu (void)
+UnaryptrT relu (std::string label)
 {
-	return std::make_shared<ULayer>(relu_layer_key);
+	return std::make_shared<ULayer>(relu_layer_key, nullptr, label);
 }
 
-UnaryptrT softmax (teq::RankT dim)
+UnaryptrT softmax (teq::RankT dim, std::string label)
 {
 	return std::make_shared<ULayer>(softmax_layer_key,
-		fmts::sprintf("%d", dim));
+		eteq::make_constant_scalar<PybindT>(dim, {}), label);
 }
 
-UnaryptrT maxpool2d (std::pair<teq::DimT,teq::DimT> dims)
+UnaryptrT maxpool2d (
+	std::pair<teq::DimT,teq::DimT> dims, std::string label)
 {
 	return std::make_shared<ULayer>(maxpool2d_layer_key,
-		fmts::sprintf("%d,%d", dims.first, dims.second));
+		eteq::make_constant<PybindT>(
+			std::array<PybindT,2>{
+				(PybindT) dims.first,
+				(PybindT) dims.second}.data(),
+			teq::Shape({2})), label);
 }
 
-UnaryptrT meanpool2d (std::pair<teq::DimT,teq::DimT> dims)
+UnaryptrT meanpool2d (
+	std::pair<teq::DimT,teq::DimT> dims, std::string label)
 {
 	return std::make_shared<ULayer>(meanpool2d_layer_key,
-		fmts::sprintf("%d,%d", dims.first, dims.second));
+		eteq::make_constant<PybindT>(
+			std::array<PybindT,2>{
+				(PybindT) dims.first,
+				(PybindT) dims.second}.data(),
+			teq::Shape({2})), label);
 }
 
 }

@@ -95,7 +95,7 @@ struct DBNTrainer final
 			teq::TensSetT to_learn = {
 				contents[0].get(),
 				contents[1].get(),
-				contents[3].get(),
+				contents[4].get(),
 			};
 			CDChainIO io(rx, ry);
 			layr::VarErrsT varerrs = cd_grad_approx(io, *rbm, cdk); // todo: add persistent option

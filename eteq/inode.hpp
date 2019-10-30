@@ -77,6 +77,10 @@ struct NodeConverters final
 	/// Return node associated with tensor type
 	NodeptrT<T> to_node (teq::TensptrT tens)
 	{
+		if (nullptr == tens)
+		{
+			return nullptr;
+		}
 		const std::type_info& tp = typeid(*tens);
 		return estd::must_getf(builders_, tp.hash_code(),
 			"unknown tensor type `%s` with `%s` dtype",

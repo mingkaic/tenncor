@@ -104,10 +104,10 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 		auto grad_hb = tenncor::reduce_mean_1d(io.hidden_ - io.hidden_mean_, 1);
 		varerrs.push_back({vars[1], grad_hb});
 	}
-	if (nullptr != vars[3])
+	if (nullptr != vars[4])
 	{
 		auto grad_vb = tenncor::reduce_mean_1d(io.visible_ - io.visible_mean_, 1);
-		varerrs.push_back({vars[3], grad_vb});
+		varerrs.push_back({vars[4], grad_vb});
 	}
 	if (nullptr != persistent)
 	{

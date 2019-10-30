@@ -1287,6 +1287,9 @@ api:
         - dtype: eteq::NodeptrT<T>
           name: bias
           check_null: false
+        - dtype: eteq::PairVecT<teq::RankT>
+          name: dims
+          default: eteq::PairVecT<teq::RankT>{{0, 1}}
         out:
           type: eteq::NodeptrT<T>
           val: |
@@ -1306,12 +1309,12 @@ api:
                       inputs[0]->get_tensor().get(),
                       weights[0]->get_tensor().get()
                   };
-                  auto out = ::tenncor::matmul(inputs[0], weights[0]);
+                  auto out = ::tenncor::contract(inputs[0], weights[0], dims);
                   for (size_t i = 1; i < ninputs; ++i)
                   {
                       ignores.emplace(inputs[i]->get_tensor().get());
                       ignores.emplace(weights[i]->get_tensor().get());
-                      out = ::tenncor::add(out, ::tenncor::matmul(inputs[i], weights[i]));
+                      out = ::tenncor::add(out, ::tenncor::contract(inputs[i], weights[i], dims));
                   }
                   if (nullptr != bias)
                   {

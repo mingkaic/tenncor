@@ -11,7 +11,7 @@ LayerptrT DenseBuilder::build (void) const
 	{
 		logs::fatal("cannot build dense with null weight");
 	}
-	return std::make_shared<Dense>(weight_, bias_, label_);
+	return std::make_shared<Dense>(weight_, bias_, params_, label_);
 }
 
 }
