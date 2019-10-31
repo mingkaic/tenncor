@@ -60,7 +60,7 @@ struct Dropout final : public iLayer
 		tag(mask_->get_tensor(), LayerId(dropout_mask_key));
 	}
 
-	Dropout (NodeptrT mask, std::string label) : label_(label), mask_(mask)
+	Dropout (NodeptrT mask, const std::string& label) : label_(label), mask_(mask)
 	{
 		tag(mask_->get_tensor(), LayerId(dropout_mask_key));
 	}

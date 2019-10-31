@@ -62,8 +62,8 @@ struct RBM final : public iLayer
 		layr::InitF<PybindT> bias_init,
 		const std::string& label) :
 		label_(label),
-		hidden_(std::make_shared<Dense>(
-			nhidden, nvisible, weight_init, bias_init, nullptr, hidden_key)),
+		hidden_(std::make_shared<Dense>(nhidden, teq::Shape({nvisible}),
+			weight_init, bias_init, nullptr, hidden_key)),
 		activation_(activation)
 	{
 		auto hidden_contents = hidden_->get_contents();
@@ -81,7 +81,7 @@ struct RBM final : public iLayer
 	}
 
 	RBM (DenseptrT hidden, DenseptrT visible,
-		UnaryptrT activation, std::string label) :
+		UnaryptrT activation, const std::string& label) :
 		label_(label),
 		hidden_(hidden),
 		visible_(visible),

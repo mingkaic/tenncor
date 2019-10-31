@@ -7,10 +7,10 @@ namespace trainer
 
 TrainErrF sgd_train (layr::SequentialModel& model, eteq::iSession& sess,
 	NodeptrT train_in, NodeptrT expected_out, layr::ApproxF update,
-	NodeUnarF gradprocess)
+	layr::ErrorF errfunc, NodeUnarF gradprocess)
 {
 	auto train_out = model.connect(train_in);
-	auto error = tenncor::square(expected_out - train_out);
+	auto error = errfunc(expected_out, train_out);
 
 	auto contents = model.get_contents();
 	layr::VarErrsT vars;

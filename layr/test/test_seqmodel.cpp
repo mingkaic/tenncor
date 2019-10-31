@@ -20,7 +20,7 @@ TEST(SEQMODEL, Copy)
 	std::string label = "serious_series";
 	layr::SequentialModel model(label);
 
-	model.push_back(std::make_shared<layr::Dense>(4, 5,
+	model.push_back(std::make_shared<layr::Dense>(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
 		nullptr,
@@ -83,7 +83,7 @@ TEST(SEQMODEL, Clone)
 	std::string label = "serious_series";
 	layr::SequentialModel model(label);
 
-	model.push_back(std::make_shared<layr::Dense>(4, 5,
+	model.push_back(std::make_shared<layr::Dense>(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
 		nullptr,
@@ -116,7 +116,7 @@ TEST(SEQMODEL, Move)
 	std::string label = "serious_series";
 	layr::SequentialModel model(label);
 
-	model.push_back(std::make_shared<layr::Dense>(4, 5,
+	model.push_back(std::make_shared<layr::Dense>(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
 		nullptr,
@@ -165,7 +165,7 @@ TEST(SEQMODEL, Tagging)
 	std::string label = "serious_series";
 	layr::SequentialModel model(label);
 
-	model.push_back(std::make_shared<layr::Dense>(4, 5,
+	model.push_back(std::make_shared<layr::Dense>(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
 		nullptr,

@@ -16,17 +16,17 @@ TEST(DENSE, Copy)
 	std::string label = "especially_dense";
 	std::string rlabel = "kinda_dense";
 	std::string nb_label = "fake_news";
-	layr::Dense dense(4, 5,
+	layr::Dense dense(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
 		nullptr,
 		label);
-	layr::Dense rdense(5, 6,
+	layr::Dense rdense(5, teq::Shape({6}),
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
 		nullptr,
 		rlabel);
-	layr::Dense nobias(6, 7,
+	layr::Dense nobias(6, teq::Shape({7}),
 		layr::unif_xavier_init<PybindT>(3),
 		layr::InitF<PybindT>(),
 		nullptr,
@@ -106,17 +106,17 @@ TEST(DENSE, Clone)
 	std::string label = "especially_dense";
 	std::string rlabel = "kinda_dense";
 	std::string nb_label = "fake_news";
-	layr::Dense dense(4, 5,
+	layr::Dense dense(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
 		nullptr,
 		label);
-	layr::Dense rdense(5, 6,
+	layr::Dense rdense(5, teq::Shape({6}),
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
 		nullptr,
 		rlabel);
-	layr::Dense nobias(6, 7,
+	layr::Dense nobias(6, teq::Shape({7}),
 		layr::unif_xavier_init<PybindT>(3),
 		layr::InitF<PybindT>(),
 		nullptr,
@@ -141,17 +141,17 @@ TEST(DENSE, Move)
 	std::string label = "especially_dense";
 	std::string rlabel = "kinda_dense";
 	std::string nb_label = "fake_news";
-	layr::Dense dense(4, 5,
+	layr::Dense dense(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
 		nullptr,
 		label);
-	layr::Dense rdense(5, 6,
+	layr::Dense rdense(5, teq::Shape({6}),
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
 		nullptr,
 		rlabel);
-	layr::Dense nobias(6, 7,
+	layr::Dense nobias(6, teq::Shape({7}),
 		layr::unif_xavier_init<PybindT>(3),
 		layr::InitF<PybindT>(),
 		nullptr,
@@ -211,12 +211,12 @@ TEST(DENSE, Connection)
 {
 	std::string rlabel = "kinda_dense";
 	std::string nb_label = "fake_news";
-	layr::Dense rdense(5, 6,
+	layr::Dense rdense(5, teq::Shape({6}),
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
 		nullptr,
 		rlabel);
-	layr::Dense nobias(6, 7,
+	layr::Dense nobias(6, teq::Shape({7}),
 		layr::unif_xavier_init<PybindT>(3),
 		layr::InitF<PybindT>(),
 		nullptr,
@@ -249,7 +249,7 @@ TEST(DENSE, Connection)
 TEST(DENSE, Tagging)
 {
 	std::string label = "very_dense";
-	layr::Dense dense(5, 6,
+	layr::Dense dense(5, teq::Shape({6}),
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
 		nullptr,
@@ -282,7 +282,7 @@ TEST(DENSE, Tagging)
 TEST(DENSE, ConnectionTagging)
 {
 	std::string label = "very_dense";
-	layr::Dense dense(5, 6,
+	layr::Dense dense(5, teq::Shape({6}),
 		layr::unif_xavier_init<PybindT>(2),
 		layr::unif_xavier_init<PybindT>(4),
 		nullptr,
@@ -372,7 +372,7 @@ TEST(DENSE, Building)
 	std::vector<PybindT> bias_data;
 	{
 		// save
-		layr::Dense dense(noutput, ninput,
+		layr::Dense dense(noutput, teq::Shape({ninput}),
 			layr::unif_xavier_init<PybindT>(2),
 			layr::unif_xavier_init<PybindT>(4),
 			nullptr,

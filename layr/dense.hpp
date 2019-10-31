@@ -80,15 +80,17 @@ get_layer_reg().register_tagr(layers_key_prefix + "dense",
 /// Layer implementation to apply fully_connect functions to weight and optional bias
 struct Dense final : public iLayer
 {
-	Dense (teq::DimT nunits, teq::DimT indim,
+	Dense (teq::DimT nunits, const teq::Shape& inshape,
 		layr::InitF<PybindT> weight_init,
 		layr::InitF<PybindT> bias_init,
 		NodeptrT params,
 		const std::string& label) :
 		label_(label),
-		weight_(weight_init(teq::Shape({nunits, indim}), dense_weight_key)),
 		params_(params)
 	{
+		teq::Shape wshape({nunits});
+		std::copy(inshape.begin(), inshape.begin() + teq::rank_cap - 1, wshape.begin() + 1);
+		weight_ = weight_init(wshape, dense_weight_key);
 		tag(weight_->get_tensor(), LayerId(dense_weight_key));
 		if (bias_init)
 		{

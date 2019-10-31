@@ -60,6 +60,14 @@ bool is_equal (teq::CoordptrT a, teq::CoordptrT b)
 bool lt (teq::TensSetT priorities,
 	teq::iLeaf* a, teq::iLeaf* b)
 {
+	if (a == nullptr)
+	{
+		return true;
+	}
+	if (b == nullptr)
+	{
+		return false;
+	}
 	size_t atype = a->type_code();
 	size_t btype = b->type_code();
 	if (atype == btype)
@@ -106,6 +114,14 @@ bool is_equal (teq::iLeaf* a, teq::iLeaf* b)
 bool lt (teq::TensSetT priorities,
 	teq::iFunctor* a, teq::iFunctor* b)
 {
+	if (a == nullptr)
+	{
+		return true;
+	}
+	if (b == nullptr)
+	{
+		return false;
+	}
 	size_t acode = a->get_opcode().code_;
 	size_t bcode = b->get_opcode().code_;
 	if (acode == bcode)

@@ -20,11 +20,11 @@ def cross_entropy_loss(Y, T):
     rightT = 1 - Y + epsilon
     return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
 
-def loss(Y, T):
+def loss(T, Y):
     return tc.reduce_mean(cross_entropy_loss(Y, T))
 
 # Show an example input and target
-def printSample(x1, x2, t, y=None):
+def print_sample(x1, x2, t, y=None):
     """Print a sample in a more visual way."""
     x1 = ''.join([str(int(d)) for d in x1])
     x1_r = int(''.join(reversed(x1)), 2)
@@ -74,115 +74,73 @@ def weight_init(shape, label):
     a = np.sqrt(6.0 / np.sum(slist))
     return eteq.variable(np.array(np.random.uniform(-a, a, slist)), label)
 
-# Define layer that unfolds the states over time
-class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
-    """Unfold the recurrent states."""
-    def __init__(self, nbStates):
-        """Initialse the shared parameters, the inital state and
-        state update function."""
-        self.state0 = eteq.Variable([nbStates], label="init_state")
-        self.linear = rcn.Dense(nbStates, nbStates, weight_init)
-        self.tanh = rcn.tanh()
+def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
+    def rms_prop(grads):
+        targets = [target for target, _ in grads]
+        gs = [grad for _, grad in grads]
+        momentum = [eteq.scalar_variable(0, target.shape()) for target in targets]
+        mvavg_sqr = [eteq.scalar_variable(0, target.shape()) for target in targets]
 
-    def connect(self, X):
-        """Iteratively apply forward step to all states."""
-        # State tensor
-        nbStates = self.linear.get_ninput()
-        states = [tc.best_extend(self.state0, [nbStates, 1, X.shape()[0]])]
-        for i in range(X.shape()[1]):
-            # Update the states iteratively
-            Xslice = tc.slice(X, i, 1, 1)
-            fwd_state = self.linear.connect(states[-1])
-            states.append(self.tanh.connect(Xslice + fwd_state))
-        return tc.concat(states[1:], 1)
-
-    def get_contents(self):
-        w, b, _ = tuple(self.linear.get_contents())
-        return [self.state0] + [w, b] + self.tanh.get_contents()
-
-# Define the full network
-class RnnBinaryAdder(object): # !new layer: horizontal model
-    """RNN to perform binary addition of 2 numbers."""
-    def __init__(self, nb_of_inputs, nb_of_outputs, nb_of_states):
-        self.tensorInput = rcn.Dense(nb_of_states, nb_of_inputs, weight_init)
-        # Recurrent layer
-        self.rnnUnfold = RecurrentStateUnfold(nb_of_states) # !new layer: horizontal model
-        # Linear output transform
-        self.tensorOutput = rcn.Dense(nb_of_outputs, nb_of_states, weight_init)
-        self.classifier = rcn.sigmoid()  # Classification output
-
-    def connect(self, X):
-        # Linear input transformation]
-        recIn = self.tensorInput.connect(X)
-        # Forward propagate through time and return states
-        states = self.rnnUnfold.connect(recIn)
-        # Linear output transformation
-        Y = self.classifier.connect(self.tensorOutput.connect(states))
-        return Y
-
-    def get_contents(self):
-        winp, binp, _ = tuple(self.tensorInput.get_contents())
-        wout, bout, _ = tuple(self.tensorOutput.get_contents())
-        return [winp, binp] +\
-            self.rnnUnfold.get_contents() +\
-            [wout, bout] +\
-            self.classifier.get_contents()\
-
-class RnnTrainer(object):
-    def __init__(self, rnn, Xshape, Yshape, learning_rate, momentum_term, lmbd, eps):
-        self.rnn = rnn
-
-        winp, binp, _ = tuple(rnn.tensorInput.get_contents())
-        wout, bout, _ = tuple(rnn.tensorOutput.get_contents())
-        w, b, _ = tuple(rnn.rnnUnfold.linear.get_contents())
-        self.vars = [wout, bout, w, b, winp, binp, rnn.rnnUnfold.state0]
-        self.momentums = [np.zeros(v.shape()) for v in self.vars]
-        self.moving_avg_sqr = [np.zeros(v.shape()) for v in self.vars]
-
-        self.params = (learning_rate, momentum_term, lmbd, eps)
-
-        self.sess = eteq.Session()
-        self.inputX = eteq.Variable(Xshape)
-        self.expectY = eteq.Variable(Yshape)
-
-        Y = self.rnn.connect(self.inputX)
-        self.error = loss(Y, self.expectY)
-        self.grads =  [eteq.derive(self.error, var) for var in self.vars]
-
-        self.sess.track(list(self.grads) + [self.error])
-        self.sess.optimize("cfg/optimizations.rules")
-
-    def train(self, X, T):
-        self.inputX.assign(X)
-        self.expectY.assign(T)
-
-        # apply rms prop optimization
         # group 1
-        learning_rate, momentum_term, lmbd, eps = self.params
-        momentum_tmp = [mom * momentum_term for mom in self.momentums]
-        for var, mom_tmp in zip(self.vars, momentum_tmp):
-            var.assign(np.array(var.get() + mom_tmp))
-
-        self.sess.update_target(self.grads)
-        grads = [grad.get() for grad in self.grads]
+        momentum_tmp = [mom * momentum_term for mom in momentum]
+        group1 = [rcn.VarAssign(target, target + source) for target, source in zip(targets, momentum_tmp)]
 
         # group 2
-        for i in range(len(self.vars)):
-            self.moving_avg_sqr[i] = lmbd * self.moving_avg_sqr[i] + (1-lmbd) * grads[i]**2
+        group2 = [rcn.VarAssign(target, lmbd * target + (1-lmbd) * tc.pow(grad, 2)) for target, grad in zip(mvavg_sqr, gs)]
 
         # group 3
-        pgrad_norms = [(learning_rate * grad) / np.sqrt(mvsqr) + eps
-            for grad, mvsqr in zip(grads, self.moving_avg_sqr)]
+        pgrad_norm_nodes = [(learning_rate * grad) / tc.sqrt(mvsqr) + eps
+            for grad, mvsqr in zip(gs, mvavg_sqr)]
 
-        for i in range(len(self.vars)):
-            self.momentums[i] = momentum_tmp[i] - pgrad_norms[i]
+        group3 = [rcn.VarAssign(target, momentum_tmp_node - pgrad_norm_node)
+            for target, momentum_tmp_node, pgrad_norm_node in zip(momentum, momentum_tmp, pgrad_norm_nodes)]
 
-        for var, pgrad_norm in zip(self.vars, pgrad_norms):
-            var.assign(np.array(var.get() - pgrad_norm))
+        group3 += [rcn.VarAssign(target, target - pgrad_norm) for target, pgrad_norm in zip(targets, pgrad_norm_nodes)]
 
-    def get_error(self):
-        self.sess.update_target([self.error])
-        return self.error.get()
+        return [group1, group2, group3]
+
+    return rms_prop
+
+# def rnn_train(rnn, sess, train_input, train_exout,
+#     learning_rate, momentum_term, lmbd, eps):
+
+#     winp, binp, _, w, b, _, _, state0, wout, bout, _, _ = tuple(rnn.get_contents())
+
+#     targets = [winp, binp, w, b, state0, wout, bout]
+#     momentums = [np.zeros(v.shape()) for v in targets]
+#     moving_avg_sqr = [np.zeros(v.shape()) for v in targets]
+
+#     train_out = rnn.connect(train_input)
+#     error = loss(train_exout, train_out)
+#     grads =  [eteq.derive(error, var) for var in targets]
+
+#     sess.track(grads)
+
+#     # apply rms prop optimization
+#     def train():
+#         # group 1
+#         momentum_tmp = [mom * momentum_term for mom in momentums]
+#         for var, mom_tmp in zip(targets, momentum_tmp):
+#             var.assign(np.array(var.get() + mom_tmp))
+
+#         sess.update_target(grads)
+#         res_grads = [grad.get() for grad in grads]
+
+#         # group 2
+#         for i in range(len(targets)):
+#             moving_avg_sqr[i] = lmbd * moving_avg_sqr[i] + (1-lmbd) * res_grads[i]**2
+
+#         # group 3
+#         pgrad_norms = [(learning_rate * grad) / np.sqrt(mvsqr) + eps
+#             for grad, mvsqr in zip(res_grads, moving_avg_sqr)]
+
+#         for i in range(len(targets)):
+#             momentums[i] = momentum_tmp[i] - pgrad_norms[i]
+
+#         for var, pgrad_norm in zip(targets, pgrad_norms):
+#             var.assign(np.array(var.get() - pgrad_norm))
+
+#     return train
 
 # Create dataset
 nb_train = 2000  # Number of training samples
@@ -190,14 +148,14 @@ nb_train = 2000  # Number of training samples
 sequence_len = 7  # Length of the binary sequence
 
 # Create training samples
-X_train, T_train = create_dataset(nb_train, sequence_len)
-print(f'X_train tensor shape: {X_train.shape}')
-print(f'T_train tensor shape: {T_train.shape}')
+xtrain, expect_train = create_dataset(nb_train, sequence_len)
+print(f'xtrain tensor shape: {xtrain.shape}')
+print(f'expect_train tensor shape: {expect_train.shape}')
 
 # keep this here to get nice weights
-rcn.Dense(2, 3, weight_init)
-RecurrentStateUnfold(3)
-rcn.Dense(3, 1, weight_init)
+rcn.Dense(2, eteq.Shape([3]), weight_init)
+rcn.Dense(3, eteq.Shape([3]), weight_init)
+rcn.Dense(3, eteq.Shape([1]), weight_init)
 
 # Set hyper-parameters
 lmbd = 0.5  # Rmsprop lambda
@@ -207,46 +165,65 @@ eps = 1e-6  # Numerical stability term to prevent division by zero
 mb_size = 100  # Size of the minibatches (number of samples)
 
 # Create the network
-nb_of_states = 3  # Number of states in the recurrent layer
-RNN = RnnBinaryAdder(2, 1, nb_of_states)
-# Set the initial parameters
+nunits = 3  # Number of states in the recurrent layer
+ninput = 2
+noutput = 1
+
+model = rcn.SequentialModel("demo")
+model.add(
+    rcn.Dense(nunits, eteq.Shape([ninput]),
+    weight_init, label="input"))
+model.add(rcn.Recur(nunits, rcn.tanh(),
+    weight_init=weight_init,
+    bias_init=rcn.zero_init(), label="unfold"))
+model.add(rcn.Dense(noutput, eteq.Shape([nunits]),
+    weight_init, label="output"))
+model.add(rcn.sigmoid(label="classifier"))
+
 # Number of parameters in the network
 nb_test = 5
 
 sess = eteq.Session()
 
-train_Xs = eteq.Variable([mb_size, sequence_len, 2])
-train_Ys = eteq.Variable([mb_size, sequence_len, 1])
+train_input = eteq.Variable([mb_size, sequence_len, ninput])
+train_exout = eteq.Variable([mb_size, sequence_len, noutput])
 
-trainer = RnnTrainer(RNN, train_Xs.shape(), train_Ys.shape(),
-    learning_rate, momentum_term, lmbd, eps)
+got = model.connect(train_input)
+error = loss(got, train_exout)
+sess.track([error])
 
-test_Xs = eteq.Variable([nb_test, sequence_len, 2])
-test_Ys = RNN.connect(test_Xs)
-test_Ys = tc.round(test_Ys)
-sess.track([test_Ys])
+train = rcn.sgd_train(model, sess, train_input, train_exout,
+    make_rms_prop(learning_rate, momentum_term, lmbd, eps),
+    errfunc=loss)
+# train = rnn_train(model, sess, train_input, train_exout,
+#     learning_rate, momentum_term, lmbd, eps)
 
-# sess.optimize("cfg/optimizations.rules")
+test_input = eteq.Variable([nb_test, sequence_len, ninput])
+test_output = tc.round(model.connect(test_input))
+sess.track([test_output])
 
-trainer.inputX.assign(X_train[0:mb_size,:,:])
-trainer.expectY.assign(T_train[0:mb_size,:,:])
-ls_of_loss = [trainer.get_error()]
+sess.optimize("cfg/optimizations.rules")
+
+train_input.assign(xtrain[0:mb_size,:,:])
+train_exout.assign(expect_train[0:mb_size,:,:])
+sess.update_target([error])
+ls_of_loss = [error.get()]
 # Iterate over some iterations
 start = time.time()
 for i in range(5):
     # Iterate over all the minibatches
     for mb in range(nb_train // mb_size):
-        X_mb = X_train[mb:mb+mb_size,:,:]  # Input minibatch
-        T_mb = T_train[mb:mb+mb_size,:,:]  # Target minibatch
+        xbatch = xtrain[mb:mb+mb_size,:,:]
+        tbatch = expect_train[mb:mb+mb_size,:,:]
 
-        train_Xs.assign(X_mb)
-        train_Ys.assign(T_mb)
+        train_input.assign(xbatch)
+        train_exout.assign(tbatch)
 
-        # trainer.train(sess)
-        trainer.train(X_mb, T_mb)
+        train()
 
         # Add loss to list to plot
-        ls_of_loss.append(trainer.get_error())
+        sess.update_target([error])
+        ls_of_loss.append(error.get())
 print('training time: {} seconds'.format(time.time() - start))
 
 # Plot the loss over the iterations
@@ -259,14 +236,12 @@ plt.xlim(0, 100)
 fig.subplots_adjust(bottom=0.2)
 plt.show()
 
-# Create test samples
-Xtest, Ttest = create_dataset(nb_test, sequence_len)
-test_Xs.assign(Xtest)
-# Push test data through network
-sess.update_target([test_Ys])
-Y = test_Ys.get()
+xtest, expect_test = create_dataset(nb_test, sequence_len)
 
-# Print out all test examples
-for i in range(Xtest.shape[0]):
-    printSample(Xtest[i,:,0], Xtest[i,:,1], Ttest[i,:,:], Y[i,:,:])
+test_input.assign(xtest)
+sess.update_target([test_output])
+got_test = test_output.get()
+
+for i in range(xtest.shape[0]):
+    print_sample(xtest[i,:,0], xtest[i,:,1], expect_test[i,:,:], got_test[i,:,:])
     print('')

@@ -109,7 +109,6 @@ class RecurrentStateUnfold(object): # same thing as sequential dense + tanh
         state update function."""
         self.state0 = eteq.Variable([nbStates], label="init_state")
         self.linear = Dense(nbStates, nbStates, 2)
-        # self.linear = rcn.Dense(nbStates, nbStates)
         self.tanh = rcn.tanh()
 
     def connect(self, X):
@@ -183,12 +182,10 @@ class RnnBinaryAdder(object): # !new layer: horizontal model
     """RNN to perform binary addition of 2 numbers."""
     def __init__(self, nb_of_inputs, nb_of_outputs, nb_of_states):
         self.tensorInput = Dense(nb_of_inputs, nb_of_states, 3)
-        # self.tensorInput = rcn.Dense(nb_of_states, nb_of_inputs)
         # Recurrent layer
         self.rnnUnfold = RecurrentStateUnfold(nb_of_states) # !new layer: horizontal model
         # Linear output transform
         self.tensorOutput = Dense(nb_of_states, nb_of_outputs, 3)
-        # self.tensorOutput = rcn.Dense(nb_of_outputs, nb_of_states)
         self.classifier = rcn.sigmoid()  # Classification output
 
     def connect(self, X):

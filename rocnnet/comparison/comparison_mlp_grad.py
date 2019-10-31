@@ -135,11 +135,11 @@ for matrix_dim in matrix_dims:
 
     # regular mlp
     brain = rcn.SequentialModel("comparison")
-    brain.add(rcn.Dense(matrix_dim, n_in,
+    brain.add(rcn.Dense(matrix_dim, eteq.Shape([n_in]),
         weight_init=rcn.unif_xavier_init(),
         bias_init=rcn.zero_init(), label="0"))
     brain.add(rcn.sigmoid())
-    brain.add(rcn.Dense(n_out, matrix_dim,
+    brain.add(rcn.Dense(n_out, eteq.Shape([matrix_dim]),
         weight_init=rcn.unif_xavier_init(),
         bias_init=rcn.zero_init(), label="1"))
     brain.add(rcn.sigmoid())

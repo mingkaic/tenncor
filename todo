@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === usage ===
-   - implement fully recurrent
 P2 - implement GRU
 P2 - implement LSTM
 P2 - implement attention transformer
@@ -17,10 +16,9 @@ P2 - implement attention transformer
 === demos ===
 P2 - improve convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
+   - improve rnn demo to use more stable weights
 
 === feature ===
-P1 - improve layr parameter serialization
-   - make dense contract dimensions configurable
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
 P2 - make shape dimension size configurable (instead of fixed rank_cap)
@@ -30,10 +28,11 @@ P4 - implement reduce_prod gradient using Eigen cumprod
 P5 - implement onnx support (https://github.com/onnx/onnx)
 
 === transparency/code readability ===
-   - layr get_contents needs to return context for output tensors
+P2 - layr get_contents needs to return context for output tensors
    - generate value-range graph to automatically detect erroneous operators
       - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
       - this graph can help developers quickly identifies unstable nodes
+   - implement node finder that locates erroneous nodes upon shape mismatch or some other error condition
    - upgrade pygen to support multiline comments in API
    - create global context for setting local logger
    - fix variable assignment in pybind11 code sections to error if py::array is not numpy
@@ -69,6 +68,7 @@ P3 - benchmark test rocnnet against various other frameworks (CPU only)
 P4 - more performance test
 
 === correction ===
+P2 - test opt module against varying graphs
    - optimization fails when functor is initialized on construction
 P2 - test eteq funcarg
 P2 - test dropout layer
@@ -76,7 +76,6 @@ P2 - centralize global context structures
 P2 - reorient tests so that tests cover its own immediate module
 P2 - fix rbm demo converging to infinity problem
 P2 - test dbg module
-P2 - test opt module more
 P3 - test complicate equations (generate random valid equations)
 P3 - maximize coverage
 P3 - test rocnnet, and trainer (or subgraph equivalent)

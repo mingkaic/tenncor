@@ -7,6 +7,11 @@
 namespace layr
 {
 
+NodeptrT sqr_diff (NodeptrT expect, NodeptrT got)
+{
+	return tenncor::square(expect - got);
+}
+
 AssignGroupsT sgd (const VarErrsT& leaves,
 	PybindT learning_rate, std::string root_label)
 {
