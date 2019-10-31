@@ -25,13 +25,13 @@ struct RecurBuilder final : public iLayerBuilder
 
 	/// Implementation of iLayerBuilder
 	void set_tensor (teq::TensptrT tens, std::string target) override
-    {
+	{
 		if (target == init_state_key)
 		{
 			init_state_ = eteq::to_node<PybindT>(tens);
 			return;
 		}
-    }
+	}
 
 	/// Implementation of iLayerBuilder
 	void set_sublayer (LayerptrT layer) override
@@ -45,7 +45,7 @@ struct RecurBuilder final : public iLayerBuilder
 private:
 	std::string label_;
 
-    NodeptrT init_state_;
+	NodeptrT init_state_;
 
 	std::vector<LayerptrT> layers_;
 };
@@ -65,20 +65,20 @@ struct Recur final : public iLayer
 		UnaryptrT activation,
 		layr::InitF<PybindT> weight_init,
 		layr::InitF<PybindT> bias_init,
-        const std::string& label) :
+		const std::string& label) :
 		label_(label),
-        cell_(std::make_shared<Dense>(nunits, teq::Shape({nunits}),
-            weight_init, bias_init, nullptr, "cell")),
-        init_state_(eteq::convert_to_node(
-            eteq::make_variable<PybindT>(
-                teq::Shape({nunits}), "init_state"))),
+		cell_(std::make_shared<Dense>(nunits, teq::Shape({nunits}),
+			weight_init, bias_init, nullptr, "cell")),
+		init_state_(eteq::convert_to_node(
+			eteq::make_variable<PybindT>(
+				teq::Shape({nunits}), "init_state"))),
 		activation_(activation)
-    {
+	{
 		tag_sublayers();
-    }
+	}
 
 	Recur (DenseptrT cell, UnaryptrT activation, NodeptrT init_state,
-        const std::string& label) :
+		const std::string& label) :
 		label_(label),
 		cell_(cell),
 		init_state_(init_state),
@@ -141,7 +141,7 @@ struct Recur final : public iLayer
 	{
 		teq::TensptrsT out = cell_->get_contents();
 		auto act_contents = activation_->get_contents();
-        out.insert(out.end(), act_contents.begin(), act_contents.end());
+		out.insert(out.end(), act_contents.begin(), act_contents.end());
 		out.push_back(init_state_->get_tensor());
 		return out;
 	}
@@ -149,21 +149,21 @@ struct Recur final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-        // expecting input of shape <nunits, sequence length, ANY>
-        // sequence is dimension 1
-        teq::Shape inshape = input->shape();
-        NodeptrT prevstate = tenncor::best_extend(
-            init_state_, teq::Shape({
-                (teq::DimT) get_ninput(), 1, inshape.at(2),
-            }));
-        eteq::NodesT<PybindT> states;
-        for (teq::DimT i = 0, nseq = inshape.at(1); i < nseq; ++i)
-        {
-            auto inslice = tenncor::slice(input, i, 1, 1);
-            prevstate = activation_->connect(
-                inslice + cell_->connect(prevstate));
-            states.push_back(prevstate);
-        }
+		// expecting input of shape <nunits, sequence length, ANY>
+		// sequence is dimension 1
+		teq::Shape inshape = input->shape();
+		NodeptrT prevstate = tenncor::best_extend(
+			init_state_, teq::Shape({
+				(teq::DimT) get_ninput(), 1, inshape.at(2),
+			}));
+		eteq::NodesT<PybindT> states;
+		for (teq::DimT i = 0, nseq = inshape.at(1); i < nseq; ++i)
+		{
+			auto inslice = tenncor::slice(input, i, 1, 1);
+			prevstate = activation_->connect(
+				inslice + cell_->connect(prevstate));
+			states.push_back(prevstate);
+		}
 		return tenncor::concat(states, 1);
 	}
 
@@ -175,7 +175,7 @@ private:
 
 	void tag_sublayers (void)
 	{
-        tag(init_state_->get_tensor(), LayerId(init_state_key));
+		tag(init_state_->get_tensor(), LayerId(init_state_key));
 		auto subs = cell_->get_contents();
 		for (auto& sub : subs)
 		{
@@ -198,15 +198,15 @@ private:
 		label_ = label_prefix + other.label_;
 		cell_ = DenseptrT(other.cell_->clone(label_prefix));
 		init_state_ = NodeptrT(other.init_state_->clone());
-        activation_ = UnaryptrT(other.activation_->clone(label_prefix));
+		activation_ = UnaryptrT(other.activation_->clone(label_prefix));
 		tag_sublayers();
 	}
 
 	std::string label_;
 
-    DenseptrT cell_;
+	DenseptrT cell_;
 
-    NodeptrT init_state_;
+	NodeptrT init_state_;
 
 	UnaryptrT activation_;
 };

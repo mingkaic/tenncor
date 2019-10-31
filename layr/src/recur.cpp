@@ -16,7 +16,7 @@ LayerptrT RecurBuilder::build (void) const
 	return std::make_shared<Recur>(
 		std::static_pointer_cast<Dense>(layers_[0]),
 		std::static_pointer_cast<ULayer>(layers_[1]),
-        init_state_,
+		init_state_,
 		label_);
 }
 
