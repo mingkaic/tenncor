@@ -13,26 +13,16 @@ free -m;
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" --define ETEQ_CFG=MIN \
-//teq:test \
-//tag:test \
-//pbm:test \
-//opt:test //opt/parse:test \
-//eteq:ctest \
-//perf:test \
-//ccur:test \
-//layr:test
-
-bazel test --run_under='valgrind --leak-check=full' --define ETEQ_CFG=MIN \
-//gen:ptest \
-//eteq:ptest
-
-# ===== Coverage Analysis ======
-echo "===== STARTING COVERAGE ANALYSIS =====";
 make lcov | grep -v '+' | grep -v 'Processing'
 
+bazel test --run_under='valgrind --leak-check=full' //gen:ptest //eteq:ptest
+
+bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //perf:test
+
+# ===== Coverage Analysis ======
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
+	echo "===== SENDING COVERAGE TO COVERALLS =====";
 	git rev-parse --abbrev-inode* HEAD;
 	coveralls-lcov --repo-token $COVERALLS_TOKEN $COV_FILE; # uploads to coveralls
 fi
