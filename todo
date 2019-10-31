@@ -45,6 +45,19 @@ P4 - investigate adopting more of boost in place of cppkg
 P5 - refactor, and rename variables to improve readability
 P5 - formalize codestyle
 
+=== correction ===
+P2 - test opt module against varying graphs
+   - optimization fails when functor is initialized on construction
+P2 - test eteq funcarg
+P2 - test dropout layer
+P2 - centralize global context structures
+P2 - reorient tests so that tests cover its own immediate module
+P2 - fix rbm demo converging to infinity problem
+P2 - test dbg module
+P3 - test complicate equations (generate random valid equations)
+P3 - maximize coverage
+P3 - test rocnnet, and trainer (or subgraph equivalent)
+
 === performance ===
 P3 - improve ccur module
 
@@ -66,19 +79,6 @@ P4 - remove unordered_map/unordered_set if we're not using them properly
 performance verification:
 P3 - benchmark test rocnnet against various other frameworks (CPU only)
 P4 - more performance test
-
-=== correction ===
-P2 - test opt module against varying graphs
-   - optimization fails when functor is initialized on construction
-P2 - test eteq funcarg
-P2 - test dropout layer
-P2 - centralize global context structures
-P2 - reorient tests so that tests cover its own immediate module
-P2 - fix rbm demo converging to infinity problem
-P2 - test dbg module
-P3 - test complicate equations (generate random valid equations)
-P3 - maximize coverage
-P3 - test rocnnet, and trainer (or subgraph equivalent)
 
 === update ===
 P5 - update all fmts usages
