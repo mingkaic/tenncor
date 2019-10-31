@@ -20,9 +20,10 @@ TEST(SEQMODEL, Copy)
 	std::string label = "serious_series";
 	layr::SequentialModel model(label);
 
-	model.push_back(std::make_shared<layr::Dense>(4, 5,
+	model.push_back(std::make_shared<layr::Dense>(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
+		nullptr,
 		dlabel));
 	model.push_back(std::make_shared<layr::RBM>(6, 4,
 		layr::sigmoid(),
@@ -43,7 +44,7 @@ TEST(SEQMODEL, Copy)
 	auto gotc = cpy.get_contents();
 
 	ASSERT_EQ(expectc.size(), gotc.size());
-	ASSERT_EQ(9, gotc.size());
+	ASSERT_EQ(12, gotc.size());
 
 	// dense
 	ASSERT_NE(expectc[0], gotc[0]);
@@ -54,23 +55,23 @@ TEST(SEQMODEL, Copy)
 	EXPECT_TENSDATA(expectc[1].get(), gotc[1].get(), PybindT);
 
 	// rbm
-	ASSERT_NE(expectc[2], gotc[2]);
 	ASSERT_NE(expectc[3], gotc[3]);
-	ASSERT_NE(expectc[5], gotc[5]);
-	EXPECT_STREQ(layr::dense_weight_key.c_str(), gotc[2]->to_string().c_str());
-	EXPECT_STREQ(layr::dense_bias_key.c_str(), gotc[3]->to_string().c_str());
-	EXPECT_STREQ(layr::dense_bias_key.c_str(), gotc[5]->to_string().c_str());
-	EXPECT_TENSDATA(expectc[2].get(), gotc[2].get(), PybindT);
+	ASSERT_NE(expectc[4], gotc[4]);
+	ASSERT_NE(expectc[7], gotc[7]);
+	EXPECT_STREQ(layr::dense_weight_key.c_str(), gotc[3]->to_string().c_str());
+	EXPECT_STREQ(layr::dense_bias_key.c_str(), gotc[4]->to_string().c_str());
+	EXPECT_STREQ(layr::dense_bias_key.c_str(), gotc[7]->to_string().c_str());
 	EXPECT_TENSDATA(expectc[3].get(), gotc[3].get(), PybindT);
-	EXPECT_TENSDATA(expectc[5].get(), gotc[5].get(), PybindT);
+	EXPECT_TENSDATA(expectc[4].get(), gotc[4].get(), PybindT);
+	EXPECT_TENSDATA(expectc[7].get(), gotc[7].get(), PybindT);
 
 	// conv
-	ASSERT_NE(expectc[7], gotc[7]);
-	ASSERT_NE(expectc[8], gotc[8]);
-	EXPECT_STREQ(layr::conv_weight_key.c_str(), gotc[7]->to_string().c_str());
-	EXPECT_STREQ(layr::conv_bias_key.c_str(), gotc[8]->to_string().c_str());
-	EXPECT_TENSDATA(expectc[7].get(), gotc[7].get(), PybindT);
-	EXPECT_TENSDATA(expectc[8].get(), gotc[8].get(), PybindT);
+	ASSERT_NE(expectc[10], gotc[10]);
+	ASSERT_NE(expectc[11], gotc[11]);
+	EXPECT_STREQ(layr::conv_weight_key.c_str(), gotc[10]->to_string().c_str());
+	EXPECT_STREQ(layr::conv_bias_key.c_str(), gotc[11]->to_string().c_str());
+	EXPECT_TENSDATA(expectc[10].get(), gotc[10].get(), PybindT);
+	EXPECT_TENSDATA(expectc[11].get(), gotc[11].get(), PybindT);
 }
 
 
@@ -82,9 +83,10 @@ TEST(SEQMODEL, Clone)
 	std::string label = "serious_series";
 	layr::SequentialModel model(label);
 
-	model.push_back(std::make_shared<layr::Dense>(4, 5,
+	model.push_back(std::make_shared<layr::Dense>(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
+		nullptr,
 		dlabel));
 	model.push_back(std::make_shared<layr::RBM>(6, 4,
 		layr::sigmoid(),
@@ -114,9 +116,10 @@ TEST(SEQMODEL, Move)
 	std::string label = "serious_series";
 	layr::SequentialModel model(label);
 
-	model.push_back(std::make_shared<layr::Dense>(4, 5,
+	model.push_back(std::make_shared<layr::Dense>(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
+		nullptr,
 		dlabel));
 	model.push_back(std::make_shared<layr::RBM>(6, 4,
 		layr::sigmoid(),
@@ -137,20 +140,20 @@ TEST(SEQMODEL, Move)
 	auto gotc = mv.get_contents();
 
 	ASSERT_EQ(expectc.size(), gotc.size());
-	ASSERT_EQ(9, gotc.size());
+	ASSERT_EQ(12, gotc.size());
 
 	// dense
 	ASSERT_EQ(expectc[0], gotc[0]);
 	ASSERT_EQ(expectc[1], gotc[1]);
 
 	// rbm
-	ASSERT_EQ(expectc[2], gotc[2]);
 	ASSERT_EQ(expectc[3], gotc[3]);
-	ASSERT_EQ(expectc[5], gotc[5]);
+	ASSERT_EQ(expectc[4], gotc[4]);
+	ASSERT_EQ(expectc[7], gotc[7]);
 
 	// conv
-	ASSERT_EQ(expectc[7], gotc[7]);
-	ASSERT_EQ(expectc[8], gotc[8]);
+	ASSERT_EQ(expectc[10], gotc[10]);
+	ASSERT_EQ(expectc[11], gotc[11]);
 }
 
 
@@ -162,9 +165,10 @@ TEST(SEQMODEL, Tagging)
 	std::string label = "serious_series";
 	layr::SequentialModel model(label);
 
-	model.push_back(std::make_shared<layr::Dense>(4, 5,
+	model.push_back(std::make_shared<layr::Dense>(4, teq::Shape({5}),
 		layr::zero_init<PybindT>(),
 		layr::zero_init<PybindT>(),
+		nullptr,
 		dlabel));
 	model.push_back(std::make_shared<layr::RBM>(6, 4,
 		layr::sigmoid(),
@@ -176,18 +180,18 @@ TEST(SEQMODEL, Tagging)
 
 	auto contents = model.get_contents();
 	// expect contents to be tagged
-	ASSERT_EQ(9, contents.size());
+	ASSERT_EQ(12, contents.size());
 
 	auto& reg = tag::get_reg();
 	auto dense_weight_tags = reg.get_tags(contents[0].get());
 	auto dense_bias_tags = reg.get_tags(contents[1].get());
-	auto rbm_weight_tags = reg.get_tags(contents[2].get());
-	auto rbm_hbias_tags = reg.get_tags(contents[3].get());
-	auto rbm_perm_tags = reg.get_tags(contents[4].get());
-	auto rbm_vbias_tags = reg.get_tags(contents[5].get());
-	auto rbm_sig_tags = reg.get_tags(contents[6].get());
-	auto conv_weight_tags = reg.get_tags(contents[7].get());
-	auto conv_bias_tags = reg.get_tags(contents[8].get());
+	auto rbm_weight_tags = reg.get_tags(contents[3].get());
+	auto rbm_hbias_tags = reg.get_tags(contents[4].get());
+	auto rbm_perm_tags = reg.get_tags(contents[6].get());
+	auto rbm_vbias_tags = reg.get_tags(contents[7].get());
+	auto rbm_sig_tags = reg.get_tags(contents[9].get());
+	auto conv_weight_tags = reg.get_tags(contents[10].get());
+	auto conv_bias_tags = reg.get_tags(contents[11].get());
 
 	EXPECT_EQ(2, dense_weight_tags.size());
 	EXPECT_EQ(2, dense_bias_tags.size());
@@ -292,7 +296,7 @@ TEST(SEQMODEL, Tagging)
 	EXPECT_STREQ("hidden::bias:0", rbm_dense_hbias_labels[0].c_str());
 	EXPECT_STREQ("visible::weight:0", rbm_dense_perm_labels[0].c_str());
 	EXPECT_STREQ("visible::bias:0", rbm_dense_vbias_labels[0].c_str());
-	EXPECT_STREQ(":::0", rbm_dense_sig_labels[0].c_str());
+	EXPECT_STREQ("::uparam:0", rbm_dense_sig_labels[0].c_str());
 	EXPECT_STREQ(tag::immutable_tag.c_str(), sig_properties[0].c_str());
 
 	ASSERT_HAS(conv_weight_tags, layr::conv_layer_key);

@@ -82,6 +82,7 @@ int main (int argc, const char** argv)
 			}
 			google::protobuf::util::JsonPrintOptions options;
 			options.add_whitespace = true;
+			options.always_print_primitive_fields = true;
 			if (google::protobuf::util::Status::OK !=
 				google::protobuf::util::MessageToJsonString(
 					graph, &jsonstr, options))

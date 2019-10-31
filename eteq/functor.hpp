@@ -160,7 +160,12 @@ struct Functor final : public teq::iOperableFunc
 
 private:
 	Functor (teq::Opcode opcode, teq::Shape shape, teq::ArgsT args) :
-		opcode_(opcode), shape_(shape), args_(args) {}
+		opcode_(opcode), shape_(shape), args_(args)
+	{
+#ifdef FINIT_ON_BUILD
+		initialize();
+#endif // FINIT_ON_BUILD
+	}
 
 	Functor (Functor<T>&& other) = default;
 

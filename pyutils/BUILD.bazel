@@ -1,0 +1,23 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["*.hpp", "src/*.cpp"]) + [
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "pyutils",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//eteq:eteq",
+        "@com_github_pybind_pybind11//:pybind11",
+    ],
+    visibility = ["//visibility:public"],
+)

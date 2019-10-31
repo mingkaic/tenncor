@@ -6,27 +6,37 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 === usage ===
-P2 - implement recurrent nn
-P2 - implement dropout layer
-P2 - implement attention mechanisms
+P2 - implement GRU
+P2 - implement LSTM
+P2 - implement attention transformer
    - demo A3C, attention encoder+decoder
    - implement models concerning visual and audio processing, and semantic data processing
    - separate supervised and unsupervised trainers (since they have different statefulness)
 
 === demos ===
-P2 - improve convolutional nn demo
+P2 - fix convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
+   - improve rnn demo to use more stable weights
 
 === feature ===
-P2 - attach onnx support to pbm (https://github.com/onnx/onnx)
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
 P2 - make shape dimension size configurable (instead of fixed rank_cap)
 P2 - make constant pre-calculation configurable in opt module
 P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
+P5 - implement onnx support (https://github.com/onnx/onnx)
 
 === transparency/code readability ===
+P2 - layr get_contents needs to return context for output tensors
+   - generate value-range graph to automatically detect erroneous operators
+      - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
+      - this graph can help developers quickly identifies unstable nodes
+   - implement node finder that locates erroneous nodes upon shape mismatch or some other error condition
+   - upgrade pygen to support multiline comments in API
+   - create global context for setting local logger
+   - fix variable assignment in pybind11 code sections to error if py::array is not numpy
+   - use https://github.com/pybind/pybind11_bazel
 P2 - unify pybind11 utility functions
 P2 - provide graph-setup time summary when failing to match shapes
 P4 - add even more debugging tools
@@ -35,10 +45,25 @@ P4 - investigate adopting more of boost in place of cppkg
 P5 - refactor, and rename variables to improve readability
 P5 - formalize codestyle
 
+=== correction ===
+P2 - test opt module against varying graphs
+   - optimization fails when functor is initialized on construction
+P2 - test eteq funcarg
+P2 - test dropout layer
+P2 - centralize global context structures
+P2 - reorient tests so that tests cover its own immediate module
+P2 - fix rbm demo converging to infinity problem
+P2 - test dbg module
+P3 - test complicate equations (generate random valid equations)
+P3 - maximize coverage
+P3 - test rocnnet, and trainer (or subgraph equivalent)
+
 === performance ===
 P3 - improve ccur module
 
 run-time performance:
+   - implement group sum and group prod using EigenAssignTens
+   - make eigen device configurable
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - implement GPU settings
 P4 - improve session implementation
@@ -54,17 +79,6 @@ P4 - remove unordered_map/unordered_set if we're not using them properly
 performance verification:
 P3 - benchmark test rocnnet against various other frameworks (CPU only)
 P4 - more performance test
-
-=== correction ===
-P2 - test eteq funcarg
-P2 - centralize global context structures
-P2 - reorient tests so that tests cover its own immediate module
-P2 - fix rbm demo converging to infinity problem
-P2 - test dbg module
-P2 - test opt module more
-P3 - test complicate equations (generate random valid equations)
-P3 - maximize coverage
-P3 - test rocnnet, and trainer (or subgraph equivalent)
 
 === update ===
 P5 - update all fmts usages

@@ -9,16 +9,54 @@
 #include "eteq/eteq.hpp"
 
 
+TEST(SESSION, Track)
+{
+	teq::Shape shape;
+
+	eteq::VarptrT<double> a = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> b = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> c = eteq::make_variable_scalar<double>(2, shape);
+	eteq::NodeptrT<double> d = eteq::make_variable_scalar<double>(3, shape);
+
+	auto x = convert_to_node(a) + b;
+	auto target = x * c;
+	auto target2 = x * d;
+
+	// this tests if session can track be called multiple times
+	eteq::Session session;
+	session.track({target->get_tensor()});
+
+	// expect session.ops_ to contain x and target
+	EXPECT_ARRHAS(session.ops_, x->get_tensor().get());
+	EXPECT_ARRHAS(session.ops_, target->get_tensor().get());
+	EXPECT_EQ(2, session.ops_.size());
+
+	// expect target to be tracked
+	EXPECT_HAS(session.tracked_, target->get_tensor());
+	EXPECT_EQ(1, session.tracked_.size());
+
+	session.track({target2->get_tensor()});
+
+	// expect session.ops_ to contain all the ops
+	EXPECT_ARRHAS(session.ops_, x->get_tensor().get());
+	EXPECT_ARRHAS(session.ops_, target->get_tensor().get());
+	EXPECT_ARRHAS(session.ops_, target2->get_tensor().get());
+	EXPECT_EQ(3, session.ops_.size());
+
+	// expect both targets to be tracked
+	EXPECT_HAS(session.tracked_, target->get_tensor());
+	EXPECT_HAS(session.tracked_, target2->get_tensor());
+	EXPECT_EQ(2, session.tracked_.size());
+}
+
+
 TEST(SESSION, Update)
 {
 	teq::Shape shape;
 
-	eteq::VarptrT<double> a = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::NodeptrT<double> b = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::NodeptrT<double> c = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
+	eteq::VarptrT<double> a = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> b = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> c = eteq::make_variable_scalar<double>(2, shape);
 
 	auto x = convert_to_node(a) + b;
 	auto target = x * c;
@@ -71,14 +109,10 @@ TEST(SESSION, UpdateIgnore)
 {
 	teq::Shape shape;
 
-	eteq::VarptrT<double> a = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::NodeptrT<double> b = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::VarptrT<double> c = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
-	eteq::VarptrT<double> d = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
+	eteq::VarptrT<double> a = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> b = eteq::make_variable_scalar<double>(1, shape);
+	eteq::VarptrT<double> c = eteq::make_variable_scalar<double>(2, shape);
+	eteq::VarptrT<double> d = eteq::make_variable_scalar<double>(2, shape);
 
 	auto x = convert_to_node(a) + b;
 	auto y = x * convert_to_node(c);
@@ -161,12 +195,9 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
-	eteq::VarptrT<double> a = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::NodeptrT<double> b = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 3).data(), shape);
-	eteq::VarptrT<double> c = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
+	eteq::VarptrT<double> a = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> b = eteq::make_variable_scalar<double>(3, shape);
+	eteq::VarptrT<double> c = eteq::make_variable_scalar<double>(2, shape);
 
 	auto u = -convert_to_node(a);
 	auto x = u * b;
@@ -239,12 +270,9 @@ TEST(SESSION, TargetedUpdate)
 {
 	teq::Shape shape;
 
-	eteq::VarptrT<double> a = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::NodeptrT<double> b = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::NodeptrT<double> c = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
+	eteq::VarptrT<double> a = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> b = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> c = eteq::make_variable_scalar<double>(2, shape);
 
 	auto x = convert_to_node(a) + b;
 	auto target = x * c;
@@ -297,14 +325,10 @@ TEST(SESSION, TargetedUpdateIgnore)
 {
 	teq::Shape shape;
 
-	eteq::VarptrT<double> a = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::NodeptrT<double> b = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::VarptrT<double> c = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
-	eteq::VarptrT<double> d = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
+	eteq::VarptrT<double> a = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> b = eteq::make_variable_scalar<double>(1, shape);
+	eteq::VarptrT<double> c = eteq::make_variable_scalar<double>(2, shape);
+	eteq::VarptrT<double> d = eteq::make_variable_scalar<double>(2, shape);
 
 	auto x = convert_to_node(a) + b;
 	auto y = x * convert_to_node(c);
@@ -368,14 +392,10 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
-	eteq::VarptrT<double> a = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 1).data(), shape);
-	eteq::NodeptrT<double> b = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 3).data(), shape);
-	eteq::VarptrT<double> c = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
-	eteq::VarptrT<double> d = eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems(), 2).data(), shape);
+	eteq::VarptrT<double> a = eteq::make_variable_scalar<double>(1, shape);
+	eteq::NodeptrT<double> b = eteq::make_variable_scalar<double>(3, shape);
+	eteq::VarptrT<double> c = eteq::make_variable_scalar<double>(2, shape);
+	eteq::VarptrT<double> d = eteq::make_variable_scalar<double>(2, shape);
 
 	auto u = -convert_to_node(a);
 	auto x = u * b;

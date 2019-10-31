@@ -55,7 +55,31 @@ struct CoordMap final : public teq::iCoordMap
 	/// Implementation of iCoordMap
 	std::string to_string (void) const override
 	{
-		return teq::to_string(args_);
+		std::stringstream ss;
+		ss << fmts::arr_begin;
+		if (false == std::isnan(args_[0][0]))
+		{
+			ss << fmts::arr_begin << args_[0][0];
+			for (teq::RankT j = 1; j < teq::mat_dim &&
+				false == std::isnan(args_[0][j]); ++j)
+			{
+				ss << fmts::arr_delim << args_[0][j];
+			}
+			ss << fmts::arr_end;
+			for (teq::RankT i = 1; i < teq::mat_dim &&
+				false == std::isnan(args_[i][0]); ++i)
+			{
+				ss << fmts::arr_delim << '\n' << fmts::arr_begin << args_[i][0];
+				for (teq::RankT j = 1; j < teq::mat_dim &&
+					false == std::isnan(args_[i][j]); ++j)
+				{
+					ss << fmts::arr_delim << args_[i][j];
+				}
+				ss << fmts::arr_end;
+			}
+		}
+		ss << fmts::arr_end;
+		return ss.str();
 	}
 
 	/// Implementation of iCoordMap

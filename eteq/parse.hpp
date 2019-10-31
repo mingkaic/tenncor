@@ -200,7 +200,7 @@ struct GroupConvr final : public opt::iConverter
 				ctx, variadic_, opt::CtxValT());
 			args.insert(args.end(), varargs.begin(), varargs.end());
 		}
-		eteq::NodesT<T> outs;
+		NodesT<T> outs;
 		outs.reserve(args.size());
 		std::transform(args.begin(), args.end(),
 			std::back_inserter(outs),

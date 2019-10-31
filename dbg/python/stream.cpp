@@ -54,24 +54,29 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("root"),
 			py::arg("showshape") = false)
 		.def("graph_to_csvstr",
-			[](teq::TensptrT root, bool showshape)
+			[](teq::TensptrT root, bool showshape,
+				std::unordered_map<teq::iTensor*,std::string> abbrevs)
 			{
 				std::stringstream ss;
 				CSVEquation ceq;
 				ceq.showshape_ = showshape;
+				ceq.abbreviate_ = abbrevs;
 				root->accept(ceq);
 				ceq.to_stream(ss);
 				return ss.str();
 			},
 			"Return csv of graph edges as string",
 			py::arg("root"),
-			py::arg("showshape") = false)
+			py::arg("showshape") = false,
+			py::arg("abbrevs") = std::unordered_map<teq::iTensor*,std::string>())
 		.def("multigraph_to_csvstr",
-			[](teq::TensptrsT roots, bool showshape)
+			[](teq::TensptrsT roots, bool showshape,
+				std::unordered_map<teq::iTensor*,std::string> abbrevs)
 			{
 				std::stringstream ss;
 				CSVEquation ceq;
 				ceq.showshape_ = showshape;
+				ceq.abbreviate_ = abbrevs;
 				for (auto& root : roots)
 				{
 					root->accept(ceq);
@@ -81,7 +86,8 @@ PYBIND11_MODULE(stream_dbg, m)
 			},
 			"Return csv of graph edges of multiple roots as string",
 			py::arg("roots"),
-			py::arg("showshape") = false);
+			py::arg("showshape") = false,
+			py::arg("abbrevs") = std::unordered_map<teq::iTensor*,std::string>());
 
 	// ==== to file functions ====
 	m
@@ -106,13 +112,15 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("filename"),
 			py::arg("showshape") = false)
 		.def("graph_to_csvfile",
-			[](teq::TensptrT root, std::string filename, bool showshape)
+			[](teq::TensptrT root, std::string filename, bool showshape,
+				std::unordered_map<teq::iTensor*,std::string> abbrevs)
 			{
 				std::ofstream outstr(filename);
 				if (outstr.is_open())
 				{
 					CSVEquation ceq;
 					ceq.showshape_ = showshape;
+					ceq.abbreviate_ = abbrevs;
 					root->accept(ceq);
 					ceq.to_stream(outstr);
 				}
@@ -124,15 +132,18 @@ PYBIND11_MODULE(stream_dbg, m)
 			"Stream csv of graph edges to file",
 			py::arg("root"),
 			py::arg("filename"),
-			py::arg("showshape") = false)
+			py::arg("showshape") = false,
+			py::arg("abbrevs") = std::unordered_map<teq::iTensor*,std::string>())
 		.def("multigraph_to_csvfile",
-			[](teq::TensptrsT roots, std::string filename, bool showshape)
+			[](teq::TensptrsT roots, std::string filename, bool showshape,
+				std::unordered_map<teq::iTensor*,std::string> abbrevs)
 			{
 				std::ofstream outstr(filename);
 				if (outstr.is_open())
 				{
 					CSVEquation ceq;
 					ceq.showshape_ = showshape;
+					ceq.abbreviate_ = abbrevs;
 					for (auto& root : roots)
 					{
 						root->accept(ceq);
@@ -147,5 +158,6 @@ PYBIND11_MODULE(stream_dbg, m)
 			"Return csv of graph edges of multiple roots to file",
 			py::arg("roots"),
 			py::arg("filename"),
-			py::arg("showshape") = false);
+			py::arg("showshape") = false,
+			py::arg("abbrevs") = std::unordered_map<teq::iTensor*,std::string>());
 }

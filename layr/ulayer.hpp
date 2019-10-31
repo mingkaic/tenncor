@@ -20,8 +20,10 @@ namespace layr
 struct ULayer;
 
 /// Function that takes corresponding unary layer and node
-using UnaryF = std::function<NodeptrT(
-	const ULayer&,NodeptrT)>;
+using UnaryF = std::function<NodeptrT(NodeptrT,NodeptrT)>;
+
+/// ULayer parameter label
+const std::string uparam_key = "uparam";
 
 /// Builder implementation for activation layer
 struct ULayerBuilder final : public iLayerBuilder
@@ -30,7 +32,16 @@ struct ULayerBuilder final : public iLayerBuilder
 		utype_(act_type), label_(label) {}
 
 	/// Implementation of iLayerBuilder
-	void set_tensor (teq::TensptrT tens, std::string target) override {}
+	void set_tensor (teq::TensptrT tens, std::string target) override
+	{
+		if (target == uparam_key)
+		{
+			params_ = eteq::to_node<PybindT>(tens);
+		}
+		logs::warnf("attempt to create ulayer "
+			"with unknown tensor `%s` of label `%s`",
+			tens->to_string().c_str(), target.c_str());
+	}
 
 	/// Implementation of iLayerBuilder
 	void set_sublayer (LayerptrT layer) override {} // activation has no sublayer
@@ -41,106 +52,116 @@ struct ULayerBuilder final : public iLayerBuilder
 private:
 	std::string utype_;
 
+	NodeptrT params_ = nullptr;
+
 	std::string label_;
 };
 
 /// Identifier for sigmoid activation layer
 const std::string sigmoid_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "sigmoid",
-[](std::string extra_info) -> LBuilderptrT
+[](std::string label) -> LBuilderptrT
 {
-	return std::make_shared<ULayerBuilder>(sigmoid_layer_key, "");
+	return std::make_shared<ULayerBuilder>(sigmoid_layer_key, label);
 });
 
 /// Identifier for tanh activation layer
 const std::string tanh_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "tanh",
-[](std::string extra_info) -> LBuilderptrT
+[](std::string label) -> LBuilderptrT
 {
-	return std::make_shared<ULayerBuilder>(tanh_layer_key, "");
+	return std::make_shared<ULayerBuilder>(tanh_layer_key, label);
 });
 
 /// Identifier for relu activation layer
 const std::string relu_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "relu",
-[](std::string extra_info) -> LBuilderptrT
+[](std::string label) -> LBuilderptrT
 {
-	return std::make_shared<ULayerBuilder>(relu_layer_key, "");
+	return std::make_shared<ULayerBuilder>(relu_layer_key, label);
 });
 
 /// Identifier for softmax activation layer
 const std::string softmax_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "softmax",
-[](std::string extra_info) -> LBuilderptrT
+[](std::string labels) -> LBuilderptrT
 {
-	return std::make_shared<ULayerBuilder>(softmax_layer_key, extra_info);
+	return std::make_shared<ULayerBuilder>(softmax_layer_key, labels);
 });
 
 /// Identifier for max pooling layer
 const std::string maxpool2d_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "maxpool",
-[](std::string extra_info) -> LBuilderptrT
+[](std::string labels) -> LBuilderptrT
 {
-	return std::make_shared<ULayerBuilder>(maxpool2d_layer_key, extra_info);
+	return std::make_shared<ULayerBuilder>(maxpool2d_layer_key, labels);
 });
 
 /// Identifier for mean pooling layer
 const std::string meanpool2d_layer_key =
 get_layer_reg().register_tagr(layers_key_prefix + "meanpool",
-[](std::string extra_info) -> LBuilderptrT
+[](std::string labels) -> LBuilderptrT
 {
-	return std::make_shared<ULayerBuilder>(meanpool2d_layer_key, extra_info);
+	return std::make_shared<ULayerBuilder>(meanpool2d_layer_key, labels);
 });
 
 /// Softmax layer connection function that extracts
 /// transformation parameter from layer and apply to input
-NodeptrT softmax_from_layer (const ULayer& layer, NodeptrT input);
+NodeptrT softmax_from_param (NodeptrT input, NodeptrT params);
 
-NodeptrT maxpool_from_layer (const ULayer& layer, NodeptrT input);
+NodeptrT maxpool_from_param (NodeptrT input, NodeptrT params);
 
-NodeptrT meanpool_from_layer (const ULayer& layer, NodeptrT input);
+NodeptrT meanpool_from_param (NodeptrT input, NodeptrT params);
 
 /// Map unary layer identifier to connection function
 const std::unordered_map<std::string,UnaryF> unaries =
 {
 	{sigmoid_layer_key,
-		[](const ULayer& layer, NodeptrT input)
+		[](NodeptrT input, NodeptrT params)
 		{ return tenncor::sigmoid<PybindT>(input); }},
 	{tanh_layer_key,
-		[](const ULayer& layer, NodeptrT input)
+		[](NodeptrT input, NodeptrT params)
 		{ return tenncor::tanh<PybindT>(input); }},
 	{relu_layer_key,
-		[](const ULayer& layer, NodeptrT input)
+		[](NodeptrT input, NodeptrT params)
 		{ return tenncor::relu<PybindT>(input); }},
-	{softmax_layer_key, softmax_from_layer},
-	{maxpool2d_layer_key, maxpool_from_layer},
-	{meanpool2d_layer_key, meanpool_from_layer},
+	{softmax_layer_key, softmax_from_param},
+	{maxpool2d_layer_key, maxpool_from_param},
+	{meanpool2d_layer_key, meanpool_from_param},
 };
 
 /// Layer implementation to apply activation and pooling functions
 struct ULayer final : public iLayer
 {
-	ULayer (const std::string& ulayer_type, const std::string& extra_info = "") :
-		label_(extra_info),
+	ULayer (const std::string& ulayer_type, NodeptrT params,
+		const std::string& label = "") :
+		label_(label),
 		utype_(ulayer_type),
 		unary_(estd::must_getf(unaries, ulayer_type,
 			"failed to find unary function `%s`", ulayer_type.c_str())),
-		placeholder_(eteq::make_constant_scalar<PybindT>(0, {}))
+		params_(params)
 	{
-		tag(placeholder_->get_tensor(), LayerId());
+		if (nullptr == params)
+		{
+			params_ = eteq::make_constant_scalar<PybindT>(0, {});
+		}
+		tag(params_->get_tensor(), LayerId(uparam_key));
 	}
 
 	ULayer (const ULayer& other,
-		std::string label_prefix = "") :
-		label_(label_prefix + other.get_label()),
-		utype_(other.utype_),
-		unary_(other.unary_),
-		placeholder_(eteq::make_constant_scalar<PybindT>(0, {}))
+		std::string label_prefix = "")
 	{
-		tag(placeholder_->get_tensor(), LayerId());
+		copy_helper(other, label_prefix);
 	}
 
-	ULayer& operator = (const ULayer& other) = default;
+	ULayer& operator = (const ULayer& other)
+	{
+		if (this != &other)
+		{
+			copy_helper(other);
+		}
+		return *this;
+	}
 
 	ULayer (ULayer&& other) = default;
 
@@ -179,13 +200,13 @@ struct ULayer final : public iLayer
 	/// Implementation of iLayer
 	teq::TensptrsT get_contents (void) const override
 	{
-		return {placeholder_->get_tensor()};
+		return {params_->get_tensor()};
 	}
 
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-		auto out = unary_(*this, input);
+		auto out = unary_(input, params_);
 		recursive_tag(out->get_tensor(), {
 			input->get_tensor().get(),
 		}, LayerId());
@@ -198,35 +219,48 @@ private:
 		return new ULayer(*this, label_prefix);
 	}
 
+	void copy_helper (const ULayer& other, std::string label_prefix = "")
+	{
+		label_ = label_prefix + other.get_label();
+		utype_ = other.utype_;
+		unary_ = other.unary_;
+		params_ = NodeptrT(other.params_->clone());
+		tag(params_->get_tensor(), LayerId(uparam_key));
+	}
+
 	std::string label_;
 
 	std::string utype_;
 
 	UnaryF unary_;
 
-	NodeptrT placeholder_;
+	NodeptrT params_;
 };
 
 /// Smart pointer of unary layer
 using UnaryptrT = std::shared_ptr<ULayer>;
 
 /// Return activation layer using sigmoid
-UnaryptrT sigmoid (void);
+UnaryptrT sigmoid (std::string label = "");
 
 /// Return activation layer using tanh
-UnaryptrT tanh (void);
+UnaryptrT tanh (std::string label = "");
 
 /// Return activation layer using relu
-UnaryptrT relu (void);
+UnaryptrT relu (std::string label = "");
 
 /// Return activation layer using softmax of specified dimension
-UnaryptrT softmax (teq::RankT dim);
+UnaryptrT softmax (teq::RankT dim, std::string label = "");
 
 /// Return pooling layer using max aggregation
-UnaryptrT maxpool2d (std::pair<teq::DimT,teq::DimT> dims = {0, 1});
+UnaryptrT maxpool2d (
+	std::pair<teq::DimT,teq::DimT> dims = {0, 1},
+	std::string label = "");
 
 /// Return pooling layer using mean aggregation
-UnaryptrT meanpool2d (std::pair<teq::DimT,teq::DimT> dims = {0, 1});
+UnaryptrT meanpool2d (
+	std::pair<teq::DimT,teq::DimT> dims = {0, 1},
+	std::string label = "");
 
 }
 

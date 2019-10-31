@@ -211,12 +211,15 @@ private:
 /// The index follows the equation: index = coord[0]+coord[1]*shape[0]+...
 /// Invalid coordinate where the coordinate value is beyond the dimension
 /// for any index will report error
-NElemT index (Shape shape, CoordT coord);
+NElemT index (const Shape& shape, CoordT coord);
 
 /// Return the coordinate of a flat index according to shape
 /// Coordinate dimensions are 0-based
 /// For example [0, 0, ..., 0] <-> 0
-CoordT coordinate (Shape shape, NElemT idx);
+CoordT coordinate (const Shape& shape, NElemT idx);
+
+/// Return list of shape dimensions with trailing ones trimmed
+std::vector<DimT> narrow_shape (const Shape& shape);
 
 }
 

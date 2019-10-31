@@ -122,7 +122,7 @@ struct Conv final : public iLayer
 	}
 
 	Conv (NodeptrT weight, NodeptrT bias,
-		eteq::NodeptrT<DArgT> arg, std::string label) :
+		eteq::NodeptrT<DArgT> arg, const std::string& label) :
 		label_(label),
 		weight_(weight),
 		bias_(bias),
