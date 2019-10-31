@@ -205,8 +205,11 @@ private:
 		auto builder = registry.get_builder(lroot->type_)(lroot->label_);
 		for (const LNodeptrT& sub : lroot->subs_)
 		{
-			builder->set_sublayer(build_layer_helper(
-				registry, layer_tens, sub.get()));
+			if (nullptr != sub)
+			{
+				builder->set_sublayer(build_layer_helper(
+					registry, layer_tens, sub.get()));
+			}
 		}
 		TensLablT tenslabels;
 		if (estd::get(tenslabels, layer_tens, lroot))

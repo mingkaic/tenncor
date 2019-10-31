@@ -84,11 +84,11 @@ def main(args):
         trained = model.clone()
 
     sess = eteq.Session()
-    batch_size = 10
+    n_batch = 10
 
-    # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=batch_size)
+    # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=n_batch)
 
-    train_input = eteq.Variable([batch_size, n_visible])
+    train_input = eteq.Variable([n_batch, n_visible])
     train = rcn.rbm_train(model, sess, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,
@@ -116,8 +116,8 @@ def main(args):
     verbose = True
     n_data = mnist_images.shape[0]
 
-    if batch_size > 0:
-        n_batches = n_data // batch_size + (0 if n_data % batch_size == 0 else 1)
+    if n_batch > 0:
+        n_batches = n_data // n_batch + (0 if n_data % n_batch == 0 else 1)
     else:
         n_batches = 1
 
@@ -146,7 +146,7 @@ def main(args):
                 print('Epoch: {:d}'.format(e))
 
         for b in r_batches:
-            batch_x = mnist_images[b * batch_size:(b + 1) * batch_size]
+            batch_x = mnist_images[b * n_batch:(b + 1) * n_batch]
             train_input.assign(batch_x)
             err = train().as_numpy()
             epoch_errs.append(err)

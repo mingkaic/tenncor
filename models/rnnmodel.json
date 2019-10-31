@@ -1,0 +1,300 @@
+{
+ "label": "",
+ "nodes": [
+  {
+   "label": "weight",
+   "source": {
+    "shape": [
+     "3",
+     "2",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "uYdMQCRstcC28+rAfcNOQG7Y9UBZTKlA",
+    "typelabel": "FLOAT",
+    "isConst": false
+   },
+   "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:input:0"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "input::weight:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "DjPLv9ICC78IeQ4/",
+    "typelabel": "FLOAT",
+    "isConst": false
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "input::bias:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:input:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "weight",
+   "source": {
+    "shape": [
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "RYotQFnVREC/ZTnA5aqgvrlykr7dEn4+NkWBPjTMqT5TIqW+",
+    "typelabel": "FLOAT",
+    "isConst": false
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "cell::weight:0"
+     ]
+    },
+    "layer_recur": {
+     "labels": [
+      "unfold:layer_dense:cell:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_recur:unfold:1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "ETPLv9ACC78IeQ4/",
+    "typelabel": "FLOAT",
+    "isConst": false
+   },
+   "tags": {
+    "layer_recur": {
+     "labels": [
+      "unfold:layer_dense:cell:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_recur:unfold:1"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "cell::bias:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "0",
+   "source": {
+    "shape": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAA==",
+    "typelabel": "FLOAT",
+    "isConst": true
+   },
+   "tags": {
+    "layer_recur": {
+     "labels": [
+      "unfold:layer_tanh::2"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_recur:unfold:1"
+     ]
+    },
+    "layer_tanh": {
+     "labels": [
+      "::uparam:0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "init_state",
+   "source": {
+    "shape": [
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "iGQ6v4QSqD8akR2/",
+    "typelabel": "FLOAT",
+    "isConst": false
+   },
+   "tags": {
+    "layer_recur": {
+     "labels": [
+      "unfold::init_state:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_recur:unfold:1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "weight",
+   "source": {
+    "shape": [
+     "1",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "y6wrwZaiMUEEvDLB",
+    "typelabel": "FLOAT",
+    "isConst": false
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "output::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:output:2"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias",
+   "source": {
+    "shape": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "O8f3PQ==",
+    "typelabel": "FLOAT",
+    "isConst": false
+   },
+   "tags": {
+    "layer_dense": {
+     "labels": [
+      "output::bias:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:output:2"
+     ]
+    }
+   }
+  },
+  {
+   "label": "0",
+   "source": {
+    "shape": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAA==",
+    "typelabel": "FLOAT",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_sigmoid:classifier:3"
+     ]
+    },
+    "layer_sigmoid": {
+     "labels": [
+      "classifier::uparam:0"
+     ]
+    }
+   }
+  }
+ ]
+}

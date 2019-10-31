@@ -53,6 +53,10 @@ model_jsondbn: models/dbnmodel.pbx
 	bazel run //pbm:inspector -- --read ${CURDIR}/models/dbnmodel.pbx --write /tmp/dbnmodel.json
 	mv /tmp/dbnmodel.json models
 
+model_jsonrnn: models/rnnmodel.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/rnnmodel.pbx --write /tmp/rnnmodel.json
+	mv /tmp/rnnmodel.json models
+
 
 coverage:
 	$(CCOVER) $(TEQ_TEST) $(TAG_TEST) $(PBM_TEST) $(OPT_TEST) $(ETEQ_CTEST) $(CCUR_TEST) $(LAYR_TEST)
@@ -126,4 +130,4 @@ lcov_teq: cover_teq cov_clean
 .PHONY: coverage cover_ccur cover_eteq cover_layr cover_opt cover_pbm cover_tag cover_teq
 .PHONY: compare_matmul compare_mlp compare_mlp_grad cov_clean cov_genhtml
 .PHONY: lcov lcov_ccur lcov_eteq lcov_layr lcov_opt lcov_pbm lcov_tag lcov_teq
-.PHONY: model_jsonupdate model_jsongd model_jsondqn model_jsonrbm model_jsondbn
+.PHONY: model_jsonupdate model_jsongd model_jsondqn model_jsonrbm model_jsondbn model_jsonrnn

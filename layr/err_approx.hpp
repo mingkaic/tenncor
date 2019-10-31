@@ -42,7 +42,8 @@ using AssignsT = std::vector<VarAssign>;
 /// All batches of assignments
 using AssignGroupsT = std::vector<AssignsT>;
 
-/// Function that returns the error between two nodes
+/// Function that returns the error between two nodes,
+/// left node contains expected values, right contains resulting values
 using ErrorF = std::function<NodeptrT(NodeptrT,NodeptrT)>;
 
 /// Function that approximate error of sources

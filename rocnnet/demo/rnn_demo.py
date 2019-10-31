@@ -2,17 +2,17 @@
 import sys
 import functools
 import time
+import argparse
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
 import rocnnet.rocnnet as rcn
 
-import numpy as np  # Matrix and vector computation package
+import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt  # Plotting library
+import matplotlib.pyplot as plt
 
-# Set the seed for reproducability
-np.random.seed(seed=1)
+prog_description = 'Demo rnn_trainer'
 
 def cross_entropy_loss(Y, T):
     epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq
@@ -22,24 +22,6 @@ def cross_entropy_loss(Y, T):
 
 def loss(T, Y):
     return tc.reduce_mean(cross_entropy_loss(Y, T))
-
-# Show an example input and target
-def print_sample(x1, x2, t, y=None):
-    """Print a sample in a more visual way."""
-    x1 = ''.join([str(int(d)) for d in x1])
-    x1_r = int(''.join(reversed(x1)), 2)
-    x2 = ''.join([str(int(d)) for d in x2])
-    x2_r = int(''.join(reversed(x2)), 2)
-    t = ''.join([str(int(d[0])) for d in t])
-    t_r = int(''.join(reversed(t)), 2)
-    if not y is None:
-        y = ''.join([str(int(d[0])) for d in y])
-    print(f'x1:   {x1:s}   {x1_r:2d}')
-    print(f'x2: + {x2:s}   {x2_r:2d}')
-    print(f'      -------   --')
-    print(f't:  = {t:s}   {t_r:2d}')
-    if not y is None:
-        print(f'y:  = {y:s}')
 
 def create_dataset(nb_samples, sequence_len):
     """Create a dataset for binary addition and
@@ -101,147 +83,238 @@ def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
 
     return rms_prop
 
-# def rnn_train(rnn, sess, train_input, train_exout,
-#     learning_rate, momentum_term, lmbd, eps):
+def rnn_train(rnn, sess, train_input, train_exout,
+    learning_rate, momentum_term, lmbd, eps):
 
-#     winp, binp, _, w, b, _, _, state0, wout, bout, _, _ = tuple(rnn.get_contents())
+    winp, binp, _, w, b, _, _, state0, wout, bout, _, _ = tuple(rnn.get_contents())
 
-#     targets = [winp, binp, w, b, state0, wout, bout]
-#     momentums = [np.zeros(v.shape()) for v in targets]
-#     moving_avg_sqr = [np.zeros(v.shape()) for v in targets]
+    targets = [winp, binp, w, b, state0, wout, bout]
+    momentums = [np.zeros(v.shape()) for v in targets]
+    moving_avg_sqr = [np.zeros(v.shape()) for v in targets]
 
-#     train_out = rnn.connect(train_input)
-#     error = loss(train_exout, train_out)
-#     grads =  [eteq.derive(error, var) for var in targets]
+    train_out = rnn.connect(train_input)
+    error = loss(train_exout, train_out)
+    grads =  [eteq.derive(error, var) for var in targets]
 
-#     sess.track(grads)
+    sess.track(grads)
 
-#     # apply rms prop optimization
-#     def train():
-#         # group 1
-#         momentum_tmp = [mom * momentum_term for mom in momentums]
-#         for var, mom_tmp in zip(targets, momentum_tmp):
-#             var.assign(np.array(var.get() + mom_tmp))
+    # apply rms prop optimization
+    def train():
+        # group 1
+        momentum_tmp = [mom * momentum_term for mom in momentums]
+        for var, mom_tmp in zip(targets, momentum_tmp):
+            var.assign(np.array(var.get() + mom_tmp))
 
-#         sess.update_target(grads)
-#         res_grads = [grad.get() for grad in grads]
+        sess.update_target(grads)
+        res_grads = [grad.get() for grad in grads]
 
-#         # group 2
-#         for i in range(len(targets)):
-#             moving_avg_sqr[i] = lmbd * moving_avg_sqr[i] + (1-lmbd) * res_grads[i]**2
+        # group 2
+        for i in range(len(targets)):
+            moving_avg_sqr[i] = lmbd * moving_avg_sqr[i] + (1-lmbd) * res_grads[i]**2
 
-#         # group 3
-#         pgrad_norms = [(learning_rate * grad) / np.sqrt(mvsqr) + eps
-#             for grad, mvsqr in zip(res_grads, moving_avg_sqr)]
+        # group 3
+        pgrad_norms = [(learning_rate * grad) / np.sqrt(mvsqr) + eps
+            for grad, mvsqr in zip(res_grads, moving_avg_sqr)]
 
-#         for i in range(len(targets)):
-#             momentums[i] = momentum_tmp[i] - pgrad_norms[i]
+        for i in range(len(targets)):
+            momentums[i] = momentum_tmp[i] - pgrad_norms[i]
 
-#         for var, pgrad_norm in zip(targets, pgrad_norms):
-#             var.assign(np.array(var.get() - pgrad_norm))
+        for var, pgrad_norm in zip(targets, pgrad_norms):
+            var.assign(np.array(var.get() - pgrad_norm))
 
-#     return train
+    return train
 
-# Create dataset
-nb_train = 2000  # Number of training samples
-# Addition of 2 n-bit numbers can result in a n+1 bit number
-sequence_len = 7  # Length of the binary sequence
+def str2bool(opt):
+    optstr = opt.lower()
+    if optstr in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif optstr in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
-# Create training samples
-xtrain, expect_train = create_dataset(nb_train, sequence_len)
-print(f'xtrain tensor shape: {xtrain.shape}')
-print(f'expect_train tensor shape: {expect_train.shape}')
+def main(args):
 
-# keep this here to get nice weights
-rcn.Dense(2, eteq.Shape([3]), weight_init)
-rcn.Dense(3, eteq.Shape([3]), weight_init)
-rcn.Dense(3, eteq.Shape([1]), weight_init)
+    default_ts = time.time()
 
-# Set hyper-parameters
-lmbd = 0.5  # Rmsprop lambda
-learning_rate = 0.05  # Learning rate
-momentum_term = 0.80  # Momentum term
-eps = 1e-6  # Numerical stability term to prevent division by zero
-mb_size = 100  # Size of the minibatches (number of samples)
+    parser = argparse.ArgumentParser(description=prog_description)
+    parser.add_argument('--seed', dest='seed',
+        type=str2bool, nargs='?', const=False, default=False,
+        help='Whether to seed or not (default: True)')
+    parser.add_argument('--seedval', dest='seedval', type=int, nargs='?', default=int(default_ts),
+        help='Random seed value (default: <current time>)')
+    parser.add_argument('--n_batch', dest='n_batch', type=int, nargs='?', default=100,
+        help='Batch size when training (default: 100)')
+    parser.add_argument('--n_train', dest='n_train', type=int, nargs='?', default=2000,
+        help='Number of times to train (default: 2000)')
+    parser.add_argument('--n_test', dest='n_test', type=int, nargs='?', default=5,
+        help='Number of times to test (default: 5)')
+    parser.add_argument('--save', dest='save', nargs='?', default='',
+        help='Filename to save model (default: <blank>)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/rnnmodel.pbx',
+        help='Filename to load pretrained model (default: models/rnnmodel.pbx)')
+    args = parser.parse_args(args)
 
-# Create the network
-nunits = 3  # Number of states in the recurrent layer
-ninput = 2
-noutput = 1
+    if args.seed:
+        print('seeding {}'.format(args.seedval))
+        eteq.seed(args.seedval)
+        np.random.seed(args.seedval)
+    else:
+        np.random.seed(seed=1)
 
-model = rcn.SequentialModel("demo")
-model.add(
-    rcn.Dense(nunits, eteq.Shape([ninput]),
-    weight_init, label="input"))
-model.add(rcn.Recur(nunits, rcn.tanh(),
-    weight_init=weight_init,
-    bias_init=rcn.zero_init(), label="unfold"))
-model.add(rcn.Dense(noutput, eteq.Shape([nunits]),
-    weight_init, label="output"))
-model.add(rcn.sigmoid(label="classifier"))
+    # dataset parameters
+    n_train = args.n_train
+    n_test = args.n_test
+    sequence_len = 7
 
-# Number of parameters in the network
-nb_test = 5
+    # training parameters
+    n_batch = args.n_batch
+    lmbd = 0.5
+    learning_rate = 0.05
+    momentum_term = 0.80
+    eps = 1e-6
 
-sess = eteq.Session()
+    # create training samples
+    xtrain, expect_train = create_dataset(n_train, sequence_len)
+    print(f'xtrain tensor shape: {xtrain.shape}')
+    print(f'expect_train tensor shape: {expect_train.shape}')
 
-train_input = eteq.Variable([mb_size, sequence_len, ninput])
-train_exout = eteq.Variable([mb_size, sequence_len, noutput])
+    # keep this here to get nice weights
+    rcn.Dense(2, eteq.Shape([3]), weight_init)
+    rcn.Dense(3, eteq.Shape([3]), weight_init)
+    rcn.Dense(3, eteq.Shape([1]), weight_init)
 
-got = model.connect(train_input)
-error = loss(got, train_exout)
-sess.track([error])
+    # model parameters
+    nunits = 3  # Number of states in the recurrent layer
+    ninput = 2
+    noutput = 1
 
-train = rcn.sgd_train(model, sess, train_input, train_exout,
-    make_rms_prop(learning_rate, momentum_term, lmbd, eps),
-    errfunc=loss)
-# train = rnn_train(model, sess, train_input, train_exout,
-#     learning_rate, momentum_term, lmbd, eps)
+    model = rcn.SequentialModel("demo")
+    model.add(
+        rcn.Dense(nunits, eteq.Shape([ninput]),
+        weight_init, label="input"))
+    model.add(rcn.Recur(nunits, rcn.tanh(),
+        weight_init=weight_init,
+        bias_init=rcn.zero_init(), label="unfold"))
+    model.add(rcn.Dense(noutput, eteq.Shape([nunits]),
+        weight_init, label="output"))
+    model.add(rcn.sigmoid(label="classifier"))
 
-test_input = eteq.Variable([nb_test, sequence_len, ninput])
-test_output = tc.round(model.connect(test_input))
-sess.track([test_output])
+    untrained = model.clone()
+    try:
+        print('loading ' + args.load)
+        trained = rcn.load_file_seqmodel(args.load, "demo")
+        print('successfully loaded from ' + args.load)
+    except Exception as e:
+        print(e)
+        print('failed to load from "{}"'.format(args.load))
+        trained = model.clone()
 
-sess.optimize("cfg/optimizations.rules")
+    sess = eteq.Session()
 
-train_input.assign(xtrain[0:mb_size,:,:])
-train_exout.assign(expect_train[0:mb_size,:,:])
-sess.update_target([error])
-ls_of_loss = [error.get()]
-# Iterate over some iterations
-start = time.time()
-for i in range(5):
-    # Iterate over all the minibatches
-    for mb in range(nb_train // mb_size):
-        xbatch = xtrain[mb:mb+mb_size,:,:]
-        tbatch = expect_train[mb:mb+mb_size,:,:]
+    train_input = eteq.Variable([n_batch, sequence_len, ninput])
+    train_exout = eteq.Variable([n_batch, sequence_len, noutput])
 
-        train_input.assign(xbatch)
-        train_exout.assign(tbatch)
+    error = loss(train_exout, model.connect(train_input))
+    sess.track([error])
 
-        train()
+    # train = rcn.sgd_train(model, sess, train_input, train_exout,
+    #     make_rms_prop(learning_rate, momentum_term, lmbd, eps),
+    #     errfunc=loss)
+    train = rnn_train(model, sess, train_input, train_exout,
+        learning_rate, momentum_term, lmbd, eps)
 
-        # Add loss to list to plot
-        sess.update_target([error])
-        ls_of_loss.append(error.get())
-print('training time: {} seconds'.format(time.time() - start))
+    test_input = eteq.Variable([n_test, sequence_len, ninput])
+    untrained_out = tc.round(untrained.connect(test_input))
+    trained_out = tc.round(model.connect(test_input))
+    pretrained_out = tc.round(trained.connect(test_input))
+    sess.track([
+        untrained_out,
+        trained_out,
+        pretrained_out,
+    ])
 
-# Plot the loss over the iterations
-fig = plt.figure(figsize=(5, 3))
-plt.plot(ls_of_loss, 'b-')
-plt.xlabel('minibatch iteration')
-plt.ylabel('$\\xi$', fontsize=15)
-plt.title('Decrease of loss over backprop iteration')
-plt.xlim(0, 100)
-fig.subplots_adjust(bottom=0.2)
-plt.show()
+    sess.optimize("cfg/optimizations.rules")
 
-xtest, expect_test = create_dataset(nb_test, sequence_len)
+    train_input.assign(xtrain[0:n_batch,:,:])
+    train_exout.assign(expect_train[0:n_batch,:,:])
+    sess.update_target([error])
+    ls_of_loss = [error.get()]
+    start = time.time()
+    for i in range(5):
+        for j in range(n_train // n_batch):
+            xbatch = xtrain[j:j+n_batch,:,:]
+            tbatch = expect_train[j:j+n_batch,:,:]
 
-test_input.assign(xtest)
-sess.update_target([test_output])
-got_test = test_output.get()
+            train_input.assign(xbatch)
+            train_exout.assign(tbatch)
 
-for i in range(xtest.shape[0]):
-    print_sample(xtest[i,:,0], xtest[i,:,1], expect_test[i,:,:], got_test[i,:,:])
-    print('')
+            train()
+
+            # Add loss to list to plot
+            sess.update_target([error])
+            ls_of_loss.append(error.get())
+    print('training time: {} seconds'.format(time.time() - start))
+
+    # Plot the loss over the iterations
+    fig = plt.figure(figsize=(5, 3))
+    plt.plot(ls_of_loss, 'b-')
+    plt.xlabel('minibatch iteration')
+    plt.ylabel('$\\xi$', fontsize=15)
+    plt.title('Loss over backprop iteration')
+    plt.xlim(0, 100)
+    fig.subplots_adjust(bottom=0.2)
+    plt.show()
+
+    xtest, expect_test = create_dataset(n_test, sequence_len)
+
+    test_input.assign(xtest)
+    sess.update_target([
+        untrained_out,
+        trained_out,
+        pretrained_out,
+    ])
+    got_untrained = untrained_out.get()
+    got_trained = trained_out.get()
+    got_pretrained = pretrained_out.get()
+
+    for i in range(xtest.shape[0]):
+        left = xtest[i,:,0]
+        right = xtest[i,:,1]
+        expected = expect_test[i,:,:]
+        yuntrained = got_untrained[i,:,:]
+        ytrained = got_trained[i,:,:]
+        ypretrained = got_pretrained[i,:,:]
+
+        left = ''.join([str(int(d)) for d in left])
+        left_num = int(''.join(reversed(left)), 2)
+        right = ''.join([str(int(d)) for d in right])
+        right_num = int(''.join(reversed(right)), 2)
+        expected = ''.join([str(int(d[0])) for d in expected])
+        expected_num = int(''.join(reversed(expected)), 2)
+        yuntrained = ''.join([str(int(d[0])) for d in yuntrained])
+        yuntrained_num = int(''.join(reversed(yuntrained)), 2)
+        ytrained = ''.join([str(int(d[0])) for d in ytrained])
+        ytrained_num = int(''.join(reversed(ytrained)), 2)
+        ypretrained = ''.join([str(int(d[0])) for d in ypretrained])
+        ypretrained_num = int(''.join(reversed(ypretrained)), 2)
+        print(f'left:         {left:s}   {left_num:2d}')
+        print(f'right:      + {right:s}   {right_num:2d}')
+        print(f'              -------   --')
+        print(f'expected:   = {expected:s}   {expected_num:2d}')
+        print(f'untrained:  = {yuntrained:s}   {yuntrained_num:2d}')
+        print(f'trained:    = {ytrained:s}   {ytrained_num:2d}')
+        print(f'pretrained: = {ypretrained:s}   {ypretrained_num:2d}')
+
+        print('')
+
+    try:
+        print('saving')
+        if model.save_file(args.save):
+            print('successfully saved to {}'.format(args.save))
+    except Exception as e:
+        print(e)
+        print('failed to write to "{}"'.format(args.save))
+
+if '__main__' == __name__:
+    main(sys.argv[1:])

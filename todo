@@ -14,7 +14,7 @@ P2 - implement attention transformer
    - separate supervised and unsupervised trainers (since they have different statefulness)
 
 === demos ===
-P2 - improve convolutional nn demo
+P2 - fix convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
    - improve rnn demo to use more stable weights
 

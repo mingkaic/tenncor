@@ -59,7 +59,9 @@ model.add(rcn.maxpool2d([1, 2])) # outputs [nbatch, 4, 4, 20]
 
 model.add(rcn.Dense(10, eteq.Shape([4, 4, 20]), # weight has shape [10, 4, 4, 20]
     weight_init=rcn.unif_xavier_init(),
-    bias_init=rcn.zero_init(), params=eteq.constant([1, 1, 2, 2, 3, 3]), label="fc")) # outputs [nbatch, 10]
+    bias_init=rcn.zero_init(),
+    params=eteq.constant(np.array([0, 1, 1, 2, 2, 3], dtype=np.float32)),
+    label="fc")) # outputs [nbatch, 10]
 model.add(rcn.softmax(1))
 
 sess = eteq.Session()
