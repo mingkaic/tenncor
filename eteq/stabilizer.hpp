@@ -217,9 +217,82 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRanges& ranges)
 				*std::max_element(ubounds.begin(), ubounds.end()));
 		}
 		case egen::POW:
+		{
+			T lower_base = ranges[0].lower_;
+			T upper_base = ranges[0].upper_;
+			T lower_exp = ranges[1].lower_;
+			T upper_exp = ranges[1].upper_;
+			if (lower_exp == upper_exp || lower_base == upper_base)
+			{
+				return estd::NumRange<T>(
+					std::pow(lower_base, lower_exp),
+					std::pow(upper_base, upper_exp));
+			}
+			T upper = std::pow(upper_base, upper_exp);
+			T lower = lower_base;
+			if (lower < 0)
+			{
+				if (std::is_integral<T>::value)
+				{
+					// exponent can't be decimal
+					if (0 == lower_exp % 2)
+					{
+						// look for nearest odd for lowest
+						lower = std::pow(lower, lower_exp + 1);
+						upper = std::max(upper, std::pow(lower, lower_exp));
+					}
+					else
+					{
+						lower = std::pow(lower, lower_exp);
+						// look for nearest even for highest
+						upper = std::max(upper, std::pow(lower, lower_exp + 1));
+					}
+				}
+				else
+				{
+					// exponent be a decimal and base can be negative
+					lower = std::nan();
+					lower_exp = std::ceil(lower_exp);
+					// look for nearest even for highest
+					upper = std::max(upper, std::pow(lower,
+						lower_exp % 2 ? lower_exp + 1 : lower_exp));
+				}
+			}
+			else
+			{
+				// base is purely positive
+				std::vector<T> bounds = {upper,
+					std::pow(lower_base, lower_exp),
+					std::pow(lower_base, upper_exp),
+					std::pow(upper_base, lower_exp)};
+				lower = *std::min_element(bounds.begin(), bounds.end());
+				upper = *std::max_element(bounds.begin(), bounds.end());
+			}
+			return estd::NumRange<T>(lower, upper);
+		}
 		case egen::ADD:
+			return estd::NumRange<T>(
+				ranges[0].lower_ + ranges[1].lower_,
+				ranges[0].upper_ + ranges[1].upper_);
 		case egen::SUB:
+			return estd::NumRange<T>(
+				ranges[0].lower_ + ranges[1].upper_,
+				ranges[0].upper_ + ranges[1].lower_);
 		case egen::MUL:
+		{
+			T alower = ranges[0].lower_;
+			T aupper = ranges[0].upper_;
+			T blower = ranges[1].lower_;
+			T bupper = ranges[1].upper_;
+			std::vector<T> bounds = {
+				alower * blower,
+				alower * bupper,
+				aupper * blower,
+				aupper * bupper};
+			return estd::NumRange<T>(
+				*std::min_element(bounds.begin(), bounds.end()),
+				*std::max_element(bounds.begin(), bounds.end()));
+		}
 		case egen::DIV:
 		case egen::MIN:
 		case egen::MAX:
