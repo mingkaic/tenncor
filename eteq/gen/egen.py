@@ -35,7 +35,7 @@ def main(args):
 
     parser = argparse.ArgumentParser(description=prog_description)
     parser.add_argument('--cfgs', dest='cfgpaths', nargs='+',
-        help='Configuration json files on mapping info (default: read from stdin)')
+        help='Configuration yaml files on mapping info (default: read from stdin)')
     parser.add_argument('--out', dest='outpath', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
     parser.add_argument('--strip_prefix', dest='strip_prefix', nargs='?', default='',

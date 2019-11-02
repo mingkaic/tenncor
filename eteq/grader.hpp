@@ -632,8 +632,6 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::GROUP_CONCAT: // todo: combine concat and group_concat
 			{
 				auto& fchild = op->get_children()[0];
-				teq::Shape cshape = op->get_children()[arg_idx].
-					get_tensor()->shape();
 				auto coorder = fchild.get_coorder();
 				assert(nullptr != coorder);
 				teq::RankT axis;
