@@ -86,7 +86,7 @@ struct Variable final : public iLeaf<T>
 	}
 
 	/// Assign Eigen tensor to internal data object
-	Variable<T>& operator = (const TensorT<T>& input)
+	Variable<T>& operator = (const eigen::TensorT<T>& input)
 	{
 		this->data_ = input;
 		return *this;
@@ -102,7 +102,7 @@ struct Variable final : public iLeaf<T>
 		}
 		std::vector<T> data;
 		egen::type_convert(data, input, dtype, shape.n_elems());
-		this->data_ = make_tensmap<T>(data.data(), shape);
+		this->data_ = eigen::make_tensmap<T>(data.data(), shape);
 	}
 
 	/// Implementation of iTensor
@@ -164,7 +164,7 @@ struct VariableNode final : public iNode<T>
 	}
 
 	/// Assign Eigen tensor map to variable's internal data
-	void assign (const TensMapT<T>* tensmap)
+	void assign (const eigen::TensMapT<T>* tensmap)
 	{
 		var_->assign(tensmap->data(), egen::get_type<T>(), get_shape(*tensmap));
 	}

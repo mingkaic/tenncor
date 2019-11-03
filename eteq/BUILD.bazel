@@ -94,29 +94,23 @@ genrule(
 
 cc_library(
     name = "eteq",
-    hdrs = glob([
-        "*.hpp",
-        "opt/*.hpp",
-    ]) + [
+    hdrs = glob(["*.hpp"]) + [
         "//eteq:generated/api.hpp",
         "//eteq:generated/opcode.hpp",
         "//eteq:generated/dtype.hpp",
         "//eteq:generated/pyapi.hpp",
     ],
-    srcs = glob([
-        "src/*.cpp",
-    ]) + [
+    srcs = glob(["src/*.cpp"]) + [
         "//eteq:generated/api.cpp",
         "//eteq:generated/opcode.cpp",
         "//eteq:generated/dtype.cpp",
     ],
     copts = ["-std=c++17"],
     deps = [
-        "//teq:teq",
+        "//eigen:eigen",
         "//pbm:pbm",
         "//tag:tag",
         "//opt:opt",
-        "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],
 )

@@ -100,7 +100,7 @@ struct Conv final : public iLayer
 		std::uniform_real_distribution<PybindT> dist(-bound, bound);
 		auto gen = [&dist]()
 		{
-			return dist(eteq::get_engine());
+			return dist(eigen::get_engine());
 		};
 		std::vector<PybindT> data(ndata);
 		std::generate(data.begin(), data.end(), gen);

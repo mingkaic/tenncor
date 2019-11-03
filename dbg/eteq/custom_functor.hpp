@@ -8,11 +8,11 @@
 
 #include "teq/iopfunc.hpp"
 
-#include "eteq/generated/opcode.hpp"
+#include "eigen/operator.hpp"
 
+#include "eteq/generated/opcode.hpp"
 #include "eteq/funcarg.hpp"
 #include "eteq/constant.hpp"
-#include "eteq/operator.hpp"
 
 #ifndef DBG_CUSTOM_FUNCTOR_HPP
 #define DBG_CUSTOM_FUNCTOR_HPP
@@ -22,11 +22,11 @@ namespace dbg
 
 /// Arguments of raw data and shapes
 template <typename T>
-using DataMapT = std::vector<eteq::OpArg<T>>;
+using DataMapT = std::vector<eigen::OpArg<T>>;
 
 /// Custom functor to assign DataMap to Eigen tensor output
 template <typename T>
-using CustomOpF = std::function<void(eteq::TensorT<T>&,const DataMapT<T>&)>;
+using CustomOpF = std::function<void(eigen::TensorT<T>&,const DataMapT<T>&)>;
 
 /// Functor that runs a custom functor instead of Eigen operators
 template <typename T>
@@ -80,8 +80,8 @@ struct CustomFunctor final : public teq::iOperableFunc
 		for (const teq::FuncArg& arg : args_)
 		{
 			auto tens = arg.get_tensor();
-			auto coorder = static_cast<eteq::CoordMap*>(arg.get_coorder().get());
-			datamaps.push_back(eteq::OpArg<T>{
+			auto coorder = static_cast<eigen::CoordMap*>(arg.get_coorder().get());
+			datamaps.push_back(eigen::OpArg<T>{
 				eteq::to_node<T>(tens)->data(),
 				tens->shape(),
 				coorder
@@ -122,10 +122,10 @@ struct CustomFunctor final : public teq::iOperableFunc
 
 private:
 	CustomFunctor (CustomOpF<T> op, teq::Shape shape, teq::ArgsT args) :
-		out_(eteq::shape_convert(shape)),
+		out_(eigen::shape_convert(shape)),
 		op_(op), shape_(shape), args_(args) {}
 
-	eteq::TensorT<T> out_;
+	eigen::TensorT<T> out_;
 
 	CustomOpF<T> op_;
 

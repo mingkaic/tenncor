@@ -8,13 +8,11 @@
 ///
 
 #include <list>
-#include <unordered_set>
 
 #include "teq/traveler.hpp"
 
 #include "opt/optimize.hpp"
 
-#include "eteq/constant.hpp"
 #include "eteq/functor.hpp"
 
 #ifndef ETEQ_SESSION_HPP

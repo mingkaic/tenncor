@@ -1,8 +1,8 @@
-#include "eteq/random.hpp"
+#include "eigen/random.hpp"
 
-#ifdef ETEQ_RANDOM_HPP
+#ifdef EIGEN_RANDOM_HPP
 
-namespace eteq
+namespace eigen
 {
 
 EngineT& get_engine (void)

@@ -6,8 +6,9 @@
 /// Define variable initialization algorithms
 ///
 
+#include "eigen/random.hpp"
+
 #include "eteq/variable.hpp"
-#include "eteq/random.hpp"
 
 #ifndef LAYR_INIT_HPP
 #define LAYR_INIT_HPP
@@ -45,7 +46,7 @@ void truncated_normal (std::vector<T>& out, teq::Shape shape, T mean, T stdev,
 {
 	size_t n = shape.n_elems();
 	out = std::vector<T>(n);
-	auto gen = eteq::norm_gen<T>(mean, stdev);
+	auto gen = eigen::norm_gen<T>(mean, stdev);
 	std::generate(out.begin(), out.end(), gen);
 	// if T is not decimal, program would fail to compile therefore T is signed
 	T upperbound = mean + 2 * stdev;
@@ -107,7 +108,7 @@ InitF<T> unif_xavier_init (T factor = 1)
 	{
 		std::vector<T> vec(shape.n_elems());
 		T bound = factor * std::sqrt(6. / fanio<T>(shape));
-		std::generate(vec.begin(), vec.end(), eteq::unif_gen<T>(-bound, bound));
+		std::generate(vec.begin(), vec.end(), eigen::unif_gen<T>(-bound, bound));
 		return eteq::make_variable(vec.data(), shape, label);
 	};
 }
@@ -122,7 +123,7 @@ InitF<T> norm_xavier_init (T factor = 1)
 	{
 		std::vector<T> vec(shape.n_elems());
 		T stdev = factor * std::sqrt(2. / fanio<T>(shape));
-		std::generate(vec.begin(), vec.end(), eteq::norm_gen<T>(0., stdev));
+		std::generate(vec.begin(), vec.end(), eigen::norm_gen<T>(0., stdev));
 		return eteq::make_variable(vec.data(), shape, label);
 	};
 }

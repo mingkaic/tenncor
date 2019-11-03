@@ -10,7 +10,9 @@
 
 #include "teq/itensor.hpp"
 
-#include "eteq/eigen.hpp"
+#include "eigen/eigen.hpp"
+
+#include "eteq/generated/dtype.hpp"
 
 #ifndef ETEQ_INODE_HPP
 #define ETEQ_INODE_HPP

@@ -7,7 +7,9 @@
 
 #include "opt/parse.hpp"
 
-#include "eteq/eteq.hpp"
+#include "eteq/generated/api.hpp"
+#include "eteq/constant.hpp"
+#include "eteq/functor.hpp"
 
 #ifndef ETEQ_PARSE_HPP
 #define ETEQ_PARSE_HPP
@@ -25,9 +27,9 @@ static inline std::vector<double> vectorize (::NumList* list)
 	return arr;
 }
 
-static inline CoordptrT coorderize (::NumList* list)
+static inline eigen::CoordptrT coorderize (::NumList* list)
 {
-	CoordptrT out = nullptr;
+	eigen::CoordptrT out = nullptr;
 	if (nullptr == list)
 	{
 		return out;
@@ -37,7 +39,7 @@ static inline CoordptrT coorderize (::NumList* list)
 	{
 		teq::CoordT carr;
 		std::copy(clist.begin(), clist.end(), carr.begin());
-		out = std::make_shared<CoordMap>(carr, false); // todo: figure out bijectivity
+		out = std::make_shared<eigen::CoordMap>(carr, false); // todo: figure out bijectivity
 	}
 	return out;
 }
@@ -98,7 +100,8 @@ struct AnyConvr final : public opt::iConverter
 struct BuilderArg final
 {
 	BuilderArg (opt::ConvptrT arg,
-		teq::CoordptrT shaper, CoordptrT coorder) :
+		teq::CoordptrT shaper,
+		eigen::CoordptrT coorder) :
 		arg_(arg), shaper_(shaper), coorder_(coorder)
 	{
 		if (nullptr == arg)
@@ -114,7 +117,7 @@ struct BuilderArg final
 	teq::CoordptrT shaper_;
 
 	/// Argument coordinate transformation data
-	CoordptrT coorder_;
+	eigen::CoordptrT coorder_;
 };
 
 /// Vector of FuncArg
@@ -301,7 +304,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 					::Arg* arg = (::Arg*) it->val_;
 					opt::ConvptrT warg = build(arg->subgraph_, ctx);
 					teq::CoordptrT shaper = this->shaperize(arg->shaper_);
-					CoordptrT coorder = eteq::coorderize(arg->coorder_);
+					eigen::CoordptrT coorder = eteq::coorderize(arg->coorder_);
 					args.push_back(BuilderArg(warg, shaper, coorder));
 				}
 				std::string label(branch->label_);

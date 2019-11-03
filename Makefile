@@ -64,7 +64,7 @@ coverage:
 
 cover_ccur:
 	$(CCOVER) $(CCUR_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_eteq:
 	$(CCOVER) $(ETEQ_CTEST)
@@ -72,11 +72,11 @@ cover_eteq:
 
 cover_layr:
 	$(CCOVER) $(LAYR_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_opt:
 	$(CCOVER) $(OPT_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_pbm:
 	$(CCOVER) $(PBM_TEST)

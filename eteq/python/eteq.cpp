@@ -1,17 +1,11 @@
-#include "pybind11/pybind11.h"
-#include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 
 #include "pyutils/convert.hpp"
 
-#include "eteq/generated/api.hpp"
-#include "eteq/generated/pyapi.hpp"
 #include "eteq/grader.hpp"
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
-#include "eteq/functor.hpp"
 #include "eteq/session.hpp"
-#include "eteq/random.hpp"
 #include "eteq/parse.hpp"
 
 namespace py = pybind11;
@@ -256,7 +250,7 @@ PYBIND11_MODULE(eteq, m)
 		.def("seed",
 			[](size_t seed)
 			{
-				eteq::get_engine().seed(seed);
+				eigen::get_engine().seed(seed);
 			},
 			"Seed internal RNG");
 }

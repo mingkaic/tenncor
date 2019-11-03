@@ -11,7 +11,8 @@
 #include "eteq/generated/opcode.hpp"
 #include "eteq/generated/dtype.hpp"
 
-#include "eteq/coord.hpp"
+#include "eigen/coord.hpp"
+
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 #include "eteq/functor.hpp"
@@ -120,7 +121,7 @@ std::transform(args.begin(), args.end(), std::back_inserter(eargs),\
 	return FuncArg<realtype>(\
 		to_node<realtype>(arg.get_tensor()),\
 		arg.get_shaper(),\
-		std::static_pointer_cast<CoordMap>(arg.get_coorder()));\
+		std::static_pointer_cast<eigen::CoordMap>(arg.get_coorder()));\
 });\
 func = teq::TensptrT(\
 Functor<realtype>::get(teq::Opcode{opname, egen::get_op(opname)},eargs));}
@@ -213,7 +214,7 @@ struct EADLoader final : public pbm::iLoader
 		bool is_bijective = false == estd::has(non_bijectives, egen::get_op(opname));
 		auto cit = coord.begin();
 		auto cet = coord.end();
-		return std::make_shared<CoordMap>(
+		return std::make_shared<eigen::CoordMap>(
 			[&](teq::MatrixT& args)
 			{
 				for (teq::RankT i = 0; i < teq::mat_dim && cit != cet; ++i)

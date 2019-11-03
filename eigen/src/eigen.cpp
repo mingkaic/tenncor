@@ -1,8 +1,8 @@
-#include "eteq/eigen.hpp"
+#include "eigen/eigen.hpp"
 
-#ifdef ETEQ_EIGEN_HPP
+#ifdef EIGEN_EIGEN_HPP
 
-namespace eteq
+namespace eigen
 {
 
 DimensionsT shape_convert (teq::Shape shape)

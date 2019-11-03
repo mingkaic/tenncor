@@ -1,6 +1,6 @@
 ///
 /// coord.hpp
-/// eteq
+/// eigen
 ///
 /// Purpose:
 /// Define Eigen transformation argument wrapper
@@ -8,10 +8,10 @@
 
 #include "teq/coord.hpp"
 
-#ifndef ETEQ_COORD_HPP
-#define ETEQ_COORD_HPP
+#ifndef EIGEN_COORD_HPP
+#define EIGEN_COORD_HPP
 
-namespace eteq
+namespace eigen
 {
 
 /// Eigen transformation wrapper implementation of iCoordMap
@@ -114,4 +114,4 @@ CoordptrT permute (std::vector<teq::RankT> dims);
 
 }
 
-#endif // ETEQ_COORD_HPP
+#endif // EIGEN_COORD_HPP

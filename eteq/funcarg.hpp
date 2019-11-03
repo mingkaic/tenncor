@@ -8,7 +8,8 @@
 
 #include "teq/funcarg.hpp"
 
-#include "eteq/coord.hpp"
+#include "eigen/coord.hpp"
+
 #include "eteq/inode.hpp"
 
 #ifndef ETEQ_FUNCARG_HPP
@@ -22,7 +23,7 @@ template <typename T>
 struct FuncArg final
 {
 	/// Construct FuncArg with specific node, shaper, and coorder
-	FuncArg (NodeptrT<T> node, teq::CoordptrT shaper, CoordptrT coorder) :
+	FuncArg (NodeptrT<T> node, teq::CoordptrT shaper, eigen::CoordptrT coorder) :
 		node_(node), shaper_(shaper), coorder_(coorder)
 	{
 		if (node_ == nullptr)
@@ -63,7 +64,7 @@ struct FuncArg final
 	}
 
 	/// Return coord map for coordinates
-	CoordptrT get_coorder (void) const
+	eigen::CoordptrT get_coorder (void) const
 	{
 		return coorder_;
 	}
@@ -76,7 +77,7 @@ private:
 	teq::CoordptrT shaper_;
 
 	/// Coordinate mapper
-	CoordptrT coorder_;
+	eigen::CoordptrT coorder_;
 };
 
 /// Type of typed functor arguments
@@ -122,7 +123,7 @@ FuncArg<T> reduce_map (NodeptrT<T> node, teq::RankT offset, teq::RankT ndims)
 		slist.push_back(shape.at(i));
 	}
 
-	return FuncArg<T>(node, teq::reduce(offset, slist), reduce(dims));
+	return FuncArg<T>(node, teq::reduce(offset, slist), eigen::reduce(dims));
 }
 
 /// Return FuncArg<T> that reduce tensor by argument index
@@ -145,7 +146,7 @@ FuncArg<T> argreduce_map (NodeptrT<T> node, teq::RankT return_dim)
 	}
 
 	return FuncArg<T>(node, teq::reduce(offset, slist),
-		std::make_shared<CoordMap>(
+		std::make_shared<eigen::CoordMap>(
 			[&](teq::MatrixT& args)
 			{
 				args[0][0] = return_dim;
@@ -164,7 +165,7 @@ FuncArg<T> extend_map (NodeptrT<T> node,
 	{
 		logs::fatal("cannot extend with empty vector");
 	}
-	return FuncArg<T>(node, teq::extend(rank, ext), extend(rank, ext));
+	return FuncArg<T>(node, teq::extend(rank, ext), eigen::extend(rank, ext));
 }
 
 /// Return FuncArg<T> that permutes input tensor by order
@@ -173,7 +174,7 @@ FuncArg<T> extend_map (NodeptrT<T> node,
 template <typename T>
 FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 {
-	return FuncArg<T>(node, teq::permute(order), permute(order));
+	return FuncArg<T>(node, teq::permute(order), eigen::permute(order));
 }
 
 /// Return FuncArg<T> that reshapes node to specified shape
@@ -238,7 +239,7 @@ FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 					fwd[teq::rank_cap][i] = ns[i] - shape.at(i);
 				}
 			}),
-		std::make_shared<CoordMap>(
+		std::make_shared<eigen::CoordMap>(
 			[&](teq::MatrixT& args)
 			{
 				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan
@@ -281,7 +282,7 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 					fwd[i][i] = 1;
 				}
 			}),
-		std::make_shared<CoordMap>(
+		std::make_shared<eigen::CoordMap>(
 			[&](teq::MatrixT& args)
 			{
 				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan
@@ -334,7 +335,7 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 					fwd[i][i] = 1;
 				}
 			}),
-		std::make_shared<CoordMap>(
+		std::make_shared<eigen::CoordMap>(
 			[&](teq::MatrixT& args)
 			{
 				teq::RankT n = std::min((teq::RankT) incrs.size(), teq::rank_cap);
@@ -413,7 +414,7 @@ ArgsT<T> convolve_map (NodeptrT<T> image, NodeptrT<T> kernel,
 	return {
 		FuncArg<T>(image, input_shaper, nullptr),
 		FuncArg<T>(kernel, kernel_shaper,
-			std::make_shared<CoordMap>(kernel_dims)),
+			std::make_shared<eigen::CoordMap>(kernel_dims)),
 	};
 }
 
@@ -444,7 +445,7 @@ ArgsT<T> concat_map (NodeptrT<T> left, NodeptrT<T> right, teq::RankT axis)
 	));
 
 	return {
-		FuncArg<T>(left, left_shaper, std::make_shared<CoordMap>(
+		FuncArg<T>(left, left_shaper, std::make_shared<eigen::CoordMap>(
 			[axis](teq::MatrixT& args)
 			{
 				args[0][0] = axis;
@@ -478,7 +479,7 @@ ArgsT<T> group_concat_map (NodesT<T> args, teq::RankT axis)
 	));
 	ArgsT<T> out;
 	out.reserve(nargs);
-	out.push_back(FuncArg<T>(args[0], shaper, std::make_shared<CoordMap>(
+	out.push_back(FuncArg<T>(args[0], shaper, std::make_shared<eigen::CoordMap>(
 		[axis](teq::MatrixT& args)
 		{
 			args[0][0] = axis;
@@ -564,7 +565,7 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 	));
 
 	return {
-		eteq::FuncArg<T>(a, left_shaper, std::make_shared<CoordMap>(
+		eteq::FuncArg<T>(a, left_shaper, std::make_shared<eigen::CoordMap>(
 			[&dims](teq::MatrixT& args)
 			{
 				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan

@@ -1,20 +1,20 @@
 ///
 /// operator.hpp
-/// eteq
+/// eigen
 ///
 /// Purpose:
 /// Define functions manipulating tensor data values
 /// No function in this file makes any attempt to check for nullptrs
 ///
 
-#include "eteq/eigen.hpp"
-#include "eteq/coord.hpp"
-#include "eteq/random.hpp"
+#include "eigen/eigen.hpp"
+#include "eigen/coord.hpp"
+#include "eigen/random.hpp"
 
-#ifndef ETEQ_OPERATOR_HPP
-#define ETEQ_OPERATOR_HPP
+#ifndef EIGEN_OPERATOR_HPP
+#define EIGEN_OPERATOR_HPP
 
-namespace eteq
+namespace eigen
 {
 
 static inline bool is_2d (teq::Shape shape)
@@ -58,13 +58,13 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 	return out;
 }
 
-#define _ETEQ_INTERNAL_V2A_CASE(N, PROCESS, RED)\
+#define _EIGEN_INTERNAL_V2A_CASE(N, PROCESS, RED)\
 case N: return make_eigentensor<T,\
 Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<RED,N,T>>,TensMapT<T>>(\
 outdims, make_tensmap(in.data_, in.shape_), [vdims, &outdims](TensMapT<T>& in) {\
-return in.PROCESS(::eteq::internal::dim_copy<N>(vdims)).reshape(outdims); });
+return in.PROCESS(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
-#define _ETEQ_INTERNAL_V2A(PROCESS, RED) {\
+#define _EIGEN_INTERNAL_V2A(PROCESS, RED) {\
 	assert(nullptr != in.coorder_);\
 	std::vector<teq::RankT> vdims;\
 	vdims.reserve(teq::rank_cap);\
@@ -75,20 +75,20 @@ return in.PROCESS(::eteq::internal::dim_copy<N>(vdims)).reshape(outdims); });
 	});\
 	DimensionsT outdims = shape_convert(outshape);\
 	switch (vdims.size()) {\
-		_ETEQ_INTERNAL_V2A_CASE(0, PROCESS, RED)\
-		_ETEQ_INTERNAL_V2A_CASE(1, PROCESS, RED)\
-		_ETEQ_INTERNAL_V2A_CASE(2, PROCESS, RED)\
-		_ETEQ_INTERNAL_V2A_CASE(3, PROCESS, RED)\
-		_ETEQ_INTERNAL_V2A_CASE(4, PROCESS, RED)\
-		_ETEQ_INTERNAL_V2A_CASE(5, PROCESS, RED)\
-		_ETEQ_INTERNAL_V2A_CASE(6, PROCESS, RED)\
-		_ETEQ_INTERNAL_V2A_CASE(7, PROCESS, RED)\
+		_EIGEN_INTERNAL_V2A_CASE(0, PROCESS, RED)\
+		_EIGEN_INTERNAL_V2A_CASE(1, PROCESS, RED)\
+		_EIGEN_INTERNAL_V2A_CASE(2, PROCESS, RED)\
+		_EIGEN_INTERNAL_V2A_CASE(3, PROCESS, RED)\
+		_EIGEN_INTERNAL_V2A_CASE(4, PROCESS, RED)\
+		_EIGEN_INTERNAL_V2A_CASE(5, PROCESS, RED)\
+		_EIGEN_INTERNAL_V2A_CASE(6, PROCESS, RED)\
+		_EIGEN_INTERNAL_V2A_CASE(7, PROCESS, RED)\
 		default: break;\
 	} return make_eigentensor<T,Eigen::TensorReshapingOp<\
 		const DimensionsT,const ReduceOutT<RED,8,T>>,TensMapT<T>>(\
 		outdims, make_tensmap(in.data_, in.shape_),\
 		[vdims, &outdims](TensMapT<T>& in) {\
-			return in.PROCESS(::eteq::internal::dim_copy<8>(vdims)).reshape(outdims);\
+			return in.PROCESS(::eigen::internal::dim_copy<8>(vdims)).reshape(outdims);\
 		});\
 }
 
@@ -97,22 +97,22 @@ return in.PROCESS(::eteq::internal::dim_copy<N>(vdims)).reshape(outdims); });
 /// Return Eigen data object representing reduction where aggregation is sum
 template <typename T>
 EigenptrT<T> reduce_sum (teq::Shape& outshape, const OpArg<T>& in)
-_ETEQ_INTERNAL_V2A(sum, Eigen::internal::SumReducer<T>)
+_EIGEN_INTERNAL_V2A(sum, Eigen::internal::SumReducer<T>)
 
 /// Return Eigen data object representing reduction where aggregation is prod
 template <typename T>
 EigenptrT<T> reduce_prod (teq::Shape& outshape, const OpArg<T>& in)
-_ETEQ_INTERNAL_V2A(prod, Eigen::internal::ProdReducer<T>)
+_EIGEN_INTERNAL_V2A(prod, Eigen::internal::ProdReducer<T>)
 
 /// Return Eigen data object representing reduction where aggregation is min
 template <typename T>
 EigenptrT<T> reduce_min (teq::Shape& outshape, const OpArg<T>& in)
-_ETEQ_INTERNAL_V2A(minimum, Eigen::internal::MinReducer<T>)
+_EIGEN_INTERNAL_V2A(minimum, Eigen::internal::MinReducer<T>)
 
 /// Return Eigen data object representing reduction where aggregation is max
 template <typename T>
 EigenptrT<T> reduce_max (teq::Shape& outshape, const OpArg<T>& in)
-_ETEQ_INTERNAL_V2A(maximum, Eigen::internal::MaxReducer<T>)
+_EIGEN_INTERNAL_V2A(maximum, Eigen::internal::MaxReducer<T>)
 
 /// Return Eigen data object that argmax in tensor at return_dim
 template <typename T>
@@ -1370,4 +1370,4 @@ EigenptrT<T> convolution (teq::Shape& outshape, const OpArg<T>& input, const OpA
 
 }
 
-#endif // ETEQ_OPERATOR_HPP
+#endif // EIGEN_OPERATOR_HPP

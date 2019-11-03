@@ -1,50 +1,50 @@
 opcode:
-  operator_path: eteq/operator.hpp
-  params: teq::Shape shape, eteq::EigenptrT<T>& out, std::vector<eteq::OpArg<T>>& in
+  operator_path: eigen/operator.hpp
+  params: teq::Shape shape, eigen::EigenptrT<T>& out, std::vector<eigen::OpArg<T>>& in
   opcalls:
-    ABS: out = eteq::abs(shape,in[0]);
-    NEG: out = eteq::neg(shape,in[0]);
-    SIN: out = eteq::sin(shape,in[0]);
-    COS: out = eteq::cos(shape,in[0]);
-    TAN: out = eteq::tan(shape,in[0]);
-    EXP: out = eteq::exp(shape,in[0]);
-    LOG: out = eteq::log(shape,in[0]);
-    SQRT: out = eteq::sqrt(shape,in[0]);
-    ROUND: out = eteq::round(shape,in[0]);
-    SIGMOID: out = eteq::sigmoid(shape,in[0]);
-    TANH: out = eteq::tanh(shape,in[0]);
-    SQUARE: out = eteq::square(shape,in[0]);
-    CUBE: out = eteq::cube(shape,in[0]);
-    POW: out = eteq::pow(shape,in[0],in[1]);
-    ADD: out = eteq::add(shape,in[0],in[1]);
-    SUB: out = eteq::sub(shape,in[0],in[1]);
-    MUL: out = eteq::mul(shape,in[0],in[1]);
-    DIV: out = eteq::div(shape,in[0],in[1]);
-    MIN: out = eteq::min(shape,in[0],in[1]);
-    MAX: out = eteq::max(shape,in[0],in[1]);
-    EQ: out = eteq::eq(shape,in[0],in[1]);
-    NEQ: out = eteq::neq(shape,in[0],in[1]);
-    LT: out = eteq::lt(shape,in[0],in[1]);
-    GT: out = eteq::gt(shape,in[0],in[1]);
-    RAND_UNIF: out = eteq::rand_uniform(shape,in[0],in[1]);
-    REVERSE: out = eteq::reverse(shape, in[0]);
-    REDUCE_SUM: out = eteq::reduce_sum(shape,in[0]);
-    REDUCE_PROD: out = eteq::reduce_prod(shape,in[0]);
-    REDUCE_MIN: out = eteq::reduce_min(shape,in[0]);
-    REDUCE_MAX: out = eteq::reduce_max(shape,in[0]);
-    ARGMAX: out = eteq::argmax(shape,in[0]);
-    PERMUTE: out = eteq::permute(shape,in[0]);
-    EXTEND: out = eteq::extend(shape,in[0]);
-    RESHAPE: out = eteq::reshape(shape,in[0]);
-    MATMUL: out = eteq::matmul(shape,in[0],in[1]);
-    CONV: out = eteq::convolution(shape,in[0],in[1]);
-    SLICE: out = eteq::slice(shape,in[0]);
-    PAD: out = eteq::pad(shape,in[0]);
-    STRIDE: out = eteq::stride(shape,in[0]);
-    SCATTER: out = eteq::scatter(shape,in[0]);
-    SELECT: out = eteq::select(shape, in[0], in[1], in[2]);
-    CONCAT: out = eteq::concat(shape, in[0], in[1]);
-    GROUP_CONCAT: out = eteq::group_concat(shape, in);
+    ABS: out = eigen::abs(shape,in[0]);
+    NEG: out = eigen::neg(shape,in[0]);
+    SIN: out = eigen::sin(shape,in[0]);
+    COS: out = eigen::cos(shape,in[0]);
+    TAN: out = eigen::tan(shape,in[0]);
+    EXP: out = eigen::exp(shape,in[0]);
+    LOG: out = eigen::log(shape,in[0]);
+    SQRT: out = eigen::sqrt(shape,in[0]);
+    ROUND: out = eigen::round(shape,in[0]);
+    SIGMOID: out = eigen::sigmoid(shape,in[0]);
+    TANH: out = eigen::tanh(shape,in[0]);
+    SQUARE: out = eigen::square(shape,in[0]);
+    CUBE: out = eigen::cube(shape,in[0]);
+    POW: out = eigen::pow(shape,in[0],in[1]);
+    ADD: out = eigen::add(shape,in[0],in[1]);
+    SUB: out = eigen::sub(shape,in[0],in[1]);
+    MUL: out = eigen::mul(shape,in[0],in[1]);
+    DIV: out = eigen::div(shape,in[0],in[1]);
+    MIN: out = eigen::min(shape,in[0],in[1]);
+    MAX: out = eigen::max(shape,in[0],in[1]);
+    EQ: out = eigen::eq(shape,in[0],in[1]);
+    NEQ: out = eigen::neq(shape,in[0],in[1]);
+    LT: out = eigen::lt(shape,in[0],in[1]);
+    GT: out = eigen::gt(shape,in[0],in[1]);
+    RAND_UNIF: out = eigen::rand_uniform(shape,in[0],in[1]);
+    REVERSE: out = eigen::reverse(shape, in[0]);
+    REDUCE_SUM: out = eigen::reduce_sum(shape,in[0]);
+    REDUCE_PROD: out = eigen::reduce_prod(shape,in[0]);
+    REDUCE_MIN: out = eigen::reduce_min(shape,in[0]);
+    REDUCE_MAX: out = eigen::reduce_max(shape,in[0]);
+    ARGMAX: out = eigen::argmax(shape,in[0]);
+    PERMUTE: out = eigen::permute(shape,in[0]);
+    EXTEND: out = eigen::extend(shape,in[0]);
+    RESHAPE: out = eigen::reshape(shape,in[0]);
+    MATMUL: out = eigen::matmul(shape,in[0],in[1]);
+    CONV: out = eigen::convolution(shape,in[0],in[1]);
+    SLICE: out = eigen::slice(shape,in[0]);
+    PAD: out = eigen::pad(shape,in[0]);
+    STRIDE: out = eigen::stride(shape,in[0]);
+    SCATTER: out = eigen::scatter(shape,in[0]);
+    SELECT: out = eigen::select(shape, in[0], in[1], in[2]);
+    CONCAT: out = eigen::concat(shape, in[0], in[1]);
+    GROUP_CONCAT: out = eigen::group_concat(shape, in);
 api:
   pybind_type: float
   includes:
@@ -629,7 +629,7 @@ api:
               //
                   return eteq::make_functor<T>(teq::Opcode{"REVERSE",::egen::REVERSE},{
                       eteq::FuncArg<T>(arg,teq::identity,
-                          std::make_shared<eteq::CoordMap>(
+                          std::make_shared<eigen::CoordMap>(
                               [&](teq::MatrixT& args){
                                   for (teq::RankT i = 0, n = dims.size(); i < n; ++i)
                                   {

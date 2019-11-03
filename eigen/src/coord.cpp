@@ -1,8 +1,8 @@
-#include "eteq/coord.hpp"
+#include "eigen/coord.hpp"
 
-#ifdef ETEQ_COORD_HPP
+#ifdef EIGEN_COORD_HPP
 
-namespace eteq
+namespace eigen
 {
 
 CoordptrT reduce (std::vector<teq::RankT> red_dims)

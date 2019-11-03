@@ -328,7 +328,7 @@ private:
 
 	PybindT get_random (void)
 	{
-		return explore_(eteq::get_engine());
+		return explore_(eigen::get_engine());
 	}
 
 	std::vector<DQNTrainingContext::ExpBatch> random_sample (void)

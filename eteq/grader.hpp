@@ -6,12 +6,9 @@
 /// Implement eteq gradient definition for supported operations
 ///
 
-#include <list>
-
 #include "teq/grad_def.hpp"
 
 #include "eteq/generated/api.hpp"
-
 #include "eteq/constant.hpp"
 
 #ifndef ETEQ_GRADER_HPP
@@ -27,7 +24,7 @@ NodeptrT<T> reduce_grad (const teq::FuncArg& child,
 {
 	const teq::Shape& shape = child.get_tensor()->shape();
 	teq::CoordptrT revshaper(child.get_shaper()->reverse());
-	CoordptrT revcoord;
+	eigen::CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);
@@ -45,7 +42,7 @@ NodeptrT<T> reduce_grad (const teq::FuncArg& child,
 					}
 				}
 			});
-		revcoord = std::make_shared<CoordMap>(bcast, false);
+		revcoord = std::make_shared<eigen::CoordMap>(bcast, false);
 	}
 	return make_functor<T>(teq::Opcode{"EXTEND",egen::EXTEND}, {
 		FuncArg<T>(bwd, revshaper, revcoord)
@@ -55,11 +52,11 @@ NodeptrT<T> reduce_grad (const teq::FuncArg& child,
 /// Return permutation gradient of permuted functor node (bwd)
 template <typename T>
 NodeptrT<T> permute_grad (teq::iFunctor* fwd,
-	NodeptrT<T> bwd, size_t idx)
+	NodeptrT<T> bwd, size_t idx) // move this below
 {
 	const auto& child = fwd->get_children()[0];
 	teq::CoordptrT revshaper(child.get_shaper()->reverse());
-	CoordptrT revcoord;
+	eigen::CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);
@@ -72,7 +69,7 @@ NodeptrT<T> permute_grad (teq::iFunctor* fwd,
 					order[args[0][i]] = i;
 				}
 			});
-		revcoord = std::make_shared<CoordMap>(order, true);
+		revcoord = std::make_shared<eigen::CoordMap>(order, true);
 	}
 	return make_functor<T>(teq::Opcode{"PERMUTE",egen::PERMUTE},{
 		FuncArg<T>(bwd, revshaper, revcoord)
@@ -82,11 +79,11 @@ NodeptrT<T> permute_grad (teq::iFunctor* fwd,
 /// Return extension gradient of extended functor node (bwd)
 template <typename T>
 NodeptrT<T> extend_grad (teq::iFunctor* fwd,
-	NodeptrT<T> bwd, size_t idx)
+	NodeptrT<T> bwd, size_t idx) // move this below
 {
 	const auto& child = fwd->get_children()[0];
 	teq::CoordptrT revshaper(child.get_shaper()->reverse());
-	CoordptrT revcoord;
+	eigen::CoordptrT revcoord;
 	{
 		auto coorder = child.get_coorder();
 		assert(nullptr != coorder);
@@ -102,7 +99,7 @@ NodeptrT<T> extend_grad (teq::iFunctor* fwd,
 					}
 				}
 			});
-		revcoord = reduce(red_dims);
+		revcoord = eigen::reduce(red_dims);
 	}
 	return make_functor<T>(teq::Opcode{"REDUCE_SUM",egen::REDUCE_SUM},{
 		FuncArg<T>(bwd, revshaper, revcoord)
@@ -680,7 +677,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 										fwd[i][i] = 1;
 									}
 								}),
-							std::make_shared<CoordMap>(
+							std::make_shared<eigen::CoordMap>(
 								[&](teq::MatrixT& args)
 								{
 									for (size_t i = 0; i < teq::rank_cap; ++i)
@@ -713,7 +710,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 						FuncArg<T>(
 							to_node<T>(supcomp_grad),
 							teq::identity,
-							std::static_pointer_cast<CoordMap>(
+							std::static_pointer_cast<eigen::CoordMap>(
 								op->get_children()[0].get_coorder())
 						),
 					});

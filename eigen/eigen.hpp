@@ -1,6 +1,6 @@
 ///
 /// eigen.hpp
-/// eteq
+/// eigen
 ///
 /// Purpose:
 /// Define Eigen tensor and matrix transformation functions
@@ -11,12 +11,10 @@
 
 #include "teq/shape.hpp"
 
-#include "eteq/generated/dtype.hpp"
+#ifndef EIGEN_EIGEN_HPP
+#define EIGEN_EIGEN_HPP
 
-#ifndef ETEQ_EIGEN_HPP
-#define ETEQ_EIGEN_HPP
-
-namespace eteq
+namespace eigen
 {
 
 /// Eigen shape
@@ -264,4 +262,4 @@ DimensionsT shape_convert (teq::Shape shape);
 
 }
 
-#endif // ETEQ_EIGEN_HPP
+#endif // EIGEN_EIGEN_HPP
