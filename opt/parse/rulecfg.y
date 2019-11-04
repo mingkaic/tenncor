@@ -40,7 +40,7 @@ GROUP PROPERTY SHAPER COORDER COLON EL NUMBER VARIADIC
 
 %% /* beginning of rules section */
 
-rules:		/* empty */
+rules:		%empty
 			{
 				*stmts = new_ptrlist(STATEMENT);
 			}

@@ -4,11 +4,8 @@
 
 #include "teq/session.hpp"
 
-#include "opt/optimize.hpp"
-
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/grader.hpp"
-#include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 #include "eteq/parse.hpp"
 

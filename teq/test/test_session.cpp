@@ -17,12 +17,13 @@ struct MockOpfunc final : public teq::iOperableFunc
 		args_({teq::identity_map(a)}) {}
 
 	MockOpfunc (teq::TensptrT a, teq::TensptrT b) :
-		args_({teq::identity_map(a), teq::identity_map(b)}) {}
+		args_({teq::identity_map(a), teq::identity_map(b)}),
+		shape_(args_[0].shape()) {}
 
 	/// Implementation of iTensor
 	const teq::Shape& shape (void) const override
 	{
-		return args_[0].shape();
+		return shape_;
 	}
 
 	/// Implementation of iTensor
@@ -85,6 +86,8 @@ struct MockOpfunc final : public teq::iOperableFunc
 	bool updated_ = false;
 
 	teq::ArgsT args_;
+
+	teq::Shape shape_;
 };
 
 
