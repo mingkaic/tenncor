@@ -7,9 +7,10 @@
 ///	generalized and type-specific data
 ///
 
+#include "teq/shaped_arr.hpp"
+
 #include "eteq/ileaf.hpp"
 #include "eteq/inode.hpp"
-#include "eteq/shaped_arr.hpp"
 
 #ifndef ETEQ_VARIABLE_HPP
 #define ETEQ_VARIABLE_HPP
@@ -170,7 +171,7 @@ struct VariableNode final : public iNode<T>
 	}
 
 	/// Assign ShapedArr representation to variable's internal data
-	void assign (const ShapedArr<T>& arr)
+	void assign (const teq::ShapedArr<T>& arr)
 	{
 		var_->assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
 	}

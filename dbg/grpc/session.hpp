@@ -17,9 +17,9 @@
 
 #include "jobs/scope_guard.hpp"
 
-#include "eteq/session.hpp"
+#include "teq/session.hpp"
 
-#include "tag/tag.hpp"
+#include "eteq/eteq.hpp"
 
 #include "dbg/grpc/client.hpp"
 
@@ -64,7 +64,7 @@ inline bool operator == (const EdgeInfo& lhs, const EdgeInfo& rhs)
 }
 
 /// Session that makes GRPC client calls
-struct InteractiveSession final : public eteq::iSession
+struct InteractiveSession final : public teq::iSession
 {
 	/// UUID random generator
 	static boost::uuids::random_generator uuid_gen_;
@@ -379,130 +379,23 @@ struct InteractiveSession final : public eteq::iSession
 		client_.update_node_data(requests, update_it_);
 	}
 
-	/// Apply input optimization rules using opt module, then re-track
-	void optimize (const opt::OptCtx& rules)
+	/// Implementation of iSession
+	teq::TensptrSetT get_tracked (void) const override
 	{
-		sess_.optimize(rules);
+		return sess_.tracked_;
+	}
 
-		// update graph
+	/// Implementation of iSession
+	void clear (void) override
+	{
+		sess_.clear();
 		node_ids_.clear();
 		edges_.clear();
-
 		stat_.graphsize_.clear();
 		parents_.clear();
-		teq::ParentFinder pfinder;
-		for (auto tr : sess_.tracked_)
-		{
-			tr->accept(stat_);
-			tr->accept(pfinder);
-		}
-
-		for (auto& assocs : pfinder.parents_)
-		{
-			for (auto& parent_pair : assocs.second)
-			{
-				parents_[assocs.first].emplace(
-					static_cast<teq::iOperableFunc*>(parent_pair.first));
-			}
-		}
-
-		// setup request
-		tenncor::UpdateGraphRequest request;
-		auto payload = request.mutable_payload();
-		payload->set_graph_id(sess_id_);
-		for (auto& statpair : stat_.graphsize_)
-		{
-			auto tens = statpair.first;
-			auto& range = statpair.second;
-			size_t id = node_ids_.size() + 1;
-			if (false == estd::has(node_ids_, tens))
-			{
-				node_ids_.emplace(tens, id);
-				// add to request
-				auto node = payload->add_nodes();
-				node->set_id(id);
-				auto tags = node->mutable_tags();
-				{
-					tenncor::Strings tag_str;
-					tag_str.add_strings(tens->to_string());
-					tags->insert({tag_str_key, tag_str});
-				}
-				{
-					tenncor::Strings type_str;
-					if (0 == range.upper_)
-					{
-						type_str.add_strings("leaf");
-					}
-					else
-					{
-						type_str.add_strings("functor");
-					}
-					tags->insert({tag_node_type, type_str});
-				}
-				{
-					auto inner_tags = registry_.get_tags(tens);
-					std::map<std::string,tenncor::Strings> outer_tags;
-					for (auto& itags : inner_tags)
-					{
-						google::protobuf::RepeatedPtrField<std::string>
-						field(itags.second.begin(), itags.second.end());
-						tenncor::Strings otags;
-						otags.mutable_strings()->Swap(&field);
-						outer_tags.emplace(itags.first, otags);
-					}
-					tags->insert(outer_tags.begin(), outer_tags.end());
-				}
-				auto s = tens->shape();
-				google::protobuf::RepeatedField<uint32_t> shape(
-					s.begin(), s.end());
-				node->mutable_shape()->Swap(&shape);
-				auto location = node->mutable_location();
-				location->set_maxheight(range.upper_);
-				location->set_minheight(range.lower_);
-			}
-		}
-		for (auto& statpair : stat_.graphsize_)
-		{
-			auto tens = statpair.first;
-			auto& range = statpair.second;
-			if (range.upper_ > 0)
-			{
-				auto f = static_cast<teq::iFunctor*>(tens);
-				auto& children = f->get_children();
-				for (size_t i = 0, n = children.size(); i < n; ++i)
-				{
-					auto& child = children[i];
-					auto child_tens = child.get_tensor().get();
-					auto shaper = child.get_shaper();
-					auto coorder = child.get_coorder();
-					std::string label = fmts::sprintf(edge_label_fmt, i);
-					EdgeInfo edgeinfo{
-						node_ids_[f],
-						node_ids_[child_tens],
-						label,
-					};
-					if (false == estd::has(edges_, edgeinfo))
-					{
-						edges_.emplace(edgeinfo);
-						// add to request
-						auto edge = payload->add_edges();
-						edge->set_parent(node_ids_[f]);
-						edge->set_child(node_ids_[child_tens]);
-						edge->set_label(label);
-						if (false == teq::is_identity(shaper.get()))
-						{
-							edge->set_shaper(shaper->to_string());
-						}
-						if (false == teq::is_identity(coorder.get()))
-						{
-							edge->set_coorder(coorder->to_string());
-						}
-					}
-				}
-			}
-		}
-
-		client_.update_graph(request);
+		client_.delete_graph(sess_id_);
+		sess_id_ = boost::uuids::to_string(
+			InteractiveSession::uuid_gen_());
 	}
 
 	/// Wait until client completes its request calls
@@ -545,7 +438,7 @@ struct InteractiveSession final : public eteq::iSession
 	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
 
 	/// Session underneath
-	eteq::Session sess_;
+	teq::Session sess_;
 
 	/// Tag registry
 	tag::TagRegistry& registry_;

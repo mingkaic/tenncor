@@ -1,9 +1,9 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
+#include "opt/optimize.hpp"
+
 #include "eteq/generated/pyapi.hpp"
-#include "eteq/eteq.hpp"
-#include "eteq/parse.hpp"
 
 #include "dbg/grpc/session.hpp"
 
@@ -13,13 +13,13 @@ PYBIND11_MODULE(grpc_dbg, m)
 {
 	m.doc() = "dbg teq equation graphs using interactive grpc session";
 
-	auto isess = (py::class_<eteq::iSession>)
+	auto isess = (py::class_<teq::iSession>)
 		py::module::import("eteq.eteq").attr("iSession");
 
 	py::class_<dbg::InteractiveSession,
 		std::shared_ptr<dbg::InteractiveSession>> session(
 			m, "InteractiveSession", isess);
-	py::implicitly_convertible<eteq::iSession,dbg::InteractiveSession>();
+	py::implicitly_convertible<teq::iSession,dbg::InteractiveSession>();
 
 	m.def("get_isess",
 			[](std::string host, size_t request_duration, size_t stream_duration)
@@ -35,17 +35,9 @@ PYBIND11_MODULE(grpc_dbg, m)
 			py::arg("stream_dur") = 30000);
 	session
 		.def("track",
-			[](dbg::InteractiveSession* self, eteq::NodesT<PybindT> roots)
+			[](dbg::InteractiveSession* self, teq::TensptrsT roots)
 			{
-				teq::TensptrsT troots;
-				troots.reserve(roots.size());
-				std::transform(roots.begin(), roots.end(),
-					std::back_inserter(troots),
-					[](NodeptrT& node)
-					{
-						return node->get_tensor();
-					});
-				self->track(troots);
+				self->track(roots);
 			},
 			"Track node")
 		.def("update",
@@ -93,10 +85,9 @@ PYBIND11_MODULE(grpc_dbg, m)
 			"Inform session requests to stop their tasks "
 			"(requests will attempt to wrap up call before terminating)")
 		.def("optimize",
-			[](dbg::InteractiveSession* self, std::string filename)
+			[](dbg::InteractiveSession* self, opt::OptCtx rules)
 			{
-				opt::OptCtx rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
-				self->optimize(rules);
+				opt::optimize(*self, rules);
 			},
 			"Optimize using rules for specified filename");
 }

@@ -173,7 +173,7 @@ struct DBNTrainer final
 		});
 	}
 
-	void pretrain (eteq::ShapedArr<PybindT>& train_in,
+	void pretrain (teq::ShapedArr<PybindT>& train_in,
 		size_t nepochs = 100,
 		std::function<void(size_t,size_t)> logger = std::function<void(size_t,size_t)>())
 	{
@@ -210,8 +210,8 @@ struct DBNTrainer final
 	}
 
 	void finetune (
-		eteq::ShapedArr<PybindT>& train_in,
-		eteq::ShapedArr<PybindT>& train_out,
+		teq::ShapedArr<PybindT>& train_in,
+		teq::ShapedArr<PybindT>& train_out,
 		size_t nepochs = 100,
 		std::function<void(size_t)> logger = std::function<void(size_t)>())
 	{
@@ -286,9 +286,9 @@ struct DBNTrainer final
 
 	NodeptrT tcost_;
 
-	eteq::Session pretrain_sess_;
+	teq::Session pretrain_sess_;
 
-	eteq::Session train_sess_;
+	teq::Session train_sess_;
 };
 
 }

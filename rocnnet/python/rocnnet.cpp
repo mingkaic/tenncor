@@ -256,7 +256,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// dqntrainer
 	dqntrainer
-		.def(py::init<layr::SequentialModel&,eteq::iSession&,
+		.def(py::init<layr::SequentialModel&,teq::iSession&,
 			layr::ApproxF,trainer::DQNInfo,
 			trainer::NodeUnarF,trainer::DQNTrainingContext>(),
 			py::arg("model"), py::arg("sess"),
@@ -266,7 +266,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("action",
 			[](trainer::DQNTrainer* self, py::array input)
 			{
-				eteq::ShapedArr<PybindT> a;
+				teq::ShapedArr<PybindT> a;
 				pyutils::arr2shapedarr(a, input);
 				return self->action(a);
 			},
@@ -298,7 +298,7 @@ PYBIND11_MODULE(rocnnet, m)
 			[](trainer::DBNTrainer* self, py::array x, size_t nepochs,
 				std::function<void(size_t,size_t)> logger)
 			{
-				eteq::ShapedArr<PybindT> xa;
+				teq::ShapedArr<PybindT> xa;
 				pyutils::arr2shapedarr(xa, x);
 				return self->pretrain(xa, nepochs, logger);
 			},
@@ -311,8 +311,8 @@ PYBIND11_MODULE(rocnnet, m)
 				std::function<void(size_t)> logger)
 			{
 				teq::Shape shape;
-				eteq::ShapedArr<PybindT> xa;
-				eteq::ShapedArr<PybindT> ya;
+				teq::ShapedArr<PybindT> xa;
+				teq::ShapedArr<PybindT> ya;
 				pyutils::arr2shapedarr(xa, x);
 				pyutils::arr2shapedarr(ya, y);
 				return self->finetune(xa, ya, nepochs, logger);

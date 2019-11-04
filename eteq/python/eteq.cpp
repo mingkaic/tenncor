@@ -2,10 +2,14 @@
 
 #include "pyutils/convert.hpp"
 
+#include "teq/session.hpp"
+
+#include "opt/optimize.hpp"
+
+#include "eteq/generated/pyapi.hpp"
 #include "eteq/grader.hpp"
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
-#include "eteq/session.hpp"
 #include "eteq/parse.hpp"
 
 namespace py = pybind11;
@@ -37,9 +41,12 @@ PYBIND11_MODULE(eteq, m)
 {
 	m.doc() = "eteq variables";
 
+	// optimization rules
+	py::class_<opt::OptCtx> rules(m, "OptRules");
+
 	// ==== data and shape ====
 	py::class_<teq::Shape> shape(m, "Shape");
-	py::class_<eteq::ShapedArr<PybindT>> sarr(m, "ShapedArr");
+	py::class_<teq::ShapedArr<PybindT>> sarr(m, "ShapedArr");
 
 	shape
 		.def(py::init(
@@ -59,12 +66,12 @@ PYBIND11_MODULE(eteq, m)
 		.def(py::init(
 			[](py::array ar)
 			{
-				eteq::ShapedArr<PybindT> a;
+				teq::ShapedArr<PybindT> a;
 				pyutils::arr2shapedarr(a, ar);
 				return a;
 			}))
 		.def("as_numpy",
-			[](eteq::ShapedArr<PybindT>* self) -> py::array
+			[](teq::ShapedArr<PybindT>* self) -> py::array
 			{
 				return pyutils::shapedarr2arr<PybindT>(*self);
 			});
@@ -116,12 +123,12 @@ PYBIND11_MODULE(eteq, m)
 			});
 
 	// ==== session ====
-	py::class_<eteq::iSession> isess(m, "iSession");
-	py::class_<eteq::Session> session(m, "Session", isess);
+	py::class_<teq::iSession> isess(m, "iSession");
+	py::class_<teq::Session> session(m, "Session", isess);
 
 	isess
 		.def("track",
-			[](eteq::iSession* self, eteq::NodesT<PybindT> roots)
+			[](teq::iSession* self, eteq::NodesT<PybindT> roots)
 			{
 				teq::TensptrsT troots;
 				troots.reserve(roots.size());
@@ -134,7 +141,7 @@ PYBIND11_MODULE(eteq, m)
 				self->track(troots);
 			})
 		.def("update",
-			[](eteq::iSession* self,
+			[](teq::iSession* self,
 				std::vector<NodeptrT> ignored)
 			{
 				teq::TensSetT ignored_set;
@@ -147,7 +154,7 @@ PYBIND11_MODULE(eteq, m)
 			"Calculate every node in the graph given list of nodes to ignore",
 			py::arg("ignored") = std::vector<NodeptrT>{})
 		.def("update_target",
-			[](eteq::iSession* self,
+			[](teq::iSession* self,
 				std::vector<NodeptrT> targeted,
 				std::vector<NodeptrT> ignored)
 			{
@@ -167,14 +174,13 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("targeted"),
 			py::arg("ignored") = std::vector<NodeptrT>{});
 
-	py::implicitly_convertible<eteq::iSession,eteq::Session>();
+	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
 		.def(py::init())
 		.def("optimize",
-			[](eteq::Session* self, std::string filename)
+			[](teq::Session* self, opt::OptCtx rules)
 			{
-				opt::OptCtx rules = eteq::parse_file<PybindT>(filename);
-				self->optimize(rules);
+				opt::optimize(*self, rules);
 			},
 			py::arg("filename") = "cfg/optimizations.rules",
 			"Optimize using rules for specified filename");
@@ -199,7 +205,7 @@ PYBIND11_MODULE(eteq, m)
 		.def("assign",
 			[](eteq::VariableNode<PybindT>* self, py::array data)
 			{
-				eteq::ShapedArr<PybindT> arr;
+				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
 				self->assign(arr);
 			},
@@ -218,7 +224,7 @@ PYBIND11_MODULE(eteq, m)
 		.def("constant",
 			[](py::array data)
 			{
-				eteq::ShapedArr<PybindT> arr;
+				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
 				return eteq::make_constant(arr.data_.data(), arr.shape_);
 			}, "Return constant node with data")
@@ -236,7 +242,7 @@ PYBIND11_MODULE(eteq, m)
 		.def("variable",
 			[](py::array data, std::string label)
 			{
-				eteq::ShapedArr<PybindT> arr;
+				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
 				return eteq::make_variable(arr.data_.data(), arr.shape_, label);
 			},
@@ -252,5 +258,7 @@ PYBIND11_MODULE(eteq, m)
 			{
 				eigen::get_engine().seed(seed);
 			},
-			"Seed internal RNG");
+			"Seed internal RNG")
+
+		.def("parse_optrules", &eteq::parse_file<PybindT>);
 }

@@ -64,7 +64,7 @@ struct Arg
 };
 
 /// Recursively free the argument and all it's contents
-void arg_recursive_free (struct Arg* arg);
+void arg_recursive_free (void* arg);
 
 /// Represent a conversion between two rule trees
 struct Conversion
@@ -77,7 +77,7 @@ struct Conversion
 };
 
 /// Recursively free the conversion and its subgraphs
-void conversion_recursive_free (struct Conversion* conv);
+void conversion_recursive_free (void* conv);
 
 /// Property association between label that
 /// appears in rule tree and tag in real node

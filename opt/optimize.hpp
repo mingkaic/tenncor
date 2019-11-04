@@ -38,6 +38,9 @@ struct OptCtx
 /// representations are "joined" (with the exception of tensors in roots set)
 teq::TensptrsT optimize (teq::TensptrsT roots, const OptCtx& opts);
 
+/// Apply optimization to graph roots tracked by session
+void optimize (teq::iSession& sess, const OptCtx& opts);
+
 }
 
 #endif // OPT_OPTIMIZE_HPP

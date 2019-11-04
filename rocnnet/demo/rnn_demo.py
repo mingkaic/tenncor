@@ -234,7 +234,7 @@ def main(args):
         pretrained_out,
     ])
 
-    sess.optimize("cfg/optimizations.rules")
+    sess.optimize(eteq.parse_optrules("cfg/optimizations.rules"))
 
     train_input.assign(xtrain[0:n_batch,:,:])
     train_exout.assign(expect_train[0:n_batch,:,:])

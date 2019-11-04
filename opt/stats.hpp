@@ -7,8 +7,6 @@
 /// for OPT normalization and logging
 ///
 
-#include "teq/teq.hpp"
-
 #include "tag/prop.hpp"
 
 #ifndef OPT_STATS_HPP

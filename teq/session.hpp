@@ -1,24 +1,21 @@
 ///
 /// session.hpp
-/// eteq
+/// teq
 ///
 /// Purpose:
-/// Define and implement session that tracks subgraphs and
-/// rapidly updates the tracked graph or a portion of tracked graph
+/// Define and implement session that tracks subgraphs
+/// to allow rapidly update the tracked nodes
 ///
 
 #include <list>
 
 #include "teq/traveler.hpp"
+#include "teq/iopfunc.hpp"
 
-#include "opt/optimize.hpp"
+#ifndef TEQ_SESSION_HPP
+#define TEQ_SESSION_HPP
 
-#include "eteq/functor.hpp"
-
-#ifndef ETEQ_SESSION_HPP
-#define ETEQ_SESSION_HPP
-
-namespace eteq
+namespace teq
 {
 
 /// Session interface that tracks and rapidly updates subgraphs
@@ -38,6 +35,12 @@ struct iSession
 	/// under the tracked subgraphs ignoring the subgraphs of ignored
 	/// this function is expected to be called repeatedly during runtime
 	virtual void update_target (teq::TensSetT target, teq::TensSetT ignored = {}) = 0;
+
+	/// Clear all tracked root and subgraph information
+	virtual void clear (void) = 0;
+
+	/// Return set of tracked tensor roots
+	virtual TensptrSetT get_tracked (void) const = 0;
 };
 
 /// iSession implementation that tracks subgraphs by ordering operable functors
@@ -140,12 +143,17 @@ struct Session final : public iSession
 		}
 	}
 
-	/// Apply input optimization rules using opt module, then re-track
-	void optimize (const opt::OptCtx& rules)
+	/// Implementation of iSession
+	void clear (void) override
 	{
-		teq::TensptrsT tracked(tracked_.begin(), tracked_.end());
-		opt::optimize(tracked, rules);
-		track(tracked);
+		ops_.clear();
+		tracked_.clear();
+	}
+
+	/// Implementation of iSession
+	TensptrSetT get_tracked (void) const override
+	{
+		return tracked_;
 	}
 
 	/// Set of all tensors input through tracked function
@@ -158,4 +166,4 @@ struct Session final : public iSession
 
 }
 
-#endif // ETEQ_SESSION_HPP
+#endif // TEQ_SESSION_HPP

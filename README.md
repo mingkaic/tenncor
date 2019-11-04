@@ -20,6 +20,10 @@ Constraints to the equation is limited to each tensor's shape.
 
 This module is contains debug libraries for TEQ Graphs.
 
+- [EIGEN (EIGEN wrapper)](eigen/README_EIGEN.md)
+
+This module wraps eigen operators using TEQ shape and coordinate arguments.
+
 - [ETEQ (Eigen TEQ)](eteq/README_ETEQ.md)
 
 This module is implements basic operations for Tenncor's TEQ Tensor objects generated through pybinder.

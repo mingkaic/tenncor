@@ -8,11 +8,11 @@
 
 #include <unordered_map>
 
-#include "eteq/generated/pyapi.hpp"
+#include "teq/session.hpp"
 
+#include "eteq/generated/pyapi.hpp"
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
-#include "eteq/session.hpp"
 
 #ifndef LAYR_ERR_APPROX_HPP
 #define LAYR_ERR_APPROX_HPP

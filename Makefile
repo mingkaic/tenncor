@@ -18,7 +18,7 @@ TAG_TEST := //tag:test
 
 TEQ_TEST := //teq:test
 
-CC := gcc
+CC := clang
 
 COVERAGE_PIPE := ./bazel-bin/external/com_github_mingkaic_cppkg/merge_cov $(COVERAGE_INFO_FILE)
 
@@ -93,13 +93,13 @@ cover_teq:
 
 # optimized comparisons
 compare_matmul:
-	bazel run $(EIGEN_OPT) //rocnnet:comparison_matmul
+	bazel run --config $(CC)_eigen_optimal //rocnnet:comparison_matmul
 
 compare_mlp:
-	bazel run $(EIGEN_OPT) //rocnnet:comparison_mlp
+	bazel run --config $(CC)_eigen_optimal //rocnnet:comparison_mlp
 
 compare_mlp_grad:
-	bazel run $(EIGEN_OPT) //rocnnet:comparison_mlp_grad
+	bazel run --config $(CC)_eigen_optimal //rocnnet:comparison_mlp_grad
 
 
 cov_clean: coverage.info

@@ -4,7 +4,7 @@ represented as 1D numpy arrays.
 
 It was designed and tested on 2D points,
 but if you try it on 3D points you may
-be pleasantly surprised ;-) 
+be pleasantly surprised ;-)
 """
 import numpy as np
 
@@ -19,14 +19,14 @@ def point_projected_on_line(line_s, line_e, point):
     assumes line_e is not equal or close to line_s
     """
     line_along = line_e - line_s
-    
+
     transformed_point = point - line_s
-    
+
     point_dot_line  = np.dot(transformed_point, line_along)
     line_along_norm = np.dot(line_along, line_along)
-    
+
     transformed_projection = (point_dot_line / line_along_norm) * line_along
-    
+
     return transformed_projection + line_s
 
 def point_segment_distance(segment_s, segment_e, point):

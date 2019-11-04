@@ -6,8 +6,9 @@
 
 #include "exam/exam.hpp"
 
+#include "teq/session.hpp"
+
 #include "eteq/generated/api.hpp"
-#include "eteq/session.hpp"
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 #include "eteq/grader.hpp"
@@ -145,7 +146,7 @@ static void unary_generic (UnaryOpF<double> op,
 	dest->update();
 	verify(dest, shape, data);
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
 	session.track({gsrc->get_tensor()});
@@ -180,7 +181,7 @@ static void unar_elem (std::vector<double> data,
 		EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
 
@@ -268,7 +269,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> dest2 = op(src, src);
 	eteq::NodeptrT<double> gsame = eteq::derive(dest2, src);
@@ -395,7 +396,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<int32_t> dest2 = op(src, src);
 	eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, src);
@@ -1029,7 +1030,7 @@ TEST(API, Rprod)
 		}
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<int32_t> gsrc = eteq::derive(dest, src);
 	eteq::NodeptrT<int32_t> gsrc2 = eteq::derive(dest2, src);
@@ -1274,7 +1275,7 @@ TEST(API, Permute)
 		EXPECT_EQ(data[i], got[teq::index(dest->shape(), coord)]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
 	session.track({gsrc->get_tensor()});
@@ -1317,7 +1318,7 @@ TEST(API, Extend)
 		}
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
 	session.track({gsrc->get_tensor()});
@@ -1383,7 +1384,7 @@ TEST(API, Matmul)
 	MatVecT ddc = create_2d(dest);
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
 	eteq::NodeptrT<int32_t> dest2 = tenncor::matmul(c, c);
@@ -1474,7 +1475,7 @@ TEST(API, Contract)
 	MatVecT ddc = create_2d(dest, {0, 3});
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
 	eteq::NodeptrT<int32_t> dest2 = tenncor::contract(c, c, {{0, 0}});
@@ -1538,7 +1539,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 		EXPECT_GT(hi, optr[i]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gleft = eteq::derive(dest, src);
 	session.track({gleft->get_tensor()});
@@ -1646,7 +1647,7 @@ TEST(API, Convolution)
 		ASSERT_ARREQ(expect_out, outdata);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gleft = eteq::derive(dest, img);
 	ASSERT_NE(nullptr, gleft);

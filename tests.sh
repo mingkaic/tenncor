@@ -13,13 +13,22 @@ free -m;
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 
-make lcov | grep -v '+' | grep -v 'Processing'
+bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" \
+--config cc_coverage --remote_http_cache="$REMOTE_CACHE" //ccur:test \
+//eteq:ctest //layr:test //opt/... //pbm:test //tag:test //teq:test \
+| grep -v '+' | grep -v 'Processing'
+lcov --remove bazel-out/_coverage/_coverage_report.dat -o coverage.info
+lcov --remove coverage.info 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*' -o coverage.info
 
-bazel test --run_under='valgrind --leak-check=full' //gen:ptest //eteq:ptest
+bazel test --run_under='valgrind --leak-check=full' \
+--remote_http_cache="$REMOTE_CACHE" //gen:ptest //eteq:ptest
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" //perf:test
+bazel test --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" \
+--remote_http_cache="$REMOTE_CACHE" //perf:test
 
 # ===== Coverage Analysis ======
+lcov --list coverage.info
+
 if ! [ -z "$COVERALLS_TOKEN" ];
 then
 	echo "===== SENDING COVERAGE TO COVERALLS =====";

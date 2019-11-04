@@ -50,7 +50,7 @@ struct PtrNode
 {
 	/// Next node in list (null denoting end of list)
 	struct PtrNode* next_;
-	
+
 	/// Stored pointer value
 	void* val_;
 };
@@ -72,7 +72,7 @@ struct PtrList
 struct PtrList* new_ptrlist (size_t type);
 
 /// Frees all node in list and reset list head and tail to null
-/// Before freeing for every pointer value x in list 
+/// Before freeing for every pointer value x in list
 /// call val_mgr(x) if val_mgr is not null
 void ptrlist_clear (struct PtrList* list, void (*val_mgr)(void*));
 

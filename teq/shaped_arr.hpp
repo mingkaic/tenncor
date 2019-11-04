@@ -1,19 +1,17 @@
 ///
 /// shaped_arr.hpp
-/// eteq
+/// teq
 ///
 /// Purpose:
-/// Define a data-shape representation to feed in to the variable
+/// Define a shaped data representation
 ///
 
 #include "teq/shape.hpp"
 
-#include "eteq/generated/pyapi.hpp"
+#ifndef TEQ_SHAPED_ARR_HPP
+#define TEQ_SHAPED_ARR_HPP
 
-#ifndef ETEQ_SHAPED_ARR_HPP
-#define ETEQ_SHAPED_ARR_HPP
-
-namespace eteq
+namespace teq
 {
 
 /// Shaped array wraps around a vector and shape
@@ -37,4 +35,4 @@ struct ShapedArr final
 
 }
 
-#endif // ETEQ_SHAPED_ARR_HPP
+#endif // TEQ_SHAPED_ARR_HPP

@@ -1,7 +1,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/numpy.h"
 
-#include "eteq/shaped_arr.hpp"
+#include "teq/shaped_arr.hpp"
 
 #ifndef PYTUTIL_CONVERT_HPP
 #define PYTUTIL_CONVERT_HPP
@@ -16,7 +16,7 @@ std::vector<teq::DimT> c2pshape (const teq::Shape& cshape);
 teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape);
 
 template <typename T>
-py::array shapedarr2arr (const eteq::ShapedArr<T>& sarr)
+py::array shapedarr2arr (const teq::ShapedArr<T>& sarr)
 {
 	auto pshape = c2pshape(sarr.shape_);
 	return py::array(
@@ -25,7 +25,7 @@ py::array shapedarr2arr (const eteq::ShapedArr<T>& sarr)
 }
 
 template <typename T>
-void arr2shapedarr (eteq::ShapedArr<T>& out, py::array& data)
+void arr2shapedarr (teq::ShapedArr<T>& out, py::array& data)
 {
 	auto dtype = data.dtype();
 	const void* dptr = data.data();

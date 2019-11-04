@@ -212,11 +212,11 @@ class KarpathyGame(object):
         observation[observation_offset]     = self.hero.speed[0] / max_speed_x
         observation[observation_offset + 1] = self.hero.speed[1] / max_speed_y
         observation_offset += 2
-        
-        # add normalized locaiton of the hero in environment        
+
+        # add normalized locaiton of the hero in environment
         observation[observation_offset]     = self.hero.position[0] / 350.0 - 1.0
         observation[observation_offset + 1] = self.hero.position[1] / 250.0 - 1.0
-        
+
         assert observation_offset + 2 == self.observation_size
 
         return observation

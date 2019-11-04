@@ -116,7 +116,7 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 	return varerrs;
 }
 
-TrainErrF rbm_train (layr::RBM& model, eteq::iSession& sess,
+TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
 	NodeptrT visible, PybindT learning_rate, PybindT discount_factor,
 	ErrorF err_func, size_t cdk) // todo: add persistent option
 {
@@ -151,12 +151,12 @@ TrainErrF rbm_train (layr::RBM& model, eteq::iSession& sess,
 			});
 		if (nullptr == error)
 		{
-			return eteq::ShapedArr<PybindT>{teq::Shape(),std::vector<PybindT>{-1}};
+			return teq::ShapedArr<PybindT>{teq::Shape(),std::vector<PybindT>{-1}};
 		}
 		sess.update_target({error->get_tensor().get()});
 		PybindT* data = error->data();
 		teq::Shape shape = error->shape();
-		return eteq::ShapedArr<PybindT>{shape,
+		return teq::ShapedArr<PybindT>{shape,
 			std::vector<PybindT>(data, data + shape.n_elems()),
 		};
 	};

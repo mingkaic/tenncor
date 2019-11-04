@@ -16,7 +16,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//eteq:eteq",
+        "//teq:teq",
         "@com_github_pybind_pybind11//:pybind11",
     ],
     visibility = ["//visibility:public"],
