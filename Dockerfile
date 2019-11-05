@@ -10,4 +10,4 @@ WORKDIR $APP_DIR
 COPY . $APP_DIR
 RUN pip3 install -r requirements.txt
 
-CMD [ "./tests.sh" ]
+ENTRYPOINT [ "./tests.sh" ]
