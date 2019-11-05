@@ -144,6 +144,8 @@ cc_test(
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
+
+        "@boost//:math",
     ],
     linkstatic = True,
     data = [

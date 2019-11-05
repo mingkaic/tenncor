@@ -12,6 +12,7 @@
 
 #include "eteq/generated/opcode.hpp"
 #include "eteq/funcarg.hpp"
+#include "eteq/locator.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
