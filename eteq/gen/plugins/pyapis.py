@@ -235,6 +235,7 @@ def _handle_defs(pybind_type, apis, module_name, first_module):
 
 _plugin_id = 'PYBINDER'
 
+@PluginBase.register
 class PyAPIsPlugin:
 
     def plugin_id(self):
@@ -303,5 +304,3 @@ class PyAPIsPlugin:
                 internal_refs=[_hdr_file, api_header])
 
         return generated_files
-
-PluginBase.register(PyAPIsPlugin)

@@ -228,6 +228,7 @@ _plugin_id = "API"
 
 api_header = 'api.hpp'
 
+@PluginBase.register
 class APIsPlugin:
 
     def plugin_id(self):
@@ -298,5 +299,3 @@ class APIsPlugin:
             internal_refs=[api_header])
 
         return generated_files
-
-PluginBase.register(APIsPlugin)

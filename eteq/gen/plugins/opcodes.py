@@ -114,6 +114,7 @@ def _handle_name2codes(params, opcalls):
 
 _plugin_id = "OPCODE"
 
+@PluginBase.register
 class OpcodesPlugin:
 
     def plugin_id(self):
@@ -155,5 +156,3 @@ class OpcodesPlugin:
             internal_refs=[_hdr_file])
 
         return generated_files
-
-PluginBase.register(OpcodesPlugin)
