@@ -30,27 +30,29 @@ void subgraph_recursive_free (struct Subgraph* sg)
 	free(sg);
 }
 
-void arg_recursive_free (struct Arg* arg)
+void arg_recursive_free (void* arg)
 {
 	if (NULL == arg)
 	{
 		return;
 	}
-	subgraph_recursive_free(arg->subgraph_);
-	numlist_free(arg->shaper_);
-	numlist_free(arg->coorder_);
-	free(arg);
+	struct Arg* argt = (struct Arg*) arg;
+	subgraph_recursive_free(argt->subgraph_);
+	numlist_free(argt->shaper_);
+	numlist_free(argt->coorder_);
+	free(argt);
 }
 
-void conversion_recursive_free (struct Conversion* conv)
+void conversion_recursive_free (void* conv)
 {
 	if (NULL == conv)
 	{
 		return;
 	}
-	subgraph_recursive_free(conv->source_);
-	subgraph_recursive_free(conv->dest_);
-	free(conv);
+	struct Conversion* convt = (struct Conversion*) conv;
+	subgraph_recursive_free(convt->source_);
+	subgraph_recursive_free(convt->dest_);
+	free(convt);
 }
 
 void statement_recursive_free (void* ptr)
@@ -67,7 +69,7 @@ void statement_recursive_free (void* ptr)
 			free(stmt->val_);
 			break;
 		case CONVERSION:
-			conversion_recursive_free((struct Conversion*) stmt->val_);
+			conversion_recursive_free(stmt->val_);
 			break;
 		default:
 			fprintf(stderr, "freeing unknown statement type %d", stmt->type_);

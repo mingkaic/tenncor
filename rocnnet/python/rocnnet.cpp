@@ -6,6 +6,8 @@
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
 
+#include "pyutils/convert.hpp"
+
 #include "eteq/generated/pyapi.hpp"
 
 #include "layr/init.hpp"
@@ -13,8 +15,9 @@
 #include "layr/ulayer.hpp"
 #include "layr/dense.hpp"
 #include "layr/rbm.hpp"
-#include "layr/seqmodel.hpp"
 #include "layr/conv.hpp"
+#include "layr/recur.hpp"
+#include "layr/seqmodel.hpp"
 
 #include "rocnnet/trainer/sgd_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"
@@ -25,100 +28,6 @@ namespace py = pybind11;
 
 namespace pyrocnnet
 {
-
-// todo: move these utility functions somewhere common
-std::vector<teq::DimT> c2pshape (const teq::Shape& cshape)
-{
-	auto it = cshape.begin();
-	auto et = cshape.end();
-	while (it != et && *(et-1) == 1)
-	{
-		--et;
-	}
-	std::vector<teq::DimT> fwd(it, et);
-	return std::vector<teq::DimT>(fwd.rbegin(), fwd.rend());
-}
-
-teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
-{
-	return teq::Shape(std::vector<teq::DimT>(
-		pyshape.rbegin(), pyshape.rend()));
-}
-
-template <typename T>
-py::array shapedarr2arr (const eteq::ShapedArr<T>& sarr)
-{
-	auto pshape = c2pshape(sarr.shape_);
-	return py::array(
-		py::array::ShapeContainer(pshape.begin(), pshape.end()),
-		sarr.data_.data());
-}
-
-template <typename T>
-void arr2shapedarr (eteq::ShapedArr<T>& out, py::array& data)
-{
-	py::buffer_info info = data.request();
-	out.shape_ = p2cshape(info.shape);
-	size_t n = out.shape_.n_elems();
-	auto dtype = data.dtype();
-	char kind = dtype.kind();
-	py::ssize_t tbytes = dtype.itemsize();
-	switch (kind)
-	{
-		case 'f':
-			switch (tbytes)
-			{
-				case 4: // float32
-				{
-					float* dptr = static_cast<float*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-				break;
-				case 8: // float64
-				{
-					double* dptr = static_cast<double*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				default:
-					logs::fatalf("unsupported float type with %d bytes", tbytes);
-			}
-			break;
-		case 'i':
-			switch (tbytes)
-			{
-				case 1: // int8
-				{
-					int8_t* dptr = static_cast<int8_t*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				case 2: // int16
-				{
-					int16_t* dptr = static_cast<int16_t*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				case 4: // int32
-				{
-					int32_t* dptr = static_cast<int32_t*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				case 8: // int64
-				{
-					int64_t* dptr = static_cast<int64_t*>(info.ptr);
-					out.data_ = std::vector<T>(dptr, dptr + n);
-				}
-					break;
-				default:
-					logs::fatalf("unsupported integer type with %d bytes", tbytes);
-			}
-			break;
-		default:
-			logs::fatalf("unknown dtype %c", kind);
-	}
-}
 
 layr::ApproxF get_sgd (PybindT learning_rate)
 {
@@ -147,16 +56,13 @@ PYBIND11_MODULE(rocnnet, m)
 {
 	m.doc() = "rocnnet api";
 
-	// utility data
-	py::class_<teq::Shape> shape(m, "Shape");
-	py::class_<eteq::ShapedArr<PybindT>> sarr(m, "ShapedArr");
-
 	// layers
 	py::class_<layr::iLayer,layr::LayerptrT> layer(m, "Layer");
 	py::class_<layr::ULayer,layr::UnaryptrT,layr::iLayer> ulayer(m, "ULayer");
 	py::class_<layr::Dense,layr::DenseptrT,layr::iLayer> dense(m, "Dense");
 	py::class_<layr::RBM,layr::RBMptrT,layr::iLayer> rbm(m, "RBM");
 	py::class_<layr::Conv,layr::ConvptrT,layr::iLayer> conv(m, "Conv");
+	py::class_<layr::Recur,layr::RecurptrT,layr::iLayer> recur(m, "Recur");
 	py::class_<layr::SequentialModel,layr::SeqModelptrT,layr::iLayer> seqmodel(m, "SequentialModel");
 
 	// trainers
@@ -168,39 +74,33 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<trainer::DQNInfo> dqninfo(m, "DQNInfo");
 	py::class_<trainer::DQNTrainingContext> dqntrainingctx(m, "DQNTrainingContext");
 
-	shape
+	assigns
 		.def(py::init(
-			[](std::vector<py::ssize_t> dims)
+			[](eteq::VarptrT<PybindT> target, NodeptrT source)
 			{
-				return pyrocnnet::p2cshape(dims);
-			}))
-		.def("__getitem__",
-			[](teq::Shape& shape, size_t idx) { return shape.at(idx); },
-			py::is_operator());
+				return layr::VarAssign{"", target, source};
+			}));
 
-	sarr
-		.def(py::init(
-			[](py::array ar)
-			{
-				eteq::ShapedArr<PybindT> a;
-				pyrocnnet::arr2shapedarr(a, ar);
-				return a;
-			}))
-		.def("as_numpy",
-			[](py::object self) -> py::array
-			{
-				return pyrocnnet::shapedarr2arr<PybindT>(
-					*self.cast<eteq::ShapedArr<PybindT>*>());
-			});
+	dqninfo
+		.def(py::init<size_t,
+			PybindT, PybindT, PybindT, PybindT,
+			size_t, teq::DimT, size_t>(),
+			py::arg("train_interval") = 5,
+			py::arg("rand_action_prob") = 0.05,
+			py::arg("discount_rate") = 0.95,
+			py::arg("target_update_rate") = 0.01,
+			py::arg("exploration_period") = 1000,
+			py::arg("store_interval") = 5,
+			py::arg("mini_batch_size") = 32,
+			py::arg("max_exp") = 30000);
 
 	// layer
 	layer
 		.def("connect", &layr::iLayer::connect)
 		.def("get_contents",
-			[](py::object self) -> eteq::NodesT<PybindT>
+			[](layr::iLayer* self) -> eteq::NodesT<PybindT>
 			{
-				teq::TensptrsT contents =
-					self.cast<layr::iLayer*>()->get_contents();
+				teq::TensptrsT contents = self->get_contents();
 				eteq::NodesT<PybindT> nodes;
 				nodes.reserve(contents.size());
 				std::transform(contents.begin(), contents.end(),
@@ -210,12 +110,11 @@ PYBIND11_MODULE(rocnnet, m)
 				return nodes;
 			})
 		.def("save_file",
-			[](py::object self, std::string filename) -> bool
+			[](layr::iLayer* self, std::string filename) -> bool
 			{
-				layr::iLayer& me = *self.cast<layr::iLayer*>();
 				std::fstream output(filename,
 					std::ios::out | std::ios::trunc | std::ios::binary);
-				if (false == layr::save_layer(output, me, me.get_contents()))
+				if (false == layr::save_layer(output, *self, self->get_contents()))
 				{
 					logs::errorf("cannot save to file %s", filename.c_str());
 					return false;
@@ -223,11 +122,10 @@ PYBIND11_MODULE(rocnnet, m)
 				return true;
 			})
 		.def("save_string",
-			[](py::object self) -> std::string
+			[](layr::iLayer* self) -> std::string
 			{
-				layr::iLayer& me = *self.cast<layr::iLayer*>();
 				std::stringstream savestr;
-				layr::save_layer(savestr, me, me.get_contents());
+				layr::save_layer(savestr, *self, self->get_contents());
 				return savestr.str();
 			})
 		.def("get_ninput", &layr::iLayer::get_ninput)
@@ -235,32 +133,37 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// ulayer
 	ulayer
-		.def(py::init<const std::string&,const std::string&>(),
-			py::arg("label"),
-			py::arg("ulayer_type") = "sigmoid")
+		.def(py::init<const std::string&,NodeptrT,const std::string&>(),
+			py::arg("ulayer_type"),
+			py::arg("params"),
+			py::arg("label"))
 		.def("clone", &layr::ULayer::clone, py::arg("prefix") = "");
 
 	// dense
 	m.def("create_dense",
 		[](NodeptrT weight,
 			NodeptrT bias,
+			NodeptrT params,
 			std::string label)
 		{
-			return std::make_shared<layr::Dense>(weight, bias, label);
+			return std::make_shared<layr::Dense>(weight, bias, params, label);
 		},
 		py::arg("weight"),
 		py::arg("bias") = nullptr,
-		py::arg("label"));
+		py::arg("params") = nullptr,
+		py::arg("label") = "");
 	dense
-		.def(py::init<teq::DimT,teq::DimT,
+		.def(py::init<teq::DimT,teq::Shape,
 			layr::InitF<PybindT>,
 			layr::InitF<PybindT>,
+			NodeptrT,
 			const std::string&>(),
 			py::arg("nunits"),
-			py::arg("indim"),
+			py::arg("inshape"),
 			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
 			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("label"))
+			py::arg("params") = nullptr,
+			py::arg("label") = "")
 		.def("clone", &layr::Dense::clone, py::arg("prefix") = "");
 
 	// rbm
@@ -276,7 +179,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("hidden"),
 		py::arg("visible") = nullptr,
 		py::arg("activation") = nullptr,
-		py::arg("label"));
+		py::arg("label") = "");
 	rbm
 		.def(py::init<teq::DimT,teq::DimT,
 			layr::UnaryptrT,
@@ -288,7 +191,7 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("activation") = layr::sigmoid(),
 			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
 			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("label"))
+			py::arg("label") = "")
 		.def("clone", &layr::RBM::clone, py::arg("prefix") = "")
 		.def("backward_connect", &layr::RBM::backward_connect);
 
@@ -304,7 +207,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("weight"),
 		py::arg("bias"),
 		py::arg("arg"),
-		py::arg("label"));
+		py::arg("label") = "");
 	conv
 		.def(py::init<std::pair<teq::DimT,teq::DimT>,
 			teq::DimT,teq::DimT,const std::string&,
@@ -312,10 +215,35 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("filter_hw"),
 			py::arg("in_ncol"),
 			py::arg("out_ncol"),
-			py::arg("label"),
+			py::arg("label") = "",
 			py::arg("zero_padding") = std::pair<teq::DimT,teq::DimT>{0, 0})
 		.def("clone", &layr::Conv::clone, py::arg("prefix") = "")
 		.def("paddings", &layr::Conv::get_padding);
+
+	// recur
+	m.def("create_recur",
+		[](layr::DenseptrT cell, layr::UnaryptrT activation,
+			NodeptrT init_state, std::string label)
+		{
+			return std::make_shared<layr::Recur>(
+				cell, activation, init_state, label);
+		},
+		py::arg("weight"),
+		py::arg("bias"),
+		py::arg("arg"),
+		py::arg("label") = "");
+	recur
+		.def(py::init<teq::DimT,
+			layr::UnaryptrT,
+			layr::InitF<PybindT>,
+			layr::InitF<PybindT>,
+			const std::string&>(),
+			py::arg("nunits"),
+			py::arg("activation"),
+			py::arg("weight_init"),
+			py::arg("bias_init"),
+			py::arg("label") = "")
+		.def("clone", &layr::Recur::clone, py::arg("prefix") = "");
 
 	// seqmodel
 	seqmodel
@@ -327,20 +255,8 @@ PYBIND11_MODULE(rocnnet, m)
 
 
 	// dqntrainer
-	dqninfo
-		.def(py::init<size_t,
-			PybindT, PybindT, PybindT, PybindT,
-			size_t, teq::DimT, size_t>(),
-			py::arg("train_interval") = 5,
-			py::arg("rand_action_prob") = 0.05,
-			py::arg("discount_rate") = 0.95,
-			py::arg("target_update_rate") = 0.01,
-			py::arg("exploration_period") = 1000,
-			py::arg("store_interval") = 5,
-			py::arg("mini_batch_size") = 32,
-			py::arg("max_exp") = 30000);
 	dqntrainer
-		.def(py::init<layr::SequentialModel&,eteq::iSession&,
+		.def(py::init<layr::SequentialModel&,teq::iSession&,
 			layr::ApproxF,trainer::DQNInfo,
 			trainer::NodeUnarF,trainer::DQNTrainingContext>(),
 			py::arg("model"), py::arg("sess"),
@@ -348,11 +264,11 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity),
 			py::arg("ctx") = trainer::DQNTrainingContext())
 		.def("action",
-			[](py::object self, py::array input)
+			[](trainer::DQNTrainer* self, py::array input)
 			{
-				eteq::ShapedArr<PybindT> a;
-				pyrocnnet::arr2shapedarr(a, input);
-				return self.cast<trainer::DQNTrainer*>()->action(a);
+				teq::ShapedArr<PybindT> a;
+				pyutils::arr2shapedarr(a, input);
+				return self->action(a);
 			},
 			"get next action")
 		.def("store", &trainer::DQNTrainer::store, "save observation, action, and reward")
@@ -360,9 +276,9 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("error", &trainer::DQNTrainer::get_error, "get prediction error")
 		.def("ntrained", &trainer::DQNTrainer::get_numtrained, "get number of iterations trained")
 		.def("train_out",
-			[](py::object self)
+			[](trainer::DQNTrainer* self)
 			{
-				return self.cast<trainer::DQNTrainer*>()->train_out_;
+				return self->train_out_;
 			}, "get training node");
 
 	// dbntrainer
@@ -379,29 +295,27 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("l2_reg") = 0.,
 			py::arg("lr_scaling") = 0.95)
 		.def("pretrain",
-			[](py::object self, py::array x, size_t nepochs,
+			[](trainer::DBNTrainer* self, py::array x, size_t nepochs,
 				std::function<void(size_t,size_t)> logger)
 			{
-				auto trainer = self.cast<trainer::DBNTrainer*>();
-				eteq::ShapedArr<PybindT> xa;
-				pyrocnnet::arr2shapedarr(xa, x);
-				return trainer->pretrain(xa, nepochs, logger);
+				teq::ShapedArr<PybindT> xa;
+				pyutils::arr2shapedarr(xa, x);
+				return self->pretrain(xa, nepochs, logger);
 			},
 			py::arg("x"),
 			py::arg("nepochs") = 100,
 			py::arg("logger") = std::function<void(size_t,size_t)>(),
 			"pretrain internal rbms")
 		.def("finetune",
-			[](py::object self, py::array x, py::array y, size_t nepochs,
+			[](trainer::DBNTrainer* self, py::array x, py::array y, size_t nepochs,
 				std::function<void(size_t)> logger)
 			{
-				auto trainer = self.cast<trainer::DBNTrainer*>();
 				teq::Shape shape;
-				eteq::ShapedArr<PybindT> xa;
-				eteq::ShapedArr<PybindT> ya;
-				pyrocnnet::arr2shapedarr(xa, x);
-				pyrocnnet::arr2shapedarr(ya, y);
-				return trainer->finetune(xa, ya, nepochs, logger);
+				teq::ShapedArr<PybindT> xa;
+				teq::ShapedArr<PybindT> ya;
+				pyutils::arr2shapedarr(xa, x);
+				pyutils::arr2shapedarr(ya, y);
+				return self->finetune(xa, ya, nepochs, logger);
 			},
 			py::arg("x"),
 			py::arg("y"),
@@ -423,9 +337,10 @@ PYBIND11_MODULE(rocnnet, m)
 
 		// inits
 		.def("variable_from_init",
-			[](layr::InitF<PybindT> init, std::vector<py::ssize_t> slist, std::string label)
+			[](layr::InitF<PybindT> init, std::vector<py::ssize_t> slist,
+				std::string label)
 			{
-				return init(pyrocnnet::p2cshape(slist), label);
+				return init(pyutils::p2cshape(slist), label);
 			},
 			"Return labelled variable containing data created from initializer",
 			py::arg("init"), py::arg("slist"), py::arg("label") = "")
@@ -445,14 +360,18 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("factor") = 1)
 
 		// layer creation
-		.def("sigmoid", layr::sigmoid)
-		.def("tanh", layr::tanh)
-		.def("relu", layr::relu)
-		.def("softmax", layr::softmax)
+		.def("sigmoid", layr::sigmoid, py::arg("label") = "")
+		.def("tanh", layr::tanh, py::arg("label") = "")
+		.def("relu", layr::relu, py::arg("label") = "")
+		.def("softmax", layr::softmax,
+			py::arg("dim"),
+			py::arg("label") = "")
 		.def("maxpool2d", layr::maxpool2d,
-			py::arg("dims") = std::pair<teq::DimT,teq::DimT>{0, 1})
+			py::arg("dims") = std::pair<teq::DimT,teq::DimT>{0, 1},
+			py::arg("label") = "")
 		.def("meanpool2d", layr::meanpool2d,
-			py::arg("dims") = std::pair<teq::DimT,teq::DimT>{0, 1})
+			py::arg("dims") = std::pair<teq::DimT,teq::DimT>{0, 1},
+			py::arg("label") = "")
 		.def("load_file_seqmodel",
 			[](std::string filename, std::string layer_label) -> layr::SeqModelptrT
 			{
@@ -482,6 +401,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("sgd_train", &trainer::sgd_train,
 			py::arg("model"), py::arg("sess"),
 			py::arg("train_in"), py::arg("expected_out"), py::arg("update"),
+			py::arg("errfunc") = layr::ErrorF(layr::sqr_diff),
 			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity))
 		.def("rbm_train", &trainer::rbm_train,
 			py::arg("model"), py::arg("sess"),

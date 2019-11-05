@@ -5,12 +5,12 @@
 namespace trainer
 {
 
-TrainErrF sgd_train (layr::SequentialModel& model, eteq::iSession& sess,
+TrainErrF sgd_train (layr::SequentialModel& model, teq::iSession& sess,
 	NodeptrT train_in, NodeptrT expected_out, layr::ApproxF update,
-	NodeUnarF gradprocess)
+	layr::ErrorF errfunc, NodeUnarF gradprocess)
 {
 	auto train_out = model.connect(train_in);
-	auto error = tenncor::square(expected_out - train_out);
+	auto error = errfunc(expected_out, train_out);
 
 	auto contents = model.get_contents();
 	layr::VarErrsT vars;
@@ -51,7 +51,7 @@ TrainErrF sgd_train (layr::SequentialModel& model, eteq::iSession& sess,
 		sess.update_target({error->get_tensor().get()});
 		PybindT* data = error->data();
 		teq::Shape shape = error->shape();
-		return eteq::ShapedArr<PybindT>{shape,
+		return teq::ShapedArr<PybindT>{shape,
 			std::vector<PybindT>(data, data + shape.n_elems()),
 		};
 	};

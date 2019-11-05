@@ -8,8 +8,6 @@
 
 #include <list>
 
-#include "teq/teq.hpp"
-
 #include "tag/tag.hpp"
 
 #include "pbm/graph.pb.h"
@@ -42,7 +40,7 @@ struct iSaver
 /// Interface for building implementations of leaves, functors, shaper, and coorder
 struct iLoader
 {
-	/// Return leaf given raw data, shape, 
+	/// Return leaf given raw data, shape,
 	/// data type encoding, and other meta data
 	virtual teq::TensptrT generate_leaf (const char* data, teq::Shape shape,
 		std::string typelabel, std::string label, bool is_const) = 0;
@@ -50,11 +48,11 @@ struct iLoader
 	/// Return functor given operator name and TEQ arguments
 	virtual teq::TensptrT generate_func (std::string opname, teq::ArgsT args) = 0;
 
-	/// Return shape coordinate map given vector serialization output 
+	/// Return shape coordinate map given vector serialization output
 	/// by corresponding iSaver
 	virtual teq::CoordptrT generate_shaper (std::vector<double> coord) = 0;
 
-	/// Return coordinate map given vector serialization output 
+	/// Return coordinate map given vector serialization output
 	/// by corresponding iSaver
 	virtual teq::CoordptrT generate_coorder (
 		std::string opname, std::vector<double> coord) = 0;

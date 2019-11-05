@@ -14,7 +14,7 @@ filegroup(
 pybind_library(
     name = "rocnnet_py",
     cc_srcs = glob(["python/*.cpp"]),
-    cc_deps = ["//rocnnet/trainer:trainer"],
+    cc_deps = ["//rocnnet/trainer:trainer", "//pyutils:pyutils"],
     py_deps = ["//eteq:eteq_py"],
     visibility = ["//visibility:public"],
 )
@@ -93,5 +93,12 @@ py_binary(
     name = "cnn_demo",
     srcs = ["demo/cnn_demo.py"],
     deps = [":rocnnet_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "rnn_demo",
+    srcs = ["demo/rnn_demo.py"],
+    deps = [":rocnnet_py", "//dbg:stream_dbg_py"],
     data = ["//:models", "//cfg:optimizations"],
 )

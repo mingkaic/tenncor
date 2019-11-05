@@ -10,7 +10,9 @@
 
 #include "teq/itensor.hpp"
 
-#include "eteq/eigen.hpp"
+#include "eigen/eigen.hpp"
+
+#include "eteq/generated/dtype.hpp"
 
 #ifndef ETEQ_INODE_HPP
 #define ETEQ_INODE_HPP
@@ -77,6 +79,10 @@ struct NodeConverters final
 	/// Return node associated with tensor type
 	NodeptrT<T> to_node (teq::TensptrT tens)
 	{
+		if (nullptr == tens)
+		{
+			return nullptr;
+		}
 		const std::type_info& tp = typeid(*tens);
 		return estd::must_getf(builders_, tp.hash_code(),
 			"unknown tensor type `%s` with `%s` dtype",

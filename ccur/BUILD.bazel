@@ -51,7 +51,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//eteq:eteq",
+        "//teq:teq",
         "@boost//:asio",
     ],
 )
@@ -59,7 +59,10 @@ cc_library(
 pybind_library(
     name = "ccur_py",
     cc_srcs = ["//ccur:python/ccur.cpp"],
-    cc_deps = ["//ccur:ccur"],
+    cc_deps = [
+        "//ccur:ccur",
+        "//opt:opt",
+    ],
     py_deps = ["//eteq:eteq_py"],
     visibility = ["//visibility:public"],
 )
@@ -96,6 +99,7 @@ cc_test(
     deps = [
         "//dbg:stream_out",
         "//ccur:ccur",
+        "//eteq:eteq",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

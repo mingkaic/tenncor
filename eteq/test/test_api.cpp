@@ -6,8 +6,9 @@
 
 #include "exam/exam.hpp"
 
+#include "teq/session.hpp"
+
 #include "eteq/generated/api.hpp"
-#include "eteq/session.hpp"
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 #include "eteq/grader.hpp"
@@ -38,11 +39,12 @@ using MatVecT = std::vector<std::vector<int32_t>>;
 static const int FREIVALD_N = 10;
 
 
-static MatVecT create_2d (eteq::NodeptrT<int32_t> data)
+static MatVecT create_2d (eteq::NodeptrT<int32_t> data,
+	std::pair<teq::RankT,teq::RankT> dims = {0, 1})
 {
 	int32_t* ptr = (int32_t*) data->data();
-	teq::DimT C = data->shape().at(0);
-	teq::DimT R = data->shape().at(1);
+	teq::DimT C = data->shape().at(dims.first);
+	teq::DimT R = data->shape().at(dims.second);
 	MatVecT res;
 
  	for (size_t y = 0; y < R; y++)
@@ -76,7 +78,7 @@ static bool freivald (MatVecT a, MatVecT b, MatVecT c)
 		// generate r of len b[0].size() or c[0].size()
 		std::vector<int32_t> r(bdim);
 		std::uniform_int_distribution<int> dist{0, 1};
-		std::generate(r.begin(), r.end(), [&]() { return dist(eteq::get_engine()); });
+		std::generate(r.begin(), r.end(), [&]() { return dist(eigen::get_engine()); });
 
 		// p = matmul(a, matmul(b, r)) - matmul(c, r)
 		std::vector<int32_t> br; // matmul(b, r)
@@ -144,7 +146,7 @@ static void unary_generic (UnaryOpF<double> op,
 	dest->update();
 	verify(dest, shape, data);
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
 	session.track({gsrc->get_tensor()});
@@ -179,7 +181,7 @@ static void unar_elem (std::vector<double> data,
 		EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
 
@@ -267,7 +269,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> dest2 = op(src, src);
 	eteq::NodeptrT<double> gsame = eteq::derive(dest2, src);
@@ -394,7 +396,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<int32_t> dest2 = op(src, src);
 	eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, src);
@@ -569,24 +571,6 @@ TEST(API, Sigmoid)
 		{
 			double sig = 1 / (1 + std::exp(-d));
 			return sig * (1 - sig);
-		});
-}
-
-
-TEST(API, SigmoidGrad)
-{
-	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::sigmoid_grad(a); },
-		[](double d)
-		{
-			double sig = 1 / (1 + std::exp(-d));
-			return sig * (1 - sig);
-		},
-		[](double d)
-		{
-			double sig = 1 / (1 + std::exp(-d));
-			double sig_grad = sig * (1 - sig);
-			return sig_grad * (1 - 2 * sig);
 		});
 }
 
@@ -1046,7 +1030,7 @@ TEST(API, Rprod)
 		}
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<int32_t> gsrc = eteq::derive(dest, src);
 	eteq::NodeptrT<int32_t> gsrc2 = eteq::derive(dest2, src);
@@ -1291,7 +1275,7 @@ TEST(API, Permute)
 		EXPECT_EQ(data[i], got[teq::index(dest->shape(), coord)]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
 	session.track({gsrc->get_tensor()});
@@ -1334,7 +1318,7 @@ TEST(API, Extend)
 		}
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
 	session.track({gsrc->get_tensor()});
@@ -1400,10 +1384,101 @@ TEST(API, Matmul)
 	MatVecT ddc = create_2d(dest);
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
 	eteq::NodeptrT<int32_t> dest2 = tenncor::matmul(c, c);
+	eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, c);
+	session.track({gsame->get_tensor()});
+	session.update();
+	teq::Shape gcshape = gsame->shape();
+	{
+		std::vector<teq::DimT> glist(gcshape.begin(), gcshape.end());
+		ASSERT_ARREQ(sqrlist, glist);
+	}
+
+	eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, a);
+	session.track({gleft->get_tensor()});
+	session.update();
+	teq::Shape gashape = gleft->shape();
+	{
+		std::vector<teq::DimT> glist(gashape.begin(), gashape.end());
+		ASSERT_ARREQ(alist, glist);
+		int32_t* ga = (int32_t*) gleft->data();
+		ASSERT_NE(nullptr, ga);
+		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
+		ASSERT_ARREQ(expect_ga, ga_data);
+	}
+
+	eteq::NodeptrT<int32_t> gright = eteq::derive(dest, b);
+	session.track({gright->get_tensor()});
+	session.update();
+	teq::Shape gbshape = gright->shape();
+	{
+		std::vector<teq::DimT> glist(gbshape.begin(), gbshape.end());
+		ASSERT_ARREQ(blist, glist);
+		int32_t* gb = (int32_t*) gright->data();
+		ASSERT_NE(nullptr, gb);
+		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
+		ASSERT_ARREQ(expect_gb, gb_data);
+	}
+}
+
+
+TEST(API, Contract)
+{
+	std::vector<teq::DimT> alist = {3, 1, 2};
+	std::vector<teq::DimT> blist = {4, 1, 3};
+	std::vector<teq::DimT> sqrlist = {3, 2};
+	teq::Shape ashape(alist);
+	teq::Shape bshape(blist);
+	teq::Shape cshape(sqrlist);
+
+	std::vector<int32_t> data = {
+		40, 1, 23,
+		18, 50, 77,
+	};
+	std::vector<int32_t> data2 = {
+		62, 31, 90, 68,
+		68, 78, 55, 95,
+		16, 99, 97, 77,
+	};
+	std::vector<int32_t> data3 = {
+		29, 75, 39,
+		67, 37, 57,
+	};
+	std::vector<int32_t> expect_ga = {
+		62+31+90+68, 68+78+55+95, 16+99+97+77,
+		62+31+90+68, 68+78+55+95, 16+99+97+77,
+	};
+	std::vector<int32_t> expect_gb = {
+		40+18, 40+18, 40+18, 40+18,
+		50+1, 50+1, 50+1, 50+1,
+		23+77, 23+77, 23+77, 23+77,
+	};
+
+	eteq::NodeptrT<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
+	eteq::NodeptrT<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
+	eteq::NodeptrT<int32_t> dest = tenncor::contract(a, b, {{0, 2}});
+
+	dest->update();
+	teq::Shape gotshape = dest->shape();
+	EXPECT_EQ(4, gotshape.at(0));
+	EXPECT_EQ(1, gotshape.at(1));
+	EXPECT_EQ(1, gotshape.at(2));
+	EXPECT_EQ(2, gotshape.at(3));
+	int32_t* optr = (int32_t*) dest->data();
+	ASSERT_NE(nullptr, optr);
+
+	MatVecT dda = create_2d(a, {0, 2});
+	MatVecT ddb = create_2d(b, {0, 2});
+	MatVecT ddc = create_2d(dest, {0, 3});
+	EXPECT_TRUE(freivald(dda, ddb, ddc));
+
+	teq::Session session;
+
+	eteq::NodeptrT<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
+	eteq::NodeptrT<int32_t> dest2 = tenncor::contract(c, c, {{0, 0}});
 	eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, c);
 	session.track({gsame->get_tensor()});
 	session.update();
@@ -1464,7 +1539,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 		EXPECT_GT(hi, optr[i]);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gleft = eteq::derive(dest, src);
 	session.track({gleft->get_tensor()});
@@ -1572,7 +1647,7 @@ TEST(API, Convolution)
 		ASSERT_ARREQ(expect_out, outdata);
 	}
 
-	eteq::Session session;
+	teq::Session session;
 
 	eteq::NodeptrT<double> gleft = eteq::derive(dest, img);
 	ASSERT_NE(nullptr, gleft);

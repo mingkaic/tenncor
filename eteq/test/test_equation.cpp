@@ -6,9 +6,9 @@
 
 #include "exam/exam.hpp"
 
-#include "eteq/generated/api.hpp"
+#include "teq/session.hpp"
 
-#include "eteq/session.hpp"
+#include "eteq/generated/api.hpp"
 #include "eteq/grader.hpp"
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
@@ -69,7 +69,7 @@ TEST(EQUATION, MatmulComplex)
 	auto db = eteq::derive(dest, b);
 	auto dc = eteq::derive(dest, c);
 
-	eteq::Session session;
+	teq::Session session;
 	session.track({
 		dest->get_tensor(),
 		da->get_tensor(),
@@ -217,7 +217,7 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	auto dw1 = eteq::derive(err, weight1);
 	auto db1 = eteq::derive(err, bias1);
 
-	eteq::Session session;
+	teq::Session session;
 	session.track({
 		dw0->get_tensor(),
 		db0->get_tensor(),
@@ -444,7 +444,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	};
 	opt::optimize(roots, rules);
 
-	eteq::Session session;
+	teq::Session session;
 	session.track({
 		dw0->get_tensor(),
 		db0->get_tensor(),
@@ -661,7 +661,7 @@ TEST(EQUATION, SigmoidMLP_Fast)
 	auto dw1 = eteq::derive(err, weight1);
 	auto db1 = eteq::derive(err, bias1);
 
-	eteq::Session session;
+	teq::Session session;
 	session.track({
 		dw0->get_tensor(),
 		db0->get_tensor(),
@@ -885,7 +885,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	};
 	opt::optimize(roots, rules);
 
-	eteq::Session session;
+	teq::Session session;
 	session.track({
 		dw0->get_tensor(),
 		db0->get_tensor(),

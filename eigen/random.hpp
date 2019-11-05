@@ -1,5 +1,5 @@
 /// random.hpp
-/// eteq
+/// eigen
 ///
 /// Purpose:
 /// Define randomization functions used in Eigen operators
@@ -9,10 +9,10 @@
 #include <type_traits>
 #include <functional>
 
-#ifndef ETEQ_RANDOM_HPP
-#define ETEQ_RANDOM_HPP
+#ifndef EIGEN_RANDOM_HPP
+#define EIGEN_RANDOM_HPP
 
-namespace eteq
+namespace eigen
 {
 
 /// RNG engine used
@@ -67,4 +67,4 @@ GenF<T> norm_gen (T mean, T stdev)
 
 }
 
-#endif // ETEQ_RANDOM_HPP
+#endif // EIGEN_RANDOM_HPP

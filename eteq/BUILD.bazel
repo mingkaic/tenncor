@@ -49,11 +49,19 @@ config_setting(
     },
 )
 
+config_setting(
+    name = "full_build",
+    values = {
+        "define": "ETEQ_CFG=FULL",
+    },
+)
+
 genrule(
     name = "generated_ead",
     srcs = select({
-        "//conditions:default": ["//cfg:eteq"],
-        ":fast_build": ["//cfg:eteq_min"]
+        "//conditions:default": ["//cfg:eteq_min"],
+        ":fast_build": ["//cfg:eteq_min"],
+        ":full_build": ["//cfg:eteq"]
     }),
     outs = [
         "generated/api.hpp",
@@ -70,40 +78,39 @@ genrule(
         "//conditions:default": "$(location //eteq:egen) " +
         "--out $(@D)/generated " +
         "--strip_prefix=$$(dirname $(@D)) " +
-        "--cfgs $(locations //cfg:eteq)",
+        "--cfgs $(locations //cfg:eteq_min)",
 
         ":fast_build": "$(location //eteq:egen) " +
         "--out $(@D)/generated " +
         "--strip_prefix=$$(dirname $(@D)) " +
         "--cfgs $(locations //cfg:eteq_min)",
+
+        ":full_build": "$(location //eteq:egen) " +
+        "--out $(@D)/generated " +
+        "--strip_prefix=$$(dirname $(@D)) " +
+        "--cfgs $(locations //cfg:eteq)",
     })
 )
 
 cc_library(
     name = "eteq",
-    hdrs = glob([
-        "*.hpp",
-        "opt/*.hpp",
-    ]) + [
+    hdrs = glob(["*.hpp"]) + [
         "//eteq:generated/api.hpp",
         "//eteq:generated/opcode.hpp",
         "//eteq:generated/dtype.hpp",
         "//eteq:generated/pyapi.hpp",
     ],
-    srcs = glob([
-        "src/*.cpp",
-    ]) + [
+    srcs = glob(["src/*.cpp"]) + [
         "//eteq:generated/api.cpp",
         "//eteq:generated/opcode.cpp",
         "//eteq:generated/dtype.cpp",
     ],
     copts = ["-std=c++17"],
     deps = [
-        "//teq:teq",
+        "//eigen:eigen",
         "//pbm:pbm",
         "//tag:tag",
         "//opt:opt",
-        "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],
 )
@@ -117,7 +124,10 @@ pybind_library(
 pybind_library(
     name = "eteq_py",
     cc_srcs = ["//eteq:python/eteq.cpp"],
-    cc_deps = ["//eteq:eteq"],
+    cc_deps = [
+        "//eteq:eteq",
+        "//pyutils:pyutils",
+    ],
     py_deps = ["//eteq:tenncor_py"],
     visibility = ["//visibility:public"],
 )

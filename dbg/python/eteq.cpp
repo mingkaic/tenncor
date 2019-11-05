@@ -20,7 +20,7 @@ PYBIND11_MODULE(eteq_mocker, m)
 		[](CustomUnaryF unary, NodeptrT& arg)
 		{
 			return dbg::make_functor<PybindT>(
-				[unary](eteq::TensorT<PybindT>& out, const dbg::DataMapT<PybindT>& args)
+				[unary](eigen::TensorT<PybindT>& out, const dbg::DataMapT<PybindT>& args)
 				{
 					const auto& arg = args.at(0);
 					auto output = unary(

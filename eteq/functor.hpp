@@ -8,11 +8,10 @@
 
 #include "teq/iopfunc.hpp"
 
-#include "eteq/generated/opcode.hpp"
+#include "eigen/operator.hpp"
 
+#include "eteq/generated/opcode.hpp"
 #include "eteq/funcarg.hpp"
-#include "eteq/constant.hpp"
-#include "eteq/operator.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -143,12 +142,12 @@ struct Functor final : public teq::iOperableFunc
 	/// Populate internal Eigen data object
 	void initialize (void)
 	{
-		std::vector<OpArg<T>> datamaps;
+		std::vector<eigen::OpArg<T>> datamaps;
 		for (const teq::FuncArg& arg : args_)
 		{
 			auto tens = arg.get_tensor();
-			auto coorder = static_cast<CoordMap*>(arg.get_coorder().get());
-			datamaps.push_back(OpArg<T>{
+			auto coorder = static_cast<eigen::CoordMap*>(arg.get_coorder().get());
+			datamaps.push_back(eigen::OpArg<T>{
 				to_node<T>(tens)->data(),
 				tens->shape(),
 				coorder
@@ -160,11 +159,16 @@ struct Functor final : public teq::iOperableFunc
 
 private:
 	Functor (teq::Opcode opcode, teq::Shape shape, teq::ArgsT args) :
-		opcode_(opcode), shape_(shape), args_(args) {}
+		opcode_(opcode), shape_(shape), args_(args)
+	{
+#ifdef FINIT_ON_BUILD
+		initialize();
+#endif // FINIT_ON_BUILD
+	}
 
 	Functor (Functor<T>&& other) = default;
 
-	EigenptrT<T> out_ = nullptr;
+	eigen::EigenptrT<T> out_ = nullptr;
 
 	/// Operation encoding
 	teq::Opcode opcode_;
@@ -218,7 +222,7 @@ protected:
 			{
 				return FuncArg<T>(
 					to_node<T>(arg.get_tensor()), arg.get_shaper(),
-					std::static_pointer_cast<CoordMap>(arg.get_coorder()));
+					std::static_pointer_cast<eigen::CoordMap>(arg.get_coorder()));
 			});
 		return new FunctorNode(std::shared_ptr<Functor<T>>(
 			Functor<T>::get(func_->get_opcode(), input_args)));

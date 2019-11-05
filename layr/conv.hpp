@@ -100,7 +100,7 @@ struct Conv final : public iLayer
 		std::uniform_real_distribution<PybindT> dist(-bound, bound);
 		auto gen = [&dist]()
 		{
-			return dist(eteq::get_engine());
+			return dist(eigen::get_engine());
 		};
 		std::vector<PybindT> data(ndata);
 		std::generate(data.begin(), data.end(), gen);
@@ -122,7 +122,7 @@ struct Conv final : public iLayer
 	}
 
 	Conv (NodeptrT weight, NodeptrT bias,
-		eteq::NodeptrT<DArgT> arg, std::string label) :
+		eteq::NodeptrT<DArgT> arg, const std::string& label) :
 		label_(label),
 		weight_(weight),
 		bias_(bias),

@@ -72,11 +72,11 @@ def main(args):
     n_actions = 9
 
     model = rcn.SequentialModel("demo")
-    model.add(rcn.Dense(9, n_observations,
+    model.add(rcn.Dense(9, eteq.Shape([n_observations]),
         weight_init=rcn.unif_xavier_init(),
         bias_init=rcn.zero_init(), label="0"))
     model.add(rcn.sigmoid())
-    model.add(rcn.Dense(n_actions, 9,
+    model.add(rcn.Dense(n_actions, eteq.Shape([9]),
         weight_init=rcn.unif_xavier_init(),
         bias_init=rcn.zero_init(), label="1"))
     model.add(rcn.sigmoid())
@@ -107,7 +107,7 @@ def main(args):
         gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
     pretrained_dqn = rcn.DQNTrainer(trained, sess, bgd, param)
 
-    sess.optimize("cfg/optimizations.rules")
+    sess.optimize(eteq.parse_optrules("cfg/optimizations.rules"))
 
     err_msg = None
     err_queue_size = 10

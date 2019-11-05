@@ -1,49 +1,50 @@
 opcode:
-  operator_path: eteq/operator.hpp
-  params: teq::Shape shape, eteq::EigenptrT<T>& out, std::vector<eteq::OpArg<T>>& in
+  operator_path: eigen/operator.hpp
+  params: teq::Shape shape, eigen::EigenptrT<T>& out, std::vector<eigen::OpArg<T>>& in
   opcalls:
-    ABS: out = eteq::abs(shape,in[0]);
-    NEG: out = eteq::neg(shape,in[0]);
-    SIN: out = eteq::sin(shape,in[0]);
-    COS: out = eteq::cos(shape,in[0]);
-    TAN: out = eteq::tan(shape,in[0]);
-    EXP: out = eteq::exp(shape,in[0]);
-    LOG: out = eteq::log(shape,in[0]);
-    SQRT: out = eteq::sqrt(shape,in[0]);
-    ROUND: out = eteq::round(shape,in[0]);
-    SIGMOID: out = eteq::sigmoid(shape,in[0]);
-    SIGMOID_GRAD: out = eteq::sigmoid_grad(shape,in[0]);
-    TANH: out = eteq::tanh(shape,in[0]);
-    SQUARE: out = eteq::square(shape,in[0]);
-    CUBE: out = eteq::cube(shape,in[0]);
-    POW: out = eteq::pow(shape,in[0],in[1]);
-    ADD: out = eteq::add(shape,in[0],in[1]);
-    SUB: out = eteq::sub(shape,in[0],in[1]);
-    MUL: out = eteq::mul(shape,in[0],in[1]);
-    DIV: out = eteq::div(shape,in[0],in[1]);
-    MIN: out = eteq::min(shape,in[0],in[1]);
-    MAX: out = eteq::max(shape,in[0],in[1]);
-    EQ: out = eteq::eq(shape,in[0],in[1]);
-    NEQ: out = eteq::neq(shape,in[0],in[1]);
-    LT: out = eteq::lt(shape,in[0],in[1]);
-    GT: out = eteq::gt(shape,in[0],in[1]);
-    RAND_UNIF: out = eteq::rand_uniform(shape,in[0],in[1]);
-    REVERSE: out = eteq::reverse(shape, in[0]);
-    REDUCE_SUM: out = eteq::reduce_sum(shape,in[0]);
-    REDUCE_PROD: out = eteq::reduce_prod(shape,in[0]);
-    REDUCE_MIN: out = eteq::reduce_min(shape,in[0]);
-    REDUCE_MAX: out = eteq::reduce_max(shape,in[0]);
-    ARGMAX: out = eteq::argmax(shape,in[0]);
-    PERMUTE: out = eteq::permute(shape,in[0]);
-    EXTEND: out = eteq::extend(shape,in[0]);
-    RESHAPE: out = eteq::reshape(shape,in[0]);
-    MATMUL: out = eteq::matmul(shape,in[0],in[1]);
-    CONV: out = eteq::convolution(shape,in[0],in[1]);
-    SLICE: out = eteq::slice(shape,in[0]);
-    PAD: out = eteq::pad(shape,in[0]);
-    STRIDE: out = eteq::stride(shape,in[0]);
-    SCATTER: out = eteq::scatter(shape,in[0]);
-    SELECT: out = eteq::select(shape, in[0], in[1], in[2]);
+    ABS: out = eigen::abs(shape,in[0]);
+    NEG: out = eigen::neg(shape,in[0]);
+    SIN: out = eigen::sin(shape,in[0]);
+    COS: out = eigen::cos(shape,in[0]);
+    TAN: out = eigen::tan(shape,in[0]);
+    EXP: out = eigen::exp(shape,in[0]);
+    LOG: out = eigen::log(shape,in[0]);
+    SQRT: out = eigen::sqrt(shape,in[0]);
+    ROUND: out = eigen::round(shape,in[0]);
+    SIGMOID: out = eigen::sigmoid(shape,in[0]);
+    TANH: out = eigen::tanh(shape,in[0]);
+    SQUARE: out = eigen::square(shape,in[0]);
+    CUBE: out = eigen::cube(shape,in[0]);
+    POW: out = eigen::pow(shape,in[0],in[1]);
+    ADD: out = eigen::add(shape,in[0],in[1]);
+    SUB: out = eigen::sub(shape,in[0],in[1]);
+    MUL: out = eigen::mul(shape,in[0],in[1]);
+    DIV: out = eigen::div(shape,in[0],in[1]);
+    MIN: out = eigen::min(shape,in[0],in[1]);
+    MAX: out = eigen::max(shape,in[0],in[1]);
+    EQ: out = eigen::eq(shape,in[0],in[1]);
+    NEQ: out = eigen::neq(shape,in[0],in[1]);
+    LT: out = eigen::lt(shape,in[0],in[1]);
+    GT: out = eigen::gt(shape,in[0],in[1]);
+    RAND_UNIF: out = eigen::rand_uniform(shape,in[0],in[1]);
+    REVERSE: out = eigen::reverse(shape, in[0]);
+    REDUCE_SUM: out = eigen::reduce_sum(shape,in[0]);
+    REDUCE_PROD: out = eigen::reduce_prod(shape,in[0]);
+    REDUCE_MIN: out = eigen::reduce_min(shape,in[0]);
+    REDUCE_MAX: out = eigen::reduce_max(shape,in[0]);
+    ARGMAX: out = eigen::argmax(shape,in[0]);
+    PERMUTE: out = eigen::permute(shape,in[0]);
+    EXTEND: out = eigen::extend(shape,in[0]);
+    RESHAPE: out = eigen::reshape(shape,in[0]);
+    MATMUL: out = eigen::matmul(shape,in[0],in[1]);
+    CONV: out = eigen::convolution(shape,in[0],in[1]);
+    SLICE: out = eigen::slice(shape,in[0]);
+    PAD: out = eigen::pad(shape,in[0]);
+    STRIDE: out = eigen::stride(shape,in[0]);
+    SCATTER: out = eigen::scatter(shape,in[0]);
+    SELECT: out = eigen::select(shape, in[0], in[1], in[2]);
+    CONCAT: out = eigen::concat(shape, in[0], in[1]);
+    GROUP_CONCAT: out = eigen::group_concat(shape, in);
 api:
   pybind_type: float
   includes:
@@ -135,14 +136,6 @@ api:
         out:
           type: eteq::NodeptrT<T>
           val: return eteq::make_functor<T>(teq::Opcode{"SIGMOID",::egen::SIGMOID},{eteq::identity_map(arg)});
-      - template: typename T
-        name: sigmoid_grad
-        args:
-        - dtype: eteq::NodeptrT<T>
-          name: arg
-        out:
-          type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"SIGMOID_GRAD",::egen::SIGMOID_GRAD},{eteq::identity_map(arg)});
       - template: typename T
         name: tanh
         args:
@@ -628,7 +621,7 @@ api:
         args:
         - dtype: eteq::NodeptrT<T>
           name: arg
-        - dtype: std::vector<teq::RankT>
+        - dtype: const std::vector<teq::RankT>&
           name: dims
         out:
           type: eteq::NodeptrT<T>
@@ -636,7 +629,7 @@ api:
               //
                   return eteq::make_functor<T>(teq::Opcode{"REVERSE",::egen::REVERSE},{
                       eteq::FuncArg<T>(arg,teq::identity,
-                          std::make_shared<eteq::CoordMap>(
+                          std::make_shared<eigen::CoordMap>(
                               [&](teq::MatrixT& args){
                                   for (teq::RankT i = 0, n = dims.size(); i < n; ++i)
                                   {
@@ -649,7 +642,7 @@ api:
         args:
         - dtype: eteq::NodeptrT<T>
           name: arg
-        - dtype: std::vector<teq::RankT>
+        - dtype: const std::vector<teq::RankT>&
           name: order
         out:
           type: eteq::NodeptrT<T>
@@ -661,11 +654,98 @@ api:
           name: arg
         - dtype: teq::RankT
           name: offset
-        - dtype: std::vector<teq::DimT>
+        - dtype: const std::vector<teq::DimT>&
           name: xlist
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"EXTEND",::egen::EXTEND},{eteq::extend_map(arg,offset,xlist)});
+          val: |
+              //
+                  if (xlist.empty()){
+                      logs::warn("extending with empty vector ... will do nothing");
+                      return arg; // identity
+                  }
+                  return eteq::make_functor<T>(teq::Opcode{"EXTEND",::egen::EXTEND},{
+                      eteq::extend_map(arg,offset,xlist)
+                  });
+      - template: typename T
+        name: concat
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: left
+        - dtype: eteq::NodeptrT<T>
+          name: right
+        - dtype: teq::RankT
+          name: axis
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"CONCAT",::egen::CONCAT},eteq::concat_map(left,right,axis));
+      - template: typename T
+        name: concat
+        args:
+        - dtype: eteq::NodesT<T>
+          name: args
+        - dtype: teq::RankT
+          name: axis
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  if (args.size() == 1)
+                  {
+                      return args[0];
+                  }
+                  return eteq::make_functor<T>(teq::Opcode{"GROUP_CONCAT",::egen::GROUP_CONCAT},
+                      eteq::group_concat_map(args,axis));
+      - description: Return extended arg so that output shape matches slist exactly
+        template: typename T
+        name: best_extend
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: const std::vector<teq::DimT>&
+          name: slist
+        out:
+          type: eteq::NodeptrT<T>
+          val: |
+              //
+                  teq::RankT n = std::min(teq::rank_cap, (teq::RankT) slist.size());
+                  teq::Shape source = arg->shape();
+                  teq::RankT offset = 0;
+                  while (offset < n && source.at(offset) == slist.at(offset)) {
+                      ++offset;
+                  }
+                  if (offset == n) {
+                      return arg;
+                  }
+                  std::vector<teq::DimT> exts;
+                  exts.reserve(n - offset);
+                  for (teq::RankT i = offset; i < n; ++i) {
+                      teq::DimT sdim = source.at(i);
+                      teq::DimT tdim = slist.at(i);
+                      if (sdim != tdim) {
+                          if (sdim != 1) {
+                              logs::fatalf(
+                                  "cannot extend shapes %s and %s at dimension %d to match",
+                                  source.to_string().c_str(),
+                                  fmts::to_string(slist.begin(), slist.end()).c_str(), i);
+                          }
+                          exts.push_back(tdim);
+                      } else {
+                          exts.push_back(1);
+                      }
+                  }
+                  return ::tenncor::extend(arg, offset, exts);
+      - description: Return extended arg so that output shape matches shape exactly
+        template: typename T
+        name: best_extend
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: arg
+        - dtype: const teq::Shape&
+          name: shape
+        out:
+          type: eteq::NodeptrT<T>
+          val: return ::tenncor::best_extend(arg, std::vector<teq::DimT>(shape.begin(), shape.end()));
       - template: typename T
         name: reshape
         args:
@@ -828,14 +908,25 @@ api:
         args:
         - dtype: eteq::NodeptrT<T>
           name: arg
-        - dtype: std::vector<teq::DimT>
+        - dtype: const std::vector<teq::DimT>&
           name: incrs
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"STRIDE",::egen::STRIDE}, {
-                      eteq::stride_map(arg, incrs)});
+          val: return eteq::make_functor<T>(teq::Opcode{"STRIDE",::egen::STRIDE}, {eteq::stride_map(arg, incrs)});
+      - description: multiple values across specify dimensions pairs before summing all products (generalization of matrix product), defaults to matrix product
+        template: typename T
+        name: contract
+        args:
+        - dtype: eteq::NodeptrT<T>
+          name: a
+        - dtype: eteq::NodeptrT<T>
+          name: b
+        - dtype: eteq::PairVecT<teq::RankT>
+          name: dims
+          default: eteq::PairVecT<teq::RankT>{{0, 1}}
+        out:
+          type: eteq::NodeptrT<T>
+          val: return eteq::make_functor<T>(teq::Opcode{"MATMUL",::egen::MATMUL}, eteq::contract_map(a, b, dims));
       - template: typename T
         name: matmul
         args:
@@ -845,48 +936,7 @@ api:
           name: b
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  teq::Shape ashape = a->get_tensor()->shape();
-                  teq::Shape bshape = b->get_tensor()->shape();
-                  teq::DimT ncommon = ashape.at(0);
-                  teq::DimT nrow = ashape.at(1);
-                  teq::DimT ncol = bshape.at(0);
-                  if (ncommon != bshape.at(1))
-                  {
-                      logs::fatalf("invalid matmul shapes %s and %s",
-                          ashape.to_string().c_str(), bshape.to_string().c_str());
-                  }
-
-                  teq::CoordptrT left_shaper(new teq::CoordMap(
-                      [=](teq::MatrixT& fwd)
-                      {
-                          for (teq::RankT i = 3; i < teq::mat_dim; ++i)
-                          {
-                              fwd[i][i] = 1;
-                          }
-                          fwd[2][0] = ncol;
-                          fwd[1][1] = 1;
-                          fwd[0][2] = 1. / ncommon;
-                      }
-                  ));
-
-                  teq::CoordptrT right_shaper(new teq::CoordMap(
-                      [=](teq::MatrixT& fwd)
-                      {
-                          for (teq::RankT i = 3; i < teq::mat_dim; ++i)
-                          {
-                              fwd[i][i] = 1;
-                          }
-                          fwd[0][0] = 1;
-                          fwd[2][1] = nrow;
-                          fwd[1][2] = 1. / ncommon;
-                      }
-                  ));
-                  return eteq::make_functor<T>(teq::Opcode{"MATMUL",::egen::MATMUL}, {
-                      eteq::FuncArg<T>(a, left_shaper, nullptr),
-                      eteq::FuncArg<T>(b, right_shaper, nullptr)
-                  });
+          val: return ::tenncor::contract(a, b);
       - template: typename T
         name: convolution
         args:
@@ -894,7 +944,7 @@ api:
           name: input
         - dtype: eteq::NodeptrT<T>
           name: kernel
-        - dtype: std::vector<teq::RankT>
+        - dtype: const std::vector<teq::RankT>&
           name: dims
         out:
           type: eteq::NodeptrT<T>
@@ -1194,7 +1244,7 @@ api:
           name: x
         out:
           type: eteq::NodeptrT<T>
-          val: return ::tenncor::pow(x,eteq::make_constant_scalar<T>(0,x->shape()));
+          val: return ::tenncor::add(::tenncor::mul((T)-2,::tenncor::lt(x,(T)0)),(T)1);
     tenncor::random:
       - template: typename T
         name: rand_unif
@@ -1237,6 +1287,9 @@ api:
         - dtype: eteq::NodeptrT<T>
           name: bias
           check_null: false
+        - dtype: eteq::PairVecT<teq::RankT>
+          name: dims
+          default: eteq::PairVecT<teq::RankT>{{0, 1}}
         out:
           type: eteq::NodeptrT<T>
           val: |
@@ -1256,17 +1309,16 @@ api:
                       inputs[0]->get_tensor().get(),
                       weights[0]->get_tensor().get()
                   };
-                  auto out = ::tenncor::matmul(inputs[0], weights[0]);
+                  auto out = ::tenncor::contract(inputs[0], weights[0], dims);
                   for (size_t i = 1; i < ninputs; ++i)
                   {
                       ignores.emplace(inputs[i]->get_tensor().get());
                       ignores.emplace(weights[i]->get_tensor().get());
-                      out = ::tenncor::add(out, ::tenncor::matmul(inputs[i], weights[i]));
+                      out = ::tenncor::add(out, ::tenncor::contract(inputs[i], weights[i], dims));
                   }
                   if (nullptr != bias)
                   {
-                      const teq::Shape& shape = out->shape();
-                      out = ::tenncor::add(out, ::tenncor::extend(bias, 1, {shape.at(1)}));
+                      out = ::tenncor::add(out, ::tenncor::best_extend(bias, out->shape()));
                       ignores.emplace(bias->get_tensor().get());
                   }
                   tag::recursive_group_tag(out->get_tensor(), "fully_connect", ignores);

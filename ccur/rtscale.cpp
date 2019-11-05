@@ -61,7 +61,6 @@ int main (int argc, const char** argv)
 			case egen::SQRT:
 			case egen::ROUND:
 			case egen::SIGMOID:
-			case egen::SIGMOID_GRAD:
 			case egen::TANH:
 			case egen::SQUARE:
 			case egen::CUBE:

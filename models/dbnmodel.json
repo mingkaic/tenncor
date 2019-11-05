@@ -1,4 +1,5 @@
 {
+ "label": "",
  "nodes": [
   {
    "label": "weight",
@@ -13,8 +14,9 @@
      "1",
      "1"
     ],
-    "data": "j3PJPZBOxkBzyMHA5RG7vwl1LEDti4rATnG6QCxbtz/aV5g/CHORP2l55sCYs59Aaud1v6LbiMCxAs8/0uDuv81YgcBeiJM/",
-    "typelabel": "FLOAT"
+    "data": "FWLGwEtQ2kBauZG/2c4HwE7dh0BnvALBSUrlP1C5hEBOKo5AQmSBQMOO58AGfTRA/yRCP6n8qMC8x3C+7JXKv2ZgrsACmXQ/",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -47,10 +49,16 @@
      "1",
      "1"
     ],
-    "data": "otbkPkzcNr7ntrO9",
-    "typelabel": "FLOAT"
+    "data": "MlRnvh5D9r1Pe6c+",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:0:0"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "hidden::bias:0"
@@ -59,11 +67,6 @@
     "layer_rbm": {
      "labels": [
       "0:layer_dense:hidden:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:0:0"
      ]
     }
    }
@@ -81,8 +84,9 @@
      "1",
      "1"
     ],
-    "data": "mA5qvBZf8b6cJEk/JUkSviFJEr9O8RW/",
-    "typelabel": "FLOAT"
+    "data": "ESIRPRqARz3GRIk/oX2dPNSoAL8N6hO/",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -122,7 +126,7 @@
    "tags": {
     "layer_sigmoid": {
      "labels": [
-      ":::0"
+      "::uparam:0"
      ]
     },
     "layer_rbm": {
@@ -157,10 +161,16 @@
      "1",
      "1"
     ],
-    "data": "D8ayPquucD9CruJAJXTSQKKwhkAQqIfADynywMqSmsDx27dA",
-    "typelabel": "FLOAT"
+    "data": "b3CewDN8H8DLO9hAC7qCQNAgEEE+6abAkH2TwPI3J8CXIdlA",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "hidden::weight:0"
@@ -169,11 +179,6 @@
     "layer_rbm": {
      "labels": [
       "1:layer_dense:hidden:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1"
      ]
     }
    }
@@ -191,8 +196,9 @@
      "1",
      "1"
     ],
-    "data": "yrD4vkhvvL6+AQ8/",
-    "typelabel": "FLOAT"
+    "data": "F41ePvCm6jwAQZK+",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -225,8 +231,9 @@
      "1",
      "1"
     ],
-    "data": "0syMP3FmZr912zY/",
-    "typelabel": "FLOAT"
+    "data": "6J7wPuTpC76qGeo+",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -259,8 +266,9 @@
      "1",
      "1"
     ],
-    "data": "V2N9P1hjfb9XY30/WGN9v/AQy7/7stO+",
-    "typelabel": "FLOAT"
+    "data": "xKgFP7yoBb8Abp0/822dv/Wo0r9pUrW+",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -288,8 +296,9 @@
      "1",
      "1"
     ],
-    "data": "VxNoviDxcb0=",
-    "typelabel": "FLOAT"
+    "data": "uGAkvs8uAL4=",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -329,12 +338,12 @@
     },
     "layer_seqmodel": {
      "labels": [
-      "demo:layer_softmax:0:3"
+      "demo:layer_softmax::3"
      ]
     },
     "layer_softmax": {
      "labels": [
-      "0:::0"
+      "::uparam:0"
      ]
     }
    }
@@ -345,6 +354,7 @@
     "opname": "PERMUTE",
     "args": [
      {
+      "idx": 0,
       "coord": [
        1,
        0,

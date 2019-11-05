@@ -70,7 +70,7 @@ struct DQNInfo final
 struct DQNTrainer final
 {
 	DQNTrainer (layr::SequentialModel& model,
-		eteq::iSession& sess, layr::ApproxF update, DQNInfo param,
+		teq::iSession& sess, layr::ApproxF update, DQNInfo param,
 		NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; },
 		DQNTrainingContext ctx = DQNTrainingContext()) :
 		sess_(&sess),
@@ -186,7 +186,7 @@ struct DQNTrainer final
 		sess_->track(track_batch);
 	}
 
-	uint8_t action (const eteq::ShapedArr<PybindT>& input)
+	uint8_t action (const teq::ShapedArr<PybindT>& input)
 	{
 		ctx_.actions_executed_++; // book keep
 		PybindT exploration = linear_annealing(1.);
@@ -315,7 +315,7 @@ struct DQNTrainer final
 	// === updates && optimizer ===
 	layr::AssignGroupsT updates_;
 
-	eteq::iSession* sess_;
+	teq::iSession* sess_;
 
 private:
 	PybindT linear_annealing (PybindT initial_prob) const
@@ -328,7 +328,7 @@ private:
 
 	PybindT get_random (void)
 	{
-		return explore_(eteq::get_engine());
+		return explore_(eigen::get_engine());
 	}
 
 	std::vector<DQNTrainingContext::ExpBatch> random_sample (void)

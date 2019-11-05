@@ -17,21 +17,21 @@
 
 #include "rocnnet/trainer/sgd_trainer.hpp"
 
-static eteq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
+static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
 	// Specify the engine and distribution.
-	std::mt19937 mersenne_engine(eteq::get_engine()());
+	std::mt19937 mersenne_engine(eigen::get_engine()());
 	std::uniform_real_distribution<float> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
-	eteq::ShapedArr<PybindT> out(teq::Shape({n, batchsize}));
+	teq::ShapedArr<PybindT> out(teq::Shape({n, batchsize}));
 	std::generate(std::begin(out.data_), std::end(out.data_), gen);
 	return out;
 }
 
-static eteq::ShapedArr<PybindT> avgevry2 (eteq::ShapedArr<PybindT>& in)
+static teq::ShapedArr<PybindT> avgevry2 (teq::ShapedArr<PybindT>& in)
 {
-	eteq::ShapedArr<PybindT> out(teq::Shape({
+	teq::ShapedArr<PybindT> out(teq::Shape({
 		static_cast<teq::DimT>(in.shape_.at(0) / 2),
 		in.shape_.at(1)}));
 	for (size_t i = 0, n = in.data_.size() / 2; i < n; i++)
@@ -82,7 +82,7 @@ int main (int argc, const char** argv)
 	if (seed)
 	{
 		std::cout << "seeding " << seedval << '\n';
-		eteq::get_engine().seed(seedval);
+		eigen::get_engine().seed(seedval);
 	}
 
 	uint8_t n_in = 10;
@@ -90,11 +90,13 @@ int main (int argc, const char** argv)
 	std::vector<teq::DimT> n_outs = {9, n_out};
 
 	layr::SequentialModel model("demo");
-	model.push_back(std::make_shared<layr::Dense>(9, n_in,
-		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>(), "0"));
+	model.push_back(std::make_shared<layr::Dense>(9, teq::Shape({n_in}),
+		layr::unif_xavier_init<PybindT>(1),
+		layr::zero_init<PybindT>(), nullptr, "0"));
 	model.push_back(layr::sigmoid());
-	model.push_back(std::make_shared<layr::Dense>(n_out, 9,
-		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>(), "1"));
+	model.push_back(std::make_shared<layr::Dense>(n_out, teq::Shape({9}),
+		layr::unif_xavier_init<PybindT>(1),
+		layr::zero_init<PybindT>(), nullptr, "1"));
 	model.push_back(layr::sigmoid());
 
 	layr::SequentialModel untrained_model(model);
@@ -140,14 +142,14 @@ int main (int argc, const char** argv)
 	});
 
 	opt::OptCtx rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
-	sess.optimize(rules);
+	opt::optimize(sess, rules);
 
 	// train mlp to output input
 	start = std::clock();
 	for (size_t i = 0; i < n_train; i++)
 	{
-		eteq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
-		eteq::ShapedArr<PybindT> batch_out = avgevry2(batch);
+		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
+		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		train_input->assign(batch);
 		train_output->assign(batch_out);
 		auto err = train();
@@ -177,8 +179,8 @@ int main (int argc, const char** argv)
 		{
 			std::cout << "testing " << i + 1 << '\n';
 		}
-		eteq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
-		eteq::ShapedArr<PybindT> batch_out = avgevry2(batch);
+		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
+		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		testin->assign(batch.data_.data(), batch.shape_);
 		sess.update();
 

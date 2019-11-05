@@ -8,7 +8,9 @@
 
 #include "teq/ileaf.hpp"
 
-#include "eteq/eigen.hpp"
+#include "eigen/eigen.hpp"
+
+#include "eteq/generated/dtype.hpp"
 
 #ifndef ETEQ_ILEAF_HPP
 #define ETEQ_ILEAF_HPP
@@ -60,11 +62,11 @@ struct iLeaf : public teq::iLeaf
 
 protected:
 	iLeaf (T* data, teq::Shape shape) :
-		data_(make_tensmap(data, shape)),
+		data_(eigen::make_tensmap(data, shape)),
 		shape_(shape) {}
 
 	/// Data Source
-	TensorT<T> data_;
+	eigen::TensorT<T> data_;
 
 	/// Shape utility to avoid excessive conversion between data_.dimensions()
 	teq::Shape shape_;

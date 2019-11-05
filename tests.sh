@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
-COV_FILE=$THIS_DIR/coverage.info;
-DOCS=$THIS_DIR/docs
+COV_DIR="$THIS_DIR";
 
 lcov --base-directory . --directory . --zerocounters;
 set -e
@@ -13,29 +12,17 @@ free -m;
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 
-bazel test --config asan --config gtest --action_env="ASAN_OPTIONS=detect_leaks=0" --define ETEQ_CFG=MIN \
-//teq:test \
-//tag:test \
-//pbm:test \
-//opt:test //opt/parse:test \
-//eteq:ctest \
-//perf:test \
-//ccur:test \
-//layr:test
+source "$THIS_DIR/coverage.sh";
 
-bazel test --run_under='valgrind --leak-check=full' --define ETEQ_CFG=MIN \
-//gen:ptest \
-//eteq:ptest
+bzl_coverage //ccur:test //eteq:ctest //layr:test //opt/... \
+//perf:test //pbm:test //tag:test //teq:test;
 
-# ===== Coverage Analysis ======
-echo "===== STARTING COVERAGE ANALYSIS =====";
-make lcov | grep -v '+' | grep -v 'Processing'
+bazel test --run_under='valgrind --leak-check=full' \
+--remote_http_cache="$REMOTE_CACHE" //gen:ptest //eteq:ptest;
 
-if ! [ -z "$COVERALLS_TOKEN" ];
-then
-	git rev-parse --abbrev-inode* HEAD;
-	coveralls-lcov --repo-token $COVERALLS_TOKEN $COV_FILE; # uploads to coveralls
-fi
+lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \
+'testutil/*' '**/genfiles/*' 'dbg/*' -o "$COV_DIR/coverage.info";
+send2coverall "$COV_DIR/coverage.info";
 
 echo "";
 echo "============ TENNCOR TEST SUCCESSFUL ============";

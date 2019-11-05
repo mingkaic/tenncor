@@ -11,7 +11,7 @@
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/post.hpp>
 
-#include "eteq/session.hpp"
+#include "teq/session.hpp"
 
 #include "ccur/partition.hpp"
 
@@ -36,7 +36,7 @@ using AtomicFulfilMapT = std::unordered_map<
 
 /// Session that updates operable functors concurrently
 /// across specified a number of jobs
-struct Session final : public eteq::iSession
+struct Session final : public teq::iSession
 {
 	Session (size_t nthreads = 2, OpWeightT weights = OpWeightT()) :
 		nthreads_(nthreads), weights_(weights) {}
@@ -270,13 +270,19 @@ struct Session final : public eteq::iSession
 		pool.join();
 	}
 
-	/// Apply input optimization rules using opt module, then re-track
-	void optimize (const opt::OptCtx& rules)
+	/// Implementation of iSession
+	void clear (void) override
 	{
-		teq::TensptrsT tracked(tracked_.begin(), tracked_.end());
-		opt::optimize(tracked, rules);
+		ops_.clear();
+		tracked_.clear();
 		parents_.clear();
-		track(tracked);
+		requirements_.clear();
+	}
+
+	/// Implementation of iSession
+	teq::TensptrSetT get_tracked (void) const override
+	{
+		return tracked_;
 	}
 
 	/// Set of all tensors input through tracked function

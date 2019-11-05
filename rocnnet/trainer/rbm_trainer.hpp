@@ -49,7 +49,7 @@ struct CDChainIO
 layr::VarErrsT cd_grad_approx (CDChainIO& io,const layr::RBM& model,
 	size_t cdk = 1, eteq::VarptrT<PybindT> persistent = nullptr);
 
-TrainErrF rbm_train (layr::RBM& model, eteq::iSession& sess,
+TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
 	NodeptrT visible, PybindT learning_rate, PybindT discount_factor,
 	ErrorF err_func = ErrorF(), size_t cdk = 1);
 

@@ -1,4 +1,5 @@
 {
+ "label": "",
  "nodes": [
   {
    "label": "weight",
@@ -13,8 +14,9 @@
      "1",
      "1"
     ],
-    "data": "u0GGv2yM774bza09kH3oPVHWqr8w0H6/Us4TP6WJeD5uX5m/JHoLvy1oE7/D+LM9QMQ5vehYkr93vZm/pSQ+P0uAtj4u/re/+dMcv7BG679HP4k+V7H3PoVDnz86uwy+dpxsvvRPcT2v3QE+gTHZvtbXyr+2y/I+QAzwPh3ipj/ojEG/qMS3vlan4DwMop8+OyGKvhAruL2GBcY/Lg3HvwOJnb31xiA/l5LRvs/o2D4DOkM9VWMRv66qgz3nXrM/ISfIv1QsEb3JSSA/YSwDv5jEqbx0gQ++8p8fvsOd5j7AClm/g7YjvttunT5hKZm+Oa6qv4Ozwj+b67m+wvv/voIT4z7R1We/EnxcvQzMUD78Www9asyuv0acsD/c98C+nyQ6v5ueDz/KAUO/seaCv8XgTj8Lokm/zyOOP+sDNb3t5lY/Dipuv/8frD7Xa1i/UfVpv34+Ij+Des293x2iP4Zfvj5PLHo/",
-    "typelabel": "FLOAT"
+    "data": "GNLRv9dmoL98rx+/3h4ePztmAz+PWck+ar8dP4d7zro7kRy8na2uv2vjmr9YhWG/MbwtPwTOCT/tU9o+h683Pzslvj1hwvc+cHQ/vhVnkD+fDl2/OKaNP0iFqL67NYu+tE91PbrJ/T7Hf7e/UZKBvsB2gT+BN22/vI6uPz00G78oYve+dISzvi+M+z7pXmW/TEa9PmGWIb+Bzay+T0Qvv7LbmD/ycfO+WNqUv5sjgT9GAwG/GUa1PnIRL7+T+ee+qGArv0aEgT86rR2/fLWqv1zogT8vv6u+2ioNP9Rjn77wkDO/7K49voEUGL9PfNw/5h5Jv1+V4b5oNo6+eGfmPqoCA79JqFq/clGovu9mVL9q9b8/jBR/v+VNIb9kakK+QWEgP7tk5D0EFtm+NXkJP3uKij99QR2/cK3JvYh00L+DSAQ+gRZhP/9QXL4igr49wS9zP1aviT9C6tu+JXE8PFIQw7+NaMS+",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -42,8 +44,9 @@
      "1",
      "1"
     ],
-    "data": "StQXQBZ0lD8OYaq+xej9P9BeaL/80ng/FqgtPmLUDcBoV7M9",
-    "typelabel": "FLOAT"
+    "data": "SYlhvjDQiz9YoyVAULjkv11m07/p9Bq/NczCPxkbCj/OEFk/",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_dense": {
@@ -59,6 +62,7 @@
    }
   },
   {
+   "label": "0",
    "source": {
     "shape": [
      "1",
@@ -77,7 +81,7 @@
    "tags": {
     "layer_sigmoid": {
      "labels": [
-      "sigmoid:::0"
+      "::uparam:0"
      ]
     },
     "properties": {
@@ -87,7 +91,7 @@
     },
     "layer_seqmodel": {
      "labels": [
-      "demo:layer_sigmoid:sigmoid:1"
+      "demo:layer_sigmoid::1"
      ]
     }
    }
@@ -105,8 +109,9 @@
      "1",
      "1"
     ],
-    "data": "C8jlv2ZtlL+33Ui/aYF7v0bd3b+MzGW/yoJGwNAVjL25Y0E/08IwP4Sq7z5eW0I/rhAyQEeGyr8uNsC/U8QAPnYrTD91kkXA8BuzvmuSAMB3ofu/EV8UQNTU1DuyhvA+1zawP2TU5798CUe/i4wfP8mbyr48lGe/OA63P8kRAr8Kr0u/HgcpwLAlFkB95Yw/bKbOPgIvGD9SbCxAd9sEP5O2+L9NmcM+LCwzvun8Ib9ZPJ4/",
-    "typelabel": "FLOAT"
+    "data": "QxwdwI1rtL5fNDw/vux4PwognD+/sRDAYtblP8Xum7//rym/Rkk6vsREyr8IzwPAyDZpv1gXwL9ZkRK/3yurP/g4E0AEXSW/1N3WvBHSqT+4Kps/3lQbvx2OFUB6ZGC/W4sFQLNwRz8a4Ca/7gVTv8o4TECjP2W//9mAP8cqFL9I8xLAAlbevzWyo767Z1k+Dht1P2s5CkBFa3W/VL9TwFlpMj4PYQLA8QRWv2o5JL/2J7q+",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
     "layer_seqmodel": {
@@ -134,23 +139,25 @@
      "1",
      "1"
     ],
-    "data": "aKYAQPhQlT4iW9A+5zWVP6YWbr4=",
-    "typelabel": "FLOAT"
+    "data": "0okeP1m9Mz43x/E+Xq9ZP9bi6z4=",
+    "typelabel": "FLOAT",
+    "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_dense:1:2"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "1::bias:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:1:2"
      ]
     }
    }
   },
   {
+   "label": "0",
    "source": {
     "shape": [
      "1",
@@ -167,6 +174,11 @@
     "isConst": true
    },
    "tags": {
+    "layer_sigmoid": {
+     "labels": [
+      "::uparam:0"
+     ]
+    },
     "properties": {
      "labels": [
       "immutable"
@@ -174,12 +186,7 @@
     },
     "layer_seqmodel": {
      "labels": [
-      "demo:layer_sigmoid:sigmoid:3"
-     ]
-    },
-    "layer_sigmoid": {
-     "labels": [
-      "sigmoid:::0"
+      "demo:layer_sigmoid::3"
      ]
     }
    }

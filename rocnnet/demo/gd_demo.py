@@ -51,15 +51,16 @@ def main(args):
         eteq.seed(args.seedval)
         np.random.seed(args.seedval)
 
-    n_in = 10
-    n_out = int(n_in / 2)
+    nunits = 9
+    ninput = 10
+    noutput = int(ninput / 2)
 
     model = rcn.SequentialModel("demo")
-    model.add(rcn.Dense(9, n_in,
+    model.add(rcn.Dense(nunits, eteq.Shape([ninput]),
         weight_init=rcn.unif_xavier_init(),
         bias_init=rcn.zero_init(), label="0"))
     model.add(rcn.sigmoid())
-    model.add(rcn.Dense(n_out, 9,
+    model.add(rcn.Dense(noutput, eteq.Shape([nunits]),
         weight_init=rcn.unif_xavier_init(),
         bias_init=rcn.zero_init(), label="1"))
     model.add(rcn.sigmoid())
@@ -77,11 +78,11 @@ def main(args):
     sess = eteq.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    train_input = eteq.Variable([n_batch, n_in])
-    train_output = eteq.Variable([n_batch, n_out])
+    train_input = eteq.Variable([n_batch, ninput])
+    train_output = eteq.Variable([n_batch, noutput])
     train = rcn.sgd_train(model, sess, train_input, train_output, rcn.get_sgd(0.9))
 
-    testin = eteq.Variable([n_in], label='testin')
+    testin = eteq.Variable([ninput], label='testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)
@@ -90,13 +91,13 @@ def main(args):
         trained_out,
         pretrained_out,
     ])
-    sess.optimize("cfg/optimizations.rules")
+    sess.optimize(eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()
     for i in range(args.n_train):
-        batch, batch_out = batch_generate(n_in, n_batch)
-        train_input.assign(batch.reshape(n_batch, n_in))
-        train_output.assign(batch_out.reshape(n_batch, n_out))
+        batch, batch_out = batch_generate(ninput, n_batch)
+        train_input.assign(batch.reshape(n_batch, ninput))
+        train_output.assign(batch_out.reshape(n_batch, noutput))
         trained_err = train()
         if i % show_every_n == show_every_n - 1:
             err = trained_err.as_numpy()
@@ -113,7 +114,7 @@ def main(args):
         if i % show_every_n == show_every_n - 1:
             print('testing {}'.format(i + 1))
 
-        test_batch, test_batch_out = batch_generate(n_in, 1)
+        test_batch, test_batch_out = batch_generate(ninput, 1)
         testin.assign(test_batch)
         sess.update()
 

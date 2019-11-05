@@ -104,10 +104,10 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 		auto grad_hb = tenncor::reduce_mean_1d(io.hidden_ - io.hidden_mean_, 1);
 		varerrs.push_back({vars[1], grad_hb});
 	}
-	if (nullptr != vars[3])
+	if (nullptr != vars[4])
 	{
 		auto grad_vb = tenncor::reduce_mean_1d(io.visible_ - io.visible_mean_, 1);
-		varerrs.push_back({vars[3], grad_vb});
+		varerrs.push_back({vars[4], grad_vb});
 	}
 	if (nullptr != persistent)
 	{
@@ -116,7 +116,7 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 	return varerrs;
 }
 
-TrainErrF rbm_train (layr::RBM& model, eteq::iSession& sess,
+TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
 	NodeptrT visible, PybindT learning_rate, PybindT discount_factor,
 	ErrorF err_func, size_t cdk) // todo: add persistent option
 {
@@ -151,12 +151,12 @@ TrainErrF rbm_train (layr::RBM& model, eteq::iSession& sess,
 			});
 		if (nullptr == error)
 		{
-			return eteq::ShapedArr<PybindT>{teq::Shape(),std::vector<PybindT>{-1}};
+			return teq::ShapedArr<PybindT>{teq::Shape(),std::vector<PybindT>{-1}};
 		}
 		sess.update_target({error->get_tensor().get()});
 		PybindT* data = error->data();
 		teq::Shape shape = error->shape();
-		return eteq::ShapedArr<PybindT>{shape,
+		return teq::ShapedArr<PybindT>{shape,
 			std::vector<PybindT>(data, data + shape.n_elems()),
 		};
 	};

@@ -71,7 +71,7 @@ def main(args):
     model.add(rcn.RBM(3, 3,
         weight_init=rcn.unif_xavier_init(),
         bias_init=rcn.zero_init(), label="1"))
-    model.add(rcn.Dense(2, 3,
+    model.add(rcn.Dense(2, eteq.Shape([3]),
         weight_init=rcn.zero_init(),
         bias_init=rcn.zero_init(), label="log_layer"))
     model.add(rcn.softmax(0))

@@ -8,11 +8,11 @@
 
 #include <unordered_map>
 
-#include "eteq/generated/pyapi.hpp"
+#include "teq/session.hpp"
 
+#include "eteq/generated/pyapi.hpp"
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
-#include "eteq/session.hpp"
 
 #ifndef LAYR_ERR_APPROX_HPP
 #define LAYR_ERR_APPROX_HPP
@@ -42,18 +42,25 @@ using AssignsT = std::vector<VarAssign>;
 /// All batches of assignments
 using AssignGroupsT = std::vector<AssignsT>;
 
-/// Function that approximate error of sources 
+/// Function that returns the error between two nodes,
+/// left node contains expected values, right contains resulting values
+using ErrorF = std::function<NodeptrT(NodeptrT,NodeptrT)>;
+
+/// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors
 using ApproxF = std::function<AssignGroupsT(const VarErrsT&)>;
 
-/// Function that runs before or after variable assignment 
+/// Function that runs before or after variable assignment
 /// to calculate approximation graphs
 using UpdateStepF = std::function<void(teq::TensSetT&)>;
 
+/// Return square(expect - got)
+NodeptrT sqr_diff (NodeptrT expect, NodeptrT got);
+
 /// Return all batches of variable assignments of
-/// stochastic gradient descent error approximation applied to 
+/// stochastic gradient descent error approximation applied to
 /// particular variables-error associations
-/// 
+///
 /// Stochastic Gradient Descent Approximation
 /// for each (x, err) in leaves
 /// x_next ~ x_curr - η * err,
@@ -63,9 +70,9 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 	PybindT learning_rate = 0.5, std::string root_label = "");
 
 /// Return all batches of variable assignments of
-/// momentum-based rms error approximation applied to 
+/// momentum-based rms error approximation applied to
 /// particular variables-error associations
-/// 
+///
 /// Momentum-based Root Mean Square Approximation
 /// for each (x, err) in leaves
 /// momentum_next ~ χ * momentum_cur + (1 - χ) * err ^ 2

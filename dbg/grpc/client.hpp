@@ -263,6 +263,8 @@ struct GraphEmitterClient final
 		}, std::move(requests), std::move(update_it));
 	}
 
+	void delete_graph (std::string sess_id) {}
+
 	/// Return true if the client is connected to the server
 	bool is_connected (void)
 	{

@@ -95,7 +95,7 @@ struct DBNTrainer final
 			teq::TensSetT to_learn = {
 				contents[0].get(),
 				contents[1].get(),
-				contents[3].get(),
+				contents[4].get(),
 			};
 			CDChainIO io(rx, ry);
 			layr::VarErrsT varerrs = cd_grad_approx(io, *rbm, cdk); // todo: add persistent option
@@ -119,7 +119,7 @@ struct DBNTrainer final
 			auto vhv = rbm->backward_connect(rbm->connect(rx));
 			auto rcost = -tenncor::reduce_mean(
 				tenncor::reduce_sum_1d(rx * tenncor::log(vhv) +
-					(1.f - rx) * tenncor::log(1.f - vhv), 0));
+					((PybindT) 1 - rx) * tenncor::log((PybindT) 1 - vhv), 0));
 			rcosts_.push_back(rcost);
 			to_track.push_back(rcost->get_tensor());
 		}
@@ -162,7 +162,7 @@ struct DBNTrainer final
 		};
 		tcost_ = -tenncor::reduce_mean(tenncor::reduce_sum_1d(
 			eteq::convert_to_node(trainy_) * tenncor::log(final_out) +
-			(1.f - eteq::convert_to_node(trainy_)) * tenncor::log(1.f - final_out), 0));
+			((PybindT) 1 - eteq::convert_to_node(trainy_)) * tenncor::log((PybindT) 1 - final_out), 0));
 
 		train_sess_.track({
 			sample_pipes_.back()->get_tensor(),
@@ -173,7 +173,7 @@ struct DBNTrainer final
 		});
 	}
 
-	void pretrain (eteq::ShapedArr<PybindT>& train_in,
+	void pretrain (teq::ShapedArr<PybindT>& train_in,
 		size_t nepochs = 100,
 		std::function<void(size_t,size_t)> logger = std::function<void(size_t,size_t)>())
 	{
@@ -210,8 +210,8 @@ struct DBNTrainer final
 	}
 
 	void finetune (
-		eteq::ShapedArr<PybindT>& train_in,
-		eteq::ShapedArr<PybindT>& train_out,
+		teq::ShapedArr<PybindT>& train_in,
+		teq::ShapedArr<PybindT>& train_out,
 		size_t nepochs = 100,
 		std::function<void(size_t)> logger = std::function<void(size_t)>())
 	{
@@ -286,9 +286,9 @@ struct DBNTrainer final
 
 	NodeptrT tcost_;
 
-	eteq::Session pretrain_sess_;
+	teq::Session pretrain_sess_;
 
-	eteq::Session train_sess_;
+	teq::Session train_sess_;
 };
 
 }

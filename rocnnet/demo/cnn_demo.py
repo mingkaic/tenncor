@@ -57,9 +57,11 @@ model.add(rcn.Conv([5, 5], 20, 20, "2",
 model.add(rcn.relu())
 model.add(rcn.maxpool2d([1, 2])) # outputs [nbatch, 4, 4, 20]
 
-model.add(rcn.Dense(10, 320,
+model.add(rcn.Dense(10, eteq.Shape([4, 4, 20]), # weight has shape [10, 4, 4, 20]
     weight_init=rcn.unif_xavier_init(),
-    bias_init=rcn.zero_init(), label="fc")) # outputs [nbatch, 10]
+    bias_init=rcn.zero_init(),
+    params=eteq.constant(np.array([0, 1, 1, 2, 2, 3], dtype=np.float32)),
+    label="fc")) # outputs [nbatch, 10]
 model.add(rcn.softmax(1))
 
 sess = eteq.Session()
@@ -81,7 +83,7 @@ normalized = train_input / 255 - 0.5
 train = rcn.sgd_train(model, sess,
     normalized, train_output, rcn.get_sgd(0.5))
 
-sess.optimize("cfg/optimizations.rules")
+sess.optimize(eteq.parse_optrules("cfg/optimizations.rules"))
 
 # train
 for i, data in enumerate(cifar):

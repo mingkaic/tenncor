@@ -73,7 +73,7 @@ def simulate(simulation,
     simulation_started_time = time.time()
 
     # setup rendering handles for reuse
-    if hasattr(simulation, 'setup_draw'): 
+    if hasattr(simulation, 'setup_draw'):
         simulation.setup_draw()
 
     for frame_no in count():
@@ -104,10 +104,10 @@ def simulate(simulation,
         if (frame_no + 1) % visualize_every == 0:
             fps_estimate = frame_no / (time.time() - simulation_started_time)
 
-            # draw simulated environment all the rendering is handled within the simulation object 
+            # draw simulated environment all the rendering is handled within the simulation object
             stats = ["fps = %.1f" % (fps_estimate, )]
             if hasattr(simulation, 'draw'): # render with the draw function
-                simulation.draw(stats) 
+                simulation.draw(stats)
             elif hasattr(simulation, 'to_html'): # in case some class only support svg rendering
                 clear_output(wait=True)
                 svg_html = simulation.to_html(stats)

@@ -11,10 +11,11 @@ namespace trainer
 
 using NodeUnarF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
 
-using TrainErrF = std::function<eteq::ShapedArr<PybindT>(void)>;
+using TrainErrF = std::function<teq::ShapedArr<PybindT>(void)>;
 
-TrainErrF sgd_train (layr::SequentialModel& model, eteq::iSession& sess,
+TrainErrF sgd_train (layr::SequentialModel& model, teq::iSession& sess,
 	NodeptrT train_in, NodeptrT expected_out, layr::ApproxF update,
+	layr::ErrorF errfunc = layr::sqr_diff,
 	NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; });
 
 }

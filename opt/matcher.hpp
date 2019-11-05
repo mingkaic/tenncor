@@ -7,8 +7,6 @@
 /// conversion candidates from a TEQ graph
 ///
 
-#include "teq/traveler.hpp"
-
 #include "tag/group.hpp"
 
 #include "opt/ivoter.hpp"
