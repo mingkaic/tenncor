@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "eteq/eteq.hpp"
+#include "eigen/random.hpp"
 
 
 TEST(RANDOM, UniformValueDouble)

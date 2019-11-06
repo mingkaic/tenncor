@@ -17,6 +17,7 @@ namespace teq
 
 Shape apply_shaper (const CoordptrT& shaper, Shape inshape);
 
+// todo: generalize this as to not rely on coorder
 /// Coordinate mapper and tensor pair
 struct FuncArg final
 {

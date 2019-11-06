@@ -9,16 +9,94 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
 ######### LIBRARY #########
+
+config_setting(
+    name = "fast_build",
+    values = {
+        "define": "ETEQ_CFG=MIN",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "full_build",
+    values = {
+        "define": "ETEQ_CFG=FULL",
+    },
+    visibility = ["//visibility:public"],
+)
+
+GEN_CMD_FMT = """$(location //egen:egen) --plugins \
+plugins.dtypes:DTypesPlugin \
+plugins.opcodes:OpcodesPlugin \
+--out $(@D)/generated \
+--strip_prefix=$$(dirname $(@D)) \
+--cfgs $(locations //cfg:{})"""
+
+GEN_HDRS = [
+    "generated/opcode.hpp",
+    "generated/dtype.hpp",
+]
+
+GEN_SRCS = [
+    "generated/opcode.cpp",
+    "generated/dtype.cpp",
+]
+
+genrule(
+    name = "generated_eigen",
+    srcs = select({
+        "//conditions:default": ["//cfg:eteq_min"],
+        "//eigen:fast_build": ["//cfg:eteq_min"],
+        "//eigen:full_build": ["//cfg:eteq"]
+    }),
+    outs = GEN_HDRS + GEN_SRCS,
+    tools = ["//egen:egen"],
+    cmd = select({
+        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
+    })
+)
 
 cc_library(
     name = "eigen",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = glob(["*.hpp"]) + [
+        ':'+hdr for hdr in GEN_HDRS
+    ],
+    srcs = glob(["src/*.cpp"]) + [
+        ':'+src for src in GEN_SRCS
+    ],
     copts = ["-std=c++17"],
     deps = [
         "//teq:teq",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = ["//eigen:test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//eigen:eigen",
+        "//teq:mock_teq",
+        "//dbg:stream_out",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
 )

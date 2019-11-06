@@ -7,11 +7,6 @@ import sys
 import logging
 import importlib
 
-from eteq.gen.plugins.dtypes import DTypesPlugin
-from eteq.gen.plugins.opcodes import OpcodesPlugin
-from eteq.gen.plugins.apis import APIsPlugin
-from eteq.gen.plugins.pyapis import PyAPIsPlugin
-
 from gen.dump import PrintDump, FileDump
 from gen.generate import generate
 

@@ -5,8 +5,9 @@
 
 #include "flag/flag.hpp"
 
+#include "eigen/generated/opcode.hpp"
+
 #include "eteq/generated/api.hpp"
-#include "eteq/generated/opcode.hpp"
 #include "eteq/functor.hpp"
 
 #include "ccur/weights.pb.h"

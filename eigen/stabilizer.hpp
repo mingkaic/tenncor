@@ -1,13 +1,15 @@
-#include <boost/math/constants/constants.hpp>
+#include "teq/traveler.hpp"
 
-#include "eteq/generated/opcode.hpp"
-#include "eteq/inode.hpp"
+#include "eigen/generated/opcode.hpp"
+#include "eigen/generated/dtype.hpp"
 
-#ifndef ETEQ_STABILIZER_HPP
-#define ETEQ_STABILIZER_HPP
+#ifndef EIGEN_STABILIZER_HPP
+#define EIGEN_STABILIZER_HPP
 
-namespace eteq
+namespace eigen // todo: move to its own module
 {
+
+static const double pi = std::acos(-(double) 1);
 
 template <typename T>
 using NumRangesT = std::vector<estd::NumRange<T>>;
@@ -156,7 +158,6 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::SIN:
 		{
-			double pi = boost::math::constants::pi<double>();
 			T lower = ranges[0].lower_;
 			T upper = ranges[0].upper_;
 
@@ -189,7 +190,6 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::COS:
 		{
-			double pi = boost::math::constants::pi<double>();
 			T lower = ranges[0].lower_;
 			T upper = ranges[0].upper_;
 
@@ -222,7 +222,6 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::TAN:
 		{
-			double pi = boost::math::constants::pi<double>();
 			T lower = ranges[0].lower_;
 			T upper = ranges[0].upper_;
 
@@ -519,11 +518,10 @@ struct Stabilizer final : public teq::iTraveler
 	{
 		if (false == estd::has(ranges_, leaf))
 		{
-			auto dleaf = dynamic_cast<eteq::iLeaf<T>*>(leaf);
-			if (nullptr != dleaf && dleaf->is_const())
+			if (egen::get_type<T>() == leaf->type_code() && leaf->is_const())
 			{
-				auto data = (T*) dleaf->data();
-				teq::NElemT n = dleaf->shape().n_elems();
+				auto data = (T*) leaf->data();
+				teq::NElemT n = leaf->shape().n_elems();
 				ranges_.emplace(leaf, estd::NumRange<T>(
 					*std::min_element(data, data + n),
 					*std::max_element(data, data + n)));
@@ -562,4 +560,4 @@ struct Stabilizer final : public teq::iTraveler
 
 }
 
-#endif // ETEQ_STABILIZER_HPP
+#endif // EIGEN_STABILIZER_HPP

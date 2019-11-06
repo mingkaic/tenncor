@@ -4,8 +4,8 @@ import logging
 from gen.plugin_base import PluginBase
 from gen.file_rep import FileRep
 
-from eteq.gen.plugins.template import build_template
-from eteq.gen.plugins.apis import api_header
+from plugins.template import build_template
+from plugins.apis import api_header
 
 _pybindt = 'PybindT'
 

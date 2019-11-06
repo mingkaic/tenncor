@@ -36,86 +36,44 @@ filegroup(
 
 ######### LIBRARY #########
 
-py_binary(
-    name = "egen",
-    srcs = glob(["gen/egen.py", "gen/plugins/*.py"]),
-    deps = ["//gen:gen"],
-)
+GEN_CMD_FMT = """$(location //egen:egen) --plugins \
+plugins.apis:APIsPlugin \
+plugins.pyapis:PyAPIsPlugin \
+--out $(@D)/generated \
+--strip_prefix=$$(dirname $(@D)) \
+--cfgs $(locations //cfg:{})"""
 
-config_setting(
-    name = "fast_build",
-    values = {
-        "define": "ETEQ_CFG=MIN",
-    },
-)
-
-config_setting(
-    name = "full_build",
-    values = {
-        "define": "ETEQ_CFG=FULL",
-    },
-)
+GEN_HDRS = [
+    "generated/api.hpp",
+    "generated/pyapi.hpp",
+]
 
 genrule(
     name = "generated_ead",
     srcs = select({
         "//conditions:default": ["//cfg:eteq_min"],
-        ":fast_build": ["//cfg:eteq_min"],
-        ":full_build": ["//cfg:eteq"]
+        "//eigen:fast_build": ["//cfg:eteq_min"],
+        "//eigen:full_build": ["//cfg:eteq"]
     }),
-    outs = [
-        "generated/api.hpp",
+    outs = GEN_HDRS + [
         "generated/api.cpp",
-        "generated/opcode.hpp",
-        "generated/opcode.cpp",
-        "generated/dtype.hpp",
-        "generated/dtype.cpp",
-        "generated/pyapi.hpp",
         "generated/pyapi_tenncor.cpp",
     ],
-    tools = ["//eteq:egen"],
+    tools = ["//egen:egen"],
     cmd = select({
-        "//conditions:default": "$(location //eteq:egen) " +
-        "--plugins eteq.gen.plugins.dtypes:DTypesPlugin " +
-        "eteq.gen.plugins.opcodes:OpcodesPlugin " +
-        "eteq.gen.plugins.apis:APIsPlugin " +
-        "eteq.gen.plugins.pyapis:PyAPIsPlugin " +
-        "--out $(@D)/generated " +
-        "--strip_prefix=$$(dirname $(@D)) " +
-        "--cfgs $(locations //cfg:eteq_min)",
-
-        ":fast_build": "$(location //eteq:egen) " +
-        "--plugins eteq.gen.plugins.dtypes:DTypesPlugin " +
-        "eteq.gen.plugins.opcodes:OpcodesPlugin " +
-        "eteq.gen.plugins.apis:APIsPlugin " +
-        "eteq.gen.plugins.pyapis:PyAPIsPlugin " +
-        "--out $(@D)/generated " +
-        "--strip_prefix=$$(dirname $(@D)) " +
-        "--cfgs $(locations //cfg:eteq_min)",
-
-        ":full_build": "$(location //eteq:egen) " +
-        "--plugins eteq.gen.plugins.dtypes:DTypesPlugin " +
-        "eteq.gen.plugins.opcodes:OpcodesPlugin " +
-        "eteq.gen.plugins.apis:APIsPlugin " +
-        "eteq.gen.plugins.pyapis:PyAPIsPlugin " +
-        "--out $(@D)/generated " +
-        "--strip_prefix=$$(dirname $(@D)) " +
-        "--cfgs $(locations //cfg:eteq)",
+        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
     })
 )
 
 cc_library(
     name = "eteq",
     hdrs = glob(["*.hpp"]) + [
-        "//eteq:generated/api.hpp",
-        "//eteq:generated/opcode.hpp",
-        "//eteq:generated/dtype.hpp",
-        "//eteq:generated/pyapi.hpp",
+        ':'+hdr for hdr in GEN_HDRS
     ],
     srcs = glob(["src/*.cpp"]) + [
-        "//eteq:generated/api.cpp",
-        "//eteq:generated/opcode.cpp",
-        "//eteq:generated/dtype.cpp",
+        ":generated/api.cpp",
     ],
     copts = ["-std=c++17"],
     deps = [
@@ -129,7 +87,7 @@ cc_library(
 
 pybind_library(
     name = "tenncor_py",
-    cc_srcs = ["//eteq:generated/pyapi_tenncor.cpp"],
+    cc_srcs = [":generated/pyapi_tenncor.cpp"],
     cc_deps = ["//eteq:eteq"],
 )
 
@@ -156,8 +114,6 @@ cc_test(
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
-
-        "@boost//:math",
     ],
     linkstatic = True,
     data = [

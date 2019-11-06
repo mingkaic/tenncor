@@ -8,9 +8,9 @@
 
 #include "teq/iopfunc.hpp"
 
+#include "eigen/generated/opcode.hpp"
 #include "eigen/operator.hpp"
 
-#include "eteq/generated/opcode.hpp"
 #include "eteq/funcarg.hpp"
 #include "eteq/constant.hpp"
 
