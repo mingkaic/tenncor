@@ -9,6 +9,7 @@
 namespace eigen // todo: move to its own module
 {
 
+// replace with boost once boost is needed
 static const double pi = std::acos(-(double) 1);
 
 template <typename T>
@@ -164,8 +165,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			T diff = upper - lower;
 			if (diff < pi * 2)
 			{
-				T ql = std::ceil(lower - (pi / 2) / pi) * pi;
-				T qu = std::floor(upper - (pi / 2) / pi) * pi;
+				T ql = std::ceil((lower - (pi / 2)) / pi) * pi;
+				T qu = std::floor((upper - (pi / 2)) / pi) * pi;
 				T sl = std::sin(lower);
 				T su = std::sin(upper);
 				if (qu < ql) // there is no extrema between ranges
