@@ -229,7 +229,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			if (std::round(lower / pi) * pi == std::round(upper / pi) * pi)
 			{
 				// ranges are within finite values
-				outrange = estd::NumRange<T>(std::tanh(lower), std::tanh(upper));
+				outrange = estd::NumRange<T>(std::tan(lower), std::tan(upper));
 			}
 			else
 			{
