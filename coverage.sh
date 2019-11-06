@@ -32,6 +32,7 @@ function send2coverall() {
 function send2codecov() {
 	if ! [ -z "$CODECOV_TOKEN" ];
 	then
+		echo "===== SENDING COVERAGE TO CODECOV =====";
 		bash <(curl -s https://codecov.io/bash) -f $1;
 	fi
 }

@@ -8,6 +8,7 @@ RUN mkdir -p $APP_DIR
 WORKDIR $APP_DIR
 
 COPY . $APP_DIR
+RUN apt-get update && apt-get install -y curl
 RUN pip3 install -r requirements.txt
 
 ENTRYPOINT [ "./tests.sh" ]

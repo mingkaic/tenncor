@@ -15,7 +15,7 @@ echo "===== TESTS =====";
 source "$THIS_DIR/coverage.sh";
 
 if [ "$1" == "fast" ]; then
-	bzl_coverage //pbm:test //tag:test //teq:test //perf:test;
+	bzl_coverage //pbm:test //tag:test //teq:test //perf:test //eigen:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //gen:ptest

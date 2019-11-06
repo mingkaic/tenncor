@@ -14,11 +14,11 @@ jobs:
         - docker push $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT}
     - stage: fast test
       script:
-        - docker run -e COVERALLS_TOKEN=${COVERALLS_TOKEN}
+        - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN}
           --rm $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT} fast
     - stage: slow test
       script:
-        - docker run -e COVERALLS_TOKEN=${COVERALLS_TOKEN}
+        - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN}
           --rm $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT} slow
 
 notifications:
