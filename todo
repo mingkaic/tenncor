@@ -30,7 +30,7 @@ P4 - implement reduce_prod gradient using Eigen cumprod
 P5 - implement onnx support (https://github.com/onnx/onnx)
 
 === transparency/code readability ===
-P2 - generate value-range graph to automatically detect erroneous operators
+P2 - generate value-range graph to detect erroneous operators
       - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
       - this graph can help developers quickly identifies unstable nodes
 P2 - centralize global context structures

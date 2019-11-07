@@ -155,8 +155,8 @@ struct LayerDeserializer final : public teq::OnceTraveler
 	/// Implementation of OnceTraveler
 	void visit_func (teq::iFunctor* func) override
 	{
-		auto& children = func->get_children();
-		for (auto child : children)
+		auto children = func->get_children();
+		for (const teq::iFuncArg& child : children)
 		{
 			child.get_tensor()->accept(*this);
 		}
@@ -167,7 +167,7 @@ struct LayerDeserializer final : public teq::OnceTraveler
 		if (false == matches.empty())
 		{
 			sublayers_.emplace(func, matches);
-			for (auto child : children)
+			for (const teq::iFuncArg& child : children)
 			{
 				roots_.erase(child.get_tensor().get());
 			}

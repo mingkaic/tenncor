@@ -67,13 +67,13 @@ struct GraphStat final : public iTraveler
 	{
 		if (false == estd::has(graphsize_, func))
 		{
-			ArgsT children = func->get_children();
+			auto children = func->get_children();
 			size_t nchildren = children.size();
 			std::vector<size_t> max_heights;
 			std::vector<size_t> min_heights;
 			max_heights.reserve(nchildren);
 			min_heights.reserve(nchildren);
-			for (auto& child : children)
+			for (const iFuncArg& child : children)
 			{
 				iTensor* tens = child.get_tensor().get();
 				tens->accept(*this);
@@ -125,12 +125,12 @@ struct PathFinder final : public iTraveler
 	{
 		if (false == estd::has(parents_, func))
 		{
-			auto& children = func->get_children();
+			auto children = func->get_children();
 			size_t n = children.size();
 			std::unordered_set<size_t> path;
 			for (size_t i = 0; i < n; ++i)
 			{
-				TensptrT tens = children[i].get_tensor();
+				TensptrT tens = children[i].get().get_tensor();
 				if (tens.get() == target_)
 				{
 					path.emplace(i);
@@ -172,11 +172,11 @@ struct ParentFinder final : public iTraveler
 	{
 		if (false == estd::has(parents_, func))
 		{
-			auto& children = func->get_children();
+			auto children = func->get_children();
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
 				auto& child = children[i];
-				auto tens = child.get_tensor();
+				auto tens = child.get().get_tensor();
 				tens->accept(*this);
 				parents_[tens.get()][func].push_back(i);
 			}

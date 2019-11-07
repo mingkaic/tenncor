@@ -73,13 +73,13 @@ struct Functor final : public iFunctor
 	}
 
 	/// Implementation of iFunctor
-	const ArgsT& get_children (void) const override
+	CstArgsT get_children (void) const override
 	{
-		return args_;
+		return CstArgsT(args_.begin(), args_.end());
 	}
 
 	/// Implementation of iFunctor
-	void update_child (FuncArg arg, size_t index) override
+	void update_child (const FuncArg& arg, size_t index) override
 	{
 		logs::warn("teq::Functor does not allow editing of children");
 	}

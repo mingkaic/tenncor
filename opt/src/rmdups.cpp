@@ -14,14 +14,15 @@ void replace_parents (const teq::ParentFinder& pfinder,
 		for (auto& parent_pair : it->second)
 		{
 			auto f = static_cast<teq::iFunctor*>(parent_pair.first);
-			auto& children = f->get_children();
+			auto children = f->get_children();
 			for (size_t i : parent_pair.second)
 			{
+				auto child = static_cast<const teq::FuncArg*>(&children[i].get());
 				f->update_child({
 					target,
-					children[i].get_shaper(),
-					children[i].map_io(),
-					children[i].get_coorder()
+					child->get_shaper(),
+					child->map_io(),
+					child->get_coorder()
 				}, i);
 			}
 		}

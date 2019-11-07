@@ -51,8 +51,8 @@ std::string display_location (NodeptrT<T> node,
 	out << "}";
 	if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(node->get_tensor().get()))
 	{
-		auto& args = f->get_children();
-		for (auto& arg : args)
+		auto args = f->get_children();
+		for (const teq::iFuncArg& arg : args)
 		{
 			auto argtens = arg.get_tensor();
 			out << "\n" << branchfmt

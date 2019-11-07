@@ -132,8 +132,8 @@ struct Subgraph final : public teq::iTraveler
 			content_.emplace(func);
 			children_.erase(func);
 
-			auto& children = func->get_children();
-			for (auto& child : children)
+			auto children = func->get_children();
+			for (const teq::iFuncArg& child : children)
 			{
 				auto tens = child.get_tensor();
 				if (false == estd::has(content_, tens.get()))

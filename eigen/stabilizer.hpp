@@ -269,8 +269,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::ARGMAX:
 		{
-			auto& arg = func->get_children()[0];
-			auto coorder = arg.get_coorder();
+			const teq::iFuncArg& arg = func->get_children()[0];
+			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
 			assert(coorder != nullptr);
 			teq::RankT return_dim;
 			coorder->access(
@@ -442,8 +442,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::REDUCE_SUM:
 		{
-			auto& arg = func->get_children()[0];
-			auto coorder = arg.get_coorder();
+			const teq::iFuncArg& arg = func->get_children()[0];
+			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
 			assert(coorder != nullptr);
 			const teq::Shape& shape = arg.get_tensor()->shape();
 			teq::NElemT nreds = 1;
@@ -472,8 +472,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::REDUCE_PROD:
 		{
-			auto& arg = func->get_children()[0];
-			auto coorder = arg.get_coorder();
+			const teq::iFuncArg& arg = func->get_children()[0];
+			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
 			assert(coorder != nullptr);
 			const teq::Shape& shape = arg.get_tensor()->shape();
 			teq::NElemT nreds = 1;
@@ -510,8 +510,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		{
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum
-			auto& arg = func->get_children()[0];
-			auto coorder = arg.get_coorder();
+			const teq::iFuncArg& arg = func->get_children()[0];
+			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
 			const teq::Shape& shape = arg.get_tensor()->shape();
 			assert(nullptr != coorder);
 			teq::NElemT ncommons = 1;
@@ -543,9 +543,9 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		{
 			// conv = <image> * <kernel> then reduce by kernel dimensions that convolves
 			// apply range rule similar to matmul
-			auto& arg = func->get_children()[1];
+			const teq::iFuncArg& arg = func->get_children()[1];
 			const teq::Shape& shape = arg.get_tensor()->shape();
-			auto coorder = arg.get_coorder();
+			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
 			assert(nullptr != coorder);
 			teq::NElemT nkern = 1;
 			coorder->access(
@@ -609,10 +609,10 @@ struct Stabilizer final : public teq::iTraveler
 	{
 		if (false == estd::has(ranges_, func))
 		{
-			auto& args = func->get_children();
+			auto args = func->get_children();
 			NumRangesT<T> ranges;
 			ranges.reserve(args.size());
-			for (auto& arg : args)
+			for (const teq::iFuncArg& arg : args)
 			{
 				teq::iTensor* argtens = arg.get_tensor().get();
 				argtens->accept(*this);

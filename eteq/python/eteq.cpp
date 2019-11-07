@@ -104,11 +104,11 @@ PYBIND11_MODULE(eteq, m)
 				{
 					auto args = f->get_children();
 					std::transform(args.begin(), args.end(),
-					std::back_inserter(tens),
-					[](teq::FuncArg& mten)
-					{
-						return mten.get_tensor();
-					});
+						std::back_inserter(tens),
+						[](const teq::iFuncArg& mten)
+						{
+							return mten.get_tensor();
+						});
 				}
 				return tens;
 			})

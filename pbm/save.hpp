@@ -49,8 +49,8 @@ struct GraphSaver final : public teq::iTraveler
 			funcs_.push_back(func);
 			visited_.emplace(func);
 
-			teq::ArgsT children = func->get_children();
-			for (auto& child : children)
+			auto children = func->get_children();
+			for (const teq::iFuncArg& child : children)
 			{
 				child.get_tensor()->accept(*this);
 			}
@@ -96,23 +96,24 @@ struct GraphSaver final : public teq::iTraveler
 			cortenn::Functor* func = pb_node->mutable_functor();
 			teq::Opcode opcode = f->get_opcode();
 			func->set_opname(opcode.name_);
-			const teq::ArgsT& children = f->get_children();
-			for (auto& child : children)
+			auto children = f->get_children();
+			for (const teq::iFuncArg& child : children)
 			{
+				auto c = static_cast<const teq::FuncArg*>(&child);
 				cortenn::NodeArg* arg = func->add_args();
 				teq::iTensor* tens = child.get_tensor().get();
 				arg->set_idx(ordermap[tens]);
 				std::vector<double> shaper =
 					saver_.save_shaper(child.get_shaper());
 				std::vector<double> coorder =
-					saver_.save_coorder(child.get_coorder());
+					saver_.save_coorder(c->get_coorder());
 				google::protobuf::RepeatedField<double> shaper_vec(
 					shaper.begin(), shaper.end());
 				google::protobuf::RepeatedField<double> coorder_vec(
 					coorder.begin(), coorder.end());
 				arg->mutable_shaper()->Swap(&shaper_vec);
 				arg->mutable_coord()->Swap(&coorder_vec);
-				arg->set_fwd(child.map_io());
+				arg->set_fwd(c->map_io());
 			}
 		}
 	}

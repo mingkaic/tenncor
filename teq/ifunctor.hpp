@@ -38,11 +38,11 @@ struct iFunctor : public iTensor
 	/// Return operation encoding
 	virtual Opcode get_opcode (void) const = 0;
 
-	/// Return children nodes as a vector of raw pointers
-	virtual const ArgsT& get_children (void) const = 0;
+	/// Return vector of functor arguments
+	virtual CstArgsT get_children (void) const = 0;
 
 	/// Update child at specified index
-	virtual void update_child (FuncArg arg, size_t index) = 0;
+	virtual void update_child (const FuncArg& arg, size_t index) = 0;
 };
 
 /// Functor smart pointer

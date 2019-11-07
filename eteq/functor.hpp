@@ -58,13 +58,13 @@ struct Functor final : public teq::iOperableFunc
 	}
 
 	/// Implementation of iFunctor
-	const teq::ArgsT& get_children (void) const override
+	teq::CstArgsT get_children (void) const override
 	{
-		return args_;
+		return teq::CstArgsT(args_.begin(), args_.end());
 	}
 
 	/// Implementation of iFunctor
-	void update_child (teq::FuncArg arg, size_t index) override
+	void update_child (const teq::FuncArg& arg, size_t index) override
 	{
 		teq::Shape arg_shape = arg.shape();
 		if (false == arg_shape.compatible_after(shape_, 0))
@@ -219,11 +219,12 @@ protected:
 		input_args.reserve(args.size());
 		std::transform(args.begin(), args.end(),
 			std::back_inserter(input_args),
-			[](teq::FuncArg& arg)
+			[](const teq::iFuncArg& arg)
 			{
+				auto ag = static_cast<const teq::FuncArg*>(&arg);
 				return FuncArg<T>(
 					to_node<T>(arg.get_tensor()), arg.get_shaper(),
-					std::static_pointer_cast<eigen::CoordMap>(arg.get_coorder()));
+					std::static_pointer_cast<eigen::CoordMap>(ag->get_coorder()));
 			});
 		return new FunctorNode(std::shared_ptr<Functor<T>>(
 			Functor<T>::get(func_->get_opcode(), input_args)));

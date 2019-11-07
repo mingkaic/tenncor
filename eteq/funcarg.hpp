@@ -354,8 +354,8 @@ template <typename T>
 ArgsT<T> convolve_map (NodeptrT<T> image, NodeptrT<T> kernel,
 	const std::vector<teq::RankT>& dims)
 {
-	teq::Shape inshape = image->get_tensor()->shape();
-	teq::Shape kernelshape = kernel->get_tensor()->shape();
+	teq::Shape inshape = image->shape();
+	teq::Shape kernelshape = kernel->shape();
 	teq::CoordptrT input_shaper(new teq::CoordMap(
 		[kernelshape,dims](teq::MatrixT& fwd)
 		{
@@ -495,8 +495,8 @@ ArgsT<T> group_concat_map (NodesT<T> args, teq::RankT axis)
 template <typename T>
 ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 {
-	teq::Shape ashape = a->get_tensor()->shape();
-	teq::Shape bshape = b->get_tensor()->shape();
+	teq::Shape ashape = a->shape();
+	teq::Shape bshape = b->shape();
 	// check common dimensions
 	std::array<bool,teq::rank_cap> avisit;
 	std::array<bool,teq::rank_cap> bvisit;

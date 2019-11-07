@@ -113,11 +113,11 @@ struct CSVEquation final : public teq::iTraveler
 			get_ftype_(func),
 			nodes_.size(),
 		});
-		auto& children = func->get_children();
+		auto children = func->get_children();
 		for (size_t i = 0, n = children.size(); i < n; ++i)
 		{
-			const teq::FuncArg& child = children[i];
-			auto coorder = child.get_coorder().get();
+			const teq::iFuncArg& child = children[i];
+			auto coorder = static_cast<const teq::FuncArg*>(&child)->get_coorder().get();
 			auto tens = child.get_tensor().get();
 			if (teq::is_identity(coorder))
 			{

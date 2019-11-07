@@ -24,8 +24,8 @@ struct DistanceFinder final : public teq::iTraveler
 		if (false == estd::has(distances_, func))
 		{
 			DistanceMapT distmap = {{func, 0}};
-			auto& children = func->get_children();
-			for (auto& child : children)
+			auto children = func->get_children();
+			for (const teq::iFuncArg& child : children)
 			{
 				auto tens = child.get_tensor();
 				tens->accept(*this);

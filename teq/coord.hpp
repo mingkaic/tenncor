@@ -17,7 +17,7 @@ namespace teq
 {
 
 /// Interface for transforming coordinates and reversing the coordinate
-struct iCoordMap
+struct iCoordMap // todo: rename to iConvert
 {
 	virtual ~iCoordMap (void) = default;
 

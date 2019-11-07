@@ -15,11 +15,40 @@
 namespace teq
 {
 
+struct iFuncArg
+{
+	virtual ~iFuncArg (void) = default;
+
+	/// Return this instance copied
+	iFuncArg* clone (void) const
+	{
+		return clone_impl();
+	}
+
+	/// Return shape of tensor filtered through shaper
+	virtual Shape shape (void) const = 0;
+
+	/// Return shape of tensor argument
+	virtual Shape argshape (void) const = 0;
+
+	/// Return tensor being mapped
+	virtual TensptrT get_tensor (void) const = 0;
+
+	/// Return shape transformer from argument shape to desired function shape
+	virtual CoordptrT get_shaper (void) const = 0;
+
+	// todo: add getter for coordinate information
+
+protected:
+	virtual iFuncArg* clone_impl (void) const = 0;
+};
+
+using CstArgsT = std::vector<std::reference_wrapper<const iFuncArg>>;
+
 Shape apply_shaper (const CoordptrT& shaper, Shape inshape);
 
-// todo: generalize this as to not rely on coorder
 /// Coordinate mapper and tensor pair
-struct FuncArg final
+struct FuncArg final : public iFuncArg
 {
 	/// Construct FuncArg auto deducing coorder_ and map_io_ flag
 	FuncArg (TensptrT tensor, CoordptrT shaper) :
@@ -52,22 +81,34 @@ struct FuncArg final
 		}
 	}
 
-	/// Return shape of tensor filtered through coordinate mapper
-	Shape shape (void) const
+	/// Implementation of iFuncArg
+	Shape shape (void) const override
 	{
 		return apply_shaper(shaper_, tensor_->shape());
 	}
 
+	/// Implementation of iFuncArg
+	Shape argshape (void) const override
+	{
+		return tensor_->shape();
+	}
+
 	/// Return tensor being mapped
-	TensptrT get_tensor (void) const
+	TensptrT get_tensor (void) const override
 	{
 		return tensor_;
 	}
 
 	/// Return shaper coord map
-	CoordptrT get_shaper (void) const
+	CoordptrT get_shaper (void) const override
 	{
 		return shaper_;
+	}
+
+	/// Return coord map for coordinates
+	CoordptrT get_coorder (void) const
+	{
+		return coorder_;
 	}
 
 	/// Return map_io_ flag, True if coorder accepts input coord
@@ -77,13 +118,12 @@ struct FuncArg final
 		return map_io_;
 	}
 
-	/// Return coord map for coordinates
-	CoordptrT get_coorder (void) const
+private:
+	iFuncArg* clone_impl (void) const override
 	{
-		return coorder_;
+		return new FuncArg(tensor_, shaper_, map_io_, coorder_);
 	}
 
-private:
 	/// Tensor reference
 	TensptrT tensor_;
 

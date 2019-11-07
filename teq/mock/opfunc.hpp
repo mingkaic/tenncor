@@ -40,13 +40,13 @@ struct MockOpfunc final : public teq::iOperableFunc
 	}
 
 	/// Implementation of iFunctor
-	const teq::ArgsT& get_children (void) const override
+	teq::CstArgsT get_children (void) const override
 	{
-		return args_;
+		return teq::CstArgsT(args_.begin(), args_.end());
 	}
 
 	/// Implementation of iFunctor
-	void update_child (teq::FuncArg arg, size_t index) override {}
+	void update_child (const teq::FuncArg& arg, size_t index) override {}
 
 	/// Implementation of iOperableFunc
 	void update (void) override

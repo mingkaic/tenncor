@@ -74,11 +74,11 @@ TEST(FUNCTOR, Children)
 
 	ASSERT_NE(nullptr, func.get());
 
-	teq::ArgsT refs = func->get_children();
+	teq::CstArgsT refs = func->get_children();
 
 	ASSERT_EQ(2, refs.size());
-	EXPECT_EQ(leaf.get(), refs[0].get_tensor().get());
-	EXPECT_EQ(leaf1.get(), refs[1].get_tensor().get());
+	EXPECT_EQ(leaf.get(), refs[0].get().get_tensor().get());
+	EXPECT_EQ(leaf1.get(), refs[1].get().get_tensor().get());
 
 	EXPECT_WARN((func->update_child(teq::identity_map(leaf2), 1)),
 		"teq::Functor does not allow editing of children");
