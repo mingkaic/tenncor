@@ -6,6 +6,7 @@
 /// Define functions manipulating tensor data values
 /// No function in this file makes any attempt to check for nullptrs
 ///
+// todo: make this generated
 
 #include "eigen/eigen.hpp"
 #include "eigen/coord.hpp"

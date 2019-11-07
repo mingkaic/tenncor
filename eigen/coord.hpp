@@ -14,8 +14,8 @@
 namespace eigen
 {
 
-/// Eigen transformation wrapper implementation of iCoordMap
 // todo: replace this with teq::CoordMap
+/// Eigen transformation wrapper implementation of iCoordMap
 struct CoordMap final : public teq::iCoordMap
 {
 	CoordMap (teq::CoordT indices, bool bijective = false) :

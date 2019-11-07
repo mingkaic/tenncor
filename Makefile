@@ -6,6 +6,8 @@ CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0
 
 CCUR_TEST := //ccur:test
 
+EIGEN_TEST := //eigen:test
+
 ETEQ_CTEST := //eteq:ctest
 
 LAYR_TEST := //layr:test
@@ -59,16 +61,20 @@ model_jsonrnn: models/rnnmodel.pbx
 
 
 coverage:
-	$(CCOVER) $(TEQ_TEST) $(TAG_TEST) $(PBM_TEST) $(OPT_TEST) $(ETEQ_CTEST) $(CCUR_TEST) $(LAYR_TEST)
+	$(CCOVER) $(TEQ_TEST) $(TAG_TEST) $(PBM_TEST) $(OPT_TEST) $(EIGEN_TEST) $(ETEQ_CTEST) $(CCUR_TEST) $(LAYR_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
 cover_ccur:
 	$(CCOVER) $(CCUR_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
 
+cover_eigen:
+	$(CCOVER) $(EIGEN_TEST)
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' -o coverage.info
+
 cover_eteq:
 	$(CCOVER) $(ETEQ_CTEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eigen/*' -o coverage.info
 
 cover_layr:
 	$(CCOVER) $(LAYR_TEST)
@@ -127,7 +133,7 @@ lcov_tag: cover_tag cov_clean
 lcov_teq: cover_teq cov_clean
 
 .PHONY: print_vars rocnnet_py_build rocnnet_py_export
-.PHONY: coverage cover_ccur cover_eteq cover_layr cover_opt cover_pbm cover_tag cover_teq
+.PHONY: coverage cover_ccur cover_eigen cover_eteq cover_layr cover_opt cover_pbm cover_tag cover_teq
 .PHONY: compare_matmul compare_mlp compare_mlp_grad cov_clean cov_genhtml
 .PHONY: lcov lcov_ccur lcov_eteq lcov_layr lcov_opt lcov_pbm lcov_tag lcov_teq
 .PHONY: model_jsonupdate model_jsongd model_jsondqn model_jsonrbm model_jsondbn model_jsonrnn

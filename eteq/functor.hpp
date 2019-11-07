@@ -8,10 +8,11 @@
 
 #include "teq/iopfunc.hpp"
 
+#include "eigen/generated/opcode.hpp"
 #include "eigen/operator.hpp"
 
-#include "eteq/generated/opcode.hpp"
 #include "eteq/funcarg.hpp"
+#include "eteq/locator.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -256,9 +257,16 @@ Functor<T>* Functor<T>::get (teq::Opcode opcode, ArgsT<T> args)
 		teq::Shape ishape = args[i].shape();
 		if (false == ishape.compatible_after(shape, 0))
 		{
+			std::stringstream location;
+			for (size_t i = 0; i < nargs; ++i)
+			{
+				location << "[" << i << "]\n"
+					<< display_location(args[i].get_node()) << "\n";
+			}
 			logs::fatalf("cannot perform `%s` with incompatible shapes %s "
-				"and %s", opcode.name_.c_str(), shape.to_string().c_str(),
-				ishape.to_string().c_str());
+				"and %s: childrens\n%s", opcode.name_.c_str(),
+				shape.to_string().c_str(), ishape.to_string().c_str(),
+				location.str().c_str());
 		}
 	}
 

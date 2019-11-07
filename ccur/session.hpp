@@ -24,10 +24,10 @@ namespace ccur
 /// Vector of operable functors and number of unique non-leaf children
 /// Functors are ordered by dependency,
 /// such that parents of any node always appears after the node in this vector
-using SessReqsT = std::vector<std::pair<teq::iOperableFunc*,size_t>>;
+using SessReqsT = std::vector<std::pair<teq::iOperableFunc*,long>>;
 
 /// Same as SessReqsT except as a list
-using LSessReqsT = std::list<std::pair<teq::iOperableFunc*,size_t>>;
+using LSessReqsT = std::list<std::pair<teq::iOperableFunc*,long>>;
 
 /// Map operable functors to the number of children updated in
 /// any update/update_target call

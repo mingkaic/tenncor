@@ -14,15 +14,21 @@ echo "===== TESTS =====";
 
 source "$THIS_DIR/coverage.sh";
 
-bzl_coverage //ccur:test //eteq:ctest //layr:test //opt/... \
-//perf:test //pbm:test //tag:test //teq:test;
+if [ "$1" == "fast" ]; then
+	bzl_coverage //pbm:test //tag:test //teq:test //perf:test //eigen:test;
 
-bazel test --run_under='valgrind --leak-check=full' \
---remote_http_cache="$REMOTE_CACHE" //gen:ptest //eteq:ptest;
+	bazel test --run_under='valgrind --leak-check=full' \
+	--remote_http_cache="$REMOTE_CACHE" //gen:ptest
+else
+	bzl_coverage //ccur:test //eteq:ctest //layr:test //opt/...;
+
+	bazel test --run_under='valgrind --leak-check=full' \
+	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest
+fi
 
 lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \
 'testutil/*' '**/genfiles/*' 'dbg/*' -o "$COV_DIR/coverage.info";
-send2coverall "$COV_DIR/coverage.info";
+send2codecov "$COV_DIR/coverage.info";
 
 echo "";
 echo "============ TENNCOR TEST SUCCESSFUL ============";

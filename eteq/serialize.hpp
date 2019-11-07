@@ -8,9 +8,8 @@
 
 #include "pbm/data.hpp"
 
-#include "eteq/generated/opcode.hpp"
-#include "eteq/generated/dtype.hpp"
-
+#include "eigen/generated/opcode.hpp"
+#include "eigen/generated/dtype.hpp"
 #include "eigen/coord.hpp"
 
 #include "eteq/constant.hpp"

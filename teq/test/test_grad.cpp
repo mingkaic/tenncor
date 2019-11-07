@@ -6,7 +6,7 @@
 
 #include "testutil/tutil.hpp"
 
-#include "teq/test/common.hpp"
+#include "teq/mock/leaf.hpp"
 
 #include "teq/grad_def.hpp"
 #include "teq/functor.hpp"

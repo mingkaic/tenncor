@@ -5,11 +5,7 @@ import yaml
 import os.path
 import sys
 import logging
-
-from eteq.gen.plugins.dtypes import DTypesPlugin
-from eteq.gen.plugins.opcodes import OpcodesPlugin
-from eteq.gen.plugins.apis import APIsPlugin
-from eteq.gen.plugins.pyapis import PyAPIsPlugin
+import importlib
 
 from gen.dump import PrintDump, FileDump
 from gen.generate import generate
@@ -21,6 +17,12 @@ def parse(cfg_str):
     if type(args) != dict:
         raise Exception('cannot parse non-root object {}'.format(cfg_str))
     return args
+
+def str2pair(opt):
+    pair = opt.split(':')
+    if len(pair) != 2:
+        raise argparse.ArgumentTypeError('Two values seperated by : expected.')
+    return tuple([val.strip() for val in pair])
 
 def main(args):
 
@@ -34,6 +36,8 @@ def main(args):
     root.addHandler(handler)
 
     parser = argparse.ArgumentParser(description=prog_description)
+    parser.add_argument('--plugins', dest='plugins', nargs='+', type=str2pair,
+        required=True, help='Plugin in the form of <plugin module>:<plugin class>')
     parser.add_argument('--cfgs', dest='cfgpaths', nargs='+',
         help='Configuration yaml files on mapping info (default: read from stdin)')
     parser.add_argument('--out', dest='outpath', nargs='?', default='',
@@ -67,8 +71,10 @@ def main(args):
     else:
         out = PrintDump()
 
-    generate(fields, out=out,
-        plugins=[DTypesPlugin(), OpcodesPlugin(), APIsPlugin(), PyAPIsPlugin()])
+    plugins = dict(args.plugins)
+    generate(fields, out=out, plugins=[
+        getattr(importlib.import_module(mod), plugins[mod])()
+        for mod in plugins])
 
 if '__main__' == __name__:
     main(sys.argv[1:])
