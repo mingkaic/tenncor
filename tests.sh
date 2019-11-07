@@ -14,7 +14,12 @@ echo "===== TESTS =====";
 
 source "$THIS_DIR/coverage.sh";
 
-if [ "$1" == "fast" ]; then
+MODE="fast";
+if [[ "$#" -gt 1 ]]; then
+	MODE=$1;
+fi
+
+if [[ "$MODE" == "fast" ]]; then
 	bzl_coverage //pbm:test //tag:test //teq:test //perf:test //eigen:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
