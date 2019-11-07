@@ -6,12 +6,19 @@
 struct MockOpfunc final : public teq::iOperableFunc
 {
 	MockOpfunc (teq::TensptrT a,
-		teq::Opcode opcode = teq::Opcode{}) :
-		args_({teq::identity_map(a)}), opcode_(opcode) {}
+		teq::Opcode opcode = teq::Opcode{},
+		teq::CoordptrT coord = teq::identity) :
+		args_({teq::FuncArg(a, teq::identity, false, coord)}),
+		opcode_(opcode) {}
 
 	MockOpfunc (teq::TensptrT a, teq::TensptrT b,
 		teq::Opcode opcode = teq::Opcode{}) :
 		args_({teq::identity_map(a), teq::identity_map(b)}),
+		shape_(args_[0].shape()), opcode_(opcode) {}
+
+	MockOpfunc (teq::ArgsT args,
+		teq::Opcode opcode = teq::Opcode{}) :
+		args_(args),
 		shape_(args_[0].shape()), opcode_(opcode) {}
 
 	/// Implementation of iTensor

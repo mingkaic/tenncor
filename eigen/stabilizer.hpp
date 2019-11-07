@@ -16,42 +16,27 @@ template <typename T>
 using NumRangesT = std::vector<estd::NumRange<T>>;
 
 template <typename T>
-T sigmoid (const T& arg)
+bool is_even (T val)
 {
-	if (arg < -4)
-	{
-		return 0;
-	}
-	else if (arg > 4)
-	{
-		return 1;
-	}
+	size_t ival = std::round(val);
+	return ival == val && 0 == ival % 2;
+}
+
+template <typename T>
+static T sigmoid (const T& arg)
+{
 	return 1 / (1 + std::exp(-arg));
 }
 
 template <typename T>
-T tanh (const T& arg)
-{
-	if (arg < -4)
-	{
-		return -1;
-	}
-	else if (arg > 4)
-	{
-		return 1;
-	}
-	return std::tanh(arg);
-}
-
-template <typename T>
-T cube (const T& arg)
+static T cube (const T& arg)
 {
 	return arg * arg * arg;
 }
 
 template <typename T, typename std::enable_if<
-    std::is_integral<T>::value>::type* = nullptr>
-estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
+	std::is_integral<T>::value>::type* = nullptr>
+static estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
 {
 	T lower_base = ranges[0].lower_;
 	T upper_base = ranges[0].upper_;
@@ -95,42 +80,38 @@ estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
 }
 
 template <typename T, typename std::enable_if<
-    !std::is_integral<T>::value>::type* = nullptr>
-estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
+	!std::is_integral<T>::value>::type* = nullptr>
+static estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
 {
 	T lower_base = ranges[0].lower_;
 	T upper_base = ranges[0].upper_;
 	T lower_exp = ranges[1].lower_;
 	T upper_exp = ranges[1].upper_;
+	// base can cross into negative and
+	// exponent is not an odd non-ranging value
+	if (lower_base < 0 &&
+		(lower_exp != upper_exp || false == is_even(lower_exp)))
+	{
+		T nan = std::nan("");
+		return estd::NumRange<T>(nan, nan);
+	}
+	// base or exponent is a non-ranging value
 	if (lower_exp == upper_exp || lower_base == upper_base)
 	{
 		return estd::NumRange<T>(
 			std::pow(lower_base, lower_exp),
 			std::pow(upper_base, upper_exp));
 	}
-	T upper = std::pow(upper_base, upper_exp);
-	T lower = lower_base;
-	if (lower < 0)
-	{
-		// look for nearest even for highest
-		size_t ilexp = std::ceil(lower_exp);
-		upper = std::max(upper, std::pow(lower,
-			ilexp % 2 ? ilexp + 1 : ilexp));
-		// exponent be a decimal and base can be negative
-		lower = std::nan("");
-		lower_exp = std::ceil(lower_exp);
-	}
-	else
-	{
-		// base is purely positive
-		std::vector<T> bounds = {upper,
-			std::pow(lower_base, lower_exp),
-			std::pow(lower_base, upper_exp),
-			std::pow(upper_base, lower_exp)};
-		lower = *std::min_element(bounds.begin(), bounds.end());
-		upper = *std::max_element(bounds.begin(), bounds.end());
-	}
-	return estd::NumRange<T>(lower, upper);
+	// base is purely positive
+	std::vector<T> bounds = {
+		std::pow(lower_base, lower_exp),
+		std::pow(lower_base, upper_exp),
+		std::pow(upper_base, lower_exp),
+		std::pow(upper_base, upper_exp),
+	};
+	return estd::NumRange<T>(
+		*std::min_element(bounds.begin(), bounds.end()),
+		*std::max_element(bounds.begin(), bounds.end()));
 }
 
 template <typename T>
@@ -142,10 +123,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 	{
 		case egen::ABS:
 		{
-			T lower = ranges[0].lower_;
-			T upper = ranges[0].upper_;
-			std::vector<T> bounds = {std::abs(lower), std::abs(upper)};
-			if (lower < 0 && upper > 0)
+			std::vector<T> bounds = {std::abs(ranges[0].lower_), std::abs(ranges[0].upper_)};
+			if (ranges[0].contains(0))
 			{
 				bounds.push_back(0);
 			}
@@ -254,8 +233,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		{
 			T lower = ranges[0].lower_;
 			T upper = ranges[0].upper_;
-			outrange = estd::NumRange<T>(
-				lower < 0 && upper > 0 ? 0 : lower * lower,
+			outrange = estd::NumRange<T>(ranges[0].contains(0) ?
+				0 : lower * lower,
 				upper * upper);
 		}
 			break;
@@ -266,7 +245,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			outrange = estd::NumRange<T>(sigmoid(ranges[0].lower_), sigmoid(ranges[0].upper_));
 			break;
 		case egen::TANH:
-			outrange = estd::NumRange<T>(tanh(ranges[0].lower_), tanh(ranges[0].upper_));
+			outrange = estd::NumRange<T>(std::tanh(ranges[0].lower_), std::tanh(ranges[0].upper_));
 			break;
 		case egen::PERMUTE:
 		case egen::EXTEND:
@@ -275,6 +254,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		case egen::RAND_UNIF:
 		case egen::SLICE:
 		case egen::STRIDE:
+		case egen::REDUCE_MIN:
+		case egen::REDUCE_MAX:
 			outrange = ranges[0];
 			break;
 		case egen::PAD:
@@ -298,8 +279,9 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 					return_dim = args[0][0];
 				});
 			teq::Shape shape = arg.get_tensor()->shape();
-			outrange = estd::NumRange<T>(0, teq::rank_cap == return_dim ?
-				shape.n_elems() : shape.at(return_dim));
+			teq::NElemT maxn = teq::rank_cap == return_dim ?
+				shape.n_elems() : shape.at(return_dim);
+			outrange = estd::NumRange<T>(0, maxn - 1);
 		}
 			break;
 		case egen::SELECT:
@@ -343,8 +325,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::SUB:
 			outrange = estd::NumRange<T>(
-				ranges[0].lower_ + ranges[1].upper_,
-				ranges[0].upper_ + ranges[1].lower_);
+				ranges[0].lower_ - ranges[1].upper_,
+				ranges[0].upper_ - ranges[1].lower_);
 			break;
 		case egen::MUL:
 		{
@@ -389,10 +371,74 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 				std::max(ranges[0].upper_,ranges[1].upper_));
 			break;
 		case egen::EQ:
+		{
+			bool lcst = ranges[0].lower_ == ranges[0].upper_;
+			bool rcst = ranges[1].lower_ == ranges[1].upper_;
+			if (lcst && rcst)
+			{
+				T cst = ranges[0].lower_ == ranges[1].lower_;
+				outrange = estd::NumRange<T>(cst, cst);
+			}
+			else if (
+				(lcst && !ranges[1].contains(ranges[0].lower_)) ||
+				(rcst && !ranges[0].contains(ranges[1].lower_)))
+			{
+				outrange = estd::NumRange<T>(0, 0);
+			}
+			else
+			{
+				outrange = estd::NumRange<T>((T) 0, (T) 1);
+			}
+		}
+			break;
 		case egen::NEQ:
+		{
+			bool lcst = ranges[0].lower_ == ranges[0].upper_;
+			bool rcst = ranges[1].lower_ == ranges[1].upper_;
+			if (lcst && rcst)
+			{
+				T cst = ranges[0].lower_ != ranges[1].lower_;
+				outrange = estd::NumRange<T>(cst, cst);
+			}
+			else if (
+				(lcst && !ranges[1].contains(ranges[0].lower_)) ||
+				(rcst && !ranges[0].contains(ranges[1].lower_)))
+			{
+				outrange = estd::NumRange<T>(1, 1);
+			}
+			else
+			{
+				outrange = estd::NumRange<T>((T) 0, (T) 1);
+			}
+		}
+			break;
 		case egen::LT:
+			if (ranges[0].upper_ < ranges[1].lower_)
+			{ // absolute truth
+				outrange = estd::NumRange<T>(1, 1);
+			}
+			else if (ranges[1].upper_ < ranges[0].lower_)
+			{ // absolute false
+				outrange = estd::NumRange<T>(0, 0);
+			}
+			else
+			{
+				outrange = estd::NumRange<T>((T) 0, (T) 1);
+			}
+			break;
 		case egen::GT:
-			outrange = estd::NumRange<T>((T) 0, (T) 1);
+			if (ranges[1].upper_ < ranges[0].lower_)
+			{ // absolute truth
+				outrange = estd::NumRange<T>(1, 1);
+			}
+			else if (ranges[0].upper_ < ranges[1].lower_)
+			{ // absolute false
+				outrange = estd::NumRange<T>(0, 0);
+			}
+			else
+			{
+				outrange = estd::NumRange<T>((T) 0, (T) 1);
+			}
 			break;
 		case egen::REDUCE_SUM:
 		{
@@ -417,7 +463,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 				});
 			if (false == reduced)
 			{
-				reduced = shape.n_elems();
+				nreds = shape.n_elems();
 			}
 			outrange = estd::NumRange<T>(
 				ranges[0].lower_ * nreds,
@@ -447,16 +493,18 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 				});
 			if (false == reduced)
 			{
-				reduced = shape.n_elems();
+				nreds = shape.n_elems();
 			}
-			outrange = estd::NumRange<T>(
-				std::pow(ranges[0].lower_, nreds),
-				std::pow(ranges[0].upper_, nreds));
+			T lower = std::pow(ranges[0].lower_, nreds);
+			T upper = std::pow(ranges[0].upper_, nreds);
+			// if in range contains and nred is even, the real lower is 0
+			if (is_even(nreds) && ranges[0].contains(0))
+			{
+				upper = std::max(lower, upper);
+				lower = 0;
+			}
+			outrange = estd::NumRange<T>(lower, upper);
 		}
-			break;
-		case egen::REDUCE_MIN:
-		case egen::REDUCE_MAX:
-			outrange = ranges[0];
 			break;
 		case egen::MATMUL:
 		{
@@ -476,9 +524,19 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 						ncommons *= shape.at(args[0][i]);
 					}
 				});
+			T llower = ranges[0].lower_;
+			T lupper = ranges[0].upper_;
+			T rlower = ranges[1].lower_;
+			T rupper = ranges[1].upper_;
+			std::vector<T> bounds = {
+				llower * rlower,
+				llower * rupper,
+				lupper * rlower,
+				lupper * rupper,
+			};
 			outrange = estd::NumRange<T>(
-				ranges[0].lower_ * ranges[1].lower_ * ncommons,
-				ranges[0].upper_ * ranges[1].upper_ * ncommons);
+				*std::min_element(bounds.begin(), bounds.end()) * ncommons,
+				*std::max_element(bounds.begin(), bounds.end()) * ncommons);
 		}
 			break;
 		case egen::CONV:
@@ -499,9 +557,19 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 						nkern *= shape.at(i);
 					}
 				});
+			T llower = ranges[0].lower_;
+			T lupper = ranges[0].upper_;
+			T rlower = ranges[1].lower_;
+			T rupper = ranges[1].upper_;
+			std::vector<T> bounds = {
+				llower * rlower,
+				llower * rupper,
+				lupper * rlower,
+				lupper * rupper,
+			};
 			outrange = estd::NumRange<T>(
-				ranges[0].lower_ * ranges[1].lower_ * nkern,
-				ranges[0].upper_ * ranges[1].upper_ * nkern);
+				*std::min_element(bounds.begin(), bounds.end()) * nkern,
+				*std::max_element(bounds.begin(), bounds.end()) * nkern);
 		}
 			break;
 		default:
