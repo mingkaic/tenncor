@@ -1,6 +1,6 @@
 opcode:
   operator_path: eigen/operator.hpp
-  params: teq::Shape shape, eigen::EigenptrT<T>& out, std::vector<eigen::OpArg<T>>& in
+  params: teq::Shape shape, eigen::EigenptrT<T>& out, eigen::EigenEdgesT<T>& in
   opcalls:
     ABS: out = eigen::abs(shape,in[0]);
     NEG: out = eigen::neg(shape,in[0]);

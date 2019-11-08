@@ -6,7 +6,7 @@
 /// Define functor nodes of an equation graph
 ///
 
-#include "teq/funcarg.hpp"
+#include "teq/iedge.hpp"
 
 #ifndef TEQ_IFUNCTOR_HPP
 #define TEQ_IFUNCTOR_HPP
@@ -39,10 +39,10 @@ struct iFunctor : public iTensor
 	virtual Opcode get_opcode (void) const = 0;
 
 	/// Return vector of functor arguments
-	virtual CstArgsT get_children (void) const = 0;
+	virtual CEdgesT get_children (void) const = 0;
 
 	/// Update child at specified index
-	virtual void update_child (const FuncArg& arg, size_t index) = 0;
+	virtual void update_child (TensptrT arg, size_t index) = 0;
 };
 
 /// Functor smart pointer

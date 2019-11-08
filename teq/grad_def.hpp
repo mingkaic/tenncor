@@ -107,7 +107,7 @@ struct iGradientBuilder
 			}
 
 			auto& grad_indices = pathmap[parent];
-			CstArgsT children = parent->get_children();
+			CEdgesT children = parent->get_children();
 			size_t nchildren = children.size();
 			// assert: all nnary-children use identity mapping,
 			// so no children-arg is direct mapping
@@ -115,7 +115,7 @@ struct iGradientBuilder
 			args.reserve(nchildren);
 			std::transform(children.begin(), children.end(),
 				std::back_inserter(args),
-				[](const iFuncArg& arg)
+				[](const iEdge& arg)
 				{
 					return arg.get_tensor();
 				});

@@ -9,21 +9,13 @@
 #include "eigen/coord.hpp"
 
 
-TEST(COORD, Connect)
-{
-	eigen::CoordMap cmap({1, 2, 3, 4, 5, 6, 7, 8}, false);
-	eigen::CoordMap other({9, 8, 7, 6, 5, 4, 3, 2}, true);
-	EXPECT_EQ(nullptr, cmap.connect(other));
-}
-
-
 TEST(COORD, Forward)
 {
 	teq::CoordT expect_a = {1, 2, 3, 4, 5, 6, 7, 8};
 	teq::CoordT expect_b = {9, 8, 7, 6, 5, 4, 3, 2};
 
 	eigen::CoordMap a(expect_a);
-	eigen::CoordMap b(expect_b, true);
+	eigen::CoordMap b(expect_b);
 
 	teq::CoordT out;
 	a.access(
@@ -45,13 +37,6 @@ TEST(COORD, Forward)
 			}
 		});
 	EXPECT_ARREQ(expect_b, out);
-}
-
-
-TEST(COORD, Reverse)
-{
-	eigen::CoordMap cmap({1, 2, 3, 4, 5, 6, 7, 8}, false);
-	EXPECT_EQ(nullptr, cmap.reverse());
 }
 
 

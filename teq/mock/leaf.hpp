@@ -5,9 +5,11 @@
 
 struct MockTensor : public teq::iLeaf
 {
-	MockTensor (void) = default;
+	MockTensor (std::string label = "") : label_(label) {}
 
-	MockTensor (teq::Shape shape) : shape_(shape) {}
+	MockTensor (teq::Shape shape,
+		std::string label = "") :
+		shape_(shape), label_(label) {}
 
 	virtual ~MockTensor (void) = default;
 
@@ -18,7 +20,7 @@ struct MockTensor : public teq::iLeaf
 
 	std::string to_string (void) const override
 	{
-		return shape_.to_string();
+		return label_;
 	}
 
 	void* data (void) override
@@ -52,6 +54,8 @@ struct MockTensor : public teq::iLeaf
 	}
 
 	teq::Shape shape_;
+
+	std::string label_;
 };
 
 #endif // TEQ_MOCK_LEAF_HPP

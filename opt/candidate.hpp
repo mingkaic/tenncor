@@ -85,10 +85,10 @@ struct CandArg
 	CandsT candidates_;
 
 	/// Real shaper in the argument
-	teq::CoordptrT shaper_;
+	std::string shaper_;
 
 	/// Real coorder in the argument
-	teq::CoordptrT coorder_;
+	teq::CvrtptrT coorder_;
 };
 
 /// Vector of candidate arguments

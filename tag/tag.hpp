@@ -274,7 +274,7 @@ struct Query final : public teq::OnceTraveler
 	void visit_func (teq::iFunctor* func) override
 	{
 		auto children = func->get_children();
-		for (const teq::iFuncArg& child : children)
+		for (const teq::iEdge& child : children)
 		{
 			child.get_tensor()->accept(*this);
 		}

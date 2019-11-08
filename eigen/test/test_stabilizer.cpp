@@ -487,10 +487,10 @@ TEST(STABILIZER, Select)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
 
-	auto f = std::make_shared<MockOpfunc>(teq::ArgsT{
-			teq::identity_map(a),
-			teq::identity_map(a),
-			teq::identity_map(a),
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{
+			MockEdge(a),
+			MockEdge(a),
+			MockEdge(a),
 		}, teq::Opcode{"", egen::SELECT});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
@@ -527,10 +527,10 @@ TEST(STABILIZER, GroupConcat)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
 
-	auto f = std::make_shared<MockOpfunc>(teq::ArgsT{
-			teq::identity_map(a),
-			teq::identity_map(a),
-			teq::identity_map(a),
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{
+			MockEdge(a),
+			MockEdge(a),
+			MockEdge(a),
 		}, teq::Opcode{"", egen::GROUP_CONCAT});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
@@ -1177,7 +1177,7 @@ TEST(STABILIZER, Matmul)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
 
-	teq::FuncArg fa(a, teq::identity, false,
+	MockEdge fa(a, teq::identity,
 		std::make_shared<eigen::CoordMap>(
 			[](teq::MatrixT args)
 			{
@@ -1189,7 +1189,7 @@ TEST(STABILIZER, Matmul)
 				}
 			}));
 
-	auto f = std::make_shared<MockOpfunc>(teq::ArgsT{fa, fa},
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{fa, fa},
 		teq::Opcode{"", egen::MATMUL});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
@@ -1223,7 +1223,7 @@ TEST(STABILIZER, Conv)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
 
-	teq::FuncArg fa(a, teq::identity, false,
+	MockEdge fa(a, teq::identity,
 		std::make_shared<eigen::CoordMap>(
 			[](teq::MatrixT args)
 			{
@@ -1235,7 +1235,7 @@ TEST(STABILIZER, Conv)
 				}
 			}));
 
-	auto f = std::make_shared<MockOpfunc>(teq::ArgsT{fa, fa},
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{fa, fa},
 		teq::Opcode{"", egen::CONV});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {

@@ -73,7 +73,7 @@ struct GraphStat final : public iTraveler
 			std::vector<size_t> min_heights;
 			max_heights.reserve(nchildren);
 			min_heights.reserve(nchildren);
-			for (const iFuncArg& child : children)
+			for (const iEdge& child : children)
 			{
 				iTensor* tens = child.get_tensor().get();
 				tens->accept(*this);

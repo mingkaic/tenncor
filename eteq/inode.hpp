@@ -4,6 +4,7 @@
 ///
 /// Purpose:
 /// Define node interface and registration and conversion objects
+/// Nodes wrap tensor and provide template-type information
 ///
 
 #include "estd/estd.hpp"

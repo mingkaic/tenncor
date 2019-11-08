@@ -10,7 +10,7 @@
 #include <unordered_set>
 
 #include "teq/traveler.hpp"
-#include "teq/functor.hpp"
+#include "teq/ifunctor.hpp"
 
 #include "pbm/data.hpp"
 
@@ -50,7 +50,7 @@ struct GraphSaver final : public teq::iTraveler
 			visited_.emplace(func);
 
 			auto children = func->get_children();
-			for (const teq::iFuncArg& child : children)
+			for (const teq::iEdge& child : children)
 			{
 				child.get_tensor()->accept(*this);
 			}
@@ -97,14 +97,17 @@ struct GraphSaver final : public teq::iTraveler
 			teq::Opcode opcode = f->get_opcode();
 			func->set_opname(opcode.name_);
 			auto children = f->get_children();
-			for (const teq::iFuncArg& child : children)
+			for (const teq::iEdge& child : children)
 			{
+				// marsh::Maps mvalues;
+				// child.get_attrs(mvalues);
+
 				auto c = static_cast<const teq::FuncArg*>(&child);
 				cortenn::NodeArg* arg = func->add_args();
 				teq::iTensor* tens = child.get_tensor().get();
 				arg->set_idx(ordermap[tens]);
 				std::vector<double> shaper =
-					saver_.save_shaper(child.get_shaper());
+					saver_.save_shaper(teq::identity); // todo: use mvalues
 				std::vector<double> coorder =
 					saver_.save_coorder(c->get_coorder());
 				google::protobuf::RepeatedField<double> shaper_vec(

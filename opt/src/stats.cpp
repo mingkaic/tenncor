@@ -22,7 +22,7 @@ bool is_scalar (teq::iLeaf* leaf)
 	return true;
 }
 
-std::string to_string (teq::CoordptrT c)
+std::string to_string (teq::CvrtptrT c)
 {
 	if (teq::is_identity(c.get()))
 	{
@@ -31,7 +31,7 @@ std::string to_string (teq::CoordptrT c)
 	return c->to_string();
 }
 
-bool lt (teq::CoordptrT a, teq::CoordptrT b)
+bool lt (teq::CvrtptrT a, teq::CvrtptrT b)
 {
 	if (teq::is_identity(a.get()))
 	{
@@ -40,7 +40,7 @@ bool lt (teq::CoordptrT a, teq::CoordptrT b)
 	return a->to_string() < b->to_string();
 }
 
-bool is_equal (teq::CoordptrT a, teq::CoordptrT b)
+bool is_equal (teq::CvrtptrT a, teq::CvrtptrT b)
 {
 	if (a == b)
 	{
@@ -140,7 +140,7 @@ bool lt (teq::TensSetT priorities,
 				if (tag::get_property_reg().has_property(a, tag::commutative_tag))
 				{
 					auto arg_lt =
-					[](const teq::iFuncArg& a, const teq::iFuncArg& b)
+					[](const teq::iEdge& a, const teq::iEdge& b)
 					{
 						auto atens = a.get_tensor().get();
 						auto btens = b.get_tensor().get();
@@ -148,25 +148,23 @@ bool lt (teq::TensSetT priorities,
 						{
 							return atens < btens;
 						}
-						auto achild = static_cast<const teq::FuncArg*>(&a);
-						auto bchild = static_cast<const teq::FuncArg*>(&b);
-						return lt(ac->get_coorder(), bc->get_coorder());
+						return lt(a.get_coorder(), a.get_coorder());
 					};
 					std::sort(achildren.begin(), achildren.end(), arg_lt);
 					std::sort(bchildren.begin(), bchildren.end(), arg_lt);
 				}
 				for (size_t i = 0; i < a_nchildren; ++i)
 				{
-					auto achild = static_cast<const teq::FuncArg*>(&achildren[i].get());
-					auto bchild = static_cast<const teq::FuncArg*>(&bchildren[i].get());
-					auto atens = achild->get_tensor().get();
-					auto btens = bchild->get_tensor().get();
+					const teq::iEdge& achild = achildren[i];
+					const teq::iEdge& bchild = bchildren[i];
+					auto atens = achild.get_tensor().get();
+					auto btens = bchild.get_tensor().get();
 					if (atens != btens)
 					{
 						return atens < btens;
 					}
-					auto acoorder = achild->get_coorder();
-					auto bcoorder = bchild->get_coorder();
+					auto acoorder = achild.get_coorder();
+					auto bcoorder = bchild.get_coorder();
 					if (false == is_equal(acoorder, bcoorder))
 					{
 						return lt(acoorder, bcoorder);
@@ -196,7 +194,7 @@ bool is_equal (teq::iFunctor* a, teq::iFunctor* b)
 			if (tag::get_property_reg().has_property(a, tag::commutative_tag))
 			{
 				auto arg_lt =
-				[](teq::FuncArg a, teq::FuncArg b)
+				[](const teq::iEdge& a, const teq::iEdge& b)
 				{
 					auto atens = a.get_tensor().get();
 					auto btens = b.get_tensor().get();
@@ -204,19 +202,21 @@ bool is_equal (teq::iFunctor* a, teq::iFunctor* b)
 					{
 						return atens < btens;
 					}
-					return lt(a.get_coorder(), b.get_coorder());
+					auto ac = static_cast<const teq::FuncArg*>(&a);
+					auto bc = static_cast<const teq::FuncArg*>(&b);
+					return lt(ac->get_coorder(), bc->get_coorder());
 				};
 				std::sort(achildren.begin(), achildren.end(), arg_lt);
 				std::sort(bchildren.begin(), bchildren.end(), arg_lt);
 			}
 			return std::equal(achildren.begin(), achildren.end(),
 				bchildren.begin(),
-				[](const teq::iFuncArg& a, const teq::iFuncArg& b)
+				[](const teq::iEdge& a, const teq::iEdge& b)
 				{
 					return a.get_tensor().get() == b.get_tensor().get() &&
 						is_equal(
-							static_cast<const teq::FuncArg*>(&a)->get_coorder(),
-							static_cast<const teq::FuncArg*>(&b)->get_coorder());
+							a.get_coorder(),
+							b.get_coorder());
 				});
 		}
 	}

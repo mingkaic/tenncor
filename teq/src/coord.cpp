@@ -5,7 +5,7 @@
 namespace teq
 {
 
-using WorkArrT = std::array<double,mat_dim>;
+using WorkArrT = std::array<CDimT,mat_dim>;
 
 static inline void vecmul (WorkArrT& out,
 	const MatrixT& mat, CoordT::const_iterator in)
@@ -25,17 +25,27 @@ static inline void vecmul (WorkArrT& out,
 	}
 }
 
-void CoordMap::forward (CoordT::iterator out, CoordT::const_iterator in) const
+Shape ShapeMap::convert (const Shape& shape) const
 {
+	CoordT in;
+	std::copy(shape.begin(), shape.end(), in.begin());
 	WorkArrT temp;
-	vecmul(temp, fwd_, in);
+	vecmul(temp, fwd_, in.begin());
+	std::vector<DimT> slist;
+	slist.reserve(rank_cap);
 	for (RankT i = 0; i < rank_cap; ++i)
 	{
-		out[i] = temp[i] / temp[rank_cap];
+		auto cd = temp[i] / temp[rank_cap];
+		if (cd < 0)
+		{
+			cd = -cd - 1;
+		}
+		slist.push_back(std::ceil(cd));
 	}
+	return Shape(slist);
 }
 
-CoordptrT identity(new CoordMap(
+ShaperT identity(new ShapeMap(
 	[](MatrixT& fwd)
 	{
 		for (RankT i = 0; i < rank_cap; ++i)
@@ -44,14 +54,14 @@ CoordptrT identity(new CoordMap(
 		}
 	}));
 
-bool is_identity (iCoordMap* coorder)
+bool is_identity (ShapeMap* shaper)
 {
-	if (identity.get() == coorder || nullptr == coorder)
+	if (identity.get() == shaper || nullptr == shaper)
 	{
 		return true;
 	}
 	bool id = false;
-	coorder->access([&id](const MatrixT& m)
+	shaper->access([&id](const MatrixT& m)
 	{
 		id = true;
 		for (RankT i = 0; id && i < mat_dim; ++i)
@@ -65,7 +75,78 @@ bool is_identity (iCoordMap* coorder)
 	return id;
 }
 
-CoordptrT reduce (RankT rank, std::vector<DimT> red)
+ShaperT reduce (std::set<RankT> rdims)
+{
+	size_t n_red = rdims.size();
+	if (std::any_of(rdims.begin(), rdims.end(),
+		[](RankT d) { return d >= teq::rank_cap; }))
+	{
+		logs::fatalf(
+			"cannot reduce using dimensions greater or equal to rank_cap: %s",
+			fmts::to_string(rdims.begin(), rdims.end()).c_str());
+	}
+	if (n_red > rank_cap)
+	{
+		logs::fatalf("cannot reduce %d rank when only ranks are capped at %d",
+			n_red, rank_cap);
+	}
+	return std::make_shared<ShapeMap>(
+		[&](MatrixT& fwd)
+		{
+			for (RankT i = 0; i < rank_cap; ++i)
+			{
+				fwd[i][i] = 1;
+			}
+			for (RankT i : rdims)
+			{
+				fwd[i][i] = std::numeric_limits<CDimT>::min();
+			}
+		});
+}
+
+ShaperT extend (teq::CoordT bcast)
+{
+	if (std::any_of(bcast.begin(), bcast.end(),
+		[](RankT rank) { return rank < 1; }))
+	{
+		logs::fatalf("cannot extend with zero values: %s",
+			fmts::to_string(bcast.begin(), bcast.end()).c_str());
+	}
+
+	return std::make_shared<ShapeMap>(
+		[&](MatrixT& fwd)
+		{
+			for (RankT i = 0; i < rank_cap; ++i)
+			{
+				fwd[i][i] = bcast[i];
+			}
+		});
+}
+
+ShaperT permute (std::array<RankT,rank_cap> order)
+{
+	if (std::any_of(order.begin(), order.end(),
+		[](RankT i) { return i >= rank_cap; }))
+	{
+		logs::fatalf("cannot permute with ranks greater than cap: %s",
+			fmts::to_string(order.begin(), order.end()).c_str());
+	}
+	if (std::set<RankT>(order.begin(), order.end()).size() < rank_cap)
+	{
+		logs::fatalf("permute does not support repeated orders: %s",
+			fmts::to_string(order.begin(), order.end()).c_str());
+	}
+	return std::make_shared<ShapeMap>(
+		[&](MatrixT& fwd)
+		{
+			for (RankT i = 0, n = order.size(); i < n; ++i)
+			{
+				fwd[order[i]][i] = 1;
+			}
+		});
+}
+
+ShaperT reduce (RankT rank, std::vector<DimT> red)
 {
 	RankT n_red = red.size();
 	if (std::any_of(red.begin(), red.end(),
@@ -86,7 +167,7 @@ CoordptrT reduce (RankT rank, std::vector<DimT> red)
 		return identity;
 	}
 
-	return std::make_shared<CoordMap>(
+	return std::make_shared<ShapeMap>(
 		[&](MatrixT& fwd)
 		{
 			for (RankT i = 0; i < rank_cap; ++i)
@@ -101,7 +182,7 @@ CoordptrT reduce (RankT rank, std::vector<DimT> red)
 		});
 }
 
-CoordptrT extend (RankT rank, std::vector<DimT> ext)
+ShaperT extend (RankT rank, std::vector<DimT> ext)
 {
 	RankT n_ext = ext.size();
 	if (std::any_of(ext.begin(), ext.end(),
@@ -121,7 +202,7 @@ CoordptrT extend (RankT rank, std::vector<DimT> ext)
 		return identity;
 	}
 
-	return std::make_shared<CoordMap>(
+	return std::make_shared<ShapeMap>(
 		[&](MatrixT& fwd)
 		{
 			for (RankT i = 0; i < rank_cap; ++i)
@@ -136,7 +217,7 @@ CoordptrT extend (RankT rank, std::vector<DimT> ext)
 		});
 }
 
-CoordptrT permute (std::vector<RankT> dims)
+ShaperT permute (std::vector<RankT> dims)
 {
 	if (dims.size() == 0)
 	{
@@ -148,6 +229,11 @@ CoordptrT permute (std::vector<RankT> dims)
 	std::fill(visited, visited + rank_cap, false);
 	for (RankT i = 0, n = dims.size(); i < n; ++i)
 	{
+		if (visited[dims[i]])
+		{
+			logs::fatalf("permute does not support repeated orders: %s",
+				fmts::to_string(dims.begin(), dims.end()).c_str());
+		}
 		visited[dims[i]] = true;
 	}
 	for (RankT i = 0; i < rank_cap; ++i)
@@ -158,33 +244,13 @@ CoordptrT permute (std::vector<RankT> dims)
 		}
 	}
 
-	return std::make_shared<CoordMap>(
+	return std::make_shared<ShapeMap>(
 		[&](MatrixT& fwd)
 		{
 			for (RankT i = 0, n = dims.size(); i < n; ++i)
 			{
 				fwd[dims[i]][i] = 1;
 			}
-		});
-}
-
-CoordptrT flip (RankT dim)
-{
-	if (dim >= rank_cap)
-	{
-		logs::warn("flipping dimension out of rank_cap ... will do nothing");
-		return identity;
-	}
-
-	return std::make_shared<CoordMap>(
-		[&](MatrixT& fwd)
-		{
-			for (RankT i = 0; i < rank_cap; ++i)
-			{
-				fwd[i][i] = 1;
-			}
-			fwd[dim][dim] = -1;
-			fwd[rank_cap][dim] = -1;
 		});
 }
 

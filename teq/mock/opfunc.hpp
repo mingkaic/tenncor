@@ -1,4 +1,5 @@
 #include "teq/iopfunc.hpp"
+#include "teq/mock/edge.hpp"
 
 #ifndef TEQ_MOCK_OPFUNC_HPP
 #define TEQ_MOCK_OPFUNC_HPP
@@ -7,16 +8,16 @@ struct MockOpfunc final : public teq::iOperableFunc
 {
 	MockOpfunc (teq::TensptrT a,
 		teq::Opcode opcode = teq::Opcode{},
-		teq::CoordptrT coord = teq::identity) :
-		args_({teq::FuncArg(a, teq::identity, false, coord)}),
+		teq::CvrtptrT coord = nullptr) :
+		args_({MockEdge(a, teq::identity, coord)}),
 		opcode_(opcode) {}
 
 	MockOpfunc (teq::TensptrT a, teq::TensptrT b,
 		teq::Opcode opcode = teq::Opcode{}) :
-		args_({teq::identity_map(a), teq::identity_map(b)}),
+		args_({MockEdge(a), MockEdge(b)}),
 		shape_(args_[0].shape()), opcode_(opcode) {}
 
-	MockOpfunc (teq::ArgsT args,
+	MockOpfunc (MockEdgesT args,
 		teq::Opcode opcode = teq::Opcode{}) :
 		args_(args),
 		shape_(args_[0].shape()), opcode_(opcode) {}
@@ -40,13 +41,13 @@ struct MockOpfunc final : public teq::iOperableFunc
 	}
 
 	/// Implementation of iFunctor
-	teq::CstArgsT get_children (void) const override
+	teq::CEdgesT get_children (void) const override
 	{
-		return teq::CstArgsT(args_.begin(), args_.end());
+		return teq::CEdgesT(args_.begin(), args_.end());
 	}
 
 	/// Implementation of iFunctor
-	void update_child (const teq::FuncArg& arg, size_t index) override {}
+	void update_child (teq::TensptrT arg, size_t index) override {}
 
 	/// Implementation of iOperableFunc
 	void update (void) override
@@ -86,7 +87,7 @@ struct MockOpfunc final : public teq::iOperableFunc
 
 	bool updated_ = false;
 
-	teq::ArgsT args_;
+	MockEdgesT args_;
 
 	teq::Shape shape_;
 

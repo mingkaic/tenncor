@@ -169,10 +169,12 @@ struct InteractiveSession final : public teq::iSession
 				auto children = f->get_children();
 				for (size_t i = 0, n = children.size(); i < n; ++i)
 				{
-					const teq::iFuncArg& child = children[i];
+					const teq::iEdge& child = children[i];
+					// marsh::Maps mvalues;
+					// child.get_attrs(mvalues);
+
 					auto child_tens = child.get_tensor().get();
-					auto shaper = child.get_shaper();
-					auto coorder = static_cast<const teq::FuncArg*>(&child)->get_coorder();
+					auto shaper = teq::identity; // todo: use mvalues
 					std::string label = fmts::sprintf(edge_label_fmt, i);
 					EdgeInfo edgeinfo{
 						node_ids_[f],
@@ -191,7 +193,7 @@ struct InteractiveSession final : public teq::iSession
 						{
 							edge->set_shaper(shaper->to_string());
 						}
-						if (false == teq::is_identity(coorder.get()))
+						if (false == teq::is_identity(nullptr))
 						{
 							edge->set_coorder(coorder->to_string());
 						}
@@ -234,7 +236,7 @@ struct InteractiveSession final : public teq::iSession
 			{
 				reqs.push_front(op);
 				auto children = op->get_children();
-				for (const teq::iFuncArg& child : children)
+				for (const teq::iEdge& child : children)
 				{
 					acceptable.emplace(child.get_tensor().get());
 				}
@@ -323,7 +325,7 @@ struct InteractiveSession final : public teq::iSession
 			{
 				reqs.push_front(op);
 				auto children = op->get_children();
-				for (const teq::iFuncArg& child : children)
+				for (const teq::iEdge& child : children)
 				{
 					acceptable.emplace(child.get_tensor().get());
 				}

@@ -58,23 +58,25 @@ struct Functor final : public teq::iOperableFunc
 	}
 
 	/// Implementation of iFunctor
-	teq::CstArgsT get_children (void) const override
+	teq::CEdgesT get_children (void) const override
 	{
-		return teq::CstArgsT(args_.begin(), args_.end());
+		return teq::CEdgesT(args_.begin(), args_.end());
 	}
 
 	/// Implementation of iFunctor
-	void update_child (const teq::FuncArg& arg, size_t index) override
+	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		teq::Shape arg_shape = arg.shape();
-		if (false == arg_shape.compatible_after(shape_, 0))
+		teq::Shape nexshape = arg.shape();
+		teq::Shape curshape = args_[index].argshape();
+		if (false == nexshape.compatible_after(ashape, 0))
 		{
 			logs::fatalf("cannot update child %d to argument with "
 				"incompatible shape %s (requires shape %s)",
-				index, arg_shape.to_string().c_str(),
-				shape_.to_string().c_str());
+				index, nexshape.to_string().c_str(),
+				curshape.to_string().c_str());
 		}
-		args_[index] = arg;
+		static_cast<eigen::iEigenEdge*>(
+			&args_[index].get())->set_tensor(arg);
 		uninitialize();
 		// warning: does not notify parents of data destruction
 	}
@@ -143,23 +145,12 @@ struct Functor final : public teq::iOperableFunc
 	/// Populate internal Eigen data object
 	void initialize (void)
 	{
-		std::vector<eigen::OpArg<T>> datamaps;
-		for (const teq::FuncArg& arg : args_)
-		{
-			auto tens = arg.get_tensor();
-			auto coorder = static_cast<eigen::CoordMap*>(arg.get_coorder().get());
-			datamaps.push_back(eigen::OpArg<T>{
-				to_node<T>(tens)->data(),
-				tens->shape(),
-				coorder
-			});
-		}
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			shape_, out_, datamaps);
+			shape_, out_, args_);
 	}
 
 private:
-	Functor (teq::Opcode opcode, teq::Shape shape, teq::ArgsT args) :
+	Functor (teq::Opcode opcode, teq::Shape shape, ArgsT<T> args) :
 		opcode_(opcode), shape_(shape), args_(args)
 	{
 #ifdef FINIT_ON_BUILD
@@ -178,7 +169,7 @@ private:
 	teq::Shape shape_;
 
 	/// Tensor arguments (and children)
-	teq::ArgsT args_;
+	ArgsT<T> args_;
 };
 
 /// Functor's node wrapper
@@ -219,12 +210,9 @@ protected:
 		input_args.reserve(args.size());
 		std::transform(args.begin(), args.end(),
 			std::back_inserter(input_args),
-			[](const teq::iFuncArg& arg)
+			[](const teq::iEdge& arg) -> FuncArg<T>
 			{
-				auto ag = static_cast<const teq::FuncArg*>(&arg);
-				return FuncArg<T>(
-					to_node<T>(arg.get_tensor()), arg.get_shaper(),
-					std::static_pointer_cast<eigen::CoordMap>(ag->get_coorder()));
+				return *static_cast<FuncArg<T>*>(&arg);
 			});
 		return new FunctorNode(std::shared_ptr<Functor<T>>(
 			Functor<T>::get(func_->get_opcode(), input_args)));
@@ -271,19 +259,7 @@ Functor<T>* Functor<T>::get (teq::Opcode opcode, ArgsT<T> args)
 		}
 	}
 
-	teq::ArgsT input_args;
-	input_args.reserve(nargs);
-	std::transform(args.begin(), args.end(),
-		std::back_inserter(input_args),
-		[](FuncArg<T>& arg)
-		{
-			return teq::FuncArg(
-				arg.get_tensor(),
-				arg.get_shaper(),
-				arg.map_io(),
-				arg.get_coorder());
-		});
-	return new Functor<T>(opcode, shape, input_args);
+	return new Functor<T>(opcode, shape, args);
 }
 
 /// Return functor node given opcode and node arguments

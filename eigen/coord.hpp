@@ -15,11 +15,10 @@ namespace eigen
 {
 
 // todo: replace this with teq::CoordMap
-/// Eigen transformation wrapper implementation of iCoordMap
-struct CoordMap final : public teq::iCoordMap
+/// Eigen transformation wrapper implementation of iConvert
+struct CoordMap final : public teq::iConvert
 {
-	CoordMap (teq::CoordT indices, bool bijective = false) :
-		bijective_(bijective)
+	CoordMap (teq::CoordT indices)
 	{
 		std::fill(args_[0], args_[0] + teq::mat_size, std::nan(""));
 		for (size_t i = 0; i < teq::rank_cap; ++i)
@@ -29,30 +28,13 @@ struct CoordMap final : public teq::iCoordMap
 	}
 
 	// todo: make init safer (values between rows are nan)
-	CoordMap (teq::MatInitF init, bool bijective = false) :
-		bijective_(bijective)
+	CoordMap (teq::MatInitF init)
 	{
 		std::fill(args_[0], args_[0] + teq::mat_size, std::nan(""));
 		init(args_);
 	}
 
-	/// Implementation of iCoordMap
-	teq::iCoordMap* connect (const teq::iCoordMap& rhs) const override
-	{
-		return nullptr;
-	}
-
-	/// Implementation of iCoordMap
-	void forward (teq::CoordT::iterator out,
-		teq::CoordT::const_iterator in) const override {}
-
-	/// Implementation of iCoordMap
-	iCoordMap* reverse (void) const override
-	{
-		return nullptr;
-	}
-
-	/// Implementation of iCoordMap
+	/// Implementation of iConvert
 	std::string to_string (void) const override
 	{
 		std::stringstream ss;
@@ -82,35 +64,27 @@ struct CoordMap final : public teq::iCoordMap
 		return ss.str();
 	}
 
-	/// Implementation of iCoordMap
+	/// Implementation of iConvert
 	void access (std::function<void(const teq::MatrixT&)> cb) const override
 	{
 		cb(args_);
 	}
 
-	/// Implementation of iCoordMap
-	bool is_bijective (void) const override
-	{
-		return bijective_;
-	}
-
 private:
 	teq::MatrixT args_;
-
-	bool bijective_;
 };
 
-/// Type of iCoordMap smartpointer
+/// Type of iConvert smartpointer
 using CoordptrT = std::shared_ptr<CoordMap>;
 
 /// Return CoordMap wrapper of reduction dimensions
-CoordptrT reduce (std::vector<teq::RankT> red_dims);
+CoordptrT reduce (std::set<teq::RankT> red_dims);
 
 /// Return CoordMap wrapper of extension parameters
 CoordptrT extend (teq::RankT rank, std::vector<teq::DimT> ext);
 
 /// Return CoordMap wrapper of permute indices
-CoordptrT permute (std::vector<teq::RankT> dims);
+CoordptrT permute (std::array<teq::RankT,teq::rank_cap> dims);
 
 }
 

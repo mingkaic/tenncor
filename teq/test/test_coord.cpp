@@ -33,7 +33,7 @@ TEST(COORD, Forward)
 		0.2458311259, 0.6726336808, 0.8680681183, 0.2344609279, 0.2667416547, 0.7905403230, 0.1139956031, 0.7112792746, 0.5421166290,
 		0.6555476101, 0.7982603464, 0.9427891524, 0.5630265226, 0.0529621550, 0.0767490955, 0.9764540804, 0.0229466953, 0.0357362313,
 	};
-	teq::CoordMap lhs([&indata](teq::MatrixT& m)
+	teq::ShapeMap lhs([&indata](teq::MatrixT& m)
 		{
 			for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 			{
@@ -43,7 +43,7 @@ TEST(COORD, Forward)
 				}
 			}
 		});
-	teq::CoordMap rhs([&indata2](teq::MatrixT& m)
+	teq::ShapeMap rhs([&indata2](teq::MatrixT& m)
 		{
 			for (teq::RankT i = 0; i < teq::mat_dim; ++i)
 			{
@@ -67,75 +67,6 @@ TEST(COORD, Forward)
 			}
 		}
 	}
-
-	teq::iCoordMap* res = lhs.connect(rhs);
-	res->access([&expected](const teq::MatrixT& m)
-		{
-			for (teq::RankT i = 0; i < teq::mat_dim; ++i)
-			{
-				for (teq::RankT j = 0; j < teq::mat_dim; ++j)
-				{
-					EXPECT_EQ(expected[i][j], m[i][j]);
-				}
-			}
-		});
-
-	delete res;
-}
-
-
-TEST(COORD, Reverse)
-{
-	std::vector<double> indata = {
-		0.8156562350, 0.6115720004, 0.3259187100, 0.4587045151, 0.3708856605, 0.9116936271, 0.8506702867, 0.6005461299, 0.5781125392,
-		0.2252200329, 0.6260416725, 0.7027031119, 0.8195474106, 0.9182331562, 0.4974968716, 0.3676863626, 0.4343532608, 0.8336493745,
-		0.0609398686, 0.6964393063, 0.5466081949, 0.5578592341, 0.4815792839, 0.1296393464, 0.0192395135, 0.1068688839, 0.0634951350,
-		0.5602241887, 0.7261901753, 0.8400658507, 0.8631530493, 0.1998541597, 0.6833077496, 0.2403264807, 0.6286744172, 0.8252406406,
-		0.9807715918, 0.7744490835, 0.0027834805, 0.5948947457, 0.4003484346, 0.5155732371, 0.2212873196, 0.2115776178, 0.7312720364,
-		0.7491175826, 0.8473974976, 0.5918676711, 0.4277359673, 0.0317686881, 0.7905199952, 0.4977264928, 0.0695145992, 0.5444856549,
-		0.0884961428, 0.3255167258, 0.0738631045, 0.1542501963, 0.5192928180, 0.7640711766, 0.6548329341, 0.0041398851, 0.6030110971,
-		0.2815274054, 0.4986186274, 0.4177728965, 0.5379782806, 0.9728425173, 0.8384357553, 0.1148654580, 0.6567525656, 0.4295099714,
-		0.7243125736, 0.5892803635, 0.2597629537, 0.8375568398, 0.8496011347, 0.2944557711, 0.6930016846, 0.7247803680, 0.4856868442,
-	};
-	teq::CoordMap fwd([&indata](teq::MatrixT& m)
-		{
-			for (teq::RankT i = 0; i < teq::mat_dim; ++i)
-			{
-				for (teq::RankT j = 0; j < teq::mat_dim; ++j)
-				{
-					m[i][j] = indata[i * teq::mat_dim + j];
-				}
-			}
-		});
-
-	teq::iCoordMap* rev = fwd.reverse();
-
-	teq::MatrixT out;
-	rev->access([&out, &fwd](const teq::MatrixT& bwd)
-		{
-			fwd.access([&out, &bwd](const teq::MatrixT& fwd)
-			{
-				teq::matmul(out, fwd, bwd);
-			});
-		});
-
-	// expect matmul is identity
-	for (teq::RankT i = 0; i < teq::mat_dim; ++i)
-	{
-		for (teq::RankT j = 0; j < teq::mat_dim; ++j)
-		{
-			if (i == j)
-			{
-				EXPECT_DOUBLE_EQ(1, std::round(out[i][j]));
-			}
-			else
-			{
-				EXPECT_DOUBLE_EQ(0, std::round(out[i][j]));
-			}
-		}
-	}
-
-	delete rev;
 }
 
 
@@ -161,37 +92,46 @@ TEST(COORD, Identity)
 		"[0\\0\\0\\0\\0\\0\\0\\0\\1]]", idstr.c_str());
 	EXPECT_STREQ(idstr.c_str(), idstr2.c_str());
 
-	teq::CoordT fwd_out;
-	teq::CoordT icoord = {
+	teq::Shape ishape({
 		42, 12, 85, 7, 82, 91, 2, 34,
-	};
+	});
 
-	teq::identity->forward(fwd_out.begin(), icoord.begin());
-	EXPECT_ARREQ(icoord, fwd_out);
+	auto oshape = teq::identity->convert(ishape);
+	EXPECT_ARREQ(ishape, oshape);
+}
+
+
+TEST(COORD, IsIdentity)
+{
+	EXPECT_TRUE(teq::is_identity(nullptr));
+	EXPECT_TRUE(teq::is_identity(teq::identity.get()));
+
+	teq::ShaperT sample_id = std::make_shared<teq::ShapeMap>(*teq::identity); // deep copy
+	EXPECT_TRUE(teq::is_identity(sample_id.get()));
+
+	teq::ShaperT bourne(new teq::ShapeMap(
+		[](teq::MatrixT& fwd)
+		{
+			// todo: we can randomize this so long as fwd is not identity
+			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+			{
+				fwd[i][i] = 2;
+			}
+		}));
+	EXPECT_FALSE(teq::is_identity(bourne.get()));
 }
 
 
 TEST(COORD, Reduce)
 {
 	size_t rank = 5;
-	std::vector<teq::DimT> red = {22, 32, 2};
-	teq::CoordptrT reducer = teq::reduce(rank, red);
+	std::vector<teq::DimT> red = {22, 2, 2};
+	teq::ShaperT reducer = teq::reduce(rank, red);
 
-	teq::CoordT fwd_out;
-	teq::CoordT icoord = {
-		211.6172349153, 3.6941314330, 3.3471187148, 24.3511302088,
-		17.8520169468, 99.9911659058, 7.2182000783, 6.4776819746
-	};
-
-	reducer->forward(fwd_out.begin(), icoord.begin());
-	for (size_t i = 0; i < rank; ++i)
-	{
-		EXPECT_EQ(icoord[i], fwd_out[i]) << i;
-	}
-	for (size_t i = rank; i < teq::rank_cap; ++i)
-	{
-		EXPECT_DOUBLE_EQ(icoord[i] / red[i - rank], fwd_out[i]) << "red=" << red[i - rank] << ",i=" << i;
-	}
+	teq::Shape ishape({211, 3, 3, 24, 17, 99, 7, 6});
+	auto oshape = reducer->convert(ishape);
+	teq::Shape eshape({211, 3, 3, 24, 17, 5, 4, 3});
+	EXPECT_ARREQ(eshape, oshape);
 
 	EXPECT_FATAL(teq::reduce(rank, {0}), "cannot reduce using zero dimensions [0]");
 
@@ -208,19 +148,17 @@ TEST(COORD, Extend)
 {
 	size_t rank = 3;
 	std::vector<teq::DimT> ext = {12, 21, 8, 4, 52};
-	teq::CoordptrT extender = teq::extend(rank, ext);
+	teq::ShaperT extender = teq::extend(rank, ext);
 
-	teq::CoordT fwd_out;
-	teq::CoordT incoord = {142.2, 42.17, 33.292, 33, 231.5, 2.33, 96.4, 1.23};
-
-	extender->forward(fwd_out.begin(), incoord.begin());
+	teq::Shape ishape({142, 42, 33, 33, 231, 2, 96, 1});
+	auto oshape = extender->convert(ishape);
 	for (size_t i = 0; i < rank; ++i)
 	{
-		EXPECT_EQ(incoord[i], fwd_out[i]) << i;
+		EXPECT_EQ(ishape.at(i), oshape.at(i)) << i;
 	}
 	for (size_t i = rank; i < teq::rank_cap; ++i)
 	{
-		EXPECT_DOUBLE_EQ(incoord[i] * ext[i - rank], fwd_out[i]) << "ext=" << ext[i - rank] << ",i=" << i;
+		EXPECT_DOUBLE_EQ(ishape.at(i) * ext[i - rank], oshape.at(i)) << "ext=" << ext[i - rank] << ",i=" << i;
 	}
 
 	EXPECT_FATAL(teq::extend(rank, {0}), "cannot extend using zero dimensions [0]");
@@ -236,86 +174,20 @@ TEST(COORD, Extend)
 
 TEST(COORD, Permute)
 {
-	std::vector<teq::RankT> perm = {4, 2, 3, 7, 0, 1};
-	teq::CoordptrT permuter = teq::permute(perm);
-	std::array<bool,teq::rank_cap> permed;
-	permed.fill(false);
-	for (teq::DimT p : perm)
-	{
-		permed[p] = true;
-	}
+	std::array<teq::RankT,teq::rank_cap> perm = {4, 2, 3, 7, 0, 1, 5, 6};
+	teq::ShaperT permuter = teq::permute(perm);
+	teq::Shape ishape({12, 82, 20, 31, 49, 1, 1, 1});
+	auto oshape = permuter->convert(ishape);
 	for (size_t i = 0; i < teq::rank_cap; ++i)
 	{
-		if (false == permed[i])
-		{
-			perm.push_back(i);
-		}
+		EXPECT_EQ(ishape.at(perm.at(i)), oshape.at(i));
 	}
 
-	teq::CoordT fwd_out;
-	teq::CoordT icoord = {12, 82, 20, 31, 49, 1, 1, 1};
+	EXPECT_FATAL(teq::permute({4, 2, 9, 7, 0, 1, 2, 1}),
+		"cannot permute with ranks greater than cap: [4\\2\\9\\7\\0\\1\\2\\1]");
 
-	permuter->forward(fwd_out.begin(), icoord.begin());
-	for (size_t i = 0; i < teq::rank_cap; ++i)
-	{
-		EXPECT_EQ(icoord[perm[i]], fwd_out[i]);
-	}
-
-	EXPECT_WARN(teq::permute({}), "permuting with same dimensions ... will do nothing");
-}
-
-
-TEST(COORD, Flip)
-{
-	size_t dim = 3;
-	teq::CoordptrT flipper = teq::flip(dim);
-
-	teq::CoordT fwd_out;
-	teq::CoordT icoord = {23, 66, 72, 83, 91, 1, 31, 21};
-
-	flipper->forward(fwd_out.begin(), icoord.begin());
-	for (size_t i = 0; i < dim; ++i)
-	{
-		EXPECT_EQ(icoord[i], fwd_out[i]) << i;
-	}
-	for (size_t i = dim + 1; i < teq::rank_cap; ++i)
-	{
-		EXPECT_EQ(icoord[i], fwd_out[i]) << i;
-	}
-	EXPECT_EQ(-icoord[dim]-1, fwd_out[dim]);
-
-	EXPECT_WARN(teq::flip(teq::rank_cap * 2), "flipping dimension out of rank_cap ... will do nothing");
-}
-
-
-TEST(COORD, Bijection)
-{
-	EXPECT_TRUE(teq::identity->is_bijective());
-
-	teq::CoordptrT reducer = teq::reduce(3, {2});
-	EXPECT_FALSE(reducer->is_bijective());
-}
-
-
-TEST(COORD, IsIdentity)
-{
-	EXPECT_TRUE(teq::is_identity(nullptr));
-	EXPECT_TRUE(teq::is_identity(teq::identity.get()));
-
-	teq::CoordptrT sample_id = std::make_shared<teq::CoordMap>(
-		*static_cast<teq::CoordMap*>(teq::identity.get())); // deep copy
-	EXPECT_TRUE(teq::is_identity(sample_id.get()));
-
-	teq::CoordptrT bourne(new teq::CoordMap(
-		[](teq::MatrixT& fwd)
-		{
-			// todo: we can randomize this so long as fwd is not identity
-			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-			{
-				fwd[i][i] = 2;
-			}
-		}));
-	EXPECT_FALSE(teq::is_identity(bourne.get()));
+	EXPECT_FATAL(teq::permute({4, 2, 2, 7, 0, 1, 2, 1}),
+		"permute does not support repeated orders: [4\\2\\2\\7\\0\\1\\2\\1]");
 }
 
 

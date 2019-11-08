@@ -68,7 +68,7 @@ struct Session final : public teq::iSession
 			{
 				auto args = func->get_children();
 				teq::TensSetT unique_children;
-				for (const teq::iFuncArg& arg : args)
+				for (const teq::iEdge& arg : args)
 				{
 					auto tens = arg.get_tensor().get();
 					if (0 < stat.graphsize_[tens].upper_) // ignore leaves
@@ -127,7 +127,7 @@ struct Session final : public teq::iSession
 				{
 					indep_reqs.push_front({op, rit->second});
 					auto children = op->get_children();
-					for (const teq::iFuncArg& child : children)
+					for (const teq::iEdge& child : children)
 					{
 						acceptable.emplace(child.get_tensor().get());
 					}
@@ -211,7 +211,7 @@ struct Session final : public teq::iSession
 				{
 					indep_reqs.push_front({op, rit->second});
 					auto children = op->get_children();
-					for (const teq::iFuncArg& child : children)
+					for (const teq::iEdge& child : children)
 					{
 						acceptable.emplace(child.get_tensor().get());
 					}

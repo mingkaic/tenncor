@@ -1,5 +1,5 @@
 ///
-/// coord.hpp
+/// coord.hpp (todo: rename to convert)
 /// teq
 ///
 /// Purpose:
@@ -7,6 +7,7 @@
 ///
 
 #include <functional>
+#include <set>
 
 #include "teq/matops.hpp"
 
@@ -17,86 +18,48 @@ namespace teq
 {
 
 /// Interface for transforming coordinates and reversing the coordinate
-struct iCoordMap // todo: rename to iConvert
+struct iConvert
 {
-	virtual ~iCoordMap (void) = default;
+	virtual ~iConvert (void) = default;
 
-	/// Return matmul(this, rhs)
-	virtual iCoordMap* connect (const iCoordMap& rhs) const = 0;
-
-	/// Forward transform coordinates
-	virtual void forward (CoordT::iterator out,
-		CoordT::const_iterator in) const = 0;
-
-	/// Return coordinate transformation with its forward and backward
-	/// transformations reversed
-	virtual iCoordMap* reverse (void) const = 0;
-
-	/// Return string representation of coordinate transformer
+	/// Return string representation of converter
 	virtual std::string to_string (void) const = 0;
 
 	/// Access the forward matrix representation of transformer as a param to input
 	/// callback function cb
 	virtual void access (std::function<void(const MatrixT&)> cb) const = 0;
-
-	/// Return true if this instance maps coordinates/shapes bijectively
-	virtual bool is_bijective (void) const = 0;
 };
+
+/// Type of iConvert smartpointer
+using CvrtptrT = std::shared_ptr<iConvert>;
 
 using MatInitF = std::function<void(MatrixT&)>;
 
 /// Coordinate transformation implementation using homogeneous matrices
 /// The transformation matrix must be inversible otherwise fatal on creation
-struct CoordMap final : public iCoordMap
+struct ShapeMap final
 {
-	CoordMap (MatInitF init)
+	ShapeMap (MatInitF init)
 	{
 		std::fill(fwd_[0], fwd_[0] + mat_size, 0);
 		fwd_[rank_cap][rank_cap] = 1;
 		init(fwd_);
 	}
 
-	/// Implementation of iCoordMap
-	iCoordMap* connect (const iCoordMap& rhs) const override
-	{
-		return new CoordMap([&](MatrixT& out)
-		{
-			rhs.access([&](const MatrixT& in)
-			{
-				matmul(out, fwd_, in);
-			});
-		});
-	}
+	/// Return converted shape
+	Shape convert (const Shape& shape) const;
 
-	/// Implementation of iCoordMap
-	void forward (CoordT::iterator out,
-		CoordT::const_iterator in) const override;
-
-	/// Implementation of iCoordMap
-	iCoordMap* reverse (void) const override
-	{
-		return new CoordMap([this](MatrixT& m)
-		{
-			inverse(m, this->fwd_);
-		});
-	}
-
-	/// Implementation of iCoordMap
-	std::string to_string (void) const override
+	/// Return string representation of mapper
+	std::string to_string (void) const
 	{
 		return ::teq::to_string(fwd_);
 	}
 
-	/// Implementation of iCoordMap
-	void access (std::function<void(const MatrixT&)> cb) const override
+	/// Access the forward matrix representation of transformer as a param to input
+	/// callback function cb
+	void access (std::function<void(const MatrixT&)> cb) const
 	{
 		cb(fwd_);
-	}
-
-	/// Implementation of iCoordMap
-	bool is_bijective (void) const override
-	{
-		return (int) determinant(fwd_) != 0;
 	}
 
 private:
@@ -104,26 +67,17 @@ private:
 	MatrixT fwd_;
 };
 
-/// Type of iCoordMap smartpointer
-using CoordptrT = std::shared_ptr<iCoordMap>;
+using ShaperT = std::shared_ptr<ShapeMap>;
 
 /// Identity matrix instance
-extern CoordptrT identity;
+extern ShaperT identity;
 
 /// Checks if the coord mapper is an identity mapper
-bool is_identity (iCoordMap* coorder);
+bool is_identity (ShapeMap* shaper);
 
-/// Return coordinate mapper dividing dimensions after rank
-/// by values in red vector
-/// For example, given coordinate [2, 2, 6, 6], rank=2, and red=[3, 3],
-/// mapper forward transforms to coordinate [2, 2, 2, 2]
-CoordptrT reduce (RankT rank, std::vector<DimT> red);
+ShaperT reduce (std::set<RankT> rdims);
 
-/// Return coordinate mapper multiplying dimensions after rank
-/// by values in ext vector
-/// For example, given coordinate [6, 6, 2, 2], rank=2, and ext=[3, 3],
-/// mapper forward transforms to coordinate [6, 6, 6, 6]
-CoordptrT extend (RankT rank, std::vector<DimT> ext);
+ShaperT extend (teq::CoordT bcast);
 
 /// Return coordinate mapper permuting coordinate according to input order
 /// Order is a vector of indices of the dimensions to appear in order
@@ -133,12 +87,19 @@ CoordptrT extend (RankT rank, std::vector<DimT> ext);
 /// mapper forward transforms to coordinate [2, 4, 1, 3]
 /// Returned coordinate mapper will be a CoordMap instance, so inversibility
 /// requires order indices be unique, otherwise throw fatal error
-CoordptrT permute (std::vector<RankT> order);
+ShaperT permute (std::array<RankT,rank_cap> order);
 
-/// Return coordinate mapper flipping coordinate value at specified dimension
-/// Flipped dimension with original value x is represented as -x-1
-/// (see CoordT definition)
-CoordptrT flip (RankT dim);
+/// Return coordinate mapper dividing dimensions after rank
+/// by values in red vector
+/// For example, given coordinate [2, 2, 6, 6], rank=2, and red=[3, 3],
+/// mapper forward transforms to coordinate [2, 2, 2, 2]
+ShaperT reduce (RankT rank, std::vector<DimT> red);
+
+/// Return coordinate mapper multiplying dimensions after rank
+/// by values in ext vector
+/// For example, given coordinate [6, 6, 2, 2], rank=2, and ext=[3, 3],
+/// mapper forward transforms to coordinate [6, 6, 6, 6]
+ShaperT extend (RankT rank, std::vector<DimT> ext);
 
 }
 

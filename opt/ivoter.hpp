@@ -23,8 +23,8 @@ namespace opt
 struct VoterArg final
 {
 	VoterArg (std::string label,
-		teq::CoordptrT shaper,
-		teq::CoordptrT coorder,
+		teq::CvrtptrT shaper,
+		teq::CvrtptrT coorder,
 		SUBGRAPH_TYPE type) :
 		label_(label),
 		shaper_(shaper),
@@ -130,10 +130,10 @@ struct VoterArg final
 	std::string label_;
 
 	/// Converted shape mapper
-	teq::CoordptrT shaper_;
+	teq::CvrtptrT shaper_;
 
 	/// Converted coordinate mapping meta-structure
-	teq::CoordptrT coorder_;
+	teq::CvrtptrT coorder_;
 
 	/// Subgraph type of the argument
 	SUBGRAPH_TYPE type_;

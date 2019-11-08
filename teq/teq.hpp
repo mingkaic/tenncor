@@ -6,5 +6,4 @@
 /// Collectively include all teq header files
 ///
 
-#include "teq/functor.hpp"
 #include "teq/session.hpp"

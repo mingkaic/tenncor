@@ -133,7 +133,7 @@ struct Subgraph final : public teq::iTraveler
 			children_.erase(func);
 
 			auto children = func->get_children();
-			for (const teq::iFuncArg& child : children)
+			for (const teq::iEdge& child : children)
 			{
 				auto tens = child.get_tensor();
 				if (false == estd::has(content_, tens.get()))

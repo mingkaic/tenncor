@@ -100,7 +100,7 @@ struct AnyConvr final : public opt::iConverter
 struct BuilderArg final
 {
 	BuilderArg (opt::ConvptrT arg,
-		teq::CoordptrT shaper,
+		teq::CvrtptrT shaper,
 		eigen::CoordptrT coorder) :
 		arg_(arg), shaper_(shaper), coorder_(coorder)
 	{
@@ -114,7 +114,7 @@ struct BuilderArg final
 	opt::ConvptrT arg_;
 
 	/// Argument shaper
-	teq::CoordptrT shaper_;
+	teq::CvrtptrT shaper_;
 
 	/// Argument coordinate transformation data
 	eigen::CoordptrT coorder_;
@@ -138,9 +138,9 @@ struct FuncConvr final : public opt::iConverter
 		for (auto& arg : args_)
 		{
 			teq::Shape childshape = outshape;
-			if (teq::is_identity(arg.shaper_.get()))
+			if (false == teq::is_identity(arg.shaper_.get()))
 			{
-				childshape = teq::apply_shaper(arg.shaper_, childshape);
+				childshape = arg.shaper_->convert(childshape);
 			}
 			auto tens = arg.arg_->build(ctx, childshape);
 			args.push_back(FuncArg<T>(
@@ -190,9 +190,9 @@ struct GroupConvr final : public opt::iConverter
 		for (auto& arg : args_)
 		{
 			teq::Shape childshape = outshape;
-			if (teq::is_identity(arg.shaper_.get()))
+			if (false == teq::is_identity(arg.shaper_.get()))
 			{
-				childshape = teq::apply_shaper(arg.shaper_, childshape);
+				childshape = arg.shaper_->convert(childshape);
 			}
 			args.push_back(arg.arg_->build(ctx, childshape));
 		}
@@ -303,7 +303,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 				{
 					::Arg* arg = (::Arg*) it->val_;
 					opt::ConvptrT warg = build(arg->subgraph_, ctx);
-					teq::CoordptrT shaper = this->shaperize(arg->shaper_);
+					teq::CvrtptrT shaper = this->shaperize(arg->shaper_);
 					eigen::CoordptrT coorder = eteq::coorderize(arg->coorder_);
 					args.push_back(BuilderArg(warg, shaper, coorder));
 				}
@@ -332,9 +332,9 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 	}
 
 	/// Implementation of iConverterBuilder
-	teq::CoordptrT shaperize (::NumList* list) const override
+	teq::CvrtptrT shaperize (::NumList* list) const override
 	{
-		teq::CoordptrT out = nullptr;
+		teq::CvrtptrT out = nullptr;
 		if (nullptr == list)
 		{
 			return out;
@@ -362,7 +362,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 	}
 
 	/// Implementation of iConverterBuilder
-	teq::CoordptrT coorderize (::NumList* list) const override
+	teq::CvrtptrT coorderize (::NumList* list) const override
 	{
 		return eteq::coorderize(list);
 	}

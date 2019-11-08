@@ -2,6 +2,7 @@
 
 #include "eigen/generated/opcode.hpp"
 #include "eigen/generated/dtype.hpp"
+#include "eigen/edge.hpp"
 
 #ifndef EIGEN_STABILIZER_HPP
 #define EIGEN_STABILIZER_HPP
@@ -269,15 +270,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::ARGMAX:
 		{
-			const teq::iFuncArg& arg = func->get_children()[0];
-			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
-			assert(coorder != nullptr);
-			teq::RankT return_dim;
-			coorder->access(
-				[&](const teq::MatrixT& args)
-				{
-					return_dim = args[0][0];
-				});
+			const teq::iEdge& arg = func->get_children()[0];
+			teq::RankT return_dim = get_coorder(arg)[0];
 			teq::Shape shape = arg.get_tensor()->shape();
 			teq::NElemT maxn = teq::rank_cap == return_dim ?
 				shape.n_elems() : shape.at(return_dim);
@@ -442,25 +436,17 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::REDUCE_SUM:
 		{
-			const teq::iFuncArg& arg = func->get_children()[0];
-			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
-			assert(coorder != nullptr);
-			const teq::Shape& shape = arg.get_tensor()->shape();
+			const teq::iEdge& arg = func->get_children()[0];
+			const teq::Shape& shape = arg.argshape();
 			teq::NElemT nreds = 1;
 			bool reduced = false;
-			coorder->access(
-				[&](const teq::MatrixT& args)
-				{
-					for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-					{
-						auto d = args[0][i];
-						if (d < teq::rank_cap)
-						{
-							reduced = true;
-							nreds *= shape.at(d);
-						}
-					}
-				});
+			auto c = get_coorder(arg);
+			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+				i < n && c[i] < teq::rank_cap; ++i)
+			{
+				reduced = true;
+				nreds *= shape.at(c[i]);
+			}
 			if (false == reduced)
 			{
 				nreds = shape.n_elems();
@@ -472,25 +458,17 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::REDUCE_PROD:
 		{
-			const teq::iFuncArg& arg = func->get_children()[0];
-			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
-			assert(coorder != nullptr);
-			const teq::Shape& shape = arg.get_tensor()->shape();
+			const teq::iEdge& arg = func->get_children()[0];
+			const teq::Shape& shape = arg.argshape();
 			teq::NElemT nreds = 1;
 			bool reduced = false;
-			coorder->access(
-				[&](const teq::MatrixT& args)
-				{
-					for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-					{
-						auto d = args[0][i];
-						if (d < teq::rank_cap)
-						{
-							reduced = true;
-							nreds *= shape.at(d);
-						}
-					}
-				});
+			auto c = get_coorder(arg);
+			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+				i < n && c[i] < teq::rank_cap; ++i)
+			{
+				reduced = true;
+				nreds *= shape.at(c[i]);
+			}
 			if (false == reduced)
 			{
 				nreds = shape.n_elems();
@@ -510,20 +488,18 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		{
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum
-			const teq::iFuncArg& arg = func->get_children()[0];
-			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
-			const teq::Shape& shape = arg.get_tensor()->shape();
-			assert(nullptr != coorder);
+			const teq::iEdge& arg = func->get_children()[0];
+			const teq::Shape& shape = arg.argshape();
 			teq::NElemT ncommons = 1;
-			coorder->access(
-				[&](const teq::MatrixT& args)
+			auto c = get_coorder(arg);
+			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+				i < n && c[i] < teq::rank_cap; ++i)
+			{
+				if (c[i] < teq::rank_cap)
 				{
-					for (teq::RankT i = 0; i < teq::rank_cap &&
-						args[0][i] < teq::rank_cap; ++i)
-					{
-						ncommons *= shape.at(args[0][i]);
-					}
-				});
+					ncommons *= shape.at(c[i]);
+				}
+			}
 			T llower = ranges[0].lower_;
 			T lupper = ranges[0].upper_;
 			T rlower = ranges[1].lower_;
@@ -543,20 +519,15 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		{
 			// conv = <image> * <kernel> then reduce by kernel dimensions that convolves
 			// apply range rule similar to matmul
-			const teq::iFuncArg& arg = func->get_children()[1];
+			const teq::iEdge& arg = func->get_children()[1];
 			const teq::Shape& shape = arg.get_tensor()->shape();
-			auto coorder = static_cast<const teq::FuncArg*>(&arg)->get_coorder();
-			assert(nullptr != coorder);
 			teq::NElemT nkern = 1;
-			coorder->access(
-				[&](const teq::MatrixT& args)
-				{
-					for (teq::RankT i = 0; i < teq::rank_cap &&
-						args[0][i] < teq::rank_cap; ++i)
-					{
-						nkern *= shape.at(i);
-					}
-				});
+			auto c = get_coorder(arg);
+			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+				i < n && c[i] < teq::rank_cap; ++i)
+			{
+				nkern *= shape.at(i);
+			}
 			T llower = ranges[0].lower_;
 			T lupper = ranges[0].upper_;
 			T rlower = ranges[1].lower_;
@@ -612,7 +583,7 @@ struct Stabilizer final : public teq::iTraveler
 			auto args = func->get_children();
 			NumRangesT<T> ranges;
 			ranges.reserve(args.size());
-			for (const teq::iFuncArg& arg : args)
+			for (const teq::iEdge& arg : args)
 			{
 				teq::iTensor* argtens = arg.get_tensor().get();
 				argtens->accept(*this);

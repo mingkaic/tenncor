@@ -39,10 +39,10 @@ struct iConverterBuilder
 	virtual ConvptrT build (const ::Subgraph* sg, const RulesContext& ctx) const = 0;
 
 	/// Return shape mapper given parsed C representation
-	virtual teq::CoordptrT shaperize (::NumList* list) const = 0;
+	virtual teq::CvrtptrT shaperize (::NumList* list) const = 0;
 
 	/// Return coordinate mapper given parsed C representation
-	virtual teq::CoordptrT coorderize (::NumList* list) const = 0;
+	virtual teq::CvrtptrT coorderize (::NumList* list) const = 0;
 };
 
 /// Return all parsed optimization rules of string content

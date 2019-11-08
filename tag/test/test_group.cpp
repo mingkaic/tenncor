@@ -6,6 +6,8 @@
 
 #include "exam/exam.hpp"
 
+#include "teq/mock/functor.hpp"
+
 #include "tag/test/common.hpp"
 
 #include "tag/group.hpp"
@@ -18,10 +20,8 @@ TEST(GROUP, SingleTagAdjacency)
 	{
 		teq::TensptrT tens = std::make_shared<MockTensor>();
 		teq::TensptrT tens2 = std::make_shared<MockTensor>();
-		teq::TensptrT f(teq::Functor::get(teq::Opcode{"MOCK", 2}, {
-			teq::identity_map(tens),
-			teq::identity_map(tens2),
-		}));
+		teq::TensptrT f(new MockFunctor(teq::Opcode{"MOCK", 2},
+			teq::TensptrsT{tens, tens2}));
 
 		registry.group_tag(tens, "group2");
 		registry.group_tag(tens, "group7");
@@ -79,14 +79,10 @@ TEST(GROUP, RecursiveTagAdjacency)
 	{
 		teq::TensptrT tens = std::make_shared<MockTensor>();
 		teq::TensptrT tens2 = std::make_shared<MockTensor>();
-		teq::TensptrT f(teq::Functor::get(teq::Opcode{"MOCK", 2}, {
-			teq::identity_map(tens),
-			teq::identity_map(tens2),
-		}));
-		teq::TensptrT f2(teq::Functor::get(teq::Opcode{"MOCK", 2}, {
-			teq::identity_map(tens),
-			teq::identity_map(tens2),
-		}));
+		teq::TensptrT f(new MockFunctor(teq::Opcode{"MOCK", 2},
+			teq::TensptrsT{tens, tens2}));
+		teq::TensptrT f2(new MockFunctor(teq::Opcode{"MOCK", 2},
+			teq::TensptrsT{tens, tens2}));
 
 		tag::recursive_group_tag(tens, "group2",
 			teq::TensSetT{},
@@ -175,10 +171,8 @@ TEST(GROUP, Subgraph)
 	{
 		teq::TensptrT tens = std::make_shared<MockTensor>();
 		teq::TensptrT tens2 = std::make_shared<MockTensor>();
-		teq::TensptrT f(teq::Functor::get(teq::Opcode{"MOCK", 2}, {
-			teq::identity_map(tens),
-			teq::identity_map(tens2),
-		}));
+		teq::TensptrT f(new MockFunctor(teq::Opcode{"MOCK", 2},
+			teq::TensptrsT{tens, tens2}));
 
 		tag::AdjMapT adjs =
 		{

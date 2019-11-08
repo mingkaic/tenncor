@@ -51,7 +51,7 @@ void adjacencies (AdjMapT& out, teq::TensptrsT roots,
 				teq::TensSetT uchildren;
 				std::transform(children.begin(), children.end(),
 					std::inserter(uchildren, uchildren.end()),
-					[](const teq::iFuncArg& arg)
+					[](const teq::iEdge& arg)
 					{
 						return arg.get_tensor().get();
 					});

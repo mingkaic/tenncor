@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 
-#include "teq/functor.hpp"
+#include "teq/ifunctor.hpp"
 
 #include "pbm/save.hpp"
 
@@ -27,7 +27,7 @@ struct TestSaver : public pbm::iSaver
 		return std::string(leaf->shape().n_elems(), 0);
 	}
 
-	std::vector<double> save_shaper (const teq::CoordptrT& mapper) override
+	std::vector<double> save_shaper (const teq::CvrtptrT& mapper) override
 	{
 		std::vector<double> out;
 		mapper->access(
@@ -44,7 +44,7 @@ struct TestSaver : public pbm::iSaver
 		return out;
 	}
 
-	std::vector<double> save_coorder (const teq::CoordptrT& mapper) override
+	std::vector<double> save_coorder (const teq::CvrtptrT& mapper) override
 	{
 		return save_shaper(mapper);
 	}

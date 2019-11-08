@@ -67,7 +67,7 @@ struct EADSaver final : public pbm::iSaver
 	}
 
 	/// Implementation of iSaver
-	std::vector<double> save_shaper (const teq::CoordptrT& mapper) override
+	std::vector<double> save_shaper (const teq::CvrtptrT& mapper) override
 	{
 		std::vector<double> out;
 		mapper->access(
@@ -85,7 +85,7 @@ struct EADSaver final : public pbm::iSaver
 	}
 
 	/// Implementation of iSaver
-	std::vector<double> save_coorder (const teq::CoordptrT& mapper) override
+	std::vector<double> save_coorder (const teq::CvrtptrT& mapper) override
 	{
 		if (nullptr == mapper)
 		{
@@ -119,7 +119,7 @@ std::transform(args.begin(), args.end(), std::back_inserter(eargs),\
 [](teq::FuncArg arg){\
 	return FuncArg<realtype>(\
 		to_node<realtype>(arg.get_tensor()),\
-		arg.get_shaper(),\
+		teq::identity,\
 		std::static_pointer_cast<eigen::CoordMap>(arg.get_coorder()));\
 });\
 func = teq::TensptrT(\
@@ -183,13 +183,13 @@ struct EADLoader final : public pbm::iLoader
 	}
 
 	/// Implementation of iLoader
-	teq::CoordptrT generate_shaper (std::vector<double> coord) override
+	teq::ShaperT generate_shaper (std::vector<double> coord) override
 	{
 		if (teq::mat_dim * teq::mat_dim != coord.size())
 		{
 			logs::fatal("cannot deserialize non-matrix shape map");
 		}
-		return std::make_shared<teq::CoordMap>(
+		return std::make_shared<teq::ShapeMap>(
 			[&](teq::MatrixT& fwd)
 			{
 				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
@@ -203,14 +203,13 @@ struct EADLoader final : public pbm::iLoader
 	}
 
 	/// Implementation of iLoader
-	teq::CoordptrT generate_coorder (
+	teq::CvrtptrT generate_coorder (
 		std::string opname, std::vector<double> coord) override
 	{
 		if (0 == coord.size()) // is identity
 		{
 			return nullptr;
 		}
-		bool is_bijective = false == estd::has(non_bijectives, egen::get_op(opname));
 		auto cit = coord.begin();
 		auto cet = coord.end();
 		return std::make_shared<eigen::CoordMap>(
@@ -224,7 +223,7 @@ struct EADLoader final : public pbm::iLoader
 						++cit;
 					}
 				}
-			}, is_bijective);
+			}, true);
 	}
 };
 

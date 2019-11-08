@@ -116,8 +116,11 @@ struct CSVEquation final : public teq::iTraveler
 		auto children = func->get_children();
 		for (size_t i = 0, n = children.size(); i < n; ++i)
 		{
-			const teq::iFuncArg& child = children[i];
-			auto coorder = static_cast<const teq::FuncArg*>(&child)->get_coorder().get();
+			const teq::iEdge& child = children[i];
+			// marsh::Maps mvalues;
+			// child.get_attrs(mvalues);
+
+			teq::CvrtptrT coorder = nullptr;
 			auto tens = child.get_tensor().get();
 			if (teq::is_identity(coorder))
 			{
@@ -193,7 +196,7 @@ private:
 
 		teq::iTensor* child_;
 
-		teq::iCoordMap* coorder_;
+		teq::iConvert* coorder_;
 
 		std::string edge_label_;
 	};
@@ -211,7 +214,7 @@ private:
 
 	std::unordered_map<teq::iTensor*,Node> nodes_;
 
-	std::unordered_map<teq::iCoordMap*,std::string> coorders_;
+	std::unordered_map<teq::iConvert*,std::string> coorders_;
 
 	GetTypeF get_ftype_;
 };

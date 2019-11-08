@@ -33,13 +33,13 @@ struct TestLoader : public pbm::iLoader
 		return teq::TensptrT(teq::Functor::get(teq::Opcode{opname, 0}, args));
 	}
 
-	teq::CoordptrT generate_shaper (std::vector<double> coord) override
+	teq::ShaperT generate_shaper (std::vector<double> coord) override
 	{
 		if (teq::mat_dim * teq::mat_dim != coord.size())
 		{
 			logs::fatal("cannot deserialize non-matrix coordinate map");
 		}
-		return std::make_shared<teq::CoordMap>(
+		return std::make_shared<teq::ShapeMap>(
 			[&](teq::MatrixT& fwd)
 			{
 				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
@@ -52,7 +52,7 @@ struct TestLoader : public pbm::iLoader
 			});
 	}
 
-	teq::CoordptrT generate_coorder (
+	teq::CvrtptrT generate_coorder (
 		std::string opname, std::vector<double> coord) override
 	{
 		return generate_shaper(coord);

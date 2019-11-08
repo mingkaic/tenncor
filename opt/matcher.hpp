@@ -79,13 +79,13 @@ struct Matcher final : public teq::iTraveler
 		{
 			auto children = func->get_children();
 			size_t nchildren = children.size();
-			for (const teq::iFuncArg& child : children)
+			for (const teq::iEdge& child : children)
 			{
 				child.get_tensor()->accept(*this);
 			}
 
 			if (std::all_of(children.begin(), children.end(),
-				[this](const teq::iFuncArg& child) -> bool
+				[this](const teq::iEdge& child) -> bool
 				{
 					auto ctens = child.get_tensor().get();
 					return estd::has(this->candidates_[ctens],
@@ -104,7 +104,7 @@ struct Matcher final : public teq::iTraveler
 				if (scalarize_)
 				{
 					if (std::all_of(children.begin(), children.end(),
-						[this](const teq::iFuncArg& child) -> bool
+						[this](const teq::iEdge& child) -> bool
 						{
 							auto ctens = child.get_tensor().get();
 							std::string scalar_str = scalarize_(ctens);
@@ -128,14 +128,22 @@ struct Matcher final : public teq::iTraveler
 			{
 				CandArgsT args;
 				args.reserve(nchildren);
-				for (const teq::iFuncArg& child : children)
+				for (const teq::iEdge& child : children)
 				{
 					auto ctens = child.get_tensor();
+					marsh::Maps mvalues;
+					ctens.get_attrs(mvalues);
+					std::string sname;
+					if (estd::has(mvalues, "shaper"))
+					{
+						sname = mvalues["shaper"]->to_string();
+					}
+
 					args.push_back(CandArg{
 						ctens,
 						candidates_[ctens.get()],
-						child.get_shaper(),
-						static_cast<const teq::FuncArg*>(&child)->get_coorder(),
+						sname,
+						child.get_coorder(),
 					});
 				}
 				out_cands = it->second->inspect(args);
@@ -161,8 +169,7 @@ struct Matcher final : public teq::iTraveler
 							args.push_back(CandArg{
 								ctens,
 								candidates_[sgcpair.first],
-								teq::identity,
-								teq::CoordptrT(),
+								teq::identity, nullptr,
 							});
 						}
 						CandsT group_cands = bit->second->inspect(args);
