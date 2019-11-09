@@ -313,9 +313,15 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			outrange = pow_range(ranges);
 			break;
 		case egen::ADD:
-			outrange = estd::NumRange<T>(
-				ranges[0].lower_ + ranges[1].lower_,
-				ranges[0].upper_ + ranges[1].upper_);
+		case egen::GROUP_SUM:
+			outrange = std::accumulate(ranges.begin(), ranges.end(),
+				estd::NumRange<T>(),
+				[](estd::NumRange<T> a, estd::NumRange<T> b)
+				{
+					return estd::NumRange<T>(
+						a.lower_ + b.lower_,
+						a.upper_ + b.upper_);
+				});
 			break;
 		case egen::SUB:
 			outrange = estd::NumRange<T>(
@@ -323,20 +329,24 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 				ranges[0].upper_ - ranges[1].lower_);
 			break;
 		case egen::MUL:
-		{
-			T alower = ranges[0].lower_;
-			T aupper = ranges[0].upper_;
-			T blower = ranges[1].lower_;
-			T bupper = ranges[1].upper_;
-			std::vector<T> bounds = {
-				alower * blower,
-				alower * bupper,
-				aupper * blower,
-				aupper * bupper};
-			outrange = estd::NumRange<T>(
-				*std::min_element(bounds.begin(), bounds.end()),
-				*std::max_element(bounds.begin(), bounds.end()));
-		}
+		case egen::GROUP_PROD:
+			outrange = std::accumulate(ranges.begin(), ranges.end(),
+				estd::NumRange<T>(1, 1),
+				[](estd::NumRange<T> a, estd::NumRange<T> b)
+				{
+					T alower = a.lower_;
+					T aupper = a.upper_;
+					T blower = b.lower_;
+					T bupper = b.upper_;
+					std::vector<T> bounds = {
+						alower * blower,
+						alower * bupper,
+						aupper * blower,
+						aupper * bupper};
+					return estd::NumRange<T>(
+						*std::min_element(bounds.begin(), bounds.end()),
+						*std::max_element(bounds.begin(), bounds.end()));
+				});
 			break;
 		case egen::DIV:
 		{

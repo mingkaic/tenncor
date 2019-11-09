@@ -21,7 +21,6 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//teq:teq",
-        "//tag:tag",
         "//opt/parse:parse",
         "@boost//:functional",
         "@boost//:uuid",

@@ -1100,16 +1100,23 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  if (args.empty())
+                  size_t nargs = args.size();
+                  switch (nargs)
                   {
-                      logs::fatal("cannot sum without arguments");
+                      case 0:
+                          logs::fatal("cannot sum without arguments");
+                      case 1:
+                          return args[0];
+                      case 2:
+                          return ::tenncor::add(args[0], args[1]);
+                      default:
+                          break;
                   }
-                  eteq::NodeptrT<T> out = args[0];
-                  for (size_t i = 1, n = args.size(); i < n; ++i)
-                  {
-                      out = ::tenncor::add(out, args[i]);
-                  }
-                  return out;
+                  eteq::ArgsT<T> inarg;
+                  inarg.reserve(nargs);
+                  std::transform(args.begin(), args.end(), std::back_inserter(inarg),
+                      [](eteq::NodeptrT<T> node) { return eteq::identity_map(node); });
+                  return eteq::make_functor<T>(teq::Opcode{"GROUP_SUM",::egen::GROUP_SUM}, inarg);
       - template: typename T
         name: prod
         args:
@@ -1119,16 +1126,23 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  if (args.empty())
+                  size_t nargs = args.size();
+                  switch (nargs)
                   {
-                      logs::fatal("cannot sum without arguments");
+                      case 0:
+                          logs::fatal("cannot prod without arguments");
+                      case 1:
+                          return args[0];
+                      case 2:
+                          return ::tenncor::mul(args[0], args[1]);
+                      default:
+                          break;
                   }
-                  eteq::NodeptrT<T> out = args[0];
-                  for (size_t i = 1, n = args.size(); i < n; ++i)
-                  {
-                      out = ::tenncor::mul(out, args[i]);
-                  }
-                  return out;
+                  eteq::ArgsT<T> inarg;
+                  inarg.reserve(nargs);
+                  std::transform(args.begin(), args.end(), std::back_inserter(inarg),
+                      [](eteq::NodeptrT<T> node) { return eteq::identity_map(node); });
+                  return eteq::make_functor<T>(teq::Opcode{"GROUP_PROD",::egen::GROUP_PROD}, inarg);
       - template: typename T
         name: softmax
         args:

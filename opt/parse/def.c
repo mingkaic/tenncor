@@ -4,30 +4,15 @@
 
 #ifdef PARSE_DEF_H
 
-void subgraph_recursive_free (struct Subgraph* sg)
+void kv_recursive_free (void* kv)
 {
-	if (NULL == sg)
+	if (NULL == kv)
 	{
 		return;
 	}
-	switch (sg->type_)
-	{
-		case SCALAR:
-			break;
-		case ANY:
-			free(sg->val_.any_);
-			break;
-		case BRANCH:
-		{
-			struct Branch* branch = sg->val_.branch_;
-			ptrlist_free(branch->args_, &arg_recursive_free);
-			free(branch);
-		}
-			break;
-		default:
-			fprintf(stderr, "freeing unknown subgraph %d\n", sg->type_);
-	}
-	free(sg);
+	struct KeyVal* k = (struct KeyVal*) kv;
+	numlist_clear(&k->val_);
+	free(k);
 }
 
 void arg_recursive_free (void* arg)
@@ -36,11 +21,44 @@ void arg_recursive_free (void* arg)
 	{
 		return;
 	}
-	struct Arg* argt = (struct Arg*) arg;
-	subgraph_recursive_free(argt->subgraph_);
-	numlist_free(argt->shaper_);
-	numlist_free(argt->coorder_);
-	free(argt);
+	struct Arg* a = (struct Arg*) arg;
+	node_recursive_free(a->node_);
+	objs_clear(&a->attrs_);
+	free(a);
+}
+
+void func_recursive_free (void* func)
+{
+	if (NULL == func)
+	{
+		return;
+	}
+	struct Functor* f = (struct Functor*) func;
+	objs_clear(&f->args_);
+	free(f);
+}
+
+void node_recursive_free (void* node)
+{
+	if (NULL == node)
+	{
+		return;
+	}
+	struct TreeNode* root = (struct TreeNode*) node;
+	switch (root->type_)
+	{
+		case SCALAR:
+			break;
+		case ANY:
+			free(root->val_.any_);
+			break;
+		case FUNCTOR:
+			func_recursive_free(root->val_.functor_);
+			break;
+		default:
+			fprintf(stderr, "freeing unknown node %d\n", root->type_);
+	}
+	free(root);
 }
 
 void conversion_recursive_free (void* conv)
@@ -49,37 +67,59 @@ void conversion_recursive_free (void* conv)
 	{
 		return;
 	}
-	struct Conversion* convt = (struct Conversion*) conv;
-	subgraph_recursive_free(convt->source_);
-	subgraph_recursive_free(convt->dest_);
-	free(convt);
+	struct Conversion* c = (struct Conversion*) conv;
+	node_recursive_free(c->matcher_);
+	node_recursive_free(c->target_);
+	free(c);
 }
 
-void statement_recursive_free (void* ptr)
+void objs_free (struct PtrList* objs)
 {
-	if (NULL == ptr)
+	if (NULL == objs)
 	{
 		return;
 	}
-	struct Statement* stmt = (struct Statement*) ptr;
-	switch (stmt->type_)
+	void (*recursive_free)(void*) = NULL;
+	switch (objs->type_)
 	{
-		case SYMBOL_DEF:
-		case PROPERTY_DEF:
-			free(stmt->val_);
-			break;
 		case CONVERSION:
-			conversion_recursive_free(stmt->val_);
+			recursive_free = conversion_recursive_free;
+			break;
+		case ARGUMENT:
+			recursive_free = arg_recursive_free;
+			break;
+		case KV_PAIR:
+			recursive_free = kv_recursive_free;
 			break;
 		default:
-			fprintf(stderr, "freeing unknown statement type %d", stmt->type_);
+			fprintf(stderr, "freeing unknown object %zu\n", objs->type_);
 	}
-	free(stmt);
+	ptrlist_free(objs, recursive_free);
+}
+
+void objs_clear (struct PtrList* objs)
+{
+	void (*recursive_free)(void*) = NULL;
+	switch (objs->type_)
+	{
+		case CONVERSION:
+			recursive_free = &conversion_recursive_free;
+			break;
+		case ARGUMENT:
+			recursive_free = &arg_recursive_free;
+			break;
+		case KV_PAIR:
+			recursive_free = &kv_recursive_free;
+			break;
+		default:
+			fprintf(stderr, "freeing unknown object %zu\n", objs->type_);
+	}
+	ptrlist_clear(objs, recursive_free);
 }
 
 void statements_free (struct PtrList* stmts)
 {
-	ptrlist_free(stmts, statement_recursive_free);
+	objs_free(stmts);
 }
 
 #endif

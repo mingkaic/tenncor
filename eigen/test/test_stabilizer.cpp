@@ -510,7 +510,7 @@ TEST(STABILIZER, Concat)
 	teq::TensptrT a(new MockTensor(shape));
 
 	auto f = std::make_shared<MockOpfunc>(a, a,
-		teq::Opcode{"", egen::GROUP_CONCAT});
+		teq::Opcode{"", egen::CONCAT});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
 		estd::NumRange<double>(3, 4),
@@ -607,6 +607,46 @@ TEST(STABILIZER, Add)
 }
 
 
+TEST(STABILIZER, GroupSum)
+{
+	teq::Shape shape({2, 3, 4});
+	teq::TensptrT a(new MockTensor(shape));
+
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{
+			MockEdge(a),
+			MockEdge(a),
+			MockEdge(a),
+		}, teq::Opcode{"", egen::GROUP_SUM});
+
+	auto r1 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(3, 4),
+		estd::NumRange<double>(4, 5),
+		estd::NumRange<double>(5, 6),
+	});
+
+	EXPECT_DOUBLE_EQ(12, r1.lower_);
+	EXPECT_DOUBLE_EQ(15, r1.upper_);
+
+	auto r2 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(-2, -1),
+		estd::NumRange<double>(4, 5),
+		estd::NumRange<double>(-3, 2),
+	});
+
+	EXPECT_DOUBLE_EQ(-1, r2.lower_);
+	EXPECT_DOUBLE_EQ(6, r2.upper_);
+
+	auto r3 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(-2, 2),
+		estd::NumRange<double>(2, 4),
+		estd::NumRange<double>(-5, 2),
+	});
+
+	EXPECT_DOUBLE_EQ(-5, r3.lower_);
+	EXPECT_DOUBLE_EQ(8, r3.upper_);
+}
+
+
 TEST(STABILIZER, Sub)
 {
 	teq::Shape shape({2, 3, 4});
@@ -664,6 +704,46 @@ TEST(STABILIZER, Mul)
 
 	EXPECT_DOUBLE_EQ(-10, r3.lower_);
 	EXPECT_DOUBLE_EQ(10, r3.upper_);
+}
+
+
+TEST(STABILIZER, GroupProd)
+{
+	teq::Shape shape({2, 3, 4});
+	teq::TensptrT a(new MockTensor(shape));
+
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{
+			MockEdge(a),
+			MockEdge(a),
+			MockEdge(a),
+		}, teq::Opcode{"", egen::GROUP_PROD});
+
+	auto r1 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(3, 4),
+		estd::NumRange<double>(4, 5),
+		estd::NumRange<double>(5, 6),
+	});
+
+	EXPECT_DOUBLE_EQ(60, r1.lower_);
+	EXPECT_DOUBLE_EQ(120, r1.upper_);
+
+	auto r2 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(-2, -1),
+		estd::NumRange<double>(4, 5),
+		estd::NumRange<double>(-3, 2),
+	});
+
+	EXPECT_DOUBLE_EQ(-20, r2.lower_);
+	EXPECT_DOUBLE_EQ(30, r2.upper_);
+
+	auto r3 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(-2, 2),
+		estd::NumRange<double>(2, 4),
+		estd::NumRange<double>(-5, 2),
+	});
+
+	EXPECT_DOUBLE_EQ(-40, r3.lower_);
+	EXPECT_DOUBLE_EQ(40, r3.upper_);
 }
 
 

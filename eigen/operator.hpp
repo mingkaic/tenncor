@@ -244,6 +244,50 @@ EigenptrT<T> group_concat (teq::Shape& outshape, const EigenEdgesT<T>& group)
 		});
 }
 
+template <typename T>
+EigenptrT<T> group_sum (teq::Shape& outshape, const EigenEdgesT<T>& group)
+{
+	assert(group.size() > 2);
+	std::vector<TensMapT<T>> args;
+	args.reserve(group.size());
+	std::transform(group.begin(), group.end(), std::back_inserter(args),
+		[](const iEigenEdge<T>& arg)
+		{
+			return make_tensmap(arg.data(), arg.argshape());
+		});
+	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
+		shape_convert(outshape), args,
+		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
+		{
+			for (size_t i = 0, n = args.size(); i < n; ++i)
+			{
+				out += args[i];
+			}
+		});
+}
+
+template <typename T>
+EigenptrT<T> group_prod (teq::Shape& outshape, const EigenEdgesT<T>& group)
+{
+	assert(group.size() > 2);
+	std::vector<TensMapT<T>> args;
+	args.reserve(group.size());
+	std::transform(group.begin(), group.end(), std::back_inserter(args),
+		[](const iEigenEdge<T>& arg)
+		{
+			return make_tensmap(arg.data(), arg.argshape());
+		});
+	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
+		shape_convert(outshape), args,
+		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
+		{
+			for (size_t i = 0, n = args.size(); i < n; ++i)
+			{
+				out *= args[i];
+			}
+		});
+}
+
 /// Return Eigen data object representing data zero padding
 template <typename T>
 EigenptrT<T> pad (teq::Shape& outshape, const iEigenEdge<T>& in)

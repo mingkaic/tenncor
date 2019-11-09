@@ -405,11 +405,7 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 				size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
 				for (size_t i = 0; i < n; ++i)
 				{
-					// ceil(in_dim / stride) =
-					// round(in_dim / stride + 0.5 - <smol num>)
 					fwd[i][i] = 1. / incrs[i];
-					fwd[teq::rank_cap][i] = 0.5 -
-						1. / std::numeric_limits<teq::DimT>::max();
 				}
 				for (teq::RankT i = n; i < teq::rank_cap; ++i)
 				{

@@ -35,6 +35,9 @@ struct NumList
 /// Return a new decimal linked list
 struct NumList* new_numlist (void);
 
+/// Move all nodes from src to dst
+void numlist_move (struct NumList* dst, struct NumList* src);
+
 /// Free all nodes in list and reset list head and tail to null
 void numlist_clear (struct NumList* list);
 
@@ -70,6 +73,9 @@ struct PtrList
 
 /// Return a new pointer list of specified enumerated type
 struct PtrList* new_ptrlist (size_t type);
+
+/// Move all nodes from src to dst
+void ptrlist_move (struct PtrList* dst, struct PtrList* src);
 
 /// Frees all node in list and reset list head and tail to null
 /// Before freeing for every pointer value x in list

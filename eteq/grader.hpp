@@ -138,6 +138,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::PERMUTE:
 			case egen::RESHAPE:
 			case egen::ADD:
+			case egen::GROUP_SUM:
 			case egen::SLICE:
 			case egen::PAD:
 			case egen::STRIDE:
@@ -149,7 +150,20 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				out = make_constant_scalar<T>(1, args[arg_idx].get().argshape());
 				break;
 			case egen::MUL:
-				out = to_node<T>(args[(size_t)(arg_idx==0)].get().get_tensor());
+			case egen::GROUP_PROD:
+			{
+				eteq::NodesT<T> nodes;
+				size_t nargs = args.size();
+				nodes.reserve(nargs);
+				for (size_t i = 0, n = nargs; i < n; ++i)
+				{
+					if (i != arg_idx)
+					{
+						nodes.push_back(to_node<T>(args[i].get().get_tensor()));
+					}
+				}
+				out = tenncor::prod(nodes);
+			}
 				break;
 			case egen::MAX:
 			case egen::MIN:
@@ -325,6 +339,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::SIGMOID:
 			case egen::TANH:
 			case egen::ADD:
+			case egen::GROUP_SUM:
 			case egen::MUL:
 			case egen::MAX:
 			case egen::MIN:

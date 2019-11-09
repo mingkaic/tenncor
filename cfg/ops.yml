@@ -45,3 +45,5 @@ opcode:
     SELECT: out = eigen::select(shape, in[0].get(), in[1].get(), in[2].get());
     CONCAT: out = eigen::concat(shape, in[0].get(), in[1].get());
     GROUP_CONCAT: out = eigen::group_concat(shape, in);
+    GROUP_SUM: out = eigen::group_sum(shape, in);
+    GROUP_PROD: out = eigen::group_prod(shape, in);
