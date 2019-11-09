@@ -4,8 +4,8 @@ import logging
 from gen.plugin_base import PluginBase
 from gen.file_rep import FileRep
 
-from eteq.gen.plugins.template import build_template
-from eteq.gen.plugins.apis import api_header
+from plugins.template import build_template
+from plugins.apis import api_header
 
 _pybindt = 'PybindT'
 
@@ -235,6 +235,7 @@ def _handle_defs(pybind_type, apis, module_name, first_module):
 
 _plugin_id = 'PYBINDER'
 
+@PluginBase.register
 class PyAPIsPlugin:
 
     def plugin_id(self):
@@ -303,5 +304,3 @@ class PyAPIsPlugin:
                 internal_refs=[_hdr_file, api_header])
 
         return generated_files
-
-PluginBase.register(PyAPIsPlugin)

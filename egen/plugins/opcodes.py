@@ -3,7 +3,7 @@ import logging
 from gen.plugin_base import PluginBase
 from gen.file_rep import FileRep
 
-from eteq.gen.plugins.template import build_template
+from plugins.template import build_template
 
 _header_template = '''
 #ifndef _GENERATED_OPCODES_HPP
@@ -114,6 +114,7 @@ def _handle_name2codes(params, opcalls):
 
 _plugin_id = "OPCODE"
 
+@PluginBase.register
 class OpcodesPlugin:
 
     def plugin_id(self):
@@ -155,5 +156,3 @@ class OpcodesPlugin:
             internal_refs=[_hdr_file])
 
         return generated_files
-
-PluginBase.register(OpcodesPlugin)

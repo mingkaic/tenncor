@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/test/common.hpp"
+#include "teq/mock/leaf.hpp"
 
 #include "teq/functor.hpp"
 #include "teq/traveler.hpp"

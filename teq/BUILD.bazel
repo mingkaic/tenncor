@@ -38,12 +38,19 @@ cc_library(
 
 ######### TEST #########
 
+cc_library(
+    name = "mock_teq",
+    hdrs = glob(["mock/*.hpp"]),
+    copts = ["-std=c++17"],
+    deps = ["//teq:teq"],
+    visibility = ["//visibility:public"],
+)
+
 cc_test(
     name = "test",
-    size = "medium",
     srcs = ["//teq:test_srcs"],
     deps = [
-        "//teq:teq",
+        "//teq:mock_teq",
         "//testutil:tutil",
     ],
     copts = ["-std=c++17"],

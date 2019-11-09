@@ -1,7 +1,7 @@
 #include "teq/ileaf.hpp"
 
-#ifndef TEQ_TEST_COMMON_HPP
-#define TEQ_TEST_COMMON_HPP
+#ifndef TEQ_MOCK_LEAF_HPP
+#define TEQ_MOCK_LEAF_HPP
 
 struct MockTensor : public teq::iLeaf
 {
@@ -54,4 +54,4 @@ struct MockTensor : public teq::iLeaf
 	teq::Shape shape_;
 };
 
-#endif // TEQ_TEST_COMMON_HPP
+#endif // TEQ_MOCK_LEAF_HPP

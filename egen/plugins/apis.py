@@ -3,7 +3,7 @@ import logging
 from gen.plugin_base import PluginBase
 from gen.file_rep import FileRep
 
-from eteq.gen.plugins.template import build_template
+from plugins.template import build_template
 
 _ns_template = '''
 //>>> namespace
@@ -228,6 +228,7 @@ _plugin_id = "API"
 
 api_header = 'api.hpp'
 
+@PluginBase.register
 class APIsPlugin:
 
     def plugin_id(self):
@@ -298,5 +299,3 @@ class APIsPlugin:
             internal_refs=[api_header])
 
         return generated_files
-
-PluginBase.register(APIsPlugin)

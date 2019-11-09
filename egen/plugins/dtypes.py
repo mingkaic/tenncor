@@ -3,7 +3,7 @@ import logging
 from gen.plugin_base import PluginBase
 from gen.file_rep import FileRep
 
-from eteq.gen.plugins.template import build_template
+from plugins.template import build_template
 
 _header_template = '''
 #ifndef _GENERATED_DTYPES_HPP
@@ -207,6 +207,7 @@ def _handle_get_types(dtypes):
 
 _plugin_id = "DTYPE"
 
+@PluginBase.register
 class DTypesPlugin:
 
     def plugin_id(self):
@@ -235,5 +236,3 @@ class DTypesPlugin:
             internal_refs=[_hdr_file])
 
         return generated_files
-
-PluginBase.register(DTypesPlugin)
