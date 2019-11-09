@@ -15,7 +15,7 @@ message NodeArg {
     uint32 idx = 1; // todo: check if these are redundant
     repeated double coord = 2 [packed = true];
     repeated double shaper = 3 [packed = true];
-    bool fwd = 4;
+    bool fwd = 4 [deprecated = true];
 }
 
 message Functor {

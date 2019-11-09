@@ -23,7 +23,7 @@ namespace opt
 struct VoterArg final
 {
 	VoterArg (std::string label,
-		teq::CvrtptrT shaper,
+		teq::ShaperT shaper,
 		teq::CvrtptrT coorder,
 		SUBGRAPH_TYPE type) :
 		label_(label),
@@ -35,7 +35,7 @@ struct VoterArg final
 	bool match (CtxsT& ctxs, const CandArg& arg) const
 	{
 		// match arg.shaper_ and arg.coorder_
-		if (false == is_equal(arg.shaper_, shaper_) ||
+		if (arg.shaper_ != shaper_->to_string() ||
 			false == is_equal(arg.coorder_, coorder_))
 		{
 			return false;
@@ -130,10 +130,10 @@ struct VoterArg final
 	std::string label_;
 
 	/// Converted shape mapper
-	teq::CvrtptrT shaper_;
+	teq::ShaperT shaper_;
 
 	/// Converted coordinate mapping meta-structure
-	teq::CvrtptrT coorder_;
+	teq::ShaperT coorder_;
 
 	/// Subgraph type of the argument
 	SUBGRAPH_TYPE type_;

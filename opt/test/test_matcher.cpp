@@ -13,7 +13,7 @@
 
 
 #define ELEMENTARY(LABEL, TYPE)opt::VoterArg{\
-	LABEL,teq::CvrtptrT(),teq::CvrtptrT(), TYPE}
+	LABEL,teq::ShaperT(),teq::ShaperT(), TYPE}
 
 
 TEST(MATCHER, OrdrAny)

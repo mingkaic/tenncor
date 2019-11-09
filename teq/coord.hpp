@@ -89,6 +89,8 @@ ShaperT extend (teq::CoordT bcast);
 /// requires order indices be unique, otherwise throw fatal error
 ShaperT permute (std::array<RankT,rank_cap> order);
 
+
+// todo: test above reduce/extend then remove below funcs
 /// Return coordinate mapper dividing dimensions after rank
 /// by values in red vector
 /// For example, given coordinate [2, 2, 6, 6], rank=2, and red=[3, 3],

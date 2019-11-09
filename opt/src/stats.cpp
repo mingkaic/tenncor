@@ -22,7 +22,7 @@ bool is_scalar (teq::iLeaf* leaf)
 	return true;
 }
 
-std::string to_string (teq::CvrtptrT c)
+std::string to_string (teq::ShaperT c)
 {
 	if (teq::is_identity(c.get()))
 	{
@@ -31,7 +31,7 @@ std::string to_string (teq::CvrtptrT c)
 	return c->to_string();
 }
 
-bool lt (teq::CvrtptrT a, teq::CvrtptrT b)
+bool lt (teq::ShaperT a, teq::ShaperT b)
 {
 	if (teq::is_identity(a.get()))
 	{
@@ -40,7 +40,7 @@ bool lt (teq::CvrtptrT a, teq::CvrtptrT b)
 	return a->to_string() < b->to_string();
 }
 
-bool is_equal (teq::CvrtptrT a, teq::CvrtptrT b)
+bool is_equal (teq::ShaperT a, teq::ShaperT b)
 {
 	if (a == b)
 	{

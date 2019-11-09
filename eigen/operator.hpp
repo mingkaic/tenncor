@@ -53,9 +53,10 @@ return in.PROCESS(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 	std::vector<teq::RankT> vdims;\
 	vdims.reserve(teq::rank_cap);\
 	auto cdims = get_coorder(in);\
-	std::copy(cdims.begin(), cdims.begin() +\
-		std::min(cdims.size(), teq::rank_cap),\
-		std::back_inserter(vdims));\
+	std::copy_if(cdims.begin(), cdims.begin() +\
+		std::min(cdims.size(), (size_t) teq::rank_cap),\
+		std::back_inserter(vdims),\
+		[](teq::CDimT i) { return i < teq::rank_cap; });\
 	DimensionsT outdims = shape_convert(outshape);\
 	switch (vdims.size()) {\
 		_EIGEN_INTERNAL_V2A_CASE(0, PROCESS, RED)\
@@ -142,7 +143,7 @@ EigenptrT<T> extend (teq::Shape& outshape, const iEigenEdge<T>& in)
 {
 	teq::CoordT coord;
 	auto c = get_coorder(in);
-	std::copy(c.begin(), c.begin() + std::min(teq::rank_cap, c.size()),
+	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		coord.begin());
 	return make_eigentensor<T,Eigen::TensorBroadcastingOp<
 		const teq::CoordT,const TensMapT<T>>,TensMapT<T>>(
@@ -159,7 +160,7 @@ EigenptrT<T> permute (teq::Shape& outshape, const iEigenEdge<T>& in)
 {
 	teq::CoordT reorder;
 	auto c = get_coorder(in);
-	std::copy(c.begin(), c.begin() + std::min(teq::rank_cap, c.size()),
+	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		reorder.begin());
 	if (is_2d(outshape) && reorder[0] == 1 && reorder[1] == 0)
 	{
@@ -198,9 +199,9 @@ EigenptrT<T> slice (teq::Shape& outshape, const iEigenEdge<T>& in)
 	teq::ShapeT extents;
 	auto c = get_coorder(in);
 	auto it = c.begin();
-	std::copy(it, it + std::min(teq::rank_cap, c.size()),
+	std::copy(it, it + std::min((size_t) teq::rank_cap, c.size()),
 		offsets.begin());
-	std::copy(it + teq::mat_dim, it + teq::mat_dim + std::min(teq::rank_cap, c.size()),
+	std::copy(it + teq::mat_dim, it + teq::mat_dim + std::min((size_t) teq::rank_cap, c.size()),
 		extents.begin());
 	DimensionsT outdims = shape_convert(outshape);
 	return make_eigentensor<T,Eigen::TensorReshapingOp<
@@ -249,7 +250,7 @@ EigenptrT<T> pad (teq::Shape& outshape, const iEigenEdge<T>& in)
 {
 	std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap> paddings;
 	auto c = get_coorder(in);
-	for (teq::RankT i = 0, n = std::min(teq::rank_cap, c.size() / 2);
+	for (teq::RankT i = 0, n = std::min((size_t) teq::rank_cap, c.size() / 2);
 		i < n; ++i)
 	{
 		paddings[i] = {c[i], c[i + teq::mat_dim]};
@@ -272,7 +273,7 @@ EigenptrT<T> stride (teq::Shape& outshape, const iEigenEdge<T>& in)
 {
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
 	auto c = get_coorder(in);
-	std::copy(c.begin(), c.begin() + std::min(teq::rank_cap, c.size()),
+	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
 	return make_eigentensor<T,Eigen::TensorStridingOp<
 			const Eigen::array<Eigen::DenseIndex,teq::rank_cap>,
@@ -294,7 +295,7 @@ EigenptrT<T> scatter (teq::Shape& outshape, const iEigenEdge<T>& in)
 {
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
 	auto c = get_coorder(in);
-	std::copy(c.begin(), c.begin() + std::min(teq::rank_cap, c.size()),
+	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
 	return std::make_shared<EigenAssignTens<T,TensMapT<T>>>(shape_convert(outshape),
 		make_tensmap(in.data(), in.argshape()),
@@ -330,7 +331,7 @@ template <typename T>
 EigenptrT<T> concat (teq::Shape& outshape,
 	const iEigenEdge<T>& left, const iEigenEdge<T>& right)
 {
-	teq::RankT axis = get_coorder(left);
+	teq::RankT axis = get_coorder(left)[0];
 	return make_eigentensor<T,
 		Eigen::TensorConcatenationOp<
 			const teq::RankT,TensMapT<T>,TensMapT<T>>,
@@ -1186,7 +1187,7 @@ EigenptrT<T> matmul (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenE
 {
 	std::vector<std::pair<teq::RankT,teq::RankT>> dims;
 	auto c = get_coorder(a);
-	for (teq::RankT i = 0, n = std::min(teq::rank_cap, c.size() / 2);
+	for (teq::RankT i = 0, n = std::min((size_t) teq::rank_cap, c.size() / 2);
 		i < n && c[i] < teq::rank_cap; ++i)
 	{
 		dims.push_back({c[i + teq::mat_dim], c[i]});
@@ -1271,7 +1272,7 @@ EigenptrT<T> convolution (teq::Shape& outshape, const iEigenEdge<T>& input, cons
 {
 	teq::ShapeT dims;
 	auto c = get_coorder(kernel);
-	std::copy(c.begin(), c.begin() + std::min(teq::rank_cap, c.size()),
+	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		dims.begin());
 	return make_eigentensor<T,Eigen::TensorConvolutionOp<
 		const teq::ShapeT,

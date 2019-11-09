@@ -18,29 +18,7 @@ struct iEigenEdge : public teq::iEdge
 
 const std::string coorder_key = "coord";
 
-std::vector<teq::CDimT> get_coorder (const teq::iEdge& edge)
-{
-	marsh::Maps mvalues;
-	edge.get_attrs(mvalues);
-	if (false == estd::has(mvalues.contents_, coorder_key))
-	{
-		logs::fatal("coorder not found");
-	}
-	auto& coorder = mvalues.contents_.at(coorder_key);
-	if (coorder->class_code() != typeid(marsh::NumArray<teq::CDimT>).hash_code())
-	{
-		logs::fatal("cannot find array coorder");
-	}
-	auto& ccontent = static_cast<marsh::NumArray<teq::CDimT>*>(
-		coorder.get())->contents_;
-	std::vector<teq::CDimT> out;
-	out.reserve(ccontent.size());
-	for (auto& val : ccontent)
-	{
-		out.push_back(val);
-	}
-	return out;
-}
+std::vector<teq::CDimT> get_coorder (const teq::iEdge& edge);
 
 template <typename T>
 using EigenEdgesT = std::vector<std::reference_wrapper<const eigen::iEigenEdge<T>>>;

@@ -34,9 +34,6 @@ struct iEdge
 	/// Set attribute in out object specified by attr
 	/// If attr is empty string, set all attributes to out marsh::Map
 	virtual void get_attrs (marsh::Maps& out) const = 0;
-
-	// todo: replace this with a better coordinate attribute holder
-	virtual CvrtptrT get_coorder (void) const = 0;
 };
 
 using CEdgesT = std::vector<std::reference_wrapper<const iEdge>>;

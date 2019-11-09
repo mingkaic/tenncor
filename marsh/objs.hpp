@@ -1,3 +1,5 @@
+#include <functional>
+
 #include "estd/estd.hpp"
 #include "fmts/fmts.hpp"
 

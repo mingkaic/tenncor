@@ -66,17 +66,17 @@ struct Functor final : public teq::iOperableFunc
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		teq::Shape nexshape = arg.shape();
+		teq::Shape nexshape = arg->shape();
 		teq::Shape curshape = args_[index].argshape();
-		if (false == nexshape.compatible_after(ashape, 0))
+		if (false == nexshape.compatible_after(curshape, 0))
 		{
 			logs::fatalf("cannot update child %d to argument with "
 				"incompatible shape %s (requires shape %s)",
 				index, nexshape.to_string().c_str(),
 				curshape.to_string().c_str());
 		}
-		static_cast<eigen::iEigenEdge*>(
-			&args_[index].get())->set_tensor(arg);
+		static_cast<eigen::iEigenEdge<T>*>(
+			&args_[index])->set_tensor(arg);
 		uninitialize();
 		// warning: does not notify parents of data destruction
 	}
@@ -146,7 +146,7 @@ struct Functor final : public teq::iOperableFunc
 	void initialize (void)
 	{
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			shape_, out_, args_);
+			shape_, out_, eigen::EigenEdgesT<T>(args_.begin(), args_.end()));
 	}
 
 private:
@@ -212,7 +212,7 @@ protected:
 			std::back_inserter(input_args),
 			[](const teq::iEdge& arg) -> FuncArg<T>
 			{
-				return *static_cast<FuncArg<T>*>(&arg);
+				return *static_cast<const FuncArg<T>*>(&arg);
 			});
 		return new FunctorNode(std::shared_ptr<Functor<T>>(
 			Functor<T>::get(func_->get_opcode(), input_args)));

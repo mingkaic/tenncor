@@ -27,7 +27,7 @@ struct TestSaver : public pbm::iSaver
 		return std::string(leaf->shape().n_elems(), 0);
 	}
 
-	std::vector<double> save_shaper (const teq::CvrtptrT& mapper) override
+	std::vector<double> save_shaper (const teq::ShaperT& mapper) override
 	{
 		std::vector<double> out;
 		mapper->access(

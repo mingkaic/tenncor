@@ -23,22 +23,16 @@ NodeptrT<T> reduce_grad (const teq::iEdge& child,
 	NodeptrT<T> bwd, size_t idx)
 {
 	const teq::Shape& shape = child.argshape();
-	auto coorder = child.get_coorder();
-	assert(nullptr != coorder);
 	teq::CoordT bcast;
 	std::fill(bcast.begin(), bcast.end(), 1);
-	coorder->access(
-		[&](const teq::MatrixT& args)
+	auto c = eigen::get_coorder(child);
+	for (teq::RankT d : c)
+	{
+		if (d < teq::rank_cap)
 		{
-			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-			{
-				auto d = args[0][i];
-				if (d < teq::rank_cap)
-				{
-					bcast[d] = shape.at(d);
-				}
-			}
-		});
+			bcast[d] = shape.at(d);
+		}
+	}
 	return make_functor<T>(teq::Opcode{"EXTEND",egen::EXTEND}, {
 		FuncArg<T>(bwd, teq::extend(bcast), eigen::extend(bcast))
 	});
@@ -50,20 +44,20 @@ NodeptrT<T> extend_grad (teq::iFunctor* fwd,
 	NodeptrT<T> bwd, size_t idx) // move this below
 {
 	const teq::iEdge& child = fwd->get_children()[0];
-	auto coorder = child.get_coorder();
-	assert(nullptr != coorder);
+	auto c = eigen::get_coorder(child);
 	std::set<teq::RankT> rdims;
-	coorder->access(
-		[&](const teq::MatrixT& args)
+	// technically, reduce_sum is not grad of broadcast,
+	// (since broadcast works on dimension > 1) (todo: account for this)
+	// but assuming broadcast is applied on dimensions of 1, reduce_sum is sufficient
+	for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+		i < n; ++i)
+	{
+		teq::RankT d = c[i];
+		if (d > 1)
 		{
-			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-			{
-				if (args[0][i] > 1)
-				{
-					rdims.emplace(i);
-				}
-			}
-		});
+			rdims.emplace(i);
+		}
+	}
 	return make_functor<T>(teq::Opcode{"REDUCE_SUM",egen::REDUCE_SUM},{
 		FuncArg<T>(bwd, teq::reduce(rdims), eigen::reduce(rdims))
 	});
@@ -75,17 +69,13 @@ NodeptrT<T> permute_grad (teq::iFunctor* fwd,
 	NodeptrT<T> bwd, size_t idx) // move this below
 {
 	const teq::iEdge& child = fwd->get_children()[0];
-	auto coorder = child.get_coorder();
-	assert(nullptr != coorder);
+	auto c = eigen::get_coorder(child);
+	assert(teq::rank_cap <= c.size());
 	std::array<teq::RankT,teq::rank_cap> order;
-	coorder->access(
-		[&](const teq::MatrixT& args)
-		{
-			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-			{
-				order[args[0][i]] = i;
-			}
-		});
+	for (size_t i = 0; i < teq::rank_cap; ++i)
+	{
+		order[c[i]] = i;
+	}
 	return make_functor<T>(teq::Opcode{"PERMUTE",egen::PERMUTE},{
 		FuncArg<T>(bwd, teq::permute(order), eigen::permute(order))
 	});
@@ -208,20 +198,15 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::MATMUL:
 			{
-				auto coorder = args[0].get().get_coorder();
 				NodeptrT<T> lhs = to_node<T>(args[0].get().get_tensor());
 				NodeptrT<T> rhs = to_node<T>(args[1].get().get_tensor());
-				assert(nullptr != coorder);
 				PairVecT<teq::RankT> dims;
-				coorder->access(
-					[&](const teq::MatrixT& args)
-					{
-						for (teq::RankT i = 0; i < teq::rank_cap &&
-							args[0][i] < teq::rank_cap; ++i)
-						{
-							dims.push_back({args[0][i], args[1][i]});
-						}
-					});
+				auto c = eigen::get_coorder(args[0]);
+				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+					i < n && c[i] < teq::rank_cap; ++i)
+				{
+					dims.push_back({c[i], c[teq::mat_dim + i]});
+				}
 				std::vector<teq::DimT> llist = teq::narrow_shape(lhs->shape());
 				std::vector<teq::DimT> rlist = teq::narrow_shape(rhs->shape());
 				std::array<bool,teq::rank_cap> avisit;
@@ -379,18 +364,13 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::MATMUL:
 			{
 				auto args = op->get_children();
-				auto coorder = args[0].get().get_coorder();
-				assert(nullptr != coorder);
 				PairVecT<teq::RankT> dims;
-				coorder->access(
-					[&](const teq::MatrixT& args)
-					{
-						for (teq::RankT i = 0; i < teq::rank_cap &&
-							args[0][i] < teq::rank_cap; ++i)
-						{
-							dims.push_back({args[0][i], args[1][i]});
-						}
-					});
+				auto c = eigen::get_coorder(args[0]);
+				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+					i < n && c[i] < teq::rank_cap; ++i)
+				{
+					dims.push_back({c[i], c[teq::mat_dim + i]});
+				}
 
 				std::vector<teq::DimT> llist = teq::narrow_shape(args[0].get().argshape());
 				std::vector<teq::DimT> rlist = teq::narrow_shape(args[1].get().argshape());
@@ -476,9 +456,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					fwdperm.insert(fwdperm.end(), rcommon.begin(), rcommon.end());
 				}
 				// reverse fwdperm
-				teq::RankT nperms = fwdperm.size();
+				size_t nperms = fwdperm.size();
 				std::vector<teq::RankT> permlist(nperms);
-				for (teq::RankT i = 0; i < nperms; ++i)
+				for (size_t i = 0; i < nperms; ++i)
 				{
 					permlist[fwdperm[i]] = i;
 				}
@@ -493,25 +473,21 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			{
 				// for convolution(X, Y) = C
 				auto args = op->get_children();
+
 				std::vector<teq::RankT> dims;
-				auto coorder = args[1].get().get_coorder();
-				assert(nullptr != coorder);
-				coorder->access(
-					[&](const teq::MatrixT& args)
-					{
-						for (teq::RankT i = 0; i < teq::rank_cap &&
-							args[0][i] < teq::rank_cap; ++i)
-						{
-							dims.push_back(args[0][i]);
-						}
-					});
+				auto c = eigen::get_coorder(args[1]);
+				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+					i < n && c[i] < teq::rank_cap; ++i)
+				{
+					dims.push_back(c[i]);
+				}
 				if (arg_idx == 0)
 				{
 					// convolve(pad(C_grad_sup, Y.shape[dims]-1), reverse(Y))
-					teq::RankT ndims = dims.size();
+					size_t ndims = dims.size();
 					teq::Shape kernshape = args[1].get().argshape();
 					PairVecT<teq::DimT> paddings(teq::rank_cap, {0, 0});
-					for (teq::RankT i = 0; i < ndims; ++i)
+					for (size_t i = 0; i < ndims; ++i)
 					{
 						teq::DimT kpad = kernshape.at(i) - 1;
 						paddings[dims[i]] = {kpad, kpad};
@@ -541,12 +517,12 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				const teq::iEdge& child = op->get_children()[0];
 				teq::ShapeT offsets;
 				teq::ShapeT extents;
-				child)->get_coorder(.access(
-					[&](const teq::MatrixT& args)
-					{
-						std::copy(args[0], args[0] + teq::rank_cap, offsets.begin());
-						std::copy(args[1], args[1] + teq::rank_cap, extents.begin());
-					});
+				auto c = eigen::get_coorder(child);
+				assert(teq::mat_dim + teq::rank_cap <= c.size());
+				auto it = c.begin();
+				std::copy(it, it + teq::rank_cap, offsets.begin());
+				it += teq::mat_dim;
+				std::copy(it, it + teq::rank_cap, extents.begin());
 				teq::Shape cshape = child.argshape();
 				PairVecT<teq::DimT> paddings;
 				paddings.reserve(teq::rank_cap);
@@ -565,14 +541,12 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				const teq::iEdge& child = op->get_children()[0];
 				teq::ShapeT leftpad;
 				teq::ShapeT rightpad;
-				child)->get_coorder(.access(
-					[&](const teq::MatrixT& args)
-					{
-						std::copy(args[0], args[0] + teq::rank_cap,
-							leftpad.begin());
-						std::copy(args[1], args[1] + teq::rank_cap,
-							rightpad.begin());
-					});
+				auto c = eigen::get_coorder(child);
+				assert(teq::mat_dim + teq::rank_cap <= c.size());
+				auto it = c.begin();
+				std::copy(it, it + teq::rank_cap, leftpad.begin());
+				it += teq::mat_dim;
+				std::copy(it, it + teq::rank_cap, rightpad.begin());
 				teq::Shape oshape = op->shape();
 				PairVecT<teq::DimT> extents;
 				extents.reserve(teq::rank_cap);
@@ -591,14 +565,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				auto children = op->get_children();
 				const teq::iEdge& fchild = children[0];
 				teq::Shape cshape = children[arg_idx].get().argshape();
-				auto coorder = fchild.get_coorder();
-				assert(nullptr != coorder);
-				teq::RankT axis;
-				coorder->access(
-					[&](const teq::MatrixT& args)
-					{
-						axis = args[0][0];
-					});
+				teq::RankT axis = eigen::get_coorder(fchild)[0];
 				teq::DimT offset = 0;
 				teq::DimT extent = cshape.at(axis);
 				if (arg_idx)
@@ -614,14 +581,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::GROUP_CONCAT: // todo: combine concat and group_concat
 			{
 				const teq::iEdge& fchild = op->get_children()[0];
-				auto coorder = fchild.get_coorder();
-				assert(nullptr != coorder);
-				teq::RankT axis;
-				coorder->access(
-					[&](const teq::MatrixT& args)
-					{
-						axis = args[0][0];
-					});
+				teq::RankT axis = eigen::get_coorder(fchild)[0];
 				out = to_node<T>(local_der) *
 					tenncor::slice(to_node<T>(supcomp_grad), arg_idx, 1, axis);
 			}
@@ -630,22 +590,19 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			{
 				const teq::iEdge& child = op->get_children()[0];
 				teq::CoordT strides;
-				child)->get_coorder(.access(
-					[&](const teq::MatrixT& args)
-					{
-						std::copy(args[0], args[0] + teq::rank_cap,
-							strides.begin());
-					});
+				auto c = eigen::get_coorder(child);
+				assert(teq::rank_cap <= c.size());
+				std::copy(c.begin(), c.begin() + teq::rank_cap, strides.begin());
 				teq::Shape origshape = child.argshape();
 				out = to_node<T>(local_der) *
 					make_functor<T>(teq::Opcode{"SCATTER",::egen::SCATTER}, {
 						FuncArg<T>(to_node<T>(supcomp_grad),
-							std::make_shared<teq::CoordMap>(
+							std::make_shared<teq::ShapeMap>(
 								[origshape,strides](teq::MatrixT& fwd)
 								{
-									teq::RankT n = std::min(
-										(teq::RankT) strides.size(), teq::rank_cap);
-									for (teq::RankT i = 0; i < n; ++i)
+									size_t n = std::min(
+										strides.size(), (size_t) teq::rank_cap);
+									for (size_t i = 0; i < n; ++i)
 									{
 										if (strides[i] == 1)
 										{
@@ -679,26 +636,19 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				const teq::iEdge& child = op->get_children()[0];
 				std::vector<teq::DimT> strides;
 				strides.reserve(teq::rank_cap);
-				child)->get_coorder(.access(
-					[&](const teq::MatrixT& args)
-					{
-						std::copy(args[0], args[0] + teq::rank_cap,
-							std::back_inserter(strides));
-					});
+				auto c = eigen::get_coorder(child);
+				std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
+					std::back_inserter(strides));
 				out = to_node<T>(local_der) *
 					tenncor::stride(to_node<T>(supcomp_grad), strides);
 			}
 				break;
 			case egen::REVERSE:
-				out = to_node<T>(local_der) * make_functor<T>(
-					teq::Opcode{"REVERSE",egen::REVERSE}, {
-						FuncArg<T>(
-							to_node<T>(supcomp_grad),
-							teq::identity,
-							std::static_pointer_cast<eigen::CoordMap>(
-								op->get_children()[0].get().get_coorder())
-						),
-					});
+			{
+				auto c = eigen::get_coorder(op->get_children()[0]);
+				std::vector<teq::RankT> dims(c.begin(), c.end());
+				out = to_node<T>(local_der) * tenncor::reverse(to_node<T>(supcomp_grad), dims);
+			}
 				break;
 			case egen::SELECT:
 			{

@@ -7,7 +7,10 @@
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/grader.hpp"
 #include "eteq/variable.hpp"
+
+#ifdef ENABLE_OPT
 #include "eteq/parse.hpp"
+#endif // ENABLE_OPT
 
 namespace py = pybind11;
 
@@ -37,9 +40,6 @@ py::array typedata_to_array (eteq::iNode<PybindT>* tnode, py::dtype dtype)
 PYBIND11_MODULE(eteq, m)
 {
 	m.doc() = "eteq variables";
-
-	// optimization rules
-	py::class_<opt::OptCtx> rules(m, "OptRules");
 
 	// ==== data and shape ====
 	py::class_<teq::Shape> shape(m, "Shape");
@@ -173,14 +173,7 @@ PYBIND11_MODULE(eteq, m)
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
-		.def(py::init())
-		.def("optimize",
-			[](teq::Session* self, opt::OptCtx rules)
-			{
-				opt::optimize(*self, rules);
-			},
-			py::arg("filename") = "cfg/optimizations.rules",
-			"Optimize using rules for specified filename");
+		.def(py::init());
 
 	// ==== constant ====
 	py::class_<eteq::ConstantNode<PybindT>,std::shared_ptr<eteq::ConstantNode<PybindT>>,
@@ -255,7 +248,21 @@ PYBIND11_MODULE(eteq, m)
 			{
 				eigen::get_engine().seed(seed);
 			},
-			"Seed internal RNG")
+			"Seed internal RNG");
 
-		.def("parse_optrules", &eteq::parse_file<PybindT>);
+#ifdef ENABLE_OPT
+	// optimization rules
+	py::class_<opt::OptCtx> rules(m, "OptRules");
+
+	session
+		.def("optimize",
+			[](teq::Session* self, opt::OptCtx rules)
+			{
+				opt::optimize(*self, rules);
+			},
+			py::arg("filename") = "cfg/optimizations.rules",
+			"Optimize using rules for specified filename");
+
+	m.def("parse_optrules", &eteq::parse_file<PybindT>);
+#endif // ENABLE_OPT
 }

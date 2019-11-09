@@ -6,8 +6,6 @@
 /// Define functions for marshal and unmarshal data sources
 ///
 
-#include "pbm/data.hpp"
-
 #include "eigen/generated/opcode.hpp"
 #include "eigen/generated/dtype.hpp"
 #include "eigen/coord.hpp"
@@ -15,6 +13,8 @@
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 #include "eteq/functor.hpp"
+
+#include "pbm/data.hpp"
 
 #ifndef ETEQ_SERIALIZE_HPP
 #define ETEQ_SERIALIZE_HPP
@@ -67,7 +67,7 @@ struct EADSaver final : public pbm::iSaver
 	}
 
 	/// Implementation of iSaver
-	std::vector<double> save_shaper (const teq::CvrtptrT& mapper) override
+	std::vector<double> save_shaper (const teq::ShaperT& mapper) override
 	{
 		std::vector<double> out;
 		mapper->access(
@@ -203,7 +203,7 @@ struct EADLoader final : public pbm::iLoader
 	}
 
 	/// Implementation of iLoader
-	teq::CvrtptrT generate_coorder (
+	teq::CvrtptrT& generate_coorder (
 		std::string opname, std::vector<double> coord) override
 	{
 		if (0 == coord.size()) // is identity

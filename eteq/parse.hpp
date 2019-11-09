@@ -1,3 +1,4 @@
+#ifdef ENABLE_OPT
 /// parse.hpp
 /// eteq
 ///
@@ -100,7 +101,7 @@ struct AnyConvr final : public opt::iConverter
 struct BuilderArg final
 {
 	BuilderArg (opt::ConvptrT arg,
-		teq::CvrtptrT shaper,
+		teq::ShaperT shaper,
 		eigen::CoordptrT coorder) :
 		arg_(arg), shaper_(shaper), coorder_(coorder)
 	{
@@ -114,7 +115,7 @@ struct BuilderArg final
 	opt::ConvptrT arg_;
 
 	/// Argument shaper
-	teq::CvrtptrT shaper_;
+	teq::ShaperT shaper_;
 
 	/// Argument coordinate transformation data
 	eigen::CoordptrT coorder_;
@@ -144,8 +145,7 @@ struct FuncConvr final : public opt::iConverter
 			}
 			auto tens = arg.arg_->build(ctx, childshape);
 			args.push_back(FuncArg<T>(
-				to_node<T>(tens),
-				arg.shaper_, arg.coorder_));
+				to_node<T>(tens), arg.shaper_, arg.coorder_));
 		}
 		return make_functor(opcode_, args)->get_tensor();
 	}
@@ -303,7 +303,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 				{
 					::Arg* arg = (::Arg*) it->val_;
 					opt::ConvptrT warg = build(arg->subgraph_, ctx);
-					teq::CvrtptrT shaper = this->shaperize(arg->shaper_);
+					teq::ShaperT shaper = this->shaperize(arg->shaper_);
 					eigen::CoordptrT coorder = eteq::coorderize(arg->coorder_);
 					args.push_back(BuilderArg(warg, shaper, coorder));
 				}
@@ -332,9 +332,9 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 	}
 
 	/// Implementation of iConverterBuilder
-	teq::CvrtptrT shaperize (::NumList* list) const override
+	teq::ShaperT shaperize (::NumList* list) const override
 	{
-		teq::CvrtptrT out = nullptr;
+		teq::ShaperT out = nullptr;
 		if (nullptr == list)
 		{
 			return out;
@@ -342,7 +342,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 		std::vector<double> slist = vectorize(list);
 		if (slist.size() > 0)
 		{
-			out = std::make_shared<teq::CoordMap>(
+			out = std::make_shared<teq::ShapeMap>(
 			[&slist](teq::MatrixT& m)
 			{
 				for (size_t i = 0; i < teq::mat_dim; ++i)
@@ -362,7 +362,7 @@ struct ConverterBuilder final : public opt::iConverterBuilder
 	}
 
 	/// Implementation of iConverterBuilder
-	teq::CvrtptrT coorderize (::NumList* list) const override
+	teq::ShaperT coorderize (::NumList* list) const override
 	{
 		return eteq::coorderize(list);
 	}
@@ -387,3 +387,4 @@ opt::OptCtx parse_file (std::string filename)
 }
 
 #endif // ETEQ_PARSE_HPP
+#endif // ENABLE_OPT

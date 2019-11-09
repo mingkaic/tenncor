@@ -76,12 +76,6 @@ struct MockEdge final : public teq::iEdge
 		}
 	}
 
-
-	teq::CvrtptrT get_coorder (void) const override
-	{
-		return coorder_;
-	}
-
 private:
 	teq::TensptrT tensor_;
 

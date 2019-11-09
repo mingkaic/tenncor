@@ -14,7 +14,6 @@
 namespace eigen
 {
 
-// todo: replace this with teq::CoordMap
 /// Eigen transformation wrapper implementation of iConvert
 struct CoordMap final : public teq::iConvert
 {
@@ -81,7 +80,7 @@ using CoordptrT = std::shared_ptr<CoordMap>;
 CoordptrT reduce (std::set<teq::RankT> red_dims);
 
 /// Return CoordMap wrapper of extension parameters
-CoordptrT extend (teq::RankT rank, std::vector<teq::DimT> ext);
+CoordptrT extend (teq::CoordT bcast);
 
 /// Return CoordMap wrapper of permute indices
 CoordptrT permute (std::array<teq::RankT,teq::rank_cap> dims);

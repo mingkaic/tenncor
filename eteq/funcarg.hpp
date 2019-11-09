@@ -6,9 +6,7 @@
 /// Typed Eigen implementation of teq iEdge
 ///
 
-#include "teq/iedge.hpp"
-
-#include "eigen/coord.hpp"
+#include "eigen/edge.hpp"
 
 #include "eteq/inode.hpp"
 
@@ -20,10 +18,11 @@ namespace eteq
 
 /// Implementation of iEigenEdge using node as tensor wrapper
 template <typename T>
-struct FuncArg final : public eigen::iEigenEdge
+struct FuncArg final : public eigen::iEigenEdge<T>
 {
 	/// Construct FuncArg with specific node, shaper, and coorder
-	FuncArg (NodeptrT<T> node, teq::ShaperT shaper, eigen::CoordptrT coorder) :
+	FuncArg (NodeptrT<T> node, teq::ShaperT shaper,
+		eigen::CoordptrT coorder) :
 		node_(node), shaper_(shaper), coorder_(coorder)
 	{
 		if (node_ == nullptr)
@@ -35,15 +34,16 @@ struct FuncArg final : public eigen::iEigenEdge
 	/// Implementation of iEdge
 	teq::Shape shape (void) const override
 	{
-		if (nullptr == shaper_)
+		teq::Shape out = this->argshape();
+		if (nullptr != shaper_)
 		{
-			return argshape();
+			out = shaper_->convert(out);
 		}
-		return shaper_->convert(node_->shape());
+		return out;
 	}
 
 	/// Implementation of iEdge
-	Shape argshape (void) const override
+	teq::Shape argshape (void) const override
 	{
 		return node_->shape();
 	}
@@ -95,23 +95,16 @@ struct FuncArg final : public eigen::iEigenEdge
 		}
 	}
 
-	/// Implementation of iEigenEdge
+	/// Implementation of iEigenEdge<T>
 	T* data (void) const override
 	{
 		return node_->data();
 	}
 
-	/// Implementation of iEigenEdge
+	/// Implementation of iEigenEdge<T>
 	void set_tensor (teq::TensptrT tens) override
 	{
 		node_ = to_node<T>(tens);
-	}
-
-
-
-	eigen::CoordptrT get_coorder (void) const override
-	{
-		return coorder_;
 	}
 
 	NodeptrT<T> get_node (void) const
@@ -159,7 +152,9 @@ FuncArg<T> reduce_map (NodeptrT<T> node, teq::RankT offset, teq::RankT ndims)
 
 	teq::Shape shape = node->shape();
 	std::set<teq::RankT> dims; // dims are allowed to be non-contiguous
-	for (teq::RankT i = offset; i < n; ++i)
+	for (size_t i = offset,
+		n = std::min((size_t) offset + ndims, (size_t) teq::rank_cap);
+		i < n; ++i)
 	{
 		if (shape.at(i) > 1)
 		{
@@ -240,8 +235,8 @@ FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 	}
 
 	bool visited[teq::rank_cap];
-	std::fill(visited, visited + rank_cap, false);
-	for (RankT i = 0, n = order.size(); i < n; ++i)
+	std::fill(visited, visited + teq::rank_cap, false);
+	for (teq::RankT i = 0, n = order.size(); i < n; ++i)
 	{
 		if (visited[order[i]])
 		{
@@ -251,11 +246,11 @@ FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 		visited[order[i]] = true;
 	}
 	// since order can't be duplicate, norder < rank_cap
-	for (RankT i = 0; i < rank_cap; ++i)
+	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 	{
 		if (false == visited[i])
 		{
-			dims.push_back(i);
+			order.push_back(i);
 		}
 	}
 	std::array<teq::RankT,teq::rank_cap> indices;
@@ -268,7 +263,7 @@ template <typename T>
 FuncArg<T> reshape_map (NodeptrT<T> node, const teq::Shape& shape)
 {
 	return FuncArg<T>(node,
-		std::make_shared<teq::CoordMap>(
+		std::make_shared<teq::ShapeMap>(
 			[=](teq::MatrixT& fwd)
 			{
 				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
@@ -297,8 +292,8 @@ FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 	teq::Shape shape = node->shape();
 	teq::CoordT offsets;
 	teq::CoordT ns;
-	teq::RankT n = extents.size();
-	for (teq::RankT i = 0; i < n; ++i)
+	size_t n = extents.size();
+	for (size_t i = 0; i < n; ++i)
 	{
 		auto& ex = extents[i];
 		if (ex.second < 1)
@@ -316,7 +311,7 @@ FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 		ns[i] = shape.at(i);
 	}
 	return FuncArg<T>(node,
-		std::make_shared<teq::CoordMap>(
+		std::make_shared<teq::ShapeMap>(
 			[=](teq::MatrixT& fwd)
 			{
 				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
@@ -353,11 +348,11 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 			fmts::to_string(readable_paddings.begin(), readable_paddings.end()).c_str());
 	}
 	return FuncArg<T>(node,
-		std::make_shared<teq::CoordMap>(
+		std::make_shared<teq::ShapeMap>(
 			[=](teq::MatrixT& fwd)
 			{
-				teq::RankT n = std::min((teq::RankT) paddings.size(), teq::rank_cap);
-				for (teq::RankT i = 0; i < n; ++i)
+				size_t n = std::min(paddings.size(), (size_t) teq::rank_cap);
+				for (size_t i = 0; i < n; ++i)
 				{
 					fwd[i][i] = 1;
 					fwd[teq::rank_cap][i] =
@@ -372,7 +367,7 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 			[&](teq::MatrixT& args)
 			{
 				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan
-				teq::RankT n = std::min((teq::RankT) paddings.size(), teq::rank_cap);
+				size_t n = std::min(paddings.size(), (size_t) teq::rank_cap);
 				for (size_t i = 0; i < n; ++i)
 				{
 					args[0][i] = paddings[i].first;
@@ -404,11 +399,11 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 			fmts::to_string(incrs.begin(), incrs.end()).c_str());
 	}
 	return FuncArg<T>(node,
-		std::make_shared<teq::CoordMap>(
+		std::make_shared<teq::ShapeMap>(
 			[=](teq::MatrixT& fwd)
 			{
-				teq::RankT n = std::min((teq::RankT) incrs.size(), teq::rank_cap);
-				for (teq::RankT i = 0; i < n; ++i)
+				size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
+				for (size_t i = 0; i < n; ++i)
 				{
 					// ceil(in_dim / stride) =
 					// round(in_dim / stride + 0.5 - <smol num>)
@@ -424,7 +419,7 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 		std::make_shared<eigen::CoordMap>(
 			[&](teq::MatrixT& args)
 			{
-				teq::RankT n = std::min((teq::RankT) incrs.size(), teq::rank_cap);
+				size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
 				for (size_t i = 0; i < n; ++i)
 				{
 					args[0][i] = incrs[i];
@@ -442,15 +437,15 @@ ArgsT<T> convolve_map (NodeptrT<T> image, NodeptrT<T> kernel,
 {
 	teq::Shape inshape = image->shape();
 	teq::Shape kernelshape = kernel->shape();
-	teq::CvrtptrT input_shaper(new teq::CoordMap(
+	teq::ShaperT input_shaper(new teq::ShapeMap(
 		[kernelshape,dims](teq::MatrixT& fwd)
 		{
 			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 			{
 				fwd[i][i] = 1;
 			}
-			teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
-			for (teq::RankT i = 0; i < n; ++i)
+			size_t n = std::min(dims.size(), (size_t) teq::rank_cap);
+			for (size_t i = 0; i < n; ++i)
 			{
 				fwd[teq::rank_cap][dims[i]] = -kernelshape.at(i) + 1;
 			}
@@ -467,13 +462,13 @@ ArgsT<T> convolve_map (NodeptrT<T> image, NodeptrT<T> kernel,
 		}
 	));
 
-	teq::CvrtptrT kernel_shaper(new teq::CoordMap(
+	teq::ShaperT kernel_shaper(new teq::ShapeMap(
 		[inshape,dims](teq::MatrixT& fwd)
 		{
-			teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
+			size_t n = std::min(dims.size(), (size_t) teq::rank_cap);
 			std::array<bool,teq::rank_cap> missing;
 			std::fill(missing.begin(), missing.end(), true);
-			for (teq::RankT i = 0; i < n; ++i)
+			for (size_t i = 0; i < n; ++i)
 			{
 				missing[dims[i]] = false;
 			}
@@ -509,7 +504,7 @@ ArgsT<T> concat_map (NodeptrT<T> left, NodeptrT<T> right, teq::RankT axis)
 {
 	teq::Shape leftshape = left->shape();
 	teq::Shape rightshape = right->shape();
-	teq::CvrtptrT left_shaper(new teq::CoordMap(
+	teq::ShaperT left_shaper(new teq::ShapeMap(
 		[axis, rightshape](teq::MatrixT& fwd)
 		{
 			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
@@ -519,7 +514,7 @@ ArgsT<T> concat_map (NodeptrT<T> left, NodeptrT<T> right, teq::RankT axis)
 			fwd[teq::rank_cap][axis] = rightshape.at(axis);
 		}
 	));
-	teq::CvrtptrT right_shaper(new teq::CoordMap(
+	teq::ShaperT right_shaper(new teq::ShapeMap(
 		[axis, leftshape](teq::MatrixT& fwd)
 		{
 			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
@@ -553,7 +548,7 @@ ArgsT<T> group_concat_map (NodesT<T> args, teq::RankT axis)
 		logs::fatal("cannot group concat with null argument");
 	}
 	teq::DimT nargs = args.size();
-	teq::CvrtptrT shaper(new teq::CoordMap(
+	teq::ShaperT shaper(new teq::ShapeMap(
 		[axis, nargs](teq::MatrixT& fwd)
 		{
 			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
@@ -628,7 +623,7 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 		outlist.insert(outlist.end(), teq::rank_cap - outlist.size(), 1);
 	}
 
-	teq::CvrtptrT left_shaper(new teq::CoordMap(
+	teq::ShaperT left_shaper(new teq::ShapeMap(
 		[&](teq::MatrixT& fwd)
 		{
 			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
@@ -639,7 +634,7 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 		}
 	));
 
-	teq::CvrtptrT right_shaper(new teq::CoordMap(
+	teq::ShaperT right_shaper(new teq::ShapeMap(
 		[&](teq::MatrixT& fwd)
 		{
 			for (teq::RankT i = 0; i < teq::rank_cap; ++i)
@@ -655,7 +650,7 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 			[&dims](teq::MatrixT& args)
 			{
 				args[0][teq::rank_cap] = 0; // mark contiguous zones as non-nan
-				teq::RankT n = std::min((teq::RankT) dims.size(), teq::rank_cap);
+				size_t n = std::min(dims.size(), (size_t) teq::rank_cap);
 				for (size_t i = 0; i < n; ++i)
 				{
 					args[0][i] = dims[i].first;

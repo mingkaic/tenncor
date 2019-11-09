@@ -14,13 +14,13 @@
 
 #include "dbg/stream/teq.hpp"
 
-#include "pbm/save.hpp"
-#include "pbm/load.hpp"
-
 #include "tag/prop.hpp"
 
-#include "eteq/serialize.hpp"
 #include "eteq/eteq.hpp"
+
+#include "pbm/serialize.hpp"
+#include "pbm/save.hpp"
+#include "pbm/load.hpp"
 
 
 const std::string testdir = "models/test";

@@ -31,7 +31,7 @@ struct iSaver
 	virtual std::string save_leaf (teq::iLeaf* leaf) = 0;
 
 	/// Return vector serialization of shape coordinate map
-	virtual std::vector<double> save_shaper (const teq::CvrtptrT& mapper) = 0;
+	virtual std::vector<double> save_shaper (const teq::ShaperT& mapper) = 0;
 
 	/// Return vector serialization of coordinate map
 	virtual std::vector<double> save_coorder (const teq::CvrtptrT& mapper) = 0;

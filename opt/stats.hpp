@@ -18,16 +18,16 @@ namespace opt
 /// Return true if leaf contains a scalar
 bool is_scalar (teq::iLeaf* leaf);
 
-// ==== CvrtptrT stringification + comparators
+// ==== ShaperT stringification + comparators
 
 /// Return brief hashable string representation of coordinate mapper
-std::string to_string (teq::CvrtptrT c);
+std::string to_string (teq::ShaperT c);
 
 /// Return true if a < b according to some internal ordinal rule
-bool lt (teq::CvrtptrT a, teq::CvrtptrT b);
+bool lt (teq::ShaperT a, teq::ShaperT b);
 
 /// Return true if a is equal to b
-bool is_equal (teq::CvrtptrT a, teq::CvrtptrT b);
+bool is_equal (teq::ShaperT a, teq::ShaperT b);
 
 // ==== Leaf comparators
 

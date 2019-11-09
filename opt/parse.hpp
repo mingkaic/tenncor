@@ -38,11 +38,8 @@ struct iConverterBuilder
 	/// target rule graph and statement contexts
 	virtual ConvptrT build (const ::Subgraph* sg, const RulesContext& ctx) const = 0;
 
-	/// Return shape mapper given parsed C representation
-	virtual teq::CvrtptrT shaperize (::NumList* list) const = 0;
-
-	/// Return coordinate mapper given parsed C representation
-	virtual teq::CvrtptrT coorderize (::NumList* list) const = 0;
+	/// Return VoterArg representation of C argument representation
+	virtual VoterArg build_argument (::Arg* arg) const = 0;
 };
 
 /// Return all parsed optimization rules of string content

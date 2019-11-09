@@ -49,7 +49,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//tag:tag",
+        "//eteq:eteq",
         "//pbm:pbm_cc_proto",
     ],
 )
