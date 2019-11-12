@@ -12,6 +12,14 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
 ######### LIBRARY #########
 
 cc_library(
@@ -20,7 +28,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//teq:teq",
+        "//tag:tag",
         "//opt/parse:parse",
         "@boost//:functional",
         "@boost//:uuid",
@@ -30,12 +38,24 @@ cc_library(
 
 ######### TEST #########
 
-cc_test(
-    name = "test",
-    srcs = glob(["test/*.cpp"]),
+cc_library(
+    name = "mock_opt",
+    hdrs = glob(["mock/*.hpp"]),
+    srcs = glob(["mock/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
         "//opt:opt",
+        "//teq:mock_teq",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "test",
+    srcs = ["//opt:test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//opt:mock_opt",
         "//eteq:eteq",
         "//testutil:tutil",
     ],

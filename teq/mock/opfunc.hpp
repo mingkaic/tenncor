@@ -4,23 +4,25 @@
 #ifndef TEQ_MOCK_OPFUNC_HPP
 #define TEQ_MOCK_OPFUNC_HPP
 
-struct MockOpfunc final : public teq::iOperableFunc
+struct MockOpfunc final : public teq::iOperableFunc // todo: make constructor similar to MockFunctor
 {
 	MockOpfunc (teq::TensptrT a,
 		teq::Opcode opcode = teq::Opcode{},
 		teq::CvrtptrT coord = nullptr) :
-		args_({MockEdge(a, teq::identity, coord)}),
-		opcode_(opcode) {}
+		opcode_(opcode),
+		args_({MockEdge(a, teq::identity, coord)}) {}
 
 	MockOpfunc (teq::TensptrT a, teq::TensptrT b,
 		teq::Opcode opcode = teq::Opcode{}) :
-		args_({MockEdge(a), MockEdge(b)}),
-		shape_(args_[0].shape()), opcode_(opcode) {}
+		opcode_(opcode),
+		shape_(a->shape()),
+		args_({MockEdge(a), MockEdge(b)}) {}
 
 	MockOpfunc (MockEdgesT args,
 		teq::Opcode opcode = teq::Opcode{}) :
-		args_(args),
-		shape_(args_[0].shape()), opcode_(opcode) {}
+		opcode_(opcode),
+		shape_(args[0].shape()),
+		args_(args) {}
 
 	/// Implementation of iTensor
 	const teq::Shape& shape (void) const override
@@ -47,7 +49,10 @@ struct MockOpfunc final : public teq::iOperableFunc
 	}
 
 	/// Implementation of iFunctor
-	void update_child (teq::TensptrT arg, size_t index) override {}
+	void update_child (teq::TensptrT arg, size_t index) override
+	{
+		args_[index] = MockEdge(arg);
+	}
 
 	/// Implementation of iOperableFunc
 	void update (void) override
@@ -87,11 +92,11 @@ struct MockOpfunc final : public teq::iOperableFunc
 
 	bool updated_ = false;
 
-	MockEdgesT args_;
+	teq::Opcode opcode_;
 
 	teq::Shape shape_;
 
-	teq::Opcode opcode_;
+	MockEdgesT args_;
 };
 
 #endif // TEQ_MOCK_OPFUNC_HPP

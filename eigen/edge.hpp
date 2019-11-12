@@ -12,8 +12,6 @@ struct iEigenEdge : public teq::iEdge
 	virtual ~iEigenEdge (void) = default;
 
 	virtual T* data (void) const = 0;
-
-	virtual void set_tensor (teq::TensptrT tens) = 0;
 };
 
 const std::string coorder_key = "coord";

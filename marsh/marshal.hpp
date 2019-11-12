@@ -12,13 +12,13 @@ struct Maps;
 
 struct iMarshaler
 {
-    virtual ~iMarshaler (void) = default;
+	virtual ~iMarshaler (void) = default;
 
-    virtual void marshal (const iNumber& num) = 0;
+	virtual void marshal (const iNumber& num) = 0;
 
-    virtual void marshal (const iArray& arr) = 0;
+	virtual void marshal (const iArray& arr) = 0;
 
-    virtual void marshal (const Maps& mm) = 0;
+	virtual void marshal (const Maps& mm) = 0;
 };
 
 }

@@ -8,11 +8,12 @@
 
 #include "teq/iopfunc.hpp"
 
+#include "tag/locator.hpp"
+
 #include "eigen/generated/opcode.hpp"
 #include "eigen/operator.hpp"
 
 #include "eteq/funcarg.hpp"
-#include "eteq/locator.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -75,10 +76,9 @@ struct Functor final : public teq::iOperableFunc
 				index, nexshape.to_string().c_str(),
 				curshape.to_string().c_str());
 		}
-		static_cast<eigen::iEigenEdge<T>*>(
-			&args_[index])->set_tensor(arg);
+		static_cast<FuncArg<T>*>(&args_[index])->set_tensor(arg);
+		// todo: warn of data destruction
 		uninitialize();
-		// warning: does not notify parents of data destruction
 	}
 
 	/// Implementation of iOperableFunc
@@ -250,7 +250,7 @@ Functor<T>* Functor<T>::get (teq::Opcode opcode, ArgsT<T> args)
 			for (size_t i = 0; i < nargs; ++i)
 			{
 				location << "[" << i << "]\n"
-					<< display_location(args[i].get_node()) << "\n";
+					<< tag::display_location(args[i].get_tensor()) << "\n";
 			}
 			logs::fatalf("cannot perform `%s` with incompatible shapes %s "
 				"and %s: childrens\n%s", opcode.name_.c_str(),

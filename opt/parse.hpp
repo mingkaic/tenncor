@@ -15,38 +15,13 @@
 namespace opt
 {
 
-/// Global statements shared between all rule statements
-struct RulesContext final
-{
-	/// Set of declared ANY typed rule node id
-	std::unordered_set<std::string> symbols_;
-
-	/// Map functor/group label to set of associated properties
-	std::unordered_map<std::string,
-		std::unordered_set<std::string>> properties_;
-};
-
-/// Interface for TEQ extensions to construct conversion rules
-struct iConverterBuilder
-{
-	virtual ~iConverterBuilder (void) = default;
-
-	/// Return converter func that identifies extended TEQ specific constants
-	virtual CstConvertF build_cconv (void) const = 0;
-
-	/// Return extended TEQ builders specific to a
-	/// target rule graph and statement contexts
-	virtual ConvptrT build (const ::Subgraph* sg, const RulesContext& ctx) const = 0;
-
-	/// Return VoterArg representation of C argument representation
-	virtual VoterArg build_argument (::Arg* arg) const = 0;
-};
+using BuildTargetF = std::function<TargptrT(::TreeNode*)>;
 
 /// Return all parsed optimization rules of string content
-OptCtx parse (std::string content, const iConverterBuilder& builder);
+CversionCtx parse (std::string content, BuildTargetF parse_target);
 
 /// Return all parsed optimization rules of a file
-OptCtx parse_file (std::string filename, const iConverterBuilder& builder);
+CversionCtx parse_file (std::string filename, BuildTargetF parse_target);
 
 }
 

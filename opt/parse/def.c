@@ -68,7 +68,7 @@ void conversion_recursive_free (void* conv)
 		return;
 	}
 	struct Conversion* c = (struct Conversion*) conv;
-	node_recursive_free(c->matcher_);
+	func_recursive_free(c->matcher_);
 	node_recursive_free(c->target_);
 	free(c);
 }
@@ -117,9 +117,9 @@ void objs_clear (struct PtrList* objs)
 	ptrlist_clear(objs, recursive_free);
 }
 
-void statements_free (struct PtrList* stmts)
+void cversions_free (struct PtrList* cversions)
 {
-	objs_free(stmts);
+	objs_free(cversions);
 }
 
 #endif

@@ -41,7 +41,7 @@
 
 comm							{ return COMMUTATIVE; }
 
-[a-zA-Z\_][a-zA-Z\_]{0,31}		{
+[a-zA-Z\_][a-zA-Z\_]{0,30}		{
 	strlcpy(yylval.label, yytext, NSYMBOL);
 	return SYMBOL;
 }
@@ -53,6 +53,7 @@ comm							{ return COMMUTATIVE; }
 
 .								{
 	fprintf(stderr, "unrecognized token %s", yytext);
+	return ERROR;
 }
 
 %%

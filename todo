@@ -5,7 +5,8 @@ P3 = "want to have"
 P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
-   - move opcode and types generation over to eigen module
+   - opt: enforce variadic/commutative constraints
+   - opt: retest common opt rules
 
 === usage ===
 P2 - implement GRU

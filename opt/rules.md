@@ -11,18 +11,28 @@ Each matcher is associated with a corresponding **target**.
 
 For *matched* subgraphs of input TEQ graph, the module converts that subgraph with associated *target*.
 
-Conversions are matcher-target pairs that make up the basic components of the optimization module.
+CversionCtx are matcher-target pairs that make up the basic components of the optimization module.
 
 The .rules minilanguage defines conversions.
 
 # Minilanguage .rule
 ---
 
-In every .rules file, conversions are separated by ';'. Newlines and spaces are ignored
+In every .rules file, conversions are separated by ';'. Newlines and spaces are ignored.
+
+Precedence of conversions are by order of statements defined.
+That is, the first conversion specified will be applied before the second, and so on.
 
 ## **Keywords**
 
 comm - declares that the following symbol is a commutative function
+
+## **Primitives**
+
+- number: a double precision decimal in base-10 form without scientific notation (hex and binary not supported)
+- symbol: an alphabetic word with the following constraints:
+    - no longer than 31 letters in length (symbols longer than 31 are unrecognized)
+    - may contain underscores ('_')
 
 ## **Conversion Syntax**
 
@@ -34,17 +44,9 @@ Matcher => Target
 ## Matcher Syntax
 ---
 
-A **matcher** can be any of the following:
+A **matcher** is a function (commutative or non-commutative)
 
-- a number: a double precision decimal in base-10 form without scientific notation (hex and binary not supported)
-- a symbol: an alphabetic word with the following constraints:
-    - no longer than 31 letters in length (symbols longer than 31 are unrecognized)
-    - may contain underscores ('_')
-- a function (commutative or non-commutative)
-
-### **Matcher Function Syntax**
-
-A matcher function takes the form:
+The function takes the form:
 
 ```
 [ <keyword> ] <function name> '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
@@ -103,8 +105,8 @@ The following are disallowed:
 
 A **target** can be any of the following:
 
-- a number constant (same as matcher)
-- a symbol (same as matcher)
+- a number constant
+- a symbol
 - a function (without any keywords before the function name)
 
 ### **Target Function Syntax**

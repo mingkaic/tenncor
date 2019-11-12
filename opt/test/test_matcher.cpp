@@ -1,4 +1,4 @@
-
+#define DISABLE_MATCHER_TEST
 #ifndef DISABLE_MATCHER_TEST
 
 

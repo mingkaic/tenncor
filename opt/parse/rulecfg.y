@@ -13,7 +13,7 @@ extern YY_FLUSH_BUFFER;
 
 %start rules
 
-%parse-param {struct PtrList** stmts}
+%parse-param {struct PtrList** cversions}
 
 %union
 {
@@ -36,8 +36,8 @@ extern YY_FLUSH_BUFFER;
 %type <label> 		SYMBOL
 
 %type <conv> 		conversion
-%type <node>		matcher target
-%type <functor>		mfunction tfunction
+%type <node>		matcher_el target
+%type <functor>		matcher mfunction tfunction
 %type <argument> 	marg targ
 %type <kvpair>		key_val
 
@@ -46,19 +46,19 @@ extern YY_FLUSH_BUFFER;
 
 %token
 STMT_TERM ARROW LPAREN RPAREN COMMA ASSIGN LSB RSB LCB RCB
-COLON VARIADIC COMMUTATIVE SYMBOL NUMBER
+COLON VARIADIC COMMUTATIVE SYMBOL NUMBER ERROR
 
 %% /* beginning of rules section */
 
 rules:		%empty
 			{
-				*stmts = new_ptrlist(CONVERSION);
+				*cversions = new_ptrlist(CONVERSION);
 			}
 			|
 			rules conversion STMT_TERM
 			{
 				// declare conversion
-				ptrlist_pushback(*stmts, $2);
+				ptrlist_pushback(*cversions, $2);
 			}
 
 conversion:	matcher ARROW target
@@ -68,7 +68,18 @@ conversion:	matcher ARROW target
 				cv->target_ = $3;
 			}
 
-matcher:	NUMBER
+matcher:	mfunction
+			{
+				$$ = $1;
+			}
+			|
+			COMMUTATIVE mfunction
+			{
+				$$ = $2;
+				$$->commutative_ = TRUE;
+			}
+
+matcher_el:	NUMBER
 			{
 				size_t nbytes = sizeof(struct TreeNode);
 				struct TreeNode* node = $$ = malloc(nbytes);
@@ -85,21 +96,12 @@ matcher:	NUMBER
 				strlcpy(dst, $1, NSYMBOL);
 			}
 			|
-			mfunction
+			matcher
 			{
 				size_t nbytes = sizeof(struct TreeNode);
 				struct TreeNode* node = $$ = malloc(nbytes);
 				node->type_ = FUNCTOR;
 				node->val_.functor_ = $1;
-			}
-			|
-			COMMUTATIVE mfunction
-			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = FUNCTOR;
-				struct Functor* f = node->val_.functor_ = $2;
-				f->commutative_ = TRUE;
 			}
 
 mfunction:	SYMBOL LPAREN margs RPAREN
@@ -137,15 +139,16 @@ margs:		margs COMMA marg
 				ptrlist_pushback(list, $1);
 			}
 
-marg:		matcher
+marg:		matcher_el
 			{
 				size_t nbytes = sizeof(struct Arg);
 				struct Arg* a = $$ = malloc(nbytes);
 				memset(a, 0, nbytes);
 				a->node_ = $1;
+				a->attrs_.type_ = KV_PAIR;
 			}
 			|
-			matcher ASSIGN LCB edge_attr RCB
+			matcher_el ASSIGN LCB edge_attr RCB
 			{
 				size_t nbytes = sizeof(struct Arg);
 				struct Arg* a = $$ = malloc(nbytes);
@@ -232,6 +235,7 @@ targ:		target
 				struct Arg* a = $$ = malloc(nbytes);
 				memset(a, 0, nbytes);
 				a->node_ = $1;
+				a->attrs_.type_ = KV_PAIR;
 			}
 			|
 			target ASSIGN LCB edge_attr RCB
@@ -293,7 +297,7 @@ num_arr:	num_arr COMMA NUMBER
 
 %%
 
-int parse_str (struct PtrList** stmts, const char* str)
+int parse_str (struct PtrList** cversions, const char* str)
 {
 	FILE* tmp = tmpfile();
 	if (NULL == tmp)
@@ -303,10 +307,10 @@ int parse_str (struct PtrList** stmts, const char* str)
 	}
 	fputs(str, tmp);
 	rewind(tmp);
-	return parse_file(stmts, tmp);
+	return parse_file(cversions, tmp);
 }
 
-int parse_file (struct PtrList** stmts, FILE* file)
+int parse_file (struct PtrList** cversions, FILE* file)
 {
 	int exit_status = 1;
 	if (file)
@@ -314,14 +318,16 @@ int parse_file (struct PtrList** stmts, FILE* file)
 		yyin = file;
 		YY_FLUSH_BUFFER;
 		yyrestart(yyin);
-		exit_status = yyparse(stmts);
+		exit_status = yyparse(cversions);
 		fclose(file);
 	}
 	return exit_status;
 }
 
-int yyerror (struct PtrList** stmts, char const* msg)
+int yyerror (struct PtrList** cversions, char const* msg)
 {
 	fprintf(stderr, "%s\n", msg);
+	cversions_free(*cversions);
+	*cversions = NULL;
 	return 1;
 }

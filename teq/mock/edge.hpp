@@ -6,7 +6,8 @@
 struct MockEdge final : public teq::iEdge
 {
 	MockEdge (teq::TensptrT tensor,
-        teq::ShaperT shaper = nullptr, teq::CvrtptrT coorder = nullptr) :
+		teq::ShaperT shaper = nullptr,
+		teq::CvrtptrT coorder = nullptr) :
 		tensor_(tensor), shaper_(shaper), coorder_(coorder)
 	{
 		if (tensor_ == nullptr)

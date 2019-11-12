@@ -88,6 +88,7 @@ void ptrlist_move (struct PtrList* dst, struct PtrList* src)
 	}
 	memcpy(dst, src, sizeof(struct PtrList));
 	src->head_ = src->tail_ = NULL;
+	dst->type_ = src->type_;
 }
 
 void ptrlist_clear (struct PtrList* list, void (*val_mgr)(void*))

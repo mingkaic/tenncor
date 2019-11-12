@@ -1116,7 +1116,10 @@ api:
                   inarg.reserve(nargs);
                   std::transform(args.begin(), args.end(), std::back_inserter(inarg),
                       [](eteq::NodeptrT<T> node) { return eteq::identity_map(node); });
-                  return eteq::make_functor<T>(teq::Opcode{"GROUP_SUM",::egen::GROUP_SUM}, inarg);
+                  auto out = eteq::make_functor<T>(teq::Opcode{"GROUP_SUM",::egen::GROUP_SUM}, inarg);
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  tag::get_group_reg().group_tag(out->get_tensor(), "sum");
+                  return out;
       - template: typename T
         name: prod
         args:
@@ -1142,7 +1145,10 @@ api:
                   inarg.reserve(nargs);
                   std::transform(args.begin(), args.end(), std::back_inserter(inarg),
                       [](eteq::NodeptrT<T> node) { return eteq::identity_map(node); });
-                  return eteq::make_functor<T>(teq::Opcode{"GROUP_PROD",::egen::GROUP_PROD}, inarg);
+                  auto out = eteq::make_functor<T>(teq::Opcode{"GROUP_PROD",::egen::GROUP_PROD}, inarg);
+                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
+                  tag::get_group_reg().group_tag(out->get_tensor(), "prod");
+                  return out;
       - template: typename T
         name: softmax
         args:

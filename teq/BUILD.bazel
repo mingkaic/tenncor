@@ -10,18 +10,18 @@ filegroup(
 )
 
 filegroup(
-    name = "test_srcs",
+    name = "mock_srcs",
     srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
+        "mock/*.hpp",
+        "mock/*.cpp",
     ]),
 )
 
 filegroup(
-    name = "benchmark_srcs",
+    name = "test_srcs",
     srcs = glob([
-        "bm/*.hpp",
-        "bm/*.cpp",
+        "test/*.hpp",
+        "test/*.cpp",
     ]),
 )
 

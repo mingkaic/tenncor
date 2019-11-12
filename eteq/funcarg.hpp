@@ -101,8 +101,7 @@ struct FuncArg final : public eigen::iEigenEdge<T>
 		return node_->data();
 	}
 
-	/// Implementation of iEigenEdge<T>
-	void set_tensor (teq::TensptrT tens) override
+	void set_tensor (teq::TensptrT tens)
 	{
 		node_ = to_node<T>(tens);
 	}

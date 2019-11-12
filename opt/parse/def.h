@@ -83,7 +83,7 @@ void node_recursive_free (void* node);
 struct Conversion
 {
 	/// Root of matching subgraph
-	struct TreeNode* matcher_;
+	struct Functor* matcher_;
 
 	/// Root of target subgraph
 	struct TreeNode* target_;
@@ -109,7 +109,7 @@ extern "C" {
 #endif
 
 /// Recursively free all statements and their contents
-extern void statements_free (struct PtrList* stmts);
+extern void cversions_free (struct PtrList* cversions);
 
 /// Return 0 if successfully populate statements from parsed string
 extern int parse_str (struct PtrList** stmts, const char* str);
