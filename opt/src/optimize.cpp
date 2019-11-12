@@ -66,24 +66,85 @@ teq::TensptrsT optimize (teq::TensptrsT roots,
 				stat.graphsize_[b.get()].upper_;
 		});
 
+	ParentReplF parent_replacer =
+	[&](teq::TensptrT dest, teq::iTensor* src)
+	{
+		replace_parents(pfinder, dest, src);
+		std::vector<size_t> ridx;
+		if (estd::get(ridx, rindices, src))
+		{
+			for (size_t ri : ridx)
+			{
+				roots[ri] = dest;
+			}
+		}
+	};
+
 	MatchCtxT runtime_ctx;
 	CversionsT conversions;
 	// there are no conversions for leaves
 	for (teq::FuncptrT func : functors)
 	{
+		// todo: streamline this pipeline
+		bool stop_filtering = false;
+		// apply prefiltering
+		for (size_t i = 0, n = filters.prenode_filters_.size();
+			i < n && false == stop_filtering; ++i)
+		{
+			auto converted = filters.prenode_filters_[i](func, parent_replacer);
+			if (converted != func)
+			{
+				if (auto fconv = std::dynamic_pointer_cast<teq::iFunctor>(converted))
+				{
+					func = fconv;
+				}
+				else
+				{
+					stop_filtering = true;
+				}
+			}
+		}
+		if (stop_filtering)
+		{
+			continue;
+		}
+
+		// apply optimization
 		if (auto converted = opts.optimize(runtime_ctx, func.get()))
 		{
 			// todo: debug log converted
 
 			// don't touch functors until after all nodes are visited
-			replace_parents(pfinder, converted, func.get());
+			parent_replacer(converted, func.get());
 
-			std::vector<size_t> ridx;
-			if (estd::get(ridx, rindices, func.get()))
+			if (auto fconv = std::dynamic_pointer_cast<teq::iFunctor>(converted))
 			{
-				for (size_t ri : ridx)
+				func = fconv;
+			}
+			else
+			{
+				stop_filtering = true;
+			}
+		}
+		if (stop_filtering)
+		{
+			continue;
+		}
+
+		// apply postfiltering
+		for (size_t i = 0, n = filters.postnode_filters_.size();
+			i < n && false == stop_filtering; ++i)
+		{
+			auto converted = filters.postnode_filters_[i](func, parent_replacer);
+			if (converted != func)
+			{
+				if (auto fconv = std::dynamic_pointer_cast<teq::iFunctor>(converted))
 				{
-					roots[ri] = converted;
+					func = fconv;
+				}
+				else
+				{
+					stop_filtering = true;
 				}
 			}
 		}

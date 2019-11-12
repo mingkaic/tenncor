@@ -16,12 +16,15 @@ namespace opt
 
 using EqualF = std::function<bool(teq::TensptrT,teq::TensptrT)>;
 
-using CalcCvsF = std::function<CversionsT(teq::TensptrSetT)>;
+using CalcCvsF = std::function<teq::TensptrT(teq::FuncptrT)>;
 
 /// Delete and update equivalent functor and leaves
 void remove_duplicates (teq::TensptrsT& roots, EqualF equals);
 
-void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_funcs);
+teq::TensptrT constant_func (teq::FuncptrT& func,
+    ParentReplF replace, CalcCvsF calc_func);
+
+void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func);
 
 }
 

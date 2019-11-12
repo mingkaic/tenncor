@@ -67,14 +67,24 @@ struct CversionCtx
 	std::unordered_map<std::string,TargptrT>  targets_;
 };
 
+using ParentReplF = std::function<void(teq::TensptrT,teq::iTensor*)>;
+
+using PerFuncFiltF = std::function<teq::TensptrT(teq::FuncptrT&,ParentReplF)>;
+
 using FilterF = std::function<void(teq::TensptrsT&)>;
 
 struct CustomFilters final
 {
-	// custom filters to run before required
+	// custom filters to run against each tensor node before applying rules
+	std::vector<PerFuncFiltF> prenode_filters_;
+
+	// custom filters to run against each tensor node after applying rules
+	std::vector<PerFuncFiltF> postnode_filters_;
+
+	// custom filters to run against entire graph before applying rules
 	std::vector<FilterF> prefilters_;
 
-	// custom filters to run after required
+	// custom filters to run against entire graph after applying rules
 	std::vector<FilterF> postfilters_;
 };
 

@@ -20,8 +20,8 @@ TEST(GROUP, SingleTagAdjacency)
 	{
 		teq::TensptrT tens = std::make_shared<MockTensor>();
 		teq::TensptrT tens2 = std::make_shared<MockTensor>();
-		teq::TensptrT f(new MockFunctor(teq::Opcode{"MOCK", 2},
-			teq::TensptrsT{tens, tens2}));
+		teq::TensptrT f(new MockFunctor(
+			teq::TensptrsT{tens, tens2}, teq::Opcode{"MOCK", 2}));
 
 		registry.group_tag(tens, "group2");
 		registry.group_tag(tens, "group7");
@@ -79,10 +79,10 @@ TEST(GROUP, RecursiveTagAdjacency)
 	{
 		teq::TensptrT tens = std::make_shared<MockTensor>();
 		teq::TensptrT tens2 = std::make_shared<MockTensor>();
-		teq::TensptrT f(new MockFunctor(teq::Opcode{"MOCK", 2},
-			teq::TensptrsT{tens, tens2}));
-		teq::TensptrT f2(new MockFunctor(teq::Opcode{"MOCK", 2},
-			teq::TensptrsT{tens, tens2}));
+		teq::TensptrT f(new MockFunctor(
+			teq::TensptrsT{tens, tens2}, teq::Opcode{"MOCK", 2}));
+		teq::TensptrT f2(new MockFunctor(
+			teq::TensptrsT{tens, tens2}, teq::Opcode{"MOCK", 2}));
 
 		tag::recursive_group_tag(tens, "group2",
 			teq::TensSetT{},
@@ -171,8 +171,8 @@ TEST(GROUP, Subgraph)
 	{
 		teq::TensptrT tens = std::make_shared<MockTensor>();
 		teq::TensptrT tens2 = std::make_shared<MockTensor>();
-		teq::TensptrT f(new MockFunctor(teq::Opcode{"MOCK", 2},
-			teq::TensptrsT{tens, tens2}));
+		teq::TensptrT f(new MockFunctor(
+			teq::TensptrsT{tens, tens2}, teq::Opcode{"MOCK", 2}));
 
 		tag::AdjMapT adjs =
 		{

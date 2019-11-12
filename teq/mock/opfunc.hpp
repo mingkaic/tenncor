@@ -4,8 +4,9 @@
 #ifndef TEQ_MOCK_OPFUNC_HPP
 #define TEQ_MOCK_OPFUNC_HPP
 
-struct MockOpfunc final : public teq::iOperableFunc // todo: make constructor similar to MockFunctor
+struct MockOpfunc final : public teq::iOperableFunc
 {
+	// todo: make constructor similar to MockFunctor
 	MockOpfunc (teq::TensptrT a,
 		teq::Opcode opcode = teq::Opcode{},
 		teq::CvrtptrT coord = nullptr) :

@@ -18,9 +18,9 @@ TEST(TRAVELER, GraphStat)
 	teq::TensptrT b(new MockTensor());
 	teq::TensptrT c(new MockTensor());
 
-	teq::TensptrT f(new MockFunctor(teq::Opcode{"MOCK1", 1}, teq::TensptrsT{a, b}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::Opcode{"MOCK0", 0}, teq::TensptrsT{c, f}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK0", 0}));
 
 	teq::GraphStat stat;
 	g->accept(stat);
@@ -38,9 +38,9 @@ TEST(TRAVELER, PathFinder)
 	teq::TensptrT b(new MockTensor());
 	teq::TensptrT c(new MockTensor());
 
-	teq::TensptrT f(new MockFunctor(teq::Opcode{"MOCK1", 1}, teq::TensptrsT{a, b}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::Opcode{"MOCK1", 1}, teq::TensptrsT{c, f}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK1", 1}));
 
 	teq::PathFinder finder(a.get());
 	g->accept(finder);
@@ -85,11 +85,11 @@ TEST(TRAVELER, ReverseParentGraph)
 	teq::TensptrT b(new MockTensor());
 	teq::TensptrT c(new MockTensor());
 
-	teq::TensptrT f(new MockFunctor(teq::Opcode{"f", 1}, teq::TensptrsT{a, b}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::Opcode{"g", 2}, teq::TensptrsT{f, b}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, b}, teq::Opcode{"g", 2}));
 
-	teq::TensptrT h(new MockFunctor(teq::Opcode{"h", 3}, teq::TensptrsT{c, f, g}));
+	teq::TensptrT h(new MockFunctor(teq::TensptrsT{c, f, g}, teq::Opcode{"h", 3}));
 
 	teq::ParentFinder finder;
 	h->accept(finder);
@@ -129,9 +129,9 @@ TEST(TRAVELER, Owners)
 	teq::iTensor* fref;
 	teq::iTensor* gref;
 	{
-		teq::TensptrT f(new MockFunctor(teq::Opcode{"f", 1}, teq::TensptrsT{a, b}));
+		teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
 
-		teq::TensptrT g(new MockFunctor(teq::Opcode{"g", 2}, teq::TensptrsT{f, c}));
+		teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, c}, teq::Opcode{"g", 2}));
 		fref = f.get();
 		gref = g.get();
 

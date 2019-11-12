@@ -25,7 +25,6 @@ P2 - fix convolutional nn demo
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
 P2 - make shape dimension size configurable (instead of fixed rank_cap)
-P2 - make constant pre-calculation configurable in opt module
 P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 P5 - implement onnx support (https://github.com/onnx/onnx)

@@ -14,6 +14,109 @@
 #include "opt/parse.hpp"
 
 
+static const std::string cst_rules =
+"SUB(X,0) => X;"
+"SUB(0,X) => NEG(X);"
+"comm ADD(X,0) => X;"
+"comm MUL(X,0) => 0;"
+"comm MUL(X,1) => X;"
+"comm MUL(X,-1) => NEG(X);"
+"POW(0,X) => 0;"
+"POW(1,X) => 1;"
+"POW(X,0) => 1;"
+"POW(X,1) => X;"
+"DIV(0,X) => 0;"
+"DIV(X,1) => X;"
+"DIV(X,X) => 1;"
+"comm ADD(X,NEG(X)) => 0;"
+"comm ADD(X,NEG(Y)) => SUB(X,Y);";
+
+
+TEST(OPTIMIZE, PruneZeroSingles)
+{
+	teq::Shape shape({2, 3, 4});
+	teq::TensptrT var(new MockTensor(shape, "special_var"));
+	teq::TensptrT zero(new MockTensor(shape, "0"));
+
+	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
+	opt::CustomFilters empty;
+
+	{
+		auto wunfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var, zero}, teq::Opcode{"POW", 0});
+		auto zrofunc = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"POW", 0});
+		auto opted = opt::optimize({wunfunc, zrofunc}, rules, empty);
+		ASSERT_EQ(2, opted.size());
+
+		// expect both optimized wunfunc to be 1
+		EXPECT_GRAPHEQ("(constant:1[2\\3\\4\\1\\1\\1\\1\\1])", opted[0]);
+
+		// expect both optimized zrofunc to be 0
+		EXPECT_GRAPHEQ("(constant:0[2\\3\\4\\1\\1\\1\\1\\1])", opted[1]);
+	}
+
+	{
+		auto lvfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var, zero}, teq::Opcode{"ADD", 0});
+		auto rvfunc = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"ADD", 0});
+		auto opted = opt::optimize({lvfunc, rvfunc}, rules, empty);
+		ASSERT_EQ(2, opted.size());
+
+		// expect both optimized l and r vfuncs to be var
+		std::string expect = "(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])";
+		EXPECT_GRAPHEQ(expect, opted[0]);
+		EXPECT_GRAPHEQ(expect, opted[1]);
+	}
+
+	{
+		auto lzero = std::make_shared<MockFunctor>(teq::TensptrsT{var, zero}, teq::Opcode{"MUL", 0});
+		auto rzero = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"MUL", 0});
+		auto opted = opt::optimize({lzero, rzero}, rules, empty);
+		ASSERT_EQ(2, opted.size());
+
+		// expect both optimized l and r zeros to be 0
+		std::string expect = "(constant:0[2\\3\\4\\1\\1\\1\\1\\1])";
+		EXPECT_GRAPHEQ(expect, opted[0]);
+		EXPECT_GRAPHEQ(expect, opted[1]);
+	}
+
+	{
+		auto posvar = std::make_shared<MockFunctor>(teq::TensptrsT{var, zero}, teq::Opcode{"SUB", 0});
+		auto negvar = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"SUB", 0});
+		auto opted = opt::optimize({posvar, negvar}, rules, empty);
+		ASSERT_EQ(2, opted.size());
+
+		// expect optimized posvar to be var
+		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
+			opted[0]);
+
+		// expect optimized negvar to be -var
+		EXPECT_GRAPHEQ(
+			"(NEG[2\\3\\4\\1\\1\\1\\1\\1])\n"
+			" `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])", opted[1]);
+	}
+
+	{
+		auto divz = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"DIV", 0});
+		auto opted = opt::optimize({divz}, rules, empty);
+		ASSERT_EQ(1, opted.size());
+
+		// expect optimized divz to be zero
+		EXPECT_GRAPHEQ("(constant:0[2\\3\\4\\1\\1\\1\\1\\1])", opted[0]);
+	}
+
+	{
+		auto no_opt = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"MAX", 0});
+		auto opted = opt::optimize({no_opt}, rules, empty);
+		ASSERT_EQ(1, opted.size());
+
+		// expect optimized not_opt to remain the same
+		EXPECT_GRAPHEQ(
+			"(MAX[2\\3\\4\\1\\1\\1\\1\\1])\n"
+			" `--(constant:0[2\\3\\4\\1\\1\\1\\1\\1])\n"
+			" `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])", opted[0]);
+	}
+}
+
+
 TEST(OPTIMIZE, PruneZeroGraph)
 {
 	teq::Shape shape({2, 3, 4});
@@ -21,41 +124,29 @@ TEST(OPTIMIZE, PruneZeroGraph)
 	teq::TensptrT var2(new MockTensor(shape, "var2"));
 	teq::TensptrT zero(new MockTensor(shape, "0"));
 
-	opt::CversionCtx rules = opt::parse(
-		"SUB(X,0) => X;"
-		"SUB(0,X) => NEG(X);"
-		"comm ADD(X,0) => X;"
-		"comm MUL(X,0) => 0;"
-		"comm MUL(X,1) => X;"
-		"comm MUL(X,-1) => NEG(X);"
-		"POW(0,X) => 0;"
-		"POW(1,X) => 1;"
-		"POW(X,0) => 1;"
-		"POW(X,1) => X;"
-		"DIV(0,X) => 0;"
-		"DIV(X,1) => X;"
-		"DIV(X,X) => 1;"
-		"comm ADD(X,NEG(X)) => 0;"
-		"comm ADD(X,NEG(Y)) => SUB(X,Y);", build_mock_target);
-
-	auto got1 = std::make_shared<MockFunctor>(teq::Opcode{"ADD", 0}, teq::TensptrsT{zero, var2});
-	auto gotn1 = std::make_shared<MockFunctor>(teq::Opcode{"SUB", 0}, teq::TensptrsT{zero, var});
-	auto got2 = std::make_shared<MockFunctor>(teq::Opcode{"SUB", 0}, teq::TensptrsT{var2, zero});
-	auto got22 = std::make_shared<MockFunctor>(teq::Opcode{"MAX", 0}, teq::TensptrsT{var2, zero});
-
-	auto too0 = std::make_shared<MockFunctor>(teq::Opcode{"MUL", 0}, teq::TensptrsT{zero, got22});
-	auto too = std::make_shared<MockFunctor>(teq::Opcode{"ADD", 0}, teq::TensptrsT{var, too0});
-	auto got11 = std::make_shared<MockFunctor>(teq::Opcode{"POW", 0}, teq::TensptrsT{got2, zero});
-
-	auto m0 = std::make_shared<MockFunctor>(teq::Opcode{"MAX", 0}, teq::TensptrsT{got22, zero});
-	auto m1 = std::make_shared<MockFunctor>(teq::Opcode{"LT", 0}, teq::TensptrsT{too, zero});
-	auto m = std::make_shared<MockFunctor>(teq::Opcode{"MIN", 0}, teq::TensptrsT{m0, m1});
-
-	auto nocascades0 = std::make_shared<MockFunctor>(teq::Opcode{"DIV", 0}, teq::TensptrsT{got1, gotn1});
-	auto nocascades1 = std::make_shared<MockFunctor>(teq::Opcode{"POW", 0}, teq::TensptrsT{m, nocascades0});
-	auto nocascades = std::make_shared<MockFunctor>(teq::Opcode{"SUB", 0}, teq::TensptrsT{nocascades1, got2});
-
+	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
 	opt::CustomFilters empty;
+
+	auto got1 = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var2}, teq::Opcode{"ADD", 0});
+	auto gotn1 = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"SUB", 0});
+	auto got2 = std::make_shared<MockFunctor>(teq::TensptrsT{var2, zero}, teq::Opcode{"SUB", 0});
+	auto got22 = std::make_shared<MockFunctor>(teq::TensptrsT{var2, zero}, teq::Opcode{"MAX", 0});
+
+	auto too0 = std::make_shared<MockFunctor>(teq::TensptrsT{zero, got22}, teq::Opcode{"MUL", 0});
+	auto too = std::make_shared<MockFunctor>(teq::TensptrsT{var, too0}, teq::Opcode{"ADD", 0});
+	auto got11 = std::make_shared<MockFunctor>(teq::TensptrsT{got2, zero}, teq::Opcode{"POW", 0});
+
+	auto m0 = std::make_shared<MockFunctor>(teq::TensptrsT{got22, zero}, teq::Opcode{"MAX", 0});
+	auto m1 = std::make_shared<MockFunctor>(teq::TensptrsT{too, zero}, teq::Opcode{"LT", 0});
+	auto m = std::make_shared<MockFunctor>(teq::TensptrsT{m0, m1}, teq::Opcode{"MIN", 0});
+
+	auto nocascades0 = std::make_shared<MockFunctor>(
+		teq::TensptrsT{got1, gotn1}, teq::Opcode{"DIV", 0});
+	auto nocascades1 = std::make_shared<MockFunctor>(
+		teq::TensptrsT{m, nocascades0}, teq::Opcode{"POW", 0});
+	auto nocascades = std::make_shared<MockFunctor>(
+		teq::TensptrsT{nocascades1, got2}, teq::Opcode{"SUB", 0});
+
 	auto opteds = opt::optimize({nocascades}, rules, empty);
 	ASSERT_EQ(1, opteds.size());
 	teq::TensptrT opted = opteds[0];
@@ -76,122 +167,180 @@ TEST(OPTIMIZE, PruneZeroGraph)
 		" |       `--(NEG[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		" |           `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		" `--(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n", opted);
-
-	// auto got0 = tenncor::tan(zero);
-	// opted = opt::optimize({tenncor::pow(nocascades, got0)->get_tensor()}, rules);
-	// ASSERT_EQ(1, opted.size());
-	// EXPECT_GRAPHEQ("(constant:1[2\\3\\4\\1\\1\\1\\1\\1])", opted[0]);
 }
 
 
-// TEST(OPTIMIZE, PruneOneSingles)
-// {
-// 	eteq::NodeptrT<double> var = eteq::convert_to_node(
-// 		eteq::make_variable_scalar<double>(0, teq::Shape(),
-// 		"special_var"));
+TEST(OPTIMIZE, PropagateZeroGraph)
+{
+	// teq::Shape shape({2, 3, 4});
+	// teq::TensptrT var(new MockTensor(shape, "var"));
+	// teq::TensptrT var2(new MockTensor(shape, "var2"));
+	// teq::TensptrT zero(new MockTensor(shape, "0"));
 
-// 	eteq::NodeptrT<double> one =
-// 		eteq::make_constant_scalar<double>(1, teq::Shape());
+	// opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
+	// opt::CustomFilters preconst;
+	// preconst.prenode_filters_.push_back(
+	// 	[](teq::FuncptrT& f, ParentReplF repl)
+	// 	{
+	// 		return opt::constant_func(f, repl,
+	// 			[](teq::FuncptrT f) -> teq::TensptrT
+	// 			{
+	// 				return
+	// 			});
+	// 	})
 
-// 	opt::CversionCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
+	// auto got1 = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var2}, teq::Opcode{"ADD", 0});
+	// auto gotn1 = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"SUB", 0});
+	// auto got2 = std::make_shared<MockFunctor>(teq::TensptrsT{var2, zero}, teq::Opcode{"SUB", 0});
+	// auto got22 = std::make_shared<MockFunctor>(teq::TensptrsT{var2, zero}, teq::Opcode{"MAX", 0});
 
-// 	{
-// 		auto vfunc = tenncor::pow(var, one);
-// 		auto wunfunc = tenncor::pow(one, var);
-// 		auto opted = opt::optimize({
-// 			vfunc->get_tensor(),
-// 			wunfunc->get_tensor(),
-// 		}, rules);
-// 		ASSERT_EQ(2, opted.size());
-// 		// expect optimized vfunc to be 1
-// 		EXPECT_GRAPHEQ("(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])",
-// 			opted[0]);
+	// auto too0 = std::make_shared<MockFunctor>(teq::TensptrsT{zero, got22}, teq::Opcode{"MUL", 0});
+	// auto too = std::make_shared<MockFunctor>(teq::TensptrsT{var, too0}, teq::Opcode{"ADD", 0});
+	// auto got11 = std::make_shared<MockFunctor>(teq::TensptrsT{got2, zero}, teq::Opcode{"POW", 0});
 
-// 		// expect optimized wunfunc to be 1
-// 		EXPECT_GRAPHEQ("(constant:1[1\\1\\1\\1\\1\\1\\1\\1])", opted[1]);
-// 	}
+	// auto m0 = std::make_shared<MockFunctor>(teq::TensptrsT{got22, zero}, teq::Opcode{"MAX", 0});
+	// auto m1 = std::make_shared<MockFunctor>(teq::TensptrsT{too, zero}, teq::Opcode{"LT", 0});
+	// auto m = std::make_shared<MockFunctor>(teq::TensptrsT{m0, m1}, teq::Opcode{"MIN", 0});
 
-// 	{
-// 		auto lvfunc = var * one;
-// 		auto rvfunc = one * var;
-// 		auto opted = opt::optimize({
-// 			lvfunc->get_tensor(),
-// 			rvfunc->get_tensor(),
-// 		}, rules);
-// 		ASSERT_EQ(2, opted.size());
-// 		// expect both optimized l and r vfuncs to be var
-// 		std::string expect = "(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])";
-// 		EXPECT_GRAPHEQ(expect, opted[0]);
-// 		EXPECT_GRAPHEQ(expect, opted[1]);
-// 	}
+	// auto nocascades0 = std::make_shared<MockFunctor>(
+	// 	teq::TensptrsT{got1, gotn1}, teq::Opcode{"DIV", 0});
+	// auto nocascades1 = std::make_shared<MockFunctor>(
+	// 	teq::TensptrsT{m, nocascades0}, teq::Opcode{"POW", 0});
+	// auto nocascades = std::make_shared<MockFunctor>(
+	// 	teq::TensptrsT{nocascades1, got2}, teq::Opcode{"SUB", 0});
 
-// 	{
-// 		auto nomer = var / one;
-// 		auto opted = opt::optimize({nomer->get_tensor()}, rules);
-// 		ASSERT_EQ(1, opted.size());
-// 		// expect optimized nomer to be var
-// 		EXPECT_GRAPHEQ("(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])",
-// 			opted[0]);
-// 	}
-
-// 	{
-// 		auto wun = var / var;
-// 		auto opted = opt::optimize({wun->get_tensor()}, rules);
-// 		ASSERT_EQ(1, opted.size());
-// 		// expect optimized wun to be 1
-// 		EXPECT_GRAPHEQ("(constant:1[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
-// 	}
-
-// 	{
-// 		auto no_opt = tenncor::max(one, var);
-// 		auto opted = opt::optimize({no_opt->get_tensor()}, rules);
-// 		// expect optimized no_opt to remain the same
-// 		EXPECT_GRAPHEQ(
-// 			"(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 			" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
-// 	}
-// }
+	// auto opteds = opt::optimize({nocascades}, rules, empty);
+	// ASSERT_EQ(1, opteds.size());
+	// teq::TensptrT opted = opteds[0];
+	// EXPECT_GRAPHEQ(
+	// 	"(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" `--(POW[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   `--(MIN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   |   `--(MAX[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   |   |   `--(MAX[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   |   |   |   `--(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   |   |   |   `--(constant:0[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   |   |   `--(constant:0[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   |   `--(LT[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   |       `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   |       `--(constant:0[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |   `--(DIV[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |       `--(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |       `--(NEG[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" |           `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n"
+	// 	" `--(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n", opted);
+}
 
 
-// TEST(OPTIMIZE, PruneOneGraph)
-// {
-// 	eteq::NodeptrT<double> var = eteq::convert_to_node(
-// 		eteq::make_variable_scalar<double>(0, teq::Shape(),
-// 		"var"));
+TEST(OPTIMIZE, PruneOneSingles)
+{
+	teq::Shape shape({2, 3, 4});
+	teq::TensptrT var(new MockTensor(shape, "special_var"));
+	teq::TensptrT one(new MockTensor(shape, "1"));
 
-// 	eteq::NodeptrT<double> one =
-// 		eteq::make_constant_scalar<double>(1, teq::Shape());
+	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
+	opt::CustomFilters empty;
 
-// 	opt::CversionCtx rules = eteq::parse_file<double>("cfg/optimizations.rules");
+	{
+		auto vfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var, one}, teq::Opcode{"POW", 0});
+		auto wunfunc = std::make_shared<MockFunctor>(teq::TensptrsT{one, var}, teq::Opcode{"POW", 0});
+		auto opted = opt::optimize({vfunc, wunfunc}, rules, empty);
+		ASSERT_EQ(2, opted.size());
 
-// 	auto got0 = tenncor::log(one);
-// 	auto got1 = tenncor::sqrt(one);
-// 	auto got3 = one * var;
-// 	auto got00 = tenncor::pow(one, var);
-// 	auto got = tenncor::max(var, one);
+		// expect optimized vfunc to be 1
+		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
+			opted[0]);
 
-// 	auto too = got1 + got0 * got00;
-// 	auto got11 = tenncor::pow(var, one);
+		// expect optimized wunfunc to be 1
+		EXPECT_GRAPHEQ("(constant:1[2\\3\\4\\1\\1\\1\\1\\1])", opted[1]);
+	}
 
-// 	auto m = tenncor::min(tenncor::max(got1, too), got11);
-// 	auto root = tenncor::pow(m, got3 / got) - var;
+	{
+		auto lvfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var, one}, teq::Opcode{"MUL", 0});
+		auto rvfunc = std::make_shared<MockFunctor>(teq::TensptrsT{one, var}, teq::Opcode{"MUL", 0});
+		auto opted = opt::optimize({lvfunc, rvfunc}, rules, empty);
+		ASSERT_EQ(2, opted.size());
 
-// 	auto opted = opt::optimize({root->get_tensor()}, rules);
-// 	ASSERT_EQ(1, opted.size());
-// 	EXPECT_GRAPHEQ(
-// 		"(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" `--(POW[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |       `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |       `--(MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |           `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |           `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" `--(variable:var[1\\1\\1\\1\\1\\1\\1\\1])", opted[0]);
-// }
+		// expect both optimized l and r vfuncs to be var
+		std::string expect = "(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])";
+		EXPECT_GRAPHEQ(expect, opted[0]);
+		EXPECT_GRAPHEQ(expect, opted[1]);
+	}
+
+	{
+		auto nomer = std::make_shared<MockFunctor>(teq::TensptrsT{var, one}, teq::Opcode{"DIV", 0});
+		auto opted = opt::optimize({nomer}, rules, empty);
+		ASSERT_EQ(1, opted.size());
+
+		// expect optimized nomer to be var
+		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
+			opted[0]);
+	}
+
+	{
+		auto wun = std::make_shared<MockFunctor>(teq::TensptrsT{var, var}, teq::Opcode{"DIV", 0});
+		auto opted = opt::optimize({wun}, rules, empty);
+		ASSERT_EQ(1, opted.size());
+
+		// expect optimized wun to be 1
+		EXPECT_GRAPHEQ("(constant:1[2\\3\\4\\1\\1\\1\\1\\1])", opted[0]);
+	}
+
+	{
+		auto no_opt = std::make_shared<MockFunctor>(teq::TensptrsT{one, var}, teq::Opcode{"MAX", 0});
+		auto opted = opt::optimize({no_opt}, rules, empty);
+		ASSERT_EQ(1, opted.size());
+
+		// expect optimized no_opt to remain the same
+		EXPECT_GRAPHEQ(
+			"(MAX[2\\3\\4\\1\\1\\1\\1\\1])\n"
+			" `--(constant:1[2\\3\\4\\1\\1\\1\\1\\1])\n"
+			" `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])", opted[0]);
+	}
+}
+
+
+TEST(OPTIMIZE, PruneOneGraph)
+{
+	teq::Shape shape({2, 3, 4});
+	teq::TensptrT var(new MockTensor(shape, "var"));
+	teq::TensptrT one(new MockTensor(shape, "1"));
+
+	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
+	opt::CustomFilters empty;
+
+	auto got1 = std::make_shared<MockFunctor>(teq::TensptrsT{one, var}, teq::Opcode{"MUL", 0});
+	auto got00 = std::make_shared<MockFunctor>(teq::TensptrsT{one, var}, teq::Opcode{"POW", 0});
+	auto got2 = std::make_shared<MockFunctor>(teq::TensptrsT{var, one}, teq::Opcode{"MAX", 0});
+	auto too = std::make_shared<MockFunctor>(teq::TensptrsT{one, got00}, teq::Opcode{"ADD", 0});
+	auto got11 = std::make_shared<MockFunctor>(teq::TensptrsT{var, one}, teq::Opcode{"POW", 0});
+
+	auto m0 = std::make_shared<MockFunctor>(teq::TensptrsT{one, too}, teq::Opcode{"MAX", 0});
+	auto m = std::make_shared<MockFunctor>(teq::TensptrsT{m0, got11}, teq::Opcode{"MIN", 0});
+	auto root0 = std::make_shared<MockFunctor>(teq::TensptrsT{got1, got2}, teq::Opcode{"DIV", 0});
+	auto root1 = std::make_shared<MockFunctor>(teq::TensptrsT{m, root0}, teq::Opcode{"POW", 0});
+	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{root1, var}, teq::Opcode{"SUB", 0});
+
+	auto opteds = opt::optimize({root}, rules, empty);
+	ASSERT_EQ(1, opteds.size());
+	teq::TensptrT opted = opteds[0];
+	EXPECT_GRAPHEQ(
+		"(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(POW[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   `--(MIN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   |   `--(MAX[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   |   |   `--(constant:1[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   |   |   `--(ADD[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   |   |       `--(constant:1[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   |   |       `--(constant:1[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   |   `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   `--(DIV[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |       `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |       `--(MAX[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |           `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |           `--(constant:1[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])", opted);
+}
 
 
 // TEST(OPTIMIZE, PruneOpSingles)
@@ -209,7 +358,7 @@ TEST(OPTIMIZE, PruneZeroGraph)
 // 			tenncor::reduce_sum(tenncor::reduce_sum(zero))->get_tensor(),
 // 		}, rules);
 // 		ASSERT_EQ(1, opted.size());
-// 		EXPECT_GRAPHEQ("(variable:special_var0[1\\1\\1\\1\\1\\1\\1\\1])",
+// 		EXPECT_GRAPHEQ("(constant:special_var0[2\\3\\4\\1\\1\\1\\1\\1])",
 // 			opted[0]);
 // 	}
 
@@ -220,8 +369,8 @@ TEST(OPTIMIZE, PruneZeroGraph)
 // 		}, rules);
 // 		ASSERT_EQ(1, opted.size());
 // 		EXPECT_GRAPHEQ(
-// 			"(REDUCE_SUM[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 			" `--(variable:special_var[2\\3\\1\\1\\1\\1\\1\\1])",
+// 			"(REDUCE_SUM[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 			" `--(constant:special_var[2\\3\\1\\1\\1\\1\\1\\1])",
 // 			opted[0]);
 // 	}
 
@@ -232,9 +381,9 @@ TEST(OPTIMIZE, PruneZeroGraph)
 // 		}, rules);
 // 		ASSERT_EQ(1, opted.size());
 // 		EXPECT_GRAPHEQ(
-// 			"(REDUCE_SUM[1\\1\\1\\1\\1\\1\\1\\1])\n"
+// 			"(REDUCE_SUM[2\\3\\4\\1\\1\\1\\1\\1])\n"
 // 			" `--(REDUCE_SUM[2\\1\\1\\1\\1\\1\\1\\1])\n"
-// 			"     `--(variable:special_var[2\\3\\1\\1\\1\\1\\1\\1])",
+// 			"     `--(constant:special_var[2\\3\\1\\1\\1\\1\\1\\1])",
 // 			opted[0]);
 // 	}
 
@@ -245,10 +394,10 @@ TEST(OPTIMIZE, PruneZeroGraph)
 // 		}, rules);
 // 		ASSERT_EQ(1, opted.size());
 // 		EXPECT_GRAPHEQ(
-// 			"(MUL[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 			" `--(REDUCE_SUM[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 			" |   `--(variable:special_var[2\\3\\1\\1\\1\\1\\1\\1])\n"
-// 			" `--(variable:special_var0[1\\1\\1\\1\\1\\1\\1\\1])",
+// 			"(MUL[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 			" `--(REDUCE_SUM[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 			" |   `--(constant:special_var[2\\3\\1\\1\\1\\1\\1\\1])\n"
+// 			" `--(constant:special_var0[2\\3\\4\\1\\1\\1\\1\\1])",
 // 			opted[0]);
 // 	}
 // }
@@ -287,42 +436,42 @@ TEST(OPTIMIZE, PruneZeroGraph)
 // 	auto root = opted[0];
 
 // 	EXPECT_GRAPHEQ(
-// 		"(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   |   |   `--(variable:special_var2[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   |   |   `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   |   `--(COS[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   |       `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |   `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       `--(MUL[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       |   `--(REDUCE_PROD[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       |   |   `--(variable:special_var0[3\\4\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       |   `--(MUL[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       |       `--(COS[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       |       |   `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       |       `--(MIN[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       |           `--(variable:special_var2[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       |           `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |       `--(POW[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |           `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |           |   `--(variable:special_var2[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |           |   `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   |           `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |   `--(DIV[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |       `--(MUL[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |       |   `--(MUL[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |       |   |   `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |       |   |   `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |       |   `--(variable:special_var2[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |       `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |           `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" |           `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		" `--(SUB[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		"     `--(variable:special_var2[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 		"     `--(variable:special_var3[1\\1\\1\\1\\1\\1\\1\\1])",
+// 		"(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" `--(MIN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   `--(MIN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |   `--(MIN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |   |   `--(MIN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |   |   |   `--(constant:special_var2[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |   |   |   `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |   |   `--(COS[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |   |       `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |   `--(MIN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       `--(MUL[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       |   `--(REDUCE_PROD[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       |   |   `--(constant:special_var0[3\\4\\1\\1\\1\\1\\1\\1])\n"
+// 		" |   |       |   `--(MUL[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       |       `--(COS[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       |       |   `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       |       `--(MIN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       |           `--(constant:special_var2[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       |           `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |       `--(POW[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |           `--(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |           |   `--(constant:special_var2[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |           |   `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   |           `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |   `--(DIV[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |       `--(MUL[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |       |   `--(MUL[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |       |   |   `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |       |   |   `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |       |   `--(constant:special_var2[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |       `--(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |           `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" |           `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		" `--(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		"     `--(constant:special_var2[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 		"     `--(constant:special_var3[2\\3\\4\\1\\1\\1\\1\\1])",
 // 		opted[0]);
 // }
 
@@ -340,7 +489,7 @@ TEST(OPTIMIZE, PruneZeroGraph)
 // 	{
 // 		auto opted = opt::optimize({((one / two) * two)->get_tensor()}, rules);
 // 		ASSERT_EQ(1, opted.size());
-// 		EXPECT_GRAPHEQ("(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])",
+// 		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
 // 			opted[0]);
 // 	}
 
@@ -351,9 +500,9 @@ TEST(OPTIMIZE, PruneZeroGraph)
 // 		}, rules);
 // 		ASSERT_EQ(1, opted.size());
 // 		EXPECT_GRAPHEQ(
-// 			"(MUL[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])\n"
-// 			" `--(variable:special_var[1\\1\\1\\1\\1\\1\\1\\1])",
+// 			"(MUL[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 			" `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])\n"
+// 			" `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
 // 			opted[0]);
 // 	}
 // }

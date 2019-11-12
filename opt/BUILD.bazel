@@ -56,7 +56,6 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//opt:mock_opt",
-        "//eteq:eteq",
         "//testutil:tutil",
     ],
     linkstatic = True,
