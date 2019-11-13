@@ -1,6 +1,6 @@
-#include "teq/coord.hpp"
+#include "eteq/shaper.hpp"
 
-#ifdef TEQ_COORD_HPP
+#ifdef ETEQ_SHAPER_HPP
 
 namespace teq
 {

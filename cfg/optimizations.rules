@@ -33,8 +33,7 @@ DIV(X,1) => X;
 DIV(X,X) => 1;
 
 // sigmoid
-DIV(1,comm ADD(1,NEG(EXP(NEG(X))))) => SIGMOID(X);
-DIV(1,comm ADD(NEG(EXP(NEG(X)))),1) => SIGMOID(X);
+DIV(1,comm ADD(1,EXP(NEG(X)))) => SIGMOID(X);
 
 // abbreviate add and mul operations
 comm MUL(DIV(X,Y),Y) => X;

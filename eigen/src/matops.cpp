@@ -1,6 +1,6 @@
-#include "teq/matops.hpp"
+#include "eigen/matops.hpp"
 
-#ifdef TEQ_MATOPS_HPP
+#ifdef EIGEN_MATOPS_HPP
 
 namespace teq
 {

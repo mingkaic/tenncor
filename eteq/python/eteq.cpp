@@ -7,10 +7,7 @@
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/grader.hpp"
 #include "eteq/variable.hpp"
-
-#ifdef ENABLE_OPT
-#include "eteq/parse.hpp"
-#endif // ENABLE_OPT
+#include "eteq/optimize.hpp"
 
 namespace py = pybind11;
 
@@ -250,19 +247,17 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Seed internal RNG");
 
-#ifdef ENABLE_OPT
 	// optimization rules
-	py::class_<opt::OptCtx> rules(m, "OptRules");
+	py::class_<opt::CversionCtx> rules(m, "OptRules");
 
 	session
 		.def("optimize",
-			[](teq::Session* self, opt::OptCtx rules)
+			[](teq::Session* self, opt::CversionCtx rules)
 			{
-				opt::optimize(*self, rules);
+				eteq::optimize<PybindT>(*self, rules);
 			},
 			py::arg("filename") = "cfg/optimizations.rules",
 			"Optimize using rules for specified filename");
 
 	m.def("parse_optrules", &eteq::parse_file<PybindT>);
-#endif // ENABLE_OPT
 }

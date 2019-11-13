@@ -4,7 +4,7 @@
 
 #include "eteq/eteq.hpp"
 
-#include "eteq/parse.hpp"
+#include "eteq/optimize.hpp"
 
 
 static std::random_device rnd_device;

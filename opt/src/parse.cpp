@@ -15,18 +15,19 @@ static std::string parse_matcher (
 	}
 
 	auto& cmatchers = out[std::string(matcher->name_)];
+	MatchptrT outmatcher;
 	if (matcher->commutative_)
 	{
-		cmatchers.push_back(std::make_shared<CommutativeMatcher>(
-			std::string(matcher->variadic_)));
+		outmatcher = std::make_shared<CommutativeMatcher>(
+			std::string(matcher->variadic_));
 	}
 	else
 	{
-		cmatchers.push_back(std::make_shared<OrderedMatcher>(
-			std::string(matcher->variadic_)));
+		outmatcher = std::make_shared<OrderedMatcher>(
+			std::string(matcher->variadic_));
 	}
+	cmatchers.push_back(outmatcher);
 
-	auto& outmatcher = cmatchers.back();
 	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_)
 	{
 		auto arg = (::Arg*) it->val_;

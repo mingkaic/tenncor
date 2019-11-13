@@ -93,7 +93,7 @@ matcher_el:	NUMBER
 				struct TreeNode* node = $$ = malloc(nbytes);
 				node->type_ = ANY;
 				char* dst = node->val_.any_ = malloc(NSYMBOL);
-				strlcpy(dst, $1, NSYMBOL);
+				strncpy(dst, $1, NSYMBOL);
 			}
 			|
 			matcher
@@ -110,7 +110,7 @@ mfunction:	SYMBOL LPAREN margs RPAREN
 				struct Functor* f = $$ = malloc(nbytes);
 				memset(f, 0, nbytes);
 
-				strlcpy(f->name_, $1, NSYMBOL);
+				strncpy(f->name_, $1, NSYMBOL);
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
@@ -121,8 +121,8 @@ mfunction:	SYMBOL LPAREN margs RPAREN
 				struct Functor* f = $$ = malloc(nbytes);
 				memset(f, 0, nbytes);
 
-				strlcpy(f->name_, $1, NSYMBOL);
-				strlcpy(f->variadic_, $6, NSYMBOL);
+				strncpy(f->name_, $1, NSYMBOL);
+				strncpy(f->variadic_, $6, NSYMBOL);
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
@@ -173,7 +173,7 @@ target:		NUMBER
 				struct TreeNode* node = $$ = malloc(nbytes);
 				node->type_ = ANY;
 				char* dst = node->val_.any_ = malloc(NSYMBOL);
-				strlcpy(dst, $1, NSYMBOL);
+				strncpy(dst, $1, NSYMBOL);
 			}
 			|
 			tfunction
@@ -190,7 +190,7 @@ tfunction:	SYMBOL LPAREN targs RPAREN
 				struct Functor* f = $$ = malloc(nbytes);
 				memset(f, 0, nbytes);
 
-				strlcpy(f->name_, $1, NSYMBOL);
+				strncpy(f->name_, $1, NSYMBOL);
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
@@ -201,8 +201,8 @@ tfunction:	SYMBOL LPAREN targs RPAREN
 				struct Functor* f = $$ = malloc(nbytes);
 				memset(f, 0, nbytes);
 
-				strlcpy(f->name_, $1, NSYMBOL);
-				strlcpy(f->variadic_, $6, NSYMBOL);
+				strncpy(f->name_, $1, NSYMBOL);
+				strncpy(f->variadic_, $6, NSYMBOL);
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
@@ -213,8 +213,8 @@ tfunction:	SYMBOL LPAREN targs RPAREN
 				struct Functor* f = $$ = malloc(nbytes);
 				memset(f, 0, nbytes);
 
-				strlcpy(f->name_, $1, NSYMBOL);
-				strlcpy(f->variadic_, $4, NSYMBOL);
+				strncpy(f->name_, $1, NSYMBOL);
+				strncpy(f->variadic_, $4, NSYMBOL);
 			}
 
 targs:		targs COMMA targ
@@ -268,7 +268,7 @@ key_val:	SYMBOL COLON NUMBER
 				memset(kv, 0, nbytes);
 
 				kv->val_scalar_ = TRUE;
-				strlcpy(kv->key_, $1, NSYMBOL);
+				strncpy(kv->key_, $1, NSYMBOL);
 				numlist_pushback(&kv->val_, $3);
 			}
 			|
@@ -278,7 +278,7 @@ key_val:	SYMBOL COLON NUMBER
 				struct KeyVal* kv = $$ = malloc(nbytes);
 				memset(kv, 0, nbytes);
 
-				strlcpy(kv->key_, $1, NSYMBOL);
+				strncpy(kv->key_, $1, NSYMBOL);
 				numlist_move(&kv->val_, $4);
 				free($4);
 			}

@@ -104,10 +104,6 @@ void replace_parents (const teq::ParentFinder& pfinder,
 teq::TensptrsT optimize (teq::TensptrsT roots,
 	const CversionCtx& opts, const CustomFilters& filters);
 
-/// Apply optimization to graph roots tracked by session
-void optimize (teq::iSession& sess,
-	const CversionCtx& opts, const CustomFilters& filters);
-
 }
 
 #endif // OPT_OPTIMIZE_HPP

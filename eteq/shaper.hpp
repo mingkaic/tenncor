@@ -9,31 +9,13 @@
 #include <functional>
 #include <set>
 
-#include "teq/matops.hpp"
+#include "eigen/matops.hpp"
 
-#ifndef TEQ_COORD_HPP
-#define TEQ_COORD_HPP
+#ifndef ETEQ_SHAPER_HPP
+#define ETEQ_SHAPER_HPP
 
 namespace teq
 {
-
-/// Interface for transforming coordinates and reversing the coordinate
-struct iConvert
-{
-	virtual ~iConvert (void) = default;
-
-	/// Return string representation of converter
-	virtual std::string to_string (void) const = 0;
-
-	/// Access the forward matrix representation of transformer as a param to input
-	/// callback function cb
-	virtual void access (std::function<void(const MatrixT&)> cb) const = 0;
-};
-
-/// Type of iConvert smartpointer
-using CvrtptrT = std::shared_ptr<iConvert>;
-
-using MatInitF = std::function<void(MatrixT&)>;
 
 /// Coordinate transformation implementation using homogeneous matrices
 /// The transformation matrix must be inversible otherwise fatal on creation
@@ -105,4 +87,4 @@ ShaperT extend (RankT rank, std::vector<DimT> ext);
 
 }
 
-#endif // TEQ_COORD_HPP
+#endif // ETEQ_SHAPER_HPP

@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/coord.hpp"
+#include "eteq/shaper.hpp"
 
 
 TEST(COORD, Forward)

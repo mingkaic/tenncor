@@ -6,8 +6,8 @@
 struct MockEdge final : public teq::iEdge
 {
 	MockEdge (teq::TensptrT tensor,
-		teq::ShaperT shaper = nullptr,
-		teq::CvrtptrT coorder = nullptr) :
+		std::vector<double> shaper = {},
+		std::vector<double> coorder = {}) :
 		tensor_(tensor), shaper_(shaper), coorder_(coorder)
 	{
 		if (tensor_ == nullptr)
@@ -19,11 +19,7 @@ struct MockEdge final : public teq::iEdge
 	/// Implementation of iEdge
 	teq::Shape shape (void) const override
 	{
-		if (nullptr == shaper_)
-		{
-			return argshape();
-		}
-		return shaper_->convert(argshape());
+		return argshape();
 	}
 
 	/// Implementation of iEdge
@@ -41,48 +37,34 @@ struct MockEdge final : public teq::iEdge
 	/// Implementation of iEdge
 	void get_attrs (marsh::Maps& out) const override
 	{
-		if (nullptr != shaper_)
+		if (shaper_.size() > 0)
 		{
-			auto arr = std::make_unique<marsh::NumArray<teq::CDimT>>();
+			auto arr = std::make_unique<marsh::NumArray<double>>();
 			auto& contents = arr->contents_;
-			shaper_->access(
-				[&](const teq::MatrixT& args)
-				{
-					for (teq::RankT i = 0; i < teq::mat_dim; ++i)
-					{
-						for (teq::RankT j = 0; j < teq::mat_dim; ++j)
-						{
-							contents.push_back(args[i][j]);
-						}
-					}
-				});
-			out.contents_.emplace("shape", std::move(arr));
+			for (double s : shaper_)
+			{
+				contents.push_back(s);
+			}
+			out.contents_.emplace("shaper", std::move(arr));
 		}
-		if (nullptr != coorder_)
+		if (coorder_.size() > 0)
 		{
-			auto arr = std::make_unique<marsh::NumArray<teq::CDimT>>();
+			auto arr = std::make_unique<marsh::NumArray<double>>();
 			auto& contents = arr->contents_;
-			coorder_->access(
-				[&](const teq::MatrixT& args)
-				{
-					for (teq::RankT i = 0; i < teq::mat_dim; ++i)
-					{
-						for (teq::RankT j = 0; j < teq::mat_dim; ++j)
-						{
-							contents.push_back(args[i][j]);
-						}
-					}
-				});
-			out.contents_.emplace("coord", std::move(arr));
+			for (double c : coorder_)
+			{
+				contents.push_back(c);
+			}
+			out.contents_.emplace("coorder", std::move(arr));
 		}
 	}
 
 private:
 	teq::TensptrT tensor_;
 
-	teq::ShaperT shaper_;
+	std::vector<double> shaper_;
 
-	teq::CvrtptrT coorder_;
+	std::vector<double> coorder_;
 };
 
 using MockEdgesT = std::vector<MockEdge>;

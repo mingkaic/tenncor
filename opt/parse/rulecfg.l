@@ -42,7 +42,7 @@
 comm							{ return COMMUTATIVE; }
 
 [a-zA-Z\_][a-zA-Z\_]{0,30}		{
-	strlcpy(yylval.label, yytext, NSYMBOL);
+	strncpy(yylval.label, yytext, NSYMBOL);
 	return SYMBOL;
 }
 

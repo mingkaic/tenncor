@@ -44,7 +44,7 @@ struct TestSaver : public pbm::iSaver
 		return out;
 	}
 
-	std::vector<double> save_coorder (const teq::CvrtptrT& mapper) override
+	std::vector<double> save_coorder (const teq::CoordptrT& mapper) override
 	{
 		return save_shaper(mapper);
 	}

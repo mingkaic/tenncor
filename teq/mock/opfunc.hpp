@@ -9,9 +9,9 @@ struct MockOpfunc final : public teq::iOperableFunc
 	// todo: make constructor similar to MockFunctor
 	MockOpfunc (teq::TensptrT a,
 		teq::Opcode opcode = teq::Opcode{},
-		teq::CvrtptrT coord = nullptr) :
+		std::vector<double> coord = {}) :
 		opcode_(opcode),
-		args_({MockEdge(a, teq::identity, coord)}) {}
+		args_({MockEdge(a, {}, coord)}) {}
 
 	MockOpfunc (teq::TensptrT a, teq::TensptrT b,
 		teq::Opcode opcode = teq::Opcode{}) :

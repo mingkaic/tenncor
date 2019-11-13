@@ -14,7 +14,9 @@ struct iEigenEdge : public teq::iEdge
 	virtual T* data (void) const = 0;
 };
 
-const std::string coorder_key = "coord";
+const std::string shaper_key = "shaper";
+
+const std::string coorder_key = "coorder";
 
 std::vector<teq::CDimT> get_coorder (const teq::iEdge& edge);
 

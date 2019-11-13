@@ -50,7 +50,7 @@ void load_graph (teq::TensptrSetT& out, const cortenn::Graph& in)
 				std::vector<double> shaper_vec(shaper_pb.begin(), shaper_pb.end());
 				std::vector<double> coord_vec(coorder_pb.begin(), coorder_pb.end());
 				teq::ShaperT shaper = loader.generate_shaper(shaper_vec);
-				teq::CvrtptrT coord = loader.generate_coorder(opname, coord_vec);
+				teq::CoordptrT coord = loader.generate_coorder(opname, coord_vec);
 				args.push_back(
 					teq::FuncArg(arg, shaper, nodearg.fwd(), coord));
 				out.erase(invec[nodearg.idx()]);

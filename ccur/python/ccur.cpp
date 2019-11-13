@@ -2,7 +2,8 @@
 #include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 
-#include "opt/optimize.hpp"
+#include "eteq/generated/pyapi.hpp"
+#include "eteq/optimize.hpp"
 
 #include "ccur/session.hpp"
 
@@ -21,11 +22,13 @@ PYBIND11_MODULE(ccur, m)
 	session
 		.def(py::init<int,ccur::OpWeightT>(),
 			py::arg("nthread") = 2,
-			py::arg("weights") = ccur::OpWeightT())
+			py::arg("weights") = ccur::OpWeightT());
+
+	session
 		.def("optimize",
-			[](ccur::Session* self, opt::OptCtx rules)
+			[](ccur::Session* self, opt::CversionCtx rules)
 			{
-				opt::optimize(*self, rules);
+				eteq::optimize<PybindT>(*self, rules);
 			},
 			py::arg("filename") = "cfg/optimizations.rules",
 			"Optimize using rules for specified filename");

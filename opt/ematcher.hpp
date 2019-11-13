@@ -85,8 +85,11 @@ struct iEdgeMatcher
 
 			for (auto& apairs : attrs_)
 			{
-				if (false == estd::has(mvalues.contents_, apairs.first) ||
-					false == mvalues.contents_.at(apairs.first)->equals(
+				if (false == estd::has(mvalues.contents_, apairs.first))
+				{
+					return CandsT{};
+				}
+				if (false == mvalues.contents_.at(apairs.first)->equals(
 						*apairs.second))
 				{
 					return CandsT{};

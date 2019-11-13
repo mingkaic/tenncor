@@ -120,7 +120,7 @@ struct CSVEquation final : public teq::iTraveler
 			// marsh::Maps mvalues;
 			// child.get_attrs(mvalues);
 
-			teq::CvrtptrT coorder = nullptr;
+			teq::CoordptrT coorder = nullptr;
 			auto tens = child.get_tensor().get();
 			if (teq::is_identity(coorder))
 			{
@@ -196,7 +196,7 @@ private:
 
 		teq::iTensor* child_;
 
-		teq::iConvert* coorder_;
+		teq::CoordMap* coorder_;
 
 		std::string edge_label_;
 	};
@@ -214,7 +214,7 @@ private:
 
 	std::unordered_map<teq::iTensor*,Node> nodes_;
 
-	std::unordered_map<teq::iConvert*,std::string> coorders_;
+	std::unordered_map<teq::CoordMap*,std::string> coorders_;
 
 	GetTypeF get_ftype_;
 };

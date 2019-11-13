@@ -34,7 +34,7 @@ struct iSaver
 	virtual std::vector<double> save_shaper (const teq::ShaperT& mapper) = 0;
 
 	/// Return vector serialization of coordinate map
-	virtual std::vector<double> save_coorder (const teq::CvrtptrT& mapper) = 0;
+	virtual std::vector<double> save_coorder (const teq::CoordptrT& mapper) = 0;
 };
 
 /// Interface for building implementations of leaves, functors, shaper, and coorder
@@ -54,7 +54,7 @@ struct iLoader
 
 	/// Return coordinate map given vector serialization output
 	/// by corresponding iSaver
-	virtual teq::CvrtptrT generate_coorder (
+	virtual teq::CoordptrT generate_coorder (
 		std::string opname, std::vector<double> coord) = 0;
 };
 

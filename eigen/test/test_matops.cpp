@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/matops.hpp"
+#include "eigen/matops.hpp"
 
 
 TEST(MATOPS, ToString)

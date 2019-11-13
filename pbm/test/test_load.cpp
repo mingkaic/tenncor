@@ -52,7 +52,7 @@ struct TestLoader : public pbm::iLoader
 			});
 	}
 
-	teq::CvrtptrT generate_coorder (
+	teq::CoordptrT generate_coorder (
 		std::string opname, std::vector<double> coord) override
 	{
 		return generate_shaper(coord);

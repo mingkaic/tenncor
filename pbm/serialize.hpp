@@ -85,7 +85,7 @@ struct EADSaver final : public pbm::iSaver
 	}
 
 	/// Implementation of iSaver
-	std::vector<double> save_coorder (const teq::CvrtptrT& mapper) override
+	std::vector<double> save_coorder (const teq::CoordptrT& mapper) override
 	{
 		if (nullptr == mapper)
 		{
@@ -203,7 +203,7 @@ struct EADLoader final : public pbm::iLoader
 	}
 
 	/// Implementation of iLoader
-	teq::CvrtptrT& generate_coorder (
+	teq::CoordptrT& generate_coorder (
 		std::string opname, std::vector<double> coord) override
 	{
 		if (0 == coord.size()) // is identity

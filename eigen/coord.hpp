@@ -6,7 +6,10 @@
 /// Define Eigen transformation argument wrapper
 ///
 
-#include "teq/coord.hpp"
+#include <functional>
+#include <set>
+
+#include "eigen/matops.hpp"
 
 #ifndef EIGEN_COORD_HPP
 #define EIGEN_COORD_HPP
@@ -14,8 +17,7 @@
 namespace eigen
 {
 
-/// Eigen transformation wrapper implementation of iConvert
-struct CoordMap final : public teq::iConvert
+struct CoordMap final
 {
 	CoordMap (teq::CoordT indices)
 	{
@@ -33,8 +35,8 @@ struct CoordMap final : public teq::iConvert
 		init(args_);
 	}
 
-	/// Implementation of iConvert
-	std::string to_string (void) const override
+	/// Return string representation of shape mapper
+	std::string to_string (void) const
 	{
 		std::stringstream ss;
 		ss << fmts::arr_begin;
@@ -63,8 +65,9 @@ struct CoordMap final : public teq::iConvert
 		return ss.str();
 	}
 
-	/// Implementation of iConvert
-	void access (std::function<void(const teq::MatrixT&)> cb) const override
+	/// Access the forward matrix representation of transformer as a param to input
+	/// callback function cb
+	void access (std::function<void(const teq::MatrixT&)> cb) const
 	{
 		cb(args_);
 	}
@@ -73,7 +76,7 @@ private:
 	teq::MatrixT args_;
 };
 
-/// Type of iConvert smartpointer
+/// Type of coordinate mapping smartpointer
 using CoordptrT = std::shared_ptr<CoordMap>;
 
 /// Return CoordMap wrapper of reduction dimensions

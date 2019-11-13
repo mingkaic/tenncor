@@ -10,6 +10,8 @@
 
 #include "eteq/inode.hpp"
 
+#include "eteq/shaper.hpp"
+
 #ifndef ETEQ_FUNCARG_HPP
 #define ETEQ_FUNCARG_HPP
 
@@ -55,7 +57,7 @@ struct FuncArg final : public eigen::iEigenEdge<T>
 	}
 
 	/// Implementation of iEdge
-	void get_attrs (marsh::Maps& out) const
+	void get_attrs (marsh::Maps& out) const override
 	{
 		if (nullptr != shaper_)
 		{
@@ -72,7 +74,7 @@ struct FuncArg final : public eigen::iEigenEdge<T>
 						}
 					}
 				});
-			out.contents_.emplace("shape", std::move(arr));
+			out.contents_.emplace(eigen::shaper_key, std::move(arr));
 		}
 		if (nullptr != coorder_)
 		{
@@ -91,7 +93,7 @@ struct FuncArg final : public eigen::iEigenEdge<T>
 						}
 					}
 				});
-			out.contents_.emplace("coord", std::move(arr));
+			out.contents_.emplace(eigen::coorder_key, std::move(arr));
 		}
 	}
 

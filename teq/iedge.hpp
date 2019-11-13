@@ -9,7 +9,6 @@
 #include "marsh/objs.hpp"
 
 #include "teq/itensor.hpp"
-#include "teq/coord.hpp"
 
 #ifndef TEQ_IEDGE_HPP
 #define TEQ_IEDGE_HPP

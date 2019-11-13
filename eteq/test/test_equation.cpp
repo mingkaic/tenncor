@@ -13,7 +13,7 @@
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 
-#include "eteq/parse.hpp"
+#include "eteq/optimize.hpp"
 
 
 TEST(EQUATION, MatmulComplex)
@@ -541,9 +541,6 @@ TEST(EQUATION, SigmoidMLP_Fast)
 }
 
 
-#ifdef ENABLE_OPT
-
-
 TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 {
 	teq::Shape in_shape({10, 3});
@@ -659,7 +656,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 		dw1->get_tensor(),
 		db1->get_tensor(),
 	};
-	opt::optimize(roots, rules);
+	eteq::optimize<double>(roots, rules);
 
 	teq::Session session;
 	session.track({
@@ -886,7 +883,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 		dw1->get_tensor(),
 		db1->get_tensor(),
 	};
-	opt::optimize(roots, rules);
+	eteq::optimize<double>(roots, rules);
 
 	teq::Session session;
 	session.track({
@@ -993,9 +990,6 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);
 	}
 }
-
-
-#endif // ENABLE_OPT
 
 
 #endif // DISABLE_EQUATION_TEST

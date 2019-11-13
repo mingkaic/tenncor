@@ -157,16 +157,6 @@ teq::TensptrsT optimize (teq::TensptrsT roots,
 	return roots;
 }
 
-void optimize (teq::iSession& sess,
-	const CversionCtx& opts, const CustomFilters& filters)
-{
-	teq::TensptrSetT tracked_set = sess.get_tracked();
-	teq::TensptrsT tracked(tracked_set.begin(), tracked_set.end());
-	optimize(tracked, opts, filters);
-	sess.clear();
-	sess.track(tracked);
-}
-
 }
 
 #endif // OPT_OPTIMIZE_HPP

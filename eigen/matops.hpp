@@ -9,11 +9,12 @@
 
 #include <cassert>
 #include <cstring>
+#include <functional>
 
 #include "teq/shape.hpp"
 
-#ifndef TEQ_MATOPS_HPP
-#define TEQ_MATOPS_HPP
+#ifndef EIGEN_MATOPS_HPP
+#define EIGEN_MATOPS_HPP
 
 namespace teq
 {
@@ -39,6 +40,8 @@ void inverse (MatrixT& out, const MatrixT& in);
 /// Apply matrix multiplication for lhs and rhs to out matrix
 void matmul (MatrixT& out, const MatrixT& lhs, const MatrixT& rhs);
 
+using MatInitF = std::function<void(MatrixT&)>;
+
 }
 
-#endif /// TEQ_MATOPS_HPP
+#endif /// EIGEN_MATOPS_HPP
