@@ -21,7 +21,7 @@ namespace dbg
 
 /// Custom functor to assign DataMap to Eigen tensor output
 template <typename T>
-using CustomOpF = std::function<void(eigen::TensorT<T>&,const DataMapT<T>&)>;
+using CustomOpF = std::function<void(eigen::TensorT<T>&,const eteq::ArgsT<T>&)>;
 
 /// Functor that runs a custom functor instead of Eigen operators
 template <typename T>

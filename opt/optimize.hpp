@@ -39,12 +39,12 @@ struct CversionCtx
 			const MatchsT& matchers = matchers_.at(opname);
 			for (auto& matcher : matchers)
 			{
-				auto fid = matcher->get_fid();
 				auto cands = matcher->match(out, args);
 				if (cands.size() > 0)
 				{
+					auto fid = matcher->get_fid();
 					auto& matched_map = out[f];
-					matched_map[fid] = cands;
+					matched_map.emplace(fid, cands);
 					if (estd::has(targets_, fid))
 					{
 						if (cands.size() > 1)

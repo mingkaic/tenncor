@@ -31,17 +31,10 @@ static bool merge_woconflict (Candidate& out, const Candidate& a, const Candidat
 
 void merge_cands (CandsT& out, const CandsT& a, const CandsT& b)
 {
-	if (a.empty())
+	CandsT next_cands;
+	if (a.size() > 0 && b.size() > 0)
 	{
-		out = b;
-	}
-	else if (b.empty())
-	{
-		out = a;
-	}
-	else
-	{
-		out.reserve(a.size());
+		next_cands.reserve(a.size());
 		// todo: make this efficient
 		for (auto& cand1 : a)
 		{
@@ -51,11 +44,12 @@ void merge_cands (CandsT& out, const CandsT& a, const CandsT& b)
 				Candidate next_cand;
 				if (merge_woconflict(next_cand, cand1, cand2))
 				{
-					out.push_back(next_cand);
+					next_cands.push_back(next_cand);
 				}
 			}
 		}
 	}
+	out = next_cands;
 }
 
 }

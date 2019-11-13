@@ -1,4 +1,4 @@
-#include "eteq/parse.hpp"
+#include "eteq/optimize.hpp"
 #include "eteq/grader.hpp"
 
 #include "layr/seqmodel.hpp"
