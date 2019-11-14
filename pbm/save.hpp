@@ -24,7 +24,7 @@ namespace pbm
 
 using LeafMarshF = std::function<std::string(teq::iLeaf*)>;
 
-void save_graph (cortenn::Graph& out, teq::TensptrsT roots,
+void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
 	tag::TagRegistry& registry, LeafMarshF marshal_leaf);
 
 }

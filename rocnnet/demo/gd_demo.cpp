@@ -10,7 +10,7 @@
 #include "eteq/eteq.hpp"
 #include "eteq/optimize.hpp"
 
-#include "dbg/grpc/session.hpp"
+#include "dbg/emit/session.hpp"
 
 #include "layr/seqmodel.hpp"
 #include "layr/ulayer.hpp"

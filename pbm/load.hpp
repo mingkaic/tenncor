@@ -17,7 +17,7 @@ namespace pbm
 {
 
 using LeafUnmarshF = std::function<teq::TensptrT(
-	const cortenn::Source&,std::string)>;
+	const tenncor::Source&,std::string)>;
 
 using EdgesT = std::vector<std::pair<teq::TensptrT,marsh::Maps>>;
 
@@ -26,7 +26,7 @@ using FuncUnmarshF = std::function<teq::TensptrT(
 
 /// Return graph info through out available from in graph
 void load_graph (teq::TensptrSetT& roots,
-	const cortenn::Graph& pb_graph, tag::TagRegistry& registry,
+	const tenncor::Graph& pb_graph, tag::TagRegistry& registry,
 	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func);
 
 }

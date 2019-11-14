@@ -14,7 +14,7 @@ void marshal_attrs (PbAttrMapT& out, const marsh::Maps& attrs)
 		{
 			continue;
 		}
-		cortenn::ArrayAttrs attrs;
+		tenncor::ArrayAttrs attrs;
 		auto& contents = static_cast<
 			const marsh::NumArray<double>*>(apair.second.get())->contents_;
 		for (double e : contents)
@@ -39,7 +39,7 @@ void unmarshal_attrs (marsh::Maps& out, const PbAttrMapT& pb_map)
 	}
 }
 
-teq::Shape get_shape (const cortenn::Source& source)
+teq::Shape get_shape (const tenncor::Source& source)
 {
 	const auto& pb_slist = source.shape();
 	std::vector<teq::DimT> slist(pb_slist.begin(), pb_slist.end());

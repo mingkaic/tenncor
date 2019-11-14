@@ -9,7 +9,7 @@ package tenncor;
 message GraphInfo {
     string graph_id = 1;
 
-    cortenn.Graph graph = 2;
+    Graph graph = 2;
 }
 
 message NodeData {

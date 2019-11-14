@@ -25,32 +25,35 @@ struct OrderedVisitor final : public teq::OnceTraveler
 	std::vector<teq::iTensor*> ordered_;
 };
 
-static void tag_node (cortenn::Node* node,
+static void tag_node (tenncor::Node* node,
 	teq::iTensor* tens, tag::TagRegistry& registry)
 {
-	google::protobuf::Map<std::string,cortenn::Tag>* tags =
+	google::protobuf::Map<std::string,tenncor::Tag>* tags =
 		node->mutable_tags();
 	tag::TagRepsT reps = registry.get_tags(tens);
 	for (auto reppair : reps)
 	{
 		google::protobuf::RepeatedPtrField<std::string> labels(
 			reppair.second.begin(), reppair.second.end());
-		google::protobuf::MapPair<std::string,cortenn::Tag> tagpair(
+		google::protobuf::MapPair<std::string,tenncor::Tag> tagpair(
 			reppair.first);
 		tagpair.second.mutable_labels()->Swap(&labels);
 		tags->insert(tagpair);
 	}
 }
 
-void save_graph (cortenn::Graph& out, teq::TensptrsT roots,
+void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
 	tag::TagRegistry& registry, LeafMarshF marshal_leaf)
 {
 	teq::GraphStat stat;
 	OrderedVisitor orderer;
 	for (teq::TensptrT root : roots)
 	{
-		root->accept(stat);
-		root->accept(orderer);
+		if (nullptr != root)
+		{
+			root->accept(stat);
+			root->accept(orderer);
+		}
 	}
 	std::vector<teq::iLeaf*> leaves;
 	std::vector<teq::iFunctor*> funcs;
@@ -79,11 +82,11 @@ void save_graph (cortenn::Graph& out, teq::TensptrsT roots,
 		teq::iLeaf* leaf = leaves[i];
 		ordermap[leaf] = i;
 
-		cortenn::Node* pb_node = out.add_nodes();
+		tenncor::Node* pb_node = out.add_nodes();
 		pb_node->set_label(leaf->to_string());
 		tag_node(pb_node, leaf, registry);
 
-		cortenn::Source* pb_leaf = pb_node->mutable_source();
+		tenncor::Source* pb_leaf = pb_node->mutable_source();
 
 		const teq::Shape& shape = leaf->shape();
 		google::protobuf::RepeatedField<google::protobuf::uint64> slist(
@@ -98,17 +101,17 @@ void save_graph (cortenn::Graph& out, teq::TensptrsT roots,
 		teq::iFunctor* func = funcs[i];
 		ordermap[func] = nleaves + i;
 
-		cortenn::Node* pb_node = out.add_nodes();
+		tenncor::Node* pb_node = out.add_nodes();
 		pb_node->set_label(func->to_string());
 		tag_node(pb_node, func, registry);
 
-		cortenn::Functor* pb_func = pb_node->mutable_functor();
+		tenncor::Functor* pb_func = pb_node->mutable_functor();
 		teq::Opcode opcode = func->get_opcode();
 		pb_func->set_opname(opcode.name_);
 		auto children = func->get_children();
 		for (const teq::iEdge& child : children)
 		{
-			cortenn::NodeArg* pb_arg = pb_func->add_args();
+			tenncor::NodeArg* pb_arg = pb_func->add_args();
 
 			// serialize edge index
 			pb_arg->set_idx(ordermap[child.get_tensor().get()]);

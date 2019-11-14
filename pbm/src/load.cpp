@@ -6,22 +6,22 @@ namespace pbm
 {
 
 void load_graph (teq::TensptrSetT& roots,
-	const cortenn::Graph& pb_graph, tag::TagRegistry& registry,
+	const tenncor::Graph& pb_graph, tag::TagRegistry& registry,
 	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func)
 {
 	auto pb_nodes = pb_graph.nodes();
 	teq::TensptrsT generated_tens;
-	for (const cortenn::Node& pb_node : pb_nodes)
+	for (const tenncor::Node& pb_node : pb_nodes)
 	{
 		teq::TensptrT tens;
 		if (pb_node.has_source())
 		{
-			const cortenn::Source& pb_leaf = pb_node.source();
+			const tenncor::Source& pb_leaf = pb_node.source();
 			tens = unmarshal_leaf(pb_leaf, pb_node.label());
 		}
 		else
 		{
-			const cortenn::Functor& pb_func = pb_node.functor();
+			const tenncor::Functor& pb_func = pb_node.functor();
 			const auto& pb_edges = pb_func.args();
 			std::string opname = pb_func.opname();
 			EdgesT args;

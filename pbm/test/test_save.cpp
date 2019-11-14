@@ -32,7 +32,7 @@ TEST(SAVE, SaveGraph)
 	std::string got_pbfile = "/tmp/pbm_test.pbx";
 
 	{
-		cortenn::Graph graph;
+		tenncor::Graph graph;
 		std::vector<teq::TensptrT> roots;
 
 		// subtree one
@@ -117,8 +117,8 @@ TEST(SAVE, SaveGraph)
 		ASSERT_TRUE(expect_ifs.is_open());
 		ASSERT_TRUE(got_ifs.is_open());
 
-		cortenn::Graph expect_graph;
-		cortenn::Graph got_graph;
+		tenncor::Graph expect_graph;
+		tenncor::Graph got_graph;
 		ASSERT_TRUE(expect_graph.ParseFromIstream(&expect_ifs));
 		ASSERT_TRUE(got_graph.ParseFromIstream(&got_ifs));
 

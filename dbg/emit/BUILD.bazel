@@ -1,0 +1,59 @@
+licenses(["notice"])
+
+load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+load(
+    "@com_github_stackb_rules_proto//cpp:cpp_grpc_library.bzl",
+    "cpp_grpc_library"
+)
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+)
+
+######### LIBRARY #########
+
+proto_library(
+    name = "gemitter_proto",
+    srcs = ["grpc/gemitter.proto"],
+    deps = ["//pbm:pbm_proto"],
+)
+
+cpp_grpc_library(
+    name = "gemitter_cc_proto",
+    deps = ["//dbg/emit:gemitter_proto"],
+    with_grpc = True,
+)
+
+cc_library(
+    name = "emit",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//eteq:eteq",
+        "//dbg/emit:gemitter_cc_proto",
+        "@boost//:uuid",
+        "@com_github_mingkaic_cppkg//jobs:jobs",
+    ],
+)
+
+pybind_library(
+    name = "emit_py",
+    cc_srcs = ["python/emit.cpp"],
+    cc_deps = ["//dbg/emit:emit"],
+    py_deps = ["//eteq:eteq_py"],
+)
+
+cc_binary(
+    name = "mockserver",
+    srcs = ["mock/mockserver.cpp"],
+    deps = ["//dbg/emit:gemitter_cc_proto"],
+)

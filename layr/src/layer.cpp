@@ -231,7 +231,7 @@ LayerptrT load_layer (std::istream& ins, teq::TensptrsT& roots,
 	std::string ltype, std::string label,
 	LayerRegistry& registry)
 {
-	cortenn::Graph graph;
+	tenncor::Graph graph;
 	if (false == graph.ParseFromIstream(&ins))
 	{
 		logs::fatalf("failed to parse from istream when loading %s",
@@ -263,10 +263,11 @@ bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensptrsT roots,
 	LayerRegistry& registry)
 {
 	auto contents = layer.get_contents();
+	roots.insert(roots.end(), contents.begin(), contents.end());
 
 	// save graph from source
-	cortenn::Graph graph;
-	eteq::save_graph(graph, contents, registry.get_tag_registry());
+	tenncor::Graph graph;
+	eteq::save_graph(graph, roots, registry.get_tag_registry());
 	return graph.SerializeToOstream(&outs);
 }
 

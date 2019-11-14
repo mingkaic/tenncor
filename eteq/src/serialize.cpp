@@ -36,7 +36,7 @@ static std::string save_leaf (teq::iLeaf* leaf)
 	return std::string(data, nelems * nbytes);
 }
 
-void save_graph (cortenn::Graph& out, teq::TensptrsT roots,
+void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
 	tag::TagRegistry& registry)
 {
 	pbm::save_graph(out, roots, registry, save_leaf);
@@ -47,7 +47,7 @@ teq::TensptrT(Constant<realtype>::get((realtype*) pb, shape)):\
 teq::TensptrT(Variable<realtype>::get((realtype*) pb, shape, label));
 
 static teq::TensptrT load_leaf (
-	const cortenn::Source& source, std::string label)
+	const tenncor::Source& source, std::string label)
 {
 	teq::Shape shape = pbm::get_shape(source);
 	const char* pb = source.data().c_str();
@@ -110,7 +110,7 @@ static teq::TensptrT load_func (std::string opname,
 #undef _OUT_GENFUNC
 
 void load_graph (teq::TensptrSetT& roots,
-	const cortenn::Graph& pb_graph,
+	const tenncor::Graph& pb_graph,
 	tag::TagRegistry& registry)
 {
 	pbm::load_graph(roots, pb_graph, registry, load_leaf, load_func);

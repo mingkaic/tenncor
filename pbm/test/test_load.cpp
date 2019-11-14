@@ -22,7 +22,7 @@ const std::string testdir = "models/test";
 
 
 static teq::TensptrT generate_leaf (
-	const cortenn::Source& source, std::string label)
+	const tenncor::Source& source, std::string label)
 {
 	return std::make_shared<MockTensor>(pbm::get_shape(source), label);
 }
@@ -43,7 +43,7 @@ static teq::TensptrT generate_func (std::string opname,
 
 TEST(LOAD, LoadGraph)
 {
-	cortenn::Graph graph;
+	tenncor::Graph graph;
 	{
 		std::fstream inputstr(testdir + "/pbm_test.pbx",
 			std::ios::in | std::ios::binary);

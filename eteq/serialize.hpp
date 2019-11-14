@@ -22,11 +22,11 @@
 namespace eteq
 {
 
-void save_graph (cortenn::Graph& out, teq::TensptrsT roots,
+void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
 	tag::TagRegistry& registry = tag::get_reg());
 
 void load_graph (teq::TensptrSetT& roots,
-	const cortenn::Graph& pb_graph,
+	const tenncor::Graph& pb_graph,
 	tag::TagRegistry& registry = tag::get_reg());
 
 static std::vector<double> convert_attrs (const marsh::Maps& attrs, std::string key)

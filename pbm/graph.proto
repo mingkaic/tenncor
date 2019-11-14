@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "github.com/mingkaic/tenncor/pbm";
 
-package cortenn;
+package tenncor;
 
 message Source {
     repeated uint64 shape = 1 [packed = true];

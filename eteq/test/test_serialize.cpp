@@ -30,7 +30,7 @@ TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/eteq_test.pbx";
 	std::string got_pbfile = "got_eteq_test.pbx";
-	cortenn::Graph graph;
+	tenncor::Graph graph;
 
 	teq::Shape in_shape({10, 3});
 	teq::Shape weight0_shape({9, 10});
@@ -105,8 +105,8 @@ TEST(SERIALIZE, SaveGraph)
 		ASSERT_TRUE(expect_ifs.is_open());
 		ASSERT_TRUE(got_ifs.is_open());
 
-		cortenn::Graph expect_graph;
-		cortenn::Graph got_graph;
+		tenncor::Graph expect_graph;
+		tenncor::Graph got_graph;
 		ASSERT_TRUE(expect_graph.ParseFromIstream(&expect_ifs));
 		ASSERT_TRUE(got_graph.ParseFromIstream(&got_ifs));
 
@@ -120,7 +120,7 @@ TEST(SERIALIZE, SaveGraph)
 
 TEST(SERIALIZE, LoadGraph)
 {
-	cortenn::Graph in;
+	tenncor::Graph in;
 	{
 		std::fstream inputstr(testdir + "/eteq_test.pbx",
 			std::ios::in | std::ios::binary);

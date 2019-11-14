@@ -15,7 +15,7 @@
 #include "jobs/managed_job.hpp"
 #include "jobs/sequence.hpp"
 
-#include "dbg/grpc/tenncor.grpc.pb.h"
+#include "dbg/grpc/gemitter.grpc.pb.h"
 
 #ifndef DBG_GRPC_CLIENT_HPP
 #define DBG_GRPC_CLIENT_HPP
