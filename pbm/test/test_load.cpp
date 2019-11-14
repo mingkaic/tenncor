@@ -8,56 +8,37 @@
 
 #include "exam/exam.hpp"
 
+#include "teq/mock/leaf.hpp"
+#include "teq/mock/functor.hpp"
+
 #include "dbg/stream/teq.hpp"
 
 #include "tag/prop.hpp"
 
 #include "pbm/load.hpp"
 
-#include "pbm/test/common.hpp"
-
 
 const std::string testdir = "models/test";
 
 
-struct TestLoader : public pbm::iLoader
+static teq::TensptrT generate_leaf (
+	const cortenn::Source& source, std::string label)
 {
-	teq::TensptrT generate_leaf (const char* pb, teq::Shape shape,
-		std::string typelabel, std::string label, bool is_const) override
-	{
-		return teq::TensptrT(new MockTensor(shape));
-	}
+	return std::make_shared<MockTensor>(pbm::get_shape(source), label);
+}
 
-	teq::TensptrT generate_func (std::string opname, teq::ArgsT args) override
-	{
-		return teq::TensptrT(teq::Functor::get(teq::Opcode{opname, 0}, args));
-	}
 
-	teq::ShaperT generate_shaper (std::vector<double> coord) override
+static teq::TensptrT generate_func (std::string opname,
+	const pbm::EdgesT& edges)
+{
+	teq::TensptrsT tens;
+	tens.reserve(edges.size());
+	for (const auto& edge : edges)
 	{
-		if (teq::mat_dim * teq::mat_dim != coord.size())
-		{
-			logs::fatal("cannot deserialize non-matrix coordinate map");
-		}
-		return std::make_shared<teq::ShapeMap>(
-			[&](teq::MatrixT& fwd)
-			{
-				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
-				{
-					for (teq::RankT j = 0; j < teq::mat_dim; ++j)
-					{
-						fwd[i][j] = coord[i * teq::mat_dim + j];
-					}
-				}
-			});
+		tens.push_back(edge.first);
 	}
-
-	teq::CoordptrT generate_coorder (
-		std::string opname, std::vector<double> coord) override
-	{
-		return generate_shaper(coord);
-	}
-};
+	return std::make_shared<MockFunctor>(tens, teq::Opcode{opname, 0});
+}
 
 
 TEST(LOAD, LoadGraph)
@@ -70,16 +51,18 @@ TEST(LOAD, LoadGraph)
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
 	}
 
-	teq::TensptrSetT graphinfo;
-	pbm::load_graph<TestLoader>(graphinfo, graph);
-	EXPECT_EQ(2, graphinfo.size());
-
 	auto& reg = tag::get_reg();
+
+	teq::TensptrSetT graph_roots;
+	pbm::load_graph(graph_roots, graph, reg,
+		generate_leaf, generate_func);
+	EXPECT_EQ(2, graph_roots.size());
+
 	tag::Query q;
 
 	std::vector<std::string> root_props;
 	std::unordered_map<std::string,teq::TensptrT> propdtens;
-	for (auto tens : graphinfo)
+	for (auto tens : graph_roots)
 	{
 		tens->accept(q);
 		auto tags = reg.get_tags(tens.get());
@@ -142,6 +125,7 @@ TEST(LOAD, LoadGraph)
 	}
 
 	PrettyEquation artist;
+	artist.showshape_ = true;
 	std::stringstream gotstr;
 	artist.print(gotstr, tree1);
 	artist.print(gotstr, tree2);

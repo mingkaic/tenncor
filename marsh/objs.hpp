@@ -3,7 +3,7 @@
 #include "estd/estd.hpp"
 #include "fmts/fmts.hpp"
 
-#include "marsh/marshal.hpp"
+#include "marsh/imarshal.hpp"
 
 #ifndef MARSH_OBJS_HPP
 #define MARSH_OBJS_HPP

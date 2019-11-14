@@ -8,7 +8,7 @@
 #include "flag/flag.hpp"
 
 #include "eteq/eteq.hpp"
-#include "eteq/parse.hpp"
+#include "eteq/optimize.hpp"
 
 #include "dbg/grpc/session.hpp"
 
@@ -141,8 +141,8 @@ int main (int argc, const char** argv)
 		trained_out->get_tensor(),
 	});
 
-	opt::OptCtx rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
-	opt::optimize(sess, rules);
+	auto rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
+	eteq::optimize<PybindT>(sess, rules);
 
 	// train mlp to output input
 	start = std::clock();

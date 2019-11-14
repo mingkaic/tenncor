@@ -80,6 +80,7 @@ cc_library(
         "//eigen:eigen",
         "//tag:tag",
         "//opt:opt",
+        "//pbm:pbm",
     ],
     visibility = ["//visibility:public"],
 )

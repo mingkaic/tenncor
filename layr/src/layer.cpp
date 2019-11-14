@@ -238,7 +238,7 @@ LayerptrT load_layer (std::istream& ins, teq::TensptrsT& roots,
 			ltype.c_str());
 	}
 	teq::TensptrSetT info;
-	pbm::load_graph<eteq::EADLoader>(info, graph);
+	eteq::load_graph(info, graph);
 
 	teq::OwnerMapT owners = teq::track_owners(
 		teq::TensptrsT(info.begin(), info.end()));
@@ -262,28 +262,11 @@ LayerptrT load_layer (std::istream& ins, teq::TensptrsT& roots,
 bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensptrsT roots,
 	LayerRegistry& registry)
 {
-	pbm::GraphSaver<eteq::EADSaver> saver(registry.get_tag_registry());
-	for (auto& root : roots)
-	{
-		if (nullptr != root)
-		{
-			root->accept(saver);
-		}
-	}
-
 	auto contents = layer.get_contents();
-	auto owners = teq::track_owners(contents);
-	for (auto tens : contents)
-	{
-		if (nullptr != tens)
-		{
-			tens->accept(saver);
-		}
-	}
 
 	// save graph from source
 	cortenn::Graph graph;
-	saver.save(graph);
+	eteq::save_graph(graph, contents, registry.get_tag_registry());
 	return graph.SerializeToOstream(&outs);
 }
 

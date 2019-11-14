@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
    - opt: enforce variadic/commutative constraints
-   - opt: retest common opt rules
 
 === usage ===
 P2 - implement GRU

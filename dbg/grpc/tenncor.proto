@@ -1,55 +1,21 @@
 syntax = "proto3";
 
+import "pbm/graph.proto";
+
 package tenncor;
 
 // ======== GENERAL MESSAGE OBJECTS ========
 
-message NodeLoc {
-    // maximum distance from a leaf node
-    uint32 maxheight = 1;
-
-    // minimum distance from a leaf node
-    uint32 minheight = 2;
-}
-
-message Strings {
-    repeated string strings = 1;
-}
-
-message NodeInfo {
-    int32 id = 1;
-
-    repeated uint32 shape = 2;
-
-    map<string,Strings> tags = 3;
-
-    NodeLoc location = 4;
-}
-
-message EdgeInfo {
-    int32 parent = 1;
-
-    int32 child = 2;
-
-    string label = 3;
-
-    string shaper = 4;
-
-    string coorder = 5;
-}
-
 message GraphInfo {
     string graph_id = 1;
 
-    repeated NodeInfo nodes = 2;
-
-    repeated EdgeInfo edges = 3;
+    cortenn.Graph graph = 2;
 }
 
 message NodeData {
     string graph_id = 1;
 
-    int32 node_id = 2;
+    int32 node_idx = 2;
 
     repeated float data = 3;
 }

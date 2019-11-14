@@ -11,10 +11,16 @@ message Source {
     bool is_const = 4;
 }
 
+message ArrayAttrs {
+    repeated double values = 1;
+}
+
 message NodeArg {
-    uint32 idx = 1; // todo: check if these are redundant
-    repeated double coord = 2 [packed = true];
-    repeated double shaper = 3 [packed = true];
+    uint32 idx = 1;
+    map<string,ArrayAttrs> attrs = 5;
+
+    repeated double coord = 2 [deprecated = true, packed = true];
+    repeated double shaper = 3 [deprecated = true, packed = true];
     bool fwd = 4 [deprecated = true];
 }
 

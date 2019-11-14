@@ -31,7 +31,7 @@ struct iEdge
 	virtual TensptrT get_tensor (void) const = 0;
 
 	/// Set attribute in out object specified by attr
-	/// If attr is empty string, set all attributes to out marsh::Map
+	/// If attr is empty string, set all attributes to out marsh::Maps
 	virtual void get_attrs (marsh::Maps& out) const = 0;
 };
 

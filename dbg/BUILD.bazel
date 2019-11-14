@@ -58,6 +58,7 @@ py_library(
 proto_library(
     name = "tenncor_proto",
     srcs = ["grpc/tenncor.proto"],
+    deps = ["//pbm:pbm_proto"],
 )
 
 cpp_grpc_library(

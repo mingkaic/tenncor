@@ -49,7 +49,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//eteq:eteq",
+        "//tag:tag",
         "//pbm:pbm_cc_proto",
     ],
 )
@@ -75,8 +75,10 @@ cc_test(
     srcs = ["//pbm:test_srcs"],
     deps = [
         "//pbm:pbm",
+        "//teq:mock_teq",
         "//dbg:stream_out",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],

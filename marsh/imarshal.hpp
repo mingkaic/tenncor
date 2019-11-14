@@ -1,5 +1,5 @@
-#ifndef MARSH_MARSHAL_HPP
-#define MARSH_MARSHAL_HPP
+#ifndef MARSH_IMARSHAL_HPP
+#define MARSH_IMARSHAL_HPP
 
 namespace marsh
 {
@@ -23,4 +23,4 @@ struct iMarshaler
 
 }
 
-#endif // MARSH_MARSHAL_HPP
+#endif // MARSH_IMARSHAL_HPP

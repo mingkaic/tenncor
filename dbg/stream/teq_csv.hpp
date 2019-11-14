@@ -114,28 +114,16 @@ struct CSVEquation final : public teq::iTraveler
 			nodes_.size(),
 		});
 		auto children = func->get_children();
-		for (size_t i = 0, n = children.size(); i < n; ++i)
+		for (size_t i = 0, nchildren = children.size(); i < nchildren; ++i)
 		{
 			const teq::iEdge& child = children[i];
-			// marsh::Maps mvalues;
-			// child.get_attrs(mvalues);
-
-			teq::CoordptrT coorder = nullptr;
 			auto tens = child.get_tensor().get();
-			if (teq::is_identity(coorder))
-			{
-				coorder = nullptr;
-			}
-			else
-			{
-				std::string coordstr = coorder->to_string();
-				multiline_replace(coordstr);
-				coorders_.emplace(coorder, coordstr);
-			}
+			marsh::Maps mvalues;
+			child.get_attrs(mvalues);
 			edges_.push_back(Edge{
 				func,
 				tens,
-				coorder,
+				std::move(mvalues.contents_),
 				fmts::to_string(i),
 			});
 			tens->accept(*this);
@@ -145,39 +133,40 @@ struct CSVEquation final : public teq::iTraveler
 	/// Stream visited graphs to out
 	void to_stream (std::ostream& out)
 	{
+		size_t nedges = edges_.size();
+		std::unordered_set<std::string> attr_keys;
+		for (size_t i = 0; i < nedges; ++i)
+		{
+			for (auto& apairs : edges_[i].attrs_)
+			{
+				attr_keys.emplace(apairs.first);
+			}
+		}
+		std::vector<std::string> akeys(attr_keys.begin(), attr_keys.end());
+		std::sort(akeys.begin(), akeys.end());
+
 		size_t nnodes = nodes_.size();
-		for (size_t i = 0, nedges = edges_.size(); i < nedges; ++i)
+		for (size_t i = 0; i < nedges; ++i)
 		{
 			const Edge& edge = edges_[i];
 			auto& parent_node = nodes_[edge.func_];
 			auto& child_node = nodes_[edge.child_];
 			std::string color = child_node.ntype_ == CACHED_FUNC ?
 				"red" : "white";
-			if (nullptr == edge.coorder_)
-			{
-				out << parent_node.id_ << label_delim
-					<< parent_node.label_ << ','
-					<< child_node.id_ << label_delim
-					<< child_node.label_ << ','
-					<< edge.edge_label_ << ','
-					<< color << '\n';
-			}
-			else
-			{
-				out << parent_node.id_ << label_delim
-					<< parent_node.label_ << ','
-					<< nnodes + i << label_delim
-					<< coorders_[edge.coorder_] << ','
-					<< edge.edge_label_ << ','
-					<< color << '\n';
 
-				out << nnodes + i << label_delim
-					<< coorders_[edge.coorder_] << ','
-					<< child_node.id_ << label_delim
-					<< child_node.label_ << ','
-					<< edge.edge_label_ << ','
-					<< color << '\n';
+			out << parent_node.id_ << label_delim << parent_node.label_ << ','
+				<< child_node.id_ << label_delim << child_node.label_ << ','
+				<< edge.edge_label_ << ','
+				<< color;
+			for (std::string akey : akeys)
+			{
+				out << ',';
+				if (estd::has(edge.attrs_, akey))
+				{
+					out << edge.attrs_.at(akey)->to_string();
+				}
 			}
+			out << '\n';
 		}
 	}
 
@@ -196,7 +185,7 @@ private:
 
 		teq::iTensor* child_;
 
-		teq::CoordMap* coorder_;
+		std::unordered_map<std::string,marsh::ObjptrT> attrs_;
 
 		std::string edge_label_;
 	};
@@ -213,8 +202,6 @@ private:
 	std::vector<Edge> edges_;
 
 	std::unordered_map<teq::iTensor*,Node> nodes_;
-
-	std::unordered_map<teq::CoordMap*,std::string> coorders_;
 
 	GetTypeF get_ftype_;
 };

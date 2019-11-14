@@ -8,53 +8,28 @@
 
 #include "gtest/gtest.h"
 
-#include "teq/ifunctor.hpp"
+#include "teq/mock/leaf.hpp"
+#include "teq/mock/functor.hpp"
 
 #include "pbm/save.hpp"
 
 #include "tag/prop.hpp"
 
-#include "pbm/test/common.hpp"
-
 
 const std::string testdir = "models/test";
 
 
-struct TestSaver : public pbm::iSaver
+static std::string save_leaf (teq::iLeaf* leaf)
 {
-	std::string save_leaf (teq::iLeaf* leaf) override
-	{
-		return std::string(leaf->shape().n_elems(), 0);
-	}
-
-	std::vector<double> save_shaper (const teq::ShaperT& mapper) override
-	{
-		std::vector<double> out;
-		mapper->access(
-			[&out](const teq::MatrixT& mat)
-			{
-				for (teq::RankT i = 0; i < teq::mat_dim; ++i)
-				{
-					for (teq::RankT j = 0; j < teq::mat_dim; ++j)
-					{
-						out.push_back(mat[i][j]);
-					}
-				}
-			});
-		return out;
-	}
-
-	std::vector<double> save_coorder (const teq::CoordptrT& mapper) override
-	{
-		return save_shaper(mapper);
-	}
-};
+	return std::string(leaf->shape().n_elems(), 0);
+}
 
 
 TEST(SAVE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/pbm_test.pbx";
-	std::string got_pbfile = "got_pbm_test.pbx";
+	// std::string got_pbfile = "got_pbm_test.pbx";
+	std::string got_pbfile = "/tmp/pbm_test.pbx";
 
 	{
 		cortenn::Graph graph;
@@ -62,38 +37,36 @@ TEST(SAVE, SaveGraph)
 
 		// subtree one
 		teq::Shape shape({3, 7});
-		teq::TensptrT osrc(new MockTensor(shape));
-
 		teq::Shape shape2({7, 3});
-		teq::TensptrT osrc2(new MockTensor(shape2));
+		teq::TensptrT osrc = std::make_shared<MockTensor>(shape, "osrc");
+		teq::TensptrT osrc2 = std::make_shared<MockTensor>(shape2, "osrc2");
 
 		auto& preg = tag::get_property_reg();
 		preg.property_tag(osrc, "osrc");
 		preg.property_tag(osrc2, "osrc2");
 
 		{
-			teq::TensptrT src(new MockTensor(shape));
-
 			teq::Shape shape3({3, 1, 7});
-			teq::TensptrT src2(new MockTensor(shape3));
+			teq::TensptrT src = std::make_shared<MockTensor>(shape, "src");
+			teq::TensptrT src2 = std::make_shared<MockTensor>(shape3, "src2");
 
-			teq::TensptrT dest(teq::Functor::get(teq::Opcode{"-", 0}, {
-				{src2, teq::identity},
-				{teq::TensptrT(teq::Functor::get(teq::Opcode{"@", 1}, {
-					{teq::TensptrT(teq::Functor::get(teq::Opcode{"/", 2}, {
-						{teq::TensptrT(teq::Functor::get(teq::Opcode{"neg", 3}, {
-							{osrc, teq::identity},
-						})), teq::identity},
-						{teq::TensptrT(teq::Functor::get(teq::Opcode{"+", 4}, {
-							{teq::TensptrT(
-								teq::Functor::get(teq::Opcode{"sin", 5}, {
-								{src, teq::identity}})), teq::identity},
-							{src, teq::identity},
-						})), teq::identity}
-					})), teq::permute({1, 0})},
-					{osrc2, teq::identity}
-				})), teq::permute({1, 2, 0})},
-			}));
+			teq::TensptrT dest = std::make_shared<MockFunctor>(MockEdgesT{
+				MockEdge(src2, {}),
+				MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+					MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+						MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+							MockEdge(osrc, {}),
+						}, teq::Opcode{"neg", 3}), {}),
+						MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+							MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+								MockEdge(src, {}),
+							}, teq::Opcode{"sin", 5}), {}),
+							{src, {}},
+						}, teq::Opcode{"+", 4}), {})
+					}, teq::Opcode{"/", 2}), {}, {1, 0}),
+					MockEdge(osrc2, {})
+				}, teq::Opcode{"@", 1}), {}, {1, 2, 0}),
+			}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
 
 			preg.property_tag(src, "subtree_src");
@@ -104,26 +77,24 @@ TEST(SAVE, SaveGraph)
 		// subtree two
 		{
 			teq::Shape mshape({3, 3});
-			teq::TensptrT src(new MockTensor(mshape));
+			teq::TensptrT src = std::make_shared<MockTensor>(mshape, "s2src");
+			teq::TensptrT src2 = std::make_shared<MockTensor>(mshape, "s2src2");
+			teq::TensptrT src3 = std::make_shared<MockTensor>(mshape, "s2src3");
 
-			teq::TensptrT src2(new MockTensor(mshape));
-
-			teq::TensptrT src3(new MockTensor(mshape));
-
-			teq::TensptrT dest(teq::Functor::get(teq::Opcode{"-", 0}, {
-				{src, teq::identity},
-				{teq::TensptrT(teq::Functor::get(teq::Opcode{"*", 6}, {
-					{teq::TensptrT(teq::Functor::get(teq::Opcode{"abs", 7}, {
-						{src, teq::identity},
-					})), teq::identity},
-					{teq::TensptrT(teq::Functor::get(teq::Opcode{"exp", 8}, {
-						{src2, teq::identity},
-					})), teq::identity},
-					{teq::TensptrT(teq::Functor::get(teq::Opcode{"neg", 3}, {
-						{src3, teq::identity},
-					})), teq::identity},
-				})), teq::identity},
-			}));
+			teq::TensptrT dest = std::make_shared<MockFunctor>(MockEdgesT{
+				MockEdge(src, {}),
+				MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+					MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+						MockEdge(src, {}),
+					}, teq::Opcode{"abs", 7}), {}),
+					MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+						MockEdge(src2, {}),
+					}, teq::Opcode{"exp", 8}), {}),
+					MockEdge(std::make_shared<MockFunctor>(MockEdgesT{
+						MockEdge(src3, {}),
+					}, teq::Opcode{"neg", 3}), {}),
+				}, teq::Opcode{"*", 6}), {}),
+			}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
 
 			preg.property_tag(src, "subtree2_src");
@@ -132,13 +103,7 @@ TEST(SAVE, SaveGraph)
 			preg.property_tag(dest, "subtree2_dest");
 		}
 
-		pbm::GraphSaver<TestSaver> saver;
-		for (auto& root : roots)
-		{
-			root->accept(saver);
-		}
-
-		saver.save(graph);
+		pbm::save_graph(graph, roots, preg.tag_reg_, save_leaf);
 
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
