@@ -105,7 +105,7 @@ struct CustomFunctor final : public teq::iOperableFunc
 	}
 
 private:
-	CustomFunctor (CustomOpF<T> op, teq::Shape shape, ArgsT<T> args) :
+	CustomFunctor (CustomOpF<T> op, teq::Shape shape, eteq::ArgsT<T> args) :
 		out_(eigen::shape_convert(shape)),
 		op_(op), shape_(shape), args_(args) {}
 
@@ -117,7 +117,7 @@ private:
 	teq::Shape shape_;
 
 	/// Tensor arguments (and children)
-	ArgsT<T> args_;
+	eteq::ArgsT<T> args_;
 };
 
 /// CustomFunctor's node wrapper
@@ -198,8 +198,7 @@ template <typename T>
 eteq::NodeptrT<T> make_functor (CustomOpF<T> op, eteq::ArgsT<T> args)
 {
 	return std::make_shared<CustomFunctorNode<T>>(
-		std::shared_ptr<CustomFunctor<T>>(CustomFunctor<T>::get(op, args))
-	);
+		std::shared_ptr<CustomFunctor<T>>(CustomFunctor<T>::get(op, args)));
 }
 
 }

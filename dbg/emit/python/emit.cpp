@@ -1,11 +1,10 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "opt/optimize.hpp"
-
 #include "eteq/generated/pyapi.hpp"
+#include "eteq/optimize.hpp"
 
-#include "dbg/grpc/session.hpp"
+#include "dbg/emit/session.hpp"
 
 namespace py = pybind11;
 
@@ -85,9 +84,9 @@ PYBIND11_MODULE(grpc_dbg, m)
 			"Inform session requests to stop their tasks "
 			"(requests will attempt to wrap up call before terminating)")
 		.def("optimize",
-			[](dbg::InteractiveSession* self, opt::OptCtx rules)
+			[](dbg::InteractiveSession* self, opt::CversionCtx rules)
 			{
-				opt::optimize(*self, rules);
+				eteq::optimize<PybindT>(*self, rules);
 			},
 			"Optimize using rules for specified filename");
 }

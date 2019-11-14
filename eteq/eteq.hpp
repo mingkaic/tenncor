@@ -8,3 +8,5 @@
 
 #include "eteq/grader.hpp"
 #include "eteq/constant.hpp"
+#include "eteq/serialize.hpp"
+#include "eteq/optimize.hpp"

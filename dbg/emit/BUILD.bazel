@@ -22,7 +22,7 @@ filegroup(
 
 proto_library(
     name = "gemitter_proto",
-    srcs = ["grpc/gemitter.proto"],
+    srcs = ["gemitter.proto"],
     deps = ["//pbm:pbm_proto"],
 )
 

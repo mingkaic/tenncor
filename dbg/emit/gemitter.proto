@@ -41,21 +41,21 @@ message CreateGraphResponse {
     string message = 2;
 }
 
-message UpdateGraphRequest {
-    GraphInfo payload = 1;
-}
-
-message UpdateGraphResponse {
-    Status status = 1;
-
-    string message = 2;
-}
-
 message UpdateNodeDataRequest {
     NodeData payload = 1;
 }
 
 message UpdateNodeDataResponse {
+    Status status = 1;
+
+    string message = 2;
+}
+
+message DeleteGraphRequest {
+    string graphd_id = 1;
+}
+
+message DeleteGraphResponse {
     Status status = 1;
 
     string message = 2;
@@ -67,9 +67,8 @@ service GraphEmitter {
     // Create or update listed nodes and edges
     rpc CreateGraph (CreateGraphRequest) returns (CreateGraphResponse);
 
-    // Wipe and reupdate entire graph with listed nodes and edges
-    rpc UpdateGraph (UpdateGraphRequest) returns (UpdateGraphResponse);
-
     // Update data (tensor data) of existing nodes
     rpc UpdateNodeData (stream UpdateNodeDataRequest) returns (UpdateNodeDataResponse);
+
+    rpc DeleteGraph (DeleteGraphRequest) returns (DeleteGraphResponse);
 }

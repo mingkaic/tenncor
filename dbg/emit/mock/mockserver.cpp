@@ -4,7 +4,7 @@
 #include <grpcpp/server_context.h>
 #include <grpcpp/security/server_credentials.h>
 
-#include "dbg/grpc/tenncor.grpc.pb.h"
+#include "dbg/emit/gemitter.grpc.pb.h"
 
 struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 {

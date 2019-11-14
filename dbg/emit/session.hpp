@@ -19,9 +19,9 @@
 
 #include "teq/session.hpp"
 
-#include "eteq/eteq.hpp"
+#include "eteq/serialize.hpp"
 
-#include "dbg/grpc/client.hpp"
+#include "dbg/emit/client.hpp"
 
 #ifndef DBG_SESSION_HPP
 #define DBG_SESSION_HPP
@@ -88,32 +88,32 @@ struct InteractiveSession final : public teq::iSession
 	{
 		sess_.track(roots);
 
-		teq::ParentFinder pfinder;
 		for (auto root : roots)
 		{
 			root->accept(stat_);
-			root->accept(pfinder);
 		}
+	}
 
-		for (auto& assocs : pfinder.parents_)
-		{
-			for (auto& parent_pair : assocs.second)
-			{
-				parents_[assocs.first].emplace(
-					static_cast<teq::iOperableFunc*>(parent_pair.first));
-			}
-		}
-
-		// setup request
+	void create_graph (void)
+	{
 		tenncor::CreateGraphRequest request;
 		auto payload = request.mutable_payload();
-		eteq::save_graph(*request.mutable_graph(), sess_.tracked_);
+		payload->set_graph_id(sess_id_);
+		teq::TensptrsT tracked(sess_.tracked_.begin(), sess_.tracked_.end());
+		eteq::save_graph(*payload->mutable_graph(), tracked);
 		client_.create_graph(request);
 	}
+
+	bool sent_graph_ = false;
 
 	/// Implementation of iSession
 	void update (teq::TensSetT ignored = {}) override
 	{
+		if (false == sent_graph_)
+		{
+			create_graph();
+		}
+
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
 		// ignore any node data updates when
@@ -166,7 +166,7 @@ struct InteractiveSession final : public teq::iSession
 				tenncor::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
 				payload->set_graph_id(sess_id_);
-				payload->set_node_id(node_ids_[leaf]);
+				payload->set_node_idx(node_ids_[leaf]);
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
@@ -189,7 +189,7 @@ struct InteractiveSession final : public teq::iSession
 			tenncor::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
 			payload->set_graph_id(sess_id_);
-			payload->set_node_id(node_ids_[op]);
+			payload->set_node_idx(node_ids_[op]);
 			google::protobuf::RepeatedField<float> field(
 				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
@@ -204,6 +204,11 @@ struct InteractiveSession final : public teq::iSession
 		teq::TensSetT targeted,
 		teq::TensSetT ignored = {}) override
 	{
+		if (false == sent_graph_)
+		{
+			create_graph();
+		}
+
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
 
 		// ignore any node data updates when
@@ -255,7 +260,7 @@ struct InteractiveSession final : public teq::iSession
 				tenncor::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
 				payload->set_graph_id(sess_id_);
-				payload->set_node_id(node_ids_[leaf]);
+				payload->set_node_idx(node_ids_[leaf]);
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
@@ -277,7 +282,7 @@ struct InteractiveSession final : public teq::iSession
 			tenncor::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
 			payload->set_graph_id(sess_id_);
-			payload->set_node_id(node_ids_[op]);
+			payload->set_node_idx(node_ids_[op]);
 			google::protobuf::RepeatedField<float> field(
 				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
@@ -297,13 +302,15 @@ struct InteractiveSession final : public teq::iSession
 	void clear (void) override
 	{
 		sess_.clear();
-		node_ids_.clear();
-		edges_.clear();
+		node_ids_.clear(); // todo: populate this
 		stat_.graphsize_.clear();
-		parents_.clear();
-		client_.delete_graph(sess_id_);
-		sess_id_ = boost::uuids::to_string(
-			InteractiveSession::uuid_gen_());
+		parents_.clear(); // todo: deprecate this
+		if (sent_graph_)
+		{
+			client_.delete_graph(sess_id_);
+			sess_id_ = boost::uuids::to_string(
+				InteractiveSession::uuid_gen_());
+		}
 	}
 
 	/// Wait until client completes its request calls
@@ -354,10 +361,6 @@ struct InteractiveSession final : public teq::iSession
 private:
 	std::string sess_id_ = boost::uuids::to_string(
 		InteractiveSession::uuid_gen_());
-
-	std::unordered_map<teq::iTensor*,size_t> node_ids_;
-
-	std::unordered_set<EdgeInfo,EdgeInfoHash> edges_;
 
 	size_t update_it_ = 0;
 
