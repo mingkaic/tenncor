@@ -2,14 +2,14 @@ syntax = "proto3";
 
 import "pbm/graph.proto";
 
-package tenncor;
+package gemitter;
 
 // ======== GENERAL MESSAGE OBJECTS ========
 
 message GraphInfo {
     string graph_id = 1;
 
-    Graph graph = 2;
+    tenncor.Graph graph = 2;
 }
 
 message NodeData {

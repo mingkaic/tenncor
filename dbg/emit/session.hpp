@@ -133,7 +133,7 @@ struct InteractiveSession final : public teq::iSession
 			}
 		}
 
-		std::vector<tenncor::UpdateNodeDataRequest> requests;
+		std::vector<gemitter::UpdateNodeDataRequest> requests;
 		requests.reserve(sess_.ops_.size());
 
 		for (auto& statpair : stat_.graphsize_)
@@ -147,7 +147,7 @@ struct InteractiveSession final : public teq::iSession
 				size_t nelems = leaf->shape().n_elems();
 				egen::type_convert(data, leaf->data(), dtype, nelems);
 
-				tenncor::UpdateNodeDataRequest request;
+				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
 				payload->set_graph_id(sess_id_);
 				payload->set_node_idx(indices_[leaf]);
@@ -169,7 +169,7 @@ struct InteractiveSession final : public teq::iSession
 			egen::type_convert(data, op->data(), dtype, nelems);
 
 			// create requests (bulk of the overhead)
-			tenncor::UpdateNodeDataRequest request;
+			gemitter::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
 			payload->set_graph_id(sess_id_);
 			payload->set_node_idx(indices_[op]);
@@ -226,7 +226,7 @@ struct InteractiveSession final : public teq::iSession
 			}
 		}
 
-		std::vector<tenncor::UpdateNodeDataRequest> requests;
+		std::vector<gemitter::UpdateNodeDataRequest> requests;
 		requests.reserve(reqs.size());
 
 		for (auto& statpair : stat_.graphsize_)
@@ -240,7 +240,7 @@ struct InteractiveSession final : public teq::iSession
 				size_t nelems = leaf->shape().n_elems();
 				egen::type_convert(data, leaf->data(), dtype, nelems);
 
-				tenncor::UpdateNodeDataRequest request;
+				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
 				payload->set_graph_id(sess_id_);
 				payload->set_node_idx(indices_[leaf]);
@@ -262,7 +262,7 @@ struct InteractiveSession final : public teq::iSession
 			egen::type_convert(data, op->data(), dtype, nelems);
 
 			// create requests (bulk of the overhead)
-			tenncor::UpdateNodeDataRequest request;
+			gemitter::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
 			payload->set_graph_id(sess_id_);
 			payload->set_node_idx(indices_[op]);
@@ -299,7 +299,7 @@ struct InteractiveSession final : public teq::iSession
 	/// Send create graph request
 	void create_graph (void)
 	{
-		tenncor::CreateGraphRequest request;
+		gemitter::CreateGraphRequest request;
 		auto payload = request.mutable_payload();
 		payload->set_graph_id(sess_id_);
 		teq::TensptrsT tracked(sess_.tracked_.begin(), sess_.tracked_.end());
@@ -344,7 +344,7 @@ struct InteractiveSession final : public teq::iSession
 	}
 
 	/// GRPC Client
-	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
+	std::unique_ptr<gemitter::GraphEmitter::Stub> stub_;
 
 	/// Session underneath
 	teq::Session sess_;

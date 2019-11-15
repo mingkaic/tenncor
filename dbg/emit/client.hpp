@@ -48,18 +48,18 @@ struct GraphEmitterClient final
 {
 	GraphEmitterClient (std::shared_ptr<grpc::ChannelInterface> channel,
 		ClientConfig cfg) :
-		stub_(tenncor::GraphEmitter::NewStub(channel)),
+		stub_(gemitter::GraphEmitter::NewStub(channel)),
 		cfg_(cfg),
 		connected_(true)
 	{
 		jobs::ManagedJob healthjob(
 		[this](std::future<void> stop_it)
 		{
-			tenncor::Empty empty;
+			gemitter::Empty empty;
 			do
 			{
 				grpc::ClientContext context;
-				tenncor::CreateGraphResponse response;
+				gemitter::CreateGraphResponse response;
 				// set context deadline
 				std::chrono::time_point<std::chrono::system_clock> deadline =
 					std::chrono::system_clock::now() +
@@ -79,12 +79,12 @@ struct GraphEmitterClient final
 	}
 
 	/// Add job that pass CreateGraphRequest
-	void create_graph (tenncor::CreateGraphRequest& request)
+	void create_graph (gemitter::CreateGraphRequest& request)
 	{
 		// retries sending creation request unless stop_it times out
 		sequential_jobs_.attach_job(
 		[this](std::future<void> dependency, std::future<void> stop_it,
-			tenncor::CreateGraphRequest request)
+			gemitter::CreateGraphRequest request)
 		{
 			if (dependency.valid())
 			{
@@ -98,7 +98,7 @@ struct GraphEmitterClient final
 				++attempt)
 			{
 				grpc::ClientContext context;
-				tenncor::CreateGraphResponse response;
+				gemitter::CreateGraphResponse response;
 				// set context deadline
 				std::chrono::time_point<std::chrono::system_clock> deadline =
 					std::chrono::system_clock::now() + cfg_.request_duration_;
@@ -109,10 +109,10 @@ struct GraphEmitterClient final
 				if (status.ok())
 				{
 					auto res_status = response.status();
-					if (tenncor::Status::OK != res_status)
+					if (gemitter::Status::OK != res_status)
 					{
 						logs::errorf("%s: %s",
-							tenncor::Status_Name(res_status).c_str(),
+							gemitter::Status_Name(res_status).c_str(),
 							response.message().c_str());
 					}
 					else
@@ -138,13 +138,13 @@ struct GraphEmitterClient final
 
 	/// Add job that streams UpdateNodeDataRequest
 	void update_node_data (
-		std::vector<tenncor::UpdateNodeDataRequest>& requests,
+		std::vector<gemitter::UpdateNodeDataRequest>& requests,
 		size_t update_it)
 	{
 		sequential_jobs_.attach_job(
 		[this](std::future<void> dependency,
 			std::future<void> stop_it,
-			std::vector<tenncor::UpdateNodeDataRequest> requests, size_t update_it)
+			std::vector<gemitter::UpdateNodeDataRequest> requests, size_t update_it)
 		{
 			if (dependency.valid())
 			{
@@ -152,7 +152,7 @@ struct GraphEmitterClient final
 			}
 			std::string sid = fmts::to_string(
 				std::this_thread::get_id());
-			tenncor::UpdateNodeDataResponse response;
+			gemitter::UpdateNodeDataResponse response;
 			grpc::ClientContext context;
 			// set context deadline
 			std::chrono::time_point<std::chrono::system_clock> deadline =
@@ -160,7 +160,7 @@ struct GraphEmitterClient final
 				std::chrono::milliseconds(cfg_.stream_duration_);
 			context.set_deadline(deadline);
 			std::unique_ptr<grpc::ClientWriterInterface<
-				tenncor::UpdateNodeDataRequest>> writer(
+				gemitter::UpdateNodeDataRequest>> writer(
 				stub_->UpdateNodeData(&context, &response));
 
 			for (auto& request : requests)
@@ -182,10 +182,10 @@ struct GraphEmitterClient final
 			if (status.ok())
 			{
 				auto res_status = response.status();
-				if (tenncor::Status::OK != res_status)
+				if (gemitter::Status::OK != res_status)
 				{
 					logs::errorf("%s: %s",
-						tenncor::Status_Name(res_status).c_str(),
+						gemitter::Status_Name(res_status).c_str(),
 						response.message().c_str());
 				}
 				else
@@ -205,11 +205,11 @@ struct GraphEmitterClient final
 
 	void delete_graph (std::string sess_id)
 	{
-		tenncor::DeleteGraphRequest request;
+		gemitter::DeleteGraphRequest request;
 		request.set_graph_id(sess_id);
 		sequential_jobs_.attach_job(
 		[this](std::future<void> dependency, std::future<void> stop_it,
-			tenncor::DeleteGraphRequest request)
+			gemitter::DeleteGraphRequest request)
 		{
 			if (dependency.valid())
 			{
@@ -223,7 +223,7 @@ struct GraphEmitterClient final
 				++attempt)
 			{
 				grpc::ClientContext context;
-				tenncor::DeleteGraphResponse response;
+				gemitter::DeleteGraphResponse response;
 				// set context deadline
 				std::chrono::time_point<std::chrono::system_clock> deadline =
 					std::chrono::system_clock::now() + cfg_.request_duration_;
@@ -234,10 +234,10 @@ struct GraphEmitterClient final
 				if (status.ok())
 				{
 					auto res_status = response.status();
-					if (tenncor::Status::OK != res_status)
+					if (gemitter::Status::OK != res_status)
 					{
 						logs::errorf("%s: %s",
-							tenncor::Status_Name(res_status).c_str(),
+							gemitter::Status_Name(res_status).c_str(),
 							response.message().c_str());
 					}
 					else
@@ -280,7 +280,7 @@ struct GraphEmitterClient final
 	}
 
 private:
-	std::unique_ptr<tenncor::GraphEmitter::Stub> stub_;
+	std::unique_ptr<gemitter::GraphEmitter::Stub> stub_;
 
 	ClientConfig cfg_;
 

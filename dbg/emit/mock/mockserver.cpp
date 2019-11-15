@@ -7,20 +7,20 @@
 
 #include "dbg/emit/gemitter.grpc.pb.h"
 
-struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
+struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 {
 	grpc::Status HealthCheck (grpc::ServerContext* context,
-		const tenncor::Empty* request, tenncor::Empty* response) override
+		const gemitter::Empty* request, gemitter::Empty* response) override
 	{
 		return grpc::Status::OK;
 	}
 
 	// Create or update listed nodes and edges
 	grpc::Status CreateGraph(grpc::ServerContext* context,
-		const tenncor::CreateGraphRequest* request,
-		tenncor::CreateGraphResponse* response) override
+		const gemitter::CreateGraphRequest* request,
+		gemitter::CreateGraphResponse* response) override
 	{
-		const tenncor::GraphInfo& info = request->payload();
+		const gemitter::GraphInfo& info = request->payload();
 		const std::string& gid = info.graph_id();
 		const tenncor::Graph& graph = info.graph();
 
@@ -32,18 +32,18 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 			std::cout << "failed to serialize created graph" << std::endl;
 		}
 
-		response->set_status(tenncor::OK);
+		response->set_status(gemitter::OK);
 		response->set_message("Created Graph");
 		return grpc::Status::OK;
 	}
 
 	// Update data (tensor data) of existing nodes
 	grpc::Status UpdateNodeData(grpc::ServerContext* context,
-		grpc::ServerReader<tenncor::UpdateNodeDataRequest>* reader,
-		tenncor::UpdateNodeDataResponse* response) override
+		grpc::ServerReader<gemitter::UpdateNodeDataRequest>* reader,
+		gemitter::UpdateNodeDataResponse* response) override
 	{
 		std::cout << "recording node for graph " << gid_ << std::endl;
-		tenncor::UpdateNodeDataRequest req;
+		gemitter::UpdateNodeDataRequest req;
 		while (reader->Read(&req))
 		{
 			auto node_data = req.payload();
@@ -52,60 +52,27 @@ struct GraphEmitterImpl final : public tenncor::GraphEmitter::Service
 			{
 				std::cout << "recording node meant for graph " << gid << std::endl;
 			}
-			auto id = node_data.node_id();
-			auto it = nodes_.find(id);
-			if (nodes_.end() == it)
-			{
-				std::cerr << "for session " << gid_ << " data node "
-					<< id << " didn't arrive before the data" << std::endl;
-			}
+			std::cout << "Updating node " << node_data.node_idx() << std::endl;
 		}
 
-		response->set_status(tenncor::OK);
+		response->set_status(gemitter::OK);
 		response->set_message("Updated Node Data");
 		return grpc::Status::OK;
 	}
 
 	// Wipe and reupdate entire graph with listed nodes and edges
 	grpc::Status DeleteGraph(grpc::ServerContext* context,
-		const tenncor::DeleteGraphRequest* request,
-		tenncor::DeleteGraphResponse* response) override
+		const gemitter::DeleteGraphRequest* request,
+		gemitter::DeleteGraphResponse* response) override
 	{
-		response->set_status(tenncor::OK);
+		response->set_status(gemitter::OK);
 		response->set_message("Deleted Graph");
 		return grpc::Status::OK;
 	}
 
-	struct Node
-	{
-		std::vector<uint32_t> shape_;
-
-		std::unordered_map<std::string,
-			std::vector<std::string>> tags_;
-
-		uint32_t max_height_;
-
-		uint32_t min_height_;
-	};
-
-	struct Edge
-	{
-		int32_t parent_id_;
-
-		int32_t child_id_;
-
-		std::string label_;
-
-		std::string shaper_;
-
-		std::string coorder_;
-	};
-
 	std::string gid_;
 
-	std::unordered_map<int32_t,Node> nodes_;
-
-	std::vector<Edge> edges_;
+	std::string latest_graph_;
 };
 
 int main (int argc, char** argv)
