@@ -52,7 +52,7 @@ message UpdateNodeDataResponse {
 }
 
 message DeleteGraphRequest {
-    string graphd_id = 1;
+    string graph_id = 1;
 }
 
 message DeleteGraphResponse {
@@ -64,11 +64,12 @@ message DeleteGraphResponse {
 service GraphEmitter {
     rpc HealthCheck (Empty) returns (Empty);
 
-    // Create or update listed nodes and edges
+    // Create or update graph
     rpc CreateGraph (CreateGraphRequest) returns (CreateGraphResponse);
 
-    // Update data (tensor data) of existing nodes
+    // Update (tensor) data on existing nodes
     rpc UpdateNodeData (stream UpdateNodeDataRequest) returns (UpdateNodeDataResponse);
 
+    // Delete graph
     rpc DeleteGraph (DeleteGraphRequest) returns (DeleteGraphResponse);
 }

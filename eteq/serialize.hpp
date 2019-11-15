@@ -22,7 +22,8 @@
 namespace eteq
 {
 
-void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
+pbm::TensMapIndicesT save_graph (
+	tenncor::Graph& out, teq::TensptrsT roots,
 	tag::TagRegistry& registry = tag::get_reg());
 
 void load_graph (teq::TensptrSetT& roots,
@@ -52,7 +53,7 @@ static teq::TensptrT convert_func (
 	tmp_edges.reserve(edges.size());
 	for (auto& edge : edges)
 	{
-		teq::ShaperT shaper = nullptr;
+		teq::Shape shape = edge.first->shape();
 		eigen::CoordptrT coorder = nullptr;
 
 		auto shape_vals = convert_attrs(edge.second, eigen::shaper_key);
@@ -60,14 +61,8 @@ static teq::TensptrT convert_func (
 
 		if (shape_vals.size() > 0)
 		{
-			shaper = std::make_shared<teq::ShapeMap>(
-				[&](teq::MatrixT& arg)
-				{
-					for (size_t i = 0, n = shape_vals.size(); i < n; ++i)
-					{
-						arg[i / teq::mat_dim][i % teq::mat_dim] = shape_vals[i];
-					}
-				});
+			shape = teq::Shape(std::vector<teq::DimT>(
+				shape_vals.begin(), shape_vals.end()));
 		}
 
 		if (coord_vals.size() > 0)
@@ -83,7 +78,7 @@ static teq::TensptrT convert_func (
 		}
 
 		tmp_edges.push_back(
-			FuncArg<T>(to_node<T>(edge.first), shaper, coorder));
+			FuncArg<T>(to_node<T>(edge.first), shape, coorder));
 	}
 	return teq::TensptrT(Functor<T>::get(
 		teq::Opcode{opname, egen::get_op(opname)},tmp_edges));

@@ -36,10 +36,11 @@ static std::string save_leaf (teq::iLeaf* leaf)
 	return std::string(data, nelems * nbytes);
 }
 
-void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
+pbm::TensMapIndicesT save_graph (
+	tenncor::Graph& out, teq::TensptrsT roots,
 	tag::TagRegistry& registry)
 {
-	pbm::save_graph(out, roots, registry, save_leaf);
+	return pbm::save_graph(out, roots, registry, save_leaf);
 }
 
 #define _OUT_GENERIC(realtype)leaf = is_const?\
@@ -80,8 +81,7 @@ static teq::TensptrT load_leaf (
 
 #define _OUT_GENFUNC(realtype)func = convert_func<realtype>(opname, edges);
 
-static teq::TensptrT load_func (std::string opname,
-	const pbm::EdgesT& edges)
+static teq::TensptrT load_func (std::string opname, const pbm::EdgesT& edges)
 {
 	if (edges.empty())
 	{

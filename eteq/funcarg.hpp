@@ -25,7 +25,22 @@ struct FuncArg final : public eigen::iEigenEdge<T>
 	/// Construct FuncArg with specific node, shaper, and coorder
 	FuncArg (NodeptrT<T> node, teq::ShaperT shaper,
 		eigen::CoordptrT coorder) :
-		node_(node), shaper_(shaper), coorder_(coorder)
+		node_(node), coorder_(coorder)
+	{
+		if (node_ == nullptr)
+		{
+			logs::fatal("cannot map a null node");
+		}
+		shape_ = node->shape();
+		if (nullptr != shaper)
+		{
+			shape_ = shaper->convert(shape_);
+		}
+	}
+
+	FuncArg (NodeptrT<T> node, teq::Shape shape,
+		eigen::CoordptrT coorder) :
+		node_(node), shape_(shape), coorder_(coorder)
 	{
 		if (node_ == nullptr)
 		{
@@ -36,12 +51,7 @@ struct FuncArg final : public eigen::iEigenEdge<T>
 	/// Implementation of iEdge
 	teq::Shape shape (void) const override
 	{
-		teq::Shape out = this->argshape();
-		if (nullptr != shaper_)
-		{
-			out = shaper_->convert(out);
-		}
-		return out;
+		return shape_;
 	}
 
 	/// Implementation of iEdge
@@ -59,26 +69,15 @@ struct FuncArg final : public eigen::iEigenEdge<T>
 	/// Implementation of iEdge
 	void get_attrs (marsh::Maps& out) const override
 	{
-		if (nullptr != shaper_)
+		if (false == shape_.compatible_after(node_->shape(), 0))
 		{
-			auto arr = std::make_unique<marsh::NumArray<teq::CDimT>>();
-			auto& contents = arr->contents_;
-			shaper_->access(
-				[&](const teq::MatrixT& args)
-				{
-					for (teq::RankT i = 0; i < teq::mat_dim; ++i)
-					{
-						for (teq::RankT j = 0; j < teq::mat_dim; ++j)
-						{
-							contents.push_back(args[i][j]);
-						}
-					}
-				});
+			auto arr = std::make_unique<marsh::NumArray<double>>();
+			arr->contents_ = std::vector<double>(shape_.begin(), shape_.end());
 			out.contents_.emplace(eigen::shaper_key, std::move(arr));
 		}
 		if (nullptr != coorder_)
 		{
-			auto arr = std::make_unique<marsh::NumArray<teq::CDimT>>();
+			auto arr = std::make_unique<marsh::NumArray<double>>();
 			auto& contents = arr->contents_;
 			coorder_->access(
 				[&](const teq::MatrixT& args)
@@ -117,8 +116,8 @@ private:
 	/// Tensor reference
 	NodeptrT<T> node_;
 
-	/// Shape mapper
-	teq::ShaperT shaper_;
+	/// Output shape
+	teq::Shape shape_;
 
 	/// Coordinate mapper
 	eigen::CoordptrT coorder_;

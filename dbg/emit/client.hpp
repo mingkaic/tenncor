@@ -8,9 +8,7 @@
 
 #include <chrono>
 
-#include <grpc/grpc.h>
-#include <grpcpp/channel.h>
-#include <grpcpp/client_context.h>
+#include <grpcpp/grpcpp.h>
 
 #include "jobs/managed_job.hpp"
 #include "jobs/sequence.hpp"
@@ -205,7 +203,63 @@ struct GraphEmitterClient final
 		}, std::move(requests), std::move(update_it));
 	}
 
-	void delete_graph (std::string sess_id) {}
+	void delete_graph (std::string sess_id)
+	{
+		tenncor::DeleteGraphRequest request;
+		request.set_graph_id(sess_id);
+		sequential_jobs_.attach_job(
+		[this](std::future<void> dependency, std::future<void> stop_it,
+			tenncor::DeleteGraphRequest request)
+		{
+			if (dependency.valid())
+			{
+				dependency.get(); // wait for dependency completion
+			}
+			std::string sid = fmts::to_string(
+				std::this_thread::get_id());
+			for (size_t attempt = 0;
+				stop_it.wait_for(std::chrono::milliseconds(1)) ==
+				std::future_status::timeout && attempt < max_attempts;
+				++attempt)
+			{
+				grpc::ClientContext context;
+				tenncor::DeleteGraphResponse response;
+				// set context deadline
+				std::chrono::time_point<std::chrono::system_clock> deadline =
+					std::chrono::system_clock::now() + cfg_.request_duration_;
+				context.set_deadline(deadline);
+
+				grpc::Status status = this->stub_->DeleteGraph(
+					&context, request, &response);
+				if (status.ok())
+				{
+					auto res_status = response.status();
+					if (tenncor::Status::OK != res_status)
+					{
+						logs::errorf("%s: %s",
+							tenncor::Status_Name(res_status).c_str(),
+							response.message().c_str());
+					}
+					else
+					{
+						logs::infof("%s: DeleteGraph success: %s",
+							sid.c_str(), response.message().c_str());
+						return;
+					}
+				}
+				else
+				{
+					logs::errorf(
+						"%s: DeleteGraph attempt %d failure: %s",
+						sid.c_str(), attempt,
+						status.error_message().c_str());
+				}
+				std::this_thread::sleep_for(
+					std::chrono::milliseconds(attempt * 1000));
+			}
+			logs::warnf("%s: DeleteGraph terminating", sid.c_str());
+		}, std::move(request));
+	}
 
 	/// Return true if the client is connected to the server
 	bool is_connected (void)

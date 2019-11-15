@@ -7,10 +7,6 @@
 /// pass graph updates to GRPC server
 ///
 
-#include <grpc/grpc.h>
-#include <grpcpp/create_channel.h>
-#include <grpcpp/security/credentials.h>
-
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -94,18 +90,6 @@ struct InteractiveSession final : public teq::iSession
 		}
 	}
 
-	void create_graph (void)
-	{
-		tenncor::CreateGraphRequest request;
-		auto payload = request.mutable_payload();
-		payload->set_graph_id(sess_id_);
-		teq::TensptrsT tracked(sess_.tracked_.begin(), sess_.tracked_.end());
-		eteq::save_graph(*payload->mutable_graph(), tracked);
-		client_.create_graph(request);
-	}
-
-	bool sent_graph_ = false;
-
 	/// Implementation of iSession
 	void update (teq::TensSetT ignored = {}) override
 	{
@@ -166,7 +150,7 @@ struct InteractiveSession final : public teq::iSession
 				tenncor::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
 				payload->set_graph_id(sess_id_);
-				payload->set_node_idx(node_ids_[leaf]);
+				payload->set_node_idx(indices_[leaf]);
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
@@ -183,13 +167,12 @@ struct InteractiveSession final : public teq::iSession
 			std::vector<float> data;
 			size_t nelems = op->shape().n_elems();
 			egen::type_convert(data, op->data(), dtype, nelems);
-			auto& op_parents = parents_[op];
 
 			// create requests (bulk of the overhead)
 			tenncor::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
 			payload->set_graph_id(sess_id_);
-			payload->set_node_idx(node_ids_[op]);
+			payload->set_node_idx(indices_[op]);
 			google::protobuf::RepeatedField<float> field(
 				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
@@ -260,7 +243,7 @@ struct InteractiveSession final : public teq::iSession
 				tenncor::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
 				payload->set_graph_id(sess_id_);
-				payload->set_node_idx(node_ids_[leaf]);
+				payload->set_node_idx(indices_[leaf]);
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
@@ -282,7 +265,7 @@ struct InteractiveSession final : public teq::iSession
 			tenncor::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
 			payload->set_graph_id(sess_id_);
-			payload->set_node_idx(node_ids_[op]);
+			payload->set_node_idx(indices_[op]);
 			google::protobuf::RepeatedField<float> field(
 				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
@@ -302,15 +285,26 @@ struct InteractiveSession final : public teq::iSession
 	void clear (void) override
 	{
 		sess_.clear();
-		node_ids_.clear(); // todo: populate this
 		stat_.graphsize_.clear();
-		parents_.clear(); // todo: deprecate this
 		if (sent_graph_)
 		{
 			client_.delete_graph(sess_id_);
 			sess_id_ = boost::uuids::to_string(
 				InteractiveSession::uuid_gen_());
 		}
+		update_it_ = 0;
+		sent_graph_ = false;
+	}
+
+	/// Send create graph request
+	void create_graph (void)
+	{
+		tenncor::CreateGraphRequest request;
+		auto payload = request.mutable_payload();
+		payload->set_graph_id(sess_id_);
+		teq::TensptrsT tracked(sess_.tracked_.begin(), sess_.tracked_.end());
+		indices_ = eteq::save_graph(*payload->mutable_graph(), tracked);
+		client_.create_graph(request);
 	}
 
 	/// Wait until client completes its request calls
@@ -362,14 +356,15 @@ private:
 	std::string sess_id_ = boost::uuids::to_string(
 		InteractiveSession::uuid_gen_());
 
+	GraphEmitterClient client_;
+
 	size_t update_it_ = 0;
 
-	GraphEmitterClient client_;
+	bool sent_graph_ = false;
 
 	teq::GraphStat stat_;
 
-	std::unordered_map<teq::iTensor*,
-		std::unordered_set<teq::iOperableFunc*>> parents_;
+	pbm::TensMapIndicesT indices_;
 };
 
 boost::uuids::random_generator InteractiveSession::uuid_gen_;

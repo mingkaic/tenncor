@@ -22,9 +22,12 @@
 namespace pbm
 {
 
+using TensMapIndicesT = std::unordered_map<teq::iTensor*,size_t>;
+
 using LeafMarshF = std::function<std::string(teq::iLeaf*)>;
 
-void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
+TensMapIndicesT save_graph (
+	tenncor::Graph& out, teq::TensptrsT roots,
 	tag::TagRegistry& registry, LeafMarshF marshal_leaf);
 
 }

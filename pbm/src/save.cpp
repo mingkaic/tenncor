@@ -42,7 +42,8 @@ static void tag_node (tenncor::Node* node,
 	}
 }
 
-void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
+TensMapIndicesT save_graph (
+	tenncor::Graph& out, teq::TensptrsT roots,
 	tag::TagRegistry& registry, LeafMarshF marshal_leaf)
 {
 	teq::GraphStat stat;
@@ -75,7 +76,7 @@ void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
 		});
 
 	// map tens to index in leaves + funcs array
-	std::unordered_map<teq::iTensor*,size_t> ordermap;
+	TensMapIndicesT ordermap;
 	size_t nleaves = leaves.size();
 	for (size_t i = 0; i < nleaves; ++i)
 	{
@@ -124,6 +125,7 @@ void save_graph (tenncor::Graph& out, teq::TensptrsT roots,
 			marshal_attrs(*pb_attrs, mvalues);
 		}
 	}
+	return ordermap;
 }
 
 }
