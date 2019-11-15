@@ -45,12 +45,12 @@ cc_library(
     ],
 )
 
-pybind_library(
-    name = "emit_py",
-    cc_srcs = ["python/emit.cpp"],
-    cc_deps = ["//dbg/emit:emit"],
-    py_deps = ["//eteq:eteq_py"],
-)
+# pybind_library(
+#     name = "emit_py",
+#     cc_srcs = ["python/emit.cpp"],
+#     cc_deps = ["//dbg/emit:emit"],
+#     py_deps = ["//eteq:eteq_py"],
+# )
 
 cc_binary(
     name = "mockserver",
