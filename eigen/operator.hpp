@@ -9,7 +9,6 @@
 // todo: make this generated
 
 #include "eigen/eigen.hpp"
-#include "eigen/matops.hpp"
 #include "eigen/random.hpp"
 #include "eigen/edge.hpp"
 
@@ -18,6 +17,41 @@
 
 namespace eigen
 {
+
+template <typename T>
+using PairVecT = std::vector<std::pair<T,T>>;
+
+template <typename T>
+std::vector<double> encode_pair (const PairVecT<T>& pairs)
+{
+	size_t npairs = pairs.size();
+	std::vector<double> out;
+	out.reserve(npairs * 2);
+	for (auto& p : pairs)
+	{
+		out.push_back(p.first);
+		out.push_back(p.second);
+	}
+	return out;
+}
+
+template <typename T>
+const PairVecT<T> decode_pair (std::vector<double>& encoding)
+{
+	PairVecT<T> out;
+	size_t n = encoding.size();
+	if (1 == n % 2)
+	{
+		logs::fatalf("cannot decode odd vector %s into vec of pairs",
+			fmts::to_string(encoding.begin(), encoding.end()).c_str());
+	}
+	out.reserve(n / 2);
+	for (size_t i = 0; i < n; i += 2)
+	{
+		out.push_back({encoding[i], encoding[i + 1]});
+	}
+	return out;
+}
 
 static inline bool is_2d (teq::Shape shape)
 {
@@ -197,12 +231,19 @@ EigenptrT<T> slice (teq::Shape& outshape, const iEigenEdge<T>& in)
 {
 	teq::ShapeT offsets;
 	teq::ShapeT extents;
-	auto c = get_coorder(in);
-	auto it = c.begin();
-	std::copy(it, it + std::min((size_t) teq::rank_cap, c.size()),
-		offsets.begin());
-	std::copy(it + teq::mat_dim, it + teq::mat_dim + std::min((size_t) teq::rank_cap, c.size()),
-		extents.begin());
+	auto encoding = get_coorder(in);
+	assert(encoding.size() == 2 * teq::rank_cap);
+	size_t n = encoding.size();
+	if (1 == n % 2)
+	{
+		logs::fatalf("cannot decode odd vector %s into pairs of vecs",
+			fmts::to_string(encoding.begin(), encoding.end()).c_str());
+	}
+	for (size_t i = 0; i < n; i += 2)
+	{
+		offsets[i / 2] = encoding[i];
+		extents[i / 2] = encoding[i + 1];
+	}
 	DimensionsT outdims = shape_convert(outshape);
 	return make_eigentensor<T,Eigen::TensorReshapingOp<
 			const DimensionsT,
@@ -293,11 +334,17 @@ template <typename T>
 EigenptrT<T> pad (teq::Shape& outshape, const iEigenEdge<T>& in)
 {
 	std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap> paddings;
-	auto c = get_coorder(in);
-	for (teq::RankT i = 0, n = std::min((size_t) teq::rank_cap, c.size() / 2);
-		i < n; ++i)
+	auto encoding = get_coorder(in);
+	assert(encoding.size() == 2 * teq::rank_cap);
+	size_t n = encoding.size();
+	if (1 == n % 2)
 	{
-		paddings[i] = {c[i], c[i + teq::mat_dim]};
+		logs::fatalf("cannot decode odd vector %s into vec of pairs",
+			fmts::to_string(encoding.begin(), encoding.end()).c_str());
+	}
+	for (size_t i = 0; i < n; i += 2)
+	{
+		paddings[i / 2] = {encoding[i], encoding[i + 1]};
 	}
 	return make_eigentensor<T,Eigen::TensorPaddingOp<
 			const std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap>,
@@ -1230,11 +1277,17 @@ template <typename T>
 EigenptrT<T> matmul (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
 	std::vector<std::pair<teq::RankT,teq::RankT>> dims;
-	auto c = get_coorder(a);
-	for (teq::RankT i = 0, n = std::min((size_t) teq::rank_cap, c.size() / 2);
-		i < n && c[i] < teq::rank_cap; ++i)
+	auto encoding = get_coorder(a);
+	size_t n = encoding.size();
+	if (1 == n % 2)
 	{
-		dims.push_back({c[i + teq::mat_dim], c[i]});
+		logs::fatalf("cannot decode odd vector %s into vec of pairs",
+			fmts::to_string(encoding.begin(), encoding.end()).c_str());
+	}
+	for (size_t i = 0; i < n; i += 2)
+	{
+		// contract reverses left, right arguments
+		dims.push_back({encoding[i + 1], encoding[i]});
 	}
 	if (dims.empty())
 	{

@@ -30,7 +30,8 @@ void load_graph (teq::TensptrSetT& roots,
 	const tenncor::Graph& pb_graph,
 	tag::TagRegistry& registry = tag::get_reg());
 
-static std::vector<double> convert_attrs (const marsh::Maps& attrs, std::string key)
+static inline std::vector<double> convert_attrs (
+	const marsh::Maps& attrs, std::string key)
 {
 	std::vector<double> out;
 	if (estd::has(attrs.contents_, key))
@@ -60,7 +61,7 @@ static teq::TensptrT convert_func (
 			shape = teq::Shape(std::vector<teq::DimT>(
 				shape_vals.begin(), shape_vals.end()));
 		}
-		std::vector<double> coords = convert_attrs(edge.second, 
+		std::vector<double> coords = convert_attrs(edge.second,
 			eigen::coorder_key);
 
 		tmp_edges.push_back(

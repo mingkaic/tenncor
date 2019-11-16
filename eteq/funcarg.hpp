@@ -6,11 +6,9 @@
 /// Typed Eigen implementation of teq iEdge
 ///
 
-#include "eigen/edge.hpp"
+#include "eigen/operator.hpp"
 
 #include "eteq/inode.hpp"
-
-#include "eteq/shaper.hpp"
 
 #ifndef ETEQ_FUNCARG_HPP
 #define ETEQ_FUNCARG_HPP
@@ -108,16 +106,6 @@ private:
 template <typename T>
 using ArgsT = std::vector<FuncArg<T>>;
 
-template <typename T>
-using PairVecT = std::vector<std::pair<T,T>>;
-
-/// Return FuncArg<T> that identity maps input tensor
-template <typename T>
-FuncArg<T> identity_map (NodeptrT<T> node)
-{
-	return FuncArg<T>(node);
-}
-
 /// Return FuncArg<T> that reduces input tensor by
 /// units in reduction vector after specified rank
 /// E.g.: tensor w/ shape [2, 3, 4], offset = 1, ndims = 2
@@ -179,7 +167,7 @@ FuncArg<T> extend_map (NodeptrT<T> node,
 	if (0 == n_ext)
 	{
 		logs::warn("extending with empty vector ... will do nothing");
-		return identity_map(node);
+		return FuncArg<T>(node);
 	}
 	if (std::any_of(ext.begin(), ext.end(),
 		[](teq::DimT& d) { return 0 == d; }))
@@ -216,7 +204,7 @@ FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 	if (order.size() == 0)
 	{
 		logs::warn("permuting with same dimensions ... will do nothing");
-		return identity_map(node);
+		return FuncArg<T>(node);
 	}
 
 	bool visited[teq::rank_cap];
@@ -262,45 +250,32 @@ FuncArg<T> reshape_map (NodeptrT<T> node, const teq::Shape& shape)
 /// gets mapped to [2, 3, 2] that references [:,:,1:3]
 /// (second and third slices of the 3rd dimension)
 template <typename T>
-FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
+FuncArg<T> slice_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& extents)
 {
 	if (extents.size() > teq::rank_cap)
 	{
-		PairVecT<int> readable_extents(extents.begin(), extents.end());
+		eigen::PairVecT<int> readable_extents(extents.begin(), extents.end());
 		logs::fatalf(
 			"cannot slice dimensions beyond rank_cap %d: using extent %s",
 			teq::rank_cap,
 			fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
 	}
 	teq::Shape shape = node->shape();
-	teq::CoordT offsets;
-	teq::CoordT ns;
-	size_t n = extents.size();
-	for (size_t i = 0; i < n; ++i)
+	std::vector<teq::DimT> slist(shape.begin(), shape.end());
+	slist.reserve(teq::rank_cap);
+	for (size_t i = 0,  n = extents.size(); i < n; ++i)
 	{
 		auto& ex = extents[i];
 		if (ex.second < 1)
 		{
-			PairVecT<int> readable_extents(extents.begin(), extents.end());
+			eigen::PairVecT<int> readable_extents(extents.begin(), extents.end());
 			logs::fatalf("cannot extend zero slices: extents %s",
 				fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
 		}
 		teq::DimT offset = std::min(ex.first, (teq::DimT) (shape.at(i) - 1));
-		offsets[i] = offset;
-		ns[i] = std::min(ex.second, (teq::DimT) (shape.at(i) - offset));
+		slist[i] = std::min(ex.second, (teq::DimT) (shape.at(i) - offset));
 	}
-	for (teq::RankT i = n; i < teq::rank_cap; ++i)
-	{
-		ns[i] = shape.at(i);
-	}
-	std::vector<teq::DimT> slist(ns.begin(), ns.end());
-	std::vector<double> coords(teq::mat_dim * 2 - 1, 0);
-	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-	{
-		coords[i] = offsets[i];
-		coords[teq::mat_dim + i] = ns[i];
-	}
-	return FuncArg<T>(node, teq::Shape(slist), coords);
+	return FuncArg<T>(node, teq::Shape(slist), eigen::encode_pair(extents));
 }
 
 /// Return FuncArg<T> that pads tensor with 0s across specified dimensions
@@ -308,11 +283,11 @@ FuncArg<T> slice_map (NodeptrT<T> node, const PairVecT<teq::DimT>& extents)
 /// gets mapped to [5, 3, 4] where [0,:,:] and [3:5,:,:] are 0
 /// (first, fourth, and fifth slices of the 1st dimension are 0)
 template <typename T>
-FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
+FuncArg<T> pad_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& paddings)
 {
 	if (paddings.size() > teq::rank_cap)
 	{
-		PairVecT<int> readable_paddings(paddings.begin(), paddings.end());
+		eigen::PairVecT<int> readable_paddings(paddings.begin(), paddings.end());
 		logs::fatalf(
 			"cannot pad dimensions beyond rank_cap %d: using paddings %s",
 			teq::rank_cap,
@@ -325,14 +300,7 @@ FuncArg<T> pad_map (NodeptrT<T> node, const PairVecT<teq::DimT>& paddings)
 	{
 		slist[i] += paddings[i].first + paddings[i].second;
 	}
-	std::vector<double> coords(teq::mat_dim * 2 - 1, 0);
-	for (size_t i = 0, n = std::min(paddings.size(), (size_t) teq::rank_cap);
-		i < n; ++i)
-	{
-		coords[i] = paddings[i].first;
-		coords[teq::mat_dim + i] = paddings[i].second;
-	}
-	return FuncArg<T>(node, teq::Shape(slist), coords);
+	return FuncArg<T>(node, teq::Shape(slist), eigen::encode_pair(paddings));
 }
 
 /// Return FuncArg<T> that takes elements of
@@ -452,7 +420,7 @@ ArgsT<T> group_concat_map (NodesT<T> args, teq::RankT axis)
 }
 
 template <typename T>
-ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
+ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, eigen::PairVecT<teq::RankT> dims)
 {
 	teq::Shape ashape = a->shape();
 	teq::Shape bshape = b->shape();
@@ -465,14 +433,14 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 	{
 		if (ashape.at(coms.first) != bshape.at(coms.second))
 		{
-			PairVecT<int> readable_dims(dims.begin(), dims.end());
+			eigen::PairVecT<int> readable_dims(dims.begin(), dims.end());
 			logs::fatalf("invalid shapes %s and %s do not match common dimensions %s",
 				ashape.to_string().c_str(), bshape.to_string().c_str(),
 				fmts::to_string(readable_dims.begin(), readable_dims.end()).c_str());
 		}
 		if (avisit[coms.first] || bvisit[coms.second])
 		{
-			PairVecT<int> readable_dims(dims.begin(), dims.end());
+			eigen::PairVecT<int> readable_dims(dims.begin(), dims.end());
 			logs::fatalf("contraction dimensions %s must be unique for each side",
 				fmts::to_string(readable_dims.begin(), readable_dims.end()).c_str());
 		}
@@ -501,17 +469,8 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, PairVecT<teq::RankT> dims)
 		outlist.insert(outlist.end(), teq::rank_cap - outlist.size(), 1);
 	}
 	teq::Shape outshape(outlist);
-
-	std::vector<double> coords(teq::mat_dim * 2 - 1, teq::rank_cap);
-	size_t n = std::min(dims.size(), (size_t) teq::rank_cap);
-	coords[teq::rank_cap] = 0;
-	for (size_t i = 0; i < n; ++i)
-	{
-		coords[i] = dims[i].first;
-		coords[teq::mat_dim + i] = dims[i].second;
-	}
 	return {
-		eteq::FuncArg<T>(a, outshape, coords),
+		eteq::FuncArg<T>(a, outshape, eigen::encode_pair(dims)),
 		eteq::FuncArg<T>(b, outshape, {}),
 	};
 }

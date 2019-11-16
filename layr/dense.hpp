@@ -182,7 +182,7 @@ struct Dense final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-		eteq::PairVecT<teq::RankT> dims = {{0, 1}};
+		eigen::PairVecT<teq::RankT> dims = {{0, 1}};
 		if (nullptr != params_)
 		{
 			teq::Shape shape = params_->shape();

@@ -8,6 +8,8 @@
 
 #include "teq/grad_def.hpp"
 
+#include "eigen/operator.hpp"
+
 #include "eteq/generated/api.hpp"
 #include "eteq/constant.hpp"
 
@@ -170,13 +172,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			{
 				NodeptrT<T> lhs = to_node<T>(args[0].get().get_tensor());
 				NodeptrT<T> rhs = to_node<T>(args[1].get().get_tensor());
-				PairVecT<teq::RankT> dims;
 				auto c = eigen::get_coorder(args[0]);
-				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-					i < n && c[i] < teq::rank_cap; ++i)
-				{
-					dims.push_back({c[i], c[teq::mat_dim + i]});
-				}
+				eigen::PairVecT<teq::RankT> dims = eigen::decode_pair<teq::RankT>(c);
 				std::vector<teq::DimT> llist = teq::narrow_shape(lhs->shape());
 				std::vector<teq::DimT> rlist = teq::narrow_shape(rhs->shape());
 				std::array<bool,teq::rank_cap> avisit;
@@ -367,13 +364,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::MATMUL:
 			{
 				auto args = op->get_children();
-				PairVecT<teq::RankT> dims;
 				auto c = eigen::get_coorder(args[0]);
-				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-					i < n && c[i] < teq::rank_cap; ++i)
-				{
-					dims.push_back({c[i], c[teq::mat_dim + i]});
-				}
+				eigen::PairVecT<teq::RankT> dims = eigen::decode_pair<teq::RankT>(c);
 
 				std::vector<teq::DimT> llist = teq::narrow_shape(args[0].get().argshape());
 				std::vector<teq::DimT> rlist = teq::narrow_shape(args[1].get().argshape());
@@ -489,7 +481,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					// convolve(pad(C_grad_sup, Y.shape[dims]-1), reverse(Y))
 					size_t ndims = dims.size();
 					teq::Shape kernshape = args[1].get().argshape();
-					PairVecT<teq::DimT> paddings(teq::rank_cap, {0, 0});
+					eigen::PairVecT<teq::DimT> paddings(teq::rank_cap, {0, 0});
 					for (size_t i = 0; i < ndims; ++i)
 					{
 						teq::DimT kpad = kernshape.at(i) - 1;
@@ -518,46 +510,36 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::SLICE:
 			{
 				const teq::iEdge& child = op->get_children()[0];
-				teq::ShapeT offsets;
-				teq::ShapeT extents;
 				auto c = eigen::get_coorder(child);
-				assert(teq::mat_dim + teq::rank_cap <= c.size());
-				auto it = c.begin();
-				std::copy(it, it + teq::rank_cap, offsets.begin());
-				it += teq::mat_dim;
-				std::copy(it, it + teq::rank_cap, extents.begin());
+				assert(2 * teq::rank_cap <= c.size());
+				auto extents = eigen::decode_pair<teq::DimT>(c);
 				teq::Shape cshape = child.argshape();
-				PairVecT<teq::DimT> paddings;
+				eigen::PairVecT<teq::DimT> paddings;
 				paddings.reserve(teq::rank_cap);
 				for (size_t i = 0; i < teq::rank_cap; ++i)
 				{
-					teq::DimT leftpad = offsets[i];
+					teq::DimT leftpad = extents[i].first;
 					paddings.push_back({leftpad,
-						cshape.at(i) - (leftpad + extents[i])});
+						cshape.at(i) - (leftpad + extents[i].second)});
 				}
 				out = to_node<T>(local_der) *
-					tenncor::pad(to_node<T>(supcomp_grad), paddings);
+					tenncor::pad(to_node<T>(supcomp_grad), extents);
 			}
 				break;
 			case egen::PAD:
 			{
 				const teq::iEdge& child = op->get_children()[0];
-				teq::ShapeT leftpad;
-				teq::ShapeT rightpad;
 				auto c = eigen::get_coorder(child);
-				assert(teq::mat_dim + teq::rank_cap <= c.size());
-				auto it = c.begin();
-				std::copy(it, it + teq::rank_cap, leftpad.begin());
-				it += teq::mat_dim;
-				std::copy(it, it + teq::rank_cap, rightpad.begin());
+				assert(2 * teq::rank_cap <= c.size());
+				auto paddings = eigen::decode_pair<teq::DimT>(c);
 				teq::Shape oshape = op->shape();
-				PairVecT<teq::DimT> extents;
+				eigen::PairVecT<teq::DimT> extents;
 				extents.reserve(teq::rank_cap);
 				for (size_t i = 0; i < teq::rank_cap; ++i)
 				{
-					teq::DimT offset = leftpad[i];
+					teq::DimT offset = paddings[i].first;
 					extents.push_back({offset,
-						oshape.at(i) - rightpad[i] - offset});
+						oshape.at(i) - paddings[i].second - offset});
 				}
 				out = to_node<T>(local_der) *
 					tenncor::slice(to_node<T>(supcomp_grad), extents);
@@ -665,8 +647,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 	teq::TensptrT add (teq::TensptrT& lhs, teq::TensptrT& rhs) const override
 	{
 		return teq::TensptrT(Functor<T>::get(teq::Opcode{"ADD", egen::ADD}, {
-			identity_map(to_node<T>(lhs)),
-			identity_map(to_node<T>(rhs))
+			FuncArg<T>(to_node<T>(lhs)),
+			FuncArg<T>(to_node<T>(rhs))
 		}));
 	}
 };

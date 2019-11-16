@@ -34,6 +34,6 @@ PYBIND11_MODULE(eteq_mocker, m)
 					PybindT* outptr = output.data();
 					std::copy(outptr, outptr + outshape.n_elems(), out.data());
 				},
-				{eteq::identity_map(arg)});
+				{eteq::FuncArg<PybindT>(arg)});
 		});
 }
