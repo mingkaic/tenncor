@@ -250,14 +250,13 @@ PYBIND11_MODULE(eteq, m)
 	// optimization rules
 	py::class_<opt::CversionCtx> rules(m, "OptRules");
 
-	session
-		.def("optimize",
-			[](teq::Session* self, opt::CversionCtx rules)
-			{
-				eteq::optimize<PybindT>(*self, rules);
-			},
+	m
+		.def("parse_optrules", &eteq::parse_file<PybindT>,
 			py::arg("filename") = "cfg/optimizations.rules",
-			"Optimize using rules for specified filename");
-
-	m.def("parse_optrules", &eteq::parse_file<PybindT>);
+			"Optimize using rules for specified filename")
+		.def("optimize",
+			[](teq::iSession& sess, opt::CversionCtx rules)
+			{
+				eteq::optimize<PybindT>(sess, rules);
+			});
 }

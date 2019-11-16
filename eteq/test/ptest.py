@@ -10,6 +10,12 @@ import eteq.eteq as eteq
 
 from testutil.generate_testcases import generate_testcases
 
+oldTf = tf.VERSION < '1.6.0'
+if oldTf:
+    tfSess = tf.Session
+else:
+    tfSess = tf.compat.v1.Session
+
 _test_data = {}
 
 def _normalize_shape(arr):
@@ -70,7 +76,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_out = tf_op(tf_var)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
 
         sess = eteq.Session()
@@ -167,7 +173,7 @@ class EADTest(unittest.TestCase):
         var = eteq.variable(data, 'var')
         tf_var = tf.Variable(data)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
 
         out = dim_reduce(var, 1)
@@ -209,7 +215,7 @@ class EADTest(unittest.TestCase):
             var = eteq.variable(data, 'var')
             tf_var = tf.Variable(data)
 
-            tfsess = tf.compat.v1.Session()
+            tfsess = tfSess()
             tfsess.run(tf_var.initializer)
 
             out = all_reduce(var)
@@ -261,7 +267,7 @@ class EADTest(unittest.TestCase):
             var = eteq.variable(data, 'var')
             tf_var = tf.Variable(data)
 
-            tfsess = tf.compat.v1.Session()
+            tfsess = tfSess()
             tfsess.run(tf_var.initializer)
 
             out = tc.permute(dim_reduce(var,
@@ -666,7 +672,7 @@ class EADTest(unittest.TestCase):
             var = eteq.variable(data, 'var')
             tf_var = tf.Variable(data)
 
-            tfsess = tf.compat.v1.Session()
+            tfsess = tfSess()
             tfsess.run(tf_var.initializer)
 
             out = tc.reduce_l2norm(var)
@@ -727,7 +733,7 @@ class EADTest(unittest.TestCase):
             tf_var = tf.Variable(data)
             tf_var2 = tf.Variable(data2)
 
-            tfsess = tf.compat.v1.Session()
+            tfsess = tfSess()
             tfsess.run(tf_var.initializer)
             tfsess.run(tf_var2.initializer)
 
@@ -830,7 +836,7 @@ class EADTest(unittest.TestCase):
 
             fout = out.get()
 
-            tfsess = tf.compat.v1.Session()
+            tfsess = tfSess()
             tfsess.run(tf_var.initializer)
             tfsess.run(tf_kernel.initializer)
 
@@ -886,7 +892,7 @@ class EADTest(unittest.TestCase):
         sess.track([out])
         sess.update()
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
 
         tfoutput = tf.nn.conv2d(tfimage, tfkernel, [1, 1, 1, 1], 'VALID')
         tfsess.run(tfimage.initializer)
@@ -930,7 +936,7 @@ class EADTest(unittest.TestCase):
         sess.update()
         output = out.get()
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfimage = tf.Variable(data)
         tfout = tf.nn.avg_pool2d(tfimage, [2, 2], [2, 2], padding='VALID')
         tfsess.run(tfimage.initializer)
@@ -967,7 +973,7 @@ class EADTest(unittest.TestCase):
         sess.update()
         output = out.get()
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfimage = tf.Variable(data)
         tfout = tf.nn.max_pool2d(tfimage, [2, 2], [2, 2], padding='VALID')
         tfsess.run(tfimage.initializer)
@@ -1002,7 +1008,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -1038,7 +1044,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -1074,7 +1080,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -1113,7 +1119,7 @@ class EADTest(unittest.TestCase):
         tf_var2 = tf.Variable(data2)
         tf_var3 = tf.Variable(data3)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
@@ -1153,7 +1159,7 @@ class EADTest(unittest.TestCase):
         tf_var2 = tf.Variable(data2)
         tf_var3 = tf.Variable(data3)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
@@ -1190,7 +1196,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -1227,7 +1233,7 @@ class EADTest(unittest.TestCase):
         tf_var = tf.Variable(data)
         tf_var2 = tf.Variable(data2)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
@@ -1265,7 +1271,7 @@ class EADTest(unittest.TestCase):
         var = eteq.variable(data, 'var')
         tf_var = tf.Variable(data)
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_var.initializer)
 
         out = tc.matmul(
@@ -1324,7 +1330,7 @@ class EADTest(unittest.TestCase):
         dc = eteq.derive(dest, c)
         tf_da, tf_db, tf_dc = tf.gradients(tf_dest, [tf_a, tf_b, tf_c])
 
-        tfsess = tf.compat.v1.Session()
+        tfsess = tfSess()
         tfsess.run(tf_a.initializer)
         tfsess.run(tf_b.initializer)
         tfsess.run(tf_c.initializer)
@@ -1339,6 +1345,10 @@ class EADTest(unittest.TestCase):
         self._array_close(exa, da.get())
         self._array_close(exb, db.get())
         self._array_close(exc, dc.get())
+
+if oldTf:
+    delattr(EADTest, 'test_maxpool')
+    delattr(EADTest, 'test_avgpool')
 
 if __name__ == "__main__":
     with open('testutil/ead_template.json') as json_data:

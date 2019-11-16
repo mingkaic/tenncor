@@ -47,3 +47,4 @@ opcode:
     GROUP_CONCAT: out = eigen::group_concat(shape, in);
     GROUP_SUM: out = eigen::group_sum(shape, in);
     GROUP_PROD: out = eigen::group_prod(shape, in);
+    PARTIAL_REDUCE: out = nullptr; // todo implement using broadcast

@@ -64,30 +64,22 @@ struct FTargEdge final
 			{
 				values.push_back(jt->val_);
 			}
-			teq::MatInitF init =
-				[&](teq::MatrixT& args)
-				{
-					for (size_t i = 0, n = values.size(); i < n; ++i)
-					{
-						args[i / teq::mat_dim][i % teq::mat_dim] = values[i];
-					}
-				};
 			if (key == eigen::shaper_key)
 			{
-				shaper_ = std::make_shared<teq::ShapeMap>(init);
+				shape_ = teq::Shape(std::vector<teq::DimT>(values.begin(), values.end()));
 			}
 			else if (key == eigen::coorder_key)
 			{
-				coorder_ = std::make_shared<eigen::CoordMap>(init);
+				coords_ = values;
 			}
 		}
 	}
 
 	opt::TargptrT target_;
 
-	teq::ShaperT shaper_;
+	teq::Shape shape_;
 
-	eigen::CoordptrT coorder_;
+	std::vector<double> coords_;
 };
 
 template <typename T>
@@ -106,8 +98,8 @@ struct FuncTarget final : public opt::iTarget
 		{
 			args.push_back(FuncArg<T>(
 				to_node<T>(targ.target_->convert(outshape, candidate)),
-				targ.shaper_,
-				targ.coorder_
+				targ.shape_,
+				targ.coords_
 			));
 		}
 		if (variadic_.size() > 0)

@@ -20,11 +20,10 @@ namespace eteq
 /// Return reduction operator gradient of reduced functor node (bwd)
 template <typename T>
 NodeptrT<T> reduce_grad (const teq::iEdge& child,
-	NodeptrT<T> bwd, size_t idx)
+	NodeptrT<T> bwd)
 {
 	const teq::Shape& shape = child.argshape();
-	teq::CoordT bcast;
-	std::fill(bcast.begin(), bcast.end(), 1);
+	std::vector<double> bcast(teq::rank_cap, 1);
 	auto c = eigen::get_coorder(child);
 	for (teq::RankT d : c)
 	{
@@ -34,50 +33,7 @@ NodeptrT<T> reduce_grad (const teq::iEdge& child,
 		}
 	}
 	return make_functor<T>(teq::Opcode{"EXTEND",egen::EXTEND}, {
-		FuncArg<T>(bwd, teq::extend(bcast), eigen::extend(bcast))
-	});
-}
-
-/// Return extension gradient of extended functor node (bwd)
-template <typename T>
-NodeptrT<T> extend_grad (teq::iFunctor* fwd,
-	NodeptrT<T> bwd, size_t idx) // move this below
-{
-	const teq::iEdge& child = fwd->get_children()[0];
-	auto c = eigen::get_coorder(child);
-	std::set<teq::RankT> rdims;
-	// technically, reduce_sum is not grad of broadcast,
-	// (since broadcast works on dimension > 1) (todo: account for this)
-	// but assuming broadcast is applied on dimensions of 1, reduce_sum is sufficient
-	for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-		i < n; ++i)
-	{
-		teq::RankT d = c[i];
-		if (d > 1)
-		{
-			rdims.emplace(i);
-		}
-	}
-	return make_functor<T>(teq::Opcode{"REDUCE_SUM",egen::REDUCE_SUM},{
-		FuncArg<T>(bwd, teq::reduce(rdims), eigen::reduce(rdims))
-	});
-}
-
-/// Return permutation gradient of permuted functor node (bwd)
-template <typename T>
-NodeptrT<T> permute_grad (teq::iFunctor* fwd,
-	NodeptrT<T> bwd, size_t idx) // move this below
-{
-	const teq::iEdge& child = fwd->get_children()[0];
-	auto c = eigen::get_coorder(child);
-	assert(teq::rank_cap <= c.size());
-	std::array<teq::RankT,teq::rank_cap> order;
-	for (size_t i = 0; i < teq::rank_cap; ++i)
-	{
-		order[c[i]] = i;
-	}
-	return make_functor<T>(teq::Opcode{"PERMUTE",egen::PERMUTE},{
-		FuncArg<T>(bwd, teq::permute(order), eigen::permute(order))
+		FuncArg<T>(bwd, shape, bcast)
 	});
 }
 
@@ -201,13 +157,13 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::REDUCE_PROD: // todo: prevent divide by zero
 				out =
-					reduce_grad(args[0], to_node<T>(op), arg_idx) /
+					reduce_grad(args[0], to_node<T>(op)) /
 					to_node<T>(args[0].get().get_tensor());
 				break;
 			case egen::REDUCE_MAX:
 			case egen::REDUCE_MIN:
 				out =
-					reduce_grad(args[0], to_node<T>(op), arg_idx) ==
+					reduce_grad(args[0], to_node<T>(op)) ==
 					to_node<T>(args[0].get().get_tensor());
 				break;
 			case egen::MATMUL:
@@ -359,15 +315,47 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::REDUCE_PROD:
 			case egen::REDUCE_SUM:
 				out = to_node<T>(local_der) * reduce_grad(
-					op->get_children()[0], to_node<T>(supcomp_grad), arg_idx);
+					op->get_children()[0], to_node<T>(supcomp_grad));
 				break;
 			case egen::EXTEND:
-				out = to_node<T>(local_der) * extend_grad(
-					op.get(), to_node<T>(supcomp_grad), arg_idx);
+			{
+				const teq::iEdge& child = op->get_children()[0];
+				auto c = eigen::get_coorder(child);
+				std::set<teq::RankT> dims;
+				// technically, reduce_sum is not grad of broadcast,
+				// (since broadcast works on dimension > 1) (todo: account for this)
+				// but assuming broadcast is applied on dimensions of 1, reduce_sum is sufficient
+				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+					i < n; ++i)
+				{
+					teq::RankT d = c[i];
+					if (d > 1)
+					{
+						dims.emplace(i);
+					}
+				}
+				out = to_node<T>(local_der) * make_functor<T>(
+					teq::Opcode{"REDUCE_SUM",egen::REDUCE_SUM},{
+					FuncArg<T>(to_node<T>(supcomp_grad), child.argshape(),
+						std::vector<double>(dims.begin(), dims.end()))
+				});
+			}
 				break;
 			case egen::PERMUTE:
-				out = to_node<T>(local_der) * permute_grad(
-					op.get(), to_node<T>(supcomp_grad), arg_idx);
+			{
+				const teq::iEdge& child = op->get_children()[0];
+				auto c = eigen::get_coorder(child);
+				assert(teq::rank_cap == c.size());
+				std::vector<double> order(teq::rank_cap);
+				for (size_t i = 0; i < teq::rank_cap; ++i)
+				{
+					order[c[i]] = i;
+				}
+				out = to_node<T>(local_der) * make_functor<T>(
+					teq::Opcode{"PERMUTE",egen::PERMUTE},{
+					FuncArg<T>(to_node<T>(supcomp_grad), child.argshape(), order)
+				});
+			}
 				break;
 			case egen::RESHAPE:
 			{
@@ -611,38 +599,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				teq::Shape origshape = child.argshape();
 				out = to_node<T>(local_der) *
 					make_functor<T>(teq::Opcode{"SCATTER",::egen::SCATTER}, {
-						FuncArg<T>(to_node<T>(supcomp_grad),
-							std::make_shared<teq::ShapeMap>(
-								[origshape,strides](teq::MatrixT& fwd)
-								{
-									size_t n = std::min(
-										strides.size(), (size_t) teq::rank_cap);
-									for (size_t i = 0; i < n; ++i)
-									{
-										if (strides[i] == 1)
-										{
-											fwd[i][i] = 1;
-										}
-										else
-										{
-											// shape can't be trivially reconstructed
-											fwd[teq::rank_cap][i] = origshape.at(i);
-										}
-									}
-									for (teq::RankT i = n; i < teq::rank_cap; ++i)
-									{
-										fwd[i][i] = 1;
-									}
-								}),
-							std::make_shared<eigen::CoordMap>(
-								[&](teq::MatrixT& args)
-								{
-									for (size_t i = 0; i < teq::rank_cap; ++i)
-									{
-										args[0][i] = strides[i];
-									}
-								})
-						)
+						FuncArg<T>(to_node<T>(supcomp_grad), origshape, c)
 					});
 			}
 				break;

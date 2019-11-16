@@ -32,7 +32,6 @@ cc_library(
         "//opt/parse:rulecfg_l",
     ],
     copts = ["-std=c11"],
-    linkstatic = True,
     visibility = ["//visibility:public"],
 )
 
@@ -46,6 +45,6 @@ cc_test(
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
-    linkstatic = True,
     data = ["//cfg:optimizations"],
+    linkstatic = True,
 )

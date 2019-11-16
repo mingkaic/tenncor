@@ -83,4 +83,5 @@ cc_test(
     ],
     copts = ["-std=c++17"],
     data = ["//:test_models"],
+    linkstatic = True,
 )

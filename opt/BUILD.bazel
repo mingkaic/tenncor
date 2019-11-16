@@ -58,6 +58,6 @@ cc_test(
         "//opt:mock_opt",
         "//testutil:tutil",
     ],
-    linkstatic = True,
     data = ["//cfg:optimizations"],
+    linkstatic = True,
 )

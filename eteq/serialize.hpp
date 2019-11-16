@@ -54,31 +54,17 @@ static teq::TensptrT convert_func (
 	for (auto& edge : edges)
 	{
 		teq::Shape shape = edge.first->shape();
-		eigen::CoordptrT coorder = nullptr;
-
 		auto shape_vals = convert_attrs(edge.second, eigen::shaper_key);
-		auto coord_vals = convert_attrs(edge.second, eigen::coorder_key);
-
 		if (shape_vals.size() > 0)
 		{
 			shape = teq::Shape(std::vector<teq::DimT>(
 				shape_vals.begin(), shape_vals.end()));
 		}
-
-		if (coord_vals.size() > 0)
-		{
-			coorder = std::make_shared<eigen::CoordMap>(
-				[&](teq::MatrixT& arg)
-				{
-					for (size_t i = 0, n = coord_vals.size(); i < n; ++i)
-					{
-						arg[i / teq::mat_dim][i % teq::mat_dim] = coord_vals[i];
-					}
-				});
-		}
+		std::vector<double> coords = convert_attrs(edge.second, 
+			eigen::coorder_key);
 
 		tmp_edges.push_back(
-			FuncArg<T>(to_node<T>(edge.first), shape, coorder));
+			FuncArg<T>(to_node<T>(edge.first), shape, coords));
 	}
 	return teq::TensptrT(Functor<T>::get(
 		teq::Opcode{opname, egen::get_op(opname)},tmp_edges));

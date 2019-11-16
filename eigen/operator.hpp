@@ -9,7 +9,7 @@
 // todo: make this generated
 
 #include "eigen/eigen.hpp"
-#include "eigen/coord.hpp"
+#include "eigen/matops.hpp"
 #include "eigen/random.hpp"
 #include "eigen/edge.hpp"
 

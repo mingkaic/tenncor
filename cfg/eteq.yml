@@ -581,14 +581,8 @@ api:
           val: |
               //
                   return eteq::make_functor<T>(teq::Opcode{"REVERSE",::egen::REVERSE},{
-                      eteq::FuncArg<T>(arg,teq::identity,
-                          std::make_shared<eigen::CoordMap>(
-                              [&](teq::MatrixT& args){
-                                  for (teq::RankT i = 0, n = dims.size(); i < n; ++i)
-                                  {
-                                      args[0][i] = dims[i];
-                                  }
-                              }))
+                      eteq::FuncArg<T>(arg,arg->shape(),
+                          std::vector<double>(dims.begin(), dims.end()))
                   });
       - template: typename T
         name: permute
