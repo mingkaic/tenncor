@@ -6,9 +6,9 @@
 struct MockEdge final : public teq::iEdge
 {
 	MockEdge (teq::TensptrT tensor,
-		std::vector<double> shaper = {},
+		std::vector<double> shape = {},
 		std::vector<double> coorder = {}) :
-		tensor_(tensor), shaper_(shaper), coorder_(coorder)
+		tensor_(tensor), shape_(shape), coorder_(coorder)
 	{
 		if (tensor_ == nullptr)
 		{
@@ -37,15 +37,15 @@ struct MockEdge final : public teq::iEdge
 	/// Implementation of iEdge
 	void get_attrs (marsh::Maps& out) const override
 	{
-		if (shaper_.size() > 0)
+		if (shape_.size() > 0)
 		{
 			auto arr = std::make_unique<marsh::NumArray<double>>();
 			auto& contents = arr->contents_;
-			for (double s : shaper_)
+			for (double s : shape_)
 			{
 				contents.push_back(s);
 			}
-			out.contents_.emplace("shaper", std::move(arr));
+			out.contents_.emplace("shape", std::move(arr));
 		}
 		if (coorder_.size() > 0)
 		{
@@ -62,7 +62,7 @@ struct MockEdge final : public teq::iEdge
 private:
 	teq::TensptrT tensor_;
 
-	std::vector<double> shaper_;
+	std::vector<double> shape_;
 
 	std::vector<double> coorder_;
 };

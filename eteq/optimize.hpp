@@ -96,7 +96,7 @@ struct FuncTarget final : public opt::iTarget
 		ArgsT<T> args;
 		for (auto& targ : args_)
 		{
-			args.push_back(FuncArg<T>(
+			args.push_back(Edge<T>(
 				to_node<T>(targ.target_->convert(outshape, candidate)),
 				targ.shape_,
 				targ.coords_
@@ -107,7 +107,7 @@ struct FuncTarget final : public opt::iTarget
 			auto& edges = candidate.variadic_.at(variadic_);
 			for (const teq::iEdge& edge : edges)
 			{
-				args.push_back(*static_cast<const eteq::FuncArg<T>*>(&edge));
+				args.push_back(*static_cast<const eteq::Edge<T>*>(&edge));
 			}
 		}
 		return teq::TensptrT(eteq::Functor<T>::get(opcode_, args));

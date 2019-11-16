@@ -14,7 +14,7 @@ struct iEigenEdge : public teq::iEdge
 	virtual T* data (void) const = 0;
 };
 
-const std::string shaper_key = "shaper";
+const std::string shaper_key = "shape";
 
 const std::string coorder_key = "coorder";
 

@@ -13,7 +13,7 @@
 #include "eigen/generated/opcode.hpp"
 #include "eigen/operator.hpp"
 
-#include "eteq/funcarg.hpp"
+#include "eteq/edge.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -76,7 +76,7 @@ struct Functor final : public teq::iOperableFunc
 				index, nexshape.to_string().c_str(),
 				curshape.to_string().c_str());
 		}
-		static_cast<FuncArg<T>*>(&args_[index])->set_tensor(arg);
+		static_cast<Edge<T>*>(&args_[index])->set_tensor(arg);
 		// todo: warn of data destruction
 		uninitialize();
 	}
@@ -210,9 +210,9 @@ protected:
 		input_args.reserve(args.size());
 		std::transform(args.begin(), args.end(),
 			std::back_inserter(input_args),
-			[](const teq::iEdge& arg) -> FuncArg<T>
+			[](const teq::iEdge& arg) -> Edge<T>
 			{
-				return *static_cast<const FuncArg<T>*>(&arg);
+				return *static_cast<const Edge<T>*>(&arg);
 			});
 		return new FunctorNode(std::shared_ptr<Functor<T>>(
 			Functor<T>::get(func_->get_opcode(), input_args)));

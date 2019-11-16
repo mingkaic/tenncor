@@ -65,7 +65,7 @@ static teq::TensptrT convert_func (
 			eigen::coorder_key);
 
 		tmp_edges.push_back(
-			FuncArg<T>(to_node<T>(edge.first), shape, coords));
+			Edge<T>(to_node<T>(edge.first), shape, coords));
 	}
 	return teq::TensptrT(Functor<T>::get(
 		teq::Opcode{opname, egen::get_op(opname)},tmp_edges));

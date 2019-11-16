@@ -22,7 +22,7 @@ PYBIND11_MODULE(eteq_mocker, m)
 			return dbg::make_functor<PybindT>(
 				[unary](eigen::TensorT<PybindT>& out, const eteq::ArgsT<PybindT>& args)
 				{
-					const eteq::FuncArg<PybindT>& arg = args.at(0);
+					const eteq::Edge<PybindT>& arg = args.at(0);
 					PybindT* data = arg.get_node()->data();
 					teq::Shape shape = arg.argshape();
 					auto output = unary(
@@ -34,6 +34,6 @@ PYBIND11_MODULE(eteq_mocker, m)
 					PybindT* outptr = output.data();
 					std::copy(outptr, outptr + outshape.n_elems(), out.data());
 				},
-				{eteq::FuncArg<PybindT>(arg)});
+				{eteq::Edge<PybindT>(arg)});
 		});
 }

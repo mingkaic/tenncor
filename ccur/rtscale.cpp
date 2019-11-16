@@ -69,7 +69,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = eteq::make_functor<float>(op, {
-					eteq::FuncArg<float>(var)});
+					eteq::Edge<float>(var)});
 				TIME(f->update())
 			}
 				break;
@@ -91,7 +91,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = eteq::make_functor<float>(op, {
-					eteq::FuncArg<float>(var), eteq::FuncArg<float>(var)});
+					eteq::Edge<float>(var), eteq::Edge<float>(var)});
 				TIME(f->update())
 			}
 				break;

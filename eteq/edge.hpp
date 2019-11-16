@@ -1,5 +1,5 @@
 //
-/// funcarg.hpp
+/// edge.hpp
 /// eteq
 ///
 /// Purpose:
@@ -10,17 +10,17 @@
 
 #include "eteq/inode.hpp"
 
-#ifndef ETEQ_FUNCARG_HPP
-#define ETEQ_FUNCARG_HPP
+#ifndef ETEQ_EDGE_HPP
+#define ETEQ_EDGE_HPP
 
 namespace eteq
 {
 
 /// Implementation of iEigenEdge using node as tensor wrapper
 template <typename T>
-struct FuncArg final : public eigen::iEigenEdge<T>
+struct Edge final : public eigen::iEigenEdge<T>
 {
-	FuncArg (NodeptrT<T> node) :
+	Edge (NodeptrT<T> node) :
 		node_(node)
 	{
 		if (node_ == nullptr)
@@ -30,7 +30,7 @@ struct FuncArg final : public eigen::iEigenEdge<T>
 		shape_ = node->shape();
 	}
 
-	FuncArg (NodeptrT<T> node, teq::Shape shape,
+	Edge (NodeptrT<T> node, teq::Shape shape,
 		std::vector<double> coords) :
 		node_(node), shape_(shape), coords_(coords)
 	{
@@ -104,14 +104,14 @@ private:
 
 /// Type of typed functor arguments
 template <typename T>
-using ArgsT = std::vector<FuncArg<T>>;
+using ArgsT = std::vector<Edge<T>>;
 
-/// Return FuncArg<T> that reduces input tensor by
+/// Return Edge<T> that reduces input tensor by
 /// units in reduction vector after specified rank
 /// E.g.: tensor w/ shape [2, 3, 4], offset = 1, ndims = 2
 /// gets mapped to [2, 1, 1]
 template <typename T>
-FuncArg<T> reduce_map (NodeptrT<T> node, teq::RankT offset, teq::RankT ndims)
+Edge<T> reduce_map (NodeptrT<T> node, teq::RankT offset, teq::RankT ndims)
 {
 	if (offset >= teq::rank_cap)
 	{
@@ -135,13 +135,13 @@ FuncArg<T> reduce_map (NodeptrT<T> node, teq::RankT offset, teq::RankT ndims)
 
 	std::vector<double> rdims(teq::rank_cap, teq::rank_cap);
 	std::copy(dims.begin(), dims.end(), rdims.begin());
-	return FuncArg<T>(node, teq::Shape(slist), rdims);
+	return Edge<T>(node, teq::Shape(slist), rdims);
 }
 
-/// Return FuncArg<T> that reduce tensor by argument index
+/// Return Edge<T> that reduce tensor by argument index
 /// return_dim greater than rank_cap looks across all dimensions
 template <typename T>
-FuncArg<T> argreduce_map (NodeptrT<T> node, teq::RankT return_dim)
+Edge<T> argreduce_map (NodeptrT<T> node, teq::RankT return_dim)
 {
 	std::vector<teq::DimT> slist;
 	if (return_dim < teq::rank_cap)
@@ -151,23 +151,23 @@ FuncArg<T> argreduce_map (NodeptrT<T> node, teq::RankT return_dim)
 		slist[return_dim] = 1;
 	}
 
-	return FuncArg<T>(node, teq::Shape(slist), std::vector<double>{
+	return Edge<T>(node, teq::Shape(slist), std::vector<double>{
 		static_cast<double>(return_dim)});
 }
 
-/// Return FuncArg<T> that extends input tensor by
+/// Return Edge<T> that extends input tensor by
 /// rank and extension vector
 /// E.g.: tensor w/ shape [2, 1, 1], rank = 1, ext = [3, 4]
 /// gets mapped to [2, 3, 4]
 template <typename T>
-FuncArg<T> extend_map (NodeptrT<T> node,
+Edge<T> extend_map (NodeptrT<T> node,
 	teq::RankT rank, std::vector<teq::DimT> ext)
 {
 	size_t n_ext = ext.size();
 	if (0 == n_ext)
 	{
 		logs::warn("extending with empty vector ... will do nothing");
-		return FuncArg<T>(node);
+		return Edge<T>(node);
 	}
 	if (std::any_of(ext.begin(), ext.end(),
 		[](teq::DimT& d) { return 0 == d; }))
@@ -188,23 +188,28 @@ FuncArg<T> extend_map (NodeptrT<T> node,
 	std::vector<teq::DimT> slist(shape.begin(), shape.end());
 	for (teq::DimT e : ext)
 	{
-		slist[rank] *= e;
+		if (slist[rank] > 1)
+		{
+			logs::fatalf("cannot extend non-singular dimension %d of shape %s",
+				rank, shape.to_string().c_str());
+		}
+		slist[rank] = e;
 		++rank;
 	}
 
-	return FuncArg<T>(node, teq::Shape(slist), bcast);
+	return Edge<T>(node, teq::Shape(slist), bcast);
 }
 
-/// Return FuncArg<T> that permutes input tensor by order
+/// Return Edge<T> that permutes input tensor by order
 /// E.g.: tensor w/ shape [2, 3, 4], order = [1, 2, 0]
 /// gets mapped to [3, 4, 2]
 template <typename T>
-FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
+Edge<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 {
 	if (order.size() == 0)
 	{
 		logs::warn("permuting with same dimensions ... will do nothing");
-		return FuncArg<T>(node);
+		return Edge<T>(node);
 	}
 
 	bool visited[teq::rank_cap];
@@ -234,23 +239,23 @@ FuncArg<T> permute_map (NodeptrT<T> node, std::vector<teq::RankT> order)
 		slist[i] = shape.at(order[i]);
 	}
 
-	return FuncArg<T>(node, teq::Shape(slist), std::vector<double>(order.begin(), order.end()));
+	return Edge<T>(node, teq::Shape(slist), std::vector<double>(order.begin(), order.end()));
 }
 
-/// Return FuncArg<T> that reshapes node to specified shape
+/// Return Edge<T> that reshapes node to specified shape
 template <typename T>
-FuncArg<T> reshape_map (NodeptrT<T> node, const teq::Shape& shape)
+Edge<T> reshape_map (NodeptrT<T> node, const teq::Shape& shape)
 {
-	return FuncArg<T>(node, shape, {});
+	return Edge<T>(node, shape, {});
 }
 
-/// Return FuncArg<T> that takes specific slice of tensor according to
+/// Return Edge<T> that takes specific slice of tensor according to
 /// vector of offset, extent pairs
 /// E.g.: tensor w/ shape [2, 3, 4], offset = 1, extent = 2, and dimension = 2
 /// gets mapped to [2, 3, 2] that references [:,:,1:3]
 /// (second and third slices of the 3rd dimension)
 template <typename T>
-FuncArg<T> slice_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& extents)
+Edge<T> slice_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& extents)
 {
 	if (extents.size() > teq::rank_cap)
 	{
@@ -275,15 +280,15 @@ FuncArg<T> slice_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& extent
 		teq::DimT offset = std::min(ex.first, (teq::DimT) (shape.at(i) - 1));
 		slist[i] = std::min(ex.second, (teq::DimT) (shape.at(i) - offset));
 	}
-	return FuncArg<T>(node, teq::Shape(slist), eigen::encode_pair(extents));
+	return Edge<T>(node, teq::Shape(slist), eigen::encode_pair(extents));
 }
 
-/// Return FuncArg<T> that pads tensor with 0s across specified dimensions
+/// Return Edge<T> that pads tensor with 0s across specified dimensions
 /// E.g.: tensor w/ shape [2, 3, 4], padding = {2,1}, dimension = 0
 /// gets mapped to [5, 3, 4] where [0,:,:] and [3:5,:,:] are 0
 /// (first, fourth, and fifth slices of the 1st dimension are 0)
 template <typename T>
-FuncArg<T> pad_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& paddings)
+Edge<T> pad_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& paddings)
 {
 	if (paddings.size() > teq::rank_cap)
 	{
@@ -300,10 +305,10 @@ FuncArg<T> pad_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& paddings
 	{
 		slist[i] += paddings[i].first + paddings[i].second;
 	}
-	return FuncArg<T>(node, teq::Shape(slist), eigen::encode_pair(paddings));
+	return Edge<T>(node, teq::Shape(slist), eigen::encode_pair(paddings));
 }
 
-/// Return FuncArg<T> that takes elements of
+/// Return Edge<T> that takes elements of
 /// specific increments across dimensions starting from 0
 /// E.g.: tensor w/ shape [2, 3, 4], incrs = {1, 2, 2}
 /// gets mapped to [2, 2, 2] where
@@ -312,7 +317,7 @@ FuncArg<T> pad_map (NodeptrT<T> node, const eigen::PairVecT<teq::DimT>& paddings
 /// output[:,0,1] takes on input[:,0,2]
 /// output[:,1,1] takes on input[:,2,2]
 template <typename T>
-FuncArg<T> stride_map (NodeptrT<T> node,
+Edge<T> stride_map (NodeptrT<T> node,
 	const std::vector<teq::DimT>& incrs)
 {
 	if (incrs.size() > teq::rank_cap)
@@ -333,7 +338,7 @@ FuncArg<T> stride_map (NodeptrT<T> node,
 	{
 		slist[i] = std::round((double) slist[i] / incrs[i]);
 	}
-	return FuncArg<T>(node, teq::Shape(slist), coords);
+	return Edge<T>(node, teq::Shape(slist), coords);
 }
 
 template <typename T>
@@ -366,8 +371,8 @@ ArgsT<T> convolve_map (NodeptrT<T> image, NodeptrT<T> kernel,
 	auto it = kernel_dims.begin();
 	std::copy(dims.begin(), dims.end(), it);
 	return {
-		FuncArg<T>(image, outshape, {}),
-		FuncArg<T>(kernel, outshape, kernel_dims),
+		Edge<T>(image, outshape, {}),
+		Edge<T>(kernel, outshape, kernel_dims),
 	};
 }
 
@@ -380,9 +385,9 @@ ArgsT<T> concat_map (NodeptrT<T> left, NodeptrT<T> right, teq::RankT axis)
 	slist[axis] += rightshape.at(axis);
 	teq::Shape outshape(slist);
 	return {
-		FuncArg<T>(left, outshape, std::vector<double>{
+		Edge<T>(left, outshape, std::vector<double>{
 			static_cast<double>(axis)}),
-		FuncArg<T>(right, outshape, {}),
+		Edge<T>(right, outshape, {}),
 	};
 }
 
@@ -409,12 +414,12 @@ ArgsT<T> group_concat_map (NodesT<T> args, teq::RankT axis)
 
 	ArgsT<T> out;
 	out.reserve(nargs);
-	out.push_back(FuncArg<T>(args[0], outshape, std::vector<double>{
+	out.push_back(Edge<T>(args[0], outshape, std::vector<double>{
 		static_cast<double>(axis)}));
 	std::transform(args.begin() + 1, args.end(), std::back_inserter(out),
 		[&](NodeptrT<T> arg)
 		{
-			return FuncArg<T>(arg, outshape, {});
+			return Edge<T>(arg, outshape, {});
 		});
 	return out;
 }
@@ -470,11 +475,11 @@ ArgsT<T> contract_map (NodeptrT<T> a, NodeptrT<T> b, eigen::PairVecT<teq::RankT>
 	}
 	teq::Shape outshape(outlist);
 	return {
-		eteq::FuncArg<T>(a, outshape, eigen::encode_pair(dims)),
-		eteq::FuncArg<T>(b, outshape, {}),
+		eteq::Edge<T>(a, outshape, eigen::encode_pair(dims)),
+		eteq::Edge<T>(b, outshape, {}),
 	};
 }
 
 }
 
-#endif // ETEQ_FUNCARG_HPP
+#endif // ETEQ_EDGE_HPP

@@ -11,7 +11,7 @@
 #include "eigen/generated/opcode.hpp"
 #include "eigen/operator.hpp"
 
-#include "eteq/funcarg.hpp"
+#include "eteq/edge.hpp"
 
 #ifndef DBG_CUSTOM_FUNCTOR_HPP
 #define DBG_CUSTOM_FUNCTOR_HPP

@@ -383,7 +383,7 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 	opt::CversionCtx rules = opt::parse(edge_rules, build_mock_target);
 	opt::CustomFilters empty;
 
-	// remove redundent reduced argument for empty shaper
+	// remove redundent reduced argument for empty shape
 	{
 		auto redundant_reduce = std::make_shared<MockFunctor>(MockEdgesT{
 			MockEdge(var, std::vector<double>{},
@@ -395,7 +395,7 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 			opteds[0]);
 	}
 
-	// remove redundent reduced argument for non-empty shaper
+	// remove redundent reduced argument for non-empty shape
 	{
 		auto redundant_reduce = std::make_shared<MockFunctor>(MockEdgesT{
 			MockEdge(var,
