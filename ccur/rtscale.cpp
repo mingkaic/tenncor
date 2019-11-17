@@ -68,8 +68,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(op, {
-					eteq::Edge<float>(var)});
+				auto f = eteq::make_functor<float>(opcode, eteq::NodesT<float>{var});
 				TIME(f->update())
 			}
 				break;
@@ -90,8 +89,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(op, {
-					eteq::Edge<float>(var), eteq::Edge<float>(var)});
+				auto f = eteq::make_functor<float>(opcode, eteq::NodesT<float>{var, var});
 				TIME(f->update())
 			}
 				break;
@@ -104,8 +102,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(op, {
-					eteq::reduce_map(var, 1, 1)});
+				auto f = eteq::make_functor<float>(opcode, eteq::NodesT<float>{var}, 1, 1);
 				TIME(f->update())
 			}
 				break;
@@ -115,8 +112,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(op, {
-					eteq::permute_map(var, {2, 0, 1})});
+				auto f = tenncor::permute(var, {2, 0, 1});
 				TIME(f->update())
 			}
 				break;
@@ -125,8 +121,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 58}));
-				auto f = eteq::make_functor<float>(op, {
-					eteq::extend_map(var, 2, {57})});
+				auto f = tenncor::extend(var, 2, {57});
 				TIME(f->update())
 			}
 				break;
@@ -135,8 +130,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(op, {
-					eteq::slice_map(var, {{0,1234},{0,1234},{2,2}})});
+				auto f = tenncor::slice(var, {{0, 1234}, {0, 1234}, {2, 2}});
 				TIME(f->update())
 			}
 				break;
@@ -167,8 +161,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(op, {
-					eteq::pad_map(var, {{0, 0}, {0, 0}, {3, 4}})});
+				auto f = tenncor::pad(var, {{0, 0}, {0, 0}, {3, 4}});
 				TIME(f->update())
 			}
 				break;

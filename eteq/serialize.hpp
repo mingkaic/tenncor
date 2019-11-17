@@ -67,8 +67,7 @@ static teq::TensptrT convert_func (
 		tmp_edges.push_back(
 			Edge<T>(to_node<T>(edge.first), shape, coords));
 	}
-	return teq::TensptrT(Functor<T>::get(
-		teq::Opcode{opname, egen::get_op(opname)},tmp_edges));
+	return make_functor<T>(egen::get_op(opname),tmp_edges)->get_tensor();
 }
 
 }

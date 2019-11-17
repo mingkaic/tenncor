@@ -84,13 +84,8 @@ outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& 
 return in.PROCESS(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 #define _EIGEN_INTERNAL_V2A(PROCESS, RED) {\
-	std::vector<teq::RankT> vdims;\
-	vdims.reserve(teq::rank_cap);\
 	auto cdims = get_coorder(in);\
-	std::copy_if(cdims.begin(), cdims.begin() +\
-		std::min(cdims.size(), (size_t) teq::rank_cap),\
-		std::back_inserter(vdims),\
-		[](teq::CDimT i) { return i < teq::rank_cap; });\
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());\
 	DimensionsT outdims = shape_convert(outshape);\
 	switch (vdims.size()) {\
 		_EIGEN_INTERNAL_V2A_CASE(0, PROCESS, RED)\

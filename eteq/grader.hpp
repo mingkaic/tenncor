@@ -34,7 +34,7 @@ NodeptrT<T> reduce_grad (const teq::iEdge& child,
 			bcast[d] = shape.at(d);
 		}
 	}
-	return make_functor<T>(teq::Opcode{"EXTEND",egen::EXTEND}, {
+	return make_functor<T>(egen::EXTEND, {
 		Edge<T>(bwd, shape, bcast)
 	});
 }
@@ -332,7 +332,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					}
 				}
 				out = to_node<T>(local_der) * make_functor<T>(
-					teq::Opcode{"REDUCE_SUM",egen::REDUCE_SUM},{
+					egen::REDUCE_SUM,{
 					Edge<T>(to_node<T>(supcomp_grad), child.argshape(),
 						std::vector<double>(dims.begin(), dims.end()))
 				});
@@ -349,7 +349,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					order[c[i]] = i;
 				}
 				out = to_node<T>(local_der) * make_functor<T>(
-					teq::Opcode{"PERMUTE",egen::PERMUTE},{
+					egen::PERMUTE,{
 					Edge<T>(to_node<T>(supcomp_grad), child.argshape(), order)
 				});
 			}
@@ -580,7 +580,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				std::copy(c.begin(), c.begin() + teq::rank_cap, strides.begin());
 				teq::Shape origshape = child.argshape();
 				out = to_node<T>(local_der) *
-					make_functor<T>(teq::Opcode{"SCATTER",::egen::SCATTER}, {
+					make_functor<T>(::egen::SCATTER, {
 						Edge<T>(to_node<T>(supcomp_grad), origshape, c)
 					});
 			}
@@ -646,10 +646,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 	/// Implementation of iGradientBuilder
 	teq::TensptrT add (teq::TensptrT& lhs, teq::TensptrT& rhs) const override
 	{
-		return teq::TensptrT(Functor<T>::get(teq::Opcode{"ADD", egen::ADD}, {
-			Edge<T>(to_node<T>(lhs)),
-			Edge<T>(to_node<T>(rhs))
-		}));
+		return (to_node<T>(lhs) + to_node<T>(rhs))->get_tensor();
 	}
 };
 

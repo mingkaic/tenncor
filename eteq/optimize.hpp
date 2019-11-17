@@ -87,7 +87,7 @@ struct FuncTarget final : public opt::iTarget
 {
 	FuncTarget (std::string opname, std::vector<FTargEdge> args,
 		std::string variadic) :
-		opcode_(teq::Opcode{opname, egen::get_op(opname)}),
+		opcode_(egen::get_op(opname)),
 		args_(args), variadic_(variadic) {}
 
 	teq::TensptrT convert (
@@ -113,7 +113,7 @@ struct FuncTarget final : public opt::iTarget
 		return teq::TensptrT(eteq::Functor<T>::get(opcode_, args));
 	}
 
-	teq::Opcode opcode_;
+	egen::_GENERATED_OPCODE opcode_;
 
 	std::vector<FTargEdge> args_;
 

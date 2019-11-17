@@ -15,7 +15,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"ABS",::egen::ABS},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::ABS, eteq::NodesT<T>{arg});
       - template: typename T
         name: neg
         operator: "-"
@@ -24,7 +24,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"NEG",::egen::NEG},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::NEG, eteq::NodesT<T>{arg});
       - template: typename T
         name: sin
         args:
@@ -32,7 +32,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"SIN",::egen::SIN},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::SIN, eteq::NodesT<T>{arg});
       - template: typename T
         name: cos
         args:
@@ -40,7 +40,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"COS",::egen::COS},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::COS, eteq::NodesT<T>{arg});
       - template: typename T
         name: tan
         args:
@@ -48,7 +48,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"TAN",::egen::TAN},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::TAN, eteq::NodesT<T>{arg});
       - template: typename T
         name: exp
         args:
@@ -56,7 +56,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"EXP",::egen::EXP},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::EXP, eteq::NodesT<T>{arg});
       - template: typename T
         name: log
         args:
@@ -64,7 +64,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"LOG",::egen::LOG},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::LOG, eteq::NodesT<T>{arg});
       - template: typename T
         name: sqrt
         args:
@@ -72,7 +72,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"SQRT",::egen::SQRT},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::SQRT, eteq::NodesT<T>{arg});
       - template: typename T
         name: round
         args:
@@ -80,7 +80,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"ROUND",::egen::ROUND},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::ROUND, eteq::NodesT<T>{arg});
       - template: typename T
         name: sigmoid
         args:
@@ -88,7 +88,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"SIGMOID",::egen::SIGMOID},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::SIGMOID, eteq::NodesT<T>{arg});
       - template: typename T
         name: tanh
         args:
@@ -96,7 +96,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"TANH",::egen::TANH},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::TANH, eteq::NodesT<T>{arg});
       - template: typename T
         name: square
         args:
@@ -104,7 +104,7 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"SQUARE",::egen::SQUARE},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::SQUARE, eteq::NodesT<T>{arg});
       - template: typename T
         name: cube
         args:
@@ -112,17 +112,17 @@ api:
           name: arg
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"CUBE",::egen::CUBE},{eteq::Edge<T>(arg)});
+          val: return eteq::make_functor<T>(::egen::CUBE, eteq::NodesT<T>{arg});
       - template: typename T
         name: pow
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"POW",::egen::POW},{eteq::Edge<T>(arg1),eteq::Edge<T>(arg2)});
+          val: return eteq::make_functor<T>(::egen::POW, eteq::NodesT<T>{a, b});
       - template: typename T
         name: pow
         args:
@@ -148,17 +148,14 @@ api:
         operator: +
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"ADD",::egen::ADD}, {
-                      eteq::Edge<T>(arg1),
-                      eteq::Edge<T>(arg2),
-                  });
+                  auto out = eteq::make_functor<T>(::egen::ADD, eteq::NodesT<T>{a, b});
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   tag::get_group_reg().group_tag(out->get_tensor(), "sum");
                   return out;
@@ -189,12 +186,12 @@ api:
         operator: "-"
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"SUB",::egen::SUB},{eteq::Edge<T>(arg1),eteq::Edge<T>(arg2)});
+          val: return eteq::make_functor<T>(::egen::SUB, eteq::NodesT<T>{a, b});
       - template: typename T
         name: sub
         operator: "-"
@@ -222,17 +219,14 @@ api:
         operator: "*"
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MUL",::egen::MUL}, {
-                      eteq::Edge<T>(arg1),
-                      eteq::Edge<T>(arg2),
-                  });
+                  auto out = eteq::make_functor<T>(::egen::MUL, eteq::NodesT<T>{a, b});
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   tag::get_group_reg().group_tag(out->get_tensor(), "prod");
                   return out;
@@ -263,12 +257,12 @@ api:
         operator: /
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"DIV",::egen::DIV},{eteq::Edge<T>(arg1),eteq::Edge<T>(arg2)});
+          val: return eteq::make_functor<T>(::egen::DIV, eteq::NodesT<T>{a, b});
       - template: typename T
         name: div
         operator: /
@@ -296,17 +290,14 @@ api:
         operator: ==
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"EQ",::egen::EQ}, {
-                      eteq::Edge<T>(arg1),
-                      eteq::Edge<T>(arg2),
-                  });
+                  auto out = eteq::make_functor<T>(::egen::EQ, eteq::NodesT<T>{a, b});
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
       - template: typename T
@@ -336,17 +327,14 @@ api:
         operator: "!="
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"NEQ",::egen::NEQ}, {
-                      eteq::Edge<T>(arg1),
-                      eteq::Edge<T>(arg2),
-                  });
+                  auto out = eteq::make_functor<T>(::egen::NEQ, eteq::NodesT<T>{a, b});
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
       - template: typename T
@@ -376,12 +364,12 @@ api:
         operator: <
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"LT",::egen::LT},{eteq::Edge<T>(arg1),eteq::Edge<T>(arg2)});
+          val: return eteq::make_functor<T>(::egen::LT, eteq::NodesT<T>{a, b});
       - template: typename T
         name: lt
         operator: <
@@ -409,12 +397,12 @@ api:
         operator: ">"
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"GT",::egen::GT},{eteq::Edge<T>(arg1),eteq::Edge<T>(arg2)});
+          val: return eteq::make_functor<T>(::egen::GT, eteq::NodesT<T>{a, b});
       - template: typename T
         name: gt
         operator: ">"
@@ -441,17 +429,14 @@ api:
         name: min
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MIN",::egen::MIN}, {
-                      eteq::Edge<T>(arg1),
-                      eteq::Edge<T>(arg2),
-                  });
+                  auto out = eteq::make_functor<T>(::egen::MIN, eteq::NodesT<T>{a, b});
                   // todo: tag min with a group?
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
@@ -498,17 +483,14 @@ api:
         name: max
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(teq::Opcode{"MAX",::egen::MAX}, {
-                      eteq::Edge<T>(arg1),
-                      eteq::Edge<T>(arg2),
-                  });
+                  auto out = eteq::make_functor<T>(::egen::MAX, eteq::NodesT<T>{a, b});
                   // todo: tag max with a group?
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   return out;
@@ -562,13 +544,7 @@ api:
           name: otherwise
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"SELECT",::egen::SELECT},{
-                      eteq::Edge<T>(condition),
-                      eteq::Edge<T>(then),
-                      eteq::Edge<T>(otherwise)
-                  });
+          val: return eteq::make_functor<T>(::egen::SELECT, eteq::NodesT<T>{condition,then,otherwise});
       - template: typename T
         name: reverse
         args:
@@ -578,12 +554,7 @@ api:
           name: dims
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(teq::Opcode{"REVERSE",::egen::REVERSE},{
-                      eteq::Edge<T>(arg,arg->shape(),
-                          std::vector<double>(dims.begin(), dims.end()))
-                  });
+          val: return eteq::make_functor<T>(::egen::REVERSE,{arg},dims);
       - template: typename T
         name: permute
         args:
@@ -593,7 +564,7 @@ api:
           name: order
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"PERMUTE",::egen::PERMUTE},{eteq::permute_map(arg,order)});
+          val: return eteq::make_functor<T>(::egen::PERMUTE,{arg},order);
       - template: typename T
         name: extend
         args:
@@ -605,15 +576,7 @@ api:
           name: xlist
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  if (xlist.empty()){
-                      logs::warn("extending with empty vector ... will do nothing");
-                      return arg; // identity
-                  }
-                  return eteq::make_functor<T>(teq::Opcode{"EXTEND",::egen::EXTEND},{
-                      eteq::extend_map(arg,offset,xlist)
-                  });
+          val: return eteq::make_functor<T>(::egen::EXTEND,{arg},offset,xlist);
       - template: typename T
         name: concat
         args:
@@ -625,7 +588,7 @@ api:
           name: axis
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"CONCAT",::egen::CONCAT},eteq::concat_map(left,right,axis));
+          val: return eteq::make_functor<T>(::egen::CONCAT,{left,right},axis);
       - template: typename T
         name: concat
         args:
@@ -635,14 +598,7 @@ api:
           name: axis
         out:
           type: eteq::NodeptrT<T>
-          val: |
-              //
-                  if (args.size() == 1)
-                  {
-                      return args[0];
-                  }
-                  return eteq::make_functor<T>(teq::Opcode{"GROUP_CONCAT",::egen::GROUP_CONCAT},
-                      eteq::group_concat_map(args,axis));
+          val: return eteq::make_functor<T>(::egen::GROUP_CONCAT,args,axis);
       - description: Return extended arg so that output shape matches slist exactly
         template: typename T
         name: best_extend
@@ -702,7 +658,7 @@ api:
           name: shape
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"RESHAPE",::egen::RESHAPE},{eteq::reshape_map(arg,shape)});
+          val: return eteq::make_functor<T>(::egen::RESHAPE,{arg},shape);
       - description: sum values ignoring coordinate indices between start and end
         template: typename T
         name: reduce_sum
@@ -717,7 +673,7 @@ api:
           default: teq::rank_cap
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_SUM",::egen::REDUCE_SUM},{eteq::reduce_map(tens,offset,ndims)});
+          val: return eteq::make_functor<T>(::egen::REDUCE_SUM,{tens},offset,ndims);
       - description: multiply values ignoring coordinate indices between start and end
         template: typename T
         name: reduce_prod
@@ -732,7 +688,7 @@ api:
           default: teq::rank_cap
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_PROD",::egen::REDUCE_PROD},{eteq::reduce_map(tens,offset,ndims)});
+          val: return eteq::make_functor<T>(::egen::REDUCE_PROD,{tens},offset,ndims);
       - description: min values ignoring coordinate indices between start and end
         template: typename T
         name: reduce_min
@@ -747,7 +703,7 @@ api:
           default: teq::rank_cap
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_MIN",::egen::REDUCE_MIN},{eteq::reduce_map(tens,offset,ndims)});
+          val: return eteq::make_functor<T>(::egen::REDUCE_MIN,{tens},offset,ndims);
       - description: max values ignoring coordinate indices between start and end
         template: typename T
         name: reduce_max
@@ -762,7 +718,7 @@ api:
           default: teq::rank_cap
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"REDUCE_MAX",::egen::REDUCE_MAX},{eteq::reduce_map(tens,offset,ndims)});
+          val: return eteq::make_functor<T>(::egen::REDUCE_MAX,{tens},offset,ndims);
       - template: typename T
         name: argmax
         args:
@@ -773,7 +729,7 @@ api:
           default: "8"
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"ARGMAX",::egen::ARGMAX},{eteq::argreduce_map(tens,return_dim)});
+          val: return eteq::make_functor<T>(::egen::ARGMAX,{tens},return_dim);
       - template: typename T
         name: n_elems
         args:
@@ -802,7 +758,7 @@ api:
           name: extents
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"SLICE",::egen::SLICE}, {eteq::slice_map<T>(arg, extents)});
+          val: return eteq::make_functor<T>(::egen::SLICE,{arg},extents);
       - template: typename T
         name: slice
         args:
@@ -832,7 +788,7 @@ api:
           name: paddings
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"PAD",::egen::PAD}, {eteq::pad_map<T>(arg, paddings)});
+          val: return eteq::make_functor<T>(::egen::PAD,{arg},paddings);
       - template: typename T
         name: pad
         args:
@@ -859,7 +815,7 @@ api:
           name: incrs
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"STRIDE",::egen::STRIDE}, {eteq::stride_map(arg, incrs)});
+          val: return eteq::make_functor<T>(::egen::STRIDE,{arg},incrs);
       - description: multiple values across specify dimensions pairs before summing all products (generalization of matrix product), defaults to matrix product
         template: typename T
         name: contract
@@ -873,7 +829,7 @@ api:
           default: eigen::PairVecT<teq::RankT>{{0, 1}}
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"MATMUL",::egen::MATMUL}, eteq::contract_map(a, b, dims));
+          val: return eteq::make_functor<T>(::egen::MATMUL,{a, b}, dims);
       - template: typename T
         name: matmul
         args:
@@ -888,14 +844,14 @@ api:
         name: convolution
         args:
         - dtype: eteq::NodeptrT<T>
-          name: input
+          name: image
         - dtype: eteq::NodeptrT<T>
           name: kernel
         - dtype: const std::vector<teq::RankT>&
           name: dims
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(teq::Opcode{"CONV",::egen::CONV},eteq::convolve_map(input, kernel, dims));
+          val: return eteq::make_functor<T>(::egen::CONV,{image,kernel},dims);
       - template: typename T
         name: reduce_sum_1d
         args:
@@ -1106,11 +1062,7 @@ api:
                       default:
                           break;
                   }
-                  eteq::ArgsT<T> inarg;
-                  inarg.reserve(nargs);
-                  std::transform(args.begin(), args.end(), std::back_inserter(inarg),
-                      [](eteq::NodeptrT<T> node) { return eteq::Edge<T>(node); });
-                  auto out = eteq::make_functor<T>(teq::Opcode{"GROUP_SUM",::egen::GROUP_SUM}, inarg);
+                  auto out = eteq::make_functor<T>(::egen::GROUP_SUM, args);
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   tag::get_group_reg().group_tag(out->get_tensor(), "sum");
                   return out;
@@ -1135,11 +1087,7 @@ api:
                       default:
                           break;
                   }
-                  eteq::ArgsT<T> inarg;
-                  inarg.reserve(nargs);
-                  std::transform(args.begin(), args.end(), std::back_inserter(inarg),
-                      [](eteq::NodeptrT<T> node) { return eteq::Edge<T>(node); });
-                  auto out = eteq::make_functor<T>(teq::Opcode{"GROUP_PROD",::egen::GROUP_PROD}, inarg);
+                  auto out = eteq::make_functor<T>(::egen::GROUP_PROD, args);
                   tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
                   tag::get_group_reg().group_tag(out->get_tensor(), "prod");
                   return out;
@@ -1217,18 +1165,14 @@ api:
         name: rand_unif
         args:
         - dtype: eteq::NodeptrT<T>
-          name: arg1
+          name: a
         - dtype: eteq::NodeptrT<T>
-          name: arg2
+          name: b
         out:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  return eteq::make_functor<T>(
-                      teq::Opcode{"RAND_UNIF",::egen::RAND_UNIF},{
-                          eteq::Edge<T>(arg1),
-                          eteq::Edge<T>(arg2)
-                      });
+                  return eteq::make_functor<T>(::egen::RAND_UNIF, eteq::NodesT<T>{a, b});
       - template: typename T
         name: rand_binom_one
         args:
