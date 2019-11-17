@@ -68,7 +68,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, eteq::NodesT<float>{var});
+				auto f = eteq::make_functor<float>(opcode, {var});
 				TIME(f->update())
 			}
 				break;
@@ -89,7 +89,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, eteq::NodesT<float>{var, var});
+				auto f = eteq::make_functor<float>(opcode, {var, var});
 				TIME(f->update())
 			}
 				break;
@@ -102,7 +102,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, eteq::NodesT<float>{var}, 1, 1);
+				auto f = eteq::make_functor<float>(opcode, {var}, 1, 1);
 				TIME(f->update())
 			}
 				break;

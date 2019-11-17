@@ -262,14 +262,6 @@ Functor<T>* Functor<T>::get (egen::_GENERATED_OPCODE opcode, ArgsT<T> args)
 	return new Functor<T>(opcode, shape, args);
 }
 
-/// Return functor node given opcode and node arguments
-template <typename T>
-NodeptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, ArgsT<T> args)
-{
-	return std::make_shared<FunctorNode<T>>(
-		std::shared_ptr<Functor<T>>(Functor<T>::get(opcode, args)));
-}
-
 template <typename T,egen::_GENERATED_OPCODE OPCODE>
 struct FuncPacker final
 {
@@ -294,6 +286,38 @@ struct ReducePacker
 {
 	virtual ~ReducePacker (void) = default;
 
+	ArgsT<T> pack (const NodesT<T>& nodes, std::set<teq::RankT> dims)
+	{
+		if (std::any_of(dims.begin(), dims.end(),
+			[](teq::RankT d) { return d >= teq::rank_cap; }))
+		{
+			logs::fatalf(
+				"cannot reduce dimensions beyond rank cap %d", teq::rank_cap);
+		}
+		NodeptrT<T> node = nodes[0];
+		teq::Shape shape = node->shape();
+		std::vector<teq::DimT> slist(shape.begin(), shape.end());
+		for (auto it = dims.begin(), et = dims.end(); it != et;)
+		{
+			if (slist.at(*it) > 1)
+			{
+				slist[*it] = 1;
+				++it;
+			}
+			else
+			{
+				it = dims.erase(it);
+			}
+		}
+		if (dims.empty())
+		{
+			// todo: warn
+			return {};
+		}
+		return {Edge<T>(node, teq::Shape(slist),
+			std::vector<double>(dims.begin(), dims.end()))};
+	}
+
 	ArgsT<T> pack (const NodesT<T>& nodes, teq::RankT offset, teq::RankT ndims)
 	{
 		if (offset >= teq::rank_cap)
@@ -301,30 +325,9 @@ struct ReducePacker
 			logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
 				offset, teq::rank_cap);
 		}
-
-		NodeptrT<T> node = nodes[0];
-		teq::Shape shape = node->shape();
-		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		std::set<teq::RankT> dims; // dims are allowed to be non-contiguous
-		for (size_t i = offset,
-			n = std::min((size_t) offset + ndims, (size_t) teq::rank_cap);
-			i < n; ++i)
-		{
-			if (shape.at(i) > 1)
-			{
-				dims.emplace(i);
-				slist[i] = 1;
-			}
-		}
-
-		if (dims.empty())
-		{
-			// todo: warn
-			return {};
-		}
-
-		std::vector<double> rdims(dims.begin(), dims.end());
-		return {Edge<T>(node, teq::Shape(slist), rdims)};
+		std::vector<teq::RankT> dims(std::min(ndims, (teq::RankT) (teq::rank_cap - offset)));
+		std::iota(dims.begin(), dims.end(), offset);
+		return pack(nodes, std::set<teq::RankT>(dims.begin(), dims.end()));
 	}
 };
 
@@ -549,6 +552,40 @@ struct FuncPacker<T,egen::STRIDE> final
 };
 
 template <typename T>
+struct FuncPacker<T,egen::SCATTER> final
+{
+	ArgsT<T> pack (const NodesT<T>& nodes)
+	{
+		return {};
+	}
+
+	ArgsT<T> pack (const NodesT<T>& nodes, const teq::Shape outshape,
+		const std::vector<teq::DimT>& incrs)
+	{
+		if (incrs.size() > teq::rank_cap)
+		{
+			logs::warnf("trying to scatter in dimensions beyond rank_cap %d: "
+				"using increments %s (will ignore those dimensions)", teq::rank_cap,
+				fmts::to_string(incrs.begin(), incrs.end()).c_str());
+		}
+		eteq::NodeptrT<T> arg = nodes[0];
+		std::vector<double> coords(teq::rank_cap, 1);
+		size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
+		for (size_t i = 0; i < n; ++i)
+		{
+			coords[i] = incrs[i];
+		}
+		return {eteq::Edge<T>(arg, outshape, coords)};
+	}
+
+	template <typename ...ARGS>
+	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
+	{
+		return pack(nodes);
+	}
+};
+
+template <typename T>
 struct FuncPacker<T,egen::MATMUL> final
 {
 	ArgsT<T> pack (const NodesT<T>& nodes)
@@ -748,41 +785,50 @@ struct FuncPacker<T,egen::EXTEND> final
 		return {};
 	}
 
-	ArgsT<T> pack (const NodesT<T>& nodes, teq::RankT offset, const std::vector<teq::DimT>& xlist)
+	ArgsT<T> pack (const NodesT<T>& nodes, const std::vector<teq::DimT>& bcast)
 	{
-		if (xlist.empty() || std::all_of(xlist.begin(), xlist.end(),
+		if (bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 1 == d; }))
 		{
-			logs::warn("extending with empty vector ... will do nothing");
+			logs::warn("extending with nothing... treating as identity");
 			return {}; // identity
 		}
-		eteq::NodeptrT<T> arg = nodes[0];
-		size_t n_ext = xlist.size();
-		if (std::any_of(xlist.begin(), xlist.end(),
+		if (std::any_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 0 == d; }))
 		{
 			logs::fatalf("cannot extend using zero dimensions %s",
-				fmts::to_string(xlist.begin(), xlist.end()).c_str());
+				fmts::to_string(bcast.begin(), bcast.end()).c_str());
 		}
-		if (offset + n_ext > teq::rank_cap)
+		size_t nbcasts = bcast.size();
+		if (nbcasts > teq::rank_cap)
 		{
-			logs::fatalf("cannot extend shape rank %d beyond rank_cap with n_ext %d",
-				offset, n_ext);
+			logs::fatalf("cannot extend shape ranks %s beyond rank_cap",
+				fmts::to_string(bcast.begin(), bcast.end()).c_str());
 		}
+		eteq::NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		std::vector<teq::DimT> bcast(teq::rank_cap, 1);
-		for (size_t i = 0; i < n_ext; ++i)
+		std::vector<double> xlist(teq::rank_cap, 1);
+		for (size_t i = 0; i < nbcasts; ++i)
 		{
-			if (shape.at(offset + i) > 1)
+			if (bcast.at(i) > 1)
 			{
-				logs::fatalf("cannot extend non-singular dimension %d of shape %s",
-					offset, shape.to_string().c_str());
+				if (shape.at(i) > 1)
+				{
+					logs::fatalf("cannot extend non-singular dimension %d of shape %s",
+						i, shape.to_string().c_str());
+				}
+				slist[i] = xlist[i] = bcast[i];
 			}
-			slist[offset + i] = bcast[offset + i] = xlist[i];
 		}
-		return {eteq::Edge<T>(arg, teq::Shape(slist),
-			std::vector<double>(bcast.begin(), bcast.end()))};
+		return {eteq::Edge<T>(arg, teq::Shape(slist), xlist)};
+	}
+
+	ArgsT<T> pack (const NodesT<T>& nodes, teq::RankT offset, const std::vector<teq::DimT>& xlist)
+	{
+		std::vector<teq::DimT> bcast(offset, 1);
+		bcast.insert(bcast.end(), xlist.begin(), xlist.end());
+		return pack(nodes, bcast);
 	}
 
 	template <typename ...ARGS>

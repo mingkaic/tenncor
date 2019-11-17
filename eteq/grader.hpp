@@ -25,7 +25,7 @@ NodeptrT<T> reduce_grad (const teq::iEdge& child,
 	NodeptrT<T> bwd)
 {
 	const teq::Shape& shape = child.argshape();
-	std::vector<double> bcast(teq::rank_cap, 1);
+	std::vector<teq::DimT> bcast(teq::rank_cap, 1);
 	auto c = eigen::get_coorder(child);
 	for (teq::RankT d : c)
 	{
@@ -34,9 +34,7 @@ NodeptrT<T> reduce_grad (const teq::iEdge& child,
 			bcast[d] = shape.at(d);
 		}
 	}
-	return make_functor<T>(egen::EXTEND, {
-		Edge<T>(bwd, shape, bcast)
-	});
+	return tenncor::extend(bwd, bcast);
 }
 
 /// ETEQ implementation of TEQ's Backward Propagation Builder
@@ -331,11 +329,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 						dims.emplace(i);
 					}
 				}
-				out = to_node<T>(local_der) * make_functor<T>(
-					egen::REDUCE_SUM,{
-					Edge<T>(to_node<T>(supcomp_grad), child.argshape(),
-						std::vector<double>(dims.begin(), dims.end()))
-				});
+				out = to_node<T>(local_der) * tenncor::reduce_sum(to_node<T>(supcomp_grad), dims);
 			}
 				break;
 			case egen::PERMUTE:
@@ -343,15 +337,13 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				const teq::iEdge& child = op->get_children()[0];
 				auto c = eigen::get_coorder(child);
 				assert(teq::rank_cap == c.size());
-				std::vector<double> order(teq::rank_cap);
+				std::vector<teq::RankT> order(teq::rank_cap);
 				for (size_t i = 0; i < teq::rank_cap; ++i)
 				{
 					order[c[i]] = i;
 				}
-				out = to_node<T>(local_der) * make_functor<T>(
-					egen::PERMUTE,{
-					Edge<T>(to_node<T>(supcomp_grad), child.argshape(), order)
-				});
+				out = to_node<T>(local_der) * tenncor::permute(
+					to_node<T>(supcomp_grad), order);
 			}
 				break;
 			case egen::RESHAPE:
@@ -574,15 +566,11 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::STRIDE:
 			{
 				const teq::iEdge& child = op->get_children()[0];
-				teq::CoordT strides;
 				auto c = eigen::get_coorder(child);
-				assert(teq::rank_cap <= c.size());
-				std::copy(c.begin(), c.begin() + teq::rank_cap, strides.begin());
 				teq::Shape origshape = child.argshape();
-				out = to_node<T>(local_der) *
-					make_functor<T>(::egen::SCATTER, {
-						Edge<T>(to_node<T>(supcomp_grad), origshape, c)
-					});
+				std::vector<teq::DimT> incrs(c.begin(), c.end());
+				out = to_node<T>(local_der) * tenncor::scatter(
+					to_node<T>(supcomp_grad), origshape, incrs);
 			}
 				break;
 			case egen::SCATTER:
