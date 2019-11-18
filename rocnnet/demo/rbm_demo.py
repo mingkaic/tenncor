@@ -108,8 +108,7 @@ def main(args):
 
     image = random.choice(mnist_images)
     sess.track([genx, trained_genx, untrained_genx])
-
-    sess.optimize(eteq.parse_optrules("cfg/optimizations.rules"))
+    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     n_epoches = 30
     shuffle = True

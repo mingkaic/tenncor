@@ -172,6 +172,7 @@ private:
 	ArgsT<T> args_;
 };
 
+// todo: move these to eigen and auto-generate
 /// Functor's node wrapper
 template <typename T>
 struct FunctorNode final : public iNode<T>
@@ -455,6 +456,8 @@ struct FuncPacker<T,egen::SLICE> final
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		slist.reserve(teq::rank_cap);
+		eigen::PairVecT<teq::DimT> xlist;
+		xlist.reserve(extents.size());
 		for (size_t i = 0,  n = extents.size(); i < n; ++i)
 		{
 			auto& ex = extents[i];
@@ -465,9 +468,11 @@ struct FuncPacker<T,egen::SLICE> final
 					fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
 			}
 			teq::DimT offset = std::min(ex.first, (teq::DimT) (shape.at(i) - 1));
-			slist[i] = std::min(ex.second, (teq::DimT) (shape.at(i) - offset));
+			teq::DimT xtend = std::min(ex.second, (teq::DimT) (shape.at(i) - offset));
+			slist[i] = xtend;
+			xlist.push_back({offset, xtend});
 		}
-		return {eteq::Edge<T>(arg, teq::Shape(slist), eigen::encode_pair(extents))};
+		return {eteq::Edge<T>(arg, teq::Shape(slist), eigen::encode_pair(xlist))};
 	}
 
 	template <typename ...ARGS>

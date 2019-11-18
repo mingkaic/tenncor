@@ -215,6 +215,7 @@ tfunction:	SYMBOL LPAREN targs RPAREN
 
 				strncpy(f->name_, $1, NSYMBOL);
 				strncpy(f->variadic_, $4, NSYMBOL);
+				f->args_.type_ = ARGUMENT;
 			}
 
 targs:		targs COMMA targ

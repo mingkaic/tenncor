@@ -77,7 +77,7 @@ struct FTargEdge final
 
 	opt::TargptrT target_;
 
-	teq::Shape shape_;
+	std::optional<teq::Shape> shape_;
 
 	std::vector<double> coords_;
 };
@@ -96,11 +96,9 @@ struct FuncTarget final : public opt::iTarget
 		ArgsT<T> args;
 		for (auto& targ : args_)
 		{
-			args.push_back(Edge<T>(
-				to_node<T>(targ.target_->convert(outshape, candidate)),
-				targ.shape_,
-				targ.coords_
-			));
+			auto arg = to_node<T>(targ.target_->convert(outshape, candidate));
+			teq::Shape argshape = targ.shape_ ? *targ.shape_ : arg->shape();
+			args.push_back(Edge<T>(arg, argshape, targ.coords_));
 		}
 		if (variadic_.size() > 0)
 		{
@@ -175,15 +173,17 @@ struct Hasher final : public teq::OnceTraveler
 	/// Implementation of OnceTraveler
 	void visit_leaf (teq::iLeaf* leaf) override
 	{
+		std::string label = leaf->shape().to_string() + "|";
 		if (leaf->is_const())
 		{
 			T* data = (T*) leaf->data();
-			encode_label(leaf, fmts::to_string(data, data + leaf->shape().n_elems()));
+			label += fmts::to_string(data, data + leaf->shape().n_elems());
 		}
 		else
 		{
-			encode_label(leaf, fmts::to_string((size_t) leaf));
+			label += fmts::to_string((size_t) leaf);
 		}
+		encode_label(leaf, label);
 	}
 
 	/// Implementation of OnceTraveler
@@ -196,13 +196,17 @@ struct Hasher final : public teq::OnceTraveler
 		{
 			auto ctens = child.get_tensor();
 			ctens->accept(*this);
-			hshs.push_back(boost::uuids::to_string(hashes_.at(ctens.get())));
+			marsh::Maps mvalues;
+			child.get_attrs(mvalues);
+			hshs.push_back(boost::uuids::to_string(hashes_.at(ctens.get())) +
+				":" + mvalues.to_string());
 		}
 		if (prop_reg_.has_property(func, tag::immutable_tag))
 		{
 			std::sort(hshs.begin(), hshs.end());
 		}
-		encode_label(func, func->get_opcode().name_ + "\\" +
+		encode_label(func, func->shape().to_string() + "|" +
+			func->get_opcode().name_ + "\\" +
 			fmts::to_string(hshs.begin(), hshs.end()));
 	}
 

@@ -52,6 +52,7 @@ struct CversionCtx
 							logs::warn("ambiguous matcher results: more than 1 candidate");
 							// todo: dump these candidates
 						}
+						logs::debugf("applying conversion `%s`", dbg_msgs_.at(fid).c_str());
 						return targets_.at(fid)->convert(f->shape(), cands[0]);
 					}
 				}
@@ -65,6 +66,8 @@ struct CversionCtx
 
 	/// Matches root matcher fid to target
 	std::unordered_map<std::string,TargptrT>  targets_;
+
+	std::unordered_map<std::string,std::string> dbg_msgs_;
 };
 
 using ParentReplF = std::function<void(teq::TensptrT,teq::iTensor*)>;

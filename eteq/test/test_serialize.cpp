@@ -1,4 +1,4 @@
-#define DISABLE_SERIALIZE_TEST
+
 #ifndef DISABLE_SERIALIZE_TEST
 
 
@@ -17,10 +17,6 @@
 #include "tag/prop.hpp"
 
 #include "eteq/eteq.hpp"
-
-#include "pbm/serialize.hpp"
-#include "pbm/save.hpp"
-#include "pbm/load.hpp"
 
 
 const std::string testdir = "models/test";
@@ -84,14 +80,12 @@ TEST(SERIALIZE, SaveGraph)
 	preg.property_tag(dw1->get_tensor(), "derivative_dw1");
 	preg.property_tag(db1->get_tensor(), "derivative_db1");
 
-	pbm::GraphSaver<eteq::EADSaver> saver;
-	dw0->get_tensor()->accept(saver);
-	db0->get_tensor()->accept(saver);
-	dw1->get_tensor()->accept(saver);
-	db1->get_tensor()->accept(saver);
-
-	saver.save(graph);
-
+	eteq::save_graph(graph, {
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	}, preg.tag_reg_);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -129,10 +123,10 @@ TEST(SERIALIZE, LoadGraph)
 	}
 
 	teq::TensptrSetT out;
-	pbm::load_graph<eteq::EADLoader>(out, in);
+	auto& reg = tag::get_reg();
+	eteq::load_graph(out, in, reg);
 	EXPECT_EQ(4, out.size());
 
-	auto& reg = tag::get_reg();
 	tag::Query q;
 
 	std::vector<std::string> root_props;

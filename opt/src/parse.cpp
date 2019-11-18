@@ -5,6 +5,91 @@
 namespace opt
 {
 
+static std::string to_string (::KeyVal* kv)
+{
+	std::string out = std::string(kv->key_) + ":[";
+	auto it = kv->val_.head_;
+	if (nullptr != it)
+	{
+		out += fmts::to_string(it->val_);
+		for (it = it->next_; it != nullptr; it = it->next_)
+		{
+			out += "," + fmts::to_string(it->val_);
+		}
+	}
+	out += "]";
+	return out;
+}
+
+static std::string to_string (::TreeNode* node);
+
+static std::string to_string (::Arg* arg)
+{
+	std::string out = to_string(arg->node_);
+	auto it = arg->attrs_.head_;
+	if (nullptr != it)
+	{
+		out += "={" + to_string((::KeyVal*) it->val_);
+		for (it = it->next_; it != nullptr; it = it->next_)
+		{
+			out += "," + to_string((::KeyVal*) it->val_);
+		}
+		out += "}";
+	}
+	return out;
+}
+
+static std::string to_string (::Functor* functor)
+{
+	std::string comm_prefix;
+	if (functor->commutative_)
+	{
+		comm_prefix = "comm ";
+	}
+	std::string out = comm_prefix + std::string(functor->name_) + "(";
+	assert(::ARGUMENT == functor->args_.type_);
+	auto it = functor->args_.head_;
+	if (nullptr != it)
+	{
+		out += to_string((::Arg*) it->val_);
+		for (it = it->next_; nullptr != it; it = it->next_)
+		{
+			out += "," + to_string((::Arg*) it->val_);
+		}
+	}
+
+	std::string variadic(functor->variadic_);
+	if (variadic.size() > 0)
+	{
+		variadic = ",.." + variadic;
+	}
+	out += variadic + ")";
+	return out;
+}
+
+static std::string to_string (::TreeNode* node)
+{
+	std::string out;
+	switch (node->type_)
+	{
+		case ::TreeNode::SCALAR:
+			out = fmts::to_string(node->val_.scalar_);
+			break;
+		case ::TreeNode::ANY:
+			out = std::string(node->val_.any_);
+			break;
+		case ::TreeNode::FUNCTOR:
+			out = to_string(node->val_.functor_);
+			break;
+	}
+	return out;
+}
+
+static std::string to_string (::Conversion* cversion)
+{
+	return to_string(cversion->matcher_) + "=>" + to_string(cversion->target_);
+}
+
 static std::string parse_matcher (
 	std::unordered_map<std::string,MatchsT>& out,
 	const ::Functor* matcher)
@@ -71,6 +156,7 @@ static CversionCtx process_cversions (
 		}
 		auto root_id = parse_matcher(out.matchers_, cversion->matcher_);
 		out.targets_.emplace(root_id, parse_target(cversion->target_));
+		out.dbg_msgs_.emplace(root_id, to_string(cversion));
 	}
 	::cversions_free(cversions);
 	return out;

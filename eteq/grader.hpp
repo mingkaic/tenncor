@@ -515,7 +515,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 						cshape.at(i) - (leftpad + extents[i].second)});
 				}
 				out = to_node<T>(local_der) *
-					tenncor::pad(to_node<T>(supcomp_grad), extents);
+					tenncor::pad(to_node<T>(supcomp_grad), paddings);
 			}
 				break;
 			case egen::PAD:

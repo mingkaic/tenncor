@@ -1,0 +1,432 @@
+{
+ "label": "",
+ "nodes": [
+  {
+   "label": "src2",
+   "source": {
+    "shape": [
+     "3",
+     "1",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "subtree_src2"
+     ]
+    }
+   }
+  },
+  {
+   "label": "osrc",
+   "source": {
+    "shape": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "osrc"
+     ]
+    }
+   }
+  },
+  {
+   "label": "src",
+   "source": {
+    "shape": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "subtree_src"
+     ]
+    }
+   }
+  },
+  {
+   "label": "osrc2",
+   "source": {
+    "shape": [
+     "7",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "osrc2"
+     ]
+    }
+   }
+  },
+  {
+   "label": "s2src",
+   "source": {
+    "shape": [
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAA",
+    "typelabel": "",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "subtree2_src"
+     ]
+    }
+   }
+  },
+  {
+   "label": "s2src2",
+   "source": {
+    "shape": [
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAA",
+    "typelabel": "",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "subtree2_src2"
+     ]
+    }
+   }
+  },
+  {
+   "label": "s2src3",
+   "source": {
+    "shape": [
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAA",
+    "typelabel": "",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "subtree2_src3"
+     ]
+    }
+   }
+  },
+  {
+   "label": "neg",
+   "functor": {
+    "opname": "neg",
+    "args": [
+     {
+      "idx": 1,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "sin",
+   "functor": {
+    "opname": "sin",
+    "args": [
+     {
+      "idx": 2,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "abs",
+   "functor": {
+    "opname": "abs",
+    "args": [
+     {
+      "idx": 4,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "exp",
+   "functor": {
+    "opname": "exp",
+    "args": [
+     {
+      "idx": 5,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "neg",
+   "functor": {
+    "opname": "neg",
+    "args": [
+     {
+      "idx": 6,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "+",
+   "functor": {
+    "opname": "+",
+    "args": [
+     {
+      "idx": 8,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 2,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "*",
+   "functor": {
+    "opname": "*",
+    "args": [
+     {
+      "idx": 9,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 10,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 11,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "/",
+   "functor": {
+    "opname": "/",
+    "args": [
+     {
+      "idx": 7,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 12,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "-",
+   "functor": {
+    "opname": "-",
+    "args": [
+     {
+      "idx": 4,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 13,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "subtree2_dest"
+     ]
+    }
+   }
+  },
+  {
+   "label": "@",
+   "functor": {
+    "opname": "@",
+    "args": [
+     {
+      "idx": 14,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         0
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 3,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "-",
+   "functor": {
+    "opname": "-",
+    "args": [
+     {
+      "idx": 0,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 16,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         2,
+         0
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "subtree_dest"
+     ]
+    }
+   }
+  }
+ ]
+}
