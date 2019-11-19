@@ -727,6 +727,17 @@ struct FuncPacker<T,egen::REVERSE> final
 	}
 };
 
+static bool is_inorder (const std::vector<teq::RankT>& order)
+{
+	size_t n = order.size();
+	bool inorder = n > 0 ? (order[0] == 0) : true;
+	for (size_t i = 1; i < n && inorder; ++i)
+	{
+		inorder = inorder && (order[i] == (order[i-1] + 1));
+	}
+	return inorder;
+}
+
 template <typename T>
 struct FuncPacker<T,egen::PERMUTE> final
 {
@@ -737,9 +748,9 @@ struct FuncPacker<T,egen::PERMUTE> final
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const std::vector<teq::RankT>& order)
 	{
-		if (order.size() == 0)
+		if (is_inorder(order))
 		{
-			logs::warn("permuting with same dimensions ... will do nothing");
+			logs::warn("permuting with same dimensions ... treating as identity");
 			return {};
 		}
 		eteq::NodeptrT<T> arg = nodes[0];

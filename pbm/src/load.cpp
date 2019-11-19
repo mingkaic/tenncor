@@ -28,9 +28,8 @@ void load_graph (teq::TensptrSetT& roots,
 			for (auto& pb_edge : pb_edges)
 			{
 				teq::TensptrT ctens = generated_tens[pb_edge.idx()];
-				args.emplace(args.end(),
-                    std::pair<teq::TensptrT,marsh::Maps>{
-                        ctens, marsh::Maps()});
+				args.emplace(args.end(), std::pair<teq::TensptrT,marsh::Maps>{
+					ctens, marsh::Maps()});
 
 				auto& attrs = args.back().second;
 				const auto& pb_attrs = pb_edge.attrs();

@@ -22,7 +22,7 @@ using CalcCvsF = std::function<teq::TensptrT(teq::FuncptrT)>;
 void remove_duplicates (teq::TensptrsT& roots, EqualF equals);
 
 teq::TensptrT constant_func (teq::FuncptrT& func,
-    ParentReplF replace, CalcCvsF calc_func);
+	ParentReplF replace, CalcCvsF calc_func);
 
 void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func);
 
