@@ -1,13 +1,4 @@
-symbol X;
-symbol Y;
-symbol Z;
-
-property ADD commutative;
-property MUL commutative;
-property group:sum commutative;
-property group:prod commutative;
-
-// coorder applied to X
+// remove useless transformations
 REDUCE_SUM(X={coorder:[8,8,8,8,8,8,8,8]}) => X;
 REDUCE_PROD(X={coorder:[8,8,8,8,8,8,8,8]}) => X;
 REDUCE_MIN(X={coorder:[8,8,8,8,8,8,8,8]}) => X;
@@ -28,10 +19,10 @@ SQRT(SQUARE(X)) => X;
 EXP(LOG(X)) => X;
 LOG(EXP(X)) => X;
 
-ADD(X,0) => X;
-MUL(X,0) => 0;
-MUL(X,1) => X;
-MUL(X,-1) => NEG(X);
+comm ADD(X,0) => X;
+comm MUL(X,0) => 0;
+comm MUL(X,1) => X;
+comm MUL(X,-1) => NEG(X);
 
 POW(0,X) => 0;
 POW(1,X) => 1;
@@ -42,15 +33,24 @@ DIV(X,1) => X;
 DIV(X,X) => 1;
 
 // sigmoid
-DIV(1,ADD(1,NEG(EXP(NEG(X))))) => SIGMOID(X);
-DIV(1,ADD(NEG(EXP(NEG(X)))),1) => SIGMOID(X);
+DIV(1,comm ADD(1,EXP(NEG(X)))) => SIGMOID(X);
 
-group:prod(DIV(X,Y),Y,..Z) => group:prod(X,..Z);
-DIV(group:prod(X,..Y),X) => group:prod(..Y);
+// abbreviate add and mul operations
+comm MUL(DIV(X,Y),Y) => X;
+DIV(comm MUL(X,Y),Y) => X;
 
-group:sum(X,NEG(X),..Y) => group:sum(..Y);
-group:prod(X,X,X,..Y) => group:prod(CUBE(X),..Y);
-group:prod(X,X,..Y) => group:prod(SQUARE(X),..Y);
-group:prod(X,SQUARE(X),..Y) => group:prod(CUBE(X),..Y);
+comm ADD(X,NEG(X)) => 0;
+comm MUL(X,X) => SQUARE(X);
+comm MUL(X,SQUARE(X)) => CUBE(X);
+comm ADD(X,NEG(Y)) => SUB(X,Y);
 
-group:sum(X,NEG(Y),..Z) => group:sum(SUB(X,Y),..Z);
+// group operations
+comm GROUP_PROD(DIV(X,Y),Y,..Z) => GROUP_PROD(X,..Z);
+DIV(comm GROUP_PROD(X,..Y),X) => GROUP_PROD(..Y);
+
+comm GROUP_SUM(X,NEG(X),..Y) => GROUP_SUM(..Y);
+comm GROUP_PROD(X,X,X,..Y) => GROUP_PROD(CUBE(X),..Y);
+comm GROUP_PROD(X,X,..Y) => GROUP_PROD(SQUARE(X),..Y);
+comm GROUP_PROD(X,SQUARE(X),..Y) => GROUP_PROD(CUBE(X),..Y);
+
+comm GROUP_SUM(X,NEG(Y),..Z) => GROUP_SUM(SUB(X,Y),..Z);

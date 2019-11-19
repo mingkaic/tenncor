@@ -1,4 +1,4 @@
-
+#define DISABLE_MATCHER_TEST
 #ifndef DISABLE_MATCHER_TEST
 
 
@@ -13,7 +13,7 @@
 
 
 #define ELEMENTARY(LABEL, TYPE)opt::VoterArg{\
-	LABEL,teq::CoordptrT(),teq::CoordptrT(), TYPE}
+	LABEL,teq::ShaperT(),teq::ShaperT(), TYPE}
 
 
 TEST(MATCHER, OrdrAny)

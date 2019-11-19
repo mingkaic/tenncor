@@ -61,7 +61,6 @@ pybind_library(
     cc_srcs = ["//ccur:python/ccur.cpp"],
     cc_deps = [
         "//ccur:ccur",
-        "//opt:opt",
     ],
     py_deps = ["//eteq:eteq_py"],
     visibility = ["//visibility:public"],

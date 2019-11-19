@@ -37,7 +37,15 @@ rocnnet_py_export: bazel-bin/rocnnet/rocnnet.so bazel-bin/eteq/tenncor.so bazel-
 	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
 
 
-model_jsonupdate: model_jsongd model_jsondqn model_jsonrbm model_jsondbn
+model_jsonupdate: eteq_test_json pbm_test_json model_jsongd model_jsondqn model_jsonrbm model_jsondbn
+
+eteq_test_json: models/test/eteq_test.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/eteq_test.pbx --write /tmp/eteq_test.json
+	mv /tmp/eteq_test.json models/test
+
+pbm_test_json: models/test/pbm_test.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/pbm_test.pbx --write /tmp/pbm_test.json
+	mv /tmp/pbm_test.json models/test
 
 model_jsongd: models/gdmodel.pbx
 	bazel run //pbm:inspector -- --read ${CURDIR}/models/gdmodel.pbx --write /tmp/gdmodel.json

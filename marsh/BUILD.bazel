@@ -1,0 +1,24 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+    visibility = ["//visibility:public"],
+)
+
+######### LIBRARIES #########
+
+cc_library(
+    name = "marsh",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "@com_github_mingkaic_cppkg//fmts:fmts",
+        "@com_github_mingkaic_cppkg//estd:estd",
+    ],
+    visibility = ["//visibility:public"],
+)

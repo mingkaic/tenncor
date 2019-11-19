@@ -97,8 +97,8 @@ struct Session final : public iSession
 				false == estd::has(ignored, op))
 			{
 				reqs.push_front(op);
-				auto& children = op->get_children();
-				for (auto& child : children)
+				auto children = op->get_children();
+				for (const iEdge& child : children)
 				{
 					acceptable.emplace(child.get_tensor().get());
 				}
@@ -129,8 +129,8 @@ struct Session final : public iSession
 				false == estd::has(ignored, op))
 			{
 				reqs.push_front(op);
-				auto& children = op->get_children();
-				for (auto& child : children)
+				auto children = op->get_children();
+				for (const iEdge& child : children)
 				{
 					acceptable.emplace(child.get_tensor().get());
 				}

@@ -1,4 +1,4 @@
-#include "eteq/parse.hpp"
+#include "eteq/optimize.hpp"
 #include "eteq/grader.hpp"
 
 #include "layr/seqmodel.hpp"
@@ -335,7 +335,7 @@ private:
 	{
 		std::vector<size_t> indices(ctx_.experiences_.size());
 		std::iota(indices.begin(), indices.end(), 0);
-		std::random_shuffle(indices.begin(), indices.end());
+		std::shuffle(indices.begin(), indices.end(), eigen::get_engine());
 		std::vector<DQNTrainingContext::ExpBatch> res;
 		for (size_t i = 0; i < params_.mini_batch_size_; i++)
 		{

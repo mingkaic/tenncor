@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include "teq/ileaf.hpp"
-#include "teq/functor.hpp"
+#include "teq/ifunctor.hpp"
 
 #include "dbg/stream/tree.hpp"
 
@@ -27,13 +27,15 @@ struct PrettyEquation final
 		{
 			if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(root))
 			{
-				auto& children = f->get_children();
-				std::vector<teq::iTensor*> tens(children.size());
-				std::transform(children.begin(), children.end(), tens.begin(),
-				[](const teq::FuncArg& child)
-				{
-					return child.get_tensor().get();
-				});
+				auto children = f->get_children();
+				std::vector<teq::iTensor*> tens;
+				tens.reserve(children.size());
+				std::transform(children.begin(), children.end(),
+					std::back_inserter(tens),
+					[](const teq::iEdge& child)
+					{
+						return child.get_tensor().get();
+					});
 				return tens;
 			}
 			return {};

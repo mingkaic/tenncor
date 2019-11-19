@@ -17,7 +17,7 @@ void write_json (std::string writepath, const std::string& jsonstr)
 		std::fstream writestr(writepath, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (writestr.is_open())
 		{
-			cortenn::Graph graph;
+			tenncor::Graph graph;
 			google::protobuf::util::JsonParseOptions options;
 			options.ignore_unknown_fields = true;
 			if (google::protobuf::util::Status::OK !=
@@ -74,7 +74,7 @@ int main (int argc, const char** argv)
 		std::string jsonstr;
 		if (estd::has_affix(readpath, pbx_ext))
 		{
-			cortenn::Graph graph;
+			tenncor::Graph graph;
 			if (false == graph.ParseFromIstream(&readstr))
 			{
 				logs::fatalf("failed to parse from istream when read file %s",

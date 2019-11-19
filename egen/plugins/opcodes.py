@@ -36,6 +36,20 @@ void typed_exec (_GENERATED_OPCODE opcode, {params})
     }}
 }}
 
+// GENERIC_MACRO must accept a static opcode as an argument.
+// e.g.:
+// #define GENERIC_MACRO(COMPILE_OPCODE) run<COMPILE_OPCODE>(args...);
+// ...
+// OPCODE_LOOKUP(GENERIC_MACRO, rt_opcode)
+// this is used for mapping compile-time ops using runtime opcode variable
+#define OPCODE_LOOKUP(GENERIC_MACRO, OPCODE)\\
+switch (OPCODE)\\
+{{\\
+    {cases}\\
+    default: logs::fatal("executing bad op");\\
+}}
+//>>> ^ cases
+
 }}
 
 #endif // _GENERATED_OPCODES_HPP
@@ -95,6 +109,13 @@ def _handle_ops(params, opcalls):
     _opcode_case_tmp = 'case {code}: {stmt} break;'
     return '\n        '.join([
         _opcode_case_tmp.format(code=opcode, stmt=opcalls[opcode])
+        for opcode in opcalls
+    ])
+
+def _handle_cases(params, opcalls):
+    _lookup_case_tmp = 'case egen::{code}: GENERIC_MACRO(::egen::{code}) break;'
+    return '\\\n    '.join([
+        _lookup_case_tmp.format(code=opcode)
         for opcode in opcalls
     ])
 

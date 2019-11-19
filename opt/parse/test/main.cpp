@@ -10,23 +10,43 @@ extern "C" {
 static const char* sample_cfg = "cfg/optimizations.rules";
 
 
-static std::vector<::Statement*> vectorize (::PtrList* stmts)
+static std::vector<::Conversion*> to_conversions (::PtrList& arr)
 {
-	assert(nullptr != stmts);
-	std::vector<::Statement*> outs;
-	for (auto it = stmts->head_; nullptr != it; it = it->next_)
+	std::vector<::Conversion*> outs;
+	for (auto it = arr.head_; nullptr != it; it = it->next_)
 	{
-		outs.push_back((::Statement*) it->val_);
+		outs.push_back((::Conversion*) it->val_);
 	}
 	return outs;
 }
 
 
-static std::vector<double> vectorize (::NumList* lst)
+static std::vector<::Arg*> to_arguments (::PtrList& arr)
 {
-	assert(nullptr != lst);
+	std::vector<::Arg*> outs;
+	for (auto it = arr.head_; nullptr != it; it = it->next_)
+	{
+		outs.push_back((::Arg*) it->val_);
+	}
+	return outs;
+}
+
+
+static std::vector<::KeyVal*> to_attrs (::PtrList& arr)
+{
+	std::vector<::KeyVal*> outs;
+	for (auto it = arr.head_; nullptr != it; it = it->next_)
+	{
+		outs.push_back((::KeyVal*) it->val_);
+	}
+	return outs;
+}
+
+
+static std::vector<double> to_nums (::NumList& lst)
+{
 	std::vector<double> outs;
-	for (auto it = lst->head_; nullptr != it; it = it->next_)
+	for (auto it = lst.head_; nullptr != it; it = it->next_)
 	{
 		outs.push_back(it->val_);
 	}
@@ -34,228 +54,216 @@ static std::vector<double> vectorize (::NumList* lst)
 }
 
 
-TEST(PARSE, SymbolFail)
+static void test_edge (std::vector<::KeyVal*>& out,
+	::Conversion* converter, size_t id)
 {
-	const char* symbs = "symbol Apple Banana;\nsymbol Citrus Zucchini;";
-	const char* long_symb = "symbol AppleBananaCitrusZucchiniLemonGrapefruit;";
+	ASSERT_NE(nullptr, converter);
 
-	::PtrList* stmts = nullptr;
-	int status = ::parse_str(&stmts, symbs);
-	EXPECT_EQ(1, status);
+	auto matcher = converter->matcher_;
+	auto target = converter->target_;
+	ASSERT_NE(nullptr, matcher);
+	ASSERT_NE(nullptr, target);
+	ASSERT_EQ(::TreeNode::SCALAR, target->type_);
 
-	::PtrList* stmts2 = nullptr;
-	int status2 = ::parse_str(&stmts2, long_symb);
-	EXPECT_EQ(1, status2);
+	EXPECT_EQ(id, target->val_.scalar_);
+
+	EXPECT_STREQ("F", matcher->name_);
+	EXPECT_STREQ("", matcher->variadic_);
+	EXPECT_EQ(FALSE, matcher->commutative_);
+
+	ASSERT_EQ(::ARGUMENT, matcher->args_.type_);
+	auto args = to_arguments(matcher->args_);
+	ASSERT_EQ(1, args.size());
+	auto arg = args[0];
+
+	ASSERT_EQ(::TreeNode::ANY, arg->node_->type_);
+	EXPECT_STREQ("X", arg->node_->val_.any_);
+
+	ASSERT_EQ(::KV_PAIR, arg->attrs_.type_);
+	out = to_attrs(arg->attrs_);
 }
 
 
-TEST(PARSE, PropFail)
+TEST(PARSE, Fails)
 {
-	const char* props = "property Apple;\nproperty Citrus;";
-	const char* props2 = "property Apple Banna Zucchini;\nproperty Citrus Grapefruit Lemon;";
+	const char* single_graph = "F(X);";
+	const char* empty_matcher = "=>F(X);";
+	const char* empty_target = "F(X)=>;";
+	const char* long_symb = "F(X)=>reallylongsymbolreallylongsymbol;";
+	const char* comm_target = "F(X)=>comm F(X);";
+	const char* invalid_func = "F()=>X;";
+	const char* invalid_comm = "comm X=>X;";
+	const char* scalar_matcher = "2=>F(X);";
+	const char* symbol_matcher = "C=>G(X);";
 
-	::PtrList* stmts = nullptr;
-	int status = ::parse_str(&stmts, props);
-	EXPECT_EQ(1, status);
+	::PtrList* arr = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr, single_graph));
+	ASSERT_EQ(nullptr, arr);
 
-	int status2 = ::parse_str(&stmts, props2);
-	EXPECT_EQ(1, status2);
+	::PtrList* arr2 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr2, empty_matcher));
+	ASSERT_EQ(nullptr, arr2);
+
+	::PtrList* arr3 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr3, empty_target));
+	ASSERT_EQ(nullptr, arr3);
+
+	::PtrList* arr4 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr4, long_symb));
+	ASSERT_EQ(nullptr, arr4);
+
+	::PtrList* arr5 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr5, comm_target));
+	ASSERT_EQ(nullptr, arr5);
+
+	::PtrList* arr6 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr6, invalid_func));
+	ASSERT_EQ(nullptr, arr6);
+
+	::PtrList* arr7 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr7, invalid_comm));
+	ASSERT_EQ(nullptr, arr7);
+
+	::PtrList* arr8 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr8, scalar_matcher));
+	ASSERT_EQ(nullptr, arr8);
+
+	::PtrList* arr9 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr9, symbol_matcher));
+	ASSERT_EQ(nullptr, arr9);
 }
 
 
-TEST(PARSE, SymbolDef)
+TEST(PARSE, Basics)
 {
-	const char* symbs = "symbol Apple;\n"
-		"symbol Banana;symbol Citrus;\n"
-		"symbol Zucchini;";
+	const char* rules =
+		"F(X,Y)=>0;\n"
+		"F(X)=>X;\n"
+		"F(X)=>G(X);\n";
 
-	::PtrList* stmts = nullptr;
-	int status = ::parse_str(&stmts, symbs);
-	EXPECT_EQ(0, status);
+	::PtrList* arr = nullptr;
+	ASSERT_EQ(0, ::parse_str(&arr, rules));
+	ASSERT_NE(nullptr, arr);
+	ASSERT_EQ(::CONVERSION, arr->type_);
+	auto conversions = to_conversions(*arr);
+	ASSERT_EQ(3, conversions.size());
 
-	ASSERT_NE(nullptr, stmts);
-	EXPECT_EQ(::STATEMENT, stmts->type_);
+	// todo: check
+	::cversions_free(arr);
+}
 
-	auto vstmts = vectorize(stmts);
-	ASSERT_EQ(4, vstmts.size());
 
-	std::vector<const char*> labels;
-	labels.reserve(4);
-	for (::Statement* stmt : vstmts)
+TEST(PARSE, Commutative)
+{
+	const char* rules = "comm F(X,Y)=>0;";
+
+	::PtrList* arr = nullptr;
+	ASSERT_EQ(0, ::parse_str(&arr, rules));
+	ASSERT_NE(nullptr, arr);
+	ASSERT_EQ(::CONVERSION, arr->type_);
+	auto conversions = to_conversions(*arr);
+	ASSERT_EQ(1, conversions.size());
+
+	// todo: check
+	::cversions_free(arr);
+}
+
+
+TEST(PARSE, Variadic)
+{
+	const char* rules =
+		"F(X,..Y)=>0;\n"
+		"F(X)=>G(..X);";
+
+	::PtrList* arr = nullptr;
+	ASSERT_EQ(0, ::parse_str(&arr, rules));
+	ASSERT_NE(nullptr, arr);
+	ASSERT_EQ(::CONVERSION, arr->type_);
+	auto conversions = to_conversions(*arr);
+	ASSERT_EQ(2, conversions.size());
+
+	// todo: check
+	::cversions_free(arr);
+}
+
+
+TEST(PARSE, EdgeAttrs)
+{
+	const char* rules =
+		"F(X={a:[4,5,6,7,8,9,10,11]})=>0;\n"
+		"F(X={b:2})=>1;\n"
+		"F(X={c:[8],d:12})=>2;";
+
+	::PtrList* arr = nullptr;
+	ASSERT_EQ(0, ::parse_str(&arr, rules));
+	ASSERT_NE(nullptr, arr);
+	ASSERT_EQ(::CONVERSION, arr->type_);
+	auto conversions = to_conversions(*arr);
+	ASSERT_EQ(3, conversions.size());
+
+	std::vector<::KeyVal*> kps;
+	test_edge(kps, conversions[0], 0);
 	{
-		ASSERT_EQ(::SYMBOL_DEF, stmt->type_);
-		labels.push_back((char*) stmt->val_);
+		ASSERT_EQ(1, kps.size());
+		auto a = kps[0];
+
+		EXPECT_STREQ("a", a->key_);
+		EXPECT_EQ(FALSE, a->val_scalar_);
+		std::vector<double> expect = {4,5,6,7,8,9,10,11};
+		auto nums = to_nums(a->val_);
+		EXPECT_ARREQ(expect, nums);
+	}
+	kps.clear();
+
+	test_edge(kps, conversions[1], 1);
+	{
+		ASSERT_EQ(1, kps.size());
+		auto s = kps[0];
+
+		EXPECT_STREQ("b", s->key_);
+		EXPECT_EQ(TRUE, s->val_scalar_);
+		std::vector<double> expect = {2};
+		auto nums = to_nums(s->val_);
+		EXPECT_ARREQ(expect, nums);
+	}
+	kps.clear();
+
+	test_edge(kps, conversions[2], 2);
+	{
+		ASSERT_EQ(2, kps.size());
+
+		auto a = kps[0];
+		EXPECT_STREQ("c", a->key_);
+		EXPECT_EQ(FALSE, a->val_scalar_);
+		std::vector<double> expect = {8};
+		auto nums = to_nums(a->val_);
+		EXPECT_ARREQ(expect, nums);
+
+		auto s = kps[1];
+		EXPECT_STREQ("d", s->key_);
+		EXPECT_EQ(TRUE, s->val_scalar_);
+		expect = {12};
+		nums = to_nums(s->val_);
+		EXPECT_ARREQ(expect, nums);
 	}
 
-	EXPECT_STREQ("Apple", labels[0]);
-	EXPECT_STREQ("Banana", labels[1]);
-	EXPECT_STREQ("Citrus", labels[2]);
-	EXPECT_STREQ("Zucchini", labels[3]);
-
-	::statements_free(stmts);
-}
-
-
-TEST(PARSE, PropertyDef)
-{
-	const char* groups = "property Owl spooky;\n"
-		"property Bat spooky;property group:Skeleton doot;\n"
-		"property group:Skeleton spooky;"
-		"property Casper friendly;\n";
-
-	::PtrList* stmts = nullptr;
-	int status = ::parse_str(&stmts, groups);
-	EXPECT_EQ(0, status);
-
-	ASSERT_NE(nullptr, stmts);
-	EXPECT_EQ(::STATEMENT, stmts->type_);
-
-	auto vstmts = vectorize(stmts);
-	ASSERT_EQ(5, vstmts.size());
-
-	std::vector<::Property*> props;
-	props.reserve(5);
-	for (::Statement* stmt : vstmts)
-	{
-		ASSERT_EQ(::PROPERTY_DEF, stmt->type_);
-		props.push_back((::Property*) stmt->val_);
-	}
-
-	EXPECT_STREQ("Owl", props[0]->label_);
-	EXPECT_STREQ("Bat", props[1]->label_);
-	EXPECT_STREQ("Skeleton", props[2]->label_);
-	EXPECT_STREQ("Skeleton", props[3]->label_);
-	EXPECT_STREQ("Casper", props[4]->label_);
-
-	EXPECT_STREQ("spooky", props[0]->property_);
-	EXPECT_STREQ("spooky", props[1]->property_);
-	EXPECT_STREQ("doot", props[2]->property_);
-	EXPECT_STREQ("spooky", props[3]->property_);
-	EXPECT_STREQ("friendly", props[4]->property_);
-
-	EXPECT_FALSE(props[0]->is_group_);
-	EXPECT_FALSE(props[1]->is_group_);
-	EXPECT_TRUE(props[2]->is_group_);
-	EXPECT_TRUE(props[3]->is_group_);
-	EXPECT_FALSE(props[4]->is_group_);
-
-	::statements_free(stmts);
-}
-
-
-TEST(PARSE, EdgeDef)
-{
-	const char* shape_edge = "F(X={shaper:[4,5,6,7,8,9,10,11]})=>1;\n";
-	const char* coord_edge = "F(X={coorder:[8,8,8,8,8,8,8,8]})=>2;\n";
-	const char* both_edges = "F(X={coorder:[8,8,8,8,8,8,8,8],shaper:[4,5,6,7,8,9,10,11]})=>3;\n";
-	const char* both_edges2 = "F(X={shaper:[4,5,6,7,8,9,10,11],coorder:[8,8,8,8,8,8,8,8]})=>3;\n";
-	std::vector<double> expect_shaper = {4,5,6,7,8,9,10,11};
-	std::vector<double> expect_coorder = {8,8,8,8,8,8,8,8};
-
-	::PtrList* stmts = nullptr;
-	ASSERT_EQ(0, ::parse_str(&stmts, shape_edge));
-	EXPECT_EQ(nullptr, stmts->head_->next_);
-	auto stmt = (::Statement*) stmts->head_->val_;
-	ASSERT_EQ(::CONVERSION, stmt->type_);
-	auto conv = (::Conversion*) stmt->val_;
-	auto src = conv->source_;
-	auto dest = conv->dest_;
-	ASSERT_EQ(::SCALAR, dest->type_);
-	EXPECT_EQ(1, dest->val_.scalar_);
-	ASSERT_EQ(::BRANCH, src->type_);
-	auto branch = src->val_.branch_;
-	EXPECT_STREQ("F", branch->label_);
-	EXPECT_EQ(nullptr, branch->args_->head_->next_);
-	auto arg = (::Arg*) branch->args_->head_->val_;
-	ASSERT_EQ(::ANY, arg->subgraph_->type_);
-	EXPECT_STREQ("X", arg->subgraph_->val_.any_);
-	ASSERT_NE(nullptr, arg->shaper_);
-	auto shaper = vectorize(arg->shaper_);
-	EXPECT_ARREQ(expect_shaper, shaper);
-	EXPECT_EQ(nullptr, arg->coorder_);
-
-	ASSERT_EQ(0, ::parse_str(&stmts, coord_edge));
-	EXPECT_EQ(nullptr, stmts->head_->next_);
-	stmt = (::Statement*) stmts->head_->val_;
-	ASSERT_EQ(::CONVERSION, stmt->type_);
-	conv = (::Conversion*) stmt->val_;
-	src = conv->source_;
-	dest = conv->dest_;
-	ASSERT_EQ(::SCALAR, dest->type_);
-	EXPECT_EQ(2, dest->val_.scalar_);
-	ASSERT_EQ(::BRANCH, src->type_);
-	branch = src->val_.branch_;
-	EXPECT_STREQ("F", branch->label_);
-	EXPECT_EQ(nullptr, branch->args_->head_->next_);
-	arg = (::Arg*) branch->args_->head_->val_;
-	ASSERT_EQ(::ANY, arg->subgraph_->type_);
-	EXPECT_STREQ("X", arg->subgraph_->val_.any_);
-	EXPECT_EQ(nullptr, arg->shaper_);
-	ASSERT_NE(nullptr, arg->coorder_);
-	auto coorder = vectorize(arg->coorder_);
-	EXPECT_ARREQ(expect_coorder, coorder);
-
-	ASSERT_EQ(0, ::parse_str(&stmts, both_edges));
-	EXPECT_EQ(nullptr, stmts->head_->next_);
-	stmt = (::Statement*) stmts->head_->val_;
-	ASSERT_EQ(::CONVERSION, stmt->type_);
-	conv = (::Conversion*) stmt->val_;
-	src = conv->source_;
-	dest = conv->dest_;
-	ASSERT_EQ(::SCALAR, dest->type_);
-	EXPECT_EQ(3, dest->val_.scalar_);
-	ASSERT_EQ(::BRANCH, src->type_);
-	branch = src->val_.branch_;
-	EXPECT_STREQ("F", branch->label_);
-	EXPECT_EQ(nullptr, branch->args_->head_->next_);
-	arg = (::Arg*) branch->args_->head_->val_;
-	ASSERT_EQ(::ANY, arg->subgraph_->type_);
-	EXPECT_STREQ("X", arg->subgraph_->val_.any_);
-	ASSERT_NE(nullptr, arg->shaper_);
-	ASSERT_NE(nullptr, arg->coorder_);
-	shaper = vectorize(arg->shaper_);
-	coorder = vectorize(arg->coorder_);
-	EXPECT_ARREQ(expect_shaper, shaper);
-	EXPECT_ARREQ(expect_coorder, coorder);
-
-	ASSERT_EQ(0, ::parse_str(&stmts, both_edges2));
-	EXPECT_EQ(nullptr, stmts->head_->next_);
-	stmt = (::Statement*) stmts->head_->val_;
-	ASSERT_EQ(::CONVERSION, stmt->type_);
-	conv = (::Conversion*) stmt->val_;
-	src = conv->source_;
-	dest = conv->dest_;
-	ASSERT_EQ(::SCALAR, dest->type_);
-	EXPECT_EQ(3, dest->val_.scalar_);
-	ASSERT_EQ(::BRANCH, src->type_);
-	branch = src->val_.branch_;
-	EXPECT_STREQ("F", branch->label_);
-	EXPECT_EQ(nullptr, branch->args_->head_->next_);
-	arg = (::Arg*) branch->args_->head_->val_;
-	ASSERT_EQ(::ANY, arg->subgraph_->type_);
-	EXPECT_STREQ("X", arg->subgraph_->val_.any_);
-	ASSERT_NE(nullptr, arg->shaper_);
-	ASSERT_NE(nullptr, arg->coorder_);
-	shaper = vectorize(arg->shaper_);
-	coorder = vectorize(arg->coorder_);
-	EXPECT_ARREQ(expect_shaper, shaper);
-	EXPECT_ARREQ(expect_coorder, coorder);
+	::cversions_free(arr);
 }
 
 
 TEST(PARSE, OptimizationRules)
 {
 	FILE* file = std::fopen(sample_cfg, "r");
-	assert(nullptr != file);
+	ASSERT_NE(nullptr, file);
 
-	::PtrList* stmts = nullptr;
-	int status = ::parse_file(&stmts, file);
+	::PtrList* arr = nullptr;
+	int status = ::parse_file(&arr, file);
 	EXPECT_EQ(0, status);
 
-	ASSERT_NE(nullptr, stmts);
-	EXPECT_EQ(::STATEMENT, stmts->type_);
+	ASSERT_NE(nullptr, arr);
+	EXPECT_EQ(::CONVERSION, arr->type_);
 
-	::statements_free(stmts);
+	::cversions_free(arr);
 }
 
 

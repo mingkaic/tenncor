@@ -75,10 +75,13 @@ cc_test(
     srcs = ["//pbm:test_srcs"],
     deps = [
         "//pbm:pbm",
+        "//teq:mock_teq",
         "//dbg:stream_out",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],
     data = ["//:test_models"],
+    linkstatic = True,
 )

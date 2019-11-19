@@ -106,8 +106,7 @@ def main(args):
     trained_dqn = rcn.DQNTrainer(model, sess, bgd, param,
         gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
     pretrained_dqn = rcn.DQNTrainer(trained, sess, bgd, param)
-
-    sess.optimize(eteq.parse_optrules("cfg/optimizations.rules"))
+    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     err_msg = None
     err_queue_size = 10

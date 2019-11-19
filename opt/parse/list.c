@@ -12,6 +12,16 @@ struct NumList* new_numlist (void)
 	return out;
 }
 
+void numlist_move (struct NumList* dst, struct NumList* src)
+{
+	if (NULL == dst || NULL == src)
+	{
+		return;
+	}
+	memcpy(dst, src, sizeof(struct NumList));
+	src->head_ = src->tail_ = NULL;
+}
+
 void numlist_clear (struct NumList* list)
 {
 	if (NULL == list)
@@ -68,6 +78,17 @@ struct PtrList* new_ptrlist (size_t type)
 	memset(out, 0, nlistbytes);
 	out->type_ = type;
 	return out;
+}
+
+void ptrlist_move (struct PtrList* dst, struct PtrList* src)
+{
+	if (NULL == dst || NULL == src)
+	{
+		return;
+	}
+	memcpy(dst, src, sizeof(struct PtrList));
+	src->head_ = src->tail_ = NULL;
+	dst->type_ = src->type_;
 }
 
 void ptrlist_clear (struct PtrList* list, void (*val_mgr)(void*))

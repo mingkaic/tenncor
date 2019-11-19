@@ -4,7 +4,7 @@
 
 #include "eteq/eteq.hpp"
 
-#include "eteq/parse.hpp"
+#include "eteq/optimize.hpp"
 
 
 static std::random_device rnd_device;
@@ -336,6 +336,9 @@ static void BM_SigmoidMLP(benchmark::State& state)
 BENCHMARK(BM_SigmoidMLP);
 
 
+#ifdef ENABLE_OPT
+
+
 static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 {
 	teq::Shape in_shape({10, 3});
@@ -415,6 +418,9 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 }
 
 BENCHMARK(BM_OptimizedSigmoidMLP);
+
+
+#endif // ENABLE_OPT
 
 
 BENCHMARK_MAIN();

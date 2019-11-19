@@ -1,8 +1,3 @@
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
-#include "opt/voter.hpp"
 #include "opt/parse.hpp"
 
 #ifdef OPT_PARSE_HPP
@@ -10,256 +5,193 @@
 namespace opt
 {
 
-static boost::uuids::random_generator uuid_gen;
-
-// commutative label according to .rules configuration
-static const std::string commutative_prop = "commutative";
-
-static bool is_commutative (const RulesContext& ctx, std::string label)
+static std::string to_string (::KeyVal* kv)
 {
-	auto it = ctx.properties_.find(label);
-	if (ctx.properties_.end() == it)
+	std::string out = std::string(kv->key_) + ":[";
+	auto it = kv->val_.head_;
+	if (nullptr != it)
 	{
-		return false;
+		out += fmts::to_string(it->val_);
+		for (it = it->next_; it != nullptr; it = it->next_)
+		{
+			out += "," + fmts::to_string(it->val_);
+		}
 	}
-	return estd::has(it->second, commutative_prop);
+	out += "]";
+	return out;
 }
 
-static std::string build_intermediate (VoterPool& voters, const ::Subgraph* sg,
-	const RulesContext& ctx, const iConverterBuilder& builder);
+static std::string to_string (::TreeNode* node);
 
-static std::string build_args (VoterPool& voters,
-	VoterArgsT& args, const ::Branch* branch,
-	const RulesContext& ctx, const iConverterBuilder& builder)
+static std::string to_string (::Arg* arg)
 {
-	if (nullptr == branch)
+	std::string out = to_string(arg->node_);
+	auto it = arg->attrs_.head_;
+	if (nullptr != it)
 	{
-		logs::fatal("subgraph ended at null branch");
-	}
-	std::string label(branch->label_);
-	if (branch->is_group_)
-	{
-		label = group_prefix + label;
-	}
-
-	for (auto it = branch->args_->head_; nullptr != it; it = it->next_)
-	{
-		::Arg* arg = (::Arg*) it->val_;
-		std::string arg_label = build_intermediate(
-			voters, arg->subgraph_, ctx, builder);
-		args.push_back(VoterArg{
-			arg_label,
-			builder.shaperize(arg->shaper_),
-			builder.coorderize(arg->coorder_),
-			arg->subgraph_->type_,
-		});
-	}
-	if (false == estd::has(voters.branches_, label))
-	{
-		if (is_commutative(ctx, label))
+		out += "={" + to_string((::KeyVal*) it->val_);
+		for (it = it->next_; it != nullptr; it = it->next_)
 		{
-			std::string variadic(branch->variadic_);
-			if (variadic.size() > 0 && branch->is_group_ &&
-				estd::has(ctx.symbols_, variadic))
-			{
-				voters.branches_.emplace(label,
-					std::make_shared<VariadicVoter>(label, variadic));
-			}
-			else
-			{
-				voters.branches_.emplace(label,
-					std::make_shared<CommVoter>(label));
-			}
+			out += "," + to_string((::KeyVal*) it->val_);
 		}
-		else
-		{
-			voters.branches_.emplace(label,
-				std::make_shared<OrdrVoter>(label));
-		}
-	}
-	return label;
-}
-
-// return label + whether type is ANY
-static std::string build_intermediate (VoterPool& voters, const ::Subgraph* sg,
-	const RulesContext& ctx, const iConverterBuilder& builder)
-{
-	std::string out;
-	switch (sg->type_)
-	{
-		case ::SUBGRAPH_TYPE::SCALAR:
-		{
-			std::string scalar_id = fmts::to_string(sg->val_.scalar_);
-			voters.immutables_.emplace(scalar_id);
-			out = scalar_id;
-		}
-			break;
-		case ::SUBGRAPH_TYPE::ANY:
-		{
-			std::string symbol(sg->val_.any_);
-			if (false == estd::has(ctx.symbols_, symbol))
-			{
-				logs::fatalf("undeclared symbol `%s`", symbol.c_str());
-			}
-			out = symbol;
-		}
-			break;
-		case ::SUBGRAPH_TYPE::BRANCH:
-		{
-			VoterArgsT args;
-			std::string label = build_args(
-				voters, args, sg->val_.branch_, ctx, builder);
-
-			std::string interm_id = boost::uuids::to_string(uuid_gen());
-			voters.branches_[label]->emplace(args,
-				Symbol{
-					CAND_TYPE::INTERM,
-					interm_id,
-				});
-			out = interm_id;
-		}
-			break;
-		default:
-			logs::fatalf("unknown subgraph node type %d", sg->type_);
+		out += "}";
 	}
 	return out;
 }
 
-static void build_conversion (OptCtx& opts, const ::Conversion* conv,
-	const RulesContext& ctx, const iConverterBuilder& builder)
+static std::string to_string (::Functor* functor)
 {
-	if (NULL == conv)
+	std::string comm_prefix;
+	if (functor->commutative_)
 	{
-		logs::fatal("cannot make matcher with null conversion");
+		comm_prefix = "comm ";
 	}
-	std::string conv_ref = boost::uuids::to_string(uuid_gen());
-
-	const ::Subgraph* src_sg = conv->source_;
-	if (::SUBGRAPH_TYPE::BRANCH == src_sg->type_)
+	std::string out = comm_prefix + std::string(functor->name_) + "(";
+	assert(::ARGUMENT == functor->args_.type_);
+	auto it = functor->args_.head_;
+	if (nullptr != it)
 	{
-		const ::Subgraph* dest_sg = conv->dest_;
-		opts.converts_.emplace(conv_ref, builder.build(dest_sg, ctx));
-
-		VoterArgsT args;
-		std::string label = build_args(
-			opts.voters_, args, src_sg->val_.branch_, ctx, builder);
-
-		opts.voters_.branches_[label]->emplace(args,
-			Symbol{
-				CAND_TYPE::CONVRT,
-				conv_ref,
-			});
-
-		if (::SUBGRAPH_TYPE::SCALAR == dest_sg->type_)
+		out += to_string((::Arg*) it->val_);
+		for (it = it->next_; nullptr != it; it = it->next_)
 		{
-			std::string dest_label = fmts::to_string(dest_sg->val_.scalar_);
-			opts.voters_.immutables_.emplace(dest_label);
-			opts.voters_.branches_[label]->emplace(args, Symbol{
-				CAND_TYPE::SCALAR,
-				dest_label,
-			});
+			out += "," + to_string((::Arg*) it->val_);
 		}
+	}
+
+	std::string variadic(functor->variadic_);
+	if (variadic.size() > 0)
+	{
+		variadic = ",.." + variadic;
+	}
+	out += variadic + ")";
+	return out;
+}
+
+static std::string to_string (::TreeNode* node)
+{
+	std::string out;
+	switch (node->type_)
+	{
+		case ::TreeNode::SCALAR:
+			out = fmts::to_string(node->val_.scalar_);
+			break;
+		case ::TreeNode::ANY:
+			out = std::string(node->val_.any_);
+			break;
+		case ::TreeNode::FUNCTOR:
+			out = to_string(node->val_.functor_);
+			break;
+	}
+	return out;
+}
+
+static std::string to_string (::Conversion* cversion)
+{
+	return to_string(cversion->matcher_) + "=>" + to_string(cversion->target_);
+}
+
+static std::string parse_matcher (
+	std::unordered_map<std::string,MatchsT>& out,
+	const ::Functor* matcher)
+{
+	if (NULL == matcher)
+	{
+		logs::fatal("cannot parse null matcher");
+	}
+
+	auto& cmatchers = out[std::string(matcher->name_)];
+	MatchptrT outmatcher;
+	if (matcher->commutative_)
+	{
+		outmatcher = std::make_shared<CommutativeMatcher>(
+			std::string(matcher->variadic_));
 	}
 	else
 	{
-		logs::warn("ambiguous conversion...");
+		outmatcher = std::make_shared<OrderedMatcher>(
+			std::string(matcher->variadic_));
 	}
-}
+	cmatchers.push_back(outmatcher);
 
-OptCtx process_stmts (::PtrList* stmts, const iConverterBuilder& builder)
-{
-	OptCtx opts;
-	if (nullptr == stmts)
+	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_)
 	{
-		logs::fatal("rule parser produced null stmts");
-	}
-	RulesContext ctx;
-	for (auto it = stmts->head_; it != NULL; it = it->next_)
-	{
-		::Statement* stmt = (::Statement*) it->val_;
-		switch (stmt->type_)
+		auto arg = (::Arg*) it->val_;
+		auto child = arg->node_;
+		switch (child->type_)
 		{
-			case SYMBOL_DEF:
-			{
-				std::string symbol = std::string((char*) stmt->val_);
-				if (estd::has(ctx.symbols_, symbol))
-				{
-					logs::fatalf("redeclaration of symbol %s", symbol.c_str());
-				}
-				ctx.symbols_.emplace(symbol);
-			}
+			case ::TreeNode::SCALAR:
+				outmatcher->add_edge(new ScalarEMatcher(
+					child->val_.scalar_, arg->attrs_));
 				break;
-			case PROPERTY_DEF:
-			{
-				::Property* property = (::Property*) stmt->val_;
-				std::string label = std::string(property->label_);
-				std::string property_tag = std::string(property->property_);
-				if (property->is_group_)
-				{
-					label = group_prefix + label;
-				}
-				auto it = ctx.properties_.find(label);
-				if (ctx.properties_.end() == it)
-				{
-					ctx.properties_.emplace(label,
-						std::unordered_set<std::string>{property_tag});
-				}
-				else if (estd::has(it->second, property_tag))
-				{
-					logs::warnf("reassignment of property `%s` to `%s`",
-						property_tag.c_str(), label.c_str());
-				}
-				else
-				{
-					it->second.emplace(property_tag);
-				}
-			}
+			case ::TreeNode::ANY:
+				outmatcher->add_edge(new AnyEMatcher(
+					std::string(child->val_.any_), arg->attrs_));
 				break;
-			case CONVERSION:
-			{
-				::Conversion* conv = (::Conversion*) stmt->val_;
-				build_conversion(opts, conv, ctx, builder);
-			}
+			case ::TreeNode::FUNCTOR:
+				outmatcher->add_edge(new FuncEMatcher(
+					parse_matcher(out, child->val_.functor_),
+						arg->attrs_));
 				break;
 			default:
-				logs::errorf("unknown statement of type %d", stmt->type_);
+				logs::fatalf("unknown matcher argument of type %d", child->type_);
 		}
 	}
-	::statements_free(stmts);
-	opts.const_conv_ = builder.build_cconv();
-	return opts;
+	return outmatcher->get_fid();
 }
 
-OptCtx parse (std::string content, const iConverterBuilder& builder)
+static CversionCtx process_cversions (
+	::PtrList* cversions, BuildTargetF parse_target)
 {
-	::PtrList* stmts = nullptr;
-	int status = ::parse_str(&stmts, content.c_str());
+	if (nullptr == cversions && CONVERSION != cversions->type_)
+	{
+		logs::fatal("rule parser did not produced conversions");
+	}
+	CversionCtx out;
+	for (auto it = cversions->head_; it != NULL; it = it->next_)
+	{
+		auto cversion = (::Conversion*) it->val_;
+		if (NULL == cversion)
+		{
+			logs::fatal("cannot parse null conversion");
+		}
+		auto root_id = parse_matcher(out.matchers_, cversion->matcher_);
+		out.targets_.emplace(root_id, parse_target(cversion->target_));
+		out.dbg_msgs_.emplace(root_id, to_string(cversion));
+	}
+	::cversions_free(cversions);
+	return out;
+}
+
+CversionCtx parse (std::string content, BuildTargetF parse_target)
+{
+	::PtrList* cversions = nullptr;
+	int status = ::parse_str(&cversions, content.c_str());
 	if (status != 0)
 	{
 		logs::errorf("failed to parse content %s: got %d status",
 			content.c_str(), status);
-		return OptCtx();
+		return CversionCtx();
 	}
-	return process_stmts(stmts, builder);
+	return process_cversions(cversions, parse_target);
 }
 
-OptCtx parse_file (std::string filename, const iConverterBuilder& builder)
+CversionCtx parse_file (std::string filename, BuildTargetF parse_target)
 {
-	::PtrList* stmts = nullptr;
+	::PtrList* cversions = nullptr;
 	FILE* file = std::fopen(filename.c_str(), "r");
 	if (nullptr == file)
 	{
 		logs::errorf("failed to open file %s", filename.c_str());
-		return OptCtx();
+		return CversionCtx();
 	}
-	int status = ::parse_file(&stmts, file);
+	int status = ::parse_file(&cversions, file);
 	if (status != 0)
 	{
 		logs::errorf("failed to parse file %s: got %d status",
 			filename.c_str(), status);
-		return OptCtx();
+		return CversionCtx();
 	}
-	return process_stmts(stmts, builder);
+	return process_cversions(cversions, parse_target);
 }
 
 }

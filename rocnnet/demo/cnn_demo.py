@@ -82,8 +82,7 @@ train_output = eteq.Variable(train_outshape, label="trainout")
 normalized = train_input / 255 - 0.5
 train = rcn.sgd_train(model, sess,
     normalized, train_output, rcn.get_sgd(0.5))
-
-sess.optimize(eteq.parse_optrules("cfg/optimizations.rules"))
+eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
 # train
 for i, data in enumerate(cifar):

@@ -43,8 +43,8 @@ struct Tagger final : public teq::iTraveler
 			{
 				logs::fatal("failed to get reference to leaf in group traveler");
 			}
-			auto& children = func->get_children();
-			for (auto& child : children)
+			auto children = func->get_children();
+			for (const teq::iEdge& child : children)
 			{
 				teq::TensptrT tens = child.get_tensor();
 				owners_.emplace(tens.get(), tens);

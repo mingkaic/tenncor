@@ -91,7 +91,7 @@ def main(args):
         trained_out,
         pretrained_out,
     ])
-    sess.optimize(eteq.parse_optrules("cfg/optimizations.rules"))
+    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()
     for i in range(args.n_train):

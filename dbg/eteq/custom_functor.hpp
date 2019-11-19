@@ -11,8 +11,7 @@
 #include "eigen/generated/opcode.hpp"
 #include "eigen/operator.hpp"
 
-#include "eteq/funcarg.hpp"
-#include "eteq/constant.hpp"
+#include "eteq/edge.hpp"
 
 #ifndef DBG_CUSTOM_FUNCTOR_HPP
 #define DBG_CUSTOM_FUNCTOR_HPP
@@ -20,13 +19,9 @@
 namespace dbg
 {
 
-/// Arguments of raw data and shapes
-template <typename T>
-using DataMapT = std::vector<eigen::OpArg<T>>;
-
 /// Custom functor to assign DataMap to Eigen tensor output
 template <typename T>
-using CustomOpF = std::function<void(eigen::TensorT<T>&,const DataMapT<T>&)>;
+using CustomOpF = std::function<void(eigen::TensorT<T>&,const eteq::ArgsT<T>&)>;
 
 /// Functor that runs a custom functor instead of Eigen operators
 template <typename T>
@@ -62,13 +57,13 @@ struct CustomFunctor final : public teq::iOperableFunc
 	}
 
 	/// Implementation of iFunctor
-	const teq::ArgsT& get_children (void) const override
+	teq::CEdgesT get_children (void) const override
 	{
-		return args_;
+		return teq::CEdgesT(args_.begin(), args_.end());
 	}
 
 	/// Implementation of iFunctor
-	void update_child (teq::FuncArg arg, size_t index) override
+	void update_child (teq::TensptrT arg, size_t index) override
 	{
 		logs::fatal("cannot modify custom functor");
 	}
@@ -76,18 +71,7 @@ struct CustomFunctor final : public teq::iOperableFunc
 	/// Implementation of iOperableFunc
 	void update (void) override
 	{
-		DataMapT<T> datamaps;
-		for (const teq::FuncArg& arg : args_)
-		{
-			auto tens = arg.get_tensor();
-			auto coorder = static_cast<eigen::CoordMap*>(arg.get_coorder().get());
-			datamaps.push_back(eigen::OpArg<T>{
-				eteq::to_node<T>(tens)->data(),
-				tens->shape(),
-				coorder
-			});
-		}
-		op_(out_, datamaps);
+		op_(out_, args_);
 	}
 
 	/// Implementation of iData
@@ -121,7 +105,7 @@ struct CustomFunctor final : public teq::iOperableFunc
 	}
 
 private:
-	CustomFunctor (CustomOpF<T> op, teq::Shape shape, teq::ArgsT args) :
+	CustomFunctor (CustomOpF<T> op, teq::Shape shape, eteq::ArgsT<T> args) :
 		out_(eigen::shape_convert(shape)),
 		op_(op), shape_(shape), args_(args) {}
 
@@ -133,7 +117,7 @@ private:
 	teq::Shape shape_;
 
 	/// Tensor arguments (and children)
-	teq::ArgsT args_;
+	eteq::ArgsT<T> args_;
 };
 
 /// CustomFunctor's node wrapper
@@ -206,20 +190,7 @@ CustomFunctor<T>* CustomFunctor<T>::get (CustomOpF<T> op, eteq::ArgsT<T> args)
 				ishape.to_string().c_str());
 		}
 	}
-
-	teq::ArgsT input_args;
-	input_args.reserve(nargs);
-	std::transform(args.begin(), args.end(),
-		std::back_inserter(input_args),
-		[](eteq::FuncArg<T>& arg)
-		{
-			return teq::FuncArg(
-				arg.get_tensor(),
-				arg.get_shaper(),
-				arg.map_io(),
-				arg.get_coorder());
-		});
-	return new CustomFunctor<T>(op, shape, input_args);
+	return new CustomFunctor<T>(op, shape, args);
 }
 
 /// Return custom functor node given custom function and arguments
@@ -227,8 +198,7 @@ template <typename T>
 eteq::NodeptrT<T> make_functor (CustomOpF<T> op, eteq::ArgsT<T> args)
 {
 	return std::make_shared<CustomFunctorNode<T>>(
-		std::shared_ptr<CustomFunctor<T>>(CustomFunctor<T>::get(op, args))
-	);
+		std::shared_ptr<CustomFunctor<T>>(CustomFunctor<T>::get(op, args)));
 }
 
 }

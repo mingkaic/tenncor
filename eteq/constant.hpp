@@ -17,8 +17,6 @@
 namespace eteq
 {
 
-static const size_t label_limit = 5;
-
 /// Constant implementation of Eigen leaf tensor
 template <typename T>
 struct Constant final : public iLeaf<T>
@@ -47,23 +45,7 @@ struct Constant final : public iLeaf<T>
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		const T* data = this->data_.data();
-		if (is_scalar())
-		{
-			if (0 == data[0]) // prevent -0
-			{
-				return "0";
-			}
-			return fmts::to_string(data[0]);
-		}
-		size_t nelems = this->shape_.n_elems();
-		auto out = fmts::to_string(data,
-			data + std::min(label_limit, nelems));
-		if (nelems > label_limit)
-		{
-			out += "...";
-		}
-		return out;
+		return teq::const_encode<T>(this->data_.data(), this->shape_);
 	}
 
 	/// Implementation of iLeaf

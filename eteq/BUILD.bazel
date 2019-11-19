@@ -78,9 +78,9 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//eigen:eigen",
-        "//pbm:pbm",
         "//tag:tag",
         "//opt:opt",
+        "//pbm:pbm",
     ],
     visibility = ["//visibility:public"],
 )

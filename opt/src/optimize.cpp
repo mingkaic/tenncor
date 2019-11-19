@@ -1,4 +1,3 @@
-#include "opt/rmdups.hpp"
 #include "opt/optimize.hpp"
 
 #ifdef OPT_OPTIMIZE_HPP
@@ -6,142 +5,156 @@
 namespace opt
 {
 
-teq::TensptrsT optimize (teq::TensptrsT roots, const OptCtx& opts)
+void replace_parents (const teq::ParentFinder& pfinder,
+	teq::TensptrT target, teq::iTensor* source,
+	tag::TagRegistry& registry)
+{
+	teq::ParentMapT pmap;
+	if (estd::get(pmap, pfinder.parents_, source))
+	{
+		for (auto& ppair : pmap)
+		{
+			auto f = static_cast<teq::iFunctor*>(ppair.first);
+			for (size_t i : ppair.second)
+			{
+				f->update_child(target, i);
+			}
+		}
+	}
+	registry.move_tags(target, source);
+}
+
+teq::TensptrsT optimize (teq::TensptrsT roots,
+	const CversionCtx& opts, const CustomFilters& filters)
 {
 	if (roots.empty())
 	{
 		return roots;
 	}
 
-	// stat provides positional information:
-	//		- nodes of different height will never be equivalent
-	// pfinder provides adjacency information:
-	//		- parents of equivalent/converted nodes will need updating
-	// adjgroups provides group information
-
-	// 1. remove duplicates in the graph to avoid duplicate conversion checks
-	// 2. perform conversions
-	// 3. remove duplicates in the graph in case of duplicates in conversions
-
+	for (auto& filter : filters.prefilters_)
 	{
-		HFunctorsT functors;
-		// step 1:
-		{
-			ImmutablesT immutables;
-			populate_graph(immutables, functors, roots);
-			remove_all_duplicates(roots, immutables, functors);
-		}
+		filter(roots);
+	}
 
-		// step 2:
-		CstConvertF const_conv = opts.const_conv_;
-		Matcher matcher(opts.voters_);
-		matcher.scalarize_ =
-			[&const_conv](teq::iTensor* tens) -> std::string
+	teq::OwnerMapT owners = teq::track_owners(roots);
+	teq::GraphStat stat;
+	teq::ParentFinder pfinder;
+	std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
+	for (size_t i = 0, n = roots.size(); i < n; ++i)
+	{
+		teq::TensptrT& root = roots[i];
+		root->accept(stat);
+		root->accept(pfinder);
+		rindices[root.get()].push_back(i);
+	}
+
+	std::vector<teq::FuncptrT> functors;
+	functors.reserve(stat.graphsize_.size());
+	for (auto& gpair : stat.graphsize_)
+	{
+		if (gpair.second.upper_ > 0)
+		{
+			functors.push_back(std::static_pointer_cast<teq::iFunctor>(
+				owners.at(gpair.first).lock()));
+		}
+	}
+	std::sort(functors.begin(), functors.end(),
+		[&stat](teq::FuncptrT a, teq::FuncptrT b)
+		{
+			return stat.graphsize_[a.get()].upper_ <
+				stat.graphsize_[b.get()].upper_;
+		});
+
+	ParentReplF parent_replacer =
+	[&](teq::TensptrT dest, teq::iTensor* src)
+	{
+		replace_parents(pfinder, dest, src);
+		std::vector<size_t> ridx;
+		if (estd::get(ridx, rindices, src))
+		{
+			for (size_t ri : ridx)
 			{
-				std::string out;
-				if (auto cst = const_conv(tens))
+				roots[ri] = dest;
+			}
+		}
+	};
+
+	MatchCtxT runtime_ctx;
+	CversionsT conversions;
+	// there are no conversions for leaves
+	for (teq::FuncptrT func : functors)
+	{
+		// todo: streamline this pipeline
+		bool stop_filtering = false;
+		// apply prefiltering
+		for (size_t i = 0, n = filters.prenode_filters_.size();
+			i < n && false == stop_filtering; ++i)
+		{
+			auto converted = filters.prenode_filters_[i](func, parent_replacer);
+			if (converted != func)
+			{
+				if (auto fconv = std::dynamic_pointer_cast<teq::iFunctor>(converted))
 				{
-					out = cst->to_string();
+					func = fconv;
 				}
 				else
 				{
-					out = tens->to_string();
+					stop_filtering = true;
 				}
-				return out;
-			};
-		teq::GraphStat stat;
-		teq::ParentFinder pfinder;
-		std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
-		for (size_t i = 0, n = roots.size(); i < n; ++i)
+			}
+		}
+		if (stop_filtering)
 		{
-			teq::TensptrT& root = roots[i];
-			root->accept(stat);
-			root->accept(pfinder);
-			rindices[root.get()].push_back(i);
+			continue;
 		}
 
+		// apply optimization
+		if (auto converted = opts.optimize(runtime_ctx, func.get()))
 		{
-			tag::AdjMapT adjs;
-			tag::adjacencies(adjs, roots);
+			// todo: debug log converted
 
-			tag::SubgraphAssocsT subgraphs;
-			tag::beautify_groups(subgraphs, adjs);
-			tag::filter_head(matcher.group_head_, subgraphs);
-		}
+			// don't touch functors until after all nodes are visited
+			parent_replacer(converted, func.get());
 
-		// there are no conversions for leaves
-		for (auto& funcs : functors)
-		{
-			for (teq::FuncptrT func : funcs)
+			if (auto fconv = std::dynamic_pointer_cast<teq::iFunctor>(converted))
 			{
-				// although matcher recursively applies to functor children,
-				// it's easier to evaluate near conversion to avoid tracking state changes
-				func->accept(matcher);
+				func = fconv;
+			}
+			else
+			{
+				stop_filtering = true;
+			}
+		}
+		if (stop_filtering)
+		{
+			continue;
+		}
 
-				teq::TensptrT converted = nullptr;
-				auto& cands = matcher.candidates_[func.get()];
-				// select the best candidate (smallest conversion)
-				// currently first come first serve (todo: implement)
-				for (auto& candpair : cands)
+		// apply postfiltering
+		for (size_t i = 0, n = filters.postnode_filters_.size();
+			i < n && false == stop_filtering; ++i)
+		{
+			auto converted = filters.postnode_filters_[i](func, parent_replacer);
+			if (converted != func)
+			{
+				if (auto fconv = std::dynamic_pointer_cast<teq::iFunctor>(converted))
 				{
-					if (CAND_TYPE::CONVRT == candpair.first.type_)
-					{
-						CtxsT& ctxs = candpair.second;
-						ContexT ctx;
-						if (ctxs.size() > 1)
-						{
-							logs::warn("ambiguous context");
-						}
-						if (ctxs.size() > 0)
-						{
-							ctx = *(ctxs.begin());
-						}
-						const ConvptrT& conv = opts.converts_.at(
-							candpair.first.reference_);
-						logs::debugf("converting to %s",
-							conv->to_string().c_str());
-						converted = conv->build(ctx, func->shape());
-						break;
-					}
-					else if (CAND_TYPE::CONST == candpair.first.type_)
-					{
-						converted = const_conv(func.get());
-						break;
-					}
+					func = fconv;
 				}
-
-				if (nullptr != converted)
+				else
 				{
-					replace_parents(pfinder, func.get(), converted);
-					auto it = rindices.find(func.get());
-					if (rindices.end() != it)
-					{
-						for (size_t ri : it->second)
-						{
-							roots[ri] = converted;
-						}
-					}
+					stop_filtering = true;
 				}
 			}
 		}
 	}
 
-	// step 3:
-	HFunctorsT functors;
-	ImmutablesT immutables;
-	populate_graph(immutables, functors, roots);
-	remove_all_duplicates(roots, immutables, functors);
-
+	for (auto& filter : filters.postfilters_)
+	{
+		filter(roots);
+	}
 	return roots;
-}
-
-void optimize (teq::iSession& sess, const OptCtx& opts)
-{
-	teq::TensptrSetT tracked_set = sess.get_tracked();
-	teq::TensptrsT tracked(tracked_set.begin(), tracked_set.end());
-	optimize(tracked, opts);
-	sess.clear();
-	sess.track(tracked);
 }
 
 }

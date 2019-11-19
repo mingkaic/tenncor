@@ -7,9 +7,9 @@
 #include "testutil/tutil.hpp"
 
 #include "teq/mock/leaf.hpp"
+#include "teq/mock/functor.hpp"
 
 #include "teq/grad_def.hpp"
-#include "teq/functor.hpp"
 
 
 struct LabelledMockTensor final : public MockTensor
@@ -33,46 +33,41 @@ struct MockGradientBuilder final : public teq::iGradientBuilder
 		std::string label = op->to_string();
 		if (label == "FUNC")
 		{
-			return op->get_children()[arg_idx].get_tensor();
+			return op->get_children()[arg_idx].get().get_tensor();
 		}
 		else if (label == "FUNC2")
 		{
-			return teq::TensptrT(teq::Functor::get(teq::Opcode{"FUNC4", 3},
-				{op->get_children()[arg_idx]}));
+			auto ochild = static_cast<const MockEdge*>(&op->get_children()[arg_idx].get());
+			return std::make_shared<MockFunctor>(
+				MockEdgesT{MockEdge(*ochild)}, teq::Opcode{"FUNC4", 3});
 		}
-		return teq::TensptrT(new LabelledMockTensor("other", op->shape()));
+		return teq::TensptrT(new MockTensor(op->shape(), "other"));
 	}
 
 	teq::TensptrT chain_rule (teq::FuncptrT op, const teq::TensptrT& local_der,
 		teq::TensptrT supcomp_grad, size_t arg_idx) const override
 	{
-		teq::TensptrT tens(teq::Functor::get(teq::Opcode{"FUNC2", 1}, {
-			teq::identity_map(op),
-			teq::identity_map(local_der),
-		}));
+		teq::TensptrT tens(new MockFunctor(
+			teq::TensptrsT{op,local_der}, teq::Opcode{"FUNC2", 1}));
 
-		return teq::TensptrT(teq::Functor::get(teq::Opcode{"FUNC3", 2}, {
-			teq::identity_map(tens),
-			teq::identity_map(supcomp_grad),
-		}));
+		return teq::TensptrT(new MockFunctor(
+			teq::TensptrsT{tens, supcomp_grad}, teq::Opcode{"FUNC3", 2}));
 	}
 
 	teq::TensptrT get_const_one (teq::Shape shape) const override
 	{
-		return teq::TensptrT(new LabelledMockTensor("1", shape));
+		return teq::TensptrT(new MockTensor(shape, "1"));
 	}
 
 	teq::TensptrT get_const_zero (teq::Shape shape) const override
 	{
-		return teq::TensptrT(new LabelledMockTensor("0", shape));
+		return teq::TensptrT(new MockTensor(shape, "0"));
 	}
 
 	teq::TensptrT add (teq::TensptrT& lhs, teq::TensptrT& rhs) const override
 	{
-		return teq::TensptrT(teq::Functor::get(teq::Opcode{"FUNC", 0}, {
-			teq::identity_map(lhs),
-			teq::identity_map(rhs),
-		}));
+		return teq::TensptrT(new MockFunctor(
+			teq::TensptrsT{lhs, rhs}, teq::Opcode{"FUNC", 0}));
 	}
 };
 
@@ -85,18 +80,17 @@ TEST(GRAD, OneZero)
 	teq::Shape shape(slist);
 
 	// standard v
-	teq::TensptrT leaf(new LabelledMockTensor("leaf", shape));
-	teq::TensptrT leaf1(new LabelledMockTensor("leaf2", shape));
-	teq::TensptrT leaf2(new LabelledMockTensor("leaf3", shape));
-	teq::TensptrT f(teq::Functor::get(teq::Opcode{"FUNC", 0}, {
-		teq::identity_map(leaf),
-		teq::identity_map(leaf1),
-	}));
+	teq::TensptrT leaf(new MockTensor(shape, "leaf"));
+	teq::TensptrT leaf1(new MockTensor(shape, "leaf2"));
+	teq::TensptrT leaf2(new MockTensor(shape, "leaf3"));
+	teq::TensptrT f(new MockFunctor(
+		teq::TensptrsT{leaf, leaf1}, teq::Opcode{"FUNC", 0}));
 
 	auto wun = builder.derive(f, f);
 	auto wun2 = builder.derive(leaf, leaf);
 	auto wun3 = builder.derive(leaf2, leaf2);
 
+	std::string shapestr = shape.to_string();
 	EXPECT_STREQ("1", wun->to_string().c_str());
 	EXPECT_STREQ("1", wun2->to_string().c_str());
 	EXPECT_STREQ("1", wun3->to_string().c_str());
@@ -121,10 +115,8 @@ TEST(GRAD, BuilderStandardV)
 	// standard v
 	teq::TensptrT leaf(new LabelledMockTensor("leaf", shape));
 	teq::TensptrT leaf1(new LabelledMockTensor("leaf2", shape));
-	teq::TensptrT f(teq::Functor::get(teq::Opcode{"FUNC", 0}, {
-		teq::identity_map(leaf),
-		teq::identity_map(leaf1),
-	}));
+	teq::TensptrT f(new MockFunctor(
+		teq::TensptrsT{leaf, leaf1}, teq::Opcode{"FUNC", 0}));
 
 	auto gl = builder.derive(f, leaf);
 	auto gl2 = builder.derive(f, leaf1);
@@ -160,16 +152,12 @@ TEST(GRAD, BuilderDiamond)
 
 	// diamond
 	teq::TensptrT leaf(new LabelledMockTensor("leaf", shape));
-	teq::TensptrT f(teq::Functor::get(teq::Opcode{"FUNC", 0}, {
-		teq::identity_map(leaf),
-	}));
-	teq::TensptrT f2(teq::Functor::get(teq::Opcode{"FUNC2", 1}, {
-		teq::identity_map(leaf),
-	}));
-	teq::TensptrT f3(teq::Functor::get(teq::Opcode{"FUNC3", 2}, {
-		teq::identity_map(f),
-		teq::identity_map(f2),
-	}));
+	teq::TensptrT f(new MockFunctor(
+		teq::TensptrsT{leaf}, teq::Opcode{"FUNC", 0}));
+	teq::TensptrT f2(new MockFunctor(
+		teq::TensptrsT{leaf}, teq::Opcode{"FUNC2", 1}));
+	teq::TensptrT f3(new MockFunctor(
+		teq::TensptrsT{f, f2}, teq::Opcode{"FUNC3", 2}));
 
 	auto gl = builder.derive(f3, leaf);
 
@@ -216,19 +204,10 @@ TEST(GRAD, TadPole)
 	teq::Shape shape(slist);
 
 	teq::TensptrT leaf(new LabelledMockTensor("leaf", shape));
-	teq::TensptrT f(teq::Functor::get(teq::Opcode{"FUNC", 0}, {
-		teq::identity_map(leaf),
-	}));
-	teq::TensptrT f2(teq::Functor::get(teq::Opcode{"FUNC2", 1}, {
-		teq::identity_map(f),
-	}));
-	teq::TensptrT f3(teq::Functor::get(teq::Opcode{"FUNC3", 2}, {
-		teq::identity_map(f),
-	}));
-	teq::TensptrT f4(teq::Functor::get(teq::Opcode{"FUNC4", 3}, {
-		teq::identity_map(f2),
-		teq::identity_map(f3),
-	}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf}, teq::Opcode{"FUNC", 0}));
+	teq::TensptrT f2(new MockFunctor(teq::TensptrsT{f}, teq::Opcode{"FUNC2", 1}));
+	teq::TensptrT f3(new MockFunctor(teq::TensptrsT{f}, teq::Opcode{"FUNC3", 2}));
+	teq::TensptrT f4(new MockFunctor(teq::TensptrsT{f2, f3}, teq::Opcode{"FUNC4", 3}));
 
 	auto gl = builder.derive(f4, leaf);
 	EXPECT_GRAPHEQ(

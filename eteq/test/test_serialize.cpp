@@ -14,12 +14,8 @@
 
 #include "dbg/stream/teq.hpp"
 
-#include "pbm/save.hpp"
-#include "pbm/load.hpp"
-
 #include "tag/prop.hpp"
 
-#include "eteq/serialize.hpp"
 #include "eteq/eteq.hpp"
 
 
@@ -30,7 +26,7 @@ TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/eteq_test.pbx";
 	std::string got_pbfile = "got_eteq_test.pbx";
-	cortenn::Graph graph;
+	tenncor::Graph graph;
 
 	teq::Shape in_shape({10, 3});
 	teq::Shape weight0_shape({9, 10});
@@ -84,14 +80,12 @@ TEST(SERIALIZE, SaveGraph)
 	preg.property_tag(dw1->get_tensor(), "derivative_dw1");
 	preg.property_tag(db1->get_tensor(), "derivative_db1");
 
-	pbm::GraphSaver<eteq::EADSaver> saver;
-	dw0->get_tensor()->accept(saver);
-	db0->get_tensor()->accept(saver);
-	dw1->get_tensor()->accept(saver);
-	db1->get_tensor()->accept(saver);
-
-	saver.save(graph);
-
+	eteq::save_graph(graph, {
+		dw0->get_tensor(),
+		db0->get_tensor(),
+		dw1->get_tensor(),
+		db1->get_tensor(),
+	}, preg.tag_reg_);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -105,8 +99,8 @@ TEST(SERIALIZE, SaveGraph)
 		ASSERT_TRUE(expect_ifs.is_open());
 		ASSERT_TRUE(got_ifs.is_open());
 
-		cortenn::Graph expect_graph;
-		cortenn::Graph got_graph;
+		tenncor::Graph expect_graph;
+		tenncor::Graph got_graph;
 		ASSERT_TRUE(expect_graph.ParseFromIstream(&expect_ifs));
 		ASSERT_TRUE(got_graph.ParseFromIstream(&got_ifs));
 
@@ -120,7 +114,7 @@ TEST(SERIALIZE, SaveGraph)
 
 TEST(SERIALIZE, LoadGraph)
 {
-	cortenn::Graph in;
+	tenncor::Graph in;
 	{
 		std::fstream inputstr(testdir + "/eteq_test.pbx",
 			std::ios::in | std::ios::binary);
@@ -129,10 +123,10 @@ TEST(SERIALIZE, LoadGraph)
 	}
 
 	teq::TensptrSetT out;
-	pbm::load_graph<eteq::EADLoader>(out, in);
+	auto& reg = tag::get_reg();
+	eteq::load_graph(out, in, reg);
 	EXPECT_EQ(4, out.size());
 
-	auto& reg = tag::get_reg();
 	tag::Query q;
 
 	std::vector<std::string> root_props;

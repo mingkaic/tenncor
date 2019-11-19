@@ -453,11 +453,7 @@ TEST(STABILIZER, Argmax)
 	teq::TensptrT a(new MockTensor(shape));
 
 	auto f1 = std::make_shared<MockOpfunc>(a, teq::Opcode{"", egen::ARGMAX},
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				args[0][0] = 1;
-			}));
+		std::vector<double>{1});
 
 	auto r1 = eigen::generate_range<double>(f1.get(), {
 		estd::NumRange<double>(-3, 4),
@@ -467,11 +463,7 @@ TEST(STABILIZER, Argmax)
 	EXPECT_DOUBLE_EQ(2, r1.upper_);
 
 	auto f2 = std::make_shared<MockOpfunc>(a, teq::Opcode{"", egen::ARGMAX},
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				args[0][0] = teq::rank_cap;
-			}));
+		std::vector<double>{8});
 
 	auto r2 = eigen::generate_range<double>(f2.get(), {
 		estd::NumRange<double>(-3, 4),
@@ -487,10 +479,10 @@ TEST(STABILIZER, Select)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
 
-	auto f = std::make_shared<MockOpfunc>(teq::ArgsT{
-			teq::identity_map(a),
-			teq::identity_map(a),
-			teq::identity_map(a),
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{
+			MockEdge(a),
+			MockEdge(a),
+			MockEdge(a),
 		}, teq::Opcode{"", egen::SELECT});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
@@ -510,7 +502,7 @@ TEST(STABILIZER, Concat)
 	teq::TensptrT a(new MockTensor(shape));
 
 	auto f = std::make_shared<MockOpfunc>(a, a,
-		teq::Opcode{"", egen::GROUP_CONCAT});
+		teq::Opcode{"", egen::CONCAT});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
 		estd::NumRange<double>(3, 4),
@@ -527,10 +519,10 @@ TEST(STABILIZER, GroupConcat)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
 
-	auto f = std::make_shared<MockOpfunc>(teq::ArgsT{
-			teq::identity_map(a),
-			teq::identity_map(a),
-			teq::identity_map(a),
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{
+			MockEdge(a),
+			MockEdge(a),
+			MockEdge(a),
 		}, teq::Opcode{"", egen::GROUP_CONCAT});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
@@ -607,6 +599,46 @@ TEST(STABILIZER, Add)
 }
 
 
+TEST(STABILIZER, GroupSum)
+{
+	teq::Shape shape({2, 3, 4});
+	teq::TensptrT a(new MockTensor(shape));
+
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{
+			MockEdge(a),
+			MockEdge(a),
+			MockEdge(a),
+		}, teq::Opcode{"", egen::GROUP_SUM});
+
+	auto r1 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(3, 4),
+		estd::NumRange<double>(4, 5),
+		estd::NumRange<double>(5, 6),
+	});
+
+	EXPECT_DOUBLE_EQ(12, r1.lower_);
+	EXPECT_DOUBLE_EQ(15, r1.upper_);
+
+	auto r2 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(-2, -1),
+		estd::NumRange<double>(4, 5),
+		estd::NumRange<double>(-3, 2),
+	});
+
+	EXPECT_DOUBLE_EQ(-1, r2.lower_);
+	EXPECT_DOUBLE_EQ(6, r2.upper_);
+
+	auto r3 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(-2, 2),
+		estd::NumRange<double>(2, 4),
+		estd::NumRange<double>(-5, 2),
+	});
+
+	EXPECT_DOUBLE_EQ(-5, r3.lower_);
+	EXPECT_DOUBLE_EQ(8, r3.upper_);
+}
+
+
 TEST(STABILIZER, Sub)
 {
 	teq::Shape shape({2, 3, 4});
@@ -664,6 +696,46 @@ TEST(STABILIZER, Mul)
 
 	EXPECT_DOUBLE_EQ(-10, r3.lower_);
 	EXPECT_DOUBLE_EQ(10, r3.upper_);
+}
+
+
+TEST(STABILIZER, GroupProd)
+{
+	teq::Shape shape({2, 3, 4});
+	teq::TensptrT a(new MockTensor(shape));
+
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{
+			MockEdge(a),
+			MockEdge(a),
+			MockEdge(a),
+		}, teq::Opcode{"", egen::GROUP_PROD});
+
+	auto r1 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(3, 4),
+		estd::NumRange<double>(4, 5),
+		estd::NumRange<double>(5, 6),
+	});
+
+	EXPECT_DOUBLE_EQ(60, r1.lower_);
+	EXPECT_DOUBLE_EQ(120, r1.upper_);
+
+	auto r2 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(-2, -1),
+		estd::NumRange<double>(4, 5),
+		estd::NumRange<double>(-3, 2),
+	});
+
+	EXPECT_DOUBLE_EQ(-20, r2.lower_);
+	EXPECT_DOUBLE_EQ(30, r2.upper_);
+
+	auto r3 = eigen::generate_range<double>(f.get(), {
+		estd::NumRange<double>(-2, 2),
+		estd::NumRange<double>(2, 4),
+		estd::NumRange<double>(-5, 2),
+	});
+
+	EXPECT_DOUBLE_EQ(-40, r3.lower_);
+	EXPECT_DOUBLE_EQ(40, r3.upper_);
 }
 
 
@@ -1056,16 +1128,7 @@ TEST(STABILIZER, ReduceSum)
 
 	auto f1 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_SUM},
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				args[0][0] = 1;
-				args[0][1] = 2;
-				for (teq::RankT i = 2; i < teq::rank_cap; ++i)
-				{
-					args[0][i] = teq::rank_cap;
-				}
-			}));
+		std::vector<double>{1, 2, 8, 8, 8, 8, 8, 8});
 
 	auto r1 = eigen::generate_range<double>(f1.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1076,14 +1139,7 @@ TEST(STABILIZER, ReduceSum)
 
 	auto f2 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_SUM},
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-				{
-					args[0][i] = teq::rank_cap;
-				}
-			}));
+		std::vector<double>{8, 8, 8, 8, 8, 8, 8, 8});
 
 	auto r2 = eigen::generate_range<double>(f2.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1101,16 +1157,7 @@ TEST(STABILIZER, ReduceProd)
 
 	auto f1 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_PROD},
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				args[0][0] = 0;
-				args[0][1] = 2;
-				for (teq::RankT i = 2; i < teq::rank_cap; ++i)
-				{
-					args[0][i] = teq::rank_cap;
-				}
-			}));
+		std::vector<double>{0, 2, 8, 8, 8, 8, 8, 8});
 
 	auto r1 = eigen::generate_range<double>(f1.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1128,14 +1175,7 @@ TEST(STABILIZER, ReduceProd)
 
 	auto f2 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_PROD},
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-				{
-					args[0][i] = teq::rank_cap;
-				}
-			}));
+		std::vector<double>{8, 8, 8, 8, 8, 8, 8, 8});
 
 	auto r3 = eigen::generate_range<double>(f2.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1153,15 +1193,7 @@ TEST(STABILIZER, ReduceProd)
 
 	auto f3 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_PROD},
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				args[0][0] = 1;
-				for (teq::RankT i = 1; i < teq::rank_cap; ++i)
-				{
-					args[0][i] = teq::rank_cap;
-				}
-			}));
+		std::vector<double>{1, 8, 8, 8, 8, 8, 8, 8});
 
 	auto r5 = eigen::generate_range<double>(f3.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1177,19 +1209,9 @@ TEST(STABILIZER, Matmul)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
 
-	teq::FuncArg fa(a, teq::identity, false,
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				args[0][0] = 0;
-				args[0][1] = 2;
-				for (teq::RankT i = 2; i < teq::rank_cap; ++i)
-				{
-					args[0][i] = teq::rank_cap;
-				}
-			}));
+	MockEdge fa(a, {}, {0, 2, 8, 8, 8, 8, 8, 8});
 
-	auto f = std::make_shared<MockOpfunc>(teq::ArgsT{fa, fa},
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{fa, fa},
 		teq::Opcode{"", egen::MATMUL});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
@@ -1223,19 +1245,9 @@ TEST(STABILIZER, Conv)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
 
-	teq::FuncArg fa(a, teq::identity, false,
-		std::make_shared<eigen::CoordMap>(
-			[](teq::MatrixT args)
-			{
-				args[0][0] = 0;
-				args[0][1] = 2;
-				for (teq::RankT i = 2; i < teq::rank_cap; ++i)
-				{
-					args[0][i] = teq::rank_cap;
-				}
-			}));
+	MockEdge fa(a, {}, {0, 2, 8, 8, 8, 8, 8, 8});
 
-	auto f = std::make_shared<MockOpfunc>(teq::ArgsT{fa, fa},
+	auto f = std::make_shared<MockOpfunc>(MockEdgesT{fa, fa},
 		teq::Opcode{"", egen::CONV});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {

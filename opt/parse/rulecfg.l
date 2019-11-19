@@ -15,8 +15,6 @@
 
 \/\/.*							; // comments
 
-symbol							{ return SYMBOL; }
-
 ;								{ return STMT_TERM; }
 
 =>								{ return ARROW; }
@@ -37,21 +35,15 @@ symbol							{ return SYMBOL; }
 
 \}								{ return RCB; }
 
-property						{ return PROPERTY; }
-
-group							{ return GROUP; }
-
-shaper							{ return SHAPER; }
-
-coorder							{ return COORDER; }
-
 :								{ return COLON; }
 
 \.\.							{ return VARIADIC; }
 
-[a-zA-Z\_][a-zA-Z\_0-9]{0,31}	{
-	strncpy(yylval.label, yytext, 32);
-	return EL;
+comm							{ return COMMUTATIVE; }
+
+[a-zA-Z\_][a-zA-Z\_]{0,30}		{
+	strncpy(yylval.label, yytext, NSYMBOL);
+	return SYMBOL;
 }
 
 -?(0|[1-9][0-9]*)(\.\d+)?		{
@@ -61,6 +53,7 @@ coorder							{ return COORDER; }
 
 .								{
 	fprintf(stderr, "unrecognized token %s", yytext);
+	return ERROR;
 }
 
 %%

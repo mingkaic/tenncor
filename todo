@@ -5,7 +5,7 @@ P3 = "want to have"
 P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
-   - move opcode and types generation over to eigen module
+   - opt: enforce variadic/commutative constraints
 
 === usage ===
 P2 - implement GRU
@@ -24,13 +24,12 @@ P2 - fix convolutional nn demo
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
 P2 - make shape dimension size configurable (instead of fixed rank_cap)
-P2 - make constant pre-calculation configurable in opt module
 P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 P5 - implement onnx support (https://github.com/onnx/onnx)
 
 === transparency/code readability ===
-P2 - generate value-range graph to automatically detect erroneous operators
+P2 - generate value-range graph to detect erroneous operators
       - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
       - this graph can help developers quickly identifies unstable nodes
 P2 - centralize global context structures

@@ -38,6 +38,7 @@ cc_test(
     srcs = ["//tag:test_srcs"],
     deps = [
         "//tag:tag",
+        "//teq:mock_teq",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

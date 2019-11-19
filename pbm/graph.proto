@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "github.com/mingkaic/tenncor/pbm";
 
-package cortenn;
+package tenncor;
 
 message Source {
     repeated uint64 shape = 1 [packed = true];
@@ -11,11 +11,17 @@ message Source {
     bool is_const = 4;
 }
 
+message ArrayAttrs {
+    repeated double values = 1;
+}
+
 message NodeArg {
-    uint32 idx = 1; // todo: check if these are redundant
-    repeated double coord = 2 [packed = true];
-    repeated double shaper = 3 [packed = true];
-    bool fwd = 4;
+    uint32 idx = 1;
+    map<string,ArrayAttrs> attrs = 5; // todo: swap to any maps once pybind behaves nicely
+
+    repeated double coord = 2 [deprecated = true, packed = true];
+    repeated double shaper = 3 [deprecated = true, packed = true];
+    bool fwd = 4 [deprecated = true];
 }
 
 message Functor {

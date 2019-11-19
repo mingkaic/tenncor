@@ -13,266 +13,275 @@ extern YY_FLUSH_BUFFER;
 
 %start rules
 
-%parse-param {struct PtrList** stmts}
+%parse-param {struct PtrList** cversions}
 
 %union
 {
 	double 				number;
-	char 				label[32];
-	struct NumList* 	list;
+	char 				label[NSYMBOL];
+
+	// objs
+	struct Conversion* 	conv;
+	struct TreeNode*	node;
+	struct Functor*		functor;
 	struct Arg*			argument;
-	struct PtrList* 	arguments;
-	struct Subgraph* 	sg;
-	struct Statement* 	stmt;
+	struct KeyVal*		kvpair;
+
+	// lists
+	struct NumList* 	nums;
+	struct PtrList* 	objs;
 }
 
 %type <number> 		NUMBER
-%type <label> 		EL
-%type <list> 		num_arr
-%type <argument> 	arg edge_def key_val
-%type <arguments>	args
-%type <sg>			subgraph
-%type <stmt> 		symbol_def prop_def conversion
+%type <label> 		SYMBOL
+
+%type <conv> 		conversion
+%type <node>		matcher_el target
+%type <functor>		matcher mfunction tfunction
+%type <argument> 	marg targ
+%type <kvpair>		key_val
+
+%type <objs>		margs targs edge_attr
+%type <nums> 		num_arr
 
 %token
-SYMBOL STMT_TERM ARROW LPAREN RPAREN COMMA ASSIGN LSB RSB LCB RCB
-GROUP PROPERTY SHAPER COORDER COLON EL NUMBER VARIADIC
+STMT_TERM ARROW LPAREN RPAREN COMMA ASSIGN LSB RSB LCB RCB
+COLON VARIADIC COMMUTATIVE SYMBOL NUMBER ERROR
 
 %% /* beginning of rules section */
 
 rules:		%empty
 			{
-				*stmts = new_ptrlist(STATEMENT);
-			}
-			|
-			rules symbol_def STMT_TERM
-			{
-				// declare symbol
-				ptrlist_pushback(*stmts, $2);
-			}
-			|
-			rules prop_def STMT_TERM
-			{
-				// declare property
-				ptrlist_pushback(*stmts, $2);
+				*cversions = new_ptrlist(CONVERSION);
 			}
 			|
 			rules conversion STMT_TERM
 			{
 				// declare conversion
-				ptrlist_pushback(*stmts, $2);
+				ptrlist_pushback(*cversions, $2);
 			}
 
-symbol_def: SYMBOL EL
+conversion:	matcher ARROW target
 			{
-				char* str = malloc(sizeof($2));
-				memcpy(str, $2, sizeof($2));
-
-				struct Statement* stmt = $$ =
-					malloc(sizeof(struct Statement));
-				stmt->type_ = SYMBOL_DEF;
-				stmt->val_ = str;
+				struct Conversion* cv = $$ = malloc(sizeof(struct Conversion));
+				cv->matcher_ = $1;
+				cv->target_ = $3;
 			}
 
-prop_def: 	PROPERTY EL EL
+matcher:	mfunction
 			{
-				struct Property* property = malloc(sizeof(struct Property));
-				strncpy(property->label_, $2, 32);
-				strncpy(property->property_, $3, 32);
-				property->is_group_ = 0;
-
-				struct Statement* stmt = $$ =
-					malloc(sizeof(struct Statement));
-				stmt->type_ = PROPERTY_DEF;
-				stmt->val_ = property;
+				$$ = $1;
 			}
 			|
-			PROPERTY GROUP COLON EL EL
+			COMMUTATIVE mfunction
 			{
-				struct Property* property = malloc(sizeof(struct Property));
-				strncpy(property->label_, $4, 32);
-				strncpy(property->property_, $5, 32);
-				property->is_group_ = 1;
-
-				struct Statement* stmt = $$ =
-					malloc(sizeof(struct Statement));
-				stmt->type_ = PROPERTY_DEF;
-				stmt->val_ = property;
+				$$ = $2;
+				$$->commutative_ = TRUE;
 			}
 
-conversion:	subgraph ARROW subgraph
+matcher_el:	NUMBER
 			{
-				struct Conversion* cv =
-					malloc(sizeof(struct Conversion));
-				cv->source_ = $1;
-				cv->dest_ = $3;
-
-				struct Statement* stmt = $$ =
-					malloc(sizeof(struct Statement));
-				stmt->type_ = CONVERSION;
-				stmt->val_ = cv;
-			}
-
-subgraph:	NUMBER
-			{
-				// a scalar
-				struct Subgraph* sg = $$ =
-					malloc(sizeof(struct Subgraph));
-				sg->type_ = SCALAR;
-				sg->val_.scalar_ = $1;
+				size_t nbytes = sizeof(struct TreeNode);
+				struct TreeNode* node = $$ = malloc(nbytes);
+				node->type_ = SCALAR;
+				node->val_.scalar_ = $1;
 			}
 			|
-			EL
+			SYMBOL
 			{
-				// a symbol
-				struct Subgraph* sg = $$ =
-					malloc(sizeof(struct Subgraph));
-				sg->type_ = ANY;
-				char* str = sg->val_.any_ =
-					malloc(sizeof($1));
-				memcpy(str, $1, sizeof($1));
+				size_t nbytes = sizeof(struct TreeNode);
+				struct TreeNode* node = $$ = malloc(nbytes);
+				node->type_ = ANY;
+				char* dst = node->val_.any_ = malloc(NSYMBOL);
+				strncpy(dst, $1, NSYMBOL);
 			}
 			|
-			GROUP COLON EL LPAREN args RPAREN
+			matcher
 			{
-				// a group
-				struct Subgraph* sg = $$ =
-					malloc(sizeof(struct Subgraph));
-				sg->type_ = BRANCH;
+				size_t nbytes = sizeof(struct TreeNode);
+				struct TreeNode* node = $$ = malloc(nbytes);
+				node->type_ = FUNCTOR;
+				node->val_.functor_ = $1;
+			}
 
-				size_t nbranchbytes = sizeof(struct Branch);
-				struct Branch* branch = sg->val_.branch_ =
-					malloc(nbranchbytes);
-				memset(branch, 0, nbranchbytes);
+mfunction:	SYMBOL LPAREN margs RPAREN
+			{
+				size_t nbytes = sizeof(struct Functor);
+				struct Functor* f = $$ = malloc(nbytes);
+				memset(f, 0, nbytes);
 
-				strncpy(branch->label_, $3, 32);
-				branch->is_group_ = 1;
-				branch->args_ = $5;
+				strncpy(f->name_, $1, NSYMBOL);
+				ptrlist_move(&f->args_, $3);
+				free($3);
 			}
 			|
-			GROUP COLON EL LPAREN args COMMA VARIADIC EL RPAREN
+			SYMBOL LPAREN margs COMMA VARIADIC SYMBOL RPAREN
 			{
-				// a group with variadic
-				struct Subgraph* sg = $$ =
-					malloc(sizeof(struct Subgraph));
-				sg->type_ = BRANCH;
+				size_t nbytes = sizeof(struct Functor);
+				struct Functor* f = $$ = malloc(nbytes);
+				memset(f, 0, nbytes);
 
-				struct Branch* branch = sg->val_.branch_ =
-					malloc(sizeof(struct Branch));
-
-				strncpy(branch->label_, $3, 32);
-				strncpy(branch->variadic_, $8, 32);
-				branch->is_group_ = 1;
-				branch->args_ = $5;
-			}
-			|
-			GROUP COLON EL LPAREN VARIADIC EL RPAREN
-			{
-				// a group with variadic without arguments
-				struct Subgraph* sg = $$ =
-					malloc(sizeof(struct Subgraph));
-				sg->type_ = BRANCH;
-
-				struct Branch* branch = sg->val_.branch_ =
-					malloc(sizeof(struct Branch));
-
-				strncpy(branch->label_, $3, 32);
-				strncpy(branch->variadic_, $6, 32);
-				branch->is_group_ = 1;
-				branch->args_ = new_ptrlist(ARGUMENT);
-			}
-			|
-			EL LPAREN args RPAREN
-			{
-				// a functor
-				struct Subgraph* sg = $$ =
-					malloc(sizeof(struct Subgraph));
-				sg->type_ = BRANCH;
-
-				size_t nbranchbytes = sizeof(struct Branch);
-				struct Branch* branch = sg->val_.branch_ =
-					malloc(nbranchbytes);
-				memset(branch, 0, nbranchbytes);
-
-				strncpy(branch->label_, $1, 32);
-				branch->is_group_ = 0;
-				branch->args_ = $3;
+				strncpy(f->name_, $1, NSYMBOL);
+				strncpy(f->variadic_, $6, NSYMBOL);
+				ptrlist_move(&f->args_, $3);
+				free($3);
 			}
 
-args:		args COMMA arg
+margs:		margs COMMA marg
 			{
 				struct PtrList* list = $$ = $1;
 				ptrlist_pushback(list, $3);
 			}
 			|
-			arg
+			marg
 			{
 				struct PtrList* list = $$ = new_ptrlist(ARGUMENT);
 				ptrlist_pushback(list, $1);
 			}
 
-arg:		subgraph
+marg:		matcher_el
 			{
-				// plain old argument
-				size_t nargbytes = sizeof(struct Arg);
-				struct Arg* arg = $$ = malloc(nargbytes);
-				memset(arg, 0, nargbytes);
-				arg->subgraph_ = $1;
+				size_t nbytes = sizeof(struct Arg);
+				struct Arg* a = $$ = malloc(nbytes);
+				memset(a, 0, nbytes);
+				a->node_ = $1;
+				a->attrs_.type_ = KV_PAIR;
 			}
 			|
-			subgraph ASSIGN LCB edge_def RCB
+			matcher_el ASSIGN LCB edge_attr RCB
 			{
-				// argument with edge definition
-				struct Arg* arg = $$ = $4;
-				arg->subgraph_ = $1;
+				size_t nbytes = sizeof(struct Arg);
+				struct Arg* a = $$ = malloc(nbytes);
+				memset(a, 0, nbytes);
+				a->node_ = $1;
+
+				ptrlist_move(&a->attrs_, $4);
+				free($4);
 			}
 
-edge_def:	key_val
+target:		NUMBER
 			{
-				$$ = $1;
+				size_t nbytes = sizeof(struct TreeNode);
+				struct TreeNode* node = $$ = malloc(nbytes);
+				node->type_ = SCALAR;
+				node->val_.scalar_ = $1;
 			}
 			|
-			edge_def COMMA key_val
+			SYMBOL
 			{
-				struct Arg* arg = $$ = $1;
-				struct Arg* other = $3;
-				if (NULL != other->shaper_)
-				{
-					if (NULL != arg->shaper_)
-					{
-						yyerror(stmts, "cannot make multiple definitions "
-							"of shaper in edge def");
-					}
-					arg->shaper_ = other->shaper_;
-					other->shaper_ = NULL;
-				}
-				if (NULL != other->coorder_)
-				{
-					if (NULL != arg->coorder_)
-					{
-						yyerror(stmts, "cannot make multiple definitions "
-							"of coorder in edge def");
-					}
-					arg->coorder_ = other->coorder_;
-					other->coorder_ = NULL;
-				}
-				arg_recursive_free(other);
+				size_t nbytes = sizeof(struct TreeNode);
+				struct TreeNode* node = $$ = malloc(nbytes);
+				node->type_ = ANY;
+				char* dst = node->val_.any_ = malloc(NSYMBOL);
+				strncpy(dst, $1, NSYMBOL);
+			}
+			|
+			tfunction
+			{
+				size_t nbytes = sizeof(struct TreeNode);
+				struct TreeNode* node = $$ = malloc(nbytes);
+				node->type_ = FUNCTOR;
+				node->val_.functor_ = $1;
 			}
 
-key_val:	SHAPER COLON LSB num_arr RSB
+tfunction:	SYMBOL LPAREN targs RPAREN
 			{
-				size_t nargbytes = sizeof(struct Arg);
-				struct Arg* arg = $$ = malloc(nargbytes);
-				memset(arg, 0, nargbytes);
-				arg->shaper_ = $4;
+				size_t nbytes = sizeof(struct Functor);
+				struct Functor* f = $$ = malloc(nbytes);
+				memset(f, 0, nbytes);
+
+				strncpy(f->name_, $1, NSYMBOL);
+				ptrlist_move(&f->args_, $3);
+				free($3);
 			}
 			|
-			COORDER COLON LSB num_arr RSB
+			SYMBOL LPAREN targs COMMA VARIADIC SYMBOL RPAREN
 			{
-				size_t nargbytes = sizeof(struct Arg);
-				struct Arg* arg = $$ = malloc(nargbytes);
-				memset(arg, 0, nargbytes);
-				arg->coorder_ = $4;
+				size_t nbytes = sizeof(struct Functor);
+				struct Functor* f = $$ = malloc(nbytes);
+				memset(f, 0, nbytes);
+
+				strncpy(f->name_, $1, NSYMBOL);
+				strncpy(f->variadic_, $6, NSYMBOL);
+				ptrlist_move(&f->args_, $3);
+				free($3);
+			}
+			|
+			SYMBOL LPAREN VARIADIC SYMBOL RPAREN
+			{
+				size_t nbytes = sizeof(struct Functor);
+				struct Functor* f = $$ = malloc(nbytes);
+				memset(f, 0, nbytes);
+
+				strncpy(f->name_, $1, NSYMBOL);
+				strncpy(f->variadic_, $4, NSYMBOL);
+				f->args_.type_ = ARGUMENT;
+			}
+
+targs:		targs COMMA targ
+			{
+				struct PtrList* list = $$ = $1;
+				ptrlist_pushback(list, $3);
+			}
+			|
+			targ
+			{
+				struct PtrList* list = $$ = new_ptrlist(ARGUMENT);
+				ptrlist_pushback(list, $1);
+			}
+
+targ:		target
+			{
+				size_t nbytes = sizeof(struct Arg);
+				struct Arg* a = $$ = malloc(nbytes);
+				memset(a, 0, nbytes);
+				a->node_ = $1;
+				a->attrs_.type_ = KV_PAIR;
+			}
+			|
+			target ASSIGN LCB edge_attr RCB
+			{
+				size_t nbytes = sizeof(struct Arg);
+				struct Arg* a = $$ = malloc(nbytes);
+				memset(a, 0, nbytes);
+				a->node_ = $1;
+
+				ptrlist_move(&a->attrs_, $4);
+				free($4);
+			}
+
+edge_attr:	edge_attr COMMA key_val
+			{
+				struct PtrList* list = $$ = $1;
+				ptrlist_pushback(list, $3);
+			}
+			|
+			key_val
+			{
+				struct PtrList* list = $$ = new_ptrlist(KV_PAIR);
+				ptrlist_pushback(list, $1);
+			}
+
+key_val:	SYMBOL COLON NUMBER
+			{
+				size_t nbytes = sizeof(struct KeyVal);
+				struct KeyVal* kv = $$ = malloc(nbytes);
+				memset(kv, 0, nbytes);
+
+				kv->val_scalar_ = TRUE;
+				strncpy(kv->key_, $1, NSYMBOL);
+				numlist_pushback(&kv->val_, $3);
+			}
+			|
+			SYMBOL COLON LSB num_arr RSB
+			{
+				size_t nbytes = sizeof(struct KeyVal);
+				struct KeyVal* kv = $$ = malloc(nbytes);
+				memset(kv, 0, nbytes);
+
+				strncpy(kv->key_, $1, NSYMBOL);
+				numlist_move(&kv->val_, $4);
+				free($4);
 			}
 
 num_arr:	num_arr COMMA NUMBER
@@ -289,7 +298,7 @@ num_arr:	num_arr COMMA NUMBER
 
 %%
 
-int parse_str (struct PtrList** stmts, const char* str)
+int parse_str (struct PtrList** cversions, const char* str)
 {
 	FILE* tmp = tmpfile();
 	if (NULL == tmp)
@@ -299,10 +308,10 @@ int parse_str (struct PtrList** stmts, const char* str)
 	}
 	fputs(str, tmp);
 	rewind(tmp);
-	return parse_file(stmts, tmp);
+	return parse_file(cversions, tmp);
 }
 
-int parse_file (struct PtrList** stmts, FILE* file)
+int parse_file (struct PtrList** cversions, FILE* file)
 {
 	int exit_status = 1;
 	if (file)
@@ -310,14 +319,16 @@ int parse_file (struct PtrList** stmts, FILE* file)
 		yyin = file;
 		YY_FLUSH_BUFFER;
 		yyrestart(yyin);
-		exit_status = yyparse(stmts);
+		exit_status = yyparse(cversions);
 		fclose(file);
 	}
 	return exit_status;
 }
 
-int yyerror (struct PtrList** stmts, char const* msg)
+int yyerror (struct PtrList** cversions, char const* msg)
 {
 	fprintf(stderr, "%s\n", msg);
+	cversions_free(*cversions);
+	*cversions = NULL;
 	return 1;
 }

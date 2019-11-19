@@ -155,8 +155,8 @@ struct LayerDeserializer final : public teq::OnceTraveler
 	/// Implementation of OnceTraveler
 	void visit_func (teq::iFunctor* func) override
 	{
-		auto& children = func->get_children();
-		for (auto child : children)
+		auto children = func->get_children();
+		for (const teq::iEdge& child : children)
 		{
 			child.get_tensor()->accept(*this);
 		}
@@ -167,7 +167,7 @@ struct LayerDeserializer final : public teq::OnceTraveler
 		if (false == matches.empty())
 		{
 			sublayers_.emplace(func, matches);
-			for (auto child : children)
+			for (const teq::iEdge& child : children)
 			{
 				roots_.erase(child.get_tensor().get());
 			}
@@ -231,14 +231,14 @@ LayerptrT load_layer (std::istream& ins, teq::TensptrsT& roots,
 	std::string ltype, std::string label,
 	LayerRegistry& registry)
 {
-	cortenn::Graph graph;
+	tenncor::Graph graph;
 	if (false == graph.ParseFromIstream(&ins))
 	{
 		logs::fatalf("failed to parse from istream when loading %s",
 			ltype.c_str());
 	}
 	teq::TensptrSetT info;
-	pbm::load_graph<eteq::EADLoader>(info, graph);
+	eteq::load_graph(info, graph);
 
 	teq::OwnerMapT owners = teq::track_owners(
 		teq::TensptrsT(info.begin(), info.end()));
@@ -262,28 +262,12 @@ LayerptrT load_layer (std::istream& ins, teq::TensptrsT& roots,
 bool save_layer (std::ostream& outs, const iLayer& layer, teq::TensptrsT roots,
 	LayerRegistry& registry)
 {
-	pbm::GraphSaver<eteq::EADSaver> saver(registry.get_tag_registry());
-	for (auto& root : roots)
-	{
-		if (nullptr != root)
-		{
-			root->accept(saver);
-		}
-	}
-
 	auto contents = layer.get_contents();
-	auto owners = teq::track_owners(contents);
-	for (auto tens : contents)
-	{
-		if (nullptr != tens)
-		{
-			tens->accept(saver);
-		}
-	}
+	roots.insert(roots.end(), contents.begin(), contents.end());
 
 	// save graph from source
-	cortenn::Graph graph;
-	saver.save(graph);
+	tenncor::Graph graph;
+	eteq::save_graph(graph, roots, registry.get_tag_registry());
 	return graph.SerializeToOstream(&outs);
 }
 

@@ -7,8 +7,8 @@
 #include "exam/exam.hpp"
 
 #include "teq/mock/leaf.hpp"
+#include "teq/mock/functor.hpp"
 
-#include "teq/functor.hpp"
 #include "teq/traveler.hpp"
 
 
@@ -18,15 +18,9 @@ TEST(TRAVELER, GraphStat)
 	teq::TensptrT b(new MockTensor());
 	teq::TensptrT c(new MockTensor());
 
-	teq::TensptrT f(teq::Functor::get(teq::Opcode{"MOCK1", 1}, {
-		teq::identity_map(a),
-		teq::identity_map(b),
-	}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(teq::Functor::get(teq::Opcode{"MOCK0", 0}, {
-		teq::identity_map(c),
-		teq::identity_map(f),
-	}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK0", 0}));
 
 	teq::GraphStat stat;
 	g->accept(stat);
@@ -44,15 +38,9 @@ TEST(TRAVELER, PathFinder)
 	teq::TensptrT b(new MockTensor());
 	teq::TensptrT c(new MockTensor());
 
-	teq::TensptrT f(teq::Functor::get(teq::Opcode{"MOCK1", 1}, {
-		teq::identity_map(a),
-		teq::identity_map(b),
-	}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(teq::Functor::get(teq::Opcode{"MOCK1", 1}, {
-		teq::identity_map(c),
-		teq::identity_map(f),
-	}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK1", 1}));
 
 	teq::PathFinder finder(a.get());
 	g->accept(finder);
@@ -97,21 +85,11 @@ TEST(TRAVELER, ReverseParentGraph)
 	teq::TensptrT b(new MockTensor());
 	teq::TensptrT c(new MockTensor());
 
-	teq::TensptrT f(teq::Functor::get(teq::Opcode{"f", 1}, {
-		teq::identity_map(a),
-		teq::identity_map(b),
-	}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
 
-	teq::TensptrT g(teq::Functor::get(teq::Opcode{"g", 2}, {
-		teq::identity_map(f),
-		teq::identity_map(b),
-	}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, b}, teq::Opcode{"g", 2}));
 
-	teq::TensptrT h(teq::Functor::get(teq::Opcode{"h", 3}, {
-		teq::identity_map(c),
-		teq::identity_map(f),
-		teq::identity_map(g),
-	}));
+	teq::TensptrT h(new MockFunctor(teq::TensptrsT{c, f, g}, teq::Opcode{"h", 3}));
 
 	teq::ParentFinder finder;
 	h->accept(finder);
@@ -151,15 +129,9 @@ TEST(TRAVELER, Owners)
 	teq::iTensor* fref;
 	teq::iTensor* gref;
 	{
-		teq::TensptrT f(teq::Functor::get(teq::Opcode{"f", 1}, {
-			teq::identity_map(a),
-			teq::identity_map(b),
-		}));
+		teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
 
-		teq::TensptrT g(teq::Functor::get(teq::Opcode{"g", 2}, {
-			teq::identity_map(f),
-			teq::identity_map(c),
-		}));
+		teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, c}, teq::Opcode{"g", 2}));
 		fref = f.get();
 		gref = g.get();
 

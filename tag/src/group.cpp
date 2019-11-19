@@ -47,11 +47,11 @@ void adjacencies (AdjMapT& out, teq::TensptrsT roots,
 			std::vector<std::string> groups;
 			if (estd::get(groups, tags, groups_key))
 			{
-				auto& children = func->get_children();
+				auto children = func->get_children();
 				teq::TensSetT uchildren;
 				std::transform(children.begin(), children.end(),
 					std::inserter(uchildren, uchildren.end()),
-					[](const teq::FuncArg& arg)
+					[](const teq::iEdge& arg)
 					{
 						return arg.get_tensor().get();
 					});

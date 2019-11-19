@@ -1,53 +1,133 @@
-# Optimization Rules Explained in Natural Language
+# **Optimization Rules Explained in Natural Language**
 
-### Comments
+## **Module Purpose**
+---
 
-Single line comment are double slashes (//).
+The optimization module takes TEQ graphs as an input and outputs TEQ graphs whereby specified input roots remain unchanged.
 
-## Statements
+The module matches input TEQ graph against **matchers**.
 
-There are 4 types of statements in .rules minilanguage:
+Each matcher is associated with a corresponding **target**.
 
-- symbol declaration
-- group declaration
-- property mapping
-- conversion
+For *matched* subgraphs of input TEQ graph, the module converts that subgraph with associated *target*.
 
-## Symbol Declaration
+CversionCtx are matcher-target pairs that make up the basic components of the optimization module.
 
-A symbol is a generic representation of any node in an TEQ graph.
-In conversions, symbols can be used to represent "leaves" of subgraphs.
-Symbols must be declared before they can be used in conversions.
+The .rules minilanguage defines conversions.
 
-#### Syntax:
+# Minilanguage .rule
+---
 
-Symbol declaration has the following syntax:
+In every .rules file, conversions are separated by ';'. Newlines and spaces are ignored.
+
+Precedence of conversions are by order of statements defined.
+That is, the first conversion specified will be applied before the second, and so on.
+
+## **Keywords**
+
+comm - declares that the following symbol is a commutative function
+
+## **Primitives**
+
+- number: a double precision decimal in base-10 form without scientific notation (hex and binary not supported)
+- symbol: an alphabetic word with the following constraints:
+    - no longer than 31 letters in length (symbols longer than 31 are unrecognized)
+    - may contain underscores ('_')
+
+## **Conversion Syntax**
+
+A conversion statement has the following syntax:
 ```
-symbol A // this declares A
+Matcher => Target
 ```
 
-## Property Mapping
+## Matcher Syntax
+---
 
-## Conversion
+A **matcher** is a function (commutative or non-commutative)
 
-A conversion identifies an TEQ subgraph and defines a new subgraph to convert to given specied symbols and scalars.
+The function takes the form:
 
-#### Syntax:
-
-Conversion statement has the following syntax:
 ```
-<Subgraph to identify> => <Subgraph to convert>
+[ <keyword> ] <function name> '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
 ```
 
-A subgraph can be:
+where symbols wrapped in:
+- `<>` denote variables
+- `''` denote literals
+- `[]` denote optional parts
 
-- a scalar (of double type). e.g.: `1`, or `2.1`
-- a symbol. e.g.: `A`
-- a functor. e.g.: `Function(<arguments>)`
-- a group. e.g.: `group:G(<arguments>)`
+The `<keyword>` can be `comm` which specifies how the arguments are matched:
+- `comm` arguments are matched in any order.
+- without this keyword, arguments are matched in specified order.
 
-An argument is a subgraph with an optional edge affix `=<edge info>`
+The `<function name>` has the same constraint as a symbol specified above.
 
-Edge info is a JSON object that contain keys `coorder` or `shaper`. Edge info requires the edge from the parent to the particular argument to match the included attributes.
+An `<argument>` can be a number, symbol, or function
 
-A group is allowed one variadic argument at the end of arguments list (e.g.: `group:G(<arguments>,...B)`). This argument cannot be a subgraph and it is not allowed edge affix.
+An `<variadics>` is a symbol denoting all the remaining arguments of the function.
+Since variadics specify multiple arguments, they cannot specify attributes.
+
+An `<attribute>` is a map in the form:
+
+```
+'{' <key> ':' <value> [ ',' <more key-value...> ] '}'
+```
+
+The attribute's `<key>` is a symbol, and `<value>` can be a number or array of number defined as:
+
+```
+'[' <number> [ ',' <other number...> ] ']'
+```
+
+### Note on Attribute
+
+Specifying attribute adds a matcher constraint whereby the `marsh::Maps` returned from `iEdge::get_attrs` must contains a key-value pair equal to specified key-value pair.
+
+### Note on Variadic Arguments and Commutative functions
+
+Due .rule supporting both variadic and commutative functions, it is impractical for commutative AND variadic functions to hold function argument of height greater than one.
+
+If a function is a commutative AND contains a variadic argument, it cannot hold more than one function argument, and that function argument cannot contain variadic arguments or function arguments.
+
+Additionally the matcher cannot have more than one commutative function.
+
+The following are disallowed:
+
+- comm Foo(comm Bar(X))
+- Foo(comm Bar(X), comm Baz(X))
+- comm Foo(Bar(Baz(X)),..Y)
+- comm Foo(Baz(X),Bar(Y),..Y)
+- comm Foo(Bar(X,..Y),..Z)
+
+## Target Syntax
+---
+
+A **target** can be any of the following:
+
+- a number constant
+- a symbol
+- a function (without any keywords before the function name)
+
+### **Target Function Syntax**
+
+A target function is much like matcher function except it takes the form:
+
+```
+<function name> '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
+```
+
+or
+
+```
+<function name> '(' '..' <variadics> ')'
+```
+
+Since commutativity specifies argument order when matching, targets don't care about this property.
+
+Target also allows functions to contain only the variadic arguments.
+This is used to reduce the number of arguments (a common optimization method).
+
+## Comments
+
+Single line comment are double slashes "//".

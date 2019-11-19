@@ -51,6 +51,7 @@ def pybind_py_library(
             # GCC and Clang don't always agree / succeed when inferring storage
             # duration (#9600). Workaround it for now.
             "-Wno-unused-lambda-capture",
+            "-std=c++17",
         ],
         # Always link to pybind11.
         deps = [

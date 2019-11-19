@@ -10,18 +10,18 @@ filegroup(
 )
 
 filegroup(
-    name = "test_srcs",
+    name = "mock_srcs",
     srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
+        "mock/*.hpp",
+        "mock/*.cpp",
     ]),
 )
 
 filegroup(
-    name = "benchmark_srcs",
+    name = "test_srcs",
     srcs = glob([
-        "bm/*.hpp",
-        "bm/*.cpp",
+        "test/*.hpp",
+        "test/*.cpp",
     ]),
 )
 
@@ -32,7 +32,10 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17", "-DSDIM_BYTES=2"],
-    deps = ["@com_github_mingkaic_cppkg//estd:estd"],
+    deps = [
+        "//marsh:marsh",
+        "@com_github_mingkaic_cppkg//estd:estd",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -52,18 +55,6 @@ cc_test(
     deps = [
         "//teq:mock_teq",
         "//testutil:tutil",
-    ],
-    copts = ["-std=c++17"],
-)
-
-######### BENCHMARK #########
-
-cc_binary(
-    name = "benchmark",
-    srcs = ["//teq:benchmark_srcs"],
-    deps = [
-        "//teq:teq",
-        "@com_github_google_benchmark//:benchmark",
     ],
     copts = ["-std=c++17"],
 )
