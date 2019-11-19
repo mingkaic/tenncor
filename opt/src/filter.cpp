@@ -163,7 +163,7 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 			functors.push_back(std::static_pointer_cast<teq::iFunctor>(
 				owners.at(gpair.first).lock()));
 		}
-		else
+		else if (static_cast<teq::iLeaf*>(gpair.first)->is_const())
 		{
 			constants.emplace(gpair.first);
 		}

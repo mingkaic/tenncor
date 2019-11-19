@@ -6,9 +6,6 @@
 /// Define functions for marshal and unmarshal data sources
 ///
 
-#include "eigen/generated/opcode.hpp"
-#include "eigen/generated/dtype.hpp"
-
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 #include "eteq/functor.hpp"

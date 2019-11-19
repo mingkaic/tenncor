@@ -11,7 +11,6 @@
 #include "tag/locator.hpp"
 
 #include "eigen/generated/opcode.hpp"
-#include "eigen/operator.hpp"
 
 #include "eteq/edge.hpp"
 
