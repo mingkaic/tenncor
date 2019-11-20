@@ -9,6 +9,14 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
 ######### LIBRARIES #########
 
 cc_library(
@@ -21,4 +29,18 @@ cc_library(
         "@com_github_mingkaic_cppkg//estd:estd",
     ],
     visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = ["//marsh:test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//marsh:marsh",
+        "@gtest//:gtest",
+        "@boost//:property_tree",
+    ],
+    linkstatic = True,
 )

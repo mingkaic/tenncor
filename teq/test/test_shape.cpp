@@ -50,7 +50,7 @@ TEST(SHAPE, Init)
 
 
 TEST(SHAPE, VecAssign)
-{\
+{
 	std::vector<teq::DimT> zerolist = {3, 0, 11, 89};
 	std::vector<teq::DimT> slist = {52, 58, 35, 46, 77, 80};
 	std::vector<teq::DimT> junk = {7, 42};

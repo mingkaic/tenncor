@@ -87,6 +87,8 @@ struct iArray : public iObject
 
 	virtual void foreach (std::function<void(const ObjptrT&)> consume) const = 0;
 
+	virtual size_t size (void) const = 0;
+
 	void accept (iMarshaler& marshaler) const override
 	{
 		marshaler.marshal(*this);
@@ -132,6 +134,11 @@ struct ObjArray final : public iArray
 			}
 		}
 		return true;
+	}
+
+	size_t size (void) const override
+	{
+		return contents_.size();
 	}
 
 	void foreach (std::function<void(ObjptrT&)> consume) override
@@ -181,6 +188,11 @@ struct NumArray final : public iArray
 		}
 		auto& ocontents = static_cast<const NumArray<T>*>(&other)->contents_;
 		return std::equal(contents_.begin(), contents_.end(), ocontents.begin());
+	}
+
+	size_t size (void) const override
+	{
+		return contents_.size();
 	}
 
 	void foreach (std::function<void(ObjptrT&)> consume) override
