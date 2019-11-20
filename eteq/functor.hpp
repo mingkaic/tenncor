@@ -145,7 +145,7 @@ struct Functor final : public teq::iOperableFunc
 	void initialize (void)
 	{
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			shape_, out_, eigen::EigenEdgesT<T>(args_.begin(), args_.end()));
+			out_, eigen::EigenEdgesT<T>(args_.begin(), args_.end()));
 	}
 
 private:

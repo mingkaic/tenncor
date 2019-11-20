@@ -7,7 +7,9 @@ lcov --base-directory . --directory . --zerocounters;
 set -e
 
 echo "===== ENVIRONMENT =====";
-# free -m;
+if [ -x "$(command -v free)" ]; then
+	free -m;
+fi
 
 # ===== Run Gtest =====
 echo "===== TESTS =====";
@@ -40,7 +42,7 @@ else
 fi
 
 lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \
-'testutil/*' '**/genfiles/*' 'dbg/*' -o "$COV_DIR/coverage.info";
+'testutil/*' '**/genfiles/*' 'dbg/*' '**/mock/*' -o "$COV_DIR/coverage.info";
 send2codecov "$COV_DIR/coverage.info";
 
 echo "";

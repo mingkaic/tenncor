@@ -49,11 +49,19 @@ std::string const_encode (const T* data, const teq::Shape& shape)
 		}
 		return fmts::to_string(data[0]);
 	}
-	auto out = fmts::to_string(data,
-		data + std::min(label_limit, nelems));
+	std::string out;
 	if (nelems > label_limit)
 	{
-		out += "...";
+		std::vector<std::string> strs;
+		strs.reserve(label_limit + 1);
+		std::transform(data, data + label_limit, std::back_inserter(strs),
+			[](T e) { return fmts::to_string(e); });
+		strs.push_back("...");
+		out = fmts::to_string(strs.begin(), strs.end());
+	}
+	else
+	{
+		out = fmts::to_string(data, data + std::min(label_limit, nelems));
 	}
 	return out;
 }

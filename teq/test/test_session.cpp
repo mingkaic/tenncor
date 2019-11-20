@@ -7,6 +7,7 @@
 #include "exam/exam.hpp"
 
 #include "teq/mock/leaf.hpp"
+#include "teq/mock/functor.hpp"
 #include "teq/mock/opfunc.hpp"
 
 #include "teq/session.hpp"
@@ -28,6 +29,7 @@ TEST(SESSION, Track)
 	// this tests if session can track be called multiple times
 	teq::Session session;
 	session.track({target});
+	EXPECT_EQ(1, session.get_tracked().size());
 
 	// expect session.ops_ to contain x and target
 	EXPECT_ARRHAS(session.ops_, x.get());
@@ -39,6 +41,7 @@ TEST(SESSION, Track)
 	EXPECT_EQ(1, session.tracked_.size());
 
 	session.track({target2});
+	EXPECT_EQ(2, session.get_tracked().size());
 
 	// expect session.ops_ to contain all the ops
 	EXPECT_ARRHAS(session.ops_, x.get());
@@ -75,6 +78,7 @@ TEST(SESSION, Update)
 
 	teq::Session session;
 	session.track({target});
+	EXPECT_EQ(1, session.get_tracked().size());
 	session.update();
 
 	// expected state:
@@ -116,6 +120,7 @@ TEST(SESSION, UpdateIgnore)
 
 	teq::Session session;
 	session.track({target});
+	EXPECT_EQ(1, session.get_tracked().size());
 	session.update({y.get()});
 
 	// expected state:
@@ -180,6 +185,7 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 
 	teq::Session session;
 	session.track({target});
+	EXPECT_EQ(1, session.get_tracked().size());
 	session.update({y.get()});
 
 	// expected state:
@@ -222,6 +228,7 @@ TEST(SESSION, TargetedUpdate)
 
 	teq::Session session;
 	session.track({target});
+	EXPECT_EQ(1, session.get_tracked().size());
 	session.update_target(teq::TensSetT{x.get()});
 
 	// expected state:
@@ -264,6 +271,7 @@ TEST(SESSION, TargetedUpdateIgnore)
 
 	teq::Session session;
 	session.track({target});
+	EXPECT_EQ(1, session.get_tracked().size());
 	session.update_target({y.get()}, {x.get()});
 
 	// expected state:
@@ -316,6 +324,7 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 
 	teq::Session session;
 	session.track({target});
+	EXPECT_EQ(1, session.get_tracked().size());
 	session.update_target({z.get()}, {y.get()});
 
 	// expected state:
@@ -336,6 +345,49 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 	EXPECT_FALSE(y->updated_);
 	EXPECT_TRUE(x->updated_);
 	EXPECT_TRUE(u->updated_);
+}
+
+
+TEST(SESSION, Clear)
+{
+	teq::Shape shape;
+
+	teq::TensptrT a(new MockTensor(shape));
+	teq::TensptrT b(new MockTensor(shape));
+	teq::TensptrT c(new MockTensor(shape));
+	teq::TensptrT d(new MockTensor(shape));
+
+	std::shared_ptr<MockOpfunc> u = std::make_shared<MockOpfunc>(a);
+	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(u, b);
+	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(c, u);
+	std::shared_ptr<MockOpfunc> z = std::make_shared<MockOpfunc>(y, x);
+	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(z, d);
+
+	teq::Session session;
+	session.track({target});
+	EXPECT_EQ(1, session.get_tracked().size());
+	session.clear();
+	EXPECT_EQ(0, session.get_tracked().size());
+	session.update();
+
+	EXPECT_FALSE(target->updated_);
+	EXPECT_FALSE(z->updated_);
+	EXPECT_FALSE(y->updated_);
+	EXPECT_FALSE(x->updated_);
+	EXPECT_FALSE(u->updated_);
+}
+
+
+TEST(SESSION, FailTrack)
+{
+	teq::Shape shape;
+	teq::TensptrT a(new MockTensor(shape));
+	std::shared_ptr<MockFunctor> b = std::make_shared<MockFunctor>(
+		teq::TensptrsT{a}, teq::Opcode{"bad_func", 0});
+
+	teq::Session session;
+	EXPECT_FATAL(session.track({b}),
+		"cannot track non-operable functor bad_func");
 }
 
 
