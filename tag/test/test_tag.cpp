@@ -6,50 +6,11 @@
 
 #include "exam/exam.hpp"
 
-#include "tag/test/common.hpp"
+#include "teq/mock/leaf.hpp"
 
 #include "tag/tag.hpp"
 
-
-static std::string tag_key = "mock_tag";
-
-static std::vector<std::string> tag_values{"A", "B", "C"};
-
-static size_t tid = 1234;
-
-
-struct MockTag final : public tag::iTag
-{
-	MockTag (void) = default;
-
-	MockTag (size_t tagid, std::string tagk) :
-		tid_(tagid), tag_key_(tagk) {}
-
-	size_t tag_id (void) const override
-	{
-		return tid_;
-	}
-
-	void absorb (std::unique_ptr<tag::iTag>&& other) override
-	{
-		++add_count_;
-	}
-
-	tag::TagRepsT get_tags (void) const override
-	{
-		std::vector<std::string> tag_values_cpy = tag_values;
-		tag_values_cpy.push_back(fmts::to_string(add_count_));
-		return tag::TagRepsT({
-			{tag_key_, tag_values_cpy},
-		});
-	}
-
-	size_t add_count_ = 1;
-
-	size_t tid_ = tid;
-
-	std::string tag_key_ = tag_key;
-};
+#include "tag/mock/tag.hpp"
 
 
 TEST(TAG, AddGet)
@@ -164,6 +125,36 @@ TEST(TAG, AddMove)
 	// expect no changes
 	EXPECT_FATAL(registry.move_tags(ref, ptr2),
 		"cannot move with expired destination tensor");
+}
+
+
+TEST(TAG, RegistryRetag)
+{
+	tag::TagRegistry registry;
+
+	teq::iTensor* orig = new MockTensor();
+	teq::iTensor* repl = new MockTensor();
+
+	teq::TensptrT tens(orig, [](teq::iTensor* tens){});
+	registry.add_tag(tens, std::make_unique<MockTag>(tid + 1, tag_key + "1"));
+
+	auto reps = registry.get_tags(orig);
+	EXPECT_EQ(1, reps.size());
+	ASSERT_HAS(reps, tag_key + "1");
+	EXPECT_ARREQ(tag_values, reps[tag_key + "1"]);
+
+	tens.reset(repl);
+
+	reps = registry.get_tags(orig);
+	EXPECT_EQ(0, reps.size());
+
+	teq::TensptrT retens(orig);
+	registry.add_tag(retens, std::make_unique<MockTag>(tid + 1, tag_key + "2"));
+
+	reps = registry.get_tags(orig);
+	EXPECT_EQ(1, reps.size());
+	ASSERT_HAS(reps, tag_key + "2");
+	EXPECT_ARREQ(tag_values, reps[tag_key + "2"]);
 }
 
 

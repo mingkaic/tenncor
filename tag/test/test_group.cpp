@@ -6,9 +6,8 @@
 
 #include "exam/exam.hpp"
 
+#include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
-
-#include "tag/test/common.hpp"
 
 #include "tag/group.hpp"
 

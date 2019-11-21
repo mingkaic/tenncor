@@ -283,6 +283,15 @@ key_val:	SYMBOL COLON NUMBER
 				numlist_move(&kv->val_, $4);
 				free($4);
 			}
+			|
+			SYMBOL COLON LSB RSB
+			{
+				size_t nbytes = sizeof(struct KeyVal);
+				struct KeyVal* kv = $$ = malloc(nbytes);
+				memset(kv, 0, nbytes);
+
+				strncpy(kv->key_, $1, NSYMBOL);
+			}
 
 num_arr:	num_arr COMMA NUMBER
 			{

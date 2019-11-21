@@ -63,9 +63,9 @@ TEST(SAVE, SaveGraph)
 							}, teq::Opcode{"sin", 5}), {}),
 							{src, {}},
 						}, teq::Opcode{"+", 4}), {})
-					}, teq::Opcode{"/", 2}), {}, {1, 0}),
+					}, teq::Opcode{"/", 2}), {}, {1, 0}, {4, 5}),
 					MockEdge(osrc2, {})
-				}, teq::Opcode{"@", 1}), {}, {1, 2, 0}),
+				}, teq::Opcode{"@", 1}), {}, {1, 2, 0}, {4, 2}),
 			}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
 

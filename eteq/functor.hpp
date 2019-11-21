@@ -314,8 +314,9 @@ struct ReducePacker
 			// todo: warn
 			return {};
 		}
-		return {Edge<T>(node, teq::Shape(slist),
-			std::vector<double>(dims.begin(), dims.end()))};
+		std::vector<double> rdims(dims.begin(), dims.end());
+		std::sort(rdims.begin(), rdims.end());
+		return {Edge<T>(node, teq::Shape(slist), rdims)};
 	}
 
 	ArgsT<T> pack (const NodesT<T>& nodes, teq::RankT offset, teq::RankT ndims)
@@ -820,23 +821,24 @@ struct FuncPacker<T,egen::EXTEND> final
 			logs::fatalf("cannot extend shape ranks %s beyond rank_cap",
 				fmts::to_string(bcast.begin(), bcast.end()).c_str());
 		}
+		while (nbcasts > 0 && 1 == bcast[nbcasts - 1])
+		{
+			--nbcasts;
+		}
 		eteq::NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		std::vector<double> xlist(teq::rank_cap, 1);
 		for (size_t i = 0; i < nbcasts; ++i)
 		{
-			if (bcast.at(i) > 1)
+			if (bcast.at(i) > 1 && shape.at(i) > 1)
 			{
-				if (shape.at(i) > 1)
-				{
-					logs::fatalf("cannot extend non-singular dimension %d of shape %s",
-						i, shape.to_string().c_str());
-				}
-				slist[i] = xlist[i] = bcast[i];
+				logs::fatalf("cannot extend non-singular dimension %d of shape %s",
+					i, shape.to_string().c_str());
 			}
+			slist[i] *= bcast[i];
 		}
-		return {eteq::Edge<T>(arg, teq::Shape(slist), xlist)};
+		return {eteq::Edge<T>(arg, teq::Shape(slist),
+			std::vector<double>(bcast.begin(), bcast.begin() + nbcasts))};
 	}
 
 	ArgsT<T> pack (const NodesT<T>& nodes, teq::RankT offset, const std::vector<teq::DimT>& xlist)

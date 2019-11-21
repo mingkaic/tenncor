@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "tag/test/common.hpp"
+#include "teq/mock/leaf.hpp"
 
 #include "tag/prop.hpp"
 

@@ -187,7 +187,8 @@ struct NumArray final : public iArray
 			return false;
 		}
 		auto& ocontents = static_cast<const NumArray<T>*>(&other)->contents_;
-		return std::equal(contents_.begin(), contents_.end(), ocontents.begin());
+		return contents_.size() == ocontents.size() &&
+			std::equal(contents_.begin(), contents_.end(), ocontents.begin());
 	}
 
 	size_t size (void) const override

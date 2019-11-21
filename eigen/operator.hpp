@@ -172,6 +172,7 @@ EigenptrT<T> extend (const iEigenEdge<T>& in)
 {
 	teq::CoordT coord;
 	auto c = get_coorder(in);
+	std::fill(coord.begin(), coord.end(), 1);
 	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		coord.begin());
 	return make_eigentensor<T,Eigen::TensorBroadcastingOp<

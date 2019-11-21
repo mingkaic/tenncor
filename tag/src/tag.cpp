@@ -24,12 +24,9 @@ struct Tagger final : public teq::iTraveler
 	{
 		if (false == estd::has(stops_, leaf))
 		{
-			auto it = owners_.find(leaf);
-			if (owners_.end() == it)
-			{
-				logs::fatal("failed to get reference to leaf in group traveler");
-			}
-			tag_op_(it->second);
+			tag_op_(estd::must_getf(owners_, leaf,
+				"failed to get reference to leaf %s in group traveler",
+				leaf->to_string().c_str()));
 		}
 	}
 
@@ -38,11 +35,6 @@ struct Tagger final : public teq::iTraveler
 	{
 		if (false == estd::has(stops_, func))
 		{
-			auto it = owners_.find(func);
-			if (owners_.end() == it)
-			{
-				logs::fatal("failed to get reference to leaf in group traveler");
-			}
 			auto children = func->get_children();
 			for (const teq::iEdge& child : children)
 			{
@@ -50,7 +42,9 @@ struct Tagger final : public teq::iTraveler
 				owners_.emplace(tens.get(), tens);
 				tens->accept(*this);
 			}
-			tag_op_(it->second);
+			tag_op_(estd::must_getf(owners_, func,
+				"failed to get reference to functor %s in group traveler",
+				func->to_string().c_str()));
 		}
 	}
 
