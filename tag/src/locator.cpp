@@ -47,16 +47,18 @@ std::string display_location (teq::TensptrT tens,
 	}
 	out << ">" << tens->to_string() << "<:" << tens->shape().to_string() << "{";
 	tag::TagRepsT tags = tagreg.get_tags(tens.get());
-	if (tags.size() > 0)
+	size_t ntags = tags.size();
+	if (ntags > 0)
 	{
-		auto it = tags.begin(), et = tags.end();
-		out << it->first << ":"
-			<< fmts::to_string(it->second.begin(), it->second.end());
-		for (++it; it != et; ++it)
-		{
-			out << "," << it->first << ":"
-				<< fmts::to_string(it->second.begin(), it->second.end());
-		}
+		std::vector<std::string> tagstr;
+		tagstr.reserve(ntags);
+		std::transform(tags.begin(), tags.end(), std::back_inserter(tagstr),
+			[](const std::pair<std::string,std::vector<std::string>>& tpair)
+			{
+				return tpair.first + ":" + fmts::to_string(
+					tpair.second.begin(), tpair.second.end());
+			});
+		out << fmts::join(",", tagstr.begin(), tagstr.end());
 	}
 	out << "}";
 	if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(tens.get()))

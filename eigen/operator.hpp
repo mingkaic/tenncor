@@ -190,8 +190,8 @@ EigenptrT<T> permute (const iEigenEdge<T>& in)
 {
 	teq::CoordT reorder;
 	auto c = get_coorder(in);
-	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
-		reorder.begin());
+	assert(c.size() == teq::rank_cap);
+	std::copy(c.begin(), c.end(), reorder.begin());
 	teq::Shape outshape = in.shape();
 	if (is_2d(outshape) && reorder[0] == 1 && reorder[1] == 0)
 	{
@@ -226,10 +226,12 @@ EigenptrT<T> reshape (const iEigenEdge<T>& in)
 template <typename T>
 EigenptrT<T> slice (const iEigenEdge<T>& in)
 {
+	teq::Shape argshape = in.argshape();
 	teq::ShapeT offsets;
 	teq::ShapeT extents;
+	std::fill(offsets.begin(), offsets.end(), 0);
+	std::copy(argshape.begin(), argshape.end(), extents.begin());
 	auto encoding = get_coorder(in);
-	assert(encoding.size() == 2 * teq::rank_cap);
 	size_t n = encoding.size();
 	if (1 == n % 2)
 	{
@@ -243,12 +245,11 @@ EigenptrT<T> slice (const iEigenEdge<T>& in)
 	}
 	DimensionsT outdims = shape_convert(in.shape());
 	return make_eigentensor<T,Eigen::TensorReshapingOp<
-			const DimensionsT,
-			Eigen::TensorSlicingOp<
-				const teq::ShapeT, const teq::ShapeT,
-				TensMapT<T>>>,
+		const DimensionsT, Eigen::TensorSlicingOp<
+			const teq::ShapeT, const teq::ShapeT,
+			TensMapT<T>>>,
 		TensMapT<T>>(
-		outdims, make_tensmap(in.data(), in.argshape()),
+		outdims, make_tensmap(in.data(), argshape),
 		[&offsets, &extents, &outdims](TensMapT<T>& in)
 		{
 			return in.slice(offsets, extents).reshape(outdims);
