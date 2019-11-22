@@ -281,10 +281,29 @@ struct FuncPacker final
 	}
 };
 
+template <typename T>
+struct EmptyPacker
+{
+	virtual ~EmptyPacker (void) = default;
+
+	ArgsT<T> pack (const NodesT<T>& nodes)
+	{
+		return {};
+	}
+
+	template <typename ...ARGS>
+	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
+	{
+		return pack(nodes);
+	}
+};
+
 template <typename T,egen::_GENERATED_OPCODE OPCODE>
-struct ReducePacker
+struct ReducePacker : private EmptyPacker<T>
 {
 	virtual ~ReducePacker (void) = default;
+
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, std::set<teq::RankT> dims)
 	{
@@ -336,77 +355,30 @@ template <typename T>
 struct FuncPacker<T,egen::REDUCE_SUM> final : private ReducePacker<T,egen::REDUCE_SUM>
 {
 	using ReducePacker<T,egen::REDUCE_SUM>::pack;
-
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
 struct FuncPacker<T,egen::REDUCE_PROD> final : private ReducePacker<T,egen::REDUCE_PROD>
 {
 	using ReducePacker<T,egen::REDUCE_PROD>::pack;
-
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
 struct FuncPacker<T,egen::REDUCE_MIN> final : private ReducePacker<T,egen::REDUCE_MIN>
 {
 	using ReducePacker<T,egen::REDUCE_MIN>::pack;
-
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
 struct FuncPacker<T,egen::REDUCE_MAX> final : private ReducePacker<T,egen::REDUCE_MAX>
 {
 	using ReducePacker<T,egen::REDUCE_MAX>::pack;
-
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::ARGMAX> final
+struct FuncPacker<T,egen::ARGMAX> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, teq::RankT return_dim)
 	{
@@ -427,21 +399,12 @@ struct FuncPacker<T,egen::ARGMAX> final
 		return {Edge<T>(node, teq::Shape(slist), {
 			static_cast<double>(return_dim)})};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::SLICE> final
+struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const eigen::PairVecT<teq::DimT>& extents)
 	{
@@ -474,21 +437,12 @@ struct FuncPacker<T,egen::SLICE> final
 		}
 		return {eteq::Edge<T>(arg, teq::Shape(slist), eigen::encode_pair(xlist))};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::PAD> final
+struct FuncPacker<T,egen::PAD> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const eigen::PairVecT<teq::DimT>& paddings)
 	{
@@ -509,21 +463,12 @@ struct FuncPacker<T,egen::PAD> final
 		}
 		return {eteq::Edge<T>(arg, teq::Shape(slist), eigen::encode_pair(paddings))};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::STRIDE> final
+struct FuncPacker<T,egen::STRIDE> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const std::vector<teq::DimT>& incrs)
 	{
@@ -548,21 +493,12 @@ struct FuncPacker<T,egen::STRIDE> final
 		}
 		return {eteq::Edge<T>(arg, teq::Shape(slist), coords)};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::SCATTER> final
+struct FuncPacker<T,egen::SCATTER> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const teq::Shape outshape,
 		const std::vector<teq::DimT>& incrs)
@@ -582,21 +518,12 @@ struct FuncPacker<T,egen::SCATTER> final
 		}
 		return {eteq::Edge<T>(arg, outshape, coords)};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::MATMUL> final
+struct FuncPacker<T,egen::MATMUL> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const eigen::PairVecT<teq::RankT>& dims)
 	{
@@ -654,21 +581,12 @@ struct FuncPacker<T,egen::MATMUL> final
 			eteq::Edge<T>(b, outshape, {}),
 		};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::CONV> final
+struct FuncPacker<T,egen::CONV> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const std::vector<teq::RankT>& dims)
 	{
@@ -695,32 +613,17 @@ struct FuncPacker<T,egen::CONV> final
 			eteq::Edge<T>(kernel, outshape, std::vector<double>(dims.begin(), dims.end())),
 		};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::REVERSE> final
+struct FuncPacker<T,egen::REVERSE> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const std::vector<teq::RankT>& dims)
 	{
 		eteq::NodeptrT<T> arg = nodes[0];
 		return {eteq::Edge<T>(arg,arg->shape(),std::vector<double>(dims.begin(),dims.end()))};
-	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
 	}
 };
 
@@ -736,12 +639,9 @@ static bool is_inorder (const std::vector<teq::RankT>& order)
 }
 
 template <typename T>
-struct FuncPacker<T,egen::PERMUTE> final
+struct FuncPacker<T,egen::PERMUTE> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const std::vector<teq::RankT>& order)
 	{
@@ -782,21 +682,12 @@ struct FuncPacker<T,egen::PERMUTE> final
 				std::vector<double>(indices.begin(), indices.end()))
 		};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::EXTEND> final
+struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, const std::vector<teq::DimT>& bcast)
 	{
@@ -844,21 +735,12 @@ struct FuncPacker<T,egen::EXTEND> final
 		bcast.insert(bcast.end(), xlist.begin(), xlist.end());
 		return pack(nodes, bcast);
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::CONCAT> final
+struct FuncPacker<T,egen::CONCAT> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, teq::RankT axis)
 	{
@@ -874,21 +756,12 @@ struct FuncPacker<T,egen::CONCAT> final
 			eteq::Edge<T>(right, outshape, {}),
 		};
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::GROUP_CONCAT> final
+struct FuncPacker<T,egen::GROUP_CONCAT> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, teq::RankT axis)
 	{
@@ -922,32 +795,17 @@ struct FuncPacker<T,egen::GROUP_CONCAT> final
 			[&](eteq::NodeptrT<T> arg) { return eteq::Edge<T>(arg, outshape, {}); });
 		return groups;
 	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
-	}
 };
 
 template <typename T>
-struct FuncPacker<T,egen::RESHAPE> final
+struct FuncPacker<T,egen::RESHAPE> final : private EmptyPacker<T>
 {
-	ArgsT<T> pack (const NodesT<T>& nodes)
-	{
-		return {};
-	}
+	using EmptyPacker<T>::pack;
 
 	ArgsT<T> pack (const NodesT<T>& nodes, teq::Shape shape)
 	{
 		eteq::NodeptrT<T> arg = nodes[0];
 		return {eteq::Edge<T>(arg, shape, {})};
-	}
-
-	template <typename ...ARGS>
-	ArgsT<T> pack (const NodesT<T>& nodes, ARGS... args)
-	{
-		return pack(nodes);
 	}
 };
 
@@ -970,6 +828,8 @@ NodeptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, NodesT<T> nodes, ARGS.
 	return std::make_shared<FunctorNode<T>>(
 		std::shared_ptr<Functor<T>>(Functor<T>::get(opcode, args)));
 }
+
+#undef CHOOSE_PACK
 
 }
 

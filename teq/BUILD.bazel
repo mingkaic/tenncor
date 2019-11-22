@@ -31,7 +31,8 @@ cc_library(
     name = "teq",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
-    copts = ["-std=c++17", "-DSDIM_BYTES=2"],
+    defines = ["SDIM_BYTES=2"],
+    copts = ["-std=c++17"],
     deps = [
         "//marsh:marsh",
         "@com_github_mingkaic_cppkg//estd:estd",

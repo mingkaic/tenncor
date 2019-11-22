@@ -48,7 +48,7 @@ struct Number final : public iNumber
 
 	size_t class_code (void) const override
 	{
-		static const std::type_info& tp = typeid(T);
+		static const std::type_info& tp = typeid(Number<T>);
 		return tp.hash_code();
 	}
 

@@ -77,55 +77,95 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 	return out;
 }
 
-#define _EIGEN_INTERNAL_V2A_CASE(N, PROCESS, RED)\
-case N: return make_eigentensor<T,\
-Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<RED,N,T>>,TensMapT<T>>(\
+}
+
+#define _ARRAY_SWITCH(ARR, CASE)switch (ARR.size()) {\
+	case 0: logs::fatal("missing dimensions");\
+	case 1: CASE(1)\
+	case 2: CASE(2)\
+	case 3: CASE(3)\
+	case 4: CASE(4)\
+	case 5: CASE(5)\
+	case 6: CASE(6)\
+	case 7: CASE(7)\
+	default: break;\
+} CASE(8)
+
+#define _EIGEN_RSUM_CASE(N)\
+return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
+Eigen::internal::SumReducer<T>,N,T>>,TensMapT<T>>(\
 outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& in) {\
-return in.PROCESS(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
-
-#define _EIGEN_INTERNAL_V2A(PROCESS, RED) {\
-	auto cdims = get_coorder(in);\
-	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());\
-	DimensionsT outdims = shape_convert(in.shape());\
-	switch (vdims.size()) {\
-		_EIGEN_INTERNAL_V2A_CASE(0, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(1, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(2, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(3, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(4, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(5, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(6, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(7, PROCESS, RED)\
-		default: break;\
-	} return make_eigentensor<T,Eigen::TensorReshapingOp<\
-		const DimensionsT,const ReduceOutT<RED,8,T>>,TensMapT<T>>(\
-		outdims, make_tensmap(in.data(), in.argshape()),\
-		[vdims, &outdims](TensMapT<T>& in) {\
-			return in.PROCESS(::eigen::internal::dim_copy<8>(vdims)).reshape(outdims);\
-		});\
-}
-
-}
+return in.sum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is sum
 template <typename T>
 EigenptrT<T> reduce_sum (const iEigenEdge<T>& in)
-_EIGEN_INTERNAL_V2A(sum, Eigen::internal::SumReducer<T>)
+{
+	auto cdims = get_coorder(in);
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
+	DimensionsT outdims = shape_convert(in.shape());
+	_ARRAY_SWITCH(vdims, _EIGEN_RSUM_CASE)
+}
+
+#undef _EIGEN_RSUM_CASE
+
+#define _EIGEN_RPROD_CASE(N)\
+return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
+Eigen::internal::ProdReducer<T>,N,T>>,TensMapT<T>>(\
+outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& in) {\
+return in.prod(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is prod
 template <typename T>
 EigenptrT<T> reduce_prod (const iEigenEdge<T>& in)
-_EIGEN_INTERNAL_V2A(prod, Eigen::internal::ProdReducer<T>)
+{
+	auto cdims = get_coorder(in);
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
+	DimensionsT outdims = shape_convert(in.shape());
+	_ARRAY_SWITCH(vdims, _EIGEN_RPROD_CASE)
+}
+
+#undef _EIGEN_RPROD_CASE
+
+#define _EIGEN_RMIN_CASE(N)\
+return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
+Eigen::internal::MinReducer<T>,N,T>>,TensMapT<T>>(\
+outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& in) {\
+return in.minimum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is min
 template <typename T>
 EigenptrT<T> reduce_min (const iEigenEdge<T>& in)
-_EIGEN_INTERNAL_V2A(minimum, Eigen::internal::MinReducer<T>)
+{
+	auto cdims = get_coorder(in);
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
+	DimensionsT outdims = shape_convert(in.shape());
+	_ARRAY_SWITCH(vdims, _EIGEN_RMIN_CASE)
+}
+
+#undef _EIGEN_RMIN_CASE
+
+#define _EIGEN_RMAX_CASE(N)\
+return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
+Eigen::internal::MaxReducer<T>,N,T>>,TensMapT<T>>(\
+outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& in) {\
+return in.maximum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is max
 template <typename T>
 EigenptrT<T> reduce_max (const iEigenEdge<T>& in)
-_EIGEN_INTERNAL_V2A(maximum, Eigen::internal::MaxReducer<T>)
+{
+	auto cdims = get_coorder(in);
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
+	DimensionsT outdims = shape_convert(in.shape());
+	_ARRAY_SWITCH(vdims, _EIGEN_RMAX_CASE)
+}
+
+#undef _EIGEN_RMIN_CASE
 
 /// Return Eigen data object that argmax in tensor at return_dim
 template <typename T>
@@ -1287,6 +1327,11 @@ using ContractionRetT = Eigen::TensorReshapingOp<
 		const std::array<std::pair<teq::RankT,teq::RankT>,N>,
 		const TensMapT<T>,const TensMapT<T>>>;
 
+#define _EIGEN_MATMUL_CASE(N)\
+return make_eigentensor<T,ContractionRetT<N,T>,std::vector<TensMapT<T>>>(outdims, args,\
+[&](std::vector<TensMapT<T>>& args){\
+return args[1].contract(args[0], internal::dim_copy<N>(dims)).reshape(outdims); });
+
 /// Only applies to 2-d tensors
 /// Apply matrix multiplication of a and b
 template <typename T>
@@ -1295,10 +1340,6 @@ EigenptrT<T> matmul (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 	teq::Shape outshape = a.shape();
 	auto c = get_coorder(a);
 	auto dims = decode_pair<teq::RankT>(c);
-	if (dims.empty())
-	{
-		logs::fatal("cannot contract tensors without specified dimensions");
-	}
 	for (size_t i = 0, n = dims.size(); i < n; ++i)
 	{
 		// contract reverses left, right arguments
@@ -1320,59 +1361,10 @@ EigenptrT<T> matmul (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 	std::vector<TensMapT<T>> args = {
 		make_tensmap(a.data(), a.argshape()),
 		make_tensmap(b.data(), b.argshape())};
-	switch (dims.size())
-	{
-		case 1:
-			return make_eigentensor<T,ContractionRetT<1,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<1>(dims)).reshape(outdims);
-				});
-		case 2:
-			return make_eigentensor<T,ContractionRetT<2,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<2>(dims)).reshape(outdims);
-				});
-		case 3:
-			return make_eigentensor<T,ContractionRetT<3,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<3>(dims)).reshape(outdims);
-				});
-		case 4:
-			return make_eigentensor<T,ContractionRetT<4,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<4>(dims)).reshape(outdims);
-				});
-		case 5:
-			return make_eigentensor<T,ContractionRetT<5,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<5>(dims)).reshape(outdims);
-				});
-		case 6:
-			return make_eigentensor<T,ContractionRetT<6,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<6>(dims)).reshape(outdims);
-				});
-		case 7:
-			return make_eigentensor<T,ContractionRetT<7,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<7>(dims)).reshape(outdims);
-				});
-		default:
-			break;
-	}
-	return make_eigentensor<T,ContractionRetT<teq::rank_cap,T>,std::vector<TensMapT<T>>>(outdims, args,
-		[&](std::vector<TensMapT<T>>& args)
-		{
-			return args[1].contract(args[0], internal::dim_copy<teq::rank_cap>(dims)).reshape(outdims);
-		});
+	_ARRAY_SWITCH(dims, _EIGEN_MATMUL_CASE);
 }
+
+#undef _EIGEN_MATMUL_CASE
 
 /// Apply convolution of kernel across input
 template <typename T>
@@ -1430,6 +1422,8 @@ EigenptrT<T> convolution (const iEigenEdge<T>& input, const iEigenEdge<T>& kerne
 			return args[0].convolve(args[1], dims);
 		});
 }
+
+#undef _ARRAY_SWITCH
 
 }
 

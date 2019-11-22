@@ -58,6 +58,8 @@ TEST(OBJS, ObjArray)
 	EXPECT_EQ(2, root.size());
 	EXPECT_EQ(2, sub->size());
 
+	EXPECT_STREQ("[[2\\1.11]\\3.3]", root.to_string().c_str());
+
 	std::vector<marsh::iObject*> root_refs;
 	root.foreach([&root_refs](marsh::ObjptrT& obj) { root_refs.push_back(obj.get()); });
 	ASSERT_EQ(2, root_refs.size());
@@ -86,6 +88,24 @@ TEST(OBJS, ObjArray)
 	EXPECT_TRUE(root.equals(root_clone));
 	EXPECT_TRUE(root_clone.equals(root));
 
+	marsh::ObjArray big_root;
+	{
+		big_root.contents_.emplace(big_root.contents_.end(),
+			std::make_unique<marsh::ObjArray>());
+		big_root.contents_.emplace(big_root.contents_.end(),
+			std::make_unique<marsh::Number<double>>(3.3));
+		big_root.contents_.emplace(big_root.contents_.end(),
+			std::make_unique<marsh::Number<double>>(3.4));
+
+		auto sub = static_cast<marsh::ObjArray*>(big_root.contents_[0].get());
+		sub->contents_.emplace(sub->contents_.end(),
+			std::make_unique<marsh::Number<size_t>>(2));
+		sub->contents_.emplace(sub->contents_.end(),
+			std::make_unique<marsh::Number<float>>(1.11));
+	}
+	EXPECT_FALSE(root.equals(big_root));
+	EXPECT_FALSE(big_root.equals(root));
+
 	marsh::ObjArray imperfect_clone; // demonstrate order matters
 	{
 		imperfect_clone.contents_.emplace(imperfect_clone.contents_.end(),
@@ -111,13 +131,105 @@ TEST(OBJS, ObjArray)
 }
 
 
-// todo: test these
 TEST(OBJS, NumArray)
-{}
+{
+	marsh::NumArray<double> root;
+	root.contents_ = {2, 3.3};
+
+	EXPECT_EQ(2, root.size());
+	EXPECT_STREQ("[2\\3.3]", root.to_string().c_str());
+
+	marsh::NumArray<size_t> empty;
+	EXPECT_FALSE(root.equals(empty));
+	EXPECT_FALSE(empty.equals(root));
+
+	marsh::NumArray<double> root_clone;
+	root_clone.contents_ = {2, 3.3};
+	EXPECT_TRUE(root.equals(root_clone));
+	EXPECT_TRUE(root_clone.equals(root));
+
+	marsh::NumArray<double> big_root;
+	big_root.contents_ = {2, 3.3, 5.2};
+	EXPECT_FALSE(root.equals(big_root));
+	EXPECT_FALSE(big_root.equals(root));
+
+	marsh::NumArray<double> imperfect_clone;
+	imperfect_clone.contents_ = {2, 3};
+	EXPECT_FALSE(root.equals(imperfect_clone));
+	EXPECT_FALSE(imperfect_clone.equals(root));
+
+	std::vector<double> values;
+	root.foreach(
+		[&values](marsh::ObjptrT& obj)
+		{
+			ASSERT_EQ(typeid(marsh::Number<double>).hash_code(),
+				obj->class_code());
+			auto num = static_cast<marsh::Number<double>*>(obj.get());
+			values.push_back(num->val_);
+		});
+	ASSERT_EQ(2, values.size());
+	EXPECT_DOUBLE_EQ(2, values[0]);
+	EXPECT_DOUBLE_EQ(3.3, values[1]);
+
+	marsh::JsonMarshaler parser;
+	std::string parsed_root = parser.parse(root, false);
+	fmts::trim(parsed_root);
+	EXPECT_STREQ("{\"\":\"2\",\"\":\"3.3\"}", parsed_root.c_str());
+	EXPECT_STREQ("[]", parser.parse(empty, false).c_str());
+}
 
 
 TEST(OBJS, Maps)
-{}
+{
+	marsh::Maps root;
+	root.contents_.emplace("obj1",
+		std::make_unique<marsh::NumArray<size_t>>());
+	root.contents_.emplace("obj2",
+		std::make_unique<marsh::Number<float>>(2.3));
+	EXPECT_STREQ("[obj1\\obj2]", root.to_string().c_str());
+
+	marsh::Maps empty;
+	EXPECT_FALSE(root.equals(empty));
+	EXPECT_FALSE(empty.equals(root));
+
+	marsh::Maps root_clone;
+	{
+		root_clone.contents_.emplace("obj1",
+			std::make_unique<marsh::NumArray<size_t>>());
+		root_clone.contents_.emplace("obj2",
+			std::make_unique<marsh::Number<float>>(2.3));
+	}
+	EXPECT_TRUE(root.equals(root_clone));
+	EXPECT_TRUE(root_clone.equals(root));
+
+	marsh::Maps big_root;
+	{
+		big_root.contents_.emplace("obj1",
+			std::make_unique<marsh::NumArray<size_t>>());
+		big_root.contents_.emplace("obj2",
+			std::make_unique<marsh::Number<float>>(2.3));
+		big_root.contents_.emplace("obj3",
+			std::make_unique<marsh::ObjArray>());
+	}
+	EXPECT_FALSE(root.equals(big_root));
+	EXPECT_FALSE(big_root.equals(root));
+
+	marsh::Maps imperfect_clone;
+	{
+		imperfect_clone.contents_.emplace("obj1",
+			std::make_unique<marsh::Number<float>>(2.3));
+		imperfect_clone.contents_.emplace("obj2",
+			std::make_unique<marsh::NumArray<size_t>>());
+	}
+	EXPECT_FALSE(root.equals(imperfect_clone));
+	EXPECT_FALSE(imperfect_clone.equals(root));
+
+	marsh::JsonMarshaler parser;
+	std::string parsed_root = parser.parse(root, false);
+	fmts::trim(parsed_root);
+	EXPECT_STREQ("{\"obj1\":\"\",\"obj2\":\"2.3\"}", parsed_root.c_str());
+	EXPECT_STREQ("[]", parser.parse(empty, false).c_str());
+}
 
 
 #endif // DISABLE_OBJS_TEST
