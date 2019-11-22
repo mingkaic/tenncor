@@ -126,11 +126,11 @@ struct EigenTensOp final : public iEigen<T>
 template <typename T, typename EigenArgs>
 struct EigenAssignTens final : public iEigen<T>
 {
-	EigenAssignTens (DimensionsT dims, EigenArgs args,
+	EigenAssignTens (T init_value, DimensionsT dims, EigenArgs args,
 		std::function<void(TensorT<T>&,const EigenArgs&)> assign) :
 		args_(args), assign_(assign), data_(dims)
 	{
-		data_.setZero();
+		data_.setConstant(init_value);
 	}
 
 	/// Implementation of iEigen<T>

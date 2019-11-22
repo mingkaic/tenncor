@@ -269,12 +269,11 @@ TEST(GROUP, RegistryRetag)
 	EXPECT_EQ(0, reps.size());
 
 	teq::TensptrT retens(orig);
-	registry.group_tag(retens, "buzzbuzz");
+	registry.group_tag(retens, "bumble");
 
 	reps = treg.get_tags(orig);
 	EXPECT_EQ(1, reps.size());
 	ASSERT_HAS(reps, "groups");
-	expect_values = {"buzzbuzz"};
 	EXPECT_ARREQ(expect_values, reps["groups"]);
 }
 

@@ -112,12 +112,12 @@ TEST(OBJS, ObjArray)
 
 
 // todo: test these
-// TEST(OBJS, NumArray)
-// {}
+TEST(OBJS, NumArray)
+{}
 
 
-// TEST(OBJS, Maps)
-// {}
+TEST(OBJS, Maps)
+{}
 
 
 #endif // DISABLE_OBJS_TEST

@@ -690,12 +690,9 @@ struct FuncPacker<T,egen::CONV> final
 			slist[dims[i]] -= kernelshape.at(i) - 1;
 		}
 		teq::Shape outshape(slist);
-		std::vector<double> kernel_dims(teq::rank_cap, teq::rank_cap);
-		auto it = kernel_dims.begin();
-		std::copy(dims.begin(), dims.end(), it);
 		return {
 			eteq::Edge<T>(image, outshape, {}),
-			eteq::Edge<T>(kernel, outshape, kernel_dims),
+			eteq::Edge<T>(kernel, outshape, std::vector<double>(dims.begin(), dims.end())),
 		};
 	}
 
@@ -909,12 +906,14 @@ struct FuncPacker<T,egen::GROUP_CONCAT> final
 		{
 			logs::fatal("cannot group concat with null argument");
 		}
+		if (std::any_of(nodes.begin(), nodes.end(),
+			[axis](eteq::NodeptrT<T> arg) { return arg->shape().at(axis) > 1; }))
+		{
+			logs::fatal("cannot group concat nodes with dimension at axis greater than 1");
+		}
 		teq::Shape initshape = nodes[0]->shape();
 		std::vector<teq::DimT> slist(initshape.begin(), initshape.end());
-		for (size_t i = 1; i < nargs; ++i)
-		{
-			slist[axis] += nodes[i]->shape().at(axis);
-		}
+		slist[axis] = nargs;
 		teq::Shape outshape(slist);
 		eteq::ArgsT<T> groups;
 		groups.reserve(nargs);

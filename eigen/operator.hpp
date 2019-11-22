@@ -173,8 +173,8 @@ EigenptrT<T> extend (const iEigenEdge<T>& in)
 	teq::CoordT coord;
 	auto c = get_coorder(in);
 	std::fill(coord.begin(), coord.end(), 1);
-	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
-		coord.begin());
+	std::copy(c.begin(), c.begin() +
+		std::min((size_t) teq::rank_cap, c.size()), coord.begin());
 	return make_eigentensor<T,Eigen::TensorBroadcastingOp<
 		const teq::CoordT,const TensMapT<T>>,TensMapT<T>>(
 		shape_convert(in.shape()), make_tensmap(in.data(), in.argshape()),
@@ -231,17 +231,13 @@ EigenptrT<T> slice (const iEigenEdge<T>& in)
 	teq::ShapeT extents;
 	std::fill(offsets.begin(), offsets.end(), 0);
 	std::copy(argshape.begin(), argshape.end(), extents.begin());
-	auto encoding = get_coorder(in);
-	size_t n = encoding.size();
-	if (1 == n % 2)
+	auto c = get_coorder(in);
+	auto encoding = decode_pair<teq::DimT>(c);
+	size_t n = std::min(encoding.size(), (size_t) teq::rank_cap);
+	for (size_t i = 0; i < n; ++i)
 	{
-		logs::fatalf("cannot decode odd vector %s into pairs of vecs",
-			fmts::to_string(encoding.begin(), encoding.end()).c_str());
-	}
-	for (size_t i = 0; i < n; i += 2)
-	{
-		offsets[i / 2] = encoding[i];
-		extents[i / 2] = encoding[i + 1];
+		offsets[i] = encoding[i].first;
+		extents[i] = encoding[i].second;
 	}
 	DimensionsT outdims = shape_convert(in.shape());
 	return make_eigentensor<T,Eigen::TensorReshapingOp<
@@ -274,7 +270,7 @@ EigenptrT<T> group_concat (const EigenEdgesT<T>& group)
 	std::copy(it, it + dimension, reshaped.begin());
 	std::copy(it + dimension + 1, outshape.end(), reshaped.begin() + dimension);
 	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
-		shape_convert(outshape), args,
+		0, shape_convert(outshape), args,
 		[dimension,reshaped](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
 			for (size_t i = 0, n = args.size(); i < n; ++i)
@@ -296,7 +292,7 @@ EigenptrT<T> group_sum (const EigenEdgesT<T>& group)
 			return make_tensmap(arg.data(), arg.argshape());
 		});
 	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
-		shape_convert(group[0].get().shape()), args,
+		0, shape_convert(group[0].get().shape()), args,
 		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
 			for (size_t i = 0, n = args.size(); i < n; ++i)
@@ -318,7 +314,7 @@ EigenptrT<T> group_prod (const EigenEdgesT<T>& group)
 			return make_tensmap(arg.data(), arg.argshape());
 		});
 	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
-		shape_convert(group[0].get().shape()), args,
+		1, shape_convert(group[0].get().shape()), args,
 		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
 			for (size_t i = 0, n = args.size(); i < n; ++i)
@@ -333,18 +329,13 @@ template <typename T>
 EigenptrT<T> pad (const iEigenEdge<T>& in)
 {
 	std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap> paddings;
-	auto encoding = get_coorder(in);
-	assert(encoding.size() == 2 * teq::rank_cap);
-	size_t n = encoding.size();
-	if (1 == n % 2)
-	{
-		logs::fatalf("cannot decode odd vector %s into vec of pairs",
-			fmts::to_string(encoding.begin(), encoding.end()).c_str());
-	}
-	for (size_t i = 0; i < n; i += 2)
-	{
-		paddings[i / 2] = {encoding[i], encoding[i + 1]};
-	}
+	std::fill(paddings.begin(), paddings.end(),
+		std::pair<teq::DimT,teq::DimT>{0, 0});
+	auto c = get_coorder(in);
+	auto encoding = decode_pair<teq::DimT>(c);
+	std::copy(encoding.begin(), encoding.begin() +
+		std::min((size_t) teq::rank_cap, encoding.size()),
+		paddings.begin());
 	return make_eigentensor<T,Eigen::TensorPaddingOp<
 			const std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap>,
 			const TensMapT<T>
@@ -362,6 +353,7 @@ template <typename T>
 EigenptrT<T> stride (const iEigenEdge<T>& in)
 {
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
+	std::fill(incrs.begin(), incrs.end(), 1);
 	auto c = get_coorder(in);
 	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
@@ -384,11 +376,12 @@ template <typename T>
 EigenptrT<T> scatter (const iEigenEdge<T>& in)
 {
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
+	std::fill(incrs.begin(), incrs.end(), 1);
 	auto c = get_coorder(in);
 	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
-	return std::make_shared<EigenAssignTens<T,TensMapT<T>>>(shape_convert(in.shape()),
-		make_tensmap(in.data(), in.argshape()),
+	return std::make_shared<EigenAssignTens<T,TensMapT<T>>>(
+		0, shape_convert(in.shape()), make_tensmap(in.data(), in.argshape()),
 		[incrs](TensorT<T>& out, const TensMapT<T>& in)
 		{
 			out.stride(incrs) = in;
@@ -1300,22 +1293,16 @@ template <typename T>
 EigenptrT<T> matmul (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
 	teq::Shape outshape = a.shape();
-	std::vector<std::pair<teq::RankT,teq::RankT>> dims;
-	auto encoding = get_coorder(a);
-	size_t n = encoding.size();
-	if (1 == n % 2)
-	{
-		logs::fatalf("cannot decode odd vector %s into vec of pairs",
-			fmts::to_string(encoding.begin(), encoding.end()).c_str());
-	}
-	for (size_t i = 0; i < n; i += 2)
-	{
-		// contract reverses left, right arguments
-		dims.push_back({encoding[i + 1], encoding[i]});
-	}
+	auto c = get_coorder(a);
+	auto dims = decode_pair<teq::RankT>(c);
 	if (dims.empty())
 	{
 		logs::fatal("cannot contract tensors without specified dimensions");
+	}
+	for (size_t i = 0, n = dims.size(); i < n; ++i)
+	{
+		// contract reverses left, right arguments
+		dims[i] = {dims[i].second, dims[i].first};
 	}
 	if (is_2d(a.argshape()) && is_2d(b.argshape()) &&
 		dims.size() == 1 && dims[0].first == 1 && dims[0].second == 0)
@@ -1392,10 +1379,46 @@ template <typename T>
 EigenptrT<T> convolution (const iEigenEdge<T>& input, const iEigenEdge<T>& kernel)
 {
 	teq::Shape outshape = input.shape();
-	teq::ShapeT dims;
+	std::vector<teq::RankT> order;
 	auto c = get_coorder(kernel);
-	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
-		dims.begin());
+	if (c.empty())
+	{
+		logs::fatal("cannot convolve tensors without specified dimensions");
+	}
+
+	bool visited[teq::rank_cap];
+	std::fill(visited, visited + teq::rank_cap, false);
+	size_t n = n = std::min(c.size(), (size_t) teq::rank_cap);
+	for (size_t i = 0; i < n; ++i)
+	{
+		teq::RankT d = c[i];
+		if (visited[d])
+		{
+			logs::fatalf("convolution does not support repeated kernel dimensions: %s",
+				fmts::to_string(c.begin(), c.end()).c_str());
+		}
+		visited[d] = true;
+		order.push_back(d);
+	}
+	auto kshape = kernel.argshape();
+	for (size_t i = n; i < teq::rank_cap; ++i)
+	{
+		if (kshape.at(i) > 1)
+		{
+			logs::fatalf("given kernel shape %s, unspecified "
+				"non-singular kernel dimension %d is undefined",
+				kshape.to_string().c_str(), i);
+		}
+	}
+	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+	{
+		if (visited[i] == false)
+		{
+			order.push_back(i);
+		}
+	}
+	teq::ShapeT dims;
+	std::copy(order.begin(), order.end(), dims.begin());
 	return make_eigentensor<T,Eigen::TensorConvolutionOp<
 		const teq::ShapeT,
 		const TensMapT<T>,const TensMapT<T>>,
