@@ -1077,6 +1077,326 @@
    }
   },
   {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 0,
+      "attrs": {
+       "shape": {
+        "values": [
+         10,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         1,
+         1,
+         9
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "MATMUL",
+   "functor": {
+    "opname": "MATMUL",
+    "args": [
+     {
+      "idx": 0,
+      "attrs": {
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         0,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 3,
+      "attrs": {
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 4,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         3
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 6,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 8,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         1,
+         3
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 11,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         1,
+         3
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 13,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "SUB",
+   "functor": {
+    "opname": "SUB",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 18,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 6,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 8,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         1,
+         1,
+         3
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 13,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
    "label": "SUB",
    "functor": {
     "opname": "SUB",
@@ -1128,103 +1448,6 @@
       "fwd": false
      },
      {
-      "idx": 41,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 11,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         3
-        ]
-       },
-       "shape": {
-        "values": [
-         5,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "SUB",
-   "functor": {
-    "opname": "SUB",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 18,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 13,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "SUB",
-   "functor": {
-    "opname": "SUB",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
       "idx": 34,
       "attrs": {},
       "coord": [],
@@ -1236,42 +1459,6 @@
    "tags": {}
   },
   {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 8,
-      "attrs": {
-       "shape": {
-        "values": [
-         5,
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       },
-       "coorder": {
-        "values": [
-         1,
-         1,
-         3
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
    "label": "NEG",
    "functor": {
     "opname": "NEG",
@@ -1288,206 +1475,19 @@
    "tags": {}
   },
   {
-   "label": "EXTEND",
+   "label": "SUB",
    "functor": {
-    "opname": "EXTEND",
+    "opname": "SUB",
     "args": [
      {
-      "idx": 0,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         1,
-         9
-        ]
-       },
-       "shape": {
-        "values": [
-         10,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 6,
+      "idx": 16,
       "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 13,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 8,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         1,
-         3
-        ]
-       },
-       "shape": {
-        "values": [
-         5,
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 4,
-      "attrs": {
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       },
-       "coorder": {
-        "values": [
-         1,
-         3
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "MATMUL",
-   "functor": {
-    "opname": "MATMUL",
-    "args": [
-     {
-      "idx": 0,
-      "attrs": {
-       "coorder": {
-        "values": [
-         0,
-         1
-        ]
-       },
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      },
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 3,
-      "attrs": {
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 6,
+      "idx": 41,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -1503,20 +1503,8 @@
     "opname": "PERMUTE",
     "args": [
      {
-      "idx": 52,
+      "idx": 43,
       "attrs": {
-       "coorder": {
-        "values": [
-         2,
-         1,
-         0,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       },
        "shape": {
         "values": [
          9,
@@ -1528,87 +1516,17 @@
          1,
          1
         ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 55,
-      "attrs": {
-       "shape": {
-        "values": [
-         5,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
        },
        "coorder": {
         "values": [
-         0,
          2,
          1,
+         0,
          3,
          4,
          5,
          6,
          7
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 50,
-      "attrs": {
-       "coorder": {
-        "values": [
-         0,
-         2,
-         1,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       },
-       "shape": {
-        "values": [
-         5,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
         ]
        }
       },
@@ -1626,14 +1544,14 @@
     "opname": "ADD",
     "args": [
      {
-      "idx": 57,
+      "idx": 44,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 56,
+      "idx": 45,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -1655,12 +1573,94 @@
    }
   },
   {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 47,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         0,
+         2,
+         1,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 52,
+      "attrs": {
+       "coorder": {
+        "values": [
+         0,
+         2,
+         1,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
    "label": "NEG",
    "functor": {
     "opname": "NEG",
     "args": [
      {
-      "idx": 62,
+      "idx": 60,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -1726,6 +1726,29 @@
     "opname": "DIV",
     "args": [
      {
+      "idx": 46,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 65,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
       "idx": 6,
       "attrs": {},
       "coord": [],
@@ -1749,7 +1772,7 @@
     "opname": "DIV",
     "args": [
      {
-      "idx": 53,
+      "idx": 51,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -1772,7 +1795,7 @@
     "opname": "DIV",
     "args": [
      {
-      "idx": 58,
+      "idx": 66,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -1795,7 +1818,7 @@
     "opname": "MATMUL",
     "args": [
      {
-      "idx": 66,
+      "idx": 67,
       "attrs": {
        "coorder": {
         "values": [
@@ -1868,35 +1891,12 @@
    "tags": {}
   },
   {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 67,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 65,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
    "label": "EXTEND",
    "functor": {
     "opname": "EXTEND",
     "args": [
      {
-      "idx": 66,
+      "idx": 67,
       "attrs": {
        "shape": {
         "values": [
@@ -1932,14 +1932,14 @@
     "opname": "ADD",
     "args": [
      {
-      "idx": 69,
+      "idx": 70,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 46,
+      "idx": 48,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -1968,18 +1968,6 @@
      {
       "idx": 72,
       "attrs": {
-       "coorder": {
-        "values": [
-         2,
-         1,
-         0,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       },
        "shape": {
         "values": [
          5,
@@ -1990,6 +1978,18 @@
          1,
          1,
          1
+        ]
+       },
+       "coorder": {
+        "values": [
+         2,
+         1,
+         0,
+         3,
+         4,
+         5,
+         6,
+         7
         ]
        }
       },
@@ -2055,14 +2055,14 @@
     ]
    },
    "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
     "groups": {
      "labels": [
       "sum"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
      ]
     }
    }
@@ -2073,53 +2073,7 @@
     "opname": "DIV",
     "args": [
      {
-      "idx": 51,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 77,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 54,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 77,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 48,
+      "idx": 49,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2165,7 +2119,53 @@
     "opname": "DIV",
     "args": [
      {
-      "idx": 44,
+      "idx": 53,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 55,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 57,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2206,6 +2206,29 @@
    "tags": {}
   },
   {
+   "label": "SUB",
+   "functor": {
+    "opname": "SUB",
+    "args": [
+     {
+      "idx": 17,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 79,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
    "label": "DIV",
    "functor": {
     "opname": "DIV",
@@ -2234,7 +2257,7 @@
     "opname": "DIV",
     "args": [
      {
-      "idx": 79,
+      "idx": 81,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2242,29 +2265,6 @@
      },
      {
       "idx": 77,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "SUB",
-   "functor": {
-    "opname": "SUB",
-    "args": [
-     {
-      "idx": 17,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 81,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2303,14 +2303,14 @@
     "opname": "POW",
     "args": [
      {
-      "idx": 86,
+      "idx": 84,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 47,
+      "idx": 50,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2326,14 +2326,14 @@
     "opname": "POW",
     "args": [
      {
-      "idx": 86,
+      "idx": 84,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 43,
+      "idx": 54,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2349,14 +2349,14 @@
     "opname": "POW",
     "args": [
      {
-      "idx": 86,
+      "idx": 84,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 49,
+      "idx": 56,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2372,14 +2372,14 @@
     "opname": "POW",
     "args": [
      {
-      "idx": 86,
+      "idx": 84,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 45,
+      "idx": 58,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2479,14 +2479,14 @@
     ]
    },
    "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
     "properties": {
      "labels": [
       "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
      ]
     }
    }
@@ -2505,6 +2505,40 @@
      },
      {
       "idx": 91,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 92,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 19,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2565,74 +2599,6 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 95,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 42,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 92,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 19,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
       "idx": 94,
       "attrs": {},
       "coord": [],
@@ -2667,14 +2633,14 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 27,
+      "idx": 95,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 96,
+      "idx": 42,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2708,7 +2674,7 @@
       "fwd": false
      },
      {
-      "idx": 98,
+      "idx": 96,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2735,41 +2701,7 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 33,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 99,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 40,
+      "idx": 27,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2803,7 +2735,75 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 85,
+      "idx": 33,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 98,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 40,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 99,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 83,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2837,14 +2837,14 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 84,
+      "idx": 85,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 103,
+      "idx": 101,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2871,7 +2871,7 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 83,
+      "idx": 86,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2912,7 +2912,7 @@
       "fwd": false
      },
      {
-      "idx": 101,
+      "idx": 103,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2921,14 +2921,14 @@
     ]
    },
    "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
     "groups": {
      "labels": [
       "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
      ]
     }
    }
@@ -2939,7 +2939,7 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 26,
+      "idx": 12,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -2973,7 +2973,7 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 39,
+      "idx": 26,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3041,7 +3041,7 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 12,
+      "idx": 39,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3150,7 +3150,7 @@
       "fwd": false
      },
      {
-      "idx": 111,
+      "idx": 110,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3159,14 +3159,14 @@
     ]
    },
    "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
     "groups": {
      "labels": [
       "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
      ]
     }
    }
@@ -3184,7 +3184,7 @@
       "fwd": false
      },
      {
-      "idx": 110,
+      "idx": 111,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3218,75 +3218,7 @@
       "fwd": false
      },
      {
-      "idx": 114,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 31,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 115,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 38,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 113,
+      "idx": 112,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3320,7 +3252,41 @@
       "fwd": false
      },
      {
-      "idx": 112,
+      "idx": 113,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 31,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 114,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3347,48 +3313,14 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 24,
+      "idx": 38,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 119,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 30,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 117,
+      "idx": 115,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3449,7 +3381,41 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 37,
+      "idx": 24,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 117,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 30,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3478,13 +3444,54 @@
    }
   },
   {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 37,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 119,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
    "label": "EXTEND",
    "functor": {
     "opname": "EXTEND",
     "args": [
      {
-      "idx": 121,
+      "idx": 120,
       "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         1,
+         9
+        ]
+       },
        "shape": {
         "values": [
          5,
@@ -3495,13 +3502,6 @@
          1,
          1,
          1
-        ]
-       },
-       "coorder": {
-        "values": [
-         1,
-         1,
-         9
         ]
        }
       },
@@ -3519,8 +3519,15 @@
     "opname": "EXTEND",
     "args": [
      {
-      "idx": 120,
+      "idx": 121,
       "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         1,
+         9
+        ]
+       },
        "shape": {
         "values": [
          5,
@@ -3531,13 +3538,6 @@
          1,
          1,
          1
-        ]
-       },
-       "coorder": {
-        "values": [
-         1,
-         1,
-         9
         ]
        }
       },
@@ -3593,11 +3593,6 @@
      {
       "idx": 123,
       "attrs": {
-       "coorder": {
-        "values": [
-         1
-        ]
-       },
        "shape": {
         "values": [
          5,
@@ -3607,6 +3602,11 @@
          1,
          1,
          1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
          1
         ]
        }
@@ -3625,7 +3625,7 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 74,
+      "idx": 61,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3633,6 +3633,74 @@
      },
      {
       "idx": 124,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 62,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 125,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 74,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 126,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -3689,115 +3757,6 @@
    }
   },
   {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 61,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 126,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 60,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 125,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 130,
-      "attrs": {
-       "coorder": {
-        "values": [
-         2,
-         1,
-         0,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       },
-       "shape": {
-        "values": [
-         9,
-         3,
-         5,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
    "label": "PERMUTE",
    "functor": {
     "opname": "PERMUTE",
@@ -3807,9 +3766,9 @@
       "attrs": {
        "coorder": {
         "values": [
-         0,
          2,
          1,
+         0,
          3,
          4,
          5,
@@ -3819,9 +3778,9 @@
        },
        "shape": {
         "values": [
-         5,
          9,
          3,
+         5,
          1,
          1,
          1,
@@ -3844,7 +3803,7 @@
     "opname": "PERMUTE",
     "args": [
      {
-      "idx": 131,
+      "idx": 129,
       "attrs": {
        "coorder": {
         "values": [
@@ -3863,6 +3822,81 @@
          9,
          3,
          5,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 130,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         0,
+         2,
+         1,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "REDUCE_SUM",
+   "functor": {
+    "opname": "REDUCE_SUM",
+    "args": [
+     {
+      "idx": 132,
+      "attrs": {
+       "coorder": {
+        "values": [
+         2
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
          1,
          1,
          1,
@@ -3885,7 +3919,7 @@
     "opname": "REDUCE_SUM",
     "args": [
      {
-      "idx": 132,
+      "idx": 133,
       "attrs": {
        "shape": {
         "values": [
@@ -3919,7 +3953,7 @@
     "opname": "REDUCE_SUM",
     "args": [
      {
-      "idx": 133,
+      "idx": 134,
       "attrs": {
        "coorder": {
         "values": [
@@ -3954,46 +3988,12 @@
    }
   },
   {
-   "label": "REDUCE_SUM",
-   "functor": {
-    "opname": "REDUCE_SUM",
-    "args": [
-     {
-      "idx": 134,
-      "attrs": {
-       "coorder": {
-        "values": [
-         2
-        ]
-       },
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
    "label": "MUL",
    "functor": {
     "opname": "MUL",
     "args": [
      {
-      "idx": 71,
+      "idx": 69,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -4027,14 +4027,14 @@
     "opname": "MUL",
     "args": [
      {
-      "idx": 70,
+      "idx": 71,
       "attrs": {},
       "coord": [],
       "shaper": [],
       "fwd": false
      },
      {
-      "idx": 137,
+      "idx": 136,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -4136,7 +4136,7 @@
       "fwd": false
      },
      {
-      "idx": 141,
+      "idx": 140,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -4170,41 +4170,7 @@
       "fwd": false
      },
      {
-      "idx": 140,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 22,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     },
-     {
-      "idx": 142,
+      "idx": 141,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -4238,7 +4204,7 @@
       "fwd": false
      },
      {
-      "idx": 143,
+      "idx": 142,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -4255,6 +4221,40 @@
     "properties": {
      "labels": [
       "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 22,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 143,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
      ]
     }
    }
@@ -4272,7 +4272,7 @@
       "fwd": false
      },
      {
-      "idx": 145,
+      "idx": 144,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -4281,14 +4281,14 @@
     ]
    },
    "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
     "groups": {
      "labels": [
       "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
      ]
     }
    }
@@ -4306,7 +4306,7 @@
       "fwd": false
      },
      {
-      "idx": 144,
+      "idx": 145,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -4315,51 +4315,17 @@
     ]
    },
    "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
     "groups": {
      "labels": [
       "prod"
      ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
     }
    }
-  },
-  {
-   "label": "REDUCE_SUM",
-   "functor": {
-    "opname": "REDUCE_SUM",
-    "args": [
-     {
-      "idx": 147,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1
-        ]
-       },
-       "shape": {
-        "values": [
-         9,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
-     }
-    ]
-   },
-   "tags": {}
   },
   {
    "label": "EXTEND",
@@ -4398,6 +4364,40 @@
    "tags": {}
   },
   {
+   "label": "REDUCE_SUM",
+   "functor": {
+    "opname": "REDUCE_SUM",
+    "args": [
+     {
+      "idx": 147,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
    "label": "MUL",
    "functor": {
     "opname": "MUL",
@@ -4410,7 +4410,7 @@
       "fwd": false
      },
      {
-      "idx": 149,
+      "idx": 148,
       "attrs": {},
       "coord": [],
       "shaper": [],
@@ -4419,14 +4419,14 @@
     ]
    },
    "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
     "groups": {
      "labels": [
       "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
      ]
     }
    }
@@ -4444,7 +4444,7 @@
       "fwd": false
      },
      {
-      "idx": 148,
+      "idx": 149,
       "attrs": {},
       "coord": [],
       "shaper": [],
