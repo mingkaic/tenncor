@@ -1380,7 +1380,7 @@ EigenptrT<T> convolution (const iEigenEdge<T>& input, const iEigenEdge<T>& kerne
 
 	bool visited[teq::rank_cap];
 	std::fill(visited, visited + teq::rank_cap, false);
-	size_t n = n = std::min(c.size(), (size_t) teq::rank_cap);
+	size_t n = std::min(c.size(), (size_t) teq::rank_cap);
 	for (size_t i = 0; i < n; ++i)
 	{
 		teq::RankT d = c[i];

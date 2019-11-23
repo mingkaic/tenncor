@@ -224,6 +224,10 @@ TEST(OBJS, Maps)
 	EXPECT_FALSE(root.equals(imperfect_clone));
 	EXPECT_FALSE(imperfect_clone.equals(root));
 
+	marsh::Number<size_t> wun(3);
+	EXPECT_FALSE(root.equals(wun));
+	EXPECT_FALSE(wun.equals(root));
+
 	marsh::JsonMarshaler parser;
 	std::string parsed_root = parser.parse(root, false);
 	fmts::trim(parsed_root);

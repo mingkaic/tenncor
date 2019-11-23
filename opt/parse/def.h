@@ -63,10 +63,7 @@ struct TreeNode
 		SCALAR = 0, /// scalar_
 		ANY, 		/// any_
 		FUNCTOR, 	/// functor_
-	};
-
-	/// Type of the node
-	enum SUBGRAPH_TYPE type_;
+	} type_;
 	/// Node instance according to type
 	union
 	{

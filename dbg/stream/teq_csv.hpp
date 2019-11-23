@@ -23,16 +23,6 @@
 /// CSV delimiter
 const char label_delim = ':';
 
-static void multiline_replace (std::string& multiline)
-{
-	size_t i = 0;
-	char nline = '\n';
-	while ((i = multiline.find(nline, i)) != std::string::npos)
-	{
-		multiline.replace(i, 1, "\\");
-	}
-}
-
 /// Type of the tensors
 enum NODE_TYPE
 {
@@ -145,7 +135,6 @@ struct CSVEquation final : public teq::iTraveler
 		std::vector<std::string> akeys(attr_keys.begin(), attr_keys.end());
 		std::sort(akeys.begin(), akeys.end());
 
-		size_t nnodes = nodes_.size();
 		for (size_t i = 0; i < nedges; ++i)
 		{
 			const Edge& edge = edges_[i];

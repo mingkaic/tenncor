@@ -2,6 +2,12 @@
 
 # accepts tests as arguments
 function bzl_coverage() {
+	# run test before to detect errors
+	bazel test \
+	--action_env="ASAN_OPTIONS=detect_leaks=0" \
+	--config asan \
+	--config gtest \
+	--remote_http_cache="$REMOTE_CACHE" $@
 	# filter out Processing and '+' lines to avoid extreme verbosity
 	bazel coverage \
 	--action_env="ASAN_OPTIONS=detect_leaks=0" \
