@@ -1,0 +1,4551 @@
+{
+ "label": "",
+ "nodes": [
+  {
+   "label": "in",
+   "source": {
+    "shape": [
+     "10",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "DOUBLE",
+    "isConst": false
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "training_in"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "9",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "9",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "weight0",
+   "source": {
+    "shape": [
+     "9",
+     "10",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "DOUBLE",
+    "isConst": false
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "storage_weight0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias0",
+   "source": {
+    "shape": [
+     "9",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "DOUBLE",
+    "isConst": false
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "storage_bias0"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "9",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "9",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "9",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "weight1",
+   "source": {
+    "shape": [
+     "5",
+     "9",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "DOUBLE",
+    "isConst": false
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "storage_weight1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "bias1",
+   "source": {
+    "shape": [
+     "5",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "typelabel": "DOUBLE",
+    "isConst": false
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "storage_bias1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "2",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABA",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "out",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "typelabel": "DOUBLE",
+    "isConst": false
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "training_out"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "9",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "9",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "9",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "9",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPw==",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "-1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "1",
+   "source": {
+    "shape": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
+    "typelabel": "DOUBLE",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    }
+   }
+  },
+  {
+   "label": "SUB",
+   "functor": {
+    "opname": "SUB",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 28,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 13,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "SUB",
+   "functor": {
+    "opname": "SUB",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 41,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 11,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         3
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "SUB",
+   "functor": {
+    "opname": "SUB",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 18,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 13,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "SUB",
+   "functor": {
+    "opname": "SUB",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 34,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 8,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         1,
+         1,
+         3
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 13,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 0,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         1,
+         9
+        ]
+       },
+       "shape": {
+        "values": [
+         10,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 6,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 13,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 8,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         1,
+         3
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 4,
+      "attrs": {
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         1,
+         3
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "MATMUL",
+   "functor": {
+    "opname": "MATMUL",
+    "args": [
+     {
+      "idx": 0,
+      "attrs": {
+       "coorder": {
+        "values": [
+         0,
+         1
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 3,
+      "attrs": {
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 6,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 52,
+      "attrs": {
+       "coorder": {
+        "values": [
+         2,
+         1,
+         0,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         3,
+         10,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 55,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         0,
+         2,
+         1,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 50,
+      "attrs": {
+       "coorder": {
+        "values": [
+         0,
+         2,
+         1,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "ADD",
+   "functor": {
+    "opname": "ADD",
+    "args": [
+     {
+      "idx": 57,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 56,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "sum"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 62,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXP",
+   "functor": {
+    "opname": "EXP",
+    "args": [
+     {
+      "idx": 63,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "ADD",
+   "functor": {
+    "opname": "ADD",
+    "args": [
+     {
+      "idx": 7,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 64,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "sum"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 6,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 65,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 53,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 65,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 58,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 65,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "MATMUL",
+   "functor": {
+    "opname": "MATMUL",
+    "args": [
+     {
+      "idx": 66,
+      "attrs": {
+       "coorder": {
+        "values": [
+         0,
+         1
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 8,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 68,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 65,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 67,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 65,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 66,
+      "attrs": {
+       "shape": {
+        "values": [
+         9,
+         3,
+         5,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         1,
+         1,
+         5
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "ADD",
+   "functor": {
+    "opname": "ADD",
+    "args": [
+     {
+      "idx": 69,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 46,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "sum"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 72,
+      "attrs": {
+       "coorder": {
+        "values": [
+         2,
+         1,
+         0,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "NEG",
+   "functor": {
+    "opname": "NEG",
+    "args": [
+     {
+      "idx": 73,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXP",
+   "functor": {
+    "opname": "EXP",
+    "args": [
+     {
+      "idx": 75,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "ADD",
+   "functor": {
+    "opname": "ADD",
+    "args": [
+     {
+      "idx": 14,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 76,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "sum"
+     ]
+    }
+   }
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 51,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 54,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 48,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 13,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 44,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 78,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 80,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 79,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "SUB",
+   "functor": {
+    "opname": "SUB",
+    "args": [
+     {
+      "idx": 17,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 81,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "DIV",
+   "functor": {
+    "opname": "DIV",
+    "args": [
+     {
+      "idx": 82,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 77,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "POW",
+   "functor": {
+    "opname": "POW",
+    "args": [
+     {
+      "idx": 86,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 47,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "POW",
+   "functor": {
+    "opname": "POW",
+    "args": [
+     {
+      "idx": 86,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 43,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "POW",
+   "functor": {
+    "opname": "POW",
+    "args": [
+     {
+      "idx": 86,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 49,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "POW",
+   "functor": {
+    "opname": "POW",
+    "args": [
+     {
+      "idx": 86,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 45,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 88,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 89,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 90,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 16,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 91,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 93,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 29,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 95,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 42,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 92,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 19,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 94,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 35,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 27,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 96,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 15,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 98,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 33,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 99,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 40,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 97,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 85,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 100,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 84,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 103,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 83,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 102,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 87,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 101,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 26,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 104,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 39,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 105,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 32,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 106,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 12,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 107,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 76,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 108,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 76,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 109,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 76,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 111,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 76,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 110,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 10,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 114,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 31,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 115,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 38,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 113,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 25,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 112,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 24,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 119,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 30,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 117,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 9,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 116,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 37,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 118,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 121,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         1,
+         1,
+         9
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 120,
+      "attrs": {
+       "shape": {
+        "values": [
+         5,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         1,
+         1,
+         9
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 122,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         1,
+         9
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         3,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "REDUCE_SUM",
+   "functor": {
+    "opname": "REDUCE_SUM",
+    "args": [
+     {
+      "idx": 123,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 74,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 124,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 36,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 127,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "derivative_db1",
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 61,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 126,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 60,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 125,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 130,
+      "attrs": {
+       "coorder": {
+        "values": [
+         2,
+         1,
+         0,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         3,
+         5,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 128,
+      "attrs": {
+       "coorder": {
+        "values": [
+         0,
+         2,
+         1,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 131,
+      "attrs": {
+       "coorder": {
+        "values": [
+         2,
+         1,
+         0,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         3,
+         5,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "REDUCE_SUM",
+   "functor": {
+    "opname": "REDUCE_SUM",
+    "args": [
+     {
+      "idx": 132,
+      "attrs": {
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         2
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "REDUCE_SUM",
+   "functor": {
+    "opname": "REDUCE_SUM",
+    "args": [
+     {
+      "idx": 133,
+      "attrs": {
+       "coorder": {
+        "values": [
+         2
+        ]
+       },
+       "shape": {
+        "values": [
+         5,
+         9,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "derivative_dw1"
+     ]
+    }
+   }
+  },
+  {
+   "label": "REDUCE_SUM",
+   "functor": {
+    "opname": "REDUCE_SUM",
+    "args": [
+     {
+      "idx": 134,
+      "attrs": {
+       "coorder": {
+        "values": [
+         2
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 71,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 135,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 70,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 137,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 5,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 138,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 23,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 139,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 64,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 141,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 64,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 140,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 22,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 142,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 2,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 143,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 1,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 145,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 21,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 144,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "REDUCE_SUM",
+   "functor": {
+    "opname": "REDUCE_SUM",
+    "args": [
+     {
+      "idx": 147,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "EXTEND",
+   "functor": {
+    "opname": "EXTEND",
+    "args": [
+     {
+      "idx": 146,
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         1,
+         10
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         3,
+         10,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 59,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 149,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "commutative"
+     ]
+    },
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    }
+   }
+  },
+  {
+   "label": "MUL",
+   "functor": {
+    "opname": "MUL",
+    "args": [
+     {
+      "idx": 20,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     },
+     {
+      "idx": 148,
+      "attrs": {},
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "groups": {
+     "labels": [
+      "prod"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "derivative_db0",
+      "commutative"
+     ]
+    }
+   }
+  },
+  {
+   "label": "PERMUTE",
+   "functor": {
+    "opname": "PERMUTE",
+    "args": [
+     {
+      "idx": 150,
+      "attrs": {
+       "shape": {
+        "values": [
+         9,
+         10,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       },
+       "coorder": {
+        "values": [
+         0,
+         2,
+         1,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {}
+  },
+  {
+   "label": "REDUCE_SUM",
+   "functor": {
+    "opname": "REDUCE_SUM",
+    "args": [
+     {
+      "idx": 152,
+      "attrs": {
+       "coorder": {
+        "values": [
+         2
+        ]
+       },
+       "shape": {
+        "values": [
+         9,
+         10,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      },
+      "coord": [],
+      "shaper": [],
+      "fwd": false
+     }
+    ]
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "derivative_dw0"
+     ]
+    }
+   }
+  }
+ ]
+}
