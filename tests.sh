@@ -7,32 +7,42 @@ lcov --base-directory . --directory . --zerocounters;
 set -e
 
 echo "===== ENVIRONMENT =====";
-free -m;
+if [ -x "$(command -v free)" ]; then
+	free -m;
+fi
 
 # ===== Run Gtest =====
 echo "===== TESTS =====";
 
 source "$THIS_DIR/coverage.sh";
 
-MODE="fast";
-if [[ "$#" -gt 1 ]]; then
-	MODE=$1;
+if (( $# > 0 )); then
+	MODE="$1";
+else
+	MODE="all";
 fi
 
+echo "Test Mode: $MODE";
 if [[ "$MODE" == "fast" ]]; then
-	bzl_coverage //pbm:test //tag:test //teq:test //perf:test //eigen:test;
+	bzl_coverage //pbm:test //tag:test //teq:test //perf:test //eigen:test //marsh:test //opt/...;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //gen:ptest
+	--remote_http_cache="$REMOTE_CACHE" //gen:ptest;
+elif [[ "$MODE" == "slow" ]]; then
+	bzl_coverage //ccur:test //eteq:ctest //layr:test;
+
+	bazel test --run_under='valgrind --leak-check=full' \
+	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest;
 else
-	bzl_coverage //ccur:test //eteq:ctest //layr:test //opt/...;
+	bzl_coverage //pbm:test //tag:test //teq:test //perf:test //eigen:test //marsh:test
+		//ccur:test //eteq:ctest //layr:test //opt/...;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest
+	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest //gen:ptest;
 fi
 
 lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \
-'testutil/*' '**/genfiles/*' 'dbg/*' -o "$COV_DIR/coverage.info";
+'testutil/*' '**/genfiles/*' 'dbg/*' '**/mock/*' -o "$COV_DIR/coverage.info";
 send2codecov "$COV_DIR/coverage.info";
 
 echo "";

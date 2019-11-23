@@ -1,6 +1,6 @@
 COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 
-COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*'
+COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*' '**/mock/*'
 
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
 
@@ -11,6 +11,8 @@ EIGEN_TEST := //eigen:test
 ETEQ_CTEST := //eteq:ctest
 
 LAYR_TEST := //layr:test
+
+MARSH_TEST := //marsh:test
 
 OPT_TEST := //opt/...
 
@@ -74,35 +76,39 @@ coverage:
 
 cover_ccur:
 	$(CCOVER) $(CCUR_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_eigen:
 	$(CCOVER) $(EIGEN_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'opt/*' -o coverage.info
 
 cover_eteq:
 	$(CCOVER) $(ETEQ_CTEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eigen/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'opt/*' 'eigen/*' -o coverage.info
 
 cover_layr:
 	$(CCOVER) $(LAYR_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
+
+cover_marsh:
+	$(CCOVER) $(MARSH_TEST)
+	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
 cover_opt:
 	$(CCOVER) $(OPT_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' 'tag/*' 'eigen/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_pbm:
 	$(CCOVER) $(PBM_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' -o coverage.info
 
 cover_tag:
 	$(CCOVER) $(TAG_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'teq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' -o coverage.info
 
 cover_teq:
 	$(CCOVER) $(TEQ_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' -o coverage.info
 
 
 # optimized comparisons

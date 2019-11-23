@@ -54,6 +54,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_dense": {
+     "labels": [
+      "hidden::bias:0"
+     ]
+    },
     "layer_rbm": {
      "labels": [
       "0:layer_dense:hidden:0"
@@ -62,11 +67,6 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:0:0"
-     ]
-    },
-    "layer_dense": {
-     "labels": [
-      "hidden::bias:0"
      ]
     }
    }
@@ -89,11 +89,6 @@
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "visible::bias:0"
-     ]
-    },
     "layer_rbm": {
      "labels": [
       "0:layer_dense:visible:1"
@@ -102,6 +97,11 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:0:0"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "visible::bias:0"
      ]
     }
    }
@@ -201,6 +201,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "hidden::bias:0"
@@ -209,11 +214,6 @@
     "layer_rbm": {
      "labels": [
       "1:layer_dense:hidden:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1"
      ]
     }
    }
@@ -236,11 +236,6 @@
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "visible::bias:0"
-     ]
-    },
     "layer_rbm": {
      "labels": [
       "1:layer_dense:visible:1"
@@ -249,6 +244,11 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:1:1"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "visible::bias:0"
      ]
     }
    }
@@ -271,14 +271,14 @@
     "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_dense:log_layer:2"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "log_layer::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:log_layer:2"
      ]
     }
    }
@@ -331,11 +331,6 @@
     "isConst": true
    },
    "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_softmax::3"
@@ -344,6 +339,11 @@
     "layer_softmax": {
      "labels": [
       "::uparam:0"
+     ]
+    },
+    "properties": {
+     "labels": [
+      "immutable"
      ]
     }
    }
@@ -454,11 +454,6 @@
     ]
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:0:0"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "visible::weight:0"
@@ -467,6 +462,11 @@
     "layer_rbm": {
      "labels": [
       "0:layer_dense:visible:1"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:0:0"
      ]
     }
    }
@@ -577,6 +577,11 @@
     ]
    },
    "tags": {
+    "layer_dense": {
+     "labels": [
+      "visible::weight:0"
+     ]
+    },
     "layer_rbm": {
      "labels": [
       "1:layer_dense:visible:1"
@@ -585,11 +590,6 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:1:1"
-     ]
-    },
-    "layer_dense": {
-     "labels": [
-      "visible::weight:0"
      ]
     }
    }

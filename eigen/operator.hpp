@@ -77,62 +77,102 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 	return out;
 }
 
-#define _EIGEN_INTERNAL_V2A_CASE(N, PROCESS, RED)\
-case N: return make_eigentensor<T,\
-Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<RED,N,T>>,TensMapT<T>>(\
+}
+
+#define _ARRAY_SWITCH(ARR, CASE)switch (ARR.size()) {\
+	case 0: logs::fatal("missing dimensions");\
+	case 1: CASE(1)\
+	case 2: CASE(2)\
+	case 3: CASE(3)\
+	case 4: CASE(4)\
+	case 5: CASE(5)\
+	case 6: CASE(6)\
+	case 7: CASE(7)\
+	default: break;\
+} CASE(8)
+
+#define _EIGEN_RSUM_CASE(N)\
+return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
+Eigen::internal::SumReducer<T>,N,T>>,TensMapT<T>>(\
 outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& in) {\
-return in.PROCESS(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
-
-#define _EIGEN_INTERNAL_V2A(PROCESS, RED) {\
-	auto cdims = get_coorder(in);\
-	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());\
-	DimensionsT outdims = shape_convert(outshape);\
-	switch (vdims.size()) {\
-		_EIGEN_INTERNAL_V2A_CASE(0, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(1, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(2, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(3, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(4, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(5, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(6, PROCESS, RED)\
-		_EIGEN_INTERNAL_V2A_CASE(7, PROCESS, RED)\
-		default: break;\
-	} return make_eigentensor<T,Eigen::TensorReshapingOp<\
-		const DimensionsT,const ReduceOutT<RED,8,T>>,TensMapT<T>>(\
-		outdims, make_tensmap(in.data(), in.argshape()),\
-		[vdims, &outdims](TensMapT<T>& in) {\
-			return in.PROCESS(::eigen::internal::dim_copy<8>(vdims)).reshape(outdims);\
-		});\
-}
-
-}
+return in.sum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is sum
 template <typename T>
-EigenptrT<T> reduce_sum (teq::Shape& outshape, const iEigenEdge<T>& in)
-_EIGEN_INTERNAL_V2A(sum, Eigen::internal::SumReducer<T>)
+EigenptrT<T> reduce_sum (const iEigenEdge<T>& in)
+{
+	auto cdims = get_coorder(in);
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
+	DimensionsT outdims = shape_convert(in.shape());
+	_ARRAY_SWITCH(vdims, _EIGEN_RSUM_CASE)
+}
+
+#undef _EIGEN_RSUM_CASE
+
+#define _EIGEN_RPROD_CASE(N)\
+return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
+Eigen::internal::ProdReducer<T>,N,T>>,TensMapT<T>>(\
+outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& in) {\
+return in.prod(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is prod
 template <typename T>
-EigenptrT<T> reduce_prod (teq::Shape& outshape, const iEigenEdge<T>& in)
-_EIGEN_INTERNAL_V2A(prod, Eigen::internal::ProdReducer<T>)
+EigenptrT<T> reduce_prod (const iEigenEdge<T>& in)
+{
+	auto cdims = get_coorder(in);
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
+	DimensionsT outdims = shape_convert(in.shape());
+	_ARRAY_SWITCH(vdims, _EIGEN_RPROD_CASE)
+}
+
+#undef _EIGEN_RPROD_CASE
+
+#define _EIGEN_RMIN_CASE(N)\
+return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
+Eigen::internal::MinReducer<T>,N,T>>,TensMapT<T>>(\
+outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& in) {\
+return in.minimum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is min
 template <typename T>
-EigenptrT<T> reduce_min (teq::Shape& outshape, const iEigenEdge<T>& in)
-_EIGEN_INTERNAL_V2A(minimum, Eigen::internal::MinReducer<T>)
+EigenptrT<T> reduce_min (const iEigenEdge<T>& in)
+{
+	auto cdims = get_coorder(in);
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
+	DimensionsT outdims = shape_convert(in.shape());
+	_ARRAY_SWITCH(vdims, _EIGEN_RMIN_CASE)
+}
+
+#undef _EIGEN_RMIN_CASE
+
+#define _EIGEN_RMAX_CASE(N)\
+return make_eigentensor<T,\
+Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
+Eigen::internal::MaxReducer<T>,N,T>>,TensMapT<T>>(\
+outdims, make_tensmap(in.data(), in.argshape()), [vdims, &outdims](TensMapT<T>& in) {\
+return in.maximum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is max
 template <typename T>
-EigenptrT<T> reduce_max (teq::Shape& outshape, const iEigenEdge<T>& in)
-_EIGEN_INTERNAL_V2A(maximum, Eigen::internal::MaxReducer<T>)
+EigenptrT<T> reduce_max (const iEigenEdge<T>& in)
+{
+	auto cdims = get_coorder(in);
+	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
+	DimensionsT outdims = shape_convert(in.shape());
+	_ARRAY_SWITCH(vdims, _EIGEN_RMAX_CASE)
+}
+
+#undef _EIGEN_RMIN_CASE
 
 /// Return Eigen data object that argmax in tensor at return_dim
 template <typename T>
-EigenptrT<T> argmax (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> argmax (const iEigenEdge<T>& in)
 {
 	teq::RankT return_dim = get_coorder(in)[0];
-	DimensionsT outdims = shape_convert(outshape);
+	DimensionsT outdims = shape_convert(in.shape());
 	if (return_dim >= teq::rank_cap)
 	{
 		return make_eigentensor<T,Eigen::TensorReshapingOp<
@@ -168,15 +208,16 @@ EigenptrT<T> argmax (teq::Shape& outshape, const iEigenEdge<T>& in)
 
 /// Return Eigen data object representing data broadcast across dimensions
 template <typename T>
-EigenptrT<T> extend (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> extend (const iEigenEdge<T>& in)
 {
 	teq::CoordT coord;
 	auto c = get_coorder(in);
-	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
-		coord.begin());
+	std::fill(coord.begin(), coord.end(), 1);
+	std::copy(c.begin(), c.begin() +
+		std::min((size_t) teq::rank_cap, c.size()), coord.begin());
 	return make_eigentensor<T,Eigen::TensorBroadcastingOp<
 		const teq::CoordT,const TensMapT<T>>,TensMapT<T>>(
-		shape_convert(outshape), make_tensmap(in.data(), in.argshape()),
+		shape_convert(in.shape()), make_tensmap(in.data(), in.argshape()),
 		[coord](TensMapT<T>& in)
 		{
 			return in.broadcast(coord);
@@ -185,12 +226,13 @@ EigenptrT<T> extend (teq::Shape& outshape, const iEigenEdge<T>& in)
 
 /// Return Eigen data object representing transpose and permutation
 template <typename T>
-EigenptrT<T> permute (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> permute (const iEigenEdge<T>& in)
 {
 	teq::CoordT reorder;
 	auto c = get_coorder(in);
-	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
-		reorder.begin());
+	assert(c.size() == teq::rank_cap);
+	std::copy(c.begin(), c.end(), reorder.begin());
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape) && reorder[0] == 1 && reorder[1] == 0)
 	{
 		// use matrix when possible
@@ -213,40 +255,37 @@ EigenptrT<T> permute (teq::Shape& outshape, const iEigenEdge<T>& in)
 
 /// Return Eigen data object that reshapes
 template <typename T>
-EigenptrT<T> reshape (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> reshape (const iEigenEdge<T>& in)
 {
 	return make_eigentensor<T,TensMapT<T>,TensMapT<T>>(
-		shape_convert(outshape), make_tensmap(in.data(), in.argshape()),
+		shape_convert(in.shape()), make_tensmap(in.data(), in.argshape()),
 		[](TensMapT<T>& in){ return in; });
 }
 
 /// Return Eigen data object representing data slicing of dimensions
 template <typename T>
-EigenptrT<T> slice (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> slice (const iEigenEdge<T>& in)
 {
+	teq::Shape argshape = in.argshape();
 	teq::ShapeT offsets;
 	teq::ShapeT extents;
-	auto encoding = get_coorder(in);
-	assert(encoding.size() == 2 * teq::rank_cap);
-	size_t n = encoding.size();
-	if (1 == n % 2)
+	std::fill(offsets.begin(), offsets.end(), 0);
+	std::copy(argshape.begin(), argshape.end(), extents.begin());
+	auto c = get_coorder(in);
+	auto encoding = decode_pair<teq::DimT>(c);
+	size_t n = std::min(encoding.size(), (size_t) teq::rank_cap);
+	for (size_t i = 0; i < n; ++i)
 	{
-		logs::fatalf("cannot decode odd vector %s into pairs of vecs",
-			fmts::to_string(encoding.begin(), encoding.end()).c_str());
+		offsets[i] = encoding[i].first;
+		extents[i] = encoding[i].second;
 	}
-	for (size_t i = 0; i < n; i += 2)
-	{
-		offsets[i / 2] = encoding[i];
-		extents[i / 2] = encoding[i + 1];
-	}
-	DimensionsT outdims = shape_convert(outshape);
+	DimensionsT outdims = shape_convert(in.shape());
 	return make_eigentensor<T,Eigen::TensorReshapingOp<
-			const DimensionsT,
-			Eigen::TensorSlicingOp<
-				const teq::ShapeT, const teq::ShapeT,
-				TensMapT<T>>>,
+		const DimensionsT, Eigen::TensorSlicingOp<
+			const teq::ShapeT, const teq::ShapeT,
+			TensMapT<T>>>,
 		TensMapT<T>>(
-		outdims, make_tensmap(in.data(), in.argshape()),
+		outdims, make_tensmap(in.data(), argshape),
 		[&offsets, &extents, &outdims](TensMapT<T>& in)
 		{
 			return in.slice(offsets, extents).reshape(outdims);
@@ -254,7 +293,7 @@ EigenptrT<T> slice (teq::Shape& outshape, const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> group_concat (teq::Shape& outshape, const EigenEdgesT<T>& group)
+EigenptrT<T> group_concat (const EigenEdgesT<T>& group)
 {
 	assert(group.size() > 1);
 	teq::RankT dimension = get_coorder(group[0].get())[0];
@@ -266,11 +305,12 @@ EigenptrT<T> group_concat (teq::Shape& outshape, const EigenEdgesT<T>& group)
 			return make_tensmap(arg.data(), arg.argshape());
 		});
 	std::array<Eigen::Index,teq::rank_cap-1> reshaped;
+	teq::Shape outshape = group[0].get().shape();
 	auto it = outshape.begin();
 	std::copy(it, it + dimension, reshaped.begin());
 	std::copy(it + dimension + 1, outshape.end(), reshaped.begin() + dimension);
 	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
-		shape_convert(outshape), args,
+		0, shape_convert(outshape), args,
 		[dimension,reshaped](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
 			for (size_t i = 0, n = args.size(); i < n; ++i)
@@ -281,7 +321,7 @@ EigenptrT<T> group_concat (teq::Shape& outshape, const EigenEdgesT<T>& group)
 }
 
 template <typename T>
-EigenptrT<T> group_sum (teq::Shape& outshape, const EigenEdgesT<T>& group)
+EigenptrT<T> group_sum (const EigenEdgesT<T>& group)
 {
 	assert(group.size() > 2);
 	std::vector<TensMapT<T>> args;
@@ -292,7 +332,7 @@ EigenptrT<T> group_sum (teq::Shape& outshape, const EigenEdgesT<T>& group)
 			return make_tensmap(arg.data(), arg.argshape());
 		});
 	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
-		shape_convert(outshape), args,
+		0, shape_convert(group[0].get().shape()), args,
 		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
 			for (size_t i = 0, n = args.size(); i < n; ++i)
@@ -303,7 +343,7 @@ EigenptrT<T> group_sum (teq::Shape& outshape, const EigenEdgesT<T>& group)
 }
 
 template <typename T>
-EigenptrT<T> group_prod (teq::Shape& outshape, const EigenEdgesT<T>& group)
+EigenptrT<T> group_prod (const EigenEdgesT<T>& group)
 {
 	assert(group.size() > 2);
 	std::vector<TensMapT<T>> args;
@@ -314,7 +354,7 @@ EigenptrT<T> group_prod (teq::Shape& outshape, const EigenEdgesT<T>& group)
 			return make_tensmap(arg.data(), arg.argshape());
 		});
 	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
-		shape_convert(outshape), args,
+		1, shape_convert(group[0].get().shape()), args,
 		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
 			for (size_t i = 0, n = args.size(); i < n; ++i)
@@ -326,27 +366,22 @@ EigenptrT<T> group_prod (teq::Shape& outshape, const EigenEdgesT<T>& group)
 
 /// Return Eigen data object representing data zero padding
 template <typename T>
-EigenptrT<T> pad (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> pad (const iEigenEdge<T>& in)
 {
 	std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap> paddings;
-	auto encoding = get_coorder(in);
-	assert(encoding.size() == 2 * teq::rank_cap);
-	size_t n = encoding.size();
-	if (1 == n % 2)
-	{
-		logs::fatalf("cannot decode odd vector %s into vec of pairs",
-			fmts::to_string(encoding.begin(), encoding.end()).c_str());
-	}
-	for (size_t i = 0; i < n; i += 2)
-	{
-		paddings[i / 2] = {encoding[i], encoding[i + 1]};
-	}
+	std::fill(paddings.begin(), paddings.end(),
+		std::pair<teq::DimT,teq::DimT>{0, 0});
+	auto c = get_coorder(in);
+	auto encoding = decode_pair<teq::DimT>(c);
+	std::copy(encoding.begin(), encoding.begin() +
+		std::min((size_t) teq::rank_cap, encoding.size()),
+		paddings.begin());
 	return make_eigentensor<T,Eigen::TensorPaddingOp<
 			const std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap>,
 			const TensMapT<T>
 		>,
 		TensMapT<T>>(
-		shape_convert(outshape), make_tensmap(in.data(), in.argshape()),
+		shape_convert(in.shape()), make_tensmap(in.data(), in.argshape()),
 		[&paddings](TensMapT<T>& in)
 		{
 			return in.pad(paddings);
@@ -355,9 +390,10 @@ EigenptrT<T> pad (teq::Shape& outshape, const iEigenEdge<T>& in)
 
 /// Return Eigen data object representing strided view of in
 template <typename T>
-EigenptrT<T> stride (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> stride (const iEigenEdge<T>& in)
 {
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
+	std::fill(incrs.begin(), incrs.end(), 1);
 	auto c = get_coorder(in);
 	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
@@ -366,7 +402,7 @@ EigenptrT<T> stride (teq::Shape& outshape, const iEigenEdge<T>& in)
 			TensMapT<T>
 		>,
 		TensMapT<T>>(
-		shape_convert(outshape), make_tensmap(in.data(), in.argshape()),
+		shape_convert(in.shape()), make_tensmap(in.data(), in.argshape()),
 		[&incrs](TensMapT<T>& in)
 		{
 			return in.stride(incrs);
@@ -377,14 +413,15 @@ EigenptrT<T> stride (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// specific increments across dimensions
 /// This function is the reverse of stride
 template <typename T>
-EigenptrT<T> scatter (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> scatter (const iEigenEdge<T>& in)
 {
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
+	std::fill(incrs.begin(), incrs.end(), 1);
 	auto c = get_coorder(in);
 	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
-	return std::make_shared<EigenAssignTens<T,TensMapT<T>>>(shape_convert(outshape),
-		make_tensmap(in.data(), in.argshape()),
+	return std::make_shared<EigenAssignTens<T,TensMapT<T>>>(
+		0, shape_convert(in.shape()), make_tensmap(in.data(), in.argshape()),
 		[incrs](TensorT<T>& out, const TensMapT<T>& in)
 		{
 			out.stride(incrs) = in;
@@ -392,7 +429,7 @@ EigenptrT<T> scatter (teq::Shape& outshape, const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> reverse (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> reverse (const iEigenEdge<T>& in)
 {
 	std::array<bool,teq::rank_cap> do_reverse;
 	std::fill(do_reverse.begin(), do_reverse.end(), false);
@@ -406,7 +443,7 @@ EigenptrT<T> reverse (teq::Shape& outshape, const iEigenEdge<T>& in)
 			TensMapT<T>
 		>,
 		TensMapT<T>>(
-		shape_convert(outshape), make_tensmap(in.data(), in.argshape()),
+		shape_convert(in.shape()), make_tensmap(in.data(), in.argshape()),
 		[&do_reverse](TensMapT<T>& in)
 		{
 			return in.reverse(do_reverse);
@@ -414,15 +451,14 @@ EigenptrT<T> reverse (teq::Shape& outshape, const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> concat (teq::Shape& outshape,
-	const iEigenEdge<T>& left, const iEigenEdge<T>& right)
+EigenptrT<T> concat (const iEigenEdge<T>& left, const iEigenEdge<T>& right)
 {
 	teq::RankT axis = get_coorder(left)[0];
 	return make_eigentensor<T,
 		Eigen::TensorConcatenationOp<
 			const teq::RankT,TensMapT<T>,TensMapT<T>>,
 		std::vector<TensMapT<T>>>(
-		shape_convert(outshape), {
+		shape_convert(left.shape()), {
 			make_tensmap(left.data(), left.argshape()),
 			make_tensmap(right.data(), right.argshape())},
 		[axis](std::vector<TensMapT<T>>& args)
@@ -434,8 +470,9 @@ EigenptrT<T> concat (teq::Shape& outshape,
 /// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
 template <typename T>
-EigenptrT<T> abs (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> abs (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -461,8 +498,9 @@ EigenptrT<T> abs (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take negatives of inputs
 template <typename T>
-EigenptrT<T> neg (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> neg (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -488,8 +526,9 @@ EigenptrT<T> neg (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take sine of inputs
 template <typename T>
-EigenptrT<T> sin (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> sin (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 #ifdef __cpp_if_constexpr
 	if constexpr(!std::is_integral<T>::value)
 	{
@@ -524,8 +563,9 @@ EigenptrT<T> sin (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take cosine of inputs
 template <typename T>
-EigenptrT<T> cos (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> cos (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 #ifdef __cpp_if_constexpr
 	if constexpr(!std::is_integral<T>::value)
 	{
@@ -560,8 +600,9 @@ EigenptrT<T> cos (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take tangent of inputs
 template <typename T>
-EigenptrT<T> tan (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> tan (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -591,8 +632,9 @@ EigenptrT<T> tan (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take exponent of inputs
 template <typename T>
-EigenptrT<T> exp (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> exp (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -618,8 +660,9 @@ EigenptrT<T> exp (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take natural log of inputs
 template <typename T>
-EigenptrT<T> log (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> log (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -645,8 +688,9 @@ EigenptrT<T> log (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take square root of inputs
 template <typename T>
-EigenptrT<T> sqrt (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> sqrt (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -672,8 +716,9 @@ EigenptrT<T> sqrt (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take rounded values of inputs
 template <typename T>
-EigenptrT<T> round (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> round (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -697,8 +742,9 @@ EigenptrT<T> round (teq::Shape& outshape, const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> sigmoid (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> sigmoid (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -722,8 +768,9 @@ EigenptrT<T> sigmoid (teq::Shape& outshape, const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> tanh (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> tanh (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -747,8 +794,9 @@ EigenptrT<T> tanh (teq::Shape& outshape, const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> square (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> square (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -772,8 +820,9 @@ EigenptrT<T> square (teq::Shape& outshape, const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> cube (teq::Shape& outshape, const iEigenEdge<T>& in)
+EigenptrT<T> cube (const iEigenEdge<T>& in)
 {
+	teq::Shape outshape = in.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -800,8 +849,9 @@ EigenptrT<T> cube (teq::Shape& outshape, const iEigenEdge<T>& in)
 /// same index apply std::pow operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> pow (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> pow (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -839,8 +889,9 @@ EigenptrT<T> pow (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge
 }
 
 template <typename T>
-EigenptrT<T> add (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> add (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -871,8 +922,9 @@ EigenptrT<T> add (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge
 /// same index subtract
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> sub (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> sub (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -900,8 +952,9 @@ EigenptrT<T> sub (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge
 }
 
 template <typename T>
-EigenptrT<T> mul (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> mul (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -932,8 +985,9 @@ EigenptrT<T> mul (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge
 /// same index divide
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> div (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> div (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -964,8 +1018,9 @@ EigenptrT<T> div (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge
 /// same index apply == operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> eq (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> eq (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1006,8 +1061,9 @@ EigenptrT<T> eq (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<
 /// same index apply != operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> neq (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> neq (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1048,8 +1104,9 @@ EigenptrT<T> neq (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge
 /// same index apply < operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> lt (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> lt (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1090,8 +1147,9 @@ EigenptrT<T> lt (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<
 /// same index apply > operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> gt (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> gt (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1131,8 +1189,9 @@ EigenptrT<T> gt (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<
 /// Given arguments, for every mapped index i in range [0:max_nelems],
 /// take the minimum all elements for all arguments
 template <typename T>
-EigenptrT<T> min (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> min (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1162,8 +1221,9 @@ EigenptrT<T> min (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge
 /// Given arguments, for every mapped index i in range [0:max_nelems],
 /// take the maximum all elements for all arguments
 template <typename T>
-EigenptrT<T> max (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> max (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1194,8 +1254,9 @@ EigenptrT<T> max (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge
 /// same index apply std::uniform_distributon function
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> rand_uniform (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> rand_uniform (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
+	teq::Shape outshape = a.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1228,10 +1289,10 @@ EigenptrT<T> rand_uniform (teq::Shape& outshape, const iEigenEdge<T>& a, const i
 /// apply corresponding then value if condition is non-zero
 /// otherwise apply otherwise value
 template <typename T>
-EigenptrT<T> select (teq::Shape& outshape,
-	const iEigenEdge<T>& condition,
+EigenptrT<T> select (const iEigenEdge<T>& condition,
 	const iEigenEdge<T>& then, const iEigenEdge<T>& otherwise)
 {
+	teq::Shape outshape = condition.shape();
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
@@ -1266,27 +1327,23 @@ using ContractionRetT = Eigen::TensorReshapingOp<
 		const std::array<std::pair<teq::RankT,teq::RankT>,N>,
 		const TensMapT<T>,const TensMapT<T>>>;
 
+#define _EIGEN_MATMUL_CASE(N)\
+return make_eigentensor<T,ContractionRetT<N,T>,std::vector<TensMapT<T>>>(outdims, args,\
+[&](std::vector<TensMapT<T>>& args){\
+return args[1].contract(args[0], internal::dim_copy<N>(dims)).reshape(outdims); });
+
 /// Only applies to 2-d tensors
 /// Apply matrix multiplication of a and b
 template <typename T>
-EigenptrT<T> matmul (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> matmul (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 {
-	std::vector<std::pair<teq::RankT,teq::RankT>> dims;
-	auto encoding = get_coorder(a);
-	size_t n = encoding.size();
-	if (1 == n % 2)
-	{
-		logs::fatalf("cannot decode odd vector %s into vec of pairs",
-			fmts::to_string(encoding.begin(), encoding.end()).c_str());
-	}
-	for (size_t i = 0; i < n; i += 2)
+	teq::Shape outshape = a.shape();
+	auto c = get_coorder(a);
+	auto dims = decode_pair<teq::RankT>(c);
+	for (size_t i = 0, n = dims.size(); i < n; ++i)
 	{
 		// contract reverses left, right arguments
-		dims.push_back({encoding[i + 1], encoding[i]});
-	}
-	if (dims.empty())
-	{
-		logs::fatal("cannot contract tensors without specified dimensions");
+		dims[i] = {dims[i].second, dims[i].first};
 	}
 	if (is_2d(a.argshape()) && is_2d(b.argshape()) &&
 		dims.size() == 1 && dims[0].first == 1 && dims[0].second == 0)
@@ -1304,68 +1361,56 @@ EigenptrT<T> matmul (teq::Shape& outshape, const iEigenEdge<T>& a, const iEigenE
 	std::vector<TensMapT<T>> args = {
 		make_tensmap(a.data(), a.argshape()),
 		make_tensmap(b.data(), b.argshape())};
-	switch (dims.size())
-	{
-		case 1:
-			return make_eigentensor<T,ContractionRetT<1,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<1>(dims)).reshape(outdims);
-				});
-		case 2:
-			return make_eigentensor<T,ContractionRetT<2,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<2>(dims)).reshape(outdims);
-				});
-		case 3:
-			return make_eigentensor<T,ContractionRetT<3,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<3>(dims)).reshape(outdims);
-				});
-		case 4:
-			return make_eigentensor<T,ContractionRetT<4,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<4>(dims)).reshape(outdims);
-				});
-		case 5:
-			return make_eigentensor<T,ContractionRetT<5,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<5>(dims)).reshape(outdims);
-				});
-		case 6:
-			return make_eigentensor<T,ContractionRetT<6,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<6>(dims)).reshape(outdims);
-				});
-		case 7:
-			return make_eigentensor<T,ContractionRetT<7,T>,std::vector<TensMapT<T>>>(outdims, args,
-				[&](std::vector<TensMapT<T>>& args)
-				{
-					return args[1].contract(args[0], internal::dim_copy<7>(dims)).reshape(outdims);
-				});
-		default:
-			break;
-	}
-	return make_eigentensor<T,ContractionRetT<teq::rank_cap,T>,std::vector<TensMapT<T>>>(outdims, args,
-		[&](std::vector<TensMapT<T>>& args)
-		{
-			return args[1].contract(args[0], internal::dim_copy<teq::rank_cap>(dims)).reshape(outdims);
-		});
+	_ARRAY_SWITCH(dims, _EIGEN_MATMUL_CASE);
 }
+
+#undef _EIGEN_MATMUL_CASE
 
 /// Apply convolution of kernel across input
 template <typename T>
-EigenptrT<T> convolution (teq::Shape& outshape, const iEigenEdge<T>& input, const iEigenEdge<T>& kernel)
+EigenptrT<T> convolution (const iEigenEdge<T>& input, const iEigenEdge<T>& kernel)
 {
-	teq::ShapeT dims;
+	teq::Shape outshape = input.shape();
+	std::vector<teq::RankT> order;
 	auto c = get_coorder(kernel);
-	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
-		dims.begin());
+	if (c.empty())
+	{
+		logs::fatal("cannot convolve tensors without specified dimensions");
+	}
+
+	bool visited[teq::rank_cap];
+	std::fill(visited, visited + teq::rank_cap, false);
+	size_t n = std::min(c.size(), (size_t) teq::rank_cap);
+	for (size_t i = 0; i < n; ++i)
+	{
+		teq::RankT d = c[i];
+		if (visited[d])
+		{
+			logs::fatalf("convolution does not support repeated kernel dimensions: %s",
+				fmts::to_string(c.begin(), c.end()).c_str());
+		}
+		visited[d] = true;
+		order.push_back(d);
+	}
+	auto kshape = kernel.argshape();
+	for (size_t i = n; i < teq::rank_cap; ++i)
+	{
+		if (kshape.at(i) > 1)
+		{
+			logs::fatalf("given kernel shape %s, unspecified "
+				"non-singular kernel dimension %d is undefined",
+				kshape.to_string().c_str(), i);
+		}
+	}
+	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+	{
+		if (visited[i] == false)
+		{
+			order.push_back(i);
+		}
+	}
+	teq::ShapeT dims;
+	std::copy(order.begin(), order.end(), dims.begin());
 	return make_eigentensor<T,Eigen::TensorConvolutionOp<
 		const teq::ShapeT,
 		const TensMapT<T>,const TensMapT<T>>,
@@ -1377,6 +1422,8 @@ EigenptrT<T> convolution (teq::Shape& outshape, const iEigenEdge<T>& input, cons
 			return args[0].convolve(args[1], dims);
 		});
 }
+
+#undef _ARRAY_SWITCH
 
 }
 

@@ -58,22 +58,31 @@ TensMapIndicesT save_graph (
 	}
 	std::vector<teq::iLeaf*> leaves;
 	std::vector<teq::iFunctor*> funcs;
-	for (auto tens : orderer.ordered_)
 	{
-		if (stat.graphsize_[tens].upper_ == 0)
+		std::unordered_map<teq::iFunctor*,size_t> forder;
+		for (auto tens : orderer.ordered_)
 		{
-			leaves.push_back(static_cast<teq::iLeaf*>(tens));
+			if (stat.graphsize_[tens].upper_ == 0)
+			{
+				leaves.push_back(static_cast<teq::iLeaf*>(tens));
+			}
+			else
+			{
+				auto f = static_cast<teq::iFunctor*>(tens);
+				forder[f] = funcs.size();
+				funcs.push_back(f);
+			}
 		}
-		else
-		{
-			funcs.push_back(static_cast<teq::iFunctor*>(tens));
-		}
+		std::sort(funcs.begin(), funcs.end(),
+			[&](teq::iFunctor* a, teq::iFunctor* b)
+			{
+				if (stat.graphsize_[a].upper_ == stat.graphsize_[b].upper_)
+				{
+					return forder[a] < forder[b];
+				}
+				return stat.graphsize_[a].upper_ < stat.graphsize_[b].upper_;
+			});
 	}
-	std::sort(funcs.begin(), funcs.end(),
-		[&](teq::iFunctor* a, teq::iFunctor* b)
-		{
-			return stat.graphsize_[a].upper_ < stat.graphsize_[b].upper_;
-		});
 
 	// map tens to index in leaves + funcs array
 	TensMapIndicesT ordermap;

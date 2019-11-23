@@ -48,7 +48,7 @@ struct Number final : public iNumber
 
 	size_t class_code (void) const override
 	{
-		static const std::type_info& tp = typeid(T);
+		static const std::type_info& tp = typeid(Number<T>);
 		return tp.hash_code();
 	}
 
@@ -86,6 +86,8 @@ struct iArray : public iObject
 	virtual void foreach (std::function<void(ObjptrT&)> consume) = 0;
 
 	virtual void foreach (std::function<void(const ObjptrT&)> consume) const = 0;
+
+	virtual size_t size (void) const = 0;
 
 	void accept (iMarshaler& marshaler) const override
 	{
@@ -134,6 +136,11 @@ struct ObjArray final : public iArray
 		return true;
 	}
 
+	size_t size (void) const override
+	{
+		return contents_.size();
+	}
+
 	void foreach (std::function<void(ObjptrT&)> consume) override
 	{
 		for (ObjptrT& obj : contents_)
@@ -180,7 +187,13 @@ struct NumArray final : public iArray
 			return false;
 		}
 		auto& ocontents = static_cast<const NumArray<T>*>(&other)->contents_;
-		return std::equal(contents_.begin(), contents_.end(), ocontents.begin());
+		return contents_.size() == ocontents.size() &&
+			std::equal(contents_.begin(), contents_.end(), ocontents.begin());
+	}
+
+	size_t size (void) const override
+	{
+		return contents_.size();
 	}
 
 	void foreach (std::function<void(ObjptrT&)> consume) override

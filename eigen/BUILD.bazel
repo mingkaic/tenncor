@@ -86,6 +86,14 @@ cc_library(
 
 ######### TEST #########
 
+cc_library(
+    name = "mock_eigen",
+    hdrs = glob(["mock/*.hpp"]),
+    copts = ["-std=c++17"],
+    deps = ["//eigen:eigen"],
+    visibility = ["//visibility:public"],
+)
+
 cc_test(
     name = "test",
     srcs = ["//eigen:test_srcs"],
@@ -93,6 +101,7 @@ cc_test(
     deps = [
         "//eigen:eigen",
         "//teq:mock_teq",
+        "//eigen:mock_eigen",
         "//dbg:stream_out",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",

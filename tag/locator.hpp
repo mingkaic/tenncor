@@ -9,7 +9,7 @@ namespace tag
 {
 
 std::string display_location (teq::TensptrT tens,
-	teq::TensptrsT known_parents = {},
+	teq::TensptrsT known_roots = {},
 	TagRegistry& tagreg = tag::get_reg());
 
 }

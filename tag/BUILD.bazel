@@ -33,12 +33,21 @@ cc_library(
 
 ######### TEST #########
 
+cc_library(
+    name = "mock_tag",
+    hdrs = glob(["mock/*.hpp"]),
+    copts = ["-std=c++17"],
+    deps = ["//tag:tag"],
+    visibility = ["//visibility:public"],
+)
+
 cc_test(
     name = "test",
     srcs = ["//tag:test_srcs"],
     deps = [
         "//tag:tag",
         "//teq:mock_teq",
+        "//tag:mock_tag",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

@@ -58,7 +58,7 @@ struct iEdgeMatcher
 			{
 				values.push_back(jt->val_);
 			}
-			if (kv->val_scalar_)
+			if (kv->val_scalar_ && values.size() > 0)
 			{
 				attrs_.emplace(key,
 					std::make_unique<marsh::Number<double>>(values[0]));
@@ -89,8 +89,8 @@ struct iEdgeMatcher
 				{
 					return CandsT{};
 				}
-				if (false == mvalues.contents_.at(apairs.first)->equals(
-						*apairs.second))
+				if (false == mvalues.contents_.at(
+					apairs.first)->equals(*apairs.second))
 				{
 					return CandsT{};
 				}

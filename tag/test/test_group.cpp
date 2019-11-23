@@ -6,9 +6,8 @@
 
 #include "exam/exam.hpp"
 
+#include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
-
-#include "tag/test/common.hpp"
 
 #include "tag/group.hpp"
 
@@ -244,6 +243,38 @@ TEST(GROUP, Subgraph)
 			EXPECT_HAS(groups, "group2");
 		}
 	}
+}
+
+
+TEST(GROUP, RegistryRetag)
+{
+	tag::TagRegistry treg;
+	tag::GroupRegistry registry(treg);
+
+	teq::iTensor* orig = new MockTensor();
+	teq::iTensor* repl = new MockTensor();
+	teq::TensptrT tens(orig, [](teq::iTensor* tens){});
+
+	registry.group_tag(tens, "bumble");
+
+	auto reps = treg.get_tags(orig);
+	EXPECT_EQ(1, reps.size());
+	ASSERT_HAS(reps, "groups");
+	std::vector<std::string> expect_values = {"bumble"};
+	EXPECT_ARREQ(expect_values, reps["groups"]);
+
+	tens.reset(repl);
+
+	reps = treg.get_tags(orig);
+	EXPECT_EQ(0, reps.size());
+
+	teq::TensptrT retens(orig);
+	registry.group_tag(retens, "bumble");
+
+	reps = treg.get_tags(orig);
+	EXPECT_EQ(1, reps.size());
+	ASSERT_HAS(reps, "groups");
+	EXPECT_ARREQ(expect_values, reps["groups"]);
 }
 
 

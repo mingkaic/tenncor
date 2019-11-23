@@ -19,14 +19,14 @@
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "0::weight:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_dense:0:0"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "0::weight:0"
      ]
     }
    }
@@ -79,11 +79,6 @@
     "isConst": true
    },
    "tags": {
-    "layer_sigmoid": {
-     "labels": [
-      "::uparam:0"
-     ]
-    },
     "properties": {
      "labels": [
       "immutable"
@@ -92,6 +87,11 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_sigmoid::1"
+     ]
+    },
+    "layer_sigmoid": {
+     "labels": [
+      "::uparam:0"
      ]
     }
    }

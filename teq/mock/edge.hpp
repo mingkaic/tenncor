@@ -7,8 +7,10 @@ struct MockEdge final : public teq::iEdge
 {
 	MockEdge (teq::TensptrT tensor,
 		std::vector<double> shape = {},
-		std::vector<double> coorder = {}) :
-		tensor_(tensor), shape_(shape), coorder_(coorder)
+		std::vector<double> coorder = {},
+		std::vector<double> junk = {}) :
+		tensor_(tensor), shape_(shape),
+		coorder_(coorder), junk_coords_(junk)
 	{
 		if (tensor_ == nullptr)
 		{
@@ -57,6 +59,16 @@ struct MockEdge final : public teq::iEdge
 			}
 			out.contents_.emplace("coorder", std::move(arr));
 		}
+		if (junk_coords_.size() > 0)
+		{
+			auto arr = std::make_unique<marsh::NumArray<size_t>>();
+			auto& contents = arr->contents_;
+			for (double c : junk_coords_)
+			{
+				contents.push_back(c);
+			}
+			out.contents_.emplace("junkcoorder", std::move(arr));
+		}
 	}
 
 private:
@@ -65,6 +77,8 @@ private:
 	std::vector<double> shape_;
 
 	std::vector<double> coorder_;
+
+	std::vector<double> junk_coords_;
 };
 
 using MockEdgesT = std::vector<MockEdge>;

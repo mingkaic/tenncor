@@ -6,44 +6,59 @@ namespace tag
 {
 
 std::string display_location (teq::TensptrT tens,
-	teq::TensptrsT known_parents, TagRegistry& tagreg)
+	teq::TensptrsT known_roots, TagRegistry& tagreg)
 {
 	if (nullptr == tens)
 	{
 		return "<nil>";
 	}
-	// fmt:
+	// format:
 	// <parents>
 	//  `--<rep> {<tagtype>: <tagvals>,...}
 	//      `--<childrep>
 	//       ...
 	std::stringstream out;
 	std::string branchfmt = " `--";
-	if (known_parents.size() > 0)
+	if (known_roots.size() > 0)
 	{
-		out << known_parents[0]->to_string() << ":"
-			<< known_parents[0]->shape().to_string();
-		for (size_t i = 1, n = known_parents.size(); i < n; ++i)
+		teq::ParentFinder pfinder;
+		for (auto root : known_roots)
 		{
-			teq::TensptrT& parent = known_parents[i];
-			out << parent->to_string() << ":"
-				<< parent->shape().to_string();
+			root->accept(pfinder);
 		}
-		out << "\n" << branchfmt;
-		branchfmt = "    " + branchfmt;
+		auto& parents = pfinder.parents_[tens.get()];
+		size_t n = parents.size();
+		std::vector<std::string> plabels;
+		plabels.reserve(n);
+		for (auto& p : parents)
+		{
+			auto parent = p.first;
+			plabels.push_back(
+				parent->to_string() + ":" +
+				parent->shape().to_string());
+		}
+		if (n > 0)
+		{
+			std::sort(plabels.begin(), plabels.end());
+			out << fmts::join("\n", plabels.begin(), plabels.end())
+				<< "\n" << branchfmt;
+			branchfmt = "    " + branchfmt;
+		}
 	}
-	out << tens->to_string() << ":" << tens->shape().to_string() << "{";
+	out << ">" << tens->to_string() << "<:" << tens->shape().to_string() << "{";
 	tag::TagRepsT tags = tagreg.get_tags(tens.get());
-	if (tags.size() > 0)
+	size_t ntags = tags.size();
+	if (ntags > 0)
 	{
-		auto it = tags.begin(), et = tags.end();
-		out << it->first << ":"
-			<< fmts::to_string(it->second.begin(), it->second.end());
-		for (++it; it != et; ++it)
-		{
-			out << "," << it->first << ":"
-				<< fmts::to_string(it->second.begin(), it->second.end());
-		}
+		std::vector<std::string> tagstr;
+		tagstr.reserve(ntags);
+		std::transform(tags.begin(), tags.end(), std::back_inserter(tagstr),
+			[](const std::pair<std::string,std::vector<std::string>>& tpair)
+			{
+				return tpair.first + ":" + fmts::to_string(
+					tpair.second.begin(), tpair.second.end());
+			});
+		out << fmts::join(",", tagstr.begin(), tagstr.end());
 	}
 	out << "}";
 	if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(tens.get()))

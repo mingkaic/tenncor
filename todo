@@ -6,6 +6,9 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
    - opt: enforce variadic/commutative constraints
+   - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
+      delay thread creation until dependent flag is set
+   - fix optimize so that the output data is equivalent before and after
 
 === usage ===
 P2 - implement GRU
@@ -32,6 +35,7 @@ P5 - implement onnx support (https://github.com/onnx/onnx)
 P2 - generate value-range graph to detect erroneous operators
       - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
       - this graph can help developers quickly identifies unstable nodes
+   - implement custom logger that displays location of nearest node on fatal errors
 P2 - centralize global context structures
 P2 - implement debug option that locates nodes by some tag/parent-child relationship/etc.
 P2 - create global context for setting local logger
