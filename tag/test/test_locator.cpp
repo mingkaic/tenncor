@@ -45,16 +45,16 @@ TEST(LOCATOR, DisplayLocation)
     EXPECT_STREQ(
         "Parent:[1\\22\\7\\1\\1\\1\\1\\1]\n"
         " `-->Quack<:[1\\22\\7\\1\\1\\1\\1\\1]{}\n"
-        "     `--leaf2:[1\\22\\7\\1\\1\\1\\1\\1]\n"
-        "     `--leaf:[3\\4\\5\\1\\1\\1\\1\\1]",
+        "     `--(leaf2):[1\\22\\7\\1\\1\\1\\1\\1]\n"
+        "     `--(leaf):[3\\4\\5\\1\\1\\1\\1\\1]",
         tag::display_location(vfunc, {cfunc}, treg).c_str());
 
     treg.add_tag(vfunc, std::make_unique<MockTag>(tid, "normal_funk"));
     EXPECT_STREQ(
         "Parent:[1\\22\\7\\1\\1\\1\\1\\1]\n"
         " `-->Quack<:[1\\22\\7\\1\\1\\1\\1\\1]{normal_funk:[A\\B\\C\\1]}\n"
-        "     `--leaf2:[1\\22\\7\\1\\1\\1\\1\\1]\n"
-        "     `--leaf:[3\\4\\5\\1\\1\\1\\1\\1]",
+        "     `--(leaf2):[1\\22\\7\\1\\1\\1\\1\\1]\n"
+        "     `--(leaf):[3\\4\\5\\1\\1\\1\\1\\1]",
         tag::display_location(vfunc, {cfunc}, treg).c_str());
 
 }

@@ -111,6 +111,7 @@ cc_test(
     deps = [
         "//eteq:eteq",
         "//dbg:stream_out",
+        "//testutil:tutil",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",

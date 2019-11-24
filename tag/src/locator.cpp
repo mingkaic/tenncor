@@ -67,8 +67,8 @@ std::string display_location (teq::TensptrT tens,
 		for (const teq::iEdge& arg : args)
 		{
 			auto argtens = arg.get_tensor();
-			out << "\n" << branchfmt
-				<< argtens->to_string() << ":"
+			out << "\n" << branchfmt << "("
+				<< argtens->to_string() << "):"
 				<< argtens->shape().to_string();
 		}
 	}

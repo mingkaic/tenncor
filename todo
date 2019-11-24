@@ -67,8 +67,7 @@ P3 - test rocnnet, and trainer (or subgraph equivalent)
 P3 - improve ccur module
 
 run-time performance:
-   - implement group sum and group prod using EigenAssignTens
-   - make eigen device configurable
+P2 - make eigen device configurable
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - implement GPU settings
 P4 - improve session implementation

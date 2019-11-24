@@ -227,7 +227,13 @@ struct Maps final : public iObject
 	std::string to_string (void) const override
 	{
 		auto ks = keys();
-		return fmts::to_string(ks.begin(), ks.end());
+		std::sort(ks.begin(), ks.end());
+		std::vector<std::pair<std::string,std::string>> pairs;
+		for (std::string key : ks)
+		{
+			pairs.push_back({key, contents_.at(key)->to_string()});
+		}
+		return fmts::to_string(pairs.begin(), pairs.end());
 	}
 
 	bool equals (const iObject& other) const override

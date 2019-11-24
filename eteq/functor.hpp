@@ -66,18 +66,28 @@ struct Functor final : public teq::iOperableFunc
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		teq::Shape nexshape = arg->shape();
-		teq::Shape curshape = args_[index].argshape();
-		if (false == nexshape.compatible_after(curshape, 0))
+		if (index >= args_.size())
 		{
-			logs::fatalf("cannot update child %d to argument with "
-				"incompatible shape %s (requires shape %s)",
-				index, nexshape.to_string().c_str(),
-				curshape.to_string().c_str());
+			logs::fatalf("cannot modify argument %d "
+				"when there are only %d arguments",
+				index, args_.size());
 		}
-		static_cast<Edge<T>*>(&args_[index])->set_tensor(arg);
-		// todo: warn of data destruction
-		uninitialize();
+		auto edge = static_cast<Edge<T>*>(&args_[index]);
+		if (arg != edge->get_tensor())
+		{
+			teq::Shape nexshape = arg->shape();
+			teq::Shape curshape = args_[index].argshape();
+			if (false == nexshape.compatible_after(curshape, 0))
+			{
+				logs::fatalf("cannot update child %d to argument with "
+					"incompatible shape %s (requires shape %s)",
+					index, nexshape.to_string().c_str(),
+					curshape.to_string().c_str());
+			}
+			edge->set_tensor(arg);
+			// todo: warn of data destruction
+			uninitialize();
+		}
 	}
 
 	/// Implementation of iOperableFunc
@@ -316,7 +326,8 @@ struct ReducePacker : private EmptyPacker<T>
 		NodeptrT<T> node = nodes[0];
 		teq::Shape shape = node->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		for (auto it = dims.begin(), et = dims.end(); it != et;)
+		std::set<teq::RankT> sig_dims = dims;
+		for (auto it = sig_dims.begin(), et = sig_dims.end(); it != et;)
 		{
 			if (slist.at(*it) > 1)
 			{
@@ -325,15 +336,18 @@ struct ReducePacker : private EmptyPacker<T>
 			}
 			else
 			{
-				it = dims.erase(it);
+				it = sig_dims.erase(it);
 			}
 		}
-		if (dims.empty())
+		if (sig_dims.empty())
 		{
-			// todo: warn
+			logs::debugf("reducing with no significant dimensions... "
+				"treating as identity: (dims=%s, shape=%s)",
+				fmts::to_string(dims.begin(), dims.end()).c_str(),
+				shape.to_string().c_str());
 			return {};
 		}
-		std::vector<double> rdims(dims.begin(), dims.end());
+		std::vector<double> rdims(sig_dims.begin(), sig_dims.end());
 		std::sort(rdims.begin(), rdims.end());
 		return {Edge<T>(node, teq::Shape(slist), rdims)};
 	}
@@ -647,7 +661,7 @@ struct FuncPacker<T,egen::PERMUTE> final : private EmptyPacker<T>
 	{
 		if (is_inorder(order))
 		{
-			logs::warn("permuting with same dimensions ... treating as identity");
+			logs::debug("permuting with same dimensions ... treating as identity");
 			return {};
 		}
 		eteq::NodeptrT<T> arg = nodes[0];
@@ -694,7 +708,7 @@ struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 		if (bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 1 == d; }))
 		{
-			logs::warn("extending with nothing... treating as identity");
+			logs::debug("extending with nothing... treating as identity");
 			return {}; // identity
 		}
 		if (std::any_of(bcast.begin(), bcast.end(),

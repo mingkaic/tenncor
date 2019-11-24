@@ -173,17 +173,17 @@ struct Hasher final : public teq::OnceTraveler
 	/// Implementation of OnceTraveler
 	void visit_leaf (teq::iLeaf* leaf) override
 	{
-		std::string label = leaf->shape().to_string() + "|";
 		if (leaf->is_const())
 		{
+			std::string label = leaf->shape().to_string() + "|";
 			T* data = (T*) leaf->data();
 			label += fmts::to_string(data, data + leaf->shape().n_elems());
+			encode_label(leaf, label);
 		}
 		else
 		{
-			label += fmts::to_string((size_t) leaf);
+			hashes_.emplace(leaf, uuid_gen_());
 		}
-		encode_label(leaf, label);
 	}
 
 	/// Implementation of OnceTraveler
@@ -281,8 +281,11 @@ teq::TensptrsT optimize (teq::TensptrsT roots,
 	opt::CustomFilters filters;
 	filters.prefilters_.push_back(remove_duplicates<T>);
 	filters.prefilters_.push_back(constant_funcs<T>);
-	filters.prenode_filters_.push_back(constant_func<T>);
-	filters.postfilters_.push_back(remove_duplicates<T>);
+	if (opts.dbg_msgs_.size() > 0)
+	{
+		filters.prenode_filters_.push_back(constant_func<T>);
+		filters.postfilters_.push_back(remove_duplicates<T>);
+	}
 	return opt::optimize(roots, opts, filters);
 }
 
