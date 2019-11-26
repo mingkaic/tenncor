@@ -11,8 +11,8 @@ P5 = "get to it eventually"
       delay thread creation until dependent flag is set
 
 === usage ===
-P2 - implement GRU
 P2 - implement LSTM
+P2 - implement GRU
 P2 - implement attention transformer
    - demo A3C, attention encoder+decoder
    - implement models concerning visual and audio processing, and semantic data processing
@@ -53,7 +53,6 @@ P5 - formalize codestyle
 
 === correction ===
 P2 - test opt module against varying graphs
-P2 - test eteq funcarg
 P2 - test dropout layer
 P2 - reorient tests so that tests cover its own immediate module
 P2 - fix rbm demo converging to infinity problem

@@ -1,4 +1,4 @@
-# source: https://peterroelants.github.io/posts/rnn-implementation-part02/
+# logic source: https://peterroelants.github.io/posts/rnn-implementation-part02/
 import sys
 import functools
 import time
@@ -82,47 +82,6 @@ def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
         return [group1, group2, group3]
 
     return rms_prop
-
-def rnn_train(rnn, sess, train_input, train_exout,
-    learning_rate, momentum_term, lmbd, eps):
-
-    winp, binp, _, w, b, _, _, state0, wout, bout, _, _ = tuple(rnn.get_contents())
-
-    targets = [winp, binp, w, b, state0, wout, bout]
-    momentums = [np.zeros(v.shape()) for v in targets]
-    moving_avg_sqr = [np.zeros(v.shape()) for v in targets]
-
-    train_out = rnn.connect(train_input)
-    error = loss(train_exout, train_out)
-    grads =  [eteq.derive(error, var) for var in targets]
-
-    sess.track(grads)
-
-    # apply rms prop optimization
-    def train():
-        # group 1
-        momentum_tmp = [mom * momentum_term for mom in momentums]
-        for var, mom_tmp in zip(targets, momentum_tmp):
-            var.assign(np.array(var.get() + mom_tmp))
-
-        sess.update_target(grads)
-        res_grads = [grad.get() for grad in grads]
-
-        # group 2
-        for i in range(len(targets)):
-            moving_avg_sqr[i] = lmbd * moving_avg_sqr[i] + (1-lmbd) * res_grads[i]**2
-
-        # group 3
-        pgrad_norms = [(learning_rate * grad) / np.sqrt(mvsqr) + eps
-            for grad, mvsqr in zip(res_grads, moving_avg_sqr)]
-
-        for i in range(len(targets)):
-            momentums[i] = momentum_tmp[i] - pgrad_norms[i]
-
-        for var, pgrad_norm in zip(targets, pgrad_norms):
-            var.assign(np.array(var.get() - pgrad_norm))
-
-    return train
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -218,12 +177,9 @@ def main(args):
     error = loss(train_exout, model.connect(train_input))
     sess.track([error])
 
-    # todo: switch to rcn.sgd_train without slowing down
-    # train = rcn.sgd_train(model, sess, train_input, train_exout,
-    #     make_rms_prop(learning_rate, momentum_term, lmbd, eps),
-    #     errfunc=loss)
-    train = rnn_train(model, sess, train_input, train_exout,
-        learning_rate, momentum_term, lmbd, eps)
+    train = rcn.sgd_train(model, sess, train_input, train_exout,
+        make_rms_prop(learning_rate, momentum_term, lmbd, eps),
+        errfunc=loss)
 
     test_input = eteq.Variable([n_test, sequence_len, ninput])
     untrained_out = tc.round(untrained.connect(test_input))

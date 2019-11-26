@@ -79,7 +79,9 @@ PYBIND11_MODULE(rocnnet, m)
 			[](eteq::VarptrT<PybindT> target, NodeptrT source)
 			{
 				return layr::VarAssign{"", target, source};
-			}));
+			}))
+		.def("target", [](layr::VarAssign& assign) { return assign.target_; })
+		.def("source", [](layr::VarAssign& assign) { return assign.source_; });
 
 	dqninfo
 		.def(py::init<size_t,
