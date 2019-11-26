@@ -106,6 +106,12 @@ protected:
 	}
 
 private:
+	/// Implementation of iNode<T>
+	void add_parent (Functor<T>* parent) override {}
+
+	/// Implementation of iNode<T>
+	void remove_parent (Functor<T>* parent) override {}
+
 	std::shared_ptr<Constant<T>> cst_;
 };
 

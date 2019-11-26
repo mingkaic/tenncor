@@ -13,6 +13,7 @@
 #include "eigen/generated/opcode.hpp"
 
 #include "eteq/edge.hpp"
+#include "eteq/observable.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -22,7 +23,7 @@ namespace eteq
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
-struct Functor final : public teq::iOperableFunc
+struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	static Functor<T>* get (egen::_GENERATED_OPCODE opcode, ArgsT<T> args);
@@ -31,6 +32,14 @@ struct Functor final : public teq::iOperableFunc
 	static Functor<T>* get (Functor<T>&& other)
 	{
 		return new Functor<T>(std::move(other));
+	}
+
+	~Functor (void)
+	{
+		for (Edge<T>& arg : args_)
+		{
+			arg.get_node()->remove_parent(this);
+		}
 	}
 
 	Functor (const Functor<T>& other) = delete;
@@ -75,8 +84,10 @@ struct Functor final : public teq::iOperableFunc
 		auto edge = static_cast<Edge<T>*>(&args_[index]);
 		if (arg != edge->get_tensor())
 		{
+			uninitialize();
+			edge->get_node()->remove_parent(this);
 			teq::Shape nexshape = arg->shape();
-			teq::Shape curshape = args_[index].argshape();
+			teq::Shape curshape = edge->argshape();
 			if (false == nexshape.compatible_after(curshape, 0))
 			{
 				logs::fatalf("cannot update child %d to argument with "
@@ -85,8 +96,7 @@ struct Functor final : public teq::iOperableFunc
 					curshape.to_string().c_str());
 			}
 			edge->set_tensor(arg);
-			// todo: warn of data destruction
-			uninitialize();
+			edge->get_node()->add_parent(this);
 		}
 	}
 
@@ -148,6 +158,14 @@ struct Functor final : public teq::iOperableFunc
 	/// Removes internal Eigen data object
 	void uninitialize (void)
 	{
+		if (is_uninit())
+		{
+			return;
+		}
+		for (auto& parent : this->subs_)
+		{
+			parent->uninitialize();
+		}
 		out_ = nullptr;
 	}
 
@@ -162,6 +180,10 @@ private:
 	Functor (egen::_GENERATED_OPCODE opcode, teq::Shape shape, ArgsT<T> args) :
 		opcode_(teq::Opcode{egen::name_op(opcode), opcode}), shape_(shape), args_(args)
 	{
+		for (Edge<T>& arg : args_)
+		{
+			arg.get_node()->add_parent(this);
+		}
 #ifdef FINIT_ON_BUILD
 		initialize();
 #endif // FINIT_ON_BUILD
@@ -229,6 +251,18 @@ protected:
 	}
 
 private:
+	/// Implementation of iNode<T>
+	void add_parent (Functor<T>* parent) override
+	{
+		func_->subscribe(parent);
+	}
+
+	/// Implementation of iNode<T>
+	void remove_parent (Functor<T>* parent) override
+	{
+		func_->unsubscribe(parent);
+	}
+
 	std::shared_ptr<Functor<T>> func_;
 };
 

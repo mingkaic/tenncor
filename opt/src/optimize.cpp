@@ -21,7 +21,7 @@ void replace_parents (const teq::ParentFinder& pfinder,
 			}
 		}
 	}
-	registry.move_tags(target, source);
+	// registry.move_tags(target, source);
 }
 
 teq::TensptrsT optimize (teq::TensptrsT roots,

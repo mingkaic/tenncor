@@ -5,8 +5,8 @@
 namespace tag
 {
 
-std::string display_location (teq::TensptrT tens,
-	teq::TensptrsT known_roots, TagRegistry& tagreg)
+std::string display_location (teq::iTensor* tens,
+	teq::TensT known_roots, TagRegistry& tagreg)
 {
 	if (nullptr == tens)
 	{
@@ -19,14 +19,18 @@ std::string display_location (teq::TensptrT tens,
 	//       ...
 	std::stringstream out;
 	std::string branchfmt = " `--";
-	if (known_roots.size() > 0)
+	teq::TensT roots;
+	std::copy_if(known_roots.begin(), known_roots.end(),
+		std::back_inserter(roots),
+		[](teq::iTensor* root) { return root != nullptr; });
+	if (roots.size() > 0)
 	{
 		teq::ParentFinder pfinder;
-		for (auto root : known_roots)
+		for (auto root : roots)
 		{
 			root->accept(pfinder);
 		}
-		auto& parents = pfinder.parents_[tens.get()];
+		auto& parents = pfinder.parents_[tens];
 		size_t n = parents.size();
 		std::vector<std::string> plabels;
 		plabels.reserve(n);
@@ -46,7 +50,7 @@ std::string display_location (teq::TensptrT tens,
 		}
 	}
 	out << ">" << tens->to_string() << "<:" << tens->shape().to_string() << "{";
-	tag::TagRepsT tags = tagreg.get_tags(tens.get());
+	tag::TagRepsT tags = tagreg.get_tags(tens);
 	size_t ntags = tags.size();
 	if (ntags > 0)
 	{
@@ -61,7 +65,7 @@ std::string display_location (teq::TensptrT tens,
 		out << fmts::join(",", tagstr.begin(), tagstr.end());
 	}
 	out << "}";
-	if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(tens.get()))
+	if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(tens))
 	{
 		auto args = f->get_children();
 		for (const teq::iEdge& arg : args)
@@ -73,6 +77,16 @@ std::string display_location (teq::TensptrT tens,
 		}
 	}
 	return out.str();
+}
+
+std::string display_location (teq::TensptrT tens,
+	teq::TensptrsT known_roots, TagRegistry& tagreg)
+{
+	teq::TensT roots;
+	std::transform(known_roots.begin(), known_roots.end(),
+		std::back_inserter(roots),
+		[](teq::TensptrT root) { return root.get(); });
+	return display_location(tens.get(), roots, tagreg);
 }
 
 }

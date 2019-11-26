@@ -218,6 +218,7 @@ def main(args):
     error = loss(train_exout, model.connect(train_input))
     sess.track([error])
 
+    # todo: switch to rcn.sgd_train without slowing down
     # train = rcn.sgd_train(model, sess, train_input, train_exout,
     #     make_rms_prop(learning_rate, momentum_term, lmbd, eps),
     #     errfunc=loss)

@@ -5,10 +5,10 @@ P3 = "want to have"
 P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
+=== bugs ===
    - opt: enforce variadic/commutative constraints
    - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
       delay thread creation until dependent flag is set
-   - fix optimize so that the output data is equivalent before and after
 
 === usage ===
 P2 - implement GRU
@@ -53,7 +53,6 @@ P5 - formalize codestyle
 
 === correction ===
 P2 - test opt module against varying graphs
-   - optimization fails when functor is initialized on construction
 P2 - test eteq funcarg
 P2 - test dropout layer
 P2 - reorient tests so that tests cover its own immediate module
