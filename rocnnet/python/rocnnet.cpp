@@ -18,6 +18,7 @@
 #include "layr/conv.hpp"
 #include "layr/recur.hpp"
 #include "layr/seqmodel.hpp"
+#include "layr/lstm.hpp"
 
 #include "rocnnet/trainer/sgd_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"
@@ -64,6 +65,7 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<layr::Conv,layr::ConvptrT,layr::iLayer> conv(m, "Conv");
 	py::class_<layr::Recur,layr::RecurptrT,layr::iLayer> recur(m, "Recur");
 	py::class_<layr::SequentialModel,layr::SeqModelptrT,layr::iLayer> seqmodel(m, "SequentialModel");
+	py::class_<layr::LSTM,layr::LSTMptrT,layr::iLayer> lstm(m, "LSTM");
 
 	// trainers
 	py::class_<trainer::DQNTrainer> dqntrainer(m, "DQNTrainer");
@@ -246,6 +248,34 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("bias_init"),
 			py::arg("label") = "")
 		.def("clone", &layr::Recur::clone, py::arg("prefix") = "");
+
+	// lstm
+	m.def("create_lstm",
+		[](layr::DenseptrT gate,
+			layr::DenseptrT forget,
+			layr::DenseptrT ingate,
+			layr::DenseptrT outgate,
+			std::string label)
+		{
+			return std::make_shared<layr::LSTM>(
+				gate, forget, ingate, outgate, label);
+		},
+		py::arg("gate"),
+		py::arg("forget"),
+		py::arg("ingate"),
+		py::arg("outgate"),
+		py::arg("label") = "");
+	lstm
+		.def(py::init<teq::DimT,teq::DimT,
+			layr::InitF<PybindT>,
+			layr::InitF<PybindT>,
+			const std::string&>(),
+			py::arg("nhidden"),
+			py::arg("ninput"),
+			py::arg("weight_init"),
+			py::arg("bias_init"),
+			py::arg("label") = "")
+		.def("clone", &layr::LSTM::clone, py::arg("prefix") = "");
 
 	// seqmodel
 	seqmodel
