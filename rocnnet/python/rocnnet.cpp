@@ -16,7 +16,7 @@
 #include "layr/dense.hpp"
 #include "layr/rbm.hpp"
 #include "layr/conv.hpp"
-#include "layr/recur.hpp"
+#include "layr/rnn.hpp"
 #include "layr/seqmodel.hpp"
 #include "layr/lstm.hpp"
 
@@ -63,7 +63,7 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<layr::Dense,layr::DenseptrT,layr::iLayer> dense(m, "Dense");
 	py::class_<layr::RBM,layr::RBMptrT,layr::iLayer> rbm(m, "RBM");
 	py::class_<layr::Conv,layr::ConvptrT,layr::iLayer> conv(m, "Conv");
-	py::class_<layr::Recur,layr::RecurptrT,layr::iLayer> recur(m, "Recur");
+	py::class_<layr::RNN,layr::RNNptrT,layr::iLayer> rnn(m, "RNN");
 	py::class_<layr::SequentialModel,layr::SeqModelptrT,layr::iLayer> seqmodel(m, "SequentialModel");
 	py::class_<layr::LSTM,layr::LSTMptrT,layr::iLayer> lstm(m, "LSTM");
 
@@ -224,19 +224,19 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("clone", &layr::Conv::clone, py::arg("prefix") = "")
 		.def("paddings", &layr::Conv::get_padding);
 
-	// recur
+	// rnn
 	m.def("create_recur",
 		[](layr::DenseptrT cell, layr::UnaryptrT activation,
 			NodeptrT init_state, std::string label)
 		{
-			return std::make_shared<layr::Recur>(
+			return std::make_shared<layr::RNN>(
 				cell, activation, init_state, label);
 		},
-		py::arg("weight"),
-		py::arg("bias"),
-		py::arg("arg"),
+		py::arg("cell"),
+		py::arg("activation"),
+		py::arg("init_state"),
 		py::arg("label") = "");
-	recur
+	rnn
 		.def(py::init<teq::DimT,
 			layr::UnaryptrT,
 			layr::InitF<PybindT>,
@@ -247,7 +247,7 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("weight_init"),
 			py::arg("bias_init"),
 			py::arg("label") = "")
-		.def("clone", &layr::Recur::clone, py::arg("prefix") = "");
+		.def("clone", &layr::RNN::clone, py::arg("prefix") = "");
 
 	// lstm
 	m.def("create_lstm",

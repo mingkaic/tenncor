@@ -9,9 +9,9 @@ P5 = "get to it eventually"
    - opt: enforce variadic/commutative constraints
    - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
       delay thread creation until dependent flag is set
+   - lstm_demo optimization produces faulty non-logically equivalent graph
 
 === usage ===
-P2 - implement LSTM
 P2 - implement GRU
 P2 - implement attention transformer
    - demo A3C, attention encoder+decoder

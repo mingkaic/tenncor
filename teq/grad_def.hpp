@@ -53,6 +53,16 @@ struct iGradientBuilder
 	/// Return derivative of root with respect to target
 	TensptrT derive (TensptrT root, TensptrT target) const
 	{
+		if (target == nullptr)
+		{
+			return get_const_zero(teq::Shape());
+		}
+
+		if (root == nullptr)
+		{
+			return get_const_zero(target->shape());
+		}
+
 		if (root == target)
 		{
 			return get_const_one(target->shape());

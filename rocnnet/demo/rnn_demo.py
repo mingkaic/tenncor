@@ -152,7 +152,7 @@ def main(args):
     model.add(
         rcn.Dense(nunits, eteq.Shape([ninput]),
         weight_init, label="input"))
-    model.add(rcn.Recur(nunits, rcn.tanh(),
+    model.add(rcn.RNN(nunits, rcn.tanh(),
         weight_init=weight_init,
         bias_init=rcn.zero_init(), label="unfold"))
     model.add(rcn.Dense(noutput, eteq.Shape([nunits]),

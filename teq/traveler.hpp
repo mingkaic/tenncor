@@ -50,7 +50,7 @@ struct OnceTraveler : public iTraveler
 	virtual void visit_func (iFunctor* func) = 0;
 
 	/// Set of tensors visited
-	std::unordered_set<iTensor*> visited_;
+	TensSetT visited_;
 };
 
 /// Traveler that maps each tensor to its subtree's maximum depth
@@ -113,41 +113,38 @@ using ParentMapT = std::unordered_map<iTensor*,std::vector<size_t>>;
 /// being a boolean vector denoting nodes leading to target
 /// For a boolean value x at index i in mapped vector,
 /// x is true if the ith child leads to target
-struct PathFinder final : public iTraveler
+struct PathFinder final : public OnceTraveler
 {
 	PathFinder (const iTensor* target) : target_(target) {}
 
-	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override {}
+	/// Implementation of OnceTraveler
+	void visit_leaf (iLeaf* leaf) override {}
 
-	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
+	/// Implementation of OnceTraveler
+	void visit_func (iFunctor* func) override
 	{
-		if (false == estd::has(parents_, func))
+		auto children = func->get_children();
+		size_t n = children.size();
+		std::unordered_set<size_t> path;
+		for (size_t i = 0; i < n; ++i)
 		{
-			auto children = func->get_children();
-			size_t n = children.size();
-			std::unordered_set<size_t> path;
-			for (size_t i = 0; i < n; ++i)
+			TensptrT tens = children[i].get().get_tensor();
+			if (tens.get() == target_)
 			{
-				TensptrT tens = children[i].get().get_tensor();
-				if (tens.get() == target_)
+				path.emplace(i);
+			}
+			else
+			{
+				tens->accept(*this);
+				if (estd::has(parents_, tens.get()))
 				{
 					path.emplace(i);
 				}
-				else
-				{
-					tens->accept(*this);
-					if (estd::has(parents_, tens.get()))
-					{
-						path.emplace(i);
-					}
-				}
 			}
-			if (false == path.empty())
-			{
-				parents_[func] = std::vector<size_t>(path.begin(), path.end());
-			}
+		}
+		if (false == path.empty())
+		{
+			parents_[func] = std::vector<size_t>(path.begin(), path.end());
 		}
 	}
 

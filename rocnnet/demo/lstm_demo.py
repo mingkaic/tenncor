@@ -39,7 +39,7 @@ def main():
         rcn.get_sgd(learning_rate=0.1),
         errfunc=lstm_loss)
 
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()
     for cur_iter in range(100):

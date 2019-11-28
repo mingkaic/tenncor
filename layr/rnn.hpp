@@ -1,16 +1,16 @@
 ///
-/// recur.hpp
+/// rnn.hpp
 /// layr
 ///
 /// Purpose:
-/// Implement simple recurrent layer
+/// Implement vanilla recurrent neural net layer
 ///
 
 #include "layr/dense.hpp"
 #include "layr/ulayer.hpp"
 
-#ifndef LAYR_RECUR_HPP
-#define LAYR_RECUR_HPP
+#ifndef LAYR_RNN_HPP
+#define LAYR_RNN_HPP
 
 namespace layr
 {
@@ -19,9 +19,9 @@ namespace layr
 const std::string init_state_key = "init_state";
 
 /// Builder implementation for recurrent layer
-struct RecurBuilder final : public iLayerBuilder
+struct RNNBuilder final : public iLayerBuilder
 {
-	RecurBuilder (std::string label) : label_(label) {}
+	RNNBuilder (std::string label) : label_(label) {}
 
 	/// Implementation of iLayerBuilder
 	void set_tensor (teq::TensptrT tens, std::string target) override
@@ -51,17 +51,17 @@ private:
 };
 
 /// Identifier for recurrent layer
-const std::string rec_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "recur",
+const std::string rnn_layer_key =
+get_layer_reg().register_tagr(layers_key_prefix + "recur", // todo: rename
 [](std::string label) -> LBuilderptrT
 {
-	return std::make_shared<RecurBuilder>(label);
+	return std::make_shared<RNNBuilder>(label);
 });
 
 /// Layer implementation that applies recurrent cells (cells applied at each step of input)
-struct Recur final : public iLayer
+struct RNN final : public iLayer
 {
-	Recur (teq::DimT nunits,
+	RNN (teq::DimT nunits,
 		UnaryptrT activation,
 		layr::InitF<PybindT> weight_init,
 		layr::InitF<PybindT> bias_init,
@@ -77,7 +77,7 @@ struct Recur final : public iLayer
 		tag_sublayers();
 	}
 
-	Recur (DenseptrT cell, UnaryptrT activation, NodeptrT init_state,
+	RNN (DenseptrT cell, UnaryptrT activation, NodeptrT init_state,
 		const std::string& label) :
 		label_(label),
 		cell_(cell),
@@ -87,13 +87,13 @@ struct Recur final : public iLayer
 		tag_sublayers();
 	}
 
-	Recur (const Recur& other,
+	RNN (const RNN& other,
 		std::string label_prefix = "")
 	{
 		copy_helper(other, label_prefix);
 	}
 
-	Recur& operator = (const Recur& other)
+	RNN& operator = (const RNN& other)
 	{
 		if (this != &other)
 		{
@@ -102,14 +102,14 @@ struct Recur final : public iLayer
 		return *this;
 	}
 
-	Recur (Recur&& other) = default;
+	RNN (RNN&& other) = default;
 
-	Recur& operator = (Recur&& other) = default;
+	RNN& operator = (RNN&& other) = default;
 
 	/// Return deep copy of this model with prefixed label
-	Recur* clone (std::string label_prefix = "") const
+	RNN* clone (std::string label_prefix = "") const
 	{
-		return static_cast<Recur*>(this->clone_impl(label_prefix));
+		return static_cast<RNN*>(this->clone_impl(label_prefix));
 	}
 
 	/// Implementation of iLayer
@@ -127,7 +127,7 @@ struct Recur final : public iLayer
 	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
-		return rec_layer_key;
+		return rnn_layer_key;
 	}
 
 	/// Implementation of iLayer
@@ -170,7 +170,7 @@ struct Recur final : public iLayer
 private:
 	iLayer* clone_impl (const std::string& label_prefix) const override
 	{
-		return new Recur(*this, label_prefix);
+		return new RNN(*this, label_prefix);
 	}
 
 	void tag_sublayers (void)
@@ -193,7 +193,7 @@ private:
 		}
 	}
 
-	void copy_helper (const Recur& other, std::string label_prefix = "")
+	void copy_helper (const RNN& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
 		cell_ = DenseptrT(other.cell_->clone(label_prefix));
@@ -212,8 +212,8 @@ private:
 };
 
 /// Smart pointer of recurrent model
-using RecurptrT = std::shared_ptr<Recur>;
+using RNNptrT = std::shared_ptr<RNN>;
 
 }
 
-#endif // LAYR_RECUR_HPP
+#endif // LAYR_RNN_HPP
