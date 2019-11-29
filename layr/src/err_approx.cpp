@@ -29,6 +29,36 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 	return {assignments};
 }
 
+AssignGroupsT adagrad (const VarErrsT& leaves, PybindT learning_rate,
+	PybindT epsilon, std::string root_label)
+{
+	// assign momentums before leaves
+	AssignsT momentum_assigns;
+	AssignsT leaf_assigns;
+	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
+	{
+		auto leaf_node = eteq::convert_to_node(leaves[i].first);
+		auto err = leaves[i].second;
+		teq::Shape eshape = err->shape();
+		eteq::VarptrT<PybindT> momentum =
+			eteq::make_variable_scalar<PybindT>(1, eshape, "momentum");
+		auto momentum_node = eteq::convert_to_node(momentum);
+
+		auto momentum_next = momentum_node + tenncor::square(err);
+		auto leaf_next = leaf_node - err * learning_rate /
+			(tenncor::sqrt(momentum_node) + epsilon);
+		momentum_assigns.push_back(VarAssign{
+			fmts::sprintf("adagrad::%s_momentum_%s",
+				root_label.c_str(), leaves[i].first->to_string().c_str()),
+			momentum, momentum_next});
+		leaf_assigns.push_back(VarAssign{
+			fmts::sprintf("adagrad::%s_grad_%s",
+				root_label.c_str(), leaves[i].first->to_string().c_str()),
+			leaves[i].first, leaf_next});
+	}
+	return {momentum_assigns, leaf_assigns};
+}
+
 AssignGroupsT rms_momentum (const VarErrsT& leaves, PybindT learning_rate,
 	PybindT discount_factor, PybindT epsilon, std::string root_label)
 {

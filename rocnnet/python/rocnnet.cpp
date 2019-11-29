@@ -17,8 +17,9 @@
 #include "layr/rbm.hpp"
 #include "layr/conv.hpp"
 #include "layr/rnn.hpp"
-#include "layr/seqmodel.hpp"
 #include "layr/lstm.hpp"
+#include "layr/gru.hpp"
+#include "layr/seqmodel.hpp"
 
 #include "rocnnet/trainer/sgd_trainer.hpp"
 #include "rocnnet/trainer/dqn_trainer.hpp"
@@ -35,6 +36,14 @@ layr::ApproxF get_sgd (PybindT learning_rate)
 	return [=](const layr::VarErrsT& leaves)
 	{
 		return layr::sgd(leaves, learning_rate);
+	};
+}
+
+layr::ApproxF get_adagrad (PybindT learning_rate, PybindT epsilon)
+{
+	return [=](const layr::VarErrsT& leaves)
+	{
+		return layr::adagrad(leaves, learning_rate, epsilon);
 	};
 }
 
@@ -64,8 +73,9 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<layr::RBM,layr::RBMptrT,layr::iLayer> rbm(m, "RBM");
 	py::class_<layr::Conv,layr::ConvptrT,layr::iLayer> conv(m, "Conv");
 	py::class_<layr::RNN,layr::RNNptrT,layr::iLayer> rnn(m, "RNN");
-	py::class_<layr::SequentialModel,layr::SeqModelptrT,layr::iLayer> seqmodel(m, "SequentialModel");
 	py::class_<layr::LSTM,layr::LSTMptrT,layr::iLayer> lstm(m, "LSTM");
+	py::class_<layr::GRU,layr::GRUptrT,layr::iLayer> gru(m, "GRU");
+	py::class_<layr::SequentialModel,layr::SeqModelptrT,layr::iLayer> seqmodel(m, "SequentialModel");
 
 	// trainers
 	py::class_<trainer::DQNTrainer> dqntrainer(m, "DQNTrainer");
@@ -277,6 +287,32 @@ PYBIND11_MODULE(rocnnet, m)
 			py::arg("label") = "")
 		.def("clone", &layr::LSTM::clone, py::arg("prefix") = "");
 
+	// gru
+	m.def("create_gru",
+		[](layr::DenseptrT ugate,
+			layr::DenseptrT rgate,
+			layr::DenseptrT hgate,
+			std::string label)
+		{
+			return std::make_shared<layr::GRU>(
+				ugate, rgate, hgate, label);
+		},
+		py::arg("ugate"),
+		py::arg("rgate"),
+		py::arg("hgate"),
+		py::arg("label") = "");
+	gru
+		.def(py::init<teq::DimT,teq::DimT,
+			layr::InitF<PybindT>,
+			layr::InitF<PybindT>,
+			const std::string&>(),
+			py::arg("nhidden"),
+			py::arg("ninput"),
+			py::arg("weight_init"),
+			py::arg("bias_init"),
+			py::arg("label") = "")
+		.def("clone", &layr::GRU::clone, py::arg("prefix") = "");
+
 	// seqmodel
 	seqmodel
 		.def(py::init<const std::string&>(),
@@ -362,6 +398,9 @@ PYBIND11_MODULE(rocnnet, m)
 		// optimizations
 		.def("get_sgd", &pyrocnnet::get_sgd,
 			py::arg("learning_rate") = 0.5)
+		.def("get_adagrad", &pyrocnnet::get_adagrad,
+			py::arg("learning_rate") = 0.5,
+			py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon())
 		.def("get_rms_momentum", &pyrocnnet::get_rms_momentum,
 			py::arg("learning_rate") = 0.5,
 			py::arg("discount_factor") = 0.99,
