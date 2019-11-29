@@ -130,7 +130,6 @@ def main(args):
         update=rcn.get_adagrad(
             learning_rate=learning_rate, epsilon=1e-8),
         errfunc=encoded_loss)
-
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     smooth_loss = -np.log(1.0/vocab_size)*seq_length

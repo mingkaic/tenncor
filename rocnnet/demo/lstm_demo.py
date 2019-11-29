@@ -86,20 +86,15 @@ def main(args):
     trainer = rcn.sgd_train(model, sess, test_inputs, test_outputs,
         rcn.get_sgd(learning_rate=0.1),
         errfunc=lstm_loss)
-
-    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()
     for cur_iter in range(args.n_train):
-        print("iter", "%2s" % str(cur_iter), end=": ")
         trainer()
 
-        print("y_pred = [" +
-              ", ".join(["% 2.5f" % state for state in hiddens.get()]) +
-              "]", end=", ")
-
-        sess.update_target([err])
-        print("loss:", "%.3e" % err.get())
+        sess.update_target([hiddens, err])
+        print("iter {}: y_pred = {}, loss: {}".format(
+            cur_iter, hiddens.get().flatten(), err.get()))
 
     sess.update_target([untrained, hiddens, pretrained])
     print("untrained_y_pred = {}".format(untrained.get().flatten()))

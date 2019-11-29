@@ -9,7 +9,6 @@ P5 = "get to it eventually"
    - opt: enforce variadic/commutative constraints
    - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
       delay thread creation until dependent flag is set
-   - lstm_demo optimization produces faulty non-logically equivalent graph
    - improve slice and concat operators for tenncor implemented rnn, lstm, and gru
 
 === usage ===
