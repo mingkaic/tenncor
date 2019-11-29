@@ -53,7 +53,7 @@ TEST(TRAVELER, PathFinder)
 		EXPECT_ARRHAS(finder.parents_[f.get()], 0);
 	}
 
-	finder.parents_.clear();
+	finder.clear();
 	f->accept(finder);
 
 	{
@@ -71,7 +71,7 @@ TEST(TRAVELER, PathFinder)
 		EXPECT_ARRHAS(finder2.parents_[g.get()], 0);
 	}
 
-	finder2.parents_.clear();
+	finder2.clear();
 	f->accept(finder2);
 
 	EXPECT_HASNOT(finder2.parents_, f.get());

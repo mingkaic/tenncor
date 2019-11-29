@@ -183,10 +183,7 @@
     "args": [
      {
       "idx": 1,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -199,10 +196,7 @@
     "args": [
      {
       "idx": 2,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -215,10 +209,7 @@
     "args": [
      {
       "idx": 4,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -231,10 +222,7 @@
     "args": [
      {
       "idx": 5,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -247,10 +235,7 @@
     "args": [
      {
       "idx": 6,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -263,17 +248,11 @@
     "args": [
      {
       "idx": 8,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      },
      {
       "idx": 2,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -286,24 +265,15 @@
     "args": [
      {
       "idx": 9,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      },
      {
       "idx": 10,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      },
      {
       "idx": 11,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -316,17 +286,11 @@
     "args": [
      {
       "idx": 7,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      },
      {
       "idx": 12,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -339,17 +303,11 @@
     "args": [
      {
       "idx": 4,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      },
      {
       "idx": 13,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -375,17 +333,11 @@
          0
         ]
        }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      }
      },
      {
       "idx": 3,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      }
     ]
    },
@@ -398,10 +350,7 @@
     "args": [
      {
       "idx": 0,
-      "attrs": {},
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      "attrs": {}
      },
      {
       "idx": 16,
@@ -413,10 +362,7 @@
          0
         ]
        }
-      },
-      "coord": [],
-      "shaper": [],
-      "fwd": false
+      }
      }
     ]
    },

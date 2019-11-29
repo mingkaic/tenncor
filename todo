@@ -10,11 +10,10 @@ P5 = "get to it eventually"
    - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
       delay thread creation until dependent flag is set
    - lstm_demo optimization produces faulty non-logically equivalent graph
+   - improve slice and concat operators for tenncor implemented rnn, lstm, and gru
 
 === usage ===
-P2 - implement GRU
-P2 - implement attention transformer
-   - demo A3C, attention encoder+decoder
+P2 - demo A3C
    - implement models concerning visual and audio processing, and semantic data processing
    - separate supervised and unsupervised trainers (since they have different statefulness)
 

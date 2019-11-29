@@ -197,7 +197,7 @@ private:
 		{
 			if (sub)
 			{
-				tag(sub, LayerId(forget_->get_ltype(), forget_->get_label(), 0));
+				tag(sub, LayerId(forget_->get_ltype(), forget_->get_label(), 1));
 			}
 		}
 		auto ingate_subs = ingate_->get_contents();
@@ -205,7 +205,7 @@ private:
 		{
 			if (sub)
 			{
-				tag(sub, LayerId(ingate_->get_ltype(), ingate_->get_label(), 0));
+				tag(sub, LayerId(ingate_->get_ltype(), ingate_->get_label(), 2));
 			}
 		}
 		auto outgate_subs = outgate_->get_contents();
@@ -213,7 +213,7 @@ private:
 		{
 			if (sub)
 			{
-				tag(sub, LayerId(outgate_->get_ltype(), outgate_->get_label(), 1));
+				tag(sub, LayerId(outgate_->get_ltype(), outgate_->get_label(), 3));
 			}
 		}
 	}

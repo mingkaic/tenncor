@@ -184,7 +184,7 @@ private:
 		{
 			if (sub)
 			{
-				tag(sub, LayerId(rgate_->get_ltype(), rgate_->get_label(), 0));
+				tag(sub, LayerId(rgate_->get_ltype(), rgate_->get_label(), 1));
 			}
 		}
 		auto hgate_subs = hgate_->get_contents();
@@ -192,7 +192,7 @@ private:
 		{
 			if (sub)
 			{
-				tag(sub, LayerId(hgate_->get_ltype(), hgate_->get_label(), 1));
+				tag(sub, LayerId(hgate_->get_ltype(), hgate_->get_label(), 2));
 			}
 		}
 	}

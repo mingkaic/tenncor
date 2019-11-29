@@ -49,6 +49,11 @@ struct OnceTraveler : public iTraveler
 	/// Do something during unique visit to functor
 	virtual void visit_func (iFunctor* func) = 0;
 
+	virtual void clear (void)
+	{
+		visited_.clear();
+	}
+
 	/// Set of tensors visited
 	TensSetT visited_;
 };
@@ -146,6 +151,12 @@ struct PathFinder final : public OnceTraveler
 		{
 			parents_[func] = std::vector<size_t>(path.begin(), path.end());
 		}
+	}
+
+	void clear (void) override
+	{
+		OnceTraveler::clear();
+		parents_.clear();
 	}
 
 	/// Target of tensor all paths are travelling to

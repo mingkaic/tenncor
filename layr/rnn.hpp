@@ -52,7 +52,7 @@ private:
 
 /// Identifier for recurrent layer
 const std::string rnn_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "recur", // todo: rename
+get_layer_reg().register_tagr(layers_key_prefix + "rnn", // todo: rename
 [](std::string label) -> LBuilderptrT
 {
 	return std::make_shared<RNNBuilder>(label);

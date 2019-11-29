@@ -14,19 +14,19 @@
      "1",
      "1"
     ],
-    "data": "GNLRv9dmoL98rx+/3h4ePztmAz+PWck+ar8dP4d7zro7kRy8na2uv2vjmr9YhWG/MbwtPwTOCT/tU9o+h683Pzslvj1hwvc+cHQ/vhVnkD+fDl2/OKaNP0iFqL67NYu+tE91PbrJ/T7Hf7e/UZKBvsB2gT+BN22/vI6uPz00G78oYve+dISzvi+M+z7pXmW/TEa9PmGWIb+Bzay+T0Qvv7LbmD/ycfO+WNqUv5sjgT9GAwG/GUa1PnIRL7+T+ee+qGArv0aEgT86rR2/fLWqv1zogT8vv6u+2ioNP9Rjn77wkDO/7K49voEUGL9PfNw/5h5Jv1+V4b5oNo6+eGfmPqoCA79JqFq/clGovu9mVL9q9b8/jBR/v+VNIb9kakK+QWEgP7tk5D0EFtm+NXkJP3uKij99QR2/cK3JvYh00L+DSAQ+gRZhP/9QXL4igr49wS9zP1aviT9C6tu+JXE8PFIQw7+NaMS+",
+    "data": "yWEMwBv6FD5WqXq+WMrEP+WquD9prZ4/HE4YwNL4mD+OoNA/ubBuv8ek5j4w/SI+hnHPP3sbkj8qtsQ/Jrrzv5WXvj+tc/I/czpGv6Vqyj92EeM9mzujP6/enT/JF9A/vFSzv/qvzD/Rp1A/nLnjvglT6z+obzQ+eoIPQJ6adj+JLs0/H6PNv1r8jj9dbRZA0J2Iv9gYST+xNBE/OWI4P6dsaT8gkKA/EAHlvw/i3j9cpbg/PRh9vzFFbz5dT3a+iRIpP2cwsz/xXHo/ORE1wM/irj8pGN8/ZqNsv1XiRD8FSe49HgulP5Vrzj/NIRRANdzKv6PeeD+FpwFARdYhv3lDnD/47EI+Th6gP1le/T7uFKI/JwPwv0VZmz/7z4M/Ylw3vojG9z+6gZc9KzA4P6tW9j8hHOg/ZSTWv+zWuT875whAHfUBv5HIAj+zFj8/CUq8PzDRJz9SwbI/rdmtv/LQDj8P5Lo/",
     "typelabel": "FLOAT",
     "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_dense:0:0"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "0::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:0:0"
      ]
     }
    }
@@ -44,7 +44,7 @@
      "1",
      "1"
     ],
-    "data": "SYlhvjDQiz9YoyVAULjkv11m07/p9Bq/NczCPxkbCj/OEFk/",
+    "data": "kXNyv6BOoj+SvhE/xXi/P+tTrz91ivs/GfLgv33ptT+8N/4/",
     "typelabel": "FLOAT",
     "isConst": false
    },
@@ -79,6 +79,11 @@
     "isConst": true
    },
    "tags": {
+    "layer_sigmoid": {
+     "labels": [
+      "::uparam:0"
+     ]
+    },
     "properties": {
      "labels": [
       "immutable"
@@ -88,11 +93,6 @@
      "labels": [
       "demo:layer_sigmoid::1"
      ]
-    },
-    "layer_sigmoid": {
-     "labels": [
-      "::uparam:0"
-     ]
     }
    }
   },
@@ -100,7 +100,7 @@
    "label": "weight",
    "source": {
     "shape": [
-     "5",
+     "9",
      "9",
      "1",
      "1",
@@ -109,7 +109,7 @@
      "1",
      "1"
     ],
-    "data": "QxwdwI1rtL5fNDw/vux4PwognD+/sRDAYtblP8Xum7//rym/Rkk6vsREyr8IzwPAyDZpv1gXwL9ZkRK/3yurP/g4E0AEXSW/1N3WvBHSqT+4Kps/3lQbvx2OFUB6ZGC/W4sFQLNwRz8a4Ca/7gVTv8o4TECjP2W//9mAP8cqFL9I8xLAAlbevzWyo767Z1k+Dht1P2s5CkBFa3W/VL9TwFlpMj4PYQLA8QRWv2o5JL/2J7q+",
+    "data": "Dl2ePwiCqz/Vlpk/k5ESP7nyCb8SeO2/NO7PvrCoPr040Y0/dftHQGhS5z8nrYk/uvr8PX5Lcb8uytG/kVPSvp7H/D7qyds/4PktQAnbM0CYKzY/DtegvfIeMr8hRZy/CBwhPTpdCz8HiHs/hL5TQPMXMECOlkQ/OT4IP4BauL+izvu/RHLQvkwtfb07P70/9OFGQNVJFUDGZY4/jJXhvoJ0p7+/KOm/mGWevhYV6j5JSpE/QTJIQEO/5D/dVyY/h8qTvuaQg7+8Fw7AWdJKv1VoRD4sH54/K0c8QIuvuj85LJQ/qIicPXHgQr9f+Vm/07iHvnMXDb47BsM/J7EIQOXBDkC7MgQ/1M/JvgoE4L8NR+a/4Wd1v+xigj2Hz40/NOk0QFjlHkAoHQk/ek/xvg4gd7//xu+/AwJIv7Axp76dNNY/",
     "typelabel": "FLOAT",
     "isConst": false
    },
@@ -130,7 +130,7 @@
    "label": "bias",
    "source": {
     "shape": [
-     "5",
+     "9",
      "1",
      "1",
      "1",
@@ -139,7 +139,7 @@
      "1",
      "1"
     ],
-    "data": "0okeP1m9Mz43x/E+Xq9ZP9bi6z4=",
+    "data": "RtMyQJsHEkBdvIA/oLboPN9pu7/sgd+/SkDZvihFcT0eaZI/",
     "typelabel": "FLOAT",
     "isConst": false
    },
