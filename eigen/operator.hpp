@@ -22,6 +22,13 @@ template <typename T>
 using PairVecT = std::vector<std::pair<T,T>>;
 
 template <typename T>
+std::string to_string (const PairVecT<T>& pairs)
+{
+	PairVecT<int> readable_pairs(pairs.begin(), pairs.end());
+	return fmts::to_string(readable_pairs.begin(), readable_pairs.end());
+}
+
+template <typename T>
 std::vector<double> encode_pair (const PairVecT<T>& pairs)
 {
 	size_t npairs = pairs.size();

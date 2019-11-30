@@ -237,26 +237,23 @@ PYBIND11_MODULE(rocnnet, m)
 	// rnn
 	m.def("create_recur",
 		[](layr::DenseptrT cell, layr::UnaryptrT activation,
-			NodeptrT init_state, std::string label)
+			NodeptrT init_state, NodeptrT param, std::string label)
 		{
 			return std::make_shared<layr::RNN>(
-				cell, activation, init_state, label);
+				cell, activation, init_state, param, label);
 		},
 		py::arg("cell"),
 		py::arg("activation"),
 		py::arg("init_state"),
+		py::arg("param"),
 		py::arg("label") = "");
 	rnn
-		.def(py::init<teq::DimT,
-			layr::UnaryptrT,
-			layr::InitF<PybindT>,
-			layr::InitF<PybindT>,
-			const std::string&>(),
-			py::arg("nunits"),
-			py::arg("activation"),
-			py::arg("weight_init"),
-			py::arg("bias_init"),
-			py::arg("label") = "")
+		.def(py::init<teq::DimT,layr::UnaryptrT,
+			layr::InitF<PybindT>,layr::InitF<PybindT>,
+			teq::RankT,const std::string&>(),
+			py::arg("nunits"), py::arg("activation"),
+			py::arg("weight_init"), py::arg("bias_init"),
+			py::arg("seq_dim"), py::arg("label") = "")
 		.def("clone", &layr::RNN::clone, py::arg("prefix") = "");
 
 	// lstm

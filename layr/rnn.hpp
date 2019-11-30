@@ -18,6 +18,9 @@ namespace layr
 /// Recurrent layer's initial state label
 const std::string init_state_key = "init_state";
 
+/// RNN parameter label
+const std::string rnn_param_key = "rnn_param";
+
 /// Builder implementation for recurrent layer
 struct RNNBuilder final : public iLayerBuilder
 {
@@ -31,6 +34,14 @@ struct RNNBuilder final : public iLayerBuilder
 			init_state_ = eteq::to_node<PybindT>(tens);
 			return;
 		}
+		else if (target == rnn_param_key)
+		{
+			params_ = eteq::to_node<PybindT>(tens);
+			return;
+		}
+		logs::warnf("attempt to create rnn layer "
+			"with unknown tensor `%s` of label `%s`",
+			tens->to_string().c_str(), target.c_str());
 	}
 
 	/// Implementation of iLayerBuilder
@@ -46,6 +57,8 @@ private:
 	std::string label_;
 
 	NodeptrT init_state_;
+
+	NodeptrT params_ = nullptr;
 
 	std::vector<LayerptrT> layers_;
 };
@@ -65,6 +78,7 @@ struct RNN final : public iLayer
 		UnaryptrT activation,
 		layr::InitF<PybindT> weight_init,
 		layr::InitF<PybindT> bias_init,
+		teq::RankT seq_dim,
 		const std::string& label) :
 		label_(label),
 		cell_(std::make_shared<Dense>(nunits, teq::Shape({nunits}),
@@ -72,17 +86,19 @@ struct RNN final : public iLayer
 		init_state_(eteq::convert_to_node(
 			eteq::make_variable<PybindT>(
 				teq::Shape({nunits}), "init_state"))),
-		activation_(activation)
+		activation_(activation),
+		params_(eteq::make_constant_scalar<PybindT>(seq_dim, teq::Shape()))
 	{
 		tag_sublayers();
 	}
 
 	RNN (DenseptrT cell, UnaryptrT activation, NodeptrT init_state,
-		const std::string& label) :
+		NodeptrT params, const std::string& label) :
 		label_(label),
 		cell_(cell),
 		init_state_(init_state),
-		activation_(activation)
+		activation_(activation),
+		params_(params)
 	{
 		tag_sublayers();
 	}
@@ -143,28 +159,52 @@ struct RNN final : public iLayer
 		auto act_contents = activation_->get_contents();
 		out.insert(out.end(), act_contents.begin(), act_contents.end());
 		out.push_back(init_state_->get_tensor());
+		if (nullptr == params_)
+		{
+			out.push_back(nullptr);
+		}
+		else
+		{
+			out.push_back(params_->get_tensor());
+		}
 		return out;
 	}
 
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-		// expecting input of shape <nunits, sequence length, ANY>
-		// sequence is dimension 1
 		teq::Shape inshape = input->shape();
-		NodeptrT prevstate = tenncor::best_extend(
-			init_state_, teq::Shape({
-				(teq::DimT) get_ninput(), 1, inshape.at(2),
-			}));
-		eteq::NodesT<PybindT> states;
-		for (teq::DimT i = 0, nseq = inshape.at(1); i < nseq; ++i)
+		teq::RankT seq_dim;
+		if (nullptr != params_)
 		{
-			auto inslice = tenncor::slice(input, i, 1, 1);
+			teq::NElemT n = params_->shape().n_elems();
+			if (1 > n)
+			{
+				logs::warnf("multiple sequence dimensions (%d) "
+					"specified in rnn parameter", (int) n);
+			}
+			auto rawdims = (PybindT*) params_->data();
+			seq_dim = rawdims[0];
+		}
+		else
+		{
+			// take last non-single dimension as sequence dimension
+			auto slist = teq::narrow_shape(inshape);
+			seq_dim = slist.empty() ? 0 : slist.size() - 1;
+		}
+		std::vector<teq::DimT> slice_shape(inshape.begin(), inshape.end());
+		slice_shape[seq_dim] = 1;
+		NodeptrT prevstate = tenncor::best_extend(
+			init_state_, teq::Shape(slice_shape));
+		eteq::NodesT<PybindT> states;
+		for (teq::DimT i = 0, nseq = inshape.at(seq_dim); i < nseq; ++i)
+		{
+			auto inslice = tenncor::slice(input, i, 1, seq_dim);
 			prevstate = activation_->connect(
 				inslice + cell_->connect(prevstate));
 			states.push_back(prevstate);
 		}
-		return tenncor::concat(states, 1);
+		return tenncor::concat(states, seq_dim);
 	}
 
 private:
@@ -191,6 +231,10 @@ private:
 			tag(sub, LayerId(activation_->get_ltype(),
 				activation_->get_label(), 2));
 		}
+		if (nullptr != params_)
+		{
+			tag(params_->get_tensor(), LayerId(rnn_param_key));
+		}
 	}
 
 	void copy_helper (const RNN& other, std::string label_prefix = "")
@@ -199,6 +243,10 @@ private:
 		cell_ = DenseptrT(other.cell_->clone(label_prefix));
 		init_state_ = NodeptrT(other.init_state_->clone());
 		activation_ = UnaryptrT(other.activation_->clone(label_prefix));
+		if (nullptr != other.params_)
+		{
+			params_ = NodeptrT(other.params_->clone());
+		}
 		tag_sublayers();
 	}
 
@@ -209,6 +257,8 @@ private:
 	NodeptrT init_state_;
 
 	UnaryptrT activation_;
+
+	NodeptrT params_;
 };
 
 /// Smart pointer of recurrent model

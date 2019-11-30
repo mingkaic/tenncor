@@ -435,6 +435,9 @@ struct FuncPacker<T,egen::ARGMAX> final : private EmptyPacker<T>
 		if (shape.n_elems() == 1 ||
 			(return_dim < teq::rank_cap && shape.at(return_dim) == 1))
 		{
+			logs::debugf("argreducing with no significant dimensions... "
+				"treating as identity: (return_dim=%d, shape=%s)",
+				(int) return_dim, shape.to_string().c_str());
 			return {};
 		}
 
@@ -458,10 +461,9 @@ struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 	{
 		if (extents.size() > teq::rank_cap)
 		{
-			eigen::PairVecT<int> readable_extents(extents.begin(), extents.end());
 			logs::fatalf(
-				"cannot slice dimensions beyond rank_cap %d: using extent %s", teq::rank_cap,
-				fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
+				"cannot slice dimensions beyond rank_cap %d: using extent %s",
+				teq::rank_cap, eigen::to_string(extents).c_str());
 		}
 		eteq::NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
@@ -474,16 +476,23 @@ struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 			auto& ex = extents[i];
 			if (ex.second < 1)
 			{
-				eigen::PairVecT<int> readable_extents(extents.begin(), extents.end());
 				logs::fatalf("cannot extend zero slices: extents %s",
-					fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
+					eigen::to_string(extents).c_str());
 			}
 			teq::DimT offset = std::min(ex.first, (teq::DimT) (shape.at(i) - 1));
 			teq::DimT xtend = std::min(ex.second, (teq::DimT) (shape.at(i) - offset));
 			slist[i] = xtend;
 			xlist.push_back({offset, xtend});
 		}
-		return {eteq::Edge<T>(arg, teq::Shape(slist), eigen::encode_pair(xlist))};
+		teq::Shape outshape(slist);
+		if (outshape.compatible_after(shape, 0))
+		{
+			logs::debugf("slice parameter covers whole tensor... "
+				"treating as identity: (extents=%s)",
+				eigen::to_string(extents).c_str());
+			return {};
+		}
+		return {eteq::Edge<T>(arg, outshape, eigen::encode_pair(xlist))};
 	}
 };
 
@@ -496,10 +505,9 @@ struct FuncPacker<T,egen::PAD> final : private EmptyPacker<T>
 	{
 		if (paddings.size() > teq::rank_cap)
 		{
-			eigen::PairVecT<int> readable_paddings(paddings.begin(), paddings.end());
 			logs::fatalf(
-				"cannot pad dimensions beyond rank_cap %d: using paddings %s", teq::rank_cap,
-				fmts::to_string(readable_paddings.begin(), readable_paddings.end()).c_str());
+				"cannot pad dimensions beyond rank_cap %d: using paddings %s",
+				teq::rank_cap, eigen::to_string(paddings).c_str());
 		}
 		eteq::NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
@@ -588,16 +596,15 @@ struct FuncPacker<T,egen::MATMUL> final : private EmptyPacker<T>
 		{
 			if (ashape.at(coms.first) != bshape.at(coms.second))
 			{
-				eigen::PairVecT<int> readable_dims(dims.begin(), dims.end());
-				logs::fatalf("invalid shapes %s and %s do not match common dimensions %s",
-					ashape.to_string().c_str(), bshape.to_string().c_str(),
-					fmts::to_string(readable_dims.begin(), readable_dims.end()).c_str());
+				logs::fatalf("invalid shapes %s and %s do not match "
+					"common dimensions %s", ashape.to_string().c_str(),
+					bshape.to_string().c_str(),
+					eigen::to_string(dims).c_str());
 			}
 			if (avisit[coms.first] || bvisit[coms.second])
 			{
-				eigen::PairVecT<int> readable_dims(dims.begin(), dims.end());
-				logs::fatalf("contraction dimensions %s must be unique for each side",
-					fmts::to_string(readable_dims.begin(), readable_dims.end()).c_str());
+				logs::fatalf("contraction dimensions %s must be unique for "
+					"each side", eigen::to_string(dims).c_str());
 			}
 			avisit[coms.first] = bvisit[coms.second] = true;
 		}
@@ -743,7 +750,7 @@ struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 			[](teq::DimT d) { return 1 == d; }))
 		{
 			logs::debug("extending with nothing... treating as identity");
-			return {}; // identity
+			return {};
 		}
 		if (std::any_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 0 == d; }))
@@ -815,6 +822,7 @@ struct FuncPacker<T,egen::GROUP_CONCAT> final : private EmptyPacker<T>
 	{
 		if (nodes.size() == 1)
 		{
+			logs::debug("concatenating a single node... treating as identity");
 			return {};
 		}
 		size_t nargs = nodes.size();

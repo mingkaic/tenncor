@@ -134,9 +134,9 @@ def main(args):
     eps = 1e-6
 
     # create training samples
-    xtrain, expect_train = create_dataset(n_train, sequence_len)
-    print(f'xtrain tensor shape: {xtrain.shape}')
-    print(f'expect_train tensor shape: {expect_train.shape}')
+    train_input, train_output = create_dataset(n_train, sequence_len)
+    print(f'train_input tensor shape: {train_input.shape}')
+    print(f'train_output tensor shape: {train_output.shape}')
 
     # keep this here to get nice weights
     rcn.Dense(2, eteq.Shape([3]), weight_init)
@@ -149,12 +149,11 @@ def main(args):
     noutput = 1
 
     model = rcn.SequentialModel("demo")
-    model.add(
-        rcn.Dense(nunits, eteq.Shape([ninput]),
+    model.add(rcn.Dense(nunits, eteq.Shape([ninput]),
         weight_init, label="input"))
     model.add(rcn.RNN(nunits, rcn.tanh(),
-        weight_init=weight_init,
-        bias_init=rcn.zero_init(), label="unfold"))
+        weight_init=weight_init, bias_init=rcn.zero_init(),
+        seq_dim=2, label="unfold"))
     model.add(rcn.Dense(noutput, eteq.Shape([nunits]),
         weight_init, label="output"))
     model.add(rcn.sigmoid(label="classifier"))
@@ -171,20 +170,23 @@ def main(args):
 
     sess = eteq.Session()
 
-    train_input = eteq.Variable([n_batch, sequence_len, ninput])
+    train_invar = eteq.Variable([n_batch, sequence_len, ninput])
     train_exout = eteq.Variable([n_batch, sequence_len, noutput])
+    tinput = tc.permute(train_invar, [0, 2, 1])
+    toutput = tc.permute(train_exout, [0, 2, 1])
 
-    error = loss(train_exout, model.connect(train_input))
+    error = loss(toutput, model.connect(tinput))
     sess.track([error])
 
-    train = rcn.sgd_train(model, sess, train_input, train_exout,
+    train = rcn.sgd_train(model, sess, tinput, toutput,
         make_rms_prop(learning_rate, momentum_term, lmbd, eps),
         errfunc=loss)
 
-    test_input = eteq.Variable([n_test, sequence_len, ninput])
-    untrained_out = tc.round(untrained.connect(test_input))
-    trained_out = tc.round(model.connect(test_input))
-    pretrained_out = tc.round(trained.connect(test_input))
+    test_invar = eteq.Variable([n_test, sequence_len, ninput])
+    tin = tc.permute(test_invar, [0, 2, 1])
+    untrained_out = tc.round(untrained.connect(tin))
+    trained_out = tc.round(model.connect(tin))
+    pretrained_out = tc.round(trained.connect(tin))
     sess.track([
         untrained_out,
         trained_out,
@@ -192,17 +194,17 @@ def main(args):
     ])
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
-    train_input.assign(xtrain[0:n_batch,:,:])
-    train_exout.assign(expect_train[0:n_batch,:,:])
+    train_invar.assign(train_input[0:n_batch,:,:])
+    train_exout.assign(train_output[0:n_batch,:,:])
     sess.update_target([error])
     ls_of_loss = [error.get()]
     start = time.time()
     for i in range(5):
         for j in range(n_train // n_batch):
-            xbatch = xtrain[j:j+n_batch,:,:]
-            tbatch = expect_train[j:j+n_batch,:,:]
+            xbatch = train_input[j:j+n_batch,:,:]
+            tbatch = train_output[j:j+n_batch,:,:]
 
-            train_input.assign(xbatch)
+            train_invar.assign(xbatch)
             train_exout.assign(tbatch)
 
             train()
@@ -222,9 +224,9 @@ def main(args):
     fig.subplots_adjust(bottom=0.2)
     plt.show()
 
-    xtest, expect_test = create_dataset(n_test, sequence_len)
+    test_input, test_output = create_dataset(n_test, sequence_len)
 
-    test_input.assign(xtest)
+    test_invar.assign(test_input)
     sess.update_target([
         untrained_out,
         trained_out,
@@ -234,13 +236,13 @@ def main(args):
     got_trained = trained_out.get()
     got_pretrained = pretrained_out.get()
 
-    for i in range(xtest.shape[0]):
-        left = xtest[i,:,0]
-        right = xtest[i,:,1]
-        expected = expect_test[i,:,:]
-        yuntrained = got_untrained[i,:,:]
-        ytrained = got_trained[i,:,:]
-        ypretrained = got_pretrained[i,:,:]
+    for i in range(test_input.shape[0]):
+        left = test_input[i,:,0]
+        right = test_input[i,:,1]
+        expected = test_output[i,:,:]
+        yuntrained = got_untrained[:,i,:]
+        ytrained = got_trained[:,i,:]
+        ypretrained = got_pretrained[:,i,:]
 
         left = ''.join([str(int(d)) for d in left])
         left_num = int(''.join(reversed(left)), 2)

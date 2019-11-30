@@ -37,6 +37,7 @@ struct ULayerBuilder final : public iLayerBuilder
 		if (target == uparam_key)
 		{
 			params_ = eteq::to_node<PybindT>(tens);
+			return;
 		}
 		logs::warnf("attempt to create ulayer "
 			"with unknown tensor `%s` of label `%s`",

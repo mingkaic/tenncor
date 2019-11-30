@@ -231,7 +231,10 @@ struct DQNTrainer final
 		// extract mini_batch from buffer and backpropagate
 		if (0 == (ctx_.n_train_called_ % params_.train_interval_))
 		{
-			if (ctx_.experiences_.size() < params_.mini_batch_size_) return;
+			if (ctx_.experiences_.size() < params_.mini_batch_size_)
+			{
+				return;
+			}
 
 			std::vector<DQNTrainingContext::ExpBatch> samples = random_sample();
 
@@ -321,7 +324,9 @@ private:
 	PybindT linear_annealing (PybindT initial_prob) const
 	{
 		if (ctx_.actions_executed_ >= params_.exploration_period_)
+		{
 			return params_.rand_action_prob_;
+		}
 		return initial_prob - ctx_.actions_executed_ * (initial_prob -
 			params_.rand_action_prob_) / params_.exploration_period_;
 	}

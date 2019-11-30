@@ -149,8 +149,7 @@ def main(args):
         # Occasionally sample from oldModel and print result
         if i % print_interval == 0:
             sample_ix = sample(sess, sample_inp, sample_prob, inputs[0], 1000)
-            txt = ''.join(ix_to_char[ix] for ix in sample_ix)
-            print('----\n%s\n----' % (txt))
+            print('----\n%s\n----' % (''.join(ix_to_char[ix] for ix in sample_ix)))
 
         # Get gradients for current oldModel based on input and target sequences
         inps.assign(encoded_inp)

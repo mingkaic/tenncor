@@ -16,8 +16,7 @@ LayerptrT RNNBuilder::build (void) const
 	return std::make_shared<RNN>(
 		std::static_pointer_cast<Dense>(layers_[0]),
 		std::static_pointer_cast<ULayer>(layers_[1]),
-		init_state_,
-		label_);
+		init_state_, params_, label_);
 }
 
 }
