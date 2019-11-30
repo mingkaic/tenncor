@@ -274,19 +274,34 @@ template <typename T>
 EigenptrT<T> slice (const iEigenEdge<T>& in)
 {
 	teq::Shape argshape = in.argshape();
+	teq::Shape outshape = in.shape();
+	auto c = get_coorder(in);
+	auto encoding = decode_pair<teq::DimT>(c);
 	teq::ShapeT offsets;
 	teq::ShapeT extents;
 	std::fill(offsets.begin(), offsets.end(), 0);
 	std::copy(argshape.begin(), argshape.end(), extents.begin());
-	auto c = get_coorder(in);
-	auto encoding = decode_pair<teq::DimT>(c);
 	size_t n = std::min(encoding.size(), (size_t) teq::rank_cap);
 	for (size_t i = 0; i < n; ++i)
 	{
 		offsets[i] = encoding[i].first;
 		extents[i] = encoding[i].second;
 	}
-	DimensionsT outdims = shape_convert(in.shape());
+	auto slist = teq::narrow_shape(argshape);
+	if (slist.size() > 0 && outshape.compatible_before(
+		argshape, slist.size() - 1))
+	{
+		teq::RankT lastdim = slist.size() - 1;
+		// only slicing the last dimension
+		teq::DimT index = offsets[lastdim];
+		teq::NElemT batchsize = argshape.n_elems() / argshape.at(lastdim);
+		// SINCE tensor is column major, index of last dimension denote
+		// the number of batches before start of output slice
+		// (a batch defined as the subtensor of shape argshape[:lastdim])
+		return std::make_shared<eigen::EigenRef<T>>(
+			in.data() + index * batchsize);
+	}
+	DimensionsT outdims = shape_convert(outshape);
 	return make_eigentensor<T,Eigen::TensorReshapingOp<
 		const DimensionsT, Eigen::TensorSlicingOp<
 			const teq::ShapeT, const teq::ShapeT,

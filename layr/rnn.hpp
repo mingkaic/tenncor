@@ -190,7 +190,12 @@ struct RNN final : public iLayer
 		{
 			// take last non-single dimension as sequence dimension
 			auto slist = teq::narrow_shape(inshape);
-			seq_dim = slist.empty() ? 0 : slist.size() - 1;
+			seq_dim = slist.empty() ? 1 : slist.size() - 1;
+		}
+		if (seq_dim == 0)
+		{
+			logs::warn("spliting input across 0th dimension... "
+				"dense connection might not match");
 		}
 		std::vector<teq::DimT> slice_shape(inshape.begin(), inshape.end());
 		slice_shape[seq_dim] = 1;

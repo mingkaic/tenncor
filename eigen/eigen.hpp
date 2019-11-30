@@ -91,6 +91,23 @@ struct iEigen
 template <typename T>
 using EigenptrT = std::shared_ptr<iEigen<T>>;
 
+template <typename T>
+struct EigenRef final : public iEigen<T>
+{
+	EigenRef (T* ref) : ref_(ref) {}
+
+	/// Implementation of iEigen<T>
+	void assign (void) override {}
+
+	/// Implementation of iEigen<T>
+	T* get_ptr (void) override
+	{
+		return ref_;
+	}
+
+	T* ref_;
+};
+
 /// Implementation of iEigen that assigns Tensor operator to Tensor object
 template <typename T, typename EigenSource, typename EigenArgs>
 struct EigenTensOp final : public iEigen<T>
