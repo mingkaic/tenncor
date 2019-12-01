@@ -166,7 +166,8 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Calculate node relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<NodeptrT>{});
+			py::arg("ignored") = std::vector<NodeptrT>{})
+		.def("get_tracked", &teq::iSession::get_tracked);
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session

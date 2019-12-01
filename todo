@@ -5,16 +5,14 @@ P3 = "want to have"
 P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
-   - opt: enforce variadic/commutative constraints
+=== bugs ===
    - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
       delay thread creation until dependent flag is set
-   - fix optimize so that the output data is equivalent before and after
+   - improve grader/optimization rule according to rnn, lstm, gru
+   - rework layer serialization to better encode non-tensor parameters
 
 === usage ===
-P2 - implement GRU
-P2 - implement LSTM
-P2 - implement attention transformer
-   - demo A3C, attention encoder+decoder
+P2 - demo A3C
    - implement models concerning visual and audio processing, and semantic data processing
    - separate supervised and unsupervised trainers (since they have different statefulness)
 
@@ -53,8 +51,6 @@ P5 - formalize codestyle
 
 === correction ===
 P2 - test opt module against varying graphs
-   - optimization fails when functor is initialized on construction
-P2 - test eteq funcarg
 P2 - test dropout layer
 P2 - reorient tests so that tests cover its own immediate module
 P2 - fix rbm demo converging to infinity problem
@@ -67,8 +63,7 @@ P3 - test rocnnet, and trainer (or subgraph equivalent)
 P3 - improve ccur module
 
 run-time performance:
-   - implement group sum and group prod using EigenAssignTens
-   - make eigen device configurable
+P2 - make eigen device configurable
 P3 - define dataflow to take advantage of parallel processing at node-level
 P4 - implement GPU settings
 P4 - improve session implementation

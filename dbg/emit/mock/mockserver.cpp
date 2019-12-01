@@ -16,8 +16,8 @@ struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 		gemitter::CreateGraphResponse* response) override
 	{
 		const gemitter::GraphInfo& info = request->payload();
-		const std::string& gid = info.graph_id();
 		const tenncor::Graph& graph = info.graph();
+		gid_ = info.graph_id();
 
 		google::protobuf::util::JsonPrintOptions options;
 		auto status = google::protobuf::util::MessageToJsonString(

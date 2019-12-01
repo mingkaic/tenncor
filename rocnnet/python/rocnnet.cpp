@@ -16,7 +16,9 @@
 #include "layr/dense.hpp"
 #include "layr/rbm.hpp"
 #include "layr/conv.hpp"
-#include "layr/recur.hpp"
+#include "layr/rnn.hpp"
+#include "layr/lstm.hpp"
+#include "layr/gru.hpp"
 #include "layr/seqmodel.hpp"
 
 #include "rocnnet/trainer/sgd_trainer.hpp"
@@ -34,6 +36,14 @@ layr::ApproxF get_sgd (PybindT learning_rate)
 	return [=](const layr::VarErrsT& leaves)
 	{
 		return layr::sgd(leaves, learning_rate);
+	};
+}
+
+layr::ApproxF get_adagrad (PybindT learning_rate, PybindT epsilon)
+{
+	return [=](const layr::VarErrsT& leaves)
+	{
+		return layr::adagrad(leaves, learning_rate, epsilon);
 	};
 }
 
@@ -62,7 +72,9 @@ PYBIND11_MODULE(rocnnet, m)
 	py::class_<layr::Dense,layr::DenseptrT,layr::iLayer> dense(m, "Dense");
 	py::class_<layr::RBM,layr::RBMptrT,layr::iLayer> rbm(m, "RBM");
 	py::class_<layr::Conv,layr::ConvptrT,layr::iLayer> conv(m, "Conv");
-	py::class_<layr::Recur,layr::RecurptrT,layr::iLayer> recur(m, "Recur");
+	py::class_<layr::RNN,layr::RNNptrT,layr::iLayer> rnn(m, "RNN");
+	py::class_<layr::LSTM,layr::LSTMptrT,layr::iLayer> lstm(m, "LSTM");
+	py::class_<layr::GRU,layr::GRUptrT,layr::iLayer> gru(m, "GRU");
 	py::class_<layr::SequentialModel,layr::SeqModelptrT,layr::iLayer> seqmodel(m, "SequentialModel");
 
 	// trainers
@@ -79,7 +91,9 @@ PYBIND11_MODULE(rocnnet, m)
 			[](eteq::VarptrT<PybindT> target, NodeptrT source)
 			{
 				return layr::VarAssign{"", target, source};
-			}));
+			}))
+		.def("target", [](layr::VarAssign& assign) { return assign.target_; })
+		.def("source", [](layr::VarAssign& assign) { return assign.source_; });
 
 	dqninfo
 		.def(py::init<size_t,
@@ -220,30 +234,81 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("clone", &layr::Conv::clone, py::arg("prefix") = "")
 		.def("paddings", &layr::Conv::get_padding);
 
-	// recur
+	// rnn
 	m.def("create_recur",
 		[](layr::DenseptrT cell, layr::UnaryptrT activation,
-			NodeptrT init_state, std::string label)
+			NodeptrT init_state, NodeptrT param, std::string label)
 		{
-			return std::make_shared<layr::Recur>(
-				cell, activation, init_state, label);
+			return std::make_shared<layr::RNN>(
+				cell, activation, init_state, param, label);
 		},
-		py::arg("weight"),
-		py::arg("bias"),
-		py::arg("arg"),
+		py::arg("cell"),
+		py::arg("activation"),
+		py::arg("init_state"),
+		py::arg("param"),
 		py::arg("label") = "");
-	recur
-		.def(py::init<teq::DimT,
-			layr::UnaryptrT,
+	rnn
+		.def(py::init<teq::DimT,teq::DimT,layr::UnaryptrT,
+			layr::InitF<PybindT>,layr::InitF<PybindT>,
+			teq::RankT,const std::string&>(),
+			py::arg("nunits"), py::arg("ninput"), py::arg("activation"),
+			py::arg("weight_init"), py::arg("bias_init"),
+			py::arg("seq_dim"), py::arg("label") = "")
+		.def("clone", &layr::RNN::clone, py::arg("prefix") = "");
+
+	// lstm
+	m.def("create_lstm",
+		[](layr::DenseptrT gate,
+			layr::DenseptrT forget,
+			layr::DenseptrT ingate,
+			layr::DenseptrT outgate,
+			std::string label)
+		{
+			return std::make_shared<layr::LSTM>(
+				gate, forget, ingate, outgate, label);
+		},
+		py::arg("gate"),
+		py::arg("forget"),
+		py::arg("ingate"),
+		py::arg("outgate"),
+		py::arg("label") = "");
+	lstm
+		.def(py::init<teq::DimT,teq::DimT,
 			layr::InitF<PybindT>,
 			layr::InitF<PybindT>,
 			const std::string&>(),
-			py::arg("nunits"),
-			py::arg("activation"),
+			py::arg("nhidden"),
+			py::arg("ninput"),
 			py::arg("weight_init"),
 			py::arg("bias_init"),
 			py::arg("label") = "")
-		.def("clone", &layr::Recur::clone, py::arg("prefix") = "");
+		.def("clone", &layr::LSTM::clone, py::arg("prefix") = "");
+
+	// gru
+	m.def("create_gru",
+		[](layr::DenseptrT ugate,
+			layr::DenseptrT rgate,
+			layr::DenseptrT hgate,
+			std::string label)
+		{
+			return std::make_shared<layr::GRU>(
+				ugate, rgate, hgate, label);
+		},
+		py::arg("ugate"),
+		py::arg("rgate"),
+		py::arg("hgate"),
+		py::arg("label") = "");
+	gru
+		.def(py::init<teq::DimT,teq::DimT,
+			layr::InitF<PybindT>,
+			layr::InitF<PybindT>,
+			const std::string&>(),
+			py::arg("nhidden"),
+			py::arg("ninput"),
+			py::arg("weight_init"),
+			py::arg("bias_init"),
+			py::arg("label") = "")
+		.def("clone", &layr::GRU::clone, py::arg("prefix") = "");
 
 	// seqmodel
 	seqmodel
@@ -330,6 +395,9 @@ PYBIND11_MODULE(rocnnet, m)
 		// optimizations
 		.def("get_sgd", &pyrocnnet::get_sgd,
 			py::arg("learning_rate") = 0.5)
+		.def("get_adagrad", &pyrocnnet::get_adagrad,
+			py::arg("learning_rate") = 0.5,
+			py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon())
 		.def("get_rms_momentum", &pyrocnnet::get_rms_momentum,
 			py::arg("learning_rate") = 0.5,
 			py::arg("discount_factor") = 0.99,

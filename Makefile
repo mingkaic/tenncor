@@ -39,35 +39,82 @@ rocnnet_py_export: bazel-bin/rocnnet/rocnnet.so bazel-bin/eteq/tenncor.so bazel-
 	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
 
 
-model_jsonupdate: eteq_test_json pbm_test_json model_jsongd model_jsondqn model_jsonrbm model_jsondbn
+pbx2json: eteq_test_p2j pbm_test_p2j gd_model_p2j dqn_model_p2j rbm_model_p2j dbn_model_p2j rnn_model_p2j lstm_model_p2j gru_model_p2j
 
-eteq_test_json: models/test/eteq_test.pbx
-	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/eteq_test.pbx --write /tmp/eteq_test.json
-	mv /tmp/eteq_test.json models/test
+eteq_test_p2j: models/test/eteq.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/eteq.pbx --write /tmp/eteq.json
+	mv /tmp/eteq.json models/test
 
-pbm_test_json: models/test/pbm_test.pbx
-	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/pbm_test.pbx --write /tmp/pbm_test.json
-	mv /tmp/pbm_test.json models/test
+pbm_test_p2j: models/test/pbm.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/pbm.pbx --write /tmp/pbm.json
+	mv /tmp/pbm.json models/test
 
-model_jsongd: models/gdmodel.pbx
-	bazel run //pbm:inspector -- --read ${CURDIR}/models/gdmodel.pbx --write /tmp/gdmodel.json
-	mv /tmp/gdmodel.json models
+gd_model_p2j: models/gd.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/gd.pbx --write /tmp/gd.json
+	mv /tmp/gd.json models
 
-model_jsondqn: models/dqnmodel.pbx
-	bazel run //pbm:inspector -- --read ${CURDIR}/models/dqnmodel.pbx --write /tmp/dqnmodel.json
-	mv /tmp/dqnmodel.json models
+dqn_model_p2j: models/dqn.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/dqn.pbx --write /tmp/dqn.json
+	mv /tmp/dqn.json models
 
-model_jsonrbm: models/rbmmodel.pbx
-	bazel run //pbm:inspector -- --read ${CURDIR}/models/rbmmodel.pbx --write /tmp/rbmmodel.json
-	mv /tmp/rbmmodel.json models
+rbm_model_p2j: models/rbm.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/rbm.pbx --write /tmp/rbm.json
+	mv /tmp/rbm.json models
 
-model_jsondbn: models/dbnmodel.pbx
-	bazel run //pbm:inspector -- --read ${CURDIR}/models/dbnmodel.pbx --write /tmp/dbnmodel.json
-	mv /tmp/dbnmodel.json models
+dbn_model_p2j: models/dbn.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/dbn.pbx --write /tmp/dbn.json
+	mv /tmp/dbn.json models
 
-model_jsonrnn: models/rnnmodel.pbx
-	bazel run //pbm:inspector -- --read ${CURDIR}/models/rnnmodel.pbx --write /tmp/rnnmodel.json
-	mv /tmp/rnnmodel.json models
+rnn_model_p2j: models/rnn.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/rnn.pbx --write /tmp/rnn.json
+	mv /tmp/rnn.json models
+
+lstm_model_p2j: models/lstm.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/lstm.pbx --write /tmp/lstm.json
+	mv /tmp/lstm.json models
+
+gru_model_p2j: models/gru.pbx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/gru.pbx --write /tmp/gru.json
+	mv /tmp/gru.json models
+
+
+json2pbx: eteq_test_j2p pbm_test_j2p gd_model_j2p dqn_model_j2p rbm_model_j2p dbn_model_j2p rnn_model_j2p lstm_model_j2p gru_model_j2p
+
+eteq_test_j2p: models/test/eteq.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/eteq.json --write /tmp/eteq.pbx
+	mv /tmp/eteq.pbx models/test
+
+pbm_test_j2p: models/test/pbm.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/pbm.json --write /tmp/pbm.pbx
+	mv /tmp/pbm.pbx models/test
+
+gd_model_j2p: models/gd.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/gd.json --write /tmp/gd.pbx
+	mv /tmp/gd.pbx models
+
+dqn_model_j2p: models/dqn.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/dqn.json --write /tmp/dqn.pbx
+	mv /tmp/dqn.pbx models
+
+rbm_model_j2p: models/rbm.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/rbm.json --write /tmp/rbm.pbx
+	mv /tmp/rbm.pbx models
+
+dbn_model_j2p: models/dbn.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/dbn.json --write /tmp/dbn.pbx
+	mv /tmp/dbn.pbx models
+
+rnn_model_j2p: models/rnn.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/rnn.json --write /tmp/rnn.pbx
+	mv /tmp/rnn.pbx models
+
+lstm_model_j2p: models/lstm.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/lstm.json --write /tmp/lstm.pbx
+	mv /tmp/lstm.pbx models
+
+gru_model_j2p: models/gru.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/gru.json --write /tmp/gru.pbx
+	mv /tmp/gru.pbx models
 
 
 coverage:
@@ -150,4 +197,5 @@ lcov_teq: cover_teq cov_clean
 .PHONY: coverage cover_ccur cover_eigen cover_eteq cover_layr cover_opt cover_pbm cover_tag cover_teq
 .PHONY: compare_matmul compare_mlp compare_mlp_grad cov_clean cov_genhtml
 .PHONY: lcov lcov_ccur lcov_eteq lcov_layr lcov_opt lcov_pbm lcov_tag lcov_teq
-.PHONY: model_jsonupdate model_jsongd model_jsondqn model_jsonrbm model_jsondbn model_jsonrnn
+.PHONY: pbx2json eteq_test_p2j pbm_test_p2j gd_model_p2j dqn_model_p2j rbm_model_p2j dbn_model_p2j rnn_model_p2j lstm_model_p2j gru_model_p2j
+.PHONY: json2pbx eteq_test_j2p pbm_test_j2p gd_model_j2p dqn_model_j2p rbm_model_j2p dbn_model_j2p rnn_model_j2p lstm_model_j2p gru_model_j2p

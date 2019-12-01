@@ -1,4 +1,4 @@
-# source: https://cs.stanford.edu/people/karpathy/convnetjs/demo/cifar10.html (warning: disable javascript)
+# logic source: https://cs.stanford.edu/people/karpathy/convnetjs/demo/cifar10.html (warning: disable javascript)
 # layer_defs = [];
 # layer_defs.push({type:'input', out_sx:32, out_sy:32, out_depth:3});
 # layer_defs.push({type:'conv', sx:5, filters:16, stride:1, pad:2, activation:'relu'});

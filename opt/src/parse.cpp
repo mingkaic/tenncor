@@ -90,6 +90,63 @@ static std::string to_string (::Conversion* cversion)
 	return to_string(cversion->matcher_) + "=>" + to_string(cversion->target_);
 }
 
+static bool validate_matcher_helper (const ::Functor* matcher, bool& used_comm)
+{
+	bool child_varg = false;
+	size_t nargs = 0;
+	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_, ++nargs)
+	{
+		auto arg = (::Arg*) it->val_;
+		auto child = arg->node_;
+		if (child->type_ == ::TreeNode::FUNCTOR)
+		{
+			auto nextfunc = child->val_.functor_;
+			child_varg = child_varg ||
+				std::string(matcher->variadic_).size() > 0;
+			if (false == validate_matcher_helper(nextfunc, used_comm))
+			{
+				return false;
+			}
+		}
+	}
+	if (matcher->commutative_)
+	{
+		if (used_comm)
+		{
+			// two or more commutatives in a matcher graph
+			logs::debug("matcher graph cannot contain "
+				"more than one commutative functor");
+			return false;
+		}
+		if (std::string(matcher->variadic_).size() > 0)
+		{
+			// commutative AND variadic functions can:
+			if (nargs != 1)
+			{
+				// only have ONE argument
+				logs::debug("commutative variadic matcher "
+					"cannot have multiple arguments");
+				return false;
+			}
+			if (child_varg)
+			{
+				// functor argument cannot hold variadic arguments
+				logs::debug("commutative variadic matcher cannot "
+					"have an argument with variadic arguments");
+				return false;
+			}
+		}
+		used_comm = true;
+	}
+	return true;
+}
+
+static bool validate_matcher (const ::Functor* matcher)
+{
+	bool used_comm = false;
+	return validate_matcher_helper(matcher, used_comm);
+}
+
 static std::string parse_matcher (
 	std::unordered_map<std::string,MatchsT>& out,
 	const ::Functor* matcher)
@@ -142,6 +199,7 @@ static std::string parse_matcher (
 static CversionCtx process_cversions (
 	::PtrList* cversions, BuildTargetF parse_target)
 {
+	logs::set_log_level(logs::LOG_LEVEL::DEBUG);
 	if (nullptr == cversions && CONVERSION != cversions->type_)
 	{
 		logs::fatal("rule parser did not produced conversions");
@@ -154,9 +212,12 @@ static CversionCtx process_cversions (
 		{
 			logs::fatal("cannot parse null conversion");
 		}
-		auto root_id = parse_matcher(out.matchers_, cversion->matcher_);
-		out.targets_.emplace(root_id, parse_target(cversion->target_));
-		out.dbg_msgs_.emplace(root_id, to_string(cversion));
+		if (validate_matcher(cversion->matcher_))
+		{
+			auto root_id = parse_matcher(out.matchers_, cversion->matcher_);
+			out.targets_.emplace(root_id, parse_target(cversion->target_));
+			out.dbg_msgs_.emplace(root_id, to_string(cversion));
+		}
 	}
 	::cversions_free(cversions);
 	return out;

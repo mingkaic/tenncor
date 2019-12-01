@@ -158,6 +158,12 @@ protected:
 	}
 
 private:
+	/// Implementation of iNode<T>
+	void add_parent (eteq::Functor<T>* parent) override {}
+
+	/// Implementation of iNode<T>
+	void remove_parent (eteq::Functor<T>* parent) override {}
+
 	std::shared_ptr<CustomFunctor<T>> func_;
 };
 

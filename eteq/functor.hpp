@@ -13,6 +13,7 @@
 #include "eigen/generated/opcode.hpp"
 
 #include "eteq/edge.hpp"
+#include "eteq/observable.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -22,7 +23,7 @@ namespace eteq
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
-struct Functor final : public teq::iOperableFunc
+struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	static Functor<T>* get (egen::_GENERATED_OPCODE opcode, ArgsT<T> args);
@@ -31,6 +32,14 @@ struct Functor final : public teq::iOperableFunc
 	static Functor<T>* get (Functor<T>&& other)
 	{
 		return new Functor<T>(std::move(other));
+	}
+
+	~Functor (void)
+	{
+		for (Edge<T>& arg : args_)
+		{
+			arg.get_node()->remove_parent(this);
+		}
 	}
 
 	Functor (const Functor<T>& other) = delete;
@@ -66,18 +75,29 @@ struct Functor final : public teq::iOperableFunc
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		teq::Shape nexshape = arg->shape();
-		teq::Shape curshape = args_[index].argshape();
-		if (false == nexshape.compatible_after(curshape, 0))
+		if (index >= args_.size())
 		{
-			logs::fatalf("cannot update child %d to argument with "
-				"incompatible shape %s (requires shape %s)",
-				index, nexshape.to_string().c_str(),
-				curshape.to_string().c_str());
+			logs::fatalf("cannot modify argument %d "
+				"when there are only %d arguments",
+				index, args_.size());
 		}
-		static_cast<Edge<T>*>(&args_[index])->set_tensor(arg);
-		// todo: warn of data destruction
-		uninitialize();
+		auto edge = static_cast<Edge<T>*>(&args_[index]);
+		if (arg != edge->get_tensor())
+		{
+			uninitialize();
+			edge->get_node()->remove_parent(this);
+			teq::Shape nexshape = arg->shape();
+			teq::Shape curshape = edge->argshape();
+			if (false == nexshape.compatible_after(curshape, 0))
+			{
+				logs::fatalf("cannot update child %d to argument with "
+					"incompatible shape %s (requires shape %s)",
+					index, nexshape.to_string().c_str(),
+					curshape.to_string().c_str());
+			}
+			edge->set_tensor(arg);
+			edge->get_node()->add_parent(this);
+		}
 	}
 
 	/// Implementation of iOperableFunc
@@ -138,6 +158,14 @@ struct Functor final : public teq::iOperableFunc
 	/// Removes internal Eigen data object
 	void uninitialize (void)
 	{
+		if (is_uninit())
+		{
+			return;
+		}
+		for (auto& parent : this->subs_)
+		{
+			parent->uninitialize();
+		}
 		out_ = nullptr;
 	}
 
@@ -152,6 +180,10 @@ private:
 	Functor (egen::_GENERATED_OPCODE opcode, teq::Shape shape, ArgsT<T> args) :
 		opcode_(teq::Opcode{egen::name_op(opcode), opcode}), shape_(shape), args_(args)
 	{
+		for (Edge<T>& arg : args_)
+		{
+			arg.get_node()->add_parent(this);
+		}
 #ifdef FINIT_ON_BUILD
 		initialize();
 #endif // FINIT_ON_BUILD
@@ -219,6 +251,18 @@ protected:
 	}
 
 private:
+	/// Implementation of iNode<T>
+	void add_parent (Functor<T>* parent) override
+	{
+		func_->subscribe(parent);
+	}
+
+	/// Implementation of iNode<T>
+	void remove_parent (Functor<T>* parent) override
+	{
+		func_->unsubscribe(parent);
+	}
+
 	std::shared_ptr<Functor<T>> func_;
 };
 
@@ -316,7 +360,8 @@ struct ReducePacker : private EmptyPacker<T>
 		NodeptrT<T> node = nodes[0];
 		teq::Shape shape = node->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		for (auto it = dims.begin(), et = dims.end(); it != et;)
+		std::set<teq::RankT> sig_dims = dims;
+		for (auto it = sig_dims.begin(), et = sig_dims.end(); it != et;)
 		{
 			if (slist.at(*it) > 1)
 			{
@@ -325,15 +370,18 @@ struct ReducePacker : private EmptyPacker<T>
 			}
 			else
 			{
-				it = dims.erase(it);
+				it = sig_dims.erase(it);
 			}
 		}
-		if (dims.empty())
+		if (sig_dims.empty())
 		{
-			// todo: warn
+			logs::debugf("reducing with no significant dimensions... "
+				"treating as identity: (dims=%s, shape=%s)",
+				fmts::to_string(dims.begin(), dims.end()).c_str(),
+				shape.to_string().c_str());
 			return {};
 		}
-		std::vector<double> rdims(dims.begin(), dims.end());
+		std::vector<double> rdims(sig_dims.begin(), sig_dims.end());
 		std::sort(rdims.begin(), rdims.end());
 		return {Edge<T>(node, teq::Shape(slist), rdims)};
 	}
@@ -387,6 +435,9 @@ struct FuncPacker<T,egen::ARGMAX> final : private EmptyPacker<T>
 		if (shape.n_elems() == 1 ||
 			(return_dim < teq::rank_cap && shape.at(return_dim) == 1))
 		{
+			logs::debugf("argreducing with no significant dimensions... "
+				"treating as identity: (return_dim=%d, shape=%s)",
+				(int) return_dim, shape.to_string().c_str());
 			return {};
 		}
 
@@ -410,10 +461,9 @@ struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 	{
 		if (extents.size() > teq::rank_cap)
 		{
-			eigen::PairVecT<int> readable_extents(extents.begin(), extents.end());
 			logs::fatalf(
-				"cannot slice dimensions beyond rank_cap %d: using extent %s", teq::rank_cap,
-				fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
+				"cannot slice dimensions beyond rank_cap %d: using extent %s",
+				teq::rank_cap, eigen::to_string(extents).c_str());
 		}
 		eteq::NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
@@ -426,16 +476,23 @@ struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 			auto& ex = extents[i];
 			if (ex.second < 1)
 			{
-				eigen::PairVecT<int> readable_extents(extents.begin(), extents.end());
 				logs::fatalf("cannot extend zero slices: extents %s",
-					fmts::to_string(readable_extents.begin(), readable_extents.end()).c_str());
+					eigen::to_string(extents).c_str());
 			}
 			teq::DimT offset = std::min(ex.first, (teq::DimT) (shape.at(i) - 1));
 			teq::DimT xtend = std::min(ex.second, (teq::DimT) (shape.at(i) - offset));
 			slist[i] = xtend;
 			xlist.push_back({offset, xtend});
 		}
-		return {eteq::Edge<T>(arg, teq::Shape(slist), eigen::encode_pair(xlist))};
+		teq::Shape outshape(slist);
+		if (outshape.compatible_after(shape, 0))
+		{
+			logs::debugf("slice parameter covers whole tensor... "
+				"treating as identity: (extents=%s)",
+				eigen::to_string(extents).c_str());
+			return {};
+		}
+		return {eteq::Edge<T>(arg, outshape, eigen::encode_pair(xlist))};
 	}
 };
 
@@ -448,10 +505,9 @@ struct FuncPacker<T,egen::PAD> final : private EmptyPacker<T>
 	{
 		if (paddings.size() > teq::rank_cap)
 		{
-			eigen::PairVecT<int> readable_paddings(paddings.begin(), paddings.end());
 			logs::fatalf(
-				"cannot pad dimensions beyond rank_cap %d: using paddings %s", teq::rank_cap,
-				fmts::to_string(readable_paddings.begin(), readable_paddings.end()).c_str());
+				"cannot pad dimensions beyond rank_cap %d: using paddings %s",
+				teq::rank_cap, eigen::to_string(paddings).c_str());
 		}
 		eteq::NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
@@ -540,16 +596,15 @@ struct FuncPacker<T,egen::MATMUL> final : private EmptyPacker<T>
 		{
 			if (ashape.at(coms.first) != bshape.at(coms.second))
 			{
-				eigen::PairVecT<int> readable_dims(dims.begin(), dims.end());
-				logs::fatalf("invalid shapes %s and %s do not match common dimensions %s",
-					ashape.to_string().c_str(), bshape.to_string().c_str(),
-					fmts::to_string(readable_dims.begin(), readable_dims.end()).c_str());
+				logs::fatalf("invalid shapes %s and %s do not match "
+					"common dimensions %s", ashape.to_string().c_str(),
+					bshape.to_string().c_str(),
+					eigen::to_string(dims).c_str());
 			}
 			if (avisit[coms.first] || bvisit[coms.second])
 			{
-				eigen::PairVecT<int> readable_dims(dims.begin(), dims.end());
-				logs::fatalf("contraction dimensions %s must be unique for each side",
-					fmts::to_string(readable_dims.begin(), readable_dims.end()).c_str());
+				logs::fatalf("contraction dimensions %s must be unique for "
+					"each side", eigen::to_string(dims).c_str());
 			}
 			avisit[coms.first] = bvisit[coms.second] = true;
 		}
@@ -647,7 +702,7 @@ struct FuncPacker<T,egen::PERMUTE> final : private EmptyPacker<T>
 	{
 		if (is_inorder(order))
 		{
-			logs::warn("permuting with same dimensions ... treating as identity");
+			logs::debug("permuting with same dimensions ... treating as identity");
 			return {};
 		}
 		eteq::NodeptrT<T> arg = nodes[0];
@@ -694,8 +749,8 @@ struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 		if (bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 1 == d; }))
 		{
-			logs::warn("extending with nothing... treating as identity");
-			return {}; // identity
+			logs::debug("extending with nothing... treating as identity");
+			return {};
 		}
 		if (std::any_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 0 == d; }))
@@ -767,6 +822,7 @@ struct FuncPacker<T,egen::GROUP_CONCAT> final : private EmptyPacker<T>
 	{
 		if (nodes.size() == 1)
 		{
+			logs::debug("concatenating a single node... treating as identity");
 			return {};
 		}
 		size_t nargs = nodes.size();

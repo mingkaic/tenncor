@@ -24,8 +24,8 @@ const std::string testdir = "models/test";
 
 TEST(SERIALIZE, SaveGraph)
 {
-	std::string expect_pbfile = testdir + "/eteq_test.pbx";
-	std::string got_pbfile = "got_eteq_test.pbx";
+	std::string expect_pbfile = testdir + "/eteq.pbx";
+	std::string got_pbfile = "got_eteq.pbx";
 	tenncor::Graph graph;
 
 	teq::Shape in_shape({10, 3});
@@ -116,7 +116,7 @@ TEST(SERIALIZE, LoadGraph)
 {
 	tenncor::Graph in;
 	{
-		std::fstream inputstr(testdir + "/eteq_test.pbx",
+		std::fstream inputstr(testdir + "/eteq.pbx",
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE(inputstr.is_open());
 		ASSERT_TRUE(in.ParseFromIstream(&inputstr));
@@ -189,7 +189,7 @@ TEST(SERIALIZE, LoadGraph)
 	std::string got;
 	std::string line;
 	{
-		std::ifstream expectstr(testdir + "/eteq_test.txt");
+		std::ifstream expectstr(testdir + "/eteq.txt");
 		ASSERT_TRUE(expectstr.is_open());
 		while (std::getline(expectstr, line))
 		{

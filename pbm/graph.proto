@@ -17,11 +17,7 @@ message ArrayAttrs {
 
 message NodeArg {
     uint32 idx = 1;
-    map<string,ArrayAttrs> attrs = 5; // todo: swap to any maps once pybind behaves nicely
-
-    repeated double coord = 2 [deprecated = true, packed = true];
-    repeated double shaper = 3 [deprecated = true, packed = true];
-    bool fwd = 4 [deprecated = true];
+    map<string,ArrayAttrs> attrs = 2;
 }
 
 message Functor {

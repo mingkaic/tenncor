@@ -19,6 +19,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_dense": {
+     "labels": [
+      "hidden::weight:0"
+     ]
+    },
     "layer_rbm": {
      "labels": [
       "0:layer_dense:hidden:0"
@@ -27,11 +32,6 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:0:0"
-     ]
-    },
-    "layer_dense": {
-     "labels": [
-      "hidden::weight:0"
      ]
     }
    }
@@ -89,6 +89,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_dense": {
+     "labels": [
+      "visible::bias:0"
+     ]
+    },
     "layer_rbm": {
      "labels": [
       "0:layer_dense:visible:1"
@@ -97,11 +102,6 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:0:0"
-     ]
-    },
-    "layer_dense": {
-     "labels": [
-      "visible::bias:0"
      ]
     }
    }
@@ -166,11 +166,6 @@
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "hidden::weight:0"
-     ]
-    },
     "layer_rbm": {
      "labels": [
       "1:layer_dense:hidden:0"
@@ -179,6 +174,11 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:1:1"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "hidden::weight:0"
      ]
     }
    }
@@ -201,11 +201,6 @@
     "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "hidden::bias:0"
@@ -214,6 +209,11 @@
     "layer_rbm": {
      "labels": [
       "1:layer_dense:hidden:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rbm:1:1"
      ]
     }
    }
@@ -236,6 +236,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_dense": {
+     "labels": [
+      "visible::bias:0"
+     ]
+    },
     "layer_rbm": {
      "labels": [
       "1:layer_dense:visible:1"
@@ -244,11 +249,6 @@
     "layer_seqmodel": {
      "labels": [
       "demo:layer_rbm:1:1"
-     ]
-    },
-    "layer_dense": {
-     "labels": [
-      "visible::bias:0"
      ]
     }
    }
@@ -271,14 +271,14 @@
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "log_layer::weight:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_dense:log_layer:2"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "log_layer::weight:0"
      ]
     }
    }
@@ -301,14 +301,14 @@
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "log_layer::bias:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_dense:log_layer:2"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "log_layer::bias:0"
      ]
     }
    }
@@ -331,6 +331,11 @@
     "isConst": true
    },
    "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_softmax::3"
@@ -339,11 +344,6 @@
     "layer_softmax": {
      "labels": [
       "::uparam:0"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "immutable"
      ]
     }
    }
@@ -355,101 +355,32 @@
     "args": [
      {
       "idx": 0,
-      "attrs": {},
-      "coord": [
-       1,
-       0,
-       2,
-       3,
-       4,
-       5,
-       6,
-       7
-      ],
-      "shaper": [
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1
-      ],
-      "fwd": true
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         0,
+         2,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       },
+       "shape": {
+        "values": [
+         6,
+         3,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ]
+       }
+      }
      }
     ]
    },
@@ -478,101 +409,20 @@
     "args": [
      {
       "idx": 4,
-      "attrs": {},
-      "coord": [
-       1,
-       0,
-       2,
-       3,
-       4,
-       5,
-       6,
-       7
-      ],
-      "shaper": [
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       0,
-       1
-      ],
-      "fwd": true
+      "attrs": {
+       "coorder": {
+        "values": [
+         1,
+         0,
+         2,
+         3,
+         4,
+         5,
+         6,
+         7
+        ]
+       }
+      }
      }
     ]
    },

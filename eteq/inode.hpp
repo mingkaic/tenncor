@@ -20,6 +20,9 @@
 namespace eteq
 {
 
+template <typename T>
+struct Functor;
+
 /// Interface node for wrapping typed tensor
 template <typename T>
 struct iNode
@@ -58,6 +61,14 @@ struct iNode
 
 protected:
 	virtual iNode<T>* clone_impl (void) const = 0;
+
+	/// Subscribe parent observer
+	virtual void add_parent (Functor<T>* parent) = 0;
+
+	/// Unsubscribe parent observer
+	virtual void remove_parent (Functor<T>* parent) = 0;
+
+	friend struct Functor<T>;
 };
 
 /// Smart pointer of node

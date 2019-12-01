@@ -184,6 +184,18 @@ protected:
 	}
 
 private:
+	/// Implementation of iNode<T>
+	void add_parent (Functor<T>* parent) override
+	{
+		// todo: add some trigger
+	}
+
+	/// Implementation of iNode<T>
+	void remove_parent (Functor<T>* parent) override
+	{
+		// todo: add some trigger
+	}
+
 	std::shared_ptr<Variable<T>> var_;
 };
 

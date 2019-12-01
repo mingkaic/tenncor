@@ -37,8 +37,8 @@ def main(args):
         help='Length of the Contrastive divergence chain (default: 1)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/dbnmodel.pbx',
-        help='Filename to load pretrained model (default: models/dbnmodel.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/dbn.pbx',
+        help='Filename to load pretrained model (default: models/dbn.pbx)')
     args = parser.parse_args(args)
 
     if args.seed:

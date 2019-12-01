@@ -56,8 +56,8 @@ def main(args):
         help='Number of steps per episodes (default: 100)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/dqnmodel.pbx',
-        help='Filename to load pretrained model (default: models/dqnmodel.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/dqn.pbx',
+        help='Filename to load pretrained model (default: models/dqn.pbx)')
     args = parser.parse_args(args)
 
     episode_count = args.n_episodes

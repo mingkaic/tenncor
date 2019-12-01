@@ -212,7 +212,6 @@ struct Conv final : public iLayer
 				outshape.at(1), outshape.at(2), outshape.at(3)});
 			leaves.emplace(bias_->get_tensor().get());
 		}
-		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;
 	}
 
