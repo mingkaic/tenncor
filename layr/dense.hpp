@@ -213,6 +213,7 @@ struct Dense final : public iLayer
 		{
 			leaves.emplace(bias_->get_tensor().get());
 		}
+		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;
 	}
 

@@ -204,7 +204,11 @@ struct RNN final : public iLayer
 				cell_->connect(tenncor::concat(inslice, state, 0)));
 			states.push_back(state);
 		}
-		return tenncor::concat(states, seq_dim);
+		auto output = tenncor::concat(states, seq_dim);
+		recursive_tag(output->get_tensor(), {
+			input->get_tensor().get(),
+		}, LayerId());
+		return output;
 	}
 
 private:

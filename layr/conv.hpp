@@ -200,19 +200,20 @@ struct Conv final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-		auto out = tenncor::nn::conv2d(input, weight_, get_padding());
+		auto output = tenncor::nn::conv2d(input, weight_, get_padding());
 		teq::TensSetT leaves = {
 			input->get_tensor().get(),
 			weight_->get_tensor().get(),
 		};
 		if (bias_)
 		{
-			teq::Shape outshape = out->shape();
-			out = out + tenncor::extend(bias_, 1, {
+			teq::Shape outshape = output->shape();
+			output = output + tenncor::extend(bias_, 1, {
 				outshape.at(1), outshape.at(2), outshape.at(3)});
 			leaves.emplace(bias_->get_tensor().get());
 		}
-		return out;
+		recursive_tag(output->get_tensor(), leaves, LayerId());
+		return output;
 	}
 
 	std::pair<teq::DimT,teq::DimT> get_padding (void) const

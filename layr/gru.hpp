@@ -160,7 +160,11 @@ struct GRU final : public iLayer
 			state = cell_connect(inslice, state);
 			states.push_back(state);
 		}
-		return tenncor::concat(states, 1);
+		auto output = tenncor::concat(states, 1);
+		recursive_tag(output->get_tensor(), {
+			input->get_tensor().get(),
+		}, LayerId());
+		return output;
 	}
 
 private:

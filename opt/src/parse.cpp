@@ -199,7 +199,6 @@ static std::string parse_matcher (
 static CversionCtx process_cversions (
 	::PtrList* cversions, BuildTargetF parse_target)
 {
-	logs::set_log_level(logs::LOG_LEVEL::DEBUG);
 	if (nullptr == cversions && CONVERSION != cversions->type_)
 	{
 		logs::fatal("rule parser did not produced conversions");

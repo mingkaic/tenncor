@@ -538,7 +538,7 @@ TEST(OPERATOR, Convolution)
 		5 * 0.3 + 9 * 0.6, 7 * 0.3 + 1 * 0.6, 6 * 0.3 + 0 * 0.6,
 	};
 	std::vector<double> got_raw(raw, raw + outshape.n_elems());
-	EXPECT_ARREQ(expect_raw, got_raw);
+	ASSERT_ARRDBLEQ(expect_raw, got_raw);
 }
 
 

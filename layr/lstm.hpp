@@ -173,7 +173,11 @@ struct LSTM final : public iLayer
 			prevhidden = nexts.second;
 			states.push_back(prevhidden);
 		}
-		return tenncor::concat(states, 1);
+		auto output = tenncor::concat(states, 1);
+		recursive_tag(output->get_tensor(), {
+			input->get_tensor().get(),
+		}, LayerId());
+		return output;
 	}
 
 private:

@@ -207,7 +207,11 @@ struct ULayer final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-		return unary_(input, params_);
+		auto output = unary_(input, params_);
+		recursive_tag(output->get_tensor(), {
+			input->get_tensor().get(),
+		}, LayerId());
+		return output;
 	}
 
 private:

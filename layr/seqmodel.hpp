@@ -128,11 +128,15 @@ struct SequentialModel final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-		NodeptrT output = input;
+		NodeptrT output;
 		for (size_t i = 0, n = layers_.size(); i < n; ++i)
 		{
 			auto& layer = layers_[i];
-			output = layer->connect(output);
+			output = layer->connect(input);
+			recursive_tag(output->get_tensor(), {
+				input->get_tensor().get()
+			}, LayerId(layer->get_ltype(), layer->get_label(), i));
+			input = output;
 		}
 		return output;
 	}
