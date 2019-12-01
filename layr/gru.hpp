@@ -113,7 +113,7 @@ struct GRU final : public iLayer
 	/// Implementation of iLayer
 	size_t get_ninput (void) const override
 	{
-		return ugate_->get_ninput();
+		return ugate_->get_ninput() - ugate_->get_noutput();
 	}
 
 	/// Implementation of iLayer

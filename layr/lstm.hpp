@@ -121,7 +121,7 @@ struct LSTM final : public iLayer
 	/// Implementation of iLayer
 	size_t get_ninput (void) const override
 	{
-		return gate_->get_ninput();
+		return gate_->get_ninput() - gate_->get_noutput();
 	}
 
 	/// Implementation of iLayer
