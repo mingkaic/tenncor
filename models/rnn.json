@@ -14,19 +14,19 @@
      "1",
      "1"
     ],
-    "data": "uYdMQCRstcC28+rAfcNOQG7Y9UBZTKlA",
+    "data": "Y82nP4OrVMCktLw/kYPgvzASpT8PWnhA",
     "typelabel": "FLOAT",
     "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_dense:input:0"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "input::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_dense:input:0"
      ]
     }
    }
@@ -44,19 +44,19 @@
      "1",
      "1"
     ],
-    "data": "DjPLv9ICC78IeQ4/",
+    "data": "dfMiPzDajT/3m8W/",
     "typelabel": "FLOAT",
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "input::bias:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_dense:input:0"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "input::bias:0"
      ]
     }
    }
@@ -66,7 +66,7 @@
    "source": {
     "shape": [
      "3",
-     "3",
+     "6",
      "1",
      "1",
      "1",
@@ -74,16 +74,11 @@
      "1",
      "1"
     ],
-    "data": "RYotQFnVREC/ZTnA5aqgvrlykr7dEn4+NkWBPjTMqT5TIqW+",
+    "data": "3fvgP+IAy75Q/idAj0RkwOH1nL9+5zbA8I6Ovr9g7D/FJum/KTEOvpNa0b0w6jM+7vaAQEtNlUDnfpjAdB/hPZzmDj4Qyym+",
     "typelabel": "FLOAT",
     "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rnn:unfold:1"
-     ]
-    },
     "layer_rnn": {
      "labels": [
       "unfold:layer_dense:cell:0"
@@ -92,6 +87,11 @@
     "layer_dense": {
      "labels": [
       "cell::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rnn:unfold:1"
      ]
     }
    }
@@ -109,7 +109,7 @@
      "1",
      "1"
     ],
-    "data": "ETPLv9ACC78IeQ4/",
+    "data": "ZjpxvgDM6b/If8E/",
     "typelabel": "FLOAT",
     "isConst": false
    },
@@ -149,11 +149,6 @@
     "isConst": true
    },
    "tags": {
-    "layer_rnn": {
-     "labels": [
-      "unfold:layer_tanh::2"
-     ]
-    },
     "properties": {
      "labels": [
       "immutable"
@@ -167,6 +162,11 @@
     "layer_tanh": {
      "labels": [
       "::uparam:0"
+     ]
+    },
+    "layer_rnn": {
+     "labels": [
+      "unfold:layer_tanh::2"
      ]
     }
    }
@@ -184,7 +184,7 @@
      "1",
      "1"
     ],
-    "data": "iGQ6v4QSqD8akR2/",
+    "data": "4gw7PLmDg7+8NiW/",
     "typelabel": "FLOAT",
     "isConst": false
    },
@@ -202,6 +202,41 @@
    }
   },
   {
+   "label": "2",
+   "source": {
+    "shape": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "data": "AAAAQA==",
+    "typelabel": "FLOAT",
+    "isConst": true
+   },
+   "tags": {
+    "properties": {
+     "labels": [
+      "immutable"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "demo:layer_rnn:unfold:1"
+     ]
+    },
+    "layer_rnn": {
+     "labels": [
+      "unfold::rnn_param:0"
+     ]
+    }
+   }
+  },
+  {
    "label": "weight",
    "source": {
     "shape": [
@@ -214,19 +249,19 @@
      "1",
      "1"
     ],
-    "data": "y6wrwZaiMUEEvDLB",
+    "data": "PaxRQX/pTMFDuFDB",
     "typelabel": "FLOAT",
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "output::weight:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_dense:output:2"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "output::weight:0"
      ]
     }
    }
@@ -244,19 +279,19 @@
      "1",
      "1"
     ],
-    "data": "O8f3PQ==",
+    "data": "ltYCPQ==",
     "typelabel": "FLOAT",
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "output::bias:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "demo:layer_dense:output:2"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "output::bias:0"
      ]
     }
    }

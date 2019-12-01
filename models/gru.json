@@ -19,11 +19,6 @@
     "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "model:layer_gru:gru:0"
-     ]
-    },
     "layer_gru": {
      "labels": [
       "gru:layer_dense:update_gate:0"
@@ -32,6 +27,11 @@
     "layer_dense": {
      "labels": [
       "update_gate::weight:0"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "model:layer_gru:gru:0"
      ]
     }
    }
@@ -124,6 +124,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_gru": {
+     "labels": [
+      "gru:layer_dense:reset_gate:1"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "reset_gate::bias:0"
@@ -132,11 +137,6 @@
     "layer_seqmodel": {
      "labels": [
       "model:layer_gru:gru:0"
-     ]
-    },
-    "layer_gru": {
-     "labels": [
-      "gru:layer_dense:reset_gate:1"
      ]
     }
    }
@@ -229,14 +229,14 @@
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "labeller::weight:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "model:layer_dense:labeller:1"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "labeller::weight:0"
      ]
     }
    }
@@ -259,14 +259,14 @@
     "isConst": false
    },
    "tags": {
-    "layer_dense": {
-     "labels": [
-      "labeller::bias:0"
-     ]
-    },
     "layer_seqmodel": {
      "labels": [
       "model:layer_dense:labeller:1"
+     ]
+    },
+    "layer_dense": {
+     "labels": [
+      "labeller::bias:0"
      ]
     }
    }

@@ -15,9 +15,6 @@
 namespace layr
 {
 
-/// RNN weight label
-const std::string rnn_inweight_key = "rnn_inweight";
-
 /// RNN's initial state label
 const std::string init_state_key = "init_state";
 
@@ -32,12 +29,7 @@ struct RNNBuilder final : public iLayerBuilder
 	/// Implementation of iLayerBuilder
 	void set_tensor (teq::TensptrT tens, std::string target) override
 	{
-		if (target == rnn_inweight_key)
-		{
-			inweight_ = eteq::to_node<PybindT>(tens);
-			return;
-		}
-		else if (target == init_state_key)
+		if (target == init_state_key)
 		{
 			init_state_ = eteq::to_node<PybindT>(tens);
 			return;
@@ -64,8 +56,6 @@ struct RNNBuilder final : public iLayerBuilder
 private:
 	std::string label_;
 
-	NodeptrT inweight_;
-
 	NodeptrT init_state_;
 
 	NodeptrT params_ = nullptr;
@@ -84,12 +74,12 @@ get_layer_reg().register_tagr(layers_key_prefix + "rnn", // todo: rename
 /// Layer implementation that applies recurrent cells (cells applied at each step of input)
 struct RNN final : public iLayer
 {
-	RNN (teq::DimT nunits, teq::DimT indim, UnaryptrT activation,
+	RNN (teq::DimT nunits, teq::DimT ninput, UnaryptrT activation,
 		layr::InitF<PybindT> weight_init, layr::InitF<PybindT> bias_init,
 		teq::RankT seq_dim, const std::string& label) :
 		label_(label),
-		inweight_(weight_init(teq::Shape({nunits, indim}), rnn_inweight_key)),
-		cell_(std::make_shared<Dense>(nunits, teq::Shape({nunits}),
+		cell_(std::make_shared<Dense>(nunits,
+			teq::Shape({(teq::DimT) (nunits + ninput)}),
 			weight_init, bias_init, nullptr, "cell")),
 		init_state_(eteq::convert_to_node(
 			eteq::make_variable<PybindT>(
@@ -100,15 +90,10 @@ struct RNN final : public iLayer
 		tag_sublayers();
 	}
 
-	RNN (NodeptrT inweight, DenseptrT cell,
-		UnaryptrT activation, NodeptrT init_state,
+	RNN (DenseptrT cell, UnaryptrT activation, NodeptrT init_state,
 		NodeptrT params, const std::string& label) :
-		label_(label),
-		inweight_(inweight),
-		cell_(cell),
-		init_state_(init_state),
-		activation_(activation),
-		params_(params)
+		label_(label), cell_(cell), init_state_(init_state),
+		activation_(activation), params_(params)
 	{
 		tag_sublayers();
 	}
@@ -141,7 +126,7 @@ struct RNN final : public iLayer
 	/// Implementation of iLayer
 	size_t get_ninput (void) const override
 	{
-		return inweight_->shape().at(1);
+		return cell_->get_ninput() - cell_->get_noutput();
 	}
 
 	/// Implementation of iLayer
@@ -168,7 +153,6 @@ struct RNN final : public iLayer
 		teq::TensptrsT out = cell_->get_contents();
 		auto act_contents = activation_->get_contents();
 		out.insert(out.end(), act_contents.begin(), act_contents.end());
-		out.push_back(inweight_->get_tensor());
 		out.push_back(init_state_->get_tensor());
 		if (nullptr == params_)
 		{
@@ -210,16 +194,15 @@ struct RNN final : public iLayer
 		}
 		std::vector<teq::DimT> slice_shape(inshape.begin(), inshape.end());
 		slice_shape[seq_dim] = 1;
-		NodeptrT prevstate = tenncor::best_extend(
+		NodeptrT state = tenncor::best_extend(
 			init_state_, teq::Shape(slice_shape));
 		eteq::NodesT<PybindT> states;
 		for (teq::DimT i = 0, nseq = inshape.at(seq_dim); i < nseq; ++i)
 		{
 			auto inslice = tenncor::slice(input, i, 1, seq_dim);
-			prevstate = activation_->connect(
-				tenncor::matmul(inslice, inweight_) +
-				cell_->connect(prevstate));
-			states.push_back(prevstate);
+			state = activation_->connect(
+				cell_->connect(tenncor::concat(inslice, state, 0)));
+			states.push_back(state);
 		}
 		return tenncor::concat(states, seq_dim);
 	}
@@ -232,7 +215,6 @@ private:
 
 	void tag_sublayers (void)
 	{
-		tag(inweight_->get_tensor(), LayerId(rnn_inweight_key));
 		tag(init_state_->get_tensor(), LayerId(init_state_key));
 		auto subs = cell_->get_contents();
 		for (auto& sub : subs)
@@ -258,7 +240,6 @@ private:
 	void copy_helper (const RNN& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
-		inweight_ = NodeptrT(other.inweight_->clone());
 		cell_ = DenseptrT(other.cell_->clone(label_prefix));
 		init_state_ = NodeptrT(other.init_state_->clone());
 		activation_ = UnaryptrT(other.activation_->clone(label_prefix));
@@ -270,8 +251,6 @@ private:
 	}
 
 	std::string label_;
-
-	NodeptrT inweight_; // todo: upgrade dense to use multiple weights
 
 	DenseptrT cell_;
 

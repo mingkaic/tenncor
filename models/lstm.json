@@ -19,6 +19,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "model:layer_lstm::0"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "gate::weight:0"
@@ -27,11 +32,6 @@
     "layer_lstm": {
      "labels": [
       ":layer_dense:gate:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "model:layer_lstm::0"
      ]
     }
    }
@@ -54,6 +54,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "model:layer_lstm::0"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "gate::bias:0"
@@ -62,11 +67,6 @@
     "layer_lstm": {
      "labels": [
       ":layer_dense:gate:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "model:layer_lstm::0"
      ]
     }
    }
@@ -124,6 +124,11 @@
     "isConst": false
    },
    "tags": {
+    "layer_seqmodel": {
+     "labels": [
+      "model:layer_lstm::0"
+     ]
+    },
     "layer_dense": {
      "labels": [
       "forget::bias:0"
@@ -132,11 +137,6 @@
     "layer_lstm": {
      "labels": [
       ":layer_dense:forget:1"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "model:layer_lstm::0"
      ]
     }
    }
@@ -194,11 +194,6 @@
     "isConst": false
    },
    "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "model:layer_lstm::0"
-     ]
-    },
     "layer_dense": {
      "labels": [
       "ingate::bias:0"
@@ -207,6 +202,11 @@
     "layer_lstm": {
      "labels": [
       ":layer_dense:ingate:2"
+     ]
+    },
+    "layer_seqmodel": {
+     "labels": [
+      "model:layer_lstm::0"
      ]
     }
    }

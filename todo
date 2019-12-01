@@ -10,6 +10,8 @@ P5 = "get to it eventually"
    - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
       delay thread creation until dependent flag is set
    - improve slice and concat operators for tenncor implemented rnn, lstm, and gru
+   - reuse rnn cell/gates for lstm and gru
+   - rework layer saving to better encode non-tensor parameters
 
 === usage ===
 P2 - demo A3C
