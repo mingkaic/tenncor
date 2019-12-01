@@ -13,7 +13,7 @@ LayerptrT RNNBuilder::build (void) const
 			"and activation layer, got %d layers",
 			layers_.size());
 	}
-	return std::make_shared<RNN>(
+	return std::make_shared<RNN>(inweight_,
 		std::static_pointer_cast<Dense>(layers_[0]),
 		std::static_pointer_cast<ULayer>(layers_[1]),
 		init_state_, params_, label_);

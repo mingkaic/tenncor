@@ -151,7 +151,7 @@ def main(args):
     model = rcn.SequentialModel("demo")
     model.add(rcn.Dense(nunits, eteq.Shape([ninput]),
         weight_init, label="input"))
-    model.add(rcn.RNN(nunits, rcn.tanh(),
+    model.add(rcn.RNN(nunits, nunits, rcn.tanh(),
         weight_init=weight_init, bias_init=rcn.zero_init(),
         seq_dim=2, label="unfold"))
     model.add(rcn.Dense(noutput, eteq.Shape([nunits]),

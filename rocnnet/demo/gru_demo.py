@@ -167,7 +167,6 @@ def main(args):
         # Prepare for next iteration
         p += seq_length
 
-
     untrained_sample = sample(sess, sample_inp, untrained_prob, char_to_ix[data[0]], 1000)
     trained_sample = sample(sess, sample_inp, sample_prob, char_to_ix[data[0]], 1000)
     pretrained_sample = sample(sess, sample_inp, pretraiend_prob, char_to_ix[data[0]], 1000)
