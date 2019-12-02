@@ -1318,19 +1318,25 @@ EigenptrT<T> select (const iEigenEdge<T>& condition,
 	if (is_2d(outshape))
 	{
 		// use matrix when possible
-		return make_eigenmatrix<T,
-			Eigen::Select<MatMapT<T>,MatMapT<T>,MatMapT<T>>,
+		return make_eigenmatrix<T,Eigen::Select<Eigen::CwiseBinaryOp<
+				Eigen::internal::scalar_cmp_op<T,T,Eigen::internal::cmp_EQ>,
+				const MatMapT<T>,const Eigen::CwiseNullaryOp<
+					Eigen::internal::scalar_constant_op<T>,MatrixT<T>>>,
+				MatMapT<T>,MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap(condition.data(), condition.argshape()),
 				make_matmap(then.data(), then.argshape()),
 				make_matmap(otherwise.data(), otherwise.argshape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
-				return args[0].select(args[1], args[2]);
+				return args[0].cwiseEqual((T)1).select(args[1], args[2]);
 			});
 	}
 	return make_eigentensor<T,
-		Eigen::TensorSelectOp<const TensMapT<T>,
+		Eigen::TensorSelectOp<const Eigen::TensorCwiseBinaryOp<
+			Eigen::internal::scalar_cmp_op<T,T,Eigen::internal::cmp_EQ>,
+			const TensMapT<T>,const Eigen::TensorCwiseNullaryOp<
+				Eigen::internal::scalar_constant_op<T>,const TensMapT<T>>>,
 			const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap(condition.data(), condition.argshape()),
@@ -1338,7 +1344,7 @@ EigenptrT<T> select (const iEigenEdge<T>& condition,
 			make_tensmap(otherwise.data(), otherwise.argshape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
-			return args[0].select(args[1], args[2]);
+			return (args[0] == (T)1).select(args[1], args[2]);
 		});
 }
 

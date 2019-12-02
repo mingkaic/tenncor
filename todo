@@ -31,6 +31,14 @@ P4 - investigate adopting more of boost in place of cppkg
 P5 - refactor, and rename variables to improve readability
 P5 - formalize codestyle
 
+=== feature ===
+   - function with multiple typed inputs (e.g.: if_then_else)
+P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
+    shape values denoted in python by None)
+P2 - make shape dimension size configurable (instead of fixed rank_cap)
+P3 - implement control nodes/edges for assignments
+P4 - implement reduce_prod gradient using Eigen cumprod
+
 === usage ===
 P2 - demo A3C
    - implement models concerning visual and audio processing, and semantic data processing
@@ -40,13 +48,6 @@ P2 - demo A3C
 P2 - fix convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
    - improve rnn demo to use more stable weights
-
-=== feature ===
-P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
-    shape values denoted in python by None)
-P2 - make shape dimension size configurable (instead of fixed rank_cap)
-P3 - implement control nodes/edges for assignments
-P4 - implement reduce_prod gradient using Eigen cumprod
 
 === correction ===
 P2 - test opt module against varying graphs
