@@ -544,7 +544,13 @@ api:
           name: otherwise
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(::egen::SELECT, {condition,then,otherwise});
+          val: |
+              //
+                  if (then == otherwise)
+                  {
+                      return then;
+                  }
+                  return eteq::make_functor<T>(::egen::SELECT, {condition,then,otherwise});
       - template: typename T
         name: reverse
         args:

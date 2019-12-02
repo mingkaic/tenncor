@@ -5,11 +5,31 @@ P3 = "want to have"
 P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
-=== bugs ===
+>>>>>>> inprogress >>>>>>>
    - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
       delay thread creation until dependent flag is set
-   - improve grader/optimization rule according to rnn, lstm, gru
-   - rework layer serialization to better encode non-tensor parameters
+P3 - rework layer serialization to better encode non-tensor parameters
+P5 - implement onnx support (https://github.com/onnx/onnx)
+
+=== transparency/code readability ===
+P2 - generate value-range graph to detect erroneous operators
+      - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
+      - this graph can help developers quickly identifies unstable nodes
+P3 - implement custom logger that displays location of nearest node on fatal errors
+P2 - centralize global context structures
+P2 - implement debug option that locates nodes by some tag/parent-child relationship/etc.
+P2 - create global context for setting local logger
+P2 - layr get_contents needs to return context for output tensors
+   - upgrade pygen to support multiline comments in API
+   - fix variable assignment in pybind11 code sections to error if py::array is not numpy
+   - use https://github.com/pybind/pybind11_bazel
+P2 - unify pybind11 utility functions
+P2 - provide graph-setup time summary when failing to match shapes
+P4 - add even more debugging tools
+P4 - conform to some bazel style/convention (or change to another build tool)
+P4 - investigate adopting more of boost in place of cppkg
+P5 - refactor, and rename variables to improve readability
+P5 - formalize codestyle
 
 === usage ===
 P2 - demo A3C
@@ -27,27 +47,6 @@ P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensi
 P2 - make shape dimension size configurable (instead of fixed rank_cap)
 P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
-P5 - implement onnx support (https://github.com/onnx/onnx)
-
-=== transparency/code readability ===
-P2 - generate value-range graph to detect erroneous operators
-      - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
-      - this graph can help developers quickly identifies unstable nodes
-   - implement custom logger that displays location of nearest node on fatal errors
-P2 - centralize global context structures
-P2 - implement debug option that locates nodes by some tag/parent-child relationship/etc.
-P2 - create global context for setting local logger
-P2 - layr get_contents needs to return context for output tensors
-   - upgrade pygen to support multiline comments in API
-   - fix variable assignment in pybind11 code sections to error if py::array is not numpy
-   - use https://github.com/pybind/pybind11_bazel
-P2 - unify pybind11 utility functions
-P2 - provide graph-setup time summary when failing to match shapes
-P4 - add even more debugging tools
-P4 - conform to some bazel style/convention (or change to another build tool)
-P4 - investigate adopting more of boost in place of cppkg
-P5 - refactor, and rename variables to improve readability
-P5 - formalize codestyle
 
 === correction ===
 P2 - test opt module against varying graphs
@@ -60,6 +59,7 @@ P3 - maximize coverage
 P3 - test rocnnet, and trainer (or subgraph equivalent)
 
 === performance ===
+   - improve grader/optimization rule according to rnn, lstm, gru
 P3 - improve ccur module
 
 run-time performance:
