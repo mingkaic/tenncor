@@ -847,8 +847,8 @@ TEST(API, Select)
 		double* optr = (double*) dest->data();
 		for (size_t i = 0; i < n; ++i)
 		{
-			EXPECT_DOUBLE_EQ(
-				(cond[i] * data[i] + (0==cond[i]) *  data2[i]), optr[i]);
+			double expect = (bool) cond[i] ? data[i] : data2[i];
+			EXPECT_DOUBLE_EQ(expect, optr[i]);
 		}
 
 		teq::Session session;
