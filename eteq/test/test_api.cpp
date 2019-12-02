@@ -782,7 +782,7 @@ TEST(API, Max)
 }
 
 
-TEST(API, Select)
+TEST(API, DISABLED_Select)
 {
 	// tensor operation
 	std::vector<teq::DimT> slist = {3, 2, 4};
