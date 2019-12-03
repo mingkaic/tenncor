@@ -546,7 +546,7 @@ api:
           type: eteq::NodeptrT<T>
           val: |
               //
-                  if (then == otherwise)
+                  if (then->get_tensor().get() == otherwise->get_tensor().get())
                   {
                       return then;
                   }

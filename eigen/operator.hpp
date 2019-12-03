@@ -1338,7 +1338,6 @@ EigenptrT<T> select (const iEigenEdge<T>& condition,
 			make_tensmap(otherwise.data(), otherwise.argshape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
-std::cout << args[0] << std::endl;
 			return args[0].select(args[1], args[2]);
 		});
 }
