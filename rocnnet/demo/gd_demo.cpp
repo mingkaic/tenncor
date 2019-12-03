@@ -68,7 +68,7 @@ int main (int argc, const char** argv)
 		("save", flag::opt::value<std::string>(&savepath)->default_value(""),
 			"filename to save model")
 		("load", flag::opt::value<std::string>(&loadpath)->default_value(
-			"models/gdmodel.pbx"), "filename to load pretrained model");
+			"models/gd.pbx"), "filename to load pretrained model");
 
 	int exit_status = 0;
 	std::clock_t start;
@@ -123,7 +123,18 @@ int main (int argc, const char** argv)
 	{
 		return layr::sgd(leaves, 0.9); // learning rate = 0.9
 	};
-	dbg::InteractiveSession sess("localhost:50051");
+	teq::Session sess;
+	// dbg::InteractiveSession sess("localhost:50051");
+	{
+	// jobs::ScopeGuard defer(
+	// 	[&sess]()
+	// 	{
+	// 		// 10 seconds
+	// 		std::chrono::time_point<std::chrono::system_clock> deadline =
+	// 			std::chrono::system_clock::now() +
+	// 			std::chrono::seconds(10);
+	// 		sess.join_then_stop(deadline);
+	// 	});
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
@@ -221,12 +232,7 @@ int main (int argc, const char** argv)
 			logs::warnf("failed to save model to `%s`", savepath.c_str());
 		}
 	}
-
-	// 10 seconds
-	std::chrono::time_point<std::chrono::system_clock> deadline =
-		std::chrono::system_clock::now() +
-		std::chrono::seconds(10);
-	sess.join_then_stop(deadline);
+	}
 
 	google::protobuf::ShutdownProtobufLibrary();
 

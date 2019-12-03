@@ -45,7 +45,7 @@ TEST(LOAD, LoadGraph)
 {
 	tenncor::Graph graph;
 	{
-		std::fstream inputstr(testdir + "/pbm_test.pbx",
+		std::fstream inputstr(testdir + "/pbm.pbx",
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE(inputstr.is_open());
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
@@ -113,7 +113,7 @@ TEST(LOAD, LoadGraph)
 	std::string expect;
 	std::string got;
 	std::string line;
-	std::ifstream expectstr(testdir + "/pbm_test.txt");
+	std::ifstream expectstr(testdir + "/pbm.txt");
 	ASSERT_TRUE(expectstr.is_open());
 	while (std::getline(expectstr, line))
 	{

@@ -120,9 +120,13 @@ struct Dropout final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	NodeptrT connect (NodeptrT x) const override
+	NodeptrT connect (NodeptrT input) const override
 	{
-		return x * mask_; // todo: deactivate dropout layer when predicting
+		auto output = input * mask_; // todo: deactivate dropout layer when predicting
+		recursive_tag(output->get_tensor(), {
+			input->get_tensor().get(),
+		}, LayerId());
+		return output;
 	}
 
 private:

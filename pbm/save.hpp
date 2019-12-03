@@ -7,7 +7,6 @@
 ///
 
 #include <list>
-#include <unordered_set>
 
 #include "teq/traveler.hpp"
 #include "teq/ifunctor.hpp"

@@ -27,9 +27,8 @@ static std::string save_leaf (teq::iLeaf* leaf)
 
 TEST(SAVE, SaveGraph)
 {
-	std::string expect_pbfile = testdir + "/pbm_test.pbx";
-	// std::string got_pbfile = "got_pbm_test.pbx";
-	std::string got_pbfile = "/tmp/pbm_test.pbx";
+	std::string expect_pbfile = testdir + "/pbm.pbx";
+	std::string got_pbfile = "got_pbm.pbx";
 
 	{
 		tenncor::Graph graph;

@@ -544,7 +544,13 @@ api:
           name: otherwise
         out:
           type: eteq::NodeptrT<T>
-          val: return eteq::make_functor<T>(::egen::SELECT, {condition,then,otherwise});
+          val: |
+              //
+                  if (then->get_tensor().get() == otherwise->get_tensor().get())
+                  {
+                      return then;
+                  }
+                  return eteq::make_functor<T>(::egen::SELECT, {condition,then,otherwise});
       - template: typename T
         name: reverse
         args:

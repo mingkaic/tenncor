@@ -168,19 +168,36 @@ TEST(OPERATOR, Reshape)
 
 TEST(OPERATOR, Slice)
 {
-	teq::Shape outshape({2, 1});
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(teq::Shape({3, 2}))),
-		std::vector<double>{2, 8, 4, 5, 6, 7},
-		outshape, std::vector<double>{1, 2, 1, 1});
-	auto r = eigen::slice(edge);
+	teq::TensptrT inarg(new MockTensor(teq::Shape({3, 2})));
+	std::vector<double> indata = {2, 8, 4, 5, 6, 7};
+	// slice both dimensions 0 and 1
+	{
+		teq::Shape outshape({2, 1});
+		MockEdge<double> edge(inarg, indata,
+			outshape, std::vector<double>{1, 2, 1, 1});
+		auto r = eigen::slice(edge);
 
-	double* raw = r->get_ptr();
-	r->assign();
+		double* raw = r->get_ptr();
+		r->assign();
 
-	std::vector<double> expect_raw = {6, 7};
-	std::vector<double> got_raw(raw, raw + outshape.n_elems());
-	EXPECT_ARREQ(expect_raw, got_raw);
+		std::vector<double> expect_raw = {6, 7};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_ARREQ(expect_raw, got_raw);
+	}
+	// slice last dimension (validate optimization)
+	{
+		teq::Shape outshape({3, 1});
+		MockEdge<double> edge(inarg, indata,
+			outshape, std::vector<double>{0, 3, 1, 1});
+		auto r = eigen::slice(edge);
+
+		double* raw = r->get_ptr();
+		r->assign();
+
+		std::vector<double> expect_raw = {5, 6, 7};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_ARREQ(expect_raw, got_raw);
+	}
 }
 
 
@@ -521,7 +538,7 @@ TEST(OPERATOR, Convolution)
 		5 * 0.3 + 9 * 0.6, 7 * 0.3 + 1 * 0.6, 6 * 0.3 + 0 * 0.6,
 	};
 	std::vector<double> got_raw(raw, raw + outshape.n_elems());
-	EXPECT_ARREQ(expect_raw, got_raw);
+	ASSERT_ARRDBLEQ(expect_raw, got_raw);
 }
 
 

@@ -69,6 +69,9 @@ NodeptrT sqr_diff (NodeptrT expect, NodeptrT got);
 AssignGroupsT sgd (const VarErrsT& leaves,
 	PybindT learning_rate = 0.5, std::string root_label = "");
 
+AssignGroupsT adagrad (const VarErrsT& leaves, PybindT learning_rate,
+	PybindT epsilon, std::string root_label = "");
+
 /// Return all batches of variable assignments of
 /// momentum-based rms error approximation applied to
 /// particular variables-error associations

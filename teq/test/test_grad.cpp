@@ -80,6 +80,9 @@ TEST(GRAD, OneZero)
 	teq::Shape shape(slist);
 
 	// standard v
+	// leaf  leaf2
+	//   \    /
+	//   FUNC
 	teq::TensptrT leaf(new MockTensor(shape, "leaf"));
 	teq::TensptrT leaf1(new MockTensor(shape, "leaf2"));
 	teq::TensptrT leaf2(new MockTensor(shape, "leaf3"));
@@ -98,10 +101,14 @@ TEST(GRAD, OneZero)
 	auto zro = builder.derive(leaf, leaf2);
 	auto zro2 = builder.derive(leaf2, leaf);
 	auto zro3 = builder.derive(f, leaf2);
+	auto zro4 = builder.derive(leaf, nullptr);
+	auto zro5 = builder.derive(nullptr, leaf);
 
 	EXPECT_STREQ("0", zro->to_string().c_str());
 	EXPECT_STREQ("0", zro2->to_string().c_str());
 	EXPECT_STREQ("0", zro3->to_string().c_str());
+	EXPECT_STREQ("0", zro4->to_string().c_str());
+	EXPECT_STREQ("0", zro5->to_string().c_str());
 }
 
 
@@ -113,6 +120,9 @@ TEST(GRAD, BuilderStandardV)
 	teq::Shape shape(slist);
 
 	// standard v
+	// leaf  leaf2
+	//   \    /
+	//   FUNC
 	teq::TensptrT leaf(new LabelledMockTensor("leaf", shape));
 	teq::TensptrT leaf1(new LabelledMockTensor("leaf2", shape));
 	teq::TensptrT f(new MockFunctor(
@@ -151,6 +161,11 @@ TEST(GRAD, BuilderDiamond)
 	teq::Shape shape(slist);
 
 	// diamond
+	//   leaf
+	//   /   \
+	// FUNC  FUNC2
+	//   \   /
+	//   FUNC3
 	teq::TensptrT leaf(new LabelledMockTensor("leaf", shape));
 	teq::TensptrT f(new MockFunctor(
 		teq::TensptrsT{leaf}, teq::Opcode{"FUNC", 0}));
@@ -203,6 +218,14 @@ TEST(GRAD, TadPole)
 	std::vector<teq::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
 	teq::Shape shape(slist);
 
+	// diamond with a tail
+	//   leaf
+	//    |
+	//   FUNC
+	//   /   \
+	// FUNC2  FUNC3
+	//   \   /
+	//   FUNC4
 	teq::TensptrT leaf(new LabelledMockTensor("leaf", shape));
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf}, teq::Opcode{"FUNC", 0}));
 	teq::TensptrT f2(new MockFunctor(teq::TensptrsT{f}, teq::Opcode{"FUNC2", 1}));

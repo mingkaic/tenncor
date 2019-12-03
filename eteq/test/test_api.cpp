@@ -346,6 +346,7 @@ static void binary_elementary (BinaryOpF<double> op,
 		0.2547977589, 0.8808089905, 0.4323663340,
 		0.5710527217, 0.6207772267, 0.8574923091,
 	};
+
 	binar_elem(data_2d, data2_2d, slist_2d, op, lhs_op, rhs_op, fwd, bwd, cst);
 }
 
@@ -778,6 +779,113 @@ TEST(API, Max)
 			// else
 			return leftg + rightg;
 		});
+}
+
+
+TEST(API, Select)
+{
+	// tensor operation
+	std::vector<teq::DimT> slist = {3, 2, 4};
+	std::vector<double> cond = {
+		0, 0, 1, 0, 1, 1,
+		1, 0, 1, 0, 0, 0,
+		1, 1, 1, 0, 1, 0,
+		0, 0, 0, 0, 1, 0
+	};
+	std::vector<double> data = {
+		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
+		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
+		0.9664644529, 0.6152766955, 0.8795922916, 0.6384690466, 0.3922073677, 0.5979097486,
+		0.0425608731, 0.1178122813, 0.1594330664, 0.0926580999, 0.9309809737, 0.2119471989
+	};
+	std::vector<double> data2 = {
+		0.2547977589, 0.8808089905, 0.4323663340, 0.5710527217, 0.6207772267, 0.8574923091,
+		0.2315629833, 0.8740258926, 0.9239905856, 0.0346148639, 0.3255387878, 0.7443564112,
+		0.0930828560, 0.9324878301, 0.6552622891, 0.8305292319, 0.9515416240, 0.3653033185,
+		0.0504231590, 0.8494357051, 0.0908431573, 0.1567913571, 0.1211327459, 0.5269402648
+	};
+
+	// matrix optimized operation
+	std::vector<teq::DimT> slist_2d = {3, 2};
+	std::vector<double> cond_2d = {
+		1, 1, 0,
+		0, 1, 0,
+	};
+	std::vector<double> data_2d = {
+		0.0919361505, 0.5135099474, 0.3147548326,
+		0.0281299379, 0.3705218798, 0.6808164860,
+	};
+	std::vector<double> data2_2d = {
+		0.2547977589, 0.8808089905, 0.4323663340,
+		0.5710527217, 0.6207772267, 0.8574923091,
+	};
+
+	auto trinar_elem = [](std::vector<double> cond,
+		std::vector<double> data, std::vector<double> data2,
+		std::vector<teq::DimT> shape_list)
+	{
+		teq::Shape shape(shape_list);
+		teq::NElemT n = shape.n_elems();
+
+		assert(data.size() == n);
+		assert(data2.size() == n);
+
+		eteq::NodeptrT<double> cond_src =
+			eteq::make_constant<double>(cond.data(), shape);
+		eteq::NodeptrT<double> src =
+			eteq::make_constant<double>(data.data(), shape);
+		eteq::NodeptrT<double> src2 =
+			eteq::make_constant<double>(data2.data(), shape);
+		eteq::NodeptrT<double> dest =
+			tenncor::if_then_else(cond_src, src, src2);
+
+		dest->update();
+		{
+			auto gotshape = dest->shape();
+			ASSERT_ARREQ(shape_list, gotshape);
+		}
+		double* optr = (double*) dest->data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			double expect = (bool) cond[i] ? data[i] : data2[i];
+			EXPECT_DOUBLE_EQ(expect, optr[i]);
+		}
+
+		teq::Session session;
+
+		eteq::NodeptrT<double> dest2 =
+			tenncor::if_then_else(cond_src, src, src);
+		EXPECT_EQ(dest2->get_tensor(), src->get_tensor());
+
+		eteq::NodeptrT<double> gleft = eteq::derive(dest, src);
+		session.track({gleft->get_tensor()});
+		session.update();
+		{
+			auto gotshape = gleft->shape();
+			ASSERT_ARREQ(shape_list, gotshape);
+		}
+		double* goptr = (double*) gleft->data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(cond[i], goptr[i]);
+		}
+
+		eteq::NodeptrT<double> gright = eteq::derive(dest, src2);
+		session.track({gright->get_tensor()});
+		session.update();
+		{
+			auto gotshape = gright->shape();
+			ASSERT_ARREQ(shape_list, gotshape);
+		}
+		double* goptr2 = (double*) gright->data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ((0==cond[i]), goptr2[i]);
+		}
+	};
+
+	trinar_elem(cond, data, data2, slist);
+	trinar_elem(cond_2d, data_2d, data2_2d, slist_2d);
 }
 
 

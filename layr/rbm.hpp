@@ -153,13 +153,21 @@ struct RBM final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT visible) const override
 	{
-		return activation_->connect(hidden_->connect(visible));
+		auto output = activation_->connect(hidden_->connect(visible));
+		recursive_tag(output->get_tensor(), {
+			visible->get_tensor().get(),
+		}, LayerId());
+		return output;
 	}
 
 	/// Return visible reconstruction from hidden
 	NodeptrT backward_connect (NodeptrT hidden) const
 	{
-		return activation_->connect(visible_->connect(hidden));
+		auto output = activation_->connect(visible_->connect(hidden));
+		recursive_tag(output->get_tensor(), {
+			hidden->get_tensor().get(),
+		}, LayerId());
+		return output;
 	}
 
 private:

@@ -37,6 +37,7 @@ struct ULayerBuilder final : public iLayerBuilder
 		if (target == uparam_key)
 		{
 			params_ = eteq::to_node<PybindT>(tens);
+			return;
 		}
 		logs::warnf("attempt to create ulayer "
 			"with unknown tensor `%s` of label `%s`",
@@ -206,11 +207,11 @@ struct ULayer final : public iLayer
 	/// Implementation of iLayer
 	NodeptrT connect (NodeptrT input) const override
 	{
-		auto out = unary_(input, params_);
-		recursive_tag(out->get_tensor(), {
+		auto output = unary_(input, params_);
+		recursive_tag(output->get_tensor(), {
 			input->get_tensor().get(),
 		}, LayerId());
-		return out;
+		return output;
 	}
 
 private:

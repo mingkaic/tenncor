@@ -47,6 +47,7 @@ struct DenseBuilder final : public iLayerBuilder
 		else if (target == dense_param_key)
 		{
 			params_ = eteq::to_node<PybindT>(tens);
+			return;
 		}
 		logs::warnf("attempt to create dense layer "
 			"with unknown tensor `%s` of label `%s`",

@@ -186,7 +186,7 @@ TEST(OBJS, Maps)
 		std::make_unique<marsh::NumArray<size_t>>());
 	root.contents_.emplace("obj2",
 		std::make_unique<marsh::Number<float>>(2.3));
-	EXPECT_STREQ("[obj1\\obj2]", root.to_string().c_str());
+	EXPECT_STREQ("[obj1:[]\\obj2:2.3]", root.to_string().c_str());
 
 	marsh::Maps empty;
 	EXPECT_FALSE(root.equals(empty));

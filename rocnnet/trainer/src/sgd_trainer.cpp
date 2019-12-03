@@ -5,7 +5,7 @@
 namespace trainer
 {
 
-TrainErrF sgd_train (layr::SequentialModel& model, teq::iSession& sess,
+TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
 	NodeptrT train_in, NodeptrT expected_out, layr::ApproxF update,
 	layr::ErrorF errfunc, NodeUnarF gradprocess)
 {

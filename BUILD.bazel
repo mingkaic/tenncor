@@ -37,5 +37,6 @@ filegroup(
     srcs = glob([
         "models/*.pbx",
         "models/*.json",
+        "models/data/*",
     ])
 )
