@@ -6,8 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - fix dbg/emit grpc client attempting to create more threads than allowed by OS ->
-      delay thread creation until dependent flag is set
 P3 - rework layer serialization to better encode non-tensor parameters
 P5 - implement onnx support (https://github.com/onnx/onnx)
 

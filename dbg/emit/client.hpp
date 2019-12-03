@@ -53,86 +53,74 @@ struct GraphEmitterClient final
 		connected_(true)
 	{
 		jobs::ManagedJob healthjob(
-		[this](std::future<void> stop_it)
+		[this]
 		{
 			gemitter::Empty empty;
-			do
-			{
-				grpc::ClientContext context;
-				gemitter::CreateGraphResponse response;
-				// set context deadline
-				std::chrono::time_point<std::chrono::system_clock> deadline =
-					std::chrono::system_clock::now() +
-					std::chrono::milliseconds(1000);
-				context.set_deadline(deadline);
-				grpc::Status status =
-					stub_->HealthCheck(&context, empty, &empty);
-				this->connected_ = status.ok();
-
-				std::this_thread::sleep_for(
-					std::chrono::milliseconds(1000));
-			}
-			while (stop_it.wait_for(std::chrono::milliseconds(1)) ==
-				std::future_status::timeout);
+			grpc::ClientContext context;
+			gemitter::CreateGraphResponse response;
+			// set context deadline
+			std::chrono::time_point<std::chrono::system_clock> deadline =
+				std::chrono::system_clock::now() +
+				std::chrono::milliseconds(1000);
+			context.set_deadline(deadline);
+			grpc::Status status =
+				stub_->HealthCheck(&context, empty, &empty);
+			this->connected_ = status.ok();
+			std::this_thread::sleep_for(
+				std::chrono::milliseconds(1000));
 		});
 		health_checker_ = std::move(healthjob);
+	}
+
+	~GraphEmitterClient (void)
+	{
+		health_checker_->stop();
+		health_checker_->join();
 	}
 
 	/// Add job that pass CreateGraphRequest
 	void create_graph (gemitter::CreateGraphRequest& request)
 	{
-		// retries sending creation request unless stop_it times out
 		sequential_jobs_.attach_job(
-		[this](std::future<void> dependency, std::future<void> stop_it,
-			gemitter::CreateGraphRequest request)
+		[this](size_t attempt, gemitter::CreateGraphRequest request) -> bool
 		{
-			if (dependency.valid())
+			std::string sid = fmts::to_string(std::this_thread::get_id());
+			if (attempt >= max_attempts)
 			{
-				dependency.get(); // wait for dependency completion
+				logs::warnf("%s: CreateGraphRequest max attempt exceeded", sid.c_str());
+				return true;
 			}
-			std::string sid = fmts::to_string(
-				std::this_thread::get_id());
-			for (size_t attempt = 0;
-				stop_it.wait_for(std::chrono::milliseconds(1)) ==
-				std::future_status::timeout && attempt < max_attempts;
-				++attempt)
-			{
-				grpc::ClientContext context;
-				gemitter::CreateGraphResponse response;
-				// set context deadline
-				std::chrono::time_point<std::chrono::system_clock> deadline =
-					std::chrono::system_clock::now() + cfg_.request_duration_;
-				context.set_deadline(deadline);
+			grpc::ClientContext context;
+			gemitter::CreateGraphResponse response;
+			// set context deadline
+			std::chrono::time_point<std::chrono::system_clock> deadline =
+				std::chrono::system_clock::now() + cfg_.request_duration_;
+			context.set_deadline(deadline);
 
-				grpc::Status status = this->stub_->CreateGraph(
-					&context, request, &response);
-				if (status.ok())
+			grpc::Status status = this->stub_->CreateGraph(
+				&context, request, &response);
+			if (status.ok())
+			{
+				auto res_status = response.status();
+				if (gemitter::Status::OK != res_status)
 				{
-					auto res_status = response.status();
-					if (gemitter::Status::OK != res_status)
-					{
-						logs::errorf("%s: %s",
-							gemitter::Status_Name(res_status).c_str(),
-							response.message().c_str());
-					}
-					else
-					{
-						logs::infof("%s: CreateGraphRequest success: %s",
-							sid.c_str(), response.message().c_str());
-						return;
-					}
+					logs::errorf("%s: %s",
+						gemitter::Status_Name(res_status).c_str(),
+						response.message().c_str());
 				}
 				else
 				{
-					logs::errorf(
-						"%s: CreateGraphRequest attempt %d failure: %s",
-						sid.c_str(), attempt,
-						status.error_message().c_str());
+					logs::infof("%s: CreateGraphRequest success: %s",
+						sid.c_str(), response.message().c_str());
 				}
-				std::this_thread::sleep_for(
-					std::chrono::milliseconds(attempt * 1000));
+				return true;
 			}
-			logs::warnf("%s: CreateGraphRequest terminating", sid.c_str());
+			logs::errorf(
+				"%s: CreateGraphRequest attempt %d failure: %s",
+				sid.c_str(), attempt, status.error_message().c_str());
+			std::this_thread::sleep_for(
+				std::chrono::milliseconds(attempt * 1000));
+			return false;
 		}, std::move(request));
 	}
 
@@ -142,16 +130,10 @@ struct GraphEmitterClient final
 		size_t update_it)
 	{
 		sequential_jobs_.attach_job(
-		[this](std::future<void> dependency,
-			std::future<void> stop_it,
-			std::vector<gemitter::UpdateNodeDataRequest> requests, size_t update_it)
+		[this](size_t attempt, std::vector<gemitter::UpdateNodeDataRequest> requests,
+			size_t update_it) -> bool
 		{
-			if (dependency.valid())
-			{
-				dependency.get(); // wait for dependency completion
-			}
-			std::string sid = fmts::to_string(
-				std::this_thread::get_id());
+			std::string sid = fmts::to_string(std::this_thread::get_id());
 			gemitter::UpdateNodeDataResponse response;
 			grpc::ClientContext context;
 			// set context deadline
@@ -165,11 +147,6 @@ struct GraphEmitterClient final
 
 			for (auto& request : requests)
 			{
-				if (stop_it.wait_for(std::chrono::milliseconds(1)) !=
-					std::future_status::timeout)
-				{
-					break;
-				}
 				if (false == writer->Write(request))
 				{
 					logs::errorf("failed to write update %d", update_it);
@@ -190,7 +167,7 @@ struct GraphEmitterClient final
 				}
 				else
 				{
-					return;
+					return true;
 				}
 			}
 			else
@@ -200,6 +177,7 @@ struct GraphEmitterClient final
 					status.error_message().c_str());
 			}
 			logs::warnf("%s: UpdateNodeData terminating", sid.c_str());
+			return true;
 		}, std::move(requests), std::move(update_it));
 	}
 
@@ -208,56 +186,45 @@ struct GraphEmitterClient final
 		gemitter::DeleteGraphRequest request;
 		request.set_graph_id(sess_id);
 		sequential_jobs_.attach_job(
-		[this](std::future<void> dependency, std::future<void> stop_it,
-			gemitter::DeleteGraphRequest request)
+		[this](size_t attempt, gemitter::DeleteGraphRequest request) -> bool
 		{
-			if (dependency.valid())
+			std::string sid = fmts::to_string(std::this_thread::get_id());
+			if (attempt >= max_attempts)
 			{
-				dependency.get(); // wait for dependency completion
+				logs::warnf("%s: DeleteGraph max attempt exceeded", sid.c_str());
+				return true;
 			}
-			std::string sid = fmts::to_string(
-				std::this_thread::get_id());
-			for (size_t attempt = 0;
-				stop_it.wait_for(std::chrono::milliseconds(1)) ==
-				std::future_status::timeout && attempt < max_attempts;
-				++attempt)
-			{
-				grpc::ClientContext context;
-				gemitter::DeleteGraphResponse response;
-				// set context deadline
-				std::chrono::time_point<std::chrono::system_clock> deadline =
-					std::chrono::system_clock::now() + cfg_.request_duration_;
-				context.set_deadline(deadline);
+			grpc::ClientContext context;
+			gemitter::DeleteGraphResponse response;
+			// set context deadline
+			std::chrono::time_point<std::chrono::system_clock> deadline =
+				std::chrono::system_clock::now() + cfg_.request_duration_;
+			context.set_deadline(deadline);
 
-				grpc::Status status = this->stub_->DeleteGraph(
-					&context, request, &response);
-				if (status.ok())
+			grpc::Status status = this->stub_->DeleteGraph(
+				&context, request, &response);
+			if (status.ok())
+			{
+				auto res_status = response.status();
+				if (gemitter::Status::OK != res_status)
 				{
-					auto res_status = response.status();
-					if (gemitter::Status::OK != res_status)
-					{
-						logs::errorf("%s: %s",
-							gemitter::Status_Name(res_status).c_str(),
-							response.message().c_str());
-					}
-					else
-					{
-						logs::infof("%s: DeleteGraph success: %s",
-							sid.c_str(), response.message().c_str());
-						return;
-					}
+					logs::errorf("%s: %s",
+						gemitter::Status_Name(res_status).c_str(),
+						response.message().c_str());
 				}
 				else
 				{
-					logs::errorf(
-						"%s: DeleteGraph attempt %d failure: %s",
-						sid.c_str(), attempt,
-						status.error_message().c_str());
+					logs::infof("%s: DeleteGraph success: %s",
+						sid.c_str(), response.message().c_str());
 				}
-				std::this_thread::sleep_for(
-					std::chrono::milliseconds(attempt * 1000));
+				return true;
 			}
-			logs::warnf("%s: DeleteGraph terminating", sid.c_str());
+			logs::errorf(
+				"%s: DeleteGraph attempt %d failure: %s",
+				sid.c_str(), attempt, status.error_message().c_str());
+			std::this_thread::sleep_for(
+				std::chrono::milliseconds(attempt * 1000));
+			return false;
 		}, std::move(request));
 	}
 

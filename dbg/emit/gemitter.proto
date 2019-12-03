@@ -6,13 +6,13 @@ package gemitter;
 
 // ======== GENERAL MESSAGE OBJECTS ========
 
-message GraphInfo {
+message GraphPayload {
     string graph_id = 1;
 
     tenncor.Graph graph = 2;
 }
 
-message NodeData {
+message NodePayload {
     string graph_id = 1;
 
     int32 node_idx = 2;
@@ -32,7 +32,7 @@ enum Status {
 message Empty {}
 
 message CreateGraphRequest {
-    GraphInfo payload = 1;
+    GraphPayload payload = 1;
 }
 
 message CreateGraphResponse {
@@ -42,7 +42,7 @@ message CreateGraphResponse {
 }
 
 message UpdateNodeDataRequest {
-    NodeData payload = 1;
+    NodePayload payload = 1;
 }
 
 message UpdateNodeDataResponse {
@@ -62,14 +62,15 @@ message DeleteGraphResponse {
 }
 
 service GraphEmitter {
+    // Liveness probe: no timeout means host is reachable
     rpc HealthCheck (Empty) returns (Empty);
 
-    // Create or update graph
+    // Create uniquely identified graph
     rpc CreateGraph (CreateGraphRequest) returns (CreateGraphResponse);
 
-    // Update (tensor) data on existing nodes
+    // Update tensor/node data in specified graph
     rpc UpdateNodeData (stream UpdateNodeDataRequest) returns (UpdateNodeDataResponse);
 
-    // Delete graph
+    // Delete existing graph
     rpc DeleteGraph (DeleteGraphRequest) returns (DeleteGraphResponse);
 }

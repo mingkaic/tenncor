@@ -15,7 +15,7 @@ struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 		const gemitter::CreateGraphRequest* request,
 		gemitter::CreateGraphResponse* response) override
 	{
-		const gemitter::GraphInfo& info = request->payload();
+		const gemitter::GraphPayload& info = request->payload();
 		const tenncor::Graph& graph = info.graph();
 		gid_ = info.graph_id();
 
