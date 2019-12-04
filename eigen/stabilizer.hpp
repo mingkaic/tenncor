@@ -271,7 +271,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		case egen::ARGMAX:
 		{
 			const teq::iEdge& arg = func->get_children()[0];
-			teq::RankT return_dim = get_coorder(arg)[0];
+			teq::RankT return_dim = get_coorder(func)[0];
 			teq::Shape shape = arg.get_tensor()->shape();
 			teq::NElemT maxn = teq::rank_cap == return_dim ?
 				shape.n_elems() : shape.at(return_dim);
@@ -450,7 +450,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			const teq::Shape& shape = arg.argshape();
 			teq::NElemT nreds = 1;
 			bool reduced = false;
-			auto c = get_coorder(arg);
+			auto c = get_coorder(func);
 			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
 				i < n && c[i] < teq::rank_cap; ++i)
 			{
@@ -472,7 +472,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			const teq::Shape& shape = arg.argshape();
 			teq::NElemT nreds = 1;
 			bool reduced = false;
-			auto c = get_coorder(arg);
+			auto c = get_coorder(func);
 			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
 				i < n && c[i] < teq::rank_cap; ++i)
 			{
@@ -501,7 +501,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			const teq::iEdge& arg = func->get_children()[0];
 			const teq::Shape& shape = arg.argshape();
 			teq::NElemT ncommons = 1;
-			auto c = get_coorder(arg);
+			auto c = get_coorder(func);
 			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
 				i < n && c[i] < teq::rank_cap; ++i)
 			{
@@ -532,7 +532,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			const teq::iEdge& arg = func->get_children()[1];
 			const teq::Shape& shape = arg.get_tensor()->shape();
 			teq::NElemT nkern = 1;
-			auto c = get_coorder(arg);
+			auto c = get_coorder(func);
 			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
 				i < n && c[i] < teq::rank_cap; ++i)
 			{

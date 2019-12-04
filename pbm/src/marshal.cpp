@@ -14,14 +14,14 @@ void marshal_attrs (PbAttrMapT& out, const marsh::Maps& attrs)
 		{
 			continue;
 		}
-		tenncor::ArrayAttrs attrs;
 		auto& contents = static_cast<
 			const marsh::NumArray<double>*>(apair.second.get())->contents_;
+		tenncor::ArrayAttrs pb_attrs;
 		for (double e : contents)
 		{
-			attrs.add_values(e);
+			pb_attrs.add_values(e);
 		}
-		out.insert({apair.first, attrs});
+		out.insert({apair.first, pb_attrs});
 	}
 }
 

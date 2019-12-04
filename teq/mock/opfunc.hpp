@@ -10,20 +10,23 @@ struct MockOpfunc final : public teq::iOperableFunc
 	MockOpfunc (teq::TensptrT a,
 		teq::Opcode opcode = teq::Opcode{},
 		std::vector<double> coord = {}) :
-		opcode_(opcode),
-		args_({MockEdge(a, {}, coord)}) {}
+		MockOpfunc(teq::TensptrsT{a}, opcode, coord) {}
 
-	MockOpfunc (teq::TensptrT a, teq::TensptrT b,
-		teq::Opcode opcode = teq::Opcode{}) :
+	MockOpfunc (teq::TensptrsT args,
+		teq::Opcode opcode = teq::Opcode{},
+		std::vector<double> coord = {}) :
 		opcode_(opcode),
-		shape_(a->shape()),
-		args_({MockEdge(a), MockEdge(b)}) {}
-
-	MockOpfunc (MockEdgesT args,
-		teq::Opcode opcode = teq::Opcode{}) :
-		opcode_(opcode),
-		shape_(args[0].shape()),
-		args_(args) {}
+		shape_(args[0]->shape())
+	{
+		args_.reserve(args.size());
+		std::transform(args.begin(), args.end(), std::back_inserter(args_),
+			[](teq::TensptrT tens) { return MockEdge(tens); });
+		if (coord.size() > 0)
+		{
+			coord_ = std::make_unique<marsh::NumArray<double>>();
+			coord_->contents_ = coord;
+		}
+	}
 
 	/// Implementation of iTensor
 	const teq::Shape& shape (void) const override
@@ -52,13 +55,17 @@ struct MockOpfunc final : public teq::iOperableFunc
 	/// Implementation of iFunctor
 	marsh::iObject* get_attr (std::string attr_name) const override
 	{
+		if (attr_name == "coorder")
+		{
+			return coord_.get();
+		}
 		return nullptr;
 	}
 
 	/// Implementation of iFunctor
 	std::vector<std::string> ls_attrs (void) const override
 	{
-		return {};
+		return {"coorder"};
 	}
 
 	/// Implementation of iFunctor
@@ -110,6 +117,8 @@ struct MockOpfunc final : public teq::iOperableFunc
 	teq::Shape shape_;
 
 	MockEdgesT args_;
+
+	std::unique_ptr<marsh::NumArray<double>> coord_;
 };
 
 #endif // TEQ_MOCK_OPFUNC_HPP

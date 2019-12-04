@@ -318,7 +318,7 @@ template <typename T>
 EigenptrT<T> group_concat (const EigenEdgesT<T>& group, const marsh::Maps& attrs)
 {
 	assert(group.size() > 1);
-	teq::RankT dimension = get_coorder(group[0].get())[0];
+	teq::RankT dimension = get_coorder(attrs)[0];
 	std::vector<TensMapT<T>> args;
 	args.reserve(group.size());
 	std::transform(group.begin(), group.end(), std::back_inserter(args),
@@ -475,7 +475,7 @@ EigenptrT<T> reverse (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 template <typename T>
 EigenptrT<T> concat (const iEigenEdge<T>& left, const iEigenEdge<T>& right, const marsh::Maps& attrs)
 {
-	teq::RankT axis = get_coorder(left)[0];
+	teq::RankT axis = get_coorder(attrs)[0];
 	return make_eigentensor<T,
 		Eigen::TensorConcatenationOp<
 			const teq::RankT,TensMapT<T>,TensMapT<T>>,
@@ -1360,7 +1360,7 @@ template <typename T>
 EigenptrT<T> matmul (const iEigenEdge<T>& a, const iEigenEdge<T>& b, const marsh::Maps& attrs)
 {
 	teq::Shape outshape = a.shape();
-	auto c = get_coorder(a);
+	auto c = get_coorder(attrs);
 	auto dims = decode_pair<teq::RankT>(c);
 	for (size_t i = 0, n = dims.size(); i < n; ++i)
 	{
@@ -1394,7 +1394,7 @@ EigenptrT<T> convolution (const iEigenEdge<T>& input, const iEigenEdge<T>& kerne
 {
 	teq::Shape outshape = input.shape();
 	std::vector<teq::RankT> order;
-	auto c = get_coorder(kernel);
+	auto c = get_coorder(attrs);
 	if (c.empty())
 	{
 		logs::fatal("cannot convolve tensors without specified dimensions");

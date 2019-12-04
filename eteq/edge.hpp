@@ -17,7 +17,7 @@ namespace eteq
 {
 
 /// Implementation of iEigenEdge using node as tensor wrapper
-template <typename T, typename C=double>
+template <typename T>
 struct Edge final : public eigen::iEigenEdge<T>
 {
 	Edge (NodeptrT<T> node) :
@@ -30,9 +30,8 @@ struct Edge final : public eigen::iEigenEdge<T>
 		shape_ = node->shape();
 	}
 
-	Edge (NodeptrT<T> node, teq::Shape shape,
-		std::vector<C> coords) :
-		node_(node), shape_(shape), coords_(coords)
+	Edge (NodeptrT<T> node, teq::Shape shape) :
+		node_(node), shape_(shape)
 	{
 		if (node_ == nullptr)
 		{
@@ -67,12 +66,6 @@ struct Edge final : public eigen::iEigenEdge<T>
 			arr->contents_ = std::vector<double>(shape_.begin(), shape_.end());
 			out.contents_.emplace(eigen::shaper_key, std::move(arr));
 		}
-		if (coords_.size() > 0)
-		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = std::vector<double>(coords_.begin(), coords_.end());
-			out.contents_.emplace(eigen::coorder_key, std::move(arr));
-		}
 	}
 
 	/// Implementation of iEigenEdge<T>
@@ -97,9 +90,6 @@ private:
 
 	/// Output shape
 	teq::Shape shape_;
-
-	/// Coordinate transformation attributes
-	std::vector<C> coords_;
 };
 
 /// Type of typed functor arguments

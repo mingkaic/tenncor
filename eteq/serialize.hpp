@@ -58,11 +58,8 @@ static teq::TensptrT convert_func (std::string opname,
 			shape = teq::Shape(std::vector<teq::DimT>(
 				shape_vals.begin(), shape_vals.end()));
 		}
-		std::vector<double> coords = convert_attrs(edge.second,
-			eigen::coorder_key);
-
 		tmp_edges.push_back(
-			Edge<T>(to_node<T>(edge.first), shape, coords));
+			Edge<T>(to_node<T>(edge.first), shape));
 	}
 	return std::shared_ptr<Functor<T>>(Functor<T>::get(
 		egen::get_op(opname), tmp_edges, std::move(attrs)));

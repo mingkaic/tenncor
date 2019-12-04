@@ -68,18 +68,12 @@ struct FTargEdge final
 			{
 				shape_ = teq::Shape(std::vector<teq::DimT>(values.begin(), values.end()));
 			}
-			else if (key == eigen::coorder_key)
-			{
-				coords_ = values;
-			}
 		}
 	}
 
 	opt::TargptrT target_;
 
 	std::optional<teq::Shape> shape_;
-
-	std::vector<double> coords_;
 };
 
 template <typename T>
@@ -118,7 +112,7 @@ struct FuncTarget final : public opt::iTarget
 		{
 			auto arg = to_node<T>(targ.target_->convert(outshape, candidate));
 			teq::Shape argshape = targ.shape_ ? *targ.shape_ : arg->shape();
-			args.push_back(Edge<T>(arg, argshape, targ.coords_));
+			args.push_back(Edge<T>(arg, argshape));
 		}
 		if (variadic_.size() > 0)
 		{
@@ -234,8 +228,18 @@ struct Hasher final : public teq::OnceTraveler
 		{
 			std::sort(hshs.begin(), hshs.end());
 		}
+		std::unordered_map<std::string,std::string> attrs;
+		auto keys = func->ls_attrs();
+		for (auto key : keys)
+		{
+			if (auto value = func->get_attr(key))
+			{
+				attrs.emplace(key, value->to_string());
+			}
+		}
 		encode_label(func, func->shape().to_string() + "|" +
 			func->get_opcode().name_ + "\\" +
+			fmts::to_string(attrs.begin(), attrs.end()) + "\\" +
 			fmts::to_string(hshs.begin(), hshs.end()));
 	}
 

@@ -22,9 +22,9 @@ TEST(SESSION, Track)
 	teq::TensptrT c(new MockTensor(shape));
 	teq::TensptrT d(new MockTensor(shape));
 
-	teq::TensptrT x(new MockOpfunc(a, b));
-	teq::TensptrT target(new MockOpfunc(x, c));
-	teq::TensptrT target2(new MockOpfunc(x, d));
+	teq::TensptrT x(new MockOpfunc(teq::TensptrsT{a, b}));
+	teq::TensptrT target(new MockOpfunc(teq::TensptrsT{x, c}));
+	teq::TensptrT target2(new MockOpfunc(teq::TensptrsT{x, d}));
 
 	// this tests if session can track be called multiple times
 	teq::Session session;
@@ -64,8 +64,8 @@ TEST(SESSION, Update)
 	teq::TensptrT b(new MockTensor(shape));
 	teq::TensptrT c(new MockTensor(shape));
 
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(a, b);
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(x, c);
+	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b});
+	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{x, c});
 
 	// * (target) = not updated
 	// `-- + (x) = not updated
@@ -102,9 +102,9 @@ TEST(SESSION, UpdateIgnore)
 	teq::TensptrT c(new MockTensor(shape));
 	teq::TensptrT d(new MockTensor(shape));
 
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(a, b);
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(x, c);
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(y, d);
+	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b});
+	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{x, c});
+	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{y, d});
 
 	// - (target) = not updated
 	// `-- * (y) = not updated
@@ -164,9 +164,9 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 	teq::TensptrT c(new MockTensor(shape));
 
 	std::shared_ptr<MockOpfunc> u = std::make_shared<MockOpfunc>(a);
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(u, b);
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(c, u);
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(y, x);
+	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{u, b});
+	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{c, u});
+	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{y, x});
 
 	// - (target) = not updated
 	// `-- / (y) = not updated
@@ -214,8 +214,8 @@ TEST(SESSION, TargetedUpdate)
 	teq::TensptrT b(new MockTensor(shape));
 	teq::TensptrT c(new MockTensor(shape));
 
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(a, b);
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(x, c);
+	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b});
+	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{x, c});
 
 	// * (target) = not updated
 	// `-- + (x) = not updated
@@ -253,9 +253,9 @@ TEST(SESSION, TargetedUpdateIgnore)
 	teq::TensptrT c(new MockTensor(shape));
 	teq::TensptrT d(new MockTensor(shape));
 
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(a, b);
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(x, c);
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(y, d);
+	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b});
+	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{x, c});
+	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{y, d});
 
 	// - (targetd) = not updated
 	// `-- * (y) = not updated
@@ -299,10 +299,10 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 	teq::TensptrT d(new MockTensor(shape));
 
 	std::shared_ptr<MockOpfunc> u = std::make_shared<MockOpfunc>(a);
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(u, b);
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(c, u);
-	std::shared_ptr<MockOpfunc> z = std::make_shared<MockOpfunc>(y, x);
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(z, d);
+	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{u, b});
+	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{c, u});
+	std::shared_ptr<MockOpfunc> z = std::make_shared<MockOpfunc>(teq::TensptrsT{y, x});
+	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{z, d});
 
 	// pow (targeted) = not updated
 	// `-- - (z) = not updated
@@ -358,10 +358,10 @@ TEST(SESSION, Clear)
 	teq::TensptrT d(new MockTensor(shape));
 
 	std::shared_ptr<MockOpfunc> u = std::make_shared<MockOpfunc>(a);
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(u, b);
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(c, u);
-	std::shared_ptr<MockOpfunc> z = std::make_shared<MockOpfunc>(y, x);
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(z, d);
+	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{u, b});
+	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{c, u});
+	std::shared_ptr<MockOpfunc> z = std::make_shared<MockOpfunc>(teq::TensptrsT{y, x});
+	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{z, d});
 
 	teq::Session session;
 	session.track({target});

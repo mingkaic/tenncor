@@ -151,25 +151,4 @@ struct JunkEdge final : public eigen::iEigenEdge<T>
 };
 
 
-TEST(INTERNAL, GetCoorder)
-{
-	std::vector<double> coord{3, 4, 55};
-	teq::Shape shape({2, 3});
-
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(shape)),
-		std::vector<double>{2, 8, 4, 5, 7, 6}, shape, coord);
-	auto c = get_coorder(edge);
-	EXPECT_VECEQ(coord, c);
-
-	MockEdge<double> badedge(
-		teq::TensptrT(new MockTensor(teq::Shape(shape))),
-		std::vector<double>{2, 8, 4, 5, 7, 6}, shape);
-	EXPECT_FATAL(get_coorder(badedge), "coorder not found");
-
-	JunkEdge<double> worstedge;
-	EXPECT_FATAL(get_coorder(worstedge), "cannot find array coorder");
-}
-
-
 #endif // DISABLE_INTERNAL_TEST
