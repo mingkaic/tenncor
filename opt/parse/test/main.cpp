@@ -211,7 +211,7 @@ TEST(PARSE, EdgeAttrs)
 		EXPECT_EQ(FALSE, a->val_scalar_);
 		std::vector<double> expect = {4,5,6,7,8,9,10,11};
 		auto nums = to_nums(a->val_);
-		EXPECT_ARREQ(expect, nums);
+		EXPECT_VECEQ(expect, nums);
 	}
 	kps.clear();
 
@@ -224,7 +224,7 @@ TEST(PARSE, EdgeAttrs)
 		EXPECT_EQ(TRUE, s->val_scalar_);
 		std::vector<double> expect = {2};
 		auto nums = to_nums(s->val_);
-		EXPECT_ARREQ(expect, nums);
+		EXPECT_VECEQ(expect, nums);
 	}
 	kps.clear();
 
@@ -237,14 +237,14 @@ TEST(PARSE, EdgeAttrs)
 		EXPECT_EQ(FALSE, a->val_scalar_);
 		std::vector<double> expect = {8};
 		auto nums = to_nums(a->val_);
-		EXPECT_ARREQ(expect, nums);
+		EXPECT_VECEQ(expect, nums);
 
 		auto s = kps[1];
 		EXPECT_STREQ("d", s->key_);
 		EXPECT_EQ(TRUE, s->val_scalar_);
 		expect = {12};
 		nums = to_nums(s->val_);
-		EXPECT_ARREQ(expect, nums);
+		EXPECT_VECEQ(expect, nums);
 	}
 
 	::cversions_free(arr);

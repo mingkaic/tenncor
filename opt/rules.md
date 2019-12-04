@@ -49,7 +49,7 @@ A **matcher** is a function (commutative or non-commutative)
 The function takes the form:
 
 ```
-[ <keyword> ] <function name> '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
+[ <keyword> ] <function name> [ <attribute> ] '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
 ```
 
 where symbols wrapped in:
@@ -114,13 +114,13 @@ A **target** can be any of the following:
 A target function is much like matcher function except it takes the form:
 
 ```
-<function name> '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
+<function name> [ <attribute> ] '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
 ```
 
 or
 
 ```
-<function name> '(' '..' <variadics> ')'
+<function name> [ <attribute> ] '(' '..' <variadics> ')'
 ```
 
 Since commutativity specifies argument order when matching, targets don't care about this property.

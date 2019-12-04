@@ -107,9 +107,9 @@ return in.sum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is sum
 template <typename T>
-EigenptrT<T> reduce_sum (const iEigenEdge<T>& in)
+EigenptrT<T> reduce_sum (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
-	auto cdims = get_coorder(in);
+	auto cdims = get_coorder(attrs);
 	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
 	DimensionsT outdims = shape_convert(in.shape());
 	_ARRAY_SWITCH(vdims, _EIGEN_RSUM_CASE)
@@ -126,9 +126,9 @@ return in.prod(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is prod
 template <typename T>
-EigenptrT<T> reduce_prod (const iEigenEdge<T>& in)
+EigenptrT<T> reduce_prod (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
-	auto cdims = get_coorder(in);
+	auto cdims = get_coorder(attrs);
 	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
 	DimensionsT outdims = shape_convert(in.shape());
 	_ARRAY_SWITCH(vdims, _EIGEN_RPROD_CASE)
@@ -145,9 +145,9 @@ return in.minimum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is min
 template <typename T>
-EigenptrT<T> reduce_min (const iEigenEdge<T>& in)
+EigenptrT<T> reduce_min (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
-	auto cdims = get_coorder(in);
+	auto cdims = get_coorder(attrs);
 	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
 	DimensionsT outdims = shape_convert(in.shape());
 	_ARRAY_SWITCH(vdims, _EIGEN_RMIN_CASE)
@@ -164,9 +164,9 @@ return in.maximum(::eigen::internal::dim_copy<N>(vdims)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is max
 template <typename T>
-EigenptrT<T> reduce_max (const iEigenEdge<T>& in)
+EigenptrT<T> reduce_max (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
-	auto cdims = get_coorder(in);
+	auto cdims = get_coorder(attrs);
 	std::vector<teq::RankT> vdims(cdims.begin(), cdims.end());
 	DimensionsT outdims = shape_convert(in.shape());
 	_ARRAY_SWITCH(vdims, _EIGEN_RMAX_CASE)
@@ -176,9 +176,9 @@ EigenptrT<T> reduce_max (const iEigenEdge<T>& in)
 
 /// Return Eigen data object that argmax in tensor at return_dim
 template <typename T>
-EigenptrT<T> argmax (const iEigenEdge<T>& in)
+EigenptrT<T> argmax (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
-	teq::RankT return_dim = get_coorder(in)[0];
+	teq::RankT return_dim = get_coorder(attrs)[0];
 	DimensionsT outdims = shape_convert(in.shape());
 	if (return_dim >= teq::rank_cap)
 	{
@@ -215,10 +215,10 @@ EigenptrT<T> argmax (const iEigenEdge<T>& in)
 
 /// Return Eigen data object representing data broadcast across dimensions
 template <typename T>
-EigenptrT<T> extend (const iEigenEdge<T>& in)
+EigenptrT<T> extend (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
 	teq::CoordT coord;
-	auto c = get_coorder(in);
+	auto c = get_coorder(attrs);
 	std::fill(coord.begin(), coord.end(), 1);
 	std::copy(c.begin(), c.begin() +
 		std::min((size_t) teq::rank_cap, c.size()), coord.begin());
@@ -233,10 +233,10 @@ EigenptrT<T> extend (const iEigenEdge<T>& in)
 
 /// Return Eigen data object representing transpose and permutation
 template <typename T>
-EigenptrT<T> permute (const iEigenEdge<T>& in)
+EigenptrT<T> permute (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
 	teq::CoordT reorder;
-	auto c = get_coorder(in);
+	auto c = get_coorder(attrs);
 	assert(c.size() == teq::rank_cap);
 	std::copy(c.begin(), c.end(), reorder.begin());
 	teq::Shape outshape = in.shape();
@@ -271,11 +271,11 @@ EigenptrT<T> reshape (const iEigenEdge<T>& in)
 
 /// Return Eigen data object representing data slicing of dimensions
 template <typename T>
-EigenptrT<T> slice (const iEigenEdge<T>& in)
+EigenptrT<T> slice (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
 	teq::Shape argshape = in.argshape();
 	teq::Shape outshape = in.shape();
-	auto c = get_coorder(in);
+	auto c = get_coorder(attrs);
 	auto encoding = decode_pair<teq::DimT>(c);
 	teq::ShapeT offsets;
 	teq::ShapeT extents;
@@ -315,7 +315,7 @@ EigenptrT<T> slice (const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> group_concat (const EigenEdgesT<T>& group)
+EigenptrT<T> group_concat (const EigenEdgesT<T>& group, const marsh::Maps& attrs)
 {
 	assert(group.size() > 1);
 	teq::RankT dimension = get_coorder(group[0].get())[0];
@@ -388,12 +388,12 @@ EigenptrT<T> group_prod (const EigenEdgesT<T>& group)
 
 /// Return Eigen data object representing data zero padding
 template <typename T>
-EigenptrT<T> pad (const iEigenEdge<T>& in)
+EigenptrT<T> pad (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
 	std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap> paddings;
 	std::fill(paddings.begin(), paddings.end(),
 		std::pair<teq::DimT,teq::DimT>{0, 0});
-	auto c = get_coorder(in);
+	auto c = get_coorder(attrs);
 	auto encoding = decode_pair<teq::DimT>(c);
 	std::copy(encoding.begin(), encoding.begin() +
 		std::min((size_t) teq::rank_cap, encoding.size()),
@@ -412,11 +412,11 @@ EigenptrT<T> pad (const iEigenEdge<T>& in)
 
 /// Return Eigen data object representing strided view of in
 template <typename T>
-EigenptrT<T> stride (const iEigenEdge<T>& in)
+EigenptrT<T> stride (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
 	std::fill(incrs.begin(), incrs.end(), 1);
-	auto c = get_coorder(in);
+	auto c = get_coorder(attrs);
 	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
 	return make_eigentensor<T,Eigen::TensorStridingOp<
@@ -435,11 +435,11 @@ EigenptrT<T> stride (const iEigenEdge<T>& in)
 /// specific increments across dimensions
 /// This function is the reverse of stride
 template <typename T>
-EigenptrT<T> scatter (const iEigenEdge<T>& in)
+EigenptrT<T> scatter (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
 	std::fill(incrs.begin(), incrs.end(), 1);
-	auto c = get_coorder(in);
+	auto c = get_coorder(attrs);
 	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
 	return std::make_shared<EigenAssignTens<T,TensMapT<T>>>(
@@ -451,11 +451,11 @@ EigenptrT<T> scatter (const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> reverse (const iEigenEdge<T>& in)
+EigenptrT<T> reverse (const iEigenEdge<T>& in, const marsh::Maps& attrs)
 {
 	std::array<bool,teq::rank_cap> do_reverse;
 	std::fill(do_reverse.begin(), do_reverse.end(), false);
-	auto c = get_coorder(in);
+	auto c = get_coorder(attrs);
 	for (teq::RankT i : c)
 	{
 		do_reverse[i] = true;
@@ -473,7 +473,7 @@ EigenptrT<T> reverse (const iEigenEdge<T>& in)
 }
 
 template <typename T>
-EigenptrT<T> concat (const iEigenEdge<T>& left, const iEigenEdge<T>& right)
+EigenptrT<T> concat (const iEigenEdge<T>& left, const iEigenEdge<T>& right, const marsh::Maps& attrs)
 {
 	teq::RankT axis = get_coorder(left)[0];
 	return make_eigentensor<T,
@@ -1357,7 +1357,7 @@ return args[1].contract(args[0], internal::dim_copy<N>(dims)).reshape(outdims); 
 /// Only applies to 2-d tensors
 /// Apply matrix multiplication of a and b
 template <typename T>
-EigenptrT<T> matmul (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
+EigenptrT<T> matmul (const iEigenEdge<T>& a, const iEigenEdge<T>& b, const marsh::Maps& attrs)
 {
 	teq::Shape outshape = a.shape();
 	auto c = get_coorder(a);
@@ -1390,7 +1390,7 @@ EigenptrT<T> matmul (const iEigenEdge<T>& a, const iEigenEdge<T>& b)
 
 /// Apply convolution of kernel across input
 template <typename T>
-EigenptrT<T> convolution (const iEigenEdge<T>& input, const iEigenEdge<T>& kernel)
+EigenptrT<T> convolution (const iEigenEdge<T>& input, const iEigenEdge<T>& kernel, const marsh::Maps& attrs)
 {
 	teq::Shape outshape = input.shape();
 	std::vector<teq::RankT> order;

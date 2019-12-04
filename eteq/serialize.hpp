@@ -44,8 +44,8 @@ static inline std::vector<double> convert_attrs (
 }
 
 template <typename T>
-static teq::TensptrT convert_func (
-	std::string opname, const pbm::EdgesT& edges)
+static teq::TensptrT convert_func (std::string opname,
+	const pbm::EdgesT& edges, marsh::Maps&& attrs)
 {
 	ArgsT<T> tmp_edges;
 	tmp_edges.reserve(edges.size());
@@ -64,7 +64,8 @@ static teq::TensptrT convert_func (
 		tmp_edges.push_back(
 			Edge<T>(to_node<T>(edge.first), shape, coords));
 	}
-	return std::shared_ptr<Functor<T>>(Functor<T>::get(egen::get_op(opname),tmp_edges));
+	return std::shared_ptr<Functor<T>>(Functor<T>::get(
+		egen::get_op(opname), tmp_edges, std::move(attrs)));
 }
 
 }

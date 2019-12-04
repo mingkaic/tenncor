@@ -26,16 +26,16 @@ TEST(TAG, AddGet)
 		ASSERT_HAS(reps, tag_key);
 		std::vector<std::string> expected_tag_values = tag_values;
 		expected_tag_values.push_back("1");
-		EXPECT_ARREQ(tag_values, reps[tag_key]);
+		EXPECT_VECEQ(expected_tag_values, reps[tag_key]);
 
 		auto it = registry.registry_.find(tag::TensKey(tens.get()));
 		EXPECT_FALSE(it->first.expired());
 
 		registry.add_tag(tens, std::make_unique<MockTag>());
 		EXPECT_EQ(1, registry.registry_.size());
-		expected_tag_values[expected_tag_values.size() - 1] = "2";
+		expected_tag_values.back() = "2";
 		reps = registry.get_tags(tens.get());
-		EXPECT_ARREQ(tag_values, reps[tag_key]);
+		EXPECT_VECEQ(expected_tag_values, reps[tag_key]);
 
 		ptr = tens.get();
 		ref = tens;
@@ -82,7 +82,7 @@ TEST(TAG, AddMove)
 			ASSERT_HAS(reps, tag_key);
 			std::vector<std::string> expected_tag_values = tag_values;
 			expected_tag_values.push_back("1");
-			EXPECT_ARREQ(tag_values, reps[tag_key]);
+			EXPECT_VECEQ(expected_tag_values, reps[tag_key]);
 
 			registry.add_tag(tens, std::make_unique<MockTag>());
 			it = registry.registry_.find(tag::TensKey(tens.get()));
@@ -95,8 +95,8 @@ TEST(TAG, AddMove)
 			reps = registry.get_tags(tens2.get());
 
 			ASSERT_HAS(reps, tag_key);
-			expected_tag_values[expected_tag_values.size() - 1] = "2";
-			EXPECT_ARREQ(tag_values, reps[tag_key]);
+			expected_tag_values.back() = "2";
+			EXPECT_VECEQ(expected_tag_values, reps[tag_key]);
 
 			std::string second_key = tag_key + "2";
 			registry.add_tag(tens, std::make_unique<MockTag>(tid + 1, second_key));
@@ -106,12 +106,12 @@ TEST(TAG, AddMove)
 			reps = registry.get_tags(tens2.get());
 
 			ASSERT_HAS(reps, tag_key);
-			expected_tag_values[expected_tag_values.size() - 1] = "2";
-			EXPECT_ARREQ(tag_values, reps[tag_key]);
+			expected_tag_values.back() = "2";
+			EXPECT_VECEQ(expected_tag_values, reps[tag_key]);
 
 			ASSERT_HAS(reps, second_key);
-			expected_tag_values[expected_tag_values.size() - 1] = "1";
-			EXPECT_ARREQ(tag_values, reps[second_key]);
+			expected_tag_values.back() = "1";
+			EXPECT_VECEQ(expected_tag_values, reps[second_key]);
 
 			ptr2 = tens2.get();
 		}
@@ -141,7 +141,9 @@ TEST(TAG, RegistryRetag)
 	auto reps = registry.get_tags(orig);
 	EXPECT_EQ(1, reps.size());
 	ASSERT_HAS(reps, tag_key + "1");
-	EXPECT_ARREQ(tag_values, reps[tag_key + "1"]);
+	std::vector<std::string> expected_tag_values = tag_values;
+	expected_tag_values.push_back("1");
+	EXPECT_VECEQ(expected_tag_values, reps[tag_key + "1"]);
 
 	tens.reset(repl);
 
@@ -154,7 +156,7 @@ TEST(TAG, RegistryRetag)
 	reps = registry.get_tags(orig);
 	EXPECT_EQ(1, reps.size());
 	ASSERT_HAS(reps, tag_key + "2");
-	EXPECT_ARREQ(tag_values, reps[tag_key + "2"]);
+	EXPECT_VECEQ(expected_tag_values, reps[tag_key + "2"]);
 }
 
 

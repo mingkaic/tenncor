@@ -37,7 +37,10 @@ void load_graph (teq::TensptrSetT& roots,
 
 				roots.erase(ctens);
 			}
-			tens = unmarshal_func(opname, args);
+			marsh::Maps fattrs;
+			const auto& pb_fattrs = pb_func.attrs();
+			unmarshal_attrs(fattrs, pb_fattrs);
+			tens = unmarshal_func(opname, args, std::move(fattrs));
 		}
 		auto& pb_tags = pb_node.tags();
 		for (auto& tagpair : pb_tags)

@@ -5,15 +5,13 @@
 namespace eigen
 {
 
-std::vector<teq::CDimT> get_coorder (const teq::iEdge& edge)
+std::vector<teq::CDimT> get_coorder (const marsh::Maps& attrs)
 {
-	marsh::Maps mvalues;
-	edge.get_attrs(mvalues);
-	if (false == estd::has(mvalues.contents_, coorder_key))
+	if (false == estd::has(attrs.contents_, coorder_key))
 	{
 		logs::fatal("coorder not found");
 	}
-	auto& coorder = mvalues.contents_.at(coorder_key);
+	auto& coorder = attrs.contents_.at(coorder_key);
 	if (coorder->class_code() != typeid(marsh::NumArray<teq::CDimT>).hash_code())
 	{
 		logs::fatal("cannot find array coorder");
@@ -27,6 +25,13 @@ std::vector<teq::CDimT> get_coorder (const teq::iEdge& edge)
 		out.push_back(val);
 	}
 	return out;
+}
+
+std::vector<teq::CDimT> get_coorder (const teq::iEdge& edge)
+{
+	marsh::Maps mvalues;
+	edge.get_attrs(mvalues);
+	return get_coorder(mvalues);
 }
 
 }

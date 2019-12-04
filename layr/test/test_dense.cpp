@@ -418,8 +418,8 @@ TEST(DENSE, Building)
 		PybindT* b = eteq::to_node<PybindT>(bias)->data();
 		std::vector<PybindT> gotw(w, w + weight->shape().n_elems());
 		std::vector<PybindT> gotb(b, b + bias->shape().n_elems());
-		EXPECT_ARREQ(weight_data, gotw);
-		EXPECT_ARREQ(bias_data, gotb);
+		EXPECT_VECEQ(weight_data, gotw);
+		EXPECT_VECEQ(bias_data, gotb);
 
 		// verify root
 		ASSERT_EQ(1, roots.size());

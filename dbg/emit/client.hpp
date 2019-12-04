@@ -50,9 +50,8 @@ struct GraphEmitterClient final
 		ClientConfig cfg) :
 		stub_(gemitter::GraphEmitter::NewStub(channel)),
 		cfg_(cfg),
-		connected_(true)
-	{
-		jobs::ManagedJob healthjob(
+		connected_(true),
+		health_checker_(
 		[this]
 		{
 			gemitter::Empty empty;
@@ -68,14 +67,12 @@ struct GraphEmitterClient final
 			this->connected_ = status.ok();
 			std::this_thread::sleep_for(
 				std::chrono::milliseconds(1000));
-		});
-		health_checker_ = std::move(healthjob);
-	}
+		}) {}
 
 	~GraphEmitterClient (void)
 	{
-		health_checker_->stop();
-		health_checker_->join();
+		health_checker_.stop();
+		health_checker_.join();
 	}
 
 	/// Add job that pass CreateGraphRequest

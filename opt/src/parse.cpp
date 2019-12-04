@@ -46,7 +46,18 @@ static std::string to_string (::Functor* functor)
 	{
 		comm_prefix = "comm ";
 	}
-	std::string out = comm_prefix + std::string(functor->name_) + "(";
+	std::string out = comm_prefix + std::string(functor->name_);
+	auto ait = functor->attrs_.head_;
+	if (nullptr != ait)
+	{
+		out += "={" + to_string((::KeyVal*) ait->val_);
+		for (ait = ait->next_; ait != nullptr; ait = ait->next_)
+		{
+			out += "," + to_string((::KeyVal*) ait->val_);
+		}
+		out += "}";
+	}
+	out += "(";
 	assert(::ARGUMENT == functor->args_.type_);
 	auto it = functor->args_.head_;
 	if (nullptr != it)
@@ -161,12 +172,12 @@ static std::string parse_matcher (
 	if (matcher->commutative_)
 	{
 		outmatcher = std::make_shared<CommutativeMatcher>(
-			std::string(matcher->variadic_));
+			matcher->attrs_, std::string(matcher->variadic_));
 	}
 	else
 	{
 		outmatcher = std::make_shared<OrderedMatcher>(
-			std::string(matcher->variadic_));
+			matcher->attrs_, std::string(matcher->variadic_));
 	}
 	cmatchers.push_back(outmatcher);
 

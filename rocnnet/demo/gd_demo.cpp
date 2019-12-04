@@ -123,18 +123,17 @@ int main (int argc, const char** argv)
 	{
 		return layr::sgd(leaves, 0.9); // learning rate = 0.9
 	};
-	teq::Session sess;
-	// dbg::InteractiveSession sess("localhost:50051");
+	dbg::InteractiveSession sess("localhost:50051");
 	{
-	// jobs::ScopeGuard defer(
-	// 	[&sess]()
-	// 	{
-	// 		// 10 seconds
-	// 		std::chrono::time_point<std::chrono::system_clock> deadline =
-	// 			std::chrono::system_clock::now() +
-	// 			std::chrono::seconds(10);
-	// 		sess.join_then_stop(deadline);
-	// 	});
+	jobs::ScopeGuard defer(
+		[&sess]()
+		{
+			// 10 seconds
+			std::chrono::time_point<std::chrono::system_clock> deadline =
+				std::chrono::system_clock::now() +
+				std::chrono::seconds(10);
+			sess.join_then_stop(deadline);
+		});
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));

@@ -20,7 +20,8 @@ static std::string save_leaf (teq::iLeaf* leaf)
 {
 	char* data = (char*) leaf->data();
 	size_t nelems = leaf->shape().n_elems();
-	size_t nbytes = egen::type_size((egen::_GENERATED_DTYPE) leaf->type_code());
+	size_t nbytes = egen::type_size(
+		(egen::_GENERATED_DTYPE) leaf->type_code());
 	if (is_big_endian() && nbytes > 1)
 	{
 		size_t totalbytes = nelems * nbytes;
@@ -79,9 +80,11 @@ static teq::TensptrT load_leaf (
 
 #undef _OUT_GENERIC
 
-#define _OUT_GENFUNC(realtype)func = convert_func<realtype>(opname, edges);
+#define _OUT_GENFUNC(realtype)\
+func = convert_func<realtype>(opname, edges, std::move(attrs));
 
-static teq::TensptrT load_func (std::string opname, const pbm::EdgesT& edges)
+static teq::TensptrT load_func (std::string opname,
+	const pbm::EdgesT& edges, marsh::Maps&& attrs)
 {
 	if (edges.empty())
 	{

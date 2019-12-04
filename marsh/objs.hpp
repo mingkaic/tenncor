@@ -15,6 +15,11 @@ struct iObject
 {
 	virtual ~iObject (void) = default;
 
+	iObject* clone (void) const
+	{
+		return clone_impl();
+	}
+
 	virtual size_t class_code (void) const = 0;
 
 	virtual std::string to_string (void) const = 0;
@@ -22,6 +27,9 @@ struct iObject
 	virtual bool equals (const iObject& other) const = 0;
 
 	virtual void accept (iMarshaler& marshaler) const = 0;
+
+protected:
+	virtual iObject* clone_impl (void) const = 0;
 };
 
 using ObjptrT = std::unique_ptr<iObject>;
@@ -77,6 +85,12 @@ struct Number final : public iNumber
 	}
 
 	T val_;
+
+protected:
+	iObject* clone_impl (void) const override
+	{
+		return new Number<T>(val_);
+	}
 };
 
 struct iArray : public iObject
@@ -158,6 +172,18 @@ struct ObjArray final : public iArray
 	}
 
 	std::vector<ObjptrT> contents_;
+
+protected:
+	iObject* clone_impl (void) const override
+	{
+		auto cpy = new ObjArray();
+		for (auto& obj : contents_)
+		{
+			cpy->contents_.insert(cpy->contents_.end(),
+				ObjptrT(obj->clone()));
+		}
+		return cpy;
+	}
 };
 
 template <typename T,
@@ -214,6 +240,12 @@ struct NumArray final : public iArray
 	}
 
 	std::vector<T> contents_;
+
+protected:
+	iObject* clone_impl (void) const override
+	{
+		return new NumArray<T>(contents_);
+	}
 };
 
 struct Maps final : public iObject
@@ -276,6 +308,18 @@ struct Maps final : public iObject
 	}
 
 	std::unordered_map<std::string,ObjptrT> contents_;
+
+protected:
+	iObject* clone_impl (void) const override
+	{
+		auto cpy = new Maps();
+		for (auto& cpair : contents_)
+		{
+			cpy->contents_.emplace(cpair.first,
+				ObjptrT(cpair.second->clone()));
+		}
+		return cpy;
+	}
 };
 
 }

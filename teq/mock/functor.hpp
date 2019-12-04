@@ -43,6 +43,18 @@ struct MockFunctor final : public teq::iFunctor
 	}
 
 	/// Implementation of iFunctor
+	marsh::iObject* get_attr (std::string attr_name) const override
+	{
+		return nullptr;
+	}
+
+	/// Implementation of iFunctor
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return {};
+	}
+
+	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
 		args_[index] = MockEdge(arg);

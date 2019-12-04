@@ -29,7 +29,7 @@ static teq::TensptrT generate_leaf (
 
 
 static teq::TensptrT generate_func (std::string opname,
-	const pbm::EdgesT& edges)
+	const pbm::EdgesT& edges, marsh::Maps&& attrs)
 {
 	teq::TensptrsT tens;
 	tens.reserve(edges.size());

@@ -1,6 +1,6 @@
 opcode:
   operator_path: eigen/operator.hpp
-  params: eigen::EigenptrT<T>& out, const eigen::EigenEdgesT<T>& in
+  params: eigen::EigenptrT<T>& out, const eigen::EigenEdgesT<T>& in, const marsh::Maps& attrs
   opcalls:
     ABS: out = eigen::abs(in[0].get());
     NEG: out = eigen::neg(in[0].get());
@@ -27,23 +27,23 @@ opcode:
     LT: out = eigen::lt(in[0].get(),in[1].get());
     GT: out = eigen::gt(in[0].get(),in[1].get());
     RAND_UNIF: out = eigen::rand_uniform(in[0].get(),in[1].get());
-    REVERSE: out = eigen::reverse( in[0].get());
-    REDUCE_SUM: out = eigen::reduce_sum(in[0].get());
-    REDUCE_PROD: out = eigen::reduce_prod(in[0].get());
-    REDUCE_MIN: out = eigen::reduce_min(in[0].get());
-    REDUCE_MAX: out = eigen::reduce_max(in[0].get());
-    ARGMAX: out = eigen::argmax(in[0].get());
-    PERMUTE: out = eigen::permute(in[0].get());
-    EXTEND: out = eigen::extend(in[0].get());
+    REVERSE: out = eigen::reverse(in[0].get(),attrs);
+    REDUCE_SUM: out = eigen::reduce_sum(in[0].get(),attrs);
+    REDUCE_PROD: out = eigen::reduce_prod(in[0].get(),attrs);
+    REDUCE_MIN: out = eigen::reduce_min(in[0].get(),attrs);
+    REDUCE_MAX: out = eigen::reduce_max(in[0].get(),attrs);
+    ARGMAX: out = eigen::argmax(in[0].get(),attrs);
+    PERMUTE: out = eigen::permute(in[0].get(),attrs);
+    EXTEND: out = eigen::extend(in[0].get(),attrs);
     RESHAPE: out = eigen::reshape(in[0].get());
-    MATMUL: out = eigen::matmul(in[0].get(),in[1].get());
-    CONV: out = eigen::convolution(in[0].get(),in[1].get());
-    SLICE: out = eigen::slice(in[0].get());
-    PAD: out = eigen::pad(in[0].get());
-    STRIDE: out = eigen::stride(in[0].get());
-    SCATTER: out = eigen::scatter(in[0].get());
+    MATMUL: out = eigen::matmul(in[0].get(),in[1].get(),attrs);
+    CONV: out = eigen::convolution(in[0].get(),in[1].get(),attrs);
+    SLICE: out = eigen::slice(in[0].get(),attrs);
+    PAD: out = eigen::pad(in[0].get(),attrs);
+    STRIDE: out = eigen::stride(in[0].get(),attrs);
+    SCATTER: out = eigen::scatter(in[0].get(),attrs);
     SELECT: out = eigen::select(in[0].get(),in[1].get(),in[2].get());
-    CONCAT: out = eigen::concat(in[0].get(),in[1].get());
-    GROUP_CONCAT: out = eigen::group_concat(in);
+    CONCAT: out = eigen::concat(in[0].get(),in[1].get(),attrs);
+    GROUP_CONCAT: out = eigen::group_concat(in,attrs);
     GROUP_SUM: out = eigen::group_sum(in);
     GROUP_PROD: out = eigen::group_prod(in);

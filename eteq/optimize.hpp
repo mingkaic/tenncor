@@ -86,9 +86,29 @@ template <typename T>
 struct FuncTarget final : public opt::iTarget
 {
 	FuncTarget (std::string opname, std::vector<FTargEdge> args,
-		std::string variadic) :
+		std::string variadic, const ::PtrList& attrs) :
 		opcode_(egen::get_op(opname)),
-		args_(args), variadic_(variadic) {}
+		args_(args), variadic_(variadic)
+	{
+		if (::KV_PAIR != attrs.type_)
+		{
+			logs::fatalf("passing attributes by %d typed list", attrs.type_);
+		}
+		for (auto it = attrs.head_; nullptr != it; it = it->next_)
+		{
+			auto kv = (::KeyVal*) it->val_;
+			std::string key(kv->key_);
+			std::vector<double> values;
+			for (auto jt = kv->val_.head_; nullptr != jt; jt = jt->next_)
+			{
+				values.push_back(jt->val_);
+			}
+			if (key == eigen::coorder_key)
+			{
+				coords_ = values;
+			}
+		}
+	}
 
 	teq::TensptrT convert (
 		teq::Shape outshape, const opt::Candidate& candidate) const override
@@ -108,7 +128,14 @@ struct FuncTarget final : public opt::iTarget
 				args.push_back(*static_cast<const eteq::Edge<T>*>(&edge));
 			}
 		}
-		return teq::TensptrT(eteq::Functor<T>::get(opcode_, args));
+		marsh::Maps attrs;
+		if (coords_.size() > 0)
+		{
+			auto arr = new marsh::NumArray<double>();
+			arr->contents_ = coords_;
+			attrs.contents_.emplace(eigen::coorder_key, marsh::ObjptrT(arr));
+		}
+		return teq::TensptrT(eteq::Functor<T>::get(opcode_, args, std::move(attrs)));
 	}
 
 	egen::_GENERATED_OPCODE opcode_;
@@ -116,6 +143,8 @@ struct FuncTarget final : public opt::iTarget
 	std::vector<FTargEdge> args_;
 
 	std::string variadic_;
+
+	std::vector<double> coords_;
 };
 
 template <typename T>
@@ -141,7 +170,7 @@ opt::TargptrT build_target (::TreeNode* target)
 					build_target<T>(arg->node_), arg->attrs_));
 			}
 			out = std::make_shared<FuncTarget<T>>(std::string(func->name_),
-				args, std::string(func->variadic_));
+				args, std::string(func->variadic_), func->attrs_);
 		}
 			break;
 		default:

@@ -261,7 +261,7 @@ TEST(GROUP, RegistryRetag)
 	EXPECT_EQ(1, reps.size());
 	ASSERT_HAS(reps, "groups");
 	std::vector<std::string> expect_values = {"bumble"};
-	EXPECT_ARREQ(expect_values, reps["groups"]);
+	EXPECT_VECEQ(expect_values, reps["groups"]);
 
 	tens.reset(repl);
 
@@ -274,7 +274,7 @@ TEST(GROUP, RegistryRetag)
 	reps = treg.get_tags(orig);
 	EXPECT_EQ(1, reps.size());
 	ASSERT_HAS(reps, "groups");
-	EXPECT_ARREQ(expect_values, reps["groups"]);
+	EXPECT_VECEQ(expect_values, reps["groups"]);
 }
 
 

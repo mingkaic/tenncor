@@ -55,9 +55,9 @@ TEST(INTERNAL, Conversions)
 	std::vector<double> gotc(rawc, rawc + 9);
 	std::vector<double> gotd(rawd, rawd + 9);
 
-	EXPECT_ARREQ(values, gotb);
-	EXPECT_ARREQ(values, gotc);
-	EXPECT_ARREQ(values, gotd);
+	EXPECT_VECEQ(values, gotb);
+	EXPECT_VECEQ(values, gotc);
+	EXPECT_VECEQ(values, gotd);
 
 	eigen::MatrixT<double> m(3, 3);
 	std::copy(values.begin(), values.end(), m.data());
@@ -72,8 +72,8 @@ TEST(INTERNAL, Conversions)
 	std::vector<double> gote(rawe, rawe + 9);
 	std::vector<double> gotf(rawf, rawf + 9);
 
-	EXPECT_ARREQ(values, gote);
-	EXPECT_ARREQ(values, gotf);
+	EXPECT_VECEQ(values, gote);
+	EXPECT_VECEQ(values, gotf);
 }
 
 
@@ -95,11 +95,11 @@ TEST(INTERNAL, MakeEigenmap)
 	std::vector<double> got_mat(data, data + shape.n_elems());
 	std::vector<double> got_mten(mdata, mdata + shape.n_elems());
 	std::vector<double> got_tens(tdata, tdata + shape.n_elems());
-	EXPECT_ARREQ(expect, got_mat);
-	EXPECT_ARREQ(expect, got_mten);
+	EXPECT_VECEQ(expect, got_mat);
+	EXPECT_VECEQ(expect, got_mten);
 
 	std::vector<double> expect_static = {1, 2, 3, 4, 5, 6};
-	EXPECT_ARREQ(expect_static, got_tens);
+	EXPECT_VECEQ(expect_static, got_tens);
 
 	teq::Shape mshape = eigen::get_shape<double>(tmap);
 	teq::Shape tshape = eigen::get_shape<double>(tens);
@@ -160,7 +160,7 @@ TEST(INTERNAL, GetCoorder)
 		teq::TensptrT(new MockTensor(shape)),
 		std::vector<double>{2, 8, 4, 5, 7, 6}, shape, coord);
 	auto c = get_coorder(edge);
-	EXPECT_ARREQ(coord, c);
+	EXPECT_VECEQ(coord, c);
 
 	MockEdge<double> badedge(
 		teq::TensptrT(new MockTensor(teq::Shape(shape))),

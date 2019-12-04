@@ -34,12 +34,18 @@ struct CversionCtx
 	{
 		const teq::CEdgesT& args = f->get_children();
 		std::string opname = f->get_opcode().name_;
+		AttrMapT attrs;
+		auto keys = f->ls_attrs();
+		for (auto key : keys)
+		{
+			attrs.emplace(key, f->get_attr(key));
+		}
 		if (estd::has(matchers_, opname))
 		{
 			const MatchsT& matchers = matchers_.at(opname);
 			for (auto& matcher : matchers)
 			{
-				auto cands = matcher->match(out, args);
+				auto cands = matcher->match(out, args, attrs);
 				if (cands.size() > 0)
 				{
 					auto fid = matcher->get_fid();

@@ -22,7 +22,7 @@ using LeafUnmarshF = std::function<teq::TensptrT(
 using EdgesT = std::vector<std::pair<teq::TensptrT,marsh::Maps>>;
 
 using FuncUnmarshF = std::function<teq::TensptrT(
-	std::string,const EdgesT&)>;
+	std::string,const EdgesT&,marsh::Maps&&)>;
 
 /// Return graph info through out available from in graph
 void load_graph (teq::TensptrSetT& roots,

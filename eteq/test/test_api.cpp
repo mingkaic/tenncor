@@ -133,8 +133,7 @@ static void unary_generic (UnaryOpF<double> op,
 	std::function<void(eteq::NodeptrT<double>,teq::Shape&,std::vector<double>&)> verify,
 	std::function<void(double*,std::vector<double>&)> bwverify)
 {
-	std::vector<teq::DimT> slist = {2, 3, 4};
-	teq::Shape shape(slist);
+	teq::Shape shape({2, 3, 4});
 	std::vector<double> data = {
 		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
 		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
@@ -153,7 +152,7 @@ static void unary_generic (UnaryOpF<double> op,
 	session.update();
 
 	auto gotshape = gsrc->shape();
-	ASSERT_ARREQ(slist, gotshape);
+	ASSERT_ARREQ(shape, gotshape);
 	double* goptr = (double*) gsrc->data();
 	bwverify(goptr, data);
 }
@@ -173,7 +172,7 @@ static void unar_elem (std::vector<double> data,
 	dest->update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -189,7 +188,7 @@ static void unar_elem (std::vector<double> data,
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0; i < n; ++i)
@@ -240,7 +239,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	dest->update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -252,11 +251,11 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	crhs->update();
 	{
 		auto gotshape = clhs->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	{
 		auto gotshape = crhs->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* lptr = (double*) clhs->data();
 	for (size_t i = 0; i < n; ++i)
@@ -277,7 +276,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	session.update();
 	{
 		auto gotshape = gsame->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
@@ -290,7 +289,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr2 = (double*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
@@ -303,7 +302,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr3 = (double*) gright->data();
 	for (size_t i = 0; i < n; ++i)
@@ -368,7 +367,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	dest->update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* optr = (int32_t*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -380,11 +379,11 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	crhs->update();
 	{
 		auto gotshape = clhs->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	{
 		auto gotshape = crhs->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* lptr = (int32_t*) clhs->data();
 	for (size_t i = 0; i < n; ++i)
@@ -405,7 +404,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	session.update();
 	{
 		auto gotshape = gsame->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr = (int32_t*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
@@ -418,7 +417,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr2 = (int32_t*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
@@ -431,7 +430,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr3 = (int32_t*) gright->data();
 	for (size_t i = 0; i < n; ++i)
@@ -842,7 +841,7 @@ TEST(API, Select)
 		dest->update();
 		{
 			auto gotshape = dest->shape();
-			ASSERT_ARREQ(shape_list, gotshape);
+			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* optr = (double*) dest->data();
 		for (size_t i = 0; i < n; ++i)
@@ -862,7 +861,7 @@ TEST(API, Select)
 		session.update();
 		{
 			auto gotshape = gleft->shape();
-			ASSERT_ARREQ(shape_list, gotshape);
+			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* goptr = (double*) gleft->data();
 		for (size_t i = 0; i < n; ++i)
@@ -875,7 +874,7 @@ TEST(API, Select)
 		session.update();
 		{
 			auto gotshape = gright->shape();
-			ASSERT_ARREQ(shape_list, gotshape);
+			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* goptr2 = (double*) gright->data();
 		for (size_t i = 0; i < n; ++i)
@@ -1149,7 +1148,7 @@ TEST(API, Rprod)
 	session.update();
 
 	auto gotshape = gsrc->shape();
-	ASSERT_ARREQ(slist, gotshape);
+	ASSERT_ARREQ(shape, gotshape);
 	int32_t* goptr = (int32_t*) gsrc->data();
 	{
 		size_t n = data.size();
@@ -1178,7 +1177,7 @@ TEST(API, Rprod)
 		9, 7,
 	};
 	auto gotshape2 = gsrc2->shape();
-	ASSERT_ARREQ(slist, gotshape2);
+	ASSERT_ARREQ(shape, gotshape2);
 	int32_t* goptr2 = (int32_t*) gsrc2->data();
 	{
 		for (size_t i = 0, n = ex_grad.size(); i < n; ++i)
@@ -1266,7 +1265,7 @@ TEST(API, Rmin)
 				expect[min_idx] = 1;
 			}
 			std::vector<double> got(gout, gout + m);
-			EXPECT_ARREQ(expect, got);
+			EXPECT_VECEQ(expect, got);
 		});
 }
 
@@ -1348,7 +1347,7 @@ TEST(API, Rmax)
 				expect[max_idx] = 1;
 			}
 			std::vector<double> got(gout, gout + m);
-			EXPECT_ARREQ(expect, got);
+			EXPECT_VECEQ(expect, got);
 		});
 }
 
@@ -1390,7 +1389,7 @@ TEST(API, Permute)
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
@@ -1433,7 +1432,7 @@ TEST(API, Extend)
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
@@ -1500,22 +1499,18 @@ TEST(API, Matmul)
 	session.track({gsame->get_tensor()});
 	session.update();
 	teq::Shape gcshape = gsame->shape();
-	{
-		std::vector<teq::DimT> glist(gcshape.begin(), gcshape.end());
-		ASSERT_ARREQ(sqrlist, glist);
-	}
+	ASSERT_ARREQ(cshape, gcshape);
 
 	eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, a);
 	session.track({gleft->get_tensor()});
 	session.update();
 	teq::Shape gashape = gleft->shape();
 	{
-		std::vector<teq::DimT> glist(gashape.begin(), gashape.end());
-		ASSERT_ARREQ(alist, glist);
+		ASSERT_ARREQ(ashape, gashape);
 		int32_t* ga = (int32_t*) gleft->data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
-		ASSERT_ARREQ(expect_ga, ga_data);
+		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
 	eteq::NodeptrT<int32_t> gright = eteq::derive(dest, b);
@@ -1523,12 +1518,11 @@ TEST(API, Matmul)
 	session.update();
 	teq::Shape gbshape = gright->shape();
 	{
-		std::vector<teq::DimT> glist(gbshape.begin(), gbshape.end());
-		ASSERT_ARREQ(blist, glist);
+		ASSERT_ARREQ(bshape, gbshape);
 		int32_t* gb = (int32_t*) gright->data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
-		ASSERT_ARREQ(expect_gb, gb_data);
+		ASSERT_VECEQ(expect_gb, gb_data);
 	}
 }
 
@@ -1591,22 +1585,18 @@ TEST(API, Contract)
 	session.track({gsame->get_tensor()});
 	session.update();
 	teq::Shape gcshape = gsame->shape();
-	{
-		std::vector<teq::DimT> glist(gcshape.begin(), gcshape.end());
-		ASSERT_ARREQ(sqrlist, glist);
-	}
+	ASSERT_ARREQ(cshape, gcshape);
 
 	eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, a);
 	session.track({gleft->get_tensor()});
 	session.update();
 	teq::Shape gashape = gleft->shape();
 	{
-		std::vector<teq::DimT> glist(gashape.begin(), gashape.end());
-		ASSERT_ARREQ(alist, glist);
+		ASSERT_ARREQ(ashape, gashape);
 		int32_t* ga = (int32_t*) gleft->data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
-		ASSERT_ARREQ(expect_ga, ga_data);
+		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
 	eteq::NodeptrT<int32_t> gright = eteq::derive(dest, b);
@@ -1614,12 +1604,11 @@ TEST(API, Contract)
 	session.update();
 	teq::Shape gbshape = gright->shape();
 	{
-		std::vector<teq::DimT> glist(gbshape.begin(), gbshape.end());
-		ASSERT_ARREQ(blist, glist);
+		ASSERT_ARREQ(bshape, gbshape);
 		int32_t* gb = (int32_t*) gright->data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
-		ASSERT_ARREQ(expect_gb, gb_data);
+		ASSERT_VECEQ(expect_gb, gb_data);
 	}
 }
 
@@ -1637,7 +1626,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	dest->update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	size_t nelems = dest->shape().n_elems();
@@ -1654,7 +1643,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr2 = (double*) gleft->data();
 	EXPECT_DOUBLE_EQ(0, goptr2[0]);
@@ -1664,7 +1653,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr3 = (double*) gright->data();
 	EXPECT_DOUBLE_EQ(0, goptr3[0]);
@@ -1752,7 +1741,7 @@ TEST(API, Convolution)
 		double* optr = (double*) dest->data();
 		ASSERT_NE(nullptr, optr);
 		std::vector<double> outdata(optr, optr + gotshape.n_elems());
-		ASSERT_ARREQ(expect_out, outdata);
+		ASSERT_VECEQ(expect_out, outdata);
 	}
 
 	teq::Session session;
@@ -1763,10 +1752,10 @@ TEST(API, Convolution)
 	session.update();
 	{
 		auto gashape = gleft->shape();
-		ASSERT_ARREQ(alist, gashape);
+		ASSERT_ARREQ(shape, gashape);
 		double* ga = (double*) gleft->data();
 		std::vector<double> ga_data(ga, ga + gashape.n_elems());
-		ASSERT_ARREQ(expect_ga, ga_data);
+		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
 	eteq::NodeptrT<double> gright = eteq::derive(dest, kernel);
@@ -1775,10 +1764,10 @@ TEST(API, Convolution)
 	session.update();
 	{
 		auto gbshape = gright->shape();
-		ASSERT_ARREQ(blist, gbshape);
+		ASSERT_ARREQ(kshape, gbshape);
 		double* gb = (double*) gright->data();
 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
-		ASSERT_ARREQ(expect_gb, gb_data);
+		ASSERT_VECEQ(expect_gb, gb_data);
 	}
 }
 

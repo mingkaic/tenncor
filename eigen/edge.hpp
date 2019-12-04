@@ -18,6 +18,8 @@ const std::string shaper_key = "shape";
 
 const std::string coorder_key = "coorder";
 
+std::vector<teq::CDimT> get_coorder (const marsh::Maps& attrs);
+
 std::vector<teq::CDimT> get_coorder (const teq::iEdge& edge);
 
 template <typename T>

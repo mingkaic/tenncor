@@ -49,6 +49,8 @@ struct Functor
 	char name_[NSYMBOL];
 	char variadic_[NSYMBOL];
 	int commutative_;
+	/// Argument attributes
+	struct PtrList attrs_;
 };
 
 /// Recursively free the functor and all it's contents

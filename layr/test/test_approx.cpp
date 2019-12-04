@@ -146,13 +146,13 @@ TEST(APPROX, GroupAssign)
 	PybindT* t = err->data();
 	std::vector<PybindT> expectt(shape.n_elems(), 2);
 	std::vector<PybindT> tvec(t, t + shape.n_elems());
-	EXPECT_ARREQ(expectt, tvec);
+	EXPECT_VECEQ(expectt, tvec);
 
 	PybindT* o = (PybindT*) static_cast<eteq::Variable<PybindT>*>(
 		updated_order[0])->data();
 	std::vector<PybindT> expecto(shape.n_elems(), 1);
 	std::vector<PybindT> ovec(o, o + shape.n_elems());
-	EXPECT_ARREQ(expecto, ovec);
+	EXPECT_VECEQ(expecto, ovec);
 
 	PybindT* d = leaf->data();
 	PybindT exdval = -1.34;
@@ -207,7 +207,7 @@ TEST(APPROX, PreUpdateGroupAssign)
 	PybindT* t = err->data();
 	std::vector<PybindT> expectt(shape.n_elems(), 2);
 	std::vector<PybindT> tvec(t, t + shape.n_elems());
-	EXPECT_ARREQ(expectt, tvec);
+	EXPECT_VECEQ(expectt, tvec);
 
 	ASSERT_EQ(2, groups.size());
 	ASSERT_EQ(1, groups[0].size());

@@ -37,11 +37,11 @@ extern YY_FLUSH_BUFFER;
 
 %type <conv> 		conversion
 %type <node>		matcher_el target
-%type <functor>		matcher mfunction tfunction
+%type <functor>		matcher function mfunction tfunction
 %type <argument> 	marg targ
 %type <kvpair>		key_val
 
-%type <objs>		margs targs edge_attr
+%type <objs>		margs targs attr
 %type <nums> 		num_arr
 
 %token
@@ -104,24 +104,34 @@ matcher_el:	NUMBER
 				node->val_.functor_ = $1;
 			}
 
-mfunction:	SYMBOL LPAREN margs RPAREN
+function:	SYMBOL
 			{
 				size_t nbytes = sizeof(struct Functor);
 				struct Functor* f = $$ = malloc(nbytes);
 				memset(f, 0, nbytes);
-
 				strncpy(f->name_, $1, NSYMBOL);
+				f->attrs_.type_ = KV_PAIR;
+			}
+			|
+			SYMBOL LCB attr RCB
+			{
+				size_t nbytes = sizeof(struct Functor);
+				struct Functor* f = $$ = malloc(nbytes);
+				memset(f, 0, nbytes);
+				strncpy(f->name_, $1, NSYMBOL);
+				ptrlist_move(&f->attrs_, $3);
+			}
+
+mfunction:	function LPAREN margs RPAREN
+			{
+				struct Functor* f = $$ = $1;
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
 			|
-			SYMBOL LPAREN margs COMMA VARIADIC SYMBOL RPAREN
+			function LPAREN margs COMMA VARIADIC SYMBOL RPAREN
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-
-				strncpy(f->name_, $1, NSYMBOL);
+				struct Functor* f = $$ = $1;
 				strncpy(f->variadic_, $6, NSYMBOL);
 				ptrlist_move(&f->args_, $3);
 				free($3);
@@ -148,7 +158,7 @@ marg:		matcher_el
 				a->attrs_.type_ = KV_PAIR;
 			}
 			|
-			matcher_el ASSIGN LCB edge_attr RCB
+			matcher_el ASSIGN LCB attr RCB
 			{
 				size_t nbytes = sizeof(struct Arg);
 				struct Arg* a = $$ = malloc(nbytes);
@@ -184,36 +194,24 @@ target:		NUMBER
 				node->val_.functor_ = $1;
 			}
 
-tfunction:	SYMBOL LPAREN targs RPAREN
+tfunction:	function LPAREN targs RPAREN
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-
-				strncpy(f->name_, $1, NSYMBOL);
+				struct Functor* f = $$ = $1;
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
 			|
-			SYMBOL LPAREN targs COMMA VARIADIC SYMBOL RPAREN
+			function LPAREN targs COMMA VARIADIC SYMBOL RPAREN
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-
-				strncpy(f->name_, $1, NSYMBOL);
+				struct Functor* f = $$ = $1;
 				strncpy(f->variadic_, $6, NSYMBOL);
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
 			|
-			SYMBOL LPAREN VARIADIC SYMBOL RPAREN
+			function LPAREN VARIADIC SYMBOL RPAREN
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-
-				strncpy(f->name_, $1, NSYMBOL);
+				struct Functor* f = $$ = $1;
 				strncpy(f->variadic_, $4, NSYMBOL);
 				f->args_.type_ = ARGUMENT;
 			}
@@ -239,7 +237,7 @@ targ:		target
 				a->attrs_.type_ = KV_PAIR;
 			}
 			|
-			target ASSIGN LCB edge_attr RCB
+			target ASSIGN LCB attr RCB
 			{
 				size_t nbytes = sizeof(struct Arg);
 				struct Arg* a = $$ = malloc(nbytes);
@@ -250,7 +248,7 @@ targ:		target
 				free($4);
 			}
 
-edge_attr:	edge_attr COMMA key_val
+attr:		attr COMMA key_val
 			{
 				struct PtrList* list = $$ = $1;
 				ptrlist_pushback(list, $3);

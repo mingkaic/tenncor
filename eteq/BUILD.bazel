@@ -82,7 +82,6 @@ cc_library(
         "//opt:opt",
         "//pbm:pbm",
     ],
-    defines = ["FINIT_ON_BUILD"],
     visibility = ["//visibility:public"],
 )
 

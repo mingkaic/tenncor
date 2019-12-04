@@ -80,7 +80,7 @@ TEST(EQUATION, MatmulComplex)
 
 	{
 		auto gotshape = da->shape();
-		ASSERT_ARREQ(alist, gotshape);
+		ASSERT_ARREQ(ashape, gotshape);
 	}
 	float* gaptr = (float*) da->data();
 	for (size_t i = 0, n = ashape.n_elems(); i < n; ++i)
@@ -90,7 +90,7 @@ TEST(EQUATION, MatmulComplex)
 
 	{
 		auto gotshape = db->shape();
-		ASSERT_ARREQ(blist, gotshape);
+		ASSERT_ARREQ(bshape, gotshape);
 	}
 	float* gbptr = (float*) db->data();
 	for (size_t i = 0, n = bshape.n_elems(); i < n; ++i)
@@ -100,7 +100,7 @@ TEST(EQUATION, MatmulComplex)
 
 	{
 		auto gotshape = dc->shape();
-		ASSERT_ARREQ(clist, gotshape);
+		ASSERT_ARREQ(cshape, gotshape);
 	}
 	float* gcptr = (float*) dc->data();
 	for (size_t i = 0, n = cshape.n_elems(); i < n; ++i)

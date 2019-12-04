@@ -133,6 +133,25 @@ TensMapIndicesT save_graph (
 			auto pb_attrs = pb_arg->mutable_attrs();
 			marshal_attrs(*pb_attrs, mvalues);
 		}
+		auto pb_fatters = pb_func->mutable_attrs();
+		std::vector<std::string> attr_keys = func->ls_attrs();
+		for (std::string attr_key : attr_keys)
+		{
+			auto fattr = func->get_attr(attr_key);
+			if (typeid(marsh::NumArray<double>).
+				hash_code() != fattr->class_code())
+			{
+				continue;
+			}
+			tenncor::ArrayAttrs attrs;
+			auto& contents = static_cast<
+				const marsh::NumArray<double>*>(fattr)->contents_;
+			for (double e : contents)
+			{
+				attrs.add_values(e);
+			}
+			pb_fatters->insert({attr_key, attrs});
+		}
 	}
 	return ordermap;
 }
