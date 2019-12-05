@@ -14,7 +14,7 @@
 
 
 static void test_reduce (
-	std::function<eigen::EigenptrT<double>(
+	std::function<eigen::EigenptrT<double>(teq::Shape,
 		const eigen::iEigenEdge<double>&,const marsh::Maps& attr)> red,
 	std::function<double(double,double)> agg)
 {
@@ -25,7 +25,7 @@ static void test_reduce (
 		std::vector<double>{1});
 	marsh::Maps mvalues;
 	edge.get_attrs(mvalues);
-	auto r = red(edge, mvalues);
+	auto r = red(teq::Shape({3}), edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -68,7 +68,7 @@ TEST(OPERATOR, ArgMax)
 		std::vector<double>{1});
 	marsh::Maps mvalues;
 	edge.get_attrs(mvalues);
-	auto r = eigen::argmax(edge, mvalues);
+	auto r = eigen::argmax(teq::Shape({3}), edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -83,7 +83,7 @@ TEST(OPERATOR, ArgMax)
 		std::vector<double>{8});
 	marsh::Maps mvalues2;
 	edge2.get_attrs(mvalues2);
-	auto r2 = eigen::argmax(edge2, mvalues2);
+	auto r2 = eigen::argmax(teq::Shape({1}), edge2, mvalues2);
 
 	double* raw2 = r2->get_ptr();
 	r2->assign();
@@ -101,7 +101,7 @@ TEST(OPERATOR, Extend)
 		std::vector<double>{1, 4});
 	marsh::Maps mvalues;
 	edge.get_attrs(mvalues);
-	auto r = eigen::extend(edge, mvalues);
+	auto r = eigen::extend(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -126,7 +126,7 @@ TEST(OPERATOR, Permute)
 			std::vector<double>{2, 0, 1, 3, 4, 5, 6, 7});
 		marsh::Maps mvalues;
 		edge.get_attrs(mvalues);
-		auto r = eigen::permute(edge, mvalues);
+		auto r = eigen::permute(outshape, edge, mvalues);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -147,7 +147,7 @@ TEST(OPERATOR, Permute)
 			std::vector<double>{1, 0, 2, 3, 4, 5, 6, 7});
 		marsh::Maps mvalues;
 		edge.get_attrs(mvalues);
-		auto r = eigen::permute(edge, mvalues);
+		auto r = eigen::permute(outshape, edge, mvalues);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -166,7 +166,7 @@ TEST(OPERATOR, Reshape)
 		teq::TensptrT(new MockTensor(teq::Shape({2, 1, 3}))),
 		std::vector<double>{2, 8, 4, 5, 6, 7},
 		outshape);
-	auto r = eigen::reshape(edge);
+	auto r = eigen::reshape(outshape, edge);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -190,7 +190,7 @@ TEST(OPERATOR, Slice)
 			outshape, std::vector<double>{1, 2, 1, 1});
 		marsh::Maps mvalues;
 		edge.get_attrs(mvalues);
-		auto r = eigen::slice(edge, mvalues);
+		auto r = eigen::slice(outshape, edge, mvalues);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -206,7 +206,7 @@ TEST(OPERATOR, Slice)
 			outshape, std::vector<double>{0, 3, 1, 1});
 		marsh::Maps mvalues;
 		edge.get_attrs(mvalues);
-		auto r = eigen::slice(edge, mvalues);
+		auto r = eigen::slice(outshape, edge, mvalues);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -230,7 +230,7 @@ TEST(OPERATOR, GroupConcat)
 		std::vector<double>{1, 0, 3, 9}, outshape);
 	marsh::Maps mvalues;
 	edgea.get_attrs(mvalues);
-	auto r = eigen::group_concat<double>({edgea, edgeb}, mvalues);
+	auto r = eigen::group_concat<double>(outshape, {edgea, edgeb}, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -253,7 +253,7 @@ TEST(OPERATOR, GroupSum)
 	MockEdge<double> edgec(
 		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
 		std::vector<double>{4.2, 1, 7.1, 1, 2, 1.1}, outshape);
-	auto r = eigen::group_sum<double>({edgea, edgeb, edgec});
+	auto r = eigen::group_sum<double>(outshape, {edgea, edgeb, edgec});
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -276,7 +276,7 @@ TEST(OPERATOR, GroupProd)
 	MockEdge<double> edgec(
 		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
 		std::vector<double>{4, 1, 7, 1, 2, 1}, outshape);
-	auto r = eigen::group_prod<double>({edgea, edgeb, edgec});
+	auto r = eigen::group_prod<double>(outshape, {edgea, edgeb, edgec});
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -296,7 +296,7 @@ TEST(OPERATOR, Pad)
 		outshape, std::vector<double>{1, 1});
 	marsh::Maps mvalues;
 	edge.get_attrs(mvalues);
-	auto r = eigen::pad(edge, mvalues);
+	auto r = eigen::pad(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -320,7 +320,7 @@ TEST(OPERATOR, Stride)
 		outshape, std::vector<double>{1, 2});
 	marsh::Maps mvalues;
 	edge.get_attrs(mvalues);
-	auto r = eigen::stride(edge, mvalues);
+	auto r = eigen::stride(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -342,7 +342,7 @@ TEST(OPERATOR, Scatter)
 		outshape, std::vector<double>{2, 2});
 	marsh::Maps mvalues;
 	edge.get_attrs(mvalues);
-	auto r = eigen::scatter(edge, mvalues);
+	auto r = eigen::scatter(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -366,7 +366,7 @@ TEST(OPERATOR, Reverse)
 		outshape, std::vector<double>{1});
 	marsh::Maps mvalues;
 	edge.get_attrs(mvalues);
-	auto r = eigen::reverse(edge, mvalues);
+	auto r = eigen::reverse(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -391,7 +391,7 @@ TEST(OPERATOR, Concat)
 		std::vector<double>{1, 0, 3}, outshape);
 	marsh::Maps mvalues;
 	edgea.get_attrs(mvalues);
-	auto r = eigen::concat(edgea, edgeb, mvalues);
+	auto r = eigen::concat(outshape, edgea, edgeb, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -423,7 +423,7 @@ TEST(OPERATOR, Concat)
 
 
 static void elementary_unary (
-	std::function<eigen::EigenptrT<double>(
+	std::function<eigen::EigenptrT<double>(teq::Shape,
 		const eigen::iEigenEdge<double>&)> f,
 	std::function<double(double)> unary,
 	std::vector<double> invec = {-2, 8, -4, -5, 7, 6})
@@ -435,7 +435,7 @@ static void elementary_unary (
 		teq::Shape shape({2, 3});
 		MockEdge<double> edge(
 			teq::TensptrT(new MockTensor(shape)), invec, shape);
-		auto r = f(edge);
+		auto r = f(shape, edge);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -447,7 +447,7 @@ static void elementary_unary (
 		teq::Shape shape({2, 1, 3});
 		MockEdge<double> edge(
 			teq::TensptrT(new MockTensor(shape)), invec, shape);
-		auto r = f(edge);
+		auto r = f(shape, edge);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -560,7 +560,7 @@ TEST(OPERATOR, Convolution)
 		std::vector<double>{1});
 	marsh::Maps mvalues;
 	kernel.get_attrs(mvalues);
-	auto r = eigen::convolution(image, kernel, mvalues);
+	auto r = eigen::convolution(outshape, image, kernel, mvalues);
 	double* raw = r->get_ptr();
 	r->assign();
 

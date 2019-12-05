@@ -24,7 +24,7 @@ PYBIND11_MODULE(eteq_mocker, m)
 				{
 					const eteq::Edge<PybindT>& arg = args.at(0);
 					PybindT* data = arg.get_node()->data();
-					teq::Shape shape = arg.argshape();
+					teq::Shape shape = arg.shape();
 					auto output = unary(
 						RawDataT(data, data + shape.n_elems()),
 						RawShapeT(shape.begin(), shape.end()));

@@ -27,26 +27,10 @@ struct Edge final : public eigen::iEigenEdge<T>
 		{
 			logs::fatal("cannot map a null node");
 		}
-		shape_ = node->shape();
-	}
-
-	Edge (NodeptrT<T> node, teq::Shape shape) :
-		node_(node), shape_(shape)
-	{
-		if (node_ == nullptr)
-		{
-			logs::fatal("cannot map a null node");
-		}
 	}
 
 	/// Implementation of iEdge
 	teq::Shape shape (void) const override
-	{
-		return shape_;
-	}
-
-	/// Implementation of iEdge
-	teq::Shape argshape (void) const override
 	{
 		return node_->shape();
 	}
@@ -58,15 +42,7 @@ struct Edge final : public eigen::iEigenEdge<T>
 	}
 
 	/// Implementation of iEdge
-	void get_attrs (marsh::Maps& out) const override
-	{
-		if (false == shape_.compatible_after(node_->shape(), 0))
-		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = std::vector<double>(shape_.begin(), shape_.end());
-			out.contents_.emplace(eigen::shaper_key, std::move(arr));
-		}
-	}
+	void get_attrs (marsh::Maps& out) const override {}
 
 	/// Implementation of iEigenEdge<T>
 	T* data (void) const override
@@ -87,9 +63,6 @@ struct Edge final : public eigen::iEigenEdge<T>
 private:
 	/// Tensor reference
 	NodeptrT<T> node_;
-
-	/// Output shape
-	teq::Shape shape_;
 };
 
 /// Type of typed functor arguments

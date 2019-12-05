@@ -62,6 +62,7 @@ cc_binary(
     copts = ["-std=c++17"],
     deps = [
         "//pbm:pbm_cc_proto",
+        "//onnx:onnx_cc_proto",
         "@com_github_mingkaic_cppkg//estd:estd",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],

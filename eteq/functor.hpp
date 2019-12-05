@@ -27,7 +27,10 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	static Functor<T>* get (egen::_GENERATED_OPCODE opcode,
-		ArgsT<T> args, marsh::Maps&& attrs);
+		ArgsT<T> args, marsh::Maps&& attrs)
+	{
+		return new Functor<T>(opcode, args, std::move(attrs));
+	}
 
 	/// Return Functor move of other
 	static Functor<T>* get (Functor<T>&& other)
@@ -101,7 +104,7 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 			uninitialize();
 			edge->get_node()->remove_parent(this);
 			teq::Shape nexshape = arg->shape();
-			teq::Shape curshape = edge->argshape();
+			teq::Shape curshape = edge->shape();
 			if (false == nexshape.compatible_after(curshape, 0))
 			{
 				logs::fatalf("cannot update child %d to argument with "
@@ -187,23 +190,12 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	void initialize (void)
 	{
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			out_, eigen::EigenEdgesT<T>(args_.begin(), args_.end()), attrs_);
+			out_, shape_, eigen::EigenEdgesT<T>(args_.begin(), args_.end()), attrs_);
 	}
 
 private:
-	Functor (egen::_GENERATED_OPCODE opcode, teq::Shape shape,
-		ArgsT<T> args, marsh::Maps&& attrs) :
-		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
-		shape_(shape), args_(args), attrs_(std::move(attrs))
-	{
-		for (Edge<T>& arg : args_)
-		{
-			arg.get_node()->add_parent(this);
-		}
-#ifndef SKIP_INIT
-		initialize();
-#endif // SKIP_INIT
-	}
+	Functor (egen::_GENERATED_OPCODE opcode,
+		ArgsT<T> args, marsh::Maps&& attrs);
 
 	Functor (Functor<T>&& other) = default;
 
@@ -296,8 +288,10 @@ private:
 };
 
 template <typename T>
-Functor<T>* Functor<T>::get (egen::_GENERATED_OPCODE opcode,
-	ArgsT<T> args, marsh::Maps&& attrs)
+Functor<T>::Functor (egen::_GENERATED_OPCODE opcode,
+	ArgsT<T> args, marsh::Maps&& attrs) :
+	opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
+	args_(args), attrs_(std::move(attrs))
 {
 	static bool registered = register_builder<Functor<T>,T>(
 		[](teq::TensptrT tens)
@@ -307,33 +301,31 @@ Functor<T>* Functor<T>::get (egen::_GENERATED_OPCODE opcode,
 		});
 	assert(registered);
 
-	size_t nargs = args.size();
-	if (0 == nargs)
+	if (args.empty())
 	{
-		logs::fatalf("cannot perform `%s` with no arguments",
+		logs::fatalf("cannot perform `%s` without arguments",
 			egen::name_op(opcode).c_str());
 	}
 
-	teq::Shape shape = args[0].shape();
-	for (size_t i = 1, n = nargs; i < n; ++i)
+	auto shape_attr = get_attr(eigen::shaper_key);
+	if (marsh::NumArray<double>* arr = nullptr == shape_attr ?
+		nullptr : shape_attr->template cast<marsh::NumArray<double>>())
 	{
-		teq::Shape ishape = args[i].shape();
-		if (false == ishape.compatible_after(shape, 0))
-		{
-			std::stringstream location;
-			for (size_t i = 0; i < nargs; ++i)
-			{
-				location << "[" << i << "]\n"
-					<< tag::display_location(args[i].get_tensor()) << "\n";
-			}
-			logs::fatalf("cannot perform `%s` with incompatible shapes %s "
-				"and %s: childrens\n%s", egen::name_op(opcode).c_str(),
-				shape.to_string().c_str(), ishape.to_string().c_str(),
-				location.str().c_str());
-		}
+		std::vector<teq::DimT> slist(
+			arr->contents_.begin(), arr->contents_.end());
+		shape_ = teq::Shape(slist);
 	}
-
-	return new Functor<T>(opcode, shape, args, std::move(attrs));
+	else
+	{
+		shape_ = args_.front().shape();
+	}
+	for (Edge<T>& arg : args_)
+	{
+		arg.get_node()->add_parent(this);
+	}
+#ifndef SKIP_INIT
+	initialize();
+#endif // SKIP_INIT
 }
 
 template <typename T,egen::_GENERATED_OPCODE OPCODE>
@@ -411,14 +403,16 @@ struct ReducePacker : private EmptyPacker<T>
 				shape.to_string().c_str());
 			return {};
 		}
-		std::vector<double> rdims(sig_dims.begin(), sig_dims.end());
-		std::sort(rdims.begin(), rdims.end());
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = rdims;
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			std::vector<double> rdims(sig_dims.begin(), sig_dims.end());
+			std::sort(rdims.begin(), rdims.end());
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(rdims));
 		}
-		return {Edge<T>(node, teq::Shape(slist))};
+		return {Edge<T>(node)};
 	}
 
 	ArgsT<T> pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::RankT offset, teq::RankT ndims)
@@ -483,11 +477,14 @@ struct FuncPacker<T,egen::ARGMAX> final : private EmptyPacker<T>
 			slist[return_dim] = 1;
 		}
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_.push_back(return_dim);
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					std::vector<double>{(double) return_dim}));
 		}
-		return {Edge<T>(node, teq::Shape(slist))};
+		return {Edge<T>(node)};
 	}
 };
 
@@ -504,7 +501,7 @@ struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 				"cannot slice dimensions beyond rank_cap %d: using extent %s",
 				teq::rank_cap, eigen::to_string(extents).c_str());
 		}
-		eteq::NodeptrT<T> arg = nodes[0];
+		NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		slist.reserve(teq::rank_cap);
@@ -532,11 +529,14 @@ struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 			return {};
 		}
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = eigen::encode_pair(xlist);
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					eigen::encode_pair(xlist)));
 		}
-		return {eteq::Edge<T>(arg, outshape)};
+		return {Edge<T>(arg)};
 	}
 };
 
@@ -553,7 +553,7 @@ struct FuncPacker<T,egen::PAD> final : private EmptyPacker<T>
 				"cannot pad dimensions beyond rank_cap %d: using paddings %s",
 				teq::rank_cap, eigen::to_string(paddings).c_str());
 		}
-		eteq::NodeptrT<T> arg = nodes[0];
+		NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		size_t n = std::min(paddings.size(), (size_t) teq::rank_cap);
@@ -562,11 +562,14 @@ struct FuncPacker<T,egen::PAD> final : private EmptyPacker<T>
 			slist[i] += paddings[i].first + paddings[i].second;
 		}
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = eigen::encode_pair(paddings);
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					eigen::encode_pair(paddings)));
 		}
-		return {eteq::Edge<T>(arg, teq::Shape(slist))};
+		return {Edge<T>(arg)};
 	}
 };
 
@@ -583,7 +586,7 @@ struct FuncPacker<T,egen::STRIDE> final : private EmptyPacker<T>
 				"using increments %s (will ignore those dimensions)", teq::rank_cap,
 				fmts::to_string(incrs.begin(), incrs.end()).c_str());
 		}
-		eteq::NodeptrT<T> arg = nodes[0];
+		NodeptrT<T> arg = nodes[0];
 		std::vector<double> coords(teq::rank_cap, 1);
 		size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
 		for (size_t i = 0; i < n; ++i)
@@ -597,11 +600,13 @@ struct FuncPacker<T,egen::STRIDE> final : private EmptyPacker<T>
 			slist[i] = std::round((double) slist[i] / incrs[i]);
 		}
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = coords;
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(coords));
 		}
-		return {eteq::Edge<T>(arg, teq::Shape(slist))};
+		return {Edge<T>(arg)};
 	}
 };
 
@@ -619,7 +624,7 @@ struct FuncPacker<T,egen::SCATTER> final : private EmptyPacker<T>
 				"using increments %s (will ignore those dimensions)", teq::rank_cap,
 				fmts::to_string(incrs.begin(), incrs.end()).c_str());
 		}
-		eteq::NodeptrT<T> arg = nodes[0];
+		NodeptrT<T> arg = nodes[0];
 		std::vector<double> coords(teq::rank_cap, 1);
 		size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
 		for (size_t i = 0; i < n; ++i)
@@ -627,11 +632,13 @@ struct FuncPacker<T,egen::SCATTER> final : private EmptyPacker<T>
 			coords[i] = incrs[i];
 		}
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = coords;
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(outshape.begin(), outshape.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(coords));
 		}
-		return {eteq::Edge<T>(arg, outshape)};
+		return {Edge<T>(arg)};
 	}
 };
 
@@ -642,8 +649,8 @@ struct FuncPacker<T,egen::MATMUL> final : private EmptyPacker<T>
 
 	ArgsT<T> pack (marsh::Maps& attrs, const NodesT<T>& nodes, const eigen::PairVecT<teq::RankT>& dims)
 	{
-		eteq::NodeptrT<T> a = nodes[0];
-		eteq::NodeptrT<T> b = nodes[1];
+		NodeptrT<T> a = nodes[0];
+		NodeptrT<T> b = nodes[1];
 		teq::Shape ashape = a->shape();
 		teq::Shape bshape = b->shape();
 		// check common dimensions
@@ -691,13 +698,16 @@ struct FuncPacker<T,egen::MATMUL> final : private EmptyPacker<T>
 		}
 		teq::Shape outshape(outlist);
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = eigen::encode_pair(dims);
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(outlist.begin(), outlist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					eigen::encode_pair(dims)));
 		}
 		return {
-			eteq::Edge<T>(a, outshape),
-			eteq::Edge<T>(b, outshape),
+			Edge<T>(a),
+			Edge<T>(b),
 		};
 	}
 };
@@ -709,8 +719,8 @@ struct FuncPacker<T,egen::CONV> final : private EmptyPacker<T>
 
 	ArgsT<T> pack (marsh::Maps& attrs, const NodesT<T>& nodes, const std::vector<teq::RankT>& dims)
 	{
-		eteq::NodeptrT<T> image = nodes[0];
-		eteq::NodeptrT<T> kernel = nodes[1];
+		NodeptrT<T> image = nodes[0];
+		NodeptrT<T> kernel = nodes[1];
 		teq::Shape inshape = image->shape();
 		teq::Shape kernelshape = kernel->shape();
 		size_t n = std::min(dims.size(), (size_t) teq::rank_cap);
@@ -728,13 +738,16 @@ struct FuncPacker<T,egen::CONV> final : private EmptyPacker<T>
 		}
 		teq::Shape outshape(slist);
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = std::vector<double>(dims.begin(), dims.end());
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					std::vector<double>(dims.begin(), dims.end())));
 		}
 		return {
-			eteq::Edge<T>(image, outshape),
-			eteq::Edge<T>(kernel, outshape),
+			Edge<T>(image),
+			Edge<T>(kernel),
 		};
 	}
 };
@@ -746,17 +759,17 @@ struct FuncPacker<T,egen::REVERSE> final : private EmptyPacker<T>
 
 	ArgsT<T> pack (marsh::Maps& attrs, const NodesT<T>& nodes, const std::vector<teq::RankT>& dims)
 	{
-		eteq::NodeptrT<T> arg = nodes[0];
+		NodeptrT<T> arg = nodes[0];
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = std::vector<double>(dims.begin(),dims.end());
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					std::vector<double>(dims.begin(),dims.end())));
 		}
-		return {eteq::Edge<T>(arg,arg->shape())};
+		return {Edge<T>(arg)};
 	}
 };
 
-static bool is_inorder (const std::vector<teq::RankT>& order)
+static inline bool is_inorder (const std::vector<teq::RankT>& order)
 {
 	size_t n = order.size();
 	bool inorder = n > 0 ? (order[0] == 0) : true;
@@ -779,7 +792,7 @@ struct FuncPacker<T,egen::PERMUTE> final : private EmptyPacker<T>
 			logs::debug("permuting with same dimensions ... treating as identity");
 			return {};
 		}
-		eteq::NodeptrT<T> arg = nodes[0];
+		NodeptrT<T> arg = nodes[0];
 		bool visited[teq::rank_cap];
 		std::fill(visited, visited + teq::rank_cap, false);
 		for (teq::RankT i = 0, n = order.size(); i < n; ++i)
@@ -807,13 +820,14 @@ struct FuncPacker<T,egen::PERMUTE> final : private EmptyPacker<T>
 			slist[i] = shape.at(indices[i]);
 		}
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = std::vector<double>(indices.begin(),indices.end());
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					std::vector<double>(indices.begin(),indices.end())));
 		}
-		return {
-			eteq::Edge<T>(arg, teq::Shape(slist))
-		};
+		return {Edge<T>(arg)};
 	}
 };
 
@@ -846,7 +860,7 @@ struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 		{
 			--nbcasts;
 		}
-		eteq::NodeptrT<T> arg = nodes[0];
+		NodeptrT<T> arg = nodes[0];
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		for (size_t i = 0; i < nbcasts; ++i)
@@ -859,11 +873,14 @@ struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 			slist[i] *= bcast[i];
 		}
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_ = std::vector<double>(bcast.begin(), bcast.begin() + nbcasts);
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(std::vector<double>(
+					bcast.begin(), bcast.begin() + nbcasts)));
 		}
-		return {eteq::Edge<T>(arg, teq::Shape(slist))};
+		return {Edge<T>(arg)};
 	}
 
 	ArgsT<T> pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::RankT offset, const std::vector<teq::DimT>& xlist)
@@ -881,22 +898,22 @@ struct FuncPacker<T,egen::CONCAT> final : private EmptyPacker<T>
 
 	ArgsT<T> pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::RankT axis)
 	{
-		eteq::NodeptrT<T> left = nodes[0];
-		eteq::NodeptrT<T> right = nodes[1];
+		NodeptrT<T> left = nodes[0];
+		NodeptrT<T> right = nodes[1];
 		teq::Shape leftshape = left->shape();
 		teq::Shape rightshape = right->shape();
 		std::vector<teq::DimT> slist(leftshape.begin(), leftshape.end());
 		slist[axis] += rightshape.at(axis);
 		teq::Shape outshape(slist);
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_.push_back(axis);
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					std::vector<double>{(double) axis}));
 		}
-		return {
-			eteq::Edge<T>(left, outshape),
-			eteq::Edge<T>(right, outshape),
-		};
+		return {Edge<T>(left), Edge<T>(right)};
 	}
 };
 
@@ -918,12 +935,12 @@ struct FuncPacker<T,egen::GROUP_CONCAT> final : private EmptyPacker<T>
 			logs::fatal("cannot group concat less than 2 arguments");
 		}
 		if (std::any_of(nodes.begin(), nodes.end(),
-			[](eteq::NodeptrT<T> arg) { return nullptr == arg; }))
+			[](NodeptrT<T> arg) { return nullptr == arg; }))
 		{
 			logs::fatal("cannot group concat with null argument");
 		}
 		if (std::any_of(nodes.begin(), nodes.end(),
-			[axis](eteq::NodeptrT<T> arg) { return arg->shape().at(axis) > 1; }))
+			[axis](NodeptrT<T> arg) { return arg->shape().at(axis) > 1; }))
 		{
 			logs::fatal("cannot group concat nodes with dimension at axis greater than 1");
 		}
@@ -931,15 +948,17 @@ struct FuncPacker<T,egen::GROUP_CONCAT> final : private EmptyPacker<T>
 		std::vector<teq::DimT> slist(initshape.begin(), initshape.end());
 		slist[axis] = nargs;
 		teq::Shape outshape(slist);
-		eteq::ArgsT<T> groups;
+		ArgsT<T> groups;
 		groups.reserve(nargs);
-		groups.push_back(eteq::Edge<T>(nodes[0], outshape));
-		std::transform(nodes.begin() + 1, nodes.end(), std::back_inserter(groups),
-			[&](eteq::NodeptrT<T> arg) { return eteq::Edge<T>(arg, outshape); });
+		std::transform(nodes.begin(), nodes.end(), std::back_inserter(groups),
+			[&](NodeptrT<T> arg) { return Edge<T>(arg); });
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			arr->contents_.push_back(axis);
-			attrs.contents_.emplace(eigen::coorder_key, std::move(arr));
+			std::vector<double> rslist(slist.begin(), slist.end());
+			attrs.contents_.emplace(eigen::shaper_key,
+				std::make_unique<marsh::NumArray<double>>(rslist));
+			attrs.contents_.emplace(eigen::coorder_key,
+				std::make_unique<marsh::NumArray<double>>(
+					std::vector<double>{(double) axis}));
 		}
 		return groups;
 	}
@@ -952,8 +971,7 @@ struct FuncPacker<T,egen::RESHAPE> final : private EmptyPacker<T>
 
 	ArgsT<T> pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::Shape shape)
 	{
-		eteq::NodeptrT<T> arg = nodes[0];
-		return {eteq::Edge<T>(arg, shape)};
+		return {Edge<T>(nodes[0])};
 	}
 };
 

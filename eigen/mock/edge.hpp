@@ -18,12 +18,6 @@ struct MockEdge final : public eigen::iEigenEdge<T>
 	/// Implementation of iEdge
 	teq::Shape shape (void) const override
 	{
-		return shape_;
-	}
-
-	/// Implementation of iEdge
-	teq::Shape argshape (void) const override
-	{
 		return tensor_->shape();
 	}
 

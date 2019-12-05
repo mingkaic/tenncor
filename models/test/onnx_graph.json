@@ -1,0 +1,516 @@
+{
+ "node": [
+  {
+   "input": [
+    "1"
+   ],
+   "output": [
+    "7"
+   ],
+   "name": "7",
+   "opType": "neg",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "2"
+   ],
+   "output": [
+    "8"
+   ],
+   "name": "8",
+   "opType": "sin",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "4"
+   ],
+   "output": [
+    "9"
+   ],
+   "name": "9",
+   "opType": "abs",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "5"
+   ],
+   "output": [
+    "10"
+   ],
+   "name": "10",
+   "opType": "exp",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "6"
+   ],
+   "output": [
+    "11"
+   ],
+   "name": "11",
+   "opType": "neg",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "8",
+    "2"
+   ],
+   "output": [
+    "12"
+   ],
+   "name": "12",
+   "opType": "+",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "9",
+    "10",
+    "11"
+   ],
+   "output": [
+    "13"
+   ],
+   "name": "13",
+   "opType": "*",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "7",
+    "12"
+   ],
+   "output": [
+    "14"
+   ],
+   "name": "14",
+   "opType": "/",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "4",
+    "13"
+   ],
+   "output": [
+    "15"
+   ],
+   "name": "15",
+   "opType": "-",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "14",
+    "3"
+   ],
+   "output": [
+    "16"
+   ],
+   "name": "16",
+   "opType": "@",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "0",
+    "16"
+   ],
+   "output": [
+    "17"
+   ],
+   "name": "17",
+   "opType": "-",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  }
+ ],
+ "name": "",
+ "initializer": [
+  {
+   "dims": [
+    "3",
+    "1",
+    "7",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 0,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "0",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "3",
+    "7",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 0,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "1",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "3",
+    "7",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 0,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "2",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "7",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 0,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "3",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "3",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 0,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "4",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "3",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 0,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "5",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "3",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 0,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "6",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [],
+   "uint64Data": []
+  }
+ ],
+ "sparseInitializer": [],
+ "docString": "",
+ "input": [],
+ "output": [
+  {
+   "name": "15",
+   "type": {
+    "tensorType": {
+     "elemType": 0,
+     "shape": {
+      "dim": [
+       {
+        "denotation": "",
+        "dimValue": "3"
+       },
+       {
+        "denotation": "",
+        "dimValue": "3"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       }
+      ]
+     }
+    },
+    "denotation": ""
+   },
+   "docString": ""
+  },
+  {
+   "name": "17",
+   "type": {
+    "tensorType": {
+     "elemType": 0,
+     "shape": {
+      "dim": [
+       {
+        "denotation": "",
+        "dimValue": "3"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "7"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       }
+      ]
+     }
+    },
+    "denotation": ""
+   },
+   "docString": ""
+  }
+ ],
+ "valueInfo": [],
+ "quantizationAnnotation": [
+  {
+   "tensorName": "0",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "src2"
+    },
+    {
+     "key": "IS_IMMUTABLE",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "tensorName": "1",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "osrc"
+    },
+    {
+     "key": "IS_IMMUTABLE",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "tensorName": "2",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "src"
+    },
+    {
+     "key": "IS_IMMUTABLE",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "tensorName": "3",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "osrc2"
+    },
+    {
+     "key": "IS_IMMUTABLE",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "tensorName": "4",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "s2src"
+    },
+    {
+     "key": "IS_IMMUTABLE",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "tensorName": "5",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "s2src2"
+    },
+    {
+     "key": "IS_IMMUTABLE",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "tensorName": "6",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "s2src3"
+    },
+    {
+     "key": "IS_IMMUTABLE",
+     "value": ""
+    }
+   ]
+  }
+ ]
+}

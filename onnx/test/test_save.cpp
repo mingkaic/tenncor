@@ -11,27 +11,22 @@
 #include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
 
-#include "tag/prop.hpp"
-
-#include "pbm/save.hpp"
+#include "onnx/save.hpp"
 
 
 const std::string testdir = "models/test";
 
 
-static std::string save_leaf (teq::iLeaf* leaf)
-{
-	return std::string(leaf->shape().n_elems(), 0);
-}
+static void save_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) {}
 
 
 TEST(SAVE, SaveGraph)
 {
-	std::string expect_pbfile = testdir + "/pbm.pbx";
-	std::string got_pbfile = "got_pbm.pbx";
+	std::string expect_pbfile = testdir + "/onnx_graph.onnx";
+	std::string got_pbfile = "got_onnx_graph.onnx";
 
 	{
-		tenncor::Graph graph;
+		onnx::GraphProto graph;
 		std::vector<teq::TensptrT> roots;
 
 		// subtree one
@@ -39,10 +34,6 @@ TEST(SAVE, SaveGraph)
 		teq::Shape shape2({7, 3});
 		teq::TensptrT osrc = std::make_shared<MockTensor>(shape, "osrc");
 		teq::TensptrT osrc2 = std::make_shared<MockTensor>(shape2, "osrc2");
-
-		auto& preg = tag::get_property_reg();
-		preg.property_tag(osrc, "osrc");
-		preg.property_tag(osrc2, "osrc2");
 
 		{
 			teq::Shape shape3({3, 1, 7});
@@ -67,10 +58,6 @@ TEST(SAVE, SaveGraph)
 				}, teq::Opcode{"@", 1}), {}, {1, 2, 0}, {4, 2}),
 			}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
-
-			preg.property_tag(src, "subtree_src");
-			preg.property_tag(src2, "subtree_src2");
-			preg.property_tag(dest, "subtree_dest");
 		}
 
 		// subtree two
@@ -95,14 +82,9 @@ TEST(SAVE, SaveGraph)
 				}, teq::Opcode{"*", 6}), {}),
 			}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
-
-			preg.property_tag(src, "subtree2_src");
-			preg.property_tag(src2, "subtree2_src2");
-			preg.property_tag(src3, "subtree2_src3");
-			preg.property_tag(dest, "subtree2_dest");
 		}
 
-		pbm::save_graph(graph, roots, preg.tag_reg_, save_leaf);
+		onnx::save_graph(graph, roots, save_leaf);
 
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -116,8 +98,8 @@ TEST(SAVE, SaveGraph)
 		ASSERT_TRUE(expect_ifs.is_open());
 		ASSERT_TRUE(got_ifs.is_open());
 
-		tenncor::Graph expect_graph;
-		tenncor::Graph got_graph;
+		onnx::GraphProto expect_graph;
+		onnx::GraphProto got_graph;
 		ASSERT_TRUE(expect_graph.ParseFromIstream(&expect_ifs));
 		ASSERT_TRUE(got_graph.ParseFromIstream(&got_ifs));
 

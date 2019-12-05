@@ -17,15 +17,13 @@
 namespace onnx
 {
 
-using LeafUnmarshF = std::function<teq::TensptrT(const TensorProto&,bool)>;
-
-using EdgesT = std::vector<std::pair<teq::TensptrT,teq::Shape>>;
+using LeafUnmarshF = std::function<teq::TensptrT(const TensorProto&,bool,std::string)>;
 
 using FuncUnmarshF = std::function<teq::TensptrT(
-	std::string,const EdgesT&,marsh::Maps&&)>;
+	std::string,const teq::TensptrsT&,marsh::Maps&&)>;
 
 /// Return graph info through out available from in graph
-void load_graph (teq::TensptrSetT& roots, const GraphProto& pb_graph,
+void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func);
 
 }

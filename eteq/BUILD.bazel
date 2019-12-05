@@ -81,6 +81,7 @@ cc_library(
         "//tag:tag",
         "//opt:opt",
         "//pbm:pbm",
+        "//onnx:onnx",
     ],
     visibility = ["//visibility:public"],
 )

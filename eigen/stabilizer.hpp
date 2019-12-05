@@ -447,7 +447,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		case egen::REDUCE_SUM:
 		{
 			const teq::iEdge& arg = func->get_children()[0];
-			const teq::Shape& shape = arg.argshape();
+			const teq::Shape& shape = arg.shape();
 			teq::NElemT nreds = 1;
 			bool reduced = false;
 			auto c = get_coorder(func);
@@ -469,7 +469,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		case egen::REDUCE_PROD:
 		{
 			const teq::iEdge& arg = func->get_children()[0];
-			const teq::Shape& shape = arg.argshape();
+			const teq::Shape& shape = arg.shape();
 			teq::NElemT nreds = 1;
 			bool reduced = false;
 			auto c = get_coorder(func);
@@ -499,7 +499,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum
 			const teq::iEdge& arg = func->get_children()[0];
-			const teq::Shape& shape = arg.argshape();
+			const teq::Shape& shape = arg.shape();
 			teq::NElemT ncommons = 1;
 			auto c = get_coorder(func);
 			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());

@@ -39,6 +39,17 @@ rocnnet_py_export: bazel-bin/rocnnet/rocnnet.so bazel-bin/eteq/tenncor.so bazel-
 	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
 
 
+onnx2json: eteq_test_o2j onnx_test_o2j
+
+eteq_test_o2j: models/test/eteq_graph.onnx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/eteq_graph.onnx --write /tmp/eteq_graph.json
+	mv /tmp/eteq_graph.json models/test
+
+onnx_test_o2j: models/test/onnx_graph.onnx
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/onnx_graph.onnx --write /tmp/onnx_graph.json
+	mv /tmp/onnx_graph.json models/test
+
+
 pbx2json: eteq_test_p2j pbm_test_p2j gd_model_p2j dqn_model_p2j rbm_model_p2j dbn_model_p2j rnn_model_p2j lstm_model_p2j gru_model_p2j
 
 eteq_test_p2j: models/test/eteq.pbx
@@ -76,6 +87,17 @@ lstm_model_p2j: models/lstm.pbx
 gru_model_p2j: models/gru.pbx
 	bazel run //pbm:inspector -- --read ${CURDIR}/models/gru.pbx --write /tmp/gru.json
 	mv /tmp/gru.json models
+
+
+json2onnx: eteq_test_j2o onnx_test_j2o
+
+eteq_test_j2o: models/test/eteq_graph.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/eteq_graph.json --write /tmp/eteq_graph.onnx
+	mv /tmp/eteq_graph.onnx models/test
+
+onnx_test_j2o: models/test/onnx_graph.json
+	bazel run //pbm:inspector -- --read ${CURDIR}/models/test/onnx_graph.json --write /tmp/onnx_graph.onnx
+	mv /tmp/onnx_graph.onnx models/test
 
 
 json2pbx: eteq_test_j2p pbm_test_j2p gd_model_j2p dqn_model_j2p rbm_model_j2p dbn_model_j2p rnn_model_j2p lstm_model_j2p gru_model_j2p
@@ -197,5 +219,7 @@ lcov_teq: cover_teq cov_clean
 .PHONY: coverage cover_ccur cover_eigen cover_eteq cover_layr cover_opt cover_pbm cover_tag cover_teq
 .PHONY: compare_matmul compare_mlp compare_mlp_grad cov_clean cov_genhtml
 .PHONY: lcov lcov_ccur lcov_eteq lcov_layr lcov_opt lcov_pbm lcov_tag lcov_teq
+.PHONY: onnx2json eteq_test_o2j pbm_test_o2j
+.PHONY: json2onnx eteq_test_j2o pbm_test_j2o
 .PHONY: pbx2json eteq_test_p2j pbm_test_p2j gd_model_p2j dqn_model_p2j rbm_model_p2j dbn_model_p2j rnn_model_p2j lstm_model_p2j gru_model_p2j
 .PHONY: json2pbx eteq_test_j2p pbm_test_j2p gd_model_j2p dqn_model_j2p rbm_model_j2p dbn_model_j2p rnn_model_j2p lstm_model_j2p gru_model_j2p

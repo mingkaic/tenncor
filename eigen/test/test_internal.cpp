@@ -125,12 +125,6 @@ struct JunkEdge final : public eigen::iEigenEdge<T>
 	}
 
 	/// Implementation of iEdge
-	teq::Shape argshape (void) const override
-	{
-		return teq::Shape();
-	}
-
-	/// Implementation of iEdge
 	teq::TensptrT get_tensor (void) const override
 	{
 		return nullptr;

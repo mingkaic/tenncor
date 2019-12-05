@@ -28,6 +28,17 @@ struct iObject
 
 	virtual void accept (iMarshaler& marshaler) const = 0;
 
+	template <typename SUB, typename std::enable_if<
+		std::is_base_of<iObject,SUB>::value>::type* = nullptr>
+	SUB* cast (void)
+	{
+		if (typeid(SUB).hash_code() == this->class_code())
+		{
+			return static_cast<SUB*>(this);
+		}
+		return nullptr;
+	}
+
 protected:
 	virtual iObject* clone_impl (void) const = 0;
 };
@@ -52,6 +63,8 @@ template <typename T,
 	typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
 struct Number final : public iNumber
 {
+	Number (void) : val_(0) {}
+
 	Number (T val) : val_(val) {}
 
 	size_t class_code (void) const override

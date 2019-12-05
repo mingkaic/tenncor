@@ -111,8 +111,7 @@ struct FuncTarget final : public opt::iTarget
 		for (auto& targ : args_)
 		{
 			auto arg = to_node<T>(targ.target_->convert(outshape, candidate));
-			teq::Shape argshape = targ.shape_ ? *targ.shape_ : arg->shape();
-			args.push_back(Edge<T>(arg, argshape));
+			args.push_back(Edge<T>(arg));
 		}
 		if (variadic_.size() > 0)
 		{

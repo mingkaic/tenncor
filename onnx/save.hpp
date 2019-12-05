@@ -19,9 +19,9 @@
 namespace onnx
 {
 
-using LeafMarshF = std::function<std::string(TensorProto*,const teq::iLeaf*)>;
+using LeafMarshF = std::function<void(TensorProto&,const teq::iLeaf&)>;
 
-void save_graph (GraphProto& out,
+void save_graph (GraphProto& pb_graph,
 	teq::TensptrsT roots, LeafMarshF marshal_leaf);
 
 }

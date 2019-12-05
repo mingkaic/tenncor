@@ -6,8 +6,10 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-P3 - rework layer serialization to better encode non-tensor parameters
-P5 - implement onnx support (https://github.com/onnx/onnx)
+P2 - implement onnx support for layer
+   - deprecate edge attrs, investigate control edges
+P3 - implement control nodes/edges for assignments
+   - mark pbm as deprecated in favor of onnx
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators
@@ -34,7 +36,6 @@ P5 - formalize codestyle
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
 P2 - make shape dimension size configurable (instead of fixed rank_cap)
-P3 - implement control nodes/edges for assignments
 P4 - implement reduce_prod gradient using Eigen cumprod
 
 === usage ===

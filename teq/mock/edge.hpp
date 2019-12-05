@@ -21,12 +21,6 @@ struct MockEdge final : public teq::iEdge
 	/// Implementation of iEdge
 	teq::Shape shape (void) const override
 	{
-		return argshape();
-	}
-
-	/// Implementation of iEdge
-	teq::Shape argshape (void) const override
-	{
 		return tensor_->shape();
 	}
 
