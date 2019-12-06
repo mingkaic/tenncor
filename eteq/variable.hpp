@@ -106,6 +106,11 @@ struct Variable final : public iLeaf<T>
 		this->data_ = eigen::make_tensmap<T>(data.data(), shape);
 	}
 
+	void assign (const teq::ShapedArr<T>& arr)
+	{
+		assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
+	}
+
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
@@ -128,7 +133,6 @@ private:
 	Variable (const Variable<T>& other) = default;
 
 	Variable (Variable<T>&& other) = default;
-
 };
 
 /// Variable's node wrapper
@@ -158,6 +162,12 @@ struct VariableNode final : public iNode<T>
 		return var_;
 	}
 
+	/// Assign Eigen tensor map to variable's internal data
+	void assign (const eigen::TensorT<T>& tensor)
+	{
+		*var_ = tensor;
+	}
+
 	/// Wrapper around variable assign of the same signature
 	void assign (const T* input, teq::Shape shape)
 	{
@@ -165,15 +175,21 @@ struct VariableNode final : public iNode<T>
 	}
 
 	/// Assign Eigen tensor map to variable's internal data
-	void assign (const eigen::TensMapT<T>* tensmap)
+	void assign (const eigen::TensMapT<T>& tensmap)
 	{
-		var_->assign(tensmap->data(), egen::get_type<T>(), get_shape(*tensmap));
+		var_->assign(tensmap.data(), egen::get_type<T>(), get_shape(tensmap));
 	}
 
 	/// Assign ShapedArr representation to variable's internal data
 	void assign (const teq::ShapedArr<T>& arr)
 	{
 		var_->assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
+	}
+
+	/// Implementation of iNode<T>
+	bool has_data (void) const override
+	{
+		return true;
 	}
 
 protected:

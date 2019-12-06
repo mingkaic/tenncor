@@ -7,6 +7,7 @@
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/grader.hpp"
 #include "eteq/variable.hpp"
+#include "eteq/placeholder.hpp"
 #include "eteq/optimize.hpp"
 
 namespace py = pybind11;
@@ -198,6 +199,34 @@ PYBIND11_MODULE(eteq, m)
 				self->assign(arr);
 			},
 			"Assign numpy data array to variable");
+
+	// ==== placeholder ====
+	py::class_<eteq::PlaceholderNode<PybindT>,eteq::PlaceptrT<PybindT>,
+		eteq::iNode<PybindT>> placeholder(m, "Placeholder");
+
+	placeholder
+		.def(py::init(
+			[](std::vector<py::ssize_t> slist, std::string label)
+			{
+				return eteq::make_placeholder<PybindT>(
+					pyutils::p2cshapesign(slist), label);
+			}),
+			py::arg("shape"),
+			py::arg("label") = "")
+		.def("assign",
+			[](eteq::PlaceholderNode<PybindT>* self, py::array data)
+			{
+				teq::ShapedArr<PybindT> arr;
+				pyutils::arr2shapedarr(arr, data);
+				self->assign(arr);
+			},
+			"Assign numpy data array to placeholder")
+		.def("assign",
+			[](eteq::PlaceholderNode<PybindT>* self, NodeptrT node)
+			{
+				self->assign(node);
+			},
+			"Assign numpy data array to placeholder");
 
 	// ==== inline functions ====
 	m

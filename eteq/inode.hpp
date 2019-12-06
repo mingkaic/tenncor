@@ -59,6 +59,8 @@ struct iNode
 	/// Return internal tensor
 	virtual teq::TensptrT get_tensor (void) const = 0;
 
+	virtual bool has_data (void) const = 0;
+
 protected:
 	virtual iNode<T>* clone_impl (void) const = 0;
 

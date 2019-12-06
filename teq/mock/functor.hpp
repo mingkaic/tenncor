@@ -19,7 +19,7 @@ struct MockFunctor final : public teq::iFunctor
 		args_(args) {}
 
 	/// Implementation of iTensor
-	const teq::Shape& shape (void) const override
+	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}

@@ -95,6 +95,12 @@ struct ConstantNode final : public iNode<T>
 		return cst_;
 	}
 
+	/// Implementation of iNode<T>
+	bool has_data (void) const override
+	{
+		return true;
+	}
+
 protected:
 	iNode<T>* clone_impl (void) const override
 	{

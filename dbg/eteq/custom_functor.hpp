@@ -39,7 +39,7 @@ struct CustomFunctor final : public teq::iOperableFunc
 	CustomFunctor<T>& operator = (CustomFunctor<T>&& other) = delete;
 
 	/// Implementation of iTensor
-	const teq::Shape& shape (void) const override
+	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}
@@ -160,6 +160,12 @@ struct CustomFunctorNode final : public eteq::iNode<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return func_;
+	}
+
+	/// Implementation of iNode<T>
+	bool has_data (void) const
+	{
+		return true;
 	}
 
 protected:

@@ -47,3 +47,5 @@ opcode:
     GROUP_CONCAT: out = eigen::group_concat(outshape, in, attrs);
     GROUP_SUM: out = eigen::group_sum(outshape, in);
     GROUP_PROD: out = eigen::group_prod(outshape, in);
+  reserved:
+  - PLACEHOLDER

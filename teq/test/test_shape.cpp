@@ -84,26 +84,14 @@ TEST(SHAPE, Moves)
 	teq::Shape mv(std::move(orig));
 	std::vector<teq::DimT> mlist(mv.begin(), mv.end());
 	EXPECT_ARREQ(slist, mlist);
-	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-	{
-		EXPECT_EQ(1, orig.at(i));
-	}
 
 	mvassign = std::move(mv);
 	std::vector<teq::DimT> alist(mvassign.begin(), mvassign.end());
 	EXPECT_ARREQ(slist, alist);
-	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-	{
-		EXPECT_EQ(1, mv.at(i));
-	}
 
 	mvassign2 = std::move(mvassign);
 	std::vector<teq::DimT> alist2(mvassign2.begin(), mvassign2.end());
 	EXPECT_ARREQ(slist, alist2);
-	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-	{
-		EXPECT_EQ(1, mvassign.at(i));
-	}
 }
 
 

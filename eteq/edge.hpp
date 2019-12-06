@@ -50,9 +50,9 @@ struct Edge final : public eigen::iEigenEdge<T>
 		return node_->data();
 	}
 
-	void set_tensor (teq::TensptrT tens)
+	void set_node (NodeptrT<T> node)
 	{
-		node_ = to_node<T>(tens);
+		node_ = node;
 	}
 
 	NodeptrT<T> get_node (void) const

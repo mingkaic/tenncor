@@ -17,7 +17,7 @@ struct MockTensor : public teq::iLeaf
 
 	virtual ~MockTensor (void) = default;
 
-	const teq::Shape& shape (void) const override
+	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}

@@ -118,7 +118,7 @@ struct FuncTarget final : public opt::iTarget
 			auto& edges = candidate.variadic_.at(variadic_);
 			for (const teq::iEdge& edge : edges)
 			{
-				args.push_back(*static_cast<const eteq::Edge<T>*>(&edge));
+				args.push_back(*static_cast<const Edge<T>*>(&edge));
 			}
 		}
 		marsh::Maps attrs;
@@ -128,7 +128,7 @@ struct FuncTarget final : public opt::iTarget
 			arr->contents_ = coords_;
 			attrs.contents_.emplace(eigen::coorder_key, marsh::ObjptrT(arr));
 		}
-		return teq::TensptrT(eteq::Functor<T>::get(opcode_, args, std::move(attrs)));
+		return teq::TensptrT(Functor<T>::get(opcode_, args, std::move(attrs)));
 	}
 
 	egen::_GENERATED_OPCODE opcode_;

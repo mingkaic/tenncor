@@ -98,7 +98,7 @@ TensMapIndicesT save_graph (
 
 		tenncor::Source* pb_leaf = pb_node->mutable_source();
 
-		const teq::Shape& shape = leaf->shape();
+		teq::Shape shape = leaf->shape();
 		google::protobuf::RepeatedField<google::protobuf::uint64> slist(
 			shape.begin(), shape.end());
 		pb_leaf->mutable_shape()->Swap(&slist);

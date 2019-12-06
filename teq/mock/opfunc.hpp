@@ -29,7 +29,7 @@ struct MockOpfunc final : public teq::iOperableFunc
 	}
 
 	/// Implementation of iTensor
-	const teq::Shape& shape (void) const override
+	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}

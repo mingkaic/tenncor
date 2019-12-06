@@ -24,7 +24,7 @@ struct iLeaf : public teq::iLeaf
 	virtual ~iLeaf (void) = default;
 
 	/// Implementation of iTensor
-	const teq::Shape& shape (void) const override
+	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}

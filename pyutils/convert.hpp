@@ -15,6 +15,8 @@ std::vector<teq::DimT> c2pshape (const teq::Shape& cshape);
 
 teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape);
 
+teq::ShapeSignature p2cshapesign (std::vector<py::ssize_t>& pyshape);
+
 template <typename T>
 py::array shapedarr2arr (const teq::ShapedArr<T>& sarr)
 {

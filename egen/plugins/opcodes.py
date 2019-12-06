@@ -97,40 +97,40 @@ _GENERATED_OPCODE get_op (std::string name)
 #endif
 '''
 
-def _handle_opcodes(params, opcalls):
+def _handle_opcodes(params, opcalls, reserved):
     assert(len(opcalls))
-    dopcodes = list(opcalls.keys())
+    dopcodes = list(opcalls.keys()) + reserved
     return ',\n    '.join(dopcodes) + ','
 
-def _handle_params(params, opcalls):
+def _handle_params(params, opcalls, reserved):
     return params.strip()
 
-def _handle_ops(params, opcalls):
+def _handle_ops(params, opcalls, reserved):
     _opcode_case_tmp = 'case {code}: {stmt} break;'
     return '\n        '.join([
         _opcode_case_tmp.format(code=opcode, stmt=opcalls[opcode])
         for opcode in opcalls
     ])
 
-def _handle_cases(params, opcalls):
+def _handle_cases(params, opcalls, reserved):
     _lookup_case_tmp = 'case egen::{code}: GENERIC_MACRO(::egen::{code}) break;'
     return '\\\n    '.join([
         _lookup_case_tmp.format(code=opcode)
         for opcode in opcalls
     ])
 
-def _handle_code2names(params, opcalls):
+def _handle_code2names(params, opcalls, reserved):
     _code2names_tmp = '{{ {code}, "{code}" }}'
     return ',\n    '.join([
         _code2names_tmp.format(code=code)
-        for code in opcalls
+        for code in list(opcalls.keys()) + reserved
     ])
 
-def _handle_name2codes(params, opcalls):
+def _handle_name2codes(params, opcalls, reserved):
     _name2codes_tmp = '{{ "{code}", {code} }}'
     return ',\n    '.join([
         _name2codes_tmp.format(code=code)
-        for code in opcalls
+        for code in list(opcalls.keys()) + reserved
     ])
 
 _plugin_id = "OPCODE"
@@ -166,13 +166,13 @@ class OpcodesPlugin:
 
         generated_files[_hdr_file] = FileRep(
             build_template(_header_template, module,
-                opcodes['params'], opcodes['opcalls']),
+                opcodes['params'], opcodes['opcalls'], opcodes['reserved']),
             user_includes=['<string>', '"logs/logs.hpp"'] + operator_include,
             internal_refs=[])
 
         generated_files[_src_file] = FileRep(
             build_template(_source_template, module,
-                opcodes['params'], opcodes['opcalls']),
+                opcodes['params'], opcodes['opcalls'], opcodes['reserved']),
             user_includes=['"estd/estd.hpp"'],
             internal_refs=[_hdr_file])
 

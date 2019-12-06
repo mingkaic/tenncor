@@ -41,7 +41,7 @@ struct iTensor
 	virtual void accept (iTraveler& visiter) = 0;
 
 	/// Return the shape held by this tensor
-	virtual const Shape& shape (void) const = 0;
+	virtual Shape shape (void) const = 0;
 
 	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;

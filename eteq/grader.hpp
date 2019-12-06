@@ -21,10 +21,9 @@ namespace eteq
 
 /// Return reduction operator gradient of reduced functor node (bwd)
 template <typename T>
-NodeptrT<T> reduce_grad (const teq::iEdge& child,
+NodeptrT<T> reduce_grad (teq::Shape shape,
 	NodeptrT<T> bwd, teq::FuncptrT fwd)
 {
-	const teq::Shape& shape = child.shape();
 	std::vector<teq::DimT> bcast(teq::rank_cap, 1);
 	auto c = eigen::get_coorder(fwd.get());
 	for (teq::RankT d : c)
@@ -108,7 +107,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::MUL:
 			case egen::GROUP_PROD:
 			{
-				eteq::NodesT<T> nodes;
+				NodesT<T> nodes;
 				size_t nargs = args.size();
 				nodes.reserve(nargs);
 				for (size_t i = 0, n = nargs; i < n; ++i)
@@ -157,13 +156,13 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::REDUCE_PROD: // todo: prevent divide by zero
 				out =
-					reduce_grad(args[0], to_node<T>(op), op) /
+					reduce_grad(args[0].get().shape(), to_node<T>(op), op) /
 					to_node<T>(args[0].get().get_tensor());
 				break;
 			case egen::REDUCE_MAX:
 			case egen::REDUCE_MIN:
 				out =
-					reduce_grad(args[0], to_node<T>(op), op) ==
+					reduce_grad(args[0].get().shape(), to_node<T>(op), op) ==
 					to_node<T>(args[0].get().get_tensor());
 				break;
 			case egen::MATMUL:
@@ -310,7 +309,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::REDUCE_PROD:
 			case egen::REDUCE_SUM:
 				out = to_node<T>(local_der) * reduce_grad(
-					op->get_children()[0], to_node<T>(supcomp_grad), op);
+					op->get_children()[0].get().shape(),
+					to_node<T>(supcomp_grad), op);
 				break;
 			case egen::EXTEND:
 			{
